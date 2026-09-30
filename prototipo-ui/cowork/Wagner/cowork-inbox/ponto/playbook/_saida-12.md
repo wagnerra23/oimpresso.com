@@ -90,6 +90,14 @@ marcações importadas (só para frente; marcação é append-only).~~ → **ent
 
 ## Para o Cowork (o Code não edita o índice)
 
+- **Catálogo de relatórios no protótipo (`ponto-data.jsx`, `RELATORIOS`) — 3 pedidos de forma:**
+  (1) o AEJ se chama **"Apuração Eletrônica de Jornada"**, mas o nome legal é **Arquivo** Eletrônico de Jornada
+  (leiaute MTE); o Code manteve o texto do protótipo (UI-0029) e o teste de a11y ancora nele;
+  (2) o **AFDT** continua no catálogo, e a W7 o tirou — o vivo já não o lista;
+  (3) o AFD e o AEJ saem **sem assinatura .p7s** e isso não tem lugar no desenho — no #8224 o Code pôs na
+  descrição do AFD ("Arquivo Fonte de Dados do REP-P, por colaborador · sem assinatura .p7s"), que hoje
+  diverge do protótipo ("Arquivo Fonte de Dados"). Decidir onde a tela declara a falta do .p7s.
+
 - A thread 12 tem **uma** prova (`RelatorioLegalContratoTest.php` existe) e o índice diz 2 PRs. Com esta
   saída o placar vai marcá-la **feito**, e o AEJ some da conta. Pedido: dividir em **12a AFD** (esta prova)
   e **12b AEJ** (prova nova, ex.: `ReportService` sem `Gerador AEJ ainda não implementado`), com

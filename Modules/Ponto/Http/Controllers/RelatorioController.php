@@ -54,7 +54,9 @@ class RelatorioController extends Controller
             // é formato da Portaria 1510/2009, que a 671/2021 substituiu pelo AEJ.
             ['chave' => self::CHAVE_AFD, 'titulo' => 'AFD (Portaria 671/2021)', 'descricao' => 'Arquivo Fonte de Dados do REP-P, por colaborador · sem assinatura .p7s', 'icone' => 'FileText', 'cor' => 'blue', 'disponivel' => $this->reports->afdConfigurado(), 'requer_colaborador' => true],
             // AEJ do empregador (ADR 0420): disponível só com a identidade do PTRP configurada.
-            ['chave' => self::CHAVE_AEJ, 'titulo' => 'AEJ (Portaria 671/2021)', 'descricao' => 'Arquivo Eletrônico de Jornada do mês · sem assinatura .p7s', 'icone' => 'FileSpreadsheet', 'cor' => 'blue', 'disponivel' => app(\Modules\Ponto\Services\AejService::class)->configurado(), 'requer_colaborador' => false],
+            // Título e descrição são os do protótipo (forma — UI-0029), mesmo com o nome legal errado
+            // ("Apuração"; o da Portaria é "Arquivo"): a correção vai ao Cowork pelo _saida-12.
+            ['chave' => self::CHAVE_AEJ, 'titulo' => 'AEJ', 'descricao' => 'Apuração Eletrônica de Jornada', 'icone' => 'FileSpreadsheet', 'cor' => 'blue', 'disponivel' => app(\Modules\Ponto\Services\AejService::class)->configurado(), 'requer_colaborador' => false],
             ['chave' => self::CHAVE_ESPELHO, 'titulo' => 'Espelho de Ponto',   'descricao' => 'PDF mensal por colaborador',      'icone' => 'ClipboardList', 'cor' => 'emerald', 'disponivel' => true,  'requer_colaborador' => true],
             ['chave' => 'he',          'titulo' => 'Horas Extras',             'descricao' => 'Relatório consolidado do mês',    'icone' => 'Clock',         'cor' => 'amber',   'disponivel' => false, 'requer_colaborador' => false],
             ['chave' => 'banco-horas', 'titulo' => 'Banco de Horas',           'descricao' => 'Saldos e movimentações',          'icone' => 'PiggyBank',     'cor' => 'emerald', 'disponivel' => false, 'requer_colaborador' => false],
