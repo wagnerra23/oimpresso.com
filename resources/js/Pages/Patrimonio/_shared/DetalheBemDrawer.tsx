@@ -144,8 +144,8 @@ export default function DetalheBemDrawer({
     <Sheet open={aberto} onOpenChange={(o) => { if (!o) onClose(); }}>
       <SheetContent side="right" className="w-full gap-0 sm:max-w-[720px]" data-testid="detalhe-bem">
         <SheetHeader className="gap-1 border-b px-[18px] py-4">
-          <SheetTitle className="text-[17px]">{detalhe ? detalhe.nome : detalhe === null ? 'Bem não encontrado' : 'Carregando bem…'}</SheetTitle>
-          <SheetDescription className="text-[12.5px]">
+          <SheetTitle className="text-[17px] leading-[1.3]">{detalhe ? detalhe.nome : detalhe === null ? 'Bem não encontrado' : 'Carregando bem…'}</SheetTitle>
+          <SheetDescription className="text-[12.5px] leading-[1.45]">
             {detalhe
               ? [detalhe.asset_code, detalhe.categoria, detalhe.modelo, detalhe.local].filter(Boolean).join(' · ')
               : detalhe === null
