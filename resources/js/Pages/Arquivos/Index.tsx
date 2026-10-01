@@ -207,6 +207,17 @@ const BUCKET_PT: Record<string, string> = {
   discard: 'Descartar',
 }
 
+/**
+ * Bucket → valor do `StatusBadge kind="sla"` — o mapa `BUCKET.k` do protótipo, verbatim.
+ * Só a COR vem do `sla`; o rótulo é o de `BUCKET_PT` (passado por `label`).
+ */
+const BUCKET_SLA: Record<string, string> = {
+  sensitive: 'expired',
+  active: 'fresh',
+  memory: 'late',
+  discard: 'aging',
+}
+
 /** Visibilidade é outro eixo — QUEM vê, não o que é. Mesmo tratamento: PT-BR na tela, enum no title. */
 const VIS_PT: Record<string, string> = {
   private: 'Restrito',
@@ -498,11 +509,18 @@ function colunas(politica: Politica[]): ColumnDef<LinhaAcervo, unknown>[] {
               {/* Mesmo vocabulário da Retenção, que já usava o `CONTEXTO_PT`: rótulo PT-BR na
                   tela, slug no `title`. Antes o slug ia cru dentro de `<code>` — e `<code>` é
                   pra valor técnico, não pra prosa como "sem contexto". */}
-              <span title={a.sub_destination ?? undefined}>
-                {a.sub_destination
-                  ? (CONTEXTO_PT[a.sub_destination] ?? a.sub_destination)
-                  : 'Sem contexto mapeado'}
-              </span>
+              {/* Thread 01 (2026-09-30): rótulo PT-BR + o slug em `<code>` mono, como o
+                  protótipo (`{label} · <code>{sub}</code>`). O design-diff acusava col0 sem
+                  mono. Slug sem rótulo no mapa vai só em `<code>` — repetir o mesmo valor
+                  duas vezes seria ruído. Sem contexto segue prosa, nunca `<code>`. */}
+              {a.sub_destination ? (
+                <span title={a.sub_destination}>
+                  {CONTEXTO_PT[a.sub_destination] ? <>{CONTEXTO_PT[a.sub_destination]} · </> : null}
+                  <code className="mono">{a.sub_destination}</code>
+                </span>
+              ) : (
+                <span>Sem contexto mapeado</span>
+              )}
               {lei ? <> · {lei}</> : null}
               {/* `no_rule_matched` e o fallback do CuradorEngine quando nenhuma regra casa
                   (CuradorEngine:248) — nao e um classificador, e a ausencia de um. Mostrar o
@@ -608,18 +626,27 @@ function colunas(politica: Politica[]): ColumnDef<LinhaAcervo, unknown>[] {
         // `danger` (par SOFT), não `destructive` (fill sólido), pelo mesmo motivo do órfão acima:
         // sensível é ESTADO do arquivo, não ação destrutiva — e numa lista onde a maioria das
         // linhas de NF-e/contrato é `sensitive`, o fill pintaria metade da coluna de vermelho cheio.
+        //
+        // Thread 01 (2026-09-30): forma do protótipo — `.arq-cls` com `StatusBadge kind="sla"`
+        // (pílula SOFT com dot, AP7) e a visibilidade em `<small className="mono">`. O
+        // design-diff acusava col2 sem dot e sem mono. `sla` aqui é empréstimo de PALETA, não
+        // de semântica (o protótipo declara isso): classificação não tem família soft própria.
+        // Bucket fora do mapa cai em texto neutro, como o `BUCKET_FALLBACK` do protótipo.
+        const tom = a.bucket ? BUCKET_SLA[a.bucket] : undefined
+        const rotulo = a.bucket ? (BUCKET_PT[a.bucket] ?? a.bucket) : 'sem classificação'
         return (
-          <Stack gap={1} align="start">
-            <Badge
-              variant={a.bucket === 'sensitive' ? 'danger' : 'secondary'}
-              title={a.bucket ?? undefined}
-            >
-              {a.bucket ? (BUCKET_PT[a.bucket] ?? a.bucket) : '—'}
-            </Badge>
-            <span className="text-xs text-muted-foreground" title={a.visibility ?? undefined}>
-              {a.visibility ? (VIS_PT[a.visibility] ?? a.visibility) : '—'}
+          <span className="arq-cls">
+            <span title={a.bucket ?? undefined}>
+              {tom ? (
+                <StatusBadge kind="sla" value={tom} label={rotulo} />
+              ) : (
+                <span className="arq-disk">{rotulo}</span>
+              )}
             </span>
-          </Stack>
+            <small className="mono" title={a.visibility ?? undefined}>
+              {a.visibility ? (VIS_PT[a.visibility] ?? a.visibility) : '—'}
+            </small>
+          </span>
         )
       },
     },
@@ -715,7 +742,16 @@ function colunas(politica: Politica[]): ColumnDef<LinhaAcervo, unknown>[] {
               // `DownloadController`, que responde um stream. `<Link>` do Inertia faria XHR e
               // engasgaria no anexo. Sem `target="_blank"`: o navegador trata anexo como
               // download e não navega pra fora da tela.
-              <Button variant="ghost" size="icon-sm" asChild>
+              // Thread 01 (2026-09-30): cor PRÓPRIA no botão (`text-muted-foreground`, foreground
+              // no hover). O design-diff acusava col6 "herda a cor da linha": o `ghost` não
+              // declara cor de texto, então o ícone pegava a da linha — e a linha `urgent` o
+              // pintaria de vermelho, como se baixar fosse a ação de alerta.
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                className="text-muted-foreground hover:text-foreground"
+                asChild
+              >
                 <a
                   href={a.download_url}
                   aria-label={`Baixar ${a.nome}`}

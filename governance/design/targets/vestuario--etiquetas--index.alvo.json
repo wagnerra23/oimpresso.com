@@ -1,0 +1,195 @@
+{
+  "aguardou_sumir": null,
+  "ausentes": [],
+  "base": {
+    "assinatura": "OI WR Etiquetas TAG vestuário ZPL Argox/Zebra + PDF · 3 itens × 1 cópias = 3 etiquetas Baixar ZPL Baixar PDF Configuração atual 400×240 dots 203 dpi margem 16 dots QR ativo ≈ 50 × 30 mm — o modelo e o driver da impressora se configuram fora desta tela. Lote ( 3 itens ) cópias × Item Produto ID Nome Tam. Cor Coleção Preço SKU EAN-13 PP P M G GG XGG 0000000044714 Remover item PP P M G GG XGG 0000000044721 Remover item PP P M G GG XGG 0000000045100 Remover item Prévia da etiqueta proposta F1 · pendente [W] Camiseta algodão penteado Preto · Verão 26 M preço R$ 69,90 0000000044714 Camiseta algodão penteado Branco · Verão 26 G preço R$ 69,90 0000000044721 Moletom canguru flanelado Chumbo · Inverno 26 GG preço R$ 189,90 0000000045100 A prévia é desenho da tela. O que sai na térmica é o ZPL gerado no servidor — mesma origem do EAN-13 e do QR.",
+    "roles": {
+      "celulas": null,
+      "chart": null,
+      "contratos": [
+        {
+          "classes": {
+            "dataBr": 0,
+            "dataIso": 0,
+            "snakeCru": 0
+          },
+          "exemplos": {},
+          "nome": "cabecalho"
+        },
+        {
+          "classes": {
+            "dataBr": 0,
+            "dataIso": 0,
+            "snakeCru": 0
+          },
+          "exemplos": {},
+          "nome": "config"
+        },
+        {
+          "classes": {
+            "dataBr": 0,
+            "dataIso": 0,
+            "snakeCru": 0
+          },
+          "exemplos": {},
+          "nome": "lote"
+        },
+        {
+          "classes": {
+            "dataBr": 0,
+            "dataIso": 0,
+            "snakeCru": 0
+          },
+          "exemplos": {},
+          "nome": "previa"
+        }
+      ],
+      "filterRows": null,
+      "kpi": {
+        "count": 0,
+        "items": [],
+        "overflowX": null,
+        "tag": null
+      },
+      "primary": null,
+      "shell": null,
+      "tabela": null,
+      "title": null
+    },
+    "saude": {
+      "folhasVazias": [],
+      "nFolhas": 73,
+      "tokensMortos": []
+    },
+    "theme": "dark",
+    "url": "http://127.0.0.1:5561/"
+  },
+  "nos_totais": 1019,
+  "quieto_ms": 2000,
+  "rota": "vest-etiquetas",
+  "secoes": {
+    "cabecalho": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "os-page",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "block",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "padding": "8px 0px 0px"
+      },
+      "filhos": 1,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "os-page"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "header"
+      ],
+      "rect": {
+        "h": 88,
+        "w": 1176
+      },
+      "seletor": ".vst-page > [data-contract=\"cabecalho\"]",
+      "truncado": false
+    },
+    "config": {
+      "contraste": {
+        "fundo": "oklch(0.3 0.008 240)",
+        "fundo_de": "proprio",
+        "razao": 11.42,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.027108,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.3 0.008 240)",
+        "borderRadius": "12px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "flex",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "10px",
+        "padding": "12px 14px"
+      },
+      "filhos": 3,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.3 0.008 240)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "vst-cfg-l",
+        "vst-cfg-chips",
+        "vst-cfg-fine"
+      ],
+      "rect": {
+        "h": 49,
+        "w": 1176
+      },
+      "seletor": ".vst-page > [data-contract=\"config\"]",
+      "truncado": false
+    },
+    "lote": {
+      "contraste": {
+        "fundo": "oklch(0.3 0.008 240)",
+        "fundo_de": "proprio",
+        "razao": 11.42,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.027108,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.3 0.008 240)",
+        "borderRadius": "12px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "block",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "padding": "16px"
+      },
+      "filhos": 5,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.3 0.008 240)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "vst-lote-h",
+        "vst-grid",
+        "vst-grid",
+        "vst-grid",
+        "vst-grid"
+      ],
+      "rect": {
+        "h": 265,
+        "w": 1176
+      },
+      "seletor": ".vst-page > [data-contract=\"lote\"]",
+      "truncado": false
+    }
+  },
+  "tela": "vestuario--etiquetas--index",
+  "url": "http://127.0.0.1:5561/"
+}

@@ -19,15 +19,13 @@ authority: generated
 | US no SPEC | 5 |
 | CU no SDD | 0 |
 | Telas (.tsx) | 14 |
-| Telas com `casos.md` | 13 |
-| UC declarados | 75 |
-| UC com teste que os cita | 75 |
+| Telas com `casos.md` | 14 |
+| UC declarados | 81 |
+| UC com teste que os cita | 81 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
-| Lacuna | O que falta escrever |
-|---|---|
-| Tela `JobSheet/Index` sem `casos.md` | o contrato da tela (trio incompleto) |
+_Nenhuma lacuna: toda tela tem caso **com UC**, todo CU é citado, e toda US **entregue** tem contrato._
 
 ### Backlog — NÃO é lacuna
 
@@ -76,6 +74,12 @@ authority: generated
 | UC-JSE-04 | JobSheet/Edit | 🧪 aguarda veredito da lane |
 | UC-JSE-05 | JobSheet/Edit | 🧪 aguarda veredito da lane |
 | UC-JSE-06 | JobSheet/Edit | 🧪 aguarda veredito da lane |
+| UC-JSIDX-01 | JobSheet/Index | 🧪 aguarda veredito da lane |
+| UC-JSIDX-02 | JobSheet/Index | 🧪 aguarda veredito da lane |
+| UC-JSIDX-03 | JobSheet/Index | 🧪 aguarda veredito da lane |
+| UC-JSIDX-04 | JobSheet/Index | 🧪 aguarda veredito da lane |
+| UC-JSIDX-05 | JobSheet/Index | 🧪 aguarda veredito da lane |
+| UC-JSIDX-06 | JobSheet/Index | 🧪 aguarda veredito da lane |
 | UC-JSP-01 | JobSheet/AddParts | 🧪 aguarda veredito da lane |
 | UC-JSP-02 | JobSheet/AddParts | 🧪 aguarda veredito da lane |
 | UC-JSP-03 | JobSheet/AddParts | 🧪 aguarda veredito da lane |
