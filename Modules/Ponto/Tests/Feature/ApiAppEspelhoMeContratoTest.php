@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\User;
 use Illuminate\Support\Facades\DB;
 use Laravel\Passport\Passport;
+use Modules\Ponto\Services\MobileMarcacaoService;
 use Modules\Ponto\Tests\Feature\PontoTestCase;
 
 uses(PontoTestCase::class);
@@ -73,8 +74,10 @@ it('/me devolve o MEU colaborador e a MINHA empresa — nunca a do outro busines
     expect($r->json('matricula'))->toBe('AEM-EU');
     expect($r->json('nome'))->toBe('AEM Teste' . AEM_BIZ);
     expect($r->json('empresa'))->toBe((string) DB::table('business')->where('id', AEM_BIZ)->value('name'));
-    expect($r->json('limites.accuracy_max'))->toBeInt();
-    expect($r->json('limites.drift_max'))->toBeInt();
+    // Os limites do servidor (o app aplica antes de enviar). accuracy_max é float no Service
+    // (500.0) — compara valor, não tipo, porque o JSON pode serializar 500 ou 500.0.
+    expect((float) $r->json('limites.accuracy_max'))->toEqual((float) MobileMarcacaoService::GPS_ACCURACY_MAX_METROS);
+    expect((int) $r->json('limites.drift_max'))->toBe(MobileMarcacaoService::TIMESTAMP_DRIFT_MAX_SEG);
 });
 
 it('/me e /espelho sem cadastro de ponto → 403 sem_colaborador', function () {
