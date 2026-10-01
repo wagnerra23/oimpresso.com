@@ -282,6 +282,59 @@ class ApiClientsPanelTest extends TestCase
         $this->assertEquals(1, DB::table('oauth_access_tokens')->where('id', $tokenId)->value('revoked'));
     }
 
+    // ── UC-CONN-12 · a cadeia inclui o refresh token e a contagem volta ────
+    // [CL] thread 02: o WR Comercial usa password grant (access + refresh); revogar só o
+    // access deixaria o refresh renovar o acesso. Contagem = tokens ativos revogados.
+    public function test_destroy_revoga_refresh_e_devolve_a_contagem(): void
+    {
+        $c = $this->client();
+        $ativo = $this->token($c);
+        $this->token($c, revoked: true);
+        DB::table('oauth_refresh_tokens')->insert([
+            'id' => Str::random(80),
+            'access_token_id' => $ativo,
+            'revoked' => false,
+            'expires_at' => now()->addDays(30),
+        ]);
+
+        $res = $this->actingAs($this->superadmin)->delete("/connector/client/{$c->id}");
+
+        $this->assertEquals(1, $res->getSession()->get('status')['revoked_tokens'] ?? null);
+        $this->assertEquals(1, DB::table('oauth_refresh_tokens')->where('access_token_id', $ativo)->value('revoked'));
+        $this->assertDatabaseMissing('oauth_clients', ['id' => $c->id]);
+    }
+
+    public function test_destroy_de_client_alheio_nao_revoga_os_tokens_dele(): void
+    {
+        $outroNegocio = $this->seededSupportClientTenant();
+        $alheio = $this->client($this->user($outroNegocio), 'Alheio');
+        $tokenId = $this->token($alheio);
+
+        $this->actingAs($this->superadmin)->delete("/connector/client/{$alheio->id}");
+
+        $this->assertEquals(0, DB::table('oauth_access_tokens')->where('id', $tokenId)->value('revoked'));
+    }
+
+    // ── CONN-O2 · instalar/desinstalar/atualizar fora de GET ───────────────
+    public function test_get_de_uninstall_nao_desativa_o_modulo(): void
+    {
+        \App\System::addProperty('connector_version', '2.0');
+
+        $this->actingAs($this->superadmin)->get('/connector/install/uninstall');
+
+        $this->assertEquals('2.0', \App\System::getProperty('connector_version'));
+    }
+
+    public function test_acoes_de_instalacao_aceitam_post(): void
+    {
+        foreach (['connector/install', 'connector/install/uninstall', 'connector/install/update'] as $uri) {
+            $post = collect(Route::getRoutes())->first(
+                fn ($r) => $r->uri() === $uri && in_array('POST', $r->methods(), true)
+            );
+            $this->assertNotNull($post, "{$uri} precisa aceitar POST — a ação só roda no POST");
+        }
+    }
+
     // ── UC-CONN-03 · contagem de tokens ativos em 24 h ────────────────────
     public function test_index_conta_apenas_tokens_ativos_das_ultimas_24h(): void
     {
