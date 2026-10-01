@@ -160,6 +160,8 @@ Route::group(
 Route::group(['middleware' => ['web', 'throttle:60,1']], function () {
     Route::get('/privacidade/ponto', [\Modules\Ponto\Http\Controllers\PublicoController::class, 'privacidade'])
         ->name('ponto.publico.privacidade');
+    Route::get('/privacidade/ponto/exclusao', [\Modules\Ponto\Http\Controllers\PublicoController::class, 'exclusao'])
+        ->name('ponto.publico.exclusao');
 });
 
 // ===========================================================================

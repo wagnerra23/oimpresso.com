@@ -18,7 +18,7 @@ contains:
   - "InstallController"
   - "IntercorrenciaController"
   - "RelatorioController"
-  - "PublicoController — páginas públicas do app de ponto, sem login (/privacidade/ponto); só texto, não lê banco"
+  - "PublicoController — páginas públicas do app de ponto, sem login (/privacidade/ponto e /exclusao); só texto, não lê banco"
 not_contains:
   - "Conhecimento canônico (ADRs, sessions) → Modules/KB"
   - "Tasks Jira-style → Modules/Forja"
@@ -36,6 +36,7 @@ url_prefixes:
   - /ponto/api/* (API Passport)
   - /ponto/install/* (rotas de instalação do módulo)
   - /privacidade/ponto (pública, sem login · política de privacidade do app de ponto)
+  - /privacidade/ponto/exclusao (pública, sem login · pedido de exclusão de conta e dados)
 drift_alerts: []
 ---
 

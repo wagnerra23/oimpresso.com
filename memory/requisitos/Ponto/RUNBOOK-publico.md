@@ -28,6 +28,7 @@ exige também uma página para **pedir exclusão de conta e dados**.
 | Rota | Nome | Tela |
 |---|---|---|
 | `GET /privacidade/ponto` | `ponto.publico.privacidade` | `Ponto/Publico/Privacidade` |
+| `GET /privacidade/ponto/exclusao` | `ponto.publico.exclusao` | `Ponto/Publico/Exclusao` |
 
 Pilha: `web` + `throttle:60,1`, **sem** `auth`. `PublicoController` só renderiza — não lê banco,
 sessão nem tenant.
@@ -54,5 +55,6 @@ pior que ausência.
 
 ## 4. Como validar
 
-- Pest: `PrivacidadePublicaContratoTest`, lane `ponto-pest`.
-- Smoke pós-deploy: `curl -sv https://oimpresso.com/privacidade/ponto 2>&1 | grep '^< HTTP'` → `200`, sem redirect para `/login`.
+- Pest: `PrivacidadePublicaContratoTest` + `ExclusaoDadosPublicaContratoTest`, lane `ponto-pest`.
+- Exclusão: a página **não promete apagar marcação** — explica a retenção legal e oferece o canal. O que de fato se encerra é o acesso (desligar o cadastro em Colaboradores).
+- Smoke pós-deploy: `curl -sv https://oimpresso.com/privacidade/ponto 2>&1 | grep '^< HTTP'` → `200`, sem redirect para `/login` (idem `/privacidade/ponto/exclusao`).
