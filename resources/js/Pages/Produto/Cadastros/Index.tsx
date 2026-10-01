@@ -26,6 +26,7 @@ import {
 import { PageHeader } from '@/Components/PageHeader';
 import SubNav, { type SubNavItem } from '@/Components/shared/SubNav';
 import EmptyState from '@/Components/shared/EmptyState';
+import { Inline, Stack } from '@/Components/layout';
 
 type AbaViva = 'unidades' | 'marcas';
 interface Pode { view: boolean; create: boolean; update: boolean; delete: boolean }
@@ -111,13 +112,14 @@ export default function CadastrosIndex({ aba: inicial, can, unidades, marcas }: 
   };
 
   return (
-    <div className="flex flex-col gap-4">
+    <Stack gap={4}>
       <div data-contract="produto-cadastros-header">
         <PageHeader title="Cadastros" subtitle="Unidades, marcas e os demais cadastros que o produto usa." />
       </div>
 
       <Card data-contract="produto-cadastros-widget">
-        <CardContent className="flex flex-col gap-3 p-4">
+        <CardContent className="p-4">
+          <Stack gap={3}>
           <h2 className="text-sm font-medium">Cadastros de apoio</h2>
 
           <div data-contract="produto-cadastros-abas">
@@ -140,7 +142,7 @@ export default function CadastrosIndex({ aba: inicial, can, unidades, marcas }: 
               description={`Seu papel não tem ${cfg.base}.view — quem libera é o administrador, em Papéis.`} />
           ) : (
             <>
-              <div className="flex flex-wrap items-center gap-2" data-contract="produto-cadastros-barra">
+              <Inline wrap gap={2} data-contract="produto-cadastros-barra">
                 <Input ref={buscaRef} className="max-w-xs" value={busca} placeholder={cfg.busca} aria-label={cfg.busca}
                   onChange={(e) => setBusca(e.target.value)} />
                 <span className="text-xs text-muted-foreground"><kbd>/</kbd> foca a busca</span>
@@ -149,7 +151,7 @@ export default function CadastrosIndex({ aba: inicial, can, unidades, marcas }: 
                 ) : (
                   <Button size="sm" className="ml-auto" disabled title={`Seu papel não tem ${cfg.base}.create`}>{cfg.novo}</Button>
                 )}
-              </div>
+              </Inline>
               <p className="text-sm text-muted-foreground" data-contract="produto-cadastros-ajuda">{cfg.ajuda}</p>
               {erro && <p role="alert" className="text-sm text-destructive">{erro}</p>}
 
@@ -177,10 +179,10 @@ export default function CadastrosIndex({ aba: inicial, can, unidades, marcas }: 
                                 : 0}
                             </td>
                             <td className="py-2 pr-3">
-                              <div className="flex gap-2">
+                              <Inline gap={2}>
                                 {pode.update && <Button asChild variant="outline" size="sm"><a href={`${cfg.rota}?classico=1`}>Editar</a></Button>}
                                 {pode.delete && <Button variant="outline" size="sm" onClick={() => setExcluir(l)}>Excluir</Button>}
-                              </div>
+                              </Inline>
                             </td>
                           </tr>
                         ))}
@@ -191,6 +193,7 @@ export default function CadastrosIndex({ aba: inicial, can, unidades, marcas }: 
               </div>
             </>
           )}
+          </Stack>
         </CardContent>
       </Card>
 
@@ -210,7 +213,7 @@ export default function CadastrosIndex({ aba: inicial, can, unidades, marcas }: 
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+    </Stack>
   );
 }
 
