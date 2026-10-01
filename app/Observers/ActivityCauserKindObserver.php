@@ -56,8 +56,12 @@ class ActivityCauserKindObserver
             return; // subject_type de classe que não existe mais: mantém o do chamador
         }
 
-        $doSubject = self::businessIdDoSubject($subject);
-        if ($doSubject === null) {
+        // Log da PLATAFORMA (ex.: licenças do Officeimpresso — [W] 2026-10-01: "as
+        // licenças são minhas, eu controlo as máquinas dos clientes, eles não precisam
+        // ver isso"): nunca recebe tenant de cliente, nem o que o chamador mandou.
+        $plataforma = self::ehLogDaPlataforma($subject);
+        $doSubject = $plataforma ? null : self::businessIdDoSubject($subject);
+        if ($doSubject === null && ! $plataforma) {
             return;
         }
 
@@ -72,6 +76,19 @@ class ActivityCauserKindObserver
         if ($temColuna) {
             $activity->setAttribute('business_id', $doSubject);
         }
+    }
+
+    /**
+     * Model marcado com `const AUDITORIA_LOG_DA_PLATAFORMA = true` é dado do operador da
+     * plataforma, não do negócio-cliente: o log dele fica SEM business_id (fora da tela
+     * /auditoria de qualquer cliente). Aceita instância ou FQCN.
+     */
+    public static function ehLogDaPlataforma($subject): bool
+    {
+        $classe = is_object($subject) ? get_class($subject) : (string) $subject;
+
+        return $classe !== '' && defined($classe.'::AUDITORIA_LOG_DA_PLATAFORMA')
+            && constant($classe.'::AUDITORIA_LOG_DA_PLATAFORMA') === true;
     }
 
     /**
