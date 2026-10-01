@@ -72,6 +72,10 @@ on:
       # Thread Crm/04 — o painel do CRM virou Inertia; o contrato dele roda aqui.
       - 'Modules/Crm/Http/Controllers/CrmDashboardController.php'
       - 'Modules/Crm/Tests/Feature/CrmPainelContratoTest.php'
+      # Raiz do 500 da lista de leads e da API do Connector: CrmUtil::getLeadsListQuery.
+      - 'Modules/Crm/Utils/CrmUtil.php'
+      - 'Modules/Connector/Http/Controllers/Api/Crm/FollowUpController.php'
+      - 'Modules/Crm/Tests/Feature/CrmLeadsListQueryTest.php'
       - 'database/schema/mysql-schema.sql'
       - '.github/workflows/verticais-pest.yml'
       - '.github/actions/pest-mysql-setup/**'
@@ -135,6 +139,10 @@ jobs:
               # Thread Crm/04 — o painel do CRM virou Inertia; o contrato dele roda aqui.
               - 'Modules/Crm/Http/Controllers/CrmDashboardController.php'
               - 'Modules/Crm/Tests/Feature/CrmPainelContratoTest.php'
+              # Raiz do 500 da lista de leads e da API do Connector: CrmUtil::getLeadsListQuery.
+              - 'Modules/Crm/Utils/CrmUtil.php'
+              - 'Modules/Connector/Http/Controllers/Api/Crm/FollowUpController.php'
+              - 'Modules/Crm/Tests/Feature/CrmLeadsListQueryTest.php'
               - 'database/schema/mysql-schema.sql'
               - '.github/workflows/verticais-pest.yml'
               - '.github/actions/pest-mysql-setup/**'
@@ -344,7 +352,8 @@ jobs:
             Modules/Cms/Tests/Feature/CmsSiteDetailsPainelTest.php \
             Modules/Crm/Tests/Feature/CrmAcompanhamentosContratoTest.php \
             Modules/Crm/Tests/Feature/CrmLeadsContratoTest.php \
-            Modules/Crm/Tests/Feature/CrmPainelContratoTest.php
+            Modules/Crm/Tests/Feature/CrmPainelContratoTest.php \
+            Modules/Crm/Tests/Feature/CrmLeadsListQueryTest.php
 
       # O sumário conta `assertions` POR ARQUIVO — é o discriminador que separa
       # "passou" de "pulou" (LC-13). Aqui só REPORTA.
