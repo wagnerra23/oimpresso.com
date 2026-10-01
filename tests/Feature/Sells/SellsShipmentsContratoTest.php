@@ -11,8 +11,7 @@ use Tests\Support\EstoqueFixture;
 
 /**
  * Contrato da tela Remessas (`GET /shipments` → `SellController@shipments`, thread 02 do
- * playbook venda-menu). UCs: resources/js/Pages/Sells/Shipments/Index.casos.md (UC-REM-01..07;
- * 03/04 são do front e entram junto com a tela).
+ * playbook venda-menu). UCs: resources/js/Pages/Sells/Shipments/Index.casos.md (UC-REM-01..07).
  *
  * O que a migração NÃO pode mudar: a lista vem do DataTables de `index()` (only_shipments=true)
  * e a escrita do `updateShipping` existente. A tela nova só ganha o branch Inertia em
@@ -190,6 +189,22 @@ it('UC-REM-02 filtro por entregador deixa só as remessas dele', function () {
     $ids = remIdsDaLista($filtrada->json());
     expect($ids)->toContain($this->vendaA);
     expect(in_array($this->vendaB, $ids, true))->toBeFalse();
+});
+
+it('UC-REM-03 a tela troca célula vazia por travessão', function () {
+    $tsx = (string) file_get_contents(resource_path('js/Pages/Sells/Shipments/Index.tsx'));
+
+    expect($tsx)->toContain("const VAZIO = '—';");
+    expect($tsx)->toContain("return v === '' ? VAZIO : v;");
+    expect($tsx)->toContain('{celula(r.detalhes)}');
+});
+
+it('UC-REM-04 imprimir romaneio usa o modo packing_slip', function () {
+    $tsx = (string) file_get_contents(resource_path('js/Pages/Sells/Shipments/Index.tsx'));
+    $lib = (string) file_get_contents(resource_path('js/Lib/printSaleReceipt.ts'));
+
+    expect($tsx)->toContain("mode: 'packing_slip'");
+    expect($lib)->toContain("packing_slip: '?package_slip=true'");
 });
 
 it('UC-REM-05 [T0] remessa de outro business não abre nem muda', function () {
