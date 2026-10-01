@@ -165,6 +165,15 @@ Route::group(['middleware' => ['web', 'throttle:60,1']], function () {
 });
 
 // ===========================================================================
+// 1d) Associação do app de ponto (Capacitor) com o domínio — App Links / Universal Links.
+//     Sem `web`: não abre sessão nem cookie. Valores em pontowr2.app_links (env); vazio = 404.
+// ===========================================================================
+Route::get('/.well-known/assetlinks.json', [\Modules\Ponto\Http\Controllers\AppLinksController::class, 'assetlinks'])
+    ->middleware('throttle:60,1')->name('ponto.app_links.android');
+Route::get('/.well-known/apple-app-site-association', [\Modules\Ponto\Http\Controllers\AppLinksController::class, 'appleAppSiteAssociation'])
+    ->middleware('throttle:60,1')->name('ponto.app_links.ios');
+
+// ===========================================================================
 // 2) Rotas API (REP-P mobile e integrações) — prefixo /ponto/api
 // ===========================================================================
 // Usa Passport (auth:api) para casar com o padrão UltimatePOS (ver Jana).

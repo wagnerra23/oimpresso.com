@@ -307,6 +307,7 @@ jobs:
             Modules/Ponto/Tests/Feature/EspelhoContratoTest.php \
             Modules/Ponto/Tests/Feature/PrivacidadePublicaContratoTest.php \
             Modules/Ponto/Tests/Feature/ExclusaoDadosPublicaContratoTest.php \
+            Modules/Ponto/Tests/Feature/AppLinksContratoTest.php \
             Modules/Ponto/Tests/Feature/JornadaWorkflowContratoTest.php \
             Modules/Ponto/Tests/Feature/BancoHorasImportacaoContratoTest.php \
             Modules/Ponto/Tests/Feature/BancoHorasIndexContratoTest.php \

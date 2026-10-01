@@ -26,23 +26,23 @@
   ],
   "stats": {
     "modules": 35,
-    "nodes": 733,
-    "edges": 1022,
+    "nodes": 735,
+    "edges": 1024,
     "by_node_type": {
       "module": 39,
       "table": 102,
       "adr": 129,
-      "component": 387,
-      "api": 76
+      "component": 388,
+      "api": 77
     },
     "by_edge_type": {
       "ownsTable": 91,
       "ownsLegacyView": 13,
       "consumesTable": 6,
-      "providesApi": 80,
+      "providesApi": 81,
       "charteredByAdr": 30,
       "governedByAdr": 78,
-      "hasComponent": 387,
+      "hasComponent": 388,
       "dependsOn": 116,
       "delegatesTo": 108,
       "migratesTo": 1,
@@ -956,6 +956,14 @@
       "num": "0417",
       "slug": "0417-aposenta-tela-piloto-0253",
       "exists": true
+    },
+    {
+      "id": "api:/.well-known/assetlinks.json",
+      "type": "api",
+      "prefix": "/.well-known/assetlinks.json",
+      "providers": [
+        "Ponto"
+      ]
     },
     {
       "id": "api:/ads/admin/*",
@@ -3570,6 +3578,13 @@
       "module": "Ponto",
       "name": "Api/MobileMarcacaoController",
       "desc": "controller do REP-P mobile. NAO TEM ROTA (medido 2026-08-28: zero referencia em Routes/ ou routes/ no repo inteiro) — o endpoint POST /api/v1/ponto/marcacao-mobile foi PLANEJADO na W28-8 e nunca registrado, logo nada o alcanca por HTTP. SEM BIOMETRIA: a captura de selfie foi removida por decisao [W] 2026-08-27 (dado biometrico e sensivel — LGPD Art. 5o, II, tratamento pelo Art. 11); anti-cheat remanescente e GPS accuracy + clock-skew + NSR server-authoritative. Delega a MobileMarcacaoService."
+    },
+    {
+      "id": "component:Ponto/AppLinksController",
+      "type": "component",
+      "module": "Ponto",
+      "name": "AppLinksController",
+      "desc": "/.well-known/assetlinks.json e apple-app-site-association do app de ponto (Capacitor); lê pontowr2.app_links do env, vazio = 404"
     },
     {
       "id": "component:Ponto/AprovacaoController",
@@ -10950,6 +10965,12 @@
     },
     {
       "from": "module:Ponto",
+      "to": "component:Ponto/AppLinksController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Ponto",
       "to": "component:Ponto/AprovacaoController",
       "type": "hasComponent",
       "source": "contains"
@@ -11037,6 +11058,12 @@
       "to": "component:Ponto/RelatorioController",
       "type": "hasComponent",
       "source": "contains"
+    },
+    {
+      "from": "module:Ponto",
+      "to": "api:/.well-known/assetlinks.json",
+      "type": "providesApi",
+      "source": "url_prefixes"
     },
     {
       "from": "module:Ponto",
