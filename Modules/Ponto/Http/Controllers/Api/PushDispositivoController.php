@@ -13,7 +13,7 @@ use Modules\Ponto\Entities\Colaborador;
 use Modules\Ponto\Entities\PushDispositivo;
 
 /**
- * Registro do aparelho para o lembrete de bater ponto (ADR 0422).
+ * Registro do aparelho para o lembrete de bater ponto (ADR 0423).
  *
  * Chamado pela própria tela `/ponto/mobile` quando roda dentro do app Capacitor: o plugin
  * entrega o token FCM e a página o envia com a sessão do ERP.
@@ -39,7 +39,7 @@ class PushDispositivoController extends Controller
 
         DB::transaction(function () use ($dados, $colab) {
             // SUPERADMIN: o token identifica o APARELHO, não o tenant. Aparelho compartilhado
-            // na loja muda de dono a cada login (ADR 0422): a linha antiga, de qualquer business,
+            // na loja muda de dono a cada login (ADR 0423): a linha antiga, de qualquer business,
             // passa a ser do usuário autenticado — senão o lembrete iria para quem saiu.
             $disp = PushDispositivo::withoutGlobalScopes()
                 ->where('token', $dados['token'])
