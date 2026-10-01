@@ -2,8 +2,6 @@
 
 namespace Modules\Officeimpresso\Http\Controllers;
 
-use App\Business;
-use App\BusinessLocation;
 use App\Utils\ModuleUtil;
 use App\Utils\ProductUtil;
 use Illuminate\Http\RedirectResponse;
@@ -113,26 +111,19 @@ class OfficeimpressoController extends Controller
     }
 
     /**
-     * Gerador de QR do catálogo — FICA AQUI (thread 08, opção (b)).
+     * `GET /officeimpresso/catalogue-qr` — APOSENTADA (thread 08, D3 2ª rodada).
      *
-     * Não redireciona pro `/product-catalogue/catalogue-qr` porque os gates diferem:
-     * aqui basta a assinatura `officeimpresso_module`; lá é exigida
-     * `productcatalogue_module`. Um negócio só com a primeira passaria a levar 403.
-     * Aposentar esta é decisão [W] pendente (aceitar o 403, ou ajustar os pacotes no
-     * superadmin) — ver `_saida-08.md` do playbook Officeimpresso.
+     * Até 2026-10-01 ficava aqui porque os gates diferiam: aqui bastava
+     * `officeimpresso_module`, lá é exigido `productcatalogue_module`. Decisão [W]
+     * 2026-10-01 ("pode ajustar primeiro"): os pacotes foram alinhados pelo comando
+     * `officeimpresso:alinhar-pacotes-catalogo` (todo pacote/inscrição com a chave do
+     * Officeimpresso ganha a do catálogo) e SÓ DEPOIS este redirect entrou.
+     *
+     * O gate passa a ser o do destino. Sem checagem aqui de propósito: duplicar o
+     * gate do ProductCatalogue criaria um segundo dono da regra de acesso.
      */
-    public function generateQr()
+    public function generateQr(): RedirectResponse
     {
-        $business_id = request()->session()->get('user.business_id');
-        if (! (auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'officeimpresso_module'))) {
-            abort(403, 'Unauthorized action.');
-        }
-
-        $business_id = request()->session()->get('user.business_id');
-        $business_locations = BusinessLocation::forDropdown($business_id);
-        $business = Business::findOrFail($business_id);
-
-        return view('officeimpresso::catalogue.generate_qr')
-                    ->with(compact('business_locations', 'business'));
+        return $this->paraProductCatalogue('product-catalogue/catalogue-qr');
     }
 }

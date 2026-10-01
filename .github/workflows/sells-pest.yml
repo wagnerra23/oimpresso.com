@@ -136,6 +136,12 @@ jobs:
         # Usa DatabaseTransactions + EstoqueFixture (tenant 98, ADR 0358) + cross-tenant contra
         # o 2º business semeado — mesma receita do SellsShowContratoTest, que é verde aqui.
         # NASCE SEM RUN, pelo mesmo motivo do V3: vermelho neste PR é este arquivo, não os 5.
+        #
+        # 2026-10-01 — + SellsRepairSubtipoContratoTest (UC-S03 de `Sells/Create.casos.md`):
+        # reparo é um TIPO de venda (decisão [W]). POST /pos REAL, no formato do transform
+        # do Create.tsx: a venda aberta como reparo grava `sub_type=repair` com o MESMO
+        # total, as mesmas linhas e a mesma baixa de estoque da venda comum (dupla prova da
+        # REGRA MESTRE). EstoqueFixture, tenant 98. NASCE SEM RUN: vermelho aqui é este arquivo.
         env:
           DB_CONNECTION: mysql
           DB_HOST: 127.0.0.1
@@ -153,7 +159,8 @@ jobs:
             tests/Feature/Sells/SellsCreateV3ContratoTest.php \
             tests/Feature/Sells/Wave1ShowBaselineTest.php \
             tests/Feature/Sells/Wave1ShowInertiaTest.php \
-            tests/Feature/Sells/SellsCaixaContratoTest.php
+            tests/Feature/Sells/SellsCaixaContratoTest.php \
+            tests/Feature/Sells/SellsRepairSubtipoContratoTest.php
 
 
       # Passo 1 do plano da LC-13 (Gate:): a lane JA emitia JUnit e NINGUEM lia.
