@@ -192,7 +192,7 @@ Route::group(
     function () {
         Route::get('/', 'InstallController@index')->name('ponto.install.index');
         Route::post('/', 'InstallController@install')->name('ponto.install.run');
-        Route::get('/uninstall', 'InstallController@uninstall')->name('ponto.install.uninstall');
-        Route::get('/update', 'InstallController@update')->name('ponto.install.update');
+        Route::match(['get', 'post'], '/uninstall', 'InstallController@uninstall')->name('ponto.install.uninstall');
+        Route::match(['get', 'post'], '/update', 'InstallController@update')->name('ponto.install.update');
     }
 );
