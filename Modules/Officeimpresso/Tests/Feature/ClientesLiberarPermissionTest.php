@@ -32,6 +32,12 @@ beforeEach(function () {
     if (DB::connection()->getDriverName() === 'sqlite') {
         $this->markTestSkipped('SQLite-incompatível: schema MySQL UltimatePOS necessário (ADR 0101).');
     }
+
+    // Desde a decisão [W] 2026-10-01 (D1, 2ª rodada) a permissão delegável só vale para
+    // usuário da empresa OPERADORA (AcessoOperador). O tenant de teste faz esse papel.
+    if ($operador = static::resolveSeededTenant()) {
+        config(['constants.operator_business_id' => (int) $operador->id]);
+    }
 });
 
 it('declara officeimpresso.clientes.liberar no user_permissions (assinável na UI de Funções)', function () {
