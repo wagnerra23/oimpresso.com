@@ -28,8 +28,8 @@ pii: false
 
 A ADR 0421 entregou só o **registro** do aviso ao titular (`titular_avisado_at` + linha `notice`
 na trilha) e deixou o canal como pendência [W] (§Pendências: *"Canal do aviso (e-mail, WhatsApp,
-Notification de tela) e quem dispara"*). Ela é append-only; esta ADR fecha a primeira metade da
-pendência sem reescrevê-la.
+Notification de tela) e quem dispara"*). Ela é append-only; esta ADR fecha as duas metades da
+pendência (canal e quem dispara) sem reescrevê-la.
 
 **Fonte da decisão:** [W] 2026-10-01, 2ª rodada de decisões do playbook Arquivos, textual
 *"e-mail e whatsapp. pode ter configuração"* — registrada em
@@ -63,9 +63,12 @@ O que já existia e foi reusado (nada inventado):
    titular e quando ele vence — sem nome de arquivo, caminho ou conteúdo.
 6. **Multi-tenant (ADR 0093):** `$businessId` no construtor do job; o titular (`Contact`) tem de
    ser do mesmo business do arquivo, senão o job aborta sem enviar.
-7. **Quem dispara:** por ora, manual — `php artisan arquivos:avisar-titulares {business}`
-   (com `--dry-run`, `--canais`, `--email=on|off`, `--whatsapp=on|off`). Agendar no `Kernel` fica
-   para decisão [W]; o default desligado torna o agendamento inofensivo quando vier.
+7. **Quem dispara:** agendado diário às 10:00 BRT no `app/Console/Kernel.php`
+   (`arquivos:avisar-titulares --todos`, só em `live`) — [W] 2026-10-01, textual *"agende o
+   arquivos:avisar-titulares diário no Kernel"*. O `--todos` só entra em negócio que ligou algum
+   canal, então o agendamento não envia nada até alguém ligar. O mesmo comando, com
+   `{business}`, serve para rodar à mão, ver (`--canais`) e ligar/desligar (`--email=on|off`,
+   `--whatsapp=on|off`), e simular (`--dry-run`).
 
 ## Justificativa
 
@@ -75,7 +78,7 @@ central da 0421: a trilha não afirma aviso que não aconteceu.
 
 Reabrir se: o negócio precisar de tela para ligar/desligar (hoje é o comando); o WhatsApp
 oficial (Meta Cloud) exigir template aprovado fora da janela de 24h — o envio é `freeform`, como
-no aviso de cancelamento; ou o aviso precisar de agendamento automático.
+no aviso de cancelamento.
 
 ## Consequências
 
@@ -91,7 +94,6 @@ na janela para nova tentativa.
 
 ## Pendências [W]
 
-- Agendar o `arquivos:avisar-titulares` (e a cadência) ou manter manual.
 - Tela de configuração dos canais no admin de Arquivos.
 
 ## Referências
@@ -102,4 +104,5 @@ na janela para nova tentativa.
 - `Modules/Arquivos/Services/AvisoTitularCanais.php`
 - `Modules/Arquivos/Mail/AvisoTitularMail.php`
 - `Modules/Arquivos/Console/Commands/AvisarTitularesCommand.php`
+- `app/Console/Kernel.php` — `arquivos-avisar-titulares-daily`
 - `Modules/Arquivos/Tests/Feature/AvisarTitularJobTest.php`

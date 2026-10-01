@@ -239,3 +239,33 @@ it('aviso-envio 9 · configuração é por negócio: ligar no 98 não liga no 99
     $json = json_decode((string) DB::table('business')->where('id', 98)->value('common_settings'), true);
     expect($json['enable_lot_number'])->toBe(1);
 });
+
+it('aviso-envio 10 · --todos (uso do agendador) só envia em negócio com canal ligado', function () {
+    app(AvisoTitularCanais::class)->definir(98, true, null);
+    $id = avisarTitularArquivo(98, avisarTitularContato(98, $this->user98));
+
+    $this->artisan('arquivos:avisar-titulares', ['--todos' => true])->assertSuccessful();
+
+    Mail::assertSent(AvisoTitularMail::class, 1);
+    expect(DB::table('arquivos')->where('id', $id)->value('titular_avisado_at'))->not->toBeNull();
+
+    // Desligado de novo: o agendador não toca o negócio, mesmo com arquivo novo na janela.
+    app(AvisoTitularCanais::class)->definir(98, false, false);
+    $outro = avisarTitularArquivo(98, avisarTitularContato(98, $this->user98, ['email' => 'outro@example.test']));
+
+    $this->artisan('arquivos:avisar-titulares', ['--todos' => true])->assertSuccessful();
+
+    Mail::assertSent(AvisoTitularMail::class, 1);
+    expect(DB::table('arquivos')->where('id', $outro)->value('titular_avisado_at'))->toBeNull();
+});
+
+it('aviso-envio 11 · agendado diário 10:00 BRT com --todos, só em live', function () {
+    $evento = collect(app(\Illuminate\Console\Scheduling\Schedule::class)->events())
+        ->first(fn ($e) => str_contains((string) $e->command, 'arquivos:avisar-titulares --todos'));
+
+    expect($evento)->not->toBeNull();
+    expect($evento->expression)->toBe('0 10 * * *');
+    expect($evento->timezone)->toBe('America/Sao_Paulo');
+    expect($evento->runsInEnvironment('live'))->toBeTrue();
+    expect($evento->runsInEnvironment('testing'))->toBeFalse();
+});
