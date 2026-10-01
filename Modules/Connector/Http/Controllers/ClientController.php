@@ -6,7 +6,6 @@ use App\Utils\Util;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
-use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Str;
@@ -80,13 +79,14 @@ class ClientController extends Controller
     }
 
     /**
-     * Show the form for creating a new resource.
+     * CONN-O4: nao ha formulario proprio — criar e um Dialog do painel. A view
+     * `connector::create` nunca existiu e o link antigo do menu dava 500 (UC-CONN-15).
      *
-     * @return Response
+     * @return \Illuminate\Http\RedirectResponse
      */
     public function create()
     {
-        return view('connector::create');
+        return redirect()->action([self::class, 'index']);
     }
 
     /**
@@ -255,27 +255,5 @@ class ClientController extends Controller
         } catch (\Throwable $e) {
             \Log::warning('Connector: auditoria do client '.$client->id.' falhou: '.$e->getMessage());
         }
-    }
-
-    public function regenerate()
-    {
-        if (! auth()->user()->can('superadmin')) {
-            abort(403, 'Unauthorized action.');
-        }
-
-        try {
-            Artisan::call('passport:install --force');
-            // Artisan::call('scribe:generate');
-
-            $output = ['success' => 1,
-                'msg' => __('lang_v1.success'),
-            ];
-        } catch (Exception $e) {
-            $output = ['success' => 1,
-                'msg' => $e->getMessage(),
-            ];
-        }
-
-        return redirect()->back()->with('status', $output);
     }
 }

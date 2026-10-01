@@ -21,7 +21,7 @@ authority: generated
 | Telas (.tsx) | 10 |
 | Telas com `casos.md` | 14 |
 | UC declarados | 108 |
-| UC com teste que os cita | 94 |
+| UC com teste que os cita | 92 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -66,8 +66,11 @@ authority: generated
 | UC-CAD-12 | Cadastros/Index | 📝 sem_teste |
 | UC-CAD-13 | Cadastros/Index | 📝 sem_teste |
 | UC-CAD-14 | Cadastros/Index | 📝 sem_teste |
-| UC-IMP-01 | Importacao/Index | 🧪 aguarda veredito da lane |
-| UC-IMP-03 | Importacao/Index | 🧪 aguarda veredito da lane |
+| UC-PATPRC-01 | AtualizarPreco/Index | 🧪 aguarda veredito da lane |
+| UC-PATPRC-02 | AtualizarPreco/Index | 🧪 aguarda veredito da lane |
+| UC-PATPRC-03 | AtualizarPreco/Index | 🧪 aguarda veredito da lane |
+| UC-PATPRC-04 | AtualizarPreco/Index | 🧪 aguarda veredito da lane |
+| UC-PATPRC-05 | AtualizarPreco/Index | 🧪 aguarda veredito da lane |
 | UC-PBOM-01 | bom-combo (blade) | 🧪 aguarda veredito da lane |
 | UC-PBOM-02 | bom-combo (blade) | 🧪 aguarda veredito da lane |
 | UC-PBOM-03 | bom-combo (blade) | 🧪 aguarda veredito da lane |
@@ -112,11 +115,6 @@ authority: generated
 | UC-PIDX-04 | Index | 🧪 aguarda veredito da lane |
 | UC-PIDX-05 | Index | 🧪 aguarda veredito da lane |
 | UC-PIDX-06 | Index | 🧪 aguarda veredito da lane |
-| UC-PIMP-01 | Importacao/Index | 🧪 aguarda veredito da lane |
-| UC-PIMP-02 | Importacao/Index | 🧪 aguarda veredito da lane |
-| UC-PIMP-03 | Importacao/Index | 🧪 aguarda veredito da lane |
-| UC-PIMP-04 | Importacao/Index | 🧪 aguarda veredito da lane |
-| UC-PIMP-05 | Importacao/Index | 🧪 aguarda veredito da lane |
 | UC-PINIC-01 | estoque-inicial (blade) | 🧪 aguarda veredito da lane |
 | UC-PINIC-02 | estoque-inicial (blade) | 🧪 aguarda veredito da lane |
 | UC-PINIC-03 | estoque-inicial (blade) | 🧪 aguarda veredito da lane |
@@ -125,6 +123,8 @@ authority: generated
 | UC-PQCK-02 | quick-add (blade) | 🧪 aguarda veredito da lane |
 | UC-PQCK-03 | quick-add (blade) | 🧪 aguarda veredito da lane |
 | UC-PQCK-04 | quick-add (blade) | 🧪 aguarda veredito da lane |
+| UC-PRC-01 | AtualizarPreco/Index | 📝 sem_teste |
+| UC-PRC-02 | AtualizarPreco/Index | 📝 sem_teste |
 | UC-PSHOW-01 | Show | 🧪 aguarda veredito da lane |
 | UC-PSHOW-02 | Show | 🧪 aguarda veredito da lane |
 | UC-PSHOW-03 | Show | 🧪 aguarda veredito da lane |

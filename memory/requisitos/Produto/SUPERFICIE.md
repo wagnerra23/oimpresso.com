@@ -95,6 +95,7 @@ tabelas_dominio: ["products", "variations", "product_variations", "variation_loc
 
 ## Telas (Inertia/React) — 10
 
+- [Index.tsx](../../../resources/js/Pages/Produto/AtualizarPreco/Index.tsx)
 - [BulkEdit.tsx](../../../resources/js/Pages/Produto/BulkEdit.tsx)
 - [Index.tsx](../../../resources/js/Pages/Produto/Cadastros/Index.tsx)
 - [Create.tsx](../../../resources/js/Pages/Produto/Create.tsx)
@@ -122,6 +123,7 @@ tabelas_dominio: ["products", "variations", "product_variations", "variation_loc
 
 ## Charters (lei da tela) — 10
 
+- [Index.charter.md](../../../resources/js/Pages/Produto/AtualizarPreco/Index.charter.md)
 - [BulkEdit.charter.md](../../../resources/js/Pages/Produto/BulkEdit.charter.md)
 - [Index.charter.md](../../../resources/js/Pages/Produto/Cadastros/Index.charter.md)
 - [Create.charter.md](../../../resources/js/Pages/Produto/Create.charter.md)
@@ -135,6 +137,7 @@ tabelas_dominio: ["products", "variations", "product_variations", "variation_loc
 
 ## Casos (contrato UC) — 10
 
+- [Index.casos.md](../../../resources/js/Pages/Produto/AtualizarPreco/Index.casos.md)
 - [BulkEdit.casos.md](../../../resources/js/Pages/Produto/BulkEdit.casos.md)
 - [Index.casos.md](../../../resources/js/Pages/Produto/Cadastros/Index.casos.md)
 - [Create.casos.md](../../../resources/js/Pages/Produto/Create.casos.md)
