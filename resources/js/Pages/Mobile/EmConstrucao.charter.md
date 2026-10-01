@@ -7,7 +7,7 @@ last_validated: "2026-10-01"
 parent_module: Mobile
 related_prototype: "n/a (fonte = handoff design-v3 do app mobile, fora de prototipo-ui; caminho em RUNBOOK-shell-mobile §2; a ancora entra quando descer o _saida-01 do playbook app-lojas)"
 related_adrs: [93, 104, 358]
-runbook: memory/requisitos/Mobile/RUNBOOK-shell-mobile.md
+runbook: memory/requisitos/AppMobile/RUNBOOK-shell-mobile.md
 tier: B
 charter_version: 1
 ---
@@ -15,7 +15,7 @@ charter_version: 1
 # Page Charter — Mobile/EmConstrucao (`/m/{tarefas|pedidos|producao}`)
 
 > Base do app das lojas (decisão [W] 2026-10-01: o app abre o protótipo Mobile, não o site).
-> Contrato do shell: [RUNBOOK-shell-mobile.md](../../../../memory/requisitos/Mobile/RUNBOOK-shell-mobile.md).
+> Contrato do shell: [RUNBOOK-shell-mobile.md](../../../../memory/requisitos/AppMobile/RUNBOOK-shell-mobile.md).
 > Casos: [EmConstrucao.casos.md](EmConstrucao.casos.md).
 
 ## Mission

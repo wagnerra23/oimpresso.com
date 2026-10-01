@@ -1,5 +1,5 @@
 /* Customização do shell /m sobre o bundle cowork-mobile-bundle.css (que NÃO se edita).
-   Contrato: memory/requisitos/Mobile/RUNBOOK-shell-mobile.md.
+   Contrato: memory/requisitos/AppMobile/RUNBOOK-shell-mobile.md.
 
    O protótipo roda dentro de molduras de aparelho (ios-frame/android-frame) que dão altura
    fixa e simulam a barra de status com padding por plataforma (.oi-app[data-platform]).

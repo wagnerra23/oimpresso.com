@@ -9,7 +9,7 @@ use Inertia\Testing\AssertableInertia;
 /**
  * Contrato da BASE do app das lojas (/m) — decisão [W] 2026-10-01.
  * Casos: resources/js/Pages/Mobile/{Inicio,Mais,EmConstrucao}.casos.md (UC-MOB-01..04).
- * Contrato do shell: memory/requisitos/Mobile/RUNBOOK-shell-mobile.md.
+ * Contrato do shell: memory/requisitos/AppMobile/RUNBOOK-shell-mobile.md.
  *
  * Tier 0 (ADR 0093): o nome da empresa vem do business do usuário autenticado; o caso
  * cross-tenant usa o tenant 98 (ADR 0358) contra o 99 — nunca o 4.

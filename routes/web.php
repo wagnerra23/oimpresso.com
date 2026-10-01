@@ -598,7 +598,7 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
     // App das lojas (/m) — shell Mobile do protótipo design-v3, decisão [W] 2026-10-01.
     // Mesma pilha web/sessão do ERP: o app Capacitor abre /m; sem sessão o `auth` manda pro
     // /login existente e o url.intended devolve a /m. Contrato das telas:
-    // memory/requisitos/Mobile/RUNBOOK-shell-mobile.md. Telas novas: rota aqui, prefixo /m.
+    // memory/requisitos/AppMobile/RUNBOOK-shell-mobile.md. Telas novas: rota aqui, prefixo /m.
     Route::prefix('m')->name('mobile.')->group(function () {
         Route::get('/', [\App\Http\Controllers\Mobile\MobileShellController::class, 'inicio'])->name('inicio');
         Route::get('/mais', [\App\Http\Controllers\Mobile\MobileShellController::class, 'mais'])->name('mais');

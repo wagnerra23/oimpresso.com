@@ -17,6 +17,9 @@ related_adrs: ["0093-multi-tenant-isolation-tier-0", "0104-processo-mwart-canoni
 >
 > Este documento é o **contrato da base** (o shell). As telas de negócio são de outras sessões
 > e devem seguir o que está aqui.
+>
+> **Irmão:** [MAPA-DE-DADOS-v1.md](MAPA-DE-DADOS-v1.md) — de onde vem cada dado e ação de cada tela
+> `/m` no ERP. Este RUNBOOK diz **como** montar a tela; o mapa diz **com o quê**.
 
 ## 1. Arquitetura (o COMO)
 
@@ -68,7 +71,7 @@ Com o cookie de sessão já presente no WebView, o app cai direto em `/m`.
    módulo; dados sempre do usuário autenticado (Tier 0 — nenhum parâmetro escolhe tenant).
    Props caras → `Inertia::defer()`.
 3. **Página** em `resources/js/Pages/Mobile/<Tela>.tsx` (detalhe: `Pages/Mobile/<Area>/Show.tsx`),
-   com `.charter.md` (com `runbook: memory/requisitos/Mobile/RUNBOOK-shell-mobile.md` ou um
+   com `.charter.md` (com `runbook: memory/requisitos/AppMobile/RUNBOOK-shell-mobile.md` ou um
    RUNBOOK próprio) e `.casos.md` **antes** do `.tsx` (o hook MWART bloqueia sem RUNBOOK).
 4. **Estrutura da página:**
 

@@ -1,6 +1,6 @@
 // MobileShell — casca das telas do app nas lojas (/m). Fonte de design:
 // mobile/ref/design-v3/.../design/mobile-app.jsx (tab bar de 5 abas) + oimpresso-tokens.css.
-// Contrato para as sessões de tela: memory/requisitos/Mobile/RUNBOOK-shell-mobile.md.
+// Contrato para as sessões de tela: memory/requisitos/AppMobile/RUNBOOK-shell-mobile.md.
 //
 // Diferenças deliberadas em relação ao protótipo:
 // - Cada aba é uma ROTA (/m, /m/tarefas …), não um estado local: o voltar do sistema, o

@@ -11,7 +11,7 @@ use Inertia\Response;
 
 /**
  * Base do app das lojas (/m) — decisão [W] 2026-10-01: o app abre o protótipo Mobile, não o
- * site do ERP emulado. Contrato: memory/requisitos/Mobile/RUNBOOK-shell-mobile.md.
+ * site do ERP emulado. Contrato: memory/requisitos/AppMobile/RUNBOOK-shell-mobile.md.
  *
  * Este controller só serve as telas que PROVAM o shell (Início e Mais mínimos) e o
  * marcador das abas cujas telas ainda não existem. As telas de negócio (Tarefas, Pedidos,
