@@ -63,6 +63,39 @@ function repairSubtipoVender(object $test, array $extra = []): array
     $produto = EstoqueFixture::singleProduct($test->bizId);
     EstoqueFixture::setStock($produto, 0, $test->locationId, 10);
 
+    // LASTRO de compra (receita do EstoqueTransferenciaIdempotenciaTest): o `store()` chama
+    // `mapPurchaseSell`, que sem purchase_lines na location lança PurchaseSellMismatch — e o
+    // catch engole em `back()->withErrors(['venda'])`. Medido no 1º run do CI: as duas vendas
+    // voltavam null por isto. Em produção o saldo sempre veio de uma entrada.
+    $compraId = (int) DB::table('transactions')->insertGetId([
+        'business_id' => $test->bizId,
+        'type' => 'purchase',
+        'status' => 'received',
+        'location_id' => $test->locationId,
+        'payment_status' => 'paid',
+        'transaction_date' => now()->subDay(),
+        'total_before_tax' => 0,
+        'final_total' => 0,
+        'created_by' => $test->user->id,
+        'essentials_duration' => 0,
+        'created_at' => now()->subDay(),
+        'updated_at' => now()->subDay(),
+    ]);
+    DB::table('purchase_lines')->insert([
+        'transaction_id' => $compraId,
+        'product_id' => $produto->productId,
+        'variation_id' => $produto->variations[0]['variation_id'],
+        'quantity' => 10,
+        'quantity_sold' => 0,
+        'quantity_adjusted' => 0,
+        'quantity_returned' => 0,
+        'purchase_price' => 0,
+        'purchase_price_inc_tax' => 0,
+        'item_tax' => 0,
+        'created_at' => now()->subDay(),
+        'updated_at' => now()->subDay(),
+    ]);
+
     $response = $test->post('/pos', repairSubtipoPayload(
         $test->locationId,
         $test->contactId,
@@ -74,6 +107,14 @@ function repairSubtipoVender(object $test, array $extra = []): array
     $transactionId = DB::table('transaction_sell_lines')
         ->where('product_id', $produto->productId)
         ->value('transaction_id');
+
+    // Diagnóstico: venda não gravada = o store() recusou. A causa vai pra sessão ('venda'),
+    // então ela entra na mensagem — sem isto o CI só mostra "null".
+    \PHPUnit\Framework\Assert::assertNotNull(
+        $transactionId,
+        'store() não gravou a venda. status HTTP='.$response->status()
+            .' erros='.json_encode(session('errors')?->getBag('default')->all() ?? [])
+    );
 
     return [
         'response' => $response,
