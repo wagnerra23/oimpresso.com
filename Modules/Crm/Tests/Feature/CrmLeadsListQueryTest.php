@@ -6,6 +6,7 @@ use App\Business;
 use App\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Modules\Connector\Http\Controllers\Api\Crm\FollowUpController;
 use Modules\Crm\Utils\CrmUtil;
 
 uses(Tests\TestCase::class);
@@ -106,16 +107,21 @@ it('a query executa no MySQL e devolve só os leads do negócio [T0]', function 
         ->and($l->last_name)->toBeNull();
 });
 
-it('GET connector/api/crm/leads não dá 500 e não vaza lead de outro negócio [T0]', function () {
+it('FollowUpController::getLeads (GET connector/api/crm/leads) não dá 500 e não vaza lead de outro negócio [T0]', function () {
     $nosso = lqUsuario('lq_nosso_test', LQ_BIZ);
     $vizinho = lqUsuario('lq_vizinho_test', LQ_OUTRO);
     lqLead(LQ_BIZ, 'Api Nossa', $nosso);
     lqLead(LQ_OUTRO, 'Api Vizinha', $vizinho);
 
-    $resposta = $this->actingAs($nosso, 'api')->getJson('/connector/api/crm/leads?per_page=-1');
-    $resposta->assertOk();
+    // Chama o controller direto (padrão do LicencaComputadorApiEscopoTest): o guard `api`
+    // (Passport) não sobe no CI sem as chaves OAuth (`Invalid key supplied` — medido na 1ª
+    // rodada desta lane). O 500 era SQL DENTRO do getLeads(), e é isso que se exercita aqui.
+    $this->actingAs($nosso);
+    request()->merge(['per_page' => -1]);
+    $resposta = app(FollowUpController::class)->getLeads()->response();
+    expect($resposta->getStatusCode())->toBe(200);
 
-    $nossos = collect((array) $resposta->json('data'))
+    $nossos = collect((array) ($resposta->getData(true)['data'] ?? []))
         ->filter(fn ($r) => str_contains((string) ($r['name'] ?? ''), LQ_TAG));
 
     expect($nossos->pluck('name')->all())->toBe(['Api Nossa '.LQ_TAG]);
