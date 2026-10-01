@@ -135,6 +135,9 @@ on:
       - 'app/Http/Controllers/BrandController.php'
       - 'app/Http/Controllers/TaxonomyController.php'
       - 'resources/js/Pages/Produto/Cadastros/**'
+      # Playbook Produto · thread 05 — SOB TESTE do ProdutoImportacaoContratoTest.
+      - 'app/Http/Controllers/ImportProductsController.php'
+      - 'resources/js/Pages/Produto/Importacao/**'
       # Playbook Produto · thread 06 — SOB TESTE do ProdutoAtualizarPrecoContratoTest.
       - 'app/Http/Controllers/SellingPriceGroupController.php'
       - 'resources/js/Pages/Produto/AtualizarPreco/**'
@@ -204,6 +207,9 @@ jobs:
               - 'app/Http/Controllers/BrandController.php'
               - 'app/Http/Controllers/TaxonomyController.php'
               - 'resources/js/Pages/Produto/Cadastros/**'
+              # Playbook Produto · thread 05 — SOB TESTE do ProdutoImportacaoContratoTest.
+              - 'app/Http/Controllers/ImportProductsController.php'
+              - 'resources/js/Pages/Produto/Importacao/**'
               # Playbook Produto · thread 06 — SOB TESTE do ProdutoAtualizarPrecoContratoTest.
               - 'app/Http/Controllers/SellingPriceGroupController.php'
               - 'resources/js/Pages/Produto/AtualizarPreco/**'
