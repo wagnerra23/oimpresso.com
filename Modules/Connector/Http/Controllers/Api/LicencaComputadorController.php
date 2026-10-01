@@ -283,8 +283,30 @@ class LicencaComputadorController extends Controller
      */
     public function index()
     {
-        $computadores = Licenca_Computador::all();
+        $computadores = $this->doNegocioDoToken()->get();
         return response()->json($computadores, 200);
+    }
+
+    /**
+     * Escopo Tier 0 (ADR 0093): só os equipamentos do negócio do token.
+     *
+     * A tabela `licenca_computador` não tem global scope de `business_id`, então
+     * o escopo é explícito aqui. Sem usuário (ou usuário sem negócio) o escopo é
+     * VAZIO — nunca `whereNull`, que casaria as linhas órfãs.
+     *
+     * Vale só para index/show/update/destroy. ProcessaDadosCliente/saveEquipamento
+     * (os endpoints que o desktop Delphi chama) NÃO passam por aqui: o contrato
+     * `S;…`/`N;…` deles fica intocado.
+     */
+    private function doNegocioDoToken()
+    {
+        $businessId = optional(auth()->user())->business_id;
+
+        if (empty($businessId)) {
+            return Licenca_Computador::whereRaw('1 = 0');
+        }
+
+        return Licenca_Computador::where('business_id', $businessId);
     }
 
     /**
@@ -307,7 +329,7 @@ class LicencaComputadorController extends Controller
      */
     public function show($id)
     {
-        $computador = Licenca_Computador::find($id);
+        $computador = $this->doNegocioDoToken()->find($id);
 
         if (!$computador) {
             return response()->json(['error' => 'Computador não encontrado'], 404);
@@ -321,6 +343,15 @@ class LicencaComputadorController extends Controller
      */
     public function update(Request $request, $id)
     {
+        // Escopo ANTES da validação: equipamento de outro negócio responde 404
+        // igual ao inexistente, sem passar pelas regras unique/exists (que
+        // vazariam a existência do id).
+        $computador = $this->doNegocioDoToken()->find($id);
+
+        if (!$computador) {
+            return response()->json(['error' => 'Computador não encontrado'], 404);
+        }
+
         // Validação dos dados recebidos
         $validated = $request->validate([
             'business_id' => 'required|exists:business,id',
@@ -332,10 +363,8 @@ class LicencaComputadorController extends Controller
             'bloqueado' => 'boolean',
         ]);
 
-        // Encontrar o computador pelo ID
-        $computador = Licenca_Computador::find($id);
-
-        if (!$computador) {
+        // Não move o equipamento para outro negócio pela API.
+        if ((int) $validated['business_id'] !== (int) $computador->business_id) {
             return response()->json(['error' => 'Computador não encontrado'], 404);
         }
 
@@ -350,7 +379,7 @@ class LicencaComputadorController extends Controller
      */
     public function destroy($id)
     {
-        $computador = Licenca_Computador::find($id);
+        $computador = $this->doNegocioDoToken()->find($id);
 
         if (!$computador) {
             return response()->json(['error' => 'Computador não encontrado'], 404);
