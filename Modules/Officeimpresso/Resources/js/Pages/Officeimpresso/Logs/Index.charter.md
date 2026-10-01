@@ -94,9 +94,9 @@ por conta própria.
 ## Permissões
 
 `superadmin` **ou** `officeimpresso.access` para ver; `officeimpresso.licencas.gerenciar` (ou
-`superadmin`) para as ações de bloqueio, que somem quando o usuário não pode. A permissão
-delegável só vale para usuário da empresa operadora (`constants.operator_business_id`) —
-papel de empresa cliente com ela leva 403 (`AcessoOperador`, 2026-10-01).
+`superadmin`) para as ações de bloqueio, que somem quando o usuário não pode. As duas permissões
+delegáveis (ver e bloquear) só valem para usuário da empresa operadora (`constants.operator_business_id`) —
+papel de empresa cliente com elas leva 403 (`AcessoOperador`, 2026-10-01).
 
 **A visão cross-empresa é por design** ([ADR 0093](../../../../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md)
 §exceções): a WR2 é a fornecedora do desktop e quem dá assistência precisa ver a máquina do
