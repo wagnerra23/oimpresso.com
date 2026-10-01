@@ -633,6 +633,8 @@ Modules/Cms/Tests/Feature/FormRequestValidationTest.php
 tests/Feature/Sidebar/PresencaPreferenciaTest.php
 # Contrato v2 do item de sidebar (SidebarMenuItem/Ghost/PrimaryAction) — objeto de valor puro, sem banco. Não rodava em lane nenhuma até a thread 14 (ícone do ghost).
 tests/Feature/Sidebar/SidebarMenuItemContractTest.php
+# Atendimento — contrato das 4 telas admin (playbook atendimento/04: Csat · Metricas · Whatsapp/Settings · Whatsapp/Templates). DB-less via DB::pretend; UC-WSET-01 monta tabela mínima só em sqlite :memory:.
+tests/Feature/Whatsapp/AtendimentoAdminContratoTest.php
 # ConsultaOs — contrato da tela pública /consulta-os (UC-COS-01..07, Index.casos.md). Portal
 # mock-only, rota pública sem business_id: DB-less, sqlite-safe, sem markTestSkipped.
 tests/Feature/ConsultaOs/ConsultaOsIndexContratoTest.php
