@@ -42,6 +42,11 @@ function aemUsuario(int $biz, bool $comColaborador = true, string $matricula = '
 }
 
 beforeEach(function () {
+    // O guard `api` do Passport precisa das chaves mesmo com Passport::actingAs; sem isto o teste
+    // depende da ordem (só passa se outro teste da lane gerou as chaves antes).
+    if (! file_exists(storage_path('oauth-public.key'))) {
+        \Illuminate\Support\Facades\Artisan::call('passport:keys', ['--force' => true]);
+    }
     if (DB::connection()->getDriverName() === 'sqlite') {
         $this->markTestSkipped('Schema UltimatePOS + FK exigem MySQL (ADR 0358).');
     }
