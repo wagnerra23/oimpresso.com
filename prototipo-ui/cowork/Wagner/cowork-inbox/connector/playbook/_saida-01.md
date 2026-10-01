@@ -52,4 +52,4 @@ num run MySQL.
 - `Index.tsx` ainda não existe (vem na 04): a tela fica fora do denominador até lá.
 
 ## PR
-(preenchido no corpo do PR)
+[#8336](https://github.com/wagnerra23/oimpresso.com/pull/8336)
