@@ -64,9 +64,9 @@ class ClientController extends Controller
                     ->map(fn ($c) => [
                         'id' => (int) $c->id,
                         'name' => (string) $c->name,
-                        'user_name' => (string) $c->user_name,
+                        'user_name' => (string) $c->getAttribute('user_name'),
                         'created_at' => optional($c->created_at)->toDateString(),
-                        'active_tokens_24h' => (int) $c->active_tokens_24h,
+                        'active_tokens_24h' => (int) $c->getAttribute('active_tokens_24h'),
                     ])->values();
 
         return Inertia::render('Api/Index', [
