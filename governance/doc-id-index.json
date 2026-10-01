@@ -3857,6 +3857,7 @@
     "memory/requisitos/Manufacturing/SUPERFICIE.md",
     "memory/requisitos/Manufacturing/UI-CATALOG.md",
     "memory/requisitos/Mcp/runbooks/RUNBOOK-module-state-tool.md",
+    "memory/requisitos/Mobile/RUNBOOK-shell-mobile.md",
     "memory/requisitos/Modules/UI-CATALOG.md",
     "memory/requisitos/Mwart/SPEC.md",
     "memory/requisitos/NFSe/CHANGELOG.md",
@@ -4230,12 +4231,12 @@
   ],
   "collisions": [],
   "stats": {
-    "total": 4224,
+    "total": 4225,
     "resolved": 2888,
-    "unstamped": 1336,
+    "unstamped": 1337,
     "collisions": 0,
     "by_source": {
-      "unstamped": 1336,
+      "unstamped": 1337,
       "derived-adr": 428,
       "stamped": 1129,
       "derived-handoffs": 576,
