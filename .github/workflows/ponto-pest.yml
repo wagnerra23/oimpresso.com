@@ -31,6 +31,9 @@ on:
       - 'resources/js/Pages/Ponto/**'
       - 'app/Concerns/HasBusinessScope.php'
       - 'app/Scopes/ScopeByBusiness.php'
+      - 'app/Auth/AppMobileOAuth.php'
+      - 'app/Console/Commands/AppMobileOAuthClientCommand.php'
+      - 'app/User.php'
       - 'config/ponto_afd.php'
       - 'database/schema/mysql-schema.sql'
       - '.github/workflows/ponto-pest.yml'
@@ -72,6 +75,9 @@ jobs:
               - 'resources/js/Pages/Ponto/**'
               - 'app/Concerns/HasBusinessScope.php'
               - 'app/Scopes/ScopeByBusiness.php'
+              - 'app/Auth/AppMobileOAuth.php'
+              - 'app/Console/Commands/AppMobileOAuthClientCommand.php'
+              - 'app/User.php'
               - 'config/ponto_afd.php'
               - 'database/schema/mysql-schema.sql'
               - '.github/workflows/ponto-pest.yml'
@@ -349,6 +355,7 @@ jobs:
             Modules/Ponto/Tests/Feature/RepPMobileContratoTest.php \
             Modules/Ponto/Tests/Feature/DemoRevisorContaTest.php \
             Modules/Ponto/Tests/Feature/PushDispositivoContratoTest.php \
+            Modules/Ponto/Tests/Feature/AppOAuthClienteContratoTest.php \
             Modules/Ponto/Tests/Feature/ApiAppEspelhoMeContratoTest.php \
             Modules/Ponto/Tests/Feature/EnviarLembretePontoJobTest.php \
             Modules/Ponto/Tests/Feature/LembretesPushContratoTest.php \
