@@ -20,8 +20,8 @@ authority: generated
 | CU no SDD | 14 |
 | Telas (.tsx) | 11 |
 | Telas com `casos.md` | 15 |
-| UC declarados | 115 |
-| UC com teste que os cita | 99 |
+| UC declarados | 120 |
+| UC com teste que os cita | 104 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -122,6 +122,11 @@ authority: generated
 | UC-PIMP-03 | Importacao/Index | 🧪 aguarda veredito da lane |
 | UC-PIMP-04 | Importacao/Index | 🧪 aguarda veredito da lane |
 | UC-PIMP-05 | Importacao/Index | 🧪 aguarda veredito da lane |
+| UC-PIMP-06 | Importacao/Index | 🧪 aguarda veredito da lane |
+| UC-PIMP-07 | Importacao/Index | 🧪 aguarda veredito da lane |
+| UC-PIMP-08 | Importacao/Index | 🧪 aguarda veredito da lane |
+| UC-PIMP-09 | Importacao/Index | 🧪 aguarda veredito da lane |
+| UC-PIMP-10 | Importacao/Index | 🧪 aguarda veredito da lane |
 | UC-PINIC-01 | estoque-inicial (blade) | 🧪 aguarda veredito da lane |
 | UC-PINIC-02 | estoque-inicial (blade) | 🧪 aguarda veredito da lane |
 | UC-PINIC-03 | estoque-inicial (blade) | 🧪 aguarda veredito da lane |
