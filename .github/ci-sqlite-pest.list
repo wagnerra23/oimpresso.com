@@ -635,5 +635,8 @@ tests/Feature/Sidebar/SidebarMenuItemContractTest.php
 # DB-less (toSql + Validator + authorize com dublê), sqlite-safe. Os 10 testes de
 # Modules/NFSe/Tests/ seguem fora de qualquer lane — este é o único NFSe que executa.
 tests/Feature/Modules/NFSe/NfseTelasContratoTest.php
+# ConsultaOs — contrato da tela pública /consulta-os (UC-COS-01..07, Index.casos.md). Portal
+# mock-only, rota pública sem business_id: DB-less, sqlite-safe, sem markTestSkipped.
+tests/Feature/ConsultaOs/ConsultaOsIndexContratoTest.php
 # Atendimento/02 (playbook) — contrato de /atendimento/canais (Index + Show): UC-CNL-01..04 + UC-CNLD-01..05. Schema sintetico + skip fora de sqlite.
 tests/Feature/Whatsapp/AtendimentoChannelsContratoTest.php
