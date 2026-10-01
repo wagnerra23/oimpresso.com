@@ -51,15 +51,26 @@ class ActivityCauserKindObserver
     private function resolverBusinessId(Activity $activity): void
     {
         try {
-            $subject = $activity->subject; // performedOn() já deixa a relação carregada
+            $subject = $activity->getRelationValue('subject'); // performedOn() já deixa carregada
         } catch (\Throwable $e) {
             return; // subject_type de classe que não existe mais: mantém o do chamador
         }
 
         $doSubject = self::businessIdDoSubject($subject);
+        if ($doSubject === null) {
+            return;
+        }
 
-        if ($doSubject !== null) {
-            $activity->business_id = $doSubject;
+        // Schema mínimo (sqlite das lanes Unit) pode não ter a coluna: setar o atributo
+        // faria o INSERT morrer com "no column named business_id" (medido 2026-10-01,
+        // 214 falhas no PR #8384). Mesmo padrão defensivo do causer_kind abaixo.
+        try {
+            $temColuna = \Schema::hasColumn('activity_log', 'business_id');
+        } catch (\Throwable $e) {
+            return;
+        }
+        if ($temColuna) {
+            $activity->setAttribute('business_id', $doSubject);
         }
     }
 
@@ -84,13 +95,8 @@ class ActivityCauserKindObserver
         }
 
         if (method_exists($subject, 'transaction')) {
-            try {
-                $relacao = $subject->transaction();
-            } catch (\Throwable $e) {
-                return null;
-            }
-            if ($relacao instanceof BelongsTo) {
-                $pai = $subject->transaction;
+            if ($subject->transaction() instanceof BelongsTo) {
+                $pai = $subject->getRelationValue('transaction');
                 if ($pai instanceof Model && ! empty($pai->getAttribute('business_id'))) {
                     return (int) $pai->getAttribute('business_id');
                 }
