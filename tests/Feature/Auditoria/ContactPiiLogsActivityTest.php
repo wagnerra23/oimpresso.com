@@ -9,9 +9,13 @@ use Spatie\Activitylog\Models\Activity;
  *
  * Valida (per SPEC + ADR 0127 + regras-time.md):
  *   - Campos auditados (name, email, mobile, contact_type, customer_group_id) entram em log
- *   - tax_number_1 (CPF/CNPJ) NAO entra em log_only — PII LGPD nao deve aparecer
- *   - Mesmo se tax_number_1 mudar, properties JSON nao deve conter regex CPF/CNPJ
+ *   - tax_number (CPF/CNPJ) NAO entra em log_only — PII LGPD nao deve aparecer
+ *   - Mesmo se tax_number mudar, properties JSON nao deve conter regex CPF/CNPJ
  *   - Multi-tenant Tier 0 (ADR 0093)
+ *
+ * Coluna: em `contacts` o CPF/CNPJ e `tax_number` (database/schema/mysql-schema.sql);
+ * `tax_number_1` e da tabela `business`. O teste escrevia `tax_number_1` e quebrava com
+ * `Unknown column` (run 36806843685) — corrigido 2026-10-01.
  *
  * CRITICO: este test e o ultimo guard. Se Pest verde aqui, garantimos que
  * properties em activity_log nao vaza CPF/CNPJ mesmo se Contact for atualizado.
@@ -67,14 +71,14 @@ it('cenario 1: update Contact.name gera entry com log_name=crm.contact', functio
     expect($new['name'] ?? null)->toBe($newName);
 });
 
-it('cenario 2: update tax_number_1 NAO gera entry (campo NAO logado pra PII LGPD)', function () {
+it('cenario 2: update tax_number NAO gera entry (campo NAO logado pra PII LGPD)', function () {
     $countBefore = Activity::query()
         ->where('subject_type', Contact::class)
         ->where('subject_id', $this->contact->id)
         ->count();
 
-    // tax_number_1 NAO esta no logOnly por design — PII nao auditada
-    $this->contact->tax_number_1 = '123.456.789-00'; // formato CPF deliberado pro test # pii-allowlist
+    // tax_number NAO esta no logOnly por design — PII nao auditada
+    $this->contact->tax_number = '123.456.789-00'; // formato CPF deliberado pro test # pii-allowlist
     $this->contact->save();
 
     $countAfter = Activity::query()
@@ -82,13 +86,13 @@ it('cenario 2: update tax_number_1 NAO gera entry (campo NAO logado pra PII LGPD
         ->where('subject_id', $this->contact->id)
         ->count();
 
-    expect($countAfter)->toBe($countBefore, 'tax_number_1 NAO deve gerar entry — campo PII fora do logOnly');
+    expect($countAfter)->toBe($countBefore, 'tax_number NAO deve gerar entry — campo PII fora do logOnly');
 });
 
 it('cenario 3: PII regex assert — properties JSON NUNCA contem CPF/CNPJ mesmo em update completo', function () {
     // Update mistura campo logado + campo PII — properties so deve ter campo logado
     $this->contact->name = 'Cliente Teste Audit-003';
-    $this->contact->tax_number_1 = '12.345.678/0001-99'; // CNPJ formato deliberado # pii-allowlist
+    $this->contact->tax_number = '12.345.678/0001-99'; // CNPJ formato deliberado # pii-allowlist
     $this->contact->mobile = '(11) 99999-8888';
     $this->contact->save();
 
@@ -104,9 +108,9 @@ it('cenario 3: PII regex assert — properties JSON NUNCA contem CPF/CNPJ mesmo 
     $propsJson = json_encode($log->properties ?? []);
     expect($propsJson)->not->toMatch('/\d{3}\.\d{3}\.\d{3}-\d{2}/', 'CPF NUNCA deve aparecer em properties (LGPD)');
     expect($propsJson)->not->toMatch('/\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2}/', 'CNPJ NUNCA deve aparecer em properties (LGPD)');
-    // Defensivo extra: chave 'tax_number_1' nao deve estar nos arrays old/attributes
-    expect($log->properties['old'] ?? [])->not->toHaveKey('tax_number_1');
-    expect($log->properties['attributes'] ?? [])->not->toHaveKey('tax_number_1');
+    // Defensivo extra: chave 'tax_number' nao deve estar nos arrays old/attributes
+    expect($log->properties['old'] ?? [])->not->toHaveKey('tax_number');
+    expect($log->properties['attributes'] ?? [])->not->toHaveKey('tax_number');
 });
 
 it('cenario 4: multi-tenant Tier 0 — Contact activity nao vaza cross-tenant', function () {
