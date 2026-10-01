@@ -62,8 +62,8 @@ describe('UC-S04 · reparoVenda', () => {
   });
 });
 
-// UC-S05 — checklist pré-reparo, senha e padrão, e modelos filtrados por marca/aparelho.
-describe('UC-S05 · checklist, senha/padrão e modelos', () => {
+// UC-S06 — checklist pré-reparo, senha e padrão, e modelos filtrados por marca/aparelho.
+describe('UC-S06 · checklist, senha/padrão e modelos', () => {
   const modelos = [
     { id: 1, name: 'A1', brand_id: 10, device_id: 20, checklist: ['Liga'] },
     { id: 2, name: 'A2', brand_id: 10, device_id: 21, checklist: [] },

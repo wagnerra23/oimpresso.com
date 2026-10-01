@@ -372,7 +372,7 @@ class SellPosController extends Controller
         $sugeridos = explode(',', (string) ($d['repair_settings']['problem_reported_by_customer'] ?? ''));
         $semVazios = fn (array $l) => array_values(array_filter(array_map('trim', $l), fn ($v) => $v !== ''));
 
-        // UC-S05: modelos com marca/aparelho (o Blade filtra a lista ao trocar marca/aparelho,
+        // UC-S06: modelos com marca/aparelho (o Blade filtra a lista ao trocar marca/aparelho,
         // via /repair/get-device-models) e o checklist de cada um (o Blade busca por AJAX em
         // /repair/models-repair-checklist). Uma query, escopada por business — sem endpoint novo.
         $modelos = \Modules\Repair\Entities\DeviceModel::where('business_id', (int) session('user.business_id'))

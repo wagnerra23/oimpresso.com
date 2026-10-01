@@ -912,7 +912,7 @@ export default function SellsCreate(props: SellsCreatePageProps) {
     if (draftRecover) {
       setData({
         ...draftRecover.data,
-        // Spread sobre o inicial: rascunho da onda 2 não tem checklist/senha/padrão (UC-S05).
+        // Spread sobre o inicial: rascunho da onda 2 não tem checklist/senha/padrão (UC-S06).
         reparo: { ...reparoInicial(props.repairPos?.defaultStatusId), ...(draftRecover.data.reparo ?? {}) },
         sell_document: null,
       });

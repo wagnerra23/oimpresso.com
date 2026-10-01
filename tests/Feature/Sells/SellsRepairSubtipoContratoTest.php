@@ -347,7 +347,7 @@ it('UC-S04 · os campos da seção Reparo são gravados na venda, sem mudar o va
     expect($reparo['saldo'])->toBe($comum['saldo']);
 });
 
-it('UC-S05 · modelos do PRÓPRIO business com o checklist de cada um; checklist, senha e padrão gravados', function () {
+it('UC-S06 · modelos do PRÓPRIO business com o checklist de cada um; checklist, senha e padrão gravados', function () {
     if (! Schema::hasTable('repair_device_models')) {
         $this->markTestSkipped('Tabela repair_device_models ausente — rode as migrations do Repair.');
     }
@@ -364,8 +364,8 @@ it('UC-S05 · modelos do PRÓPRIO business com o checklist de cada um; checklist
         'created_at' => now(),
         'updated_at' => now(),
     ]);
-    $meu = $novoModelo($this->bizId, 'Modelo UC-S05', 'Liga|Tela trincada|');
-    $alheio = $novoModelo($outroBiz, 'Modelo alheio UC-S05', 'Nao deve aparecer');
+    $meu = $novoModelo($this->bizId, 'Modelo UC-S06', 'Liga|Tela trincada|');
+    $alheio = $novoModelo($outroBiz, 'Modelo alheio UC-S06', 'Nao deve aparecer');
 
     DB::table('cash_registers')->insert([
         'business_id' => $this->bizId, 'location_id' => $this->locationId, 'user_id' => $this->user->id,
