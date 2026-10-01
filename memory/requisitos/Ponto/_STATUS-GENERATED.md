@@ -27,7 +27,7 @@ authority: generated
 
 | Lacuna | O que falta escrever |
 |---|---|
-| `US-PONTO-001` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — Relogio web pra registrar entrada/saida (REP-P) |
+| `US-PONTO-001` **entregue sem contrato** (`status: doing`) | UC que prove o que foi entregue — Relogio web pra registrar entrada/saida (REP-P) |
 | `US-PONTO-015` **entregue sem contrato** (`status: done`) | UC que prove o que foi entregue — Fechamento de competência — as restrições existem, a tela e  |
 
 ### Backlog — NÃO é lacuna

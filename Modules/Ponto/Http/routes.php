@@ -153,6 +153,18 @@ Route::group(
 );
 
 // ===========================================================================
+// 1c) Páginas PÚBLICAS do app de ponto — sem login. As lojas (Google Play / App Store)
+//     exigem política de privacidade numa URL estável. Só texto: não lê banco nem sessão.
+//     Ver memory/requisitos/Ponto/RUNBOOK-publico.md.
+// ===========================================================================
+Route::group(['middleware' => ['web', 'throttle:60,1']], function () {
+    Route::get('/privacidade/ponto', [\Modules\Ponto\Http\Controllers\PublicoController::class, 'privacidade'])
+        ->name('ponto.publico.privacidade');
+    Route::get('/privacidade/ponto/exclusao', [\Modules\Ponto\Http\Controllers\PublicoController::class, 'exclusao'])
+        ->name('ponto.publico.exclusao');
+});
+
+// ===========================================================================
 // 1d) Associação do app de ponto (Capacitor) com o domínio — App Links / Universal Links.
 //     Sem `web`: não abre sessão nem cookie. Valores em pontowr2.app_links (env); vazio = 404.
 // ===========================================================================

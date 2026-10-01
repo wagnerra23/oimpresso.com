@@ -132,21 +132,22 @@ jobs:
         #   - MultiTenantIsolationTest (6/6): 5 com FK (contacts/transactions.created_by,
         #     products.unit_id) — fixture sem dono; 1 acusa "User biz=1 visível com session
         #     biz=99" (o teste presume global scope de business_id no App\User).
-        #   - ApiClientsPanelTest, 3 métodos (--exclude-filter): o Passport 13 grava o
-        #     secret com hash (60 chars, Client::secret cast hashed) e o contrato [W] diz que
-        #     o segredo do Delphi em campo NÃO pode ser hasheado — conflito a decidir, não a
-        #     esconder: segredo_nao_e_hasheado, client_preexistente_ainda_obtem_token (401),
-        #     store_cria_password_client_com_secret_de_40. Mesmo conflito, medido no 2º run
-        #     (36836813351, 60 ≠ 40), em 2 casos do ClientControllerBaselineTest:
-        #     "store cria client de senha com secret de 40 caracteres" e "o segredo aparece
-        #     UMA vez, no retorno da criação".
         #   - DelphiOImpressoContractTest, 3 casos que dependem de token VÁLIDO (--exclude-filter):
         #     medido no run 36839869081 (PR #8383) com personal access client criado no setup —
         #     o createToken() emite, mas o auth:api devolve 401 (processa-dados-cliente: 401≠400 e
-        #     401≠200; check-update com token: 302≠200, mesmo 401 sem Accept). Mesmo sintoma do
-        #     client_preexistente_ainda_obtem_token (401) acima — token válido recusado pelo guard
-        #     no Passport 13; causa não medida, não consertar às cegas.
+        #     401≠200; check-update com token: 302≠200, mesmo 401 sem Accept). Token válido
+        #     recusado pelo guard no Passport 13; causa não medida, não consertar às cegas.
         # VOLTARAM (conserto medido, não a produção às cegas):
+        #   - 5 casos do segredo (ApiClientsPanelTest: segredo_nao_e_hasheado → renomeado
+        #     segredo_gravado_com_hash_confere_com_o_entregue_na_criacao,
+        #     client_preexistente_ainda_obtem_token, store_cria_password_client_com_secret_de_40;
+        #     ClientControllerBaselineTest: "secret de 40 caracteres", "segredo aparece UMA vez").
+        #     Até 2026-10-01 ficaram FORA porque o Passport 13 grava o secret com hash (60 chars,
+        #     runs 36835992221 e 36836813351) e o contrato dizia que o segredo do Delphi NÃO podia
+        #     ser hasheado. Contrato desatualizado — decisão [W] 2026-10-01: "sim contrato
+        #     desatualizado. porque eu descriptografo e gravo a senha nova no php". Os testes
+        #     passaram a exigir o hash + Hash::check do texto puro entregue; o 401 do
+        #     client_preexistente era o teste mandando o HASH ($c->secret) em vez do texto puro.
         #   - AuthApiTest + DelphiOImpressoContractTest: o 302 era do TESTE — `call()` ignora
         #     withHeaders(), o Accept/Authorization não chegavam e o Authenticate redirecionava
         #     pro login. Produção com Accept: application/json já dava 401; sem Accept (wire do
@@ -158,7 +159,7 @@ jobs:
           mkdir -p test-results
           vendor/bin/pest --no-coverage --colors=always \
             --log-junit test-results/pest-connector-junit.xml \
-            --exclude-filter 'test_segredo_nao_e_hasheado_credencial_em_campo_continua_valendo|test_client_preexistente_ainda_obtem_token|test_store_cria_password_client_com_secret_de_40|secret.de.40.caracteres|segredo.aparece.UMA.vez|check-update.responde.text.plain|ProcessaDadosCliente.rejeita.JSON.sem|ProcessaDadosCliente.com.HD.nao.cadastrado' \
+            --exclude-filter 'check-update.responde.text.plain|ProcessaDadosCliente.rejeita.JSON.sem|ProcessaDadosCliente.com.HD.nao.cadastrado' \
             Modules/Connector/Tests/Feature/ApiClientsPanelTest.php \
             Modules/Connector/Tests/Feature/AuthApiTest.php \
             Modules/Connector/Tests/Feature/ClientControllerBaselineTest.php \

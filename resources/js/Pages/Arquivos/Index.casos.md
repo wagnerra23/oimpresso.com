@@ -255,18 +255,19 @@ last_run: "2026-10-01"
 - **Fonte:** PR-8 da proposta `arquivos-retencao-ui-aviso-titular` e ficha
   `playbook/04-retencao-simular.md` — `POST arquivos/retencao/simular` → `RetentionRunRequest`;
   `dry_run` **forçado** `true` no controller; `purge` recusado no controller; `run()` +
-  `report()` em job; permissão `arquivos.governanca`; não escreve em `arquivos` nem em
+  `report()` em job; **só superadmin** (`can:superadmin` — decisão [W] 2026-10-01; até então
+  `arquivos.governanca`); não escreve em `arquivos` nem em
   `arquivos_audit_log`. D4: a UI nunca apaga.
 - **Aceite:** Dado um business com arquivos mais antigos que `retention_days` · Quando a pessoa
-  com `arquivos.governanca` pede a simulação · Então o job roda **depois da resposta**, em
+  superadmin pede a simulação (admin de negócio toma 403) · Então o job roda **depois da resposta**, em
   dry-run, com o business **da sessão** (o do corpo do request é ignorado) · E o relatório lista,
   por arquivo, só `id`, data de criação e o motivo ("antes do limite de N dias") — nem nome, nem
   caminho, nem hash · E nenhuma linha ganha `deleted_at` e a trilha não muda de tamanho · E
   pedir `purge` é recusado sem despachar nada · E pedir `dry_run=false` não muda nada: o job
   recebe `true` (e recusa sozinho se receber `false`).
 - **Teste:** `Modules/Arquivos/Tests/Feature/ArquivosAdminControllerTest.php` — **6** `it()`
-  citando `UC-INDEX-09` no título: rota POST atrás de `arquivos.governanca` · as permissões
-  `arquivos.restore` e `arquivos.governanca` declaradas com `default false` · **canário**
+  citando `UC-INDEX-09` no título: rota POST atrás de `can:superadmin` · as permissões
+  `arquivos.restore` e `arquivos.governanca` **fora** do catálogo delegável · **canário**
   dry-run forçado + business da sessão (**98 × 99**) · purge recusado sem despacho · o job
   recusa `dry_run=false`/`purge` · a simulação lista só o 98, não o 99, e não escreve nada.
 - **Regressão que defende:** simulação virar execução (trocar o `true` do controller por
@@ -344,6 +345,7 @@ e promove o item a `UC-INDEX-NN`.
   `Config/retention.php` (são espelho declarado, e divergir é achado de auditoria).
 
 ## Trilha do tempo
+- 2026-10-01 · [CL] **Restaurar (UC-INDEX-08) e simular (UC-INDEX-09) passam a ser SÓ superadmin** — decisão [W] 2026-10-01, textual *"Superadmin"* (`playbook/_DECISOES-W-2026-10-01b.md`). `arquivos.restore` e `arquivos.governanca` saíram do `user_permissions()`; as rotas pedem `can:superadmin` (fora do bypass do `Admin#{biz}` no `Gate::before`); concessões feitas no intervalo são limpas por `arquivos:revogar-permissoes-superadmin --dry-run`. Prova HTTP: `ArquivosSuperadminOnlyTest` (admin do 98 → 403, superadmin passa).
 - 2026-08-27 · [CC] **UC-INDEX-05 (baixar) e UC-INDEX-06 (vinculado a) promovidos de `[BACKLOG]`/medição a UC** — a onda trouxe os testes que os defendem, que é a condição do G-2. O buraco foi MEDIDO com a mesma sonda nos dois lados (produção logada × protótipo vivo): a linha de produção tinha **6 colunas e 0 botões**, o protótipo tem **7** (a 7ª é a de ações) e `mono` em 5 delas contra **0 de 6** na produção. O item de backlog do `vault` saiu da lista — ele é exatamente o UC-INDEX-05. O que **não** entrou, e por quê: classificar e excluir **não têm endpoint** (varredura do `Routes/web.php` do módulo: só `index`, `download` e as 3 do Install) e o charter os agenda pra onda 2, travada na decisão [W] do PR-6. Refs: US-ARQ-013 · ADR 0123 §6 (signed URL 60 min) · ADR 0093 (o `find()` do DownloadController aplica o scope).
 - 2026-10-01 · [CL] **UC-INDEX-09 (simular retenção em dry-run) nasce** — thread 04 do playbook (PR-8): `POST arquivos/retencao/simular` atrás de `arquivos.governanca`, dry-run forçado no controller, purge recusado, job depois da resposta que só lista. Sem botão na tela ainda. Nasce `⬜`. Refs: US-ARQ-013 · ADR 0093 · LGPD Art. 16 e 37.
 - 2026-10-01 · [CL] **UC-INDEX-08 (excluir + restaurar no grace) nasce** — thread 03 do playbook (PR-7): `POST arquivos/{arquivo}/excluir` e `.../restaurar`, drawer PT-02, chip "Mostrar excluídos". Os 2 itens de backlog de restaurar saíram (são este UC); os 2 de copy por contexto (foto de OS · XML de NF-e) ficam. Nasce `⬜`. Refs: US-ARQ-013 · ADR 0093 · ADR 0123 §8 (trilha append-only).

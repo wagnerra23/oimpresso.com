@@ -14,9 +14,9 @@ module: Ponto
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Ponto/**` + `resources/js/Pages/Ponto/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 230 arquivos em 18 papéis.
+**Total mapeado:** 240 arquivos em 18 papéis.
 
-## Controllers — 16
+## Controllers — 17
 
 - [MobileMarcacaoController.php](../../../Modules/Ponto/Http/Controllers/Api/MobileMarcacaoController.php)
 - [AppLinksController.php](../../../Modules/Ponto/Http/Controllers/AppLinksController.php)
@@ -33,6 +33,7 @@ module: Ponto
 - [ImportacaoController.php](../../../Modules/Ponto/Http/Controllers/ImportacaoController.php)
 - [InstallController.php](../../../Modules/Ponto/Http/Controllers/InstallController.php)
 - [IntercorrenciaController.php](../../../Modules/Ponto/Http/Controllers/IntercorrenciaController.php)
+- [PublicoController.php](../../../Modules/Ponto/Http/Controllers/PublicoController.php)
 - [RelatorioController.php](../../../Modules/Ponto/Http/Controllers/RelatorioController.php)
 
 ## Requests (validação) — 7
@@ -124,7 +125,7 @@ module: Ponto
 
 - [espelho-pdf.blade.php](../../../Modules/Ponto/Resources/views/reports/espelho-pdf.blade.php)
 
-## Telas (Inertia/React) — 24
+## Telas (Inertia/React) — 26
 
 - [Index.tsx](../../../resources/js/Pages/Ponto/Aprovacoes/Index.tsx)
 - [Index.tsx](../../../resources/js/Pages/Ponto/BancoHoras/Index.tsx)
@@ -148,14 +149,17 @@ module: Ponto
 - [Index.tsx](../../../resources/js/Pages/Ponto/Intercorrencias/Index.tsx)
 - [Show.tsx](../../../resources/js/Pages/Ponto/Intercorrencias/Show.tsx)
 - [Index.tsx](../../../resources/js/Pages/Ponto/Mobile/Index.tsx)
+- [Exclusao.tsx](../../../resources/js/Pages/Ponto/Publico/Exclusao.tsx)
+- [Privacidade.tsx](../../../resources/js/Pages/Ponto/Publico/Privacidade.tsx)
 - [Index.tsx](../../../resources/js/Pages/Ponto/Relatorios/Index.tsx)
 - [Welcome.tsx](../../../resources/js/Pages/Ponto/Welcome.tsx)
 
-## Componentes / apoio de tela — 9
+## Componentes / apoio de tela — 10
 
 - [FilaMobile.tsx](../../../resources/js/Pages/Ponto/Aprovacoes/_components/FilaMobile.tsx)
 - [Justificar.tsx](../../../resources/js/Pages/Ponto/Mobile/_components/Justificar.tsx)
 - [MeuEspelho.tsx](../../../resources/js/Pages/Ponto/Mobile/_components/MeuEspelho.tsx)
+- [DocumentoPublico.tsx](../../../resources/js/Pages/Ponto/Publico/_components/DocumentoPublico.tsx)
 - [ActivityFeed.tsx](../../../resources/js/Pages/Ponto/_components/ActivityFeed.tsx)
 - [AlertInbox.tsx](../../../resources/js/Pages/Ponto/_components/AlertInbox.tsx)
 - [MonthHeatmap.tsx](../../../resources/js/Pages/Ponto/_components/MonthHeatmap.tsx)
@@ -163,7 +167,7 @@ module: Ponto
 - [PontoAreaHeader.tsx](../../../resources/js/Pages/Ponto/_shared/PontoAreaHeader.tsx)
 - [PontoSubNav.tsx](../../../resources/js/Pages/Ponto/_shared/PontoSubNav.tsx)
 
-## Charters (lei da tela) — 24
+## Charters (lei da tela) — 26
 
 - [Index.charter.md](../../../resources/js/Pages/Ponto/Aprovacoes/Index.charter.md)
 - [Index.charter.md](../../../resources/js/Pages/Ponto/BancoHoras/Index.charter.md)
@@ -187,10 +191,12 @@ module: Ponto
 - [Index.charter.md](../../../resources/js/Pages/Ponto/Intercorrencias/Index.charter.md)
 - [Show.charter.md](../../../resources/js/Pages/Ponto/Intercorrencias/Show.charter.md)
 - [Index.charter.md](../../../resources/js/Pages/Ponto/Mobile/Index.charter.md)
+- [Exclusao.charter.md](../../../resources/js/Pages/Ponto/Publico/Exclusao.charter.md)
+- [Privacidade.charter.md](../../../resources/js/Pages/Ponto/Publico/Privacidade.charter.md)
 - [Index.charter.md](../../../resources/js/Pages/Ponto/Relatorios/Index.charter.md)
 - [Welcome.charter.md](../../../resources/js/Pages/Ponto/Welcome.charter.md)
 
-## Casos (contrato UC) — 24
+## Casos (contrato UC) — 26
 
 - [Index.casos.md](../../../resources/js/Pages/Ponto/Aprovacoes/Index.casos.md)
 - [Index.casos.md](../../../resources/js/Pages/Ponto/BancoHoras/Index.casos.md)
@@ -214,12 +220,14 @@ module: Ponto
 - [Index.casos.md](../../../resources/js/Pages/Ponto/Intercorrencias/Index.casos.md)
 - [Show.casos.md](../../../resources/js/Pages/Ponto/Intercorrencias/Show.casos.md)
 - [Index.casos.md](../../../resources/js/Pages/Ponto/Mobile/Index.casos.md)
+- [Exclusao.casos.md](../../../resources/js/Pages/Ponto/Publico/Exclusao.casos.md)
+- [Privacidade.casos.md](../../../resources/js/Pages/Ponto/Publico/Privacidade.casos.md)
 - [Index.casos.md](../../../resources/js/Pages/Ponto/Relatorios/Index.casos.md)
 - [Welcome.casos.md](../../../resources/js/Pages/Ponto/Welcome.casos.md)
 
-## Testes (Pest) — 61
+## Testes (Pest) — 63
 
-- 59 em [Modules/Ponto/Tests/Feature/](../../../Modules/Ponto/Tests/Feature)
+- 61 em [Modules/Ponto/Tests/Feature/](../../../Modules/Ponto/Tests/Feature)
 - 2 em [Modules/Ponto/Tests/Unit/](../../../Modules/Ponto/Tests/Unit)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
