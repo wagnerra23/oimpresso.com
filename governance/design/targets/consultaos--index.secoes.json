@@ -1,0 +1,6 @@
+{
+  "_": "A1 [CL] 2026-09-30 — playbook lote-trio-medida. Protótipo: rota `portalos` do espelho (app.jsx → MockupPage, corpo estático MOCKUP_BODIES.portalos em mockup-bodies.js; MIGRATION_INFO.portalos aponta Modules/ConsultaOs). O charter de ConsultaOs/Index declara related_prototype n/a — ver _saida-A1.",
+  "_mapa": "alvo:mapa --rota portalos --raiz .mp-portalos (e .mp-portalos > .pos-grid) contra o espelho servido por servirEstatico, 2026-09-30: .mp-portalos = div.pos-grid (2 div.pos-card: busca · OS encontrada).",
+  "busca": { "seletor": ".mp-portalos > .pos-grid > .pos-card:nth-child(1)" },
+  "os": { "seletor": ".mp-portalos > .pos-grid > .pos-card:nth-child(2)" }
+}
