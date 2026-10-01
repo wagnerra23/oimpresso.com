@@ -125,15 +125,6 @@ last_run: "2026-09-29"
 
 ## Trilha do tempo
 - 2026-09-29 · [CL] carimbado por criar-tela.mjs e preenchido na thread 06 (PR 2a); UC-REPP-06/07 no PR 2b. Refs: UI-0013 · ADR 0264 G-1/G-2.
-<<<<<<< HEAD
 - 2026-10-01 · [CL] UC-REPP-11/12/13 — registro do aparelho para o lembrete (ADR 0423, PR 1).
 - 2026-10-01 · [CL] UC-REPP-16 — envio do lembrete pelo FCM (ADR 0423, PR 2a).
 - 2026-10-01 · [CL] UC-REPP-14/15 — agendamento do lembrete (ADR 0423, PR 2b).
-=======
-<<<<<<< HEAD
-- 2026-10-01 · [CL] UC-REPP-11/12/13 — registro do aparelho para o lembrete (ADR 0423, PR 1).
-- 2026-10-01 · [CL] UC-REPP-16 — envio do lembrete pelo FCM (ADR 0423, PR 2a).
-=======
-- 2026-10-01 · [CL] UC-REPP-11/12/13 — registro do aparelho para o lembrete (ADR 0423, PR 1).
->>>>>>> claude/ponto-push-lembrete
->>>>>>> claude/ponto-push-envio
