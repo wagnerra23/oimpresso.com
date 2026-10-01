@@ -153,8 +153,12 @@ class ApiClientsPanelTest extends TestCase
         $lista = $this->actingAs($this->superadmin)->get('/connector/client')->getContent();
         $this->assertStringNotContainsString($c->secret, $lista);
 
-        $detalhe = $this->actingAs($this->superadmin)->get("/connector/client/{$c->id}");
-        $this->assertStringNotContainsString($c->secret, (string) $detalhe->getContent());
+        // show/edit nao tem tela: devolvem o painel (antes era 500 com a pagina de erro)
+        foreach (["/connector/client/{$c->id}", "/connector/client/{$c->id}/edit"] as $rota) {
+            $detalhe = $this->actingAs($this->superadmin)->get($rota);
+            $detalhe->assertRedirect('/connector/client');
+            $this->assertStringNotContainsString($c->secret, (string) $detalhe->getContent());
+        }
     }
 
     /**
