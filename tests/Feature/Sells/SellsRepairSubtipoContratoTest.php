@@ -265,4 +265,8 @@ it('UC-S03 · a porta /pos/create?sub_type=repair entrega subType=repair ao Sell
     // Controle: sem o parâmetro, a mesma porta abre venda comum.
     \PHPUnit\Framework\Assert::assertSame(200, $comum->status(), 'GET /pos/create não abriu a tela: HTTP '.$comum->status());
     expect($comum->json('props.subType'))->toBeNull();
+
+    // A porta antiga (botão "Nova OS" do Repair/Index) encaminha pra porta certa, em vez de
+    // abrir venda comum. Sem X-Inertia: é o clique no <a href>, uma visita de página inteira.
+    $this->flushHeaders()->get('/sells/create?sub_type=repair')->assertRedirect('/pos/create?sub_type=repair');
 });

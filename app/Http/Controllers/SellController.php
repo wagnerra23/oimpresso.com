@@ -855,6 +855,15 @@ class SellController extends Controller
      */
     public function create()
     {
+        // Reparo é um TIPO de venda (UC-S03): quem lê ?sub_type= e entrega o tipo ao
+        // Sells/Create é o SellPosController (/pos/create). Esta tela lê ?sale_type= e
+        // gravava o reparo como venda comum — medido 2026-10-01 a partir do botão "Nova OS"
+        // do Repair/Index. O destino aplica a própria permissão e exige caixa aberto,
+        // como os links Blade do Repair sempre exigiram.
+        if (request()->get('sub_type') === 'repair') {
+            return redirect('/pos/create?sub_type=repair');
+        }
+
         $sale_type = request()->get('sale_type', '');
 
         if ($sale_type == 'sales_order') {
