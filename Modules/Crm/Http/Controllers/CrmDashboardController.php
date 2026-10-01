@@ -311,18 +311,18 @@ class CrmDashboardController extends Controller
             ])->values(),
             'por_fase' => $fases->map(fn ($f) => ['fase' => $f->name, 'total' => (int) ($leadsPorFase[$f->id] ?? 0)])->values(),
             'aniversarios' => ['hoje' => $aniv['todays_birthdays'], 'proximos' => $aniv['upcoming_birthdays']],
-            'por_usuario' => $porUsuario->get()->map(fn ($r) => collect(array_keys($status))
+            'por_usuario' => $porUsuario->toBase()->get()->map(fn ($r) => collect(array_keys($status))
                 ->mapWithKeys(fn ($k) => [$k => (int) $r->{"st_{$k}"}])
                 ->merge(['usuario' => $r->usuario, 'nenhum' => (int) $r->nenhum, 'total' => (int) $r->total]))->values(),
             'conversao' => User::where('users.business_id', $business_id)->user()->where('is_cmmsn_agnt', 0)
                 ->join('contacts as c', 'c.converted_by', '=', 'users.id')->where('c.business_id', $business_id)
                 ->selectRaw("{$nome} as usuario, COUNT(c.id) as total")
-                ->groupBy('users.id', 'users.surname', 'users.first_name', 'users.last_name')->get()
+                ->groupBy('users.id', 'users.surname', 'users.first_name', 'users.last_name')->toBase()->get()
                 ->map(fn ($r) => ['usuario' => $r->usuario, 'total' => (int) $r->total])->values(),
             'chamadas' => ! $comChamadas ? null : CrmCallLog::where('crm_call_logs.business_id', $business_id)
                 ->join('users as u', 'crm_call_logs.created_by', '=', 'u.id')
                 ->selectRaw('u.username as usuario, SUM(IF(DATE(start_time) = ?, 1, 0)) as hoje, SUM(IF(DATE(start_time) >= ?, 1, 0)) as mes, COUNT(crm_call_logs.id) as todas', [$hoje, $mes])
-                ->groupBy('u.id', 'u.username')->get()
+                ->groupBy('u.id', 'u.username')->toBase()->get()
                 ->map(fn ($r) => ['usuario' => $r->usuario, 'hoje' => (int) $r->hoje, 'mes' => (int) $r->mes, 'todas' => (int) $r->todas])->values(),
         ];
     }
