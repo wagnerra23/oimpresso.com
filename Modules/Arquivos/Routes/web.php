@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use Modules\Arquivos\Http\Controllers\ArquivosAdminController;
 use Modules\Arquivos\Http\Controllers\DownloadController;
 use Modules\Arquivos\Http\Controllers\InstallController;
+use Modules\Arquivos\Http\Controllers\RetencaoSimulacaoController;
 
 /*
 |--------------------------------------------------------------------------
@@ -32,7 +33,8 @@ use Modules\Arquivos\Http\Controllers\InstallController;
 // permissao, o motivo obrigatorio vem da ReclassifyArquivoRequest, e `whereNumber` porque o
 // controller recebe o id cru e resolve pelo model (global scope) — sem route-model binding,
 // que rodaria antes do SetSessionData. Excluir/restaurar = thread 03; retencao/purge
-// dependem da proposta de ADR `arquivos-retencao-ui-aviso-titular`.
+// dependem da proposta de ADR `arquivos-retencao-ui-aviso-titular`. Excluir/restaurar
+// entraram na thread 03 (2026-10-01).
 Route::middleware(['throttle:60,1', 'web', 'authh', 'auth', 'SetSessionData', 'language', 'timezone', 'AdminSidebarMenu'])
     ->prefix('arquivos')
     ->group(function () {
@@ -43,6 +45,23 @@ Route::middleware(['throttle:60,1', 'web', 'authh', 'auth', 'SetSessionData', 'l
             ->whereNumber('arquivo')
             ->middleware('can:arquivos.access')
             ->name('arquivos.classificar');
+        // Thread 03 (PR-7): excluir = SOFT-delete (grace 30d, `arquivos_retention.grace_period_days`);
+        // restaurar só dentro do grace. Hard-delete/purge NUNCA pela UI (D4) — segue só no
+        // `arquivos:retention-cleanup`. As Requests barram arquivo de outro business.
+        Route::post('{arquivo}/excluir', [ArquivosAdminController::class, 'excluir'])
+            ->whereNumber('arquivo')
+            ->middleware('can:arquivos.access')
+            ->name('arquivos.excluir');
+        Route::post('{arquivo}/restaurar', [ArquivosAdminController::class, 'restaurar'])
+            ->whereNumber('arquivo')
+            ->middleware('can:arquivos.access')
+            ->name('arquivos.restaurar');
+        // Thread 04 (PR-8): simular a retenção em DRY-RUN — o controller força dry_run=true e
+        // recusa purge (D4: a UI nunca apaga). Permissão própria de governança, separada de
+        // `arquivos.access` (ver o acervo não é o mesmo que mexer na política).
+        Route::post('retencao/simular', [RetencaoSimulacaoController::class, 'simular'])
+            ->middleware('can:arquivos.governanca')
+            ->name('arquivos.retencao.simular');
     });
 
 // Wave 14 D8 Security — throttle:60,1 (60 req/min/IP) em rotas Arquivos.

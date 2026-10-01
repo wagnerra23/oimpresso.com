@@ -259,6 +259,8 @@ Modules/Whatsapp/Tests/Feature/CsatFlowTest.php
 Modules/Whatsapp/Tests/Feature/GuardiaoMidiaTest.php
 Modules/Whatsapp/Tests/Feature/HistorySyncQueueArchitectureTest.php
 Modules/Whatsapp/Tests/Feature/InboxQueueDerivationTest.php
+# [W] 2026-10-01 D1 Atendimento: GET /atendimento/inbox redireciona pra Caixa preservando a query (sem DB).
+Modules/Whatsapp/Tests/Feature/InboxRedirectPreservaQueryTest.php
 Modules/Whatsapp/Tests/Feature/InternalNoteTest.php
 Modules/Whatsapp/Tests/Feature/LastMessageDenormalizeTest.php
 Modules/Whatsapp/Tests/Feature/MacroVariantPickerTest.php
@@ -645,3 +647,4 @@ tests/Feature/Whatsapp/AtendimentoAdminContratoTest.php
 tests/Feature/ConsultaOs/ConsultaOsIndexContratoTest.php
 # Atendimento/02 (playbook) — contrato de /atendimento/canais (Index + Show): UC-CNL-01..04 + UC-CNLD-01..05. Schema sintetico + skip fora de sqlite.
 tests/Feature/Whatsapp/AtendimentoChannelsContratoTest.php
+tests/Feature/Testing/GuardableColumnsCacheResetTest.php

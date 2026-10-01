@@ -18,10 +18,10 @@ authority: generated
 |---|---:|
 | US no SPEC | 0 |
 | CU no SDD | 0 |
-| Telas (.tsx) | 0 |
-| Telas com `casos.md` | 0 |
-| UC declarados | 0 |
-| UC com teste que os cita | 0 |
+| Telas (.tsx) | 1 |
+| Telas com `casos.md` | 1 |
+| UC declarados | 7 |
+| UC com teste que os cita | 7 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -40,6 +40,13 @@ _Nenhuma._
 
 | UC | Tela | Status |
 |---|---|---|
+| UC-CRMACO-01 | Acompanhamentos/Index | 🧪 aguarda veredito da lane |
+| UC-CRMACO-02 | Acompanhamentos/Index | 🧪 aguarda veredito da lane |
+| UC-CRMACO-03 | Acompanhamentos/Index | 🧪 aguarda veredito da lane |
+| UC-CRMACO-04 | Acompanhamentos/Index | 🧪 aguarda veredito da lane |
+| UC-CRMACO-05 | Acompanhamentos/Index | 🧪 aguarda veredito da lane |
+| UC-CRMACO-06 | Acompanhamentos/Index | 🧪 aguarda veredito da lane |
+| UC-CRMACO-07 | Acompanhamentos/Index | 🧪 aguarda veredito da lane |
 
 ---
 

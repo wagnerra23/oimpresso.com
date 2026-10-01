@@ -11,12 +11,15 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
+use Inertia\Testing\AssertableInertia;
 use Laravel\Passport\Passport;
 use Spatie\Permission\Models\Permission;
 use Tests\TestCase;
 
 /**
- * ApiClientsPanelTest — prova mínima do painel /connector/api (Conector · API).
+ * ApiClientsPanelTest — prova mínima do painel /connector/client (Conector · API clients).
+ * Thread 04 (2026-10-01): a lista é /connector/client (ClientController::index, Inertia
+ * `Api/Index`); a cópia do Cowork usava /connector/api, que é outra tela (errata _saida-01).
  *
  * Escrito no F1 pelo [CC] a partir de Index.charter.md + Index.casos.md
  * (cowork-inbox/connector/). NASCE VERMELHO DE PROPÓSITO em quatro casos —
@@ -120,7 +123,7 @@ class ApiClientsPanelTest extends TestCase
         $outroUser = $this->user($outroNegocio);
         $alheio = $this->client($outroUser, 'Client de outro negócio');
 
-        $res = $this->actingAs($this->superadmin)->get('/connector/api');
+        $res = $this->actingAs($this->superadmin)->get('/connector/client');
 
         $res->assertOk();
         $res->assertSee($meu->name);
@@ -132,7 +135,7 @@ class ApiClientsPanelTest extends TestCase
     {
         $c = $this->client();
 
-        $res = $this->actingAs($this->superadmin)->get('/connector/api');
+        $res = $this->actingAs($this->superadmin)->get('/connector/client');
 
         $res->assertOk();
         $res->assertDontSee($c->secret);
@@ -142,8 +145,8 @@ class ApiClientsPanelTest extends TestCase
     {
         $c = $this->client();
 
-        // ❌ hoje o ClientController::index chama makeVisible('secret')
-        $lista = $this->actingAs($this->superadmin)->get('/connector/api')->getContent();
+        // até a thread 03 (2026-10-01) o ClientController::index chamava makeVisible('secret')
+        $lista = $this->actingAs($this->superadmin)->get('/connector/client')->getContent();
         $this->assertStringNotContainsString($c->secret, $lista);
 
         $detalhe = $this->actingAs($this->superadmin)->get("/connector/client/{$c->id}");
@@ -236,7 +239,7 @@ class ApiClientsPanelTest extends TestCase
         $this->tecnico->givePermissionTo('connector.access');
 
         $this->actingAs($this->tecnico)
-            ->get('/connector/api')
+            ->get('/connector/client')
             ->assertForbidden();
     }
 
@@ -342,12 +345,14 @@ class ApiClientsPanelTest extends TestCase
         $this->token($c);                 // ativo
         $this->token($c, revoked: true);  // revogado — não conta
 
-        $res = $this->actingAs($this->superadmin)->get('/connector/api');
+        $res = $this->actingAs($this->superadmin)->get('/connector/client');
 
-        $res->assertOk();
-        // A prop existe depois da CONN-O4 (tradução Inertia); antes disso a asserção
-        // documenta o contrato de dados esperado pelo charter.
-        $res->assertViewHas('clients');
+        // Thread 04 (2026-10-01): a lista é Inertia `Api/Index`; só o token ativo conta.
+        $res->assertOk()->assertInertia(fn (AssertableInertia $page) => $page->component('Api/Index')->has('clients'));
+        $linha = collect($res->viewData('page')['props']['clients'])->firstWhere('id', $c->id);
+        $this->assertNotNull($linha, 'o client do próprio negócio precisa estar na lista');
+        $this->assertSame(1, $linha['active_tokens_24h']);
+        $this->assertArrayNotHasKey('secret', $linha);
     }
 
     // ── UC-CONN-13/14 ❌ regenerar sai da tela e da rota ([W] D4) ──────────
@@ -391,7 +396,7 @@ class ApiClientsPanelTest extends TestCase
         config(['app.env' => 'demo']);
         $c = $this->client();
 
-        $res = $this->actingAs($this->superadmin)->get('/connector/api');
+        $res = $this->actingAs($this->superadmin)->get('/connector/client');
 
         $res->assertOk();
         $res->assertDontSee($c->secret);

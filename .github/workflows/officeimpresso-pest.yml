@@ -123,7 +123,8 @@ jobs:
           vendor/bin/pest --no-coverage --colors=always \
             --log-junit test-results/pest-officeimpresso-junit.xml \
             Modules/Officeimpresso/Tests/Feature/LicencasAcessoPermissionTest.php \
-            Modules/Officeimpresso/Tests/Feature/LogsBaselineTest.php
+            Modules/Officeimpresso/Tests/Feature/LogsBaselineTest.php \
+            Modules/Officeimpresso/Tests/Feature/CatalogoRedirectTest.php
 
 
       # Passo 1 do plano da LC-13 (Gate:): a lane JA emitia JUnit e NINGUEM lia.

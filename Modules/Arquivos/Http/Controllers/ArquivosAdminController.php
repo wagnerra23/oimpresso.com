@@ -14,8 +14,10 @@ use Illuminate\Support\Facades\URL;
 use Inertia\Inertia;
 use Inertia\Response;
 use Modules\Arquivos\Entities\Arquivo;
+use Modules\Arquivos\Http\Requests\DeleteArquivoRequest;
 use Modules\Arquivos\Http\Requests\ListArquivosRequest;
 use Modules\Arquivos\Http\Requests\ReclassifyArquivoRequest;
+use Modules\Arquivos\Http\Requests\RestoreArquivoRequest;
 use Modules\Arquivos\Services\ArquivosService;
 use Modules\Arquivos\Services\CofreStatsReader;
 use Modules\Arquivos\Services\RetencaoStatsReader;
@@ -141,6 +143,9 @@ class ArquivosAdminController extends Controller
             'filtros'  => $filtros,
             'politica' => $this->politica(),
             'resumo'   => $this->resumo(),
+            // Thread 03: a MESMA regra do `RestoreArquivoRequest::authorize()` — sem ela o botão
+            // apareceria pra quem toma 403 (`arquivos.restore` não é declarada; hoje = superadmin).
+            'pode_restaurar' => (bool) ($request->user()?->can('superadmin') || $request->user()?->can('arquivos.restore')),
         ];
 
         // Só a prop da vista ABERTA é registrada. `Inertia::defer` adia a execução,
@@ -362,7 +367,30 @@ class ArquivosAdminController extends Controller
             'vence_em'        => $vence?->toDateString(),
             'dias_restantes'  => $vence ? (int) now()->startOfDay()->diffInDays($vence, false) : null,
             'excluido_em'     => $a->deleted_at?->toDateString(),
+            // Thread 03 (PR-7): até quando dá pra restaurar, e SE dá. Fora do grace o front não
+            // desenha o botão — e o `restaurar()` recusa do mesmo jeito (mesma conta, aqui).
+            'restaurar_ate'   => $a->deleted_at ? $this->fimDoGrace($a)->toDateString() : null,
+            'restauravel'     => $a->deleted_at !== null && $this->dentroDoGrace($a),
         ];
+    }
+
+    /** Grace de `Config/retention.php` — a MESMA leitura do `RetencaoStatsReader::graceDias()`. */
+    private function graceDias(): int
+    {
+        $g = (int) config('arquivos_retention.grace_period_days', 30);
+
+        return $g > 0 ? $g : 30;
+    }
+
+    private function fimDoGrace(Arquivo $a): \Carbon\CarbonInterface
+    {
+        return $a->deleted_at->copy()->addDays($this->graceDias());
+    }
+
+    /** Dentro do grace = `deleted_at + grace >= hoje` (mesma regra da vista Retenção). */
+    private function dentroDoGrace(Arquivo $a): bool
+    {
+        return $a->deleted_at !== null && $this->fimDoGrace($a)->greaterThanOrEqualTo(now()->startOfDay());
     }
 
     /**
@@ -739,5 +767,51 @@ class ArquivosAdminController extends Controller
             ], fn ($v) => $v !== null && $v !== '')),
             'created_at'  => now(),
         ]);
+    }
+
+    /**
+     * Excluir — onda 2 · PR-7 (thread 03). SOFT-delete pelo `ArquivosService::softDelete()`:
+     * a linha ganha `deleted_at`, o blob fica, e o `arquivos:retention-cleanup` só apaga de
+     * verdade depois do grace. A tela NUNCA faz hard-delete nem purge (D4).
+     *
+     * Tier 0: a `DeleteArquivoRequest` recusa (403) arquivo de outro business; o `where`
+     * explícito + `findOrFail` é a segunda perna (o scope do model abre sem sessão). O motivo
+     * vai no payload da MESMA linha `soft_delete` — a trilha é append-only, sem linha dupla.
+     */
+    public function excluir(DeleteArquivoRequest $request, int $arquivo): RedirectResponse
+    {
+        $alvo = Arquivo::query()
+            ->where('business_id', (int) $request->session()->get('user.business_id'))
+            ->findOrFail($arquivo);
+
+        app(ArquivosService::class)->softDelete($alvo, [
+            'motivo'     => (string) $request->input('reason'),
+            'grace_dias' => $this->graceDias(),
+        ]);
+
+        return back()->with('status', ['success' => true, 'msg' => 'Arquivo excluído. Dá pra restaurar até ' . $this->fimDoGrace($alvo)->format('d/m/Y') . '.']);
+    }
+
+    /**
+     * Restaurar — onda 2 · PR-7 (thread 03). Só DENTRO do grace: fora dele o arquivo é do job
+     * de retenção, e recusar aqui é a mesma regra que esconde o botão na tela.
+     */
+    public function restaurar(RestoreArquivoRequest $request, int $arquivo): RedirectResponse
+    {
+        $alvo = Arquivo::query()
+            ->withTrashed()
+            ->where('business_id', (int) $request->session()->get('user.business_id'))
+            ->whereNotNull('deleted_at')
+            ->findOrFail($arquivo);
+
+        if (! $this->dentroDoGrace($alvo)) {
+            return back()->withErrors([
+                'arquivo' => 'Passou o prazo de ' . $this->graceDias() . ' dias para restaurar — este arquivo está com a retenção.',
+            ]);
+        }
+
+        app(ArquivosService::class)->restore($alvo, ['motivo' => (string) $request->input('reason')]);
+
+        return back()->with('status', ['success' => true, 'msg' => 'Arquivo restaurado.']);
     }
 }
