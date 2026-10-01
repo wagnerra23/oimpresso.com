@@ -13,6 +13,7 @@ return [
     'module_description' => 'Ponto Eletrônico · Portaria 671/2021',
     'module_icon'        => 'fa fa-clock-o',
     'module_version'     => '0.1',
+
     'pid'                => null, // preencher com product ID da WR2 quando houver
 
     /*
