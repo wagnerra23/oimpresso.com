@@ -11,7 +11,6 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\Schema;
 use Inertia\Inertia;
 use Modules\Crm\Entities\CrmContact;
 use Modules\Crm\Http\Requests\StoreLeadRequest;
@@ -79,7 +78,6 @@ class LeadController extends Controller
 
         if (request()->ajax() || $inertia) {
             $leads = $this->crmUtil->getLeadsListQuery($business_id);
-            $this->semColunasDeNomeRemovidas($leads);
 
             if (! $can_access_all_leads && $can_access_own_leads) {
                 $leads->OnlyOwnLeads();
@@ -680,25 +678,5 @@ class LeadController extends Controller
                 ? optional((clone $leads)->where('contacts.id', $leadId)->first(), $linha)
                 : null,
         ]);
-    }
-
-    /**
-     * `CrmUtil::getLeadsListQuery` seleciona `contacts.prefix/first_name/middle_name/last_name`,
-     * colunas que não existem mais no schema (medido na lane MySQL da thread Crm/02:
-     * `Unknown column 'contacts.prefix'`). Sem isto a lista quebra com 500 — na Inertia e no
-     * DataTables da Blade. O conserto na raiz é no CrmUtil (fora do prefixo da thread, e o
-     * Connector também o chama); aqui só tiramos do SELECT o que o banco não tem.
-     */
-    private function semColunasDeNomeRemovidas($leads): void
-    {
-        if (Schema::hasColumn('contacts', 'first_name')) {
-            return;
-        }
-        $removidas = ['contacts.prefix', 'contacts.first_name', 'contacts.middle_name', 'contacts.last_name'];
-        $base = $leads->getQuery();
-        $base->columns = array_values(array_filter(
-            $base->columns ?? [],
-            fn ($c) => ! (is_string($c) && in_array($c, $removidas, true))
-        ));
     }
 }
