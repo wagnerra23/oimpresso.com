@@ -1,7 +1,7 @@
 {
   "screen": "Sells/Create",
   "path": "resources/js/Pages/Sells/Create.tsx",
-  "measured_against_sha": "db67e7897",
+  "measured_against_sha": "501769d4c",
   "generated_by": "scripts/design-spec-gen.mjs (DERIVADO — não editar à mão)",
   "shell": [
     "AppShellV2"
@@ -27,9 +27,14 @@
     "local": [
       "PaymentRow (./_components/PaymentRow)",
       "QuickAddVehicleSheet (./_components/QuickAddVehicleSheet)",
+      "ReparoSection (./_components/ReparoSection)",
+      "camposDeReparo (./_components/reparoVenda)",
       "camposDeSubtipo (./_components/subtipoVenda)",
       "dropdownEntries (./_components/dropdownEntries)",
-      "type Payment (./_components/PaymentRow)"
+      "reparoInicial (./_components/reparoVenda)",
+      "reparoValido (./_components/reparoVenda)",
+      "type Payment (./_components/PaymentRow)",
+      "type RepairPosProps (./_components/ReparoSection)"
     ]
   },
   "hooks": [
@@ -41,13 +46,13 @@
     "raw_hex": 0,
     "hardcoded_px": 6,
     "inline_style": 0,
-    "native_select": 0,
+    "native_select": 1,
     "native_input": 1
   },
   "totals": {
     "canon_components": 12,
-    "local_components": 5,
+    "local_components": 10,
     "uses_layout_primitives": false,
-    "structural_violations": 7
+    "structural_violations": 8
   }
 }

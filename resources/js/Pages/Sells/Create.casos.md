@@ -99,6 +99,16 @@ last_run: "2026-08-26"
 
 ---
 
+## UC-S04 · Venda de reparo registra o aparelho e o atendimento
+- **Persona:** técnico de assistência no balcão.
+- **Como usa:** na venda aberta como reparo, a seção **Reparo** pede status (obrigatório, já vem com o status padrão do Repair), entrega prevista, concluído em, garantia, marca, aparelho, modelo, nº de série e o problema relatado (vários, com sugestões das configurações do Repair). Na venda comum a seção não existe. Paridade com o POS Blade de reparo (`repair_pos.blade.php`).
+- **Aceite:** Dado a venda aberta como reparo · Então a tela recebe as opções de reparo **só do próprio business** (status de outro business nunca aparece) e sem status não dá pra salvar · Quando salva · Então a venda grava `repair_status_id`, `repair_serial_no`, `repair_due_date` (lido no formato da data da venda) e `repair_defects` no JSON do Tagify (`[{"value":"…"}]`, o que a tela Blade e o recibo leem), com o **mesmo** `final_total` e a mesma baixa de estoque da venda comum.
+- **Teste:** `tests/Feature/Sells/SellsRepairSubtipoContratoTest.php` (UC-S04: opções por business + gravação, tenant 98, lane `sells-pest`) + `tests/js/sells-reparo-venda.test.ts` (o que o envio produz, lane `sells-v3-dominio-gate`).
+- **Status: 🧪** _(nasce sem run — vira ✅ com o veredito `pass` no manifesto G-7.)_
+- **Fora deste UC:** checklist pré-reparo e senha/padrão do aparelho (próxima onda) · abrir a venda a partir de uma OS (`job_sheet_id`), que **adiciona peças ao carrinho** e por isso é mudança de valor, sob a REGRA MESTRE.
+
+---
+
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
 > Regra G-2: UC declarado sem teste citando o id = órfão. Itens abaixo SEM token de UC de

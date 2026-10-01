@@ -15,7 +15,7 @@ tabelas_dominio: ["transactions", "transaction_sell_lines", "transaction_payment
 >
 > **O que isto é:** o módulo `Sells` é CLASSE B — o código mora no núcleo UltimatePOS (`app/`), sem diretório modular homônimo. A membership vem de uma **semente curada** de paths do core declarada em `module-surface.mjs::CORE_APP_MODULES` (revisável no diff) + `resources/js/Pages/Sells/**`. **O que NÃO é:** cobertura/nota/status (donos: `screen-coverage-map.mjs` + `casos-gate`) nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve). As **tabelas do domínio** (`transactions`, `transaction_sell_lines`, `transaction_payments`) são metadado-ÂNCORA declarado, **não** o derivador (derivar por tabela over-inclui — medido 2026-07-21).
 
-**Total mapeado:** 192 arquivos em 9 papéis.
+**Total mapeado:** 194 arquivos em 9 papéis.
 
 ## Controllers — 6
 
@@ -153,7 +153,7 @@ tabelas_dominio: ["transactions", "transaction_sell_lines", "transaction_payment
 - [Show.tsx](../../../resources/js/Pages/Sells/Show.tsx)
 - [Subscriptions.tsx](../../../resources/js/Pages/Sells/Subscriptions.tsx)
 
-## Componentes / apoio de tela — 44
+## Componentes / apoio de tela — 45
 
 - [CobrancaChip.tsx](../../../resources/js/Pages/Sells/_components/CobrancaChip.tsx)
 - [CobrancaDrawer.tsx](../../../resources/js/Pages/Sells/_components/CobrancaDrawer.tsx)
@@ -169,6 +169,7 @@ tabelas_dominio: ["transactions", "transaction_sell_lines", "transaction_payment
 - [QuickAddVehicleSheet.tsx](../../../resources/js/Pages/Sells/_components/QuickAddVehicleSheet.tsx)
 - [QuickPaymentDialog.tsx](../../../resources/js/Pages/Sells/_components/QuickPaymentDialog.tsx)
 - [QuickPaymentPopover.tsx](../../../resources/js/Pages/Sells/_components/QuickPaymentPopover.tsx)
+- [ReparoSection.tsx](../../../resources/js/Pages/Sells/_components/ReparoSection.tsx)
 - [SaleAiPanel.tsx](../../../resources/js/Pages/Sells/_components/SaleAiPanel.tsx)
 - [SaleAuditTrail.tsx](../../../resources/js/Pages/Sells/_components/SaleAuditTrail.tsx)
 - [SaleItemComments.tsx](../../../resources/js/Pages/Sells/_components/SaleItemComments.tsx)
@@ -221,11 +222,12 @@ tabelas_dominio: ["transactions", "transaction_sell_lines", "transaction_payment
 - [Index.casos.md](../../../resources/js/Pages/Sells/Index.casos.md)
 - [Show.casos.md](../../../resources/js/Pages/Sells/Show.casos.md)
 
-## Demais arquivos (manifestos, docs, assets e misc) — 12
+## Demais arquivos (manifestos, docs, assets e misc) — 13
 
 - [Create.design-spec.json](../../../resources/js/Pages/Sells/Create.design-spec.json)
 - [PaymentRow.test-pending.md](../../../resources/js/Pages/Sells/_components/PaymentRow.test-pending.md)
 - [dropdownEntries.ts](../../../resources/js/Pages/Sells/_components/dropdownEntries.ts)
+- [reparoVenda.ts](../../../resources/js/Pages/Sells/_components/reparoVenda.ts)
 - [subtipoVenda.ts](../../../resources/js/Pages/Sells/_components/subtipoVenda.ts)
 - [calculo-item.ts](../../../resources/js/Pages/Sells/_components/v3/calculo-item.ts)
 - [cliente-consulta-dominio.ts](../../../resources/js/Pages/Sells/_components/v3/cliente-consulta-dominio.ts)

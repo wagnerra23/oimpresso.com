@@ -266,3 +266,79 @@ it('UC-S03 · a porta /pos/create?sub_type=repair entrega subType=repair ao Sell
     \PHPUnit\Framework\Assert::assertSame(200, $comum->status(), 'GET /pos/create não abriu a tela: HTTP '.$comum->status());
     expect($comum->json('props.subType'))->toBeNull();
 });
+
+/** Status de reparo de um business (fixture própria — o seed não garante nenhum). */
+function repairSubtipoStatus(int $bizId, string $nome): int
+{
+    return (int) DB::table('repair_statuses')->insertGetId([
+        'name' => $nome,
+        'color' => '#2563eb',
+        'sort_order' => 1,
+        'business_id' => $bizId,
+        'is_completed_status' => 0,
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+}
+
+it('UC-S04 · a venda de reparo abre com as opções de reparo do PRÓPRIO business', function () {
+    if (! Schema::hasTable('repair_statuses')) {
+        $this->markTestSkipped('Tabela repair_statuses ausente — rode as migrations do Repair.');
+    }
+    $outroBiz = EstoqueFixture::secondBusinessId();
+    if ($outroBiz === null) {
+        $this->markTestSkipped('Sem 2º business semeado pro adversário cross-tenant.');
+    }
+
+    $meu = repairSubtipoStatus($this->bizId, 'Em bancada UC-S04');
+    $alheio = repairSubtipoStatus($outroBiz, 'De outro business UC-S04');
+
+    DB::table('cash_registers')->insert([
+        'business_id' => $this->bizId, 'location_id' => $this->locationId, 'user_id' => $this->user->id,
+        'status' => 'open', 'created_at' => now(), 'updated_at' => now(),
+    ]);
+    $manifest = public_path('build-inertia/manifest.json');
+    $headers = ['X-Inertia' => 'true', 'X-Inertia-Version' => file_exists($manifest) ? md5_file($manifest) : '1'];
+
+    $reparo = $this->withHeaders($headers)->get('/pos/create?sub_type=repair');
+    \PHPUnit\Framework\Assert::assertSame(200, $reparo->status(), 'GET /pos/create?sub_type=repair: HTTP '.$reparo->status());
+
+    $ids = collect($reparo->json('props.repairPos.statuses'))->pluck('id')->all();
+    expect($ids)->toContain($meu);
+    expect(in_array($alheio, $ids, true))->toBeFalse(); // Tier 0: status de outro business nunca aparece.
+    foreach (['brands', 'devices', 'deviceModels', 'warranties', 'defeitosSugeridos'] as $chave) {
+        expect(array_key_exists($chave, $reparo->json('props.repairPos')))->toBeTrue();
+    }
+
+    // Venda comum: sem seção de reparo.
+    $comum = $this->withHeaders($headers)->get('/pos/create');
+    expect($comum->json('props.repairPos'))->toBeNull();
+});
+
+it('UC-S04 · os campos da seção Reparo são gravados na venda, sem mudar o valor', function () {
+    if (! Schema::hasTable('repair_statuses')) {
+        $this->markTestSkipped('Tabela repair_statuses ausente — rode as migrations do Repair.');
+    }
+    $status = repairSubtipoStatus($this->bizId, 'Aguardando peça UC-S04');
+
+    // Exatamente o que reparoVenda.camposDeReparo produz (tests/js/sells-reparo-venda.test.ts).
+    $comum = repairSubtipoVender($this);
+    $reparo = repairSubtipoVender($this, [
+        'sub_type' => 'repair',
+        'print_label' => 0,
+        'repair_status_id' => $status,
+        'repair_serial_no' => 'SN-UC-S04',
+        'repair_due_date' => '15/10/2026 14:30',
+        'repair_defects' => '[{"value":"tela"},{"value":"bateria"}]',
+    ]);
+
+    expect((int) $reparo['venda']->repair_status_id)->toBe($status);
+    expect($reparo['venda']->repair_serial_no)->toBe('SN-UC-S04');
+    expect((string) $reparo['venda']->repair_due_date)->toStartWith('2026-10-15 14:30');
+    expect(json_decode((string) $reparo['venda']->repair_defects, true))
+        ->toBe([['value' => 'tela'], ['value' => 'bateria']]);
+
+    // Os campos do aparelho não entram no cálculo.
+    expect((float) $reparo['venda']->final_total)->toBe((float) $comum['venda']->final_total);
+    expect($reparo['saldo'])->toBe($comum['saldo']);
+});

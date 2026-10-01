@@ -91,6 +91,9 @@ on:
       # arquivo sob teste juntos, pelo mesmo motivo dos de cima.
       - 'tests/js/sells-subtipo-venda.test.ts'
       - 'resources/js/Pages/Sells/_components/subtipoVenda.ts'
+      # UC-S04 (2026-10-01): campos da seção Reparo (formato de data e defeitos do Tagify).
+      - 'tests/js/sells-reparo-venda.test.ts'
+      - 'resources/js/Pages/Sells/_components/reparoVenda.ts'
       - 'tests/js/setup.ts'
       - '.github/workflows/sells-v3-dominio-gate.yml'
   push:
@@ -128,6 +131,9 @@ on:
       # arquivo sob teste juntos, pelo mesmo motivo dos de cima.
       - 'tests/js/sells-subtipo-venda.test.ts'
       - 'resources/js/Pages/Sells/_components/subtipoVenda.ts'
+      # UC-S04 (2026-10-01): campos da seção Reparo (formato de data e defeitos do Tagify).
+      - 'tests/js/sells-reparo-venda.test.ts'
+      - 'resources/js/Pages/Sells/_components/reparoVenda.ts'
       - 'tests/js/setup.ts'
       # o workflow entra no gatilho de push (as lanes irmãs omitem) porque é o run de
       # `main` que o publisher colhe: mexer na lane sem re-rodar deixaria o artifact
@@ -204,6 +210,7 @@ jobs:
             tests/br-inputs.test.tsx \
             tests/scanner-race.test.tsx \
             tests/js/sells-subtipo-venda.test.ts \
+            tests/js/sells-reparo-venda.test.ts \
             --reporter=default \
             --reporter=junit \
             --outputFile=test-results/vitest-sells-v3-dominio-junit.xml
