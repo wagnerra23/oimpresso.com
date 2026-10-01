@@ -154,3 +154,51 @@ it('subject SEM tenant: explícito vence a sessão; sem explícito, cai na sess�
     app(Util::class)->activityLog($moeda, 't0_sem_tenant_sessao', null, [], false);
     expect((int) t0_ultimoLog($moeda)->business_id)->toBe((int) $this->biz98->id);
 });
+
+/**
+ * Log da PLATAFORMA (licenças do Officeimpresso): nunca recebe tenant de cliente.
+ * [W] 2026-10-01: "as licenças são minhas, eu controlo as máquinas dos clientes. eles
+ * não precisam ver isso". Antes do conserto ~24 linhas de licença já tinham saído com o
+ * business_id de clientes (171, 216, 170...) pelo Util::activityLog.
+ */
+function t0_licencaDoCliente(Business $biz): \Modules\Officeimpresso\Entities\Licenca_Computador
+{
+    $lic = new \Modules\Officeimpresso\Entities\Licenca_Computador();
+    $lic->setAttribute('id', 987654);
+    $lic->setAttribute('business_id', $biz->id);
+
+    return $lic;
+}
+
+it('licença (log da plataforma): Util::activityLog com tenant explícito do cliente grava SEM business_id', function () {
+    t0_sessaoDoNegocio($this->biz98);
+    $lic = t0_licencaDoCliente($this->biz99);
+
+    app(Util::class)->activityLog($lic, 't0_licenca_util', null, [], false, $this->biz99->id);
+
+    $log = Activity::query()->where('description', 't0_licenca_util')->latest('id')->first();
+    expect($log)->not->toBeNull();
+    expect($log->business_id)->toBeNull();
+});
+
+it('licença (log da plataforma): activity()->performedOn() também fica SEM business_id', function () {
+    t0_sessaoDoNegocio($this->biz99);
+    $lic = t0_licencaDoCliente($this->biz99);
+
+    activity()->performedOn($lic)->log('t0_licenca_helper');
+
+    $log = Activity::query()->where('description', 't0_licenca_helper')->latest('id')->first();
+    expect($log)->not->toBeNull();
+    expect($log->business_id)->toBeNull();
+    // Controle: o mesmo caminho com um registro de negócio continua recebendo o tenant.
+    activity()->performedOn($this->contato99)->log('t0_licenca_controle');
+    expect((int) Activity::query()->where('description', 't0_licenca_controle')->latest('id')->value('business_id'))
+        ->toBe((int) $this->biz99->id);
+});
+
+it('a lista de logs da plataforma aponta para classes que existem (rename não cala a regra)', function () {
+    foreach (\App\Observers\ActivityCauserKindObserver::LOGS_DA_PLATAFORMA as $classe) {
+        expect(class_exists($classe))->toBeTrue("classe da lista de plataforma sumiu: {$classe}");
+    }
+    expect(\App\Observers\ActivityCauserKindObserver::LOGS_DA_PLATAFORMA)->toHaveCount(2);
+});
