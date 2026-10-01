@@ -366,7 +366,7 @@ class SellingPriceGroupController extends Controller
                     // abaixo (linha recusada com o SKU e a linha, nada gravado). `orderBy(id)` fixa
                     // a mesma variação que a conferência (fotoPrecos) mostra.
                     $variation = Variation::where('sub_sku', $value[1])
-                                        ->whereHas('product', fn ($p) => $p->where('business_id', $business_id))
+                                        ->whereIn('product_id', fn ($q) => $q->select('id')->from('products')->where('business_id', $business_id))
                                         ->orderBy('variations.id')
                                         ->first();
                     if (empty($variation)) {
