@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use Modules\Arquivos\Http\Controllers\ArquivosAdminController;
 use Modules\Arquivos\Http\Controllers\DownloadController;
 use Modules\Arquivos\Http\Controllers\InstallController;
+use Modules\Arquivos\Http\Controllers\RetencaoSimulacaoController;
 
 /*
 |--------------------------------------------------------------------------
@@ -55,6 +56,12 @@ Route::middleware(['throttle:60,1', 'web', 'authh', 'auth', 'SetSessionData', 'l
             ->whereNumber('arquivo')
             ->middleware('can:arquivos.access')
             ->name('arquivos.restaurar');
+        // Thread 04 (PR-8): simular a retenção em DRY-RUN — o controller força dry_run=true e
+        // recusa purge (D4: a UI nunca apaga). Permissão própria de governança, separada de
+        // `arquivos.access` (ver o acervo não é o mesmo que mexer na política).
+        Route::post('retencao/simular', [RetencaoSimulacaoController::class, 'simular'])
+            ->middleware('can:arquivos.governanca')
+            ->name('arquivos.retencao.simular');
     });
 
 // Wave 14 D8 Security — throttle:60,1 (60 req/min/IP) em rotas Arquivos.

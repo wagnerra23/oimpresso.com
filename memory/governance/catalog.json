@@ -26,13 +26,13 @@
   ],
   "stats": {
     "modules": 35,
-    "nodes": 729,
-    "edges": 1018,
+    "nodes": 730,
+    "edges": 1019,
     "by_node_type": {
       "module": 39,
       "table": 102,
       "adr": 129,
-      "component": 385,
+      "component": 386,
       "api": 74
     },
     "by_edge_type": {
@@ -42,7 +42,7 @@
       "providesApi": 78,
       "charteredByAdr": 30,
       "governedByAdr": 78,
-      "hasComponent": 385,
+      "hasComponent": 386,
       "dependsOn": 116,
       "delegatesTo": 108,
       "migratesTo": 1,
@@ -1579,6 +1579,13 @@
       "type": "component",
       "module": "Arquivos",
       "name": "InstallController",
+      "desc": ""
+    },
+    {
+      "id": "component:Arquivos/RetencaoSimulacaoController",
+      "type": "component",
+      "module": "Arquivos",
+      "name": "RetencaoSimulacaoController",
       "desc": ""
     },
     {
@@ -6632,6 +6639,12 @@
     {
       "from": "module:Arquivos",
       "to": "component:Arquivos/InstallController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Arquivos",
+      "to": "component:Arquivos/RetencaoSimulacaoController",
       "type": "hasComponent",
       "source": "contains"
     },

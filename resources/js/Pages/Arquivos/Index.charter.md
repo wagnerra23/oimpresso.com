@@ -182,6 +182,13 @@ disco. **Não é tela de balcão:** Larissa continua alcançando o anexo pela te
       `arquivos.restore` — e `arquivos.restore` **não é declarada** no `DataController`. Hoje,
       então, só superadmin restaura; o botão some para os outros (prop `pode_restaurar`, mesma
       regra da Request). Declarar a permissão é uma linha fora do prefixo da thread.
+      **2026-10-01 (thread 04):** `arquivos.restore` passou a ser **declarada** no
+      `DataController` (default `false`, nenhuma migration concede) — o admin agora consegue
+      marcá-la em `/roles/{id}/edit`. Quem deve recebê-la segue decisão [W].
+- [x] **PR-8 (simular retenção)** — 2026-10-01, thread 04. `POST arquivos/retencao/simular`
+      atrás de `arquivos.governanca` (declarada no mesmo PR): dry-run **forçado** no
+      controller, `purge` recusado, job depois da resposta que só LISTA (id · data · motivo).
+      Sem botão na tela ainda — a vista de retenção segue leitura pura (UC-INDEX-04).
 - [ ] Reconciliar `DataController`: docblock L15 e o `label` de `arquivos.access` (L37) ainda
       dizem "Admin Center" (deprecado pela ADR 0360) e `modifyAdminMenu()` ainda afirma que o
       módulo "não tem tela própria". É mudança de texto de UI — decisão [W], não faxina de doc.
