@@ -51,9 +51,24 @@ function acoLimpa(): void
     }
 }
 
+/**
+ * Garante o business `$biz`. `id` é guarded no model: `firstOrCreate(['id' => 99])` não cria
+ * o 99 — insere outro id SEM `owner_id` e cai no FK `business_owner_id_foreign` (medido na lane
+ * verticais-pest, run 36867242229 do #8421: passava só quando outro arquivo já tinha criado o 99
+ * antes). Mesmo conserto do CrmPainelContratoTest::paiNegocio e do CrmLeadsContratoTest::leadNegocio.
+ */
+function acoNegocio(int $biz): void
+{
+    if (Business::whereKey($biz)->exists()) {
+        return;
+    }
+    $dono = (int) DB::table('users')->min('id');
+    (new Business)->forceFill(['id' => $biz, 'name' => 'Tenant fictício crm '.$biz, 'currency_id' => 1, 'owner_id' => $dono])->save();
+}
+
 function acoUsuario(string $username, array $permissoes, int $biz = ACO_BIZ): User
 {
-    Business::firstOrCreate(['id' => $biz], ['name' => 'Tenant fictício crm '.$biz, 'currency_id' => 1]);
+    acoNegocio($biz);
     // `user_type` e `allow_login` explícitos: o `CheckUserLogin` da rota barra quem não tem os
     // dois, e o model recém-criado NÃO traz os defaults da coluna — medido no CI: 403 só no
     // teste em que o usuário nascia, e 200 nos seguintes, que o liam do banco.
@@ -70,7 +85,7 @@ function acoUsuario(string $username, array $permissoes, int $biz = ACO_BIZ): Us
 /** Acompanhamento cru, atribuído a `$atribuido`. */
 function acoAcompanhamento(int $biz, string $titulo, User $atribuido, int $recorrente = 0): int
 {
-    Business::firstOrCreate(['id' => $biz], ['name' => 'Tenant fictício crm '.$biz, 'currency_id' => 1]);
+    acoNegocio($biz);
     $contato = DB::table('contacts')->insertGetId([
         'business_id' => $biz, 'type' => 'customer', 'name' => 'Contato '.ACO_TAG, 'mobile' => '0',
         'created_by' => $atribuido->id, 'created_at' => now(), 'updated_at' => now(),

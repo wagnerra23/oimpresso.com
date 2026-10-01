@@ -24,6 +24,7 @@ declare(strict_types=1);
 // Prefixos de telas públicas/auth isentas do shell cockpit.
 const APPSHELL_ALLOWLIST_PREFIXES = [
     'Site/',                        // marketing + auth (Home, Login, Register, Pricing, Blog…)
+    'Ponto/Publico/',               // privacidade/exclusão do app de ponto — exigência das lojas (sem login)
 ];
 
 // Telas isentas por caminho exato (público sem login).
