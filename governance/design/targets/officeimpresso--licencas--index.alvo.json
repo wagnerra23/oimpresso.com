@@ -1,0 +1,198 @@
+{
+  "aguardou_sumir": null,
+  "ausentes": [],
+  "base": {
+    "assinatura": "OI WR Licenças de computador 14 registradas · 10 ativas · 3 travadas Licenças Por empresa Log de acesso Status Empresa 14 de 14 Computador Empresa Versão instalada IP · usuário Último acesso Status BALCAO-01 LIC-4412 · 9F31-A7C2-1B04-77DE ROTA LIVRE Comunicação Visual biz # 4 6.7.14 189.45.12.88 larissa recente · há 3min Ativa BALCAO-02 LIC-4413 · 77C0-2DE4-91AA-3F18 ROTA LIVRE Comunicação Visual biz # 4 6.7.14 189.45.12.88 jonas recente · há 22min Ativa PRODUCAO-PLOT LIC-4471 · 2A88-CF10-5501-B2C9 ROTA LIVRE Comunicação Visual biz # 4 6.7.12 189.45.12.90 felipe recente · há 1h Ativa ZL-CAIXA LIC-4502 · D1E0-4471-88AC-0092 ROTA LIVRE — Zona Leste biz # 58 6.7.12 177.92.4.31 marli recente · há 1h Ativa MARTINHO-PC LIC-4390 · 7C02-DE41-2210-4F8B Martinho Oficina biz # 164 6.7.09 201.17.88.140 martinho fresc · há 4h Ativa OFICINA-BOX LIC-4391 · 3PkQ-8bL2-7741-CC02 Martinho Oficina biz # 164 6.5.02 201.17.88.141 ailton fresc · há 9 dias Ativa SINALIZA-CX1 LIC-4288 · B4A2-9910-71DE-0043 Grupo Sinaliza biz # 149 6.7.14 200.140.7.19 eder fresc · ontem Ativa CANOAS-CX1 LIC-4291 · 6610-BB84-2F19-A700 Sinaliza — Canoas biz # 151 6.7.14 200.140.7.55 rita fresc · há 2 dias Ativa Anterior 1 2 Próxima 1 – 8 de 14",
+    "roles": {
+      "celulas": null,
+      "chart": null,
+      "contratos": [],
+      "filterRows": null,
+      "kpi": {
+        "count": 0,
+        "items": [],
+        "overflowX": null,
+        "tag": null
+      },
+      "primary": null,
+      "shell": null,
+      "tabela": null,
+      "title": null
+    },
+    "saude": {
+      "folhasVazias": [],
+      "nFolhas": 72,
+      "tokensMortos": []
+    },
+    "theme": "dark",
+    "url": "http://127.0.0.1:5571/"
+  },
+  "nos_totais": 736,
+  "quieto_ms": 2000,
+  "rota": "oi-licencas",
+  "secoes": {
+    "grade": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "proprio",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.26 0.006 240)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "block",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "padding": "14px 24px 20px"
+      },
+      "filhos": 1,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "os-table"
+      ],
+      "rect": {
+        "h": 680,
+        "w": 1224
+      },
+      "seletor": ".os-page.sa-page > .os-table-wrap",
+      "truncado": false
+    },
+    "header": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "os-page",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "block",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "padding": "0px 24px"
+      },
+      "filhos": 1,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "os-page"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "header"
+      ],
+      "rect": {
+        "h": 80,
+        "w": 1224
+      },
+      "seletor": ".os-page.sa-page > .sa-ph",
+      "truncado": false
+    },
+    "rodape": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "os-page",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "flex",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "12px",
+        "padding": "12px 24px 0px"
+      },
+      "filhos": 1,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "os-page"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "nav"
+      ],
+      "rect": {
+        "h": 40,
+        "w": 1224
+      },
+      "seletor": ".os-page.sa-page > .sa-pag",
+      "truncado": false
+    },
+    "toolbar": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "os-page",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "flex",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "14px",
+        "padding": "16px 24px"
+      },
+      "filhos": 2,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "os-page"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "sa-search",
+        "sa-filters"
+      ],
+      "rect": {
+        "h": 68,
+        "w": 1224
+      },
+      "seletor": ".os-page.sa-page > .sa-toolbar",
+      "truncado": false
+    }
+  },
+  "tela": "officeimpresso--licencas--index",
+  "url": "http://127.0.0.1:5571/"
+}
