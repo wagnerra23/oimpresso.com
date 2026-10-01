@@ -1,0 +1,9 @@
+{"tela":"Produto/Cadastros","fonte":"prototipo-ui/cowork/Wagner/produto-cadastros.jsx","alvo":["resources/js/Pages/Produto/Cadastros"],"alvo_medido":"governance/design/targets/produto--cadastros--index.alvo.json",
+ "_recorte":"Copiado do _saida-07 do playbook Produto. header/widget/abas sem mudança. barra/ajuda/tabela: o _saida-07 derivou da aba default do protótipo (Variações, thread 03); a thread 02 entrega Unidades como aba inicial, então essas 3 seções foram re-ancoradas na AbaUnidades da MESMA fonte (produto-cadastros.jsx:290-294). Ver _saida-02.",
+ "secoes":[{"id":"produto-cadastros-header","copy":[]},
+  {"id":"produto-cadastros-widget","copy":["Cadastros de apoio"]},
+  {"id":"produto-cadastros-abas","copy":["Variações","Grupos de preço","Unidades","Categorias","Marcas","Garantias"]},
+  {"id":"produto-cadastros-barra","copy":["Buscar unidade…","Nova unidade"]},
+  {"id":"produto-cadastros-ajuda","copy":["Unidade decimal aceita quantidade fracionada"]},
+  {"id":"produto-cadastros-tabela","copy":["Unidade","Aceita decimal","Múltiplo da base","Produtos","Ações"]}],
+ "ordem":["produto-cadastros-header","produto-cadastros-widget","produto-cadastros-abas","produto-cadastros-barra","produto-cadastros-ajuda","produto-cadastros-tabela"]}

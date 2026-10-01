@@ -215,6 +215,16 @@ class BrandController extends Controller
                 $business_id = request()->user()->business_id;
 
                 $brand = Brands::where('business_id', $business_id)->findOrFail($id);
+
+                // Playbook Produto · thread 02 (charter Cadastros R4): marca em uso não sai —
+                // o produto ficaria apontando pra uma marca apagada. Mesma regra da unidade.
+                $emUso = \App\Product::where('business_id', $business_id)->where('brand_id', $brand->id)->count();
+                if ($emUso > 0) {
+                    return ['success' => false, 'em_uso' => $emUso,
+                        'msg' => "{$emUso} produto(s) usam esta marca. Troque a marca nesses produtos antes de excluir.",
+                    ];
+                }
+
                 $brand->delete();
 
                 $output = ['success' => true,
