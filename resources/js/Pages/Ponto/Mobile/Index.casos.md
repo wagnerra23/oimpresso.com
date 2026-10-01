@@ -87,7 +87,8 @@ last_run: "2026-09-29"
 ---
 
 ## UC-REPP-11 · No app, meu celular passa a receber o lembrete de bater ponto
-- **Persona:** colaborador com o app da loja (Capacitor) instalado.
+- **Persona:** colaborador com o app da loja (Capacitor) instalado. Duas portas, mesmo contrato:
+  `/ponto/mobile/push/dispositivo` (sessão web) e `/ponto/api/push/dispositivo` (token Passport do app).
 - **Aceite:** Dado colaborador com `controla_ponto` · Quando a tela envia o token do aparelho ·
   Então o aparelho fica ativo no MEU usuário e no MEU business, mesmo que o corpo traga outro
   `business_id`/`user_id`; sem cadastro de ponto → 403 e nada gravado.
@@ -128,3 +129,4 @@ last_run: "2026-09-29"
 - 2026-10-01 · [CL] UC-REPP-11/12/13 — registro do aparelho para o lembrete (ADR 0423, PR 1).
 - 2026-10-01 · [CL] UC-REPP-16 — envio do lembrete pelo FCM (ADR 0423, PR 2a).
 - 2026-10-01 · [CL] UC-REPP-14/15 — agendamento do lembrete (ADR 0423, PR 2b).
+- 2026-10-01 · [CL] UC-REPP-11/13 também pela API (`auth:api`) — o app das lojas tem telas próprias e não abre o site.
