@@ -43,7 +43,7 @@ veredito: "entregue em 1 PR — SalesOrderController@index ganha o branch X-Iner
 ## Medido no CI (1ª rodada)
 
 - PUT de status num pedido de **outro negócio** devolve **200 com `success: 0`**, não 404: o `findOrFail` do `postEditSalesOrderStatus` está dentro do `try`. Nada é gravado (o teste confere o status intacto) e a tela trata `success != 1` como erro. Comportamento do legado, mantido.
-- Ratchets de layout e ESLint pediram `Stack`/`Inline` no lugar de `flex` solto e tirar o `<label>` em volta do Select Radix (o `SelectTrigger` já tem `aria-label`). Ajustado.
+- Ratchets de layout, ESLint e UI Lint (R4: Index PT-01 usa o `DataTable` compartilhado) pediram `Stack`/`Inline` no lugar de `flex` solto e tirar o `<label>` em volta do Select Radix (o `SelectTrigger` já tem `aria-label`). Ajustado.
 
 - PHPStan (required) acusou o `@return` do `index()` (`Illuminate\Http\Response`); o docblock agora declara `View|Inertia\Response`.
 - `visual-regression` (advisory) falhou por `Governance/Dashboard` (diff 2,41% acima do teto), tela que este PR não toca, e lista `SalesOrder` como tela sem baseline. Baseline não foi regerada aqui: a prática foi aposentada pela ADR 0409.

@@ -14,6 +14,8 @@ import { Alert, AlertDescription } from '@/Components/ui/alert';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from '@/Components/ui/sheet';
 import EmptyState from '@/Components/shared/EmptyState';
+import DataTable, { type PaginatorShape } from '@/Components/shared/DataTable';
+import type { ColumnDef } from '@tanstack/react-table';
 import { Inline, Stack } from '@/Components/layout';
 
 type StatusKey = 'ordered' | 'partial' | 'completed';
@@ -57,6 +59,11 @@ function texto(html: unknown): string {
 
 function csrf(): string {
   return (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement | null)?.content ?? '';
+}
+
+/** A lista vem inteira do endpoint legado (até 100); o DataTable recebe uma página única. */
+function paginaUnica<T>(dados: T[]): PaginatorShape<T> {
+  return { data: dados, total: dados.length, current_page: 1, last_page: 1, from: dados.length ? 1 : null, to: dados.length || null, links: [] };
 }
 
 /** Opções data-driven sem chave/rótulo vazio — Radix Select quebra com value="" (§5 2026-06-29). */
@@ -158,6 +165,38 @@ export default function SalesOrderIndex({ salesOrderEnabled, filters, permission
     }
   }
 
+  const colunas: ColumnDef<Pedido>[] = [
+    { id: 'data', header: 'Data', cell: ({ row }) => <span className="tabular-nums whitespace-nowrap">{row.original.data}</span> },
+    {
+      id: 'numero', header: 'Nº do pedido', meta: { mono: true },
+      cell: ({ row }) => <a href={`/sells/${row.original.id}`} className="hover:underline">{row.original.numero}</a>,
+    },
+    { id: 'cliente', header: 'Cliente', cell: ({ row }) => row.original.cliente || '—' },
+    { id: 'contato', header: 'Contato', meta: { mono: true }, cell: ({ row }) => row.original.contato || '—' },
+    { id: 'local', header: 'Local', cell: ({ row }) => row.original.local },
+    {
+      id: 'status', header: 'Status',
+      cell: ({ row }) => {
+        const p = row.original;
+        return p.status ? <Badge variant={TOM[p.status]} dot>{p.statusLabel}</Badge> : p.statusLabel;
+      },
+    },
+    { id: 'envio', header: 'Status de envio', cell: ({ row }) => row.original.envio || '—' },
+    { id: 'restante', header: 'Quantidade restante', meta: { align: 'right', mono: true }, cell: ({ row }) => row.original.restante },
+    { id: 'adicionadoPor', header: 'Adicionado por', cell: ({ row }) => row.original.adicionadoPor },
+    {
+      id: 'acao', header: 'Ação', meta: { align: 'right' },
+      cell: ({ row }) => {
+        const p = row.original;
+        return permissions.edit_status && p.editavel ? (
+          <Button variant="ghost" size="sm" onClick={() => abrirStatus(p)} aria-label={`Editar status de ${p.numero}`}>
+            <Pencil className="h-3.5 w-3.5 mr-1" />Status
+          </Button>
+        ) : null;
+      },
+    },
+  ];
+
   const filtro = (chave: keyof typeof f, rotulo: string, mapa: Record<string, string> | undefined) => (
     <Stack gap={1} align="stretch" className="text-xs text-muted-foreground min-w-[180px]">
       <span aria-hidden="true">{rotulo}</span>
@@ -218,50 +257,15 @@ export default function SalesOrderIndex({ salesOrderEnabled, filters, permission
             <EmptyState icon="file-text" title={termo ? 'Nenhum pedido encontrado' : 'Nenhum pedido de venda'}
               description={termo ? 'Tente outro termo de busca.' : 'Os pedidos aparecem aqui até virarem venda.'} />
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead className="text-xs text-muted-foreground">
-                  <tr className="border-b border-border">
-                    <th className="text-left px-4 py-2 font-medium">Data</th>
-                    <th className="text-left px-3 py-2 font-medium">Nº do pedido</th>
-                    <th className="text-left px-3 py-2 font-medium">Cliente</th>
-                    <th className="text-left px-3 py-2 font-medium">Contato</th>
-                    <th className="text-left px-3 py-2 font-medium">Local</th>
-                    <th className="text-left px-3 py-2 font-medium">Status</th>
-                    <th className="text-left px-3 py-2 font-medium">Status de envio</th>
-                    <th className="text-right px-3 py-2 font-medium">Quantidade restante</th>
-                    <th className="text-left px-3 py-2 font-medium">Adicionado por</th>
-                    <th className="text-right px-4 py-2 font-medium">Ação</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {visiveis.map((p) => (
-                    <tr key={p.id} className="border-b border-border last:border-0">
-                      <td className="px-4 py-2 tabular-nums whitespace-nowrap">{p.data}</td>
-                      <td className="px-3 py-2 font-mono text-xs">
-                        <a href={`/sells/${p.id}`} className="hover:underline">{p.numero}</a>
-                      </td>
-                      <td className="px-3 py-2">{p.cliente || '—'}</td>
-                      <td className="px-3 py-2 font-mono text-xs">{p.contato || '—'}</td>
-                      <td className="px-3 py-2 text-muted-foreground">{p.local}</td>
-                      <td className="px-3 py-2">
-                        {p.status ? <Badge variant={TOM[p.status]} dot>{p.statusLabel}</Badge> : p.statusLabel}
-                      </td>
-                      <td className="px-3 py-2">{p.envio || '—'}</td>
-                      <td className="px-3 py-2 text-right tabular-nums">{p.restante}</td>
-                      <td className="px-3 py-2">{p.adicionadoPor}</td>
-                      <td className="px-4 py-2 text-right">
-                        {permissions.edit_status && p.editavel && (
-                          <Button variant="ghost" size="sm" onClick={() => abrirStatus(p)} aria-label={`Editar status de ${p.numero}`}>
-                            <Pencil className="h-3.5 w-3.5 mr-1" />Status
-                          </Button>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <DataTable<Pedido>
+              columns={colunas}
+              data={visiveis}
+              pagination={paginaUnica(visiveis)}
+              endpoint="/sales-order"
+              caption="Pedidos de venda"
+              showSearch={false}
+              rowKey={(p) => p.id}
+            />
           )}
           <p className="px-4 py-2 text-xs text-muted-foreground border-t border-border">
             Item condicional do menu: só aparece com <span className="font-mono">enable_sales_order</span> ligado nas configurações do POS.
