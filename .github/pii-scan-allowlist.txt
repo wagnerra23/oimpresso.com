@@ -135,3 +135,19 @@ mobile/ref/handoff-5/backend/apps/server/src/db/seed.ts|00.000.000/0001-00
 # fixture representa. O CNPJ real que estava ali foi TROCADO por este sintético clássico.
 tests/Feature/Connector/fixtures/delphi_body_array_tabelas.json|11.222.333/0001-44
 tests/Feature/Connector/fixtures/delphi_body_pipe.txt|11.222.333/0001-44
+
+# Catalogado 2026-10-01 (PR #8467): protótipo Mobile v4 (Claude Design) copiado
+# byte-idêntico em mobile/ref/design-v4/ — mesmo caso do mobile/ref/handoff-5 acima.
+# CPF/CNPJ sintéticos dos clientes fictícios do mock (Ótica Visão Clara, Marina
+# Albuquerque...). Marker inline mudaria o arquivo de referência, que tem de
+# continuar idêntico ao export do Design.
+mobile/ref/design-v4/project/Oimpresso Mobile.dc.html|00.000.000/0001-00
+mobile/ref/design-v4/project/Oimpresso Mobile.dc.html|000.000.000-00
+mobile/ref/design-v4/project/Oimpresso Mobile.dc.html|12.345.678/0001-00
+mobile/ref/design-v4/project/Oimpresso Mobile.dc.html|23.456.789/0001-00
+mobile/ref/design-v4/project/Oimpresso Mobile.dc.html|34.567.890/0001-00
+mobile/ref/design-v4/project/Oimpresso Mobile.dc.html|45.678.901/0001-00
+mobile/ref/design-v4/project/Oimpresso Mobile.dc.html|56.789.012/0001-00
+mobile/ref/design-v4/project/Oimpresso Mobile.dc.html|67.890.123/0001-00
+mobile/ref/design-v4/project/Oimpresso Mobile.dc.html|78.901.234/0001-00
+mobile/ref/design-v4/project/Oimpresso Mobile.dc.html|89.012.345/0001-00
