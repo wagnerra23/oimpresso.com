@@ -129,3 +129,9 @@ mobile/ref/handoff-5/app/screens-novo-cliente.jsx|00.000.000/0001-00
 mobile/ref/handoff-5/app/screens-novo-cliente.jsx|000.000.000-00
 mobile/ref/handoff-5/app/task-viewers.jsx|98.412.001/0001-90
 mobile/ref/handoff-5/backend/apps/server/src/db/seed.ts|00.000.000/0001-00
+
+# Catalogado 2026-10-01 (PR #8383): fixtures do contrato Delphi — corpo de requisição
+# gravado como arquivo (.json/.txt), que não aceita marker inline sem mudar o que o
+# fixture representa. O CNPJ real que estava ali foi TROCADO por este sintético clássico.
+tests/Feature/Connector/fixtures/delphi_body_array_tabelas.json|11.222.333/0001-44
+tests/Feature/Connector/fixtures/delphi_body_pipe.txt|11.222.333/0001-44

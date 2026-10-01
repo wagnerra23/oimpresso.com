@@ -1,0 +1,8 @@
+{
+  "_": "A1 [CL] 2026-10-01 — playbook officeimpresso. D2 ([W] 2026-10-01, _DECISOES-W): tela nova Officeimpresso/Licencas. Protótipo: rota `oi-licencas` do espelho (app.jsx:890 → OfficeimpressoPage view=licencas → ViewLicencas em officeimpresso-page.jsx). Vista padrão `licencas` (tabela); a vista `computadores` (Por empresa, CliSeg), o drawer e a BulkBar não foram medidos.",
+  "_mapa": "alvo:mapa --rota oi-licencas --raiz .os-page.sa-page contra o espelho servido por servirEstatico, 2026-10-01: .os-page.sa-page = div.sa-ph · div.sa-toolbar · div.os-table-wrap · div.sa-pag. Sem data-contract no protótipo: seletores por classe.",
+  "header": { "seletor": ".os-page.sa-page > .sa-ph" },
+  "toolbar": { "seletor": ".os-page.sa-page > .sa-toolbar" },
+  "grade": { "seletor": ".os-page.sa-page > .os-table-wrap" },
+  "rodape": { "seletor": ".os-page.sa-page > .sa-pag" }
+}

@@ -1,0 +1,11 @@
+{
+  "_": "A1 [CL] 2026-09-30 — playbook lote-trio-medida. Protótipo: rota `fiscal-nfse` do espelho (fiscal-page.jsx FxNotasPage title=NFS-e preset NFS-e). Drawer da nota, menu Emitir e modais não medidos (só existem após clique).",
+  "_mapa": "alvo:mapa --rota fiscal-nfse --raiz .fx-page contra o espelho servido por servirEstatico, 2026-09-30: header.fx-h · nav.ds-tabbar · div.fx-toolbar[toolbar-notas] · div.fx-chips[visoes-salvas] · div.fx-table · div.fx-pager · div.fx-debitos · div.fx-toasts (vazio, não medido).",
+  "header": { "seletor": ".fx-page > header.fx-h" },
+  "tabs": { "seletor": ".fx-page > nav.ds-tabbar" },
+  "toolbar": { "seletor": ".fx-page > [data-contract=\"toolbar-notas\"]" },
+  "visoes": { "seletor": ".fx-page > [data-contract=\"visoes-salvas\"]" },
+  "tabela": { "seletor": ".fx-page > .fx-table" },
+  "paginacao": { "seletor": ".fx-page > .fx-pager" },
+  "debitos": { "seletor": ".fx-page > .fx-debitos" }
+}

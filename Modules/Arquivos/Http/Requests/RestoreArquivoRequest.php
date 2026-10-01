@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\Arquivos\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Modules\Arquivos\Entities\Arquivo;
 
 /**
  * FormRequest pra RESTORE de Arquivo soft-deleted.
@@ -29,6 +30,14 @@ class RestoreArquivoRequest extends FormRequest
             return false;
         }
 
+        // Thread 03 (PR-7): o arquivo tem que ser DO business da sessão. `withTrashed` porque
+        // só se restaura o que está excluído; o global scope do model segue valendo.
+        $arquivoId = (int) ($this->route('arquivo') ?? $this->input('arquivo_id', 0));
+        $arquivo = $arquivoId > 0 ? Arquivo::withTrashed()->find($arquivoId) : null;
+        if ($arquivo === null || (int) $arquivo->business_id !== (int) $businessId) {
+            return false;
+        }
+
         // Restore é operação de governança — `superadmin` sempre permitido.
         // Caso queira permission granular, adicione `arquivos.restore`.
         if ($user->can('superadmin')) {
@@ -42,7 +51,7 @@ class RestoreArquivoRequest extends FormRequest
     {
         return [
             // Justificativa registrada em audit log
-            'reason' => ['nullable', 'string', 'max:500'],
+            'reason' => ['required', 'string', 'min:5', 'max:500'],
         ];
     }
 }

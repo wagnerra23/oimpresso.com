@@ -20,7 +20,7 @@ Route::middleware(['throttle:120,1', 'log.delphi', 'auth:api', 'timezone'])->pre
         \Modules\Connector\Http\Controllers\Api\BusinessController::class, 'saveBusiness'
     ])->name('delphi.salvar-cliente');
     Route::post('salvar-equipamento/{business_id}', [
-        \Modules\Connector\Http\Controllers\Api\LicencaComputadorController::class, 'saveEquipamento'
+        \Modules\Connector\Http\Controllers\Api\LicencaComputadorController::class, 'saveEquipamentoRota'
     ])->name('delphi.salvar-equipamento');
 
     // WR Comercial (atual): body JSON flat (cnpj, serial_hd, ...), response JSON estruturado.

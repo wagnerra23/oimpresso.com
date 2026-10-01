@@ -1,0 +1,411 @@
+{
+  "aguardou_sumir": null,
+  "ausentes": [],
+  "base": {
+    "assinatura": "OI WR OFFICEIMPRESSO · matriz · 10 leads · 12 acompanhamentos · 4 propostas · papel: Administrador CRM Acompanhamentos Atualizado 23:44 Administrador Comercial (Larissa) Financeiro (Eliana) Portal do contato Adicionar lead Painel Leads Acompanhamentos Campanhas Login de contatos Comissões Registro de chamadas Relatórios Modelo de proposta Propostas Marketplace B2B Pedido de ordem Fontes e estágios Configurações Filtros Contato, responsável, status, tipo, período, acompanhamento por e categoria. Recolher Contato Todos Padaria Estrela Clínica Vida Plena João Reis Acme Comércio Ltda TechPro Equipamentos Construtora Vértice Mercado União Posto BR Centro Studio Foco Bar do Zeca Atribuído Todos Larissa Prado Wagner Ramos Eliana Souza Marcos Vinícius Status Todos Agendado Aberto Concluído Cancelado Tipo de acompanhamento Todos Ligação Encontro SMS E-mail Intervalo de datas Todos Hoje Últimos 7 dias Últimos 30 dias Acompanhamento por Todos Status do pagamento Pedidos Categoria Todos Prospecção Orçamento Pós-venda Cobrança Instalação Todos os acompanhamentos 12 de 12 Confortável Compacto Recorrente Acompanhamento antecipado Adicionar Acompanhamentos Acompanhamento recorrente Ação Contato ↕ Início ↕ Fim Status Tipo de acompanhamento Categoria Atribuído a Descrição Informação adicional Título Adicionado por Adicionado em Ações Padaria Estrela 30/09/2026 09:30 30/09/2026 10:00 Agendado Ligação Prospecção Larissa Prado Confirmar medidas da fachada antes do orçamento. Cliente prefere ligação de manhã. Ligar — medidas da fachada Larissa Prado 29/09/2026 Ações Acme Comércio Ltda 30/09/2026 16:30 30/09/2026 17:00 Aberto Encontro Orçamento Wagner Ramos Apresentar orçamento das 3 lonas 380g. — Reunião — orçamento 3 lonas Wagner Ramos 28/09/2026 Ações Mercado União 29/09/2026 11:00 29/09/2026 11:30 Concluído Ligação Orçamento Larissa Prado Revisão de valores do orçamento COT-2026-0190. Pediu desconto de 6%. Follow-up orçamento Larissa Prado 26/09/2026 Ações Posto BR Centro 04/10/2026 15:00 04/10/2026 15:30 Agendado Encontro Prospecção Wagner Ramos, Marcos Vinícius Visita técnica ao totem do posto. Levar amostra de lona translúcida. Visita — totem Wagner Ramos 24/09/2026 Ações Supermercado Bom Dia 27/09/2026 09:00 27/09/2026 09:20 Concluído E-mail Pós-venda Marcos Vinícius Enviar arte final aprovada. — Enviar arte final Marcos Vinícius 25/09/2026 Ações Construtora Vértice 24/09/2026 14:00 24/09/2026 14:30 Cancelado Ligação Prospecção Wagner Ramos Cliente remarcou — obra parada. Retomar em 30 dias. Ligar — tapume Wagner Ramos 22/09/2026 Ações Rota Livre Transportes 01/10/2026 08:30 01/10/2026 09:00 Agendado Ligação Cobrança Eliana Souza Boleto POS-2026-0482 com saldo de R$ 1.620,00. — Cobrança — saldo parcial Eliana Souza 28/09/2026 Ações Prefeitura de Jaú 03/10/2026 10:00 03/10/2026 11:00 Aberto Encontro Orçamento Wagner Ramos Empenho 2026/114 — conferir documentação. Levar certidões. Reunião — empenho Wagner Ramos 23/09/2026 Ações Martinho Oficina 28/09/2026 17:00 28/09/2026 17:15 Concluído SMS Pós-venda Larissa Prado Aviso de retirada do banner. — Aviso de retirada Larissa Prado 27/09/2026 Ações TechPro Equipamentos 03/10/2026 10:00 03/10/2026 10:30 Agendado Ligação Prospecção Marcos Vinícius Retomar proposta enviada há 9 dias. Sem resposta no e-mail. Retomar proposta Marcos Vinícius 21/09/2026 Ações Agência Norte 26/09/2026 13:00 26/09/2026 13:30 Concluído Ligação Instalação Larissa Prado Combinar janela de instalação no shopping. — Agendar instalação Larissa Prado 24/09/2026 Ações Clínica Vida Plena 02/10/2026 14:00 02/10/2026 14:30 Agendado Encontro Prospecção Marcos Vinícius Levantamento de sinalização interna. — Levantamento no local Marcos Vinícius 29/09/2026 Total: 12 Agendado: 5 · Aberto: 2 · Concluído: 4 · Cancelado: 1 Ligação: 6 · Encontro: 4 · SMS: 1 · E-mail: 1",
+    "roles": {
+      "celulas": null,
+      "chart": null,
+      "contratos": [
+        {
+          "classes": {
+            "dataBr": 0,
+            "dataIso": 0,
+            "snakeCru": 0
+          },
+          "exemplos": {},
+          "nome": "crm-filtros"
+        },
+        {
+          "classes": {
+            "dataBr": 36,
+            "dataIso": 0,
+            "snakeCru": 0
+          },
+          "exemplos": {
+            "dataBr": [
+              "30/09/2026",
+              "29/09/2026",
+              "28/09/2026"
+            ]
+          },
+          "nome": "crm-acompanhamentos"
+        },
+        {
+          "classes": {
+            "dataBr": 0,
+            "dataIso": 0,
+            "snakeCru": 0
+          },
+          "exemplos": {},
+          "nome": "crm-toolbar"
+        },
+        {
+          "classes": {
+            "dataBr": 0,
+            "dataIso": 0,
+            "snakeCru": 0
+          },
+          "exemplos": {},
+          "nome": "crm-rodape"
+        }
+      ],
+      "filterRows": null,
+      "kpi": {
+        "count": 0,
+        "items": [],
+        "overflowX": null,
+        "tag": null
+      },
+      "primary": null,
+      "shell": null,
+      "tabela": null,
+      "title": null
+    },
+    "saude": {
+      "folhasVazias": [],
+      "nFolhas": 73,
+      "tokensMortos": []
+    },
+    "theme": "dark",
+    "url": "http://127.0.0.1:5563/"
+  },
+  "nos_totais": 865,
+  "quieto_ms": 2000,
+  "rota": "crm-followups",
+  "secoes": {
+    "abas": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "proprio",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.26 0.006 240)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "flex",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "0px",
+        "padding": "0px 12px"
+      },
+      "filhos": 2,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "button",
+        "button"
+      ],
+      "rect": {
+        "h": 36,
+        "w": 1174
+      },
+      "seletor": "[data-contract=\"crm-acompanhamentos\"] > .pb-widget-b > .ds-tabbar",
+      "truncado": false
+    },
+    "filtros": {
+      "contraste": {
+        "fundo": "oklch(0.3 0.008 240)",
+        "fundo_de": "proprio",
+        "razao": 11.42,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.027108,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.3 0.008 240)",
+        "borderRadius": "12px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "block",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "padding": "0px"
+      },
+      "filhos": 2,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.3 0.008 240)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "h3",
+        "pb-widget-b"
+      ],
+      "rect": {
+        "h": 219,
+        "w": 1176
+      },
+      "seletor": ".cb-root > .pb-body > section:nth-child(2)",
+      "truncado": false
+    },
+    "grade": {
+      "contraste": {
+        "fundo": "oklch(0.3 0.008 240)",
+        "fundo_de": "pb-widget",
+        "razao": 11.42,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.027108,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "block",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "padding": "0px"
+      },
+      "filhos": 1,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "pb-widget-b"
+        },
+        {
+          "bg": "oklch(0.3 0.008 240)",
+          "de": "pb-widget"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "div"
+      ],
+      "rect": {
+        "h": 431,
+        "w": 1174
+      },
+      "seletor": "[data-contract=\"crm-acompanhamentos\"] .pb-grid-pro",
+      "truncado": false
+    },
+    "header": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "body",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "block",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "padding": "20px 24px 0px"
+      },
+      "filhos": 2,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "pb-root"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "main-body"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "main"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "app"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "div"
+        },
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "body"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "p",
+        "header"
+      ],
+      "rect": {
+        "h": 103,
+        "w": 1224
+      },
+      "seletor": ".cb-root > .cli-ph",
+      "truncado": false
+    },
+    "nav": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "proprio",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.26 0.006 240)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "flex",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "0px",
+        "padding": "0px"
+      },
+      "filhos": 14,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "button",
+        "button",
+        "button",
+        "button",
+        "button",
+        "button",
+        "button",
+        "button",
+        "button",
+        "button",
+        "button",
+        "button",
+        "button",
+        "button"
+      ],
+      "rect": {
+        "h": 36,
+        "w": 1176
+      },
+      "seletor": ".cb-root > .pb-body > .cb-nav",
+      "truncado": true
+    },
+    "rodape": {
+      "contraste": {
+        "fundo": "oklch(0.3 0.008 240)",
+        "fundo_de": "pb-widget",
+        "razao": 5.49,
+        "texto": "oklch(0.72 0.005 90)",
+        "y_fundo": 0.027108,
+        "y_texto": 0.373341
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.72 0.005 90)",
+        "display": "flex",
+        "fontSize": "11.5px",
+        "fontWeight": "400",
+        "gap": "10px",
+        "padding": "9px 12px"
+      },
+      "filhos": 4,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "pb-widget-b"
+        },
+        {
+          "bg": "oklch(0.3 0.008 240)",
+          "de": "pb-widget"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "pb-help",
+        "sp",
+        "pb-help",
+        "pb-help"
+      ],
+      "rect": {
+        "h": 34,
+        "w": 1174
+      },
+      "seletor": "[data-contract=\"crm-acompanhamentos\"] [data-contract=\"crm-rodape\"]",
+      "truncado": false
+    },
+    "toolbar": {
+      "contraste": {
+        "fundo": "oklch(0.3 0.008 240)",
+        "fundo_de": "pb-widget",
+        "razao": 11.42,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.027108,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "flex",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "8px",
+        "padding": "8px 12px"
+      },
+      "filhos": 6,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "pb-widget-b"
+        },
+        {
+          "bg": "oklch(0.3 0.008 240)",
+          "de": "pb-widget"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "pb-busca",
+        "sp",
+        "div",
+        "os-btn",
+        "os-btn",
+        "os-btn"
+      ],
+      "rect": {
+        "h": 53,
+        "w": 1174
+      },
+      "seletor": "[data-contract=\"crm-acompanhamentos\"] [data-contract=\"crm-toolbar\"]",
+      "truncado": false
+    }
+  },
+  "tela": "crm--acompanhamentos--index",
+  "url": "http://127.0.0.1:5563/"
+}

@@ -72,6 +72,12 @@ class ModulesController extends Controller
             } catch (\Exception $e) {
                 $modules[$module]['uninstall_link'] = '#';
             }
+
+            // Ação que muda estado vai por POST + CSRF quando o módulo registra POST na
+            // mesma URL; senão o <a href> (GET) fica, pra não dar 405. Decidido pelo router.
+            foreach (['install', 'update', 'uninstall'] as $acao) {
+                $modules[$module][$acao.'_post'] = self::aceitaPost($modules[$module][$acao.'_link']);
+            }
         }
 
         $is_demo = (config('app.env') == 'demo');
@@ -85,6 +91,29 @@ class ModulesController extends Controller
         //Option to activate/deactivate
 
         //Upload module.
+    }
+
+    /**
+     * A URL tem rota POST registrada, servida por um InstallController de módulo?
+     * Pergunta ao router (não a uma lista à mão): 405/404 ou rota de outro controller = false.
+     */
+    public static function aceitaPost(string $url): bool
+    {
+        if ($url === '' || $url === '#') {
+            return false;
+        }
+
+        try {
+            $rota = app('router')->getRoutes()->match(Request::create($url, 'POST'));
+        } catch (\Throwable $e) {
+            return false;
+        }
+
+        $controller = ltrim(\Illuminate\Support\Str::before($rota->getActionName(), '@'), '\\');
+
+        return ! $rota->isFallback
+            && str_starts_with($controller, 'Modules\\')
+            && str_ends_with($controller, '\\InstallController');
     }
 
     public function regenerate()

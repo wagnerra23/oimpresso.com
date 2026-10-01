@@ -20,75 +20,66 @@ class DataController extends Controller
     }
 
     /**
-     * Permissões registradas no UI de Roles do UltimatePOS.
+     * Permissoes do modulo no UI de Roles: nenhuma ([W] D1, 2026-08-19 — CONN-O4).
+     * A permissao de acesso que havia aqui saiu: era declarada e nenhuma checagem a usava; tudo no
+     * painel e `superadmin`. O metodo fica (vazio) porque o ModuleUtil coleta
+     * `user_permissions` de todo DataController.
      *
-     * Adicionado 2026-04-26 (audit DataController) — antes não havia
-     * permissão dedicada e o menu era 100% gated por `can('superadmin')`,
-     * impedindo delegar acesso à API a usuários técnicos não-superadmin.
+     * @return array<int, array<string, mixed>>
      */
     public function user_permissions()
     {
-        return [
-            [
-                'value' => 'connector.access',
-                'label' => __('connector::lang.connector_module'),
-                'default' => false,
-            ],
-        ];
+        return [];
     }
 
     /**
-     * Adds Connectoe menus
+     * Adds Connector menus
      *
-     * @return null
+     * @return void
      */
     public function modifyAdminMenu()
     {
-        $module_util = new ModuleUtil();
+        // CONN-O4 · [W] D1 (2026-08-19): emitir/excluir credencial de API e de superadmin e
+        // nao se delega. O catalogo de permissoes do modulo ficou vazio de proposito: a antiga
+        // permissao de acesso era declarada e nunca verificada (sugeria uma delegacao que nao
+        // existe). O menu so aparece para quem pode abrir o painel; sem superadmin, o unico
+        // item que restava era o link /docs, que saiu ([W] D5 — vira a aba Documentacao).
+        if (! auth()->user()->can('superadmin')) {
+            return;
+        }
+        if (! (new ModuleUtil())->isModuleInstalled('Connector')) {
+            return;
+        }
 
-        if (auth()->user()->can('superadmin')) {
-            $is_connector_enabled = $module_util->isModuleInstalled('Connector');
-        } else {
-            $business_id = session()->get('user.business_id');
-            $is_connector_enabled = (bool) $module_util->hasThePermissionInSubscription($business_id, 'connector_module', 'superadmin_package');
-        }
-        if ($is_connector_enabled) {
-            Menu::modify('admin-sidebar-menu', function ($menu) {
-                $menu->dropdown(
-                    __('connector::lang.connector'),
-                    function ($sub) {
-                        if (auth()->user()->can('superadmin')) {
-                            $sub->url(
-                                action([\Modules\Connector\Http\Controllers\ClientController::class, 'index']),
-                               __('connector::lang.clients'),
-                                ['icon' => 'fa fas fa-network-wired', 'active' => request()->segment(1) == 'connector' && request()->segment(2) == 'api']
-                            );
-                        }
-                        $sub->url(
-                            url('\docs'),
-                           __('connector::lang.documentation'),
-                            ['icon' => 'fa fas fa-book', 'active' => request()->segment(1) == 'docs']
-                        );
-                    },
-                    [
-                        'icon'    => 'fas fa-plug',
-                        // ADR 0180 Fase 4 Wave E — Connector é ghost virtual de
-                        // Plataforma no grupo canon `sistema` v3. Sem `shortcut`
-                        // (acoplado em Governança); `primary` = "Novo client OAuth"
-                        // (criação via ClientController create); `ghosts` = Clients
-                        // + Documentation (2 sub-views existentes).
-                        'primary' => [
-                            'label'    => 'Novo API client',
-                            'href'     => '/connector/client/create',
-                            'shortcut' => 'N',
-                        ],
-                        'ghosts'  => [
-                            ['key' => 'clients', 'label' => 'API Clients',   'href' => '/connector/api'],
-                            ['key' => 'docs',    'label' => 'Documentação',  'href' => '/docs'],
-                        ],
-                    ]
-                )->order(6);
-            });
-        }
+        Menu::modify('admin-sidebar-menu', function ($menu) {
+            $menu->dropdown(
+                __('connector::lang.connector'),
+                function ($sub) {
+                    $sub->url(
+                        action([\Modules\Connector\Http\Controllers\ClientController::class, 'index']),
+                        __('connector::lang.clients'),
+                        ['icon' => 'fa fas fa-network-wired', 'active' => request()->segment(1) == 'connector' && request()->segment(2) == 'client']
+                    );
+                },
+                [
+                    'icon'    => 'fas fa-plug',
+                    // ADR 0180 Fase 4 Wave E — Connector e ghost virtual de Plataforma no grupo
+                    // canon `sistema` v3. CONN-O4: o primario abre o painel (`/connector/client`,
+                    // onde "Novo API client" e um Dialog) — antes ia a `/connector/client/create`,
+                    // view inexistente (500, UC-CONN-15). O ghost `/docs` saiu ([W] D5).
+                    'primary' => [
+                        'label'    => 'Novo API client',
+                        'href'     => '/connector/client',
+                        'shortcut' => 'N',
+                    ],
+                    // CONN-O3 PR-b: a documentacao voltou ao menu como a aba do painel
+                    // (`?aba=docs`), que substitui a pagina /docs ([W] D5).
+                    'ghosts'  => [
+                        ['key' => 'clients', 'label' => 'API Clients', 'href' => '/connector/client'],
+                        ['key' => 'docs', 'label' => 'Documentação', 'href' => '/connector/client?aba=docs'],
+                    ],
+                ]
+            )->order(6);
+        });
     }
 }

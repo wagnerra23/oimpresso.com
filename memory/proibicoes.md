@@ -1836,6 +1836,10 @@ Ocorrência da **LC-08**.
 
 - **O limite (variante também proibida):** instrumento que grava prova não imprime contagem derivada do insumo. Ele lê o que gravou e falha se algum item lido não virou prova. E a fixture de um mecanismo com N universos cobre **um caso por universo**.
 
+### 2026-09-30 — Gate de bundle do deploy decidia "a publicação chegou?" por "arquivo de front mudou no diff" — um commit de só-comentário travou a esteira
+
+- **O limite (variante também proibida):** gate que quer provar um **resultado publicado** (o prod serve X, o arquivo gerado é Y, o índice reflete Z) compara o **artefato produzido** com o **artefato servido**. Não usa "o insumo mudou" como substituto, porque a transformação entre insumo e saída pode ser identidade (comentário no build, whitespace num gerador, campo ignorado num serializer), e aí o gate reprova o correto. Quando o gate já existe e reprova errado, o conserto é no **predicado**; consertar só a janela ou a base, como no #8162, deixa o substituto armado para a próxima causa.
+
 ## Sempre fazer
 
 - ✅ **LIGUE A MÁQUINA — máquina é sempre melhor que fazer na mão** ([W] 2026-07-26, textual: *"isso ligue as maquinas, é sempre melhor que fazer na mão. isso é regra no sistema. deve ser"*). Ordem obrigatória, nesta sequência:

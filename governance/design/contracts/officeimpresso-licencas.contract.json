@@ -1,0 +1,19 @@
+{
+  "_nota": "Contrato de Tela da lista de licenças do Officeimpresso (thread Officeimpresso/06 PR-a, 2026-10-01). Derivado do protótipo officeimpresso-page.jsx → ViewLicencas (rota oi-licencas) e do alvo medido na thread A1 (governance/design/targets/officeimpresso--licencas--index.alvo.json: 4 seções header · toolbar · grade · rodape). Copy só com literais do protótipo. Os KPI-filtros vêm da ficha 06 e moram dentro da toolbar (o protótipo põe os filtros na sa-toolbar). Fora deste recorte, no PR-b: drawer da licença, confirmação com motivo e BulkBar.",
+  "tela": "Officeimpresso/Licencas/Index",
+  "fonte": "prototipo-ui/cowork/Wagner/officeimpresso-page.jsx",
+  "alvo": ["Modules/Officeimpresso/Resources/js/Pages/Officeimpresso/Licencas"],
+  "secoes": [
+    { "id": "header", "copy": ["Licenças de computador"] },
+    { "id": "toolbar", "copy": ["Limpar"], "estados": ["sem-filtro", "filtrado"] },
+    { "id": "grade", "copy": ["Computador", "Empresa", "Versão instalada", "Último acesso", "Status", "Bloqueada", "Nenhuma licença com esses filtros", "Limpar filtros"], "estados": ["normal", "vazio"] },
+    { "id": "rodape", "copy": ["Próxima"] }
+  ],
+  "ordem": ["header", "toolbar", "grade", "rodape"],
+  "proibicoes": [
+    "Senha ou contra-senha do equipamento no payload ou na tela — nem mascarada.",
+    "Serial e token do equipamento no payload da lista.",
+    "Máquina de outro negócio para quem não é superadmin.",
+    "Ação de bloquear/liberar por GET."
+  ]
+}

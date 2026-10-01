@@ -11,6 +11,7 @@ use App\Variation;
 use DB;
 use Excel;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 
 class ImportOpeningStockController extends Controller
 {
@@ -33,7 +34,7 @@ class ImportOpeningStockController extends Controller
     /**
      * Display import product screen.
      *
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\View\View|\Inertia\Response
      */
     public function index()
     {
@@ -46,6 +47,19 @@ class ImportOpeningStockController extends Controller
         $date_formats = Business::date_formats();
         $date_format = session('business.date_format');
         $date_format = isset($date_formats[$date_format]) ? $date_formats[$date_format] : $date_format;
+
+        // Playbook Produto · thread 05 (PR-b): a tela é Inertia; `?classico=1` mantém a Blade.
+        if (! request()->boolean('classico')) {
+            return Inertia::render('Produto/Importacao/Index', [
+                'modo' => 'estoque',
+                'zip' => $zip_loaded,
+                'aviso' => session('notification'),
+                'resultado' => session('status'),
+                'conferencia' => session('conferencia'),
+                'modelo' => asset('files/import_opening_stock_csv_template.xls'),
+                'formato_data' => $date_format,
+            ]);
+        }
 
         //Check if zip extension it loaded or not.
         if ($zip_loaded === false) {
@@ -65,7 +79,7 @@ class ImportOpeningStockController extends Controller
      * Imports the uploaded file to database.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
+     * @return mixed
      */
     public function store(Request $request)
     {
@@ -94,6 +108,7 @@ class ImportOpeningStockController extends Controller
                 $user_id = $request->session()->get('user.id');
 
                 $formated_data = [];
+                $conferidas = []; // linhas já gravadas nesta transação — só a conferência lê
 
                 $is_valid = true;
                 $error_msg = '';
@@ -173,6 +188,7 @@ class ImportOpeningStockController extends Controller
                             ->first();
 
                     $this->addOpeningStock($opening_stock, $product_info, $business_id, $unit_cost_before_tax, $os_transaction);
+                    $conferidas[] = [$row_no, $sku, $product_info, $location, $opening_stock['quantity'], $unit_cost_before_tax];
 
                     // //If exist add to it.
                     // if(!empty($os_transaction)){
@@ -187,6 +203,15 @@ class ImportOpeningStockController extends Controller
 
             if (! $is_valid) {
                 throw new \Exception($error_msg);
+            }
+
+            // Conferência (dry-run): o laço acima JÁ gravou tudo dentro da transação, pelo mesmo
+            // addOpeningStock(). Lê o que ficou gravado e desfaz — nada do cálculo é refeito aqui.
+            if ($request->boolean('conferir')) {
+                $conferencia = $this->conferencia($conferidas ?? [], $business_id ?? 0);
+                DB::rollBack();
+
+                return redirect('import-opening-stock')->with('conferencia', $conferencia);
             }
 
             $output = ['success' => 1,
@@ -206,6 +231,31 @@ class ImportOpeningStockController extends Controller
         }
 
         return redirect('import-opening-stock')->with('status', $output);
+    }
+
+    /**
+     * Uma linha por linha da planilha, com o que a gravação deixou: saldo do local e total do
+     * lançamento de estoque inicial (como gravados, antes do rollback). Só leitura, no business da sessão.
+     */
+    private function conferencia(array $conferidas, int $business_id): array
+    {
+        $out = [];
+        foreach ($conferidas as [$linha, $sku, $produto, $local, $quantidade, $custo]) {
+            $out[] = [
+                'linha' => $linha,
+                'sku' => (string) $sku,
+                'produto' => Product::where('business_id', $business_id)->where('id', $produto->id)->value('name'),
+                'local' => $local->name,
+                'quantidade' => $quantidade,
+                'custo' => $custo,
+                'saldo' => DB::table('variation_location_details')->where('variation_id', $produto->variation_id)
+                    ->where('location_id', $local->id)->value('qty_available'),
+                'total' => Transaction::where('business_id', $business_id)->where('location_id', $local->id)
+                    ->where('type', 'opening_stock')->where('opening_stock_product_id', $produto->id)->value('final_total'),
+            ];
+        }
+
+        return $out;
     }
 
     /**

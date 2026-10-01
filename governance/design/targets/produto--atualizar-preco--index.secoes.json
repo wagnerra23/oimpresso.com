@@ -1,0 +1,20 @@
+{
+  "_": "semente [CL] 2026-09-30 — thread A2 do playbook produto. Protótipo: AtualizarPreco (produto-acoes.jsx:193), rota prod-atualizar-preco. Legado: selling_price_group/update_product_price.blade.php (SellingPriceGroupController).",
+  "_mapa": "Conferida em 2026-09-30 por `alvo:mapa --rota prod-atualizar-preco --raiz 'main > .main-body > .pb-root'` (e `> .pb-body`, `> section > .pb-widget-b`) contra o espelho servido por `servirEstatico`, base origin/main 39484ca0c. Mapa: .pb-body = 2 section.pb-widget (Atualizar preço por planilha · Instruções); 1º .pb-widget-b = div (A-P1) · div (Alert) · div.pb-grid.c2 (passo 1 exportar · passo 2 devolver).",
+  "header": {
+    "seletor": "main .pb-root > .cli-ph > header",
+    "dado": "shell — PageHeader do módulo Produto"
+  },
+  "planilha": {
+    "seletor": "main .pb-root > .pb-body > section.pb-widget:nth-of-type(1)",
+    "dado": "aviso A-P1 + Alert exporte/edite/devolva + passos"
+  },
+  "passos": {
+    "seletor": "main .pb-root > .pb-body > section.pb-widget:nth-of-type(1) > .pb-widget-b > .pb-grid.c2",
+    "dado": "Passo 1 exportar preços atuais · Passo 2 escolher planilha + aplicar preços"
+  },
+  "instrucoes": {
+    "seletor": "main .pb-root > .pb-body > section.pb-widget:nth-of-type(2)",
+    "dado": "4 regras + chips dos grupos de preço + Gerenciar grupos / Editar preço na tela"
+  }
+}

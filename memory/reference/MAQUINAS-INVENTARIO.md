@@ -18,7 +18,7 @@ lifecycle: ativo
 > - Hooks → `.claude/hooks/_HOOKS-INDEX.md` · Skills → `.claude/skills/_SKILLS-INDEX.md`
 > - Gates/Workflows → `scripts/governance/gates-registry.json` · Required → `governance/required-checks-baseline.json`
 
-## 1. Workflows / Gates de CI — 150 (48 contexts required)
+## 1. Workflows / Gates de CI — 152 (48 contexts required)
 
 > `Invocador` = gatilho `on:` do YAML · `Documento` = doc canônico de maior precedência que o cita.
 > **Evidência não é derivável aqui** (medido: 0 de 123): o `gate-selftest` prova que o SCRIPT morde,
@@ -37,6 +37,7 @@ lifecycle: ativo
 | `anchor-drift.yml` | pr+cron+manual | `memory/decisions/0314-poda-gates-onda-2-lei-fusoes.md` +21 | Anchor Drift — lint spec↔código ADR 0273 + entry/covers (0303) + doneness (0302) + charter status:live, diff-aware no PR e full-tree no cron semanal (SA-A2/A3). Enforceme… |
 | `arquivos-pest.yml` | pr+push+manual | `memory/decisions/0354-teammcp-pest-required-emenda-0314.md` +9 | Arquivos · Pest (MySQL) — audit-log/download/enum rodam no MySQL real (skip no sqlite = verde mente); catraca allowlist verde |
 | `assetmanagement-pest.yml` | pr+push+manual | `memory/requisitos/AssetManagement/BRIEFING.md` | AssetManagement · Pest (MySQL) |
+| `auditoria-pest.yml` | pr+push+manual | — | Auditoria · Pest (MySQL) |
 | `backup-pest.yml` | pr+push+manual | `memory/decisions/proposals/2026-09-08-lane-modules-pest-sem-mysql.md` | Backup · Pest (MySQL) |
 | `baseline-folga.yml` | cron+manual | (só sessão/handoff · 1) | Baseline folga — auto-aperto (direção oposta do tamper-guard: trava o ganho que ninguém lembrou de travar · cron semanal + PR · ADR 0256 pilar CADÊNCIA) |
 | `baseline-tamper-guard.yml` | pr+manual | `memory/decisions/0331-anti-duplicacao-work-claim-gate.md` +44 | Baseline tamper-guard (anti-grandfather · afrouxar baseline + código no mesmo PR · ADR 0256/0258 · Gap-2 blueprint SDD) |
@@ -57,6 +58,7 @@ lifecycle: ativo
 | `components-tree-guard.yml` | pr+push+manual | `memory/requisitos/_DesignSystem/CHANGELOG.md` +7 | Components tree guard (árvore canônica de Components/) |
 | `composer-lock-sync.yml` | manual | `memory/decisions/0063-prevenir-composer-lock-drift.md` +6 | Composer lock sync |
 | `compras-pest.yml` | pr+push+manual | `memory/decisions/0369-tres-lanes-pest-valor-estoque-lei-required-emenda-0314.md` +14 | Compras · Pest (MySQL) |
+| `connector-pest.yml` | pr+push+manual | — | Connector · Pest (MySQL) |
 | `contrato-de-tela.yml` | pr+push | `memory/decisions/0314-poda-gates-onda-2-lei-fusoes.md` +29 | Contrato de Tela — fidelidade visual do trio-de-tela (advisory na adoção · RUNBOOK-contrato-de-tela.md) |
 | `cowork-bundle.yml` | push+manual | `memory/reference/prototipo-ui/COWORK-ESTRUTURA-E-TELAS.md` +2 | cowork-bundle (pacote do espelho · artifact) — PR-A5 do plano COLAR-NO-CODE. Gera as PARTES do bundle v2 a partir de prototipo-ui/cowork/Wagner e as publica como artifact… |
 | `dashboard-pest.yml` | pr+push+manual | `memory/decisions/proposals/2026-09-08-lane-modules-pest-sem-mysql.md` | Dashboard · Pest (MySQL) |
@@ -307,7 +309,7 @@ lifecycle: ativo
 | `pageheader-canon` | B | `memory/decisions/0185-drawer-760-canon-entidades-cadastrais.md` +18 | ATIVAR quando agente vai aplicar o PageHeader canon (ADR 0180/0182/0189/0190) em módulo novo — user pede "aplicar pageheader canon no módulo X", "padr… |
 | `personas-resolve` | B | `.claude/skills/feedback-capture/SKILL.md` +1 | BLOQUEADOR Tier A — ATIVAR ANTES de qualquer Edit/Write/MultiEdit em arquivos de `resources/js/Pages/**/*.tsx` ou criação de tela nova. |
 | `pr-ui-judge-manual` | C | `memory/requisitos/_DesignSystem/CHANGELOG.md` +4 | Use quando Wagner pedir "avaliar PR <número> contra Constituição UI v2", "rodar judge no PR X", "review semântico do PR Y", "/pr-ui-judge <PR#>", "sco… |
-| `pre-adr-introspect` | B | `memory/decisions/0304-alocacao-numero-ciente-trabalho-em-voo.md` +5 | ATIVAR ANTES de qualquer Write em `memory/decisions/NNNN-*.md` (ADR nova) OU antes de propor schema novo (`database/migrations/*.php` que adiciona col… |
+| `pre-adr-introspect` | B | `memory/decisions/0304-alocacao-numero-ciente-trabalho-em-voo.md` +6 | ATIVAR ANTES de qualquer Write em `memory/decisions/NNNN-*.md` (ADR nova) OU antes de propor schema novo (`database/migrations/*.php` que adiciona col… |
 | `pre-decisao-git-first` | B | — | ATIVAR ANTES de interromper o Wagner com uma dúvida durante o desenvolvimento — sempre que for usar AskUserQuestion, escrever "não sei se...", "qual v… |
 | `precisao-literal` | B | `memory/reference/metodo-precisao-literal.md` +1 | ATIVAR quando user pedir "compare com o protótipo", "avalie precisão", "que % literal", "ficou idêntico?", "compare lado a lado", "nota da paridade", … |
 | `preflight-modulo` | B | `memory/decisions/0225-skills-tier-a-recalibracao-claude-4.8.md` +35 | BLOQUEADOR — ATIVAR ANTES de qualquer Edit/Write/MultiEdit em Modules/<X>/. |
@@ -413,7 +415,7 @@ lifecycle: ativo
 > ser listado por outro inventário não é estar documentado. `(só sessão/handoff · N)` = existe
 > rastro histórico, mas **nenhum doc vivo** governa a máquina. `—` = nenhum doc a cita.
 
-### 5.1 `scripts/` (raiz) — 36
+### 5.1 `scripts/` (raiz) — 37
 
 | Script | Invocador | Escreve? | Evidência | Documento | Descrição (cabeçalho) |
 |---|---|---|---|---|---|
@@ -425,6 +427,7 @@ lifecycle: ativo
 | `casos-results-collect.mjs` | ci, npm, script | 🟢 só lê | selftest | `memory/08-handoff.md` +5 | scripts/casos-results-collect.mjs — Coletor de test-results → manifesto por-UC (Salto #2, |
 | `components-tree-guard.mjs` | agente, ci, npm, script | 🟢 só lê | — | `memory/decisions/0272-arvore-componentes-canonica.md` +10 | scripts/components-tree-guard.mjs — árvore canônica de Components/ (allowlist + convenção _components) |
 | `conformance-gate.mjs` | ci, npm, script | 🔴 disco | — | `memory/decisions/0263-identidade-cor-gate-bloqueante.md` +32 | Determinístico, sem browser, sem dependência. Roda em CI (exit≠0 = bloqueia merge) E local. |
+| `contrato-de-tela-relevante.mjs` | — (só `.test`) | 🟢 só lê | test | — | decide se o check "Contratos de tela" RODA num diff. |
 | `contrato-de-tela.mjs` | ci, npm, script | 🟢 só lê | test | `memory/decisions/0290-fidelity-lock-v0-recusado.md` +47 | Gate "Contrato de Tela" (a perna de fidelidade visual do trio-de-tela). |
 | `css-size-baseline.mjs` | ci, npm, script | 🔴 disco | — | `memory/decisions/0311-frescor-consolidado-em-sla-escala-temporal-unica.md` +3 | scripts/css-size-baseline.mjs — ratchet de TAMANHO do CSS (anti-regrowth). |
 | `design-identity-grade.mjs` | ci | 🔴 disco | — | `memory/decisions/0254-design-identity-grade-deterministico.md` +7 | GRADE de identidade visual DETERMINÍSTICO (ADR 0254). |
@@ -496,7 +499,7 @@ lifecycle: ativo
 | Script | Invocador | Escreve? | Evidência | Documento | Descrição (cabeçalho) |
 |---|---|---|---|---|---|
 | `aguardar-deploy.mjs` | ci | 🟢 só lê | — | `memory/governance/shipped/CYCLE-08.md` | espera o 1º deploy CONCLUÍDO (não cancelado) que contenha um commit. |
-| `smoke-bundle.mjs` | ci, script | 🔴 disco | — | — | o prod serve os assets que ESTE build gerou? |
+| `smoke-bundle.mjs` | ci, script | 🔴 disco | — | `memory/licoes-rejeitadas.md` +1 | o prod serve os assets que ESTE build gerou? |
 
 ### 5.8 `scripts/design/` — 24
 
@@ -647,7 +650,7 @@ lifecycle: ativo
 | `memory-health.mjs` | ci, script | 🔴 disco | selftest | `memory/decisions/0317-maquina-revisao-adr-quando-rever-gatilhos.md` +120 | sentinela de saúde da base de conhecimento (ADR 0256, Onda 1). |
 | `module-surface.mjs` | agente, ci, npm, script | 🔴 disco | test | `memory/decisions/0370-module-surface-catalog-graph-required-emenda-0314.md` +109 | GERADOR determinístico da "Superfície de código" de um módulo. |
 | `negocio-vs-governanca-ratio.mjs` | agente, ci | 🟢 só lê | test | `memory/decisions/0334-modelo-3-camadas-invariante-anti-atrofia-inteligencia-negocio.md` +11 | o alarme anti-atrofia da inteligência de negócio. |
-| `next-id.mjs` | agente, script | 🟢 só lê | — | `memory/decisions/0304-alocacao-numero-ciente-trabalho-em-voo.md` +10 | aloca o próximo número de ADR/US **ciente de trabalho em voo** (ADR 0304). |
+| `next-id.mjs` | agente, script | 🟢 só lê | — | `memory/decisions/0304-alocacao-numero-ciente-trabalho-em-voo.md` +11 | aloca o próximo número de ADR/US **ciente de trabalho em voo** (ADR 0304). |
 | `normalize-adr-frontmatter.mjs` | npm | 🔴 disco | — | `memory/decisions/0257-adr-status-lifecycle-kind-modelo-canonico.md` +1 | normaliza status/lifecycle de ADR pro enum canônico. |
 | `onboarding-paths-check.mjs` | agente, script | 🟢 só lê | — | `memory/governance/REALOCACAO-DOCUMENTAL.md` +5 | a CAMADA DETERMINÍSTICA do canário de onboarding. |
 | `outcome-metrics.mjs` | agente, ci, script | 🟢 só lê | test | `memory/decisions/0314-poda-gates-onda-2-lei-fusoes.md` +6 | MEDIDOR DE ACEITAÇÃO do transporte Cowork→code (Onda O1). |

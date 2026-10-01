@@ -14,14 +14,15 @@ module: Arquivos
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Arquivos/**` + `resources/js/Pages/Arquivos/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 71 arquivos em 14 papéis.
+**Total mapeado:** 78 arquivos em 16 papéis.
 
-## Controllers — 4
+## Controllers — 5
 
 - [ArquivosAdminController.php](../../../Modules/Arquivos/Http/Controllers/ArquivosAdminController.php)
 - [DataController.php](../../../Modules/Arquivos/Http/Controllers/DataController.php)
 - [DownloadController.php](../../../Modules/Arquivos/Http/Controllers/DownloadController.php)
 - [InstallController.php](../../../Modules/Arquivos/Http/Controllers/InstallController.php)
+- [RetencaoSimulacaoController.php](../../../Modules/Arquivos/Http/Controllers/RetencaoSimulacaoController.php)
 
 ## Requests (validação) — 7
 
@@ -33,10 +34,11 @@ module: Arquivos
 - [RetentionRunRequest.php](../../../Modules/Arquivos/Http/Requests/RetentionRunRequest.php)
 - [UploadArquivoRequest.php](../../../Modules/Arquivos/Http/Requests/UploadArquivoRequest.php)
 
-## Services — 7
+## Services — 8
 
 - [ArquivosRetentionService.php](../../../Modules/Arquivos/Services/ArquivosRetentionService.php)
 - [ArquivosService.php](../../../Modules/Arquivos/Services/ArquivosService.php)
+- [AvisoTitularService.php](../../../Modules/Arquivos/Services/AvisoTitularService.php)
 - [CofreStatsReader.php](../../../Modules/Arquivos/Services/CofreStatsReader.php)
 - [CuradorEngine.php](../../../Modules/Arquivos/Services/Curador/CuradorEngine.php)
 - [CuradorStatsReader.php](../../../Modules/Arquivos/Services/Curador/CuradorStatsReader.php)
@@ -46,6 +48,10 @@ module: Arquivos
 ## Models / Entities — 1
 
 - [Arquivo.php](../../../Modules/Arquivos/Entities/Arquivo.php)
+
+## Jobs — 1
+
+- [SimularRetencaoJob.php](../../../Modules/Arquivos/Jobs/SimularRetencaoJob.php)
 
 ## Console / Commands — 7
 
@@ -65,7 +71,7 @@ module: Arquivos
 
 - [web.php](../../../Modules/Arquivos/Routes/web.php)
 
-## Migrations (schema) — 8
+## Migrations (schema) — 9
 
 - [2026_05_10_000001_create_arquivos_table.php](../../../Modules/Arquivos/Database/Migrations/2026_05_10_000001_create_arquivos_table.php)
 - [2026_05_10_000002_create_arquivos_audit_log_table.php](../../../Modules/Arquivos/Database/Migrations/2026_05_10_000002_create_arquivos_audit_log_table.php)
@@ -75,6 +81,7 @@ module: Arquivos
 - [2026_05_10_000030_add_metadata_recalculated_at_to_arquivos.php](../../../Modules/Arquivos/Database/Migrations/2026_05_10_000030_add_metadata_recalculated_at_to_arquivos.php)
 - [2026_07_02_000001_widen_arquivos_audit_log_action_enum.php](../../../Modules/Arquivos/Database/Migrations/2026_07_02_000001_widen_arquivos_audit_log_action_enum.php)
 - [2026_08_10_000001_widen_arquivos_audit_log_action_enum_exported.php](../../../Modules/Arquivos/Database/Migrations/2026_08_10_000001_widen_arquivos_audit_log_action_enum_exported.php)
+- [2026_10_01_000001_add_titular_avisado_at_and_notice_to_arquivos.php](../../../Modules/Arquivos/Database/Migrations/2026_10_01_000001_add_titular_avisado_at_and_notice_to_arquivos.php)
 
 ## Config — 2
 
@@ -85,6 +92,11 @@ module: Arquivos
 
 - [Index.tsx](../../../resources/js/Pages/Arquivos/Index.tsx)
 
+## Componentes / apoio de tela — 2
+
+- [ClassificarSheet.tsx](../../../resources/js/Pages/Arquivos/_components/ClassificarSheet.tsx)
+- [ExcluirRestaurarSheet.tsx](../../../resources/js/Pages/Arquivos/_components/ExcluirRestaurarSheet.tsx)
+
 ## Charters (lei da tela) — 1
 
 - [Index.charter.md](../../../resources/js/Pages/Arquivos/Index.charter.md)
@@ -93,9 +105,9 @@ module: Arquivos
 
 - [Index.casos.md](../../../resources/js/Pages/Arquivos/Index.casos.md)
 
-## Testes (Pest) — 27
+## Testes (Pest) — 28
 
-- 27 em [Modules/Arquivos/Tests/Feature/](../../../Modules/Arquivos/Tests/Feature)
+- 28 em [Modules/Arquivos/Tests/Feature/](../../../Modules/Arquivos/Tests/Feature)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
 ## Demais arquivos (manifestos, docs, assets e misc) — 3
