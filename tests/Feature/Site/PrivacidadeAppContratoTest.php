@@ -16,10 +16,17 @@ function privAppTexto(): string
 }
 
 it('UC-PRVAPP-01 — abre sem login, na URL estável', function () {
+    // Requisição Inertia (como a navegação do app faz): devolve a página em JSON sem montar o
+    // layout Blade, cujo view composer lê a tabela `system` — inexistente na lane sqlite.
+    // Mesma versão de asset que o middleware compara (padrão do PontoTestCase::inertiaGet).
+    $manifest = public_path('build-inertia/manifest.json');
+    $versao = file_exists($manifest) ? md5_file($manifest) : '1';
+
     $this->assertGuest();
-    $this->get('/privacidade')
-        ->assertOk()
-        ->assertInertia(fn ($page) => $page->component('Site/PrivacidadeApp', false));
+    $r = $this->withHeaders(['X-Inertia' => 'true', 'X-Inertia-Version' => $versao])->get('/privacidade');
+
+    $r->assertOk();
+    $this->assertSame('Site/PrivacidadeApp', $r->json('component'));
 });
 
 it('UC-PRVAPP-02 — cobre os dados do ERP e aponta para a política do ponto', function () {
