@@ -14,6 +14,7 @@ use Modules\Officeimpresso\Entities\LicencaLog;
 use App\Support\Privacy\PiiRedactor;
 use Modules\Officeimpresso\Http\Requests\StoreLicencaRequest;
 use Modules\Officeimpresso\Http\Requests\RevokeLicencaRequest;
+use Modules\Officeimpresso\Services\AcessoOperador;
 use Modules\Officeimpresso\Services\LicencaService;
 use App\Business;
 use Modules\Superadmin\Entities\Subscription;
@@ -58,14 +59,17 @@ class LicencaComputadorController extends Controller
      * É a tarefa de assistência do dia a dia — delegável ao suporte via
      * `officeimpresso.licencas.gerenciar`.
      *
+     * A permissão só vale para usuário da empresa OPERADORA (`AcessoOperador`): esta
+     * guarda não confere o negócio do equipamento, então papel de empresa cliente com
+     * a permissão seria escrita cross-tenant (ADR 0093).
+     *
      * Ações que atingem a EMPRESA inteira (businessupdate, businessbloqueado) e
      * a exclusão têm guardas próprias — ter `gerenciar` NÃO as concede.
      */
     private function authorizeGerenciar(): void
     {
         abort_unless(
-            auth()->user()->can('superadmin')
-            || auth()->user()->can('officeimpresso.licencas.gerenciar'),
+            AcessoOperador::pode(auth()->user(), 'officeimpresso.licencas.gerenciar'),
             403,
             'Unauthorized action.'
         );
@@ -88,8 +92,7 @@ class LicencaComputadorController extends Controller
     private function authorizeEmpresa(): void
     {
         abort_unless(
-            auth()->user()->can('superadmin')
-            || auth()->user()->can('officeimpresso.empresa.gerenciar'),
+            AcessoOperador::pode(auth()->user(), 'officeimpresso.empresa.gerenciar'),
             403,
             'Unauthorized action.'
         );
@@ -105,8 +108,7 @@ class LicencaComputadorController extends Controller
     private function authorizeExcluir(): void
     {
         abort_unless(
-            auth()->user()->can('superadmin')
-            || auth()->user()->can('officeimpresso.licencas.excluir'),
+            AcessoOperador::pode(auth()->user(), 'officeimpresso.licencas.excluir'),
             403,
             'Unauthorized action.'
         );
@@ -132,8 +134,7 @@ class LicencaComputadorController extends Controller
             return Inertia::render('Officeimpresso/Licencas/Index', [
                 'permissions' => [
                     'pode_ver_todas_empresas' => $todas,
-                    'pode_gerenciar' => auth()->user()->can('superadmin')
-                        || auth()->user()->can('officeimpresso.licencas.gerenciar'),
+                    'pode_gerenciar' => AcessoOperador::pode(auth()->user(), 'officeimpresso.licencas.gerenciar'),
                 ],
                 'licencas'    => Inertia::defer(fn () => $this->buildLicencasPayload($business_id, $todas)),
                 // Drawer (PR-b): só vem quando o drawer pede (`only: ['detalhe']`, `?licenca=`).
