@@ -87,8 +87,9 @@ last_run: "2026-09-29"
 ---
 
 ## UC-REPP-11 · No app, meu celular passa a receber o lembrete de bater ponto
-- **Persona:** colaborador com o app da loja instalado. O app abre as telas do ERP em `/m` no
-  WebView (sessão web — ADR 0424); a tela de ponto envia o token a `/ponto/mobile/push/dispositivo`.
+- **Persona:** colaborador com o app da loja instalado (telas próprias, token Passport — ADR 0424).
+  Quem chama é o app, em `/ponto/api/push/dispositivo`; a porta web `/ponto/mobile/push/dispositivo`
+  tem o mesmo contrato e hoje não tem chamador.
 - **Aceite:** Dado colaborador com `controla_ponto` · Quando a tela envia o token do aparelho ·
   Então o aparelho fica ativo no MEU usuário e no MEU business, mesmo que o corpo traga outro
   `business_id`/`user_id`; sem cadastro de ponto → 403 e nada gravado.
@@ -130,4 +131,4 @@ last_run: "2026-09-29"
 - 2026-10-01 · [CL] UC-REPP-16 — envio do lembrete pelo FCM (ADR 0423, PR 2a).
 - 2026-10-01 · [CL] UC-REPP-14/15 — agendamento do lembrete (ADR 0423, PR 2b).
 - 2026-10-01 · [CL] UC-REPP-11/13 também pela API (`auth:api`) — o app das lojas tem telas próprias e não abre o site.
-- 2026-10-01 · [CL] UC-REPP-11/13: a porta de API do #8457 saiu — o app abre as telas do ERP em `/m` com sessão web ([W], ADR 0424).
+- 2026-10-01 · [CL] UC-REPP-11: quem registra é o app de telas próprias pela API (ADR 0424, [W] no #8472); a página web não tem botão de lembrete (#8441 fechado).

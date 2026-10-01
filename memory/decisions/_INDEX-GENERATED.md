@@ -466,4 +466,4 @@ _(nenhuma)_
 | 0421 | aceito | ativo | decision | Arquivos — aviso ao titular (LGPD Art. 18 VI): registro titular_avisado_at + açã |
 | 0422 | proposto | ativo | decision | Arquivos — aviso ao titular sai por e-mail e WhatsApp, com liga/desliga por negó |
 | 0423 | proposto | ativo | decision | Ponto — lembrete de bater ponto por push (FCM HTTP v1, token por usuário+busines |
-| 0424 | proposto | ativo | decision | Ponto — emenda à 0423: o app abre as telas do ERP em /m (sessão web); o registro |
+| 0424 | proposto | ativo | decision | Ponto — emenda à 0423: o app de telas próprias registra o aparelho pela API (Pas |

@@ -15,8 +15,10 @@ use Modules\Ponto\Entities\PushDispositivo;
 /**
  * Registro do aparelho para o lembrete de bater ponto (ADR 0423).
  *
- * Chamado pela tela de ponto do app das lojas: o app abre as telas do ERP em `/m` dentro do
- * WebView do Capacitor (sessão web, ADR 0424). O plugin entrega o token FCM e a página o envia.
+ * Duas portas, mesmo contrato: `/ponto/mobile/push/dispositivo` (sessão web) e
+ * `/ponto/api/push/dispositivo` (token Passport, `auth:api`) — esta é a do app das lojas, que tem
+ * telas próprias e não abre o site. Na API não há sessão e o ScopeByBusiness não filtra: os
+ * `where` explícitos de `business_id`/`user_id` abaixo são a defesa nas duas portas.
  *
  * Tier 0 ([ADR 0093]): usuário e business vêm SEMPRE do usuário autenticado; o body traz só
  * o token e a plataforma. Só quem tem cadastro de ponto ativo registra — o lembrete é da
