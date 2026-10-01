@@ -46,10 +46,8 @@ it('UC-COS-01 portal abre sem login e renderiza a tela ConsultaOs/Index', functi
 
     // Visita Inertia (X-Inertia): o servidor devolve o page object em JSON sem renderizar o
     // blade raiz — que lê a tabela `system` e não existe no sqlite :memory: desta lane.
-    // A versão segue o HandleInertiaRequests::version() (md5 do manifest, ou '1' sem build),
-    // mesmo idioma do BackupInertiaTest.
-    $manifest = public_path('build-inertia/manifest.json');
-    $versao = file_exists($manifest) ? md5_file($manifest) : '1';
+    // A versão vem do próprio HandleInertiaRequests::version() — senão o middleware devolve 409.
+    $versao = (string) app(\App\Http\Middleware\HandleInertiaRequests::class)->version(request());
 
     $response = $this->withHeaders(['X-Inertia' => 'true', 'X-Inertia-Version' => $versao])
         ->get('/consulta-os');
