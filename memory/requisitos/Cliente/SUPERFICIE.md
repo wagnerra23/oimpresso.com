@@ -15,7 +15,7 @@ tabelas_dominio: ["contacts", "customer_groups"]
 >
 > **O que isto é:** o módulo `Cliente` é CLASSE B — o código mora no núcleo UltimatePOS (`app/`), sem diretório modular homônimo. A membership vem de uma **semente curada** de paths do core declarada em `module-surface.mjs::CORE_APP_MODULES` (revisável no diff) + `resources/js/Pages/Cliente/**`. **O que NÃO é:** cobertura/nota/status (donos: `screen-coverage-map.mjs` + `casos-gate`) nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve). As **tabelas do domínio** (`contacts`, `customer_groups`) são metadado-ÂNCORA declarado, **não** o derivador (derivar por tabela over-inclui — medido 2026-07-21).
 
-**Total mapeado:** 314 arquivos em 18 papéis.
+**Total mapeado:** 318 arquivos em 18 papéis.
 
 ## Controllers — 29
 
@@ -251,9 +251,10 @@ tabelas_dominio: ["contacts", "customer_groups"]
 - [subscriptions.blade.php](../../../resources/views/contact/partials/subscriptions.blade.php)
 - [show.blade.php](../../../resources/views/contact/show.blade.php)
 
-## Telas (Inertia/React) — 8
+## Telas (Inertia/React) — 9
 
 - [Index.tsx](../../../Modules/Crm/Resources/js/Pages/Crm/Acompanhamentos/Index.tsx)
+- [Index.tsx](../../../Modules/Crm/Resources/js/Pages/Crm/Painel/Index.tsx)
 - [Create.tsx](../../../resources/js/Pages/Cliente/Create.tsx)
 - [Edit.tsx](../../../resources/js/Pages/Cliente/Edit.tsx)
 - [Import.tsx](../../../resources/js/Pages/Cliente/Import.tsx)
@@ -296,9 +297,10 @@ tabelas_dominio: ["contacts", "customer_groups"]
 - [SubscriptionsTab.tsx](../../../resources/js/Pages/Cliente/_show/SubscriptionsTab.tsx)
 - [VehiclesTab.tsx](../../../resources/js/Pages/Cliente/_show/VehiclesTab.tsx)
 
-## Charters (lei da tela) — 8
+## Charters (lei da tela) — 9
 
 - [Index.charter.md](../../../Modules/Crm/Resources/js/Pages/Crm/Acompanhamentos/Index.charter.md)
+- [Index.charter.md](../../../Modules/Crm/Resources/js/Pages/Crm/Painel/Index.charter.md)
 - [Create.charter.md](../../../resources/js/Pages/Cliente/Create.charter.md)
 - [Edit.charter.md](../../../resources/js/Pages/Cliente/Edit.charter.md)
 - [Import.charter.md](../../../resources/js/Pages/Cliente/Import.charter.md)
@@ -307,9 +309,10 @@ tabelas_dominio: ["contacts", "customer_groups"]
 - [Map.charter.md](../../../resources/js/Pages/Cliente/Map.charter.md)
 - [Show.charter.md](../../../resources/js/Pages/Cliente/Show.charter.md)
 
-## Casos (contrato UC) — 8
+## Casos (contrato UC) — 9
 
 - [Index.casos.md](../../../Modules/Crm/Resources/js/Pages/Crm/Acompanhamentos/Index.casos.md)
+- [Index.casos.md](../../../Modules/Crm/Resources/js/Pages/Crm/Painel/Index.casos.md)
 - [Create.casos.md](../../../resources/js/Pages/Cliente/Create.casos.md)
 - [Edit.casos.md](../../../resources/js/Pages/Cliente/Edit.casos.md)
 - [Import.casos.md](../../../resources/js/Pages/Cliente/Import.casos.md)
@@ -318,9 +321,9 @@ tabelas_dominio: ["contacts", "customer_groups"]
 - [Map.casos.md](../../../resources/js/Pages/Cliente/Map.casos.md)
 - [Show.casos.md](../../../resources/js/Pages/Cliente/Show.casos.md)
 
-## Testes (Pest) — 15
+## Testes (Pest) — 16
 
-- 15 em [Modules/Crm/Tests/Feature/](../../../Modules/Crm/Tests/Feature)
+- 16 em [Modules/Crm/Tests/Feature/](../../../Modules/Crm/Tests/Feature)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
 ## Demais arquivos (manifestos, docs, assets e misc) — 46

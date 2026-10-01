@@ -66,6 +66,9 @@ on:
       - 'Modules/Crm/Http/Controllers/ScheduleController.php'
       - 'Modules/Crm/Resources/js/Pages/**'
       - 'Modules/Crm/Tests/Feature/CrmAcompanhamentosContratoTest.php'
+      # Thread Crm/04 — o painel do CRM virou Inertia; o contrato dele roda aqui.
+      - 'Modules/Crm/Http/Controllers/CrmDashboardController.php'
+      - 'Modules/Crm/Tests/Feature/CrmPainelContratoTest.php'
       - 'database/schema/mysql-schema.sql'
       - '.github/workflows/verticais-pest.yml'
       - '.github/actions/pest-mysql-setup/**'
@@ -123,6 +126,9 @@ jobs:
               - 'Modules/Crm/Http/Controllers/ScheduleController.php'
               - 'Modules/Crm/Resources/js/Pages/**'
               - 'Modules/Crm/Tests/Feature/CrmAcompanhamentosContratoTest.php'
+              # Thread Crm/04 — o painel do CRM virou Inertia; o contrato dele roda aqui.
+              - 'Modules/Crm/Http/Controllers/CrmDashboardController.php'
+              - 'Modules/Crm/Tests/Feature/CrmPainelContratoTest.php'
               - 'database/schema/mysql-schema.sql'
               - '.github/workflows/verticais-pest.yml'
               - '.github/actions/pest-mysql-setup/**'
@@ -330,7 +336,8 @@ jobs:
             Modules/Superadmin/Tests/Feature/SuperadminConfiguracoesContratoTest.php \
             Modules/Cms/Tests/Feature/CmsConteudoIndexContratoTest.php \
             Modules/Cms/Tests/Feature/CmsSiteDetailsPainelTest.php \
-            Modules/Crm/Tests/Feature/CrmAcompanhamentosContratoTest.php
+            Modules/Crm/Tests/Feature/CrmAcompanhamentosContratoTest.php \
+            Modules/Crm/Tests/Feature/CrmPainelContratoTest.php
 
       # O sumário conta `assertions` POR ARQUIVO — é o discriminador que separa
       # "passou" de "pulou" (LC-13). Aqui só REPORTA.
