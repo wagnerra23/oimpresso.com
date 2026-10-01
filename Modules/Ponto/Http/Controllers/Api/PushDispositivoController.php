@@ -66,7 +66,7 @@ class PushDispositivoController extends Controller
         ]);
 
         $user = $request->user();
-        $afetados = PushDispositivo::withoutGlobalScopes()
+        $afetados = PushDispositivo::query()
             ->where('business_id', (int) $user->business_id)
             ->where('user_id', (int) $user->id)
             ->where('token', $dados['token'])
