@@ -10,6 +10,7 @@ use Illuminate\Support\Str;
 use Yajra\DataTables\Facades\DataTables;
 use App\Utils\Util;
 use Illuminate\Support\Facades\Artisan;
+use Modules\Officeimpresso\Services\AcessoOperador;
 
 class ClientController extends Controller
 {
@@ -29,9 +30,12 @@ class ClientController extends Controller
      */
     private function authorizeLiberar(): void
     {
+        // Só vale para usuário da empresa operadora (AcessoOperador). Criar credencial de
+        // password grant contorna o bloqueio de empresa do login desktop, que em
+        // User::validateForPassportPasswordGrant só vale para os client_id fixos do Delphi —
+        // e o Gate::before liberava esta permissão para o Admin de TODA empresa cliente.
         abort_unless(
-            auth()->user()->can('superadmin')
-            || auth()->user()->can('officeimpresso.clientes.liberar'),
+            AcessoOperador::pode(auth()->user(), 'officeimpresso.clientes.liberar'),
             403,
             'Unauthorized action.'
         );

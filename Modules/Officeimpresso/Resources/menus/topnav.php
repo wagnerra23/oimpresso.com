@@ -32,7 +32,7 @@ return [
         ['label' => 'Empresas Licenciadas', 'href' => '/officeimpresso/businessall',        'icon' => 'Building2',      'can' => $soOperador],
         ['label' => 'Computadores',         'href' => '/officeimpresso/computadores',       'icon' => 'Monitor',        'can' => $soOperador],
         ['label' => 'Licenças',             'href' => '/officeimpresso/licenca_computador', 'icon' => 'KeyRound',       'can' => $soOperador],
-        ['label' => 'Clientes',             'href' => '/officeimpresso/client',             'icon' => 'UserCog',        'can' => 'officeimpresso.clientes.liberar'],
+        ['label' => 'Clientes',             'href' => '/officeimpresso/client',             'icon' => 'UserCog',        'can' => fn ($user) => \Modules\Officeimpresso\Services\AcessoOperador::pode($user, 'officeimpresso.clientes.liberar')],
         ['label' => 'Log de Acesso',        'href' => '/officeimpresso/licenca_log',        'icon' => 'ClipboardList',  'can' => $soOperador],
     ],
 ];
