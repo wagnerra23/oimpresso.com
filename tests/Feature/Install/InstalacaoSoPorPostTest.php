@@ -22,6 +22,7 @@ use Symfony\Component\HttpKernel\Exception\HttpException;
 const INSTALACAO_SO_POR_POST_MODULOS = [
     'AssetManagement', 'Cms', 'Crm', 'Manufacturing', 'ProductCatalogue',
     'Forja', 'Jana', 'KB', 'Ponto', 'Repair', 'Spreadsheet',
+    'Auditoria', 'ComunicacaoVisual', 'ConsultaOs', 'Financeiro', 'Fiscal', 'Governance',
 ];
 
 abstract class InstalacaoSoPorPostBaseFalsa
