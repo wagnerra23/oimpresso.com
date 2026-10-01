@@ -47,7 +47,7 @@ class ImportProductsController extends Controller
     /**
      * Display import product screen.
      *
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\View\View|\Inertia\Response
      */
     public function index()
     {
@@ -86,7 +86,7 @@ class ImportProductsController extends Controller
      * Imports the uploaded file to database.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
+     * @return mixed
      */
     public function store(Request $request)
     {

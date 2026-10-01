@@ -51,6 +51,8 @@ function pimpLogin(object $test, User $user): object
     session([
         'user.business_id' => (int) $user->business_id, 'user.id' => $user->id,
         'business.default_profit_percent' => 25, 'financial_year.start' => '2026-01-01',
+        // num_f() do cálculo de preço lê os separadores da sessão, como em produção.
+        'currency' => ['code' => 'BRL', 'symbol' => 'R$', 'thousand_separator' => '.', 'decimal_separator' => ','],
     ]);
 
     return $test->actingAs($user);

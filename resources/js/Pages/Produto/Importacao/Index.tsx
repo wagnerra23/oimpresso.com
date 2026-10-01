@@ -129,10 +129,10 @@ export default function ImportacaoIndex({ zip, aviso, resultado, conferencia, mo
               <Button type="button" variant="outline" onClick={() => ref.current?.click()}>Escolher arquivo</Button>
               <input ref={ref} type="file" accept=".xls,.xlsx,.csv" className="hidden"
                 onChange={(e) => { setArquivo(e.target.files?.[0] ?? null); setConferido(''); }} />
-              <label className="text-sm">
-                Arquivo para importar *
-                <Input readOnly value={arquivo?.name ?? 'Nenhum arquivo escolhido'} className="min-w-64" />
-              </label>
+              <Stack gap={1}>
+                <label htmlFor="pimp-arquivo" className="text-sm">Arquivo para importar *</label>
+                <Input id="pimp-arquivo" readOnly value={arquivo?.name ?? 'Nenhum arquivo escolhido'} className="min-w-64" />
+              </Stack>
               <Button type="button" variant="outline" disabled={!arquivo || enviando || !zip} onClick={() => enviar(true)}>Conferir planilha</Button>
               <Button type="button" disabled={!liberado || enviando || !zip} onClick={() => enviar(false)}
                 title={liberado ? undefined : 'Confira a planilha antes — sem erro, o envio libera.'}>Enviar planilha</Button>
