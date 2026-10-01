@@ -5,6 +5,7 @@ import {
   checklistParaEnvio,
   itensDoChecklist,
   modelosFiltrados,
+  pecasParaCarrinho,
   tocarPonto,
   dataParaServidor,
   defeitosParaTagify,
@@ -98,5 +99,31 @@ describe('UC-S05 · checklist, senha/padrão e modelos', () => {
       repair_checklist: { Liga: 'yes', Tela: 'not_applicable' },
     });
     expect(camposDeReparo(reparoInicial(2), [])).toEqual({ repair_status_id: 2 });
+  });
+});
+
+// UC-S06 — venda aberta a partir de uma OS.
+describe('UC-S06 · peças da OS no carrinho', () => {
+  const peca = { product_id: 1, variation_id: 11, name: 'Tela', variation: null, sku: 'TL-1', quantity: 2, unit_price: 37.5 };
+
+  it('peça vira linha igual à da adição à mão: preço da OS, desconto 0 fixo', () => {
+    expect(pecasParaCarrinho([peca])).toEqual([
+      { product_id: 1, variation_id: 11, name: 'Tela', variation: null, sku: 'TL-1', quantity: 2, unit_price: 37.5, discount: 0, discount_type: 'fixed', imei_number: '' },
+    ]);
+  });
+
+  it('mesma variação repetida soma a quantidade numa linha só (não duplica o valor)', () => {
+    const linhas = pecasParaCarrinho([peca, { ...peca, quantity: 1 }]);
+    expect(linhas).toHaveLength(1);
+    expect(linhas[0].quantity).toBe(3);
+    expect(linhas[0].unit_price).toBe(37.5);
+  });
+
+  it('OS sem peças não põe nada no carrinho', () => {
+    expect(pecasParaCarrinho([])).toEqual([]);
+  });
+
+  it('o vínculo com a OS vai no envio (chave anti-faturamento em dobro)', () => {
+    expect(camposDeReparo({ ...reparoInicial(2), repair_job_sheet_id: 99 })).toEqual({ repair_status_id: 2, repair_job_sheet_id: 99 });
   });
 });

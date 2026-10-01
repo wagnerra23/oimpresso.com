@@ -26,6 +26,11 @@ export type ReparoForm = {
   repair_security_pwd: string;
   /** Sequência de pontos da grade 3×3 (1–9), o formato do patternlock.js do POS Blade. */
   repair_security_pattern: string;
+  /**
+   * UC-S06 — OS de origem. Liga a fatura à OS (JobSheet::invoices) e é a chave de
+   * idempotência do JobSheetObserver: com ela, concluir a OS não gera uma 2ª venda.
+   */
+  repair_job_sheet_id: number | null;
 };
 
 export type ChecklistValor = 'yes' | 'no' | 'not_applicable';
@@ -52,6 +57,7 @@ export function reparoInicial(defaultStatusId: number | null | undefined): Repar
     checklist: {},
     repair_security_pwd: '',
     repair_security_pattern: '',
+    repair_job_sheet_id: null,
   };
 }
 
@@ -84,7 +90,14 @@ export function camposDeReparo(
   itensChecklist: string[] = [],
 ): Record<string, string | number | Record<string, ChecklistValor>> {
   const campos: Record<string, string | number | Record<string, ChecklistValor>> = {};
-  const ids = ['repair_status_id', 'repair_brand_id', 'repair_device_id', 'repair_model_id', 'repair_warranty_id'] as const;
+  const ids = [
+    'repair_status_id',
+    'repair_brand_id',
+    'repair_device_id',
+    'repair_model_id',
+    'repair_warranty_id',
+    'repair_job_sheet_id',
+  ] as const;
   for (const k of ids) {
     if (r[k] !== null) campos[k] = r[k] as number;
   }
@@ -139,4 +152,40 @@ export function checklistParaEnvio(
   const out: Record<string, ChecklistValor> = {};
   for (const item of itens) out[item] = respostas[item] ?? 'not_applicable';
   return out;
+}
+
+/** Peça da OS como o servidor manda (UC-S06): preço = `selling_price` do /products/list. */
+export type PecaDaOs = {
+  product_id: number;
+  variation_id: number;
+  name: string;
+  variation: string | null;
+  sku: string;
+  quantity: number;
+  unit_price: number;
+};
+
+/**
+ * Peças da OS → linhas do carrinho, no MESMO formato do `handleAddProduct` (desconto 0,
+ * "fixed"). A quantidade é a da OS; o preço é o que a linha teria se adicionada à mão.
+ * Mesma variação repetida vira uma linha só, com as quantidades somadas.
+ */
+export function pecasParaCarrinho(pecas: PecaDaOs[]) {
+  const linhas = new Map<number, PecaDaOs>();
+  for (const p of pecas) {
+    const atual = linhas.get(p.variation_id);
+    linhas.set(p.variation_id, atual ? { ...atual, quantity: atual.quantity + p.quantity } : { ...p });
+  }
+  return Array.from(linhas.values()).map((p) => ({
+    product_id: p.product_id,
+    variation_id: p.variation_id as number | null,
+    name: p.name,
+    variation: p.variation,
+    sku: p.sku,
+    quantity: p.quantity,
+    unit_price: p.unit_price,
+    discount: 0,
+    discount_type: 'fixed' as const,
+    imei_number: '',
+  }));
 }

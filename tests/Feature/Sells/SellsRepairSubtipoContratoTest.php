@@ -404,3 +404,144 @@ it('UC-S05 · modelos do PRÓPRIO business com o checklist de cada um; checklist
     expect((float) $reparo['venda']->final_total)->toBe((float) $comum['venda']->final_total);
     expect($reparo['saldo'])->toBe($comum['saldo']);
 });
+
+/** OS (repair_job_sheets) com 1 peça — INSERT direto: estado inicial independente do fluxo sob teste. */
+function repairSubtipoOs(object $test, int $statusId, int $variationId, float $qtd, ?int $bizId = null): int
+{
+    $bizId ??= $test->bizId;
+
+    return (int) DB::table('repair_job_sheets')->insertGetId([
+        'business_id' => $bizId,
+        'location_id' => $bizId === $test->bizId ? $test->locationId : null,
+        'contact_id' => $test->contactId,
+        'job_sheet_no' => 'OS-UC-S06-'.bin2hex(random_bytes(3)),
+        'service_type' => 'carry_in',
+        'serial_no' => 'SN-OS-UC-S06',
+        'status_id' => $statusId,
+        'defects' => '[{"value":"tela"},{"value":"bateria"}]',
+        'checklist' => json_encode(['Liga' => 'yes']),
+        'parts' => json_encode([(string) $variationId => ['quantity' => $qtd]]),
+        'created_by' => $test->user->id,
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+}
+
+/** Caixa aberto + headers Inertia (o /pos/create exige caixa; sem ele redireciona). */
+function repairSubtipoAbrirPdv(object $test): array
+{
+    DB::table('cash_registers')->insert([
+        'business_id' => $test->bizId, 'location_id' => $test->locationId, 'user_id' => $test->user->id,
+        'status' => 'open', 'created_at' => now(), 'updated_at' => now(),
+    ]);
+    $manifest = public_path('build-inertia/manifest.json');
+
+    return ['X-Inertia' => 'true', 'X-Inertia-Version' => file_exists($manifest) ? md5_file($manifest) : '1'];
+}
+
+it('UC-S06 · venda a partir da OS traz as peças pelo MESMO preço da adição à mão, grava o vínculo e não fatura em dobro', function () {
+    foreach (['repair_job_sheets', 'repair_statuses', 'product_locations'] as $t) {
+        if (! Schema::hasTable($t)) {
+            $this->markTestSkipped("Tabela {$t} ausente — rode as migrations.");
+        }
+    }
+
+    // Peça com preço DISTINTO do default do fixture (20): o valor esperado vem daqui, não do código.
+    $produto = EstoqueFixture::singleProduct($this->bizId);
+    $variationId = (int) $produto->variations[0]['variation_id'];
+    DB::table('variations')->where('id', $variationId)->update(['sell_price_inc_tax' => 37.5, 'default_sell_price' => 37.5]);
+    DB::table('product_locations')->insert(['product_id' => $produto->productId, 'location_id' => $this->locationId]);
+    $subSku = (string) DB::table('variations')->where('id', $variationId)->value('sub_sku');
+
+    $aberto = repairSubtipoStatus($this->bizId, 'Em bancada UC-S06');
+    $os = repairSubtipoOs($this, $aberto, $variationId, 2);
+
+    $tela = $this->withHeaders(repairSubtipoAbrirPdv($this))->get("/pos/create?sub_type=repair&job_sheet_id={$os}");
+    \PHPUnit\Framework\Assert::assertSame(200, $tela->status(), "GET da venda da OS: HTTP {$tela->status()}");
+    $origem = $tela->json('props.repairPos.osOrigem');
+    \PHPUnit\Framework\Assert::assertNotNull($origem, 'osOrigem não veio para uma OS do próprio business');
+
+    // Caminho 1: o que o servidor manda pra peça da OS.
+    expect($origem['pecas'])->toHaveCount(1);
+    $peca = $origem['pecas'][0];
+    // Caminho 2: o que o autocomplete do React recebe pra mesma variação (adição à mão).
+    $lista = $this->flushHeaders()->withHeaders(['X-Requested-With' => 'XMLHttpRequest', 'Accept' => 'application/json'])
+        ->get('/products/list?'.http_build_query(['term' => $subSku, 'location_id' => $this->locationId]));
+    $daLista = collect($lista->json())->firstWhere('variation_id', $variationId);
+    \PHPUnit\Framework\Assert::assertNotNull($daLista, '/products/list não achou a variação: HTTP '.$lista->status());
+
+    expect((float) $peca['unit_price'])->toBe(37.5);                              // = valor gravado no banco
+    expect((float) $peca['unit_price'])->toBe((float) $daLista['selling_price']); // = adição à mão no React
+    expect((float) $peca['quantity'])->toBe(2.0);                                 // = quantidade da OS
+    expect($origem['pecasNaoEncontradas'])->toBe([]);
+    expect($origem['cliente']['id'])->toBe($this->contactId);
+    expect($origem['location_id'])->toBe($this->locationId);
+    expect($origem['reparo']['repair_serial_no'])->toBe('SN-OS-UC-S06');
+    expect($origem['reparo']['defeitos'])->toBe(['tela', 'bateria']);
+
+    // Grava a venda como o React envia a partir desse estado (lastro de compra pro mapPurchaseSell).
+    $compraId = (int) DB::table('transactions')->insertGetId([
+        'business_id' => $this->bizId, 'type' => 'purchase', 'status' => 'received', 'location_id' => $this->locationId,
+        'payment_status' => 'paid', 'transaction_date' => now()->subDay(), 'total_before_tax' => 0, 'final_total' => 0,
+        'created_by' => $this->user->id, 'essentials_duration' => 0, 'created_at' => now()->subDay(), 'updated_at' => now()->subDay(),
+    ]);
+    DB::table('purchase_lines')->insert([
+        'transaction_id' => $compraId, 'product_id' => $produto->productId, 'variation_id' => $variationId, 'quantity' => 10,
+        'quantity_sold' => 0, 'quantity_adjusted' => 0, 'quantity_returned' => 0, 'purchase_price' => 0,
+        'purchase_price_inc_tax' => 0, 'item_tax' => 0, 'created_at' => now()->subDay(), 'updated_at' => now()->subDay(),
+    ]);
+    EstoqueFixture::setStock($produto, 0, $this->locationId, 10);
+
+    $post = $this->flushHeaders()->post('/pos', repairSubtipoPayload($this->locationId, $this->contactId, $produto->productId, $variationId, [
+        'sub_type' => 'repair',
+        'print_label' => 0,
+        'final_total' => 75,
+        'repair_status_id' => $aberto,
+        'repair_job_sheet_id' => $os,
+        'products' => [[
+            'product_id' => $produto->productId, 'variation_id' => $variationId, 'quantity' => 2,
+            'unit_price' => 37.5, 'unit_price_inc_tax' => 37.5, 'item_tax' => 0, 'tax_id' => null,
+            'line_discount_type' => 'fixed', 'line_discount_amount' => 0, 'imei_number' => '',
+            'enable_stock' => 1, 'product_type' => 'single',
+        ]],
+    ]));
+    $post->assertSessionHasNoErrors();
+    $venda = DB::table('transactions')->where('repair_job_sheet_id', $os)->where('type', 'sell')->first();
+    \PHPUnit\Framework\Assert::assertNotNull($venda, 'venda da OS não gravou o vínculo repair_job_sheet_id');
+    expect((float) $venda->final_total)->toBe(75.0); // 2 × 37,50
+    expect(EstoqueFixture::currentStock($produto, 0, $this->locationId))->toBe(8.0);
+
+    // Concluir a OS depois de faturada NÃO gera 2ª venda (JobSheetObserver, idempotente por repair_job_sheet_id).
+    $concluido = repairSubtipoStatus($this->bizId, 'Concluído UC-S06');
+    DB::table('repair_statuses')->where('id', $concluido)->update(['is_completed_status' => 1]);
+    \Modules\Repair\Entities\JobSheet::query()->find($os)->update(['status_id' => $concluido]);
+    expect(DB::table('transactions')->where('repair_job_sheet_id', $os)->count())->toBe(1);
+
+    // Controle positivo: OS SEM fatura, ao concluir, GERA a venda — prova que o observer roda aqui.
+    $semFatura = repairSubtipoOs($this, $aberto, $variationId, 1);
+    \Modules\Repair\Entities\JobSheet::query()->find($semFatura)->update(['status_id' => $concluido]);
+    expect(DB::table('transactions')->where('repair_job_sheet_id', $semFatura)->count())->toBe(1);
+});
+
+it('UC-S06 · OS de OUTRO business abre a venda SEM origem, e não em 500 (Tier 0)', function () {
+    $outroBiz = EstoqueFixture::secondBusinessId();
+    if ($outroBiz === null || ! Schema::hasTable('repair_job_sheets')) {
+        $this->markTestSkipped('Sem 2º business semeado ou sem repair_job_sheets.');
+    }
+    $produto = EstoqueFixture::singleProduct($this->bizId);
+    $alheia = repairSubtipoOs(
+        $this,
+        repairSubtipoStatus($outroBiz, 'Status alheio UC-S06'),
+        (int) $produto->variations[0]['variation_id'],
+        1,
+        $outroBiz,
+    );
+
+    $tela = $this->withHeaders(repairSubtipoAbrirPdv($this))->get("/pos/create?sub_type=repair&job_sheet_id={$alheia}");
+
+    // O provider busca a OS com where business_id: a alheia não carrega. Antes do conserto,
+    // getPartsUsed() rodava sobre null e a tela caía em 500.
+    \PHPUnit\Framework\Assert::assertSame(200, $tela->status(), 'venda com OS alheia: HTTP '.$tela->status());
+    expect($tela->json('props.repairPos'))->not->toBeNull();
+    expect($tela->json('props.repairPos.osOrigem'))->toBeNull();
+});

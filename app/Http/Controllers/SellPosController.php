@@ -399,6 +399,96 @@ class SellPosController extends Controller
             'warranties' => $d['warranties'] ?? [],
             'defeitosSugeridos' => $semVazios($sugeridos),
             'checklistPadrao' => $semVazios(explode('|', (string) ($d['repair_settings']['default_repair_checklist'] ?? ''))),
+            'osOrigem' => $this->repairOsOrigem($d),
+        ];
+    }
+
+    /**
+     * Venda aberta a partir de uma OS (UC-S06): `/pos/create?sub_type=repair&job_sheet_id=N`,
+     * o link "Adicionar fatura" da listagem de OS. O provider do Repair já carrega a OS
+     * (escopada por business) e as peças usadas (só variação + quantidade).
+     *
+     * VALOR — cada peça entra pelo MESMO preço que o React daria se o operador a adicionasse
+     * à mão: `selling_price` do `ProductUtil::filterProduct` (o que `/products/list` devolve ao
+     * autocomplete e o `handleAddProduct` usa). O cliente da OS vai junto com o grupo de preço
+     * dele; o React aplica pelo próprio `handleCustomerSelect`, que reprecifica como faria na
+     * mão. Peça que o filterProduct não acha (outro business, fora do local) NÃO entra calada:
+     * vai em `pecasNaoEncontradas` para a tela avisar.
+     */
+    private function repairOsOrigem(array $d): ?array
+    {
+        $os = $d['job_sheet'] ?? null;
+        if (empty($os) || empty($os->id)) {
+            return null;
+        }
+
+        $bizId = (int) $os->business_id;
+        $locationId = $os->location_id !== null ? (int) $os->location_id : null;
+
+        $pecas = [];
+        $naoEncontradas = [];
+        foreach (($d['parts'] ?? []) as $variationId => $parte) {
+            $subSku = (string) \App\Variation::whereKey($variationId)->value('sub_sku');
+            $linha = $subSku === '' ? null : $this->productUtil
+                ->filterProduct($bizId, $subSku, $locationId, null, null, [], ['sub_sku'], false, 'exact')
+                ->firstWhere('variation_id', (int) $variationId);
+
+            if ($linha === null) {
+                $naoEncontradas[] = (string) ($parte['variation_name'] ?? $variationId);
+
+                continue;
+            }
+
+            $pecas[] = [
+                'product_id' => (int) $linha->product_id,
+                'variation_id' => (int) $linha->variation_id,
+                'name' => (string) $linha->name,
+                'variation' => $linha->type === 'variable' ? (string) $linha->variation : null,
+                'sku' => (string) $linha->sub_sku,
+                'quantity' => (float) ($parte['quantity'] ?? 1),
+                'unit_price' => (float) $linha->selling_price,
+            ];
+        }
+
+        // Defeitos: a OS guarda o que o form mandou — JSON do Tagify (Blade) ou texto (React).
+        $defeitosBrutos = (string) $os->defects;
+        $tagify = json_decode($defeitosBrutos, true);
+        $defeitos = is_array($tagify)
+            ? array_map(fn ($t) => is_array($t) ? (string) ($t['value'] ?? '') : (string) $t, $tagify)
+            : explode(',', $defeitosBrutos);
+
+        $cliente = \App\Contact::where('contacts.business_id', $bizId)
+            ->leftJoin('customer_groups as cg', 'cg.id', '=', 'contacts.customer_group_id')
+            ->where('contacts.id', $os->contact_id)
+            ->first(['contacts.id', 'contacts.name', 'contacts.supplier_business_name', 'contacts.pay_term_number',
+                'contacts.pay_term_type', 'contacts.shipping_address', 'cg.selling_price_group_id']);
+
+        return [
+            'job_sheet_id' => (int) $os->id,
+            'job_sheet_no' => (string) $os->job_sheet_no,
+            'location_id' => $locationId,
+            'cliente' => $cliente === null ? null : [
+                'id' => (int) $cliente->id,
+                'text' => (string) ($cliente->supplier_business_name ?: $cliente->name),
+                'pay_term_number' => $cliente->pay_term_number,
+                'pay_term_type' => $cliente->pay_term_type,
+                'shipping_address' => $cliente->shipping_address,
+                'selling_price_group_id' => $cliente->selling_price_group_id !== null ? (int) $cliente->selling_price_group_id : null,
+            ],
+            'reparo' => [
+                'repair_status_id' => (int) $os->status_id,
+                'repair_brand_id' => $os->brand_id !== null ? (int) $os->brand_id : null,
+                'repair_device_id' => $os->device_id !== null ? (int) $os->device_id : null,
+                'repair_model_id' => $os->device_model_id !== null ? (int) $os->device_model_id : null,
+                'repair_serial_no' => (string) $os->serial_no,
+                'repair_due_date' => $os->delivery_date ? \Carbon\Carbon::parse($os->delivery_date)->format('Y-m-d\TH:i') : '',
+                'repair_security_pwd' => (string) $os->security_pwd,
+                'repair_security_pattern' => (string) $os->security_pattern,
+                'checklist' => is_array($os->checklist) ? $os->checklist : (object) [],
+                'defeitos' => array_values(array_filter(array_map('trim', $defeitos), fn ($v) => $v !== '')),
+            ],
+            'pecas' => $pecas,
+            'pecasNaoEncontradas' => $naoEncontradas,
         ];
     }
 
