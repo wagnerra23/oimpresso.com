@@ -23,7 +23,7 @@ last_run: "2026-09-30"
 - **Aceite:** Dado a sessão do business 98 com usuário autenticado · Quando a lista resolve · Então a consulta a `whatsapp_templates` carrega `business_id = 98` · E a rota exige `auth` (sem usuário o global scope não age).
 - **Teste:** `UC-WTPL-01 · lista filtra o business da sessão via global scope e a rota exige auth`.
 - **Regressão que defende:** Non-Goal "NÃO cruza tenants — `business_id` scope" (Tier 0, ADR 0093). O controller confia no `HasBusinessScope`; o teste é o que impede alguém de trocar o model ou tirar o scope sem perceber.
-- **Status: ⬜** — aguarda o CI deste PR.
+- **Status: 🧪** — passou no CI do PR #8330 (run 36805852386, `PHP / Pest (Unit)`); ✅ quando `casos:results` regravar o manifesto.
 
 ---
 
@@ -32,7 +32,7 @@ last_run: "2026-09-30"
 - **Aceite:** Dado `?provider=meta_cloud&status=APPROVED` · Então a consulta filtra os dois · Dado `all` nos dois · Então não filtra nenhum.
 - **Teste:** `UC-WTPL-02 · filtro de provedor e status chega na consulta, all não filtra`.
 - **Regressão que defende:** DoD da US-WA-013 "filtro por status" + Goal "distinção entre HSM Meta e locais".
-- **Status: ⬜** — aguarda o CI deste PR.
+- **Status: 🧪** — passou no CI do PR #8330 (run 36805852386, `PHP / Pest (Unit)`); ✅ quando `casos:results` regravar o manifesto.
 
 ---
 
@@ -41,7 +41,7 @@ last_run: "2026-09-30"
 - **Aceite:** Dado a abertura · Então `templates` é prop adiada e só lê (`select`) · E a sincronização Meta é rota **POST** separada · E as rotas exigem `can:whatsapp.templates.manage`.
 - **Teste:** `UC-WTPL-03 · abrir só lê, sync é POST separado e a rota exige whatsapp.templates.manage`.
 - **Regressão que defende:** Anti-hooks "não dispara sync Meta automático ao abrir" e "não grava nada em GET".
-- **Status: ⬜** — aguarda o CI deste PR.
+- **Status: 🧪** — passou no CI do PR #8330 (run 36805852386, `PHP / Pest (Unit)`); ✅ quando `casos:results` regravar o manifesto.
 
 ---
 

@@ -23,7 +23,7 @@ last_run: "2026-09-30"
 - **Aceite:** Dado a sessão do business 98 · Quando a tela calcula KPIs, distribuição e últimas respostas · Então **toda** consulta a `whatsapp_csat_responses` carrega `business_id = 98`.
 - **Teste:** `UC-ACSAT-01 · KPIs, distribuição e últimas respostas filtram o business da sessão`.
 - **Regressão que defende:** Non-Goal do charter "não mostra CSAT de outro `business_id`" (Tier 0, ADR 0093). Sem usuário autenticado o global scope é no-op, então o `where` explícito do controller é a defesa.
-- **Status: ⬜** — aguarda o CI deste PR.
+- **Status: 🧪** — passou no CI do PR #8330 (run 36805852386, `PHP / Pest (Unit)`); ✅ quando `casos:results` regravar o manifesto.
 
 ---
 
@@ -32,7 +32,7 @@ last_run: "2026-09-30"
 - **Aceite:** Dado `?range=7` · Então o período é 7 · Dado `?range=999` ou ausente · Então o período é 30.
 - **Teste:** `UC-ACSAT-02 · range fora da whitelist cai no default 30`.
 - **Regressão que defende:** Automation hook do charter "Range whitelisted no backend (7/30/90, default 30)".
-- **Status: ⬜** — aguarda o CI deste PR.
+- **Status: 🧪** — passou no CI do PR #8330 (run 36805852386, `PHP / Pest (Unit)`); ✅ quando `casos:results` regravar o manifesto.
 
 ---
 
@@ -41,7 +41,7 @@ last_run: "2026-09-30"
 - **Aceite:** Dado a abertura da tela · Então `kpis`, `distribution` e `recent` são props adiadas (`Inertia::defer`), o render inicial não consulta o banco, e as consultas adiadas são **só leitura** (`select`).
 - **Teste:** `UC-ACSAT-03 · render inicial não consulta e as props pesadas são adiadas e só leitura`.
 - **Regressão que defende:** Anti-hooks "não muta dados" e "não dispara pesquisa CSAT ao abrir"; hook "kpis/distribution/recent via `Inertia::defer`".
-- **Status: ⬜** — aguarda o CI deste PR.
+- **Status: 🧪** — passou no CI do PR #8330 (run 36805852386, `PHP / Pest (Unit)`); ✅ quando `casos:results` regravar o manifesto.
 
 ---
 

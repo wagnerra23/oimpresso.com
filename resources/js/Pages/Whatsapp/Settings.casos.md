@@ -24,7 +24,7 @@ last_run: "2026-09-30"
 - **Aceite:** Dado as duas conexões gravadas · Quando abro `/whatsapp/settings` no business 98 · Então `currentConfig` traz o telefone do 98 (não o do 99) e nenhuma prop contém o `meta_access_token`.
 - **Teste:** `UC-WSET-01 · mostra a conexão do business da sessão e nunca o token`.
 - **Regressão que defende:** Anti-hooks "mutar/ler config alheio" (Tier 0, ADR 0093) e "expor access_token em props/state/DOM".
-- **Status: ⬜** — aguarda o CI deste PR.
+- **Status: 🧪** — passou no CI do PR #8330 (run 36805852386, `PHP / Pest (Unit)`); ✅ quando `casos:results` regravar o manifesto.
 
 ---
 
@@ -33,7 +33,7 @@ last_run: "2026-09-30"
 - **Aceite:** Dado `whatsapp.meta.app_id` vazio · Então a prop `metaAppId` chega vazia (empty state) · E pedir o início do OAuth devolve **503** `meta_app_not_configured` sem gravar state na sessão.
 - **Teste:** `UC-WSET-02 · sem Meta App a tela recebe vazio e o init devolve 503`.
 - **Regressão que defende:** Goal "empty state honesto se `META_APP_ID` ausente" e Anti-hook "hardcode META_APP_ID no frontend — vem via props".
-- **Status: ⬜** — aguarda o CI deste PR.
+- **Status: 🧪** — passou no CI do PR #8330 (run 36805852386, `PHP / Pest (Unit)`); ✅ quando `casos:results` regravar o manifesto.
 
 ---
 
@@ -42,7 +42,7 @@ last_run: "2026-09-30"
 - **Aceite:** Dado o Meta App configurado · Quando o init roda · Então a sessão guarda um state de 64 hex · E a URL do popup leva o mesmo state e o `client_id` do servidor.
 - **Teste:** `UC-WSET-03 · init grava state de 64 hex e o popup carrega o mesmo state`.
 - **Regressão que defende:** Automation hook "CSRF state stored em `session('whatsapp_oauth_state')`" — o callback faz `pull` (1-shot) e só funciona se o init gravou.
-- **Status: ⬜** — aguarda o CI deste PR.
+- **Status: 🧪** — passou no CI do PR #8330 (run 36805852386, `PHP / Pest (Unit)`); ✅ quando `casos:results` regravar o manifesto.
 
 ---
 
@@ -51,7 +51,7 @@ last_run: "2026-09-30"
 - **Aceite:** Dado as rotas da tela (`show`, `meta.oauth_init`, `meta.embedded_callback`) · Então todas exigem `auth` e `can:whatsapp.settings.manage`, e o callback só aceita POST.
 - **Teste:** `UC-WSET-04 · rotas exigem auth + can:whatsapp.settings.manage e o callback é POST`.
 - **Regressão que defende:** Non-Goal "mutar config alheio" e o 1-shot do callback (GET não pode disparar provisionamento).
-- **Status: ⬜** — aguarda o CI deste PR.
+- **Status: 🧪** — passou no CI do PR #8330 (run 36805852386, `PHP / Pest (Unit)`); ✅ quando `casos:results` regravar o manifesto.
 
 ---
 

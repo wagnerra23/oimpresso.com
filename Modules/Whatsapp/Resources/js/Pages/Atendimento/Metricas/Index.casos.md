@@ -23,7 +23,7 @@ last_run: "2026-09-30"
 - **Aceite:** Dado a sessão do business 98 · Quando a tela monta totais, série e breakdown por canal · Então **toda** consulta carrega `business_id = 98`.
 - **Teste:** `UC-AMET-01 · totais, série e breakdown filtram o business da sessão`.
 - **Regressão que defende:** Anti-hook do charter "mostrar custo de biz alheio" (Tier 0, ADR 0093).
-- **Status: ⬜** — aguarda o CI deste PR.
+- **Status: 🧪** — passou no CI do PR #8330 (run 36805852386, `PHP / Pest (Unit)`); ✅ quando `casos:results` regravar o manifesto.
 
 ---
 
@@ -32,7 +32,7 @@ last_run: "2026-09-30"
 - **Aceite:** Dado a abertura da tela · Quando as props adiadas resolvem · Então as consultas só tocam `whatsapp_conversation_metricas` e `channels` — nenhuma toca a tabela de mensagens.
 - **Teste:** `UC-AMET-02 · lê só o snapshot agregado e os rótulos de canal`.
 - **Regressão que defende:** Anti-hook "query real-time agregando `whatsapp_messages` cru — usar snapshot" e o alvo "TTFB via snapshot pré-agregado". Também cobre o Non-Goal LGPD "não mostra conteúdo de mensagens".
-- **Status: ⬜** — aguarda o CI deste PR.
+- **Status: 🧪** — passou no CI do PR #8330 (run 36805852386, `PHP / Pest (Unit)`); ✅ quando `casos:results` regravar o manifesto.
 
 ---
 
@@ -41,7 +41,7 @@ last_run: "2026-09-30"
 - **Aceite:** Dado `?range=7` · Então o período é 7 · Dado `?range=45` · Então cai em 30 · E `aggregated`/`breakdown` são props adiadas (o render inicial não consulta).
 - **Teste:** `UC-AMET-03 · período whitelisted e props pesadas adiadas`.
 - **Regressão que defende:** Goal "filtro período sem reload (partial reload)" e alvo "switch de período ≤ 200ms".
-- **Status: ⬜** — aguarda o CI deste PR.
+- **Status: 🧪** — passou no CI do PR #8330 (run 36805852386, `PHP / Pest (Unit)`); ✅ quando `casos:results` regravar o manifesto.
 
 ---
 
