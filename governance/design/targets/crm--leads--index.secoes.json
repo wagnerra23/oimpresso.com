@@ -1,0 +1,10 @@
+{
+  "_": "A1 [CL] 2026-09-30 — playbook crm. Protótipo: rota `crm-leads` do espelho (app.jsx CRM_VIEW → CrmBladePage view=leads → TelaLeads em crm-blade.jsx). Vista padrão `list_view`; o kanban é outra vista (CliSeg) e não foi medido.",
+  "_mapa": "alvo:mapa --rota crm-leads contra o espelho servido por servirEstatico, 2026-09-30: .cb-root = div.cli-ph · div.pb-body · div; .pb-body = nav.cb-nav · section.pb-widget (filtros) · section[data-contract=crm-leads]; o .pb-widget-b do widget = div.pb-toolbar · div.pb-grid-pro · div.pb-pag.",
+  "header": { "seletor": ".cb-root > .cli-ph" },
+  "nav": { "seletor": ".cb-root > .pb-body > .cb-nav" },
+  "filtros": { "seletor": ".cb-root > .pb-body > section:nth-child(2)" },
+  "toolbar": { "seletor": "[data-contract=\"crm-leads\"] [data-contract=\"crm-toolbar\"]" },
+  "grade": { "seletor": "[data-contract=\"crm-leads\"] .pb-grid-pro" },
+  "rodape": { "seletor": "[data-contract=\"crm-leads\"] [data-contract=\"crm-rodape\"]" }
+}
