@@ -3490,10 +3490,10 @@ class SellController extends Controller
     }
 
     /**
-     * Shows modal to edit shipping details.
+     * Shows modal to edit shipping details (ou JSON pro drawer de Sells/Shipments/Index).
      *
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\View\View|\Illuminate\Http\JsonResponse
      */
     public function editShipping($id)
     {
