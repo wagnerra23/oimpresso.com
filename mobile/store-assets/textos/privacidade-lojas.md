@@ -6,6 +6,11 @@
 >   (`expo-image-picker` em `app/oss/[id].tsx`), cadastro de clientes (nome, CPF/CNPJ, contato).
 > - `expo-audio` e `expo-video` estão no `package.json`/`app.config.ts` mas **nenhuma tela usa** — remover antes do build
 >   (a string de microfone em inglês é motivo de rejeição Apple 5.1.1 e obrigaria declarar "Áudio").
+> - ⚠️ **Depende da base do app (decisão [W] pendente em 2026-10-01).** Medido em main: o Expo em `mobile/` tem backend
+>   próprio (tRPC + Drizzle em `mobile/server`; 0 ocorrências de `business_id`/`oimpresso.com` em `server/` e `lib/`),
+>   login OAuth do template Manus (`constants/oauth.ts`) e nenhuma tela de ponto. Se a base for essa, "os dados vão para o
+>   servidor do oimpresso" abaixo deixa de ser verdade, e um login por terceiro pode virar "compartilhado". Refazer este
+>   rascunho quando a base for decidida — se for Capacitor sobre o ERP web, o texto abaixo vale.
 > - ⚠️ Confirmar no build: há SDK de crash/analytics? Se sim, entra "Diagnóstico". Prazo de guarda: sessão LEGAL.
 
 ## O que entra
