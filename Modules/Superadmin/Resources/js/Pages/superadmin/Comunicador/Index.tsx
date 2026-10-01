@@ -22,7 +22,7 @@ import { Input } from '@/Components/ui/input';
 import { Textarea } from '@/Components/ui/textarea';
 import { Checkbox } from '@/Components/ui/checkbox';
 import { Skeleton } from '@/Components/ui/skeleton';
-import PageHeader from '@/Components/shared/PageHeader';
+import { PageHeader } from '@/Components/PageHeader';
 import EmptyState from '@/Components/shared/EmptyState';
 import { plural } from '../_components/assinatura';
 
@@ -35,7 +35,7 @@ const dataHora = new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyl
 function ComunicadorIndex({ negocios, historico }: Props) {
   return (
     <div className="pb-8">
-      <PageHeader title="Comunicador" moduleNav description="Aviso em massa para os negócios da plataforma — chega por e-mail e como notificação no app" />
+      <PageHeader title="Comunicador" subtitle="Aviso em massa para os negócios da plataforma — chega por e-mail e como notificação no app" />
       <div className="grid gap-4 px-6 pt-4 xl:grid-cols-[3fr_2fr]">
         <Deferred data="negocios" fallback={<Skeleton className="h-96 w-full" />}>
           <Compor negocios={negocios ?? []} />

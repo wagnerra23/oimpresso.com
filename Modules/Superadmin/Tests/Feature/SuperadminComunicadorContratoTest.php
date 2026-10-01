@@ -31,16 +31,14 @@ beforeEach(function () {
     Notification::fake();
 });
 
-/** Tenants fictícios. NUNCA biz=4 (ROTA LIVRE, produção) — ADR 0358. */
+/** Tenant fictício. NUNCA biz=4 (ROTA LIVRE, produção) — ADR 0358. */
 const BIZ_COM = 98;
-const BIZ_COM_OUTRO = 97;
 
 const ROTA_COM = '/superadmin/communicator';
 
 function comUsuario(string $username, bool $superadmin): User
 {
     Business::firstOrCreate(['id' => BIZ_COM], ['name' => 'Tenant fictício comunicador', 'currency_id' => 1]);
-    Business::firstOrCreate(['id' => BIZ_COM_OUTRO], ['name' => 'Tenant fictício comunicador B', 'currency_id' => 1]);
 
     $user = User::firstOrCreate(['username' => $username], [
         'email' => $username . '@test.local', 'password' => bcrypt('secret'),
@@ -55,6 +53,20 @@ function comUsuario(string $username, bool $superadmin): User
     }
 
     return $user;
+}
+
+/**
+ * Um SEGUNDO negócio, já semeado pelo setup da lane (biz=1/biz=2). Criar outro aqui esbarra na
+ * FK `business.owner_id` → users; o que o caso precisa é só "um tenant que não é o 98".
+ */
+function comOutroNegocio(): int
+{
+    $id = (int) DB::table('business')->where('id', '!=', BIZ_COM)->where('id', '!=', 4)->orderBy('id')->value('id');
+    if ($id === 0) {
+        test()->markTestSkipped('Sem segundo negócio semeado — o caso cross-tenant não tem o que provar.');
+    }
+
+    return $id;
 }
 
 /** Pede as props deferred — sem isso o payload nem é calculado. */
@@ -88,9 +100,11 @@ it('UC-SACOM-02 · admin de negócio é barrado enquanto o superadmin passa', fu
 });
 
 it('UC-SACOM-03 · a lista de destinatários traz negócios de tenants diferentes', function () {
+    $outro = comOutroNegocio();
     $ids = array_column(comPayload('negocios'), 'id');
 
-    expect($ids)->toContain(BIZ_COM)->toContain(BIZ_COM_OUTRO);
+    expect($ids)->toContain(BIZ_COM);
+    expect($ids)->toContain($outro);
 });
 
 it('UC-SACOM-04 · envio sem destinatário é recusado e não registra nada', function () {
@@ -121,9 +135,10 @@ it('UC-SACOM-05 · o corpo é gravado escapado e a quebra de linha vira <br>', f
 
 it('UC-SACOM-06 · o envio aparece no histórico com o alcance e resumo sem tag', function () {
     $assunto = 'Aviso fictício UC-SACOM-06 ' . uniqid();
+    $outro = comOutroNegocio();
 
     $this->actingAs(comUsuario('com_superadmin_test', true))
-        ->post(ROTA_COM . '/send', ['recipients' => [BIZ_COM, BIZ_COM_OUTRO], 'subject' => $assunto, 'message' => "um\ndois"])
+        ->post(ROTA_COM . '/send', ['recipients' => [BIZ_COM, $outro], 'subject' => $assunto, 'message' => "um\ndois"])
         ->assertSessionHasNoErrors();
 
     $envio = collect(comPayload('historico'))->firstWhere('assunto', $assunto);
