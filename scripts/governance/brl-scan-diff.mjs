@@ -113,6 +113,16 @@ const PASTAS_ISENTAS = [
   // lista de propósito (é onde um valor real pode aterrissar sem parecer) — lá a isenção segue
   // por substring no allowlist, caso a caso.
   'governance/design/',
+  // [W] 2026-10-01 ("isenta mobile/ref no BRL scan"): `mobile/ref/` guarda as cópias de
+  // REFERÊNCIA do design do app (design, design-v2..v4, handoff-3, handoff-5), copiadas
+  // byte-idênticas dos exports do Claude Design. É o mesmo papel de `prototipo-ui/`, em outro
+  // endereço: não compila (`ref` está no `exclude` do mobile/tsconfig.json) e não serve dado.
+  // MEDIDO em 2026-10-01: 70 linhas com o padrão monetário sob `mobile/ref/`, todas em mock de
+  // protótipo ou em cópia de referência de teste de formatação (money.test.ts dos handoffs).
+  // ⚠️ Só `mobile/ref/`: o código do app (`mobile/app`, `mobile/lib`, `mobile/tests`) segue
+  // varrido — o controle no selftest garante. Residual igual ao de `prototipo-ui/`: número
+  // copiado de produção pra parecer real não é mais pego aqui.
+  'mobile/ref/',
 ];
 
 export function ehArquivoDaFerramenta(arquivo) {
@@ -229,6 +239,9 @@ function selftest() {
     ['CONTROLE: o resto de governance/ NAO e isento', '+++ b/governance/required-checks-baseline.json\n+  "nota": "custo R$ 50,00",', 1],
     ['CONTROLE: memory/ segue mordendo (o eixo da regra nao mudou)', '+++ b/memory/requisitos/X/SPEC.md\n+saldo R$ 12.000,00', 1],
     ['CONTROLE: codigo de produto NAO entra na isencao de pasta (decisao explicita da 0407)', '+++ b/Modules/Financeiro/X.php\n+$msg = "saldo R$ 3.000,00";', 1],
+    // [W] 2026-10-01 — referência de design do app mobile entra; o código do app não.
+    ['ISENTA a referencia de design do app (mobile/ref)', '+++ b/mobile/ref/design-v4/project/Oimpresso Mobile.dc.html\n+  value="R$ 8.420"', 0],
+    ['CONTROLE: codigo do app mobile NAO e isento', '+++ b/mobile/lib/money.ts\n+// saldo R$ 3.000,00', 1],
     ['NAO isenta outro arquivo de .claude/hooks', '+++ b/.claude/hooks/outro.mjs\n+R$ 9,99', 1],
   ];
   let ok = 0;
