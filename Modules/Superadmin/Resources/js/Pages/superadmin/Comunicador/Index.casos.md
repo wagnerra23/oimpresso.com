@@ -5,8 +5,8 @@ irmaos: Index.charter.md (lei) · Index.tsx (tela)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: é a única tela que escreve no e-mail de TODOS os clientes de uma vez. Corpo enviado como HTML cru vira injeção em massa; lista escopada por tenant faria o aviso sair só para o negócio do próprio superadmin.
 owner: wagner
-last_run: "2026-09-30"
-last_run_ci: "_pendente_ — o trio nasce na thread Superadmin/05. Até a lane rodar, o Status é 🧪."
+last_run: "2026-10-01"
+last_run_ci: "run 36809972026 (verticais-pest, dispatch no branch) — 6 de 6 UC-SACOM passaram. Status segue 🧪 até o manifesto aterrissar (G-7 lê o manifesto, não a prosa)."
 ---
 
 # Casos de Uso & Aceite — Superadmin · Comunicador (`/superadmin/communicator`)

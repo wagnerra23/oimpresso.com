@@ -20,6 +20,7 @@ fica para o 2º PR, por isso o placar segue `pendente` nesta thread até ele ent
 - Trio novo: `Comunicador/Index.tsx` + `.charter.md` + `.casos.md` (UC-SACOM-01..06), teste
   `Modules/Superadmin/Tests/Feature/SuperadminComunicadorContratoTest.php` (cita os 6 UCs) e a
   linha dele na lane `verticais-pest.yml` (sem ela o teste nunca roda, LC-13).
+- Lane `verticais-pest` (run 36809972026, dispatch no branch): **6 de 6** UC-SACOM passaram.
 - RUNBOOK F1: `memory/requisitos/Superadmin/RUNBOOK-comunicador.md`.
 
 ## Provas do json
@@ -43,4 +44,4 @@ fica para o 2º PR, por isso o placar segue `pendente` nesta thread até ele ent
 
 ## PR
 
-Ver o PR `feat(superadmin): Comunicador em Inertia — thread 05 (1/2)`.
+#8342 — `feat(superadmin): Comunicador em Inertia — thread 05 (1/2)`.
