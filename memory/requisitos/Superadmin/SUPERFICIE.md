@@ -14,7 +14,7 @@ module: Superadmin
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Superadmin/**` + `resources/js/Pages/superadmin/**` (namespace Inertia `superadmin`, declarado em `module-surface.mjs::PAGES_NS` porque difere do nome do módulo `Superadmin` — confira com `--namespaces`), separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 193 arquivos em 19 papéis.
+**Total mapeado:** 196 arquivos em 19 papéis.
 
 ## Controllers — 14
 
@@ -183,7 +183,7 @@ module: Superadmin
 - [Index.charter.md](../../../Modules/Superadmin/Resources/js/Pages/superadmin/Usuario360/Index.charter.md)
 - [Show.charter.md](../../../Modules/Superadmin/Resources/js/Pages/superadmin/Usuario360/Show.charter.md)
 
-## Casos (contrato UC) — 6
+## Casos (contrato UC) — 8
 
 - [Index.casos.md](../../../Modules/Superadmin/Resources/js/Pages/superadmin/Assinaturas/Index.casos.md)
 - [Index.casos.md](../../../Modules/Superadmin/Resources/js/Pages/superadmin/Comunicador/Index.casos.md)
@@ -191,10 +191,12 @@ module: Superadmin
 - [Index.casos.md](../../../Modules/Superadmin/Resources/js/Pages/superadmin/Dashboard/Index.casos.md)
 - [Index.casos.md](../../../Modules/Superadmin/Resources/js/Pages/superadmin/Negocios/Index.casos.md)
 - [Index.casos.md](../../../Modules/Superadmin/Resources/js/Pages/superadmin/Pacotes/Index.casos.md)
+- [Index.casos.md](../../../Modules/Superadmin/Resources/js/Pages/superadmin/Usuario360/Index.casos.md)
+- [Show.casos.md](../../../Modules/Superadmin/Resources/js/Pages/superadmin/Usuario360/Show.casos.md)
 
-## Testes (Pest) — 22
+## Testes (Pest) — 23
 
-- 21 em [Modules/Superadmin/Tests/Feature/](../../../Modules/Superadmin/Tests/Feature)
+- 22 em [Modules/Superadmin/Tests/Feature/](../../../Modules/Superadmin/Tests/Feature)
 - 1 em [Modules/Superadmin/Tests/Feature/Lgpd/](../../../Modules/Superadmin/Tests/Feature/Lgpd)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
