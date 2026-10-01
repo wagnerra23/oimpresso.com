@@ -224,7 +224,7 @@ class SellingPriceGroupController extends Controller
     /**
      * Show interface to download product price excel file.
      *
-     * @return \Illuminate\Http\Response
+     * @return mixed Inertia (tela nova) · view clássica (?classico=1)
      */
     public function updateProductPrice(){
         if (! auth()->user()->can('product.update')) {
@@ -436,7 +436,7 @@ class SellingPriceGroupController extends Controller
 
         $business_id = (int) $request->session()->get('user.business_id');
         try {
-            $planilha = Excel::toArray([], $request->file('product_group_prices'))[0] ?? [];
+            $planilha = Excel::toArray(new \stdClass(), $request->file('product_group_prices'))[0] ?? [];
         } catch (\Throwable $e) {
             return response()->json(['ok' => false, 'msg' => 'Não consegui ler a planilha.', 'linhas' => [], 'alertas' => []], 422);
         }
@@ -489,22 +489,24 @@ class SellingPriceGroupController extends Controller
     private function fotoPrecos(int $business_id, array $skus): array
     {
         $grupos = SellingPriceGroup::where('business_id', $business_id)->active()->pluck('name', 'id');
+        $variacoes = DB::table('variations as v')->join('products as p', 'v.product_id', '=', 'p.id')
+            ->where('p.business_id', $business_id)->whereIn('v.sub_sku', $skus)->whereNull('v.deleted_at')
+            ->orderBy('v.id')->get(['v.id', 'v.sub_sku', 'v.sell_price_inc_tax', 'p.name as produto']);
+        $porGrupo = DB::table('variation_group_prices')->whereIn('variation_id', $variacoes->pluck('id'))
+            ->get(['variation_id', 'price_group_id', 'price_inc_tax']);
+
         $foto = [];
-        Variation::join('products as p', 'variations.product_id', '=', 'p.id')
-            ->where('p.business_id', $business_id)->whereIn('variations.sub_sku', $skus)
-            ->select('variations.id', 'variations.sub_sku', 'variations.sell_price_inc_tax', 'p.name as produto')
-            ->with('group_prices')->get()
-            ->each(function ($v) use (&$foto, $grupos) {
-                if (isset($foto[$v->sub_sku])) {
-                    return;
-                }
-                $precos = ['Preço de venda' => (string) $v->sell_price_inc_tax];
-                foreach ($grupos as $id => $nome) {
-                    $gp = $v->group_prices->firstWhere('price_group_id', $id);
-                    $precos[(string) $nome] = $gp ? (string) $gp->price_inc_tax : null;
-                }
-                $foto[(string) $v->sub_sku] = ['produto' => (string) $v->produto, 'precos' => $precos];
-            });
+        foreach ($variacoes as $v) {
+            if (isset($foto[(string) $v->sub_sku])) {
+                continue;
+            }
+            $precos = ['Preço de venda' => (string) $v->sell_price_inc_tax];
+            foreach ($grupos as $id => $nome) {
+                $gp = $porGrupo->first(fn ($r) => (int) $r->variation_id === (int) $v->id && (int) $r->price_group_id === (int) $id);
+                $precos[(string) $nome] = $gp ? (string) $gp->price_inc_tax : null;
+            }
+            $foto[(string) $v->sub_sku] = ['produto' => (string) $v->produto, 'precos' => $precos];
+        }
 
         return $foto;
     }

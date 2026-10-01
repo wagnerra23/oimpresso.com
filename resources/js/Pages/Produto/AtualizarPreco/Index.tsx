@@ -19,7 +19,7 @@ import { useRef, useState, type ReactNode } from 'react';
 import { Card, CardContent } from '@/Components/ui/card';
 import { Button } from '@/Components/ui/button';
 import { PageHeader } from '@/Components/PageHeader';
-import { Inline, Stack } from '@/Components/layout';
+import { Grid, Inline, Stack } from '@/Components/layout';
 
 interface Grupo { id: number; nome: string }
 interface Linha { sku: string; produto: string; campo: string; antes: string | null; depois: string | null }
@@ -91,7 +91,7 @@ export default function AtualizarPrecoIndex({ grupos, total_linhas, erro }: Prop
             {flash?.success && <p role="status" className="text-sm text-primary">{flash.success}</p>}
             {erro && <p role="alert" className="text-sm text-destructive">{erro} Nada foi alterado.</p>}
 
-            <div className="grid gap-4 md:grid-cols-2" data-contract="produto-atualizar-preco-passos">
+            <Grid fit="md" gap={4} data-contract="produto-atualizar-preco-passos">
               <Stack gap={2}>
                 <Rotulo>Passo 1 — exportar</Rotulo>
                 <div><Button asChild variant="outline"><a href="/export-product-price">Exportar preços atuais</a></Button></div>
@@ -110,7 +110,7 @@ export default function AtualizarPrecoIndex({ grupos, total_linhas, erro }: Prop
                       : `${arquivo.name} · conferido no servidor`}
                 </p>
               </Stack>
-            </div>
+            </Grid>
 
             {conf && <ResultadoConferencia conf={conf} />}
           </Stack>
