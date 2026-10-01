@@ -28,6 +28,8 @@
             <div class="form-group">
                 <div class="checkbox">
                   <label>
+                     {{-- hidden ANTES do checkbox: desmarcar manda define_base_unit=0 explicito (o controller so remove a base nesse caso). --}}
+                     <input type="hidden" name="define_base_unit" value="0">
                      {!! Form::checkbox('define_base_unit', 1, !empty($unit->base_unit_id),[ 'class' => 'toggler', 'data-toggle_id' => 'base_unit_div' ]); !!} @lang( 'lang_v1.add_as_multiple_of_base_unit' )
                   </label> @show_tooltip(__('lang_v1.multi_unit_help'))
                 </div>
@@ -39,7 +41,7 @@
               <th style="vertical-align: middle;">1 <span id="unit_name">{{$unit->actual_name}}</span></th>
               <th style="vertical-align: middle;">=</th>
               <td style="vertical-align: middle;">
-                {!! Form::text('base_unit_multiplier', !empty($unit->base_unit_multiplier) ? @number_format($unit->base_unit_multiplier) : null, ['class' => 'form-control input_number', 'placeholder' => __( 'lang_v1.times_base_unit' )]); !!}</td>
+                {!! Form::text('base_unit_multiplier', !empty($unit->base_unit_multiplier) ? rtrim(rtrim(number_format((float) $unit->base_unit_multiplier, 4, ',', ''), '0'), ',') : null, ['class' => 'form-control input_number', 'placeholder' => __( 'lang_v1.times_base_unit' )]); !!}</td>
               <td style="vertical-align: middle;">
                 {!! Form::select('base_unit_id', $units, $unit->base_unit_id, ['placeholder' => __( 'lang_v1.select_base_unit' ), 'class' => 'form-control']); !!}
               </td>
