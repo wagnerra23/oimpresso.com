@@ -1,7 +1,7 @@
 # oimpresso — textos das lojas (pt-BR) · RASCUNHO para [W] revisar
 
 > Escopo decidido por [W] em 2026-10-01: **um app só**, o ERP no celular **junto com o ponto** (`com.oimpresso.app`).
-> Base decidida por [W] (2026-10-01, coordenação): **Capacitor com o ERP web inteiro**; o Expo de `mobile/` fica fora das lojas.
+> Base decidida por [W] (2026-10-01, coordenação): **Capacitor** (decisões vigentes em [`../DECISOES.md`](../DECISOES.md)); o Expo de `mobile/` fica fora das lojas.
 > **Mudança de produto (2026-10-01, via coordenação):** o app abre as telas do protótipo Mobile em `https://oimpresso.com/m`
 > (v1: Início, Tarefas, Pedidos, Produção, Pessoas, Ponto, Mais). Textos descrevem só essas funções — **não** prometer
 > Venda rápida, Finanças, OS, Estoque nem Fiscal até existirem em `/m`.
