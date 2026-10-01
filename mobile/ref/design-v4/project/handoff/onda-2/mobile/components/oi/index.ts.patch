@@ -1,0 +1,6 @@
+--- a/mobile/components/oi/index.ts
++++ b/mobile/components/oi/index.ts
+@@ fim do arquivo
+ export type { OiTabItem, OiTabbarProps } from "./OiTabbar";
++export { OiFormInput, OiSelectField, OiFormFooter } from "./OiForm";
++export type { OiFormInputProps, OiSelectOption, OiSelectFieldProps } from "./OiForm";

@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="_ds/office-impresso-design-system-019dd02f-d2d0-7ba6-a57f-24b3ddd073ac/colors_and_type.css">
+  <link rel="stylesheet" href="_ds/office-impresso-design-system-019dd02f-d2d0-7ba6-a57f-24b3ddd073ac/styles.css">
+  <script src="_ds/office-impresso-design-system-019dd02f-d2d0-7ba6-a57f-24b3ddd073ac/_ds_bundle.js"></script>
+  <style>
+    body { margin: 0; background: oklch(0.985 0.003 90); }
+    a { color: oklch(0.55 0.15 295); text-decoration: none; }
+    a:hover { text-decoration: underline; text-underline-offset: 4px; }
+  </style>
+</helmet>
+
+<main class="cockpit" data-theme="light" style="min-height: 100vh; background: var(--bg); color: var(--text); font-family: var(--font-sans); padding: 48px 24px 96px;">
+  <div style="max-width: 1120px; margin: 0 auto; display: flex; flex-direction: column; gap: 56px;">
+
+    <header style="display: flex; flex-direction: column; gap: 10px;">
+      <div style="font-family: var(--font-mono); font-size: 11.5px; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text-mute);">Proposta · camada mobile do DS · pra revisão Wagner + Luiz</div>
+      <h1 style="color: var(--text); margin: 0; font-size: 28px; font-weight: 600; letter-spacing: -0.4px;">Um DS, duas plataformas</h1>
+      <p style="margin: 0; max-width: 720px; font-size: 15px; line-height: 1.55; color: var(--text-dim); text-wrap: pretty;">O app Expo tem 34 componentes <span style="font-family: var(--font-mono); font-size: 13px;">Oi*</span> e tokens em hex copiados à mão. Esta página propõe: os mesmos tokens do DS convertidos pra hex (o RN não lê OKLCH), uma escala de toque de 44 px, e o mapa de cada <span style="font-family: var(--font-mono); font-size: 13px;">Oi*</span> pro componente do DS que ele espelha.</p>
+      <div style="display: flex; gap: 8px; flex-wrap: wrap; padding-top: 4px;">
+        <a href="Oimpresso Mobile.dc.html" style="font-size: 13.5px;">← Telas espelhadas do app</a>
+      </div>
+    </header>
+
+    <section style="display: flex; flex-direction: column; gap: 16px;">
+      <div style="display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap;">
+        <span style="font-family: var(--font-mono); font-size: 12px; font-weight: 600; color: var(--accent);">01</span>
+        <h2 style="color: var(--text); margin: 0; font-size: 18px; font-weight: 600;">Tokens — DS → hex pro RN</h2>
+        <span style="font-size: 13px; color: var(--text-mute);">Convertido OKLCH → sRGB aqui mesmo, a partir dos valores de <span style="font-family: var(--font-mono);">.cockpit</span>.</span>
+      </div>
+      <div style="border: 1px solid var(--border); border-radius: 12px; background: var(--surface); overflow-x: auto;">
+        <div style="min-width: 880px;">
+          <div style="display: grid; grid-template-columns: 150px 1fr 1fr 170px; gap: 16px; padding: 10px 16px; border-bottom: 1px solid var(--border); font-size: 10.5px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; color: var(--text-mute);">
+            <span>oi-theme.ts</span><span>Claro · DS → hex (hoje no app)</span><span>Escuro · DS → hex (hoje no app)</span><span>Token DS</span>
+          </div>
+          <sc-for list="{{ tokens }}" as="t" hint-placeholder-count="12">
+            <div style="display: grid; grid-template-columns: 150px 1fr 1fr 170px; gap: 16px; padding: 9px 16px; border-bottom: 1px solid var(--border-2); align-items: center; font-size: 13px;">
+              <span style="font-family: var(--font-mono); font-weight: 600;">{{ t.key }}</span>
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="width: 22px; height: 22px; border-radius: 6px; border: 1px solid var(--border); background: {{ t.lHex }};"></span>
+                <span style="font-family: var(--font-mono);">{{ t.lHex }}</span>
+                <span style="width: 14px; height: 14px; border-radius: 4px; border: 1px solid var(--border); background: {{ t.lApp }};"></span>
+                <span style="font-family: var(--font-mono); font-size: 11.5px; color: {{ t.lDiffColor }};">{{ t.lApp }}</span>
+              </div>
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="width: 22px; height: 22px; border-radius: 6px; border: 1px solid var(--border); background: {{ t.dHex }};"></span>
+                <span style="font-family: var(--font-mono);">{{ t.dHex }}</span>
+                <span style="width: 14px; height: 14px; border-radius: 4px; border: 1px solid var(--border); background: {{ t.dApp }};"></span>
+                <span style="font-family: var(--font-mono); font-size: 11.5px; color: {{ t.dDiffColor }};">{{ t.dApp }}</span>
+              </div>
+              <span style="font-family: var(--font-mono); font-size: 12px; color: var(--text-dim);">{{ t.ds }}</span>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <span style="font-size: 13.5px; font-weight: 600;">Trecho pronto pra colar em <span style="font-family: var(--font-mono);">mobile/lib/oi-theme.ts</span></span>
+          <div onClick="{{ copiar }}" style="margin-left: auto; height: 30px; padding: 0 12px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); display: flex; align-items: center; font-size: 13px; cursor: pointer;" style-hover="border-color: var(--accent);">{{ copiarLabel }}</div>
+        </div>
+        <pre style="margin: 0; padding: 16px; border-radius: 12px; background: oklch(0.23 0.006 240); color: oklch(0.94 0.005 90); font-family: var(--font-mono); font-size: 12px; line-height: 1.6; overflow-x: auto; white-space: pre;">{{ snippet }}</pre>
+        <span style="font-size: 12.5px; color: var(--text-mute); text-wrap: pretty;">Fontes: trocar Inter/JetBrains Mono por <span style="font-family: var(--font-mono);">@expo-google-fonts/ibm-plex-sans</span> + <span style="font-family: var(--font-mono);">ibm-plex-mono</span> — já estão no package.json, só não são carregadas.</span>
+      </div>
+    </section>
+
+    <section style="display: flex; flex-direction: column; gap: 16px;">
+      <div style="display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap;">
+        <span style="font-family: var(--font-mono); font-size: 12px; font-weight: 600; color: var(--accent);">02</span>
+        <h2 style="color: var(--text); margin: 0; font-size: 18px; font-weight: 600;">Escala de toque</h2>
+        <span style="font-size: 13px; color: var(--text-mute);">Desktop para em 36 px. Mobile nunca abaixo de 44 px de alvo.</span>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px;">
+        <div style="border: 1px solid var(--border); border-radius: 12px; background: var(--surface); padding: 20px; display: flex; flex-direction: column; gap: 14px;">
+          <span style="font-size: 10.5px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text-mute);">Botão</span>
+          <div style="display: flex; flex-direction: column; gap: 10px;">
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <div style="flex: 1; height: 48px; border-radius: 10px; background: var(--accent); color: var(--accent-fg); display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 600;">Salvar OS</div>
+              <span style="width: 96px; font-family: var(--font-mono); font-size: 11.5px; color: var(--text-dim);">lg · 48</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <div style="flex: 1; height: 44px; border-radius: 10px; border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600;">Link de aprovação</div>
+              <span style="width: 96px; font-family: var(--font-mono); font-size: 11.5px; color: var(--text-dim);">default · 44</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <div style="flex: 1; display: flex; align-items: center; gap: 6px; height: 44px; border: 1px dashed var(--border); border-radius: 10px; padding: 0 4px;">
+                <div style="height: 36px; padding: 0 14px; border-radius: 8px; background: var(--accent); color: var(--accent-fg); display: flex; align-items: center; font-size: 13px; font-weight: 600;">Iniciar</div>
+                <div style="height: 36px; padding: 0 12px; border-radius: 8px; border: 1px solid var(--border); display: flex; align-items: center; font-size: 13px; color: var(--text-dim);">Arte</div>
+              </div>
+              <span style="width: 96px; font-family: var(--font-mono); font-size: 11.5px; color: var(--text-dim);">sm · 36 visível + hitSlop 4</span>
+            </div>
+          </div>
+        </div>
+        <div style="border: 1px solid var(--border); border-radius: 12px; background: var(--surface); padding: 20px; display: flex; flex-direction: column; gap: 14px;">
+          <span style="font-size: 10.5px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text-mute);">Campo · chip · segmented</span>
+          <div style="display: flex; flex-direction: column; gap: 5px;">
+            <span style="font-size: 11px; font-weight: 600; letter-spacing: 0.6px; text-transform: uppercase; color: var(--text-dim);">CEP</span>
+            <div style="height: 44px; border-radius: 10px; border: 1px solid var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); display: flex; align-items: center; padding: 0 12px; font-family: var(--font-mono); font-size: 14px;">89010-100</div>
+          </div>
+          <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+            <div style="height: 36px; padding: 0 12px; border-radius: 99px; border: 1px solid var(--accent); background: var(--accent-soft); color: var(--accent); display: flex; align-items: center; font-size: 13px; font-weight: 600;">Cliente</div>
+            <div style="height: 36px; padding: 0 12px; border-radius: 99px; border: 1px solid var(--border); color: var(--text-dim); display: flex; align-items: center; font-size: 13px; font-weight: 600;">Fornecedor</div>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 3px; padding: 3px; border-radius: 10px; background: var(--bg-2);">
+            <div style="height: 40px; border-radius: 7px; background: var(--surface); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600;">Pessoa jurídica</div>
+            <div style="height: 40px; border-radius: 7px; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; color: var(--text-mute);">Pessoa física</div>
+          </div>
+          <span style="font-family: var(--font-mono); font-size: 11.5px; color: var(--text-dim);">campo 44 · chip 36 + hitSlop 4 · seg 46</span>
+        </div>
+        <div style="border: 1px solid var(--border); border-radius: 12px; background: var(--surface); padding: 20px; display: flex; flex-direction: column; gap: 14px;">
+          <span style="font-size: 10.5px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text-mute);">Linha de lista · densidade</span>
+          <div style="border: 1px solid var(--border); border-radius: 10px; overflow: hidden;">
+            <sc-for list="{{ densidades }}" as="d" hint-placeholder-count="3">
+              <div style="min-height: {{ d.h }}; padding: 0 14px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid var(--border-2);">
+                <div style="flex: 1; min-width: 0;">
+                  <div style="font-size: 14px; font-weight: 500;">{{ d.titulo }}</div>
+                  <div style="font-size: 12px; color: var(--text-dim);">{{ d.sub }}</div>
+                </div>
+                <span style="font-family: var(--font-mono); font-size: 11.5px; color: var(--text-mute);">{{ d.nome }}</span>
+              </div>
+            </sc-for>
+          </div>
+          <span style="font-size: 12.5px; color: var(--text-mute); text-wrap: pretty;">Mantém o <span style="font-family: var(--font-mono);">rowHeight</span> que o app já tem (46/56/62). Compacto só em lista sem ação na linha.</span>
+        </div>
+      </div>
+    </section>
+
+    <section style="display: flex; flex-direction: column; gap: 16px;">
+      <div style="display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap;">
+        <span style="font-family: var(--font-mono); font-size: 12px; font-weight: 600; color: var(--accent);">03</span>
+        <h2 style="color: var(--text); margin: 0; font-size: 18px; font-weight: 600;">Mapa Oi* → DS</h2>
+        <div style="display: flex; gap: 6px; margin-left: auto;">
+          <sc-for list="{{ filtros }}" as="f" hint-placeholder-count="4">
+            <div onClick="{{ f.pick }}" style="height: 28px; padding: 0 10px; border-radius: 6px; border: 1px solid {{ f.border }}; background: {{ f.bg }}; color: {{ f.fg }}; display: flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 500; cursor: pointer;">{{ f.label }}<span style="font-family: var(--font-mono); font-size: 11px; opacity: 0.7;">{{ f.count }}</span></div>
+          </sc-for>
+        </div>
+      </div>
+      <div style="border: 1px solid var(--border); border-radius: 12px; background: var(--surface); overflow-x: auto;">
+        <div style="min-width: 760px;">
+          <div style="display: grid; grid-template-columns: 170px 110px 190px minmax(0, 1fr); gap: 16px; padding: 10px 16px; border-bottom: 1px solid var(--border); font-size: 10.5px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; color: var(--text-mute);">
+            <span>App (components/oi)</span><span>Ação</span><span>DS</span><span>O que muda</span>
+          </div>
+          <sc-for list="{{ mapaVisivel }}" as="m" hint-placeholder-count="10">
+            <div style="display: grid; grid-template-columns: 170px 110px 190px minmax(0, 1fr); gap: 16px; padding: 9px 16px; border-bottom: 1px solid var(--border-2); align-items: baseline; font-size: 13px;">
+              <span style="font-family: var(--font-mono); font-weight: 600;">{{ m.oi }}</span>
+              <span style="display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 500; color: {{ m.tint }};"><span style="width: 6px; height: 6px; border-radius: 99px; background: {{ m.tint }};"></span>{{ m.acao }}</span>
+              <span style="font-family: var(--font-mono); font-size: 12.5px; color: var(--text-dim);">{{ m.ds }}</span>
+              <span style="color: var(--text-dim); line-height: 1.45; text-wrap: pretty;">{{ m.nota }}</span>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </section>
+
+    <section style="display: flex; flex-direction: column; gap: 16px;">
+      <div style="display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap;">
+        <span style="font-family: var(--font-mono); font-size: 12px; font-weight: 600; color: var(--accent);">04</span>
+        <h2 style="color: var(--text); margin: 0; font-size: 18px; font-weight: 600;">Status da OS — um mapa só</h2>
+        <span style="font-size: 13px; color: var(--text-mute);">App: 9 etapas (<span style="font-family: var(--font-mono);">oss.tsx</span>). DS: <span style="font-family: var(--font-mono);">StatusBadge kind="os"</span>.</span>
+      </div>
+      <div style="border: 1px solid var(--border); border-radius: 12px; background: var(--surface); overflow-x: auto;">
+        <div style="min-width: 680px;">
+          <div style="display: grid; grid-template-columns: 40px 200px 200px minmax(0, 1fr); gap: 16px; padding: 10px 16px; border-bottom: 1px solid var(--border); font-size: 10.5px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; color: var(--text-mute);">
+            <span>#</span><span>App (ServiceOrderStatus)</span><span>DS hoje</span><span>Proposta</span>
+          </div>
+          <sc-for list="{{ fsm }}" as="f" hint-placeholder-count="9">
+            <div style="display: grid; grid-template-columns: 40px 200px 200px minmax(0, 1fr); gap: 16px; padding: 9px 16px; border-bottom: 1px solid var(--border-2); align-items: center; font-size: 13px;">
+              <span style="font-family: var(--font-mono); color: var(--text-mute);">{{ f.n }}</span>
+              <span style="font-family: var(--font-mono); font-size: 12.5px;">{{ f.app }}</span>
+              <div><x-import component-from-global-scope="OfficeImpressoPontoWR2DesignSystem_019dd0.StatusBadge" kind="os" value="{{ f.ds }}" hint-size="120px,22px"></x-import></div>
+              <span style="color: var(--text-dim); line-height: 1.45;">{{ f.nota }}</span>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </section>
+
+    <section style="display: flex; flex-direction: column; gap: 16px;">
+      <div style="display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap;">
+        <span style="font-family: var(--font-mono); font-size: 12px; font-weight: 600; color: var(--accent);">05</span>
+        <h2 style="color: var(--text); margin: 0; font-size: 18px; font-weight: 600;">Plano de migração por tela</h2>
+        <span style="font-size: 13px; color: var(--text-mute);">O que cada arquivo do app precisa pra bater com o espelho. Lido do código em <span style="font-family: var(--font-mono);">main @ 7a6c977</span>.</span>
+      </div>
+      <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+        <sc-for list="{{ migFiltros }}" as="f" hint-placeholder-count="4">
+          <div onClick="{{ f.pick }}" style="height: 28px; padding: 0 10px; border-radius: 6px; border: 1px solid {{ f.border }}; background: {{ f.bg }}; color: {{ f.fg }}; display: flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 500; cursor: pointer;">{{ f.label }}<span style="font-family: var(--font-mono); font-size: 11px; opacity: 0.7;">{{ f.count }}</span></div>
+        </sc-for>
+      </div>
+      <div style="border: 1px solid var(--border); border-radius: 12px; background: var(--surface); overflow-x: auto;">
+        <div style="min-width: 860px;">
+          <div style="display: grid; grid-template-columns: 210px 90px 90px minmax(0, 1fr) 60px; gap: 16px; padding: 10px 16px; border-bottom: 1px solid var(--border); font-size: 10.5px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; color: var(--text-mute);">
+            <span>Arquivo</span><span>Base hoje</span><span>Prioridade</span><span>O que muda</span><span>Tela</span>
+          </div>
+          <sc-for list="{{ migVisivel }}" as="m" hint-placeholder-count="10">
+            <div style="display: grid; grid-template-columns: 210px 90px 90px minmax(0, 1fr) 60px; gap: 16px; padding: 9px 16px; border-bottom: 1px solid var(--border-2); align-items: baseline; font-size: 13px;">
+              <span style="font-family: var(--font-mono); font-size: 12px; font-weight: 600;">{{ m.arq }}</span>
+              <span style="font-size: 12px; color: {{ m.baseTint }};">{{ m.base }}</span>
+              <span style="display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 500; color: {{ m.pTint }};"><span style="width: 6px; height: 6px; border-radius: 99px; background: {{ m.pTint }};"></span>{{ m.prio }}</span>
+              <span style="color: var(--text-dim); line-height: 1.45; text-wrap: pretty;">{{ m.nota }}</span>
+              <a href="{{ m.href }}" style="font-family: var(--font-mono); font-size: 12px;">{{ m.tela }}</a>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px;">
+        <sc-for list="{{ migOrdem }}" as="o" hint-placeholder-count="4">
+          <div style="border: 1px solid var(--border); border-radius: 12px; background: var(--surface); padding: 14px 16px; display: flex; flex-direction: column; gap: 6px;">
+            <span style="font-family: var(--font-mono); font-size: 11.5px; color: var(--accent);">PR {{ o.n }}</span>
+            <span style="font-size: 14px; font-weight: 600;">{{ o.titulo }}</span>
+            <span style="font-size: 12.5px; color: var(--text-dim); line-height: 1.45; text-wrap: pretty;">{{ o.desc }}</span>
+          </div>
+        </sc-for>
+      </div>
+    </section>
+
+  </div>
+</main>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { filtro: 'todos', copiado: false, migF: 'todos' };
+  hex(l, c, h) {
+    const hr = h * Math.PI / 180, a = c * Math.cos(hr), b = c * Math.sin(hr);
+    const l_ = l + 0.3963377774 * a + 0.2158037573 * b, m_ = l - 0.1055613458 * a - 0.0638541728 * b, s_ = l - 0.0894841775 * a - 1.2914855480 * b;
+    const L = l_ ** 3, M = m_ ** 3, S = s_ ** 3;
+    const lin = [4.0767416621 * L - 3.3077115913 * M + 0.2309699292 * S, -1.2684380046 * L + 2.6097574011 * M - 0.3413193965 * S, -0.0041960863 * L - 0.7034186147 * M + 1.7076147010 * S];
+    return '#' + lin.map(v => { v = Math.max(0, Math.min(1, v)); v = v <= 0.0031308 ? 12.92 * v : 1.055 * v ** (1 / 2.4) - 0.055; return Math.round(v * 255).toString(16).padStart(2, '0'); }).join('');
+  }
+  renderVals() {
+    const T = [
+      ['bg', '--bg', [0.985, 0.003, 90], [0.26, 0.006, 240], '#f7f6f9', '#15131b'],
+      ['bg2', '--bg-2', [0.965, 0.004, 90], [0.23, 0.006, 240], '#f1eff4', '#1a1722'],
+      ['surface', '--surface', '#ffffff', [0.30, 0.008, 240], '#fdfcfe', '#1e1a27'],
+      ['border', '--border', [0.90, 0.004, 90], [0.34, 0.008, 240], '#e0dee4', '#2a2633'],
+      ['border2', '--border-2', [0.93, 0.004, 90], [0.31, 0.008, 240], '#eae8ee', '#232030'],
+      ['text', '--text', [0.22, 0.01, 80], [0.94, 0.005, 90], '#2d2933', '#f2f2f2'],
+      ['textDim', '--text-dim', [0.50, 0.01, 80], [0.72, 0.005, 90], '#67646e', '#b9b7c4'],
+      ['textMute', '--text-mute', [0.65, 0.01, 80], [0.58, 0.005, 90], '#908d96', '#7e7b8c'],
+      ['accent', '--accent', [0.55, 0.15, 295], [0.55, 0.15, 295], '#663e9e', '#9a2bcb'],
+      ['accent2', '--accent-2', [0.62, 0.15, 295], [0.62, 0.15, 295], '#7a53b4', '#c85bff'],
+      ['accentSoft', '--accent-soft', [0.95, 0.04, 295], [0.33, 0.09, 295], '#f2eaff', '#2c1740'],
+      ['ok', '--pos', [0.50, 0.12, 150], [0.76, 0.18, 150], '#549864', '#22c55e'],
+      ['warn', '--warn', [0.58, 0.12, 70], [0.82, 0.16, 75], '#c49548', '#ffb300'],
+      ['danger', '--neg', [0.55, 0.18, 25], [0.74, 0.19, 25], '#c45b56', '#ff4d4f']
+    ];
+    const cv = (v) => typeof v === 'string' ? v : this.hex(...v);
+    const tokens = T.map(([key, ds, l, d, la, da]) => {
+      const lHex = cv(l), dHex = cv(d);
+      return { key, ds, lHex, dHex, lApp: la, dApp: da,
+        lDiffColor: lHex === la ? 'var(--pos)' : 'var(--text-mute)', dDiffColor: dHex === da ? 'var(--pos)' : 'var(--text-mute)' };
+    });
+    const pal = (k) => tokens.map(t => '  ' + t.key + ': "' + t[k] + '",').join('\n');
+    const snippet = '// Gerado a partir do DS Office Impresso (.cockpit) — não editar à mão\nexport const lightPalette: OiPalette = {\n  ...base,\n' + pal('lHex') + '\n  accentFg: "#ffffff",\n  accentText: "' + tokens[8].lHex + '",\n};\n\nexport const darkPalette: OiPalette = {\n  ...base,\n' + pal('dHex') + '\n  accentFg: "#ffffff",\n  accentText: "' + tokens[9].dHex + '",\n};\n\nexport const fonts = {\n  sans: "IBMPlexSans_400Regular",\n  sansMedium: "IBMPlexSans_500Medium",\n  sansSemibold: "IBMPlexSans_600SemiBold",\n  sansBold: "IBMPlexSans_700Bold",\n  mono: "IBMPlexMono_400Regular",\n  monoMedium: "IBMPlexMono_500Medium",\n  monoSemibold: "IBMPlexMono_600SemiBold",\n} as const;';
+    const TONE = { Reusar: 'var(--pos)', Estender: 'var(--accent)', Criar: 'var(--warn)', Aposentar: 'var(--neg)' };
+    const MAPA = [
+      ['OiBtn', 'Estender', 'Button', 'Adicionar tamanhos touch (44/48) e prop block. Variantes já batem.'],
+      ['OiStatus', 'Reusar', 'StatusBadge', 'Trocar variant genérica por kind + value de domínio. Tint 6%, nunca pastel.'],
+      ['OiStageStatus', 'Reusar', 'StatusBadge kind="os"', 'Depende do mapa único da seção 04.'],
+      ['OiKpi / OiKpis', 'Reusar', 'KpiCard', 'O hero da Home vira KpiCard hero — sai o gradiente magenta.'],
+      ['OiCard', 'Reusar', 'Widget', 'Moldura igual; título + nota + ações.'],
+      ['OiHeader', 'Estender', 'PageHeader', 'PageHeader ganha modo mobile: eyebrow + título 22 + ações 44.'],
+      ['OiDetailHeader', 'Estender', 'PageHeader', 'Variante com voltar à esquerda.'],
+      ['OiTabbar', 'Criar', '— (MobileTabbar)', 'Não existe no DS. 5 slots, perfil de menu decide os 3 do meio.'],
+      ['OiSheet', 'Estender', 'Drawer', 'Drawer com side="bottom" — mesmo scrim, header e rodapé fixo.'],
+      ['OiFaturarSheet', 'Estender', 'Drawer', 'Conteúdo é da tela; casca vem do Drawer bottom.'],
+      ['OiSearch', 'Reusar', 'ToolbarSearch', 'Altura 40, sem atalho de teclado no mobile.'],
+      ['OiChips', 'Reusar', 'FilterChip / Segmented', 'Filtro de etapa = Segmented; filtro removível = FilterChip.'],
+      ['OiList / OiListRow', 'Criar', '— (ListRow)', 'O DS só tem DataGrid. Falta a linha de lista com rowHeight por densidade.'],
+      ['OiEmpty', 'Reusar', 'EmptyState', 'Mesmas variantes (first, no-results, done…).'],
+      ['OiAvatar', 'Reusar', 'Avatar', 'App usa gradiente de 2 cores; DS usa cor sólida por hash.'],
+      ['OiPlaca', 'Reusar', 'PlacaVeiculo', 'Já existe nos dois lados — veiculos.tsx e oss.tsx ainda não usam.'],
+      ['OiProgress', 'Reusar', 'Progress', 'bar e ring.'],
+      ['OiMiniPipeline', 'Reusar', 'FsmStepper inline', 'Mesmo papel: segmentos da FSM na célula.'],
+      ['OiTimeline', 'Reusar', 'Timeline', 'Entradas com actor/ação/de→para.'],
+      ['OiToastHost', 'Reusar', 'Toast', 'Toast do DS + host no topo (safe area).'],
+      ['OiMoney', 'Reusar', 'formatBRL', 'Só formatação — mono + tabular.'],
+      ['OiWizard', 'Criar', '— (Wizard)', 'Passos + barra inferior Voltar/Continuar. Útil também no desktop.'],
+      ['OiFab', 'Criar', '— (Fab)', 'Só mobile.'],
+      ['OiScanline', 'Aposentar', '—', 'Animação em loop — fora do orçamento de motion do DS.'],
+      ['erp-ui.tsx', 'Aposentar', '—', 'Hex fixo e emoji; ainda usado em OS, Orçamentos, Estoque, Veículos.']
+    ];
+    const f = this.state.filtro;
+    const filtros = ['todos', 'Reusar', 'Estender', 'Criar', 'Aposentar'].map(id => ({
+      label: id === 'todos' ? 'Todos' : id, count: id === 'todos' ? MAPA.length : MAPA.filter(m => m[1] === id).length,
+      border: f === id ? 'var(--accent)' : 'var(--border)', bg: f === id ? 'var(--accent-soft)' : 'var(--surface)', fg: f === id ? 'var(--accent)' : 'var(--text-dim)',
+      pick: () => this.setState({ filtro: id })
+    }));
+    const mapaVisivel = MAPA.filter(m => f === 'todos' || m[1] === f).map(([oi, acao, ds, nota]) => ({ oi, acao, ds, nota, tint: TONE[acao] }));
+    const fsm = [
+      ['recepcao', 'aberta', 'Manter. Renomear rótulo DS pra "Recepção".'],
+      ['diagnostico', 'aberta', 'Criar chave diagnostico — hoje cai em "Aberta".'],
+      ['orcamento', 'orcamento', 'DS chama de "Aguardando aprovação"; app separa orçamento de aprovação.'],
+      ['aguardando_aprovacao', 'orcamento', 'Criar chave própria (warning) — é o gate de execução.'],
+      ['aguardando_pecas', 'em_servico', 'Criar chave aguardando_pecas (danger) — trava a OS.'],
+      ['em_execucao', 'em_servico', 'Mesmo estado. Alias em_execucao → em_servico.'],
+      ['revisao', 'em_servico', 'Criar chave revisao (info).'],
+      ['pronto', 'concluida', 'Mesmo estado. Alias pronto → concluida.'],
+      ['entregue', 'entregue', 'Igual.']
+    ].map(([app, ds, nota], i) => ({ n: String(i + 1).padStart(2, '0'), app, ds, nota }));
+    const MIG = [
+      ['lib/oi-theme.ts', 'Oi*', 'Alta', 'Colar o trecho da seção 01: paleta do DS + IBM Plex. Afeta todas as telas de uma vez.', '—'],
+      ['app/(tabs)/index.tsx', 'Oi*', 'Alta', 'Hero com LinearGradient magenta→roxo vira KpiCard hero (placa escura, sem gradiente).', '01'],
+      ['app/login.tsx', 'Oi*', 'Média', 'Gradiente da marca vira roxo sólido; logo via Logo do DS.', '00'],
+      ['components/offline-banner.tsx', 'Hex fixo', 'Média', '#fbbf24 / #1f2937 → token warn + texto escuro. Botão com 36 px de alvo.', '—'],
+      ['app/oss/[id].tsx', 'erp-ui', 'Alta', 'ScreenContainer + FormInput antigos; emoji 🧠 🔗; cores fixas no card de IA. Migrar para Oi* + barra de faturar.', '03'],
+      ['app/(tabs)/oss.tsx', 'erp-ui', 'Alta', 'STATUS_COLORS em hex → StatusBadge kind="os" com o mapa da seção 04. Placa como texto → OiPlaca.', '07'],
+      ['app/(tabs)/orcamentos.tsx', 'erp-ui', 'Média', 'StatusBadge local em hex; emoji 📄 🧠; ModalDialog → OiSheet.', '04'],
+      ['app/(tabs)/estoque.tsx', 'erp-ui', 'Média', 'colorForStock em hex; emoji 📊 ⚠; alerta vira Alert tone danger.', '05'],
+      ['app/(tabs)/veiculos.tsx', 'erp-ui', 'Média', 'Placa como texto → OiPlaca; histórico em modal → linha expansível.', '08'],
+      ['app/(tabs)/fiscal.tsx', 'erp-ui', 'Média', 'statusColor em hex; emoji 📄 🔄; "× Cancelar" → botão danger.', '14'],
+      ['app/(tabs)/pagamentos.tsx', 'erp-ui', 'Média', 'statusColor em hex; emoji 🔗 🔄; referência por UUID colado → escolha de OS/pedido.', '15'],
+      ['app/(tabs)/relatorios.tsx', 'erp-ui', 'Baixa', 'MetricCard + barras bespoke em hex → OiKpi + Chart/Progress do DS.', '13'],
+      ['app/empresas.tsx', 'erp-ui', 'Baixa', 'Stack header nativo + Alert.alert → OiDetailHeader + OiSheet.', '00'],
+      ['app/(tabs)/chat.tsx', 'erp-ui', 'Baixa', 'Toast antigo; placeholder #9BA1A6 fixo.', '25'],
+      ['app/(tabs)/clientes.tsx', 'Oi*', 'Baixa', 'Edição rápida ainda em ModalDialog; lixeira na linha → mover para a ficha.', '17'],
+      ['app/(tabs)/producao.tsx', 'Oi*', 'Baixa', 'Modal de edição em erp-ui; resto já no padrão.', '02'],
+      ['app/(tabs)/tarefas.tsx', 'Oi*', 'Ok', 'Já no padrão. Só herdar os tokens novos.', '12'],
+      ['app/(tabs)/financeiro.tsx', 'Oi*', 'Ok', 'Já no padrão. Só herdar os tokens novos.', '06'],
+      ['app/(tabs)/mais.tsx', 'Oi*', 'Ok', 'Cores "purple"/"amber" fixas (#8e6bd1, #d0892b) → tokens.', '10'],
+      ['app/venda-rapida.tsx', 'Oi*', 'Ok', 'OiScanline em loop → linha estática (orçamento de motion).', '11']
+    ];
+    const PT = { Alta: 'var(--neg)', 'Média': 'var(--warn)', Baixa: 'var(--accent)', Ok: 'var(--pos)' };
+    const mf = this.state.migF;
+    const migFiltros = ['todos', 'Alta', 'Média', 'Baixa', 'Ok'].map(id => ({ label: id === 'todos' ? 'Todos' : id, count: id === 'todos' ? MIG.length : MIG.filter(m => m[2] === id).length,
+      border: mf === id ? 'var(--accent)' : 'var(--border)', bg: mf === id ? 'var(--accent-soft)' : 'var(--surface)', fg: mf === id ? 'var(--accent)' : 'var(--text-dim)', pick: () => this.setState({ migF: id }) }));
+    const migVisivel = MIG.filter(m => mf === 'todos' || m[2] === mf).map(([arq, base, prio, nota, tela]) => ({ arq, base, prio, nota, tela, href: tela === '—' ? '#' : 'Oimpresso Mobile.dc.html#s' + tela,
+      baseTint: base === 'Oi*' ? 'var(--pos)' : 'var(--neg)', pTint: PT[prio] }));
+    const migOrdem = [
+      { n: 1, titulo: 'Tokens + fontes', desc: 'Só lib/oi-theme.ts e _layout.tsx (IBM Plex). Menos de 100 linhas; muda a cara do app inteiro.' },
+      { n: 2, titulo: 'OS da oficina', desc: 'oss.tsx + oss/[id].tsx para Oi* com o mapa único de status e OiPlaca. É o fluxo mais usado no piloto.' },
+      { n: 3, titulo: 'Tirar emoji e hex', desc: 'orcamentos, estoque, fiscal, pagamentos: trocar cores fixas por tokens e emoji por ícones.' },
+      { n: 4, titulo: 'Aposentar erp-ui', desc: 'Depois dos três primeiros, erp-ui.tsx e screen-container.tsx ficam sem uso e saem.' }
+    ];
+    return {
+      migFiltros, migVisivel, migOrdem,
+      tokens, snippet, filtros, mapaVisivel, fsm,
+      copiarLabel: this.state.copiado ? 'Copiado' : 'Copiar',
+      copiar: () => { if (navigator.clipboard) navigator.clipboard.writeText(snippet); this.setState({ copiado: true }); setTimeout(() => this.setState({ copiado: false }), 1600); },
+      densidades: [
+        { h: '46px', nome: 'compact · 46', titulo: 'Lona front-light 440g', sub: '18 m² · Rack A1' },
+        { h: '56px', nome: 'normal · 56', titulo: 'Ótica Visão Clara', sub: 'Blumenau · SC' },
+        { h: '62px', nome: 'comfy · 62', titulo: 'OS #1042', sub: 'RLV2E48 · Em execução' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>
