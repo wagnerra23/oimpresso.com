@@ -282,3 +282,66 @@ it('UC-SAUX-05 · trancar revoga o token MCP e destrancar reativa sem devolvê-l
     // O ponto do caso: o token segue revogado depois do unlock.
     expect(DB::table('mcp_tokens')->where('id', $tokenId)->value('revoked_at'))->not->toBeNull();
 });
+
+// ── Show · UC-SAUX-06 · cada abertura do raio-X deixa 1 registro de acesso ──
+
+/** Registros de acesso ao raio-X de UM usuário (activity_log, log `superadmin_acesso`). */
+function u360Acessos(int $vistoId)
+{
+    return DB::table('activity_log')
+        ->where('log_name', 'superadmin_acesso')
+        ->where('subject_type', User::class)
+        ->where('subject_id', $vistoId);
+}
+
+it('UC-SAUX-06 · abrir o raio-X grava 1 acesso com quem viu, quem foi visto e o business do visto', function () {
+    if (! Schema::hasTable('activity_log') || ! Schema::hasColumn('activity_log', 'business_id')) {
+        $this->markTestSkipped('activity_log com business_id ausente.');
+    }
+
+    $alvo = u360Alvo('u360acesso_alvo', BIZ_U360_OUTRO);
+    u360Acessos($alvo->id)->delete();
+    $super = u360Superadmin();
+
+    $this->actingAs($super)
+        ->withHeader('User-Agent', 'u360-teste-agent')
+        ->get("/superadmin/usuarios/{$alvo->id}/360")
+        ->assertOk();
+
+    expect(u360Acessos($alvo->id)->count())->toBe(1);
+
+    $registro = u360Acessos($alvo->id)->first();
+    expect((int) $registro->causer_id)->toBe($super->id);
+    expect($registro->causer_type)->toBe(User::class);
+    expect($registro->event)->toBe('usuario360_visualizado');
+    // O business é o do USUÁRIO VISTO (99), não o da sessão do superadmin (98).
+    expect((int) $registro->business_id)->toBe(BIZ_U360_OUTRO);
+
+    $props = json_decode((string) $registro->properties, true);
+    expect($props)->toBeArray();
+    expect($props['user_agent'])->toBe('u360-teste-agent');
+    expect(array_key_exists('ip', $props))->toBeTrue();
+    // Sem PII do titular no payload: o id dele já está no subject.
+    expect($props)->not->toHaveKey('email');
+    expect((string) $registro->properties)->not->toContain($alvo->email);
+
+    // Append-only: abrir de novo soma, não sobrescreve.
+    $this->actingAs($super)->get("/superadmin/usuarios/{$alvo->id}/360")->assertOk();
+    expect(u360Acessos($alvo->id)->count())->toBe(2);
+});
+
+it('UC-SAUX-06 · listar não grava acesso, e admin de negócio barrado também não', function () {
+    if (! Schema::hasTable('activity_log')) {
+        $this->markTestSkipped('activity_log ausente.');
+    }
+
+    $alvo = u360Alvo('u360acesso_lista', BIZ_U360);
+    u360Acessos($alvo->id)->delete();
+
+    $this->actingAs(u360Superadmin())->get('/superadmin/usuarios?q=u360acesso_lista')->assertOk();
+    expect(u360Acessos($alvo->id)->count())->toBe(0);
+
+    $barrado = $this->actingAs(u360AdminDeNegocio())->get("/superadmin/usuarios/{$alvo->id}/360");
+    expect($barrado->getStatusCode())->toBeIn([302, 403]);
+    expect(u360Acessos($alvo->id)->count())->toBe(0);
+});
