@@ -1,4 +1,61 @@
 {
   "_nota": "Arquivos que o Code subiu ao Cowork (DesignSync) e que o bundle ativo ainda não trouxe de volta. Escrito por pendentes-cowork.mjs; o receber-handoff limpa o que o retorno confirmar.",
-  "enviados": {}
+  "enviados": {
+    "cowork-inbox/arquivos/playbook/_DECISOES-W-2026-10-01.md": {
+      "sha256": "78f435350d42d1a90f4929d97a32030a4a49a827109380eeabaf3dd25f8eec7f",
+      "em": "2026-10-01T03:02:50.175Z"
+    },
+    "cowork-inbox/arquivos/playbook/_saida-01.md": {
+      "sha256": "e5cf93154c954207564b0ebcdbac1d1c769f5b7d3f4000c09030769c3eb0fdbe",
+      "em": "2026-10-01T03:02:50.175Z"
+    },
+    "cowork-inbox/atendimento/playbook/_DECISOES-W-2026-10-01.md": {
+      "sha256": "f040fe46f8a0db28eab98a89e50e4f5fa1b54cd76de756510888849c930db62c",
+      "em": "2026-10-01T03:02:50.175Z"
+    },
+    "cowork-inbox/atendimento/playbook/_saida-02.md": {
+      "sha256": "b05bae5f1cb125475f2b9bd2e64e4773b9a3c1662db9d475c011045395bbb647",
+      "em": "2026-10-01T03:02:50.175Z"
+    },
+    "cowork-inbox/cliente/playbook/_DECISOES-W-2026-10-01.md": {
+      "sha256": "f6866ee3dd69de18e015592e9d4cc045d4617afc64734af5716e3b847e9d27c1",
+      "em": "2026-10-01T03:02:50.175Z"
+    },
+    "cowork-inbox/crm/playbook/_DECISOES-W-2026-10-01.md": {
+      "sha256": "6a19d7102a8a04b2bf21419d16a9bfcbdb32c233e5d46eb4b467681065c46b0f",
+      "em": "2026-10-01T03:02:50.175Z"
+    },
+    "cowork-inbox/lote-trio-medida/playbook/_saida-01.md": {
+      "sha256": "30e6e1781d8cb23b02c756b0d076c6716b573ae0193f6e4d1a79b0a086f6ae63",
+      "em": "2026-10-01T03:02:50.175Z"
+    },
+    "cowork-inbox/lote-trio-medida/playbook/_saida-02.md": {
+      "sha256": "2867bafa39c8d23c06a4796d46d906391d78ae1b72773f2fc559a044bff081c2",
+      "em": "2026-10-01T03:02:50.175Z"
+    },
+    "cowork-inbox/lote-trio-medida/playbook/_saida-A1.md": {
+      "sha256": "aa341f84ab15159067d9ce34ec8ec3f91419d18131e350c0a7abbc12a78f3826",
+      "em": "2026-10-01T03:02:50.175Z"
+    },
+    "cowork-inbox/officeimpresso/playbook/_DECISOES-W-2026-10-01.md": {
+      "sha256": "67adaa90273c6c7c9095f08225b801e52e4178bb69609f38b8b37cfa4f1b4e7d",
+      "em": "2026-10-01T03:02:50.175Z"
+    },
+    "cowork-inbox/produto/playbook/_DECISOES-W-2026-10-01.md": {
+      "sha256": "8ea44b12bc6f0eba501d4d5ce2eff917f5a944463010d5ae2a2e3e10d96904eb",
+      "em": "2026-10-01T03:02:50.175Z"
+    },
+    "cowork-inbox/repair/playbook/_DECISOES-W-2026-10-01.md": {
+      "sha256": "3a003b61c849d5a784812e6dabb1353959c2144238c0cfb5983942d6afd526b3",
+      "em": "2026-10-01T03:02:50.175Z"
+    },
+    "cowork-inbox/repair/playbook/_saida-01.md": {
+      "sha256": "1fe554907b49d078a1006e75be690f44dfca6d7c2812a8efc80227cd3cba1a10",
+      "em": "2026-10-01T03:02:50.175Z"
+    },
+    "cowork-inbox/superadmin/playbook/_DECISOES-W-2026-10-01.md": {
+      "sha256": "00c817b1b5c916a95311e42c4b6b8e26d54e79daa22775be7746f71503b3e3a3",
+      "em": "2026-10-01T03:02:50.175Z"
+    }
+  }
 }

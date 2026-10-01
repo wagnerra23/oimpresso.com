@@ -1,0 +1,162 @@
+name: Auditoria · Pest (MySQL)
+
+# Lane da AUDITORIA: trilha por-registro (activity_log), reversão (RevertService) e as
+# telas /auditoria (Index + Detail).
+#
+# POR QUE existe: em 2026-09-30 o `uc-lane-coverage` (step advisory do
+# governance-script-tests.yml) acusou os 5 UCs de Auditoria/{Index,Detail}.casos.md como
+# ÓRFÃOS — o AuditoriaTelasContratoTest (#8325) existe no disco e NENHUMA das 34 lanes o
+# executa. O mesmo valia para os outros 7 arquivos de tests/Feature/Auditoria/. Sem lane o
+# teste nasce mudo: registro no phpunit.xml não é execução (proibicoes.md §5 2026-08-02).
+#
+# MySQL e não a lista sqlite: os 8 arquivos leem activity_log, business, users, contacts,
+# transactions de verdade (DatabaseTransactions, sem RefreshDatabase) e fazem
+# markTestSkipped quando o schema falta — em sqlite pulariam todos, e skip sai exit 0
+# (verde por não-execução, LC-13). Por isso o --check-assertions abaixo está ARMADO.
+#
+# ⚠️ O Pest ABORTA (exit 2) se um caminho da lista nao existe — diretório só entra no
+# comando no MESMO PR que cria o primeiro arquivo dele (lição do acessos-pest.yml).
+#
+# O CÓDIGO SOB TESTE está no gatilho (Modules/Auditoria, o observer de causer_kind, as
+# Pages). Sem isso, mexer no serviço não dispararia a lane — gate mudo com cara de
+# cobertura. Os models com LogsActivity (Contact, Product, Transaction…) ficaram FORA do
+# filtro de propósito: disparariam a lane em boa parte dos PRs do núcleo; o
+# workflow_dispatch cobre a medição sob demanda.
+#
+# Estrutura copiada de acessos-pest.yml / arquivos-pest.yml (mesmo setup MySQL, mesmo
+# skip-as-pass, mesmo sumário JUnit por assertions + --check-assertions armado).
+
+on:
+  workflow_dispatch: {}
+  # pull_request SEM paths (always-run) + skip-as-pass interno via dorny/paths-filter.
+  pull_request:
+    types: [opened, reopened, ready_for_review]
+    branches: [main]
+  push:
+    branches: [main]
+    paths:
+      - 'Modules/Auditoria/**'
+      - 'app/Observers/ActivityCauserKindObserver.php'
+      - 'resources/js/Pages/Auditoria/**'
+      - 'tests/Feature/Auditoria/**'
+      - 'database/schema/mysql-schema.sql'
+      - '.github/workflows/auditoria-pest.yml'
+      - '.github/actions/pest-mysql-setup/**'
+
+concurrency:
+  group: auditoria-pest-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  pest:
+    name: PHP / Pest (Auditoria · MySQL)
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: oimpresso_test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping --silent"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Detectar mudanças da auditoria (skip-as-pass)
+        id: changes
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            auditoria:
+              - 'Modules/Auditoria/**'
+              - 'app/Observers/ActivityCauserKindObserver.php'
+              - 'resources/js/Pages/Auditoria/**'
+              - 'tests/Feature/Auditoria/**'
+              - 'database/schema/mysql-schema.sql'
+              - '.github/workflows/auditoria-pest.yml'
+              - '.github/actions/pest-mysql-setup/**'
+
+      - name: Skip-as-pass (nada da auditoria mudou)
+        if: steps.changes.outputs.auditoria == 'false'
+        run: echo "✅ Sem mudanças na auditoria — skip-as-pass."
+
+      - name: Setup Pest MySQL (PHP + deps + .env + migrate + seed mínimo multi-tenant)
+        if: steps.changes.outputs.auditoria == 'true'
+        uses: ./.github/actions/pest-mysql-setup
+
+      - name: Stub Vite manifest (root view sem build do front)
+        if: steps.changes.outputs.auditoria == 'true'
+        run: |
+          mkdir -p public/build-inertia
+          cat > public/build-inertia/manifest.json <<'EOF'
+          {
+            "resources/css/inertia.css": { "file": "assets/inertia.css", "src": "resources/css/inertia.css", "isEntry": true },
+            "resources/js/app.tsx": { "file": "assets/app.js", "src": "resources/js/app.tsx", "isEntry": true }
+          }
+          EOF
+
+      - name: Run Pest (Auditoria · MySQL)
+        if: steps.changes.outputs.auditoria == 'true'
+        # phpunit.xml aponta DB_CONNECTION=sqlite :memory: (sem force="true"), então a env
+        # daqui vence e a suíte roda no MySQL real semeado pela action.
+        env:
+          DB_CONNECTION: mysql
+          DB_HOST: 127.0.0.1
+          DB_PORT: "3306"
+          DB_DATABASE: oimpresso_test
+          DB_USERNAME: root
+          DB_PASSWORD: root
+        # Lista explícita. ContactPiiLogsActivityTest e TransactionLogsActivityTest ficaram
+        # FORA de 2026-09-30 a 2026-10-01 (run 36806843685: business_id NULL no activity_log
+        # + Unknown column tax_number_1). Causa medida: o trait LogsActivity nunca setava
+        # business_id e o Util::activityLog lia a SESSÃO antes do registro. Conserto no
+        # ActivityCauserKindObserver (tenant do log = tenant do subject) + coluna certa
+        # (contacts.tax_number). ActivityLogBusinessIdTenantTest trava o cross-tenant 98x99.
+        run: |
+          mkdir -p test-results
+          vendor/bin/pest --no-coverage --colors=always \
+            --log-junit test-results/pest-auditoria-junit.xml \
+            tests/Feature/Auditoria/ActivityLogBusinessIdTenantTest.php \
+            tests/Feature/Auditoria/AuditoriaTelasContratoTest.php \
+            tests/Feature/Auditoria/CauserKindMigrationTest.php \
+            tests/Feature/Auditoria/CauserKindResolverTest.php \
+            tests/Feature/Auditoria/ContactPiiLogsActivityTest.php \
+            tests/Feature/Auditoria/ProductStockLogsActivityTest.php \
+            tests/Feature/Auditoria/RevertServiceTest.php \
+            tests/Feature/Auditoria/SellLinePaymentLogsActivityTest.php \
+            tests/Feature/Auditoria/TransactionLogsActivityTest.php
+
+      # A régua honesta desta lane é `assertions`, NÃO "0 failed": skip sai exit 0.
+      - name: Sumário JUnit por arquivo (assertions — a régua contra skip-as-pass)
+        if: always()
+        run: node scripts/tests/junit-summary.mjs test-results/pest-auditoria-junit.xml --out test-results/pest-auditoria-junit-summary.json || true
+
+      # Guardado pela MESMA condição do Pest (nunca always()): no skip-as-pass o XML nem
+      # existe. Morde quando a lane RODOU e não provou nada (LC-13).
+      - name: Suíte provou algo? (--check-assertions · LC-13)
+        if: steps.changes.outputs.auditoria == 'true'
+        run: node scripts/tests/junit-summary.mjs test-results/pest-auditoria-junit.xml --check-assertions
+
+      - name: Upload sumário JUnit (pest-auditoria-junit-summary)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pest-auditoria-junit-summary
+          path: test-results/pest-auditoria-junit-summary.json
+          retention-days: 14
+          if-no-files-found: ignore
+
+      - name: Upload JUnit (Auditoria · MySQL)
+        if: ${{ !cancelled() && steps.changes.outputs.auditoria == 'true' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: pest-auditoria-junit
+          path: test-results/pest-auditoria-junit.xml
+          retention-days: 14

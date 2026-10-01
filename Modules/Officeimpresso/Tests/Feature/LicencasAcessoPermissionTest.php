@@ -79,6 +79,13 @@ beforeEach(function () {
     if (DB::connection()->getDriverName() === 'sqlite') {
         $this->markTestSkipped('SQLite-incompatível: schema MySQL UltimatePOS necessário (ADR 0101).');
     }
+
+    // O tenant de teste (biz=98) faz o papel da empresa OPERADORA (WR): as permissões
+    // delegáveis de escrita só valem para usuário dela (AcessoOperador). Os casos de
+    // empresa CLIENTE usam o biz=99 (seededSupportClientTenant) — ADR 0358.
+    if ($operador = static::resolveSeededTenant()) {
+        config(['constants.operator_business_id' => (int) $operador->id]);
+    }
 });
 
 it('declara as permissões no user_permissions (assináveis na UI de Funções)', function () {
@@ -158,7 +165,7 @@ it('exige licencas.gerenciar pra liberar/bloquear máquina — ver não basta', 
     $leitor = makeOiAcessoTestUser($business->id);
     $leitor->givePermissionTo(PERM_OI_ACCESS);
     $this->actingAs($leitor);
-    $this->get('/officeimpresso/licenca_computador/' . LICENCA_INEXISTENTE . '/toggle-block')
+    $this->post('/officeimpresso/licenca_computador/' . LICENCA_INEXISTENTE . '/toggle-block')
         ->assertForbidden();
     $leitor->forceDelete();
 
@@ -170,7 +177,7 @@ it('exige licencas.gerenciar pra liberar/bloquear máquina — ver não basta', 
     // estoura e o controller cai no catch → `redirect()->back()->with('error')`.
     // Exigir o redirect MAIS o flash prova que a requisição chegou ao CORPO do
     // controller — `->not->toBe(403)` aceitaria um 500 de qualquer origem.
-    $this->get('/officeimpresso/licenca_computador/' . LICENCA_INEXISTENTE . '/toggle-block')
+    $this->post('/officeimpresso/licenca_computador/' . LICENCA_INEXISTENTE . '/toggle-block')
         ->assertRedirect()
         ->assertSessionHas('error');
     $suporte->forceDelete();
@@ -188,7 +195,7 @@ it('mexer em máquina NÃO concede escopo empresa-inteira (no-leak)', function (
     $suporte->givePermissionTo(PERM_OI_GERENCIAR);
     $this->actingAs($suporte);
 
-    $this->get('/officeimpresso/licenca_computador/businessbloqueado/' . $business->id)
+    $this->post('/officeimpresso/licenca_computador/businessbloqueado/' . $business->id)
         ->assertForbidden();
 
     $suporte->forceDelete();
@@ -208,7 +215,7 @@ it('delega escopo empresa-inteira via officeimpresso.empresa.gerenciar', functio
     // redirect) — sem alternar o bloqueio de NENHUMA empresa real.
     // O redirect + o flash de erro são o desfecho conhecido desse caminho:
     // asseverar os dois prova que o corpo do controller rodou.
-    $this->get('/officeimpresso/licenca_computador/businessbloqueado/' . BUSINESS_INEXISTENTE)
+    $this->post('/officeimpresso/licenca_computador/businessbloqueado/' . BUSINESS_INEXISTENTE)
         ->assertRedirect()
         ->assertSessionHas('error');
 
@@ -323,6 +330,188 @@ it('não lista os links de licença pra quem não tem access', function () {
 
     expect($html)->not->toContain('/officeimpresso/businessall')
         ->and($html)->not->toContain('/officeimpresso/licenca_log');
+
+    $user->forceDelete();
+});
+
+// ── Thread Officeimpresso/04 (2026-10-01): ações de estado fora de GET ──────────
+// Bloquear máquina/empresa trava o WR Comercial do cliente. Um GET é disparado
+// por prefetch, crawler ou <img src> de outra página — então essas rotas só
+// aceitam POST + CSRF, e o GET de install/* só mostra confirmação.
+
+it('thread 04 · GET em toggle-block e businessbloqueado não executa (405) — mesmo com permissão', function () {
+    $business = $this->seededTenant();
+
+    Permission::firstOrCreate(['name' => PERM_OI_GERENCIAR, 'guard_name' => 'web']);
+    Permission::firstOrCreate(['name' => PERM_OI_EMPRESA, 'guard_name' => 'web']);
+
+    // Usuário que PODERIA executar: o 405 prova que é o verbo que barra, não a guarda.
+    $gestor = makeOiAcessoTestUser($business->id);
+    $gestor->givePermissionTo([PERM_OI_GERENCIAR, PERM_OI_EMPRESA]);
+    $this->actingAs($gestor);
+
+    $this->get('/officeimpresso/licenca_computador/' . LICENCA_INEXISTENTE . '/toggle-block')
+        ->assertStatus(405);
+    $this->get('/officeimpresso/licenca_computador/businessbloqueado/' . BUSINESS_INEXISTENTE)
+        ->assertStatus(405);
+
+    // Controle positivo: o mesmo usuário, por POST, chega ao corpo do controller.
+    $this->post('/officeimpresso/licenca_computador/' . LICENCA_INEXISTENTE . '/toggle-block')
+        ->assertRedirect()
+        ->assertSessionHas('error');
+
+    $gestor->forceDelete();
+});
+
+it('thread 04 · GET de install/uninstall/update só confirma — não desativa o módulo', function () {
+    $business = $this->seededTenant();
+
+    Permission::firstOrCreate(['name' => 'superadmin', 'guard_name' => 'web']);
+
+    $admin = makeOiAcessoTestUser($business->id);
+    $admin->givePermissionTo('superadmin');
+    $this->actingAs($admin);
+
+    $antes = \App\System::getProperty('officeimpresso_version');
+
+    foreach (['install', 'install/uninstall', 'install/update'] as $acao) {
+        $this->get('/officeimpresso/' . $acao)
+            ->assertOk()
+            ->assertSee('method="POST"', false)
+            ->assertSee('/officeimpresso/' . $acao, false);
+    }
+
+    // Se o GET de uninstall ainda agisse, a propriedade teria sumido.
+    expect(\App\System::getProperty('officeimpresso_version'))->toBe($antes);
+
+    $admin->forceDelete();
+});
+
+it('thread 04 · as 3 ações de install aceitam POST na mesma URL', function () {
+    foreach (['officeimpresso/install', 'officeimpresso/install/uninstall', 'officeimpresso/install/update'] as $uri) {
+        $post = collect(\Illuminate\Support\Facades\Route::getRoutes())->first(
+            fn ($r) => $r->uri() === $uri && in_array('POST', $r->methods(), true)
+        );
+        expect($post)->not->toBeNull();
+    }
+});
+
+// ── Trava do negócio operador (2026-10-01) ─────────────────────────────────────
+// Permissão Spatie é por papel DENTRO de cada business. As ações de licença não
+// conferem o negócio do equipamento (é o painel da WR para todos os clientes), então
+// um papel de empresa CLIENTE com a permissão escreveria em qualquer empresa.
+// A permissão delegável só vale para usuário da operadora; superadmin segue valendo.
+
+it('operador · usuário de empresa CLIENTE com as permissões delegáveis leva 403 nas 3 escritas', function () {
+    $operador = $this->seededTenant();
+    $cliente = $this->seededSupportClientTenant();
+    expect((int) $cliente->id)->not->toBe((int) $operador->id);
+
+    foreach ([PERM_OI_GERENCIAR, PERM_OI_EMPRESA, PERM_OI_EXCLUIR] as $p) {
+        Permission::firstOrCreate(['name' => $p, 'guard_name' => 'web']);
+    }
+
+    $user = makeOiAcessoTestUser((int) $cliente->id);
+    $user->givePermissionTo([PERM_OI_GERENCIAR, PERM_OI_EMPRESA, PERM_OI_EXCLUIR]);
+    // Pré-condição anti-vácuo: o 403 abaixo tem de vir da trava, não de faltar a permissão.
+    expect($user->can(PERM_OI_GERENCIAR))->toBeTrue();
+    $this->actingAs($user);
+
+    $this->post('/officeimpresso/licenca_computador/' . LICENCA_INEXISTENTE . '/toggle-block')
+        ->assertForbidden();
+    $this->post('/officeimpresso/licenca_computador/businessbloqueado/' . BUSINESS_INEXISTENTE)
+        ->assertForbidden();
+    $this->delete('/officeimpresso/licenca_computador/' . LICENCA_INEXISTENTE)
+        ->assertForbidden();
+
+    $user->forceDelete();
+});
+
+it('operador · a MESMA conta passa quando o config diz que a empresa dela é a operadora (sem id chumbado)', function () {
+    $cliente = $this->seededSupportClientTenant();
+
+    Permission::firstOrCreate(['name' => PERM_OI_GERENCIAR, 'guard_name' => 'web']);
+    Permission::firstOrCreate(['name' => PERM_OI_EMPRESA, 'guard_name' => 'web']);
+
+    $user = makeOiAcessoTestUser((int) $cliente->id);
+    $user->givePermissionTo([PERM_OI_GERENCIAR, PERM_OI_EMPRESA]);
+    $this->actingAs($user);
+
+    // Controle: quem decide é `constants.operator_business_id`, não um número no código.
+    config(['constants.operator_business_id' => (int) $cliente->id]);
+
+    $this->post('/officeimpresso/licenca_computador/' . LICENCA_INEXISTENTE . '/toggle-block')
+        ->assertRedirect()
+        ->assertSessionHas('error');
+    $this->post('/officeimpresso/licenca_computador/businessbloqueado/' . BUSINESS_INEXISTENTE)
+        ->assertRedirect()
+        ->assertSessionHas('error');
+
+    $user->forceDelete();
+});
+
+it('operador · superadmin segue valendo mesmo fora da empresa operadora', function () {
+    $cliente = $this->seededSupportClientTenant();
+
+    Permission::firstOrCreate(['name' => 'superadmin', 'guard_name' => 'web']);
+
+    $admin = makeOiAcessoTestUser((int) $cliente->id);
+    $admin->givePermissionTo('superadmin');
+    $this->actingAs($admin);
+
+    $this->post('/officeimpresso/licenca_computador/' . LICENCA_INEXISTENTE . '/toggle-block')
+        ->assertRedirect()
+        ->assertSessionHas('error');
+    $this->post('/officeimpresso/licenca_computador/businessbloqueado/' . BUSINESS_INEXISTENTE)
+        ->assertRedirect()
+        ->assertSessionHas('error');
+
+    $admin->forceDelete();
+});
+
+it('operador · usuário de empresa CLIENTE com officeimpresso.access leva 403 nas telas de leitura', function () {
+    $operador = $this->seededTenant();
+    $cliente = $this->seededSupportClientTenant();
+
+    Permission::firstOrCreate(['name' => PERM_OI_ACCESS, 'guard_name' => 'web']);
+
+    $user = makeOiAcessoTestUser((int) $cliente->id);
+    $user->givePermissionTo(PERM_OI_ACCESS);
+    // Pré-condição anti-vácuo: o 403 tem de vir da trava, não de faltar a permissão.
+    expect($user->can(PERM_OI_ACCESS))->toBeTrue();
+    $this->actingAs($user);
+
+    // As leituras cross-empresa (outra empresa por id, todas as empresas, o log de todas)...
+    $this->get('/officeimpresso/licenca_computado/licencas/' . $operador->id)->assertForbidden();
+    $this->get('/officeimpresso/businessall')->assertForbidden();
+    $this->get('/officeimpresso/licenca_log')->assertForbidden();
+    $this->get('/officeimpresso/licenca_computador/' . LICENCA_INEXISTENTE)->assertForbidden();
+    // ...e as da própria sessão: a permissão é da operadora, não vale em empresa cliente.
+    $this->get('/officeimpresso/licenca_computador')->assertForbidden();
+    $this->get('/officeimpresso/computadores')->assertForbidden();
+    $this->get('/officeimpresso')->assertForbidden();
+
+    // Menu conta a mesma história da guarda.
+    $html = view('officeimpresso::layouts.nav')->render();
+    expect($html)->not->toContain('/officeimpresso/businessall')
+        ->and($html)->not->toContain('/officeimpresso/licenca_log');
+
+    $user->forceDelete();
+});
+
+it('operador · a MESMA conta com officeimpresso.access lê quando o config diz que a empresa dela é a operadora', function () {
+    $cliente = $this->seededSupportClientTenant();
+
+    Permission::firstOrCreate(['name' => PERM_OI_ACCESS, 'guard_name' => 'web']);
+
+    $user = makeOiAcessoTestUser((int) $cliente->id);
+    $user->givePermissionTo(PERM_OI_ACCESS);
+    $this->actingAs($user);
+
+    config(['constants.operator_business_id' => (int) $cliente->id]);
+
+    $this->get('/officeimpresso/businessall')->assertOk();
+    $this->get('/officeimpresso/licenca_log')->assertOk();
 
     $user->forceDelete();
 });

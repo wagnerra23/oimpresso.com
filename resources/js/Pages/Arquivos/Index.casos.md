@@ -4,7 +4,7 @@ irmaos: Index.charter.md (lei)
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — o contrato de teste nasce junto com a tela, não depois.
 owner: wagner
-last_run: "2026-09-04"
+last_run: "2026-10-01"
 ---
 
 # Casos de Uso & Aceite — Arquivos/Index
@@ -195,6 +195,89 @@ last_run: "2026-09-04"
 
 ---
 
+## UC-INDEX-07 · Classificar re-aplica as regras e guarda o MOTIVO na trilha
+- **Persona:** Wagner (escritório, conformidade) — achou um arquivo no bucket errado (acervo
+  antigo, regra nova do curador) e quer refazer a classificação deixando escrito por quê.
+- **Fonte:** PR-6 do `PEDIDO-PARA-CODE.md` (onda 2) e ficha `playbook/02-classificar.md` —
+  `POST arquivos/{arquivo}/classificar` → `ReclassifyArquivoRequest` → `ArquivosService::classify()`;
+  grava `classified_by/at` + audit `classify` com o `motivo` (min 5). Drawer PT-02.
+- **Aceite:** Dado um arquivo do próprio business, não excluído · Quando a pessoa com
+  `arquivos.access` abre o drawer "Classificar" da linha e envia um motivo de ≥5 caracteres ·
+  Então o Service re-aplica as regras do curador (grava `bucket`, `classified_by`,
+  `classified_at` e a linha `reclassify` com o resultado) · E a trilha ganha uma linha
+  `classify` com o motivo (passado pelo `PiiRedactor`), o bucket antes/depois e o
+  `business_id` **do arquivo** · E arquivo de OUTRO business é recusado pela Request (403) ·
+  E `force_bucket` é **recusado** com erro no campo — nada muda e nada vai pra trilha.
+- **Teste:** `Modules/Arquivos/Tests/Feature/ArquivosAdminControllerTest.php` — **5** `it()`
+  citando `UC-INDEX-07` no título: rota POST numérica atrás de `arquivos.access` · corpo do
+  `classificar()` passa pela Request e pelo Service, sem gravar o model direto · Request recusa
+  o business 99 com controle positivo no 98 · motivo na trilha no business do arquivo · 
+  `force_bucket` recusado sem efeito.
+- **Regressão que defende:** motivo validado e jogado fora (a Request o exigia e nada o
+  consumia) · `force_bucket` aceito em silêncio, prometendo uma classificação manual que o
+  Service não faz · linha de trilha gravada com o business da entrada em vez do do arquivo.
+- **Status: ⬜** — o veredito é da lane `PHP / Pest (Arquivos · MySQL)` do PR da thread 02.
+
+---
+
+## UC-INDEX-08 · Excluir é soft-delete; restaurar só dentro do grace
+- **Persona:** Wagner (escritório, conformidade) — tirou do acervo um anexo duplicado e quer
+  poder voltar atrás por um tempo, sem que nada seja apagado de verdade pela tela.
+- **Fonte:** PR-7 do `PEDIDO-PARA-CODE.md` (onda 2) e ficha `playbook/03-excluir-restaurar.md` —
+  `DeleteArquivoRequest` → `ArquivosService::softDelete()`; `RestoreArquivoRequest` →
+  `restore()`; restaurar só **dentro do grace** (`arquivos_retention.grace_period_days`, 30d) e,
+  fora dele, o botão **não existe**. D4: hard-delete/purge nunca pela UI. Linha anti-regressão
+  abaixo: "Excluir nunca chama hard-delete direto — só soft-delete + grace".
+- **Aceite:** Dado um arquivo do próprio business · Quando a pessoa com `arquivos.access` abre o
+  drawer "Excluir" e envia um motivo de ≥5 caracteres · Então a linha ganha `deleted_at` (o
+  conteúdo fica) e a trilha ganha UMA linha `soft_delete` com o motivo, no `business_id` do
+  arquivo · E com "Mostrar excluídos", dentro do grace, aparece "Restaurar" (para quem a
+  `RestoreArquivoRequest` autoriza) · E restaurar tira o `deleted_at` **preservando** a linha
+  `soft_delete` e somando uma `restore` · E fora do grace a linha vem `restauravel: false`, o
+  botão não é desenhado e o POST é recusado sem efeito · E arquivo de OUTRO business é recusado
+  pelas duas Requests (403) e não é alcançado pelo controller.
+- **Teste:** `Modules/Arquivos/Tests/Feature/ArquivosAdminControllerTest.php` — **6** `it()`
+  citando `UC-INDEX-08` no título: rotas POST numéricas atrás de `arquivos.access` · corpo dos
+  dois métodos passa pelo Service, sem `forceDelete`/purge/`->delete(` · `restauravel` só
+  dentro do grace · **cross-tenant 98 × 99** nas duas Requests, com controle positivo e a
+  segunda perna no controller · motivo na trilha e trilha preservada no restaurar · fora do
+  grace recusado sem efeito.
+- **Regressão que defende:** exclusão virar apagamento (perda de dado + quebra da guarda legal) ·
+  restaurar depois que a retenção já é dona do arquivo · botão de restaurar desabilitado em vez
+  de ausente · exclusão de arquivo de outro business.
+- **Status: ⬜** — o veredito é da lane `PHP / Pest (Arquivos · MySQL)` do PR da thread 03.
+
+---
+
+## UC-INDEX-09 · Simular a retenção lista o que sairia e por quê — sem apagar nada
+- **Persona:** Wagner (escritório, conformidade) — quer saber *quais* arquivos a política
+  removeria hoje antes de alguém rodar o `arquivos:retention-cleanup`, sem risco de apagar.
+- **Fonte:** PR-8 da proposta `arquivos-retencao-ui-aviso-titular` e ficha
+  `playbook/04-retencao-simular.md` — `POST arquivos/retencao/simular` → `RetentionRunRequest`;
+  `dry_run` **forçado** `true` no controller; `purge` recusado no controller; `run()` +
+  `report()` em job; permissão `arquivos.governanca`; não escreve em `arquivos` nem em
+  `arquivos_audit_log`. D4: a UI nunca apaga.
+- **Aceite:** Dado um business com arquivos mais antigos que `retention_days` · Quando a pessoa
+  com `arquivos.governanca` pede a simulação · Então o job roda **depois da resposta**, em
+  dry-run, com o business **da sessão** (o do corpo do request é ignorado) · E o relatório lista,
+  por arquivo, só `id`, data de criação e o motivo ("antes do limite de N dias") — nem nome, nem
+  caminho, nem hash · E nenhuma linha ganha `deleted_at` e a trilha não muda de tamanho · E
+  pedir `purge` é recusado sem despachar nada · E pedir `dry_run=false` não muda nada: o job
+  recebe `true` (e recusa sozinho se receber `false`).
+- **Teste:** `Modules/Arquivos/Tests/Feature/ArquivosAdminControllerTest.php` — **6** `it()`
+  citando `UC-INDEX-09` no título: rota POST atrás de `arquivos.governanca` · as permissões
+  `arquivos.restore` e `arquivos.governanca` declaradas com `default false` · **canário**
+  dry-run forçado + business da sessão (**98 × 99**) · purge recusado sem despacho · o job
+  recusa `dry_run=false`/`purge` · a simulação lista só o 98, não o 99, e não escreve nada.
+- **Regressão que defende:** simulação virar execução (trocar o `true` do controller por
+  `false` reprova o canário) · purge pela tela · simular o acervo de outro business · nome ou
+  caminho de arquivo saindo no relatório.
+- **Status: ⬜** — o veredito é da lane `PHP / Pest (Arquivos · MySQL)` do PR da thread 04.
+- **Sem botão ainda:** a vista de retenção (UC-INDEX-04) segue leitura pura. O relatório fica
+  no cache (24h, por business); desenhar o botão e a leitura dele na tela é o próximo passo.
+
+---
+
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
 Derivados do protótipo F1 (`arquivos-page.jsx`). A onda que implementar cada vista traz o teste
@@ -225,16 +308,14 @@ e promove o item a `UC-INDEX-NN`.
 
 - **[BACKLOG]** Excluir foto de OS → confirmação fala do grace de 30 dias e do `hard_delete` do job.
 - **[BACKLOG]** Excluir XML de NF-e → confirmação avisa da guarda legal de 5 anos ("problema fiscal, não faxina").
-- **[BACKLOG]** Restaurar dentro do grace → arquivo volta pro acervo e a trilha guarda o `restore`.
-- **[BACKLOG]** Fora do grace → o botão de restaurar **não existe** (não basta estar desabilitado).
 
 **Bloqueado — não vira UC sem decisão [W]**
 
-- **[BLOQUEADO]** Reclassificar com `force_bucket` + `motivo` → hoje `ArquivosService::classify()`
-  não aceita nenhum dos dois: roda o `CuradorEngine` automático e descarta o `motivo`. A
-  `ReclassifyArquivoRequest` valida os dois campos e **nada os consome** (`force_bucket` tem zero
-  consumidor de produção no repo). O PR-6 precisa de código de Service novo — e a regra 3 do
-  prompt manda **parar e perguntar** em vez de inventar método.
+- **[BLOQUEADO]** Forçar um bucket escolhido à mão (`force_bucket`) → o `ArquivosService::classify()`
+  só re-aplica as regras do curador, e o vocabulário da Request (`public/internal/sensitive/vault`)
+  não é o do banco (`active/sensitive/...`). Desde a thread 02 o `motivo` é consumido (UC-INDEX-07)
+  e `force_bucket` é **recusado** com erro no campo, em vez de aceito e ignorado. Forçar de verdade
+  exige Service novo — fora do prefixo da thread 02 — e decisão sobre o vocabulário.
 
 ## Anti-regressão
 
@@ -264,6 +345,9 @@ e promove o item a `UC-INDEX-NN`.
 
 ## Trilha do tempo
 - 2026-08-27 · [CC] **UC-INDEX-05 (baixar) e UC-INDEX-06 (vinculado a) promovidos de `[BACKLOG]`/medição a UC** — a onda trouxe os testes que os defendem, que é a condição do G-2. O buraco foi MEDIDO com a mesma sonda nos dois lados (produção logada × protótipo vivo): a linha de produção tinha **6 colunas e 0 botões**, o protótipo tem **7** (a 7ª é a de ações) e `mono` em 5 delas contra **0 de 6** na produção. O item de backlog do `vault` saiu da lista — ele é exatamente o UC-INDEX-05. O que **não** entrou, e por quê: classificar e excluir **não têm endpoint** (varredura do `Routes/web.php` do módulo: só `index`, `download` e as 3 do Install) e o charter os agenda pra onda 2, travada na decisão [W] do PR-6. Refs: US-ARQ-013 · ADR 0123 §6 (signed URL 60 min) · ADR 0093 (o `find()` do DownloadController aplica o scope).
+- 2026-10-01 · [CL] **UC-INDEX-09 (simular retenção em dry-run) nasce** — thread 04 do playbook (PR-8): `POST arquivos/retencao/simular` atrás de `arquivos.governanca`, dry-run forçado no controller, purge recusado, job depois da resposta que só lista. Sem botão na tela ainda. Nasce `⬜`. Refs: US-ARQ-013 · ADR 0093 · LGPD Art. 16 e 37.
+- 2026-10-01 · [CL] **UC-INDEX-08 (excluir + restaurar no grace) nasce** — thread 03 do playbook (PR-7): `POST arquivos/{arquivo}/excluir` e `.../restaurar`, drawer PT-02, chip "Mostrar excluídos". Os 2 itens de backlog de restaurar saíram (são este UC); os 2 de copy por contexto (foto de OS · XML de NF-e) ficam. Nasce `⬜`. Refs: US-ARQ-013 · ADR 0093 · ADR 0123 §8 (trilha append-only).
+- 2026-09-30 · [CL] **UC-INDEX-07 (classificar) nasce** — thread 02 do playbook (PR-6): `POST arquivos/{arquivo}/classificar`, drawer PT-02 na linha do acervo. O `[BLOQUEADO]` de 24/08 encolheu: o motivo agora vai pra trilha (linha `classify`, ao lado da `reclassify` que o Service já grava); só `force_bucket` segue bloqueado, e passou de ignorado a recusado. Nasce `⬜`. Refs: US-ARQ-013 · ADR 0093 · LGPD Art. 37.
 - 2026-07-11 · [CC] carimbado por criar-tela.mjs — trio nascido junto (charter + casos + teste). Refs: UI-0013 · ADR 0264 G-1/G-2.
 - 2026-08-24 · [CL] preenchido a partir do protótipo F1 exportado do Cowork (`arquivos-page.jsx`) + do rascunho `cowork-inbox/modulos-faltantes/arquivos.casos.md`. Os 14 cenários entraram como `[BACKLOG]` (sem id) pra não nascer órfão no G-2; o item de reclassificar foi marcado `[BLOQUEADO]` porque o Service não suporta o contrato da Request. Refs: US-ARQ-013 · ADR 0360.
 - 2026-08-25 · [CC] **UC-INDEX-02 (trilha) promovido de `[BACKLOG]` a UC** — a onda PR-2 trouxe o teste que o defende, que é a condição do G-2. Nasce `⬜`: o veredito é da lane, não da leitura. Refs: US-ARQ-013 · ADR 0093 (o `where` explícito numa tabela sem model) · ADR 0123 §8.
@@ -279,3 +363,15 @@ por leitura:** lane `PHP / Pest (Arquivos · MySQL)`, run
 `ArquivosAdminControllerTest` **PASS com 140 assertions**. O filtro daquela lane inclui
 `resources/js/Pages/Arquivos/**`, então ela **executou**; não foi skip-as-pass (conferido no
 log pelo nome do teste + o contador, nunca pelo "0 failed" — §5 2026-07-24 · LC-13).
+
+## Revalidação — 2026-09-30 (PR #8323, thread 01 do playbook)
+
+A tela mudou só na FORMA de três células do Acervo (slug do contexto em `<code>` mono ·
+classificação como `StatusBadge kind="sla"` com dot + visibilidade em mono · cor própria no
+botão de baixar), então o G-6 marcou os casos como stale. Nenhum UC muda de aceite: o
+UC-INDEX-05 (baixar por link assinado) e o UC-INDEX-06 (dono em PT-BR, link só com rota
+provada) seguem com o mesmo comportamento. **Revalidado pelo CI, não por leitura:** lane
+`PHP / Pest (Arquivos · MySQL)`, run
+[36801463339](https://github.com/wagnerra23/oimpresso.com/actions/runs/36801463339) —
+`ArquivosAdminControllerTest` **35 passed · 0 failed · 0 skipped · 140 assertions**, conferido
+pelo contador no log (LC-13), não pelo nome.

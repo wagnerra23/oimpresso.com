@@ -15,6 +15,10 @@ class WarrantyController extends Controller
      */
     public function index()
     {
+        if (! auth()->user()->can('warranty.view') && ! auth()->user()->can('warranty.create')) {
+            abort(403, 'Unauthorized action.');
+        }
+
         $business_id = request()->session()->get('user.business_id');
 
         if (request()->ajax()) {
@@ -44,6 +48,10 @@ class WarrantyController extends Controller
      */
     public function create()
     {
+        if (! auth()->user()->can('warranty.create')) {
+            abort(403, 'Unauthorized action.');
+        }
+
         return view('warranties.create');
     }
 
@@ -55,6 +63,10 @@ class WarrantyController extends Controller
      */
     public function store(Request $request)
     {
+        if (! auth()->user()->can('warranty.create')) {
+            abort(403, 'Unauthorized action.');
+        }
+
         $business_id = request()->session()->get('user.business_id');
 
         try {
@@ -96,6 +108,10 @@ class WarrantyController extends Controller
      */
     public function edit($id)
     {
+        if (! auth()->user()->can('warranty.update')) {
+            abort(403, 'Unauthorized action.');
+        }
+
         $business_id = request()->session()->get('user.business_id');
 
         if (request()->ajax()) {
@@ -115,6 +131,10 @@ class WarrantyController extends Controller
      */
     public function update(Request $request, $id)
     {
+        if (! auth()->user()->can('warranty.update')) {
+            abort(403, 'Unauthorized action.');
+        }
+
         $business_id = request()->session()->get('user.business_id');
 
         if (request()->ajax()) {
@@ -148,6 +168,10 @@ class WarrantyController extends Controller
      */
     public function destroy(Warranty $warranty)
     {
+        if (! auth()->user()->can('warranty.delete')) {
+            abort(403, 'Unauthorized action.');
+        }
+
         //
     }
 }

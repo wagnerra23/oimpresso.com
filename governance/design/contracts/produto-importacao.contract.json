@@ -1,0 +1,6 @@
+{"tela":"Produto/Importacao","fonte":"prototipo-ui/cowork/Wagner/produto-acoes.jsx","alvo":["resources/js/Pages/Produto/Importacao"],"alvo_medido":"governance/design/targets/produto--importacao--index.alvo.json",
+ "_recorte":"Copiado sem mudança do _saida-07 do playbook Produto (derivado do protótipo antes de existir .tsx). Cobre só Importar produtos; Importar estoque inicial não tem alvo nem contrato.",
+ "secoes":[{"id":"produto-importacao-header","copy":[]},
+  {"id":"produto-importacao-enviar","copy":["Importar produtos","A planilha grava direto no catálogo","Arquivo para importar *","Enviar planilha","Baixar modelo"]},
+  {"id":"produto-importacao-instrucoes","copy":["Instruções","Nº","Coluna","O que colocar"]}],
+ "ordem":["produto-importacao-header","produto-importacao-enviar","produto-importacao-instrucoes"]}

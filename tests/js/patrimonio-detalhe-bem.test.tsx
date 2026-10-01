@@ -111,3 +111,24 @@ describe('UC-BENS-10 · drawer de detalhe do bem', () => {
     expect(screen.queryByRole('tab')).toBeNull();
   });
 });
+
+// UC-BENS-12 · o rodapé do drawer oferece "Enviar pra manutenção" — só quando a Page passa o
+// handler (é ela que sabe a permissão), e o clique entrega o id DESTE bem.
+describe('UC-BENS-12 · rodapé do drawer de detalhe', () => {
+  it('UC-BENS-12: com o handler, o rodapé tem "Enviar pra manutenção" e o clique entrega o id do bem', () => {
+    const enviar = vi.fn();
+    render(<DetalheBemDrawer aberto detalhe={detalhe} tiposCompra={{ owned: 'Próprio' }} onClose={() => {}} onEnviarManutencao={enviar} />);
+
+    const botao = screen.getByRole('button', { name: 'Enviar pra manutenção' });
+    expect(botao.className).toContain('min-h-11');
+    fireEvent.click(botao);
+    expect(enviar).toHaveBeenCalledWith(7);
+  });
+
+  it('UC-BENS-12: sem o handler (sem permissão), o botão não existe — e o drawer renderizou', () => {
+    render(<DetalheBemDrawer aberto detalhe={detalhe} tiposCompra={{ owned: 'Próprio' }} onClose={() => {}} />);
+
+    expect(screen.getByTestId('detalhe-bem').textContent).toContain('Notebook Dell');
+    expect(screen.queryByRole('button', { name: 'Enviar pra manutenção' })).toBeNull();
+  });
+});

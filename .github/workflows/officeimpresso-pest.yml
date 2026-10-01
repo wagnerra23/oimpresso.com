@@ -29,6 +29,16 @@ name: Officeimpresso · Pest (MySQL)
 # rodar"), e a prova de que passou a rodar é o CONTADOR de assertions deste
 # JUnit subir, não o nome aparecer no log.
 #
+# 2026-10-01 — entra SalvarEquipamentoTenantGuardTest (guard Tier 0 da rota
+# Connector salvar-equipamento/{business_id}, que grava licenca_computador —
+# tabela deste módulo). O Connector não tem lane MySQL e o modules-pest roda
+# SQLite (o teste daria skip, 0 assertions); por isso os 3 arquivos do guard
+# entram no paths-filter daqui.
+#
+# 2026-10-01 — entra OauthClientIdTest (Passport 13 gerava UUID no id do client
+# e o schema legado é INT: o insert colidia). O AuthServiceProvider entra no
+# paths-filter porque é lá que mora o conserto (Passport::$clientUuids = false).
+#
 # Reusa .github/actions/pest-mysql-setup: PHP 8.4 + deps + .env MySQL + migrate
 # (schema baseline) + seed biz=1 (fixture completa) E biz=2 (Tier 0 cross-tenant).
 # Refs: ADR 0093 (multi-tenant Tier 0) · ADR 0101 (biz=1 nunca biz=4).
@@ -45,6 +55,11 @@ on:
     branches: [main]
     paths:
       - 'Modules/Officeimpresso/**'
+      - 'Modules/Connector/Http/Controllers/Api/LicencaComputadorController.php'
+      - 'Modules/Connector/Routes/api.php'
+      - 'Modules/Connector/Config/config.php'
+      - 'tests/Feature/Connector/SalvarEquipamentoTenantGuardTest.php'
+      - 'app/Providers/AuthServiceProvider.php'
       - 'database/schema/mysql-schema.sql'
       - '.github/workflows/officeimpresso-pest.yml'
       - '.github/actions/pest-mysql-setup/**'
@@ -82,6 +97,11 @@ jobs:
           filters: |
             officeimpresso:
               - 'Modules/Officeimpresso/**'
+              - 'Modules/Connector/Http/Controllers/Api/LicencaComputadorController.php'
+              - 'Modules/Connector/Routes/api.php'
+              - 'Modules/Connector/Config/config.php'
+              - 'tests/Feature/Connector/SalvarEquipamentoTenantGuardTest.php'
+              - 'app/Providers/AuthServiceProvider.php'
               - 'database/schema/mysql-schema.sql'
               - '.github/workflows/officeimpresso-pest.yml'
               - '.github/actions/pest-mysql-setup/**'
@@ -123,7 +143,12 @@ jobs:
           vendor/bin/pest --no-coverage --colors=always \
             --log-junit test-results/pest-officeimpresso-junit.xml \
             Modules/Officeimpresso/Tests/Feature/LicencasAcessoPermissionTest.php \
-            Modules/Officeimpresso/Tests/Feature/LogsBaselineTest.php
+            Modules/Officeimpresso/Tests/Feature/LogsBaselineTest.php \
+            Modules/Officeimpresso/Tests/Feature/LicencasIndexContratoTest.php \
+            Modules/Officeimpresso/Tests/Feature/CatalogoRedirectTest.php \
+            Modules/Officeimpresso/Tests/Feature/ClientesSegredoUmaVezTest.php \
+            Modules/Officeimpresso/Tests/Feature/OauthClientIdTest.php \
+            tests/Feature/Connector/SalvarEquipamentoTenantGuardTest.php
 
 
       # Passo 1 do plano da LC-13 (Gate:): a lane JA emitia JUnit e NINGUEM lia.

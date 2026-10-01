@@ -1,0 +1,17 @@
+{
+  "_nota": "Copiado do bloco derivado em prototipo-ui/cowork/Wagner/cowork-inbox/crm/playbook/_saida-01.md (thread Crm/01, #8345) — não re-derivado do .tsx. Só o `alvo` mudou: o provisório da 01 virou o caminho real da Page (D4 = Modules/Crm/Resources/js/Pages, namespace Inertia `Crm/Painel/Index`).",
+  "tela": "Crm/Painel/Index",
+  "fonte": "prototipo-ui/cowork/Wagner/crm-blade.jsx",
+  "alvo": ["Modules/Crm/Resources/js/Pages/Crm/Painel/Index.tsx"],
+  "secoes": [
+    { "id": "crm-painel-meus", "copy": ["Meus acompanhamentos"] },
+    { "id": "crm-painel-chamadas", "copy": ["Meus registros de chamadas", "Chamadas hoje", "Chamadas ontem", "Chamadas neste mês"] },
+    { "id": "crm-painel-fontes", "copy": ["Fontes", "Fonte", "Total", "Conversão"] },
+    { "id": "crm-painel-fases", "copy": ["Estágios de vida", "Estágio"] },
+    { "id": "crm-painel-aniversarios", "copy": ["Aniversários", "Enviar desejos", "Hoje", "Próximos"] },
+    { "id": "crm-painel-por-usuario", "copy": ["Acompanhamentos por usuário", "Nenhum", "Acompanhamentos totais"] },
+    { "id": "crm-painel-conversao", "copy": ["Leads convertidos em cliente", "Convertido por"] },
+    { "id": "crm-painel-chamadas-todos", "copy": ["Registro de chamadas — todos os usuários", "No mês", "Todas"] }
+  ],
+  "ordem": ["crm-painel-meus", "crm-painel-chamadas", "crm-painel-fontes", "crm-painel-fases", "crm-painel-aniversarios", "crm-painel-por-usuario", "crm-painel-conversao", "crm-painel-chamadas-todos"]
+}

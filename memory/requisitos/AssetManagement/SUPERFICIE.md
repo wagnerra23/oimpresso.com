@@ -14,7 +14,7 @@ module: AssetManagement
 >
 > **O que isto é:** o inventário completo das raízes `Modules/AssetManagement/**` + `resources/js/Pages/AssetManagement/**` + `resources/js/Pages/Patrimonio/**` (namespaces Inertia `AssetManagement`, `Patrimonio`, declarados em `module-surface.mjs::PAGES_NS` porque diferem do nome do módulo `AssetManagement` — confira com `--namespaces`), separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 131 arquivos em 17 papéis.
+**Total mapeado:** 129 arquivos em 17 papéis.
 
 ## Controllers — 7
 
@@ -82,7 +82,7 @@ module: AssetManagement
 - [config.php](../../../Modules/AssetManagement/Config/config.php)
 - [retention.php](../../../Modules/AssetManagement/Config/retention.php)
 
-## Views (Blade) — 15
+## Views (Blade) — 13
 
 - [create.blade.php](../../../Modules/AssetManagement/Resources/views/asset/create.blade.php)
 - [dashboard.blade.php](../../../Modules/AssetManagement/Resources/views/asset/dashboard.blade.php)
@@ -92,8 +92,6 @@ module: AssetManagement
 - [edit.blade.php](../../../Modules/AssetManagement/Resources/views/asset_allocation/edit.blade.php)
 - [index.blade.php](../../../Modules/AssetManagement/Resources/views/asset_allocation/index.blade.php)
 - [index.blade.php](../../../Modules/AssetManagement/Resources/views/asset_maintenance/index.blade.php)
-- [create.blade.php](../../../Modules/AssetManagement/Resources/views/asset_revocation/create.blade.php)
-- [index.blade.php](../../../Modules/AssetManagement/Resources/views/asset_revocation/index.blade.php)
 - [index.blade.php](../../../Modules/AssetManagement/Resources/views/index.blade.php)
 - [nav.blade.php](../../../Modules/AssetManagement/Resources/views/layouts/nav.blade.php)
 - [index.blade.php](../../../Modules/AssetManagement/Resources/views/settings/index.blade.php)

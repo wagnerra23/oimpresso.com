@@ -16,10 +16,36 @@ abstract class TestCase extends BaseTestCase
     {
         parent::setUp();
 
+        $this->resetEloquentGuardableColumnsCache();
+
         // (US-GOV-018 A.2 FULLSUITE_FK_OFF removido — REVERTIDO em US-GOV-020 por net-harmful;
         //  era dead-code: a flag nunca mais é setada. Ledger §E.)
 
         $this->healCanonicalTenantIfWiped();
+    }
+
+    /**
+     * Zera o cache ESTÁTICO de colunas que o Eloquent usa no mass-assignment.
+     *
+     * Com `$guarded` não-vazio (ex. `['id']`), `fill()` só aceita chave que exista na
+     * tabela — e a lista de colunas fica em `Model::$guardableColumns`, estático, por
+     * classe, POR PROCESSO. O app é recriado a cada teste; esse cache não. Um teste que
+     * monta schema sintético reduzido e chama `fill()` deixa a lista reduzida cravada
+     * para todo teste seguinte do processo, que passa a descartar atributos em silêncio.
+     *
+     * Medido 2026-10-01 (lane `PHP / Pest (Unit)`, runs 36807108206 e 36811913322
+     * attempt 1): `AtendimentoMacrosJanaTemplatesContratoTest` cria
+     * `whatsapp_business_configs` sem as colunas `meta_*` e chama `firstOrNew`; quando
+     * a ordem aleatória punha o `FetchTemplatesTest` depois dele, o `new
+     * WhatsappBusinessConfig([... 'meta_phone_number_id' => ...])` perdia o phone id, o
+     * driver chamava `/v21.0/` sem stub e devolvia `[]` → "actual size 0 matches
+     * expected size 2". Regressão: tests/Feature/Testing/GuardableColumnsCacheResetTest.php
+     */
+    protected function resetEloquentGuardableColumnsCache(): void
+    {
+        \Closure::bind(static function (): void {
+            static::$guardableColumns = [];
+        }, null, \Illuminate\Database\Eloquent\Model::class)();
     }
 
     /**

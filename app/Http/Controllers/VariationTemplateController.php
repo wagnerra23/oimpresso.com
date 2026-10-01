@@ -19,6 +19,10 @@ class VariationTemplateController extends Controller
      */
     public function index()
     {
+        if (! auth()->user()->can('variation.view') && ! auth()->user()->can('variation.create')) {
+            abort(403, 'Unauthorized action.');
+        }
+
         if (request()->ajax()) {
             $business_id = request()->session()->get('user.business_id');
 
@@ -59,6 +63,10 @@ class VariationTemplateController extends Controller
      */
     public function create()
     {
+        if (! auth()->user()->can('variation.create')) {
+            abort(403, 'Unauthorized action.');
+        }
+
         return view('variation.create');
     }
 
@@ -70,6 +78,10 @@ class VariationTemplateController extends Controller
      */
     public function store(Request $request)
     {
+        if (! auth()->user()->can('variation.create')) {
+            abort(403, 'Unauthorized action.');
+        }
+
         try {
             $input = $request->only(['name']);
             $input['business_id'] = $request->session()->get('user.business_id');
@@ -121,6 +133,10 @@ class VariationTemplateController extends Controller
      */
     public function edit($id)
     {
+        if (! auth()->user()->can('variation.update')) {
+            abort(403, 'Unauthorized action.');
+        }
+
         if (request()->ajax()) {
             $business_id = request()->session()->get('user.business_id');
             $variation = VariationTemplate::where('business_id', $business_id)
@@ -140,6 +156,10 @@ class VariationTemplateController extends Controller
      */
     public function update(Request $request, $id)
     {
+        if (! auth()->user()->can('variation.update')) {
+            abort(403, 'Unauthorized action.');
+        }
+
         if (request()->ajax()) {
             try {
                 $input = $request->only(['name']);
@@ -161,7 +181,13 @@ class VariationTemplateController extends Controller
                     $values = $request->input('edit_variation_values');
                     foreach ($values as $key => $value) {
                         if (! empty($value)) {
-                            $variation_val = VariationValueTemplate::find($key);
+                            // Tier 0 (ADR 0093): o valor tem que ser DESTE template, que ja
+                            // foi resolvido por business_id. `find($key)` cru editava valor de
+                            // outro negocio pelo id.
+                            $variation_val = $variation->values()->find($key);
+                            if (! $variation_val) {
+                                continue;
+                            }
 
                             if ($variation_val->name != $value) {
                                 $variation_val->name = $value;
@@ -206,6 +232,10 @@ class VariationTemplateController extends Controller
      */
     public function destroy($id)
     {
+        if (! auth()->user()->can('variation.delete')) {
+            abort(403, 'Unauthorized action.');
+        }
+
         if (request()->ajax()) {
             try {
                 $business_id = request()->session()->get('user.business_id');
