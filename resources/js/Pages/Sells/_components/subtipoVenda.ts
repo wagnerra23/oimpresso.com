@@ -1,7 +1,9 @@
 /**
  * Campos de TIPO de venda que o PDV React precisa enviar ao `SellPosController@store`.
  *
- * O PDV é aberto como reparo por `/sells/create?sub_type=repair` (link do Repair/Index).
+ * O PDV é aberto como reparo por `/pos/create?sub_type=repair` (SellPosController@create,
+ * que lê `?sub_type=`). Atenção: `/sells/create` é o SellController, que monta `subType` a
+ * partir de `?sale_type=` — por ali o reparo não chega aqui.
  * O controller já devolve `subType` nas props, mas o envio não o carregava: a venda de
  * reparo saía gravada como venda comum, sem `sub_type`, e sumia da listagem do Repair.
  * Decisão [W] 2026-10-01: reparo é um TIPO de venda — mesmo cálculo, mesmo estoque.

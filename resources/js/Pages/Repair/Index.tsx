@@ -196,7 +196,10 @@ function Index({ repairs, filters, meta, permissions }: Props) {
         action={
           permissions.create ? (
             <Button asChild>
-              <a href="/sells/create?sub_type=repair">
+              {/* /pos/create (SellPosController) é a porta que lê ?sub_type= e entrega
+                  subType ao Sells/Create. /sells/create (SellController) lê ?sale_type= e
+                  gravava o reparo como venda comum. Medido 2026-10-01 (UC-S03). */}
+              <a href="/pos/create?sub_type=repair">
                 <Plus className="mr-2 h-4 w-4" /> Nova OS
               </a>
             </Button>

@@ -234,3 +234,35 @@ it('UC-S03 · reparo enviado sem print_label grava e redireciona, sem erro depoi
     $reparo['response']->assertRedirect(action([\Modules\Repair\Http\Controllers\RepairController::class, 'index']));
     $reparo['response']->assertSessionHasNoErrors();
 });
+
+it('UC-S03 · a porta /pos/create?sub_type=repair entrega subType=repair ao Sells/Create', function () {
+    // A correção do envio só vale se a PORTA entregar o tipo. Medido 2026-10-01: o botão
+    // "Nova OS" do Repair/Index.tsx abria /sells/create (SellController, lê ?sale_type=) e
+    // o menu apontava /sells/pos/create (404 em prod). /pos/create é o SellPosController,
+    // que lê ?sub_type= — e exige caixa aberto (senão redireciona pra abrir o caixa).
+    DB::table('cash_registers')->insert([
+        'business_id' => $this->bizId,
+        'location_id' => $this->locationId,
+        'user_id' => $this->user->id,
+        'status' => 'open',
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+
+    $manifest = public_path('build-inertia/manifest.json');
+    $headers = [
+        'X-Inertia' => 'true',
+        'X-Inertia-Version' => file_exists($manifest) ? md5_file($manifest) : '1',
+    ];
+
+    $reparo = $this->withHeaders($headers)->get('/pos/create?sub_type=repair');
+    $comum = $this->withHeaders($headers)->get('/pos/create');
+
+    \PHPUnit\Framework\Assert::assertSame(200, $reparo->status(), 'GET /pos/create?sub_type=repair não abriu a tela: HTTP '.$reparo->status().' '.mb_substr((string) $reparo->getContent(), 0, 300));
+    expect($reparo->json('component'))->toBe('Sells/Create');
+    expect($reparo->json('props.subType'))->toBe('repair');
+
+    // Controle: sem o parâmetro, a mesma porta abre venda comum.
+    \PHPUnit\Framework\Assert::assertSame(200, $comum->status(), 'GET /pos/create não abriu a tela: HTTP '.$comum->status());
+    expect($comum->json('props.subType'))->toBeNull();
+});

@@ -90,7 +90,7 @@ last_run: "2026-08-26"
 ---
 
 ## UC-S03 · Venda aberta como reparo é gravada como reparo, sem mudar valor nem estoque
-- **Persona:** técnico de assistência que abre "Novo reparo" na listagem do Repair (link `/sells/create?sub_type=repair`).
+- **Persona:** técnico de assistência que abre "Nova OS" no Repair (botão da listagem ou menu), que levam a `/pos/create?sub_type=repair` — a porta do `SellPosController`, a única que entrega `subType` ao React. (`/sells/create` é o `SellController`, que lê `?sale_type=`; o menu apontava para `/sells/pos/create`, 404 em prod — os dois corrigidos neste UC, medido 2026-10-01.)
 - **Como usa:** monta a venda do reparo (peças, serviço, desconto, pagamento) e salva. Reparo é um **tipo de venda** (decisão [W] 2026-10-01: *"é uma venda, tipo de venda igual ao OS auto"*): o cálculo e a baixa de estoque são os da venda comum; só muda onde a venda aparece.
 - **Aceite:** Dado o PDV aberto com `sub_type=repair` · Quando salva · Então o envio carrega `sub_type=repair` e `print_label=0`, a venda grava `transactions.sub_type='repair'`, os campos de reparo enviados (ex. nº de série) persistem e a tela volta para a listagem do Repair. **E** uma venda comum idêntica tem o mesmo `final_total`, `total_before_tax`, `tax_amount`, `discount_amount`, as mesmas linhas e a mesma baixa de estoque. **E** se o envio de reparo vier sem `print_label`, a venda grava e redireciona sem erro.
 - **Teste:** `tests/Feature/Sells/SellsRepairSubtipoContratoTest.php` (POST `/pos` real, tenant 98, lane `sells-pest`) + `tests/js/sells-subtipo-venda.test.ts` (o que o envio carrega, lane `sells-v3-dominio-gate`).
