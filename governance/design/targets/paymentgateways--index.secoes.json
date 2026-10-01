@@ -1,0 +1,9 @@
+{
+  "_": "A1 [CL] 2026-09-30 — playbook lote-trio-medida. Protótipo: rota `payment-gateways` do espelho (pg-shell-adapters.jsx → PG_PaymentGatewaysPage de pg-payment-gateways-page.jsx), que é o related_prototype do charter de Settings/PaymentGateways/Index. Modal Novo gateway não medido.",
+  "_mapa": "alvo:mapa --rota payment-gateways --raiz '.pg-shell-scope > *' contra o espelho servido por servirEstatico, 2026-09-30: header · div.grid-cols-3 (3 KPIs) · div.pt-3 (aviso BCB mTLS) · div.pt-4.pb-3 (título da tabela) · div.flex-1 (tabela). Seletores posicionais: o protótipo é Tailwind sem data-contract nem classe semântica.",
+  "header": { "seletor": ".pg-shell-scope > div > header" },
+  "kpis": { "seletor": ".pg-shell-scope > div > div:nth-child(2)" },
+  "aviso": { "seletor": ".pg-shell-scope > div > div:nth-child(3)" },
+  "tabela_titulo": { "seletor": ".pg-shell-scope > div > div:nth-child(4)" },
+  "tabela": { "seletor": ".pg-shell-scope > div > div:nth-child(5)" }
+}

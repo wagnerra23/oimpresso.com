@@ -1,0 +1,16 @@
+{
+  "_": "A1 [CL] 2026-09-30 — playbook crm. Protótipo: rota `crm-painel` do espelho (app.jsx CRM_VIEW → CrmBladePage view=painel → TelaPainel em crm-blade.jsx).",
+  "_mapa": "alvo:mapa --rota crm-painel contra o espelho servido por servirEstatico, 2026-09-30: .pb-body = nav.cb-nav · div.pb-grid.c4 (KPIs pessoais) · div.pb-grid.c2 (meus · chamadas) · div.pb-grid.c4 (KPIs totais) · div.pb-grid.c2 (fontes · fases) · section aniversarios · section por-usuario · div.pb-grid.c2 (conversao · chamadas-todos). Widgets por data-contract; as duas grades de KPI por posição (não têm contrato).",
+  "header": { "seletor": ".cb-root > .cli-ph" },
+  "nav": { "seletor": ".cb-root > .pb-body > .cb-nav" },
+  "kpis_pessoais": { "seletor": ".cb-root > .pb-body > div:nth-child(2)" },
+  "meus": { "seletor": "[data-contract=\"crm-painel-meus\"]" },
+  "chamadas": { "seletor": "[data-contract=\"crm-painel-chamadas\"]" },
+  "kpis_totais": { "seletor": ".cb-root > .pb-body > div:nth-child(4)" },
+  "fontes": { "seletor": "[data-contract=\"crm-painel-fontes\"]" },
+  "fases": { "seletor": "[data-contract=\"crm-painel-fases\"]" },
+  "aniversarios": { "seletor": "[data-contract=\"crm-painel-aniversarios\"]" },
+  "por_usuario": { "seletor": "[data-contract=\"crm-painel-por-usuario\"]" },
+  "conversao": { "seletor": "[data-contract=\"crm-painel-conversao\"]" },
+  "chamadas_todos": { "seletor": "[data-contract=\"crm-painel-chamadas-todos\"]" }
+}

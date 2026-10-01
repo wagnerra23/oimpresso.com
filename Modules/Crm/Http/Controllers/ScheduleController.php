@@ -13,6 +13,7 @@ use Carbon\Carbon;
 use DB;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\View;
+use Inertia\Inertia;
 use Modules\Crm\Entities\CrmContact;
 use Modules\Crm\Entities\Schedule;
 use Modules\Crm\Http\Requests\StoreScheduleRequest;
@@ -71,7 +72,12 @@ class ScheduleController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
-        if (request()->ajax()) {
+        // Thread Crm/03: a lista abre em Inertia. O Inertia manda `X-Requested-With` junto do
+        // `X-Inertia`, então `ajax()` sozinho mandaria a visita pro DataTables (§5 2026-09-08).
+        // `?classico=1` mantém a tela Blade, que ainda hospeda os modais de escrita.
+        $inertia = ! request()->boolean('classico') && (! request()->ajax() || request()->header('X-Inertia'));
+
+        if (request()->ajax() || $inertia) {
             $schedules = Schedule::leftjoin('contacts', 'crm_schedules.contact_id', '=', 'contacts.id')
                 ->leftjoin('users as U', 'crm_schedules.created_by', '=', 'U.id')
                 ->leftjoin('categories as C', 'crm_schedules.followup_category_id', '=', 'C.id')
@@ -139,6 +145,10 @@ class ScheduleController extends Controller
                 $schedules->whereHas('users', function ($q) use ($user_id) {
                     $q->where('user_id', $user_id);
                 });
+            }
+
+            if ($inertia) {
+                return $this->acompanhamentosInertia($business_id, $schedules);
             }
 
             return Datatables::of($schedules)
@@ -821,5 +831,57 @@ class ScheduleController extends Controller
         }
 
         return $customers;
+    }
+
+    /**
+     * Lista de acompanhamentos em Inertia (thread Crm/03). Recebe a MESMA consulta do
+     * DataTables — business_id, filtros e a restrição "só os meus" já aplicados —, então
+     * a tela nova não tem como ver mais do que a Blade via.
+     */
+    private function acompanhamentosInertia($business_id, $schedules)
+    {
+        $busca = trim((string) request()->input('q', ''));
+        if ($busca !== '') {
+            $schedules->where(function ($w) use ($busca) {
+                $w->where('crm_schedules.title', 'like', "%{$busca}%")
+                    ->orWhere('contacts.name', 'like', "%{$busca}%")
+                    ->orWhere('contacts.supplier_business_name', 'like', "%{$busca}%");
+            });
+        }
+
+        $lista = fn ($mapa) => collect($mapa)->map(fn ($label, $value) => ['value' => (string) $value, 'label' => (string) $label])->values();
+        $data = fn ($d) => empty($d) ? null : Carbon::parse($d)->format('d/m/Y H:i');
+
+        return Inertia::render('Crm/Acompanhamentos/Index', [
+            'filtros' => request()->only(['is_recursive', 'contact_id', 'assgined_to', 'status', 'schedule_type', 'followup_category_id', 'start_date_time', 'end_date_time', 'follow_up_by', 'q']),
+            'opcoes' => Inertia::defer(fn () => [
+                'contatos' => $lista($this->getCustomerDropdown($business_id)),
+                'usuarios' => $lista(User::forDropdown($business_id, false)),
+                'status' => $lista(Schedule::statusDropdown(true)),
+                'tipos' => $lista(Schedule::followUpTypeDropdown()),
+                'categorias' => $lista(Category::forDropdown($business_id, 'followup_category')),
+                'por' => $lista(['payment_status' => __('sale.payment_status'), 'orders' => __('restaurant.orders')]),
+            ]),
+            'acompanhamentos' => Inertia::defer(fn () => $schedules
+                ->orderByDesc('crm_schedules.start_datetime')
+                ->paginate(25)
+                ->withQueryString()
+                ->through(fn ($s) => [
+                    'id' => $s->id,
+                    'titulo' => $s->title,
+                    'contato' => trim(($s->biz_name ? $s->biz_name.', ' : '').$s->contact),
+                    'inicio' => $data($s->start_datetime),
+                    'fim' => $data($s->end_datetime),
+                    'status' => $s->status,
+                    'tipo' => $s->schedule_type,
+                    'categoria' => $s->followup_category,
+                    'atribuidos' => $s->users->pluck('user_full_name')->values(),
+                    'descricao' => strip_tags((string) $s->description),
+                    'por' => $s->follow_up_by,
+                    'em_dias' => $s->recursion_days,
+                    'adicionado_por' => trim("{$s->surname} {$s->first_name} {$s->last_name}"),
+                    'adicionado_em' => $data($s->added_on),
+                ])),
+        ]);
     }
 }

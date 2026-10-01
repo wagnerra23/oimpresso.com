@@ -1,0 +1,13 @@
+{
+  "_nota": "Copiado do bloco derivado em prototipo-ui/cowork/Wagner/cowork-inbox/crm/playbook/_saida-01.md (thread Crm/01, #8345) — não re-derivado do .tsx. Só o `alvo` mudou: o provisório da 01 virou o caminho real da Page (D4 = Modules/Crm/Resources/js/Pages, namespace Inertia `Crm/Acompanhamentos/Index`).",
+  "tela": "Crm/Acompanhamentos/Index",
+  "fonte": "prototipo-ui/cowork/Wagner/crm-blade.jsx",
+  "alvo": ["Modules/Crm/Resources/js/Pages/Crm/Acompanhamentos/Index.tsx"],
+  "secoes": [
+    { "id": "crm-filtros", "copy": ["Filtros", "Contato", "Atribuído", "Status", "Tipo de acompanhamento", "Intervalo de datas", "Acompanhamento por", "Categoria"] },
+    { "id": "crm-acompanhamentos", "copy": ["Todos os acompanhamentos", "Acompanhamentos", "Acompanhamento recorrente"], "estados": ["todos", "recorrente", "vazio"] },
+    { "id": "crm-toolbar", "copy": ["Buscar por título ou contato", "Recorrente", "Acompanhamento antecipado", "Adicionar"] },
+    { "id": "crm-rodape", "copy": ["Total:"] }
+  ],
+  "ordem": ["crm-filtros", "crm-acompanhamentos", "crm-toolbar", "crm-rodape"]
+}

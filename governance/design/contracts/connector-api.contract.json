@@ -1,0 +1,26 @@
+{
+  "_nota": "Contrato de Tela do painel do Conector (ADR 0286), derivado do protótipo connector-page.jsx (ClientsView + NovoClient) e da proposta do Cowork em cowork-inbox/connector/connector-api.contract.json. Recorte da thread Connector/04 PR-a (2026-10-01): só a aba de API clients — lista, criar, excluir. Ficam para o PR-b as seções tabs, docs-*, saude-checks, modulo-* e os acordos_estado (verdict 'proposto'/'ratificado_[W]' não é vocabulário desta máquina: aceita aprovado|recusado). Copy adaptada da tela, de propósito: 'Tipo' mostra 'client de senha' em vez de password_client (proibição de enum cru da própria proposta).",
+  "tela": "Connector/Api",
+  "fonte": "prototipo-ui/cowork/Wagner/connector-page.jsx",
+  "alvo": ["Modules/Connector/Resources/js/Pages/Api"],
+  "secoes": [
+    { "id": "page-header", "copy": ["Conector — API clients", "superadmin · cross-tenant"] },
+    { "id": "aviso-permissao", "copy": ["Só superadmin emite credencial de API"], "estados": ["superadmin"] },
+    { "id": "aviso-demo", "copy": ["Desligado na demonstração"], "estados": ["demo"] },
+    { "id": "kpis", "copy": ["Clients ativos", "Tokens ativos em 24 h", "Endpoints publicados", "Limite por token"] },
+    { "id": "toolbar", "copy": ["Buscar client por nome ou id…", "Criar API client"] },
+    { "id": "credencial-criada", "copy": ["client_id", "client_secret", "Esta é a única vez que o segredo aparece"], "estados": ["oculto", "exibido"] },
+    { "id": "clients-table", "copy": ["ID", "Nome", "Segredo", "Tokens 24 h", "Criado", "guardado", "não é exibível", "Emitir credencial nova"], "estados": ["normal", "vazio"] },
+    { "id": "vazio", "copy": ["Nenhuma credencial emitida ainda", "Criar o primeiro API client", "Credenciais desligadas na demonstração"], "estados": ["primeira-vez", "sem-resultado", "demo"] },
+    { "id": "novo-client-form", "copy": ["Nome", "Onde essa credencial vai rodar", "O nome do client OAuth é obrigatório.", "O nome do client não pode ultrapassar 191 caracteres.", "Redirecionamento", "Tipo"], "estados": ["vazio", "ok", "excedido", "duplicado"] },
+    { "id": "confirm-excluir", "copy": ["Excluir este API client?", "Excluir client"], "estados": ["idle", "aberto"] }
+  ],
+  "ordem": ["page-header", "aviso-permissao", "kpis", "toolbar", "clients-table"],
+  "proibicoes": [
+    "Segredo (client_secret) renderizado sem ação do usuário — nem no HTML inicial, nem na coluna da tabela.",
+    "Coluna/enum crua na interface: password_client, personal_access_client, revoked.",
+    "Inglês em copy cliente-facing (Clients, Client Secret, Create Client, Regenerate doc).",
+    "Qualquer ação de regenerar chaves do Passport ou de rotar/revelar o segredo de um client existente ([W] D3, D4, D6).",
+    "Segredo recém-criado em toast que some sozinho — vai num bloco copiável até o usuário fechar."
+  ]
+}

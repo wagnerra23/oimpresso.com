@@ -1,0 +1,7 @@
+{
+  "_": "A1 [CL] 2026-09-30 — playbook lote-trio-medida. Protótipo: rota `vest-etiquetas` do espelho (vestuario-page.jsx VestuarioPage, tweaks default estado=dados papel=operador). A seção vst-previa ([data-contract=previa]) fica fora: o próprio protótipo a marca 'proposta F1 · pendente [W]' (D-2).",
+  "_mapa": "alvo:mapa --rota vest-etiquetas --raiz .vst-page contra o espelho servido por servirEstatico, 2026-09-30: div[cabecalho] · section.vst-cfg[config] · section.vst-lote[lote] · section.vst-previa[previa].",
+  "cabecalho": { "seletor": ".vst-page > [data-contract=\"cabecalho\"]" },
+  "config": { "seletor": ".vst-page > [data-contract=\"config\"]" },
+  "lote": { "seletor": ".vst-page > [data-contract=\"lote\"]" }
+}

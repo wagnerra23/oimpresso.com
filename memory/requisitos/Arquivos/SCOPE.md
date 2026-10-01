@@ -7,6 +7,7 @@ contains:
   - "DataController"
   - "DownloadController"
   - "InstallController"
+  - "RetencaoSimulacaoController"
 not_contains:
   - "MemCofre senhas/segredos → Modules/SRS — módulo REMOVIDO em 2026-07-29 (ADR 0357); fronteira a revisar"
   - "Memoria RAG semântico Jana → Modules/Jana"

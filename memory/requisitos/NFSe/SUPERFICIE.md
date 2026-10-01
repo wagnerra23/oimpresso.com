@@ -14,7 +14,7 @@ module: NFSe
 >
 > **O que isto é:** o inventário completo das raízes `Modules/NFSe/**` + `resources/js/Pages/Nfse/**` (namespace Inertia `Nfse`, declarado em `module-surface.mjs::PAGES_NS` porque difere do nome do módulo `NFSe` — confira com `--namespaces`), separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 61 arquivos em 16 papéis.
+**Total mapeado:** 64 arquivos em 17 papéis.
 
 ## Controllers — 3
 
@@ -90,6 +90,12 @@ module: NFSe
 - [Emitir.charter.md](../../../resources/js/Pages/Nfse/Emitir.charter.md)
 - [Index.charter.md](../../../resources/js/Pages/Nfse/Index.charter.md)
 - [Show.charter.md](../../../resources/js/Pages/Nfse/Show.charter.md)
+
+## Casos (contrato UC) — 3
+
+- [Emitir.casos.md](../../../resources/js/Pages/Nfse/Emitir.casos.md)
+- [Index.casos.md](../../../resources/js/Pages/Nfse/Index.casos.md)
+- [Show.casos.md](../../../resources/js/Pages/Nfse/Show.casos.md)
 
 ## Testes (Pest) — 10
 
