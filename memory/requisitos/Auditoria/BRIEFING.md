@@ -3,7 +3,7 @@ id: requisitos-auditoria-briefing
 module: Auditoria
 status: governança transversal cross-tenant (sprint 3 em curso)
 piloto: N/A (governança transversal — todos businesses sem cliente externo direto)
-last_review: 2026-05-16
+last_review: 2026-10-01
 owner: wagner
 parent_adr: 0127
 related_adrs: [0093, 0094, 0101, 0107, 0127, 0153, 0155, 0156]
@@ -79,6 +79,16 @@ Adicionar = PR + comentário. Remover = ADR amendada. Detalhe em [SPEC.md §Whit
 - 🟡 Pages Inertia `Index.tsx`/`Detail.tsx` + charter F1.5+F3 (US-AUDIT-009) — gate visual = **CI** (visual-regression + PR UI Judge), **não** aprovação síncrona de screenshot (v2 · [ADR 0241](../../decisions/0241-loop-design-cowork-code-autonomo-zero-humano.md)/[0282](../../decisions/0282-protocolo-v2-colapso-ratificacao.md), [PROTOCOL §0.1](../../../memory/reference/prototipo-ui/PROTOCOL.md))
 - 🟡 Permissões Spatie 3 níveis + redirect 301 legacy (US-AUDIT-010) — em revisão
 - 🟢 Wave M: extração `AuditEntryService` pareada com `Modules/Governance/AuditDrillDownService` (Wave H)
+
+## Backfill do `business_id` NULL no `activity_log` (2026-10-01)
+
+Fecha a dívida deixada pelo bug corrigido no [#8384](https://github.com/wagnerra23/oimpresso.com/pull/8384), em que o trait `LogsActivity` não gravava o tenant. O comando é `php artisan auditoria:backfill-business-id` ([#8406](https://github.com/wagnerra23/oimpresso.com/pull/8406)). Sem `--apply` ele só faz dry-run. O tenant vem sempre do **registro auditado**, nunca da sessão (ADR 0093). Os números abaixo são fato datado de 2026-10-01; para o estado de hoje, rode o dry-run de novo.
+
+- **Núcleo** (`Transaction`, `TransactionSellLine`, `TransactionPayment`, `Contact`, `Product`, `Variation`, `VariationLocationDetails`, `PurchaseLine`): o `--apply` foi rodado por outra sessão antes desta conferência. O que sobrou NULL (655 linhas) aponta para registros já apagados, sem caminho até um tenant.
+- **Demais módulos:** 6.322 linhas preenchidas com aprovação [W]. Primeiro `App\Unit` (30) como amostra, depois o resto (KB, Woocommerce, Whatsapp, Financeiro, OficinaAuto, RecurringBilling e outros).
+- **Licenças** (`LicencaLog`, `Licenca_Computador`) são log da plataforma, por decisão [W] registrada no #8406: ficam NULL. As 146 linhas que haviam saído com tenant foram limpas.
+- **Conferência pós-apply:** 40.284 logs das classes gravadas foram comparados com o `business_id` do registro auditado, e nenhum diverge. As 30.619 linhas do núcleo também foram conferidas, com 0 divergentes. Hoje nenhuma licença tem tenant, e o dry-run seguinte dá 0 resolvíveis.
+- **Continua NULL (~93 mil), por desenho:** licenças da plataforma; `McpTask`, `HealthNarrative` e outros tipos da Jana sem tenant; e registros apagados. O comando não inventa tenant.
 
 ## Métricas de saúde (jana:health-check)
 
