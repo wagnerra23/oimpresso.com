@@ -3,6 +3,7 @@
 namespace Modules\ComunicacaoVisual\Http\Controllers;
 
 use App\Http\Controllers\BaseModuleInstallController;
+use App\Http\Controllers\Concerns\InstalacaoSoPorPost;
 use Illuminate\Support\Facades\Log;
 use Modules\ComunicacaoVisual\Database\Seeders\MaterialSeeder;
 
@@ -21,6 +22,8 @@ use Modules\ComunicacaoVisual\Database\Seeders\MaterialSeeder;
  */
 class InstallController extends BaseModuleInstallController
 {
+    use InstalacaoSoPorPost;
+
     protected function moduleName(): string
     {
         return 'ComunicacaoVisual';
