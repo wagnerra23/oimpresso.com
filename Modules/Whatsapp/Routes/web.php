@@ -66,9 +66,10 @@ Route::prefix('feedback')->name('feedback.')->middleware('signed')->group(functi
 Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezone', 'AdminSidebarMenu'])
     ->prefix('whatsapp')
     ->group(function () {
+        Route::post('install',           [InstallController::class, 'install']);
         Route::get('install',           [InstallController::class, 'index']);
-        Route::get('install/uninstall', [InstallController::class, 'uninstall']);
-        Route::get('install/update',    [InstallController::class, 'update']);
+        Route::match(['get', 'post'], 'install/uninstall', [InstallController::class, 'uninstall']);
+        Route::match(['get', 'post'], 'install/update',    [InstallController::class, 'update']);
     });
 
 // Rotas admin (placeholder Lote 2a; Inertia pages em Lote 2c).

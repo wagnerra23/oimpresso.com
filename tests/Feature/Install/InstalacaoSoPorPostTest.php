@@ -24,6 +24,12 @@ const INSTALACAO_SO_POR_POST_MODULOS = [
     'Forja', 'Jana', 'KB', 'Ponto', 'Repair', 'Spreadsheet',
     'Auditoria', 'ComunicacaoVisual', 'ConsultaOs', 'Financeiro', 'Fiscal', 'Governance',
     'NFSe', 'NfeBrasil', 'OficinaAuto', 'PaymentGateway', 'RecurringBilling', 'Vestuario',
+    'VozDoCliente', 'Whatsapp',
+];
+
+/** Não estendem o BaseModuleInstallController: guarda explícita no topo de cada ação. */
+const INSTALACAO_SO_POR_POST_MODULOS_PROPRIOS = [
+    'Compras', 'Essentials', 'Superadmin', 'Woocommerce',
 ];
 
 abstract class InstalacaoSoPorPostBaseFalsa
@@ -156,3 +162,26 @@ it('módulo migrado usa o trait e aceita POST nas 3 URLs', function (string $mod
         expect($get->getActionName())->toBe($classe.'@'.$metodo);
     }
 })->with(INSTALACAO_SO_POR_POST_MODULOS);
+
+it('módulo com InstallController próprio guarda as 3 ações e aceita POST nas 3 URLs', function (string $modulo) {
+    $classe = 'Modules\\'.$modulo.'\\Http\\Controllers\\InstallController';
+
+    expect(class_uses_recursive($classe))->toContain(\App\Http\Controllers\Concerns\ConfirmaInstalacaoPorPost::class);
+
+    foreach (['index' => 'install', 'uninstall' => 'uninstall', 'update' => 'update'] as $metodo => $acao) {
+        $url = action('\\'.$classe.'@'.$metodo);
+        expect(ModulesController::aceitaPost($url))->toBeTrue("{$modulo}@{$metodo} sem POST");
+
+        $get = Route::getRoutes()->match(Request::create($url, 'GET'));
+        expect($get->getActionName())->toBe($classe.'@'.$metodo);
+        $post = Route::getRoutes()->match(Request::create($url, 'POST'));
+        expect($post->getActionName())->toBe($classe.'@'.$metodo);
+
+        // A guarda é a 1ª instrução: no GET nada da ação roda antes dela.
+        $ref = new ReflectionMethod($classe, $metodo);
+        $linhas = array_slice(file($ref->getFileName()), $ref->getStartLine() - 1, $ref->getEndLine() - $ref->getStartLine() + 1);
+        $corpo = implode('', $linhas);
+        expect(ltrim(substr($corpo, strpos($corpo, '{') + 1)))
+            ->toStartWith("if ($"."confirmacao = $"."this->confirmacaoSeNaoForPost('{$acao}'))");
+    }
+})->with(INSTALACAO_SO_POR_POST_MODULOS_PROPRIOS);
