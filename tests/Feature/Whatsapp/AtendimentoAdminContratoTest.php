@@ -23,7 +23,8 @@ use Modules\Whatsapp\Http\Controllers\Admin\TemplatesController;
  * DB-less por desenho (lane sqlite `.github/ci-sqlite-pest.list`): as consultas rodam
  * dentro de `DB::pretend()`, que registra o SQL e as bindings sem executar. É o que
  * permite provar o filtro de tenant (ADR 0093) sem schema. A exceção é UC-WSET-01, que
- * monta uma tabela mínima em sqlite :memory: para provar com DADO que o token não sai.
+ * monta uma tabela mínima numa conexão sqlite :memory: PRIVADA (nunca no banco compartilhado)
+ * para provar com DADO que o token não sai.
  * Tenant fictício 98 (ADR 0358) — biz=4 nunca.
  */
 if (! defined('ATD04_BIZ')) {
@@ -141,37 +142,46 @@ it('UC-AMET-03 · período whitelisted e props pesadas adiadas', function () {
 // ─── SETTINGS (Meta Embedded Signup) ───────────────────────────────────────
 
 it('UC-WSET-01 · mostra a conexão do business da sessão e nunca o token', function () {
-    if (DB::connection()->getDriverName() !== 'sqlite') {
-        $this->markTestSkipped('Monta tabela mínima só em sqlite :memory: (lane ci-sqlite-pest).');
+    if (! extension_loaded('pdo_sqlite')) {
+        $this->markTestSkipped('Precisa de pdo_sqlite para a conexão privada em memória.');
     }
-    Schema::dropIfExists('whatsapp_business_configs');
-    Schema::create('whatsapp_business_configs', function ($t) {
-        $t->increments('id');
-        $t->unsignedInteger('business_id');
-        foreach (['business_uuid', 'driver', 'display_phone', 'meta_waba_id', 'driver_health'] as $col) {
-            $t->string($col)->nullable();
-        }
-        $t->text('meta_access_token')->nullable();
-        $t->timestamp('last_health_check_at')->nullable();
-        $t->timestamps();
-    });
-    foreach ([ATD04_BIZ => '+5548999000098', 99 => '+5548999000099'] as $biz => $phone) {
-        DB::table('whatsapp_business_configs')->insert([
-            'business_id' => $biz, 'driver' => 'meta_cloud', 'display_phone' => $phone,
-            'meta_waba_id' => "WABA_{$biz}", 'driver_health' => 'healthy',
-            'meta_access_token' => "EAA_TOKEN_SECRETO_{$biz}",
-        ]);
-    }
+    // Conexão PRIVADA em memória: a DDL abaixo nunca toca o banco compartilhado
+    // (o MySQL persistente do nightly), só um sqlite que morre com o teste.
+    config()->set('database.connections.atd04_mem', [
+        'driver' => 'sqlite', 'database' => ':memory:', 'prefix' => '', 'foreign_key_constraints' => false,
+    ]);
+    $padrao = config('database.default');
+    config()->set('database.default', 'atd04_mem');
 
-    $props = atd04Props((new SettingsController)->settings(atd04Request('/whatsapp/settings')));
+    try {
+        Schema::connection('atd04_mem')->create('whatsapp_business_configs', function ($t) {
+            $t->increments('id');
+            $t->unsignedInteger('business_id');
+            foreach (['business_uuid', 'driver', 'display_phone', 'meta_waba_id', 'driver_health'] as $col) {
+                $t->string($col)->nullable();
+            }
+            $t->text('meta_access_token')->nullable();
+            $t->timestamp('last_health_check_at')->nullable();
+            $t->timestamps();
+        });
+        foreach ([ATD04_BIZ => '+5548999000098', 99 => '+5548999000099'] as $biz => $phone) {
+            DB::connection('atd04_mem')->table('whatsapp_business_configs')->insert([
+                'business_id' => $biz, 'driver' => 'meta_cloud', 'display_phone' => $phone,
+                'meta_waba_id' => "WABA_{$biz}", 'driver_health' => 'healthy',
+                'meta_access_token' => "EAA_TOKEN_SECRETO_{$biz}",
+            ]);
+        }
+
+        $props = atd04Props((new SettingsController)->settings(atd04Request('/whatsapp/settings')));
+    } finally {
+        config()->set('database.default', $padrao);
+    }
     $json = json_encode($props);
 
     expect($props['currentConfig']['display_phone'])->toBe('+5548999000098');
     expect(str_contains($json, '+5548999000099'))->toBeFalse();
     expect(str_contains($json, 'EAA_TOKEN_SECRETO'))->toBeFalse();
     expect(str_contains($json, 'access_token'))->toBeFalse();
-
-    Schema::dropIfExists('whatsapp_business_configs');
 });
 
 it('UC-WSET-02 · sem Meta App a tela recebe vazio e o init devolve 503', function () {
