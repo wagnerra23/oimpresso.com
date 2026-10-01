@@ -1,3 +1,5 @@
+> **ABSORVIDO** em 2026-09-30 por `cowork-inbox/produto/playbook/00-INDICE.md` — não executar daqui.
+
 # Pedido [CL] — Módulo Produto: trio + contratos de tela
 
 > **Origem:** F1 [CC] no Cowork. Telas construídas em `prototipo-ui/cowork/` como rotas do shell único
