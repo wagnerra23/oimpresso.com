@@ -159,6 +159,49 @@ class LicencaComputadorController extends Controller
     }
 
     /**
+     * Entrada HTTP de `POST salvar-equipamento/{business_id}` — guard Tier 0 (ADR 0093).
+     *
+     * Antes, qualquer token válido gravava `licenca_computador` no negócio da URL.
+     * Medido em prod (licenca_log 2026-04-23→2026-09-30): o desktop autentica com
+     * UM usuário central da WR (user_id=1, business_id=1) para 62 negócios, então
+     * exigir `user.business_id == {business_id}` quebraria o fluxo. A regra aqui é:
+     * passa o dono do negócio OU um usuário central listado em
+     * `connector.delphi_master_user_ids`; o resto recebe `N;...` (formato Delphi).
+     *
+     * O caminho interno (processarComEmpresa → saveEquipamento) não passa por aqui.
+     */
+    public function saveEquipamentoRota(Request $request, $business_id)
+    {
+        $user = $request->user();
+        $bizId = (int) $business_id;
+        $masterIds = array_map('intval', (array) config('connector.delphi_master_user_ids', []));
+
+        $permitido = $user !== null
+            && ((int) $user->business_id === $bizId || in_array((int) $user->id, $masterIds, true));
+
+        if (! $permitido || ! Business::query()->whereKey($bizId)->exists()) {
+            Log::warning('[Connector] salvar-equipamento negado: token sem vínculo com o negócio da URL', [
+                'user_id'           => $user?->id,
+                'user_business_id'  => $user?->business_id,
+                'route_business_id' => $bizId,
+            ]);
+
+            return response('N;Acesso negado para este cliente', 403)
+                ->header('Content-Type', 'text/plain; charset=UTF-8');
+        }
+
+        if ((int) $user->business_id !== $bizId) {
+            // Escrita cross-business legítima (usuário central WR) — fica auditada.
+            Log::info('[Connector] salvar-equipamento por usuário central', [
+                'user_id'           => $user->id,
+                'route_business_id' => $bizId,
+            ]);
+        }
+
+        return $this->saveEquipamento($request, $bizId);
+    }
+
+    /**
      * Processa o equipamento com base no cliente já cadastrado.
      */
     public function saveEquipamento(Request $request, $business_id)
