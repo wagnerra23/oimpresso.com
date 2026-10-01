@@ -815,7 +815,10 @@ class SellPosController extends Controller
                     ->with('status', $output);
             } else {
                 if (!empty($input['sub_type']) && $input['sub_type'] == 'repair') {
-                    $redirect_url = $input['print_label'] == 1 ? action([\Modules\Repair\Http\Controllers\RepairController::class, 'printLabel'], [$transaction->id]) : action([\Modules\Repair\Http\Controllers\RepairController::class, 'index']);
+                    // `?? 0`: o PDV React não tem o checkbox de etiqueta. Sem a chave, o
+                    // acesso direto virava ErrorException DEPOIS do commit — venda gravada,
+                    // resposta 500. (UC-S03, Sells/Create.casos.md)
+                    $redirect_url = ($input['print_label'] ?? 0) == 1 ? action([\Modules\Repair\Http\Controllers\RepairController::class, 'printLabel'], [$transaction->id]) : action([\Modules\Repair\Http\Controllers\RepairController::class, 'index']);
 
                     return redirect($redirect_url)
                         ->with('status', $output);

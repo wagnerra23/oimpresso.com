@@ -89,6 +89,16 @@ last_run: "2026-08-26"
 
 ---
 
+## UC-S03 · Venda aberta como reparo é gravada como reparo, sem mudar valor nem estoque
+- **Persona:** técnico de assistência que abre "Novo reparo" na listagem do Repair (link `/sells/create?sub_type=repair`).
+- **Como usa:** monta a venda do reparo (peças, serviço, desconto, pagamento) e salva. Reparo é um **tipo de venda** (decisão [W] 2026-10-01: *"é uma venda, tipo de venda igual ao OS auto"*): o cálculo e a baixa de estoque são os da venda comum; só muda onde a venda aparece.
+- **Aceite:** Dado o PDV aberto com `sub_type=repair` · Quando salva · Então o envio carrega `sub_type=repair` e `print_label=0`, a venda grava `transactions.sub_type='repair'`, os campos de reparo enviados (ex. nº de série) persistem e a tela volta para a listagem do Repair. **E** uma venda comum idêntica tem o mesmo `final_total`, `total_before_tax`, `tax_amount`, `discount_amount`, as mesmas linhas e a mesma baixa de estoque. **E** se o envio de reparo vier sem `print_label`, a venda grava e redireciona sem erro.
+- **Teste:** `tests/Feature/Sells/SellsRepairSubtipoContratoTest.php` (POST `/pos` real, tenant 98, lane `sells-pest`) + `tests/js/sells-subtipo-venda.test.ts` (o que o envio carrega, lane `sells-v3-dominio-gate`).
+- **Status: 🧪** _(nasce sem run — Pest só no CI/CT 100; vira ✅ com o veredito `pass` no manifesto G-7.)_
+- **Fora deste UC (próximas ondas):** os campos de reparo na tela (aparelho, marca, modelo, série, defeitos, status, prazo, garantia, checklist, senha) e a edição da venda de reparo pelo React.
+
+---
+
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
 > Regra G-2: UC declarado sem teste citando o id = órfão. Itens abaixo SEM token de UC de
@@ -107,4 +117,5 @@ last_run: "2026-08-26"
 - 2026-06-11 · [CL] criado na Onda Q2 (mandato ONDAS-QUALIDADE) com UC-S01 venda a prazo + spec Playwright `sells-venda-balcao.spec.ts`; produto E2E-0001 entrou no VisregTenantSeeder (enable_stock=0).
 - 2026-06-18 · [CC] refactor só-de-layout (Wagner): total de itens no rodapé do card Produtos + card de desconto (Resumo) movido pra antes do Pagamento. Sem mudança de comportamento — UC-S01 baixado pra 🧪 até re-rodar o e2e (G-7 frescor).
 - 2026-08-26 · [CC] Fechar o diálogo de recuperação parou de apagar o rascunho (o `onOpenChange` chamava `handleDraftDiscard()` → `localStorage.removeItem()`, irreversível; agora só o botão "Descartar" apaga). Mudança de COMPORTAMENTO, não de layout. UC-S01 e UC-S02 revalidados por medição de alcance (0 ocorrências do diálogo nos testes de ambos; controle positivo 55 no `.tsx`) — nenhum dos dois é atingido, então nenhum foi rebaixado. Comportamento novo entrou no Backlog sem id (G-2) até haver teste que o exercite. Origem: ROTA LIVRE perdendo venda montada nas janelas de 503 do deploy.
+- 2026-10-01 · [CL] UC-S03 (reparo como tipo de venda, onda 1): o envio passou a carregar `sub_type` quando o PDV é aberto como reparo; antes a venda de reparo pelo React gravava como venda comum. Medido em prod: 6 vendas de reparo no total, todas do biz=1, a última em 2023-10-11 — defeito latente, sem dado real perdido. UC-S01/S02 não são atingidos (venda comum envia exatamente o mesmo payload de antes).
 - 2026-07-02 · [CC] Onda 1.4 (dente de cálculo): UC-S02 declarado com teste no MESMO PR (coordenação 1.3 ↔ 1.4, regra "declarar UC + teste = 1 PR"). Property `num_uf(num_f(x))==x` + golden no totalizador real `calculateInvoiceTotal` (227,90 − 10,05% = 204.99605, não infla) + discriminação RED vs strip-do-ponto + caracterização da divergência `getTotalPaid`(líquido) ≠ `getTotalAmountPaid`(bruto). TEST-ONLY — nenhum método de cálculo alterado.
