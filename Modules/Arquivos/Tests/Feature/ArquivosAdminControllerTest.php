@@ -586,13 +586,13 @@ it('UC-INDEX-03 · o controller registra a prop de UMA vista so — a que esta a
 
     // `filtros`, `politica` e `resumo` são EAGER e vão em toda vista: os três são baratos
     // e o cabeçalho depende deles pra pintar no primeiro render. A prop CARA é que muda.
-    expect($props('cofre'))->toBe(['filtros', 'politica', 'resumo', 'cofre']);
-    expect($props('retencao'))->toBe(['filtros', 'politica', 'resumo', 'retencao']);
-    expect($props('trilha'))->toBe(['filtros', 'politica', 'resumo', 'trilha']);
-    expect($props('acervo'))->toBe(['filtros', 'politica', 'resumo', 'acervo']);
+    expect($props('cofre'))->toBe(['filtros', 'politica', 'resumo', 'pode_restaurar', 'cofre']);
+    expect($props('retencao'))->toBe(['filtros', 'politica', 'resumo', 'pode_restaurar', 'retencao']);
+    expect($props('trilha'))->toBe(['filtros', 'politica', 'resumo', 'pode_restaurar', 'trilha']);
+    expect($props('acervo'))->toBe(['filtros', 'politica', 'resumo', 'pode_restaurar', 'acervo']);
     // `tab` ausente ou desconhecido cai no acervo por DECISÃO (o `match` tem default),
     // não por acidente de `if/else`.
-    expect($props(null))->toBe(['filtros', 'politica', 'resumo', 'acervo']);
+    expect($props(null))->toBe(['filtros', 'politica', 'resumo', 'pode_restaurar', 'acervo']);
 })->group('arquivos');
 
 it('UC-INDEX-03 · o cofre do tenant 98 NUNCA conta arquivo do 99 (Tier 0, cross-tenant)', function () {
@@ -741,7 +741,7 @@ it('UC-INDEX-01 · o index() NAO estoura quando a tabela nao existe — prop eag
     $p->setAccessible(true);
     $props = $p->getValue($response);
 
-    expect(array_keys($props))->toBe(['filtros', 'politica', 'resumo', 'acervo']);
+    expect(array_keys($props))->toBe(['filtros', 'politica', 'resumo', 'pode_restaurar', 'acervo']);
     expect($props['resumo'])->toBe([
         'arquivos' => 0, 'bytes' => 0, 'cifrados' => 0, 'eventos' => 0, 'por_bucket' => [],
     ]);
@@ -1101,7 +1101,8 @@ it('UC-INDEX-07 · a rota de classificar e POST, numerica e atras de arquivos.ac
     expect($rotas)->toContain("Route::post('{arquivo}/classificar'");
     expect($rotas)->toContain("->whereNumber('arquivo')");
     expect($rotas)->toContain("->name('arquivos.classificar')");
-    expect(substr_count($rotas, "->middleware('can:arquivos.access')"))->toBe(2);
+    // 4 desde a thread 03: index · classificar · excluir · restaurar.
+    expect(substr_count($rotas, "->middleware('can:arquivos.access')"))->toBe(4);
 })->group('arquivos');
 
 it('UC-INDEX-07 · classificar passa pela Request de motivo e pelo Service — nunca grava o model direto', function () {
@@ -1173,5 +1174,143 @@ it('UC-INDEX-07 · force_bucket e RECUSADO — nada muda e nada vai pra trilha',
 
     expect(session('errors')?->has('force_bucket'))->toBeTrue();
     expect(DB::table('arquivos')->where('id', $id)->value('classified_at'))->toBeNull();
+    expect(DB::table('arquivos_audit_log')->where('arquivo_id', $id)->count())->toBe($antes);
+})->group('arquivos');
+
+/*
+| UC-INDEX-08 · Excluir (soft-delete) e restaurar dentro do grace (onda 2 · PR-7 · thread 03).
+| Mesmo desenho do UC-INDEX-07: Request montada à mão, controller chamado direto.
+*/
+if (! function_exists('arquivosExcluirRequest')) {
+    /** @param class-string<Illuminate\Foundation\Http\FormRequest> $classe */
+    function arquivosExcluirRequest(string $classe, string $acao, int $id, array $dados): Illuminate\Foundation\Http\FormRequest
+    {
+        $req = $classe::create("/arquivos/{$id}/{$acao}", 'POST', array_merge(['arquivo_id' => $id], $dados));
+        $req->setLaravelSession(app('session.store'));
+        // A RestoreArquivoRequest pergunta `can('superadmin')` — o usuário-fixture responde sim.
+        $req->setUserResolver(fn () => new class {
+            public function can(string $p): bool
+            {
+                return $p === 'superadmin';
+            }
+        });
+
+        return $req;
+    }
+}
+
+it('UC-INDEX-08 · excluir e restaurar sao POST, numericos e atras de arquivos.access', function () {
+    $rotas = file_get_contents(base_path('Modules/Arquivos/Routes/web.php'));
+
+    expect($rotas)->toContain("Route::post('{arquivo}/excluir'");
+    expect($rotas)->toContain("Route::post('{arquivo}/restaurar'");
+    expect($rotas)->toContain("->name('arquivos.excluir')");
+    expect($rotas)->toContain("->name('arquivos.restaurar')");
+    expect(substr_count($rotas, "->whereNumber('arquivo')"))->toBe(3);
+})->group('arquivos');
+
+it('UC-INDEX-08 · excluir e restaurar passam pelo Service — nunca hard-delete nem purge', function () {
+    $arquivo = base_path('Modules/Arquivos/Http/Controllers/ArquivosAdminController.php');
+    $excluir   = arquivosCorpoDoMetodo($arquivo, 'excluir');
+    $restaurar = arquivosCorpoDoMetodo($arquivo, 'restaurar');
+
+    expect($excluir)->toContain('DeleteArquivoRequest $request');
+    expect($excluir)->toContain('ArquivosService::class)->softDelete(');
+    expect($restaurar)->toContain('RestoreArquivoRequest $request');
+    expect($restaurar)->toContain('ArquivosService::class)->restore(');
+    expect($restaurar)->toContain('dentroDoGrace(');
+    foreach ([$excluir, $restaurar] as $corpo) {
+        foreach (['forceDelete', 'purge', '->delete(', 'withoutGlobalScope'] as $proibido) {
+            expect($corpo)->not->toContain($proibido);
+        }
+    }
+})->group('arquivos', 'multi-tenant');
+
+it('UC-INDEX-08 · a linha so e restauravel DENTRO do grace — fora dele nao ha botao', function () {
+    $dentro = arquivosLinhaDe(arquivosFixtureLinha(['deleted_at' => now()->subDays(5)]));
+    $fora   = arquivosLinhaDe(arquivosFixtureLinha(['deleted_at' => now()->subDays(45)]));
+    $vivo   = arquivosLinhaDe(arquivosFixtureLinha());
+
+    expect($dentro['restauravel'])->toBeTrue();
+    expect($dentro['restaurar_ate'])->toBe(now()->subDays(5)->addDays(30)->toDateString());
+    expect($fora['restauravel'])->toBeFalse();
+    expect($vivo['restauravel'])->toBeFalse();
+    expect($vivo['restaurar_ate'])->toBeNull();
+})->group('arquivos');
+
+it('UC-INDEX-08 · as Requests recusam arquivo de OUTRO business (Tier 0, cross-tenant 98 x 99)', function () {
+    if (! Schema::hasTable('arquivos')) {
+        $this->markTestSkipped('tabela arquivos ausente — a prova cross-tenant roda na lane MySQL.');
+    }
+
+    $proprio    = Tests\TestCase::SEEDED_TENANT_ID;
+    $adversario = Tests\TestCase::SUPPORT_CLIENT_TENANT_ID;
+    $doAdversario = arquivosFixtureId($adversario);
+    $doProprio    = arquivosFixtureId($proprio);
+    $del = Modules\Arquivos\Http\Requests\DeleteArquivoRequest::class;
+    $res = Modules\Arquivos\Http\Requests\RestoreArquivoRequest::class;
+
+    session(['user' => ['business_id' => $proprio]]);
+    expect(arquivosExcluirRequest($del, 'excluir', $doAdversario, ['reason' => 'teste cross'])->authorize())->toBeFalse();
+    expect(arquivosExcluirRequest($del, 'excluir', $doProprio, ['reason' => 'teste cross'])->authorize())->toBeTrue();
+
+    DB::table('arquivos')->whereIn('id', [$doAdversario, $doProprio])->update(['deleted_at' => now()->subDay()]);
+    expect(arquivosExcluirRequest($res, 'restaurar', $doAdversario, ['reason' => 'teste cross'])->authorize())->toBeFalse();
+    // Controle positivo: sem ele, uma Request que recusa TUDO passaria por isolamento.
+    expect(arquivosExcluirRequest($res, 'restaurar', $doProprio, ['reason' => 'teste cross'])->authorize())->toBeTrue();
+
+    // Segunda perna: o controller também não alcança o arquivo do 99.
+    expect(fn () => (new ArquivosAdminController())->restaurar(
+        arquivosExcluirRequest($res, 'restaurar', $doAdversario, ['reason' => 'teste cross']), $doAdversario
+    ))->toThrow(Illuminate\Database\Eloquent\ModelNotFoundException::class);
+    expect(DB::table('arquivos')->where('id', $doAdversario)->value('deleted_at'))->not->toBeNull();
+})->group('arquivos', 'multi-tenant');
+
+it('UC-INDEX-08 · excluir e soft-delete com motivo na trilha; restaurar no grace PRESERVA a trilha', function () {
+    if (! Schema::hasTable('arquivos') || ! Schema::hasTable('arquivos_audit_log')) {
+        $this->markTestSkipped('tabelas do Arquivos ausentes — roda na lane MySQL.');
+    }
+
+    $biz = Tests\TestCase::SEEDED_TENANT_ID;
+    $id  = arquivosFixtureId($biz);
+    session(['user' => ['business_id' => $biz]]);
+    $del = Modules\Arquivos\Http\Requests\DeleteArquivoRequest::class;
+    $res = Modules\Arquivos\Http\Requests\RestoreArquivoRequest::class;
+
+    (new ArquivosAdminController())->excluir(arquivosExcluirRequest($del, 'excluir', $id, ['reason' => 'anexo duplicado']), $id);
+
+    // SOFT: a linha continua lá, com deleted_at — nada foi apagado de verdade.
+    expect(DB::table('arquivos')->where('id', $id)->value('deleted_at'))->not->toBeNull();
+    $exclusao = DB::table('arquivos_audit_log')->where('arquivo_id', $id)->where('action', 'soft_delete')->get();
+    expect($exclusao)->toHaveCount(1);
+    expect((int) $exclusao[0]->business_id)->toBe($biz);
+    expect(json_decode($exclusao[0]->payload, true)['motivo'])->toBe('anexo duplicado');
+
+    (new ArquivosAdminController())->restaurar(arquivosExcluirRequest($res, 'restaurar', $id, ['reason' => 'excluido por engano']), $id);
+
+    expect(DB::table('arquivos')->where('id', $id)->value('deleted_at'))->toBeNull();
+    // Trilha preservada: a exclusão continua registrada, a restauração soma — append-only.
+    expect(DB::table('arquivos_audit_log')->where('arquivo_id', $id)->where('action', 'soft_delete')->count())->toBe(1);
+    $restauro = DB::table('arquivos_audit_log')->where('arquivo_id', $id)->where('action', 'restore')->first();
+    expect(json_decode($restauro->payload, true)['motivo'])->toBe('excluido por engano');
+})->group('arquivos');
+
+it('UC-INDEX-08 · fora do grace restaurar e RECUSADO — o arquivo segue excluido e a trilha nao muda', function () {
+    if (! Schema::hasTable('arquivos') || ! Schema::hasTable('arquivos_audit_log')) {
+        $this->markTestSkipped('tabelas do Arquivos ausentes — roda na lane MySQL.');
+    }
+
+    $biz = Tests\TestCase::SEEDED_TENANT_ID;
+    $id  = arquivosFixtureId($biz);
+    DB::table('arquivos')->where('id', $id)->update(['deleted_at' => now()->subDays(45)]);
+    session(['user' => ['business_id' => $biz]]);
+    $antes = DB::table('arquivos_audit_log')->where('arquivo_id', $id)->count();
+
+    (new ArquivosAdminController())->restaurar(
+        arquivosExcluirRequest(Modules\Arquivos\Http\Requests\RestoreArquivoRequest::class, 'restaurar', $id, ['reason' => 'tarde demais']), $id
+    );
+
+    expect(session('errors')?->has('arquivo'))->toBeTrue();
+    expect(DB::table('arquivos')->where('id', $id)->value('deleted_at'))->not->toBeNull();
     expect(DB::table('arquivos_audit_log')->where('arquivo_id', $id)->count())->toBe($antes);
 })->group('arquivos');

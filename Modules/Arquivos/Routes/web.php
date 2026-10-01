@@ -32,7 +32,8 @@ use Modules\Arquivos\Http\Controllers\InstallController;
 // permissao, o motivo obrigatorio vem da ReclassifyArquivoRequest, e `whereNumber` porque o
 // controller recebe o id cru e resolve pelo model (global scope) — sem route-model binding,
 // que rodaria antes do SetSessionData. Excluir/restaurar = thread 03; retencao/purge
-// dependem da proposta de ADR `arquivos-retencao-ui-aviso-titular`.
+// dependem da proposta de ADR `arquivos-retencao-ui-aviso-titular`. Excluir/restaurar
+// entraram na thread 03 (2026-10-01).
 Route::middleware(['throttle:60,1', 'web', 'authh', 'auth', 'SetSessionData', 'language', 'timezone', 'AdminSidebarMenu'])
     ->prefix('arquivos')
     ->group(function () {
@@ -43,6 +44,17 @@ Route::middleware(['throttle:60,1', 'web', 'authh', 'auth', 'SetSessionData', 'l
             ->whereNumber('arquivo')
             ->middleware('can:arquivos.access')
             ->name('arquivos.classificar');
+        // Thread 03 (PR-7): excluir = SOFT-delete (grace 30d, `arquivos_retention.grace_period_days`);
+        // restaurar só dentro do grace. Hard-delete/purge NUNCA pela UI (D4) — segue só no
+        // `arquivos:retention-cleanup`. As Requests barram arquivo de outro business.
+        Route::post('{arquivo}/excluir', [ArquivosAdminController::class, 'excluir'])
+            ->whereNumber('arquivo')
+            ->middleware('can:arquivos.access')
+            ->name('arquivos.excluir');
+        Route::post('{arquivo}/restaurar', [ArquivosAdminController::class, 'restaurar'])
+            ->whereNumber('arquivo')
+            ->middleware('can:arquivos.access')
+            ->name('arquivos.restaurar');
     });
 
 // Wave 14 D8 Security — throttle:60,1 (60 req/min/IP) em rotas Arquivos.

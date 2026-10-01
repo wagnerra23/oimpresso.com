@@ -177,6 +177,11 @@ disco. **Não é tela de balcão:** Larissa continua alcançando o anexo pela te
       pôs o PR-6 nesta tela, e ele entrou só como **re-aplicar as regras do curador + motivo
       na trilha** (UC-INDEX-07) — escolher bucket à mão (`force_bucket`) segue recusado. A
       confirmação de [W] sobre o lugar continua aberta.
+- [ ] **[W] decide a permissão de restaurar.** Desde a thread 03 (2026-10-01) excluir usa
+      `arquivos.access`, mas a `RestoreArquivoRequest` (anterior à tela) exige `superadmin` ou
+      `arquivos.restore` — e `arquivos.restore` **não é declarada** no `DataController`. Hoje,
+      então, só superadmin restaura; o botão some para os outros (prop `pode_restaurar`, mesma
+      regra da Request). Declarar a permissão é uma linha fora do prefixo da thread.
 - [ ] Reconciliar `DataController`: docblock L15 e o `label` de `arquivos.access` (L37) ainda
       dizem "Admin Center" (deprecado pela ADR 0360) e `modifyAdminMenu()` ainda afirma que o
       módulo "não tem tela própria". É mudança de texto de UI — decisão [W], não faxina de doc.

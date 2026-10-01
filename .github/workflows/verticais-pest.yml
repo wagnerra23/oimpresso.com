@@ -325,6 +325,7 @@ jobs:
             Modules/Superadmin/Tests/Feature/SuperadminNegociosContratoTest.php \
             Modules/Superadmin/Tests/Feature/SuperadminAssinaturasContratoTest.php \
             Modules/Superadmin/Tests/Feature/SuperadminPacotesContratoTest.php \
+            Modules/Superadmin/Tests/Feature/SuperadminComunicadorContratoTest.php \
             Modules/Cms/Tests/Feature/CmsConteudoIndexContratoTest.php \
             Modules/Cms/Tests/Feature/CmsSiteDetailsPainelTest.php \
             Modules/Crm/Tests/Feature/CrmAcompanhamentosContratoTest.php
