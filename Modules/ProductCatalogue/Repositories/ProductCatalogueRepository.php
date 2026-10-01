@@ -122,10 +122,15 @@ class ProductCatalogueRepository
 
     /**
      * BusinessLocations dropdown do business (pra tela QR generator).
+     *
+     * `forDropdown()` com os argumentos default devolve `Collection` (o `pluck`), não
+     * array. Sem o `toArray()` o tipo de retorno estourava TypeError e a tela
+     * `/product-catalogue/catalogue-qr` dava 500 pra todo mundo — medido em prod em
+     * 2026-10-01, quando o QR do Officeimpresso passou a redirecionar pra cá (#8403).
      */
     public function locationsDropdown(int $businessId): array
     {
-        return BusinessLocation::forDropdown($businessId);
+        return BusinessLocation::forDropdown($businessId)->toArray();
     }
 
     /**
