@@ -45,8 +45,11 @@ it('endpoints Connector API rejeitam acesso sem Bearer (401)', function () {
         ['GET',  '/connector/api/business-details'],
     ];
 
+    // ->json() e nao ->call(): o call() do Laravel IGNORA os withHeaders() — o Accept nao
+    // chegava, o expectsJson() dava false e o Authenticate redirecionava pro login (302).
+    // Medido no CI 2026-10-01; a producao com Accept: application/json ja devolvia 401.
     foreach ($endpoints as [$method, $url]) {
-        $r = $this->withHeaders(['Accept' => 'application/json'])->call($method, $url);
+        $r = $this->json($method, $url);
         // 401 Unauthenticated é o esperado. 404 indica rota não registrada (regressão).
         expect($r->getStatusCode())->toBeIn([401, 422], "Endpoint {$method} {$url} retornou {$r->getStatusCode()}, esperado 401");
         expect($r->getStatusCode())->not->toBe(404, "Rota {$method} {$url} não está registrada (404)");
@@ -63,9 +66,8 @@ it('endpoints Connector API rejeitam Bearer token inválido (401)', function () 
 
     foreach ($endpoints as [$method, $url]) {
         $r = $this->withHeaders([
-            'Accept'        => 'application/json',
             'Authorization' => 'Bearer token-invalido-falso-' . uniqid(),
-        ])->call($method, $url);
+        ])->json($method, $url);
 
         // Passport rejeita token mal-formado/expirado/inexistente → 401
         expect($r->getStatusCode())->toBe(401, "Endpoint {$method} {$url} aceitou token inválido — fail-secure quebrado!");
@@ -81,7 +83,7 @@ it('endpoints CRM e FieldForce também exigem auth:api', function () {
     ];
 
     foreach ($endpoints as [$method, $url]) {
-        $r = $this->withHeaders(['Accept' => 'application/json'])->call($method, $url);
+        $r = $this->json($method, $url);
         expect($r->getStatusCode())->toBeIn([401, 422], "Sub-API {$method} {$url} status inesperado: {$r->getStatusCode()}");
         expect($r->getStatusCode())->not->toBe(200, "Sub-API {$method} {$url} retornou 200 sem auth!");
     }
@@ -91,7 +93,9 @@ it('rotas Connector estão registradas com middleware auth:api', function () {
     // Audita o registro de rotas — protege contra alguém remover auth:api do grupo.
     $routes = Route::getRoutes();
     $connectorRoutes = collect($routes)->filter(function ($r) {
-        return str_starts_with($r->uri(), 'connector/api');
+        // 'connector/api/' com a barra: a tela web GET /connector/api (painel, sessao)
+        // casava o prefixo sem barra e nao e rota da API.
+        return str_starts_with($r->uri(), 'connector/api/');
     });
 
     expect($connectorRoutes->count())->toBeGreaterThan(10, 'Esperado >10 rotas registradas em connector/api/*');

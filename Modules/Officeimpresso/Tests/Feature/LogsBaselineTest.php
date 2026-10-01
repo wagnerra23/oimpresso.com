@@ -63,6 +63,12 @@ beforeEach(function () {
     $_SERVER['REMOTE_ADDR'] ??= '127.0.0.1';
     $_SERVER['HTTP_USER_AGENT'] ??= 'Pest/CI (X11; Linux x86_64) HeadlessChrome';
 
+    // O tenant de teste (biz=98) faz o papel da empresa OPERADORA: `officeimpresso.access`
+    // só vale para usuário dela (AcessoOperador). Os casos de cliente usam o biz=99.
+    if ($operador = static::resolveSeededTenant()) {
+        config(['constants.operator_business_id' => (int) $operador->id]);
+    }
+
     $this->oiMarcador = 'BASE' . strtoupper(substr(uniqid(), -8));
     $this->oiLicencaIds = [];
 });
