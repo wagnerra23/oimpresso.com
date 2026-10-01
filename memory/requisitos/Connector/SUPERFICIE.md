@@ -14,7 +14,7 @@ module: Connector
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Connector/**` + `resources/js/Pages/Connector/**` + `resources/js/Pages/Api/**` (namespaces Inertia `Connector`, `Api`, declarados em `module-surface.mjs::PAGES_NS` porque diferem do nome do módulo `Connector` — confira com `--namespaces`), separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 123 arquivos em 16 papéis.
+**Total mapeado:** 124 arquivos em 17 papéis.
 
 ## Controllers — 30
 
@@ -111,6 +111,10 @@ module: Connector
 ## Telas (Inertia/React) — 1
 
 - [Index.tsx](../../../Modules/Connector/Resources/js/Pages/Api/Index.tsx)
+
+## Componentes / apoio de tela — 1
+
+- [ConnectorAbas.tsx](../../../Modules/Connector/Resources/js/Pages/Api/_components/ConnectorAbas.tsx)
 
 ## Charters (lei da tela) — 1
 

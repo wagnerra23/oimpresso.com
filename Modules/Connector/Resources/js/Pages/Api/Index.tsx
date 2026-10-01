@@ -8,8 +8,9 @@
 // Charter: ./Index.charter.md · Casos: ./Index.casos.md · Contrato: governance/design/contracts/connector-api.contract.json
 // Âncora de design: prototipo-ui/cowork/Wagner/connector-page.jsx → ClientsView()
 //
-// Esta onda (PR-a) entrega a aba de clients: lista, criar e excluir. Documentação, Saúde e
-// Módulo são o PR-b da thread 04. O segredo nunca vem na lista ([W] D6): só no flash da criação,
+// PR-a entregou a aba de clients (lista, criar, excluir); o PR-b, as abas Documentação, Saúde e
+// Módulo (`_components/ConnectorAbas.tsx`). A aba vem de `?aba=` — é o que o menu usa para abrir
+// a Documentação direto. O segredo nunca vem na lista ([W] D6): só no flash da criação,
 // mostrado uma vez num bloco copiável que fica até o usuário fechar.
 
 import AppShellV2 from '@/Layouts/AppShellV2';
@@ -28,17 +29,39 @@ import { PageHeader } from '@/Components/PageHeader';
 import EmptyState from '@/Components/shared/EmptyState';
 import KpiCard from '@/Components/shared/KpiCard';
 import KpiGrid from '@/Components/shared/KpiGrid';
+import PageHeaderTabs from '@/Components/shared/PageHeaderTabs';
+import { DocsAba, ModuloAba, SaudeAba, type Endpoint, type Modulo } from './_components/ConnectorAbas';
 
 interface Client { id: number; name: string; user_name: string; created_at: string | null; active_tokens_24h: number }
 interface Credencial { id: number; name: string; secret: string }
-interface Props { clients: Client[]; is_demo: boolean; endpoints_count: number; credencial: Credencial | null }
+interface Props {
+  clients: Client[]; is_demo: boolean; endpoints_count: number; credencial: Credencial | null;
+  endpoints: Endpoint[]; modulo: Modulo;
+}
+
+const ABAS = [
+  { key: 'clients', label: 'API clients', titulo: 'Conector — API clients' },
+  { key: 'docs', label: 'Documentação', titulo: 'Conector — documentação da API' },
+  { key: 'saude', label: 'Saúde', titulo: 'Conector — saúde' },
+  { key: 'modulo', label: 'Módulo', titulo: 'Conector — módulo' },
+] as const;
+type Aba = (typeof ABAS)[number]['key'];
+const abaDaUrl = (): Aba => {
+  const a = typeof window === 'undefined' ? null : new URLSearchParams(window.location.search).get('aba');
+  return ABAS.some((x) => x.key === a) ? (a as Aba) : 'clients';
+};
 
 const MSG_OBRIGATORIO = 'O nome do client OAuth é obrigatório.';
 const MSG_TETO = 'O nome do client não pode ultrapassar 191 caracteres.';
 const dataCurta = (iso: string | null) => (iso ? new Date(`${iso}T00:00:00`).toLocaleDateString('pt-BR') : '—');
 const copiar = (txt: string) => { try { void navigator.clipboard?.writeText(txt); } catch { /* sem clipboard: o valor segue na tela */ } };
 
-function ApiIndex({ clients, is_demo, endpoints_count, credencial }: Props) {
+function ApiIndex({ clients, is_demo, endpoints_count, credencial, endpoints, modulo }: Props) {
+  const [aba, setAba] = useState<Aba>(abaDaUrl);
+  const trocarAba = (k: string) => {
+    setAba(k as Aba);
+    try { window.history.replaceState(window.history.state, '', k === 'clients' ? window.location.pathname : `?aba=${k}`); } catch { /* sem history: a aba troca igual */ }
+  };
   const [q, setQ] = useState('');
   const [novo, setNovo] = useState(false);
   const [excluir, setExcluir] = useState<Client | null>(null);
@@ -50,11 +73,11 @@ function ApiIndex({ clients, is_demo, endpoints_count, credencial }: Props) {
     const k = (e: KeyboardEvent) => {
       if (/^(INPUT|TEXTAREA)$/.test((e.target as HTMLElement).tagName)) return;
       if (e.key === '/') { e.preventDefault(); busca.current?.focus(); }
-      if (e.key === 'n' && !is_demo) { e.preventDefault(); setNovo(true); }
+      if (e.key === 'n' && !is_demo && aba === 'clients') { e.preventDefault(); setNovo(true); }
     };
     document.addEventListener('keydown', k);
     return () => document.removeEventListener('keydown', k);
-  }, [is_demo]);
+  }, [is_demo, aba]);
 
   const termo = q.trim().toLowerCase();
   const lista = useMemo(() => clients.filter((c) => !termo || `${c.name} ${c.id}`.toLowerCase().includes(termo)), [clients, termo]);
@@ -63,10 +86,17 @@ function ApiIndex({ clients, is_demo, endpoints_count, credencial }: Props) {
   return (
     <div className="pb-8">
       <div data-contract="page-header">
-        <PageHeader title="Conector — API clients" subtitle={<>{endpoints_count} endpoints · OAuth do Passport · 120 req/min por token</>}
+        <PageHeader title={ABAS.find((x) => x.key === aba)?.titulo ?? 'Conector — API clients'} subtitle={<>{endpoints_count} endpoints · OAuth do Passport · 120 req/min por token</>}
           actions={<span className="text-xs text-muted-foreground">superadmin · cross-tenant</span>} />
       </div>
-      <div className="flex flex-col gap-4 px-6 pt-4">
+      <div data-contract="tabs" className="px-6 pt-2">
+        <PageHeaderTabs group="sistema" activeGhostKey={aba} onGhostChange={trocarAba}
+          ghosts={ABAS.map((x) => ({ key: x.key, label: x.label, href: x.key === 'clients' ? '/connector/client' : `/connector/client?aba=${x.key}` }))} />
+      </div>
+      {aba === 'docs' && <div className="px-6 pt-4"><DocsAba endpoints={endpoints} /></div>}
+      {aba === 'saude' && <div className="px-6 pt-4"><SaudeAba tokens24h={clients.reduce((n, c) => n + c.active_tokens_24h, 0)} rotas={endpoints_count} /></div>}
+      {aba === 'modulo' && <div className="px-6 pt-4"><ModuloAba modulo={modulo} rotas={endpoints_count} /></div>}
+      {aba === 'clients' && <div className="flex flex-col gap-4 px-6 pt-4">
         {is_demo ? (
           <div data-contract="aviso-demo" className="rounded-md border border-warning/30 bg-warning/5 p-3 text-sm">
             <b>Desligado na demonstração</b> — nenhuma credencial é listada e nada pode ser emitido nesta base.
@@ -151,7 +181,7 @@ function ApiIndex({ clients, is_demo, endpoints_count, credencial }: Props) {
             )}
           </div>
         )}
-      </div>
+      </div>}
 
       <NovoClient open={novo} onClose={() => setNovo(false)} nomes={clients.map((c) => c.name)} />
 
