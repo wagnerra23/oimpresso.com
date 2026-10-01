@@ -36,6 +36,7 @@
 ---
 
 ## Últimos handoffs
+- [2026-10-01 15:30 BRT — **App nas lojas: coordenação passada à BASE MOBILE**](handoffs/2026-10-01-1530-app-lojas-coordenacao-passada.md) (arquitetura final: Capacitor com telas próprias + API por tela; /m revertido #8472 · DECISOES.md no #8473 · lição: decisão conflitante se fecha com pergunta única lado a lado)
 - [2026-10-01 13:45 BRT — **Auditoria: backfill do business_id NULL no activity_log**](handoffs/2026-10-01-1345-auditoria-backfill-business-id.md) (núcleo já aplicado antes · 6.322 linhas de outros módulos + 146 licenças limpas com ok [W] · 0 divergentes na conferência · BRIEFING #8440)
 - [2026-10-01 07:50 BRT — **Patrimônio: "Enviar pra manutenção" a partir de Bens**](handoffs/2026-10-01-0750-patrimonio-bens-enviar-manutencao.md) (#8310 chave na linha, smoke prod OK · #8316 rodapé do drawer do bem, deploy OK, smoke em chip · thread 20 #8272 mergeada + smoke · thread 16 fica no redirecionamento #8286 · 3 chips: smoke #8316, timeout Playwright no visual-regression, falso "morto" no cron-watchdog)
 - [2026-10-01 07:45 — **Patrimônio 16, ghost Devoluções e gate de bundle do deploy**](handoffs/2026-10-01-0745-patrimonio-16-ghost-gate-deploy.md) (#8265 placar cita dependência · #8286 revocation redireciona · #8297 sub-menu sem Devoluções · #8309 smoke do deploy compara manifest × servido, esteira destravada · #8318 lição LC-11 · pendente: Cowork trocar a prova 1 da thread 16; 2 Blades órfãs de devoluções)
