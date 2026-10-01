@@ -201,11 +201,6 @@ Route::group(
         // Escala e KPIs do próprio colaborador
         Route::get('/escala/hoje', [MobileMarcacaoController::class, 'escalaHoje'])->name('ponto.api.escala.hoje');
         Route::get('/dashboard/kpis', [MobileMarcacaoController::class, 'dashboardKpis'])->name('ponto.api.dashboard.kpis');
-
-        // Lembrete de bater ponto (ADR 0423): o app das lojas registra o token do aparelho com o
-        // token Passport. Mesmo controller e mesmo contrato das rotas web /ponto/mobile/push/*.
-        Route::post('/push/dispositivo', [\Modules\Ponto\Http\Controllers\Api\PushDispositivoController::class, 'registrar'])->name('ponto.api.push.registrar');
-        Route::delete('/push/dispositivo', [\Modules\Ponto\Http\Controllers\Api\PushDispositivoController::class, 'desativar'])->name('ponto.api.push.desativar');
     }
 );
 

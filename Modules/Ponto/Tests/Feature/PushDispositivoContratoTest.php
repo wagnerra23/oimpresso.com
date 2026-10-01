@@ -4,9 +4,7 @@ declare(strict_types=1);
 
 use App\User;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schema;
-use Laravel\Passport\Passport;
 use Modules\Ponto\Entities\PushDispositivo;
 use Modules\Ponto\Tests\Feature\PontoTestCase;
 
@@ -146,52 +144,4 @@ it('UC-REPP-13: parar os lembretes desativa só o MEU aparelho; outro business n
         ->assertOk()->assertJsonPath('afetados', 1)->assertJsonPath('ativo', false);
     expect((bool) pdcLinhas($token)[0]->ativo)->toBeFalse();
     expect((int) pdcLinhas($token)[0]->user_id)->toBe((int) $eu->id);
-});
-
-// ---- Porta da API (token Passport) — o app das lojas, que não abre o site (ADR 0423) ----
-
-function pdcChavesPassport(): void
-{
-    // O guard `api` monta o ResourceServer com a chave pública a cada request (idioma do
-    // Wave28MobileMarcacaoTest): sem chave, até o "sem token → 401" estoura.
-    if (! file_exists(storage_path('oauth-private.key')) || ! file_exists(storage_path('oauth-public.key'))) {
-        Artisan::call('passport:keys', ['--force' => true]);
-    }
-}
-
-it('UC-REPP-11: pela API do app, sem token → 401; com token registra no MEU usuário e business', function () {
-    pdcChavesPassport();
-    $token = 'tok-' . uniqid();
-
-    $this->postJson('/ponto/api/push/dispositivo', ['token' => $token, 'plataforma' => 'android'])->assertStatus(401);
-    expect(pdcLinhas($token))->toHaveCount(0);
-
-    $eu = pdcUsuario(PDC_BIZ);
-    Passport::actingAs($eu);
-    $this->postJson('/ponto/api/push/dispositivo', [
-        'token' => $token, 'plataforma' => 'ios', 'business_id' => PDC_BIZ_OUTRO,
-    ])->assertOk()->assertJsonPath('ativo', true);
-
-    $linhas = pdcLinhas($token);
-    expect($linhas)->toHaveCount(1);
-    expect((int) $linhas[0]->business_id)->toBe(PDC_BIZ);
-    expect((int) $linhas[0]->user_id)->toBe((int) $eu->id);
-});
-
-it('UC-REPP-13: pela API, outro business não desativa o meu aparelho; o dono desativa', function () {
-    pdcChavesPassport();
-    $eu = pdcUsuario(PDC_BIZ);
-    $intruso = pdcUsuario(PDC_BIZ_OUTRO);
-    $token = 'tok-' . uniqid();
-
-    Passport::actingAs($eu);
-    $this->postJson('/ponto/api/push/dispositivo', ['token' => $token, 'plataforma' => 'android'])->assertOk();
-
-    Passport::actingAs($intruso);
-    $this->deleteJson('/ponto/api/push/dispositivo', ['token' => $token])->assertOk()->assertJsonPath('afetados', 0);
-    expect((bool) pdcLinhas($token)[0]->ativo)->toBeTrue();
-
-    Passport::actingAs($eu);
-    $this->deleteJson('/ponto/api/push/dispositivo', ['token' => $token])->assertOk()->assertJsonPath('afetados', 1);
-    expect((bool) pdcLinhas($token)[0]->ativo)->toBeFalse();
 });
