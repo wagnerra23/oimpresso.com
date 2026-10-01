@@ -50,6 +50,18 @@ class ActivityCauserKindObserver
      */
     private function resolverBusinessId(Activity $activity): void
     {
+        // Log SEM subject (activity('x')->withProperties([...])->log(), sem performedOn):
+        // não há registro auditado para ancorar o tenant. Vale o que o CHAMADOR declarou —
+        // a coluna, se ele setou; senão o `business_id` que ele pôs em properties. Nunca a
+        // sessão daqui. Medido 2026-10-01: 7 chamadores (NfeBrasil Certificado ×3,
+        // Tributacao, ConfigDefault, ImportRegras; JanaAuditService) punham o tenant só em
+        // properties, e 100% dos logs `nfe.certificado` saíram com business_id NULL.
+        if (empty($activity->getAttribute('subject_type'))) {
+            $this->resolverBusinessIdSemSubject($activity);
+
+            return;
+        }
+
         try {
             $subject = $activity->getRelationValue('subject'); // performedOn() já deixa carregada
         } catch (\Throwable $e) {
@@ -76,6 +88,48 @@ class ActivityCauserKindObserver
         if ($temColuna) {
             $activity->setAttribute('business_id', $doSubject);
         }
+    }
+
+    private function resolverBusinessIdSemSubject(Activity $activity): void
+    {
+        if (! empty($activity->getAttribute('business_id'))) {
+            return; // o chamador já setou a coluna (ex.: Financeiro, Ponto)
+        }
+
+        $declarado = self::businessIdDeclarado($activity->getAttribute('properties'));
+        if ($declarado === null) {
+            return;
+        }
+
+        try {
+            $temColuna = \Schema::hasColumn('activity_log', 'business_id');
+        } catch (\Throwable $e) {
+            return;
+        }
+        if ($temColuna) {
+            $activity->setAttribute('business_id', $declarado);
+        }
+    }
+
+    /** `business_id` inteiro positivo dentro de properties (Collection, array ou JSON). */
+    public static function businessIdDeclarado($properties): ?int
+    {
+        if (is_string($properties)) {
+            $properties = json_decode($properties, true);
+        }
+        if ($properties instanceof \Illuminate\Support\Collection) {
+            $properties = $properties->all();
+        }
+        if (! is_array($properties)) {
+            return null;
+        }
+
+        $v = $properties['business_id'] ?? null;
+        if (is_int($v) || (is_string($v) && ctype_digit($v))) {
+            return (int) $v > 0 ? (int) $v : null;
+        }
+
+        return null;
     }
 
     /**
