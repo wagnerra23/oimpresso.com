@@ -40,6 +40,21 @@ class Kernel extends ConsoleKernel
 
         }
 
+        // Ponto — lembrete de bater ponto por push (ADR 0422). Avisa o colaborador alguns minutos
+        // antes de cada horário da escala de hoje, se a marcação ainda não foi feita. Com a fila
+        // `sync` o Job roda no mesmo tick (sem worker no Hostinger). Desligado até
+        // PONTO_PUSH_ENABLED=true + credenciais do Firebase no servidor.
+        $schedule->command('ponto:lembretes-push')
+            ->everyFiveMinutes()
+            ->withoutOverlapping(10)
+            ->environments(['live'])
+            ->when(fn () => (bool) config('pontowr2.push.enabled', false))
+            ->onFailure(function () {
+                \Illuminate\Support\Facades\Log::channel('single')->error(
+                    'Schedule ponto:lembretes-push FALHOU — lembretes de ponto podem não ter saído'
+                );
+            });
+
         // PaymentGateway — polling de reconciliação PIX Inter (fallback do webhook).
         // O Inter não empurra confirmação sozinho; este cron PERGUNTA ao Inter
         // quais cobranças PIX emitidas já foram pagas e reconcilia (marca paga +
