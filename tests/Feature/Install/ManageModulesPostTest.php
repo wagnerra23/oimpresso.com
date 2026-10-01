@@ -86,7 +86,11 @@ it('nos módulos cujo uninstall/update aceita POST, o GET da mesma URL não exec
             }
 
             $corpo = manageModulesCorpo($classe, $metodo);
+            // Guarda inline (Connector/Arquivos) ou via trait InstalacaoSoPorPost.
             $guarda = strpos($corpo, "isMethod('post')");
+            if ($guarda === false) {
+                $guarda = strpos($corpo, 'confirmacaoSeNaoForPost(');
+            }
             $acao = strpos($corpo, 'parent::'.$metodo.'(');
 
             expect($guarda)->not->toBeFalse("{$modulo}@{$metodo} aceita POST mas executa no GET");
