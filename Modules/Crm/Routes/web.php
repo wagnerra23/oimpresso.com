@@ -38,8 +38,8 @@ Route::middleware('web', 'authh', 'auth', 'SetSessionData', 'language', 'timezon
     Route::middleware('throttle:10,1')->group(function () {
         Route::get('install', [Modules\Crm\Http\Controllers\InstallController::class, 'index']);
         Route::post('install', [Modules\Crm\Http\Controllers\InstallController::class, 'install']);
-        Route::get('install/uninstall', [Modules\Crm\Http\Controllers\InstallController::class, 'uninstall']);
-        Route::get('install/update', [Modules\Crm\Http\Controllers\InstallController::class, 'update']);
+        Route::match(['get', 'post'], 'install/uninstall', [Modules\Crm\Http\Controllers\InstallController::class, 'uninstall']);
+        Route::match(['get', 'post'], 'install/update', [Modules\Crm\Http\Controllers\InstallController::class, 'update']);
     });
 
     Route::resource('leads', 'Modules\Crm\Http\Controllers\LeadController');

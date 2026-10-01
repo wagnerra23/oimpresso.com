@@ -1840,6 +1840,10 @@ Ocorrência da **LC-08**.
 
 - **O limite (variante também proibida):** gate que quer provar um **resultado publicado** (o prod serve X, o arquivo gerado é Y, o índice reflete Z) compara o **artefato produzido** com o **artefato servido**. Não usa "o insumo mudou" como substituto, porque a transformação entre insumo e saída pode ser identidade (comentário no build, whitespace num gerador, campo ignorado num serializer), e aí o gate reprova o correto. Quando o gate já existe e reprova errado, o conserto é no **predicado**; consertar só a janela ou a base, como no #8162, deixa o substituto armado para a próxima causa.
 
+### 2026-10-01 — EMENDA da lápide 2026-08-13 (retrato atrasado): o `max()` sobre N leituras supunha amostras INDEPENDENTES, e as 3 leituras pela mesma URL saíram velhas e iguais
+
+- **O limite (variante também proibida):** confirmação por re-leitura só vale se as leituras puderem discordar. Repetir a **mesma** consulta contra uma fonte que serve retrato velho não é N amostras, é uma amostra lida N vezes. Quando a fonte pode estar atrasada, a re-leitura pergunta por outro caminho (outra forma de URL, outro endpoint, outro filtro) que responda a mesma pergunta. E re-executar o job até ficar verde não é investigação: apaga a falha da listagem padrão e deixa o próximo PR tropeçar no mesmo alarme.
+
 ## Sempre fazer
 
 - ✅ **LIGUE A MÁQUINA — máquina é sempre melhor que fazer na mão** ([W] 2026-07-26, textual: *"isso ligue as maquinas, é sempre melhor que fazer na mão. isso é regra no sistema. deve ser"*). Ordem obrigatória, nesta sequência:

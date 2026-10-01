@@ -5,6 +5,8 @@
 
 import type { Formulario } from './Drawers';
 
+export { devolverFoco } from '../_shared/foco';
+
 /**
  * Para onde o foco volta quando o drawer fecha.
  *
@@ -21,15 +23,4 @@ export function alvoDoFoco(formulario: Formulario | undefined): string[] {
   const id = formulario.modo === 'devolver' ? formulario.alocacao.id : formulario.alocacao?.id;
   if (!id) return [header];
   return [`[data-acao="${formulario.modo === 'devolver' ? 'devolver' : 'editar'}-${id}"]`, header];
-}
-
-export function devolverFoco(seletores: string[], tentativas = 30): void {
-  const [preferido, ...resto] = seletores;
-  const el = preferido ? document.querySelector<HTMLElement>(preferido) : null;
-  if (el) { el.focus(); return; }
-  if (tentativas > 0 && resto.length) {
-    requestAnimationFrame(() => devolverFoco(seletores, tentativas - 1));
-    return;
-  }
-  if (resto.length) devolverFoco(resto, 0);
 }

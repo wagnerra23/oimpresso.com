@@ -6,7 +6,7 @@ tecnica: Caso de uso = narrativa do operador + critério de aceite verificável 
 por_que: comportamento é durável — "a lista vem do mesmo endpoint do Blade" e "OS de outro negócio não aparece" valem em qualquer troca do motor da tabela
 owner: wagner
 autor: "[CL] 2026-09-30"
-last_run: "2026-09-30"
+last_run: "2026-10-01"
 ---
 
 # Casos de Uso & Aceite — Lista de OS
@@ -27,13 +27,23 @@ last_run: "2026-09-30"
 > fecha o trio: os UCs abaixo são os mesmos ids, agora com o contrato escrito. Nenhum teste foi
 > reescrito para caber aqui.
 >
-> ⚠️ **Metade dos UCs não é medida hoje, e isto fica dito.** No veredito do manifesto
+> ⚠️ **Até 2026-09-30, metade dos UCs não era medida.** No manifesto
 > (`scripts/casos-test-results.json`, gerado 2026-09-29) e no run
 > [36571337250](https://github.com/wagnerra23/oimpresso.com/actions/runs/36571337250) da lane, os
-> UCs 03, 04 e 06 saem **`skipped`** — o teste pula por ambiente em vez de assertar cego, e um
-> `skipped` é ausência de medição, nunca aprovação (LC-13). O JUnit não carrega o motivo do skip;
-> a causa **não foi medida** e fica como pendência, não como fato.
-
+> UCs 03, 04 e 06 saíam **`skipped`** — e `skipped` é ausência de medição, nunca aprovação (LC-13).
+>
+> **Causa medida em 2026-10-01** (sonda no run
+> [36849371447](https://github.com/wagnerra23/oimpresso.com/actions/runs/36849371447), não dedução):
+> 03/04 mandavam `X-Inertia-Version: test` e recebiam **409** (handshake de versão do Inertia);
+> o 06 inseria a OS alheia em `business_id = 98 + 9001`, que não existe, e a FK
+> `repair_job_sheets_business_id_foreign` rejeitava. Consertado no próprio teste: versão perguntada
+> ao `HandleInertiaRequests`, e fixture própria nos tenants fictícios 98 e 99 (ADR 0358) com âncora
+> positiva. Prova no run
+> [36851236035](https://github.com/wagnerra23/oimpresso.com/actions/runs/36851236035): os 6 UCs
+> `passed`, nenhum `skipped` (asserções no JUnit: 03=9 · 04=3 · 06=5).
+>
+> Os UCs 03/04/06 ficam **🧪**, e não ✅, até o manifesto por-UC ser republicado pelo cron
+> (`casos-results-publish`) — ✅ é o veredito do manifesto, não deste arquivo.
 ---
 
 ## UC-JSIDX-01 · Sem permissão de OS, a lista não existe
@@ -55,7 +65,7 @@ last_run: "2026-09-30"
 - **Aceite:** Dado a flag ligada · Quando abro a lista · Então recebo o componente `Repair/JobSheet/Index` com `filters`, `flags` e `datatable_url`.
 - **Por que é assim:** o charter manda a tela respeitar as 3 flags vindas do Controller (`is_user_service_staff`, `show_serial_no`, `enable_brand_in_job_sheet`) e buscar a lista em `datatable_url`.
 - **Teste:** `RepairJobSheetIndexContratoTest` — *"UC-JSIDX-03: flag MWART ON entrega Inertia Repair/JobSheet/Index com filters, flags e datatable_url"*.
-- **Status: ⬜** _`skipped` no manifesto e no run 36571337250 — não medido_
+- **Status: 🧪** _passed no run 36851236035 (9 asserções); o manifesto de 2026-09-29 ainda diz `skip`_
 
 ## UC-JSIDX-04 · A tela busca no endpoint COMPARTILHADO com o Blade
 - **Persona:** ninguém — é armadilha de migração.
@@ -63,7 +73,7 @@ last_run: "2026-09-30"
 - **Por que é assim:** o Automation Hook do charter — *"A lista vem do MESMO endpoint que serve o Blade legado"* — e o contrato da US-REPA-004.
 - **Regressão que defende:** apontar a tela para um endpoint exclusivo abre o caminho para alguém "limpar" o ramo `ajax` achando que só a tela o usa.
 - **Teste:** `RepairJobSheetIndexContratoTest` — *"UC-JSIDX-04: datatable_url aponta para o endpoint que também serve o Blade"*.
-- **Status: ⬜** _`skipped` no manifesto e no run 36571337250 — não medido_
+- **Status: 🧪** _passed no run 36851236035 (3 asserções); o manifesto de 2026-09-29 ainda diz `skip`_
 
 ## UC-JSIDX-05 · O ramo `ajax` continua vivo com a flag ligada
 - **Persona:** operador de qualquer negócio sem a flag — que hoje é a maioria.
@@ -75,10 +85,11 @@ last_run: "2026-09-30"
 
 ## UC-JSIDX-06 · OS de outro negócio não aparece na lista (Tier 0)
 - **Persona:** ninguém — a falha seria silenciosa e cruzaria a fronteira de tenant.
-- **Aceite:** Dado uma OS de outro `business_id` · Quando a lista é carregada · Então ela **não** aparece no payload.
+- **Aceite:** Dado uma OS do meu negócio e uma OS de outro `business_id` · Quando a lista é carregada · Então a minha aparece e a alheia **não** aparece no payload.
 - **Por que é assim:** anti-hook literal do charter — *"Não acessa OS de outro `business_id`"* — [ADR 0093](../../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md), Tier 0 irrevogável.
 - **Teste:** `RepairJobSheetIndexContratoTest` — *"UC-JSIDX-06: a listagem ajax não devolve OS de outro business"*.
-- **Status: ⬜** _`skipped` no manifesto e no run 36571337250 — não medido. Sendo Tier 0, é a pendência mais séria deste arquivo_
+- **Por que a OS própria entra no aceite:** sem ela, a lista vazia por outro filtro (`permitted_locations()` vazio, recorte "só as minhas OS") faria a ausência da alheia passar por vácuo.
+- **Status: 🧪** _passed no run 36851236035 (5 asserções); o manifesto de 2026-09-29 ainda diz `skip`_
 
 ---
 

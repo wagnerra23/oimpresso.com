@@ -36,6 +36,7 @@ import { useState } from 'react';
 import { Pencil, Trash2 } from 'lucide-react';
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { PageHeader } from '@/Components/PageHeader';
+import { devolverFoco } from './_shared/foco';
 import DataTable, { type EstadoDaLinha } from '@/Components/shared/DataTable';
 import EmptyState from '@/Components/shared/EmptyState';
 import { Alert, AlertDescription, AlertTitle } from '@/Components/ui/alert';
@@ -234,6 +235,7 @@ function AcoesDaLinha({ manutencao }: { manutencao: Manutencao }) {
     <Inline gap={1}>
       <button
         type="button"
+        data-acao={`editar-${manutencao.id}`}
         title={`Editar manutenção — ${manutencao.bem}`}
         onClick={(e) => {
           e.stopPropagation();
@@ -570,9 +572,20 @@ function ManutencaoDrawer({
   const [erros, setErros] = useState<Record<string, string>>({});
   const [enviando, setEnviando] = useState(false);
 
-  // O drawer vive na URL (`/create` ou `/{id}/edit`) — fechar volta pra lista.
+  // O drawer vive na URL (`/create` ou `/{id}/edit`) — fechar volta pra lista e devolve o foco a
+  // quem abre este drawer: o lápis da própria linha (editar) ou "+ Enviar bem pra manutenção".
+  // Medido em produção em 2026-09-30, antes deste conserto: Cancelar → foco no `BODY`.
   const fechar = () => {
-    if (!enviando) router.get('/asset/asset-maintenance', {}, { preserveScroll: true });
+    if (enviando) return;
+    const alvo = [
+      ...(edicao ? [`[data-acao="editar-${edicao.id}"]`] : []),
+      '#patrimonio-enviar-manutencao',
+    ];
+    router.get('/asset/asset-maintenance', {}, {
+      preserveScroll: true,
+      // Depois do quadro em que o drawer desmonta — antes disso o Radix ainda segura o foco.
+      onSuccess: () => { requestAnimationFrame(() => devolverFoco(alvo)); },
+    });
   };
 
   const bens = cadastro?.bens ?? [];
@@ -830,6 +843,7 @@ export default function Manutencoes({ manutencoes, filtros, opcoes, permissoes, 
             <Button
               size="sm"
               variant="ghost"
+              id="patrimonio-enviar-manutencao"
               onClick={() => router.get('/asset/asset-maintenance/create', {}, { preserveScroll: true })}
             >
               + Enviar bem pra manutenção

@@ -650,3 +650,4 @@ tests/Feature/Whatsapp/AtendimentoChannelsContratoTest.php
 tests/Feature/Testing/GuardableColumnsCacheResetTest.php
 # /manage-modules — ações de módulo por POST+CSRF quando o router registra POST (DB-less: router + reflexão + partial).
 tests/Feature/Install/ManageModulesPostTest.php
+tests/Feature/Install/InstalacaoSoPorPostTest.php
