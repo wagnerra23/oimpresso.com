@@ -14,7 +14,6 @@
 use App\Http\Controllers\Concerns\InstalacaoSoPorPost;
 use App\Http\Controllers\Install\ModulesController;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
@@ -130,6 +129,8 @@ it('a confirmação real renderiza form POST + CSRF pra mesma URL', function () 
     @mkdir($dir.'/layouts', 0777, true);
     file_put_contents($dir.'/layouts/app.blade.php', "@yield('content')");
     app('view')->getFinder()->prependLocation($dir);
+    // O composer `layouts.*` (AppServiceProvider) lê a tabela `system`, ausente na lane sqlite.
+    app('events')->forget('composing: layouts.*');
 
     instalacaoSoPorPostSuperadmin();
     instalacaoSoPorPostRequisicao('GET', url('cms/install/uninstall'));
