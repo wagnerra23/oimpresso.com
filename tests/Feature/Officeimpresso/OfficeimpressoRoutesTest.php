@@ -71,7 +71,7 @@ it('catalogue-qr renderiza com status 200', function () {
 });
 
 it('toggleBlock redireciona apos alternar bloqueio (ou 404 se id invalido)', function () {
-    $r = $this->get('/officeimpresso/licenca_computador/999999/toggle-block');
+    $r = $this->post('/officeimpresso/licenca_computador/999999/toggle-block'); // POST desde a thread Officeimpresso/04
     // Ou 302 (redirect after toggle) ou 500 (ModelNotFoundException);
     // ambos indicam que a rota existe.
     expect($r->getStatusCode())->toBeIn([302, 404, 500]);

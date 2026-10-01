@@ -62,15 +62,14 @@ type Confirmacao = { titulo: string; descricao: string; url: string } | null;
 export default function MaquinasTable({ maquinas, podeBloquear, urlComFiltro }: Props) {
   const [confirmacao, setConfirmacao] = useState<Confirmacao>(null);
 
-  // As duas ações de bloqueio são `Route::get` no legado, protegidas só por
-  // `confirm()` do browser. NÃO renderizamos elas como <Link>/<a href>: um href
-  // é seguível por prefetch, crawler e "abrir em nova aba" — que é o vetor real
-  // do GET-que-muda-estado. Aqui só um clique deliberado dispara, e ainda passa
-  // pelo diálogo. A conversão pra POST é a divergência D1 do -parity.md e sai em
-  // PR próprio: mexer em `Modules/**/Routes/**` deve o Infra Contract.
+  // As duas ações de bloqueio eram `Route::get` no legado, protegidas só por
+  // `confirm()` do browser. Desde a thread Officeimpresso/04 (2026-10-01) as
+  // rotas só aceitam POST + CSRF (divergência D1 do -parity.md fechada) — por
+  // isso `router.post`, não `router.visit`. Seguem fora de <Link>/<a href>: só
+  // um clique deliberado dispara, e ainda passa pelo diálogo.
   const executar = () => {
     if (!confirmacao) return;
-    router.visit(confirmacao.url, { preserveScroll: true });
+    router.post(confirmacao.url, {}, { preserveScroll: true });
     setConfirmacao(null);
   };
 
