@@ -19,6 +19,6 @@ class PrivacidadePublicaController extends Controller
 {
     public function app(): Response
     {
-        return Inertia::render('Site/Privacidade');
+        return Inertia::render('Site/PrivacidadeApp');
     }
 }

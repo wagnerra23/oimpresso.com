@@ -1,15 +1,15 @@
 ---
-casos: Site/Privacidade — política de privacidade do app oimpresso (ERP + ponto)
-irmaos: Privacidade.charter.md (lei) · Privacidade.tsx (código) · tests/Feature/Site/PrivacidadeAppContratoTest.php (defesa)
+casos: Site/PrivacidadeApp — política de privacidade do app oimpresso (ERP + ponto)
+irmaos: PrivacidadeApp.charter.md (lei) · PrivacidadeApp.tsx (código) · tests/Feature/Site/PrivacidadeAppContratoTest.php (defesa)
 tecnica: Caso de uso = o que a loja e quem usa o app precisam ver + critério de aceite verificável (Dado/Quando/Então)
 por_que: a loja reprova o app sem URL de privacidade estável, e o texto não pode prometer o que a lei proíbe
 owner: wagner
 last_run: "2026-10-01"
 ---
 
-# Casos de Uso & Aceite — Site/Privacidade (`/privacidade`)
+# Casos de Uso & Aceite — Site/PrivacidadeApp (`/privacidade`)
 
-> **Fonte dos UC:** [charter](Privacidade.charter.md) + [RUNBOOK](../../../../memory/requisitos/Site/RUNBOOK-privacidade.md)
+> **Fonte dos UC:** [charter](PrivacidadeApp.charter.md) + [RUNBOOK](../../../../memory/requisitos/Site/RUNBOOK-privacidade.md)
 > + inventário de `docs/lojas-app/textos/privacidade-lojas.md` + ADR 0383 + Portaria MTP 671/2021. **Não** o `.tsx`.
 > **Status:** ✅ passa · 🧪 teste cita o UC, veredito pendente da lane · ⬜ não verificado · ❌ quebrou.
 > Teste: `tests/Feature/Site/PrivacidadeAppContratoTest.php`, lane sqlite per-PR.
@@ -25,7 +25,7 @@ last_run: "2026-10-01"
 
 ## UC-PRIVAPP-01 · Abre sem login, URL estável · `must`
 - **Persona:** revisor da loja de aplicativo, sem conta no oimpresso.
-- **Aceite:** Dado um visitante sem sessão · Quando abre `/privacidade` · Então recebe 200 com a tela `Site/Privacidade`, sem ir ao login.
+- **Aceite:** Dado um visitante sem sessão · Quando abre `/privacidade` · Então recebe 200 com a tela `Site/PrivacidadeApp`, sem ir ao login.
 - **Status:** 🧪
 
 ## UC-PRIVAPP-02 · Cobre o ERP e aponta para o ponto · `must`

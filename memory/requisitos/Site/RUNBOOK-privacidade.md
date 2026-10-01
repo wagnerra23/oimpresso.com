@@ -5,14 +5,14 @@ slug: site-runbook-privacidade
 title: "Site — Runbook da política de privacidade pública do app oimpresso (ERP + ponto)"
 type: runbook
 module: Site
-tela: Site/Privacidade
+tela: Site/PrivacidadeApp
 status: ativo
 date: 2026-10-01
 related_adrs:
   - 0383-ponto-interno-nao-coleta-biometria
 ---
 
-# RUNBOOK — política de privacidade do app (`Site/Privacidade`)
+# RUNBOOK — política de privacidade do app (`Site/PrivacidadeApp`)
 
 > F1 PLAN de tela nova (não migra Blade: não havia política geral — medido em 2026-10-01,
 > `https://oimpresso.com/privacidade` respondia 404; só existiam `/privacidade/ponto` e
@@ -27,7 +27,7 @@ não só o ponto.
 
 | Rota | Nome | Tela |
 |---|---|---|
-| `GET /privacidade` | `publico.privacidade` | `Site/Privacidade` |
+| `GET /privacidade` | `publico.privacidade` | `Site/PrivacidadeApp` |
 
 Pública (`web` + `throttle:60,1`, sem `auth`). O controller só renderiza: não lê banco, sessão nem tenant.
 

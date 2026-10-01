@@ -1,6 +1,6 @@
 ---
 page: /privacidade
-component: resources/js/Pages/Site/Privacidade.tsx
+component: resources/js/Pages/Site/PrivacidadeApp.tsx
 owner: wagner
 status: draft
 parent_module: Site
@@ -15,9 +15,9 @@ tier: B
 charter_version: 1
 ---
 
-# Page Charter — Site/Privacidade (política de privacidade do app oimpresso)
+# Page Charter — Site/PrivacidadeApp (política de privacidade do app oimpresso)
 
-> Casos em [`Privacidade.casos.md`](Privacidade.casos.md); plano em
+> Casos em [`PrivacidadeApp.casos.md`](PrivacidadeApp.casos.md); plano em
 > [RUNBOOK-privacidade](../../../../memory/requisitos/Site/RUNBOOK-privacidade.md).
 > **O texto jurídico é rascunho até a revisão da Eliana [E].**
 
