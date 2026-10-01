@@ -139,6 +139,7 @@ jobs:
             Modules/Officeimpresso/Tests/Feature/LicencasAcessoPermissionTest.php \
             Modules/Officeimpresso/Tests/Feature/LogsBaselineTest.php \
             Modules/Officeimpresso/Tests/Feature/CatalogoRedirectTest.php \
+            Modules/Officeimpresso/Tests/Feature/ClientesSegredoUmaVezTest.php \
             tests/Feature/Connector/SalvarEquipamentoTenantGuardTest.php
 
 
