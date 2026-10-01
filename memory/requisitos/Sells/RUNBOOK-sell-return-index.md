@@ -55,7 +55,7 @@ Props:
 | prop | tipo | carga |
 |---|---|---|
 | `kpis` | `{com_saldo, no_mes, valor_mes}` | `Inertia::defer` (grupo `lista`) |
-| `devolucoes` | `{linhas[], total, limite}` | `Inertia::defer` (grupo `lista`) |
+| `devolucoes` | paginador Laravel (25/página, `PaginatorShape`) | `Inertia::defer` (grupo `lista`) |
 | `permissions` | `{ver_todas, ver_proprias}` | eager (booleano barato) |
 
 Os KPIs são leitura: `COUNT` e `SUM(final_total)` sobre devoluções já gravadas. Nenhum cálculo
@@ -64,9 +64,11 @@ de valor muda.
 ### 3.2 Front — `resources/js/Pages/SellReturn/Index.tsx`
 
 Desenho `VendasDevolucoesPage` de `prototipo-ui/cowork/Wagner/vendas-extras.jsx`
-(alvo `governance/design/targets/vendas--devolucao--index.secoes.json`): `os-head` ·
-navegação de Vendas · `os-kpis` (3) · `os-table-wrap`. Classes de `resources/css/sells-cowork.css`
-sob o wrapper `.sells-cowork`, como `Sells/Caixa/Index.tsx`.
+(alvo `governance/design/targets/vendas--devolucao--index.secoes.json`): cabeçalho ·
+navegação de Vendas · 3 KPIs · tabela. Montada com componentes canônicos — `PageHeader`
+(`@/Components/PageHeader`), `SubNav`, `KpiCard`, `DataTable` shared (paginação no servidor)
+e `Badge`. **Não** veste o bundle `.sells-cowork`: a tela mora em `Pages/SellReturn/`, e o
+`ui:lint` R7 (PT-04 L80) proíbe página de outro módulo aplicar a ilha CSS de Vendas.
 
 ### 3.3 Teste — `tests/Feature/Sells/SellReturnIndexContratoTest.php`
 

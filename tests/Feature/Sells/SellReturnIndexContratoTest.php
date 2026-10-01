@@ -205,8 +205,11 @@ it('UC-SRIDX-01 a visita Inertia recebe a página React, não o JSON do DataTabl
     expect($page['props']['permissions']['ver_todas'])->toBeTrue();
 
     $props = sridxDeferidas($this);
-    expect(count($props['devolucoes']['linhas']))->toBe(3);
+    expect(count($props['devolucoes']['data']))->toBe(3);
     expect((int) $props['devolucoes']['total'])->toBe(3);
+    // Forma de paginador que o DataTable shared consome (PaginatorShape).
+    expect((int) $props['devolucoes']['current_page'])->toBe(1);
+    expect(array_key_exists('links', $props['devolucoes']))->toBeTrue();
 });
 
 it('UC-SRIDX-02 [T0] devolução de outro business não entra na lista nem nos números', function () {
@@ -215,7 +218,7 @@ it('UC-SRIDX-02 [T0] devolução de outro business não entra na lista nem nos n
 
     $props = sridxDeferidas($this);
 
-    expect(sridxLinha($props['devolucoes']['linhas'], $this->dx))->toBeNull();
+    expect(sridxLinha($props['devolucoes']['data'], $this->dx))->toBeNull();
     expect(round((float) $props['kpis']['valor_mes'], 2))->toBe(140.5);
     expect((int) $props['kpis']['com_saldo'])->toBe(2);
 });
@@ -235,7 +238,7 @@ it('UC-SRIDX-04 quem só tem access_own_sell_return vê apenas as devoluções q
     expect($page['props']['permissions']['ver_proprias'])->toBeTrue();
 
     $props = sridxDeferidas($this);
-    $ids = array_map(fn ($l) => (int) $l['id'], $props['devolucoes']['linhas']);
+    $ids = array_map(fn ($l) => (int) $l['id'], $props['devolucoes']['data']);
 
     expect($ids)->toBe([$this->d2]);
     expect((int) $props['kpis']['no_mes'])->toBe(1);
@@ -253,7 +256,7 @@ it('UC-SRIDX-05 [V0] os três números do topo são leitura do que está gravado
 });
 
 it('UC-SRIDX-06 cada linha traz a venda de origem, o valor e o que já foi pago', function () {
-    $linhas = sridxDeferidas($this)['devolucoes']['linhas'];
+    $linhas = sridxDeferidas($this)['devolucoes']['data'];
 
     $d3 = sridxLinha($linhas, $this->d3);
     expect($d3)->not->toBeNull();

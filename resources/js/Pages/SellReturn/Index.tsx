@@ -1,17 +1,27 @@
 // SellReturn/Index — lista de devoluções de venda (/sell-return), visita Inertia.
 // Thread 03 de venda-menu, PR 1 de 2: só a LISTA. O registro (/sell-return/add/{venda})
 // segue na Blade até o PR 2, que espera a REGRA MESTRE de valor/estoque.
-// Refs:
-//  - prototipo-ui/cowork/Wagner/vendas-extras.jsx · VendasDevolucoesPage (.vd-dev-page)
-//  - governance/design/targets/vendas--devolucao--index.secoes.json (header · tabs · kpis · tabela)
-//  - resources/js/Pages/SellReturn/Index.charter.md · Index.casos.md (UC-SRIDX-*)
-//  - memory/requisitos/Sells/RUNBOOK-sell-return-index.md · ADR 0104 · ADR 0093
+//
+// Estrutura do desenho VendasDevolucoesPage (vendas-extras.jsx; alvo
+// governance/design/targets/vendas--devolucao--index.secoes.json): cabeçalho · navegação de
+// Vendas · 3 KPIs · tabela. Montada com os componentes canônicos (PageHeader · SubNav ·
+// KpiCard · DataTable) e tokens do DS — a tela é de outro módulo, então NÃO veste o bundle
+// `.sells-cowork` (ui:lint R7 / PT-04 L80).
+// Refs: Index.charter.md · Index.casos.md (UC-SRIDX-*) ·
+//       memory/requisitos/Sells/RUNBOOK-sell-return-index.md · ADR 0104 · ADR 0093
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Deferred, Head, Link } from '@inertiajs/react';
-import type { ReactNode } from 'react';
+import type { ColumnDef } from '@tanstack/react-table';
+import { PageHeader } from '@/Components/PageHeader';
+import SubNav from '@/Components/shared/SubNav';
+import KpiCard from '@/Components/shared/KpiCard';
 import EmptyState from '@/Components/shared/EmptyState';
+import DataTable, { type PaginatorShape } from '@/Components/shared/DataTable';
+import { Badge } from '@/Components/ui/badge';
 import { Button } from '@/Components/ui/button';
+import { Skeleton } from '@/Components/ui/skeleton';
+import { Grid } from '@/Components/layout';
 
 // ──────────────────────────────────────────────────────────────
 // TIPOS — paridade SellReturnController@inertiaIndex
@@ -35,15 +45,9 @@ interface Kpis {
   valor_mes: number;
 }
 
-interface ListaPayload {
-  linhas: LinhaDevolucao[];
-  total: number;
-  limite: number;
-}
-
 interface SellReturnIndexProps {
   kpis?: Kpis; // deferida (grupo "lista")
-  devolucoes?: ListaPayload; // deferida (grupo "lista")
+  devolucoes?: PaginatorShape<LinhaDevolucao>; // deferida (grupo "lista")
   permissions: { ver_todas: boolean; ver_proprias: boolean };
 }
 
@@ -59,185 +63,123 @@ const fmtData = (valor: string): string => {
   return partes.length === 3 ? `${partes[2]}/${partes[1]}/${partes[0]}` : valor;
 };
 
-const SITUACAO: Record<string, { label: string; tom: string }> = {
-  paid: { label: 'Pago', tom: 'green' },
-  partial: { label: 'Parcial', tom: 'amber' },
-  due: { label: 'A pagar', tom: 'red' },
+// Situação do PAGAMENTO da devolução ao cliente (payment_status gravado).
+const SITUACAO: Record<string, { label: string; variant: 'success' | 'warning' | 'danger' | 'neutral' }> = {
+  paid: { label: 'Pago', variant: 'success' },
+  partial: { label: 'Parcial', variant: 'warning' },
+  due: { label: 'A pagar', variant: 'danger' },
 };
 
 const NAV_VENDAS = [
-  { href: '/sells', label: 'Vendas', ativo: false },
-  { href: '/vendas/caixa', label: 'Caixa do dia', ativo: false },
-  { href: '/sell-return', label: 'Devoluções', ativo: true },
+  { label: 'Vendas', href: '/sells', inertia: true },
+  { label: 'Caixa do dia', href: '/vendas/caixa', inertia: true },
+  { label: 'Devoluções', href: '/sell-return', inertia: true },
 ];
 
-const KPI_LABELS = ['Com saldo a pagar', 'Devoluções no mês', 'Valor devolvido no mês'];
+const colunas: ColumnDef<LinhaDevolucao>[] = [
+  { accessorKey: 'numero', header: 'Devolução', meta: { mono: true }, cell: ({ row }) => `#${row.original.numero}` },
+  { accessorKey: 'data', header: 'Data', meta: { mono: true }, cell: ({ row }) => fmtData(row.original.data) },
+  {
+    accessorKey: 'venda_numero',
+    header: 'Venda orig.',
+    meta: { mono: true },
+    cell: ({ row }) => (
+      <Link href={`/sells/${row.original.venda_id}`} aria-label={`Abrir a venda ${row.original.venda_numero}`}>
+        #{row.original.venda_numero}
+      </Link>
+    ),
+  },
+  { accessorKey: 'cliente', header: 'Cliente', cell: ({ row }) => <strong>{row.original.cliente ?? '—'}</strong> },
+  { accessorKey: 'local', header: 'Local' },
+  { accessorKey: 'total', header: 'Total', meta: { align: 'right', mono: true }, cell: ({ row }) => fmtBRL(row.original.total) },
+  { accessorKey: 'pago', header: 'Pago', meta: { align: 'right', mono: true }, cell: ({ row }) => fmtBRL(row.original.pago) },
+  {
+    accessorKey: 'situacao_pagamento',
+    header: 'Situação',
+    cell: ({ row }) => {
+      const sit = SITUACAO[row.original.situacao_pagamento] ?? {
+        label: row.original.situacao_pagamento,
+        variant: 'neutral' as const,
+      };
+      return <Badge variant={sit.variant}>{sit.label}</Badge>;
+    },
+  },
+  {
+    id: 'acoes',
+    header: () => <span className="sr-only">Ações</span>,
+    cell: ({ row }) => (
+      // Registro/edição segue na Blade até o PR 2 (SellReturn/Add).
+      <a href={`/sell-return/add/${row.original.venda_id}`} aria-label={`Editar a devolução ${row.original.numero}`}>
+        Editar
+      </a>
+    ),
+  },
+];
 
 // ──────────────────────────────────────────────────────────────
 // COMPONENTE
 // ──────────────────────────────────────────────────────────────
 export default function SellReturnIndex({ kpis, devolucoes, permissions }: SellReturnIndexProps) {
   const soProprias = !permissions.ver_todas && permissions.ver_proprias;
-
-  return (
-    <>
-      <Head title="Devoluções de venda" />
-      <div className="sells-cowork">
-        <div className="os-page vd-dev-page vd-subpage">
-          <header className="os-head">
-            <div className="os-head-l">
-              <h1>Devoluções de venda</h1>
-              <p>
-                Devoluções registradas, venda de origem e o que falta pagar ao cliente
-                {soProprias ? ' · só as suas' : ''}
-              </p>
-            </div>
-            <div className="os-head-r">
-              {/* A devolução começa pela venda: abre-se a venda e usa-se Devolver. */}
-              <Button asChild>
-                <Link href="/sells" title="A devolução começa pela venda — abra a venda e use Devolver">
-                  + Nova devolução
-                </Link>
-              </Button>
-            </div>
-          </header>
-
-          <nav className="os-tabs" aria-label="Vendas e telas vinculadas">
-            {NAV_VENDAS.map(item => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={item.ativo ? 'os-tab active' : 'os-tab'}
-                aria-current={item.ativo ? 'page' : undefined}
-              >
-                {item.label}
-              </Link>
-            ))}
-          </nav>
-
-          <Deferred data={['kpis', 'devolucoes']} fallback={<CarregandoLista />}>
-            <ListaDevolucoes kpis={kpis} devolucoes={devolucoes} />
-          </Deferred>
-        </div>
-      </div>
-    </>
-  );
-}
-
-function CarregandoLista() {
-  return (
-    <>
-      <div className="os-kpis">
-        {KPI_LABELS.map(label => (
-          <div key={label} className="os-kpi">
-            <span className="os-kpi-label">{label}</span>
-            <span className="os-kpi-value">—</span>
-            <span className="os-kpi-sub">carregando</span>
-          </div>
-        ))}
-      </div>
-      <div className="os-table-wrap">
-        <p className="vc-empty">Carregando devoluções…</p>
-      </div>
-    </>
-  );
-}
-
-function ListaDevolucoes({ kpis, devolucoes }: { kpis?: Kpis; devolucoes?: ListaPayload }) {
-  const linhas = devolucoes?.linhas ?? [];
-  const total = devolucoes?.total ?? 0;
   const comSaldo = kpis?.com_saldo ?? 0;
 
   return (
-    <>
-      <div className="os-kpis">
-        <div className={comSaldo > 0 ? 'os-kpi os-kpi-alert' : 'os-kpi'}>
-          <span className="os-kpi-label">{KPI_LABELS[0]}</span>
-          <span className="os-kpi-value">{comSaldo}</span>
-          <span className="os-kpi-sub">devolução ainda não paga ao cliente</span>
-        </div>
-        <div className="os-kpi">
-          <span className="os-kpi-label">{KPI_LABELS[1]}</span>
-          <span className="os-kpi-value">{kpis?.no_mes ?? 0}</span>
-          <span className="os-kpi-sub">total registrado</span>
-        </div>
-        <div className="os-kpi">
-          <span className="os-kpi-label">{KPI_LABELS[2]}</span>
-          <span className="os-kpi-value">{fmtBRL(kpis?.valor_mes ?? 0)}</span>
-          <span className="os-kpi-sub">soma das devoluções do mês</span>
-        </div>
+    <AppShellV2 title="Devoluções de venda" breadcrumbItems={[{ label: 'Vendas' }, { label: 'Devoluções' }]}>
+      <Head title="Devoluções de venda" />
+
+      <div data-contract="cabecalho">
+        <PageHeader
+          title="Devoluções de venda"
+          subtitle={`Devoluções registradas, venda de origem e o que falta pagar ao cliente${soProprias ? ' · só as suas' : ''}`}
+          subnav={<SubNav items={NAV_VENDAS} ariaLabel="Vendas e telas vinculadas" />}
+          actions={
+            // A devolução começa pela venda: abre-se a venda e usa-se Devolver.
+            <Button asChild>
+              <Link href="/sells" title="A devolução começa pela venda — abra a venda e use Devolver">
+                + Nova devolução
+              </Link>
+            </Button>
+          }
+        />
       </div>
 
-      <div className="os-table-wrap">
-        {linhas.length === 0 ? (
-          <EmptyState
-            icon="rotate-ccw"
-            title="Nenhuma devolução registrada"
-            description="A devolução começa pela venda: abra a venda e use Devolver."
-          />
-        ) : (
-          <>
-            <table className="os-table">
-              <thead>
-                <tr>
-                  <th>Devolução</th>
-                  <th>Data</th>
-                  <th>Venda orig.</th>
-                  <th>Cliente</th>
-                  <th>Local</th>
-                  <th className="os-th-val">Total</th>
-                  <th className="os-th-val">Pago</th>
-                  <th>Situação</th>
-                  <th>
-                    <span className="sr-only">Ações</span>
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {linhas.map(d => {
-                  const sit = SITUACAO[d.situacao_pagamento] ?? {
-                    label: d.situacao_pagamento,
-                    tom: 'muted',
-                  };
-                  return (
-                    <tr key={d.id} className="os-row">
-                      <td className="tabular-nums">#{d.numero}</td>
-                      <td className="tabular-nums">{fmtData(d.data)}</td>
-                      <td className="tabular-nums">
-                        <Link href={`/sells/${d.venda_id}`} aria-label={`Abrir a venda ${d.venda_numero}`}>
-                          #{d.venda_numero}
-                        </Link>
-                      </td>
-                      <td>
-                        <strong>{d.cliente ?? '—'}</strong>
-                      </td>
-                      <td>{d.local}</td>
-                      <td className="os-th-val tabular-nums">{fmtBRL(d.total)}</td>
-                      <td className="os-th-val tabular-nums">{fmtBRL(d.pago)}</td>
-                      <td>
-                        <span className={`os-stage ${sit.tom}`}>{sit.label}</span>
-                      </td>
-                      <td>
-                        {/* Registro/edição segue na Blade até o PR 2 (SellReturn/Add). */}
-                        <a href={`/sell-return/add/${d.venda_id}`} aria-label={`Editar a devolução ${d.numero}`}>
-                          Editar
-                        </a>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-            {total > linhas.length && (
-              <p className="vc-empty">
-                Mostrando as {linhas.length} mais recentes de {total}.
-              </p>
+      <Deferred data={['kpis', 'devolucoes']} fallback={<Skeleton className="mt-4 h-64 w-full" />}>
+        <>
+          <Grid data-contract="kpis" min="sm" gap={4} className="mt-4">
+            <KpiCard
+              label="Com saldo a pagar"
+              value={comSaldo}
+              description="devolução ainda não paga ao cliente"
+              tone={comSaldo > 0 ? 'warning' : 'default'}
+            />
+            <KpiCard label="Devoluções no mês" value={kpis?.no_mes ?? 0} description="total registrado" />
+            <KpiCard
+              label="Valor devolvido no mês"
+              value={fmtBRL(kpis?.valor_mes ?? 0)}
+              description="soma das devoluções do mês"
+            />
+          </Grid>
+
+          <div data-contract="lista" className="mt-6">
+            {!devolucoes || devolucoes.data.length === 0 ? (
+              <EmptyState
+                icon="rotate-ccw"
+                title="Nenhuma devolução registrada"
+                description="A devolução começa pela venda: abra a venda e use Devolver."
+              />
+            ) : (
+              <DataTable
+                columns={colunas}
+                data={devolucoes.data}
+                pagination={devolucoes}
+                endpoint="/sell-return"
+                caption="Devoluções de venda"
+                rowKey={(d) => d.id}
+              />
             )}
-          </>
-        )}
-      </div>
-    </>
+          </div>
+        </>
+      </Deferred>
+    </AppShellV2>
   );
 }
-
-SellReturnIndex.layout = (page: ReactNode) => <AppShellV2>{page}</AppShellV2>;

@@ -208,8 +208,8 @@ class SellReturnController extends Controller
         return view('sell_return.index')->with(compact('business_locations', 'customers', 'sales_representative'));
     }
 
-    /** Teto de linhas da lista React — declarado na tela ("N de M"), nunca corte silencioso. */
-    private const INERTIA_LIMITE_LINHAS = 200;
+    /** Linhas por página da lista React (paginação no servidor, DataTable shared). */
+    private const INERTIA_POR_PAGINA = 25;
 
     /**
      * Lista de devoluções em React (`SellReturn/Index`). Só LEITURA: não muda cálculo de valor
@@ -272,11 +272,9 @@ class SellReturnController extends Controller
         ];
     }
 
-    private function inertiaLinhas(int $business_id): array
+    private function inertiaLinhas(int $business_id)
     {
-        $total = (int) $this->inertiaBaseQuery($business_id)->count();
-
-        $linhas = $this->inertiaBaseQuery($business_id)
+        return $this->inertiaBaseQuery($business_id)
             ->leftJoin('contacts', 'transactions.contact_id', '=', 'contacts.id')
             ->select(
                 'transactions.id',
@@ -293,9 +291,9 @@ class SellReturnController extends Controller
             )
             ->orderByDesc('transactions.transaction_date')
             ->orderByDesc('transactions.id')
-            ->limit(self::INERTIA_LIMITE_LINHAS)
-            ->get()
-            ->map(fn ($r) => [
+            ->paginate(self::INERTIA_POR_PAGINA)
+            ->withQueryString()
+            ->through(fn ($r) => [
                 'id' => (int) $r->id,
                 'data' => (string) $r->transaction_date,
                 'numero' => (string) $r->invoice_no,
@@ -306,14 +304,7 @@ class SellReturnController extends Controller
                 'situacao_pagamento' => (string) $r->payment_status,
                 'total' => (float) $r->final_total,
                 'pago' => (float) $r->valor_pago,
-            ])
-            ->all();
-
-        return [
-            'linhas' => $linhas,
-            'total' => $total,
-            'limite' => self::INERTIA_LIMITE_LINHAS,
-        ];
+            ]);
     }
 
     /**

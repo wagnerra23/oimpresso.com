@@ -24,7 +24,7 @@ charter_version: 1
 > `memory/proibicoes.md` (valor + estoque).
 
 **Fonte legado:** `sell_return/index` (DataTable) · **Permissão:** `access_sell_return · access_own_sell_return`
-**Desenho:** `vendas-extras.jsx` → `VendasDevolucoesPage` (`.vd-dev-page`: os-head · navegação · os-kpis · os-table-wrap). Alvo medido em `governance/design/targets/vendas--devolucao--index.secoes.json`.
+**Desenho:** `vendas-extras.jsx` → `VendasDevolucoesPage` (cabeçalho · navegação · 3 KPIs · tabela), portado com os componentes canônicos — não com o bundle `.sells-cowork`. Alvo medido em `governance/design/targets/vendas--devolucao--index.secoes.json`.
 
 ## Missão
 

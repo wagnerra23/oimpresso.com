@@ -14,7 +14,7 @@ veredito: "PR 1 de 2 entregue — lista /sell-return em React pela visita Inerti
 | arquivo | o quê |
 |---|---|
 | `app/Http/Controllers/SellReturnController.php` | ramo `X-Inertia` em `index()` **antes** do `ajax()` + `inertiaIndex` / `inertiaBaseQuery` / `inertiaKpis` / `inertiaLinhas` (só leitura) |
-| `resources/js/Pages/SellReturn/Index.tsx` | tela no desenho `VendasDevolucoesPage` (`vendas-extras.jsx`): os-head · navegação de Vendas · os-kpis (3) · os-table-wrap |
+| `resources/js/Pages/SellReturn/Index.tsx` | tela na estrutura de `VendasDevolucoesPage` (`vendas-extras.jsx`): cabeçalho · navegação de Vendas · 3 KPIs · tabela, com `PageHeader` · `SubNav` · `KpiCard` · `DataTable` shared |
 | `resources/js/Pages/SellReturn/Index.charter.md` · `Index.casos.md` | texto revisado de `Devolucao.charter.md` dividido em lista (PR 1) e registro (PR 2); UC-SRIDX-01..07 |
 | `memory/requisitos/Sells/RUNBOOK-sell-return-index.md` | RUNBOOK MWART, apontado pelo `runbook:` do charter |
 | `tests/Feature/Sells/SellReturnIndexContratoTest.php` | contrato Pest, tenant 98 × 99, headers `X-Inertia` + `X-Requested-With` |
@@ -27,7 +27,8 @@ Prova da thread: `SellReturnController.php` contém `Inertia::render('SellReturn
 1. **RUNBOOK em `memory/requisitos/Sells/`, não em `memory/requisitos/SellReturn/`.** A devolução é domínio de Vendas e o contrato dela já mora lá (`CASOS-USO-DEVOLUCAO.md`). O charter declara `runbook:` e o hook `block-mwart-violation` aceita depois de conferir que o arquivo existe. Abrir `requisitos/SellReturn/` criaria um "módulo" de requisitos sem SPEC só para carregar um RUNBOOK.
 2. **Ramo Inertia antes do `ajax()`.** O cliente Inertia manda `X-Requested-With`; depois do `ajax()`, a visita receberia o JSON do DataTable. UC-SRIDX-01 testa isso com os dois headers, e UC-SRIDX-07 prova que o DataTable legado continua respondendo.
 3. **KPIs são leitura.** Com saldo a pagar = `payment_status != paid`; no mês = `COUNT`; valor do mês = `SUM(final_total)` — o mesmo campo que o DataTable exibe. Nenhum cálculo de valor mudou. Props `kpis` e `devolucoes` deferidas no grupo `lista`.
-4. **Escopo igual ao DataTable:** business da sessão, `type=sell_return`, `status=final`, venda de origem obrigatória, locais permitidos, "só as minhas" para `access_own_sell_return`. Teto de 200 linhas, declarado na tela ("mostrando as N mais recentes de M").
+4. **Escopo igual ao DataTable:** business da sessão, `type=sell_return`, `status=final`, venda de origem obrigatória, locais permitidos, "só as minhas" para `access_own_sell_return`. Paginação no servidor (25 por página) pelo `DataTable` shared.
+5. **Componentes canônicos, não o bundle `.sells-cowork`.** A 1ª versão usava as classes `os-*` do bundle de Vendas (como `Sells/Caixa`); o `ui:lint` (R4 PT-01 sem PageHeader/DataTable shared; R7 bundle de módulo alheio) reprovou, e a tela foi refeita com `PageHeader` · `SubNav` · `KpiCard` · `DataTable` · `Badge`. A estrutura do desenho (cabeçalho · navegação · 3 KPIs · tabela) ficou; a pele vem do DS.
 
 ## Divergências do protótipo (declaradas, não inventadas)
 
