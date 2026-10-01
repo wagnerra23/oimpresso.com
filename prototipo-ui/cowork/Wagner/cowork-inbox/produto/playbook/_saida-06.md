@@ -46,4 +46,4 @@ O placar marcava `pendente` por dois motivos, os dois cobertos pelas exceções 
 6. Alvo/medida: **NÃO MEDI** (`alvo:medir` não rodado — ambiente sem `node_modules` neste worktree).
 
 ## PR
-_preenchido no PR_
+[#8377](https://github.com/wagnerra23/oimpresso.com/pull/8377). O placar fica `em curso` só porque o índice do Cowork ainda não marca 01/07 (exceções 1 e 3 da leva); as 2 provas da 06 passam.
