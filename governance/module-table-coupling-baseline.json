@@ -26,9 +26,11 @@
     "Superadmin>Forja"
   ],
   "allowlist": [
-    "Governance>Whatsapp"
+    "Governance>Whatsapp",
+    "Ponto>Financeiro"
   ],
   "allowlist_razoes": {
-    "Governance>Whatsapp": "FALSO-POSITIVO do detector, nao fronteira: as 2 unicas queries sao `failed_jobs` (Modules/Jana/Services/HealthSnapshotService.php), tabela de INFRA do Laravel cuja migration por acaso mora em Modules/Whatsapp. A mitigacao `>=3 modulos = infra compartilhada` nao dispara porque so Jana e Governance a leem — UM modulo abaixo do limiar. Baixar o limiar pra 2 foi MEDIDO e DESCARTADO em 2026-08-12: cegaria o detector em fin_contas_bancarias e subscriptions pra calar este alarme. Se um 3o modulo ler failed_jobs, a tabela vira infra sozinha e esta entrada pode sair."
+    "Governance>Whatsapp": "FALSO-POSITIVO do detector, nao fronteira: as 2 unicas queries sao `failed_jobs` (Modules/Jana/Services/HealthSnapshotService.php), tabela de INFRA do Laravel cuja migration por acaso mora em Modules/Whatsapp. A mitigacao `>=3 modulos = infra compartilhada` nao dispara porque so Jana e Governance a leem — UM modulo abaixo do limiar. Baixar o limiar pra 2 foi MEDIDO e DESCARTADO em 2026-08-12: cegaria o detector em fin_contas_bancarias e subscriptions pra calar este alarme. Se um 3o modulo ler failed_jobs, a tabela vira infra sozinha e esta entrada pode sair.",
+    "Ponto>Financeiro": "ponto:demo-dados (2026-10-01, [W] \"dados fictícios em prod no 235\") grava títulos FICTÍCIOS em fin_titulos só no business demo da revisão das lojas, por insert direto de propósito: retrato para a tela, sem disparar observers do Financeiro. Não é uso operacional do Ponto."
   }
 }
