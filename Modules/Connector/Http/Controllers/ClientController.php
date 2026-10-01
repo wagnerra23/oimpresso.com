@@ -150,13 +150,22 @@ class ClientController extends Controller
                         ->select('oauth_clients.id', 'oauth_clients.name')
                         ->first();
 
-        if ($client === null) {
-            return redirect()->back()->with('status', [
-                'success' => false,
-                'msg' => __('messages.something_went_wrong'),
-            ]);
+        $output = ['success' => false,
+            'msg' => __('messages.something_went_wrong'),
+        ];
+
+        if ($client !== null) {
+            $output = $this->excluirRevogando($client);
         }
 
+        return redirect()->back()->with('status', $output);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function excluirRevogando($client): array
+    {
         // CONN-O2 · [W] D2: excluir revoga em cadeia, na mesma transacao. Sem isso os
         // tokens ja emitidos com o client valiam ate expires_at (UC-CONN-12).
         $revogados = DB::transaction(function () use ($client) {
@@ -179,12 +188,10 @@ class ClientController extends Controller
 
         $this->auditar($client, 'connector_client_deleted', ['revoked_tokens' => $revogados]);
 
-        $output = ['success' => true,
+        return ['success' => true,
             'msg' => __('lang_v1.deleted_success'),
             'revoked_tokens' => $revogados,
         ];
-
-        return redirect()->back()->with('status', $output);
     }
 
     /**
@@ -194,7 +201,7 @@ class ClientController extends Controller
     private function auditar($client, string $acao, array $extra = []): void
     {
         try {
-            $this->util->activityLog(
+            app(Util::class)->activityLog(
                 $client,
                 $acao,
                 null,
