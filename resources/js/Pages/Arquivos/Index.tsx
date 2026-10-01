@@ -25,9 +25,10 @@
 import '../../../css/cowork-arquivos-bundle.css'
 
 import { Deferred, Link, router } from '@inertiajs/react'
-import { Download, File, Tag } from 'lucide-react'
+import { Download, File, RotateCcw, Tag, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import ClassificarSheet, { type AlvoClassificar } from './_components/ClassificarSheet'
+import ExcluirRestaurarSheet, { type AlvoExcluirRestaurar } from './_components/ExcluirRestaurarSheet'
 import AppShellV2 from '@/Layouts/AppShellV2'
 import { PageHeader } from '@/Components/PageHeader'
 import PageHeaderTabs from '@/Components/shared/PageHeaderTabs'
@@ -64,6 +65,10 @@ interface LinhaAcervo {
   vence_em: string | null
   dias_restantes: number | null
   excluido_em: string | null
+  /** Último dia em que dá pra restaurar (excluído + grace). `null` = não excluído. */
+  restaurar_ate: string | null
+  /** Excluído E ainda dentro do grace. Fora dele o botão Restaurar NÃO existe (thread 03). */
+  restauravel: boolean
 }
 
 /** Uma linha de `arquivos_audit_log`. O arquivo é `#id` — nunca o nome (ver charter). */
@@ -176,6 +181,8 @@ interface Props {
   filtros: Filtros
   politica: Politica[]
   resumo: Resumo
+  /** Mesma regra do `RestoreArquivoRequest::authorize()` — sem ela o botão daria 403. */
+  pode_restaurar: boolean
   /** Só chega quando `tab=acervo` — a vista fechada não é computada no servidor. */
   acervo?: Paginator<LinhaAcervo>
   /** Só chega quando `tab=trilha`. */
@@ -479,7 +486,12 @@ function estadoDaLinha(a: LinhaAcervo): EstadoDaLinha | undefined {
  * `nowrap` ou colapsava o `truncate` em reticências (os "tracinhos"), porque `truncate` é
  * `overflow:hidden` e só funciona contra uma largura que alguém declarou.
  */
-function colunas(politica: Politica[], onClassificar: (a: LinhaAcervo) => void): ColumnDef<LinhaAcervo, unknown>[] {
+function colunas(
+  politica: Politica[],
+  onClassificar: (a: LinhaAcervo) => void,
+  onExcluirRestaurar: (alvo: AlvoExcluirRestaurar) => void,
+  podeRestaurar: boolean,
+): ColumnDef<LinhaAcervo, unknown>[] {
   return [
     {
       id: 'arquivo',
@@ -789,6 +801,32 @@ function colunas(politica: Politica[], onClassificar: (a: LinhaAcervo) => void):
                 <Tag aria-hidden="true" />
               </Button>
             )}
+            {a.excluido_em === null && (
+              // Thread 03 (PR-7): SOFT-delete — o conteúdo fica e dá pra restaurar no grace.
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                className="text-muted-foreground hover:text-destructive"
+                aria-label={`Excluir ${a.nome}`}
+                title={`Excluir ${a.nome} — sai do acervo, dá pra restaurar no prazo de carência.`}
+                onClick={() => onExcluirRestaurar({ modo: 'excluir', id: a.id, nome: a.nome })}
+              >
+                <Trash2 aria-hidden="true" />
+              </Button>
+            )}
+            {/* Fora do grace o botão NÃO EXISTE (não é só desabilitado) — contrato da thread 03. */}
+            {a.restauravel && podeRestaurar && (
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                className="text-muted-foreground hover:text-foreground"
+                aria-label={`Restaurar ${a.nome}`}
+                title={`Restaurar ${a.nome} — dá até ${a.restaurar_ate ?? ''}.`}
+                onClick={() => onExcluirRestaurar({ modo: 'restaurar', id: a.id, nome: a.nome, restaurar_ate: a.restaurar_ate })}
+              >
+                <RotateCcw aria-hidden="true" />
+              </Button>
+            )}
           </Inline>
         )
       },
@@ -870,10 +908,22 @@ function TabelaSkeleton() {
   )
 }
 
-function Acervo({ acervo, politica, filtros }: { acervo?: Paginator<LinhaAcervo>; politica: Politica[]; filtros: Filtros }) {
+function Acervo({
+  acervo,
+  politica,
+  filtros,
+  podeRestaurar,
+}: {
+  acervo?: Paginator<LinhaAcervo>
+  politica: Politica[]
+  filtros: Filtros
+  podeRestaurar: boolean
+}) {
   // Thread 02 (PR-6) — a linha cujo drawer "Classificar" está aberto. Antes do `return`
   // antecipado porque hook não pode ser condicional.
   const [classificar, setClassificar] = useState<AlvoClassificar | null>(null)
+  // Thread 03 (PR-7) — drawer de excluir/restaurar aberto.
+  const [excluirRestaurar, setExcluirRestaurar] = useState<AlvoExcluirRestaurar | null>(null)
 
   if (!acervo || acervo.data.length === 0) {
     return (
@@ -886,8 +936,9 @@ function Acervo({ acervo, politica, filtros }: { acervo?: Paginator<LinhaAcervo>
   return (
     <>
     <ClassificarSheet alvo={classificar} onFechar={() => setClassificar(null)} />
+    <ExcluirRestaurarSheet alvo={excluirRestaurar} onFechar={() => setExcluirRestaurar(null)} />
     <DataTable
-      columns={colunas(politica, setClassificar)}
+      columns={colunas(politica, setClassificar, setExcluirRestaurar, podeRestaurar)}
       data={acervo.data}
       pagination={acervo}
       endpoint="/arquivos"
@@ -1329,7 +1380,7 @@ function Cofre({ cofre }: { cofre?: CofrePayload }) {
   )
 }
 
-export default function Index({ filtros, politica, resumo, acervo, trilha, cofre, retencao }: Props) {
+export default function Index({ filtros, politica, resumo, pode_restaurar, acervo, trilha, cofre, retencao }: Props) {
   const vista =
     filtros.tab === 'trilha' || filtros.tab === 'cofre' || filtros.tab === 'retencao' ? filtros.tab : 'acervo'
 
@@ -1450,11 +1501,21 @@ export default function Index({ filtros, politica, resumo, acervo, trilha, cofre
                     </button>
                   ))}
                 </Inline>
+                {/* Thread 03 (PR-7): sem este chip o excluído (e o Restaurar) não tinha caminho
+                    de UI — `with_trashed` só existia na URL. */}
+                <button
+                  type="button"
+                  onClick={() => irPara({ with_trashed: filtros.with_trashed ? undefined : 1 })}
+                  className={chip(filtros.with_trashed)}
+                  aria-pressed={filtros.with_trashed}
+                >
+                  Mostrar excluídos
+                </button>
               </Inline>
 
               <div data-contract="acervo">
                 <Deferred data="acervo" fallback={<TabelaSkeleton />}>
-                  <Acervo acervo={acervo} politica={politica} filtros={filtros} />
+                  <Acervo acervo={acervo} politica={politica} filtros={filtros} podeRestaurar={pode_restaurar} />
                 </Deferred>
               </div>
 

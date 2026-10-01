@@ -220,6 +220,35 @@ last_run: "2026-09-30"
 
 ---
 
+## UC-INDEX-08 · Excluir é soft-delete; restaurar só dentro do grace
+- **Persona:** Wagner (escritório, conformidade) — tirou do acervo um anexo duplicado e quer
+  poder voltar atrás por um tempo, sem que nada seja apagado de verdade pela tela.
+- **Fonte:** PR-7 do `PEDIDO-PARA-CODE.md` (onda 2) e ficha `playbook/03-excluir-restaurar.md` —
+  `DeleteArquivoRequest` → `ArquivosService::softDelete()`; `RestoreArquivoRequest` →
+  `restore()`; restaurar só **dentro do grace** (`arquivos_retention.grace_period_days`, 30d) e,
+  fora dele, o botão **não existe**. D4: hard-delete/purge nunca pela UI. Linha anti-regressão
+  abaixo: "Excluir nunca chama hard-delete direto — só soft-delete + grace".
+- **Aceite:** Dado um arquivo do próprio business · Quando a pessoa com `arquivos.access` abre o
+  drawer "Excluir" e envia um motivo de ≥5 caracteres · Então a linha ganha `deleted_at` (o
+  conteúdo fica) e a trilha ganha UMA linha `soft_delete` com o motivo, no `business_id` do
+  arquivo · E com "Mostrar excluídos", dentro do grace, aparece "Restaurar" (para quem a
+  `RestoreArquivoRequest` autoriza) · E restaurar tira o `deleted_at` **preservando** a linha
+  `soft_delete` e somando uma `restore` · E fora do grace a linha vem `restauravel: false`, o
+  botão não é desenhado e o POST é recusado sem efeito · E arquivo de OUTRO business é recusado
+  pelas duas Requests (403) e não é alcançado pelo controller.
+- **Teste:** `Modules/Arquivos/Tests/Feature/ArquivosAdminControllerTest.php` — **6** `it()`
+  citando `UC-INDEX-08` no título: rotas POST numéricas atrás de `arquivos.access` · corpo dos
+  dois métodos passa pelo Service, sem `forceDelete`/purge/`->delete(` · `restauravel` só
+  dentro do grace · **cross-tenant 98 × 99** nas duas Requests, com controle positivo e a
+  segunda perna no controller · motivo na trilha e trilha preservada no restaurar · fora do
+  grace recusado sem efeito.
+- **Regressão que defende:** exclusão virar apagamento (perda de dado + quebra da guarda legal) ·
+  restaurar depois que a retenção já é dona do arquivo · botão de restaurar desabilitado em vez
+  de ausente · exclusão de arquivo de outro business.
+- **Status: ⬜** — o veredito é da lane `PHP / Pest (Arquivos · MySQL)` do PR da thread 03.
+
+---
+
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
 Derivados do protótipo F1 (`arquivos-page.jsx`). A onda que implementar cada vista traz o teste
@@ -250,8 +279,6 @@ e promove o item a `UC-INDEX-NN`.
 
 - **[BACKLOG]** Excluir foto de OS → confirmação fala do grace de 30 dias e do `hard_delete` do job.
 - **[BACKLOG]** Excluir XML de NF-e → confirmação avisa da guarda legal de 5 anos ("problema fiscal, não faxina").
-- **[BACKLOG]** Restaurar dentro do grace → arquivo volta pro acervo e a trilha guarda o `restore`.
-- **[BACKLOG]** Fora do grace → o botão de restaurar **não existe** (não basta estar desabilitado).
 
 **Bloqueado — não vira UC sem decisão [W]**
 
@@ -289,6 +316,7 @@ e promove o item a `UC-INDEX-NN`.
 
 ## Trilha do tempo
 - 2026-08-27 · [CC] **UC-INDEX-05 (baixar) e UC-INDEX-06 (vinculado a) promovidos de `[BACKLOG]`/medição a UC** — a onda trouxe os testes que os defendem, que é a condição do G-2. O buraco foi MEDIDO com a mesma sonda nos dois lados (produção logada × protótipo vivo): a linha de produção tinha **6 colunas e 0 botões**, o protótipo tem **7** (a 7ª é a de ações) e `mono` em 5 delas contra **0 de 6** na produção. O item de backlog do `vault` saiu da lista — ele é exatamente o UC-INDEX-05. O que **não** entrou, e por quê: classificar e excluir **não têm endpoint** (varredura do `Routes/web.php` do módulo: só `index`, `download` e as 3 do Install) e o charter os agenda pra onda 2, travada na decisão [W] do PR-6. Refs: US-ARQ-013 · ADR 0123 §6 (signed URL 60 min) · ADR 0093 (o `find()` do DownloadController aplica o scope).
+- 2026-10-01 · [CL] **UC-INDEX-08 (excluir + restaurar no grace) nasce** — thread 03 do playbook (PR-7): `POST arquivos/{arquivo}/excluir` e `.../restaurar`, drawer PT-02, chip "Mostrar excluídos". Os 2 itens de backlog de restaurar saíram (são este UC); os 2 de copy por contexto (foto de OS · XML de NF-e) ficam. Nasce `⬜`. Refs: US-ARQ-013 · ADR 0093 · ADR 0123 §8 (trilha append-only).
 - 2026-09-30 · [CL] **UC-INDEX-07 (classificar) nasce** — thread 02 do playbook (PR-6): `POST arquivos/{arquivo}/classificar`, drawer PT-02 na linha do acervo. O `[BLOQUEADO]` de 24/08 encolheu: o motivo agora vai pra trilha (linha `classify`, ao lado da `reclassify` que o Service já grava); só `force_bucket` segue bloqueado, e passou de ignorado a recusado. Nasce `⬜`. Refs: US-ARQ-013 · ADR 0093 · LGPD Art. 37.
 - 2026-07-11 · [CC] carimbado por criar-tela.mjs — trio nascido junto (charter + casos + teste). Refs: UI-0013 · ADR 0264 G-1/G-2.
 - 2026-08-24 · [CL] preenchido a partir do protótipo F1 exportado do Cowork (`arquivos-page.jsx`) + do rascunho `cowork-inbox/modulos-faltantes/arquivos.casos.md`. Os 14 cenários entraram como `[BACKLOG]` (sem id) pra não nascer órfão no G-2; o item de reclassificar foi marcado `[BLOQUEADO]` porque o Service não suporta o contrato da Request. Refs: US-ARQ-013 · ADR 0360.

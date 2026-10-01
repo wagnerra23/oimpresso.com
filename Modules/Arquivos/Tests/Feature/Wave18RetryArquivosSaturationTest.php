@@ -73,13 +73,14 @@ describe('Wave 18 RETRY — Arquivos ArquivosRetentionService (D9)', function ()
 });
 
 describe('Wave 18 RETRY — Arquivos FormRequests novos (D8)', function () {
-    it('DeleteArquivoRequest carrega + reason opcional', function () {
+    it('DeleteArquivoRequest carrega + reason obrigatoria', function () {
         expect(class_exists(DeleteArquivoRequest::class))->toBeTrue();
 
         $req = new DeleteArquivoRequest();
         $rules = $req->rules();
         expect($rules)->toHaveKey('reason');
-        expect($rules['reason'])->toContain('nullable');
+        // Obrigatória desde a thread 03 (PR-7): o motivo vai pra trilha.
+        expect($rules['reason'])->toContain('required');
         expect($rules['reason'])->toContain('max:500');
     });
 
