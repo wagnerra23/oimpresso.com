@@ -1,17 +1,12 @@
 # oimpresso — Data Safety (Google) e App Privacy (Apple) · RASCUNHO
 
-> App único: ERP no celular + ponto ([W] 2026-10-01). Levantado do código em main (2026-10-01):
+> App único: ERP web inteiro no celular + ponto, empacotado com **Capacitor** (`com.oimpresso.app`) — decisão [W]
+> 2026-10-01 na coordenação; o Expo de `mobile/` fica fora das lojas. Levantado do código em main (2026-10-01):
 > - Ponto (`MobileMarcacaoController@registrar`): `lat`, `lng`, `accuracy` (não gravada), `device_uuid`, `timestamp_device`.
-> - App Expo: login (`expo-secure-store`), push (`expo-notifications`, token do aparelho), fotos da galeria em OS
->   (`expo-image-picker` em `app/oss/[id].tsx`), cadastro de clientes (nome, CPF/CNPJ, contato).
-> - `expo-audio` e `expo-video` estão no `package.json`/`app.config.ts` mas **nenhuma tela usa** — remover antes do build
->   (a string de microfone em inglês é motivo de rejeição Apple 5.1.1 e obrigaria declarar "Áudio").
-> - ⚠️ **Depende da base do app.** Recomendação atual: Capacitor sobre o ERP web — aí o texto abaixo vale. Se voltar ao Expo: Medido em main: o Expo em `mobile/` tem backend
->   próprio (tRPC + Drizzle em `mobile/server`; 0 ocorrências de `business_id`/`oimpresso.com` em `server/` e `lib/`),
->   login OAuth do template Manus (`constants/oauth.ts`) e nenhuma tela de ponto. Se a base for essa, "os dados vão para o
->   servidor do oimpresso" abaixo deixa de ser verdade, e um login por terceiro pode virar "compartilhado". Refazer este
->   rascunho quando a base for decidida — se for Capacitor sobre o ERP web, o texto abaixo vale.
-> - ⚠️ Confirmar no build: há SDK de crash/analytics? Se sim, entra "Diagnóstico". Prazo de guarda: sessão LEGAL.
+> - ERP web: login do oimpresso (sessão), cadastro de clientes (nome, CPF/CNPJ, contato), anexos de OS escolhidos pelo usuário.
+> - ⚠️ Confirmar no projeto Capacitor (sessão do app): plugins nativos usados — localização, push (token do aparelho),
+>   seletor de fotos/câmera — e se há SDK de crash/analytics (se houver, entra "Diagnóstico"). Sem microfone.
+> - Prazo de guarda: sessão LEGAL.
 
 ## O que entra
 

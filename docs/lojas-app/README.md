@@ -1,8 +1,8 @@
 # Ativos de loja — app oimpresso
 
 App único nas lojas: o ERP no celular **junto com o ponto** ([W] 2026-10-01). Nome proposto: `oimpresso`.
-Pasta neutra de propósito: não depende do framework do app. Base recomendada pelas sessões de publicação:
-Capacitor sobre o ERP web (`com.oimpresso.app`); `docs/lojas-app/app/` usa os nomes do `@capacitor/assets`
+Pasta neutra de propósito: não depende do framework do app. Base decidida por [W] em 2026-10-01:
+Capacitor com o ERP web inteiro (`com.oimpresso.app`); `docs/lojas-app/app/` usa os nomes do `@capacitor/assets`
 (`npx @capacitor/assets generate --assetPath docs/lojas-app/app --iconBackgroundColor '#795BBF' --splashBackgroundColor '#795BBF'`).
 
 Gerados por `node docs/lojas-app/gerar-ativos.mjs` (da raiz do repo) a partir do cubo CMYK do Design

@@ -186,7 +186,9 @@ class DataController extends Controller
                         'shortcut' => 'G O',
                         'primary'  => [
                             'label'    => 'Nova OS',
-                            'href'     => '/sells/pos/create?sub_type=repair',
+                            // /sells/pos/create não existe (404 em prod, medido 2026-10-01);
+                            // /pos/create é a rota do SellPosController que lê ?sub_type=.
+                            'href'     => '/pos/create?sub_type=repair',
                             'shortcut' => 'N',
                         ],
                         'ghosts'   => [

@@ -1,7 +1,9 @@
 # oimpresso — textos das lojas (pt-BR) · RASCUNHO para [W] revisar
 
 > Escopo decidido por [W] em 2026-10-01: **um app só**, o ERP no celular **junto com o ponto** (`com.oimpresso.app`).
-> Base recomendada pelas sessões de publicação: Capacitor sobre o ERP web (já tem `/ponto/mobile`); [W] pode vetar. Limites conferidos em 2026-10-01 (Play Console Help + App Store Connect).
+> Base decidida por [W] (2026-10-01, coordenação): **Capacitor com o ERP web inteiro**; o Expo de `mobile/` fica fora das lojas.
+> ⚠️ Levantamento legal (#8417): até INPI e certificado ICP-Brasil, **não** anunciar "REP-P", "REP" nem "registrador oficial" —
+> usar "registro de ponto do oimpresso". Limites conferidos em 2026-10-01 (Play Console Help + App Store Connect).
 > Não usar "certificado", "homologado" nem "assinado" até a sessão LEGAL confirmar (ADR 0413 tirou "assinada").
 > Só listar o que o build enviado faz de verdade — se o ponto ainda não estiver no build, tirar o bloco do ponto.
 
@@ -26,8 +28,8 @@ Gestão no celular:
 • Estoque, financeiro, fiscal e relatórios — os números do dia na mão.
 • Tarefas e notificações da equipe.
 
-Ponto pelo celular:
-• Bata o ponto: entrada, saída para almoço, retorno e saída. Cada marcação vai com a localização do aparelho no momento do registro e recebe um número sequencial (NSR) gerado pelo servidor; depois de feita, não pode ser alterada.
+Registro de ponto do oimpresso:
+• Bata o ponto: entrada, saída para almoço, retorno e saída. Cada marcação vai com a localização do aparelho no momento do registro e recebe um número sequencial gerado pelo servidor; depois de feita, não pode ser alterada.
 • Veja as marcações de hoje e o seu espelho do mês.
 • Justifique uma falta ou esquecimento — o pedido vai para o seu gestor.
 • A localização é lida só quando você bate o ponto, com o app aberto. Sem rastreamento em segundo plano. Sem câmera e sem biometria no ponto.
@@ -38,7 +40,7 @@ Para quem é: empresas clientes do oimpresso e seus colaboradores. O acesso é l
 - **Nome:** `oimpresso` (9/30)
 - **Subtítulo (30):** `Gestão e ponto no celular` (25/30)
 - **Texto promocional (170):** `Vendas, produção, ordens de serviço e o ponto dos colaboradores no mesmo app. Ponto com localização, sem câmera e sem biometria.` (128/170)
-- **Palavras-chave (100):** `ERP,gestão,pedidos,orçamento,produção,OS,estoque,financeiro,ponto,REP,gráfica,oficina,vendas` (92/100)
+- **Palavras-chave (100):** `ERP,gestão,pedidos,orçamento,produção,OS,estoque,financeiro,ponto,jornada,gráfica,oficina,vendas` (96/100)
 - **Descrição:** a mesma da Play acima.
 - **URL de suporte / privacidade:** _(sessão PRIVACIDADE/PWA — aguardando)_
 - **Informações para revisão:** conta demo da sessão CONTA DEMO (credencial só no campo do console). Nota: "Acesso B2B criado pela empresa. A tela de ponto pede localização; fora do local da empresa a marcação é aceita e sinalizada para o gestor."

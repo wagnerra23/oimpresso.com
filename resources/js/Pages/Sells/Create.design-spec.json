@@ -1,7 +1,7 @@
 {
   "screen": "Sells/Create",
   "path": "resources/js/Pages/Sells/Create.tsx",
-  "measured_against_sha": "56edc6f70",
+  "measured_against_sha": "db67e7897",
   "generated_by": "scripts/design-spec-gen.mjs (DERIVADO — não editar à mão)",
   "shell": [
     "AppShellV2"
@@ -27,6 +27,7 @@
     "local": [
       "PaymentRow (./_components/PaymentRow)",
       "QuickAddVehicleSheet (./_components/QuickAddVehicleSheet)",
+      "camposDeSubtipo (./_components/subtipoVenda)",
       "dropdownEntries (./_components/dropdownEntries)",
       "type Payment (./_components/PaymentRow)"
     ]
@@ -45,7 +46,7 @@
   },
   "totals": {
     "canon_components": 12,
-    "local_components": 4,
+    "local_components": 5,
     "uses_layout_primitives": false,
     "structural_violations": 7
   }
