@@ -11,11 +11,11 @@
 | D2 | ID do app | `com.oimpresso.app` (Android e iOS; permanente depois do 1º envio) | [W] via sessão Android |
 | D3 | Nome | **`oimpresso`** na loja e embaixo do ícone | [W] "oimpresso nos dois" |
 | D4 | Ícone | **A** — só o cubo CMYK no roxo `#795BBF`; splash roxo com o cubo | [W] "icone A" |
-| D5 | O que o app mostra | **Telas próprias dentro do `oimpresso-app`**, no visual do protótipo Mobile (v1: Início, Tarefas, Pedidos, Produção, Pessoas, Ponto, Mais). **Não** o site do ERP e **não** `/m` no ERP | [W] via sessão "Construir a base do app Mobile" (gestora das sessões do app), 2026-10-01; revert do `/m` no #8472 |
+| D5 | O que o app mostra | **Telas próprias no `oimpresso-app`** (React empacotado + API Passport do ERP), visual do protótipo Mobile. Ordem do dia 2026-10-01: (1) ERP web atual → (2) `/m` no ERP → (3) **telas próprias**; o `/m` foi reprovado e revertido (#8472) | [W] via sessão que gerencia o app |
 | D6 | Ponto do colaborador | Perfil **Colaborador** abre direto no ponto; quem tem o ERP vê as abas da v1 | [W] "sim, perfil colaborador abre no ponto" |
 | D7 | Contas do revisor | Duas: **`revisor.ponto`** (colaborador, só ponto) e **`gestor.demo`** (gestor), no business 235 em produção. Senhas no Vaultwarden (`ponto-demo-revisor`, `ponto-demo-gestor`) | [W] "ok duas contas, colaborador e gestor" |
 | D8 | Marcações de exemplo | Histórico de marcações **só no staging**; produção só com o que o revisor fizer | [W] "marcações só no staging" |
-| D9 | Textos de loja | Descrevem só as funções da v1. **Sem** "REP-P", "REP" ou "registrador oficial" até INPI e certificado ICP-Brasil | levantamento legal (#8417) |
+| D9 | Textos de loja | **1ª submissão descreve só o que o app tem hoje:** Login, Início (escala + resumo do ponto), Ponto (Bater · Meu espelho · Justificar), Conta e lembrete por push (`textos/listagem-pt-BR.md`). A versão com Tarefas/Pedidos/Produção/Pessoas fica em `textos/listagem-pt-BR-completa.md`. **Sem** "REP-P", "REP" ou "registrador oficial" até INPI e certificado ICP-Brasil | sessão que gerencia o app (função ausente = recusa); levantamento legal (#8417) |
 | D10 | Política de privacidade | `https://oimpresso.com/privacidade` (app inteiro) + `/privacidade/ponto` (detalhe do ponto) | [W] "fica com a política"; no ar desde #8437 |
 
 ## Substituídas (não usar)
@@ -34,4 +34,4 @@
 | Mover as senhas das contas demo para o Vaultwarden | [W] |
 | Pacote de módulos "Demo lojas" para o `gestor.demo` | [W] |
 | Revisão jurídica de `/privacidade` e `/privacidade/ponto`; confirmar `lgpd@oimpresso.com.br` | Eliana [E] + [W] |
-| Screenshots (Android 1080×1920, iPhone 6.9" 1320×2868) — do build demo do `oimpresso-app` | sessão ATIVOS DE LOJA |
+| Screenshots (Android 1080×1920, iPhone 6.9" 1320×2868) — do build demo do `oimpresso-app` no emulador, **depois** que as 4 telas passarem para o design-v4 (não fotografar as v3) | sessão ATIVOS DE LOJA, após a sessão APP CAPACITOR |
