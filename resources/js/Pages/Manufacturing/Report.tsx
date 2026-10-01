@@ -17,8 +17,9 @@ import { useState, type ReactNode } from 'react';
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Checkbox } from '@/Components/ui/checkbox';
 import { fmt, num } from './_lib/formato';
-import type { FiltrosRelatorio, Relatorio } from './_lib/tipos';
+import type { FiltrosRelatorio, LinhaRelatorio, Relatorio } from './_lib/tipos';
 import FabricacaoAbas from './_components/FabricacaoAbas';
+import GradeFabricacao, { type ColunaGrade } from './_components/GradeFabricacao';
 import '../../../css/cowork-manufacturing-bundle.css';
 
 interface Props {
@@ -79,6 +80,28 @@ export default function Report({
 
   const { linhas, total } = relatorio;
 
+  // Colunas como o `DataGrid` do protótipo (manufacturing-producao.jsx, relatório).
+  const COLUNAS: ColunaGrade<LinhaRelatorio>[] = [
+    { key: 'produto', label: 'Produto', render: (l) => l.nome },
+    { key: 'ordens', label: 'Ordens', align: 'right', mono: true, render: (l) => l.ordens },
+    { key: 'qtd', label: 'Quantidade', align: 'right', mono: true, render: (l) => `${num(l.quantidade, 2)} ${l.unidade}` },
+    { key: 'custo', label: 'Custo total', align: 'right', mono: true, render: (l) => fmt(l.custo_total) },
+    { key: 'medio', label: 'Custo médio', align: 'right', mono: true, render: (l) => fmt(l.custo_medio) },
+    {
+      key: 'pct',
+      label: '% do período',
+      align: 'right',
+      render: (l) => (
+        <span className="mfg-pct">
+          <span className="mfg-bar-mini">
+            <i style={{ width: `${l.percentual}%` }} />
+          </span>
+          <span className="mfg-num dim">{num(l.percentual, 0)}%</span>
+        </span>
+      ),
+    },
+  ];
+
   return (
     <div className="mfg-root" data-screen-label="Fabricação · Relatório">
       <div className="os-page-h" data-contract="cabecalho">
@@ -123,44 +146,19 @@ export default function Report({
       </div>
 
       <div className="mfg-tablewrap" data-contract="lista">
-        <div className="mfg-table rep">
-          <div className="mfg-tr mfg-thead">
-            <span className="mfg-th">Produto</span>
-            <span className="mfg-th r">Ordens</span>
-            <span className="mfg-th r">Quantidade</span>
-            <span className="mfg-th r">Custo total</span>
-            <span className="mfg-th r">Custo médio</span>
-            <span className="mfg-th r">% do período</span>
+        {linhas.length > 0 ? (
+          <GradeFabricacao<LinhaRelatorio>
+            caption="Relatório de produção"
+            colunas={COLUNAS}
+            linhas={linhas}
+            idDe={(l) => l.recipe_id}
+          />
+        ) : (
+          <div className="mfg-empty">
+            <b>Sem produção no período</b>
+            <span>Ajuste as datas ou inclua os rascunhos.</span>
           </div>
-
-          {linhas.map((l) => (
-            <div className="mfg-tr" key={l.recipe_id}>
-              <span className="mfg-name">
-                <b>{l.nome}</b>
-              </span>
-              <span className="mfg-num dim r">{l.ordens}</span>
-              <span className="mfg-num r">
-                {num(l.quantidade, 2)}
-                <span className="mfg-u">{l.unidade}</span>
-              </span>
-              <span className="mfg-num r">{fmt(l.custo_total)}</span>
-              <span className="mfg-num dim r">{fmt(l.custo_medio)}</span>
-              <span className="r">
-                <span className="mfg-bar-mini">
-                  <i style={{ width: `${l.percentual}%` }} />
-                </span>
-                <span className="mfg-num dim">{num(l.percentual, 0)}%</span>
-              </span>
-            </div>
-          ))}
-
-          {linhas.length === 0 && (
-            <div className="mfg-empty">
-              <b>Sem produção no período</b>
-              <span>Ajuste as datas ou inclua os rascunhos.</span>
-            </div>
-          )}
-        </div>
+        )}
 
         {linhas.length > 0 && (
           <p className="mfg-foot">

@@ -145,7 +145,7 @@ lifecycle: ativo
 | `placar-de-tela.yml` | pr+manual | — | placar-de-tela (advisory) — PR-A6 do protocolo de export: computa o par entregue/alvo de cada tela com governance/design/targets/<tela>.alvo.json e comenta no PR (entregu… |
 | `plan-health-gate.yml` | pr+manual | `memory/requisitos/Brief/BRIEFING.md` +1 | Plan Health Gate (advisory · planos órfãos/podres · sentinela plan-health.mjs --check · ADR 0294 Onda 1) |
 | `ponto-bancohoras-paginacao-gate.yml` | pr+push+manual | — | Ponto banco de horas paginação gate — o extrato do colaborador (Ponto/BancoHoras/Show) navega entre as páginas do histórico (UC-BHSHOW-04). vitest determinístico (jsdom, … |
-| `ponto-pest.yml` | pr+push+manual | `memory/decisions/0369-tres-lanes-pest-valor-estoque-lei-required-emenda-0314.md` +17 | Ponto · Pest (MySQL) |
+| `ponto-pest.yml` | pr+push+manual | `memory/decisions/0369-tres-lanes-pest-valor-estoque-lei-required-emenda-0314.md` +18 | Ponto · Pest (MySQL) |
 | `pr-critic-precisao.yml` | cron+manual | — | pr-critic precisão (advisory · mede a PRÓPRIA precisão do pr-critic · taxa-de-ação dos achados: o humano mexeu no arquivo apontado depois do comentário? + first-pass + po… |
 | `pr-critic.yml` | pr+manual | `memory/decisions/proposals/2026-08-01-reverter-0364-trio-colocado-opcao-b.md` +10 | pr-critic contrato (advisory) — critic adversarial de PR ancorado em contrato: em PRs tocando resources/js/Pages/** ou Modules/**, roteia o diff pros contratos (charter/c… |
 | `prompt-injection-corpus.yml` | pr+cron+manual | `memory/decisions/proposals/2026-07-28-guardrails-superficie-jana-cliente.md` +4 | prompt-injection corpus (red-team do agente · OWASP LLM01) — invoca .claude/governance-eval/prompt-injection-corpus.mjs: alimenta aos hooks REAIS as ações induzidas por i… |
@@ -175,7 +175,7 @@ lifecycle: ativo
 | `typecheck-gate.yml` | pr+push+manual | — | TypeScript (ratchet vs baseline) — catraca de erros do `tsc --noEmit` por par arquivo\|codigoTS vs config/typecheck-baseline.json. Congela o debito atual e reprova so REGR… |
 | `ui-architecture-gate.yml` | pr+push+manual | `memory/decisions/0271-revisao-gates-ci-estado-real-required-e-subtracao-segura.md` +12 | UI architecture gate |
 | `verticais-pest.yml` | pr+push+manual | `memory/requisitos/Repair/SPEC.md` +4 | Verticais · Pest (MySQL) — ComunicacaoVisual/Repair/Vestuario rodam no MySQL real (skip no sqlite = verde mente); catraca allowlist verde |
-| `visual-regression.yml` | pr+manual | `memory/decisions/0411-snapshot-de-pixel-fora-do-passo-3-da-0409.md` +149 | Visual Regression (Pest 4 Browser) |
+| `visual-regression.yml` | pr+manual | `memory/decisions/0411-snapshot-de-pixel-fora-do-passo-3-da-0409.md` +150 | Visual Regression (Pest 4 Browser) |
 | `whatsapp-pest.yml` | pr+push+manual | `memory/08-handoff.md` +1 | Whatsapp · Pest (MySQL) |
 | `xss-content-gate.yml` | pr+push | — | XSS content ratchet (.tsx · dSIH + scheme · funde dsih-gate + scheme-gate · oráculo de conteúdo) |
 
@@ -349,7 +349,7 @@ lifecycle: ativo
 | `audit-research-expert` | 🔴 Bash/Write | `memory/decisions/0236-scorecard-universal-entidade-arbitraria.md` +16 | Auditor universal de maturidade — recebe um TEMA (ex "reranker", "knowledge-architecture", "session-handoff", "observability"), pesquisa estado-da-arte 2025-2026, compara… |
 | `audit-senior-expert` | 🔴 Bash/Write | `memory/decisions/0231-processo-trabalho-canonico-especialista-por-area.md` +15 | Auditor SÊNIOR — pesquisa profunda (5-7 WebSearch POR gap), comparativo rigoroso, dossier executável pra Onda inteira. |
 | `capterra-senior` | 🔴 Write/Bash | `memory/decisions/0320-programa-ondas-regua-correcao.md` +54 | Use quando Wagner pedir "Capterra do módulo X", "compare meu módulo Y com os melhores e dá nota", "estado-da-arte profundo do módulo Z", "/capterra-senior <Modulo>", "pes… |
-| `ciclo-adversary` | 🔴 Bash | `memory/proibicoes.md` +26 | Adversário read-only do CICLO DE APRENDIZADO (erro → conserta → lápide §5 → ledger LC → defesa mecânica). |
+| `ciclo-adversary` | 🔴 Bash | `memory/proibicoes.md` +27 | Adversário read-only do CICLO DE APRENDIZADO (erro → conserta → lápide §5 → ledger LC → defesa mecânica). |
 | `cliente-drawer-integrar` | 🔴 Bash/Write/Edit | (só sessão/handoff · 1) | Implementador especializado da integração legacy WR Comercial/Delphi → drawer Cliente 760px (ADR 0179). |
 | `como-integrar` | 🔴 Bash/Write | `memory/decisions/0200-contacts-sync-canon-amends-0197-0199.md` +29 | Use ANTES de Wagner aprovar implementação de feature nova/refactor médio no oimpresso. |
 | `comunicacao-visual-expert` | 🔴 Write | — | Especialista de domínio em Comunicação Visual industrial brasileira (CNAE 1813-0/01) — processos OS, PCP, instalação, tributação serviço vs mercadoria, NR-35 fachada, con… |
@@ -435,20 +435,20 @@ lifecycle: ativo
 | `domain-dict-guard.mjs` | ci, npm, script | 🔴 disco | — | `memory/decisions/0264-governanca-executavel-trio-dominio-e2e.md` +16 | scripts/domain-dict-guard.mjs — Gate G-4 (dicionário de domínio) da Governança executável (ADR 0264). |
 | `ds-canon-color-guard.mjs` | ci, npm | 🟢 só lê | — | `memory/decisions/0314-poda-gates-onda-2-lei-fusoes.md` +8 | scripts/ds-canon-color-guard.mjs — catraca: a camada canônica NÃO usa paleta crua |
 | `ds-ledger.mjs` | ci, npm | 🔴 disco | — | `memory/requisitos/_DesignSystem/CHANGELOG.md` +8 | scripts/ds-ledger.mjs — Ledger de Conformidade DS (censo Onda 0, por tela). |
-| `ds-report.mjs` | ci, npm, script | 🔴 disco | — | `memory/decisions/0240-task-ledger-git-native-cowork-code.md` +13 | scripts/ds-report.mjs — placar de adoção do Design System (ds/* por regra × módulo) |
+| `ds-report.mjs` | ci, npm, script | 🔴 disco | — | `memory/decisions/0240-task-ledger-git-native-cowork-code.md` +14 | scripts/ds-report.mjs — placar de adoção do Design System (ds/* por regra × módulo) |
 | `dsih-gate.mjs` | ci, script | 🔴 disco | — | `memory/decisions/0283-handoff-loop-zero-paste.md` | porque NENHUM gate mordia CONTEUDO em .tsx (so canal: lint/build/conformance). |
 | `eslint-baseline.mjs` | ci, npm, script | 🔴 disco | selftest | `memory/decisions/0254-design-identity-grade-deterministico.md` +17 | scripts/eslint-baseline.mjs — Onda 1.2 (ADR 0209) |
-| `foundation-guard.mjs` | ci, npm, script | 🔴 disco | — | `memory/decisions/0255-contrato-view-deterministico-charter-design-spec.md` +17 | Determinístico, sem browser, sem dependência. Roda em CI (exit≠0 = bloqueia merge) E local. |
+| `foundation-guard.mjs` | ci, npm, script | 🔴 disco | — | `memory/decisions/0255-contrato-view-deterministico-charter-design-spec.md` +17 | (sem descrição no cabeçalho) |
 | `generate-dxt.js` | script | 🔴 disco | — | `memory/08-handoff.md` | Gera arquivo .dxt (Claude Desktop Extension) para membros do time oimpresso. |
 | `handoff-integrity-guard.mjs` | ci, npm, script | 🔴 disco | test | `memory/requisitos/Governance/SPEC.md` +8 | scripts/handoff-integrity-guard.mjs — catraca de Integridade do Handoff (PROCESSO_MEMORIA_CC.md §16 · IT8). |
-| `layout-primitives-guard.mjs` | ci, npm, script | 🔴 disco | selftest | `memory/decisions/0417-aposenta-tela-piloto-0253.md` +17 | scripts/layout-primitives-guard.mjs — enforcement da ADR 0253 (primitivos de layout) |
+| `layout-primitives-guard.mjs` | ci, npm, script | 🔴 disco | selftest | `memory/decisions/0417-aposenta-tela-piloto-0253.md` +18 | scripts/layout-primitives-guard.mjs — enforcement da ADR 0253 (primitivos de layout) |
 | `no-mock-in-prod.mjs` | ci, npm, script | 🔴 disco | — | `memory/decisions/0264-governanca-executavel-trio-dominio-e2e.md` +8 | scripts/no-mock-in-prod.mjs — Frente 6 (plano anti-duplicacao 2026-06-06) |
 | `pageheader-migration-guard.mjs` | ci, npm, script | 🔴 disco | — | `memory/decisions/0264-governanca-executavel-trio-dominio-e2e.md` +3 | scripts/pageheader-migration-guard.mjs — F4 do roadmap de convergência UI (MANUAL-CSS-JS.md §5) |
 | `perf-static-guard.mjs` | script | 🔴 disco | — | `memory/requisitos/KB/SPEC.md` +7 | scripts/perf-static-guard.mjs — catraca da Onda 4 lente 5b (AUDITORIA-PERFORMANCE-2026-07). |
 | `reuse-index.mjs` | agente, ci, npm, script | 🔴 disco | — | `memory/decisions/0255-contrato-view-deterministico-charter-design-spec.md` +10 | índice escrito à mão APODRECE (ADR 0239: git=SSOT, derivado>escrito). Este índice é REGENERADO do código a cada |
 | `scheme-gate.mjs` | ci | 🔴 disco | — | — | Por que existe: o red-team adversarial de 2026-06-17 mostrou que NENHUM gate mordia CONTEUDO |
 | `scorer-sync-check.mjs` | ci, npm | 🟢 só lê | — | (só sessão/handoff · 2) | scripts/scorer-sync-check.mjs — guarda a SINCRONIA dos regex entre as duas implementações. |
-| `sells-cowork-dead-css.mjs` | — | 🔴 disco | — | `memory/requisitos/Sells/DEAD-CSS-sells-cowork.md` | gate conta a cor-crua DESSAS regras mortas como se fosse dívida viva |
+| `sells-cowork-dead-css.mjs` | — | 🔴 disco | — | `memory/requisitos/Sells/DEAD-CSS-sells-cowork.md` | (sem descrição no cabeçalho) |
 | `smoke-veredito-ledger.mjs` | npm | 🔴 disco | — | — | Smoke / acceptance harness do programa veredito-ledger. |
 | `stylelint-baseline.mjs` | ci, npm, script | 🔴 disco | selftest | `memory/decisions/0310-tokens-semanticos-dominio-frescor-sla-kind-canal.md` +4 | scripts/stylelint-baseline.mjs — G5 anti-drift CSS (ADR 0209 pattern) |
 | `typecheck-baseline.mjs` | ci, npm | 🔴 disco | — | — | scripts/typecheck-baseline.mjs — catraca de erros do TypeScript (irmão de eslint-baseline.mjs). |
@@ -481,25 +481,25 @@ lifecycle: ativo
 
 | Script | Invocador | Escreve? | Evidência | Documento | Descrição (cabeçalho) |
 |---|---|---|---|---|---|
-| `apply.mjs` | agente, script | 🟢 só lê | — | `memory/decisions/0124-curador-conhecimento-pipeline.md` +3 | Fase 5: APPLY |
-| `classify.mjs` | agente, script | 🟢 só lê | — | `memory/decisions/0124-curador-conhecimento-pipeline.md` +1 | Fase 2: CLASSIFY |
-| `discover.mjs` | agente, script | 🟢 só lê | — | `memory/decisions/0124-curador-conhecimento-pipeline.md` +5 | Fase 1: DISCOVER |
-| `parity-fixtures.mjs` | php | 🟢 só lê | — | `memory/requisitos/Arquivos/SPEC.md` +1 | gerador de fixtures pra ParityTest JS×PHP (US-ARQ-007). |
-| `report.mjs` | agente, ci, npm, script | 🟢 só lê | — | `memory/decisions/0124-curador-conhecimento-pipeline.md` +1 | Fase 3: REPORT |
+| `apply.mjs` | agente, script | 🟢 só lê | — | `memory/decisions/0124-curador-conhecimento-pipeline.md` +3 | (sem descrição no cabeçalho) |
+| `classify.mjs` | agente, script | 🟢 só lê | — | `memory/decisions/0124-curador-conhecimento-pipeline.md` +1 | (sem descrição no cabeçalho) |
+| `discover.mjs` | agente, script | 🟢 só lê | — | `memory/decisions/0124-curador-conhecimento-pipeline.md` +5 | (sem descrição no cabeçalho) |
+| `parity-fixtures.mjs` | php | 🟢 só lê | — | `memory/requisitos/Arquivos/SPEC.md` +1 | (sem descrição no cabeçalho) |
+| `report.mjs` | agente, ci, npm, script | 🟢 só lê | — | `memory/decisions/0124-curador-conhecimento-pipeline.md` +1 | (sem descrição no cabeçalho) |
 
 ### 5.6 `scripts/curador/lib/` — 2
 
 | Script | Invocador | Escreve? | Evidência | Documento | Descrição (cabeçalho) |
 |---|---|---|---|---|---|
-| `db.mjs` | script | 🟢 só lê | — | `memory/decisions/0124-curador-conhecimento-pipeline.md` | JSONL append-only DB helpers for Curador (zero-deps, Node 24 built-ins only). |
-| `rules.mjs` | agente, script | 🟢 só lê | — | `memory/decisions/0124-curador-conhecimento-pipeline.md` +4 | 18 heurísticas determinísticas pra classificar arquivos sem custar Claude. |
+| `db.mjs` | script | 🟢 só lê | — | `memory/decisions/0124-curador-conhecimento-pipeline.md` | (sem descrição no cabeçalho) |
+| `rules.mjs` | agente, script | 🟢 só lê | — | `memory/decisions/0124-curador-conhecimento-pipeline.md` +4 | (sem descrição no cabeçalho) |
 
 ### 5.7 `scripts/deploy/` — 2
 
 | Script | Invocador | Escreve? | Evidência | Documento | Descrição (cabeçalho) |
 |---|---|---|---|---|---|
 | `aguardar-deploy.mjs` | ci | 🟢 só lê | — | `memory/governance/shipped/CYCLE-08.md` | espera o 1º deploy CONCLUÍDO (não cancelado) que contenha um commit. |
-| `smoke-bundle.mjs` | ci, script | 🔴 disco | — | `memory/licoes-rejeitadas.md` +1 | o prod serve os assets que ESTE build gerou? |
+| `smoke-bundle.mjs` | ci, script | 🔴 disco | — | `memory/licoes-rejeitadas.md` +2 | o prod serve os assets que ESTE build gerou? |
 
 ### 5.8 `scripts/design/` — 24
 
@@ -547,7 +547,7 @@ lifecycle: ativo
 | `gerar-payload-partes.mjs` | ci, script | 🔴 disco | test | `memory/decisions/0389-emenda-0374-escrita-do-espelho-quando-o-get-file-volta-inline.md` +18 | emite snapshot/delta Design v2 em partes de até 256 KiB. |
 | `payload-dependency-graph.mjs` | script | 🟢 só lê | test | (só sessão/handoff · 1) | Grafo estático das dependências LOCAIS alcançáveis a partir de um shell HTML. |
 | `pedido.mjs` | agente, npm, script | 🔴 disco | — | `.claude/commands/onda.md` +2 | PR-A7 do protocolo de export: o PEDIDO DE SEÇÃO vira DERIVADO. |
-| `pendentes-cowork.mjs` | agente, script | 🔴 disco | test | `memory/decisions/0412-retorno-canon-mergeado-ao-cowork-dispensa-opt-in-emenda-0315.md` +5 | o sentido Code -> Cowork do ciclo: o que o espelho tem e o Cowork NÃO tem. |
+| `pendentes-cowork.mjs` | agente, script | 🔴 disco | test | `memory/decisions/0412-retorno-canon-mergeado-ao-cowork-dispensa-opt-in-emenda-0315.md` +6 | o sentido Code -> Cowork do ciclo: o que o espelho tem e o Cowork NÃO tem. |
 | `receber-handoff.mjs` | script | 🔴 disco | test | `memory/decisions/0406-o-que-ultimo-importado-decide-emenda-0404.md` +12 | recebe o ZIP de handoff do Cowork e o transforma em import validado. |
 | `recibos-ci.mjs` | ci, script | 🟢 só lê | — | — | grava recibo de TESTE (ADR 0384 D-5) em massa a partir de lanes de CI. |
 | `smoke-consumir.mjs` | ci | 🔴 disco | — | `memory/decisions/0390-emenda-0384-smoke-em-ambiente-controlado.md` +2 | transporta o smoke renderizado no CI até o recibo do Design Sync. |
@@ -670,7 +670,7 @@ lifecycle: ativo
 | `reguas-cross-model.mjs` | agente, script | 🔴 disco | test | `memory/reguas/README.md` +2 | braço de verificação CROSS-MODEL (cross-VENDOR) da grade de réguas. |
 | `reguas-indexar.mjs` | agente, ci, npm | 🔴 disco | — | `memory/decisions/0353-maquina-evolucao-reguas-looping.md` +8 | Órgão 4 da máquina de réguas em looping (ADR proposta reguas-loop-maquina-evolucao). |
 | `reguas-ledger-check.mjs` | ci | 🔴 disco | — | `memory/proibicoes.md` +4 | o ledger de réguas contradiz a si mesmo? |
-| `replica-inconsistencias.mjs` | ci, script | 🔴 disco | — | `memory/decisions/0388-replica-primeiro-conformidade-vira-lista-de-inconsistencias.md` +8 | LISTA DE INCONSISTÊNCIAS pós-aplicação do protótipo (ADR 0388). |
+| `replica-inconsistencias.mjs` | ci, script | 🔴 disco | — | `memory/decisions/0388-replica-primeiro-conformidade-vira-lista-de-inconsistencias.md` +9 | LISTA DE INCONSISTÊNCIAS pós-aplicação do protótipo (ADR 0388). |
 | `required-always-run.mjs` | ci | 🔴 disco | — | `memory/decisions/0395-pageheader-ratchet-required-emenda-0314.md` +16 | todo context REQUIRED nasce em TODO PR? |
 | `requisitos-status.mjs` | agente, ci, npm, script | 🔴 disco | — | `memory/decisions/0364-trio-de-tela-mora-em-memory-emenda-0264.md` +107 | a CADEIA DE RASTREABILIDADE de um módulo, derivada e com STATUS. |
 | `resolver-reclamacao.mjs` | ci, npm | 🟢 só lê | — | `memory/decisions/proposals/2026-07-21-resolvedor-reclamacao-cadeia.md` +4 | resolvedor reclamação → cadeia de responsabilidade. |
@@ -738,11 +738,11 @@ lifecycle: ativo
 | `mv-metabolismo.mjs` | ci, script | 🔴 disco | test | `memory/decisions/0408-medicao-de-paridade-agendada-advisory-emenda-0290.md` +19 | o batimento do Módulo Vivo (MV2 · stream MV do roadmap SDD). |
 | `page-path.mjs` | agente, ci, script | 🟢 só lê | test | `memory/decisions/0403-errata-0402-denominador-ja-inclui-pages-de-modulo.md` +16 | localizados em resources/js/Pages/**. |
 | `placar-indice.mjs` | ci, script | 🟢 só lê | test | `memory/decisions/0394-endereco-de-ui-do-patrimonio-pages-patrimonio.md` +10 | PR-A8: o PLACAR DA LISTA. "O Code terminou a lista inteira?" |
-| `placar.mjs` | agente, ci, npm, script | 🟢 só lê | test | `memory/requisitos/AssetManagement/BRIEFING.md` +6 | PR-A6 do protocolo de export: o PLACAR de entrega de uma tela vira MEDIDA |
+| `placar.mjs` | agente, ci, npm, script | 🟢 só lê | test | `memory/requisitos/AssetManagement/BRIEFING.md` +8 | PR-A6 do protocolo de export: o PLACAR de entrega de uma tela vira MEDIDA |
 | `prototipo-readiness.mjs` | ci | 🔴 disco | test | `memory/requisitos/_Governanca/roadmap/_ROADMAP.md` +9 | "quais telas de protótipo posso aplicar SEM me preocupar?" |
 | `screen-coverage-map.mjs` | agente, ci, npm, script | 🔴 disco | — | `memory/decisions/0391-regime-de-evolucao-por-loops-blade-fora.md` +72 | mapa de cobertura de QA por tela + baseline da catraca. |
 | `screen-grade-report.mjs` | npm | 🟢 só lê | test | `memory/requisitos/_Governanca/PLANO-APROFUNDAMENTO-AVALIACOES.md` +7 | a FOTO LADO A LADO: UX × comportamento por tela. |
-| `screen-grade-seed.mjs` | script | 🔴 disco | — | `memory/decisions/0250-screen-qa-specialist-sustentavel.md` +1 | materializa os scorecards YAML por tela a partir do |
+| `screen-grade-seed.mjs` | script | 🔴 disco | — | `memory/decisions/0250-screen-qa-specialist-sustentavel.md` +1 | (sem descrição no cabeçalho) |
 | `screen-grades-ratchet.mjs` | agente, ci, script | 🔴 disco | — | `memory/decisions/0373-screen-grades-ratchet-required-emenda-0314.md` +19 | catraca anti-regressão da nota por tela. |
 | `secao-check.mjs` | ci, npm, script | 🔴 disco | — | `memory/requisitos/Jana/jana-index-gap.md` +1 | PR-A3 do protocolo de export: o ALVO versionado vira GATE. |
 | `uc-id-lint.mjs` | ci | 🔴 disco | test | `memory/proibicoes.md` +7 | o id de UC casa o regex canônico? (ADR 0264 · fonte única scripts/lib/uc-regex.mjs) |
@@ -817,7 +817,7 @@ lifecycle: ativo
 | `config/css-size-baseline.json` | ci, script | `memory/requisitos/TeamMcp/forja-cockpit-visual-comparison.md` +4 | (baseline/estado) |
 | `config/design-identity-baseline.json` | ci, script | `memory/decisions/0254-design-identity-grade-deterministico.md` +1 | (baseline/estado) |
 | `config/ds-handoff-baseline.json` | script | `memory/reference/prototipo-ui/CODE_NOTES.handoff-ds-2026-09-17-recusado-por-r4.md` | (baseline/estado) |
-| `config/eslint-baseline.json` | ci, script | `memory/decisions/0254-design-identity-grade-deterministico.md` +36 | (baseline/estado) |
+| `config/eslint-baseline.json` | ci, script | `memory/decisions/0254-design-identity-grade-deterministico.md` +37 | (baseline/estado) |
 | `config/handoff-integrity-baseline.json` | ci, script | `memory/requisitos/_DesignSystem/SPEC.md` +2 | (baseline/estado) |
 | `config/pageheader-shared-baseline.json` | agente, script | `memory/requisitos/_DesignSystem/MANUAL-CSS-JS.md` +7 | (baseline/estado) |
 | `config/stylelint-baseline.json` | ci, script | `memory/requisitos/TeamMcp/forja-cockpit-visual-comparison.md` +5 | (baseline/estado) |

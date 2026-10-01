@@ -157,8 +157,10 @@ JS;
 
 /** `cabecalho|kpi|linhas|paginacao`. Os dois primeiros saem do MESMO `recipes.length` por
  *  caminhos diferentes do JSX; as linhas são os `[role="button"]` da lista (o cabeçalho da
- *  grade não tem role, e o Checkbox do shadcn é `role="checkbox"`). A paginação é achada por
- *  TEXTO (`a–b de N`), nunca por classe (L-24). */
+ *  grade não tem role, e o checkbox da grade é `<input type="checkbox">`). A paginação é achada
+ *  por TEXTO (`a–b de N receitas`), nunca por classe (L-24). Desde 2026-10-01 a grade é a
+ *  réplica do `DataGrid` do DS (`_components/GradeFabricacao.tsx`): o rodapé aparece sempre que
+ *  há linha e diz o rótulo — antes só acima de 10 linhas e sem rótulo. */
 const MFG_JS_CONCORDANCIA = <<<'JS'
 (() => {
   const txt = (el) => (el ? (el.textContent || '').replace(/\s+/g, ' ').trim() : '');
@@ -173,7 +175,7 @@ const MFG_JS_CONCORDANCIA = <<<'JS'
   if (!sub) return 'KPI-SUB-AUSENTE';
   const linhas = document.querySelectorAll('[data-contract="lista"] [role="button"]').length;
   const pag = [...document.querySelectorAll('span')]
-    .map(txt).find((t) => /^\d+–\d+ de \d+$/.test(t)) || 'SEM-PAG';
+    .map(txt).find((t) => /^\d+–\d+ de \d+ receitas$/.test(t)) || 'SEM-PAG';
   return n(txt(cab)) + '|' + n(txt(sub)) + '|' + String(linhas) + '|' + pag;
 })()
 JS;
@@ -339,15 +341,17 @@ it('render — cabeçalho, KPI e lista concordam (o contador não mente sobre a 
         ->and($kpi)->toBe($cabecalho);
 
     if ($pag === 'SEM-PAG') {
-        // Sem paginação => tudo que existe está na tela (POR_PAG = 10 em `Recipes.tsx:39`).
-        expect((int) $linhas)->toBe((int) $cabecalho);
+        // Sem rodapé => a lista está vazia (a grade só some quando não há receita), então o
+        // cabeçalho também tem de dizer zero.
+        expect((int) $linhas)->toBe((int) $cabecalho)
+            ->and((int) $cabecalho)->toBe(0);
 
         return;
     }
 
-    // Com paginação, o rodapé "a–b de N" tem de falar do MESMO conjunto: N == cabeçalho, e a
-    // página mostra exatamente b-a+1 linhas.
-    preg_match('/^(\d+)\x{2013}(\d+) de (\d+)$/u', $pag, $m);
+    // O rodapé "a–b de N receitas" tem de falar do MESMO conjunto: N == cabeçalho, e a página
+    // mostra exatamente b-a+1 linhas.
+    preg_match('/^(\d+)\x{2013}(\d+) de (\d+) receitas$/u', $pag, $m);
     expect($m)->not->toBeEmpty();
     expect($m[3])->toBe($cabecalho)
         ->and((int) $linhas)->toBe((int) $m[2] - (int) $m[1] + 1);
