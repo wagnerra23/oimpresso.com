@@ -368,7 +368,29 @@ jobs:
         # uma segunda tentativa — ela apenas trocaria este teto pelo teto do job, voltando
         # a esconder a causa. O teto NÃO faz o job passar num espelho degradado; ele faz o
         # job falhar rápido, no passo certo, e devolve o runner ~9 min antes.
-        timeout-minutes: 5
+        #
+        # 5 -> 8 min (2026-10-01). RE-MEDIDO em 250 runs (2026-09-30 14:27Z -> 2026-10-01 10:51Z),
+        # TODAS as tentativas (`gh run view` só mostra a última — os timeouts estavam na 1ª):
+        #   passo  111 execuções: 101 ok (p50 41s · p90 61s · p99 80s · máx 240s), 6 no teto de
+        #          5 min, 4 canceladas. Os 6 cortes: espelho azure.archive.ubuntu.com entregando
+        #          0,08-0,37 MB/s pros ~120 MB de .deb. Até o corte tinham baixado ~108, 104,
+        #          61, 61, 40 e 23 MB — os 2 primeiros terminariam em ~6 min; os outros 4
+        #          precisariam de 10-26 min, que o job não tem.
+        #   job    os pesados que rodam até o fim levam p50 962s · p90 990s · máx 1008s, contra
+        #          o teto de 1500s (25 min): folga ~490s acima dos ~41s normais deste passo.
+        # 8 min cobre os quase-cortes e ainda cabe no job (1008 - 41 + 480 = 1447s < 1500). Acima
+        # disso a troca volta a ser este teto pelo do job (o motivo original do teto, acima).
+        #
+        # CACHE DOS .deb FOI MEDIDO E NÃO ENTROU: o cache do repo está no limite (10,6 GB em 26
+        # entradas, 2026-10-01, quase tudo `playwright-all-browsers` de 474 MB duplicado por PR)
+        # e cache de PR só é legível pelo próprio PR — um .deb de 120 MB por PR seria despejado
+        # antes do re-run que deveria servir. Reabrir só com o cache de browsers enxugado.
+        #
+        # Se este passo falhar, os passos de TESTE não rodam (gate `steps.setup-ok` abaixo) e o
+        # comentário do PR diz "falha de preparação do ambiente", não "gate visual reprovou".
+        # Re-run da tentativa resolveu 4 dos 5 casos medidos.
+        id: playwright-deps
+        timeout-minutes: 8
         run: npx playwright install-deps chromium firefox webkit
 
       - name: Install Playwright browsers
@@ -534,6 +556,16 @@ jobs:
         if: steps.mode.outputs.ui == 'true'
         run: npm run build:inertia
 
+      # MARCA DE FIM DO SETUP. Só conclui `success` se TODO passo anterior passou (o `success()`
+      # implícito). Os passos de teste que usam `always()` (pra rodar mesmo se OUTRO teste falhar)
+      # exigem esta marca: sem ela, um setup quebrado (ex. timeout das deps do Playwright em
+      # 2026-09-30) fazia os fluxos rodarem sem Laravel montado, caírem com `Please provide a
+      # valid cache path` e o comentário do PR culpar "Fluxos visuais Financeiro".
+      - name: Ambiente pronto (fim do setup — testes podem rodar)
+        if: steps.mode.outputs.ui == 'true'
+        id: setup-ok
+        run: echo "setup concluído — PHP, Node, deps, Playwright, Laravel, seed e build OK"
+
       - name: Run Pest Browser tests
         if: steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch'
         id: pest-browser
@@ -667,7 +699,7 @@ jobs:
         # PROMOVIDO A ENFORCING (2026-07-13): os 12 fluxos × viewport foram armados
         # via #4237/#4238. Sem continue-on-error: regressão clara pós-clique agora
         # BLOQUEIA merge.
-        if: always() && steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch'
+        if: always() && steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch' && steps.setup-ok.outcome == 'success'
         id: financeiro-flows
         # RETRY-ONCE anti-flake (mesma política do financeiro-states): re-roda UMA vez só na
         # assinatura de execução (o fluxo levou 11 patches por relógio cross-processo → o
@@ -695,7 +727,7 @@ jobs:
         # update (dispatch) NO runner canônico — nunca local (Tier 0: testes no CT100/CI).
         # `always()`: roda mesmo se um passo anterior falhar (fluxo novo não pode ficar
         # sem evidência por regressão independente de outra tela).
-        if: always() && steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch'
+        if: always() && steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch' && steps.setup-ok.outcome == 'success'
         id: compras-flows
         # RETRY-ONCE anti-flake (scripts/tests/visreg-flake-retry.sh, mesmo do Sells/Financeiro):
         # re-roda só em FLAKE de execução (browser/socket/timeout), NUNCA em regressão de pixel
@@ -722,7 +754,7 @@ jobs:
         # workflow_dispatch (modo update), nunca local (Tier 0). Sem continue-on-error:
         # regressão clara pós-clique agora BLOQUEIA merge (o double-threshold absorve a zona
         # cinza; só > τ_alto falha). Roda mesmo se o Financeiro falhar (always()).
-        if: always() && steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch'
+        if: always() && steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch' && steps.setup-ok.outcome == 'success'
         id: sells-flows
         # Retry-once guard (mesmo do Financeiro/Compras): re-roda só em FLAKE de execução
         # (browser/socket/timeout), NUNCA em regressão de pixel (double-threshold é veredito
@@ -783,13 +815,13 @@ jobs:
       # REMOVER o `continue-on-error`, após 2 verdes que EXECUTARAM — `skipped` lido
       # como verde seria o presence-gate de sempre, e é pra isso que serve o `always()`.
       - name: Contrato do shell · auto-rail ≤1280 (ADVISORY · ADR UI-0030)
-        if: always() && steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch'
+        if: always() && steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch' && steps.setup-ok.outcome == 'success'
         id: e2e-shell-rail
         continue-on-error: true
         run: ./vendor/bin/pest tests/Browser/Shell/SidebarAutoRailTest.php
 
       - name: E2E de render · Financeiro/Conciliacao (ADVISORY)
-        if: always() && steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch'
+        if: always() && steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch' && steps.setup-ok.outcome == 'success'
         id: e2e-conciliacao
         continue-on-error: true
         run: ./vendor/bin/pest tests/Browser/Financeiro/ConciliacaoIndexTest.php
@@ -863,7 +895,7 @@ jobs:
       # AGORA lê o `${total}` que o próprio step do Veredito calcula; comentário não é oráculo
       # de contagem (LC-10 · §5 2026-07-16).
       - name: E2E de render · Patrimonio/Bens (ENFORCING)
-        if: always() && steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch'
+        if: always() && steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch' && steps.setup-ok.outcome == 'success'
         id: e2e-patrimonio-bens
         run: ./vendor/bin/pest tests/Browser/Patrimonio/BensRenderTest.php
 
@@ -886,7 +918,7 @@ jobs:
       # lidos NO LOG do job (`skipped` lido como verde é o presence-gate de sempre — é pra isso
       # que serve o `always()`, idêntico aos steps acima).
       - name: E2E de render · Patrimonio/Alocacoes (ADVISORY)
-        if: always() && steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch'
+        if: always() && steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch' && steps.setup-ok.outcome == 'success'
         id: e2e-patrimonio-alocacoes
         continue-on-error: true
         run: ./vendor/bin/pest tests/Browser/Patrimonio/AlocacoesRenderTest.php
@@ -911,7 +943,7 @@ jobs:
       # antes do PR. Promoção a ENFORCING = REMOVER o `continue-on-error`, após 2 verdes que
       # EXECUTARAM, lidos NO LOG do job.
       - name: E2E de render · Patrimonio/Configuracoes (ADVISORY)
-        if: always() && steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch'
+        if: always() && steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch' && steps.setup-ok.outcome == 'success'
         id: e2e-patrimonio-configuracoes
         continue-on-error: true
         run: ./vendor/bin/pest tests/Browser/Patrimonio/ConfiguracoesRenderTest.php
@@ -940,7 +972,7 @@ jobs:
       # antes do PR. Promoção a ENFORCING = REMOVER o `continue-on-error`, após 2 verdes que
       # EXECUTARAM, lidos NO LOG do job.
       - name: E2E de render · Patrimonio/Manutencoes (ADVISORY)
-        if: always() && steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch'
+        if: always() && steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch' && steps.setup-ok.outcome == 'success'
         id: e2e-patrimonio-manutencoes
         continue-on-error: true
         run: ./vendor/bin/pest tests/Browser/Patrimonio/ManutencoesRenderTest.php
@@ -971,7 +1003,7 @@ jobs:
       # REMOVER o `continue-on-error`, após 2 verdes que EXECUTARAM (`skipped` lido como verde é
       # o presence-gate de sempre — é pra isso que serve o `always()`, idêntico aos steps acima).
       - name: E2E de render · Financeiro/Caixa (ADVISORY)
-        if: always() && steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch'
+        if: always() && steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch' && steps.setup-ok.outcome == 'success'
         id: e2e-caixa
         continue-on-error: true
         run: ./vendor/bin/pest tests/Browser/Financeiro/CaixaIndexTest.php
@@ -1009,7 +1041,7 @@ jobs:
       # `continue-on-error`, após 2 verdes que EXECUTARAM — `skipped` lido como verde seria o
       # presence-gate de sempre, e é pra isso que serve o `always()`.
       - name: E2E de render · Financeiro/Cobranca (ADVISORY)
-        if: always() && steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch'
+        if: always() && steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch' && steps.setup-ok.outcome == 'success'
         id: e2e-cobranca
         continue-on-error: true
         run: ./vendor/bin/pest tests/Browser/Financeiro/CobrancaIndexTest.php
@@ -1043,7 +1075,7 @@ jobs:
       # `continue-on-error`, após 2 verdes que EXECUTARAM (`skipped` lido como verde é o
       # presence-gate de sempre — é pra isso que serve o `always()`).
       - name: E2E de render · Manufacturing/Recipes (ADVISORY)
-        if: always() && steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch'
+        if: always() && steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch' && steps.setup-ok.outcome == 'success'
         id: e2e-recipes
         continue-on-error: true
         run: ./vendor/bin/pest tests/Browser/Manufacturing/RecipesIndexTest.php
@@ -1083,7 +1115,7 @@ jobs:
       # pôde executá-lo antes do PR. Promoção a ENFORCING = REMOVER o `continue-on-error`,
       # após 2 verdes que EXECUTARAM — `skipped` lido como verde é o presence-gate de sempre.
       - name: E2E de render · Home/Visão geral (ADVISORY)
-        if: always() && steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch'
+        if: always() && steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch' && steps.setup-ok.outcome == 'success'
         id: e2e-visao-geral
         continue-on-error: true
         run: ./vendor/bin/pest tests/Browser/Home/VisaoGeralIndexTest.php
@@ -1145,7 +1177,7 @@ jobs:
       # (o botão sumiu — a regressão de 2026-06-17 voltando). Voltar a advisory é
       # recolocar o `continue-on-error`, e é decisão [W] como esta foi.
       - name: E2E de comportamento · Purchase/Index · Etiquetas (ENFORCING)
-        if: always() && steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch'
+        if: always() && steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch' && steps.setup-ok.outcome == 'success'
         id: e2e-purchase-etiqueta
         run: ./vendor/bin/pest tests/Browser/Purchase/IndexEtiquetaTest.php
 
@@ -1170,7 +1202,7 @@ jobs:
       # Browser e CI-only (medido: o container do CT 100 nao tem node/npx/chromium). Promocao
       # a ENFORCING = REMOVER o `continue-on-error`, apos 2 verdes que EXECUTARAM, e e flip [W].
       - name: E2E de render · Repair/ProducaoOficina (ADVISORY)
-        if: always() && steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch'
+        if: always() && steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch' && steps.setup-ok.outcome == 'success'
         id: e2e-repair-producao
         continue-on-error: true
         run: ./vendor/bin/pest tests/Browser/Repair/ProducaoOficinaIndexTest.php
@@ -1445,7 +1477,9 @@ jobs:
       # classificador, o modo e a execução real do pixel-diff divergirem.
       - name: Canário anti-verde-vazio
         id: canario
-        if: always() && github.event_name == 'pull_request'
+        # Setup quebrado já reprova o job no passo certo; sem esta guarda o canário lia o pixel
+        # `skipped` como verde-vazio e virava a 2ª falha falsa do mesmo run.
+        if: always() && github.event_name == 'pull_request' && (steps.mode.outputs.ui != 'true' || steps.setup-ok.outcome == 'success')
         env:
           IMPACT: ${{ steps.impact.outputs.visual_required }}
           MODE: ${{ steps.mode.outputs.ui }}
@@ -1615,7 +1649,8 @@ jobs:
           GRAY: ${{ steps.pixel-diff.outputs.gray }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           PASSOS: >-
-            [{"nome":"Veredito do Lint L2 — charter states ⇄ manifesto","outcome":"${{ steps.veredito-l2.outcome }}"},
+            [{"nome":"Preparação do ambiente (setup antes dos testes)","tipo":"setup","outcome":"${{ steps.mode.outputs.ui == 'true' && steps.setup-ok.outcome != 'success' && 'failure' || 'success' }}","causa":"${{ steps.playwright-deps.outcome == 'failure' && 'Install Playwright system dependencies' || '' }}"},
+             {"nome":"Veredito do Lint L2 — charter states ⇄ manifesto","outcome":"${{ steps.veredito-l2.outcome }}"},
              {"nome":"Classificar impacto visual do diff","outcome":"${{ steps.impact.outcome }}"},
              {"nome":"Run Pest Browser tests","outcome":"${{ steps.pest-browser.outcome }}"},
              {"nome":"Pixel-diff afetadas/núcleo-6 (ENFORCING · double-threshold L7)","outcome":"${{ steps.pixel-diff.outcome }}"},
