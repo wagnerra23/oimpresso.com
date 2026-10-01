@@ -56,12 +56,9 @@ trait ConfirmaInstalacaoPorPost
         ]);
     }
 
+    /** InstalacaoSoPorPost sobrescreve com moduleName() do BaseModuleInstallController. */
     protected function nomeModuloInstalacao(): string
     {
-        if (method_exists($this, 'moduleName')) {
-            return $this->moduleName();
-        }
-
         // Modules\<Nome>\Http\Controllers\InstallController → <Nome>
         return explode('\\', static::class)[1] ?? class_basename(static::class);
     }
