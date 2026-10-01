@@ -3,6 +3,7 @@
 namespace Modules\NFSe\Http\Controllers;
 
 use App\Http\Controllers\BaseModuleInstallController;
+use App\Http\Controllers\Concerns\InstalacaoSoPorPost;
 use Illuminate\Support\Facades\Artisan;
 
 /**
@@ -16,6 +17,8 @@ use Illuminate\Support\Facades\Artisan;
  */
 class InstallController extends BaseModuleInstallController
 {
+    use InstalacaoSoPorPost;
+
     protected function moduleName(): string
     {
         return 'NFSe';
