@@ -206,11 +206,13 @@ it('US-CONN-015 · CONN-O2b: o segredo aparece UMA vez, no retorno da criação'
         $segredo = (string) DB::table('oauth_clients')->where('name', $nome)->value('secret');
         expect(strlen($segredo))->toBe(40);
 
-        $msg = (string) session('status.msg');
-        $this->assertStringContainsString($segredo, $msg, 'a criação precisa entregar o segredo uma vez');
+        // Thread 04: o segredo sai num flash próprio (bloco copiável na tela), não no
+        // status.msg — esse vira toast e some sozinho.
+        $this->assertSame($segredo, (string) session('connector_credencial.secret'), 'a criação precisa entregar o segredo uma vez');
+        $this->assertStringNotContainsString($segredo, (string) session('status.msg'));
 
         // Depois disso a lista não o mostra mais.
-        session()->forget('status');
+        session()->forget(['status', 'connector_credencial']);
         connectorActAs($this, $user)->get('/connector/client')
             ->assertOk()
             ->assertSee($nome)
