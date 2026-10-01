@@ -1,3 +1,5 @@
+> **ABSORVIDO** em 2026-09-30 por `cowork-inbox/produto/playbook/00-INDICE.md` — não executar daqui.
+
 # Pedido pro [CL] — Produto: 10 telas + permissões (F1 → F3)
 
 > **F1 [CC] pronto** no Cowork (`prototipo-ui/cowork/produto/`). Este é o plano de PRs pro F3 em Inertia/React real.
