@@ -39,6 +39,12 @@ beforeEach(function () {
 
     Permission::firstOrCreate(['name' => PERM_OI_LIBERAR_05, 'guard_name' => 'web']);
     Permission::firstOrCreate(['name' => 'superadmin', 'guard_name' => 'web']);
+
+    // O tenant de teste (biz=98) faz o papel da empresa OPERADORA: `clientes.liberar`
+    // só vale para usuário dela (AcessoOperador). Os casos de cliente usam o biz=99.
+    if ($operador = static::resolveSeededTenant()) {
+        config(['constants.operator_business_id' => (int) $operador->id]);
+    }
 });
 
 it('thread 05 · a lista não imprime o secret de client existente', function () {
@@ -104,6 +110,67 @@ it('thread 05 · a lista é do negócio da sessão (98 não vê o client do 99)'
         ->assertOk()
         ->assertSee('Client do 98 · 05')
         ->assertDontSee('Client do 99 · 05');
+});
+
+// ── Trava do negócio operador (2026-10-01) ─────────────────────────────────────
+// Criar credencial de password grant contorna o bloqueio de empresa do login desktop
+// (User::validateForPassportPasswordGrant só bloqueia os client_id fixos do Delphi).
+// `clientes.liberar` passa a valer só para usuário da operadora; superadmin segue valendo.
+
+it('operador · usuário de empresa CLIENTE com clientes.liberar leva 403 e não cria credencial', function () {
+    $cliente = $this->seededSupportClientTenant();
+    $user = makeOiSegredoTestUser((int) $cliente->id);
+    $user->givePermissionTo(PERM_OI_LIBERAR_05);
+    // Pré-condição anti-vácuo: o 403 tem de vir da trava, não de faltar a permissão.
+    expect($user->can(PERM_OI_LIBERAR_05))->toBeTrue();
+    $nome = 'Cliente burla 05 '.Str::random(6);
+
+    $this->actingAs($user)->get('/officeimpresso/client')->assertForbidden();
+    $this->actingAs($user)->post('/officeimpresso/client', ['name' => $nome])->assertForbidden();
+    $this->actingAs($user)->get('/officeimpresso')->assertForbidden();
+
+    expect(DB::table('oauth_clients')->where('name', $nome)->exists())->toBeFalse();
+});
+
+it('operador · Admin de empresa CLIENTE (Gate::before) não cria credencial nem vê o link Clientes', function () {
+    $cliente = $this->seededSupportClientTenant();
+    $cid = (int) $cliente->id;
+
+    $nomeRole = 'Admin#'.$cid;
+    $existia = \Spatie\Permission\Models\Role::where('name', $nomeRole)->exists();
+    $role = \Spatie\Permission\Models\Role::firstOrCreate(['name' => $nomeRole, 'guard_name' => 'web'], ['business_id' => $cid]);
+
+    $admin = makeOiSegredoTestUser($cid);
+    $admin->assignRole($role);
+    // Pré-condição: o bypass existe.
+    expect($admin->can(PERM_OI_LIBERAR_05))->toBeTrue();
+    $nome = 'Admin cliente 05 '.Str::random(6);
+
+    $this->actingAs($admin)->post('/officeimpresso/client', ['name' => $nome])->assertForbidden();
+    expect(DB::table('oauth_clients')->where('name', $nome)->exists())->toBeFalse();
+
+    $hrefs = array_column(app(\App\Services\LegacyMenuAdapter::class)->buildTopNavs()['Officeimpresso']['items'] ?? [], 'href');
+    expect($hrefs)->not->toContain('/officeimpresso/client');
+
+    $admin->forceDelete();
+    if (! $existia) {
+        $role->delete();
+    }
+});
+
+it('operador · a MESMA conta cria credencial quando o config diz que a empresa dela é a operadora', function () {
+    $cliente = $this->seededSupportClientTenant();
+    $user = makeOiSegredoTestUser((int) $cliente->id);
+    $user->givePermissionTo(PERM_OI_LIBERAR_05);
+    config(['constants.operator_business_id' => (int) $cliente->id]);
+    $nome = 'Operador 99 05 '.Str::random(6);
+
+    $this->actingAs($user)
+        ->from('/officeimpresso/client')
+        ->post('/officeimpresso/client', ['name' => $nome])
+        ->assertRedirect('/officeimpresso/client');
+
+    expect(DB::table('oauth_clients')->where('name', $nome)->exists())->toBeTrue();
 });
 
 /**

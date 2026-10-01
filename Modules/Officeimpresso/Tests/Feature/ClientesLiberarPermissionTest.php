@@ -32,6 +32,12 @@ beforeEach(function () {
     if (DB::connection()->getDriverName() === 'sqlite') {
         $this->markTestSkipped('SQLite-incompatível: schema MySQL UltimatePOS necessário (ADR 0101).');
     }
+
+    // O tenant de teste (biz=98) faz o papel da empresa OPERADORA: `clientes.liberar`
+    // só vale para usuário dela (AcessoOperador).
+    if ($operador = static::resolveSeededTenant()) {
+        config(['constants.operator_business_id' => (int) $operador->id]);
+    }
 });
 
 it('declara officeimpresso.clientes.liberar no user_permissions (assinável na UI de Funções)', function () {
