@@ -274,3 +274,42 @@ it('UC-PCADAP-11 · categoria com subcategoria não sai; depois de esvaziada, sa
     expect(pcadapLogin($this, $user)->delete("/taxonomies/{$pai}", [], ['X-Requested-With' => 'XMLHttpRequest'])->json('success'))->toBeTrue();
     expect(DB::table('categories')->where('id', $pai)->whereNull('deleted_at')->exists())->toBeFalse();
 });
+
+it('UC-PCADAP-12 · editar unidade não mexe na conversão de estoque sem pedido explícito', function () {
+    $user = pcadapUsuario($this->biz->id, ['unit.view', 'unit.update']);
+    $un = pcadapUnidade($this->biz->id, 'Unidade base', 'Unb');
+    $cx = pcadapUnidade($this->biz->id, 'Caixa', 'cxb', $un, 1000);
+    $meio = pcadapUnidade($this->biz->id, 'Meia', 'mei', $un, 0.5);
+    $ajax = ['X-Requested-With' => 'XMLHttpRequest'];
+    $base = fn (int $id) => DB::table('units')->where('id', $id)->first(['base_unit_id', 'base_unit_multiplier']);
+
+    // 1) POST sem o campo `define_base_unit` (form parcial/API): a base FICA. Antes, zerava.
+    pcadapLogin($this, $user)->put("/units/{$cx}", [
+        'actual_name' => 'Caixa ' . PCADAP_TAG, 'short_name' => 'cxb', 'allow_decimal' => 0,
+    ], $ajax)->assertOk();
+    expect((int) $base($cx)->base_unit_id)->toBe($un);
+    expect((float) $base($cx)->base_unit_multiplier)->toBe(1000.0);
+
+    // 2) O modal clássico mostra o múltiplo sem vírgula de milhar e sem arredondar:
+    //    "1,000" o num_uf lê como 1; "0,5" virava "1" no number_format sem casas.
+    $form = pcadapLogin($this, $user)->get("/units/{$cx}/edit", $ajax)->assertOk()->getContent();
+    expect($form)->toContain('value="1000"');
+    expect($form)->not->toContain('value="1,000"');
+    $formMeio = pcadapLogin($this, $user)->get("/units/{$meio}/edit", $ajax)->assertOk()->getContent();
+    expect($formMeio)->toContain('value="0,5"');
+
+    // 3) Salvar o modal sem tocar em nada (hidden 0 + checkbox 1, o que o serialize manda) preserva 1000.
+    pcadapLogin($this, $user)->put("/units/{$cx}", [
+        'actual_name' => 'Caixa ' . PCADAP_TAG, 'short_name' => 'cxb', 'allow_decimal' => 0,
+        'define_base_unit' => '1', 'base_unit_id' => $un, 'base_unit_multiplier' => '1000',
+    ], $ajax)->assertOk();
+    expect((float) $base($cx)->base_unit_multiplier)->toBe(1000.0);
+
+    // 4) Desmarcar é explícito (`define_base_unit=0`): aí a base sai.
+    pcadapLogin($this, $user)->put("/units/{$cx}", [
+        'actual_name' => 'Caixa ' . PCADAP_TAG, 'short_name' => 'cxb', 'allow_decimal' => 0,
+        'define_base_unit' => '0',
+    ], $ajax)->assertOk();
+    expect($base($cx)->base_unit_id)->toBeNull();
+    expect($base($cx)->base_unit_multiplier)->toBeNull();
+});

@@ -26,7 +26,7 @@ Status: 🧪
 
 ## UC-OILIC-02 · Flag OFF serve o Blade · `must`
 
-**Dado** a flag `useV2OfficeimpressoLicencas` desligada (estado de produção) **Quando** o suporte
+**Dado** a flag `useV2OfficeimpressoLicencas` desligada (rota de fuga — produção liga por default desde a decisão [W] 2026-10-01) **Quando** o suporte
 abre a lista **Então** recebe a view Blade de sempre.
 
 Status: 🧪

@@ -2,6 +2,7 @@
 
 namespace Modules\Compras\Http\Controllers;
 
+use App\Http\Controllers\Concerns\ConfirmaInstalacaoPorPost;
 use App\Utils\Util;
 use Artisan;
 use Exception;
@@ -17,6 +18,8 @@ use Illuminate\Routing\Controller;
  */
 class InstallController extends Controller
 {
+    use ConfirmaInstalacaoPorPost;
+
     protected Util $commonUtil;
 
     public function __construct(Util $commonUtil)
@@ -26,6 +29,10 @@ class InstallController extends Controller
 
     public function index()
     {
+        if ($confirmacao = $this->confirmacaoSeNaoForPost('install')) {
+            return $confirmacao;
+        }
+
         if (! auth()->user()->can('superadmin')) {
             abort(403, 'Unauthorized action.');
         }
@@ -49,6 +56,10 @@ class InstallController extends Controller
 
     public function uninstall()
     {
+        if ($confirmacao = $this->confirmacaoSeNaoForPost('uninstall')) {
+            return $confirmacao;
+        }
+
         if (! auth()->user()->can('superadmin')) {
             abort(403, 'Unauthorized action.');
         }
@@ -68,6 +79,10 @@ class InstallController extends Controller
 
     public function update()
     {
+        if ($confirmacao = $this->confirmacaoSeNaoForPost('update')) {
+            return $confirmacao;
+        }
+
         if (! auth()->user()->can('superadmin')) {
             abort(403, 'Unauthorized action.');
         }

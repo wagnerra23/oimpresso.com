@@ -50,14 +50,30 @@ class ActivityCauserKindObserver
      */
     private function resolverBusinessId(Activity $activity): void
     {
+        // Log SEM subject (activity('x')->withProperties([...])->log(), sem performedOn):
+        // não há registro auditado para ancorar o tenant. Vale o que o CHAMADOR declarou —
+        // a coluna, se ele setou; senão o `business_id` que ele pôs em properties. Nunca a
+        // sessão daqui. Medido 2026-10-01: 7 chamadores (NfeBrasil Certificado ×3,
+        // Tributacao, ConfigDefault, ImportRegras; JanaAuditService) punham o tenant só em
+        // properties, e 100% dos logs `nfe.certificado` saíram com business_id NULL.
+        if (empty($activity->getAttribute('subject_type'))) {
+            $this->resolverBusinessIdSemSubject($activity);
+
+            return;
+        }
+
         try {
             $subject = $activity->getRelationValue('subject'); // performedOn() já deixa carregada
         } catch (\Throwable $e) {
             return; // subject_type de classe que não existe mais: mantém o do chamador
         }
 
-        $doSubject = self::businessIdDoSubject($subject);
-        if ($doSubject === null) {
+        // Log da PLATAFORMA (ex.: licenças do Officeimpresso — [W] 2026-10-01: "as
+        // licenças são minhas, eu controlo as máquinas dos clientes, eles não precisam
+        // ver isso"): nunca recebe tenant de cliente, nem o que o chamador mandou.
+        $plataforma = self::ehLogDaPlataforma($subject);
+        $doSubject = $plataforma ? null : self::businessIdDoSubject($subject);
+        if ($doSubject === null && ! $plataforma) {
             return;
         }
 
@@ -72,6 +88,75 @@ class ActivityCauserKindObserver
         if ($temColuna) {
             $activity->setAttribute('business_id', $doSubject);
         }
+    }
+
+    private function resolverBusinessIdSemSubject(Activity $activity): void
+    {
+        if (! empty($activity->getAttribute('business_id'))) {
+            return; // o chamador já setou a coluna (ex.: Financeiro, Ponto)
+        }
+
+        $declarado = self::businessIdDeclarado($activity->getAttribute('properties'));
+        if ($declarado === null) {
+            return;
+        }
+
+        try {
+            $temColuna = \Schema::hasColumn('activity_log', 'business_id');
+        } catch (\Throwable $e) {
+            return;
+        }
+        if ($temColuna) {
+            $activity->setAttribute('business_id', $declarado);
+        }
+    }
+
+    /** `business_id` inteiro positivo dentro de properties (Collection, array ou JSON). */
+    public static function businessIdDeclarado($properties): ?int
+    {
+        if (is_string($properties)) {
+            $properties = json_decode($properties, true);
+        }
+        if ($properties instanceof \Illuminate\Support\Collection) {
+            $properties = $properties->all();
+        }
+        if (! is_array($properties)) {
+            return null;
+        }
+
+        $v = $properties['business_id'] ?? null;
+        if (is_int($v) || (is_string($v) && ctype_digit($v))) {
+            return (int) $v > 0 ? (int) $v : null;
+        }
+
+        return null;
+    }
+
+    /**
+     * Logs da PLATAFORMA — dado do operador, não do negócio-cliente: ficam SEM business_id
+     * (fora da /auditoria de qualquer cliente). [W] 2026-10-01: "as licenças são minhas, eu
+     * controlo as máquinas dos clientes. eles não precisam ver isso".
+     *
+     * A lista mora AQUI, e não como marcador nos models, porque LicencaLog/Licenca_Computador
+     * são grandfathered sem escopo de tenant: tocá-los acorda a dívida no gate
+     * MultiTenantScopeArchitectureTest (medido no 1º push do PR #8410), e dar escopo a eles
+     * muda as telas de superadmin e a API do Connector — outro assunto.
+     */
+    public const LOGS_DA_PLATAFORMA = [
+        'Modules\Officeimpresso\Entities\LicencaLog',
+        'Modules\Officeimpresso\Entities\Licenca_Computador',
+    ];
+
+    /** Aceita instância ou FQCN. Também honra `const AUDITORIA_LOG_DA_PLATAFORMA = true` no model. */
+    public static function ehLogDaPlataforma($subject): bool
+    {
+        $classe = is_object($subject) ? get_class($subject) : (string) $subject;
+        if ($classe === '') {
+            return false;
+        }
+
+        return in_array(ltrim($classe, '\\'), self::LOGS_DA_PLATAFORMA, true)
+            || (defined($classe.'::AUDITORIA_LOG_DA_PLATAFORMA') && constant($classe.'::AUDITORIA_LOG_DA_PLATAFORMA') === true);
     }
 
     /**

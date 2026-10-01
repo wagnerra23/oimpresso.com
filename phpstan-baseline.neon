@@ -8709,7 +8709,7 @@ parameters:
 		-
 			message: '#^Called ''env'' outside of the config directory which returns null when the config is cached, use ''config''\.$#'
 			identifier: larastan.noEnvCallsOutsideOfConfig
-			count: 9
+			count: 12
 			path: Modules/Ponto/Config/config.php
 
 		-

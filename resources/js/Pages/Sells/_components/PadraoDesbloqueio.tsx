@@ -8,7 +8,7 @@ type Props = {
 };
 
 /**
- * Padrão de desbloqueio do aparelho (UC-S05) — grade 3×3, mesmo formato do patternlock.js
+ * Padrão de desbloqueio do aparelho (UC-S06) — grade 3×3, mesmo formato do patternlock.js
  * do POS Blade: a sequência de pontos 1–9 tocados ("14789"). Toque em ordem; cada ponto
  * mostra a posição em que entrou. Sem arrastar: funciona igual com mouse, toque e teclado.
  */

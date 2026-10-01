@@ -285,7 +285,7 @@ function repairSubtipoStatus(int $bizId, string $nome): int
     ]);
 }
 
-it('UC-S04 · a venda de reparo abre com as opções de reparo do PRÓPRIO business', function () {
+it('UC-S05 · a venda de reparo abre com as opções de reparo do PRÓPRIO business', function () {
     if (! Schema::hasTable('repair_statuses')) {
         $this->markTestSkipped('Tabela repair_statuses ausente — rode as migrations do Repair.');
     }
@@ -294,8 +294,8 @@ it('UC-S04 · a venda de reparo abre com as opções de reparo do PRÓPRIO busin
         $this->markTestSkipped('Sem 2º business semeado pro adversário cross-tenant.');
     }
 
-    $meu = repairSubtipoStatus($this->bizId, 'Em bancada UC-S04');
-    $alheio = repairSubtipoStatus($outroBiz, 'De outro business UC-S04');
+    $meu = repairSubtipoStatus($this->bizId, 'Em bancada UC-S05');
+    $alheio = repairSubtipoStatus($outroBiz, 'De outro business UC-S05');
 
     DB::table('cash_registers')->insert([
         'business_id' => $this->bizId, 'location_id' => $this->locationId, 'user_id' => $this->user->id,
@@ -319,11 +319,11 @@ it('UC-S04 · a venda de reparo abre com as opções de reparo do PRÓPRIO busin
     expect($comum->json('props.repairPos'))->toBeNull();
 });
 
-it('UC-S04 · os campos da seção Reparo são gravados na venda, sem mudar o valor', function () {
+it('UC-S05 · os campos da seção Reparo são gravados na venda, sem mudar o valor', function () {
     if (! Schema::hasTable('repair_statuses')) {
         $this->markTestSkipped('Tabela repair_statuses ausente — rode as migrations do Repair.');
     }
-    $status = repairSubtipoStatus($this->bizId, 'Aguardando peça UC-S04');
+    $status = repairSubtipoStatus($this->bizId, 'Aguardando peça UC-S05');
 
     // Exatamente o que reparoVenda.camposDeReparo produz (tests/js/sells-reparo-venda.test.ts).
     $comum = repairSubtipoVender($this);
@@ -331,13 +331,13 @@ it('UC-S04 · os campos da seção Reparo são gravados na venda, sem mudar o va
         'sub_type' => 'repair',
         'print_label' => 0,
         'repair_status_id' => $status,
-        'repair_serial_no' => 'SN-UC-S04',
+        'repair_serial_no' => 'SN-UC-S05',
         'repair_due_date' => '15/10/2026 14:30',
         'repair_defects' => '[{"value":"tela"},{"value":"bateria"}]',
     ]);
 
     expect((int) $reparo['venda']->repair_status_id)->toBe($status);
-    expect($reparo['venda']->repair_serial_no)->toBe('SN-UC-S04');
+    expect($reparo['venda']->repair_serial_no)->toBe('SN-UC-S05');
     expect((string) $reparo['venda']->repair_due_date)->toStartWith('2026-10-15 14:30');
     expect(json_decode((string) $reparo['venda']->repair_defects, true))
         ->toBe([['value' => 'tela'], ['value' => 'bateria']]);
@@ -347,7 +347,7 @@ it('UC-S04 · os campos da seção Reparo são gravados na venda, sem mudar o va
     expect($reparo['saldo'])->toBe($comum['saldo']);
 });
 
-it('UC-S05 · modelos do PRÓPRIO business com o checklist de cada um; checklist, senha e padrão gravados', function () {
+it('UC-S06 · modelos do PRÓPRIO business com o checklist de cada um; checklist, senha e padrão gravados', function () {
     if (! Schema::hasTable('repair_device_models')) {
         $this->markTestSkipped('Tabela repair_device_models ausente — rode as migrations do Repair.');
     }
@@ -364,8 +364,8 @@ it('UC-S05 · modelos do PRÓPRIO business com o checklist de cada um; checklist
         'created_at' => now(),
         'updated_at' => now(),
     ]);
-    $meu = $novoModelo($this->bizId, 'Modelo UC-S05', 'Liga|Tela trincada|');
-    $alheio = $novoModelo($outroBiz, 'Modelo alheio UC-S05', 'Nao deve aparecer');
+    $meu = $novoModelo($this->bizId, 'Modelo UC-S06', 'Liga|Tela trincada|');
+    $alheio = $novoModelo($outroBiz, 'Modelo alheio UC-S06', 'Nao deve aparecer');
 
     DB::table('cash_registers')->insert([
         'business_id' => $this->bizId, 'location_id' => $this->locationId, 'user_id' => $this->user->id,
@@ -544,4 +544,53 @@ it('UC-S07 · OS de OUTRO business abre a venda SEM origem, e não em 500 (Tier 
     \PHPUnit\Framework\Assert::assertSame(200, $tela->status(), 'venda com OS alheia: HTTP '.$tela->status());
     expect($tela->json('props.repairPos'))->not->toBeNull();
     expect($tela->json('props.repairPos.osOrigem'))->toBeNull();
+});
+
+it('UC-S07 · com grupo de preço padrão no local, a peça da OS entra pelo preço do GRUPO — o mesmo da adição à mão', function () {
+    foreach (['repair_job_sheets', 'repair_statuses', 'product_locations', 'selling_price_groups', 'variation_group_prices'] as $t) {
+        if (! Schema::hasTable($t)) {
+            $this->markTestSkipped("Tabela {$t} ausente — rode as migrations.");
+        }
+    }
+
+    $produto = EstoqueFixture::singleProduct($this->bizId);
+    $variationId = (int) $produto->variations[0]['variation_id'];
+    DB::table('variations')->where('id', $variationId)->update(['sell_price_inc_tax' => 37.5, 'default_sell_price' => 37.5]);
+    DB::table('product_locations')->insert(['product_id' => $produto->productId, 'location_id' => $this->locationId]);
+    $subSku = (string) DB::table('variations')->where('id', $variationId)->value('sub_sku');
+
+    // Grupo padrão do local do caixa, com preço 30 pra variação (base é 37,50).
+    $grupo = (int) DB::table('selling_price_groups')->insertGetId([
+        'name' => 'Grupo UC-S07', 'business_id' => $this->bizId, 'is_active' => 1,
+        'created_at' => now(), 'updated_at' => now(),
+    ]);
+    DB::table('variation_group_prices')->insert([
+        'variation_id' => $variationId, 'price_group_id' => $grupo, 'price_inc_tax' => 30, 'price_type' => 'fixed',
+        'created_at' => now(), 'updated_at' => now(),
+    ]);
+    DB::table('business_locations')->where('id', $this->locationId)->update(['selling_price_group_id' => $grupo]);
+    Permission::findOrCreate('selling_price_group.'.$grupo, 'web');
+    $this->user->givePermissionTo('selling_price_group.'.$grupo);
+    app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
+
+    $os = repairSubtipoOs($this, repairSubtipoStatus($this->bizId, 'Grupo UC-S07'), $variationId, 2);
+
+    $tela = $this->withHeaders(repairSubtipoAbrirPdv($this))->get("/pos/create?sub_type=repair&job_sheet_id={$os}");
+    \PHPUnit\Framework\Assert::assertSame(200, $tela->status(), "GET da venda da OS: HTTP {$tela->status()}");
+    // Pré-condição: a venda abre com o grupo do local (senão o caso testaria o preço base).
+    expect($tela->json('props.defaultPriceGroupId'))->toBe($grupo);
+
+    // Caminho 1: o servidor.
+    $peca = $tela->json('props.repairPos.osOrigem.pecas.0');
+    // Caminho 2: o que o autocomplete pede com o grupo (#8455) e o precoDaBusca aplica.
+    $daLista = collect(
+        $this->flushHeaders()->withHeaders(['X-Requested-With' => 'XMLHttpRequest', 'Accept' => 'application/json'])
+            ->get('/products/list?'.http_build_query(['term' => $subSku, 'location_id' => $this->locationId, 'price_group' => $grupo]))
+            ->json()
+    )->firstWhere('variation_id', $variationId);
+    \PHPUnit\Framework\Assert::assertNotNull($daLista, '/products/list com price_group não achou a variação');
+
+    expect((float) $peca['unit_price'])->toBe(30.0);                                     // = preço do grupo gravado
+    expect((float) $peca['unit_price'])->toBe((float) $daLista['variation_group_price']); // = adição à mão com grupo
+    expect((float) $peca['quantity'])->toBe(2.0);
 });

@@ -161,6 +161,23 @@ export function charterRunbookExists(filePath, root = process.cwd()) {
   }
 }
 
+/**
+ * Raiz do repo ONDE O ARQUIVO MORA — não o cwd do processo. O harness roda o hook com o cwd do
+ * repo PRINCIPAL mesmo quando a sessão edita num worktree (`.claude/worktrees/<nome>/`), então
+ * `process.cwd()` olhava o `memory/requisitos/` errado e o RUNBOOK recém-criado no worktree era
+ * invisível: toda tela NOVA em worktree ficava bloqueada com o RUNBOOK presente (medido
+ * 2026-10-01: mesmo payload → rc=0 com cwd=worktree, rc=2 com cwd=principal). Path relativo ou
+ * sem `memory/` na raiz derivada → fallback (o comportamento antigo).
+ */
+export function raizDoArquivo(filePath, fallback = process.cwd()) {
+  const fwd = String(filePath || '').split(String.fromCharCode(92)).join('/');
+  if (!/^([A-Za-z]:)?\//.test(fwd)) return fallback;
+  const i = fwd.lastIndexOf('/resources/js/Pages/');
+  if (i <= 0) return fallback;
+  const raiz = fwd.slice(0, i);
+  return existsSync(join(raiz, 'memory', 'requisitos')) ? raiz : fallback;
+}
+
 /** veredito único: null (continua) ou a mensagem de bloqueio. */
 export function decide(toolName, filePath, root = process.cwd()) {
   if (!WRITE_TOOLS.has(toolName)) return null;
@@ -211,7 +228,7 @@ async function main() {
     tool = String((payload && payload.tool_name) || '');
     path = String((payload && payload.tool_input && payload.tool_input.file_path) || '');
   } catch { process.exit(0); }        // parse-fail → fail-open
-  const veto = decide(tool, path);
+  const veto = decide(tool, path, raizDoArquivo(path));
   if (veto) { process.stderr.write(veto + '\n'); process.exit(2); }
   process.exit(0);
 }

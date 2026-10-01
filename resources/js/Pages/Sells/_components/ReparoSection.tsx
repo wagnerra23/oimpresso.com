@@ -60,9 +60,9 @@ type Props = {
 const SEM = '__nenhum__';
 
 /**
- * Seção "Reparo" do Sells/Create (UC-S04) — só aparece na venda aberta como reparo.
+ * Seção "Reparo" do Sells/Create (UC-S05) — só aparece na venda aberta como reparo.
  * Paridade de campos com o POS Blade de reparo (`repair_pos.blade.php`), incluindo o
- * checklist pré-reparo e a senha/padrão do aparelho (UC-S05).
+ * checklist pré-reparo e a senha/padrão do aparelho (UC-S06).
  */
 export default function ReparoSection({ opcoes, valor, onChange }: Props) {
   const [digitando, setDigitando] = useState('');
@@ -101,7 +101,7 @@ export default function ReparoSection({ opcoes, valor, onChange }: Props) {
     setDigitando('');
   };
 
-  // UC-S05 — trocar marca/aparelho filtra os modelos (como o Blade); modelo que deixou de
+  // UC-S06 — trocar marca/aparelho filtra os modelos (como o Blade); modelo que deixou de
   // caber sai, e com ele o checklist que dependia dele.
   const mudarId = (campo: 'repair_brand_id' | 'repair_device_id' | 'repair_warranty_id', v: number | null) => {
     const proximo = { ...valor, [campo]: v };

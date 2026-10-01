@@ -314,9 +314,9 @@ class SellPosController extends Controller
                 ],
                 'posSettings'          => $pos_settings,
                 'subType'              => $sub_type,
-                // Reparo como tipo de venda (UC-S04): as opções que o POS Blade já monta via
+                // Reparo como tipo de venda (UC-S05): as opções que o POS Blade já monta via
                 // getModuleData('get_pos_screen_view') e o React descartava. Sem query nova.
-                'repairPos'            => $this->repairPosProps($pos_module_data),
+                'repairPos'            => $this->repairPosProps($pos_module_data, $default_price_group_id),
             ]);
         }
 
@@ -357,12 +357,12 @@ class SellPosController extends Controller
     }
 
     /**
-     * Opções da seção "Reparo" do Sells/Create (UC-S04). Formata o `view_data` que o
+     * Opções da seção "Reparo" do Sells/Create (UC-S05). Formata o `view_data` que o
      * `Modules\Repair\...\DataController::get_pos_screen_view` já devolve pro POS Blade —
      * esse método só entrega quando o sub_type é `repair` e o módulo está na assinatura,
      * então `null` aqui = não é venda de reparo. Os dados já vêm escopados por business_id.
      */
-    private function repairPosProps($pos_module_data): ?array
+    private function repairPosProps($pos_module_data, $defaultPriceGroupId = null): ?array
     {
         $d = $pos_module_data['Repair']['view_data'] ?? null;
         if (empty($d)) {
@@ -372,7 +372,7 @@ class SellPosController extends Controller
         $sugeridos = explode(',', (string) ($d['repair_settings']['problem_reported_by_customer'] ?? ''));
         $semVazios = fn (array $l) => array_values(array_filter(array_map('trim', $l), fn ($v) => $v !== ''));
 
-        // UC-S05: modelos com marca/aparelho (o Blade filtra a lista ao trocar marca/aparelho,
+        // UC-S06: modelos com marca/aparelho (o Blade filtra a lista ao trocar marca/aparelho,
         // via /repair/get-device-models) e o checklist de cada um (o Blade busca por AJAX em
         // /repair/models-repair-checklist). Uma query, escopada por business — sem endpoint novo.
         $modelos = \Modules\Repair\Entities\DeviceModel::where('business_id', (int) session('user.business_id'))
@@ -399,7 +399,7 @@ class SellPosController extends Controller
             'warranties' => $d['warranties'] ?? [],
             'defeitosSugeridos' => $semVazios($sugeridos),
             'checklistPadrao' => $semVazios(explode('|', (string) ($d['repair_settings']['default_repair_checklist'] ?? ''))),
-            'osOrigem' => $this->repairOsOrigem($d),
+            'osOrigem' => $this->repairOsOrigem($d, $defaultPriceGroupId),
         ];
     }
 
@@ -409,13 +409,14 @@ class SellPosController extends Controller
      * (escopada por business) e as peças usadas (só variação + quantidade).
      *
      * VALOR — cada peça entra pelo MESMO preço que o React daria se o operador a adicionasse
-     * à mão: `selling_price` do `ProductUtil::filterProduct` (o que `/products/list` devolve ao
-     * autocomplete e o `handleAddProduct` usa). O cliente da OS vai junto com o grupo de preço
+     * à mão: o `ProductUtil::filterProduct` com o grupo de preço com que a venda abre
+     * (`defaultPriceGroupId`), e `variation_group_price ?? selling_price` — a regra do
+     * `precoDaBusca.ts` que o autocomplete aplica desde o #8455. O cliente da OS vai junto com o grupo de preço
      * dele; o React aplica pelo próprio `handleCustomerSelect`, que reprecifica como faria na
      * mão. Peça que o filterProduct não acha (outro business, fora do local) NÃO entra calada:
      * vai em `pecasNaoEncontradas` para a tela avisar.
      */
-    private function repairOsOrigem(array $d): ?array
+    private function repairOsOrigem(array $d, $priceGroupId = null): ?array
     {
         $os = $d['job_sheet'] ?? null;
         if (empty($os) || empty($os->id)) {
@@ -430,7 +431,7 @@ class SellPosController extends Controller
         foreach (($d['parts'] ?? []) as $variationId => $parte) {
             $subSku = (string) \App\Variation::whereKey($variationId)->value('sub_sku');
             $linha = $subSku === '' ? null : $this->productUtil
-                ->filterProduct($bizId, $subSku, $locationId, null, null, [], ['sub_sku'], false, 'exact')
+                ->filterProduct($bizId, $subSku, $locationId, null, $priceGroupId, [], ['sub_sku'], false, 'exact')
                 ->firstWhere('variation_id', (int) $variationId);
 
             if ($linha === null) {
@@ -446,7 +447,8 @@ class SellPosController extends Controller
                 'variation' => $linha->type === 'variable' ? (string) $linha->variation : null,
                 'sku' => (string) $linha->sub_sku,
                 'quantity' => (float) ($parte['quantity'] ?? 1),
-                'unit_price' => (float) $linha->selling_price,
+                // Mesma regra do precoDaBusca.ts (#8455): preço do grupo se houver, senão o base.
+                'unit_price' => (float) ($linha->variation_group_price ?? $linha->selling_price),
             ];
         }
 

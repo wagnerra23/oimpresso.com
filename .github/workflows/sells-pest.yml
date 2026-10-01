@@ -37,6 +37,8 @@ on:
       # controller do preview não dispararia o teste dele — gate mudo com cara de cobertura.
       - 'app/Http/Controllers/SellsV3Controller.php'
       - 'app/Utils/TransactionUtil.php'
+      # Sob teste em BuscaProdutoPrecoDeGrupoContratoTest (filterProduct × getVariationGroupPrice).
+      - 'app/Utils/ProductUtil.php'
       - 'resources/js/Pages/Sells/**'
       - 'database/schema/mysql-schema.sql'
       - '.github/workflows/sells-pest.yml'
@@ -78,6 +80,7 @@ jobs:
               - 'app/Http/Controllers/SellPosController.php'
               - 'app/Http/Controllers/SellsV3Controller.php'
               - 'app/Utils/TransactionUtil.php'
+              - 'app/Utils/ProductUtil.php'
               - 'app/Http/Controllers/SellController.php'
               - 'resources/js/Pages/Sells/**'
               - 'database/schema/mysql-schema.sql'
@@ -160,7 +163,8 @@ jobs:
             tests/Feature/Sells/Wave1ShowBaselineTest.php \
             tests/Feature/Sells/Wave1ShowInertiaTest.php \
             tests/Feature/Sells/SellsCaixaContratoTest.php \
-            tests/Feature/Sells/SellsRepairSubtipoContratoTest.php
+            tests/Feature/Sells/SellsRepairSubtipoContratoTest.php \
+            tests/Feature/Sells/BuscaProdutoPrecoDeGrupoContratoTest.php
 
 
       # Passo 1 do plano da LC-13 (Gate:): a lane JA emitia JUnit e NINGUEM lia.

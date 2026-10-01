@@ -3076,3 +3076,12 @@ Ocorrência da **LC-11**.
 - **Sobre virar máquina:** a instância já tem defesa no dono (`--selftest`, na lane `governance-script-tests`, advisory). Para a classe, o predicado ("estas leituras são independentes?") é semântico ([ADR 0224](decisions/0224-hooks-block-vs-advisory-claude-4.8-aware.md)) e acusar toda leitura repetida reprovaria os usos legítimos. Não se propõe gate novo.
 
 Ocorrência da **LC-24**.
+
+### 2026-10-01 — A catraca de acoplamento oferecia `not_contains` como saída no eixo TABELA, que não lê `not_contains`
+
+- **O que aconteceu, medido.** Em `scripts/governance/catalog-graph.mjs`, `--acoplamento --catraca` avalia dois eixos com a mesma mensagem de reprovação. Ela abria com «(a) declarar a delegação no `not_contains` do SCOPE.md do módulo de ORIGEM». No eixo import isso funciona: ele lê `r.naoDeclaradas`, que já exclui o par declarado. No eixo tabela, não: os pares vêm de `paresDeTabelaComoPares(r.tabela.pares)`, sem filtro por declaração, e `catracaAcoplamento()` só isenta por `grandfathered` + `allowlist`. No par Ponto>Financeiro (#8464) a declaração foi feita, a catraca seguiu reprovando e só o allowlist em `governance/module-table-coupling-baseline.json` resolveu.
+- **O conserto.** Removida a promessa, não implementada. Escrever direto na tabela do dono é exatamente o que perde observers, scope e invariantes dele; declarar que o escopo foi delegado não muda isso, então aceitar `not_contains` no eixo tabela abriria um bypass com cara de documentação. As opções da mensagem passaram a ser por eixo, e no eixo tabela ela diz que o SCOPE.md não isenta.
+- **O limite (variante também proibida):** mensagem compartilhada entre caminhos com regras de isenção diferentes não lista a saída de um como se valesse para todos. Cada opção oferecida tem de ser honrada no caminho que imprime a mensagem, e o teste disso exercita o CLI de fora, não um helper.
+- **Defesa.** Bite-test no `catalog-graph.test.mjs`: sandbox git com Ponto declarando a delegação e tocando Financeiro pelos dois eixos, baselines vazias. Controle positivo: o eixo import passa. Contrato: o eixo tabela reprova e as opções não oferecem o `not_contains`. Com a mensagem antiga o teste cai no assert certo. Roda em lanes advisory (`governance-script-tests`) e no `catalog-graph.yml`; não é defesa da classe inteira, só desta instância.
+
+Ocorrência da **LC-15**.

@@ -1,5 +1,5 @@
 /**
- * Seção "Reparo" do Sells/Create (UC-S04) — o que a venda de reparo envia além da venda.
+ * Seção "Reparo" do Sells/Create (UC-S05) — o que a venda de reparo envia além da venda.
  *
  * Paridade com o parcial Blade `repair::repair.partials.repair_pos` (o POS de reparo):
  * os mesmos nomes de campo, gravados pelo `after_sale_saved` do Repair. Nada aqui toca
@@ -21,7 +21,7 @@ export type ReparoForm = {
   repair_due_date: string;
   repair_completed_on: string;
   defeitos: string[];
-  /** UC-S05 — item do checklist → resposta. Itens ausentes contam como "não se aplica". */
+  /** UC-S06 — item do checklist → resposta. Itens ausentes contam como "não se aplica". */
   checklist: Record<string, ChecklistValor>;
   repair_security_pwd: string;
   /** Sequência de pontos da grade 3×3 (1–9), o formato do patternlock.js do POS Blade. */
@@ -107,7 +107,7 @@ export function camposDeReparo(
   const concluido = dataParaServidor(r.repair_completed_on);
   if (concluido) campos.repair_completed_on = concluido;
   if (r.defeitos.length > 0) campos.repair_defects = defeitosParaTagify(r.defeitos);
-  // UC-S05 — senha/padrão só quando preenchidos; checklist só quando há itens exibidos.
+  // UC-S06 — senha/padrão só quando preenchidos; checklist só quando há itens exibidos.
   if (r.repair_security_pwd !== '') campos.repair_security_pwd = r.repair_security_pwd;
   if (r.repair_security_pattern !== '') campos.repair_security_pattern = r.repair_security_pattern;
   if (itensChecklist.length > 0) campos.repair_checklist = checklistParaEnvio(itensChecklist, r.checklist);

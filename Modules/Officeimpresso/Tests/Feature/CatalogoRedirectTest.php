@@ -17,10 +17,12 @@ uses(Tests\TestCase::class);
  * As telas `index` e `show` do Officeimpresso eram cópia exata (mesma query, mesmas
  * views) e passam a REDIRECIONAR pra lá, levando parâmetros e query string.
  *
- * O `generateQr` NÃO redireciona (opção (b) da sessão-mãe): o gate daqui aceita a
- * assinatura `officeimpresso_module` e o do ProductCatalogue exige
- * `productcatalogue_module` — redirecionar tiraria acesso de quem só tem a primeira.
- * Os dois últimos casos travam isso.
+ * O `generateQr` também redireciona desde a 2ª rodada (D3, "pode ajustar primeiro"):
+ * o gate daqui aceitava `officeimpresso_module` e o do ProductCatalogue exige
+ * `productcatalogue_module`. Os pacotes foram alinhados ANTES pelo comando
+ * `officeimpresso:alinhar-pacotes-catalogo` (AlinharPacotesCatalogoCommandTest prova
+ * que, depois dele, o gate de lá libera quem tinha só o Officeimpresso). Os dois
+ * últimos casos travam o redirect.
  *
  * Não usa RefreshDatabase (UltimatePOS legado). Tenant vem do seed da action
  * pest-mysql-setup — nunca biz=4.
@@ -65,7 +67,24 @@ it('catálogo 3 · a rota do QR continua apontando pro OfficeimpressoController@
     expect($acao)->toBe(OfficeimpressoController::class.'@generateQr');
 });
 
-it('catálogo 4 · o QR do Officeimpresso continua abrindo aqui (200), sem desviar pro ProductCatalogue', function () {
+it('catálogo 4 · o QR do Officeimpresso redireciona pro gerador do ProductCatalogue, com query string', function () {
+    $business = $this->seededTenant();
+    $user = makeOiCatalogoTestUser($business->id);
+    $this->actingAs($user);
+
+    // Sem superadmin e sem pacote nenhum: o redirect acontece ANTES de qualquer gate
+    // aqui. Quem decide o acesso é o destino — não há segundo dono da regra.
+    $this->get('/officeimpresso/catalogue-qr?origem=menu')
+        ->assertRedirect(url('/product-catalogue/catalogue-qr').'?origem=menu');
+
+    $user->forceDelete();
+});
+
+it('catálogo 5 · o destino do redirect abre (200) com o dropdown de locais', function () {
+    // O redirect sozinho não prova nada se o destino quebra. Em 2026-10-01, logo após o
+    // deploy do #8403, /product-catalogue/catalogue-qr dava 500 em prod:
+    // locationsDropdown() declarava `array` e devolvia Collection. Superadmin aqui só
+    // pra passar o gate de pacote — o que se mede é a tela montar.
     $business = $this->seededTenant();
     Permission::firstOrCreate(['name' => 'superadmin', 'guard_name' => 'web']);
 
@@ -73,10 +92,11 @@ it('catálogo 4 · o QR do Officeimpresso continua abrindo aqui (200), sem desvi
     $user->givePermissionTo('superadmin');
     $this->actingAs($user);
 
-    $response = $this->get('/officeimpresso/catalogue-qr');
+    $response = $this->followingRedirects()
+        ->get('/officeimpresso/catalogue-qr');
 
     $response->assertOk();
-    expect($response->getContent())->toContain('catalogue/');
+    expect($response->getContent())->toContain('name="location_id"');
 
     $user->revokePermissionTo('superadmin');
     $user->forceDelete();

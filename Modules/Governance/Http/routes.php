@@ -89,10 +89,11 @@ Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezo
             ->name('qualidade-ia.index');
 
         // Install hooks (ADR 0024 — pattern padronizado BaseModuleInstallController)
+        Route::post('install',           [InstallController::class, 'install']);
         Route::get('install',           [InstallController::class, 'index'])
             ->name('install.index');
-        Route::get('install/uninstall', [InstallController::class, 'uninstall'])
+        Route::match(['get', 'post'], 'install/uninstall', [InstallController::class, 'uninstall'])
             ->name('install.uninstall');
-        Route::get('install/update',    [InstallController::class, 'update'])
+        Route::match(['get', 'post'], 'install/update',    [InstallController::class, 'update'])
             ->name('install.update');
     });

@@ -45,22 +45,12 @@ class DataController extends Controller
                 'label'   => 'Arquivos: ver o acervo administrativo (/arquivos) — prazo de retencao, base legal e cofre',
                 'default' => false,
             ],
-            [
-                // Thread 03 (PR-7): a `RestoreArquivoRequest` exige esta permissão (ou superadmin).
-                // Até 2026-10-01 ela não era declarada aqui — o admin não conseguia concedê-la em
-                // `/roles/{id}/edit` e só superadmin restaurava. Declarar não concede a ninguém.
-                'value'   => 'arquivos.restore',
-                'label'   => 'Arquivos: restaurar arquivo excluído, dentro do prazo de 30 dias',
-                'default' => false,
-            ],
-            [
-                // Thread 04 (PR-8): `POST arquivos/retencao/simular`. Só SIMULA (dry-run forçado,
-                // D4: a tela nunca apaga) — mas mostra o que a política removeria, então é
-                // governança, separada de `arquivos.access`.
-                'value'   => 'arquivos.governanca',
-                'label'   => 'Arquivos: simular a retenção (lista o que a política removeria, sem apagar nada)',
-                'default' => false,
-            ],
+            // `arquivos.restore` e `arquivos.governanca` NÃO entram aqui — decisão [W] 2026-10-01:
+            // "Superadmin". Restaurar arquivo excluído e simular a retenção são ato de plataforma,
+            // não de papel de negócio: as rotas pedem `can:superadmin` e nada é delegável em
+            // `/roles/{id}/edit`. Estiveram declaradas aqui de 2026-10-01 (thread 03/04) até esta
+            // decisão; quem as recebeu nesse intervalo é limpo por
+            // `php artisan arquivos:revogar-permissoes-superadmin --dry-run`.
         ];
     }
 

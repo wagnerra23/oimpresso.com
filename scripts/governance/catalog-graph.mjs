@@ -1353,9 +1353,30 @@ function main() {
       // Os DOIS eixos são avaliados sempre, e o veredito é a UNIÃO: sair no primeiro que
       // reprova esconderia o outro até alguém consertar este. Cada mensagem NOMEIA o eixo —
       // catraca que só diz "reprovou" manda o autor caçar em qual das duas dívidas ele entrou.
+      //
+      // As OPÇÕES de saída são POR EIXO, e cada uma tem que ser honrada pelo código: o eixo
+      // import isenta par declarado no `not_contains` (ele lê `naoDeclaradas`); o eixo tabela
+      // NÃO — delegar escopo não torna aceitável escrever direto na tabela do dono, que é o
+      // que perde observers/scope/invariantes. Até 2026-10-01 a mensagem oferecia o
+      // `not_contains` aos dois eixos: no par Ponto>Financeiro (#8464) a declaração foi feita,
+      // a catraca seguiu reprovando e só o allowlist resolveu. Bite-test do CLI no .test.mjs.
       const eixos = [
-        { nome: 'import (`use`)', rel: COUPLING_BASELINE_REL, pares: r.naoDeclaradas },
-        { nome: 'tabela (`DB::table`)', rel: TABLE_COUPLING_BASELINE_REL, pares: paresDeTabelaComoPares(r.tabela && r.tabela.pares) },
+        {
+          nome: 'import (`use`)', rel: COUPLING_BASELINE_REL, pares: r.naoDeclaradas,
+          opcoes: [
+            '(a) declarar a delegação no `not_contains` do SCOPE.md do módulo de ORIGEM;',
+            '(b) inverter via contrato/evento;',
+            '(c) se for dívida consciente, entrar em',
+          ],
+        },
+        {
+          nome: 'tabela (`DB::table`)', rel: TABLE_COUPLING_BASELINE_REL, pares: paresDeTabelaComoPares(r.tabela && r.tabela.pares),
+          opcoes: [
+            '(a) usar o Model do DONO em vez de `DB::table` (preserva observers/scope/invariantes',
+            '    dele), ou inverter via contrato/evento — declarar delegação no SCOPE.md NÃO isenta este eixo;',
+            '(b) se for dívida consciente, entrar em',
+          ],
+        },
       ];
       let reprovou = 0;
       for (const eixo of eixos) {
@@ -1373,10 +1394,7 @@ function main() {
           console.error(
             `[catalog-graph] catraca REPROVA no eixo ${eixo.nome}: ${novos.length} par(es) NOVOS módulo→módulo:\n  - ` +
             novos.join('\n  - ') +
-            '\n  Opções: (a) declarar a delegação no `not_contains` do SCOPE.md do módulo de ORIGEM;' +
-            '\n          (b) inverter via contrato/evento — no eixo tabela, usar o Model do DONO' +
-            '\n              em vez de `DB::table` preserva observers/scope/invariantes dele;' +
-            '\n          (c) se for dívida consciente, entrar em' +
+            '\n  Opções: ' + eixo.opcoes.join('\n          ') +
             `\n              ${eixo.rel} > allowlist COM razão declarada.`,
           );
         } else {

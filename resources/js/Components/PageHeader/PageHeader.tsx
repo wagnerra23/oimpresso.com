@@ -151,9 +151,15 @@ export function PageHeader({
       role="banner"
       style={{ borderBottomColor: 'var(--border)' }}
     >
-      <div className="flex items-center gap-4 pt-6 px-6 pb-3.5 min-h-[60px]">
+      {/* Quebra em telefone — porte do `.cli-ph` do protótipo (`modulo-padrao.css:61-63`:
+          `flex-wrap` + `row-gap:10px` + título `flex:1 1 320px` + ações `margin-left:auto`).
+          Sem isto, a 375px as ações (`flex-shrink-0`) espremiam a coluna do título a 0px e o
+          subtítulo saía uma palavra por linha (medido em prod, /ponto/mobile, 2026-10-01).
+          A base de 320px só vale ≤900px: acima, `basis 0` nunca força quebra e o desktop
+          dos consumidores fica idêntico ao de antes. */}
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-2.5 pt-6 px-6 pb-3.5 min-h-[60px]">
         {/* ZONA L · identidade */}
-        <div className="flex-1 min-w-0">
+        <div className="flex-1 min-w-0 max-[900px]:basis-[320px]">
           <h1
             /* As duas classes ficam LITERAIS no fonte de propósito: o Tailwind
                detecta por varredura de texto, e `font-${titleWeight}` montado por
@@ -207,7 +213,7 @@ export function PageHeader({
             {subnav}
             {/* ZONA R · actions (opcional) */}
             {actions && (
-              <div className="flex-shrink-0 flex items-center gap-1.5">
+              <div className="ml-auto flex-shrink-0 flex max-w-full items-center gap-1.5">
                 {actions}
               </div>
             )}

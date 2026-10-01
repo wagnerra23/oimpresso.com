@@ -13,6 +13,7 @@ return [
     'module_description' => 'Ponto Eletrônico · Portaria 671/2021',
     'module_icon'        => 'fa fa-clock-o',
     'module_version'     => '0.1',
+
     'pid'                => null, // preencher com product ID da WR2 quando houver
 
     /*
@@ -140,6 +141,23 @@ return [
         'explicacao_divergencia'       => env('AI_EXPLICACAO_DIVERGENCIA', false),
         'geracao_justificativa'        => env('AI_GERACAO_JUSTIFICATIVA', false),
         'model'                        => env('OPENAI_MODEL', 'gpt-4o-mini'),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | App de ponto (Capacitor) — App Links / Universal Links
+    |--------------------------------------------------------------------------
+    | Servidos em /.well-known/assetlinks.json e /.well-known/apple-app-site-association.
+    | Vazio = 404 (nunca publicar um arquivo que não vale). Os valores vêm do .env de
+    | produção — após mudar o .env, rodar `php artisan config:cache`.
+    | Fingerprints: SHA-256 do certificado, "AA:BB:..." (32 pares), separados por vírgula —
+    | com Play App Signing, listar a upload key E a app signing key do Play Console.
+    */
+    'app_links' => [
+        'android_package'   => env('PONTO_ANDROID_PACKAGE', ''),
+        'android_sha256'    => env('PONTO_ANDROID_SHA256', ''),
+        'ios_app_id'        => env('PONTO_IOS_APP_ID', ''),   // "<TeamID>.<bundleId>"
+        'paths'             => ['/ponto/mobile*'],
     ],
 
     /*
