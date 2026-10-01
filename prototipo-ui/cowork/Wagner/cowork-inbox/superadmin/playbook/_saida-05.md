@@ -89,3 +89,7 @@ thread em `feito` (`entregue 1 de 1`, conferido com `placar.mjs --thread 05`).
 - `SPEC.md` US-SUPER-008 ainda cita a view Blade em `**Implementado em:**` (a view segue no disco);
   atualizar a âncora quando a Blade for apagada — fora do prefixo desta thread.
 - Medida/alvo da tela: **NÃO MEDI** (a ficha não pede).
+
+## PR (parte 2)
+
+#8357 — `feat(superadmin): Configurações em Inertia com segredos mascarados — thread 05 (2/2)`.
