@@ -404,7 +404,7 @@ class SellPosController extends Controller
     }
 
     /**
-     * Venda aberta a partir de uma OS (UC-S06): `/pos/create?sub_type=repair&job_sheet_id=N`,
+     * Venda aberta a partir de uma OS (UC-S07): `/pos/create?sub_type=repair&job_sheet_id=N`,
      * o link "Adicionar fatura" da listagem de OS. O provider do Repair já carrega a OS
      * (escopada por business) e as peças usadas (só variação + quantidade).
      *

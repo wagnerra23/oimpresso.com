@@ -195,7 +195,7 @@ function defaultTransactionDate(backendDefault: string): string {
 }
 
 export default function SellsCreate(props: SellsCreatePageProps) {
-  // UC-S06 — venda aberta a partir de uma OS (/pos/create?sub_type=repair&job_sheet_id=N).
+  // UC-S07 — venda aberta a partir de uma OS (/pos/create?sub_type=repair&job_sheet_id=N).
   const osOrigem = props.repairPos?.osOrigem ?? null;
   // Defaults conservadores ROTA LIVRE: status=final, transaction_date=HOJE (robusto).
   const { data, setData, post, processing, errors, transform } = useForm({
@@ -217,7 +217,7 @@ export default function SellsCreate(props: SellsCreatePageProps) {
     reparo: osOrigem
       ? { ...reparoInicial(props.repairPos?.defaultStatusId), ...osOrigem.reparo, repair_job_sheet_id: osOrigem.job_sheet_id }
       : reparoInicial(props.repairPos?.defaultStatusId),
-    // UC-S06 — peças da OS entram como se adicionadas à mão (preço do /products/list).
+    // UC-S07 — peças da OS entram como se adicionadas à mão (preço do /products/list).
     products: (osOrigem ? pecasParaCarrinho(osOrigem.pecas) : []) as Array<{
       product_id: number;
       variation_id: number | null;
@@ -876,7 +876,7 @@ export default function SellsCreate(props: SellsCreatePageProps) {
     const bizId = business?.id;
     const userId = auth?.user?.id;
     if (!bizId || !userId) return null;
-    // UC-S06 — venda da OS não usa rascunho: recuperar outra venda por cima da OS misturaria
+    // UC-S07 — venda da OS não usa rascunho: recuperar outra venda por cima da OS misturaria
     // carrinho e cliente de origens diferentes.
     if (osOrigem) return null;
     return `oimpresso.sells.create.draft.${bizId}.${userId}`;
@@ -968,7 +968,7 @@ export default function SellsCreate(props: SellsCreatePageProps) {
   // postMessage: recebe contato criado na aba de cadastro (/contacts/create-page).
   const [forcedCustomer, setForcedCustomer] = useState<{ id: number; text: string } | null>(null);
 
-  // UC-S06 — o cliente da OS entra pelo MESMO caminho de quando o operador o escolhe:
+  // UC-S07 — o cliente da OS entra pelo MESMO caminho de quando o operador o escolhe:
   // contato, prazo, endereço e — se o cliente tiver grupo de preço — a reprecificação.
   useEffect(() => {
     if (!osOrigem?.cliente) return;

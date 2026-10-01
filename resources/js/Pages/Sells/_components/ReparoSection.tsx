@@ -24,7 +24,7 @@ export type RepairPosProps = {
   devices: Record<string, string>;
   modelos: ModeloAparelho[];
   checklistPadrao: string[];
-  /** UC-S06 — venda aberta a partir de uma OS (`job_sheet_id`); null na venda de reparo avulsa. */
+  /** UC-S07 — venda aberta a partir de uma OS (`job_sheet_id`); null na venda de reparo avulsa. */
   osOrigem: {
     job_sheet_id: number;
     job_sheet_no: string;

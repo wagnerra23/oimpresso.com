@@ -414,9 +414,9 @@ function repairSubtipoOs(object $test, int $statusId, int $variationId, float $q
         'business_id' => $bizId,
         'location_id' => $bizId === $test->bizId ? $test->locationId : null,
         'contact_id' => $test->contactId,
-        'job_sheet_no' => 'OS-UC-S06-'.bin2hex(random_bytes(3)),
+        'job_sheet_no' => 'OS-UC-S07-'.bin2hex(random_bytes(3)),
         'service_type' => 'carry_in',
-        'serial_no' => 'SN-OS-UC-S06',
+        'serial_no' => 'SN-OS-UC-S07',
         'status_id' => $statusId,
         'defects' => '[{"value":"tela"},{"value":"bateria"}]',
         'checklist' => json_encode(['Liga' => 'yes']),
@@ -439,7 +439,7 @@ function repairSubtipoAbrirPdv(object $test): array
     return ['X-Inertia' => 'true', 'X-Inertia-Version' => file_exists($manifest) ? md5_file($manifest) : '1'];
 }
 
-it('UC-S06 · venda a partir da OS traz as peças pelo MESMO preço da adição à mão, grava o vínculo e não fatura em dobro', function () {
+it('UC-S07 · venda a partir da OS traz as peças pelo MESMO preço da adição à mão, grava o vínculo e não fatura em dobro', function () {
     foreach (['repair_job_sheets', 'repair_statuses', 'product_locations'] as $t) {
         if (! Schema::hasTable($t)) {
             $this->markTestSkipped("Tabela {$t} ausente — rode as migrations.");
@@ -453,7 +453,7 @@ it('UC-S06 · venda a partir da OS traz as peças pelo MESMO preço da adição 
     DB::table('product_locations')->insert(['product_id' => $produto->productId, 'location_id' => $this->locationId]);
     $subSku = (string) DB::table('variations')->where('id', $variationId)->value('sub_sku');
 
-    $aberto = repairSubtipoStatus($this->bizId, 'Em bancada UC-S06');
+    $aberto = repairSubtipoStatus($this->bizId, 'Em bancada UC-S07');
     $os = repairSubtipoOs($this, $aberto, $variationId, 2);
 
     $tela = $this->withHeaders(repairSubtipoAbrirPdv($this))->get("/pos/create?sub_type=repair&job_sheet_id={$os}");
@@ -476,7 +476,7 @@ it('UC-S06 · venda a partir da OS traz as peças pelo MESMO preço da adição 
     expect($origem['pecasNaoEncontradas'])->toBe([]);
     expect($origem['cliente']['id'])->toBe($this->contactId);
     expect($origem['location_id'])->toBe($this->locationId);
-    expect($origem['reparo']['repair_serial_no'])->toBe('SN-OS-UC-S06');
+    expect($origem['reparo']['repair_serial_no'])->toBe('SN-OS-UC-S07');
     expect($origem['reparo']['defeitos'])->toBe(['tela', 'bateria']);
 
     // Grava a venda como o React envia a partir desse estado (lastro de compra pro mapPurchaseSell).
@@ -512,7 +512,7 @@ it('UC-S06 · venda a partir da OS traz as peças pelo MESMO preço da adição 
     expect(EstoqueFixture::currentStock($produto, 0, $this->locationId))->toBe(8.0);
 
     // Concluir a OS depois de faturada NÃO gera 2ª venda (JobSheetObserver, idempotente por repair_job_sheet_id).
-    $concluido = repairSubtipoStatus($this->bizId, 'Concluído UC-S06');
+    $concluido = repairSubtipoStatus($this->bizId, 'Concluído UC-S07');
     DB::table('repair_statuses')->where('id', $concluido)->update(['is_completed_status' => 1]);
     \Modules\Repair\Entities\JobSheet::query()->find($os)->update(['status_id' => $concluido]);
     expect(DB::table('transactions')->where('repair_job_sheet_id', $os)->count())->toBe(1);
@@ -523,7 +523,7 @@ it('UC-S06 · venda a partir da OS traz as peças pelo MESMO preço da adição 
     expect(DB::table('transactions')->where('repair_job_sheet_id', $semFatura)->count())->toBe(1);
 });
 
-it('UC-S06 · OS de OUTRO business abre a venda SEM origem, e não em 500 (Tier 0)', function () {
+it('UC-S07 · OS de OUTRO business abre a venda SEM origem, e não em 500 (Tier 0)', function () {
     $outroBiz = EstoqueFixture::secondBusinessId();
     if ($outroBiz === null || ! Schema::hasTable('repair_job_sheets')) {
         $this->markTestSkipped('Sem 2º business semeado ou sem repair_job_sheets.');
@@ -531,7 +531,7 @@ it('UC-S06 · OS de OUTRO business abre a venda SEM origem, e não em 500 (Tier 
     $produto = EstoqueFixture::singleProduct($this->bizId);
     $alheia = repairSubtipoOs(
         $this,
-        repairSubtipoStatus($outroBiz, 'Status alheio UC-S06'),
+        repairSubtipoStatus($outroBiz, 'Status alheio UC-S07'),
         (int) $produto->variations[0]['variation_id'],
         1,
         $outroBiz,

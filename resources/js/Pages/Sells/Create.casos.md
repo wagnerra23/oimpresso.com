@@ -125,12 +125,12 @@ last_run: "2026-10-01"
 
 ---
 
-## UC-S06 · Venda de reparo aberta a partir de uma OS
+## UC-S07 · Venda de reparo aberta a partir de uma OS
 - **Persona:** técnico que conclui a OS e vai faturar ("Adicionar fatura" na listagem de OS → `/pos/create?sub_type=repair&job_sheet_id=N`).
 - **Como usa:** a venda abre com o **cliente**, o **local**, os dados do aparelho (status, marca, aparelho, modelo, série, defeitos, entrega, senha, padrão, checklist) e as **peças usadas** da OS no carrinho, com aviso do que veio da OS e de peça que não pôde entrar.
 - **Valor (REGRA MESTRE):** cada peça entra pelo **mesmo preço** que teria se o operador a adicionasse à mão no React (`selling_price` do `/products/list`); a quantidade é a da OS; mesma variação repetida vira uma linha só, somada. O cliente da OS entra pelo próprio `handleCustomerSelect` — se ele tiver grupo de preço, o React reprecifica como faria na mão. A venda leva `repair_job_sheet_id`.
 - **Aceite:** Dado uma OS do próprio business com 2 unidades de uma peça de preço 37,50 (valor fictício do teste) · Quando a venda da OS abre · Então a peça vem com `unit_price` = 37,50 = o `selling_price` que `/products/list` devolve pra mesma variação (dupla prova) e `quantity` = 2 · Quando salva · Então `final_total` = 75,00, estoque 10 → 8 e `repair_job_sheet_id` = a OS · Quando a OS é concluída depois · Então **não** nasce uma 2ª venda (o `JobSheetObserver` é idempotente pela OS; controle positivo: OS sem fatura, ao concluir, gera a venda) · Dado uma OS de **outro business** · Então a venda abre **sem** origem, com 200 (antes caía em 500).
-- **Teste:** `tests/Feature/Sells/SellsRepairSubtipoContratoTest.php` (UC-S06, tenant 98, lane `sells-pest`) + `tests/js/sells-reparo-venda.test.ts` (peças → carrinho, vínculo no envio).
+- **Teste:** `tests/Feature/Sells/SellsRepairSubtipoContratoTest.php` (UC-S07, tenant 98, lane `sells-pest`) + `tests/js/sells-reparo-venda.test.ts` (peças → carrinho, vínculo no envio).
 - **Status: 🧪** _(nasce sem run.)_
 - **Diferenças conscientes do Blade:** o técnico da OS (`service_staff` → `res_waiter_id`) não é trazido — o PDV React não tem esse campo; a venda da OS não usa rascunho no `localStorage` (recuperar outra venda por cima misturaria origens). Preço com grupo padrão do local: segue o que o React faz na adição à mão (investigado à parte — chip "Medir preço de grupo ignorado no PDV React").
 

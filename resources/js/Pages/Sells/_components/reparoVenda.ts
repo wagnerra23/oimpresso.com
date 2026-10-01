@@ -27,7 +27,7 @@ export type ReparoForm = {
   /** Sequência de pontos da grade 3×3 (1–9), o formato do patternlock.js do POS Blade. */
   repair_security_pattern: string;
   /**
-   * UC-S06 — OS de origem. Liga a fatura à OS (JobSheet::invoices) e é a chave de
+   * UC-S07 — OS de origem. Liga a fatura à OS (JobSheet::invoices) e é a chave de
    * idempotência do JobSheetObserver: com ela, concluir a OS não gera uma 2ª venda.
    */
   repair_job_sheet_id: number | null;
@@ -154,7 +154,7 @@ export function checklistParaEnvio(
   return out;
 }
 
-/** Peça da OS como o servidor manda (UC-S06): preço = `selling_price` do /products/list. */
+/** Peça da OS como o servidor manda (UC-S07): preço = `selling_price` do /products/list. */
 export type PecaDaOs = {
   product_id: number;
   variation_id: number;

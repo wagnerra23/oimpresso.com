@@ -243,7 +243,7 @@ class DataController extends Controller
             if (isset($params['job_sheet_id'])) {
                 // OS de outro business (ou apagada) não é encontrada pelo where business_id.
                 // Antes, getPartsUsed() rodava sobre null e o PDV caía em 500; agora a venda
-                // abre sem OS de origem (UC-S06, Sells/Create.casos.md).
+                // abre sem OS de origem (UC-S07, Sells/Create.casos.md).
                 $job_sheet = JobSheet::where('business_id', $business_id)
                         ->find($params['job_sheet_id']) ?? [];
 

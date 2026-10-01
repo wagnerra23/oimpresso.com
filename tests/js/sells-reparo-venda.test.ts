@@ -102,8 +102,8 @@ describe('UC-S05 · checklist, senha/padrão e modelos', () => {
   });
 });
 
-// UC-S06 — venda aberta a partir de uma OS.
-describe('UC-S06 · peças da OS no carrinho', () => {
+// UC-S07 — venda aberta a partir de uma OS.
+describe('UC-S07 · peças da OS no carrinho', () => {
   const peca = { product_id: 1, variation_id: 11, name: 'Tela', variation: null, sku: 'TL-1', quantity: 2, unit_price: 37.5 };
 
   it('peça vira linha igual à da adição à mão: preço da OS, desconto 0 fixo', () => {
