@@ -2,6 +2,8 @@
 
 namespace Modules\Arquivos\Http\Controllers;
 
+use App\Support\Privacy\PiiRedactor;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Carbon;
@@ -13,6 +15,8 @@ use Inertia\Inertia;
 use Inertia\Response;
 use Modules\Arquivos\Entities\Arquivo;
 use Modules\Arquivos\Http\Requests\ListArquivosRequest;
+use Modules\Arquivos\Http\Requests\ReclassifyArquivoRequest;
+use Modules\Arquivos\Services\ArquivosService;
 use Modules\Arquivos\Services\CofreStatsReader;
 use Modules\Arquivos\Services\RetencaoStatsReader;
 
@@ -41,9 +45,10 @@ use Modules\Arquivos\Services\RetencaoStatsReader;
  *
  * Nenhum dos três usa `withoutGlobalScopes`.
  *
- * LEITURA PURA: nenhum caminho aqui escreve, apaga ou dispara job. Classificar, excluir e
- * restaurar entram na onda 2; retenção/purge dependem de decisão [W] (proposta de ADR
- * `arquivos-retencao-ui-aviso-titular`).
+ * Até 2026-09-30 este arquivo era LEITURA PURA. Desde a thread 02 (PR-6) há UM caminho que
+ * escreve: `classificar()`, pelo `ArquivosService` e com o motivo na trilha. Nenhum apaga
+ * nem dispara job. Excluir/restaurar são a thread 03; retenção/purge dependem de decisão
+ * [W] (proposta de ADR `arquivos-retencao-ui-aviso-titular`).
  *
  * @see resources/js/Pages/Arquivos/Index.charter.md  (lei)
  * @see resources/js/Pages/Arquivos/Index.casos.md    (contrato de teste)
@@ -665,5 +670,74 @@ class ArquivosAdminController extends Controller
     private function buildRetencaoPayload(): array
     {
         return app(RetencaoStatsReader::class)->fetch();
+    }
+
+    /**
+     * Classificar — onda 2 · PR-6 (thread 02 do playbook Arquivos).
+     *
+     * `POST arquivos/{arquivo}/classificar`. Re-roda as regras do `CuradorEngine` sobre o
+     * arquivo pelo `ArquivosService::classify()` — que grava `bucket`, `classified_by` e
+     * `classified_at` e audita `reclassify` com o resultado — e grava ao lado, na trilha, o
+     * `classify` com o MOTIVO que a pessoa escreveu. O Service não aceita motivo (assinatura
+     * `classify(Arquivo)`), e a `ReclassifyArquivoRequest` o exige pra auditoria LGPD: sem
+     * esta segunda linha ele seria validado e jogado fora.
+     *
+     * `force_bucket` é RECUSADO, não ignorado. A Request o aceita, mas no vocabulário
+     * `public/internal/sensitive/vault`, que não é o do banco (`active/sensitive/...`), e o
+     * Service não tem caminho pra forçar bucket. Aceitar em silêncio seria prometer uma
+     * classificação manual que não acontece.
+     *
+     * Multi-tenant Tier 0 (ADR 0093): a Request já recusa (403) arquivo de outro business; o
+     * `findOrFail` abaixo filtra pelo business da sessão (e ainda passa pelo global scope) —
+     * segunda perna, sem dispensar scope nenhum. A linha da trilha leva o `business_id` DO ARQUIVO.
+     */
+    public function classificar(ReclassifyArquivoRequest $request, int $arquivo): RedirectResponse
+    {
+        if (filled($request->input('force_bucket'))) {
+            return back()->withErrors([
+                'force_bucket' => 'Forçar classificação ainda não existe: esta ação re-aplica as regras do curador. Deixe o campo vazio.',
+            ]);
+        }
+
+        // `where` explícito por business, além do global scope: este é o único caminho que
+        // ESCREVE, e o scope do model deixa passar sem filtro quando a sessão não tem business.
+        $alvo = Arquivo::query()
+            ->where('business_id', (int) $request->session()->get('user.business_id'))
+            ->findOrFail($arquivo);
+        $antes = $alvo->bucket;
+
+        DB::transaction(function () use ($alvo, $antes, $request) {
+            $resultado = app(ArquivosService::class)->classify($alvo);
+            $this->registrarMotivo($alvo, $antes, $resultado, (string) $request->input('motivo'), $request->input('batch_tag'));
+        });
+
+        return back()->with('status', ['success' => true, 'msg' => 'Classificação refeita e registrada na trilha.']);
+    }
+
+    /**
+     * A linha `classify` da trilha — quem pediu, por quê, e o que mudou.
+     *
+     * `arquivos_audit_log` não tem model (logo não tem scope): o `business_id` vem do
+     * arquivo, nunca da entrada. O motivo é texto livre e passa pelo `PiiRedactor` antes de
+     * persistir — a mesma regra do `ArquivosService::audit()` (LGPD Art. 37).
+     *
+     * @param  array<string, mixed>  $resultado
+     */
+    private function registrarMotivo(Arquivo $alvo, ?string $antes, array $resultado, string $motivo, ?string $lote): void
+    {
+        DB::table('arquivos_audit_log')->insert([
+            'arquivo_id'  => $alvo->id,
+            'business_id' => $alvo->business_id,
+            'user_id'     => auth()->id(),
+            'action'      => 'classify',
+            'payload'     => json_encode(array_filter([
+                'motivo'       => app(PiiRedactor::class)->redact($motivo),
+                'bucket_antes' => $antes,
+                'bucket'       => $resultado['bucket'] ?? $alvo->bucket,
+                'regra'        => $resultado['rule_matched'] ?? null,
+                'lote'         => $lote,
+            ], fn ($v) => $v !== null && $v !== '')),
+            'created_at'  => now(),
+        ]);
     }
 }

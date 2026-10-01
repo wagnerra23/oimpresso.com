@@ -25,7 +25,9 @@
 import '../../../css/cowork-arquivos-bundle.css'
 
 import { Deferred, Link, router } from '@inertiajs/react'
-import { Download, File } from 'lucide-react'
+import { Download, File, Tag } from 'lucide-react'
+import { useState } from 'react'
+import ClassificarSheet, { type AlvoClassificar } from './_components/ClassificarSheet'
 import AppShellV2 from '@/Layouts/AppShellV2'
 import { PageHeader } from '@/Components/PageHeader'
 import PageHeaderTabs from '@/Components/shared/PageHeaderTabs'
@@ -477,7 +479,7 @@ function estadoDaLinha(a: LinhaAcervo): EstadoDaLinha | undefined {
  * `nowrap` ou colapsava o `truncate` em reticências (os "tracinhos"), porque `truncate` é
  * `overflow:hidden` e só funciona contra uma largura que alguém declarou.
  */
-function colunas(politica: Politica[]): ColumnDef<LinhaAcervo, unknown>[] {
+function colunas(politica: Politica[], onClassificar: (a: LinhaAcervo) => void): ColumnDef<LinhaAcervo, unknown>[] {
   return [
     {
       id: 'arquivo',
@@ -772,6 +774,21 @@ function colunas(politica: Politica[]): ColumnDef<LinhaAcervo, unknown>[] {
                 —
               </span>
             )}
+            {a.excluido_em === null && (
+              // Thread 02 (PR-6): re-aplica as regras do curador e grava o motivo na trilha.
+              // Só-ícone pelo mesmo motivo do Baixar. Arquivo excluído não reclassifica — a
+              // Request o recusaria (o `find()` dela não vê excluído).
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                className="text-muted-foreground hover:text-foreground"
+                aria-label={`Classificar ${a.nome}`}
+                title={`Classificar ${a.nome} — re-aplica as regras do curador e registra o motivo na trilha.`}
+                onClick={() => onClassificar(a)}
+              >
+                <Tag aria-hidden="true" />
+              </Button>
+            )}
           </Inline>
         )
       },
@@ -854,6 +871,10 @@ function TabelaSkeleton() {
 }
 
 function Acervo({ acervo, politica, filtros }: { acervo?: Paginator<LinhaAcervo>; politica: Politica[]; filtros: Filtros }) {
+  // Thread 02 (PR-6) — a linha cujo drawer "Classificar" está aberto. Antes do `return`
+  // antecipado porque hook não pode ser condicional.
+  const [classificar, setClassificar] = useState<AlvoClassificar | null>(null)
+
   if (!acervo || acervo.data.length === 0) {
     return (
       <EmptyState
@@ -863,8 +884,10 @@ function Acervo({ acervo, politica, filtros }: { acervo?: Paginator<LinhaAcervo>
     )
   }
   return (
+    <>
+    <ClassificarSheet alvo={classificar} onFechar={() => setClassificar(null)} />
     <DataTable
-      columns={colunas(politica)}
+      columns={colunas(politica, setClassificar)}
       data={acervo.data}
       pagination={acervo}
       endpoint="/arquivos"
@@ -884,6 +907,7 @@ function Acervo({ acervo, politica, filtros }: { acervo?: Paginator<LinhaAcervo>
       // discordariam em silêncio.
       minTableWidth={1020}
     />
+    </>
   )
 }
 
