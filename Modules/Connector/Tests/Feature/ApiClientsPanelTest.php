@@ -142,7 +142,7 @@ class ApiClientsPanelTest extends TestCase
     {
         $c = $this->client();
 
-        // ❌ hoje o ClientController::index chama makeVisible('secret')
+        // até a thread 03 (2026-10-01) o ClientController::index chamava makeVisible('secret')
         $lista = $this->actingAs($this->superadmin)->get('/connector/api')->getContent();
         $this->assertStringNotContainsString($c->secret, $lista);
 
