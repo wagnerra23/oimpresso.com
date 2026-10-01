@@ -16,6 +16,7 @@ import { Deferred } from '@inertiajs/react';
 import { useState, type ReactNode } from 'react';
 import { Card, CardContent } from '@/Components/ui/card';
 import { Button } from '@/Components/ui/button';
+import { Checkbox } from '@/Components/ui/checkbox';
 import { Skeleton } from '@/Components/ui/skeleton';
 import { PageHeader } from '@/Components/PageHeader';
 import KpiCard from '@/Components/shared/KpiCard';
@@ -134,7 +135,7 @@ function PainelNegocio({ negocio }: { negocio: Negocio }) {
       {pessoas.length === 0 && <span className="text-xs text-muted-foreground">Sem dados</span>}
       {pessoas.map((p) => (
         <label key={p.id} className="flex items-center gap-2 text-sm">
-          <input type="checkbox" checked={marcados.includes(p.id)} onChange={() => alternar(p.id)} />
+          <Checkbox checked={marcados.includes(p.id)} onCheckedChange={() => alternar(p.id)} />
           <span>{p.name}</span>
           {p.dob && <small className="text-muted-foreground">{p.dob.split('-').reverse().join('/')}</small>}
         </label>
