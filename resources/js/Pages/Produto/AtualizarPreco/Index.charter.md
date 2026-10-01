@@ -45,4 +45,6 @@ Antes de gravar, a tela mostra o que vai mudar. Preço errado em lote vira venda
 
 - ❌ Conferência que reimplementa o cálculo: ela executa o `import()` e desfaz. Guarda: UC-PATPRC-03.
 - ❌ Mostrar preço ou grupo de outro negócio (Tier 0). Guarda: UC-PATPRC-01 e UC-PATPRC-04.
+- ❌ Gravar preço em variação de outro negócio quando o SKU coincide (Tier 0). Guarda: UC-PATPRC-06.
+- ❌ Exportar ou importar sem `product.update`. Guarda: UC-PATPRC-08.
 - ❌ Caminho novo gravando diferente do antigo. Guarda: UC-PATPRC-02.
