@@ -58,4 +58,4 @@ Prova do teste = CI do PR (não rodei Pest local, por regra).
    `activity_log` precisa de limpeza própria — decisão [W] (LGPD), fora desta ficha.
 
 ## PR
-(preenchido no corpo do PR)
+#8365
