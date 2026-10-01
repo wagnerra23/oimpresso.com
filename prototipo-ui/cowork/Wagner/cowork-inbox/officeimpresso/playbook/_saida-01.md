@@ -51,4 +51,4 @@ fica · token sem negócio não vê nada (com linha órfã no sqlite) · HD cada
 3. `processarApenasHd` atualiza o HD em **todos** os negócios por desenho (L4 do índice) — não mexi.
 
 ## PR
-#PR_NUM
+#8326
