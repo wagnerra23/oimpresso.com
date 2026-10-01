@@ -308,7 +308,7 @@ lifecycle: ativo
 | `pageheader-canon` | B | `memory/decisions/0185-drawer-760-canon-entidades-cadastrais.md` +18 | ATIVAR quando agente vai aplicar o PageHeader canon (ADR 0180/0182/0189/0190) em módulo novo — user pede "aplicar pageheader canon no módulo X", "padr… |
 | `personas-resolve` | B | `.claude/skills/feedback-capture/SKILL.md` +1 | BLOQUEADOR Tier A — ATIVAR ANTES de qualquer Edit/Write/MultiEdit em arquivos de `resources/js/Pages/**/*.tsx` ou criação de tela nova. |
 | `pr-ui-judge-manual` | C | `memory/requisitos/_DesignSystem/CHANGELOG.md` +4 | Use quando Wagner pedir "avaliar PR <número> contra Constituição UI v2", "rodar judge no PR X", "review semântico do PR Y", "/pr-ui-judge <PR#>", "sco… |
-| `pre-adr-introspect` | B | `memory/decisions/0304-alocacao-numero-ciente-trabalho-em-voo.md` +5 | ATIVAR ANTES de qualquer Write em `memory/decisions/NNNN-*.md` (ADR nova) OU antes de propor schema novo (`database/migrations/*.php` que adiciona col… |
+| `pre-adr-introspect` | B | `memory/decisions/0304-alocacao-numero-ciente-trabalho-em-voo.md` +6 | ATIVAR ANTES de qualquer Write em `memory/decisions/NNNN-*.md` (ADR nova) OU antes de propor schema novo (`database/migrations/*.php` que adiciona col… |
 | `pre-decisao-git-first` | B | — | ATIVAR ANTES de interromper o Wagner com uma dúvida durante o desenvolvimento — sempre que for usar AskUserQuestion, escrever "não sei se...", "qual v… |
 | `precisao-literal` | B | `memory/reference/metodo-precisao-literal.md` +1 | ATIVAR quando user pedir "compare com o protótipo", "avalie precisão", "que % literal", "ficou idêntico?", "compare lado a lado", "nota da paridade", … |
 | `preflight-modulo` | B | `memory/decisions/0225-skills-tier-a-recalibracao-claude-4.8.md` +35 | BLOQUEADOR — ATIVAR ANTES de qualquer Edit/Write/MultiEdit em Modules/<X>/. |
@@ -648,7 +648,7 @@ lifecycle: ativo
 | `memory-health.mjs` | ci, script | 🔴 disco | selftest | `memory/decisions/0317-maquina-revisao-adr-quando-rever-gatilhos.md` +120 | sentinela de saúde da base de conhecimento (ADR 0256, Onda 1). |
 | `module-surface.mjs` | agente, ci, npm, script | 🔴 disco | test | `memory/decisions/0370-module-surface-catalog-graph-required-emenda-0314.md` +109 | GERADOR determinístico da "Superfície de código" de um módulo. |
 | `negocio-vs-governanca-ratio.mjs` | agente, ci | 🟢 só lê | test | `memory/decisions/0334-modelo-3-camadas-invariante-anti-atrofia-inteligencia-negocio.md` +11 | o alarme anti-atrofia da inteligência de negócio. |
-| `next-id.mjs` | agente, script | 🟢 só lê | — | `memory/decisions/0304-alocacao-numero-ciente-trabalho-em-voo.md` +10 | aloca o próximo número de ADR/US **ciente de trabalho em voo** (ADR 0304). |
+| `next-id.mjs` | agente, script | 🟢 só lê | — | `memory/decisions/0304-alocacao-numero-ciente-trabalho-em-voo.md` +11 | aloca o próximo número de ADR/US **ciente de trabalho em voo** (ADR 0304). |
 | `normalize-adr-frontmatter.mjs` | npm | 🔴 disco | — | `memory/decisions/0257-adr-status-lifecycle-kind-modelo-canonico.md` +1 | normaliza status/lifecycle de ADR pro enum canônico. |
 | `onboarding-paths-check.mjs` | agente, script | 🟢 só lê | — | `memory/governance/REALOCACAO-DOCUMENTAL.md` +5 | a CAMADA DETERMINÍSTICA do canário de onboarding. |
 | `outcome-metrics.mjs` | agente, ci, script | 🟢 só lê | test | `memory/decisions/0314-poda-gates-onda-2-lei-fusoes.md` +6 | MEDIDOR DE ACEITAÇÃO do transporte Cowork→code (Onda O1). |
