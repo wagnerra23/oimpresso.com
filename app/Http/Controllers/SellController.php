@@ -3592,9 +3592,9 @@ class SellController extends Controller
     }
 
     /**
-     * Display list of shipments.
+     * Display list of shipments (Blade, ou Sells/Shipments/Index quando a requisição é Inertia).
      *
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\View\View|\Inertia\Response
      */
     public function shipments()
     {
