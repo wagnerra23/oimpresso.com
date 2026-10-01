@@ -8,7 +8,9 @@ use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Str;
+use Inertia\Inertia;
 use Laravel\Passport\Passport;
 use Modules\Connector\Http\Requests\StoreOauthClientRequest;
 
@@ -33,28 +35,48 @@ class ClientController extends Controller
         $is_demo = (config('app.env') == 'demo');
 
         $business_id = request()->session()->get('user.business_id');
-        // CONN-O2b · [W] D6: o segredo NAO sai do banco para a lista. Nem `oauth_clients.*`
-        // nem makeVisible: `$hidden` so vale para toArray/JSON, a view le `$client->secret`
-        // direto do atributo. Por isso a coluna nem e selecionada. O valor guardado nao muda
-        // (sem hash, sem rotacao): o WR Comercial em campo continua autenticando.
-        $clients = Passport::client()
-                    ->leftJoin('users as u', 'oauth_clients.user_id', '=', 'u.id')
+        // CONN-O2b · [W] D6: o segredo NAO sai do banco para a lista — a coluna nem e
+        // selecionada. O valor guardado nao muda (sem hash, sem rotacao): o WR Comercial
+        // em campo continua autenticando.
+        // CONN-O3: eager de proposito (nao Inertia::defer) — a lista e o conteudo da tela,
+        // tem poucas linhas por negocio, e a credencial recem-criada vem do flash, que so
+        // existe nesta requisicao.
+        $clients = $is_demo ? collect() : Passport::client()
+                    ->join('users as u', 'oauth_clients.user_id', '=', 'u.id')
                     ->where('u.business_id', $business_id)
-                    ->where('password_client', 1)
+                    ->where('oauth_clients.password_client', 1)
                     ->select([
                         'oauth_clients.id',
-                        'oauth_clients.user_id',
                         'oauth_clients.name',
-                        'oauth_clients.redirect',
-                        'oauth_clients.personal_access_client',
-                        'oauth_clients.password_client',
-                        'oauth_clients.revoked',
                         'oauth_clients.created_at',
-                        'oauth_clients.updated_at',
+                        'u.first_name as user_name',
                     ])
-                    ->get();
+                    ->selectSub(function ($q) {
+                        // tokens ativos e tocados nas ultimas 24 h (UC-CONN-03)
+                        $q->from('oauth_access_tokens')->selectRaw('count(*)')
+                            ->whereColumn('oauth_access_tokens.client_id', 'oauth_clients.id')
+                            ->where('oauth_access_tokens.revoked', 0)
+                            ->where(fn ($w) => $w->whereNull('oauth_access_tokens.expires_at')->orWhere('oauth_access_tokens.expires_at', '>', now()))
+                            ->where('oauth_access_tokens.updated_at', '>=', now()->subDay());
+                    }, 'active_tokens_24h')
+                    ->orderBy('oauth_clients.id')
+                    ->get()
+                    ->map(fn ($c) => [
+                        'id' => (int) $c->id,
+                        'name' => (string) $c->name,
+                        'user_name' => (string) $c->user_name,
+                        'created_at' => optional($c->created_at)->toDateString(),
+                        'active_tokens_24h' => (int) $c->active_tokens_24h,
+                    ])->values();
 
-        return view('connector::clients.index')->with(compact('clients', 'is_demo'));
+        return Inertia::render('Api/Index', [
+            'clients' => $clients,
+            'is_demo' => $is_demo,
+            'endpoints_count' => collect(Route::getRoutes())
+                ->filter(fn ($r) => str_starts_with($r->uri(), 'connector/api/'))->count(),
+            // Unica vez que o segredo sai: o flash da criacao, lido aqui e descartado.
+            'credencial' => $is_demo ? null : session('connector_credencial'),
+        ]);
     }
 
     /**
@@ -94,14 +116,15 @@ class ClientController extends Controller
 
             $this->auditar($client, 'connector_client_created');
 
-            // CONN-O2b: unica vez que o segredo aparece — no flash da criacao, lido uma vez
-            // na tela seguinte e descartado pela sessao. Nunca no log nem na auditoria.
-            $output = ['success' => true,
-                'msg' => __('lang_v1.added_success')
-                    .' Client ID: '.$client->id
-                    .' · Segredo: '.$segredo
-                    .' — copie agora, ele não será exibido de novo.',
-            ];
+            // CONN-O2b/O3: unica vez que o segredo aparece — num flash proprio, lido uma vez
+            // pela lista (bloco copiavel) e descartado pela sessao. Fora do status.msg porque
+            // esse vira toast e some sozinho. Nunca no log nem na auditoria.
+            session()->flash('connector_credencial', [
+                'id' => $client->id,
+                'name' => $client->name,
+                'secret' => $segredo,
+            ]);
+            $output = ['success' => true, 'msg' => __('lang_v1.added_success')];
         } catch (\Exception $e) {
             \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
 
