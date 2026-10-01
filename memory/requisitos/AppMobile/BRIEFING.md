@@ -37,6 +37,10 @@ design-v4 em `mobile/ref/design-v4/`).
 - **De onde vem cada dado de cada tela no ERP:** [MAPA-DE-DADOS-v1.md](MAPA-DE-DADOS-v1.md).
   Ele foi escrito para o desenho `/m`, mas o inventário de fontes (Services, controllers,
   permissões) vale igual para desenhar a API de cada tela.
+- **Fonte de design mais nova:** `mobile/ref/design-v4/` (#8467) — telas 00–39 (36–39 = Ponto),
+  proposta de tokens mobile (IBM Plex, toque ≥ 44 px) e `handoff/onda-5/README.md` (Ponto nativo
+  via `/ponto/api` com Passport — o caminho do app; bloqueios: token Passport, espelho mensal,
+  tipos de justificativa). Onde v4 e v3 divergirem, vale a v4.
 - **Encaixe do Ponto (pedido ao Design):**
   `prototipo-ui/cowork/Wagner/cowork-inbox/app-lojas/playbook/01-mobile-com-ponto.md`.
 
