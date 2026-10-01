@@ -310,7 +310,7 @@ it('UC-S04 · a venda de reparo abre com as opções de reparo do PRÓPRIO busin
     $ids = collect($reparo->json('props.repairPos.statuses'))->pluck('id')->all();
     expect($ids)->toContain($meu);
     expect(in_array($alheio, $ids, true))->toBeFalse(); // Tier 0: status de outro business nunca aparece.
-    foreach (['brands', 'devices', 'deviceModels', 'warranties', 'defeitosSugeridos'] as $chave) {
+    foreach (['brands', 'devices', 'modelos', 'warranties', 'defeitosSugeridos', 'checklistPadrao'] as $chave) {
         expect(array_key_exists($chave, $reparo->json('props.repairPos')))->toBeTrue();
     }
 
@@ -343,6 +343,64 @@ it('UC-S04 · os campos da seção Reparo são gravados na venda, sem mudar o va
         ->toBe([['value' => 'tela'], ['value' => 'bateria']]);
 
     // Os campos do aparelho não entram no cálculo.
+    expect((float) $reparo['venda']->final_total)->toBe((float) $comum['venda']->final_total);
+    expect($reparo['saldo'])->toBe($comum['saldo']);
+});
+
+it('UC-S05 · modelos do PRÓPRIO business com o checklist de cada um; checklist, senha e padrão gravados', function () {
+    if (! Schema::hasTable('repair_device_models')) {
+        $this->markTestSkipped('Tabela repair_device_models ausente — rode as migrations do Repair.');
+    }
+    $outroBiz = EstoqueFixture::secondBusinessId();
+    if ($outroBiz === null) {
+        $this->markTestSkipped('Sem 2º business semeado pro adversário cross-tenant.');
+    }
+
+    $novoModelo = fn (int $biz, string $nome, string $checklist) => (int) DB::table('repair_device_models')->insertGetId([
+        'business_id' => $biz,
+        'name' => $nome,
+        'repair_checklist' => $checklist,
+        'created_by' => EstoqueFixture::userId($biz),
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+    $meu = $novoModelo($this->bizId, 'Modelo UC-S05', 'Liga|Tela trincada|');
+    $alheio = $novoModelo($outroBiz, 'Modelo alheio UC-S05', 'Nao deve aparecer');
+
+    DB::table('cash_registers')->insert([
+        'business_id' => $this->bizId, 'location_id' => $this->locationId, 'user_id' => $this->user->id,
+        'status' => 'open', 'created_at' => now(), 'updated_at' => now(),
+    ]);
+    $manifest = public_path('build-inertia/manifest.json');
+    $tela = $this->withHeaders([
+        'X-Inertia' => 'true',
+        'X-Inertia-Version' => file_exists($manifest) ? md5_file($manifest) : '1',
+    ])->get('/pos/create?sub_type=repair');
+    \PHPUnit\Framework\Assert::assertSame(200, $tela->status(), 'GET /pos/create?sub_type=repair: HTTP '.$tela->status());
+
+    $modelos = collect($tela->json('props.repairPos.modelos'))->keyBy('id');
+    expect($modelos->has($meu))->toBeTrue();
+    expect($modelos->has($alheio))->toBeFalse(); // Tier 0: modelo de outro business nunca aparece.
+    expect($modelos[$meu]['checklist'])->toBe(['Liga', 'Tela trincada']); // vazio do "|" final descartado.
+
+    // Envio no formato de reparoVenda.camposDeReparo (tests/js/sells-reparo-venda.test.ts).
+    $this->flushHeaders();
+    $comum = repairSubtipoVender($this);
+    $reparo = repairSubtipoVender($this, [
+        'sub_type' => 'repair',
+        'print_label' => 0,
+        'repair_model_id' => $meu,
+        'repair_security_pwd' => '4321',
+        'repair_security_pattern' => '1478',
+        'repair_checklist' => ['Liga' => 'yes', 'Tela trincada' => 'not_applicable'],
+    ]);
+
+    expect((int) $reparo['venda']->repair_model_id)->toBe($meu);
+    expect($reparo['venda']->repair_security_pwd)->toBe('4321');
+    expect($reparo['venda']->repair_security_pattern)->toBe('1478');
+    expect(json_decode((string) $reparo['venda']->repair_checklist, true))
+        ->toBe(['Liga' => 'yes', 'Tela trincada' => 'not_applicable']);
+
     expect((float) $reparo['venda']->final_total)->toBe((float) $comum['venda']->final_total);
     expect($reparo['saldo'])->toBe($comum['saldo']);
 });

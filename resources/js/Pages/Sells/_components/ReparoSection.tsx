@@ -6,17 +6,32 @@ import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import { dropdownEntries } from './dropdownEntries';
-import { adicionarDefeitos, type ReparoForm } from './reparoVenda';
+import PadraoDesbloqueio from './PadraoDesbloqueio';
+import {
+  adicionarDefeitos,
+  itensDoChecklist,
+  modelosFiltrados,
+  type ChecklistValor,
+  type ModeloAparelho,
+  type ReparoForm,
+} from './reparoVenda';
 
 export type RepairPosProps = {
   statuses: Array<{ id: number; name: string; color: string | null }>;
   defaultStatusId: number | null;
   brands: Record<string, string>;
   devices: Record<string, string>;
-  deviceModels: Record<string, string>;
+  modelos: ModeloAparelho[];
+  checklistPadrao: string[];
   warranties: Record<string, string>;
   defeitosSugeridos: string[];
 };
+
+const RESPOSTAS: Array<{ valor: ChecklistValor; rotulo: string }> = [
+  { valor: 'yes', rotulo: 'Sim' },
+  { valor: 'no', rotulo: 'Não' },
+  { valor: 'not_applicable', rotulo: 'N/A' },
+];
 
 type Props = {
   opcoes: RepairPosProps;
@@ -28,8 +43,8 @@ const SEM = '__nenhum__';
 
 /**
  * Seção "Reparo" do Sells/Create (UC-S04) — só aparece na venda aberta como reparo.
- * Paridade de campos com o POS Blade de reparo (`repair_pos.blade.php`). Checklist e
- * senha/padrão ficam para a onda seguinte.
+ * Paridade de campos com o POS Blade de reparo (`repair_pos.blade.php`), incluindo o
+ * checklist pré-reparo e a senha/padrão do aparelho (UC-S05).
  */
 export default function ReparoSection({ opcoes, valor, onChange }: Props) {
   const [digitando, setDigitando] = useState('');
@@ -38,14 +53,14 @@ export default function ReparoSection({ opcoes, valor, onChange }: Props) {
   const selectDeId = (
     id: string,
     rotulo: string,
-    campo: 'repair_brand_id' | 'repair_device_id' | 'repair_model_id' | 'repair_warranty_id',
+    campo: 'repair_brand_id' | 'repair_device_id' | 'repair_warranty_id',
     lista: Record<string, string>,
   ) => (
     <div className="space-y-1.5">
       <Label htmlFor={id}>{rotulo}</Label>
       <Select
         value={valor[campo] !== null ? String(valor[campo]) : SEM}
-        onValueChange={(v) => set(campo, v === SEM ? null : Number(v))}
+        onValueChange={(v) => mudarId(campo, v === SEM ? null : Number(v))}
       >
         <SelectTrigger id={id}>
           <SelectValue placeholder="Selecionar" />
@@ -67,6 +82,20 @@ export default function ReparoSection({ opcoes, valor, onChange }: Props) {
     set('defeitos', adicionarDefeitos(valor.defeitos, digitando));
     setDigitando('');
   };
+
+  // UC-S05 — trocar marca/aparelho filtra os modelos (como o Blade); modelo que deixou de
+  // caber sai, e com ele o checklist que dependia dele.
+  const mudarId = (campo: 'repair_brand_id' | 'repair_device_id' | 'repair_warranty_id', v: number | null) => {
+    const proximo = { ...valor, [campo]: v };
+    const cabe = modelosFiltrados(opcoes.modelos, proximo.repair_brand_id, proximo.repair_device_id)
+      .some((m) => m.id === proximo.repair_model_id);
+    onChange(cabe ? proximo : { ...proximo, repair_model_id: null });
+  };
+  const modelosVisiveis = modelosFiltrados(opcoes.modelos, valor.repair_brand_id, valor.repair_device_id);
+  const itensChecklist = itensDoChecklist(
+    opcoes.checklistPadrao,
+    opcoes.modelos.find((m) => m.id === valor.repair_model_id),
+  );
 
   const sugestoesRestantes = opcoes.defeitosSugeridos.filter((s) => !valor.defeitos.includes(s));
 
@@ -128,7 +157,25 @@ export default function ReparoSection({ opcoes, valor, onChange }: Props) {
 
         {selectDeId('repair_brand_id', 'Marca', 'repair_brand_id', opcoes.brands)}
         {selectDeId('repair_device_id', 'Aparelho', 'repair_device_id', opcoes.devices)}
-        {selectDeId('repair_model_id', 'Modelo', 'repair_model_id', opcoes.deviceModels)}
+        <div className="space-y-1.5">
+          <Label htmlFor="repair_model_id">Modelo</Label>
+          <Select
+            value={valor.repair_model_id !== null ? String(valor.repair_model_id) : SEM}
+            onValueChange={(v) => set('repair_model_id', v === SEM ? null : Number(v))}
+          >
+            <SelectTrigger id="repair_model_id">
+              <SelectValue placeholder="Selecionar" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value={SEM}>Nenhum</SelectItem>
+              {modelosVisiveis.map((m) => (
+                <SelectItem key={m.id} value={String(m.id)}>
+                  {m.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
 
         <div className="space-y-1.5">
           <Label htmlFor="repair_serial_no">Nº de série</Label>
@@ -189,6 +236,60 @@ export default function ReparoSection({ opcoes, valor, onChange }: Props) {
             </div>
           )}
         </div>
+
+        <div className="space-y-1.5 md:col-span-2">
+          <Label htmlFor="repair_security_pwd">Senha do aparelho</Label>
+          <Input
+            id="repair_security_pwd"
+            autoComplete="off"
+            value={valor.repair_security_pwd}
+            onChange={(e) => set('repair_security_pwd', e.target.value)}
+          />
+        </div>
+
+        <div className="space-y-1.5 md:col-span-2">
+          <Label htmlFor="repair_security_pattern">Padrão de desbloqueio</Label>
+          <PadraoDesbloqueio
+            id="repair_security_pattern"
+            valor={valor.repair_security_pattern}
+            onChange={(v) => set('repair_security_pattern', v)}
+          />
+        </div>
+
+        {itensChecklist.length > 0 && (
+          <fieldset className="space-y-2 md:col-span-2 lg:col-span-4">
+            <legend className="text-sm font-medium">Checklist pré-reparo</legend>
+            <div className="grid grid-cols-1 gap-2 md:grid-cols-2 lg:grid-cols-3">
+              {itensChecklist.map((item) => {
+                const atual = valor.checklist[item] ?? 'not_applicable';
+                return (
+                  <div key={item} className="flex items-center justify-between gap-2 rounded-md border border-border px-2 py-1.5">
+                    <span className="text-sm">{item}</span>
+                    <div role="radiogroup" aria-label={item} className="flex gap-1">
+                      {RESPOSTAS.map((r) => (
+                        <button
+                          key={r.valor}
+                          type="button"
+                          role="radio"
+                          aria-checked={atual === r.valor}
+                          onClick={() => set('checklist', { ...valor.checklist, [item]: r.valor })}
+                          className={
+                            'rounded px-2 py-0.5 text-xs transition-colors ' +
+                            (atual === r.valor
+                              ? 'bg-primary text-primary-foreground'
+                              : 'border border-border text-muted-foreground hover:bg-muted/50')
+                          }
+                        >
+                          {r.rotulo}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </fieldset>
+        )}
       </CardContent>
     </Card>
   );

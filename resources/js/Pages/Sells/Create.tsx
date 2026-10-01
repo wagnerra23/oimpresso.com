@@ -39,7 +39,7 @@ import NumericInputPtBR from '@/Components/ui/numeric-input-ptbr';
 import { dropdownEntries } from './_components/dropdownEntries';
 import { camposDeSubtipo } from './_components/subtipoVenda';
 import ReparoSection, { type RepairPosProps } from './_components/ReparoSection';
-import { camposDeReparo, reparoInicial, reparoValido } from './_components/reparoVenda';
+import { camposDeReparo, itensDoChecklist, reparoInicial, reparoValido } from './_components/reparoVenda';
 import {
   Select,
   SelectContent,
@@ -670,7 +670,15 @@ export default function SellsCreate(props: SellsCreatePageProps) {
       ...camposDeSubtipo(props.subType),
       // O estado aninhado não vai pro servidor; vão só os campos repair_* (UC-S04).
       reparo: undefined,
-      ...(isReparo ? camposDeReparo(d.reparo) : {}),
+      ...(isReparo && props.repairPos
+        ? camposDeReparo(
+            d.reparo,
+            itensDoChecklist(
+              props.repairPos.checklistPadrao,
+              props.repairPos.modelos.find((m) => m.id === d.reparo.repair_model_id),
+            ),
+          )
+        : {}),
       is_save_and_print: withPrint ? 1 : 0,
       // Rename pra Blade legacy convention
       payment: d.payments,
@@ -904,7 +912,8 @@ export default function SellsCreate(props: SellsCreatePageProps) {
     if (draftRecover) {
       setData({
         ...draftRecover.data,
-        reparo: draftRecover.data.reparo ?? reparoInicial(props.repairPos?.defaultStatusId),
+        // Spread sobre o inicial: rascunho da onda 2 não tem checklist/senha/padrão (UC-S05).
+        reparo: { ...reparoInicial(props.repairPos?.defaultStatusId), ...(draftRecover.data.reparo ?? {}) },
         sell_document: null,
       });
     }

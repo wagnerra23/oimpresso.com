@@ -370,6 +370,21 @@ class SellPosController extends Controller
         }
 
         $sugeridos = explode(',', (string) ($d['repair_settings']['problem_reported_by_customer'] ?? ''));
+        $semVazios = fn (array $l) => array_values(array_filter(array_map('trim', $l), fn ($v) => $v !== ''));
+
+        // UC-S05: modelos com marca/aparelho (o Blade filtra a lista ao trocar marca/aparelho,
+        // via /repair/get-device-models) e o checklist de cada um (o Blade busca por AJAX em
+        // /repair/models-repair-checklist). Uma query, escopada por business — sem endpoint novo.
+        $modelos = \Modules\Repair\Entities\DeviceModel::where('business_id', (int) session('user.business_id'))
+            ->orderBy('name')
+            ->get(['id', 'name', 'brand_id', 'device_id', 'repair_checklist'])
+            ->map(fn ($m) => [
+                'id' => (int) $m->id,
+                'name' => (string) $m->name,
+                'brand_id' => $m->brand_id !== null ? (int) $m->brand_id : null,
+                'device_id' => $m->device_id !== null ? (int) $m->device_id : null,
+                'checklist' => $semVazios(explode('|', (string) $m->repair_checklist)),
+            ])->values()->all();
 
         return [
             'statuses' => collect($d['repair_statuses'] ?? [])->map(fn ($s) => [
@@ -380,9 +395,10 @@ class SellPosController extends Controller
             'defaultStatusId' => ! empty($d['default_status']) ? (int) $d['default_status'] : null,
             'brands' => $d['brands'] ?? [],
             'devices' => $d['devices'] ?? [],
-            'deviceModels' => $d['device_models'] ?? [],
+            'modelos' => $modelos,
             'warranties' => $d['warranties'] ?? [],
-            'defeitosSugeridos' => array_values(array_filter(array_map('trim', $sugeridos), fn ($v) => $v !== '')),
+            'defeitosSugeridos' => $semVazios($sugeridos),
+            'checklistPadrao' => $semVazios(explode('|', (string) ($d['repair_settings']['default_repair_checklist'] ?? ''))),
         ];
     }
 
