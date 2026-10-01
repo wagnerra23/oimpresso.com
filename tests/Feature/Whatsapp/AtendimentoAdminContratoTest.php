@@ -13,7 +13,7 @@ use Modules\Whatsapp\Http\Controllers\Admin\MetricsController;
 use Modules\Whatsapp\Http\Controllers\Admin\SettingsController;
 use Modules\Whatsapp\Http\Controllers\Admin\TemplatesController;
 
-uses(Tests\TestCase::class);
+// Tests\TestCase vem de tests/Pest.php (`uses(TestCase::class)->in('Feature')`).
 
 /**
  * Contrato das 4 telas de administração do Atendimento (playbook atendimento/04):
