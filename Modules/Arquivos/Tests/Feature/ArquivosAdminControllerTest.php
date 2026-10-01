@@ -180,7 +180,35 @@ it('a rota assinada de download e as 3 do Install seguem intactas', function () 
     expect($rotas)->toContain("->name('arquivos.download')");
     expect($rotas)->toContain("'signed'");
     expect($rotas)->toContain('throttle:60,1');
-    expect(substr_count($rotas, 'InstallController::class'))->toBe(3);
+    // Thread 06: eram 3 rotas GET; agora 4 (GET install + POST install + match uninstall/update).
+    expect(substr_count($rotas, 'InstallController::class'))->toBe(4);
+})->group('arquivos');
+
+it('thread 06 · instalar/desinstalar/atualizar aceitam POST — a acao so roda no POST', function () {
+    foreach (['arquivos/install', 'arquivos/install/uninstall', 'arquivos/install/update'] as $uri) {
+        $post = collect(\Illuminate\Support\Facades\Route::getRoutes())->first(
+            fn ($r) => $r->uri() === $uri && in_array('POST', $r->methods(), true)
+        );
+        expect($post)->not->toBeNull();
+    }
+
+    $rotas = file_get_contents(base_path('Modules/Arquivos/Routes/web.php'));
+    expect($rotas)->not->toContain("Route::get('install/uninstall'");
+    expect($rotas)->not->toContain("Route::get('install/update'");
+})->group('arquivos');
+
+it('thread 06 · o GET de install/uninstall/update so confirma — nao chama o parent', function () {
+    $caminho = base_path('Modules/Arquivos/Http/Controllers/InstallController.php');
+
+    foreach (['index', 'uninstall', 'update'] as $metodo) {
+        $corpo = arquivosCorpoDoMetodo($caminho, $metodo);
+        $guarda = strpos($corpo, "isMethod('post')");
+        $acao = strpos($corpo, 'parent::' . $metodo . '(');
+
+        expect($guarda)->not->toBeFalse();
+        expect($acao)->not->toBeFalse();
+        expect($guarda)->toBeLessThan($acao);
+    }
 })->group('arquivos');
 
 it('UC-INDEX-01 · politica() devolve PRAZO e BASE LEGAL — nunca lista vazia', function () {
