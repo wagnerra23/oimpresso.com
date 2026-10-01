@@ -47,4 +47,4 @@ Medido nas portas de entrada da UI em `c70451a8c` (não é a D2: é o status quo
 4. O trigger da lane `estoque-pest.yml` não inclui os 3 controllers (só `tests/Feature/Produto/**`): mexer só no controller não dispara este teste no `main`. Workflow fora do prefixo.
 
 ## PR
-(preenchido no corpo do PR)
+[#8349](https://github.com/wagnerra23/oimpresso.com/pull/8349)
