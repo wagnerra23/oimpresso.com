@@ -1,7 +1,7 @@
 {
   "_meta": {
-    "generated_at": "2026-10-01T18:25:58.676Z",
-    "total_violations": 500,
+    "generated_at": "2026-09-25T20:13:12.850Z",
+    "total_violations": 489,
     "stylelint_version": "17.x",
     "adr": "0209",
     "note": "G5 anti-drift CSS — gêmeo do eslint-baseline. Ratchet por path+rule, falha só em delta>0."
@@ -21,7 +21,6 @@
     "resources/css/cowork-manufacturing-bundle.css|color-no-hex": 46,
     "resources/css/cowork-manufacturing-bundle.css|declaration-no-important": 2,
     "resources/css/cowork-manufacturing-bundle.css|no-duplicate-selectors": 1,
-    "resources/css/cowork-mobile-bundle.css|color-no-hex": 11,
     "resources/css/cowork-payment-gateway-bundle.css|color-no-hex": 2,
     "resources/css/fin-cowork.css|color-no-hex": 2,
     "resources/css/fin-cowork.css|declaration-no-important": 4,

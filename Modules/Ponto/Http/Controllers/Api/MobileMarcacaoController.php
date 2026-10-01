@@ -369,6 +369,67 @@ class MobileMarcacaoController extends Controller
         ], 200);
     }
 
+    /**
+     * GET /ponto/api/me — `ponto.api.me`. Quem é o colaborador do token: o cabeçalho do Ponto
+     * no app (nome + matrícula) e os limites que o app aplica antes de mandar a marcação.
+     * Sem cadastro de ponto → 403 `sem_colaborador` (mesmo contrato das demais rotas).
+     */
+    public function me(Request $request): JsonResponse
+    {
+        $colab = $this->colaboradorDoUsuario($request)?->loadMissing('user');
+        if (! $colab) {
+            return $this->semColaborador();
+        }
+
+        $empresa = DB::table('business')->where('id', (int) $colab->business_id)->value('name');
+
+        return response()->json([
+            'nome'      => trim(optional($colab->user)->first_name . ' ' . optional($colab->user)->last_name) ?: '—',
+            'matricula' => $colab->matricula,
+            'empresa'   => (string) $empresa,
+            'limites'   => [
+                'accuracy_max' => MobileMarcacaoService::GPS_ACCURACY_MAX_METROS,
+                'drift_max'    => MobileMarcacaoService::TIMESTAMP_DRIFT_MAX_SEG,
+            ],
+        ]);
+    }
+
+    /**
+     * GET /ponto/api/espelho?mes=YYYY-MM — `ponto.api.espelho`. O "Meu espelho" do app: os
+     * MESMOS builders do Espelho/Show e da tela web /ponto/mobile (não recalcula). Sem `mes`,
+     * o mês corrente. Mês futuro ou malformado → 422.
+     */
+    public function espelho(Request $request): JsonResponse
+    {
+        $colab = $this->colaboradorDoUsuario($request);
+        if (! $colab) {
+            return $this->semColaborador();
+        }
+
+        $mes = (string) $request->query('mes', now()->format('Y-m'));
+        if (! preg_match('/^(\d{4})-(0[1-9]|1[0-2])$/', $mes, $m) || $mes > now()->format('Y-m')) {
+            return response()->json([
+                'erro' => 'mes_invalido',
+                'mensagem' => 'Informe o mes no formato AAAA-MM, ate o mes atual.',
+            ], 422);
+        }
+
+        $espelho = app(EspelhoController::class);
+        $bizId = (int) $colab->business_id;
+
+        return response()->json([
+            'mes'    => $mes,
+            'totais' => $espelho->buildTotaisEspelho($bizId, (int) $colab->id, (int) $m[1], (int) $m[2]),
+            'linhas' => $espelho->buildLinhasEspelho($bizId, (int) $colab->id, (int) $m[1], (int) $m[2]),
+        ]);
+    }
+
+    /** GET /ponto/api/intercorrencias/tipos — `ponto.api.intercorrencias.tipos` (os motivos aceitos). */
+    public function tiposIntercorrencia(): JsonResponse
+    {
+        return response()->json(IntercorrenciaController::tiposDisponiveis());
+    }
+
     // ========================================================================
     // Helpers
     // ========================================================================

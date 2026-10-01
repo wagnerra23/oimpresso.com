@@ -356,6 +356,7 @@ jobs:
             Modules/Ponto/Tests/Feature/DemoRevisorContaTest.php \
             Modules/Ponto/Tests/Feature/PushDispositivoContratoTest.php \
             Modules/Ponto/Tests/Feature/AppOAuthClienteContratoTest.php \
+            Modules/Ponto/Tests/Feature/ApiAppEspelhoMeContratoTest.php \
             Modules/Ponto/Tests/Feature/EnviarLembretePontoJobTest.php \
             Modules/Ponto/Tests/Feature/LembretesPushContratoTest.php \
             Modules/Ponto/Tests/Feature/RepPFilaGestorContratoTest.php \
