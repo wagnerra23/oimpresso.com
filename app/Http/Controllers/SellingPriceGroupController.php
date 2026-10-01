@@ -9,6 +9,7 @@ use App\VariationGroupPrice;
 use DB;
 use Excel;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 use Spatie\Permission\Models\Permission;
 use Yajra\DataTables\Facades\DataTables;
 
@@ -230,7 +231,25 @@ class SellingPriceGroupController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
-        return view('selling_price_group.update_product_price');
+        // Playbook Produto · thread 06: a tela vira Produto/AtualizarPreco/Index. Exportar e
+        // importar seguem nas MESMAS rotas e no MESMO código (regra mestre de valor: esta thread
+        // troca só a tela). `?classico=1` mantém a Blade.
+        if (request()->boolean('classico')) {
+            return view('selling_price_group.update_product_price');
+        }
+
+        $business_id = (int) request()->session()->get('user.business_id');
+
+        return Inertia::render('Produto/AtualizarPreco/Index', [
+            'grupos' => SellingPriceGroup::where('business_id', $business_id)->active()->orderBy('name')
+                ->get(['id', 'name'])->map(fn ($g) => ['id' => (int) $g->id, 'nome' => (string) $g->name])->values()->all(),
+            // Mesmo recorte do export(): variações de produto single/variable deste negócio.
+            'total_linhas' => Inertia::defer(fn () => Variation::join('products as p', 'variations.product_id', '=', 'p.id')
+                ->join('product_variations as pv', 'variations.product_variation_id', '=', 'pv.id')
+                ->where('p.business_id', $business_id)->whereIn('p.type', ['single', 'variable'])->count()),
+            // import() devolve o erro em `notification` (não em `status`), que o flash compartilhado não lê.
+            'erro' => session('notification.msg'),
+        ]);
     }
 
     /**
@@ -288,6 +307,12 @@ class SellingPriceGroupController extends Controller
      */
     public function import(Request $request)
     {
+        // Playbook Produto · thread 06: conferência (dry-run). Desvio no topo; o corpo abaixo
+        // segue intocado e é ele que a conferência executa, dentro de uma transação desfeita.
+        if ($request->boolean('conferir')) {
+            return $this->conferirPlanilha($request);
+        }
+
         try {
             $notAllowed = $this->commonUtil->notAllowedInDemo();
             if (! empty($notAllowed)) {
@@ -393,6 +418,95 @@ class SellingPriceGroupController extends Controller
         }
 
         return redirect('update-product-price')->with('status', $output);
+    }
+
+    /**
+     * Conferência da planilha de preços (thread 06): roda o import() de verdade dentro de uma
+     * transação e desfaz. Devolve antes→depois por SKU deste negócio, sem gravar nada.
+     * Não reimplementa parse, arredondamento nem gravação: quem calcula é o import().
+     */
+    private function conferirPlanilha(Request $request)
+    {
+        if (! auth()->user()->can('product.update')) {
+            abort(403, 'Unauthorized action.');
+        }
+        if (! $request->hasFile('product_group_prices')) {
+            return response()->json(['ok' => false, 'msg' => 'Escolha a planilha exportada.', 'linhas' => [], 'alertas' => []], 422);
+        }
+
+        $business_id = (int) $request->session()->get('user.business_id');
+        try {
+            $planilha = Excel::toArray([], $request->file('product_group_prices'))[0] ?? [];
+        } catch (\Throwable $e) {
+            return response()->json(['ok' => false, 'msg' => 'Não consegui ler a planilha.', 'linhas' => [], 'alertas' => []], 422);
+        }
+        $skus = collect(array_slice($planilha, 1))->map(fn ($l) => (string) ($l[1] ?? ''))
+            ->filter(fn ($s) => $s !== '')->unique()->values()->all();
+
+        $request->request->remove('conferir');
+        $request->query->remove('conferir');
+
+        DB::beginTransaction();
+        try {
+            $antes = $this->fotoPrecos($business_id, $skus);
+            $this->import($request);
+            $depois = $this->fotoPrecos($business_id, $skus);
+        } finally {
+            DB::rollBack();
+        }
+        $status = (array) session()->pull('status', []);
+        $notificacao = (array) session()->pull('notification', []);
+
+        $linhas = [];
+        foreach ($antes as $sku => $campos) {
+            foreach ($campos['precos'] as $campo => $valor) {
+                $novo = $depois[$sku]['precos'][$campo] ?? null;
+                if ((string) $valor !== (string) $novo) {
+                    $linhas[] = ['sku' => $sku, 'produto' => $campos['produto'], 'campo' => $campo, 'antes' => $valor, 'depois' => $novo];
+                }
+            }
+        }
+
+        // O import() acha o SKU sem filtrar negócio: SKU que existe em outro negócio é risco Tier 0.
+        $deFora = DB::table('variations as v')->join('products as p', 'v.product_id', '=', 'p.id')
+            ->whereIn('v.sub_sku', $skus)->whereNull('v.deleted_at')->where('p.business_id', '!=', $business_id)
+            ->distinct()->pluck('v.sub_sku')->map(fn ($s) => (string) $s)->all();
+        $alertas = array_map(fn ($sku) => ['sku' => $sku, 'tipo' => isset($antes[$sku]) ? 'ambiguo' : 'outro_negocio'], $deFora);
+
+        return response()->json([
+            'ok' => ! empty($status['success']),
+            'msg' => $notificacao['msg'] ?? ($status['msg'] ?? null),
+            'linhas' => $linhas,
+            'alertas' => array_values($alertas),
+        ]);
+    }
+
+    /**
+     * Preço de venda e preço por grupo ativo dos SKUs, só deste negócio (para a conferência).
+     *
+     * @return array<string, array{produto: string, precos: array<string, string|null>}>
+     */
+    private function fotoPrecos(int $business_id, array $skus): array
+    {
+        $grupos = SellingPriceGroup::where('business_id', $business_id)->active()->pluck('name', 'id');
+        $foto = [];
+        Variation::join('products as p', 'variations.product_id', '=', 'p.id')
+            ->where('p.business_id', $business_id)->whereIn('variations.sub_sku', $skus)
+            ->select('variations.id', 'variations.sub_sku', 'variations.sell_price_inc_tax', 'p.name as produto')
+            ->with('group_prices')->get()
+            ->each(function ($v) use (&$foto, $grupos) {
+                if (isset($foto[$v->sub_sku])) {
+                    return;
+                }
+                $precos = ['Preço de venda' => (string) $v->sell_price_inc_tax];
+                foreach ($grupos as $id => $nome) {
+                    $gp = $v->group_prices->firstWhere('price_group_id', $id);
+                    $precos[(string) $nome] = $gp ? (string) $gp->price_inc_tax : null;
+                }
+                $foto[(string) $v->sub_sku] = ['produto' => (string) $v->produto, 'precos' => $precos];
+            });
+
+        return $foto;
     }
 
     /**

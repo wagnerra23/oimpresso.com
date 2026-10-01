@@ -18,10 +18,10 @@ authority: generated
 |---|---:|
 | US no SPEC | 10 |
 | CU no SDD | 14 |
-| Telas (.tsx) | 9 |
-| Telas com `casos.md` | 13 |
-| UC declarados | 98 |
-| UC com teste que os cita | 84 |
+| Telas (.tsx) | 10 |
+| Telas com `casos.md` | 14 |
+| UC declarados | 105 |
+| UC com teste que os cita | 89 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -66,6 +66,11 @@ authority: generated
 | UC-CAD-12 | Cadastros/Index | 📝 sem_teste |
 | UC-CAD-13 | Cadastros/Index | 📝 sem_teste |
 | UC-CAD-14 | Cadastros/Index | 📝 sem_teste |
+| UC-PATPRC-01 | AtualizarPreco/Index | 🧪 aguarda veredito da lane |
+| UC-PATPRC-02 | AtualizarPreco/Index | 🧪 aguarda veredito da lane |
+| UC-PATPRC-03 | AtualizarPreco/Index | 🧪 aguarda veredito da lane |
+| UC-PATPRC-04 | AtualizarPreco/Index | 🧪 aguarda veredito da lane |
+| UC-PATPRC-05 | AtualizarPreco/Index | 🧪 aguarda veredito da lane |
 | UC-PBOM-01 | bom-combo (blade) | 🧪 aguarda veredito da lane |
 | UC-PBOM-02 | bom-combo (blade) | 🧪 aguarda veredito da lane |
 | UC-PBOM-03 | bom-combo (blade) | 🧪 aguarda veredito da lane |
@@ -115,6 +120,8 @@ authority: generated
 | UC-PQCK-02 | quick-add (blade) | 🧪 aguarda veredito da lane |
 | UC-PQCK-03 | quick-add (blade) | 🧪 aguarda veredito da lane |
 | UC-PQCK-04 | quick-add (blade) | 🧪 aguarda veredito da lane |
+| UC-PRC-01 | AtualizarPreco/Index | 📝 sem_teste |
+| UC-PRC-02 | AtualizarPreco/Index | 📝 sem_teste |
 | UC-PSHOW-01 | Show | 🧪 aguarda veredito da lane |
 | UC-PSHOW-02 | Show | 🧪 aguarda veredito da lane |
 | UC-PSHOW-03 | Show | 🧪 aguarda veredito da lane |
