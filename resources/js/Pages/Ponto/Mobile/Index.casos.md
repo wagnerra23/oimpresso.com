@@ -105,6 +105,7 @@ last_run: "2026-09-29"
 - **Fonte:** ADR 0423 §4. **Status: ⬜**
 
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
+- [BACKLOG] No app, "Ativar" pede a permissão de notificação, registra o token e o botão vira "Parar lembretes"; no navegador comum o bloco não aparece (ADR 0423) — prova hoje é o aparelho real; ganha id quando houver teste JS numa lane.
 
 - **[BACKLOG]** Fila do gestor com filtro de origem mobile em Aprovações (passo 3 da thread).
 

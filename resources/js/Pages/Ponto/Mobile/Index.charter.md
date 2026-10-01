@@ -36,6 +36,8 @@ mesma imutabilidade do relógio do balcão (Portaria MTP 671/2021 reconhece o RE
 - Mostra as marcações de hoje com NSR, e "fora da área" quando o servidor sinalizou geofence.
 - Meu espelho: totais e dia a dia do mês corrente, com os builders do Espelho/Show.
 - Justificar: envia intercorrência que nasce `PENDENTE` na fila de Aprovações.
+- Lembrete de bater ponto: dentro do app das lojas (Capacitor), pede a permissão de notificação e
+  registra o token do aparelho; "Parar lembretes" desliga. No navegador comum não aparece (ADR 0423).
 - Aba "REP-P (celular)" no header de módulo, 10ª, igual ao protótipo (`ponto-page.jsx` ABAS).
 - PT-BR em todo label/placeholder/mensagem.
 

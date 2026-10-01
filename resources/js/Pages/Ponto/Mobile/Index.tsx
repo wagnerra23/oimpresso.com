@@ -22,6 +22,7 @@ import { Grid, Inline, Stack } from '@/Components/layout';
 import PontoAreaHeader from '@/Pages/Ponto/_shared/PontoAreaHeader';
 import MeuEspelho, { type LinhaEspelho, type TotaisEspelho } from './_components/MeuEspelho';
 import Justificar from './_components/Justificar';
+import LembretePush from './_components/LembretePush';
 
 interface MarcacaoHoje { id: string; nsr: number; tipo: string; hora: string | null; revisar: boolean }
 
@@ -237,7 +238,13 @@ export default function Mobile({ colaborador, marcacoes_hoje, hoje, mes, totais,
               <Segmented aria-label="Tela do app" value={tela} onValueChange={setTela}
                 options={TELAS.map((t) => ({ value: t.value, label: t.label }))} />
               {/* As 3 ficam montadas: trocar de tela não pode perder a batida recém-feita nem o GPS. */}
-              <div className={tela === 'bater' ? undefined : 'hidden'}><BaterPonto marcacoesIniciais={marcacoes_hoje} limites={limites} /></div>
+              <div className={tela === 'bater' ? undefined : 'hidden'}>
+                <Stack gap={4}>
+                  {/* Só aparece dentro do app das lojas (ADR 0423); no navegador não renderiza. */}
+                  <LembretePush />
+                  <BaterPonto marcacoesIniciais={marcacoes_hoje} limites={limites} />
+                </Stack>
+              </div>
               <div className={tela === 'espelho' ? undefined : 'hidden'}><MeuEspelho totais={totais} linhas={linhas} mes={mes} hoje={hoje} /></div>
               <div className={tela === 'justificar' ? undefined : 'hidden'}><Justificar tipos={tipos} hoje={hoje} /></div>
               </Stack>

@@ -33,6 +33,7 @@ builders do Espelho/Show); em **Justificar** envia a intercorrência que nasce `
 | `POST /ponto/mobile/marcar` | `@registrar` (o MESMO da API) | idem |
 | `GET /ponto/mobile/marcacoes/hoje` | `@marcacoesHoje` (o MESMO da API) | idem |
 | `POST /ponto/mobile/intercorrencias` | `@criarIntercorrencia` (o MESMO da API) — cria e submete | idem |
+| `POST` / `DELETE /ponto/mobile/push/dispositivo` | `Api\PushDispositivoController` — registra o token do aparelho / para os lembretes (ADR 0423) | só colaborador com cadastro de ponto |
 
 As ações são os métodos JSON de `/ponto/api` (Passport) servidos também sob sessão web: o app
 não tem `CreateFreshApiToken`, então uma tela Inertia não alcança `auth:api`.
@@ -50,6 +51,14 @@ colaborador sem `ponto.access`, cada aba seria 403.
 | colaborador | SEMPRE o do usuário autenticado (`business_id` + `user_id` + `controla_ponto`); nada do body escolhe |
 | `MobileMarcacaoService` | GPS > 500 m **recusa** (422) · relógio > 30 s **recusa** · geofence **sinaliza** (`revisar`) |
 | `MarcacaoService` | append-only, NSR + hash — a tela nunca gera NSR |
+
+## 2b. Lembrete de bater ponto (só no app — ADR 0423)
+
+`_components/LembretePush.tsx` só renderiza quando a página roda dentro do app das lojas
+(`window.Capacitor.isNativePlatform()`), usando o plugin `PushNotifications` que a ponte injeta —
+sem pacote npm. Ativar pede a permissão, registra o token e reenvia a cada abertura (o token muda);
+"Parar lembretes" chama o `DELETE` e grava `ponto.push.parou` no aparelho. Tocar na notificação
+abre `data.url` (só caminho interno). Quem envia é o comando `ponto:lembretes-push` (servidor).
 
 ## 3. O que a tela NÃO faz
 
