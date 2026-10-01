@@ -44,9 +44,18 @@ function consultaOsChavesProibidasEm(array $dados): array
 it('UC-COS-01 portal abre sem login e renderiza a tela ConsultaOs/Index', function () {
     $this->assertGuest();
 
-    $response = $this->get('/consulta-os');
+    // Visita Inertia (X-Inertia): o servidor devolve o page object em JSON sem renderizar o
+    // blade raiz — que lê a tabela `system` e não existe no sqlite :memory: desta lane.
+    // A versão segue o HandleInertiaRequests::version() (md5 do manifest, ou '1' sem build),
+    // mesmo idioma do BackupInertiaTest.
+    $manifest = public_path('build-inertia/manifest.json');
+    $versao = file_exists($manifest) ? md5_file($manifest) : '1';
+
+    $response = $this->withHeaders(['X-Inertia' => 'true', 'X-Inertia-Version' => $versao])
+        ->get('/consulta-os');
 
     $response->assertOk();
+    $response->assertHeader('X-Inertia', 'true');
     $response->assertInertia(fn (AssertableInertia $page) => $page->component('ConsultaOs/Index'));
 });
 
