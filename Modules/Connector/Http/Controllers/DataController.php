@@ -33,9 +33,9 @@ class DataController extends Controller
     }
 
     /**
-     * Adds Connectoe menus
+     * Adds Connector menus
      *
-     * @return null
+     * @return void
      */
     public function modifyAdminMenu()
     {
