@@ -4,14 +4,11 @@ namespace Modules\Officeimpresso\Http\Controllers;
 
 use App\Business;
 use App\BusinessLocation;
-use App\Category;
-use App\Discount;
-use App\Product;
-use App\SellingPriceGroup;
 use App\Utils\ModuleUtil;
 use App\Utils\ProductUtil;
-use Illuminate\Http\Response;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Routing\Controller;
+use Modules\ProductCatalogue\Http\Controllers\ProductCatalogueController;
 
 class OfficeimpressoController extends Controller
 {
@@ -71,82 +68,53 @@ class OfficeimpressoController extends Controller
     }
 
     /**
-     * Display a listing of the resource.
+     * `GET /officeimpresso/catalogue/{business_id}/{location_id}` — APOSENTADA.
      *
-     * @return Response
+     * Decisão [W] 2026-10-01 (D3 do playbook Officeimpresso, thread 08): o catálogo
+     * tem dono, o `Modules/ProductCatalogue`. Esta tela era cópia dele — mesma query
+     * (business_id + location + ProductForSales), mesmos descontos vigentes, mesmas
+     * views (`diff -r` das duas pastas `catalogue/` sem diferença em 2026-10-01) — e o
+     * QR gerado aqui já apontava pra rota pública do ProductCatalogue. Redireciona pra
+     * lá preservando parâmetros e query string. Não tira acesso de ninguém: aqui exigia
+     * login, o destino é público.
      */
-    public function index($business_id, $location_id)
+    public function index($business_id, $location_id): RedirectResponse
     {
-        $products = Product::where('business_id', $business_id)
-                ->whereHas('product_locations', function ($q) use ($location_id) {
-                    $q->where('product_locations.location_id', $location_id);
-                })
-                ->ProductForSales()
-                ->with(['variations', 'variations.product_variation', 'category'])
-                ->get()
-                ->groupBy('category_id');
-        $business = Business::with(['currency'])->findOrFail($business_id);
-        $business_location = BusinessLocation::where('business_id', $business_id)->findOrFail($location_id);
-
-        $now = \Carbon::now()->toDateTimeString();
-        $discounts = Discount::where('business_id', $business_id)
-                                ->where('location_id', $location_id)
-                                ->where('is_active', 1)
-                                ->where('starts_at', '<=', $now)
-                                ->where('ends_at', '>=', $now)
-                                ->orderBy('priority', 'desc')
-                                ->get();
-        foreach ($discounts as $key => $value) {
-            $discounts[$key]->discount_amount = $this->productUtil->num_f($value->discount_amount, false, $business);
-        }
-
-        $categories = Category::forDropdown($business_id, 'product');
-
-        return view('officeimpresso::catalogue.index')->with(compact('products', 'business', 'discounts', 'business_location', 'categories'));
+        return $this->paraProductCatalogue('index', [$business_id, $location_id]);
     }
 
     /**
-     * Show the specified resource.
+     * `GET /officeimpresso/show-catalogue/{business_id}/{product_id}` — APOSENTADA.
      *
-     * @param  int  $id
-     * @return Response
+     * Mesma decisão da `index()`. A query string importa: o `?location_id=` decide
+     * quais descontos entram no detalhe, então ela vai junto.
      */
-    public function show($business_id, $id)
+    public function show($business_id, $id): RedirectResponse
     {
-        $product = Product::with(['brand', 'unit', 'category', 'sub_category', 'product_tax', 'variations', 'variations.product_variation', 'variations.group_prices', 'variations.media', 'product_locations', 'warranty'])->where('business_id', $business_id)
-                        ->findOrFail($id);
-
-        $price_groups = SellingPriceGroup::where('business_id', $product->business_id)->active()->pluck('name', 'id');
-
-        $allowed_group_prices = [];
-        foreach ($price_groups as $key => $value) {
-            $allowed_group_prices[$key] = $value;
-        }
-
-        $group_price_details = [];
-        $discounts = [];
-        foreach ($product->variations as $variation) {
-            foreach ($variation->group_prices as $group_price) {
-                $group_price_details[$variation->id][$group_price->price_group_id] = $group_price->price_inc_tax;
-            }
-
-            $discounts[$variation->id] = $this->productUtil->getProductDiscount($product, $product->business_id, request()->input('location_id'), false, null, $variation->id);
-        }
-
-        $combo_variations = [];
-        if ($product->type == 'combo') {
-            $combo_variations = $this->productUtil->__getComboProductDetails($product['variations'][0]->combo_variations, $product->business_id);
-        }
-
-        return view('officeimpresso::catalogue.show')->with(compact(
-            'product',
-            'allowed_group_prices',
-            'group_price_details',
-            'combo_variations',
-            'discounts'
-        ));
+        return $this->paraProductCatalogue('show', [$business_id, $id]);
     }
 
+    /**
+     * 302 (não 301: decisão recente, reversível sem cache de browser preso) pra ação
+     * equivalente do ProductCatalogue, com a query string original.
+     */
+    private function paraProductCatalogue(string $acao, array $params): RedirectResponse
+    {
+        $url = action([ProductCatalogueController::class, $acao], $params);
+        $query = request()->getQueryString();
+
+        return redirect()->to($query ? $url.'?'.$query : $url);
+    }
+
+    /**
+     * Gerador de QR do catálogo — FICA AQUI (thread 08, opção (b)).
+     *
+     * Não redireciona pro `/product-catalogue/catalogue-qr` porque os gates diferem:
+     * aqui basta a assinatura `officeimpresso_module`; lá é exigida
+     * `productcatalogue_module`. Um negócio só com a primeira passaria a levar 403.
+     * Aposentar esta é decisão [W] pendente (aceitar o 403, ou ajustar os pacotes no
+     * superadmin) — ver `_saida-08.md` do playbook Officeimpresso.
+     */
     public function generateQr()
     {
         $business_id = request()->session()->get('user.business_id');
