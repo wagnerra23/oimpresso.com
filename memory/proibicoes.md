@@ -1848,6 +1848,10 @@ Ocorrência da **LC-08**.
 
 - **O limite (variante também proibida):** mensagem compartilhada entre caminhos com regras de isenção diferentes não lista a saída de um como se valesse para todos. Cada opção oferecida tem de ser honrada no caminho que imprime a mensagem, e o teste disso exercita o CLI de fora, não um helper.
 
+### 2026-10-01 — EMENDA da lápide 2026-09-30 (2ª): o pedido chegou por sessão de coordenação, e a sessão irmã que já tinha o PR aberto não estava na lista de quem eu avisaria
+
+- **O limite (variante também proibida):** pedido vindo de documento de coordenação (mapa, playbook, lista de achados) não é atribuição exclusiva. Outras sessões leem o mesmo documento. Antes do primeiro Edit em arquivo citado ali, `dup-detector --path`; antes do `gh pr create`, `git fetch` + `git log HEAD..origin/main -- <arquivos>`.
+
 ## Sempre fazer
 
 - ✅ **LIGUE A MÁQUINA — máquina é sempre melhor que fazer na mão** ([W] 2026-07-26, textual: *"isso ligue as maquinas, é sempre melhor que fazer na mão. isso é regra no sistema. deve ser"*). Ordem obrigatória, nesta sequência:
