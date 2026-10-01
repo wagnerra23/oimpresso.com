@@ -20,8 +20,8 @@ authority: generated
 | CU no SDD | 14 |
 | Telas (.tsx) | 10 |
 | Telas com `casos.md` | 14 |
-| UC declarados | 108 |
-| UC com teste que os cita | 92 |
+| UC declarados | 111 |
+| UC com teste que os cita | 95 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -71,6 +71,9 @@ authority: generated
 | UC-PATPRC-03 | AtualizarPreco/Index | 🧪 aguarda veredito da lane |
 | UC-PATPRC-04 | AtualizarPreco/Index | 🧪 aguarda veredito da lane |
 | UC-PATPRC-05 | AtualizarPreco/Index | 🧪 aguarda veredito da lane |
+| UC-PATPRC-06 | AtualizarPreco/Index | 🧪 aguarda veredito da lane |
+| UC-PATPRC-07 | AtualizarPreco/Index | 🧪 aguarda veredito da lane |
+| UC-PATPRC-08 | AtualizarPreco/Index | 🧪 aguarda veredito da lane |
 | UC-PBOM-01 | bom-combo (blade) | 🧪 aguarda veredito da lane |
 | UC-PBOM-02 | bom-combo (blade) | 🧪 aguarda veredito da lane |
 | UC-PBOM-03 | bom-combo (blade) | 🧪 aguarda veredito da lane |

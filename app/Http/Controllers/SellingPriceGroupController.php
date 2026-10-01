@@ -259,6 +259,12 @@ class SellingPriceGroupController extends Controller
      */
     public function export()
     {
+        // P0 2026-10-01: a planilha traz o preço de todo o catálogo. Mesmo gate da tela que a
+        // oferece (updateProductPrice) e do import(). Antes não havia gate nenhum.
+        if (! auth()->user()->can('product.update')) {
+            abort(403, 'Unauthorized action.');
+        }
+
         $business_id = request()->user()->business_id;
         $price_groups = SellingPriceGroup::where('business_id', $business_id)->active()->get();
 
@@ -307,6 +313,12 @@ class SellingPriceGroupController extends Controller
      */
     public function import(Request $request)
     {
+        // P0 2026-10-01: grava preço — mesmo gate da tela e do cadastro de produto. Antes, só a
+        // conferência checava; o POST direto (Blade ou fora da tela) passava sem permissão.
+        if (! auth()->user()->can('product.update')) {
+            abort(403, 'Unauthorized action.');
+        }
+
         // Playbook Produto · thread 06: conferência (dry-run). Desvio no topo; o corpo abaixo
         // segue intocado e é ele que a conferência executa, dentro de uma transação desfeita.
         if ($request->boolean('conferir')) {
@@ -348,7 +360,14 @@ class SellingPriceGroupController extends Controller
                 DB::beginTransaction();
 
                 foreach ($imported_data as $key => $value) {
+                    // P0 Tier 0 (2026-10-01): o SKU é procurado SÓ neste negócio. Antes a busca
+                    // não filtrava business_id e a planilha gravava na variação de OUTRO negócio
+                    // quando o sub_sku coincidia. SKU sem variação aqui cai no "não encontrado"
+                    // abaixo (linha recusada com o SKU e a linha, nada gravado). `orderBy(id)` fixa
+                    // a mesma variação que a conferência (fotoPrecos) mostra.
                     $variation = Variation::where('sub_sku', $value[1])
+                                        ->whereHas('product', fn ($p) => $p->where('business_id', $business_id))
+                                        ->orderBy('variations.id')
                                         ->first();
                     if (empty($variation)) {
                         $row = $key + 1;
@@ -467,7 +486,8 @@ class SellingPriceGroupController extends Controller
             }
         }
 
-        // O import() acha o SKU sem filtrar negócio: SKU que existe em outro negócio é risco Tier 0.
+        // SKU que também existe em outro negócio. Desde 2026-10-01 o import() só grava no próprio
+        // negócio; o alerta segue para o operador saber da colisão.
         $deFora = DB::table('variations as v')->join('products as p', 'v.product_id', '=', 'p.id')
             ->whereIn('v.sub_sku', $skus)->whereNull('v.deleted_at')->where('p.business_id', '!=', $business_id)
             ->distinct()->pluck('v.sub_sku')->map(fn ($s) => (string) $s)->all();
