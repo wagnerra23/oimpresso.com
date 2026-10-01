@@ -1844,6 +1844,10 @@ Ocorrência da **LC-08**.
 
 - **O limite (variante também proibida):** confirmação por re-leitura só vale se as leituras puderem discordar. Repetir a **mesma** consulta contra uma fonte que serve retrato velho não é N amostras, é uma amostra lida N vezes. Quando a fonte pode estar atrasada, a re-leitura pergunta por outro caminho (outra forma de URL, outro endpoint, outro filtro) que responda a mesma pergunta. E re-executar o job até ficar verde não é investigação: apaga a falha da listagem padrão e deixa o próximo PR tropeçar no mesmo alarme.
 
+### 2026-10-01 — A catraca de acoplamento oferecia `not_contains` como saída no eixo TABELA, que não lê `not_contains`
+
+- **O limite (variante também proibida):** mensagem compartilhada entre caminhos com regras de isenção diferentes não lista a saída de um como se valesse para todos. Cada opção oferecida tem de ser honrada no caminho que imprime a mensagem, e o teste disso exercita o CLI de fora, não um helper.
+
 ## Sempre fazer
 
 - ✅ **LIGUE A MÁQUINA — máquina é sempre melhor que fazer na mão** ([W] 2026-07-26, textual: *"isso ligue as maquinas, é sempre melhor que fazer na mão. isso é regra no sistema. deve ser"*). Ordem obrigatória, nesta sequência:
