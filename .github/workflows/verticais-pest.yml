@@ -66,6 +66,9 @@ on:
       - 'Modules/Crm/Http/Controllers/ScheduleController.php'
       - 'Modules/Crm/Resources/js/Pages/**'
       - 'Modules/Crm/Tests/Feature/CrmAcompanhamentosContratoTest.php'
+      # Thread Crm/02 — a lista de leads virou Inertia; o contrato dela roda aqui.
+      - 'Modules/Crm/Http/Controllers/LeadController.php'
+      - 'Modules/Crm/Tests/Feature/CrmLeadsContratoTest.php'
       # Thread Crm/04 — o painel do CRM virou Inertia; o contrato dele roda aqui.
       - 'Modules/Crm/Http/Controllers/CrmDashboardController.php'
       - 'Modules/Crm/Tests/Feature/CrmPainelContratoTest.php'
@@ -126,6 +129,9 @@ jobs:
               - 'Modules/Crm/Http/Controllers/ScheduleController.php'
               - 'Modules/Crm/Resources/js/Pages/**'
               - 'Modules/Crm/Tests/Feature/CrmAcompanhamentosContratoTest.php'
+              # Thread Crm/02 — a lista de leads virou Inertia; o contrato dela roda aqui.
+              - 'Modules/Crm/Http/Controllers/LeadController.php'
+              - 'Modules/Crm/Tests/Feature/CrmLeadsContratoTest.php'
               # Thread Crm/04 — o painel do CRM virou Inertia; o contrato dele roda aqui.
               - 'Modules/Crm/Http/Controllers/CrmDashboardController.php'
               - 'Modules/Crm/Tests/Feature/CrmPainelContratoTest.php'
@@ -337,6 +343,7 @@ jobs:
             Modules/Cms/Tests/Feature/CmsConteudoIndexContratoTest.php \
             Modules/Cms/Tests/Feature/CmsSiteDetailsPainelTest.php \
             Modules/Crm/Tests/Feature/CrmAcompanhamentosContratoTest.php \
+            Modules/Crm/Tests/Feature/CrmLeadsContratoTest.php \
             Modules/Crm/Tests/Feature/CrmPainelContratoTest.php
 
       # O sumário conta `assertions` POR ARQUIVO — é o discriminador que separa

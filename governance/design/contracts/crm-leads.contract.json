@@ -1,0 +1,13 @@
+{
+  "_nota": "Copiado do bloco derivado em prototipo-ui/cowork/Wagner/cowork-inbox/crm/playbook/_saida-01.md (thread Crm/01, #8345) — não re-derivado do .tsx. Só o `alvo` mudou: o provisório da 01 virou o caminho real da Page (D4 = Modules/Crm/Resources/js/Pages, namespace Inertia `Crm/Leads/Index`, mesmo molde do crm-acompanhamentos #8352).",
+  "tela": "Crm/Leads/Index",
+  "fonte": "prototipo-ui/cowork/Wagner/crm-blade.jsx",
+  "alvo": ["Modules/Crm/Resources/js/Pages/Crm/Leads/Index.tsx"],
+  "secoes": [
+    { "id": "crm-filtros", "copy": ["Filtros", "Fonte", "Estágio de vida", "Atribuído a"] },
+    { "id": "crm-leads", "copy": ["Todos os leads", "Nada com esses filtros"], "estados": ["list_view", "kanban", "vazio"] },
+    { "id": "crm-toolbar", "copy": ["Buscar por nome, ID ou celular", "Exibição de lista", "Kanban", "Adicionar", "Confortável", "Compacto"] },
+    { "id": "crm-rodape", "copy": ["Adicionar ao local", "Remover do local"] }
+  ],
+  "ordem": ["crm-filtros", "crm-leads", "crm-toolbar", "crm-rodape"]
+}

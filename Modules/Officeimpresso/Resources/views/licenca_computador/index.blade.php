@@ -91,12 +91,16 @@
                                     @endif
                                 </td>
                                 <td>
-                                    <a href="{{ route('licenca_computador.toggleBlock', $licenca->id) }}"
-                                       class="oi-btn {{ $licenca->bloqueado ? 'oi-btn-success' : 'oi-btn-warning' }} oi-btn-xs"
-                                       title="{{ $licenca->bloqueado ? 'Restaurar acesso desta máquina' : 'Bloquear acesso desta máquina' }}">
-                                        <i class="fas fa-{{ $licenca->bloqueado ? 'unlock' : 'lock' }}"></i>
-                                        {{ $licenca->bloqueado ? 'Desbloquear' : 'Bloquear' }}
-                                    </a>
+                                    {{-- POST + CSRF (thread Officeimpresso/04): bloquear/liberar muda estado. --}}
+                                    <form method="POST" action="{{ route('licenca_computador.toggleBlock', $licenca->id) }}" style="display:inline">
+                                        @csrf
+                                        <button type="submit"
+                                           class="oi-btn {{ $licenca->bloqueado ? 'oi-btn-success' : 'oi-btn-warning' }} oi-btn-xs"
+                                           title="{{ $licenca->bloqueado ? 'Restaurar acesso desta máquina' : 'Bloquear acesso desta máquina' }}">
+                                            <i class="fas fa-{{ $licenca->bloqueado ? 'unlock' : 'lock' }}"></i>
+                                            {{ $licenca->bloqueado ? 'Desbloquear' : 'Bloquear' }}
+                                        </button>
+                                    </form>
                                     <a href="{{ url('/officeimpresso/licenca_log?licenca_id=' . $licenca->id) }}"
                                        class="oi-btn oi-btn-ghost oi-btn-xs">
                                         <i class="fas fa-clipboard-list"></i> Log
