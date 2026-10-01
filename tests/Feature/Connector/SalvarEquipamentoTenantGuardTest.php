@@ -7,13 +7,18 @@
  * da URL. O desktop Delphi usa UM usuário central da WR para vários negócios
  * (medido em prod: user_id=1 em 62 negócios), então a regra é: passa o dono
  * do negócio OU um id de `connector.delphi_master_user_ids`.
+ *
+ * Exercita o controller direto (o guard `auth:api` exige as chaves OAuth que
+ * a lane não tem) + prova que a ROTA aponta pro método com o guard.
  */
 
 use App\User;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
-use Laravel\Passport\Passport;
+use Modules\Connector\Http\Controllers\Api\LicencaComputadorController;
+use Modules\Officeimpresso\Entities\Licenca_Computador;
 
 uses(DatabaseTransactions::class);
 
@@ -34,21 +39,30 @@ function equipamentoGuardUser(int $id, int $businessId): User
     return $user;
 }
 
-function equipamentoGuardPost($test, int $businessId, string $hd)
+function equipamentoGuardCall(User $user, int $businessId, string $hd)
 {
-    return $test->withHeaders(['Accept' => 'application/json'])
-        ->postJson("/connector/api/salvar-equipamento/{$businessId}", [
-            'HD' => $hd,
-            'DESCRICAO' => 'guard-test',
-        ]);
+    $request = Request::create("/connector/api/salvar-equipamento/{$businessId}", 'POST', [
+        'HD' => $hd,
+        'DESCRICAO' => 'guard-test',
+    ]);
+    $request->setUserResolver(fn () => $user);
+
+    return app(LicencaComputadorController::class)->saveEquipamentoRota($request, $businessId);
 }
+
+it('a rota salvar-equipamento aponta pro método com o guard', function () {
+    $route = app('router')->getRoutes()->getByName('connector.delphi.salvar-equipamento');
+
+    expect($route)->not->toBeNull();
+    expect($route->getActionMethod())->toBe('saveEquipamentoRota');
+    expect($route->gatherMiddleware())->toContain('auth:api');
+});
 
 it('token de OUTRO negócio não grava equipamento (cross-tenant 2 → 1)', function () {
     config(['connector.delphi_master_user_ids' => [1]]);
-    Passport::actingAs(equipamentoGuardUser(990002, 2), [], 'api');
     $hd = 'GUARD-X-' . uniqid();
 
-    $r = equipamentoGuardPost($this, 1, $hd);
+    $r = equipamentoGuardCall(equipamentoGuardUser(990002, 2), 1, $hd);
 
     expect($r->getStatusCode())->toBe(403);
     expect(str_starts_with($r->getContent(), 'N;'))->toBeTrue();
@@ -57,10 +71,9 @@ it('token de OUTRO negócio não grava equipamento (cross-tenant 2 → 1)', func
 
 it('negócio inexistente na URL é recusado mesmo para o usuário central', function () {
     config(['connector.delphi_master_user_ids' => [990001]]);
-    Passport::actingAs(equipamentoGuardUser(990001, 1), [], 'api');
     $hd = 'GUARD-N-' . uniqid();
 
-    $r = equipamentoGuardPost($this, 987654321, $hd);
+    $r = equipamentoGuardCall(equipamentoGuardUser(990001, 1), 987654321, $hd);
 
     expect($r->getStatusCode())->toBe(403);
     expect(DB::table('licenca_computador')->where('hd', $hd)->count())->toBe(0);
@@ -68,22 +81,20 @@ it('negócio inexistente na URL é recusado mesmo para o usuário central', func
 
 it('dono do negócio grava no próprio negócio', function () {
     config(['connector.delphi_master_user_ids' => []]);
-    Passport::actingAs(equipamentoGuardUser(990003, 2), [], 'api');
     $hd = 'GUARD-O-' . uniqid();
 
-    $r = equipamentoGuardPost($this, 2, $hd);
+    $r = equipamentoGuardCall(equipamentoGuardUser(990003, 2), 2, $hd);
 
-    expect($r->getStatusCode())->toBe(200);
+    expect($r)->toBeInstanceOf(Licenca_Computador::class);
     expect((int) DB::table('licenca_computador')->where('hd', $hd)->value('business_id'))->toBe(2);
 });
 
 it('usuário central WR grava em outro negócio (fluxo Delphi preservado)', function () {
     config(['connector.delphi_master_user_ids' => [990001]]);
-    Passport::actingAs(equipamentoGuardUser(990001, 1), [], 'api');
     $hd = 'GUARD-M-' . uniqid();
 
-    $r = equipamentoGuardPost($this, 2, $hd);
+    $r = equipamentoGuardCall(equipamentoGuardUser(990001, 1), 2, $hd);
 
-    expect($r->getStatusCode())->toBe(200);
+    expect($r)->toBeInstanceOf(Licenca_Computador::class);
     expect((int) DB::table('licenca_computador')->where('hd', $hd)->value('business_id'))->toBe(2);
 });
