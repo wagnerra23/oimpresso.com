@@ -1,45 +1,51 @@
-# oimpresso Ponto — Data Safety (Google) e App Privacy (Apple) · RASCUNHO
+# oimpresso — Data Safety (Google) e App Privacy (Apple) · RASCUNHO
 
-> Baseado no código em main (2026-10-01): `MobileMarcacaoController@registrar` recebe `lat`, `lng`, `accuracy`,
-> `device_uuid`, `timestamp_device`; grava latitude/longitude e o identificador do aparelho; a precisão é usada para
-> recusar sinal fraco e não é gravada (RUNBOOK-mobile §4). Sem câmera/biometria (ADR 0383).
-> ⚠️ Confirmar com a sessão do APP CAPACITOR: há SDK de crash/analytics/push (Firebase)? Se houver, entra
-> "Diagnóstico" e, com push, "Identificadores do dispositivo" já cobre o token. Confirmar com a sessão LEGAL o prazo de guarda.
+> App único: ERP no celular + ponto ([W] 2026-10-01). Levantado do código em main (2026-10-01):
+> - Ponto (`MobileMarcacaoController@registrar`): `lat`, `lng`, `accuracy` (não gravada), `device_uuid`, `timestamp_device`.
+> - App Expo: login (`expo-secure-store`), push (`expo-notifications`, token do aparelho), fotos da galeria em OS
+>   (`expo-image-picker` em `app/oss/[id].tsx`), cadastro de clientes (nome, CPF/CNPJ, contato).
+> - `expo-audio` e `expo-video` estão no `package.json`/`app.config.ts` mas **nenhuma tela usa** — remover antes do build
+>   (a string de microfone em inglês é motivo de rejeição Apple 5.1.1 e obrigaria declarar "Áudio").
+> - ⚠️ Confirmar no build: há SDK de crash/analytics? Se sim, entra "Diagnóstico". Prazo de guarda: sessão LEGAL.
 
-## Dados coletados
+## O que entra
 
-| Dado | Por quê | Obrigatório? | Ligado à pessoa? | Compartilhado? |
-|---|---|---|---|---|
-| Localização **precisa** (lat/lng) | registrar onde a marcação foi feita | sim | sim | não (vai ao empregador, que é o controlador — não conta como terceiro) |
-| ID do aparelho (`device_uuid` gerado pelo app) | impedir troca de aparelho / fraude | sim | sim | não |
-| Nome, e-mail/usuário, matrícula | login e identificação no espelho | sim (criado pela empresa) | sim | não |
-| Registros de ponto (horários) | finalidade principal | sim | sim | não |
-| Texto da justificativa | pedido ao gestor | não (opcional) | sim | não |
+| Dado | Onde | Obrigatório? | Finalidade |
+|---|---|---|---|
+| Localização precisa | ponto, só na batida | sim (para bater ponto) | funcionalidade; prevenção de fraude |
+| ID do aparelho (`device_uuid`) + token de push | ponto; notificações | sim | prevenção de fraude; funcionalidade |
+| Nome, e-mail, ID de usuário | login | sim | funcionalidade; gerenciamento de conta |
+| Dados de clientes da empresa (nome, CPF/CNPJ, telefone, e-mail, endereço) | cadastro de clientes | não (o usuário digita) | funcionalidade |
+| Fotos | anexos de OS, escolhidas pelo usuário | não | funcionalidade |
+| Registros de ponto, justificativas, notas de serviço, tarefas | ponto; OS; tarefas | varia | funcionalidade |
+| Transações da empresa (vendas, pagamentos) | vendas, financeiro | — | dado da empresa, não do usuário — ver nota abaixo |
 
-Coleta só **com o app aberto, no momento da batida** — sem localização em segundo plano.
+Tudo é ligado à pessoa, nada é vendido, usado para publicidade ou rastreamento. Os dados vão para o servidor do
+oimpresso (operador) por conta da empresa cliente (controladora). Sem localização em segundo plano.
 
 ## Google Play — Data Safety (tela a tela)
 1. **Coleta ou compartilha dados?** Sim.
-2. **Criptografado em trânsito?** Sim (HTTPS). **Usuário pode pedir exclusão?** Sim — link da página de exclusão (sessão PRIVACIDADE). Observação a declarar: registros de ponto são mantidos pelo prazo legal (Portaria MTP 671/2021).
-3. **Tipos de dados** — marcar:
-   - Localização → **Localização precisa** — Coletado · NÃO compartilhado · Obrigatório · Finalidade: **Funcionalidade do app** (e **Prevenção de fraude, segurança e conformidade**).
-   - Informações pessoais → **Nome**, **Endereço de e-mail**, **IDs de usuário** — Coletado · Obrigatório · Funcionalidade do app + Gerenciamento de conta.
-   - Identificadores do dispositivo ou outros → **ID do dispositivo** — Coletado · Obrigatório · Prevenção de fraude, segurança e conformidade.
-   - Atividade no app → **Outro conteúdo gerado pelo usuário** (justificativa) — Coletado · Opcional · Funcionalidade do app.
-   - **Não** marcar: fotos, áudio, contatos, financeiro, saúde, mensagens, histórico web, publicidade.
-4. **Processamento efêmero?** Não (é gravado).
-5. Política de privacidade: URL da sessão PRIVACIDADE.
-6. **Permissão de localização em segundo plano:** NÃO pedir (`ACCESS_BACKGROUND_LOCATION` fora do manifest) — assim não cai na declaração de localização em segundo plano.
+2. **Criptografado em trânsito?** Sim (HTTPS). **Pedido de exclusão?** Sim — URL da página de exclusão (sessão PRIVACIDADE); declarar que registros de ponto e fiscais são mantidos pelo prazo legal.
+3. **Tipos (todos: Coletado · NÃO compartilhado · não efêmero):**
+   - Localização → **Localização precisa** — Obrigatório · Funcionalidade do app; Prevenção de fraude, segurança e conformidade.
+   - Informações pessoais → **Nome**, **Endereço de e-mail**, **IDs de usuário** — Obrigatório · Funcionalidade; Gerenciamento de conta.
+   - Informações pessoais → **Número de telefone**, **Endereço**, **Outras informações** (CPF/CNPJ) — Opcional · Funcionalidade (dados dos clientes cadastrados).
+   - Fotos e vídeos → **Fotos** — Opcional · Funcionalidade.
+   - Atividade no app → **Outro conteúdo gerado pelo usuário** (justificativas, notas de OS, tarefas) — Opcional · Funcionalidade.
+   - Identificadores do dispositivo ou outros → **ID do dispositivo** — Obrigatório · Prevenção de fraude; Funcionalidade (push).
+   - Informações financeiras → ⚠️ decidir com a sessão LEGAL: vendas e pagamentos são da **empresa**, não do usuário; "Histórico de compras" da Google é do usuário. Recomendação: não marcar, e explicar na política de privacidade.
+4. **Permissões:** `ACCESS_FINE_LOCATION` (sim), `ACCESS_BACKGROUND_LOCATION` (**não**), `POST_NOTIFICATIONS` (sim), `RECORD_AUDIO` (**remover**), `CAMERA` (não usado).
 
 ## Apple — App Privacy (tela a tela)
-1. **Coleta dados?** Sim.
-2. Tipos:
-   - **Location → Precise Location**: App Functionality · **Linked to the user** · **Not used for tracking**.
-   - **Identifiers → Device ID**: App Functionality · Linked · Not tracking.
-   - **Contact Info → Name, Email Address**: App Functionality · Linked · Not tracking.
-   - **User Content → Other User Content** (justificativa): App Functionality · Linked · Not tracking.
-3. **Tracking (ATT)?** Não — nenhum SDK de publicidade, sem prompt ATT.
-4. `Info.plist`: só `NSLocationWhenInUseUsageDescription` = "Usamos a localização somente quando você bate o ponto, para registrar onde a marcação foi feita." Sem `NSLocationAlways…`, sem `NSCameraUsageDescription`.
+Todos: **Linked to the user** · **Not used for tracking** · finalidade **App Functionality**.
+- Location → **Precise Location**
+- Contact Info → **Name**, **Email Address**, **Phone Number**, **Physical Address**
+- Identifiers → **User ID**, **Device ID**
+- User Content → **Photos or Videos**, **Other User Content**
+- Sensitive Info → não marcar (CPF/CNPJ não é "sensível" no sentido Apple: saúde, religião etc.).
+- **Tracking (ATT):** não. Sem prompt ATT.
 
-## Texto do pedido de permissão (Android e iOS — mesmo texto)
-"O oimpresso Ponto usa a localização somente no momento em que você bate o ponto, para registrar onde a marcação foi feita."
+`Info.plist` (via `app.config.ts`, sessão iOS):
+- `NSLocationWhenInUseUsageDescription`: "O oimpresso usa a localização somente quando você bate o ponto, para registrar onde a marcação foi feita."
+- `NSPhotoLibraryUsageDescription`: "O oimpresso acessa as suas fotos somente quando você escolhe uma imagem para anexar a uma ordem de serviço."
+- **Remover** `NSMicrophoneUsageDescription` (expo-audio sem uso).

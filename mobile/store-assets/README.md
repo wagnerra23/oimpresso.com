@@ -1,5 +1,7 @@
 # Ativos de loja — app oimpresso (Expo, `mobile/`)
 
+App único nas lojas: o ERP no celular **junto com o ponto** ([W] 2026-10-01). Nome proposto: `oimpresso`.
+
 Gerados por `node mobile/store-assets/gerar-ativos.mjs` (da raiz do repo) a partir do cubo CMYK do Design
 System e do roxo `oklch(0.55 0.15 295)` = `#795BBF`. Ícone escolhido por [W] em 2026-10-01: **variante A** (só o cubo).
 Para mudar a arte, mude o script e rode de novo — não edite os PNGs à mão.

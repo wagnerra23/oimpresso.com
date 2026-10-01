@@ -42,6 +42,6 @@ await render({ ...transp, html: marca(1024 * 0.60) }, 1024, 1024, `${IMG}/splash
 await render({ ...roxo, html: marca(1024 * 0.56) }, 1024, 1024, `${OUT}/app-store-icon-1024.png`);
 await render({ ...roxo, html: marca(512 * 0.56) }, 512, 512, `${OUT}/play-icon-512.png`);
 await render({ style: 'background:radial-gradient(circle at 20% 30%, oklch(0.6 0.15 295), oklch(0.40 0.13 295));justify-content:flex-start;gap:48px;padding:0 80px;color:#fff',
-  html: `<div style="width:220px;flex:none">${cube}</div><div><div style="font-size:64px;font-weight:700;letter-spacing:-1px">oimpresso Ponto</div><div style="font-size:30px;opacity:.92;margin-top:10px;line-height:1.25">Bata o ponto pelo celular,<br>com a localização. Sem câmera.</div></div>` },
+  html: `<div style="width:220px;flex:none">${cube}</div><div><div style="font-size:72px;font-weight:700;letter-spacing:-1px">oimpresso</div><div style="font-size:30px;opacity:.92;margin-top:10px;line-height:1.3">Pedidos, produção, ordens de serviço<br>e o ponto da equipe no celular.</div></div>` },
   1024, 500, `${OUT}/play-feature-graphic-1024x500.jpg`, { jpg: true });
 await b.close(); console.log('ativos gerados');

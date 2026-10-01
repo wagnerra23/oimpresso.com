@@ -1,46 +1,48 @@
-# oimpresso Ponto — textos das lojas (pt-BR) · RASCUNHO para [W] revisar
+# oimpresso — textos das lojas (pt-BR) · RASCUNHO para [W] revisar
 
-> Limites conferidos em 2026-10-01 (Play Console Help + App Store Connect). Contagem de caracteres ao lado.
+> Escopo decidido por [W] em 2026-10-01: **um app só**, o ERP no celular (app Expo `mobile/`, `com.oimpresso.app`)
+> **junto com o ponto** (REP-P do `/ponto/mobile`). Limites conferidos em 2026-10-01 (Play Console Help + App Store Connect).
 > Não usar "certificado", "homologado" nem "assinado" até a sessão LEGAL confirmar (ADR 0413 tirou "assinada").
+> Só listar o que o build enviado faz de verdade — se o ponto ainda não estiver no build, tirar o bloco do ponto.
 
 ## Comum
-- **Nome do app:** `oimpresso Ponto` (15/30 — Play e Apple) — ⚠️ a decidir com [W]: o app Expo (`com.oimpresso.app`) também tem pedidos, produção, oficina; se for publicado o app inteiro, o nome e a descrição mudam
+- **Nome do app:** `oimpresso` (9/30) — alternativa se o nome estiver ocupado na Apple: `oimpresso ERP` (13/30)
 - **Categoria:** Negócios (Play: Business · Apple: primária Business, secundária Productivity)
 - **Público:** adultos, uso profissional (B2B). Sem anúncios. Sem compras no app.
-- **Login exigido:** sim — conta criada pela empresa (empregador). Sem cadastro aberto.
+- **Login exigido:** sim — conta criada pela empresa. Sem cadastro aberto.
 
 ## Google Play
-- **Título:** `oimpresso Ponto` (15/30)
-- **Descrição curta (80):** `Bata o ponto pelo celular com a localização, no sistema da sua empresa.` (71/80)
+- **Título:** `oimpresso` (9/30)
+- **Descrição curta:** `Pedidos, produção, ordens de serviço e ponto da sua empresa no celular.` (71/80)
 - **Descrição completa (≤4000):**
 
-O oimpresso Ponto é o registro de ponto pelo celular para quem trabalha em empresas que usam o ERP oimpresso.
+O oimpresso é o ERP da sua empresa no celular. Acompanhe vendas, produção e ordens de serviço de onde estiver, e registre o ponto com a localização do aparelho.
 
-Use o login fornecido pela sua empresa e registre entrada, saída para o almoço, retorno e saída. Cada marcação é enviada junto com a localização do aparelho no momento do registro e recebe um número sequencial (NSR) gerado pelo servidor. Depois de feita, a marcação não pode ser alterada nem apagada.
+Gestão no celular:
+• Vendas, orçamentos e pedidos — consulte, acompanhe e faça uma venda rápida.
+• Produção — veja em que etapa está cada trabalho.
+• Ordens de serviço e manutenção — status, equipamentos e fotos do serviço.
+• Clientes e produtos — consulta e cadastro.
+• Estoque, financeiro, fiscal e relatórios — os números do dia na mão.
+• Tarefas e notificações da equipe.
 
-O que você pode fazer:
-• Bater o ponto: entrada, saída para almoço, retorno do almoço e saída.
-• Ver as marcações de hoje com o número de cada registro.
-• Consultar o seu espelho do mês: horas trabalhadas e o dia a dia.
-• Justificar uma falta, atraso ou esquecimento — o pedido vai para aprovação do seu gestor.
+Ponto pelo celular:
+• Bata o ponto: entrada, saída para almoço, retorno e saída. Cada marcação vai com a localização do aparelho no momento do registro e recebe um número sequencial (NSR) gerado pelo servidor; depois de feita, não pode ser alterada.
+• Veja as marcações de hoje e o seu espelho do mês.
+• Justifique uma falta ou esquecimento — o pedido vai para o seu gestor.
+• A localização é lida só quando você bate o ponto, com o app aberto. Sem rastreamento em segundo plano. Sem câmera e sem biometria no ponto.
 
-Privacidade e transparência:
-• A localização é lida somente no momento em que você bate o ponto, com o app aberto. Não há rastreamento em segundo plano.
-• Não usamos câmera, foto nem biometria.
-• Se o sinal de GPS estiver fraco, o app pede que você vá para uma área aberta em vez de registrar uma posição imprecisa.
-
-Para quem é: colaboradores de empresas clientes do oimpresso. O acesso é liberado pela empresa empregadora; não é possível criar conta pelo app.
+Para quem é: empresas clientes do oimpresso e seus colaboradores. O acesso é liberado pela empresa; não é possível criar conta pelo app. Cada pessoa vê só o que o seu perfil permite.
 
 ## Apple App Store
-- **Nome:** `oimpresso Ponto` (15/30)
-- **Subtítulo (30):** `Registro de ponto no celular` (28/30)
-- **Texto promocional (170, editável sem nova versão):** `Bata o ponto com a localização do aparelho, veja as marcações do dia e o espelho do mês. Sem câmera e sem biometria.` (116/170)
-- **Palavras-chave (100, separadas por vírgula, sem espaço):**
-  `ponto,eletrônico,registro,jornada,REP,colaborador,RH,horas,espelho,marcação,GPS,funcionário` (91/100)
+- **Nome:** `oimpresso` (9/30)
+- **Subtítulo (30):** `Gestão e ponto no celular` (25/30)
+- **Texto promocional (170):** `Vendas, produção, ordens de serviço e o ponto dos colaboradores no mesmo app. Ponto com localização, sem câmera e sem biometria.` (128/170)
+- **Palavras-chave (100):** `ERP,gestão,pedidos,orçamento,produção,OS,estoque,financeiro,ponto,REP,gráfica,oficina,vendas` (92/100)
 - **Descrição:** a mesma da Play acima.
-- **URL de suporte:** _(sessão PRIVACIDADE/PWA — aguardando)_ · **URL de privacidade:** _(idem)_
-- **Informações para revisão:** conta demo da sessão CONTA DEMO (usuário/senha ficam no campo do console, nunca neste arquivo) + nota: "O app exige localização; o revisor pode estar fora do local da empresa — a marcação será aceita e sinalizada para revisão do gestor."
+- **URL de suporte / privacidade:** _(sessão PRIVACIDADE/PWA — aguardando)_
+- **Informações para revisão:** conta demo da sessão CONTA DEMO (credencial só no campo do console). Nota: "Acesso B2B criado pela empresa. A tela de ponto pede localização; fora do local da empresa a marcação é aceita e sinalizada para o gestor."
 
 ## Classificação etária
-- **Apple (sistema 2025, faixas 4+/9+/13+/16+/18+):** responder "Nenhum" em todo o questionário → **4+**. Marcar que o app NÃO tem chat/conteúdo gerado por usuários públicos, nem navegador web irrestrito.
-- **Google (IARC):** categoria "Referência, notícias ou educação"? **Não** — escolher "Todos os outros tipos de app". Respostas "Não" a violência, sexualidade, linguagem, drogas, jogos de azar, compartilhamento de localização com OUTROS usuários (a localização vai só para o empregador — responder "Não" a "compartilha a localização física do usuário com outros usuários"). Resultado esperado: **Livre (L)** / PEGI 3 / ESRB Everyone.
+- **Apple (faixas 4+/9+/13+/16+/18+):** "Nenhum" em todo o questionário → **4+**. ⚠️ Se a aba **Chat** passar a trocar mensagens entre pessoas, responder "Sim" a comunicação entre usuários (pode subir a faixa) — hoje o chat é com o sistema.
+- **Google (IARC):** "Todos os outros tipos de app"; "Não" a violência, sexo, linguagem, drogas, jogos de azar; "Não" a compartilhar localização com outros usuários (vai só ao empregador); interação entre usuários conforme o Chat acima. Esperado: **Livre (L)**.
