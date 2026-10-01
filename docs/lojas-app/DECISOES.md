@@ -15,10 +15,12 @@
 | D6 | Ponto do colaborador | Perfil **Colaborador** abre direto no ponto; quem tem o ERP vê as abas da v1 | [W] "sim, perfil colaborador abre no ponto" |
 | D7 | Contas do revisor | Duas: **`revisor.ponto`** (colaborador, só ponto) e **`gestor.demo`** (gestor), no business 235 em produção. Senhas no Vaultwarden (`ponto-demo-revisor`, `ponto-demo-gestor`) | [W] "ok duas contas, colaborador e gestor" |
 | D8 | Marcações de exemplo | Histórico de marcações **só no staging**; produção só com o que o revisor fizer | [W] "marcações só no staging" |
-| D9 | Textos de loja | **1ª submissão descreve só o que o app tem hoje:** Login, Início (escala + resumo do ponto), Ponto (Bater · Meu espelho · Justificar), Conta e lembrete por push (`textos/listagem-pt-BR.md`). A versão com Tarefas/Pedidos/Produção/Pessoas fica em `textos/listagem-pt-BR-completa.md`. **Sem** "REP-P", "REP" ou "registrador oficial" até INPI e certificado ICP-Brasil | sessão que gerencia o app (função ausente = recusa); levantamento legal (#8417) |
+| D9 | Textos de loja | Descrevem **as 7 áreas da v1** (D13) — base em `textos/listagem-pt-BR-completa.md`. **Sem** "REP-P", "REP" ou "registrador oficial" até INPI e certificado ICP-Brasil. A ficha só vai à loja quando as telas que ela descreve existirem no app (função ausente = recusa) | [W] 2026-10-01 (escopo, D13); levantamento legal (#8417) |
 | D10 | Política de privacidade | `https://oimpresso.com/privacidade` (app inteiro) + `/privacidade/ponto` (detalhe do ponto) | [W] "fica com a política"; no ar desde #8437 |
-| D11 | Conteúdo das telas v1 | Pedido = **venda** do ERP (pipeline FSM de vendas); Produção = fila do **Kanban** por etapa, sem carga %; Tarefas = **ToDo + justificativas do Ponto**; meta do dia = mensal da Jana ÷ dias úteis; **sem** seletor de empresa; urgente = atrasado; **sem** papel Transportadora **1ª submissão às lojas = só o que o app tem hoje (Login, Início, Ponto, Conta, push) — ver D9; Tarefas/Pedidos/Produção/Pessoas entram em submissões seguintes.** | [W] na coordenação; registrado no MAPA-DE-DADOS-v1 §8.1 |
+| D11 | Conteúdo das telas v1 | Pedido = **venda** do ERP (pipeline FSM de vendas); Produção = fila do **Kanban** por etapa, sem carga %; Tarefas = **ToDo + justificativas do Ponto**; meta do dia = mensal da Jana ÷ dias úteis; **sem** seletor de empresa; urgente = atrasado; **sem** papel Transportadora | [W] na coordenação; registrado no MAPA-DE-DADOS-v1 §8.1 |
 | D12 | Coordenação | A sessão **"Coordenar app das lojas (oimpresso-app)"** (ex-BASE MOBILE) coordena as sessões do app. Instruções novas às sessões passam por ela | [W] na coordenação |
+| D13 | Escopo da v1 | **7 áreas:** Início, Tarefas, Pedidos, Produção, Pessoas, Ponto e Mais. Ficam para a v2: Produtos, Venda rápida e Finanças. As 39 telas do protótipo são o alvo do desenho; a v1 publica as 7 áreas | [W] 2026-10-01 ("volta para as 7 áreas") |
+| D14 | Tema | O app **segue o tema do celular** (claro ou escuro), como o protótipo. Nada de tema fixo | [W] 2026-10-01 ("segue o tema do celular") |
 
 ## Substituídas (não usar)
 
@@ -26,6 +28,7 @@
 - ~~Nome "oimpresso Ponto"~~ → D3.
 - ~~1ª versão publica o ERP web atual~~ ([W] "1, publica com o ERP atual") → depois `/m` → hoje D5.
 - ~~Telas `/m` dentro do ERP~~ (textos #8461) → D5 (telas próprias no app). Screenshots do ERP web ou de `/m` **não servem**.
+- ~~1ª submissão só com o Ponto (Login, Início, Ponto, Conta)~~ (sessão que gerencia o app, #8474) → D13 (7 áreas na v1, decisão [W]).
 
 ## Ainda abertas
 
