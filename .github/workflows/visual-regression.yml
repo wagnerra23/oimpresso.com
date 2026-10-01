@@ -315,13 +315,16 @@ jobs:
           path: vendor
           key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
 
-      - name: Cache Playwright browsers
-        if: steps.mode.outputs.ui == 'true'
-        uses: actions/cache@v4
-        id: playwright-cache
-        with:
-          path: ~/.cache/ms-playwright
-          key: ubuntu-24.04-${{ runner.arch }}-playwright-all-browsers-v1-${{ hashFiles('**/package-lock.json') }}
+      # SEM CACHE DOS BROWSERS (removido 2026-10-01). Medido em 250 runs (2026-09-30 14:27Z ->
+      # 2026-10-01 10:51Z, todas as tentativas): de 101 execuções em que o setup passou das deps,
+      # 1 restaurou o cache (as outras 6 "sem install" eram timeouts das deps, não acerto).
+      # Motivo: cache de `pull_request` só é legível pelo próprio PR, a chave mudava a cada
+      # package-lock.json, e este job não roda em main — não existe entrada que os PRs herdem.
+      # Custo do cache: probe de ~4s + save de 13-44s nos jobs verdes + 474 MB POR PR, que
+      # deixavam o cache do repo em 10,6 GB (26 entradas, 21 delas esta) e despejavam o cache
+      # compartilhado dos outros workflows. Ganho perdido: nenhum — o install leva p50 17s,
+      # máx 22s, e já rodava em 99 de 101 execuções.
+      # Reabrir só com um produtor em main (entrada que os PRs consigam ler) E restore-only no PR.
 
       - name: Install Composer dependencies
         if: steps.mode.outputs.ui == 'true'
@@ -384,7 +387,8 @@ jobs:
         # CACHE DOS .deb FOI MEDIDO E NÃO ENTROU: o cache do repo está no limite (10,6 GB em 26
         # entradas, 2026-10-01, quase tudo `playwright-all-browsers` de 474 MB duplicado por PR)
         # e cache de PR só é legível pelo próprio PR — um .deb de 120 MB por PR seria despejado
-        # antes do re-run que deveria servir. Reabrir só com o cache de browsers enxugado.
+        # antes do re-run que deveria servir. O cache de browsers saiu (ver abaixo); reabrir este
+        # só com o mesmo desenho que reabriria aquele: produtor em main + restore-only no PR.
         #
         # Se este passo falhar, os passos de TESTE não rodam (gate `steps.setup-ok` abaixo) e o
         # comentário do PR diz "falha de preparação do ambiente", não "gate visual reprovou".
@@ -394,7 +398,7 @@ jobs:
         run: npx playwright install-deps chromium firefox webkit
 
       - name: Install Playwright browsers
-        if: steps.mode.outputs.ui == 'true' && steps.playwright-cache.outputs.cache-hit != 'true'
+        if: steps.mode.outputs.ui == 'true'
         run: npx playwright install chromium firefox webkit
 
       - name: Setup Laravel
