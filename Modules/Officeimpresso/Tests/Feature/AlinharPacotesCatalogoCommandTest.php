@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\System;
 use App\User;
 use App\Utils\ModuleUtil;
 use Illuminate\Support\Facades\DB;
@@ -126,6 +127,14 @@ it('pacotes 3 · depois de aplicar, o gate do ProductCatalogue libera o business
         'password'    => bcrypt('test12345'),
         'language'    => 'pt_BR',
     ]));
+
+    // Sem `superadmin_version` na tabela `system`, `hasThePermissionInSubscription`
+    // devolve true para QUALQUER chave (Superadmin "não instalado"). É o estado da
+    // base fresca do CI — medido: a pré-condição abaixo caiu nele. Marca como
+    // instalado dentro da transação (revertida no afterEach).
+    if (empty(System::getProperty('superadmin_version'))) {
+        System::addProperty('superadmin_version', '1.0');
+    }
 
     // Pré-condição anti-vácuo: a inscrição desta fixture é a ativa e ainda nega.
     expect(Subscription::active_subscription($biz->id)->package_id)->toBe($pacote->id);
