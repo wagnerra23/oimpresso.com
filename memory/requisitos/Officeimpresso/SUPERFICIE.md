@@ -14,7 +14,7 @@ module: Officeimpresso
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Officeimpresso/**` + `resources/js/Pages/Officeimpresso/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 118 arquivos em 19 papéis.
+**Total mapeado:** 119 arquivos em 19 papéis.
 
 ## Controllers — 7
 
@@ -119,8 +119,9 @@ module: Officeimpresso
 - [Index.tsx](../../../Modules/Officeimpresso/Resources/js/Pages/Officeimpresso/Logs/Index.tsx)
 - [Timeline.tsx](../../../Modules/Officeimpresso/Resources/js/Pages/Officeimpresso/Logs/Timeline.tsx)
 
-## Componentes / apoio de tela — 1
+## Componentes / apoio de tela — 2
 
+- [LicencaDrawer.tsx](../../../Modules/Officeimpresso/Resources/js/Pages/Officeimpresso/Licencas/_components/LicencaDrawer.tsx)
 - [MaquinasTable.tsx](../../../Modules/Officeimpresso/Resources/js/Pages/Officeimpresso/Logs/_components/MaquinasTable.tsx)
 
 ## Charters (lei da tela) — 3

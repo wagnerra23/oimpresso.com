@@ -20,8 +20,8 @@ authority: generated
 | CU no SDD | 0 |
 | Telas (.tsx) | 3 |
 | Telas com `casos.md` | 3 |
-| UC declarados | 31 |
-| UC com teste que os cita | 30 |
+| UC declarados | 37 |
+| UC com teste que os cita | 36 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -81,6 +81,12 @@ _Nenhuma lacuna: toda tela tem caso **com UC**, todo CU é citado, e toda US **e
 | UC-OILIC-07 | Licencas/Index | 🧪 aguarda veredito da lane |
 | UC-OILIC-08 | Licencas/Index | 🧪 aguarda veredito da lane |
 | UC-OILIC-09 | Licencas/Index | 🧪 aguarda veredito da lane |
+| UC-OILIC-10 | Licencas/Index | 🧪 aguarda veredito da lane |
+| UC-OILIC-11 | Licencas/Index | 🧪 aguarda veredito da lane |
+| UC-OILIC-12 | Licencas/Index | 🧪 aguarda veredito da lane |
+| UC-OILIC-13 | Licencas/Index | 🧪 aguarda veredito da lane |
+| UC-OILIC-14 | Licencas/Index | 🧪 aguarda veredito da lane |
+| UC-OILIC-15 | Licencas/Index | 🧪 aguarda veredito da lane |
 | UC-TL-01 | Logs/Timeline | 📝 sem_teste |
 | UC-TL-02 | Logs/Timeline | 🧪 aguarda veredito da lane |
 | UC-TL-05 | Logs/Timeline | 🧪 aguarda veredito da lane |

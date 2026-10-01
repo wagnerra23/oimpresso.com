@@ -162,7 +162,13 @@ class CrmUtil extends Util
                 'type', 'custom_field7', 'custom_field8', 'custom_field9', 'custom_field10',
                 'contacts.id', 'contacts.business_id', 'crm_source', 'crm_life_stage', 'address_line_1',
                 'address_line_2', 'city', 'state', 'country', 'zip_code',
-                'contacts.prefix', 'contacts.first_name', 'contacts.middle_name', 'contacts.last_name',
+                // `contacts.prefix/first_name/middle_name/last_name` saíram do schema (o cadastro grava
+                // só `name`; o ContactController@store dá unset nas 4). Selecioná-las dava
+                // `Unknown column` → 500 na lista de leads e na API do Connector
+                // (`GET connector/api/crm/leads`). As CHAVES seguem no resultado — o cliente externo
+                // da API e o `full_name_with_business` do kanban as leem —, derivadas de `name`.
+                DB::raw('NULL as prefix'), DB::raw('contacts.name as first_name'),
+                DB::raw('NULL as middle_name'), DB::raw('NULL as last_name'),
                 DB::raw('(SELECT CS.id FROM crm_schedules AS CS WHERE CS.contact_id=contacts.id AND CS.start_datetime < "'.Carbon::today()->toDateTimeString().'" ORDER BY CS.start_datetime DESC LIMIT 1) as last_follow_up_id'), DB::raw('(SELECT CS.id FROM crm_schedules AS CS WHERE CS.contact_id=contacts.id AND CS.start_datetime > "'.Carbon::today()->toDateTimeString().'" ORDER BY CS.start_datetime ASC LIMIT 1) as upcoming_follow_up_id'),
                     DB::raw('(SELECT CS.start_datetime FROM crm_schedules AS CS WHERE CS.contact_id=contacts.id AND CS.start_datetime < "'.Carbon::today()->toDateTimeString().'" ORDER BY CS.start_datetime DESC LIMIT 1) as last_follow_up'),
                     DB::raw('(SELECT CS.start_datetime FROM crm_schedules AS CS WHERE CS.contact_id=contacts.id AND CS.start_datetime > "'.Carbon::today()->toDateTimeString().'" ORDER BY CS.start_datetime ASC LIMIT 1) as upcoming_follow_up'),

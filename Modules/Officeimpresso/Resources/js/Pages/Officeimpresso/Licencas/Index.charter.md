@@ -13,7 +13,7 @@ related_adrs:
   - 0104-processo-mwart-canonico-unico-caminho
   - 0093-multi-tenant-isolation-tier-0
   - 0189-pageheader-canon-v3-1-cadastro-roxo
-charter_version: 1
+charter_version: 2
 ---
 
 # Charter — Licenças de computador (`/officeimpresso/licenca_computador`)
@@ -46,11 +46,23 @@ filtros. Decisão [W] D2 (2026-10-01): **tela nova no Officeimpresso**, não fus
   desktop atualiza todas as linhas desse HD e recusa se qualquer uma estiver bloqueada.
 - Link "Log" por linha para `/officeimpresso/licenca_log?licenca_id={id}`.
 
+## Goals — drawer (PR-b, thread 06)
+
+- Clicar no nome da máquina abre o **drawer PT-02 (760px)**: ficha do equipamento (empresa, usuário
+  do Windows, HD, sistema, IP, processador, memória, pasta, versões, datas, mensagem que o desktop
+  recebe) e **histórico de acessos e bloqueios** (`licenca_log`, últimos 50).
+- **Liberar/bloquear com motivo obrigatório** (5 a 500 letras), pela mesma ação POST
+  `/officeimpresso/licenca_computador/{id}/toggle-block`, mandando a intenção (`bloquear`). O motivo
+  vai para o histórico (`admin_action`) com o negócio do equipamento e o autor.
+
 ## Non-Goals (NÃO faz)
 
 - ❌ Exibir `senha`/`contra_senha` — nem mascaradas. O payload é DTO explícito e não as seleciona
   ([W] 2026-08-19, proposta de licenças). `serial` e `token` também não saem.
-- ❌ Drawer da máquina (ficha + histórico) e liberar/bloquear com motivo — PR-b da thread 06.
+- ❌ Mudar a regra do bloqueio ou reescrever a mensagem que o desktop recebe (`licenca_computador.motivo`,
+  devolvida como `N;<motivo>`) — o motivo do operador é só histórico. Se ele deve virar a mensagem
+  ao desktop é decisão [W] pendente.
+- ❌ Revogar licença e bloqueio em lote (o protótipo tem) — fora da ficha 06.
 - ❌ Cobrança por equipamento (`valor`, `gera_mensalidade`) — [W] D5: fica no Financeiro/Superadmin.
 - ❌ Ampliar quem vê o quê: só `superadmin` vê todos os negócios; `officeimpresso.access` segue
   vendo o negócio da sessão, como o `index()` sempre fez.
@@ -68,6 +80,9 @@ Officeimpresso/Licencas/Index (Inertia)
   licencas: Inertia::defer → Array<{ id, business_id, empresa, hostname, user_win, hd,
     versao_exe, versao_banco, versao_obrigatoria, dt_ultimo_acesso, frescor, dt_validade,
     bloqueado, motivo, hd_compartilhado }>
+  permissions.pode_gerenciar: bool                       // eager — mostra o rodapé de bloquear
+  detalhe: Inertia::optional (only: ['detalhe'], ?licenca={id}) → { ficha: {…sem senha},
+    historico: Array<{ id, quando, evento, origem, ip, rota, http_status, erro, motivo, autor }> } | null
 ```
 
 `frescor`: `recente` (<24 h) · `fresc` (<7 d) · `frio` (<30 d) · `distante` (mais ou nunca) — o
@@ -76,4 +91,4 @@ vocabulário do `StatusBadge kind="frescor"` que o protótipo usa.
 ## Testes
 
 `Modules/Officeimpresso/Tests/Feature/LicencasIndexContratoTest.php` (lane `officeimpresso-pest`,
-MySQL, tenant 98) — UC-OILIC-01..09.
+MySQL, tenant 98) — UC-OILIC-01..15.

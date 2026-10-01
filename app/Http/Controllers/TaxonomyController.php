@@ -257,7 +257,7 @@ class TaxonomyController extends Controller
      * Remove the specified resource from storage.
      *
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return mixed JSON {success, msg[, em_uso, filhas]} do ajax; nada fora do ajax
      */
     public function destroy($id)
     {
@@ -271,11 +271,34 @@ class TaxonomyController extends Controller
                     abort(403, 'Unauthorized action.');
                 }
 
-                $category->delete();
+                // Playbook Produto · thread 02 (charter Cadastros R4): categoria de produto em uso ou com
+                // subcategorias não sai. Antes o legado apagava só o pai (soft delete) e deixava as
+                // filhas e os produtos apontando pra uma categoria apagada. As contagens são as mesmas
+                // que a aba Categorias de /units mostra. Outras taxonomias (módulos) seguem como eram.
+                $emUso = 0;
+                $filhas = 0;
+                if ($category->category_type == 'product') {
+                    $emUso = \App\Product::where('business_id', $business_id)
+                        ->where(fn ($q) => $q->where('category_id', $category->id)->orWhere('sub_category_id', $category->id))
+                        ->count();
+                    $filhas = Category::where('business_id', $business_id)->where('parent_id', $category->id)->count();
+                }
 
-                $output = ['success' => true,
-                    'msg' => __('category.deleted_success'),
-                ];
+                if ($emUso > 0 || $filhas > 0) {
+                    $motivos = array_filter([
+                        $emUso > 0 ? "{$emUso} produto(s) usam esta categoria" : null,
+                        $filhas > 0 ? "{$filhas} subcategoria(s) estão dentro dela" : null,
+                    ]);
+                    $output = ['success' => false, 'em_uso' => $emUso, 'filhas' => $filhas,
+                        'msg' => implode(' e ', $motivos).'. Mova ou exclua antes de excluir a categoria.',
+                    ];
+                } else {
+                    $category->delete();
+
+                    $output = ['success' => true,
+                        'msg' => __('category.deleted_success'),
+                    ];
+                }
             } catch (\Exception $e) {
                 \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
 

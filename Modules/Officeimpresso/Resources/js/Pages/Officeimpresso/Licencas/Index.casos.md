@@ -80,8 +80,54 @@ linha traz os quatro dados.
 
 Status: 🧪
 
+## UC-OILIC-10 · Ficha do equipamento sem segredo · `must` `[T0]`
+
+**Dado** uma máquina com sistema, IP, `senha`, `contra_senha` e `usuario` gravados **Quando** o
+suporte abre o drawer **Então** a ficha traz sistema e IP, e não tem `senha`, `contra_senha`,
+`serial`, `token`, `usuario` nem `conexao` — nem os valores aparecem na resposta (ficha 06: *nunca exibir senha*).
+
+Status: 🧪
+
+## UC-OILIC-11 · Ficha de outro negócio não abre · `must` `[T0]`
+
+**Dado** máquina de outro negócio **Quando** quem tem só `officeimpresso.access` pede a ficha
+**Então** recebe vazio; a máquina do próprio negócio abre (mesma regra de visão da lista, UC-OILIC-04).
+
+Status: 🧪
+
+## UC-OILIC-12 · Histórico de acessos e bloqueios da máquina · `must`
+
+**Dado** um acesso e um bloqueio com motivo da máquina, e um acesso de outra máquina **Quando** o
+drawer abre **Então** o histórico traz os dois eventos dela, com o motivo do bloqueio, e não o da outra.
+
+Status: 🧪
+
+## UC-OILIC-13 · Bloquear exige motivo · `must`
+
+**Dado** máquina liberada **Quando** o operador manda bloquear sem motivo, ou com menos de 5 letras
+**Então** recebe erro no motivo, a máquina segue liberada e nada vai para o histórico (protótipo
+`ConfirmMotivo`: mínimo 5, máximo 500).
+
+Status: 🧪
+
+## UC-OILIC-14 · O motivo fica no histórico do negócio do equipamento · `must` `[T0]`
+
+**Dado** o superadmin bloqueando máquina de OUTRO negócio, com motivo **Então** a máquina fica
+bloqueada, o histórico (`licenca_log`, `admin_action`) registra o evento com o `business_id` do
+equipamento, o autor e o motivo, e a mensagem que o desktop recebe (`licenca_computador.motivo`)
+não muda — a regra do bloqueio é a mesma de antes.
+
+Status: 🧪
+
+## UC-OILIC-15 · Clique repetido não desfaz · `should`
+
+**Dado** máquina já bloqueada **Quando** chega de novo o pedido de bloquear **Então** recebe erro e
+continua bloqueada. O toggle sem intenção (Blade e tela de Logs) segue funcionando sem motivo.
+
+Status: 🧪
+
 ## Backlog (sem teste ainda — não são UC até ganharem um)
 
 - [BACKLOG] KPI-filtros (Em campo · Sem acesso há 7 dias · Bloqueados · Vencendo em 30 dias) filtram a lista e se desligam no segundo clique — regra no cliente, sem teste.
 - [BACKLOG] Versão do executável abaixo da obrigatória do negócio fica em destaque — sem teste.
-- [BACKLOG] Drawer (ficha + histórico) e liberar/bloquear com motivo — PR-b da thread 06.
+- [BACKLOG] O drawer abre ao clicar no nome da máquina e o botão de bloquear só habilita com 5+ letras de motivo — regra no cliente, sem teste.

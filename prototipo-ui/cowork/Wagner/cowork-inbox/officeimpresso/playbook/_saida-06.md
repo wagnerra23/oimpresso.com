@@ -1,11 +1,11 @@
 ---
 sessao: "06"
-titulo: "Tela de licenças — PR-a (índice + KPI-filtros) — saída da thread"
+titulo: "Tela de licenças — PR-a (índice + KPI-filtros) + PR-b (drawer + bloquear com motivo) — saída da thread"
 autor: "[CL]"
 data: 2026-10-01
 base: origin/main 133e1fe00
 thread: 06-licencas.md
-veredito: "entregue PR-a — índice + KPI-filtros em Inertia atrás da flag useV2OfficeimpressoLicencas (OFF), com charter + casos + contrato + teste. PR-b (drawer + liberar/bloquear com motivo) pendente."
+veredito: "entregue PR-a (#8372) e PR-b — índice + KPI-filtros + drawer PT-02 (ficha + histórico) + liberar/bloquear com motivo, tudo atrás da flag useV2OfficeimpressoLicencas (OFF), com charter + casos (UC-OILIC-01..15) + contrato + teste."
 ---
 
 # _saida-06 · Licenças (PR-a)
@@ -43,7 +43,7 @@ sobre as linhas já escopadas: quem não vê os outros negócios não fica saben
   charter conforme `charter.schema.json`. Pest/PHPStan/tsc: só no CI do PR (não rodo local).
 
 ## Pendente (não inventado)
-1. **PR-b da thread 06**: drawer PT-02 (ficha + histórico) e liberar/bloquear com motivo obrigatório.
+1. ~~PR-b da thread 06~~ — entregue, ver a seção PR-b abaixo.
 2. **Decisão [W] — escopo do suporte nesta tela.** O `LicencaLogController::podeVerTodasEmpresas()`
    dá visão de todos os negócios a `officeimpresso.access` (relato do Luiz, 29/07), e a proposta de
    licenças diz que a tela é "do suporte". Aqui segui a regra do `index()` (só a sessão) porque o
@@ -59,8 +59,47 @@ sobre as linhas já escopadas: quem não vê os outros negócios não fica saben
 - `licencas-parity.md` cita `UC-LIC-*`, que colidem com os `UC-LIC-*` do Ponto
   (`LicencaAbonaDiaContratoTest`). Os casos desta tela usam `UC-OILIC-*`.
 
+## PR-b (2026-10-01) — drawer + liberar/bloquear com motivo
+Base: origin/main `81141329b` (com o #8372 dentro). Branch `claude/officeimpresso-thread-06b`.
+
+- **Drawer PT-02 (760px)** — `Licencas/_components/LicencaDrawer.tsx`, aberto ao clicar no nome da
+  máquina. Ficha (empresa, usuário do Windows, HD, sistema, IP, processador, memória, pasta, versões,
+  datas, mensagem que o desktop recebe) + histórico de acessos e bloqueios (`licenca_log`, 50 últimos).
+  Vem por `Inertia::optional('detalhe')` (`only: ['detalhe']`, `?licenca=`), com a MESMA regra de
+  visão da lista: fora do escopo devolve `null`.
+- **Senha nunca sai**: a ficha é DTO explícito; além de `senha`/`contra_senha`/`serial`/`token`,
+  também ficam de fora `usuario` e `conexao` (par de credencial do banco do desktop).
+- **Liberar/bloquear com motivo** — reusa a rota POST `/officeimpresso/licenca_computador/{id}/toggle-block`
+  e o `LicencaService::alternarBloqueio` (#8367). O drawer manda a intenção (`bloquear`) + `motivo`
+  (5 a 500, como o `ConfirmMotivo` do protótipo); sem `bloquear` (Blade e tela de Logs) o toggle
+  segue igual, sem motivo. Intenção já cumprida (clique repetido) dá erro e não inverte.
+- **Motivo sem coluna nova**: vai para `licenca_log` com `source = admin_action` — o mecanismo que o
+  próprio `LicencaLog` já documenta para *block/unblock* e que tem retenção declarada de 2555 dias
+  (`licenca_log_admin_actions` no `module.json`). `business_id` = o do **equipamento**, gravado explícito; NÃO usei
+  `Util::activityLog`, que pega o negócio da sessão (o superadmin age em outro negócio). Texto passa
+  pelo `PiiRedactor`. Sem migration.
+- **Regra do bloqueio intacta**: `licenca_computador.motivo` — a mensagem `N;<motivo>` que a API
+  devolve ao desktop — NÃO é reescrito. Teste UC-OILIC-14 trava isso.
+- Testes: UC-OILIC-10..15 em `LicencasIndexContratoTest.php` (mesma lane `officeimpresso-pest`).
+  Cross-tenant: UC-11 (ficha de outro negócio = null) e UC-14 (superadmin bloqueia máquina de outro
+  negócio → log no negócio do equipamento). Flag segue desligada.
+- Local: `contrato-de-tela --contract` limpo · `--map --check` limpo · `--anti-tautologia` 0
+  reprovados · `casos-coverage-guard` sem violação nova · `integrity-check` ok · charter conforme
+  schema · `SUPERFICIE.md` regenerado. Pest/PHPStan/tsc: só no CI do PR.
+
+### Pendente do PR-b (decisão [W], não inventado)
+5. **O motivo do operador deve virar a mensagem que o desktop mostra?** Hoje não vira (pedido: a
+   regra não muda). Se sim, é uma linha em `bloquearComMotivo()` gravando `licenca_computador.motivo`
+   — mas o texto passa a aparecer para o cliente final.
+6. **Alvo do bloqueio**: `toggle-block` age em máquina de qualquer negócio para quem tem
+   `officeimpresso.licencas.gerenciar` (por desenho: a WR2 atende os clientes — ver
+   `LicencaLogController::podeVerTodasEmpresas`). O drawer só oferece o botão para máquina que a
+   tela mostra, mas o endpoint não foi restringido, para não quebrar a tela de Logs.
+7. Revogar licença e bloqueio em lote (estão no protótipo) ficaram fora — não são da ficha 06.
+
 ## Placar
-entregue 1 de 2 PRs da thread (PR-a) · UCs 9 de 9 com teste · contrato 4 de 4 seções.
+entregue 2 de 2 PRs da thread (PR-a #8372 + PR-b) · UCs 15 de 15 com teste · contrato 4 de 4 seções.
 
 ## PR
-O PR que adiciona este arquivo — branch `claude/officeimpresso-thread-06`.
+PR-a: #8372 (branch `claude/officeimpresso-thread-06`). PR-b: o PR que traz esta seção — branch
+`claude/officeimpresso-thread-06b`.

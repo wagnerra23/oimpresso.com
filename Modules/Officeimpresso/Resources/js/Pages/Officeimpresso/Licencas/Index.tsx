@@ -7,8 +7,8 @@
 //   contrato: governance/design/contracts/officeimpresso-licencas.contract.json
 //   âncora:   prototipo-ui/cowork/Wagner/officeimpresso-page.jsx → ViewLicencas() (rota oi-licencas)
 //
-// Thread Officeimpresso/06 PR-a: índice + KPI-filtros. O drawer (ficha + histórico) e
-// liberar/bloquear com motivo são o PR-b. Senha nunca chega aqui: o payload é DTO explícito.
+// Thread Officeimpresso/06 — PR-a: índice + KPI-filtros · PR-b: drawer PT-02 (ficha + histórico)
+// e liberar/bloquear com motivo (_components/LicencaDrawer). Senha nunca chega: o payload é DTO.
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Deferred } from '@inertiajs/react';
@@ -22,6 +22,7 @@ import EmptyState from '@/Components/shared/EmptyState';
 import KpiCard from '@/Components/shared/KpiCard';
 import KpiGrid from '@/Components/shared/KpiGrid';
 import StatusBadge from '@/Components/shared/StatusBadge';
+import LicencaDrawer, { type Detalhe } from './_components/LicencaDrawer';
 
 interface Licenca {
   id: number; business_id: number; empresa: string | null; hostname: string | null; user_win: string | null;
@@ -29,7 +30,11 @@ interface Licenca {
   dt_ultimo_acesso: string | null; frescor: 'recente' | 'fresc' | 'frio' | 'distante';
   dt_validade: string | null; bloqueado: boolean; motivo: string | null; hd_compartilhado: number;
 }
-interface Props { permissions: { pode_ver_todas_empresas: boolean }; licencas?: Licenca[] }
+interface Props {
+  permissions: { pode_ver_todas_empresas: boolean; pode_gerenciar: boolean };
+  licencas?: Licenca[];
+  detalhe?: Detalhe | null;
+}
 type Kpi = 'campo' | 'sem7d' | 'bloqueados' | 'vencendo';
 
 const POR_PAGINA = 25;
@@ -49,8 +54,9 @@ const NA_REGRA: Record<Kpi, (l: Licenca) => boolean> = {
   vencendo: (l) => !!l.dt_validade && l.dt_validade >= hoje() && l.dt_validade <= daqui30(),
 };
 
-function LicencasIndex({ permissions, licencas }: Props) {
+function LicencasIndex({ permissions, licencas, detalhe }: Props) {
   const todas = permissions.pode_ver_todas_empresas;
+  const [aberta, setAberta] = useState<number | null>(null);
   return (
     <div className="pb-8">
       <div data-contract="header">
@@ -59,14 +65,15 @@ function LicencasIndex({ permissions, licencas }: Props) {
       </div>
       <div className="flex flex-col gap-4 px-6 pt-4">
         <Deferred data="licencas" fallback={<Skeleton className="h-64 w-full" />}>
-          <Lista licencas={licencas ?? []} todas={todas} />
+          <Lista licencas={licencas ?? []} todas={todas} abrir={setAberta} />
         </Deferred>
       </div>
+      <LicencaDrawer id={aberta} detalhe={detalhe} podeGerenciar={permissions.pode_gerenciar} onClose={() => setAberta(null)} />
     </div>
   );
 }
 
-function Lista({ licencas, todas }: { licencas: Licenca[]; todas: boolean }) {
+function Lista({ licencas, todas, abrir }: { licencas: Licenca[]; todas: boolean; abrir: (id: number) => void }) {
   const [q, setQ] = useState('');
   const [kpi, setKpi] = useState<Kpi | null>(null);
   const [pagina, setPagina] = useState(1);
@@ -116,7 +123,8 @@ function Lista({ licencas, todas }: { licencas: Licenca[]; todas: boolean }) {
               {visiveis.map((l) => (
                 <tr key={l.id} className="border-b align-top">
                   <td className="py-2">
-                    <b>{l.hostname || l.user_win || '—'}</b>
+                    <button type="button" className="font-semibold text-primary hover:underline" onClick={() => abrir(l.id)}
+                      title="Abrir ficha e histórico">{l.hostname || l.user_win || '—'}</button>
                     {l.hostname && l.user_win && <span className="text-muted-foreground"> · {l.user_win}</span>}
                     <div className="font-mono text-xs text-muted-foreground">{l.hd ?? '—'}</div>
                     {l.hd_compartilhado > 0 && (

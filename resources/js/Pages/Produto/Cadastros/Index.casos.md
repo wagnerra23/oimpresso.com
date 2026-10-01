@@ -3,7 +3,7 @@ id: resources-js-pages-produto-cadastros-index-casos
 casos: Produto · Cadastros de apoio · /units (abas)
 irmaos: Index.charter.md (lei) · Index.tsx (tela)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
-por_que: unidade e marca são referenciadas por todo produto. Apagar uma em uso deixa produto apontando pro nada; errar o escopo mostra cadastro de outro negócio; errar o desvio Inertia × DataTables entrega JSON cru no lugar da tela.
+por_que: unidade, categoria e marca são referenciadas por todo produto. Apagar uma em uso deixa produto apontando pro nada; errar o escopo mostra cadastro de outro negócio; errar o desvio Inertia × DataTables entrega JSON cru no lugar da tela.
 owner: wagner
 last_run: "2026-10-01"
 last_run_ci: "_pendente_ — o trio nasce na thread Produto/02. O veredito por UC entra no manifesto quando a lane estoque-pest rodar; até lá o Status é 🧪."
@@ -13,7 +13,8 @@ last_run_ci: "_pendente_ — o trio nasce na thread Produto/02. O veredito por U
 
 > **Âncora:** o [charter](Index.charter.md) (R1, R3, R4, R6 e os Anti-hooks), copiado do trio proposto
 > `cowork-inbox/produto-telas-novas/Cadastros.casos.md` (UC-CAD-01..16, F1 [CC] 2026-08-21), a ficha
-> `05-cadastros.md` do playbook e as permissões que as Blades já exigiam (`unit.*`, `brand.*`).
+> `05-cadastros.md` do playbook e as permissões que as Blades já exigiam (`unit.*`, `brand.*`,
+> `category.*` só para `category_type = product`).
 > Os UCs não derivam do `.tsx`. A coluna "origem" diz de qual UC-CAD cada um veio.
 
 ---
@@ -115,9 +116,50 @@ Status: 🧪
 
 ---
 
+## UC-PCADAP-09 · Aba Categorias: só as de produto, do meu negócio, pai seguido das filhas · `must` `[T0]`
+
+Origem: UC-CAD-10 ("Então": linha indentada e "em <pai>") · charter R7 · ficha 05 (`category.*` só quando `category_type == 'product'`).
+
+**Dado** que tenho `category.view`, e existem "Comunicação visual" com a subcategoria "Lonas", uma
+taxonomia de outro módulo e uma categoria de um negócio vizinho
+**Quando** abro `/units?aba=categorias`
+**Então** vejo "Comunicação visual" seguida de "Lonas" (que diz "em Comunicação visual"), o pai diz
+quantas subcategorias tem, e não vejo nem a taxonomia de outro módulo nem a do vizinho. Sem
+`category.view` a lista de categorias não vem.
+
+Status: 🧪
+
+---
+
+## UC-PCADAP-10 · Categoria em uso não sai, e a tela sabe antes · `must`
+
+Origem: UC-CAD-03 aplicado a Categorias · charter R4. Conta produto pela categoria **ou** pela subcategoria.
+
+**Dado** que 1 produto está na subcategoria "ACM"
+**Quando** abro a aba e depois tento excluir "ACM"
+**Então** a linha traz `em_uso = 1` e o servidor recusa dizendo quantos usam — "ACM" continua lá.
+
+Status: 🧪
+
+---
+
+## UC-PCADAP-11 · Categoria com subcategoria não sai · `must`
+
+Origem: UC-CAD-11, **com a regra trocada** (ver `_saida-02`): o protótipo levava as filhas junto; o
+legado apagava só o pai e deixava as filhas e os produtos apontando pra uma categoria apagada. Aqui o
+servidor recusa e diz por quê.
+
+**Dado** "Sinalização" com a subcategoria "Placas", sem produto
+**Quando** tento excluir "Sinalização"
+**Então** o servidor recusa dizendo que há 1 subcategoria dentro, e as duas continuam lá; excluída
+"Placas", "Sinalização" sai.
+
+Status: 🧪
+
+---
+
 ## Backlog (sem teste ainda — não é contrato até ganhar teste que o cite)
 
 - [BACKLOG] Criar e editar em modal na própria tela (UC-CAD-01, UC-CAD-02 "Quando", charter R2) — hoje vai pros modais da Blade (`?classico=1`).
-- [BACKLOG] Aba Categorias em Inertia (UC-CAD-10, UC-CAD-11) — pendente no `_saida-02`.
 - [BACKLOG] Abas Variações, Grupos de preço e Garantias (UC-CAD-08, UC-CAD-09, UC-CAD-13) — thread 03.
 - [BACKLOG] Marca da Oficina na lista (UC-CAD-12), atalho `/` e busca sem resultado (UC-CAD-06/07), estados primeira-vez/carregando/densidade (UC-CAD-14..16) — a tela já tem `/`, busca e primeira-vez; falta teste de browser.

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Brands;
+use App\Category;
 use App\Product;
 use App\Unit;
 use App\Utils\Util;
@@ -302,13 +303,14 @@ class UnitController extends Controller
             'update' => $user->can("{$base}.update"),
             'delete' => $user->can("{$base}.delete"),
         ];
-        $can = ['unidades' => $pode('unit'), 'marcas' => $pode('brand')];
+        // Categorias: só a taxonomia de produto (`category_type = product`), pela `category.*`.
+        $can = ['unidades' => $pode('unit'), 'categorias' => $pode('category'), 'marcas' => $pode('brand')];
 
         $visiveis = array_keys(array_filter($can, fn ($p) => $p['view']));
         if (! $visiveis) {
             abort(403, 'Unauthorized action.');
         }
-        $aba = in_array(request()->input('aba'), ['unidades', 'marcas'], true) ? request()->input('aba') : $visiveis[0];
+        $aba = in_array(request()->input('aba'), array_keys($can), true) ? request()->input('aba') : $visiveis[0];
 
         $emUso = fn (string $coluna, string $tabela) => DB::table('products')
             ->selectRaw('count(*)')
@@ -336,6 +338,7 @@ class UnitController extends Controller
                         : null,
                     'em_uso' => (int) $u->getAttribute('em_uso'),
                 ])->values()->all()) : null,
+            'categorias' => $can['categorias']['view'] ? Inertia::defer(fn () => $this->categoriasDeProduto($business_id)) : null,
             'marcas' => $can['marcas']['view'] ? Inertia::defer(fn () => Brands::where('brands.business_id', $business_id)
                 ->select('brands.id', 'brands.name', 'brands.description')
                 ->selectSub($emUso('brand_id', 'brands'), 'em_uso')
@@ -348,5 +351,55 @@ class UnitController extends Controller
                     'em_uso' => (int) $b->getAttribute('em_uso'),
                 ])->values()->all()) : null,
         ]);
+    }
+
+    /**
+     * Aba Categorias: pais em ordem de nome, cada um seguido das subcategorias (charter R7).
+     * `em_uso` conta produto pela categoria OU pela subcategoria; `filhas`, as subcategorias vivas.
+     * As duas contagens são as que o `TaxonomyController@destroy` usa para recusar a exclusão.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    private function categoriasDeProduto(int $business_id): array
+    {
+        $linhas = Category::where('categories.business_id', $business_id)
+            ->where('categories.category_type', 'product')
+            ->select('categories.id', 'categories.name', 'categories.short_code', 'categories.description', 'categories.parent_id')
+            ->selectSub(DB::table('products')->selectRaw('count(*)')
+                ->where('products.business_id', $business_id)
+                ->where(fn ($q) => $q->whereColumn('products.category_id', 'categories.id')
+                    ->orWhereColumn('products.sub_category_id', 'categories.id')), 'em_uso')
+            ->selectSub(DB::table('categories as filha')->selectRaw('count(*)')
+                ->whereColumn('filha.parent_id', 'categories.id')
+                ->where('filha.business_id', $business_id)
+                ->whereNull('filha.deleted_at'), 'filhas')
+            ->orderBy('categories.name')
+            ->get()
+            ->map(fn ($c) => [
+                'id' => (int) $c->getAttribute('id'),
+                'nome' => (string) $c->getAttribute('name'),
+                'codigo' => (string) $c->getAttribute('short_code'),
+                'descricao' => (string) $c->getAttribute('description'),
+                'pai_id' => (int) $c->getAttribute('parent_id') ?: null,
+                'em_uso' => (int) $c->getAttribute('em_uso'),
+                'filhas' => (int) $c->getAttribute('filhas'),
+            ])->values();
+
+        $nomes = $linhas->pluck('nome', 'id');
+        $ordem = [];
+        foreach ($linhas->whereNull('pai_id') as $pai) {
+            $ordem[] = $pai + ['pai' => null];
+            foreach ($linhas->where('pai_id', $pai['id']) as $filha) {
+                $ordem[] = $filha + ['pai' => $pai['nome']];
+            }
+        }
+        // Subcategoria cujo pai já foi excluído (o legado apagava só o pai): fica no fim, sem nome de pai.
+        foreach ($linhas->whereNotNull('pai_id') as $orfa) {
+            if (! $nomes->has($orfa['pai_id'])) {
+                $ordem[] = $orfa + ['pai' => null];
+            }
+        }
+
+        return $ordem;
     }
 }
