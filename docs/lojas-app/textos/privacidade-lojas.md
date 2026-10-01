@@ -1,6 +1,6 @@
 # oimpresso — Data Safety (Google) e App Privacy (Apple) · RASCUNHO
 
-> App único: ERP web inteiro no celular + ponto, empacotado com **Capacitor** (`com.oimpresso.app`) — decisão [W]
+> App único (decisões em [`../DECISOES.md`](../DECISOES.md)): telas do protótipo Mobile em `/m` sobre o mesmo backend do ERP, empacotado com **Capacitor** (`com.oimpresso.app`) — decisão [W]
 > 2026-10-01 na coordenação; o Expo de `mobile/` fica fora das lojas. Levantado do código em main (2026-10-01):
 > - Ponto (`MobileMarcacaoController@registrar`): `lat`, `lng`, `accuracy` (não gravada), `device_uuid`, `timestamp_device`.
 > - ERP web: login do oimpresso (sessão), cadastro de clientes (nome, CPF/CNPJ, contato), anexos de OS escolhidos pelo usuário.
