@@ -686,6 +686,12 @@ export default function Bens({ abas_contadores, bens, recortes_contagem, bem_sel
         detalhe={bem_detalhe && bem_detalhe.id === bem_selecionado ? bem_detalhe : bem_detalhe === null ? null : undefined}
         tiposCompra={opcoes.tipos_compra}
         onClose={() => detalhe(undefined)}
+        // Mesma permissão e mesmo destino da chave da linha (UC-BENS-12).
+        onEnviarManutencao={
+          permissoes.manutencao
+            ? (id) => router.get('/asset/asset-maintenance/create', { asset_id: id })
+            : undefined
+        }
       />
       {permissoes.editar && edicao ? (
         <CadastroBemDrawer

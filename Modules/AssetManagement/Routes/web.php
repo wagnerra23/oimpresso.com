@@ -17,7 +17,10 @@ Route::middleware('throttle:60,1', 'web', 'authh', 'auth', 'SetSessionData', 'la
     // que Bens.tsx e Manutencoes.tsx usam, continua registrado.
     Route::resource('assets', Modules\AssetManagement\Http\Controllers\AssetController::class)->except(['show']);
     Route::resource('allocation', Modules\AssetManagement\Http\Controllers\AssetAllocationController::class)->except(['show']);
-    Route::resource('revocation', Modules\AssetManagement\Http\Controllers\RevokeAllocatedAssetController::class)->except(['show']);
+    // `revocation` também sem `edit`/`update` (2026-09-30): `edit` devolvia view inexistente e
+    // `update` tinha corpo vazio; nenhum link, action() nem request da UI chegava neles (_saida-18).
+    // O DELETE na mesma URI (Excluir devolução, `_alocacoes/Drawers.tsx`) segue registrado.
+    Route::resource('revocation', Modules\AssetManagement\Http\Controllers\RevokeAllocatedAssetController::class)->except(['show', 'edit', 'update']);
     // 'as'=>'asset' prefixa route names → asset.settings.{index,create,...}
     // Evita colisão com Route::resource('/settings', Manufacturing\SettingsController)
     // (route:cache falhava com "Another route has already been assigned name [settings.index]").

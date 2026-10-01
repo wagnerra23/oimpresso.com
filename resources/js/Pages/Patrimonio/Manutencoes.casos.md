@@ -130,6 +130,10 @@ last_run: "2026-09-30"
   com o `X-Requested-With` que o cliente Inertia manda sempre); e
   `tests/js/patrimonio-manutencoes-drawer.test.tsx` — o drawer, as chaves postadas, o controle
   sem drawer e o `min-h-11`.
+- **Foco devolvido** (a11y, 2026-09-30): fechar o drawer devolve o foco a quem o abre — o lápis
+  da própria linha (editar) ou "+ Enviar bem pra manutenção", inclusive com a página aberta direto
+  pela URL. Medido em produção antes do conserto: foco no `BODY` (`_saida-19b`). Teste:
+  `tests/js/patrimonio-manutencoes-foco.test.tsx` (3 casos; sem o conserto, os 3 caem).
 - **Regressão que defende:** o ramo `if (request()->ajax()) return view(...)` que o `create`/
   `edit` tinham — toda visita Inertia é ajax, e ele devolvia fragmento de modal jQuery (página
   em branco). E o Non-Goal de dinheiro: o drawer não oferece custo (UC-MANU-03).
