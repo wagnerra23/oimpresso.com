@@ -5,7 +5,7 @@ autor: "[CL]"
 criado: 2026-10-01
 base: 55cdb3dcf
 thread: 01-telas-legadas.md §01–07 (item 02)
-veredito: "entregue em 2 PRs (backend #8491 → tela) — Page PT-01 + drawer PT-02, nenhuma rota nova; 1 PARAR SE disparou (PR > 300 linhas) e foi tratado partindo em backend → tela; veredito dos testes pendente da lane sells-pest."
+veredito: "entregue em 2 PRs (backend #8491 → tela #8493) — Page PT-01 + drawer PT-02, nenhuma rota nova; 1 PARAR SE disparou (PR > 300 linhas) e foi tratado partindo em backend → tela; veredito dos testes pendente da lane sells-pest."
 ---
 
 # _saída 02 · Remessas → `Sells/Shipments/Index`
@@ -14,10 +14,10 @@ veredito: "entregue em 2 PRs (backend #8491 → tela) — Page PT-01 + drawer PT
 
 | PR | arquivos | o quê |
 |---|---|---|
-| [#8491](https://github.com/wagnerra23/oimpresso.com/pull/8491) backend | `app/Http/Controllers/SellController.php` (`shipments` + `editShipping`) · `tests/Feature/Sells/SellsShipmentsContratoTest.php` · `.github/workflows/sells-pest.yml` · `memory/requisitos/Sells/RUNBOOK-shipments.md` | branch Inertia em `shipments()` (golden `getDrafts`, Blade como fallback) · `editShipping` responde JSON quando o cliente pede JSON · UC-REM-01/02/05/06/07 |
-| tela (este) | `resources/js/Pages/Sells/Shipments/Index.tsx` · `_components/EditarRemessaSheet.tsx` · `Index.charter.md` · `Index.casos.md` · UC-REM-03/04 no mesmo teste · `memory/requisitos/Sells/SUPERFICIE.md` (regerado) | lista PT-01 + drawer PT-02 760px |
+| [#8491](https://github.com/wagnerra23/oimpresso.com/pull/8491) backend | `app/Http/Controllers/SellController.php` (`editShipping`) · `tests/Feature/Sells/SellsShipmentsContratoTest.php` · `.github/workflows/sells-pest.yml` · `memory/requisitos/Sells/RUNBOOK-shipments.md` | `editShipping` responde JSON quando o cliente pede JSON · UC-REM-01/02/05/06 (metade drawer) |
+| [#8493](https://github.com/wagnerra23/oimpresso.com/pull/8493) tela | `SellController@shipments` (branch Inertia, golden `getDrafts`, Blade como fallback) · `resources/js/Pages/Sells/Shipments/Index.tsx` · `_components/EditarRemessaSheet.tsx` · `Index.charter.md` · `Index.casos.md` · UC-REM-03/04/06/07 no mesmo teste · `memory/requisitos/Sells/SUPERFICIE.md` (regerado) | lista PT-01 + drawer PT-02 760px |
 
-Prova da thread: `SellController.php` contém `Inertia::render('Sells/Shipments/Index'` (PR backend).
+Prova da thread: `SellController.php` contém `Inertia::render('Sells/Shipments/Index'` — entra no #8493, junto com a page, porque o `OrphanRenderGateTest` (required) reprova render sem page existente. Na 1ª versão do #8491 o render ia no backend; a divisão foi refeita antes do veredito do gate.
 
 ## Como a tela fala com o backend (sem rota nova)
 
@@ -39,7 +39,7 @@ Upload/lista de documentos da remessa (`shipping_document`) e o histórico de at
 
 ## PARAR SE
 
-- **PR > 300 linhas — disparou.** Tela + drawer ≈ 430 linhas de TSX. Tratado como manda o §PARAR SE: partido em backend (#8491) → tela. O PR da tela ainda passa de 300 linhas sozinho (lista + drawer formam uma unidade); declarado no PR.
+- **PR > 300 linhas — disparou.** Tela + drawer ≈ 430 linhas de TSX. Tratado como manda o §PARAR SE: partido em backend (#8491) → tela (#8493). O PR da tela ainda passa de 300 linhas sozinho (lista + drawer formam uma unidade); declarado no PR.
 - Rota nova — não disparou. Tela de valor — não se aplica (remessa não mexe em total).
 
 ## Provas locais

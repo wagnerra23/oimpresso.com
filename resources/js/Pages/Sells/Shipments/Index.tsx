@@ -4,7 +4,7 @@
 // (GET /sells?only_shipments=true); edição pelo drawer PT-02 que salva no updateShipping existente.
 // Refs: ADR 0104 (MWART) · ADR 0093 (multi-tenant) · RUNBOOK memory/requisitos/Sells/RUNBOOK-shipments.md
 import AppShellV2 from '@/Layouts/AppShellV2';
-import { Head, Link } from '@inertiajs/react';
+import { Deferred, Head, Link } from '@inertiajs/react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { MoreHorizontal } from 'lucide-react';
 import { toast } from 'sonner';
@@ -170,7 +170,10 @@ export default function ShipmentsIndex(props: ShipmentsPageProps) {
 
         <section data-contract="filtros" className="grid gap-3 rounded-lg border border-border bg-card p-4 sm:grid-cols-2 lg:grid-cols-4">
           <FiltroSelect rotulo="Local do negócio" valor={f.location_id ?? ''} opcoes={filters.businessLocations} onChange={(v) => filtrar('location_id', v)} />
-          <FiltroSelect rotulo="Cliente" valor={f.customer_id ?? ''} opcoes={filters.customers ?? {}} onChange={(v) => filtrar('customer_id', v)} />
+          {/* `filters.customers` é Inertia::defer (lista grande) — enquanto não chega, o filtro fica só com "Todos". */}
+          <Deferred data="filters.customers" fallback={<FiltroSelect rotulo="Cliente" valor="" opcoes={{}} onChange={() => {}} />}>
+            <FiltroSelect rotulo="Cliente" valor={f.customer_id ?? ''} opcoes={filters.customers ?? {}} onChange={(v) => filtrar('customer_id', v)} />
+          </Deferred>
           <div className="flex flex-col gap-1 text-xs text-muted-foreground">
             <label htmlFor="rem-de">Período — de</label>
             <Input id="rem-de" type="date" value={f.start_date ?? ''} onChange={(e) => filtrar('start_date', e.target.value)} />
