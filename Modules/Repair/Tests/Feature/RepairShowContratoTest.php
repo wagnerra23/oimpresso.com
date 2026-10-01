@@ -216,3 +216,36 @@ it('UC-RSHW-04 · o valor sai formatado em pt-BR, e o número cru vai junto', fu
     // e o número cru sobrevive: quem recalcular não reparseia a string
     expect((float) $r->json('props.sell.final_total'))->toBe(1234.56);
 });
+
+it('UC-RSHW-05 · "Editar" leva à edição de reparo do POS — e só para venda de reparo do próprio business', function () {
+    $biz = $this->seededTenant();
+    $venda = rshwVenda((int) $biz->id, 'EDITAR');
+    $usuario = rshwUser((int) $biz->id, ['repair.view', 'repair.update']);
+    rshwSessao((int) $biz->id, (int) $usuario->id);
+
+    $destino = action([\App\Http\Controllers\SellPosController::class, 'edit'], [$venda->id]).'?sub_type=repair';
+
+    // Clique pelo <Link> do React (X-Inertia): 409 + X-Inertia-Location → página inteira.
+    $pelaTela = $this->actingAs($usuario)
+        ->withHeaders(['X-Inertia' => 'true', 'X-Inertia-Version' => rshwInertiaVersion()])
+        ->get('/repair/repair/'.$venda->id.'/edit');
+    $pelaTela->assertStatus(409);
+    expect($pelaTela->headers->get('X-Inertia-Location'))->toBe($destino);
+
+    // Visita comum (link aberto direto): 302 pro mesmo destino.
+    $this->flushHeaders()->actingAs($usuario)
+        ->get('/repair/repair/'.$venda->id.'/edit')
+        ->assertRedirect($destino);
+
+    // Venda COMUM do mesmo business não é reparo: 404, não abre edição de reparo.
+    $comum = rshwVenda((int) $biz->id, 'EDITAR-COMUM', ['sub_type' => null]);
+    $this->actingAs($usuario)->get('/repair/repair/'.$comum->id.'/edit')->assertNotFound();
+
+    // Venda de reparo de OUTRO business: 404 (Tier 0).
+    $outro = (int) DB::table('business')->where('id', '!=', $biz->id)->orderBy('id')->value('id');
+    if ($outro === 0) {
+        test()->markTestSkipped('Sem 2º business semeado pro adversário cross-tenant.');
+    }
+    $alheia = rshwVenda($outro, 'EDITAR-ALHEIA');
+    $this->actingAs($usuario)->get('/repair/repair/'.$alheia->id.'/edit')->assertNotFound();
+});
