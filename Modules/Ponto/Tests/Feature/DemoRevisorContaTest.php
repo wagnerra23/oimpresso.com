@@ -84,21 +84,61 @@ it('DEMO-01: cria business isolado (fora de 1/4/98), revisor sem permissão, cad
     expect((bool) $colab->controla_ponto)->toBeTrue();
     expect(DB::table('ponto_escala_turnos')->where('escala_id', $colab->escala_atual_id)->count())->toBe(5);
 
-    // O dono técnico (que recebe o Admin#) não entra.
+    // O dono técnico não entra.
     expect((int) DB::table('users')->where('id', $biz->owner_id)->value('allow_login'))->toBe(0);
 
-    // Senha: no arquivo, nunca na saída.
-    $senha = trim((string) file_get_contents($arquivo));
-    expect(strlen($senha))->toBeGreaterThanOrEqual(20);
-    expect(str_contains($saida, $senha))->toBeFalse();
+    // Gestor: Admin# DESTE business, com login.
+    $g = User::where('username', DemoRevisorCommand::GESTOR_USERNAME)->firstOrFail();
+    expect((int) $g->business_id)->toBe((int) $biz->id);
+    expect((int) $g->allow_login)->toBe(1);
+    expect($g->getRoleNames()->all())->toBe(['Admin#' . $biz->id]);
 
-    // 2ª rodada: nada duplica, senha mantida.
-    [$rc2] = drvRodar();
+    // Senhas: uma linha "<username> <senha>" por conta no arquivo, nunca na saída.
+    $senhas = [];
+    foreach (array_filter(explode("\n", (string) file_get_contents($arquivo))) as $linha) {
+        [$quem, $s] = explode(' ', trim($linha), 2);
+        $senhas[$quem] = $s;
+    }
+    expect(array_keys($senhas))->toEqualCanonicalizing([DemoRevisorCommand::REVISOR_USERNAME, DemoRevisorCommand::GESTOR_USERNAME]);
+    foreach ($senhas as $s) {
+        expect(strlen($s))->toBeGreaterThanOrEqual(20);
+        expect(str_contains($saida, $s))->toBeFalse();
+    }
+    expect($senhas[DemoRevisorCommand::REVISOR_USERNAME])->not->toBe($senhas[DemoRevisorCommand::GESTOR_USERNAME]);
+
+    // 2ª rodada: nada duplica, senhas mantidas, nenhuma senha nova gerada.
+    [$rc2, , $arquivo2] = drvRodar();
     expect($rc2)->toBe(0);
+    expect(trim((string) file_get_contents($arquivo2)))->toBe('');
     expect(DB::table('business')->where('name', DemoRevisorCommand::BUSINESS_NOME)->count())->toBe(1);
     expect(User::where('username', DemoRevisorCommand::REVISOR_USERNAME)->count())->toBe(1);
+    expect(User::where('username', DemoRevisorCommand::GESTOR_USERNAME)->count())->toBe(1);
     expect(DB::table('ponto_colaborador_config')->where('user_id', $u->id)->count())->toBe(1);
-    expect(\Illuminate\Support\Facades\Hash::check($senha, User::find($u->id)->password))->toBeTrue();
+    expect(\Illuminate\Support\Facades\Hash::check($senhas[DemoRevisorCommand::REVISOR_USERNAME], User::find($u->id)->password))->toBeTrue();
+    expect(\Illuminate\Support\Facades\Hash::check($senhas[DemoRevisorCommand::GESTOR_USERNAME], User::find($g->id)->password))->toBeTrue();
+});
+
+it('DEMO-06: isolamento do gestor — vê o Ponto do business demo, nunca o colaborador do outro tenant', function () {
+    $outroUser = DB::table('users')->insertGetId([
+        'first_name' => 'DRV outro', 'username' => 'drv_outro_' . uniqid(), 'password' => 'x',
+        'business_id' => DRV_OUTRO_BIZ, 'created_at' => now(), 'updated_at' => now(),
+    ]);
+    $matriculaAlheia = 'DRVALHEIO' . random_int(1000, 9999);
+    DB::table('ponto_colaborador_config')->insert([
+        'business_id' => DRV_OUTRO_BIZ, 'user_id' => $outroUser, 'matricula' => $matriculaAlheia,
+        'controla_ponto' => true, 'admissao' => '2020-01-01', 'created_at' => now(), 'updated_at' => now(),
+    ]);
+
+    drvRodar();
+    $g = User::where('username', DemoRevisorCommand::GESTOR_USERNAME)->firstOrFail();
+    app(PermissionRegistrar::class)->forgetCachedPermissions();
+    session(['user.business_id' => (int) $g->business_id, 'business.id' => (int) $g->business_id]);
+    $this->actingAs($g);
+
+    $r = $this->inertiaGet('/ponto/colaboradores');
+    $r->assertOk();
+    expect($r->getContent())->toContain('DEMO-0001');
+    expect($r->getContent())->not->toContain($matriculaAlheia);
 });
 
 it('DEMO-02: o revisor bate ponto em /ponto/mobile e a marcação nasce no business demo', function () {

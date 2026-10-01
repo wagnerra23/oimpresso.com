@@ -3,8 +3,8 @@
 > Texto para colar em **App Store Connect → App Review Information → Notes** e em
 > **Google Play Console → Acesso ao app**. A conta é criada por
 > `php artisan ponto:demo-revisor` num business de demonstração isolado (nunca um cliente real).
-> **A senha não está aqui:** fica no Vaultwarden, item `ponto-demo-revisor`. Quem preenche a loja
-> copia de lá. O usuário é `revisor.ponto`.
+> **As senhas não estão aqui:** ficam no Vaultwarden, itens `ponto-demo-revisor` e `ponto-demo-gestor`.
+> Quem preenche a loja copia de lá. Duas contas ([W] 2026-10-01 "ok duas contas, colaborador e gestor").
 >
 > Decisão [W] 2026-10-01: o ponto abre no app como webview de `/ponto/mobile`.
 
@@ -12,12 +12,13 @@
 
 ## Português
 
-**Login de demonstração**
-- Usuário: `revisor.ponto`
-- Senha: informada no campo de senha da conta de demonstração
+**Duas contas de demonstração**
+- **Colaborador** — usuário `revisor.ponto`: abre direto no ponto. É a conta para testar o registro de ponto.
+- **Gestor** — usuário `gestor.demo`: vê o ERP da empresa de demonstração (todos os dados são fictícios).
+- As senhas estão informadas no campo de credenciais da revisão.
 
 **O que testar**
-1. Abra o app e entre com o usuário acima.
+1. Abra o app e entre com a conta **Colaborador** (`revisor.ponto`).
 2. Na tela **Bater ponto**, permita a localização quando o sistema pedir.
 3. Escolha o tipo (Entrada, Saída almoço, Retorno ou Saída) e toque em **Bater ponto**.
 4. A marcação aparece em **Hoje**, com o número sequencial (NSR) dado pelo servidor.
@@ -39,12 +40,13 @@ O funcionário pede a exclusão ao empregador ou pela página pública de exclus
 
 ## English
 
-**Demo login**
-- Username: `revisor.ponto`
-- Password: provided in the demo account password field
+**Two demo accounts**
+- **Employee** — username `revisor.ponto`: opens straight into time clock. Use it to test clocking in.
+- **Manager** — username `gestor.demo`: sees the demo company's ERP (all data is fictitious).
+- Passwords are provided in the review credentials field.
 
 **What to test**
-1. Open the app and sign in with the account above.
+1. Open the app and sign in with the **Employee** account (`revisor.ponto`).
 2. On the **Bater ponto** (clock in) screen, allow location access when prompted.
 3. Choose the punch type (Entrada = clock in, Saída almoço = lunch out, Retorno = back from lunch, Saída = clock out) and tap **Bater ponto**.
 4. The punch shows under **Hoje** (Today), with the sequence number (NSR) issued by the server.
