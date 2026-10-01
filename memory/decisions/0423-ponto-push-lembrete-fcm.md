@@ -1,6 +1,6 @@
 ---
-slug: 0422-ponto-push-lembrete-fcm
-number: 422
+slug: 0423-ponto-push-lembrete-fcm
+number: 423
 title: "Ponto — lembrete de bater ponto por push (FCM HTTP v1, token por usuário+business, scheduler existente, opt-out)"
 type: adr
 status: proposto
@@ -22,7 +22,7 @@ related:
 pii: false
 ---
 
-# ADR 0422 — Ponto: lembrete de bater ponto por push
+# ADR 0423 — Ponto: lembrete de bater ponto por push
 
 ## Contexto
 
