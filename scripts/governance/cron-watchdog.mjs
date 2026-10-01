@@ -149,8 +149,47 @@ export function interpretarResposta(r) {
 // Filtra o JSON em JS (sem `--jq`): evita o quoting de aspas simples que o cmd.exe do
 // Windows quebra (execSync usa cmd no Win, sh no CI) — cross-platform + testável local.
 // `conclusion` vem na MESMA chamada (custo zero de API) e alimenta o eixo 3.
-function lastScheduledRun(file) {
-  return interpretarResposta(gh(`run list --workflow ${file} --event schedule --status completed --limit 1 --json createdAt,conclusion`));
+//
+// `tentativa` escolhe a FORMA da URL (ver `argsConsulta` e o bloco CONFIRMAÇÃO): a 1ª
+// leitura é a de sempre; as re-consultas perguntam por outra chave, porque o retrato
+// velho medido em 2026-09-30 era servido pela MESMA URL nas 3 leituras seguidas.
+function lastScheduledRun(file, tentativa = 0) {
+  const { args, formato } = argsConsulta(file, tentativa);
+  const r = gh(args);
+  return formato === 'api' ? interpretarRespostaApi(r) : interpretarResposta(r);
+}
+
+/**
+ * As formas de perguntar "qual a última run agendada?". A 0 é a histórica
+ * (`gh run list`, que vira `…/runs?per_page=1&exclude_pull_requests=true&status=completed
+ * &event=schedule`). As outras mudam `per_page` e tiram `exclude_pull_requests` — chaves
+ * de cache diferentes para a MESMA pergunta. Ver o bloco CONFIRMAÇÃO para a medição.
+ */
+export function argsConsulta(file, tentativa = 0) {
+  const base = `api "repos/{owner}/{repo}/actions/workflows/${file}/runs?event=schedule&status=completed`;
+  const formas = [
+    { args: `run list --workflow ${file} --event schedule --status completed --limit 1 --json createdAt,conclusion`, formato: 'run-list' },
+    { args: `${base}&per_page=3"`, formato: 'api' },
+    { args: `${base}&per_page=10&exclude_pull_requests=false"`, formato: 'api' },
+  ];
+  return formas[Math.min(Math.max(tentativa, 0), formas.length - 1)];
+}
+
+/**
+ * Mesmo contrato de `interpretarResposta`, para a resposta crua da REST API
+ * (`{ total_count, workflow_runs: [...] }`). Fica com a run de `created_at` MAIS
+ * RECENTE da página em vez de confiar na ordem — custo zero e não depende de a API
+ * ordenar como hoje ordena.
+ */
+export function interpretarRespostaApi(r) {
+  if (!r || r.ok !== true) return { ok: false };
+  try {
+    const runs = JSON.parse(r.out || '{}').workflow_runs;
+    if (!Array.isArray(runs)) return { ok: false };
+    if (!runs.length) return { ok: true, at: '' };
+    const top = runs.reduce((a, b) => ((b.created_at || '') > (a.created_at || '') ? b : a));
+    return { ok: true, at: top.created_at || '', conclusion: top.conclusion || '' };
+  } catch { return { ok: false }; }
 }
 
 /**
@@ -381,6 +420,36 @@ function lerRegistroSilencios() {
  * um vermelho VERDADEIRO; este é o instrumento não afirmar vermelho FALSO. Suprimir
  * alarme errado com silêncio seria esconder defeito de medição atrás de bookkeeping.
  */
+/*
+ * EMENDA 2026-09-30 — as N amostras NÃO eram independentes.
+ *
+ * Três vezes em 3 dias o eixo 1 acusou MORTO DEPOIS de "↻ 2 re-consulta(s)" — as 3
+ * leituras saíram velhas e iguais, e o `max()` não tinha com que comparar:
+ *   · run 36582588705 (09-29 14:37Z) · governance-drift.yml · leu 2026-08-28T20:57:52Z
+ *   · run 36733387496 tentativa 1 (09-30 15:02Z, PR #8264) · mcp-drift-sentinel.yml ·
+ *     leu 2026-08-29T08:11:30Z — re-executado sem investigar, a tentativa 2 passou
+ *   · run 36737056880 (09-30 15:30Z, PR #8275) · mcp-drift-sentinel.yml · leu o MESMO
+ *     2026-08-29T08:11:30Z, 28 min depois
+ * A cron tinha run agendada horas antes nos três. Denominador: 687 runs do umbrella em
+ * 09-28→10-01 (contando a tentativa 1 dos 3 re-executados); o eixo 1 só derrubou nesses 3.
+ *
+ * O que a medição local mostrou (2026-10-01, ~10:55Z):
+ *   · a forma de `gh run list` (`per_page=1&exclude_pull_requests=true`) voltou velha
+ *     4 vezes — 2 via `gh run list` e 2 de 30 via `gh api` na URL idêntica, com
+ *     `total_count` 427 e 1415 onde o verdadeiro é 1532 (retrato inteiro, como em 08-13);
+ *   · as outras 3 formas (`per_page=1` sem o filtro, `per_page=3` com e sem) voltaram
+ *     0 velhas em 90;
+ *   · todas as datas velhas vistas caem em ~08-28/29 ou 09-13 — retratos antigos
+ *     PERSISTENTES, não atraso de minutos.
+ * Uma rajada de 25×3 leituras na forma velha, logo depois, voltou 0 velhas: a
+ * correlação dentro da rajada NÃO foi reproduzida sob demanda. O que está provado é o
+ * desfecho no CI (3 leituras, 3 velhas, 2 vezes em 3 dias) e que a forma importa.
+ * Chamar o mecanismo de "cache por chave de URL" seria inferir causa de sintoma.
+ *
+ * Conserto: cada re-consulta pergunta por OUTRA forma (`argsConsulta`). Continua seguro
+ * pelo mesmo argumento: toda forma só pode SUBESTIMAR a última run, então o `max()`
+ * segue incapaz de silenciar cron morto de verdade.
+ */
 const CONFIRMACOES = 3;
 
 /**
@@ -441,7 +510,7 @@ export function confirmarHeartbeat(consultar, file, limiteDias, nowMs, tentativa
   const fresca = (a) => a && a.ok === true && a.at
     && Math.floor((nowMs - new Date(a.at).getTime()) / 86400000) <= limiteDias;
   const amostras = [consultar(file)];
-  while (amostras.length < tentativas && !fresca(melhorAmostra(amostras))) amostras.push(consultar(file));
+  while (amostras.length < tentativas && !fresca(melhorAmostra(amostras))) amostras.push(consultar(file, amostras.length));
   return { ...melhorAmostra(amostras), leituras: amostras.length };
 }
 
@@ -468,7 +537,7 @@ export function avaliarCrons(wfs, consultar, nowMs, ativos = new Map(), tentativ
     const amostras = [consultar(file)]; // UMA consulta alimenta os eixos 1 e 3
     // Só quem ia alarmar paga confirmação; para assim que uma amostra desmentir o alarme.
     while (amostras.length < tentativas && precisaConfirmar(cron, melhorAmostra(amostras), nowMs)) {
-      amostras.push(consultar(file));
+      amostras.push(consultar(file, amostras.length)); // outra FORMA de URL (emenda 09-30)
       reconsultas++;
     }
     const consulta = melhorAmostra(amostras);
@@ -947,8 +1016,45 @@ if (EH_MAIN && ARGS.has('--selftest')) {
   ok(confirmarHeartbeat(() => ({ ok: false }), 'memory-health.yml', LIM_CAN, NOW_CAN).ok === false,
     'CEGO: não medir devolve ok=false → o canário falha fechado, nunca lê vazio como "sem run"');
 
+  // ── EMENDA 2026-09-30: as 3 leituras velhas e IGUAIS (amostras correlacionadas) ──
+  // Dados REAIS: run 36737056880 (09-30 15:30Z) leu 2026-08-29T08:11:30Z nas 3
+  // leituras; a última run agendada de verdade era de horas antes. O falso decide pela
+  // STRING da consulta — se `argsConsulta` voltar a perguntar sempre igual, o assert cai.
+  const NOW_0930 = Date.parse('2026-09-30T15:30:12Z');
+  const MDS_STALE = { ok: true, at: '2026-08-29T08:11:30Z', conclusion: 'success' };
+  const MDS_FRESCO = { ok: true, at: '2026-09-30T08:51:00Z', conclusion: 'success' };
+  // Velho = a forma 0 DAQUELE arquivo. (1ª versão comparava contra a forma 0 de um
+  // arquivo fixo e o assert do canário, chamado com outro arquivo, passava em vácuo —
+  // pego por mutante antes do commit.)
+  const porForma = (f, i = 0) => (argsConsulta(f, i).args === argsConsulta(f, 0).args ? MDS_STALE : MDS_FRESCO);
+
+  const formas = [0, 1, 2].map((i) => argsConsulta('x.yml', i).args);
+  ok(new Set(formas).size === CONFIRMACOES,
+    `as ${CONFIRMACOES} leituras perguntam por ${CONFIRMACOES} FORMAS distintas (chaves diferentes p/ a mesma pergunta)`);
+  ok(formas.every((a) => /event[= ]schedule/.test(a) && /status[= ]completed/.test(a) && a.includes('x.yml')),
+    'e todas seguem perguntando a MESMA coisa: última run AGENDADA e COMPLETA daquele workflow');
+
+  const avCorr = avaliarCrons([{ file: 'mcp-drift-sentinel.yml', cron: '*/30 * * * *' }], porForma, NOW_0930);
+  ok(avCorr.dead.length === 0 && avCorr.estados[0] === 'vivo' && avCorr.reconsultas === 1,
+    'MORDE O FALSO-ALARME de 09-30: forma 0 SEMPRE velha (correlação total) → a 2ª forma desmente → vivo');
+  ok(confirmarHeartbeat(porForma, 'memory-health.yml', LIM_CAN, NOW_0930).at === MDS_FRESCO.at,
+    'e o canário single-cron recebe o MESMO conserto (fresca vem da 2ª forma)');
+  const avCorrMorto = avaliarCrons([{ file: 'mcp-drift-sentinel.yml', cron: '*/30 * * * *' }], () => MDS_STALE, NOW_0930);
+  ok(avCorrMorto.dead.length === 1,
+    'LIBERA O ALARME REAL: velho em TODAS as formas → segue MORTO (variar a forma não silencia)');
+
+  // Parser da forma `gh api` (resposta crua da REST): mesmo contrato do de `gh run list`.
+  ok(interpretarRespostaApi({ ok: true, out: '{"total_count":2,"workflow_runs":[{"created_at":"2026-09-29T23:25:00Z","conclusion":"success"},{"created_at":"2026-09-30T08:51:00Z","conclusion":"failure"}]}' }).at === '2026-09-30T08:51:00Z',
+    'interpretarRespostaApi: fica com a MAIS RECENTE da página (não confia na ordem) e leva a conclusion dela');
+  ok(interpretarRespostaApi({ ok: true, out: '{"total_count":0,"workflow_runs":[]}' }).at === '',
+    'interpretarRespostaApi: página vazia → perguntei e NÃO houve run (bootstrap)');
+  ok(interpretarRespostaApi({ ok: true, out: '{"message":"Not Found"}' }).ok === false
+    && interpretarRespostaApi({ ok: true, out: '<html>' }).ok === false
+    && interpretarRespostaApi({ ok: false }).ok === false,
+    'interpretarRespostaApi: erro da API / JSON quebrado / gh falhou → CEGO, nunca "sem run" (lápide 07-29)');
+
   let nBoot = 0;
-  const hbBoot = confirmarHeartbeat(() => (++nBoot === 1 ? { ok: true, at: '' } : CAN_FRESCO), 'memory-health.yml', LIM_CAN, NOW_CAN);
+  const hbBoot =confirmarHeartbeat(() => (++nBoot === 1 ? { ok: true, at: '' } : CAN_FRESCO), 'memory-health.yml', LIM_CAN, NOW_CAN);
   ok(hbBoot.at === CAN_FRESCO.at,
     'BOOTSTRAP paga re-consulta (divergência deliberada do laço principal: no canário ele sai VERDE)');
 
