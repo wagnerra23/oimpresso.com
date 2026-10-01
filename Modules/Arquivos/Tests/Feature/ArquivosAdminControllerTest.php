@@ -152,9 +152,11 @@ it('UC-INDEX-01 · o controller NAO carrega storage_path nem md5 (LGPD Art. 37)'
     expect($codigo)->not->toContain('md5');
 })->group('arquivos', 'lgpd');
 
-it('UC-INDEX-01 · a tela e LEITURA PURA — nenhum caminho escreve, apaga ou enfileira', function () {
+it('UC-INDEX-01 · nenhum caminho apaga, enfileira ou grava o model direto', function () {
     // Anti-regressão do casos.md: "Nenhum caminho de upload nesta tela" +
-    // "Excluir nunca chama hard-delete direto". Na onda 1 nem existe mutação.
+    // "Excluir nunca chama hard-delete direto". Na onda 1 nem existia mutação; desde a
+    // thread 02 a única escrita é `classificar()`, e ela passa pelo `ArquivosService` —
+    // por isso a lista abaixo segue valendo pro arquivo INTEIRO (UC-INDEX-07).
     $codigo = arquivosCodigoSemComentarios(base_path('Modules/Arquivos/Http/Controllers/ArquivosAdminController.php'));
 
     foreach (['->delete(', '->save(', '->update(', 'dispatch(', 'forceDelete('] as $proibido) {
@@ -1054,6 +1056,122 @@ afterEach(function () {
     // `delete()` direto na tabela porque o model tem SoftDeletes: um soft-delete deixaria
     // a linha lá, e o próximo teste contaria o lixo do anterior.
     if (Schema::hasTable('arquivos')) {
+        // UC-INDEX-07 escreve na trilha pelo id REAL da fixture (não pelo sentinela de
+        // `arquivosTrilhaFixtureId`). Sai antes da linha-mãe, senão o id se perde.
+        if (Schema::hasTable('arquivos_audit_log')) {
+            DB::table('arquivos_audit_log')
+                ->whereIn('arquivo_id', DB::table('arquivos')->where('disk', arquivosCofreDisco())->pluck('id'))
+                ->delete();
+        }
+
         DB::table('arquivos')->where('disk', arquivosCofreDisco())->delete();
     }
 });
+
+/*
+| UC-INDEX-07 · Classificar (onda 2 · PR-6 · thread 02 do playbook).
+| O Request é montado à mão e o método chamado direto, como o resto do arquivo faz com a
+| trilha: o que se prova é o controller, não o kernel HTTP.
+*/
+if (! function_exists('arquivosClassificarRequest')) {
+    function arquivosClassificarRequest(int $id, array $dados): Modules\Arquivos\Http\Requests\ReclassifyArquivoRequest
+    {
+        $req = Modules\Arquivos\Http\Requests\ReclassifyArquivoRequest::create(
+            "/arquivos/{$id}/classificar", 'POST', array_merge(['arquivo_id' => $id], $dados)
+        );
+        $req->setLaravelSession(app('session.store'));
+        $req->setUserResolver(fn () => new stdClass());
+
+        return $req;
+    }
+}
+
+if (! function_exists('arquivosFixtureId')) {
+    function arquivosFixtureId(int $businessId): int
+    {
+        arquivosCofreInsere($businessId, ['storage_path' => "biz-{$businessId}/fixture/classificar.pdf", 'original_name' => 'fixture-classificar.pdf']);
+
+        return (int) DB::table('arquivos')->where('disk', arquivosCofreDisco())->where('business_id', $businessId)->max('id');
+    }
+}
+
+it('UC-INDEX-07 · a rota de classificar e POST, numerica e atras de arquivos.access', function () {
+    $rotas = file_get_contents(base_path('Modules/Arquivos/Routes/web.php'));
+
+    expect($rotas)->toContain("Route::post('{arquivo}/classificar'");
+    expect($rotas)->toContain("->whereNumber('arquivo')");
+    expect($rotas)->toContain("->name('arquivos.classificar')");
+    expect(substr_count($rotas, "->middleware('can:arquivos.access')"))->toBe(2);
+})->group('arquivos');
+
+it('UC-INDEX-07 · classificar passa pela Request de motivo e pelo Service — nunca grava o model direto', function () {
+    $corpo = arquivosCorpoDoMetodo(
+        base_path('Modules/Arquivos/Http/Controllers/ArquivosAdminController.php'), 'classificar'
+    );
+
+    expect($corpo)->toContain('ReclassifyArquivoRequest $request');
+    expect($corpo)->toContain('ArquivosService::class)->classify(');
+    expect($corpo)->toContain('findOrFail(');
+    expect($corpo)->not->toContain('->save(');
+    expect($corpo)->not->toContain('withoutGlobalScope');
+})->group('arquivos', 'multi-tenant');
+
+it('UC-INDEX-07 · a Request recusa arquivo de OUTRO business (Tier 0, cross-tenant)', function () {
+    if (! Schema::hasTable('arquivos')) {
+        $this->markTestSkipped('tabela arquivos ausente — a prova cross-tenant roda na lane MySQL.');
+    }
+
+    $proprio    = Tests\TestCase::SEEDED_TENANT_ID;
+    $adversario = Tests\TestCase::SUPPORT_CLIENT_TENANT_ID;
+    $doAdversario = arquivosFixtureId($adversario);
+    $doProprio    = arquivosFixtureId($proprio);
+
+    session(['user' => ['business_id' => $proprio]]);
+
+    expect(arquivosClassificarRequest($doAdversario, ['motivo' => 'teste cross'])->authorize())->toBeFalse();
+    // Controle positivo: sem ele, uma Request que recusa TUDO passaria por isolamento.
+    expect(arquivosClassificarRequest($doProprio, ['motivo' => 'teste cross'])->authorize())->toBeTrue();
+})->group('arquivos', 'multi-tenant');
+
+it('UC-INDEX-07 · classificar grava classified_at e a trilha guarda o MOTIVO no business do arquivo', function () {
+    if (! Schema::hasTable('arquivos') || ! Schema::hasTable('arquivos_audit_log')) {
+        $this->markTestSkipped('tabelas do Arquivos ausentes — roda na lane MySQL.');
+    }
+
+    $biz = Tests\TestCase::SEEDED_TENANT_ID;
+    $id  = arquivosFixtureId($biz);
+    session(['user' => ['business_id' => $biz]]);
+
+    $resp = (new ArquivosAdminController())->classificar(
+        arquivosClassificarRequest($id, ['motivo' => 'acervo antigo sem regra']), $id
+    );
+
+    expect($resp->getStatusCode())->toBe(302);
+    expect(DB::table('arquivos')->where('id', $id)->value('classified_at'))->not->toBeNull();
+
+    $linha = DB::table('arquivos_audit_log')->where('arquivo_id', $id)->where('action', 'classify')->first();
+    expect($linha)->not->toBeNull();
+    expect((int) $linha->business_id)->toBe($biz);
+    expect(json_decode($linha->payload, true)['motivo'])->toBe('acervo antigo sem regra');
+    // O Service segue auditando o resultado das regras — as duas linhas convivem.
+    expect(DB::table('arquivos_audit_log')->where('arquivo_id', $id)->where('action', 'reclassify')->count())->toBe(1);
+})->group('arquivos');
+
+it('UC-INDEX-07 · force_bucket e RECUSADO — nada muda e nada vai pra trilha', function () {
+    if (! Schema::hasTable('arquivos') || ! Schema::hasTable('arquivos_audit_log')) {
+        $this->markTestSkipped('tabelas do Arquivos ausentes — roda na lane MySQL.');
+    }
+
+    $biz = Tests\TestCase::SEEDED_TENANT_ID;
+    $id  = arquivosFixtureId($biz);
+    session(['user' => ['business_id' => $biz]]);
+    $antes = DB::table('arquivos_audit_log')->where('arquivo_id', $id)->count();
+
+    (new ArquivosAdminController())->classificar(
+        arquivosClassificarRequest($id, ['motivo' => 'forcar cofre', 'force_bucket' => 'vault']), $id
+    );
+
+    expect(session('errors')?->has('force_bucket'))->toBeTrue();
+    expect(DB::table('arquivos')->where('id', $id)->value('classified_at'))->toBeNull();
+    expect(DB::table('arquivos_audit_log')->where('arquivo_id', $id)->count())->toBe($antes);
+})->group('arquivos');
