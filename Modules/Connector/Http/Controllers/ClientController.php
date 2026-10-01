@@ -159,25 +159,26 @@ class ClientController extends Controller
     }
 
     /**
-     * Show the specified resource.
+     * Nao ha tela de detalhe nem de edicao: o painel e o Inertia `Api/Index`. As views
+     * `connector::show`/`connector::edit` nunca existiram e o GET dava 500; com APP_DEBUG a
+     * pagina de erro chegou a despejar o log de queries com o segredo no binding (medido no
+     * CI em 2026-10-01). Mesmo destino do create(): volta pro painel, sem ler o client.
      *
      * @param  int  $id
-     * @return Response
+     * @return \Illuminate\Http\RedirectResponse
      */
     public function show($id)
     {
-        return view('connector::show');
+        return redirect()->action([self::class, 'index']);
     }
 
     /**
-     * Show the form for editing the specified resource.
-     *
      * @param  int  $id
-     * @return Response
+     * @return \Illuminate\Http\RedirectResponse
      */
     public function edit($id)
     {
-        return view('connector::edit');
+        return redirect()->action([self::class, 'index']);
     }
 
     /**

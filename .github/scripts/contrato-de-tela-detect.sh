@@ -22,10 +22,17 @@ if [ -z "${base}" ] || [ "${base}" = "0000000000000000000000000000000000000000" 
   base="$(git rev-parse HEAD~1 2>/dev/null || git rev-parse HEAD)"
 fi
 echo "Base do diff: ${base}"
-changed="$(git diff --name-only "${base}" HEAD || true)"
+# Sem `|| true`: `git diff` sai 0 mesmo sem diferença, então rc≠0 é falha real e tem de
+# aparecer — engolir o erro virava "nada mudou" e o gate pulava (§5 2026-08-11).
+changed="$(git diff --name-only "${base}" HEAD)"
 echo "Arquivos mudados:"; echo "${changed:-<nenhum>}"
-# Filtro IDÊNTICO ao antigo workflow-level `paths:` (+ os scripts de intenção e este arquivo).
-if echo "${changed}" | grep -Eq '(^scripts/contrato-de-tela\.mjs$|^scripts/contrato-de-tela\.test\.mjs$|^scripts/auditar-intencao-fluxo\.mjs$|^scripts/adversario-intencao-fluxo\.mjs$|^governance/design/contracts/|^resources/js/Pages/.+\.tsx?$|\.contract\.json$|^Modules/Whatsapp/Http/Controllers/Admin/ChannelsController\.php$|^\.github/workflows/contrato-de-tela\.yml$|^\.github/scripts/contrato-de-tela-detect\.sh$)'; then
+# O que conta como relevante é DERIVADO em scripts/contrato-de-tela-relevante.mjs: telas sob
+# qualquer raiz de Pages (núcleo + Modules/<X>/Resources/js/Pages, via scripts/qa/page-path.mjs)
+# + os alvo[] dos próprios *.contract.json + as peças do gate. O regex à mão que morava aqui
+# só via resources/js/Pages e deixava telas de módulo e o alvo do cockpit-sidebar sem check.
+# Se o node falhar, `set -e` derruba o step: falha visível, nunca "não relevante" em silêncio.
+relevant="$(printf '%s\n' "${changed}" | node scripts/contrato-de-tela-relevante.mjs)"
+if [ "${relevant}" = "true" ]; then
   echo "relevant=true" >> "${GITHUB_OUTPUT}"
   echo "→ arquivo de contrato/tela mudou: RODA os verificadores."
 else

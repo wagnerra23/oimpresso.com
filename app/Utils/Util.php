@@ -1592,15 +1592,22 @@ class Util
             }
         }
 
-        //Check if session has business id
-        $business_id = session()->has('business') ? session('business.id') : $business_id;
-
-        //Check if subject has business id
-        if (empty($business_id) && ! empty($on->business_id)) {
-            $business_id = $on->business_id;
+        // Tenant do log = tenant do REGISTRO auditado (Tier 0, ADR 0093). A ordem antiga
+        // (sessão primeiro) gravava o log no negócio da SESSÃO: superadmin operando o
+        // negócio A e editando registro do B mandava a trilha do B para o A. Ordem nova:
+        // subject → $business_id explícito do chamador → sessão → null. O observer
+        // ActivityCauserKindObserver reaplica a mesma regra em todo save de Activity.
+        $doSubject = \App\Observers\ActivityCauserKindObserver::businessIdDoSubject($on);
+        if ($doSubject !== null) {
+            $business_id = $doSubject;
+        } elseif (empty($business_id) && session()->has('business')) {
+            $business_id = session('business.id');
         }
 
-        $business = session()->has('business') ? session('business') : Business::find($business_id);
+        // Fuso: o objeto da sessão só serve se for do MESMO negócio do log.
+        $business = (session()->has('business') && (int) session('business.id') === (int) $business_id)
+            ? session('business')
+            : (empty($business_id) ? null : Business::find($business_id));
 
         // O fuso é estado GLOBAL do processo e este método roda no ERP inteiro (todo activityLog).
         // Sem restaurar, o fuso do negócio logado vazava para o resto do request/job. Medido

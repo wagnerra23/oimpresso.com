@@ -8,6 +8,7 @@ use App\Utils\ModuleUtil;
 use App\Utils\ProductUtil;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Routing\Controller;
+use Modules\Officeimpresso\Services\AcessoOperador;
 
 class OfficeimpressoController extends Controller
 {
@@ -52,7 +53,7 @@ class OfficeimpressoController extends Controller
     {
         $user = auth()->user();
 
-        if ($user->can('superadmin') || $user->can('officeimpresso.access')) {
+        if (AcessoOperador::pode($user, 'officeimpresso.access')) {
             return redirect()->action([LicencaComputadorController::class, 'computadores']);
         }
 

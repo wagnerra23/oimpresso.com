@@ -77,3 +77,41 @@ Origem: charter R3 (a tela diz por que não aplicou).
 **Então** a prop `erro` traz a mensagem do servidor.
 
 Status: 🧪
+
+---
+
+## UC-PATPRC-06 · Gravar a planilha só toca o próprio negócio · `must`
+
+Origem: charter Anti-hook (Tier 0, ADR 0093) · P0 achado no PR #8377 (o `import()` buscava o SKU sem `business_id`).
+
+**Dado** um SKU do 98 que também existe no 99 (a variação do 99 criada antes, com id menor)
+**Quando** o 98 aplica a planilha (`/import-product-price`, sem conferência)
+**Então** o preço é gravado na variação do 98 e a do 99 segue igual, sem preço de grupo novo;
+e um SKU que só existe no 99 é recusado com o SKU no motivo, sem gravar nada.
+
+Status: 🧪
+
+---
+
+## UC-PATPRC-07 · O conserto não muda o preço gravado no próprio negócio · `must`
+
+Origem: regra mestre de valor (dupla prova · antes→depois).
+
+**Dado** uma planilha só com SKUs do 98 (um com preço de venda novo, outro com o preço atual)
+**Quando** ela é aplicada
+**Então** venda, base, margem e preço de grupo batem com o recálculo à mão da regra de sempre
+(base = venda × 100 / (100 + imposto) · margem sobre o custo), e a variação com preço igual não é regravada.
+
+Status: 🧪
+
+---
+
+## UC-PATPRC-08 · Exportar e importar exigem `product.update` · `must`
+
+Origem: charter "Gate `product.update` (o mesmo da Blade)" · P0 do PR #8377 (export e import não checavam).
+
+**Dado** um usuário do 98 sem `product.update`
+**Quando** chama `/export-product-price` ou envia `/import-product-price`
+**Então** recebe 403 e nenhum preço muda; com a permissão, o export responde.
+
+Status: 🧪

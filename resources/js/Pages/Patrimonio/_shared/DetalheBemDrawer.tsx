@@ -12,12 +12,17 @@
 //   • sem o placar quantidade/alocada/livre do topo da aba: é agregado de QUANTIDADE sobre
 //     o mesmo `Alocado` que o charter declara não-auditado (resíduo Tier 0 do índice);
 //   • sem "Valor de aquisição" (unitário × quantidade): número de VALOR novo, REGRA MESTRE;
-//   • sem botões no rodapé (Alocar · Revogar · Editar): escrita é de outras threads (17/18).
+//   • rodapé só com "Enviar pra manutenção" (2026-09-30, UC-BENS-12): só NAVEGA para o drawer
+//     da thread 19 (`/asset/asset-maintenance/create?asset_id=`), sem escrita aqui. Alocar e
+//     Editar bem do protótipo seguem fora: alocar é QUANTIDADE (REGRA MESTRE) e editar já é
+//     ação da linha. O botão só aparece se a Page passar `onEnviarManutencao` — é ela quem
+//     sabe a permissão.
 //
 // Excluir devolução NÃO entra aqui — é escrita de saldo, thread 18.
 
 import { useState } from 'react';
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/Components/ui/sheet';
+import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from '@/Components/ui/sheet';
+import { Button } from '@/Components/ui/button';
 import { Badge } from '@/Components/ui/badge';
 import { Skeleton } from '@/Components/ui/skeleton';
 import SubNav from '@/Components/shared/SubNav';
@@ -131,12 +136,15 @@ export default function DetalheBemDrawer({
   detalhe,
   tiposCompra,
   onClose,
+  onEnviarManutencao,
 }: {
   aberto: boolean;
   /** `undefined` = carregando (prop deferida); `null` = não encontrado nesta empresa. */
   detalhe: BemDetalhe | null | undefined;
   tiposCompra: Record<string, string>;
   onClose: () => void;
+  /** Ausente = sem permissão de manutenção: o botão do rodapé não aparece. */
+  onEnviarManutencao?: (bemId: number) => void;
 }) {
   const [aba, setAba] = useState<Aba>('resumo');
   const abas: Array<{ key: Aba; label: string; n?: number }> = [
@@ -208,6 +216,15 @@ export default function DetalheBemDrawer({
               )}
               </section>
             </div>
+            {onEnviarManutencao ? (
+              // Rodapé do BemDrawer do protótipo (`patrimonio-page.jsx:656`), botão ghost. Alvo de
+              // toque de 44px, como no drawer de manutenção: quem envia é o técnico, no tablet.
+              <SheetFooter className="flex-row justify-end border-t">
+                <Button variant="ghost" className="min-h-11" onClick={() => onEnviarManutencao(detalhe.id)}>
+                  Enviar pra manutenção
+                </Button>
+              </SheetFooter>
+            ) : null}
           </>
         ) : detalhe === undefined ? (
           <Stack gap={2} className="p-4">
