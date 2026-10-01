@@ -25,7 +25,7 @@ last_run: "2026-09-30"
 - **Aceite:** Dado um canal do meu business · Quando abro o detalhe · Então vejo a configuração dele já na abertura, e as abas Usuários e Histórico carregam sob demanda.
 - **Teste:** `UC-CNLD-01 · abre o detalhe do canal do meu business com a configuração`.
 - **Regressão que defende:** charter Goals (aba Config) + Automation hooks (`users`/`availableUsers`/`audit` via `Inertia::defer`).
-- **Status: ⬜** — aguardando o CI do PR que cria este arquivo.
+- **Status: 🧪** — passou na lane sqlite do PR #8327 (run 36801547031, `PHP / Pest (Unit)`, 2026-10-01); ✅ quando `casos:results` regravar o manifesto.
 
 ---
 
@@ -34,7 +34,7 @@ last_run: "2026-09-30"
 - **Aceite:** Dado um canal de outro business · Quando abro `/atendimento/canais/{id}` · Então recebo 404, antes de qualquer dado ser montado.
 - **Teste:** `UC-CNLD-02 · canal de outro business devolve 404 antes de renderizar`.
 - **Regressão que defende:** charter Non-Goal *"Não expõe canais de outro `business_id`"* · Tier 0.
-- **Status: ⬜** — aguardando o CI.
+- **Status: 🧪** — passou na lane sqlite do PR #8327 (run 36801547031); ✅ com o manifesto regravado.
 
 ---
 
@@ -43,7 +43,7 @@ last_run: "2026-09-30"
 - **Aceite:** Dado um usuário com acesso ativo e outro com acesso revogado · Quando abro a aba Usuários · Então só o ativo aparece, com o nome.
 - **Teste:** `UC-CNLD-03 · aba Usuários mostra só quem tem acesso ativo`.
 - **Regressão que defende:** charter Goal *"lista quem tem acesso ativo ao canal"* · US-WA-068.
-- **Status: ⬜** — aguardando o CI.
+- **Status: 🧪** — passou na lane sqlite do PR #8327 (run 36801547031); ✅ com o manifesto regravado.
 
 ---
 
@@ -52,7 +52,7 @@ last_run: "2026-09-30"
 - **Aceite:** Dado um acesso ativo · Quando revogo · Então o registro continua existindo, e o Histórico o mostra como revogado, com a data.
 - **Teste:** `UC-CNLD-04 · revogar preserva o registro e o Histórico mostra o acesso como revogado`.
 - **Regressão que defende:** charter Goal *"tabela append-style de grants/revokes"* · SPEC US-WA-068 *"Remove user: soft remove"*.
-- **Status: ⬜** — aguardando o CI.
+- **Status: 🧪** — passou na lane sqlite do PR #8327 (run 36801547031); ✅ com o manifesto regravado.
 
 ---
 
@@ -61,7 +61,7 @@ last_run: "2026-09-30"
 - **Aceite:** Dado um usuário com acesso ativo · Quando concedo acesso a ele de novo · Então nada muda: continua um único acesso ativo.
 - **Teste:** `UC-CNLD-05 · conceder acesso a quem já tem acesso ativo não cria duplicata`.
 - **Regressão que defende:** charter Anti-hook *"Não concede/revoga acesso automaticamente — sempre ação manual"* + integridade do ACL canal=fila (US-WA-069).
-- **Status: ⬜** — aguardando o CI.
+- **Status: 🧪** — passou na lane sqlite do PR #8327 (run 36801547031); ✅ com o manifesto regravado.
 
 ---
 

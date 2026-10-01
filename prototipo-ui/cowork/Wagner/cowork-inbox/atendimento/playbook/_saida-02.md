@@ -25,7 +25,7 @@ UCs derivados dos charters + SPEC US-WA-068, não do `.tsx`. Nenhum `.tsx` tocad
 `casos-coverage-guard` local: sem violação nova; G-2 (UC citado por teste) sem pendência nas duas telas.
 
 ## Status dos UCs
-Todos `⬜` no commit inicial: a prova de execução é o CI do PR (não rodei Pest local, regra do projeto). Ver o PR para o resultado da lane `PHP / Pest (Unit)`.
+Todos `🧪`: os 9 testes **executaram e passaram** (✓ por nome no log, não skip) na lane `PHP / Pest (Unit)` do PR #8327, run 36801547031 (suíte: 1301 passed, 79 skipped). Pest não foi rodado local (regra do projeto). `✅` fica para quando `casos:results` regravar o manifesto G-7.
 
 ## Pendente — decisões [W] (registradas como [BACKLOG] nos casos, sem UC)
 1. **Remoção de canal:** charter Index diz *"NÃO permite deletar (apenas soft-disable)"*; `ChannelsController::destroy` faz `delete()` e `Channel` não tem `SoftDeletes`. Um dos dois está errado.

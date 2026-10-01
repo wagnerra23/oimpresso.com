@@ -26,7 +26,7 @@ last_run: "2026-09-30"
 - **Aceite:** Dado canais no meu business e no de outro business · Quando abro a lista · Então vejo só os meus, e a lista vem sob demanda (não bloqueia a abertura da tela).
 - **Teste:** `UC-CNL-01 · lista só os canais do business da sessão (Tier 0) e carrega a lista sob demanda`.
 - **Regressão que defende:** charter Goal *"Listar todos os canais do `business_id` atual"* + Anti-hook *"mutar canal alheio"*. Uma query sem o filtro não dá erro — mostra o canal do vizinho, com o número dele.
-- **Status: ⬜** — aguardando o CI do PR que cria este arquivo.
+- **Status: 🧪** — passou na lane sqlite do PR #8327 (run 36801547031, `PHP / Pest (Unit)`, 2026-10-01); ✅ quando `casos:results` regravar o manifesto.
 
 ---
 
@@ -35,7 +35,7 @@ last_run: "2026-09-30"
 - **Aceite:** Dado o formulário de canal novo · Quando abro a lista de tipos · Então Instagram, Messenger e Email aparecem desabilitados, e o WhatsApp oficial (Meta) aparece habilitado.
 - **Teste:** `UC-CNL-02 · canais em pré-visualização aparecem no cadastro mas não podem ser escolhidos`.
 - **Regressão que defende:** charter Mission *"IG/FB/Email preview-only"*. Habilitar um tipo sem driver cria canal que nunca recebe mensagem.
-- **Status: ⬜** — aguardando o CI.
+- **Status: 🧪** — passou na lane sqlite do PR #8327 (run 36801547031); ✅ com o manifesto regravado.
 
 ---
 
@@ -44,7 +44,7 @@ last_run: "2026-09-30"
 - **Aceite:** Dado um cadastro com tipo e telefone · Quando salvo · Então o canal fica no meu business, com status `setup`, o telefone vira o identificador exibido e, por ser driver não-oficial, o aceite LGPD é gravado com o meu usuário.
 - **Teste:** `UC-CNL-03 · novo canal nasce em setup, no business da sessão, com aceite LGPD se não-oficial`.
 - **Regressão que defende:** charter Goal *"criar canal novo apontando driver + display_identifier"*. O business vem da sessão, nunca do formulário.
-- **Status: ⬜** — aguardando o CI.
+- **Status: 🧪** — passou na lane sqlite do PR #8327 (run 36801547031); ✅ com o manifesto regravado.
 
 ---
 
@@ -53,7 +53,7 @@ last_run: "2026-09-30"
 - **Aceite:** Dado um canal de outro business · Quando peço a remoção pelo id · Então recebo 404 e o canal continua existindo.
 - **Teste:** `UC-CNL-04 · não remove canal de outro business — 404 e o canal continua lá`.
 - **Regressão que defende:** charter Anti-hook *"Mutar canal alheio (`business_id != session`)"* · Tier 0.
-- **Status: ⬜** — aguardando o CI.
+- **Status: 🧪** — passou na lane sqlite do PR #8327 (run 36801547031); ✅ com o manifesto regravado.
 
 ---
 
