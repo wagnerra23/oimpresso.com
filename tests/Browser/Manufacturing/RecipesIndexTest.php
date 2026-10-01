@@ -165,8 +165,11 @@ const MFG_JS_CONCORDANCIA = <<<'JS'
   const n = (s) => { const m = s.match(/(\d+)/); return m ? m[1] : 'SEM-NUMERO'; };
   const cab = document.querySelector('[data-contract="cabecalho"] p');
   if (!cab) return 'CABECALHO-AUSENTE';
-  const sub = [...document.querySelectorAll('[data-contract="kpis"] span')]
-    .find((s) => txt(s).indexOf('dia das') > 0);
+  // Desde a onda 1 (#8289) o 1º KPI é o `KpiCard` do DS: na variante padrão o subtítulo é
+  // `<p>`, na `filter` é `<span>`. Âncora no TEXTO que abre o subtítulo, não na tag — senão
+  // um wrapper com o card inteiro casaria e `n()` leria o número do VALOR.
+  const sub = [...document.querySelectorAll('[data-contract="kpis"] p, [data-contract="kpis"] span')]
+    .find((s) => txt(s).startsWith('média das'));
   if (!sub) return 'KPI-SUB-AUSENTE';
   const linhas = document.querySelectorAll('[data-contract="lista"] [role="button"]').length;
   const pag = [...document.querySelectorAll('span')]
@@ -186,7 +189,9 @@ const MFG_JS_LEITURA = <<<'JS'
   const rot = [...raiz.querySelectorAll('button')]
     .map((b) => (b.textContent || '').replace(/\s+/g, ' ').trim());
   const proibidos = rot.filter((s) => /(salvar|excluir|remover|produzir|finalizar|atualizar pre)/i.test(s));
-  const ordenaveis = rot.filter((s) => /[\u21f5\u2191\u2193]/.test(s)).length;
+  // Indicador como o `DataGrid` do DS desde a onda 1 (#8289): U+2195 na coluna que não
+  // ordena, U+2191/U+2193 na ativa. Antes era U+21F5; com a regex antiga só a coluna ativa contava (=1).
+  const ordenaveis = rot.filter((s) => /[\u2195\u2191\u2193]/.test(s)).length;
   return 'forms=' + raiz.querySelectorAll('form').length
     + ' proibidos=' + (proibidos.join(',') || 'nenhum')
     + ' ordenaveis=' + String(ordenaveis);
