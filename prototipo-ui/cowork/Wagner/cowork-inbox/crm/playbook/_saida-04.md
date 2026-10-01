@@ -72,13 +72,20 @@ reprova contrato sem a Page; pela opção 1 do `_saida-01`, cada contrato entra 
    `**Implementado em:** _parcial_ · Modules/Crm/Resources/js/Pages/Crm/Painel/Index.tsx` — não
    editei o SPEC (fora do prefixo).
 6. **Índice:** a prova da 01 passa a ser cumprida thread a thread (opção 1 do `_saida-01`). Com
-   este PR, 2 de 3 contratos estão no repo; falta `crm-leads` (thread 02). Editar o
-   `00-INDICE.md` é do Cowork.
+   este PR e a thread 02, os 3 contratos estão no repo. Editar o `00-INDICE.md` (marcar D1/D4
+   respondidas) é do Cowork.
+7. **Lane `verticais-pest`:** o 1º run deste PR caiu só no `UC-CRMPAI-04` (assert lia prop não
+   pedida no reload parcial — consertado). Um dispatch intermediário caiu em
+   `Usuario360ContratoTest` (FK `business.owner_id` ao criar o biz 99 — depende da ordem aleatória
+   do `executionOrder="random"`, não toca este PR); o dispatch seguinte passou com os 6 UCs verdes.
 
 ## Placar
 
-Esperado após o merge: `04` com prova verde e `_saida`, mas `pendente` enquanto a 01 não virar
-`feito` no placar (a 01 depende dos 3 contratos; falta o da thread 02).
+Medido após `git merge origin/main` (a thread 02 já entrou): `04 [em curso]` — prova verde e
+`_saida` presentes; o único motivo restante é `depende de 01 (não feita)`. A 01 agora tem os 3
+contratos no repo e fica só com `decisão pendente D1,D4`, que [W] já respondeu em
+`_DECISOES-W-2026-10-01.md`. Quando o Cowork reescrever o índice com D1/D4 respondidas, a 01 e
+esta thread devem virar `feito`.
 
 ## PR
 
