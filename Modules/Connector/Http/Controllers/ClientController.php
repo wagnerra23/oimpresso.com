@@ -33,13 +33,26 @@ class ClientController extends Controller
         $is_demo = (config('app.env') == 'demo');
 
         $business_id = request()->session()->get('user.business_id');
+        // CONN-O2b · [W] D6: o segredo NAO sai do banco para a lista. Nem `oauth_clients.*`
+        // nem makeVisible: `$hidden` so vale para toArray/JSON, a view le `$client->secret`
+        // direto do atributo. Por isso a coluna nem e selecionada. O valor guardado nao muda
+        // (sem hash, sem rotacao): o WR Comercial em campo continua autenticando.
         $clients = Passport::client()
                     ->leftJoin('users as u', 'oauth_clients.user_id', '=', 'u.id')
                     ->where('u.business_id', $business_id)
                     ->where('password_client', 1)
-                    ->select('oauth_clients.*')
-                    ->get()
-                    ->makeVisible('secret');
+                    ->select([
+                        'oauth_clients.id',
+                        'oauth_clients.user_id',
+                        'oauth_clients.name',
+                        'oauth_clients.redirect',
+                        'oauth_clients.personal_access_client',
+                        'oauth_clients.password_client',
+                        'oauth_clients.revoked',
+                        'oauth_clients.created_at',
+                        'oauth_clients.updated_at',
+                    ])
+                    ->get();
 
         return view('connector::clients.index')->with(compact('clients', 'is_demo'));
     }
@@ -65,10 +78,12 @@ class ClientController extends Controller
     public function store(StoreOauthClientRequest $request)
     {
         try {
+            $segredo = Str::random(40);
+
             $client = Passport::client()->forceFill([
                 'user_id' => auth()->user()->id,
                 'name' => $request->input('name'),
-                'secret' => Str::random(40),
+                'secret' => $segredo,
                 'redirect' => 'http://localhost',
                 'personal_access_client' => 0,
                 'password_client' => 1,
@@ -79,8 +94,13 @@ class ClientController extends Controller
 
             $this->auditar($client, 'connector_client_created');
 
+            // CONN-O2b: unica vez que o segredo aparece — no flash da criacao, lido uma vez
+            // na tela seguinte e descartado pela sessao. Nunca no log nem na auditoria.
             $output = ['success' => true,
-                'msg' => __('lang_v1.added_success'),
+                'msg' => __('lang_v1.added_success')
+                    .' Client ID: '.$client->id
+                    .' · Segredo: '.$segredo
+                    .' — copie agora, ele não será exibido de novo.',
             ];
         } catch (\Exception $e) {
             \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
