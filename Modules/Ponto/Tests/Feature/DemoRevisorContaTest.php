@@ -255,8 +255,11 @@ it('DEMO-08: ponto:demo-smoke passa sem senha — confere a tela, os bloqueios e
     expect(DB::table('ponto_marcacoes')->where('business_id', $bizId)->count())->toBe(0);
 
     // Completo: exatamente 1 marcação nova, no business demo.
-    expect(Artisan::call('ponto:demo-smoke'))->toBe(0, Artisan::output());
-    expect(Artisan::output())->toContain('OK — todas as verificações passaram');
+    // Artisan::output() lê um BufferedOutput que esvazia na 1ª leitura — guardar uma vez só.
+    $rc = Artisan::call('ponto:demo-smoke');
+    $saida = Artisan::output();
+    expect($rc)->toBe(0, $saida);
+    expect($saida)->toContain('OK — todas as verificações passaram');
     expect(DB::table('ponto_marcacoes')->where('business_id', $bizId)->count())->toBe(1);
 });
 
