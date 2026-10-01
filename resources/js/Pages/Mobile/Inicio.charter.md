@@ -5,7 +5,7 @@ owner: wagner
 status: draft
 last_validated: "2026-10-01"
 parent_module: Mobile
-related_prototype: "n/a (handoff design-v3 fora de prototipo-ui: mobile/ref/design-v3/oimpresso-mobile/project/design_handoff_oimpresso_mobile/design/screens-home-tasks.jsx · a ancora em prototipo-ui entra quando descer o _saida-01 do playbook app-lojas)"
+related_prototype: "n/a (fonte = handoff design-v3 do app mobile, fora de prototipo-ui; caminho em RUNBOOK-shell-mobile §2; a ancora entra quando descer o _saida-01 do playbook app-lojas)"
 related_adrs: [93, 104, 358]
 runbook: memory/requisitos/Mobile/RUNBOOK-shell-mobile.md
 tier: B
