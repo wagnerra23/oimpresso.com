@@ -1,11 +1,11 @@
 ---
 sessao: "05"
-titulo: "Produto/Importacao — saída da thread (PR-a: importar produtos)"
+titulo: "Produto/Importacao — saída da thread (PR-a: importar produtos · PR-b: estoque inicial)"
 autor: "[CL]"
 criado: 2026-10-01
 base: 81141329b
 thread: 07-importacao.md
-veredito: "PR-a entregue — /import-products em Inertia com conferência dry-run antes de gravar; algoritmo de importação intocado e provado igual por dois caminhos. PR-b (estoque inicial) pendente — a prova do json sobre ImportOpeningStockController fica aberta."
+veredito: "PR-a e PR-b entregues — /import-products e /import-opening-stock na mesma Page Inertia, cada um com conferência que roda o próprio store() e desfaz; algoritmos intocados e provados iguais por dois caminhos. As 3 provas do json fecham."
 ---
 
 # _saída 05 · Importação — modo produtos
@@ -71,6 +71,81 @@ Placar depois do merge: a 05 fica `em curso` (2 de 3 provas). Esperado: a ficha 
    mock parcial; não é o que está sob teste.
 6. Teste NÃO rodado local nem no CT 100 (regra da thread): a prova é a lane `estoque-pest` do PR.
    NÃO MEDI alvo (`alvo:medir`) — a thread não pede.
+
+## PR
+
+(preenchido no PR)
+
+---
+
+# PR-b · Importação — modo estoque inicial (`/import-opening-stock`)
+
+Base: `origin/main` em `5247071b4` (depois do #8376). Placar na abertura: `em curso` — o único motivo
+era a 3ª prova, que é o que este PR entrega (deps 01/07 já tratadas no PR-a, acima).
+
+## O que entrou
+
+| arquivo | o quê |
+|---|---|
+| `app/Http/Controllers/ImportOpeningStockController.php` | `index()` → `Inertia::render('Produto/Importacao/Index')` com `modo = estoque`; `?classico=1` mantém a Blade. `store()` ganha o desvio `conferir=1` **depois** do laço inteiro e da checagem de erro: lê o que ficou gravado e `DB::rollBack()`. Uma linha nova no laço só anota a linha já gravada (`$conferidas[]`). Nenhuma linha de validação, cálculo ou gravação mudou. |
+| `resources/js/Pages/Produto/Importacao/Index.tsx` | 2º modo na mesma Page: título, rota de envio, 6 colunas e a tabela da conferência (SKU, produto, local, quantidade, custo, saldo do local depois, total do lançamento). |
+| `Index.charter.md` · `Index.casos.md` | Goal do modo estoque; sai o Non-Goal "modo estoque"; UC-PIMP-06..10. |
+| `tests/Feature/Produto/ProdutoImportacaoContratoTest.php` | UC-PIMP-06..10, tenant 98 × 99. |
+| `.github/workflows/estoque-pest.yml` | trigger inclui `ImportOpeningStockController.php` (os dois filtros). O run-set já é `tests/Feature/Produto/*Test.php`. |
+
+## Por que a conferência é o `store()` inteiro, e não um desvio antes da gravação
+
+No `ImportOpeningStockController::store()` validação e gravação estão no **mesmo laço**
+(`addOpeningStock` por linha). E há dependência entre linhas: a 2ª linha do mesmo SKU no mesmo local
+**encontra** o lançamento que a 1ª criou (`$os_transaction`) e soma nele. Pular a gravação mudaria o
+que a 2ª linha vê. Então a conferência deixa o laço gravar tudo dentro da transação, **lê** saldo
+(`variation_location_details`) e total do lançamento (`transactions.final_total`) como ficaram, e
+desfaz. O que a tela mostra é o que foi gravado de verdade, não uma conta refeita.
+
+Efeitos fora do banco no caminho: nenhum. `addOpeningStock` → `Transaction`/`purchase_lines`/
+`updateProductQuantity` (só banco). Observers de `Transaction` (Financeiro, NFSe) só agem em
+`sell`/`purchase`. Kardex é relatório derivado das transações — não é tabela.
+
+## Regra mestre VALOR/ESTOQUE — dois caminhos
+
+- **(a) UC-PIMP-09:** a mesma planilha (A 7 + A 3 no mesmo local, B 4) no 98 direto e no 99 por
+  conferir→enviar grava lançamento, linhas (quantidade, custo, imposto, lote), total e saldo
+  **idênticos**. O teste exige saldo 10 e total 125 no SKU A — não compara vazio com vazio.
+- **(b) UC-PIMP-08:** depois da conferência, nenhum lançamento, linha de compra nem saldo de local
+  fica (contagens antes = depois), e a conferência devolveu 3 linhas (não é vácuo).
+- UC-PIMP-07 confere os números da conferência: 7+3 no mesmo lançamento → saldo 10 / total 125;
+  B → 4 / 32.
+
+## Multi-tenant (Tier 0) — sem P0
+
+Medido no código, não presumido: o produto é achado por `sub_sku` **com** `P.business_id`, o local
+**com** `business_id`, o lançamento existente **com** `business_id`. `updateProductQuantity` recebe
+ids já validados. UC-PIMP-10 prova: SKU que só existe no 99 e local que só existe no 99 são recusados
+no 98 com a linha, sem gravar em nenhum dos dois.
+
+## Provas do json
+
+- `resources/js/Pages/Produto/Importacao/Index.tsx` existe ✔
+- `ImportProductsController.php` contém `Inertia::render('Produto/Importacao/Index'` ✔
+- `ImportOpeningStockController.php` contém `Inertia::render('Produto/Importacao/Index'` ✔ (este PR)
+
+Placar depois deste PR: as 3 provas passam; a 05 segue `em curso` só por "depende de 01/07 (não
+feita)" — os dois motivos já tratados pelas exceções desta leva (D1/D2 em `_DECISOES-W-2026-10-01.md`;
+contrato da 07 deslocado pela IT2). Vira `feito` quando o índice do Cowork for reescrito.
+
+## Pendente (com o porquê)
+
+1. **Sem contrato nem alvo do modo estoque** (errata A2 #2 do `_saida-07`): a seção não tem copy
+   congelada. Os `data-contract` são os mesmos do modo produtos; a copy do modo estoque vem de
+   `COLS_ESTOQUE`/`ImportarEstoque` do protótipo.
+2. **2 textos do protótipo corrigidos** pelo que o `store()` faz — pedido ao Cowork: local em branco =
+   **primeiro local do negócio** (não "local padrão"); data de validade no **formato de data do
+   negócio** (`uf_date`, a tela mostra o formato), não dd/mm/aaaa fixo.
+3. **Só o primeiro erro** e **relato por linha com erro**: o laço para no primeiro (`break`) — mudar é
+   mexer no algoritmo, decisão [W] (igual ao PR-a).
+4. `.xlsx` também é lido (`Excel::toArray`); a Blade só aceitava `.xls` no input. A tela aceita os três.
+5. Teste NÃO rodado local nem no CT 100 (regra da thread): a prova é a lane `estoque-pest` do PR.
+   NÃO MEDI alvo — a thread não pede.
 
 ## PR
 

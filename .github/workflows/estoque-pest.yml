@@ -137,6 +137,7 @@ on:
       - 'resources/js/Pages/Produto/Cadastros/**'
       # Playbook Produto · thread 05 — SOB TESTE do ProdutoImportacaoContratoTest.
       - 'app/Http/Controllers/ImportProductsController.php'
+      - 'app/Http/Controllers/ImportOpeningStockController.php'
       - 'resources/js/Pages/Produto/Importacao/**'
       # Playbook Produto · thread 06 — SOB TESTE do ProdutoAtualizarPrecoContratoTest.
       - 'app/Http/Controllers/SellingPriceGroupController.php'
@@ -209,6 +210,7 @@ jobs:
               - 'resources/js/Pages/Produto/Cadastros/**'
               # Playbook Produto · thread 05 — SOB TESTE do ProdutoImportacaoContratoTest.
               - 'app/Http/Controllers/ImportProductsController.php'
+              - 'app/Http/Controllers/ImportOpeningStockController.php'
               - 'resources/js/Pages/Produto/Importacao/**'
               # Playbook Produto · thread 06 — SOB TESTE do ProdutoAtualizarPrecoContratoTest.
               - 'app/Http/Controllers/SellingPriceGroupController.php'

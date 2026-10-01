@@ -12,10 +12,10 @@ use Spatie\Permission\Models\Permission;
 use Tests\Support\EstoqueFixture;
 
 /**
- * Contrato da tela Produto/Importacao (`/import-products`, modo produtos) — playbook Produto · thread 05.
+ * Contrato da tela Produto/Importacao (`/import-products` modo produtos · `/import-opening-stock` modo estoque) — playbook Produto · thread 05.
  *
  * Os UCs vêm do contrato, não do código:
- *   resources/js/Pages/Produto/Importacao/Index.casos.md (UC-PIMP-01..05)
+ *   resources/js/Pages/Produto/Importacao/Index.casos.md (UC-PIMP-01..10)
  *
  * Regra mestre VALOR/ESTOQUE: a importação MOVE estoque. A thread só troca a tela e acrescenta o
  * dry-run; o UC-PIMP-04 prova por dois caminhos (store direto × conferir→store, em dois negócios)
@@ -25,6 +25,7 @@ use Tests\Support\EstoqueFixture;
  * ⚠️ SKIP sem schema MySQL: leia assertions, não "0 failed" (LC-13).
  *
  * @see app/Http/Controllers/ImportProductsController.php index() · store() · conferencia()
+ * @see app/Http/Controllers/ImportOpeningStockController.php index() · store() · conferencia()
  */
 uses(DatabaseTransactions::class);
 
@@ -193,4 +194,125 @@ it('UC-PIMP-05 · unidade que só existe em outro negócio é recusada com a lin
     expect((string) session('notification.msg'))->toContain('PIMPVIZ')->toContain('row no. 1');
     expect(pimpRetrato($this->biz->id))->toBe([]);
     expect(pimpRetrato($this->vizinho->id))->toBe([]);
+});
+
+// ─── Modo estoque inicial (`/import-opening-stock`) — PR-b da thread 05 · UC-PIMP-06..10 ───
+
+/** Produto com estoque gerenciado e SKU fixo (o mesmo nos dois negócios — a planilha é a mesma). */
+function pimpProdutoEstoque(int $bizId, string $sku): void
+{
+    $p = EstoqueFixture::singleProduct($bizId);
+    DB::table('variations')->where('id', $p->variationId())->update(['sub_sku' => $sku]);
+}
+
+/** Planilha de 6 colunas: A duas vezes no mesmo local (a 2ª soma no mesmo lançamento) + B. */
+function pimpPlanilhaEstoque(string $local = 'EST-FIX-LOC-PIMP'): UploadedFile
+{
+    $csv = implode("\n", ['sku,local,qtd,custo,lote,validade',
+        "PIMP05-A,$local,7,12.5,L1,", "PIMP05-A,$local,3,12.5,L1,", "PIMP05-B,$local,4,8,,"]);
+
+    return UploadedFile::fake()->createWithContent('estoque.csv', $csv . "\n");
+}
+
+/** O que o estoque inicial gravou no negócio — sem ids nem datas, comparável entre negócios. */
+function pimpRetratoEstoque(int $bizId): array
+{
+    return DB::table('purchase_lines as pl')
+        ->join('transactions as t', 't.id', '=', 'pl.transaction_id')
+        ->join('variations as v', 'v.id', '=', 'pl.variation_id')
+        ->join('business_locations as bl', 'bl.id', '=', 't.location_id')
+        ->leftJoin('variation_location_details as vld', fn ($j) => $j->on('vld.variation_id', '=', 'v.id')->on('vld.location_id', '=', 't.location_id'))
+        ->where('t.business_id', $bizId)->whereIn('v.sub_sku', ['PIMP05-A', 'PIMP05-B'])
+        ->orderBy('v.sub_sku')->orderBy('pl.id')
+        ->get(['v.sub_sku', 'bl.name as local', 't.type', 't.status', 't.final_total', 't.total_before_tax', 'pl.quantity',
+            'pl.purchase_price', 'pl.purchase_price_inc_tax', 'pl.item_tax', 'pl.lot_number', 'vld.qty_available'])
+        ->map(fn ($r) => (array) $r)->all();
+}
+
+it('UC-PIMP-06 · /import-opening-stock abre a Importacao no modo estoque; ?classico=1 segue Blade; sem permissão 403', function () {
+    $user = pimpUsuario($this->biz->id, ['product.opening_stock']);
+
+    pimpLogin($this, $user)->get('/import-opening-stock')->assertOk()
+        ->assertInertia(fn (AssertableInertia $p) => $p->component('Produto/Importacao/Index', false)->where('modo', 'estoque'));
+    pimpLogin($this, $user)
+        ->withSession(['currency' => ['code' => 'BRL', 'symbol' => 'R$', 'thousand_separator' => '.', 'decimal_separator' => ',']])
+        ->get('/import-opening-stock?classico=1')->assertOk()->assertViewIs('import_opening_stock.index');
+    pimpLogin($this, pimpUsuario($this->biz->id))->get('/import-opening-stock')->assertForbidden();
+});
+
+it('UC-PIMP-07 · conferência do estoque mostra saldo e total do lançamento como gravados', function () {
+    pimpProdutoEstoque($this->biz->id, 'PIMP05-A');
+    pimpProdutoEstoque($this->biz->id, 'PIMP05-B');
+
+    pimpLogin($this, pimpUsuario($this->biz->id, ['product.opening_stock']))->post('/import-opening-stock/store', [
+        'products_csv' => pimpPlanilhaEstoque(), 'conferir' => 1,
+    ])->assertRedirect('import-opening-stock');
+
+    $l = session('conferencia');
+    expect($l)->toHaveCount(3);
+    expect([$l[0]['linha'], $l[0]['sku'], $l[0]['local']])->toBe([1, 'PIMP05-A', 'EST-FIX-LOC-PIMP']);
+    expect([(float) $l[1]['saldo'], (float) $l[1]['total']])->toBe([10.0, 125.0]); // 7+3 no mesmo lançamento
+    expect([(float) $l[2]['saldo'], (float) $l[2]['total']])->toBe([4.0, 32.0]);
+});
+
+it('UC-PIMP-08 · conferência do estoque não deixa lançamento, linha nem saldo', function () {
+    pimpProdutoEstoque($this->biz->id, 'PIMP05-A');
+    pimpProdutoEstoque($this->biz->id, 'PIMP05-B');
+    $antes = [DB::table('transactions')->where('business_id', $this->biz->id)->count(),
+        DB::table('purchase_lines')->count(), DB::table('variation_location_details')->count()];
+
+    pimpLogin($this, pimpUsuario($this->biz->id, ['product.opening_stock']))->post('/import-opening-stock/store', [
+        'products_csv' => pimpPlanilhaEstoque(), 'conferir' => 1,
+    ])->assertRedirect('import-opening-stock');
+
+    expect(session('conferencia'))->toHaveCount(3); // a conferência rodou — não é vácuo
+    expect(pimpRetratoEstoque($this->biz->id))->toBe([]);
+    expect([DB::table('transactions')->where('business_id', $this->biz->id)->count(),
+        DB::table('purchase_lines')->count(), DB::table('variation_location_details')->count()])->toBe($antes);
+});
+
+it('UC-PIMP-09 · conferir→enviar lança exatamente o estoque que o envio direto lança [T0]', function () {
+    foreach ([$this->biz->id, $this->vizinho->id] as $b) {
+        pimpProdutoEstoque($b, 'PIMP05-A');
+        pimpProdutoEstoque($b, 'PIMP05-B');
+    }
+    // Caminho antigo: envio direto no negócio 98.
+    pimpLogin($this, pimpUsuario($this->biz->id, ['product.opening_stock']))->post('/import-opening-stock/store', [
+        'products_csv' => pimpPlanilhaEstoque(),
+    ])->assertRedirect('import-opening-stock');
+    $antigo = pimpRetratoEstoque($this->biz->id);
+
+    // Caminho novo: conferir e depois enviar a mesma planilha no negócio 99.
+    $user = pimpUsuario($this->vizinho->id, ['product.opening_stock']);
+    pimpLogin($this, $user)->post('/import-opening-stock/store', ['products_csv' => pimpPlanilhaEstoque(), 'conferir' => 1])
+        ->assertRedirect('import-opening-stock');
+    expect(pimpRetratoEstoque($this->vizinho->id))->toBe([]);
+    pimpLogin($this, $user)->post('/import-opening-stock/store', ['products_csv' => pimpPlanilhaEstoque()])
+        ->assertRedirect('import-opening-stock');
+    $novo = pimpRetratoEstoque($this->vizinho->id);
+
+    expect($antigo)->toHaveCount(3);
+    expect([$antigo[0]['type'], (float) $antigo[0]['qty_available'], (float) $antigo[0]['final_total']])
+        ->toBe(['opening_stock', 10.0, 125.0]); // saldo não-zero: não compara vazio com vazio
+    expect($novo)->toBe($antigo);
+});
+
+it('UC-PIMP-10 · SKU ou local que só existem em outro negócio são recusados com a linha, sem gravar [T0]', function () {
+    pimpProdutoEstoque($this->vizinho->id, 'PIMP05-A');
+    $user = pimpUsuario($this->biz->id, ['product.opening_stock']);
+
+    pimpLogin($this, $user)->post('/import-opening-stock/store', ['products_csv' => pimpPlanilhaEstoque(), 'conferir' => 1])
+        ->assertRedirect('import-opening-stock');
+    expect(session('conferencia'))->toBeNull();
+    expect((string) session('notification.msg'))->toContain('PIMP05-A')->toContain('row no. 1');
+
+    pimpProdutoEstoque($this->biz->id, 'PIMP05-A');
+    pimpProdutoEstoque($this->biz->id, 'PIMP05-B');
+    EstoqueFixture::locationId($this->vizinho->id, '-SOVIZ');
+    pimpLogin($this, $user)->post('/import-opening-stock/store', ['products_csv' => pimpPlanilhaEstoque('EST-FIX-LOC-SOVIZ')])
+        ->assertRedirect('import-opening-stock');
+    expect((string) session('notification.msg'))->toContain('EST-FIX-LOC-SOVIZ')->toContain('row no. 1');
+
+    expect(pimpRetratoEstoque($this->biz->id))->toBe([]);
+    expect(pimpRetratoEstoque($this->vizinho->id))->toBe([]);
 });

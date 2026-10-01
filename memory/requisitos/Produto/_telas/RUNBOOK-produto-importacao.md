@@ -48,3 +48,4 @@ Playbook: `prototipo-ui/cowork/Wagner/cowork-inbox/produto/playbook/07-importaca
 ## 6. Histórico
 
 - 2026-10-01 — criado na thread 05 (modo produtos). Estoque inicial fica pendente no `_saida-05`.
+- 2026-10-01 — PR-b: `/import-opening-stock` no modo estoque. A conferência roda o `store()` inteiro (validação e gravação no mesmo laço) e desfaz com `DB::rollBack()`; UC-PIMP-06..10.

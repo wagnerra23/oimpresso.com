@@ -1,8 +1,8 @@
 // @memcofre
-//   tela: /import-products (Importação · modo produtos)
+//   tela: /import-products (modo produtos) · /import-opening-stock (modo estoque)
 //   module: Produto
-//   stories: playbook Produto thread 05 (ImportProductsController@index · Blade → Inertia)
-//   permissao: product.create
+//   stories: playbook Produto thread 05 (ImportProductsController@index · ImportOpeningStockController@index)
+//   permissao: product.create (produtos) · product.opening_stock (estoque)
 //
 // Importação de produtos. Charter: ./Index.charter.md · Casos: ./Index.casos.md
 // Âncora de design: prototipo-ui/cowork/Wagner/produto-acoes.jsx → TelaImportar/ImportarProdutos
@@ -27,13 +27,18 @@ interface LinhaConferida {
   linha: number; nome: string; sku: string; tipo: string;
   estoque: string | number | null; custo: string | number | null; preco: string | number | null;
 }
+interface LinhaEstoque {
+  linha: number; sku: string; produto: string | null; local: string;
+  quantidade: string | number; custo: string | number; saldo: string | number | null; total: string | number | null;
+}
 interface Props {
-  modo: 'produtos';
+  modo: 'produtos' | 'estoque';
   zip: boolean;
   aviso?: Msg | null;
   resultado?: Msg | null;
-  conferencia?: LinhaConferida[] | null;
+  conferencia?: (LinhaConferida | LinhaEstoque)[] | null;
   modelo: string;
+  formato_data?: string;
 }
 
 const REQ = 'obrigatório', OPC = 'opcional', UM = 'um dos dois é obrigatório';
@@ -78,11 +83,25 @@ const COLUNAS: [string, string, string][] = [
   ['Locais do produto', OPC, 'Nomes separados por vírgula — em branco entra em todos.'],
 ];
 
+// Modo estoque: copy de produto-acoes.jsx (COLS_ESTOQUE), 2 textos corrigidos pelo store() — ver _saida-05.
+const colunasEstoque = (formato?: string): [string, string, string][] => [
+  ['SKU', REQ, 'Precisa existir no catálogo — é a chave da linha.'],
+  ['Local do negócio', OPC, 'Nome do local. Em branco, entra no primeiro local do negócio.'],
+  ['Quantidade', REQ, 'Só numeral, sem unidade.'],
+  ['Custo unitário antes do imposto', REQ, 'Base do custo médio e da margem.'],
+  ['Lote', OPC, 'Se o negócio usa controle de lote.'],
+  ['Data de validade', OPC, `No formato de data do negócio${formato ? ` (${formato})` : ''}.`],
+];
+
 const chave = (f: File | null) => (f ? `${f.name}|${f.size}|${f.lastModified}` : '');
 const th = 'border-b border-border py-2 pr-3 font-medium';
 const td = 'border-b border-border py-2 pr-3';
 
-export default function ImportacaoIndex({ zip, aviso, resultado, conferencia, modelo }: Props) {
+export default function ImportacaoIndex({ modo, zip, aviso, resultado, conferencia, modelo, formato_data }: Props) {
+  const estoque = modo === 'estoque';
+  const rota = estoque ? '/import-opening-stock/store' : '/import-products/store';
+  const titulo = estoque ? 'Importar estoque inicial' : 'Importar produtos';
+  const colunas = estoque ? colunasEstoque(formato_data) : COLUNAS;
   const [arquivo, setArquivo] = useState<File | null>(null);
   const [conferido, setConferido] = useState('');
   const [enviando, setEnviando] = useState(false);
@@ -92,7 +111,7 @@ export default function ImportacaoIndex({ zip, aviso, resultado, conferencia, mo
   const enviar = (conferir: boolean) => {
     if (!arquivo) return;
     setEnviando(true);
-    router.post('/import-products/store', { products_csv: arquivo, ...(conferir ? { conferir: 1 } : {}) }, {
+    router.post(rota, { products_csv: arquivo, ...(conferir ? { conferir: 1 } : {}) }, {
       forceFormData: true,
       preserveState: true,
       preserveScroll: true,
@@ -110,15 +129,15 @@ export default function ImportacaoIndex({ zip, aviso, resultado, conferencia, mo
   return (
     <Stack gap={4}>
       <div data-contract="produto-importacao-header">
-        <PageHeader title="Importar produtos" subtitle=".xls, .xlsx, .csv" />
+        <PageHeader title={titulo} subtitle=".xls, .xlsx, .csv" />
       </div>
 
       <Card data-contract="produto-importacao-enviar">
         <CardContent className="p-4">
           <Stack gap={3}>
-            <h2 className="text-sm font-medium">Importar produtos</h2>
+            <h2 className="text-sm font-medium">{estoque ? 'Importar estoque inicial' : 'Importar produtos'}</h2>
             <Alert>
-              <AlertTitle>A planilha grava direto no catálogo</AlertTitle>
+              <AlertTitle>{estoque ? 'A planilha lança estoque inicial direto no saldo' : 'A planilha grava direto no catálogo'}</AlertTitle>
               <AlertDescription>
                 Confira antes de enviar: uma coluna fora de ordem cria produto errado em lote. Erro em qualquer
                 linha cancela a importação inteira — nada entra pela metade.
@@ -146,7 +165,33 @@ export default function ImportacaoIndex({ zip, aviso, resultado, conferencia, mo
                 <AlertDescription>{erro}. A linha 1 é a primeira depois do cabeçalho.</AlertDescription>
               </Alert>
             )}
-            {liberado && conferencia?.length ? (
+            {estoque && liberado && conferencia?.length ? (
+              <Stack gap={2}>
+                <p className="text-sm">
+                  <b>{conferencia.length} linha(s) de estoque inicial seriam lançadas.</b> Nada foi gravado ainda — confira e envie.
+                </p>
+                <table className="w-full text-sm">
+                  <thead className="text-left text-xs text-muted-foreground">
+                    <tr>{['Linha', 'SKU', 'Produto', 'Local', 'Quantidade', 'Custo s/ imposto', 'Saldo no local depois', 'Total do lançamento'].map((c) => <th key={c} className={th}>{c}</th>)}</tr>
+                  </thead>
+                  <tbody>
+                    {(conferencia as LinhaEstoque[]).map((l) => (
+                      <tr key={l.linha}>
+                        <td className={`${td} tabular-nums`}>{l.linha}</td>
+                        <td className={`${td} font-mono text-xs`}>{l.sku}</td>
+                        <td className={td}>{l.produto ?? '—'}</td>
+                        <td className={td}>{l.local}</td>
+                        <td className={`${td} tabular-nums`}>{l.quantidade}</td>
+                        <td className={`${td} tabular-nums`}>{l.custo}</td>
+                        <td className={`${td} tabular-nums`}>{l.saldo ?? '—'}</td>
+                        <td className={`${td} tabular-nums`}>{l.total ?? '—'}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </Stack>
+            ) : null}
+            {!estoque && liberado && conferencia?.length ? (
               <Stack gap={2}>
                 <p className="text-sm">
                   <b>{conferencia.length} produto(s) seriam criados.</b> Nada foi gravado ainda — confira e envie.
@@ -156,7 +201,7 @@ export default function ImportacaoIndex({ zip, aviso, resultado, conferencia, mo
                     <tr>{['Linha', 'Nome', 'SKU', 'Tipo', 'Estoque inicial', 'Custo c/ imposto', 'Preço c/ imposto'].map((c) => <th key={c} className={th}>{c}</th>)}</tr>
                   </thead>
                   <tbody>
-                    {conferencia.map((l) => (
+                    {(conferencia as LinhaConferida[]).map((l) => (
                       <tr key={l.linha}>
                         <td className={`${td} tabular-nums`}>{l.linha}</td>
                         <td className={td}>{l.nome}</td>
@@ -180,15 +225,15 @@ export default function ImportacaoIndex({ zip, aviso, resultado, conferencia, mo
           <Stack gap={2}>
             <h2 className="text-sm font-medium">Instruções</h2>
             <p className="text-sm text-muted-foreground">
-              Uma linha por produto. A primeira linha da planilha é cabeçalho e é ignorada. Mantenha a ordem
-              das {COLUNAS.length} colunas do modelo.
+              {estoque ? 'Uma linha por SKU e local — o lançamento entra como “Estoque inicial” no histórico.' : 'Uma linha por produto.'} A primeira linha da planilha é cabeçalho e é ignorada. Mantenha a ordem
+              das {colunas.length} colunas do modelo.
             </p>
             <table className="w-full text-sm">
               <thead className="text-left text-xs text-muted-foreground">
                 <tr><th className={`${th} text-right`}>Nº</th><th className={th}>Coluna</th><th className={th}>O que colocar</th></tr>
               </thead>
               <tbody>
-                {COLUNAS.map(([col, req, ins], i) => (
+                {colunas.map(([col, req, ins], i) => (
                   <tr key={col}>
                     <td className={`${td} text-right font-mono tabular-nums`}>{i + 1}</td>
                     <td className={td}>{col} <span className="text-xs text-muted-foreground">({req})</span></td>
