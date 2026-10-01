@@ -107,8 +107,8 @@ class ClientController extends Controller
 
             // Unica vez que o segredo sai: flash proprio, lido uma vez pela lista (bloco
             // copiavel que fica ate o usuario fechar) — nunca no log nem no status.msg.
-            // Sem o id: com Passport 13 o model gera UUID e o legado guarda int, entao
-            // $client->id nao e o id gravado. O Client ID certo aparece na lista.
+            // O Client ID aparece na lista. (Ate 2026-10-01 o Passport 13 gerava UUID no
+            // id e o insert colidia; desligado no AuthServiceProvider.)
             session()->flash('officeimpresso_credencial', [
                 'name' => $client->name,
                 'secret' => $segredo,

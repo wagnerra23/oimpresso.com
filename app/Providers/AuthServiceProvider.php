@@ -31,6 +31,16 @@ class AuthServiceProvider extends ServiceProvider
         // Ver ADR 0019.
         Passport::enablePasswordGrant();
 
+        // Passport 13 nasce com `$clientUuids = true`: o model Client gera UUID no
+        // `id`. O schema legado de `oauth_clients.id` é INT auto-increment e o
+        // sql_mode de prod não é estrito, então o MySQL trunca o UUID nos dígitos
+        // iniciais ("01a0f5fe-…" vira 1) e o insert colide com o client 1 — todo
+        // `store` dos painéis /connector/client e /officeimpresso/client falhava.
+        // Desligar só muda o id de clients NOVOS (volta ao auto-increment); os
+        // existentes (39, 107… — o Delphi e o User::validateForPassportPasswordGrant
+        // dependem desses ints) e o hash do secret não mudam.
+        Passport::$clientUuids = false;
+
         Gate::before(function ($user, $ability) {
             if (in_array($ability, ['backup', 'superadmin',
                 'manage_modules', ])) {
