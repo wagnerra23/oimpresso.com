@@ -30,6 +30,12 @@ beforeEach(function () {
     $_SERVER['REMOTE_ADDR'] ??= '127.0.0.1';
     $_SERVER['HTTP_USER_AGENT'] ??= 'Pest/CI (X11; Linux x86_64) HeadlessChrome';
 
+    // O tenant de teste (biz=98) faz o papel da empresa OPERADORA: as permissões
+    // delegáveis de escrita só valem para usuário dela (AcessoOperador).
+    if ($operador = static::resolveSeededTenant()) {
+        config(['constants.operator_business_id' => (int) $operador->id]);
+    }
+
     $this->oiLicMarca = 'OILIC' . strtoupper(substr(uniqid(), -8));
     $this->oiLicIds = [];
     $this->oiLicUsers = [];
@@ -266,6 +272,42 @@ it('UC-OILIC-15 · intenção já cumprida não inverte o estado; o toggle sem i
     // Blade e tela de Logs não mandam `bloquear`: o toggle de sempre, sem motivo exigido.
     $this->post('/officeimpresso/licenca_computador/' . $id . '/toggle-block')->assertSessionHasNoErrors();
     expect((int) DB::table('licenca_computador')->where('id', $id)->value('bloqueado'))->toBe(0);
+});
+
+it('operador · cliente com licencas.gerenciar não bloqueia máquina de outra empresa e a tela não oferece o botão', function () {
+    $operador = $this->seededTenant();
+    $cliente = $this->seededSupportClientTenant();
+    $user = oiLicUser($this, (int) $cliente->id, 'officeimpresso.licencas.gerenciar');
+    Permission::firstOrCreate(['name' => 'officeimpresso.access', 'guard_name' => 'web']);
+    $user->givePermissionTo('officeimpresso.access');
+    $this->actingAs($user);
+    $id = oiLicMaquina($this, (int) $operador->id);
+
+    $this->post('/officeimpresso/licenca_computador/' . $id . '/toggle-block', ['bloquear' => true, 'motivo' => 'tentativa de outro negócio'])
+        ->assertForbidden();
+    $this->post('/officeimpresso/licenca_computador/' . $id . '/toggle-block')->assertForbidden();
+
+    // Nada mudou: nem o estado, nem o histórico.
+    expect((int) DB::table('licenca_computador')->where('id', $id)->value('bloqueado'))->toBe(0);
+    expect(DB::table('licenca_log')->where('licenca_id', $id)->count())->toBe(0);
+
+    // Desde a trava de `officeimpresso.access` (também só da operadora) a tela nem abre
+    // para empresa cliente — antes ela abria sem o botão de bloquear.
+    oiLicFlag(true);
+    $this->get('/officeimpresso/licenca_computador')->assertForbidden();
+});
+
+it('operador · usuário da operadora com licencas.gerenciar bloqueia máquina de empresa cliente', function () {
+    $operador = $this->seededTenant();
+    $cliente = $this->seededSupportClientTenant();
+    $this->actingAs(oiLicUser($this, (int) $operador->id, 'officeimpresso.licencas.gerenciar'));
+    $id = oiLicMaquina($this, (int) $cliente->id);
+
+    $this->post('/officeimpresso/licenca_computador/' . $id . '/toggle-block', ['bloquear' => true, 'motivo' => 'suporte da operadora'])
+        ->assertRedirect()
+        ->assertSessionHasNoErrors();
+
+    expect((int) DB::table('licenca_computador')->where('id', $id)->value('bloqueado'))->toBe(1);
 });
 
 // ── Helpers (prefixo oiLic — o LogsBaselineTest roda no mesmo processo) ──────

@@ -18,7 +18,7 @@ use Tests\Support\EstoqueFixture;
  * Contrato da tela Produto/AtualizarPreco (`/update-product-price`) — playbook Produto · thread 06.
  *
  * Os UCs vêm do contrato, não do código:
- *   resources/js/Pages/Produto/AtualizarPreco/Index.casos.md (UC-PATPRC-01..05)
+ *   resources/js/Pages/Produto/AtualizarPreco/Index.casos.md (UC-PATPRC-01..08)
  *
  * ⛔ Regra mestre de valor: a thread troca só a TELA. UC-PATPRC-02 é a dupla prova (mesma planilha
  *    pelo caminho antigo e pelo novo, preços gravados idênticos) e UC-PATPRC-03 a prévia sem gravar.
@@ -227,4 +227,94 @@ it('UC-PATPRC-05 · a recusa do import() chega na tela como prop erro', function
         ->get('/update-product-price')->assertOk()
         ->assertInertia(fn (AssertableInertia $p) => $p->component('Produto/AtualizarPreco/Index', false)
             ->where('erro', 'Preço não numérico encontrado na linha 1'));
+});
+
+/** Todos os preços de grupo gravados numa variação, de qualquer grupo (prova de "não tocou"). */
+function patprcGruposDaVariacao(int $variationId): array
+{
+    return DB::table('variation_group_prices')->where('variation_id', $variationId)
+        ->orderBy('price_group_id')->get(['price_group_id', 'price_inc_tax'])
+        ->map(fn ($r) => [(int) $r->price_group_id, (string) $r->price_inc_tax])->all();
+}
+
+it('UC-PATPRC-06 · o import() grava só no próprio negócio quando o SKU coincide com o de outro (P0 Tier 0)', function () {
+    // Vizinho criado ANTES: a variação dele tem o id menor — é a que o `first()` sem filtro pegava.
+    [$vidVizinho, $sku] = patprcVariacao($this->vizinho->id);
+    $grupoVizinho = patprcGrupo($this->vizinho->id, 'Atacado');
+    [$vid] = patprcVariacao($this->biz->id);
+    DB::table('variations')->where('id', $vid)->update(['sub_sku' => $sku]);
+    expect($vidVizinho)->toBeLessThan($vid);
+
+    $grupo = patprcGrupo($this->biz->id, 'Atacado');
+    $user = patprcUsuario($this->biz->id, ['product.update']);
+    $vizinhoAntes = patprcFoto($vidVizinho, $grupoVizinho);
+    $gruposVizinhoAntes = patprcGruposDaVariacao($vidVizinho);
+
+    patprcLogin($this, $user)->post('/import-product-price', [
+        'product_group_prices' => patprcPlanilha('Atacado ' . PATPRC_TAG, [['P', $sku, 1234.56, 999.9]]),
+    ])->assertRedirect('update-product-price')->assertSessionHas('status.success', 1);
+
+    // O 99 fica intacto: preço de venda, base, margem e nenhum preço de grupo novo.
+    expect(patprcFoto($vidVizinho, $grupoVizinho))->toBe($vizinhoAntes);
+    expect(patprcGruposDaVariacao($vidVizinho))->toBe($gruposVizinhoAntes);
+    // O 98 recebe a planilha.
+    $novo = patprcFoto($vid, $grupo);
+    expect((float) $novo['venda'])->toBe(1234.56);
+    expect((float) $novo['grupo'])->toBe(999.9);
+
+    // SKU que só existe no 99: a linha é recusada com o SKU no motivo e nada é gravado.
+    [$vidSo99, $skuSo99] = patprcVariacao($this->vizinho->id);
+    $so99Antes = patprcFoto($vidSo99, $grupoVizinho);
+    patprcLogin($this, $user)->post('/import-product-price', [
+        'product_group_prices' => patprcPlanilha('Atacado ' . PATPRC_TAG, [['P', $skuSo99, 777.7, 666.6]]),
+    ])->assertRedirect('update-product-price')
+        ->assertSessionHas('notification.success', 0)
+        ->assertSessionHas('notification.msg', fn ($m) => str_contains((string) $m, $skuSo99));
+    expect(patprcFoto($vidSo99, $grupoVizinho))->toBe($so99Antes);
+    expect(patprcGruposDaVariacao($vidSo99))->toBe([]);
+});
+
+it('UC-PATPRC-07 · planilha só com SKUs do próprio negócio grava o mesmo que antes do conserto (regressão de valor)', function () {
+    [$vidA, $skuA] = patprcVariacao($this->biz->id);
+    [$vidB, $skuB] = patprcVariacao($this->biz->id);
+    $grupo = patprcGrupo($this->biz->id, 'Atacado');
+    $user = patprcUsuario($this->biz->id, ['product.update']);
+    $antesB = patprcFoto($vidB, $grupo);
+
+    patprcLogin($this, $user)->post('/import-product-price', [
+        'product_group_prices' => patprcPlanilha('Atacado ' . PATPRC_TAG, [['A', $skuA, 1234.56, 999.9], ['B', $skuB, 20, 55.5]]),
+    ])->assertRedirect('update-product-price')->assertSessionHas('status.success', 1);
+
+    // Recálculo à mão (2º caminho, sem passar pelo Util): fixture sem imposto e custo 10.
+    //   base = 1234.56 × 100 / (100 + 0) = 1234.56 · margem = (1234.56 − 10) / 10 × 100 = 12245.6
+    $a = patprcFoto($vidA, $grupo);
+    expect(round((float) $a['venda'], 4))->toBe(1234.56);
+    expect(round((float) $a['base'], 4))->toBe(1234.56);
+    expect(round((float) $a['margem'], 4))->toBe(12245.6);
+    expect(round((float) $a['grupo'], 4))->toBe(999.9);
+
+    // Preço de venda igual ao atual (20): a variação não é regravada, só o preço do grupo entra.
+    $b = patprcFoto($vidB, $grupo);
+    expect([$b['venda'], $b['base'], $b['margem']])->toBe([$antesB['venda'], $antesB['base'], $antesB['margem']]);
+    expect(round((float) $b['grupo'], 4))->toBe(55.5);
+});
+
+it('UC-PATPRC-08 · exportar e importar exigem product.update', function () {
+    [$vid, $sku] = patprcVariacao($this->biz->id);
+    $grupo = patprcGrupo($this->biz->id, 'Atacado');
+    $semPermissao = patprcUsuario($this->biz->id);
+    $inicial = patprcFoto($vid, $grupo);
+
+    patprcLogin($this, $semPermissao)->get('/export-product-price')->assertForbidden();
+    patprcLogin($this, $semPermissao)->post('/import-product-price', [
+        'product_group_prices' => patprcPlanilha('Atacado ' . PATPRC_TAG, [['P', $sku, 1234.56, 999.9]]),
+    ])->assertForbidden();
+    expect(patprcFoto($vid, $grupo))->toBe($inicial);
+
+    // Controle: com a permissão, o mesmo export responde (o export() abre um ob_start que não fecha).
+    $nivel = ob_get_level();
+    patprcLogin($this, patprcUsuario($this->biz->id, ['product.update']))->get('/export-product-price')->assertOk();
+    while (ob_get_level() > $nivel) {
+        ob_end_clean();
+    }
 });

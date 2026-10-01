@@ -246,10 +246,14 @@ last_run: "2026-09-30"
   para `/asset/asset-maintenance/create?asset_id={id do bem}`, que abre o drawer com o bem já
   escolhido (thread 19, UC-MANU-06). Sem a permissão, o botão não aparece. É botão com
   `router.get`, não `<a href>` (UC-BENS-04 segue valendo).
+- **Também pelo rodapé do drawer de detalhe do bem** (protótipo `patrimonio-page.jsx:656`,
+  entrou no mesmo dia): mesmo destino e mesma permissão; o drawer só mostra o botão quando a
+  Page passa o handler.
 - **Teste:** `tests/js/patrimonio-bens-manutencao.test.tsx` — dois `it()` citando `UC-BENS-12`,
-  com o "Editar" da mesma linha como controle de que a linha renderizou.
-- **Fora:** o botão no rodapé do drawer de detalhe do bem (protótipo `patrimonio-page.jsx:656`)
-  e o envio em lote (`:395`). Não escreve valor nem quantidade.
+  com o "Editar" da mesma linha como controle de que a linha renderizou; e
+  `tests/js/patrimonio-detalhe-bem.test.tsx` — dois `it()` do rodapé (id entregue, alvo 44px,
+  sem handler = sem botão).
+- **Fora:** o envio em lote (`:395`). Não escreve valor nem quantidade.
 - **Status: ⬜** — a lane de CI do PR é o primeiro run.
 
 ## UC-BENS-11 · Excluir o bem leva as garantias dele junto
@@ -300,8 +304,6 @@ expressão (`AssetController::baseAssetsQuery`), lida pelos dois ramos.
 - [BACKLOG] O usuário escolhe as colunas visíveis e a densidade, e a escolha sobrevive ao reload.
 - [BACKLOG] Alocar a partir da linha, em drawer — escrita de QUANTIDADE: REGRA MESTRE Tier 0.
   (Mandar pra manutenção a partir da linha saiu daqui em 2026-09-30: virou UC-BENS-12.)
-- [BACKLOG] "Enviar pra manutenção" no rodapé do drawer de detalhe do bem, como no protótipo
-  (`patrimonio-page.jsx:656`) — o destino já existe (UC-BENS-12).
 - [BACKLOG] `permitted_locations()` restringe a listagem, e nenhum parâmetro de query a afrouxa.
   (Hoje o código faz isso — aplica a restrição **antes** dos filtros do usuário —, mas nenhum
   teste defende; virou visível quando o fixture sem `access_all_locations` zerou a lista.)
