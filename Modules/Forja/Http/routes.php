@@ -105,8 +105,8 @@ Route::group(
     function () {
         Route::get('/',          'InstallController@index')->name('project-mgmt.install.index');
         Route::post('/',         'InstallController@install')->name('project-mgmt.install.run');
-        Route::get('/uninstall', 'InstallController@uninstall')->name('project-mgmt.install.uninstall');
-        Route::get('/update',    'InstallController@update')->name('project-mgmt.install.update');
+        Route::match(['get', 'post'], '/uninstall', 'InstallController@uninstall')->name('project-mgmt.install.uninstall');
+        Route::match(['get', 'post'], '/update',    'InstallController@update')->name('project-mgmt.install.update');
     }
 );
 

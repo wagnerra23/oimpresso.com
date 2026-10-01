@@ -20,8 +20,8 @@ authority: generated
 | CU no SDD | 14 |
 | Telas (.tsx) | 11 |
 | Telas com `casos.md` | 15 |
-| UC declarados | 123 |
-| UC com teste que os cita | 107 |
+| UC declarados | 124 |
+| UC com teste que os cita | 108 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -103,6 +103,7 @@ authority: generated
 | UC-PCADAP-09 | Cadastros/Index | 🧪 aguarda veredito da lane |
 | UC-PCADAP-10 | Cadastros/Index | 🧪 aguarda veredito da lane |
 | UC-PCADAP-11 | Cadastros/Index | 🧪 aguarda veredito da lane |
+| UC-PCADAP-12 | Cadastros/Index | 🧪 aguarda veredito da lane |
 | UC-PEDIT-01 | Edit | 🧪 aguarda veredito da lane |
 | UC-PEDIT-02 | Edit | 🧪 aguarda veredito da lane |
 | UC-PEDIT-03 | Edit | 🧪 aguarda veredito da lane |

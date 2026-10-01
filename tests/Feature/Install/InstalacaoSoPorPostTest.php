@@ -20,6 +20,7 @@ use Symfony\Component\HttpKernel\Exception\HttpException;
 /** Módulos já migrados pro trait. Cada lote acrescenta os seus. */
 const INSTALACAO_SO_POR_POST_MODULOS = [
     'AssetManagement', 'Cms', 'Crm', 'Manufacturing', 'ProductCatalogue',
+    'Forja', 'Jana', 'KB', 'Ponto', 'Repair', 'Spreadsheet',
 ];
 
 abstract class InstalacaoSoPorPostBaseFalsa

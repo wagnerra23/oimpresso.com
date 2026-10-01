@@ -212,7 +212,12 @@ class UnitController extends Controller
                 $unit->actual_name = $input['actual_name'];
                 $unit->short_name = $input['short_name'];
                 $unit->allow_decimal = $input['allow_decimal'];
-                if ($request->has('define_base_unit')) {
+                // Unidade base (mexe em conversao de ESTOQUE — decisao [W] 2026-10-01 item 11).
+                // Antes: AUSENCIA do campo `define_base_unit` zerava a base. Um form que nao
+                // mandasse o checkbox (modal novo, API, POST parcial) apagava a conversao em
+                // silencio. Agora so desmarcar EXPLICITO (`define_base_unit=0`, o hidden do
+                // Blade) remove a base; ausencia preserva o que esta gravado.
+                if ($request->boolean('define_base_unit')) {
                     if (! empty($request->input('base_unit_id')) && ! empty($request->input('base_unit_multiplier'))) {
                         $base_unit_multiplier = $this->commonUtil->num_uf($request->input('base_unit_multiplier'));
                         if ($base_unit_multiplier != 0) {
@@ -220,7 +225,7 @@ class UnitController extends Controller
                             $unit->base_unit_multiplier = $base_unit_multiplier;
                         }
                     }
-                } else {
+                } elseif ($request->has('define_base_unit')) {
                     $unit->base_unit_id = null;
                     $unit->base_unit_multiplier = null;
                 }

@@ -55,7 +55,7 @@ class OfficeimpressoController extends Controller
             return redirect()->action([LicencaComputadorController::class, 'computadores']);
         }
 
-        if ($user->can('officeimpresso.clientes.liberar')) {
+        if (AcessoOperador::pode($user, 'officeimpresso.clientes.liberar')) {
             return redirect()->action([ClientController::class, 'index']);
         }
 

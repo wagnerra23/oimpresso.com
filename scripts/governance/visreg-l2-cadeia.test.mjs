@@ -15,6 +15,8 @@
  *   1. o lint REAL reprova um charter com `states:` fora do manifesto (sandbox git);
  *   2. com o L2 falhando, a cadeia segue (classificacao e modo rodam) E o job termina vermelho;
  *   3. controle de mutacao: sem o `continue-on-error`, a cadeia volta a pular — o assert 2 cai.
+ *   4. (2026-10-01) setup quebrado (ex. timeout das deps do Playwright) nao executa os passos de
+ *      teste com `always()` nem o canario — a falha fica no passo de setup, nao num fluxo visual.
  *
  * A simulacao do (2) e parcial e declarada: modela so as funcoes de status do GitHub
  * (success() implicito, always(), !cancelled(), failure()) e trata toda outra condicao como
@@ -50,7 +52,7 @@ function extrairSteps(texto) {
     const m = linhas[i].match(/^(\s*)- name: (.+)$/);
     if (!m) continue;
     const ind = m[1].length;
-    const step = { nome: m[2].trim().replace(/^'(.*)'$/, '$1'), if: '', coe: false, run: '' };
+    const step = { nome: m[2].trim().replace(/^'(.*)'$/, '$1'), id: '', if: '', coe: false, run: '' };
     for (let j = i + 1; j < linhas.length; j++) {
       const l = linhas[j];
       if (/^\s*- (name|uses): /.test(l) && l.match(/^(\s*)/)[1].length <= ind) break;
@@ -58,6 +60,8 @@ function extrairSteps(texto) {
       if (l.trim() !== '' && cur <= ind) break;
       const mIf = l.match(/^\s*if: (.+)$/);
       if (mIf && cur === ind + 2) step.if = mIf[1].trim();
+      const mId = l.match(/^\s*id: (\S+)\s*$/);
+      if (mId && cur === ind + 2) step.id = mId[1];
       if (/^\s*continue-on-error: true\s*$/.test(l) && cur === ind + 2) step.coe = true;
       const mRun = l.match(/^(\s*)run: \|\s*$/);
       if (mRun && cur === ind + 2) {
@@ -79,6 +83,7 @@ function extrairSteps(texto) {
 function simular(steps, falha) {
   let jobFalhou = false;
   const rodou = new Map();
+  const porId = new Map();
   for (const s of steps) {
     const cond = s.if.replace(/^\$\{\{\s*|\s*\}\}$/g, '');
     let roda;
@@ -88,9 +93,14 @@ function simular(steps, falha) {
     else roda = !jobFalhou;
     // condicao de outcome do L2 no veredito: roda so se o L2 nao foi success
     if (roda && /steps\.lint-l2\.outcome != 'success'/.test(cond)) roda = rodou.get(L2) === 'failure';
-    if (!roda) { rodou.set(s.nome, 'skipped'); continue; }
+    // condicao de outcome de OUTRO step (`steps.<id>.outcome == 'success'`): exige que ele tenha passado
+    for (const [, id] of cond.matchAll(/steps\.([\w-]+)\.outcome == 'success'/g)) {
+      if (roda && porId.get(id) !== 'success') roda = false;
+    }
+    if (!roda) { rodou.set(s.nome, 'skipped'); if (s.id) porId.set(s.id, 'skipped'); continue; }
     const falhou = falha.has(s.nome);
     rodou.set(s.nome, falhou ? 'failure' : 'success');
+    if (s.id) porId.set(s.id, falhou ? 'failure' : 'success');
     if (falhou && !s.coe) jobFalhou = true;
   }
   return { rodou, jobFalhou };
@@ -152,5 +162,29 @@ const mutante = steps.map((s) => (s.nome === L2 ? { ...s, coe: false } : s));
 const simM = simular(mutante, new Set([L2]));
 ok(simM.rodou.get('Classificar impacto visual do diff') === 'skipped', 'MUTANTE sem continue-on-error: "Classificar impacto" volta a pular (o assert 2 mede o conserto)');
 
-console.log(falhas ? `\n❌ ${falhas} falha(s)` : '\n✅ L2 reprova o job no fim e a cadeia segue');
+// ── 4. setup quebrado NAO vira regressao visual (2026-10-01) ─────────────────────────
+// Run 36733389261 tentativa 1: `Install Playwright system dependencies` estourou o teto, e os
+// passos de teste com `always()` rodaram sem Laravel montado, cairam com `Please provide a valid
+// cache path` e o comentario culpou "Fluxos visuais Financeiro". Conserto: marca `setup-ok` no
+// fim do setup e os passos de teste com `always()` exigem ela.
+const DEPS = 'Install Playwright system dependencies';
+const testesAlways = steps.filter((s) => /always\(\)/.test(s.if) && /^(Fluxos visuais|E2E de|Contrato do shell)/.test(s.nome));
+ok(testesAlways.length >= 15, `achou ${testesAlways.length} passos de teste com always()`);
+ok(testesAlways.every((s) => /steps\.setup-ok\.outcome == 'success'/.test(s.if)), 'todo passo de teste com always() exige a marca setup-ok');
+const iSetup = steps.findIndex((s) => s.id === 'setup-ok');
+const iPrimeiroTeste = steps.findIndex((s) => s.id === 'pest-browser');
+ok(iSetup > idx(DEPS) && iSetup < iPrimeiroTeste, 'marca setup-ok fica entre as deps e o primeiro teste');
+const simS = simular(steps, new Set([DEPS]));
+ok(simS.jobFalhou, 'deps quebradas: o job termina vermelho');
+ok(testesAlways.every((s) => simS.rodou.get(s.nome) === 'skipped'), 'deps quebradas: NENHUM passo de teste roda');
+ok(simS.rodou.get('Canário anti-verde-vazio') === 'skipped', 'deps quebradas: o canario nao vira a 2a falha falsa');
+const simOk = simular(steps, new Set(['Fluxos visuais Compras (ENFORCING — L2.5 · interação × viewport)']));
+ok(simOk.rodou.get('Fluxos visuais Sells/Create (ENFORCING — L2.5 · interação × viewport)') === 'success', 'controle: falha de UM teste segue sem pular os irmaos (always() preservado)');
+ok(/"tipo":"setup"/.test(texto), 'narrativa de falha (PASSOS) inclui a entrada de setup');
+// mutacao: sem a guarda, os fluxos voltam a rodar com o setup quebrado
+const mutS = steps.map((s) => ({ ...s, if: s.if.replace(" && steps.setup-ok.outcome == 'success'", '') }));
+ok(simular(mutS, new Set([DEPS])).rodou.get('Fluxos visuais Financeiro (ENFORCING — L2.5 · interação × viewport)') === 'success',
+  'MUTANTE sem a guarda setup-ok: o fluxo Financeiro volta a rodar com setup quebrado (o assert mede o conserto)');
+
+console.log(falhas ? `\n❌ ${falhas} falha(s)` : '\n✅ L2 reprova o job no fim e a cadeia segue; setup quebrado nao vira regressao visual');
 process.exit(falhas ? 1 : 0);
