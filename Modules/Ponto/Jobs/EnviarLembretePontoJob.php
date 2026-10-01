@@ -14,13 +14,13 @@ use Modules\Ponto\Entities\PushDispositivo;
 use Modules\Ponto\Services\Push\FcmClient;
 
 /**
- * Envia o lembrete de bater ponto aos aparelhos ativos de UM usuário (ADR 0422 §5).
+ * Envia o lembrete de bater ponto aos aparelhos ativos de UM usuário (ADR 0423 §5).
  *
  * Tier 0 ([ADR 0093]): `$businessId` vem no constructor e filtra explicitamente — fora de
  * sessão o global scope não protege. Com a fila `sync` do Hostinger roda no mesmo tick do
  * comando, sem worker.
  *
- * Conteúdo genérico, sem dado sensível (ADR 0422 §7). O push nunca bate ponto.
+ * Conteúdo genérico, sem dado sensível (ADR 0423 §7). O push nunca bate ponto.
  */
 class EnviarLembretePontoJob implements ShouldQueue
 {

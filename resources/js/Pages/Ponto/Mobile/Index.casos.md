@@ -91,23 +91,23 @@ last_run: "2026-09-29"
 - **Aceite:** Dado colaborador com `controla_ponto` · Quando a tela envia o token do aparelho ·
   Então o aparelho fica ativo no MEU usuário e no MEU business, mesmo que o corpo traga outro
   `business_id`/`user_id`; sem cadastro de ponto → 403 e nada gravado.
-- **Fonte:** ADR 0422 §3. **Regressão que defende:** lembrete indo para outra empresa ou pessoa.
+- **Fonte:** ADR 0423 §3. **Regressão que defende:** lembrete indo para outra empresa ou pessoa.
 - **Status: ⬜** — cita o UC; veredito vem da lane `ponto-pest` (`PushDispositivoContratoTest`).
 
 ## UC-REPP-12 · Celular da loja compartilhado: o lembrete é de quem logou por último
 - **Aceite:** Dado um token já registrado por outro usuário (de qualquer business) · Quando eu
   registro o mesmo token · Então existe UMA linha, agora minha e ativa.
-- **Fonte:** ADR 0422 §3. **Status: ⬜**
+- **Fonte:** ADR 0423 §3. **Status: ⬜**
 
 ## UC-REPP-13 · Paro os lembretes, e só os MEUS
 - **Aceite:** Dado meu aparelho ativo · Quando peço para parar · Então ele fica `ativo=false`;
   outro usuário (de outro business) pedindo o mesmo token não desativa nada.
-- **Fonte:** ADR 0422 §4. **Status: ⬜**
+- **Fonte:** ADR 0423 §4. **Status: ⬜**
 
 ## UC-REPP-16 · O lembrete vai só aos MEUS aparelhos do MEU business; app desinstalado sai da lista
 - **Aceite:** Dado aparelhos ativos meus e uma linha com meu usuário em outro business · Quando o lembrete
   é enviado · Então só os do meu business recebem; o token que o FCM responde UNREGISTERED fica inativo.
-- **Fonte:** ADR 0422 §3, §5. **Status: ⬜** (`EnviarLembretePontoJobTest`)
+- **Fonte:** ADR 0423 §3, §5. **Status: ⬜** (`EnviarLembretePontoJobTest`)
 
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
@@ -115,5 +115,9 @@ last_run: "2026-09-29"
 
 ## Trilha do tempo
 - 2026-09-29 · [CL] carimbado por criar-tela.mjs e preenchido na thread 06 (PR 2a); UC-REPP-06/07 no PR 2b. Refs: UI-0013 · ADR 0264 G-1/G-2.
-- 2026-10-01 · [CL] UC-REPP-11/12/13 — registro do aparelho para o lembrete (ADR 0422, PR 1).
-- 2026-10-01 · [CL] UC-REPP-16 — envio do lembrete pelo FCM (ADR 0422, PR 2a).
+<<<<<<< HEAD
+- 2026-10-01 · [CL] UC-REPP-11/12/13 — registro do aparelho para o lembrete (ADR 0423, PR 1).
+- 2026-10-01 · [CL] UC-REPP-16 — envio do lembrete pelo FCM (ADR 0423, PR 2a).
+=======
+- 2026-10-01 · [CL] UC-REPP-11/12/13 — registro do aparelho para o lembrete (ADR 0423, PR 1).
+>>>>>>> claude/ponto-push-lembrete

@@ -6,7 +6,7 @@ use App\Concerns\HasBusinessScope;
 use Illuminate\Database\Eloquent\Model;
 
 /**
- * Aparelho que recebe o lembrete de bater ponto (ADR 0422).
+ * Aparelho que recebe o lembrete de bater ponto (ADR 0423).
  *
  * Multi-tenant Tier 0 ([ADR 0093]): HasBusinessScope aplica o global scope por business_id.
  * Fora de sessão (comando do scheduler, Job) o scope não filtra — quem consulta passa

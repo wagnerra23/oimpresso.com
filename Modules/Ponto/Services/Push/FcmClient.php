@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Log;
 use RuntimeException;
 
 /**
- * Cliente do Firebase Cloud Messaging, API HTTP v1 (ADR 0422 §1-§2).
+ * Cliente do Firebase Cloud Messaging, API HTTP v1 (ADR 0423 §1-§2).
  *
  * Sem dependência nova: o token OAuth2 sai de um JWT RS256 da conta de serviço, assinado com
  * `openssl_sign` (o CLI do Hostinger não tem ext-sodium) e trocado no endpoint do Google.

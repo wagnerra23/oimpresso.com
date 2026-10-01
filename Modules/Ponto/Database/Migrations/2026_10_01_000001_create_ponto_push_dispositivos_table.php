@@ -5,7 +5,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * Aparelhos que recebem o lembrete de bater ponto (ADR 0422).
+ * Aparelhos que recebem o lembrete de bater ponto (ADR 0423).
  *
  * Uma linha = um token FCM de aparelho, ligado ao usuário e ao business da sessão em que ele
  * foi registrado. O token é ÚNICO: aparelho compartilhado na loja passa para quem logou por
