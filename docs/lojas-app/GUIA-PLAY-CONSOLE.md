@@ -1,0 +1,26 @@
+# Guia — Play Console, tela a tela (app "Oimpresso.com", `com.oimpresso.app`)
+
+> Decisão [W] 2026-10-01: a 1ª versão publica o **ERP web atual** dentro do Capacitor (as telas do protótipo
+> Mobile ficam para uma versão seguinte). Lista de tarefas lida do Painel do console em 2026-10-01.
+> Quem clica e salva é o [W]: cada "Salvar" é declaração em nome da empresa.
+> Respostas derivadas de [`textos/listagem-pt-BR.md`](textos/listagem-pt-BR.md) e [`textos/privacidade-lojas.md`](textos/privacidade-lojas.md).
+> Senhas nunca entram aqui: vêm do Vaultwarden e são coladas direto no console.
+
+Caminho: **Painel → "Termine de configurar seu app" → Ver tarefas**. Ordem sugerida (as mais fáceis primeiro):
+
+| # | Tarefa | O que responder | Pronto? |
+|---|---|---|---|
+| 1 | **Anúncios** | "Não, meu app não contém anúncios" | ✅ |
+| 2 | **Apps governamentais** | Não | ✅ |
+| 3 | **Recursos financeiros** | "Meu app não oferece nenhum desses recursos" (o ERP registra cobranças da empresa; não é banco, crédito nem cripto) | ✅ |
+| 4 | **Saúde** | Nenhum recurso de saúde | ✅ |
+| 5 | **Público-alvo** | Faixa etária: só **18 anos ou mais**. "O app pode atrair crianças?": Não | ✅ |
+| 6 | **Classificação de conteúdo** | E-mail de contato; categoria **"Todos os outros tipos de app"**; "Não" para violência, sexo, linguagem, drogas, jogos de azar; "compartilha localização com outros usuários?": **Não** (vai só ao empregador); "usuários interagem entre si?": Não. Esperado: **Livre (L)** | ✅ |
+| 7 | **Acesso ao app** ("Detalhes do login") | "Todas ou algumas funcionalidades estão restritas". Duas instruções: **(1) colaborador** — usuário `revisor.ponto`, senha do item `ponto-demo-revisor`: "abre direto no registro de ponto; permita a localização e toque em Entrada". **(2) gestor** — usuário `gestor.demo`, senha do item `ponto-demo-gestor`: "ERP completo com dados fictícios: vendas, produção, ordens de serviço, financeiro". | ⏳ contas da sessão CONTA DEMO (PR #8428) |
+| 8 | **Segurança dos dados** | Seguir `textos/privacidade-lojas.md` §Google: localização precisa, nome, e-mail, IDs de usuário, telefone/endereço/outras info (clientes), fotos, outro conteúdo, ID do dispositivo — todos **coletados, não compartilhados**, criptografados em trânsito, com pedido de exclusão | ⏳ confirmar SDK de crash/analytics com a sessão ANDROID |
+| 9 | **Política de Privacidade** | URL pública que cubra o **app inteiro** (ERP + ponto) | ⛔ hoje só existe `/privacidade/ponto` — falta a geral |
+| 10 | **Página "Detalhes do app"** | Nome `oimpresso`; descrição curta e longa de `textos/listagem-pt-BR.md`; ícone `play-icon-512.png`; banner `play-feature-graphic-1024x500.jpg`; categoria **Empresas**; e-mail de contato | ⏳ screenshots (mín. 2; 4 de 1080×1920 para destaque) |
+
+Depois: **Testar e lançar → Teste interno** (upload do AAB — sessão ANDROID). Para conta pessoal criada após
+nov/2023 o Google exige teste fechado com 12 testadores por 14 dias; conta de **organização** é dispensada —
+conferir o tipo da conta antes de planejar prazo.

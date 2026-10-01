@@ -6,6 +6,7 @@ use App\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 use Modules\Officeimpresso\Http\Controllers\OfficeimpressoController;
+use Spatie\Permission\Models\Permission;
 
 uses(Tests\TestCase::class);
 
@@ -76,6 +77,28 @@ it('catálogo 4 · o QR do Officeimpresso redireciona pro gerador do ProductCata
     $this->get('/officeimpresso/catalogue-qr?origem=menu')
         ->assertRedirect(url('/product-catalogue/catalogue-qr').'?origem=menu');
 
+    $user->forceDelete();
+});
+
+it('catálogo 5 · o destino do redirect abre (200) com o dropdown de locais', function () {
+    // O redirect sozinho não prova nada se o destino quebra. Em 2026-10-01, logo após o
+    // deploy do #8403, /product-catalogue/catalogue-qr dava 500 em prod:
+    // locationsDropdown() declarava `array` e devolvia Collection. Superadmin aqui só
+    // pra passar o gate de pacote — o que se mede é a tela montar.
+    $business = $this->seededTenant();
+    Permission::firstOrCreate(['name' => 'superadmin', 'guard_name' => 'web']);
+
+    $user = makeOiCatalogoTestUser($business->id);
+    $user->givePermissionTo('superadmin');
+    $this->actingAs($user);
+
+    $response = $this->followingRedirects()
+        ->get('/officeimpresso/catalogue-qr');
+
+    $response->assertOk();
+    expect($response->getContent())->toContain('name="location_id"');
+
+    $user->revokePermissionTo('superadmin');
     $user->forceDelete();
 });
 
