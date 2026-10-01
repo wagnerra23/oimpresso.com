@@ -54,6 +54,7 @@ class MobileShellController extends Controller
     /** @return array{usuario: array{nome: string}, empresa: array{nome: string}} */
     private function identidade(Request $request): array
     {
+        /** @var \App\User $user */
         $user = $request->user();
 
         return [

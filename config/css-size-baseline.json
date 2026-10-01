@@ -1,8 +1,8 @@
 {
   "_meta": {
-    "generated_at": "2026-10-01T18:25:50.808Z",
-    "total_lines": 24561,
-    "file_count": 41,
+    "generated_at": "2026-10-01T18:34:45.767Z",
+    "total_lines": 24617,
+    "file_count": 42,
     "note": "Ratchet de tamanho — passo 1 MANUAL-CSS-JS. Cada .css só pode encolher; arquivo novo exige --write (decisão consciente / ADR).",
     "refs": [
       "MANUAL-CSS-JS#1",
@@ -29,6 +29,7 @@
     "resources/css/foundations.css": 20,
     "resources/css/inertia.css": 312,
     "resources/css/kb.css": 263,
+    "resources/css/mobile-shell.css": 56,
     "resources/css/screen-grade.css": 16,
     "resources/css/sells-cowork-curadoria.css": 334,
     "resources/css/sells-cowork-distribuicao.css": 439,
