@@ -226,3 +226,15 @@ title: "Conciliar PIX recebido: R$ 1.420,00",
 { label: "Ticket médio", value: "R$ 445,00",   delta: "9%",  data: [5,4,6,5,7,6,5,7,6,8,7,8] },
 │ Subtotal           R$ 473,00    │
 │ Total           R$ 423,00       │  ← OiMoney destaque
+
+# ── mobile/tests (PR de testes das regras do app, 2026-09-29) ──────────────────────
+# VETORES DE TESTE: asserções da formatação de moeda (lib/money.ts, lib/format.ts).
+# O número é a própria asserção — redigir quebraria o teste (ver cabeçalho).
+expect(plain(formatBRL(123456))).toBe("R$ 1.234,56");
+expect(formatBRLcompact(1_250_00)).toBe("R$ 1,3k");
+expect(formatBRLcompact(3_400_000_00)).toBe("R$ 3,4M");
+expect(plain(formatBRLcompact(999_99))).toBe("R$ 999,99");
+expect(plain(BRL(1234.5))).toBe("R$ 1.234,50");
+expect(BRLcompact(1200)).toBe("R$ 1,2k");
+expect(BRLcompact(1_300_000)).toBe("R$ 1,3M");
+expect(plain(BRLcompact(950))).toBe("R$ 950,00");
