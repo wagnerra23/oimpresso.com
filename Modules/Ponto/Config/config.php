@@ -144,6 +144,23 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | App de ponto (Capacitor) — App Links / Universal Links
+    |--------------------------------------------------------------------------
+    | Servidos em /.well-known/assetlinks.json e /.well-known/apple-app-site-association.
+    | Vazio = 404 (nunca publicar um arquivo que não vale). Os valores vêm do .env de
+    | produção — após mudar o .env, rodar `php artisan config:cache`.
+    | Fingerprints: SHA-256 do certificado, "AA:BB:..." (32 pares), separados por vírgula —
+    | com Play App Signing, listar a upload key E a app signing key do Play Console.
+    */
+    'app_links' => [
+        'android_package'   => env('PONTO_ANDROID_PACKAGE', ''),
+        'android_sha256'    => env('PONTO_ANDROID_SHA256', ''),
+        'ios_app_id'        => env('PONTO_IOS_APP_ID', ''),   // "<TeamID>.<bundleId>"
+        'paths'             => ['/ponto/mobile*'],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Integração com UltimatePOS (bridge)
     |--------------------------------------------------------------------------
     */
