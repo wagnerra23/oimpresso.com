@@ -16,7 +16,7 @@ name: Connector · Pest (MySQL)
 #
 # NÃO duplica o officeimpresso-pest.yml: o SalvarEquipamentoTenantGuardTest (rota Connector
 # que grava licenca_computador) continua morando lá. O DelphiOImpressoContractTest
-# (tests/Feature/Connector/, órfão de lane) foi medido aqui e ficou FORA — ver o step do Pest.
+# (tests/Feature/Connector/, órfão de lane) roda AQUI desde o conserto do 302 (ver o step do Pest).
 #
 # ⚠️ O Pest ABORTA (exit 2) se um caminho da lista não existe — arquivo novo entra no
 # comando no MESMO PR que o cria.
@@ -34,6 +34,8 @@ on:
     branches: [main]
     paths:
       - 'Modules/Connector/**'
+      - 'tests/Feature/Connector/**'
+      - 'app/Http/Middleware/Authenticate.php'
       - 'app/Providers/AuthServiceProvider.php'
       - 'database/schema/mysql-schema.sql'
       - '.github/workflows/connector-pest.yml'
@@ -72,6 +74,8 @@ jobs:
           filters: |
             connector:
               - 'Modules/Connector/**'
+              - 'tests/Feature/Connector/**'
+              - 'app/Http/Middleware/Authenticate.php'
               - 'app/Providers/AuthServiceProvider.php'
               - 'database/schema/mysql-schema.sql'
               - '.github/workflows/connector-pest.yml'
@@ -108,7 +112,11 @@ jobs:
           DB_DATABASE: oimpresso_test
           DB_USERNAME: root
           DB_PASSWORD: root
-        run: php artisan passport:keys --force
+        run: |
+          php artisan passport:keys --force
+          # personal access client: o createToken() dos testes do contrato Delphi
+          # (DelphiOImpressoContractTest) estoura "Personal access client not found" sem ele.
+          php artisan passport:client --personal --provider=users --name=ci-personal --no-interaction
 
       - name: Run Pest (Connector · MySQL)
         if: steps.changes.outputs.connector == 'true'
@@ -125,14 +133,9 @@ jobs:
         # 179 passed · 10 failed · 13 errors · 1 skipped · 665 assertions). Não ficou provado
         # se o defeito é do teste ou da produção — consertar produção às cegas está proibido;
         # voltam quando a causa for medida:
-        #   - AuthApiTest (4/5): rota auth:api sem Bearer devolve 302 (redirect) em vez de
-        #     401 mesmo com Accept: application/json; e a rota web `connector/api` (tela) cai
-        #     no filtro "toda connector/api* tem auth:api".
         #   - MultiTenantIsolationTest (6/6): 5 com FK (contacts/transactions.created_by,
         #     products.unit_id) — fixture sem dono; 1 acusa "User biz=1 visível com session
         #     biz=99" (o teste presume global scope de business_id no App\User).
-        #   - DelphiOImpressoContractTest (3/34): check-update sem token devolve 302 (mesmo
-        #     sintoma do AuthApiTest) e 2 casos sem personal access client do Passport.
         #   - ApiClientsPanelTest, 3 métodos (--exclude-filter): o Passport 13 grava o
         #     secret com hash (60 chars, Client::secret cast hashed) e o contrato [W] diz que
         #     o segredo do Delphi em campo NÃO pode ser hasheado — conflito a decidir, não a
@@ -141,17 +144,21 @@ jobs:
         #     (36836813351, 60 ≠ 40), em 2 casos do ClientControllerBaselineTest:
         #     "store cria client de senha com secret de 40 caracteres" e "o segredo aparece
         #     UMA vez, no retorno da criação".
-        #   - ApiClientsPanelTest::test_nenhuma_rota_do_painel_devolve_o_segredo — INSTÁVEL
-        #     (verde nos runs 36836813351/36837162964, vermelho no 36837439764): GET
-        #     /connector/client/{id} dá 500 "View [show] not found" (ClientController::show
-        #     usa view('connector::show'), que não existe) e a página de erro do APP_DEBUG
-        #     do CI às vezes despeja o log de queries com o hash do secret no binding.
+        # VOLTARAM (conserto medido, não a produção às cegas):
+        #   - AuthApiTest + DelphiOImpressoContractTest: o 302 era do TESTE — `call()` ignora
+        #     withHeaders(), o Accept/Authorization não chegavam e o Authenticate redirecionava
+        #     pro login. Produção com Accept: application/json já dava 401; sem Accept (wire do
+        #     desktop) segue 302 — contrato Delphi intocado.
+        #   - ApiClientsPanelTest::test_nenhuma_rota_do_painel_devolve_o_segredo: GET
+        #     /connector/client/{id}(/edit) dava 500 (view inexistente) e a página de erro do
+        #     APP_DEBUG despejava o hash do secret; agora redireciona pro painel.
         run: |
           mkdir -p test-results
           vendor/bin/pest --no-coverage --colors=always \
             --log-junit test-results/pest-connector-junit.xml \
-            --exclude-filter 'test_segredo_nao_e_hasheado_credencial_em_campo_continua_valendo|test_client_preexistente_ainda_obtem_token|test_store_cria_password_client_com_secret_de_40|test_nenhuma_rota_do_painel_devolve_o_segredo|secret.de.40.caracteres|segredo.aparece.UMA.vez' \
+            --exclude-filter 'test_segredo_nao_e_hasheado_credencial_em_campo_continua_valendo|test_client_preexistente_ainda_obtem_token|test_store_cria_password_client_com_secret_de_40|secret.de.40.caracteres|segredo.aparece.UMA.vez' \
             Modules/Connector/Tests/Feature/ApiClientsPanelTest.php \
+            Modules/Connector/Tests/Feature/AuthApiTest.php \
             Modules/Connector/Tests/Feature/ClientControllerBaselineTest.php \
             Modules/Connector/Tests/Feature/CustomerJourneyTest.php \
             Modules/Connector/Tests/Feature/LicencaComputadorApiEscopoTest.php \
@@ -161,7 +168,8 @@ jobs:
             Modules/Connector/Tests/Feature/SmokeApiRoutesTest.php \
             Modules/Connector/Tests/Feature/Wave18SaturationTest.php \
             Modules/Connector/Tests/Feature/Wave23ConnectorSaturationTest.php \
-            Modules/Connector/Tests/Feature/Wave28PolishTest.php
+            Modules/Connector/Tests/Feature/Wave28PolishTest.php \
+            tests/Feature/Connector/DelphiOImpressoContractTest.php
 
       # A régua honesta desta lane é `assertions`, NÃO "0 failed": skip sai exit 0.
       - name: Sumário JUnit por arquivo (assertions — a régua contra skip-as-pass)

@@ -471,8 +471,9 @@ it('ProcessaDadosCliente com HD nao cadastrado retorna N;Maquina nao cadastrada'
 // ==========================================================
 
 it('rota check-update existe e exige auth', function () {
-    $r = $this->withHeaders(['Accept' => 'application/json'])
-        ->call('POST', '/connector/api/check-update', [], [], [], [], '12.345.678/0001-99;2026.1.1.7');
+    // Headers no $server do call(): o call() ignora withHeaders() — sem o Accept o
+    // Authenticate redirecionava pro login (302) e o teste media o lugar errado.
+    $r = $this->call('POST', '/connector/api/check-update', [], [], [], ['HTTP_ACCEPT' => 'application/json'], '12.345.678/0001-99;2026.1.1.7');
     expect($r->getStatusCode())->toBe(401);
 });
 
@@ -483,10 +484,10 @@ it('check-update responde text/plain no formato CONTRATO Delphi', function () {
     if (! $user) { expect(true)->toBeTrue(); return; }
     $token = $user->createToken('t')->accessToken;
 
-    $r = $this->withHeaders([
-        'Authorization' => 'Bearer ' . $token,
-        'Content-Type'  => 'text/plain',
-    ])->call('POST', '/connector/api/check-update', [], [], [], [], 'CNPJ-INEXISTENTE-99;1.0.0');
+    $r = $this->call('POST', '/connector/api/check-update', [], [], [], [
+        'HTTP_AUTHORIZATION' => 'Bearer ' . $token,
+        'CONTENT_TYPE'       => 'text/plain',
+    ], 'CNPJ-INEXISTENTE-99;1.0.0');
 
     expect($r->getStatusCode())->toBe(200);
     expect($r->headers->get('Content-Type'))->toContain('text/plain');
