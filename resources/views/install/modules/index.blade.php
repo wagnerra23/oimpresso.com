@@ -72,27 +72,20 @@
                     <td>
                         <strong>{{$module['name']}}</strong> <br/>
                         @if(!$module['is_installed'])
-                            <a class="tw-dw-btn tw-dw-btn-xs tw-dw-btn-outline  tw-dw-btn-accent" 
-                            @if($is_demo)
-                                href="#"
-                                title="@lang('lang_v1.disabled_in_demo')"
-                                disabled
-                            @else
-                                href="{{$module['install_link']}}"
-                            @endif
-                            > @lang('lang_v1.install')</a>
+                            @include('install.modules.partials.acao', [
+                                'url' => $module['install_link'],
+                                'post' => $module['install_post'] ?? false,
+                                'classe' => 'tw-dw-btn tw-dw-btn-xs tw-dw-btn-outline tw-dw-btn-accent',
+                                'rotulo' => __('lang_v1.install'),
+                            ])
                         @else
-                            <a class="btn btn-warning btn-xs"
-                                @if($is_demo)
-                                    href="#"
-                                    disabled
-                                    title="@lang('lang_v1.disabled_in_demo')"
-                                @else
-                                    href="{{$module['uninstall_link']}}"
-                                @endif
-                                onclick="return confirm('Do you really want to uninstall the module? Module will be uninstall but the data will not be deleted')"
-                            >@lang('lang_v1.uninstall')
-                            </a>
+                            @include('install.modules.partials.acao', [
+                                'url' => $module['uninstall_link'],
+                                'post' => $module['uninstall_post'] ?? false,
+                                'classe' => 'btn btn-warning btn-xs',
+                                'rotulo' => __('lang_v1.uninstall'),
+                                'confirmar' => 'Do you really want to uninstall the module? Module will be uninstall but the data will not be deleted',
+                            ])
 
                             {{-- Commented Activate/Deactivate
                             @if($module['active'] == 1)
@@ -145,7 +138,18 @@
 
                         @if(!empty($module['version']) && $module['version']['is_update_available'])
                             <div class="alert alert-warning mt-5">
-                                <i class="fas fa-sync"></i> @lang('lang_v1.module_new_version', ['module' => $module['name'], 'link' => $module['update_link']]) 
+                                @if(!empty($module['update_post']) && ! $is_demo)
+                                    {{-- POST + CSRF: o texto do idioma traz um <a href>; usamos só a frase antes dele. --}}
+                                    <i class="fas fa-sync"></i> {{ \Illuminate\Support\Str::before(__('lang_v1.module_new_version', ['module' => $module['name'], 'link' => '#']), '<a') }}
+                                    @include('install.modules.partials.acao', [
+                                        'url' => $module['update_link'],
+                                        'post' => true,
+                                        'classe' => 'tw-dw-btn tw-dw-btn-info tw-pl-2',
+                                        'rotulo' => __('messages.update'),
+                                    ])
+                                @else
+                                    <i class="fas fa-sync"></i> @lang('lang_v1.module_new_version', ['module' => $module['name'], 'link' => $module['update_link']])
+                                @endif
                             </div>
                         @endif
                     </td>
