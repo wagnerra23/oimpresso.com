@@ -84,6 +84,7 @@ it('lista a venda do meu business no pipeline, com etapa agrupada, valor, prazo 
     expect($item['etapa']['chave'])->toBe('in_production');
     expect($item['etapa']['grupo'])->toBe('producao');
     expect($item['atrasado'])->toBeTrue();
+    expect($item)->toHaveKey('resumo');
     expect($r->json('contadores.ativos'))->toBeGreaterThanOrEqual(1);
 });
 

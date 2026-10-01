@@ -69,6 +69,9 @@ class PedidosController extends Controller
                 't.id', 't.invoice_no', 't.final_total', 't.delivery_date',
                 'c.name as cliente', 'c.supplier_business_name as cliente_empresa',
                 'sps.key as etapa_chave', 'sps.name as etapa_nome', 'sps.is_terminal',
+                // Resumo do cartão (o v4 mostra o produto): nome do 1º item da venda.
+                DB::raw('(SELECT p.name FROM transaction_sell_lines tsl JOIN products p ON p.id = tsl.product_id'
+                    . ' WHERE tsl.transaction_id = t.id AND tsl.parent_sell_line_id IS NULL ORDER BY tsl.id LIMIT 1) as resumo'),
             ]);
 
         $temMais = $linhas->count() > self::POR_PAGINA;
@@ -221,6 +224,7 @@ class PedidosController extends Controller
             'id' => (int) $l->id,
             'numero' => (string) $l->invoice_no,
             'cliente' => $this->nomeCliente($l),
+            'resumo' => isset($l->resumo) ? (string) $l->resumo : null,
             'valor' => round((float) $l->final_total, 2),
             'prazo' => $prazo,
             'atrasado' => $prazo !== null && ! $terminal && $l->etapa_chave !== null && $prazo < now()->toDateString(),
