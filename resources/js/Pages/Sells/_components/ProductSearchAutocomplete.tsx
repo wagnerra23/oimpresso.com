@@ -60,6 +60,9 @@ export interface ProductSearchResult {
 
 interface Props {
   locationId: number | null;
+  // Grupo de preço da venda. Com ele, `/products/list` devolve `variation_group_price`
+  // e o produto entra pelo preço do grupo (paridade pos.js). Sem ele, preço base.
+  priceGroupId?: number | null;
   onSelect: (product: ProductSearchResult) => void;
   placeholder?: string;
   disabled?: boolean;
@@ -161,6 +164,7 @@ function formatBRL(value: number) {
 
 export default function ProductSearchAutocomplete({
   locationId,
+  priceGroupId = null,
   onSelect,
   placeholder = 'Buscar por nome, SKU, código de barras ou lote…',
   disabled = false,
@@ -216,6 +220,7 @@ export default function ProductSearchAutocomplete({
     if (!locationId || term.length < MIN_QUERY_LENGTH) return [];
     const params = new URLSearchParams({ term });
     params.set('location_id', String(locationId));
+    if (priceGroupId) params.set('price_group', String(priceGroupId));
     // R10 — searchFields configurável via popover, persistido em localStorage
     searchFields.forEach((f) => params.append('search_fields[]', f));
     const res = await fetch(`/products/list?${params.toString()}`, {
@@ -259,7 +264,8 @@ export default function ProductSearchAutocomplete({
   //  - staleTime/gcTime/retry herdam o default do QueryClient (app.tsx)
   //  - enabled gate evita disparar com termo curto ou sem local
   const productQuery = useQuery({
-    queryKey: ['products', debouncedQuery, locationId, searchFields],
+    // priceGroupId na key: trocar o grupo não pode servir o resultado em cache do grupo anterior.
+    queryKey: ['products', debouncedQuery, locationId, searchFields, priceGroupId],
     queryFn: ({ signal }) => fetchProducts(debouncedQuery, signal),
     enabled: debouncedQuery.length >= MIN_QUERY_LENGTH && !!locationId,
   });

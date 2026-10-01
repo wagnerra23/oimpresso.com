@@ -10,6 +10,7 @@ use Illuminate\Support\Str;
 use Yajra\DataTables\Facades\DataTables;
 use App\Utils\Util;
 use Illuminate\Support\Facades\Artisan;
+use Modules\Officeimpresso\Services\AcessoOperador;
 
 class ClientController extends Controller
 {
@@ -26,12 +27,23 @@ class ClientController extends Controller
      * próprio de funcionário SEM abrir o Financeiro (gated por `superadmin`).
      * destroy()/regenerate() seguem superadmin-only — são destrutivos
      * (apagam credencial / derrubam TODOS os Delphi via passport:install).
+     *
+     * Decisão [W] 2026-10-01 (D1, 2ª rodada — `_DECISOES-W-2026-10-01b.md`): o painel
+     * FICA (revoga o "aposentar e redirecionar pro Connector" da 1ª rodada) e a delegação
+     * vale para funcionário da empresa OPERADORA — *"todos meus funcionários da empresa 1
+     * podem ter acessos"*. A permissão delegável só vale para usuário dela
+     * (`AcessoOperador`, id da operadora vindo de config, nunca chumbado): um papel de
+     * empresa CLIENTE com `clientes.liberar` leva 403. O `superadmin` segue valendo.
      */
     private function authorizeLiberar(): void
     {
+        // Só vale para usuário da empresa operadora (AcessoOperador): o Gate::before liberava
+        // esta permissão para o Admin de TODA empresa cliente, que criaria credencial OAuth.
+        // A credencial NÃO contorna o bloqueio de licença — ele é decidido na API do Connector
+        // pela empresa do CNPJ/HD da máquina, qualquer que seja o client do token (medido em
+        // 2026-10-01; ver User::validateForPassportPasswordGrant).
         abort_unless(
-            auth()->user()->can('superadmin')
-            || auth()->user()->can('officeimpresso.clientes.liberar'),
+            AcessoOperador::pode(auth()->user(), 'officeimpresso.clientes.liberar'),
             403,
             'Unauthorized action.'
         );

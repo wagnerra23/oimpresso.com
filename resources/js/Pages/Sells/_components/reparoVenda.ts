@@ -1,5 +1,5 @@
 /**
- * Seção "Reparo" do Sells/Create (UC-S04) — o que a venda de reparo envia além da venda.
+ * Seção "Reparo" do Sells/Create (UC-S05) — o que a venda de reparo envia além da venda.
  *
  * Paridade com o parcial Blade `repair::repair.partials.repair_pos` (o POS de reparo):
  * os mesmos nomes de campo, gravados pelo `after_sale_saved` do Repair. Nada aqui toca

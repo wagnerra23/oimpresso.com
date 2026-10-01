@@ -1129,8 +1129,9 @@ it('UC-INDEX-07 · a rota de classificar e POST, numerica e atras de arquivos.ac
     expect($rotas)->toContain("Route::post('{arquivo}/classificar'");
     expect($rotas)->toContain("->whereNumber('arquivo')");
     expect($rotas)->toContain("->name('arquivos.classificar')");
-    // 4 desde a thread 03: index · classificar · excluir · restaurar.
-    expect(substr_count($rotas, "->middleware('can:arquivos.access')"))->toBe(4);
+    // 3 + restaurar, que desde a decisão [W] 2026-10-01 pede TAMBÉM superadmin (array).
+    expect(substr_count($rotas, "->middleware('can:arquivos.access')"))->toBe(3);
+    expect($rotas)->toContain("->middleware(['can:arquivos.access', 'can:superadmin'])");
 })->group('arquivos');
 
 it('UC-INDEX-07 · classificar passa pela Request de motivo e pelo Service — nunca grava o model direto', function () {
@@ -1361,24 +1362,35 @@ if (! function_exists('arquivosSimularRequest')) {
     }
 }
 
-it('UC-INDEX-09 · simular e POST atras de arquivos.governanca, fora do controller do acervo', function () {
+it('UC-INDEX-09 · simular e POST atras de can:superadmin, fora do controller do acervo', function () {
     $rotas = file_get_contents(base_path('Modules/Arquivos/Routes/web.php'));
 
     expect($rotas)->toContain("Route::post('retencao/simular', [RetencaoSimulacaoController::class, 'simular'])");
-    expect($rotas)->toContain("->middleware('can:arquivos.governanca')");
+    // Decisão [W] 2026-10-01 ("Superadmin"): era `can:arquivos.governanca`, delegável por papel.
+    expect($rotas)->toContain("->middleware('can:superadmin')");
+    expect($rotas)->not->toContain('can:arquivos.governanca');
     expect($rotas)->toContain("->name('arquivos.retencao.simular')");
     // O controller do acervo segue sem enfileirar nada (UC-INDEX-01).
     expect(arquivosCodigoSemComentarios(base_path('Modules/Arquivos/Http/Controllers/ArquivosAdminController.php')))
         ->not->toContain('SimularRetencaoJob');
 })->group('arquivos');
 
-it('UC-INDEX-09 · arquivos.restore e arquivos.governanca sao DECLARADAS, sem conceder a ninguem', function () {
+it('UC-INDEX-09 · arquivos.restore e arquivos.governanca NAO sao delegaveis — saem do catalogo (so superadmin)', function () {
     $perms = collect((new Modules\Arquivos\Http\Controllers\DataController())->user_permissions())->keyBy('value');
 
-    expect($perms->has('arquivos.restore'))->toBeTrue();
-    expect($perms->has('arquivos.governanca'))->toBeTrue();
-    expect($perms['arquivos.restore']['default'])->toBeFalse();
-    expect($perms['arquivos.governanca']['default'])->toBeFalse();
+    // Controle positivo: o catálogo é lido — senão o `false` abaixo viria de lista vazia.
+    expect($perms->has('arquivos.access'))->toBeTrue();
+    expect($perms->has('arquivos.restore'))->toBeFalse();
+    expect($perms->has('arquivos.governanca'))->toBeFalse();
+})->group('arquivos');
+
+it('UC-INDEX-08 · a RestoreArquivoRequest NAO aceita arquivos.restore — so superadmin', function () {
+    $req = Modules\Arquivos\Http\Requests\RestoreArquivoRequest::class;
+    $codigo = arquivosCorpoDoMetodo(base_path('Modules/Arquivos/Http/Requests/RestoreArquivoRequest.php'), 'authorize');
+
+    expect($codigo)->toContain("can('superadmin')");
+    expect($codigo)->not->toContain('arquivos.restore');
+    expect(class_exists($req))->toBeTrue();
 })->group('arquivos');
 
 it('UC-INDEX-09 · o controller FORCA dry_run=true e usa o business da SESSAO (canario 98 x 99)', function () {

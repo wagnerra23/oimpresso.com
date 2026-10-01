@@ -12,9 +12,9 @@ import {
   reparoValido,
 } from '../../resources/js/Pages/Sells/_components/reparoVenda';
 
-// UC-S04 (Sells/Create.casos.md) — o que a seção Reparo envia. O lado do servidor
+// UC-S05 (Sells/Create.casos.md) — o que a seção Reparo envia. O lado do servidor
 // (campos gravados na venda) é tests/Feature/Sells/SellsRepairSubtipoContratoTest.php.
-describe('UC-S04 · reparoVenda', () => {
+describe('UC-S05 · reparoVenda', () => {
   it('estado inicial traz o status padrão do Repair e nada mais', () => {
     expect(reparoInicial(7)).toMatchObject({ repair_status_id: 7, repair_serial_no: '', defeitos: [] });
     expect(reparoInicial(undefined).repair_status_id).toBeNull();

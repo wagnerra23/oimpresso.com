@@ -75,6 +75,16 @@ last_run: "2026-09-05"
 
 ---
 
+## UC-RSHW-05 · "Editar" abre a edição da venda de reparo
+- **Persona:** técnico que abriu o detalhe da venda de reparo e precisa corrigir algo.
+- **Por que existe:** o botão "Editar" aponta para `/repair/repair/{id}/edit`, rota excluída do resource (`->except(['create','edit'])`) — **404 em prod** (curl 2026-10-01). Decisão [W] 2026-10-01 (reparo como tipo de venda): a edição de reparo é a do POS com o tipo reparo, `/pos/{id}/edit?sub_type=repair`, o mesmo destino da listagem Blade, que traz a seção de reparo e salva pelo `SellPosController@update`.
+- **Aceite:** Dado uma venda de reparo do próprio business · Quando clica "Editar" (navegação React, `X-Inertia`) · Então a resposta é **409 com `X-Inertia-Location`** = `/pos/{id}/edit?sub_type=repair` (o navegador abre a página inteira) · E a visita comum ao mesmo endereço recebe **302** para o mesmo destino · Dado uma venda **comum** do mesmo business, ou uma venda de reparo de **outro business** · Então **404**.
+- **Teste:** `Modules/Repair/Tests/Feature/RepairShowContratoTest.php` (UC-RSHW-05, tenant 98, lane `verticais-pest`).
+- **Status: 🧪** _(nasce sem run.)_
+- **Por que no servidor e não no botão:** a `Repair/Show.tsx` está na dívida do header antigo (`config/pageheader-shared-baseline.json`); tocá-la exige migrar o header no mesmo PR (ADR 0409), com aprovação visual. A rota resolve sem tocar a tela.
+
+---
+
 ## Contrato ainda sem UC (prosa honesta, sem gate)
 
 > Já defendido por teste que **não cita UC** — invisível ao G-2. Vira UC quando ganhar um teste que

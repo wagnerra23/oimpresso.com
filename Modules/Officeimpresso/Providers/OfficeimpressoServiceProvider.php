@@ -30,6 +30,8 @@ class OfficeimpressoServiceProvider extends ServiceProvider
                 \Modules\Officeimpresso\Console\Commands\OfficeimpressoHealthCommand::class,
                 // W28-4 G1 vertical bucket — Firebird Delphi → oimpresso importer.
                 \Modules\Officeimpresso\Console\Commands\ImportOfficeimpressoCommand::class,
+                // Thread 08 (D3, [W] 2026-10-01): pacotes antes do redirect do QR.
+                \Modules\Officeimpresso\Console\Commands\AlinharPacotesCatalogoCommand::class,
             ]);
         }
 

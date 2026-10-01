@@ -52,15 +52,16 @@ Route::middleware(['throttle:60,1', 'web', 'authh', 'auth', 'SetSessionData', 'l
             ->whereNumber('arquivo')
             ->middleware('can:arquivos.access')
             ->name('arquivos.excluir');
+        // Restaurar e simular: SÓ superadmin (decisão [W] 2026-10-01). `can:superadmin` fica
+        // fora do bypass do `Admin#{biz}` no `Gate::before` — o dono do negócio toma 403.
         Route::post('{arquivo}/restaurar', [ArquivosAdminController::class, 'restaurar'])
             ->whereNumber('arquivo')
-            ->middleware('can:arquivos.access')
+            ->middleware(['can:arquivos.access', 'can:superadmin'])
             ->name('arquivos.restaurar');
         // Thread 04 (PR-8): simular a retenção em DRY-RUN — o controller força dry_run=true e
-        // recusa purge (D4: a UI nunca apaga). Permissão própria de governança, separada de
-        // `arquivos.access` (ver o acervo não é o mesmo que mexer na política).
+        // recusa purge (D4: a UI nunca apaga). Governança de plataforma: só superadmin.
         Route::post('retencao/simular', [RetencaoSimulacaoController::class, 'simular'])
-            ->middleware('can:arquivos.governanca')
+            ->middleware('can:superadmin')
             ->name('arquivos.retencao.simular');
     });
 

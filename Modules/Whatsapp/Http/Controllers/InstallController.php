@@ -3,6 +3,7 @@
 namespace Modules\Whatsapp\Http\Controllers;
 
 use App\Http\Controllers\BaseModuleInstallController;
+use App\Http\Controllers\Concerns\InstalacaoSoPorPost;
 
 /**
  * InstallController — Whatsapp.
@@ -19,6 +20,8 @@ use App\Http\Controllers\BaseModuleInstallController;
  */
 class InstallController extends BaseModuleInstallController
 {
+    use InstalacaoSoPorPost;
+
     protected function moduleName(): string
     {
         return 'Whatsapp';

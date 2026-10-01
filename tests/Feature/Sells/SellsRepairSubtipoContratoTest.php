@@ -285,7 +285,7 @@ function repairSubtipoStatus(int $bizId, string $nome): int
     ]);
 }
 
-it('UC-S04 · a venda de reparo abre com as opções de reparo do PRÓPRIO business', function () {
+it('UC-S05 · a venda de reparo abre com as opções de reparo do PRÓPRIO business', function () {
     if (! Schema::hasTable('repair_statuses')) {
         $this->markTestSkipped('Tabela repair_statuses ausente — rode as migrations do Repair.');
     }
@@ -294,8 +294,8 @@ it('UC-S04 · a venda de reparo abre com as opções de reparo do PRÓPRIO busin
         $this->markTestSkipped('Sem 2º business semeado pro adversário cross-tenant.');
     }
 
-    $meu = repairSubtipoStatus($this->bizId, 'Em bancada UC-S04');
-    $alheio = repairSubtipoStatus($outroBiz, 'De outro business UC-S04');
+    $meu = repairSubtipoStatus($this->bizId, 'Em bancada UC-S05');
+    $alheio = repairSubtipoStatus($outroBiz, 'De outro business UC-S05');
 
     DB::table('cash_registers')->insert([
         'business_id' => $this->bizId, 'location_id' => $this->locationId, 'user_id' => $this->user->id,
@@ -319,11 +319,11 @@ it('UC-S04 · a venda de reparo abre com as opções de reparo do PRÓPRIO busin
     expect($comum->json('props.repairPos'))->toBeNull();
 });
 
-it('UC-S04 · os campos da seção Reparo são gravados na venda, sem mudar o valor', function () {
+it('UC-S05 · os campos da seção Reparo são gravados na venda, sem mudar o valor', function () {
     if (! Schema::hasTable('repair_statuses')) {
         $this->markTestSkipped('Tabela repair_statuses ausente — rode as migrations do Repair.');
     }
-    $status = repairSubtipoStatus($this->bizId, 'Aguardando peça UC-S04');
+    $status = repairSubtipoStatus($this->bizId, 'Aguardando peça UC-S05');
 
     // Exatamente o que reparoVenda.camposDeReparo produz (tests/js/sells-reparo-venda.test.ts).
     $comum = repairSubtipoVender($this);
@@ -331,13 +331,13 @@ it('UC-S04 · os campos da seção Reparo são gravados na venda, sem mudar o va
         'sub_type' => 'repair',
         'print_label' => 0,
         'repair_status_id' => $status,
-        'repair_serial_no' => 'SN-UC-S04',
+        'repair_serial_no' => 'SN-UC-S05',
         'repair_due_date' => '15/10/2026 14:30',
         'repair_defects' => '[{"value":"tela"},{"value":"bateria"}]',
     ]);
 
     expect((int) $reparo['venda']->repair_status_id)->toBe($status);
-    expect($reparo['venda']->repair_serial_no)->toBe('SN-UC-S04');
+    expect($reparo['venda']->repair_serial_no)->toBe('SN-UC-S05');
     expect((string) $reparo['venda']->repair_due_date)->toStartWith('2026-10-15 14:30');
     expect(json_decode((string) $reparo['venda']->repair_defects, true))
         ->toBe([['value' => 'tela'], ['value' => 'bateria']]);

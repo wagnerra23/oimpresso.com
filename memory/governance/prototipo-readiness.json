@@ -93,6 +93,16 @@
   ],
   "ciclo": [
     {
+      "tela": "Api/Index",
+      "arquivo": "Modules/Connector/Resources/js/Pages/Api/Index.tsx",
+      "modulo": "Connector",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/Wagner/connector-page.jsx",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
       "tela": "Documentacao/Index",
       "arquivo": "resources/js/Pages/Documentacao/Index.tsx",
       "modulo": "core",
@@ -191,7 +201,97 @@
       "falta": [
         "scorecard"
       ]
+    },
+    {
+      "tela": "Produto/AtualizarPreco/Index",
+      "arquivo": "resources/js/Pages/Produto/AtualizarPreco/Index.tsx",
+      "modulo": "core",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/Wagner/produto-acoes.jsx",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
+      "tela": "Produto/Cadastros/Index",
+      "arquivo": "resources/js/Pages/Produto/Cadastros/Index.tsx",
+      "modulo": "core",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/Wagner/produto-cadastros.jsx",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
+      "tela": "Produto/Importacao/Index",
+      "arquivo": "resources/js/Pages/Produto/Importacao/Index.tsx",
+      "modulo": "core",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/Wagner/produto-acoes.jsx",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
+      "tela": "Crm/Acompanhamentos/Index",
+      "arquivo": "Modules/Crm/Resources/js/Pages/Crm/Acompanhamentos/Index.tsx",
+      "modulo": "Crm",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/Wagner/crm-blade.jsx",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
+      "tela": "Crm/Leads/Index",
+      "arquivo": "Modules/Crm/Resources/js/Pages/Crm/Leads/Index.tsx",
+      "modulo": "Crm",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/Wagner/crm-blade.jsx",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
+      "tela": "Crm/Painel/Index",
+      "arquivo": "Modules/Crm/Resources/js/Pages/Crm/Painel/Index.tsx",
+      "modulo": "Crm",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/Wagner/crm-blade.jsx",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
+      "tela": "Officeimpresso/Licencas/Index",
+      "arquivo": "Modules/Officeimpresso/Resources/js/Pages/Officeimpresso/Licencas/Index.tsx",
+      "modulo": "Officeimpresso",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/Wagner/officeimpresso-page.jsx",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
+      "tela": "superadmin/Comunicador/Index",
+      "arquivo": "Modules/Superadmin/Resources/js/Pages/superadmin/Comunicador/Index.tsx",
+      "modulo": "Superadmin",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/Wagner/superadmin-page.jsx",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
+      "tela": "superadmin/Configuracoes/Index",
+      "arquivo": "Modules/Superadmin/Resources/js/Pages/superadmin/Configuracoes/Index.tsx",
+      "modulo": "Superadmin",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/Wagner/superadmin-page.jsx",
+      "falta": [
+        "scorecard"
+      ]
     }
   ],
-  "total": 100
+  "total": 110
 }

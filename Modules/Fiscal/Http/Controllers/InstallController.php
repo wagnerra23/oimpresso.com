@@ -3,6 +3,7 @@
 namespace Modules\Fiscal\Http\Controllers;
 
 use App\Http\Controllers\BaseModuleInstallController;
+use App\Http\Controllers\Concerns\InstalacaoSoPorPost;
 
 /**
  * Install entrypoint do módulo Fiscal — pattern padrão (ADR 0023).
@@ -12,6 +13,8 @@ use App\Http\Controllers\BaseModuleInstallController;
  */
 class InstallController extends BaseModuleInstallController
 {
+    use InstalacaoSoPorPost;
+
     protected function moduleName(): string
     {
         return 'Fiscal';

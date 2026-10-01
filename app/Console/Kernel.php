@@ -40,6 +40,21 @@ class Kernel extends ConsoleKernel
 
         }
 
+        // Ponto — lembrete de bater ponto por push (ADR 0423). Avisa o colaborador alguns minutos
+        // antes de cada horário da escala de hoje, se a marcação ainda não foi feita. Com a fila
+        // `sync` o Job roda no mesmo tick (sem worker no Hostinger). Desligado até
+        // PONTO_PUSH_ENABLED=true + credenciais do Firebase no servidor.
+        $schedule->command('ponto:lembretes-push')
+            ->everyFiveMinutes()
+            ->withoutOverlapping(10)
+            ->environments(['live'])
+            ->when(fn () => (bool) config('ponto_push.enabled', false))
+            ->onFailure(function () {
+                \Illuminate\Support\Facades\Log::channel('single')->error(
+                    'Schedule ponto:lembretes-push FALHOU — lembretes de ponto podem não ter saído'
+                );
+            });
+
         // PaymentGateway — polling de reconciliação PIX Inter (fallback do webhook).
         // O Inter não empurra confirmação sozinho; este cron PERGUNTA ao Inter
         // quais cobranças PIX emitidas já foram pagas e reconcilia (marca paga +
@@ -759,6 +774,23 @@ class Kernel extends ConsoleKernel
             ->onFailure(function () {
                 \Illuminate\Support\Facades\Log::channel('single')->error(
                     'Schedule arquivos:health-check FALHOU — investigar storage/logs/laravel.log'
+                );
+            });
+
+        // ADR 0423 — aviso ao titular (LGPD Art. 18) por e-mail/WhatsApp, diário 10:00 BRT
+        // ([W] 2026-10-01: "agende o arquivos:avisar-titulares diário no Kernel").
+        // Horário comercial: a mensagem chega a uma pessoa, não a um sistema. `--todos` só
+        // entra em negócio que LIGOU algum canal (default desligado) — sem isso, nada sai.
+        // Re-rodar é seguro: arquivo já avisado sai da janela (registrarAviso é idempotente).
+        $schedule->command('arquivos:avisar-titulares --todos')
+            ->dailyAt('10:00')
+            ->timezone('America/Sao_Paulo')
+            ->name('arquivos-avisar-titulares-daily')
+            ->withoutOverlapping()
+            ->environments(['live'])
+            ->onFailure(function () {
+                \Illuminate\Support\Facades\Log::channel('single')->error(
+                    'Schedule arquivos:avisar-titulares FALHOU — investigar storage/logs/laravel.log'
                 );
             });
 

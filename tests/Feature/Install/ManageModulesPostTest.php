@@ -52,19 +52,22 @@ it('aceitaPost pergunta ao router: módulo migrado aceita, GET-only não, # não
     expect(ModulesController::aceitaPost(url('arquivos/install/update')))->toBeTrue();
     expect(ModulesController::aceitaPost(url('arquivos/install')))->toBeTrue();
 
-    // Financeiro só registra GET em install/uninstall → POST daria 405 → link GET fica.
-    expect(ModulesController::aceitaPost(url('financeiro/install/uninstall')))->toBeFalse();
+    // URL sem rota POST (405/404) não conta.
+    expect(ModulesController::aceitaPost(url('manage-modules/inexistente/install/uninstall')))->toBeFalse();
     expect(ModulesController::aceitaPost('#'))->toBeFalse();
     // Rota POST que não é de InstallController de módulo não conta.
     expect(ModulesController::aceitaPost(url('manage-modules')))->toBeFalse();
 });
 
-it('o censo derivado tem os dois lados: há módulo com POST e módulo só-GET', function () {
+it('o censo derivado: todo módulo com InstallController aceita POST nas 3 ações', function () {
     $censo = manageModulesCenso();
 
     expect(count($censo))->toBeGreaterThan(10);
-    expect(collect($censo)->filter(fn ($a) => $a['uninstall'])->keys()->all())->toContain('Connector', 'Arquivos');
-    expect(collect($censo)->reject(fn ($a) => $a['uninstall'])->count())->toBeGreaterThan(0);
+    foreach ($censo as $modulo => $acoes) {
+        foreach ($acoes as $acao => $aceita) {
+            expect($aceita)->toBeTrue("{$modulo} {$acao} ainda só aceita GET");
+        }
+    }
 });
 
 it('POST na rota de um módulo migrado cai no método que executa a ação', function () {
@@ -76,8 +79,8 @@ it('POST na rota de um módulo migrado cai no método que executa a ação', fun
 it('nos módulos cujo uninstall/update aceita POST, o GET da mesma URL não executa', function () {
     foreach (manageModulesCenso() as $modulo => $acoes) {
         $classe = 'Modules\\'.$modulo.'\\Http\\Controllers\\InstallController';
-        foreach (['uninstall', 'update'] as $metodo) {
-            if (! $acoes[$metodo]) {
+        foreach (['index' => 'install', 'uninstall' => 'uninstall', 'update' => 'update'] as $metodo => $chave) {
+            if (! $acoes[$chave]) {
                 continue;
             }
             $get = Route::getRoutes()->match(\Illuminate\Http\Request::create(manageModulesUrl($modulo, $metodo), 'GET'));
@@ -91,10 +94,16 @@ it('nos módulos cujo uninstall/update aceita POST, o GET da mesma URL não exec
             if ($guarda === false) {
                 $guarda = strpos($corpo, 'confirmacaoSeNaoForPost(');
             }
-            $acao = strpos($corpo, 'parent::'.$metodo.'(');
-
             expect($guarda)->not->toBeFalse("{$modulo}@{$metodo} aceita POST mas executa no GET");
-            expect($acao)->not->toBeFalse();
+
+            $acao = strpos($corpo, 'parent::'.$metodo.'(');
+            if ($acao === false) {
+                // Controller que não estende o base: a guarda é a 1ª instrução do método.
+                $primeira = ltrim(substr($corpo, strpos($corpo, '{') + 1));
+                expect($primeira)->toStartWith('if ($confirmacao = $this->confirmacaoSeNaoForPost(');
+
+                continue;
+            }
             expect($guarda)->toBeLessThan($acao);
         }
     }
@@ -119,14 +128,14 @@ it('a partial renderiza form POST com CSRF quando o módulo aceita POST', functi
 
 it('a partial mantém o link GET quando o módulo só registra GET', function () {
     $html = view('install.modules.partials.acao', [
-        'url' => url('financeiro/install/uninstall'),
+        'url' => url('woocommerce/install/uninstall'),
         'post' => false,
         'classe' => 'btn btn-warning btn-xs',
         'rotulo' => 'Desinstalar',
         'is_demo' => false,
     ])->render();
 
-    expect($html)->toContain('href="'.url('financeiro/install/uninstall').'"');
+    expect($html)->toContain('href="'.url('woocommerce/install/uninstall').'"');
     expect($html)->not->toContain('method="POST"');
 });
 

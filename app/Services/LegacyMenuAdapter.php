@@ -146,7 +146,7 @@ class LegacyMenuAdapter
 
                 $filteredItems = [];
                 foreach ($config['items'] as $item) {
-                    if (!empty($item['can']) && !auth()->user()?->can($item['can'])) {
+                    if (! $this->itemVisivel($item)) {
                         continue;
                     }
                     $filteredItems[] = [
@@ -178,7 +178,7 @@ class LegacyMenuAdapter
 
                 $filteredItems = [];
                 foreach ($config['items'] as $item) {
-                    if (!empty($item['can']) && !auth()->user()?->can($item['can'])) {
+                    if (! $this->itemVisivel($item)) {
                         continue;
                     }
                     $filteredItems[] = [
@@ -216,6 +216,36 @@ class LegacyMenuAdapter
         }
 
         return $out;
+    }
+
+    /**
+     * Item de topnav visível para o usuário atual?
+     *
+     * `can` aceita o nome de uma permissão (o caso comum) ou uma Closure que recebe
+     * o usuário e devolve bool. A Closure existe para regra que `can()` não consegue
+     * expressar: o `Gate::before` do AuthServiceProvider libera QUALQUER ability para
+     * o papel `Admin#{business}`, então um item cross-empresa (ex. licenças do
+     * Officeimpresso, só da empresa operadora) apareceria para o Admin de todo cliente.
+     * O menu tem de contar a mesma história da guarda do controller.
+     *
+     * Closure só em `Modules/<X>/Resources/menus/topnav.php` (carregado por `require`
+     * a cada request) — nunca em `config/core_topnavs.php`, que o `config:cache` serializa.
+     */
+    protected function itemVisivel(array $item): bool
+    {
+        $can = $item['can'] ?? null;
+
+        if (empty($can)) {
+            return true;
+        }
+
+        $user = auth()->user();
+
+        if ($can instanceof \Closure) {
+            return $user !== null && (bool) $can($user);
+        }
+
+        return (bool) $user?->can($can);
     }
 
     /**

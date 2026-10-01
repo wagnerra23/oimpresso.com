@@ -12,10 +12,22 @@ Requer Node 20.19+ (o Expo 54 não roda no Node 18).
 
 ```bash
 cd mobile
-npx pnpm@9.12.0 install
+npm ci                      # package-lock.json é o lockfile válido (o pnpm-lock.yaml está desatualizado)
 cp .env.example .env        # preencha — o .env NUNCA vai pro git (repo público)
 npx expo start
 ```
+
+## Testes
+
+```bash
+npm test               # Vitest — regras do app (tests/**/*.test.ts)
+npx tsc --noEmit       # tipos
+```
+
+- `tests/money-format.test.ts` — dinheiro em centavos, parcelas sem perder centavo, formatação, prazos.
+- `tests/demo-backend.test.ts` — fluxos de negócio pelo backend de demonstração (pedido → OP,
+  orçamento → pedido, totais de OS, estoque, cobrança, nota fiscal, DRE e relatórios) e a checagem de
+  que **toda chamada tRPC do app tem resposta no modo demonstração**.
 
 ## Modo demonstração
 
