@@ -114,3 +114,23 @@ it('POSITIVO: com customer.view a mesma requisição devolve o contato', functio
     expect($r->getStatusCode())->toBe(200);
     expect($r->getContent())->toContain($this->marcador);
 });
+
+it('NEGATIVO (casca Blade, flag desligada): sem permissão de contato, /contacts não abre', function () {
+    // Com `cliente_index` desligada o index cai na casca Blade, que antes abria 200 para qualquer
+    // usuário e expunha nomes dos usuários e grupos de cliente (DEMO-03 do #8428, 2026-10-01).
+    config()->set('mwart.cliente_index.enabled', false);
+    $u = clpUsuario([]);
+    $this->actingAs($u);
+    session(['user.business_id' => CLP_BIZ, 'business.id' => CLP_BIZ]);
+
+    expect($this->get('/contacts?type=customer')->getStatusCode())->toBe(403);
+});
+
+it('POSITIVO (casca Blade, flag desligada): com customer.view, /contacts abre', function () {
+    config()->set('mwart.cliente_index.enabled', false);
+    $u = clpUsuario(['customer.view']);
+    $this->actingAs($u);
+    session(['user.business_id' => CLP_BIZ, 'business.id' => CLP_BIZ]);
+
+    expect($this->get('/contacts?type=customer')->getStatusCode())->toBe(200);
+});

@@ -484,6 +484,25 @@ class ContactController extends Controller
             return redirect()->back();
         }
 
+        // Gate de leitura de contato — vale para TODOS os caminhos do index (React, casca Blade e
+        // AJAX), com a mesma regra de indexCustomer/indexSupplier. Antes ficava só dentro do ramo
+        // React: com a flag `cliente_index` desligada, a casca Blade abria 200 para quem não tem
+        // permissão, expondo os nomes dos usuários (User::forDropdown) e os grupos de cliente
+        // (achado 2026-10-01, DEMO-03 do #8428 — ContatosListaExigePermissaoTest).
+        // Fornecedor usa supplier.*; os demais papéis seguem mapeados em customer.* (ADR 0188);
+        // 'all' passa com qualquer um dos dois.
+        $u = auth()->user();
+        $veCliente = $u->can('customer.view') || $u->can('customer.view_own');
+        $veFornecedor = $u->can('supplier.view') || $u->can('supplier.view_own');
+        $podeVer = match ($type) {
+            'supplier' => $veFornecedor,
+            'all' => $veCliente || $veFornecedor,
+            default => $veCliente,
+        };
+        if (! $podeVer) {
+            abort(403, 'Unauthorized action.');
+        }
+
         if ($this->isLegacyAjax()) {
             if ($type == 'supplier') {
                 return $this->indexSupplier();
@@ -513,23 +532,6 @@ class ContactController extends Controller
         // ADR 0188 + ADR 0246 — 5 papéis canônicos + 'all' agregado.
         $inertiaTypes = ['customer', 'supplier', 'employee', 'representative', 'other', 'all'];
         if (in_array($type, $inertiaTypes, true) && $this->shouldRenderInertiaCliente('cliente_index', (int) $business_id)) {
-            // Mesma regra do caminho AJAX antigo (indexCustomer/indexSupplier): sem permissão de
-            // ver contato, 403. Antes deste gate o React servia customers/kpis/tab_counts a
-            // qualquer usuário logado do negócio (achado 2026-10-01 — ContatosListaExigePermissaoTest).
-            // Fornecedor usa supplier.*; os demais papéis seguem mapeados em customer.* (ADR 0188);
-            // 'all' passa com qualquer um dos dois.
-            $u = auth()->user();
-            $veCliente = $u->can('customer.view') || $u->can('customer.view_own');
-            $veFornecedor = $u->can('supplier.view') || $u->can('supplier.view_own');
-            $podeVer = match ($type) {
-                'supplier' => $veFornecedor,
-                'all' => $veCliente || $veFornecedor,
-                default => $veCliente,
-            };
-            if (! $podeVer) {
-                abort(403, 'Unauthorized action.');
-            }
-
             return Inertia::render('Cliente/Index', [
                 'activeType' => $type,
                 'kpis' => Inertia::defer(fn () => $this->buildClienteIndexKpis((int) $business_id, $type)),
