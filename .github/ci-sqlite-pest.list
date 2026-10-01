@@ -259,6 +259,8 @@ Modules/Whatsapp/Tests/Feature/CsatFlowTest.php
 Modules/Whatsapp/Tests/Feature/GuardiaoMidiaTest.php
 Modules/Whatsapp/Tests/Feature/HistorySyncQueueArchitectureTest.php
 Modules/Whatsapp/Tests/Feature/InboxQueueDerivationTest.php
+# [W] 2026-10-01 D1 Atendimento: GET /atendimento/inbox redireciona pra Caixa preservando a query (sem DB).
+Modules/Whatsapp/Tests/Feature/InboxRedirectPreservaQueryTest.php
 Modules/Whatsapp/Tests/Feature/InternalNoteTest.php
 Modules/Whatsapp/Tests/Feature/LastMessageDenormalizeTest.php
 Modules/Whatsapp/Tests/Feature/MacroVariantPickerTest.php

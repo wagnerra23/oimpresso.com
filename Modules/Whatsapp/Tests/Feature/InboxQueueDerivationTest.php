@@ -10,7 +10,7 @@ use Modules\Whatsapp\Entities\Channel;
 use Modules\Whatsapp\Entities\ChannelUserAccess;
 use Modules\Whatsapp\Entities\Conversation;
 use Modules\Whatsapp\Entities\Tag;
-use Modules\Whatsapp\Http\Controllers\Admin\InboxController;
+use Modules\Whatsapp\Http\Controllers\Admin\CaixaUnificadaController;
 
 uses(Tests\TestCase::class);
 
@@ -29,8 +29,14 @@ uses(Tests\TestCase::class);
  *   5. Props `queues` + `defaultQueue` presentes na render
  *   6. Cross-tenant: biz=99 NÃO leak no inbox biz=1 (Tier 0 ADR 0093)
  *
+ * Alvo mudou em 2026-10-01 ([W] D1 do playbook Atendimento): `InboxController::index`
+ * deixou de renderizar a listagem (a tela `Atendimento/Inbox/Index` não existe desde o
+ * cutover) e virou um redirect pra Caixa Unificada. A mesma regra tag → fila vive em
+ * `CaixaUnificadaController::deriveQueueFromTags` — é ela que a tela viva usa, e é ela
+ * que estes casos passam a exercitar (mesma assinatura `index(Request, TokenIssuer)`).
+ *
  * @see memory/requisitos/Whatsapp/RUNBOOK-inbox-caixa-unificada-v4.md §4
- * @see Modules/Whatsapp/Http/Controllers/Admin/InboxController.php (deriveQueueFromTags)
+ * @see Modules/Whatsapp/Http/Controllers/Admin/CaixaUnificadaController.php (deriveQueueFromTags)
  */
 beforeEach(function () {
     if (DB::connection()->getDriverName() !== 'sqlite') {
@@ -207,7 +213,7 @@ function iqtMakeConv(int $businessId, int $channelId, array $tagSlugs = []): Con
     return $conv;
 }
 
-function iqtIndexProps(InboxController $controller, Request $request): array
+function iqtIndexProps(CaixaUnificadaController $controller, Request $request): array
 {
     $token = Mockery::mock(\Modules\Whatsapp\Services\Centrifugo\CentrifugoTokenIssuer::class);
     $token->shouldReceive('issue')->andReturn(null);
@@ -250,7 +256,7 @@ it('R-WA-QUEUE-001 — conv sem tag cai na fila default (comercial)', function (
     iqtMakeConv(1, $ch->id, []);  // sem tag
     iqtSetUserAndGrant(1, 10, [$ch->id]);
 
-    $props = iqtIndexProps(new InboxController(), iqtBuildRequest());
+    $props = iqtIndexProps(new CaixaUnificadaController(), iqtBuildRequest());
     $convs = iqtConvData($props);
 
     expect($convs)->toHaveCount(1)
@@ -268,7 +274,7 @@ it('R-WA-QUEUE-002 — tag `financeiro` derive fila financeiro', function () {
     iqtMakeConv(1, $ch->id, ['financeiro']);
     iqtSetUserAndGrant(1, 10, [$ch->id]);
 
-    $props = iqtIndexProps(new InboxController(), iqtBuildRequest());
+    $props = iqtIndexProps(new CaixaUnificadaController(), iqtBuildRequest());
     $convs = iqtConvData($props);
 
     expect($convs)->toHaveCount(1)
@@ -286,7 +292,7 @@ it('R-WA-QUEUE-003 — tag `cobranca` também deriva fila financeiro', function 
     iqtMakeConv(1, $ch->id, ['cobranca']);
     iqtSetUserAndGrant(1, 10, [$ch->id]);
 
-    $props = iqtIndexProps(new InboxController(), iqtBuildRequest());
+    $props = iqtIndexProps(new CaixaUnificadaController(), iqtBuildRequest());
     $convs = iqtConvData($props);
 
     expect($convs[0]['queue']['slug'])->toBe('financeiro');
@@ -301,7 +307,7 @@ it('R-WA-QUEUE-004 — tag não-trigger mantém default comercial', function () 
     iqtMakeConv(1, $ch->id, ['vendas']);  // tag existe mas não é trigger
     iqtSetUserAndGrant(1, 10, [$ch->id]);
 
-    $props = iqtIndexProps(new InboxController(), iqtBuildRequest());
+    $props = iqtIndexProps(new CaixaUnificadaController(), iqtBuildRequest());
     $convs = iqtConvData($props);
 
     expect($convs[0]['queue']['slug'])->toBe('comercial');
@@ -316,7 +322,7 @@ it('R-WA-QUEUE-005 — Controller retorna props queues + defaultQueue', function
     iqtMakeConv(1, $ch->id, []);
     iqtSetUserAndGrant(1, 10, [$ch->id]);
 
-    $props = iqtIndexProps(new InboxController(), iqtBuildRequest());
+    $props = iqtIndexProps(new CaixaUnificadaController(), iqtBuildRequest());
 
     expect($props)->toHaveKey('queues')
         ->and($props)->toHaveKey('defaultQueue')
@@ -341,7 +347,7 @@ it('R-WA-QUEUE-006 — biz=99 conv com tag financeiro NÃO vaza pra biz=1', func
     $myConv = iqtMakeConv(1, $ch1->id, ['financeiro']);
     iqtSetUserAndGrant(1, 10, [$ch1->id]);
 
-    $props = iqtIndexProps(new InboxController(), iqtBuildRequest());
+    $props = iqtIndexProps(new CaixaUnificadaController(), iqtBuildRequest());
     $convs = iqtConvData($props);
 
     // Apenas conv biz=1 visível. Tier 0 IRREVOGÁVEL.
@@ -359,8 +365,8 @@ it('R-WA-QUEUE-007 — derivação é determinística (ordem trigger preserved)'
     iqtMakeConv(1, $ch->id, ['financeiro', 'cobranca']);  // 2 triggers
     iqtSetUserAndGrant(1, 10, [$ch->id]);
 
-    $props1 = iqtIndexProps(new InboxController(), iqtBuildRequest());
-    $props2 = iqtIndexProps(new InboxController(), iqtBuildRequest());
+    $props1 = iqtIndexProps(new CaixaUnificadaController(), iqtBuildRequest());
+    $props2 = iqtIndexProps(new CaixaUnificadaController(), iqtBuildRequest());
 
     expect(iqtConvData($props1)[0]['queue']['slug'])
         ->toBe(iqtConvData($props2)[0]['queue']['slug'])
