@@ -571,6 +571,46 @@ class ContactController extends Controller
     }
 
     /**
+     * Restringe a lista a "só os próprios" para quem tem `X.view_own` sem `X.view` — a MESMA regra
+     * do caminho antigo (Contact::scopeOnlyCustomers / scopeOnlySuppliers / scopeOnlyOwnContact):
+     * `contacts.created_by = usuário` OU contato compartilhado em `user_contact_access`.
+     * Antes os builders do React não aplicavam: quem tinha só view_own via a lista inteira da
+     * empresa (achado 2026-10-01 — ContatosViewOwnTest). Fornecedor usa supplier.*, os demais
+     * papéis customer.* (ADR 0188); 'all' restringe se qualquer um dos dois for só-próprios.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder|\Illuminate\Database\Query\Builder  $q
+     * @return mixed
+     */
+    private function applyViewOwnFilter($q, string $type)
+    {
+        $u = auth()->user();
+        if (! $u) {
+            return $q;
+        }
+        $soCliente = ! $u->can('customer.view') && $u->can('customer.view_own');
+        $soFornecedor = ! $u->can('supplier.view') && $u->can('supplier.view_own');
+        $soProprios = match ($type) {
+            'supplier' => $soFornecedor,
+            'all' => $soCliente || $soFornecedor,
+            default => $soCliente,
+        };
+        if (! $soProprios) {
+            return $q;
+        }
+        $uid = (int) $u->id;
+
+        return $q->where(function ($w) use ($uid) {
+            $w->where('contacts.created_by', $uid)
+                ->orWhereExists(function ($e) use ($uid) {
+                    $e->select(DB::raw(1))
+                        ->from('user_contact_access')
+                        ->whereColumn('user_contact_access.contact_id', 'contacts.id')
+                        ->where('user_contact_access.user_id', $uid);
+                });
+        });
+    }
+
+    /**
      * ADR 0188 — Aplica filtro por papel canônico em Builder · prefere flags `is_X`
      * aditivas (migration 2026_05_24_200000) com fallback `type` enum UPOS legacy
      * pra ambientes pré-migration ou se a coluna for dropada por rollback.
@@ -622,6 +662,7 @@ class ContactController extends Controller
         // ADR 0188 — filtra via flag aditiva `is_X` se a coluna existir (migration
         // rodou). Fallback `type` enum legacy UPOS pra ambientes pré-migration.
         $base = $this->applyContactTypeFilter($base, $type);
+        $base = $this->applyViewOwnFilter($base, $type);
 
         $total = (clone $base)->count();
         $com_os_aberta = (clone $base)
@@ -712,13 +753,13 @@ class ContactController extends Controller
         $base = Contact::where('contacts.business_id', $business_id);
 
         $counts = [
-            'all' => (int) (clone $base)->count(),
+            'all' => (int) $this->applyViewOwnFilter(clone $base, 'all')->count(),
         ];
 
         // ADR 0246 — inclui 'other' (5º papel) nos counters da subnav.
         foreach (['customer', 'supplier', 'employee', 'representative', 'other'] as $tipo) {
             $q = clone $base;
-            $counts[$tipo] = (int) $this->applyContactTypeFilter($q, $tipo)->count();
+            $counts[$tipo] = (int) $this->applyViewOwnFilter($this->applyContactTypeFilter($q, $tipo), $tipo)->count();
         }
 
         return $counts;
@@ -879,6 +920,7 @@ class ContactController extends Controller
         // ADR 0188 — filtra por papel (`is_X`) se a coluna existir, fallback `type` enum.
         $contactsQuery = Contact::where('contacts.business_id', $business_id);
         $contactsQuery = $this->applyContactTypeFilter($contactsQuery, $type);
+        $contactsQuery = $this->applyViewOwnFilter($contactsQuery, $type);
 
         // Fix 2026-05-26 — search server-side. Antes o frontend filtrava `rows`
         // em memória sobre a página paginada (default 50) — busca por nome só
