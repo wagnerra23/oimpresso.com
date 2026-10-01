@@ -16,6 +16,11 @@ use Illuminate\Support\Facades\DB;
  *   3. Validação de License Code/Envato REMOVIDA (Wagner já comprou; vetor de
  *      supply-chain attack)
  *
+ * ⚠️ O passo 1 acima é o fluxo original (2026-04). Em 2026-10-01 os InstallController de
+ * módulo passaram a executar só no POST + CSRF (trait Concerns\InstalacaoSoPorPost, ou guarda
+ * inline no Connector/Arquivos/Officeimpresso); o GET passou a só mostrar uma confirmação.
+ * Quem prova isso é tests/Feature/Install/{InstalacaoSoPorPost,ManageModulesPost}Test.php.
+ *
  * Subclasses só configuram 3 métodos abstratos. Hooks opcionais permitem
  * casos especiais (Connector → passport:install, Financeiro → financeiro:install --all).
  *

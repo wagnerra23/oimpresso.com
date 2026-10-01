@@ -6,9 +6,10 @@
 Route::middleware('web', 'authh', 'auth', 'SetSessionData', 'language', 'timezone', 'AdminSidebarMenu')->group(function () {
     Route::prefix('essentials')->group(function () {
         Route::get('/dashboard', [Modules\Essentials\Http\Controllers\DashboardController::class, 'essentialsDashboard']);
+        Route::post('/install', [Modules\Essentials\Http\Controllers\InstallController::class, 'index']);
         Route::get('/install', [Modules\Essentials\Http\Controllers\InstallController::class, 'index']);
-        Route::get('/install/update', [Modules\Essentials\Http\Controllers\InstallController::class, 'update']);
-        Route::get('/install/uninstall', [Modules\Essentials\Http\Controllers\InstallController::class, 'uninstall']);
+        Route::match(['get', 'post'], '/install/update', [Modules\Essentials\Http\Controllers\InstallController::class, 'update']);
+        Route::match(['get', 'post'], '/install/uninstall', [Modules\Essentials\Http\Controllers\InstallController::class, 'uninstall']);
 
         Route::get('/', [Modules\Essentials\Http\Controllers\EssentialsController::class, 'index']);
 

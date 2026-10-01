@@ -32,7 +32,8 @@ Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezo
 Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezone', 'AdminSidebarMenu'])
     ->prefix('voz-do-cliente')
     ->group(function () {
+        Route::post('install',           [InstallController::class, 'install']);
         Route::get('install',           [InstallController::class, 'index']);
-        Route::get('install/uninstall', [InstallController::class, 'uninstall']);
-        Route::get('install/update',    [InstallController::class, 'update']);
+        Route::match(['get', 'post'], 'install/uninstall', [InstallController::class, 'uninstall']);
+        Route::match(['get', 'post'], 'install/update',    [InstallController::class, 'update']);
     });

@@ -3,6 +3,7 @@
 namespace Modules\Vestuario\Http\Controllers;
 
 use App\Http\Controllers\BaseModuleInstallController;
+use App\Http\Controllers\Concerns\InstalacaoSoPorPost;
 
 /**
  * InstallController — Modules/Vestuario (CNAE 4781-4/00).
@@ -22,6 +23,8 @@ use App\Http\Controllers\BaseModuleInstallController;
  */
 class InstallController extends BaseModuleInstallController
 {
+    use InstalacaoSoPorPost;
+
     protected function moduleName(): string
     {
         return 'Vestuario';
