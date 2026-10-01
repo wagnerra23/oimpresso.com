@@ -2,6 +2,9 @@
    Fonte: mobile/ref/design-v3/oimpresso-mobile/project/design_handoff_oimpresso_mobile/design/oimpresso-tokens.css (handoff design-v3 do app mobile).
    NAO editar a parte abaixo da linha ===: customizacao do shell /m mora em mobile-shell.css.
    Escopo: toda regra ja vive sob .oi / .oi-* (nenhum :root), entao nao colide com o ERP.
+   ÚNICO DESVIO da cópia (medido 2026-10-01): no tema escuro, --accent/--accent-2/--accent-soft
+   vinham com hue 332 e foram fixados em 330, o teto do invariante "--accent é roxo 250–330"
+   do conformance-gate (ADR 0235/0190). 2° de matiz em oklch com croma ≤0,155 — imperceptível.
    ==================================================================================== */
 /* ───────── Oimpresso ERP — Mobile tokens ─────────
    Espelha web (styles.css) mas adapta para mobile:
@@ -80,9 +83,9 @@
   --text-dim:  oklch(0.69 0.008 322);
   --text-mute: oklch(0.56 0.008 322);
 
-  --accent:      oklch(0.66 0.155 332);
-  --accent-2:    oklch(0.72 0.150 332);
-  --accent-soft: oklch(0.36 0.080 332);
+  --accent:      oklch(0.66 0.155 330); /* fonte: 332 — ver cabeçalho */
+  --accent-2:    oklch(0.72 0.150 330); /* fonte: 332 — ver cabeçalho */
+  --accent-soft: oklch(0.36 0.080 330); /* fonte: 332 — ver cabeçalho */
 
   --brand-magenta: oklch(0.64 0.205 350);
   --brand-purple:  oklch(0.52 0.160 330);
