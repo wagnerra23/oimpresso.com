@@ -14,9 +14,8 @@
 // Non-Goals do charter, com o motivo de cada um. Os três que mais saltam ao comparar com o
 // protótipo lado a lado:
 //
-//   • o sub-recorte "Garantia crítica" ENTROU em 2026-09-29 (D-GARANTIAS, thread 12): filtro e
-//     contagem nascem no SERVIDOR (`?recorte=garantia`), nunca da página que chegou. "Em
-//     manutenção" segue fora — não foi decidido;
+//   • os sub-recortes "Garantia crítica" (2026-09-29, D-GARANTIAS) e "Em manutenção"
+//     (2026-09-30, [W]) filtram e contam no SERVIDOR (`?recorte=`), nunca na página que chegou;
 //   • sem o total somado do rodapé — é número de VALOR, e valor exige a REGRA MESTRE
 //     (prova por dois caminhos + antes→depois pro [W]). O valor POR LINHA entra, que é o
 //     que o Blade já mostrava;
@@ -30,7 +29,7 @@
 // desenho do `BemForm` do protótipo). Abre pelo botão do header, pelo CTA do vazio e por
 // `?novo=1` na URL — é assim que o "Adicionar recurso" do Painel chega aqui.
 //
-// ─── Por que NÃO há alocar, manutenção nem editar ────────────────────────────────────
+// ─── Por que NÃO há alocar (editar e manutenção voltaram em 2026-09-30 — ver AcoesDaLinha) ──
 //
 // MEDIDO em produção (biz=1, 2026-09-23), não presumido: `AssetController::{create,edit}`,
 // `AssetAllocationController::create` e `AssetMaitenanceController::create` só respondem
@@ -48,7 +47,7 @@
 
 import { Deferred, router } from '@inertiajs/react';
 import { useState } from 'react';
-import { Eye, Trash2 } from 'lucide-react';
+import { Eye, Pencil, Trash2, Wrench } from 'lucide-react';
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { PageHeader } from '@/Components/PageHeader';
 import DataTable, { type EstadoDaLinha } from '@/Components/shared/DataTable';
@@ -62,6 +61,8 @@ import { Stack, Inline } from '@/Components/layout';
 import PageHeaderTabs from '@/Components/shared/PageHeaderTabs';
 import PatrimonioSubNav from './_shared/PatrimonioSubNav';
 import CadastroBemDrawer from './_shared/CadastroBemDrawer';
+import DetalheBemDrawer, { type BemDetalhe } from './_shared/DetalheBemDrawer';
+import type { BemEdicao } from './_shared/cadastroBem';
 import type { ColumnDef } from '@tanstack/react-table';
 
 /* ─── Contrato com o backend ──────────────────────────────────────────────────── */
@@ -110,7 +111,7 @@ interface FiltrosAtivos {
   purchase_type?: string | null;
   is_allocatable?: string | number | null;
   /** Sub-recorte da lista — whitelist no servidor; `null` = todos. */
-  recorte?: 'garantia' | null;
+  recorte?: 'garantia' | 'manutencao' | null;
   sort?: string | null;
   dir?: string | null;
 }
@@ -121,13 +122,17 @@ interface Props {
   /** Deferida — ausente no primeiro paint, por isso opcional. */
   bens?: Paginator<Bem>;
   /** Deferida — contagem de cada sub-recorte sobre o CONJUNTO, calculada no servidor. */
-  recortes_contagem?: { garantia: number } | null;
+  recortes_contagem?: { garantia: number; manutencao: number } | null;
   filtros: FiltrosAtivos;
   opcoes: {
     locais: Record<string, string>;
     categorias: Record<string, string>;
     tipos_compra: Record<string, string>;
   };
+  /** Bem aberto no drawer de detalhe (`?bem=ID`); `null` = drawer fechado. */
+  bem_selecionado?: number | null;
+  /** Deferida — detalhe do bem aberto; `null` = não encontrado nesta empresa. */
+  bem_detalhe?: BemDetalhe | null;
   /** `business.date_format` — o drawer de cadastro converte a data pra ele antes do POST. */
   formato_data: string;
   permissoes: {
@@ -136,6 +141,10 @@ interface Props {
     excluir: boolean;
     manutencao: boolean;
   };
+  /** Só em `GET /asset/assets/{id}/edit`: o bem gravado, escopado por business. Abre o drawer em modo editar. */
+  edicao?: BemEdicao | null;
+  /** Só em `GET /asset/assets/create`: abre o drawer de cadastro. */
+  abrir_cadastro?: boolean;
 }
 
 /* ─── Formatação ──────────────────────────────────────────────────────────────── */
@@ -205,9 +214,18 @@ function BotaoAcao({
 }
 
 /**
- * Ação por linha — só EXCLUIR. Alocar, mandar pra manutenção e editar saíram em 2026-09-23:
- * os três apontavam pra endpoints que só respondem sob `ajax()` e abriam página em branco
- * (ver o docblock do topo do arquivo). Botão que parece agir e não age é afordância falsa.
+ * Ação por linha — EDITAR, ENVIAR PRA MANUTENÇÃO e EXCLUIR. Alocar e mandar pra manutenção
+ * saíram em 2026-09-23: apontavam pra endpoints que só respondem sob `ajax()` e abriam página
+ * em branco (ver o docblock do topo). Editar VOLTOU em 2026-09-30 (thread 17): `GET
+ * /asset/assets/{id}/edit` agora devolve esta mesma Page com o drawer aberto em modo editar.
+ *
+ * Enviar pra manutenção VOLTOU em 2026-09-30, depois da thread 19: `GET
+ * /asset/asset-maintenance/create?asset_id={id}` devolve a tela de Manutenções com o drawer
+ * aberto e o bem já escolhido (o servidor só pré-seleciona bem DA EMPRESA). É botão com
+ * `router.get`, não `<a href>` — o UC-BENS-04 segue valendo. Não escreve valor nem quantidade:
+ * a manutenção não tem coluna de valor. A permissão é a MESMA que o `create()` de manutenção
+ * exige (`permissoes.manutencao` = view_all || view_own), então o botão não promete o que o
+ * servidor recusaria. Alocar segue fora (é quantidade — outra onda).
  *
  * Excluir usa `router.delete` com confirmação: o `destroy` é uma rota `resource` (verbo
  * DELETE), então link `<a>` não a alcançaria.
@@ -224,8 +242,22 @@ function AcoesDaLinha({ bem, permissoes }: { bem: Bem; permissoes: Props['permis
     router.delete(`/asset/assets/${bem.id}`, { preserveScroll: true });
   };
 
+  const editar = () => router.get(`/asset/assets/${bem.id}/edit`, {}, { preserveScroll: true });
+
+  const enviarManutencao = () => router.get('/asset/asset-maintenance/create', { asset_id: bem.id });
+
   return (
     <Inline gap={1}>
+      {permissoes.editar ? (
+        <BotaoAcao titulo={`Editar — ${bem.nome}`} onClick={editar}>
+          <Pencil size={14} aria-hidden="true" />
+        </BotaoAcao>
+      ) : null}
+      {permissoes.manutencao ? (
+        <BotaoAcao titulo={`Enviar pra manutenção — ${bem.nome}`} onClick={enviarManutencao}>
+          <Wrench size={14} aria-hidden="true" />
+        </BotaoAcao>
+      ) : null}
       {permissoes.excluir ? (
         <BotaoAcao titulo={`Excluir — ${bem.nome}`} perigo onClick={excluir}>
           <Trash2 size={14} aria-hidden="true" />
@@ -239,8 +271,14 @@ function AcoesDaLinha({ bem, permissoes }: { bem: Bem; permissoes: Props['permis
 
 // GEOMETRIA declarada (`meta.width`): uma largura declarada põe a tabela em
 // `table-layout: fixed`, e é assim que a rolagem horizontal do wrapper passa a funcionar em
-// vez de espremer coluna. `nome` fica SEM largura de propósito — é a fluida, que absorve a
-// sobra. `minTableWidth` = 1280, o monitor do piloto.
+// vez de espremer coluna. TODAS as colunas declaram largura, e o piso da tabela é a SOMA delas
+// (default do `DataTable`) — a rolagem horizontal do wrapper faz o resto.
+//
+// `nome` tem 250px, a largura que o protótipo declara para "Bem" (`patrimonio-page.jsx:288`).
+// Até 2026-09-30 ela ficava sem largura para ser a coluna fluida, com `minTableWidth={1280}`;
+// só que as outras 11 já somavam 1376px, então sob layout fixo sobrava ZERO pra ela — medido em
+// produção: `th` de "Bem" com 0px e o texto transbordando sobre "Categoria" ("Bategoria").
+// Travado por `tests/js/patrimonio-bens-colunas.test.tsx`.
 function colunas(permissoes: Props['permissoes']): ColumnDef<Bem, unknown>[] {
   return [
     {
@@ -283,6 +321,7 @@ function colunas(permissoes: Props['permissoes']): ColumnDef<Bem, unknown>[] {
       id: 'nome',
       header: 'Bem',
       accessorFn: (b) => b.nome,
+      meta: { width: 250 },
       cell: ({ row }) => {
         const b = row.original;
         return (
@@ -481,13 +520,12 @@ function BarraDeFiltros({ filtros, opcoes }: { filtros: FiltrosAtivos; opcoes: P
 }
 
 /**
- * Sub-recortes da lista (`CliTabs` "Recorte do patrimônio" do protótipo, `:353`). Só os que o
- * servidor sabe servir: Todos · Garantia crítica. "Alocáveis" já é o checkbox da barra de
- * filtros; "Em manutenção" não foi decidido. A contagem vem de `recortes_contagem` — contar
- * aqui olharia só as 25 linhas da página.
+ * Sub-recortes da lista (`CliTabs` "Recorte do patrimônio" do protótipo, `:353`): Todos ·
+ * Garantia crítica · Em manutenção. "Alocáveis" já é o checkbox da barra de filtros. A
+ * contagem vem de `recortes_contagem` — contar aqui olharia só as 25 linhas da página.
  */
-function RecortesDaLista({ filtros, contagem }: { filtros: FiltrosAtivos; contagem?: { garantia: number } | null }) {
-  const ativo = filtros.recorte === 'garantia' ? 'garantia' : 'todos';
+function RecortesDaLista({ filtros, contagem }: { filtros: FiltrosAtivos; contagem?: Props['recortes_contagem'] }) {
+  const ativo = filtros.recorte ?? 'todos';
   const href = (recorte: string) => {
     const params = new URLSearchParams({ ...limpar(filtros), ...(recorte === 'todos' ? {} : { recorte }) });
     if (recorte === 'todos') params.delete('recorte');
@@ -502,6 +540,7 @@ function RecortesDaLista({ filtros, contagem }: { filtros: FiltrosAtivos; contag
       ghosts={[
         { key: 'todos', label: 'Todos', href: href('todos') },
         { key: 'garantia', label: 'Garantia crítica', href: href('garantia'), badge: contagem?.garantia },
+        { key: 'manutencao', label: 'Em manutenção', href: href('manutencao'), badge: contagem?.manutencao },
       ]}
       onGhostChange={(chave) =>
         router.get(
@@ -534,11 +573,28 @@ function pedidoDeCadastroNaUrl(): boolean {
   return new URLSearchParams(window.location.search).get('novo') === '1';
 }
 
-export default function Bens({ abas_contadores, bens, recortes_contagem, filtros, opcoes, formato_data, permissoes }: Props) {
-  const [cadastroAberto, setCadastroAberto] = useState(() => permissoes.criar && pedidoDeCadastroNaUrl());
+export default function Bens({ abas_contadores, bens, recortes_contagem, bem_selecionado, bem_detalhe, filtros, opcoes, formato_data, permissoes, edicao = null, abrir_cadastro = false }: Props) {
+  const [cadastroAberto, setCadastroAberto] = useState(() => permissoes.criar && (abrir_cadastro || pedidoDeCadastroNaUrl()));
+
+  // Drawer de DETALHE (leitura, `_saida-16b.md`): a linha abre `?bem=ID` por partial reload
+  // — só `bem_detalhe` vem da rede, a tabela fica. Mesmo desenho de `Compras/Index`.
+  const detalhe = (bem: number | undefined) =>
+    router.get(
+      '/asset/assets',
+      { ...limpar(filtros), page: bens && bens.current_page > 1 ? bens.current_page : undefined, bem },
+      { only: ['bem_detalhe', 'bem_selecionado'], preserveState: true, preserveScroll: true, replace: true },
+    );
+
+  // O drawer de edição vive na URL `/asset/assets/{id}/edit` — fechar volta pra lista.
+  const fecharEdicao = () => router.get('/asset/assets', {}, { preserveScroll: true });
 
   const fecharCadastro = () => {
     setCadastroAberto(false);
+    // Veio por `/asset/assets/create`: fechar volta pra URL da lista.
+    if (abrir_cadastro) {
+      router.get('/asset/assets', {}, { preserveScroll: true });
+      return;
+    }
     // Tira o `novo=1` da URL: recarregar a página não deve reabrir o cadastro.
     if (pedidoDeCadastroNaUrl()) {
       const url = new URL(window.location.href);
@@ -618,13 +674,37 @@ export default function Bens({ abas_contadores, bens, recortes_contagem, filtros
                 emptyMessage="Nenhum bem para esses filtros — tente limpar a busca ou trocar o recorte."
                 rowKey={(b) => b.id}
                 rowState={(b): EstadoDaLinha | undefined => (b.em_manutencao > 0 ? 'urgent' : undefined)}
-                minTableWidth={1280}
+                onRowClick={(b) => detalhe(b.id)}
               />
             ) : null}
           </Deferred>
         </div>
       </Stack>
-      {permissoes.criar ? (
+      <DetalheBemDrawer
+        aberto={bem_selecionado != null}
+        // Ao trocar de bem, o detalhe do anterior não pode aparecer sob o título do novo.
+        detalhe={bem_detalhe && bem_detalhe.id === bem_selecionado ? bem_detalhe : bem_detalhe === null ? null : undefined}
+        tiposCompra={opcoes.tipos_compra}
+        onClose={() => detalhe(undefined)}
+        // Mesma permissão e mesmo destino da chave da linha (UC-BENS-12).
+        onEnviarManutencao={
+          permissoes.manutencao
+            ? (id) => router.get('/asset/asset-maintenance/create', { asset_id: id })
+            : undefined
+        }
+      />
+      {permissoes.editar && edicao ? (
+        <CadastroBemDrawer
+          aberto
+          edicao={edicao}
+          onClose={fecharEdicao}
+          locais={opcoes.locais}
+          categorias={opcoes.categorias}
+          tiposCompra={opcoes.tipos_compra}
+          formatoData={formato_data}
+        />
+      ) : null}
+      {permissoes.criar && !edicao ? (
         <CadastroBemDrawer
           aberto={cadastroAberto}
           onClose={fecharCadastro}

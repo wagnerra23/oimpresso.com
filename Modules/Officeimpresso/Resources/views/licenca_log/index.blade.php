@@ -213,27 +213,31 @@
                                 @endif
                             </td>
                             <td>
+                                {{-- POST + CSRF (thread Officeimpresso/04): bloquear/liberar muda estado. --}}
                                 @if($m->business_blocked && $m->business_id)
-                                    <a href="{{ route('business.bloqueado', $m->business_id) }}"
-                                       class="oi-btn oi-btn-success oi-btn-xs"
-                                       onclick="return confirm('Desbloquear empresa {{ addslashes($m->business_name) }} ?')"
-                                       title="Desbloquear empresa inteira">
-                                        <i class="fa fa-unlock"></i> Desbloq. empresa
-                                    </a>
+                                    <form method="POST" action="{{ route('business.bloqueado', $m->business_id) }}" style="display:inline"
+                                          onsubmit="return confirm('Desbloquear empresa {{ addslashes($m->business_name) }} ?')">
+                                        @csrf
+                                        <button type="submit" class="oi-btn oi-btn-success oi-btn-xs" title="Desbloquear empresa inteira">
+                                            <i class="fa fa-unlock"></i> Desbloq. empresa
+                                        </button>
+                                    </form>
                                 @elseif($m->machine_blocked)
-                                    <a href="{{ route('licenca_computador.toggleBlock', $m->licenca_id) }}"
-                                       class="oi-btn oi-btn-success oi-btn-xs"
-                                       onclick="return confirm('Desbloquear máquina {{ addslashes($m->user_win ?? '') }} ?')"
-                                       title="Desbloquear essa máquina">
-                                        <i class="fa fa-unlock"></i> Desbloq. máquina
-                                    </a>
+                                    <form method="POST" action="{{ route('licenca_computador.toggleBlock', $m->licenca_id) }}" style="display:inline"
+                                          onsubmit="return confirm('Desbloquear máquina {{ addslashes($m->user_win ?? '') }} ?')">
+                                        @csrf
+                                        <button type="submit" class="oi-btn oi-btn-success oi-btn-xs" title="Desbloquear essa máquina">
+                                            <i class="fa fa-unlock"></i> Desbloq. máquina
+                                        </button>
+                                    </form>
                                 @else
-                                    <a href="{{ route('licenca_computador.toggleBlock', $m->licenca_id) }}"
-                                       class="oi-btn oi-btn-danger oi-btn-xs"
-                                       onclick="return confirm('Bloquear máquina {{ addslashes($m->user_win ?? '') }} ?')"
-                                       title="Bloquear essa máquina">
-                                        <i class="fa fa-lock"></i> Bloq. máquina
-                                    </a>
+                                    <form method="POST" action="{{ route('licenca_computador.toggleBlock', $m->licenca_id) }}" style="display:inline"
+                                          onsubmit="return confirm('Bloquear máquina {{ addslashes($m->user_win ?? '') }} ?')">
+                                        @csrf
+                                        <button type="submit" class="oi-btn oi-btn-danger oi-btn-xs" title="Bloquear essa máquina">
+                                            <i class="fa fa-lock"></i> Bloq. máquina
+                                        </button>
+                                    </form>
                                 @endif
                             </td>
                         </tr>

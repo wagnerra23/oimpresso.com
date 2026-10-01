@@ -154,11 +154,15 @@ export default function ConversationThreadV4({
           <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground mt-0.5">
             {channel && (
               // Cowork .om-chip — padding 1px 7px, font-weight 500, border-radius 99px (§438)
+              // Luminosidade derivada dos tokens (--color-foreground/--color-border) pra
+              // flipar com o tema: o fundo é `bg-card`, e texto com L fixo 0.35 sumia no
+              // escuro (card L 0.30). Medido 2026-09-30 em prod: claro → texto 0.35 /
+              // borda 0.75 sobre branco (igual ao design); escuro → texto 0.76 / borda 0.40.
               <span
                 className="inline-block px-[7px] py-px text-[10.5px] font-medium border rounded-full bg-card"
                 style={{
-                  borderColor: `oklch(0.85 0.06 ${channel.hue})`,
-                  color: `oklch(0.35 0.10 ${channel.hue})`,
+                  borderColor: `oklch(from var(--color-border) calc(l * 0.6 + 0.2) 0.08 ${channel.hue})`,
+                  color: `oklch(from var(--color-foreground) calc(l * 0.5 + 0.28) 0.12 ${channel.hue})`,
                 }}
               >
                 {channel.short}{thread.channel_label ? ` · ${thread.channel_label}` : ''}

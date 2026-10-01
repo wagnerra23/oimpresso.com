@@ -12,9 +12,9 @@ module: Connector
 > ⚙️ **Gerado por máquina** (`scripts/governance/module-surface.mjs`). NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/module-surface.mjs Connector --write`. Validar frescor: `--check` (exit 1 se a árvore mudou e isto não foi regenerado).
 >
-> **O que isto é:** o inventário completo das raízes `Modules/Connector/**` + `resources/js/Pages/Connector/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
+> **O que isto é:** o inventário completo das raízes `Modules/Connector/**` + `resources/js/Pages/Connector/**` + `resources/js/Pages/Api/**` (namespaces Inertia `Connector`, `Api`, declarados em `module-surface.mjs::PAGES_NS` porque diferem do nome do módulo `Connector` — confira com `--namespaces`), separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 117 arquivos em 13 papéis.
+**Total mapeado:** 124 arquivos em 17 papéis.
 
 ## Controllers — 30
 
@@ -108,9 +108,25 @@ module: Connector
 - [index.blade.php](../../../Modules/Connector/Resources/views/clients/index.blade.php)
 - [master.blade.php](../../../Modules/Connector/Resources/views/layouts/master.blade.php)
 
-## Testes (Pest) — 10
+## Telas (Inertia/React) — 1
 
-- 10 em [Modules/Connector/Tests/Feature/](../../../Modules/Connector/Tests/Feature)
+- [Index.tsx](../../../Modules/Connector/Resources/js/Pages/Api/Index.tsx)
+
+## Componentes / apoio de tela — 1
+
+- [ConnectorAbas.tsx](../../../Modules/Connector/Resources/js/Pages/Api/_components/ConnectorAbas.tsx)
+
+## Charters (lei da tela) — 1
+
+- [Index.charter.md](../../../Modules/Connector/Resources/js/Pages/Api/Index.charter.md)
+
+## Casos (contrato UC) — 1
+
+- [Index.casos.md](../../../Modules/Connector/Resources/js/Pages/Api/Index.casos.md)
+
+## Testes (Pest) — 13
+
+- 13 em [Modules/Connector/Tests/Feature/](../../../Modules/Connector/Tests/Feature)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
 ## Demais arquivos (manifestos, docs, assets e misc) — 48

@@ -12,12 +12,13 @@
 // conjunto já carregado): De/Até/Só-finalizadas disparam `router.get` — o mesmo idioma que
 // `Manufacturing/Index.tsx` já usa pros filtros de produção.
 
-import { Link, router } from '@inertiajs/react';
+import { router } from '@inertiajs/react';
 import { useState, type ReactNode } from 'react';
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Checkbox } from '@/Components/ui/checkbox';
 import { fmt, num } from './_lib/formato';
 import type { FiltrosRelatorio, Relatorio } from './_lib/tipos';
+import FabricacaoAbas from './_components/FabricacaoAbas';
 import '../../../css/cowork-manufacturing-bundle.css';
 
 interface Props {
@@ -79,41 +80,16 @@ export default function Report({
   const { linhas, total } = relatorio;
 
   return (
-    <div className="mfg-root" data-screen-label="Manufacturing · Relatório">
+    <div className="mfg-root" data-screen-label="Fabricação · Relatório">
       <div className="os-page-h" data-contract="cabecalho">
         <div className="os-page-h-l">
-          <h1>Manufacturing</h1>
+          <h1>Fabricação</h1>
           <p>Relatório de produção do período · custo agrupado por produto</p>
         </div>
       </div>
 
       {/* Mesma aba do módulo que Recipes.tsx — "Relatório" ativa aqui. */}
-      <nav className="mfg-tabs" aria-label="Manufacturing">
-        <Link className="mfg-tab" href="/manufacturing/recipe">
-          Receitas
-          <span className="mfg-tab-n">{recipes_count}</span>
-        </Link>
-        <Link className="mfg-tab" href="/manufacturing/insumos">
-          Insumos
-        </Link>
-        {permissions.prod && (
-          <Link className="mfg-tab" href="/manufacturing/production">
-            Ordens de produção
-            <span className="mfg-tab-n">
-              {producao.total}
-              {producao.rascunhos ? ` · ${producao.rascunhos} rasc.` : ''}
-            </span>
-          </Link>
-        )}
-        <span className="mfg-tab act" aria-current="page">
-          Relatório
-        </span>
-        {/* Ver a nota em Recipes.tsx: era âncora crua pra rota Blade legada, que saía do
-            SPA. O cutover da rota legada segue decisão [W]. */}
-        <Link className="mfg-tab" href="/manufacturing/settings">
-          Configurações
-        </Link>
-      </nav>
+      <FabricacaoAbas ativa="relatorio" receitas={recipes_count} producao={producao} podeProduzir={permissions.prod} />
 
       <div className="mfg-filters" data-contract="filtros">
         <Campo label="De" w={140}>
@@ -208,8 +184,8 @@ function Campo({ label, w, children }: { label: string; w: number; children: Rea
 
 Report.layout = (page: ReactNode) => (
   <AppShellV2
-    title="Relatório · Manufacturing"
-    breadcrumbItems={[{ label: 'Manufacturing' }, { label: 'Relatório' }]}
+    title="Relatório · Fabricação"
+    breadcrumbItems={[{ label: 'Fabricação' }, { label: 'Relatório' }]}
   >
     {page}
   </AppShellV2>

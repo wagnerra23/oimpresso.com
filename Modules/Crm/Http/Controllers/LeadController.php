@@ -10,6 +10,8 @@ use App\Utils\Util;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
+use Illuminate\Support\Carbon;
+use Inertia\Inertia;
 use Modules\Crm\Entities\CrmContact;
 use Modules\Crm\Http\Requests\StoreLeadRequest;
 use Modules\Crm\Http\Requests\UpdateLeadRequest;
@@ -67,7 +69,14 @@ class LeadController extends Controller
             $lead_view = request()->get('lead_view');
         }
 
-        if (request()->ajax()) {
+        // Thread Crm/02: a lista abre em Inertia. O Inertia manda `X-Requested-With` junto do
+        // `X-Inertia`, então `ajax()` sozinho mandaria a visita pro DataTables (§5 2026-09-08).
+        // `?classico=1` e o kanban (`lead_view=kanban`) mantêm a tela Blade, que ainda hospeda
+        // o formulário, a conversão e o "local" do contato.
+        $inertia = ! request()->boolean('classico') && $lead_view != 'kanban'
+            && (! request()->ajax() || request()->header('X-Inertia'));
+
+        if (request()->ajax() || $inertia) {
             $leads = $this->crmUtil->getLeadsListQuery($business_id);
 
             if (! $can_access_all_leads && $can_access_own_leads) {
@@ -89,6 +98,10 @@ class LeadController extends Controller
                         $q->where('user_id', $user_id);
                     });
                 });
+            }
+
+            if ($inertia) {
+                return $this->leadsInertia($business_id, $leads);
             }
 
             if ($lead_view == 'list_view') {
@@ -606,5 +619,64 @@ class LeadController extends Controller
 
             return $output;
         }
+    }
+
+    /**
+     * Lista de leads em Inertia (thread Crm/02). Recebe a MESMA consulta do DataTables —
+     * business_id, `type = lead`, filtros e a restrição "só os meus" já aplicados —, então a
+     * tela nova não tem como ver mais do que a Blade via. O drawer de detalhe (`?lead=ID`)
+     * sai da mesma consulta, por isso herda o mesmo escopo.
+     */
+    private function leadsInertia($business_id, $leads)
+    {
+        $busca = trim((string) request()->input('q', ''));
+        if ($busca !== '') {
+            $leads->where(function ($w) use ($busca) {
+                $w->where('contacts.name', 'like', "%{$busca}%")
+                    ->orWhere('contacts.supplier_business_name', 'like', "%{$busca}%")
+                    ->orWhere('contacts.contact_id', 'like', "%{$busca}%")
+                    ->orWhere('contacts.mobile', 'like', "%{$busca}%");
+            });
+        }
+
+        $lista = fn ($mapa) => collect($mapa)->map(fn ($label, $value) => ['value' => (string) $value, 'label' => (string) $label])->values();
+        $data = fn ($d) => empty($d) ? null : Carbon::parse($d)->format('d/m/Y H:i');
+        $linha = fn ($l) => [
+            'id' => $l->id,
+            'codigo' => $l->contact_id,
+            'nome' => trim(($l->supplier_business_name ? $l->supplier_business_name.', ' : '').$l->name),
+            'celular' => $l->mobile,
+            'email' => $l->email,
+            'documento' => $l->tax_number,
+            'fonte' => $l->Source?->name,
+            'estagio' => $l->lifeStage?->name,
+            'atribuidos' => $l->leadUsers->pluck('user_full_name')->values(),
+            'endereco' => implode(', ', array_filter([$l->address_line_1, $l->address_line_2, $l->city, $l->state, $l->country, $l->zip_code])),
+            'ultimo' => $data($l->last_follow_up),
+            'proximo' => $data($l->upcoming_follow_up),
+            'adicionado_em' => $data($l->created_at),
+        ];
+
+        $leadId = (int) request()->input('lead');
+
+        return Inertia::render('Crm/Leads/Index', [
+            'filtros' => request()->only(['source', 'life_stage', 'user_id', 'q']),
+            'opcoes' => Inertia::defer(fn () => [
+                'fontes' => $lista(Category::forDropdown($business_id, 'source')),
+                'estagios' => $lista(Category::forDropdown($business_id, 'life_stage')),
+                'usuarios' => $lista(User::forDropdown($business_id, false, false, false, true)),
+            ]),
+            'leads' => Inertia::defer(fn () => (clone $leads)
+                ->orderByDesc('contacts.created_at')
+                ->paginate(25)
+                ->withQueryString()
+                ->through($linha)),
+            // Drawer de detalhe: a MESMA consulta da lista, filtrada pelo id. Lead de outro
+            // negócio, cliente (type ≠ lead) ou lead de colega, para quem só vê os próprios,
+            // dá `null` — o drawer não abre.
+            'lead' => fn () => $leadId > 0
+                ? optional((clone $leads)->where('contacts.id', $leadId)->first(), $linha)
+                : null,
+        ]);
     }
 }

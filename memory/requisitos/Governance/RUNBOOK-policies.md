@@ -113,7 +113,7 @@ Layout: `AppShellV2`, header `@/Components/shared/PageHeader` (congelado — ver
 
 ## 7. Atalhos
 
-- Herdados do shell: `G G` (Governança) e `P` (primary "Gerenciar policies", que aponta
+- Herdados do shell: `G G` (Governança) e `P` (primary "Gerenciar políticas", que aponta
   justamente pra esta tela).
 - ⬜ **ABERTO**: nenhum atalho próprio registrado em `Policies.tsx`.
 

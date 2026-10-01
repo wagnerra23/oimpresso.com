@@ -318,7 +318,14 @@ export default function DataTable<T>({
         </div>
       )}
 
-      <div className={tableWrapperClassName ?? 'border border-border rounded overflow-x-auto'}>
+      {/* `containerType: inline-size` faz do wrapper o container de `cqw`: é o que deixa a
+          mensagem de lista vazia medir a largura VISÍVEL da rolagem (ver o `<td>` vazio abaixo).
+          Vai em `style`, não em classe, pra valer também quando `tableWrapperClassName`
+          substitui as classes do default. */}
+      <div
+        className={tableWrapperClassName ?? 'border border-border rounded overflow-x-auto'}
+        style={{ containerType: 'inline-size' }}
+      >
         <table
           className={`w-full text-sm${temLargura ? ' table-fixed' : ''}`}
           style={pisoDaTabela ? { minWidth: pisoDaTabela } : undefined}
@@ -384,8 +391,14 @@ export default function DataTable<T>({
           <tbody className={dens.tbody}>
             {table.getRowModel().rows.length === 0 ? (
               <tr>
-                <td colSpan={columns.length} className="p-12 text-center text-sm text-muted-foreground">
-                  {emptyMessage}
+                <td colSpan={columns.length} className="p-0 text-sm text-muted-foreground">
+                  {/* A célula tem a largura da TABELA, que pode ser bem maior que a área visível
+                      (Bens: 1626px). Centralizar nela jogava o texto fora da tela — medido em prod
+                      em 2026-09-30: texto em x=842..1306 com o wrapper visível em 260..1024.
+                      `sticky left-0` + `100cqw` centraliza na área VISÍVEL e acompanha a rolagem. */}
+                  <div data-slot="datatable-vazio" className="sticky left-0 w-[100cqw] p-12 text-center">
+                    {emptyMessage}
+                  </div>
                 </td>
               </tr>
             ) : (

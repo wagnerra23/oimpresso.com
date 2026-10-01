@@ -9,10 +9,10 @@
 > - O dono de "o que é required no merge" é `governance/required-checks-baseline.json` (vigiado por `protection-drift.mjs`) — a seção de gates abaixo é CÓPIA GERADA dele, re-derivada a cada `--write` e conferida pelo `--check`.
 
 ## Resumo
-- **59** wirings em `settings.json` (5 eventos) · **53** arquivos de hook distintos wired
+- **60** wirings em `settings.json` (5 eventos) · **53** arquivos de hook distintos wired
 - **54** arquivos de hook no disco (+46 `*.test.*` — testes, fora da conta de órfãos)
 - Órfãos (arquivo sem wiring): **1** · Fantasmas (wiring sem arquivo): **0**
-- Gates CI no baseline: **46** classic + **1** ruleset → ponto-de-corte merge
+- Gates CI no baseline: **47** classic + **1** ruleset → ponto-de-corte merge
 
 ## Hooks wired (evento × matcher × arquivo)
 | Evento | Matcher | Hook | Runtime | Ponto-de-corte | Sinal de bloqueio (heurística) |
@@ -59,6 +59,7 @@
 | PreToolUse | `Skill` | block-skill-design-sync-without-optin.mjs | node | ferramenta (pré-uso do matcher) | exit-2 |
 | PreToolUse | `Bash/PowerShell/Monitor` | block-test-fora-ct100.mjs | node | comando (pré-shell — git commit/push trafegam aqui) | exit-2 |
 | PreToolUse | `Bash/PowerShell/Monitor` | block-sonda-que-mente.mjs | node | comando (pré-shell — git commit/push trafegam aqui) | exit-2 |
+| PreToolUse | `Bash/PowerShell/Monitor` | whats-active-troca-de-alvo.mjs | node | comando (pré-shell — git commit/push trafegam aqui) | — |
 | PreToolUse | `Glob/Grep/Bash` | block-instrumento-sem-porta-viva.mjs | node | comando (pré-shell — git commit/push trafegam aqui) | exit-2 |
 | PreToolUse | `Artifact` | vista-publicada-padrao.mjs | node | ferramenta (pré-uso do matcher) | — |
 | PreToolUse | `Write` | doc-fora-do-rag.mjs | node | geração (pré-Write/Edit) | — |
@@ -84,7 +85,7 @@ Nenhum.
 - ⚠️ `pii-redactor.mjs` — sem wiring em settings.json
 
 ## Gates CI (`required-checks-baseline.json` → ponto-de-corte merge)
-Contexts `classic_protection` (46):
+Contexts `classic_protection` (47):
 - ADR (memory/decisions/*.md)
 - ADR 0216 PR scan (governance:audit --diff-only)
 - ADR frontmatter
@@ -131,6 +132,7 @@ Contexts `classic_protection` (46):
 - Tier-0 guards (WithoutGlobalScopes + BusinessId)
 - Tópico (memory/requisitos/*/topicos/*.md)
 - espelho — mexeu depois de verificar
+- Contratos de tela (fidelidade + intenção)
 
 Contexts `rulesets` (1):
 - Governance Gate (índice + memory-health + meta-teste)

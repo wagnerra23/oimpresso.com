@@ -34,8 +34,8 @@ declare(strict_types=1);
 // motivo + ação. NÃO é skip: target NOVO órfão falha mesmo assim. Limpeza do dead code
 // rastreada fora (1 PR = 1 intent). Allowlist só ENCOLHE.
 const ORPHAN_RENDER_ALLOWLIST = [
-    'Atendimento/Inbox/Index'
-        => 'InboxController::index órfão pós-cutover Caixa Unificada V4 (ADR 0135); /inbox é 301 → caixa-unificada. Limpar dead code: task spawn_37d7a9e6',
+    // 'Atendimento/Inbox/Index' saiu em 2026-10-01: InboxController::index virou o
+    // redirect pra Caixa Unificada que preserva a query ([W] D1 do playbook Atendimento).
     // 'Financeiro/Boletos/Index' saiu em 2026-08-17: o dead code foi removido
     // (BoletoController::index + shapeRemessa/kpis/funil/listarContas/bancoShort).
     // Era a "task separada" que a própria entrada declarava como ação.

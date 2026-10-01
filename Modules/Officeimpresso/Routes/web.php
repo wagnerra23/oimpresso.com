@@ -41,12 +41,16 @@ Route::middleware(['web', 'auth', 'SetSessionData', 'language', 'timezone', 'Adm
     Route::resource('licenca_computador', LicencaComputadorController::class);
     Route::get('businessall', [LicencaComputadorController::class, 'businessall'])->name('licenca_computador.businessall');
     Route::get('computadores', [LicencaComputadorController::class, 'computadores'])->name('computadores');
-    Route::get('/licenca_computador/{id}/toggle-block', [LicencaComputadorController::class, 'toggleBlock'])->name('licenca_computador.toggleBlock');
+    // Thread Officeimpresso/04 (2026-10-01): bloquear/liberar maquina e empresa MUDAM estado
+    // (o WR Comercial do cliente para de entrar) e por isso nao respondem mais a GET — um GET
+    // e disparado por prefetch, crawler, "abrir em nova aba" ou <img src> de outra pagina.
+    // So POST + CSRF. Os chamadores (3 views Blade + MaquinasTable.tsx) postam formulario.
+    Route::post('/licenca_computador/{id}/toggle-block', [LicencaComputadorController::class, 'toggleBlock'])->name('licenca_computador.toggleBlock');
     // ->name('business.update') removido: colidia com Route::resource('business') do UltimatePOS
     // (BusinessController::update), quebrava `php artisan route:cache`. View Blade usa action()
     // direta no LicencaComputadorController@businessupdate, sem dependência do name().
     Route::post('/licenca_computador/businessupdate/{id}', [LicencaComputadorController::class, 'businessupdate']);
-    Route::get('/licenca_computador/businessbloqueado/{id}', [LicencaComputadorController::class, 'businessbloqueado'])->name('business.bloqueado');
+    Route::post('/licenca_computador/businessbloqueado/{id}', [LicencaComputadorController::class, 'businessbloqueado'])->name('business.bloqueado');
     Route::get('/licenca_computado/licencas/{id}', [LicencaComputadorController::class, 'viewLicencas'])->name('empresa.licencas');
 
     // Logs de licenca
@@ -58,9 +62,12 @@ Route::middleware(['web', 'auth', 'SetSessionData', 'language', 'timezone', 'Adm
         return view('superadmin.iframe', ['url' => 'https://docs.officeimpresso.com.br']);
     })->name('superadmin.docs');
 
-    // Install hooks
+    // Install hooks — thread Officeimpresso/04 (2026-10-01): instalar/desinstalar/atualizar NAO
+    // agem mais por GET. O GET so mostra uma confirmacao sem efeito, com formulario POST + CSRF;
+    // a acao roda no POST (mesmo padrao do Connector #8344 e do Arquivos #8359). O GET segue
+    // registrado porque um <a href> antigo (bookmark, /manage-modules) cairia em 405.
     Route::get('install', [InstallController::class, 'index'])->name('officeimpresso.install');
     Route::post('install', [InstallController::class, 'install'])->name('officeimpresso.install.post');
-    Route::get('install/uninstall', [InstallController::class, 'uninstall'])->name('officeimpresso.install.uninstall');
-    Route::get('install/update', [InstallController::class, 'update'])->name('officeimpresso.install.update');
+    Route::match(['get', 'post'], 'install/uninstall', [InstallController::class, 'uninstall'])->name('officeimpresso.install.uninstall');
+    Route::match(['get', 'post'], 'install/update', [InstallController::class, 'update'])->name('officeimpresso.install.update');
 });

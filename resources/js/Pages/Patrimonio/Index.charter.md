@@ -19,8 +19,8 @@ alcance:
   menu_hook: Modules/AssetManagement/Http/Controllers/DataController.php::modifyAdminMenu
   pacote: assetmanagement_module      # superadmin_package
 tier: B
-charter_version: 3
-last_validated: "2026-09-23"
+charter_version: 4
+last_validated: "2026-09-30"
 ---
 
 # Page Charter — Patrimonio/Index (Painel do Patrimônio)
@@ -61,10 +61,13 @@ o que está parado ou sem cobertura de garantia.**
   decisão [W] — RESÍDUO 6 do playbook, dono `SPEC.md:96 US-ASSET-W01`. O KPI mostra `—`.
 - ❌ **Não mostra custo de manutenção.** `asset_maintenances` não tem coluna de valor. RESÍDUO 3
   do playbook. A lista e o total mostram `—`, não zero.
-- ❌ **Não cria rota para Garantias nem para Auditoria.** As duas abas existem no protótipo e não
-  no backend. A sub-navegação **deriva** do `shell.menu` e por isso simplesmente não as mostra —
-  decisão da tela de Bens, que a fundou (*"renderizar aba que não navega é afordância falsa"*).
-  Bloqueios `D-GARANTIAS` e `D-AUDITORIA`.
+- ❌ **Não cria rota nem tela para Garantias ou Auditoria.** As duas abas existem no protótipo;
+  a sub-navegação **deriva** do `shell.menu`, e nenhuma das duas virou rota própria. As duas
+  decisões saíram assim ([W]): **D-GARANTIAS** (2026-09-29) fez de Garantias um **recorte da
+  lista de Bens** — o chip "Garantia crítica" do Resumo navega para a rota existente de Bens com
+  `?recorte=garantia`, sem rota nova —; **D-AUDITORIA** (ADR 0414, 2026-09-24) fez de Auditoria
+  um deep-link para o `Modules/Auditoria`. (Até 2026-09-29 este item citava as duas como
+  bloqueios em aberto.)
 - ❌ **Não oferece o primary "+ Novo ativo" do menu, nem aponta cadastro pra `/asset/assets/create`.**
   Aquele endpoint só responde sob `ajax()`: numa navegação direta devolveu 200 com 0 bytes, e
   pelo `<Link>` do Inertia abriu o fragmento de modal jQuery cru (medido em prod, biz=1,
@@ -82,6 +85,9 @@ o que está parado ou sem cobertura de garantia.**
 
 - **R3 (garantia é janela).** `asset_warranties.start_date/end_date` vs hoje → na garantia /
   vence em ≤30 dias / vencida. **Sem registro ≠ vencida** — é um quarto balde, "sem garantia".
+  **Vale a garantia mais recente** de cada bem, a que termina por último ([W] 2026-09-30): bem com
+  garantia velha vencida e renovação vigente é "na garantia", e cada bem entra em um balde só,
+  com o valor contado uma vez. É a mesma regra do recorte "Garantia crítica" de Bens.
 - **Tier 0 multi-tenant (ADR 0093).** `asset_warranties` não tem `business_id`: toda leitura de
   garantia entra por `join` com `assets` filtrando `assets.business_id`.
 - **Quantidade é decimal.** `assets.quantity` é `decimal(22,4)` e os cards somam **quantidade**,

@@ -408,9 +408,13 @@ it('UC-PAT-01: bem SEM garantia de outra empresa não entra nos baldes de garant
  *
  * ORÁCULO: o registro vivo (`Route::has`), não a leitura do arquivo de rotas.
  * CONTROLE: `destroy` na MESMA URI segue registrado — `Bens.tsx` e `Manutencoes.tsx`
- * excluem por `router.delete` nela, e `except(['show'])` não pode levá-lo junto. E
- * `asset.settings.show` segue registrado de propósito: as sub-telas de settings dependem
- * da decisão D-FORMS, então este teste também falha se alguém tirar essa rota sem ela.
+ * excluem por `router.delete` nela, e `except(['show'])` não pode levá-lo junto.
+ *
+ * `settings` (2026-09-30, thread 20): até aqui este CONTROLE fixava `asset.settings.show` como
+ * registrado, porque as sub-telas de settings esperavam a D-FORMS. A D-FORMS foi respondida
+ * (ADR 0414) e, para configurações, o formulário já é a própria Page do índice — o resource
+ * passou a `->only(['index', 'store'])`. O controle agora fixa as duas rotas que a tela usa;
+ * a ausência das 5 removidas é provada em `ConfiguracoesContratoTest` (UC-CFG-05).
  */
 it('rotas show mortas de assets/allocation/revocation/asset-maintenance não estão registradas', function () {
     foreach (['assets.show', 'allocation.show', 'revocation.show', 'asset-maintenance.show'] as $nome) {
@@ -418,8 +422,71 @@ it('rotas show mortas de assets/allocation/revocation/asset-maintenance não est
     }
 });
 
-it('CONTROLE: destroy na mesma URI e asset.settings.show continuam registrados', function () {
-    foreach (['assets.destroy', 'allocation.destroy', 'revocation.destroy', 'asset-maintenance.destroy', 'asset.settings.show'] as $nome) {
+it('CONTROLE: destroy na mesma URI e asset.settings.index/store continuam registrados', function () {
+    foreach (['assets.destroy', 'allocation.destroy', 'revocation.destroy', 'asset-maintenance.destroy', 'asset.settings.index', 'asset.settings.store'] as $nome) {
         expect(\Route::has($nome))->toBeTrue("Rota {$nome} deveria continuar registrada");
+    }
+});
+
+/**
+ * `GET asset/revocation` redireciona para a tela de Alocações — thread 16 do playbook
+ * Patrimônio (decisão [W] 2026-09-30, `_saida-16b` opção b).
+ *
+ * O QUE DEFENDE: a lista Blade de devoluções saiu de cena. O histórico 1 : N mora no drawer
+ * Devolver (com Excluir, thread 18) e no drawer do bem. A rota continua registrada para o
+ * menu e links antigos, mas não pode voltar a servir tela própria.
+ *
+ * POR QUE AS DUAS REQUISIÇÕES: antes deste PR, a visita COM `X-Requested-With` (que o
+ * cliente Inertia manda sempre) caía no ramo `ajax()` e recebia o JSON cru do DataTables
+ * com 200; a visita sem o header recebia a view Blade, também 200. As duas mordem aqui.
+ *
+ * CONTROLE: sem a assinatura do módulo o gate segue dando 403 — o redirecionamento não pode
+ * virar atalho que pula a permissão que protegia a lista.
+ */
+function revocationIndexChamar(Business $biz, User $user, bool $ajax)
+{
+    test()->flushHeaders();
+    $req = test()->actingAs($user)->withSession([
+        'user.business_id' => $biz->id,
+        'user' => ['business_id' => $biz->id, 'id' => $user->id],
+    ]);
+    // Só `X-Requested-With`: é ele que escolhia o ramo `ajax()` antigo, e o cliente Inertia o
+    // manda em toda visita. `X-Inertia` num GET sem `X-Inertia-Version` o middleware devolve
+    // 409 antes do controller — medido no 1º run deste teste, que reprovou por isso e não
+    // pelo que queria provar (mesma escolha do `alocFormComo` do AlocacoesFormContratoTest).
+    if ($ajax) {
+        $req = $req->withHeaders(['X-Requested-With' => 'XMLHttpRequest']);
+    }
+
+    return $req->get('/asset/revocation');
+}
+
+it('thread 16: GET asset/revocation redireciona para asset/allocation (com e sem X-Requested-With)', function () {
+    [$biz, $user] = assetViewGateFixture(comPermissao: false);
+
+    try {
+        $moduleUtil = Mockery::mock(ModuleUtil::class)->makePartial();
+        $moduleUtil->shouldReceive('hasThePermissionInSubscription')->andReturn(true);
+        app()->instance(ModuleUtil::class, $moduleUtil);
+
+        revocationIndexChamar($biz, $user, ajax: true)->assertRedirect('/asset/allocation');
+        revocationIndexChamar($biz, $user, ajax: false)->assertRedirect('/asset/allocation');
+    } finally {
+        assetViewGateLimpar();
+    }
+});
+
+it('CONTROLE thread 16: sem a assinatura do módulo, GET asset/revocation segue 403', function () {
+    [$biz, $user] = assetViewGateFixture(comPermissao: false);
+
+    try {
+        $moduleUtil = Mockery::mock(ModuleUtil::class)->makePartial();
+        $moduleUtil->shouldReceive('hasThePermissionInSubscription')->andReturn(false);
+        app()->instance(ModuleUtil::class, $moduleUtil);
+
+        expect($user->can('superadmin'))->toBeFalse();
+        revocationIndexChamar($biz, $user, ajax: true)->assertStatus(403);
+    } finally {
+        assetViewGateLimpar();
     }
 });

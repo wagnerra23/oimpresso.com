@@ -1,3 +1,5 @@
+> **ABSORVIDO** em 2026-09-30 por `cowork-inbox/arquivos/playbook/00-INDICE.md` — não executar daqui.
+
 # Pedido zero-toque — Arquivos (Sprint 2 · US-ARQ-013 · ADR 0123)
 
 > De [CC] para [CL] · 2026-08-24 · escopo a aprovar por [W]

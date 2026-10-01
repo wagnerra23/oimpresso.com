@@ -3,7 +3,8 @@
   "tela": "Manufacturing/Index",
   "fonte": "prototipo-ui/cowork/Wagner/manufacturing-producao.jsx",
   "alvo": [
-    "resources/js/Pages/Manufacturing/Index.tsx"
+    "resources/js/Pages/Manufacturing/Index.tsx",
+    "resources/js/Pages/Manufacturing/_components/FabricacaoAbas.tsx"
   ],
   "secoes": [
     {

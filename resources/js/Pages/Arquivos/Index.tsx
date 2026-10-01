@@ -25,7 +25,10 @@
 import '../../../css/cowork-arquivos-bundle.css'
 
 import { Deferred, Link, router } from '@inertiajs/react'
-import { Download, File } from 'lucide-react'
+import { Download, File, RotateCcw, Tag, Trash2 } from 'lucide-react'
+import { useState } from 'react'
+import ClassificarSheet, { type AlvoClassificar } from './_components/ClassificarSheet'
+import ExcluirRestaurarSheet, { type AlvoExcluirRestaurar } from './_components/ExcluirRestaurarSheet'
 import AppShellV2 from '@/Layouts/AppShellV2'
 import { PageHeader } from '@/Components/PageHeader'
 import PageHeaderTabs from '@/Components/shared/PageHeaderTabs'
@@ -62,6 +65,10 @@ interface LinhaAcervo {
   vence_em: string | null
   dias_restantes: number | null
   excluido_em: string | null
+  /** Último dia em que dá pra restaurar (excluído + grace). `null` = não excluído. */
+  restaurar_ate: string | null
+  /** Excluído E ainda dentro do grace. Fora dele o botão Restaurar NÃO existe (thread 03). */
+  restauravel: boolean
 }
 
 /** Uma linha de `arquivos_audit_log`. O arquivo é `#id` — nunca o nome (ver charter). */
@@ -174,6 +181,8 @@ interface Props {
   filtros: Filtros
   politica: Politica[]
   resumo: Resumo
+  /** Mesma regra do `RestoreArquivoRequest::authorize()` — sem ela o botão daria 403. */
+  pode_restaurar: boolean
   /** Só chega quando `tab=acervo` — a vista fechada não é computada no servidor. */
   acervo?: Paginator<LinhaAcervo>
   /** Só chega quando `tab=trilha`. */
@@ -205,6 +214,17 @@ const BUCKET_PT: Record<string, string> = {
   active: 'Em uso',
   memory: 'Histórico',
   discard: 'Descartar',
+}
+
+/**
+ * Bucket → valor do `StatusBadge kind="sla"` — o mapa `BUCKET.k` do protótipo, verbatim.
+ * Só a COR vem do `sla`; o rótulo é o de `BUCKET_PT` (passado por `label`).
+ */
+const BUCKET_SLA: Record<string, string> = {
+  sensitive: 'expired',
+  active: 'fresh',
+  memory: 'late',
+  discard: 'aging',
 }
 
 /** Visibilidade é outro eixo — QUEM vê, não o que é. Mesmo tratamento: PT-BR na tela, enum no title. */
@@ -466,7 +486,12 @@ function estadoDaLinha(a: LinhaAcervo): EstadoDaLinha | undefined {
  * `nowrap` ou colapsava o `truncate` em reticências (os "tracinhos"), porque `truncate` é
  * `overflow:hidden` e só funciona contra uma largura que alguém declarou.
  */
-function colunas(politica: Politica[]): ColumnDef<LinhaAcervo, unknown>[] {
+function colunas(
+  politica: Politica[],
+  onClassificar: (a: LinhaAcervo) => void,
+  onExcluirRestaurar: (alvo: AlvoExcluirRestaurar) => void,
+  podeRestaurar: boolean,
+): ColumnDef<LinhaAcervo, unknown>[] {
   return [
     {
       id: 'arquivo',
@@ -498,11 +523,18 @@ function colunas(politica: Politica[]): ColumnDef<LinhaAcervo, unknown>[] {
               {/* Mesmo vocabulário da Retenção, que já usava o `CONTEXTO_PT`: rótulo PT-BR na
                   tela, slug no `title`. Antes o slug ia cru dentro de `<code>` — e `<code>` é
                   pra valor técnico, não pra prosa como "sem contexto". */}
-              <span title={a.sub_destination ?? undefined}>
-                {a.sub_destination
-                  ? (CONTEXTO_PT[a.sub_destination] ?? a.sub_destination)
-                  : 'Sem contexto mapeado'}
-              </span>
+              {/* Thread 01 (2026-09-30): rótulo PT-BR + o slug em `<code>` mono, como o
+                  protótipo (`{label} · <code>{sub}</code>`). O design-diff acusava col0 sem
+                  mono. Slug sem rótulo no mapa vai só em `<code>` — repetir o mesmo valor
+                  duas vezes seria ruído. Sem contexto segue prosa, nunca `<code>`. */}
+              {a.sub_destination ? (
+                <span title={a.sub_destination}>
+                  {CONTEXTO_PT[a.sub_destination] ? <>{CONTEXTO_PT[a.sub_destination]} · </> : null}
+                  <code className="mono">{a.sub_destination}</code>
+                </span>
+              ) : (
+                <span>Sem contexto mapeado</span>
+              )}
               {lei ? <> · {lei}</> : null}
               {/* `no_rule_matched` e o fallback do CuradorEngine quando nenhuma regra casa
                   (CuradorEngine:248) — nao e um classificador, e a ausencia de um. Mostrar o
@@ -608,18 +640,27 @@ function colunas(politica: Politica[]): ColumnDef<LinhaAcervo, unknown>[] {
         // `danger` (par SOFT), não `destructive` (fill sólido), pelo mesmo motivo do órfão acima:
         // sensível é ESTADO do arquivo, não ação destrutiva — e numa lista onde a maioria das
         // linhas de NF-e/contrato é `sensitive`, o fill pintaria metade da coluna de vermelho cheio.
+        //
+        // Thread 01 (2026-09-30): forma do protótipo — `.arq-cls` com `StatusBadge kind="sla"`
+        // (pílula SOFT com dot, AP7) e a visibilidade em `<small className="mono">`. O
+        // design-diff acusava col2 sem dot e sem mono. `sla` aqui é empréstimo de PALETA, não
+        // de semântica (o protótipo declara isso): classificação não tem família soft própria.
+        // Bucket fora do mapa cai em texto neutro, como o `BUCKET_FALLBACK` do protótipo.
+        const tom = a.bucket ? BUCKET_SLA[a.bucket] : undefined
+        const rotulo = a.bucket ? (BUCKET_PT[a.bucket] ?? a.bucket) : 'sem classificação'
         return (
-          <Stack gap={1} align="start">
-            <Badge
-              variant={a.bucket === 'sensitive' ? 'danger' : 'secondary'}
-              title={a.bucket ?? undefined}
-            >
-              {a.bucket ? (BUCKET_PT[a.bucket] ?? a.bucket) : '—'}
-            </Badge>
-            <span className="text-xs text-muted-foreground" title={a.visibility ?? undefined}>
-              {a.visibility ? (VIS_PT[a.visibility] ?? a.visibility) : '—'}
+          <span className="arq-cls">
+            <span title={a.bucket ?? undefined}>
+              {tom ? (
+                <StatusBadge kind="sla" value={tom} label={rotulo} />
+              ) : (
+                <span className="arq-disk">{rotulo}</span>
+              )}
             </span>
-          </Stack>
+            <small className="mono" title={a.visibility ?? undefined}>
+              {a.visibility ? (VIS_PT[a.visibility] ?? a.visibility) : '—'}
+            </small>
+          </span>
         )
       },
     },
@@ -715,7 +756,16 @@ function colunas(politica: Politica[]): ColumnDef<LinhaAcervo, unknown>[] {
               // `DownloadController`, que responde um stream. `<Link>` do Inertia faria XHR e
               // engasgaria no anexo. Sem `target="_blank"`: o navegador trata anexo como
               // download e não navega pra fora da tela.
-              <Button variant="ghost" size="icon-sm" asChild>
+              // Thread 01 (2026-09-30): cor PRÓPRIA no botão (`text-muted-foreground`, foreground
+              // no hover). O design-diff acusava col6 "herda a cor da linha": o `ghost` não
+              // declara cor de texto, então o ícone pegava a da linha — e a linha `urgent` o
+              // pintaria de vermelho, como se baixar fosse a ação de alerta.
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                className="text-muted-foreground hover:text-foreground"
+                asChild
+              >
                 <a
                   href={a.download_url}
                   aria-label={`Baixar ${a.nome}`}
@@ -735,6 +785,47 @@ function colunas(politica: Politica[]): ColumnDef<LinhaAcervo, unknown>[] {
               >
                 —
               </span>
+            )}
+            {a.excluido_em === null && (
+              // Thread 02 (PR-6): re-aplica as regras do curador e grava o motivo na trilha.
+              // Só-ícone pelo mesmo motivo do Baixar. Arquivo excluído não reclassifica — a
+              // Request o recusaria (o `find()` dela não vê excluído).
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                className="text-muted-foreground hover:text-foreground"
+                aria-label={`Classificar ${a.nome}`}
+                title={`Classificar ${a.nome} — re-aplica as regras do curador e registra o motivo na trilha.`}
+                onClick={() => onClassificar(a)}
+              >
+                <Tag aria-hidden="true" />
+              </Button>
+            )}
+            {a.excluido_em === null && (
+              // Thread 03 (PR-7): SOFT-delete — o conteúdo fica e dá pra restaurar no grace.
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                className="text-muted-foreground hover:text-destructive"
+                aria-label={`Excluir ${a.nome}`}
+                title={`Excluir ${a.nome} — sai do acervo, dá pra restaurar no prazo de carência.`}
+                onClick={() => onExcluirRestaurar({ modo: 'excluir', id: a.id, nome: a.nome })}
+              >
+                <Trash2 aria-hidden="true" />
+              </Button>
+            )}
+            {/* Fora do grace o botão NÃO EXISTE (não é só desabilitado) — contrato da thread 03. */}
+            {a.restauravel && podeRestaurar && (
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                className="text-muted-foreground hover:text-foreground"
+                aria-label={`Restaurar ${a.nome}`}
+                title={`Restaurar ${a.nome} — dá até ${a.restaurar_ate ?? ''}.`}
+                onClick={() => onExcluirRestaurar({ modo: 'restaurar', id: a.id, nome: a.nome, restaurar_ate: a.restaurar_ate })}
+              >
+                <RotateCcw aria-hidden="true" />
+              </Button>
             )}
           </Inline>
         )
@@ -817,7 +908,23 @@ function TabelaSkeleton() {
   )
 }
 
-function Acervo({ acervo, politica, filtros }: { acervo?: Paginator<LinhaAcervo>; politica: Politica[]; filtros: Filtros }) {
+function Acervo({
+  acervo,
+  politica,
+  filtros,
+  podeRestaurar,
+}: {
+  acervo?: Paginator<LinhaAcervo>
+  politica: Politica[]
+  filtros: Filtros
+  podeRestaurar: boolean
+}) {
+  // Thread 02 (PR-6) — a linha cujo drawer "Classificar" está aberto. Antes do `return`
+  // antecipado porque hook não pode ser condicional.
+  const [classificar, setClassificar] = useState<AlvoClassificar | null>(null)
+  // Thread 03 (PR-7) — drawer de excluir/restaurar aberto.
+  const [excluirRestaurar, setExcluirRestaurar] = useState<AlvoExcluirRestaurar | null>(null)
+
   if (!acervo || acervo.data.length === 0) {
     return (
       <EmptyState
@@ -827,8 +934,11 @@ function Acervo({ acervo, politica, filtros }: { acervo?: Paginator<LinhaAcervo>
     )
   }
   return (
+    <>
+    <ClassificarSheet alvo={classificar} onFechar={() => setClassificar(null)} />
+    <ExcluirRestaurarSheet alvo={excluirRestaurar} onFechar={() => setExcluirRestaurar(null)} />
     <DataTable
-      columns={colunas(politica)}
+      columns={colunas(politica, setClassificar, setExcluirRestaurar, podeRestaurar)}
       data={acervo.data}
       pagination={acervo}
       endpoint="/arquivos"
@@ -848,6 +958,7 @@ function Acervo({ acervo, politica, filtros }: { acervo?: Paginator<LinhaAcervo>
       // discordariam em silêncio.
       minTableWidth={1020}
     />
+    </>
   )
 }
 
@@ -1269,7 +1380,7 @@ function Cofre({ cofre }: { cofre?: CofrePayload }) {
   )
 }
 
-export default function Index({ filtros, politica, resumo, acervo, trilha, cofre, retencao }: Props) {
+export default function Index({ filtros, politica, resumo, pode_restaurar, acervo, trilha, cofre, retencao }: Props) {
   const vista =
     filtros.tab === 'trilha' || filtros.tab === 'cofre' || filtros.tab === 'retencao' ? filtros.tab : 'acervo'
 
@@ -1390,11 +1501,21 @@ export default function Index({ filtros, politica, resumo, acervo, trilha, cofre
                     </button>
                   ))}
                 </Inline>
+                {/* Thread 03 (PR-7): sem este chip o excluído (e o Restaurar) não tinha caminho
+                    de UI — `with_trashed` só existia na URL. */}
+                <button
+                  type="button"
+                  onClick={() => irPara({ with_trashed: filtros.with_trashed ? undefined : 1 })}
+                  className={chip(filtros.with_trashed)}
+                  aria-pressed={filtros.with_trashed}
+                >
+                  Mostrar excluídos
+                </button>
               </Inline>
 
               <div data-contract="acervo">
                 <Deferred data="acervo" fallback={<TabelaSkeleton />}>
-                  <Acervo acervo={acervo} politica={politica} filtros={filtros} />
+                  <Acervo acervo={acervo} politica={politica} filtros={filtros} podeRestaurar={pode_restaurar} />
                 </Deferred>
               </div>
 

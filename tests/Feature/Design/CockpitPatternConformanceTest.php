@@ -185,8 +185,11 @@ it('CANON TARGET: h1 com tracking-tight + font-semibold (estrito)', function () 
     ];
     foreach ($strictH1Pages as $rel) {
         $source = readCockpitPage($rel);
-        // Pode usar PageHeader shared (que já tem canon) OU h1 inline com canon strict.
-        $hasPageHeader = str_contains($source, '@/Components/shared/PageHeader');
+        // Pode usar um PageHeader que já tem canon — o shared antigo ou o canon v3
+        // (`@/Components/PageHeader`, h1 font-semibold + tracking negativo; a catraca
+        // do ADR 0409 força a migração ao tocar a tela) — OU h1 inline com canon strict.
+        $hasPageHeader = str_contains($source, '@/Components/shared/PageHeader')
+            || str_contains($source, "from '@/Components/PageHeader'");
         $hasInlineCanon = preg_match(
             '/<h1[^>]{0,300}text-2xl[^>]{0,100}font-semibold[^>]{0,100}tracking-tight/s',
             $source,

@@ -38,6 +38,10 @@ class LabelsController extends Controller
      */
     public function show(Request $request)
     {
+        if (! auth()->user()->can('print_labels.access')) {
+            abort(403, 'Unauthorized action.');
+        }
+
         $business_id = $request->session()->get('user.business_id');
         $purchase_id = $request->get('purchase_id', false);
         $product_id = $request->get('product_id', false);
@@ -77,6 +81,10 @@ class LabelsController extends Controller
      */
     public function addProductRow(Request $request)
     {
+        if (! auth()->user()->can('print_labels.access')) {
+            abort(403, 'Unauthorized action.');
+        }
+
         if ($request->ajax()) {
             $product_id = $request->input('product_id');
             $variation_id = $request->input('variation_id');
@@ -103,13 +111,26 @@ class LabelsController extends Controller
      */
     public function preview(Request $request)
     {
+        if (! auth()->user()->can('print_labels.access')) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        // Tier 0 (ADR 0093): a configuracao de etiqueta e do negocio ou do sistema
+        // (business_id NULL — o mesmo recorte que show() oferece no select). `find()` cru
+        // aceitava o id de uma configuracao de OUTRO negocio. Fora do try: o catch abaixo
+        // engoliria o 404.
+        $business_id = $request->session()->get('user.business_id');
+        $barcode_details = Barcode::where(function ($q) use ($business_id) {
+            $q->where('business_id', $business_id)->orWhereNull('business_id');
+        })->find($request->get('barcode_setting'));
+
+        if (! $barcode_details) {
+            abort(404);
+        }
+
         try {
             $products = $request->get('products');
             $print = $request->get('print');
-            $barcode_setting = $request->get('barcode_setting');
-            $business_id = $request->session()->get('user.business_id');
-
-            $barcode_details = Barcode::find($barcode_setting);
             $barcode_details->stickers_in_one_sheet = $barcode_details->is_continuous ? $barcode_details->stickers_in_one_row : $barcode_details->stickers_in_one_sheet;
             $barcode_details->paper_height = $barcode_details->is_continuous ? $barcode_details->height : $barcode_details->paper_height;
             if ($barcode_details->stickers_in_one_row == 1) {

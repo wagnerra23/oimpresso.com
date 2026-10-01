@@ -38,6 +38,7 @@
 
 import { readFileSync, existsSync, readdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 // Fonte ÚNICA de "o que é tela" (reconciliação #4836/#4840) — o mesmo módulo que o
 // casos-coverage-guard e o screen-coverage-map consomem. Ver telasDoModulo().
@@ -343,8 +344,14 @@ if (IS_MAIN && args.includes('--selftest')) {
     telasProduto.includes('Unificado/Index'));
   ok('controle-negativo: _components NÃO vira tela',
     !telasProduto.some((t) => t.startsWith('_')));
-  ok('escopo bate com a fonte única (Produto = 8 telas, igual screen-coverage)',
-    telasProduto.length === 8);
+  // 2026-10-01 (thread Produto/02): era `=== 8`, número congelado de uma árvore viva — reprovou
+  // quando a tela Cadastros nasceu (§5 2026-08-24, cobertura de registry vivo em assert de
+  // igualdade). Agora compara com uma 2ª enumeração independente (índice do git, não o walk do
+  // disco) sob o MESMO predicado da fonte única, e mantém o piso histórico de 8.
+  const viaGit = execFileSync('git', ['ls-files', '--', 'resources/js/Pages/Produto'], { cwd: ROOT, encoding: 'utf8' })
+    .split('\n').filter((f) => f.endsWith('.tsx') && isPageScreenPath(f));
+  ok(`escopo bate com a fonte única (Produto = ${viaGit.length} telas no índice do git, piso 8)`,
+    telasProduto.length === viaGit.length && viaGit.length >= 8);
 
   // (2) casos.md sem UC: arquivo presente ≠ tela coberta. Fixture ruim = o stub REAL do
   // Fiscal (37-41 linhas, 0 UC); fixture boa = um casos.md com UC declarado.

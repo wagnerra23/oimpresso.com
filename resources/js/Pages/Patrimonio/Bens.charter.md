@@ -9,8 +9,8 @@ related_adrs: [0394-endereco-de-ui-do-patrimonio-pages-patrimonio, 0104-processo
 related_prototype: prototipo-ui/cowork/Wagner/patrimonio-page.jsx
 related_runbook: memory/requisitos/AssetManagement/RUNBOOK-bens.md
 tier: B
-charter_version: 4
-last_validated: "2026-09-29"
+charter_version: 8
+last_validated: "2026-09-30"
 ---
 
 # Page Charter — Patrimonio/Bens (DRAFT)
@@ -40,8 +40,8 @@ last_validated: "2026-09-29"
 
 Mostrar o patrimônio da empresa como lista operável: o que a casa tem, onde está, com quem
 está alocado, quanto vale por unidade e se está em garantia ou em manutenção. É a tela de
-partida do módulo: dela se **cadastra** bem (drawer) e se **exclui**. Editar, alocar e mandar
-pra manutenção ainda não — ver os Non-Goals.
+partida do módulo: dela se **cadastra**, se **edita** (drawer), se **manda pra manutenção**
+e se **exclui** bem. Alocar ainda não — ver os Non-Goals.
 
 ## Goals — Features (faz)
 
@@ -58,14 +58,30 @@ pra manutenção ainda não — ver os Non-Goals.
   `1234,56` (vírgula decimal, sem milhar) pro `num_uf`, e a data no `business.date_format`
   pro `uf_date`; a dupla prova da REGRA MESTRE é UC-BENS-05 (vitest do payload + Pest do que o
   banco gravou). Desvios do protótipo declarados no topo de `_shared/CadastroBemDrawer.tsx`.
+- Sub-recorte **"Em manutenção"** ([W] 2026-09-30): `?recorte=manutencao` filtra no servidor os
+  bens com manutenção **em aberto** (status `new` ou `in_progress`, a mesma lista fechada da pílula
+  da aba Manutenções e do selo por linha). Contagem do conjunto em `recortes_contagem`. UC-BENS-07.
 - Sub-recorte **"Garantia crítica"** (D-GARANTIAS, [W] 2026-09-29 — filtro dentro de Bens,
   sem tela própria): `?recorte=garantia` filtra no **servidor** os bens com garantia vencida ou
   vencendo em até 30 dias; bem sem registro de garantia não entra. A pílula traz a contagem do
   **conjunto**, vinda do servidor (`recortes_contagem`), e é o mesmo predicado do KPI do Painel.
   Contrato: UC-BENS-06.
-- Ação por linha: **excluir** (`router.delete` no `destroy`, com confirmação nomeando o bem),
-  conforme a permissão do usuário. (Até 2026-09-23 havia também alocar · manutenção · editar —
-  ver o Non-Goal abaixo, que diz por que saíram.)
+- **Edição em drawer** (thread 17, D-FORMS [W] 2026-09-24 · ADR 0414; entregue 2026-09-30): o
+  mesmo `CadastroBemDrawer` em modo editar, aberto por `GET /asset/assets/{id}/edit`, que devolve
+  esta Page com a prop `edicao` (bem escopado por business; id de outra empresa = 404). Posta no
+  `update()` existente. Mostra a garantia mais recente e reenvia as outras intactas — o serviço
+  apaga a que não vier. Dupla prova da REGRA MESTRE: UC-BENS-09.
+- **Drawer de detalhe do bem** (leitura — decisão [W] 2026-09-30, `_saida-16b.md`): clicar na
+  linha abre `?bem=ID` por partial reload (só `bem_detalhe` vem da rede). Abas **Resumo** e
+  **Alocações**; esta lista cada alocação com **todas** as suas devoluções (1 : N — código,
+  quantidade, data, autor e motivo), porque devolução parcial grava vários `revoke` por
+  alocação. A devolução é escopada por `business_id` **nela mesma**. Bem de outra empresa ou
+  fora dos locais permitidos = "não encontrado". Contrato: UC-BENS-10.
+- Ação por linha: **editar**, **enviar pra manutenção** e **excluir** (`router.delete` no
+  `destroy`, com confirmação nomeando o bem), conforme a permissão do usuário. Enviar pra
+  manutenção voltou em 2026-09-30: navega para `/asset/asset-maintenance/create?asset_id={id}`,
+  o drawer da thread 19, com a mesma permissão que aquele `create()` exige. Contrato:
+  UC-BENS-12. (Alocar segue fora — ver o Non-Goal abaixo.)
 - Sub-navegação do módulo **derivada** de `shell.menu` (`DataController::modifyAdminMenu`),
   nunca declarada aqui.
 - Estados: cheia · filtrada-vazia · vazia · carregando (skeleton do `Inertia::defer`) ·
@@ -77,17 +93,18 @@ pra manutenção ainda não — ver os Non-Goals.
 > Cada item vira Pest GUARD quando a onda correspondente entrar. Os quatro primeiros são
 > **adiamento com motivo** (§5 do RUNBOOK), não recusa permanente; os demais são limite real.
 
-- ❌ NÃO oferece o sub-recorte "Em manutenção" do protótipo (`patrimonio-page.jsx:355`) — não
-  foi decidido. (Até 2026-09-29 este item também barrava "Garantia crítica", que entrou pela
-  D-GARANTIAS no servidor — ver Goals.) Recorte que filtra só a página corrente mente na
-  contagem da pílula.
+- ❌ NÃO filtra nem conta recorte na página corrente — só no servidor, sobre o conjunto. (Até
+  2026-09-29 este item barrava os sub-recortes "Garantia crítica" e "Em manutenção" do protótipo,
+  `patrimonio-page.jsx:355`, por falta de predicado no servidor; entraram em 2026-09-29 e
+  2026-09-30 — ver Goals.) Recorte que filtra só a página corrente mente na contagem da pílula.
 - ❌ NÃO soma total de valor no rodapé. Valor é **REGRA MESTRE Tier 0**: exige prova por dois
   caminhos independentes + antes→depois apresentado ao [W]. O valor **por linha** entra.
 - ❌ NÃO faz seleção em lote nem BulkBar — as duas ações em lote do protótipo (exportar
   seleção, mandar pra manutenção) não têm endpoint hoje.
 - ❌ NÃO exporta CSV, não imprime, não configura colunas nem densidade.
-- ❌ NÃO edita, aloca nem manda pra manutenção — e **não oferece botão** pra isso. (Criar
-  voltou em 2026-09-23 pelo drawer — ver Goals.) Até
+- ❌ NÃO aloca — e **não oferece botão** pra isso. (Criar voltou em 2026-09-23, **editar** e
+  **mandar pra manutenção em 2026-09-30**, pelos drawers — ver Goals; esses Non-Goals estão
+  **revogados** desde então, pela resposta da D-FORMS.) Até
   2026-09-23 a tela tinha "Novo ativo", o CTA do vazio e três ícones por linha apontando pra
   `create`/`edit` Blade. **Medido em prod (biz=1):** os quatro endpoints só respondem sob
   `request()->ajax()` e devolveram 200 com **0 bytes** numa navegação direta — as views são
@@ -103,6 +120,12 @@ pra manutenção ainda não — ver os Non-Goals.
 - ❌ NÃO renderiza aba que não navega. O protótipo desenha 7 abas; o menu vivo tem 6 ghosts.
   **Garantias** não vira aba nem tela: a D-GARANTIAS ([W] 2026-09-29) a fez recorte desta lista.
   **Auditoria** é deep-link para o `Modules/Auditoria` (ADR 0414).
+
+- ❌ O drawer de detalhe NÃO escreve: sem excluir devolução (escrita de saldo, thread 18 —
+  REGRA MESTRE), sem revogar, alocar ou editar no rodapé. Sem as abas Garantia, Manutenção,
+  Depreciação e Histórico do protótipo (aba sem dado é afordância falsa), sem o placar
+  quantidade/alocada/livre (agregado sobre o `Alocado` não-auditado) e sem "Valor de aquisição"
+  (valor novo = REGRA MESTRE).
 
 ## Anti-hooks (NÃO faz automaticamente)
 

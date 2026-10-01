@@ -32,16 +32,23 @@
 // Layout por PRIMITIVOS (ADR 0253) — `Stack`/`Inline`, nunca `<div className="flex">` solto.
 
 import { Deferred, router } from '@inertiajs/react';
-import { Trash2 } from 'lucide-react';
+import { useState } from 'react';
+import { Pencil, Trash2 } from 'lucide-react';
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { PageHeader } from '@/Components/PageHeader';
 import DataTable, { type EstadoDaLinha } from '@/Components/shared/DataTable';
 import EmptyState from '@/Components/shared/EmptyState';
 import { Alert, AlertDescription, AlertTitle } from '@/Components/ui/alert';
 import { Badge } from '@/Components/ui/badge';
+import { Button } from '@/Components/ui/button';
+import { Input } from '@/Components/ui/input';
+import { Label } from '@/Components/ui/label';
+import { Textarea } from '@/Components/ui/textarea';
+import { SafeSelectItem } from '@/Components/ui/SafeSelectItem';
+import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from '@/Components/ui/sheet';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import { Skeleton } from '@/Components/ui/skeleton';
-import { Stack, Inline } from '@/Components/layout';
+import { Stack, Inline, Grid } from '@/Components/layout';
 import PatrimonioSubNav from './_shared/PatrimonioSubNav';
 import type { ColumnDef } from '@tanstack/react-table';
 
@@ -106,6 +113,38 @@ interface Props {
      *  tela DIZ isso. O Blade filtrava calado. */
     vejo_todas: boolean;
   };
+  /** Só em `GET /asset/asset-maintenance/create`: abre o drawer "Enviar pra manutenção". */
+  cadastro?: CadastroManutencao | null;
+  /** Só em `GET /asset/asset-maintenance/{id}/edit`: a manutenção gravada, escopada por business. */
+  edicao?: EdicaoManutencao | null;
+}
+
+interface BemOpcao {
+  id: number;
+  nome: string;
+  codigo: string;
+  /** Fim da garantia vigente (`Y-m-d`) — a leitura que o Blade mostrava ao lado do bem. */
+  garantia_ate: string | null;
+}
+
+interface CadastroManutencao {
+  /** Só os bens DA EMPRESA (o servidor escopa). */
+  bens: BemOpcao[];
+  /** `?asset_id=` pré-seleciona — e só vale se o bem estiver na lista acima. */
+  bem_id: number | null;
+}
+
+interface EdicaoManutencao {
+  id: number;
+  codigo: string | null;
+  bem: string | null;
+  status: string;
+  prioridade: string;
+  atribuido_a: string;
+  /** Nota de envio — só leitura: o `update()` não a grava (paridade com o Blade de edição). */
+  nota: string | null;
+  detalhes: string;
+  anexos: Array<{ id: number; nome: string; url: string }>;
 }
 
 /* ─── Células ─────────────────────────────────────────────────────────────────── */
@@ -165,11 +204,10 @@ function SeloGarantia({ garantia }: { garantia: Garantia | null }) {
 }
 
 /**
- * Ação de linha — só EXCLUIR. O Blade (`index()` `:214`) tinha também editar, e ele SAIU em
- * 2026-09-23: `AssetMaitenanceController::edit` só responde sob `ajax()` e devolveu 200 com
- * 0 bytes numa navegação direta (medido em prod, biz=1) — a view é fragmento de modal jQuery.
- * O link abria página em branco: afordância falsa, o mesmo achado da irmã `Alocacoes.tsx`.
- * Editar volta quando o formulário virar drawer (`[BACKLOG]` do casos).
+ * Ações de linha — EDITAR e EXCLUIR. Editar saiu em 2026-09-23 (o `edit` só respondia sob
+ * `ajax()` e abria página em branco) e VOLTOU em 2026-09-30 (thread 19): `GET
+ * /asset/asset-maintenance/{id}/edit` agora devolve esta mesma Page com o drawer aberto. É
+ * botão com `router.get`, não `<a href>` — o UC-MANU-04 segue valendo pra link.
  *
  * Excluir aparece para TODA linha, sem `can()`, porque é isso que o Blade faz — o módulo não
  * declara permissão de escrita de manutenção, e inventar um gate aqui seria decidir produto
@@ -189,8 +227,23 @@ function AcoesDaLinha({ manutencao }: { manutencao: Manutencao }) {
     router.delete(`/asset/asset-maintenance/${manutencao.id}`, { preserveScroll: true });
   };
 
+  const editar = () =>
+    router.get(`/asset/asset-maintenance/${manutencao.id}/edit`, {}, { preserveScroll: true });
+
   return (
     <Inline gap={1}>
+      <button
+        type="button"
+        title={`Editar manutenção — ${manutencao.bem}`}
+        onClick={(e) => {
+          e.stopPropagation();
+          editar();
+        }}
+        className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-transparent text-muted-foreground hover:border-border hover:bg-muted"
+      >
+        <Pencil size={14} aria-hidden="true" />
+        <span className="sr-only">Editar manutenção — {manutencao.bem}</span>
+      </button>
       <button
         type="button"
         title={`Excluir manutenção — ${manutencao.bem}`}
@@ -210,9 +263,13 @@ function AcoesDaLinha({ manutencao }: { manutencao: Manutencao }) {
 /* ─── Colunas ─────────────────────────────────────────────────────────────────── */
 
 // GEOMETRIA declarada (`meta.width`): largura declarada põe a tabela em `table-layout: fixed`,
-// e é assim que a rolagem horizontal do wrapper funciona em vez de espremer coluna. `bem` fica
-// SEM largura de propósito — é a fluida, que absorve a sobra. `minTableWidth` = 1280, o monitor
-// do piloto.
+// e é assim que a rolagem horizontal do wrapper funciona em vez de espremer coluna. TODAS as
+// colunas declaram largura, e o piso da tabela é a SOMA delas (default do `DataTable`).
+//
+// `bem` tem 250px, a largura que o protótipo declara para "Bem" (`patrimonio-page.jsx:489`).
+// Até 2026-09-30 ela ficava sem largura para ser a fluida, com `minTableWidth={1280}` — mas as
+// outras 9 já somavam 1332px: sob layout fixo sobrava ZERO pra ela, o mesmo defeito medido em
+// produção na tela irmã de Bens ("Bategoria"). Travado por `tests/js/patrimonio-manutencoes-colunas.test.tsx`.
 function colunas(): ColumnDef<Manutencao, unknown>[] {
   return [
     {
@@ -234,6 +291,7 @@ function colunas(): ColumnDef<Manutencao, unknown>[] {
       id: 'bem',
       header: 'Bem',
       accessorFn: (m) => m.bem,
+      meta: { width: 250 },
       cell: ({ row }) => (
         <Stack gap={0}>
           <span>{row.original.bem}</span>
@@ -408,6 +466,269 @@ function BarraDeFiltros({ filtros, opcoes }: { filtros: FiltrosAtivos; opcoes: P
   );
 }
 
+/* ─── Drawer de manutenção (thread 19) ───────────────────────────────────────────
+ *
+ * Layout do `ManutencaoForm` do protótipo (`patrimonio-forms.jsx:224`): drawer lateral, uma
+ * seção, grade de 2 colunas, rodapé "Cancelar" + primário. CAMPOS do Blade, não do protótipo:
+ * o protótipo desenha prestador, datas de envio/devolução e custo, e NENHUM deles tem coluna
+ * em `asset_maintenances` (charter Non-Goals; custo é decisão [W] 2026-09-08). O que o `store()`
+ * grava é `asset_id, status, priority, maintenance_note` + anexos; o `update()`, `status,
+ * priority, details, assigned_to` + anexos. É isso que o drawer oferece — nem mais, nem menos.
+ *
+ * Alvo de toque ≥44px (`min-h-11`) nos controles: quem registra manutenção é o técnico, em
+ * tablet/celular (thread 19 §B), não a densidade de escritório da lista.
+ */
+
+const TOQUE = 'min-h-11';
+const SEM_ESCOLHA = '__nenhum__';
+
+function CampoDrawer({
+  id,
+  rotulo,
+  erro,
+  ajuda,
+  children,
+}: {
+  id: string;
+  rotulo: string;
+  erro?: string;
+  ajuda?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <Stack gap={1}>
+      <Label htmlFor={id}>{rotulo}</Label>
+      {children}
+      {erro ? (
+        <small id={`${id}-erro`} role="alert" className="text-destructive">
+          {erro}
+        </small>
+      ) : ajuda ? (
+        <small className="text-muted-foreground">{ajuda}</small>
+      ) : null}
+    </Stack>
+  );
+}
+
+function OpcoesDrawer({
+  id,
+  valor,
+  onChange,
+  opcoes,
+  vazio,
+  invalido,
+}: {
+  id: string;
+  valor: string;
+  onChange: (v: string) => void;
+  opcoes: Record<string, string>;
+  /** Rótulo da opção "nenhuma" — o Blade tinha `placeholder` e aceitava vazio. */
+  vazio: string;
+  invalido?: boolean;
+}) {
+  return (
+    <Select value={valor === '' ? SEM_ESCOLHA : valor} onValueChange={(v) => onChange(v === SEM_ESCOLHA ? '' : v)}>
+      <SelectTrigger id={id} className={TOQUE} aria-invalid={invalido || undefined}>
+        <SelectValue placeholder={vazio} />
+      </SelectTrigger>
+      <SelectContent>
+        <SelectItem value={SEM_ESCOLHA}>{vazio}</SelectItem>
+        {Object.entries(opcoes)
+          .filter(([k]) => k !== '')
+          .map(([k, rotulo]) => (
+            <SafeSelectItem key={k} value={String(k)}>
+              {rotulo}
+            </SafeSelectItem>
+          ))}
+      </SelectContent>
+    </Select>
+  );
+}
+
+function dataBR(iso: string): string {
+  const [a, m, d] = iso.split('-');
+  return `${d}/${m}/${a}`;
+}
+
+function ManutencaoDrawer({
+  cadastro,
+  edicao,
+  opcoes,
+}: {
+  cadastro: CadastroManutencao | null;
+  edicao: EdicaoManutencao | null;
+  opcoes: Props['opcoes'];
+}) {
+  const editando = edicao !== null;
+  const [bemId, setBemId] = useState(cadastro?.bem_id ? String(cadastro.bem_id) : '');
+  const [status, setStatus] = useState(edicao?.status ?? '');
+  const [prioridade, setPrioridade] = useState(edicao?.prioridade ?? '');
+  const [responsavel, setResponsavel] = useState(edicao?.atribuido_a ?? '');
+  const [nota, setNota] = useState('');
+  const [detalhes, setDetalhes] = useState(edicao?.detalhes ?? '');
+  const [anexos, setAnexos] = useState<File[]>([]);
+  const [erros, setErros] = useState<Record<string, string>>({});
+  const [enviando, setEnviando] = useState(false);
+
+  // O drawer vive na URL (`/create` ou `/{id}/edit`) — fechar volta pra lista.
+  const fechar = () => {
+    if (!enviando) router.get('/asset/asset-maintenance', {}, { preserveScroll: true });
+  };
+
+  const bens = cadastro?.bens ?? [];
+  const bemEscolhido = bens.find((b) => String(b.id) === bemId) ?? null;
+  const opcoesBens = Object.fromEntries(bens.map((b) => [String(b.id), `${b.codigo} · ${b.nome}`]));
+
+  const salvar = () => {
+    if (enviando) return;
+    if (!editando && !bemId) {
+      setErros({ bem: 'Escolha o bem que vai pra manutenção.' });
+      return;
+    }
+    setErros({});
+    setEnviando(true);
+
+    // Chaves do `store()`/`update()` como são — o `request->only(...)` do serviço as nomeia.
+    const dados: Record<string, unknown> = editando
+      ? { _method: 'put', status, priority: prioridade, assigned_to: responsavel, details: detalhes }
+      : { asset_id: bemId, status, priority: prioridade, maintenance_note: nota };
+    if (anexos.length) dados.attachments = anexos;
+
+    router.post(
+      editando ? `/asset/asset-maintenance/${edicao!.id}` : '/asset/asset-maintenance',
+      dados as never,
+      {
+        forceFormData: true,
+        preserveScroll: true,
+        onError: (serverErros) => setErros({ geral: Object.values(serverErros).join(' ') }),
+        onFinish: () => setEnviando(false),
+      },
+    );
+  };
+
+  return (
+    <Sheet open onOpenChange={(o) => { if (!o) fechar(); }}>
+      <SheetContent side="right" className="w-full gap-0 sm:max-w-[560px]" data-testid="manutencao-drawer">
+        <SheetHeader className="border-b">
+          <SheetTitle>
+            {editando ? `Manutenção${edicao!.codigo ? ` ${edicao!.codigo}` : ''}` : 'Enviar pra manutenção'}
+          </SheetTitle>
+          <SheetDescription>
+            {editando
+              ? edicao!.bem ?? 'Bem removido do cadastro'
+              : 'O código sai do prefixo do módulo — sequência por empresa.'}
+          </SheetDescription>
+        </SheetHeader>
+
+        <div className="flex-1 overflow-y-auto p-4">
+          <Stack gap={4}>
+            {erros.geral ? (
+              <div role="alert" aria-live="assertive">
+                <Alert variant="destructive">
+                  <AlertDescription>{erros.geral}</AlertDescription>
+                </Alert>
+              </div>
+            ) : null}
+
+            {!editando ? (
+              <CampoDrawer id="mf-bem" rotulo="Bem" erro={erros.bem}>
+                <OpcoesDrawer
+                  id="mf-bem"
+                  valor={bemId}
+                  onChange={setBemId}
+                  opcoes={opcoesBens}
+                  vazio="Escolha o bem"
+                  invalido={!!erros.bem}
+                />
+                {bemEscolhido ? (
+                  bemEscolhido.garantia_ate ? (
+                    <Badge variant="success" dot>
+                      Em garantia até {dataBR(bemEscolhido.garantia_ate)}
+                    </Badge>
+                  ) : (
+                    <Badge variant="neutral" dot>Fora da garantia</Badge>
+                  )
+                ) : null}
+              </CampoDrawer>
+            ) : null}
+
+            {/* `fit="sm"`: 2 colunas na largura do drawer, 1 no celular — primitivo, não grid solto. */}
+            <Grid fit="sm" gap={3}>
+              <CampoDrawer id="mf-status" rotulo="Situação">
+                <OpcoesDrawer id="mf-status" valor={status} onChange={setStatus} opcoes={opcoes.status} vazio="Sem situação" />
+              </CampoDrawer>
+              <CampoDrawer id="mf-prioridade" rotulo="Prioridade">
+                <OpcoesDrawer
+                  id="mf-prioridade"
+                  valor={prioridade}
+                  onChange={setPrioridade}
+                  opcoes={opcoes.prioridades}
+                  vazio="Sem prioridade"
+                />
+              </CampoDrawer>
+            </Grid>
+
+            {editando ? (
+              <>
+                <CampoDrawer id="mf-responsavel" rotulo="Atribuído a">
+                  <OpcoesDrawer
+                    id="mf-responsavel"
+                    valor={responsavel}
+                    onChange={setResponsavel}
+                    opcoes={opcoes.responsaveis}
+                    vazio="Sem responsável"
+                  />
+                </CampoDrawer>
+                <CampoDrawer id="mf-detalhes" rotulo="Detalhes do envio">
+                  <Textarea id="mf-detalhes" rows={3} className={TOQUE} value={detalhes} onChange={(e) => setDetalhes(e.target.value)} />
+                </CampoDrawer>
+                <CampoDrawer id="mf-nota" rotulo="Nota da manutenção" ajuda="Registrada no envio — não muda na edição.">
+                  <Textarea id="mf-nota" rows={3} readOnly value={edicao!.nota ?? ''} />
+                </CampoDrawer>
+                {edicao!.anexos.length ? (
+                  <section aria-label="Anexos já enviados">
+                    <Stack gap={1}>
+                      <span className="text-sm font-medium">Anexos já enviados</span>
+                      {edicao!.anexos.map((a) => (
+                        <a key={a.id} href={a.url} target="_blank" rel="noreferrer" className="text-sm text-primary underline">
+                          {a.nome}
+                        </a>
+                      ))}
+                    </Stack>
+                  </section>
+                ) : null}
+              </>
+            ) : (
+              <CampoDrawer id="mf-nota" rotulo="Nota da manutenção" ajuda="O que será feito e por quê.">
+                <Textarea id="mf-nota" rows={3} className={TOQUE} value={nota} onChange={(e) => setNota(e.target.value)} />
+              </CampoDrawer>
+            )}
+
+            <CampoDrawer id="mf-anexos" rotulo="Anexos">
+              <Input
+                id="mf-anexos"
+                type="file"
+                multiple
+                className={TOQUE}
+                onChange={(e) => setAnexos(Array.from(e.target.files ?? []))}
+              />
+            </CampoDrawer>
+          </Stack>
+        </div>
+
+        <SheetFooter className="flex-row justify-end border-t">
+          <Button variant="ghost" className={TOQUE} onClick={fechar} disabled={enviando}>
+            Cancelar
+          </Button>
+          <Button className={TOQUE} onClick={salvar} disabled={enviando}>
+            {enviando ? 'Salvando…' : editando ? 'Salvar manutenção' : 'Registrar manutenção'}
+          </Button>
+        </SheetFooter>
+      </SheetContent>
+    </Sheet>
+  );
+}
+
 /* ─── Tela ────────────────────────────────────────────────────────────────────── */
 
 function EsqueletoTabela() {
@@ -421,7 +742,7 @@ function EsqueletoTabela() {
   );
 }
 
-export default function Manutencoes({ manutencoes, filtros, opcoes, permissoes }: Props) {
+export default function Manutencoes({ manutencoes, filtros, opcoes, permissoes, cadastro = null, edicao = null }: Props) {
   // Distingue "não há manutenção nenhuma" de "não há manutenção PARA ESTE RECORTE" — dois
   // vazios diferentes, e oferecer a mensagem errada a quem só filtrou demais é ruído.
   const temFiltroAtivo = Boolean(filtros.q || filtros.status || filtros.priority || filtros.assigned_to);
@@ -497,12 +818,29 @@ export default function Manutencoes({ manutencoes, filtros, opcoes, permissoes }
                 rowState={(m): EstadoDaLinha | undefined =>
                   m.status === 'in_progress' ? 'urgent' : undefined
                 }
-                minTableWidth={1280}
               />
             ) : null}
           </Deferred>
         </div>
+
+        {/* Rodapé da âncora (`patrimonio-page.jsx:534-537`): o CTA de envio, sem a frase do
+            "Concluir" — ela promete título a pagar no Financeiro, que não existe (Non-Goal). */}
+        <div data-contract="rodape">
+          <Inline gap={2} align="center" justify="end">
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => router.get('/asset/asset-maintenance/create', {}, { preserveScroll: true })}
+            >
+              + Enviar bem pra manutenção
+            </Button>
+          </Inline>
+        </div>
       </Stack>
+      {cadastro || edicao ? (
+        // `key`: trocar de manutenção na URL remonta o drawer — o form não herda o anterior.
+        <ManutencaoDrawer key={edicao ? `e${edicao.id}` : 'novo'} cadastro={cadastro} edicao={edicao} opcoes={opcoes} />
+      ) : null}
     </AppShellV2>
   );
 }

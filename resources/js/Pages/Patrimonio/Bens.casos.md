@@ -4,7 +4,7 @@ irmaos: Bens.charter.md (lei) · memory/requisitos/AssetManagement/RUNBOOK-bens.
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — o contrato de teste nasce junto com a tela, não depois.
 owner: wagner
-last_run: "2026-09-29"
+last_run: "2026-09-30"
 ---
 
 # Casos de Uso & Aceite — Patrimonio/Bens
@@ -148,6 +148,8 @@ last_run: "2026-09-29"
   garantia · Quando o usuário abre `/asset/assets?recorte=garantia` · Então a lista traz os dois
   primeiros, **não** traz o vigente e **não** traz o sem registro (ele é "sem garantia", não
   "vencida"); e a contagem `recortes_contagem.garantia` vem do servidor, sobre o conjunto.
+  **Vale a garantia MAIS RECENTE** do bem, a que termina por último ([W] 2026-09-30): um bem com
+  a garantia velha vencida e a renovação vigente **não** entra.
   Recorte fora da whitelist (`?recorte=qualquer`) é tratado como "todos".
 - **Tier 0 (ADR 0093):** um bem de **outro** business com garantia vencida não entra na lista
   nem na contagem — `asset_warranties` não tem `business_id`, o recorte filtra por join.
@@ -162,6 +164,112 @@ last_run: "2026-09-29"
   `3 ≠ 2` (o bem do adversário somou). Tirar só o filtro do join **sobrevive** — é mutante
   equivalente: a consulta externa já restringe ao business, e o do join fica como segunda
   defesa. Lane `assetmanagement-pest` a confirmar no PR.
+
+---
+
+## UC-BENS-07 · "Em manutenção" recorta o conjunto no servidor pela manutenção em aberto
+
+- **Persona:** quem administra o patrimônio e precisa ver o que está fora de operação agora.
+- **Aceite:** Dado, no mesmo business, um bem com manutenção `new`, um com `in_progress`, um só
+  com manutenção **concluída**, um com status **vazio** e um **sem** manutenção · Quando o usuário
+  abre `/asset/assets?recorte=manutencao` · Então a lista traz os dois primeiros e **não** traz os
+  outros três; e `recortes_contagem.manutencao` soma só os dois, sobre o conjunto.
+- **Regra:** "em aberto" é a lista fechada `new`/`in_progress` de
+  `AssetMaintenanceService::contarAbertas()` — a mesma da pílula da aba Manutenções e do selo
+  "N em manutenção" da linha. Status desconhecido fica de fora (erra pro lado visível).
+- **Tier 0 (ADR 0093):** nem o bem de outro business nem uma manutenção **registrada no business
+  de outro** entram — `asset_maintenances` tem `business_id` e o recorte o filtra.
+- **Teste:** `BensContratoTest.php` — `it()` citando `UC-BENS-07` (recorte + controle negativo +
+  dois vetores de tenant + contagem por delta).
+- **Status: 🧪** — ver o recibo do PR.
+
+## UC-BENS-08 · Editar o próprio bem não alcança a garantia de outra empresa
+
+- **Persona:** quem edita um bem do próprio business (hoje pela rota `PUT /asset/assets/{id}`).
+- **Aceite:** Dado um bem do business 98 com uma garantia e um bem do business 99 com outra ·
+  Quando o usuário do 98 salva o próprio bem mandando em `edit_warranty` o id da sua garantia
+  **e** o id da garantia do 99 · Então a garantia dele muda, e a do 99 **não muda nem é apagada**.
+- **Tier 0 (ADR 0093):** `asset_warranties` não tem `business_id`, e o id vem do request. A
+  garantia é amarrada ao bem já escopado (`asset_id`) antes de qualquer escrita; id que não é
+  deste bem é ignorado.
+- **Teste:** `BensContratoTest.php` — `it()` citando `UC-BENS-08` (controle positivo: a garantia
+  do próprio bem muda no mesmo request, prova de que o caminho de `edit_warranty` executou).
+- **Status: 🧪** — ver o recibo do PR.
+
+## UC-BENS-09 · Editar o bem pelo drawer grava valor e quantidade como digitados e não apaga garantia
+
+- **Persona:** quem administra o patrimônio e precisa corrigir um bem já cadastrado (valor,
+  quantidade, local, garantia).
+- **Aceite:** Dado um bem do próprio business com **duas** garantias · Quando o usuário abre
+  `/asset/assets/{id}/edit`, muda (ou não) valor e quantidade e salva · Então o banco grava o valor e a
+  quantidade digitados em pt-BR sem ler milhar como decimal, o código do bem não muda, "sem
+  depreciação" continua NULL, e **as duas garantias seguem gravadas** com os valores que tinham.
+- **Tier 0 (ADR 0093):** `/asset/assets/{id}/edit` de um bem de outro business devolve **404**.
+- **REGRA MESTRE (valor/estoque):** dois caminhos — `tests/js/patrimonio-cadastro-bem.test.tsx`
+  fixa as strings do envio; `BensContratoTest.php` posta as mesmas strings e lê o banco.
+- **Teste:** `BensContratoTest.php` — `it()` citando `UC-BENS-09` (update + edit/create/404) e o
+  vitest citando `UC-BENS-09`.
+- **Status: 🧪** — ver o recibo do PR.
+
+---
+
+## UC-BENS-10 · O drawer do bem mostra cada devolução da alocação, e só as desta empresa
+
+- **Persona:** quem administra o patrimônio e precisa saber quem devolveu o quê, quando e por
+  quê — numa alocação que voltou em partes.
+- **Fonte:** decisão [W] 2026-09-30 (`prototipo-ui/cowork/Wagner/cowork-inbox/patrimonio/playbook/_saida-16b.md`):
+  o histórico de devoluções vai para o drawer do **bem**, aba Alocações, como no protótipo
+  (`patrimonio-page.jsx` `BemDrawer`, :714-735). O protótipo modela 1 revogação por alocação; o
+  nosso modelo é **1 : N** (`_saida-16.md`), e o drawer lista as N.
+- **Aceite:** Dado um bem do business 98 com uma alocação de 2 un. e **duas** devoluções parciais
+  de 0,5 · Quando o usuário do 98 clica na linha (`?bem=ID`) e abre a aba Alocações · Então vê a
+  alocação com as duas devoluções (código, quantidade, data, autor, motivo) e "1 de 2 un." devolvidas.
+  Uma devolução gravada no **business 99** apontando para essa alocação **não** aparece nem soma;
+  uma alocação do 99 sobre o mesmo `asset_id` **não** aparece; `?bem=` com id de bem do 99 devolve
+  "não encontrado".
+- **Somente leitura:** o drawer não tem excluir devolução, revogar, alocar nem editar.
+- **Teste (dois caminhos):**
+  - dado — `BensContratoTest.php`, `it()` citando `UC-BENS-10` (tenant 98 × 99, ADR 0358);
+  - tela — `tests/js/patrimonio-detalhe-bem.test.tsx`, 3 `it()` citando `UC-BENS-10` (lista N,
+    só leitura, não encontrado). Bite-test por mutação (render 1 : 1 com `slice(0, 1)`): 2 casos caem.
+- **Status: 🧪** — vitest verde local (3/3); Pest roda na lane `assetmanagement-pest` — ver o recibo do PR.
+
+---
+
+## UC-BENS-12 · "Enviar pra manutenção" pela linha do bem abre o drawer de manutenção
+
+- **Persona:** quem vê um bem com defeito na lista e quer registrar o envio sem procurar a
+  tela de Manutenções.
+- **Aceite:** Dado um bem na lista e um usuário com permissão de manutenção
+  (`asset.view_all_maintenance` ou `asset.view_own_maintenance` — a mesma que o `create()` de
+  manutenção exige) · Quando ele clica em "Enviar pra manutenção" na linha · Então a tela vai
+  para `/asset/asset-maintenance/create?asset_id={id do bem}`, que abre o drawer com o bem já
+  escolhido (thread 19, UC-MANU-06). Sem a permissão, o botão não aparece. É botão com
+  `router.get`, não `<a href>` (UC-BENS-04 segue valendo).
+- **Também pelo rodapé do drawer de detalhe do bem** (protótipo `patrimonio-page.jsx:656`,
+  entrou no mesmo dia): mesmo destino e mesma permissão; o drawer só mostra o botão quando a
+  Page passa o handler.
+- **Teste:** `tests/js/patrimonio-bens-manutencao.test.tsx` — dois `it()` citando `UC-BENS-12`,
+  com o "Editar" da mesma linha como controle de que a linha renderizou; e
+  `tests/js/patrimonio-detalhe-bem.test.tsx` — dois `it()` do rodapé (id entregue, alvo 44px,
+  sem handler = sem botão).
+- **Fora:** o envio em lote (`:395`). Não escreve valor nem quantidade.
+- **Status: ⬜** — a lane de CI do PR é o primeiro run.
+
+## UC-BENS-11 · Excluir o bem leva as garantias dele junto
+
+- **Persona:** quem exclui um bem cadastrado por engano e não espera deixar resto no banco.
+- **Aceite:** Dado um bem com duas garantias e um bem de outro business com uma garantia ·
+  Quando o usuário exclui o primeiro pela lista · Então o bem **e as duas garantias** saem, e a
+  garantia do outro business fica intacta. Para o que já ficou para trás, o comando
+  `assetmanagement:garantias-orfas` lista as garantias sem bem e só apaga com `--apply`; nunca
+  toca garantia de bem que existe.
+- **Por quê:** `asset_warranties` pertence inteira ao bem e não tem `business_id`. Até 2026-09-30
+  o `AssetService::remover()` apagava o bem e a mídia e deixava a garantia órfã — medido em
+  produção: 1 garantia de 2026-09-23 cujo bem foi excluído 22s depois de criado.
+- **Teste:** `Modules/AssetManagement/Tests/Feature/GarantiasOrfasContratoTest.php` — dois `it()`
+  citando `UC-BENS-11` (a exclusão pela rota, e o comando em dry-run e com `--apply`).
+- **Status: 🧪** — ver o recibo do PR.
 
 ---
 
@@ -191,15 +299,11 @@ expressão (`AssetController::baseAssetsQuery`), lida pelos dois ramos.
 
 ## [BACKLOG] — vira UC na onda que trouxer o teste
 
-- [BACKLOG] O sub-recorte "Em manutenção" conta e filtra sobre o **conjunto**, não sobre a
-  página corrente. (Garantia crítica saiu daqui em 2026-09-29 — UC-BENS-06.)
 - [BACKLOG] O rodapé soma o valor total do recorte, com a prova dupla que a REGRA MESTRE exige.
 - [BACKLOG] Seleção em lote exporta a seleção e manda os selecionados pra manutenção.
 - [BACKLOG] O usuário escolhe as colunas visíveis e a densidade, e a escolha sobrevive ao reload.
-- [BACKLOG] Editar bem acontece em drawer, sem sair da lista (criar já acontece — UC-BENS-05).
-- [BACKLOG] Alocar e mandar pra manutenção a partir da linha, em drawer — hoje não há caminho
-  pela UI (os formulários só existem como fragmento de modal servido sob `ajax()`). Escrita de
-  QUANTIDADE: REGRA MESTRE Tier 0.
+- [BACKLOG] Alocar a partir da linha, em drawer — escrita de QUANTIDADE: REGRA MESTRE Tier 0.
+  (Mandar pra manutenção a partir da linha saiu daqui em 2026-09-30: virou UC-BENS-12.)
 - [BACKLOG] `permitted_locations()` restringe a listagem, e nenhum parâmetro de query a afrouxa.
   (Hoje o código faz isso — aplica a restrição **antes** dos filtros do usuário —, mas nenhum
   teste defende; virou visível quando o fixture sem `access_all_locations` zerou a lista.)

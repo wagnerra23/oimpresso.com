@@ -156,7 +156,7 @@
     },
     {
       "screen": "Patrimonio",
-      "note": "8 arquivo(s)",
+      "note": "11 arquivo(s)",
       "cells": {
         "tokens": "yes",
         "primitivos": "yes",
@@ -398,7 +398,7 @@
     },
     {
       "screen": "Ponto",
-      "note": "30 arquivo(s)",
+      "note": "33 arquivo(s)",
       "cells": {
         "tokens": "no",
         "primitivos": "no",
@@ -433,8 +433,8 @@
   "progressPct": 38,
   "progressLabel": "adoção tokens + primitivos (censo Onda 0)",
   "measured": true,
-  "measuredAgainstSha": "ad4f9b35f",
-  "generatedAt": "2026-09-29T16:04:47.968Z",
+  "measuredAgainstSha": "21c14137d",
+  "generatedAt": "2026-09-30T16:03:04.598Z",
   "treeGuard": {
     "pass": true,
     "violations": 0

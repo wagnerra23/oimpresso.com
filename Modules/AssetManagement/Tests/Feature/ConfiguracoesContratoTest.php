@@ -283,3 +283,115 @@ it('UC-CFG-04: desligar o e-mail desliga de verdade — a chave ausente é o "de
         cfgContratoLimpar();
     }
 });
+
+it('UC-CFG-05: create/show/edit/update/destroy de /asset/settings não existem mais — 404, não 500', function () {
+    // ANTES (medido na _saida-15.md): `GET /asset/settings/create|{id}|{id}/edit` estourava
+    // `View [x] not found` e `PUT`/`DELETE /asset/settings/{id}` respondia corpo vazio. O
+    // resource passou a `->only(['index', 'store'])`, então essas URLs não casam rota nenhuma.
+    //
+    // Oráculo duplo: o registro vivo (`Route::has`) e a requisição HTTP. O status é assertado
+    // EXATO (404) de propósito: um `assertStatus(!500)` passaria com um 200 vazio, que é
+    // justamente o que `update`/`destroy` devolviam antes.
+    foreach (['create', 'show', 'edit', 'update', 'destroy'] as $acao) {
+        expect(\Route::has('asset.settings.'.$acao))->toBeFalse();
+    }
+
+    $biz = $this->seededTenant();
+    $user = cfgContratoUsuario((int) $biz->id, admin: true);
+
+    try {
+        cfgContratoAssinaturaLiberada();
+
+        $sessao = [
+            'user.business_id' => (int) $biz->id,
+            'user' => ['business_id' => (int) $biz->id, 'id' => $user->id],
+        ];
+
+        $this->actingAs($user)->withSession($sessao)->get('/asset/settings/create')->assertStatus(404);
+        $this->actingAs($user)->withSession($sessao)->get('/asset/settings/1')->assertStatus(404);
+        $this->actingAs($user)->withSession($sessao)->get('/asset/settings/1/edit')->assertStatus(404);
+        $this->actingAs($user)->withSession($sessao)->put('/asset/settings/1', [])->assertStatus(404);
+        $this->actingAs($user)->withSession($sessao)->delete('/asset/settings/1')->assertStatus(404);
+
+        // ESPELHO: a tela continua de pé no mesmo endereço. Sem ele, os 404 acima também
+        // passariam se o prefixo /asset inteiro tivesse sumido.
+        cfgContratoGet($user, (int) $biz->id)->assertStatus(200);
+    } finally {
+        cfgContratoLimpar();
+    }
+});
+
+it('UC-CFG-05: salvar prefixos e notificações grava exatamente os mesmos campos de antes', function () {
+    // A lista é a do `store()` — `only(...)` + as 2 chaves `enable_*` + os 2 templates. Ela
+    // está no _saida-20.md da thread 20. A remoção das 5 ações não pode ter levado nenhum
+    // campo junto, nem acrescentado chave nova ao JSON.
+    $biz = $this->seededTenant();
+    $bizId = (int) $biz->id;
+    $original = cfgContratoSettingsAtuais($bizId);
+    $templatesOriginais = DB::table('notification_templates')
+        ->where('business_id', $bizId)
+        ->whereIn('template_for', ['send_for_maintenance', 'assigned_for_maintenance'])
+        ->get()
+        ->map(fn ($r) => (array) $r)
+        ->all();
+    $user = cfgContratoUsuario($bizId, admin: true);
+
+    try {
+        cfgContratoAssinaturaLiberada();
+
+        cfgContratoPost($user, $bizId, [
+            'asset_code_prefix' => 'CFG5-A-',
+            'allocation_code_prefix' => 'CFG5-L-',
+            'revoke_code_prefix' => 'CFG5-R-',
+            'asset_maintenance_prefix' => 'CFG5-M-',
+            'send_for_maintenence_recipients' => [(string) $user->id],
+            'enable_asset_send_for_maintenance_email' => '1',
+            'enable_asset_assigned_for_maintenance_email' => '1',
+            'send_for_maintenance' => ['subject' => 'CFG5 enviado', 'email_body' => '<p>CFG5 corpo enviado</p>'],
+            'assigned_for_maintenance' => ['subject' => 'CFG5 atribuido', 'email_body' => '<p>CFG5 corpo atribuido</p>'],
+        ])->assertRedirect();
+
+        $gravado = json_decode((string) cfgContratoSettingsAtuais($bizId), true);
+
+        $chaves = array_keys($gravado);
+        sort($chaves);
+        expect($chaves)->toBe([
+            'allocation_code_prefix',
+            'asset_code_prefix',
+            'asset_maintenance_prefix',
+            'enable_asset_assigned_for_maintenance_email',
+            'enable_asset_send_for_maintenance_email',
+            'revoke_code_prefix',
+            'send_for_maintenence_recipients',
+        ]);
+        expect($gravado['asset_code_prefix'])->toBe('CFG5-A-');
+        expect($gravado['allocation_code_prefix'])->toBe('CFG5-L-');
+        expect($gravado['revoke_code_prefix'])->toBe('CFG5-R-');
+        expect($gravado['asset_maintenance_prefix'])->toBe('CFG5-M-');
+        expect($gravado['send_for_maintenence_recipients'])->toBe([(string) $user->id]);
+        expect((int) $gravado['enable_asset_send_for_maintenance_email'])->toBe(1);
+        expect((int) $gravado['enable_asset_assigned_for_maintenance_email'])->toBe(1);
+
+        $enviado = DB::table('notification_templates')
+            ->where('business_id', $bizId)->where('template_for', 'send_for_maintenance')->first();
+        $atribuido = DB::table('notification_templates')
+            ->where('business_id', $bizId)->where('template_for', 'assigned_for_maintenance')->first();
+
+        expect($enviado)->not->toBeNull();
+        expect($enviado->subject)->toBe('CFG5 enviado');
+        expect($enviado->email_body)->toBe('<p>CFG5 corpo enviado</p>');
+        expect($atribuido)->not->toBeNull();
+        expect($atribuido->subject)->toBe('CFG5 atribuido');
+        expect($atribuido->email_body)->toBe('<p>CFG5 corpo atribuido</p>');
+    } finally {
+        cfgContratoRestaurarSettings($bizId, $original);
+        DB::table('notification_templates')
+            ->where('business_id', $bizId)
+            ->whereIn('template_for', ['send_for_maintenance', 'assigned_for_maintenance'])
+            ->delete();
+        if ($templatesOriginais !== []) {
+            DB::table('notification_templates')->insert($templatesOriginais);
+        }
+        cfgContratoLimpar();
+    }
+});

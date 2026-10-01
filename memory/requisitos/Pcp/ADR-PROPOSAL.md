@@ -69,7 +69,7 @@ Skill `mcp-first` + leitura de `_MAPPING/TELA-PRODUCAO-KANBAN.md` + `ADR 0143` +
 
 Vargas/Extreme/Martinho (3 candidatos OfficeImpresso saudáveis) usam Delphi `PRODUCAO_TEMPO` table real hoje (legacy WR Comercial — apontamento manual via teclado). Sem essa funcionalidade no oimpresso novo, **migração quebra paridade** e bloqueia sinal qualificado (ADR 0105).
 
-ROI alta — paridade Delphi + diferencial vs Mubisys/Bling (que NÃO têm cronômetro/QR mobile real-time).
+ROI alta — paridade Delphi + diferencial vs Bling (que NÃO tem cronômetro/QR mobile real-time). **Contra o Mubisys é paridade, não diferencial** (corrigido em 2026-09-29): ele anuncia terminal de apontamento que mede o tempo de cada tarefa pelo celular, e o app tem leitura de QR Code na tela de Produção — ver [pesquisa de concorrentes](../../research/2026-05-prospeccao/02-concorrentes-zenite-mubisys.md).
 
 ## Decisões pendentes
 

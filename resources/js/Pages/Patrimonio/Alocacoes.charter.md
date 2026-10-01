@@ -9,8 +9,8 @@ related_adrs: [0394-endereco-de-ui-do-patrimonio-pages-patrimonio, 0104-processo
 related_prototype: prototipo-ui/cowork/Wagner/patrimonio-page.jsx
 related_runbook: memory/requisitos/AssetManagement/RUNBOOK-alocacoes.md
 tier: B
-charter_version: 2
-last_validated: "2026-09-23"
+charter_version: 3
+last_validated: "2026-09-30"
 ---
 
 # Page Charter — Patrimonio/Alocacoes (DRAFT)
@@ -46,11 +46,12 @@ o módulo existe pra dar.
   · **Devolvidas** (voltou tudo) · **Todas**.
 - Por linha: código, bem + modelo, quem recebeu, quem entregou, categoria, data de alocação,
   prazo, quantidade, quantidade devolvida, motivo e a situação.
-- **Nenhuma ação por linha.** ⚠️ Corrigido em 2026-09-23: esta linha prometia editar · devolver
-  · excluir, mas a tela nunca os renderizou — `AssetAllocationController::{create,edit}` só
-  respondem sob `ajax()` (fragmento de modal jQuery), e o `.tsx` documenta a retirada no
-  topo. O caminho de escrita que funciona é o botão **Devoluções** do header, que navega pra
-  aba própria (`/asset/revocation`, view de verdade).
+- **Escrita em drawer** (thread 18, [W] 2026-09-30 · ADR 0414): **Alocar recurso** no header,
+  **Editar** e **Devolver** por linha (só em alocação que ainda tem unidade na mão). As rotas
+  `create`/`edit` dos dois controllers devolvem esta Page com a prop `formulario`. O drawer de
+  devolução lista as devoluções já feitas (1 : N) com **Excluir**. ⚠️ Até 2026-09-23 esta linha
+  dizia "nenhuma ação por linha" — era verdade então, porque os formulários só existiam como
+  fragmento de modal jQuery. Excluir **alocação** continua fora (não pedido na thread 18).
 - Sub-navegação do módulo **derivada** de `shell.menu`, nunca declarada aqui.
 - Estados: cheia · filtrada-vazia · vazia · carregando (esqueleto do defer) · sem-permissão
   (403 do gate de assinatura).
@@ -61,9 +62,10 @@ o módulo existe pra dar.
 > Cada item vira Pest GUARD quando a onda correspondente entrar. Os três primeiros são
 > **adiamento com motivo** (§5 do RUNBOOK), não recusa permanente.
 
-- ❌ NÃO aloca, edita nem devolve dentro da tela. Os três são **escrita de quantidade** —
-  REGRA MESTRE Tier 0, que exige prova por dois caminhos independentes + antes→depois
-  apresentado ao [W]. Os botões apontam pras rotas Blade reais, que continuam funcionando.
+- ❌ NÃO decide saldo no cliente. Alocar, editar e devolver são **escrita de quantidade**
+  (REGRA MESTRE Tier 0): o drawer confere só forma (campo vazio, zero, datas fora de ordem) e
+  o servidor recusa por quantidade. ⚠️ Até 2026-09-30 este item dizia "não aloca, edita nem
+  devolve dentro da tela"; a thread 18 trouxe a escrita, com dupla prova (UC-ALOC-06..08).
 - ❌ NÃO soma "N unidades alocadas" no rodapé (protótipo `:462`). É **agregação de
   quantidade** — a mesma REGRA MESTRE que fez a irmã Bens recusar o total de valor. O número
   **por linha** entra.
@@ -77,16 +79,20 @@ o módulo existe pra dar.
 - ❌ NÃO cruza tenants — `AssetTransaction` não tem global scope, o filtro por `business_id`
   é manual ([ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md), Tier 0).
 - ❌ NÃO exporta, não imprime, não configura colunas nem densidade.
-- ❌ NÃO renderiza aba que não navega. Devoluções é aba **própria** (`/asset/revocation`,
-  ghost `revocation`); o protótipo a trata como estado dentro desta tela, e **a rota manda**
-  (`_saida-06-bens.md §2`).
+- ❌ NÃO renderiza aba que não navega, nem lista de devoluções à parte. Desde 2026-09-30
+  (thread 16, decisão [W] em `_saida-16b` opção b) `/asset/revocation` **redireciona** para
+  esta tela, e o histórico 1 : N das devoluções mora no drawer Devolver de cada linha (com
+  Excluir) e no drawer do bem. ⚠️ Até 2026-09-30 este item dizia que Devoluções era aba
+  **própria** (`_saida-06-bens.md §2`); deixou de ser. O ghost `revocation` do menu também
+  saiu, no mesmo dia ([W]): ele levava para esta tela.
 
 ## Anti-hooks (NÃO faz automaticamente)
 
 > Mesma ressalva: proposta [CC], [W] aprova antes de `live`.
 
-- ❌ NÃO escreve nada. A tela é de leitura pura — nenhum caminho aqui grava, apaga ou dispara
-  job. As ações são links para rotas que já existiam.
+- ❌ NÃO escreve sem ação explícita. Nada grava ao abrir, fechar ou filtrar; excluir uma
+  devolução pede confirmação dizendo o código e a quantidade. ⚠️ Até 2026-09-30 este item
+  dizia "a tela é de leitura pura" — deixou de ser na thread 18.
 - ❌ NÃO recalcula, arredonda nem converte quantidade. Exibe o que o backend mandou.
 - ❌ NÃO deriva "prazo vencido" no cliente a partir de `allocated_upto`. A comparação é do
   servidor, com o relógio dele — derivar no browser faria o veredito depender do fuso da

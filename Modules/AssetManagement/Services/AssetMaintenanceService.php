@@ -7,6 +7,7 @@ use App\Util\OtelHelper;
 use App\Utils\Util;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Modules\AssetManagement\Entities\Asset;
 use Modules\AssetManagement\Entities\AssetMaintenance;
 use Modules\AssetManagement\Utils\AssetUtil;
 
@@ -33,6 +34,10 @@ class AssetMaintenanceService
     {
         return OtelHelper::spanBiz('assetmanagement.maintenance.criar', function () use ($request, $businessId, $userId): AssetMaintenance {
             $input = $request->only('status', 'priority', 'asset_id', 'maintenance_note');
+
+            // Tier 0 (ADR 0093): o `asset_id` vem do formulario e ate 2026-09-30 era gravado sem
+            // conferir de quem e o bem — dava pra abrir manutencao em bem de OUTRA empresa.
+            Asset::where('business_id', $businessId)->findOrFail($input['asset_id'] ?? null);
 
             $ref_count = $this->commonUtil->setAndGetReferenceCount('asset_maintenance', $businessId);
             $asset_settings = $this->assetUtil->getAssetSettings($businessId);
@@ -67,7 +72,9 @@ class AssetMaintenanceService
         return OtelHelper::spanBiz('assetmanagement.maintenance.atualizar', function () use ($request, $id, $businessId): AssetMaintenance {
             $input = $request->only('status', 'priority', 'details', 'assigned_to');
 
-            $maintenance = AssetMaintenance::find($id);
+            // Tier 0 (ADR 0093): ate 2026-09-30 era `find($id)` sem `business_id` — o `edit()`
+            // escopava, mas o `update()` alcancava a manutencao de outra empresa pelo id.
+            $maintenance = AssetMaintenance::where('business_id', $businessId)->findOrFail($id);
             $previousAssignedTo = $maintenance->assigned_to;
 
             DB::beginTransaction();

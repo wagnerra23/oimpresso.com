@@ -99,7 +99,7 @@ falsa — mesma postura da Bens.
 |---|---|
 | listagem | `AssetAllocationController::index()` — dois ramos: o do DataTables legado (**preservado**) e o Inertia |
 | criação/edição/remoção | `AssetAllocationService` (`criar`, `atualizar`, `remover`) — **não tocados** |
-| devolução | `RevokeAllocatedAssetController` — aba própria (`/asset/revocation`), ghost `revocation` |
+| devolução | `RevokeAllocatedAssetController` — drawer Devolver desta tela (`/asset/revocation/create?id=`, thread 18). Desde 2026-09-30 `/asset/revocation` redireciona para cá e o ghost `revocation` saiu; até então era aba própria |
 | sub-navegação | `DataController::modifyAdminMenu()` → `shell.menu` → `_shared/PatrimonioSubNav` |
 
 ## 9. Multi-tenant + LGPD

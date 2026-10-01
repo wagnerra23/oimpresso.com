@@ -18,7 +18,7 @@ uses(Tests\TestCase::class);
  * `resources/js/Pages/Patrimonio/_shared/PatrimonioSubNav.tsx` DERIVA dele via
  * `shell.menu` e nao declara lista propria (o docblock dele explica). Dono unico sem
  * teste e dono unico ate alguem editar sem saber: uma troca aqui muda a barra das
- * CINCO telas do modulo de uma vez, e nada mais no repo defendia esses seis rotulos.
+ * CINCO telas do modulo de uma vez, e nada mais no repo defendia esses rotulos.
  *
  * O QUE ELE TRAVA, e a data. Em 2026-09-09 [W] decidiu "Bens" e "Manutencoes" para as
  * abas, encerrando a divergencia que o `RUNBOOK-patrimonio-index.md` §6 e a
@@ -126,16 +126,16 @@ it('os rotulos das abas sao os que [W] decidiu em 2026-09-09 -- "Bens" e "Manute
     }
 });
 
-it('os outros quatro rotulos ficaram intactos na mesma troca', function () {
+it('os outros rotulos ficaram intactos na mesma troca', function () {
     $biz = $this->seededTenant();
     $user = menuGhostsUsuario($biz->id);
 
     try {
         $porChave = collect(menuGhostsDoModulo($user, $biz->id))->keyBy('key');
 
+        // `revocation` ("Devoluções") saiu em 2026-09-30 — ver o cenário "Devoluções NÃO aparece".
         expect($porChave['dashboard']['label'])->toBe('Painel')
             ->and($porChave['allocation']['label'])->toBe('Alocações')
-            ->and($porChave['revocation']['label'])->toBe('Devoluções')
             ->and($porChave['settings']['label'])->toBe('Configurações');
     } finally {
         $user->forceDelete();
@@ -148,8 +148,9 @@ it('todo ghost aponta para uma rota que existe -- aba que nao navega e afordanci
 
     try {
         $ghosts = menuGhostsDoModulo($user, $biz->id);
-        // 6 do modulo + o deep-link "Auditoria" quando o Modules/Auditoria abre (ADR 0414).
-        expect(count($ghosts))->toBeIn([6, 7]);
+        // 5 do modulo + o deep-link "Auditoria" quando o Modules/Auditoria abre (ADR 0414).
+        // Eram 6 até 2026-09-30, quando "Devoluções" saiu.
+        expect(count($ghosts))->toBeIn([5, 6]);
 
         // Resolve o href contra o roteador REAL em vez de comparar com uma lista escrita
         // aqui: uma lista aqui seria um segundo dono do mesmo fato, que e o defeito que o
@@ -176,6 +177,27 @@ it('Garantias NAO aparece enquanto nao tiver rota (D-GARANTIAS)', function () {
         // renderiza-la seria afordancia falsa. Cai no dia em que D-GARANTIAS sair.
         expect($chaves)->not->toContain('warranty')
             ->and($chaves)->not->toContain('garantias');
+    } finally {
+        $user->forceDelete();
+    }
+});
+
+it('Devoluções NAO aparece: /asset/revocation redireciona para Alocações (thread 16)', function () {
+    $biz = $this->seededTenant();
+    $user = menuGhostsUsuario($biz->id);
+
+    try {
+        $ghosts = collect(menuGhostsDoModulo($user, $biz->id));
+
+        // Controle: a lista não pode passar por estar vazia. Alocações é o destino do
+        // redirecionamento e tem de continuar lá.
+        expect($ghosts->pluck('key'))->toContain('allocation');
+
+        // [W] 2026-09-30: a aba levava de volta a Alocações. Nem pela chave, nem pelo
+        // rótulo, nem pelo href — as três formas de ela voltar.
+        expect($ghosts->pluck('key'))->not->toContain('revocation')
+            ->and($ghosts->pluck('label'))->not->toContain('Devoluções')
+            ->and($ghosts->pluck('href'))->not->toContain('/asset/revocation');
     } finally {
         $user->forceDelete();
     }

@@ -32,8 +32,6 @@ uses(Tests\TestCase::class);
  * @see memory/decisions/0358-doutrina-de-teste-tenant-98-supersede-0101.md
  */
 
-defined('BIZ_ADVERSARIO') || define('BIZ_ADVERSARIO', 99);
-
 beforeEach(function () {
     if (DB::connection()->getDriverName() === 'sqlite') {
         $this->markTestSkipped('SQLite-incompatível: Passport + schema UltimatePOS exigem MySQL (ADR 0358)');
@@ -94,7 +92,7 @@ function connectorOauthClient(int $userId, string $nome): string
 }
 
 it('US-CONN-015: nega 403 a quem não é superadmin', function () {
-    $user = connectorUser($this->seededTenant(), superadmin: false);
+    $user = connectorUser($this->seededTenant()->id, superadmin: false);
 
     try {
         connectorActAs($this, $user)->get('/connector/client')->assertForbidden();
@@ -104,7 +102,7 @@ it('US-CONN-015: nega 403 a quem não é superadmin', function () {
 });
 
 it('US-CONN-015: superadmin vê a lista e o nome do próprio client', function () {
-    $user = connectorUser($this->seededTenant(), superadmin: true);
+    $user = connectorUser($this->seededTenant()->id, superadmin: true);
     $nome = 'CLIENT-PROPRIO-'.uniqid();
     $clientId = connectorOauthClient($user->id, $nome);
 
@@ -119,8 +117,8 @@ it('US-CONN-015: superadmin vê a lista e o nome do próprio client', function (
 });
 
 it('US-CONN-015 TIER 0: client de OUTRO business NÃO vaza na lista', function () {
-    $dono = connectorUser($this->seededTenant(), superadmin: true);
-    $alheio = connectorUser(BIZ_ADVERSARIO, superadmin: false);
+    $dono = connectorUser($this->seededTenant()->id, superadmin: true);
+    $alheio = connectorUser($this->seededSupportClientTenant()->id, superadmin: false);
 
     $nomeAlheio = 'CLIENT-ALHEIO-'.uniqid();
     $idAlheio = connectorOauthClient($alheio->id, $nomeAlheio);
@@ -139,7 +137,7 @@ it('US-CONN-015 TIER 0: client de OUTRO business NÃO vaza na lista', function (
 });
 
 it('US-CONN-015: store cria client de senha com secret de 40 caracteres', function () {
-    $user = connectorUser($this->seededTenant(), superadmin: true);
+    $user = connectorUser($this->seededTenant()->id, superadmin: true);
     $nome = 'CLIENT-NOVO-'.uniqid();
 
     try {
@@ -158,16 +156,17 @@ it('US-CONN-015: store cria client de senha com secret de 40 caracteres', functi
     }
 });
 
-it('US-CONN-015: a lista expõe o secret em texto puro (comportamento ATUAL, não endosso)', function () {
-    // Documenta o que existe hoje: `makeVisible('secret')` imprime o segredo na
-    // tabela. A F3 deve preservar por paridade; MASCARAR é decisão [W]
-    // (RUNBOOK §10.2). Este teste é o que torna a mudança visível se acontecer.
-    $user = connectorUser($this->seededTenant(), superadmin: true);
+it('US-CONN-015 · CONN-O2b: a lista NÃO expõe o secret, nem no HTML ([W] D6)', function () {
+    // Antes (baseline F2) este caso travava o segredo em texto puro na tabela, como
+    // "comportamento ATUAL, não endosso — mascarar é decisão [W]". A decisão veio (D6):
+    // ninguém lê o segredo depois da criação. O valor guardado segue intacto.
+    $user = connectorUser($this->seededTenant()->id, superadmin: true);
     $segredo = str_repeat('z', 40);
+    $nome = 'CLIENT-SECRET-'.uniqid();
 
     $clientId = DB::table('oauth_clients')->insertGetId([
         'user_id' => $user->id,
-        'name' => 'CLIENT-SECRET-'.uniqid(),
+        'name' => $nome,
         'secret' => $segredo,
         'redirect' => 'http://localhost',
         'personal_access_client' => 0,
@@ -178,11 +177,46 @@ it('US-CONN-015: a lista expõe o secret em texto puro (comportamento ATUAL, nã
     ]);
 
     try {
+        // Âncora positiva: a requisição chegou à lista (o nome aparece) — sem isso o
+        // assertDontSee passaria por vácuo num 403/500.
         connectorActAs($this, $user)->get('/connector/client')
             ->assertOk()
-            ->assertSee($segredo);
+            ->assertSee($nome)
+            ->assertDontSee($segredo);
+
+        // O valor guardado não mudou: credencial em campo continua valendo.
+        expect((string) DB::table('oauth_clients')->where('id', $clientId)->value('secret'))
+            ->toBe($segredo);
     } finally {
         DB::table('oauth_clients')->where('id', $clientId)->delete();
+        connectorDropUser($user);
+    }
+});
+
+it('US-CONN-015 · CONN-O2b: o segredo aparece UMA vez, no retorno da criação', function () {
+    $user = connectorUser($this->seededTenant()->id, superadmin: true);
+    $nome = 'CLIENT-UMAVEZ-'.uniqid();
+
+    try {
+        $res = connectorActAs($this, $user)->post('/connector/client', ['name' => $nome]);
+        $res->assertRedirect();
+
+        $segredo = (string) DB::table('oauth_clients')->where('name', $nome)->value('secret');
+        expect(strlen($segredo))->toBe(40);
+
+        // Thread 04: o segredo sai num flash próprio (bloco copiável na tela), não no
+        // status.msg — esse vira toast e some sozinho.
+        $this->assertSame($segredo, (string) session('connector_credencial.secret'), 'a criação precisa entregar o segredo uma vez');
+        $this->assertStringNotContainsString($segredo, (string) session('status.msg'));
+
+        // Depois disso a lista não o mostra mais.
+        session()->forget(['status', 'connector_credencial']);
+        connectorActAs($this, $user)->get('/connector/client')
+            ->assertOk()
+            ->assertSee($nome)
+            ->assertDontSee($segredo);
+    } finally {
+        DB::table('oauth_clients')->where('name', $nome)->delete();
         connectorDropUser($user);
     }
 });

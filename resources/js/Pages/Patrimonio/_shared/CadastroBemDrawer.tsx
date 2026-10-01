@@ -18,6 +18,13 @@
 // já responde com redirect pro índice + flash `status` — o mesmo contrato que o Blade usava,
 // sem uma linha de backend nova. O que sai no corpo é montado por `cadastroBem.ts`, testado
 // à parte (REGRA MESTRE: valor e quantidade).
+//
+// ── Modo EDITAR (thread 17, [W] 2026-09-30) ──────────────────────────────────────
+// Com `edicao`, o MESMO formulário nasce preenchido com o bem gravado e posta pro `update()`
+// (`POST /asset/assets/{id}` + `_method=put`, FormData por causa da imagem). Um formulário
+// só pros dois envios: duplicar o cadastro seria manter dois forms do mesmo bem em sincronia.
+// O corpo sai de `montarPayloadEdicao`, que preserva as garantias que o form não mostra —
+// o serviço apaga toda garantia que não vier no envio.
 
 import { useEffect, useState } from 'react';
 import { router } from '@inertiajs/react';
@@ -31,7 +38,14 @@ import { NumericInputPtBR } from '@/Components/ui/numeric-input-ptbr';
 import { Select, SelectContent, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import { SafeSelectItem } from '@/Components/ui/SafeSelectItem';
 import { Grid, Inline, Stack } from '@/Components/layout';
-import { montarPayloadCadastro, validarCadastroBem, type FormCadastroBem } from './cadastroBem';
+import {
+  formDaEdicao,
+  montarPayloadCadastro,
+  montarPayloadEdicao,
+  validarCadastroBem,
+  type BemEdicao,
+  type FormCadastroBem,
+} from './cadastroBem';
 
 interface Props {
   aberto: boolean;
@@ -40,6 +54,8 @@ interface Props {
   categorias: Record<string, string>;
   tiposCompra: Record<string, string>;
   formatoData: string;
+  /** Presente = modo editar, com o bem gravado. Ausente = cadastro novo. */
+  edicao?: BemEdicao | null;
 }
 
 const hojeIso = () => {
@@ -128,19 +144,21 @@ function Opcoes({ id, valor, onChange, opcoes, placeholder, invalido }: {
   );
 }
 
-export default function CadastroBemDrawer({ aberto, onClose, locais, categorias, tiposCompra, formatoData }: Props) {
-  const [f, setF] = useState<FormCadastroBem>(() => vazio(locais, categorias));
+export default function CadastroBemDrawer({ aberto, onClose, locais, categorias, tiposCompra, formatoData, edicao = null }: Props) {
+  const inicial = () => (edicao ? formDaEdicao(edicao, hojeIso()) : vazio(locais, categorias));
+  const [f, setF] = useState<FormCadastroBem>(inicial);
   const [erros, setErros] = useState<Record<string, string>>({});
   const [enviando, setEnviando] = useState(false);
   const semCategoria = Object.keys(categorias).length === 0;
 
-  // Reabrir começa do zero — um cadastro não herda o rascunho do anterior.
+  // Reabrir começa do zero (ou do bem gravado) — um envio não herda o rascunho do anterior.
   useEffect(() => {
     if (aberto) {
-      setF(vazio(locais, categorias));
+      setF(inicial());
       setErros({});
     }
-  }, [aberto, locais, categorias]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [aberto, locais, categorias, edicao]);
 
   const set = <K extends keyof FormCadastroBem>(k: K, v: FormCadastroBem[K]) =>
     setF((o) => ({ ...o, [k]: v }));
@@ -152,11 +170,13 @@ export default function CadastroBemDrawer({ aberto, onClose, locais, categorias,
     if (Object.keys(e).length) return;
 
     setEnviando(true);
-    router.post('/asset/assets', montarPayloadCadastro(f, formatoData) as never, {
+    const url = edicao ? `/asset/assets/${edicao.id}` : '/asset/assets';
+    const corpo = edicao ? montarPayloadEdicao(f, formatoData, edicao.garantias) : montarPayloadCadastro(f, formatoData);
+    router.post(url, corpo as never, {
       forceFormData: true,
       preserveScroll: true,
       onSuccess: (page) => {
-        // O `store()` também redireciona quando FALHA (flash `status.success = false`). Nesse
+        // O `store()`/`update()` também redirecionam quando FALHAM (flash `status.success = false`). Nesse
         // caso o drawer fica aberto com o que o usuário digitou — fechar perderia o form.
         const flash = (page.props as { flash?: { error?: string | null } }).flash;
         if (flash?.error) {
@@ -182,10 +202,14 @@ export default function CadastroBemDrawer({ aberto, onClose, locais, categorias,
 
   return (
     <Sheet open={aberto} onOpenChange={(o) => { if (!o && !enviando) onClose(); }}>
-      <SheetContent side="right" className="w-full gap-0 sm:max-w-[640px]" data-testid="cadastro-bem">
+      <SheetContent side="right" className="w-full gap-0 sm:max-w-[640px]" data-testid={edicao ? 'editar-bem' : 'cadastro-bem'}>
         <SheetHeader className="border-b">
-          <SheetTitle>Adicionar recurso</SheetTitle>
-          <SheetDescription>Código gerado pelo prefixo do módulo — sequência por empresa.</SheetDescription>
+          <SheetTitle>{edicao ? 'Editar bem' : 'Adicionar recurso'}</SheetTitle>
+          <SheetDescription>
+            {edicao
+              ? `${edicao.asset_code} — o código não muda na edição.`
+              : 'Código gerado pelo prefixo do módulo — sequência por empresa.'}
+          </SheetDescription>
         </SheetHeader>
 
         <div className="flex-1 overflow-y-auto p-4">
@@ -267,7 +291,11 @@ export default function CadastroBemDrawer({ aberto, onClose, locais, categorias,
             <Secao titulo="Garantia">
               <Grid cols={2} gap={3}>
                 <Campo id="cb-gar-meses" rotulo="Período de garantia (meses)" erro={erros.garantiaMeses}
-                  ajuda="Vazio = bem sem garantia registrada.">
+                  ajuda={
+                    edicao && edicao.garantias.length
+                      ? `Esvaziar remove esta garantia.${edicao.garantias.length > 1 ? ` O bem tem ${edicao.garantias.length} garantias; aqui fica a mais recente, e as outras não mudam.` : ''}`
+                      : 'Vazio = bem sem garantia registrada.'
+                  }>
                   <Input id="cb-gar-meses" inputMode="numeric" value={f.garantiaMeses}
                     aria-invalid={!!erros.garantiaMeses || undefined}
                     onChange={(e) => set('garantiaMeses', e.target.value.replace(/\D/g, ''))} />
@@ -286,7 +314,8 @@ export default function CadastroBemDrawer({ aberto, onClose, locais, categorias,
             </Secao>
 
             <Secao titulo="Imagem e descrição">
-              <Campo id="cb-imagem" rotulo="Imagem" erro={erros.imagem} ajuda="Até 5 MB.">
+              <Campo id="cb-imagem" rotulo="Imagem" erro={erros.imagem}
+                ajuda={edicao ? 'Até 5 MB. Sem arquivo novo, a imagem atual fica.' : 'Até 5 MB.'}>
                 <Input id="cb-imagem" type="file" accept="image/*"
                   onChange={(e) => set('imagem', e.target.files?.[0] ?? null)} />
               </Campo>
@@ -299,7 +328,9 @@ export default function CadastroBemDrawer({ aberto, onClose, locais, categorias,
 
         <SheetFooter className="flex-row justify-end border-t">
           <Button variant="ghost" onClick={onClose} disabled={enviando}>Cancelar</Button>
-          <Button onClick={salvar} disabled={enviando}>{enviando ? 'Cadastrando…' : 'Cadastrar bem'}</Button>
+          <Button onClick={salvar} disabled={enviando}>
+            {edicao ? (enviando ? 'Salvando…' : 'Salvar alterações') : enviando ? 'Cadastrando…' : 'Cadastrar bem'}
+          </Button>
         </SheetFooter>
       </SheetContent>
     </Sheet>

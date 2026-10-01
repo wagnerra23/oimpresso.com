@@ -1820,6 +1820,26 @@ Ocorrência da **LC-08**.
 
 - **O limite (variante também proibida):** a pergunta *"este check é required?"* só se responde pelo **campo de estado**: as listas `classic_protection.contexts` + `rulesets.contexts` do baseline, ou o vivo (`gh api .../branches/main/protection/required_status_checks` **e** `.../rules/branches/main`, somados). **Nunca** por nota, comentário de workflow, ADR ou PR body que *mencione* o check, por mais oficial que seja o arquivo. Vale igual para "está em quarentena?", "está na allowlist?" e "está no manifesto?": num arquivo que mistura estado e história, o `grep` pelo nome devolve a história primeiro. E contagem por `grep` de texto só vale quando você sabe que o padrão casa **só** o campo de estado. Em JSON, pergunte ao parser.
 
+### 2026-09-30 — EMENDA do rec 09-16 da LC-19 e da lápide 2026-09-05 (dono-é-sessão-viva): TRÊS sessões re-mediram o mesmo baseline, e a sonda de "PR aberto no arquivo" precisa casar ARQUIVO, não texto
+
+- **O limite (variante também proibida):** diante de alarme de máquina compartilhada (gate/watchdog vermelho em todo PR, drift, cron), não publicar o conserto sem as três perguntas — PR aberto no arquivo (a sonda acima), sessão viva (`whats-active`), já mergeado (`git log HEAD..origin/main`). E, achado PR aberto, ler **todos** os números que a sonda devolveu antes de escolher o canônico.
+
+### 2026-09-30 (2ª) — EMENDA da lápide acima (três sessões no mesmo baseline): a sonda por arquivo virou modo do `dup-detector` no mesmo dia, e na mesma sessão o 2º PR duplicado saiu sem rodá-la
+
+- **O limite (variante também proibida):** abrir PR de thread de playbook (ou de qualquer tarefa que outra sessão possa ter recebido pelo mesmo chip/pedido) sem rodar `dup-detector --path` nos arquivos do prefixo **imediatamente antes do `gh pr create`**. E trocar a forma que o [W] escolheu sem voltar a ele, mesmo com um texto do índice a favor: a decisão vem do dono, não da leitura mais conveniente do canon.
+
+### 2026-09-30 — EMENDA da lápide 2026-08-18 (gap protótipo × produção por grep): o vetor LISTA DE MUDANÇAS — promovi para produção só o delta da sessão
+
+- **O limite (variante também proibida):** decidir o escopo de uma promoção protótipo → produção a partir de qualquer lista de mudanças (sessão, PR, commit, handoff, changelog). O inventário sai da **comparação medida** entre o protótipo atual e a tela viva; "só X se aplica" é conclusão da matriz, nunca ponto de partida. Vale igual para "igualar a tela ao design" e "subir a versão nova".
+
+### 2026-09-30 — O `--conferir` imprimia "1 verificado(s)" e gravava prova VAZIA para `.md`: editar um recibo já verificado travava o required do espelho sem saída
+
+- **O limite (variante também proibida):** instrumento que grava prova não imprime contagem derivada do insumo. Ele lê o que gravou e falha se algum item lido não virou prova. E a fixture de um mecanismo com N universos cobre **um caso por universo**.
+
+### 2026-09-30 — Gate de bundle do deploy decidia "a publicação chegou?" por "arquivo de front mudou no diff" — um commit de só-comentário travou a esteira
+
+- **O limite (variante também proibida):** gate que quer provar um **resultado publicado** (o prod serve X, o arquivo gerado é Y, o índice reflete Z) compara o **artefato produzido** com o **artefato servido**. Não usa "o insumo mudou" como substituto, porque a transformação entre insumo e saída pode ser identidade (comentário no build, whitespace num gerador, campo ignorado num serializer), e aí o gate reprova o correto. Quando o gate já existe e reprova errado, o conserto é no **predicado**; consertar só a janela ou a base, como no #8162, deixa o substituto armado para a próxima causa.
+
 ## Sempre fazer
 
 - ✅ **LIGUE A MÁQUINA — máquina é sempre melhor que fazer na mão** ([W] 2026-07-26, textual: *"isso ligue as maquinas, é sempre melhor que fazer na mão. isso é regra no sistema. deve ser"*). Ordem obrigatória, nesta sequência:

@@ -18,15 +18,19 @@
 // CSS: `cowork-manufacturing-bundle.css` aplicado INTEIRO (proibicoes.md §"Design System /
 // Pacote Cowork novo" — 1ª aplicação nunca é cherry-pick). Escopo `.mfg-root`.
 
-import { Link, router } from '@inertiajs/react';
+import { router } from '@inertiajs/react';
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Pencil, Plus, Printer, Search } from 'lucide-react';
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Button } from '@/Components/ui/button';
 import { Checkbox } from '@/Components/ui/checkbox';
+import KpiCard from '@/Components/shared/KpiCard';
+import { Segmented } from '@/Components/ui/segmented';
+import StatusBadge from '@/Components/shared/StatusBadge';
 import FichaPrint from './_components/FichaPrint';
 import { faixaMargem, fmt, num, rotuloCustoExtra } from './_lib/formato';
 import type { ContadoresProducao, Permissoes, Receita } from './_lib/tipos';
+import FabricacaoAbas from './_components/FabricacaoAbas';
 import '../../../css/cowork-manufacturing-bundle.css';
 
 interface Props {
@@ -37,6 +41,9 @@ interface Props {
 }
 
 const POR_PAG = 10;
+
+/** R-10 — faixa da margem → tom do `StatusBadge` (≥55 sucesso · ≥45 atenção · abaixo perigo). */
+const TOM_MARGEM = { ok: 'success', warn: 'warning', bad: 'danger' } as const;
 
 /** Rotas legadas que continuam donas do CRUD — a tela nova aponta, não reimplementa. */
 const ROTA_NOVA = '/manufacturing/recipe/create';
@@ -127,23 +134,27 @@ export default function Recipes({ recipes = [], permissions, producao, settings 
   const aberta = recipes.find((r) => r.id === openId) ?? null;
   const selecionadas = recipes.filter((r) => sel.includes(r.id));
 
+  // Cabeçalho como o `DataGrid` do DS (`prototipo-ui/design-system/components/DataGrid`): o
+  // indicador vem SEMPRE depois do rótulo — ↕ quando a coluna não ordena, ↑/↓ quando ordena.
+  // Até 2026-09-30 as colunas de número punham ⇵ ANTES do rótulo.
   const Th = ({ k, children, r: right }: { k: ChaveOrd; children: ReactNode; r?: boolean }) => (
     <button
       type="button"
       className={`mfg-th sort${right ? ' r' : ''}${ord.k === k ? ' act' : ''}`}
       onClick={() => ordenar(k)}
     >
-      {right && <span className="ind">{ord.k === k ? (ord.dir === 'asc' ? '↑' : '↓') : '⇵'}</span>}
       {children}
-      {!right && <span className="ind">{ord.k === k ? (ord.dir === 'asc' ? '↑' : '↓') : '⇵'}</span>}
+      <span className="ind" aria-hidden>
+        {ord.k === k ? (ord.dir === 'asc' ? '↑' : '↓') : '↕'}
+      </span>
     </button>
   );
 
   return (
-    <div className="mfg-root" data-screen-label="Manufacturing · Receitas">
+    <div className="mfg-root" data-screen-label="Fabricação · Receitas">
       <div className="os-page-h" data-contract="cabecalho">
         <div className="os-page-h-l">
-          <h1>Manufacturing</h1>
+          <h1>Fabricação</h1>
           <p>
             {recipes.length} receita{recipes.length === 1 ? '' : 's'} · {producao.total} ordem
             {producao.total === 1 ? '' : 's'} de produção · custo recalculado pelo preço atual dos
@@ -164,83 +175,60 @@ export default function Recipes({ recipes = [], permissions, producao, settings 
       {/* §4.1 — abas do módulo. Cada uma navega pra uma tela que EXISTE hoje.
           "Insumos" passou a existir na US-MANU-005 (`usosDoInsumo` no RecipeBomService) — o
           §18.3 do handoff dizia "sem backend, a aba não sai", e o backend saiu. */}
-      <nav className="mfg-tabs" aria-label="Manufacturing">
-        <span className="mfg-tab act" aria-current="page">
-          Receitas
-          <span className="mfg-tab-n">{recipes.length}</span>
-        </span>
-        <Link className="mfg-tab" href="/manufacturing/insumos">
-          Insumos
-        </Link>
-        {permissions.prod && (
-          <Link className="mfg-tab" href="/manufacturing/production">
-            Ordens de produção
-            <span className="mfg-tab-n">
-              {producao.total}
-              {producao.rascunhos ? ` · ${producao.rascunhos} rasc.` : ''}
-            </span>
-          </Link>
-        )}
-        <Link className="mfg-tab" href="/manufacturing/report">
-          Relatório
-        </Link>
-        {/* `Link` (Inertia) pra tela IRMÃ em React. Até 2026-09-04 esta aba era uma âncora
-            crua apontando pra rota Blade legada do módulo: saía do SPA e abria a tela
-            antiga — foi o que o [F] viu ao clicar em Configurações. O cutover da rota
-            legada segue PENDENTE e é decisão [W] (RUNBOOK-settings.md §"Rota nova, sem
-            cutover"); esta aba só deixa de contradizer as irmãs. */}
-        <Link className="mfg-tab" href="/manufacturing/settings">
-          Configurações
-        </Link>
-      </nav>
+      <FabricacaoAbas ativa="receitas" receitas={recipes.length} producao={producao} podeProduzir={permissions.prod} />
 
       {/* §4.2 — 4 KPIs; o 2º e o 3º FILTRAM (liga/desliga), o 1º e o 4º são leitura (R-05). */}
+      {/* Os 4 cartões são o `KpiCard` do DS, como no protótipo (`manufacturing-page.jsx`): os
+          de leitura na variante padrão; os 2 que filtram na `variant="filter"`, com a placa de
+          ícone e o tom âmbar. Até 2026-09-30 eram divs locais `.mfg-kpi` com o valor pintado de
+          âmbar — o protótipo pinta o ÍCONE, não o número (medido com a sonda nos dois lados). */}
       <div className="mfg-kpis" data-contract="kpis">
-        <div className="mfg-kpi">
-          <span className="mfg-kpi-l">Custo médio / unidade</span>
-          <span className="mfg-kpi-v">{fmt(custoMed)}</span>
-          <span className="mfg-kpi-s">
-            média das {recipes.length} receita{recipes.length === 1 ? '' : 's'}
-          </span>
-        </div>
-        <button
-          type="button"
-          className={`mfg-kpi${kpi === 'margem' ? ' act' : ''}`}
-          aria-pressed={kpi === 'margem'}
+        <KpiCard
+          label="Custo médio / unidade"
+          value={fmt(custoMed)}
+          description={`média das ${recipes.length} receita${recipes.length === 1 ? '' : 's'}`}
+        />
+        <KpiCard
+          variant="filter"
+          label="Margem abaixo de 45%"
+          value={magra}
+          description="preço de venda desatualizado"
+          icon="Scale"
+          filterTone="amber"
+          selected={kpi === 'margem'}
           onClick={() => {
             setKpi(kpi === 'margem' ? null : 'margem');
             setPag(1);
           }}
-        >
-          <span className="mfg-kpi-l">Margem abaixo de 45%</span>
-          <span className="mfg-kpi-v warn">{magra}</span>
-          <span className="mfg-kpi-s">preço de venda desatualizado</span>
-        </button>
-        <button
-          type="button"
-          className={`mfg-kpi${kpi === 'custo' ? ' act' : ''}`}
-          aria-pressed={kpi === 'custo'}
+        />
+        <KpiCard
+          variant="filter"
+          label="Desperdício ≥ 8%"
+          value={perda}
+          description="revisar plotagem / encaixe"
+          icon="Scissors"
+          filterTone="amber"
+          selected={kpi === 'custo'}
           onClick={() => {
             setKpi(kpi === 'custo' ? null : 'custo');
             setPag(1);
           }}
-        >
-          <span className="mfg-kpi-l">Desperdício ≥ 8%</span>
-          <span className="mfg-kpi-v warn">{perda}</span>
-          <span className="mfg-kpi-s">revisar plotagem / encaixe</span>
-        </button>
-        <div className="mfg-kpi">
-          <span className="mfg-kpi-l">Produção do mês</span>
-          <span className="mfg-kpi-v">{producao.mes_final}</span>
-          <span className="mfg-kpi-s">
-            {producao.mes_rascunho} rascunho{producao.mes_rascunho === 1 ? '' : 's'} em aberto
-          </span>
-        </div>
+        />
+        <KpiCard
+          label="Produção do mês"
+          value={producao.mes_final}
+          description={`${producao.mes_rascunho} rascunho${producao.mes_rascunho === 1 ? '' : 's'} em aberto`}
+        />
       </div>
 
       <div className="mfg-bar" data-contract="filtros">
+        {/* Busca nas medidas do `SearchInput` do protótipo (34px, canto 8, texto 13, ícone 15) —
+            o `SearchInput` do DS não tem par React (gap no component-registry), então a peça
+            local segue. O "(tecla /)" no placeholder é copy do CONTRATO da tela
+            (`manufacturing-recipes.contract.json`, citado do handoff normativo) e fica: o
+            protótipo o tirou, mas copy de contrato é decisão [W], não de forma. */}
         <div className="mfg-s">
-          <Search size={14} className="ic" aria-hidden />
+          <Search size={15} className="ic" aria-hidden />
           <input
             ref={buscaRef}
             placeholder="Buscar receita por nome, SKU, categoria…  (tecla /)"
@@ -252,26 +240,42 @@ export default function Recipes({ recipes = [], permissions, producao, settings 
             aria-label="Buscar receita"
           />
         </div>
-        <div className="mfg-chips">
-          {CATS.map((c) => (
-            <button
-              type="button"
-              key={c}
-              className={`mfg-chip${cat === c ? ' act' : ''}`}
-              aria-pressed={cat === c}
-              onClick={() => {
-                setCat(c);
-                setPag(1);
-              }}
-            >
-              {c}
-            </button>
-          ))}
-        </div>
+        {/* Categorias no `Segmented` do DS, como no protótipo. O próprio protótipo declara que o
+            Segmented aceita 2–5 opções e que "a sexta pede outra peça" — sem dizer qual. Aqui as
+            categorias vêm do cadastro da empresa, então acima de 5 opções ficam as pílulas de
+            antes (NÃO DEFINIDO NO PROTÓTIPO; não se inventa a peça). */}
+        {CATS.length <= 5 ? (
+          <Segmented
+            aria-label="Categoria"
+            value={cat}
+            onValueChange={(v) => {
+              setCat(v);
+              setPag(1);
+            }}
+            options={CATS.map((c) => ({ value: c, label: c }))}
+          />
+        ) : (
+          <div className="mfg-chips" role="group" aria-label="Categoria">
+            {CATS.map((c) => (
+              <button
+                type="button"
+                key={c}
+                className={`mfg-chip${cat === c ? ' act' : ''}`}
+                aria-pressed={cat === c}
+                onClick={() => {
+                  setCat(c);
+                  setPag(1);
+                }}
+              >
+                {c}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       <div className="mfg-tablewrap" data-contract="lista">
-        <div className="mfg-table">
+        <div className="mfg-table rec">
           <div className="mfg-tr mfg-thead">
             <Checkbox
               checked={allSel}
@@ -331,20 +335,23 @@ export default function Recipes({ recipes = [], permissions, producao, settings 
               </span>
               {/* R-09 — a coluna DECLARA a unidade que está exibindo. Com sub-unidade de
                   saída, mostra a quantidade convertida COM o rótulo da sub-unidade. */}
-              <span className="mfg-num r">
+              <span className="mfg-td mfg-num r">
                 {r.sub_un && r.sub_fator
                   ? num(r.custos.qtd_liq * r.sub_fator, 2)
                   : num(r.custos.qtd_liq, 2)}
                 <span className="mfg-u">{r.sub_un ?? r.un}</span>
               </span>
-              <span className="mfg-num r">{fmt(r.custos.total)}</span>
-              <span className="mfg-num r">{fmt(r.custos.unit)}</span>
-              <span className="mfg-num dim r">{fmt(r.venda)}</span>
-              <span className="r">
-                {/* R-10 — 3 faixas de cor. */}
-                <span className={`mfg-pill ${faixaMargem(r.custos.margem)}`}>
-                  {num(r.custos.margem, 0)}%
-                </span>
+              <span className="mfg-td mfg-num r">{fmt(r.custos.total)}</span>
+              <span className="mfg-td mfg-num r">{fmt(r.custos.unit)}</span>
+              <span className="mfg-td mfg-num dim r">{fmt(r.venda)}</span>
+              <span className="mfg-td r">
+                {/* R-10 — 3 faixas, agora no `StatusBadge` do DS como no protótipo. */}
+                <StatusBadge
+                  kind="margem"
+                  value={faixaMargem(r.custos.margem)}
+                  label={`${num(r.custos.margem, 0)}%`}
+                  tone={TOM_MARGEM[faixaMargem(r.custos.margem)]}
+                />
               </span>
             </div>
           ))}
@@ -566,8 +573,8 @@ function RecipeDrawer({
 
 Recipes.layout = (page: ReactNode) => (
   <AppShellV2
-    title="Receitas · Manufacturing"
-    breadcrumbItems={[{ label: 'Manufacturing' }, { label: 'Receitas' }]}
+    title="Receitas · Fabricação"
+    breadcrumbItems={[{ label: 'Fabricação' }, { label: 'Receitas' }]}
   >
     {page}
   </AppShellV2>

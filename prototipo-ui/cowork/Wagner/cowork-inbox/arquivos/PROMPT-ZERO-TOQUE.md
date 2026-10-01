@@ -1,3 +1,5 @@
+> **ABSORVIDO** em 2026-09-30 por `cowork-inbox/arquivos/playbook/00-INDICE.md` — não executar daqui.
+
 # PROMPT ZERO-TOQUE — Arquivos Sprint 2 (US-ARQ-013 · ADR 0123)
 
 > **[W]: cole este bloco UMA vez** no Claude Code plugado em `wagnerra23/oimpresso.com`.

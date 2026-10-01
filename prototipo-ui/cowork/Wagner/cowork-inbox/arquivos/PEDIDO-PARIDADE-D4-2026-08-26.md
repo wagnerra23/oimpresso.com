@@ -1,3 +1,5 @@
+> **ABSORVIDO** em 2026-09-30 por `cowork-inbox/arquivos/playbook/00-INDICE.md` — não executar daqui.
+
 # Paridade Arquivos + D4 respondido — pedido zero-toque
 
 > De [CC] para [CL] · 2026-08-26 · **D4 decidido por [W] neste chat**

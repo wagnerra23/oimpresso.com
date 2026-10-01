@@ -1,0 +1,163 @@
+{
+  "aguardou_sumir": null,
+  "ausentes": [],
+  "base": {
+    "assinatura": "OI WR Auditoria 2.412 eventos hoje · 4 alertas · LGPD compliance Filtros Exportar CSV + Regra 14:32:18 ! Joana excluiu OS #4815 3 anexos perdidos · cliente sem registro de cancelamento OS::delete 14:31:02 MP Mateus liberou OS #4821 p/ impressão stage: aprovado → produção OS::update 14:30:55 WR Wagner aprovou boleto NF 1240 · R$ 12.480 · Avery Brasil FIN::approve 14:28:41 JL Joana subiu v3 da arte banner-acme-final-v3.pdf · 24.7 MB ART::upload 14:20:12 ! 5 tentativas login falhadas usuário IP 187.x.x.41 · bloqueado por 30min AUTH::lockout 14:18:30 CD Camila atualizou cliente Construtora Vértice telefone: +55 11 9... → +55 11 9... CLI::update 14:15:08 -- Sistema gerou conciliação automática OFX-04395 ↔ R-2641 · 100% match · R$ 480 FIN::reconcile 14:12:44 FA Felipe finalizou OS #4807 stage: acabamento → entregue · valor R$ 1.840 OS::complete",
+    "roles": {
+      "celulas": null,
+      "chart": null,
+      "contratos": [],
+      "filterRows": null,
+      "kpi": {
+        "count": 0,
+        "items": [],
+        "overflowX": null,
+        "tag": null
+      },
+      "primary": null,
+      "shell": null,
+      "tabela": null,
+      "title": null
+    },
+    "saude": {
+      "folhasVazias": [],
+      "nFolhas": 72,
+      "tokensMortos": []
+    },
+    "theme": "dark",
+    "url": "http://127.0.0.1:5561/"
+  },
+  "nos_totais": 466,
+  "quieto_ms": 2000,
+  "rota": "auditoria",
+  "secoes": {
+    "acoes": {
+      "contraste": {
+        "fundo": "oklch(0.198 0.009 282)",
+        "fundo_de": "m-hero",
+        "razao": 15.26,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.007716,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "flex",
+        "fontSize": "12.5px",
+        "fontWeight": "400",
+        "gap": "4px",
+        "padding": "0px"
+      },
+      "filhos": 3,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "oklch(0.198 0.009 282)",
+          "de": "m-hero"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "btn",
+        "btn",
+        "btn"
+      ],
+      "rect": {
+        "h": 24,
+        "w": 208
+      },
+      "seletor": ".mp-auditoria > .m-hero > .ctas",
+      "truncado": false
+    },
+    "header": {
+      "contraste": {
+        "fundo": "oklch(0.198 0.009 282)",
+        "fundo_de": "proprio",
+        "razao": 15.26,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.007716,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.198 0.009 282)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "flex",
+        "fontSize": "12.5px",
+        "fontWeight": "400",
+        "gap": "10px",
+        "padding": "14px 18px 12px"
+      },
+      "filhos": 3,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.198 0.009 282)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "h3",
+        "crumb",
+        "ctas"
+      ],
+      "rect": {
+        "h": 52,
+        "w": 1224
+      },
+      "seletor": ".mp-auditoria > .m-hero",
+      "truncado": false
+    },
+    "log": {
+      "contraste": {
+        "fundo": "oklch(0.198 0.009 282)",
+        "fundo_de": "proprio",
+        "razao": 15.26,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.007716,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.198 0.009 282)",
+        "borderRadius": "6px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "block",
+        "fontSize": "12.5px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "padding": "0px"
+      },
+      "filhos": 8,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.198 0.009 282)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "log-row",
+        "log-row",
+        "log-row",
+        "log-row",
+        "log-row",
+        "log-row",
+        "log-row",
+        "log-row"
+      ],
+      "rect": {
+        "h": 249,
+        "w": 1192
+      },
+      "seletor": ".mp-auditoria > .log",
+      "truncado": false
+    }
+  },
+  "tela": "auditoria--index",
+  "url": "http://127.0.0.1:5561/"
+}

@@ -78,6 +78,8 @@ Quando o alvo ainda é o **protótipo** (a versão nova de um módulo que vai vi
 
 **Relatório** — graves / importantes / menores / funcionando, cada item com antes→depois medido e marcado *protótipo* ou *produção*. Achados que são do DS compartilhado (contraste de token, ordenação do `DataGrid`) vão como pedido separado ao dono do DS, não entram na correção do módulo.
 
+**Levar para produção ("sobe as modificações para a tela real")** — o escopo é o **protótipo atual inteiro × a tela viva**, medido com a sonda nos dois lados, e **nunca** a lista do que mudou nesta sessão ou neste PR: o protótipo anda em várias sessões e a produção fica para trás (caso da Fabricação 2026-09-30, em que só o título foi promovido). Procedimento e matriz em [`PROTOCOLO-COMPARACAO-RUNTIME.md` §Promoção de protótipo](../../memory/requisitos/_DesignSystem/PROTOCOLO-COMPARACAO-RUNTIME.md).
+
 **Depois de corrigir (quem corrige é o parent, não você)**
 - Reteste com **os mesmos cenários que falharam**, subir `?v=` do módulo na página para não pegar cache, sintaxe com `esbuild.transformSync(..., {loader:'jsx'})` (com controle negativo) e o porteiro do projeto (`node conferir-export.mjs .` no protótipo da equipe).
 - Envio ao espelho do Wagner (`prototipo-ui/cowork/Wagner/`): atualizar `governance/design/design-lock.json` (`content_hash` + `git_revision` = commit que mudou o protótipo) e os `*.map.json` do módulo com `node scripts/design/gerar-map.mjs <gap.md> --atualizar` (gravar a saída só depois de validar o JSON).

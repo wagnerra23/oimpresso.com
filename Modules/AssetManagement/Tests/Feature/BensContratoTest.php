@@ -481,7 +481,7 @@ function bensGarantiaLimpar(): void
     bensContratoLimpar();
 }
 
-it('UC-BENS-06: recorte=garantia traz vencida e vencendo, nunca vigente, sem registro ou de outro business', function () {
+it('UC-BENS-06: recorte=garantia traz vencida e vencendo pela garantia mais recente, nunca vigente, renovada, sem registro ou de outro business', function () {
     $dono = $this->seededTenant();
     $adversario = $this->seededSupportClientTenant();
     $bizId = (int) $dono->id;
@@ -494,6 +494,15 @@ it('UC-BENS-06: recorte=garantia traz vencida e vencendo, nunca vigente, sem reg
         bensGarantiaFixture($bizId, (int) $dono->owner_id, 'BENS-CTR-GAR-VENCENDO', now()->addDays(10)->toDateString());
         bensGarantiaFixture($bizId, (int) $dono->owner_id, 'BENS-CTR-GAR-VIGENTE', now()->addYear()->toDateString());
         bensGarantiaFixture($bizId, (int) $dono->owner_id, 'BENS-CTR-GAR-SEM', null);
+        // Renovada: a garantia velha venceu e a nova vale um ano. Conta a MAIS RECENTE
+        // ([W] 2026-09-30), então ela NÃO é crítica.
+        $renovada = bensGarantiaFixture($bizId, (int) $dono->owner_id, 'BENS-CTR-GAR-RENOVADA', now()->subDays(5)->toDateString());
+        DB::table('asset_warranties')->insert([
+            'asset_id' => $renovada->id,
+            'start_date' => now()->subDays(4)->toDateString(),
+            'end_date' => now()->addYear()->toDateString(),
+            'additional_cost' => 0,
+        ]);
         bensGarantiaFixture((int) $adversario->id, (int) $adversario->owner_id, 'BENS-CTR-GAR-ADV', now()->subDays(5)->toDateString());
 
         // Recorte ligado — a busca `BENS-CTR-GAR` casa os cinco, então só o recorte explica
@@ -503,6 +512,7 @@ it('UC-BENS-06: recorte=garantia traz vencida e vencendo, nunca vigente, sem reg
         expect($comRecorte)->toContain('BENS-CTR-GAR-VENCENDO');
         expect($comRecorte)->not->toContain('BENS-CTR-GAR-VIGENTE');
         expect($comRecorte)->not->toContain('BENS-CTR-GAR-SEM');
+        expect($comRecorte)->not->toContain('BENS-CTR-GAR-RENOVADA');
         expect($comRecorte)->not->toContain('BENS-CTR-GAR-ADV');
 
         // Controle: sem o recorte o vigente e o sem registro VOLTAM — a ausência acima veio
@@ -511,12 +521,13 @@ it('UC-BENS-06: recorte=garantia traz vencida e vencendo, nunca vigente, sem reg
             $semRecorte = bensContratoPropDeferida($user, $bizId, ['q' => 'BENS-CTR-GAR'] + $extra);
             expect($semRecorte)->toContain('BENS-CTR-GAR-VIGENTE');
             expect($semRecorte)->toContain('BENS-CTR-GAR-SEM');
+            expect($semRecorte)->toContain('BENS-CTR-GAR-RENOVADA');
             expect($semRecorte)->not->toContain('BENS-CTR-GAR-ADV');
         }
 
         // Contagem do servidor: independe da busca, então a base persistente do CT 100 pode
         // ter outros bens críticos no tenant 98. O que o teste prova é o DELTA dos fixtures:
-        // +2 do dono, e o do adversário não soma.
+        // +2 do dono (a renovada não soma), e o do adversário não soma.
         $contar = function () use (&$user, $bizId): int {
             $inicial = bensContratoGet($user, $bizId);
             $versao = data_get($inicial->viewData('page'), 'version');
@@ -544,5 +555,435 @@ it('UC-BENS-06: recorte=garantia traz vencida e vencendo, nunca vigente, sem reg
         expect($comFixtures - $semFixtures)->toBe(2);
     } finally {
         bensGarantiaLimpar();
+    }
+});
+
+/*
+ * UC-BENS-07 — sub-recorte "Em manutenção" ([W] 2026-09-30).
+ *
+ * "Em aberto" = status `new` ou `in_progress`, a lista fechada de
+ * `AssetMaintenanceService::contarAbertas()`. Os fixtures cobrem os dois status que entram, os
+ * dois que ficam fora (concluída e NULL), o bem sem manutenção, e os dois vetores de tenant: o
+ * bem do adversário, e uma manutenção registrada no business do ADVERSÁRIO apontando pra bem
+ * do dono — `asset_maintenances` tem `business_id`, e o recorte tem de respeitá-lo.
+ */
+function bensManutencaoFixture(int $businessId, int $ownerId, string $codigo, ?string $status, ?int $bizDaManutencao = null): Asset
+{
+    $bem = bensContratoAsset($businessId, $ownerId, $codigo, 'Bem '.$codigo);
+    if ($status !== 'SEM') {
+        DB::table('asset_maintenances')->insert([
+            'business_id' => $bizDaManutencao ?? $businessId,
+            'asset_id' => $bem->id,
+            'status' => $status,
+            'created_by' => $ownerId,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+    }
+
+    return $bem;
+}
+
+function bensManutencaoLimpar(): void
+{
+    $ids = Asset::where('asset_code', 'like', 'BENS-CTR-%')->pluck('id');
+    if ($ids->isNotEmpty()) {
+        DB::table('asset_maintenances')->whereIn('asset_id', $ids)->delete();
+    }
+    bensContratoLimpar();
+}
+
+function bensContagemRecorte(User $user, int $bizId, string $recorte): int
+{
+    $inicial = bensContratoGet($user, $bizId);
+    $versao = data_get($inicial->viewData('page'), 'version');
+    $r = test()->actingAs($user)
+        ->withSession(['user.business_id' => $bizId, 'user' => ['business_id' => $bizId, 'id' => $user->id], 'business.date_format' => 'd/m/Y'])
+        ->withHeaders([
+            'X-Requested-With' => 'XMLHttpRequest',
+            'X-Inertia' => 'true',
+            'X-Inertia-Version' => (string) $versao,
+            'X-Inertia-Partial-Component' => 'Patrimonio/Bens',
+            'X-Inertia-Partial-Data' => 'recortes_contagem',
+        ])
+        ->get('/asset/assets');
+    expect($r->status())->toBe(200);
+
+    return (int) data_get($r->json(), 'props.recortes_contagem.'.$recorte, -1);
+}
+
+it('UC-BENS-07: recorte=manutencao traz manutenção em aberto (new/in_progress), nunca concluída, sem status, sem manutenção ou de outro business', function () {
+    $dono = $this->seededTenant();
+    $adversario = $this->seededSupportClientTenant();
+    $bizId = (int) $dono->id;
+    $owner = (int) $dono->owner_id;
+    $advId = (int) $adversario->id;
+    $user = bensContratoUsuario($bizId);
+
+    try {
+        bensContratoAssinaturaLiberada();
+        $antes = bensContagemRecorte($user, $bizId, 'manutencao');
+
+        bensManutencaoFixture($bizId, $owner, 'BENS-CTR-MAN-ABERTA', 'new');
+        bensManutencaoFixture($bizId, $owner, 'BENS-CTR-MAN-ANDAMENTO', 'in_progress');
+        bensManutencaoFixture($bizId, $owner, 'BENS-CTR-MAN-CONCLUIDA', 'completed');
+        bensManutencaoFixture($bizId, $owner, 'BENS-CTR-MAN-NULA', null);
+        bensManutencaoFixture($bizId, $owner, 'BENS-CTR-MAN-SEM', 'SEM');
+        // Manutenção aberta, mas registrada no business do ADVERSÁRIO, apontando pra bem do dono.
+        bensManutencaoFixture($bizId, $owner, 'BENS-CTR-MAN-CRUZADA', 'new', $advId);
+        bensManutencaoFixture($advId, (int) $adversario->owner_id, 'BENS-CTR-MAN-ADV', 'new');
+
+        $comRecorte = bensContratoPropDeferida($user, $bizId, ['q' => 'BENS-CTR-MAN', 'recorte' => 'manutencao']);
+        expect($comRecorte)->toContain('BENS-CTR-MAN-ABERTA');
+        expect($comRecorte)->toContain('BENS-CTR-MAN-ANDAMENTO');
+        expect($comRecorte)->not->toContain('BENS-CTR-MAN-CONCLUIDA');
+        expect($comRecorte)->not->toContain('BENS-CTR-MAN-NULA');
+        expect($comRecorte)->not->toContain('BENS-CTR-MAN-SEM');
+        expect($comRecorte)->not->toContain('BENS-CTR-MAN-CRUZADA');
+        expect($comRecorte)->not->toContain('BENS-CTR-MAN-ADV');
+
+        // Controle: sem o recorte, os que ficaram fora VOLTAM — a ausência veio do recorte.
+        $semRecorte = bensContratoPropDeferida($user, $bizId, ['q' => 'BENS-CTR-MAN']);
+        foreach (['CONCLUIDA', 'NULA', 'SEM', 'CRUZADA'] as $sufixo) {
+            expect($semRecorte)->toContain('BENS-CTR-MAN-'.$sufixo);
+        }
+
+        // Contagem por delta (base persistente no CT 100): só ABERTA e ANDAMENTO somam.
+        expect(bensContagemRecorte($user, $bizId, 'manutencao') - $antes)->toBe(2);
+    } finally {
+        bensManutencaoLimpar();
+    }
+});
+
+/*
+ * UC-BENS-08 — editar o PRÓPRIO bem não alcança garantia de outra empresa (Tier 0, ADR 0093).
+ *
+ * `asset_warranties` não tem `business_id` e a chave de `edit_warranty[<id>]` vem do request.
+ * O `AssetService::atualizar` fazia `AssetWarranty::where('id', $key)->update(...)` sem amarrar a
+ * garantia ao bem — quem editasse o próprio bem com o id de uma garantia do 99 a reescrevia.
+ * O controle positivo (a garantia do PRÓPRIO bem, no mesmo request, muda) prova que o caminho de
+ * `edit_warranty` executou: sem ele, "a do 99 ficou igual" seria indistinguível de "nada rodou".
+ */
+it('UC-BENS-08: editar o próprio bem com o id da garantia de outra empresa não a altera nem a apaga (Tier 0)', function () {
+    $dono = $this->seededTenant();
+    $donoId = (int) $dono->id;
+    $adv = $this->seededSupportClientTenant();
+    $advId = (int) $adv->id;
+
+    $user = bensContratoUsuario($donoId);
+    $role = Role::where('name', 'bens-contrato#'.$donoId)->first();
+    $role?->givePermissionTo(Permission::firstOrCreate(['name' => 'asset.update', 'guard_name' => 'web']));
+    app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
+    $user = $user->fresh();
+    $userAdv = bensContratoUsuario($advId, false);
+
+    try {
+        bensContratoAssinaturaLiberada();
+
+        $meu = bensContratoAsset($donoId, $user->id, 'BENS-CTR-W-'.uniqid(), 'Bem do dono');
+        $alheio = bensContratoAsset($advId, $userAdv->id, 'BENS-CTR-W-'.uniqid(), 'Bem do adversário');
+
+        $minhaGarantia = DB::table('asset_warranties')->insertGetId([
+            'asset_id' => $meu->id, 'start_date' => '2026-01-01', 'end_date' => '2027-01-01',
+            'additional_cost' => 0, 'additional_note' => 'garantia do dono',
+            'created_at' => now(), 'updated_at' => now(),
+        ]);
+        $garantiaAlheia = DB::table('asset_warranties')->insertGetId([
+            'asset_id' => $alheio->id, 'start_date' => '2026-01-01', 'end_date' => '2027-01-01',
+            'additional_cost' => 0, 'additional_note' => 'garantia do adversário',
+            'created_at' => now(), 'updated_at' => now(),
+        ]);
+
+        $resposta = test()
+            ->actingAs($user)
+            ->withSession([
+                'user.business_id' => $donoId,
+                'user.id' => $user->id,
+                'user' => ['business_id' => $donoId, 'id' => $user->id],
+                'business.date_format' => 'd/m/Y',
+            ])
+            ->put('/asset/assets/'.$meu->id, [
+                'name' => 'Bem do dono',
+                'quantity' => '2',
+                'unit_price' => '1500',
+                'purchase_type' => 'owned',
+                'is_allocatable' => '1',
+                'edit_warranty' => [
+                    $minhaGarantia => ['start_date' => '01/03/2026', 'months' => '6', 'additional_cost' => '0', 'additional_note' => 'editada pelo dono'],
+                    $garantiaAlheia => ['start_date' => '01/03/2026', 'months' => '6', 'additional_cost' => '0', 'additional_note' => 'INVADIDA'],
+                ],
+            ]);
+
+        $resposta->assertRedirect();
+        // O `update()` redireciona até quando falha (flash `status.success = false`).
+        expect((bool) session('status.success'))->toBeTrue();
+
+        // Controle positivo: o caminho de edit_warranty RODOU.
+        $minha = DB::table('asset_warranties')->where('id', $minhaGarantia)->first();
+        expect($minha)->not->toBeNull();
+        expect($minha->additional_note)->toBe('editada pelo dono');
+        expect((string) $minha->end_date)->toStartWith('2026-09-01');
+
+        // A regra sob teste: a garantia do 99 fica intacta e continua existindo.
+        $alheia = DB::table('asset_warranties')->where('id', $garantiaAlheia)->first();
+        expect($alheia)->not->toBeNull();
+        expect($alheia->additional_note)->toBe('garantia do adversário');
+        expect((string) $alheia->end_date)->toStartWith('2027-01-01');
+        expect((int) $alheia->asset_id)->toBe((int) $alheio->id);
+    } finally {
+        $ids = Asset::where('asset_code', 'like', 'BENS-CTR-W-%')->pluck('id');
+        if ($ids->isNotEmpty()) {
+            DB::table('asset_warranties')->whereIn('asset_id', $ids)->delete();
+        }
+        bensContratoLimpar();
+    }
+});
+
+/*
+ * UC-BENS-09 — editar o bem pelo drawer grava VALOR e QUANTIDADE exatamente como digitados, e
+ * não apaga a garantia que o drawer não mostra.
+ *
+ * REGRA MESTRE Tier 0 (valor/estoque): dupla confirmação por dois caminhos independentes.
+ *   • Caminho 1: `tests/js/patrimonio-cadastro-bem.test.tsx` (UC-BENS-09) fixa as STRINGS que
+ *     `cadastroBem.ts::montarPayloadEdicao` monta.
+ *   • Caminho 2 (ESTE): posta essas MESMAS strings no `update()` real (`UpdateAssetRequest` +
+ *     `AssetService::atualizar` + `num_uf`/`uf_date`) e lê o que o BANCO gravou.
+ */
+function bensEdicaoUsuario(int $businessId): User
+{
+    $user = bensContratoUsuario($businessId);
+    $role = Role::where('name', 'bens-contrato#'.$businessId)->first();
+    $role?->givePermissionTo(Permission::firstOrCreate(['name' => 'asset.update', 'guard_name' => 'web']));
+    $role?->givePermissionTo(Permission::firstOrCreate(['name' => 'asset.create', 'guard_name' => 'web']));
+    app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
+
+    return $user->fresh();
+}
+
+function bensEdicaoSessao(User $user, int $bizId): array
+{
+    return [
+        'user.business_id' => $bizId,
+        'user.id' => $user->id,
+        'user' => ['business_id' => $bizId, 'id' => $user->id],
+        'business.date_format' => 'd/m/Y',
+    ];
+}
+
+function bensEdicaoLimpar(): void
+{
+    $ids = Asset::where('asset_code', 'like', 'BENS-CTR-ED-%')->pluck('id');
+    if ($ids->isNotEmpty()) {
+        DB::table('asset_warranties')->whereIn('asset_id', $ids)->delete();
+    }
+    bensContratoLimpar();
+}
+
+it('UC-BENS-09: o update() grava o valor e a quantidade que o drawer de edição posta e preserva a garantia antiga', function (string $valorPostado, string $qtdPostada, string $valorGravado, string $qtdGravada) {
+    $biz = $this->seededTenant();
+    $bizId = (int) $biz->id;
+    $user = bensEdicaoUsuario($bizId);
+
+    try {
+        bensContratoAssinaturaLiberada();
+        $bem = bensContratoAsset($bizId, $user->id, 'BENS-CTR-ED-'.uniqid(), 'Plotter de corte');
+        $antiga = DB::table('asset_warranties')->insertGetId([
+            'asset_id' => $bem->id, 'start_date' => '2025-03-01', 'end_date' => '2026-03-01',
+            'additional_cost' => 350.5, 'additional_note' => 'Contrato antigo',
+            'created_at' => now(), 'updated_at' => now(),
+        ]);
+        $nova = DB::table('asset_warranties')->insertGetId([
+            'asset_id' => $bem->id, 'start_date' => '2026-03-01', 'end_date' => '2027-03-01',
+            'additional_cost' => 0, 'additional_note' => 'Contrato novo',
+            'created_at' => now(), 'updated_at' => now(),
+        ]);
+
+        // As strings do caminho 1 (vitest UC-BENS-09) — `_method=put` como o drawer manda.
+        $resposta = test()->actingAs($user)->withSession(bensEdicaoSessao($user, $bizId))
+            ->post('/asset/assets/'.$bem->id, [
+                '_method' => 'put',
+                'name' => 'Plotter de corte',
+                'model' => 'D60',
+                'serial_no' => 'SN-1',
+                'purchase_date' => '10/09/2026',
+                'purchase_type' => 'owned',
+                'unit_price' => $valorPostado,
+                'quantity' => $qtdPostada,
+                'depreciation' => '',
+                'description' => '',
+                'is_allocatable' => '1',
+                'edit_warranty' => [
+                    $nova => ['start_date' => '01/03/2026', 'months' => '12', 'additional_cost' => '0', 'additional_note' => 'Contrato novo'],
+                    $antiga => ['start_date' => '01/03/2025', 'months' => '12', 'additional_cost' => '350,5', 'additional_note' => 'Contrato antigo'],
+                ],
+            ]);
+
+        $resposta->assertRedirect();
+        expect((bool) session('status.success'))->toBeTrue();
+
+        $gravado = Asset::find($bem->id);
+        expect((string) $gravado->unit_price)->toBe($valorGravado);
+        expect((string) $gravado->quantity)->toBe($qtdGravada);
+        expect((string) $gravado->purchase_date)->toStartWith('2026-09-10');
+        expect((string) $gravado->asset_code)->toBe((string) $bem->asset_code);
+        // Depreciação vazia no form sai `''`, e o `ConvertEmptyStringsToNull` global a devolve NULL:
+        // salvar sem mexer NÃO transforma "sem depreciação" em 0 (MySQL aqui não é strict).
+        expect($gravado->depreciation)->toBeNull();
+
+        // As duas garantias seguem, com os valores que tinham — nenhuma apagada, nenhuma deslocada.
+        $g = DB::table('asset_warranties')->where('asset_id', $bem->id)->orderBy('start_date')->get();
+        expect($g)->toHaveCount(2);
+        expect((string) $g[0]->end_date)->toStartWith('2026-03-01');
+        expect((string) $g[0]->additional_cost)->toBe('350.5000');
+        expect($g[0]->additional_note)->toBe('Contrato antigo');
+        expect((string) $g[1]->end_date)->toStartWith('2027-03-01');
+    } finally {
+        bensEdicaoLimpar();
+    }
+})->with([
+    'sem mexer: reposta o que estava gravado' => ['1500', '2', '1500.0000', '2.0000'],
+    'valor na casa do milhão, quantidade fracionada' => ['1234567,8', '1,5', '1234567.8000', '1.5000'],
+]);
+
+it('UC-BENS-09: o edit() devolve a tela de Bens com o bem da própria empresa, e 404 para bem de outra', function () {
+    $dono = $this->seededTenant();
+    $donoId = (int) $dono->id;
+    $advId = (int) $this->seededSupportClientTenant()->id;
+    $user = bensEdicaoUsuario($donoId);
+    $userAdv = bensContratoUsuario($advId, false);
+
+    try {
+        bensContratoAssinaturaLiberada();
+        $meu = bensContratoAsset($donoId, $user->id, 'BENS-CTR-ED-'.uniqid(), 'Bem do dono');
+        $alheio = bensContratoAsset($advId, $userAdv->id, 'BENS-CTR-ED-'.uniqid(), 'Bem do adversário');
+
+        test()->flushHeaders();
+        $r = test()->actingAs($user)->withSession(bensEdicaoSessao($user, $donoId))->get('/asset/assets/'.$meu->id.'/edit');
+        expect($r->status())->toBe(200);
+        $page = $r->viewData('page');
+        expect(data_get($page, 'component'))->toBe('Patrimonio/Bens');
+        expect((int) data_get($page, 'props.edicao.id'))->toBe((int) $meu->id);
+        expect((float) data_get($page, 'props.edicao.form.valorUnitario'))->toBe(1500.0);
+        expect((float) data_get($page, 'props.edicao.form.quantidade'))->toBe(2.0);
+
+        test()->flushHeaders();
+        $x = test()->actingAs($user)->withSession(bensEdicaoSessao($user, $donoId))->get('/asset/assets/'.$alheio->id.'/edit');
+        expect($x->status())->toBe(404);
+
+        test()->flushHeaders();
+        $c = test()->actingAs($user)->withSession(bensEdicaoSessao($user, $donoId))->get('/asset/assets/create');
+        expect($c->status())->toBe(200);
+        expect(data_get($c->viewData('page'), 'component'))->toBe('Patrimonio/Bens');
+        expect(data_get($c->viewData('page'), 'props.abrir_cadastro'))->toBeTrue();
+    } finally {
+        bensEdicaoLimpar();
+    }
+});
+
+/**
+ * Partial reload de props arbitrárias — mesma receita do `bensContratoPropDeferida` (versão
+ * vinda do render inicial + `X-Requested-With`, os dois medidos no CT 100), mas devolvendo o
+ * JSON inteiro, porque o drawer de detalhe lê DUAS props (`bem_detalhe` e `bem_selecionado`).
+ */
+function bensContratoParcial(User $user, int $businessId, array $query, string $props): array
+{
+    $inicial = bensContratoGet($user, $businessId, $query);
+    expect($inicial->status())->toBe(200);
+    $versao = data_get($inicial->viewData('page'), 'version');
+
+    $parcial = test()
+        ->actingAs($user)
+        ->withSession([
+            'user.business_id' => $businessId,
+            'user' => ['business_id' => $businessId, 'id' => $user->id],
+            'business.date_format' => 'd/m/Y',
+        ])
+        ->withHeaders([
+            'X-Requested-With' => 'XMLHttpRequest',
+            'X-Inertia' => 'true',
+            'X-Inertia-Version' => (string) $versao,
+            'X-Inertia-Partial-Component' => 'Patrimonio/Bens',
+            'X-Inertia-Partial-Data' => $props,
+        ])
+        ->get('/asset/assets?'.http_build_query($query));
+
+    expect($parcial->status())->toBe(200);
+
+    return (array) data_get($parcial->json(), 'props', []);
+}
+
+function bensDetalheTransacao(int $bizId, int $assetId, int $userId, string $tipo, string $ref, float $qtd, ?int $parent = null, ?string $motivo = null): int
+{
+    return (int) DB::table('asset_transactions')->insertGetId([
+        'business_id' => $bizId, 'asset_id' => $assetId, 'transaction_type' => $tipo,
+        'ref_no' => $ref, 'receiver' => $userId, 'quantity' => $qtd,
+        'transaction_datetime' => now(), 'parent_id' => $parent, 'reason' => $motivo,
+        'created_by' => $userId, 'created_at' => now(), 'updated_at' => now(),
+    ]);
+}
+
+/**
+ * UC-BENS-10 — drawer de detalhe do bem: a aba Alocações traz as N devoluções de cada
+ * alocação, escopadas por business NA DEVOLUÇÃO (Tier 0, ADR 0093).
+ *
+ * A soma de devoluções da tela Alocações (`leftJoin ... as PT`) não filtra `PT.business_id`
+ * — resíduo declarado. O vetor aqui é exatamente esse: uma `revoke` gravada no business 99
+ * com `parent_id` apontando pra alocação do 98. Ela NÃO pode aparecer na lista nem entrar
+ * no `devolvido`. Mesma coisa pra uma `allocate` do 99 com o `asset_id` do bem do 98.
+ * Controle positivo: as DUAS devoluções legítimas (1 : N) estão lá — "a alheia não veio"
+ * não pode passar por a lista ter vindo vazia.
+ */
+it('UC-BENS-10: o drawer lista as N devoluções da alocação, nunca devolução ou alocação de outro business (Tier 0)', function () {
+    $dono = $this->seededTenant();
+    $donoId = (int) $dono->id;
+    $adv = $this->seededSupportClientTenant();
+    $advId = (int) $adv->id;
+
+    $user = bensContratoUsuario($donoId);
+    $userAdv = bensContratoUsuario($advId, false);
+
+    try {
+        bensContratoAssinaturaLiberada();
+
+        $meu = bensContratoAsset($donoId, $user->id, 'BENS-CTR-D-'.uniqid(), 'Bem com devoluções');
+        $alheio = bensContratoAsset($advId, $userAdv->id, 'BENS-CTR-D-'.uniqid(), 'Bem do adversário');
+
+        $alocacao = bensDetalheTransacao($donoId, $meu->id, $user->id, 'allocate', 'BENS-CTR-D-ALO', 2);
+        bensDetalheTransacao($donoId, $meu->id, $user->id, 'revoke', 'BENS-CTR-D-REV1', 0.5, $alocacao, 'primeira parcial');
+        bensDetalheTransacao($donoId, $meu->id, $user->id, 'revoke', 'BENS-CTR-D-REV2', 0.5, $alocacao, 'segunda parcial');
+        // Os dois vetores cross-tenant:
+        bensDetalheTransacao($advId, $meu->id, $userAdv->id, 'revoke', 'BENS-CTR-D-REV-INVASORA', 1, $alocacao, 'INVASORA');
+        bensDetalheTransacao($advId, $meu->id, $userAdv->id, 'allocate', 'BENS-CTR-D-ALO-INVASORA', 1);
+
+        $props = bensContratoParcial($user, $donoId, ['bem' => $meu->id], 'bem_detalhe,bem_selecionado');
+
+        expect($props['bem_selecionado'] ?? null)->toBe((int) $meu->id);
+        $detalhe = $props['bem_detalhe'] ?? null;
+        expect($detalhe)->toBeArray();
+        expect($detalhe['asset_code'])->toBe($meu->asset_code);
+
+        $refsAlocacoes = collect($detalhe['alocacoes'])->pluck('ref_no')->all();
+        expect($refsAlocacoes)->toBe(['BENS-CTR-D-ALO']);
+
+        $aloc = $detalhe['alocacoes'][0];
+        $refsDevolucoes = collect($aloc['devolucoes'])->pluck('ref_no')->all();
+        // Controle positivo + 1 : N.
+        expect($refsDevolucoes)->toBe(['BENS-CTR-D-REV1', 'BENS-CTR-D-REV2']);
+        expect($refsDevolucoes)->not->toContain('BENS-CTR-D-REV-INVASORA');
+        expect((float) $aloc['devolvido'])->toBe(1.0);
+        expect($aloc['devolucoes'][0]['motivo'])->toBe('primeira parcial');
+
+        // Bem de OUTRA empresa pelo `?bem=`: não vaza nada.
+        $propsAlheio = bensContratoParcial($user, $donoId, ['bem' => $alheio->id], 'bem_detalhe,bem_selecionado');
+        // Controle positivo: o pedido chegou com o id do bem alheio — "não veio dado" não pode
+        // passar por a requisição nem ter pedido o bem. (Até 2026-09-30 este assert era
+        // `?? 'ausente'`, que troca `null` por string e por isso reprovava SEMPRE.)
+        expect($propsAlheio['bem_selecionado'] ?? null)->toBe((int) $alheio->id);
+        expect(array_key_exists('bem_detalhe', $propsAlheio))->toBeTrue();
+        expect($propsAlheio['bem_detalhe'])->toBeNull();
+    } finally {
+        DB::table('asset_transactions')->where('ref_no', 'like', 'BENS-CTR-D-%')->whereNotNull('parent_id')->delete();
+        DB::table('asset_transactions')->where('ref_no', 'like', 'BENS-CTR-D-%')->delete();
+        bensContratoLimpar();
     }
 });

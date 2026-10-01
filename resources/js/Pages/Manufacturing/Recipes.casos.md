@@ -5,8 +5,14 @@ tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (
 por_que: comportamento é durável — o contrato de teste nasce junto com a tela, não depois.
 fonte: handoff "PROTÓTIPO OFICIAL - FABRICAÇÃO V1" §17 (R-01..R-24) — os UC abaixo DERIVAM dele
 owner: wagner
-last_run: "2026-09-11"
+last_run: "2026-09-30"
 ---
+
+> ℹ️ **`last_run` 2026-09-11 → 2026-09-30 (G-6): forma, não comportamento.** A promoção do protótipo
+> trocou os cartões pelo `KpiCard` do DS, a margem pelo `StatusBadge`, e o cabeçalho e o alinhamento da
+> tabela pelos do `DataGrid` ([matriz](../../../../memory/requisitos/Manufacturing/Recipes-visual-comparison.md)).
+> Filtro por KPI (R-05), ordenação (R-06), faixas de margem (R-10) e seleção seguem com a mesma lógica;
+> nenhum UC foi reexecutado nesta data.
 
 > ℹ️ **`last_run` 2026-09-04 → 2026-09-11 (G-6), e o que mudou na tela NÃO foi comportamento.**
 > O único toque em `Recipes.tsx` no [#7224](https://github.com/wagnerra23/oimpresso.com/pull/7224) foi **2 linha(s) de COMENTÁRIO** —
@@ -28,7 +34,7 @@ last_run: "2026-09-11"
 ## UC-RECIPE-00 · Chego na tela pelo menu, sem digitar URL
 - **Persona:** Larissa — abre o sistema e encontra Fabricação no sidebar.
 - **Aceite:** Dado usuário com `manufacturing.access_recipe` e o pacote `manufacturing_module` ·
-  Quando abre o sistema · Então o item "Manufacturing" existe no sidebar e o ghost "Receitas"
+  Quando abre o sistema · Então o item "Fabricação" existe no sidebar e o ghost "Receitas"
   leva a `/manufacturing/recipe` com 200.
 - **Regressão que defende:** a tela responder 200 e ninguém alcançar. Aqui o alcance **já existia**
   — `DataController::modifyAdminMenu` (Modules/Manufacturing) aponta o ghost `recipe` para

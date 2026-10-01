@@ -1,6 +1,6 @@
 # Concorrentes — Zênite Sistemas & Mubisys (Mubi Sistemas)
 
-> Pesquisa competitiva 2026-05-09. Fontes: site oficial dos concorrentes, Reclame Aqui, LinkedIn, CNPJ.biz, Econodata, imprensa setorial (Singrafs/Assingrafs/Infosign/Guia do Gráfico). Apenas conteúdo público — sem engenharia social ou criação de conta em demos.
+> Pesquisa competitiva 2026-05-09 · **produção do Mubisys detalhada em 2026-09-29** (seção própria abaixo; o restante segue como levantado em maio). Fontes: site oficial dos concorrentes, Reclame Aqui, LinkedIn, CNPJ.biz, Econodata, imprensa setorial (Singrafs/Assingrafs/Infosign/Guia do Gráfico). Apenas conteúdo público — sem engenharia social ou criação de conta em demos.
 >
 > **Diferenciais oimpresso usados como contraste:** NFe automática a partir de boleto pago (US-RB-044); Jana IA com memória persistente (Meilisearch hybrid); Multi-tenant Tier 0 isolation; Stack Laravel 13.6 + Inertia v3 + React 19 + Tailwind 4; Governança formal Constituição v2 (ADR 0094).
 
@@ -11,7 +11,7 @@
 ## Identidade
 - **Site:** http://zenitesistemas.net.br/ + https://www.zsl.com.br/ (site institucional/comercial moderno)
 - **HQ:** Belo Horizonte/MG — Rua Itaguai, 866, Caiçaras, 30.775-110 ([Econodata/CNPJ.biz](https://cnpj.biz/00219676000170))
-- **CNPJ:** 00.219.676/0001-70 (fundada **1994** — 32 anos de mercado)
+- **CNPJ:** consultar na fonte ([CNPJ.biz](https://cnpj.biz/00219676000170)) — número formatado retirado em 2026-09-29 pelo PII scan do CI (fundada **1994** — 32 anos de mercado)
 - **Tempo de mercado:** "30+ anos" (alegação no site oficial — coerente com fundação 1994)
 - **Modelo:** Hybrid — produto principal **GE 4.0 (GWorks Enterprise)** com versão **web** (recente) + base instalada legacy desktop. Reclamações Reclame Aqui mencionam "alteração para versão web após quase 3 anos usando o sistema" → migração desktop→web em curso, ainda não 100% SaaS-cloud nativo.
 - **Pricing público:** **Não publicado.** Vendas via comercial (vendas@zsl.com.br / +55 (31) 3419-7300). Tiers nomeados: GE Lite, GE Smart, GE Standard, GE Pro/Full.
@@ -92,7 +92,7 @@
 - **Site:** https://mubisys.com/ (institucional) + https://lp.mubisys.com/ + https://lp2.mubisys.com/ (landing pages)
 - **HQ:** **Barueri/SP** — Avenida Trindade 254, salas 215/216, 06404-326 ([CNPJ.biz](https://cnpj.biz/17673962000104))
 - **Razão social:** Mubi - Tecnologia da Informação LTDA
-- **CNPJ:** 17.673.962/0001-04
+- **CNPJ:** consultar na fonte ([CNPJ.biz](https://cnpj.biz/17673962000104)) — número formatado retirado em 2026-09-29 pelo PII scan do CI
 - **Tempo de mercado:** **fundada 15/02/2013** — ~13 anos
 - **Modelo:** **SaaS cloud puro** ("totalmente online", "controle de onde estiver"). Tem **app mobile iOS + Android sem custo adicional** (App Store + Google Play).
 - **Pricing público:** **Não publicado.** Vendas via apresentação comercial → proposta. **Trial gratuito de 7 dias** (mencionado em termos de uso).
@@ -107,7 +107,7 @@
   - **Financeiro:** receitas/despesas, boletos, conciliação bancária, cash-flow forecasting
   - **Estoque:** alertas de mínimo, sistema integrado de compras com cotações
   - **NFe + NFCe + MDFe + NFSe + Sintegra + SPED** (cobertura fiscal completa)
-  - **PCP/Produção:** gráficos de conclusão, sectorização, relatórios
+  - **PCP/Produção:** gráficos de conclusão, sectorização, relatórios — resumo de maio; o inventário completo está em **Produção — inventário detalhado (2026-09-29)**, logo abaixo
   - **MubiDrive:** DAM (digital asset management) — clientes enviam arquivos direto pro sistema. 5GB grátis + ilimitado pra arquivos de visualização. **Diferencial forte.**
   - App mobile iOS/Android
 
@@ -118,6 +118,36 @@
 - Líder em software de gestão pra Comunicação Visual (Instagram oficial)
 - Trial 7 dias gratuito
 - Suporte direto na plataforma (chat) — sem telefone enfatizado (queixa de cliente)
+
+## Produção — inventário detalhado (2026-09-29)
+
+> Levantado em 2026-09-29 nas páginas públicas [`mubisys.com/producao`](https://mubisys.com/producao), [`lp.mubisys.com`](https://lp.mubisys.com/), [`lp2.mubisys.com`](https://lp2.mubisys.com/) e nas notas de versão do app na [App Store](https://apps.apple.com/br/app/mubisys/id1623941063). É o que o Mubisys **anuncia** — nada foi testado em demo.
+>
+> A última coluna aponta a US do oimpresso que trata do mesmo assunto. **Apontar a US não quer dizer que está entregue** — o estado de cada uma está no [SPEC do ComunicacaoVisual](../../requisitos/ComunicacaoVisual/SPEC.md) e no [SPEC do Pcp](../../requisitos/Pcp/SPEC.md).
+>
+> **Comparação com os outros 9 sistemas do ramo** (Zênite, Calcgraf, Visua, Alfa, Calcme, shopVOX, Corebridge, Cyrious, printIQ) e com o oimpresso, numa grade de 22 funções de produção: [33 — Grade de produção](33-grade-producao-concorrentes.md).
+
+| # | O que o Mubisys anuncia | Etapa | US do oimpresso sobre o mesmo assunto |
+|---|---|---|---|
+| 1 | Orçamento vira ordem de serviço com um clique, e a produção é acompanhada no mesmo lugar | Comercial → OS | US-COMVIS-003 |
+| 2 | Aprovação de arte: o layout vai anexado ao orçamento para o cliente aprovar | Pré-produção | US-COMVIS-NEW-004 |
+| 3 | Arquivos de produção presos à OS (MubiDrive); o cliente envia arquivo direto no sistema | Pré-produção | US-COMVIS-012 |
+| 4 | PCP por setor: cada serviço vai ao responsável do setor, com gráfico de conclusão e relatórios | Chão de fábrica | US-COMVIS-003 |
+| 5 | Baixa por setor e tarefa atribuída a cada colaborador | Chão de fábrica | US-COMVIS-003 |
+| 6 | Terminal de apontamento: mede o tempo de cada tarefa, lançado pelo celular. É **manual** — não anuncia leitura automática da máquina (isso é a Zênite) | Chão de fábrica | US-COMVIS-004 |
+| 7 | Romaneio de impressão: a pré-impressão diz ao setor de impressão/corte o que foi enviado, peça por peça | Pré-impressão → impressão | nenhuma |
+| 8 | Consumo real de matéria-prima e baixa de estoque pela produção; estoque fracionado; mostra em que serviço cada mídia foi usada | Material | US-COMVIS-005 · US-COMVIS-NEW-007 |
+| 9 | Almoxarifado de ferramentas e veículos: registra cada saída, para achar perdas | Material | nenhuma própria (a mais próxima é US-COMVIS-007) |
+| 10 | Protocolo de entrega e relatório de instalação | Entrega | US-COMVIS-007 |
+| 11 | Pesquisa de satisfação ou reclamação respondida pelo cliente após a entrega | Pós-entrega | nenhuma |
+| 12 | App: tela de Produção com leitura de QR Code (v1.0.212), registro de eventos (v1.0.211) e baixa avulsa de estoque (v1.0.210) | Chão de fábrica (mobile) | QR code OS scan no [SPEC do Pcp](../../requisitos/Pcp/SPEC.md) |
+
+**App mobile em 2026-09-29:** versão 1.0.220; nota 3,3 de 5 com 19 avaliações na App Store BR. As avaliações repetem a queixa de maio — várias operações só funcionam no navegador do computador.
+
+**O que isso corrige em outros documentos (2026-09-29):**
+- O Mubisys **não** anuncia leitura direta do plotter; só a Zênite anuncia coleta automática de máquina. O [SPEC do ComunicacaoVisual](../../requisitos/ComunicacaoVisual/SPEC.md) (US-COMVIS-004) dizia que os dois tinham.
+- O Mubisys é um sistema web em PHP (ver Stack/UX acima), não Delphi. A [CAPTERRA-FICHA](../../requisitos/ComunicacaoVisual/CAPTERRA-FICHA.md) dizia "Mubisys Delphi".
+- Contra o Mubisys, cronômetro e QR Code no celular são **paridade**, não diferencial. A [proposta do Pcp](../../requisitos/Pcp/ADR-PROPOSAL.md) dizia que ele não tinha.
 
 ## Reviews/percepção pública
 - **Reclame Aqui:** ["sem reputação definida"](https://www.reclameaqui.com.br/empresa/mubi-sistemas/) — não atinge o mínimo de 10 reclamações avaliadas. Período 09/2025–02/2026 sem reclamações novas. **Empresa há 6+ anos no Reclame Aqui.**
@@ -183,6 +213,9 @@
 | IA conversacional | não | não | **sim (Jana + Meilisearch)** |
 | DAM/arquivos cliente | não publicada | **MubiDrive (150+ TB)** | não nativo |
 | Coleta dados máquina | **sim** | não | não |
+| Apontamento manual (tempo por tarefa) — _linha de 2026-09-29_ | não publicado | **sim, pelo celular** | parcial: API sem tela (US-COMVIS-004, SPEC verificado em 2026-07-02) |
+| Aprovação de arte pelo cliente — _2026-09-29_ | não publicada | **sim** (layout anexo ao orçamento) | sem entrega registrada (US-COMVIS-NEW-004) |
+| Protocolo de entrega / relatório de instalação — _2026-09-29_ | não publicado | **sim** | pendente (US-COMVIS-007) |
 | Multi-tenant Tier 0 | não publicada | não publicada | **sim (Constituição v2)** |
 | Reclame Aqui | "não verificada", 1 reclamação | "sem reputação", ~2 reclamações relevantes | n/a |
 | Stack moderna | em migração | PHP tradicional | Laravel 13.6 + Inertia v3 + React 19 |
@@ -207,5 +240,6 @@
 - Mubisys reclamação "péssimo atendimento": https://www.reclameaqui.com.br/mubi-sistemas/pessimo-atendimento_vB1PAXzlX1WND51q/
 - Mubisys App Store: https://apps.apple.com/us/app/mubisys/id1623941063
 - Mubisys Google Play: https://play.google.com/store/apps/details?id=br.com.mubi
+- _Acrescentadas em 2026-09-29 (seção de produção):_ Mubisys página de produção: https://mubisys.com/producao ; landing page: https://lp2.mubisys.com/ ; App Store BR (notas de versão e avaliações): https://apps.apple.com/br/app/mubisys/id1623941063
 - Mubisys Instagram: https://www.instagram.com/mubisys/
 - AFACOM+ programa de implantação Mubisys: https://afacomplus.com.br/afacomplus

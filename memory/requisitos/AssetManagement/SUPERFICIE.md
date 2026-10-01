@@ -14,7 +14,7 @@ module: AssetManagement
 >
 > **O que isto é:** o inventário completo das raízes `Modules/AssetManagement/**` + `resources/js/Pages/AssetManagement/**` + `resources/js/Pages/Patrimonio/**` (namespaces Inertia `AssetManagement`, `Patrimonio`, declarados em `module-surface.mjs::PAGES_NS` porque diferem do nome do módulo `AssetManagement` — confira com `--namespaces`), separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 125 arquivos em 17 papéis.
+**Total mapeado:** 129 arquivos em 17 papéis.
 
 ## Controllers — 7
 
@@ -48,9 +48,10 @@ module: AssetManagement
 - [AssetTransaction.php](../../../Modules/AssetManagement/Entities/AssetTransaction.php)
 - [AssetWarranty.php](../../../Modules/AssetManagement/Entities/AssetWarranty.php)
 
-## Console / Commands — 1
+## Console / Commands — 2
 
 - [AssetManagementHealthCommand.php](../../../Modules/AssetManagement/Console/Commands/AssetManagementHealthCommand.php)
+- [GarantiasOrfasCommand.php](../../../Modules/AssetManagement/Console/Commands/GarantiasOrfasCommand.php)
 
 ## Providers — 2
 
@@ -81,7 +82,7 @@ module: AssetManagement
 - [config.php](../../../Modules/AssetManagement/Config/config.php)
 - [retention.php](../../../Modules/AssetManagement/Config/retention.php)
 
-## Views (Blade) — 17
+## Views (Blade) — 13
 
 - [create.blade.php](../../../Modules/AssetManagement/Resources/views/asset/create.blade.php)
 - [dashboard.blade.php](../../../Modules/AssetManagement/Resources/views/asset/dashboard.blade.php)
@@ -90,11 +91,7 @@ module: AssetManagement
 - [create.blade.php](../../../Modules/AssetManagement/Resources/views/asset_allocation/create.blade.php)
 - [edit.blade.php](../../../Modules/AssetManagement/Resources/views/asset_allocation/edit.blade.php)
 - [index.blade.php](../../../Modules/AssetManagement/Resources/views/asset_allocation/index.blade.php)
-- [create.blade.php](../../../Modules/AssetManagement/Resources/views/asset_maintenance/create.blade.php)
-- [edit.blade.php](../../../Modules/AssetManagement/Resources/views/asset_maintenance/edit.blade.php)
 - [index.blade.php](../../../Modules/AssetManagement/Resources/views/asset_maintenance/index.blade.php)
-- [create.blade.php](../../../Modules/AssetManagement/Resources/views/asset_revocation/create.blade.php)
-- [index.blade.php](../../../Modules/AssetManagement/Resources/views/asset_revocation/index.blade.php)
 - [index.blade.php](../../../Modules/AssetManagement/Resources/views/index.blade.php)
 - [nav.blade.php](../../../Modules/AssetManagement/Resources/views/layouts/nav.blade.php)
 - [index.blade.php](../../../Modules/AssetManagement/Resources/views/settings/index.blade.php)
@@ -109,9 +106,11 @@ module: AssetManagement
 - [Index.tsx](../../../resources/js/Pages/Patrimonio/Index.tsx)
 - [Manutencoes.tsx](../../../resources/js/Pages/Patrimonio/Manutencoes.tsx)
 
-## Componentes / apoio de tela — 2
+## Componentes / apoio de tela — 4
 
+- [Drawers.tsx](../../../resources/js/Pages/Patrimonio/_alocacoes/Drawers.tsx)
 - [CadastroBemDrawer.tsx](../../../resources/js/Pages/Patrimonio/_shared/CadastroBemDrawer.tsx)
+- [DetalheBemDrawer.tsx](../../../resources/js/Pages/Patrimonio/_shared/DetalheBemDrawer.tsx)
 - [PatrimonioSubNav.tsx](../../../resources/js/Pages/Patrimonio/_shared/PatrimonioSubNav.tsx)
 
 ## Charters (lei da tela) — 5
@@ -130,12 +129,12 @@ module: AssetManagement
 - [Index.casos.md](../../../resources/js/Pages/Patrimonio/Index.casos.md)
 - [Manutencoes.casos.md](../../../resources/js/Pages/Patrimonio/Manutencoes.casos.md)
 
-## Testes (Pest) — 16
+## Testes (Pest) — 19
 
-- 16 em [Modules/AssetManagement/Tests/Feature/](../../../Modules/AssetManagement/Tests/Feature)
+- 19 em [Modules/AssetManagement/Tests/Feature/](../../../Modules/AssetManagement/Tests/Feature)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
-## Demais arquivos (manifestos, docs, assets e misc) — 40
+## Demais arquivos (manifestos, docs, assets e misc) — 42
 
 - [.gitkeep](../../../Modules/AssetManagement/Config/.gitkeep)
 - [.gitkeep](../../../Modules/AssetManagement/Console/.gitkeep)
@@ -176,4 +175,6 @@ module: AssetManagement
 - [composer.json](../../../Modules/AssetManagement/composer.json)
 - [module.json](../../../Modules/AssetManagement/module.json)
 - [SCOPE.md](../../../memory/requisitos/AssetManagement/SCOPE.md)
+- [envio.ts](../../../resources/js/Pages/Patrimonio/_alocacoes/envio.ts)
+- [foco.ts](../../../resources/js/Pages/Patrimonio/_alocacoes/foco.ts)
 - [cadastroBem.ts](../../../resources/js/Pages/Patrimonio/_shared/cadastroBem.ts)

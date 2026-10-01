@@ -10,11 +10,12 @@
 // backend recalcula com a MESMA fórmula de custo do resto do módulo. O cliente formata.
 // Isso é o §9 do handoff ("a autoridade é o servidor") e evita uma segunda conta na tela.
 
-import { Link, router } from '@inertiajs/react';
+import { router } from '@inertiajs/react';
 import { useEffect, useState, type ReactNode } from 'react';
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Input } from '@/Components/ui/input';
 import { fmt, num } from './_lib/formato';
+import FabricacaoAbas from './_components/FabricacaoAbas';
 import '../../../css/cowork-manufacturing-bundle.css';
 
 interface LinhaInsumo {
@@ -102,38 +103,15 @@ export default function Insumos({
   const sel = selecionado ? (insumos.find((i) => i.variation_id === selecionado) ?? null) : null;
 
   return (
-    <div className="mfg-root" data-screen-label="Manufacturing · Insumos">
+    <div className="mfg-root" data-screen-label="Fabricação · Insumos">
       <div className="os-page-h" data-contract="cabecalho">
         <div className="os-page-h-l">
-          <h1>Manufacturing</h1>
+          <h1>Fabricação</h1>
           <p>Insumos · quem sobe de custo quando o preço de compra muda</p>
         </div>
       </div>
 
-      <nav className="mfg-tabs" aria-label="Manufacturing">
-        <Link className="mfg-tab" href="/manufacturing/recipe">
-          Receitas
-          <span className="mfg-tab-n">{recipes_count}</span>
-        </Link>
-        <span className="mfg-tab act" aria-current="page">
-          Insumos
-        </span>
-        {permissions.prod && (
-          <Link className="mfg-tab" href="/manufacturing/production">
-            Ordens de produção
-            <span className="mfg-tab-n">
-              {producao.total}
-              {producao.rascunhos ? ` · ${producao.rascunhos} rasc.` : ''}
-            </span>
-          </Link>
-        )}
-        <Link className="mfg-tab" href="/manufacturing/report">
-          Relatório
-        </Link>
-        <Link className="mfg-tab" href="/manufacturing/settings">
-          Configurações
-        </Link>
-      </nav>
+      <FabricacaoAbas ativa="insumos" receitas={recipes_count} producao={producao} podeProduzir={permissions.prod} />
 
       <div className="mfg-bar" data-contract="busca">
         <Input
@@ -316,8 +294,8 @@ export default function Insumos({
 
 Insumos.layout = (page: ReactNode) => (
   <AppShellV2
-    title="Insumos · Manufacturing"
-    breadcrumbItems={[{ label: 'Manufacturing' }, { label: 'Insumos' }]}
+    title="Insumos · Fabricação"
+    breadcrumbItems={[{ label: 'Fabricação' }, { label: 'Insumos' }]}
   >
     {page}
   </AppShellV2>

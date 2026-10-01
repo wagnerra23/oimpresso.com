@@ -506,6 +506,8 @@ class AfdParserService
             'tipo'                  => $tipo,
             'usuario_criador_id'    => $importacao->usuario_id,
             'dispositivo_id'        => 'afd:' . $importacao->id,
+            // O `nsr` acima é o contador interno; este é o que o relógio gravou (o AEJ cita este).
+            'nsr_origem'            => $nsrArquivo > 0 ? $nsrArquivo : null,
         ]);
     }
 

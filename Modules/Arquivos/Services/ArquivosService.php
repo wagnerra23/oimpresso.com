@@ -196,11 +196,16 @@ class ArquivosService
         ]);
     }
 
-    public function softDelete(Arquivo $arquivo): void
+    /**
+     * `$contexto` (opcional, default vazio = comportamento antigo) vai no payload da MESMA
+     * linha `soft_delete` da trilha — é por onde a tela grava o motivo (thread 03 · PR-7)
+     * sem escrever uma segunda linha numa tabela append-only. Passa pelo `redactPayload`.
+     */
+    public function softDelete(Arquivo $arquivo, array $contexto = []): void
     {
-        OtelHelper::spanBiz('arquivos.soft_delete', function () use ($arquivo) {
+        OtelHelper::spanBiz('arquivos.soft_delete', function () use ($arquivo, $contexto) {
             $arquivo->delete();
-            $this->audit($arquivo, 'soft_delete', []);
+            $this->audit($arquivo, 'soft_delete', $contexto);
         }, [
             'module'      => 'Arquivos',
             'arquivo_id'  => $arquivo->id,
@@ -208,11 +213,12 @@ class ArquivosService
         ]);
     }
 
-    public function restore(Arquivo $arquivo): void
+    /** `$contexto`: mesmo papel do `softDelete()` — o motivo entra na linha `restore`. */
+    public function restore(Arquivo $arquivo, array $contexto = []): void
     {
-        OtelHelper::spanBiz('arquivos.restore', function () use ($arquivo) {
+        OtelHelper::spanBiz('arquivos.restore', function () use ($arquivo, $contexto) {
             $arquivo->restore();
-            $this->audit($arquivo, 'restore', []);
+            $this->audit($arquivo, 'restore', $contexto);
         }, [
             'module'      => 'Arquivos',
             'arquivo_id'  => $arquivo->id,

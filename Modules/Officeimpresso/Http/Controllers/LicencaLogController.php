@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Inertia\Inertia;
 use Modules\Officeimpresso\Entities\LicencaLog;
+use Modules\Officeimpresso\Services\AcessoOperador;
 use Yajra\DataTables\Facades\DataTables;
 
 class LicencaLogController extends Controller
@@ -202,8 +203,7 @@ class LicencaLogController extends Controller
                 'filters'     => $filtros,
                 'permissions' => [
                     'pode_ver_todas_empresas' => $this->podeVerTodasEmpresas(),
-                    'pode_bloquear'           => auth()->user()->can('superadmin')
-                        || auth()->user()->can('officeimpresso.licencas.gerenciar'),
+                    'pode_bloquear'           => AcessoOperador::pode(auth()->user(), 'officeimpresso.licencas.gerenciar'),
                 ],
                 'maquinas' => Inertia::defer(fn () => $this->buildMaquinasPayload($business_id, $filtros)),
                 'kpis'     => Inertia::defer(fn () => $this->buildKpisPayload()),
@@ -423,8 +423,7 @@ class LicencaLogController extends Controller
                 // `maquina` é 1 linha já carregada pela guarda — eager, não vale defer.
                 'maquina'     => $maquina,
                 'permissions' => [
-                    'pode_bloquear' => auth()->user()->can('superadmin')
-                        || auth()->user()->can('officeimpresso.licencas.gerenciar'),
+                    'pode_bloquear' => AcessoOperador::pode(auth()->user(), 'officeimpresso.licencas.gerenciar'),
                 ],
                 'logs' => Inertia::defer($carregarLogs),
             ]);

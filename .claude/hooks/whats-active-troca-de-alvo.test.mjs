@@ -11,7 +11,7 @@ import { mkdtempSync, writeFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { alvoDe, deveAvisar, alvosDoTranscript } from './whats-active-troca-de-alvo.mjs';
+import { alvoDe, deveAvisar, alvosDoTranscript, ehPrCreate, semDerivados, avisoAntesDoPr } from './whats-active-troca-de-alvo.mjs';
 
 let fails = 0;
 const ok = (c, m) => { if (c) console.log(`  ✓ ${m}`); else { console.error(`  ✗ ${m}`); fails++; } };
@@ -77,7 +77,36 @@ try {
   r = rodar({ tool_name: 'Edit', tool_input: { file_path: 'Modules/X/a.php' }, transcript_path: join(dir, 'nao-existe.jsonl') });
   ok(r.status === 0 && (r.stderr || '').trim() === '',
     'CLI CN: transcript ilegível → fail-open silencioso (nunca inventa troca de alvo)');
+
+  // ── 2º gatilho: antes do `gh pr create` (§5 2026-09-30) ──────────────────────
+  // CLI de FORA: cwd fora de repo git → o hook não mede e DIZ que não mediu (nunca "livre").
+  const fora = mkdtempSync(join(tmpdir(), 'wa-pr-'));
+  try {
+    r = spawnSync(process.execPath, [HOOK], {
+      input: JSON.stringify({ tool_name: 'Bash', tool_input: { command: 'gh pr create --title x --body y' }, cwd: fora }),
+      encoding: 'utf8',
+    });
+    let ctx = '';
+    try { ctx = JSON.parse(r.stdout).hookSpecificOutput.additionalContext; } catch { ctx = ''; }
+    ok(r.status === 0, 'CLI gh pr create: advisory — exit 0');
+    ok(/NÃO MEDI/.test(ctx), 'CLI gh pr create MORDE: sem git → avisa "não medi" pelo additionalContext (não pelo stderr)');
+    r = spawnSync(process.execPath, [HOOK], {
+      input: JSON.stringify({ tool_name: 'Bash', tool_input: { command: 'git status' }, cwd: fora }), encoding: 'utf8',
+    });
+    ok(r.status === 0 && (r.stdout || '').trim() === '', 'CLI CN: comando que não é gh pr create → silencioso');
+  } finally { rmSync(fora, { recursive: true, force: true }); }
 } finally { rmSync(dir, { recursive: true, force: true }); }
+
+// núcleo puro do 2º gatilho
+ok(ehPrCreate('gh pr create --title x') && ehPrCreate('cd a && gh pr create -F b'), 'ehPrCreate: casa gh pr create, também encadeado');
+ok(!ehPrCreate('gh pr view 1') && !ehPrCreate('echo "use gh pr list"'), 'ehPrCreate CN: gh pr view / outro subcomando → não casa');
+ok(semDerivados(['memory/requisitos/Ponto/SUPERFICIE.md', 'memory/proibicoes.md', 'Modules/X/a.php']).join() === 'Modules/X/a.php',
+  'semDerivados: tira gerados/de estado, mantém o arquivo de trabalho');
+ok(avisoAntesDoPr(0, '') === null, 'avisoAntesDoPr: livre → nada a dizer');
+ok(/PR ABERTO/.test(avisoAntesDoPr(1, ['  ⚠️ a.php', '      ↔ #9 x'].join(String.fromCharCode(10))) || '') && /Dedup-ack/.test(avisoAntesDoPr(1, 'x') || ''),
+  'avisoAntesDoPr: tocado → lista e diz o que fazer');
+ok(/NÃO MEDI/.test(avisoAntesDoPr(2, '') || '') && /NÃO MEDI/.test(avisoAntesDoPr(null, '') || ''),
+  'avisoAntesDoPr: não medi (rc 2 ou nem rodou) → nunca vira "livre"');
 
 console.log(fails === 0 ? '\n  whats-active-troca-de-alvo: OK\n' : `\n  whats-active-troca-de-alvo: ${fails} FALHA(S)\n`);
 process.exit(fails === 0 ? 0 : 1);

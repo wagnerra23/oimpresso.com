@@ -1153,7 +1153,7 @@ export function absentLocal(shellHtml, root = ROOT) {
 /** Enumera os arquivos-âncora do espelho, keyed por PATH RELATIVO COMPLETO (nunca basename)
  *  + as DEPS DE RENDER do shell (LC-07). `kind`: 'ancora' (tem tela de charter) | 'dep'.
  *  Mesmo conjunto de âncoras que o anchor-content-check enxerga (reusa anchorRelPath). */
-export function buildManifest(root = ROOT, { all = false, shellHtml = null, universo = 'frescor', owner = 'Wagner' } = {}) {
+export function buildManifest(root = ROOT, { all = false, shellHtml = null, universo = 'frescor', owner = 'Wagner', extras = [] } = {}) {
   const PAGES = join(root, 'resources', 'js', 'Pages');
   // A raiz do espelho é a do DONO: manifesto do Felipe lido da árvore do Wagner devolveria
   // UNCHECKED pra arquivos de OUTRA conta — denominador de outro universo (§5 2026-07-27).
@@ -1201,6 +1201,10 @@ export function buildManifest(root = ROOT, { all = false, shellHtml = null, univ
   // O SHELL entra no próprio manifesto quando versionado: ele é a fiação, e fiação que não
   // é medida é a doença nº1. Assim, [W] mexer no shell do Cowork vira STALE na próxima rodada.
   add('oimpresso.com.html', []);
+  // EXTRAS (2026-09-30): paths que o CHAMADOR leu de volta e quer provar, fora do universo de
+  // frescor. Existe por causa do `pendentes-cowork --conferir` — ver `--incluir-lidos` no CLI.
+  // Passam pelo mesmo `add`: arquivo ausente do espelho e `_ds/` continuam fora.
+  for (const rel of extras) add(rel, []);
   return [...seen.values()]
     .map((e) => ({ ...e, kind: e.telas.length ? 'ancora' : 'dep' }))
     .sort((a, b) => a.cowork.localeCompare(b.cowork));
@@ -2737,7 +2741,17 @@ function main() {
   }
   const strict = argv.includes('--check');
 
-  const rows = manifest.map((f) => ({ ...f, veredito: verdictFor(f.cowork, f.repoHash, snapshot) }));
+  // --incluir-lidos (2026-09-30): o manifesto passa a conter também os paths do próprio
+  // snapshot. O `--unverified` (check required "espelho — mexeu depois de verificar") cobra
+  // TODO arquivo versionado do espelho, mas a prova só nascia no universo de frescor
+  // (jsx/html/css/js). Um `.md` de `cowork-inbox/` já verificado e editado pelo Code ficava
+  // SEM saída: o `pendentes-cowork --conferir` imprimia "1 verificado(s)" e gravava uma rodada
+  // com `verified: []` (medido no #8284 e no #8291). A pergunta do conferir é de CONTEÚDO
+  // ("o Cowork tem este byte?"), não de frescor — ele passa esta flag; a rotina de frescor não.
+  const extras = argv.includes('--incluir-lidos') ? Object.keys(snapshot).filter((k) => !k.startsWith('_')) : [];
+  const manifestRodada = extras.length ? buildManifest(ROOT, { all, shellHtml, extras }) : manifest;
+
+  const rows = manifestRodada.map((f) => ({ ...f, veredito: verdictFor(f.cowork, f.repoHash, snapshot) }));
   const stale = rows.filter((r) => r.veredito === 'STALE');
   const absent = rows.filter((r) => r.veredito === 'LIVE-ABSENT');
   const unchecked = rows.filter((r) => r.veredito === 'UNCHECKED');

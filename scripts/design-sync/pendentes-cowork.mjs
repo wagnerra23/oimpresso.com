@@ -242,11 +242,31 @@ function conferir(root, chave, dir, pend) {
       }
       const fr = join(root, 'scripts', 'governance', 'cowork-mirror-freshness.mjs');
       const snap = join(tmp, 'snap.json');
-      for (const args of [['--snapshot-from', jsons, '--emit-snapshot', snap], ['--compare', snap, '--check', '--ledger', '--origem', 'agente', '--projeto-cowork', chave]]) {
+      const ledgerPath = join(root, 'scripts', 'governance', '.cowork-freshness-ledger.json');
+      const ledgerAntes = existsSync(ledgerPath) ? readFileSync(ledgerPath, 'utf8') : null;
+      for (const args of [['--snapshot-from', jsons, '--emit-snapshot', snap], ['--compare', snap, '--check', '--ledger', '--incluir-lidos', '--origem', 'agente', '--projeto-cowork', chave]]) {
         const r = spawnSync(process.execPath, [fr, ...args], { cwd: root, encoding: 'utf8' });
-        if (r.status !== 0) { console.error(r.stdout + r.stderr); console.error(`✗ cowork-mirror-freshness ${args[0]} saiu ${r.status} — nada registrado`); return 1; }
+        if (r.status !== 0) {
+          // O `--ledger` grava ANTES do `--check` sair 1: sem restaurar, "nada registrado" mentiria.
+          if (ledgerAntes === null) rmSync(ledgerPath, { force: true }); else writeFileSync(ledgerPath, ledgerAntes);
+          console.error(r.stdout + r.stderr); console.error(`✗ cowork-mirror-freshness ${args[0]} saiu ${r.status} — nada registrado (ledger restaurado)`); return 1;
+        }
       }
-      console.log(`\n✓ ledger do espelho atualizado (${lidos.length} verificado(s), projeto ${chave}) — commite scripts/governance/.cowork-freshness-ledger.json`);
+      // A contagem vem da ENTRADA GRAVADA, não de `lidos.length` (2026-09-30). Antes a mensagem
+      // afirmava "N verificado(s)" pelo que ENTROU, e a rodada gravada tinha `verified: []` para
+      // todo `.md` — o required "mexeu depois de verificar" reprovava com o sucesso impresso
+      // (#8284, #8291). Arquivo lido que não virou prova é falha, nunca contagem.
+      const entradas = JSON.parse(readFileSync(ledgerPath, 'utf8'));
+      const gravada = entradas[entradas.length - 1] || {};
+      const provados = new Set(gravada.verified || []);
+      const semProva = lidos.map((l) => l.rel).filter((rel) => !provados.has(rel) || !(gravada.verifiedHash || {})[rel]);
+      if (semProva.length) {
+        // A rodada sem prova sai do ledger: registro vazio com cara de verificação é o defeito.
+        if (ledgerAntes === null) rmSync(ledgerPath, { force: true }); else writeFileSync(ledgerPath, ledgerAntes);
+        console.error(`\n✗ o ledger NÃO recebeu prova de ${semProva.length} de ${lidos.length}: ${semProva.join(', ')} — nada registrado (ledger restaurado).`);
+        return 1;
+      }
+      console.log(`\n✓ ledger do espelho atualizado (${provados.size} verificado(s) gravados, projeto ${chave}) — commite scripts/governance/.cowork-freshness-ledger.json`);
     } finally { rmSync(tmp, { recursive: true, force: true }); }
   }
   // Registra só o que ainda consta como pendente; conferir arquivo já em dia não é erro.

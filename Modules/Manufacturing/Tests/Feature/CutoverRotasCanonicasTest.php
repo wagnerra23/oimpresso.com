@@ -69,22 +69,25 @@ function mfgFonteDaTela(string $tela): string
     return (string) file_get_contents($caminho);
 }
 
-/** Extrai o bloco `<nav className="mfg-tabs" ...>...</nav>` — só a barra de abas. */
+/**
+ * A barra de abas. Desde 2026-09-30 ela é UMA só (`_components/FabricacaoAbas.tsx`, sobre o
+ * `PageHeaderTabs` do DS), e cada tela a renderiza — antes cada tela tinha a própria cópia de
+ * `<nav className="mfg-tabs">`. A tela tem de renderizar a barra; os destinos vêm do componente.
+ */
 function mfgBlocoDeAbas(string $fonte, string $tela): string
 {
-    $inicio = strpos($fonte, '<nav className="mfg-tabs"');
-    expect($inicio)->not->toBeFalse("{$tela}.tsx não tem a barra <nav className=\"mfg-tabs\">.");
+    expect(str_contains($fonte, '<FabricacaoAbas'))->toBeTrue("{$tela}.tsx não renderiza a barra <FabricacaoAbas>.");
 
-    $fim = strpos($fonte, '</nav>', (int) $inicio);
-    expect($fim)->not->toBeFalse("{$tela}.tsx abre a barra de abas e não fecha.");
+    $caminho = base_path('resources/js/Pages/Manufacturing/_components/FabricacaoAbas.tsx');
+    expect(file_exists($caminho))->toBeTrue('A barra de abas _components/FabricacaoAbas.tsx sumiu.');
 
-    return substr($fonte, (int) $inicio, ((int) $fim) - ((int) $inicio));
+    return (string) file_get_contents($caminho);
 }
 
-/** Hrefs declarados DENTRO da barra de abas. */
+/** Hrefs declarados DENTRO da barra de abas (`href: '/manufacturing/...'` no componente). */
 function mfgHrefsDasAbas(string $bloco): array
 {
-    preg_match_all('~href="(/manufacturing[^"]*)"~', $bloco, $m);
+    preg_match_all('~href[=:]\s*["\x27](/manufacturing[^"\x27]*)["\x27]~', $bloco, $m);
 
     return array_values(array_unique($m[1]));
 }
@@ -111,8 +114,10 @@ it('toda aba usa Link do Inertia, nunca âncora crua (que sai do SPA)', function
     $violacoes = [];
 
     foreach (mfgTelasComAbas() as $tela) {
-        // `<a className="mfg-tab"` faz reload de página inteira e derruba o estado do SPA.
-        if (str_contains(mfgBlocoDeAbas(mfgFonteDaTela($tela), $tela), '<a className="mfg-tab"')) {
+        // Âncora crua faz reload de página inteira e derruba o estado do SPA. A barra delega ao
+        // `PageHeaderTabs`, que usa `Link` do Inertia; o que ela não pode é trazer `<a` próprio.
+        $bloco = mfgBlocoDeAbas(mfgFonteDaTela($tela), $tela);
+        if (str_contains($bloco, '<a ') || ! str_contains($bloco, 'PageHeaderTabs')) {
             $violacoes[] = $tela;
         }
     }

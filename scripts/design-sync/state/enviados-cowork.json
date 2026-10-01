@@ -1,53 +1,61 @@
 {
   "_nota": "Arquivos que o Code subiu ao Cowork (DesignSync) e que o bundle ativo ainda não trouxe de volta. Escrito por pendentes-cowork.mjs; o receber-handoff limpa o que o retorno confirmar.",
   "enviados": {
-    "cowork-inbox/financeiro/playbook/_saida-09.md": {
-      "sha256": "4af6f212f706c71ce4e9de286c7b7e3c3ad44c8694ba44739f35091d56c17b51",
-      "em": "2026-09-29T21:49:46.782Z"
+    "cowork-inbox/arquivos/playbook/_DECISOES-W-2026-10-01.md": {
+      "sha256": "78f435350d42d1a90f4929d97a32030a4a49a827109380eeabaf3dd25f8eec7f",
+      "em": "2026-10-01T03:02:50.175Z"
     },
-    "cowork-inbox/ponto/playbook/_saida-07.md": {
-      "sha256": "50da25801a33ab900696a92469be542d0fdfc721a63c3ff8f6984d3da881b0cd",
-      "em": "2026-09-29T21:49:04.674Z"
+    "cowork-inbox/arquivos/playbook/_saida-01.md": {
+      "sha256": "e5cf93154c954207564b0ebcdbac1d1c769f5b7d3f4000c09030769c3eb0fdbe",
+      "em": "2026-10-01T03:02:50.175Z"
     },
-    "cowork-inbox/ponto/playbook/_saida-13.md": {
-      "sha256": "683a7c1b627954b18942746a768dcf162429eeb32095b5daf41ba59cd562d8aa",
-      "em": "2026-09-29T22:30:37.154Z"
+    "cowork-inbox/atendimento/playbook/_DECISOES-W-2026-10-01.md": {
+      "sha256": "f040fe46f8a0db28eab98a89e50e4f5fa1b54cd76de756510888849c930db62c",
+      "em": "2026-10-01T03:02:50.175Z"
     },
-    "cowork-inbox/ponto/playbook/_saida-14.md": {
-      "sha256": "affcf7c258c4e03a43dfd568b9d9ae23643f311d37f210a1d7d329d7f292a0bc",
-      "em": "2026-09-30T10:32:32.915Z"
+    "cowork-inbox/atendimento/playbook/_saida-02.md": {
+      "sha256": "b05bae5f1cb125475f2b9bd2e64e4773b9a3c1662db9d475c011045395bbb647",
+      "em": "2026-10-01T03:02:50.175Z"
     },
-    "cowork-inbox/ponto/playbook/_saida-15.md": {
-      "sha256": "4f886a03646d0cb369874df920b049192bcb7483f2058e3022f2c505098aff21",
-      "em": "2026-09-29T22:45:28.481Z"
+    "cowork-inbox/cliente/playbook/_DECISOES-W-2026-10-01.md": {
+      "sha256": "f6866ee3dd69de18e015592e9d4cc045d4617afc64734af5716e3b847e9d27c1",
+      "em": "2026-10-01T03:02:50.175Z"
     },
-    "cowork-inbox/venda-menu/playbook/_saida-A1.md": {
-      "sha256": "f694fded38c6e3f10ba3304366cb191cebc77dcfc38438c13f6b9e748a796365",
-      "em": "2026-09-29T22:21:54.268Z"
+    "cowork-inbox/crm/playbook/_DECISOES-W-2026-10-01.md": {
+      "sha256": "6a19d7102a8a04b2bf21419d16a9bfcbdb32c233e5d46eb4b467681065c46b0f",
+      "em": "2026-10-01T03:02:50.175Z"
     },
-    "cowork-inbox/venda-menu/playbook/_saida-A2.md": {
-      "sha256": "ac3e9d3ad9b8b421996d71c6a79259cfb99db85dc9bded5426897990b14bfaf0",
-      "em": "2026-09-29T22:08:04.098Z"
+    "cowork-inbox/lote-trio-medida/playbook/_saida-01.md": {
+      "sha256": "30e6e1781d8cb23b02c756b0d076c6716b573ae0193f6e4d1a79b0a086f6ae63",
+      "em": "2026-10-01T03:02:50.175Z"
     },
-    "essenciais-extras.jsx": {
-      "sha256": "628c16dfdc6321af73f714d5ee89d3cc39f4437bf64a079a5d5c08e3ea567cb1",
-      "em": "2026-09-29T20:26:55.343Z"
+    "cowork-inbox/lote-trio-medida/playbook/_saida-02.md": {
+      "sha256": "2867bafa39c8d23c06a4796d46d906391d78ae1b72773f2fc559a044bff081c2",
+      "em": "2026-10-01T03:02:50.175Z"
     },
-    "manufacturing-page.css": {
-      "sha256": "7b0ed3dcdf59e82512546193ef1b47c10a35b1c06b5fbb986918a8ffb83bc2bd",
-      "em": "2026-09-29T21:04:41.777Z"
+    "cowork-inbox/lote-trio-medida/playbook/_saida-A1.md": {
+      "sha256": "aa341f84ab15159067d9ce34ec8ec3f91419d18131e350c0a7abbc12a78f3826",
+      "em": "2026-10-01T03:02:50.175Z"
     },
-    "manufacturing-page.jsx": {
-      "sha256": "933dc7d683286590572f0ebbdf9e022dec4248f633bc92223e96c00bcdbe1eea",
-      "em": "2026-09-29T21:04:41.777Z"
+    "cowork-inbox/officeimpresso/playbook/_DECISOES-W-2026-10-01.md": {
+      "sha256": "67adaa90273c6c7c9095f08225b801e52e4178bb69609f38b8b37cfa4f1b4e7d",
+      "em": "2026-10-01T03:02:50.175Z"
     },
-    "manufacturing-producao.jsx": {
-      "sha256": "bef8593ef6d89b66f994e966432716477386667d59716ea93a3b9a8a07d3cc4a",
-      "em": "2026-09-29T21:04:41.777Z"
+    "cowork-inbox/produto/playbook/_DECISOES-W-2026-10-01.md": {
+      "sha256": "8ea44b12bc6f0eba501d4d5ce2eff917f5a944463010d5ae2a2e3e10d96904eb",
+      "em": "2026-10-01T03:02:50.175Z"
     },
-    "manufacturing-recipe.jsx": {
-      "sha256": "3badd595cd94cc9a6e3fb976115384281fab5d89c7c315bb5170016ecd5da9a2",
-      "em": "2026-09-29T21:04:41.777Z"
+    "cowork-inbox/repair/playbook/_DECISOES-W-2026-10-01.md": {
+      "sha256": "3a003b61c849d5a784812e6dabb1353959c2144238c0cfb5983942d6afd526b3",
+      "em": "2026-10-01T03:02:50.175Z"
+    },
+    "cowork-inbox/repair/playbook/_saida-01.md": {
+      "sha256": "1fe554907b49d078a1006e75be690f44dfca6d7c2812a8efc80227cd3cba1a10",
+      "em": "2026-10-01T03:02:50.175Z"
+    },
+    "cowork-inbox/superadmin/playbook/_DECISOES-W-2026-10-01.md": {
+      "sha256": "00c817b1b5c916a95311e42c4b6b8e26d54e79daa22775be7746f71503b3e3a3",
+      "em": "2026-10-01T03:02:50.175Z"
     }
   }
 }

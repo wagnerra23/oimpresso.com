@@ -4,8 +4,15 @@ irmaos: Manutencoes.charter.md (lei) · memory/requisitos/AssetManagement/RUNBOO
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — o contrato de teste nasce junto com a tela, não depois.
 owner: wagner
-last_run: "2026-09-11"
+last_run: "2026-09-30"
 ---
+
+> ℹ️ **`last_run` 2026-09-11 → 2026-09-30 (G-6), e o que mudou na tela NÃO foi comportamento.**
+> O único toque em `Manutencoes.tsx` foi a **geometria da tabela**: a coluna "Bem" ganhou os 250px
+> do protótipo e saiu o `minTableWidth={1280}` (sob `table-layout: fixed` ela ficava com 0px).
+> Revalidado: **UC-MANU-04** é da tela e passa no vitest (`tests/js/patrimonio*` 42/42, com o
+> `patrimonio-manutencoes-colunas.test.tsx` novo travando a geometria). **UC-MANU-01 a 03** são
+> contrato do controller, que este diff não toca — o status deles não muda por esta data.
 
 # Casos de Uso & Aceite — Patrimonio/Manutencoes
 
@@ -83,11 +90,50 @@ last_run: "2026-09-11"
 - **Persona:** quem acompanha a fila de manutenção e quer corrigir um registro.
 - **Aceite:** Dado a lista com uma manutenção · Quando a tela renderiza · Então **nenhum**
   `href` aponta pra `/asset/asset-maintenance/{id}/edit`; e o **excluir** continua na linha.
+  (Desde 2026-09-30 o editar voltou como **botão** que navega por `router.get` até o drawer —
+  UC-MANU-06. O aceite segue valendo: nenhum `<a href>` pra endpoint só-ajax.)
 - **Teste:** `tests/js/patrimonio-sem-link-para-modal.test.tsx` — `it()` citando `UC-MANU-04`.
 - **Regressão que defende:** afordância falsa. MEDIDO em prod (biz=1, 2026-09-23): os endpoints `create`/`edit` do módulo só respondem sob `request()->ajax()` — numa navegação direta devolveram **200 com 0 bytes** (fragmento de modal jQuery, sem `@extends`). O ícone de lápis abria página em
   branco. **Bite-test (provado 2026-09-23):** com o `Manutencoes.tsx` anterior, o caso cai
   listando `/asset/asset-maintenance/12/edit`.
 - **Status: 🧪** — verde no vitest local pós-conserto; lane de CI a confirmar no PR.
+
+## UC-MANU-05 · Gravar manutenção não alcança outra empresa
+
+- **Persona:** qualquer empresa do sistema — a fila de manutenção dela não pode ser escrita por
+  usuário de outra.
+- **Aceite:** Dado uma manutenção e um bem do business 99 · Quando o usuário do business 98 posta
+  `PUT /asset/asset-maintenance/{id da de 99}` ou `POST /asset/asset-maintenance` com o
+  `asset_id` do bem de 99 · Então recebe **404** e **nada** é gravado; e o mesmo envio com a
+  manutenção/bem **da própria empresa** grava.
+- **Teste:** `ManutencoesContratoTest.php` — dois `it()` citando `UC-MANU-05` (update e store),
+  cada um com o controle da própria empresa ao lado.
+- **Regressão que defende:** dois furos Tier 0 medidos em 2026-09-30 no destino do formulário:
+  `AssetMaintenanceService::atualizar` fazia `AssetMaintenance::find($id)` sem `business_id`, e
+  `criar` gravava o `asset_id` do formulário sem conferir de quem é o bem. O `edit()` escopava;
+  o `update()`, que é quem grava, não.
+- **Status: ⬜** — a lane de CI do PR é o primeiro run.
+
+## UC-MANU-06 · Enviar e editar manutenção pelo drawer, sem sair da lista
+
+- **Persona:** o técnico (tablet/celular) e quem acompanha a fila — registram o envio do bem e
+  atualizam situação, responsável e detalhes.
+- **Aceite:** Dado a tela de Manutenções · Quando se abre `GET /asset/asset-maintenance/create`
+  (pelo CTA "+ Enviar bem pra manutenção") · Então a Page vem com o drawer "Enviar pra
+  manutenção", a lista de bens traz **só** os da empresa, e `?asset_id=` de outra empresa não
+  pré-seleciona nada; "Registrar manutenção" posta `asset_id, status, priority,
+  maintenance_note` no `store()`. E quando se abre `GET …/{id}/edit` (lápis da linha) · Então o
+  drawer vem com a manutenção da empresa (id de outra = **404**) e "Salvar manutenção" posta
+  `_method=put, status, priority, assigned_to, details` no `update()`. Controles com alvo de
+  toque de 44px.
+- **Teste:** `ManutencoesContratoTest.php` — dois `it()` citando `UC-MANU-06` (create e edit,
+  com o `X-Requested-With` que o cliente Inertia manda sempre); e
+  `tests/js/patrimonio-manutencoes-drawer.test.tsx` — o drawer, as chaves postadas, o controle
+  sem drawer e o `min-h-11`.
+- **Regressão que defende:** o ramo `if (request()->ajax()) return view(...)` que o `create`/
+  `edit` tinham — toda visita Inertia é ajax, e ele devolvia fragmento de modal jQuery (página
+  em branco). E o Non-Goal de dinheiro: o drawer não oferece custo (UC-MANU-03).
+- **Status: ⬜** — a lane de CI do PR é o primeiro run.
 
 ---
 
@@ -104,8 +150,10 @@ Prosa sem id de propósito: **vira UC quando existir teste que o cite** (G-2).
   corrente daria número que mente. Pede agregação no servidor.
 - `[BACKLOG]` Ação **"Concluir"** — sem endpoint, e o efeito declarado (criar título a pagar no
   Financeiro) é dinheiro.
-- `[BACKLOG]` **Editar (e criar) manutenção em drawer** — hoje não há caminho pela UI: `create`
-  e `edit` só existem como fragmento de modal servido sob `ajax()` (UC-MANU-04).
+- `[BACKLOG]` **Envio em lote** ("Enviar N bens pra manutenção" do protótipo) — o `store()`
+  grava um bem por vez. (O drawer de um bem entrou em 2026-09-30 como UC-MANU-06.)
+- `[BACKLOG]` **Prestador, datas de envio/devolução e custo** no drawer — o `ManutencaoForm`
+  desenha, `asset_maintenances` não tem as colunas.
 - `[BACKLOG]` **Escopo de escrita por dono** — `edit`/`update`/`destroy` filtram só por
   `business_id`. Não é regressão desta tela; é decisão de produto pendente de [W], e a
   permissão para isso não existe no módulo.

@@ -1,7 +1,7 @@
 {
   "_meta": {
-    "generated_at": "2026-09-25T20:51:27.723Z",
-    "count": 63,
+    "generated_at": "2026-09-30T11:52:00.601Z",
+    "count": 62,
     "adr": "0409 — divida transitoria, nao tolerancia",
     "note": "DIVIDA TRANSITORIA do PageHeader antigo (shared/PageHeader), nao selo de conformidade. Estar nesta lista ADIA a cura; nao perdoa: tocar a tela reprova o gate (ADR 0409). A lista so DESCE — o --write recusa crescimento. Meta: zero, e entao este arquivo e apagado."
   },
@@ -33,7 +33,6 @@
     "resources/js/Pages/Auditoria/Detail.tsx",
     "resources/js/Pages/Auditoria/Index.tsx",
     "resources/js/Pages/governance/Audit.tsx",
-    "resources/js/Pages/governance/Dashboard.tsx",
     "resources/js/Pages/governance/DriftAlerts.tsx",
     "resources/js/Pages/governance/Policies.tsx",
     "resources/js/Pages/kb/Graph.tsx",

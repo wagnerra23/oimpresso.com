@@ -62,6 +62,20 @@ on:
       # nao dispara o teste dele — gate mudo com cara de cobertura.
       - 'Modules/Superadmin/**'
       - 'Modules/Cms/**'
+      # Thread Crm/03 — a lista de acompanhamentos virou Inertia; o contrato dela roda aqui.
+      - 'Modules/Crm/Http/Controllers/ScheduleController.php'
+      - 'Modules/Crm/Resources/js/Pages/**'
+      - 'Modules/Crm/Tests/Feature/CrmAcompanhamentosContratoTest.php'
+      # Thread Crm/02 — a lista de leads virou Inertia; o contrato dela roda aqui.
+      - 'Modules/Crm/Http/Controllers/LeadController.php'
+      - 'Modules/Crm/Tests/Feature/CrmLeadsContratoTest.php'
+      # Thread Crm/04 — o painel do CRM virou Inertia; o contrato dele roda aqui.
+      - 'Modules/Crm/Http/Controllers/CrmDashboardController.php'
+      - 'Modules/Crm/Tests/Feature/CrmPainelContratoTest.php'
+      # Raiz do 500 da lista de leads e da API do Connector: CrmUtil::getLeadsListQuery.
+      - 'Modules/Crm/Utils/CrmUtil.php'
+      - 'Modules/Connector/Http/Controllers/Api/Crm/FollowUpController.php'
+      - 'Modules/Crm/Tests/Feature/CrmLeadsListQueryTest.php'
       - 'database/schema/mysql-schema.sql'
       - '.github/workflows/verticais-pest.yml'
       - '.github/actions/pest-mysql-setup/**'
@@ -115,6 +129,20 @@ jobs:
               - 'Modules/Superadmin/**'
               # Thread Cms/01 — a lista do painel do CMS virou Inertia; o contrato dela roda aqui.
               - 'Modules/Cms/**'
+              # Thread Crm/03 — a lista de acompanhamentos virou Inertia; o contrato dela roda aqui.
+              - 'Modules/Crm/Http/Controllers/ScheduleController.php'
+              - 'Modules/Crm/Resources/js/Pages/**'
+              - 'Modules/Crm/Tests/Feature/CrmAcompanhamentosContratoTest.php'
+              # Thread Crm/02 — a lista de leads virou Inertia; o contrato dela roda aqui.
+              - 'Modules/Crm/Http/Controllers/LeadController.php'
+              - 'Modules/Crm/Tests/Feature/CrmLeadsContratoTest.php'
+              # Thread Crm/04 — o painel do CRM virou Inertia; o contrato dele roda aqui.
+              - 'Modules/Crm/Http/Controllers/CrmDashboardController.php'
+              - 'Modules/Crm/Tests/Feature/CrmPainelContratoTest.php'
+              # Raiz do 500 da lista de leads e da API do Connector: CrmUtil::getLeadsListQuery.
+              - 'Modules/Crm/Utils/CrmUtil.php'
+              - 'Modules/Connector/Http/Controllers/Api/Crm/FollowUpController.php'
+              - 'Modules/Crm/Tests/Feature/CrmLeadsListQueryTest.php'
               - 'database/schema/mysql-schema.sql'
               - '.github/workflows/verticais-pest.yml'
               - '.github/actions/pest-mysql-setup/**'
@@ -317,8 +345,15 @@ jobs:
             Modules/Superadmin/Tests/Feature/SuperadminNegociosContratoTest.php \
             Modules/Superadmin/Tests/Feature/SuperadminAssinaturasContratoTest.php \
             Modules/Superadmin/Tests/Feature/SuperadminPacotesContratoTest.php \
+            Modules/Superadmin/Tests/Feature/Usuario360ContratoTest.php \
+            Modules/Superadmin/Tests/Feature/SuperadminComunicadorContratoTest.php \
+            Modules/Superadmin/Tests/Feature/SuperadminConfiguracoesContratoTest.php \
             Modules/Cms/Tests/Feature/CmsConteudoIndexContratoTest.php \
-            Modules/Cms/Tests/Feature/CmsSiteDetailsPainelTest.php
+            Modules/Cms/Tests/Feature/CmsSiteDetailsPainelTest.php \
+            Modules/Crm/Tests/Feature/CrmAcompanhamentosContratoTest.php \
+            Modules/Crm/Tests/Feature/CrmLeadsContratoTest.php \
+            Modules/Crm/Tests/Feature/CrmPainelContratoTest.php \
+            Modules/Crm/Tests/Feature/CrmLeadsListQueryTest.php
 
       # O sumário conta `assertions` POR ARQUIVO — é o discriminador que separa
       # "passou" de "pulou" (LC-13). Aqui só REPORTA.

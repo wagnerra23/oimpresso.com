@@ -26,24 +26,12 @@
    navegador de quem tem outro hue salvo. Detalhe e medição: Recipes.charter.md. */
 .mfg-root{display:flex;flex-direction:column;min-height:0;flex:1}
 .mfg-tabs{display:flex;gap:2px;align-items:center;padding:0 20px;border-bottom:1px solid var(--border);background:var(--surface)}
-.mfg-tab{display:flex;align-items:center;gap:7px;padding:9px 12px 8px;background:none;border:0;border-bottom:2px solid transparent;color:var(--text-dim);font:500 12.5px/1 var(--font-sans,inherit);cursor:pointer}
-.mfg-tab:hover{color:var(--text)}
-.mfg-tab.act{color:var(--color-primary);border-bottom-color:var(--color-primary)}
-.mfg-tab-n{font-family:var(--font-mono,ui-monospace,monospace);font-size:10.5px;color:var(--text-mute);background:var(--bg-2);border-radius:3px;padding:1px 5px}
-.mfg-tab.act .mfg-tab-n{color:var(--color-primary)}
 
 .mfg-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:14px 20px 4px}
-.mfg-kpi{display:flex;flex-direction:column;gap:3px;padding:11px 13px;border:1px solid var(--border);border-radius:8px;background:var(--surface);text-align:left;cursor:pointer;transition:border-color .12s}
-.mfg-kpi:hover{border-color:color-mix(in oklch,var(--color-primary) 40%,transparent)}
-.mfg-kpi.act{border-color:var(--color-primary);box-shadow:0 0 0 1px color-mix(in oklch,var(--color-primary) 35%,transparent)}
-.mfg-kpi-l{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--text-mute)}
-.mfg-kpi-v{font:600 21px/1.1 var(--font-sans,inherit);font-variant-numeric:tabular-nums;color:var(--text)}
-.mfg-kpi-s{font-size:11px;color:var(--text-dim)}
-.mfg-kpi-v.warn{color:var(--warn)}.mfg-kpi-v.neg{color:var(--neg)}
 
 .mfg-bar{display:flex;align-items:center;gap:10px;padding:12px 20px}
-.mfg-s{position:relative;flex:1;max-width:460px;display:flex;align-items:center;gap:7px;border:1px solid var(--border);border-radius:6px;background:var(--surface);padding:0 10px;height:32px}
-.mfg-s input{flex:1;border:0;background:none;outline:none;color:var(--text);font-size:12.5px}
+.mfg-s{position:relative;flex:1;max-width:360px;display:flex;align-items:center;gap:7px;border:1px solid var(--border);border-radius:8px;background:var(--surface);padding:0 10px;height:34px}
+.mfg-s input{flex:1;border:0;background:none;outline:none;color:var(--text);font-size:13px}
 .mfg-s .ic{color:var(--text-mute);flex:none}
 .mfg-chips{display:flex;gap:6px;flex-wrap:wrap}
 .mfg-chip{border:1px solid var(--border);background:var(--surface);color:var(--text-dim);border-radius:999px;padding:4px 11px;font-size:11.5px;cursor:pointer}
@@ -311,7 +299,7 @@ textarea.mfg-inp{height:auto;padding:7px 9px;line-height:1.45;resize:vertical}
 .mfg-root .os-page-h-l h1{
   margin: 0;
   font-size: var(--fs-7);
-  font-weight: 700;
+  font-weight: 600; /* 600 = o PageHeader do protótipo, medido 2026-09-30 (era 700) */
   letter-spacing: -0.025em;
   line-height: 1.2;
   text-wrap: balance;
@@ -334,14 +322,12 @@ textarea.mfg-inp{height:auto;padding:7px 9px;line-height:1.45;resize:vertical}
    e meta de trilha saem em `--text-dim`. Troca de token, não cor nova. */
 .mfg-root .mfg-th,
 .mfg-root .mfg-th.sort,
-.mfg-root .mfg-kpi-l,
 .mfg-root .mfg-sku,
 .mfg-root .mfg-u,
 .mfg-root .mfg-fld>span,
 .mfg-root .mfg-sec span,
 .mfg-root .mfg-cat i,
-.mfg-root .mfg-ing .n small,
-.mfg-root .mfg-tab-n{ color: var(--text-dim); }
+.mfg-root .mfg-ing .n small{ color: var(--text-dim); }
 .mfg-root .mfg-th.sort.act{ color: var(--color-primary); } /* desempata o §11 acima (0,4,0 > 0,3,0) — razão no Recipes.charter.md */
 
 /* §11 consequência 2 (ADR 0411) — a regra que ficava AQUI virou redundante em 2026-09-04.
@@ -354,8 +340,7 @@ textarea.mfg-inp{height:auto;padding:7px 9px;line-height:1.45;resize:vertical}
    aba quebram em 2 linhas com rótulo de duas palavras e o texto sai da borda arredondada
    — nenhuma das 3 classes declara `white-space`. Correção prescrita pelo próprio handoff. */
 .mfg-root .mfg-pill,
-.mfg-root .mfg-chip,
-.mfg-root .mfg-tab-n{ white-space: nowrap; }
+.mfg-root .mfg-chip{ white-space: nowrap; }
 
 /* Adaptação 3 · o protótipo destaca a linha "Custo por <un>" com `style=` inline
    (manufacturing-page.jsx, RecipeDrawer). O bundle já traz os MESMOS valores em
@@ -388,3 +373,11 @@ textarea.mfg-inp{height:auto;padding:7px 9px;line-height:1.45;resize:vertical}
 .mfg-print-host .strip.d i.cinza-5{ background: #555; }
 .mfg-print-host .strip.d i.cinza-6{ background: #111; }
 .mfg-print-host .strip.d i.cinza-7{ background: #000; }
+
+/* ══ Receitas — cabeçalho da tabela como o DataGrid do DS (medido 2026-09-30) ══
+   Escopo `.rec`: só a tabela da Receitas. No DataGrid a coluna ordenada fica na cor do
+   TEXTO (não no primário) e o indicador fica opaco quando a coluna não ordena. Especificidade
+   (0,5,0) acima do (0,4,0) do desempate de `.mfg-root .mfg-th.sort.act` descrito no charter. */
+.mfg-root .mfg-table.rec .mfg-th.sort.act{color:var(--text)}
+.mfg-root .mfg-table.rec .mfg-th.sort .ind{margin:0 0 0 3px;opacity:.4}
+.mfg-root .mfg-table.rec .mfg-th.sort.act .ind{opacity:1}

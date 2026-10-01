@@ -94,8 +94,10 @@ test('o painel resolve as props deferidas sem exceção de runtime', async ({ pa
 });
 
 test('o KPI de conformidade da Constituição aparece com a régua que a tela declara', async ({ page }) => {
-  // MEDIDO em 2026-09-08, e é menos do que o playbook supunha: a tela mostra
+  // MEDIDO em 2026-09-08, e é menos do que o playbook supunha: a tela mostrava
   // `label="Compliance Constitution"` + `description="v1.1.0 — próx revisão {data}"`.
+  // Desde 2026-09-30 o rótulo é "Conformidade" — texto do protótipo (contrato
+  // `kpis-constituicao`, ADR UI-0029); a descrição não mudou.
   // O valor é a soma LITERAL `(7 * 10) + (2 * 5) + 0` = 80, escrita à mão no
   // DashboardController (linhas 65 e 268) — não é apurado de fonte nenhuma.
   // O `80%` NÃO é fixado aqui de propósito: pinar a constante transformaria uma
@@ -103,7 +105,7 @@ test('o KPI de conformidade da Constituição aparece com a régua que a tela de
   await page.goto('/governance/dashboard');
   await page.waitForLoadState('networkidle');
 
-  await expect(page.getByText(/compliance constitution/i)).toBeVisible({ timeout: 15_000 });
+  await expect(page.getByText('Conformidade', { exact: true })).toBeVisible({ timeout: 15_000 });
   await expect(page.getByText(/próx revisão/i).first()).toBeVisible();
 });
 

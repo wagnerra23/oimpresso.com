@@ -18,7 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/Components/ui/select'
-import PageHeader from '@/Components/shared/PageHeader'
+import { PageHeader } from '@/Components/PageHeader'
 import KpiGrid from '@/Components/shared/KpiGrid'
 import KpiCard from '@/Components/shared/KpiCard'
 import EmptyState from '@/Components/shared/EmptyState'
@@ -37,6 +37,7 @@ import {
   Shield,
   Ruler,
   BookOpen,
+  Settings,
 } from 'lucide-react'
 
 interface Adr {
@@ -409,11 +410,11 @@ function McpPainel({ mcp }: { mcp: McpPayload }) {
           { value: 'consumo', label: 'Consumo', icon: 'bar-chart-2' },
           {
             value: 'acesso',
-            label: 'Acesso / RBAC',
+            label: 'Acesso e permissões',
             icon: 'shield-check',
             badge: mcp.denied_por_codigo.length || undefined,
           },
-          { value: 'usuarios', label: 'Usuários e tools', icon: 'users' },
+          { value: 'usuarios', label: 'Usuários e ferramentas', icon: 'users' },
         ]}
       />
 
@@ -520,7 +521,7 @@ function McpPainel({ mcp }: { mcp: McpPayload }) {
         <Grid cols={1} gap={4} className="md:grid-cols-2">
           <Card>
             <CardContent className="p-4">
-              <h3 className="text-lg font-semibold mb-1">Tools e recursos mais usados</h3>
+              <h3 className="text-lg font-semibold mb-1">Ferramentas e recursos mais usados</h3>
               <p className="text-xs text-muted-foreground mb-3">Top 10 do período</p>
               {mcp.top_tools.length === 0 ? (
                 <EmptyState
@@ -743,14 +744,19 @@ const Dashboard: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({
       <GovernancaSubNav active="dashboard" />
 
       <PageHeader
-        icon="shield-check"
+        leading={
+          <span className="mr-2 inline-flex translate-y-[1px] align-middle text-muted-foreground">
+            <Shield className="h-[18px] w-[18px]" strokeWidth={1.8} aria-hidden />
+          </span>
+        }
         title="Governança"
-        description="Painel consolidado de governança do oimpresso. Constituição v1.1.0 — Art. 8 (Policy Gating) + Art. 9 (Auditoria) operacional. Wagner opera 5min/dia."
-      >
-        <Badge variant="outline" className={mode.color}>
-          ActionGate: {mode.label}
-        </Badge>
-      </PageHeader>
+        subtitle="Painel consolidado de governança do oimpresso. Constituição v1.1.0 — Art. 8 (Policy Gating) + Art. 9 (Auditoria) operacional. Wagner opera 5min/dia."
+        actions={
+          <Badge variant="outline" className={mode.color}>
+            ActionGate: {mode.label}
+          </Badge>
+        }
+      />
 
       <h2 className="text-sm font-semibold uppercase tracking-widest text-zinc-500 dark:text-zinc-400 mt-2">
         Constituição
@@ -762,42 +768,42 @@ const Dashboard: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({
           tone="warning"
           label="ADRs pendentes"
           value={kpis.pending_adrs.toString()}
-          description="Status proposto aguardando você"
+          description="status proposto"
           href="/copiloto/admin/memoria?type=adr&status=proposto"
         />
         <KpiCard
           icon="check-circle"
           tone="success"
-          label="Policies ativas"
+          label="Políticas ativas"
           value={kpis.active_policies.toString()}
-          description="mcp_governance_rules.enabled=1"
+          description="ligadas no catálogo"
         />
         <KpiCard
           icon="git-pull-request"
           tone="info"
-          label="Skill approvals"
+          label="Aprovações de skill"
           value={kpis.skill_approvals.toString()}
-          description="Pending de aprovação"
+          description="versões em revisão"
           href="/ads/admin/skills-review"
         />
         <KpiCard
           icon="users"
           tone="info"
-          label="Actors registrados"
+          label="Atores registrados"
           value={kpis.actors_registered.toString()}
-          description="Identity Mesh — humanos + IAs"
+          description="sem revogação"
         />
         <KpiCard
           icon="alert-triangle"
           tone={kpis.audit_highlights > 0 ? 'warning' : 'success'}
-          label="Audit highlights 24h"
+          label="Ocorrências em 24 h"
           value={kpis.audit_highlights.toString()}
-          description="Erros + ações L0/L1"
+          description="resultado diferente de concluído"
         />
         <KpiCard
           icon="award"
           tone={complianceColor(kpis.compliance_pct) as any}
-          label="Compliance Constitution"
+          label="Conformidade"
           value={`${kpis.compliance_pct}%`}
           description={`v1.1.0 — próx revisão ${next_review_at}`}
         />
@@ -826,7 +832,7 @@ const Dashboard: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({
               tone="info"
               label="Métricas vivas"
               value={`${sdd.vivas}/${sdd.metrics_total}`}
-              description="fontes medindo de verdade (status measured)"
+              description="fontes medindo de verdade"
             />
             <KpiCard
               icon="alert-triangle"
@@ -851,20 +857,20 @@ const Dashboard: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({
         <KpiCard
           icon="activity"
           tone={failedJobsTone(health_kpis.failed_jobs_24h)}
-          label="Failed jobs 24h"
+          label="Jobs falhos em 24 h"
           value={health_kpis.failed_jobs_24h === null ? '—' : health_kpis.failed_jobs_24h.toString()}
-          description={health_kpis.failed_jobs_24h === null ? 'failed_jobs ausente' : 'queue Horizon'}
+          description={health_kpis.failed_jobs_24h === null ? 'failed_jobs ausente' : 'fila do Horizon'}
         />
         <KpiCard
           icon="dollar-sign"
           tone={custoIaTone(health_kpis.custo_ia_brl_24h)}
-          label="Custo IA 24h"
+          label="Custo de IA em 24 h"
           value={
             health_kpis.custo_ia_brl_24h === null
               ? '—'
               : `R$ ${health_kpis.custo_ia_brl_24h.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
           }
-          description={health_kpis.custo_ia_brl_24h === null ? 'jana_mensagens ausente' : 'tokens × pricing canônico'}
+          description={health_kpis.custo_ia_brl_24h === null ? 'jana_mensagens ausente' : 'tokens de entrada e saída'}
         />
         <KpiCard
           icon="message-circle-warning"
@@ -920,10 +926,10 @@ const Dashboard: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-lg font-semibold flex items-center gap-2">
                 <BarChart3 className="h-4 w-4 text-zinc-700 dark:text-zinc-300" />
-                Audit Highlights 24h ({audit_highlights.length})
+                Ocorrências em 24 h ({audit_highlights.length})
               </h3>
               <Link href="/governance/audit" className="text-sm text-primary hover:underline">
-                drill-down →
+                ver detalhes →
               </Link>
             </div>
 
@@ -1003,19 +1009,19 @@ const Dashboard: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({
               href="/governance/policies"
               className="px-4 py-3 bg-zinc-50 dark:bg-zinc-900 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-md border border-zinc-200 dark:border-zinc-700 text-sm font-medium transition-colors"
             >
-              ⚙️ Policies
+              <Settings className="h-3.5 w-3.5 mr-1 inline-block" /> Políticas
             </Link>
             <Link
               href="/governance/audit"
               className="px-4 py-3 bg-zinc-50 dark:bg-zinc-900 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-md border border-zinc-200 dark:border-zinc-700 text-sm font-medium transition-colors"
             >
-              <BarChart3 className="h-3.5 w-3.5 mr-1 inline-block" /> Audit log
+              <BarChart3 className="h-3.5 w-3.5 mr-1 inline-block" /> Auditoria
             </Link>
             <Link
               href="/governance/drift"
               className="px-4 py-3 bg-zinc-50 dark:bg-zinc-900 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-md border border-zinc-200 dark:border-zinc-700 text-sm font-medium transition-colors"
             >
-              <AlertTriangle className="h-3.5 w-3.5 mr-1 inline-block" /> Drift alerts
+              <AlertTriangle className="h-3.5 w-3.5 mr-1 inline-block" /> Drift
             </Link>
             <Link
               href="/copiloto/admin/memoria?type=adr&status=proposto"

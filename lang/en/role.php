@@ -99,4 +99,13 @@ return [
     'send_notification' => 'Notification templates (view, edit and send to customer)',
     'configure_dashboard' => 'Configure home screen cards',
     'sale.history.view' => 'View sale history and timeline',
+    'variation.view' => 'View variations',
+    'variation.create' => 'Add variation',
+    'variation.update' => 'Edit variation',
+    'variation.delete' => 'Delete variation',
+    'warranty.view' => 'View warranties',
+    'warranty.create' => 'Add warranty',
+    'warranty.update' => 'Edit warranty',
+    'warranty.delete' => 'Delete warranty',
+    'print_labels.access' => 'Print labels',
 ];

@@ -430,6 +430,13 @@ da memória de conversa** — contexto longo omite item.
 
 ### Inventário — ler o protótipo de cima a baixo
 
+**O inventário é o protótipo ATUAL inteiro, nunca o delta.** Pedido de "subir as modificações
+para produção" é promoção: a lista sai da comparação medida (sonda nos dois lados, mesmo tema e
+largura) e do `<Tela>-visual-comparison.md`, não do que mudou na sessão, no PR ou no handoff — o
+delta mede o que foi feito, nunca o que falta. Caso: Fabricação, 2026-09-30, onde "só o título se
+aplica" levou a Receitas à produção sem os cartões com ícone, a aba ativa e as colunas da tabela
+do protótipo ([#8239](https://github.com/wagnerra23/oimpresso.com/pull/8239); §5 2026-09-30).
+
 Cada elemento observável vira **uma linha**. Não agrupar em termo vago ("ajustes de tabela",
 "formulário revisado"): item agrupado é item que ninguém confere. Registrar, quando existirem:
 

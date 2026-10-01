@@ -21,6 +21,7 @@ import { useState, type FormEvent, type ReactNode } from 'react';
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Button } from '@/Components/ui/button';
 import { Checkbox } from '@/Components/ui/checkbox';
+import FabricacaoAbas from './_components/FabricacaoAbas';
 import '../../../css/cowork-manufacturing-bundle.css';
 
 interface SettingsShape {
@@ -67,38 +68,15 @@ export default function Settings({
   };
 
   return (
-    <div className="mfg-root" data-screen-label="Manufacturing · Configurações">
+    <div className="mfg-root" data-screen-label="Fabricação · Configurações">
       <div className="os-page-h" data-contract="cabecalho">
         <div className="os-page-h-l">
-          <h1>Manufacturing</h1>
+          <h1>Fabricação</h1>
           <p>Configurações do módulo</p>
         </div>
       </div>
 
-      <nav className="mfg-tabs" aria-label="Manufacturing">
-        <Link className="mfg-tab" href="/manufacturing/recipe">
-          Receitas
-          <span className="mfg-tab-n">{recipes_count}</span>
-        </Link>
-        <Link className="mfg-tab" href="/manufacturing/insumos">
-          Insumos
-        </Link>
-        {permissions.prod && (
-          <Link className="mfg-tab" href="/manufacturing/production">
-            Ordens de produção
-            <span className="mfg-tab-n">
-              {producao.total}
-              {producao.rascunhos ? ` · ${producao.rascunhos} rasc.` : ''}
-            </span>
-          </Link>
-        )}
-        <Link className="mfg-tab" href="/manufacturing/report">
-          Relatório
-        </Link>
-        <span className="mfg-tab act" aria-current="page">
-          Configurações
-        </span>
-      </nav>
+      <FabricacaoAbas ativa="config" receitas={recipes_count} producao={producao} podeProduzir={permissions.prod} />
 
       <form className="mfg-cfg" data-contract="form" onSubmit={salvar}>
         <div className="mfg-card">
@@ -146,7 +124,7 @@ export default function Settings({
 
           <div className="mfg-ed-f mfg-inline">
             <span className="mfg-crumb-meta">
-              Manufacturing{version ? ` v${version}` : ''}
+              Fabricação{version ? ` v${version}` : ''}
             </span>
             <span className="sp" />
             <Button type="submit" size="sm" disabled={!dirty || salvando}>
@@ -190,8 +168,8 @@ export default function Settings({
 
 Settings.layout = (page: ReactNode) => (
   <AppShellV2
-    title="Configurações · Manufacturing"
-    breadcrumbItems={[{ label: 'Manufacturing' }, { label: 'Configurações' }]}
+    title="Configurações · Fabricação"
+    breadcrumbItems={[{ label: 'Fabricação' }, { label: 'Configurações' }]}
   >
     {page}
   </AppShellV2>

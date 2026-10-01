@@ -15,7 +15,6 @@ use Inertia\Inertia;
 use Modules\AssetManagement\Entities\Asset;
 use Modules\AssetManagement\Entities\AssetMaintenance;
 use Modules\AssetManagement\Entities\AssetTransaction;
-use Modules\AssetManagement\Entities\AssetWarranty;
 use Modules\AssetManagement\Http\Requests\StoreAssetRequest;
 use Modules\AssetManagement\Http\Requests\UpdateAssetRequest;
 use Modules\AssetManagement\Services\AssetMaintenanceService;
@@ -255,6 +254,21 @@ class AssetController extends Controller
                 ->make(true);
         }
 
+        return $this->renderBens($request, (int) $business_id);
+    }
+
+    /**
+     * A tela de Bens (Inertia) — dona unica do render, usada por `index`, `create` e `edit`.
+     *
+     * Thread 17 do Patrimonio ([W] 2026-09-30): `create`/`edit` deixaram de devolver o fragmento
+     * de modal Blade (que so respondia sob `ajax()` e a lista React nao abria) e passaram a devolver
+     * ESTA Page com o drawer aberto. `$extra` e o que muda entre as tres: nada (index),
+     * `abrir_cadastro` (create) ou `edicao` (edit).
+     */
+    private function renderBens(Request $request, int $business_id, array $extra = [])
+    {
+        $purchase_types = $this->purchaseTypes;
+
         $business_locations = BusinessLocation::forDropdown($business_id);
         $asset_category = Category::forDropdown($business_id, 'asset');
 
@@ -267,7 +281,7 @@ class AssetController extends Controller
         // INERTE para esta tela (o React recebe o paginator por prop). Remove-lo, junto
         // com `Resources/views/asset/index.blade.php`, e cutover (F5) — nao frontend.
         // Runbook: memory/requisitos/AssetManagement/RUNBOOK-bens.md
-        return Inertia::render('Patrimonio/Bens', [
+        return Inertia::render('Patrimonio/Bens', array_merge([
             // Contador da aba "Manutencoes" (pill do PageHeaderTabs). DEFERIDO: o
             // CLAUDE.md manda `Inertia::defer` em toda prop que faz query, e o pill nao
             // participa do first paint. Cobre `asset-maintenance` e mais nada -- dos 5
@@ -320,16 +334,32 @@ class AssetController extends Controller
             // mas respeita `permitted_locations()`: restricao de permissao nunca e opcional.
             'recortes_contagem' => Inertia::defer(fn () => [
                 'garantia' => $this->contarRecorteGarantia($business_id),
+                'manutencao' => $this->contarRecorte($business_id, fn ($q) => $this->aplicarRecorteManutencao($q, $business_id)),
             ]),
-        ]);
+            // Drawer de DETALHE do bem (leitura) — decisao [W] 2026-09-30, `_saida-16b.md`:
+            // o historico de devolucoes (1 alocacao : N devolucoes) mora aqui, na aba
+            // Alocacoes. Abre por `?bem=ID` com partial reload (`only: ['bem_detalhe',
+            // 'bem_selecionado']`), o mesmo desenho de `Compras/Index` — a tabela nao volta.
+            'bem_selecionado' => $this->bemSelecionado($request),
+            'bem_detalhe' => Inertia::defer(fn () => $this->bemSelecionado($request)
+                ? $this->buildBemDetalhe($this->bemSelecionado($request), (int) $business_id)
+                : null),
+        ], $extra));
     }
 
     /**
      * Recortes da lista de Bens (D-GARANTIAS, [W] 2026-09-29: "Garantia critica" e filtro
      * DENTRO de Bens, sem tela propria). Whitelist: valor fora dela vira `todos` e nunca
-     * chega ao SQL. "Em manutencao" nao entra — nao foi decidido (thread 12, PARAR SE).
+     * chega ao SQL. "Em manutencao" entrou em 2026-09-30 ([W]), com a mesma forma.
      */
-    private const RECORTES = ['todos', 'garantia'];
+    private const RECORTES = ['todos', 'garantia', 'manutencao'];
+
+    /**
+     * Rótulo do bem SEM categoria nas análises do Painel. Era `__('lang_v1.none')` ("nenhum"),
+     * que na barra lia só "nenhum" e no selo virava "100% EM NENHUM" (visto na evidência visual
+     * de 2026-09-30). "Sem categoria" diz o que é — e é o mesmo texto nas duas análises.
+     */
+    private const SEM_CATEGORIA = 'Sem categoria';
 
     private function recorteAtivo(Request $request): string
     {
@@ -339,25 +369,64 @@ class AssetController extends Controller
     }
 
     /**
-     * Garantia critica = garantia VENCIDA ou vencendo em ate 30 dias. Bem SEM registro de
-     * garantia NAO entra (vai para "sem garantia" no Painel — charter R3, `patrimonio-page.jsx:185`).
+     * A garantia que vale para cada bem: a MAIS RECENTE, isto e, a que termina por ultimo
+     * (`MAX(end_date)`) — [W] 2026-09-30. Uma linha por bem.
      *
-     * E o MESMO predicado de `contaGarantiaCritica()` do Painel (`DATEDIFF(end_date,
-     * CURDATE()) <= 30`), para o KPI do Painel e a pilula daqui contarem a mesma coisa.
+     * Dono UNICO da regra: o recorte "Garantia critica" de Bens, o KPI e os 4 baldes do Painel
+     * leem daqui. Antes cada um lia TODAS as garantias do bem, e dois defeitos saiam juntos:
+     * bem com garantia velha vencida + renovacao vigente contava como critico, e o `SUM` de
+     * valor dos baldes somava o bem uma vez por garantia (o `COUNT(DISTINCT)` de bens nao).
      *
-     * Tier 0 (ADR 0093): `asset_warranties` NAO tem `business_id`, entao a subconsulta entra
-     * por join com `assets` filtrando o business EXPLICITAMENTE — nao confia so na correlacao
-     * com a consulta externa.
+     * Tier 0 (ADR 0093): `asset_warranties` NAO tem `business_id` — entra por join com `assets`
+     * filtrando o business EXPLICITAMENTE, alem do filtro de cada consumidor.
+     */
+    private function ultimaGarantiaPorBem($business_id)
+    {
+        return DB::table('asset_warranties as UGW')
+            ->join('assets as UGA', 'UGA.id', '=', 'UGW.asset_id')
+            ->where('UGA.business_id', $business_id)
+            ->groupBy('UGW.asset_id')
+            ->select('UGW.asset_id', DB::raw('MAX(UGW.end_date) as fim'));
+    }
+
+    /**
+     * Garantia critica = a garantia MAIS RECENTE do bem esta vencida ou vence em ate 30 dias.
+     * Bem SEM registro de garantia NAO entra (vai para "sem garantia" no Painel — charter R3).
      */
     private function aplicarRecorteGarantia($assets, $business_id)
     {
-        return $assets->whereIn('assets.id', AssetWarranty::join('assets as AWA', 'AWA.id', '=', 'asset_warranties.asset_id')
-            ->where('AWA.business_id', $business_id)
-            ->whereRaw('DATEDIFF(asset_warranties.end_date, CURDATE()) <= 30')
-            ->select('asset_warranties.asset_id'));
+        return $assets->whereIn('assets.id', DB::query()
+            ->fromSub($this->ultimaGarantiaPorBem($business_id), 'UG')
+            ->whereRaw('DATEDIFF(UG.fim, CURDATE()) <= 30')
+            ->select('UG.asset_id'));
+    }
+
+    /**
+     * Em manutencao = o bem tem manutencao EM ABERTO: status `new` ou `in_progress`, a mesma
+     * lista fechada de `AssetMaintenanceService::contarAbertas()` (pill da aba Manutencoes) e
+     * do selo "N em manutencao" por linha. Status NULL ou desconhecido nao conta.
+     *
+     * Tier 0 (ADR 0093): `asset_maintenances` TEM `business_id` — filtrado explicitamente,
+     * alem do filtro de `assets` de cada consumidor.
+     */
+    private function aplicarRecorteManutencao($assets, $business_id)
+    {
+        return $assets->whereIn('assets.id', DB::table('asset_maintenances')
+            ->where('business_id', $business_id)
+            ->whereIn('status', ['new', 'in_progress'])
+            ->select('asset_id'));
     }
 
     private function contarRecorteGarantia($business_id): int
+    {
+        return $this->contarRecorte($business_id, fn ($q) => $this->aplicarRecorteGarantia($q, $business_id));
+    }
+
+    /**
+     * Contagem de um recorte sobre o CONJUNTO do business — independe dos filtros escolhidos
+     * (como o `n` do prototipo), mas respeita `permitted_locations()`.
+     */
+    private function contarRecorte($business_id, callable $aplicar): int
     {
         $assets = Asset::where('assets.business_id', $business_id);
 
@@ -366,7 +435,7 @@ class AssetController extends Controller
             $assets->whereIn('assets.location_id', $permitted_locations);
         }
 
-        return $this->aplicarRecorteGarantia($assets, $business_id)->count();
+        return $aplicar($assets)->count();
     }
 
     /**
@@ -452,8 +521,11 @@ class AssetController extends Controller
 
         $this->applyAssetFilters($assets);
 
-        if ($this->recorteAtivo($request) === 'garantia') {
+        $recorte = $this->recorteAtivo($request);
+        if ($recorte === 'garantia') {
             $this->aplicarRecorteGarantia($assets, $business_id);
+        } elseif ($recorte === 'manutencao') {
+            $this->aplicarRecorteManutencao($assets, $business_id);
         }
 
         // Busca — os 4 campos que identificam o bem, os mesmos que o prototipo procura
@@ -529,14 +601,120 @@ class AssetController extends Controller
         });
     }
 
+    private function bemSelecionado(Request $request): ?int
+    {
+        $id = (int) $request->input('bem', 0);
+
+        return $id > 0 ? $id : null;
+    }
+
     /**
-     * Show the form for creating a new resource.
+     * Detalhe de UM bem pro drawer de leitura: identificacao + alocacoes, cada uma com a
+     * lista das suas devolucoes (1 : N — devolucao parcial gera varias linhas `revoke`
+     * com o mesmo `parent_id`; o prototipo modela 1 : 1, ver `_saida-16.md`).
      *
-     * @return Response
+     * Tier 0 (ADR 0093): o bem, as alocacoes E as devolucoes filtram `business_id` cada
+     * uma na PROPRIA linha. A soma de devolucoes da tela Alocacoes (`leftJoin ... as PT`)
+     * nao filtra `PT.business_id` — residuo declarado no charter dela. Aqui a devolucao
+     * e escopada nela mesma, entao revoke de outra empresa apontando pra alocacao desta
+     * nao aparece nem entra no total devolvido. Bem de outra empresa, ou fora de
+     * `permitted_locations()`, devolve `null` (o drawer mostra "nao encontrado").
+     *
+     * Leitura pura: nenhuma quantidade e recalculada fora do que a lista mostra —
+     * `devolvido` e a soma das devolucoes LISTADAS, nada mais.
+     */
+    private function buildBemDetalhe(int $id, int $business_id): ?array
+    {
+        $bem = Asset::leftJoin('categories as CAT', 'assets.category_id', '=', 'CAT.id')
+            ->leftJoin('business_locations as BL', 'assets.location_id', '=', 'BL.id')
+            ->where('assets.business_id', $business_id)
+            ->where('assets.id', $id)
+            ->select('assets.*', 'CAT.name as categoria', 'BL.name as local')
+            ->first();
+
+        $permitidos = auth()->user()->permitted_locations();
+        if (! $bem || ($permitidos != 'all' && ! in_array($bem->location_id, (array) $permitidos))) {
+            return null;
+        }
+
+        $nome = fn (string $t) => DB::raw("TRIM(CONCAT(COALESCE($t.surname, ''),' ',COALESCE($t.first_name, ''),' ',COALESCE($t.last_name,''))) as {$t}_nome");
+
+        $alocacoes = DB::table('asset_transactions as AL')
+            ->leftJoin('users as receiver', 'AL.receiver', '=', 'receiver.id')
+            ->leftJoin('users as provider', 'AL.created_by', '=', 'provider.id')
+            ->where('AL.business_id', $business_id)
+            ->where('AL.asset_id', $bem->id)
+            ->where('AL.transaction_type', 'allocate')
+            ->orderByDesc('AL.transaction_datetime')
+            ->select('AL.id', 'AL.ref_no', 'AL.quantity', 'AL.transaction_datetime', 'AL.allocated_upto',
+                'AL.reason', $nome('receiver'), $nome('provider'))
+            ->get();
+
+        $devolucoes = DB::table('asset_transactions as RV')
+            ->leftJoin('users as provider', 'RV.created_by', '=', 'provider.id')
+            ->where('RV.business_id', $business_id)
+            ->where('RV.transaction_type', 'revoke')
+            ->whereIn('RV.parent_id', $alocacoes->pluck('id')->all() ?: [0])
+            ->orderBy('RV.transaction_datetime')
+            ->select('RV.id', 'RV.parent_id', 'RV.ref_no', 'RV.quantity', 'RV.transaction_datetime',
+                'RV.reason', $nome('provider'))
+            ->get()
+            ->groupBy('parent_id');
+
+        return [
+            'id' => $bem->id,
+            'asset_code' => $bem->asset_code,
+            'nome' => $bem->name,
+            'modelo' => $bem->model,
+            'serie' => $bem->serial_no,
+            // Alias do `select` (join CAT/BL), nao coluna do Model: `getAttribute` pro Larastan.
+            'categoria' => $bem->getAttribute('categoria'),
+            'local' => $bem->getAttribute('local'),
+            'tipo_compra' => $bem->purchase_type,
+            'compra_em' => $bem->purchase_date ? $this->commonUtil->format_date($bem->purchase_date) : null,
+            'alocavel' => (bool) $bem->is_allocatable,
+            'quantidade' => (float) $bem->quantity,
+            'valor_unitario' => (float) $bem->unit_price,
+            'descricao' => $bem->description,
+            'alocacoes' => $alocacoes->map(function ($a) use ($devolucoes) {
+                $filhas = $devolucoes->get($a->id, collect());
+
+                return [
+                    'id' => $a->id,
+                    'ref_no' => $a->ref_no,
+                    'para' => $a->receiver_nome,
+                    'por' => $a->provider_nome,
+                    'quantidade' => (float) $a->quantity,
+                    'em' => $this->commonUtil->format_date($a->transaction_datetime, true),
+                    'ate' => $a->allocated_upto ? $this->commonUtil->format_date($a->allocated_upto) : null,
+                    'motivo' => $a->reason,
+                    'devolvido' => (float) $filhas->sum('quantity'),
+                    'devolucoes' => $filhas->map(fn ($r) => [
+                        'id' => $r->id,
+                        'ref_no' => $r->ref_no,
+                        'quantidade' => (float) $r->quantity,
+                        'em' => $this->commonUtil->format_date($r->transaction_datetime, true),
+                        'por' => $r->provider_nome,
+                        'motivo' => $r->reason,
+                    ])->values()->all(),
+                ];
+            })->values()->all(),
+        ];
+    }
+
+    /**
+     * Cadastro de bem: a tela de Bens com o drawer "Adicionar recurso" aberto.
+     *
+     * Ate 2026-09-30 devolvia o fragmento de modal `asset.create` so sob `ajax()` — e o cliente
+     * Inertia manda `X-Requested-With` SEMPRE, entao o ramo nem pode conviver com a tela React:
+     * uma visita Inertia cairia nele. O drawer (`_shared/CadastroBemDrawer`) ja posta no `store()`.
+     *
+     * @return \Inertia\Response
      */
     public function create(Request $request)
     {
-        if (! auth()->user()->can('asset.create')) {
+        // `asset.view`: a Page carrega a lista de bens — quem nao ve a lista nao entra por aqui.
+        if (! auth()->user()->can('asset.create') || ! auth()->user()->can('asset.view')) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -546,15 +724,7 @@ class AssetController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
-        if ($request->ajax()) {
-            $asset_category = Category::forDropdown($business_id, 'asset');
-            $business_locations = BusinessLocation::forDropdown($business_id);
-
-            $purchase_types = $this->purchaseTypes;
-
-            return view('assetmanagement::asset.create')
-                ->with(compact('asset_category', 'business_locations', 'purchase_types'));
-        }
+        return $this->renderBens($request, (int) $business_id, ['abrir_cadastro' => true]);
     }
 
     /**
@@ -586,36 +756,75 @@ class AssetController extends Controller
     }
 
     /**
-     * Show the form for editing the specified resource.
+     * Edicao de bem: a tela de Bens com o drawer aberto em modo editar (thread 17, [W] 2026-09-30).
+     *
+     * Mesmo motivo do `create()`: o fragmento `asset.edit` so respondia sob `ajax()`, e toda
+     * visita Inertia e ajax. O bem entra na prop `edicao` ja escopado por business (Tier 0) —
+     * id de outra empresa da 404, como antes. O `update()` e o mesmo de sempre.
      *
      * @param  int  $id
-     * @return Response
+     * @return \Inertia\Response
      */
-    public function edit($id)
+    public function edit(Request $request, $id)
     {
-        if (! auth()->user()->can('asset.update')) {
+        if (! auth()->user()->can('asset.update') || ! auth()->user()->can('asset.view')) {
             abort(403, 'Unauthorized action.');
         }
 
-        $business_id = request()->session()->get('user.business_id');
+        $business_id = (int) request()->session()->get('user.business_id');
 
         if (! (auth()->user()->can('superadmin') || ($this->moduleUtil->hasThePermissionInSubscription($business_id, 'assetmanagement_module')))) {
             abort(403, 'Unauthorized action.');
         }
 
-        if (request()->ajax()) {
-            $asset = Asset::with(['warranties'])
-                        ->where('business_id', $business_id)
-                        ->findOrfail($id);
+        $asset = Asset::where('business_id', $business_id)->findOrFail($id);
 
-            $asset_category = Category::forDropdown($business_id, 'asset');
-            $business_locations = BusinessLocation::forDropdown($business_id);
+        return $this->renderBens($request, $business_id, ['edicao' => $this->buildEdicaoPayload($asset)]);
+    }
 
-            $purchase_types = $this->purchaseTypes;
+    /**
+     * O bem gravado no formato que o drawer preenche (`cadastroBem.ts::BemEdicao`).
+     *
+     * Numeros saem como NUMERO (nao string formatada): quem os formata pro envio e o
+     * `paraNumUf` do front, o mesmo do cadastro — a REGRA MESTRE fica num caminho so.
+     * Garantias da mais recente pra mais antiga: o drawer edita a primeira e reenvia as outras
+     * intactas, porque o `AssetService::atualizar` apaga a que nao vier no envio.
+     */
+    private function buildEdicaoPayload(Asset $asset): array
+    {
+        // Pelo METODO da relacao, nao pelo atributo magico: o `Asset` nao declara `@property
+        // $warranties` e o PHPStan (ratchet) reprova o acesso. O serviço ja usa `warranties()`.
+        $garantias = $asset->warranties()
+            ->orderByDesc('start_date')
+            ->get()
+            ->map(fn ($w) => [
+                'id' => (int) $w->id,
+                'inicio' => \Carbon::parse($w->start_date)->format('Y-m-d'),
+                'meses' => (int) round(\Carbon::parse($w->start_date)->diffInMonths(\Carbon::parse($w->end_date))),
+                'custo' => (float) $w->additional_cost,
+                'nota' => $w->additional_note,
+            ])
+            ->all();
 
-            return view('assetmanagement::asset.edit')
-                ->with(compact('asset_category', 'business_locations', 'asset', 'purchase_types'));
-        }
+        return [
+            'id' => (int) $asset->id,
+            'asset_code' => (string) $asset->asset_code,
+            'form' => [
+                'nome' => (string) $asset->name,
+                'categoriaId' => $asset->category_id ? (string) $asset->category_id : '',
+                'localId' => $asset->location_id ? (string) $asset->location_id : '',
+                'modelo' => (string) ($asset->model ?? ''),
+                'serie' => (string) ($asset->serial_no ?? ''),
+                'compraEm' => $asset->purchase_date ? \Carbon::parse($asset->purchase_date)->format('Y-m-d') : '',
+                'tipoCompra' => (string) ($asset->purchase_type ?: 'owned'),
+                'valorUnitario' => (float) $asset->unit_price,
+                'quantidade' => (float) $asset->quantity,
+                'depreciacao' => $asset->depreciation === null ? null : (float) $asset->depreciation,
+                'alocavel' => (bool) $asset->is_allocatable,
+                'descricao' => (string) ($asset->description ?? ''),
+            ],
+            'garantias' => $garantias,
+        ];
     }
 
     /**
@@ -759,14 +968,11 @@ class AssetController extends Controller
         ];
     }
 
-    /** Bens com garantia vencida OU vencendo em ate 30 dias. Sem registro NAO conta (charter R3). */
+    /** Bens cuja garantia MAIS RECENTE esta vencida ou vence em ate 30 dias — o mesmo recorte de Bens. */
     private function contaGarantiaCritica($business_id)
     {
-        return AssetWarranty::join('assets', 'assets.id', '=', 'asset_warranties.asset_id')
-            ->where('assets.business_id', $business_id)
-            ->whereRaw('DATEDIFF(asset_warranties.end_date, CURDATE()) <= 30')
-            ->distinct()
-            ->count('assets.id');
+        return $this->aplicarRecorteGarantia(Asset::where('assets.business_id', $business_id), $business_id)
+            ->count();
     }
 
     /** Patrimonio por categoria — SUM(quantity * unit_price) agrupado. */
@@ -778,7 +984,7 @@ class AssetController extends Controller
 
         return Asset::where('assets.business_id', $business_id)
             ->leftJoin('categories as cat', 'assets.category_id', '=', 'cat.id')
-            ->selectRaw('COALESCE(cat.name, ?) as categoria', [__('lang_v1.none')])
+            ->selectRaw('COALESCE(cat.name, ?) as categoria', [self::SEM_CATEGORIA])
             ->selectRaw('COALESCE(SUM(assets.quantity), 0) as unidades')
             ->selectRaw('COALESCE(SUM(assets.quantity * assets.unit_price), 0) as valor')
             ->groupBy('cat.id', 'cat.name')
@@ -803,12 +1009,14 @@ class AssetController extends Controller
             return null;
         }
 
+        // Uma linha por bem (a garantia mais recente): sem isso o SUM de valor contava o bem
+        // uma vez por garantia registrada.
         $baldes = Asset::where('assets.business_id', $business_id)
-            ->leftJoin('asset_warranties as aw', 'aw.asset_id', '=', 'assets.id')
+            ->leftJoinSub($this->ultimaGarantiaPorBem($business_id), 'aw', 'aw.asset_id', '=', 'assets.id')
             ->selectRaw("CASE
-                WHEN aw.end_date IS NULL THEN 'sem'
-                WHEN DATEDIFF(aw.end_date, CURDATE()) < 0 THEN 'vencida'
-                WHEN DATEDIFF(aw.end_date, CURDATE()) <= 30 THEN 'vencendo'
+                WHEN aw.fim IS NULL THEN 'sem'
+                WHEN DATEDIFF(aw.fim, CURDATE()) < 0 THEN 'vencida'
+                WHEN DATEDIFF(aw.fim, CURDATE()) <= 30 THEN 'vencendo'
                 ELSE 'vigente' END as balde")
             ->selectRaw('COUNT(DISTINCT assets.id) as bens')
             ->selectRaw('COALESCE(SUM(assets.quantity * assets.unit_price), 0) as valor')
@@ -867,7 +1075,7 @@ class AssetController extends Controller
             ->where('asset_transactions.receiver', $user_id)
             ->leftJoin('assets as a', 'a.id', '=', 'asset_transactions.asset_id')
             ->leftJoin('categories as cat', 'a.category_id', '=', 'cat.id')
-            ->selectRaw('COALESCE(cat.name, ?) as categoria', [__('lang_v1.none')])
+            ->selectRaw('COALESCE(cat.name, ?) as categoria', [self::SEM_CATEGORIA])
             ->selectRaw("COALESCE(SUM(IF(asset_transactions.transaction_type='allocate', asset_transactions.quantity, -asset_transactions.quantity)), 0) as quantidade")
             ->groupBy('cat.id', 'cat.name')
             ->toBase()

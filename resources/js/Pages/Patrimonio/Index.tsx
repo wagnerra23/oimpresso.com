@@ -64,6 +64,11 @@ const brl = (v: number) => v.toLocaleString('pt-BR', { style: 'currency', curren
  *  arredondar pra inteiro perderia dado real (fração de unidade existe no cadastro). */
 const qtd = (v: number) => v.toLocaleString('pt-BR', { maximumFractionDigits: 4 });
 
+/** Concordância de número em pt-BR: singular só quando é exatamente 1 — 0 e 1,5 levam plural.
+ *  Até 2026-09-30 o painel escrevia "1 bens cadastrados" / "1 unidades" (visto na evidência
+ *  visual do tenant de visreg, que tem um bem só). */
+const plural = (n: number, um: string, varios: string) => (n === 1 ? um : varios);
+
 /** O traço do número sem fonte. Ver o cabeçalho deste arquivo. */
 const SEM_FONTE = '—';
 
@@ -279,9 +284,14 @@ export default function Index({ abas_contadores, is_admin, pode, apurado_em, kpi
   //
   // Sem `kpis` (prop deferida, chega depois) não há selo: `0%` afirmaria concentração nenhuma,
   // que não é o que se sabe — é o mesmo critério do `—` dos números sem fonte.
+  //
+  // O "em" é do protótipo ("60% em impressão"). O grupo de bem sem categoria já vem com rótulo
+  // que começa por "sem" ("Sem categoria"), e "100% em sem categoria" não se lê — ali o selo diz
+  // só "100% sem categoria".
+  const rotuloCategoria = catDominante?.categoria.toLowerCase() ?? '';
   const seloCategoria =
     catDominante && kpis?.bruto
-      ? `${Math.round((catDominante.valor / kpis.bruto) * 100)}% em ${catDominante.categoria.toLowerCase()}`
+      ? `${Math.round((catDominante.valor / kpis.bruto) * 100)}% ${rotuloCategoria.startsWith('sem ') ? '' : 'em '}${rotuloCategoria}`
       : null;
 
   return (
@@ -302,7 +312,7 @@ export default function Index({ abas_contadores, is_admin, pode, apurado_em, kpi
 
               A contagem de bens vem de prop DEFERIDA: no 1º paint `kpis` é `undefined`, o pedaço
               sai do join (o `filter` que o protótipo já tem) e a linha nasce com o negócio só. */}
-          <LinhaDeContexto partes={[negocio, kpis ? `${kpis.totalBens} bens` : null]} />
+          <LinhaDeContexto partes={[negocio, kpis ? `${kpis.totalBens} ${plural(kpis.totalBens, 'bem', 'bens')}` : null]} />
           {/* Canon v3.8 (ADR 0189/0190). O ícone entra por `leading` — o slot existe no canon
               justamente porque o PT-04 R6 descreve o header como "ícone · título · descrição"
               (`PageHeader.tsx:49`), e a Jana PERDEU o dot da área ao migrar sem ele. Idioma
@@ -402,13 +412,17 @@ export default function Index({ abas_contadores, is_admin, pode, apurado_em, kpi
               <Deferred data="kpis" fallback={<Esqueleto linhas={2} />}>
                 {kpis ? (
                   <p className="text-sm leading-relaxed text-muted-foreground">
-                    <b className="text-foreground">{kpis.totalBens}</b> bens cadastrados,{' '}
-                    <b className="text-foreground">{qtd(kpis.unidades)} unidades</b> e{' '}
+                    <b className="text-foreground">{kpis.totalBens}</b>{' '}
+                    {plural(kpis.totalBens, 'bem cadastrado', 'bens cadastrados')},{' '}
+                    <b className="text-foreground">
+                      {qtd(kpis.unidades)} {plural(kpis.unidades, 'unidade', 'unidades')}
+                    </b>{' '}
+                    e{' '}
                     <b className="text-foreground">{brl(kpis.bruto)}</b> de patrimônio bruto. O valor
                     residual depois da depreciação não é calculado pelo sistema ({SEM_FONTE}).{' '}
                     {kpis.garantiaCritica > 0 ? (
-                      <>Hoje pesa a <b className="text-foreground">cobertura</b>: {kpis.garantiaCritica} bens
-                      com garantia vencida ou vencendo em até 30 dias.</>
+                      <>Hoje pesa a <b className="text-foreground">cobertura</b>: {kpis.garantiaCritica}{' '}
+                      {plural(kpis.garantiaCritica, 'bem', 'bens')} com garantia vencida ou vencendo em até 30 dias.</>
                     ) : (
                       <>Nenhum bem com garantia vencida ou vencendo nos próximos 30 dias.</>
                     )}
@@ -426,17 +440,17 @@ export default function Index({ abas_contadores, is_admin, pode, apurado_em, kpi
                   NÃO existe (`D-AUDITORIA`) — renderizá-lo seria a afordância falsa que a tela
                   de Bens já recusou ao derivar as abas do menu. Os três aqui navegam de fato;
                   as rotas estão em `Routes/web.php:13-22`.
-                  `Garantia crítica` leva à lista de Bens sem pré-filtro: o filtro por garantia
-                  do protótipo não existe no índice (`AssetController` lê `q`, `location_id`,
-                  `category_id`, `purchase_type`, `is_allocatable` — não garantia). Levar ao
-                  lugar certo sem filtrar é honesto; inventar `?garantia=` seria um parâmetro
-                  que o backend ignora em silêncio. */}
+                  `Garantia crítica` abre Bens JÁ no recorte (`?recorte=garantia`), que existe
+                  no servidor desde 2026-09-29 (D-GARANTIAS, thread 12) e usa a mesma regra do
+                  KPI acima — o número do card e o da pílula batem. Até então o chip levava à
+                  lista sem pré-filtro, porque o índice não tinha filtro por garantia e inventar
+                  um parâmetro que o backend ignora seria pior. */}
               {is_admin ? (
                 <>
                   <div className="mt-3 border-t border-border" />
                   <Inline gap={2} align="center" className="flex-wrap pt-3">
                     <Button variant="outline" size="sm" asChild>
-                      <a href="/asset/assets">Garantia crítica</a>
+                      <a href="/asset/assets?recorte=garantia">Garantia crítica</a>
                     </Button>
                     <Button variant="outline" size="sm" asChild>
                       <a href="/asset/asset-maintenance">Em manutenção</a>
@@ -460,7 +474,7 @@ export default function Index({ abas_contadores, is_admin, pode, apurado_em, kpi
                   label="Patrimônio bruto"
                   value={brl(kpis.bruto)}
                   icon="coins"
-                  description={`${qtd(kpis.unidades)} unidades em ${kpis.totalBens} bens`}
+                  description={`${qtd(kpis.unidades)} ${plural(kpis.unidades, 'unidade', 'unidades')} em ${kpis.totalBens} ${plural(kpis.totalBens, 'bem', 'bens')}`}
                 />
                 <KpiCard
                   label="Valor residual"
@@ -472,7 +486,7 @@ export default function Index({ abas_contadores, is_admin, pode, apurado_em, kpi
                   label="Alocados"
                   value={`${qtd(kpis.alocados)} de ${qtd(kpis.alocaveis)}`}
                   icon="target"
-                  description={`${qtd(Math.max(0, kpis.alocaveis - kpis.alocados))} unidades livres pra alocar`}
+                  description={`${qtd(Math.max(0, kpis.alocaveis - kpis.alocados))} ${plural(Math.max(0, kpis.alocaveis - kpis.alocados), 'unidade livre', 'unidades livres')} pra alocar`}
                 />
                 <KpiCard
                   label="Garantia vencida ou vencendo"
@@ -657,7 +671,7 @@ export default function Index({ abas_contadores, is_admin, pode, apurado_em, kpi
                       href="/asset/asset-maintenance"
                     />
                     <Acao
-                      titulo={`${qtd(Math.max(0, kpis.alocaveis - kpis.alocados))} unidades alocáveis paradas`}
+                      titulo={`${qtd(Math.max(0, kpis.alocaveis - kpis.alocados))} ${plural(Math.max(0, kpis.alocaveis - kpis.alocados), 'unidade alocável parada', 'unidades alocáveis paradas')}`}
                       sub="Equipamento sem alocação não tem responsável registrado."
                       icone="target"
                       cta="Ver alocações"

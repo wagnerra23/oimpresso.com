@@ -5,10 +5,10 @@
 > Status/lifecycle normalizados no leitor (ADR 0257) — não altera os arquivos (append-only).
 
 ## Resumo
-- **424** arquivos · **409** números únicos · máx **0419**
-- **ADRs ATIVOS (lifecycle ativo): 379** ← resposta única a "quantos ADRs ativos"
-- Por status: aceito 375 · superseded 25 · deprecated 11 · proposto 11 · rascunho 1 · recusado 1
-- Por lifecycle: ativo 379 · substituido 25 · arquivado 20
+- **426** arquivos · **411** números únicos · máx **0421**
+- **ADRs ATIVOS (lifecycle ativo): 381** ← resposta única a "quantos ADRs ativos"
+- Por status: aceito 377 · superseded 25 · deprecated 11 · proposto 11 · rascunho 1 · recusado 1
+- Por lifecycle: ativo 381 · substituido 25 · arquivado 20
 - Sem frontmatter (formato-tabela legado): 0
 
 ## Colisões de número (13) — auto-detectadas
@@ -35,7 +35,7 @@ _(nenhuma)_
 ## Recusadas (1) — o NÃO consultável
 - **0290** v0 'Fidelity Lock' (screenshot pareado em CI) — RECUSADO: fidelidade visual não  · recusada 2026-06-18 — Inviável + tautológico + backdoor de prosa (3 motivos na Decisão). REABRE só se surgir um check de fidelidade HERMÉTICO 
 
-## Todas as ADRs (424)
+## Todas as ADRs (426)
 | Nº | Status | Lifecycle | Kind | Título |
 |---|---|---|---|---|
 | 0001 | aceito | ativo | decision | Estender UltimatePOS em vez de build próprio ou fork |
@@ -462,3 +462,5 @@ _(nenhuma)_
 | 0417 | aceito | ativo | decision | Critério da tela-piloto da ADR 0253 aposentado junto com a Prova Viva |
 | 0418 | aceito | ativo | decision | Ponto — listas seguem paginadas no servidor com a forma do protótipo (W11) e a n |
 | 0419 | aceito | ativo | decision | Ponto — escopo do REP-P sem selfie ratificado (W10): 7 rotas reais, app do colab |
+| 0420 | aceito | ativo | decision | Ponto — o AEJ lê a apuração para horário contratual e ausências; dado legal ause |
+| 0421 | aceito | ativo | decision | Arquivos — aviso ao titular (LGPD Art. 18 VI): registro titular_avisado_at + açã |
