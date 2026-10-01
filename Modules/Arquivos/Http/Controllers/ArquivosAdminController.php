@@ -688,8 +688,8 @@ class ArquivosAdminController extends Controller
      * classificação manual que não acontece.
      *
      * Multi-tenant Tier 0 (ADR 0093): a Request já recusa (403) arquivo de outro business; o
-     * `findOrFail` abaixo passa pelo global scope do model — segunda perna, sem dispensar
-     * scope nenhum. A linha da trilha leva o `business_id` DO ARQUIVO.
+     * `findOrFail` abaixo filtra pelo business da sessão (e ainda passa pelo global scope) —
+     * segunda perna, sem dispensar scope nenhum. A linha da trilha leva o `business_id` DO ARQUIVO.
      */
     public function classificar(ReclassifyArquivoRequest $request, int $arquivo): RedirectResponse
     {
@@ -699,7 +699,11 @@ class ArquivosAdminController extends Controller
             ]);
         }
 
-        $alvo = Arquivo::query()->findOrFail($arquivo);
+        // `where` explícito por business, além do global scope: este é o único caminho que
+        // ESCREVE, e o scope do model deixa passar sem filtro quando a sessão não tem business.
+        $alvo = Arquivo::query()
+            ->where('business_id', (int) $request->session()->get('user.business_id'))
+            ->findOrFail($arquivo);
         $antes = $alvo->bucket;
 
         DB::transaction(function () use ($alvo, $antes, $request) {
