@@ -19,6 +19,7 @@ uses(Tests\TestCase::class);
  * @covers-us US-OI-008
  * @covers-us US-OI-009
  * @see Modules\Officeimpresso\Http\Controllers\LicencaComputadorController::index
+ * @see Modules\Officeimpresso\Http\Controllers\LicencaComputadorController::toggleBlock (PR-b, UC-OILIC-10..15)
  */
 
 beforeEach(function () {
@@ -36,6 +37,7 @@ beforeEach(function () {
 
 afterEach(function () {
     if ($this->oiLicIds) {
+        DB::table('licenca_log')->whereIn('licenca_id', $this->oiLicIds)->delete();
         DB::table('licenca_computador')->whereIn('id', $this->oiLicIds)->delete();
     }
     foreach ($this->oiLicUsers as $u) {
@@ -166,6 +168,106 @@ it('UC-OILIC-09 · a linha traz versões do executável e do banco, validade e s
     expect($linha['motivo'])->toBe('contrato suspenso');
 });
 
+it('UC-OILIC-10 · a ficha do drawer traz o equipamento e nunca senha, contra-senha, serial, token nem usuário', function () {
+    $biz = $this->seededTenant();
+    $this->actingAs(oiLicUser($this, $biz->id, 'officeimpresso.access'));
+    $id = oiLicMaquina($this, $biz->id, [
+        'sistema_operacional' => 'Windows 11', 'ip_interno' => '10.0.0.7', 'versao_exe' => '6.7.14',
+        'senha' => 'S3GR3D0', 'contra_senha' => 'C0NTR4', 'usuario' => 'US3RDB',
+    ]);
+
+    $r = oiLicDetalheResposta($this, $id);
+    $ficha = $r->json('props.detalhe.ficha');
+
+    expect($ficha['id'])->toBe($id);
+    expect($ficha['sistema_operacional'])->toBe('Windows 11');
+    expect($ficha['ip_interno'])->toBe('10.0.0.7');
+    foreach (['senha', 'contra_senha', 'serial', 'token', 'usuario', 'conexao'] as $campo) {
+        expect(array_key_exists($campo, $ficha))->toBeFalse();
+    }
+    foreach (['S3GR3D0', 'C0NTR4', 'US3RDB'] as $segredo) {
+        expect($r->getContent())->not->toContain($segredo);
+    }
+});
+
+it('UC-OILIC-11 · a ficha de máquina de outro negócio não abre para quem vê só a sessão', function () {
+    $casa = $this->seededTenant();
+    $outro = $this->seededSupportClientTenant();
+    $this->actingAs(oiLicUser($this, $casa->id, 'officeimpresso.access'));
+    $alheia = oiLicMaquina($this, $outro->id);
+    $propria = oiLicMaquina($this, $casa->id);
+
+    expect(oiLicDetalheResposta($this, $alheia)->json('props.detalhe'))->toBeNull();
+    expect(oiLicDetalheResposta($this, $propria)->json('props.detalhe.ficha.id'))->toBe($propria);
+});
+
+it('UC-OILIC-12 · o histórico traz os acessos e os bloqueios da máquina, e só dela', function () {
+    $biz = $this->seededTenant();
+    $this->actingAs(oiLicUser($this, $biz->id, 'officeimpresso.access'));
+    $id = oiLicMaquina($this, $biz->id);
+    $vizinha = oiLicMaquina($this, $biz->id);
+    $base = ['business_id' => $biz->id, 'created_at' => now()];
+    DB::table('licenca_log')->insert([
+        $base + ['licenca_id' => $id, 'event' => 'login_success', 'source' => 'delphi_middleware', 'metadata' => null],
+        $base + ['licenca_id' => $id, 'event' => 'maquina_bloqueada', 'source' => 'admin_action', 'metadata' => json_encode(['motivo' => 'contrato suspenso'])],
+        $base + ['licenca_id' => $vizinha, 'event' => 'login_error', 'source' => 'delphi_middleware', 'metadata' => null],
+    ]);
+
+    $hist = collect(oiLicDetalheResposta($this, $id)->json('props.detalhe.historico'));
+
+    expect($hist->pluck('evento')->sort()->values()->all())->toBe(['login_success', 'maquina_bloqueada']);
+    expect($hist->firstWhere('evento', 'maquina_bloqueada')['motivo'])->toBe('contrato suspenso');
+});
+
+it('UC-OILIC-13 · bloquear pelo drawer sem motivo (ou com menos de 5 letras) não muda nada', function () {
+    $biz = $this->seededTenant();
+    $this->actingAs(oiLicUser($this, $biz->id, 'officeimpresso.licencas.gerenciar'));
+    $id = oiLicMaquina($this, $biz->id);
+
+    foreach ([[], ['motivo' => 'abc']] as $extra) {
+        $this->post('/officeimpresso/licenca_computador/' . $id . '/toggle-block', ['bloquear' => true] + $extra)
+            ->assertSessionHasErrors('motivo');
+    }
+
+    expect((int) DB::table('licenca_computador')->where('id', $id)->value('bloqueado'))->toBe(0);
+    expect(DB::table('licenca_log')->where('licenca_id', $id)->count())->toBe(0);
+});
+
+it('UC-OILIC-14 · bloquear com motivo registra no histórico com o negócio do EQUIPAMENTO e não reescreve a mensagem do desktop', function () {
+    $casa = $this->seededTenant();
+    $outro = $this->seededSupportClientTenant();
+    $admin = oiLicUser($this, $casa->id, 'superadmin');
+    $this->actingAs($admin);
+    $id = oiLicMaquina($this, $outro->id, ['motivo' => 'mensagem antiga ao desktop']);
+
+    $this->post('/officeimpresso/licenca_computador/' . $id . '/toggle-block', ['bloquear' => true, 'motivo' => 'contrato encerrado pelo cliente'])
+        ->assertSessionHasNoErrors();
+
+    $maq = DB::table('licenca_computador')->where('id', $id)->first();
+    expect((int) $maq->bloqueado)->toBe(1);
+    expect($maq->motivo)->toBe('mensagem antiga ao desktop');
+    $log = DB::table('licenca_log')->where('licenca_id', $id)->first();
+    expect($log)->not->toBeNull();
+    expect((int) $log->business_id)->toBe((int) $outro->id);
+    expect((int) $log->user_id)->toBe((int) $admin->id);
+    expect([$log->event, $log->source])->toBe(['maquina_bloqueada', 'admin_action']);
+    expect(json_decode($log->metadata, true)['motivo'])->toBe('contrato encerrado pelo cliente');
+});
+
+it('UC-OILIC-15 · intenção já cumprida não inverte o estado; o toggle sem intenção segue sem motivo', function () {
+    $biz = $this->seededTenant();
+    $this->actingAs(oiLicUser($this, $biz->id, 'officeimpresso.licencas.gerenciar'));
+    $id = oiLicMaquina($this, $biz->id, ['bloqueado' => 1]);
+
+    $this->post('/officeimpresso/licenca_computador/' . $id . '/toggle-block', ['bloquear' => true, 'motivo' => 'segundo clique'])
+        ->assertSessionHasErrors('bloquear');
+    expect((int) DB::table('licenca_computador')->where('id', $id)->value('bloqueado'))->toBe(1);
+
+    // Blade e tela de Logs não mandam `bloquear`: o toggle de sempre, sem motivo exigido.
+    $this->post('/officeimpresso/licenca_computador/' . $id . '/toggle-block')->assertSessionHasNoErrors();
+    expect((int) DB::table('licenca_computador')->where('id', $id)->value('bloqueado'))->toBe(0);
+});
+
 // ── Helpers (prefixo oiLic — o LogsBaselineTest roda no mesmo processo) ──────
 
 function oiLicUser($test, int $businessId, ?string $permissao): User
@@ -213,6 +315,22 @@ function oiLicParcialResposta($test)
         'X-Inertia-Partial-Component' => 'Officeimpresso/Licencas/Index',
         'X-Inertia-Partial-Data' => 'licencas',
     ])->get('/officeimpresso/licenca_computador');
+    $r->assertOk();
+
+    return $r;
+}
+
+/** Partial reload que o drawer faz: `only: ['detalhe']` com `?licenca={id}`. */
+function oiLicDetalheResposta($test, int $id)
+{
+    oiLicFlag(true);
+    $r = $test->withHeaders([
+        'X-Requested-With' => 'XMLHttpRequest',
+        'X-Inertia' => 'true',
+        'X-Inertia-Version' => (string) app(App\Http\Middleware\HandleInertiaRequests::class)->version(request()),
+        'X-Inertia-Partial-Component' => 'Officeimpresso/Licencas/Index',
+        'X-Inertia-Partial-Data' => 'detalhe',
+    ])->get('/officeimpresso/licenca_computador?licenca=' . $id);
     $r->assertOk();
 
     return $r;
