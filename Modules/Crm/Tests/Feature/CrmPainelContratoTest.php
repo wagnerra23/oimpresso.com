@@ -49,9 +49,24 @@ function paiLimpa(): void
     DB::table('categories')->where('name', 'like', '%'.PAI_TAG.'%')->delete();
 }
 
+/**
+ * Garante o business `$biz`. `id` é guarded no model: `firstOrCreate(['id' => 99])` não cria
+ * o 99 — insere outro id SEM `owner_id` e cai no FK (medido na lane verticais-pest, run
+ * 36828026606: passava só quando outro arquivo já tinha criado o 99 antes — ordem aleatória).
+ * Mesmo conserto do CrmLeadsContratoTest::leadNegocio.
+ */
+function paiNegocio(int $biz): void
+{
+    if (Business::whereKey($biz)->exists()) {
+        return;
+    }
+    $dono = (int) DB::table('users')->min('id');
+    (new Business)->forceFill(['id' => $biz, 'name' => 'Tenant fictício crm '.$biz, 'currency_id' => 1, 'owner_id' => $dono])->save();
+}
+
 function paiUsuario(string $username, array $permissoes, bool $admin = false, int $biz = PAI_BIZ): User
 {
-    Business::firstOrCreate(['id' => $biz], ['name' => 'Tenant fictício crm '.$biz, 'currency_id' => 1]);
+    paiNegocio($biz);
     // `user_type`/`allow_login` explícitos: o CheckUserLogin barra o model recém-criado sem eles
     // (medido no CI da thread 03).
     $user = User::firstOrCreate(['username' => $username], [
@@ -73,7 +88,7 @@ function paiUsuario(string $username, array $permissoes, bool $admin = false, in
 
 function paiContato(int $biz, string $nome, string $tipo, User $criador, array $extra = []): int
 {
-    Business::firstOrCreate(['id' => $biz], ['name' => 'Tenant fictício crm '.$biz, 'currency_id' => 1]);
+    paiNegocio($biz);
 
     return DB::table('contacts')->insertGetId(array_merge([
         'business_id' => $biz, 'type' => $tipo, 'name' => $nome.' '.PAI_TAG, 'mobile' => '0',
