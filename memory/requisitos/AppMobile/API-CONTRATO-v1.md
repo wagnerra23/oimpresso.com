@@ -33,7 +33,7 @@ Sem cadastro de ponto → `403 sem_colaborador`.
 
 ```json
 { "itens": [ {
-    "id": 123, "numero": "0042", "cliente": "Gráfica X",
+    "id": 123, "numero": "0042", "cliente": "Gráfica X", "resumo": "1.000 cartões 9x5",
     "valor": 248.00, "prazo": "2026-10-03", "atrasado": false,
     "etapa": { "chave": "in_production", "rotulo": "Em produção", "grupo": "producao" },
     "progresso": 0.6 } ],
@@ -44,6 +44,8 @@ Sem cadastro de ponto → `403 sem_colaborador`.
 - `grupo` ∈ `orcamento · aprovacao · producao · entrega · concluido` — os 5 passos do protótipo,
   agrupando os estágios reais da FSM `venda_com_producao` pela tabela do MAPA §3.
 - `progresso` = posição do grupo (0, .25, .5, .75, 1).
+- `resumo` = nome do 1º item da venda (título do cartão no v4); `null` se a venda não tem item.
+- `cliente` é **texto** na lista e **objeto** (`cliente_detalhe`) no detalhe — de propósito.
 - Permissão: a mesma da lista de vendas web (`sell.view` / `view_own_sell_only`).
 
 `GET /api/app/pedidos/{id}` → o item acima + `itens_venda[{produto, quantidade, total}]`,
@@ -133,6 +135,13 @@ computador".
 
 Sem API própria: itens com tela no app (Pessoas, Ponto, Conta) + "Abrir no computador" para o
 resto. Nada de Produtos/Venda rápida/Finanças na v1 (D13 → v2).
+
+## 7.1 Navegação do app (barra de baixo)
+
+5 posições, como o protótipo: **Início · Tarefas · Pedidos · Produção · Mais**. Pessoas, Ponto e
+Conta ficam dentro de **Mais**; o Início tem o atalho "Bater ponto". (Origem: handoff design-v3 —
+barra de 5 abas com Pessoas no Mais — e playbook app-lojas/01, que propôs o Ponto como atalho no
+Início + item no Mais.)
 
 ## 8. Ordem de entrega no ERP
 
