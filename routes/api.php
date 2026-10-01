@@ -16,3 +16,11 @@ use Illuminate\Http\Request;
 Route::middleware('auth:api')->get('/user', function (Request $request) {
     return $request->user();
 });
+
+// App das lojas (oimpresso-app, telas próprias — decisão [W] 2026-10-01, D5/D13). Token Passport
+// do próprio app; tenant = business do usuário do token. Contrato:
+// memory/requisitos/AppMobile/API-CONTRATO-v1.md.
+Route::middleware('auth:api')->prefix('app')->name('app.')->group(function () {
+    Route::get('/pessoas', [\App\Http\Controllers\Api\App\PessoasController::class, 'index'])->name('pessoas.index');
+    Route::get('/pessoas/{id}', [\App\Http\Controllers\Api\App\PessoasController::class, 'show'])->whereNumber('id')->name('pessoas.show');
+});
