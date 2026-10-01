@@ -1,0 +1,16 @@
+{
+  "_": "semente [CL] 2026-09-30 — thread A2 do playbook produto. Protótipo: ImportarProdutos → TelaImportar (produto-acoes.jsx:181/71), rota prod-importar. Legado: import_products/index.blade.php. A variante Importar estoque inicial (rota prod-importar-estoque, mesmo TelaImportar) NÃO é medida aqui; a Conferência do arquivo só existe após escolher arquivo.",
+  "_mapa": "Conferida em 2026-09-30 por `alvo:mapa --rota prod-importar --raiz 'main > .main-body > .pb-root'` (e `> .pb-body`, `> section > .pb-widget-b`) contra o espelho servido por `servirEstatico`, base origin/main 39484ca0c. Mapa: .pb-body = 2 section.pb-widget (Importar produtos · Instruções).",
+  "header": {
+    "seletor": "main .pb-root > .cli-ph > header",
+    "dado": "shell — PageHeader do módulo Produto"
+  },
+  "enviar": {
+    "seletor": "main .pb-root > .pb-body > section.pb-widget:nth-of-type(1)",
+    "dado": "aviso A-P1 + Alert grava direto + escolher arquivo + enviar planilha + baixar modelo"
+  },
+  "instrucoes": {
+    "seletor": "main .pb-root > .pb-body > section.pb-widget:nth-of-type(2)",
+    "dado": "cabeçalho do modelo + tabela de colunas (TabelaInstrucoes)"
+  }
+}
