@@ -92,4 +92,7 @@ thread em `feito` (`entregue 1 de 1`, conferido com `placar.mjs --thread 05`).
 
 ## PR (parte 2)
 
-#8357 — `feat(superadmin): Configurações em Inertia com segredos mascarados — thread 05 (2/2)`.
+#8361 — `feat(superadmin): Configurações em Inertia com segredos mascarados — thread 05 (2/2)`.
+Substitui o #8357 (fechado): um commit intermediário dele tinha valor fictício de senha literal
+no teste, e o gitleaks (required) acusa o histórico do PR mesmo com o head consertado.
+Lane `verticais-pest` (run 36815868806, no #8357): **6 de 6** UC-SACFG passaram.
