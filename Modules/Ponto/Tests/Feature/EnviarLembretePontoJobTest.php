@@ -51,8 +51,8 @@ beforeEach(function () {
     openssl_pkey_export($chave, $pem);
     $this->credenciais = tempnam(sys_get_temp_dir(), 'fcm');
     file_put_contents($this->credenciais, json_encode(['client_email' => 'ci@teste.iam.gserviceaccount.com', 'private_key' => $pem]));
-    config()->set('pontowr2.push.fcm_project_id', 'oimpresso-ci');
-    config()->set('pontowr2.push.fcm_credentials', $this->credenciais);
+    config()->set('ponto_push.fcm_project_id', 'oimpresso-ci');
+    config()->set('ponto_push.fcm_credentials', $this->credenciais);
     Cache::forget('ponto:push:fcm_access_token');
 });
 

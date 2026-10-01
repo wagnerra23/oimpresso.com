@@ -16,7 +16,7 @@ use RuntimeException;
  * `openssl_sign` (o CLI do Hostinger não tem ext-sodium) e trocado no endpoint do Google.
  * O token de acesso fica em cache por 50 min (o Google dá 60).
  *
- * O JSON da conta de serviço é lido de `pontowr2.push.fcm_credentials` — um CAMINHO no
+ * O JSON da conta de serviço é lido de `ponto_push.fcm_credentials` — um CAMINHO no
  * servidor, nunca o conteúdo no .env nem no git.
  */
 class FcmClient
@@ -37,9 +37,9 @@ class FcmClient
      */
     public function enviar(string $token, string $titulo, string $corpo, array $dados = []): string
     {
-        $projeto = (string) config('pontowr2.push.fcm_project_id');
+        $projeto = (string) config('ponto_push.fcm_project_id');
         if ($projeto === '') {
-            throw new RuntimeException('pontowr2.push.fcm_project_id não configurado.');
+            throw new RuntimeException('ponto_push.fcm_project_id não configurado.');
         }
 
         $resposta = Http::withToken($this->tokenDeAcesso())
@@ -103,7 +103,7 @@ class FcmClient
     /** @return array{client_email: string, private_key: string} */
     private function contaDeServico(): array
     {
-        $caminho = (string) config('pontowr2.push.fcm_credentials');
+        $caminho = (string) config('ponto_push.fcm_credentials');
         if ($caminho === '' || ! is_readable($caminho)) {
             throw new RuntimeException('JSON da conta de serviço do FCM ausente ou ilegível.');
         }

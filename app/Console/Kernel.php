@@ -48,7 +48,7 @@ class Kernel extends ConsoleKernel
             ->everyFiveMinutes()
             ->withoutOverlapping(10)
             ->environments(['live'])
-            ->when(fn () => (bool) config('pontowr2.push.enabled', false))
+            ->when(fn () => (bool) config('ponto_push.enabled', false))
             ->onFailure(function () {
                 \Illuminate\Support\Facades\Log::channel('single')->error(
                     'Schedule ponto:lembretes-push FALHOU — lembretes de ponto podem não ter saído'

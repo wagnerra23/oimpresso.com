@@ -67,6 +67,7 @@ class PontoServiceProvider extends ServiceProvider
                 \Modules\Ponto\Console\Commands\AfdInspecionarCommand::class,
                 \Modules\Ponto\Console\Commands\PontoHealthCommand::class,
                 \Modules\Ponto\Console\Commands\LembretesPushCommand::class,
+                \Modules\Ponto\Console\Commands\DemoRevisorCommand::class,
             ]);
         }
     }

@@ -5,10 +5,10 @@
 > Status/lifecycle normalizados no leitor (ADR 0257) — não altera os arquivos (append-only).
 
 ## Resumo
-- **427** arquivos · **412** números únicos · máx **0422**
-- **ADRs ATIVOS (lifecycle ativo): 382** ← resposta única a "quantos ADRs ativos"
-- Por status: aceito 377 · superseded 25 · proposto 12 · deprecated 11 · rascunho 1 · recusado 1
-- Por lifecycle: ativo 382 · substituido 25 · arquivado 20
+- **428** arquivos · **413** números únicos · máx **0423**
+- **ADRs ATIVOS (lifecycle ativo): 383** ← resposta única a "quantos ADRs ativos"
+- Por status: aceito 377 · superseded 25 · proposto 13 · deprecated 11 · rascunho 1 · recusado 1
+- Por lifecycle: ativo 383 · substituido 25 · arquivado 20
 - Sem frontmatter (formato-tabela legado): 0
 
 ## Colisões de número (13) — auto-detectadas
@@ -35,7 +35,7 @@ _(nenhuma)_
 ## Recusadas (1) — o NÃO consultável
 - **0290** v0 'Fidelity Lock' (screenshot pareado em CI) — RECUSADO: fidelidade visual não  · recusada 2026-06-18 — Inviável + tautológico + backdoor de prosa (3 motivos na Decisão). REABRE só se surgir um check de fidelidade HERMÉTICO 
 
-## Todas as ADRs (427)
+## Todas as ADRs (428)
 | Nº | Status | Lifecycle | Kind | Título |
 |---|---|---|---|---|
 | 0001 | aceito | ativo | decision | Estender UltimatePOS em vez de build próprio ou fork |
@@ -465,3 +465,4 @@ _(nenhuma)_
 | 0420 | aceito | ativo | decision | Ponto — o AEJ lê a apuração para horário contratual e ausências; dado legal ause |
 | 0421 | aceito | ativo | decision | Arquivos — aviso ao titular (LGPD Art. 18 VI): registro titular_avisado_at + açã |
 | 0422 | proposto | ativo | decision | Arquivos — aviso ao titular sai por e-mail e WhatsApp, com liga/desliga por negó |
+| 0423 | proposto | ativo | decision | Ponto — lembrete de bater ponto por push (FCM HTTP v1, token por usuário+busines |

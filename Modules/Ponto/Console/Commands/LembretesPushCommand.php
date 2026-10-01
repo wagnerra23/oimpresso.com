@@ -36,15 +36,15 @@ class LembretesPushCommand extends Command
 
     public function handle(): int
     {
-        if (! config('pontowr2.push.enabled')) {
+        if (! config('ponto_push.enabled')) {
             $this->line('Lembrete por push desligado (PONTO_PUSH_ENABLED=false).');
 
             return self::SUCCESS;
         }
 
         $agora = now();
-        $inicio = $agora->copy()->addMinutes((int) config('pontowr2.push.antecedencia_minutos', 5));
-        $fim = $inicio->copy()->addMinutes((int) config('pontowr2.push.janela_minutos', 5));
+        $inicio = $agora->copy()->addMinutes((int) config('ponto_push.antecedencia_minutos', 5));
+        $fim = $inicio->copy()->addMinutes((int) config('ponto_push.janela_minutos', 5));
         if (! $inicio->isSameDay($fim)) {
             return self::SUCCESS; // janela atravessa a meia-noite: fora do escopo da v1
         }

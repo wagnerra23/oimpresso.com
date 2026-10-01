@@ -851,10 +851,22 @@ class SellController extends Controller
     /**
      * Show the form for creating a new resource.
      *
-     * @return \Illuminate\Http\Response
+     * Tipos reais do retorno: Inertia (V2) · Blade (legado) · redirect (reparo → /pos/create).
+     * Antes declarava só Response e os dois primeiros viviam no phpstan-baseline.
+     *
+     * @return \Illuminate\Http\Response|\Illuminate\Http\RedirectResponse|\Inertia\Response|\Illuminate\View\View
      */
     public function create()
     {
+        // Reparo é um TIPO de venda (UC-S03): quem lê ?sub_type= e entrega o tipo ao
+        // Sells/Create é o SellPosController (/pos/create). Esta tela lê ?sale_type= e
+        // gravava o reparo como venda comum — medido 2026-10-01 a partir do botão "Nova OS"
+        // do Repair/Index. O destino aplica a própria permissão e exige caixa aberto,
+        // como os links Blade do Repair sempre exigiram.
+        if (request()->get('sub_type') === 'repair') {
+            return redirect('/pos/create?sub_type=repair');
+        }
+
         $sale_type = request()->get('sale_type', '');
 
         if ($sale_type == 'sales_order') {

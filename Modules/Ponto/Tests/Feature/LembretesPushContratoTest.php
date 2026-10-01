@@ -75,7 +75,7 @@ beforeEach(function () {
     DB::beginTransaction();
 
     Carbon::setTestNow(now()->setTime(7, 52));
-    config()->set('pontowr2.push.enabled', true);
+    config()->set('ponto_push.enabled', true);
 });
 
 afterEach(function () {
@@ -112,11 +112,11 @@ it('UC-REPP-14: fora da janela, com a flag desligada ou com o aparelho desativad
     expect(lpcDespachosPara($u))->toHaveCount(0);
 
     Carbon::setTestNow(now()->setTime(7, 52));
-    config()->set('pontowr2.push.enabled', false);
+    config()->set('ponto_push.enabled', false);
     $this->artisan('ponto:lembretes-push')->assertSuccessful();
     expect(lpcDespachosPara($u))->toHaveCount(0);
 
-    config()->set('pontowr2.push.enabled', true);
+    config()->set('ponto_push.enabled', true);
     DB::table('ponto_push_dispositivos')->where('user_id', $u->id)->update(['ativo' => false]);
     $this->artisan('ponto:lembretes-push')->assertSuccessful();
     expect(lpcDespachosPara($u))->toHaveCount(0);

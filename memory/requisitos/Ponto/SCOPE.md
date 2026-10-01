@@ -20,6 +20,7 @@ contains:
   - "IntercorrenciaController"
   - "RelatorioController"
   - "PublicoController — páginas públicas do app de ponto, sem login (/privacidade/ponto e /exclusao); só texto, não lê banco"
+  - "Api/PushDispositivoController — POST/DELETE /ponto/mobile/push/dispositivo, registra e desativa o token do aparelho para o lembrete de bater ponto (ADR 0423)"
 not_contains:
   - "Conhecimento canônico (ADRs, sessions) → Modules/KB"
   - "Tasks Jira-style → Modules/Forja"
