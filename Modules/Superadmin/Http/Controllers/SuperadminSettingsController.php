@@ -7,6 +7,8 @@ use App\Utils\BusinessUtil;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
+use Inertia\Inertia;
+use Inertia\Response as InertiaResponse;
 use Modules\Superadmin\Support\RedactsPiiInLogs;
 
 class SuperadminSettingsController extends Controller
@@ -39,85 +41,98 @@ class SuperadminSettingsController extends Controller
     }
 
     /**
-     * Show the form for editing the specified resource.
-     *
-     * @return Response
+     * Chaves do `.env` que são SEGREDO (senha, chave secreta, token). Nunca saem para a tela nem
+     * para as props Inertia — a tela só sabe se estão definidas — e só são regravadas quando o
+     * campo chega preenchido. Thread Superadmin/05 (2/2) · RUNBOOK-configuracoes.
      */
-    public function edit()
+    public const SEGREDOS = [
+        'MAIL_PASSWORD', 'STRIPE_SECRET_KEY',
+        'PAYPAL_SANDBOX_API_PASSWORD', 'PAYPAL_SANDBOX_API_SECRET',
+        'PAYPAL_LIVE_API_PASSWORD', 'PAYPAL_LIVE_API_SECRET',
+        'DROPBOX_ACCESS_TOKEN', 'RAZORPAY_KEY_SECRET', 'PESAPAL_CONSUMER_SECRET',
+        'PUSHER_APP_SECRET', 'PAYSTACK_SECRET_KEY',
+        'FLUTTERWAVE_SECRET_KEY', 'FLUTTERWAVE_ENCRYPTION_KEY', 'MAPBOX_ACCESS_TOKEN',
+    ];
+
+    /** Chaves do `.env` que a tela mostra em claro (não são segredo). */
+    private const ENV_VISIVEIS = [
+        'APP_NAME', 'APP_TITLE', 'APP_LOCALE', 'ALLOW_REGISTRATION', 'GOOGLE_MAP_API_KEY',
+        'MAIL_MAILER', 'MAIL_HOST', 'MAIL_PORT', 'MAIL_USERNAME', 'MAIL_ENCRYPTION',
+        'MAIL_FROM_ADDRESS', 'MAIL_FROM_NAME', 'STRIPE_PUB_KEY', 'PAYPAL_MODE',
+        'PAYPAL_SANDBOX_API_USERNAME', 'PAYPAL_LIVE_API_USERNAME', 'BACKUP_DISK',
+        'RAZORPAY_KEY_ID', 'PESAPAL_CONSUMER_KEY', 'PESAPAL_LIVE', 'PUSHER_APP_ID',
+        'PUSHER_APP_KEY', 'PUSHER_APP_CLUSTER', 'PAYSTACK_PUBLIC_KEY', 'FLUTTERWAVE_PUBLIC_KEY',
+    ];
+
+    /** Chaves da tabela `system` que a tela edita — lista fechada: `system` guarda outras coisas. */
+    private const SISTEMA = [
+        'app_currency_id', 'invoice_business_name', 'email', 'invoice_business_landmark',
+        'invoice_business_zip', 'invoice_business_state', 'invoice_business_city',
+        'invoice_business_country', 'package_expiry_alert_days', 'superadmin_register_tc',
+        'welcome_email_subject', 'welcome_email_body', 'additional_js', 'additional_css',
+        'offline_payment_details', 'enable_business_based_username', 'superadmin_enable_register_tc',
+        'allow_email_settings_to_businesses', 'enable_new_business_registration_notification',
+        'enable_new_subscription_notification', 'enable_welcome_email', 'enable_offline_payment',
+    ];
+
+    /**
+     * Configurações do superadmin — era `superadmin::superadmin_settings.edit` (Blade + abas
+     * AdminLTE + TinyMCE) e passa a Inertia. Vale para a plataforma inteira: não há
+     * `business_id` aqui (ADR 0093 §exceções Superadmin); a trava é `can('superadmin')`.
+     */
+    public function edit(): InertiaResponse
     {
         if (! auth()->user()->can('superadmin')) {
             abort(403, 'Unauthorized action.');
         }
 
-        $settings = System::pluck('value', 'key');
-        $currencies = $this->businessUtil->allCurrencies();
+        return Inertia::render('superadmin/Configuracoes/Index', [
+            'config' => Inertia::defer(fn () => $this->montarConfig()),
+        ]);
+    }
 
-        $superadmin_version = System::getProperty('superadmin_version');
-        $is_demo = env('APP_ENV') == 'demo' ? true : false;
+    private function montarConfig(): array
+    {
+        $is_demo = env('APP_ENV') == 'demo';
+        $sistema = System::whereIn('key', self::SISTEMA)->pluck('value', 'key');
 
-        $default_values = [
-            'APP_NAME' => env('APP_NAME'),
-            'APP_TITLE' => env('APP_TITLE'),
-            'APP_LOCALE' => env('APP_LOCALE'),
-            'MAIL_MAILER' => $is_demo ? null : env('MAIL_MAILER'),
-            'MAIL_HOST' => $is_demo ? null : env('MAIL_HOST'),
-            'MAIL_PORT' => $is_demo ? null : env('MAIL_PORT'),
-            'MAIL_USERNAME' => $is_demo ? null : env('MAIL_USERNAME'),
-            'MAIL_PASSWORD' => $is_demo ? null : env('MAIL_PASSWORD'),
-            'MAIL_ENCRYPTION' => $is_demo ? null : env('MAIL_ENCRYPTION'),
-            'MAIL_FROM_ADDRESS' => $is_demo ? null : env('MAIL_FROM_ADDRESS'),
-            'MAIL_FROM_NAME' => $is_demo ? null : env('MAIL_FROM_NAME'),
-            'STRIPE_PUB_KEY' => $is_demo ? null : env('STRIPE_PUB_KEY'),
-            'STRIPE_SECRET_KEY' => $is_demo ? null : env('STRIPE_SECRET_KEY'),
-            'PAYPAL_MODE' => env('PAYPAL_MODE'),
-            'PAYPAL_SANDBOX_API_USERNAME' => $is_demo ? null : env('PAYPAL_SANDBOX_API_USERNAME'),
-            'PAYPAL_SANDBOX_API_PASSWORD' => $is_demo ? null : env('PAYPAL_SANDBOX_API_PASSWORD'),
-            'PAYPAL_SANDBOX_API_SECRET' => $is_demo ? null : env('PAYPAL_SANDBOX_API_SECRET'),
-            'PAYPAL_LIVE_API_USERNAME' => $is_demo ? null : env('PAYPAL_LIVE_API_USERNAME'),
-            'PAYPAL_LIVE_API_PASSWORD' => $is_demo ? null : env('PAYPAL_LIVE_API_PASSWORD'),
-            'PAYPAL_LIVE_API_SECRET' => $is_demo ? null : env('PAYPAL_LIVE_API_SECRET'),
-            'BACKUP_DISK' => env('BACKUP_DISK'),
-            'DROPBOX_ACCESS_TOKEN' => $is_demo ? null : env('DROPBOX_ACCESS_TOKEN'),
-            'RAZORPAY_KEY_ID' => $is_demo ? null : env('RAZORPAY_KEY_ID'),
-            'RAZORPAY_KEY_SECRET' => $is_demo ? null : env('RAZORPAY_KEY_SECRET'),
-
-            'PESAPAL_CONSUMER_KEY' => $is_demo ? null : env('PESAPAL_CONSUMER_KEY'),
-            'PESAPAL_CONSUMER_SECRET' => $is_demo ? null : env('PESAPAL_CONSUMER_SECRET'),
-            'PESAPAL_LIVE' => $is_demo ? null : env('PESAPAL_LIVE'),
-            'PUSHER_APP_ID' => $is_demo ? null : env('PUSHER_APP_ID'),
-            'PUSHER_APP_KEY' => $is_demo ? null : env('PUSHER_APP_KEY'),
-            'PUSHER_APP_SECRET' => $is_demo ? null : env('PUSHER_APP_SECRET'),
-            'PUSHER_APP_CLUSTER' => $is_demo ? null : env('PUSHER_APP_CLUSTER'),
-            'GOOGLE_MAP_API_KEY' => $is_demo ? null : env('GOOGLE_MAP_API_KEY'),
-            'ALLOW_REGISTRATION' => $is_demo ? null : env('ALLOW_REGISTRATION'),
-            'PAYSTACK_PUBLIC_KEY' => $is_demo ? null : env('PAYSTACK_PUBLIC_KEY'),
-            'PAYSTACK_SECRET_KEY' => $is_demo ? null : env('PAYSTACK_SECRET_KEY'),
-            'FLUTTERWAVE_PUBLIC_KEY' => $is_demo ? null : env('FLUTTERWAVE_PUBLIC_KEY'),
-            'FLUTTERWAVE_SECRET_KEY' => $is_demo ? null : env('FLUTTERWAVE_SECRET_KEY'),
-            'FLUTTERWAVE_ENCRYPTION_KEY' => $is_demo ? null : env('FLUTTERWAVE_ENCRYPTION_KEY'),
-        ];
-        $mail_drivers = $this->mailDrivers;
-
-        $config_languages = config('constants.langs');
-        $languages = [];
-        foreach ($config_languages as $key => $value) {
-            $languages[$key] = $value['full_name'];
+        $valores = [];
+        foreach (self::SISTEMA as $k) {
+            $valores[$k] = (string) ($sistema[$k] ?? '');
         }
-        $backup_disk = $this->backupDisk;
+        $semDemo = ['APP_NAME', 'APP_TITLE', 'APP_LOCALE', 'PAYPAL_MODE', 'BACKUP_DISK'];
+        foreach (self::ENV_VISIVEIS as $k) {
+            $valores[$k] = $is_demo && ! in_array($k, $semDemo, true) ? '' : (string) env($k, '');
+        }
 
-        $cron_job_command = $this->businessUtil->getCronJobCommand();
+        // Só o FATO de estar definido. O valor do segredo nunca sai do servidor.
+        $segredos = [];
+        foreach (self::SEGREDOS as $k) {
+            $segredos[$k] = ! $is_demo && (string) env($k, '') !== '';
+        }
 
-        return view('superadmin::superadmin_settings.edit')
-            ->with(compact(
-                'currencies',
-                'settings',
-                'superadmin_version',
-                'mail_drivers',
-                'languages',
-                'default_values',
-                'backup_disk',
-                'cron_job_command'
-            ));
+        $opcao = fn ($lista) => collect($lista)
+            ->map(fn ($label, $v) => ['v' => (string) $v, 'label' => (string) $label])
+            ->values()->all();
+
+        return [
+            'valores' => $valores,
+            'segredos' => $segredos,
+            'opcoes' => [
+                'moedas' => $opcao($this->businessUtil->allCurrencies()),
+                'idiomas' => $opcao(collect(config('constants.langs'))->map(fn ($l) => $l['full_name'])),
+                'mail' => $opcao($this->mailDrivers),
+                'backup' => $opcao($this->backupDisk),
+            ],
+            'cron' => (string) $this->businessUtil->getCronJobCommand(),
+            'versao' => (string) System::getProperty('superadmin_version'),
+        ];
+    }
+
+    /** Onde o `update()` grava. Isolado para o teste não tocar o `.env` real. */
+    protected function envPath(): string
+    {
+        return base_path('.env');
     }
 
     /**
@@ -177,11 +192,21 @@ class SuperadminSettingsController extends Controller
                 'FLUTTERWAVE_SECRET_KEY', 'FLUTTERWAVE_ENCRYPTION_KEY', 'MAPBOX_ACCESS_TOKEN',
             ]);
 
+            // Segredo em branco = "manter o atual": a tela nunca recebe o valor, então campo vazio
+            // não pode apagar a senha gravada. Só regrava quando o campo chega preenchido.
+            foreach (self::SEGREDOS as $k) {
+                if (array_key_exists($k, $env_settings) && (string) $env_settings[$k] === '') {
+                    unset($env_settings[$k]);
+                }
+            }
+            // Quebra de linha ou aspas num valor abririam uma linha nova no `.env`.
+            $env_settings = array_map(fn ($v) => str_replace(["\r", "\n", '"'], '', (string) $v), $env_settings);
+
             $env_settings['ALLOW_REGISTRATION'] = ! empty($request->input('ALLOW_REGISTRATION')) ? 'true' : 'false';
             $env_settings['BROADCAST_DRIVER'] = 'pusher';
 
             $found_envs = [];
-            $env_path = base_path('.env');
+            $env_path = $this->envPath();
             $env_lines = file($env_path);
             foreach ($env_settings as $index => $value) {
                 foreach ($env_lines as $key => $line) {
