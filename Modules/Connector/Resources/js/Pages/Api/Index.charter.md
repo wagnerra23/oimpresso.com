@@ -49,7 +49,7 @@ Uma tela para **quem entra na empresa por API**: emitir credencial pra um app ex
 - ❌ Gerar documentação (`scribe:generate` está comentado no controller; o catálogo aqui é leitura de rotas).
 - ❌ **Regenerar as chaves do Passport pela tela** ([W] 2026-08-19): é comando de operação no servidor — derruba todo app externo, em todos os negócios.
 - ❌ **Rotar/alterar o segredo de um client existente** ([W] 2026-08-19): credencial comprometida é excluída e emitida de novo; o contrato do desktop em campo não se altera.
-- ❌ Delegar emissão de credencial por permissão ([W] 2026-08-19): fica em `superadmin`.
+- ~~❌ Delegar emissão de credencial por permissão ([W] 2026-08-19): fica em `superadmin`.~~ **Revogado por [W] 2026-10-01** (D1, 2ª rodada — `prototipo-ui/cowork/Wagner/cowork-inbox/officeimpresso/playbook/_DECISOES-W-2026-10-01b.md`): *"todos meus funcionários da empresa 1 podem ter acessos, e pode revogar minhas decisões anteriores"*. Delegar a funcionário do negócio operador **deixa de ser non-goal**; a trava é a da operadora (`Modules\Officeimpresso\Services\AcessoOperador`), nunca `business_id` chumbado. Primeira aplicação: o painel `/officeimpresso/client`. Este painel (`/connector/client`) segue `superadmin` no código — o que mudou é que estender a delegação a ele não contradiz mais o charter.
 - ❌ **Revelar ou copiar o segredo de um client existente** ([W] 2026-08-19): não existe caminho de leitura na tela nem na API interna; `makeVisible('secret')` sai do controller.
 - ❌ **Qualquer mudança que invalide credencial já instalada** ([W] 2026-08-19, restrição dura): hash de secret, rotação forçada, expiração de client, mudança de grant. O Delphi já está nos clientes e não pode ser alterado — autenticação existente não para, nunca.
 - ❌ Cadastro de licença/equipamento Delphi — é do módulo Officeimpresso, não do Conector.
@@ -81,7 +81,7 @@ Uma tela para **quem entra na empresa por API**: emitir credencial pra um app ex
 | R7 | Regenerar chaves da plataforma **não é ação de tela** ([W] 2026-08-19): `regenerate()` e a rota GET saem do módulo | `ClientController::regenerate` (a remover) |
 | R8 | Em ambiente demo (`config('app.env') == 'demo'`) a tela mostra recusa e não lista nada | `index` + `clients/index.blade.php` |
 | R9 | O menu do módulo só aparece se o módulo estiver instalado (superadmin) ou se o pacote da assinatura tiver `connector_module` | `DataController::modifyAdminMenu` |
-| R10 | Emitir/excluir credencial é `superadmin` ([W] 2026-08-19); a permissão órfã `connector.access` **sai** do catálogo | `DataController::user_permissions` (a remover) |
+| R10 | Emitir/excluir credencial é `superadmin` **no código vigente**. A regra [W] 2026-08-19 que tornava isso obrigatório foi **revogada em 2026-10-01** (ver D1): delegar a funcionário do negócio operador é permitido. A permissão órfã `connector.access` segue sem verificador | `ClientController` + `DataController::user_permissions` |
 | R11 | Instalar o módulo roda as migrações e depois `passport:install --force` | `InstallController::postMigrationSteps` |
 | R12 | A API externa responde sob `auth:api` + `throttle:120,1` + `log.delphi`; o contrato de resposta do Delphi é string literal (`S;…`/`N;…`) e não pode mudar | `Routes/api.php` + `DelphiSyncService` |
 
@@ -90,7 +90,7 @@ Uma tela para **quem entra na empresa por API**: emitir credencial pra um app ex
 | # | Achado | Prova no código | Risco |
 |---|---|---|---|
 | A1 | Segredo impresso em texto puro na tabela e `makeVisible('secret')` no controller | `clients/index.blade.php` `{{$client->secret}}` + `ClientController::index` | vazamento por screenshot/ombro/log → [W] mandou fechar o caminho de leitura, sem tocar no valor guardado (D6) |
-| A2 | `connector.access` declarada e nunca verificada | `DataController::user_permissions` × `ClientController` | sugere delegação que [W] decidiu não existir → remover a permissão |
+| A2 | `connector.access` declarada e nunca verificada | `DataController::user_permissions` × `ClientController` | sugere delegação que não é verificada. Em 2026-08-19 o encaminhamento era remover; desde 2026-10-01 (D1 revogada) a saída pode ser **verificá-la**, com a trava do negócio operador |
 | A3 | Excluir client não revoga tokens emitidos | `destroy()` sem `oauth_access_tokens` | acesso continua até o token vencer |
 | A4 | Botão "regenerate_doc" executa `passport:install --force` | `regenerate()` com `scribe:generate` comentado | derruba toda integração → botão e rota removidos ([W] D4) |
 | A5 | Excluir sem confirmação e sem aviso de consequência | `Form::open(... 'method' => 'delete')` direto no botão | perda de acesso por clique errado |
@@ -118,7 +118,7 @@ Estado local da tela: aba (`clients|docs|saude|modulo`), busca, segredo revelado
 
 | # | Decisão | Consequência |
 |---|---|---|
-| D1 | **Fica em superadmin.** Emitir/excluir credencial de API não se delega. | `connector.access` sai do catálogo (`DataController::user_permissions`); UC-CONN-09 vira caso negativo — 403 é o comportamento correto. |
+| D1 | ~~**Fica em superadmin.** Emitir/excluir credencial de API não se delega.~~ **REVOGADA por [W] 2026-10-01** (2ª rodada, `_DECISOES-W-2026-10-01b.md`): delegação permitida a todo funcionário do negócio operador. | Fato datado preservado: de 2026-08-19 a 2026-10-01 a decisão era superadmin-only. Hoje UC-CONN-09 descreve o comportamento **vigente** (403), não uma proibição; se a delegação vier para este painel, o caso muda no mesmo PR. |
 | D2 | **Excluir revoga em cadeia.** | `destroy` revoga os `oauth_access_tokens` do client no mesmo ato, com a contagem na confirmação (UC-CONN-12). |
 | D3 | **Sem rotação de segredo.** Não existe e não pode passar a existir. | Nenhum endpoint de rotação; credencial comprometida = excluir + emitir nova. Non-goal registrado. |
 | D4 | **Regenerar chaves sai da tela.** | Botão removido do F1; `ClientController::regenerate` e `Route::get('/regenerate')` removidos; a operação vive no servidor. |
@@ -141,4 +141,4 @@ O WR Comercial (Delphi) está instalado nos clientes e **não pode ser alterado*
 
 ## Testes (mínimos)
 
-Casos: [`Index.casos.md`](./Index.casos.md). Teste: `Modules/Connector/Tests/Feature/ApiClientsPanelTest.php` — casos derivados de UC-CONN-01..16 (ver `Index.casos.md`). Nascem vermelhos em UC-CONN-12 (revogação em cadeia), UC-CONN-14 (rota de regenerar removida) e UC-CONN-15 (rota de criação sem view). UC-CONN-09 é caso negativo: 403 é o comportamento ratificado.
+Casos: [`Index.casos.md`](./Index.casos.md). Teste: `Modules/Connector/Tests/Feature/ApiClientsPanelTest.php` — casos derivados de UC-CONN-01..16 (ver `Index.casos.md`). Nascem vermelhos em UC-CONN-12 (revogação em cadeia), UC-CONN-14 (rota de regenerar removida) e UC-CONN-15 (rota de criação sem view). UC-CONN-09 descreve o comportamento vigente (403); a ratificação de 2026-08-19 foi revogada em 2026-10-01 (D1).
