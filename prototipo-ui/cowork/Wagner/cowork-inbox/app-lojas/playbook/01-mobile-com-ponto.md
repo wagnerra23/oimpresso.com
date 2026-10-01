@@ -1,6 +1,6 @@
 ---
 sessao: "01"
-titulo: App das lojas v1 — só o Ponto, no visual do protótipo Mobile
+titulo: App das lojas v1 — Mobile com o Ponto (escopo da coordenação)
 dono: "[Design]"
 pedido_por: "[W] 2026-10-01 (\"junta a tela de ponto\" · \"solicita para o design fazer isso\")"
 base_mobile: mobile/ref/design-v3/oimpresso-mobile/project/ (copia de referencia em cowork-inbox/app-lojas/ref/oimpresso-mobile/)
@@ -14,14 +14,13 @@ O app que vai para Google Play e App Store e **o protótipo Mobile** (`Oimpresso
 
 O ponto do colaborador (REP-P) hoje existe só como protótipo separado, `ponto-mobile.jsx`, desenhado dentro de moldura e ao lado da fila do gestor. Ele precisa virar parte do app Mobile.
 
-## Já existe código — o Design é a referência visual dele
-O app (repo `wagnerra23/oimpresso-app`, merge 43f1dda, 2026-10-01) já tem telas próprias de Login, Início, Ponto e Conta, montadas copiando o visual do protótipo Mobile. Este pedido é a **referência aprovável** dessas telas: o que o Design entregar e o [W] aprovar, o app passa a seguir.
+## Escopo da 1ª versão (decisão [W] 2026-10-01 — substitui o "só o Ponto" anterior)
+Entram: **Início · Tarefas · Pedidos · Produção · Pessoas · Ponto · Mais**. Ficam para a v2: **Produtos · Venda rápida · Finanças**.
 
-## Escopo da 1ª versão — SÓ o Ponto
-Decisão [W] 2026-10-01: *"primeiro só com o ponto"*. A 1ª versão nas lojas **não** leva Tarefas, Pedidos, Produção nem Financeiro (essas telas ainda não têm dados reais do ERP). Ela leva só o que o colaborador usa para o ponto, no **visual** do protótipo Mobile (tokens, cabeçalho, cartões, barra de abas).
+Arquitetura: as telas viram **páginas Inertia dentro do ERP, sob `/m`**; o app das lojas abre `/m`. O Design desenha estas telas; o código é feito depois no ERP (sessão BASE MOBILE).
 
 ## O que pedir ao Design
-1. **Navegação do app só com o Ponto.** Telas: **Login** (marca oimpresso, login do ERP) → app com barra de abas própria do Ponto, por exemplo **Ponto · Espelho · Justificar · Conta**. O Design decide a ordem e os nomes; as abas do ERP (Início, Tarefas, Pedidos, Produção, Mais) ficam para a versão seguinte e **não** aparecem nesta.
+1. **Navegação da v1.** Barra de abas com no máximo 5 itens (Material). Sugestão: Início · Tarefas · Ponto · Pedidos · Mais, com Produção e Pessoas dentro de Mais — o Design decide. **Pessoas** é tela nova (não existe no protótipo Mobile): lista da equipe com quem está trabalhando agora pelo ponto do dia. Login com a marca oimpresso.
 2. **Três telas no padrão do Mobile** (tokens `oimpresso-tokens.css`, `.oi-app` / `.oi-screen` / `ScreenHeader`), sem moldura e sem o painel "Simular condição de campo":
    - **Bater ponto** — relógio, estado do GPS, os 4 tipos (Entrada · Saída almoço · Retorno almoço · Saída), botão de marcar, recibo com NSR + hash.
    - **Meu espelho** — totais do mês e lista dia a dia.
@@ -37,5 +36,5 @@ Decisão [W] 2026-10-01: *"primeiro só com o ponto"*. A 1ª versão nas lojas *
 - Tokens do DS, sem cor crua, sem emoji.
 
 ## Entrega esperada
-- Arquivo novo `ponto-app.html` (+ `screens-ponto.jsx`) reaproveitando `oimpresso-tokens.css` e os átomos do Mobile, com Login + Ponto navegáveis no Android e no iOS. O `Oimpresso Mobile.html` completo fica como está, para a versão seguinte.
+- `Oimpresso Mobile.html` atualizado (ou `screens-ponto.jsx` + `screens-pessoas.jsx` carregados por ele) com a navegação da v1 e as telas novas, navegável no Android e no iOS. Produtos, Venda rápida e Finanças podem ficar no arquivo, mas fora da navegação da v1.
 - `_saida-01.md` em `cowork-inbox/app-lojas/playbook/` dizendo onde o Ponto ficou e o que mudou.
