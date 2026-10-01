@@ -1,5 +1,10 @@
 # oimpresso — Data Safety (Google) e App Privacy (Apple) · 1ª SUBMISSÃO · RASCUNHO
 
+> ⛔ **NÃO USAR NA SUBMISSÃO (D13, [W] 2026-10-01):** a v1 voltou às 7 áreas (Início, Tarefas, Pedidos, Produção,
+> Pessoas, Ponto, Mais) e a submissão só acontece quando elas existirem no app. Este arquivo "só Ponto" fica guardado
+> como histórico. O texto a usar será o de `privacidade-lojas-completa.md`, revisado quando as telas ficarem prontas.
+
+
 > **Só o que o app coleta hoje** (Login, Início, Ponto, Conta + lembrete por push — sessão que gerencia o app,
 > 2026-10-01). Telas próprias no `oimpresso-app` (React empacotado + API Passport do ERP). Quando Tarefas, Pedidos,
 > Produção e Pessoas entrarem, use [`privacidade-lojas-completa.md`](privacidade-lojas-completa.md) e atualize o console
