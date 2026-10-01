@@ -71,9 +71,14 @@ Route::middleware(['throttle:60,1', 'web', 'authh', 'auth', 'SetSessionData', 'l
 Route::middleware(['throttle:60,1', 'web', 'authh', 'auth', 'SetSessionData', 'language', 'timezone', 'AdminSidebarMenu'])
     ->prefix('arquivos')
     ->group(function () {
+        // Thread 06 (2026-10-01): instalar/desinstalar/atualizar NAO agem mais por GET — o
+        // GET so mostra uma confirmacao sem efeito; a acao roda no POST com CSRF (mesmo
+        // padrao do Connector, CONN-O2). O GET segue registrado porque /manage-modules
+        // monta <a href> para estas rotas e cairia em 405.
         Route::get('install',           [InstallController::class, 'index']);
-        Route::get('install/uninstall', [InstallController::class, 'uninstall']);
-        Route::get('install/update',    [InstallController::class, 'update']);
+        Route::post('install',          [InstallController::class, 'install']);
+        Route::match(['get', 'post'], 'install/uninstall', [InstallController::class, 'uninstall']);
+        Route::match(['get', 'post'], 'install/update',    [InstallController::class, 'update']);
     });
 
 // Download via signed URL (Sprint 1 dia 4 — US-ARQ-008).

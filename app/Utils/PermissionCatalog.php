@@ -105,6 +105,7 @@ class PermissionCatalog
         'expense_report.view',
         'invoice_settings.access',
         'print_invoice',
+        'print_labels.access',
         'product.create',
         'product.delete',
         'product.opening_stock',
@@ -170,6 +171,10 @@ class PermissionCatalog
         'user.delete',
         'user.update',
         'user.view',
+        'variation.create',
+        'variation.delete',
+        'variation.update',
+        'variation.view',
         'view_cash_register',
         'view_commission_agent_sell',
         'view_due_sells_only',
@@ -182,6 +187,10 @@ class PermissionCatalog
         'view_partial_sells_only',
         'view_product_stock_value',
         'view_purchase_price',
+        'warranty.create',
+        'warranty.delete',
+        'warranty.update',
+        'warranty.view',
     ];
 
     /**
