@@ -15,7 +15,8 @@ use Modules\NFSe\Http\Requests\IndexNfseRequest;
 use Modules\NFSe\Http\Requests\StoreNfseRequest;
 use Modules\NFSe\Models\NfseEmissao;
 
-uses(Tests\TestCase::class);
+// TestCase vem do tests/Pest.php (`uses(TestCase::class)->in('Feature')`) — repetir aqui
+// derruba a lane inteira ("already uses the test case").
 
 /**
  * POR QUE DB-LESS
