@@ -36,6 +36,9 @@ on:
       # Sob teste em SellsCreateV3ContratoTest (UC-V302/V303). Sem este gatilho, mexer no
       # controller do preview não dispararia o teste dele — gate mudo com cara de cobertura.
       - 'app/Http/Controllers/SellsV3Controller.php'
+      # Sob teste em SalesOrderIndexContratoTest (UC-SORD-01..04, thread 06 venda-menu).
+      - 'app/Http/Controllers/SalesOrderController.php'
+      - 'resources/js/Pages/SalesOrder/**'
       - 'app/Utils/TransactionUtil.php'
       # Sob teste em BuscaProdutoPrecoDeGrupoContratoTest (filterProduct × getVariationGroupPrice).
       - 'app/Utils/ProductUtil.php'
@@ -79,6 +82,8 @@ jobs:
               - 'tests/Feature/Sells/**'
               - 'app/Http/Controllers/SellPosController.php'
               - 'app/Http/Controllers/SellsV3Controller.php'
+              - 'app/Http/Controllers/SalesOrderController.php'
+              - 'resources/js/Pages/SalesOrder/**'
               - 'app/Utils/TransactionUtil.php'
               - 'app/Utils/ProductUtil.php'
               - 'app/Http/Controllers/SellController.php'
@@ -145,6 +150,10 @@ jobs:
         # do Create.tsx: a venda aberta como reparo grava `sub_type=repair` com o MESMO
         # total, as mesmas linhas e a mesma baixa de estoque da venda comum (dupla prova da
         # REGRA MESTRE). EstoqueFixture, tenant 98. NASCE SEM RUN: vermelho aqui é este arquivo.
+        #
+        # 2026-10-01 — + SalesOrderIndexContratoTest (UC-SORD-01..04 de `SalesOrder/Index.casos.md`,
+        # thread 06 venda-menu): render Inertia de /sales-order, 403, flag enable_sales_order e PUT
+        # de status escopado por business (tenant 98 × 99). NASCE SEM RUN: vermelho aqui é este arquivo.
         env:
           DB_CONNECTION: mysql
           DB_HOST: 127.0.0.1
@@ -164,7 +173,8 @@ jobs:
             tests/Feature/Sells/Wave1ShowInertiaTest.php \
             tests/Feature/Sells/SellsCaixaContratoTest.php \
             tests/Feature/Sells/SellsRepairSubtipoContratoTest.php \
-            tests/Feature/Sells/BuscaProdutoPrecoDeGrupoContratoTest.php
+            tests/Feature/Sells/BuscaProdutoPrecoDeGrupoContratoTest.php \
+            tests/Feature/Sells/SalesOrderIndexContratoTest.php
 
 
       # Passo 1 do plano da LC-13 (Gate:): a lane JA emitia JUnit e NINGUEM lia.
