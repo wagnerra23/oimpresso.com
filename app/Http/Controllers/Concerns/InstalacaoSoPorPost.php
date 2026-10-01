@@ -14,6 +14,11 @@ trait InstalacaoSoPorPost
 {
     use ConfirmaInstalacaoPorPost;
 
+    protected function nomeModuloInstalacao(): string
+    {
+        return $this->moduleName();
+    }
+
     public function index()
     {
         if ($confirmacao = $this->confirmacaoSeNaoForPost('install')) {
