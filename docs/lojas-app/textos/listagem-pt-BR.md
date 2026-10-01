@@ -8,7 +8,7 @@
 > Só listar o que o build enviado faz de verdade — se o ponto ainda não estiver no build, tirar o bloco do ponto.
 
 ## Comum
-- **Nome do app:** `oimpresso` (9/30) — alternativa se o nome estiver ocupado na Apple: `oimpresso ERP` (13/30)
+- **Nome do app:** `oimpresso` (9/30) — **decidido por [W] em 2026-10-01: "oimpresso nos dois"** (loja e aparelho). Reserva, só com ok [W], se o nome estiver ocupado na Apple: `oimpresso ERP` (13/30)
 - **Categoria:** Negócios (Play: Business · Apple: primária Business, secundária Productivity)
 - **Público:** adultos, uso profissional (B2B). Sem anúncios. Sem compras no app.
 - **Login exigido:** sim — conta criada pela empresa. Sem cadastro aberto.
