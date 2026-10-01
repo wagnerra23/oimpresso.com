@@ -18,24 +18,24 @@ last_run: "2026-10-01"
 
 | UC | Caso de uso | Prio | Status |
 |----|-------------|------|--------|
-| UC-PRIVAPP-01 | Abre sem login, URL estável | must | 🧪 |
-| UC-PRIVAPP-02 | Cobre o ERP além do ponto e aponta para a política do ponto | must | 🧪 |
-| UC-PRIVAPP-03 | Não promete apagar marcação de ponto | must | 🧪 |
-| UC-PRIVAPP-04 | Declara que não usa localização em segundo plano | must | 🧪 |
+| UC-PRVAPP-01 | Abre sem login, URL estável | must | 🧪 |
+| UC-PRVAPP-02 | Cobre o ERP além do ponto e aponta para a política do ponto | must | 🧪 |
+| UC-PRVAPP-03 | Não promete apagar marcação de ponto | must | 🧪 |
+| UC-PRVAPP-04 | Declara que não usa localização em segundo plano | must | 🧪 |
 
-## UC-PRIVAPP-01 · Abre sem login, URL estável · `must`
+## UC-PRVAPP-01 · Abre sem login, URL estável · `must`
 - **Persona:** revisor da loja de aplicativo, sem conta no oimpresso.
 - **Aceite:** Dado um visitante sem sessão · Quando abre `/privacidade` · Então recebe 200 com a tela `Site/PrivacidadeApp`, sem ir ao login.
 - **Status:** 🧪
 
-## UC-PRIVAPP-02 · Cobre o ERP e aponta para o ponto · `must`
+## UC-PRVAPP-02 · Cobre o ERP e aponta para o ponto · `must`
 - **Aceite:** Dado a política publicada · Quando a leio · Então ela trata dos dados de clientes e fornecedores cadastrados e linka `/privacidade/ponto`.
 - **Status:** 🧪
 
-## UC-PRIVAPP-03 · Não promete apagar marcação · `must`
+## UC-PRVAPP-03 · Não promete apagar marcação · `must`
 - **Aceite:** Dado a política publicada · Quando a leio · Então ela diz que marcações de ponto não podem ser apagadas nem alteradas.
 - **Status:** 🧪
 
-## UC-PRIVAPP-04 · Sem localização em segundo plano · `must`
+## UC-PRVAPP-04 · Sem localização em segundo plano · `must`
 - **Aceite:** Dado a política publicada · Quando a leio · Então ela diz que o app não usa a localização em segundo plano (o Data Safety declara o mesmo).
 - **Status:** 🧪
