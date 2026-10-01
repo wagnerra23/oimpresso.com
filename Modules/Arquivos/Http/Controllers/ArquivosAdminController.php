@@ -382,7 +382,7 @@ class ArquivosAdminController extends Controller
         return $g > 0 ? $g : 30;
     }
 
-    private function fimDoGrace(Arquivo $a): Carbon
+    private function fimDoGrace(Arquivo $a): \Carbon\CarbonInterface
     {
         return $a->deleted_at->copy()->addDays($this->graceDias());
     }
