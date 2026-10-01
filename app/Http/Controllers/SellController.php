@@ -1107,9 +1107,22 @@ class SellController extends Controller
      */
     public function inertiaList(Request $request)
     {
+        // Thread 01 (Lista de POS · Sells/Pos/Index) — filtro OPCIONAL por tipo de venda.
+        // Whitelist 0/1; ausente (ou qualquer outro valor) = comportamento de sempre, todas as
+        // vendas finais (o default do Sells/Index não muda). `is_direct_sale=0` é a "Lista de
+        // POS": o legado `sale_pos/index` chamava `SellController@index?is_direct_sale=0`.
+        $isDirectSaleRaw = (string) $request->input('is_direct_sale', '');
+        $isDirectSale = in_array($isDirectSaleRaw, ['0', '1'], true) ? (int) $isDirectSaleRaw : null;
+        $listaPos = $isDirectSale === 0;
+
+        // Na Lista de POS vale o gate do legado (`SellPosController@index`: sell.view OU
+        // sell.create). Fora dela, o gate de sempre — quem só tem sell.view continua 403 na
+        // lista geral.
+        $podeListaPos = $listaPos && (auth()->user()->can('sell.view') || auth()->user()->can('sell.create'));
         if (!auth()->user()->can('direct_sell.view') &&
             !auth()->user()->can('view_own_sell_only') &&
-            !auth()->user()->can('view_commission_agent_sell')) {
+            !auth()->user()->can('view_commission_agent_sell') &&
+            !$podeListaPos) {
             abort(403);
         }
 
@@ -1182,6 +1195,18 @@ class SellController extends Controller
             ->where('transactions.type', 'sell')
             ->where('transactions.status', 'final')
             ->whereNull('transactions.sub_type');
+
+        if ($isDirectSale !== null) {
+            $q->where('transactions.is_direct_sale', $isDirectSale);
+        }
+        // Lista de POS: mesma restrição de local do legado (SellController@index AJAX,
+        // `permitted_locations`). Só neste modo — o default do Sells/Index não muda.
+        if ($listaPos) {
+            $permittedLocations = auth()->user()->permitted_locations();
+            if ($permittedLocations !== 'all') {
+                $q->whereIn('transactions.location_id', $permittedLocations);
+            }
+        }
 
         // US-SELL-021 — JOIN nfe_emissoes só quando precisamos da NF_DT_EMISSAO.
         // Tabela tem unique (business_id, transaction_id) — não duplica linhas.

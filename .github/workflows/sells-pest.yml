@@ -145,6 +145,11 @@ jobs:
         # do Create.tsx: a venda aberta como reparo grava `sub_type=repair` com o MESMO
         # total, as mesmas linhas e a mesma baixa de estoque da venda comum (dupla prova da
         # REGRA MESTRE). EstoqueFixture, tenant 98. NASCE SEM RUN: vermelho aqui é este arquivo.
+        #
+        # 2026-10-01 — + SellsPosIndexContratoTest (UC-POS-01..05 de `Sells/Pos/Index.casos.md`,
+        # thread 01 do playbook venda-menu): Lista de POS — o filtro `is_direct_sale=0` de
+        # /sells-list-json (rodapé do servidor, vencido, período, gate sell.view); o render de
+        # GET /pos entra junto com a Page. Tenant 98 × 99. NASCE SEM RUN: vermelho aqui é este arquivo.
         env:
           DB_CONNECTION: mysql
           DB_HOST: 127.0.0.1
@@ -164,7 +169,8 @@ jobs:
             tests/Feature/Sells/Wave1ShowInertiaTest.php \
             tests/Feature/Sells/SellsCaixaContratoTest.php \
             tests/Feature/Sells/SellsRepairSubtipoContratoTest.php \
-            tests/Feature/Sells/BuscaProdutoPrecoDeGrupoContratoTest.php
+            tests/Feature/Sells/BuscaProdutoPrecoDeGrupoContratoTest.php \
+            tests/Feature/Sells/SellsPosIndexContratoTest.php
 
 
       # Passo 1 do plano da LC-13 (Gate:): a lane JA emitia JUnit e NINGUEM lia.
