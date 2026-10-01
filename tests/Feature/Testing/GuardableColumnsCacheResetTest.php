@@ -21,8 +21,10 @@ beforeEach(function () {
     }
 });
 
+// Sem DDL no afterEach de propósito: o teardown roda mesmo com o teste pulado (MySQL) e um
+// drop ali corromperia o schema persistente (scripts/audit/sqlite-test-corruptors.mjs).
+// A tabela sintética vive na sqlite :memory: e some com o app.
 afterEach(function () {
-    Schema::dropIfExists('whatsapp_business_configs');
     $this->resetEloquentGuardableColumnsCache();
 });
 
