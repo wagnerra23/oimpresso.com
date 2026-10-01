@@ -18,10 +18,10 @@ authority: generated
 |---|---:|
 | US no SPEC | 17 |
 | CU no SDD | 0 |
-| Telas (.tsx) | 2 |
-| Telas com `casos.md` | 2 |
-| UC declarados | 22 |
-| UC com teste que os cita | 21 |
+| Telas (.tsx) | 3 |
+| Telas com `casos.md` | 3 |
+| UC declarados | 31 |
+| UC com teste que os cita | 30 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -72,6 +72,15 @@ _Nenhuma lacuna: toda tela tem caso **com UC**, todo CU é citado, e toda US **e
 | UC-LOGS-12 | Logs/Index | 🧪 aguarda veredito da lane |
 | UC-LOGS-13 | Logs/Index | 🧪 aguarda veredito da lane |
 | UC-LOGS-14 | Logs/Index | 🧪 aguarda veredito da lane |
+| UC-OILIC-01 | Licencas/Index | 🧪 aguarda veredito da lane |
+| UC-OILIC-02 | Licencas/Index | 🧪 aguarda veredito da lane |
+| UC-OILIC-03 | Licencas/Index | 🧪 aguarda veredito da lane |
+| UC-OILIC-04 | Licencas/Index | 🧪 aguarda veredito da lane |
+| UC-OILIC-05 | Licencas/Index | 🧪 aguarda veredito da lane |
+| UC-OILIC-06 | Licencas/Index | 🧪 aguarda veredito da lane |
+| UC-OILIC-07 | Licencas/Index | 🧪 aguarda veredito da lane |
+| UC-OILIC-08 | Licencas/Index | 🧪 aguarda veredito da lane |
+| UC-OILIC-09 | Licencas/Index | 🧪 aguarda veredito da lane |
 | UC-TL-01 | Logs/Timeline | 📝 sem_teste |
 | UC-TL-02 | Logs/Timeline | 🧪 aguarda veredito da lane |
 | UC-TL-05 | Logs/Timeline | 🧪 aguarda veredito da lane |

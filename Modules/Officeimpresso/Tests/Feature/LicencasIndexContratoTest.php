@@ -1,0 +1,237 @@
+<?php
+
+declare(strict_types=1);
+
+use App\User;
+use Illuminate\Support\Facades\DB;
+use Spatie\Permission\Models\Permission;
+
+uses(Tests\TestCase::class);
+
+/**
+ * Contrato da lista de licenças (`/officeimpresso/licenca_computador`) — thread
+ * Officeimpresso/06 PR-a (2026-10-01). Casos: Pages/Officeimpresso/Licencas/Index.casos.md
+ * (UC-OILIC-*), derivados da ficha 06, do RUNBOOK-licencas e do licencas-parity — não do .tsx.
+ *
+ * Asserções só sobre as linhas que ESTE teste cria (marcador único): no CT 100 o banco
+ * persiste entre runs. Tenant canônico 98 (ADR 0358), nunca biz=4. MySQL-only.
+ *
+ * @covers-us US-OI-008
+ * @covers-us US-OI-009
+ * @see Modules\Officeimpresso\Http\Controllers\LicencaComputadorController::index
+ */
+
+beforeEach(function () {
+    if (DB::connection()->getDriverName() === 'sqlite') {
+        $this->markTestSkipped('SQLite-incompatível: schema MySQL UltimatePOS necessário (ADR 0358).');
+    }
+    // Mesmos dois superglobais que o layout Blade lê direto (ver LogsBaselineTest).
+    $_SERVER['REMOTE_ADDR'] ??= '127.0.0.1';
+    $_SERVER['HTTP_USER_AGENT'] ??= 'Pest/CI (X11; Linux x86_64) HeadlessChrome';
+
+    $this->oiLicMarca = 'OILIC' . strtoupper(substr(uniqid(), -8));
+    $this->oiLicIds = [];
+    $this->oiLicUsers = [];
+});
+
+afterEach(function () {
+    if ($this->oiLicIds) {
+        DB::table('licenca_computador')->whereIn('id', $this->oiLicIds)->delete();
+    }
+    foreach ($this->oiLicUsers as $u) {
+        $u->forceDelete();
+    }
+});
+
+it('UC-OILIC-01 · sem officeimpresso.access nem superadmin, 403 — com a flag ligada também', function () {
+    $biz = $this->seededTenant();
+    $this->actingAs(oiLicUser($this, $biz->id, null));
+
+    oiLicFlag(false);
+    $this->get('/officeimpresso/licenca_computador')->assertForbidden();
+    oiLicFlag(true);
+    $this->get('/officeimpresso/licenca_computador')->assertForbidden();
+});
+
+it('UC-OILIC-02 · com a flag OFF a rota segue servindo o Blade', function () {
+    $biz = $this->seededTenant();
+    $this->actingAs(oiLicUser($this, $biz->id, 'officeimpresso.access'));
+    oiLicFlag(false);
+
+    // `viewData` só existe em resposta de view: se virar Inertia sem a flag, quebra aqui.
+    expect($this->get('/officeimpresso/licenca_computador')->viewData('licencas'))->not->toBeNull();
+});
+
+it('UC-OILIC-03 · com a flag ON responde Officeimpresso/Licencas/Index, lista adiada e permissão eager', function () {
+    $biz = $this->seededTenant();
+    $this->actingAs(oiLicUser($this, $biz->id, 'officeimpresso.access'));
+    oiLicFlag(true);
+
+    $this->get('/officeimpresso/licenca_computador')
+        ->assertOk()
+        ->assertInertia(fn (\Inertia\Testing\AssertableInertia $page) => $page
+            ->component('Officeimpresso/Licencas/Index')
+            ->where('permissions.pode_ver_todas_empresas', false)
+            ->missing('licencas'));
+});
+
+it('UC-OILIC-04 · quem tem só officeimpresso.access vê apenas as máquinas do negócio da sessão', function () {
+    $casa = $this->seededTenant();
+    $outro = $this->seededSupportClientTenant();
+    $this->actingAs(oiLicUser($this, $casa->id, 'officeimpresso.access'));
+    $minha = oiLicMaquina($this, $casa->id);
+    $alheia = oiLicMaquina($this, $outro->id);
+
+    $ids = collect(oiLicParcial($this))->pluck('id')->all();
+
+    expect($ids)->toContain($minha);
+    expect($ids)->not->toContain($alheia);
+});
+
+it('UC-OILIC-05 · superadmin vê máquinas de todos os negócios, com o nome da empresa', function () {
+    $casa = $this->seededTenant();
+    $outro = $this->seededSupportClientTenant();
+    $this->actingAs(oiLicUser($this, $casa->id, 'superadmin'));
+    $alheia = oiLicMaquina($this, $outro->id);
+
+    $linha = collect(oiLicParcial($this))->firstWhere('id', $alheia);
+
+    expect($linha)->not->toBeNull();
+    expect($linha['business_id'])->toBe((int) $outro->id);
+    expect($linha['empresa'])->toBe(DB::table('business')->where('id', $outro->id)->value('name'));
+});
+
+it('UC-OILIC-06 · a linha nunca leva senha, contra-senha, serial nem token', function () {
+    $biz = $this->seededTenant();
+    $this->actingAs(oiLicUser($this, $biz->id, 'officeimpresso.access'));
+    $id = oiLicMaquina($this, $biz->id, ['senha' => 'S3GR3D0', 'contra_senha' => 'C0NTR4', 'serial' => 'SER-' . substr(uniqid(), -6)]);
+
+    $r = oiLicParcialResposta($this);
+    $linha = collect($r->json('props.licencas'))->firstWhere('id', $id);
+
+    expect($linha)->not->toBeNull();
+    foreach (['senha', 'contra_senha', 'serial', 'token'] as $campo) {
+        expect(array_key_exists($campo, $linha))->toBeFalse();
+    }
+    expect($r->getContent())->not->toContain('S3GR3D0');
+    expect($r->getContent())->not->toContain('C0NTR4');
+});
+
+it('UC-OILIC-07 · o frescor do último acesso segue as faixas 24 h · 7 d · 30 d', function () {
+    $biz = $this->seededTenant();
+    $this->actingAs(oiLicUser($this, $biz->id, 'officeimpresso.access'));
+    $casos = [
+        'recente'  => oiLicMaquina($this, $biz->id, ['dt_ultimo_acesso' => now()->subHours(2)]),
+        'fresc'    => oiLicMaquina($this, $biz->id, ['dt_ultimo_acesso' => now()->subDays(3)]),
+        'frio'     => oiLicMaquina($this, $biz->id, ['dt_ultimo_acesso' => now()->subDays(15)]),
+        'distante' => oiLicMaquina($this, $biz->id, ['dt_ultimo_acesso' => null]),
+    ];
+
+    $linhas = collect(oiLicParcial($this))->keyBy('id');
+
+    foreach ($casos as $esperado => $id) {
+        expect($linhas[$id]['frescor'])->toBe($esperado);
+    }
+});
+
+it('UC-OILIC-08 · HD presente em outro negócio é avisado ao superadmin com a contagem', function () {
+    $casa = $this->seededTenant();
+    $outro = $this->seededSupportClientTenant();
+    $this->actingAs(oiLicUser($this, $casa->id, 'superadmin'));
+    $hd = $this->oiLicMarca . 'HD';
+    $a = oiLicMaquina($this, $casa->id, ['hd' => $hd]);
+    oiLicMaquina($this, $outro->id, ['hd' => $hd]);
+    $sozinha = oiLicMaquina($this, $casa->id);
+
+    $linhas = collect(oiLicParcial($this))->keyBy('id');
+
+    expect($linhas[$a]['hd_compartilhado'])->toBe(1);
+    expect($linhas[$sozinha]['hd_compartilhado'])->toBe(0);
+});
+
+it('UC-OILIC-09 · a linha traz versões do executável e do banco, validade e situação com motivo', function () {
+    $biz = $this->seededTenant();
+    $this->actingAs(oiLicUser($this, $biz->id, 'officeimpresso.access'));
+    $id = oiLicMaquina($this, $biz->id, [
+        'versao_exe' => '6.7.14', 'versao_banco' => '1474', 'dt_validade' => '2027-03-31 00:00:00',
+        'bloqueado' => 1, 'motivo' => 'contrato suspenso',
+    ]);
+
+    $linha = collect(oiLicParcial($this))->firstWhere('id', $id);
+
+    expect($linha['versao_exe'])->toBe('6.7.14');
+    expect($linha['versao_banco'])->toBe('1474');
+    expect($linha['dt_validade'])->toBe('2027-03-31');
+    expect($linha['bloqueado'])->toBeTrue();
+    expect($linha['motivo'])->toBe('contrato suspenso');
+});
+
+// ── Helpers (prefixo oiLic — o LogsBaselineTest roda no mesmo processo) ──────
+
+function oiLicUser($test, int $businessId, ?string $permissao): User
+{
+    $user = User::create([
+        'business_id' => $businessId,
+        'first_name'  => 'OI',
+        'surname'     => 'Licencas',
+        'username'    => 'oi_lic_' . $businessId . '_' . uniqid(),
+        'email'       => 'oi_lic_' . $businessId . '_' . uniqid() . '@test.local',
+        'password'    => bcrypt('test12345'),
+        'language'    => 'pt_BR',
+    ]);
+    if ($permissao) {
+        Permission::firstOrCreate(['name' => $permissao, 'guard_name' => 'web']);
+        $user->givePermissionTo($permissao);
+    }
+    $test->oiLicUsers[] = $user;
+
+    return $user;
+}
+
+function oiLicMaquina($test, int $businessId, array $attrs = []): int
+{
+    $id = DB::table('licenca_computador')->insertGetId(array_merge([
+        'business_id' => $businessId,
+        'hd'          => $test->oiLicMarca . '-' . uniqid(),
+        'user_win'    => $test->oiLicMarca,
+        'hostname'    => $test->oiLicMarca,
+        'bloqueado'   => 0,
+    ], $attrs));
+    $test->oiLicIds[] = $id;
+
+    return $id;
+}
+
+/** Partial reload do navegador pedindo a prop adiada `licencas`. */
+function oiLicParcialResposta($test)
+{
+    oiLicFlag(true);
+    $r = $test->withHeaders([
+        'X-Requested-With' => 'XMLHttpRequest',
+        'X-Inertia' => 'true',
+        'X-Inertia-Version' => (string) app(App\Http\Middleware\HandleInertiaRequests::class)->version(request()),
+        'X-Inertia-Partial-Component' => 'Officeimpresso/Licencas/Index',
+        'X-Inertia-Partial-Data' => 'licencas',
+    ])->get('/officeimpresso/licenca_computador');
+    $r->assertOk();
+
+    return $r;
+}
+
+function oiLicParcial($test): array
+{
+    return oiLicParcialResposta($test)->json('props.licencas') ?? [];
+}
+
+function oiLicFlag(bool $ligada): void
+{
+    app()->instance(\App\Services\FeatureFlagService::class, new class($ligada) extends \App\Services\FeatureFlagService
+    {
+        public function __construct(private bool $ligada) {}
+
+        public function isOn(string $flag, array $attrs = []): bool
+        {
+            return $this->ligada;
+        }
+    });
+}
