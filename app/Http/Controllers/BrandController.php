@@ -202,7 +202,7 @@ class BrandController extends Controller
      * Remove the specified resource from storage.
      *
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return mixed JSON {success, msg[, em_uso]} do ajax; nada fora do ajax
      */
     public function destroy($id)
     {
@@ -220,16 +220,16 @@ class BrandController extends Controller
                 // o produto ficaria apontando pra uma marca apagada. Mesma regra da unidade.
                 $emUso = \App\Product::where('business_id', $business_id)->where('brand_id', $brand->id)->count();
                 if ($emUso > 0) {
-                    return ['success' => false, 'em_uso' => $emUso,
+                    $output = ['success' => false, 'em_uso' => $emUso,
                         'msg' => "{$emUso} produto(s) usam esta marca. Troque a marca nesses produtos antes de excluir.",
                     ];
+                } else {
+                    $brand->delete();
+
+                    $output = ['success' => true,
+                        'msg' => __('brand.deleted_success'),
+                    ];
                 }
-
-                $brand->delete();
-
-                $output = ['success' => true,
-                    'msg' => __('brand.deleted_success'),
-                ];
             } catch (\Exception $e) {
                 \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
 
