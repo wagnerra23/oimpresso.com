@@ -9,8 +9,8 @@
     // justamente a que as telas Blade legacy renderizam — resultado: o suporte
     // ABRIA /officeimpresso/computadores (o controller aceita `access`) mas não
     // via link nenhum pra navegar. Menu e guarda precisam contar a mesma história.
-    $podeVerLicencas = auth()->user()->can('superadmin')
-        || auth()->user()->can('officeimpresso.access');
+    // `access` só vale para usuário da empresa operadora (AcessoOperador), como na guarda.
+    $podeVerLicencas = \Modules\Officeimpresso\Services\AcessoOperador::pode(auth()->user(), 'officeimpresso.access');
 @endphp
 
 <section class="no-print">

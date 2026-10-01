@@ -18,7 +18,7 @@ class Contact extends Authenticatable
     /**
      * Activity log config — auditoria de cliente/fornecedor com cuidado especial PII LGPD.
      *
-     * CRITICO: tax_number_1 (CPF/CNPJ) NAO entra no logOnly. PII LGPD nao deve
+     * CRITICO: tax_number (CPF/CNPJ) NAO entra no logOnly. PII LGPD nao deve
      * aparecer em activity_log.properties por design (ADR 0127 §F1, regras-time.md).
      *
      * Pest test PII redact em tests/Feature/Auditoria/ContactPiiLogsActivityTest
