@@ -1,0 +1,337 @@
+{
+  "aguardou_sumir": null,
+  "ausentes": [],
+  "base": {
+    "assinatura": "OI WR OFFICEIMPRESSO · matriz · 12 produtos · 4 grupos de preço · papel: Administrador Produtos Cadastros de apoio Atualizado 23:43 ← Voltar à lista Baixar Excel Novo produto Cadastros de apoio Variações · papel: Administrador Variações 3 Grupos de preço 4 Unidades 6 Categorias 9 Marcas 6 Garantias 4 foca · troca de tela Nova variação Cadastro sem permissão no legado (achado A-P1) Qualquer usuário com acesso ao menu cria, edita e exclui aqui — o VariationTemplateController não tem e a rota só passa pela autenticação. Precisa de decisão de [W] antes do F3. Modelo reaproveitado no cadastro de produto variável: escolher “Cor” já traz os valores abaixo como variações. Variação Valores Em uso Ações Acabamento 3 valor(es) Bastão + ilhós Solda simples Sem acabamento 1 Editar Excluir Cor 7 valor(es) Branco Preto Vermelho Azul Ciano Magenta Amarelo 2 Editar Excluir Gramatura 3 valor(es) 280g 380g 440g 0 Editar Excluir",
+    "roles": {
+      "celulas": null,
+      "chart": null,
+      "contratos": [
+        {
+          "classes": {
+            "dataBr": 0,
+            "dataIso": 0,
+            "snakeCru": 0
+          },
+          "exemplos": {},
+          "nome": "produto-cadastros-abas"
+        }
+      ],
+      "filterRows": null,
+      "kpi": {
+        "count": 0,
+        "items": [],
+        "overflowX": null,
+        "tag": null
+      },
+      "primary": null,
+      "shell": null,
+      "tabela": null,
+      "title": null
+    },
+    "saude": {
+      "folhasVazias": [],
+      "nFolhas": 73,
+      "tokensMortos": []
+    },
+    "theme": "dark",
+    "url": "http://127.0.0.1:5567/"
+  },
+  "nos_totais": 535,
+  "quieto_ms": 2000,
+  "rota": "prod-cadastros",
+  "secoes": {
+    "abas": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "proprio",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.26 0.006 240)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "flex",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "4px 0px",
+        "padding": "0px"
+      },
+      "filhos": 6,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "button",
+        "button",
+        "button",
+        "button",
+        "button",
+        "button"
+      ],
+      "rect": {
+        "h": 36,
+        "w": 1142
+      },
+      "seletor": "main .pb-root > .pb-body > section.pb-widget:nth-of-type(1) > .pb-widget-b > nav.ds-tabbar",
+      "truncado": false
+    },
+    "ajuda": {
+      "contraste": {
+        "fundo": "oklch(0.3 0.008 240)",
+        "fundo_de": "pb-widget",
+        "razao": 3.18,
+        "texto": "oklch(0.58 0.005 90)",
+        "y_fundo": 0.027108,
+        "y_texto": 0.195171
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.58 0.005 90)",
+        "display": "block",
+        "fontSize": "11px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "padding": "0px"
+      },
+      "filhos": 0,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "pb-widget-b"
+        },
+        {
+          "bg": "oklch(0.3 0.008 240)",
+          "de": "pb-widget"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [],
+      "rect": {
+        "h": 15,
+        "w": 1142
+      },
+      "seletor": "main .pb-root > .pb-body > section.pb-widget:nth-of-type(1) > .pb-widget-b > p.pb-help",
+      "truncado": false
+    },
+    "aviso": {
+      "contraste": {
+        "fundo": "oklch(0.3 0.008 240)",
+        "fundo_de": "pb-widget",
+        "razao": 11.42,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.027108,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "block",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "padding": "0px"
+      },
+      "filhos": 1,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "pb-widget-b"
+        },
+        {
+          "bg": "oklch(0.3 0.008 240)",
+          "de": "pb-widget"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "div"
+      ],
+      "rect": {
+        "h": 65,
+        "w": 1142
+      },
+      "seletor": "main .pb-root > .pb-body > section.pb-widget:nth-of-type(1) > .pb-widget-b > div:nth-child(3)",
+      "truncado": false
+    },
+    "barra": {
+      "contraste": {
+        "fundo": "oklch(0.3 0.008 240)",
+        "fundo_de": "pb-widget",
+        "razao": 11.42,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.027108,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "flex",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "10px",
+        "padding": "0px"
+      },
+      "filhos": 3,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "pb-widget-b"
+        },
+        {
+          "bg": "oklch(0.3 0.008 240)",
+          "de": "pb-widget"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "div",
+        "pb-help",
+        "button"
+      ],
+      "rect": {
+        "h": 34,
+        "w": 1142
+      },
+      "seletor": "main .pb-root > .pb-body > section.pb-widget:nth-of-type(1) > .pb-widget-b > .pb-filters-h",
+      "truncado": false
+    },
+    "header": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "proprio",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.26 0.006 240)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "flex",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "10px 12px",
+        "padding": "14px 0px"
+      },
+      "filhos": 2,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "div",
+        "div"
+      ],
+      "rect": {
+        "h": 80,
+        "w": 1176
+      },
+      "seletor": "main .pb-root > .cli-ph > header",
+      "truncado": false
+    },
+    "tabela": {
+      "contraste": {
+        "fundo": "oklch(0.3 0.008 240)",
+        "fundo_de": "proprio",
+        "razao": 11.42,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.027108,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.3 0.008 240)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "flex",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "padding": "0px"
+      },
+      "filhos": 1,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.3 0.008 240)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "div"
+      ],
+      "rect": {
+        "h": 186,
+        "w": 1142
+      },
+      "seletor": "main .pb-root > .pb-body > section.pb-widget:nth-of-type(1) > .pb-widget-b > div:nth-child(5)",
+      "truncado": false
+    },
+    "widget": {
+      "contraste": {
+        "fundo": "oklch(0.3 0.008 240)",
+        "fundo_de": "proprio",
+        "razao": 11.42,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.027108,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.3 0.008 240)",
+        "borderRadius": "12px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "block",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "padding": "0px"
+      },
+      "filhos": 2,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.3 0.008 240)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "h3",
+        "pb-widget-b"
+      ],
+      "rect": {
+        "h": 451,
+        "w": 1176
+      },
+      "seletor": "main .pb-root > .pb-body > section.pb-widget:nth-of-type(1)",
+      "truncado": false
+    }
+  },
+  "tela": "produto--cadastros--index",
+  "url": "http://127.0.0.1:5567/"
+}
