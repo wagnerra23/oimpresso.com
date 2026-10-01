@@ -28,14 +28,21 @@ use Modules\Arquivos\Http\Controllers\InstallController;
 // `arquivos.access` ja existia declarada em DataController::user_permissions (default
 // false) e ate aqui NAO tinha nenhum consumidor no repo: esta rota e o primeiro.
 //
-// LEITURA PURA: so GET. Classificar/excluir entram na onda 2; retencao/purge dependem
-// da proposta de ADR `arquivos-retencao-ui-aviso-titular`.
+// Ate 2026-09-30 era so GET. Classificar (thread 02 · PR-6) e o primeiro POST: mesma
+// permissao, o motivo obrigatorio vem da ReclassifyArquivoRequest, e `whereNumber` porque o
+// controller recebe o id cru e resolve pelo model (global scope) — sem route-model binding,
+// que rodaria antes do SetSessionData. Excluir/restaurar = thread 03; retencao/purge
+// dependem da proposta de ADR `arquivos-retencao-ui-aviso-titular`.
 Route::middleware(['throttle:60,1', 'web', 'authh', 'auth', 'SetSessionData', 'language', 'timezone', 'AdminSidebarMenu'])
     ->prefix('arquivos')
     ->group(function () {
         Route::get('/', [ArquivosAdminController::class, 'index'])
             ->middleware('can:arquivos.access')
             ->name('arquivos.index');
+        Route::post('{arquivo}/classificar', [ArquivosAdminController::class, 'classificar'])
+            ->whereNumber('arquivo')
+            ->middleware('can:arquivos.access')
+            ->name('arquivos.classificar');
     });
 
 // Wave 14 D8 Security — throttle:60,1 (60 req/min/IP) em rotas Arquivos.

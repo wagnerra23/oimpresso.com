@@ -195,6 +195,31 @@ last_run: "2026-09-30"
 
 ---
 
+## UC-INDEX-07 · Classificar re-aplica as regras e guarda o MOTIVO na trilha
+- **Persona:** Wagner (escritório, conformidade) — achou um arquivo no bucket errado (acervo
+  antigo, regra nova do curador) e quer refazer a classificação deixando escrito por quê.
+- **Fonte:** PR-6 do `PEDIDO-PARA-CODE.md` (onda 2) e ficha `playbook/02-classificar.md` —
+  `POST arquivos/{arquivo}/classificar` → `ReclassifyArquivoRequest` → `ArquivosService::classify()`;
+  grava `classified_by/at` + audit `classify` com o `motivo` (min 5). Drawer PT-02.
+- **Aceite:** Dado um arquivo do próprio business, não excluído · Quando a pessoa com
+  `arquivos.access` abre o drawer "Classificar" da linha e envia um motivo de ≥5 caracteres ·
+  Então o Service re-aplica as regras do curador (grava `bucket`, `classified_by`,
+  `classified_at` e a linha `reclassify` com o resultado) · E a trilha ganha uma linha
+  `classify` com o motivo (passado pelo `PiiRedactor`), o bucket antes/depois e o
+  `business_id` **do arquivo** · E arquivo de OUTRO business é recusado pela Request (403) ·
+  E `force_bucket` é **recusado** com erro no campo — nada muda e nada vai pra trilha.
+- **Teste:** `Modules/Arquivos/Tests/Feature/ArquivosAdminControllerTest.php` — **5** `it()`
+  citando `UC-INDEX-07` no título: rota POST numérica atrás de `arquivos.access` · corpo do
+  `classificar()` passa pela Request e pelo Service, sem gravar o model direto · Request recusa
+  o business 99 com controle positivo no 98 · motivo na trilha no business do arquivo · 
+  `force_bucket` recusado sem efeito.
+- **Regressão que defende:** motivo validado e jogado fora (a Request o exigia e nada o
+  consumia) · `force_bucket` aceito em silêncio, prometendo uma classificação manual que o
+  Service não faz · linha de trilha gravada com o business da entrada em vez do do arquivo.
+- **Status: ⬜** — o veredito é da lane `PHP / Pest (Arquivos · MySQL)` do PR da thread 02.
+
+---
+
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
 Derivados do protótipo F1 (`arquivos-page.jsx`). A onda que implementar cada vista traz o teste
@@ -230,11 +255,11 @@ e promove o item a `UC-INDEX-NN`.
 
 **Bloqueado — não vira UC sem decisão [W]**
 
-- **[BLOQUEADO]** Reclassificar com `force_bucket` + `motivo` → hoje `ArquivosService::classify()`
-  não aceita nenhum dos dois: roda o `CuradorEngine` automático e descarta o `motivo`. A
-  `ReclassifyArquivoRequest` valida os dois campos e **nada os consome** (`force_bucket` tem zero
-  consumidor de produção no repo). O PR-6 precisa de código de Service novo — e a regra 3 do
-  prompt manda **parar e perguntar** em vez de inventar método.
+- **[BLOQUEADO]** Forçar um bucket escolhido à mão (`force_bucket`) → o `ArquivosService::classify()`
+  só re-aplica as regras do curador, e o vocabulário da Request (`public/internal/sensitive/vault`)
+  não é o do banco (`active/sensitive/...`). Desde a thread 02 o `motivo` é consumido (UC-INDEX-07)
+  e `force_bucket` é **recusado** com erro no campo, em vez de aceito e ignorado. Forçar de verdade
+  exige Service novo — fora do prefixo da thread 02 — e decisão sobre o vocabulário.
 
 ## Anti-regressão
 
@@ -264,6 +289,7 @@ e promove o item a `UC-INDEX-NN`.
 
 ## Trilha do tempo
 - 2026-08-27 · [CC] **UC-INDEX-05 (baixar) e UC-INDEX-06 (vinculado a) promovidos de `[BACKLOG]`/medição a UC** — a onda trouxe os testes que os defendem, que é a condição do G-2. O buraco foi MEDIDO com a mesma sonda nos dois lados (produção logada × protótipo vivo): a linha de produção tinha **6 colunas e 0 botões**, o protótipo tem **7** (a 7ª é a de ações) e `mono` em 5 delas contra **0 de 6** na produção. O item de backlog do `vault` saiu da lista — ele é exatamente o UC-INDEX-05. O que **não** entrou, e por quê: classificar e excluir **não têm endpoint** (varredura do `Routes/web.php` do módulo: só `index`, `download` e as 3 do Install) e o charter os agenda pra onda 2, travada na decisão [W] do PR-6. Refs: US-ARQ-013 · ADR 0123 §6 (signed URL 60 min) · ADR 0093 (o `find()` do DownloadController aplica o scope).
+- 2026-09-30 · [CL] **UC-INDEX-07 (classificar) nasce** — thread 02 do playbook (PR-6): `POST arquivos/{arquivo}/classificar`, drawer PT-02 na linha do acervo. O `[BLOQUEADO]` de 24/08 encolheu: o motivo agora vai pra trilha (linha `classify`, ao lado da `reclassify` que o Service já grava); só `force_bucket` segue bloqueado, e passou de ignorado a recusado. Nasce `⬜`. Refs: US-ARQ-013 · ADR 0093 · LGPD Art. 37.
 - 2026-07-11 · [CC] carimbado por criar-tela.mjs — trio nascido junto (charter + casos + teste). Refs: UI-0013 · ADR 0264 G-1/G-2.
 - 2026-08-24 · [CL] preenchido a partir do protótipo F1 exportado do Cowork (`arquivos-page.jsx`) + do rascunho `cowork-inbox/modulos-faltantes/arquivos.casos.md`. Os 14 cenários entraram como `[BACKLOG]` (sem id) pra não nascer órfão no G-2; o item de reclassificar foi marcado `[BLOQUEADO]` porque o Service não suporta o contrato da Request. Refs: US-ARQ-013 · ADR 0360.
 - 2026-08-25 · [CC] **UC-INDEX-02 (trilha) promovido de `[BACKLOG]` a UC** — a onda PR-2 trouxe o teste que o defende, que é a condição do G-2. Nasce `⬜`: o veredito é da lane, não da leitura. Refs: US-ARQ-013 · ADR 0093 (o `where` explícito numa tabela sem model) · ADR 0123 §8.

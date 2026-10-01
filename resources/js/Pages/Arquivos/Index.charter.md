@@ -173,7 +173,10 @@ disco. **Não é tela de balcão:** Larissa continua alcançando o anexo pela te
       disco) contra a nossa em PT-BR. Aplicado 88 como pedido — trocar pra 104 é uma linha.
 - [ ] Screenshot 1280/1440 aprovado por [W].
 - [ ] Definir se reclassificar bucket/visibility fica nesta tela ou só no dono do arquivo
-      (a onda 2 esbarra nisso — ver PR-6).
+      (a onda 2 esbarra nisso — ver PR-6). **2026-09-30:** o playbook do Cowork (thread 02)
+      pôs o PR-6 nesta tela, e ele entrou só como **re-aplicar as regras do curador + motivo
+      na trilha** (UC-INDEX-07) — escolher bucket à mão (`force_bucket`) segue recusado. A
+      confirmação de [W] sobre o lugar continua aberta.
 - [ ] Reconciliar `DataController`: docblock L15 e o `label` de `arquivos.access` (L37) ainda
       dizem "Admin Center" (deprecado pela ADR 0360) e `modifyAdminMenu()` ainda afirma que o
       módulo "não tem tela própria". É mudança de texto de UI — decisão [W], não faxina de doc.
