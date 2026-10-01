@@ -1760,6 +1760,7 @@
     "2026-10-01-0745-patrimonio-16-ghost-gate-deploy": "memory/handoffs/2026-10-01-0745-patrimonio-16-ghost-gate-deploy.md",
     "2026-10-01-0750-patrimonio-bens-enviar-manutencao": "memory/handoffs/2026-10-01-0750-patrimonio-bens-enviar-manutencao.md",
     "2026-10-01-1345-auditoria-backfill-business-id": "memory/handoffs/2026-10-01-1345-auditoria-backfill-business-id.md",
+    "2026-10-01-1614-gestao-merges-sessoes-paralelas": "memory/handoffs/2026-10-01-1614-gestao-merges-sessoes-paralelas.md",
     "calculo-total-fatura": "memory/requisitos/Produto/topicos/calculo-total-fatura.md",
     "componentes-compartilhados": "memory/requisitos/_Geral/topicos/componentes-compartilhados.md",
     "governance-architecture": "memory/governance/ARCHITECTURE.md",
@@ -3683,6 +3684,7 @@
     "memory/requisitos/ADS/RUNBOOK-deploy-producao.md",
     "memory/requisitos/ADS/UI-CATALOG.md",
     "memory/requisitos/Accounting/RUNBOOK.md",
+    "memory/requisitos/AppMobile/API-CONTRATO-v1.md",
     "memory/requisitos/AppMobile/BRIEFING.md",
     "memory/requisitos/AppMobile/MAPA-DE-DADOS-v1.md",
     "memory/requisitos/Arquivos/README.md",
@@ -4232,15 +4234,15 @@
   ],
   "collisions": [],
   "stats": {
-    "total": 4226,
-    "resolved": 2888,
-    "unstamped": 1338,
+    "total": 4228,
+    "resolved": 2889,
+    "unstamped": 1339,
     "collisions": 0,
     "by_source": {
-      "unstamped": 1338,
+      "unstamped": 1339,
       "derived-adr": 428,
       "stamped": 1129,
-      "derived-handoffs": 576,
+      "derived-handoffs": 577,
       "derived-sessions": 755
     }
   }
