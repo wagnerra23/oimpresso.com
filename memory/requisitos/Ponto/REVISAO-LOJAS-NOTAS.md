@@ -23,7 +23,7 @@
 
 **Conta de demonstração**
 - Usuário: `revisor.ponto`
-- Senha: informada no campo de credenciais da revisão
+- A senha vai no campo de credenciais da revisão
 
 **O que testar**
 1. Abra o app. Em **Usuário ou e-mail** digite `revisor.ponto`, preencha a **Senha** e toque em
@@ -65,7 +65,7 @@ mantidos pelo prazo legal.
 
 **Demo account**
 - Username: `revisor.ponto`
-- Password: provided in the review credentials field
+- The password is in the review credentials field
 
 **What to test**
 1. Open the app. In **Usuário ou e-mail** (username or e-mail) type `revisor.ponto`, fill in
