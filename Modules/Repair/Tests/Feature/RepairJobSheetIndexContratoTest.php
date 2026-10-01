@@ -5,7 +5,6 @@ declare(strict_types=1);
 use App\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
-use Inertia\Testing\AssertableInertia;
 use Spatie\Permission\Models\Permission;
 use Tests\Support\WithSeededTenant;
 
@@ -126,6 +125,38 @@ it('UC-JSIDX-02: flag MWART OFF entrega Blade, sem header X-Inertia', function (
     expect($response->headers->get('X-Inertia'))->toBeNull();
 });
 
+/**
+ * Versão do Inertia perguntada AO PRÓPRIO middleware, não um literal.
+ *
+ * Medido no CI em 2026-10-01 (run 36849371447): com `X-Inertia-Version: test` o
+ * servidor responde **409** (`X-Inertia-Location` = a própria URL) — é o handshake
+ * de versão do Inertia, não a tela. Era esse o motivo de UC-JSIDX-03/04 saírem
+ * `skipped` desde o nascimento. Mesmo idioma de `ridxInertiaVersion()` no
+ * RepairIndexContratoTest, vizinho nesta lane.
+ */
+function jobSheetIndexInertiaVersion(): string
+{
+    return (string) app(\App\Http\Middleware\HandleInertiaRequests::class)->version(request());
+}
+
+/**
+ * GET da lista em modo Inertia com a flag ligada.
+ *
+ * Lê o JSON (e NÃO `assertInertia`): com o header `X-Inertia: true` o servidor
+ * devolve JSON, e `AssertableInertia` exige a casca HTML (`viewData('page')`).
+ */
+function jobSheetIndexInertia($test, User $user)
+{
+    config([
+        'mwart.repair_job_sheet_index.enabled' => true,
+        'mwart.repair_job_sheet_index.business_ids' => [],
+    ]);
+
+    return jobSheetIndexActAs($test, $user)
+        ->withHeaders(['X-Inertia' => 'true', 'X-Inertia-Version' => jobSheetIndexInertiaVersion()])
+        ->get('/repair/job-sheet');
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // UC-JSIDX-03 — flag ON entrega o componente e as 3 props que a Page consome
 // ─────────────────────────────────────────────────────────────────────────────
@@ -133,25 +164,14 @@ it('UC-JSIDX-02: flag MWART OFF entrega Blade, sem header X-Inertia', function (
 it('UC-JSIDX-03: flag MWART ON entrega Inertia Repair/JobSheet/Index com filters, flags e datatable_url', function () {
     $biz = $this->seededTenant();
     $user = jobSheetIndexUser((int) $biz->id);
-    config([
-        'mwart.repair_job_sheet_index.enabled' => true,
-        'mwart.repair_job_sheet_index.business_ids' => [],
-    ]);
 
-    $response = jobSheetIndexActAs($this, $user)
-        ->withHeaders(['X-Inertia' => 'true', 'X-Inertia-Version' => 'test'])
-        ->get('/repair/job-sheet');
+    $response = jobSheetIndexInertia($this, $user);
 
-    if ($response->status() !== 200) {
-        test()->fail('SONDA: Render Inertia status='.$response->status().' location='.$response->headers->get('X-Inertia-Location').' body='.substr((string) $response->getContent(), 0, 300));
-    }
-
-    $response->assertInertia(fn (AssertableInertia $page) => $page
-        ->component('Repair/JobSheet/Index')
-        ->has('filters')
-        ->has('flags')
-        ->has('datatable_url')
-    );
+    expect($response->status())->toBe(200);
+    expect($response->headers->get('X-Inertia'))->toBe('true');
+    expect($response->json('component'))->toBe('Repair/JobSheet/Index');
+    expect($response->json('props'))->toHaveKeys(['filters', 'flags', 'datatable_url']);
+    expect($response->json('props.flags'))->toHaveKeys(['is_user_service_staff', 'show_serial_no', 'enable_brand_in_job_sheet']);
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -161,20 +181,12 @@ it('UC-JSIDX-03: flag MWART ON entrega Inertia Repair/JobSheet/Index com filters
 it('UC-JSIDX-04: datatable_url aponta para o endpoint que também serve o Blade', function () {
     $biz = $this->seededTenant();
     $user = jobSheetIndexUser((int) $biz->id);
-    config([
-        'mwart.repair_job_sheet_index.enabled' => true,
-        'mwart.repair_job_sheet_index.business_ids' => [],
-    ]);
 
-    $response = jobSheetIndexActAs($this, $user)
-        ->withHeaders(['X-Inertia' => 'true', 'X-Inertia-Version' => 'test'])
-        ->get('/repair/job-sheet');
+    $response = jobSheetIndexInertia($this, $user);
 
-    if ($response->status() !== 200) {
-        test()->fail('SONDA: Render Inertia status='.$response->status().' location='.$response->headers->get('X-Inertia-Location').' body='.substr((string) $response->getContent(), 0, 300));
-    }
+    expect($response->status())->toBe(200);
 
-    $url = data_get($response->viewData('page'), 'props.datatable_url');
+    $url = $response->json('props.datatable_url');
 
     expect($url)->toBeString();
     expect($url)->toContain(route('job-sheet.index', absolute: false));
@@ -209,24 +221,64 @@ it('UC-JSIDX-05: com a flag ON, uma chamada ajax ainda devolve o envelope DataTa
 // UC-JSIDX-06 — isolamento multi-tenant (ADR 0093, Tier 0)
 // ─────────────────────────────────────────────────────────────────────────────
 
+/**
+ * OS mínima válida no tenant dado, com contato próprio. Devolve [jobSheetId, contactId].
+ *
+ * Fixture PRÓPRIA nos tenants fictícios (98 e 99 — ADR 0358), nunca em empresa real.
+ * Medido no CI em 2026-10-01 (run 36849371447): a versão anterior inseria em
+ * `business_id = 98 + 9001`, business inexistente, e a FK
+ * `repair_job_sheets_business_id_foreign` rejeitava — o teste pulava e o UC Tier 0
+ * nunca foi medido. As colunas abaixo são as NOT NULL sem default do schema.
+ */
+function jobSheetIndexOs(int $businessId, int $userId, string $jobSheetNo): array
+{
+    $contactId = (int) DB::table('contacts')->insertGetId([
+        'business_id' => $businessId,
+        'type' => 'customer',
+        'name' => 'Cliente '.$jobSheetNo,
+        'mobile' => '0',
+        'contact_id' => 'JSIDX'.substr(md5($jobSheetNo), 0, 8),
+        'created_by' => $userId,
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+
+    $osId = (int) DB::table('repair_job_sheets')->insertGetId([
+        'business_id' => $businessId,
+        'contact_id' => $contactId,
+        'job_sheet_no' => $jobSheetNo,
+        'service_type' => 'carry_in',
+        'serial_no' => 'SN-'.$jobSheetNo,
+        'status_id' => 0,
+        'created_by' => $userId,
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+
+    return [$osId, $contactId];
+}
+
 it('UC-JSIDX-06: a listagem ajax não devolve OS de outro business', function () {
     $biz = $this->seededTenant();
-    $user = jobSheetIndexUser((int) $biz->id);
-    $outroId = (int) $biz->id + 9001;
+    $outro = $this->seededSupportClientTenant();
+    expect((int) $outro->id)->not->toBe((int) $biz->id);
 
-    $marcador = 'XTENANT-'.uniqid();
-    try {
-        DB::table('repair_job_sheets')->insert([
-            'business_id' => $outroId,
-            'job_sheet_no' => $marcador,
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
-    } catch (Throwable $e) {
-        test()->fail('SONDA: insert rejeitado: '.substr($e->getMessage(), 0, 400));
+    $user = jobSheetIndexUser((int) $biz->id);
+    // Sem estas duas, a lista sai vazia por OUTRO filtro (`permitted_locations()` vazio
+    // ou o recorte "só as minhas OS") e a ausência da OS alheia passaria por vácuo.
+    foreach (['access_all_locations', 'job_sheet.view_all'] as $perm) {
+        $user->givePermissionTo(Permission::firstOrCreate(['name' => $perm, 'guard_name' => 'web']));
     }
 
+    $sufixo = uniqid();
+    $propria = 'JSIDX-PROPRIA-'.$sufixo;
+    $alheia = 'JSIDX-ALHEIA-'.$sufixo;
+    $criadas = [];
+
     try {
+        $criadas[] = jobSheetIndexOs((int) $biz->id, (int) $user->id, $propria);
+        $criadas[] = jobSheetIndexOs((int) $outro->id, (int) $user->id, $alheia);
+
         config([
             'mwart.repair_job_sheet_index.enabled' => true,
             'mwart.repair_job_sheet_index.business_ids' => [],
@@ -236,12 +288,19 @@ it('UC-JSIDX-06: a listagem ajax não devolve OS de outro business', function ()
             ->withHeaders(['X-Requested-With' => 'XMLHttpRequest', 'Accept' => 'application/json'])
             ->get('/repair/job-sheet?draw=1&start=0&length=100');
 
-        if ($response->status() !== 200) {
-            test()->fail('SONDA: DataTables 06 status='.$response->status().' body='.substr((string) $response->getContent(), 0, 300));
-        }
+        expect($response->status())->toBe(200);
 
-        expect($response->getContent())->not->toContain($marcador);
+        $nos = collect($response->json('data') ?? [])->pluck('job_sheet_no')->all();
+
+        // Âncora positiva: a OS do próprio tenant aparece — prova que a lista não
+        // está vazia por outro motivo e que o negativo abaixo mede o isolamento.
+        expect($nos)->toContain($propria);
+        expect($nos)->not->toContain($alheia);
+        expect((string) $response->getContent())->not->toContain($alheia);
     } finally {
-        DB::table('repair_job_sheets')->where('job_sheet_no', $marcador)->delete();
+        foreach ($criadas as [$osId, $contactId]) {
+            DB::table('repair_job_sheets')->where('id', $osId)->delete();
+            DB::table('contacts')->where('id', $contactId)->delete();
+        }
     }
 });
