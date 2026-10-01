@@ -18,5 +18,7 @@ Route::middleware('throttle:60,1', 'web', 'SetSessionData', 'auth', 'language', 
     // Evita colisão com Route::resource('client', Officeimpresso\ClientController) — ambos OAuth clients management
     // (route:cache falhava com "Another route has already been assigned name [client.index]").
     Route::resource('/client', 'Modules\Connector\Http\Controllers\ClientController', ['as' => 'connector']);
-    Route::get('/regenerate', [Modules\Connector\Http\Controllers\ClientController::class, 'regenerate']);
+    // CONN-O4 · [W] D4 (2026-08-19): a rota GET de regenerar chaves saiu (rodava
+    // passport:install --force e derrubava a integracao de todos os negocios). Regenerar
+    // chave e operacao de servidor, nao de tela.
 });
