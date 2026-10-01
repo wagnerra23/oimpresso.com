@@ -145,7 +145,7 @@ jobs:
           mkdir -p test-results
           vendor/bin/pest --no-coverage --colors=always \
             --log-junit test-results/pest-connector-junit.xml \
-            --exclude-filter 'test_segredo_nao_e_hasheado_credencial_em_campo_continua_valendo|test_client_preexistente_ainda_obtem_token|test_store_cria_password_client_com_secret_de_40|secret_de_40_caracteres|o_segredo_aparece_UMA_vez' \
+            --exclude-filter 'test_segredo_nao_e_hasheado_credencial_em_campo_continua_valendo|test_client_preexistente_ainda_obtem_token|test_store_cria_password_client_com_secret_de_40|secret.de.40.caracteres|segredo.aparece.UMA.vez' \
             Modules/Connector/Tests/Feature/ApiClientsPanelTest.php \
             Modules/Connector/Tests/Feature/ClientControllerBaselineTest.php \
             Modules/Connector/Tests/Feature/CustomerJourneyTest.php \
