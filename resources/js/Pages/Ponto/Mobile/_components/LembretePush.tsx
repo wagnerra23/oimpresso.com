@@ -31,7 +31,7 @@ const CHAVE_TOKEN = 'ponto.push.token';
 const CHAVE_PAROU = 'ponto.push.parou';
 
 /** O plugin, se a página estiver rodando dentro do app; `null` no navegador comum. */
-export function pluginPush(): PushPlugin | null {
+function pluginPush(): PushPlugin | null {
   const cap = (window as unknown as { Capacitor?: CapacitorGlobal }).Capacitor;
   if (!cap?.isNativePlatform?.()) return null;
   return cap.Plugins?.PushNotifications ?? null;
