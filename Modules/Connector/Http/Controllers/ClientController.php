@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Laravel\Passport\Passport;
 use Modules\Connector\Http\Requests\StoreOauthClientRequest;
@@ -76,6 +77,8 @@ class ClientController extends Controller
 
             $client->save();
 
+            $this->auditar($client, 'connector_client_created');
+
             $output = ['success' => true,
                 'msg' => __('lang_v1.added_success'),
             ];
@@ -137,17 +140,71 @@ class ClientController extends Controller
         }
 
         $business_id = request()->session()->get('user.business_id');
-        $clients = Passport::client()
-                        ->leftJoin('users as u', 'oauth_clients.user_id', '=', 'u.id')
+
+        // Multi-tenant: o client so e encontrado se o dono (users.business_id) for do
+        // negocio da sessao. Fora disso, nada e revogado nem apagado (UC-CONN-11).
+        $client = Passport::client()
+                        ->join('users as u', 'oauth_clients.user_id', '=', 'u.id')
                         ->where('u.business_id', $business_id)
                         ->where('oauth_clients.id', $id)
-                        ->delete();
+                        ->select('oauth_clients.id', 'oauth_clients.name')
+                        ->first();
+
+        if ($client === null) {
+            return redirect()->back()->with('status', [
+                'success' => false,
+                'msg' => __('messages.something_went_wrong'),
+            ]);
+        }
+
+        // CONN-O2 · [W] D2: excluir revoga em cadeia, na mesma transacao. Sem isso os
+        // tokens ja emitidos com o client valiam ate expires_at (UC-CONN-12).
+        $revogados = DB::transaction(function () use ($client) {
+            $revogados = DB::table('oauth_access_tokens')
+                ->where('client_id', $client->id)
+                ->where('revoked', 0)
+                ->update(['revoked' => 1, 'updated_at' => now()]);
+
+            DB::table('oauth_refresh_tokens')
+                ->whereIn('access_token_id', function ($q) use ($client) {
+                    $q->select('id')->from('oauth_access_tokens')->where('client_id', $client->id);
+                })
+                ->where('revoked', 0)
+                ->update(['revoked' => 1]);
+
+            DB::table('oauth_clients')->where('id', $client->id)->delete();
+
+            return $revogados;
+        });
+
+        $this->auditar($client, 'connector_client_deleted', ['revoked_tokens' => $revogados]);
 
         $output = ['success' => true,
             'msg' => __('lang_v1.deleted_success'),
+            'revoked_tokens' => $revogados,
         ];
 
         return redirect()->back()->with('status', $output);
+    }
+
+    /**
+     * Auditoria de criar/excluir credencial: client_id + nome, NUNCA o segredo.
+     * Falha de log nao desfaz a acao ja feita.
+     */
+    private function auditar($client, string $acao, array $extra = []): void
+    {
+        try {
+            $this->util->activityLog(
+                $client,
+                $acao,
+                null,
+                array_merge(['client_id' => $client->id, 'name' => $client->name], $extra),
+                false,
+                request()->session()->get('user.business_id')
+            );
+        } catch (\Throwable $e) {
+            \Log::warning('Connector: auditoria do client '.$client->id.' falhou: '.$e->getMessage());
+        }
     }
 
     public function regenerate()
