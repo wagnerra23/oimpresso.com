@@ -631,3 +631,7 @@ Modules/Cms/Tests/Feature/FormRequestValidationTest.php
 tests/Feature/Sidebar/PresencaPreferenciaTest.php
 # Contrato v2 do item de sidebar (SidebarMenuItem/Ghost/PrimaryAction) — objeto de valor puro, sem banco. Não rodava em lane nenhuma até a thread 14 (ícone do ghost).
 tests/Feature/Sidebar/SidebarMenuItemContractTest.php
+# NFS-e — contrato das 3 telas (thread 03 do lote-trio-medida, 2026-09-30): UC-NFSL/NFSEM/NFSD.
+# DB-less (toSql + Validator + authorize com dublê), sqlite-safe. Os 10 testes de
+# Modules/NFSe/Tests/ seguem fora de qualquer lane — este é o único NFSe que executa.
+tests/Feature/Modules/NFSe/NfseTelasContratoTest.php
