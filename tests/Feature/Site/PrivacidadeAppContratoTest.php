@@ -18,9 +18,9 @@ function privAppTexto(): string
 it('UC-PRVAPP-01 — abre sem login, na URL estável', function () {
     // Requisição Inertia (como a navegação do app faz): devolve a página em JSON sem montar o
     // layout Blade, cujo view composer lê a tabela `system` — inexistente na lane sqlite.
-    // Mesma versão de asset que o middleware compara (padrão do PontoTestCase::inertiaGet).
-    $manifest = public_path('build-inertia/manifest.json');
-    $versao = file_exists($manifest) ? md5_file($manifest) : '1';
+    // A versão vem do PRÓPRIO middleware: sem o build no CI ela cai no parent::version(), e
+    // um valor suposto aqui dá 409 (versão divergente) — foi o que aconteceu com '1'.
+    $versao = (string) app(\App\Http\Middleware\HandleInertiaRequests::class)->version(request());
 
     $this->assertGuest();
     $r = $this->withHeaders(['X-Inertia' => 'true', 'X-Inertia-Version' => $versao])->get('/privacidade');
