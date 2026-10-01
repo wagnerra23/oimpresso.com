@@ -10,7 +10,7 @@ use Modules\Ponto\Entities\Marcacao;
 use Modules\Ponto\Jobs\EnviarLembretePontoJob;
 
 /**
- * `ponto:lembretes-push` — lembrete de bater ponto conforme a escala (ADR 0422 §5-§6).
+ * `ponto:lembretes-push` — lembrete de bater ponto conforme a escala (ADR 0423 §5-§6).
  *
  * Roda a cada 5 min pelo scheduler (Kernel). Para cada business com aparelho ativo, acha os
  * colaboradores cuja escala de HOJE tem um horário em [agora+antecedência, +janela) e que
@@ -24,7 +24,7 @@ class LembretesPushCommand extends Command
 {
     protected $signature = 'ponto:lembretes-push';
 
-    protected $description = 'Envia o lembrete de bater ponto aos aparelhos dos colaboradores (ADR 0422).';
+    protected $description = 'Envia o lembrete de bater ponto aos aparelhos dos colaboradores (ADR 0423).';
 
     /** coluna do turno => tipo da marcação */
     private const HORARIOS = [

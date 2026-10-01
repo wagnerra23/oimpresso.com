@@ -5,7 +5,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * Lembretes de bater ponto já disparados (ADR 0422 §6) — impede o envio repetido.
+ * Lembretes de bater ponto já disparados (ADR 0423 §6) — impede o envio repetido.
  *
  * Uma linha por (business, usuário, dia, tipo de marcação). O comando grava a linha ANTES de
  * despachar o Job; se dois ticks se sobrepuserem, o índice único deixa só um passar.

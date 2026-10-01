@@ -14,7 +14,7 @@ use Modules\Ponto\Tests\Feature\PontoTestCase;
 uses(PontoTestCase::class);
 
 /**
- * Envio do lembrete de bater ponto — ADR 0422 §2, §5, §7 (PR 2a).
+ * Envio do lembrete de bater ponto — ADR 0423 §2, §5, §7 (PR 2a).
  *
  * UC-REPP-16 de `resources/js/Pages/Ponto/Mobile/Index.casos.md`, derivado da ADR. O FCM é
  * falso (`Http::fake`); a assinatura do JWT é real, com chave RSA gerada no teste.

@@ -11,10 +11,10 @@ use Modules\Ponto\Tests\Feature\PontoTestCase;
 uses(PontoTestCase::class);
 
 /**
- * Registro do aparelho para o lembrete de bater ponto — ADR 0422 (PR 1).
+ * Registro do aparelho para o lembrete de bater ponto — ADR 0423 (PR 1).
  *
  * UCs de `resources/js/Pages/Ponto/Mobile/Index.casos.md` (UC-REPP-11/12/13), derivados da
- * ADR 0422 §3-§4. NÃO do controller.
+ * ADR 0423 §3-§4. NÃO do controller.
  *
  * @covers-us US-PONTO-001
  *

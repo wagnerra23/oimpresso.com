@@ -149,7 +149,7 @@ Route::group(
         Route::post('/mobile/marcar', [MobileMarcacaoController::class, 'registrar'])->name('ponto.mobile.marcar');
         Route::get('/mobile/marcacoes/hoje', [MobileMarcacaoController::class, 'marcacoesHoje'])->name('ponto.mobile.marcacoes.hoje');
         Route::post('/mobile/intercorrencias', [MobileMarcacaoController::class, 'criarIntercorrencia'])->name('ponto.mobile.intercorrencias.store');
-        // Lembrete de bater ponto (ADR 0422): o app Capacitor registra o token do aparelho.
+        // Lembrete de bater ponto (ADR 0423): o app Capacitor registra o token do aparelho.
         Route::post('/mobile/push/dispositivo', [\Modules\Ponto\Http\Controllers\Api\PushDispositivoController::class, 'registrar'])->name('ponto.mobile.push.registrar');
         Route::delete('/mobile/push/dispositivo', [\Modules\Ponto\Http\Controllers\Api\PushDispositivoController::class, 'desativar'])->name('ponto.mobile.push.desativar');
     }

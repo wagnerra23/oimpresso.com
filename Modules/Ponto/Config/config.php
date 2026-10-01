@@ -16,7 +16,7 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Lembrete de bater ponto por push (ADR 0422)
+    | Lembrete de bater ponto por push (ADR 0423)
     |--------------------------------------------------------------------------
     | Desligado por padrão. `credentials` é o CAMINHO do JSON da conta de serviço do Firebase
     | no servidor (fora do repo, chmod 600; o original fica no Vaultwarden) — nunca o conteúdo.

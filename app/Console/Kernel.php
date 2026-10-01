@@ -40,7 +40,7 @@ class Kernel extends ConsoleKernel
 
         }
 
-        // Ponto — lembrete de bater ponto por push (ADR 0422). Avisa o colaborador alguns minutos
+        // Ponto — lembrete de bater ponto por push (ADR 0423). Avisa o colaborador alguns minutos
         // antes de cada horário da escala de hoje, se a marcação ainda não foi feita. Com a fila
         // `sync` o Job roda no mesmo tick (sem worker no Hostinger). Desligado até
         // PONTO_PUSH_ENABLED=true + credenciais do Firebase no servidor.
@@ -777,7 +777,7 @@ class Kernel extends ConsoleKernel
                 );
             });
 
-        // ADR 0422 — aviso ao titular (LGPD Art. 18) por e-mail/WhatsApp, diário 10:00 BRT
+        // ADR 0423 — aviso ao titular (LGPD Art. 18) por e-mail/WhatsApp, diário 10:00 BRT
         // ([W] 2026-10-01: "agende o arquivos:avisar-titulares diário no Kernel").
         // Horário comercial: a mensagem chega a uma pessoa, não a um sistema. `--todos` só
         // entra em negócio que LIGOU algum canal (default desligado) — sem isso, nada sai.

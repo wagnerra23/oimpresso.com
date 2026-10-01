@@ -14,7 +14,7 @@ use Modules\Ponto\Tests\Feature\PontoTestCase;
 uses(PontoTestCase::class);
 
 /**
- * Envio do lembrete de bater ponto — ADR 0422 §5-§6 (PR 2b).
+ * Envio do lembrete de bater ponto — ADR 0423 §5-§6 (PR 2b).
  *
  * UCs UC-REPP-14/15 de `resources/js/Pages/Ponto/Mobile/Index.casos.md`, derivados da ADR.
  * O Job é falso (`Bus::fake`) — o envio em si tem o seu teste em EnviarLembretePontoJobTest.
