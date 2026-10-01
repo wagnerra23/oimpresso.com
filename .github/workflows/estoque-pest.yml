@@ -132,6 +132,9 @@ on:
       - 'app/Http/Controllers/ProdutoUnificadoController.php'
       # Playbook Produto · thread 02 — SOB TESTE do ProdutoCadastrosContratoTest (§5 2026-08-02).
       - 'app/Http/Controllers/UnitController.php'
+      # SOB TESTE do UnidadeMultiplicadorAuditoriaTest (dano gravado pelo bug do #8394).
+      - 'app/Services/Unidades/**'
+      - 'app/Console/Commands/Unidades/**'
       - 'app/Http/Controllers/BrandController.php'
       - 'app/Http/Controllers/TaxonomyController.php'
       - 'resources/js/Pages/Produto/Cadastros/**'
@@ -205,6 +208,9 @@ jobs:
               - 'app/Http/Controllers/ProdutoUnificadoController.php'
               # Playbook Produto · thread 02 — SOB TESTE do ProdutoCadastrosContratoTest.
               - 'app/Http/Controllers/UnitController.php'
+              # SOB TESTE do UnidadeMultiplicadorAuditoriaTest (dano gravado pelo bug do #8394).
+              - 'app/Services/Unidades/**'
+              - 'app/Console/Commands/Unidades/**'
               - 'app/Http/Controllers/BrandController.php'
               - 'app/Http/Controllers/TaxonomyController.php'
               - 'resources/js/Pages/Produto/Cadastros/**'
