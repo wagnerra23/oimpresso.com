@@ -40,6 +40,13 @@ required "Contratos de tela" reprova contrato sem a Page; pela opção 1 do `_sa
   Observação, **não consertada** (fora da thread): o `show()` Blade (`/crm/leads/{id}`) filtra só
   `business_id`, sem `type = lead` — abre um cliente do mesmo negócio pelo id. Não é vazamento
   cross-tenant; é escopo de tipo. Fica para a fatia que migrar a ficha completa.
+- **Achado do CI — a lista de leads já quebrava:** `CrmUtil::getLeadsListQuery` seleciona
+  `contacts.prefix/first_name/middle_name/last_name`, colunas que não existem mais no schema (o
+  handoff 2026-06-06 já registrava `contacts.first_name` removida). A lane MySQL deu
+  `Unknown column 'contacts.prefix'` → 500, na Inertia **e** no DataTables da Blade. Conserto
+  dentro do prefixo: o `LeadController` tira essas 4 colunas do SELECT quando o banco não as tem
+  (`semColunasDeNomeRemovidas`). A raiz fica no `CrmUtil` (fora do prefixo), e o
+  `Connector/Api/Crm/FollowUpController:968` chama a mesma consulta — segue exposto. Pendente.
 - **Prefixo de UC:** `UC-CRMLD-`, não `UC-CRMLEAD-`. O regex canônico (`scripts/lib/uc-regex.mjs`)
   aceita prefixo de até 6 caracteres; com 7 o `requisitos-status` contou 0 UC na tela.
 - **Datas** em `d/m/Y H:i` do valor gravado, sem o shift +3h do `format_date` legado (como a 03).

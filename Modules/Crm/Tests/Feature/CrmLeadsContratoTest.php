@@ -49,9 +49,23 @@ function leadLimpa(): void
     }
 }
 
+/**
+ * Garante o business `$biz`. `id` é guarded no model, então `firstOrCreate(['id' => 99])` não
+ * cria o 99 — cria outro id e cai no FK `owner_id` (medido na lane MySQL desta thread). Aqui o
+ * id e o dono (um usuário que já existe) vão explícitos.
+ */
+function leadNegocio(int $biz): void
+{
+    if (Business::whereKey($biz)->exists()) {
+        return;
+    }
+    $dono = (int) DB::table('users')->min('id');
+    (new Business)->forceFill(['id' => $biz, 'name' => 'Tenant fictício crm '.$biz, 'currency_id' => 1, 'owner_id' => $dono])->save();
+}
+
 function leadUsuario(string $username, array $permissoes, int $biz = LEAD_BIZ): User
 {
-    Business::firstOrCreate(['id' => $biz], ['name' => 'Tenant fictício crm '.$biz, 'currency_id' => 1]);
+    leadNegocio($biz);
     // `user_type` e `allow_login` explícitos: o `CheckUserLogin` da rota barra quem não tem os
     // dois (medido no CI da thread Crm/03).
     $user = User::firstOrCreate(['username' => $username], [
@@ -67,7 +81,7 @@ function leadUsuario(string $username, array $permissoes, int $biz = LEAD_BIZ): 
 /** Contato cru (lead por padrão), criado e atribuído a `$dono`. */
 function leadContato(int $biz, string $nome, User $dono, string $tipo = 'lead'): int
 {
-    Business::firstOrCreate(['id' => $biz], ['name' => 'Tenant fictício crm '.$biz, 'currency_id' => 1]);
+    leadNegocio($biz);
     $id = DB::table('contacts')->insertGetId([
         'business_id' => $biz, 'type' => $tipo, 'name' => $nome.' '.LEAD_TAG, 'mobile' => '0',
         'contact_id' => 'L'.random_int(100000, 999999),
