@@ -103,7 +103,18 @@ last_run: "2026-08-28"
 
 ---
 
+## UC-SEDIT-08 · Editar venda abre o formulário que salva (paliativo [W] 2026-10-01)
+- **Persona:** Larissa corrigindo uma venda pela lista React.
+- **Por que existe:** a tela React de edição **não salva** — o "Salvar" envia `PUT /sells/{id}`, e o `SellController` não tem `update` (500; 4 ocorrências no log de prod, todas biz=4: 03/07, 28/07 ×2, 29/08). Além disso a tela lê o preço da linha **já com desconto** e reaplica o desconto: corrigida só a rota, salvar sem mexer mudaria o valor da venda. Decisão [W] 2026-10-01: até o conserto completo, a edição abre o **Blade**, que salva pelo `SellPosController@update`.
+- **Aceite:** Dado uma venda editável · Quando a navegação React pede `/sells/{id}/edit` · Então a resposta é **409 com `X-Inertia-Location`** para a mesma URL (o navegador recarrega a página inteira) · E a visita de página inteira devolve a view `sell.edit`, cujo formulário envia para `SellPosController@update` · E com `?react=1` a tela React continua abrindo (para o conserto e para os UC-SEDIT-05/06/07, que agora pedem `?react=1`). As checagens de permissão, prazo, devolução e business (UC-SEDIT-01..04) continuam **antes** do desvio.
+- **Teste:** `tests/Feature/Sells/SellsEditContratoTest.php` (UC-SEDIT-08).
+- **Status: 🧪** _(nasce sem run.)_
+
+---
+
 ## Backlog — achados sem teste ainda (prosa honesta, sem id)
+
+- **[BACKLOG] Desconto de linha aplicado duas vezes ao editar pela tela React** — o pré-fill usa `sell_price_inc_tax`, que no select do `SellController@edit` é `transaction_sell_lines.unit_price_inc_tax` (preço **depois** do desconto), e a tela mostra o desconto de novo por cima; o `createOrUpdateSellLines` aplica `line_discount_amount` sobre o `unit_price` enviado. Ex.: linha de 100 com 10 fixo, gravada a 90 → salvar sem mexer gravaria 80. Hoje inofensivo só porque o "Salvar" quebra antes (UC-SEDIT-08). Pré-requisito do conserto da tela React: pré-fill com `unit_price_before_discount` + `final_total` calculado no servidor + invariante "salvar sem mexer não muda total, linhas nem estoque". O UC-SEDIT-07 não pega porque a fixture não tem desconto.
 
 Itens medidos ao derivar os casos acima. **Não são UC** (nenhum teste os cita) e nenhum foi
 corrigido — mexer em guard de venda é Tier 0, decisão [W].
