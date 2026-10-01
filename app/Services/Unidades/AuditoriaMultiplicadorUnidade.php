@@ -61,7 +61,9 @@ class AuditoriaMultiplicadorUnidade
     {
         $texto = number_format($valor);
         $saidas = [
-            round((float) $this->util->num_uf($texto), 4),
+            // O docblock de Util::num_uf diz `int`, mas o controller passa o TEXTO do form — é
+            // exatamente essa chamada que o bug fazia. Não mexo em Util (arquivo de valor).
+            round((float) $this->util->num_uf($texto), 4), // @phpstan-ignore argument.type
             round((float) str_replace(',', '', $texto), 4),
         ];
 
