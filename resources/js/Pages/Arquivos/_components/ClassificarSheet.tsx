@@ -14,6 +14,7 @@ import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetT
 import { Button } from '@/Components/ui/button'
 import { Label } from '@/Components/ui/label'
 import { Textarea } from '@/Components/ui/textarea'
+import { Stack } from '@/Components/layout'
 
 export interface AlvoClassificar {
   id: number
@@ -40,7 +41,8 @@ export default function ClassificarSheet({ alvo, onFechar }: { alvo: AlvoClassif
   return (
     <Sheet open={alvo !== null} onOpenChange={(aberto) => !aberto && fechar()}>
       <SheetContent className="w-full sm:max-w-md">
-        <form onSubmit={enviar} className="flex h-full flex-col">
+        <Stack asChild gap={0} className="h-full">
+        <form onSubmit={enviar}>
           <SheetHeader>
             <SheetTitle>Classificar arquivo</SheetTitle>
             <SheetDescription>
@@ -49,12 +51,12 @@ export default function ClassificarSheet({ alvo, onFechar }: { alvo: AlvoClassif
             </SheetDescription>
           </SheetHeader>
 
-          <div className="flex flex-col gap-4 px-4">
+          <Stack gap={4} className="px-4">
             <p className="text-sm text-muted-foreground">
               Hoje: <code className="mono">{alvo?.bucket ?? 'sem classificação'}</code>
               {alvo?.classified_by ? <> · por <code className="mono">{alvo.classified_by}</code></> : null}
             </p>
-            <div className="flex flex-col gap-2">
+            <Stack gap={2}>
               <Label htmlFor="arq-classificar-motivo">Motivo</Label>
               <Textarea
                 id="arq-classificar-motivo"
@@ -67,8 +69,8 @@ export default function ClassificarSheet({ alvo, onFechar }: { alvo: AlvoClassif
                 placeholder="Por que reclassificar? Vai pra trilha, para a auditoria LGPD."
               />
               {form.errors.motivo && <p className="text-xs text-destructive">{form.errors.motivo}</p>}
-            </div>
-          </div>
+            </Stack>
+          </Stack>
 
           <SheetFooter>
             <Button type="submit" disabled={form.processing || form.data.motivo.trim().length < 5}>
@@ -79,6 +81,7 @@ export default function ClassificarSheet({ alvo, onFechar }: { alvo: AlvoClassif
             </Button>
           </SheetFooter>
         </form>
+        </Stack>
       </SheetContent>
     </Sheet>
   )
