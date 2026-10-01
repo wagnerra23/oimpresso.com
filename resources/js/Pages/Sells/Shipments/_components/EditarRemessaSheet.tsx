@@ -9,6 +9,7 @@ import { Input } from '@/Components/ui/input';
 import { Textarea } from '@/Components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import { SafeSelectItem } from '@/Components/ui/SafeSelectItem';
+import { Grid, Inline, Stack } from '@/Components/layout';
 import type { Remessa } from '../Index';
 
 interface Props {
@@ -29,7 +30,7 @@ function csrf(): string {
 }
 
 function Campo({ rotulo, children }: { rotulo: string; children: ReactNode }) {
-  return <label className="flex flex-col gap-1 text-xs font-medium text-muted-foreground">{rotulo}{children}</label>;
+  return <Stack asChild gap={1} className="text-xs font-medium text-muted-foreground"><label>{rotulo}{children}</label></Stack>;
 }
 
 export default function EditarRemessaSheet({ remessa, urls, customLabels, onClose, onSalvo }: Props) {
@@ -100,7 +101,7 @@ export default function EditarRemessaSheet({ remessa, urls, customLabels, onClos
 
   return (
     <Sheet open={remessa !== null} onOpenChange={(o) => !o && !salvando && onClose()}>
-      <SheetContent side="right" className="flex w-full flex-col p-0 sm:max-w-[760px]">
+      <SheetContent side="right" className="w-full gap-0 p-0 sm:max-w-[760px]">
         <header className="border-b border-border px-5 py-4">
           <SheetTitle>Editar remessa · {remessa?.fatura}</SheetTitle>
           <SheetDescription>{remessa?.cliente}</SheetDescription>
@@ -108,8 +109,9 @@ export default function EditarRemessaSheet({ remessa, urls, customLabels, onClos
         {carregando ? (
           <p className="p-6 text-sm text-muted-foreground">Carregando remessa…</p>
         ) : (
-          <form onSubmit={salvar} className="flex flex-1 flex-col overflow-hidden">
-            <div className="grid flex-1 gap-4 overflow-y-auto p-5 sm:grid-cols-2">
+          <Stack asChild gap={0} className="flex-1 overflow-hidden">
+          <form onSubmit={salvar}>
+            <Grid cols={1} gap={4} className="flex-1 overflow-y-auto p-5 sm:grid-cols-2">
               <Campo rotulo="Status de envio">
                 <Select value={form.shipping_status || NENHUM} onValueChange={(v) => set('shipping_status', v === NENHUM ? '' : v)}>
                   <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
@@ -147,12 +149,15 @@ export default function EditarRemessaSheet({ remessa, urls, customLabels, onClos
                   <Textarea rows={3} value={form.shipping_note ?? ''} onChange={(e) => set('shipping_note', e.target.value)} />
                 </Campo>
               </div>
-            </div>
-            <footer className="flex justify-end gap-2 border-t border-border px-5 py-3">
+            </Grid>
+            <Inline asChild justify="end" gap={2} className="border-t border-border px-5 py-3">
+            <footer>
               <Button type="button" variant="outline" onClick={onClose} disabled={salvando}>Cancelar</Button>
               <Button type="submit" disabled={salvando}>{salvando ? 'Salvando…' : 'Salvar remessa'}</Button>
             </footer>
+            </Inline>
           </form>
+          </Stack>
         )}
       </SheetContent>
     </Sheet>

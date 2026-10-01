@@ -17,6 +17,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { SafeSelectItem } from '@/Components/ui/SafeSelectItem';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/Components/ui/dropdown-menu';
 import { printSaleReceipt } from '@/Lib/printSaleReceipt';
+import { Grid, Inline, Stack } from '@/Components/layout';
 import EditarRemessaSheet from './_components/EditarRemessaSheet';
 
 type Opcoes = Record<string, string>;
@@ -65,7 +66,8 @@ function celula(v: string): string {
 
 function FiltroSelect({ rotulo, valor, opcoes, onChange }: { rotulo: string; valor: string; opcoes: Opcoes; onChange: (v: string) => void }) {
   return (
-    <label className="flex flex-col gap-1 text-xs text-muted-foreground">
+    <Stack asChild gap={1} className="text-xs text-muted-foreground">
+      <label>
       {rotulo}
       <Select value={valor || TODOS} onValueChange={(v) => onChange(v === TODOS ? '' : v)}>
         <SelectTrigger size="sm" className="w-full text-foreground"><SelectValue /></SelectTrigger>
@@ -76,7 +78,8 @@ function FiltroSelect({ rotulo, valor, opcoes, onChange }: { rotulo: string; val
           ))}
         </SelectContent>
       </Select>
-    </label>
+      </label>
+    </Stack>
   );
 }
 
@@ -163,36 +166,38 @@ export default function ShipmentsIndex(props: ShipmentsPageProps) {
   return (
     <AppShellV2 title="Remessas" breadcrumbItems={[{ label: 'Vendas' }, { label: 'Remessas' }]}>
       <Head title="Remessas" />
-      <div className="flex flex-col gap-4 p-6">
+      <Stack gap={4} className="p-6">
         <div data-contract="cabecalho">
           <PageHeader title="Remessas" subtitle="Fila de entrega: quem leva, em que status e com qual documento." />
         </div>
 
-        <section data-contract="filtros" className="grid gap-3 rounded-lg border border-border bg-card p-4 sm:grid-cols-2 lg:grid-cols-4">
+        <Grid asChild min="sm" gap={3} className="rounded-lg border border-border bg-card p-4">
+        <section data-contract="filtros">
           <FiltroSelect rotulo="Local do negócio" valor={f.location_id ?? ''} opcoes={filters.businessLocations} onChange={(v) => filtrar('location_id', v)} />
           {/* `filters.customers` é Inertia::defer (lista grande) — enquanto não chega, o filtro fica só com "Todos". */}
           <Deferred data="filters.customers" fallback={<FiltroSelect rotulo="Cliente" valor="" opcoes={{}} onChange={() => {}} />}>
             <FiltroSelect rotulo="Cliente" valor={f.customer_id ?? ''} opcoes={filters.customers ?? {}} onChange={(v) => filtrar('customer_id', v)} />
           </Deferred>
-          <div className="flex flex-col gap-1 text-xs text-muted-foreground">
+          <Stack gap={1} className="text-xs text-muted-foreground">
             <label htmlFor="rem-de">Período — de</label>
             <Input id="rem-de" type="date" value={f.start_date ?? ''} onChange={(e) => filtrar('start_date', e.target.value)} />
-          </div>
-          <div className="flex flex-col gap-1 text-xs text-muted-foreground">
+          </Stack>
+          <Stack gap={1} className="text-xs text-muted-foreground">
             <label htmlFor="rem-ate">Período — até</label>
             <Input id="rem-ate" type="date" value={f.end_date ?? ''} onChange={(e) => filtrar('end_date', e.target.value)} />
-          </div>
+          </Stack>
           <FiltroSelect rotulo="Usuário" valor={f.created_by ?? ''} opcoes={filters.salesRepresentative} onChange={(v) => filtrar('created_by', v)} />
           <FiltroSelect rotulo="Status do pagamento" valor={f.payment_status ?? ''} opcoes={PAGAMENTOS} onChange={(v) => filtrar('payment_status', v)} />
           <FiltroSelect rotulo="Status de envio" valor={f.shipping_status ?? ''} opcoes={shippingStatuses} onChange={(v) => filtrar('shipping_status', v)} />
           <FiltroSelect rotulo="Entregador" valor={f.delivery_person ?? ''} opcoes={filters.deliveryPersons} onChange={(v) => filtrar('delivery_person', v)} />
         </section>
+        </Grid>
 
         <section data-contract="lista" className="overflow-hidden rounded-lg border border-border bg-card">
-          <div data-contract="toolbar" className="flex items-center gap-3 border-b border-border p-3">
+          <Inline data-contract="toolbar" gap={3} className="border-b border-border p-3">
             <Input value={busca} onChange={(e) => setBusca(e.target.value)} placeholder="Buscar fatura ou cliente…" className="max-w-sm" aria-label="Buscar fatura ou cliente" />
             <span className="ml-auto text-xs text-muted-foreground">{total} remessa(s)</span>
-          </div>
+          </Inline>
           {estado === 'carregando' && <p className="p-8 text-center text-sm text-muted-foreground">Carregando remessas…</p>}
           {estado === 'erro' && (
             <EmptyState variant="error" icon="alert-triangle" title="Não foi possível carregar as remessas"
@@ -250,14 +255,14 @@ export default function ShipmentsIndex(props: ShipmentsPageProps) {
               </table>
             </div>
           )}
-          <div data-contract="rodape" className="flex flex-wrap items-center gap-3 border-t border-border p-3 text-xs text-muted-foreground">
+          <Inline data-contract="rodape" wrap gap={3} className="border-t border-border p-3 text-xs text-muted-foreground">
             <span>Status de envio e entregador vêm da própria venda — editar aqui atualiza a transação, não cria documento novo.</span>
             <span className="ml-auto tabular-nums">Página {pagina + 1} de {paginas}</span>
             <Button variant="outline" size="sm" disabled={pagina === 0} onClick={() => setPagina((x) => x - 1)}>Anterior</Button>
             <Button variant="outline" size="sm" disabled={pagina + 1 >= paginas} onClick={() => setPagina((x) => x + 1)}>Próxima</Button>
-          </div>
+          </Inline>
         </section>
-      </div>
+      </Stack>
 
       <EditarRemessaSheet
         remessa={alvo}
