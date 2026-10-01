@@ -143,9 +143,9 @@ class ArquivosAdminController extends Controller
             'filtros'  => $filtros,
             'politica' => $this->politica(),
             'resumo'   => $this->resumo(),
-            // Thread 03: a MESMA regra do `RestoreArquivoRequest::authorize()` — sem ela o botão
-            // apareceria pra quem toma 403 (`arquivos.restore` não é declarada; hoje = superadmin).
-            'pode_restaurar' => (bool) ($request->user()?->can('superadmin') || $request->user()?->can('arquivos.restore')),
+            // A MESMA regra do `RestoreArquivoRequest::authorize()` — sem ela o botão apareceria
+            // pra quem toma 403. Só superadmin (decisão [W] 2026-10-01).
+            'pode_restaurar' => (bool) $request->user()?->can('superadmin'),
         ];
 
         // Só a prop da vista ABERTA é registrada. `Inertia::defer` adia a execução,
