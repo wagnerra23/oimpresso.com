@@ -88,6 +88,7 @@ Fecha a dívida deixada pelo bug corrigido no [#8384](https://github.com/wagnerr
 - **Demais módulos:** 6.322 linhas preenchidas com aprovação [W]. Primeiro `App\Unit` (30) como amostra, depois o resto (KB, Woocommerce, Whatsapp, Financeiro, OficinaAuto, RecurringBilling e outros).
 - **Licenças** (`LicencaLog`, `Licenca_Computador`) são log da plataforma, por decisão [W] registrada no #8406: ficam NULL. As 146 linhas que haviam saído com tenant foram limpas.
 - **Conferência pós-apply:** 40.284 logs das classes gravadas foram comparados com o `business_id` do registro auditado, e nenhum diverge. As 30.619 linhas do núcleo também foram conferidas, com 0 divergentes. Hoje nenhuma licença tem tenant, e o dry-run seguinte dá 0 resolvíveis.
+- **Logs sem subject** (mesmo dia, [#8449](https://github.com/wagnerra23/oimpresso.com/pull/8449)): os 16 `nfe.certificado` estavam NULL porque o `CertificadoController` chama `activity()` sem `performedOn` e põe o tenant só em `properties`. Mais 6 pontos do código faziam o mesmo. O observer passou a usar o `business_id` declarado pelo chamador quando não há subject (nunca a sessão). O backfill grava os antigos só quando o valor declarado confere com o tenant do usuário causador: foram 16 conferidos, 16 gravados e 0 divergentes, com aprovação [W].
 - **Continua NULL (~93 mil), por desenho:** licenças da plataforma; `McpTask`, `HealthNarrative` e outros tipos da Jana sem tenant; e registros apagados. O comando não inventa tenant.
 
 ## Métricas de saúde (jana:health-check)
