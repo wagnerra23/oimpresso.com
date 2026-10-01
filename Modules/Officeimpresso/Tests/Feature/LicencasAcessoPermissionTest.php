@@ -158,7 +158,7 @@ it('exige licencas.gerenciar pra liberar/bloquear máquina — ver não basta', 
     $leitor = makeOiAcessoTestUser($business->id);
     $leitor->givePermissionTo(PERM_OI_ACCESS);
     $this->actingAs($leitor);
-    $this->get('/officeimpresso/licenca_computador/' . LICENCA_INEXISTENTE . '/toggle-block')
+    $this->post('/officeimpresso/licenca_computador/' . LICENCA_INEXISTENTE . '/toggle-block')
         ->assertForbidden();
     $leitor->forceDelete();
 
@@ -170,7 +170,7 @@ it('exige licencas.gerenciar pra liberar/bloquear máquina — ver não basta', 
     // estoura e o controller cai no catch → `redirect()->back()->with('error')`.
     // Exigir o redirect MAIS o flash prova que a requisição chegou ao CORPO do
     // controller — `->not->toBe(403)` aceitaria um 500 de qualquer origem.
-    $this->get('/officeimpresso/licenca_computador/' . LICENCA_INEXISTENTE . '/toggle-block')
+    $this->post('/officeimpresso/licenca_computador/' . LICENCA_INEXISTENTE . '/toggle-block')
         ->assertRedirect()
         ->assertSessionHas('error');
     $suporte->forceDelete();
@@ -188,7 +188,7 @@ it('mexer em máquina NÃO concede escopo empresa-inteira (no-leak)', function (
     $suporte->givePermissionTo(PERM_OI_GERENCIAR);
     $this->actingAs($suporte);
 
-    $this->get('/officeimpresso/licenca_computador/businessbloqueado/' . $business->id)
+    $this->post('/officeimpresso/licenca_computador/businessbloqueado/' . $business->id)
         ->assertForbidden();
 
     $suporte->forceDelete();
@@ -208,7 +208,7 @@ it('delega escopo empresa-inteira via officeimpresso.empresa.gerenciar', functio
     // redirect) — sem alternar o bloqueio de NENHUMA empresa real.
     // O redirect + o flash de erro são o desfecho conhecido desse caminho:
     // asseverar os dois prova que o corpo do controller rodou.
-    $this->get('/officeimpresso/licenca_computador/businessbloqueado/' . BUSINESS_INEXISTENTE)
+    $this->post('/officeimpresso/licenca_computador/businessbloqueado/' . BUSINESS_INEXISTENTE)
         ->assertRedirect()
         ->assertSessionHas('error');
 
@@ -325,6 +325,68 @@ it('não lista os links de licença pra quem não tem access', function () {
         ->and($html)->not->toContain('/officeimpresso/licenca_log');
 
     $user->forceDelete();
+});
+
+// ── Thread Officeimpresso/04 (2026-10-01): ações de estado fora de GET ──────────
+// Bloquear máquina/empresa trava o WR Comercial do cliente. Um GET é disparado
+// por prefetch, crawler ou <img src> de outra página — então essas rotas só
+// aceitam POST + CSRF, e o GET de install/* só mostra confirmação.
+
+it('thread 04 · GET em toggle-block e businessbloqueado não executa (405) — mesmo com permissão', function () {
+    $business = $this->seededTenant();
+
+    Permission::firstOrCreate(['name' => PERM_OI_GERENCIAR, 'guard_name' => 'web']);
+    Permission::firstOrCreate(['name' => PERM_OI_EMPRESA, 'guard_name' => 'web']);
+
+    // Usuário que PODERIA executar: o 405 prova que é o verbo que barra, não a guarda.
+    $gestor = makeOiAcessoTestUser($business->id);
+    $gestor->givePermissionTo([PERM_OI_GERENCIAR, PERM_OI_EMPRESA]);
+    $this->actingAs($gestor);
+
+    $this->get('/officeimpresso/licenca_computador/' . LICENCA_INEXISTENTE . '/toggle-block')
+        ->assertStatus(405);
+    $this->get('/officeimpresso/licenca_computador/businessbloqueado/' . BUSINESS_INEXISTENTE)
+        ->assertStatus(405);
+
+    // Controle positivo: o mesmo usuário, por POST, chega ao corpo do controller.
+    $this->post('/officeimpresso/licenca_computador/' . LICENCA_INEXISTENTE . '/toggle-block')
+        ->assertRedirect()
+        ->assertSessionHas('error');
+
+    $gestor->forceDelete();
+});
+
+it('thread 04 · GET de install/uninstall/update só confirma — não desativa o módulo', function () {
+    $business = $this->seededTenant();
+
+    Permission::firstOrCreate(['name' => 'superadmin', 'guard_name' => 'web']);
+
+    $admin = makeOiAcessoTestUser($business->id);
+    $admin->givePermissionTo('superadmin');
+    $this->actingAs($admin);
+
+    $antes = \App\System::getProperty('officeimpresso_version');
+
+    foreach (['install', 'install/uninstall', 'install/update'] as $acao) {
+        $this->get('/officeimpresso/' . $acao)
+            ->assertOk()
+            ->assertSee('method="POST"', false)
+            ->assertSee('/officeimpresso/' . $acao, false);
+    }
+
+    // Se o GET de uninstall ainda agisse, a propriedade teria sumido.
+    expect(\App\System::getProperty('officeimpresso_version'))->toBe($antes);
+
+    $admin->forceDelete();
+});
+
+it('thread 04 · as 3 ações de install aceitam POST na mesma URL', function () {
+    foreach (['officeimpresso/install', 'officeimpresso/install/uninstall', 'officeimpresso/install/update'] as $uri) {
+        $post = collect(\Illuminate\Support\Facades\Route::getRoutes())->first(
+            fn ($r) => $r->uri() === $uri && in_array('POST', $r->methods(), true)
+        );
+        expect($post)->not->toBeNull();
+    }
 });
 
 /**

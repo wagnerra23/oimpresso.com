@@ -62,9 +62,10 @@ por conta própria.
 
 ## Automation Anti-hooks
 
-- ❌ **Nunca renderizar as ações de bloqueio como `<Link>`/`<a href>`.** As duas rotas do legado
-  são `Route::get` que **mudam estado**; um href é seguível por prefetch, crawler e "abrir em nova
-  aba". Elas são `<Button onClick>` + diálogo, e só um clique deliberado dispara.
+- ❌ **Nunca renderizar as ações de bloqueio como `<Link>`/`<a href>`.** As duas rotas **mudam
+  estado**; até 2026-10-01 eram `Route::get` (a thread Officeimpresso/04 as passou para POST +
+  CSRF). Um href é seguível por prefetch, crawler e "abrir em nova aba". Elas são
+  `<Button onClick>` + diálogo + `router.post`, e só um clique deliberado dispara.
 - ❌ **Nunca usar `value=""` em `<SelectItem>`.** O Radix lança e derruba a árvore React inteira
   (tela branca em produção). O item "Todos" usa o sentinela `__all__`; se as opções virarem
   data-driven, trocar por `<SafeSelectItem>`.
