@@ -17,6 +17,17 @@ use Illuminate\Support\Facades\Schema;
  */
 uses(DatabaseTransactions::class);
 
+/**
+ * Stub de log da PLATAFORMA (o marcador das licenças do Officeimpresso). Usa a tabela
+ * contacts de propósito: ela TEM business_id, então só o marcador impede o backfill.
+ */
+class BkfLogDaPlataformaFake extends \Illuminate\Database\Eloquent\Model
+{
+    public const AUDITORIA_LOG_DA_PLATAFORMA = true;
+
+    protected $table = 'contacts';
+}
+
 beforeEach(function () {
     if (DB::connection()->getDriverName() !== 'mysql' || ! Schema::hasColumn('activity_log', 'business_id')) {
         $this->markTestSkipped('Requer schema MySQL UltimatePOS com activity_log.business_id.');
@@ -46,6 +57,8 @@ beforeEach(function () {
     $this->lSemCaminho = $log('App\\ClasseQueNaoExiste', $this->c99);
     // Já preenchido (mesmo que divergente do registro): o backfill NÃO toca.
     $this->lJaTinha = $log(Contact::class, $this->c99, $this->biz98->id);
+    $this->lPlataformaNull = $log(BkfLogDaPlataformaFake::class, $this->c99);
+    $this->lPlataformaVazou = $log(BkfLogDaPlataformaFake::class, $this->c99, $this->biz99->id);
 });
 
 function bkf_biz(int $id): ?int
@@ -57,7 +70,7 @@ function bkf_biz(int $id): ?int
 
 function bkf_rodar(array $args = []): string
 {
-    Artisan::call('auditoria:backfill-business-id', $args + ['--type' => [Contact::class, Business::class, 'App\\ClasseQueNaoExiste']]);
+    Artisan::call('auditoria:backfill-business-id', $args + ['--type' => [Contact::class, Business::class, 'App\\ClasseQueNaoExiste', BkfLogDaPlataformaFake::class]]);
 
     return Artisan::output();
 }
@@ -97,4 +110,14 @@ it('idempotente: a segunda execução não escreve nada', function () {
     $saida = bkf_rodar(['--apply' => true]);
 
     expect($saida)->toContain('escrito: 0');
+});
+
+it('log da plataforma: o backfill não dá tenant e o --apply LIMPA o que já vazou', function () {
+    bkf_rodar();
+    expect(bkf_biz($this->lPlataformaVazou))->toBe((int) $this->biz99->id); // dry-run não limpa
+
+    bkf_rodar(['--apply' => true]);
+
+    expect(bkf_biz($this->lPlataformaNull))->toBeNull();
+    expect(bkf_biz($this->lPlataformaVazou))->toBeNull();
 });

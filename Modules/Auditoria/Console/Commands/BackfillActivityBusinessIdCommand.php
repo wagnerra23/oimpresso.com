@@ -26,6 +26,10 @@ use Illuminate\Support\Facades\Schema;
  *   Sem caminho (classe inexistente, tabela sem tenant) → reportado e PULADO.
  *   Registro apagado ou com tenant NULL → a linha fica NULL (não inventa).
  *
+ * Log da PLATAFORMA (model com `const AUDITORIA_LOG_DA_PLATAFORMA = true` — licenças do
+ * Officeimpresso, [W] 2026-10-01) NUNCA recebe tenant: o backfill pula esses tipos e o
+ * --apply LIMPA (volta a NULL) as linhas deles que já saíram com business_id de cliente.
+ *
  * Seguro por construção: só toca linhas com business_id IS NULL (idempotente; nunca
  * sobrescreve valor existente) e escreve em fatias por faixa de id.
  *
@@ -70,6 +74,11 @@ class BackfillActivityBusinessIdCommand extends Command
 
         foreach ($tipos as $tipo => $nNull) {
             $totalNull += (int) $nNull;
+            if (self::ehDaPlataforma((string) $tipo)) {
+                $linhas[] = [$tipo, $nNull, 0, '— log da plataforma (fica NULL)', 0];
+
+                continue;
+            }
             $caminho = $this->caminho((string) $tipo);
 
             if ($caminho === null) {
@@ -96,6 +105,22 @@ class BackfillActivityBusinessIdCommand extends Command
         }
 
         $this->table(['subject_type', 'NULL hoje', 'resolvível', 'caminho', 'escrito'], $linhas);
+
+        // Limpeza: logs da plataforma que já saíram COM tenant (cliente ou outro).
+        $vazados = DB::table('activity_log')
+            ->whereNotNull('business_id')
+            ->whereNotNull('subject_type')
+            ->when($filtro, fn ($q) => $q->whereIn('subject_type', $filtro))
+            ->groupBy('subject_type')
+            ->selectRaw('subject_type, count(*) as n')
+            ->get()
+            ->filter(fn ($r) => self::ehDaPlataforma((string) $r->subject_type));
+        foreach ($vazados as $r) {
+            $limpo = $aplicar
+                ? DB::table('activity_log')->where('subject_type', $r->subject_type)->whereNotNull('business_id')->update(['business_id' => null])
+                : 0;
+            $this->line(sprintf('plataforma %s: %d linha(s) com tenant → %s', $r->subject_type, $r->n, $aplicar ? "limpas: $limpo" : 'seriam limpas (NULL)'));
+        }
         $this->line(sprintf(
             '%s · NULL: %d · resolvível: %d · escrito: %d · continua NULL: %d',
             $aplicar ? 'APLICADO' : 'DRY-RUN (nada escrito; use --apply)',
@@ -106,6 +131,12 @@ class BackfillActivityBusinessIdCommand extends Command
         ));
 
         return self::SUCCESS;
+    }
+
+    private static function ehDaPlataforma(string $tipo): bool
+    {
+        return class_exists($tipo) && defined($tipo.'::AUDITORIA_LOG_DA_PLATAFORMA')
+            && constant($tipo.'::AUDITORIA_LOG_DA_PLATAFORMA') === true;
     }
 
     /**
