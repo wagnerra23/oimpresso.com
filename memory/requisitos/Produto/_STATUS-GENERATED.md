@@ -18,10 +18,10 @@ authority: generated
 |---|---:|
 | US no SPEC | 10 |
 | CU no SDD | 14 |
-| Telas (.tsx) | 9 |
-| Telas com `casos.md` | 13 |
-| UC declarados | 98 |
-| UC com teste que os cita | 84 |
+| Telas (.tsx) | 10 |
+| Telas com `casos.md` | 14 |
+| UC declarados | 105 |
+| UC com teste que os cita | 91 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -66,6 +66,8 @@ authority: generated
 | UC-CAD-12 | Cadastros/Index | 📝 sem_teste |
 | UC-CAD-13 | Cadastros/Index | 📝 sem_teste |
 | UC-CAD-14 | Cadastros/Index | 📝 sem_teste |
+| UC-IMP-01 | Importacao/Index | 🧪 aguarda veredito da lane |
+| UC-IMP-03 | Importacao/Index | 🧪 aguarda veredito da lane |
 | UC-PBOM-01 | bom-combo (blade) | 🧪 aguarda veredito da lane |
 | UC-PBOM-02 | bom-combo (blade) | 🧪 aguarda veredito da lane |
 | UC-PBOM-03 | bom-combo (blade) | 🧪 aguarda veredito da lane |
@@ -107,6 +109,11 @@ authority: generated
 | UC-PIDX-04 | Index | 🧪 aguarda veredito da lane |
 | UC-PIDX-05 | Index | 🧪 aguarda veredito da lane |
 | UC-PIDX-06 | Index | 🧪 aguarda veredito da lane |
+| UC-PIMP-01 | Importacao/Index | 🧪 aguarda veredito da lane |
+| UC-PIMP-02 | Importacao/Index | 🧪 aguarda veredito da lane |
+| UC-PIMP-03 | Importacao/Index | 🧪 aguarda veredito da lane |
+| UC-PIMP-04 | Importacao/Index | 🧪 aguarda veredito da lane |
+| UC-PIMP-05 | Importacao/Index | 🧪 aguarda veredito da lane |
 | UC-PINIC-01 | estoque-inicial (blade) | 🧪 aguarda veredito da lane |
 | UC-PINIC-02 | estoque-inicial (blade) | 🧪 aguarda veredito da lane |
 | UC-PINIC-03 | estoque-inicial (blade) | 🧪 aguarda veredito da lane |
