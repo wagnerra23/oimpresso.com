@@ -68,6 +68,7 @@ class PontoServiceProvider extends ServiceProvider
                 \Modules\Ponto\Console\Commands\PontoHealthCommand::class,
                 \Modules\Ponto\Console\Commands\LembretesPushCommand::class,
                 \Modules\Ponto\Console\Commands\DemoRevisorCommand::class,
+                \Modules\Ponto\Console\Commands\DemoSmokeCommand::class,
             ]);
         }
     }

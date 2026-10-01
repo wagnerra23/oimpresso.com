@@ -245,3 +245,31 @@ it('DEMO-05: --com-historico (fora de produção) deixa marcações do mês e 1 
     expect(DB::table('ponto_intercorrencias')->where('colaborador_config_id', $colab->id)->where('estado', 'PENDENTE')->count())->toBe(1);
     expect(DB::table('ponto_marcacoes')->where('colaborador_config_id', $colab->id)->where('business_id', '!=', $colab->business_id)->count())->toBe(0);
 });
+
+it('DEMO-08: ponto:demo-smoke passa sem senha — confere a tela, os bloqueios e bate 1 ponto', function () {
+    drvRodar();
+    $bizId = (int) drvBizDemo()->id;
+
+    // Só leitura: nenhuma marcação.
+    expect(Artisan::call('ponto:demo-smoke', ['--sem-marcar' => true]))->toBe(0, Artisan::output());
+    expect(DB::table('ponto_marcacoes')->where('business_id', $bizId)->count())->toBe(0);
+
+    // Completo: exatamente 1 marcação nova, no business demo.
+    // Artisan::output() lê um BufferedOutput que esvazia na 1ª leitura — guardar uma vez só.
+    $rc = Artisan::call('ponto:demo-smoke');
+    $saida = Artisan::output();
+    expect($rc)->toBe(0, $saida);
+    expect($saida)->toContain('OK — todas as verificações passaram');
+    expect(DB::table('ponto_marcacoes')->where('business_id', $bizId)->count())->toBe(1);
+});
+
+it('DEMO-09: ponto:demo-smoke FALHA se o revisor ganhar acesso ao módulo (o smoke morde)', function () {
+    drvRodar();
+    $u = User::where('username', DemoRevisorCommand::REVISOR_USERNAME)->firstOrFail();
+    \Spatie\Permission\Models\Permission::firstOrCreate(['name' => 'ponto.access', 'guard_name' => 'web']);
+    $u->givePermissionTo('ponto.access');
+    app(PermissionRegistrar::class)->forgetCachedPermissions();
+
+    expect(Artisan::call('ponto:demo-smoke', ['--sem-marcar' => true]))->toBe(1);
+    expect(Artisan::output())->toContain('pode_ver_modulo=true');
+});
