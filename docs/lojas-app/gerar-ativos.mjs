@@ -1,13 +1,13 @@
 // Gera os ativos de loja do app a partir da marca do Design System.
 // Fonte: prototipo-ui/design-system/assets/brand/logo-mark.svg (cubo CMYK) + roxo do DS oklch(0.55 0.15 295).
 // Ícone escolhido por [W] em 2026-10-01: variante A (só o cubo, fundo roxo).
-// Rodar da raiz do repo:  node store-assets/gerar-ativos.mjs   (usa o Playwright da raiz)
+// Rodar da raiz do repo:  node docs/lojas-app/gerar-ativos.mjs   (usa o Playwright da raiz)
 // PNGs de loja saem em RGB sem canal alfa (a Apple recusa ícone com alfa).
 import { createRequire } from 'node:module';
 import fs from 'node:fs'; import zlib from 'node:zlib'; import path from 'node:path';
 const ROOT = process.cwd();
 const { chromium } = createRequire(path.join(ROOT, 'package.json'))('playwright');
-const OUT = path.join(ROOT, 'store-assets'), IMG = path.join(OUT, 'app');
+const OUT = path.join(ROOT, 'docs/lojas-app'), IMG = path.join(OUT, 'app');
 fs.mkdirSync(IMG, { recursive: true });
 const cube = fs.readFileSync(path.join(ROOT, 'prototipo-ui/design-system/assets/brand/logo-mark.svg'), 'utf8')
   .replace('<svg ', '<svg style="width:100%;height:auto;display:block" ');
@@ -33,7 +33,7 @@ async function render(body, w, h, file, { alpha = false, jpg = false } = {}) {
 const marca = (w, mono = false) => `<div style="width:${w}px;${mono ? 'filter:brightness(0) invert(1)' : ''}">${cube}</div>`;
 const roxo = { style: `background:${PURPLE}` }, transp = { style: 'background:transparent' };
 
-// App — nomes do @capacitor/assets (`npx @capacitor/assets generate --assetPath store-assets/app`)
+// App — nomes do @capacitor/assets (`npx @capacitor/assets generate --assetPath docs/lojas-app/app`)
 await render({ ...roxo, html: marca(1024 * 0.56) }, 1024, 1024, `${IMG}/icon-only.png`);
 await render({ ...transp, html: marca(1024 * 0.46) }, 1024, 1024, `${IMG}/icon-foreground.png`, { alpha: true });
 await render({ ...roxo, html: '' }, 1024, 1024, `${IMG}/icon-background.png`);

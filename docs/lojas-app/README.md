@@ -2,10 +2,10 @@
 
 App único nas lojas: o ERP no celular **junto com o ponto** ([W] 2026-10-01). Nome proposto: `oimpresso`.
 Pasta neutra de propósito: não depende do framework do app. Base recomendada pelas sessões de publicação:
-Capacitor sobre o ERP web (`com.oimpresso.app`); `store-assets/app/` usa os nomes do `@capacitor/assets`
-(`npx @capacitor/assets generate --assetPath store-assets/app --iconBackgroundColor '#795BBF' --splashBackgroundColor '#795BBF'`).
+Capacitor sobre o ERP web (`com.oimpresso.app`); `docs/lojas-app/app/` usa os nomes do `@capacitor/assets`
+(`npx @capacitor/assets generate --assetPath docs/lojas-app/app --iconBackgroundColor '#795BBF' --splashBackgroundColor '#795BBF'`).
 
-Gerados por `node store-assets/gerar-ativos.mjs` (da raiz do repo) a partir do cubo CMYK do Design
+Gerados por `node docs/lojas-app/gerar-ativos.mjs` (da raiz do repo) a partir do cubo CMYK do Design
 System e do roxo `oklch(0.55 0.15 295)` = `#795BBF`. Ícone escolhido por [W] em 2026-10-01: **variante A** (só o cubo).
 Para mudar a arte, mude o script e rode de novo — não edite os PNGs à mão.
 
