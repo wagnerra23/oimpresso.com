@@ -173,7 +173,8 @@ jobs:
             tests/Feature/Sells/Wave1ShowInertiaTest.php \
             tests/Feature/Sells/SellsCaixaContratoTest.php \
             tests/Feature/Sells/SellsRepairSubtipoContratoTest.php \
-            tests/Feature/Sells/BuscaProdutoPrecoDeGrupoContratoTest.php \n            tests/Feature/Sells/SellReturnIndexContratoTest.php
+            tests/Feature/Sells/BuscaProdutoPrecoDeGrupoContratoTest.php \
+            tests/Feature/Sells/SellReturnIndexContratoTest.php
 
 
       # Passo 1 do plano da LC-13 (Gate:): a lane JA emitia JUnit e NINGUEM lia.

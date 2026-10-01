@@ -11,6 +11,7 @@ import AppShellV2 from '@/Layouts/AppShellV2';
 import { Deferred, Head, Link } from '@inertiajs/react';
 import type { ReactNode } from 'react';
 import EmptyState from '@/Components/shared/EmptyState';
+import { Button } from '@/Components/ui/button';
 
 // ──────────────────────────────────────────────────────────────
 // TIPOS — paridade SellReturnController@inertiaIndex
@@ -93,13 +94,11 @@ export default function SellReturnIndex({ kpis, devolucoes, permissions }: SellR
             </div>
             <div className="os-head-r">
               {/* A devolução começa pela venda: abre-se a venda e usa-se Devolver. */}
-              <Link
-                href="/sells"
-                className="os-btn primary"
-                title="A devolução começa pela venda — abra a venda e use Devolver"
-              >
-                + Nova devolução
-              </Link>
+              <Button asChild>
+                <Link href="/sells" title="A devolução começa pela venda — abra a venda e use Devolver">
+                  + Nova devolução
+                </Link>
+              </Button>
             </div>
           </header>
 
