@@ -1,14 +1,45 @@
 ---
 sessao: "02"
-titulo: "Produto/Cadastros — abas Unidades e Marcas (Categorias pendente) — saída da thread"
+titulo: "Produto/Cadastros — abas Unidades, Marcas e Categorias — saída da thread"
 autor: "[CL]"
 criado: 2026-10-01
 base: 0754c7213
 thread: 05-cadastros.md
-veredito: "entregue parcial — tela Produto/Cadastros nasce com 6 abas, Unidades e Marcas vivas; Categorias e criar/editar em modal ficam pendentes (motivos abaixo)."
+veredito: "entregue — tela Produto/Cadastros com 6 abas; Unidades e Marcas (#8371) e Categorias (continuação) vivas. Criar/editar em modal segue pendente (motivo abaixo)."
 ---
 
-# _saída 02 · Cadastros de apoio — Unidades · Marcas
+# _saída 02 · Cadastros de apoio — Unidades · Marcas · Categorias
+
+> Duas entregas: **parte 1** (Unidades + Marcas) no [#8371](https://github.com/wagnerra23/oimpresso.com/pull/8371);
+> **parte 2** (Categorias) na continuação — seção própria logo abaixo. O resto do arquivo é a parte 1,
+> com as pendências já atualizadas.
+
+## Parte 2 · Categorias
+
+| arquivo | o quê |
+|---|---|
+| `app/Http/Controllers/UnitController.php` | aba `categorias` em `cadastros()`: `can` por `category.*`, lista só `category_type = 'product'` escopada por `business_id`, pai seguido das filhas (`pai`, `pai_id`), `em_uso` (produto pela categoria **ou** subcategoria) e `filhas` por subconsulta. Subcategoria órfã (pai já apagado) vai pro fim. |
+| `app/Http/Controllers/TaxonomyController.php` | `destroy` **recusa** categoria de produto em uso ou com subcategoria, dizendo quantos e quantas. Outras taxonomias (`category_type` de módulo) seguem como eram. |
+| `resources/js/Pages/Produto/Cadastros/Index.tsx` | aba Categorias viva no lugar do link: `↳ Lonas · em Comunicação visual`, código, descrição, contagem clicável, busca por nome ou código, confirmação que diz o motivo da recusa (produtos e/ou subcategorias). Novo/Editar abrem `/taxonomies?type=product` (modal da Blade). |
+| `…/Index.charter.md` · `…/Index.casos.md` | R7 no charter; UC-PCADAP-09..11 (cada um com teste); o `[BACKLOG]` de Categorias saiu. |
+| `tests/Feature/Produto/ProdutoCadastrosContratoTest.php` | +3 testes (tenant 98 × 99), mesma lane. |
+| `.github/workflows/estoque-pest.yml` | +`TaxonomyController.php` nos dois filtros (SOB TESTE). |
+
+### Errata — a regra do pai com filhas foi trocada
+
+O protótipo (`produto-cadastros.jsx:367`, charter proposto R7, UC-CAD-11) dizia que **as subcategorias
+vão junto** ao excluir o pai. O enunciado desta continuação manda **recusar** categoria com
+subcategoria ou produto, e foi o que entrou. Antes desta thread o servidor fazia uma terceira coisa: o
+soft delete apagava só o pai e deixava filhas e produtos apontando pra uma categoria apagada. Recusar
+é o único dos três que não perde vínculo. **Pedido ao Cowork:** atualizar o R7 / UC-CAD-11 do trio
+proposto para "recusa", ou [W] decide que o cascata volta.
+
+### Pendências da parte 2
+
+- **Contagem da subcategoria abre o índice pela categoria pai.** O índice (`/products/unificado`) só
+  filtra `categoria` (= `category_id`); filtro por subcategoria tocaria `Pages/Produto/Unificado/`, que é
+  `nao_toca` desta thread. Segue o protótipo (`filtro={ cat: nomePai }`).
+- **Criar/editar categoria** segue no modal da Blade de `/taxonomies?type=product`, mesmo corte da parte 1.
 
 ## O que entrou
 
@@ -37,10 +68,11 @@ Quando a thread 03 trouxer Variações, ela decide se a aba inicial volta a ser 
 
 ## Pendências (com o porquê)
 
-1. **Categorias** — a ficha permite ("se passar de ~300 linhas, entregue Unidades + Marcas"). O PR
-   já tem ~600 linhas com trio + teste + runbook. Categorias tem hierarquia e o `taxonomy/destroy`
-   leva as filhas junto (R7, UC-CAD-10/11): precisa de teste próprio. Aba aponta pra `/taxonomies?type=product`.
-2. **Criar/editar em modal na tela (R2, UC-CAD-01/02)** — segue nos modais da Blade (`?classico=1`),
+1. ~~**Categorias**~~ — entregue na parte 2 (acima). Registro da parte 1, mantido como foi escrito: *a
+   ficha permite ("se passar de ~300 linhas, entregue Unidades + Marcas"); Categorias tem hierarquia e
+   precisa de teste próprio.* (A frase "o `taxonomy/destroy` leva as filhas junto" estava errada: o
+   destroy era soft delete só do pai.)
+2. **Criar/editar em modal na tela (R2, UC-CAD-01/02)** — segue nos modais da Blade (`?classico=1`; Categorias em `/taxonomies?type=product`),
    mesmo corte do Crm/03. Motivo técnico: `UnitController@update` **zera** `base_unit_id` quando o
    form não manda `define_base_unit`, e o multiplicador passa por `num_uf` (pt-BR). Um modal novo que
    errasse isso alteraria conversão de unidade — é ESTOQUE (regra mestre: dupla prova + [W]). Fica

@@ -11,16 +11,17 @@ use Spatie\Permission\Models\Permission;
 use Tests\Support\EstoqueFixture;
 
 /**
- * Contrato da tela Produto/Cadastros (`/units`, abas Unidades e Marcas) — playbook Produto · thread 02.
+ * Contrato da tela Produto/Cadastros (`/units`, abas Unidades, Categorias e Marcas) — playbook Produto · thread 02.
  *
  * Os UCs vêm do contrato, não do código:
- *   resources/js/Pages/Produto/Cadastros/Index.casos.md (UC-PCADAP-01..08)
+ *   resources/js/Pages/Produto/Cadastros/Index.casos.md (UC-PCADAP-01..11)
  *
  * ⛔ Tenant 98 (ADR 0358) contra o cliente fictício 99. NUNCA biz=4.
  * ⚠️ SKIP sem schema MySQL: leia assertions, não "0 failed" (LC-13).
  *
  * @see app/Http/Controllers/UnitController.php  cadastros()
  * @see app/Http/Controllers/BrandController.php destroy()
+ * @see app/Http/Controllers/TaxonomyController.php destroy()
  */
 uses(DatabaseTransactions::class);
 
@@ -66,12 +67,21 @@ function pcadapMarca(int $bizId, string $nome): int
     ]);
 }
 
-function pcadapProduto(int $bizId, int $unitId, ?int $brandId = null): void
+function pcadapCategoria(int $bizId, string $nome, int $paiId = 0, string $tipo = 'product'): int
+{
+    return (int) DB::table('categories')->insertGetId([
+        'business_id' => $bizId, 'name' => $nome . ' ' . PCADAP_TAG, 'short_code' => 'PC' . random_int(100, 999),
+        'parent_id' => $paiId, 'category_type' => $tipo,
+        'created_by' => EstoqueFixture::userId($bizId), 'created_at' => now(), 'updated_at' => now(),
+    ]);
+}
+
+function pcadapProduto(int $bizId, int $unitId, ?int $brandId = null, ?int $catId = null, ?int $subCatId = null): void
 {
     $sku = 'PCADAP-' . strtoupper(bin2hex(random_bytes(4)));
     Product::forceCreate([
         'name' => 'Produto ' . PCADAP_TAG, 'business_id' => $bizId, 'type' => 'single',
-        'unit_id' => $unitId, 'brand_id' => $brandId, 'tax_type' => 'exclusive', 'enable_stock' => 0,
+        'unit_id' => $unitId, 'brand_id' => $brandId, 'category_id' => $catId, 'sub_category_id' => $subCatId, 'tax_type' => 'exclusive', 'enable_stock' => 0,
         'sku' => $sku, 'barcode_type' => 'C128', 'created_by' => EstoqueFixture::userId($bizId),
     ]);
 }
@@ -204,4 +214,63 @@ it('UC-PCADAP-08 · múltiplo de base aparece escrito na linha', function () {
 
     $linha = collect(pcadapProps($this, $user, 'unidades')['unidades'] ?? [])->firstWhere('id', $cx);
     expect($linha['base'] ?? null)->toBe('1 cx = 1000 Unx');
+});
+
+it('UC-PCADAP-09 · aba Categorias: só as de produto do meu negócio, pai seguido das filhas [T0]', function () {
+    $user = pcadapUsuario($this->biz->id, ['category.view']);
+    $pai = pcadapCategoria($this->biz->id, 'Comunicação visual');
+    $filha = pcadapCategoria($this->biz->id, 'Lonas', $pai);
+    pcadapCategoria($this->biz->id, 'Taxonomia de outro módulo', 0, 'device');
+    pcadapCategoria($this->vizinho->id, 'Categoria vizinha');
+
+    $props = pcadapProps($this, $user, 'can,categorias', '?aba=categorias');
+    expect($props['can']['categorias']['view'])->toBeTrue();
+    expect($props['can']['unidades']['view'])->toBeFalse();
+    $nomes = pcadapNomes($props['categorias'] ?? []);
+
+    $this->assertNotContains('Categoria vizinha ' . PCADAP_TAG, $nomes, 'vazou categoria de outro business');
+    $this->assertNotContains('Taxonomia de outro módulo ' . PCADAP_TAG, $nomes, 'categoria que não é de produto entrou na aba');
+    expect(array_values(array_intersect($nomes, ['Comunicação visual ' . PCADAP_TAG, 'Lonas ' . PCADAP_TAG])))
+        ->toBe(['Comunicação visual ' . PCADAP_TAG, 'Lonas ' . PCADAP_TAG]);
+
+    $linhas = collect($props['categorias']);
+    expect($linhas->firstWhere('id', $filha)['pai'] ?? null)->toBe('Comunicação visual ' . PCADAP_TAG);
+    expect($linhas->firstWhere('id', $filha)['pai_id'] ?? null)->toBe($pai);
+    expect($linhas->firstWhere('id', $pai)['filhas'] ?? null)->toBe(1);
+
+    $semCategoria = pcadapProps($this, pcadapUsuario($this->biz->id, ['unit.view']), 'can,categorias');
+    expect($semCategoria['can']['categorias']['view'])->toBeFalse();
+    $this->assertEmpty($semCategoria['categorias'] ?? null, 'quem não tem category.view recebeu a lista de categorias');
+});
+
+it('UC-PCADAP-10 · categoria em uso (pela subcategoria) não sai, e a tela sabe a contagem', function () {
+    $user = pcadapUsuario($this->biz->id, ['category.view', 'category.delete']);
+    $pai = pcadapCategoria($this->biz->id, 'Fachadas');
+    $sub = pcadapCategoria($this->biz->id, 'ACM', $pai);
+    pcadapProduto($this->biz->id, EstoqueFixture::unitId($this->biz->id), null, $pai, $sub);
+
+    $linha = collect(pcadapProps($this, $user, 'categorias', '?aba=categorias')['categorias'] ?? [])->firstWhere('id', $sub);
+    expect($linha['em_uso'] ?? null)->toBe(1);
+
+    $resp = pcadapLogin($this, $user)->delete("/taxonomies/{$sub}", [], ['X-Requested-With' => 'XMLHttpRequest']);
+    $resp->assertOk();
+    expect($resp->json('success'))->toBeFalse();
+    expect($resp->json('em_uso'))->toBe(1);
+    expect(DB::table('categories')->where('id', $sub)->whereNull('deleted_at')->exists())->toBeTrue();
+});
+
+it('UC-PCADAP-11 · categoria com subcategoria não sai; depois de esvaziada, sai', function () {
+    $user = pcadapUsuario($this->biz->id, ['category.view', 'category.delete']);
+    $pai = pcadapCategoria($this->biz->id, 'Sinalização');
+    $sub = pcadapCategoria($this->biz->id, 'Placas', $pai);
+
+    $recusa = pcadapLogin($this, $user)->delete("/taxonomies/{$pai}", [], ['X-Requested-With' => 'XMLHttpRequest']);
+    expect($recusa->json('success'))->toBeFalse();
+    expect($recusa->json('filhas'))->toBe(1);
+    expect(DB::table('categories')->where('id', $pai)->whereNull('deleted_at')->exists())->toBeTrue();
+    expect(DB::table('categories')->where('id', $sub)->whereNull('deleted_at')->exists())->toBeTrue();
+
+    expect(pcadapLogin($this, $user)->delete("/taxonomies/{$sub}", [], ['X-Requested-With' => 'XMLHttpRequest'])->json('success'))->toBeTrue();
+    expect(pcadapLogin($this, $user)->delete("/taxonomies/{$pai}", [], ['X-Requested-With' => 'XMLHttpRequest'])->json('success'))->toBeTrue();
+    expect(DB::table('categories')->where('id', $pai)->whereNull('deleted_at')->exists())->toBeFalse();
 });

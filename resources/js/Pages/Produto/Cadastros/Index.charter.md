@@ -16,7 +16,7 @@ charter_version: 1
 # Page Charter — Cadastros de apoio (DRAFT · `/units`, abas)
 
 > **Status:** draft. Copiado do trio proposto `cowork-inbox/produto-telas-novas/Cadastros.charter.md`
-> (F1 [CC] 2026-08-21) e recortado ao que a thread 02 entrega. Casos: [`Index.casos.md`](Index.casos.md)
+> (F1 [CC] 2026-08-21) e recortado ao que a thread 02 entrega (Unidades e Marcas no #8371, Categorias na continuação). Casos: [`Index.casos.md`](Index.casos.md)
 > · contrato: `governance/design/contracts/produto-cadastros.contract.json` (derivado no `_saida-07`).
 > Non-Goals e Anti-hooks além dos abaixo são de [W] — não se inferem aqui.
 
@@ -34,15 +34,19 @@ deixa quebrar o catálogo por engano. D3 [W] 2026-10-01: Page parametrizada, uma
 - **R4** Registro em uso não é excluído: a confirmação diz quantos produtos usam e não oferece o botão
   destrutivo. A recusa é do servidor (`UnitController@destroy` já recusava; `BrandController@destroy` passa a recusar).
 - **R6** Unidade múltipla de base mostra `1 cx = 1000 Un` na linha.
+- **R7** Categoria mostra a hierarquia na própria linha (`↳ Lonas · em Comunicação visual`). Só entra
+  categoria de produto (`category_type = product`). **Excluir categoria com subcategoria é recusado**
+  pelo servidor (`TaxonomyController@destroy`), igual à categoria em uso — o protótipo dizia que as
+  filhas iam junto; a troca está registrada no `_saida-02`.
 - **R8** Primeira vez explica pra que serve o cadastro; busca sem resultado oferece limpar.
-- Cada aba pela sua permissão (`unit.*`, `brand.*`). Sem `view` a aba mostra o motivo; sem `create` o
+- Cada aba pela sua permissão (`unit.*`, `category.*`, `brand.*`). Sem `view` a aba mostra o motivo; sem `create` o
   Novo fica desabilitado com o motivo; sem `delete` o Excluir não existe.
 
 ## Non-Goals (nesta fase)
 
 - ❌ Modal de criar/editar na tela nova (R2). Segue nos modais da Blade (`?classico=1`) — pendente no `_saida-02`.
-- ❌ Abas Variações, Grupos de preço e Garantias (thread 03) e Categorias (pendente no `_saida-02`):
-  abrem a tela atual de cada uma.
+- ❌ Abas Variações, Grupos de preço e Garantias (thread 03): abrem a tela atual de cada uma.
+- ❌ Criar/editar categoria na tela nova: segue no modal de `/taxonomies?type=product`.
 - ❌ Cadastro de imposto, de local, taxonomia de despesa ou de Oficina; merge de duplicata.
 
 ## Anti-hooks

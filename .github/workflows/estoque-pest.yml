@@ -133,6 +133,7 @@ on:
       # Playbook Produto · thread 02 — SOB TESTE do ProdutoCadastrosContratoTest (§5 2026-08-02).
       - 'app/Http/Controllers/UnitController.php'
       - 'app/Http/Controllers/BrandController.php'
+      - 'app/Http/Controllers/TaxonomyController.php'
       - 'resources/js/Pages/Produto/Cadastros/**'
       - 'app/Category.php'
       # 2026-08-21 — as 2 entradas do BOM, que entraram só no filtro interno em
@@ -198,6 +199,7 @@ jobs:
               # Playbook Produto · thread 02 — SOB TESTE do ProdutoCadastrosContratoTest.
               - 'app/Http/Controllers/UnitController.php'
               - 'app/Http/Controllers/BrandController.php'
+              - 'app/Http/Controllers/TaxonomyController.php'
               - 'resources/js/Pages/Produto/Cadastros/**'
               - 'app/Category.php'
               # Arquivos SOB TESTE do ProdutoBomContratoTest, que saiu da quarentena em
