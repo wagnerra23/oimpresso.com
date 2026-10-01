@@ -647,3 +647,4 @@ tests/Feature/Whatsapp/AtendimentoAdminContratoTest.php
 tests/Feature/ConsultaOs/ConsultaOsIndexContratoTest.php
 # Atendimento/02 (playbook) — contrato de /atendimento/canais (Index + Show): UC-CNL-01..04 + UC-CNLD-01..05. Schema sintetico + skip fora de sqlite.
 tests/Feature/Whatsapp/AtendimentoChannelsContratoTest.php
+tests/Feature/Testing/GuardableColumnsCacheResetTest.php
