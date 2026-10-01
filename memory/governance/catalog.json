@@ -26,13 +26,13 @@
   ],
   "stats": {
     "modules": 35,
-    "nodes": 735,
-    "edges": 1024,
+    "nodes": 736,
+    "edges": 1025,
     "by_node_type": {
       "module": 39,
       "table": 102,
       "adr": 129,
-      "component": 388,
+      "component": 389,
       "api": 77
     },
     "by_edge_type": {
@@ -42,7 +42,7 @@
       "providesApi": 81,
       "charteredByAdr": 30,
       "governedByAdr": 78,
-      "hasComponent": 388,
+      "hasComponent": 389,
       "dependsOn": 116,
       "delegatesTo": 108,
       "migratesTo": 1,
@@ -3578,6 +3578,13 @@
       "module": "Ponto",
       "name": "Api/MobileMarcacaoController",
       "desc": "controller do REP-P mobile. NAO TEM ROTA (medido 2026-08-28: zero referencia em Routes/ ou routes/ no repo inteiro) — o endpoint POST /api/v1/ponto/marcacao-mobile foi PLANEJADO na W28-8 e nunca registrado, logo nada o alcanca por HTTP. SEM BIOMETRIA: a captura de selfie foi removida por decisao [W] 2026-08-27 (dado biometrico e sensivel — LGPD Art. 5o, II, tratamento pelo Art. 11); anti-cheat remanescente e GPS accuracy + clock-skew + NSR server-authoritative. Delega a MobileMarcacaoService."
+    },
+    {
+      "id": "component:Ponto/Api/PushDispositivoController",
+      "type": "component",
+      "module": "Ponto",
+      "name": "Api/PushDispositivoController",
+      "desc": "POST/DELETE /ponto/mobile/push/dispositivo, registra e desativa o token do aparelho para o lembrete de bater ponto (ADR 0423)"
     },
     {
       "id": "component:Ponto/AppLinksController",
@@ -10960,6 +10967,12 @@
     {
       "from": "module:Ponto",
       "to": "component:Ponto/Api/MobileMarcacaoController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Ponto",
+      "to": "component:Ponto/Api/PushDispositivoController",
       "type": "hasComponent",
       "source": "contains"
     },
