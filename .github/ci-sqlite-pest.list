@@ -631,3 +631,5 @@ Modules/Cms/Tests/Feature/FormRequestValidationTest.php
 tests/Feature/Sidebar/PresencaPreferenciaTest.php
 # Contrato v2 do item de sidebar (SidebarMenuItem/Ghost/PrimaryAction) — objeto de valor puro, sem banco. Não rodava em lane nenhuma até a thread 14 (ícone do ghost).
 tests/Feature/Sidebar/SidebarMenuItemContractTest.php
+# Atendimento/02 (playbook) — contrato de /atendimento/canais (Index + Show): UC-CNL-01..04 + UC-CNLD-01..05. Schema sintetico + skip fora de sqlite.
+tests/Feature/Whatsapp/AtendimentoChannelsContratoTest.php
