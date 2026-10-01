@@ -54,7 +54,7 @@ class AvisoTitularService
     /**
      * Arquivos na janela de aviso, ainda não avisados. Só leitura.
      *
-     * @return Collection<int, array{id:int, vence_em:string, dias_restantes:int}>
+     * @return Collection<int, array{id:int, vence_em:string, dias_restantes:int<1, 30>}>
      */
     public function elegiveis(int $businessId, ?Carbon $agora = null): Collection
     {
