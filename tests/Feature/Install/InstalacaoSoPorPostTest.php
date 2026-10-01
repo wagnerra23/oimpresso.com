@@ -68,8 +68,20 @@ function instalacaoSoPorPostRequisicao(string $metodo, string $uri = '/modulo/in
 
 function instalacaoSoPorPostSuperadmin(bool $pode = true): void
 {
-    test()->actingAs(new \App\User());
-    Gate::before(fn () => $pode);
+    // Usuário dublê: o App\User passa pelo Spatie, que consulta `permissions` (sem tabela na
+    // lane sqlite). Aqui só interessa a resposta de can('superadmin').
+    $usuario = new class extends \Illuminate\Foundation\Auth\User
+    {
+        public bool $pode = true;
+
+        public function can($abilities, $arguments = []): bool
+        {
+            return $this->pode && $abilities === 'superadmin';
+        }
+    };
+    $usuario->pode = $pode;
+
+    test()->actingAs($usuario);
 }
 
 it('GET nas 3 ações devolve a confirmação e NÃO executa a ação', function () {
