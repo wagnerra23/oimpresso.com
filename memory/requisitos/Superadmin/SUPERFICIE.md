@@ -14,7 +14,7 @@ module: Superadmin
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Superadmin/**` + `resources/js/Pages/superadmin/**` (namespace Inertia `superadmin`, declarado em `module-surface.mjs::PAGES_NS` porque difere do nome do módulo `Superadmin` — confira com `--namespaces`), separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 189 arquivos em 19 papéis.
+**Total mapeado:** 193 arquivos em 19 papéis.
 
 ## Controllers — 14
 
@@ -155,11 +155,12 @@ module: Superadmin
 - [edit_date_modal.blade.php](../../../Modules/Superadmin/Resources/views/superadmin_subscription/edit_date_modal.blade.php)
 - [index.blade.php](../../../Modules/Superadmin/Resources/views/superadmin_subscription/index.blade.php)
 
-## Telas (Inertia/React) — 8
+## Telas (Inertia/React) — 9
 
 - [Pricing.tsx](../../../Modules/Superadmin/Resources/js/Pages/Site/Pricing.tsx)
 - [Index.tsx](../../../Modules/Superadmin/Resources/js/Pages/superadmin/Assinaturas/Index.tsx)
 - [Index.tsx](../../../Modules/Superadmin/Resources/js/Pages/superadmin/Comunicador/Index.tsx)
+- [Index.tsx](../../../Modules/Superadmin/Resources/js/Pages/superadmin/Configuracoes/Index.tsx)
 - [Index.tsx](../../../Modules/Superadmin/Resources/js/Pages/superadmin/Dashboard/Index.tsx)
 - [Index.tsx](../../../Modules/Superadmin/Resources/js/Pages/superadmin/Negocios/Index.tsx)
 - [Index.tsx](../../../Modules/Superadmin/Resources/js/Pages/superadmin/Pacotes/Index.tsx)
@@ -170,28 +171,30 @@ module: Superadmin
 
 - [assinatura.tsx](../../../Modules/Superadmin/Resources/js/Pages/superadmin/_components/assinatura.tsx)
 
-## Charters (lei da tela) — 8
+## Charters (lei da tela) — 9
 
 - [Pricing.charter.md](../../../Modules/Superadmin/Resources/js/Pages/Site/Pricing.charter.md)
 - [Index.charter.md](../../../Modules/Superadmin/Resources/js/Pages/superadmin/Assinaturas/Index.charter.md)
 - [Index.charter.md](../../../Modules/Superadmin/Resources/js/Pages/superadmin/Comunicador/Index.charter.md)
+- [Index.charter.md](../../../Modules/Superadmin/Resources/js/Pages/superadmin/Configuracoes/Index.charter.md)
 - [Index.charter.md](../../../Modules/Superadmin/Resources/js/Pages/superadmin/Dashboard/Index.charter.md)
 - [Index.charter.md](../../../Modules/Superadmin/Resources/js/Pages/superadmin/Negocios/Index.charter.md)
 - [Index.charter.md](../../../Modules/Superadmin/Resources/js/Pages/superadmin/Pacotes/Index.charter.md)
 - [Index.charter.md](../../../Modules/Superadmin/Resources/js/Pages/superadmin/Usuario360/Index.charter.md)
 - [Show.charter.md](../../../Modules/Superadmin/Resources/js/Pages/superadmin/Usuario360/Show.charter.md)
 
-## Casos (contrato UC) — 5
+## Casos (contrato UC) — 6
 
 - [Index.casos.md](../../../Modules/Superadmin/Resources/js/Pages/superadmin/Assinaturas/Index.casos.md)
 - [Index.casos.md](../../../Modules/Superadmin/Resources/js/Pages/superadmin/Comunicador/Index.casos.md)
+- [Index.casos.md](../../../Modules/Superadmin/Resources/js/Pages/superadmin/Configuracoes/Index.casos.md)
 - [Index.casos.md](../../../Modules/Superadmin/Resources/js/Pages/superadmin/Dashboard/Index.casos.md)
 - [Index.casos.md](../../../Modules/Superadmin/Resources/js/Pages/superadmin/Negocios/Index.casos.md)
 - [Index.casos.md](../../../Modules/Superadmin/Resources/js/Pages/superadmin/Pacotes/Index.casos.md)
 
-## Testes (Pest) — 21
+## Testes (Pest) — 22
 
-- 20 em [Modules/Superadmin/Tests/Feature/](../../../Modules/Superadmin/Tests/Feature)
+- 21 em [Modules/Superadmin/Tests/Feature/](../../../Modules/Superadmin/Tests/Feature)
 - 1 em [Modules/Superadmin/Tests/Feature/Lgpd/](../../../Modules/Superadmin/Tests/Feature/Lgpd)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
