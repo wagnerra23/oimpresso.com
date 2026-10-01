@@ -77,4 +77,14 @@
      'send_notification' => 'Modelos de notificação (ver, editar e enviar ao cliente)',
      'configure_dashboard' => 'Configurar os cartões da tela de início',
      'sale.history.view' => 'Visualizar o histórico e a linha do tempo da venda',
+     // Playbook Produto thread 01 (A-P1) — permissões criadas pelo PR #8349.
+     'variation.view' => 'Ver variações',
+     'variation.create' => 'Adicionar variação',
+     'variation.update' => 'Editar variação',
+     'variation.delete' => 'Excluir variação',
+     'warranty.view' => 'Ver garantias',
+     'warranty.create' => 'Adicionar garantia',
+     'warranty.update' => 'Editar garantia',
+     'warranty.delete' => 'Excluir garantia',
+     'print_labels.access' => 'Imprimir etiquetas',
  ];
