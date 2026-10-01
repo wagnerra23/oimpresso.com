@@ -8,7 +8,6 @@ use App\Utils\ModuleUtil;
 use App\Utils\ProductUtil;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Routing\Controller;
-use Modules\ProductCatalogue\Http\Controllers\ProductCatalogueController;
 
 class OfficeimpressoController extends Controller
 {
@@ -80,7 +79,7 @@ class OfficeimpressoController extends Controller
      */
     public function index($business_id, $location_id): RedirectResponse
     {
-        return $this->paraProductCatalogue('index', [$business_id, $location_id]);
+        return $this->paraProductCatalogue("catalogue/{$business_id}/{$location_id}");
     }
 
     /**
@@ -91,16 +90,22 @@ class OfficeimpressoController extends Controller
      */
     public function show($business_id, $id): RedirectResponse
     {
-        return $this->paraProductCatalogue('show', [$business_id, $id]);
+        return $this->paraProductCatalogue("show-catalogue/{$business_id}/{$id}");
     }
 
     /**
      * 302 (não 301: decisão recente, reversível sem cache de browser preso) pra ação
      * equivalente do ProductCatalogue, com a query string original.
+     *
+     * Monta pelo PATH público (as rotas do ProductCatalogue não têm nome) e não por
+     * `action([ProductCatalogueController::class, …])` de propósito: importar a classe
+     * criaria acoplamento novo Officeimpresso→ProductCatalogue (catraca do
+     * catalog-graph). O path público é o contrato estável — é o mesmo que o QR impresso
+     * já carrega (`url('catalogue/…')` no generate_qr).
      */
-    private function paraProductCatalogue(string $acao, array $params): RedirectResponse
+    private function paraProductCatalogue(string $path): RedirectResponse
     {
-        $url = action([ProductCatalogueController::class, $acao], $params);
+        $url = url($path);
         $query = request()->getQueryString();
 
         return redirect()->to($query ? $url.'?'.$query : $url);
