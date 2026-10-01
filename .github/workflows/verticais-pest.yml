@@ -69,6 +69,9 @@ on:
       # Thread Crm/02 — a lista de leads virou Inertia; o contrato dela roda aqui.
       - 'Modules/Crm/Http/Controllers/LeadController.php'
       - 'Modules/Crm/Tests/Feature/CrmLeadsContratoTest.php'
+      # Thread Crm/04 — o painel do CRM virou Inertia; o contrato dele roda aqui.
+      - 'Modules/Crm/Http/Controllers/CrmDashboardController.php'
+      - 'Modules/Crm/Tests/Feature/CrmPainelContratoTest.php'
       # Raiz do 500 da lista de leads e da API do Connector: CrmUtil::getLeadsListQuery.
       - 'Modules/Crm/Utils/CrmUtil.php'
       - 'Modules/Connector/Http/Controllers/Api/Crm/FollowUpController.php'
@@ -133,6 +136,9 @@ jobs:
               # Thread Crm/02 — a lista de leads virou Inertia; o contrato dela roda aqui.
               - 'Modules/Crm/Http/Controllers/LeadController.php'
               - 'Modules/Crm/Tests/Feature/CrmLeadsContratoTest.php'
+              # Thread Crm/04 — o painel do CRM virou Inertia; o contrato dele roda aqui.
+              - 'Modules/Crm/Http/Controllers/CrmDashboardController.php'
+              - 'Modules/Crm/Tests/Feature/CrmPainelContratoTest.php'
               # Raiz do 500 da lista de leads e da API do Connector: CrmUtil::getLeadsListQuery.
               - 'Modules/Crm/Utils/CrmUtil.php'
               - 'Modules/Connector/Http/Controllers/Api/Crm/FollowUpController.php'
@@ -346,6 +352,7 @@ jobs:
             Modules/Cms/Tests/Feature/CmsSiteDetailsPainelTest.php \
             Modules/Crm/Tests/Feature/CrmAcompanhamentosContratoTest.php \
             Modules/Crm/Tests/Feature/CrmLeadsContratoTest.php \
+            Modules/Crm/Tests/Feature/CrmPainelContratoTest.php \
             Modules/Crm/Tests/Feature/CrmLeadsListQueryTest.php
 
       # O sumário conta `assertions` POR ARQUIVO — é o discriminador que separa

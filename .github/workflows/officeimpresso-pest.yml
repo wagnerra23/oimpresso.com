@@ -144,6 +144,7 @@ jobs:
             --log-junit test-results/pest-officeimpresso-junit.xml \
             Modules/Officeimpresso/Tests/Feature/LicencasAcessoPermissionTest.php \
             Modules/Officeimpresso/Tests/Feature/LogsBaselineTest.php \
+            Modules/Officeimpresso/Tests/Feature/LicencasIndexContratoTest.php \
             Modules/Officeimpresso/Tests/Feature/CatalogoRedirectTest.php \
             Modules/Officeimpresso/Tests/Feature/ClientesSegredoUmaVezTest.php \
             Modules/Officeimpresso/Tests/Feature/OauthClientIdTest.php \
