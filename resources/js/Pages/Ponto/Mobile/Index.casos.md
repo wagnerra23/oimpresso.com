@@ -104,6 +104,11 @@ last_run: "2026-09-29"
   outro usuário (de outro business) pedindo o mesmo token não desativa nada.
 - **Fonte:** ADR 0422 §4. **Status: ⬜**
 
+## UC-REPP-16 · O lembrete vai só aos MEUS aparelhos do MEU business; app desinstalado sai da lista
+- **Aceite:** Dado aparelhos ativos meus e uma linha com meu usuário em outro business · Quando o lembrete
+  é enviado · Então só os do meu business recebem; o token que o FCM responde UNREGISTERED fica inativo.
+- **Fonte:** ADR 0422 §3, §5. **Status: ⬜** (`EnviarLembretePontoJobTest`)
+
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
 - **[BACKLOG]** Fila do gestor com filtro de origem mobile em Aprovações (passo 3 da thread).
@@ -111,3 +116,4 @@ last_run: "2026-09-29"
 ## Trilha do tempo
 - 2026-09-29 · [CL] carimbado por criar-tela.mjs e preenchido na thread 06 (PR 2a); UC-REPP-06/07 no PR 2b. Refs: UI-0013 · ADR 0264 G-1/G-2.
 - 2026-10-01 · [CL] UC-REPP-11/12/13 — registro do aparelho para o lembrete (ADR 0422, PR 1).
+- 2026-10-01 · [CL] UC-REPP-16 — envio do lembrete pelo FCM (ADR 0422, PR 2a).
