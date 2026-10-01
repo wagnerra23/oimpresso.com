@@ -3513,6 +3513,27 @@ class SellController extends Controller
 
         $shipping_statuses = $this->transactionUtil->shipping_statuses();
 
+        // Thread 02 (venda-menu) — o drawer de Sells/Shipments/Index pede JSON pelo MESMO endpoint.
+        // O modal Blade segue recebendo HTML: o jQuery dele manda Accept text/html (wantsJson=false).
+        if (request()->wantsJson() && ! request()->header('X-Inertia')) {
+            return response()->json([
+                'id' => $transaction->id,
+                'invoice_no' => $transaction->invoice_no,
+                'shipping_status' => $transaction->shipping_status,
+                'delivery_person' => $transaction->delivery_person,
+                'delivered_to' => $transaction->delivered_to,
+                'shipping_details' => $transaction->shipping_details,
+                'shipping_address' => $transaction->shipping_address,
+                'shipping_custom_field_1' => $transaction->shipping_custom_field_1,
+                'shipping_custom_field_2' => $transaction->shipping_custom_field_2,
+                'shipping_custom_field_3' => $transaction->shipping_custom_field_3,
+                'shipping_custom_field_4' => $transaction->shipping_custom_field_4,
+                'shipping_custom_field_5' => $transaction->shipping_custom_field_5,
+                'shipping_statuses' => $shipping_statuses,
+                'users' => $users,
+            ]);
+        }
+
         $activities = Activity::forSubject($transaction)
            ->with(['causer', 'subject'])
            ->where('activity_log.description', 'shipping_edited')
@@ -3601,6 +3622,38 @@ class SellController extends Controller
         }
 
         $delevery_person = User::forDropdown($business_id, false, false, true);
+
+        // Thread 02 (venda-menu) — branch dual MWART (golden: getDrafts). A lista segue vindo do
+        // DataTables de index() (only_shipments=true) e a escrita do updateShipping existente.
+        if (request()->header('X-Inertia')) {
+            $custom_labels = json_decode((string) session('business.custom_labels'), true);
+            $shipping_labels = [];
+            for ($i = 1; $i <= 5; $i++) {
+                if (! empty($custom_labels['shipping']['custom_field_'.$i])) {
+                    $shipping_labels['shipping_custom_field_'.$i] = (string) $custom_labels['shipping']['custom_field_'.$i];
+                }
+            }
+
+            return Inertia::render('Sells/Shipments/Index', [
+                'shippingStatuses' => $shipping_statuses,
+                'customLabels' => $shipping_labels,
+                'filters' => [
+                    'businessLocations' => $business_locations,
+                    'customers' => Inertia::defer(fn () => Contact::customersDropdown($business_id, false)),
+                    'salesRepresentative' => $sales_representative,
+                    'deliveryPersons' => $delevery_person,
+                ],
+                'permissions' => [
+                    'print' => $is_admin || auth()->user()->can('print_invoice'),
+                    'view_sell' => $is_admin || auth()->user()->hasAnyPermission(['sell.view', 'direct_sell.view', 'view_own_sell_only']),
+                ],
+                'urls' => [
+                    'datatable' => '/sells',
+                    'edit' => '/sells/edit-shipping/',
+                    'update' => '/sells/update-shipping/',
+                ],
+            ]);
+        }
 
         return view('sell.shipments')->with(compact('shipping_statuses'))
                 ->with(compact('business_locations', 'customers', 'sales_representative', 'is_service_staff_enabled', 'service_staffs', 'delevery_person'));
