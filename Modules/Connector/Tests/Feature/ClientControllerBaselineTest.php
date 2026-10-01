@@ -6,6 +6,7 @@ declare(strict_types=1);
 
 use App\User;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Schema;
 use Spatie\Permission\Models\Permission;
 
@@ -148,7 +149,12 @@ it('US-CONN-015: store cria client de senha com secret de 40 caracteres', functi
         expect($criado)->not->toBeNull('store não persistiu o client');
         expect((int) $criado->password_client)->toBe(1, 'client precisa ser password_client');
         expect((int) $criado->personal_access_client)->toBe(0);
-        expect(strlen((string) $criado->secret))->toBe(40, 'secret precisa ter 40 caracteres');
+        // Errata [W] 2026-10-01: até essa data media strlen($criado->secret) === 40 — segredo
+        // em texto puro no banco. Desatualizado (decisão [W] 2026-10-01: "eu descriptografo e
+        // gravo a senha nova no php"): o banco guarda o hash; os 40 são do texto puro entregue.
+        $entregue = (string) session('connector_credencial.secret');
+        expect(strlen($entregue))->toBe(40, 'o segredo entregue na criação tem 40 caracteres');
+        expect(Hash::check($entregue, (string) $criado->secret))->toBeTrue('o hash gravado confere com o texto puro entregue');
         expect((int) $criado->revoked)->toBe(0);
     } finally {
         DB::table('oauth_clients')->where('name', $nome)->delete();
@@ -201,12 +207,16 @@ it('US-CONN-015 · CONN-O2b: o segredo aparece UMA vez, no retorno da criação'
         $res = connectorActAs($this, $user)->post('/connector/client', ['name' => $nome]);
         $res->assertRedirect();
 
-        $segredo = (string) DB::table('oauth_clients')->where('name', $nome)->value('secret');
+        // Errata [W] 2026-10-01: até essa data lia o segredo do banco e exigia 40 caracteres
+        // iguais ao flash. O banco guarda o hash (decisão [W] 2026-10-01); o que a criação
+        // entrega é o texto puro, e ele tem de conferir com o hash gravado.
+        $gravado = (string) DB::table('oauth_clients')->where('name', $nome)->value('secret');
+        $segredo = (string) session('connector_credencial.secret');
         expect(strlen($segredo))->toBe(40);
 
         // Thread 04: o segredo sai num flash próprio (bloco copiável na tela), não no
         // status.msg — esse vira toast e some sozinho.
-        $this->assertSame($segredo, (string) session('connector_credencial.secret'), 'a criação precisa entregar o segredo uma vez');
+        $this->assertTrue(Hash::check($segredo, $gravado), 'a criação precisa entregar o segredo uma vez');
         $this->assertStringNotContainsString($segredo, (string) session('status.msg'));
 
         // Depois disso a lista não o mostra mais.

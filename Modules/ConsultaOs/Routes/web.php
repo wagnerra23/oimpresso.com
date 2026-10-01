@@ -23,7 +23,8 @@ Route::prefix('consulta-os')->name('consulta-os.')->group(function () {
 Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezone', 'AdminSidebarMenu'])
     ->prefix('consulta-os')
     ->group(function () {
+        Route::post('install',           [InstallController::class, 'install']);
         Route::get('install',           [InstallController::class, 'index']);
-        Route::get('install/uninstall', [InstallController::class, 'uninstall']);
-        Route::get('install/update',    [InstallController::class, 'update']);
+        Route::match(['get', 'post'], 'install/uninstall', [InstallController::class, 'uninstall']);
+        Route::match(['get', 'post'], 'install/update',    [InstallController::class, 'update']);
     });

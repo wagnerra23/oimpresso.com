@@ -5,6 +5,7 @@ namespace Modules\Officeimpresso\Http\Controllers;
 use App\Utils\ModuleUtil;
 use Illuminate\Routing\Controller;
 use Menu;
+use Modules\Officeimpresso\Services\AcessoOperador;
 
 class DataController extends Controller
 {
@@ -106,9 +107,9 @@ class DataController extends Controller
             return;
         }
 
-        $isSuperadmin = auth()->user()->can('superadmin');
-        $canAccess = $isSuperadmin || auth()->user()->can('officeimpresso.access');
-        $canLiberarClientes = $isSuperadmin || auth()->user()->can('officeimpresso.clientes.liberar');
+        // Mesma regra da guarda: `access` só vale para usuário da empresa operadora.
+        $canAccess = AcessoOperador::pode(auth()->user(), 'officeimpresso.access');
+        $canLiberarClientes = AcessoOperador::pode(auth()->user(), 'officeimpresso.clientes.liberar');
         $module_util = new ModuleUtil();
 
         // Sem nenhuma permissão do módulo OU módulo não instalado → nada.

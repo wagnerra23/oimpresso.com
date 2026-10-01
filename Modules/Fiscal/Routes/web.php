@@ -25,9 +25,10 @@ use Modules\Fiscal\Http\Controllers\SpedController;
 Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezone', 'AdminSidebarMenu'])
     ->prefix('fiscal')
     ->group(function () {
+        Route::post('install', [InstallController::class, 'install']);
         Route::get('install', [InstallController::class, 'index']);
-        Route::get('install/uninstall', [InstallController::class, 'uninstall']);
-        Route::get('install/update', [InstallController::class, 'update']);
+        Route::match(['get', 'post'], 'install/uninstall', [InstallController::class, 'uninstall']);
+        Route::match(['get', 'post'], 'install/update', [InstallController::class, 'update']);
     });
 
 // Rotas operacionais do módulo Fiscal — cockpit + sub-páginas (PR #1: só NF-e).

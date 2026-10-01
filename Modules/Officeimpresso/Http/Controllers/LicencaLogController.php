@@ -54,8 +54,9 @@ class LicencaLogController extends Controller
      */
     private function podeVerTodasEmpresas(): bool
     {
-        return auth()->user()->can('superadmin')
-            || auth()->user()->can('officeimpresso.access');
+        // A visão é cross-empresa, então a permissão só vale para usuário da empresa
+        // operadora (AcessoOperador) — papel de empresa cliente com ela leva 403.
+        return AcessoOperador::pode(auth()->user(), 'officeimpresso.access');
     }
 
     /**

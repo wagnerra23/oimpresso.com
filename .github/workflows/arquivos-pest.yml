@@ -206,6 +206,7 @@ jobs:
             Modules/Arquivos/Tests/Feature/ArquivosAdminControllerTest.php \
             Modules/Arquivos/Tests/Feature/DedupeMultiOwnerTest.php \
             Modules/Arquivos/Tests/Feature/AvisoTitularServiceTest.php \
+            Modules/Arquivos/Tests/Feature/ArquivosSuperadminOnlyTest.php \
             Modules/Arquivos/Tests/Feature/AvisarTitularJobTest.php
 
 

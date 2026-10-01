@@ -153,6 +153,18 @@ Route::group(
 );
 
 // ===========================================================================
+// 1c) Páginas PÚBLICAS do app de ponto — sem login. As lojas (Google Play / App Store)
+//     exigem política de privacidade numa URL estável. Só texto: não lê banco nem sessão.
+//     Ver memory/requisitos/Ponto/RUNBOOK-publico.md.
+// ===========================================================================
+Route::group(['middleware' => ['web', 'throttle:60,1']], function () {
+    Route::get('/privacidade/ponto', [\Modules\Ponto\Http\Controllers\PublicoController::class, 'privacidade'])
+        ->name('ponto.publico.privacidade');
+    Route::get('/privacidade/ponto/exclusao', [\Modules\Ponto\Http\Controllers\PublicoController::class, 'exclusao'])
+        ->name('ponto.publico.exclusao');
+});
+
+// ===========================================================================
 // 2) Rotas API (REP-P mobile e integrações) — prefixo /ponto/api
 // ===========================================================================
 // Usa Passport (auth:api) para casar com o padrão UltimatePOS (ver Jana).
@@ -192,7 +204,7 @@ Route::group(
     function () {
         Route::get('/', 'InstallController@index')->name('ponto.install.index');
         Route::post('/', 'InstallController@install')->name('ponto.install.run');
-        Route::get('/uninstall', 'InstallController@uninstall')->name('ponto.install.uninstall');
-        Route::get('/update', 'InstallController@update')->name('ponto.install.update');
+        Route::match(['get', 'post'], '/uninstall', 'InstallController@uninstall')->name('ponto.install.uninstall');
+        Route::match(['get', 'post'], '/update', 'InstallController@update')->name('ponto.install.update');
     }
 );

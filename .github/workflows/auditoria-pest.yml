@@ -102,7 +102,7 @@ jobs:
           }
           EOF
 
-      - name: Run Pest (Auditoria · MySQL) — 6 de 8 arquivos
+      - name: Run Pest (Auditoria · MySQL)
         if: steps.changes.outputs.auditoria == 'true'
         # phpunit.xml aponta DB_CONNECTION=sqlite :memory: (sem force="true"), então a env
         # daqui vence e a suíte roda no MySQL real semeado pela action.
@@ -113,26 +113,26 @@ jobs:
           DB_DATABASE: oimpresso_test
           DB_USERNAME: root
           DB_PASSWORD: root
-        # ⚠️ LISTA EXPLÍCITA (6 de 8), não o diretório. FORA desde 2026-09-30, medido no
-        # 1º run desta lane (run 36806843685, 6 failed · 8 skipped · 19 passed · 57 assertions):
-        #   - ContactPiiLogsActivityTest (4/4 falham): 2 casos com `Unknown column
-        #     'tax_number_1'` em contacts (o teste escreve coluna que o schema do CI não tem)
-        #     e 2 com activity_log.business_id NULL onde o teste espera o tenant.
-        #   - TransactionLogsActivityTest (2/5 falham): activity_log.business_id NULL
-        #     (TransactionLogsActivityTest.php:101) e query scoped por business vazia (:181).
-        # Não ficou provado se o defeito é do teste ou do código (quem grava business_id no
-        # activity_log fora de request HTTP?) — consertar produção às cegas está proibido.
-        # Voltam pra lista quando a causa for medida; até lá o uc-lane-coverage não os cita.
+        # Lista explícita. ContactPiiLogsActivityTest e TransactionLogsActivityTest ficaram
+        # FORA de 2026-09-30 a 2026-10-01 (run 36806843685: business_id NULL no activity_log
+        # + Unknown column tax_number_1). Causa medida: o trait LogsActivity nunca setava
+        # business_id e o Util::activityLog lia a SESSÃO antes do registro. Conserto no
+        # ActivityCauserKindObserver (tenant do log = tenant do subject) + coluna certa
+        # (contacts.tax_number). ActivityLogBusinessIdTenantTest trava o cross-tenant 98x99.
         run: |
           mkdir -p test-results
           vendor/bin/pest --no-coverage --colors=always \
             --log-junit test-results/pest-auditoria-junit.xml \
+            tests/Feature/Auditoria/ActivityLogBusinessIdTenantTest.php \
             tests/Feature/Auditoria/AuditoriaTelasContratoTest.php \
+            tests/Feature/Auditoria/BackfillActivityBusinessIdCommandTest.php \
             tests/Feature/Auditoria/CauserKindMigrationTest.php \
             tests/Feature/Auditoria/CauserKindResolverTest.php \
+            tests/Feature/Auditoria/ContactPiiLogsActivityTest.php \
             tests/Feature/Auditoria/ProductStockLogsActivityTest.php \
             tests/Feature/Auditoria/RevertServiceTest.php \
-            tests/Feature/Auditoria/SellLinePaymentLogsActivityTest.php
+            tests/Feature/Auditoria/SellLinePaymentLogsActivityTest.php \
+            tests/Feature/Auditoria/TransactionLogsActivityTest.php
 
       # A régua honesta desta lane é `assertions`, NÃO "0 failed": skip sai exit 0.
       - name: Sumário JUnit por arquivo (assertions — a régua contra skip-as-pass)

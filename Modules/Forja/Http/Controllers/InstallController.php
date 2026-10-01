@@ -3,9 +3,12 @@
 namespace Modules\Forja\Http\Controllers;
 
 use App\Http\Controllers\BaseModuleInstallController;
+use App\Http\Controllers\Concerns\InstalacaoSoPorPost;
 
 class InstallController extends BaseModuleInstallController
 {
+    use InstalacaoSoPorPost;
+
     /** Nome nWidart — segue o `name` do module.json (renomeado 2026-07-30). */
     protected function moduleName(): string
     {

@@ -2,6 +2,9 @@
 
 namespace App\Observers;
 
+use App\Business;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Spatie\Activitylog\Models\Activity;
 
 /**
@@ -22,10 +25,119 @@ use Spatie\Activitylog\Models\Activity;
  * Refs: ADR 0127 §princípio 3 (causer dual), ADR 0093 multi-tenant Tier 0.
  *
  * Defensive: se Activity ja tem causer_kind setado (consumer override), respeita.
+ *
+ * TAMBEM resolve o business_id (Tier 0, ADR 0093) — este observer e o unico ponto
+ * por onde TODA linha de activity_log passa (trait LogsActivity, helper activity(),
+ * Util::activityLog, Activity::create). Medido 2026-10-01: o trait LogsActivity
+ * nao setava business_id NUNCA (Contact/Transaction/Product... gravavam NULL e
+ * sumiam da tela /auditoria, que filtra por business_id), e o Util::activityLog
+ * usava a SESSAO antes do registro — superadmin com sessao do negocio A editando
+ * registro do negocio B gravava o log no tenant A. Regra: o tenant do log e o do
+ * REGISTRO auditado (subject). Sem subject com tenant, mantem o que o chamador
+ * setou (nunca inventa a partir da sessao aqui).
  */
 class ActivityCauserKindObserver
 {
     public function saving(Activity $activity): void
+    {
+        $this->resolverBusinessId($activity);
+        $this->resolverCauserKind($activity);
+    }
+
+    /**
+     * business_id do REGISTRO auditado. Vence qualquer valor setado pelo chamador:
+     * o subject e a verdade do tenant; sessao/causer podem ser de outro negocio.
+     */
+    private function resolverBusinessId(Activity $activity): void
+    {
+        try {
+            $subject = $activity->getRelationValue('subject'); // performedOn() já deixa carregada
+        } catch (\Throwable $e) {
+            return; // subject_type de classe que não existe mais: mantém o do chamador
+        }
+
+        // Log da PLATAFORMA (ex.: licenças do Officeimpresso — [W] 2026-10-01: "as
+        // licenças são minhas, eu controlo as máquinas dos clientes, eles não precisam
+        // ver isso"): nunca recebe tenant de cliente, nem o que o chamador mandou.
+        $plataforma = self::ehLogDaPlataforma($subject);
+        $doSubject = $plataforma ? null : self::businessIdDoSubject($subject);
+        if ($doSubject === null && ! $plataforma) {
+            return;
+        }
+
+        // Schema mínimo (sqlite das lanes Unit) pode não ter a coluna: setar o atributo
+        // faria o INSERT morrer com "no column named business_id" (medido 2026-10-01,
+        // 214 falhas no PR #8384). Mesmo padrão defensivo do causer_kind abaixo.
+        try {
+            $temColuna = \Schema::hasColumn('activity_log', 'business_id');
+        } catch (\Throwable $e) {
+            return;
+        }
+        if ($temColuna) {
+            $activity->setAttribute('business_id', $doSubject);
+        }
+    }
+
+    /**
+     * Logs da PLATAFORMA — dado do operador, não do negócio-cliente: ficam SEM business_id
+     * (fora da /auditoria de qualquer cliente). [W] 2026-10-01: "as licenças são minhas, eu
+     * controlo as máquinas dos clientes. eles não precisam ver isso".
+     *
+     * A lista mora AQUI, e não como marcador nos models, porque LicencaLog/Licenca_Computador
+     * são grandfathered sem escopo de tenant: tocá-los acorda a dívida no gate
+     * MultiTenantScopeArchitectureTest (medido no 1º push do PR #8410), e dar escopo a eles
+     * muda as telas de superadmin e a API do Connector — outro assunto.
+     */
+    public const LOGS_DA_PLATAFORMA = [
+        'Modules\Officeimpresso\Entities\LicencaLog',
+        'Modules\Officeimpresso\Entities\Licenca_Computador',
+    ];
+
+    /** Aceita instância ou FQCN. Também honra `const AUDITORIA_LOG_DA_PLATAFORMA = true` no model. */
+    public static function ehLogDaPlataforma($subject): bool
+    {
+        $classe = is_object($subject) ? get_class($subject) : (string) $subject;
+        if ($classe === '') {
+            return false;
+        }
+
+        return in_array(ltrim($classe, '\\'), self::LOGS_DA_PLATAFORMA, true)
+            || (defined($classe.'::AUDITORIA_LOG_DA_PLATAFORMA') && constant($classe.'::AUDITORIA_LOG_DA_PLATAFORMA') === true);
+    }
+
+    /**
+     * Tenant de um registro: Business -> o proprio id; coluna business_id; ou,
+     * sem a coluna, o business_id da Transaction-pai (SellLine, PurchaseLine...).
+     * Null quando o registro nao carrega tenant.
+     */
+    public static function businessIdDoSubject($subject): ?int
+    {
+        if (! $subject instanceof Model) {
+            return null;
+        }
+
+        if ($subject instanceof Business) {
+            return $subject->getKey() ? (int) $subject->getKey() : null;
+        }
+
+        $direto = $subject->getAttribute('business_id');
+        if (! empty($direto)) {
+            return (int) $direto;
+        }
+
+        if (method_exists($subject, 'transaction')) {
+            if ($subject->transaction() instanceof BelongsTo) {
+                $pai = $subject->getRelationValue('transaction');
+                if ($pai instanceof Model && ! empty($pai->getAttribute('business_id'))) {
+                    return (int) $pai->getAttribute('business_id');
+                }
+            }
+        }
+
+        return null;
+    }
+
+    private function resolverCauserKind(Activity $activity): void
     {
         // Respeita override explicito do consumer (ex: testes setando manualmente)
         if (! empty($activity->causer_kind)) {

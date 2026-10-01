@@ -19,8 +19,8 @@ Route::middleware('web', 'authh', 'auth', 'SetSessionData', 'language', 'timezon
 
     Route::get('/install', [Modules\Repair\Http\Controllers\InstallController::class, 'index']);
     Route::post('/install', [Modules\Repair\Http\Controllers\InstallController::class, 'install']);
-    Route::get('/install/uninstall', [Modules\Repair\Http\Controllers\InstallController::class, 'uninstall']);
-    Route::get('/install/update', [Modules\Repair\Http\Controllers\InstallController::class, 'update']);
+    Route::match(['get', 'post'], '/install/uninstall', [Modules\Repair\Http\Controllers\InstallController::class, 'uninstall']);
+    Route::match(['get', 'post'], '/install/update', [Modules\Repair\Http\Controllers\InstallController::class, 'update']);
 
     Route::get('get-device-models', [Modules\Repair\Http\Controllers\DeviceModelController::class, 'getDeviceModels']);
     Route::get('models-repair-checklist', [Modules\Repair\Http\Controllers\DeviceModelController::class, 'getRepairChecklists']);
