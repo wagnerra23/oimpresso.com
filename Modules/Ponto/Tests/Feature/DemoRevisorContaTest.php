@@ -57,6 +57,14 @@ beforeEach(function () {
     }
     DB::beginTransaction();
     config()->set('pontowr2.geofence.business_' . DRV_OUTRO_BIZ, null);
+
+    // BusinessUtil::newBusinessDefaultResources dá ao papel Cashier#<biz> estas permissões.
+    // Em produção elas existem (PermissionsTableSeeder do UltimatePOS); o seed do CI não as cria.
+    // Criadas dentro da transação revertida, só pra o caminho canônico de criar business rodar.
+    foreach (['sell.view', 'sell.create', 'sell.update', 'sell.delete', 'access_all_locations', 'view_cash_register', 'close_cash_register'] as $p) {
+        \Spatie\Permission\Models\Permission::firstOrCreate(['name' => $p, 'guard_name' => 'web']);
+    }
+    app(PermissionRegistrar::class)->forgetCachedPermissions();
 });
 
 afterEach(function () {
