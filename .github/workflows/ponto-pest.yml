@@ -347,6 +347,7 @@ jobs:
             Modules/Ponto/Tests/Feature/Wave25SaturationTest.php \
             Modules/Ponto/Tests/Feature/Wave28MobileMarcacaoTest.php \
             Modules/Ponto/Tests/Feature/RepPMobileContratoTest.php \
+            Modules/Ponto/Tests/Feature/DemoRevisorContaTest.php \
             Modules/Ponto/Tests/Feature/RepPFilaGestorContratoTest.php \
             Modules/Ponto/Tests/Feature/AnulacaoMotivoTest.php \
             Modules/Ponto/Tests/Feature/RepPNsrSequencialTest.php \
