@@ -945,6 +945,32 @@ class RepairController extends Controller
     }
 
     /**
+     * "Editar" da venda de reparo (botão do Repair/Show, `/repair/repair/{id}/edit`).
+     *
+     * A rota estava excluída do resource (`->except(['create','edit'])`) e o botão dava 404
+     * em prod (medido 2026-10-01). A edição que funciona é a do POS com o tipo reparo —
+     * `/pos/{id}/edit?sub_type=repair`, o mesmo destino da listagem Blade (index, acima) —,
+     * que traz a seção de reparo e salva pelo SellPosController@update.
+     *
+     * Só encaminha venda de reparo do PRÓPRIO business; o resto é 404 (Tier 0, ADR 0093).
+     * `Inertia::location` cobre o clique pelo <Link> do React (409 → página inteira) e a
+     * visita comum (302). As permissões de edição são do destino.
+     */
+    public function editarVenda($id)
+    {
+        $business_id = request()->session()->get('user.business_id');
+
+        $existe = Transaction::where('business_id', $business_id)
+            ->where('type', 'sell')
+            ->where('sub_type', 'repair')
+            ->whereKey($id)
+            ->exists();
+        abort_unless($existe, 404);
+
+        return Inertia::location(action([\App\Http\Controllers\SellPosController::class, 'edit'], [$id]).'?sub_type=repair');
+    }
+
+    /**
      * Show the form for editing the specified resource.
      *
      * @return Response

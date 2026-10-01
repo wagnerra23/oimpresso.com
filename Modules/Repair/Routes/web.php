@@ -12,6 +12,9 @@ Route::middleware('web', 'authh', 'auth', 'SetSessionData', 'language', 'timezon
     Route::get('delete-media/{id}', [Modules\Repair\Http\Controllers\RepairController::class, 'deleteMedia']);
     Route::get('print-label/{id}', [Modules\Repair\Http\Controllers\RepairController::class, 'printLabel']);
     Route::get('print-repair/{transaction_id}/customer-copy', [Modules\Repair\Http\Controllers\RepairController::class, 'printCustomerCopy'])->name('repair.customerCopy');
+    // "Editar" do Repair/Show: encaminha pra edição de reparo do POS (o `edit` do resource
+    // segue excluído — renderizava a view Blade morta repair.edit). 2026-10-01.
+    Route::get('/repair/{id}/edit', [Modules\Repair\Http\Controllers\RepairController::class, 'editarVenda'])->whereNumber('id');
     Route::resource('/repair', 'Modules\Repair\Http\Controllers\RepairController')->except(['create', 'edit']);
     Route::resource('/status', 'Modules\Repair\Http\Controllers\RepairStatusController')->except('show');
 
