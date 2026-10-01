@@ -2,6 +2,7 @@
 
 namespace Modules\Essentials\Http\Controllers;
 
+use App\Http\Controllers\Concerns\ConfirmaInstalacaoPorPost;
 use App\System;
 use Composer\Semver\Comparator;
 use Illuminate\Http\Response;
@@ -11,6 +12,8 @@ use Illuminate\Support\Facades\DB;
 
 class InstallController extends Controller
 {
+    use ConfirmaInstalacaoPorPost;
+
     public function __construct()
     {
         $this->module_name = 'essentials';
@@ -24,6 +27,10 @@ class InstallController extends Controller
      */
     public function index()
     {
+        if ($confirmacao = $this->confirmacaoSeNaoForPost('install')) {
+            return $confirmacao;
+        }
+
         if (! auth()->user()->can('superadmin')) {
             abort(403, 'Unauthorized action.');
         }
@@ -63,6 +70,10 @@ class InstallController extends Controller
     //Updating
     public function update()
     {
+        if ($confirmacao = $this->confirmacaoSeNaoForPost('update')) {
+            return $confirmacao;
+        }
+
         //Check if essentials_version is same as appVersion then 404
         //If appVersion > essentials_version - run update script.
         //Else there is some problem.
@@ -114,6 +125,10 @@ class InstallController extends Controller
      */
     public function uninstall()
     {
+        if ($confirmacao = $this->confirmacaoSeNaoForPost('uninstall')) {
+            return $confirmacao;
+        }
+
         if (! auth()->user()->can('superadmin')) {
             abort(403, 'Unauthorized action.');
         }
