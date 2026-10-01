@@ -156,6 +156,21 @@ servidor recusa e diz por quê.
 
 Status: 🧪
 
+> Decisão [W] 2026-10-01 (item 10): **recusar** é a regra — excluir o pai não leva as filhas junto.
+
+---
+
+## UC-PCADAP-12 · Editar unidade não mexe na conversão de estoque sem pedido explícito · `must`
+
+Origem: decisão [W] 2026-10-01 (item 11, "pode corrigir"). Regra mestre de ESTOQUE: a conversão
+(`base_unit_id` × `base_unit_multiplier`) muda quantidade em toda movimentação da unidade.
+
+**Dado** "Caixa" = 1000 × "Unidade base" e "Meia" = 0,5 × "Unidade base"
+**Quando** salvo a Caixa sem mandar o campo do múltiplo, abro o modal de edição, salvo sem mexer, e por fim desmarco o múltiplo
+**Então** a base fica nos três primeiros passos (o modal mostra `1000` e `0,5`, não `1,000` e `1`), e só sai quando eu desmarco.
+
+Status: 🧪
+
 ---
 
 ## Backlog (sem teste ainda — não é contrato até ganhar teste que o cite)

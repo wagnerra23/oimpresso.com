@@ -314,7 +314,7 @@ class SellPosController extends Controller
                 ],
                 'posSettings'          => $pos_settings,
                 'subType'              => $sub_type,
-                // Reparo como tipo de venda (UC-S04): as opções que o POS Blade já monta via
+                // Reparo como tipo de venda (UC-S05): as opções que o POS Blade já monta via
                 // getModuleData('get_pos_screen_view') e o React descartava. Sem query nova.
                 'repairPos'            => $this->repairPosProps($pos_module_data),
             ]);
@@ -357,7 +357,7 @@ class SellPosController extends Controller
     }
 
     /**
-     * Opções da seção "Reparo" do Sells/Create (UC-S04). Formata o `view_data` que o
+     * Opções da seção "Reparo" do Sells/Create (UC-S05). Formata o `view_data` que o
      * `Modules\Repair\...\DataController::get_pos_screen_view` já devolve pro POS Blade —
      * esse método só entrega quando o sub_type é `repair` e o módulo está na assinatura,
      * então `null` aqui = não é venda de reparo. Os dados já vêm escopados por business_id.

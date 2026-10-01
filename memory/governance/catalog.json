@@ -26,23 +26,23 @@
   ],
   "stats": {
     "modules": 35,
-    "nodes": 730,
-    "edges": 1019,
+    "nodes": 736,
+    "edges": 1025,
     "by_node_type": {
       "module": 39,
       "table": 102,
       "adr": 129,
-      "component": 386,
-      "api": 74
+      "component": 389,
+      "api": 77
     },
     "by_edge_type": {
       "ownsTable": 91,
       "ownsLegacyView": 13,
       "consumesTable": 6,
-      "providesApi": 78,
+      "providesApi": 81,
       "charteredByAdr": 30,
       "governedByAdr": 78,
-      "hasComponent": 386,
+      "hasComponent": 389,
       "dependsOn": 116,
       "delegatesTo": 108,
       "migratesTo": 1,
@@ -958,6 +958,14 @@
       "exists": true
     },
     {
+      "id": "api:/.well-known/assetlinks.json",
+      "type": "api",
+      "prefix": "/.well-known/assetlinks.json",
+      "providers": [
+        "Ponto"
+      ]
+    },
+    {
       "id": "api:/ads/admin/*",
       "type": "api",
       "prefix": "/ads/admin/*",
@@ -1382,6 +1390,22 @@
       "prefix": "/pricing/*",
       "providers": [
         "Superadmin"
+      ]
+    },
+    {
+      "id": "api:/privacidade/ponto",
+      "type": "api",
+      "prefix": "/privacidade/ponto",
+      "providers": [
+        "Ponto"
+      ]
+    },
+    {
+      "id": "api:/privacidade/ponto/exclusao",
+      "type": "api",
+      "prefix": "/privacidade/ponto/exclusao",
+      "providers": [
+        "Ponto"
       ]
     },
     {
@@ -3556,6 +3580,20 @@
       "desc": "controller do REP-P mobile. NAO TEM ROTA (medido 2026-08-28: zero referencia em Routes/ ou routes/ no repo inteiro) — o endpoint POST /api/v1/ponto/marcacao-mobile foi PLANEJADO na W28-8 e nunca registrado, logo nada o alcanca por HTTP. SEM BIOMETRIA: a captura de selfie foi removida por decisao [W] 2026-08-27 (dado biometrico e sensivel — LGPD Art. 5o, II, tratamento pelo Art. 11); anti-cheat remanescente e GPS accuracy + clock-skew + NSR server-authoritative. Delega a MobileMarcacaoService."
     },
     {
+      "id": "component:Ponto/Api/PushDispositivoController",
+      "type": "component",
+      "module": "Ponto",
+      "name": "Api/PushDispositivoController",
+      "desc": "POST/DELETE /ponto/mobile/push/dispositivo, registra e desativa o token do aparelho para o lembrete de bater ponto (ADR 0423)"
+    },
+    {
+      "id": "component:Ponto/AppLinksController",
+      "type": "component",
+      "module": "Ponto",
+      "name": "AppLinksController",
+      "desc": "/.well-known/assetlinks.json e apple-app-site-association do app de ponto (Capacitor); lê pontowr2.app_links do env, vazio = 404"
+    },
+    {
       "id": "component:Ponto/AprovacaoController",
       "type": "component",
       "module": "Ponto",
@@ -3645,6 +3683,13 @@
       "module": "Ponto",
       "name": "IntercorrenciaController",
       "desc": ""
+    },
+    {
+      "id": "component:Ponto/PublicoController",
+      "type": "component",
+      "module": "Ponto",
+      "name": "PublicoController",
+      "desc": "páginas públicas do app de ponto, sem login (/privacidade/ponto e /exclusao); só texto, não lê banco"
     },
     {
       "id": "component:Ponto/RelatorioController",
@@ -10927,6 +10972,18 @@
     },
     {
       "from": "module:Ponto",
+      "to": "component:Ponto/Api/PushDispositivoController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Ponto",
+      "to": "component:Ponto/AppLinksController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Ponto",
       "to": "component:Ponto/AprovacaoController",
       "type": "hasComponent",
       "source": "contains"
@@ -11005,9 +11062,21 @@
     },
     {
       "from": "module:Ponto",
+      "to": "component:Ponto/PublicoController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Ponto",
       "to": "component:Ponto/RelatorioController",
       "type": "hasComponent",
       "source": "contains"
+    },
+    {
+      "from": "module:Ponto",
+      "to": "api:/.well-known/assetlinks.json",
+      "type": "providesApi",
+      "source": "url_prefixes"
     },
     {
       "from": "module:Ponto",
@@ -11024,6 +11093,18 @@
     {
       "from": "module:Ponto",
       "to": "api:/ponto/install/*",
+      "type": "providesApi",
+      "source": "url_prefixes"
+    },
+    {
+      "from": "module:Ponto",
+      "to": "api:/privacidade/ponto/exclusao",
+      "type": "providesApi",
+      "source": "url_prefixes"
+    },
+    {
+      "from": "module:Ponto",
+      "to": "api:/privacidade/ponto",
       "type": "providesApi",
       "source": "url_prefixes"
     },

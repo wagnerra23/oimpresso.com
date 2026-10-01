@@ -397,8 +397,8 @@ Route::group(
     function () {
         Route::get('/',          'InstallController@index')->name('jana.install.index');
         Route::post('/',         'InstallController@install')->name('jana.install.run');
-        Route::get('/uninstall', 'InstallController@uninstall')->name('jana.install.uninstall');
-        Route::get('/update',    'InstallController@update')->name('jana.install.update');
+        Route::match(['get', 'post'], '/uninstall', 'InstallController@uninstall')->name('jana.install.uninstall');
+        Route::match(['get', 'post'], '/update',    'InstallController@update')->name('jana.install.update');
     }
 );
 

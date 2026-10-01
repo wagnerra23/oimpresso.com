@@ -49,17 +49,18 @@ Atender empregador BR (CLT) com **registro eletronico de ponto auditavel + imuta
 
 ### US-PONTO-001 · Relogio web pra registrar entrada/saida (REP-P)
 
-**Implementado em:** _parcial_ · `Modules/Ponto/Services/MarcacaoService.php` · `Modules/Ponto/Services/NsrService.php` · `Modules/Ponto/Services/MobileMarcacaoService.php` · `Modules/Ponto/Http/Controllers/Api/MobileMarcacaoController.php` · `resources/js/Pages/Ponto/Mobile/Index.tsx` · `Modules/Ponto/Tests/Feature/Wave28MobileMarcacaoTest.php` · `Modules/Ponto/Tests/Feature/RepPMobileContratoTest.php` · verificado@2a5810759 (2026-09-29) — API `/ponto/api/*` (#8130) e tela `/ponto/mobile` (thread 06) no ar, sem biometria (ADR 0383); falta o comprovante PDF/QR
+**Implementado em:** _parcial_ · `Modules/Ponto/Services/MarcacaoService.php` · `Modules/Ponto/Services/NsrService.php` · `Modules/Ponto/Services/MobileMarcacaoService.php` · `Modules/Ponto/Http/Controllers/Api/MobileMarcacaoController.php` · `resources/js/Pages/Ponto/Mobile/Index.tsx` · `Modules/Ponto/Tests/Feature/Wave28MobileMarcacaoTest.php` · `Modules/Ponto/Tests/Feature/RepPMobileContratoTest.php` · verificado@2a5810759 (2026-09-29) — API `/ponto/api/*` (#8130) e tela `/ponto/mobile` (thread 06) no ar, sem biometria (ADR 0383); comprovante ao trabalhador é a US-PONTO-010; IP não é gravado (2026-10-01)
 
 **Como** colaborador,
 **quero** marcar entrada/saida no celular ou desktop com 1 clique,
 **para que** meu registro de jornada seja capturado em tempo real, com geolocalizacao — sem foto nem biometria ([ADR 0383](../../decisions/0383-ponto-interno-nao-coleta-biometria.md), LGPD Art. 5º II + Art. 11).
 **Aceitacao:**
-- Marcacao gravada em `ponto_marcacoes` com `origem=REP_P`, `hash` SHA-256 encadeado, `created_at` automatico
-- Geolocalizacao (lat/lon) e IP capturados se permitidos pelo navegador
-- NSR (Numero Sequencial de Registro) gerado e unico por REP (constraint MySQL `unique(rep_id, nsr)`)
-- Comprovante PDF gerado com QR Code de verificacao (Anexo I item 5.5 Portaria 671)
-- **Status:** done (entity Marcacao + MarcacaoService + REP-P web frontend existente em prod biz=1)
+- Marcacao gravada em `ponto_marcacoes` com `origem=REP_P`, `hash` SHA-256 encadeado na cadeia do colaborador, `created_at` automatico
+- Geolocalizacao (lat/lon) gravada; GPS com precisao pior que 500 m recusa a marcacao (ADR 0419)
+- IP: ❌ **nao gravado** — a coluna `ponto_marcacoes.ip` existe, mas o `MobileMarcacaoService` nao a preenche (medido 2026-10-01). Gravar o IP ou retirar este criterio e decisao [W]
+- NSR sequencial sem lacunas **por colaborador** (`NsrService::proximoRepP`, [W] 2026-09-29). O REP-P grava `rep_id` nulo, logo a constraint `unique(rep_id, nsr)` nao cobre o REP-P: a unicidade vem do lock na linha do colaborador
+- Comprovante ao trabalhador (PDF assinado com QR Code, Portaria 671 arts. 79-80): **fora desta US** — e a US-PONTO-010, ainda pendente
+- **Status:** doing (marcacao, NSR, hash e tela `/ponto/mobile` no ar em prod biz=1; falta o IP. Ate 2026-10-01 esta linha dizia `done` e listava o comprovante como entregue — levantamento legal no PR #8417)
 
 ### US-PONTO-002 · Marcacao via REP-A (importacao AFD)
 

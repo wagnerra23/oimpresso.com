@@ -27,7 +27,7 @@ type Props = {
 const SEM = '__nenhum__';
 
 /**
- * Seção "Reparo" do Sells/Create (UC-S04) — só aparece na venda aberta como reparo.
+ * Seção "Reparo" do Sells/Create (UC-S05) — só aparece na venda aberta como reparo.
  * Paridade de campos com o POS Blade de reparo (`repair_pos.blade.php`). Checklist e
  * senha/padrão ficam para a onda seguinte.
  */

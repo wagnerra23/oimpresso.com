@@ -8,6 +8,12 @@ owner: wagner
 last_run: "2026-10-01"
 ---
 
+<!-- REVALIDAÇÃO 2026-10-01 (G-6: o .tsx mudou de novo — UC-S04, preço do grupo ao adicionar).
+     Mudanças no .tsx: o autocomplete recebe `priceGroupId`, e o preço da linha nova e o da
+     troca de grupo saem da mesma função (`precoDaBusca`). Sem grupo de preço, o envio e o
+     preço são os de antes. UC-S01 e UC-S02 usam venda sem grupo, logo não são atingidos;
+     UC-S03 também não (o tipo da venda não toca o preço). Status mantidos. UC-S04 nasce 🧪. -->
+
 <!-- REVALIDAÇÃO 2026-10-01 (G-6: o .tsx mudou — UC-S03, reparo como tipo de venda).
      A mudança no .tsx foi o `transform` do envio ganhar `...camposDeSubtipo(props.subType)`,
      que devolve `{}` para venda comum. Revalidação por alcance: UC-S01 (fiado) e UC-S02
@@ -103,13 +109,21 @@ last_run: "2026-10-01"
 - **Status: 🧪** _(nasce sem run — Pest só no CI/CT 100; vira ✅ com o veredito `pass` no manifesto G-7.)_
 - **Fora deste UC (próximas ondas):** os campos de reparo na tela (aparelho, marca, modelo, série, defeitos, status, prazo, garantia, checklist, senha) e a edição da venda de reparo pelo React.
 
+## UC-S04 · Produto adicionado com grupo de preço entra pelo preço do grupo
+- **Persona:** operador do PDV num local com grupo de preço padrão, ou que escolhe um grupo (ou um cliente com grupo) antes de lançar os itens.
+- **Como usa:** com o grupo já definido na venda, busca o produto (digitando ou pelo leitor de código) e adiciona.
+- **Aceite:** Dado uma venda com grupo de preço · Quando adiciona um produto · Então a busca vai a `/products/list` com `price_group` e a linha entra pelo preço do grupo (fixo → o valor; percentual → % do preço da variação), o mesmo que o POS Blade aplica (`getProductRow` → `getVariationGroupPrice`). **E** variação sem preço naquele grupo entra pelo preço base. **E** sem grupo a busca não leva `price_group` e o preço é o base, como antes.
+- **Teste:** `tests/js/sells-busca-preco-grupo.test.tsx` (o envio leva o grupo e a linha usa o preço dele; lane `sells-v3-dominio-gate`) + `tests/Feature/Sells/BuscaProdutoPrecoDeGrupoContratoTest.php` (o preço que o React recebe, calculado em SQL, é igual ao do Blade, calculado em PHP, e à conta feita à mão; tenant 98, lane `sells-pest`).
+- **Status: 🧪** _(rodado no CT 100 em 2026-10-01: 5 passed, 25 assertions; vira ✅ com o veredito `pass` no manifesto G-7.)_
+- **Fora deste UC:** a tela `Sells/Edit` não tem grupo de preço e segue sem ele; preço de grupo igual a 0 é tratado como preço válido aqui e como "sem preço" no Blade (0 linhas assim em prod, 2026-10-01).
+
 ---
 
-## UC-S04 · Venda de reparo registra o aparelho e o atendimento
+## UC-S05 · Venda de reparo registra o aparelho e o atendimento
 - **Persona:** técnico de assistência no balcão.
 - **Como usa:** na venda aberta como reparo, a seção **Reparo** pede status (obrigatório, já vem com o status padrão do Repair), entrega prevista, concluído em, garantia, marca, aparelho, modelo, nº de série e o problema relatado (vários, com sugestões das configurações do Repair). Na venda comum a seção não existe. Paridade com o POS Blade de reparo (`repair_pos.blade.php`).
 - **Aceite:** Dado a venda aberta como reparo · Então a tela recebe as opções de reparo **só do próprio business** (status de outro business nunca aparece) e sem status não dá pra salvar · Quando salva · Então a venda grava `repair_status_id`, `repair_serial_no`, `repair_due_date` (lido no formato da data da venda) e `repair_defects` no JSON do Tagify (`[{"value":"…"}]`, o que a tela Blade e o recibo leem), com o **mesmo** `final_total` e a mesma baixa de estoque da venda comum.
-- **Teste:** `tests/Feature/Sells/SellsRepairSubtipoContratoTest.php` (UC-S04: opções por business + gravação, tenant 98, lane `sells-pest`) + `tests/js/sells-reparo-venda.test.ts` (o que o envio produz, lane `sells-v3-dominio-gate`).
+- **Teste:** `tests/Feature/Sells/SellsRepairSubtipoContratoTest.php` (UC-S05: opções por business + gravação, tenant 98, lane `sells-pest`) + `tests/js/sells-reparo-venda.test.ts` (o que o envio produz, lane `sells-v3-dominio-gate`).
 - **Status: 🧪** _(nasce sem run — vira ✅ com o veredito `pass` no manifesto G-7.)_
 - **Fora deste UC:** checklist pré-reparo e senha/padrão do aparelho (próxima onda) · abrir a venda a partir de uma OS (`job_sheet_id`), que **adiciona peças ao carrinho** e por isso é mudança de valor, sob a REGRA MESTRE.
 
@@ -134,4 +148,5 @@ last_run: "2026-10-01"
 - 2026-06-18 · [CC] refactor só-de-layout (Wagner): total de itens no rodapé do card Produtos + card de desconto (Resumo) movido pra antes do Pagamento. Sem mudança de comportamento — UC-S01 baixado pra 🧪 até re-rodar o e2e (G-7 frescor).
 - 2026-08-26 · [CC] Fechar o diálogo de recuperação parou de apagar o rascunho (o `onOpenChange` chamava `handleDraftDiscard()` → `localStorage.removeItem()`, irreversível; agora só o botão "Descartar" apaga). Mudança de COMPORTAMENTO, não de layout. UC-S01 e UC-S02 revalidados por medição de alcance (0 ocorrências do diálogo nos testes de ambos; controle positivo 55 no `.tsx`) — nenhum dos dois é atingido, então nenhum foi rebaixado. Comportamento novo entrou no Backlog sem id (G-2) até haver teste que o exercite. Origem: ROTA LIVRE perdendo venda montada nas janelas de 503 do deploy.
 - 2026-10-01 · [CL] UC-S03 (reparo como tipo de venda, onda 1): o envio passou a carregar `sub_type` quando o PDV é aberto como reparo; antes a venda de reparo pelo React gravava como venda comum. Medido em prod: 6 vendas de reparo no total, todas do biz=1, a última em 2023-10-11 — defeito latente, sem dado real perdido. UC-S01/S02 não são atingidos (venda comum envia exatamente o mesmo payload de antes).
+- 2026-10-01 · [CL] UC-S04: o autocomplete passou a mandar `price_group`, e o produto adicionado com grupo definido entra pelo preço do grupo, como no POS Blade. Antes, só a troca de grupo reprecificava, e só as linhas que já estavam no carrinho. Medido em prod: nenhuma venda com grupo de preço desde 2026-05-27 (a coluna é gravada: 90 vendas com grupo de 2021 a 2026-04-24, um único business) — defeito latente, nenhum valor gravado muda.
 - 2026-07-02 · [CC] Onda 1.4 (dente de cálculo): UC-S02 declarado com teste no MESMO PR (coordenação 1.3 ↔ 1.4, regra "declarar UC + teste = 1 PR"). Property `num_uf(num_f(x))==x` + golden no totalizador real `calculateInvoiceTotal` (227,90 − 10,05% = 204.99605, não infla) + discriminação RED vs strip-do-ponto + caracterização da divergência `getTotalPaid`(líquido) ≠ `getTotalAmountPaid`(bruto). TEST-ONLY — nenhum método de cálculo alterado.

@@ -72,7 +72,7 @@ function sellsEditGet(object $test, int $saleId, array $extraHeaders = [])
     return $test->withHeaders(array_merge([
         'X-Inertia' => 'true',
         'X-Inertia-Version' => sellsEditInertiaVersion(),
-    ], $extraHeaders))->get("/sells/{$saleId}/edit");
+    ], $extraHeaders))->get("/sells/{$saleId}/edit?react=1"); // ?react=1: tela React fora do paliativo (UC-SEDIT-08)
 }
 
 /** Venda `final` do business com 1 linha — estado inicial por INSERT, não pelo fluxo sob teste. */
@@ -387,4 +387,36 @@ it('UC-SEDIT-07 · o pré-fill traz os valores do banco, sem fallback', function
         'A quantidade pré-preenchida não é a da venda — pré-fill em fallback (incidente "venda em branco").');
     expect(round((float) $linha['sell_price_inc_tax'], 2))->toBe(49.90,
         'O preço unitário pré-preenchido não é o da venda — pré-fill em fallback.');
+});
+
+// =============================================================================
+// UC-SEDIT-08 — paliativo [W] 2026-10-01: a edição React não salva (PUT /sells/{id} → 500
+//   em prod; e a tela reaplica o desconto da linha). A navegação React vira visita de página
+//   inteira e abre o Blade, que salva pelo SellPosController@update.
+// =============================================================================
+
+it('UC-SEDIT-08 · navegação React pra edição vira página inteira (Blade); ?react=1 ainda abre a tela React', function () {
+    $venda = sellsEditVenda($this->bizId);
+    $id = $venda['transaction_id'];
+
+    $semFlag = $this->withHeaders([
+        'X-Inertia' => 'true',
+        'X-Inertia-Version' => sellsEditInertiaVersion(),
+    ])->get("/sells/{$id}/edit");
+
+    // Inertia::location: 409 + X-Inertia-Location → o navegador faz window.location (sem X-Inertia).
+    $semFlag->assertStatus(409);
+    expect((string) $semFlag->headers->get('X-Inertia-Location'))->toEndWith("/sells/{$id}/edit");
+
+    // Controle: com ?react=1 a tela React continua respondendo (é a que o conserto vai usar).
+    $comFlag = sellsEditGet($this, $id);
+    $comFlag->assertOk();
+    expect($comFlag->json('component'))->toBe('Sells/Edit');
+
+    // A visita de página inteira (sem X-Inertia) cai no formulário Blade, que envia pro
+    // SellPosController@update — o caminho canônico de valor.
+    $blade = $this->flushHeaders()->get("/sells/{$id}/edit");
+    $blade->assertOk();
+    $blade->assertViewIs('sell.edit');
+    expect($blade->getContent())->toContain(action([\App\Http\Controllers\SellPosController::class, 'update'], ['po' => $id]));
 });

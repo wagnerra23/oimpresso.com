@@ -101,7 +101,7 @@ export default function PontoAreaHeader({ active, atualizadoAs }: PontoAreaHeade
         title="Ponto"
         subtitle="Ponto eletrônico · Portaria MTP 671/2021"
         actions={
-          <Inline gap={2} align="center">
+          <Inline gap={2} align="center" wrap justify="end">
             {/* 1º item de `actions`, como no `CliPageHead` ({frescor}{acoes}). É BOTÃO de
                 reapuração (o protótipo passa `onRefresh`), não texto. */}
             <button

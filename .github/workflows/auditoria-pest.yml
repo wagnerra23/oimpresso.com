@@ -125,6 +125,7 @@ jobs:
             --log-junit test-results/pest-auditoria-junit.xml \
             tests/Feature/Auditoria/ActivityLogBusinessIdTenantTest.php \
             tests/Feature/Auditoria/AuditoriaTelasContratoTest.php \
+            tests/Feature/Auditoria/BackfillActivityBusinessIdCommandTest.php \
             tests/Feature/Auditoria/CauserKindMigrationTest.php \
             tests/Feature/Auditoria/CauserKindResolverTest.php \
             tests/Feature/Auditoria/ContactPiiLogsActivityTest.php \

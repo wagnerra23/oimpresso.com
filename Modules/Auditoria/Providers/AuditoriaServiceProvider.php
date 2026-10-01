@@ -13,6 +13,7 @@ class AuditoriaServiceProvider extends ServiceProvider
         if ($this->app->runningInConsole()) {
             $this->commands([
                 \Modules\Auditoria\Console\Commands\AuditoriaHealthCommand::class,
+                \Modules\Auditoria\Console\Commands\BackfillActivityBusinessIdCommand::class,
             ]);
         }
     }

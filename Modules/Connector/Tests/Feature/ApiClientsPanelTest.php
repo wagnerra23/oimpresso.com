@@ -8,6 +8,7 @@ use App\Business;
 use App\User;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
@@ -163,23 +164,29 @@ class ApiClientsPanelTest extends TestCase
 
     /**
      * Restrição dura ([W] 2026-08-19): o Delphi já está instalado nos clientes e não pode
-     * ser alterado — credencial emitida NUNCA para de autenticar. Fechar a leitura do
-     * segredo não pode virar hash de coluna nem rotação compulsória.
+     * ser alterado — credencial emitida NUNCA para de autenticar.
+     *
+     * Errata [W] 2026-10-01: até essa data este teste se chamava
+     * `test_segredo_nao_e_hasheado_credencial_em_campo_continua_valendo` e exigia o segredo
+     * em texto puro (40 caracteres, sem `$2y$`). O contrato estava desatualizado — decisão
+     * [W] 2026-10-01: "sim contrato desatualizado. porque eu descriptografo e gravo a senha
+     * nova no php". O Passport 13 grava o hash ao salvar e confere o texto puro no login
+     * (`Hash::check`), então o hash não invalida o desktop. O que segue valendo: o texto
+     * puro entregue UMA vez na criação é o que autentica.
      */
-    public function test_segredo_nao_e_hasheado_credencial_em_campo_continua_valendo(): void
+    public function test_segredo_gravado_com_hash_confere_com_o_entregue_na_criacao(): void
     {
         $this->actingAs($this->superadmin)
             ->post('/connector/client', ['name' => 'App do balcão'])
             ->assertRedirect();
 
         $row = DB::table('oauth_clients')->where('name', 'App do balcão')->first();
+        $entregue = (string) session('connector_credencial.secret');
 
-        $this->assertSame(40, strlen((string) $row->secret));
-        $this->assertStringStartsNotWith('$2y$', (string) $row->secret);
-        $this->assertFalse(
-            \Laravel\Passport\Passport::$hashesClientSecrets ?? false,
-            'hashClientSecrets invalidaria o client_secret instalado no Delphi em campo.'
-        );
+        $this->assertNotNull($row);
+        $this->assertSame(40, strlen($entregue), 'a criação entrega o segredo em texto puro, 40 caracteres');
+        $this->assertNotSame($entregue, (string) $row->secret, 'o banco guarda o hash, não o texto puro');
+        $this->assertTrue(Hash::check($entregue, (string) $row->secret), 'o texto puro entregue confere com o hash gravado');
     }
 
     public function test_client_preexistente_ainda_obtem_token(): void
@@ -189,7 +196,9 @@ class ApiClientsPanelTest extends TestCase
         $res = $this->post('/oauth/token', [
             'grant_type' => 'password',
             'client_id' => $c->id,
-            'client_secret' => $c->secret,
+            // Errata [W] 2026-10-01: até essa data mandava `$c->secret` — que, com o
+            // segredo gravado em hash, é o HASH; o Delphi manda o texto puro.
+            'client_secret' => $c->plainSecret,
             'username' => $this->superadmin->email,
             'password' => 'password',
         ]);
@@ -223,7 +232,11 @@ class ApiClientsPanelTest extends TestCase
         $row = DB::table('oauth_clients')->where('name', 'App do técnico')->first();
 
         $this->assertNotNull($row);
-        $this->assertSame(40, strlen($row->secret));
+        // Errata [W] 2026-10-01: até essa data media strlen($row->secret) === 40. O banco
+        // guarda o hash (decisão [W] 2026-10-01); os 40 caracteres são do texto puro entregue.
+        $entregue = (string) session('connector_credencial.secret');
+        $this->assertSame(40, strlen($entregue));
+        $this->assertTrue(Hash::check($entregue, (string) $row->secret));
         $this->assertSame('http://localhost', $row->redirect);
         $this->assertEquals(1, $row->password_client);
         $this->assertEquals(0, $row->personal_access_client);

@@ -25,6 +25,13 @@ class User extends Authenticatable
      * apenas pra clients Delphi — identificados pelo client_id da request).
      * Nao muda contrato Delphi: mesma resposta OAuth padrao de credencial
      * errada (400 invalid_grant), que o Delphi ja trata.
+     *
+     * ⚠️ Medido em 2026-10-01 (prod, só leitura): NÃO é aqui que o cliente bloqueado
+     * é barrado. A checagem olha a empresa do USUÁRIO do login, e em 90 dias os 19.737
+     * tokens do client 39 foram de um único usuário do business 1 (o login compartilhado
+     * que atende as 50 empresas) — 0 `login_error` no período. O bloqueio de licença
+     * real é o da API do Connector (Api\LicencaComputadorController e
+     * OImpressoRegistroController), que resolve a empresa pelo CNPJ/HD da máquina.
      */
     public function validateForPassportPasswordGrant($password)
     {

@@ -8,7 +8,11 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { readFileSync, mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
+import { spawnSync } from 'node:child_process';
+import { tmpdir } from 'node:os';
+import { join, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import {
   parseFrontmatter,
   componentNameFromContains,
@@ -848,4 +852,53 @@ test('agrupa: `alter` e `mig/runtime` contados por par, sem mudar a CHAVE do par
   assert.equal(p.alter, 1, 'o ALTER é contado à parte pra o leitor ver ownership');
   assert.equal(p.mig, 1);
   assert.equal(p.runtime, 1, 'mig=1 runtime=1 separa "fez uma vez" de "faz todo dia"');
+});
+
+// ── CLI de fora: a mensagem da catraca não promete saída que o código não honra (LC-15) ──
+// Sandbox git com Ponto delegando a Financeiro no `not_contains` e tocando a casa dele pelos
+// DOIS eixos (`use` + `DB::table`). Baselines VAZIAS. O contrato: no eixo onde a declaração
+// isenta (import), ele passa; no eixo onde NÃO isenta (tabela), ele reprova E a mensagem não
+// oferece o `not_contains` como saída. Até 2026-10-01 oferecia (par Ponto>Financeiro, #8464).
+const CLI = join(dirname(fileURLToPath(import.meta.url)), 'catalog-graph.mjs');
+
+function sandboxCatraca() {
+  const dir = mkdtempSync(join(tmpdir(), 'catalog-graph-catraca-'));
+  const w = (rel, txt) => { mkdirSync(dirname(join(dir, rel)), { recursive: true }); writeFileSync(join(dir, rel), txt); };
+  w('memory/requisitos/Ponto/SCOPE.md',
+    '---\nmodule: Ponto\npurpose: "Ponto"\nnot_contains:\n  - "Contas a pagar → Modules/Financeiro"\n---\n');
+  w('memory/requisitos/Financeiro/SCOPE.md', '---\nmodule: Financeiro\npurpose: "Financeiro"\n---\n');
+  w('Modules/Financeiro/Database/Migrations/2026_01_01_000000_cria.php',
+    "<?php\nSchema::create('fin_titulos', function ($t) {});\n");
+  w('Modules/Financeiro/Entities/Titulo.php', '<?php\nnamespace Modules\Financeiro\Entities;\nclass Titulo {}\n');
+  w('Modules/Ponto/Services/Exporta.php',
+    "<?php\nnamespace Modules\Ponto\Services;\nuse Modules\Financeiro\Entities\Titulo;\n" +
+    "class Exporta { function f() { DB::table('fin_titulos')->insert([]); } }\n");
+  const vazia = JSON.stringify({ grandfathered: [], allowlist: [] });
+  w('governance/module-coupling-baseline.json', vazia);
+  w('governance/module-table-coupling-baseline.json', vazia);
+  const git = (...a) => spawnSync('git', a, { cwd: dir, encoding: 'utf8' });
+  git('init', '-q');
+  git('add', '-A');
+  return dir;
+}
+
+test('CLI --catraca: eixo tabela reprova mesmo com `not_contains` declarado, e a mensagem NÃO oferece essa saída', () => {
+  const dir = sandboxCatraca();
+  try {
+    const r = spawnSync(process.execPath, [CLI, '--acoplamento', '--catraca'], { cwd: dir, encoding: 'utf8' });
+    const out = r.stdout + r.stderr;
+    // controle positivo: o import declarado PASSA — a promessa do eixo import é honrada
+    assert.match(out, /catraca import \(`use`\): OK/, 'a declaração isenta o eixo import (controle)');
+    // o par existe e o eixo tabela reprova
+    assert.equal(r.status, 1, `exit esperado 1, veio ${r.status}\n${out}`);
+    const bloco = r.stderr.slice(r.stderr.indexOf('REPROVA no eixo tabela'));
+    assert.ok(bloco.length > 0 && bloco.includes('Ponto>Financeiro'), `eixo tabela tinha que reprovar Ponto>Financeiro\n${out}`);
+    // o contrato: a opção que acabou de não funcionar não pode ser oferecida como saída
+    const opcoes = bloco.split('\n').filter((l) => /^\s+(Opções: )?\([a-z]\)/.test(l)).join('\n');
+    assert.ok(opcoes.length > 0, `sem opções na mensagem\n${bloco}`);
+    assert.doesNotMatch(opcoes, /declarar a delegação no `not_contains`/, 'promete saída que o código não honra');
+    assert.match(bloco, /allowlist COM razão declarada/, 'a saída que de fato isenta segue oferecida');
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
 });

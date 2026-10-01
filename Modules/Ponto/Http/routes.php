@@ -149,8 +149,32 @@ Route::group(
         Route::post('/mobile/marcar', [MobileMarcacaoController::class, 'registrar'])->name('ponto.mobile.marcar');
         Route::get('/mobile/marcacoes/hoje', [MobileMarcacaoController::class, 'marcacoesHoje'])->name('ponto.mobile.marcacoes.hoje');
         Route::post('/mobile/intercorrencias', [MobileMarcacaoController::class, 'criarIntercorrencia'])->name('ponto.mobile.intercorrencias.store');
+        // Lembrete de bater ponto (ADR 0423): o app Capacitor registra o token do aparelho.
+        Route::post('/mobile/push/dispositivo', [\Modules\Ponto\Http\Controllers\Api\PushDispositivoController::class, 'registrar'])->name('ponto.mobile.push.registrar');
+        Route::delete('/mobile/push/dispositivo', [\Modules\Ponto\Http\Controllers\Api\PushDispositivoController::class, 'desativar'])->name('ponto.mobile.push.desativar');
     }
 );
+
+// ===========================================================================
+// 1c) Páginas PÚBLICAS do app de ponto — sem login. As lojas (Google Play / App Store)
+//     exigem política de privacidade numa URL estável. Só texto: não lê banco nem sessão.
+//     Ver memory/requisitos/Ponto/RUNBOOK-publico.md.
+// ===========================================================================
+Route::group(['middleware' => ['web', 'throttle:60,1']], function () {
+    Route::get('/privacidade/ponto', [\Modules\Ponto\Http\Controllers\PublicoController::class, 'privacidade'])
+        ->name('ponto.publico.privacidade');
+    Route::get('/privacidade/ponto/exclusao', [\Modules\Ponto\Http\Controllers\PublicoController::class, 'exclusao'])
+        ->name('ponto.publico.exclusao');
+});
+
+// ===========================================================================
+// 1d) Associação do app de ponto (Capacitor) com o domínio — App Links / Universal Links.
+//     Sem `web`: não abre sessão nem cookie. Valores em pontowr2.app_links (env); vazio = 404.
+// ===========================================================================
+Route::get('/.well-known/assetlinks.json', [\Modules\Ponto\Http\Controllers\AppLinksController::class, 'assetlinks'])
+    ->middleware('throttle:60,1')->name('ponto.app_links.android');
+Route::get('/.well-known/apple-app-site-association', [\Modules\Ponto\Http\Controllers\AppLinksController::class, 'appleAppSiteAssociation'])
+    ->middleware('throttle:60,1')->name('ponto.app_links.ios');
 
 // ===========================================================================
 // 2) Rotas API (REP-P mobile e integrações) — prefixo /ponto/api
@@ -177,6 +201,11 @@ Route::group(
         // Escala e KPIs do próprio colaborador
         Route::get('/escala/hoje', [MobileMarcacaoController::class, 'escalaHoje'])->name('ponto.api.escala.hoje');
         Route::get('/dashboard/kpis', [MobileMarcacaoController::class, 'dashboardKpis'])->name('ponto.api.dashboard.kpis');
+
+        // Lembrete de bater ponto (ADR 0423): o app das lojas registra o token do aparelho com o
+        // token Passport. Mesmo controller e mesmo contrato das rotas web /ponto/mobile/push/*.
+        Route::post('/push/dispositivo', [\Modules\Ponto\Http\Controllers\Api\PushDispositivoController::class, 'registrar'])->name('ponto.api.push.registrar');
+        Route::delete('/push/dispositivo', [\Modules\Ponto\Http\Controllers\Api\PushDispositivoController::class, 'desativar'])->name('ponto.api.push.desativar');
     }
 );
 
@@ -192,7 +221,7 @@ Route::group(
     function () {
         Route::get('/', 'InstallController@index')->name('ponto.install.index');
         Route::post('/', 'InstallController@install')->name('ponto.install.run');
-        Route::get('/uninstall', 'InstallController@uninstall')->name('ponto.install.uninstall');
-        Route::get('/update', 'InstallController@update')->name('ponto.install.update');
+        Route::match(['get', 'post'], '/uninstall', 'InstallController@uninstall')->name('ponto.install.uninstall');
+        Route::match(['get', 'post'], '/update', 'InstallController@update')->name('ponto.install.update');
     }
 );

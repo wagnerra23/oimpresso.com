@@ -29,6 +29,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
 import ProductSearchAutocomplete, {
   type ProductSearchResult,
 } from './_components/ProductSearchAutocomplete';
+import { precoDaBusca } from './_components/precoDaBusca';
 import CustomerSearchAutocomplete, {
   type CustomerSearchResult,
   type VehicleOption,
@@ -116,7 +117,7 @@ export interface SellsCreatePageProps {
   };
   posSettings: Record<string, unknown>;
   subType: string | null;
-  /** Opções da seção Reparo (UC-S04) — só vem na venda aberta como reparo. */
+  /** Opções da seção Reparo (UC-S05) — só vem na venda aberta como reparo. */
   repairPos?: RepairPosProps | null;
   statuses?: Record<string, string>;
   isOrderRequestEnabled?: boolean;
@@ -205,7 +206,7 @@ export default function SellsCreate(props: SellsCreatePageProps) {
     // ADR 0251 — veículo na venda direta de oficina. null = sem veículo. Só
     // relevante quando OficinaAuto habilitado; em vestuário fica sempre null.
     vehicle_id: null as number | null,
-    // UC-S04 — dados do aparelho/atendimento na venda de reparo (seção Reparo).
+    // UC-S05 — dados do aparelho/atendimento na venda de reparo (seção Reparo).
     reparo: reparoInicial(props.repairPos?.defaultStatusId),
     products: [] as Array<{
       product_id: number;
@@ -288,7 +289,7 @@ export default function SellsCreate(props: SellsCreatePageProps) {
   // do cliente selecionado (vem do payload getCustomers). quickAddVehicleOpen abre o
   // drawer de cadastro rápido (sem perder a venda).
   const hasOficinaAuto = props.hasOficinaAuto === true;
-  // UC-S04 — venda aberta como reparo (/pos/create?sub_type=repair) com o módulo na assinatura.
+  // UC-S05 — venda aberta como reparo (/pos/create?sub_type=repair) com o módulo na assinatura.
   const isReparo = props.subType === 'repair' && !!props.repairPos;
   const [customerVehicles, setCustomerVehicles] = useState<VehicleOption[]>([]);
   const [quickAddVehicleOpen, setQuickAddVehicleOpen] = useState(false);
@@ -388,7 +389,8 @@ export default function SellsCreate(props: SellsCreatePageProps) {
         variation: hasVariation ? p.variation ?? null : null,
         sku: hasVariation ? p.sub_sku ?? p.sku : p.sku,
         quantity: 1,
-        unit_price: Number(p.selling_price ?? 0),
+        // Preço do grupo quando a busca veio com `price_group` (ver precoDaBusca.ts).
+        unit_price: precoDaBusca(p),
         discount: 0,
         discount_type: 'fixed' as const,
         imei_number: '',
@@ -451,11 +453,7 @@ export default function SellsCreate(props: SellsCreatePageProps) {
           : undefined;
         if (!match) return null;
         // Pattern legacy public/js/pos.js: variation_group_price tem prioridade
-        const newPrice =
-          match.variation_group_price !== undefined &&
-          match.variation_group_price !== null
-            ? Number(match.variation_group_price)
-            : Number(match.selling_price ?? line.unit_price);
+        const newPrice = precoDaBusca(match, line.unit_price);
         return { variation_id: line.variation_id, unit_price: newPrice };
       } catch (err) {
         console.warn(
@@ -668,7 +666,7 @@ export default function SellsCreate(props: SellsCreatePageProps) {
       // Reparo é um TIPO de venda (decisão [W] 2026-10-01): aberto por ?sub_type=repair,
       // o envio carrega o tipo. Não muda valor nem estoque — ver subtipoVenda.ts.
       ...camposDeSubtipo(props.subType),
-      // O estado aninhado não vai pro servidor; vão só os campos repair_* (UC-S04).
+      // O estado aninhado não vai pro servidor; vão só os campos repair_* (UC-S05).
       reparo: undefined,
       ...(isReparo ? camposDeReparo(d.reparo) : {}),
       is_save_and_print: withPrint ? 1 : 0,
@@ -899,7 +897,7 @@ export default function SellsCreate(props: SellsCreatePageProps) {
 
   const handleDraftRecover = () => {
     // Draft não guarda File — restaura preservando sell_document=null.
-    // Rascunho anterior ao UC-S04 não tem `reparo` (a chave do draft é a mesma pra venda
+    // Rascunho anterior ao UC-S05 não tem `reparo` (a chave do draft é a mesma pra venda
     // comum e reparo) — sem o fallback, a seção Reparo leria undefined.
     if (draftRecover) {
       setData({
@@ -1263,7 +1261,7 @@ export default function SellsCreate(props: SellsCreatePageProps) {
         </CardContent>
       </Card>
 
-      {/* UC-S04 — seção Reparo, só na venda aberta como reparo. */}
+      {/* UC-S05 — seção Reparo, só na venda aberta como reparo. */}
       {isReparo && props.repairPos && (
         <ReparoSection
           opcoes={props.repairPos}
@@ -1281,6 +1279,7 @@ export default function SellsCreate(props: SellsCreatePageProps) {
           <div ref={productSearchRef}>
             <ProductSearchAutocomplete
               locationId={data.location_id}
+              priceGroupId={data.price_group_id}
               onSelect={handleAddProduct}
             />
           </div>
