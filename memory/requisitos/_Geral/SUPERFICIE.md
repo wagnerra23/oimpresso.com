@@ -14,7 +14,7 @@ module: _Geral
 >
 > **O que isto é:** a porta geral para componentes, layouts e templates herdáveis por mais de um módulo. A lista é derivada das raízes compartilhadas declaradas em `module-surface.mjs::RAIZES_GERAIS`. **O que NÃO é:** autorização para importar qualquer item sem verificar contrato, status e consumidores; para decidir reuso, consulte também `node scripts/reuse-index.mjs "<símbolo ou intenção>"` e o registry do Design System.
 
-**Total mapeado:** 132 arquivos em 6 papéis.
+**Total mapeado:** 133 arquivos em 6 papéis.
 
 ## Componentes compartilhados (React) — 88
 
@@ -107,9 +107,10 @@ module: _Geral
 - [textarea.tsx](../../../resources/js/Components/ui/textarea.tsx)
 - [tooltip.tsx](../../../resources/js/Components/ui/tooltip.tsx)
 
-## Layouts herdados (React) — 2
+## Layouts herdados (React) — 3
 
 - [AppShellV2.tsx](../../../resources/js/Layouts/AppShellV2.tsx)
+- [MobileShell.tsx](../../../resources/js/Layouts/MobileShell.tsx)
 - [SiteLayout.tsx](../../../resources/js/Layouts/SiteLayout.tsx)
 
 ## Componentes compartilhados (Blade) — 5
