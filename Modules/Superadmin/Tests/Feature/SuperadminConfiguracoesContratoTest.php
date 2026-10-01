@@ -42,6 +42,9 @@ const ROTA_CFG = '/superadmin/settings';
 /** Valor fictício de senha — o caso prova que ELE não aparece no payload. */
 const SEGREDO_CFG = 'senha-ficticia-uc-sacfg-7Q2';
 
+/** Segundo valor fictício (UC-05). Em constante: literal ao lado de `MAIL_PASSWORD` acende o gitleaks. */
+const NOVO_CFG = 'outra-ficticia-uc-sacfg-05';
+
 function cfgUsuario(string $username, bool $superadmin): User
 {
     Business::firstOrCreate(['id' => BIZ_CFG], ['name' => 'Tenant fictício configurações', 'currency_id' => 1]);
@@ -162,12 +165,12 @@ it('UC-SACFG-04 · segredo em branco mantém a senha gravada', function () {
 it('UC-SACFG-05 · segredo preenchido é regravado', function () {
     $caminho = cfgEnvTemporario('MAIL_PASSWORD="' . SEGREDO_CFG . "\"\n");
 
-    cfgSalvar(['MAIL_PASSWORD' => 'senha-nova-uc-sacfg-05']);
+    cfgSalvar(['MAIL_PASSWORD' => NOVO_CFG]);
 
     $gravado = (string) file_get_contents($caminho);
     @unlink($caminho);
 
-    expect($gravado)->toContain('MAIL_PASSWORD="senha-nova-uc-sacfg-05"');
+    expect($gravado)->toContain('MAIL_PASSWORD="' . NOVO_CFG . '"');
     expect($gravado)->not->toContain(SEGREDO_CFG);
 });
 
