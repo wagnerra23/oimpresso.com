@@ -87,12 +87,35 @@ it('cenario 5: canRevert deny quando subject_type sem subject_id', function () {
 });
 
 it('cenario 6: revert() lanca InvalidArgumentException se reason < 10 chars', function () {
-    // Skip se nao tem activity real disponivel
-    $log = Activity::query()->where('business_id', $this->business->id)->first();
-    if (! $log) {
-        $this->markTestSkipped('Sem activity real no business pra teste de revert.');
+    // Fixture PRÓPRIA (2026-10-01). Antes este caso pegava "qualquer activity do
+    // business" e pulava porque NENHUMA tinha business_id (o trait LogsActivity não
+    // gravava o tenant). Com o tenant gravado ele passou a rodar e mostrou que nunca
+    // exercia o que diz: canRevert() roda ANTES do tamanho do motivo, e o usuário do
+    // seed não tem auditoria.revert.* — o DomainException de permissão chegava primeiro.
+    // Agora: log revertível do próprio tenant + permissão concedida na transação.
+    $contato = \App\Contact::query()->where('business_id', $this->business->id)
+        ->where('type', '!=', 'lead')->first();
+    if (! $contato) {
+        $this->markTestSkipped('Sem contact no business.');
     }
+    $contato->name = $contato->name.' [revert-6]';
+    $contato->save();
 
-    expect(fn () => $this->service->revert($log, $this->user, 'curto'))
+    $log = Activity::query()
+        ->where('subject_type', \App\Contact::class)
+        ->where('subject_id', $contato->id)
+        ->where('event', 'updated')
+        ->latest('id')
+        ->first();
+    expect($log)->not->toBeNull();
+    expect((int) $log->business_id)->toBe((int) $this->business->id);
+
+    \Spatie\Permission\Models\Permission::findOrCreate('auditoria.revert.unlimited', 'web');
+    $this->user->givePermissionTo('auditoria.revert.unlimited');
+    app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
+
+    expect($this->service->canRevert($log, $this->user->fresh())->allowed)->toBeTrue();
+
+    expect(fn () => $this->service->revert($log, $this->user->fresh(), 'curto'))
         ->toThrow(\InvalidArgumentException::class, 'no minimo 10 caracteres');
 });

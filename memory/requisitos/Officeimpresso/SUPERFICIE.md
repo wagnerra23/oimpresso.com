@@ -14,7 +14,7 @@ module: Officeimpresso
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Officeimpresso/**` + `resources/js/Pages/Officeimpresso/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 119 arquivos em 19 papéis.
+**Total mapeado:** 120 arquivos em 19 papéis.
 
 ## Controllers — 7
 
@@ -40,8 +40,9 @@ module: Officeimpresso
 - [LogDelphiAccess.php](../../../Modules/Officeimpresso/Http/Middleware/LogDelphiAccess.php)
 - [LogDesktopAccess.php](../../../Modules/Officeimpresso/Http/Middleware/LogDesktopAccess.php)
 
-## Services — 4
+## Services — 5
 
+- [AcessoOperador.php](../../../Modules/Officeimpresso/Services/AcessoOperador.php)
 - [FirebirdConnector.php](../../../Modules/Officeimpresso/Services/FirebirdImporter/FirebirdConnector.php)
 - [OfficeimpressoImporterService.php](../../../Modules/Officeimpresso/Services/FirebirdImporter/OfficeimpressoImporterService.php)
 - [LicencaAuditService.php](../../../Modules/Officeimpresso/Services/LicencaAuditService.php)
