@@ -15,6 +15,27 @@
     </div>
 
     @if(empty($is_demo))
+    @if(!empty($credencial))
+    {{-- Thread 05: unica vez que o segredo aparece — fica ate o usuario fechar. --}}
+    <div class="oi-card" id="oi_credencial" style="border-color: #f59e0b;">
+        <div class="hdr">
+            <h3><i class="fa fa-key"></i> Credencial criada: {{ $credencial['name'] }}</h3>
+            <button type="button" class="oi-btn oi-btn-ghost" id="oi_credencial_fechar">Fechar</button>
+        </div>
+        <div class="body">
+            <p style="margin: 0 0 8px; color: #92400e;">
+                Copie agora: o secret não será exibido de novo. Perdeu? Crie outro cliente e exclua este.
+            </p>
+            <p style="margin: 0 0 4px;">Client ID: <span class="text-mono">{{ $credencial['id'] }}</span></p>
+            <p style="margin: 0; display: flex; gap: 8px; align-items: center;">
+                Secret: <span class="text-mono" id="oi_credencial_secret">{{ $credencial['secret'] }}</span>
+                <button type="button" class="oi-btn oi-btn-ghost oi-btn-xs" id="oi_credencial_copiar">
+                    <i class="fas fa-copy"></i> Copiar
+                </button>
+            </p>
+        </div>
+    </div>
+    @endif
     <div class="oi-card">
         <div class="hdr">
             <h3><i class="fa fa-key"></i> Clientes cadastrados <small style="color:#6b7280;">({{ count($clients) }})</small></h3>
@@ -38,7 +59,6 @@
                             <th>#</th>
                             <th>Nome</th>
                             <th>Client ID</th>
-                            <th>Secret</th>
                             <th>Tipo</th>
                             <th style="width: 110px;">Ação</th>
                         </tr>
@@ -49,12 +69,6 @@
                                 <td class="text-mono">{{ $licenca->id }}</td>
                                 <td><strong>{{ $licenca->name }}</strong></td>
                                 <td class="text-mono">{{ $licenca->id }}</td>
-                                <td class="text-mono" title="{{ $licenca->secret }}" style="max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                                    <span class="client-secret-value" data-secret="{{ $licenca->secret }}">••••••••••</span>
-                                    <button type="button" class="oi-btn oi-btn-ghost oi-btn-xs toggle-secret" style="padding: 1px 6px;">
-                                        <i class="fas fa-eye"></i>
-                                    </button>
-                                </td>
                                 <td>
                                     @if($licenca->password_client)
                                         <span class="oi-pill oi-pill-neutral">password</span>
@@ -74,7 +88,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="6" style="text-align: center; padding: 30px; color: #9ca3af;">
+                                <td colspan="5" style="text-align: center; padding: 30px; color: #9ca3af;">
                                     Nenhum cliente OAuth cadastrado. Clique em "Criar Cliente" para gerar credenciais para o Delphi.
                                 </td>
                             </tr>
@@ -136,17 +150,13 @@ $(document).ready(function () {
         }
     });
 
-    $(document).on('click', '.toggle-secret', function () {
-        var span = $(this).siblings('.client-secret-value');
-        var s = span.attr('data-secret');
-        var visible = span.attr('data-visible') === '1';
-        if (visible) {
-            span.text('••••••••••').attr('data-visible', '0');
-            $(this).find('i').removeClass('fa-eye-slash').addClass('fa-eye');
-        } else {
-            span.text(s).attr('data-visible', '1');
-            $(this).find('i').removeClass('fa-eye').addClass('fa-eye-slash');
-        }
+    $('#oi_credencial_copiar').on('click', function () {
+        var texto = $('#oi_credencial_secret').text().trim();
+        if (navigator.clipboard) { navigator.clipboard.writeText(texto); }
+        $(this).html('<i class="fas fa-check"></i> Copiado');
+    });
+    $('#oi_credencial_fechar').on('click', function () {
+        $('#oi_credencial').remove();
     });
 });
 </script>

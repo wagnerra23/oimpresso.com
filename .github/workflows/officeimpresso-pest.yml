@@ -124,7 +124,8 @@ jobs:
             --log-junit test-results/pest-officeimpresso-junit.xml \
             Modules/Officeimpresso/Tests/Feature/LicencasAcessoPermissionTest.php \
             Modules/Officeimpresso/Tests/Feature/LogsBaselineTest.php \
-            Modules/Officeimpresso/Tests/Feature/CatalogoRedirectTest.php
+            Modules/Officeimpresso/Tests/Feature/CatalogoRedirectTest.php \
+            Modules/Officeimpresso/Tests/Feature/ClientesSegredoUmaVezTest.php
 
 
       # Passo 1 do plano da LC-13 (Gate:): a lane JA emitia JUnit e NINGUEM lia.

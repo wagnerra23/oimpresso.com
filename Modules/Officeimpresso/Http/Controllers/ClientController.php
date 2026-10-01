@@ -48,15 +48,26 @@ class ClientController extends Controller
         $is_demo = (config('app.env') == 'demo');
 
         $business_id = request()->session()->get('user.business_id');
+        // Thread 05 (2026-10-01): o segredo NAO sai do banco para a lista — a coluna nem
+        // e selecionada (mesma regra do painel do Connector, #8350). O valor guardado nao
+        // muda: o Delphi em campo continua autenticando. Ele aparece UMA vez, no flash da
+        // criacao (store), lido aqui e descartado pela sessao.
         $clients = Passport::client()
-                    ->leftJoin('users as u', 'oauth_clients.user_id', '=', 'u.id')
+                    ->join('users as u', 'oauth_clients.user_id', '=', 'u.id')
                     ->where('u.business_id', $business_id)
-                    ->where('password_client', 1)
-                    ->select('oauth_clients.*')
-                    ->get()
-                    ->makeVisible('secret');
+                    ->where('oauth_clients.password_client', 1)
+                    ->select([
+                        'oauth_clients.id',
+                        'oauth_clients.name',
+                        'oauth_clients.password_client',
+                        'oauth_clients.personal_access_client',
+                    ])
+                    ->orderBy('oauth_clients.id')
+                    ->get();
 
-        return view('officeimpresso::clients.index')->with(compact('clients', 'is_demo'));
+        $credencial = $is_demo ? null : session('officeimpresso_credencial');
+
+        return view('officeimpresso::clients.index')->with(compact('clients', 'is_demo', 'credencial'));
     }
 
     /**
@@ -80,10 +91,12 @@ class ClientController extends Controller
         $this->authorizeLiberar();
 
         try {
+            $segredo = Str::random(40);
+
             $client = Passport::client()->forceFill([
                 'user_id' => auth()->user()->id,
                 'name' => $request->input('name'),
-                'secret' => Str::random(40),
+                'secret' => $segredo,
                 'redirect' => 'http://localhost',
                 'personal_access_client' => 0,
                 'password_client' => 1,
@@ -91,6 +104,14 @@ class ClientController extends Controller
             ]);
 
             $client->save();
+
+            // Unica vez que o segredo sai: flash proprio, lido uma vez pela lista (bloco
+            // copiavel que fica ate o usuario fechar) — nunca no log nem no status.msg.
+            session()->flash('officeimpresso_credencial', [
+                'id' => $client->id,
+                'name' => $client->name,
+                'secret' => $segredo,
+            ]);
 
             $output = ['success' => true,
                             'msg' => __("lang_v1.added_success")
