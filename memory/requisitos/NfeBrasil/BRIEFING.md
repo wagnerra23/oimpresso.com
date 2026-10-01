@@ -2,9 +2,9 @@
 id: requisitos-nfe-brasil-briefing
 module: NfeBrasil
 status: producao
-updated_at: "2026-09-06"
-distilled_at: "2026-09-06"
-distilled_by: jana:distill-module-truth
+updated_at: "2026-10-01"
+distilled_at: "2026-10-01"
+distilled_by: "agente (2026-10-01: re-leitura manual restrita ao que o lote 4 de install fora de GET mudou — InstallController e rotas install/*; antes, 2026-09-06: jana:distill-module-truth)"
 ---
 
 # BRIEFING — NfeBrasil (verdade destilada)
@@ -29,7 +29,7 @@ Emissor fiscal integrado — NFC-e e NF-e (a emissão de NFS-e modelo 56 é stub
 - Nenhuma nota real emitida — smokes US-NFE-054/059 pendentes. Os UC vermelhos do SDD (`SDD-emissao-fiscal-v1.0.md` §5.4.1 gate de `destroy`, §5.3 F8 tenant do import) nascem vermelhos por desenho; a correção é decisão [W]. Telas com `casos.md` ancorado no SDD: `Transactions/NfceStatus`, `Manifestacao/Index`, `Tributacao/{Index,ConfigDefault,RegraForm,ImportCsv}` — inventário vivo é o diretório `resources/js/Pages/NfeBrasil/`.
 
 ## Última mudança
-2026-09-04 — manifestação DF-e em lote com falha parcial nomeada (#6740) e os defeitos empilhados que impediam a manifestação de chegar à SEFAZ (#6748); troca de ambiente passa a exigir destino digitado + motivo sob gate próprio (#6730/#6738). Antes: contingência US-NFE-006 (#6527→#6567, 2026-09-02) e o SDD de emissão fiscal (2026-07-28).
+2026-10-01 — instalar/desinstalar/atualizar o módulo deixam de executar por GET: o GET de `nfebrasil/install*` só mostra uma confirmação, e a ação roda no POST + CSRF (trait `InstalacaoSoPorPost`, lote 4 da série #8387). Nada mudou na emissão. Antes: 2026-09-04 — manifestação DF-e em lote com falha parcial nomeada (#6740) e os defeitos empilhados que impediam a manifestação de chegar à SEFAZ (#6748); troca de ambiente passa a exigir destino digitado + motivo sob gate próprio (#6730/#6738). Antes: contingência US-NFE-006 (#6527→#6567, 2026-09-02) e o SDD de emissão fiscal (2026-07-28).
 
 ## Proveniência (destilado de)
 

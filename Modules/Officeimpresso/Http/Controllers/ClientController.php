@@ -37,10 +37,11 @@ class ClientController extends Controller
      */
     private function authorizeLiberar(): void
     {
-        // Só vale para usuário da empresa operadora (AcessoOperador). Criar credencial de
-        // password grant contorna o bloqueio de empresa do login desktop, que em
-        // User::validateForPassportPasswordGrant só vale para os client_id fixos do Delphi —
-        // e o Gate::before liberava esta permissão para o Admin de TODA empresa cliente.
+        // Só vale para usuário da empresa operadora (AcessoOperador): o Gate::before liberava
+        // esta permissão para o Admin de TODA empresa cliente, que criaria credencial OAuth.
+        // A credencial NÃO contorna o bloqueio de licença — ele é decidido na API do Connector
+        // pela empresa do CNPJ/HD da máquina, qualquer que seja o client do token (medido em
+        // 2026-10-01; ver User::validateForPassportPasswordGrant).
         abort_unless(
             AcessoOperador::pode(auth()->user(), 'officeimpresso.clientes.liberar'),
             403,

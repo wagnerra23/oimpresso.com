@@ -22,9 +22,10 @@ use Modules\Compras\Http\Controllers\InstallController;
 Route::middleware(['web', 'auth', 'SetSessionData', 'language', 'timezone', 'AdminSidebarMenu'])
     ->prefix('compras')
     ->group(function () {
+        Route::post('install', [InstallController::class, 'index']);
         Route::get('install', [InstallController::class, 'index']);
-        Route::get('install/uninstall', [InstallController::class, 'uninstall']);
-        Route::get('install/update', [InstallController::class, 'update']);
+        Route::match(['get', 'post'], 'install/uninstall', [InstallController::class, 'uninstall']);
+        Route::match(['get', 'post'], 'install/update', [InstallController::class, 'update']);
     });
 
 // Rotas operacionais.

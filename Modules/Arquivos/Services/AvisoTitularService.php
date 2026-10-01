@@ -20,10 +20,9 @@ use Modules\Arquivos\Entities\Arquivo;
  *   - `registrarAviso()` — grava `titular_avisado_at` + linha `notice` na trilha.
  *
  * O que ele NÃO faz, por desenho:
- *   - **Não envia nada.** O canal (e-mail, WhatsApp, Notification) é decisão [W] pendente
- *     (ADR 0421 §Pendências). Quem enviar chama `registrarAviso()` DEPOIS de enviar, passando
- *     o canal usado. Gravar "avisado" sem ter avisado seria registro falso — por isso nenhum
- *     job/comando/rota chama este service hoje.
+ *   - **Não envia nada.** O envio mora no `AvisarTitularJob` (canais e-mail + WhatsApp,
+ *     ADR 0422), que chama `registrarAviso()` só DEPOIS de algum canal ter saído, passando os
+ *     canais usados. Gravar "avisado" sem ter avisado seria registro falso.
  *   - **Não apaga, não expira, não purga.** Não toca `deleted_at`, não chama o
  *     `ArquivosRetentionService` nem o `RetentionCleanupCommand`.
  *
@@ -73,6 +72,37 @@ class AvisoTitularService
             ->map(fn (Arquivo $a) => $this->janela($a, $hoje))
             ->filter(fn (array $j) => $j['dias_restantes'] > 0 && $j['dias_restantes'] <= self::JANELA_DIAS)
             ->values();
+    }
+
+    /**
+     * O arquivo está na janela de aviso AGORA? Mesmas regras de `elegiveis()`, pra um id só.
+     * Usado pelo job de envio pra re-checar antes de mandar (o estado pode ter mudado entre
+     * a varredura e o envio).
+     *
+     * @return array{id:int, vence_em:string, dias_restantes:int, contact_id:int}|null
+     */
+    public function elegivel(int $businessId, int $arquivoId, ?Carbon $agora = null): ?array
+    {
+        $arquivo = Arquivo::query()
+            ->where('business_id', $businessId)
+            ->whereKey($arquivoId)
+            ->where('bucket', 'sensitive')
+            ->whereNull('deleted_at')
+            ->whereNull('titular_avisado_at')
+            ->whereIn('arquivable_type', self::TIPOS_COM_TITULAR)
+            ->whereNotNull('arquivable_id')
+            ->first(['id', 'business_id', 'arquivable_id', 'sub_destination', 'retention_days', 'created_at']);
+
+        if ($arquivo === null) {
+            return null;
+        }
+
+        $janela = $this->janela($arquivo, ($agora ?? Carbon::now())->copy()->startOfDay());
+        if ($janela['dias_restantes'] <= 0 || $janela['dias_restantes'] > self::JANELA_DIAS) {
+            return null;
+        }
+
+        return $janela + ['contact_id' => (int) $arquivo->arquivable_id];
     }
 
     /**

@@ -38,13 +38,10 @@ class RestoreArquivoRequest extends FormRequest
             return false;
         }
 
-        // Restore é operação de governança — `superadmin` sempre permitido.
-        // Caso queira permission granular, adicione `arquivos.restore`.
-        if ($user->can('superadmin')) {
-            return true;
-        }
-
-        return method_exists($user, 'can') ? $user->can('arquivos.restore') : true;
+        // Restaurar é ato de plataforma — SÓ superadmin (decisão [W] 2026-10-01, "Superadmin").
+        // `can('superadmin')` não é coberto pelo bypass do `Admin#{biz}` no `Gate::before`:
+        // passa só quem está em `administrator_usernames`. Não há permissão delegável.
+        return $user->can('superadmin');
     }
 
     public function rules(): array
