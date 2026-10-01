@@ -235,7 +235,8 @@ class LicencaComputadorController extends Controller
             // $equipamento->tipo_de_acesso = $dadosLicenciamento['TIPODEACESSO'] ?? null;
             $equipamento->conexao = $dadosLicenciamento['CONEXAO'] ?? null;
             $equipamento->usuario = $dadosLicenciamento['USUARIO'] ?? null;
-            $equipamento->senha = $dadosLicenciamento['SENHA'] ?? null;
+            // Segredo do desktop: só ECO na resposta, nunca gravado (ver salvarSemSegredosDoDesktop).
+            $equipamento->setAttribute('senha', $dadosLicenciamento['SENHA'] ?? null);
             $equipamento->sistema_operacional = $dadosLicenciamento['SISTEMA_OPERACIONAL'] ?? null;
             $equipamento->ip_interno = $dadosLicenciamento['IP_INTERNO'] ?? null;
             $equipamento->antivirus = $dadosLicenciamento['ANTIVIRUS'] ?? null;
@@ -254,7 +255,7 @@ class LicencaComputadorController extends Controller
             $equipamento->hostname = $dadosLicenciamento['HOSTNAME'] ?? null;
             $equipamento->dt_validade = $dadosLicenciamento['DT_VALIDADE'] ?? null;
             $equipamento->serial = $dadosLicenciamento['SERIAL'] ?? null;
-            $equipamento->contra_senha = $dadosLicenciamento['CONTRA_SENHA'] ?? null;
+            $equipamento->setAttribute('contra_senha', $dadosLicenciamento['CONTRA_SENHA'] ?? null);
             $equipamento->valor = $dadosLicenciamento['VALOR'] ?? null;
             $equipamento->caminho_banco = $dadosLicenciamento['CAMINHO_BANCO'] ?? null;
             
@@ -268,7 +269,7 @@ class LicencaComputadorController extends Controller
             $equipamento->dt_ultimo_acesso = now();
             // $equipamento->codempresa = $dadosLicenciamento['CODEMPRESA'] ?? null;
 
-            $equipamento->save();
+            $this->salvarSemSegredosDoDesktop($equipamento);
             return $equipamento;
 
         } catch (\Exception $e) {
@@ -277,6 +278,61 @@ class LicencaComputadorController extends Controller
         }
     }
 
+
+
+    /**
+     * Campos secretos que o desktop Delphi manda em LICENCIAMENTO e que o servidor
+     * NÃO grava mais (Officeimpresso thread 02 · L2). As colunas seguem na tabela
+     * até a thread 03 (D4) dropá-las por migration.
+     */
+    private const SEGREDOS_DO_DESKTOP = ['senha', 'contra_senha'];
+
+    /**
+     * Salva o equipamento SEM os segredos do desktop, preservando a resposta.
+     *
+     * Contrato Delphi (memory/reference/contrato-delphi-inviolavel.md): o
+     * `salvar-equipamento/{business_id}` devolve o próprio model em JSON, e esse
+     * JSON sempre ecoou `senha`/`contra_senha` do payload, nesta ordem de chaves.
+     * Parar de gravar não pode mudar esse wire, então:
+     *  1. tira os segredos do que vai pro banco — no INSERT a chave sai; no
+     *     UPDATE volta ao valor já gravado (não fica dirty, a coluna não muda);
+     *  2. salva;
+     *  3. remonta os atributos na ordem de antes, com o eco do payload.
+     * O model termina sincronizado (sem dirty), então um save posterior também
+     * não grava o eco. De quebra o ActivityLog para de registrar a senha.
+     */
+    private function salvarSemSegredosDoDesktop(Licenca_Computador $equipamento): void
+    {
+        $comEco = $equipamento->getAttributes();
+        $original = $equipamento->getOriginal();
+
+        $paraGravar = $comEco;
+        foreach (self::SEGREDOS_DO_DESKTOP as $campo) {
+            if ($equipamento->exists && array_key_exists($campo, $original)) {
+                $paraGravar[$campo] = $original[$campo];
+            } else {
+                unset($paraGravar[$campo]);
+            }
+        }
+
+        $equipamento->setRawAttributes($paraGravar);
+        $equipamento->save();
+
+        $depois = $equipamento->getAttributes();
+        $final = [];
+        foreach ($comEco as $campo => $valor) {
+            $final[$campo] = in_array($campo, self::SEGREDOS_DO_DESKTOP, true) || ! array_key_exists($campo, $depois)
+                ? $valor
+                : $depois[$campo];
+        }
+        foreach ($depois as $campo => $valor) {
+            if (! array_key_exists($campo, $final)) {
+                $final[$campo] = $valor;
+            }
+        }
+
+        $equipamento->setRawAttributes($final, true);
+    }
 
     /**
      * Display a listing of the resource.
