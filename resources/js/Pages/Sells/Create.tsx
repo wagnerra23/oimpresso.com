@@ -29,6 +29,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
 import ProductSearchAutocomplete, {
   type ProductSearchResult,
 } from './_components/ProductSearchAutocomplete';
+import { precoDaBusca } from './_components/precoDaBusca';
 import CustomerSearchAutocomplete, {
   type CustomerSearchResult,
   type VehicleOption,
@@ -380,7 +381,8 @@ export default function SellsCreate(props: SellsCreatePageProps) {
         variation: hasVariation ? p.variation ?? null : null,
         sku: hasVariation ? p.sub_sku ?? p.sku : p.sku,
         quantity: 1,
-        unit_price: Number(p.selling_price ?? 0),
+        // Preço do grupo quando a busca veio com `price_group` (ver precoDaBusca.ts).
+        unit_price: precoDaBusca(p),
         discount: 0,
         discount_type: 'fixed' as const,
         imei_number: '',
@@ -443,11 +445,7 @@ export default function SellsCreate(props: SellsCreatePageProps) {
           : undefined;
         if (!match) return null;
         // Pattern legacy public/js/pos.js: variation_group_price tem prioridade
-        const newPrice =
-          match.variation_group_price !== undefined &&
-          match.variation_group_price !== null
-            ? Number(match.variation_group_price)
-            : Number(match.selling_price ?? line.unit_price);
+        const newPrice = precoDaBusca(match, line.unit_price);
         return { variation_id: line.variation_id, unit_price: newPrice };
       } catch (err) {
         console.warn(
@@ -1250,6 +1248,7 @@ export default function SellsCreate(props: SellsCreatePageProps) {
           <div ref={productSearchRef}>
             <ProductSearchAutocomplete
               locationId={data.location_id}
+              priceGroupId={data.price_group_id}
               onSelect={handleAddProduct}
             />
           </div>
