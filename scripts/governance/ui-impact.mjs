@@ -415,6 +415,23 @@ export function validateExecution({
  * escolher a narrativa plausível — e sem calar.
  */
 export function explainFailure({ scope, uncoveredScreens = [], steps = [], grayZone = [], runUrl = '' }) {
+  // SETUP QUEBRADO VEM ANTES DE TUDO (2026-10-01). Se a preparação do ambiente não terminou,
+  // nenhum teste de tela executou: não há regressão, contrato ou zona cinza a narrar. Antes
+  // desta saída, o timeout de `npx playwright install-deps` (espelho apt lento, 6 de 111
+  // execuções em 2026-09-30) virava "Gate visual reprovou em Fluxos visuais Financeiro".
+  const setup = steps.find((step) => step?.tipo === 'setup' && step?.outcome === 'failure');
+  if (setup) {
+    const causa = setup.causa || null;
+    return { modo: 'setup', passo: causa || setup.nome, corpo: [
+      '## 🧰 Falha de preparação do ambiente — o gate visual NÃO rodou', '',
+      causa ? `**Step que falhou:** \`${causa}\`` : `**Step que falhou:** um passo de setup antes de \`Ambiente pronto\` (veja o primeiro vermelho no run).`,
+      '', '**Não é regressão visual.** Nenhum teste de tela executou: pixel-diff, estados, fluxos e E2E foram pulados de propósito.',
+      ...(causa === 'Install Playwright system dependencies'
+        ? ['', 'Causa medida desta família: espelho apt do runner lento baixando ~120 MB de pacotes. Re-executar o job costuma resolver.']
+        : []),
+      '', `Re-execute o job${runUrl ? `: ${runUrl}` : '.'}`,
+    ] };
+  }
   const passo = steps.find((step) => step?.outcome === 'failure')?.nome || null;
   const linhaPasso = passo
     ? `**Step que reprovou:** \`${passo}\``
@@ -871,6 +888,30 @@ function selfTest() {
   const claro = explainFailure({ scope: 'global', steps: [{ nome: 'Fluxos Compras', outcome: 'failure' }] });
   assert.equal(claro.modo, 'step-nomeado');
   assert.ok(claro.corpo.join(chr10).includes('Fluxos Compras'));
+
+  // ── Setup quebrado: o comentário NÃO pode culpar um step de teste ─────────────────────
+  // REPRODUÇÃO (run 36733389261, tentativa 1): timeout das deps do Playwright e o 1º step
+  // instrumentado em `failure` era "Fluxos visuais Financeiro" — que nem tinha Laravel montado.
+  const passosSetup = [
+    { nome: 'Preparação do ambiente', tipo: 'setup', outcome: 'failure', causa: 'Install Playwright system dependencies' },
+    { nome: 'Fluxos visuais Financeiro (ENFORCING · L2.5)', outcome: 'failure' },
+    { nome: 'Canário anti-verde-vazio', outcome: 'failure' },
+  ];
+  const setupQuebrado = explainFailure({ scope: 'targeted', uncoveredScreens: ['Cliente'], steps: passosSetup });
+  const textoSetup = setupQuebrado.corpo.join(chr10);
+  assert.equal(setupQuebrado.modo, 'setup', 'setup quebrado vence sem-contrato e step-nomeado');
+  assert.equal(setupQuebrado.passo, 'Install Playwright system dependencies');
+  assert.ok(!textoSetup.includes('Gate visual reprovou'), 'não pode anunciar reprovação visual');
+  assert.ok(!textoSetup.includes('Fluxos visuais Financeiro'), 'não pode culpar o fluxo que nem rodou');
+  assert.ok(textoSetup.includes('Não é regressão visual'));
+  // Controle: setup OK → a narrativa volta a ser o step de teste (a entrada nova não mascara).
+  const setupOk = explainFailure({ scope: 'global', steps: [{ ...passosSetup[0], outcome: 'success' }, passosSetup[1]] });
+  assert.equal(setupOk.modo, 'step-nomeado');
+  assert.equal(setupOk.passo, 'Fluxos visuais Financeiro (ENFORCING · L2.5)');
+  // Setup falhou em outro passo (sem causa nomeada) → diz que é setup sem inventar qual.
+  const setupGenerico = explainFailure({ scope: 'global', steps: [{ nome: 'Preparação do ambiente', tipo: 'setup', outcome: 'failure', causa: '' }] });
+  assert.equal(setupGenerico.modo, 'setup');
+  assert.ok(!setupGenerico.corpo.join(chr10).includes('espelho apt'), 'não atribui ao apt o que não mediu');
 
   console.log('ui-impact selftest: sensibilidade, especificidade e fail-closed passaram');
 }
