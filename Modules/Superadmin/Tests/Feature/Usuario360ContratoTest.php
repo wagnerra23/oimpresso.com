@@ -48,6 +48,16 @@ const BIZ_U360_OUTRO = 99;
 
 function u360Business(int $id): void
 {
+    // biz=99 NÃO vem do seed do CI (só o 98 vem). Criá-lo cru (sem owner_id) quebra em
+    // `business_owner_id_foreign` (SQLSTATE 1452) — e só quando nenhum teste anterior o
+    // criou, ou seja, flaky de ordem sob executionOrder="random". O helper canônico cria
+    // owner → business → backfill, idempotente (tests/Support/WithSeededTenant.php).
+    if ($id === BIZ_U360_OUTRO) {
+        test()->seededSupportClientTenant();
+
+        return;
+    }
+
     Business::firstOrCreate(['id' => $id], ['name' => "Tenant fictício u360 {$id}", 'currency_id' => 1]);
 }
 
