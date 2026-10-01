@@ -594,6 +594,17 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
     // `can:jana.access` intacto, e é o PRIMEIRO item do sidebar.
     Route::get('/home', fn () => redirect('/dashboard-legacy', 302))->name('home');
     Route::get('/dashboard-legacy', [HomeController::class, 'index'])->name('home.legacy');
+
+    // App das lojas (/m) — shell Mobile do protótipo design-v3, decisão [W] 2026-10-01.
+    // Mesma pilha web/sessão do ERP: o app Capacitor abre /m; sem sessão o `auth` manda pro
+    // /login existente e o url.intended devolve a /m. Contrato das telas:
+    // memory/requisitos/Mobile/RUNBOOK-shell-mobile.md. Telas novas: rota aqui, prefixo /m.
+    Route::prefix('m')->name('mobile.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Mobile\MobileShellController::class, 'inicio'])->name('inicio');
+        Route::get('/mais', [\App\Http\Controllers\Mobile\MobileShellController::class, 'mais'])->name('mais');
+        Route::get('/{aba}', [\App\Http\Controllers\Mobile\MobileShellController::class, 'emConstrucao'])
+            ->whereIn('aba', ['tarefas', 'pedidos', 'producao'])->name('em-construcao');
+    });
     Route::get('/home/get-totals', [HomeController::class, 'getTotals']);
     Route::get('/home/product-stock-alert', [HomeController::class, 'getProductStockAlert']);
     Route::get('/home/purchase-payment-dues', [HomeController::class, 'getPurchasePaymentDues']);

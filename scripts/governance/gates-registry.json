@@ -779,6 +779,14 @@
       "anchor": "sinal de custo: a checagem de tipos estava VERMELHA no main com 298 erros em 145 pares arquivo|codigo (medido 2026-08-24, PR da catraca) e NUNCA teve gate — varredura com rc conferido (rc=1) nao achou typecheck/noEmit em scripts/ nem em .github/workflows/, e este registry nao a listava. Sem catraca, 298 nao e teto. Descoberto ao cumprir o DoD §5 do HANDOFF do espelho DS (#6205/#6207), onde o item de tipos falhava sem ninguem medir o tamanho. Advisory por ADR 0314 (divida de tipos e quality, nao dinheiro/PII/multi-tenant/fiscal) + ADR 0275 (forward-only: legado grandfathered, so o novo reprova); promote_by forca a decisao de promocao em 14d em vez de advisory eterno. Flip do vivo na branch protection = ato [W] (R10 / ADR 0275 §5).",
       "promote_by_razao": "nasce agora (2026-08-24) — 0 runs. Promover exige amostra + decisao [W]."
     },
+    "mobile-pest.yml": {
+      "nome": "Mobile · Pest (MySQL)",
+      "classe": "gate",
+      "terminal": "advisory",
+      "promote_by": "2026-12-01",
+      "anchor": "Shell do app das lojas (/m), decisao [W] 2026-10-01: o app abre o prototipo Mobile servido pelo ERP. tests/Feature/Mobile/ nasce com a base (UC-MOB-01..04: login devolve a /m, Inicio e Mais com a empresa do business autenticado, abas sem tela respondem 200 e slug desconhecido 404) e precisa de lane propria: nenhuma das *-pest.yml varre a pasta, e registro sem execucao e teste mudo (sec.5 2026-08-02). Descoberta da pasta inteira para que cada sessao de tela /m ganhe execucao so por criar o teste ali. MySQL porque autentica usuario, passa pela pilha de middleware do ERP e o caso cross-tenant precisa dos tenants 98 e 99 semeados.",
+      "promote_by_razao": "Nasce advisory (ADR 0275) porque a area nao tem historico de execucao; promocao so com mordida provada (ADR 0336) e flip [W]. Tem peca Tier 0 (empresa do business autenticado, nunca de outro). Sem continue-on-error: advisory = nao bloqueia merge, nunca = nao pode ficar vermelha."
+    },
     "dashboard-pest.yml": {
       "nome": "Dashboard · Pest (MySQL)",
       "classe": "gate",
