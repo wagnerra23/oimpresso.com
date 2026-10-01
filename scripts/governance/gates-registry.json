@@ -755,6 +755,14 @@
       "anchor": "tests/Feature/Roles/ e tests/Feature/Users/ nao rodavam em lane NENHUMA — varredura contada 2026-08-19 sobre as 17 lanes *-pest.yml: nenhuma referencia esses diretorios. Sem lane o teste nasce mudo (registro no phpunit.xml nao e execucao — sec.5 2026-08-02; skip sai exit 0 — LC-13). Provado na mesma sessao: o TimezoneGuardTest passou VERDE no CI sem ser executado, e so o wiring numa lane revelou um ParseError real. Cobre hoje o RoleTenantIsolationTest, que trava o furo Tier 0 (ADR 0093) do RoleController::update() — carregava o papel com findOrFail sem filtrar business_id, sendo o unico dos 7 acessos a Role no controller sem o filtro. MySQL e nao sqlite porque os casos autenticam usuario, montam papel Spatie e batem em rota HTTP com sessao de negocio; a action pest-mysql-setup semeia biz=1 E biz=2, sem o que o caso cross-tenant nao existe.",
       "promote_by_razao": "Nasce advisory (ADR 0275) porque a area nunca teve execucao conhecida — promocao so com mordida provada (ADR 0336). O conteudo e Tier 0 e o candidato natural a required assim que a lane acumular mordida; o flip e de [W]. Sem continue-on-error de proposito: advisory = nao bloqueia merge, nunca = nao pode ficar vermelha (lapide 2026-07-09)."
     },
+    "connector-pest.yml": {
+      "nome": "Connector · Pest (MySQL)",
+      "classe": "gate",
+      "terminal": "advisory",
+      "promote_by": "2026-12-30",
+      "anchor": "Modules/Connector/Tests/Feature/ (13 arquivos, incl. ApiClientsPanelTest com os UC-CONN-* da leva #8336/#8344/#8350/#8354/#8374/#8379) so era citado pelo modules-pest.yml, que roda SQLite sem migrate: os que exigem schema fazem markTestSkipped la e nunca executaram (medido 2026-10-01). Skip sai exit 0 (LC-13); registro no phpunit.xml nao e execucao (sec.5 2026-08-02). Entra junto o tests/Feature/Connector/DelphiOImpressoContractTest, que nao rodava em lane nenhuma. MySQL porque Passport + schema UltimatePOS + seed multi-tenant vem da action pest-mysql-setup; --check-assertions armado.",
+      "promote_by_razao": "Nasce advisory (ADR 0275) porque a area nunca teve execucao conhecida — promocao so com mordida provada (ADR 0336); o flip e de [W]. Sem continue-on-error de proposito: advisory = nao bloqueia merge, nunca = nao pode ficar vermelha (lapide 2026-07-09)."
+    },
     "auditoria-pest.yml": {
       "nome": "Auditoria · Pest (MySQL)",
       "classe": "gate",

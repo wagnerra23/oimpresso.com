@@ -18,7 +18,7 @@ lifecycle: ativo
 > - Hooks → `.claude/hooks/_HOOKS-INDEX.md` · Skills → `.claude/skills/_SKILLS-INDEX.md`
 > - Gates/Workflows → `scripts/governance/gates-registry.json` · Required → `governance/required-checks-baseline.json`
 
-## 1. Workflows / Gates de CI — 151 (48 contexts required)
+## 1. Workflows / Gates de CI — 152 (48 contexts required)
 
 > `Invocador` = gatilho `on:` do YAML · `Documento` = doc canônico de maior precedência que o cita.
 > **Evidência não é derivável aqui** (medido: 0 de 123): o `gate-selftest` prova que o SCRIPT morde,
@@ -58,6 +58,7 @@ lifecycle: ativo
 | `components-tree-guard.yml` | pr+push+manual | `memory/requisitos/_DesignSystem/CHANGELOG.md` +7 | Components tree guard (árvore canônica de Components/) |
 | `composer-lock-sync.yml` | manual | `memory/decisions/0063-prevenir-composer-lock-drift.md` +6 | Composer lock sync |
 | `compras-pest.yml` | pr+push+manual | `memory/decisions/0369-tres-lanes-pest-valor-estoque-lei-required-emenda-0314.md` +14 | Compras · Pest (MySQL) |
+| `connector-pest.yml` | pr+push+manual | — | Connector · Pest (MySQL) |
 | `contrato-de-tela.yml` | pr+push | `memory/decisions/0314-poda-gates-onda-2-lei-fusoes.md` +29 | Contrato de Tela — fidelidade visual do trio-de-tela (advisory na adoção · RUNBOOK-contrato-de-tela.md) |
 | `cowork-bundle.yml` | push+manual | `memory/reference/prototipo-ui/COWORK-ESTRUTURA-E-TELAS.md` +2 | cowork-bundle (pacote do espelho · artifact) — PR-A5 do plano COLAR-NO-CODE. Gera as PARTES do bundle v2 a partir de prototipo-ui/cowork/Wagner e as publica como artifact… |
 | `dashboard-pest.yml` | pr+push+manual | `memory/decisions/proposals/2026-09-08-lane-modules-pest-sem-mysql.md` | Dashboard · Pest (MySQL) |
