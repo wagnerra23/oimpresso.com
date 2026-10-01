@@ -133,12 +133,16 @@ Route::group([
     // CUTOVER 2026-05-15: GET /inbox redireciona pra Caixa Unificada V4 (301 permanent).
     // Inventário §6 do INVENTARIO-CUTOVER-CAIXA-UNIFICADA-V4.md.
     // - Route name `atendimento.inbox.index` preservado (compat Pest + frontend legacy)
-    // - Query string preserved automaticamente pelo Laravel Route::redirect
     // - Sub-rotas POST/PATCH (/inbox/{id}/send, /inbox/{id}/tags, etc) PERMANECEM
     //   intactas — Caixa Unificada V4 reusa todos os endpoints (sem duplicar contrato)
     // - Charter Inbox/Index.charter.md vira lifecycle: historical no mesmo PR
     // - Pages/Atendimento/Inbox/ removida em F6 (PR seguinte, 1 sprint depois)
-    Route::redirect('/inbox', '/atendimento/caixa-unificada', 301)
+    // ERRATA 2026-10-01 ([W] D1 do playbook Atendimento): até esta data a rota era
+    // `Route::redirect(...)` e este comentário dizia que a query string era
+    // preservada automaticamente. Era falso: o RedirectController do Laravel só
+    // repassa parâmetros de PATH, e `?thread=` / `?tab=` / `?channel_id=` se perdiam.
+    // O redirect agora sai de InboxController::index, que preserva a query.
+    Route::get('/inbox', [InboxController::class, 'index'])
         ->name('atendimento.inbox.index');
 
     // US-WA-VOZ-001 — Customer Profile (sidebar Customer 360).
