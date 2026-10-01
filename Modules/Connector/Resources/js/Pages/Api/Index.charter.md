@@ -51,7 +51,8 @@ Uma tela para **quem entra na empresa por API**: emitir credencial pra um app ex
 - ❌ **Rotar/alterar o segredo de um client existente** ([W] 2026-08-19): credencial comprometida é excluída e emitida de novo; o contrato do desktop em campo não se altera.
 - ❌ Delegar emissão de credencial por permissão ([W] 2026-08-19): fica em `superadmin`.
 - ❌ **Revelar ou copiar o segredo de um client existente** ([W] 2026-08-19): não existe caminho de leitura na tela nem na API interna; `makeVisible('secret')` sai do controller.
-- ❌ **Qualquer mudança que invalide credencial já instalada** ([W] 2026-08-19, restrição dura): hash de secret, rotação forçada, expiração de client, mudança de grant. O Delphi já está nos clientes e não pode ser alterado — autenticação existente não para, nunca.
+- ❌ **Qualquer mudança que invalide credencial já instalada** ([W] 2026-08-19, restrição dura): rotação forçada, expiração de client, mudança de grant. O Delphi já está nos clientes e não pode ser alterado — autenticação existente não para, nunca.
+  - ⚠️ **Errata [W] 2026-10-01:** até 2026-10-01 esta linha listava também *"hash de secret"* como mudança proibida. **Desatualizado** — decisão [W] 2026-10-01, textual: *"sim contrato desatualizado. porque eu descriptografo e gravo a senha nova no php"* (registrada em `prototipo-ui/cowork/Wagner/cowork-inbox/officeimpresso/playbook/_DECISOES-W-2026-10-01b.md`, [#8394](https://github.com/wagnerra23/oimpresso.com/pull/8394)). Segredo gravado com hash **é aceito e não invalida o Delphi**: o Passport 13 grava o hash ao salvar e confere o texto puro enviado pelo desktop no login (ver §Restrição dura).
 - ❌ Cadastro de licença/equipamento Delphi — é do módulo Officeimpresso, não do Conector.
 
 ## UX targets
@@ -73,7 +74,7 @@ Uma tela para **quem entra na empresa por API**: emitir credencial pra um app ex
 | # | Regra | Onde vive |
 |---|---|---|
 | R1 | A lista mostra só clients do negócio da sessão: `oauth_clients` × `users.business_id` com `password_client=1` | `ClientController::index` |
-| R2 | Segredo **nunca** entra na resposta da listagem: a coluna nem é selecionada (thread 03). O valor aparece só no flash `connector_credencial` da criação, num bloco copiável que fica até fechar — não em toast ([W] 2026-08-19). **`Passport::hashClientSecrets()` fica desligado** — hash invalidaria as credenciais já instaladas no Delphi | `ClientController::index/store` |
+| R2 | Segredo **nunca** entra na resposta da listagem: a coluna nem é selecionada (thread 03). O valor aparece só no flash `connector_credencial` da criação, num bloco copiável que fica até fechar — não em toast ([W] 2026-08-19). O banco guarda o **hash** do segredo (Passport 13, cast `hashed`); o login confere o texto puro por `Hash::check`. _Errata [W] 2026-10-01: até essa data esta regra dizia "`Passport::hashClientSecrets()` fica desligado — hash invalidaria as credenciais já instaladas no Delphi"; desatualizado (decisão [W] 2026-10-01)._ | `ClientController::index/store` |
 | R3 | Criar client exige `name` (string, até 191). Sem nome, 422 | `StoreOauthClientRequest::rules` |
 | R4 | Criar é operação de superadmin — o FormRequest recusa antes do controller (403) | `StoreOauthClientRequest::authorize` |
 | R5 | O client nasce com `secret` de 40 caracteres, `redirect=http://localhost`, `password_client=1`, `personal_access_client=0`, `revoked=false`; o segredo volta **uma vez** na resposta da criação | `ClientController::store` |
@@ -122,7 +123,7 @@ Estado local da tela: aba (`clients|docs|saude|modulo`), busca, segredo revelado
 | D2 | **Excluir revoga em cadeia.** | `destroy` revoga os `oauth_access_tokens` do client no mesmo ato, com a contagem na confirmação (UC-CONN-12). |
 | D3 | **Sem rotação de segredo.** Não existe e não pode passar a existir. | Nenhum endpoint de rotação; credencial comprometida = excluir + emitir nova. Non-goal registrado. |
 | D4 | **Regenerar chaves sai da tela.** | Botão removido do F1; `ClientController::regenerate` e `Route::get('/regenerate')` removidos; a operação vive no servidor. |
-| D6 | **Ninguém vê segredo — nem o administrador.** | Fecha o **caminho de leitura**, não o valor: `makeVisible('secret')` removido, nenhuma rota devolve `secret`, a lista mostra selo, o valor aparece só na resposta do POST de criação. **Sem `hashClientSecrets()`** e sem migração de coluna. |
+| D6 | **Ninguém vê segredo — nem o administrador.** | Fecha o **caminho de leitura**, não o valor: `makeVisible('secret')` removido, nenhuma rota devolve `secret`, a lista mostra selo, o valor aparece só na resposta do POST de criação. Sem migração de coluna. _Errata [W] 2026-10-01: até essa data dizia também "**Sem `hashClientSecrets()`**"; desatualizado — segredo com hash é aceito (decisão [W] 2026-10-01)._ |
 | D7 | **Licenças/equipamentos é do Officeimpresso, com permissão de suporte** — assunto diferente da API. | A proposta sai do escopo do Conector: tela no módulo Officeimpresso, permissão própria do suporte (não superadmin). |
 | D5 | **`/docs` é substituído** pela aba Documentação (catálogo lido das rotas). | Item de menu removido no `DataController::modifyAdminMenu`. |
 
@@ -134,7 +135,8 @@ Estado local da tela: aba (`clients|docs|saude|modulo`), busca, segredo revelado
 
 O WR Comercial (Delphi) está instalado nos clientes e **não pode ser alterado**. Disso decorre, para qualquer onda deste módulo:
 
-- Credencial já emitida **continua autenticando indefinidamente**. Nada de hash de `client_secret`, rotação compulsória, validade de client ou troca de grant.
+- Credencial já emitida **continua autenticando indefinidamente**. Nada de rotação compulsória, validade de client ou troca de grant.
+  - ⚠️ **Errata [W] 2026-10-01:** até 2026-10-01 esta linha proibia também *"hash de `client_secret`"*. **Desatualizado** (decisão [W] 2026-10-01, *"eu descriptografo e gravo a senha nova no php"*). Hash não invalida o desktop porque o servidor não compara o valor guardado com o enviado — ele confere: o Delphi manda o segredo em texto puro, e o Passport 13 grava o hash ao salvar (`vendor/laravel/passport/src/Client.php:126-134`, `castAttributeAsHashedString`) e valida com `Hash::check` (`vendor/laravel/passport/src/Bridge/ClientRepository.php:35-40`). Prova em teste: `Modules/Officeimpresso/Tests/Feature/OauthClientIdTest.php` — client legado com secret em hash emite token no password grant.
 - O contrato de resposta da API não muda (ADR 0021): `S;…` / `N;…`, `VersaoNova;VersaoMinObrigatoria`, JSON do registrar.
 - Endurecimento de segurança aqui é **remover caminho de leitura e de escrita indevida** (quem vê, quem apaga, o que é logado) — nunca mexer no que o app em campo envia ou espera.
 - Exclusão de client segue permitida e revoga em cadeia (D2): é ação deliberada do administrador sobre um app que saiu de operação, não efeito colateral de migração.
