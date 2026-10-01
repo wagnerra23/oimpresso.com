@@ -97,7 +97,7 @@ function paiProps(User $user): array
         'X-Inertia' => 'true',
         'X-Requested-With' => 'XMLHttpRequest',
         'X-Inertia-Version' => (string) $versao,
-        'X-Inertia-Partial-Data' => 'pessoal,negocio',
+        'X-Inertia-Partial-Data' => 'permissoes,pessoal,negocio',
         'X-Inertia-Partial-Component' => 'Crm/Painel/Index',
     ]);
     $resposta->assertOk();
@@ -141,7 +141,9 @@ it('UC-CRMPAI-03 · Admin vê o quadro do negócio, só com dados do próprio ne
 it('UC-CRMPAI-04 · quem não é Admin não recebe o quadro do negócio', function () {
     $props = paiProps(paiUsuario('pai_comum_test', ['crm.access_all_schedule']));
 
-    $this->assertNull($props['negocio'] ?? null, 'não-Admin recebeu o bloco do negócio');
+    // A chave existe (foi pedida) e vem vazia — `?? null` aqui deixaria o assert verde por ausência.
+    $this->assertArrayHasKey('negocio', $props, 'a prop negocio nem foi devolvida — o assert seria vácuo');
+    $this->assertNull($props['negocio'], 'não-Admin recebeu o bloco do negócio');
     expect($props['permissoes']['admin'])->toBeFalse();
 });
 
