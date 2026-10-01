@@ -33,8 +33,8 @@ beforeEach(function () {
         $this->markTestSkipped('SQLite-incompatível: schema MySQL UltimatePOS necessário (ADR 0101).');
     }
 
-    // O tenant de teste (biz=98) faz o papel da empresa OPERADORA: `clientes.liberar`
-    // só vale para usuário dela (AcessoOperador).
+    // Desde a decisão [W] 2026-10-01 (D1, 2ª rodada) a permissão delegável só vale para
+    // usuário da empresa OPERADORA (AcessoOperador). O tenant de teste faz esse papel.
     if ($operador = static::resolveSeededTenant()) {
         config(['constants.operator_business_id' => (int) $operador->id]);
     }

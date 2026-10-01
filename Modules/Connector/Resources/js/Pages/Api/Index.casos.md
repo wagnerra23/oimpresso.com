@@ -64,7 +64,9 @@ Status: 🧪
 ## UC-CONN-09 · Não se delega por permissão · `must`
 
 **Dado** um usuário com `connector.access` e sem `superadmin` **Quando** abre a lista **Então**
-recebe 403 ([W] D1). A remoção da chave do catálogo é da thread 05.
+recebe 403. Comportamento **vigente**, não mais proibição: a D1 ([W] 2026-08-19) foi revogada
+por [W] 2026-10-01 (2ª rodada) — delegar a funcionário do negócio operador é permitido. Se a
+delegação vier para este painel, este caso muda no mesmo PR.
 
 Status: 🧪
 

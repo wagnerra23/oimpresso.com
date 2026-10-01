@@ -27,6 +27,13 @@ class ClientController extends Controller
      * próprio de funcionário SEM abrir o Financeiro (gated por `superadmin`).
      * destroy()/regenerate() seguem superadmin-only — são destrutivos
      * (apagam credencial / derrubam TODOS os Delphi via passport:install).
+     *
+     * Decisão [W] 2026-10-01 (D1, 2ª rodada — `_DECISOES-W-2026-10-01b.md`): o painel
+     * FICA (revoga o "aposentar e redirecionar pro Connector" da 1ª rodada) e a delegação
+     * vale para funcionário da empresa OPERADORA — *"todos meus funcionários da empresa 1
+     * podem ter acessos"*. A permissão delegável só vale para usuário dela
+     * (`AcessoOperador`, id da operadora vindo de config, nunca chumbado): um papel de
+     * empresa CLIENTE com `clientes.liberar` leva 403. O `superadmin` segue valendo.
      */
     private function authorizeLiberar(): void
     {
