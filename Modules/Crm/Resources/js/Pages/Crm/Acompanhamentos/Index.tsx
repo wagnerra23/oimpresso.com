@@ -23,7 +23,8 @@ import { Label } from '@/Components/ui/label';
 import { Skeleton } from '@/Components/ui/skeleton';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import { SafeSelectItem } from '@/Components/ui/SafeSelectItem';
-import PageHeader from '@/Components/shared/PageHeader';
+import { PageHeader } from '@/Components/PageHeader';
+import SubNav from '@/Components/shared/SubNav';
 import DataTable, { type PaginatorShape } from '@/Components/shared/DataTable';
 
 const ROTA = '/crm/follow-ups';
@@ -62,7 +63,7 @@ export default function AcompanhamentosIndex({ filtros, opcoes, acompanhamentos 
 
   return (
     <div className="flex flex-col gap-4">
-      <PageHeader title="Acompanhamentos" description="Ligações, encontros, SMS e e-mails agendados com clientes e leads." />
+      <PageHeader title="Acompanhamentos" subtitle="Ligações, encontros, SMS e e-mails agendados com clientes e leads." />
 
       <Card data-contract="crm-filtros">
         <CardContent className="flex flex-col gap-3 p-4">
@@ -98,10 +99,15 @@ export default function AcompanhamentosIndex({ filtros, opcoes, acompanhamentos 
             </div>
           </div>
 
-          <div role="tablist" aria-label="Abas de acompanhamento" className="flex gap-1 border-b">
-            <Aba ativa={!recorrente} onClick={() => filtrar(filtros, { is_recursive: undefined })}>Acompanhamentos</Aba>
-            <Aba ativa={recorrente} onClick={() => filtrar(filtros, { is_recursive: '1' })}>Acompanhamento recorrente</Aba>
-          </div>
+          <SubNav
+            ariaLabel="Abas de acompanhamento"
+            value={recorrente ? 'recorrente' : 'todos'}
+            onChange={(v) => filtrar(filtros, { is_recursive: v === 'recorrente' ? '1' : undefined })}
+            items={[
+              { value: 'todos', label: 'Acompanhamentos' },
+              { value: 'recorrente', label: 'Acompanhamento recorrente' },
+            ]}
+          />
 
           <Deferred data="acompanhamentos" fallback={<Skeleton className="h-64 w-full" />}>
             {acompanhamentos ? (
@@ -142,17 +148,6 @@ function Filtro({ rotulo: nome, campo, lista, filtros }: { rotulo: string; campo
         </SelectContent>
       </Select>
     </div>
-  );
-}
-
-function Aba({ ativa, onClick, children }: { ativa: boolean; onClick: () => void; children: ReactNode }) {
-  return (
-    <button
-      type="button" role="tab" aria-selected={ativa} onClick={onClick}
-      className={`-mb-px border-b-2 px-3 py-1.5 text-sm ${ativa ? 'border-primary font-medium' : 'border-transparent text-muted-foreground'}`}
-    >
-      {children}
-    </button>
   );
 }
 

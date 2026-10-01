@@ -54,9 +54,13 @@ function acoLimpa(): void
 function acoUsuario(string $username, array $permissoes, int $biz = ACO_BIZ): User
 {
     Business::firstOrCreate(['id' => $biz], ['name' => 'Tenant fictício crm '.$biz, 'currency_id' => 1]);
+    // `user_type` e `allow_login` explícitos: o `CheckUserLogin` da rota barra quem não tem os
+    // dois, e o model recém-criado NÃO traz os defaults da coluna — medido no CI: 403 só no
+    // teste em que o usuário nascia, e 200 nos seguintes, que o liam do banco.
     $user = User::firstOrCreate(['username' => $username], [
         'email' => $username.'@test.local', 'password' => bcrypt('secret'),
         'business_id' => $biz, 'first_name' => 'Aco', 'last_name' => 'Teste',
+        'user_type' => 'user', 'allow_login' => 1,
     ]);
     $user->syncPermissions(array_map(fn ($p) => Permission::firstOrCreate(['name' => $p, 'guard_name' => 'web']), $permissoes));
 
