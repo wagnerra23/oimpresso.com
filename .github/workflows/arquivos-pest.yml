@@ -205,7 +205,8 @@ jobs:
             Modules/Arquivos/Tests/Feature/MultiTenantTest.php \
             Modules/Arquivos/Tests/Feature/ArquivosAdminControllerTest.php \
             Modules/Arquivos/Tests/Feature/DedupeMultiOwnerTest.php \
-            Modules/Arquivos/Tests/Feature/AvisoTitularServiceTest.php
+            Modules/Arquivos/Tests/Feature/AvisoTitularServiceTest.php \
+            Modules/Arquivos/Tests/Feature/AvisarTitularJobTest.php
 
 
       # Passo 1 do plano da LC-13 (Gate:): a lane JA emitia JUnit e NINGUEM lia.

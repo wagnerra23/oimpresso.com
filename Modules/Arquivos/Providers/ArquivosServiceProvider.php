@@ -43,6 +43,7 @@ class ArquivosServiceProvider extends ServiceProvider
                 \Modules\Arquivos\Console\Commands\RetentionCleanupCommand::class,
                 \Modules\Arquivos\Console\Commands\HealthCheckCommand::class,
                 \Modules\Arquivos\Console\Commands\ExportZipCommand::class,
+                \Modules\Arquivos\Console\Commands\AvisarTitularesCommand::class,
             ]);
         }
     }
