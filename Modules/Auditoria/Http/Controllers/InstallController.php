@@ -3,6 +3,7 @@
 namespace Modules\Auditoria\Http\Controllers;
 
 use App\Http\Controllers\BaseModuleInstallController;
+use App\Http\Controllers\Concerns\InstalacaoSoPorPost;
 
 /**
  * InstallController — Modules/Auditoria (ADR 0127).
@@ -19,6 +20,8 @@ use App\Http\Controllers\BaseModuleInstallController;
  */
 class InstallController extends BaseModuleInstallController
 {
+    use InstalacaoSoPorPost;
+
     protected function moduleName(): string
     {
         return 'Auditoria';

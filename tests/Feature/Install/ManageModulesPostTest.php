@@ -52,8 +52,8 @@ it('aceitaPost pergunta ao router: módulo migrado aceita, GET-only não, # não
     expect(ModulesController::aceitaPost(url('arquivos/install/update')))->toBeTrue();
     expect(ModulesController::aceitaPost(url('arquivos/install')))->toBeTrue();
 
-    // Financeiro só registra GET em install/uninstall → POST daria 405 → link GET fica.
-    expect(ModulesController::aceitaPost(url('financeiro/install/uninstall')))->toBeFalse();
+    // Woocommerce só registra GET em install/uninstall → POST daria 405 → link GET fica.
+    expect(ModulesController::aceitaPost(url('woocommerce/install/uninstall')))->toBeFalse();
     expect(ModulesController::aceitaPost('#'))->toBeFalse();
     // Rota POST que não é de InstallController de módulo não conta.
     expect(ModulesController::aceitaPost(url('manage-modules')))->toBeFalse();
@@ -119,14 +119,14 @@ it('a partial renderiza form POST com CSRF quando o módulo aceita POST', functi
 
 it('a partial mantém o link GET quando o módulo só registra GET', function () {
     $html = view('install.modules.partials.acao', [
-        'url' => url('financeiro/install/uninstall'),
+        'url' => url('woocommerce/install/uninstall'),
         'post' => false,
         'classe' => 'btn btn-warning btn-xs',
         'rotulo' => 'Desinstalar',
         'is_demo' => false,
     ])->render();
 
-    expect($html)->toContain('href="'.url('financeiro/install/uninstall').'"');
+    expect($html)->toContain('href="'.url('woocommerce/install/uninstall').'"');
     expect($html)->not->toContain('method="POST"');
 });
 
