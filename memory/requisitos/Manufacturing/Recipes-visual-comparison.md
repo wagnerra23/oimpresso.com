@@ -143,11 +143,11 @@ os JSON da medição não foram versionados — a re-medição pós-deploy entra
 | R01 | Cabeçalho | título "Fabricação" | visual | protótipo (pedido 2026-09-28) | h1 = "Fabricação" | #8239 + smoke prod | ACEITO |
 | R02 | Cabeçalho | peso do título | visual | PageHeader do protótipo | h1 600 (era 700) | prod 2026-09-30: h1 `600` | ACEITO |
 | R03 | Cabeçalho | linha de contagens (stats do PageHeader) | visual | protótipo | mesma forma do PageHeader | — | NÃO INICIADO |
-| R04 | Abas | aba ativa (fundo, peso, selo sólido) | visual | `TabBar` do DS → `PageHeaderTabs` | fundo e selo como o protótipo | — | PRONTO PARA VALIDAR (onda 2a, 2026-09-30: `_components/FabricacaoAbas.tsx` sobre o `PageHeaderTabs`, usado pelas 5 telas da Fabricação; a `<nav aria-label>` ficou por fora) |
+| R04 | Abas | aba ativa (fundo, peso, selo sólido) | visual | `TabBar` do DS → `PageHeaderTabs` | fundo e selo como o protótipo | prod 2026-09-30 (deploy `36779385207`): nas 5 telas, ativa com fundo `oklch(0.33 0.09 295 / 0.5)`, peso 600, contador `oklch(0.7 0.15 295)` com texto escuro — igual ao protótipo; clique troca de tela sem recarregar | ACEITO |
 | R05 | Indicadores | custo médio / produção do mês | visual | `KpiCard` padrão | cartão do DS, valor na cor do texto | prod: `KpiCard` default, valor `oklch(0.965 0.004 240)` 22px | ACEITO (ver R17) |
 | R06 | Indicadores | margem < 45% / desperdício ≥ 8% | visual + comportamento existente | `KpiCard variant="filter"`, ícone balança/tesoura, tom âmbar | placa de ícone 36 px, valor branco, filtro liga/desliga (R-05) | prod: placa 36px com ícone, fundo âmbar 15%, valor branco 18px/600; filtro de desperdício 1→0 linhas + vazio, desliga volta a 1 | ACEITO (ver R18) |
-| R07 | Filtros | busca | visual | `SearchInput` do DS | — | — | NÃO INICIADO (onda 2) |
-| R08 | Filtros | categorias | visual | `Segmented` do DS (hoje chips) | — | — | NÃO INICIADO (onda 2) |
+| R07 | Filtros | busca | visual | `SearchInput` do DS (sem par React: gap no registry) | 34px, canto 8, texto 13, ícone 15 dentro do campo, largura até 360 | protótipo medido 360×34 · canto 8 · 13px; prod antes 460×32 · canto 6 · 12,5px | PRONTO PARA VALIDAR (onda 2b) |
+| R08 | Filtros | categorias | visual | `Segmented` do DS → `@/Components/ui/segmented` | grupo segmentado, ativa com fundo e peso 600 | protótipo medido: grupo h32 canto 8, ativa fundo `oklch(0.3 0.008 240)` 600; prod antes: pílulas soltas, ativa roxa translúcida 400 | PRONTO PARA VALIDAR (onda 2b) |
 | R09 | Tabela | indicador de ordenação | visual | `DataGrid`: depois do rótulo, ↕ inativo opaco | ↕/↑/↓ após o rótulo em todas as colunas | prod: 7/7 colunas com o indicador por último; ↕ opacidade 0,4, ativo 1 | ACEITO |
 | R10 | Tabela | cor da coluna ordenada | visual | `DataGrid`: cor do texto | não mais o primário | prod: ativa `oklch(0.94 0.005 90)` | ACEITO (ver R19) |
 | R11 | Tabela | colunas de número à direita | visual | `DataGrid` `align:'right'` | células e cabeçalhos alinhados à direita | prod: 5 cabeçalhos e 5 células com `justify-self: end` | ACEITO |
@@ -159,6 +159,9 @@ os JSON da medição não foram versionados — a re-medição pós-deploy entra
 | R17 | Indicadores | peso do valor nos cartões de leitura | visual | protótipo: 700 | — | prod: 600 (padrão do `KpiCard`) | NÃO INICIADO — é o componente do DS, não da tela |
 | R18 | Indicadores | canto dos cartões de filtro | visual | protótipo: 8px | — | prod: 12px (`KpiCard variant="filter"`) | NÃO INICIADO — é o componente do DS, não da tela |
 | R19 | Tabela | cor das colunas não ordenadas | visual | protótipo: `--text-mute` (0,58) | — | prod: `--text-dim` (0,72), pela regra de contraste AA do bundle (ADR 0410) | FORA DE ESCOPO — a troca foi decisão de acessibilidade; reverter é decisão [W] |
+| R20 | Filtros | "(tecla /)" no texto de exemplo da busca | visual + copy | protótipo tirou; o contrato da tela (`manufacturing-recipes.contract.json`, citado do handoff normativo) mantém | — | prod mantém | FORA DE ESCOPO — copy de contrato é decisão [W] |
+| R21 | Filtros | mais de 5 categorias | comportamento | protótipo: *"a sexta pede outra peça"*, sem definir qual | — | prod volta às pílulas acima de 5 opções | NÃO DEFINIDO NO PROTÓTIPO |
+| R22 | Filtros | medidas internas do `Segmented` | visual | protótipo: canto 8 / item 26px / 11,5px | — | React: canto 5 / padding 6×13 / 12px (`cowork-fields.css`) | NÃO INICIADO — é o componente do DS, não da tela |
 
 **Medição pós-deploy (2026-09-30, deploy `36756853084`, commit `9b211de508`):** `/manufacturing/recipe`, biz=1, tema escuro, 1440 px, sonda JS no DOM (`getComputedStyle`). A lista tem 1 receita, por isso o filtro de margem (1 de 1) não discrimina; o de desperdício (0 de 1) sim, e foi ele o testado.
 
