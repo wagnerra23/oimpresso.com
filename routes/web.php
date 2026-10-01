@@ -457,6 +457,14 @@ if (app()->environment(['local', 'testing', 'staging'])) {
     })->middleware('web')->name('visreg.state');
 }
 
+// Política de privacidade PÚBLICA do app oimpresso (ERP + ponto) — sem login. As lojas
+// (Google Play / App Store) exigem URL estável. Só texto: não lê banco nem sessão.
+// Ver memory/requisitos/Site/RUNBOOK-privacidade.md.
+Route::middleware(['web', 'throttle:60,1'])->group(function () {
+    Route::get('/privacidade', [\App\Http\Controllers\PrivacidadePublicaController::class, 'app'])
+        ->name('publico.privacidade');
+});
+
 Route::middleware(['setData'])->group(function () {
     Route::get('/', function () {
         return view('welcome');
