@@ -46,9 +46,10 @@ class LicencaComputadorController extends Controller
      */
     private function authorizeAccess(): void
     {
+        // Só vale para usuário da empresa operadora (AcessoOperador): viewLicencas($id),
+        // businessall e show($id) leem licença de QUALQUER empresa.
         abort_unless(
-            auth()->user()->can('superadmin')
-            || auth()->user()->can('officeimpresso.access'),
+            AcessoOperador::pode(auth()->user(), 'officeimpresso.access'),
             403,
             'Unauthorized action.'
         );

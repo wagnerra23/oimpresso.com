@@ -291,11 +291,10 @@ it('operador · cliente com licencas.gerenciar não bloqueia máquina de outra e
     expect((int) DB::table('licenca_computador')->where('id', $id)->value('bloqueado'))->toBe(0);
     expect(DB::table('licenca_log')->where('licenca_id', $id)->count())->toBe(0);
 
+    // Desde a trava de `officeimpresso.access` (também só da operadora) a tela nem abre
+    // para empresa cliente — antes ela abria sem o botão de bloquear.
     oiLicFlag(true);
-    $this->get('/officeimpresso/licenca_computador')
-        ->assertOk()
-        ->assertInertia(fn (\Inertia\Testing\AssertableInertia $page) => $page
-            ->where('permissions.pode_gerenciar', false));
+    $this->get('/officeimpresso/licenca_computador')->assertForbidden();
 });
 
 it('operador · usuário da operadora com licencas.gerenciar bloqueia máquina de empresa cliente', function () {

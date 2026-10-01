@@ -8,7 +8,7 @@ use App\Services\Support\SupportAccessService;
 use App\User;
 
 /**
- * Quem pode ESCREVER na gestão de licenças desktop (Officeimpresso).
+ * Quem pode ESCREVER e LER na gestão de licenças desktop (Officeimpresso).
  *
  * As ações de licença (bloquear máquina, bloquear/alterar a empresa inteira, excluir) não
  * conferem o `business_id` do equipamento — por desenho: é o painel interno da operadora (WR),
@@ -24,7 +24,11 @@ use App\User;
  * Usa o `business_id` do USUÁRIO, não o da sessão: o que se pergunta é a quem ele pertence,
  * não em que empresa está navegando.
  *
- * Medido em produção em 2026-10-01 (só leitura): as 3 permissões estavam em 1 papel, do
+ * Vale também para a LEITURA (`officeimpresso.access`): `viewLicencas($id)`, `businessall`,
+ * `show($id)` e o log de acesso leem licença de QUALQUER empresa pelo mesmo motivo.
+ *
+ * Medido em produção em 2026-10-01 (só leitura): as 3 permissões de escrita e a
+ * `officeimpresso.access` estavam em 1 papel, do
  * negócio operador, com 5 usuários — todos do operador; nenhuma concessão direta. A trava
  * não tira acesso de ninguém hoje; fecha a porta para a próxima concessão errada.
  */
