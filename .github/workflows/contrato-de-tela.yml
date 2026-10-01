@@ -51,6 +51,10 @@ jobs:
           node-version: '24'
       - name: node scripts/contrato-de-tela.test.mjs
         run: node scripts/contrato-de-tela.test.mjs
+      # O detect decide se os contratos rodam; se ele ficar cego, o gate sai verde sem medir.
+      # Sandbox git real + mutante com o filtro antigo (tela de módulo tem de virar false nele).
+      - name: node scripts/contrato-de-tela-relevante.test.mjs
+        run: node scripts/contrato-de-tela-relevante.test.mjs
 
   # Preflight de base + contratos de tela ativos + intenção de fluxo. Exit code real (sem mascarar).
   # Os CONTRATOS de tela: copy + ordem + âncoras de cada *.contract.json, mapa protótipo→prod,
