@@ -45,7 +45,10 @@ relatório no cache e a linha de log do `report()`.
   protótipo para essa interação no espelho que eu tenha conferido — fica para a próxima onda.
 - **Quem recebe `arquivos.restore` / `arquivos.governanca`:** decisão [W] (aqui só declarei).
 - **Fila dedicada** (se o relatório precisar de worker): exige entrada no `Kernel.php`.
-- **Errata do prefixo:** nenhuma — os 2 arquivos novos estão sob `Http/Controllers/` e `Jobs/`.
+- **Errata do prefixo:** `memory/requisitos/Arquivos/SCOPE.md` ganhou `RetencaoSimulacaoController`
+  em `contains[]` — o `check-scope` (`--strict`) reprova controller não declarado. Fora do prefixo,
+  exigido por gate. E o `last_run` do `Index.casos.md` foi para 2026-10-01 (G-6: a tela mudou na
+  thread 03 depois do `last_run` anterior).
 
 ## Provas do json
 - `contem` `Modules/Arquivos/Routes/web.php` ⊇ `retencao/simular` — conferido pelo `placar.mjs`.
