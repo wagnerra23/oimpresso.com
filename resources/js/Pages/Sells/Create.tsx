@@ -37,6 +37,7 @@ import QuickAddVehicleSheet from './_components/QuickAddVehicleSheet';
 import PaymentRow, { type Payment } from './_components/PaymentRow';
 import NumericInputPtBR from '@/Components/ui/numeric-input-ptbr';
 import { dropdownEntries } from './_components/dropdownEntries';
+import { camposDeSubtipo } from './_components/subtipoVenda';
 import {
   Select,
   SelectContent,
@@ -654,6 +655,9 @@ export default function SellsCreate(props: SellsCreatePageProps) {
           : props.defaultDatetime,
       // Flag CRÍTICO: sem is_direct_sale=1, controller cai em cashRegister check (linha 364).
       is_direct_sale: 1,
+      // Reparo é um TIPO de venda (decisão [W] 2026-10-01): aberto por ?sub_type=repair,
+      // o envio carrega o tipo. Não muda valor nem estoque — ver subtipoVenda.ts.
+      ...camposDeSubtipo(props.subType),
       is_save_and_print: withPrint ? 1 : 0,
       // Rename pra Blade legacy convention
       payment: d.payments,
