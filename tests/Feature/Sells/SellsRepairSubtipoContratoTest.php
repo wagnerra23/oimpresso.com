@@ -96,6 +96,19 @@ function repairSubtipoVender(object $test, array $extra = []): array
         'updated_at' => now()->subDay(),
     ]);
 
+    // O catch do store() troca a exceção por "Something went wrong" e só a registra em
+    // Log::emergency. Medido no 2º run do CI: com lastro, a recusa seguiu genérica — então a
+    // causa real é capturada aqui e vai pra mensagem de falha abaixo.
+    $logs = [];
+    \Illuminate\Support\Facades\Event::listen(
+        \Illuminate\Log\Events\MessageLogged::class,
+        function ($e) use (&$logs) {
+            if (in_array($e->level, ['emergency', 'error', 'critical'], true)) {
+                $logs[] = mb_substr($e->message, 0, 400);
+            }
+        }
+    );
+
     $response = $test->post('/pos', repairSubtipoPayload(
         $test->locationId,
         $test->contactId,
@@ -114,6 +127,7 @@ function repairSubtipoVender(object $test, array $extra = []): array
         $transactionId,
         'store() não gravou a venda. status HTTP='.$response->status()
             .' erros='.json_encode(session('errors')?->getBag('default')->all() ?? [])
+            .' log='.json_encode($logs, JSON_UNESCAPED_UNICODE)
     );
 
     return [
