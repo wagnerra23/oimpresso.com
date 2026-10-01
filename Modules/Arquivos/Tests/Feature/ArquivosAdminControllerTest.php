@@ -1314,3 +1314,124 @@ it('UC-INDEX-08 · fora do grace restaurar e RECUSADO — o arquivo segue exclui
     expect(DB::table('arquivos')->where('id', $id)->value('deleted_at'))->not->toBeNull();
     expect(DB::table('arquivos_audit_log')->where('arquivo_id', $id)->count())->toBe($antes);
 })->group('arquivos');
+
+/*
+| UC-INDEX-09 · Simular a retenção em dry-run (onda 3 · PR-8 · thread 04). D4: a tela nunca apaga.
+| O controller é outro (`RetencaoSimulacaoController`) porque o UC-INDEX-01 proíbe `dispatch(`
+| no `ArquivosAdminController` inteiro.
+*/
+if (! function_exists('arquivosSimularRequest')) {
+    function arquivosSimularRequest(array $dados): Modules\Arquivos\Http\Requests\RetentionRunRequest
+    {
+        $req = Modules\Arquivos\Http\Requests\RetentionRunRequest::create('/arquivos/retencao/simular', 'POST', $dados);
+        $req->setLaravelSession(app('session.store'));
+        $req->setUserResolver(fn () => new class {
+            public int $id = 7;
+        });
+
+        return $req;
+    }
+}
+
+it('UC-INDEX-09 · simular e POST atras de arquivos.governanca, fora do controller do acervo', function () {
+    $rotas = file_get_contents(base_path('Modules/Arquivos/Routes/web.php'));
+
+    expect($rotas)->toContain("Route::post('retencao/simular', [RetencaoSimulacaoController::class, 'simular'])");
+    expect($rotas)->toContain("->middleware('can:arquivos.governanca')");
+    expect($rotas)->toContain("->name('arquivos.retencao.simular')");
+    // O controller do acervo segue sem enfileirar nada (UC-INDEX-01).
+    expect(arquivosCodigoSemComentarios(base_path('Modules/Arquivos/Http/Controllers/ArquivosAdminController.php')))
+        ->not->toContain('SimularRetencaoJob');
+})->group('arquivos');
+
+it('UC-INDEX-09 · arquivos.restore e arquivos.governanca sao DECLARADAS, sem conceder a ninguem', function () {
+    $perms = collect((new Modules\Arquivos\Http\Controllers\DataController())->user_permissions())->keyBy('value');
+
+    expect($perms->has('arquivos.restore'))->toBeTrue();
+    expect($perms->has('arquivos.governanca'))->toBeTrue();
+    expect($perms['arquivos.restore']['default'])->toBeFalse();
+    expect($perms['arquivos.governanca']['default'])->toBeFalse();
+})->group('arquivos');
+
+it('UC-INDEX-09 · o controller FORCA dry_run=true e usa o business da SESSAO (canario 98 x 99)', function () {
+    Illuminate\Support\Facades\Bus::fake();
+    session(['user' => ['business_id' => Tests\TestCase::SEEDED_TENANT_ID]]);
+
+    // Pede dry_run=false e tenta outro business pelo corpo: nenhum dos dois pode valer.
+    (new Modules\Arquivos\Http\Controllers\RetencaoSimulacaoController())->simular(arquivosSimularRequest([
+        'retention_days' => 365,
+        'dry_run'        => false,
+        'business_id'    => Tests\TestCase::SUPPORT_CLIENT_TENANT_ID,
+    ]));
+
+    Illuminate\Support\Facades\Bus::assertDispatchedAfterResponse(
+        Modules\Arquivos\Jobs\SimularRetencaoJob::class,
+        fn ($job) => $job->dryRun === true
+            && $job->purge === false
+            && $job->businessId === Tests\TestCase::SEEDED_TENANT_ID
+            && $job->retentionDays === 365
+    );
+})->group('arquivos', 'multi-tenant');
+
+it('UC-INDEX-09 · purge e RECUSADO no controller — nada e despachado', function () {
+    Illuminate\Support\Facades\Bus::fake();
+    session(['user' => ['business_id' => Tests\TestCase::SEEDED_TENANT_ID]]);
+
+    (new Modules\Arquivos\Http\Controllers\RetencaoSimulacaoController())->simular(arquivosSimularRequest([
+        'retention_days' => 365,
+        'dry_run'        => false,
+        'purge'          => true,
+        'motivo'         => 'apagar tudo pela tela',
+    ]));
+
+    expect(session('errors')?->has('purge'))->toBeTrue();
+    Illuminate\Support\Facades\Bus::assertNothingDispatched();
+})->group('arquivos');
+
+it('UC-INDEX-09 · o job recusa sozinho dry_run=false e purge (defesa em profundidade)', function () {
+    $servico = app(Modules\Arquivos\Services\ArquivosRetentionService::class);
+
+    expect(fn () => (new Modules\Arquivos\Jobs\SimularRetencaoJob(98, 365, false, false))->handle($servico))
+        ->toThrow(LogicException::class);
+    expect(fn () => (new Modules\Arquivos\Jobs\SimularRetencaoJob(98, 365, true, true))->handle($servico))
+        ->toThrow(LogicException::class);
+})->group('arquivos');
+
+it('UC-INDEX-09 · a simulacao lista so o proprio business, diz o porque e NAO escreve em arquivos nem na trilha', function () {
+    if (! Schema::hasTable('arquivos') || ! Schema::hasTable('arquivos_audit_log')) {
+        $this->markTestSkipped('tabelas do Arquivos ausentes — roda na lane MySQL.');
+    }
+
+    $proprio    = Tests\TestCase::SEEDED_TENANT_ID;
+    $adversario = Tests\TestCase::SUPPORT_CLIENT_TENANT_ID;
+    $velho = ['created_at' => now()->subDays(400), 'updated_at' => now()->subDays(400)];
+    $vencido = arquivosFixtureId($proprio);
+    DB::table('arquivos')->where('id', $vencido)->update($velho);
+    $vencido99 = arquivosFixtureId($adversario);
+    DB::table('arquivos')->where('id', $vencido99)->update($velho);
+    $novo = arquivosFixtureId($proprio);
+    $trilhaAntes = DB::table('arquivos_audit_log')->count();
+    $chave = Modules\Arquivos\Jobs\SimularRetencaoJob::chaveCache($proprio);
+    Illuminate\Support\Facades\Cache::forget($chave);
+
+    $rel = (new Modules\Arquivos\Jobs\SimularRetencaoJob($proprio, 365, true, false, 7))
+        ->handle(app(Modules\Arquivos\Services\ArquivosRetentionService::class));
+    $ids = array_column($rel['itens'], 'id');
+
+    expect($ids)->toContain($vencido);
+    expect($ids)->not->toContain($vencido99);
+    expect($ids)->not->toContain($novo);
+    expect($rel['result']['dry_run'])->toBeTrue();
+    expect($rel['result']['expired'])->toBe(0);
+    expect($rel['result']['purged'])->toBe(0);
+    $item = collect($rel['itens'])->firstWhere('id', $vencido);
+    expect($item['motivo'])->toContain('365 dias');
+    // LGPD Art. 37: só id, data e motivo — nem nome, nem caminho, nem hash.
+    expect(array_keys($item))->toBe(['id', 'criado_em', 'motivo']);
+
+    // Nada escrito: nenhuma linha excluída, a trilha do mesmo tamanho.
+    expect(DB::table('arquivos')->whereIn('id', [$vencido, $vencido99, $novo])->whereNotNull('deleted_at')->count())->toBe(0);
+    expect(DB::table('arquivos_audit_log')->count())->toBe($trilhaAntes);
+    expect(Illuminate\Support\Facades\Cache::get($chave)['itens'])->toBe($rel['itens']);
+    Illuminate\Support\Facades\Cache::forget($chave);
+})->group('arquivos', 'multi-tenant');
