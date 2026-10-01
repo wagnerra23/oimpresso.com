@@ -89,9 +89,26 @@ Status: 🧪
 
 ---
 
+## UC-SAUX-06 · Cada abertura do raio-X deixa um registro de acesso · `must` `[T0]`
+
+**Dado** que sou superadmin autenticado
+**Quando** abro o raio-X de um usuário (de qualquer business)
+**Então** fica **um** registro de acesso a mais — quem viu (eu), quem foi visto (o id do
+usuário, sem e-mail nem outro dado dele no payload), quando, meu IP e user agent — gravado com o
+`business_id` **do usuário visto**, para o dono daquele negócio poder auditar.
+
+**E** listar usuários não grava acesso, e quem é barrado na porta também não.
+
+> SPEC US-SUPER-010, aceite: *"logs de acesso em `audit_log` (LGPD Art. 7º)"*. Trilha reaproveitada:
+> `activity_log` (log `superadmin_acesso`), a mesma que o Modules/Auditoria lê por `business_id`.
+> Append-only: abrir de novo soma, não sobrescreve.
+
+Status: 🧪
+
+---
+
 ## Ainda sem teste (prosa honesta — viram UC quando ganharem teste que os cite)
 
-- [BACKLOG] **Log de acesso do superadmin ao raio-X** — é aceite da US-SUPER-010 (*"logs de acesso em `audit_log` (LGPD Art. 7º)"*) e **não está implementado** (o SPEC marca `_parcial_` por isso). Um UC aqui nasceria vermelho; a implementação é decisão de escopo, não desta thread.
 - [BACKLOG] Unlock confirmado por AlertDialog DS, nunca `window.confirm` (UX targets) — front, pede E2E.
 - [BACKLOG] Navegação por Tabs entre os blocos e risco por Badge semântico (Goals) — idem.
 - [BACKLOG] Sem polling / auto-refresh (Anti-hooks) — idem.
