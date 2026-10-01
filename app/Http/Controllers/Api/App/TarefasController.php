@@ -70,6 +70,7 @@ class TarefasController extends Controller
             return response()->json(['erro' => 'sem_permissao', 'mensagem' => 'Sua empresa não tem o módulo de tarefas.'], 403);
         }
 
+        /** @var ToDo|null $todo */
         $todo = $this->todos->scopedQueryForUser($bizId, $user)->find($id);
         if (! $todo) {
             return response()->json(['erro' => 'nao_encontrado', 'mensagem' => 'Tarefa não encontrada.'], 404);
@@ -98,7 +99,8 @@ class TarefasController extends Controller
             ->orderBy('date')
             ->limit(100)
             ->get()
-            ->map(function (ToDo $t) {
+            ->map(function ($t) {
+                /** @var ToDo $t */
                 $prazo = $t->end_date ?? $t->date;
 
                 return $this->item(
