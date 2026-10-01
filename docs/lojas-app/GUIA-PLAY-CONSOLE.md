@@ -1,7 +1,7 @@
 # Guia — Play Console, tela a tela (app "Oimpresso.com", `com.oimpresso.app`)
 
-> Decisões vigentes em [`DECISOES.md`](DECISOES.md): o app abre as telas do protótipo Mobile em `/m` (v1), não o
-> ERP web. Lista de tarefas lida do Painel do console em 2026-10-01.
+> Decisões vigentes em [`DECISOES.md`](DECISOES.md): o app usa telas próprias no `oimpresso-app` (visual do protótipo Mobile),
+> não o ERP web nem `/m`. Lista de tarefas lida do Painel do console em 2026-10-01.
 > Quem clica e salva é o [W]: cada "Salvar" é declaração em nome da empresa.
 > Respostas derivadas de [`textos/listagem-pt-BR.md`](textos/listagem-pt-BR.md) e [`textos/privacidade-lojas.md`](textos/privacidade-lojas.md).
 > Senhas nunca entram aqui: vêm do Vaultwarden e são coladas direto no console.

@@ -2,9 +2,9 @@
 
 > Escopo decidido por [W] em 2026-10-01: **um app só**, o ERP no celular **junto com o ponto** (`com.oimpresso.app`).
 > Base decidida por [W] (2026-10-01, coordenação): **Capacitor** (decisões vigentes em [`../DECISOES.md`](../DECISOES.md)); o Expo de `mobile/` fica fora das lojas.
-> **Mudança de produto (2026-10-01, via coordenação):** o app abre as telas do protótipo Mobile em `https://oimpresso.com/m`
-> (v1: Início, Tarefas, Pedidos, Produção, Pessoas, Ponto, Mais). Textos descrevem só essas funções — **não** prometer
-> Venda rápida, Finanças, OS, Estoque nem Fiscal até existirem em `/m`.
+> **O que o app mostra (D5 em [`../DECISOES.md`](../DECISOES.md)):** telas próprias no `oimpresso-app`, visual do protótipo
+> Mobile (v1: Início, Tarefas, Pedidos, Produção, Pessoas, Ponto, Mais). Textos descrevem só essas funções — **não**
+> prometer Venda rápida, Finanças, OS, Estoque nem Fiscal até existirem no app.
 > ⚠️ Levantamento legal (#8417): até INPI e certificado ICP-Brasil, **não** anunciar "REP-P", "REP" nem "registrador oficial" —
 > usar "registro de ponto do oimpresso". Limites conferidos em 2026-10-01 (Play Console Help + App Store Connect).
 > Não usar "certificado", "homologado" nem "assinado" até a sessão LEGAL confirmar (ADR 0413 tirou "assinada").
