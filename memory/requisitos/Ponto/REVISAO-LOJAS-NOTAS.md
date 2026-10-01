@@ -4,19 +4,18 @@
 > **Google Play Console → Acesso ao app**.
 >
 > - **App:** telas próprias do app (repo `oimpresso-app`), falando com o ERP pela API Passport
->   (`/oauth/token` + `/ponto/api/*`). Decisão [W] 2026-10-01; registro em `docs/lojas-app/DECISOES.md`.
->   Esta versão substitui a das notas de webview (`/ponto/mobile`).
+>   (`/oauth/token` + `/ponto/api/*`). Decisão [W] 2026-10-01 ("telas próprias + API Passport");
+>   registro em `docs/lojas-app/DECISOES.md`. Esta versão substitui a das notas de webview.
+> - **Nomes das telas e botões:** os do app v4 (`oimpresso-app` PR #6), medidos no emulador pela
+>   sessão do app em 2026-10-01. Se o app mudar um rótulo, mude aqui também.
 > - **Conta:** `revisor.ponto`, colaborador do business demo 235 ("Demo Ponto — revisão das lojas"),
 >   criada por `php artisan ponto:demo-revisor`. Empresa de demonstração isolada; nenhum cliente
 >   real. A conta `gestor.demo` **não** entra na revisão da v1 (não há tela de gestor no app).
 > - **Senha:** não está aqui. Fica no Vaultwarden, item `ponto-demo-revisor`; quem preenche a loja
 >   copia de lá.
 > - **Antes de enviar para revisão:** `php artisan ponto:demo-smoke --sem-marcar` (confere a conta
->   pela API, como o app) e `php artisan ponto:demo-dados` (deixa os dados de "hoje" com a data do dia).
-> - **A conferir com a sessão do app antes de colar:** os nomes exatos das abas e botões, e se o app
->   pede localização só ao bater o ponto. O texto abaixo segue a lista da v1 passada pela
->   coordenação em 2026-10-01 (Início · Ponto: Bater, Meu espelho, Justificar · Conta: lembrete,
->   privacidade, Excluir minha conta).
+>   pela API, como o app) e `php artisan ponto:demo-dados` (deixa os dados de "hoje" com a data do
+>   dia). O login real pelo app depende do client OAuth público do app existir no ERP.
 
 ---
 
@@ -27,21 +26,25 @@
 - Senha: informada no campo de credenciais da revisão
 
 **O que testar**
-1. Abra o app e entre com o usuário e a senha acima.
-2. **Início:** tela inicial do colaborador, com o atalho para o ponto.
-3. **Ponto → Bater:** permita a localização quando o sistema pedir, escolha o tipo (Entrada,
-   Saída almoço, Retorno ou Saída) e registre. A marcação aparece em "Hoje" com o número
-   sequencial (NSR) dado pelo servidor.
+1. Abra o app. Em **Usuário ou e-mail** digite `revisor.ponto`, preencha a **Senha** e toque em
+   **Entrar**.
+2. **Início:** o cartão **Próxima marcação** tem o atalho **Bater ›**.
+3. **Ponto → Bater ponto:** ao abrir a aba **Ponto**, o app pede a localização (somente durante o
+   uso). Escolha o tipo (**Entrada**, **Saída almoço**, **Retorno almoço** ou **Saída**) e toque em
+   **Bater ponto — Entrada** (o texto acompanha o tipo escolhido). Aparece o **Comprovante de
+   marcação** com o NSR, o hash e o local. Se o sinal estiver fraco, toque em **Atualizar local**.
 4. **Ponto → Meu espelho:** mostra as marcações do mês.
-5. **Ponto → Justificar:** envie uma justificativa (por exemplo, "esqueci de bater a saída"). Ela
-   fica pendente para o gestor.
-6. **Conta:** lembrete de bater ponto, política de privacidade e **Excluir minha conta**.
+5. **Ponto → Justificar:** escreva uma justificativa (por exemplo, "esqueci de bater a saída") e
+   toque em **Enviar para aprovação**. Ela fica pendente para o gestor.
+6. **Conta:** **Ativar lembrete**, **Política de privacidade**, **Excluir minha conta** e **Sair**.
 
 **Por que o app pede localização**
 O registro de ponto eletrônico (Portaria MTP 671/2021, REP-P) guarda onde a marcação foi feita,
-para o empregador conferir. A localização é usada só para registrar a marcação. Se a precisão do
-GPS for muito baixa (acima de 500 m), o registro é recusado e o app pede para ir a uma área aberta.
-O app não usa câmera nem biometria.
+para o empregador conferir. O app pede localização somente durante o uso, ao abrir a aba **Ponto**,
+para mostrar a precisão do GPS antes de bater; a localização é registrada apenas no momento da
+marcação. Não há permissão de localização em segundo plano. O login não pede localização. Se a
+precisão do GPS for muito baixa (acima de 500 m), o registro é recusado e o app pede para ir a uma
+área aberta. O app não usa câmera nem biometria.
 
 **Você está fora do Brasil?**
 Pode registrar normalmente. Marcações longe do local da empresa não são recusadas; no máximo ficam
@@ -65,23 +68,29 @@ mantidos pelo prazo legal.
 - Password: provided in the review credentials field
 
 **What to test**
-1. Open the app and sign in with the username and password above.
-2. **Início (Home):** the employee's home screen, with a shortcut to time clock.
-3. **Ponto → Bater (Clock in):** allow location access when prompted, choose the punch type
-   (Entrada = clock in, Saída almoço = lunch out, Retorno = back from lunch, Saída = clock out) and
-   register it. The punch shows under "Hoje" (Today) with the sequence number (NSR) issued by the
-   server.
+1. Open the app. In **Usuário ou e-mail** (username or e-mail) type `revisor.ponto`, fill in
+   **Senha** (password) and tap **Entrar** (sign in).
+2. **Início (Home):** the **Próxima marcação** (next punch) card has a **Bater ›** (clock in)
+   shortcut.
+3. **Ponto → Bater ponto (Time clock → Clock in):** when the **Ponto** tab opens, the app asks for
+   location (while using the app only). Choose the punch type (**Entrada** = clock in,
+   **Saída almoço** = lunch out, **Retorno almoço** = back from lunch, **Saída** = clock out) and tap
+   **Bater ponto — Entrada** (the label follows the chosen type). A **Comprovante de marcação**
+   (punch receipt) appears with the NSR sequence number, hash and location. If the GPS signal is
+   weak, tap **Atualizar local** (refresh location).
 4. **Ponto → Meu espelho (My timesheet):** shows this month's punches.
-5. **Ponto → Justificar (Justify):** submit a justification (for example, "forgot to clock out").
-   It stays pending for the manager.
-6. **Conta (Account):** clock-in reminder, privacy policy and **Excluir minha conta** (Delete my
-   account).
+5. **Ponto → Justificar (Justify):** write a justification (for example, "forgot to clock out") and
+   tap **Enviar para aprovação** (send for approval). It stays pending for the manager.
+6. **Conta (Account):** **Ativar lembrete** (turn on reminder), **Política de privacidade**
+   (privacy policy), **Excluir minha conta** (delete my account) and **Sair** (sign out).
 
 **Why the app asks for location**
 Brazilian electronic time-tracking rules (Portaria MTP 671/2021, REP-P) require recording where
-each punch was made, so the employer can review it. Location is used only to record the punch. If
-GPS accuracy is too poor (worse than 500 m), the punch is refused and the app asks the user to move
-to an open area. The app uses no camera and no biometrics.
+each punch was made, so the employer can review it. The app asks for location only while in use,
+when the **Ponto** tab opens, to show GPS accuracy before clocking in; location is recorded only at
+the moment of the punch. There is no background location permission. Sign-in does not ask for
+location. If GPS accuracy is too poor (worse than 500 m), the punch is refused and the app asks the
+user to move to an open area. The app uses no camera and no biometrics.
 
 **Testing from outside Brazil?**
 You can punch normally. Punches far from the company location are not rejected; at most they are
