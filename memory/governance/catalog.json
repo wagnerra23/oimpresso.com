@@ -26,23 +26,23 @@
   ],
   "stats": {
     "modules": 35,
-    "nodes": 730,
-    "edges": 1019,
+    "nodes": 732,
+    "edges": 1021,
     "by_node_type": {
       "module": 39,
       "table": 102,
       "adr": 129,
-      "component": 386,
-      "api": 74
+      "component": 387,
+      "api": 75
     },
     "by_edge_type": {
       "ownsTable": 91,
       "ownsLegacyView": 13,
       "consumesTable": 6,
-      "providesApi": 78,
+      "providesApi": 79,
       "charteredByAdr": 30,
       "governedByAdr": 78,
-      "hasComponent": 386,
+      "hasComponent": 387,
       "dependsOn": 116,
       "delegatesTo": 108,
       "migratesTo": 1,
@@ -1382,6 +1382,14 @@
       "prefix": "/pricing/*",
       "providers": [
         "Superadmin"
+      ]
+    },
+    {
+      "id": "api:/privacidade/ponto",
+      "type": "api",
+      "prefix": "/privacidade/ponto",
+      "providers": [
+        "Ponto"
       ]
     },
     {
@@ -3645,6 +3653,13 @@
       "module": "Ponto",
       "name": "IntercorrenciaController",
       "desc": ""
+    },
+    {
+      "id": "component:Ponto/PublicoController",
+      "type": "component",
+      "module": "Ponto",
+      "name": "PublicoController",
+      "desc": "páginas públicas do app de ponto, sem login (/privacidade/ponto); só texto, não lê banco"
     },
     {
       "id": "component:Ponto/RelatorioController",
@@ -11005,6 +11020,12 @@
     },
     {
       "from": "module:Ponto",
+      "to": "component:Ponto/PublicoController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Ponto",
       "to": "component:Ponto/RelatorioController",
       "type": "hasComponent",
       "source": "contains"
@@ -11024,6 +11045,12 @@
     {
       "from": "module:Ponto",
       "to": "api:/ponto/install/*",
+      "type": "providesApi",
+      "source": "url_prefixes"
+    },
+    {
+      "from": "module:Ponto",
+      "to": "api:/privacidade/ponto",
       "type": "providesApi",
       "source": "url_prefixes"
     },
