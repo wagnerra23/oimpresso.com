@@ -172,6 +172,51 @@ it('D1 · superadmin segue valendo mesmo fora da empresa operadora', function ()
     expect($this->actingAs($admin)->get('/officeimpresso/client')->status())->not->toBe(403);
 });
 
+// ── Menus e porta de entrada seguem a mesma regra (2026-10-01) ────────────────
+// O `Gate::before` libera QUALQUER ability para `Admin#{business}`: sem o AcessoOperador
+// no menu, o Admin de toda empresa cliente via "Clientes" e caía num 403. Criar credencial
+// de password grant também contornaria o bloqueio de empresa do login desktop, que em
+// User::validateForPassportPasswordGrant só vale para os client_id fixos do Delphi.
+
+it('D1 · Admin de empresa CLIENTE (Gate::before) não cria credencial nem vê o link Clientes no topnav', function () {
+    $cliente = $this->seededSupportClientTenant();
+    $cid = (int) $cliente->id;
+
+    $nomeRole = 'Admin#'.$cid;
+    $existia = \Spatie\Permission\Models\Role::where('name', $nomeRole)->exists();
+    $role = \Spatie\Permission\Models\Role::firstOrCreate(['name' => $nomeRole, 'guard_name' => 'web'], ['business_id' => $cid]);
+
+    $admin = makeOiSegredoTestUser($cid);
+    $admin->assignRole($role);
+    // Pré-condição: o bypass existe — sem a trava ele passaria.
+    expect($admin->can(PERM_OI_LIBERAR_05))->toBeTrue();
+    $nome = 'Admin cliente D1 '.Str::random(6);
+
+    $this->actingAs($admin)->post('/officeimpresso/client', ['name' => $nome])->assertForbidden();
+    expect(DB::table('oauth_clients')->where('name', $nome)->exists())->toBeFalse();
+
+    $hrefs = array_column(app(\App\Services\LegacyMenuAdapter::class)->buildTopNavs()['Officeimpresso']['items'] ?? [], 'href');
+    expect($hrefs)->not->toContain('/officeimpresso/client');
+
+    if (! $existia) {
+        $role->delete();
+    }
+});
+
+it('D1 · a porta /officeimpresso não manda o delegado de empresa CLIENTE para a lista', function () {
+    $operador = $this->seededTenant();
+    $cliente = $this->seededSupportClientTenant();
+
+    $intruso = makeOiSegredoTestUser($cliente->id);
+    $intruso->givePermissionTo(PERM_OI_LIBERAR_05);
+    $this->actingAs($intruso)->get('/officeimpresso')->assertForbidden();
+
+    // Controle: o funcionário da operadora com a mesma permissão vai para a lista.
+    $funcionario = makeOiSegredoTestUser($operador->id);
+    $funcionario->givePermissionTo(PERM_OI_LIBERAR_05);
+    $this->actingAs($funcionario)->get('/officeimpresso')->assertRedirect('/officeimpresso/client');
+});
+
 /**
  * User de teste SEM role (senão o Gate::before faria bypass de tudo).
  */
