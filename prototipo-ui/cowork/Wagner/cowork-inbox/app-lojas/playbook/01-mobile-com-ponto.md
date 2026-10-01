@@ -14,6 +14,9 @@ O app que vai para Google Play e App Store e **o protótipo Mobile** (`Oimpresso
 
 O ponto do colaborador (REP-P) hoje existe só como protótipo separado, `ponto-mobile.jsx`, desenhado dentro de moldura e ao lado da fila do gestor. Ele precisa virar parte do app Mobile.
 
+## Já existe código — o Design é a referência visual dele
+O app (repo `wagnerra23/oimpresso-app`, merge 43f1dda, 2026-10-01) já tem telas próprias de Login, Início, Ponto e Conta, montadas copiando o visual do protótipo Mobile. Este pedido é a **referência aprovável** dessas telas: o que o Design entregar e o [W] aprovar, o app passa a seguir.
+
 ## Escopo da 1ª versão — SÓ o Ponto
 Decisão [W] 2026-10-01: *"primeiro só com o ponto"*. A 1ª versão nas lojas **não** leva Tarefas, Pedidos, Produção nem Financeiro (essas telas ainda não têm dados reais do ERP). Ela leva só o que o colaborador usa para o ponto, no **visual** do protótipo Mobile (tokens, cabeçalho, cartões, barra de abas).
 
