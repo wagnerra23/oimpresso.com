@@ -412,6 +412,78 @@
               @show_tooltip(__('lang_v1.edit_purchase_price_tooltip'))
             </div>
           </div>
+          <div class="col-md-12">
+            <div class="checkbox">
+              <label>
+                {!! Form::checkbox('permissions[]', 'variation.view', in_array('variation.view', $role_permissions),
+                [ 'class' => 'input-icheck']); !!} {{ __( 'role.variation.view' ) }}
+              </label>
+            </div>
+          </div>
+          <div class="col-md-12">
+            <div class="checkbox">
+              <label>
+                {!! Form::checkbox('permissions[]', 'variation.create', in_array('variation.create', $role_permissions),
+                [ 'class' => 'input-icheck']); !!} {{ __( 'role.variation.create' ) }}
+              </label>
+            </div>
+          </div>
+          <div class="col-md-12">
+            <div class="checkbox">
+              <label>
+                {!! Form::checkbox('permissions[]', 'variation.update', in_array('variation.update', $role_permissions),
+                [ 'class' => 'input-icheck']); !!} {{ __( 'role.variation.update' ) }}
+              </label>
+            </div>
+          </div>
+          <div class="col-md-12">
+            <div class="checkbox">
+              <label>
+                {!! Form::checkbox('permissions[]', 'variation.delete', in_array('variation.delete', $role_permissions),
+                [ 'class' => 'input-icheck']); !!} {{ __( 'role.variation.delete' ) }}
+              </label>
+            </div>
+          </div>
+          <div class="col-md-12">
+            <div class="checkbox">
+              <label>
+                {!! Form::checkbox('permissions[]', 'warranty.view', in_array('warranty.view', $role_permissions),
+                [ 'class' => 'input-icheck']); !!} {{ __( 'role.warranty.view' ) }}
+              </label>
+            </div>
+          </div>
+          <div class="col-md-12">
+            <div class="checkbox">
+              <label>
+                {!! Form::checkbox('permissions[]', 'warranty.create', in_array('warranty.create', $role_permissions),
+                [ 'class' => 'input-icheck']); !!} {{ __( 'role.warranty.create' ) }}
+              </label>
+            </div>
+          </div>
+          <div class="col-md-12">
+            <div class="checkbox">
+              <label>
+                {!! Form::checkbox('permissions[]', 'warranty.update', in_array('warranty.update', $role_permissions),
+                [ 'class' => 'input-icheck']); !!} {{ __( 'role.warranty.update' ) }}
+              </label>
+            </div>
+          </div>
+          <div class="col-md-12">
+            <div class="checkbox">
+              <label>
+                {!! Form::checkbox('permissions[]', 'warranty.delete', in_array('warranty.delete', $role_permissions),
+                [ 'class' => 'input-icheck']); !!} {{ __( 'role.warranty.delete' ) }}
+              </label>
+            </div>
+          </div>
+          <div class="col-md-12">
+            <div class="checkbox">
+              <label>
+                {!! Form::checkbox('permissions[]', 'print_labels.access', in_array('print_labels.access', $role_permissions),
+                [ 'class' => 'input-icheck']); !!} {{ __( 'role.print_labels.access' ) }}
+              </label>
+            </div>
+          </div>
         </div>
         </div>
         <hr>
