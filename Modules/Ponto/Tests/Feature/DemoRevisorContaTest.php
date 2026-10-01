@@ -118,6 +118,25 @@ it('DEMO-01: cria business isolado (fora de 1/4/98), revisor sem permissão, cad
     expect(\Illuminate\Support\Facades\Hash::check($senhas[DemoRevisorCommand::GESTOR_USERNAME], User::find($g->id)->password))->toBeTrue();
 });
 
+it('DEMO-07: o business demo nasce sem integração externa — e, se ganhar uma, o comando recusa', function () {
+    [$rc] = drvRodar();
+    expect($rc)->toBe(0);
+    $bizId = (int) drvBizDemo()->id;
+    expect(DemoRevisorCommand::integracoesExternas($bizId))->toBe([]);
+
+    if (! Schema::hasTable('whatsapp_business_configs')) {
+        $this->markTestSkipped('Tabela whatsapp_business_configs ausente nesta lane — mordida não exercitável.');
+    }
+    DB::table('whatsapp_business_configs')->insert([
+        'business_id' => $bizId, 'business_uuid' => (string) \Illuminate\Support\Str::uuid(),
+        'created_at' => now(), 'updated_at' => now(),
+    ]);
+
+    [$rc2, $saida] = drvRodar();
+    expect($rc2)->toBe(1);
+    expect($saida)->toContain('whatsapp_business_configs');
+});
+
 it('DEMO-06: isolamento do gestor — vê o Ponto do business demo, nunca o colaborador do outro tenant', function () {
     $outroUser = DB::table('users')->insertGetId([
         'first_name' => 'DRV outro', 'username' => 'drv_outro_' . uniqid(), 'password' => 'x',

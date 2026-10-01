@@ -204,9 +204,48 @@ class DemoRevisorCommand extends Command
             $this->semearHistorico($colab, $revisor);
         }
 
+        $integracoes = self::integracoesExternas((int) $business->id);
+        if ($integracoes !== []) {
+            foreach ($integracoes as $tabela => $n) {
+                $this->error("Business demo tem integração externa configurada: {$tabela} ({$n} linha(s)).");
+            }
+            $this->error('O gestor é Admin do business demo: com integração externa, o que o revisor fizer pode sair para fora. Remova a configuração antes de entregar a conta.');
+
+            return 1;
+        }
+
         $this->info("OK — business demo id {$business->id} · " . self::REVISOR_USERNAME . " (user id {$revisor->id}) · " . self::GESTOR_USERNAME . " (user id {$gestor->id}) · colaborador id {$colab->id}.");
 
         return 0;
+    }
+
+    /**
+     * Tabelas que, com linha no business demo, ligariam o gestor a um sistema EXTERNO
+     * (SEFAZ, banco/gateway, WhatsApp). Decisão [W] 2026-10-01 (opção A): o gestor é Admin do
+     * business demo justamente porque nada ali sai para fora — então isto tem de ficar vazio.
+     */
+    public const TABELAS_INTEGRACAO = [
+        'nfe_certificados',
+        'payment_gateway_credentials',
+        'whatsapp_business_configs',
+        'whatsapp_business_phones',
+    ];
+
+    /** @return array<string,int> tabela => linhas do business (só as que têm alguma) */
+    public static function integracoesExternas(int $bizId): array
+    {
+        $achadas = [];
+        foreach (self::TABELAS_INTEGRACAO as $tabela) {
+            if (! \Illuminate\Support\Facades\Schema::hasTable($tabela)) {
+                continue;
+            }
+            $n = DB::table($tabela)->where('business_id', $bizId)->count();
+            if ($n > 0) {
+                $achadas[$tabela] = $n;
+            }
+        }
+
+        return $achadas;
     }
 
     private function garantirUsuario(?User $u, string $username, string $nome, int $bizId, ?string $senha): User
