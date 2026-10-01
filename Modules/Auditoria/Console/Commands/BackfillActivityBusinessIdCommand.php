@@ -106,6 +106,10 @@ class BackfillActivityBusinessIdCommand extends Command
 
         $this->table(['subject_type', 'NULL hoje', 'resolvível', 'caminho', 'escrito'], $linhas);
 
+        if (! $filtro) {
+            $this->semSubject($aplicar);
+        }
+
         // Limpeza: logs da plataforma que já saíram COM tenant (cliente ou outro).
         $vazados = DB::table('activity_log')
             ->whereNotNull('business_id')
@@ -188,6 +192,56 @@ class BackfillActivityBusinessIdCommand extends Command
         }
 
         return null;
+    }
+
+    /**
+     * Logs SEM subject (activity()->withProperties([...])->log(), sem performedOn): não há
+     * registro auditado. O tenant que o chamador declarou em properties.business_id só é
+     * gravado quando CONFERE com o business_id do usuário causador — duas fontes
+     * independentes concordando. Divergiu, sem causador ou sem declaração → fica NULL.
+     * [W] 2026-10-01 aprovou este caminho para os logs `nfe.certificado` (16 linhas, 16/16
+     * conferindo). Só roda sem --type (não tem subject_type para filtrar).
+     */
+    private function semSubject(bool $aplicar): void
+    {
+        $confere = 0;
+        $diverge = 0;
+        $semFonte = 0;
+        $escrito = 0;
+
+        DB::table('activity_log as a')
+            ->leftJoin('users as u', function ($j) {
+                $j->on('u.id', '=', 'a.causer_id')->where('a.causer_type', '=', \App\User::class);
+            })
+            ->whereNull('a.subject_type')
+            ->whereNull('a.business_id')
+            ->select('a.id', 'a.properties', 'u.business_id as causer_biz')
+            ->orderBy('a.id')
+            ->chunk(1000, function ($rows) use ($aplicar, &$confere, &$diverge, &$semFonte, &$escrito) {
+                foreach ($rows as $r) {
+                    $declarado = \App\Observers\ActivityCauserKindObserver::businessIdDeclarado($r->properties);
+                    if ($declarado === null || $r->causer_biz === null) {
+                        $semFonte++;
+
+                        continue;
+                    }
+                    if ($declarado !== (int) $r->causer_biz) {
+                        $diverge++;
+
+                        continue;
+                    }
+                    $confere++;
+                    if ($aplicar) {
+                        $escrito += DB::table('activity_log')->where('id', $r->id)->whereNull('business_id')
+                            ->update(['business_id' => $declarado]);
+                    }
+                }
+            });
+
+        $this->line(sprintf(
+            'sem subject: confere %d · diverge %d (fica NULL) · sem fonte %d (fica NULL) · %s',
+            $confere, $diverge, $semFonte, $aplicar ? "escrito: $escrito" : 'nada escrito (dry-run)'
+        ));
     }
 
     private function aplicar(string $tipo, string $expr, int $chunk): int

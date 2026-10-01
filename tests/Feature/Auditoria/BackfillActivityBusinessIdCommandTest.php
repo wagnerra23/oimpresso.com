@@ -121,3 +121,38 @@ it('log da plataforma: o backfill não dá tenant e o --apply LIMPA o que já va
     expect(bkf_biz($this->lPlataformaNull))->toBeNull();
     expect(bkf_biz($this->lPlataformaVazou))->toBeNull();
 });
+
+/**
+ * Logs SEM subject antigos (gravados antes do observer ler properties): o backfill só
+ * grava quando o properties.business_id CONFERE com o tenant do usuário causador. [W]
+ * 2026-10-01 aprovou este caminho para os 16 `nfe.certificado` de prod.
+ */
+it('sem subject: grava só quando properties confere com o tenant do causador', function () {
+    $semSubject = fn (?int $declarado, ?int $causador) => DB::table('activity_log')->insertGetId([
+        'log_name' => 'backfill-t0', 'description' => 'backfill-t0-sem-subject',
+        'subject_type' => null, 'subject_id' => null, 'business_id' => null,
+        'causer_type' => $causador ? \App\User::class : null, 'causer_id' => $causador,
+        'properties' => json_encode($declarado ? ['business_id' => $declarado] : []),
+        'created_at' => now(), 'updated_at' => now(),
+    ]);
+    $dono98 = (int) $this->biz98->owner_id;
+    if ((int) DB::table('users')->where('id', $dono98)->value('business_id') !== (int) $this->biz98->id) {
+        $this->markTestSkipped('owner do tenant 98 sem users.business_id = 98 neste schema.');
+    }
+
+    $confere = $semSubject((int) $this->biz98->id, $dono98);
+    $diverge = $semSubject((int) $this->biz99->id, $dono98); // declara 99, causador é do 98
+    $semCausador = $semSubject((int) $this->biz98->id, null);
+    $semDeclaracao = $semSubject(null, $dono98);
+
+    Artisan::call('auditoria:backfill-business-id');
+    expect(Artisan::output())->toContain('sem subject:');
+    expect(bkf_biz($confere))->toBeNull(); // dry-run não escreve
+
+    Artisan::call('auditoria:backfill-business-id', ['--apply' => true]);
+
+    expect(bkf_biz($confere))->toBe((int) $this->biz98->id);
+    expect(bkf_biz($diverge))->toBeNull();
+    expect(bkf_biz($semCausador))->toBeNull();
+    expect(bkf_biz($semDeclaracao))->toBeNull();
+});
