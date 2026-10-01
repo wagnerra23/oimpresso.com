@@ -273,3 +273,49 @@ it('DEMO-09: ponto:demo-smoke FALHA se o revisor ganhar acesso ao módulo (o smo
     expect(Artisan::call('ponto:demo-smoke', ['--sem-marcar' => true]))->toBe(1);
     expect(Artisan::output())->toContain('pode_ver_modulo=true');
 });
+
+it('DEMO-10: ponto:demo-dados semeia Início e Pessoas só no business demo, sem duplicar, sem marcação, e --limpar remove', function () {
+    drvRodar();
+    $bizId = (int) drvBizDemo()->id;
+    $outroAntes = [
+        'contacts' => DB::table('contacts')->where('business_id', DRV_OUTRO_BIZ)->count(),
+        'transactions' => DB::table('transactions')->where('business_id', DRV_OUTRO_BIZ)->count(),
+        'fin_titulos' => DB::table('fin_titulos')->where('business_id', DRV_OUTRO_BIZ)->count(),
+    ];
+
+    // --dry-run não grava.
+    expect(Artisan::call('ponto:demo-dados', ['--dry-run' => true]))->toBe(0);
+    expect(DB::table('contacts')->where('business_id', $bizId)->where('contact_id', 'like', 'DEMO-%')->count())->toBe(0);
+
+    foreach ([1, 2] as $rodada) { // 2ª rodada prova que não duplica
+        expect(Artisan::call('ponto:demo-dados'))->toBe(0);
+        expect(DB::table('contacts')->where('business_id', $bizId)->where('contact_id', 'like', 'DEMO-%')->count())->toBe(6);
+        expect(DB::table('transactions')->where('business_id', $bizId)->where('invoice_no', 'like', 'DEMO-%')->count())->toBe(3);
+        expect(DB::table('fin_titulos')->where('business_id', $bizId)->where('numero', 'like', 'DEMO-%')->count())->toBe(3);
+        expect(DB::table('products')->where('business_id', $bizId)->where('sku', 'like', 'DEMO-%')->count())->toBe(2);
+    }
+
+    // Início: 2 vendas finais hoje + 1 ontem; 2 produtos abaixo do mínimo.
+    $vendasHoje = DB::table('transactions')->where('business_id', $bizId)->where('type', 'sell')->where('status', 'final')
+        ->whereDate('transaction_date', now()->toDateString())->count();
+    expect($vendasHoje)->toBe(2);
+    $baixo = DB::table('variation_location_details as v')->join('products as p', 'p.id', '=', 'v.product_id')
+        ->where('p.business_id', $bizId)->whereColumn('v.qty_available', '<=', 'p.alert_quantity')->count();
+    expect($baixo)->toBe(2);
+
+    // Pessoas: ≥1 com dois papéis; nenhuma marcação criada.
+    expect(DB::table('contacts')->where('business_id', $bizId)->where('is_customer', 1)->where('is_supplier', 1)->count())->toBeGreaterThanOrEqual(1);
+    expect(DB::table('ponto_marcacoes')->where('business_id', $bizId)->count())->toBe(0);
+
+    // Nada vazou para outro tenant.
+    expect(DB::table('contacts')->where('business_id', DRV_OUTRO_BIZ)->count())->toBe($outroAntes['contacts']);
+    expect(DB::table('transactions')->where('business_id', DRV_OUTRO_BIZ)->count())->toBe($outroAntes['transactions']);
+    expect(DB::table('fin_titulos')->where('business_id', DRV_OUTRO_BIZ)->count())->toBe($outroAntes['fin_titulos']);
+
+    // --limpar: vendas, produtos e pessoas saem; títulos ficam cancelados.
+    expect(Artisan::call('ponto:demo-dados', ['--limpar' => true]))->toBe(0);
+    expect(DB::table('contacts')->where('business_id', $bizId)->where('contact_id', 'like', 'DEMO-%')->count())->toBe(0);
+    expect(DB::table('transactions')->where('business_id', $bizId)->where('invoice_no', 'like', 'DEMO-%')->count())->toBe(0);
+    expect(DB::table('products')->where('business_id', $bizId)->where('sku', 'like', 'DEMO-%')->count())->toBe(0);
+    expect(DB::table('fin_titulos')->where('business_id', $bizId)->where('numero', 'like', 'DEMO-%')->where('status', '!=', 'cancelado')->count())->toBe(0);
+});
