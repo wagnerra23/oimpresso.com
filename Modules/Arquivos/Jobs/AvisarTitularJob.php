@@ -99,7 +99,6 @@ class AvisarTitularJob implements ShouldQueue
             $ok = match ($canal) {
                 'email'    => $this->enviarEmail($contato, $empresa, $venceEm, $ctx),
                 'whatsapp' => $this->enviarWhatsapp($contato, $empresa, $venceEm, $ctx),
-                default    => false,
             };
             if ($ok) {
                 $saiu[] = $canal;
