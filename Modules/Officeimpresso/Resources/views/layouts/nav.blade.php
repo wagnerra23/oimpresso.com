@@ -54,7 +54,7 @@
                         </li>
                     @endif
 
-                    @if(auth()->user()->can('superadmin') || auth()->user()->can('officeimpresso.clientes.liberar'))
+                    @if(\Modules\Officeimpresso\Services\AcessoOperador::pode(auth()->user(), 'officeimpresso.clientes.liberar'))
                         <li @if(request()->segment(1) == 'officeimpresso' && request()->segment(2) == 'client') class="active" @endif>
                             <a href="{{ action([\Modules\Officeimpresso\Http\Controllers\ClientController::class, 'index']) }}">
                                 <i class="fa fas fa-user-tag"></i> @lang('officeimpresso::lang.clients')
