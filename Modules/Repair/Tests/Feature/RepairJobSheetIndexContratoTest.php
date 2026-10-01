@@ -143,7 +143,7 @@ it('UC-JSIDX-03: flag MWART ON entrega Inertia Repair/JobSheet/Index com filters
         ->get('/repair/job-sheet');
 
     if ($response->status() !== 200) {
-        test()->markTestSkipped('Render Inertia falhou ('.$response->status().') — ambiente, não contrato.');
+        test()->fail('SONDA: Render Inertia status='.$response->status().' location='.$response->headers->get('X-Inertia-Location').' body='.substr((string) $response->getContent(), 0, 300));
     }
 
     $response->assertInertia(fn (AssertableInertia $page) => $page
@@ -171,7 +171,7 @@ it('UC-JSIDX-04: datatable_url aponta para o endpoint que também serve o Blade'
         ->get('/repair/job-sheet');
 
     if ($response->status() !== 200) {
-        test()->markTestSkipped('Render Inertia falhou ('.$response->status().') — ambiente, não contrato.');
+        test()->fail('SONDA: Render Inertia status='.$response->status().' location='.$response->headers->get('X-Inertia-Location').' body='.substr((string) $response->getContent(), 0, 300));
     }
 
     $url = data_get($response->viewData('page'), 'props.datatable_url');
@@ -223,7 +223,7 @@ it('UC-JSIDX-06: a listagem ajax não devolve OS de outro business', function ()
             'updated_at' => now(),
         ]);
     } catch (Throwable $e) {
-        test()->markTestSkipped('Insert mínimo em repair_job_sheets rejeitado pelo schema: '.$e->getMessage());
+        test()->fail('SONDA: insert rejeitado: '.substr($e->getMessage(), 0, 400));
     }
 
     try {
@@ -237,7 +237,7 @@ it('UC-JSIDX-06: a listagem ajax não devolve OS de outro business', function ()
             ->get('/repair/job-sheet?draw=1&start=0&length=100');
 
         if ($response->status() !== 200) {
-            test()->markTestSkipped('Endpoint DataTables falhou ('.$response->status().') — ambiente, não contrato.');
+            test()->fail('SONDA: DataTables 06 status='.$response->status().' body='.substr((string) $response->getContent(), 0, 300));
         }
 
         expect($response->getContent())->not->toContain($marcador);
