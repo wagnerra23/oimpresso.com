@@ -21,7 +21,7 @@ class DataController extends Controller
 
     /**
      * Permissoes do modulo no UI de Roles: nenhuma ([W] D1, 2026-08-19 — CONN-O4).
-     * A `connector.access` saiu: era declarada e nenhuma checagem a usava; tudo no
+     * A permissao de acesso que havia aqui saiu: era declarada e nenhuma checagem a usava; tudo no
      * painel e `superadmin`. O metodo fica (vazio) porque o ModuleUtil coleta
      * `user_permissions` de todo DataController.
      *
@@ -41,7 +41,7 @@ class DataController extends Controller
     {
         // CONN-O4 · [W] D1 (2026-08-19): emitir/excluir credencial de API e de superadmin e
         // nao se delega. O catalogo de permissoes do modulo ficou vazio de proposito: a antiga
-        // `connector.access` era declarada e nunca verificada (sugeria uma delegacao que nao
+        // permissao de acesso era declarada e nunca verificada (sugeria uma delegacao que nao
         // existe). O menu so aparece para quem pode abrir o painel; sem superadmin, o unico
         // item que restava era o link /docs, que saiu ([W] D5 — vira a aba Documentacao).
         if (! auth()->user()->can('superadmin')) {
