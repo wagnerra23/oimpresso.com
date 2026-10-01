@@ -39,7 +39,7 @@ const dataBr = (d: string | null) => (d ? new Date(`${d.slice(0, 10)}T00:00:00`)
 const atras = (inst: string | null, obrig: string | null) => {
   if (!inst || !obrig) return false;
   const a = inst.split('.'), b = obrig.split('.');
-  for (let i = 0; i < 3; i++) { const d = (+a[i] || 0) - (+b[i] || 0); if (d) return d < 0; }
+  for (let i = 0; i < 3; i++) { const d = (Number(a[i] ?? 0) || 0) - (Number(b[i] ?? 0) || 0); if (d) return d < 0; }
   return false;
 };
 const NA_REGRA: Record<Kpi, (l: Licenca) => boolean> = {
