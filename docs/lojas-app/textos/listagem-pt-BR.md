@@ -2,6 +2,9 @@
 
 > Escopo decidido por [W] em 2026-10-01: **um app só**, o ERP no celular **junto com o ponto** (`com.oimpresso.app`).
 > Base decidida por [W] (2026-10-01, coordenação): **Capacitor com o ERP web inteiro**; o Expo de `mobile/` fica fora das lojas.
+> **Mudança de produto (2026-10-01, via coordenação):** o app abre as telas do protótipo Mobile em `https://oimpresso.com/m`
+> (v1: Início, Tarefas, Pedidos, Produção, Pessoas, Ponto, Mais). Textos descrevem só essas funções — **não** prometer
+> Venda rápida, Finanças, OS, Estoque nem Fiscal até existirem em `/m`.
 > ⚠️ Levantamento legal (#8417): até INPI e certificado ICP-Brasil, **não** anunciar "REP-P", "REP" nem "registrador oficial" —
 > usar "registro de ponto do oimpresso". Limites conferidos em 2026-10-01 (Play Console Help + App Store Connect).
 > Não usar "certificado", "homologado" nem "assinado" até a sessão LEGAL confirmar (ADR 0413 tirou "assinada").
@@ -15,18 +18,17 @@
 
 ## Google Play
 - **Título:** `oimpresso` (9/30)
-- **Descrição curta:** `Pedidos, produção, ordens de serviço e ponto da sua empresa no celular.` (71/80)
+- **Descrição curta:** `Pedidos, produção, tarefas, pessoas e ponto da sua empresa no celular.` (70/80)
 - **Descrição completa (≤4000):**
 
-O oimpresso é o ERP da sua empresa no celular. Acompanhe vendas, produção e ordens de serviço de onde estiver, e registre o ponto com a localização do aparelho.
+O oimpresso leva para o celular o essencial do sistema da sua empresa: acompanhe pedidos e produção, resolva as tarefas do dia, consulte clientes e fornecedores, e registre o ponto com a localização do aparelho.
 
 Gestão no celular:
-• Vendas, orçamentos e pedidos — consulte, acompanhe e faça uma venda rápida.
-• Produção — veja em que etapa está cada trabalho.
-• Ordens de serviço e manutenção — status, equipamentos e fotos do serviço.
-• Clientes e produtos — consulta e cadastro.
-• Estoque, financeiro, fiscal e relatórios — os números do dia na mão.
-• Tarefas e notificações da equipe.
+• Início — o resumo do dia da sua empresa.
+• Tarefas — as pendências que chegam de todos os setores, numa caixa só.
+• Pedidos — consulte e acompanhe cada pedido e a etapa em que está.
+• Produção — veja a fila de produção e o andamento de cada trabalho.
+• Pessoas — clientes, fornecedores e colaboradores num cadastro só.
 
 Registro de ponto do oimpresso:
 • Bata o ponto: entrada, saída para almoço, retorno e saída. Cada marcação vai com a localização do aparelho no momento do registro e recebe um número sequencial gerado pelo servidor; depois de feita, não pode ser alterada.
@@ -38,11 +40,11 @@ Para quem é: empresas clientes do oimpresso e seus colaboradores. O acesso é l
 
 ## Apple App Store
 - **Nome:** `oimpresso` (9/30)
-- **Subtítulo (30):** `Gestão e ponto no celular` (25/30)
-- **Texto promocional (170):** `Vendas, produção, ordens de serviço e o ponto dos colaboradores no mesmo app. Ponto com localização, sem câmera e sem biometria.` (128/170)
-- **Palavras-chave (100):** `ERP,gestão,pedidos,orçamento,produção,OS,estoque,financeiro,ponto,jornada,gráfica,oficina,vendas` (96/100)
+- **Subtítulo (30):** `Pedidos, produção e ponto` (25/30)
+- **Texto promocional (170):** `Pedidos, produção, tarefas e o ponto dos colaboradores no mesmo app. Ponto com localização, sem câmera e sem biometria.` (119/170)
+- **Palavras-chave (100):** `ERP,gestão,pedidos,produção,tarefas,clientes,fornecedores,ponto,jornada,gráfica,equipe` (86/100)
 - **Descrição:** a mesma da Play acima.
-- **URL de suporte / privacidade:** _(sessão PRIVACIDADE/PWA — aguardando)_
+- **URL de privacidade:** `https://oimpresso.com/privacidade` (#8437)
 - **Informações para revisão:** conta demo da sessão CONTA DEMO (credencial só no campo do console). Nota: "Acesso B2B criado pela empresa. A tela de ponto pede localização; fora do local da empresa a marcação é aceita e sinalizada para o gestor."
 
 ## Classificação etária
