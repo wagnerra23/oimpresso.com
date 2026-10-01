@@ -20,7 +20,7 @@ related_us: [US-CONN-001, US-CONN-013]
 
 # Page Charter — /connector/client (DRAFT)
 
-> **Status:** draft. F1 em `prototipo-ui/cowork/Wagner/connector-page.jsx`. Desde a thread Connector/04 (2026-10-01) `/connector/client` (`ClientController::index`) responde Inertia `Api/Index` — PR-a: lista, criar, excluir. As abas Documentação, Saúde e Módulo são o PR-b. A Blade `connector::clients.index` sai na thread 06. Vira `live` quando [W2] aprovar o screenshot da tela Inertia em produção.
+> **Status:** draft. F1 em `prototipo-ui/cowork/Wagner/connector-page.jsx`. Desde a thread Connector/04 (2026-10-01) `/connector/client` (`ClientController::index`) responde Inertia `Api/Index` — PR-a: lista, criar, excluir; PR-b: abas Documentação, Saúde e Módulo (`?aba=docs|saude|modulo`, componentes em `_components/ConnectorAbas.tsx`). A Blade `connector::clients.index` sai na thread 06. Vira `live` quando [W2] aprovar o screenshot da tela Inertia em produção.
 > Errata da cópia do Cowork: a rota da lista é `/connector/client`, não `/connector/api` (esta é `ConnectorController::index`, outra tela — ver `_saida-01`).
 > Backend canon: `Modules\Connector\Http\Controllers\ClientController` (`index/store/destroy`; `regenerate` sai na thread 05) + `Http\Requests\StoreOauthClientRequest`.
 > Middleware da rota: `web · SetSessionData · auth · language · timezone · AdminSidebarMenu · throttle:60,1`. As rotas de instalação usam `throttle:30,1` e o grupo `authh`.
@@ -106,7 +106,10 @@ Api/Index (Inertia) — PR-a, thread 04 (2026-10-01)
   is_demo: bool                                            // demo => clients = []
   endpoints_count: number                                  // rotas com prefixo connector/api/
   credencial: { id: number, name: string, secret: string } | null   // flash da criação, uma vez
-// PR-b: module + health (abas Módulo e Saúde)
+// PR-b (2026-10-01)
+  endpoints: Array<{ metodos: string, rota: string, acao: string }>   // lido das rotas connector/api/
+  modulo: { instalado: bool, versao: string, migracoes: number }
+// Saúde: sem prop própria — mostra rotas e tokens já medidos; licenças "não medido" até a thread 08
 ```
 
 Estado local da tela: aba (`clients|docs|saude|modulo`), busca, segredo revelado por linha, modal de criação, confirmação de exclusão, confirmação de regeneração, painel de credencial recém-criada, aviso fugaz.

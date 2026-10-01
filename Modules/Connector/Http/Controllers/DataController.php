@@ -72,8 +72,11 @@ class DataController extends Controller
                         'href'     => '/connector/client',
                         'shortcut' => 'N',
                     ],
+                    // CONN-O3 PR-b: a documentacao voltou ao menu como a aba do painel
+                    // (`?aba=docs`), que substitui a pagina /docs ([W] D5).
                     'ghosts'  => [
                         ['key' => 'clients', 'label' => 'API Clients', 'href' => '/connector/client'],
+                        ['key' => 'docs', 'label' => 'Documentação', 'href' => '/connector/client?aba=docs'],
                     ],
                 ]
             )->order(6);

@@ -110,8 +110,17 @@ Status: 🧪
 
 ## UC-CONN-19 · Catálogo bate com as rotas · `should`
 
-**Dado** as rotas com prefixo `connector/api` **Então** são pelo menos 20, e o KPI "Endpoints
-publicados" mostra a contagem real.
+**Dado** as rotas com prefixo `connector/api` **Então** são pelo menos 20, o KPI "Endpoints
+publicados" mostra a contagem real, e o catálogo da aba Documentação é esse mesmo conjunto —
+toda linha existe nas rotas, nenhuma é escrita à mão (thread 04 PR-b).
+
+Status: 🧪
+
+## UC-CONN-25 · A aba Módulo mostra o estado medido · `should`
+
+**Dado** o painel **Quando** abro a aba Módulo **Então** versão (`config('connector.module_version')`),
+número de migrações do módulo e situação de instalação vêm do servidor, não de texto fixo; instalar,
+atualizar e desinstalar levam às confirmações do `InstallController` (o GET não executa nada).
 
 Status: 🧪
 
@@ -122,5 +131,7 @@ Status: 🧪
 - [BACKLOG] Primeira vez: estado vazio explica o que é a credencial e oferece "Criar o primeiro API client" — implementado, sem teste.
 - [BACKLOG] Perder o segredo tem caminho: kebab oferece "Emitir credencial nova", nunca "revelar" — implementado, sem teste.
 - [BACKLOG] Credencial instalada nunca para de autenticar (`POST /oauth/token` com client pré-existente) — há teste sem id de UC.
-- [BACKLOG] Abas Documentação, Saúde e Módulo (instalar avisa do `passport:install --force`) — PR-b da thread 04.
+- [BACKLOG] Aba Saúde mostra os três checks do `connector:health` com limiar e origem — hoje só o que a tela mede ao abrir (rotas, tokens do negócio); licenças em 24 h fica "não medido aqui" até o histórico da thread 08. Sem teste.
+- [BACKLOG] Aba Módulo avisa do `passport:install --force` antes de instalar/atualizar — implementado na tela, sem teste.
+- [BACKLOG] O menu leva à aba Documentação (`/connector/client?aba=docs`) — implementado no `DataController`, sem teste.
 - [BACKLOG] Menu depende de instalação ou de `connector_module` no pacote — thread 05.

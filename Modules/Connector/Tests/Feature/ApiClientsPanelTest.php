@@ -390,6 +390,39 @@ class ApiClientsPanelTest extends TestCase
         $this->assertGreaterThanOrEqual(20, $rotas->count());
     }
 
+    // ── UC-CONN-19 · o catálogo da aba Documentação É o conjunto de rotas ────
+    // Thread 04 PR-b: o catálogo vem do arquivo de rotas, não de lista escrita à mão.
+    // Toda linha existe nas rotas e a contagem do KPI é a do catálogo.
+    public function test_catalogo_da_documentacao_sao_as_rotas_registradas(): void
+    {
+        $uris = collect(Route::getRoutes())
+            ->filter(fn ($r) => str_starts_with($r->uri(), 'connector/api/'))
+            ->map(fn ($r) => $r->uri());
+
+        $res = $this->actingAs($this->superadmin)->get('/connector/client');
+
+        $res->assertOk();
+        $props = $res->viewData('page')['props'];
+        $this->assertCount($uris->count(), $props['endpoints']);
+        $this->assertSame($uris->count(), $props['endpoints_count']);
+        foreach ($props['endpoints'] as $e) {
+            $this->assertContains('connector/api/'.$e['rota'], $uris->all(), "rota do catálogo inexistente: {$e['rota']}");
+            $this->assertNotSame('', $e['acao']);
+        }
+    }
+
+    // ── UC-CONN-25 · a aba Módulo mostra o estado medido ──────────────────
+    public function test_aba_modulo_mostra_versao_e_migracoes_medidas(): void
+    {
+        $res = $this->actingAs($this->superadmin)->get('/connector/client');
+
+        $res->assertOk();
+        $modulo = $res->viewData('page')['props']['modulo'];
+        $this->assertSame((string) config('connector.module_version', '2.0'), $modulo['versao']);
+        $this->assertSame(count(glob(module_path('Connector', 'Database/Migrations/*.php')) ?: []), $modulo['migracoes']);
+        $this->assertIsBool($modulo['instalado']);
+    }
+
     // ── UC-CONN-16 · demonstração recusa ──────────────────────────────────
     public function test_ambiente_demo_nao_expoe_clients(): void
     {

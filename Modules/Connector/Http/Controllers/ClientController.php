@@ -2,6 +2,7 @@
 
 namespace Modules\Connector\Http\Controllers;
 
+use App\Utils\ModuleUtil;
 use App\Utils\Util;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -68,11 +69,32 @@ class ClientController extends Controller
                         'active_tokens_24h' => (int) $c->getAttribute('active_tokens_24h'),
                     ])->values();
 
+        // CONN-O3 PR-b · aba Documentacao: o catalogo e LIDO das rotas registradas (nada
+        // escrito a mao), entao o KPI e o catalogo contam o mesmo conjunto (UC-CONN-19).
+        $endpoints = collect(Route::getRoutes())
+            ->filter(fn ($r) => str_starts_with($r->uri(), 'connector/api/'))
+            ->map(function ($r) {
+                [$classe, $metodo] = array_pad(explode('@', $r->getActionName(), 2), 2, null);
+
+                return [
+                    'metodos' => implode('·', array_values(array_diff($r->methods(), ['HEAD']))),
+                    'rota' => substr($r->uri(), strlen('connector/api/')),
+                    'acao' => class_basename($classe).($metodo ? '@'.$metodo : ''),
+                ];
+            })->values();
+
         return Inertia::render('Api/Index', [
             'clients' => $clients,
             'is_demo' => $is_demo,
-            'endpoints_count' => collect(Route::getRoutes())
-                ->filter(fn ($r) => str_starts_with($r->uri(), 'connector/api/'))->count(),
+            'endpoints_count' => $endpoints->count(),
+            'endpoints' => $endpoints,
+            // Aba Modulo: so o que se mede daqui (UC-CONN-23). Instalar/atualizar/desinstalar
+            // ficam nas confirmacoes do InstallController (GET sem efeito, acao no POST).
+            'modulo' => [
+                'instalado' => (bool) (new ModuleUtil())->isModuleInstalled('Connector'),
+                'versao' => (string) config('connector.module_version', '2.0'),
+                'migracoes' => count(glob(module_path('Connector', 'Database/Migrations/*.php')) ?: []),
+            ],
             // Unica vez que o segredo sai: o flash da criacao, lido aqui e descartado.
             'credencial' => $is_demo ? null : session('connector_credencial'),
         ]);

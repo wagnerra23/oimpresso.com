@@ -16,6 +16,7 @@ use App\VariationValueTemplate;
 use DB;
 use Excel;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 
 class ImportProductsController extends Controller
 {
@@ -46,7 +47,7 @@ class ImportProductsController extends Controller
     /**
      * Display import product screen.
      *
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\View\View|\Inertia\Response
      */
     public function index()
     {
@@ -55,6 +56,18 @@ class ImportProductsController extends Controller
         }
 
         $zip_loaded = extension_loaded('zip') ? true : false;
+
+        // Playbook Produto · thread 05: a tela é Inertia; `?classico=1` mantém a Blade.
+        if (! request()->boolean('classico')) {
+            return Inertia::render('Produto/Importacao/Index', [
+                'modo' => 'produtos',
+                'zip' => $zip_loaded,
+                'aviso' => session('notification'),
+                'resultado' => session('status'),
+                'conferencia' => session('conferencia'),
+                'modelo' => asset('files/import_products_csv_template.xls'),
+            ]);
+        }
 
         //Check if zip extension it loaded or not.
         if ($zip_loaded === false) {
@@ -73,7 +86,7 @@ class ImportProductsController extends Controller
      * Imports the uploaded file to database.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
+     * @return mixed
      */
     public function store(Request $request)
     {
@@ -146,7 +159,8 @@ class ImportProductsController extends Controller
                     //image name
                     $image_name = trim($value[29]);
                     if (! empty($image_name)) {
-                        if (filter_var($image_name, FILTER_VALIDATE_URL)) {
+                        // Conferência não baixa a imagem: download grava em disco e o rollback não desfaz.
+                        if (filter_var($image_name, FILTER_VALIDATE_URL) && ! $request->boolean('conferir')) {
                             $source_image = file_get_contents($image_name);
 
                             $path = parse_url($image_name, PHP_URL_PATH);
@@ -608,6 +622,14 @@ class ImportProductsController extends Controller
                     throw new \Exception($error_msg);
                 }
 
+                // Conferência (dry-run): para ANTES de criar produto e estoque e desfaz o que a
+                // validação acima criou (marca/categoria/variação). O caminho de gravação é o mesmo.
+                if ($request->boolean('conferir')) {
+                    DB::rollBack();
+
+                    return redirect('import-products')->with('conferencia', $this->conferencia($imported_data, $formated_data));
+                }
+
                 if (! empty($formated_data)) {
                     foreach ($formated_data as $index => $product_data) {
                         $variation_data = $product_data['variation'];
@@ -705,6 +727,38 @@ class ImportProductsController extends Controller
         }
 
         return redirect('import-products')->with('status', $output);
+    }
+
+    /**
+     * Uma linha por produto que SERIA criado — só leitura do que a validação montou.
+     * `linha` = nº da linha de dados (a 1ª depois do cabeçalho é 1), o mesmo das mensagens de erro.
+     */
+    private function conferencia(array $imported_data, array $formated_data): array
+    {
+        $linhas = [];
+        foreach ($imported_data as $key => $value) {
+            if (strtolower(trim($value[13] ?? '')) !== 'combo') {
+                $linhas[] = $key + 1;
+            }
+        }
+        $out = [];
+        foreach ($formated_data as $i => $p) {
+            $v = $p['variation'] ?? [];
+            $vs = collect($v['variations'] ?? []);
+            $out[] = [
+                'linha' => $linhas[$i] ?? $i + 1,
+                'nome' => $p['name'] ?? '',
+                'sku' => trim($p['sku'] ?? ''),
+                'tipo' => $p['type'] ?? '',
+                'estoque' => $p['type'] === 'single'
+                    ? ($p['opening_stock_details']['quantity'] ?? null)
+                    : ($vs->pluck('opening_stock')->filter(fn ($q) => $q !== null)->implode(' | ') ?: null),
+                'custo' => $p['type'] === 'single' ? ($v['dpp_inc_tax'] ?? null) : $vs->pluck('dpp_inc_tax')->implode(' | '),
+                'preco' => $p['type'] === 'single' ? ($v['dsp_inc_tax'] ?? null) : $vs->pluck('sell_price_inc_tax')->implode(' | '),
+            ];
+        }
+
+        return $out;
     }
 
     private function calculateVariationPrices($dpp_exc_tax, $dpp_inc_tax, $selling_price, $tax_amount, $tax_type, $margin)
