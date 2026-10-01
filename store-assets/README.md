@@ -1,8 +1,11 @@
-# Ativos de loja — app oimpresso (Expo, `mobile/`)
+# Ativos de loja — app oimpresso
 
 App único nas lojas: o ERP no celular **junto com o ponto** ([W] 2026-10-01). Nome proposto: `oimpresso`.
+Pasta neutra de propósito: não depende do framework do app. Base recomendada pelas sessões de publicação:
+Capacitor sobre o ERP web (`com.oimpresso.app`); `store-assets/app/` usa os nomes do `@capacitor/assets`
+(`npx @capacitor/assets generate --assetPath store-assets/app --iconBackgroundColor '#795BBF' --splashBackgroundColor '#795BBF'`).
 
-Gerados por `node mobile/store-assets/gerar-ativos.mjs` (da raiz do repo) a partir do cubo CMYK do Design
+Gerados por `node store-assets/gerar-ativos.mjs` (da raiz do repo) a partir do cubo CMYK do Design
 System e do roxo `oklch(0.55 0.15 295)` = `#795BBF`. Ícone escolhido por [W] em 2026-10-01: **variante A** (só o cubo).
 Para mudar a arte, mude o script e rode de novo — não edite os PNGs à mão.
 
@@ -11,9 +14,9 @@ Para mudar a arte, mude o script e rode de novo — não edite os PNGs à mão.
 | `app-store-icon-1024.png` | App Store Connect | 1024×1024, PNG **sem alfa** |
 | `play-icon-512.png` | Play Console | 512×512, PNG, ≤1 MB |
 | `play-feature-graphic-1024x500.jpg` | Play Console (obrigatório) | 1024×500, JPEG/PNG sem alfa |
-| `../assets/images/icon.png` | Expo `icon` | 1024×1024 |
-| `../assets/images/android-icon-{foreground,background,monochrome}.png` | Expo `android.adaptiveIcon` | 1024×1024; cubo dentro da zona segura |
-| `../assets/images/splash-icon.png` | `expo-splash-screen` | usar `backgroundColor: "#795BBF"` no `app.config.ts` |
+| `app/icon-only.png` | ícone do app (Capacitor) | 1024×1024, sem alfa |
+| `app/icon-{foreground,background}.png` | ícone adaptativo Android | 1024×1024; cubo dentro da zona segura |
+| `app/splash.png`, `app/splash-dark.png` | splash | 2732×2732, fundo `#795BBF` |
 | `textos/listagem-pt-BR.md` | nome, descrições, palavras-chave, classificação etária | rascunho para [W] |
 | `textos/privacidade-lojas.md` | Data Safety (Google) e App Privacy (Apple) | rascunho para [W] |
 

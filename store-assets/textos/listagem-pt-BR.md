@@ -1,7 +1,7 @@
 # oimpresso — textos das lojas (pt-BR) · RASCUNHO para [W] revisar
 
-> Escopo decidido por [W] em 2026-10-01: **um app só**, o ERP no celular (app Expo `mobile/`, `com.oimpresso.app`)
-> **junto com o ponto** (REP-P do `/ponto/mobile`). Limites conferidos em 2026-10-01 (Play Console Help + App Store Connect).
+> Escopo decidido por [W] em 2026-10-01: **um app só**, o ERP no celular **junto com o ponto** (`com.oimpresso.app`).
+> Base recomendada pelas sessões de publicação: Capacitor sobre o ERP web (já tem `/ponto/mobile`); [W] pode vetar. Limites conferidos em 2026-10-01 (Play Console Help + App Store Connect).
 > Não usar "certificado", "homologado" nem "assinado" até a sessão LEGAL confirmar (ADR 0413 tirou "assinada").
 > Só listar o que o build enviado faz de verdade — se o ponto ainda não estiver no build, tirar o bloco do ponto.
 

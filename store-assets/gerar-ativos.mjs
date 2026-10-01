@@ -1,13 +1,14 @@
 // Gera os ativos de loja do app a partir da marca do Design System.
 // Fonte: prototipo-ui/design-system/assets/brand/logo-mark.svg (cubo CMYK) + roxo do DS oklch(0.55 0.15 295).
 // Ícone escolhido por [W] em 2026-10-01: variante A (só o cubo, fundo roxo).
-// Rodar da raiz do repo:  node mobile/store-assets/gerar-ativos.mjs   (usa o Playwright da raiz)
+// Rodar da raiz do repo:  node store-assets/gerar-ativos.mjs   (usa o Playwright da raiz)
 // PNGs de loja saem em RGB sem canal alfa (a Apple recusa ícone com alfa).
 import { createRequire } from 'node:module';
 import fs from 'node:fs'; import zlib from 'node:zlib'; import path from 'node:path';
 const ROOT = process.cwd();
 const { chromium } = createRequire(path.join(ROOT, 'package.json'))('playwright');
-const OUT = path.join(ROOT, 'mobile/store-assets'), IMG = path.join(ROOT, 'mobile/assets/images');
+const OUT = path.join(ROOT, 'store-assets'), IMG = path.join(OUT, 'app');
+fs.mkdirSync(IMG, { recursive: true });
 const cube = fs.readFileSync(path.join(ROOT, 'prototipo-ui/design-system/assets/brand/logo-mark.svg'), 'utf8')
   .replace('<svg ', '<svg style="width:100%;height:auto;display:block" ');
 const PURPLE = 'oklch(0.55 0.15 295)';
@@ -32,12 +33,12 @@ async function render(body, w, h, file, { alpha = false, jpg = false } = {}) {
 const marca = (w, mono = false) => `<div style="width:${w}px;${mono ? 'filter:brightness(0) invert(1)' : ''}">${cube}</div>`;
 const roxo = { style: `background:${PURPLE}` }, transp = { style: 'background:transparent' };
 
-// App (Expo lê de mobile/assets/images — ver app.config.ts)
-await render({ ...roxo, html: marca(1024 * 0.56) }, 1024, 1024, `${IMG}/icon.png`);
-await render({ ...transp, html: marca(1024 * 0.46) }, 1024, 1024, `${IMG}/android-icon-foreground.png`, { alpha: true });
-await render({ ...roxo, html: '' }, 1024, 1024, `${IMG}/android-icon-background.png`);
-await render({ ...transp, html: marca(1024 * 0.46, true) }, 1024, 1024, `${IMG}/android-icon-monochrome.png`, { alpha: true });
-await render({ ...transp, html: marca(1024 * 0.60) }, 1024, 1024, `${IMG}/splash-icon.png`, { alpha: true });
+// App — nomes do @capacitor/assets (`npx @capacitor/assets generate --assetPath store-assets/app`)
+await render({ ...roxo, html: marca(1024 * 0.56) }, 1024, 1024, `${IMG}/icon-only.png`);
+await render({ ...transp, html: marca(1024 * 0.46) }, 1024, 1024, `${IMG}/icon-foreground.png`, { alpha: true });
+await render({ ...roxo, html: '' }, 1024, 1024, `${IMG}/icon-background.png`);
+await render({ ...roxo, html: marca(2732 * 0.22) }, 2732, 2732, `${IMG}/splash.png`);
+await render({ ...roxo, html: marca(2732 * 0.22) }, 2732, 2732, `${IMG}/splash-dark.png`);
 // Lojas
 await render({ ...roxo, html: marca(1024 * 0.56) }, 1024, 1024, `${OUT}/app-store-icon-1024.png`);
 await render({ ...roxo, html: marca(512 * 0.56) }, 512, 512, `${OUT}/play-icon-512.png`);
