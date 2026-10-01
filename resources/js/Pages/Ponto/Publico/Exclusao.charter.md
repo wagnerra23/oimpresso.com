@@ -4,6 +4,7 @@ component: resources/js/Pages/Ponto/Publico/Exclusao.tsx
 owner: wagner
 status: draft
 parent_module: Ponto
+related_us: [US-PONTO-001]
 related_prototype: n/a (página pública de texto legal — bespoke; não segue um dos 5 Padrões de Tela)
 runbook: memory/requisitos/Ponto/RUNBOOK-publico.md
 alcance:

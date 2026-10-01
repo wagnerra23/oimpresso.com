@@ -26,20 +26,20 @@
   ],
   "stats": {
     "modules": 35,
-    "nodes": 732,
-    "edges": 1021,
+    "nodes": 733,
+    "edges": 1022,
     "by_node_type": {
       "module": 39,
       "table": 102,
       "adr": 129,
       "component": 387,
-      "api": 75
+      "api": 76
     },
     "by_edge_type": {
       "ownsTable": 91,
       "ownsLegacyView": 13,
       "consumesTable": 6,
-      "providesApi": 79,
+      "providesApi": 80,
       "charteredByAdr": 30,
       "governedByAdr": 78,
       "hasComponent": 387,
@@ -1388,6 +1388,14 @@
       "id": "api:/privacidade/ponto",
       "type": "api",
       "prefix": "/privacidade/ponto",
+      "providers": [
+        "Ponto"
+      ]
+    },
+    {
+      "id": "api:/privacidade/ponto/exclusao",
+      "type": "api",
+      "prefix": "/privacidade/ponto/exclusao",
       "providers": [
         "Ponto"
       ]
@@ -3659,7 +3667,7 @@
       "type": "component",
       "module": "Ponto",
       "name": "PublicoController",
-      "desc": "páginas públicas do app de ponto, sem login (/privacidade/ponto); só texto, não lê banco"
+      "desc": "páginas públicas do app de ponto, sem login (/privacidade/ponto e /exclusao); só texto, não lê banco"
     },
     {
       "id": "component:Ponto/RelatorioController",
@@ -11045,6 +11053,12 @@
     {
       "from": "module:Ponto",
       "to": "api:/ponto/install/*",
+      "type": "providesApi",
+      "source": "url_prefixes"
+    },
+    {
+      "from": "module:Ponto",
+      "to": "api:/privacidade/ponto/exclusao",
       "type": "providesApi",
       "source": "url_prefixes"
     },
