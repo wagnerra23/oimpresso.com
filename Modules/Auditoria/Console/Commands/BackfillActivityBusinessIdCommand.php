@@ -26,8 +26,8 @@ use Illuminate\Support\Facades\Schema;
  *   Sem caminho (classe inexistente, tabela sem tenant) → reportado e PULADO.
  *   Registro apagado ou com tenant NULL → a linha fica NULL (não inventa).
  *
- * Log da PLATAFORMA (model com `const AUDITORIA_LOG_DA_PLATAFORMA = true` — licenças do
- * Officeimpresso, [W] 2026-10-01) NUNCA recebe tenant: o backfill pula esses tipos e o
+ * Log da PLATAFORMA (licenças do Officeimpresso — lista no ActivityCauserKindObserver,
+ * [W] 2026-10-01) NUNCA recebe tenant: o backfill pula esses tipos e o
  * --apply LIMPA (volta a NULL) as linhas deles que já saíram com business_id de cliente.
  *
  * Seguro por construção: só toca linhas com business_id IS NULL (idempotente; nunca
@@ -133,8 +133,17 @@ class BackfillActivityBusinessIdCommand extends Command
         return self::SUCCESS;
     }
 
+    /**
+     * Fonte única: ActivityCauserKindObserver::ehLogDaPlataforma (lista das licenças do
+     * Officeimpresso, PR #8410). Até ele estar no main, cai no marcador de constante.
+     */
     private static function ehDaPlataforma(string $tipo): bool
     {
+        $observer = \App\Observers\ActivityCauserKindObserver::class;
+        if (method_exists($observer, 'ehLogDaPlataforma')) {
+            return $observer::ehLogDaPlataforma($tipo);
+        }
+
         return class_exists($tipo) && defined($tipo.'::AUDITORIA_LOG_DA_PLATAFORMA')
             && constant($tipo.'::AUDITORIA_LOG_DA_PLATAFORMA') === true;
     }
