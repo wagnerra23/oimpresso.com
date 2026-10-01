@@ -4,7 +4,7 @@
 > 2026-10-01 na coordenação; o Expo de `mobile/` fica fora das lojas. Levantado do código em main (2026-10-01):
 > - Ponto (`MobileMarcacaoController@registrar`): `lat`, `lng`, `accuracy` (não gravada), `device_uuid`, `timestamp_device`.
 > - ERP web: login do oimpresso (sessão), cadastro de clientes (nome, CPF/CNPJ, contato), anexos de OS escolhidos pelo usuário.
-> - App Capacitor medido em 2026-10-01 (`D:\oimpresso-ponto-app`, package.json + build.gradle, via sessão ANDROID):
+> - App Capacitor medido em 2026-10-01 (repo [`wagnerra23/oimpresso-app`](https://github.com/wagnerra23/oimpresso-app), antes `oimpresso-ponto-app`, package.json + build.gradle, via sessão ANDROID):
 >   **sem** Crashlytics/Analytics nem outro SDK de crash ou analytics; push só por FCM (`@capacitor/push-notifications`,
 >   token = identificador do aparelho). Permissões: INTERNET, localização aproximada e precisa **só em uso**
 >   (sem BACKGROUND), POST_NOTIFICATIONS. Sem CAMERA e sem microfone. Fotos de OS chegam pelo seletor de arquivos do
