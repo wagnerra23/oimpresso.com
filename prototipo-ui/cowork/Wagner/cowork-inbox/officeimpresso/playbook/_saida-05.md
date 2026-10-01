@@ -55,6 +55,18 @@ violaria uma proibição do charter que só o [W] pode mudar.
 - **(c)** Acabar com a delegação: só o superadmin emite credencial, e este painel redireciona
   para o Connector.
 
+## Achado no CI (fora do escopo, para o [W]/sessão-mãe)
+O 1º run da lane do #8362 mostrou dois fatos do ambiente:
+- **O Passport 13.7.5 grava o secret com hash** (bcrypt de 60 caracteres). O texto puro só
+  existe no momento da criação, e por isso o flash é a única fonte dele. Antes disso, a lista
+  "revelava" o hash dos clients novos, não o segredo.
+- **O model do Passport 13 gera UUID no `id`, e o schema legado é `int` auto-increment.** No
+  MySQL do CI o UUID virou `1` e o 2º client do mesmo teste deu `Duplicate entry '1'`. Em
+  produção, se o MySQL estiver em modo estrito, o `store` dos **dois** painéis (Officeimpresso
+  e Connector) pode estar falhando, ou gravando com um id diferente do que o model devolve.
+  NÃO MEDI isso em produção. Por causa disso o bloco da credencial não mostra o
+  `$client->id`: ele aponta para a linha da lista, que lê o id gravado.
+
 ## Fora do escopo, sem mexer
 - `destroy` (apaga sem revogar tokens) e `regenerate` (GET que roda `passport:install --force`)
   continuam como estavam, só para superadmin. As ondas O2/O2b do Connector consertaram isso

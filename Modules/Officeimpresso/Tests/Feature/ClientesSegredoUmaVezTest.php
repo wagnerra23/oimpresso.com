@@ -6,7 +6,6 @@ use App\User;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
-use Laravel\Passport\Passport;
 use Spatie\Permission\Models\Permission;
 
 uses(Tests\TestCase::class, DatabaseTransactions::class);
@@ -67,9 +66,11 @@ it('thread 05 · delegado cria e vê o secret uma única vez', function () {
         ->post('/officeimpresso/client', ['name' => $nome])
         ->assertRedirect('/officeimpresso/client');
 
-    $secret = DB::table('oauth_clients')->where('name', $nome)->value('secret');
+    // O Passport 13 grava o hash; o texto puro só existe no flash da criação.
+    $secret = session('officeimpresso_credencial.secret');
     expect($secret)->toBeString();
     expect(strlen($secret))->toBe(40);
+    expect(DB::table('oauth_clients')->where('name', $nome)->exists())->toBeTrue();
 
     // 1ª abertura depois da criação: o bloco copiável traz o segredo.
     $this->get('/officeimpresso/client')->assertOk()->assertSee($secret);
@@ -122,21 +123,26 @@ function makeOiSegredoTestUser(int $businessId): User
 }
 
 /**
- * @return array{0: object, 1: string}
+ * Fixture por query builder, não pelo model: o Passport 13 gera UUID no `id` e o
+ * schema legado é `int` auto-increment — dois clients no mesmo teste colidiam
+ * (medido no CI do #8362). O secret entra cru, que é o caso do legado em campo.
+ *
+ * @return array{0: int, 1: string}
  */
 function makeOiSegredoClient(User $owner, string $name): array
 {
     $secret = Str::random(40);
-    $client = Passport::client()->forceFill([
+    $id = DB::table('oauth_clients')->insertGetId([
         'user_id' => $owner->id,
         'name' => $name,
         'secret' => $secret,
         'redirect' => 'http://localhost',
         'personal_access_client' => 0,
         'password_client' => 1,
-        'revoked' => false,
+        'revoked' => 0,
+        'created_at' => now(),
+        'updated_at' => now(),
     ]);
-    $client->save();
 
-    return [$client, $secret];
+    return [(int) $id, $secret];
 }

@@ -26,7 +26,7 @@
             <p style="margin: 0 0 8px; color: #92400e;">
                 Copie agora: o secret não será exibido de novo. Perdeu? Crie outro cliente e exclua este.
             </p>
-            <p style="margin: 0 0 4px;">Client ID: <span class="text-mono">{{ $credencial['id'] }}</span></p>
+            <p style="margin: 0 0 4px;">Client ID: o número da linha "{{ $credencial['name'] }}" na lista abaixo.</p>
             <p style="margin: 0; display: flex; gap: 8px; align-items: center;">
                 Secret: <span class="text-mono" id="oi_credencial_secret">{{ $credencial['secret'] }}</span>
                 <button type="button" class="oi-btn oi-btn-ghost oi-btn-xs" id="oi_credencial_copiar">
