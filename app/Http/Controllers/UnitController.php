@@ -335,7 +335,7 @@ class UnitController extends Controller
                         ? '1 '.$u->getAttribute('short_name').' = '.(float) $u->getAttribute('base_unit_multiplier').' '.$u->getAttribute('base_simbolo')
                         : null,
                     'em_uso' => (int) $u->getAttribute('em_uso'),
-                ])) : null,
+                ])->values()->all()) : null,
             'marcas' => $can['marcas']['view'] ? Inertia::defer(fn () => Brands::where('brands.business_id', $business_id)
                 ->select('brands.id', 'brands.name', 'brands.description')
                 ->selectSub($emUso('brand_id', 'brands'), 'em_uso')
@@ -346,7 +346,7 @@ class UnitController extends Controller
                     'nome' => (string) $b->getAttribute('name'),
                     'descricao' => (string) $b->getAttribute('description'),
                     'em_uso' => (int) $b->getAttribute('em_uso'),
-                ])) : null,
+                ])->values()->all()) : null,
         ]);
     }
 }
