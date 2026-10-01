@@ -219,6 +219,13 @@ Regras que não mudam: sem biometria/câmera (ADR 0383); marcação imutável (P
 Dadas no chat da sessão de coordenação "Publicar protótipo mobile nas lojas", uma pergunta por
 decisão, com as opções lado a lado. Onde a resposta difere da recomendação acima, vale a resposta.
 
+> ⚠️ **Mudou o ONDE, não o QUÊ (mesmo dia):** o cabeçalho deste mapa diz que as telas seriam
+> páginas Inertia sob `/m`. Isso foi **revertido** pelo [W] depois de ver `/m` no emulador ("não
+> gostei dele dentro do sistema" → telas próprias no app; #8472). Vale agora: telas empacotadas no
+> repo `oimpresso-app`, falando com o ERP por API Passport por tela. As fontes de dado deste mapa
+> e as decisões abaixo **continuam valendo** — mudam só a camada que as entrega (endpoint JSON por
+> tela em vez de props Inertia). Registro único: `docs/lojas-app/DECISOES.md` (D5, D11).
+
 | # | Decisão [W] |
 |---|---|
 | **D1** | Meta do dia = meta **mensal da Jana ÷ dias úteis**, rotulada como derivada. |
