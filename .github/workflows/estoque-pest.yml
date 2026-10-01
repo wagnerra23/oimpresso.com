@@ -130,6 +130,10 @@ on:
       - 'app/Utils/TransactionUtil.php'
       - 'app/Http/Controllers/ProductController.php'
       - 'app/Http/Controllers/ProdutoUnificadoController.php'
+      # Playbook Produto · thread 02 — SOB TESTE do ProdutoCadastrosContratoTest (§5 2026-08-02).
+      - 'app/Http/Controllers/UnitController.php'
+      - 'app/Http/Controllers/BrandController.php'
+      - 'resources/js/Pages/Produto/Cadastros/**'
       - 'app/Category.php'
       # 2026-08-21 — as 2 entradas do BOM, que entraram só no filtro interno em
       # 2026-08-11 (junto com o `ProdutoBomContratoTest` saindo da quarentena).
@@ -191,6 +195,10 @@ jobs:
               # Arquivos SOB TESTE do ProdutoUnificadoCategoriasContratoTest. Sem eles no
               # trigger, mexer no controller não dispara o teste dele (§5 2026-08-02).
               - 'app/Http/Controllers/ProdutoUnificadoController.php'
+              # Playbook Produto · thread 02 — SOB TESTE do ProdutoCadastrosContratoTest.
+              - 'app/Http/Controllers/UnitController.php'
+              - 'app/Http/Controllers/BrandController.php'
+              - 'resources/js/Pages/Produto/Cadastros/**'
               - 'app/Category.php'
               # Arquivos SOB TESTE do ProdutoBomContratoTest, que saiu da quarentena em
               # 2026-08-11 (UC-PBOM-02 corrigido). Mesma razão escrita 3 linhas acima: sem

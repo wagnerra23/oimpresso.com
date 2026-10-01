@@ -15,7 +15,7 @@ tabelas_dominio: ["products", "variations", "product_variations", "variation_loc
 >
 > **O que isto é:** o módulo `Produto` é CLASSE B — o código mora no núcleo UltimatePOS (`app/`), sem diretório modular homônimo. A membership vem de uma **semente curada** de paths do core declarada em `module-surface.mjs::CORE_APP_MODULES` (revisável no diff) + `resources/js/Pages/Produto/**`. **O que NÃO é:** cobertura/nota/status (donos: `screen-coverage-map.mjs` + `casos-gate`) nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve). As **tabelas do domínio** (`products`, `variations`, `product_variations`, `variation_location_details`) são metadado-ÂNCORA declarado, **não** o derivador (derivar por tabela over-inclui — medido 2026-07-21).
 
-**Total mapeado:** 100 arquivos em 9 papéis.
+**Total mapeado:** 103 arquivos em 9 papéis.
 
 ## Controllers — 8
 
@@ -93,9 +93,10 @@ tabelas_dominio: ["products", "variations", "product_variations", "variation_loc
 - [index.blade.php](../../../resources/views/selling_price_group/index.blade.php)
 - [update_product_price.blade.php](../../../resources/views/selling_price_group/update_product_price.blade.php)
 
-## Telas (Inertia/React) — 8
+## Telas (Inertia/React) — 9
 
 - [BulkEdit.tsx](../../../resources/js/Pages/Produto/BulkEdit.tsx)
+- [Index.tsx](../../../resources/js/Pages/Produto/Cadastros/Index.tsx)
 - [Create.tsx](../../../resources/js/Pages/Produto/Create.tsx)
 - [Edit.tsx](../../../resources/js/Pages/Produto/Edit.tsx)
 - [Index.tsx](../../../resources/js/Pages/Produto/Index.tsx)
@@ -118,9 +119,10 @@ tabelas_dominio: ["products", "variations", "product_variations", "variation_loc
 - [PopoverAncorado.tsx](../../../resources/js/Pages/Produto/Unificado/_components/PopoverAncorado.tsx)
 - [SubTelas.tsx](../../../resources/js/Pages/Produto/Unificado/_components/SubTelas.tsx)
 
-## Charters (lei da tela) — 8
+## Charters (lei da tela) — 9
 
 - [BulkEdit.charter.md](../../../resources/js/Pages/Produto/BulkEdit.charter.md)
+- [Index.charter.md](../../../resources/js/Pages/Produto/Cadastros/Index.charter.md)
 - [Create.charter.md](../../../resources/js/Pages/Produto/Create.charter.md)
 - [Edit.charter.md](../../../resources/js/Pages/Produto/Edit.charter.md)
 - [Index.charter.md](../../../resources/js/Pages/Produto/Index.charter.md)
@@ -129,9 +131,10 @@ tabelas_dominio: ["products", "variations", "product_variations", "variation_loc
 - [StockHistory.charter.md](../../../resources/js/Pages/Produto/StockHistory.charter.md)
 - [Index.charter.md](../../../resources/js/Pages/Produto/Unificado/Index.charter.md)
 
-## Casos (contrato UC) — 8
+## Casos (contrato UC) — 9
 
 - [BulkEdit.casos.md](../../../resources/js/Pages/Produto/BulkEdit.casos.md)
+- [Index.casos.md](../../../resources/js/Pages/Produto/Cadastros/Index.casos.md)
 - [Create.casos.md](../../../resources/js/Pages/Produto/Create.casos.md)
 - [Edit.casos.md](../../../resources/js/Pages/Produto/Edit.casos.md)
 - [Index.casos.md](../../../resources/js/Pages/Produto/Index.casos.md)

@@ -18,10 +18,10 @@ authority: generated
 |---|---:|
 | US no SPEC | 10 |
 | CU no SDD | 14 |
-| Telas (.tsx) | 8 |
-| Telas com `casos.md` | 12 |
-| UC declarados | 77 |
-| UC com teste que os cita | 76 |
+| Telas (.tsx) | 9 |
+| Telas com `casos.md` | 13 |
+| UC declarados | 98 |
+| UC com teste que os cita | 84 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -53,6 +53,19 @@ authority: generated
 
 | UC | Tela | Status |
 |---|---|---|
+| UC-CAD-01 | Cadastros/Index | 📝 sem_teste |
+| UC-CAD-02 | Cadastros/Index | 📝 sem_teste |
+| UC-CAD-03 | Cadastros/Index | 📝 sem_teste |
+| UC-CAD-04 | Cadastros/Index | 📝 sem_teste |
+| UC-CAD-05 | Cadastros/Index | 📝 sem_teste |
+| UC-CAD-06 | Cadastros/Index | 📝 sem_teste |
+| UC-CAD-08 | Cadastros/Index | 📝 sem_teste |
+| UC-CAD-09 | Cadastros/Index | 📝 sem_teste |
+| UC-CAD-10 | Cadastros/Index | 📝 sem_teste |
+| UC-CAD-11 | Cadastros/Index | 📝 sem_teste |
+| UC-CAD-12 | Cadastros/Index | 📝 sem_teste |
+| UC-CAD-13 | Cadastros/Index | 📝 sem_teste |
+| UC-CAD-14 | Cadastros/Index | 📝 sem_teste |
 | UC-PBOM-01 | bom-combo (blade) | 🧪 aguarda veredito da lane |
 | UC-PBOM-02 | bom-combo (blade) | 🧪 aguarda veredito da lane |
 | UC-PBOM-03 | bom-combo (blade) | 🧪 aguarda veredito da lane |
@@ -69,6 +82,14 @@ authority: generated
 | UC-PCAD-04 | Create | 🧪 aguarda veredito da lane |
 | UC-PCAD-05 | Create | 🧪 aguarda veredito da lane |
 | UC-PCAD-06 | Create | 🧪 aguarda veredito da lane |
+| UC-PCADAP-01 | Cadastros/Index | 🧪 aguarda veredito da lane |
+| UC-PCADAP-02 | Cadastros/Index | 🧪 aguarda veredito da lane |
+| UC-PCADAP-03 | Cadastros/Index | 🧪 aguarda veredito da lane |
+| UC-PCADAP-04 | Cadastros/Index | 🧪 aguarda veredito da lane |
+| UC-PCADAP-05 | Cadastros/Index | 🧪 aguarda veredito da lane |
+| UC-PCADAP-06 | Cadastros/Index | 🧪 aguarda veredito da lane |
+| UC-PCADAP-07 | Cadastros/Index | 🧪 aguarda veredito da lane |
+| UC-PCADAP-08 | Cadastros/Index | 🧪 aguarda veredito da lane |
 | UC-PEDIT-01 | Edit | 🧪 aguarda veredito da lane |
 | UC-PEDIT-02 | Edit | 🧪 aguarda veredito da lane |
 | UC-PEDIT-03 | Edit | 🧪 aguarda veredito da lane |
