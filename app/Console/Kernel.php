@@ -762,7 +762,7 @@ class Kernel extends ConsoleKernel
                 );
             });
 
-        // ADR 0422 — aviso ao titular (LGPD Art. 18) por e-mail/WhatsApp, diário 10:00 BRT
+        // ADR 0423 — aviso ao titular (LGPD Art. 18) por e-mail/WhatsApp, diário 10:00 BRT
         // ([W] 2026-10-01: "agende o arquivos:avisar-titulares diário no Kernel").
         // Horário comercial: a mensagem chega a uma pessoa, não a um sistema. `--todos` só
         // entra em negócio que LIGOU algum canal (default desligado) — sem isso, nada sai.
