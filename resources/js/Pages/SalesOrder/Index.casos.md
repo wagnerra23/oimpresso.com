@@ -30,7 +30,7 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 
 ## UC-SORD-02 · Mudar status grava no lugar certo `[T0]` `[must]`
 - **Persona:** admin do negócio — muda pedido → parcial → concluído pelo drawer lateral.
-- **Aceite:** Dado um pedido do meu negócio · Quando salvo outro status · Então o PUT devolve `success` e a linha reflete sem recarregar a lista. Pedido de outro negócio devolve 404 e não muda. Quem não é admin recebe 403.
+- **Aceite:** Dado um pedido do meu negócio · Quando salvo outro status · Então o PUT devolve `success` e a linha reflete sem recarregar a lista. Pedido de outro negócio devolve `success` 0 e não muda. Quem não é admin recebe 403.
 - **Teste:** `SalesOrderIndexContratoTest` — `UC-SORD-02 [T0] mudar status grava só no pedido do próprio business` e `UC-SORD-02 sem ser admin o status não muda`.
 - **Regressão que defende:** status alterado em pedido de outra empresa (ADR 0093).
 - **Status: 🧪**

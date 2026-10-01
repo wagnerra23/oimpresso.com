@@ -40,6 +40,11 @@ veredito: "entregue em 1 PR — SalesOrderController@index ganha o branch X-Iner
 - `php -l` no controller e no teste: sem erro.
 - `block-mwart-violation.mjs` do worktree com o payload do `.tsx`: rc 0 (RUNBOOK pelo charter).
 
+## Medido no CI (1ª rodada)
+
+- PUT de status num pedido de **outro negócio** devolve **200 com `success: 0`**, não 404: o `findOrFail` do `postEditSalesOrderStatus` está dentro do `try`. Nada é gravado (o teste confere o status intacto) e a tela trata `success != 1` como erro. Comportamento do legado, mantido.
+- Ratchets de layout e ESLint pediram `Stack`/`Inline` no lugar de `flex` solto e tirar o `<label>` em volta do Select Radix (o `SelectTrigger` já tem `aria-label`). Ajustado.
+
 ## O que ficou fora, e por quê
 
 - **Typecheck local não rodou.** O worktree não tem `node_modules`, e o do checkout principal está sem `@types/react` (tsc acusa `react` sem tipo em todo arquivo). O typecheck fica com o CI.

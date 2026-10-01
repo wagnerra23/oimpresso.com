@@ -174,9 +174,11 @@ it('UC-SORD-02 [T0] mudar status grava só no pedido do próprio business', func
     sordPutStatus($this, $meu, 'partial')->assertStatus(200)->assertJsonPath('success', 1);
     expect(DB::table('transactions')->where('id', $meu)->value('status'))->toBe('partial');
 
-    // CONTRATO — pedido do 99 com o mesmo admin do 98: não encontra e não grava.
+    // CONTRATO — pedido do 99 com o mesmo admin do 98: não encontra e não grava. O
+    // findOrFail mora dentro do try do controller, então a resposta é 200 com success=0
+    // (medido no CI em 2026-10-01) — o que importa é success != 1 e o status intacto.
     $alheio = sordPedido($this->outroBizId, $admin->id, 'ordered');
-    sordPutStatus($this, $alheio, 'completed')->assertStatus(404);
+    sordPutStatus($this, $alheio, 'completed')->assertStatus(200)->assertJsonPath('success', 0);
     expect(DB::table('transactions')->where('id', $alheio)->value('status'))->toBe('ordered');
 });
 

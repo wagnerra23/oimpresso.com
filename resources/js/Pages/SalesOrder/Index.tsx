@@ -3,7 +3,7 @@
 // endpoint AJAX legado). Protótipo: VendaPedidos em prototipo-ui/cowork/Wagner/venda-blade-telas.jsx.
 // Refs: ADR 0104 (MWART), ADR 0093 (multi-tenant — o endpoint já escopa business_id).
 import AppShellV2 from '@/Layouts/AppShellV2';
-import { Head } from '@inertiajs/react';
+import { Deferred, Head } from '@inertiajs/react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Pencil, Search } from 'lucide-react';
 import { PageHeader, PageHeaderPrimary } from '@/Components/PageHeader';
@@ -14,6 +14,7 @@ import { Alert, AlertDescription } from '@/Components/ui/alert';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from '@/Components/ui/sheet';
 import EmptyState from '@/Components/shared/EmptyState';
+import { Inline, Stack } from '@/Components/layout';
 
 type StatusKey = 'ordered' | 'partial' | 'completed';
 
@@ -158,8 +159,8 @@ export default function SalesOrderIndex({ salesOrderEnabled, filters, permission
   }
 
   const filtro = (chave: keyof typeof f, rotulo: string, mapa: Record<string, string> | undefined) => (
-    <label className="flex flex-col gap-1 text-xs text-muted-foreground min-w-[180px]">
-      {rotulo}
+    <Stack gap={1} align="stretch" className="text-xs text-muted-foreground min-w-[180px]">
+      <span aria-hidden="true">{rotulo}</span>
       <Select value={f[chave]} onValueChange={(v) => setF((s) => ({ ...s, [chave]: v }))}>
         <SelectTrigger aria-label={rotulo}><SelectValue /></SelectTrigger>
         <SelectContent>
@@ -167,7 +168,7 @@ export default function SalesOrderIndex({ salesOrderEnabled, filters, permission
           {opcoes(mapa).map(([k, v]) => <SelectItem key={k} value={k}>{v}</SelectItem>)}
         </SelectContent>
       </Select>
-    </label>
+    </Stack>
   );
 
   return (
@@ -190,22 +191,27 @@ export default function SalesOrderIndex({ salesOrderEnabled, filters, permission
           </Alert>
         )}
 
-        <section data-contract="filtros" className="rounded-lg border border-border bg-card p-4 flex flex-wrap gap-3 items-end">
-          {filtro('location_id', 'Local do negócio', filters.businessLocations)}
-          {filtro('customer_id', 'Cliente', filters.customers)}
-          {filtro('status', 'Status', filters.statuses)}
-          {filtro('shipping_status', 'Status de envio', filters.shippingStatuses)}
-        </section>
+        <Inline asChild wrap gap={3} align="end" className="rounded-lg border border-border bg-card p-4">
+          <section data-contract="filtros">
+            {filtro('location_id', 'Local do negócio', filters.businessLocations)}
+            {/* customers é Inertia::defer — fallback mostra só "Todos" até a prop chegar. */}
+            <Deferred data="customers" fallback={filtro('customer_id', 'Cliente', undefined)}>
+              {filtro('customer_id', 'Cliente', filters.customers)}
+            </Deferred>
+            {filtro('status', 'Status', filters.statuses)}
+            {filtro('shipping_status', 'Status de envio', filters.shippingStatuses)}
+          </section>
+        </Inline>
 
         <section data-contract="lista" className="rounded-lg border border-border bg-card overflow-hidden">
-          <div className="flex items-center justify-between gap-3 p-3 border-b border-border">
+          <Inline gap={3} justify="between" className="p-3 border-b border-border">
             <div className="relative max-w-sm flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input variant="shadcn" value={busca} onChange={(e) => setBusca(e.target.value)}
                 placeholder="Buscar pedido ou cliente…" className="pl-9" />
             </div>
             <span className="text-xs text-muted-foreground tabular-nums">{visiveis.length} de {linhas.length}</span>
-          </div>
+          </Inline>
           {carregando ? (
             <div className="p-8 text-center text-sm text-muted-foreground">Carregando pedidos…</div>
           ) : visiveis.length === 0 ? (
@@ -270,8 +276,8 @@ export default function SalesOrderIndex({ salesOrderEnabled, filters, permission
             <SheetDescription>Pedido → parcial → concluído. Concluído não volta a ser editável aqui.</SheetDescription>
           </SheetHeader>
           <div className="px-4 space-y-2">
-            <label className="flex flex-col gap-1 text-sm">
-              Status do pedido
+            <Stack gap={1} align="stretch" className="text-sm">
+              <span aria-hidden="true">Status do pedido</span>
               <Select value={novoStatus} onValueChange={(v) => setNovoStatus(v as StatusKey)}>
                 <SelectTrigger aria-label="Status do pedido"><SelectValue /></SelectTrigger>
                 <SelectContent>
@@ -280,7 +286,7 @@ export default function SalesOrderIndex({ salesOrderEnabled, filters, permission
                   ))}
                 </SelectContent>
               </Select>
-            </label>
+            </Stack>
             {erro && <p className="text-sm text-destructive" role="alert">{erro}</p>}
           </div>
           <SheetFooter>
