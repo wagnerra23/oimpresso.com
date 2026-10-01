@@ -98,7 +98,7 @@ it('LogDelphiAccess extrai hd do body g1 (NOME_TABELA=LICENCIAMENTO)', function 
     $method->setAccessible(true);
 
     $payload = [
-        ['NOME_TABELA' => 'EMPRESA', 'CNPJCPF' => '12.345.678/0001-99'],
+        ['NOME_TABELA' => 'EMPRESA', 'CNPJCPF' => '12.345.678/0001-99'], # pii-allowlist (CNPJ sintético de teste)
         ['NOME_TABELA' => 'LICENCIAMENTO', 'HD' => 'F0A24779', 'DESCRICAO' => 'BOOK-GV80BF5507'],
     ];
     $request = \Illuminate\Http\Request::create('/connector/api/processa-dados-cliente', 'POST', [], [], [], [], json_encode($payload));
@@ -258,7 +258,7 @@ it('OImpressoRegistroController aceita JSON flat com serial_hd e cnpj', function
     $method->setAccessible(true);
 
     $body = [
-        'cnpj' => '12.345.678/0001-99',
+        'cnpj' => '12.345.678/0001-99', # pii-allowlist (CNPJ sintético de teste)
         'razao_social' => 'EMPRESA TESTE LTDA',
         'hostname' => 'BOOK-TEST',
         'serial_hd' => 'F0A24779',
@@ -269,7 +269,7 @@ it('OImpressoRegistroController aceita JSON flat com serial_hd e cnpj', function
 
     $parsed = $method->invoke($controller, $request);
     expect($parsed['serial_hd'])->toBe('F0A24779');
-    expect($parsed['cnpj'])->toBe('12.345.678/0001-99');
+    expect($parsed['cnpj'])->toBe('12.345.678/0001-99'); # pii-allowlist (CNPJ sintético de teste)
     expect($parsed['versao_exe'])->toBe('1.2.3');
 });
 
@@ -280,13 +280,13 @@ it('OImpressoRegistroController parseia string pipe-separated legado', function 
     $method->setAccessible(true);
 
     // Formato do MontarString: SERIAL|HOST|VERSAO|IP|CNPJ|RAZAO|PASTA|SO|PROC|MEM|VER_BANCO|CAM_BANCO|SISTEMA|PAF
-    $pipe = 'F0A24779|BOOK-TEST|1.2.3|192.168.0.10|12.345.678/0001-99|EMPRESA LTDA|C:\\app|Win11|i7|16GB|2024.1|C:\\db|WR|N';
+    $pipe = 'F0A24779|BOOK-TEST|1.2.3|192.168.0.10|12.345.678/0001-99|EMPRESA LTDA|C:\\app|Win11|i7|16GB|2024.1|C:\\db|WR|N'; # pii-allowlist (CNPJ sintético de teste)
     $request = \Illuminate\Http\Request::create('/connector/api/oimpresso/registrar', 'POST', [], [], [], [], $pipe);
     $request->headers->set('Content-Type', 'text/plain');
 
     $parsed = $method->invoke($controller, $request);
     expect($parsed['serial_hd'])->toBe('F0A24779');
-    expect($parsed['cnpj'])->toBe('12.345.678/0001-99');
+    expect($parsed['cnpj'])->toBe('12.345.678/0001-99'); # pii-allowlist (CNPJ sintético de teste)
     expect($parsed['hostname'])->toBe('BOOK-TEST');
     expect($parsed['versao_exe'])->toBe('1.2.3');
 });
@@ -362,8 +362,8 @@ it('fixture array_tabelas parse e extrai HD + CNPJ corretos', function () {
     $empresa = collect($payload)->firstWhere('NOME_TABELA', 'EMPRESA');
     $licenciamento = collect($payload)->firstWhere('NOME_TABELA', 'LICENCIAMENTO');
 
-    expect($empresa['CNPJCPF'])->toBe('10.609.954/0001-50');
-    expect($empresa['RAZAOSOCIAL'])->toBe('JAIR UMBELINA VARGAS ME');
+    expect($empresa['CNPJCPF'])->toBe('11.222.333/0001-44'); # pii-allowlist (CNPJ sintético de teste)
+    expect($empresa['RAZAOSOCIAL'])->toBe('EMPRESA EXEMPLO LTDA');
     expect($licenciamento['HD'])->toBe('F0A24779');
     expect($licenciamento['VERSAO_EXE'])->toBe('2026.1.1.6');
 
@@ -473,7 +473,7 @@ it('ProcessaDadosCliente com HD nao cadastrado retorna N;Maquina nao cadastrada'
 it('rota check-update existe e exige auth', function () {
     // Headers no $server do call(): o call() ignora withHeaders() — sem o Accept o
     // Authenticate redirecionava pro login (302) e o teste media o lugar errado.
-    $r = $this->call('POST', '/connector/api/check-update', [], [], [], ['HTTP_ACCEPT' => 'application/json'], '12.345.678/0001-99;2026.1.1.7');
+    $r = $this->call('POST', '/connector/api/check-update', [], [], [], ['HTTP_ACCEPT' => 'application/json'], '12.345.678/0001-99;2026.1.1.7'); # pii-allowlist (CNPJ sintético de teste)
     expect($r->getStatusCode())->toBe(401);
 });
 
