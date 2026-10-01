@@ -8,8 +8,8 @@
 Route::middleware('throttle:60,1', 'web', 'authh', 'SetSessionData', 'auth', 'language', 'timezone', 'AdminSidebarMenu')->prefix('manufacturing')->group(function () {
     Route::get('/install', [Modules\Manufacturing\Http\Controllers\InstallController::class, 'index']);
     Route::post('/install', [Modules\Manufacturing\Http\Controllers\InstallController::class, 'install']);
-    Route::get('/install/update', [Modules\Manufacturing\Http\Controllers\InstallController::class, 'update']);
-    Route::get('/install/uninstall', [Modules\Manufacturing\Http\Controllers\InstallController::class, 'uninstall']);
+    Route::match(['get', 'post'], '/install/update', [Modules\Manufacturing\Http\Controllers\InstallController::class, 'update']);
+    Route::match(['get', 'post'], '/install/uninstall', [Modules\Manufacturing\Http\Controllers\InstallController::class, 'uninstall']);
 
     Route::get('/is-recipe-exist/{variation_id}', [Modules\Manufacturing\Http\Controllers\RecipeController::class, 'isRecipeExist']);
     Route::get('/ingredient-group-form', [Modules\Manufacturing\Http\Controllers\RecipeController::class, 'getIngredientGroupForm']);

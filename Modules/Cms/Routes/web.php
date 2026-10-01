@@ -36,8 +36,8 @@ Route::middleware('throttle:60,1')->group(function () {
 Route::middleware(['web', 'SetSessionData', 'auth', 'language', 'timezone', 'AdminSidebarMenu', 'superadmin', 'throttle:60,1'])->prefix('cms')->group(function () {
     Route::get('install', [\Modules\Cms\Http\Controllers\InstallController::class, 'index']);
     Route::post('install', [\Modules\Cms\Http\Controllers\InstallController::class, 'install']);
-    Route::get('install/uninstall', [\Modules\Cms\Http\Controllers\InstallController::class, 'uninstall']);
-    Route::get('install/update', [\Modules\Cms\Http\Controllers\InstallController::class, 'update']);
+    Route::match(['get', 'post'], 'install/uninstall', [\Modules\Cms\Http\Controllers\InstallController::class, 'uninstall']);
+    Route::match(['get', 'post'], 'install/update', [\Modules\Cms\Http\Controllers\InstallController::class, 'update']);
 
     Route::resource('cms-page', \Modules\Cms\Http\Controllers\CmsPageController::class)->except(['show']);
     Route::resource('site-details', \Modules\Cms\Http\Controllers\SettingsController::class);

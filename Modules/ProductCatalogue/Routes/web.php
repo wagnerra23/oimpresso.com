@@ -26,6 +26,6 @@ Route::middleware('throttle:60,1', 'web', 'authh', 'auth', 'SetSessionData', 'la
 
     Route::get('install', [\Modules\ProductCatalogue\Http\Controllers\InstallController::class, 'index']);
     Route::post('install', [\Modules\ProductCatalogue\Http\Controllers\InstallController::class, 'install']);
-    Route::get('install/uninstall', [\Modules\ProductCatalogue\Http\Controllers\InstallController::class, 'uninstall']);
-    Route::get('install/update', [\Modules\ProductCatalogue\Http\Controllers\InstallController::class, 'update']);
+    Route::match(['get', 'post'], 'install/uninstall', [\Modules\ProductCatalogue\Http\Controllers\InstallController::class, 'uninstall']);
+    Route::match(['get', 'post'], 'install/update', [\Modules\ProductCatalogue\Http\Controllers\InstallController::class, 'update']);
 });

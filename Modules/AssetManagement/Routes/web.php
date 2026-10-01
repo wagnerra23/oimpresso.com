@@ -7,8 +7,8 @@
 Route::middleware('throttle:60,1', 'web', 'authh', 'auth', 'SetSessionData', 'language', 'timezone', 'AdminSidebarMenu')->prefix('asset')->group(function () {
     Route::get('install', [Modules\AssetManagement\Http\Controllers\InstallController::class, 'index']);
     Route::post('install', [Modules\AssetManagement\Http\Controllers\InstallController::class, 'install']);
-    Route::get('install/uninstall', [Modules\AssetManagement\Http\Controllers\InstallController::class, 'uninstall']);
-    Route::get('install/update', [Modules\AssetManagement\Http\Controllers\InstallController::class, 'update']);
+    Route::match(['get', 'post'], 'install/uninstall', [Modules\AssetManagement\Http\Controllers\InstallController::class, 'uninstall']);
+    Route::match(['get', 'post'], 'install/update', [Modules\AssetManagement\Http\Controllers\InstallController::class, 'update']);
 
     // Sem `show`: os 4 metodos devolviam `view('assetmanagement::show')`, que nao existe, e
     // estouravam `View [show] not found` para qualquer usuario logado que digitasse a URL.
