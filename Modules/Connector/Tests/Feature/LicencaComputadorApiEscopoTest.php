@@ -21,7 +21,8 @@ uses(Tests\TestCase::class);
  * negócio" é o 1, que o TestCase recompõe no MySQL.
  *
  * Hermético na lane sqlite :memory: (modules-pest, sem migrate): cria as
- * tabelas mínimas SÓ se ausentes e as derruba no afterEach, para não fazer
+ * tabelas mínimas SÓ se ausentes e as derruba no afterEach — DDL só no sqlite
+ * (dual-mode), para não corromper o MySQL persistente do nightly nem fazer
  * outro teste do mesmo processo deixar de pular por `Schema::hasTable`.
  */
 defined('LIC_BIZ_A') || define('LIC_BIZ_A', 98);
@@ -81,8 +82,12 @@ beforeEach(function () {
 afterEach(function () {
     DB::table('licenca_computador')->whereIn('id', [$this->idA, $this->idB])->delete(); // SUPERADMIN: cleanup
 
-    foreach (array_reverse($this->criadas) as $tabela) {
-        Schema::dropIfExists($tabela);
+    // Dual-mode: só derruba no sqlite :memory: (onde o próprio teste criou).
+    // No MySQL persistente as tabelas são reais e nunca são tocadas.
+    if (DB::connection()->getDriverName() === 'sqlite') {
+        foreach (array_reverse($this->criadas) as $tabela) {
+            Schema::dropIfExists($tabela);
+        }
     }
 });
 
