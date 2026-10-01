@@ -40,6 +40,8 @@ proposto para "recusa", ou [W] decide que o cascata volta.
   filtra `categoria` (= `category_id`); filtro por subcategoria tocaria `Pages/Produto/Unificado/`, que é
   `nao_toca` desta thread. Segue o protótipo (`filtro={ cat: nomePai }`).
 - **Criar/editar categoria** segue no modal da Blade de `/taxonomies?type=product`, mesmo corte da parte 1.
+- **`related_us` do charter** — o advisory `charter related_us join` acusa o charter sem US. O SPEC do
+  Produto não tem US de "Cadastros de apoio"; criar uma é decisão de escopo ([W]) e fica fora do prefixo.
 
 ## O que entrou
 
