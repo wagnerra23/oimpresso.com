@@ -4,7 +4,7 @@ irmaos: Index.charter.md (lei)
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — o contrato de teste nasce junto com a tela, não depois.
 owner: wagner
-last_run: "2026-09-04"
+last_run: "2026-09-30"
 ---
 
 # Casos de Uso & Aceite — Arquivos/Index
@@ -279,3 +279,15 @@ por leitura:** lane `PHP / Pest (Arquivos · MySQL)`, run
 `ArquivosAdminControllerTest` **PASS com 140 assertions**. O filtro daquela lane inclui
 `resources/js/Pages/Arquivos/**`, então ela **executou**; não foi skip-as-pass (conferido no
 log pelo nome do teste + o contador, nunca pelo "0 failed" — §5 2026-07-24 · LC-13).
+
+## Revalidação — 2026-09-30 (PR #8323, thread 01 do playbook)
+
+A tela mudou só na FORMA de três células do Acervo (slug do contexto em `<code>` mono ·
+classificação como `StatusBadge kind="sla"` com dot + visibilidade em mono · cor própria no
+botão de baixar), então o G-6 marcou os casos como stale. Nenhum UC muda de aceite: o
+UC-INDEX-05 (baixar por link assinado) e o UC-INDEX-06 (dono em PT-BR, link só com rota
+provada) seguem com o mesmo comportamento. **Revalidado pelo CI, não por leitura:** lane
+`PHP / Pest (Arquivos · MySQL)`, run
+[36801463339](https://github.com/wagnerra23/oimpresso.com/actions/runs/36801463339) —
+`ArquivosAdminControllerTest` **35 passed · 0 failed · 0 skipped · 140 assertions**, conferido
+pelo contador no log (LC-13), não pelo nome.

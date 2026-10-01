@@ -633,3 +633,8 @@ tests/Feature/Sidebar/PresencaPreferenciaTest.php
 tests/Feature/Sidebar/SidebarMenuItemContractTest.php
 # Atendimento — contrato das 4 telas admin (playbook atendimento/04: Csat · Metricas · Whatsapp/Settings · Whatsapp/Templates). DB-less via DB::pretend; UC-WSET-01 monta tabela mínima só em sqlite :memory:.
 tests/Feature/Whatsapp/AtendimentoAdminContratoTest.php
+# ConsultaOs — contrato da tela pública /consulta-os (UC-COS-01..07, Index.casos.md). Portal
+# mock-only, rota pública sem business_id: DB-less, sqlite-safe, sem markTestSkipped.
+tests/Feature/ConsultaOs/ConsultaOsIndexContratoTest.php
+# Atendimento/02 (playbook) — contrato de /atendimento/canais (Index + Show): UC-CNL-01..04 + UC-CNLD-01..05. Schema sintetico + skip fora de sqlite.
+tests/Feature/Whatsapp/AtendimentoChannelsContratoTest.php
