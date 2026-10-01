@@ -29,7 +29,7 @@ last_run: "2026-09-30"
 - **Aceite:** Dado uma macro · Quando crio a variante "Versão A" com peso 70 · Então ela fica ligada à macro, ativa, com peso 70; Quando edito título e peso · Então grava; Quando removo · Então some da lista.
 - **Teste:** `Modules/Whatsapp/Tests/Feature/MacroVariantsCrudTest.php` — `UC-MACV-01 · R-WA-049-CRUD-001 — store + update + destroy variant funciona`.
 - **Regressão que defende:** charter Goals "Criar/editar variante em modal" e "Remover variante".
-- **Status: ⬜** — aguarda o run do CI deste PR.
+- **Status: 🧪** — passou na lane sqlite do CI (run 36801631015, 2026-10-01); ✅ quando `casos:results` regravar o manifesto.
 
 ---
 
@@ -38,7 +38,7 @@ last_run: "2026-09-30"
 - **Aceite:** Dado o modal · Quando mando rótulo vazio, ou peso 150, ou peso -10 · Então é recusado; Quando mando peso 0 · Então é aceito (variante pausada sem apagar).
 - **Teste:** `Modules/Whatsapp/Tests/Feature/MacroVariantsCrudTest.php` — `UC-MACV-02 · R-WA-049-CRUD-002 — validação rejeita label vazio e weight fora 0-100`.
 - **Regressão que defende:** charter Goal "peso 0-100" e Automation hook "peso normalizado no backend".
-- **Status: ⬜** — aguarda o run do CI deste PR.
+- **Status: 🧪** — passou na lane sqlite do CI (run 36801631015, 2026-10-01); ✅ quando `casos:results` regravar o manifesto.
 
 ---
 
@@ -47,7 +47,7 @@ last_run: "2026-09-30"
 - **Aceite:** Dado uma macro com variante no business 99 · Quando abro, listo ou edito por id logado no business 1 · Então não vejo nada dela e a edição responde "não encontrado".
 - **Teste:** `Modules/Whatsapp/Tests/Feature/MacroVariantsCrudTest.php` — `UC-MACV-03 · R-WA-049-CRUD-003 — Tier 0 (ADR 0093): biz=1 não acessa variante de biz=99`.
 - **Regressão que defende:** **Tier 0** — Non-Goal do charter "não expõe variantes de macros de outro `business_id`".
-- **Status: ⬜** — aguarda o run do CI deste PR. O teste usa biz=1/99 (anterior à ADR 0358); não reescrito aqui.
+- **Status: 🧪** — passou na lane sqlite do CI (run 36801631015, 2026-10-01); ✅ quando `casos:results` regravar o manifesto. O teste usa biz=1/99 (anterior à ADR 0358); não reescrito aqui.
 
 ---
 
@@ -56,7 +56,7 @@ last_run: "2026-09-30"
 - **Aceite:** Dado três variantes ativas com envios e respostas · Quando marco a A como vencedora · Então a A fica ativa com peso 100, as outras ficam inativas, e os contadores de envio e resposta de todas continuam os mesmos.
 - **Teste:** `Modules/Whatsapp/Tests/Feature/MacroVariantsCrudTest.php` — `UC-MACV-04 · R-WA-049-CRUD-004 — mark_winner desativa outras + bump weight 100 + preserva histórico`.
 - **Regressão que defende:** charter Goal "Marcar vencedora: desativa as outras e mantém histórico" e Non-Goal "não zera as métricas".
-- **Status: ⬜** — aguarda o run do CI deste PR.
+- **Status: 🧪** — passou na lane sqlite do CI (run 36801631015, 2026-10-01); ✅ quando `casos:results` regravar o manifesto.
 
 ---
 

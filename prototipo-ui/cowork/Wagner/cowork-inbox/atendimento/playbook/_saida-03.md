@@ -24,7 +24,7 @@ Teste novo: tenants fictícios 98/99 (ADR 0358), seed e conferência por `DB::ta
 ## Provas do json
 - `Macros/Index.casos.md` · `Macros/Variants.casos.md` · `JanaTemplates.casos.md` — `tipo: arquivo`, existem.
 - `node scripts/casos-coverage-guard.mjs` local: "Sem violações novas DESTE PR".
-- Pest: **não rodei local** (regra). Prova = CI do PR. Status dos UCs fica ⬜ até o run.
+- Pest: não rodei local (regra). Prova = CI do PR #8328, lane sqlite `PHP / Pest (Unit)`, run 36801631015: os 11 casos (7 novos + 4 UC-MACV) com ✓, nenhum pulado. Status dos UCs passou a 🧪.
 
 ## Pendente (decisão [W], não resolvida aqui)
 1. **Macros: remover × desativar.** O charter pede "toggle ativo/inativo sem hard delete"; o `destroy` apaga a linha. O UC-MAC-04 descreve o que existe; está no Backlog do casos.

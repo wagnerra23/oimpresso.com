@@ -28,7 +28,7 @@ last_run: "2026-09-30"
 - **Aceite:** Dado que só outro business tem configuração · Quando abro a tela · Então ela vem vazia (não mostra a dele); Dado a configuração do meu business · Então vêm exatamente bot ligado/desligado e os 4 nomes de template, sem campo de driver nem credencial.
 - **Teste:** `tests/Feature/Whatsapp/AtendimentoMacrosJanaTemplatesContratoTest.php` — `UC-JTPL-01 — a tela mostra o bot e os 4 templates do business; sem configuração, vem vazia`.
 - **Regressão que defende:** charter Goals (toggle + 4 templates) e UX anti-pattern "mostrar fields de driver/credenciais nessa tela".
-- **Status: ⬜** — aguarda o run do CI deste PR.
+- **Status: 🧪** — passou na lane sqlite do CI (run 36801631015, 2026-10-01); ✅ quando `casos:results` regravar o manifesto.
 
 ---
 
@@ -37,7 +37,7 @@ last_run: "2026-09-30"
 - **Aceite:** Dado a configuração com driver `meta_cloud` e um telefone · Quando salvo bot + 4 templates (e o pedido traz também `driver` e `display_phone`) · Então os 5 campos são gravados e o driver e o telefone continuam os mesmos.
 - **Teste:** `tests/Feature/Whatsapp/AtendimentoMacrosJanaTemplatesContratoTest.php` — `UC-JTPL-02 — salvar grava só o bot e os 4 nomes de template, sem tocar driver nem telefone`.
 - **Regressão que defende:** Automation Anti-hooks do charter "não dispara conexão de driver" e "não modifica config de canal".
-- **Status: ⬜** — aguarda o run do CI deste PR.
+- **Status: 🧪** — passou na lane sqlite do CI (run 36801631015, 2026-10-01); ✅ quando `casos:results` regravar o manifesto.
 
 ---
 
@@ -46,7 +46,7 @@ last_run: "2026-09-30"
 - **Aceite:** Dado que só o business 99 tem configuração · Quando o business 98 salva · Então nasce a configuração do 98 com o que foi salvo e a do 99 fica igual.
 - **Teste:** `tests/Feature/Whatsapp/AtendimentoMacrosJanaTemplatesContratoTest.php` — `UC-JTPL-03 — salvar no business sem configuração cria a dele e não altera a de outro business (Tier 0)`.
 - **Regressão que defende:** **Tier 0** (ADR 0093) — Goal do charter "global scope `business_id`".
-- **Status: ⬜** — aguarda o run do CI deste PR.
+- **Status: 🧪** — passou na lane sqlite do CI (run 36801631015, 2026-10-01); ✅ quando `casos:results` regravar o manifesto.
 
 ---
 
