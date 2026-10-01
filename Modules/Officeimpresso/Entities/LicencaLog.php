@@ -21,15 +21,6 @@ class LicencaLog extends Model
 {
     use LogsActivity;
 
-    /**
-     * Log de auditoria da PLATAFORMA, não do cliente — o activity_log desta entidade
-     * fica sem business_id e não aparece na /auditoria do negócio-cliente.
-     * [W] 2026-10-01: "as licenças são minhas, eu controlo as máquinas dos clientes".
-     *
-     * @see \App\Observers\ActivityCauserKindObserver::ehLogDaPlataforma
-     */
-    public const AUDITORIA_LOG_DA_PLATAFORMA = true;
-
     protected $table = 'licenca_log';
 
     public $timestamps = false; // so created_at, sem updated_at

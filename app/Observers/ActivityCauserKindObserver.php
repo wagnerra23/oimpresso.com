@@ -79,16 +79,30 @@ class ActivityCauserKindObserver
     }
 
     /**
-     * Model marcado com `const AUDITORIA_LOG_DA_PLATAFORMA = true` é dado do operador da
-     * plataforma, não do negócio-cliente: o log dele fica SEM business_id (fora da tela
-     * /auditoria de qualquer cliente). Aceita instância ou FQCN.
+     * Logs da PLATAFORMA — dado do operador, não do negócio-cliente: ficam SEM business_id
+     * (fora da /auditoria de qualquer cliente). [W] 2026-10-01: "as licenças são minhas, eu
+     * controlo as máquinas dos clientes. eles não precisam ver isso".
+     *
+     * A lista mora AQUI, e não como marcador nos models, porque LicencaLog/Licenca_Computador
+     * são grandfathered sem escopo de tenant: tocá-los acorda a dívida no gate
+     * MultiTenantScopeArchitectureTest (medido no 1º push do PR #8410), e dar escopo a eles
+     * muda as telas de superadmin e a API do Connector — outro assunto.
      */
+    public const LOGS_DA_PLATAFORMA = [
+        'Modules\Officeimpresso\Entities\LicencaLog',
+        'Modules\Officeimpresso\Entities\Licenca_Computador',
+    ];
+
+    /** Aceita instância ou FQCN. Também honra `const AUDITORIA_LOG_DA_PLATAFORMA = true` no model. */
     public static function ehLogDaPlataforma($subject): bool
     {
         $classe = is_object($subject) ? get_class($subject) : (string) $subject;
+        if ($classe === '') {
+            return false;
+        }
 
-        return $classe !== '' && defined($classe.'::AUDITORIA_LOG_DA_PLATAFORMA')
-            && constant($classe.'::AUDITORIA_LOG_DA_PLATAFORMA') === true;
+        return in_array(ltrim($classe, '\\'), self::LOGS_DA_PLATAFORMA, true)
+            || (defined($classe.'::AUDITORIA_LOG_DA_PLATAFORMA') && constant($classe.'::AUDITORIA_LOG_DA_PLATAFORMA') === true);
     }
 
     /**

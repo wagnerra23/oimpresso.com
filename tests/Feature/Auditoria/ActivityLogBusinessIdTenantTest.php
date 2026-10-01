@@ -195,3 +195,10 @@ it('licença (log da plataforma): activity()->performedOn() também fica SEM bus
     expect((int) Activity::query()->where('description', 't0_licenca_controle')->latest('id')->value('business_id'))
         ->toBe((int) $this->biz99->id);
 });
+
+it('a lista de logs da plataforma aponta para classes que existem (rename não cala a regra)', function () {
+    foreach (\App\Observers\ActivityCauserKindObserver::LOGS_DA_PLATAFORMA as $classe) {
+        expect(class_exists($classe))->toBeTrue("classe da lista de plataforma sumiu: {$classe}");
+    }
+    expect(\App\Observers\ActivityCauserKindObserver::LOGS_DA_PLATAFORMA)->toHaveCount(2);
+});
