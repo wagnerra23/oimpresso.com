@@ -157,15 +157,18 @@ beforeEach(function () {
     }
 
     $this->actingAs($this->user);
+    // `business` na sessão é o MODELO, como o SetSessionData:59 grava em produção — não array.
+    // O store() lê `$business->enable_rp` como propriedade (TransactionUtil::calculateRewardPoints):
+    // com array, lança "Attempt to read property on array" e o catch devolve "Something went
+    // wrong" (medido no 3º run do CI). Formato de data fixado no objeto, sem salvar, pra bater
+    // com o `transaction_date` do payload.
+    $business = \App\Business::findOrFail($this->bizId);
+    $business->date_format = 'd/m/Y';
+    $business->time_format = 24;
     session([
         'user.business_id' => $this->bizId,
         'user.id' => $this->user->id,
-        'business.date_format' => 'd/m/Y',
-        'business.time_format' => 24,
-        'business.enabled_modules' => (array) json_decode(
-            (string) DB::table('business')->where('id', $this->bizId)->value('enabled_modules'),
-            true
-        ),
+        'business' => $business,
     ]);
 
     $currency = DB::table('currencies')
