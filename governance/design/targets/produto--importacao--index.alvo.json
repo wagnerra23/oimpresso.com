@@ -1,0 +1,151 @@
+{
+  "aguardou_sumir": null,
+  "ausentes": [],
+  "base": {
+    "assinatura": "OI WR OFFICEIMPRESSO · matriz · 12 produtos · 4 grupos de preço · papel: Administrador Produtos Importar produtos Atualizado 23:44 ← Voltar à lista Baixar Excel Novo produto Importar produtos .xls, .xlsx, .csv Tela sem permissão no legado (achado A-P1) Qualquer usuário logado com acesso ao menu executa esta ação — o ImportProductsController não tem e a rota só passa pela autenticação. Precisa de decisão de [W] antes do F3. A planilha grava direto no catálogo Confira o modelo antes de enviar: uma coluna fora de ordem cria produto errado em lote. Erro em qualquer linha cancela a importação inteira — nada entra pela metade. Escolher arquivo Arquivo para importar * Formatos aceitos: .xls, .xlsx, .csv Enviar planilha Baixar modelo Instruções 37 colunas Uma linha por produto — produto variável repete o nome com a variação na mesma linha. A primeira linha da planilha é cabeçalho e é ignorada. Mantenha a ordem das colunas do modelo — arraste a borda do cabeçalho pra alargar a coluna. Nº Coluna ↕ O que colocar 1 Nome do produto obrigatório Nome como aparece no balcão e na nota. 2 Marca opcional Se a marca não existir, é criada na hora. 3 Unidade obrigatório Precisa já existir em Cadastros de apoio → Unidades. 4 Categoria opcional Se não existir, é criada. 5 Subcategoria opcional Só entra se a categoria pai estiver preenchida. 6 SKU opcional Em branco, o sistema gera a partir do código da categoria. 7 Tipo de código de barras opcional, padrão C128 C128, C39, EAN-13, EAN-8, UPC-A, UPC-E, ITF-14. 8 Gerenciar estoque obrigatório 1 = sim · 0 = não. 9 Quantidade de alerta opcional Abaixo disso o produto aparece em Análises → Reposição. 10 Vence em opcional Número de dias ou meses de validade. 11 Unidade do prazo de validade opcional days ou months. 12 Imposto aplicável opcional Nome exato do imposto cadastrado (ex.: ICMS 18%). 13 Tipo de imposto na venda obrigatório inclusive (preço já com imposto) ou exclusive. 14 Tipo de produto obrigatório single ou variable. 15 Nome da variação obrigatório se variable Ex.: Cor, Acabamento. 16 Valores da variação obrigatório se variable Separados por | — ex.: Branco|Preto|Azul. 17 SKU da variação opcional Um por valor, na mesma ordem, separados por |. 18 Preço de compra com imposto um dos dois é obrigatório Custo unitário já com imposto. 19 Preço de compra sem imposto um dos dois é obrigatório Custo unitário antes do imposto. 20 Margem de lucro (%) opcional Em branco, usa a margem padrão do negócio. 21 Preço de venda opcional Em branco, é calculado pela margem. 22 Estoque inicial opcional Só vale se Gerenciar estoque = 1. 23 Local do estoque inicial opcional Nome do local (Matriz, Filial Centro). Em branco = todos. 24 Data de validade opcional dd/mm/aaaa, no formato de data do negócio. 25 Controla IMEI / nº de série opcional, padrão 0 1 = sim · 0 = não. 26 Peso opcional Usado no frete e no romaneio de entrega. 27 Prateleira opcional Localização física no estoque. 28 Fileira opcional Localização física no estoque. 29 Posição opcional Localização física no estoque. 30 Imagem opcional Nome do arquivo já enviado ou URL pública. 31 Descrição do produto opcional Texto livre — sai na proposta. 32 Campo personalizado 1 opcional Campo livre do negócio. 33 Campo personalizado 2 opcional Campo livre do negócio. 34 Campo personalizado 3 opcional Campo livre do negócio. 35 Campo personalizado 4 opcional Campo livre do negócio. 36 Não para venda opcional 1 = insumo, não aparece no PDV · 0 = vende. 37 Locais do produto opcional Nomes separados por | — em branco entra em todos.",
+    "roles": {
+      "celulas": null,
+      "chart": null,
+      "contratos": [],
+      "filterRows": null,
+      "kpi": {
+        "count": 0,
+        "items": [],
+        "overflowX": null,
+        "tag": null
+      },
+      "primary": null,
+      "shell": null,
+      "tabela": null,
+      "title": null
+    },
+    "saude": {
+      "folhasVazias": [],
+      "nFolhas": 72,
+      "tokensMortos": []
+    },
+    "theme": "dark",
+    "url": "http://127.0.0.1:5567/"
+  },
+  "nos_totais": 755,
+  "quieto_ms": 2000,
+  "rota": "prod-importar",
+  "secoes": {
+    "enviar": {
+      "contraste": {
+        "fundo": "oklch(0.3 0.008 240)",
+        "fundo_de": "proprio",
+        "razao": 11.42,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.027108,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.3 0.008 240)",
+        "borderRadius": "12px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "block",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "padding": "0px"
+      },
+      "filhos": 2,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.3 0.008 240)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "h3",
+        "pb-widget-b"
+      ],
+      "rect": {
+        "h": 298,
+        "w": 1176
+      },
+      "seletor": "main .pb-root > .pb-body > section.pb-widget:nth-of-type(1)",
+      "truncado": false
+    },
+    "header": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "proprio",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.26 0.006 240)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "flex",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "10px 12px",
+        "padding": "14px 0px"
+      },
+      "filhos": 2,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "div",
+        "div"
+      ],
+      "rect": {
+        "h": 80,
+        "w": 1176
+      },
+      "seletor": "main .pb-root > .cli-ph > header",
+      "truncado": false
+    },
+    "instrucoes": {
+      "contraste": {
+        "fundo": "oklch(0.3 0.008 240)",
+        "fundo_de": "proprio",
+        "razao": 11.42,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.027108,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.3 0.008 240)",
+        "borderRadius": "12px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "block",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "padding": "0px"
+      },
+      "filhos": 2,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.3 0.008 240)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "h3",
+        "pb-widget-b"
+      ],
+      "rect": {
+        "h": 469,
+        "w": 1176
+      },
+      "seletor": "main .pb-root > .pb-body > section.pb-widget:nth-of-type(2)",
+      "truncado": false
+    }
+  },
+  "tela": "produto--importacao--index",
+  "url": "http://127.0.0.1:5567/"
+}

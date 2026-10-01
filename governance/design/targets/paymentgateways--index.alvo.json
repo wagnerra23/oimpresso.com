@@ -1,0 +1,244 @@
+{
+  "aguardou_sumir": null,
+  "ausentes": [],
+  "base": {
+    "assinatura": "OI WR Gateways de Pagamento Configurações · Pagamento Voltar Testar todos Novo gateway Credenciais ativas 3 de 4 configuradas · 1 inativas/legacy Health check 1 fail BCB Pix degradado · ver detalhes Cobranças hoje ↗ 4 emitidas em todos drivers · clique pra ver 1 credencial precisa de atenção: BCB · Recebedor Pix Aut. — mTLS expira em 47 dias. Renove o certificado antes do vencimento ou cobranças PIX Automático param. Renovar mTLS Gateways configurados · 4 última sync 09:14 BRT Apelido Driver Ambiente Conta destino Health · latência Ativo Inter PJ · Operacional IN Inter PJ Produção Inter PJ · Operacional OK 240ms · hoje Inter PJ · Sandbox dev IN Inter PJ Sandbox Inter PJ · Operacional OK 312ms · ontem Asaas · Operacional AS Asaas Produção Asaas · Operacional OK 182ms · hoje BCB · Recebedor Pix Aut. mTLS expira em 47d BC BCB · PIX Automático Produção BCB · Recebedor PIX Aut. Degradado 1140ms · hoje Drivers disponíveis ( 1 não configurado ) C6 C6 Bank boleto agência + conta + código_cliente · CNAB 240 Configurar",
+    "roles": {
+      "celulas": null,
+      "chart": null,
+      "contratos": [],
+      "filterRows": null,
+      "kpi": {
+        "count": 0,
+        "items": [],
+        "overflowX": null,
+        "tag": null
+      },
+      "primary": null,
+      "shell": null,
+      "tabela": null,
+      "title": null
+    },
+    "saude": {
+      "folhasVazias": [],
+      "nFolhas": 72,
+      "tokensMortos": []
+    },
+    "theme": "dark",
+    "url": "http://127.0.0.1:5561/"
+  },
+  "nos_totais": 651,
+  "quieto_ms": 2000,
+  "rota": "payment-gateways",
+  "secoes": {
+    "aviso": {
+      "contraste": {
+        "fundo": "oklch(0.23 0.006 240)",
+        "fundo_de": "h-full",
+        "razao": 14.16,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.012215,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "block",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "padding": "12px 24px 0px"
+      },
+      "filhos": 1,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "oklch(0.23 0.006 240)",
+          "de": "h-full"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "bg-amber-50"
+      ],
+      "rect": {
+        "h": 60,
+        "w": 1224
+      },
+      "seletor": ".pg-shell-scope > div > div:nth-child(3)",
+      "truncado": false
+    },
+    "header": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "proprio",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.26 0.006 240)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "flex",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "16px",
+        "padding": "12px 24px"
+      },
+      "filhos": 2,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "min-w-0",
+        "flex"
+      ],
+      "rect": {
+        "h": 71,
+        "w": 1224
+      },
+      "seletor": ".pg-shell-scope > div > header",
+      "truncado": false
+    },
+    "kpis": {
+      "contraste": {
+        "fundo": "oklch(0.23 0.006 240)",
+        "fundo_de": "h-full",
+        "razao": 14.16,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.012215,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "grid",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "12px",
+        "padding": "20px 24px 0px"
+      },
+      "filhos": 3,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "oklch(0.23 0.006 240)",
+          "de": "h-full"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "rounded-md",
+        "rounded-md",
+        "text-left"
+      ],
+      "rect": {
+        "h": 121,
+        "w": 1224
+      },
+      "seletor": ".pg-shell-scope > div > div:nth-child(2)",
+      "truncado": false
+    },
+    "tabela": {
+      "contraste": {
+        "fundo": "oklch(0.23 0.006 240)",
+        "fundo_de": "h-full",
+        "razao": 14.16,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.012215,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "block",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "padding": "0px 24px 24px"
+      },
+      "filhos": 2,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "oklch(0.23 0.006 240)",
+          "de": "h-full"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "bg-white",
+        "mt-6"
+      ],
+      "rect": {
+        "h": 605,
+        "w": 1224
+      },
+      "seletor": ".pg-shell-scope > div > div:nth-child(5)",
+      "truncado": false
+    },
+    "tabela_titulo": {
+      "contraste": {
+        "fundo": "oklch(0.23 0.006 240)",
+        "fundo_de": "h-full",
+        "razao": 14.16,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.012215,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "flex",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "8px",
+        "padding": "16px 24px 12px"
+      },
+      "filhos": 3,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "oklch(0.23 0.006 240)",
+          "de": "h-full"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "text-[10px]",
+        "flex-1",
+        "text-[11px]"
+      ],
+      "rect": {
+        "h": 44,
+        "w": 1224
+      },
+      "seletor": ".pg-shell-scope > div > div:nth-child(4)",
+      "truncado": false
+    }
+  },
+  "tela": "paymentgateways--index",
+  "url": "http://127.0.0.1:5561/"
+}

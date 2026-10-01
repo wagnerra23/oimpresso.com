@@ -1,0 +1,197 @@
+{
+  "aguardou_sumir": null,
+  "ausentes": [],
+  "base": {
+    "assinatura": "OI WR OFFICEIMPRESSO · matriz · 12 produtos · 4 grupos de preço · papel: Administrador Produtos Atualizar preço Atualizado 23:44 ← Voltar à lista Baixar Excel Novo produto Atualizar preço por planilha 12 produtos · 4 grupos Tela sem permissão no legado (achado A-P1) Qualquer usuário logado com acesso ao menu executa esta ação — o SellingPriceGroupController não tem e a rota só passa pela autenticação. Precisa de decisão de [W] antes do F3. Exporte, edite, devolva A planilha sai com uma coluna por grupo de preço ativo. Não mexa nas colunas de SKU e variação — são elas que casam a linha com o produto. Passo 1 — exportar Exportar preços atuais Passo 2 — devolver Escolher planilha Aplicar preços Nenhum arquivo escolhido Instruções 4 regras Exporte primeiro. A planilha já vem com todos os produtos, variações e os grupos de preço ativos — não monte uma planilha do zero. Altere só as colunas de preço. Mexer em SKU, nome ou variação faz a linha ser recusada. Valor em branco significa “usa o preço de venda padrão”. Zero significa preço zero — não é a mesma coisa. Grupo desativado não sai na exportação e não é atualizado. Ative em Cadastros de apoio → Grupos de preço antes. varejo atacado convênio funcionário Gerenciar grupos Editar preço na tela",
+    "roles": {
+      "celulas": null,
+      "chart": null,
+      "contratos": [],
+      "filterRows": null,
+      "kpi": {
+        "count": 0,
+        "items": [],
+        "overflowX": null,
+        "tag": null
+      },
+      "primary": null,
+      "shell": null,
+      "tabela": null,
+      "title": null
+    },
+    "saude": {
+      "folhasVazias": [],
+      "nFolhas": 72,
+      "tokensMortos": []
+    },
+    "theme": "dark",
+    "url": "http://127.0.0.1:5567/"
+  },
+  "nos_totais": 491,
+  "quieto_ms": 2000,
+  "rota": "prod-atualizar-preco",
+  "secoes": {
+    "header": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "proprio",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.26 0.006 240)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "flex",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "10px 12px",
+        "padding": "14px 0px"
+      },
+      "filhos": 2,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "div",
+        "div"
+      ],
+      "rect": {
+        "h": 80,
+        "w": 1176
+      },
+      "seletor": "main .pb-root > .cli-ph > header",
+      "truncado": false
+    },
+    "instrucoes": {
+      "contraste": {
+        "fundo": "oklch(0.3 0.008 240)",
+        "fundo_de": "proprio",
+        "razao": 11.42,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.027108,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.3 0.008 240)",
+        "borderRadius": "12px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "block",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "padding": "0px"
+      },
+      "filhos": 2,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.3 0.008 240)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "h3",
+        "pb-widget-b"
+      ],
+      "rect": {
+        "h": 199,
+        "w": 1176
+      },
+      "seletor": "main .pb-root > .pb-body > section.pb-widget:nth-of-type(2)",
+      "truncado": false
+    },
+    "passos": {
+      "contraste": {
+        "fundo": "oklch(0.3 0.008 240)",
+        "fundo_de": "pb-widget",
+        "razao": 11.42,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.027108,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "grid",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "12px 14px",
+        "padding": "0px"
+      },
+      "filhos": 2,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "pb-widget-b"
+        },
+        {
+          "bg": "oklch(0.3 0.008 240)",
+          "de": "pb-widget"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "div",
+        "div"
+      ],
+      "rect": {
+        "h": 85,
+        "w": 1142
+      },
+      "seletor": "main .pb-root > .pb-body > section.pb-widget:nth-of-type(1) > .pb-widget-b > .pb-grid.c2",
+      "truncado": false
+    },
+    "planilha": {
+      "contraste": {
+        "fundo": "oklch(0.3 0.008 240)",
+        "fundo_de": "proprio",
+        "razao": 11.42,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.027108,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.3 0.008 240)",
+        "borderRadius": "12px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "block",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "padding": "0px"
+      },
+      "filhos": 2,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.3 0.008 240)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "h3",
+        "pb-widget-b"
+      ],
+      "rect": {
+        "h": 306,
+        "w": 1176
+      },
+      "seletor": "main .pb-root > .pb-body > section.pb-widget:nth-of-type(1)",
+      "truncado": false
+    }
+  },
+  "tela": "produto--atualizar-preco--index",
+  "url": "http://127.0.0.1:5567/"
+}

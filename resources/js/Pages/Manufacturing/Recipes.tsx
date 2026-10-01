@@ -25,6 +25,7 @@ import AppShellV2 from '@/Layouts/AppShellV2';
 import { Button } from '@/Components/ui/button';
 import { Checkbox } from '@/Components/ui/checkbox';
 import KpiCard from '@/Components/shared/KpiCard';
+import { Segmented } from '@/Components/ui/segmented';
 import StatusBadge from '@/Components/shared/StatusBadge';
 import FichaPrint from './_components/FichaPrint';
 import { faixaMargem, fmt, num, rotuloCustoExtra } from './_lib/formato';
@@ -221,8 +222,13 @@ export default function Recipes({ recipes = [], permissions, producao, settings 
       </div>
 
       <div className="mfg-bar" data-contract="filtros">
+        {/* Busca nas medidas do `SearchInput` do protótipo (34px, canto 8, texto 13, ícone 15) —
+            o `SearchInput` do DS não tem par React (gap no component-registry), então a peça
+            local segue. O "(tecla /)" no placeholder é copy do CONTRATO da tela
+            (`manufacturing-recipes.contract.json`, citado do handoff normativo) e fica: o
+            protótipo o tirou, mas copy de contrato é decisão [W], não de forma. */}
         <div className="mfg-s">
-          <Search size={14} className="ic" aria-hidden />
+          <Search size={15} className="ic" aria-hidden />
           <input
             ref={buscaRef}
             placeholder="Buscar receita por nome, SKU, categoria…  (tecla /)"
@@ -234,22 +240,38 @@ export default function Recipes({ recipes = [], permissions, producao, settings 
             aria-label="Buscar receita"
           />
         </div>
-        <div className="mfg-chips">
-          {CATS.map((c) => (
-            <button
-              type="button"
-              key={c}
-              className={`mfg-chip${cat === c ? ' act' : ''}`}
-              aria-pressed={cat === c}
-              onClick={() => {
-                setCat(c);
-                setPag(1);
-              }}
-            >
-              {c}
-            </button>
-          ))}
-        </div>
+        {/* Categorias no `Segmented` do DS, como no protótipo. O próprio protótipo declara que o
+            Segmented aceita 2–5 opções e que "a sexta pede outra peça" — sem dizer qual. Aqui as
+            categorias vêm do cadastro da empresa, então acima de 5 opções ficam as pílulas de
+            antes (NÃO DEFINIDO NO PROTÓTIPO; não se inventa a peça). */}
+        {CATS.length <= 5 ? (
+          <Segmented
+            aria-label="Categoria"
+            value={cat}
+            onValueChange={(v) => {
+              setCat(v);
+              setPag(1);
+            }}
+            options={CATS.map((c) => ({ value: c, label: c }))}
+          />
+        ) : (
+          <div className="mfg-chips" role="group" aria-label="Categoria">
+            {CATS.map((c) => (
+              <button
+                type="button"
+                key={c}
+                className={`mfg-chip${cat === c ? ' act' : ''}`}
+                aria-pressed={cat === c}
+                onClick={() => {
+                  setCat(c);
+                  setPag(1);
+                }}
+              >
+                {c}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       <div className="mfg-tablewrap" data-contract="lista">

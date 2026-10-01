@@ -108,7 +108,7 @@ beforeEach(function () {
     });
 });
 
-it('R-WA-049-CRUD-001 — store + update + destroy variant funciona', function () {
+it('UC-MACV-01 · R-WA-049-CRUD-001 — store + update + destroy variant funciona', function () {
     session()->put('user.business_id', 1);
     session()->put('user.id', 42);
 
@@ -154,7 +154,7 @@ it('R-WA-049-CRUD-001 — store + update + destroy variant funciona', function (
     expect(MacroVariant::query()->where('business_id', 1)->count())->toBe(0);
 });
 
-it('R-WA-049-CRUD-002 — validação rejeita label vazio e weight fora 0-100', function () {
+it('UC-MACV-02 · R-WA-049-CRUD-002 — validação rejeita label vazio e weight fora 0-100', function () {
     session()->put('user.business_id', 1);
 
     $macro = Macro::query()->create([
@@ -191,7 +191,7 @@ it('R-WA-049-CRUD-002 — validação rejeita label vazio e weight fora 0-100', 
     expect($v)->not->toBeNull();
 });
 
-it('R-WA-049-CRUD-003 — Tier 0 (ADR 0093): biz=1 não acessa variante de biz=99', function () {
+it('UC-MACV-03 · R-WA-049-CRUD-003 — Tier 0 (ADR 0093): biz=1 não acessa variante de biz=99', function () {
     // Cria macro+variante em biz=99 SEM autenticar
     $macroAlien = new Macro([
         'business_id' => 99, 'label' => 'Alien', 'body' => 'x',
@@ -237,7 +237,7 @@ it('R-WA-049-CRUD-003 — Tier 0 (ADR 0093): biz=1 não acessa variante de biz=9
     ))->toThrow(\Illuminate\Database\Eloquent\ModelNotFoundException::class);
 });
 
-it('R-WA-049-CRUD-004 — mark_winner desativa outras + bump weight 100 + preserva histórico', function () {
+it('UC-MACV-04 · R-WA-049-CRUD-004 — mark_winner desativa outras + bump weight 100 + preserva histórico', function () {
     session()->put('user.business_id', 1);
 
     $macro = Macro::query()->create([

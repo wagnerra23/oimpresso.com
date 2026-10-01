@@ -6,8 +6,6 @@ namespace Modules\Whatsapp\Http\Controllers\Admin;
 
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
-use Inertia\Inertia;
-use Inertia\Response;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Http;
@@ -25,7 +23,6 @@ use Modules\Whatsapp\Entities\Tag;
 use Modules\Whatsapp\Jobs\DispatchCsatJob;
 use Modules\Whatsapp\Jobs\SendInteractiveJob;
 use Modules\Whatsapp\Jobs\SendMediaJob;
-use Modules\Whatsapp\Services\Centrifugo\CentrifugoTokenIssuer;
 use Modules\Whatsapp\Services\Notes\SlashCommandParser;
 use Modules\Whatsapp\Services\Notes\SlashCommandRegistry;
 use Modules\Whatsapp\Services\Notes\SlashCommandResult;
@@ -45,266 +42,35 @@ use Modules\Whatsapp\Services\Notes\SlashCommandResult;
  */
 class InboxController extends Controller
 {
-    public function index(Request $request, CentrifugoTokenIssuer $tokenIssuer): Response
+    /**
+     * GET /atendimento/inbox → Caixa Unificada V4, PRESERVANDO a query.
+     *
+     * [W] 2026-10-01 (D1 do playbook Atendimento): a tela `Atendimento/Inbox/Index`
+     * não existe mais (cutover 2026-05-15 → Caixa Unificada V4). Até aqui a rota era
+     * um `Route::redirect`, e o `RedirectController` do Laravel monta a URL só com os
+     * parâmetros de PATH — a query string se perdia (`/atendimento/inbox?thread=5`
+     * caía na Caixa sem a conversa aberta; ex.: link do CSAT `Csat/Index.tsx`).
+     *
+     * - `thread` e `tab` seguem com o mesmo nome (a Caixa lê os dois).
+     * - `channel_id` (filtro de canal do Inbox legado) vira também `account_id`, que é
+     *   o nome que a Caixa lê para o mesmo filtro — com a mesma checagem de ACL de
+     *   canal (`ensureChannelIdAccessOrAbort`) lá dentro. O `channel_id` original é
+     *   mantido na URL.
+     * - Os demais parâmetros seguem como vieram.
+     *
+     * Só este método mudou: `send`, `updateTags`, `blockContact` e os demais
+     * endpoints POST/PATCH em `/atendimento/inbox/{id}/...` continuam aqui, porque a
+     * Caixa Unificada os reusa.
+     */
+    public function index(Request $request): RedirectResponse
     {
-        $businessId = (int) session('user.business_id');
-        $userId = (int) (session('user.id') ?? auth()->id() ?? 0);
-        $tab = $request->input('tab', 'all');
-        $q = $request->input('q', '');
-        $threadId = $request->input('thread');
-        $channelFilter = $request->input('channel'); // tipo: whatsapp_baileys, etc
+        $query = $request->query();
 
-        // CYCLE-08 PR-A (US-WA-040): filtro POR CANAL específico via dropdown
-        // topbar (`?channel_id=N`). Diferente de `channel` (que filtra por TYPE).
-        // Quando user passa `channel_id`, validamos ACL ANTES da query — sem
-        // acesso = 403 (fail-loud), evita confusão "filtro retorna vazio".
-        $selectedChannelId = $request->has('channel_id') && $request->input('channel_id') !== ''
-            ? (int) $request->input('channel_id')
-            : null;
-        if ($selectedChannelId !== null) {
-            $this->ensureChannelIdAccessOrAbort($selectedChannelId, $businessId, $userId);
+        if (isset($query['channel_id']) && $query['channel_id'] !== '' && ! isset($query['account_id'])) {
+            $query['account_id'] = $query['channel_id'];
         }
 
-        $convQuery = Conversation::query()
-            ->where('business_id', $businessId)
-            ->with('channel:id,label,type,status,channel_uuid,channel_health');
-
-        // US-WA-069 (ADR 0135 canal=fila): filtra conversas pelos canais que o
-        // user tem ACL ativa em `channel_user_access`. Gate
-        // `whatsapp.view-all-phones` é o ÚNICO bypass (admin/superadmin).
-        //
-        // Defense-in-depth ON TOP do business_id global scope — Tier 0 ADR 0093
-        // continua garantindo isolamento entre businesses; este filtro adiciona
-        // segregação per-canal/fila DENTRO do mesmo business.
-        $this->applyChannelAclFilter($convQuery, $businessId, $userId);
-
-        // CYCLE-08 PR-A: aplica filtro per-canal específico DEPOIS do ACL filter.
-        // Composição: user precisa ter acesso AO canal + canal precisa bater.
-        if ($selectedChannelId !== null) {
-            $convQuery->where('channel_id', $selectedChannelId);
-        }
-
-        // Filtros — tabs por status/condição. `awaiting_human` e `archived`
-        // mapeiam pro enum `conversations.status` (criados em US-WA-* prévia,
-        // tab visual faltando).
-        switch ($tab) {
-            case 'unread':
-                $convQuery->where('unread_count', '>', 0);
-                break;
-            case 'assigned':
-                $convQuery->where('assigned_user_id', $userId);
-                break;
-            case 'bot':
-                $convQuery->where('bot_handling', true);
-                break;
-            case 'resolved':
-                $convQuery->where('status', 'resolved');
-                break;
-            case 'awaiting_human':
-                // Bot escalou pra humano — fila de atendimento manual.
-                $convQuery->where('status', 'awaiting_human');
-                break;
-            case 'archived':
-                // Conversa arquivada pelo atendente — fora do operacional dia-a-dia.
-                $convQuery->where('status', 'archived');
-                break;
-        }
-
-        if ($q !== '') {
-            $convQuery->where(function ($x) use ($q) {
-                $x->where('contact_name', 'LIKE', "%{$q}%")
-                  ->orWhere('customer_external_id', 'LIKE', "%{$q}%");
-            });
-        }
-
-        if ($channelFilter) {
-            $convQuery->whereHas('channel', fn ($c) => $c->where('type', $channelFilter));
-        }
-
-        // US-WA-063: filtro por tags (multi-select query param `tags=1,3,5`).
-        // Comportamento OR: conversa com QUALQUER das tags listadas aparece.
-        $tagsFilter = $request->input('tags', '');
-        if ($tagsFilter) {
-            $tagIds = array_filter(array_map('intval', explode(',', $tagsFilter)));
-            if (! empty($tagIds)) {
-                $convQuery->whereHas('tags', fn ($q) => $q->whereIn('whatsapp_tags.id', $tagIds));
-            }
-        }
-
-        // Filtro `within_24h` — janela 24h da Meta WhatsApp Cloud.
-        // true  → conversas com `last_inbound_at` >= 24h atrás (freeform OK)
-        // false → conversas com `last_inbound_at` < 24h atrás OU null (precisa HSM)
-        // Útil pro atendente decidir quem ainda dá pra mandar freeform.
-        if ($request->has('within_24h')) {
-            if ($request->boolean('within_24h')) {
-                $convQuery->where('last_inbound_at', '>=', now()->subHours(24));
-            } else {
-                $convQuery->where(function ($q2) {
-                    $q2->whereNull('last_inbound_at')
-                       ->orWhere('last_inbound_at', '<', now()->subHours(24));
-                });
-            }
-        }
-
-        // Filtro `unlinked` — sem Contact CRM UltimatePOS vinculado.
-        // Oportunidade pra atendente cadastrar/vincular contato existente.
-        if ($request->boolean('unlinked')) {
-            $convQuery->whereNull('contact_id');
-        }
-
-        // US-WA-043 (PR-8 CYCLE-07) — filtro `media_inbound_24h`: conversas
-        // que receberam mídia (image/audio/video/document) inbound nas
-        // últimas 24h. Útil pra atendente revisar fotos/áudios de clientes
-        // sem ter que abrir conv por conv.
-        //
-        // Custo: 1 subquery por hit (`whereHas('messages')` vira EXISTS),
-        // indexada via `messages.business_id + created_at` já presente.
-        if ($request->boolean('media_inbound_24h')) {
-            $convQuery->whereHas('messages', fn ($q) => $q
-                ->where('direction', 'inbound')
-                ->whereIn('type', ['image', 'audio', 'video', 'document'])
-                ->where('created_at', '>=', now()->subHours(24)));
-        }
-
-        // Filtro `inbound_aging` — última msg do cliente há > X tempo E cliente
-        // foi o último a falar. Fila SLA "esperando resposta". Whitelist do
-        // valor (enum) bloqueia SQL injection via input não confiável.
-        $inboundAging = $request->input('inbound_aging');
-        if ($inboundAging) {
-            $hours = match ($inboundAging) {
-                '6h' => 6,
-                '12h' => 12,
-                '24h' => 24,
-                '48h' => 48,
-                '7d' => 168,
-                default => null,
-            };
-            if ($hours !== null) {
-                $convQuery
-                    ->whereNotNull('last_inbound_at')
-                    ->where('last_inbound_at', '<', now()->subHours($hours))
-                    ->where(function ($q2) {
-                        // Só conta como "esperando resposta" se cliente foi o
-                        // último a falar (atendente ainda não respondeu OU
-                        // resposta veio antes da última msg do cliente).
-                        $q2->whereNull('last_outbound_at')
-                           ->orWhereColumn('last_outbound_at', '<', 'last_inbound_at');
-                    });
-            }
-        }
-
-        // Ordenação: default `last_message_at` (mais recente). Opção `inbound`
-        // ordena por `last_inbound_at` desc — útil pra ver primeiro quem está
-        // esperando resposta (visão SLA-first).
-        $orderBy = $request->input('orderBy');
-        $orderColumn = $orderBy === 'inbound' ? 'last_inbound_at' : 'last_message_at';
-
-        // D-14 perf 2026-05-15 — props caras movidas pra Inertia::defer() abaixo
-        // (skip de query quando partial reload `only:[]` não pede). Antes:
-        // toda troca de conversa (`selectThread` → `only:['thread','messages']`)
-        // executava paginate+stats+channels+tags = ~12 queries × 300-800ms.
-        // Agora: closures defer pulam quando `only:[]` não as inclui = ~50ms.
-        //
-        // Construção do `$convQuery` permanece aqui (precisa do `applyChannelAclFilter`,
-        // `selectedChannelId` ACL gate validation + filtros do request). Só execução
-        // (`->paginate(50)`) move pra closure abaixo.
-
-        // Thread aberta?
-        $thread = null;
-        $messages = null;
-        if ($threadId) {
-            // US-WA-069: tenta achar com ACL ativo — se user não tem acesso ao
-            // canal, thread vira null (UI mostra lista vazia, sem 500).
-            $threadQuery = Conversation::query()
-                ->where('business_id', $businessId)
-                // US-WA-063: eager-load tags · US-WA-064: eager-load Contact UltimatePOS
-                ->with(['channel', 'tags:id,slug,label,color']);
-            $this->applyChannelAclFilter($threadQuery, $businessId, $userId);
-            $threadModel = $threadQuery->find($threadId);
-            if ($threadModel) {
-                $thread = $this->convToThreadArray($threadModel);
-                // US-WA-077: eager-load `senderUser` pra evitar N+1 ao
-                // renderizar nome do atendente acima de cada bubble outbound.
-                $messages = Message::query()
-                    ->where('business_id', $businessId)
-                    ->where('conversation_id', $threadId)
-                    ->with('senderUser:id,first_name,surname,last_name')
-                    ->orderBy('created_at')
-                    ->limit(200)
-                    ->get()
-                    ->map(fn (Message $m) => $this->msgToUiArray($m));
-
-                // Zera unread quando abre
-                if ($threadModel->unread_count > 0) {
-                    $threadModel->forceFill(['unread_count' => 0])->save();
-                }
-            }
-        }
-
-        // D-14 perf 2026-05-15 — availableChannels + availableTags movidos
-        // pra Inertia::defer abaixo (skip quando partial reload não pede).
-        // activeTagIds derivada do request já é leve, mantém eager.
-        $activeTagIds = $tagsFilter
-            ? array_filter(array_map('intval', explode(',', $tagsFilter)))
-            : [];
-
-        // Centrifugo real-time (ADR 0058 + US-WA-059) — channel
-        // `omnichannel:business:{id}` segregado por business_id (Tier 0).
-        // Token JWT HS256 ttl curto, re-emitido a cada page load. Se
-        // emissor falhar (secret ausente, etc), payload vira null e o
-        // frontend cai pra polling fallback.
-        $channel = "omnichannel:business:{$businessId}";
-        $token = $tokenIssuer->issue(
-            $userId,
-            [$channel],
-            (int) config('whatsapp.centrifugo.token_ttl_seconds', 3600)
-        );
-        $centrifugoConfig = $token !== null ? [
-            'wsUrl' => config('whatsapp.centrifugo.ws_url'),
-            'token' => $token,
-            'channel' => $channel,
-        ] : null;
-
-        return Inertia::render('Atendimento/Inbox/Index', [
-            // ─── DEFER: props caras (paginate, count, queries) ─────────
-            // Skip de execução quando partial reload `only:[]` não pede.
-            // Frontend (Inertia v3 React) faz auto-fetch async pós-render
-            // inicial OU recebe quando partial reload explicita.
-            //
-            // Perf real medida 2026-05-15: switch conversa antes ~300ms
-            // (executava 12 queries SQL), agora ~50ms (skip 9/12).
-            'conversations' => Inertia::defer(fn () => $this->buildConversationsPayload($convQuery, $orderColumn)),
-            'stats' => Inertia::defer(fn () => $this->buildStatsPayload($businessId, $userId)),
-            'availableChannels' => Inertia::defer(fn () => $this->buildAvailableChannelsPayload($businessId, $userId)),
-            'availableTags' => Inertia::defer(fn () => $this->buildAvailableTagsPayload($businessId)),
-
-            // ─── Eager: estados de UI leves (request inputs) ───────────
-            'tab' => $tab,
-            'q' => $q,
-            'channelFilter' => $channelFilter,
-            // Filtros novos — passa estado pra UI re-renderizar chips/dropdown.
-            // `within_24h` chega como bool|null (request->boolean retorna false
-            // p/ ausente — usar has() pra distinguir "não filtrado" de "false").
-            'within24h' => $request->has('within_24h') ? $request->boolean('within_24h') : null,
-            'unlinked' => $request->boolean('unlinked'),
-            'mediaInbound24h' => $request->boolean('media_inbound_24h'),
-            'inboundAging' => $request->input('inbound_aging'),
-            'orderBy' => $request->input('orderBy', 'last_message'),
-            'businessId' => $businessId,
-            // ─── Eager: thread+messages (alvo principal de partial reload `selectThread`) ───
-            'thread' => $thread,
-            'messages' => $messages,
-            // CYCLE-08 PR-A (US-WA-040): channel_id ativo no dropdown topbar
-            // (null = "Todos os canais"). Frontend usa pra marcar item selecionado
-            // no ChannelSelector + manter estado entre partial reloads.
-            'selectedChannelId' => $selectedChannelId,
-            'activeTagIds' => $activeTagIds,
-            'centrifugoConfig' => $centrifugoConfig,
-            // Caixa Unificada v4 — config static das filas (sem DB).
-            // Frontend usa pra renderizar pílulas + cor (hue) + SLA.
-            'queues' => (array) config('whatsapp.queues', []),
-            'defaultQueue' => (string) config('whatsapp.default_queue', 'comercial'),
-        ]);
+        return redirect()->route('atendimento.caixa-unificada.index', $query, 301);
     }
 
     /**
