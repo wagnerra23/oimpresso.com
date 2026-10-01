@@ -1,0 +1,192 @@
+name: Connector · Pest (MySQL)
+
+# Lane do CONNECTOR: API REST (Passport), o painel de API clients /connector/client
+# (Inertia `Api/Index`) e a API de licença do desktop.
+#
+# POR QUE existe (medido 2026-10-01): os testes de Modules/Connector/Tests/Feature/ dão
+# markTestSkipped em SQLite — e a ÚNICA lane que os citava era o modules-pest.yml, que roda
+# SQLite :memory: sem migrate. Resultado: pulavam sempre, skip sai exit 0 (LC-13), e a leva
+# de PRs desta semana (#8336 painel, #8344 revogação de tokens, #8350 segredo, #8354 tela Api,
+# #8374 menu/regenerate, #8379 abas — UC-CONN-*) nasceu SEM NUNCA TER RODADO. Registro no
+# phpunit.xml não é execução (proibicoes.md §5 2026-08-02).
+#
+# MySQL e não sqlite pelo mesmo motivo das irmãs: Passport + schema UltimatePOS + seed
+# multi-tenant (biz=1/2/98) vêm da action pest-mysql-setup. Por isso o --check-assertions
+# abaixo está ARMADO: a lane que rodou e não provou nada fica vermelha.
+#
+# NÃO duplica o officeimpresso-pest.yml: o SalvarEquipamentoTenantGuardTest (rota Connector
+# que grava licenca_computador) continua morando lá. O DelphiOImpressoContractTest
+# (tests/Feature/Connector/, órfão de lane) foi medido aqui e ficou FORA — ver o step do Pest.
+#
+# ⚠️ O Pest ABORTA (exit 2) se um caminho da lista não existe — arquivo novo entra no
+# comando no MESMO PR que o cria.
+#
+# Estrutura copiada de auditoria-pest.yml / officeimpresso-pest.yml (mesmo setup MySQL,
+# mesmo skip-as-pass, mesmo sumário JUnit por assertions + --check-assertions armado).
+
+on:
+  workflow_dispatch: {}
+  # pull_request SEM paths (always-run) + skip-as-pass interno via dorny/paths-filter.
+  pull_request:
+    types: [opened, reopened, ready_for_review]
+    branches: [main]
+  push:
+    branches: [main]
+    paths:
+      - 'Modules/Connector/**'
+      - 'app/Providers/AuthServiceProvider.php'
+      - 'database/schema/mysql-schema.sql'
+      - '.github/workflows/connector-pest.yml'
+      - '.github/actions/pest-mysql-setup/**'
+
+concurrency:
+  group: connector-pest-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  pest:
+    name: PHP / Pest (Connector · MySQL)
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: oimpresso_test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping --silent"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Detectar mudanças do Connector (skip-as-pass)
+        id: changes
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            connector:
+              - 'Modules/Connector/**'
+              - 'app/Providers/AuthServiceProvider.php'
+              - 'database/schema/mysql-schema.sql'
+              - '.github/workflows/connector-pest.yml'
+              - '.github/actions/pest-mysql-setup/**'
+
+      - name: Skip-as-pass (nada do Connector mudou)
+        if: steps.changes.outputs.connector == 'false'
+        run: echo "✅ Sem mudanças no Connector — skip-as-pass."
+
+      - name: Setup Pest MySQL (PHP + deps + .env + migrate + seed mínimo multi-tenant)
+        if: steps.changes.outputs.connector == 'true'
+        uses: ./.github/actions/pest-mysql-setup
+
+      - name: Stub Vite manifest (root view sem build do front)
+        if: steps.changes.outputs.connector == 'true'
+        run: |
+          mkdir -p public/build-inertia
+          cat > public/build-inertia/manifest.json <<'JSON'
+          {
+            "resources/css/inertia.css": { "file": "assets/inertia.css", "src": "resources/css/inertia.css", "isEntry": true },
+            "resources/js/app.tsx": { "file": "assets/app.js", "src": "resources/js/app.tsx", "isEntry": true }
+          }
+          JSON
+
+      # Chaves do Passport: o checkout não traz storage/oauth-*.key e o token estoura
+      # `Invalid key supplied` sem elas (mesmo contorno do OauthClientIdTest no
+      # officeimpresso-pest, #8366 — aqui feito 1x pra lane inteira).
+      - name: Chaves Passport (passport:keys)
+        if: steps.changes.outputs.connector == 'true'
+        env:
+          DB_CONNECTION: mysql
+          DB_HOST: 127.0.0.1
+          DB_PORT: "3306"
+          DB_DATABASE: oimpresso_test
+          DB_USERNAME: root
+          DB_PASSWORD: root
+        run: php artisan passport:keys --force
+
+      - name: Run Pest (Connector · MySQL)
+        if: steps.changes.outputs.connector == 'true'
+        # phpunit.xml aponta DB_CONNECTION=sqlite :memory: (sem force="true"), então a env
+        # daqui vence e a suíte roda no MySQL real semeado pela action.
+        env:
+          DB_CONNECTION: mysql
+          DB_HOST: 127.0.0.1
+          DB_PORT: "3306"
+          DB_DATABASE: oimpresso_test
+          DB_USERNAME: root
+          DB_PASSWORD: root
+        # ⚠️ FORA desde 2026-10-01, medido no 1º run desta lane (run 36835992221:
+        # 179 passed · 10 failed · 13 errors · 1 skipped · 665 assertions). Não ficou provado
+        # se o defeito é do teste ou da produção — consertar produção às cegas está proibido;
+        # voltam quando a causa for medida:
+        #   - AuthApiTest (4/5): rota auth:api sem Bearer devolve 302 (redirect) em vez de
+        #     401 mesmo com Accept: application/json; e a rota web `connector/api` (tela) cai
+        #     no filtro "toda connector/api* tem auth:api".
+        #   - MultiTenantIsolationTest (6/6): 5 com FK (contacts/transactions.created_by,
+        #     products.unit_id) — fixture sem dono; 1 acusa "User biz=1 visível com session
+        #     biz=99" (o teste presume global scope de business_id no App\User).
+        #   - DelphiOImpressoContractTest (3/34): check-update sem token devolve 302 (mesmo
+        #     sintoma do AuthApiTest) e 2 casos sem personal access client do Passport.
+        #   - ApiClientsPanelTest, 3 métodos (--exclude-filter): o Passport 13 grava o
+        #     secret com hash (60 chars, Client::secret cast hashed) e o contrato [W] diz que
+        #     o segredo do Delphi em campo NÃO pode ser hasheado — conflito a decidir, não a
+        #     esconder: segredo_nao_e_hasheado, client_preexistente_ainda_obtem_token (401),
+        #     store_cria_password_client_com_secret_de_40. Mesmo conflito, medido no 2º run
+        #     (36836813351, 60 ≠ 40), em 2 casos do ClientControllerBaselineTest:
+        #     "store cria client de senha com secret de 40 caracteres" e "o segredo aparece
+        #     UMA vez, no retorno da criação".
+        #   - ApiClientsPanelTest::test_nenhuma_rota_do_painel_devolve_o_segredo — INSTÁVEL
+        #     (verde nos runs 36836813351/36837162964, vermelho no 36837439764): GET
+        #     /connector/client/{id} dá 500 "View [show] not found" (ClientController::show
+        #     usa view('connector::show'), que não existe) e a página de erro do APP_DEBUG
+        #     do CI às vezes despeja o log de queries com o hash do secret no binding.
+        run: |
+          mkdir -p test-results
+          vendor/bin/pest --no-coverage --colors=always \
+            --log-junit test-results/pest-connector-junit.xml \
+            --exclude-filter 'test_segredo_nao_e_hasheado_credencial_em_campo_continua_valendo|test_client_preexistente_ainda_obtem_token|test_store_cria_password_client_com_secret_de_40|test_nenhuma_rota_do_painel_devolve_o_segredo|secret.de.40.caracteres|segredo.aparece.UMA.vez' \
+            Modules/Connector/Tests/Feature/ApiClientsPanelTest.php \
+            Modules/Connector/Tests/Feature/ClientControllerBaselineTest.php \
+            Modules/Connector/Tests/Feature/CustomerJourneyTest.php \
+            Modules/Connector/Tests/Feature/LicencaComputadorApiEscopoTest.php \
+            Modules/Connector/Tests/Feature/LicencaComputadorSegredoDesktopTest.php \
+            Modules/Connector/Tests/Feature/ObservabilityTest.php \
+            Modules/Connector/Tests/Feature/ScaffoldConnectorTest.php \
+            Modules/Connector/Tests/Feature/SmokeApiRoutesTest.php \
+            Modules/Connector/Tests/Feature/Wave18SaturationTest.php \
+            Modules/Connector/Tests/Feature/Wave23ConnectorSaturationTest.php \
+            Modules/Connector/Tests/Feature/Wave28PolishTest.php
+
+      # A régua honesta desta lane é `assertions`, NÃO "0 failed": skip sai exit 0.
+      - name: Sumário JUnit por arquivo (assertions — a régua contra skip-as-pass)
+        if: always()
+        run: node scripts/tests/junit-summary.mjs test-results/pest-connector-junit.xml --out test-results/pest-connector-junit-summary.json || true
+
+      # Guardado pela MESMA condição do Pest (nunca always()): no skip-as-pass o XML nem
+      # existe. Morde quando a lane RODOU e não provou nada (LC-13).
+      - name: Suíte provou algo? (--check-assertions · LC-13)
+        if: steps.changes.outputs.connector == 'true'
+        run: node scripts/tests/junit-summary.mjs test-results/pest-connector-junit.xml --check-assertions
+
+      - name: Upload sumário JUnit (pest-connector-junit-summary)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pest-connector-junit-summary
+          path: test-results/pest-connector-junit-summary.json
+          retention-days: 14
+          if-no-files-found: ignore
+
+      - name: Upload JUnit (Connector · MySQL)
+        if: ${{ !cancelled() && steps.changes.outputs.connector == 'true' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: pest-connector-junit
+          path: test-results/pest-connector-junit.xml
+          retention-days: 14

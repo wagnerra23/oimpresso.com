@@ -126,8 +126,12 @@ class ApiClientsPanelTest extends TestCase
         $res = $this->actingAs($this->superadmin)->get('/connector/client');
 
         $res->assertOk();
-        $res->assertSee($meu->name);
-        $res->assertDontSee($alheio->name);
+        // Lido na prop, não no HTML: o data-page é JSON e escapa "—"/"ã" como —/ã,
+        // então assertSee do nome falhava com o client na lista e assertDontSee passaria
+        // por vácuo (medido 2026-10-01, 1º run da lane connector-pest).
+        $nomes = collect($res->viewData('page')['props']['clients'] ?? [])->pluck('name')->all();
+        $this->assertContains($meu->name, $nomes);
+        $this->assertNotContains($alheio->name, $nomes);
     }
 
     // ── UC-CONN-02 ❌ segredo não é exibível ([W] D6) ───────────────────────
