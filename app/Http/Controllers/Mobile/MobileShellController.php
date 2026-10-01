@@ -59,7 +59,7 @@ class MobileShellController extends Controller
 
         return [
             'usuario' => ['nome' => trim(($user->first_name ?? '').' '.($user->last_name ?? '')) ?: (string) $user->username],
-            'empresa' => ['nome' => (string) optional($user->business)->name],
+            'empresa' => ['nome' => (string) \App\Business::query()->whereKey($user->business_id)->value('name')],
         ];
     }
 }
