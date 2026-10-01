@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\Arquivos\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Modules\Arquivos\Entities\Arquivo;
 
 /**
  * FormRequest pra DELETE de Arquivo (soft-delete pela trait SoftDeletes).
@@ -32,14 +33,20 @@ class DeleteArquivoRequest extends FormRequest
             return false; // Tier 0 — sem business_id, NUNCA permite delete
         }
 
-        return true;
+        // Thread 03 (PR-7): o arquivo tem que ser DO business da sessão — mesma defesa da
+        // ReclassifyArquivoRequest. `find()` sem trashed: excluir o já excluído não existe.
+        $arquivoId = (int) ($this->route('arquivo') ?? $this->input('arquivo_id', 0));
+        $arquivo = $arquivoId > 0 ? Arquivo::find($arquivoId) : null;
+
+        return $arquivo !== null && (int) $arquivo->business_id === (int) $businessId;
     }
 
     public function rules(): array
     {
         return [
-            // Razão LGPD recomendada (audit log) — opcional mas registrada se vier
-            'reason' => ['nullable', 'string', 'max:500'],
+            // Razão LGPD (audit log). Obrigatória desde a thread 03 (PR-7): a tela grava o
+            // motivo na linha `soft_delete` da trilha — mesmo mínimo do classificar.
+            'reason' => ['required', 'string', 'min:5', 'max:500'],
         ];
     }
 }

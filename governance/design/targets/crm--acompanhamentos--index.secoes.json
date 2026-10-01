@@ -1,0 +1,11 @@
+{
+  "_": "A1 [CL] 2026-09-30 — playbook crm. Protótipo: rota `crm-followups` do espelho (app.jsx CRM_VIEW → CrmBladePage view=acompanhamentos → TelaAcompanhamentos em crm-blade.jsx). Aba padrão `todos`; a aba `Acompanhamento recorrente` não foi medida.",
+  "_mapa": "alvo:mapa --rota crm-followups contra o espelho servido por servirEstatico, 2026-09-30: .pb-body = nav.cb-nav · section.pb-widget (filtros) · section[data-contract=crm-acompanhamentos]; o .pb-widget-b do widget = div.pb-toolbar · nav.ds-tabbar · div.pb-grid-pro · div.pb-pag.",
+  "header": { "seletor": ".cb-root > .cli-ph" },
+  "nav": { "seletor": ".cb-root > .pb-body > .cb-nav" },
+  "filtros": { "seletor": ".cb-root > .pb-body > section:nth-child(2)" },
+  "toolbar": { "seletor": "[data-contract=\"crm-acompanhamentos\"] [data-contract=\"crm-toolbar\"]" },
+  "abas": { "seletor": "[data-contract=\"crm-acompanhamentos\"] > .pb-widget-b > .ds-tabbar" },
+  "grade": { "seletor": "[data-contract=\"crm-acompanhamentos\"] .pb-grid-pro" },
+  "rodape": { "seletor": "[data-contract=\"crm-acompanhamentos\"] [data-contract=\"crm-rodape\"]" }
+}

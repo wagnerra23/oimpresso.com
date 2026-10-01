@@ -62,9 +62,10 @@ por conta própria.
 
 ## Automation Anti-hooks
 
-- ❌ **Nunca renderizar as ações de bloqueio como `<Link>`/`<a href>`.** As duas rotas do legado
-  são `Route::get` que **mudam estado**; um href é seguível por prefetch, crawler e "abrir em nova
-  aba". Elas são `<Button onClick>` + diálogo, e só um clique deliberado dispara.
+- ❌ **Nunca renderizar as ações de bloqueio como `<Link>`/`<a href>`.** As duas rotas **mudam
+  estado**; até 2026-10-01 eram `Route::get` (a thread Officeimpresso/04 as passou para POST +
+  CSRF). Um href é seguível por prefetch, crawler e "abrir em nova aba". Elas são
+  `<Button onClick>` + diálogo + `router.post`, e só um clique deliberado dispara.
 - ❌ **Nunca usar `value=""` em `<SelectItem>`.** O Radix lança e derruba a árvore React inteira
   (tela branca em produção). O item "Todos" usa o sentinela `__all__`; se as opções virarem
   data-driven, trocar por `<SafeSelectItem>`.
@@ -93,7 +94,9 @@ por conta própria.
 ## Permissões
 
 `superadmin` **ou** `officeimpresso.access` para ver; `officeimpresso.licencas.gerenciar` (ou
-`superadmin`) para as ações de bloqueio, que somem quando o usuário não pode.
+`superadmin`) para as ações de bloqueio, que somem quando o usuário não pode. A permissão
+delegável só vale para usuário da empresa operadora (`constants.operator_business_id`) —
+papel de empresa cliente com ela leva 403 (`AcessoOperador`, 2026-10-01).
 
 **A visão cross-empresa é por design** ([ADR 0093](../../../../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md)
 §exceções): a WR2 é a fornecedora do desktop e quem dá assistência precisa ver a máquina do

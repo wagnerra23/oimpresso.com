@@ -18,10 +18,10 @@ authority: generated
 |---|---:|
 | US no SPEC | 10 |
 | CU no SDD | 14 |
-| Telas (.tsx) | 8 |
-| Telas com `casos.md` | 12 |
-| UC declarados | 77 |
-| UC com teste que os cita | 76 |
+| Telas (.tsx) | 11 |
+| Telas com `casos.md` | 15 |
+| UC declarados | 123 |
+| UC com teste que os cita | 107 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -53,6 +53,29 @@ authority: generated
 
 | UC | Tela | Status |
 |---|---|---|
+| UC-CAD-01 | Cadastros/Index | 📝 sem_teste |
+| UC-CAD-02 | Cadastros/Index | 📝 sem_teste |
+| UC-CAD-03 | Cadastros/Index | 📝 sem_teste |
+| UC-CAD-04 | Cadastros/Index | 📝 sem_teste |
+| UC-CAD-05 | Cadastros/Index | 📝 sem_teste |
+| UC-CAD-06 | Cadastros/Index | 📝 sem_teste |
+| UC-CAD-08 | Cadastros/Index | 📝 sem_teste |
+| UC-CAD-09 | Cadastros/Index | 📝 sem_teste |
+| UC-CAD-10 | Cadastros/Index | 📝 sem_teste |
+| UC-CAD-11 | Cadastros/Index | 📝 sem_teste |
+| UC-CAD-12 | Cadastros/Index | 📝 sem_teste |
+| UC-CAD-13 | Cadastros/Index | 📝 sem_teste |
+| UC-CAD-14 | Cadastros/Index | 📝 sem_teste |
+| UC-IMP-01 | Importacao/Index | 🧪 aguarda veredito da lane |
+| UC-IMP-03 | Importacao/Index | 🧪 aguarda veredito da lane |
+| UC-PATPRC-01 | AtualizarPreco/Index | 🧪 aguarda veredito da lane |
+| UC-PATPRC-02 | AtualizarPreco/Index | 🧪 aguarda veredito da lane |
+| UC-PATPRC-03 | AtualizarPreco/Index | 🧪 aguarda veredito da lane |
+| UC-PATPRC-04 | AtualizarPreco/Index | 🧪 aguarda veredito da lane |
+| UC-PATPRC-05 | AtualizarPreco/Index | 🧪 aguarda veredito da lane |
+| UC-PATPRC-06 | AtualizarPreco/Index | 🧪 aguarda veredito da lane |
+| UC-PATPRC-07 | AtualizarPreco/Index | 🧪 aguarda veredito da lane |
+| UC-PATPRC-08 | AtualizarPreco/Index | 🧪 aguarda veredito da lane |
 | UC-PBOM-01 | bom-combo (blade) | 🧪 aguarda veredito da lane |
 | UC-PBOM-02 | bom-combo (blade) | 🧪 aguarda veredito da lane |
 | UC-PBOM-03 | bom-combo (blade) | 🧪 aguarda veredito da lane |
@@ -69,6 +92,17 @@ authority: generated
 | UC-PCAD-04 | Create | 🧪 aguarda veredito da lane |
 | UC-PCAD-05 | Create | 🧪 aguarda veredito da lane |
 | UC-PCAD-06 | Create | 🧪 aguarda veredito da lane |
+| UC-PCADAP-01 | Cadastros/Index | 🧪 aguarda veredito da lane |
+| UC-PCADAP-02 | Cadastros/Index | 🧪 aguarda veredito da lane |
+| UC-PCADAP-03 | Cadastros/Index | 🧪 aguarda veredito da lane |
+| UC-PCADAP-04 | Cadastros/Index | 🧪 aguarda veredito da lane |
+| UC-PCADAP-05 | Cadastros/Index | 🧪 aguarda veredito da lane |
+| UC-PCADAP-06 | Cadastros/Index | 🧪 aguarda veredito da lane |
+| UC-PCADAP-07 | Cadastros/Index | 🧪 aguarda veredito da lane |
+| UC-PCADAP-08 | Cadastros/Index | 🧪 aguarda veredito da lane |
+| UC-PCADAP-09 | Cadastros/Index | 🧪 aguarda veredito da lane |
+| UC-PCADAP-10 | Cadastros/Index | 🧪 aguarda veredito da lane |
+| UC-PCADAP-11 | Cadastros/Index | 🧪 aguarda veredito da lane |
 | UC-PEDIT-01 | Edit | 🧪 aguarda veredito da lane |
 | UC-PEDIT-02 | Edit | 🧪 aguarda veredito da lane |
 | UC-PEDIT-03 | Edit | 🧪 aguarda veredito da lane |
@@ -86,6 +120,16 @@ authority: generated
 | UC-PIDX-04 | Index | 🧪 aguarda veredito da lane |
 | UC-PIDX-05 | Index | 🧪 aguarda veredito da lane |
 | UC-PIDX-06 | Index | 🧪 aguarda veredito da lane |
+| UC-PIMP-01 | Importacao/Index | 🧪 aguarda veredito da lane |
+| UC-PIMP-02 | Importacao/Index | 🧪 aguarda veredito da lane |
+| UC-PIMP-03 | Importacao/Index | 🧪 aguarda veredito da lane |
+| UC-PIMP-04 | Importacao/Index | 🧪 aguarda veredito da lane |
+| UC-PIMP-05 | Importacao/Index | 🧪 aguarda veredito da lane |
+| UC-PIMP-06 | Importacao/Index | 🧪 aguarda veredito da lane |
+| UC-PIMP-07 | Importacao/Index | 🧪 aguarda veredito da lane |
+| UC-PIMP-08 | Importacao/Index | 🧪 aguarda veredito da lane |
+| UC-PIMP-09 | Importacao/Index | 🧪 aguarda veredito da lane |
+| UC-PIMP-10 | Importacao/Index | 🧪 aguarda veredito da lane |
 | UC-PINIC-01 | estoque-inicial (blade) | 🧪 aguarda veredito da lane |
 | UC-PINIC-02 | estoque-inicial (blade) | 🧪 aguarda veredito da lane |
 | UC-PINIC-03 | estoque-inicial (blade) | 🧪 aguarda veredito da lane |
@@ -94,6 +138,8 @@ authority: generated
 | UC-PQCK-02 | quick-add (blade) | 🧪 aguarda veredito da lane |
 | UC-PQCK-03 | quick-add (blade) | 🧪 aguarda veredito da lane |
 | UC-PQCK-04 | quick-add (blade) | 🧪 aguarda veredito da lane |
+| UC-PRC-01 | AtualizarPreco/Index | 📝 sem_teste |
+| UC-PRC-02 | AtualizarPreco/Index | 📝 sem_teste |
 | UC-PSHOW-01 | Show | 🧪 aguarda veredito da lane |
 | UC-PSHOW-02 | Show | 🧪 aguarda veredito da lane |
 | UC-PSHOW-03 | Show | 🧪 aguarda veredito da lane |

@@ -1,0 +1,7 @@
+{
+  "_": "A1 [CL] 2026-09-30 — playbook lote-trio-medida. Protótipo: rota `auditoria` do espelho (app.jsx → MockupPage, corpo estático MOCKUP_BODIES.auditoria em mockup-bodies.js). O charter de Auditoria/Index declara related_prototype n/a (herda PT-01); este mockup é a única rota do protótipo para o módulo — ver _saida-A1.",
+  "_mapa": "alvo:mapa --rota auditoria --raiz .mp-auditoria (e .mp-auditoria > .m-hero) contra o espelho servido por servirEstatico, 2026-09-30: .mp-auditoria = div.m-hero (h3 · span.crumb · div.ctas) · div.log (8 .log-row).",
+  "header": { "seletor": ".mp-auditoria > .m-hero" },
+  "acoes": { "seletor": ".mp-auditoria > .m-hero > .ctas" },
+  "log": { "seletor": ".mp-auditoria > .log" }
+}

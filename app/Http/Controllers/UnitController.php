@@ -2,10 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Brands;
+use App\Category;
 use App\Product;
 use App\Unit;
 use App\Utils\Util;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Inertia\Inertia;
 use Yajra\DataTables\Facades\DataTables;
 
 class UnitController extends Controller
@@ -29,10 +33,17 @@ class UnitController extends Controller
     /**
      * Display a listing of the resource.
      *
-     * @return \Illuminate\Http\Response
+     * @return mixed Inertia (tela Produto/Cadastros) · JSON do DataTables · view clássica
      */
     public function index()
     {
+        // Playbook Produto · thread 02: `/units` abre a tela Produto/Cadastros (abas). O Inertia
+        // manda `X-Requested-With` junto do `X-Inertia`, então `ajax()` sozinho mandaria a visita
+        // pro DataTables (§5 2026-09-08). `?classico=1` mantém a Blade, que hospeda os modais.
+        if (! request()->boolean('classico') && (! request()->ajax() || request()->header('X-Inertia'))) {
+            return $this->cadastros();
+        }
+
         if (! auth()->user()->can('unit.view') && ! auth()->user()->can('unit.create')) {
             abort(403, 'Unauthorized action.');
         }
@@ -272,5 +283,123 @@ class UnitController extends Controller
 
             return $output;
         }
+    }
+
+    /**
+     * Tela Produto/Cadastros (playbook Produto · thread 02 — abas Unidades e Marcas). Cada aba
+     * só recebe linhas se o usuário pode ver aquele cadastro (a mesma regra do index legado:
+     * `view` ou `create`). `em_uso` usa a mesma regra que a exclusão consulta, então a tela
+     * avisa a recusa antes de tentar.
+     *
+     * @return \Inertia\Response
+     */
+    private function cadastros()
+    {
+        $user = auth()->user();
+        $business_id = (int) request()->session()->get('user.business_id');
+        $pode = fn (string $base) => [
+            'view' => $user->can("{$base}.view") || $user->can("{$base}.create"),
+            'create' => $user->can("{$base}.create"),
+            'update' => $user->can("{$base}.update"),
+            'delete' => $user->can("{$base}.delete"),
+        ];
+        // Categorias: só a taxonomia de produto (`category_type = product`), pela `category.*`.
+        $can = ['unidades' => $pode('unit'), 'categorias' => $pode('category'), 'marcas' => $pode('brand')];
+
+        $visiveis = array_keys(array_filter($can, fn ($p) => $p['view']));
+        if (! $visiveis) {
+            abort(403, 'Unauthorized action.');
+        }
+        $aba = in_array(request()->input('aba'), array_keys($can), true) ? request()->input('aba') : $visiveis[0];
+
+        $emUso = fn (string $coluna, string $tabela) => DB::table('products')
+            ->selectRaw('count(*)')
+            ->whereColumn("products.{$coluna}", "{$tabela}.id")
+            ->where('products.business_id', $business_id);
+
+        return Inertia::render('Produto/Cadastros/Index', [
+            'aba' => $aba,
+            'can' => $can,
+            'unidades' => $can['unidades']['view'] ? Inertia::defer(fn () => Unit::where('units.business_id', $business_id)
+                ->leftJoin('units as base', function ($j) use ($business_id) {
+                    $j->on('base.id', '=', 'units.base_unit_id')->where('base.business_id', $business_id);
+                })
+                ->select('units.id', 'units.actual_name', 'units.short_name', 'units.allow_decimal', 'units.base_unit_multiplier', 'base.short_name as base_simbolo')
+                ->selectSub($emUso('unit_id', 'units'), 'em_uso')
+                ->orderBy('units.actual_name')
+                ->get()
+                ->map(fn ($u) => [
+                    'id' => (int) $u->getAttribute('id'),
+                    'nome' => (string) $u->getAttribute('actual_name'),
+                    'simbolo' => (string) $u->getAttribute('short_name'),
+                    'decimal' => (bool) $u->getAttribute('allow_decimal'),
+                    'base' => $u->getAttribute('base_simbolo')
+                        ? '1 '.$u->getAttribute('short_name').' = '.(float) $u->getAttribute('base_unit_multiplier').' '.$u->getAttribute('base_simbolo')
+                        : null,
+                    'em_uso' => (int) $u->getAttribute('em_uso'),
+                ])->values()->all()) : null,
+            'categorias' => $can['categorias']['view'] ? Inertia::defer(fn () => $this->categoriasDeProduto($business_id)) : null,
+            'marcas' => $can['marcas']['view'] ? Inertia::defer(fn () => Brands::where('brands.business_id', $business_id)
+                ->select('brands.id', 'brands.name', 'brands.description')
+                ->selectSub($emUso('brand_id', 'brands'), 'em_uso')
+                ->orderBy('brands.name')
+                ->get()
+                ->map(fn ($b) => [
+                    'id' => (int) $b->getAttribute('id'),
+                    'nome' => (string) $b->getAttribute('name'),
+                    'descricao' => (string) $b->getAttribute('description'),
+                    'em_uso' => (int) $b->getAttribute('em_uso'),
+                ])->values()->all()) : null,
+        ]);
+    }
+
+    /**
+     * Aba Categorias: pais em ordem de nome, cada um seguido das subcategorias (charter R7).
+     * `em_uso` conta produto pela categoria OU pela subcategoria; `filhas`, as subcategorias vivas.
+     * As duas contagens são as que o `TaxonomyController@destroy` usa para recusar a exclusão.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    private function categoriasDeProduto(int $business_id): array
+    {
+        $linhas = Category::where('categories.business_id', $business_id)
+            ->where('categories.category_type', 'product')
+            ->select('categories.id', 'categories.name', 'categories.short_code', 'categories.description', 'categories.parent_id')
+            ->selectSub(DB::table('products')->selectRaw('count(*)')
+                ->where('products.business_id', $business_id)
+                ->where(fn ($q) => $q->whereColumn('products.category_id', 'categories.id')
+                    ->orWhereColumn('products.sub_category_id', 'categories.id')), 'em_uso')
+            ->selectSub(DB::table('categories as filha')->selectRaw('count(*)')
+                ->whereColumn('filha.parent_id', 'categories.id')
+                ->where('filha.business_id', $business_id)
+                ->whereNull('filha.deleted_at'), 'filhas')
+            ->orderBy('categories.name')
+            ->get()
+            ->map(fn ($c) => [
+                'id' => (int) $c->getAttribute('id'),
+                'nome' => (string) $c->getAttribute('name'),
+                'codigo' => (string) $c->getAttribute('short_code'),
+                'descricao' => (string) $c->getAttribute('description'),
+                'pai_id' => (int) $c->getAttribute('parent_id') ?: null,
+                'em_uso' => (int) $c->getAttribute('em_uso'),
+                'filhas' => (int) $c->getAttribute('filhas'),
+            ])->values();
+
+        $nomes = $linhas->pluck('nome', 'id');
+        $ordem = [];
+        foreach ($linhas->whereNull('pai_id') as $pai) {
+            $ordem[] = $pai + ['pai' => null];
+            foreach ($linhas->where('pai_id', $pai['id']) as $filha) {
+                $ordem[] = $filha + ['pai' => $pai['nome']];
+            }
+        }
+        // Subcategoria cujo pai já foi excluído (o legado apagava só o pai): fica no fim, sem nome de pai.
+        foreach ($linhas->whereNotNull('pai_id') as $orfa) {
+            if (! $nomes->has($orfa['pai_id'])) {
+                $ordem[] = $orfa + ['pai' => null];
+            }
+        }
+
+        return $ordem;
     }
 }

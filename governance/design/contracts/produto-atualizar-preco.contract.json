@@ -1,0 +1,7 @@
+{"tela":"Produto/AtualizarPreco","fonte":"prototipo-ui/cowork/Wagner/produto-acoes.jsx","alvo":["resources/js/Pages/Produto/AtualizarPreco"],"alvo_medido":"governance/design/targets/produto--atualizar-preco--index.alvo.json",
+ "_recorte":"Copiado sem mudança de copy do _saida-07 do playbook Produto (thread 07, bloqueada pela lei 'contrato só entra com a Page'). Entra no PR da thread 06 junto com a Page.",
+ "secoes":[{"id":"produto-atualizar-preco-header","copy":[]},
+  {"id":"produto-atualizar-preco-planilha","copy":["Atualizar preço por planilha","Exporte, edite, devolva"]},
+  {"id":"produto-atualizar-preco-passos","copy":["Passo 1 — exportar","Exportar preços atuais","Passo 2 — devolver","Aplicar preços"]},
+  {"id":"produto-atualizar-preco-instrucoes","copy":["Instruções","Gerenciar grupos","Editar preço na tela"]}],
+ "ordem":["produto-atualizar-preco-header","produto-atualizar-preco-planilha","produto-atualizar-preco-passos","produto-atualizar-preco-instrucoes"]}

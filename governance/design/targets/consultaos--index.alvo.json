@@ -1,0 +1,119 @@
+{
+  "aguardou_sumir": null,
+  "ausentes": [],
+  "base": {
+    "assinatura": "OI WR Acompanhe seu pedido Digite o número da OS ou e-mail cadastrado. Consultar 💡 Sem login. Apenas com OS + e-mail você acompanha sem precisar criar conta. OS #4821 · Banner 3×2m Acme Comércio · entrega prevista hoje 17h ✓ Pedido ✓ Arte ✓ Aprovado ● Produzindo ○ Pronto Última atualização: Mateus PCP · 14:32 \"Liberado para impressão. Saída prevista 16h da Roland 540.\" 📱 WhatsApp 📄 Pedido em PDF",
+    "roles": {
+      "celulas": null,
+      "chart": null,
+      "contratos": [],
+      "filterRows": null,
+      "kpi": {
+        "count": 0,
+        "items": [],
+        "overflowX": null,
+        "tag": null
+      },
+      "primary": null,
+      "shell": null,
+      "tabela": null,
+      "title": null
+    },
+    "saude": {
+      "folhasVazias": [],
+      "nFolhas": 72,
+      "tokensMortos": []
+    },
+    "theme": "dark",
+    "url": "http://127.0.0.1:5561/"
+  },
+  "nos_totais": 437,
+  "quieto_ms": 2000,
+  "rota": "portalos",
+  "secoes": {
+    "busca": {
+      "contraste": {
+        "fundo": "oklch(0.198 0.009 282)",
+        "fundo_de": "proprio",
+        "razao": 15.26,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.007716,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.198 0.009 282)",
+        "borderRadius": "8px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "block",
+        "fontSize": "12.5px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "padding": "14px 16px"
+      },
+      "filhos": 5,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.198 0.009 282)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "h4",
+        "p",
+        "pos-form",
+        "btn",
+        "div"
+      ],
+      "rect": {
+        "h": 199,
+        "w": 591
+      },
+      "seletor": ".mp-portalos > .pos-grid > .pos-card:nth-child(1)",
+      "truncado": false
+    },
+    "os": {
+      "contraste": {
+        "fundo": "oklch(0.198 0.009 282)",
+        "fundo_de": "proprio",
+        "razao": 15.26,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.007716,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.198 0.009 282)",
+        "borderRadius": "8px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "block",
+        "fontSize": "12.5px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "padding": "14px 16px"
+      },
+      "filhos": 5,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.198 0.009 282)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "h4",
+        "small",
+        "pos-track",
+        "div",
+        "div"
+      ],
+      "rect": {
+        "h": 199,
+        "w": 591
+      },
+      "seletor": ".mp-portalos > .pos-grid > .pos-card:nth-child(2)",
+      "truncado": false
+    }
+  },
+  "tela": "consultaos--index",
+  "url": "http://127.0.0.1:5561/"
+}

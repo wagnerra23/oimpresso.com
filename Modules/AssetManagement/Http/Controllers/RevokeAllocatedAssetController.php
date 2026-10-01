@@ -6,7 +6,6 @@ use App\Utils\ModuleUtil;
 use App\Utils\Util;
 use DB;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
 use Modules\AssetManagement\Entities\AssetTransaction;
 use Modules\AssetManagement\Utils\AssetUtil;
@@ -233,28 +232,8 @@ class RevokeAllocatedAssetController extends Controller
         }
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  int  $id
-     * @return Response
-     */
-    public function edit($id)
-    {
-        return view('assetmanagement::edit');
-    }
-
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  Request  $request
-     * @param  int  $id
-     * @return Response
-     */
-    public function update(Request $request, $id)
-    {
-        //
-    }
+    // Sem edit/update (2026-09-30): `edit` devolvia view inexistente e `update` tinha corpo
+    // vazio. A rota declara `->except(['show', 'edit', 'update'])` — ver Routes/web.php.
 
     /**
      * Remove the specified resource from storage.

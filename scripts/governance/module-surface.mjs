@@ -255,6 +255,10 @@ const PAGES_NS = {
   // (thread Cms/01, 2026-09-23; o endereço é a prova do playbook). Dono único do namespace
   // `Admin` medido no dia: Cms×1. As telas públicas (`Site/**`) seguem multi-reivindicadas.
   Cms: ['Cms', 'Admin'],
+  // Connector — a lista de API clients mora em `Modules/Connector/Resources/js/Pages/Api/**`
+  // (thread Connector/04, 2026-10-01; o endereço é a prova do playbook). Dono único de `Api`
+  // medido no dia: Connector×1.
+  Connector: ['Connector', 'Api'],
 };
 
 /** Namespaces de Pages que este módulo reivindica (sempre array; homônimo é o default). */

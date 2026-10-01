@@ -51,15 +51,19 @@
                     <a href="#" class="oi-btn oi-btn-ghost" data-toggle="modal" data-target="#editBusinessModal">
                         <i class="fa fa-edit"></i> Editar
                     </a>
-                    @if($empresa->officeimpresso_bloqueado)
-                        <a href="{{ route('business.bloqueado', $empresa->id) }}" class="oi-btn oi-btn-danger">
-                            <i class="fa fa-lock"></i> Bloqueada
-                        </a>
-                    @else
-                        <a href="{{ route('business.bloqueado', $empresa->id) }}" class="oi-btn oi-btn-success">
-                            <i class="fa fa-unlock"></i> Liberada
-                        </a>
-                    @endif
+                    {{-- POST + CSRF (thread Officeimpresso/04): bloquear/liberar a empresa muda estado. --}}
+                    <form method="POST" action="{{ route('business.bloqueado', $empresa->id) }}" style="display:inline">
+                        @csrf
+                        @if($empresa->officeimpresso_bloqueado)
+                            <button type="submit" class="oi-btn oi-btn-danger">
+                                <i class="fa fa-lock"></i> Bloqueada
+                            </button>
+                        @else
+                            <button type="submit" class="oi-btn oi-btn-success">
+                                <i class="fa fa-unlock"></i> Liberada
+                            </button>
+                        @endif
+                    </form>
                 </div>
             </div>
         </div>
@@ -109,11 +113,14 @@
                                     @endif
                                 </td>
                                 <td>
-                                    <a href="{{ route('licenca_computador.toggleBlock', $licenca->id) }}"
-                                       class="oi-btn {{ $licenca->bloqueado ? 'oi-btn-success' : 'oi-btn-warning' }} oi-btn-xs"
-                                       title="{{ $licenca->bloqueado ? 'Restaurar acesso desta máquina' : 'Bloquear acesso desta máquina' }}">
-                                        <i class="fas fa-{{ $licenca->bloqueado ? 'unlock' : 'lock' }}"></i>
-                                    </a>
+                                    <form method="POST" action="{{ route('licenca_computador.toggleBlock', $licenca->id) }}" style="display:inline">
+                                        @csrf
+                                        <button type="submit"
+                                           class="oi-btn {{ $licenca->bloqueado ? 'oi-btn-success' : 'oi-btn-warning' }} oi-btn-xs"
+                                           title="{{ $licenca->bloqueado ? 'Restaurar acesso desta máquina' : 'Bloquear acesso desta máquina' }}">
+                                            <i class="fas fa-{{ $licenca->bloqueado ? 'unlock' : 'lock' }}"></i>
+                                        </button>
+                                    </form>
                                     <a href="{{ url('/officeimpresso/licenca_log?licenca_id=' . $licenca->id) }}"
                                        class="oi-btn oi-btn-ghost oi-btn-xs"
                                        title="Ver log de acesso desta máquina">

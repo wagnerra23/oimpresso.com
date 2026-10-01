@@ -75,10 +75,12 @@ class Usuario360Controller extends Controller
     /**
      * Tela 360° de um único user.
      */
-    public function show(int $id)
+    public function show(Request $request, int $id)
     {
         $user = User::with('roles')->findOrFail($id);
         $business = $user->business_id ? Business::find($user->business_id) : null;
+
+        $this->registrarAcesso($request, $user);
 
         $isLocked = (string) $user->status === 'inactive'
             && $this->hasActiveLockout($user->id);
@@ -158,6 +160,37 @@ class Usuario360Controller extends Controller
     }
 
     // ── helpers ─────────────────────────────────────────────────────────
+
+    /**
+     * Log de acesso do superadmin ao raio-X — aceite da US-SUPER-010 (LGPD Art. 7º).
+     *
+     * Dono reaproveitado: `activity_log` (Spatie), o mesmo que o Modules/Auditoria lê por
+     * `business_id` — assim o dono do negócio enxerga quem do superadmin abriu o raio-X de
+     * alguém da casa dele. Append-only: um INSERT por abertura, nada é atualizado.
+     *
+     * NÃO usa `Util::activityLog()`: ele pega o `business_id` da SESSÃO antes do subject, e a
+     * sessão aqui é do superadmin — o registro iria para o negócio errado. O `business_id` vem
+     * do USUÁRIO VISTO, gravado no mesmo INSERT via `tap()`.
+     *
+     * Payload sem PII do titular: só o id dele (subject). IP e user agent são do superadmin.
+     */
+    private function registrarAcesso(Request $request, User $visto): void
+    {
+        activity('superadmin_acesso')
+            ->causedBy($request->user())
+            ->performedOn($visto)
+            ->event('usuario360_visualizado')
+            ->withProperties([
+                'tela'       => 'superadmin/Usuario360/Show',
+                'base_legal' => 'LGPD Art. 7º',
+                'ip'         => $request->ip(),
+                'user_agent' => mb_substr((string) $request->userAgent(), 0, 255),
+            ])
+            ->tap(function ($activity) use ($visto) {
+                $activity->business_id = $visto->business_id;
+            })
+            ->log('usuario360_visualizado');
+    }
 
     private function hasActiveLockout(int $userId): bool
     {
