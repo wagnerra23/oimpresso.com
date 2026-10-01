@@ -126,7 +126,7 @@ function ApiIndex({ clients, is_demo, endpoints_count, credencial }: Props) {
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild><Button variant="ghost" size="sm" aria-label="Ações do client"><MoreHorizontal className="size-4" /></Button></DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem onSelect={() => copiar(String(c.id))}>Copiar client_id</DropdownMenuItem>
+                        <DropdownMenuItem onSelect={() => copiar(String(c.id))}>Copiar o ID do client</DropdownMenuItem>
                         <DropdownMenuItem onSelect={() => setNovo(true)}>Emitir credencial nova</DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem className="text-destructive" onSelect={() => setExcluir(c)}>Excluir client</DropdownMenuItem>
