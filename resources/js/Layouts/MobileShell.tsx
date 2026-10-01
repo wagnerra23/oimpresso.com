@@ -15,7 +15,7 @@ import '../../css/mobile-shell.css';
 
 export type MobileTab = 'inicio' | 'tarefas' | 'pedidos' | 'producao' | 'mais';
 
-export const MOBILE_TABS: ReadonlyArray<{ id: MobileTab; label: string; href: string; icon: LucideIcon }> = [
+const MOBILE_TABS: ReadonlyArray<{ id: MobileTab; label: string; href: string; icon: LucideIcon }> = [
   { id: 'inicio', label: 'Início', href: '/m', icon: House },
   { id: 'tarefas', label: 'Tarefas', href: '/m/tarefas', icon: Inbox },
   { id: 'pedidos', label: 'Pedidos', href: '/m/pedidos', icon: FileText },
