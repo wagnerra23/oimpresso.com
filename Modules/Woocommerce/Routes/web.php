@@ -30,9 +30,10 @@ Route::middleware(['throttle:200,1'])->group(function () {
 // Wave 10 D8 Security: throttle:60,1 nas rotas admin Woocommerce.
 // Stack middleware UltimatePOS herdado — usuário admin autenticado.
 Route::middleware(['web', 'SetSessionData', 'auth', 'language', 'timezone', 'AdminSidebarMenu', 'throttle:60,1'])->prefix('woocommerce')->group(function () {
+    Route::post('/install', [\Modules\Woocommerce\Http\Controllers\InstallController::class, 'index']);
     Route::get('/install', [\Modules\Woocommerce\Http\Controllers\InstallController::class, 'index']);
-    Route::get('/install/update', [\Modules\Woocommerce\Http\Controllers\InstallController::class, 'update']);
-    Route::get('/install/uninstall', [\Modules\Woocommerce\Http\Controllers\InstallController::class, 'uninstall']);
+    Route::match(['get', 'post'], '/install/update', [\Modules\Woocommerce\Http\Controllers\InstallController::class, 'update']);
+    Route::match(['get', 'post'], '/install/uninstall', [\Modules\Woocommerce\Http\Controllers\InstallController::class, 'uninstall']);
 
     Route::get('/', [\Modules\Woocommerce\Http\Controllers\WoocommerceController::class, 'index']);
     Route::get('/api-settings', [\Modules\Woocommerce\Http\Controllers\WoocommerceController::class, 'apiSettings']);

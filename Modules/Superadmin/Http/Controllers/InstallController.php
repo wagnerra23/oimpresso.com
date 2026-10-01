@@ -2,6 +2,7 @@
 
 namespace Modules\Superadmin\Http\Controllers;
 
+use App\Http\Controllers\Concerns\ConfirmaInstalacaoPorPost;
 use App\System;
 use Composer\Semver\Comparator;
 use Illuminate\Http\Response;
@@ -11,6 +12,8 @@ use Illuminate\Routing\Controller;
 
 class InstallController extends Controller
 {
+    use ConfirmaInstalacaoPorPost;
+
     public function __construct()
     {
         $this->module_name = 'superadmin';
@@ -24,6 +27,10 @@ class InstallController extends Controller
      */
     public function index()
     {
+        if ($confirmacao = $this->confirmacaoSeNaoForPost('install')) {
+            return $confirmacao;
+        }
+
         if (! auth()->user()->can('superadmin')) {
             abort(403, 'Unauthorized action.');
         }
@@ -62,6 +69,10 @@ class InstallController extends Controller
     //Updating
     public function update()
     {
+        if ($confirmacao = $this->confirmacaoSeNaoForPost('update')) {
+            return $confirmacao;
+        }
+
         //Check if superadmin_version is same as appVersion then 404
         //If appVersion > superadmin_version - run update script.
         //Else there is some problem.
@@ -113,6 +124,10 @@ class InstallController extends Controller
      */
     public function uninstall()
     {
+        if ($confirmacao = $this->confirmacaoSeNaoForPost('uninstall')) {
+            return $confirmacao;
+        }
+
         if (! auth()->user()->can('superadmin')) {
             abort(403, 'Unauthorized action.');
         }

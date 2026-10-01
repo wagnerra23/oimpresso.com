@@ -174,9 +174,8 @@ it('D1 · superadmin segue valendo mesmo fora da empresa operadora', function ()
 
 // ── Menus e porta de entrada seguem a mesma regra (2026-10-01) ────────────────
 // O `Gate::before` libera QUALQUER ability para `Admin#{business}`: sem o AcessoOperador
-// no menu, o Admin de toda empresa cliente via "Clientes" e caía num 403. Criar credencial
-// de password grant também contornaria o bloqueio de empresa do login desktop, que em
-// User::validateForPassportPasswordGrant só vale para os client_id fixos do Delphi.
+// no menu, o Admin de toda empresa cliente via "Clientes" e caía num 403 — e, pela
+// guarda antiga, criava credencial OAuth em nome próprio.
 
 it('D1 · Admin de empresa CLIENTE (Gate::before) não cria credencial nem vê o link Clientes no topnav', function () {
     $cliente = $this->seededSupportClientTenant();

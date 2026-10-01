@@ -21,10 +21,15 @@ use Modules\Superadmin\Entities\Subscription;
  *     pagamento de TODOS tenants (cross-tenant intencional Wagner-only)"
  *
  * Enforcement canônico subsequente (não precisa código novo):
- *   - User::validateForPassportPasswordGrant rejeita /oauth/token quando
- *     officeimpresso_bloqueado=true → Delphi recebe HTTP 400 invalid_grant
  *   - OImpressoRegistroController retorna autorizado='N', message='Empresa bloqueada'
  *     quando registrar é chamado por business bloqueado
+ *   - Api\LicencaComputadorController responde 'N;Cliente bloqueado' (empresa resolvida
+ *     pelo CNPJ ou pelo HD da máquina)
+ *   (Até 2026-10-01 esta lista citava o `/oauth/token` — User::validateForPassportPasswordGrant —
+ *   como enforcement. Medido nessa data: em 90 dias os 19.737 tokens do client Delphi (39)
+ *   foram de UM usuário do business 1, que atende as 50 empresas; a checagem olha a empresa
+ *   do usuário, então não bloqueia cliente — 0 login_error no período. O bloqueio real é
+ *   o dos dois controllers acima.)
  *
  * RecurringBilling responsibility — RB faz smart retry 3 retentativas
  * antes de disparar CobrancaVencida (ADR 0170 §contratos). Quando chega
