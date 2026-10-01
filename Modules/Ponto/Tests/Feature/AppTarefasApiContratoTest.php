@@ -77,6 +77,10 @@ function ataIds($teste): array
 }
 
 beforeEach(function () {
+    // O guard `api` do Passport precisa das chaves mesmo com Passport::actingAs; a lane não as gera.
+    if (! file_exists(storage_path('oauth-public.key'))) {
+        \Illuminate\Support\Facades\Artisan::call('passport:keys', ['--force' => true]);
+    }
     if (DB::connection()->getDriverName() === 'sqlite') {
         $this->markTestSkipped('Schema UltimatePOS exige MySQL (ADR 0358).');
     }
