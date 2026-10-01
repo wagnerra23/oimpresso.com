@@ -469,6 +469,66 @@ it('operador · superadmin segue valendo mesmo fora da empresa operadora', funct
     $admin->forceDelete();
 });
 
+/** Hrefs do topnav do Officeimpresso para o usuário logado (shell Inertia). */
+function oiTopnavHrefs(): array
+{
+    $nav = app(\App\Services\LegacyMenuAdapter::class)->buildTopNavs()['Officeimpresso'] ?? ['items' => []];
+
+    return array_column($nav['items'], 'href');
+}
+
+it('topnav · Admin de empresa CLIENTE não vê os links de licença (o Gate::before liberava)', function () {
+    $operador = $this->seededTenant();
+    $cliente = $this->seededSupportClientTenant();
+    $cid = (int) $cliente->id;
+
+    // `Admin#{biz}` passa em QUALQUER `can()` pelo Gate::before do AuthServiceProvider.
+    $nome = 'Admin#' . $cid;
+    $existia = \Spatie\Permission\Models\Role::where('name', $nome)->exists();
+    $role = \Spatie\Permission\Models\Role::firstOrCreate(['name' => $nome, 'guard_name' => 'web'], ['business_id' => $cid]);
+
+    $admin = makeOiAcessoTestUser($cid);
+    $admin->assignRole($role);
+    $this->actingAs($admin);
+
+    // Pré-condição: o bypass existe — com `'can' => 'officeimpresso.access'` ele veria os links.
+    expect($admin->can(PERM_OI_ACCESS))->toBeTrue();
+
+    $hrefs = oiTopnavHrefs();
+    expect($hrefs)->not->toContain('/officeimpresso/businessall')
+        ->and($hrefs)->not->toContain('/officeimpresso/computadores')
+        ->and($hrefs)->not->toContain('/officeimpresso/licenca_computador')
+        ->and($hrefs)->not->toContain('/officeimpresso/licenca_log');
+
+    // Controle: a MESMA conta vê os links quando o config diz que a empresa dela é a operadora.
+    config(['constants.operator_business_id' => $cid]);
+    expect(oiTopnavHrefs())->toContain('/officeimpresso/businessall')
+        ->and(oiTopnavHrefs())->toContain('/officeimpresso/licenca_log');
+
+    $admin->forceDelete();
+    if (! $existia) {
+        $role->delete();
+    }
+    expect((int) $operador->id)->not->toBe($cid);
+});
+
+it('topnav · usuário da operadora com officeimpresso.access vê os links de licença', function () {
+    $operador = $this->seededTenant();
+
+    Permission::firstOrCreate(['name' => PERM_OI_ACCESS, 'guard_name' => 'web']);
+
+    $suporte = makeOiAcessoTestUser((int) $operador->id);
+    $suporte->givePermissionTo(PERM_OI_ACCESS);
+    $this->actingAs($suporte);
+
+    expect(oiTopnavHrefs())->toContain('/officeimpresso/businessall')
+        ->and(oiTopnavHrefs())->toContain('/officeimpresso/computadores')
+        ->and(oiTopnavHrefs())->toContain('/officeimpresso/licenca_computador')
+        ->and(oiTopnavHrefs())->toContain('/officeimpresso/licenca_log');
+
+    $suporte->forceDelete();
+});
+
 /**
  * Cria um user de teste SEM nenhuma role (pra o Gate::before não fazer bypass).
  */

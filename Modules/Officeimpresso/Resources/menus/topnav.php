@@ -15,6 +15,12 @@
  * - `href` e path relativo (/officeimpresso/...)
  */
 
+// Licenças leem dado de TODAS as empresas: `officeimpresso.access` só vale para usuário da
+// empresa operadora (AcessoOperador) — mesma regra da guarda dos controllers. Closure e não
+// string porque o `Gate::before` libera qualquer permissão para `Admin#{business}`: com
+// `'can' => 'officeimpresso.access'` o Admin de toda empresa cliente via os links.
+$soOperador = fn ($user) => \Modules\Officeimpresso\Services\AcessoOperador::pode($user, 'officeimpresso.access');
+
 return [
     'label' => 'Office Impresso',
     'icon'  => 'Plug',
@@ -23,10 +29,10 @@ return [
         // Computadores/Licenças/Log não declaravam `can` nenhum e apareciam pra
         // qualquer usuário no shell Inertia. Superadmin continua vendo tudo via
         // bypass do Gate::before.
-        ['label' => 'Empresas Licenciadas', 'href' => '/officeimpresso/businessall',        'icon' => 'Building2',      'can' => 'officeimpresso.access'],
-        ['label' => 'Computadores',         'href' => '/officeimpresso/computadores',       'icon' => 'Monitor',        'can' => 'officeimpresso.access'],
-        ['label' => 'Licenças',             'href' => '/officeimpresso/licenca_computador', 'icon' => 'KeyRound',       'can' => 'officeimpresso.access'],
+        ['label' => 'Empresas Licenciadas', 'href' => '/officeimpresso/businessall',        'icon' => 'Building2',      'can' => $soOperador],
+        ['label' => 'Computadores',         'href' => '/officeimpresso/computadores',       'icon' => 'Monitor',        'can' => $soOperador],
+        ['label' => 'Licenças',             'href' => '/officeimpresso/licenca_computador', 'icon' => 'KeyRound',       'can' => $soOperador],
         ['label' => 'Clientes',             'href' => '/officeimpresso/client',             'icon' => 'UserCog',        'can' => 'officeimpresso.clientes.liberar'],
-        ['label' => 'Log de Acesso',        'href' => '/officeimpresso/licenca_log',        'icon' => 'ClipboardList',  'can' => 'officeimpresso.access'],
+        ['label' => 'Log de Acesso',        'href' => '/officeimpresso/licenca_log',        'icon' => 'ClipboardList',  'can' => $soOperador],
     ],
 ];
