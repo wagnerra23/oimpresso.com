@@ -78,7 +78,7 @@ export default function PontoPublicoPrivacidade() {
         Pela LGPD (art. 18), você pode pedir confirmação de que tratamos seus dados, acesso a eles,
         correção do cadastro e informação sobre com quem são compartilhados. Como a conta é criada
         pelo seu empregador, o pedido é feito primeiro a ele, que é o controlador. Se precisar,
-        fale também com o oimpresso pelo contato abaixo.
+        fale também com o oimpresso — veja <a className="underline" href="/privacidade/ponto/exclusao">como pedir a exclusão de conta e dados</a>.
       </p>
 
       <h2>Contato</h2>

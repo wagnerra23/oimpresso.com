@@ -21,4 +21,9 @@ class PublicoController extends Controller
     {
         return Inertia::render('Ponto/Publico/Privacidade');
     }
+
+    public function exclusao(): Response
+    {
+        return Inertia::render('Ponto/Publico/Exclusao');
+    }
 }
