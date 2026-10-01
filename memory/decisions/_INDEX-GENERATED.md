@@ -5,13 +5,13 @@
 > Status/lifecycle normalizados no leitor (ADR 0257) — não altera os arquivos (append-only).
 
 ## Resumo
-- **427** arquivos · **412** números únicos · máx **0422**
-- **ADRs ATIVOS (lifecycle ativo): 382** ← resposta única a "quantos ADRs ativos"
-- Por status: aceito 377 · superseded 25 · proposto 12 · deprecated 11 · rascunho 1 · recusado 1
-- Por lifecycle: ativo 382 · substituido 25 · arquivado 20
+- **428** arquivos · **412** números únicos · máx **0422**
+- **ADRs ATIVOS (lifecycle ativo): 383** ← resposta única a "quantos ADRs ativos"
+- Por status: aceito 377 · superseded 25 · proposto 13 · deprecated 11 · rascunho 1 · recusado 1
+- Por lifecycle: ativo 383 · substituido 25 · arquivado 20
 - Sem frontmatter (formato-tabela legado): 0
 
-## Colisões de número (13) — auto-detectadas
+## Colisões de número (14) — auto-detectadas
 - **0102** ×2: 0102-nfce-status-polling-vs-broadcast · 0102-s6-charter-capterra-postmortem-s7-backlog
 - **0119** ×2: 0119-migration-factory-capacidade-institucional · 0119-paralelismo-sessoes-whats-active-tier-1
 - **0126** ×2: 0126-mcp-jira-projects-modulos-verticais · 0126-vault-chunked-encryption-sprint-2
@@ -25,6 +25,7 @@
 - **0236** ×3: 0236-extrato-conciliacao-modelo-unificado · 0236-governanca-evolucao-doc-design · 0236-scorecard-universal-entidade-arbitraria
 - **0246** ×2: 0246-sessao-2026-05-30-ds-harmonizacao · 0246-tipo-outros-default-migracoes-legacy
 - **0294** ×2: 0294-mcp-audit-log-hash-chain-tamper-evident · 0294-metodo-dual-track-shapeup-catraca
+- **0422** ×2: 0422-arquivos-aviso-titular-canal-email-whatsapp · 0422-ponto-push-lembrete-fcm
 
 ## Integridade de supersessão (0 alertas)
 _(íntegra)_
@@ -35,7 +36,7 @@ _(nenhuma)_
 ## Recusadas (1) — o NÃO consultável
 - **0290** v0 'Fidelity Lock' (screenshot pareado em CI) — RECUSADO: fidelidade visual não  · recusada 2026-06-18 — Inviável + tautológico + backdoor de prosa (3 motivos na Decisão). REABRE só se surgir um check de fidelidade HERMÉTICO 
 
-## Todas as ADRs (427)
+## Todas as ADRs (428)
 | Nº | Status | Lifecycle | Kind | Título |
 |---|---|---|---|---|
 | 0001 | aceito | ativo | decision | Estender UltimatePOS em vez de build próprio ou fork |
@@ -465,3 +466,4 @@ _(nenhuma)_
 | 0420 | aceito | ativo | decision | Ponto — o AEJ lê a apuração para horário contratual e ausências; dado legal ause |
 | 0421 | aceito | ativo | decision | Arquivos — aviso ao titular (LGPD Art. 18 VI): registro titular_avisado_at + açã |
 | 0422 | proposto | ativo | decision | Arquivos — aviso ao titular sai por e-mail e WhatsApp, com liga/desliga por negó |
+| 0422 | proposto | ativo | decision | Ponto — lembrete de bater ponto por push (FCM HTTP v1, token por usuário+busines |
