@@ -23,6 +23,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/Components/ui/dropdown-menu';
+import { Inline, Stack } from '@/Components/layout';
 import { fmtDataHoraBr } from '@/Lib/datetime-br';
 import SaleSheet from '../_components/SaleSheet';
 
@@ -189,9 +190,10 @@ export default function SellsPosIndex({ permissions, urls }: SellsPosIndexProps)
             <PageHeaderTabs ghosts={ABAS} activeGhostKey="pos" maxVisible={6} />
           </div>
 
-          <section data-contract="filtros" aria-label="Filtros" className="flex flex-wrap items-end gap-3">
-            <label className="flex flex-col gap-1 text-xs text-muted-foreground">
-              Status do pagamento
+          <Inline asChild gap={3} align="end" wrap>
+          <section data-contract="filtros" aria-label="Filtros">
+            <Stack gap={1} className="text-xs text-muted-foreground">
+              <span>Status do pagamento</span>
               <Select value={status} onValueChange={(v) => { setStatus(v); setPage(1); }}>
                 <SelectTrigger className="w-44" aria-label="Status do pagamento"><SelectValue /></SelectTrigger>
                 <SelectContent>
@@ -199,9 +201,9 @@ export default function SellsPosIndex({ permissions, urls }: SellsPosIndexProps)
                   {STATUS_PGTO.map((s) => <SelectItem key={s.v} value={s.v}>{s.l}</SelectItem>)}
                 </SelectContent>
               </Select>
-            </label>
-            <label className="flex flex-col gap-1 text-xs text-muted-foreground">
-              Período
+            </Stack>
+            <Stack gap={1} className="text-xs text-muted-foreground">
+              <span>Período</span>
               <Select value={periodo} onValueChange={(v) => { setPeriodo(v); setPage(1); }}>
                 <SelectTrigger className="w-44" aria-label="Período"><SelectValue /></SelectTrigger>
                 <SelectContent>
@@ -209,18 +211,19 @@ export default function SellsPosIndex({ permissions, urls }: SellsPosIndexProps)
                   {PERIODOS.map((p) => <SelectItem key={p.v} value={p.v}>{p.l}</SelectItem>)}
                 </SelectContent>
               </Select>
-            </label>
+            </Stack>
           </section>
+          </Inline>
 
           <section data-contract="lista" className="rounded-lg border border-border bg-card overflow-hidden">
-            <div data-contract="toolbar" className="flex items-center gap-3 border-b border-border px-4 py-3">
+            <Inline data-contract="toolbar" gap={3} className="border-b border-border px-4 py-3">
               <div className="relative w-full max-w-sm">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input variant="shadcn" value={busca} onChange={(e) => setBusca(e.target.value)}
                   placeholder="Buscar fatura ou cliente…" className="pl-9" aria-label="Buscar fatura ou cliente" />
               </div>
               <span className="ml-auto text-xs text-muted-foreground tabular-nums">{meta.total} vendas</span>
-            </div>
+            </Inline>
 
             {loading ? (
               <div className="p-8 text-center text-sm text-muted-foreground">Carregando vendas de POS…</div>
@@ -271,18 +274,18 @@ export default function SellsPosIndex({ permissions, urls }: SellsPosIndexProps)
               </div>
             )}
 
-            <div data-contract="rodape" className="flex flex-wrap items-center gap-3 border-t border-border px-4 py-3 text-sm">
+            <Inline data-contract="rodape" gap={3} wrap className="border-t border-border px-4 py-3 text-sm">
               <span>
                 Total: <b className="tabular-nums">{brl.format(totals?.sum_final_total ?? 0)}</b>
                 {' · '}pago <b className="tabular-nums">{brl.format(totals?.sum_total_paid ?? 0)}</b>
                 {' · '}em aberto <b className="tabular-nums">{brl.format(totals?.sum_due ?? 0)}</b>
               </span>
-              <span className="ml-auto flex items-center gap-2 text-xs text-muted-foreground">
+              <Inline gap={2} className="ml-auto text-xs text-muted-foreground">
                 Página {meta.current_page} de {meta.last_page}
                 <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>Anterior</Button>
                 <Button variant="outline" size="sm" disabled={page >= meta.last_page} onClick={() => setPage((p) => p + 1)}>Próxima</Button>
-              </span>
-            </div>
+              </Inline>
+            </Inline>
           </section>
         </div>
       </div>

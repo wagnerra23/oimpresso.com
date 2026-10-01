@@ -115,7 +115,7 @@ class SellPosController extends Controller
     /**
      * Display a listing of the resource.
      *
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\Response|\Illuminate\Contracts\View\View|\Inertia\Response
      */
     public function index()
     {
