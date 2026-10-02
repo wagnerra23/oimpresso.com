@@ -15,7 +15,7 @@ use Modules\OficinaAuto\Http\Controllers\VehicleController;
 
 /**
  * Oficina do app das lojas (oimpresso-app) — SÓ LEITURA. Contrato:
- * memory/requisitos/AppMobile/API-CONTRATO-v1.md §9 (Onda D).
+ * memory/requisitos/AppMobile/API-CONTRATO-v1.md §11 (Onda D).
  *
  * Mesmo universo da tela web /oficina-auto/ordens-servico (ServiceOrderController::board):
  * OS no processo FSM `oficina_mecanica_os` em etapa NÃO-terminal, ou OS de mecânica ainda sem

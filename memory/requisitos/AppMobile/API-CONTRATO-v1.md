@@ -281,14 +281,14 @@ de contrato na lane MySQL) + 1 PR de tela no `oimpresso-app`, contra este contra
 - Tela de módulo que o business não tem no pacote não aparece (Camada 1).
 
 
-## 9. Oficina — Onda D (Modules/OficinaAuto)
+## 11. Oficina — Onda D (Modules/OficinaAuto)
 
 Área `oficina` em `areas` (§6): módulo `oficina_auto_module` no pacote do business (Camada 1;
 superadmin: módulo instalado) **e** permissão `oficinaauto.service_order.view` — a mesma regra do
 menu web da Oficina. Sem acesso → `403 sem_permissao`. Vocabulário de reparo: `order_type` só
 `manutencao`/`mecanica` (ADR 0265). Sem câmera (ADR 0383).
 
-### 9.1 Ordens de serviço (tela 07) — só leitura ✅
+### 11.1 Ordens de serviço (tela 07) — só leitura ✅
 
 `GET /api/app/os?etapa=<chave|todas>&pagina=N` (20 por página)
 

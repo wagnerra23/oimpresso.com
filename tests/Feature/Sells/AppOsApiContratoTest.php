@@ -12,7 +12,7 @@ use Tests\Contract\AutosaveContractRunner;
 /**
  * API de Ordens de serviço do app das lojas (tela 07) — GET /api/app/os, só leitura.
  *
- * Contrato: memory/requisitos/AppMobile/API-CONTRATO-v1.md §9.1. Mesmo universo do quadro web
+ * Contrato: memory/requisitos/AppMobile/API-CONTRATO-v1.md §11.1. Mesmo universo do quadro web
  * da Oficina: etapas não-terminais do processo `oficina_mecanica_os`, na ordem do ERP; OS de
  * mecânica sem pipeline conta na etapa inicial; terminal fica fora. NÃO derivado do controller.
  *
