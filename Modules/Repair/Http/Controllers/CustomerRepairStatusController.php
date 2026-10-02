@@ -24,10 +24,10 @@ class CustomerRepairStatusController extends Controller
     }
 
     /**
-     * Show the specified resource.
+     * Consulta pública do status do reparo (POST /post-repair-status, AJAX).
      *
-     * @param  int  $id
-     * @return Response
+     * @return array<string, mixed>|null array com success/msg (e repair_html quando acha);
+     *                                   null quando a requisição não é AJAX (comportamento de sempre)
      */
     public function postRepairStatus(Request $request)
     {
@@ -129,5 +129,7 @@ class CustomerRepairStatusController extends Controller
 
             return $output;
         }
+
+        return null;
     }
 }
