@@ -8,10 +8,13 @@ declare(strict_types=1);
  * Edição web de cliente (Cliente/Edit.tsx → PUT /contacts/{id} → ContactController::update)
  * apagando o campo "Celular".
  *
- * Hipótese medida aqui: o Edit manda `mobile: ''`, o ConvertEmptyStringsToNull transforma em
- * null, a UpdateContactRequest aceita null e ContactUtil::updateContact atribui o null ao
- * Model e salva → `contacts.mobile` é NOT NULL, o UPDATE cai (1048) e o catch devolve só
- * "Algo deu errado". É o mesmo caminho que quebrava o store() (run 37035885785).
+ * O Edit manda `mobile: ''`, o ConvertEmptyStringsToNull transforma em null e
+ * ContactUtil::updateContact grava o null. A hipótese era quebrar como o store() quebrava
+ * (1048, run 37035885785). Medido em 2026-10-02 (run 37040528635): NÃO quebra. A conexão
+ * MySQL roda com `'strict' => false` (config/database.php), e nesse modo um UPDATE com null
+ * em coluna NOT NULL grava o valor implícito '' com aviso — só o INSERT com null explícito
+ * dá erro. Este teste fica como proteção: se o strict for ligado, apagar o celular na
+ * edição passa a falhar e ele acusa.
  *
  * Controle POSITIVO: a mesma requisição trocando o celular por outro número grava — sem ele,
  * um vermelho no caso vazio poderia ser permissão/assinatura/validação, não o celular.
@@ -117,7 +120,7 @@ it('POSITIVO: trocar o celular por outro número grava a edição', function () 
     );
 });
 
-it('MEDIÇÃO: apagar o celular grava a edição com celular vazio', function () {
+it('apagar o celular grava a edição com celular vazio', function () {
     csuEditar($this, $this->contatoId, csuPayload($this->nome, ''))->assertRedirect();
 
     $this->assertSame(
