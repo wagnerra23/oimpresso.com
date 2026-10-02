@@ -98,6 +98,17 @@ last_run: "2026-09-11"
 
 ---
 
+## UC-SIDX-03 · Filtro de período até um dia inclui as vendas desse dia inteiro `[V0]` `[must]`
+- **Persona:** Kamila / Larissa — escolhe "Dia" (ou um período que termina hoje) pra conferir o que vendeu.
+- **Como usa:** abre `/sells`, escolhe o preset **Dia** ou um **Personalizado** com data final, e lê a lista e o rodapé.
+- **Aceite:** Dado uma venda `final` às 14:30 de um dia D · Quando o filtro vai de D até D · Então a venda aparece na lista e entra no totalizador · E uma venda à 00:00:00 de D+1 continua fora · E um `date_to` que já traz hora é respeitado como veio.
+- **Âncora de contrato:** o `SellsDateFilter` manda `date_to` só com a data (`computePresetRange` → `yyyy-MM-dd`, e o `<input type="date">` do Personalizado) — o período escolhido pelo operador é um dia de calendário, não um instante · **REGRA MESTRE valor/estoque** ([proibicoes.md](../../../../memory/proibicoes.md)) — o totalizador da janela é valor na tela.
+- **Teste:** `tests/Feature/Sells/SellsIndexFiltroDataFimContratoTest.php` (Pest, lane `PHP / Pest (Sells · MySQL)`).
+- **O que o assert mede:** a linha da venda na lista e `totals.count`/`sum_final_total` da janela (antes do conserto: fora · 0 · 0; depois: dentro · 1 · 150), mais a borda superior com controle positivo.
+- **Status: ⬜** — contrato nasce neste PR; veredito pendente da lane PHP / Pest (Sells · MySQL).
+
+---
+
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
 > Regra G-2: UC declarado sem teste citando o id = órfão. Itens SEM token de UC até existir teste real.
