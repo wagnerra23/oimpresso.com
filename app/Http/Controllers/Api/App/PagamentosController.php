@@ -62,7 +62,7 @@ class PagamentosController extends Controller
             ->groupBy('x.status_app')
             ->selectRaw('x.status_app as s, COUNT(*) as total')
             ->get()
-            ->pluck('total', 's');
+            ->mapWithKeys(fn ($l) => [$l->s => $l->total]);
         $contadores = ['todos' => (int) $porStatus->sum()];
         foreach (self::STATUS as $s) {
             $contadores[$s] = (int) ($porStatus[$s] ?? 0);
