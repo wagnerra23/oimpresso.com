@@ -128,8 +128,9 @@ checklist:[{texto, feito}], comentarios:[{quando, autor, texto, detalhe}], concl
 ### 4.1 Ficha cadastral (tela 34) — só leitura
 
 `GET /api/app/pessoas/{id}/cadastro` → `{ id, nome, tipo,
-identificacao{razao_social, documento, indicador_ie, papeis[]},
-endereco_fiscal{cidade, uf, cep, codigo_ibge, email_nfe},
+identificacao{razao_social, nome_fantasia, documento, indicador_ie (1|2|9), papeis[]},
+contato{telefone, email},
+endereco_fiscal{logradouro, numero, complemento, bairro, cidade, uf, cep, codigo_ibge, email_nfe},
 comercial{classificacao, limite_credito, prazo_padrao_dias},
 consentimento{whatsapp, email_nfe, sms, registrado_em} }`. Mesmas permissões e escopo do §4;
 documento com a mesma máscara (CPF parcial, CNPJ inteiro). Campo sem dado sai `null` (a tela mostra
@@ -163,6 +164,18 @@ prazo_padrao_dias, consentimento: { whatsapp, email_nfe } }` (só `tipo`, `nome`
   da web já usa (`BrLookupService`, ViaCEP, cache 90 dias), via o contrato `App\Contracts\Enderecos\BuscaCep`.
 - `codigo_ibge` pode vir `null` para CEP que já estava em cache antes deste campo existir.
 - Limite de 60 buscas por minuto, como na web.
+
+### 4.4 Editar cadastro (telas 09/34) — escrita
+
+`PATCH /api/app/pessoas/{id}`, **parcial**: só grava as chaves que vierem (`null` limpa o campo).
+Mesmos campos e regras do §4.2, **menos** `tipo` e `papeis` (mudar papel fica na web).
+
+- `200 { id }` · `422 { erro: "validacao", campos }` · `403 { erro: "sem_permissao" }` · `404 { erro: "nao_encontrado" }`.
+- Permissão pelos papéis atuais da pessoa: cliente exige `customer.update`; fornecedor, `supplier.update`.
+  Visibilidade igual à da leitura (§4): outra empresa ou fora do "só os próprios" → 404.
+- **Não** passa pelo `ContactUtil::updateContact`: ele assume saldo inicial 0 quando o campo não vem e
+  reescreve o lançamento de saldo inicial (valor). O app grava só campos de cadastro, direto no contato,
+  com evento e log de atividade (antes→depois). Saldo e limite de crédito seguem só na web.
 
 ## 5. Produção ⬜ — fila por **etapa da venda** ([W] 2026-10-02)
 
@@ -224,7 +237,9 @@ prazo_padrao_dias, consentimento: { whatsapp, email_nfe } }` (só `tipo`, `nome`
 - `destino` só vem preenchido quando a notificação carrega o id de uma tela do app (hoje: tarefa nova
   → `{tipo:"tarefa", id:"todo:15"}`); nos outros casos, `{tipo:null, id:null}`.
 - `GET /api/app/inicio` passa a trazer `nao_lidas` (int), para o ponto no sino.
-- Marcar como lida (`POST .../{id}/lida` e `.../lidas`) vem em PR separado.
+- Marcar como lida: `POST /api/app/notificacoes/{id}/lida` (id = uuid) → `200 { nao_lidas }`, idempotente;
+  de outro usuário ou inexistente → `404 { erro: "nao_encontrado" }`.
+  `POST /api/app/notificacoes/lidas` marca todas → `200 { nao_lidas: 0, marcadas }`.
 
 ## 7. Mais
 
