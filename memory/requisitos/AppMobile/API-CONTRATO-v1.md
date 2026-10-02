@@ -268,7 +268,7 @@ Mesmos campos e regras do §4.2, **menos** `tipo` e `papeis` (mudar papel fica n
   abas que o usuário pode abrir, na ordem do app. Cada uma segue a mesma regra da rota dela, então
   aba visível = rota que responde: `tarefas` = Essentials no plano ou quem aprova o Ponto;
   `pedidos`/`producao`/`orcamentos` = quem vê vendas; `pessoas` = quem vê cliente ou fornecedor; `ponto` =
-  colaborador com `controla_ponto`; `inicio` só para perfil `erp`; `mais` sempre.
+  colaborador com `controla_ponto`; `ponto_gestor` = quem tem acesso ao módulo Ponto (§12.1); `inicio` só para perfil `erp`; `mais` sempre.
   `perfil` = `erp` se tem tarefas, vendas ou pessoas, senão `colaborador`. `abre_em` = `inicio`
   (erp), `ponto` (colaborador) ou `mais` (sem nenhuma das duas).
 
@@ -335,6 +335,14 @@ de contrato na lane MySQL) + 1 PR de tela no `oimpresso-app`, contra este contra
 - Leitura primeiro; a ação que escreve vem num PR separado. Em valor ou estoque: dupla prova, tabela antes→depois e ok do [W] antes do merge.
 - Tela de módulo que o business não tem no pacote não aparece (Camada 1).
 
+**Ajustes de escopo, 2026-10-02.** Decisões do [W]: as três primeiras chegaram relatadas pelas sessões do app que as perguntaram; a 20 e a 29 foram respondidas a esta sessão.
+- **28 Detalhe da tarefa:** o checklist saiu. O ToDo do Essentials não tem checklist, e criar exigiria schema novo.
+- **27 Detalhe da OP:** fica só na retaguarda web, sem rota `/api/app`. O Manufacturing não tem etapas, artes nem apontamentos de OP.
+- **11 Venda rápida:** liberada para começar, mas o merge depende da regra mestre e do ok do [W].
+- **20 Novo produto:** criada **sem preço**, igual à tela React de hoje. O preço se acerta na web, então a tela sai da regra mestre (§9.4).
+- **29 Movimentações:** **só leitura** (§9.3). Registrar movimento continua na web, porque no ERP cada tipo é uma transação contábil (compra com custo; ajuste com valor e FIFO).
+- **Lado ERP:** uma sessão por onda (C, D, E) e uma para a tela 11. A Onda B fica com a sessão coordenadora.
+
 
 ## 9. Produtos e estoque (Onda B)
 
@@ -387,3 +395,27 @@ menu web da Oficina. Sem acesso → `403 sem_permissao`. Vocabulário de reparo:
 - `valor` = soma dos itens da OS (peças + mão de obra), como o card web; `null` sem item.
   `cliente` = cliente da OS; `null` se a OS não tem cliente.
 - Ordem: etapa mais avançada primeiro; desempate pela OS mais recente.
+
+## 12. Onda E — Ponto, Equipe, Perfil de menu e Chat
+
+### 12.1 Marcações a validar (tela 39) — fila do gestor
+
+`GET /api/app/ponto/aprovacoes?estado=pendente|validada|recusada|todas` (padrão `pendente`) →
+`{ itens:[{id, colaborador_nome, tipo, local_texto, marcada_em, nsr, gps_precisao_m, dispositivo, hash_curto, estado}], contadores:{pendente, validada, recusada, todas}, pode_recusar }`.
+
+- Só marcações do celular (REP-P) **fora do geofence**, dos últimos 7 dias, mais nova primeiro.
+  É a mesma fila da tela web `/ponto/aprovacoes` (`FilaGestorRepPService`, um lugar só).
+- `id` é **uuid** (string), como em `ponto_marcacoes`. `tipo` ∈ `ENTRADA|ALMOCO_INICIO|ALMOCO_FIM|SAIDA`.
+  `marcada_em` ISO 8601 com fuso. `hash_curto` = 8 primeiros caracteres do hash encadeado.
+- `local_texto` = distância até o centro do geofence ("A 84,2 km do local de trabalho"); `null` sem geofence.
+  `gps_precisao_m` vem `null`: o REP-P não grava a precisão do GPS na marcação.
+- `contadores` ignoram o filtro (são os números dos chips). `pode_recusar` = tem `ponto.aprovacoes.manage`.
+- `POST …/{id}/validar` → `200 { estado:"validada" }`: registro na trilha (`activity_log` `ponto.repp`);
+  a marcação não muda. Trilha desligada → `503 { erro:"trilha_desligada" }`.
+- `POST …/{id}/recusar` (sem corpo) → `200 { estado:"recusada", nsr_anulacao }`: grava uma
+  **anulação** nova apontando a original (`Marcacao::anular()`, motivo fixo "Recusada na validação
+  REP-P"). Nunca UPDATE/DELETE em `ponto_marcacoes` (Portaria 671/2021).
+- Acesso = o do módulo Ponto (`ponto.access` ou papel admin/rh/gestor); recusar exige ainda
+  `ponto.aprovacoes.manage`. Erros: `403 sem_permissao` · `404 nao_encontrado` (inexistente ou de
+  outro business) · `409 ja_revisada` (já decidida) · `422 validacao` (estado inválido).
+- Área `ponto_gestor` em `/api/app/inicio` (§6): mesma regra de acesso do GET.
