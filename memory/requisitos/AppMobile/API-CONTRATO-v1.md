@@ -266,7 +266,7 @@ Mesmos campos e regras do §4.2, **menos** `tipo` e `papeis` (mudar papel fica n
   abas que o usuário pode abrir, na ordem do app. Cada uma segue a mesma regra da rota dela, então
   aba visível = rota que responde: `tarefas` = Essentials no plano ou quem aprova o Ponto;
   `pedidos`/`producao`/`orcamentos` = quem vê vendas; `pessoas` = quem vê cliente ou fornecedor; `ponto` =
-  colaborador com `controla_ponto`; `ponto_gestor` = quem tem acesso ao módulo Ponto (§12.1); `equipe` = quem vê a lista de usuários (§12.2); `financeiro` = a regra de §10.1; `inicio` só para perfil `erp`; `mais` sempre.
+  colaborador com `controla_ponto`; `ponto_gestor` = quem tem acesso ao módulo Ponto (§12.1); `equipe` = quem vê a lista de usuários (§12.2); `financeiro` = a regra de §10.1; `assistente` = quem conversa com a Jana (§12.4); `inicio` só para perfil `erp`; `mais` sempre.
   `perfil` = `erp` se tem tarefas, vendas, pessoas ou financeiro, senão `colaborador`. `abre_em` = `inicio`
   (erp), `ponto` (colaborador) ou `mais` (sem nenhuma das duas).
 
@@ -539,3 +539,22 @@ fora até o ERP ter cadastro de equipamento de cliente e de box (decisão [W] 20
 - `GET /api/app/inicio` traz `barra` (lista com até 3 itens, nunca `null`) = escolha ∩ módulos permitidos, na ordem escolhida. Sem
   escolha, ou se nada da escolha estiver mais em `areas`, vale o padrão do ERP: Tarefas, Pedidos,
   Produção (§7.1), completado com as outras áreas do usuário na ordem de `areas`.
+
+### 12.4 Chat com a Jana (tela 25)
+
+`POST /api/app/chat { mensagem:string(≤1000), conversa_id:string|null }` →
+`200 { conversa_id:string, resposta:{ de:"jana", texto, criada_em } }`. Resposta síncrona.
+
+`GET /api/app/chat/{conversa_id}` → `{ conversa_id, mensagens:[{ de:"eu"|"jana", texto, criada_em }] }`,
+em ordem cronológica.
+
+- Canal = Jana (decisão [W]). São as mesmas conversas do chat web (`jana_conversas` /
+  `jana_mensagens`) e o mesmo turno (`ChatTurnoService`): o pedido de brief diário vai para o
+  brief, os tokens do turno ficam gravados, e uma falha da IA vira a resposta
+  "Estou com dificuldades técnicas no momento…" em vez de erro.
+- `conversa_id: null` (ou ausente) abre uma conversa nova, com a 1ª mensagem como título.
+- A conversa é do usuário: de outro usuário ou de outro business → `404 nao_encontrado`.
+- Acesso = o do chat web: módulo Jana no plano (`jana_module`) + `jana.access` + `jana.chat`;
+  sem isso `403 sem_permissao`. Área `assistente` em `/api/app/inicio` (§6) com a mesma regra.
+- Mensagem vazia ou acima de 1000 caracteres → `422 { erro:"validacao", campos:{ mensagem:"…" } }`.
+  Limite de 60 mensagens por minuto, como na web (`429`).

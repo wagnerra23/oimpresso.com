@@ -6225,11 +6225,6 @@ parameters:
 			count: 1
 			path: Modules/Jana/Http/Controllers/ChatController.php
 
-		-
-			message: '#^Método `Modules\\Jana\\Http\\Controllers\\ChatController\:\:send\(\)` faz Eloquent query \(3\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
-			identifier: oimpresso.missingTenantScope
-			count: 1
-			path: Modules/Jana/Http/Controllers/ChatController.php
 
 		-
 			message: '#^Método `Modules\\Jana\\Http\\Controllers\\ChatController\:\:sendStream\(\)` faz Eloquent query \(3\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
