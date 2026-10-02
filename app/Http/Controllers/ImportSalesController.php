@@ -259,9 +259,8 @@ class ImportSalesController extends Controller
 
         foreach ($vendas as $venda) {
             $lote = (int) $venda->import_batch;
-            if (! isset($lotes[$lote])) {
-                $lotes[$lote] = ['lote' => $lote, 'quando' => $venda->import_time, 'criadoPor' => (string) $venda->criado_por, 'faturas' => []];
-            }
+            // 1ª venda do lote abre a entrada; as seguintes só acrescentam a fatura.
+            $lotes[$lote] ??= ['lote' => $lote, 'quando' => $venda->import_time, 'criadoPor' => (string) $venda->criado_por, 'faturas' => []];
             $lotes[$lote]['faturas'][] = (string) $venda->invoice_no;
         }
 
