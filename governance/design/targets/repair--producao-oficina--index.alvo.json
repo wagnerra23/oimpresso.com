@@ -1,0 +1,319 @@
+{
+  "aguardou_sumir": null,
+  "ausentes": [],
+  "base": {
+    "assinatura": "OI WR REPAIR · Matriz + 1 filial · 14 folhas · 11 pendentes Assistência técnica administrador Atualizado 09:42 ⌕ Buscar Adicionar folha Painel Produção 11 Folhas de OS 14 Reparos 14 Status 9 Modelos 6 Portal do cliente Configurações Kanban derivado do status, não um campo novo A coluna vem de repair_statuses.sort_order + is_completed_status (KanbanProductionService). Mover o card grava o status padrão daquela coluna. 14 OS · 1 aguardando aprovação Recepção 2 JS-2026-0418 P2 Roland GR2-540 · Não reconhece crop mark Comunicação Rota Livre 🗓 27/08/2026 JS-2026-0417 P3 Dell Latitude 5440 · Não liga Gráfica Martinho ME 🗓 26/08/2026 Diagnóstico 4 JS-2026-0412 P1 Epson SureColor S60600 · Falha de tinta magenta Studio Vento Sul @ Anderson Prado 🗓 25/08/2026 JS-2026-0410 P2 Dell Latitude 5440 · Superaquecimento Eduardo Pessoa @ Bruna Sales 🗓 25/08/2026 JS-2026-0405 P0 HP Latex 315 · Aquecedor traseiro sem potência Comunicação Rota Livre @ Rafael Uchoa 🗓 24/08/2026 JS-2026-0402 P2 Mimaki CJV150-75 · Corte integrado desalinhado Sinalize Já Ltda @ Anderson Prado 🗓 28/08/2026 Aguardando peças 2 JS-2026-0398 P0 Brother GTX-600 · Canal branco entupido 🔒 blocked Ateliê Casa Forte @ Bruna Sales ⚠ 23/08/2026 JS-2026-0394 P2 Roland GR2-540 · Motor de tração travando 🔒 blocked Gráfica Martinho ME @ Rafael Uchoa 🗓 26/08/2026 Em execução 3 JS-2026-0390 P1 Epson SureColor S60600 · Encoder sujo Studio Vento Sul @ Anderson Prado 🗓 24/08/2026 JS-2026-0386 P3 Dell Latitude 5440 · Teclado com teclas mortas Sinalize Já Ltda @ Bruna Sales 🗓 25/08/2026 JS-2026-0380 P1 Mimaki CJV150-75 · Capping station ressecada Ateliê Casa Forte @ Rafael Uchoa 🗓 24/08/2026 Pronto 3 JS-2026-0371 P2 Roland GR2-540 · Lâmina não desce Comunicação Rota Livre @ Anderson Prado 🗓 22/08/2026 JS-2026-0364 P3 Dell Latitude 5440 · Bateria não carrega Eduardo Pessoa @ Bruna Sales 🗓 18/08/2026 JS-2026-0357 P2 HP Latex 315 · Placa principal em curto Sinalize Já Ltda @ Rafael Uchoa 🗓 14/08/2026",
+    "roles": {
+      "celulas": null,
+      "chart": null,
+      "contratos": [],
+      "filterRows": null,
+      "kpi": {
+        "count": 0,
+        "items": [],
+        "overflowX": null,
+        "tag": null
+      },
+      "primary": null,
+      "shell": null,
+      "tabela": null,
+      "title": null
+    },
+    "saude": {
+      "folhasVazias": [],
+      "nFolhas": 73,
+      "tokensMortos": []
+    },
+    "theme": "dark",
+    "url": "http://127.0.0.1:5577/"
+  },
+  "nos_totais": 659,
+  "quieto_ms": 2000,
+  "rota": "rep-producao",
+  "secoes": {
+    "aviso": {
+      "contraste": {
+        "motivo": "nenhum ancestral com fundo opaco (último: oklab(0.7 0.0633927 -0.135946 / 0.06), alfa 0.06)"
+      },
+      "estilo": {
+        "backgroundColor": "oklab(0.7 0.0633927 -0.135946 / 0.06)",
+        "borderRadius": "8px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "flex",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "11px",
+        "padding": "12px 14px"
+      },
+      "filhos": 2,
+      "fundoCadeia": [
+        {
+          "bg": "oklab(0.7 0.0633927 -0.135946 / 0.06)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "span",
+        "div"
+      ],
+      "rect": {
+        "h": 64,
+        "w": 1176
+      },
+      "seletor": ".rep-board-wrap > div:first-child",
+      "truncado": false
+    },
+    "contagem": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "body",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "flex",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "12px",
+        "padding": "0px"
+      },
+      "filhos": 2,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "rep-board-wrap"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "mp-body"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "rep-root"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "main-body"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "main"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "app"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "div"
+        },
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "body"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "sp",
+        "rep-hint"
+      ],
+      "rect": {
+        "h": 17,
+        "w": 1176
+      },
+      "seletor": ".rep-board-wrap > .rep-subtabs",
+      "truncado": false
+    },
+    "header": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "body",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "block",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "padding": "20px 24px 0px"
+      },
+      "filhos": 2,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "rep-root"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "main-body"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "main"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "app"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "div"
+        },
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "body"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "p",
+        "header"
+      ],
+      "rect": {
+        "h": 103,
+        "w": 1224
+      },
+      "seletor": ".rep-root > .cli-ph",
+      "truncado": false
+    },
+    "kanban": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "body",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "grid",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "10px",
+        "padding": "0px 0px 6px"
+      },
+      "filhos": 5,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "rep-board-wrap"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "mp-body"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "rep-root"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "main-body"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "main"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "app"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "div"
+        },
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "body"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "div",
+        "div",
+        "div",
+        "div",
+        "div"
+      ],
+      "rect": {
+        "h": 624,
+        "w": 1176
+      },
+      "seletor": ".rep-board-wrap > .rep-board",
+      "truncado": true
+    },
+    "tabs": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "proprio",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.26 0.006 240)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "flex",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "0px",
+        "padding": "0px 24px"
+      },
+      "filhos": 8,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "button",
+        "button",
+        "button",
+        "button",
+        "button",
+        "button",
+        "button",
+        "button"
+      ],
+      "rect": {
+        "h": 36,
+        "w": 1224
+      },
+      "seletor": ".rep-root > .ds-tabbar",
+      "truncado": false
+    }
+  },
+  "tela": "repair--producao-oficina--index",
+  "url": "http://127.0.0.1:5577/"
+}
