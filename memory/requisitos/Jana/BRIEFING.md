@@ -2,30 +2,30 @@
 id: requisitos-jana-briefing
 module: Jana
 status: producao
-updated_at: "2026-09-24"
-distilled_at: "2026-09-24"
+updated_at: "2026-10-02"
+distilled_at: "2026-10-02"
 distilled_by: jana:distill-module-truth
 ---
 
 # BRIEFING — Jana (verdade destilada)
 
 ## Estado atual
-O módulo Jana atua como a camada de IA do oimpresso, fornecendo chat com memória persistente, brief diário, sugestões de metas e avaliações. Em produção, ele mantém qualidade controlada por avaliações sistemáticas. A recente atualização incluiu a implementação de uma nova tela de superadmin e reorganização das fronteiras de código; o código MCP continua no módulo.
+O módulo Jana funciona como a camada de IA do Oimpresso, oferecendo chat com memória persistente, brief diário, sugestões de metas e avaliações. Atualmente em produção, o módulo possui controle de qualidade através de avaliações regulares e incorpora uma nova tela de superadmin, além de reorganização das fronteiras de código.
 
 ## Capacidades
-- Implementação de chat com memória persistente, integrando `MemoriaContrato` e `MeilisearchDriver`.
-- Disponibilidade de diversos agents para clarificação e sugestões de metas.
-- Geração automatizada de brief diário e decisão via `HitlEscalationService`.
-- Avaliações regulares (RAGAS), CI canary e telemetria em funcionamento.
+- Chat com memória persistente, integrado com `MemoriaContrato` e `MeilisearchDriver`.
+- Diversos agents disponíveis para sugestões de metas e esclarecimentos.
+- Geração automatizada de briefs diários e decisões via `HitlEscalationService`.
+- Avaliações regulares (RAGAS) e telemetria funcionando.
 - Telas Inertia implementadas: Index, Chat, Memoria, Alertas, Ações, Pro, Plataforma.
 
 ## Gaps
-- Necessidade de melhorar a função de `context_recall`, que opera abaixo do ideal.
-- Aperfeiçoamento na gestão de dados nas telas da Plataforma, onde tabelas de meta atualmente aparecem vazias.
-- Aumento na cobertura de testes para minimizar falsos-positivos.
+- Necessidade de aprimorar a função `context_recall`, que ainda não opera de forma ideal.
+- Melhoria na gestão de dados nas telas da Plataforma, onde as tabelas de meta estão vazias.
+- Aumento na cobertura de testes para reduzir falsos positivos.
 
 ## Última mudança
-Em 2026-09-21 e 2026-09-22 o Painel (`/ia`) foi reaproximado da âncora de design: grade de Análises em 3 colunas (#7638), grade e card de META como réplica da âncora (#7646), ritmo vertical de 18px (#7653), KPIs quebrando no breakpoint da âncora (#7655), gráficos da âncora (#7678) e o h1 a 600 por réplica local (#7681). O tier Pro passou a governar brief, análises e ações do Painel (#7587), e business sem histórico vê um estado de página em vez de 6 caixas vazias (#7591). Antes disso, em 2026-09-08, a onda 7 de paridade do lote Crm+Jana+Forja; e em 2026-09-03 a tela de superadmin substituiu o Blade anterior.
+Desde a destilação anterior (2026-09-24): a permissão da Jana foi provada por teste (UC-JPERM-01..06, #7863) e a trava de `jana.chat` e `jana.metas.manage` foi ligada (#7895); as fixtures ganharam `jana.metas.manage` e o teste de 404 cross-tenant voltou a medir de fato na lane jana-pest (#8015); install/uninstall/update da Jana saíram de GET (#8411); e o webhook `sync-memory` passou a atualizar só `memory/`, com código de produção chegando só pelo deploy (#8547, ADR 0425).
 
 ## Proveniência (destilado de)
 
@@ -56,5 +56,3 @@ Em 2026-09-21 e 2026-09-22 o Painel (`/ia`) foi reaproximado da âncora de desig
 - session `sessions/2026-09-02-jana-abas-paridade-3-prs.md` (2026-09-02) — 2026-09-02-jana-abas-paridade-3-prs.md
 - session `sessions/2026-09-02-ragas-real-colapso-diagnostico-bloqueado-ct100.md` (2026-09-02) — 2026-09-02-ragas-real-colapso-diagnostico-bloqueado-ct100.md
 - handoff `handoffs/2026-09-02-2140-jana-abas-alertas-acoes-plataforma.md` (2026-09-02) — 2026-09-02-2140-jana-abas-alertas-acoes-plataforma.md
-- session `sessions/2026-08-31-jana-p0-vazamento-e-d0-identidade-view.md` (2026-08-31) — 2026-08-31-jana-p0-vazamento-e-d0-identidade-view.md
-- handoff `handoffs/2026-08-31-1054-jana-p0-tier0-faxina-e-d0-identidade.md` (2026-08-31) — 2026-08-31-1054-jana-p0-tier0-faxina-e-d0-identidade.md

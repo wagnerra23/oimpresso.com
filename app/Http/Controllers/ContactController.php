@@ -2025,6 +2025,12 @@ class ContactController extends Controller
                 $input['dob'] = $this->commonUtil->uf_date($input['dob']);
             }
 
+            // `contacts.mobile` é NOT NULL no schema UltimatePOS, e ConvertEmptyStringsToNull
+            // transforma o Celular vazio do formulário em null: o INSERT caía (1048) e o catch
+            // abaixo mostrava só "Algo deu errado". Sem celular grava vazio, como a API do app
+            // (PessoasController::store). Decisão [W] 2026-10-02.
+            $input['mobile'] = $input['mobile'] ?? '';
+
             $input['business_id'] = $business_id;
             $input['created_by'] = $request->session()->get('user.id');
 
@@ -2331,7 +2337,8 @@ class ContactController extends Controller
                     'pay_due' => $user->can('purchase.payments') || $user->can('sell.payments'),
                     'delete' => $user->can('customer.delete') || $user->can('supplier.delete'),
                     'toggle_status' => $can_customer_update || $can_supplier_update,
-                    'add_discount' => $user->can('discount.access'),
+                    // discount.access saiu da tela de papéis (D1 [W] 2026-10-02); a escrita de desconto agora é discount.manage.
+                    'add_discount' => $user->can('discount.manage'),
                     'upload' => $can_customer_update || $can_supplier_update,
                     'delete_document' => $can_customer_update || $can_supplier_update,
                     'edit_note' => $can_customer_update || $can_supplier_update,

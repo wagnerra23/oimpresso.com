@@ -109,7 +109,8 @@ describe('precoDaBusca — regra única do Create.tsx', () => {
   it('sem nenhum preço usa o fallback (troca de grupo mantém o preço atual da linha)', () => {
     expect(precoDaBusca({}, 33)).toBe(33);
   });
-  it('preço de grupo 0 é preço válido (diferença conhecida com o Blade — ver precoDaBusca.ts)', () => {
+  // Fixo 0 vale no Blade também; percentual 0 já chega NULL do filterProduct (ver precoDaBusca.ts).
+  it('preço de grupo 0 é preço válido quando o servidor o manda (fixo 0, como no Blade)', () => {
     expect(precoDaBusca({ selling_price: 50, variation_group_price: 0 })).toBe(0);
   });
 });

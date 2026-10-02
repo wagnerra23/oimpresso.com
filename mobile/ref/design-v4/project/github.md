@@ -13,6 +13,7 @@ date: 2026-10-01T20:23:45Z
 - Escopo da v1 ([W] 2026-10-01, D13 do `docs/lojas-app/DECISOES.md`, PR #8473 aberto): **7 áreas** — Início, Tarefas, Pedidos, Produção, Pessoas, Ponto e Mais. v2: Produtos, Venda rápida e Finanças. A submissão às lojas só sai com as 7.
 - Tema ([W] 2026-10-01, D14): o app segue o tema claro/escuro do celular, como este protótipo.
 - Hoje o oimpresso-app tem Login, Início (só ponto), Ponto e Conta; as outras áreas da v1 estão em construção.
+- Dashboard (tela 35) fora da v1 ([W] 2026-10-02, D15 do `docs/lojas-app/DECISOES.md`, PR #8512): não entra em Mais nem substitui o Início.
 
 ## Screen map (oimpresso-app)
 | Tela | Arquivos do repo |
@@ -25,7 +26,7 @@ date: 2026-10-01T20:23:45Z
 | Lembrete de ponto | src/push.ts |
 | 01 Início (gestão) · 12 Tarefas · 21–22 Pedidos · 02/27 Produção · 17–18 Pessoas · 10 Mais | **v1 (D13)** — em construção no oimpresso-app |
 | 19–20 Produtos · 11 Venda rápida · 06/15 Finanças | v2 |
-| 35 Dashboard | **a decidir pelo [W]** (v1 em Mais, como Início, ou depois) |
+| 35 Dashboard | **fora da v1** ([W] 2026-10-02, D15): não entra em Mais nem substitui o Início; fica para depois |
 | demais telas do protótipo (Oficina, Estoque, Fiscal…) | fora da v1 e da v2 por ora |
 | 39 Marcações a validar | fora do app (tela de gestor, desktop) |
 

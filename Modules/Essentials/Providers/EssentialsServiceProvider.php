@@ -91,6 +91,9 @@ class EssentialsServiceProvider extends ServiceProvider
     {
         $this->registerCommands();
         $this->app->register(RouteServiceProvider::class);
+
+        // Implementa o contrato do núcleo da aba Tarefas do app das lojas (sobrepõe o vazio).
+        $this->app->bind(\App\Contracts\Tarefas\TarefasEssentials::class, \Modules\Essentials\Services\TarefasDoApp::class);
     }
 
     /**

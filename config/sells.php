@@ -46,4 +46,14 @@ return [
          */
         'timeout_seconds' => (int) env('SELLS_AI_TIMEOUT', 8),
     ],
+
+    'import' => [
+        /*
+         * Importação de vendas por planilha (`/import-sales`) — decisão D2 de [W] (2026-10-02):
+         * até este número de linhas de dados importa na hora; acima vai para a fila
+         * `sales-import` (App\Jobs\ImportarVendasJob), com progresso na tela.
+         * 0 = toda importação vai para a fila.
+         */
+        'limite_sincrono' => (int) env('SELLS_IMPORT_LIMITE_SINCRONO', 200),
+    ],
 ];

@@ -280,3 +280,10 @@ Não é onda de réplica. Saiu de uma **medição pareada** feita ao conferir o 
 **Por que `listitem` e não `row`/`grid`/`button`.** Porque a `.fj-row` daqui **não navega**: o `onClick` do protótipo abre o issue-drawer, que nesta tela não existe (é um dos receptáculos que a Forja ainda não tem). Dar `role="row"` dentro de um `grid` prometeria navegação 2D por teclado que a tela não implementa — a mesma afordância falsa do checkbox de seleção em massa (LC-15), só que invisível para quem enxerga. `UC-TRAB-17` trava a premissa: no dia em que a linha ganhar `onClick`, o caso reprova pedindo o papel novo **com o teclado que ele promete**, em vez de deixar `listitem` mentindo.
 
 ⚠️ **Sem smoke visual, de propósito** — a mudança não tem pixel. As `.snap` da baseline continuam válidas; se alguma mexer, é sinal de que algo além do ARIA entrou junto.
+
+## Contrato visual
+
+Travado por `governance/design/contracts/forja-trabalho.contract.json` (gate `contrato-de-tela`), com âncoras
+`data-contract` no `.tsx`. A copy literal e a ordem das seções são de lá — esta seção **aponta**,
+não repete. Só entra copy que existe no protótipo e no código da tela (fora de comentário); o que
+diverge está no `_nota_recorte` do contrato.

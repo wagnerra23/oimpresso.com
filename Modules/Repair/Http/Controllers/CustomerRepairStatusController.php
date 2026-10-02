@@ -24,17 +24,28 @@ class CustomerRepairStatusController extends Controller
     }
 
     /**
-     * Show the specified resource.
+     * Consulta pública do status do reparo (POST /post-repair-status, AJAX).
      *
-     * @param  int  $id
-     * @return Response
+     * @return array<string, mixed>|null array com success/msg (e repair_html quando acha);
+     *                                   null quando a requisição não é AJAX (comportamento de sempre)
      */
     public function postRepairStatus(Request $request)
     {
         if ($request->ajax()) {
             try {
-                $search_type = $request->input('search_type'); //job_sheet/invoice/mobile
-                $search_number = $request->input('search_number'); //job_sheet_no/invoice_no/mobile_num
+                $search_type = (string) $request->input('search_type', ''); //job_sheet/invoice/mobile
+                $search_number = trim((string) $request->input('search_number', '')); //job_sheet_no/invoice_no/mobile_num
+
+                // Tier 0 (ADR 0093): esta rota é pública e o ScopeByBusiness não age sem
+                // usuário logado. Sem um tipo de busca conhecido e um número, a consulta
+                // abaixo sairia SEM filtro — todas as OS de todas as empresas. Recusa antes
+                // de consultar. Teste: Tests/Feature/PortalStatusReparoSemVazamentoTest.php.
+                if (! in_array($search_type, ['job_sheet_no', 'invoice_no', 'mobile_num'], true)
+                    || $search_number === '') {
+                    return ['success' => false,
+                        'msg' => __('repair::lang.invalid_repair_details'),
+                    ];
+                }
 
                 $query = JobSheet::leftJoin('transactions',
                             'transactions.repair_job_sheet_id', '=', 'repair_job_sheets.id')
@@ -64,11 +75,12 @@ class CustomerRepairStatusController extends Controller
                                 'repair_job_sheets.device_id'
                             );
 
-                if (! empty($search_type) && $search_type == 'job_sheet_no') {
+                // $search_type já foi validado acima: é um dos três, nunca vazio.
+                if ($search_type === 'job_sheet_no') {
                     $query->where('repair_job_sheets.job_sheet_no', $search_number);
-                } elseif (! empty($search_type) && $search_type == 'invoice_no') {
+                } elseif ($search_type === 'invoice_no') {
                     $query->where('transactions.invoice_no', $search_number);
-                } elseif (! empty($search_type) && $search_type == 'mobile_num') {
+                } else { // mobile_num
                     $query->where('contacts.mobile', $search_number);
                 }
 
@@ -108,7 +120,7 @@ class CustomerRepairStatusController extends Controller
                     'msg' => __('lang_v1.success'),
                     'repair_html' => $repair_html,
                 ];
-            } catch (Exception $e) {
+            } catch (\Throwable $e) {
                 $this->logSafeEmergency('customer_repair_status', $e); // D7.a Wave 17 LGPD
 
                 $output = ['success' => false,
@@ -118,5 +130,7 @@ class CustomerRepairStatusController extends Controller
 
             return $output;
         }
+
+        return null;
     }
 }

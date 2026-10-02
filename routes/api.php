@@ -22,7 +22,19 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 // memory/requisitos/AppMobile/API-CONTRATO-v1.md.
 Route::middleware('auth:api')->prefix('app')->name('app.')->group(function () {
     Route::get('/tarefas', [\App\Http\Controllers\Api\App\TarefasController::class, 'index'])->name('tarefas.index');
+    Route::get('/tarefas/todo/{id}', [\App\Http\Controllers\Api\App\TarefasController::class, 'todo'])->whereNumber('id')->name('tarefas.todo.show');
     Route::post('/tarefas/todo/{id}/concluir', [\App\Http\Controllers\Api\App\TarefasController::class, 'concluirTodo'])->whereNumber('id')->name('tarefas.todo.concluir');
     Route::get('/pessoas', [\App\Http\Controllers\Api\App\PessoasController::class, 'index'])->name('pessoas.index');
+    Route::post('/pessoas', [\App\Http\Controllers\Api\App\PessoasController::class, 'store'])->name('pessoas.store');
     Route::get('/pessoas/{id}', [\App\Http\Controllers\Api\App\PessoasController::class, 'show'])->whereNumber('id')->name('pessoas.show');
+    Route::get('/pessoas/{id}/cadastro', [\App\Http\Controllers\Api\App\PessoasController::class, 'cadastro'])->whereNumber('id')->name('pessoas.cadastro');
+    Route::get('/pedidos', [\App\Http\Controllers\Api\App\PedidosController::class, 'index'])->name('pedidos.index');
+    Route::get('/pedidos/{id}', [\App\Http\Controllers\Api\App\PedidosController::class, 'show'])->whereNumber('id')->name('pedidos.show');
+    Route::get('/orcamentos', [\App\Http\Controllers\Api\App\PedidosController::class, 'orcamentos'])->name('orcamentos.index');
+    Route::get('/producao', [\App\Http\Controllers\Api\App\PedidosController::class, 'producao'])->name('producao.index');
+    Route::get('/notificacoes', [\App\Http\Controllers\Api\App\NotificacoesController::class, 'index'])->name('notificacoes.index');
+    // Throttle como o lookup da web (60/min): o ERP fala com o ViaCEP por todos os tenants.
+    Route::get('/cep/{cep}', [\App\Http\Controllers\Api\App\CepController::class, 'show'])
+        ->where('cep', '[0-9-]{1,12}')->middleware('throttle:60,1')->name('cep.show');
+    Route::get('/inicio', [\App\Http\Controllers\Api\App\InicioController::class, 'show'])->name('inicio');
 });
