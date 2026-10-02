@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Api\App;
 
 use App\Http\Controllers\Controller;
 use App\Services\Pessoas\PessoaEscopo;
+use App\Services\Pessoas\PessoaVendas;
 use App\User;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Http\JsonResponse;
@@ -55,7 +56,7 @@ class PessoasController extends Controller
 
         $temMais = $linhas->count() > self::POR_PAGINA;
         $linhas = $linhas->take(self::POR_PAGINA);
-        $saldos = $this->saldos((int) $user->business_id, $linhas->pluck('id')->all());
+        $saldos = PessoaVendas::saldosAbertos((int) $user->business_id, $linhas->pluck('id')->all());
 
         $contadores = [];
         foreach (array_merge(array_keys(self::PAPEIS), ['em_debito']) as $p) {
@@ -100,14 +101,15 @@ class PessoasController extends Controller
             ->where('contact_id', $c->id)
             ->where('type', 'sell')
             ->where('status', 'final');
-        $qtd = (clone $vendas)->count();
-        $soma = (float) (clone $vendas)->sum('final_total');
+        $resumo = PessoaVendas::resumo($bizId, (int) $c->id);
+        $qtd = $resumo['qtd'];
+        $soma = $resumo['soma'];
 
         return response()->json([
             'id' => (int) $c->id,
             'nome' => $this->nome($c),
             'tipo' => $c->tipo ?: null,
-            'documento' => $c->cpf_cnpj ?: $c->tax_number,
+            'documento' => $this->documento($c->cpf_cnpj ?: $c->tax_number),
             'papeis' => $this->papeis($c),
             'ativo' => $c->contact_status === 'active',
             'contato' => ['telefone' => $c->mobile ?: null, 'email' => $c->email ?: null],
@@ -115,7 +117,7 @@ class PessoasController extends Controller
             'kpis' => [
                 'pedidos' => $qtd,
                 'ticket_medio' => $qtd > 0 ? round($soma / $qtd, 2) : 0.0,
-                'saldo_aberto' => round($this->saldos($bizId, [(int) $c->id])[(int) $c->id] ?? 0.0, 2),
+                'saldo_aberto' => round(PessoaVendas::saldosAbertos($bizId, [(int) $c->id])[(int) $c->id] ?? 0.0, 2),
             ],
             'pedidos_recentes' => (clone $vendas)
                 ->orderByDesc('transaction_date')
@@ -131,6 +133,12 @@ class PessoasController extends Controller
     }
 
     // ------------------------------------------------------------------
+
+    /** Quem vê a aba Pessoas. */
+    public function podeVerPessoas(User $u): bool
+    {
+        return $this->podeVer($u);
+    }
 
     private function podeVer(?User $u): bool
     {
@@ -182,30 +190,21 @@ class PessoasController extends Controller
     }
 
     /**
-     * Saldo em aberto por pessoa: vendas finais due/partial menos o que já foi pago
-     * (mesma fórmula do valor_aberto da tela web, restrita a status final — #8479).
-     *
-     * @return array<int, float>
+     * CPF sai mascarado no celular (só os 5 últimos dígitos); CNPJ sai inteiro, formatado, porque
+     * é dado público da empresa. Decisão [W] 2026-10-02 ("faça todas"), contrato §4. A ficha web
+     * segue mostrando o CPF inteiro; esconder lá é outra decisão.
      */
-    private function saldos(int $bizId, array $ids): array
+    private function documento(?string $doc): ?string
     {
-        if ($ids === []) {
-            return [];
+        $d = preg_replace('/\D/', '', (string) $doc);
+        if (strlen($d) === 11) {
+            return '***.***.' . substr($d, 6, 3) . '-' . substr($d, 9, 2);
+        }
+        if (strlen($d) === 14) {
+            return substr($d, 0, 2) . '.' . substr($d, 2, 3) . '.' . substr($d, 5, 3) . '/' . substr($d, 8, 4) . '-' . substr($d, 12, 2);
         }
 
-        return DB::table('transactions as t')
-            ->where('t.business_id', $bizId)
-            ->whereIn('t.contact_id', $ids)
-            ->where('t.type', 'sell')
-            ->where('t.status', 'final')
-            ->whereIn('t.payment_status', ['due', 'partial'])
-            ->groupBy('t.contact_id')
-            ->get([
-                't.contact_id',
-                DB::raw('SUM(t.final_total - (SELECT COALESCE(SUM(tp.amount), 0) FROM transaction_payments tp WHERE tp.transaction_id = t.id)) AS saldo'),
-            ])
-            ->mapWithKeys(fn ($r) => [(int) $r->contact_id => (float) $r->saldo])
-            ->all();
+        return $doc !== null && $doc !== '' ? $doc : null;
     }
 
     private function nome(object $c): string

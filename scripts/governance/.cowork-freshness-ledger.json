@@ -36033,6 +36033,23 @@
     "projetoCowork": "w"
   },
   {
+    "date": "2026-10-02T11:31:04.220Z",
+    "files": 274,
+    "sync": 1,
+    "stale": 0,
+    "liveAbsent": 0,
+    "unchecked": 273,
+    "staleList": [],
+    "verified": [
+      "cowork-inbox/venda-menu/playbook/_DECISOES-W-2026-10-02.md"
+    ],
+    "verifiedHash": {
+      "cowork-inbox/venda-menu/playbook/_DECISOES-W-2026-10-02.md": "79eaa5a72c08ddc95e3f8437837a6703aa63a86637000192e258e685c1c57f39"
+    },
+    "origin": "medicao",
+    "projetoCowork": "w"
+  },
+  {
     "date": "2026-10-02T13:24:51.414Z",
     "files": 274,
     "sync": 2,

@@ -271,3 +271,30 @@ it('UC-RIDX-05 · venda de reparo com entrega preenchida não derruba a fila, e 
     expect($atraso[RIDX_MARCA.'ENTREGA-FUTURA'])->toBeFalse();
     expect($atraso[RIDX_MARCA.'SEM-ENTREGA'])->toBeFalse();
 });
+
+it('UC-RIDX-07 · o filtro de status recebe só o mapa id→nome, sem as chaves internas do dropdown', function () {
+    $biz = $this->seededTenant();
+    $user = ridxUser((int) $biz->id, ['repair.view']);
+
+    $resp = ridxAbrirFila($this, $user);
+    $resp->assertOk();
+
+    $statuses = $resp->json('props.meta.repair_statuses');
+    expect($statuses)->toBeArray();
+
+    // Antes do conserto: {"statuses": …, "template": null} — a tela virava essas duas
+    // chaves em chips ("" e "null") e o filtro mandava id NaN (prod biz=1, 2026-10-02).
+    expect(array_key_exists('statuses', $statuses))->toBeFalse();
+    expect(array_key_exists('template', $statuses))->toBeFalse();
+
+    foreach ($statuses as $id => $nome) {
+        expect(is_numeric($id))->toBeTrue();
+        expect($nome)->toBeString();
+    }
+
+    // controle positivo: quando o tenant tem status, ele aparece pelo id com o nome dele
+    $status = DB::table('repair_statuses')->where('business_id', $biz->id)->first(['id', 'name']);
+    if ($status) {
+        expect($statuses[(string) $status->id] ?? $statuses[$status->id] ?? null)->toBe($status->name);
+    }
+});

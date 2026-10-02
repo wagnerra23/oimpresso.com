@@ -88,7 +88,9 @@ last_run: "2026-09-05"
   **sempre** para ele. As três amostras com desfechos diferentes impedem que um `is_overdue`
   constante passe.
 - **Teste:** `Modules/Repair/Tests/Feature/RepairIndexContratoTest.php`
-- **Status: ⬜** _(teste escrito em 2026-10-01; veredito pelo CI da lane `verticais-pest`)_
+- **Status: 🧪** _(teste cita o UC e passa — CI `PHP / Pest (Verticais · MySQL)`, job 110554659639,
+  2026-10-01, no #8483: 217 passed, 12 skipped, 1204 assertions; o UC-RIDX-05 aparece como ✓, não
+  pulado)_
 
 ---
 
@@ -102,6 +104,22 @@ last_run: "2026-09-05"
   como **string**. `optional($string)?->toIso8601String()` não dá erro: o `Optional` só chama método
   em objeto e devolve null. As colunas de data ficavam vazias na tela sem nenhum sintoma no log.
 - **Teste:** `Modules/Repair/Tests/Feature/RepairListResourceDatasTest.php`
+- **Status: 🧪** _(teste cita o UC e passa — CI `PHP / Pest (Verticais · MySQL)`, job 110803319448,
+  2026-10-02, no #8500: 222 passed, 13 skipped, 1163 assertions; os dois casos do UC-RIDX-06 aparecem
+  como ✓, não pulados)_
+
+---
+
+## UC-RIDX-07 · O filtro de status mostra só os status do negócio
+- **Persona:** atendente quer filtrar a fila por status da OS.
+- **Aceite:** Dado o tenant com seus status de reparo · Quando abro a fila · Então
+  `meta.repair_statuses` é o mapa `id → nome` desses status, sem nenhuma outra chave; e os chips do
+  filtro são exatamente esses status (nenhum, se o negócio não tem status cadastrado).
+- **Regressão que defende:** `RepairStatus::forDropdown()` devolve `{statuses, template}`, não o
+  mapa. O Controller passava o retorno inteiro, e a tela transformava as duas chaves em chips: em
+  prod biz=1 (2026-10-02) apareciam um chip vazio e um chip "null", e clicar neles mandava
+  `repair_status_id` não numérico. Num negócio com status, os status reais nem viravam chip.
+- **Teste:** `Modules/Repair/Tests/Feature/RepairIndexContratoTest.php`
 - **Status: ⬜** _(teste escrito em 2026-10-02; veredito pelo CI da lane `verticais-pest`)_
 
 ---

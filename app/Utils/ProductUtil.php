@@ -1726,7 +1726,7 @@ class ProductUtil extends Util
             );
 
         if (! empty($price_group_id)) {
-            $query->addSelect(DB::raw('IF (VGP.price_type = "fixed", VGP.price_inc_tax, VGP.price_inc_tax * variations.sell_price_inc_tax / 100) as variation_group_price'));
+            $query->addSelect(DB::raw('IF (VGP.price_type = "fixed", VGP.price_inc_tax, NULLIF(VGP.price_inc_tax * variations.sell_price_inc_tax / 100, 0)) as variation_group_price'));
         }
 
         if (in_array('lot', $search_fields)) {
