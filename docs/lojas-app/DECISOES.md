@@ -22,9 +22,11 @@
 | D13 | Escopo da v1 | **7 áreas:** Início, Tarefas, Pedidos, Produção, Pessoas, Ponto e Mais. Ficam para a v2: Produtos, Venda rápida e Finanças. As 39 telas do protótipo são o alvo do desenho; a v1 publica as 7 áreas | [W] 2026-10-01 ("volta para as 7 áreas") |
 | D14 | Tema | O app **segue o tema do celular** (claro ou escuro), como o protótipo. Nada de tema fixo | [W] 2026-10-01 ("segue o tema do celular") |
 | D15 | Dashboard (tela 35) | **Fora da v1, fica para depois.** Não entra em Mais nem substitui o Início | [W] 2026-10-02 ("o dashboard fica para depois") |
+| D16 | Escopo do app | **Todas as 40 telas do protótipo** (00 a 39) entram no app **antes** do envio às lojas. Substitui a D13 (7 áreas na v1) e a D15 (Dashboard fora). Ordem e ondas em [`API-CONTRATO-v1.md` §8](../../memory/requisitos/AppMobile/API-CONTRATO-v1.md). Tela que escreve VALOR ou ESTOQUE (venda rápida, faturar, pagamentos, movimentação) segue a regra mestre: dupla prova + antes→depois + ok do [W] por PR | [W] 2026-10-02 ("todas as 40 telas", ciente de que revoga a D13 e atrasa o envio) |
 
 ## Substituídas (não usar)
 
+- ~~D13 — v1 com 7 áreas~~ e ~~D15 — Dashboard fora~~ → D16 (todas as 40 telas antes do envio), [W] 2026-10-02.
 - ~~App = Expo de `mobile/`~~ → D1 (Capacitor).
 - ~~Nome "oimpresso Ponto"~~ → D3.
 - ~~1ª versão publica o ERP web atual~~ ([W] "1, publica com o ERP atual") → depois `/m` → hoje D5.
