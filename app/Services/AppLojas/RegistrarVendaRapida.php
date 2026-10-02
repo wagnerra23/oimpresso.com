@@ -74,8 +74,9 @@ final class RegistrarVendaRapida
 
         $total = $totalC / 100;
         // getCustomerGroup devolve [] (sem grupo) ou o objeto do grupo; o docblock diz só array.
-        $cg = $this->contactUtil->getCustomerGroup($bizId, $contato->id);
-        $grupoClienteId = is_object($cg) && ! empty($cg->id) ? (int) $cg->id : null;
+        // (object) normaliza os dois: [] vira objeto vazio, objeto continua o mesmo.
+        $cg = (object) $this->contactUtil->getCustomerGroup($bizId, $contato->id);
+        $grupoClienteId = ! empty($cg->id) ? (int) $cg->id : null;
         $input = [
             'location_id' => $local->id,
             'status' => 'final',
