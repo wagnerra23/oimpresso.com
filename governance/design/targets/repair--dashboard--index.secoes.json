@@ -1,0 +1,10 @@
+{
+  "_": "A1 [CL] 2026-10-02 — playbook repair. Protótipo: rota `rep-painel` do espelho (window.RepRotas, thread 00 · repair-page.jsx Painel). HOJE é fixo no repair-data.jsx, então o alerta de entrega vencida monta sempre.",
+  "_mapa": "alvo:mapa --rota rep-painel --raiz .rep-painel, 2026-10-02: .rep-painel = div (Alert de atrasadas) · rep-kpis · rep-grid2 · rep-grid3.",
+  "header": { "seletor": ".rep-root > .cli-ph" },
+  "tabs": { "seletor": ".rep-root > .ds-tabbar" },
+  "alerta": { "seletor": ".rep-painel > div:first-child" },
+  "kpis": { "seletor": ".rep-painel > .rep-kpis" },
+  "distribuicao": { "seletor": ".rep-painel > .rep-grid2" },
+  "tendencias": { "seletor": ".rep-painel > .rep-grid3" }
+}

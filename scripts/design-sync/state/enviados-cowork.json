@@ -201,9 +201,21 @@
       "sha256": "b309df5818f9bf2f77c223c48a29b9ba1b8be5f92ff5c839e51d17f49a5fc729",
       "em": "2026-10-01T14:44:22.329Z"
     },
+    "cowork-inbox/repair/playbook/_saida-00.md": {
+      "sha256": "ff2c6fc7920d69df7ba80b15cc38c581db226a9b8d90c5061b0f0a4ad2d4929c",
+      "em": "2026-10-02T13:24:51.450Z"
+    },
     "cowork-inbox/repair/playbook/_saida-01.md": {
       "sha256": "1fe554907b49d078a1006e75be690f44dfca6d7c2812a8efc80227cd3cba1a10",
       "em": "2026-10-01T03:02:50.175Z"
+    },
+    "cowork-inbox/repair/playbook/_saida-02.md": {
+      "sha256": "51e9b0a7cd394769c9a11f5e9b00441290ff4751e023f6f01a34062fc292b5ef",
+      "em": "2026-10-02T18:36:58.261Z"
+    },
+    "cowork-inbox/repair/playbook/_saida-A1.md": {
+      "sha256": "dc195ca6397eb166ac4cd32b1e494b7871e308e373f6d8e8692e5fe844d997e3",
+      "em": "2026-10-02T13:25:42.336Z"
     },
     "cowork-inbox/superadmin/playbook/_DECISOES-W-2026-10-01.md": {
       "sha256": "00c817b1b5c916a95311e42c4b6b8e26d54e79daa22775be7746f71503b3e3a3",
@@ -236,6 +248,10 @@
     "cowork-inbox/venda-menu/playbook/_saida-05.md": {
       "sha256": "22686387974542190c64a44df43f992f09d623212df496bf2ed6801f2583b946",
       "em": "2026-10-02T15:00:12.120Z"
+    },
+    "repair-page.jsx": {
+      "sha256": "d571d3ca49eef0380f6a0ffc25d87275b13100cbe23dbb53f1179c5c6a35959c",
+      "em": "2026-10-02T13:24:51.450Z"
     }
   }
 }

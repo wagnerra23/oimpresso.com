@@ -8,7 +8,8 @@
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Link } from '@inertiajs/react';
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
-import PageHeader from '@/Components/shared/PageHeader';
+import { PageHeader } from '@/Components/PageHeader';
+import { Icon } from '@/Components/Icon';
 import EmptyState from '@/Components/shared/EmptyState';
 import { Button } from '@/Components/ui/button';
 import {
@@ -96,11 +97,13 @@ export default function JobSheetIndex({ filters, flags, datatable_url }: PagePro
 
   return (
     <div className="container mx-auto space-y-5 p-4">
+      {/* Header canon (@/Components/PageHeader, ADR 0189/0190): título 22px = --fs-7 (o shared
+          deprecated fixava 24px) — thread 02 do playbook Repair, 2026-10-02. */}
       <PageHeader
-        icon="clipboard-list"
+        leading={<Icon name="clipboard-list" size={18} className="mr-2 inline-block align-[-2px] text-primary" />}
         title="Ordens de serviço"
-        description="Gestão de OS de reparo por status, cliente, equipe e local."
-        action={
+        subtitle="Gestão de OS de reparo por status, cliente, equipe e local."
+        actions={
           <Button asChild>
             <Link href="/repair/job-sheet/create">Nova OS</Link>
           </Button>

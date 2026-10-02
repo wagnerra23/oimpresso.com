@@ -112,6 +112,11 @@ function Producao({ folhas, onAbrir, onMover, papel, avisar }) {
       {Alert && <Alert tone="info" title="Kanban derivado do status, não um campo novo">
         A coluna vem de <b>repair_statuses.sort_order</b> + <b>is_completed_status</b> (KanbanProductionService). Mover o card grava o status padrão daquela coluna.
       </Alert>}
+      {/* Puxado do vivo (ProducaoOficina/Index.tsx): contagem à direita da barra de filtros. */}
+      <div className="rep-subtabs">
+        <span className="sp" />
+        <span className="rep-hint">{folhas.length} OS · {folhas.filter((f) => (f.pecas || []).some((p) => p.situacao === "aprovacao")).length} aguardando aprovação</span>
+      </div>
       <div className="rep-board">
         {D.COLUNAS.map((col) => {
           const lista = D.porColuna(folhas, col.id);
@@ -149,6 +154,8 @@ function Folhas({ folhas, papel, dense, filtro, setFiltro, busca, onAbrir, acoes
   const [pag, setPag] = useState(1);
   const [tecnico, setTecnico] = useState("todos");
   const [local, setLocal] = useState("todos");
+  const [statusF, setStatusF] = useState("todos");
+  const [clienteF, setClienteF] = useState("todos");
   const [selecao, setSelecao] = useState([]);
   const [gridKey, setGridKey] = useState(0);
   if (!DataTablePro) return null;
@@ -159,6 +166,8 @@ function Folhas({ folhas, papel, dense, filtro, setFiltro, busca, onAbrir, acoes
     if (filtro === "atrasadas" && !D.atrasada(f)) return false;
     if (tecnico !== "todos" && f.tecnico !== tecnico) return false;
     if (local !== "todos" && D.LOCAIS[f.local] !== local) return false;
+    if (statusF !== "todos" && String(f.status) !== statusF) return false;
+    if (clienteF !== "todos" && f.cliente !== clienteF) return false;
     const q = (busca || "").trim().toLowerCase();
     if (!q) return true;
     return [f.os, f.cliente, f.serie, D.modeloDe(f.modelo).nome].join(" ").toLowerCase().includes(q);
@@ -227,6 +236,13 @@ function Folhas({ folhas, papel, dense, filtro, setFiltro, busca, onAbrir, acoes
           options={["todos", ...D.TECNICOS].map((t) => ({ value: t, label: t === "todos" ? "Todos" : t }))} /></div>}
         {Select && <div className="rep-filtro"><Select label="Local" value={local} onChange={(e) => setLocal(e.target ? e.target.value : e)}
           options={["todos", ...D.LOCAIS].map((t) => ({ value: t, label: t === "todos" ? "Todos" : t }))} /></div>}
+        {/* Puxado do vivo (JobSheet/Index.tsx): filtros Status e Cliente + Limpar. */}
+        {Select && <div className="rep-filtro"><Select label="Status" value={statusF} onChange={(e) => setStatusF(e.target ? e.target.value : e)}
+          options={[{ value: "todos", label: "Todos os status" }, ...D.STATUS.map((s) => ({ value: String(s.id), label: s.nome }))]} /></div>}
+        {Select && <div className="rep-filtro"><Select label="Cliente" value={clienteF} onChange={(e) => setClienteF(e.target ? e.target.value : e)}
+          options={[{ value: "todos", label: "Todos os clientes" }, ...D.CLIENTES.map((c) => ({ value: c, label: c }))]} /></div>}
+        {Button && (tecnico !== "todos" || local !== "todos" || statusF !== "todos" || clienteF !== "todos") &&
+          <Button size="sm" variant="ghost" onClick={() => { setTecnico("todos"); setLocal("todos"); setStatusF("todos"); setClienteF("todos"); }}>Limpar</Button>}
         <span className="sp" />
         {FilterChip && filtro === "atrasadas" && <FilterChip label="prazo" value="vencido" onRemove={() => setFiltro("pendentes")} />}
       </div>
@@ -256,47 +272,180 @@ function Folhas({ folhas, papel, dense, filtro, setFiltro, busca, onAbrir, acoes
   );
 }
 
-// ══════════ REPAROS (repair/index.blade.php — a transaction) ══════════
+// ══════════ REPAROS (Repair/Index.tsx — a venda de reparo, sub_type=repair) ══════════
+// Puxado do vivo (thread 00, 2026-10-02): a Page lista a venda de reparo com 3 KPIs
+// clicáveis, busca + local + responsável + chips de status, 10 colunas e rodapé
+// "Mostrando X–Y de N". O protótipo antes só tinha fatura/saldo; o que o vivo tem entrou.
+// Cada folha tem a sua venda derivada; as já faturadas usam o REPAROS do legado.
+function vendasDeReparo(folhas) {
+  const D = R();
+  return folhas.map((f) => {
+    const r = D.REPAROS.find((x) => x.folha === f.id);
+    const total = r ? r.total : (f.custo || 0) + (f.pecas || []).reduce((s, p) => s + p.valor * p.qtd, 0);
+    return {
+      id: f.id, folha: f, repair: r ? r.repair : "REP-" + f.os.slice(3),
+      garantia: r ? r.garantia : "Serviço 90 dias", pagamento: r ? r.pagamento : (total ? "due" : "pending"),
+      total, saldo: r ? r.saldo : total, emitido: r ? r.emitido : f.criado,
+    };
+  });
+}
+
 function Reparos({ folhas, dense, onAbrir }) {
   const D = R();
-  const { DataTablePro, StatusBadge, KpiCard } = DS();
+  const { DataTablePro, StatusBadge, KpiCard, Select, Input, Button, EmptyState, Pagination } = DS();
   const areaRef = useRef(null); const altura = useAltura(areaRef, 240);
+  const [q, setQ] = useState("");
+  const [local, setLocal] = useState("todos");
+  const [resp, setResp] = useState("todos");
+  const [concluido, setConcluido] = useState(null); // null · "0" em andamento · "1" concluídas
+  const [status, setStatus] = useState([]);
+  const [pag, setPag] = useState(1);
   if (!DataTablePro) return null;
-  const total = D.REPAROS.reduce((s, r) => s + r.total, 0);
-  const aberto = D.REPAROS.reduce((s, r) => s + r.saldo, 0);
+  const vendas = vendasDeReparo(folhas);
+  const base = vendas.filter((v) => {
+    const f = v.folha; const s = D.statusDe(f.status);
+    if (concluido === "0" && s.concluido) return false;
+    if (concluido === "1" && !s.concluido) return false;
+    if (local !== "todos" && D.LOCAIS[f.local] !== local) return false;
+    if (resp !== "todos" && f.tecnico !== resp) return false;
+    if (status.length && !status.includes(f.status)) return false;
+    const t = q.trim().toLowerCase();
+    return !t || [v.repair, f.os, f.cliente, f.serie].join(" ").toLowerCase().includes(t);
+  });
+  const filtrando = q || local !== "todos" || resp !== "todos" || concluido || status.length;
+  const porPagina = dense ? 12 : 9;
+  const pagina = Math.min(pag, Math.max(1, Math.ceil(base.length / porPagina)));
+  const ini = (pagina - 1) * porPagina;
+  const rows = base.slice(ini, ini + porPagina);
   const colunas = [
-    { key: "repair", label: "Nº do reparo", width: 150, mono: true, sortable: true },
-    { key: "fatura", label: "Fatura", width: 118, mono: true },
-    { key: "folha", label: "Folha de OS", width: 132, mono: true },
-    { key: "cliente", label: "Cliente", width: 200, sortable: true },
-    { key: "garantia", label: "Garantia", width: 150 },
-    { key: "pgto", label: "Pagamento", width: 120 },
-    { key: "total", label: "Total", width: 120, align: "right", mono: true, sortable: true },
-    { key: "saldo", label: "Saldo devedor", width: 130, align: "right", mono: true },
+    { key: "os", label: "OS", width: 140, mono: true, sortable: true },
+    { key: "status", label: "Status", width: 168, sortable: true },
+    { key: "cliente", label: "Cliente", width: 190, sortable: true },
+    { key: "aparelho", label: "Aparelho", width: 180 },
+    { key: "serie", label: "Série", width: 130, mono: true },
+    { key: "resp", label: "Resp.", width: 130 },
+    { key: "aberta", label: "Aberta", width: 96, mono: true, sortable: true },
+    { key: "prazo", label: "Prazo", width: 150, sortable: true },
+    { key: "total", label: "Total", width: 116, align: "right", mono: true, sortable: true },
+    { key: "pgto", label: "Pgto", width: 110 },
   ];
-  const linhas = D.REPAROS.map((r) => {
-    const f = folhas.find((x) => x.id === r.folha) || {};
-    return { id: r.id, state: r.saldo > 0 ? "urgent" : undefined, cells: {
-      repair: r.repair, fatura: r.fatura, folha: f.os || "—", cliente: f.cliente || "—", garantia: r.garantia,
-      pgto: StatusBadge ? <StatusBadge kind="payment" value={r.pagamento} /> : r.pagamento,
-      total: D.fmt(r.total), saldo: r.saldo ? D.fmt(r.saldo) : "—",
+  const linhas = rows.map((v) => {
+    const f = v.folha; const m = D.modeloDe(f.modelo);
+    return { id: v.id, state: D.atrasada(f) ? "urgent" : undefined, cells: {
+      os: v.repair, status: <SeloStatus id={f.status} />, cliente: f.cliente,
+      aparelho: m.marca + " " + m.nome, serie: f.serie,
+      resp: f.tecnico === "Não atribuído" ? <span className="rep-dim">—</span> : f.tecnico,
+      aberta: D.d2(v.emitido), prazo: <span className="rep-cell-2"><b className="mono">{D.d2(f.entrega)}</b><SeloPrazo f={f} /></span>,
+      total: D.fmt(v.total), pgto: StatusBadge ? <StatusBadge kind="payment" value={v.pagamento} /> : v.pagamento,
     } };
   });
+  const emAndamento = vendas.filter((v) => !D.statusDe(v.folha.status).concluido).length;
+  const concluidas = vendas.length - emAndamento;
   return (
     <div className="rep-list">
       <div className="rep-kpis">
         {KpiCard && <>
-          <KpiCard label="Reparos faturados" value={D.REPAROS.length} description="transactions do módulo" />
-          <KpiCard label="Valor faturado" value={D.fmt(total)} tone="info" />
-          <KpiCard label="Em aberto" value={D.fmt(aberto)} tone={aberto ? "warning" : "success"} description="cobrança vive no Financeiro" />
+          <KpiCard label="Em andamento" value={emAndamento} tone={concluido === "0" ? "info" : "default"}
+            onClick={() => { setConcluido(concluido === "0" ? null : "0"); setPag(1); }} description="clique filtra a lista" />
+          <KpiCard label="Concluídas" value={concluidas} tone={concluido === "1" ? "success" : "default"}
+            onClick={() => { setConcluido(concluido === "1" ? null : "1"); setPag(1); }} />
+          <KpiCard label="Total exibido" value={base.length} />
         </>}
       </div>
+      <div className="rep-toolbar">
+        {Input && <div className="rep-filtro"><Input label="Buscar" value={q} placeholder="Nº OS, cliente ou nº de série"
+          onChange={(e) => { setQ(e.target ? e.target.value : e); setPag(1); }} /></div>}
+        {Select && <div className="rep-filtro"><Select label="Local" value={local} onChange={(e) => { setLocal(e.target ? e.target.value : e); setPag(1); }}
+          options={["todos", ...D.LOCAIS].map((t) => ({ value: t, label: t === "todos" ? "Todos os locais" : t }))} /></div>}
+        {Select && <div className="rep-filtro"><Select label="Responsável" value={resp} onChange={(e) => { setResp(e.target ? e.target.value : e); setPag(1); }}
+          options={["todos", ...D.TECNICOS].map((t) => ({ value: t, label: t === "todos" ? "Todos os responsáveis" : t }))} /></div>}
+        <span className="sp" />
+        {Button && filtrando && <Button size="sm" variant="ghost" onClick={() => { setQ(""); setLocal("todos"); setResp("todos"); setConcluido(null); setStatus([]); setPag(1); }}>Limpar</Button>}
+      </div>
+      <div className="rep-chips" role="group" aria-label="Filtrar por status">
+        {D.STATUS.map((s) => {
+          const on = status.includes(s.id);
+          return <button key={s.id} type="button" aria-pressed={on} className={"rep-st" + (on ? " on" : "")} style={{ "--st": s.cor }}
+            onClick={() => { setStatus(on ? status.filter((x) => x !== s.id) : [...status, s.id]); setPag(1); }}><i />{s.nome}</button>;
+        })}
+      </div>
       <div className="rep-grid" ref={areaRef}>
-        <DataTablePro columns={colunas} rows={linhas} height={altura} density={dense ? "compact" : "comfortable"}
-          onRowClick={(r) => { const rr = D.REPAROS.find((x) => x.id === r.id); if (rr) onAbrir(rr.folha); }} />
+        {linhas.length
+          ? <DataTablePro columns={colunas} rows={linhas} height={altura} density={dense ? "compact" : "comfortable"}
+              onRowClick={(r) => onAbrir(r.id)} />
+          : EmptyState && <EmptyState variant={filtrando ? "no-results" : "empty"}
+              title={filtrando ? "Nenhuma OS no filtro" : "Sem ordens de serviço"}
+              description={filtrando ? "Ajuste ou limpe os filtros pra ver mais resultados." : "Crie a primeira OS pelo botão “Nova OS”."} />}
+      </div>
+      <div className="rep-foot">
+        <span>{base.length ? "Mostrando " + (ini + 1) + "–" + Math.min(ini + porPagina, base.length) + " de " + base.length : "Nada a mostrar"}</span>
+        <span className="sp" />
+        {Pagination && base.length > porPagina &&
+          <Pagination page={pagina} pageCount={Math.ceil(base.length / porPagina)} total={base.length} pageSize={porPagina} onChange={setPag} />}
       </div>
       <p className="rep-nota">O reparo é a venda derivada da folha — pagamento, garantia e cobrança são de Vendas/Financeiro. Aqui só se lê.</p>
     </div>
+  );
+}
+
+// ══════════ DRAWER da venda de reparo (Repair/Show.tsx) ══════════
+// Puxado do vivo: Detalhes da venda · Linhas · Checklist · Pagamentos · Timeline.
+function ReparoDrawer({ folha, close, avisar }) {
+  const D = R();
+  const { Drawer, DrawerSection, Button, Alert, StatusBadge } = DS();
+  if (!Drawer || !folha) return null;
+  const v = vendasDeReparo([folha])[0];
+  const m = D.modeloDe(folha.modelo);
+  const checklist = m.checklist.split("|");
+  const linhas = [{ nome: D.CONFIG.produtoPadrao, qtd: 1, valor: folha.custo || 0 }, ...(folha.pecas || [])].filter((p) => p.valor > 0);
+  const pago = v.total - v.saldo;
+  const atividades = D.ATIVIDADES[folha.id] || [];
+  return (
+    <Drawer open onClose={close} width={680} title={"Venda de reparo " + v.repair} subtitle={folha.cliente || "Sem cliente"}
+      footer={Button && <>
+        <Button variant="ghost" onClick={() => avisar("Via do cliente abre em nova aba.")}>Via do cliente</Button>
+        <Button variant="primary" onClick={() => avisar("Editar a venda de reparo abre em Vendas.")}>Editar</Button>
+      </>}>
+      <DrawerSection title="Detalhes da venda">
+        <div className="rep-fields">
+          <div className="f"><label>Status</label><span><SeloStatus id={folha.status} /></span></div>
+          <div className="f"><label>Pagamento</label><span>{StatusBadge ? <StatusBadge kind="payment" value={v.pagamento} /> : v.pagamento}</span></div>
+          <Campo l="Data da venda" v={D.d2(v.emitido)} mono />
+          <Campo l="Prazo de entrega" v={D.d2(folha.entrega)} mono />
+          <Campo l="Aparelho" v={m.marca + " " + m.nome} />
+          <Campo l="Nº de série" v={folha.serie} mono />
+          <Campo l="Defeitos" v={folha.defeitos.join(", ")} />
+          <Campo l="Valor total" v={D.fmt(v.total)} mono />
+          <Campo l="Garantia" v={v.garantia} />
+        </div>
+      </DrawerSection>
+      <DrawerSection title="Linhas (peças/serviços)">
+        {linhas.length ? <>
+          {linhas.map((p) =>
+            <div key={p.nome} className="rep-peca">
+              <div><b>{p.nome}</b><small className="mono">{p.qtd}× {D.fmt(p.valor)}</small></div>
+              <span className="mono">{D.fmt(p.qtd * p.valor)}</span>
+            </div>)}
+          <div className="rep-peca total"><b>Total</b><span className="mono">{D.fmt(v.total)}</span></div>
+        </> : Alert && <Alert tone="info" title="Sem itens">Nenhuma peça/serviço lançado.</Alert>}
+      </DrawerSection>
+      <DrawerSection title="Checklist do aparelho">
+        <ul className="rep-check">
+          {checklist.map((c) => <li key={c} className={folha.checklist.includes(c) ? "on" : ""}><span className="bx">{folha.checklist.includes(c) ? "✓" : ""}</span>{c}</li>)}
+        </ul>
+      </DrawerSection>
+      <DrawerSection title="Pagamentos">
+        {pago > 0
+          ? <div className="rep-peca"><div><b>Recebido</b><small>{v.pagamento === "paid" ? "quitado" : "parcial"}</small></div><span className="mono">{D.fmt(pago)}</span></div>
+          : Alert && <Alert tone="info" title="Sem pagamentos">Cobrança ainda pendente.</Alert>}
+      </DrawerSection>
+      <DrawerSection title="Timeline">
+        {atividades.length ? <div className="rep-log">
+          {atividades.slice().reverse().map((a, i) =>
+            <div key={i} className="rep-log-item"><div className="h"><b>{a.ev}</b><span className="mono">{D.d2(a.dia)} {a.hora}</span></div><small>{a.quem}</small></div>)}
+        </div> : Alert && <Alert tone="info" title="Sem atividades">Histórico aparece após mudanças na venda.</Alert>}
+      </DrawerSection>
+    </Drawer>
   );
 }
 
@@ -327,6 +476,7 @@ function Status({ folhas, papel, avisar }) {
       </div>
       {Alert && <Alert tone="warn" title="Excluir status não é reversível para as folhas">
         No legado o status é FK das folhas — apagar um status usado deixa folha órfã. Antes de excluir, migre as folhas.
+        {" "}Hoje {D.STATUS.filter((s) => folhas.some((f) => f.status === s.id)).length} de {D.STATUS.length} status estão em uso.
       </Alert>}
       {Button && <div className="rep-cfg-acoes"><Button variant="primary" onClick={() => pode ? avisar("Novo status — nome, cor, ordem, templates.") : avisar("Sem permissão.", "warn")}>Adicionar status</Button>
         <span>Permissão: <b className="mono">access_job_sheet_status</b></span></div>}
@@ -335,39 +485,97 @@ function Status({ folhas, papel, avisar }) {
 }
 
 // ══════════ MODELOS DE DISPOSITIVO (device_model/index.blade.php) ══════════
-function Modelos({ folhas, dense, papel, avisar }) {
+// Puxado do vivo (DeviceModels/Index.tsx): 3 KPIs, filtros Marca/Categoria + Limpar, coluna
+// "Categoria" e a ação "Editar" por linha — o protótipo só tinha a tabela.
+function Modelos({ modelos, folhas, dense, papel, onNovo, onEditar }) {
   const D = R();
-  const { DataTablePro, Button, TagChip } = DS();
+  const { DataTablePro, Button, TagChip, KpiCard, Select, EmptyState } = DS();
   const areaRef = useRef(null); const altura = useAltura(areaRef, 240);
+  const [marca, setMarca] = useState("todas");
+  const [cat, setCat] = useState("todas");
   if (!DataTablePro) return null;
+  const base = modelos.filter((m) => (marca === "todas" || m.marca === marca) && (cat === "todas" || m.dispositivo === cat));
+  const filtrando = marca !== "todas" || cat !== "todas";
+  const pode = D.can(papel, "repair.create");
   const colunas = [
     { key: "nome", label: "Modelo", width: 190, sortable: true },
     { key: "marca", label: "Marca", width: 130, sortable: true },
-    { key: "disp", label: "Equipamento", width: 190, sortable: true },
-    { key: "check", label: "Checklist de pré-reparo", width: 420 },
+    { key: "disp", label: "Categoria", width: 190, sortable: true },
+    { key: "check", label: "Checklist de pré-reparo", width: 380 },
     { key: "n", label: "Folhas", width: 90, align: "right", mono: true, sortable: true },
+    { key: "acoes", label: "", width: 80 },
   ];
-  const linhas = D.MODELOS.map((m) => ({ id: m.id, cells: {
+  const linhas = base.map((m) => ({ id: m.id, cells: {
     nome: m.nome, marca: m.marca, disp: m.dispositivo,
     check: <span className="rep-chips">{m.checklist.split("|").map((c) => TagChip ? <TagChip key={c} label={c.toLowerCase()} /> : <span key={c}>{c}</span>)}</span>,
     n: folhas.filter((f) => f.modelo === m.id).length,
+    acoes: pode ? <span className="rep-acoes"><button onClick={(e) => { e.stopPropagation(); onEditar(m); }}>editar<span className="rep-sr"> o modelo {m.nome}</span></button></span> : null,
   } }));
   return (
     <div className="rep-list">
+      <div className="rep-kpis">
+        {KpiCard && <>
+          <KpiCard label="Total de modelos" value={modelos.length} />
+          <KpiCard label="Marcas ativas" value={new Set(modelos.map((m) => m.marca)).size} />
+          <KpiCard label="Categorias" value={new Set(modelos.map((m) => m.dispositivo)).size} />
+        </>}
+      </div>
+      <div className="rep-toolbar">
+        {Select && <div className="rep-filtro"><Select label="Marca" value={marca} onChange={(e) => setMarca(e.target ? e.target.value : e)}
+          options={["todas", ...D.MARCAS].map((t) => ({ value: t, label: t === "todas" ? "Todas as marcas" : t }))} /></div>}
+        {Select && <div className="rep-filtro"><Select label="Categoria" value={cat} onChange={(e) => setCat(e.target ? e.target.value : e)}
+          options={["todas", ...D.DISPOSITIVOS].map((t) => ({ value: t, label: t === "todas" ? "Todas as categorias" : t }))} /></div>}
+        {Button && filtrando && <Button size="sm" variant="ghost" onClick={() => { setMarca("todas"); setCat("todas"); }}>Limpar</Button>}
+        <span className="sp" />
+        {Button && pode && <Button variant="primary" onClick={onNovo}>Novo modelo</Button>}
+      </div>
       <div className="rep-subtabs">
         <span className="rep-hint">O checklist do modelo é o que aparece na folha ao escolher o equipamento — no legado é uma string separada por <b className="mono">|</b>.</span>
-        <span className="sp" />
-        {Button && D.can(papel, "repair.create") && <Button variant="primary" onClick={() => avisar("Novo modelo — marca, equipamento e checklist.")}>Adicionar modelo</Button>}
       </div>
       <div className="rep-grid" ref={areaRef}>
-        <DataTablePro columns={colunas} rows={linhas} height={altura} density={dense ? "compact" : "comfortable"} />
+        {linhas.length
+          ? <DataTablePro columns={colunas} rows={linhas} height={altura} density={dense ? "compact" : "comfortable"} />
+          : EmptyState && <EmptyState variant={filtrando ? "no-results" : "empty"} title="Nenhum modelo cadastrado"
+              description={filtrando ? "Nenhum modelo bate com os filtros aplicados." : "Cadastre os modelos de dispositivos que sua oficina atende."} />}
       </div>
     </div>
   );
 }
 
+// ══════════ Modelo · criar / editar (DeviceModels/Create.tsx · Edit.tsx) ══════════
+function ModeloForm({ modo, modelo, onClose, onSalvar }) {
+  const D = R();
+  const { Drawer, DrawerSection, Input, Select, Button } = DS();
+  const [m, setM] = useState(modelo || { nome: "", marca: "", dispositivo: "", checklist: "" });
+  const [erro, setErro] = useState("");
+  if (!Drawer) return null;
+  const set = (k, v) => setM((x) => ({ ...x, [k]: v && v.target ? v.target.value : v }));
+  const salvar = () => { if (!m.nome.trim()) return setErro("Nome do modelo é obrigatório."); onSalvar(m, modo === "novo"); };
+  return (
+    <Drawer open onClose={onClose} width={560}
+      title={modo === "novo" ? "Novo modelo de dispositivo" : "Editar modelo: " + modelo.nome}
+      subtitle={modo === "novo" ? "Cadastre marca, categoria e checklist padrão de reparo" : "Atualize marca, categoria ou checklist padrão"}
+      footer={Button && <>
+        <Button variant="ghost" onClick={onClose}>Cancelar</Button>
+        <Button variant="primary" onClick={salvar}>{modo === "novo" ? "Salvar" : "Atualizar"}</Button>
+      </>}>
+      <DrawerSection title="Modelo">
+        <div className="rep-fields-col">
+          {Input && <Input label="Nome do modelo *" value={m.nome} error={erro} placeholder="Ex.: GR2-540" onChange={(e) => set("nome", e)} />}
+          {Select && <Select label="Marca" value={m.marca} onChange={(e) => set("marca", e)}
+            options={[{ value: "", label: "Selecione…" }, ...D.MARCAS.map((x) => ({ value: x, label: x }))]} />}
+          {Select && <Select label="Categoria / Dispositivo" value={m.dispositivo} onChange={(e) => set("dispositivo", e)}
+            options={[{ value: "", label: "Selecione…" }, ...D.DISPOSITIVOS.map((x) => ({ value: x, label: x }))]} />}
+          {Input && <Input label="Checklist de reparo (separe itens com |)" value={m.checklist} placeholder="Ex.: cabeçote|lâmina|sensor|firmware"
+            onChange={(e) => set("checklist", e)} />}
+        </div>
+      </DrawerSection>
+    </Drawer>
+  );
+}
+
 // ══════════ CONFIGURAÇÕES (settings/index.blade.php) ══════════
-function Config({ papel, avisar }) {
+function Config({ papel, avisar, onIr }) {
   const D = R(); const C = D.CONFIG;
   const { Input, Select, Switch, Button, Alert } = DS();
   const pode = D.can(papel, "repair.create");
@@ -382,11 +590,30 @@ function Config({ papel, avisar }) {
           {Input && <Input label="Prefixo do número da folha" value={C.prefixo} readOnly help="Gera JS-2026-0000" />}
           {Select && <Select label="Status padrão da folha" value={String(C.statusPadrao)} options={D.STATUS.map((s) => ({ value: String(s.id), label: s.nome }))} onChange={() => {}} />}
           {Input && <Input label="Produto padrão do reparo" value={C.produtoPadrao} readOnly help="Entra na venda derivada" />}
+          {/* Puxado do vivo (Settings/Index.tsx): etiqueta + listas do balcão + termos + checklist padrão. */}
+          {Select && <Select label="Etiqueta de código de barras" value="20" onChange={() => {}}
+            options={[{ value: "20", label: "20 etiquetas por folha · 4×1,33 pol" }, { value: "1", label: "Etiqueta contínua · 100×50 mm" }]} />}
+          {Select && <Select label="Tipo de código de barras" value="C128" onChange={() => {}}
+            options={[{ value: "C128", label: "Code 128" }, { value: "C39", label: "Code 39" }, { value: "EAN13", label: "EAN-13" }]} />}
+        </div>
+        <div className="rep-cfg-grid">
+          {Input && <Input label="Problema relatado pelo cliente" value={D.SUGESTOES.defeitos.join(", ")} readOnly help="Sugestões do balcão, separadas por vírgula" />}
+          {Input && <Input label="Condição do produto" value={D.SUGESTOES.condicoes.join(", ")} readOnly />}
+          {Input && <Input label="Configuração do produto" value={D.SUGESTOES.configuracoes.join(", ")} readOnly />}
+          {Input && <Input label="Termos e condições" value="Equipamento não retirado em 90 dias é considerado abandonado." readOnly />}
+          {Input && <Input label="Checklist padrão do reparo" value="Liga|Carcaça|Cabos|Acessórios" readOnly help="Vale quando o modelo não tem checklist próprio" />}
         </div>
       </div>
       <div>
         <h3>O que aparece na impressão</h3>
         <p>Cada chave liga um bloco da etiqueta e da folha impressa — e o rótulo é editável porque cada gráfica chama a coisa pelo seu nome.</p>
+        <div className="rep-cfg-grid">
+          {Input && <Input label="Rótulo do cliente" value="Cliente" readOnly />}
+          {Input && <Input label="Rótulo do código do cliente" value="Código" readOnly />}
+          {Input && <Input label="Rótulo do documento fiscal" value="CPF/CNPJ" readOnly />}
+          {Input && <Input label="Largura da etiqueta (mm)" value="100" readOnly />}
+          {Input && <Input label="Altura da etiqueta (mm)" value="50" readOnly />}
+        </div>
         <div className="rep-cfg-switches">
           {Object.keys(mostrar).map((k) =>
             <div key={k} className="rep-sw">
@@ -400,6 +627,14 @@ function Config({ papel, avisar }) {
         <div className="rep-cfg-grid">
           {C.camposCustom.map((v, i) => Input && <Input key={i} label={"Campo personalizado " + (i + 1)} value={v} placeholder="sem rótulo — coluna oculta" readOnly />)}
         </div>
+      </div>
+      <div>
+        <h3>Configurações em tela própria</h3>
+        <p>Estes cadastros já têm tela dedicada — esta página não os duplica.</p>
+        {Button && <div className="rep-cfg-acoes">
+          <Button variant="ghost" onClick={() => onIr && onIr("status")}>Status de OS</Button>
+          <Button variant="ghost" onClick={() => onIr && onIr("modelos")}>Modelos de dispositivo</Button>
+        </div>}
       </div>
       {Alert && <Alert tone="info" title="Notificação ao cliente é por status, não global">
         O texto de SMS e o corpo do e-mail moram em cada status. Aqui só se escolhe se o disparo vem marcado por padrão.
@@ -435,7 +670,9 @@ function FolhaDrawer({ f, close, acoes, papel, avisar }) {
   const checklist = m.checklist.split("|");
   const atividades = D.ATIVIDADES[f.id] || [];
   const totalPecas = (f.pecas || []).reduce((s, p) => s + p.valor * p.qtd, 0);
-  const abas = [["folha", "Folha"], ["checklist", "Checklist"], ["pecas", "Peças"], ["atividades", "Atividades"]];
+  // "Anexos" puxado do vivo (JobSheet/Show.tsx tem a seção Anexos ao lado de Peças e Timeline).
+  const abas = [["folha", "Folha"], ["checklist", "Checklist"], ["pecas", "Peças"], ["anexos", "Anexos"], ["atividades", "Atividades"]];
+  const anexos = (D.DOCS || {})[f.id] || [];
   return (
     <Drawer open onClose={close} width={640} title={f.os}
       subtitle={f.cliente + " · " + m.marca + " " + m.nome}
@@ -510,6 +747,12 @@ function FolhaDrawer({ f, close, acoes, papel, avisar }) {
         </> : Alert && <Alert tone="info" title="Nenhuma peça lançada">
           Peça lançada aqui baixa estoque e entra na venda derivada — sem lançamento, o custo do reparo fica invisível.
         </Alert>}
+      </DrawerSection>}
+
+      {aba === "anexos" && <DrawerSection title="Anexos">
+        {anexos.length ? anexos.map((d) =>
+          <div key={d.nome} className="rep-peca"><div><b>{d.nome}</b><small className="mono">{d.tam} · {D.d2(d.em)}</small></div></div>)
+          : Alert && <Alert tone="info" title="Sem anexos">Anexe fotos ou documentos da OS.</Alert>}
       </DrawerSection>}
 
       {aba === "atividades" && <DrawerSection title="Atividades">
@@ -629,23 +872,66 @@ function usePaleta({ folhas, onAba, onAbrir, onNova }) {
   return [node, () => setAberta(true)];
 }
 
+// ══════════ ROTAS — uma vista `rep-*` por Page viva (thread 00 do playbook Repair, 2026-10-02) ══════════
+// Antes, só 7 abas tinham rota e a rota `repair` abria a ÚLTIMA aba guardada no localStorage — por
+// isso as 6 medidas de 2026-09-18 saíram com o mesmo design.json. Cada rota agora fixa a aba e, nas
+// Pages de detalhe/formulário, abre o drawer correspondente com uma folha/modelo fixos (medida
+// reprodutível). `page` é a Page Inertia que a vista representa (resources/js/Pages/Repair/…).
+const ROTAS = {
+  "rep-painel":        { page: "Repair/Dashboard/Index",       aba: "painel" },
+  "rep-reparos":       { page: "Repair/Index",                 aba: "reparos" },
+  "rep-reparo":        { page: "Repair/Show",                  aba: "reparos", reparo: 11 },
+  "rep-producao":      { page: "Repair/ProducaoOficina/Index", aba: "producao" },
+  "rep-folhas":        { page: "Repair/JobSheet/Index",        aba: "folhas" },
+  "rep-folha":         { page: "Repair/JobSheet/Show",         aba: "folhas", sel: 5 },
+  "rep-folha-nova":    { page: "Repair/JobSheet/Create",       aba: "folhas", modal: { t: "folha", modo: "novo" } },
+  "rep-folha-editar":  { page: "Repair/JobSheet/Edit",         aba: "folhas", modal: { t: "folha", modo: "editar", folhaId: 5 } },
+  "rep-folha-pecas":   { page: "Repair/JobSheet/AddParts",     aba: "folhas", modal: { t: "pecas", folhaId: 7 } },
+  "rep-status":        { page: "Repair/Status/Index",          aba: "status" },
+  "rep-modelos":       { page: "Repair/DeviceModels/Index",    aba: "modelos" },
+  "rep-modelo-novo":   { page: "Repair/DeviceModels/Create",   aba: "modelos", modelo: { modo: "novo" } },
+  "rep-modelo-editar": { page: "Repair/DeviceModels/Edit",     aba: "modelos", modelo: { modo: "editar", id: 2 } },
+  "rep-config":        { page: "Repair/Settings/Index",        aba: "config" },
+  "rep-portal":        { page: null /* portal do cliente: Blade, thread 04 */, aba: "portal" },
+};
+
 // ══════════ SHELL ══════════
 function RepairPage({ view, dense, estado = "dados", papel: papelProp }) {
   const D = R();
   const MP = window.ModuloPadrao || {};
   const { Button } = DS();
   const papel = D.PAPEIS[papelProp] ? papelProp : "administrador";
-  const inicial = { "rep-producao": "producao", "rep-folhas": "folhas", "rep-reparos": "reparos", "rep-status": "status", "rep-modelos": "modelos", "rep-config": "config", "rep-portal": "portal" }[view];
+  const rota = ROTAS[view] || null;
+  const inicial = rota ? rota.aba : undefined;
   const [aba, setAba] = (MP.useAba || ((k, i) => useState(i)))("oimpresso.repair.aba", inicial || "painel");
   const [avisoNode, avisar] = (MP.useAviso || (() => [null, () => {}]))();
   const [folhas, setFolhas] = useState(D.FOLHAS);
+  const [modelos, setModelos] = useState(D.MODELOS);
   const [docsFolha, setDocsFolha] = useState(null);
   const [filtro, setFiltro] = useState("pendentes");
   const [busca, setBusca] = useState("");
-  const [sel, setSel] = useState(null);
-  const [modal, setModal] = useState(null);
+  const [sel, setSel] = useState(rota && rota.sel ? rota.sel : null);
+  const [reparo, setReparo] = useState(rota && rota.reparo ? rota.reparo : null);
+  const [modeloForm, setModeloForm] = useState(() => (rota && rota.modelo
+    ? (rota.modelo.modo === "novo" ? { modo: "novo" } : { modo: "editar", modelo: D.MODELOS.find((m) => m.id === rota.modelo.id) })
+    : null));
+  const montarModal = (r) => {
+    if (!r || !r.modal) return null;
+    const fo = r.modal.folhaId ? D.FOLHAS.find((x) => x.id === r.modal.folhaId) : undefined;
+    return r.modal.t === "pecas" ? { t: "pecas", folha: fo } : { t: "folha", modo: r.modal.modo, folha: fo };
+  };
+  const montarModelo = (r) => {
+    if (!r || !r.modelo) return null;
+    return r.modelo.modo === "novo" ? { modo: "novo" } : { modo: "editar", modelo: D.MODELOS.find((m) => m.id === r.modelo.id) };
+  };
+  const [modal, setModal] = useState(montarModal(rota));
   const [hora, setHora] = useState("09:42");
-  useEffect(() => { if (inicial) setAba(inicial); }, [view]);
+  useEffect(() => {
+    if (!rota) return;
+    setAba(rota.aba);
+    setSel(rota.sel || null); setReparo(rota.reparo || null);
+    setModal(montarModal(rota)); setModeloForm(montarModelo(rota));
+  }, [view]);
 
   const vazio = estado === "vazio";
   // job_sheet.view_assigned sem view_all: o técnico não vê a casa toda (JobSheetController:118).
@@ -710,7 +996,7 @@ function RepairPage({ view, dense, estado = "dados", papel: papelProp }) {
             { key: "painel", label: "Painel", icon: "chart" },
             { key: "producao", label: "Produção", icon: "grid", n: pend.length },
             { key: "folhas", label: "Folhas de OS", icon: "orders", n: lista.length },
-            { key: "reparos", label: "Reparos", icon: "coins", n: D.REPAROS.length },
+            { key: "reparos", label: "Reparos", icon: "coins", n: lista.length },
             { key: "status", label: "Status", icon: "list", n: D.STATUS.length },
             { key: "modelos", label: "Modelos", icon: "product", n: D.MODELOS.length },
             { key: "portal", label: "Portal do cliente", icon: "target" },
@@ -735,13 +1021,20 @@ function RepairPage({ view, dense, estado = "dados", papel: papelProp }) {
         {aba === "painel" && <div className="mp-body"><Painel folhas={lista} onIr={irPara} /></div>}
         {aba === "producao" && <div className="mp-body"><Producao folhas={lista} papel={papel} avisar={avisar} onAbrir={setSel} onMover={mover} /></div>}
         {aba === "folhas" && <Folhas folhas={lista} papel={papel} dense={dense} filtro={filtro} setFiltro={setFiltro} busca={busca} onAbrir={setSel} acoes={acoes} />}
-        {aba === "reparos" && <Reparos folhas={lista} dense={dense} onAbrir={setSel} />}
+        {aba === "reparos" && <Reparos folhas={lista} dense={dense} onAbrir={setReparo} />}
         {aba === "status" && <div className="mp-body"><Status folhas={lista} papel={papel} avisar={avisar} /></div>}
-        {aba === "modelos" && <Modelos folhas={lista} dense={dense} papel={papel} avisar={avisar} />}
+        {aba === "modelos" && <Modelos modelos={modelos} folhas={lista} dense={dense} papel={papel}
+          onNovo={() => setModeloForm({ modo: "novo" })} onEditar={(m) => setModeloForm({ modo: "editar", modelo: m })} />}
         {aba === "portal" && <div className="mp-body">{Portal && <Portal folhas={folhas} avisar={avisar} />}</div>}
-        {aba === "config" && <div className="mp-body"><Config papel={papel} avisar={avisar} /></div>}
+        {aba === "config" && <div className="mp-body"><Config papel={papel} avisar={avisar} onIr={setAba} /></div>}
       </>}
 
+      {reparo && !modal && <ReparoDrawer folha={folhas.find((x) => x.id === reparo)} close={() => setReparo(null)} avisar={avisar} />}
+      {modeloForm && <ModeloForm modo={modeloForm.modo} modelo={modeloForm.modelo} onClose={() => setModeloForm(null)}
+        onSalvar={(m, novo) => {
+          setModelos((l) => (novo ? [...l, { ...m, id: Math.max(0, ...l.map((x) => x.id)) + 1 }] : l.map((x) => (x.id === m.id ? { ...x, ...m } : x))));
+          setModeloForm(null); avisar(novo ? "Modelo " + m.nome + " cadastrado." : "Modelo " + m.nome + " atualizado.", "ok");
+        }} />}
       {selecionada && !modal && <FolhaDrawer f={selecionada} papel={papel} close={() => setSel(null)} acoes={acoes} avisar={avisar} />}
       {modal && modal.t === "status" &&
         <StatusModal f={modal.f} onClose={() => setModal(null)}
@@ -797,4 +1090,5 @@ function RepairPage({ view, dense, estado = "dados", papel: papelProp }) {
 }
 
 window.RepairPage = RepairPage;
+window.RepRotas = ROTAS;
 })();
