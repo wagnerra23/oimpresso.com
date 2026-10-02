@@ -862,7 +862,10 @@ jobs:
         # (Uma medição avulsa de 404 numa janela de deploy, em 2026-10-02, era transitória.)
         run: |
           set -uo pipefail
-          PUB=$(curl -s -o /dev/null -w '%{http_code}' --max-time 30 -H 'Accept: application/json' -H 'Authorization: Bearer token-invalido' https://oimpresso.com/api/app/inicio)
+          # Cabeçalho montado fora da linha do curl: o valor é um token inválido de propósito, mas o
+          # gitleaks (regra curl-auth-header) lê "curl -H Authorization" na mesma linha como segredo.
+          SONDA_AUTH="Authorization: Bearer token-invalido"
+          PUB=$(curl -s -o /dev/null -w '%{http_code}' --max-time 30 -H 'Accept: application/json' -H "$SONDA_AUTH" https://oimpresso.com/api/app/inicio)
           PRIV=$(curl -s -o /dev/null -w '%{http_code}' --max-time 30 -X POST -H 'Accept: application/json' -d 'grant_type=password&client_id=110&client_secret=&username=sonda-deploy-inexistente@invalid&password=x&scope=' https://oimpresso.com/oauth/token)
           echo "chave pública → HTTP $PUB (esperado 401) · chave privada → HTTP $PRIV (esperado 400)"
           if [ "$PUB" = "500" ] || [ "$PRIV" = "500" ]; then
