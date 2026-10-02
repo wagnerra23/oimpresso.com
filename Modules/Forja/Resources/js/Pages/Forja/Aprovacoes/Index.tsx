@@ -376,7 +376,7 @@ export default function Aprovacoes({
 
       <div className="ap-page">
         {/* ── cabeçalho: o número é o herói ─────────────────────────────── */}
-        <div className="ap-head">
+        <div className="ap-head" data-contract="forja.aprovacoes.cabecalho">
           <div className="fj-hj-n" data-testid="mesa-heroi">
             <b>{naMesa}</b>
             <span>esperando o seu aval</span>
@@ -406,7 +406,7 @@ export default function Aprovacoes({
         {/* ── faixa "Ao vivo no MCP" ────────────────────────────────────── */}
         <Deferred data="aoVivo" fallback={null}>
           {aoVivo.length > 0 && (
-            <div className="ap-vivo" data-testid="mesa-ao-vivo">
+            <div className="ap-vivo" data-testid="mesa-ao-vivo" data-contract="forja.aprovacoes.ao-vivo">
               <span className="ap-vivo-lbl">Ao vivo no MCP</span>
               {aoVivo.map((p) => {
                 const st = ESTADO_VIVO[p.status];
@@ -470,7 +470,7 @@ export default function Aprovacoes({
           </div>
         ) : (
           atual && (
-            <div className="ap-mesa">
+            <div className="ap-mesa" data-contract="forja.aprovacoes.mesa">
               {/* `role=listbox/option` + `tabIndex` + `onKeyDown`: o protótipo usa
                   `<li onClick>` cru, que não abre por teclado. Aqui a ESTRUTURA e a
                   classe são as dele (o `.ap-item` é `display:flex` e o `:last-child`
@@ -612,7 +612,7 @@ export default function Aprovacoes({
         {/* ── placar por papel do loop ──────────────────────────────────── */}
         <Deferred data="placar" fallback={null}>
           {placar.length > 0 && (
-            <section className="fj-mcp-card fj-hj-team" data-testid="mesa-placar">
+            <section className="fj-mcp-card fj-hj-team" data-testid="mesa-placar" data-contract="forja.aprovacoes.placar">
               <div className="fj-hj-team-head">
                 <h3>Equipe de agentes · placar</h3>
                 {placar.some((a) => !a.sinal_ok) && (
