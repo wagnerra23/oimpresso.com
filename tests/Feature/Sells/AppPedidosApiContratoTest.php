@@ -195,3 +195,28 @@ it('produção: o limite de 50 vale POR coluna — uma etapa cheia não esvazia 
     expect($producao['total'])->toBeGreaterThanOrEqual(201);
     expect($aprovado['total'])->toBe(count($aprovado['itens']));
 });
+
+it('orçamentos (tela 04): rascunho e enviado vêm das vendas em draft; a venda final em produção não entra; de outro business não aparece', function () {
+    $novo = fn (int $biz, ?string $sub = null) => DB::table('transactions')->insertGetId([
+        'business_id' => $biz, 'created_by' => $this->user->id, 'type' => 'sell', 'status' => 'draft',
+        'sub_status' => $sub, 'payment_status' => 'due', 'invoice_no' => 'APP-ORC-' . uniqid(),
+        'transaction_date' => now(), 'total_before_tax' => 100, 'final_total' => 100,
+        'created_at' => now(), 'updated_at' => now(),
+    ]);
+    $rascunho = $novo((int) $this->biz->id);
+    $enviado = $novo((int) $this->biz->id, 'quotation');
+    $alheio = $novo((int) $this->outroBiz->id, 'quotation');
+
+    $r = $this->getJson('/api/app/orcamentos')->assertOk();
+    $porId = collect($r->json('itens'))->keyBy('id');
+    expect($porId[$rascunho]['status'])->toBe('rascunho');
+    expect($porId[$enviado]['status'])->toBe('enviado');
+    expect($porId->has($alheio))->toBeFalse();
+    expect($porId->has($this->venda))->toBeFalse();
+    expect($r->json('contadores'))->toHaveKeys(['todos', 'rascunho', 'enviado', 'aprovado', 'convertido']);
+
+    $soEnviados = collect($this->getJson('/api/app/orcamentos?status=enviado')->assertOk()->json('itens'))->pluck('id');
+    expect($soEnviados)->toContain($enviado);
+    expect($soEnviados)->not->toContain($rascunho);
+});
+

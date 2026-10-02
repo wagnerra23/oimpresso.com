@@ -184,6 +184,98 @@ class PedidosController extends Controller
         return response()->json(['colunas' => $colunas]);
     }
 
+    public const STATUS_ORCAMENTO = ['todos', 'rascunho', 'enviado', 'aprovado', 'convertido'];
+
+    /**
+     * GET /api/app/orcamentos — tela 04, só leitura (contrato §2.1). Orçamento no ERP é venda em
+     * rascunho (`status=draft`); com `sub_status=quotation` foi enviado ao cliente
+     * (InitialStageResolver). Aprovado = etapa `quote_approved`. Convertido = venda `final` cujo
+     * histórico da FSM passou por uma etapa de orçamento. Mesma visibilidade de Pedidos.
+     */
+    public function orcamentos(Request $request): JsonResponse
+    {
+        $user = $request->user();
+        if (! $this->podeVer($user)) {
+            return $this->semPermissao();
+        }
+
+        $status = (string) $request->query('status', 'todos');
+        if (! in_array($status, self::STATUS_ORCAMENTO, true)) {
+            $status = 'todos';
+        }
+        $pagina = max((int) $request->query('pagina', 1), 1);
+
+        $linhas = $this->filtrarOrcamento($this->base($user, '', null), $status)
+            ->orderByDesc('t.transaction_date')
+            ->offset(($pagina - 1) * self::POR_PAGINA)
+            ->limit(self::POR_PAGINA + 1)
+            ->get([
+                't.id', 't.invoice_no', 't.ref_no', 't.final_total', 't.status', 't.sub_status',
+                'c.name as cliente', 'c.supplier_business_name as cliente_empresa', 'sps.key as etapa_chave',
+                DB::raw('(SELECT p.name FROM transaction_sell_lines tsl JOIN products p ON p.id = tsl.product_id'
+                    . ' WHERE tsl.transaction_id = t.id AND tsl.parent_sell_line_id IS NULL ORDER BY tsl.id LIMIT 1) as titulo'),
+                DB::raw('(SELECT COUNT(*) FROM transaction_sell_lines tsl WHERE tsl.transaction_id = t.id AND tsl.parent_sell_line_id IS NULL) as qtd_itens'),
+            ]);
+
+        $contadores = [];
+        foreach (self::STATUS_ORCAMENTO as $st) {
+            $contadores[$st] = $this->filtrarOrcamento($this->base($user, '', null), $st)->count();
+        }
+
+        return response()->json([
+            'itens' => $linhas->take(self::POR_PAGINA)->map(fn ($l) => [
+                'id' => (int) $l->id,
+                'numero' => (string) ($l->invoice_no ?: $l->ref_no),
+                'titulo' => $l->titulo !== null ? (string) $l->titulo : null,
+                'cliente' => $this->nomeCliente($l),
+                'validade' => null,
+                'status' => $this->statusOrcamento($l),
+                'valor' => round((float) $l->final_total, 2),
+                'area_m2' => null,
+                'itens' => (int) $l->qtd_itens,
+            ])->values(),
+            'contadores' => $contadores,
+            'pagina' => $pagina,
+            'tem_mais' => $linhas->count() > self::POR_PAGINA,
+        ]);
+    }
+
+    private function filtrarOrcamento(Builder $q, string $status): Builder
+    {
+        $rascunho = fn ($qq) => $qq->where('t.status', 'draft')
+            ->where(fn ($x) => $x->whereNull('t.sub_status')->orWhere('t.sub_status', '!=', 'quotation'))
+            ->where(fn ($x) => $x->whereNull('sps.key')->orWhere('sps.key', 'quote_draft'));
+        $enviado = fn ($qq) => $qq->where('t.status', 'draft')->where('t.sub_status', 'quotation')
+            ->where(fn ($x) => $x->whereNull('sps.key')->orWhere('sps.key', 'quote_sent'));
+        $aprovado = fn ($qq) => $qq->where('sps.key', 'quote_approved');
+        $convertido = fn ($qq) => $qq->where('t.status', 'final')
+            ->whereNotIn('sps.key', ['quote_draft', 'quote_sent', 'quote_approved', 'cancelled'])
+            ->whereExists(fn ($e) => $e->selectRaw('1')->from('sale_stage_history as h')
+                ->join('sale_process_stages as hs', 'hs.id', '=', 'h.to_stage_id')
+                ->whereColumn('h.transaction_id', 't.id')
+                ->whereIn('hs.key', ['quote_draft', 'quote_sent', 'quote_approved']));
+
+        return match ($status) {
+            'rascunho' => $rascunho($q),
+            'enviado' => $enviado($q),
+            'aprovado' => $aprovado($q),
+            'convertido' => $convertido($q),
+            default => $q->where(fn ($o) => $o->where($rascunho)->orWhere($enviado)->orWhere($aprovado)->orWhere($convertido)),
+        };
+    }
+
+    private function statusOrcamento(object $l): string
+    {
+        if ($l->etapa_chave === 'quote_approved') {
+            return 'aprovado';
+        }
+        if ($l->status === 'final') {
+            return 'convertido';
+        }
+
+        return $l->sub_status === 'quotation' ? 'enviado' : 'rascunho';
+    }
+
     /** Rótulo quando a coluna está vazia (os do seed FsmProcessoVendaComProducaoSeeder). */
     private const ROTULOS_PADRAO = [
         'quote_approved' => 'Aprovado pelo cliente',
@@ -236,14 +328,14 @@ class PedidosController extends Controller
     }
 
     /** Vendas visíveis ao usuário, com cliente e estágio. Mesmas regras da lista web. */
-    private function base(User $user, string $busca): Builder
+    private function base(User $user, string $busca, ?string $status = 'final'): Builder
     {
         $q = DB::table('transactions as t')
             ->leftJoin('contacts as c', 't.contact_id', '=', 'c.id')
             ->leftJoin('sale_process_stages as sps', 't.current_stage_id', '=', 'sps.id')
             ->where('t.business_id', (int) $user->business_id)
             ->where('t.type', 'sell')
-            ->where('t.status', 'final')
+            ->when($status !== null, fn ($qq) => $qq->where('t.status', $status))
             ->whereNull('t.sub_type');
 
         if (! $user->can('direct_sell.view')) {

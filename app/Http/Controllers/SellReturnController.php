@@ -15,6 +15,7 @@ use App\Utils\ProductUtil;
 use App\Utils\TransactionUtil;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Inertia\Inertia;
 use Spatie\Activitylog\Models\Activity;
 use Yajra\DataTables\Facades\DataTables;
 
@@ -60,6 +61,15 @@ class SellReturnController extends Controller
         }
 
         $business_id = request()->session()->get('user.business_id');
+
+        // MWART dual (thread 03 de venda-menu, PR 1 de 2): visita Inertia → React; carga
+        // completa de página → Blade (cutover F5 é humano). TEM de vir ANTES do ajax():
+        // o cliente Inertia manda X-Inertia E X-Requested-With, e o ramo ajax() devolveria
+        // o JSON do DataTable no lugar da página.
+        if (request()->header('X-Inertia')) {
+            return $this->inertiaIndex((int) $business_id);
+        }
+
         if (request()->ajax()) {
             $sells = Transaction::leftJoin('contacts', 'transactions.contact_id', '=', 'contacts.id')
 
@@ -196,6 +206,105 @@ class SellReturnController extends Controller
         $sales_representative = User::forDropdown($business_id, false, false, true);
 
         return view('sell_return.index')->with(compact('business_locations', 'customers', 'sales_representative'));
+    }
+
+    /** Linhas por página da lista React (paginação no servidor, DataTable shared). */
+    private const INERTIA_POR_PAGINA = 25;
+
+    /**
+     * Lista de devoluções em React (`SellReturn/Index`). Só LEITURA: não muda cálculo de valor
+     * nem estoque. Casos: resources/js/Pages/SellReturn/Index.casos.md (UC-SRIDX-*).
+     */
+    private function inertiaIndex(int $business_id)
+    {
+        $user = auth()->user();
+
+        return Inertia::render('SellReturn/Index', [
+            'kpis' => Inertia::defer(fn () => $this->inertiaKpis($business_id), 'lista'),
+            'devolucoes' => Inertia::defer(fn () => $this->inertiaLinhas($business_id), 'lista'),
+            'permissions' => [
+                'ver_todas' => $user->can('access_sell_return'),
+                'ver_proprias' => $user->can('access_own_sell_return'),
+            ],
+        ]);
+    }
+
+    /**
+     * Mesmo escopo do DataTable legado: business da sessão, devolução final com venda de
+     * origem, local permitido e "só as minhas" para quem tem apenas access_own_sell_return.
+     */
+    private function inertiaBaseQuery(int $business_id)
+    {
+        $query = Transaction::join('business_locations AS bl', 'transactions.location_id', '=', 'bl.id')
+            ->join('transactions as T1', 'transactions.return_parent_id', '=', 'T1.id')
+            ->where('transactions.business_id', $business_id)
+            ->where('transactions.type', 'sell_return')
+            ->where('transactions.status', 'final');
+
+        $permitted_locations = auth()->user()->permitted_locations();
+        if ($permitted_locations != 'all') {
+            $query->whereIn('transactions.location_id', $permitted_locations);
+        }
+
+        if (! auth()->user()->can('access_sell_return') && auth()->user()->can('access_own_sell_return')) {
+            $query->where('transactions.created_by', request()->session()->get('user.id'));
+        }
+
+        return $query;
+    }
+
+    /** Contagens e soma de leitura — o mesmo final_total que o DataTable exibe. */
+    private function inertiaKpis(int $business_id): array
+    {
+        $inicioMes = now()->startOfMonth()->toDateString();
+        $fimMes = now()->endOfMonth()->toDateString();
+
+        $doMes = fn () => $this->inertiaBaseQuery($business_id)
+            ->whereDate('transactions.transaction_date', '>=', $inicioMes)
+            ->whereDate('transactions.transaction_date', '<=', $fimMes);
+
+        return [
+            'com_saldo' => (int) $this->inertiaBaseQuery($business_id)
+                ->where('transactions.payment_status', '!=', 'paid')
+                ->count(),
+            'no_mes' => (int) $doMes()->count(),
+            'valor_mes' => (float) $doMes()->sum('transactions.final_total'),
+        ];
+    }
+
+    private function inertiaLinhas(int $business_id)
+    {
+        return $this->inertiaBaseQuery($business_id)
+            ->leftJoin('contacts', 'transactions.contact_id', '=', 'contacts.id')
+            ->select(
+                'transactions.id',
+                'transactions.transaction_date',
+                'transactions.invoice_no',
+                'transactions.final_total',
+                'transactions.payment_status',
+                'contacts.name as contato_nome',
+                'contacts.supplier_business_name as contato_empresa',
+                'bl.name as local',
+                'T1.id as venda_id',
+                'T1.invoice_no as venda_invoice_no',
+                DB::raw('(SELECT COALESCE(SUM(TP.amount), 0) FROM transaction_payments TP WHERE TP.transaction_id = transactions.id) as valor_pago')
+            )
+            ->orderByDesc('transactions.transaction_date')
+            ->orderByDesc('transactions.id')
+            ->paginate(self::INERTIA_POR_PAGINA)
+            ->withQueryString()
+            ->through(fn ($r) => [
+                'id' => (int) $r->id,
+                'data' => (string) $r->transaction_date,
+                'numero' => (string) $r->invoice_no,
+                'venda_id' => (int) $r->venda_id,
+                'venda_numero' => (string) $r->venda_invoice_no,
+                'cliente' => $r->contato_empresa ?: $r->contato_nome,
+                'local' => (string) $r->local,
+                'situacao_pagamento' => (string) $r->payment_status,
+                'total' => (float) $r->final_total,
+                'pago' => (float) $r->valor_pago,
+            ]);
     }
 
     /**
