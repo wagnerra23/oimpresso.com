@@ -99,6 +99,8 @@ class PessoasController extends Controller
             'contacts.tax_number', 'contacts.cpf_cnpj', 'contacts.indicador_ie', 'contacts.ind_ie_dest',
             'contacts.is_customer', 'contacts.is_supplier', 'contacts.is_employee',
             'contacts.city', 'contacts.state', 'contacts.cep', 'contacts.zip_code', 'contacts.city_code',
+            'contacts.address_line_1', 'contacts.numero', 'contacts.complemento', 'contacts.neighborhood',
+            'contacts.nome_fantasia', 'contacts.mobile', 'contacts.email',
             'contacts.email_nfe', 'contacts.credit_limit',
             'contacts.pay_term_number', 'contacts.pay_term_type',
             'contacts.whatsapp_consent', 'contacts.email_consent', 'contacts.consent_updated_at',
@@ -117,11 +119,18 @@ class PessoasController extends Controller
             'tipo' => $c->tipo ?: null,
             'identificacao' => [
                 'razao_social' => $c->supplier_business_name ?: ($c->name ?: null),
+                'nome_fantasia' => $c->nome_fantasia ?: null,
                 'documento' => $this->documento($c->cpf_cnpj ?: $c->tax_number),
-                'indicador_ie' => $c->indicador_ie ?: ($c->ind_ie_dest ?: null),
+                // Código NF-e 1|2|9 como inteiro (o driver pode devolver a coluna como string).
+                'indicador_ie' => ($c->indicador_ie ?: $c->ind_ie_dest) ? (int) ($c->indicador_ie ?: $c->ind_ie_dest) : null,
                 'papeis' => $this->papeis($c),
             ],
+            'contato' => ['telefone' => $c->mobile ?: null, 'email' => $c->email ?: null],
             'endereco_fiscal' => [
+                'logradouro' => $c->address_line_1 ?: null,
+                'numero' => $c->numero ?: null,
+                'complemento' => $c->complemento ?: null,
+                'bairro' => $c->neighborhood ?: null,
                 'cidade' => $c->city ?: null,
                 'uf' => $c->state ?: null,
                 'cep' => $c->cep ?: ($c->zip_code ?: null),
@@ -211,34 +220,9 @@ class PessoasController extends Controller
         $v = Validator::make($request->all(), [
             'tipo' => ['required', 'in:PF,PJ'],
             'nome' => ['required', 'string', 'max:255'],
-            'nome_fantasia' => ['nullable', 'string', 'max:150'],
-            'documento' => ['nullable', new CpfCnpj],
-            'indicador_ie' => ['nullable', 'integer', 'in:1,2,9'],
             'papeis' => ['required', 'array', 'min:1'],
             'papeis.*' => ['in:cliente,fornecedor'],
-            'telefone' => ['nullable', 'string', 'max:50'],
-            'email' => ['nullable', 'email', 'max:120'],
-            'email_nfe' => ['nullable', 'email', 'max:120'],
-            'cep' => ['nullable', 'string', 'max:20'],
-            'logradouro' => ['nullable', 'string', 'max:255'],
-            'numero' => ['nullable', 'string', 'max:20'],
-            'complemento' => ['nullable', 'string', 'max:255'],
-            'bairro' => ['nullable', 'string', 'max:255'],
-            'cidade' => ['nullable', 'string', 'max:255'],
-            'uf' => ['nullable', 'string', 'max:255'],
-            'codigo_ibge' => ['nullable', 'string', 'max:10'],
-            'prazo_padrao_dias' => ['nullable', 'integer', 'min:0', 'max:365'],
-            'consentimento' => ['nullable', 'array'],
-            'consentimento.whatsapp' => ['nullable', 'boolean'],
-            'consentimento.email_nfe' => ['nullable', 'boolean'],
-        ], [
-            'nome.required' => 'Informe o nome.',
-            'papeis.required' => 'Escolha cliente, fornecedor ou os dois.',
-            'papeis.min' => 'Escolha cliente, fornecedor ou os dois.',
-            'email.email' => 'Informe um e-mail válido.',
-            'email_nfe.email' => 'Informe um e-mail válido para a NF-e.',
-            'indicador_ie.in' => 'Indicador IE deve ser 1 (contribuinte), 2 (isento) ou 9 (não contribuinte).',
-        ]);
+        ] + $this->regrasCadastro(), $this->mensagensCadastro());
         if ($v->fails()) {
             return response()->json([
                 'erro' => 'validacao',
@@ -321,6 +305,143 @@ class PessoasController extends Controller
         }
 
         return response()->json(['id' => (int) $output['data']->id], 201);
+    }
+
+    /**
+     * PATCH /api/app/pessoas/{id} — editar cadastro, contrato §4.4. Parcial: só grava as chaves
+     * que vieram. Mesmos campos e regras do POST, menos `tipo` e `papeis` (mudar papel fica na web).
+     *
+     * NÃO usa ContactUtil::updateContact de propósito: ele assume saldo inicial 0 quando o campo
+     * não vem e reescreve o lançamento de saldo inicial da pessoa (VALOR). A web sempre manda o
+     * saldo no formulário; o app não manda. Aqui grava só campos de cadastro, direto no contato.
+     */
+    public function update(Request $request, int $id): JsonResponse
+    {
+        /** @var User $user */
+        $user = $request->user();
+        $bizId = (int) $user->business_id;
+
+        $contato = $this->base($user, '')->where('contacts.id', $id)
+            ->first(['contacts.id', 'contacts.is_customer', 'contacts.is_supplier', 'contacts.tipo']);
+        if (! $contato) {
+            return response()->json(['erro' => 'nao_encontrado', 'mensagem' => 'Pessoa não encontrada.'], 404);
+        }
+        if (($contato->is_customer && ! $user->can('customer.update')) || ($contato->is_supplier && ! $user->can('supplier.update'))) {
+            return response()->json(['erro' => 'sem_permissao', 'mensagem' => 'Seu usuário não pode editar essa pessoa.'], 403);
+        }
+
+        $v = Validator::make($request->all(), [
+            'nome' => ['sometimes', 'required', 'string', 'max:255'],
+        ] + $this->regrasCadastro(), $this->mensagensCadastro());
+        if ($v->fails()) {
+            return response()->json([
+                'erro' => 'validacao',
+                'campos' => collect($v->errors()->toArray())->map(fn ($m) => $m[0])->all(),
+            ], 422);
+        }
+        $d = $v->validated();
+
+        $mapa = [
+            'nome_fantasia' => 'nome_fantasia', 'telefone' => 'mobile', 'email' => 'email',
+            'email_nfe' => 'email_nfe', 'indicador_ie' => 'indicador_ie', 'cep' => 'zip_code',
+            'logradouro' => 'address_line_1', 'numero' => 'numero', 'complemento' => 'complemento',
+            'bairro' => 'neighborhood', 'cidade' => 'city', 'uf' => 'state', 'codigo_ibge' => 'city_code',
+        ];
+        $alterar = [];
+        foreach ($mapa as $campo => $coluna) {
+            if (array_key_exists($campo, $d)) {
+                $alterar[$coluna] = $d[$campo];
+            }
+        }
+        if (array_key_exists('mobile', $alterar) && $alterar['mobile'] === null) {
+            $alterar['mobile'] = ''; // contacts.mobile é NOT NULL (ver store()).
+        }
+        if (array_key_exists('nome', $d)) {
+            $alterar['name'] = trim($d['nome']);
+            if ($contato->tipo === 'PJ') {
+                $alterar['supplier_business_name'] = trim($d['nome']);
+            }
+        }
+        if (array_key_exists('documento', $d)) {
+            $doc = preg_replace('/\D/', '', (string) ($d['documento'] ?? ''));
+            $alterar['cpf_cnpj'] = $doc !== '' ? $doc : null;
+        }
+        if (array_key_exists('prazo_padrao_dias', $d)) {
+            $alterar['pay_term_number'] = $d['prazo_padrao_dias'];
+            $alterar['pay_term_type'] = $d['prazo_padrao_dias'] !== null ? 'days' : null;
+        }
+        $consent = $d['consentimento'] ?? [];
+        if (array_key_exists('whatsapp', $consent) && $consent['whatsapp'] !== null) {
+            $alterar['whatsapp_consent'] = (bool) $consent['whatsapp'];
+            if (\Illuminate\Support\Facades\Schema::hasColumn('contacts', 'whatsapp_opt_in_at')) {
+                $alterar['whatsapp_opt_in_at'] = $consent['whatsapp'] ? now() : null;
+            }
+        }
+        if (array_key_exists('email_nfe', $consent) && $consent['email_nfe'] !== null) {
+            $alterar['email_consent'] = (bool) $consent['email_nfe'];
+        }
+        if (isset($alterar['whatsapp_consent']) || isset($alterar['email_consent'])) {
+            $alterar['consent_updated_at'] = now();
+        }
+
+        if ($alterar === []) {
+            return response()->json(['id' => $id]);
+        }
+
+        DB::beginTransaction();
+        try {
+            $c = \App\Contact::where('business_id', $bizId)->findOrFail($id);
+            $antes = clone $c;
+            $c->fill($alterar); // Contact::$guarded = ['id']: as colunas de $alterar são todas preenchíveis.
+            $c->save();
+            event(new ContactCreatedOrModified($c, 'updated'));
+            app(ContactUtil::class)->activityLog($c, 'edited', $antes);
+            DB::commit();
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            \Log::error('API app pessoas.update: ' . $e->getMessage());
+
+            return response()->json(['erro' => 'falha', 'mensagem' => 'Não foi possível salvar a pessoa.'], 500);
+        }
+
+        return response()->json(['id' => $id]);
+    }
+
+    /** Regras dos campos de cadastro, compartilhadas por POST e PATCH (todos opcionais). */
+    private function regrasCadastro(): array
+    {
+        return [
+            'nome_fantasia' => ['nullable', 'string', 'max:150'],
+            'documento' => ['nullable', new CpfCnpj],
+            'indicador_ie' => ['nullable', 'integer', 'in:1,2,9'],
+            'telefone' => ['nullable', 'string', 'max:50'],
+            'email' => ['nullable', 'email', 'max:120'],
+            'email_nfe' => ['nullable', 'email', 'max:120'],
+            'cep' => ['nullable', 'string', 'max:20'],
+            'logradouro' => ['nullable', 'string', 'max:255'],
+            'numero' => ['nullable', 'string', 'max:20'],
+            'complemento' => ['nullable', 'string', 'max:255'],
+            'bairro' => ['nullable', 'string', 'max:255'],
+            'cidade' => ['nullable', 'string', 'max:255'],
+            'uf' => ['nullable', 'string', 'max:255'],
+            'codigo_ibge' => ['nullable', 'string', 'max:10'],
+            'prazo_padrao_dias' => ['nullable', 'integer', 'min:0', 'max:365'],
+            'consentimento' => ['nullable', 'array'],
+            'consentimento.whatsapp' => ['nullable', 'boolean'],
+            'consentimento.email_nfe' => ['nullable', 'boolean'],
+        ];
+    }
+
+    private function mensagensCadastro(): array
+    {
+        return [
+            'nome.required' => 'Informe o nome.',
+            'papeis.required' => 'Escolha cliente, fornecedor ou os dois.',
+            'papeis.min' => 'Escolha cliente, fornecedor ou os dois.',
+            'email.email' => 'Informe um e-mail válido.',
+            'email_nfe.email' => 'Informe um e-mail válido para a NF-e.',
+            'indicador_ie.in' => 'Indicador IE deve ser 1 (contribuinte), 2 (isento) ou 9 (não contribuinte).',
+        ];
     }
 
     // ------------------------------------------------------------------
