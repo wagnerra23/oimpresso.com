@@ -24,7 +24,7 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 
 ## UC-IMPV-01 · Planilha pequena importa na hora, com o valor e a baixa certos `[T0]` `[must]`
 - **Persona:** Larissa — importa as vendas do dia de outro sistema.
-- **Aceite:** Dado um lote de 3 linhas (fatura A: 2 × 50,00 e 1 × 30,00; fatura B: 3 × 50,00), produto com 10 em estoque e limite de 200 linhas · Quando importo · Então nascem 2 vendas finalizadas no mesmo lote, A = 130,00 e B = 150,00, e o estoque fica em 4. Nada vai para a fila.
+- **Aceite:** Dado um lote de 3 linhas (fatura A: 2 × 50,00 do produto P e 1 × 30,00 do produto Q; fatura B: 3 × 50,00 de P), P e Q com 10 em estoque e limite de 200 linhas · Quando importo · Então nascem 2 vendas finalizadas no mesmo lote, A = 130,00 e B = 150,00, e o estoque fica P = 5 e Q = 9. Nada vai para a fila. (A mesma fatura não pode repetir produto: `transaction_sell_lines` tem `UNIQUE (transaction_id, product_id, variation_id)`.)
 - **Teste:** `ImportSalesContratoTest` — `UC-IMPV-01 · abaixo do limite importa na hora`.
 - **Regressão que defende:** a extração do cálculo para o serviço mudando total ou baixa (REGRA MESTRE).
 - **Status: 🧪**
@@ -38,7 +38,7 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 
 ## UC-IMPV-03 · A fila grava o mesmo que o request `[T0]` `[must]`
 - **Persona:** Larissa.
-- **Aceite:** Dado o mesmo lote do UC-IMPV-01 · Quando o worker processa o job · Então A = 130,00, B = 150,00, estoque 4, o estado fica "concluído" com 2 vendas, o arquivo temporário some e o usuário do processo volta ao que era.
+- **Aceite:** Dado o mesmo lote do UC-IMPV-01 · Quando o worker processa o job · Então A = 130,00, B = 150,00, estoque P = 5 e Q = 9, o estado fica "concluído" com 2 vendas, o arquivo temporário some e o usuário do processo volta ao que era.
 - **Teste:** `ImportSalesContratoTest` — `UC-IMPV-03 · a fila grava o mesmo valor e a mesma baixa que o request`.
 - **Regressão que defende:** dois caminhos de importação com contas diferentes; sessão vazando entre jobs de negócios diferentes no mesmo worker.
 - **Status: 🧪**

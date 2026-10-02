@@ -46,10 +46,11 @@ O reverter segue o legado (apaga) e a tela diz isso na confirmação. As três o
 - A planilha da prévia fica em `public/uploads/temp/` (raiz pública) até o import.
 - `GET /revert-sale-import/{batch}` é GET que apaga.
 - Venda com devolução não é apagada pelo reverter, e o reverter responde "sucesso" assim mesmo.
+- A mesma fatura não pode repetir produto: `transaction_sell_lines` tem `UNIQUE (transaction_id, product_id, variation_id)` (`uk_tsl_dup_prevent`) e o import mostra o erro SQL cru — no legado também. Medido no 1º run da lane `sells-pest`.
 
 ## PARAR SE
 
 - **rota nova:** não disparou — nenhuma rota criada.
 - **PR > 300 linhas:** o backend passa (o grosso é o cálculo **movido** do controller para o serviço, sem reescrita) — partido em backend → tela como manda a ficha.
-- **valor sem teste que prove o mesmo total:** coberto — `UC-IMPV-01` (request) e `UC-IMPV-03` (fila) contra a conta à mão (130,00 + 150,00, estoque 10 → 4).
+- **valor sem teste que prove o mesmo total:** coberto — `UC-IMPV-01` (request) e `UC-IMPV-03` (fila) contra a conta à mão (130,00 + 150,00, estoque P 10 → 5 e Q 10 → 9).
 - **D3:** disparou — parada descrita acima.
