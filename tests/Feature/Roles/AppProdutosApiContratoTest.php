@@ -31,8 +31,14 @@ function appPrdUsuario(array $permissoes, int $biz = APP_PRD_BIZ): User
     foreach ($permissoes as $p) {
         Permission::findOrCreate($p, 'web');
     }
-    $papel->syncPermissions($permissoes);
+    // Loja vai direto no usuário, como a web grava (Util::giveLocationPermissions): o
+    // permitted_locations() lê só as permissões diretas, não as do papel.
+    $lojas = array_values(array_filter($permissoes, fn ($p) => str_starts_with($p, 'location.')));
+    $papel->syncPermissions(array_values(array_diff($permissoes, $lojas)));
     $user->assignRole($papel);
+    if ($lojas !== []) {
+        $user->givePermissionTo($lojas);
+    }
     app(PermissionRegistrar::class)->forgetCachedPermissions();
 
     return User::findOrFail($user->id);
