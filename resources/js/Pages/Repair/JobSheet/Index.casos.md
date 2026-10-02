@@ -91,6 +91,18 @@ last_run: "2026-10-01"
 - **Por que a OS própria entra no aceite:** sem ela, a lista vazia por outro filtro (`permitted_locations()` vazio, recorte "só as minhas OS") faria a ausência da alheia passar por vácuo.
 - **Status: 🧪** _passed no run 36851236035 (5 asserções); o manifesto de 2026-09-29 ainda diz `skip`_
 
+## UC-JSIDX-07 · O recorte separa pendentes, concluídas, entrega vencida e todas
+- **Persona:** atendente que abre a lista para saber o que ainda está na bancada e o que já passou do prazo prometido ao cliente.
+- **Aceite:** Dado OS pendentes com prazo futuro, com prazo vencido e com prazo hoje, e uma OS concluída · Quando escolho a aba · Então:
+  - **Pendentes** (default) traz as três pendentes e não a concluída;
+  - **Concluídas** traz só a concluída;
+  - **Entrega vencida** traz só a pendente com prazo num dia anterior a hoje; a que vence hoje e a concluída ficam fora;
+  - **Todas** traz as quatro;
+  - sem o parâmetro `recorte` (o que o Blade manda), o endpoint segue devolvendo as pendentes.
+- **Por que é assim:** decisão [W] 2026-10-02, textual *"A tela ganha as abas"* — o recorte da rota `rep-folhas` do protótipo e do alvo `repair--jobsheet--index.alvo.json`. "Concluída" = status com `is_completed_status`; "Entrega vencida" = mesma regra do protótipo (`repair-data.jsx`, `atrasada`): pendente com prazo de entrega num dia anterior a hoje. O filtro é do backend, no mesmo endpoint compartilhado (UC-JSIDX-04/05), e herda o mesmo escopo de business, permissão e local.
+- **Teste:** `RepairJobSheetIndexContratoTest` — *"UC-JSIDX-07: o recorte filtra pendentes, concluídas, entrega vencida e todas no backend"*.
+- **Status: ⬜** _aguarda o run da lane Verticais no branch da thread 05_
+
 ---
 
 ## Ainda sem teste (prosa, sem id)
@@ -107,3 +119,4 @@ last_run: "2026-10-01"
 | 02, 03 | `RepairJobSheetIndexContratoTest` | coexistência MWART (ADR 0104) |
 | 04, 05 | `RepairJobSheetIndexContratoTest` | endpoint compartilhado — contrato da US-REPA-004 |
 | 06 | `RepairJobSheetIndexContratoTest` | Tier 0 — isolamento (ADR 0093) |
+| 07 | `RepairJobSheetIndexContratoTest` | recorte (abas) — decisão [W] 2026-10-02 |

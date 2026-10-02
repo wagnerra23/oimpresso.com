@@ -304,3 +304,111 @@ it('UC-JSIDX-06: a listagem ajax não devolve OS de outro business', function ()
         }
     }
 });
+
+// ─────────────────────────────────────────────────────────────────────────────
+// UC-JSIDX-07 — recorte (abas) Pendentes / Concluídas / Entrega vencida / Todas
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * OS com status e prazo de entrega controlados. Devolve [jobSheetId, contactId].
+ *
+ * Decisão [W] 2026-10-02 "A tela ganha as abas" (rota rep-folhas do protótipo). O recorte é
+ * filtro do BACKEND, no mesmo endpoint DataTables que serve o Blade: "Concluídas" = status com
+ * `is_completed_status`; "Entrega vencida" = pendente com prazo num dia anterior a hoje.
+ */
+function jobSheetIndexOsRecorte(int $businessId, int $userId, string $jobSheetNo, int $statusId, ?string $entrega): array
+{
+    [$osId, $contactId] = jobSheetIndexOs($businessId, $userId, $jobSheetNo);
+    DB::table('repair_job_sheets')->where('id', $osId)->update([
+        'status_id' => $statusId,
+        'delivery_date' => $entrega,
+    ]);
+
+    return [$osId, $contactId];
+}
+
+/** Nº das OS que a lista ajax devolve para a query dada (flag MWART ligada). */
+function jobSheetIndexListaNos($test, User $user, string $query): array
+{
+    config([
+        'mwart.repair_job_sheet_index.enabled' => true,
+        'mwart.repair_job_sheet_index.business_ids' => [],
+    ]);
+
+    $response = jobSheetIndexActAs($test, $user)
+        ->withHeaders(['X-Requested-With' => 'XMLHttpRequest', 'Accept' => 'application/json'])
+        ->get('/repair/job-sheet?draw=1&start=0&length=500'.$query);
+
+    expect($response->status())->toBe(200);
+
+    return collect($response->json('data') ?? [])->pluck('job_sheet_no')->all();
+}
+
+it('UC-JSIDX-07: o recorte filtra pendentes, concluídas, entrega vencida e todas no backend', function () {
+    if (! Schema::hasTable('repair_statuses')) {
+        $this->markTestSkipped('Schema incompleto — tabela repair_statuses ausente');
+    }
+
+    $biz = $this->seededTenant();
+    $user = jobSheetIndexUser((int) $biz->id);
+    // Sem estas duas, a lista sai vazia por OUTRO filtro e as ausências passariam por vácuo.
+    foreach (['access_all_locations', 'job_sheet.view_all'] as $perm) {
+        $user->givePermissionTo(Permission::firstOrCreate(['name' => $perm, 'guard_name' => 'web']));
+    }
+
+    $sufixo = uniqid();
+    $statusConcluido = (int) DB::table('repair_statuses')->insertGetId([
+        'business_id' => (int) $biz->id,
+        'name' => 'Entregue JSIDX '.$sufixo,
+        'is_completed_status' => 1,
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+
+    $noPrazo = 'JSIDX-NOPRAZO-'.$sufixo;
+    $vencida = 'JSIDX-VENCIDA-'.$sufixo;
+    $venceHoje = 'JSIDX-HOJE-'.$sufixo;
+    $concluida = 'JSIDX-CONCLUIDA-'.$sufixo;
+    $criadas = [];
+
+    try {
+        $criadas[] = jobSheetIndexOsRecorte((int) $biz->id, (int) $user->id, $noPrazo, 0, now()->addDays(3)->toDateTimeString());
+        $criadas[] = jobSheetIndexOsRecorte((int) $biz->id, (int) $user->id, $vencida, 0, now()->subDays(2)->toDateTimeString());
+        $criadas[] = jobSheetIndexOsRecorte((int) $biz->id, (int) $user->id, $venceHoje, 0, now()->startOfDay()->addHours(12)->toDateTimeString());
+        // Concluída com prazo no passado: não é "vencida" — já saiu da fila.
+        $criadas[] = jobSheetIndexOsRecorte((int) $biz->id, (int) $user->id, $concluida, $statusConcluido, now()->subDays(5)->toDateTimeString());
+
+        $pendentes = jobSheetIndexListaNos($this, $user, '&recorte=pendentes');
+        expect($pendentes)->toContain($noPrazo);
+        expect($pendentes)->toContain($vencida);
+        expect($pendentes)->toContain($venceHoje);
+        expect($pendentes)->not->toContain($concluida);
+
+        // Sem `recorte` vale o comportamento de sempre (o Blade não manda o parâmetro): pendentes.
+        $semRecorte = jobSheetIndexListaNos($this, $user, '');
+        expect($semRecorte)->toContain($vencida);
+        expect($semRecorte)->not->toContain($concluida);
+
+        $concluidas = jobSheetIndexListaNos($this, $user, '&recorte=concluidas');
+        expect($concluidas)->toContain($concluida);
+        expect($concluidas)->not->toContain($noPrazo);
+        expect($concluidas)->not->toContain($vencida);
+
+        $vencidas = jobSheetIndexListaNos($this, $user, '&recorte=vencidas');
+        expect($vencidas)->toContain($vencida);
+        expect($vencidas)->not->toContain($noPrazo);
+        expect($vencidas)->not->toContain($venceHoje);
+        expect($vencidas)->not->toContain($concluida);
+
+        $todas = jobSheetIndexListaNos($this, $user, '&recorte=todas');
+        foreach ([$noPrazo, $vencida, $venceHoje, $concluida] as $no) {
+            expect($todas)->toContain($no);
+        }
+    } finally {
+        foreach ($criadas as [$osId, $contactId]) {
+            DB::table('repair_job_sheets')->where('id', $osId)->delete();
+            DB::table('contacts')->where('id', $contactId)->delete();
+        }
+        DB::table('repair_statuses')->where('id', $statusConcluido)->delete();
+    }
+});
