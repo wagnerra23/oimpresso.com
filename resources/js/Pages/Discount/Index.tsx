@@ -23,6 +23,8 @@ import { Input } from '@/Components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from '@/Components/ui/sheet';
 import EmptyState from '@/Components/shared/EmptyState';
+import DataTable, { type PaginatorShape } from '@/Components/shared/DataTable';
+import type { ColumnDef } from '@tanstack/react-table';
 import { Grid, Inline, Stack } from '@/Components/layout';
 import { formatDecimalPtBR, parseDecimalPtBR } from '@/Lib/numberPtBR';
 
@@ -84,6 +86,11 @@ const MOTIVO_SEM_EDITAR = 'Seu papel só tem “Ver descontos”. Criar, editar,
 /** Opções data-driven sem chave/rótulo vazio — Radix Select quebra com value="" (§5 2026-06-29). */
 function opcoes(mapa: Mapa | undefined) {
   return Object.entries(mapa ?? {}).filter(([k, v]) => k !== '' && v);
+}
+
+/** A lista vem inteira na prop deferida; o DataTable recebe uma página única. */
+function paginaUnica<T>(dados: T[]): PaginatorShape<T> {
+  return { data: dados, total: dados.length, current_page: 1, last_page: 1, from: dados.length ? 1 : null, to: dados.length || null, links: [] };
 }
 
 function csrf(): string {
@@ -273,6 +280,56 @@ export default function DiscountIndex({ descontos, opcoes: op, formatoData, perm
   const todosMarcados = visiveis.length > 0 && visiveis.every((d) => sel.includes(d.id));
   const trava = pode ? undefined : MOTIVO_SEM_EDITAR;
 
+  const colunas: ColumnDef<Desconto>[] = [
+    {
+      id: 'sel',
+      header: () => (
+        <Checkbox aria-label="Selecionar todos" checked={todosMarcados}
+          onCheckedChange={(v) => setSel(v ? visiveis.map((d) => d.id) : [])} />
+      ),
+      cell: ({ row }) => (
+        <Checkbox aria-label={`Selecionar ${row.original.nome}`} checked={sel.includes(row.original.id)}
+          onCheckedChange={(v) => setSel((s) => (v ? [...s, row.original.id] : s.filter((x) => x !== row.original.id)))} />
+      ),
+    },
+    { id: 'nome', header: 'Nome', cell: ({ row }) => <span className="font-medium">{row.original.nome}</span> },
+    { id: 'inicio', header: 'Começa em', meta: { mono: true }, cell: ({ row }) => dataCurta(row.original.inicio) },
+    { id: 'fim', header: 'Termina em', meta: { mono: true }, cell: ({ row }) => dataCurta(row.original.fim) },
+    { id: 'valor', header: 'Valor do desconto', meta: { align: 'right', mono: true }, cell: ({ row }) => valorNaLista(row.original) },
+    { id: 'prioridade', header: 'Prioridade', meta: { align: 'right', mono: true }, cell: ({ row }) => row.original.prioridade ?? '—' },
+    { id: 'marca', header: 'Marca', cell: ({ row }) => row.original.marca ?? '—' },
+    { id: 'categoria', header: 'Categoria', cell: ({ row }) => row.original.categoria ?? '—' },
+    {
+      id: 'produtos', header: 'Produtos', meta: { align: 'right', mono: true },
+      cell: ({ row }) => <span title={row.original.produtos.map((p) => p.nome).join(', ')}>{row.original.produtos.length}</span>,
+    },
+    { id: 'local', header: 'Local', cell: ({ row }) => row.original.local ?? 'Todos' },
+    {
+      id: 'situacao', header: 'Situação',
+      cell: ({ row }) => <Badge variant={row.original.ativo ? 'success' : 'neutral'}>{row.original.ativo ? 'Ativo' : 'Inativo'}</Badge>,
+    },
+    {
+      id: 'acoes', header: 'Ações', meta: { align: 'right' },
+      cell: ({ row }) => {
+        const d = row.original;
+        return (
+          <span className="whitespace-nowrap" title={trava}>
+            <Button variant="ghost" size="sm" disabled={!pode} aria-label={`Editar ${d.nome}`}
+              onClick={() => { setForm(formDe(d)); setErro(''); setTermo(''); }}><Pencil className="h-3.5 w-3.5" /></Button>
+            {!d.ativo && (
+              <Button variant="ghost" size="sm" disabled={!pode} aria-label={`Reativar ${d.nome}`} onClick={() => reativar(d)}>
+                <Power className="h-3.5 w-3.5 mr-1" />Reativar
+              </Button>
+            )}
+            <Button variant="ghost" size="sm" disabled={!pode} aria-label={`Excluir ${d.nome}`} onClick={() => setExcluir(d)}>
+              <Trash2 className="h-3.5 w-3.5" />
+            </Button>
+          </span>
+        );
+      },
+    },
+  ];
+
   const campo = (rotulo: string, filho: ReactNode, obrig = false) => (
     <Stack gap={1} align="stretch" className="text-sm">
       <span>{rotulo}{obrig && <span className="text-destructive"> *</span>}</span>
@@ -327,61 +384,16 @@ export default function DiscountIndex({ descontos, opcoes: op, formatoData, perm
               <EmptyState icon="file-text" title={q ? 'Nenhum desconto encontrado' : 'Nenhum desconto'}
                 description={q ? 'Tente outro termo de busca.' : 'Cadastre um desconto para o PDV aplicar no período.'} />
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead className="text-xs text-muted-foreground uppercase tracking-wide">
-                    <tr className="border-b border-border">
-                      <th className="px-3 py-2 w-8">
-                        <Checkbox aria-label="Selecionar todos" checked={todosMarcados}
-                          onCheckedChange={(v) => setSel(v ? visiveis.map((d) => d.id) : [])} />
-                      </th>
-                      <th className="text-left px-3 py-2 font-medium">Nome</th>
-                      <th className="text-left px-3 py-2 font-medium">Começa em</th>
-                      <th className="text-left px-3 py-2 font-medium">Termina em</th>
-                      <th className="text-right px-3 py-2 font-medium">Valor do desconto</th>
-                      <th className="text-right px-3 py-2 font-medium">Prioridade</th>
-                      <th className="text-left px-3 py-2 font-medium">Marca</th>
-                      <th className="text-left px-3 py-2 font-medium">Categoria</th>
-                      <th className="text-right px-3 py-2 font-medium">Produtos</th>
-                      <th className="text-left px-3 py-2 font-medium">Local</th>
-                      <th className="text-left px-3 py-2 font-medium">Situação</th>
-                      <th className="text-right px-3 py-2 font-medium">Ações</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {visiveis.map((d) => (
-                      <tr key={d.id} className={`border-b border-border last:border-0 ${d.ativo ? '' : 'text-muted-foreground'}`}>
-                        <td className="px-3 py-2">
-                          <Checkbox aria-label={`Selecionar ${d.nome}`} checked={sel.includes(d.id)}
-                            onCheckedChange={(v) => setSel((s) => (v ? [...s, d.id] : s.filter((x) => x !== d.id)))} />
-                        </td>
-                        <td className="px-3 py-2 font-medium">{d.nome}</td>
-                        <td className="px-3 py-2 tabular-nums">{dataCurta(d.inicio)}</td>
-                        <td className="px-3 py-2 tabular-nums">{dataCurta(d.fim)}</td>
-                        <td className="px-3 py-2 text-right tabular-nums">{valorNaLista(d)}</td>
-                        <td className="px-3 py-2 text-right tabular-nums">{d.prioridade ?? '—'}</td>
-                        <td className="px-3 py-2">{d.marca ?? '—'}</td>
-                        <td className="px-3 py-2">{d.categoria ?? '—'}</td>
-                        <td className="px-3 py-2 text-right tabular-nums" title={d.produtos.map((p) => p.nome).join(', ')}>{d.produtos.length}</td>
-                        <td className="px-3 py-2">{d.local ?? 'Todos'}</td>
-                        <td className="px-3 py-2"><Badge variant={d.ativo ? 'success' : 'neutral'}>{d.ativo ? 'Ativo' : 'Inativo'}</Badge></td>
-                        <td className="px-3 py-2 text-right whitespace-nowrap" title={trava}>
-                          <Button variant="ghost" size="sm" disabled={!pode} aria-label={`Editar ${d.nome}`}
-                            onClick={() => { setForm(formDe(d)); setErro(''); setTermo(''); }}><Pencil className="h-3.5 w-3.5" /></Button>
-                          {!d.ativo && (
-                            <Button variant="ghost" size="sm" disabled={!pode} aria-label={`Reativar ${d.nome}`} onClick={() => reativar(d)}>
-                              <Power className="h-3.5 w-3.5 mr-1" />Reativar
-                            </Button>
-                          )}
-                          <Button variant="ghost" size="sm" disabled={!pode} aria-label={`Excluir ${d.nome}`} onClick={() => setExcluir(d)}>
-                            <Trash2 className="h-3.5 w-3.5" />
-                          </Button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+              <DataTable<Desconto>
+                columns={colunas}
+                data={visiveis}
+                pagination={paginaUnica(visiveis)}
+                endpoint="/discount"
+                caption="Descontos"
+                showSearch={false}
+                rowKey={(d) => d.id}
+                rowState={(d) => (d.ativo ? undefined : 'archived')}
+              />
             )}
           </Deferred>
           <Inline gap={3} justify="between" wrap className="px-4 py-2 border-t border-border">

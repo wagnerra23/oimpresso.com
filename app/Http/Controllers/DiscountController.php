@@ -156,42 +156,76 @@ class DiscountController extends Controller
      */
     private function linhasDaTela(int $business_id): array
     {
-        return Discount::where('discounts.business_id', $business_id)
-            ->leftjoin('brands as b', 'discounts.brand_id', '=', 'b.id')
-            ->leftjoin('categories as c', 'discounts.category_id', '=', 'c.id')
-            ->leftjoin('business_locations as l', 'discounts.location_id', '=', 'l.id')
-            ->select(['discounts.id', 'discounts.name', 'starts_at', 'ends_at', 'priority',
-                'discounts.brand_id', 'discounts.category_id', 'discounts.location_id', 'discounts.spg',
-                'discounts.applicable_in_cg', 'b.name as brand', 'c.name as category', 'l.name as location',
-                'discounts.is_active', 'discounts.discount_amount', 'discount_type', ])
-            ->with(['variations', 'variations.product', 'variations.product_variation'])
+        $linhas = DB::table('discounts')
+            ->where('discounts.business_id', $business_id)
+            ->leftJoin('brands as b', 'discounts.brand_id', '=', 'b.id')
+            ->leftJoin('categories as c', 'discounts.category_id', '=', 'c.id')
+            ->leftJoin('business_locations as l', 'discounts.location_id', '=', 'l.id')
+            ->select(['discounts.id', 'discounts.name', 'discounts.starts_at', 'discounts.ends_at',
+                'discounts.priority', 'discounts.brand_id', 'discounts.category_id', 'discounts.location_id',
+                'discounts.spg', 'discounts.applicable_in_cg', 'discounts.is_active',
+                'discounts.discount_amount', 'discounts.discount_type',
+                'b.name as brand', 'c.name as category', 'l.name as location', ])
             ->orderBy('discounts.priority')
             ->orderBy('discounts.id')
+            ->get();
+
+        $produtos = $this->produtosDosDescontos($linhas->pluck('id')->map(fn ($id) => (int) $id)->all());
+
+        return $linhas->map(fn (object $d): array => [
+            'id' => (int) $d->id,
+            'nome' => (string) $d->name,
+            'inicio' => $d->starts_at,
+            'fim' => $d->ends_at,
+            'prioridade' => $d->priority === null ? null : (int) $d->priority,
+            'tipo' => $d->discount_type,
+            'valor' => (string) $d->discount_amount,
+            'marcaId' => $d->brand_id === null ? null : (int) $d->brand_id,
+            'marca' => $d->brand,
+            'categoriaId' => $d->category_id === null ? null : (int) $d->category_id,
+            'categoria' => $d->category,
+            'localId' => $d->location_id === null ? null : (int) $d->location_id,
+            'local' => $d->location,
+            'grupoPreco' => $d->spg,
+            'aplicaEmGrupoCliente' => (int) $d->applicable_in_cg === 1,
+            'ativo' => (int) $d->is_active === 1,
+            'produtos' => $produtos[(int) $d->id] ?? [],
+        ])->values()->all();
+    }
+
+    /**
+     * Produtos (variações) de cada desconto, com o mesmo nome que `Variation::full_name`
+     * monta: produto [- grupo - variação, se variável] (sub_sku). Os ids vêm de descontos
+     * já filtrados pelo business_id.
+     *
+     * @param  array<int, int>  $ids
+     * @return array<int, array<int, array{id: int, nome: string}>>
+     */
+    private function produtosDosDescontos(array $ids): array
+    {
+        if ($ids === []) {
+            return [];
+        }
+
+        $porDesconto = [];
+        DB::table('discount_variations as dv')
+            ->join('variations as v', 'v.id', '=', 'dv.variation_id')
+            ->join('products as p', 'p.id', '=', 'v.product_id')
+            ->leftJoin('product_variations as pv', 'pv.id', '=', 'v.product_variation_id')
+            ->whereIn('dv.discount_id', $ids)
+            ->select(['dv.discount_id', 'v.id', 'v.name as variacao', 'v.sub_sku',
+                'p.name as produto', 'p.type', 'pv.name as grupo', ])
+            ->orderBy('dv.discount_id')
             ->get()
-            ->map(fn ($d) => [
-                'id' => (int) $d->id,
-                'nome' => (string) $d->name,
-                'inicio' => $d->starts_at ? $d->starts_at->format('Y-m-d H:i:s') : null,
-                'fim' => $d->ends_at ? $d->ends_at->format('Y-m-d H:i:s') : null,
-                'prioridade' => $d->priority === null ? null : (int) $d->priority,
-                'tipo' => $d->discount_type,
-                'valor' => (string) $d->discount_amount,
-                'marcaId' => $d->brand_id === null ? null : (int) $d->brand_id,
-                'marca' => $d->brand,
-                'categoriaId' => $d->category_id === null ? null : (int) $d->category_id,
-                'categoria' => $d->category,
-                'localId' => $d->location_id === null ? null : (int) $d->location_id,
-                'local' => $d->location,
-                'grupoPreco' => $d->spg,
-                'aplicaEmGrupoCliente' => (int) $d->applicable_in_cg === 1,
-                'ativo' => (int) $d->is_active === 1,
-                'produtos' => $d->variations->map(fn ($v) => [
-                    'id' => (int) $v->id,
-                    'nome' => (string) $v->full_name,
-                ])->values()->all(),
-            ])
-            ->values()
-            ->all();
+            ->each(function (object $r) use (&$porDesconto) {
+                $nome = (string) $r->produto;
+                if ($r->type === 'variable') {
+                    $nome .= ' - '.$r->grupo.' - '.$r->variacao;
+                }
+                $porDesconto[(int) $r->discount_id][] = ['id' => (int) $r->id, 'nome' => $nome.' ('.$r->sub_sku.')'];
+            });
+
+        return $porDesconto;
     }
 
     /**

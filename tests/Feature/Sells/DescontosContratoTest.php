@@ -417,7 +417,9 @@ function dscVisita(object $test, array $parcial = []): array
         $headers['X-Inertia-Partial-Component'] = 'Discount/Index';
         $headers['X-Inertia-Partial-Data'] = implode(',', $parcial);
     }
-    $response = $test->withHeaders($headers)->get('/discount');
+    // flushHeaders: o withHeaders acumula entre requests do mesmo teste — sem isto a visita
+    // seguinte herda o X-Inertia-Partial-* da anterior e vira parcial sem querer.
+    $response = $test->flushHeaders()->withHeaders($headers)->get('/discount');
     $response->assertOk();
     $page = json_decode($response->getContent(), true);
 
