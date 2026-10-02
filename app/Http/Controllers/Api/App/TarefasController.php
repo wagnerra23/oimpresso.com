@@ -81,6 +81,19 @@ class TarefasController extends Controller
         return response()->json(['id' => 'todo:' . $todo->id, 'concluida' => true]);
     }
 
+    /** As próximas N tarefas do usuário (ToDo + Ponto), prazo mais próximo primeiro — para o Início. */
+    public function proximasPara(User $user, int $n = 3): array
+    {
+        $bizId = (int) $user->business_id;
+
+        return $this->itensTodo($user, $bizId)
+            ->concat($this->itensPonto($user, $bizId))
+            ->sortBy(fn ($i) => $i['prazo'] ?? '9999-12-31')
+            ->take($n)
+            ->values()
+            ->all();
+    }
+
     // ------------------------------------------------------------------
 
     private function temEssentials(User $user, int $bizId): bool

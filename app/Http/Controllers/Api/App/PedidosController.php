@@ -187,6 +187,24 @@ class PedidosController extends Controller
         'ready_for_invoice' => 'Pronto pra faturar',
     ];
 
+    /**
+     * Contagem de pedidos ativos e atrasados do usuário (para o Início), com as mesmas regras da
+     * lista. null quando o usuário não vê vendas.
+     *
+     * @return array{ativos:int, atrasados:int}|null
+     */
+    public function contadoresPara(User $user): ?array
+    {
+        if (! $this->podeVer($user)) {
+            return null;
+        }
+
+        return [
+            'ativos' => $this->filtrar($this->base($user, ''), 'ativos')->count(),
+            'atrasados' => $this->filtrar($this->base($user, ''), 'atrasados')->count(),
+        ];
+    }
+
     // ------------------------------------------------------------------
 
     private function podeVer(?User $user): bool
