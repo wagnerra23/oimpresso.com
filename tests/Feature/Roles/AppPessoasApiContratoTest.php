@@ -140,3 +140,45 @@ it('detalhe traz papéis, contato e kpis da pessoa do meu business', function ()
     expect($r->json('kpis'))->toHaveKeys(['pedidos', 'ticket_medio', 'saldo_aberto']);
     expect($r->json('pedidos_recentes'))->toBeArray();
 });
+
+it('documento: CPF sai mascarado (só os 5 últimos dígitos) e CNPJ sai inteiro, formatado', function () {
+    $u = appPesUsuario(['customer.view']);
+    $pf = appPesContato("APS PF {$this->sufixo}", $u->id, APP_PES_BIZ, ['tax_number' => '12345678909']); // pii-allowlist (CPF/CNPJ sintético de teste)
+    $pj = appPesContato("APS PJ {$this->sufixo}", $u->id, APP_PES_BIZ, ['tax_number' => '11222333000181']); // pii-allowlist (CPF/CNPJ sintético de teste)
+    Passport::actingAs($u, [], 'api');
+
+    $cpf = $this->getJson('/api/app/pessoas/' . $pf)->assertOk()->json('documento');
+    expect($cpf)->toBe('***.***.789-09');
+    expect(str_contains($cpf, '123456'))->toBeFalse();
+
+    expect($this->getJson('/api/app/pessoas/' . $pj)->assertOk()->json('documento'))->toBe('11.222.333/0001-81'); // pii-allowlist (CPF/CNPJ sintético de teste)
+});
+
+it('cadastro (tela 34): identificação, endereço fiscal, comercial e consentimento; outra empresa dá 404', function () {
+    $u = appPesUsuario(['customer.view']);
+    $id = appPesContato("APS Cad {$this->sufixo}", $u->id, APP_PES_BIZ, [
+        'tax_number' => '11222333000181', // pii-allowlist (CNPJ sintético de teste)
+        'supplier_business_name' => 'APS Cadastro Ltda', 'indicador_ie' => '1',
+        'city' => 'Blumenau', 'state' => 'SC', 'cep' => '89010-100', 'city_code' => '4202404',
+        'email_nfe' => 'nfe@aps.invalid', 'credit_limit' => 1500,
+        'pay_term_number' => 28, 'pay_term_type' => 'days',
+        'whatsapp_consent' => 1, 'email_consent' => 0,
+    ]);
+    $alheio = appPesContato("APS Cad alheio {$this->sufixo}", $u->id, APP_PES_OUTRO);
+    Passport::actingAs($u, [], 'api');
+
+    $r = $this->getJson("/api/app/pessoas/{$id}/cadastro")->assertOk();
+    expect($r->json('identificacao.razao_social'))->toBe('APS Cadastro Ltda');
+    expect($r->json('identificacao.documento'))->toBe('11.222.333/0001-81'); // pii-allowlist (CNPJ sintético de teste)
+    expect($r->json('identificacao.papeis'))->toBe(['cliente']);
+    expect($r->json('endereco_fiscal'))->toBe(['cidade' => 'Blumenau', 'uf' => 'SC', 'cep' => '89010-100', 'codigo_ibge' => '4202404', 'email_nfe' => 'nfe@aps.invalid']);
+    expect($r->json('comercial.classificacao'))->toBeNull();
+    expect((float) $r->json('comercial.limite_credito'))->toBe(1500.0);
+    expect($r->json('comercial.prazo_padrao_dias'))->toBe(28);
+    expect($r->json('consentimento.whatsapp'))->toBeTrue();
+    expect($r->json('consentimento.email_nfe'))->toBeFalse();
+    expect($r->json('consentimento.sms'))->toBeNull();
+
+    $this->getJson("/api/app/pessoas/{$alheio}/cadastro")->assertStatus(404);
+});
+

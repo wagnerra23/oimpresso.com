@@ -53,6 +53,9 @@ class PontoServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
+        // Implementa o contrato do núcleo da aba Tarefas do app das lojas (sobrepõe o vazio).
+        $this->app->bind(\App\Contracts\Tarefas\JustificativasPonto::class, \Modules\Ponto\Services\JustificativasDoApp::class);
+
         $this->app->singleton(\Modules\Ponto\Services\ApuracaoService::class);
         $this->app->singleton(\Modules\Ponto\Services\BancoHorasService::class);
         $this->app->singleton(\Modules\Ponto\Services\AfdParserService::class);

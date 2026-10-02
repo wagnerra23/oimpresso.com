@@ -1107,9 +1107,22 @@ class SellController extends Controller
      */
     public function inertiaList(Request $request)
     {
+        // Thread 01 (Lista de POS · Sells/Pos/Index) — filtro OPCIONAL por tipo de venda.
+        // Whitelist 0/1; ausente (ou qualquer outro valor) = comportamento de sempre, todas as
+        // vendas finais (o default do Sells/Index não muda). `is_direct_sale=0` é a "Lista de
+        // POS": o legado `sale_pos/index` chamava `SellController@index?is_direct_sale=0`.
+        $isDirectSaleRaw = (string) $request->input('is_direct_sale', '');
+        $isDirectSale = in_array($isDirectSaleRaw, ['0', '1'], true) ? (int) $isDirectSaleRaw : null;
+        $listaPos = $isDirectSale === 0;
+
+        // Na Lista de POS vale o gate do legado (`SellPosController@index`: sell.view OU
+        // sell.create). Fora dela, o gate de sempre — quem só tem sell.view continua 403 na
+        // lista geral.
+        $podeListaPos = $listaPos && (auth()->user()->can('sell.view') || auth()->user()->can('sell.create'));
         if (!auth()->user()->can('direct_sell.view') &&
             !auth()->user()->can('view_own_sell_only') &&
-            !auth()->user()->can('view_commission_agent_sell')) {
+            !auth()->user()->can('view_commission_agent_sell') &&
+            !$podeListaPos) {
             abort(403);
         }
 
@@ -1142,6 +1155,14 @@ class SellController extends Controller
         // date_from / date_to aplicam ao date_field escolhido.
         $dateFrom = trim((string) $request->input('date_from', ''));
         $dateTo = trim((string) $request->input('date_to', ''));
+        // UC-SIDX-03 — `date_to` só com a data (AAAA-MM-DD, formato dos presets e do
+        // <input type="date"> do SellsDateFilter) cobre o DIA INTEIRO. Comparado cru,
+        // `<= '2026-10-01'` vira `<= '2026-10-01 00:00:00'` e tirava da lista toda venda
+        // do último dia depois da meia-noite — o preset "Dia" mostrava o dia praticamente vazio.
+        // `date_to` que já traz hora é respeitado como veio.
+        if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $dateTo) === 1) {
+            $dateTo .= ' 23:59:59';
+        }
 
         // Whitelist de colunas ordenáveis — alias frontend → expressão SQL.
         $sortMap = [
@@ -1182,6 +1203,18 @@ class SellController extends Controller
             ->where('transactions.type', 'sell')
             ->where('transactions.status', 'final')
             ->whereNull('transactions.sub_type');
+
+        if ($isDirectSale !== null) {
+            $q->where('transactions.is_direct_sale', $isDirectSale);
+        }
+        // Lista de POS: mesma restrição de local do legado (SellController@index AJAX,
+        // `permitted_locations`). Só neste modo — o default do Sells/Index não muda.
+        if ($listaPos) {
+            $permittedLocations = auth()->user()->permitted_locations();
+            if ($permittedLocations !== 'all') {
+                $q->whereIn('transactions.location_id', $permittedLocations);
+            }
+        }
 
         // US-SELL-021 — JOIN nfe_emissoes só quando precisamos da NF_DT_EMISSAO.
         // Tabela tem unique (business_id, transaction_id) — não duplica linhas.
