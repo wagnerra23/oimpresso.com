@@ -193,6 +193,9 @@ Route::group(
         Route::post('/marcar', [MobileMarcacaoController::class, 'registrar'])->name('ponto.api.marcar');
         Route::get('/marcacoes/hoje', [MobileMarcacaoController::class, 'marcacoesHoje'])->name('ponto.api.marcacoes.hoje');
         Route::get('/saldo', [MobileMarcacaoController::class, 'saldo'])->name('ponto.api.saldo');
+        Route::get('/me', [MobileMarcacaoController::class, 'me'])->name('ponto.api.me');
+        Route::get('/espelho', [MobileMarcacaoController::class, 'espelho'])->name('ponto.api.espelho');
+        Route::get('/intercorrencias/tipos', [MobileMarcacaoController::class, 'tiposIntercorrencia'])->name('ponto.api.intercorrencias.tipos');
 
         // Intercorrências (justificar = cria e submete)
         Route::get('/intercorrencias', [MobileMarcacaoController::class, 'intercorrencias'])->name('ponto.api.intercorrencias.index');
