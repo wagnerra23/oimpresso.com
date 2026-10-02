@@ -5,10 +5,10 @@
 > Status/lifecycle normalizados no leitor (ADR 0257) — não altera os arquivos (append-only).
 
 ## Resumo
-- **429** arquivos · **414** números únicos · máx **0424**
-- **ADRs ATIVOS (lifecycle ativo): 384** ← resposta única a "quantos ADRs ativos"
-- Por status: aceito 377 · superseded 25 · proposto 14 · deprecated 11 · rascunho 1 · recusado 1
-- Por lifecycle: ativo 384 · substituido 25 · arquivado 20
+- **430** arquivos · **415** números únicos · máx **0425**
+- **ADRs ATIVOS (lifecycle ativo): 385** ← resposta única a "quantos ADRs ativos"
+- Por status: aceito 378 · superseded 25 · proposto 14 · deprecated 11 · rascunho 1 · recusado 1
+- Por lifecycle: ativo 385 · substituido 25 · arquivado 20
 - Sem frontmatter (formato-tabela legado): 0
 
 ## Colisões de número (13) — auto-detectadas
@@ -35,7 +35,7 @@ _(nenhuma)_
 ## Recusadas (1) — o NÃO consultável
 - **0290** v0 'Fidelity Lock' (screenshot pareado em CI) — RECUSADO: fidelidade visual não  · recusada 2026-06-18 — Inviável + tautológico + backdoor de prosa (3 motivos na Decisão). REABRE só se surgir um check de fidelidade HERMÉTICO 
 
-## Todas as ADRs (429)
+## Todas as ADRs (430)
 | Nº | Status | Lifecycle | Kind | Título |
 |---|---|---|---|---|
 | 0001 | aceito | ativo | decision | Estender UltimatePOS em vez de build próprio ou fork |
@@ -467,3 +467,4 @@ _(nenhuma)_
 | 0422 | proposto | ativo | decision | Arquivos — aviso ao titular sai por e-mail e WhatsApp, com liga/desliga por negó |
 | 0423 | proposto | ativo | decision | Ponto — lembrete de bater ponto por push (FCM HTTP v1, token por usuário+busines |
 | 0424 | proposto | ativo | decision | Ponto — emenda à 0423: o app de telas próprias registra o aparelho pela API (Pas |
+| 0425 | aceito | ativo | decision | Webhook sync-memory atualiza só memory/ — código de produção chega só pelo deplo |
