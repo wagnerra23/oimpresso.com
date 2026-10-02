@@ -281,6 +281,25 @@ de contrato na lane MySQL) + 1 PR de tela no `oimpresso-app`, contra este contra
 - Tela de módulo que o business não tem no pacote não aparece (Camada 1).
 
 
+## 9. Produtos e estoque (Onda B)
+
+### 9.1 Produtos (tela 19) — só leitura
+
+`GET /api/app/produtos?categoria=<id|todas>&q=<texto>&pagina=N` →
+`{ itens:[{id, nome, codigo, categoria, calculo, preco, variacoes, estoque:{controla, qtd, unidade}, baixo}],
+categorias:[{id, nome, total}], total, baixo_estoque, pagina, tem_mais }`, 30 por página, por nome.
+
+- Permissão `product.view` (a da lista web); sem ela, 403. Produtos ativos do business, sem os `modifier`.
+  A área `produtos` entra em `areas` do Início (§6) com essa mesma regra.
+- Busca `q` em nome, código (SKU) e categoria. `categorias` e `total` respeitam a busca, não o filtro de categoria.
+- `calculo` = "por " + unidade curta do produto ("por m²", "por un"); `null` sem unidade.
+- `preco` = preço de venda com imposto (`sell_price_inc_tax`); produto com variação traz o menor e
+  `variacoes` = quantas. Só exibição.
+- `estoque.qtd` = soma nos locais que o usuário pode ver; `null` quando o produto não controla estoque
+  ("sob demanda"). Usuário sem nenhum local permitido vê 0, nunca o estoque de todos.
+- `baixo` / `baixo_estoque` = a mesma regra do alerta da web (`ProductUtil::getProductAlert`): alguma
+  variação × local com quantidade ≤ `alert_quantity`.
+
 ## 10. Financeiro (Onda C)
 
 > §10.1 (Financeiro, tela 06) chega no PR do ERP #8584.
