@@ -412,6 +412,7 @@ producao:{por_etapa:[{rotulo, total}]}|null, estoque:{baixo:[{nome, quantidade, 
 - `estoque.baixo`: até 20 itens com saldo ≤ mínimo, menor saldo primeiro (`ProductUtil::getProductAlert`,
   o mesmo do Início); produto com variação sai como "Produto — variação".
 
+
 ## 11. Oficina — Onda D (Modules/OficinaAuto)
 
 Área `oficina` em `areas` (§6): módulo `oficina_auto_module` no pacote do business (Camada 1;
