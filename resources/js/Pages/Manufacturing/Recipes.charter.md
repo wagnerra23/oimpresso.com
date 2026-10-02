@@ -106,6 +106,11 @@ mandar no Design System — cada pessoa veria uma cor diferente.
 
 ### O empate de especificidade do cabeçalho ordenado
 
+> **2026-10-01 — a regra abaixo saiu junto com a tabela antiga.** A lista passou a ser a réplica
+> do `DataGrid` do DS (`_components/GradeFabricacao.tsx`, ADR 0388). O cabeçalho ordenado agora é
+> `.mfg-root .mfg-dg th button.act` (na cor do texto, como no DataGrid) e o cabeçalho comum fica em
+> `--text-dim` pelo bloco §11. O registro abaixo é o que valia até essa data.
+
 `.mfg-th.sort.act` (0,3,0) **empata** com `.mfg-root .mfg-th.sort` (0,3,0) do bloco §11
 (`--text-dim`), e no empate vence quem vem **depois** no arquivo — que é o §11.
 

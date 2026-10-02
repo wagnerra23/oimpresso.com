@@ -39,23 +39,8 @@
 .mfg-chip.act{border-color:var(--color-primary);color:var(--color-primary);background:color-mix(in oklch,var(--color-primary) 8%,transparent)}
 
 .mfg-tablewrap{flex:1;min-height:0;overflow:auto;padding:0 20px 24px}
-.mfg-table{min-width:960px;border:1px solid var(--border);border-radius:8px;background:var(--surface)}
-.mfg-tr{display:grid;grid-template-columns:34px minmax(240px,2.2fr) 1fr 108px 120px 118px 96px 92px;align-items:center;gap:10px;padding:0 12px;min-height:44px;border-bottom:1px solid var(--border)}
-.mfg-tr:last-child{border-bottom:0;border-radius:0 0 8px 8px}
-.mfg-thead{background:var(--bg-2);min-height:34px;position:sticky;top:0;z-index:2;border-radius:8px 8px 0 0}
-.mfg-th{font-size:10px;letter-spacing:.07em;text-transform:uppercase;color:var(--text-mute)}
-.mfg-th.r,.mfg-td.r{text-align:right;justify-self:end}
-.mfg-row{cursor:pointer}
-.mfg-row:hover{background:var(--bg-2)}
-.mfg-row.sel{background:color-mix(in oklch,var(--color-primary) 7%,transparent)}
-.mfg-name{display:flex;flex-direction:column;gap:1px;min-width:0}
-.mfg-name b{font-weight:600;font-size:12.5px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.mfg-sku{font-family:var(--font-mono,ui-monospace,monospace);font-size:10.5px;color:var(--text-mute)}
-.mfg-cat{font-size:11.5px;color:var(--text-dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.mfg-cat i{font-style:normal;color:var(--text-mute)}
 .mfg-num{font-family:var(--font-mono,ui-monospace,monospace);font-size:12px;font-variant-numeric:tabular-nums;color:var(--text)}
 .mfg-num.dim{color:var(--text-dim)}
-.mfg-u{color:var(--text-mute);font-size:10.5px;margin-left:3px}
 .mfg-pill{display:inline-flex;align-items:center;gap:4px;border-radius:999px;padding:2px 8px;font-size:10.5px;font-weight:500;border:1px solid}
 .mfg-pill.ok{color:var(--pos);border-color:color-mix(in oklch,var(--pos) 30%,transparent);background:color-mix(in oklch,var(--pos) 8%,transparent)}
 .mfg-pill.warn{color:var(--warn);border-color:color-mix(in oklch,var(--warn) 30%,transparent);background:color-mix(in oklch,var(--warn) 8%,transparent)}
@@ -98,13 +83,7 @@
 .mfg-note{font-size:11.5px;color:var(--text-dim);margin:10px 0 0;line-height:1.5}
 .mfg-note code{font-family:var(--font-mono,ui-monospace,monospace);font-size:10.5px;background:var(--bg-2);padding:1px 4px;border-radius:3px}
 
-/* ── Tabelas variantes ── */
-.mfg-table.op{min-width:1100px}
-.mfg-table.op .mfg-tr{grid-template-columns:96px 120px 130px minmax(220px,1fr) 110px 120px 110px 108px}
-.mfg-table.ins{min-width:900px}
-.mfg-table.ins .mfg-tr{grid-template-columns:minmax(240px,1fr) 120px 140px 130px 100px 160px}
-.mfg-table.rep{min-width:940px}
-.mfg-table.rep .mfg-tr{grid-template-columns:minmax(240px,1fr) 80px 130px 130px 130px 150px}
+/* ── Barra do relatório ── */
 .mfg-bar-mini{display:inline-block;width:64px;height:5px;border-radius:3px;background:var(--bg-2);margin-right:7px;vertical-align:middle;overflow:hidden}
 .mfg-bar-mini i{display:block;height:100%;background:var(--color-primary)}
 .mfg-foot{margin:10px 2px 0;font-size:11.5px;color:var(--text-dim)}
@@ -193,18 +172,6 @@ textarea.mfg-inp{height:auto;padding:7px 9px;line-height:1.45;resize:vertical}
 .mfg-int b{color:var(--text)}
 
 .mfg-toast{position:fixed;top:18px;right:22px;z-index:70;background:var(--surface);border:1px solid var(--color-primary);border-radius:8px;padding:9px 14px;font-size:12.5px;color:var(--text);box-shadow:0 10px 30px rgba(0,0,0,.32)}
-
-/* ── Ordenação / paginação ── */
-.mfg-th.sort{background:none;border:0;padding:0;cursor:pointer;text-align:inherit;font:inherit;letter-spacing:.07em;text-transform:uppercase;font-size:10px;color:var(--text-mute)}
-.mfg-th.sort:hover{color:var(--text)}
-.mfg-th.sort.act{color:var(--color-primary)}
-.mfg-th.sort .ind{margin:0 3px;font-family:var(--font-mono,ui-monospace,monospace)}
-.mfg-pag{display:flex;align-items:center;gap:8px;margin:10px 2px 0;font-size:11.5px;color:var(--text-dim)}
-.mfg-pag .sp{flex:1}
-.mfg-pag button{background:var(--surface);border:1px solid var(--border);border-radius:6px;color:var(--text-dim);height:26px;min-width:26px;padding:0 8px;font:inherit;cursor:pointer}
-.mfg-pag button:hover:not(:disabled){color:var(--text);border-color:var(--color-primary)}
-.mfg-pag button.act{color:var(--color-primary);border-color:var(--color-primary)}
-.mfg-pag button:disabled{opacity:.4;cursor:not-allowed}
 
 /* ── Confirmação ── */
 .mfg-modal.sm{width:min(400px,92vw)}
@@ -320,15 +287,12 @@ textarea.mfg-inp{height:auto;padding:7px 9px;line-height:1.45;resize:vertical}
 /* §11 consequência 1 (ADR 0410): `--text-mute` reprova AA em texto pequeno nos DOIS
    temas (3,24 / 2,92 / 3,18 / 3,94 medidos). Rótulo de coluna, de campo, SKU, unidade
    e meta de trilha saem em `--text-dim`. Troca de token, não cor nova. */
-.mfg-root .mfg-th,
-.mfg-root .mfg-th.sort,
-.mfg-root .mfg-sku,
-.mfg-root .mfg-u,
+.mfg-root .mfg-dg th,
+.mfg-root .mfg-dg .sub,
+.mfg-root .mfg-dg-foot .meta,
 .mfg-root .mfg-fld>span,
 .mfg-root .mfg-sec span,
-.mfg-root .mfg-cat i,
 .mfg-root .mfg-ing .n small{ color: var(--text-dim); }
-.mfg-root .mfg-th.sort.act{ color: var(--color-primary); } /* desempata o §11 acima (0,4,0 > 0,3,0) — razão no Recipes.charter.md */
 
 /* §11 consequência 2 (ADR 0411) — a regra que ficava AQUI virou redundante em 2026-09-04.
    Ela forçava `--accent-2` no texto acentuado do tema escuro porque `--accent` media 2,64:1.
@@ -374,10 +338,39 @@ textarea.mfg-inp{height:auto;padding:7px 9px;line-height:1.45;resize:vertical}
 .mfg-print-host .strip.d i.cinza-6{ background: #111; }
 .mfg-print-host .strip.d i.cinza-7{ background: #000; }
 
-/* ══ Receitas — cabeçalho da tabela como o DataGrid do DS (medido 2026-09-30) ══
-   Escopo `.rec`: só a tabela da Receitas. No DataGrid a coluna ordenada fica na cor do
-   TEXTO (não no primário) e o indicador fica opaco quando a coluna não ordena. Especificidade
-   (0,5,0) acima do (0,4,0) do desempate de `.mfg-root .mfg-th.sort.act` descrito no charter. */
-.mfg-root .mfg-table.rec .mfg-th.sort.act{color:var(--text)}
-.mfg-root .mfg-table.rec .mfg-th.sort .ind{margin:0 0 0 3px;opacity:.4}
-.mfg-root .mfg-table.rec .mfg-th.sort.act .ind{opacity:1}
+
+/* ══ Grade — réplica local do DataGrid do DS (ADR 0388, medido 2026-10-01) ══
+   Fonte: prototipo-ui/design-system/components/DataGrid/DataGrid.jsx, que é a grade das
+   telas do protótipo da Fabricação. Componente: _components/GradeFabricacao.tsx.
+   Única troca de cor: o cabeçalho e o subtítulo saem em --text-dim, não --text-mute
+   (contraste AA, ADR 0410 — bloco acima). */
+.mfg-root .mfg-dg{border:1px solid var(--border);border-radius:var(--radius-lg,12px);overflow:hidden;background:var(--surface);box-shadow:0 1px 2px rgba(0,0,0,.04)}
+.mfg-root .mfg-dg-scroll{overflow:auto}
+.mfg-root .mfg-dg table{width:100%;border-collapse:separate;border-spacing:0;font-size:12.5px;color:var(--text);font-family:var(--font-sans)}
+.mfg-root .mfg-dg th{position:sticky;top:0;z-index:1;background:var(--bg-2);padding:7px 10px;font:600 10px/1.2 var(--font-sans);text-transform:uppercase;letter-spacing:.05em;white-space:nowrap;border-bottom:1px solid var(--border);text-align:left;user-select:none}
+.mfg-root .mfg-dg th.r,.mfg-root .mfg-dg td.r{text-align:right}
+.mfg-root .mfg-dg th button{display:inline-flex;align-items:center;gap:3px;background:none;border:0;padding:0;margin:0;font:inherit;letter-spacing:inherit;text-transform:inherit;color:inherit;cursor:pointer}
+.mfg-root .mfg-dg th button.act{color:var(--text)}
+.mfg-root .mfg-dg th button .ind{opacity:.4}
+.mfg-root .mfg-dg th button.act .ind{opacity:1}
+.mfg-root .mfg-dg td{padding:5px 10px;border-bottom:1px solid var(--border-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:320px}
+.mfg-root .mfg-dg td.r{font-variant-numeric:tabular-nums}
+.mfg-root .mfg-dg td.mono{font-family:var(--font-mono);font-size:12px;letter-spacing:-.01em}
+.mfg-root .mfg-dg tbody tr:nth-child(even) td{background:color-mix(in oklch,var(--bg-2) 55%,transparent)}
+.mfg-root .mfg-dg tbody tr.clic{cursor:pointer}
+.mfg-root .mfg-dg tbody tr.clic:hover td{background:var(--bg-2)}
+.mfg-root .mfg-dg tbody tr.sel td{background:var(--accent-soft)}
+.mfg-root .mfg-dg .chk{width:34px;text-align:center}
+.mfg-root .mfg-dg input[type=checkbox]{accent-color:var(--color-primary);width:13px;height:13px;margin:0;cursor:pointer;vertical-align:middle}
+.mfg-root .mfg-dg .pri{display:block;font-weight:600;font-size:12.5px;letter-spacing:-.006em;overflow:hidden;text-overflow:ellipsis}
+.mfg-root .mfg-dg .sub{display:block;font-size:11px;overflow:hidden;text-overflow:ellipsis}
+.mfg-root .mfg-dg-foot{display:flex;align-items:center;justify-content:flex-end;gap:12px;flex-wrap:wrap;padding:7px 10px;border-top:1px solid var(--border);background:var(--bg-2)}
+.mfg-root .mfg-dg-pag{display:inline-flex;align-items:center;gap:8px}
+.mfg-root .mfg-dg-pag .bts{display:inline-flex;align-items:center;gap:4px}
+.mfg-root .mfg-dg-pag button{display:inline-flex;align-items:center;justify-content:center;min-width:28px;height:28px;padding:0 8px;border:1px solid var(--border);border-radius:8px;background:transparent;color:var(--text-dim);font:500 12.5px/1 var(--font-sans);font-variant-numeric:tabular-nums;cursor:pointer}
+.mfg-root .mfg-dg-pag button.edge{width:28px;padding:0}
+.mfg-root .mfg-dg-pag button[aria-current=page]{background:var(--color-primary);color:var(--color-primary-foreground);border-color:transparent;font-weight:600}
+.mfg-root .mfg-dg-pag button:disabled{opacity:.45;cursor:not-allowed}
+.mfg-root .mfg-dg-pag .ell{padding:0 2px;font-size:11.5px}
+.mfg-root .mfg-dg-foot .meta{padding-left:12px;font:400 11.5px/1 var(--font-sans);font-variant-numeric:tabular-nums}
+.mfg-root .mfg-dg-foot .meta b{font-weight:600}

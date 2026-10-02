@@ -5,8 +5,13 @@ tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (
 por_que: comportamento é durável — o contrato de teste nasce junto com a tela, não depois.
 fonte: handoff "PROTÓTIPO OFICIAL - FABRICAÇÃO V1" §17 (R-01..R-24) — os UC abaixo DERIVAM dele
 owner: wagner
-last_run: "2026-09-30"
+last_run: "2026-10-01"
 ---
+
+> ℹ️ **`last_run` 2026-09-30 → 2026-10-01 (G-6): forma, não regra de negócio.** A lista de
+> `Recipes.tsx` passou a ser a réplica local do `DataGrid` do DS (`_components/GradeFabricacao.tsx`,
+> ADR 0388): `<table>` de verdade, linhas listradas, cabeçalho 10px caixa-alta. Os dados, os filtros e
+> o que cada linha abre são os mesmos. O que muda de visível: a caixa de seleção virou a nativa do DataGrid e o rodapé "a–b de N receitas" aparece sempre que há receita (antes só acima de 10).
 
 > ℹ️ **`last_run` 2026-09-11 → 2026-09-30 (G-6): forma, não comportamento.** A promoção do protótipo
 > trocou os cartões pelo `KpiCard` do DS, a margem pelo `StatusBadge`, e o cabeçalho e o alinhamento da

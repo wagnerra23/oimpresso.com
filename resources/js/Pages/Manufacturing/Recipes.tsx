@@ -23,7 +23,6 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Pencil, Plus, Printer, Search } from 'lucide-react';
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Button } from '@/Components/ui/button';
-import { Checkbox } from '@/Components/ui/checkbox';
 import KpiCard from '@/Components/shared/KpiCard';
 import { Segmented } from '@/Components/ui/segmented';
 import StatusBadge from '@/Components/shared/StatusBadge';
@@ -31,6 +30,7 @@ import FichaPrint from './_components/FichaPrint';
 import { faixaMargem, fmt, num, rotuloCustoExtra } from './_lib/formato';
 import type { ContadoresProducao, Permissoes, Receita } from './_lib/tipos';
 import FabricacaoAbas from './_components/FabricacaoAbas';
+import GradeFabricacao, { type ColunaGrade } from './_components/GradeFabricacao';
 import '../../../css/cowork-manufacturing-bundle.css';
 
 interface Props {
@@ -134,21 +134,53 @@ export default function Recipes({ recipes = [], permissions, producao, settings 
   const aberta = recipes.find((r) => r.id === openId) ?? null;
   const selecionadas = recipes.filter((r) => sel.includes(r.id));
 
-  // Cabeçalho como o `DataGrid` do DS (`prototipo-ui/design-system/components/DataGrid`): o
-  // indicador vem SEMPRE depois do rótulo — ↕ quando a coluna não ordena, ↑/↓ quando ordena.
-  // Até 2026-09-30 as colunas de número punham ⇵ ANTES do rótulo.
-  const Th = ({ k, children, r: right }: { k: ChaveOrd; children: ReactNode; r?: boolean }) => (
-    <button
-      type="button"
-      className={`mfg-th sort${right ? ' r' : ''}${ord.k === k ? ' act' : ''}`}
-      onClick={() => ordenar(k)}
-    >
-      {children}
-      <span className="ind" aria-hidden>
-        {ord.k === k ? (ord.dir === 'asc' ? '↑' : '↓') : '↕'}
-      </span>
-    </button>
-  );
+  // Colunas como o `COLS` do protótipo (manufacturing-page.jsx): a grade é a réplica local do
+  // `DataGrid` do DS (`_components/GradeFabricacao.tsx`).
+  const COLUNAS: ColunaGrade<Receita>[] = [
+    {
+      key: 'name',
+      label: 'Receita',
+      sortable: true,
+      render: (r) => (
+        <>
+          <b className="pri">{r.name}</b>
+          <small className="sub">
+            {r.sku} · {r.n_ingredientes} ingrediente{r.n_ingredientes === 1 ? '' : 's'}
+          </small>
+        </>
+      ),
+    },
+    { key: 'cat', label: 'Categoria', sortable: true, render: (r) => `${r.cat} / ${r.sub}` },
+    // R-09 — a coluna DECLARA a unidade que está exibindo. Com sub-unidade de saída, mostra a
+    // quantidade convertida COM o rótulo da sub-unidade.
+    {
+      key: 'qtd',
+      label: 'Quantidade',
+      align: 'right',
+      mono: true,
+      sortable: true,
+      render: (r) =>
+        `${r.sub_un && r.sub_fator ? num(r.custos.qtd_liq * r.sub_fator, 2) : num(r.custos.qtd_liq, 2)} ${r.sub_un ?? r.un}`,
+    },
+    { key: 'total', label: 'Custo total', align: 'right', mono: true, sortable: true, render: (r) => fmt(r.custos.total) },
+    { key: 'unit', label: 'Custo unitário', align: 'right', mono: true, sortable: true, render: (r) => fmt(r.custos.unit) },
+    { key: 'venda', label: 'Venda', align: 'right', mono: true, sortable: true, render: (r) => fmt(r.venda) },
+    {
+      key: 'margem',
+      label: 'Margem',
+      align: 'right',
+      sortable: true,
+      // R-10 — 3 faixas, no `StatusBadge` do DS como no protótipo.
+      render: (r) => (
+        <StatusBadge
+          kind="margem"
+          value={faixaMargem(r.custos.margem)}
+          label={`${num(r.custos.margem, 0)}%`}
+          tone={TOM_MARGEM[faixaMargem(r.custos.margem)]}
+        />
+      ),
+    },
+  ];
 
   return (
     <div className="mfg-root" data-screen-label="Fabricação · Receitas">
@@ -275,118 +307,31 @@ export default function Recipes({ recipes = [], permissions, producao, settings 
       </div>
 
       <div className="mfg-tablewrap" data-contract="lista">
-        <div className="mfg-table rec">
-          <div className="mfg-tr mfg-thead">
-            <Checkbox
-              checked={allSel}
-              onCheckedChange={() => setSel(allSel ? [] : filtradas.map((r) => r.id))}
-              aria-label="Selecionar todas"
-            />
-            <Th k="name">Receita</Th>
-            <Th k="cat">Categoria</Th>
-            <Th k="qtd" r>
-              Quantidade
-            </Th>
-            <Th k="total" r>
-              Custo total
-            </Th>
-            <Th k="unit" r>
-              Custo unitário
-            </Th>
-            <Th k="venda" r>
-              Venda
-            </Th>
-            <Th k="margem" r>
-              Margem
-            </Th>
-          </div>
-
-          {visiveis.map((r) => (
-            <div
-              key={r.id}
-              role="button"
-              tabIndex={0}
-              className={`mfg-tr mfg-row${sel.includes(r.id) ? ' sel' : ''}`}
-              onClick={() => setOpenId(r.id)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault();
-                  setOpenId(r.id);
-                }
-              }}
-            >
-              <Checkbox
-                checked={sel.includes(r.id)}
-                // §4.2 — clicar no checkbox NÃO abre o drawer.
-                onClick={(e) => e.stopPropagation()}
-                onCheckedChange={() =>
-                  setSel((s) => (s.includes(r.id) ? s.filter((x) => x !== r.id) : [...s, r.id]))
-                }
-                aria-label={`Selecionar ${r.name}`}
-              />
-              <span className="mfg-name">
-                <b>{r.name}</b>
-                <span className="mfg-sku">
-                  {r.sku} · {r.n_ingredientes} ingrediente{r.n_ingredientes === 1 ? '' : 's'}
-                </span>
-              </span>
-              <span className="mfg-cat">
-                {r.cat} <i>/ {r.sub}</i>
-              </span>
-              {/* R-09 — a coluna DECLARA a unidade que está exibindo. Com sub-unidade de
-                  saída, mostra a quantidade convertida COM o rótulo da sub-unidade. */}
-              <span className="mfg-td mfg-num r">
-                {r.sub_un && r.sub_fator
-                  ? num(r.custos.qtd_liq * r.sub_fator, 2)
-                  : num(r.custos.qtd_liq, 2)}
-                <span className="mfg-u">{r.sub_un ?? r.un}</span>
-              </span>
-              <span className="mfg-td mfg-num r">{fmt(r.custos.total)}</span>
-              <span className="mfg-td mfg-num r">{fmt(r.custos.unit)}</span>
-              <span className="mfg-td mfg-num dim r">{fmt(r.venda)}</span>
-              <span className="mfg-td r">
-                {/* R-10 — 3 faixas, agora no `StatusBadge` do DS como no protótipo. */}
-                <StatusBadge
-                  kind="margem"
-                  value={faixaMargem(r.custos.margem)}
-                  label={`${num(r.custos.margem, 0)}%`}
-                  tone={TOM_MARGEM[faixaMargem(r.custos.margem)]}
-                />
-              </span>
-            </div>
-          ))}
-
-          {filtradas.length === 0 && (
-            <div className="mfg-empty">
-              <b>Nenhuma receita encontrada</b>
-              <span>Ajuste a busca, troque a categoria ou limpe o filtro de KPI.</span>
-            </div>
-          )}
-        </div>
-
-        {filtradas.length > POR_PAG && (
-          <div className="mfg-pag">
-            <span>
-              {(pagina - 1) * POR_PAG + 1}–{Math.min(pagina * POR_PAG, filtradas.length)} de{' '}
-              {filtradas.length}
-            </span>
-            <span className="sp" />
-            <button type="button" disabled={pagina === 1} onClick={() => setPag(pagina - 1)}>
-              ‹
-            </button>
-            {Array.from({ length: nPags }, (_, i) => i + 1).map((n) => (
-              <button
-                type="button"
-                key={n}
-                className={n === pagina ? 'act' : ''}
-                onClick={() => setPag(n)}
-              >
-                {n}
-              </button>
-            ))}
-            <button type="button" disabled={pagina === nPags} onClick={() => setPag(pagina + 1)}>
-              ›
-            </button>
+        {filtradas.length > 0 ? (
+          <GradeFabricacao<Receita>
+            caption="Receitas"
+            colunas={COLUNAS}
+            linhas={visiveis}
+            idDe={(r) => r.id}
+            rotuloDe={(r) => r.name}
+            ordem={ord}
+            onOrdenar={(k) => ordenar(k as ChaveOrd)}
+            selecao={{
+              ids: sel,
+              todas: allSel,
+              algumas: sel.length > 0,
+              // R-08 — "selecionar todas" marca as FILTRADAS, não só as visíveis.
+              onAlternarTodas: (on) => setSel(on ? filtradas.map((r) => r.id) : []),
+              onAlternar: (id) =>
+                setSel((s) => (s.includes(id as number) ? s.filter((x) => x !== id) : [...s, id as number])),
+            }}
+            onLinha={(r) => setOpenId(r.id)}
+            paginacao={{ pagina, porPagina: POR_PAG, total: filtradas.length, rotulo: 'receitas', onPagina: setPag }}
+          />
+        ) : (
+          <div className="mfg-empty">
+            <b>Nenhuma receita encontrada</b>
+            <span>Ajuste a busca, troque a categoria ou limpe o filtro de KPI.</span>
           </div>
         )}
       </div>

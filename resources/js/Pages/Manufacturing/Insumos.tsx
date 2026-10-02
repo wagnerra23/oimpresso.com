@@ -16,6 +16,8 @@ import AppShellV2 from '@/Layouts/AppShellV2';
 import { Input } from '@/Components/ui/input';
 import { fmt, num } from './_lib/formato';
 import FabricacaoAbas from './_components/FabricacaoAbas';
+import GradeFabricacao, { type ColunaGrade } from './_components/GradeFabricacao';
+import StatusBadge from '@/Components/shared/StatusBadge';
 import '../../../css/cowork-manufacturing-bundle.css';
 
 interface LinhaInsumo {
@@ -102,6 +104,33 @@ export default function Insumos({
 
   const sel = selecionado ? (insumos.find((i) => i.variation_id === selecionado) ?? null) : null;
 
+  // Colunas como o `DataGrid` do protótipo (manufacturing-insumos.jsx).
+  const COLUNAS: ColunaGrade<LinhaInsumo>[] = [
+    { key: 'n', label: 'Insumo', render: (i) => i.nome },
+    { key: 'sku', label: 'Código', mono: true, render: (i) => i.sku },
+    { key: 'c', label: 'Custo', align: 'right', mono: true, render: (i) => `${fmt(i.custo)} / ${i.unidade}` },
+    { key: 'est', label: 'Estoque', align: 'right', mono: true, render: (i) => `${num(i.estoque, 0)} ${i.unidade}` },
+    { key: 'rec', label: 'Receitas', align: 'right', mono: true, render: (i) => i.n_receitas || '—' },
+    {
+      key: 'peso',
+      label: 'Maior peso',
+      align: 'right',
+      // O estado "sem receita" não ocorre com a derivação atual da lista — o caminho fica aqui
+      // de propósito (RUNBOOK-insumos.md §2).
+      render: (i) =>
+        i.n_receitas ? (
+          <StatusBadge
+            kind="peso"
+            value={i.maior_peso >= 50 ? 'alto' : i.maior_peso >= 25 ? 'medio' : 'baixo'}
+            label={`${num(i.maior_peso, 0)}% do custo`}
+            tone={i.maior_peso >= 50 ? 'danger' : i.maior_peso >= 25 ? 'warning' : 'success'}
+          />
+        ) : (
+          'sem receita'
+        ),
+    },
+  ];
+
   return (
     <div className="mfg-root" data-screen-label="Fabricação · Insumos">
       <div className="os-page-h" data-contract="cabecalho">
@@ -127,73 +156,27 @@ export default function Insumos({
       </div>
 
       <div className="mfg-tablewrap" data-contract="lista">
-        <div className="mfg-table ins">
-          <div className="mfg-tr mfg-thead">
-            <span className="mfg-th">Insumo</span>
-            <span className="mfg-th">Código</span>
-            <span className="mfg-th r">Custo</span>
-            <span className="mfg-th r">Estoque</span>
-            <span className="mfg-th r">Receitas</span>
-            <span className="mfg-th r">Maior peso</span>
+        {filtrados.length > 0 ? (
+          <GradeFabricacao<LinhaInsumo>
+            caption="Insumos"
+            colunas={COLUNAS}
+            linhas={filtrados}
+            idDe={(i) => i.variation_id}
+            // Toda linha desta lista é clicável por construção — a derivação só traz insumo COM
+            // receita (RUNBOOK-insumos.md §2). O guarda de n_receitas fica aqui mesmo assim.
+            clicavel={(i) => !!i.n_receitas}
+            onLinha={(i) => abrir(i.variation_id)}
+          />
+        ) : (
+          <div className="mfg-empty">
+            <b>Nenhum insumo encontrado</b>
+            <span>
+              {insumos.length === 0
+                ? 'Nenhuma receita deste negócio declara ingredientes ainda.'
+                : 'Ajuste a busca para ver mais resultados.'}
+            </span>
           </div>
-
-          {filtrados.map((i) => (
-            <div
-              key={i.variation_id}
-              className={`mfg-tr${i.n_receitas ? ' mfg-row' : ''}`}
-              // role/tabIndex incondicionais (igual Recipes.tsx): toda linha desta lista é
-              // clicável por construção — a derivação só traz insumo COM receita
-              // (RUNBOOK-insumos.md §2). Os guardas de n_receitas ficam nos handlers.
-              role="button"
-              tabIndex={0}
-              onClick={() => i.n_receitas && abrir(i.variation_id)}
-              onKeyDown={(e) => {
-                if (i.n_receitas && (e.key === 'Enter' || e.key === ' ')) {
-                  e.preventDefault();
-                  abrir(i.variation_id);
-                }
-              }}
-            >
-              <span className="mfg-name">
-                <b>{i.nome}</b>
-              </span>
-              <span className="mfg-sku">{i.sku}</span>
-              <span className="mfg-num r">
-                {fmt(i.custo)}
-                <span className="mfg-u">/ {i.unidade}</span>
-              </span>
-              <span className="mfg-num dim r">
-                {num(i.estoque, 0)}
-                <span className="mfg-u">{i.unidade}</span>
-              </span>
-              <span className="mfg-num r">{i.n_receitas || '—'}</span>
-              <span className="r">
-                {/* O estado "sem receita" não ocorre com a derivação atual da lista — o
-                    caminho fica aqui de propósito (RUNBOOK-insumos.md §2). */}
-                {i.n_receitas ? (
-                  <span
-                    className={`mfg-pill ${i.maior_peso >= 50 ? 'bad' : i.maior_peso >= 25 ? 'warn' : 'ok'}`}
-                  >
-                    {num(i.maior_peso, 0)}% do custo
-                  </span>
-                ) : (
-                  <span className="mfg-cat">sem receita</span>
-                )}
-              </span>
-            </div>
-          ))}
-
-          {filtrados.length === 0 && (
-            <div className="mfg-empty">
-              <b>Nenhum insumo encontrado</b>
-              <span>
-                {insumos.length === 0
-                  ? 'Nenhuma receita deste negócio declara ingredientes ainda.'
-                  : 'Ajuste a busca para ver mais resultados.'}
-              </span>
-            </div>
-          )}
-        </div>
+        )}
       </div>
 
       {sel && (
