@@ -453,6 +453,7 @@ recente primeiro.
 - **Escrita** (gerar, consultar, cancelar): ainda **não existe** — vem em PR próprio, pela regra mestre
   (dupla prova + antes→depois + ok do [W]).
 
+
 ## 11. Oficina — Onda D (Modules/OficinaAuto)
 
 Área `oficina` em `areas` (§6): módulo `oficina_auto_module` no pacote do business (Camada 1;
