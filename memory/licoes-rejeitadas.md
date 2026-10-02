@@ -3094,3 +3094,22 @@ Ocorrência da **LC-15**.
 - **Defesa.** Nenhuma nova. As duas sondas existem e funcionam; o que faltou foi rodá-las.
 
 Ocorrência da **LC-19**.
+
+### 2026-10-02 — EMENDA da lápide 2026-08-13 (retrato atrasado): uma leitura minha, à mão, numa janela de deploy, virou comentário de canon e tirou uma defesa do deploy
+
+- **O que aconteceu.** Para escolher a sonda da chave pública do Passport, rodei uma vez `curl -H 'Accept: application/json' -H 'Authorization: Bearer x.y.z' https://oimpresso.com/api/app/inicio` e recebi `404 "route could not be found"`. Concluí que token inválido não servia de sonda, tirei do #8538 o step que conferia a leitura da chave e escrevi no comentário do `deploy.yml` que o 404 era o comportamento de produção.
+- **Por que caiu.** A sessão da conta demo mediu 401 com `token-invalido`. Remedi com a minha forma (`x.y.z`) e deu 401. O 404 foi da janela em que deploys estavam enfileirando e sendo cancelados, não da rota.
+- **O limite (variante também proibida):** resposta de produção lida uma vez, durante deploy, não vira afirmação sobre o comportamento da rota. Antes de escrever em canon (comentário, ADR, PR body), repetir a leitura fora da janela de deploy. E não se remove uma defesa com base numa sonda que eu mesmo não confirmei.
+- **Conserto.** #8544 repõe a conferência com as duas sondas sem credencial (pública 401, privada 400 em `/oauth/token` com usuário inexistente) e corrige o comentário.
+
+Ocorrência da **LC-24**.
+
+### 2026-10-02 — Tamanho da CÉLULA lido como tamanho do TEXTO na comparação app × protótipo
+
+- **O que aconteceu.** Na comparação medida das 7 telas do app, reportei Tarefas com texto de 15px contra 14px do protótipo e pedi a correção. Os 15px vinham de duas células sem texto (o marcador da linha e o `›`), herdados do botão. O texto visível batia.
+- **Por que caiu.** O snapshot do `design-diff` traz `blocos` por célula. Eu li `fontPx` sem olhar `blocos`, e célula com 0 blocos não tem texto para medir.
+- **O limite (variante também proibida):** divergência de tipografia de célula só se reporta quando a célula tem bloco de texto nos dois lados. `fontPx` de container é herança, não texto.
+- **Defesa.** A sessão do app pediu os seletores antes de mexer e não reproduziu; o item foi retirado e o #22 do app saiu só com as duas correções reais.
+
+Ocorrência da **LC-08**.
+

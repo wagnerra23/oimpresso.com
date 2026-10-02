@@ -57,6 +57,19 @@ Sem cadastro de ponto → `403 sem_colaborador`.
 com a regra mestre cumprida. Na v1 o app mostra o botão contextual desabilitado com "Abrir no
 computador".
 
+### 2.1 Orçamentos (tela 04) — só leitura
+
+`GET /api/app/orcamentos?status=todos|rascunho|enviado|aprovado|convertido&pagina=N` →
+`{ itens:[{id, numero, titulo, cliente, validade, status, valor, area_m2, itens}], contadores{todos,
+rascunho, enviado, aprovado, convertido}, pagina, tem_mais }`, 20 por página, mais recente primeiro.
+
+- Orçamento no ERP é venda em **rascunho** (`status=draft`); com `sub_status=quotation` foi
+  **enviado** ao cliente (mesma regra do `InitialStageResolver`). **Aprovado** = etapa
+  `quote_approved`. **Convertido** = venda `final` cujo histórico da FSM passou por etapa de orçamento.
+- `titulo` = nome do 1º item; `itens` = nº de itens. `validade` e `area_m2` saem `null` (o ERP não
+  guarda validade de orçamento nem área por venda).
+- Mesmas permissões e visibilidade de Pedidos; a área `orcamentos` entra em `areas` (§6) para quem vê vendas.
+
 ## 3. Tarefas ⬜ — ToDo + justificativas do Ponto (D11)
 
 `GET /api/app/tarefas?origem=todas|todo|ponto`
@@ -75,6 +88,18 @@ computador".
 - `grupo` ∈ `atrasadas · hoje · amanha · semana · depois`.
 - Escrita v1: `POST /api/app/tarefas/todo/{id}/concluir` (só ToDo do próprio usuário).
 
+### 3.1 Detalhe da tarefa (tela 28) — só leitura
+
+`GET /api/app/tarefas/todo/{id}` →
+`{ id: "todo:15", titulo, descricao, modulo, responsavel, cliente, prazo, atrasado, origem,
+checklist:[{texto, feito}], comentarios:[{quando, autor, texto, detalhe}], concluida }`
+
+- Mesmo escopo do §3 (admin vê as da empresa; os demais, as criadas por eles ou atribuídas a
+  eles), concluída ou não. Fora disso, ou de outra empresa → 404. Sem o Essentials no plano → 403.
+- `modulo` = o rótulo da lista (`Tarefa · alta`); `responsavel` = os atribuídos, separados por vírgula.
+- O ToDo do Essentials não tem checklist, cliente nem origem: `checklist: []`, `cliente`/`origem`
+  `null`. Comentários do mais antigo para o mais novo; `detalhe` sai `null`.
+
 ## 4. Pessoas ⬜
 
 `GET /api/app/pessoas?papel=todos|clientes|fornecedores|funcionarios|em_debito&q=&pagina=`
@@ -92,7 +117,41 @@ computador".
 - Respeita `view_own` (corrigido no #8469) — mesma regra da lista web.
 - `GET /api/app/pessoas/{id}` → `{id, nome, tipo, documento, papeis, contato{telefone, email},
   endereco, kpis{pedidos, ticket_medio, saldo_aberto}, pedidos_recentes[…]}`. Documento (CPF/CNPJ)
-  só com a permissão de ver contato completo.
+  vem para quem pode ver a pessoa, igual à ficha web. Correção 2026-10-02: a versão anterior
+  dizia "só com a permissão de ver contato completo", mas essa permissão não existe no ERP — a
+  ficha web mostra o documento inteiro para `customer.view`/`customer.view_own` (o
+  `maskTaxNumber` do ContactController só formata, não esconde).
+  **Decisão [W] 2026-10-02 ("faça todas"):** no app o **CPF sai mascarado**, só com os 5 últimos
+  dígitos (`***.***.789-09`); o **CNPJ sai inteiro**, formatado, porque é dado público da empresa.
+  A ficha web não muda.
+
+### 4.1 Ficha cadastral (tela 34) — só leitura
+
+`GET /api/app/pessoas/{id}/cadastro` → `{ id, nome, tipo,
+identificacao{razao_social, documento, indicador_ie, papeis[]},
+endereco_fiscal{cidade, uf, cep, codigo_ibge, email_nfe},
+comercial{classificacao, limite_credito, prazo_padrao_dias},
+consentimento{whatsapp, email_nfe, sms, registrado_em} }`. Mesmas permissões e escopo do §4;
+documento com a mesma máscara (CPF parcial, CNPJ inteiro). Campo sem dado sai `null` (a tela mostra
+"—"). `classificacao` sai `null`: o ERP não tem classificação ABC do cliente (`segmento` é ramo de negócio, outra coisa); `prazo_padrao_dias` converte meses em 30 dias; `sms` não
+tem coluna no ERP e sai sempre `null`. Pessoa de outra empresa: 404.
+
+### 4.2 Nova pessoa (tela 09) — escrita
+
+`POST /api/app/pessoas` com
+`{ tipo: "PF"|"PJ", nome, nome_fantasia, documento, indicador_ie (1|2|9), papeis: ["cliente"|"fornecedor"],
+telefone, email, email_nfe, cep, logradouro, numero, complemento, bairro, cidade, uf, codigo_ibge,
+prazo_padrao_dias, consentimento: { whatsapp, email_nfe } }` (só `tipo`, `nome` e `papeis` obrigatórios).
+
+- `201 { id }` · `422 { erro: "validacao", campos: { <campo>: "mensagem" } }` (regras da web: CPF/CNPJ por
+  dígito verificador, e-mail válido) · `403 { erro: "sem_permissao" }`.
+- Permissão por papel pedido, como na web: cliente exige `customer.create`; fornecedor, `supplier.create`.
+- Grava pelo mesmo caminho do `ContactController::store` (`ContactUtil::createNewContact` + evento +
+  log de atividade), no business do token; um `business_id` no corpo é ignorado.
+- Fora do app: papel `funcionario`, saldo inicial e limite de crédito (valor fica no ERP web);
+  número de WhatsApp separado e classificação ABC não existem no ERP.
+- `consentimento` grava `whatsapp_consent` / `email_consent` e a data em `consent_updated_at`
+  (LGPD Art. 7º, I); chave ausente não altera nada.
 
 ## 5. Produção ⬜ — fila por **etapa da venda** ([W] 2026-10-02)
 
@@ -100,15 +159,16 @@ computador".
 
 ```json
 { "colunas": [ {
-    "id": "in_production", "rotulo": "Em produção",
+    "id": "in_production", "rotulo": "Em produção", "total": 63,
     "itens": [ "…mesmo item da lista de pedidos (§2)…" ] } ] }
 ```
 
 - Decisão [W] 2026-10-02: *"Produção usa as etapas da venda"* — mesma entidade de Pedidos.
 - Colunas fixas, nesta ordem: `quote_approved` (aprovado pelo cliente, na fila) · `in_production` ·
   `on_hold` · `ready_for_invoice` (pronto). Rótulo = nome do estágio cadastrado no business.
-- Mesmas permissões e regras de visibilidade de Pedidos; até 50 itens por coluna, prazo mais
-  próximo primeiro. Só leitura (mover de etapa é ação FSM, fora da v1). Sem carga % (D11).
+- Mesmas permissões e regras de visibilidade de Pedidos; até 50 itens **por coluna** (o limite
+  é de cada coluna, uma etapa cheia não esvazia as outras), prazo mais próximo primeiro.
+  `total` = quantos pedidos a coluna tem de fato (o app mostra "N" mesmo quando passa de 50). Só leitura (mover de etapa é ação FSM, fora da v1). Sem carga % (D11).
 
 ## 6. Início ⬜
 
@@ -120,8 +180,18 @@ computador".
   "meta_dia": { "valor": 2000.00, "derivada": true },
   "kpis": { "pedidos_ativos": 12, "pedidos_atrasados": 3, "estoque_baixo": 2 },
   "financeiro": { "a_receber": 8200.00, "a_pagar": 3100.00 },
-  "proximas_tarefas": [ "…mesmo item de /tarefas, até 3…" ] }
+  "proximas_tarefas": [ "…mesmo item de /tarefas, até 3…" ],
+  "perfil": "erp", "abre_em": "inicio",
+  "areas": [ "inicio", "tarefas", "pedidos", "producao", "pessoas", "ponto", "mais" ] }
 ```
+
+- `perfil`, `abre_em` e `areas` (D6 [W]: *"perfil colaborador abre no ponto"*): `areas` lista as
+  abas que o usuário pode abrir, na ordem do app. Cada uma segue a mesma regra da rota dela, então
+  aba visível = rota que responde: `tarefas` = Essentials no plano ou quem aprova o Ponto;
+  `pedidos`/`producao`/`orcamentos` = quem vê vendas; `pessoas` = quem vê cliente ou fornecedor; `ponto` =
+  colaborador com `controla_ponto`; `inicio` só para perfil `erp`; `mais` sempre.
+  `perfil` = `erp` se tem tarefas, vendas ou pessoas, senão `colaborador`. `abre_em` = `inicio`
+  (erp), `ponto` (colaborador) ou `mais` (sem nenhuma das duas).
 
 - `faturado_hoje` e `meta_dia`: só com `dashboard.data` (senão `null`). Meta do dia = meta mensal
   da Jana ÷ dias úteis do mês (D11), sempre com `derivada: true`.
@@ -129,6 +199,21 @@ computador".
   Financeiro (senão `null`).
 - Atalhos (Novo pedido, Venda rápida, Cobrar PIX, Conciliar) ficam fora da v1 — são v2 ou tela de
   computador.
+
+### 6.1 Notificações (tela 16) — só leitura
+
+`GET /api/app/notificacoes?pagina=N` →
+`{ itens:[{id, origem, titulo, texto, lida, quando, destino:{tipo, id}}], nao_lidas, pagina, tem_mais }`,
+20 por página, mais recente primeiro.
+
+- Fonte: a tabela `notifications` do Laravel, a mesma do sino da web, só as do usuário do token.
+  O texto (`titulo`) sai de `Util::parseNotifications`, o mesmo tradutor da web; `texto` vem `null`.
+- `origem` = chip pelo tipo da notificação: `FIN` (recorrentes), `TAR` (tarefa), `RH` (demais do
+  Essentials), `CRM`, `IA` (Jana), `PAT`, `LOJ`, `DOC`; o resto sai `SIS`.
+- `destino` só vem preenchido quando a notificação carrega o id de uma tela do app (hoje: tarefa nova
+  → `{tipo:"tarefa", id:"todo:15"}`); nos outros casos, `{tipo:null, id:null}`.
+- `GET /api/app/inicio` passa a trazer `nao_lidas` (int), para o ponto no sino.
+- Marcar como lida (`POST .../{id}/lida` e `.../lidas`) vem em PR separado.
 
 ## 7. Mais
 
@@ -149,3 +234,23 @@ Início + item no Mais.)
 1. Pedidos (lista + detalhe, só leitura) · 2. Tarefas (+ concluir ToDo) · 3. Pessoas ·
 4. Produção · 5. Início (agrega os anteriores).
 Cada um em PR próprio com teste de contrato na lane MySQL e entrada neste documento (⬜ → ✅).
+
+## 8. Todas as 40 telas — D16 ([W] 2026-10-02)
+
+Substitui o escopo de 7 áreas (D13) e o "Dashboard fora" (D15). Já no app (13): 00 Login · 01 Início ·
+02 Produção · 10 Mais · 12 Tarefas · 17 Pessoas · 18 Ficha · 21 Pedidos · 22 Pedido · 36 Bater ponto ·
+37 Meu espelho · 38 Justificar · Conta. Faltam 27, em 5 ondas. Cada tela = 1 PR de API no ERP (com teste
+de contrato na lane MySQL) + 1 PR de tela no `oimpresso-app`, contra este contrato.
+
+| Onda | Telas | Escreve valor/estoque? |
+|---|---|---|
+| A — Pessoas, vendas e tarefas | 09 Nova pessoa · 34 Ficha cadastral · 04 Orçamentos · 28 Detalhe da tarefa · 16 Notificações · 11 Venda rápida | 11 sim (regra mestre) |
+| B — Produtos e estoque | 19 Produtos · 20 Novo produto · 05 Estoque · 29 Movimentações · 27 Detalhe da OP | 29 e 20 (preço) sim |
+| C — Financeiro | 06 Financeiro · 15 Pagamentos · 14 Fiscal · 13 Relatórios · 35 Dashboard | 15 sim |
+| D — Oficina | 07 Ordens de serviço · 03 OS · 08 Veículos · 23 Manutenção · 24 Equipamentos · 31 Equipamento · 32 Novo equipamento · 33 Locais | 03 (faturar) sim |
+| E — Equipe e ajustes | 25 Chat · 26 Equipe · 30 Perfil de menu · 39 Marcações a validar | não |
+
+- A aba e a tela só aparecem para quem tem acesso: cada área nova entra em `areas` (§6) com a regra da rota dela.
+- Leitura primeiro; a ação que escreve vem num PR separado. Em valor ou estoque: dupla prova, tabela antes→depois e ok do [W] antes do merge.
+- Tela de módulo que o business não tem no pacote não aparece (Camada 1).
+

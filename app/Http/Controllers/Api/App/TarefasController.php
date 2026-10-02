@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api\App;
 
+use App\Contracts\Tarefas\JustificativasPonto;
+use App\Contracts\Tarefas\TarefasEssentials;
 use App\Http\Controllers\Controller;
 use App\User;
 use App\Utils\ModuleUtil;
@@ -11,11 +13,6 @@ use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\DB;
-use Modules\Essentials\Entities\ToDo;
-use Modules\Essentials\Services\TodoService;
-use Modules\Ponto\Entities\Intercorrencia;
-use Modules\Ponto\Http\Middleware\CheckPontoAccess;
 
 /**
  * Tarefas do app das lojas (oimpresso-app). Contrato: memory/requisitos/AppMobile/API-CONTRATO-v1.md §3.
@@ -28,11 +25,18 @@ use Modules\Ponto\Http\Middleware\CheckPontoAccess;
  *   vê as justificativas PENDENTES da empresa; o colaborador vê só as próprias pendentes.
  *
  * Tier 0 (ADR 0093): business_id do usuário do token, explícito em toda consulta.
+ *
+ * Os dois módulos entram por contrato do núcleo (app/Contracts/Tarefas), implementado e
+ * registrado em cada módulo — a seta de dependência fica módulo → núcleo. Sem o módulo,
+ * vale a implementação vazia de app/Contracts/Tarefas/Nulo.
  */
 class TarefasController extends Controller
 {
-    public function __construct(private ModuleUtil $moduleUtil, private TodoService $todos)
-    {
+    public function __construct(
+        private ModuleUtil $moduleUtil,
+        private TarefasEssentials $todos,
+        private JustificativasPonto $justificativas,
+    ) {
     }
 
     public function index(Request $request): JsonResponse
@@ -70,18 +74,70 @@ class TarefasController extends Controller
             return response()->json(['erro' => 'sem_permissao', 'mensagem' => 'Sua empresa não tem o módulo de tarefas.'], 403);
         }
 
-        /** @var ToDo|null $todo */
-        $todo = $this->todos->scopedQueryForUser($bizId, $user)->find($id);
-        if (! $todo) {
+        if (! $this->todos->concluir($user, $bizId, $id)) {
             return response()->json(['erro' => 'nao_encontrado', 'mensagem' => 'Tarefa não encontrada.'], 404);
         }
 
-        $todo->update(['status' => 'completed']);
+        return response()->json(['id' => 'todo:' . $id, 'concluida' => true]);
+    }
 
-        return response()->json(['id' => 'todo:' . $todo->id, 'concluida' => true]);
+    /**
+     * GET /api/app/tarefas/todo/{id} — detalhe da ToDo (tela 28), só se visível ao usuário (§3.1).
+     * O Essentials não tem checklist, cliente nem origem: saem vazios, e a tela se adapta.
+     */
+    public function todo(Request $request, int $id): JsonResponse
+    {
+        $user = $request->user();
+        $bizId = (int) $user->business_id;
+
+        if (! $this->temEssentials($user, $bizId)) {
+            return response()->json(['erro' => 'sem_permissao', 'mensagem' => 'Sua empresa não tem o módulo de tarefas.'], 403);
+        }
+
+        $t = $this->todos->detalhe($user, $bizId, $id);
+        if ($t === null) {
+            return response()->json(['erro' => 'nao_encontrado', 'mensagem' => 'Tarefa não encontrada.'], 404);
+        }
+
+        return response()->json([
+            'id' => 'todo:' . $t['id'],
+            'titulo' => $t['titulo'],
+            'descricao' => $t['descricao'],
+            'modulo' => $t['rotulo'],
+            'responsavel' => $t['responsavel'],
+            'cliente' => null,
+            'prazo' => $t['prazo'],
+            'atrasado' => ! $t['concluida'] && $t['prazo'] !== null && Carbon::parse($t['prazo'])->lt(Carbon::today()),
+            'origem' => null,
+            'checklist' => [],
+            'comentarios' => array_map(fn ($c) => $c + ['detalhe' => null], $t['comentarios']),
+            'concluida' => $t['concluida'],
+        ]);
+    }
+
+    /** As próximas N tarefas do usuário (ToDo + Ponto), prazo mais próximo primeiro — para o Início. */
+    public function proximasPara(User $user, int $n = 3): array
+    {
+        $bizId = (int) $user->business_id;
+
+        return $this->itensTodo($user, $bizId)
+            ->concat($this->itensPonto($user, $bizId))
+            ->sortBy(fn ($i) => $i['prazo'] ?? '9999-12-31')
+            ->take($n)
+            ->values()
+            ->all();
     }
 
     // ------------------------------------------------------------------
+
+    /**
+     * Quem tem a aba Tarefas: tarefas do Essentials no plano, ou quem aprova justificativas do
+     * Ponto. O colaborador vê as próprias justificativas em Mais › Ponto, não precisa da aba.
+     */
+    public function podeVerTarefas(User $user): bool
+    {
+        return $this->temEssentials($user, (int) $user->business_id) || $this->justificativas->aprova($user);
+    }
 
     private function temEssentials(User $user, int $bizId): bool
     {
@@ -94,48 +150,14 @@ class TarefasController extends Controller
             return collect();
         }
 
-        return $this->todos->scopedQueryForUser($bizId, $user)
-            ->where(fn ($q) => $q->whereNull('status')->orWhere('status', '!=', 'completed'))
-            ->orderBy('date')
-            ->limit(100)
-            ->get()
-            ->map(function ($t) {
-                /** @var ToDo $t */
-                $prazo = $t->end_date ?? $t->date;
-
-                return $this->item(
-                    'todo:' . $t->id,
-                    'todo',
-                    trim(strip_tags((string) $t->task)),
-                    'Tarefa' . ($t->priority ? ' · ' . $this->prioridade((string) $t->priority) : ''),
-                    $prazo ? Carbon::parse($prazo)->toDateString() : null,
-                );
-            });
+        return collect($this->todos->pendentes($user, $bizId))
+            ->map(fn (array $t) => $this->item('todo:' . $t['id'], 'todo', $t['titulo'], $t['subtitulo'], $t['prazo']));
     }
 
     private function itensPonto(User $user, int $bizId): Collection
     {
-        $q = DB::table('ponto_intercorrencias as i')
-            ->join('ponto_colaborador_config as c', 'c.id', '=', 'i.colaborador_config_id')
-            ->leftJoin('users as u', 'u.id', '=', 'c.user_id')
-            ->where('i.business_id', $bizId)
-            ->where('c.business_id', $bizId)
-            ->where('i.estado', Intercorrencia::ESTADO_PENDENTE);
-
-        if (! CheckPontoAccess::permite($user)) {
-            $q->where('c.user_id', $user->id);
-        }
-
-        return $q->orderBy('i.data')
-            ->limit(100)
-            ->get(['i.id', 'i.codigo', 'i.tipo', 'i.data', 'u.first_name', 'u.last_name'])
-            ->map(fn ($i) => $this->item(
-                'ponto:' . $i->id,
-                'ponto',
-                'Justificativa ' . $i->codigo,
-                trim(((string) $i->first_name) . ' ' . ((string) $i->last_name)) . ' · ' . $this->tipo((string) $i->tipo),
-                substr((string) $i->data, 0, 10),
-            ));
+        return collect($this->justificativas->pendentes($user, $bizId))
+            ->map(fn (array $j) => $this->item('ponto:' . $j['id'], 'ponto', $j['titulo'], $j['subtitulo'], $j['prazo']));
     }
 
     private function item(string $id, string $origem, string $titulo, string $subtitulo, ?string $prazo): array
@@ -162,21 +184,5 @@ class TarefasController extends Controller
             'atrasado' => $grupo === 'atrasadas',
             'grupo' => $grupo,
         ];
-    }
-
-    private function prioridade(string $p): string
-    {
-        return ['low' => 'baixa', 'medium' => 'média', 'high' => 'alta', 'urgent' => 'urgente'][$p] ?? $p;
-    }
-
-    private function tipo(string $t): string
-    {
-        foreach (\Modules\Ponto\Http\Controllers\IntercorrenciaController::tiposDisponiveis() as $op) {
-            if ($op['value'] === $t) {
-                return $op['label'];
-            }
-        }
-
-        return $t;
     }
 }

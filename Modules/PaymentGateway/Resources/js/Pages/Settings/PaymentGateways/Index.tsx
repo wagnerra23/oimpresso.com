@@ -133,7 +133,7 @@ function PaymentGatewaysPage({ gateways, accounts, kpis, today, nfeCertificadoAt
       />
 
       {/* KPIs */}
-      <div className="px-6 pt-5 grid grid-cols-3 gap-3">
+      <div className="px-6 pt-5 grid grid-cols-3 gap-3" data-contract="paymentgateway.gateways.kpis">
         <Deferred data="kpis" fallback={<><div className="h-[90px] pg-skel rounded-md" /><div className="h-[90px] pg-skel rounded-md" /><div className="h-[90px] pg-skel rounded-md" /></>}>
           <KpiCard
             label="Credenciais ativas"
@@ -180,7 +180,7 @@ function PaymentGatewaysPage({ gateways, accounts, kpis, today, nfeCertificadoAt
 
       <div className="px-6 pb-6 flex-1 overflow-auto">
         <Deferred data="gateways" fallback={<TableSkeleton />}>
-          <div className="bg-white border border-stone-200 rounded-md overflow-hidden">
+          <div className="bg-white border border-stone-200 rounded-md overflow-hidden" data-contract="paymentgateway.gateways.tabela">
             <table className="w-full text-[12.5px] tabular-nums">
               <thead>
                 <tr className="text-[10px] uppercase tracking-widest text-stone-500 border-b border-stone-200 bg-stone-50/60">
@@ -258,7 +258,7 @@ function PaymentGatewaysPage({ gateways, accounts, kpis, today, nfeCertificadoAt
         </Deferred>
 
         {availableDrivers.length > 0 && (
-          <div className="mt-6">
+          <div className="mt-6" data-contract="paymentgateway.gateways.drivers">
             <div className="flex items-center gap-2 mb-2">
               <div className="text-[10px] uppercase tracking-widest font-medium text-stone-500">Drivers disponíveis</div>
               <div className="text-[10px] text-stone-400">({availableDrivers.length} não configurado{availableDrivers.length === 1 ? '' : 's'})</div>
