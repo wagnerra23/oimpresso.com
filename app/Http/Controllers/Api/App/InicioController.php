@@ -89,6 +89,7 @@ class InicioController extends Controller
             'pessoas' => $pessoas,
             'orcamentos' => $vendas,
             'produtos' => $produtos,
+            'estoque' => $produtos, // mesma regra (product.view) da rota /estoque (§9.2)
             'oficina' => $oficina,
             'ponto' => $ponto,
             'ponto_gestor' => app(PontoAprovacoesController::class)->podeVerFila($user),
