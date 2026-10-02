@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use Laravel\Passport\Passport;
 use Spatie\Permission\Models\Permission;
+use Tests\Contract\AutosaveContractRunner;
 
 /**
  * API do Dashboard do app das lojas (tela 35) — GET /api/app/dashboard, só leitura.
@@ -117,13 +118,12 @@ it('só dashboard.data: faturamento bate com o painel; pedidos, produção e fin
 
 it('com vendas: pedidos_por_dia tem 14 dias e uma venda movida para hoje soma 1 em pedidos_novos', function () {
     appDashPlano(false);
-    $biz = (int) $this->tenant->id;
+    // Venda criada aqui: o seed do tenant não tinha venda e o markTestSkipped fazia este caso
+    // sair verde sem rodar (CI 2026-10-02: 1 skipped).
+    $ctx = AutosaveContractRunner::setupSellsContext($this);
+    $biz = (int) $ctx['business']->id;
+    $venda = (int) $ctx['transactionId'];
     Passport::actingAs(appDashUsuario($biz, ['dashboard.data', 'direct_sell.view', 'access_all_locations']), [], 'api');
-    $venda = DB::table('transactions')->where('business_id', $biz)->where('type', 'sell')
-        ->whereNull('sub_type')->whereDate('transaction_date', '!=', now()->toDateString())->value('id');
-    if (! $venda) {
-        $this->markTestSkipped('Seed sem venda fora de hoje no tenant.');
-    }
     DB::table('transactions')->where('id', $venda)->update(['status' => 'final', 'transaction_date' => now()->subYears(5)]);
 
     $antes = $this->getJson('/api/app/dashboard')->assertOk()->json();
