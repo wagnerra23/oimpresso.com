@@ -1,0 +1,46 @@
+{
+  "_nota": "Copy declarada a partir de ViewComunicador() do protótipo e travada só onde ela existe LITERALMENTE no protótipo e na tela (medido 2026-10-02). Não é copy lida da tela: cada string abaixo está em superadmin-page.jsx. As âncoras data-contract já estavam no .tsx desde a thread Superadmin/05 (#8342); faltava o contrato.",
+  "_nota_recorte": "Fora de propósito, porque a produção não tem backend para eles (ver charter §Divergências): os chips de grupo de destinatário, o agendamento, 'Enviar teste para mim' e a % de abertura do histórico. Fora também duas frases que a tela reescreveu e o protótipo não: o texto vazio da prévia ('O corpo aparece aqui…' × 'O corpo da mensagem aparece aqui…') e a ajuda de destinatários. Travar qualquer uma delas faria o contrato nascer vermelho por divergência já declarada.",
+  "tela": "superadmin/Comunicador",
+  "fonte": "prototipo-ui/cowork/Wagner/superadmin-page.jsx",
+  "_nota_fonte": "Mesma âncora que o charter declara — ViewComunicador() (L1224).",
+  "alvo": [
+    "Modules/Superadmin/Resources/js/Pages/superadmin/Comunicador/Index.tsx"
+  ],
+  "secoes": [
+    {
+      "id": "superadmin.comunicador.compor",
+      "_papel": "o formulário de envio. Título e subtítulo da página entram aqui porque o PageHeader fica fora de qualquer âncora.",
+      "copy": [
+        "Comunicador",
+        "Aviso em massa para os negócios da plataforma — chega por e-mail e como notificação no app",
+        "Compor mensagem",
+        "Escreva em português claro. Diga o que muda, quando, e o que o negócio precisa fazer.",
+        "Ver prévia",
+        "Fechar prévia"
+      ]
+    },
+    {
+      "id": "superadmin.comunicador.previa",
+      "copy": [
+        "Sem assunto"
+      ]
+    },
+    {
+      "id": "superadmin.comunicador.historico",
+      "copy": [
+        "Histórico de envios"
+      ],
+      "estados": [
+        "carregando",
+        "vazio",
+        "lista"
+      ]
+    }
+  ],
+  "ordem": [
+    "superadmin.comunicador.compor",
+    "superadmin.comunicador.previa",
+    "superadmin.comunicador.historico"
+  ]
+}
