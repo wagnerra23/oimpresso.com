@@ -52,7 +52,7 @@ class PontoAprovacoesController extends Controller
             return response()->json([
                 'erro' => 'validacao',
                 'mensagem' => 'Filtro de estado inválido.',
-                'campos' => ['estado' => ['Use pendente, validada, recusada ou todas.']],
+                'campos' => ['estado' => 'Use pendente, validada, recusada ou todas.'],
             ], 422);
         }
 

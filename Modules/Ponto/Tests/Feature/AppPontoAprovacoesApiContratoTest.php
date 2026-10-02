@@ -185,5 +185,6 @@ it('UC-APP39-05: sem acesso ao Ponto é 403 em tudo e a área ponto_gestor some 
     expect($this->getJson('/api/app/inicio')->assertOk()->json('areas'))->toContain('ponto_gestor');
     $this->postJson("/api/app/ponto/aprovacoes/{$m->id}/recusar")->assertForbidden()->assertJsonPath('erro', 'sem_permissao');
     expect(DB::table('ponto_marcacoes')->where('marcacao_anulada_id', $m->id)->count())->toBe(0);
-    $this->getJson('/api/app/ponto/aprovacoes?estado=qualquer')->assertStatus(422)->assertJsonPath('erro', 'validacao');
+    $this->getJson('/api/app/ponto/aprovacoes?estado=qualquer')->assertStatus(422)->assertJsonPath('erro', 'validacao')
+        ->assertJsonPath('campos.estado', 'Use pendente, validada, recusada ou todas.');
 });
