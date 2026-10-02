@@ -36,7 +36,7 @@ final class TarefasDoApp implements TarefasEssentials
                 return [
                     'id' => (int) $t->id,
                     'titulo' => trim(strip_tags((string) $t->task)),
-                    'subtitulo' => 'Tarefa' . ($t->priority ? ' · ' . $this->prioridade((string) $t->priority) : ''),
+                    'subtitulo' => $this->rotulo($t),
                     'prazo' => $prazo ? Carbon::parse($prazo)->toDateString() : null,
                 ];
             })
@@ -55,6 +55,46 @@ final class TarefasDoApp implements TarefasEssentials
         $todo->update(['status' => 'completed']);
 
         return true;
+    }
+
+    public function detalhe(User $user, int $businessId, int $id): ?array
+    {
+        /** @var ToDo|null $t */
+        $t = $this->todos->scopedQueryForUser($businessId, $user)->with(['users', 'comments.added_by'])->find($id);
+        if (! $t) {
+            return null;
+        }
+
+        $prazo = $t->end_date ?? $t->date;
+        $descricao = trim(strip_tags((string) $t->description));
+        $responsaveis = $t->users->map(fn ($u) => $this->nome($u))->filter()->implode(', ');
+
+        return [
+            'id' => (int) $t->id,
+            'titulo' => trim(strip_tags((string) $t->task)),
+            'descricao' => $descricao !== '' ? $descricao : null,
+            'rotulo' => $this->rotulo($t),
+            'responsavel' => $responsaveis !== '' ? $responsaveis : null,
+            'prazo' => $prazo ? Carbon::parse($prazo)->toDateString() : null,
+            'concluida' => $t->status === 'completed',
+            'comentarios' => $t->comments->sortBy('id')->map(fn ($c) => [
+                'quando' => $c->created_at ? Carbon::parse($c->created_at)->toIso8601String() : null,
+                'autor' => $c->added_by ? $this->nome($c->added_by) : null,
+                'texto' => trim(strip_tags((string) $c->comment)),
+            ])->values()->all(),
+        ];
+    }
+
+    private function rotulo(ToDo $t): string
+    {
+        return 'Tarefa' . ($t->priority ? ' · ' . $this->prioridade((string) $t->priority) : '');
+    }
+
+    private function nome(object $u): ?string
+    {
+        $n = trim(preg_replace('/\s+/', ' ', ($u->first_name ?? '') . ' ' . ($u->last_name ?? '')));
+
+        return $n !== '' ? $n : null;
     }
 
     private function prioridade(string $p): string

@@ -22,6 +22,7 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 // memory/requisitos/AppMobile/API-CONTRATO-v1.md.
 Route::middleware('auth:api')->prefix('app')->name('app.')->group(function () {
     Route::get('/tarefas', [\App\Http\Controllers\Api\App\TarefasController::class, 'index'])->name('tarefas.index');
+    Route::get('/tarefas/todo/{id}', [\App\Http\Controllers\Api\App\TarefasController::class, 'todo'])->whereNumber('id')->name('tarefas.todo.show');
     Route::post('/tarefas/todo/{id}/concluir', [\App\Http\Controllers\Api\App\TarefasController::class, 'concluirTodo'])->whereNumber('id')->name('tarefas.todo.concluir');
     Route::get('/pessoas', [\App\Http\Controllers\Api\App\PessoasController::class, 'index'])->name('pessoas.index');
     Route::get('/pessoas/{id}', [\App\Http\Controllers\Api\App\PessoasController::class, 'show'])->whereNumber('id')->name('pessoas.show');
