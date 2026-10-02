@@ -329,6 +329,8 @@ class AppServiceProvider extends ServiceProvider
         // sem sobrescrever a do módulo, qualquer que seja a ordem dos providers.
         $this->app->bindIf(\App\Contracts\Tarefas\TarefasEssentials::class, \App\Contracts\Tarefas\Nulo\SemTarefasEssentials::class);
         $this->app->bindIf(\App\Contracts\Tarefas\JustificativasPonto::class, \App\Contracts\Tarefas\Nulo\SemJustificativasPonto::class);
+        // Busca de CEP do app das lojas: o Crm registra a implementação real; sem ele, nunca acha.
+        $this->app->bindIf(\App\Contracts\Enderecos\BuscaCep::class, \App\Contracts\Enderecos\Nulo\SemBuscaCep::class);
     }
 
     /**
