@@ -43,6 +43,8 @@ use Yajra\DataTables\Facades\DataTables;
 
 class SellController extends Controller
 {
+    use \App\Http\Controllers\Concerns\OpcoesReparo;
+
     /**
      * All Utils instance.
      */
@@ -2668,6 +2670,53 @@ class SellController extends Controller
     }
 
     /**
+     * UC-SEDIT-12 — seção Reparo do Sells/Edit: as opções do PDV de reparo + o que a venda tem
+     * gravado, no formato do `ReparoForm` (reparoVenda.ts). Datas vão cruas do banco em
+     * "AAAA-MM-DDTHH:mm" (o input datetime-local) e voltam em ISO — sem passar pelo formato
+     * da empresa, então a ida e volta não muda a data.
+     */
+    private function reparoDaEdicao($transaction): ?array
+    {
+        if ($transaction->sub_type !== 'repair') {
+            return null;
+        }
+        $modulo = $this->moduleUtil->getModuleData('get_pos_screen_view', ['sub_type' => 'repair']);
+        $d = $modulo['Repair']['view_data'] ?? null;
+        if (empty($d)) {
+            return null;
+        }
+
+        $data = fn ($v) => ! empty($v) ? \Carbon::parse($v)->format('Y-m-d\TH:i') : '';
+        $id = fn ($v) => $v !== null && $v !== '' ? (int) $v : null;
+        // Defeitos: JSON do Tagify (o que o PDV grava) ou texto solto com vírgulas (legado).
+        $brutos = (string) $transaction->repair_defects;
+        $tagify = json_decode($brutos, true);
+        $defeitos = is_array($tagify)
+            ? array_map(fn ($t) => is_array($t) ? (string) ($t['value'] ?? '') : (string) $t, $tagify)
+            : explode(',', $brutos);
+        $checklist = json_decode((string) $transaction->repair_checklist, true);
+
+        return [
+            'opcoes' => $this->opcoesReparo($d) + ['osOrigem' => null],
+            'valor' => [
+                'repair_status_id' => $id($transaction->repair_status_id),
+                'repair_brand_id' => $id($transaction->repair_brand_id),
+                'repair_device_id' => $id($transaction->repair_device_id),
+                'repair_model_id' => $id($transaction->repair_model_id),
+                'repair_warranty_id' => $id($transaction->repair_warranty_id),
+                'repair_job_sheet_id' => $id($transaction->repair_job_sheet_id),
+                'repair_serial_no' => (string) ($transaction->repair_serial_no ?? ''),
+                'repair_due_date' => $data($transaction->repair_due_date),
+                'repair_completed_on' => $data($transaction->repair_completed_on),
+                'defeitos' => array_values(array_filter(array_map('trim', $defeitos), fn ($v) => $v !== '')),
+                'checklist' => is_array($checklist) ? $checklist : (object) [],
+                'repair_security_pwd' => (string) ($transaction->repair_security_pwd ?? ''),
+                'repair_security_pattern' => (string) ($transaction->repair_security_pattern ?? ''),
+            ],
+        ];
+    }
+
+    /**
      * Show the form for editing the specified resource.
      *
      * Tipos reais do retorno: Blade · Inertia · JSON (422 Inertia) · redirect. Antes declarava
@@ -3081,6 +3130,9 @@ class SellController extends Controller
                         // preg_replace descartava a vírgula decimal (a dívida aparecia 100× maior).
                         'dues_total' => $customer_due_raw,
                     ] : null,
+                    // UC-SEDIT-12 — venda de reparo: opções da seção Reparo (as mesmas do PDV) e os
+                    // valores gravados. null = não é venda de reparo, ou o módulo não está na assinatura.
+                    'reparo' => $this->reparoDaEdicao($transaction),
                 ];
             };
 
