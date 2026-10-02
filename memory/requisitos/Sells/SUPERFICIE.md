@@ -223,11 +223,12 @@ tabelas_dominio: ["transactions", "transaction_sell_lines", "transaction_payment
 - [Index.casos.md](../../../resources/js/Pages/Sells/Index.casos.md)
 - [Show.casos.md](../../../resources/js/Pages/Sells/Show.casos.md)
 
-## Demais arquivos (manifestos, docs, assets e misc) — 14
+## Demais arquivos (manifestos, docs, assets e misc) — 15
 
 - [Create.design-spec.json](../../../resources/js/Pages/Sells/Create.design-spec.json)
 - [PaymentRow.test-pending.md](../../../resources/js/Pages/Sells/_components/PaymentRow.test-pending.md)
 - [dropdownEntries.ts](../../../resources/js/Pages/Sells/_components/dropdownEntries.ts)
+- [edicaoVenda.ts](../../../resources/js/Pages/Sells/_components/edicaoVenda.ts)
 - [precoDaBusca.ts](../../../resources/js/Pages/Sells/_components/precoDaBusca.ts)
 - [reparoVenda.ts](../../../resources/js/Pages/Sells/_components/reparoVenda.ts)
 - [subtipoVenda.ts](../../../resources/js/Pages/Sells/_components/subtipoVenda.ts)

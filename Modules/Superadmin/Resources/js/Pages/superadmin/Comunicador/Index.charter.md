@@ -53,6 +53,13 @@ Persona única: [W], superadmin. Admin de negócio é barrado.
 - ❌ **Não inventar os grupos do protótipo no front** ("trial", "vencidas") contando negócio no
   JavaScript: o dado de assinatura não está nesta tela e a conta sairia errada.
 
+## Contrato visual
+
+Travado por `governance/design/contracts/superadmin-comunicador.contract.json` (gate `contrato-de-tela`),
+com âncoras `data-contract` no `.tsx`. A copy literal e a ordem das seções são de lá — esta
+seção **aponta**, não repete. Só entra copy que existe nos dois lados; o que diverge fica na
+tabela abaixo e no `_nota_recorte` do contrato.
+
 ## Divergências declaradas contra o protótipo
 
 | Protótipo (`ViewComunicador`, L1224) | Produção | Por quê |
