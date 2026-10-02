@@ -39,5 +39,8 @@ Route::middleware('auth:api')->prefix('app')->name('app.')->group(function () {
     // Throttle como o lookup da web (60/min): o ERP fala com o ViaCEP por todos os tenants.
     Route::get('/cep/{cep}', [\App\Http\Controllers\Api\App\CepController::class, 'show'])
         ->where('cep', '[0-9-]{1,12}')->middleware('throttle:60,1')->name('cep.show');
+    // Chat com a Jana (tela 25). Mesmo teto do chat web (60/min): cada mensagem chama o LLM.
+    Route::post('/chat', [\App\Http\Controllers\Api\App\ChatController::class, 'enviar'])->middleware('throttle:60,1')->name('chat.enviar');
+    Route::get('/chat/{conversa_id}', [\App\Http\Controllers\Api\App\ChatController::class, 'mostrar'])->whereNumber('conversa_id')->name('chat.mostrar');
     Route::get('/inicio', [\App\Http\Controllers\Api\App\InicioController::class, 'show'])->name('inicio');
 });

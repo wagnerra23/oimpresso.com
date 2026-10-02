@@ -17,6 +17,7 @@ use Modules\Jana\Entities\MetaPeriodo;
 use Modules\Jana\Entities\Sugestao;
 use Modules\Jana\Jobs\ApurarMetaJob;
 use Modules\Jana\Services\BriefDiarioChatTrigger;
+use Modules\Jana\Services\ChatTurnoService;
 use Modules\Jana\Services\ContextSnapshotService;
 use Modules\Jana\Services\SuggestionEngine;
 use Modules\Jana\Services\Telemetry\LangfuseClient;
@@ -406,42 +407,9 @@ class ChatController extends Controller
         $conversa = Conversa::findOrFail($id);
         abort_unless($conversa->user_id === auth()->id(), 403);
 
-        $userInput = $request->input('content');
-
-        // Persiste mensagem do usuário
-        Mensagem::create([
-            'conversa_id' => $conversa->id,
-            'role'        => 'user',
-            'content'     => $userInput,
-        ]);
-
-        // US-COPI-203: intent shortcut pro brief diário JANA Pro. Se user
-        // pediu brief (regex match), invoca BriefDiarioAgent direto em vez
-        // do ChatCopilotoAgent. Retorna markdown formatado Versão A.
-        if ($this->briefTrigger->matches($userInput)) {
-            $resposta = $this->briefTrigger->gerar($conversa);
-        } else {
-            // Caminho padrão — IA conversacional ChatCopilotoAgent
-            try {
-                $resposta = $this->ai->responderChat($conversa, $userInput);
-            } catch (\Throwable $e) {
-                $resposta = 'Estou com dificuldades técnicas no momento. Tente novamente em instantes.';
-            }
-        }
-
-        // Tokens DESTE turno. O driver não grava mais sozinho — ele retornava
-        // antes desta linha, então o UPDATE dele caía no turno ANTERIOR.
-        // Ver AiAdapter::ultimoUsoTokens(). No atalho do brief o adapter nem é
-        // chamado, e aí vem null/null (correto: não houve consumo por aqui).
-        $uso = $this->ai->ultimoUsoTokens();
-
-        $msgAssistant = Mensagem::create([
-            'conversa_id' => $conversa->id,
-            'role'        => 'assistant',
-            'content'     => $resposta,
-            'tokens_in'   => $uso['tokens_in'] ?? null,
-            'tokens_out'  => $uso['tokens_out'] ?? null,
-        ]);
+        // Turno inteiro (grava pergunta, responde, grava resposta com tokens) num lugar só,
+        // compartilhado com o app das lojas (POST /api/app/chat).
+        app(ChatTurnoService::class)->responder($conversa, (string) $request->input('content'));
 
         return back();
     }

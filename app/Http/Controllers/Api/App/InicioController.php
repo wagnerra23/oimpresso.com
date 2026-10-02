@@ -87,6 +87,7 @@ class InicioController extends Controller
             'pessoas' => $pessoas,
             'orcamentos' => $vendas,
             'ponto' => $ponto,
+            'assistente' => app(ChatController::class)->podeConversar($user),
             'mais' => true,
         ]));
 
