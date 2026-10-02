@@ -107,6 +107,140 @@ class OficinaController extends Controller
     }
 
     /**
+     * GET /api/app/os/{id} — tela 03 (detalhe). Qualquer OS do business (inclusive terminal e
+     * fora do pipeline, abertas pelo histórico do veículo). Outra empresa ou inexistente → 404.
+     */
+    public function show(Request $request, int $id): JsonResponse
+    {
+        $user = $request->user();
+        if (! $this->podeVerOficina($user)) {
+            return $this->semPermissao();
+        }
+
+        $bizId = (int) $user->business_id;
+        $os = DB::table('service_orders as so')
+            ->leftJoin('vehicles as v', function ($j) {
+                $j->on('v.id', '=', 'so.vehicle_id')->on('v.business_id', '=', 'so.business_id');
+            })
+            ->leftJoin('contacts as c', function ($j) {
+                $j->on('c.id', '=', 'so.contact_id')->on('c.business_id', '=', 'so.business_id');
+            })
+            ->where('so.business_id', $bizId)
+            ->whereNull('so.deleted_at')
+            ->where('so.id', $id)
+            ->first([
+                'so.id', 'so.order_type', 'so.current_stage_id', 'so.box_label', 'so.notes',
+                'so.mileage_at_service', 'v.plate', 'v.vehicle_type', 'c.id as cliente_id', 'c.name as cliente',
+            ]);
+
+        if (! $os) {
+            return response()->json(['erro' => 'nao_encontrado', 'mensagem' => 'OS não encontrada.'], 404);
+        }
+
+        $etapa = $this->etapaDetalhe($bizId, $os);
+
+        $itens = DB::table('oficina_service_order_items')
+            ->where('business_id', $bizId)
+            ->where('service_order_id', $id)
+            ->whereNull('deleted_at')
+            ->orderBy('id')
+            ->get(['tipo', 'descricao', 'quantidade', 'valor_unitario', 'valor_total']);
+
+        $soma = fn (string $tipo) => round((float) $itens->where('tipo', $tipo)->sum('valor_total'), 2);
+
+        $vistoria = DB::table('oa_inspection_items')
+            ->where('business_id', $bizId)
+            ->where('service_order_id', $id)
+            ->whereNull('deleted_at')
+            ->groupBy('severity')
+            ->selectRaw('severity, COUNT(*) as n')
+            ->pluck('n', 'severity');
+
+        $fotos = DB::table('arquivos')
+            ->where('business_id', $bizId)
+            ->where('arquivable_type', \Modules\OficinaAuto\Entities\ServiceOrder::class)
+            ->where('arquivable_id', $id)
+            ->whereNull('deleted_at')
+            ->count();
+
+        return response()->json([
+            'id' => (int) $os->id,
+            'numero' => 'OS-' . str_pad((string) $os->id, 5, '0', STR_PAD_LEFT),
+            'local' => is_string($os->box_label) && trim($os->box_label) !== '' ? $os->box_label : null,
+            'etapa' => $etapa,
+            'travada' => $etapa !== null && in_array($etapa['chave'], self::TRAVADAS, true),
+            'veiculo' => $os->plate === null ? null : [
+                'placa' => $os->plate,
+                'descricao' => $this->tipoVeiculo($os->vehicle_type),
+                'km' => $os->mileage_at_service !== null ? (int) $os->mileage_at_service : null,
+            ],
+            'cliente' => $os->cliente_id === null ? null : ['id' => (int) $os->cliente_id, 'nome' => (string) $os->cliente],
+            'observacoes' => is_string($os->notes) && trim($os->notes) !== '' ? $os->notes : null,
+            'vistoria' => [
+                'ok' => (int) ($vistoria['ok'] ?? 0),
+                'atencao' => (int) ($vistoria['atencao'] ?? 0),
+                'critico' => (int) ($vistoria['critico'] ?? 0),
+            ],
+            'itens' => $itens->map(fn ($i) => [
+                'tipo' => $i->tipo,
+                'descricao' => (string) $i->descricao,
+                'quantidade' => (float) $i->quantidade,
+                'valor_unitario' => round((float) $i->valor_unitario, 2),
+                'valor' => round((float) $i->valor_total, 2),
+            ])->values(),
+            'totais' => [
+                'pecas' => $soma('peca'),
+                'mao_de_obra' => $soma('mao_obra'),
+                'terceiros' => $soma('servico_terceiro'),
+                'total' => round((float) $itens->sum('valor_total'), 2),
+            ],
+            'fotos_laudo' => $fotos,
+        ]);
+    }
+
+    /**
+     * Etapa da OS no processo da oficina. Não-terminal → índice na lista da 07; terminal →
+     * `indice: null, terminal: true`; OS de mecânica sem pipeline → etapa inicial; fora do
+     * processo da oficina (ex.: as importadas sem pipeline) → null.
+     *
+     * @return array<string, mixed>|null
+     */
+    private function etapaDetalhe(int $bizId, object $os): ?array
+    {
+        $etapas = $this->etapas($bizId);
+        if ($etapas->isEmpty()) {
+            return null;
+        }
+        if ($os->current_stage_id === null) {
+            if ($os->order_type !== 'mecanica') {
+                return null;
+            }
+            $s = $etapas->first();
+
+            return ['chave' => $s->key, 'rotulo' => $s->name, 'indice' => 1, 'total_etapas' => $etapas->count(), 'terminal' => false];
+        }
+
+        $idx = $etapas->search(fn ($s) => (int) $s->id === (int) $os->current_stage_id);
+        if ($idx !== false) {
+            $s = $etapas[$idx];
+
+            return ['chave' => $s->key, 'rotulo' => $s->name, 'indice' => $idx + 1, 'total_etapas' => $etapas->count(), 'terminal' => false];
+        }
+
+        $terminal = DB::table('sale_process_stages as s')
+            ->join('sale_processes as p', 'p.id', '=', 's.process_id')
+            ->where('p.business_id', $bizId)
+            ->where('p.key', self::PROCESSO)
+            ->where('s.id', (int) $os->current_stage_id)
+            ->first(['s.key', 's.name']);
+
+        return $terminal === null ? null : [
+            'chave' => $terminal->key, 'rotulo' => $terminal->name, 'indice' => null,
+            'total_etapas' => $etapas->count(), 'terminal' => true,
+        ];
+    }
+
+    /**
      * Mesma regra do menu web da Oficina (DataController::modifyAdminMenu): módulo no pacote do
      * business (superadmin: módulo instalado) + permissão de ver OS. Usado também pela área
      * `oficina` do /api/app/inicio.

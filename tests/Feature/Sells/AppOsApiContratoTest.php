@@ -12,7 +12,7 @@ use Tests\Contract\AutosaveContractRunner;
 /**
  * API de Ordens de serviço do app das lojas (tela 07) — GET /api/app/os, só leitura.
  *
- * Contrato: memory/requisitos/AppMobile/API-CONTRATO-v1.md §11.1. Mesmo universo do quadro web
+ * Contrato: memory/requisitos/AppMobile/API-CONTRATO-v1.md §11.1 e §11.2. Mesmo universo do quadro web
  * da Oficina: etapas não-terminais do processo `oficina_mecanica_os`, na ordem do ERP; OS de
  * mecânica sem pipeline conta na etapa inicial; terminal fica fora. NÃO derivado do controller.
  *
@@ -177,4 +177,71 @@ it('OS de OUTRO business não aparece', function () {
 
 it('a área oficina aparece no /inicio para quem vê OS', function () {
     expect($this->getJson('/api/app/inicio')->assertOk()->json('areas'))->toContain('oficina');
+});
+
+// ── Tela 03 — GET /api/app/os/{id} (contrato §11.2) ─────────────────────────────
+
+it('detalhe traz local, veículo, observações, vistoria, itens por tipo e totais do ERP', function () {
+    $os = appOsCriar((int) $this->biz->id, $this->etapas['em_execucao']);
+    DB::table('service_orders')->where('id', $os)->update([
+        'box_label' => 'Elevador 1', 'notes' => 'Barulho na suspensão', 'mileage_at_service' => 48312,
+    ]);
+    DB::table('oficina_service_order_items')->insert([
+        ['business_id' => $this->biz->id, 'service_order_id' => $os, 'tipo' => 'peca', 'descricao' => 'Bieleta',
+            'quantidade' => 2, 'valor_unitario' => 210, 'valor_total' => 420, 'created_at' => now(), 'updated_at' => now()],
+        ['business_id' => $this->biz->id, 'service_order_id' => $os, 'tipo' => 'mao_obra', 'descricao' => 'Troca',
+            'quantidade' => 1.5, 'valor_unitario' => 220, 'valor_total' => 330, 'created_at' => now(), 'updated_at' => now()],
+        ['business_id' => $this->biz->id, 'service_order_id' => $os, 'tipo' => 'servico_terceiro', 'descricao' => 'Alinhamento',
+            'quantidade' => 1, 'valor_unitario' => 80, 'valor_total' => 80, 'created_at' => now(), 'updated_at' => now()],
+    ]);
+    if (Schema::hasTable('oa_inspection_items')) {
+        DB::table('oa_inspection_items')->insert([
+            'business_id' => $this->biz->id, 'service_order_id' => $os, 'categoria' => 'suspensao',
+            'descricao' => 'Bieleta folgada', 'severity' => 'critico', 'sort_order' => 1,
+            'created_at' => now(), 'updated_at' => now(),
+        ]);
+    }
+
+    $r = $this->getJson('/api/app/os/' . $os)->assertOk();
+
+    expect($r->json('local'))->toBe('Elevador 1');
+    expect($r->json('etapa'))->toBe(['chave' => 'em_execucao', 'rotulo' => 'Em execução', 'indice' => 5, 'total_etapas' => 6, 'terminal' => false]);
+    expect($r->json('veiculo.km'))->toBe(48312);
+    expect($r->json('veiculo.descricao'))->toBe('Caminhão');
+    expect($r->json('observacoes'))->toBe('Barulho na suspensão');
+    expect(collect($r->json('itens'))->pluck('tipo')->all())->toBe(['peca', 'mao_obra', 'servico_terceiro']);
+    expect((float) $r->json('totais.pecas'))->toBe(420.0);
+    expect((float) $r->json('totais.mao_de_obra'))->toBe(330.0);
+    expect((float) $r->json('totais.terceiros'))->toBe(80.0);
+    expect((float) $r->json('totais.total'))->toBe(830.0);
+    if (Schema::hasTable('oa_inspection_items')) {
+        expect($r->json('vistoria.critico'))->toBe(1);
+    }
+    expect($r->json('fotos_laudo'))->toBe(0);
+});
+
+it('detalhe de OS terminal vem com indice null e terminal true', function () {
+    $os = appOsCriar((int) $this->biz->id, $this->etapas['entregue']);
+
+    $etapa = $this->getJson('/api/app/os/' . $os)->assertOk()->json('etapa');
+    expect($etapa['chave'])->toBe('entregue');
+    expect($etapa['indice'])->toBeNull();
+    expect($etapa['terminal'])->toBeTrue();
+});
+
+it('detalhe de OS fora do pipeline da oficina vem com etapa null', function () {
+    $os = appOsCriar((int) $this->biz->id, null, null, 'manutencao');
+
+    $r = $this->getJson('/api/app/os/' . $os)->assertOk();
+    expect($r->json('etapa'))->toBeNull();
+    expect($r->json('travada'))->toBeFalse();
+    expect($r->json('cliente'))->toBeNull();
+});
+
+it('detalhe de OS de OUTRO business responde 404', function () {
+    $minha = appOsCriar((int) $this->biz->id, $this->etapas['recepcao']);
+    $alheia = appOsCriar((int) $this->outroBiz->id, null);
+
+    $this->getJson('/api/app/os/' . $minha)->assertOk();
+    $this->getJson('/api/app/os/' . $alheia)->assertStatus(404)->assertJsonPath('erro', 'nao_encontrado');
 });
