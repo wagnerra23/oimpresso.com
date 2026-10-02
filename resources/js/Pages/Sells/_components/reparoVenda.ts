@@ -6,7 +6,8 @@
  * valor nem estoque — são dados do aparelho e do atendimento.
  *
  * Formatos que o servidor espera, medidos no consumidor e não no form:
- * - datas: "DD/MM/YYYY HH:mm" (o `after_sale_saved` passa por `uf_date`, igual à data da venda);
+ * - datas: ISO "YYYY-MM-DD HH:mm" — o `after_sale_saved` lê com `uf_datetime_input`, que aceita
+ *   ISO em qualquer empresa (DD/MM fixo trocava dia e mês numa empresa m/d/Y);
  * - defeitos: JSON do Tagify `[{"value":"..."}]` — é o que `show.blade.php` e o recibo
  *   (`common_repair_invoice.blade.php`) fazem `json_decode`. Texto solto lá vira vazio.
  */
@@ -37,10 +38,10 @@ export function reparoInicial(defaultStatusId: number | null | undefined): Repar
   };
 }
 
-/** "YYYY-MM-DDTHH:mm" → "DD/MM/YYYY HH:mm"; vazio ou fora do formato → null. */
+/** "YYYY-MM-DDTHH:mm" → "YYYY-MM-DD HH:mm" (ISO, sem depender do formato da empresa); vazio ou fora do formato → null. */
 export function dataParaServidor(local: string): string | null {
   const m = local.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/);
-  return m ? `${m[3]}/${m[2]}/${m[1]} ${m[4]}:${m[5]}` : null;
+  return m ? `${m[1]}-${m[2]}-${m[3]} ${m[4]}:${m[5]}` : null;
 }
 
 /** Lista de defeitos → JSON do Tagify, sem vazios nem repetidos. */
