@@ -245,3 +245,17 @@ it('detalhe de OS de OUTRO business responde 404', function () {
     $this->getJson('/api/app/os/' . $minha)->assertOk();
     $this->getJson('/api/app/os/' . $alheia)->assertStatus(404)->assertJsonPath('erro', 'nao_encontrado');
 });
+
+it('o filtro de etapa filtra só os itens; total, travadas e contagem por etapa não mudam', function () {
+    appOsCriar((int) $this->biz->id, $this->etapas['aguardando_pecas']);
+    $emExecucao = appOsCriar((int) $this->biz->id, $this->etapas['em_execucao']);
+
+    $todas = $this->getJson('/api/app/os')->assertOk();
+    $filtrada = $this->getJson('/api/app/os?etapa=aguardando_pecas')->assertOk();
+
+    expect($filtrada->json('total'))->toBe($todas->json('total'));
+    expect($filtrada->json('travadas'))->toBe($todas->json('travadas'));
+    expect($filtrada->json('etapas'))->toBe($todas->json('etapas'));
+    expect(collect($filtrada->json('itens'))->pluck('etapa.chave')->unique()->all())->toBe(['aguardando_pecas']);
+    expect(collect($filtrada->json('itens'))->pluck('id'))->not->toContain($emExecucao);
+});
