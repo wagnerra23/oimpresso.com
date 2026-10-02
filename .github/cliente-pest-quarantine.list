@@ -30,9 +30,9 @@ tests/Feature/Cliente/SefazConsultaCadastroChainTest.php  # 403 consertado (usu�
 #     a coluna saiu de prod (o baseline é schema:dump de prod), os 3 fixtures pararam de
 #     gravá-la e passaram a usar usuário com a permissão que a rota exige.
 
-# (E) 409 = versão de assets do Inertia não confere com o stub da lane.
-tests/Feature/Cliente/ClienteImportInertiaTest.php  # 409 (esperava 200) — 1 caso
-tests/Feature/Cliente/ClienteMapInertiaTest.php  # 409 (esperava 200) — 2 casos
+# (E) 409 = versão de assets do Inertia não confere com o stub da lane — VAZIO desde 2026-10-02:
+#     os testes mandavam X-Inertia-Version '1' fixo e o servidor usa o md5 do manifest. Agora
+#     pedem a versão ao próprio HandleInertiaRequests::version().
 
 # (F) Outras falhas, uma causa cada.
 tests/Feature/Cliente/Show/VehiclesTabTest.php  # DEFEITO REAL (Tier 0): show() responde 200 com contato vazio a usuário de OUTRA empresa, onde deveria 404. ContactUtil::getContactInfo soma colunas sem GROUP BY e devolve 1 linha toda NULL quando nada casa. Sem vazamento de dado (o where business_id segura). O teste está certo; conserto em PR próprio.
