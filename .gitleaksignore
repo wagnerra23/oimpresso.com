@@ -93,3 +93,5 @@ d9d4f846b984d6ece9445fc96d723d88c3710979:resources/js/Pages/governance/Qualidade
 # emendou a linha seguinte (`FOCUS_NFE_ENV=homologacao`) como se fosse o valor. Nenhum
 # token real. Fingerprint cega só esta ocorrência (commit+arquivo+regra+linha).
 28849710bd1d7b7a034bcd99de0846bc8cf69b64:mobile/HANDOFF.md:generic-api-key:257
+# 2026-10-02 #8544: sonda sem credencial do deploy (Bearer token-invalido), commit histórico do PR; a linha atual monta o cabeçalho fora do curl.
+edaf567a860a78952fb36814f70da9b0651461fd:.github/workflows/deploy.yml:curl-auth-header:865
