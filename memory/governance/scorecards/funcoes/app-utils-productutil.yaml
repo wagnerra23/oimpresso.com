@@ -10,6 +10,12 @@
 #   varredura CONTADA de consumidores + testes DIRETOS (git grep sem head_limit, menção≠teste).
 # EXCLUÍDA por trivialidade (§0.6): generateSubSku (formatter de string, sem valor/estoque/tenant).
 #
+# Rejulgamento parcial 2026-10-02 [CL] (PR #8507): a fonte mudou numa linha só — 1729, dentro de
+#   filterProduct (o percentual que dá 0 passou a sair NULL via NULLIF). Linhas e demais funções
+#   byte-idênticas (arquivo segue com 2393 linhas; `git diff` = 1 linha). Rejulgado só filterProduct:
+#   C1, C2, C3, C6 seguem válidos (C6: NULLIF é expressão de coluna, sem valor interpolado).
+#   source_blob_sha atualizado por isso — não é revalidação das outras 36 funções.
+#
 # validation_status: pareceres-ancorados-nao-validados — os vereditos são PARECER ancorado em
 #   evidência+intenção externa, NÃO achados provados. O INSTRUMENTO (juiz) foi calibrado em fixture
 #   sintética não-circular (método §5 rodada 3, κ=1,0), mas isso NÃO re-valida estes vereditos sobre a
@@ -19,7 +25,7 @@ file: app/Utils/ProductUtil.php
 module: Produto
 rubric: memory/requisitos/_Governanca/FUNCAO-SCORECARD-METODO.md
 rubric_version: "1.1"
-source_blob_sha: "500a8aa43a01d4e5935bd148fafb7c6ae956de5c"
+source_blob_sha: "0dbb8e1596bea95b32042491692c41013b292ec5"
 judged_at: "2026-07-21"
 judge: "claude-opus-4-8"
 source: full-sweep-2026-07-21
@@ -460,7 +466,7 @@ functions:
       C3: { status: concordo, evidencia: { quote: "->get();", linhas: "1738-1739" }, ancora: "§5 2026-07-15", nota: "Collection vazia p/ 0-match, tipada" }
       C4: { status: n/a, motivo: "read-only" }
       C5: { status: n/a, motivo: "query builder único" }
-      C6: { status: n/a, motivo: "DB::raw (1729) só com IF/expressão de coluna; search_term entra via where(...,'like','%'.$term.'%') — parâmetro bound, não SQL cru" }
+      C6: { status: n/a, motivo: "DB::raw (1729) só com IF/NULLIF/expressão de coluna (rejulgado 2026-10-02); search_term entra via where(...,'like','%'.$term.'%') — parâmetro bound, não SQL cru" }
       C7a: { status: incerto, evidencia: { quote: "@return object", linhas: "1597" }, ancora: "§5 2026-07-15", nota: "retorna Collection (que é objeto); docblock frouxo mas não claramente errado" }
       C7b: { status: n/a, motivo: "um único tipo real" }
       C7c: { status: n/a, motivo: "Collection vazia, não null" }

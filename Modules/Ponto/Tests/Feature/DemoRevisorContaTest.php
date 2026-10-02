@@ -319,3 +319,23 @@ it('DEMO-10: ponto:demo-dados semeia Início e Pessoas só no business demo, sem
     expect(DB::table('products')->where('business_id', $bizId)->where('sku', 'like', 'DEMO-%')->count())->toBe(0);
     expect(DB::table('fin_titulos')->where('business_id', $bizId)->where('numero', 'like', 'DEMO-%')->where('status', '!=', 'cancelado')->count())->toBe(0);
 });
+
+it('DEMO-11: gestor.demo ganha cadastro de ponto DEMO-0002 (área Ponto no app), idempotente e sem marcação', function () {
+    drvRodar();
+    drvRodar(); // 2ª rodada não duplica
+    $bizId = (int) drvBizDemo()->id;
+    $g = User::where('username', DemoRevisorCommand::GESTOR_USERNAME)->firstOrFail();
+
+    $cad = DB::table('ponto_colaborador_config')->where('business_id', $bizId)->where('user_id', $g->id)->get();
+    expect($cad)->toHaveCount(1);
+    expect($cad[0]->matricula)->toBe('DEMO-0002');
+    expect((bool) $cad[0]->controla_ponto)->toBeTrue();
+    expect(DB::table('ponto_marcacoes')->where('business_id', $bizId)->count())->toBe(0);
+
+    // O app enxerga a área Ponto e o /me do gestor.
+    app(PermissionRegistrar::class)->forgetCachedPermissions();
+    \Laravel\Passport\Passport::actingAs(User::findOrFail($g->id), [], 'api');
+    $this->getJson('/ponto/api/me')->assertOk()->assertJsonPath('matricula', 'DEMO-0002');
+    $inicio = $this->getJson('/api/app/inicio')->assertOk();
+    expect($inicio->json('areas'))->toContain('ponto');
+});
