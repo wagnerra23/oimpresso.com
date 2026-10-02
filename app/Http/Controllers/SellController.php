@@ -3519,10 +3519,10 @@ class SellController extends Controller
     }
 
     /**
-     * Shows modal to edit shipping details.
+     * Shows modal to edit shipping details (ou JSON pro drawer de Sells/Shipments/Index).
      *
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\View\View|\Illuminate\Http\JsonResponse
      */
     public function editShipping($id)
     {
@@ -3541,6 +3541,27 @@ class SellController extends Controller
         $users = User::forDropdown($business_id, false, false, false);
 
         $shipping_statuses = $this->transactionUtil->shipping_statuses();
+
+        // Thread 02 (venda-menu) — o drawer de Sells/Shipments/Index pede JSON pelo MESMO endpoint.
+        // O modal Blade segue recebendo HTML: o jQuery dele manda Accept text/html (wantsJson=false).
+        if (request()->wantsJson() && ! request()->header('X-Inertia')) {
+            return response()->json([
+                'id' => $transaction->id,
+                'invoice_no' => $transaction->invoice_no,
+                'shipping_status' => $transaction->shipping_status,
+                'delivery_person' => $transaction->delivery_person,
+                'delivered_to' => $transaction->delivered_to,
+                'shipping_details' => $transaction->shipping_details,
+                'shipping_address' => $transaction->shipping_address,
+                'shipping_custom_field_1' => $transaction->shipping_custom_field_1,
+                'shipping_custom_field_2' => $transaction->shipping_custom_field_2,
+                'shipping_custom_field_3' => $transaction->shipping_custom_field_3,
+                'shipping_custom_field_4' => $transaction->shipping_custom_field_4,
+                'shipping_custom_field_5' => $transaction->shipping_custom_field_5,
+                'shipping_statuses' => $shipping_statuses,
+                'users' => $users,
+            ]);
+        }
 
         $activities = Activity::forSubject($transaction)
            ->with(['causer', 'subject'])

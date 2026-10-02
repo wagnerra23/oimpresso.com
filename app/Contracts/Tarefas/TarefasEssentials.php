@@ -32,4 +32,14 @@ interface TarefasEssentials
      * Conclui a ToDo se ela for visível ao usuário. Devolve false se não achou.
      */
     public function concluir(User $user, int $businessId, int $id): bool;
+
+    /**
+     * Detalhe de uma ToDo visível ao usuário (mesmo escopo de pendentes/concluir), concluída ou
+     * não. null se não achou. Comentários do mais antigo para o mais novo.
+     *
+     * @return array{id: int, titulo: string, descricao: ?string, rotulo: string, responsavel: ?string,
+     *     prazo: ?string, concluida: bool,
+     *     comentarios: list<array{quando: ?string, autor: ?string, texto: string}>}|null
+     */
+    public function detalhe(User $user, int $businessId, int $id): ?array;
 }
