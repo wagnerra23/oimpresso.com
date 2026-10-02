@@ -141,7 +141,7 @@ class ImportSalesController extends Controller
      * Até `limiteSincrono()` linhas importa na hora, como o legado. Acima, despacha
      * `ImportarVendasJob` (D2) e devolve o usuário à tela, que mostra o progresso.
      *
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\RedirectResponse
      */
     public function import(Request $request)
     {
