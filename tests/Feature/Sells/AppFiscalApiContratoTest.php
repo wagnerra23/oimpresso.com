@@ -91,13 +91,17 @@ function appFisNfse(int $biz, string $status, string $quando, array $extra = [])
     ]);
 }
 
-it('sem token 401; sem permissão fiscal 403; sem o módulo no plano 403', function () {
+it('sem token 401; sem permissão fiscal 403', function () {
     $this->getJson('/api/app/fiscal')->assertStatus(401);
 
     appFisPlano(true);
     Passport::actingAs(appFisUsuario((int) $this->tenant->id, []), [], 'api');
     $this->getJson('/api/app/fiscal')->assertStatus(403)->assertJsonPath('erro', 'sem_permissao');
+});
 
+// Caso próprio: o Laravel guarda o controller na rota depois do 1º request, então trocar o mock
+// do plano no meio de um mesmo teste não chega ao controller.
+it('sem o módulo Fiscal no plano 403, mesmo com as permissões', function () {
     appFisPlano(false);
     Passport::actingAs(appFisUsuario((int) $this->tenant->id, ['fiscal.nfe.view', 'fiscal.nfse.view']), [], 'api');
     $this->getJson('/api/app/fiscal')->assertStatus(403)->assertJsonPath('erro', 'sem_permissao');

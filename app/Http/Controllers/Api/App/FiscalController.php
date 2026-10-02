@@ -102,7 +102,7 @@ class FiscalController extends Controller
             ->groupBy('n.status_app')
             ->selectRaw('n.status_app as s, COUNT(*) as total')
             ->get()
-            ->pluck('total', 's');
+            ->mapWithKeys(fn ($l) => [$l->s => $l->total]);
         $contadores = ['todos' => (int) $porStatus->sum()];
         foreach (self::STATUS as $s) {
             $contadores[$s] = (int) ($porStatus[$s] ?? 0);
