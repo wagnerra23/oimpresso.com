@@ -118,6 +118,12 @@ class ImportarVendasJob implements ShouldQueue
             $usuario = User::where('business_id', $this->businessId)->findOrFail($this->userId);
 
             Auth::setUser($usuario);
+            // O mapPurchaseSell lê `request()->session()`, não só `session()`: sem store no
+            // request ele lança "Session store not set on request" (medido no CI). O store é o
+            // mesmo singleton do `session()`; o valor de `business` é restaurado no finally.
+            if (! request()->hasSession()) {
+                request()->setLaravelSession(app('session')->driver());
+            }
             session()->put('business', $business);
 
             $parsed = $service->lerPlanilha($this->caminhoArquivo);

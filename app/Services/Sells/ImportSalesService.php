@@ -303,7 +303,9 @@ class ImportSalesService
                         throw new \Exception(__('lang_v1.import_sale_tax_not_found', ['row' => $row_index, 'tax_name' => $line_data['item_tax']]));
                     }
                     $tax_id = $tax->id;
-                    $item_tax = $this->transactionUtil->calc_percentage($price_before_tax, $tax->amount);
+                    // Movido do controller sem tocar: o docblock de calc_percentage diz `int`, mas a
+                    // alíquota é decimal e o cálculo sempre recebeu float. Truncar mudaria o imposto.
+                    $item_tax = $this->transactionUtil->calc_percentage($price_before_tax, $tax->amount); // @phpstan-ignore argument.type
                     $price_inc_tax = $price_before_tax + $item_tax;
                 }
 
@@ -421,9 +423,11 @@ class ImportSalesService
                 'tax' => 0,
             ];
 
-            $transaction = $this->transactionUtil->createSellTransaction($business_id, $sale_data, $invoice_total, $user_id, false);
+            // Docblocks legados do TransactionUtil não batem com o uso (invoice_total é array,
+            // location_id é int) — chamadas idênticas às do controller, que estavam no baseline.
+            $transaction = $this->transactionUtil->createSellTransaction($business_id, $sale_data, $invoice_total, $user_id, false); // @phpstan-ignore argument.type
 
-            $this->transactionUtil->createOrUpdateSellLines($transaction, $sell_lines, $location_id, false, null, [], false);
+            $this->transactionUtil->createOrUpdateSellLines($transaction, $sell_lines, $location_id, false, null, [], false); // @phpstan-ignore argument.type
 
             foreach ($sell_lines as $line) {
                 if ($line['enable_stock']) {
