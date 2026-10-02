@@ -88,7 +88,7 @@ export const CONTAS = {
     papel: 'conta do dono — origem das telas do ERP e do DS',
     alcancavel: true,          // o DesignSync desta sessão enxerga
     espelhada: true,           // desce pro repo por bundle/--export-from
-    projetos: ['cowork', 'designSystem'],
+    projetos: ['cowork', 'designSystem', 'mobile'],
   },
   felipe: {
     id: 'felipe',
@@ -147,6 +147,13 @@ export const PROJETOS = {
   // 2026-09-21. `listado: false` pelo mesmo motivo do `cowork`: projeto de telas não aparece em
   // `list_projects` (que só lista design system), e a conta nem é visível deste lado.
   telasFelipe:  { id: '2e7d3640-825c-4c09-ac52-17c8469f3b91', nome: 'PROTÓTIPO OFICIAL - PRODUTO UNIFICADO V2', papel: 'telas', listado: false, conta: 'felipe', espelho: 'prototipo-ui/cowork/Felipe/' },
+  // Protótipo do APP DAS LOJAS (repo wagnerra23/oimpresso-app — Capacitor, telas próprias),
+  // apontado por [W] em 2026-10-01 como "o correto". NÃO é o shell do ERP: não tem
+  // `oimpresso.com.html`, não vira bundle nem entra no ledger de frescor. Entra pela rota
+  // `receber-handoff --zip … --projeto mobile` (cópia fiel: mostra o que muda, nunca apaga,
+  // invalida CPF/CNPJ com DV válido do mock). O espelho é a cópia de referência que o app e o
+  // DECISOES.md já citam (PRs #8467/#8485); o `github.md` do projeto aponta para o oimpresso-app.
+  mobile:       { id: 'b29cacda-da7c-4c02-b91e-4064b35ba951', nome: 'Mobile app structure review', papel: 'telas', listado: false, conta: 'w', espelho: 'mobile/ref/design-v4/project/', importacao: 'copia-fiel', entrada: 'Oimpresso Mobile.dc.html', app: 'wagnerra23/oimpresso-app' },
 };
 
 // ── PATHS FIXOS (as âncoras do protocolo dependem destes — RUNBOOK Fase −1) ─────
@@ -400,6 +407,14 @@ export const FASES = [
       'node scripts/design-sync/receber-handoff.mjs --zip <handoff.zip>            # mede + valida',
       'node scripts/design-sync/receber-handoff.mjs --zip <handoff.zip> --apply    # + promove',
       'node scripts/design-sync/receber-handoff.mjs --zip <handoff.zip> --conta w  # exigido se o PASSO 0 der indeterminado',
+      '# [PROJETO COPIA-FIEL] protótipo do app das lojas (PROJETOS.mobile) — outra entrada, sem bundle:',
+      'node scripts/design-sync/receber-handoff.mjs --zip <handoff.zip> --projeto mobile           # mostra o que muda',
+      'node scripts/design-sync/receber-handoff.mjs --zip <handoff.zip> --projeto mobile --apply   # grava no espelho (nunca apaga)',
+      '# [PREVIEW DO MOBILE] o espelho NAO tem _ds/ (ADR 0401: DS e linkado, nao copiado). Servidor',
+      '#   estatico comum (python -m http.server) da 404 nos 3 arquivos do DS e nas 7 fontes; o',
+      '#   servirEspelho resolve _ds/<slug>/ lendo prototipo-ui/design-system/ (medido 2026-10-02: 12/12',
+      '#   com 200; o _ds_bundle.js do repo e mais novo que o do zip so por a11y da tabela, sem efeito visual).',
+      'node --input-type=module -e "import(\'./scripts/design/design-diff-lote.mjs\').then(m=>m.servirEspelho(\'mobile/ref/design-v4/project\',5593))"   # abra /Oimpresso%20Mobile.dc.html',
       'selftest: node scripts/design-sync/receber-handoff.test.mjs',
       '# [RETORNO Code -> Cowork] ([W] 2026-09-24: "quando for gerar um retorno ja use o upload designsync")',
       '#   Todo PR que muda o espelho (recibo _saida, errata de playbook, restauracao em cowork-inbox/) SOBE',

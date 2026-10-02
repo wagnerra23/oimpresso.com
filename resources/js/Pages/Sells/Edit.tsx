@@ -26,45 +26,28 @@ import CommissionSplitEditor, { type CommissionSplitValue } from '@/Pages/Sells/
 import ProductSearchAutocomplete, { type ProductSearchResult } from '@/Pages/Sells/_components/ProductSearchAutocomplete';
 // PR #1661 — Customer search Cowork (paridade Create.tsx).
 import CustomerSearchAutocomplete from '@/Pages/Sells/_components/CustomerSearchAutocomplete';
+import {
+  linhaDoBanco,
+  linhaParaEnvio,
+  numeroParaEnvio,
+  subtotalLinha,
+  type LinhaEdicao,
+  type LinhaGravada,
+} from '@/Pages/Sells/_components/edicaoVenda';
 
 // PR parking-lot P2 — auto-save draft TTL (24h espelha Create.tsx).
 const DRAFT_TTL_MS = 24 * 60 * 60 * 1000;
 
 // Linha de produto editável no form Edit (espelha tipo Create.tsx).
-interface EditProductLine {
-  product_id: number;
-  variation_id: number | null;
-  name: string;
-  sku: string;
-  quantity: number;
-  unit_price: number;
-  discount: number;
-  /** Tipo de desconto por linha — PR parking-lot P1 (toggle R$/%). */
-  discount_type: 'fixed' | 'percentage';
-  /** IMEI/serial number opcional por linha — PR parking-lot P1 paridade Blade legacy. */
-  imei_number?: string;
-  /** ID da linha existente (sell_lines.id) — pra backend identificar update vs create. */
-  sell_line_id?: number | null;
-}
+// UC-SEDIT-09 — a linha da tela segue a semântica do SellPosController@update (edicaoVenda.ts).
+type EditProductLine = LinhaEdicao;
 
 // Tipo do row sellDetails que o backend serializer devolve (pré-fill).
 // ⚠️ CONTRATO REAL: SellController@edit serializa o resultado CRU do join SQL
 // com aliases FLAT (product_name, quantity_ordered, sell_price_inc_tax…),
 // NÃO objetos aninhados. Decimais MySQL chegam como string ("2.5000").
 // Guard backend: tests/Feature/Sells/SellsEditPrefillContractTest.php.
-interface BackendSellDetail {
-  id?: number;
-  transaction_sell_lines_id?: number;
-  product_id?: number;
-  variation_id?: number | string | null;
-  product_name?: string;
-  sub_sku?: string | null;
-  quantity_ordered?: number | string;
-  sell_price_inc_tax?: number | string;
-  default_sell_price?: number | string;
-  line_discount_amount?: number | string | null;
-  line_discount_type?: 'fixed' | 'percentage' | null;
-}
+type BackendSellDetail = LinhaGravada;
 
 interface Headline {
   id: number;
@@ -193,17 +176,10 @@ export default function SellsEdit(props: SellsEditPageProps) {
       // reais do join SQL — antes lia sl.product?.name / sl.quantity /
       // sl.unit_price_inc_tax (inexistentes) e TODA linha caía no fallback
       // ('—', qtd 1, R$ 0,00). Também honra line_discount_type real.
-      const productsFromBackend: EditProductLine[] = (props.form.sellDetails as BackendSellDetail[] | undefined)?.map((sl) => ({
-        sell_line_id: sl.transaction_sell_lines_id ?? sl.id ?? null,
-        product_id: sl.product_id ?? 0,
-        variation_id: sl.variation_id != null ? Number(sl.variation_id) : null,
-        name: sl.product_name ?? '—',
-        sku: sl.sub_sku ?? '',
-        quantity: Number(sl.quantity_ordered ?? 1),
-        unit_price: Number(sl.sell_price_inc_tax ?? sl.default_sell_price ?? 0),
-        discount: Number(sl.line_discount_amount ?? 0),
-        discount_type: sl.line_discount_type === 'percentage' ? ('percentage' as const) : ('fixed' as const),
-      })) ?? [];
+      // UC-SEDIT-09 — preço ANTES do desconto (unit_price_before_discount), não o preço já
+      // descontado: antes a tela reaplicava o desconto e salvar sem mexer mudava o valor.
+      const productsFromBackend: EditProductLine[] =
+        (props.form.sellDetails as BackendSellDetail[] | undefined)?.map(linhaDoBanco) ?? [];
       setData({
         transaction_date: tx.transaction_date,
         contact_id: tx.contact_id,
@@ -247,6 +223,10 @@ export default function SellsEdit(props: SellsEditPageProps) {
         discount: 0,
         discount_type: 'fixed',
         imei_number: '',
+        // Linha nova: preço com imposto já incluso (como na criação), sem valores gravados.
+        tax_id: null,
+        taxa_imposto: 0,
+        gravado: null,
       },
     ]);
   };
@@ -266,20 +246,8 @@ export default function SellsEdit(props: SellsEditPageProps) {
   // Keys esperadas: transaction_sell_lines_id (pra UPDATE), product_id, variation_id,
   // quantity, unit_price, line_discount_amount, line_discount_type.
   // PR parking-lot P1 — agora honra discount_type per-line + imei_number.
-  const buildProductsPayload = () => {
-    return data.products.map((p) => ({
-      transaction_sell_lines_id: p.sell_line_id ?? undefined,
-      product_id: p.product_id,
-      variation_id: p.variation_id,
-      quantity: p.quantity,
-      unit_price: p.unit_price,
-      line_discount_amount: p.discount,
-      line_discount_type: p.discount_type ?? 'fixed',
-      // PR parking-lot P1 — IMEI/serial opcional (Blade legacy field).
-      // Backend não tem coluna dedicada hoje; passamos pra futura wire-up sem quebrar.
-      imei_number: p.imei_number ?? '',
-    }));
-  };
+  // UC-SEDIT-09 — formato do SellPosController@update; números em pt-BR (edicaoVenda.ts).
+  const buildProductsPayload = () => data.products.map(linhaParaEnvio);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -297,6 +265,11 @@ export default function SellsEdit(props: SellsEditPageProps) {
       tax_rate_id: data.tax_id,
       // PR parking-lot P1 — checkbox Inscrever-se? envia 0/1 (backend espera is_recurring).
       is_recurring: data.is_recurring ? 1 : 0,
+      // UC-SEDIT-09 — o servidor calcula o final_total por diferença (a tela não calcula
+      // imposto, embalagem nem despesas), e os números vão em pt-BR pro num_uf.
+      calcular_total_no_servidor: 1,
+      discount_amount: numeroParaEnvio(Number(data.discount_amount) || 0),
+      shipping_charges: numeroParaEnvio(Number(data.shipping_charges) || 0),
     };
     if (sell_document) {
       // Anexo presente — usa POST + _method=PUT pra multipart (Laravel form spoofing).
@@ -781,11 +754,8 @@ function EditFormBody({ data, setData, errors, processing, permissions, urls, fo
               <tbody>
                 {data.products.map((p, idx) => {
                   // PR parking-lot P1 — desconto per-line agora honra discount_type (R$ vs %).
-                  const lineGross = p.quantity * p.unit_price;
-                  const lineDiscountValue = p.discount_type === 'percentage'
-                    ? (lineGross * p.discount) / 100
-                    : p.discount;
-                  const subtotal = Math.max(lineGross - lineDiscountValue, 0);
+                  // UC-SEDIT-09 — regra do servidor: desconto fixo é POR UNIDADE.
+                  const subtotal = subtotalLinha(p);
                   return (
                     <tr key={`${idx}-${p.product_id}`} className="border-b border-border last:border-0">
                       <td className="px-3 py-2">
@@ -844,13 +814,14 @@ function EditFormBody({ data, setData, errors, processing, permissions, urls, fo
                           >
                             <SelectTrigger
                               size="sm"
-                              aria-label={`Tipo de desconto de ${p.name}: R$ ou %`}
+                              aria-label={`Tipo de desconto de ${p.name}: R$ por unidade ou %`}
                               className="h-8 w-16 text-xs"
                             >
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="fixed">R$</SelectItem>
+                              {/* UC-SEDIT-09 — o servidor aplica o desconto fixo POR UNIDADE. */}
+                              <SelectItem value="fixed">R$/un</SelectItem>
                               <SelectItem value="percentage">%</SelectItem>
                             </SelectContent>
                           </Select>
@@ -883,14 +854,7 @@ function EditFormBody({ data, setData, errors, processing, permissions, urls, fo
                   </td>
                   <td className="px-3 py-2 text-right tabular-nums font-bold text-base">
                     {data.products
-                      .reduce((acc, p) => {
-                        // PR parking-lot P1 — total honra discount_type per-line.
-                        const gross = p.quantity * p.unit_price;
-                        const disc = p.discount_type === 'percentage'
-                          ? (gross * p.discount) / 100
-                          : p.discount;
-                        return acc + Math.max(gross - disc, 0);
-                      }, 0)
+                      .reduce((acc, p) => acc + subtotalLinha(p), 0)
                       .toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                   </td>
                   <td />

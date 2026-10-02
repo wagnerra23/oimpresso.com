@@ -53,6 +53,13 @@ injetado. Persona única: [W], superadmin. Admin de negócio é barrado.
 - ❌ **Não ler a tabela `system` inteira** para a tela: ela guarda outras chaves. A lista é fechada
   (`SISTEMA`).
 
+## Contrato visual
+
+Travado por `governance/design/contracts/superadmin-configuracoes.contract.json` (gate `contrato-de-tela`),
+com âncoras `data-contract` no `.tsx`. A copy literal e a ordem das seções são de lá — esta
+seção **aponta**, não repete. Só entra copy que existe nos dois lados; o que diverge fica na
+tabela abaixo e no `_nota_recorte` do contrato.
+
 ## Divergências declaradas contra o protótipo
 
 | Protótipo (`ViewConfig`, L1369) | Produção | Por quê |
