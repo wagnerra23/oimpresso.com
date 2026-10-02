@@ -2987,6 +2987,10 @@ class SellController extends Controller
 
         $customer_due = $this->transactionUtil->getContactDue($transaction->contact_id, $transaction->business_id);
 
+        // Número cru da dívida, guardado ANTES da formatação pt-BR: o payload React precisa
+        // do float, e re-parsear o texto pt-BR quebrava (o ponto é milhar, a vírgula é decimal).
+        $customer_due_raw = round((float) $customer_due, 2);
+
         $customer_due = $customer_due != 0 ? $this->transactionUtil->num_f($customer_due, true) : '';
 
         //Added check because $users is of no use if enable_contact_assign if false
@@ -3007,7 +3011,7 @@ class SellController extends Controller
                 'current_stage_key' => null,  // FSM ADR 0143 (lazy)
             ];
 
-            $formPayload = function () use ($transaction, $business_details, $taxes, $sell_details, $commission_agent, $types, $customer_groups, $pos_settings, $waiters, $invoice_schemes, $default_invoice_schemes, $redeem_details, $edit_discount, $edit_price, $shipping_statuses, $warranties, $statuses, $sales_orders, $payment_types, $accounts, $payment_lines, $change_return, $is_order_request_enabled, $customer_due, $users) {
+            $formPayload = function () use ($transaction, $business_details, $taxes, $sell_details, $commission_agent, $types, $customer_groups, $pos_settings, $waiters, $invoice_schemes, $default_invoice_schemes, $redeem_details, $edit_discount, $edit_price, $shipping_statuses, $warranties, $statuses, $sales_orders, $payment_types, $accounts, $payment_lines, $change_return, $is_order_request_enabled, $customer_due, $customer_due_raw, $users) {
                 return [
                     'transaction' => [
                         'id' => (int) $transaction->id,
@@ -3077,9 +3081,10 @@ class SellController extends Controller
                         'name' => (string) ($transaction->contact->name ?? ''),
                         'mobile' => $transaction->contact->mobile ? (string) $transaction->contact->mobile : null,
                         'email' => $transaction->contact->email ? (string) $transaction->contact->email : null,
-                        // dues_total = soma de transactions.final_total - total_paid de outras vendas due
-                        // do mesmo contact. Lazy fallback ao $customer_due variable já existente acima.
-                        'dues_total' => (float) ($customer_due ? floatval(preg_replace('/[^\d.]/', '', $customer_due)) : 0.0),
+                        // dues_total = saldo devedor do contato (Util::getContactDue), em número cru.
+                        // Não re-parsear $customer_due: ele já vem formatado em pt-BR e o
+                        // preg_replace descartava a vírgula decimal (a dívida aparecia 100× maior).
+                        'dues_total' => $customer_due_raw,
                     ] : null,
                 ];
             };
