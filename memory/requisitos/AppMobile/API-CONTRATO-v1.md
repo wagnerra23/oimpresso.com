@@ -266,8 +266,8 @@ Mesmos campos e regras do §4.2, **menos** `tipo` e `papeis` (mudar papel fica n
   abas que o usuário pode abrir, na ordem do app. Cada uma segue a mesma regra da rota dela, então
   aba visível = rota que responde: `tarefas` = Essentials no plano ou quem aprova o Ponto;
   `pedidos`/`producao`/`orcamentos` = quem vê vendas; `pessoas` = quem vê cliente ou fornecedor; `ponto` =
-  colaborador com `controla_ponto`; `ponto_gestor` = quem tem acesso ao módulo Ponto (§12.1); `inicio` só para perfil `erp`; `mais` sempre.
-  `perfil` = `erp` se tem tarefas, vendas ou pessoas, senão `colaborador`. `abre_em` = `inicio`
+  colaborador com `controla_ponto`; `ponto_gestor` = quem tem acesso ao módulo Ponto (§12.1); `financeiro` = a regra de §10.1; `inicio` só para perfil `erp`; `mais` sempre.
+  `perfil` = `erp` se tem tarefas, vendas, pessoas ou financeiro, senão `colaborador`. `abre_em` = `inicio`
   (erp), `ponto` (colaborador) ou `mais` (sem nenhuma das duas).
 
 - `faturado_hoje` e `meta_dia`: só com `dashboard.data` (senão `null`). Meta do dia = meta mensal
@@ -373,6 +373,34 @@ categorias:[{id, nome, total}], total, baixo_estoque, pagina, tem_mais }`, 30 po
 - `minimo` = `alert_quantity` (ou `null`); `baixo` = a regra do alerta da web (`qtd ≤ minimo`).
 - `local` = nome da loja; `prateleira` = "rack · fileira · posição" de `product_racks`, ou `null`.
 - Permissão `product.view` (403 sem ela); a área `estoque` entra em `areas` (§6) com a mesma regra.
+
+## 10. Financeiro (Onda C)
+
+### 10.1 Financeiro (tela 06) — só leitura
+
+`GET /api/app/financeiro?aba=receber|pagar|extrato&pagina=N` →
+`{ resumo:{mes, recebido, pago, saldo, a_receber, vencido, a_pagar}, contas:[{id, nome, detalhe, saldo}],
+itens:[{id, tipo, descricao, parte, vencimento, pago_em, valor, status}], contadores:{receber, pagar, extrato},
+pagina, tem_mais }`, 20 por página. `resumo` e `contas` não mudam com a aba.
+
+- Acesso: módulo Financeiro no plano + `financeiro.access` (ou superadmin) — a mesma regra do bloco
+  `financeiro` do Início. Sem ela, `403 sem_permissao`. A área `financeiro` entra em `areas` (§6) com essa
+  regra e conta para o perfil `erp`.
+- `resumo.a_receber` / `a_pagar`: `Financeiro\UnificadoService::kpis` — o mesmo número do Início e do
+  cockpit web. `vencido` = parte vencida do a receber (já contida nele: aberto/parcial, vencimento < hoje).
+- `recebido` / `pago`: baixas do mês corrente (`mes` = `YYYY-MM`) dos títulos a receber / a pagar, sem as
+  de estorno (regra do `FluxoRealizadoService`); `saldo` = recebido − pago.
+- Abas `receber` e `pagar`: títulos aberto/parcial do tipo, por vencimento (mais antigo primeiro);
+  `valor` = o que falta (`valor_aberto`); `status` = `vencido` se o vencimento passou, senão `aberto`.
+- Aba `extrato`: títulos quitados cuja última baixa caiu no mês, por `pago_em` (mais recente primeiro);
+  `valor` = soma das baixas do título; `status` = `liquidado`. Cancelados não aparecem em aba nenhuma.
+- `descricao` = "Título <número>" (+ " · parcela N/M" quando parcelado); `parte` = cliente/fornecedor
+  do título (`null` sem). Valor sempre positivo: o sinal vem de `tipo`.
+- `contas`: contas bancárias do Financeiro; `detalhe` = banco · agência; `saldo` = saldo em cache, `null`
+  quando o ERP não tem.
+- Tier 0: todas as tabelas filtradas pelo business do token (os models do Financeiro filtram pela sessão,
+  que a API não tem).
+
 
 ## 11. Oficina — Onda D (Modules/OficinaAuto)
 

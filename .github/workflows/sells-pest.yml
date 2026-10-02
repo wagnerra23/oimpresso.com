@@ -39,6 +39,8 @@ on:
       - 'app/Http/Controllers/Api/App/NotificacoesController.php'
       - 'app/Http/Controllers/Api/App/OficinaController.php'
       - 'app/Http/Controllers/Api/App/VendaRapidaController.php'
+      - 'app/Http/Controllers/Api/App/FinanceiroController.php'
+      - 'Modules/Financeiro/Services/UnificadoService.php'
       - 'routes/api.php'
       - 'app/Http/Controllers/SellPosController.php'
       # Sob teste em SellsCreateV3ContratoTest (UC-V302/V303). Sem este gatilho, mexer no
@@ -127,6 +129,8 @@ jobs:
               - 'app/Http/Controllers/Api/App/NotificacoesController.php'
               - 'app/Http/Controllers/Api/App/OficinaController.php'
               - 'app/Http/Controllers/Api/App/VendaRapidaController.php'
+              - 'app/Http/Controllers/Api/App/FinanceiroController.php'
+              - 'Modules/Financeiro/Services/UnificadoService.php'
               - 'routes/api.php'
               - 'resources/js/Pages/Sells/**'
               - 'database/schema/mysql-schema.sql'
@@ -222,6 +226,11 @@ jobs:
         # "opção 2 no D3"): reverter lote importado apaga tudo ou nada, com retrato no log.
         # Lote normal volta estoque e total ao número exato de antes da importação; lote com
         # venda devolvida não muda nada (REGRA MESTRE, dupla prova) + cruzamento de tenant.
+        #
+        # 2026-10-02 — + AppFinanceiroApiContratoTest (tela 06 do app, §10.1 do contrato):
+        # GET /api/app/financeiro, só leitura. Resumo conferido por delta contra a conta à mão
+        # e contra o UnificadoService::kpis; títulos, baixas e contas do business 2 fora do 98.
+        # NASCE SEM RUN: vermelho aqui é este arquivo.
         env:
           DB_CONNECTION: mysql
           DB_HOST: 127.0.0.1
@@ -243,6 +252,7 @@ jobs:
             tests/Feature/Sells/AppNotificacoesApiContratoTest.php \
             tests/Feature/Sells/AppOsApiContratoTest.php \
             tests/Feature/Sells/AppVendaRapidaProdutosApiContratoTest.php \
+            tests/Feature/Sells/AppFinanceiroApiContratoTest.php \
             tests/Feature/Sells/SellsCreateV3ContratoTest.php \
             tests/Feature/Sells/Wave1ShowBaselineTest.php \
             tests/Feature/Sells/Wave1ShowInertiaTest.php \

@@ -6,7 +6,6 @@ namespace App\Http\Controllers\Api\App;
 
 use App\Http\Controllers\Controller;
 use App\User;
-use App\Utils\ModuleUtil;
 use App\Utils\ProductUtil;
 use App\Utils\TransactionUtil;
 use Carbon\Carbon;
@@ -23,7 +22,8 @@ use Illuminate\Support\Facades\DB;
  * - meta_dia: D11 ([W]) = meta MENSAL de faturamento da Jana ÷ dias úteis do mês, `derivada: true`.
  * - kpis.pedidos_*: PedidosController::contadoresPara (mesmas regras da aba Pedidos).
  * - kpis.estoque_baixo: ProductUtil::getProductAlert, só com `stock_report.view`.
- * - financeiro: Financeiro\UnificadoService::kpis, só com acesso ao Financeiro.
+ * - financeiro: Financeiro\UnificadoService::kpis, só com acesso ao Financeiro
+ *   (FinanceiroController::podeVerFinanceiro — a mesma regra da área `financeiro`).
  * - proximas_tarefas: TarefasController::proximasPara (3).
  * - nao_lidas: NotificacoesController::naoLidas (o ponto no sino; §6.1).
  *
@@ -34,7 +34,6 @@ class InicioController extends Controller
     public function __construct(
         private TransactionUtil $transactionUtil,
         private ProductUtil $productUtil,
-        private ModuleUtil $moduleUtil,
     ) {
     }
 
@@ -74,12 +73,13 @@ class InicioController extends Controller
         $pessoas = app(PessoasController::class)->podeVerPessoas($user);
         $produtos = $user->can('product.view'); // a regra da rota /produtos (§9.1)
         $oficina = app(OficinaController::class)->podeVerOficina($user);
+        $financeiro = app(FinanceiroController::class)->podeVerFinanceiro($user);
         $ponto = DB::table('ponto_colaborador_config')
             ->where('business_id', (int) $user->business_id)
             ->where('user_id', (int) $user->id)
             ->where('controla_ponto', true)
             ->exists();
-        $erp = $tarefas || $vendas || $pessoas || $produtos || $oficina;
+        $erp = $tarefas || $vendas || $pessoas || $produtos || $oficina || $financeiro;
 
         $areas = array_keys(array_filter([
             'inicio' => $erp,
@@ -91,6 +91,7 @@ class InicioController extends Controller
             'produtos' => $produtos,
             'estoque' => $produtos, // mesma regra (product.view) da rota /estoque (§9.2)
             'oficina' => $oficina,
+            'financeiro' => $financeiro,
             'ponto' => $ponto,
             'ponto_gestor' => app(PontoAprovacoesController::class)->podeVerFila($user),
             'mais' => true,
@@ -187,12 +188,8 @@ class InicioController extends Controller
     /** @return array{a_receber: float, a_pagar: float}|null */
     private function financeiro(User $user, int $bizId): ?array
     {
-        $temModulo = $user->can('superadmin')
-            || $this->moduleUtil->hasThePermissionInSubscription($bizId, 'financeiro_module');
-        if (! $temModulo || ! ($user->can('superadmin') || $user->can('financeiro.access'))) {
-            return null;
-        }
-        if (! class_exists(\Modules\Financeiro\Services\UnificadoService::class)) {
+        // A mesma regra da área `financeiro` e de GET /api/app/financeiro (§10.1).
+        if (! app(FinanceiroController::class)->podeVerFinanceiro($user)) {
             return null;
         }
 
