@@ -36,6 +36,7 @@
 ---
 
 ## Últimos handoffs
+- [2026-10-02 11:03 BRT — **Protótipo mobile importado + âncora do app das lojas**](handoffs/2026-10-02-1103-importacao-prototipo-mobile-app-lojas.md) (projeto Claude Design b29cacda = o correto · `mobile/ref/design-v4` #8467/#8485 · `github.md` → oimpresso-app #8494 · D13 v1 = 7 áreas + D14 tema do celular #8473 · playbook app-lojas com errata #8498 · CI no oimpresso-app #15 · `receber-handoff --projeto mobile` #8509 aberto · Dashboard 35 a decidir pelo [W])
 - [2026-10-01 16:14 BRT — **Gestão de merges das sessões paralelas**](handoffs/2026-10-01-1614-gestao-merges-sessoes-paralelas.md) (vigia de merge com retenção de valor/estoque/ADR; vazamento da lista de clientes fechado em #8442/#8443/#8469; 29 sessões arquivadas; retidos p/ [W]: #8454, #8460)
 - [2026-10-01 13:45 BRT — **Auditoria: backfill do business_id NULL no activity_log**](handoffs/2026-10-01-1345-auditoria-backfill-business-id.md) (núcleo já aplicado antes · 6.322 linhas de outros módulos + 146 licenças limpas com ok [W] · 0 divergentes na conferência · BRIEFING #8440)
 - [2026-10-01 07:50 BRT — **Patrimônio: "Enviar pra manutenção" a partir de Bens**](handoffs/2026-10-01-0750-patrimonio-bens-enviar-manutencao.md) (#8310 chave na linha, smoke prod OK · #8316 rodapé do drawer do bem, deploy OK, smoke em chip · thread 20 #8272 mergeada + smoke · thread 16 fica no redirecionamento #8286 · 3 chips: smoke #8316, timeout Playwright no visual-regression, falso "morto" no cron-watchdog)
