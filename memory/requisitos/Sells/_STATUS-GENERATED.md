@@ -16,12 +16,12 @@ authority: generated
 
 | Elo | Quantidade |
 |---|---:|
-| US no SPEC | 57 |
+| US no SPEC | 59 |
 | CU no SDD | 6 |
-| Telas (.tsx) | 9 |
-| Telas com `casos.md` | 6 |
-| UC declarados | 73 |
-| UC com teste que os cita | 72 |
+| Telas (.tsx) | 11 |
+| Telas com `casos.md` | 8 |
+| UC declarados | 96 |
+| UC com teste que os cita | 95 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -101,14 +101,34 @@ authority: generated
 | US-SELL-061 | `desconhecido` | Listar cotações (`/sells/quotations`) |
 | US-SELL-062 | `desconhecido` | Listar vendas recorrentes e pausar/retomar (`/sells/subscriptions`) |
 | US-SELL-063 | `desconhecido` | Caixa do dia por forma de pagamento e por origem (`/vendas/caixa`) |
+| US-SELL-064 | `desconhecido` | Listar vendas de POS com rodapé de totais (`/pos`) |
+| US-SELL-065 | `desconhecido` | Cadastro de descontos com ver × editar (`/discount`) |
 
 ## UC por status
 
 | UC | Tela | Status |
 |---|---|---|
 | UC-11 | Index | 🧪 aguarda veredito da lane |
+| UC-POS-01 | Pos/Index | 🧪 aguarda veredito da lane |
+| UC-POS-02 | Pos/Index | 🧪 aguarda veredito da lane |
+| UC-POS-03 | Pos/Index | 🧪 aguarda veredito da lane |
+| UC-POS-04 | Pos/Index | 🧪 aguarda veredito da lane |
+| UC-POS-05 | Pos/Index | 🧪 aguarda veredito da lane |
+| UC-POS-06 | Pos/Index | 🧪 stub (não executa) |
+| UC-POS-07 | Pos/Index | 🧪 stub (não executa) |
+| UC-POS-08 | Pos/Index | 🧪 stub (não executa) |
+| UC-REM-01 | Shipments/Index | 🧪 aguarda veredito da lane |
+| UC-REM-02 | Shipments/Index | 🧪 aguarda veredito da lane |
+| UC-REM-03 | Shipments/Index | 🧪 aguarda veredito da lane |
+| UC-REM-04 | Shipments/Index | 🧪 aguarda veredito da lane |
+| UC-REM-05 | Shipments/Index | 🧪 aguarda veredito da lane |
+| UC-REM-06 | Shipments/Index | 🧪 aguarda veredito da lane |
+| UC-REM-07 | Shipments/Index | 🧪 aguarda veredito da lane |
 | UC-S01 | Create | 🧪 aguarda veredito da lane |
 | UC-S02 | Create | 🧪 aguarda veredito da lane |
+| UC-S03 | Create | 🧪 aguarda veredito da lane |
+| UC-S04 | Create | 🧪 aguarda veredito da lane |
+| UC-S05 | Create | 🧪 aguarda veredito da lane |
 | UC-S10 | Index | 🧪 aguarda veredito da lane |
 | UC-S11 | Index | 🧪 aguarda veredito da lane |
 | UC-S12 | Index | 🧪 aguarda veredito da lane |
@@ -129,8 +149,13 @@ authority: generated
 | UC-SEDIT-05 | Edit | 🧪 aguarda veredito da lane |
 | UC-SEDIT-06 | Edit | 🧪 aguarda veredito da lane |
 | UC-SEDIT-07 | Edit | 🧪 aguarda veredito da lane |
+| UC-SEDIT-08 | Edit | 🧪 aguarda veredito da lane |
+| UC-SEDIT-09 | Edit | 🧪 aguarda veredito da lane |
+| UC-SEDIT-10 | Edit | 🧪 aguarda veredito da lane |
+| UC-SEDIT-11 | Edit | 🧪 aguarda veredito da lane |
 | UC-SIDX-01 | Index | 🧪 aguarda veredito da lane |
 | UC-SIDX-02 | Index | 🧪 aguarda veredito da lane |
+| UC-SIDX-03 | Index | 🧪 aguarda veredito da lane |
 | UC-V301 | CreateV3 | 🧪 aguarda veredito da lane |
 | UC-V302 | CreateV3 | 🧪 aguarda veredito da lane |
 | UC-V303 | CreateV3 | 🧪 aguarda veredito da lane |
