@@ -129,6 +129,15 @@ it('não dispara mutação em GET /settings/payment-gateways (read-only puro)')
 
 ---
 
+## Contrato visual
+
+Travado por `governance/design/contracts/paymentgateway-gateways.contract.json` (gate `contrato-de-tela`),
+com âncoras `data-contract` no `.tsx` (KPIs, tabela de gateways configurados e drivers disponíveis).
+A copy literal e a ordem das seções são de lá — esta seção **aponta**, não repete. Só entra copy que
+existe no protótipo e na tela; o que diverge está no `_nota_recorte` do contrato.
+
+---
+
 ## Refs
 
 - [RUNBOOK Settings Gateways](../../../../../../../memory/requisitos/PaymentGateway/RUNBOOK-settings-gateways.md)

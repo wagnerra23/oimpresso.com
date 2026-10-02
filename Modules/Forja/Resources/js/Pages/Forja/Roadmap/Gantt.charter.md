@@ -173,6 +173,13 @@ substitui"*. Recibo da não-duplicação:
 
 ---
 
+## Contrato visual
+
+Travado por `governance/design/contracts/forja-gantt.contract.json` (gate `contrato-de-tela`), com âncoras
+`data-contract` no `.tsx`. A copy literal e a ordem das seções são de lá — esta seção **aponta**,
+não repete. Só entra copy que existe no protótipo e no código da tela (fora de comentário); o que
+diverge está no `_nota_recorte` do contrato. A fonte do contrato é `forja-gantt.jsx`, o arquivo onde a vista `FjGanttView` mora dentro do hub que o `related_prototype` aponta — mesma âncora, não âncora nova.
+
 ## Refs
 
 - [ADR 0366 — fronteira Jana/Forja/Governance/KB](../../../../../../../memory/decisions/0366-fronteira-jana-forja-governance-kb.md) §D-B

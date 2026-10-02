@@ -48,6 +48,8 @@ on:
       # cobertura (a pegadinha que o sells-pest.yml documenta no próprio paths:).
       - 'app/Http/Controllers/RoleController.php'
       - 'app/Http/Controllers/ContactController.php'
+      - 'app/Services/Pessoas/**'
+      - 'app/Http/Controllers/Api/App/PessoasController.php'
       - 'app/Providers/AuthServiceProvider.php'
       - 'app/Http/Controllers/SalesCommissionAgentController.php'
       - 'app/Http/Middleware/AdminSidebarMenu.php'
@@ -96,6 +98,8 @@ jobs:
             acessos:
               - 'app/Http/Controllers/RoleController.php'
               - 'app/Http/Controllers/ContactController.php'
+              - 'app/Services/Pessoas/**'
+              - 'app/Http/Controllers/Api/App/PessoasController.php'
               - 'app/Providers/AuthServiceProvider.php'
               - 'app/Http/Controllers/SalesCommissionAgentController.php'
               - 'app/Http/Middleware/AdminSidebarMenu.php'

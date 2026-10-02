@@ -254,7 +254,7 @@ export default function Trabalho({
           vale 0,70 (bloco da Onda 2.1 no bundle). Sem ele, esta tela voltaria ao
           0,55 da fundação, que é o D6 de todas as rodadas de comparação. */}
       <div className="fj-page" data-testid="trabalho-page">
-        <div className="fj-frentebar">
+        <div className="fj-frentebar" data-contract="forja.trabalho.visao">
           <Segmented
             aria-label="Visão do trabalho"
             value={visao}
@@ -281,7 +281,7 @@ export default function Trabalho({
         {/* KPI que FILTRA (D8): `<button>`, não `<div>`. No protótipo o número diz
             o tamanho do problema e o clique mostra quais são — por isso os valores
             vêm do POOL, nunca do recorte que eles mesmos aplicam. */}
-        <div className="fj-kpirow" data-testid="trabalho-kpis">
+        <div className="fj-kpirow" data-testid="trabalho-kpis" data-contract="forja.trabalho.kpis">
           <button type="button" className="tf-kpi" disabled>
             <span className="tf-kpi-v">{kpis.total}</span><span className="tf-kpi-l">Total</span>
           </button>
@@ -300,7 +300,7 @@ export default function Trabalho({
           <span className="fj-kpirow-note">clique filtra a lista e o quadro</span>
         </div>
 
-        <div className="fj-toolbar">
+        <div className="fj-toolbar" data-contract="forja.trabalho.toolbar">
           <div className="fj-groupby">
             <span className="fj-groupby-lbl">{isLista ? 'Agrupar' : 'Eixo'}</span>
             {isLista
@@ -360,7 +360,7 @@ export default function Trabalho({
           </form>
         </div>
 
-        <div className="fj-filterbar2">
+        <div className="fj-filterbar2" data-contract="forja.trabalho.filtros">
           <span className="fj-groupby-lbl">Papel</span>
           <button type="button" onClick={() => aplicar({ papel: null })} aria-pressed={!papelAtivo}
             className={'fj-gb-btn' + (!papelAtivo ? ' active' : '')} data-testid="trabalho-papel-todos">todos</button>
