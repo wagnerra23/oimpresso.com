@@ -209,6 +209,10 @@
       "sha256": "1fe554907b49d078a1006e75be690f44dfca6d7c2812a8efc80227cd3cba1a10",
       "em": "2026-10-01T03:02:50.175Z"
     },
+    "cowork-inbox/repair/playbook/_saida-02.md": {
+      "sha256": "f8e069f8f6d78f4610dd8f3dcf9f2d220f0dc461f62b467b2efb168bae42d422",
+      "em": "2026-10-02T13:26:26.501Z"
+    },
     "cowork-inbox/repair/playbook/_saida-A1.md": {
       "sha256": "dc195ca6397eb166ac4cd32b1e494b7871e308e373f6d8e8692e5fe844d997e3",
       "em": "2026-10-02T13:25:42.336Z"
