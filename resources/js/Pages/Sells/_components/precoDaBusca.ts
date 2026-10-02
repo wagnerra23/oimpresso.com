@@ -8,11 +8,11 @@
 // conserto (2026-10-01) só a troca de grupo aplicava o preço do grupo; o produto
 // adicionado com um grupo já escolhido entrava pelo preço base.
 //
-// ⚠️ Diferença conhecida com o Blade: `pos.js` e `getProductRow` tratam preço de grupo 0
-// como "sem preço de grupo" (teste por truthy / `!empty`). Aqui 0 é preço válido — é a
-// regra que o `handlePriceGroupChange` e o dropdown já usavam. Medido em prod 2026-10-01:
-// 0 de 3305 linhas de `variation_group_prices` têm preço 0, logo a diferença não altera
-// valor hoje. Alinhar é mudança de VALOR (REGRA MESTRE), não arrumação.
+// Preço de grupo 0 (alinhado ao Blade em 2026-10-02, medido no MySQL): o `getProductRow`
+// aplica o grupo quando `!empty($price_inc_tax)`. FIXO 0 chega como "0.0000" e vale (linha
+// em 0); PERCENTUAL 0 sai de calc_percentage como float 0 e não vale (linha no preço base).
+// A regra daqui não precisou mudar: o `filterProduct` devolve NULL no percentual que dá 0,
+// e NULL já é "sem preço de grupo". O contrato está em BuscaProdutoPrecoDeGrupoContratoTest.
 export interface LinhaDeBusca {
   selling_price?: number | string | null;
   variation_group_price?: number | string | null;

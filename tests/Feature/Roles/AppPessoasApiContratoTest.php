@@ -140,3 +140,16 @@ it('detalhe traz papéis, contato e kpis da pessoa do meu business', function ()
     expect($r->json('kpis'))->toHaveKeys(['pedidos', 'ticket_medio', 'saldo_aberto']);
     expect($r->json('pedidos_recentes'))->toBeArray();
 });
+
+it('documento: CPF sai mascarado (só os 5 últimos dígitos) e CNPJ sai inteiro, formatado', function () {
+    $u = appPesUsuario(['customer.view']);
+    $pf = appPesContato("APS PF {$this->sufixo}", $u->id, APP_PES_BIZ, ['tax_number' => '12345678909']); // pii-allowlist (CPF/CNPJ sintético de teste)
+    $pj = appPesContato("APS PJ {$this->sufixo}", $u->id, APP_PES_BIZ, ['tax_number' => '11222333000181']); // pii-allowlist (CPF/CNPJ sintético de teste)
+    Passport::actingAs($u, [], 'api');
+
+    $cpf = $this->getJson('/api/app/pessoas/' . $pf)->assertOk()->json('documento');
+    expect($cpf)->toBe('***.***.789-09');
+    expect(str_contains($cpf, '123456'))->toBeFalse();
+
+    expect($this->getJson('/api/app/pessoas/' . $pj)->assertOk()->json('documento'))->toBe('11.222.333/0001-81'); // pii-allowlist (CPF/CNPJ sintético de teste)
+});
