@@ -1,0 +1,41 @@
+{
+  "_nota": "Copy declarada POR REGIÃO a partir de ponto-telas.jsx: para cada âncora, o trecho do protótipo entre o marcador contrato=\"<id>\" e o marcador seguinte. Entra só a string que existe nesse trecho E no código da tela, fora de comentário (medido 2026-10-02). Os ids são os mesmos dos dois lados (thread 17 do playbook do Ponto gravou o par no .tsx).",
+  "_nota_recorte": "O restante do protótipo que não está aqui é copy que a tela reescreveu ou não tem; não é travado.",
+  "_nota_ancoras": "Âncoras que só existem na tela, sem região no protótipo, não viram seção: bancohoras-colaborador, bancohoras-kpis-do-extrato, bancohoras-legal.",
+  "tela": "Ponto/BancoHoras/Show",
+  "fonte": "prototipo-ui/cowork/Wagner/ponto-telas.jsx",
+  "alvo": [
+    "resources/js/Pages/Ponto/BancoHoras/Show.tsx"
+  ],
+  "secoes": [
+    {
+      "id": "bancohoras-historico-de-movimentos",
+      "copy": [
+        "Histórico de movimentos",
+        "Data",
+        "Referência",
+        "Origem",
+        "Minutos",
+        "Observação",
+        "Nenhuma movimentação registrada."
+      ]
+    },
+    {
+      "id": "bancohoras-ajuste-manual",
+      "copy": [
+        "Ajuste manual",
+        "Minutos",
+        "Ex.: 60 (crédito 1h), −30 (débito 30 min).",
+        "Use negativo para débito",
+        "Observação",
+        "Motivo do ajuste (obrigatório)…",
+        "Registrar ajuste",
+        "Movimentos de banco de horas são append-only e imutáveis (Portaria MTP 671/2021)."
+      ]
+    }
+  ],
+  "ordem": [
+    "bancohoras-historico-de-movimentos",
+    "bancohoras-ajuste-manual"
+  ]
+}

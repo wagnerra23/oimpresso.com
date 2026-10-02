@@ -68,6 +68,20 @@ Com isso, o *PRODUTO UNIFICADO V2* pode revincular este DS **sem reescrever tela
 
 ## Last sync
 
+### 2026-10-02 — tokens v1.7.0 (`--warn` claro com contraste AA)
+
+[W] 2026-10-02 ("faz o warn e o info" + "sobe pro design-sync"), mesma regra do `--text-mute`:
+`--warn` do `.cockpit` claro `oklch(0.58 0.12 70)` → `oklch(0.56 0.12 70)` — 4,21 → 4,58:1 sobre `--bg`
+e 4,40 → 4,78:1 sobre `--surface`. O escuro (0.82) já passava (8,68:1). `--info` não existe no `.cockpit`
+do DS — o ajuste dele foi só no app (`oimpresso-app` #23).
+
+- **Ordem dos fatos:** o `colors_and_type.css` com o `--warn` novo **subiu ao Cowork antes** deste PR
+  existir. O commit tinha ido para o branch do #8535, que foi mergeado um commit antes dele; este PR
+  traz o git de volta ao que o Cowork já tem. Até o merge, o Cowork fica 1 linha à frente do `main`.
+- Validação do `ds-push`: VALOR 0. Só `colors_and_type.css` subiu (`cockpit_domains.css` idêntico).
+- Antes de subir: o vivo foi lido e era exatamente o envio da v1.6.0. Depois: relido com `--warn` 0.56 e
+  o resto igual.
+
 ### 2026-10-02 — tokens v1.6.0 (texto apagado com contraste AA)
 
 `ds-push` a partir de `resources/css/tokens` do branch `ds/contraste-texto`: só `colors_and_type.css`

@@ -167,7 +167,7 @@ it('D6: colaborador do ponto sem acesso ao ERP abre no Ponto e só tem Ponto e M
     expect($r->json('areas'))->toBe(['ponto', 'mais']);
 });
 
-it('D6: quem vê vendas é perfil erp, abre no Início e tem Pedidos e Produção (sem Ponto, que não é colaborador)', function () {
+it('D6: quem vê vendas é perfil erp, abre no Início e tem Pedidos, Produção e Orçamentos (sem Ponto, que não é colaborador)', function () {
     appIniSemEssentials();
     $u = appIniUsuario((int) $this->biz->id, false);
     Permission::firstOrCreate(['name' => 'direct_sell.view', 'guard_name' => 'web']);
@@ -177,7 +177,7 @@ it('D6: quem vê vendas é perfil erp, abre no Início e tem Pedidos e Produçã
     $r = $this->getJson('/api/app/inicio')->assertOk();
     expect($r->json('perfil'))->toBe('erp');
     expect($r->json('abre_em'))->toBe('inicio');
-    expect($r->json('areas'))->toBe(['inicio', 'pedidos', 'producao', 'mais']);
+    expect($r->json('areas'))->toBe(['inicio', 'pedidos', 'producao', 'orcamentos', 'mais']);
 });
 
 it('com stock_report.view: estoque_baixo é um número (antes dava 500 — count() num Builder)', function () {
