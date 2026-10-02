@@ -44,6 +44,7 @@ Route::middleware('auth:api')->prefix('app')->name('app.')->group(function () {
     Route::post('/ponto/aprovacoes/{id}/validar', [\App\Http\Controllers\Api\App\PontoAprovacoesController::class, 'validar'])->whereUuid('id')->name('ponto.aprovacoes.validar');
     Route::post('/ponto/aprovacoes/{id}/recusar', [\App\Http\Controllers\Api\App\PontoAprovacoesController::class, 'recusar'])->whereUuid('id')->name('ponto.aprovacoes.recusar');
     Route::get('/produtos', [\App\Http\Controllers\Api\App\ProdutosController::class, 'produtos'])->name('produtos.index');
+    Route::get('/estoque', [\App\Http\Controllers\Api\App\ProdutosController::class, 'estoque'])->name('estoque.index');
     Route::get('/financeiro', [\App\Http\Controllers\Api\App\FinanceiroController::class, 'index'])->name('financeiro.index');
     Route::get('/relatorios', [\App\Http\Controllers\Api\App\RelatoriosController::class, 'index'])->name('relatorios.index');
     Route::get('/dashboard', [\App\Http\Controllers\Api\App\DashboardController::class, 'show'])->name('dashboard');
