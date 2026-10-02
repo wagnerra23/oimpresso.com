@@ -29,7 +29,8 @@ final class TarefasDoApp implements TarefasEssentials
             ->orderBy('date')
             ->limit(100)
             ->get()
-            ->map(function (ToDo $t) {
+            ->map(function ($t) {
+                /** @var ToDo $t */
                 $prazo = $t->end_date ?? $t->date;
 
                 return [
