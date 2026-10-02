@@ -109,7 +109,7 @@ class PessoasController extends Controller
             'id' => (int) $c->id,
             'nome' => $this->nome($c),
             'tipo' => $c->tipo ?: null,
-            'documento' => $c->cpf_cnpj ?: $c->tax_number,
+            'documento' => $this->documento($c->cpf_cnpj ?: $c->tax_number),
             'papeis' => $this->papeis($c),
             'ativo' => $c->contact_status === 'active',
             'contato' => ['telefone' => $c->mobile ?: null, 'email' => $c->email ?: null],
@@ -187,6 +187,24 @@ class PessoasController extends Controller
         PessoaEscopo::viewOwn($q, $tipo, $user);
 
         return $q;
+    }
+
+    /**
+     * CPF sai mascarado no celular (só os 5 últimos dígitos); CNPJ sai inteiro, formatado, porque
+     * é dado público da empresa. Decisão [W] 2026-10-02 ("faça todas"), contrato §4. A ficha web
+     * segue mostrando o CPF inteiro; esconder lá é outra decisão.
+     */
+    private function documento(?string $doc): ?string
+    {
+        $d = preg_replace('/\D/', '', (string) $doc);
+        if (strlen($d) === 11) {
+            return '***.***.' . substr($d, 6, 3) . '-' . substr($d, 9, 2);
+        }
+        if (strlen($d) === 14) {
+            return substr($d, 0, 2) . '.' . substr($d, 2, 3) . '.' . substr($d, 5, 3) . '/' . substr($d, 8, 4) . '-' . substr($d, 12, 2);
+        }
+
+        return $doc !== null && $doc !== '' ? $doc : null;
     }
 
     private function nome(object $c): string
