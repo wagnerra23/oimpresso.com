@@ -8,6 +8,7 @@ status: draft
 last_validated: "2026-10-02"
 parent_module: ConsultaOs
 related_adrs: [114, 101, 93]
+related_us: [US-CONSULTA-001]
 tier: B
 charter_version: 1
 ---
