@@ -374,6 +374,20 @@ categorias:[{id, nome, total}], total, baixo_estoque, pagina, tem_mais }`, 30 po
 - `local` = nome da loja; `prateleira` = "rack · fileira · posição" de `product_racks`, ou `null`.
 - Permissão `product.view` (403 sem ela); a área `estoque` entra em `areas` (§6) com a mesma regra.
 
+### 9.3 Movimentações de um item (tela 29) — só leitura
+
+`GET /api/app/estoque/{id}?pagina=N` (`id` = a linha da 05) →
+`{ item:<a mesma linha da §9.2>, historico:[{id, tipo, rotulo, referencia, quando, qtd, saldo}], pagina, tem_mais }`,
+30 por página, do mais novo ao mais velho.
+
+- O histórico é o mesmo da tela web de histórico de estoque (`ProductUtil::getVariationStockHistory`):
+  `tipo` = tipo da transação (`purchase`, `sell`, `stock_adjustment`, `opening_stock`, `sell_transfer`,
+  `purchase_transfer`, `production_*`, devoluções); `rotulo` = o texto da web; `qtd` com sinal; `saldo` = saldo
+  acumulado depois do movimento; `referencia` = nº da nota/pedido · fornecedor ou cliente (só o nome), ou `null`.
+- Mesmas regras da §9.2 (`product.view`, lojas permitidas); linha de outra empresa ou de loja não permitida → 404.
+- **Registrar movimento fica na web** (decisão [W] 2026-10-02): no ERP cada tipo é uma transação contábil
+  (entrada = compra/estoque inicial com custo; saída/perda = ajuste com valor e custeio FIFO), não um "+N" avulso.
+
 ## 10. Financeiro (Onda C)
 
 ### 10.1 Financeiro (tela 06) — só leitura
