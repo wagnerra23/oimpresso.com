@@ -171,6 +171,21 @@ tem coluna no ERP e sai sempre `null`. Pessoa de outra empresa: 404.
 - Atalhos (Novo pedido, Venda rápida, Cobrar PIX, Conciliar) ficam fora da v1 — são v2 ou tela de
   computador.
 
+### 6.1 Notificações (tela 16) — só leitura
+
+`GET /api/app/notificacoes?pagina=N` →
+`{ itens:[{id, origem, titulo, texto, lida, quando, destino:{tipo, id}}], nao_lidas, pagina, tem_mais }`,
+20 por página, mais recente primeiro.
+
+- Fonte: a tabela `notifications` do Laravel, a mesma do sino da web, só as do usuário do token.
+  O texto (`titulo`) sai de `Util::parseNotifications`, o mesmo tradutor da web; `texto` vem `null`.
+- `origem` = chip pelo tipo da notificação: `FIN` (recorrentes), `TAR` (tarefa), `RH` (demais do
+  Essentials), `CRM`, `IA` (Jana), `PAT`, `LOJ`, `DOC`; o resto sai `SIS`.
+- `destino` só vem preenchido quando a notificação carrega o id de uma tela do app (hoje: tarefa nova
+  → `{tipo:"tarefa", id:"todo:15"}`); nos outros casos, `{tipo:null, id:null}`.
+- `GET /api/app/inicio` passa a trazer `nao_lidas` (int), para o ponto no sino.
+- Marcar como lida (`POST .../{id}/lida` e `.../lidas`) vem em PR separado.
+
 ## 7. Mais
 
 **Dashboard (tela 35 do protótipo): fora da v1** — D13 define as 7 áreas e o Dashboard não é uma delas.
