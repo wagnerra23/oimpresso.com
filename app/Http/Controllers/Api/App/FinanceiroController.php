@@ -157,13 +157,7 @@ class FinanceiroController extends Controller
     {
         $k = app(\Modules\Financeiro\Services\UnificadoService::class)->kpis($bizId, $hoje);
 
-        $vencido = (float) DB::table('fin_titulos')
-            ->where('business_id', $bizId)
-            ->where('tipo', 'receber')
-            ->whereIn('status', ['aberto', 'parcial'])
-            ->where('vencimento', '<', $hoje->toDateString())
-            ->whereNull('deleted_at')
-            ->sum('valor_aberto');
+        $vencido = $this->vencidoReceber($bizId, $hoje);
 
         $mov = DB::table('fin_titulo_baixas as b')
             ->join('fin_titulos as t', function ($j) use ($bizId) {
@@ -187,9 +181,26 @@ class FinanceiroController extends Controller
             'pago' => $pago,
             'saldo' => round($recebido - $pago, 2),
             'a_receber' => round((float) $k['total_receber'], 2),
-            'vencido' => round($vencido, 2),
+            'vencido' => $vencido,
             'a_pagar' => round((float) $k['total_pagar'], 2),
         ];
+    }
+
+    /**
+     * Parte vencida do a receber (aberto/parcial, vencimento < hoje) — os filtros do total_receber
+     * do UnificadoService::kpis, então já contida nele. Também é o `vencido` do Dashboard (§10.4).
+     */
+    public function vencidoReceber(int $bizId, ?CarbonImmutable $hoje = null): float
+    {
+        $hoje = $hoje ?? CarbonImmutable::today();
+
+        return round((float) DB::table('fin_titulos')
+            ->where('business_id', $bizId)
+            ->where('tipo', 'receber')
+            ->whereIn('status', ['aberto', 'parcial'])
+            ->where('vencimento', '<', $hoje->toDateString())
+            ->whereNull('deleted_at')
+            ->sum('valor_aberto'), 2);
     }
 
     /** Contas bancárias do Financeiro; saldo `null` quando o ERP não tem o saldo em cache. */

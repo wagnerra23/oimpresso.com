@@ -40,5 +40,6 @@ Route::middleware('auth:api')->prefix('app')->name('app.')->group(function () {
         ->where('cep', '[0-9-]{1,12}')->middleware('throttle:60,1')->name('cep.show');
     Route::get('/financeiro', [\App\Http\Controllers\Api\App\FinanceiroController::class, 'index'])->name('financeiro.index');
     Route::get('/relatorios', [\App\Http\Controllers\Api\App\RelatoriosController::class, 'index'])->name('relatorios.index');
+    Route::get('/dashboard', [\App\Http\Controllers\Api\App\DashboardController::class, 'show'])->name('dashboard');
     Route::get('/inicio', [\App\Http\Controllers\Api\App\InicioController::class, 'show'])->name('inicio');
 });

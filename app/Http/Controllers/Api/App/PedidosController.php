@@ -302,6 +302,36 @@ class PedidosController extends Controller
         ];
     }
 
+    /**
+     * Pedidos (vendas finais visíveis ao usuário, mesmas regras da lista) por data da venda nos
+     * últimos `$dias` dias até hoje, do mais antigo ao de hoje. null quando o usuário não vê vendas.
+     * O último ponto é o `pedidos_novos` do Dashboard (§10.4).
+     *
+     * @return list<array{data: string, total: int}>|null
+     */
+    public function porDiaPara(User $user, int $dias): ?array
+    {
+        if (! $this->podeVer($user)) {
+            return null;
+        }
+        $hoje = now()->startOfDay();
+        $ini = $hoje->copy()->subDays($dias - 1);
+        $contagem = $this->base($user, '')
+            ->whereDate('t.transaction_date', '>=', $ini->toDateString())
+            ->whereDate('t.transaction_date', '<=', $hoje->toDateString())
+            ->groupBy(DB::raw('DATE(t.transaction_date)'))
+            ->selectRaw('DATE(t.transaction_date) as dia, COUNT(*) as total')
+            ->get()
+            ->pluck('total', 'dia');
+
+        $serie = [];
+        for ($d = $ini->copy(); $d->lte($hoje); $d->addDay()) {
+            $serie[] = ['data' => $d->toDateString(), 'total' => (int) ($contagem[$d->toDateString()] ?? 0)];
+        }
+
+        return $serie;
+    }
+
     // ------------------------------------------------------------------
 
     /** Quem vê Pedidos e Produção (mesma regra das duas abas). */

@@ -37,6 +37,7 @@ on:
       - 'app/Http/Controllers/Api/App/NotificacoesController.php'
       - 'app/Http/Controllers/Api/App/FinanceiroController.php'
       - 'app/Http/Controllers/Api/App/RelatoriosController.php'
+      - 'app/Http/Controllers/Api/App/DashboardController.php'
       - 'Modules/Financeiro/Services/UnificadoService.php'
       - 'routes/api.php'
       - 'app/Http/Controllers/SellPosController.php'
@@ -119,6 +120,7 @@ jobs:
               - 'app/Http/Controllers/Api/App/NotificacoesController.php'
               - 'app/Http/Controllers/Api/App/FinanceiroController.php'
               - 'app/Http/Controllers/Api/App/RelatoriosController.php'
+              - 'app/Http/Controllers/Api/App/DashboardController.php'
               - 'Modules/Financeiro/Services/UnificadoService.php'
               - 'routes/api.php'
               - 'resources/js/Pages/Sells/**'
@@ -237,6 +239,7 @@ jobs:
             tests/Feature/Sells/AppNotificacoesApiContratoTest.php \
             tests/Feature/Sells/AppFinanceiroApiContratoTest.php \
             tests/Feature/Sells/AppRelatoriosApiContratoTest.php \
+            tests/Feature/Sells/AppDashboardApiContratoTest.php \
             tests/Feature/Sells/SellsCreateV3ContratoTest.php \
             tests/Feature/Sells/Wave1ShowBaselineTest.php \
             tests/Feature/Sells/Wave1ShowInertiaTest.php \

@@ -200,8 +200,8 @@ prazo_padrao_dias, consentimento: { whatsapp, email_nfe } }` (só `tipo`, `nome`
   abas que o usuário pode abrir, na ordem do app. Cada uma segue a mesma regra da rota dela, então
   aba visível = rota que responde: `tarefas` = Essentials no plano ou quem aprova o Ponto;
   `pedidos`/`producao`/`orcamentos` = quem vê vendas; `pessoas` = quem vê cliente ou fornecedor; `ponto` =
-  colaborador com `controla_ponto`; `financeiro` = a regra de §10.1; `relatorios` = algum bloco de §10.3 visível; `inicio` só para perfil `erp`; `mais` sempre.
-  `perfil` = `erp` se tem tarefas, vendas, pessoas, financeiro ou relatórios, senão `colaborador`. `abre_em` = `inicio`
+  colaborador com `controla_ponto`; `financeiro` = a regra de §10.1; `relatorios` = algum bloco de §10.3 visível; `dashboard` = `dashboard.data` (§10.4); `inicio` só para perfil `erp`; `mais` sempre.
+  `perfil` = `erp` se tem tarefas, vendas, pessoas, financeiro, relatórios ou dashboard, senão `colaborador`. `abre_em` = `inicio`
   (erp), `ponto` (colaborador) ou `mais` (sem nenhuma das duas).
 
 - `faturado_hoje` e `meta_dia`: só com `dashboard.data` (senão `null`). Meta do dia = meta mensal
@@ -318,3 +318,24 @@ producao:{por_etapa:[{rotulo, total}]}|null, estoque:{baixo:[{nome, quantidade, 
 - `producao.por_etapa`: os totais das colunas de `GET /api/app/producao`, na mesma ordem.
 - `estoque.baixo`: até 20 itens com saldo ≤ mínimo, menor saldo primeiro (`ProductUtil::getProductAlert`,
   o mesmo do Início); produto com variação sai como "Produto — variação".
+
+### 10.4 Dashboard (tela 35) — só leitura
+
+`GET /api/app/dashboard` →
+`{ faturamento_30d:{valor, variacao_pct, serie_semanal:[7]}, kpis:{pedidos_ativos, pedidos_novos,
+producao_em_curso, a_receber, vencido}, pedidos_por_dia:[{data, total}]|null, meta_mes:{valor, realizado_pct}|null,
+producao_concluida:{concluidas, total}|null }`.
+
+- Acesso: `dashboard.data` (a do faturado do Início). Sem ela → `403 sem_permissao` e a área
+  `dashboard` não entra em `areas` (§6).
+- `faturamento_30d`: vendas finais dos últimos 30 dias (hoje incluso) nos locais do usuário, pelo
+  `getSellTotals` do painel web; `variacao_pct` contra os 30 dias anteriores (`null` sem venda antes);
+  `serie_semanal` = os 7 últimos dias, dia a dia, do mais antigo a hoje.
+- `meta_mes`: a meta mensal de faturamento da Jana (a mesma que gera a meta do dia, §6) e
+  `realizado_pct` = vendido no mês até hoje ÷ meta × 100, inteiro. `null` sem meta vigente.
+- Números de pedidos e produção seguem a regra de quem vê vendas (§2/§5) e vêm `null` sem ela —
+  assim batem com as abas Pedidos e Produção: `pedidos_ativos` = o do Início; `pedidos_por_dia` = 14
+  dias até hoje, vendas finais visíveis por data da venda; `pedidos_novos` = o dia de hoje dessa série;
+  `producao_em_curso` = coluna "em produção" de `/producao`; `producao_concluida` = coluna "pronto para
+  faturar" sobre o total das 4 colunas.
+- `a_receber` / `vencido`: os mesmos da tela 06 (§10.1); `null` sem acesso ao Financeiro.
