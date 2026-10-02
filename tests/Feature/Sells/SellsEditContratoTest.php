@@ -564,3 +564,43 @@ it('UC-SEDIT-09 · a tela React envia pra SellPosController@update (/pos/{id}), 
     $r->assertOk();
     expect($r->json('props.urls.submit'))->toBe('/pos/'.$venda['transaction_id']);
 });
+
+// =============================================================================
+// UC-SEDIT-10 — editar uma venda de REPARO pela lista de vendas não apaga as datas do reparo.
+//   Âncora: Modules/Repair DataController::after_sale_saved — grava os campos de reparo só se
+//   vierem no request, mas zerava entrega/conclusão quando NÃO vinham. A edição pela lista
+//   (Sells/Edit React e sell.edit Blade) não manda campo de reparo nenhum.
+// =============================================================================
+
+it('UC-SEDIT-10 · salvar a venda de reparo sem campos de reparo preserva entrega e conclusão; enviados vazios, limpam', function () {
+    if (! Schema::hasColumn('transactions', 'repair_due_date')) {
+        $this->markTestSkipped('colunas do Repair ausentes neste banco');
+    }
+    sedit9Sessao($this);
+    $v = sedit9Venda($this);
+    DB::table('transactions')->where('id', $v['id'])->update([
+        'sub_type' => 'repair',
+        'repair_serial_no' => 'SN-ANTES',
+        'repair_due_date' => '2026-10-10 14:00:00',
+        'repair_completed_on' => '2026-10-05 09:30:00',
+    ]);
+    $ler = fn () => DB::table('transactions')->where('id', $v['id'])
+        ->first(['repair_serial_no', 'repair_due_date', 'repair_completed_on']);
+
+    // 1) Como a edição pela lista manda: nenhum campo de data. O serial vai junto só para provar
+    //    que o hook do Repair RODOU neste ambiente — sem isso, "não apagou" passaria vazio.
+    $this->put("/pos/{$v['id']}", sedit9Payload($v, []) + ['repair_serial_no' => 'SN-DEPOIS'])
+        ->assertSessionHasNoErrors();
+    \PHPUnit\Framework\Assert::assertSame(1, (int) data_get(session('status'), 'success', 0), json_encode(session('status')));
+    $depois = $ler();
+    expect($depois->repair_serial_no)->toBe('SN-DEPOIS');
+    expect((string) $depois->repair_due_date)->toBe('2026-10-10 14:00:00');
+    expect((string) $depois->repair_completed_on)->toBe('2026-10-05 09:30:00');
+
+    // 2) Como o PDV de reparo manda quando a pessoa apaga as datas: chave presente e vazia.
+    $this->put("/pos/{$v['id']}", sedit9Payload($v, []) + ['repair_due_date' => '', 'repair_completed_on' => ''])
+        ->assertSessionHasNoErrors();
+    $limpo = $ler();
+    expect($limpo->repair_due_date)->toBeNull();
+    expect($limpo->repair_completed_on)->toBeNull();
+});
