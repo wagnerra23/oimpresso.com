@@ -1,5 +1,6 @@
 // Pagina publica — nao usa AppShellV2/Sidebar do ERP. Layout limpo
-// e centralizado para o cliente final acompanhar o status do pedido.
+// e centralizado para o cliente final acompanhar o status do reparo.
+// US-CONSULTA-001: dados reais das folhas de OS do Repair (/repair-status redireciona pra ca).
 
 import { useState } from 'react'
 import { Head } from '@inertiajs/react'
@@ -9,43 +10,49 @@ import { Card, CardContent, CardHeader } from '@/Components/ui/card'
 import { Alert, AlertDescription } from '@/Components/ui/alert'
 import { OsLookupForm } from './_components/OsLookupForm'
 import { OsResultCard } from './_components/OsResultCard'
-import type { OrdemServico } from '@/Types/os'
+import { Stack } from '@/Components/layout'
+import type { BuscarResponse, OrdemServico, TipoBusca } from '@/Types/os'
 
 type Estado = 'busca' | 'resultado' | 'nao-encontrado'
 
-export default function ConsultaOsIndex() {
+interface Props {
+  buscaPorCelular?: boolean
+}
+
+export default function ConsultaOsIndex({ buscaPorCelular = false }: Props) {
   const [estado, setEstado] = useState<Estado>('busca')
   const [loading, setLoading] = useState(false)
-  const [os, setOs] = useState<OrdemServico | null>(null)
+  const [ordens, setOrdens] = useState<OrdemServico[]>([])
   const [ultimoNumero, setUltimoNumero] = useState('')
   const [erro, setErro] = useState<string | null>(null)
 
-  async function handleBuscar(numero: string, estagio: string) {
+  async function handleBuscar(tipo: TipoBusca, numero: string, serie: string) {
     setLoading(true)
     setErro(null)
     setUltimoNumero(numero)
 
     try {
-      const params = new URLSearchParams({ numero, estagio })
+      const params = new URLSearchParams({ tipo, numero })
+      if (serie) params.set('serie', serie)
       const res = await fetch(`/consulta-os/buscar?${params}`, {
         headers: { Accept: 'application/json' },
       })
 
-      if (res.status === 404) {
-        setOs(null)
+      if (res.status === 404 || res.status === 422) {
+        setOrdens([])
         setEstado('nao-encontrado')
         return
       }
 
       if (!res.ok) throw new Error(`Erro ${res.status}`)
 
-      const data = await res.json()
+      const data: BuscarResponse = await res.json()
 
-      if (data.found && data.os) {
-        setOs(data.os)
+      if (data.found && data.ordens && data.ordens.length > 0) {
+        setOrdens(data.ordens)
         setEstado('resultado')
       } else {
-        setOs(null)
+        setOrdens([])
         setEstado('nao-encontrado')
       }
     } catch {
@@ -57,7 +64,7 @@ export default function ConsultaOsIndex() {
 
   function handleVoltar() {
     setEstado('busca')
-    setOs(null)
+    setOrdens([])
     setErro(null)
   }
 
@@ -82,7 +89,7 @@ export default function ConsultaOsIndex() {
                 Consulta de Ordem de Serviço
               </h1>
               <p className="text-sm text-muted-foreground mt-1">
-                Digite o número da OS para acompanhar o status do seu pedido
+                Informe o número da OS, da venda ou o celular para acompanhar o seu reparo
               </p>
             </CardHeader>
 
@@ -93,12 +100,12 @@ export default function ConsultaOsIndex() {
                   <AlertDescription>{erro}</AlertDescription>
                 </Alert>
               )}
-              <OsLookupForm onBuscar={handleBuscar} loading={loading} />
+              <OsLookupForm onBuscar={handleBuscar} loading={loading} buscaPorCelular={buscaPorCelular} />
             </CardContent>
           </Card>
         )}
 
-        {estado === 'resultado' && os && (
+        {estado === 'resultado' && ordens.length > 0 && (
           <div className="w-full max-w-2xl">
             <Button
               variant="default"
@@ -109,7 +116,11 @@ export default function ConsultaOsIndex() {
               <ArrowLeft className="w-3.5 h-3.5" />
               Voltar à consulta
             </Button>
-            <OsResultCard os={os} />
+            <Stack gap={4}>
+              {ordens.map((os, i) => (
+                <OsResultCard key={`${os.numero}-${i}`} os={os} />
+              ))}
+            </Stack>
           </div>
         )}
 
@@ -133,13 +144,13 @@ export default function ConsultaOsIndex() {
               </div>
               <h2 className="text-base font-semibold mb-2">OS não encontrada</h2>
               <p className="text-sm text-muted-foreground leading-relaxed">
-                Não encontramos a OS{' '}
+                Não encontramos OS para{' '}
                 <span className="font-mono font-semibold text-foreground">
-                  #{ultimoNumero}
-                </span>{' '}
-                com os filtros selecionados.
+                  {ultimoNumero}
+                </span>
+                .
                 <br />
-                Verifique o número ou tente sem filtro de estágio.
+                Confira o número ou tente sem o nº de série.
               </p>
               <Button onClick={handleVoltar} className="mt-6 gap-2">
                 <ArrowLeft className="w-3.5 h-3.5" />
