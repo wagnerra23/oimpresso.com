@@ -267,3 +267,11 @@ de contrato na lane MySQL) + 1 PR de tela no `oimpresso-app`, contra este contra
 - Leitura primeiro; a ação que escreve vem num PR separado. Em valor ou estoque: dupla prova, tabela antes→depois e ok do [W] antes do merge.
 - Tela de módulo que o business não tem no pacote não aparece (Camada 1).
 
+**Ajustes de escopo, 2026-10-02.** Decisões do [W]: as três primeiras chegaram relatadas pelas sessões do app que as perguntaram; a 20 e a 29 foram respondidas a esta sessão.
+- **28 Detalhe da tarefa:** o checklist saiu. O ToDo do Essentials não tem checklist, e criar exigiria schema novo.
+- **27 Detalhe da OP:** fica só na retaguarda web, sem rota `/api/app`. O Manufacturing não tem etapas, artes nem apontamentos de OP.
+- **11 Venda rápida:** liberada para começar, mas o merge depende da regra mestre e do ok do [W].
+- **20 Novo produto:** criada **sem preço**, igual à tela React de hoje. O preço se acerta na web, então a tela sai da regra mestre (§9.4).
+- **29 Movimentações:** **só leitura** (§9.3). Registrar movimento continua na web, porque no ERP cada tipo é uma transação contábil (compra com custo; ajuste com valor e FIFO).
+- **Lado ERP:** uma sessão por onda (C, D, E) e uma para a tela 11. A Onda B fica com a sessão coordenadora.
+
