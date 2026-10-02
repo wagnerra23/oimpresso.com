@@ -187,9 +187,9 @@ jobs:
             tests/Feature/Sells/Wave1ShowBaselineTest.php \
             tests/Feature/Sells/Wave1ShowInertiaTest.php \
             tests/Feature/Sells/SellsCaixaContratoTest.php \
-            tests/Feature/Sells/SellsRepairSubtipoContratoTest.php             tests/Feature/Sells/SellsShipmentsContratoTest.php \
-            tests/Feature/Sells/BuscaProdutoPrecoDeGrupoContratoTest.php \
             tests/Feature/Sells/SellsRepairSubtipoContratoTest.php \
+            tests/Feature/Sells/SellsShipmentsContratoTest.php \
+            tests/Feature/Sells/BuscaProdutoPrecoDeGrupoContratoTest.php \
             tests/Feature/Sells/ImportSalesContratoTest.php
 
 
