@@ -115,12 +115,34 @@ class SellPosController extends Controller
     /**
      * Display a listing of the resource.
      *
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\Response|\Illuminate\Contracts\View\View|\Inertia\Response
      */
     public function index()
     {
         if (!auth()->user()->can('sell.view') && !auth()->user()->can('sell.create')) {
             abort(403, 'Unauthorized action.');
+        }
+
+        // Thread 01 (playbook venda-menu) — branch dual MWART, igual ao Sells/Drafts: o cliente
+        // Inertia recebe a Page React; o GET comum segue no Blade (cutover F5 é humano).
+        // Nenhuma prop cara aqui: as linhas e os totais do rodapé vêm do endpoint que já existe
+        // (`/sells-list-json?is_direct_sale=0`, SellController@inertiaList), pedidos pela Page.
+        if (request()->header('X-Inertia')) {
+            $user = auth()->user();
+
+            return Inertia::render('Sells/Pos/Index', [
+                'permissions' => [
+                    'create' => $user->can('sell.create'),
+                    'update' => $user->can('sell.update'),
+                    'delete' => $user->can('sell.delete'),
+                    'payments' => $user->can('sell.payments') || $user->can('edit_sell_payment'),
+                    'print' => $user->can('print_invoice'),
+                ],
+                'urls' => [
+                    'list' => '/sells-list-json',
+                    'create' => '/pos/create',
+                ],
+            ]);
         }
 
         $business_id = request()->session()->get('user.business_id');

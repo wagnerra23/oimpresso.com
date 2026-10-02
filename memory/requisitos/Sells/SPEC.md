@@ -1428,3 +1428,52 @@ Perceived performance no `Sells/Create`: skeleton inicial enquanto carrega + alv
 - [ ] A tela não tem RUNBOOK, ao contrário das irmãs `Drafts`/`Quotations`/`Subscriptions`.
 
 - Charter: [`Caixa/Index.charter.md`](../../../resources/js/Pages/Sells/Caixa/Index.charter.md) · paridade: [Caixa-r1-visual-comparison.md](Caixa-r1-visual-comparison.md)
+
+---
+
+### US-SELL-064 · Listar vendas de POS com rodapé de totais (`/pos`)
+
+**Implementado em:** `resources/js/Pages/Sells/Pos/Index.tsx` · `app/Http/Controllers/SellPosController.php` · `app/Http/Controllers/SellController.php` · `resources/js/Pages/Sells/Pos/Index.charter.md` · `memory/requisitos/Sells/RUNBOOK-pos.md` · verificado@f40a995 (2026-10-01) — `SellPosController@index` responde a Page para o cliente Inertia; o GET comum segue no Blade até o cutover F5. Dados de `inertiaList` com `is_direct_sale=0`.
+
+**Testado em:** `tests/Feature/Sells/SellsPosIndexContratoTest.php` — lane `sells-pest.yml` (MySQL, tenant 98 × 99). Nasce sem run.
+
+> owner: wagner · priority: p2 · estimate: 0h · type: story
+> blocked_by: —
+
+**Origem:** thread 01 do playbook `prototipo-ui/cowork/Wagner/cowork-inbox/venda-menu/` (2026-10-01). A Lista de POS era a única tela do menu Vendas sem US.
+
+**Problema:** a lista de vendas de balcão (`is_direct_sale = 0`) é o que se confere no fim do turno, e no Blade o rodapé era somado pelo DataTable no cliente, só sobre a página visível.
+
+**Aceite:**
+- [x] Sem `sell.view` nem `sell.create`, a tela e a lista são negadas com 403.
+- [x] Só vendas de POS do `business_id` da sessão entram (Tier 0, ADR 0093); venda direta fica na lista geral.
+- [x] O rodapé (total, pago, em aberto) vem do servidor e cobre o filtro inteiro.
+- [x] Filtro "Vencido" e período por `transaction_date`.
+- [ ] Contagem por status de pagamento e por forma no rodapé.
+- [ ] Filtros de local, cliente, vendedor e tipo de serviço.
+
+- Charter: [`Pos/Index.charter.md`](../../../resources/js/Pages/Sells/Pos/Index.charter.md) · RUNBOOK: [RUNBOOK-pos.md](RUNBOOK-pos.md) · casos: [`Pos/Index.casos.md`](../../../resources/js/Pages/Sells/Pos/Index.casos.md)
+
+---
+
+### US-SELL-065 · Cadastro de descontos com ver × editar (`/discount`)
+
+**Implementado em:** `resources/js/Pages/Discount/Index.tsx` · `app/Http/Controllers/DiscountController.php` (`index()`, `store()`, `update()`) · `app/Http/Requests/SalvarDescontoRequest.php` · `database/migrations/2026_10_02_120000_add_discount_view_manage_permissions.php`
+
+**Testado em:** `tests/Feature/Sells/DescontosContratoTest.php` (UC-DSC-01..08, lane `sells-pest.yml`).
+
+> owner: wagner · priority: p2 · estimate: 0h · type: story
+> blocked_by: —
+
+**Origem:** thread 04 do playbook `venda-menu` + decisão D1 de [W] (2026-10-02): ver a lista e criar/editar/excluir viram permissões separadas.
+
+**Problema:** a tela tinha uma permissão só, `discount.access` — quem conferia preço também apagava desconto. Desconto é valor que o PDV aplica sozinho.
+
+**Aceite:**
+- [x] `discount.view` vê a lista; `discount.manage` cria, edita, desativa, reativa e exclui; sem `manage` os botões aparecem desabilitados com o motivo.
+- [x] Quem tinha `discount.access` recebe as duas no deploy (papel e usuário direto).
+- [x] A gravação grava a mesma linha de antes (FormRequest sem regras novas; números crus, datas pelo formato do negócio).
+- [x] Toda leitura e escrita escopada por `business_id` (Tier 0, ADR 0093).
+- [ ] Validação no servidor (achado A2) — decisão [W].
+
+- Charter: [`Discount/Index.charter.md`](../../../resources/js/Pages/Discount/Index.charter.md) · runbook: [RUNBOOK-discount.md](RUNBOOK-discount.md)
