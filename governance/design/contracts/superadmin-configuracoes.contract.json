@@ -1,0 +1,50 @@
+{
+  "_nota": "Copy declarada a partir de ViewConfig() / CONFIG_SECOES do protótipo e travada só onde ela existe LITERALMENTE no protótipo e na tela (medido 2026-10-02). Cada string abaixo está em superadmin-page.jsx. As âncoras data-contract já estavam no .tsx desde a thread Superadmin/05 parte 2; faltava o contrato.",
+  "_nota_recorte": "Fora de propósito, porque a produção diverge por backend (ver charter §Divergências): as chaves liga/desliga de Pix, boleto e cartão, 'Notificações ativas', 'Backup diário', 'Retenção de backup', 'Última execução do cron' e o título 'Rotinas e backup'. Por isso a âncora superadmin.configuracoes.cron NÃO vira seção: o bloco existe, mas com copy que o protótipo não tem ('Comando do cron'). A âncora superadmin.configuracoes.segredo também fica fora: o mascaramento de segredo é regra de segurança desta tela, sem contraparte no protótipo.",
+  "tela": "superadmin/Configuracoes",
+  "fonte": "prototipo-ui/cowork/Wagner/superadmin-page.jsx",
+  "_nota_fonte": "Mesma âncora que o charter declara — ViewConfig() (L1369) e CONFIG_SECOES logo acima.",
+  "alvo": [
+    "Modules/Superadmin/Resources/js/Pages/superadmin/Configuracoes/Index.tsx"
+  ],
+  "secoes": [
+    {
+      "id": "superadmin.configuracoes",
+      "_papel": "a navegação por seção + o corpo da seção ativa. Os títulos e as descrições das seções são a parte que o protótipo e a tela compartilham; os rótulos de campo entram só onde o campo existe nos dois.",
+      "copy": [
+        "Configurações do superadmin",
+        "Vale para toda a plataforma — mexe em todos os negócios",
+        "Aplicação",
+        "Nome da aplicação",
+        "Moeda padrão",
+        "Idioma padrão",
+        "Cadastro próprio de negócios",
+        "E-mail (SMTP)",
+        "Servidor de saída usado por avisos, boletos e comunicador.",
+        "Host",
+        "Porta",
+        "Remetente",
+        "Gateways de pagamento",
+        "Meios de cobrança oferecidos na tela de assinatura.",
+        "Pagamento offline",
+        "Notificações em tempo real",
+        "Credenciais Pusher para notificação no app.",
+        "App ID",
+        "Cluster",
+        "JS e CSS adicionais",
+        "Injeção de código nas telas do cliente — use com cuidado.",
+        "CSS extra",
+        "JS extra",
+        "Descartar",
+        "Salvar alterações"
+      ],
+      "estados": [
+        "carregando",
+        "editando"
+      ]
+    }
+  ],
+  "ordem": [
+    "superadmin.configuracoes"
+  ]
+}
