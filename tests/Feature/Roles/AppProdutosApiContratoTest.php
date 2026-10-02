@@ -219,3 +219,36 @@ it('estoque sem product.view responde 403', function () {
     Passport::actingAs(appPrdUsuario([]), [], 'api');
     $this->getJson('/api/app/estoque')->assertStatus(403)->assertJsonPath('erro', 'sem_permissao');
 });
+
+it('movimentações (tela 29): item da linha + histórico da web do mais novo ao mais velho; outra empresa 404', function () {
+    $loja = appPrdLoja(APP_PRD_BIZ, "APP Loja A {$this->sufixo}");
+    $u = appPrdUsuario(['product.view', 'access_all_locations']);
+    $p = appPrdProduto(APP_PRD_BIZ, (int) $u->id, "APP Lona {$this->sufixo}", [], [$loja => 8]);
+    $v = (int) DB::table('variations')->where('product_id', $p)->value('id');
+    $linha = (int) DB::table('variation_location_details')->where('product_id', $p)->value('id');
+    foreach ([[now()->subDays(3), 5], [now()->subDay(), 3]] as [$data, $qtd]) {
+        $t = (int) DB::table('transactions')->insertGetId([
+            'business_id' => APP_PRD_BIZ, 'location_id' => $loja, 'type' => 'opening_stock', 'status' => 'received',
+            'transaction_date' => $data, 'created_by' => $u->id, 'essentials_duration' => 0, 'final_total' => 0,
+            'created_at' => now(), 'updated_at' => now(),
+        ]);
+        DB::table('purchase_lines')->insert([
+            'transaction_id' => $t, 'product_id' => $p, 'variation_id' => $v, 'quantity' => $qtd,
+            'purchase_price' => 0, 'item_tax' => 0, 'created_at' => now(), 'updated_at' => now(),
+        ]);
+    }
+    Passport::actingAs($u, [], 'api');
+
+    $r = $this->getJson("/api/app/estoque/{$linha}")->assertOk();
+    expect($r->json('item.id'))->toBe($linha);
+    expect((float) $r->json('item.qtd'))->toBe(8.0);
+    expect(array_column($r->json('historico'), 'tipo'))->toBe(['opening_stock', 'opening_stock']);
+    expect(array_map('floatval', array_column($r->json('historico'), 'qtd')))->toBe([3.0, 5.0]);
+    expect(array_map('floatval', array_column($r->json('historico'), 'saldo')))->toBe([8.0, 5.0]);
+
+    // Tier 0: a linha de estoque de OUTRO business (loja e produto dele) responde 404.
+    $lojaAlheia = appPrdLoja(APP_PRD_OUTRO, "APP Loja alheia {$this->sufixo}");
+    $alheio = appPrdProduto(APP_PRD_OUTRO, (int) $u->id, "APP Alheio {$this->sufixo}", [], [$lojaAlheia => 4]);
+    $linhaAlheia = (int) DB::table('variation_location_details')->where('product_id', $alheio)->value('id');
+    $this->getJson("/api/app/estoque/{$linhaAlheia}")->assertNotFound()->assertJsonPath('erro', 'nao_encontrado');
+});
