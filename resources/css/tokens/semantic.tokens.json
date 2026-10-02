@@ -78,7 +78,7 @@
       "border-2":      { "$value": "oklch(0.93 0.004 90)",  "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --border-2", "com.oimpresso.dark": "oklch(0.31 0.008 240)" } },
       "text":          { "$value": "oklch(0.22 0.01 80)",   "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --text", "com.oimpresso.dark": "oklch(0.94 0.005 90)" } },
       "text-dim":      { "$value": "oklch(0.50 0.01 80)",   "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --text-dim", "com.oimpresso.dark": "oklch(0.72 0.005 90)" } },
-      "text-mute":     { "$value": "oklch(0.65 0.01 80)",   "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --text-mute", "com.oimpresso.dark": "oklch(0.58 0.005 90)" } }
+      "text-mute":     { "$value": "oklch(0.555 0.01 80)",  "$description": "Contraste AA (4,5:1) sobre --bg e --surface nos dois temas — [W] 2026-10-02, opção B: não passa sobre --accent-soft, para não colar no --text-dim. Antes 0.65 / 0.58 (3,10 e 3,18:1).", "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --text-mute", "com.oimpresso.dark": "oklch(0.67 0.005 90)" } }
     },
     "accent": {
       "$type": "color",

@@ -243,3 +243,58 @@ it('UC-RIDX-04 · abrir a fila não escreve nada e não enfileira nada', functio
     expect($escritas)->toBe([]);
     Queue::assertNothingPushed();
 });
+
+it('UC-RIDX-05 · venda de reparo com entrega preenchida não derruba a fila, e o atraso é calculado', function () {
+    $biz = $this->seededTenant();
+    $user = ridxUser((int) $biz->id, ['repair.view']);
+
+    // Três amostras com desfechos DIFERENTES: um `is_overdue` constante (sempre true ou
+    // sempre false) cai em pelo menos um assert. Sem status ⇒ `is_completed_status` nulo ⇒
+    // conta como "não concluída", que é a única condição em que o atraso vale.
+    ridxTransacao((int) $biz->id, 'ENTREGA-VENCIDA', ['repair_due_date' => now()->subDays(3), 'repair_status_id' => null]);
+    ridxTransacao((int) $biz->id, 'ENTREGA-FUTURA', ['repair_due_date' => now()->addDays(3), 'repair_status_id' => null]);
+    ridxTransacao((int) $biz->id, 'SEM-ENTREGA', ['repair_due_date' => null, 'repair_status_id' => null]);
+
+    // Antes do conserto: 500 "Call to a member function lessThan() on string" (prod biz=1, 2026-10-01).
+    $resp = ridxAbrirFila($this, $user, '?per_page=100');
+    $resp->assertOk();
+
+    $atraso = collect($resp->json('props.repairs.data') ?? [])
+        ->filter(fn ($r) => str_starts_with((string) ($r['invoice_no'] ?? ''), RIDX_MARCA))
+        ->mapWithKeys(fn ($r) => [$r['invoice_no'] => $r['is_overdue']])
+        ->all();
+
+    // anti-vácuo: as três linhas precisam estar na página, senão os asserts abaixo não provam nada
+    expect(array_keys($atraso))->toContain(RIDX_MARCA.'ENTREGA-VENCIDA', RIDX_MARCA.'ENTREGA-FUTURA', RIDX_MARCA.'SEM-ENTREGA');
+
+    expect($atraso[RIDX_MARCA.'ENTREGA-VENCIDA'])->toBeTrue();
+    expect($atraso[RIDX_MARCA.'ENTREGA-FUTURA'])->toBeFalse();
+    expect($atraso[RIDX_MARCA.'SEM-ENTREGA'])->toBeFalse();
+});
+
+it('UC-RIDX-07 · o filtro de status recebe só o mapa id→nome, sem as chaves internas do dropdown', function () {
+    $biz = $this->seededTenant();
+    $user = ridxUser((int) $biz->id, ['repair.view']);
+
+    $resp = ridxAbrirFila($this, $user);
+    $resp->assertOk();
+
+    $statuses = $resp->json('props.meta.repair_statuses');
+    expect($statuses)->toBeArray();
+
+    // Antes do conserto: {"statuses": …, "template": null} — a tela virava essas duas
+    // chaves em chips ("" e "null") e o filtro mandava id NaN (prod biz=1, 2026-10-02).
+    expect(array_key_exists('statuses', $statuses))->toBeFalse();
+    expect(array_key_exists('template', $statuses))->toBeFalse();
+
+    foreach ($statuses as $id => $nome) {
+        expect(is_numeric($id))->toBeTrue();
+        expect($nome)->toBeString();
+    }
+
+    // controle positivo: quando o tenant tem status, ele aparece pelo id com o nome dele
+    $status = DB::table('repair_statuses')->where('business_id', $biz->id)->first(['id', 'name']);
+    if ($status) {
+        expect($statuses[(string) $status->id] ?? $statuses[$status->id] ?? null)->toBe($status->name);
+    }
+});
