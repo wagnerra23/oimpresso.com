@@ -249,3 +249,22 @@ it('UC-RSHW-05 · "Editar" leva à edição de reparo do POS — e só para vend
     $alheia = rshwVenda($outro, 'EDITAR-ALHEIA');
     $this->actingAs($usuario)->get('/repair/repair/'.$alheia->id.'/edit')->assertNotFound();
 });
+
+it('UC-RSHW-06 · venda de reparo fora do prazo de edição volta pro detalhe — nunca pro PDV (sem loop de redirect)', function () {
+    $biz = $this->seededTenant();
+    $usuario = rshwUser((int) $biz->id, ['repair.view', 'repair.update']);
+    rshwSessao((int) $biz->id, (int) $usuario->id);
+    session(['business.transaction_edit_days' => 30]);
+
+    // Controle: dentro do prazo, encaminha pro PDV (a regra não bloqueia tudo).
+    $nova = rshwVenda((int) $biz->id, 'PRAZO-OK', ['transaction_date' => now()->subDays(2)]);
+    $this->actingAs($usuario)->get('/repair/repair/'.$nova->id.'/edit')
+        ->assertRedirect(action([\App\Http\Controllers\SellPosController::class, 'edit'], [$nova->id]).'?sub_type=repair');
+
+    // Fora do prazo: o SellPosController@edit responderia back(), e sem Referer o back() voltava
+    // pra ESTA rota → ERR_TOO_MANY_REDIRECTS (medido em prod 2026-10-01). Agora volta pro detalhe.
+    $velha = rshwVenda((int) $biz->id, 'PRAZO-VENCIDO', ['transaction_date' => now()->subYears(2)]);
+    $resposta = $this->actingAs($usuario)->get('/repair/repair/'.$velha->id.'/edit');
+    $resposta->assertRedirect(action([\Modules\Repair\Http\Controllers\RepairController::class, 'show'], [$velha->id]));
+    expect(session('status.success'))->toBe(0);
+});
