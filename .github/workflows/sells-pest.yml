@@ -40,6 +40,9 @@ on:
       # Sob teste em SellsCreateV3ContratoTest (UC-V302/V303). Sem este gatilho, mexer no
       # controller do preview não dispararia o teste dele — gate mudo com cara de cobertura.
       - 'app/Http/Controllers/SellsV3Controller.php'
+      # Sob teste em SellReturnIndexContratoTest (UC-SRIDX-*, lista de devoluções).
+      - 'app/Http/Controllers/SellReturnController.php'
+      - 'resources/js/Pages/SellReturn/**'
       - 'app/Utils/TransactionUtil.php'
       # Sob teste em BuscaProdutoPrecoDeGrupoContratoTest (filterProduct × getVariationGroupPrice).
       - 'app/Utils/ProductUtil.php'
@@ -95,6 +98,8 @@ jobs:
               - 'tests/Feature/Sells/**'
               - 'app/Http/Controllers/SellPosController.php'
               - 'app/Http/Controllers/SellsV3Controller.php'
+              - 'app/Http/Controllers/SellReturnController.php'
+              - 'resources/js/Pages/SellReturn/**'
               - 'app/Utils/TransactionUtil.php'
               - 'app/Utils/ProductUtil.php'
               - 'Modules/Repair/Http/Controllers/DataController.php'
@@ -174,6 +179,9 @@ jobs:
         # total, as mesmas linhas e a mesma baixa de estoque da venda comum (dupla prova da
         # REGRA MESTRE). EstoqueFixture, tenant 98. NASCE SEM RUN: vermelho aqui é este arquivo.
         #
+        # 2026-10-01 — + SellReturnIndexContratoTest (UC-SRIDX-01..07 de
+        # `SellReturn/Index.casos.md`): lista de devoluções em React (thread 03 venda-menu,
+        # PR 1 de 2). Só LEITURA — não toca add/store. Tenant 98 × 99. NASCE SEM RUN.
         # 2026-10-02 — + DescontosContratoTest (UC-DSC-01..07, thread 04 de Vendas + D1 [W]):
         # ver × editar (`discount.view|manage`), a migration que concede as duas a quem tinha
         # `discount.access`, a MESMA linha gravada antes/depois do FormRequest (desconto é
@@ -218,6 +226,7 @@ jobs:
             tests/Feature/Sells/SellsCaixaContratoTest.php \
             tests/Feature/Sells/SellsRepairSubtipoContratoTest.php \
             tests/Feature/Sells/BuscaProdutoPrecoDeGrupoContratoTest.php \
+            tests/Feature/Sells/SellReturnIndexContratoTest.php \
             tests/Feature/Sells/DescontosContratoTest.php \
             tests/Feature/Sells/SellsPosIndexContratoTest.php \
             tests/Feature/Sells/ImportSalesContratoTest.php \

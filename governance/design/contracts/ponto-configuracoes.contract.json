@@ -1,0 +1,73 @@
+{
+  "_nota": "Copy declarada POR REGIÃO a partir de ponto-telas.jsx: para cada âncora, o trecho do protótipo entre o marcador contrato=\"<id>\" e o marcador seguinte. Entra só a string que existe nesse trecho E no código da tela, fora de comentário (medido 2026-10-02). Os ids são os mesmos dos dois lados (thread 17 do playbook do Ponto gravou o par no .tsx).",
+  "_nota_recorte": "Fora de propósito: valores de enum que o componente traduz para rótulo (tpAmb) — o rótulo, quando existe nos dois lados, está na copy. O restante do protótipo que não está aqui é copy que a tela reescreveu ou não tem; não é travado.",
+  "tela": "Ponto/Configuracoes/Index",
+  "fonte": "prototipo-ui/cowork/Wagner/ponto-telas.jsx",
+  "alvo": [
+    "resources/js/Pages/Ponto/Configuracoes/Index.tsx"
+  ],
+  "secoes": [
+    {
+      "id": "configuracoes-regras-clt-reforma-trabalhista",
+      "copy": [
+        "Tolerância por marcação",
+        "Tolerância máxima diária",
+        "Interjornada mínima",
+        "Intrajornada mínima",
+        "Hora noturna ficta",
+        "Art. 73 §1º",
+        "Adicional noturno",
+        "Art. 7º XVI CF/88",
+        "Adicional DSR",
+        "Lei 605/49"
+      ]
+    },
+    {
+      "id": "configuracoes-banco-de-horas",
+      "copy": [
+        "Banco de Horas",
+        "Habilitado",
+        "Prazo de compensação",
+        "Reforma Trabalhista — acordo individual",
+        "Saldo máximo",
+        "Saldo mínimo",
+        "Multiplicador crédito",
+        "Multiplicador débito",
+        "Converter HE em BH automaticamente"
+      ]
+    },
+    {
+      "id": "configuracoes-rep-e-imutabilidade-de-marcacoes",
+      "copy": [
+        "Tipos de REP permitidos",
+        "Verificar sequência NSR",
+        "Sim",
+        "Não",
+        "Assinar marcações (ICP-Brasil)",
+        "Certificado ICP configurado",
+        "Janela de correção",
+        "Append-only forçado",
+        "Hash"
+      ]
+    },
+    {
+      "id": "configuracoes-afd-importacao-esocial",
+      "copy": [
+        "Encoding",
+        "Tamanho máximo",
+        "Chunk de processamento",
+        "Validar hash de registros",
+        "Sim",
+        "Não",
+        "Ambiente eSocial",
+        "Eventos"
+      ]
+    }
+  ],
+  "ordem": [
+    "configuracoes-regras-clt-reforma-trabalhista",
+    "configuracoes-banco-de-horas",
+    "configuracoes-rep-e-imutabilidade-de-marcacoes",
+    "configuracoes-afd-importacao-esocial"
+  ]
+}
