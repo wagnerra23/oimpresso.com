@@ -10,6 +10,7 @@ use App\Utils\ModuleUtil;
 use App\Utils\ProductUtil;
 use App\Utils\TransactionUtil;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -50,9 +51,7 @@ class InicioController extends Controller
             'kpis' => [
                 'pedidos_ativos' => $pedidos['ativos'] ?? null,
                 'pedidos_atrasados' => $pedidos['atrasados'] ?? null,
-                'estoque_baixo' => $user->can('stock_report.view')
-                    ? count($this->productUtil->getProductAlert($bizId, $user->permitted_locations($bizId)))
-                    : null,
+                'estoque_baixo' => $user->can('stock_report.view') ? $this->estoqueBaixo($user, $bizId) : null,
             ],
             'financeiro' => $this->financeiro($user, $bizId),
             'proximas_tarefas' => app(TarefasController::class)->proximasPara($user, 3),
@@ -93,6 +92,19 @@ class InicioController extends Controller
             'abre_em' => $erp ? 'inicio' : ($ponto ? 'ponto' : 'mais'),
             'areas' => $areas,
         ];
+    }
+
+    /**
+     * Quantos itens estão abaixo do mínimo. `getProductAlert` devolve um Builder (o docblock dele
+     * diz array e está errado — ver GradesDoPainelService::estoqueMinimo), agrupado por
+     * variation_location_details.id; `getCountForPagination` conta as linhas do agrupamento.
+     */
+    private function estoqueBaixo(User $user, int $bizId): int
+    {
+        /** @var Builder $q */
+        $q = $this->productUtil->getProductAlert($bizId, $user->permitted_locations($bizId));
+
+        return (int) $q->toBase()->getCountForPagination();
     }
 
     /** @return array{valor: float, ontem: float, variacao_pct: float|null}|null */
