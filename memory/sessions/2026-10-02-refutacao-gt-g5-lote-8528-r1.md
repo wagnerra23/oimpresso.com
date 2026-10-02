@@ -9,6 +9,10 @@ outcomes:
   - "PII: 0 CPF/CNPJ/e-mail/telefone nas linhas + do diff"
 ---
 
+## TL;DR
+
+Refutação GT-G5 r1 do lote do PR #8528 (9 proto-baselines, 7 maps de Repair, 3 _STATUS-GENERATED): APROVADO. 19 de 19 arquivos verificados, 0 erros confirmados, error_rate 0,00%, PII 0 hits. Refutador claude-fable-5-1 em sessão fresca, só leitura.
+
 # Refutação GT-G5 — PR #8528 — rodada 1
 
 - **Data:** 2026-10-02
