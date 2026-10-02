@@ -3,46 +3,52 @@
 namespace Modules\ConsultaOs\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
+use Modules\ConsultaOs\Repositories\RepairConsultaOsRepository;
 
 /**
- * Busca publica de OS por numero — D8.c Security.
+ * Busca pública de OS — D8.c Security (US-CONSULTA-001, dados reais do Repair).
  *
- * Acesso publico (sem auth): anti-enumeration via formato alfanumerico + tamanho max:20.
- * Throttle/rate-limit aplicado via middleware na rota (defesa em profundidade).
+ * Nunca aceita menos que o portal do Repair (#8527): `tipo` obrigatório numa lista fechada
+ * (job_sheet_no | invoice_no | mobile_num — celular só se a config do Repair liga) e
+ * `numero` obrigatório e não vazio. Sem isso a consulta sairia sem filtro (ADR 0093).
  *
- * Mock-only: ConsultaOsController.buscar() retorna mockData() ate Wagner decidir
- * mapping real (invoice_no + ultimos 4 telefone — padrao Repair).
+ * Formato do número: letras, dígitos e `/ . -`, começando por letra ou dígito, até 20
+ * caracteres. O alpha_num de antes recusava o próprio nº de OS do Repair (`JS2026/0001`)
+ * e nº de venda com hífen; espaço, aspas e demais símbolos continuam recusados.
+ * Throttle 30/min por IP na rota (defesa em profundidade).
  */
 class ConsultaPublicaRequest extends FormRequest
 {
+    private const FORMATO = '/^[A-Za-z0-9][A-Za-z0-9\/.\-]*$/';
+
     /**
-     * Endpoint publico — autorizacao por throttle middleware na rota.
+     * Endpoint público — autorização pelo throttle middleware na rota.
      */
     public function authorize(): bool
     {
         return true;
     }
 
-    /**
-     * Regras anti-enumeration:
-     * - numero: required, alfanumerico puro (sem espacos/simbolos), max 20 chars
-     * - estagio: nullable, lista controlada (todos|aprovacao|producao|acabamento|expedicao|entregue)
-     */
     public function rules(): array
     {
         return [
-            'numero'  => ['required', 'string', 'alpha_num', 'max:20'],
-            'estagio' => ['nullable', 'string', 'in:todos,aprovacao,producao,acabamento,expedicao,entregue'],
+            'tipo' => ['required', 'string', Rule::in(RepairConsultaOsRepository::tiposHabilitados())],
+            'numero' => ['required', 'string', 'max:20', 'regex:'.self::FORMATO],
+            'serie' => ['nullable', 'string', 'max:50', 'regex:'.self::FORMATO],
         ];
     }
 
     public function messages(): array
     {
         return [
-            'numero.required'  => 'Informe o numero da OS.',
-            'numero.alpha_num' => 'O numero da OS deve conter apenas letras e numeros.',
-            'numero.max'       => 'O numero da OS nao pode ter mais de 20 caracteres.',
-            'estagio.in'       => 'Estagio invalido.',
+            'tipo.required' => 'Escolha como quer buscar a OS.',
+            'tipo.in' => 'Tipo de busca inválido.',
+            'numero.required' => 'Informe o número para buscar.',
+            'numero.max' => 'O número não pode ter mais de 20 caracteres.',
+            'numero.regex' => 'Use só letras, números e os sinais / . -',
+            'serie.max' => 'O número de série não pode ter mais de 50 caracteres.',
+            'serie.regex' => 'Use só letras, números e os sinais / . -',
         ];
     }
 }
