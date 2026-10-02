@@ -166,3 +166,23 @@ Início + item no Mais.)
 1. Pedidos (lista + detalhe, só leitura) · 2. Tarefas (+ concluir ToDo) · 3. Pessoas ·
 4. Produção · 5. Início (agrega os anteriores).
 Cada um em PR próprio com teste de contrato na lane MySQL e entrada neste documento (⬜ → ✅).
+
+## 8. Todas as 40 telas — D16 ([W] 2026-10-02)
+
+Substitui o escopo de 7 áreas (D13) e o "Dashboard fora" (D15). Já no app (13): 00 Login · 01 Início ·
+02 Produção · 10 Mais · 12 Tarefas · 17 Pessoas · 18 Ficha · 21 Pedidos · 22 Pedido · 36 Bater ponto ·
+37 Meu espelho · 38 Justificar · Conta. Faltam 27, em 5 ondas. Cada tela = 1 PR de API no ERP (com teste
+de contrato na lane MySQL) + 1 PR de tela no `oimpresso-app`, contra este contrato.
+
+| Onda | Telas | Escreve valor/estoque? |
+|---|---|---|
+| A — Pessoas, vendas e tarefas | 09 Nova pessoa · 34 Ficha cadastral · 04 Orçamentos · 28 Detalhe da tarefa · 16 Notificações · 11 Venda rápida | 11 sim (regra mestre) |
+| B — Produtos e estoque | 19 Produtos · 20 Novo produto · 05 Estoque · 29 Movimentações · 27 Detalhe da OP | 29 e 20 (preço) sim |
+| C — Financeiro | 06 Financeiro · 15 Pagamentos · 14 Fiscal · 13 Relatórios · 35 Dashboard | 15 sim |
+| D — Oficina | 07 Ordens de serviço · 03 OS · 08 Veículos · 23 Manutenção · 24 Equipamentos · 31 Equipamento · 32 Novo equipamento · 33 Locais | 03 (faturar) sim |
+| E — Equipe e ajustes | 25 Chat · 26 Equipe · 30 Perfil de menu · 39 Marcações a validar | não |
+
+- A aba e a tela só aparecem para quem tem acesso: cada área nova entra em `areas` (§6) com a regra da rota dela.
+- Leitura primeiro; a ação que escreve vem num PR separado. Em valor ou estoque: dupla prova, tabela antes→depois e ok do [W] antes do merge.
+- Tela de módulo que o business não tem no pacote não aparece (Camada 1).
+
