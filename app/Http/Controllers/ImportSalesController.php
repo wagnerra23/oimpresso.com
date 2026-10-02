@@ -204,7 +204,16 @@ class ImportSalesController extends Controller
     }
 
     /**
-     * Deletes all sales from a batch
+     * Apaga todas as vendas de um lote importado — tudo ou nada, com retrato no log.
+     *
+     * D3 de [W], 2ª rodada (2026-10-02, "opção 2 no D3"): o reverter continua APAGANDO,
+     * como no legado, mas (1) grava antes um retrato completo do lote no log e (2) recusa o
+     * lote INTEIRO quando qualquer venda não pode ser apagada, dizendo qual e por quê. O
+     * legado pulava essa venda e respondia "sucesso". Revoga a resposta "cancelar sem
+     * apagar" da 1ª rodada — ver prototipo-ui/cowork/Wagner/cowork-inbox/venda-menu/playbook/_DECISOES-W-2026-10-02b.md.
+     * A regra mora em `ImportSalesService::reverterLote()`.
+     *
+     * ⚠️ Achado conhecido, fora deste PR: a rota é GET e apaga (`routes/web.php`).
      *
      * ⚠️ D3 de [W] (2026-10-02) pede CANCELAR em vez de apagar. Não implementado nesta
      * thread: o projeto não tem hoje um "cancelar venda" que tire a venda dos totais sem
@@ -220,23 +229,25 @@ class ImportSalesController extends Controller
         }
 
         try {
-            $business_id = request()->session()->get('user.business_id');
+            $business_id = (int) request()->session()->get('user.business_id');
 
-            $sales = Transaction::where('business_id', $business_id)
-                                ->where('type', 'sell')
-                                ->where('import_batch', $batch)
-                                ->get();
-            //Begin transaction
-            DB::beginTransaction();
-            foreach ($sales as $sale) {
-                $this->transactionUtil->deleteSale($business_id, $sale->id);
+            $resultado = $this->importSalesService->reverterLote($business_id, (int) $batch);
+
+            if ($resultado['ok']) {
+                $output = ['success' => 1, 'msg' => __('lang_v1.import_reverted_successfully')];
+            } else {
+                $motivos = array_map(
+                    fn (array $i) => 'venda '.$i['invoice_no'].' (#'.$i['id'].'): '.$i['motivo'],
+                    $resultado['impedidas']
+                );
+                $output = [
+                    'success' => 0,
+                    'msg' => 'Lote '.$resultado['lote'].' não foi revertido e nada foi apagado. '
+                        .'Vendas que impediram: '.implode('; ', $motivos).'.',
+                    'impedidas' => $resultado['impedidas'],
+                ];
             }
-
-            DB::commit();
-
-            $output = ['success' => 1, 'msg' => __('lang_v1.import_reverted_successfully')];
         } catch (\Exception $e) {
-            DB::rollBack();
             \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
 
             $output = ['success' => 0,

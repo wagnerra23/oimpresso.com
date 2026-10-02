@@ -25,6 +25,7 @@ use Illuminate\Support\Facades\DB;
  * - kpis.estoque_baixo: ProductUtil::getProductAlert, só com `stock_report.view`.
  * - financeiro: Financeiro\UnificadoService::kpis, só com acesso ao Financeiro.
  * - proximas_tarefas: TarefasController::proximasPara (3).
+ * - nao_lidas: NotificacoesController::naoLidas (o ponto no sino; §6.1).
  *
  * Tier 0 (ADR 0093): business_id do usuário do token em tudo.
  */
@@ -55,6 +56,7 @@ class InicioController extends Controller
             ],
             'financeiro' => $this->financeiro($user, $bizId),
             'proximas_tarefas' => app(TarefasController::class)->proximasPara($user, 3),
+            'nao_lidas' => app(NotificacoesController::class)->naoLidas($user),
         ] + $this->perfil($user));
     }
 
@@ -83,6 +85,7 @@ class InicioController extends Controller
             'pedidos' => $vendas,
             'producao' => $vendas,
             'pessoas' => $pessoas,
+            'orcamentos' => $vendas,
             'ponto' => $ponto,
             'mais' => true,
         ]));
