@@ -25,7 +25,7 @@ namespace Modules\ConsultaOs\Http\Requests;
  *   - Paginacao max 20 itens (anti-scraping)
  *
  * @see Modules/ConsultaOs/Http/Requests/ConsultaPublicaRequest (singular por numero)
- * @see Modules/ConsultaOs/Services/ConsultaOsMockService
+ * @see Modules/ConsultaOs/Services/ConsultaOsService
  * @see memory/decisions/0093-multi-tenant-isolation-tier-0.md
  */
 class ConsultaPorEstagioRequest extends \Illuminate\Foundation\Http\FormRequest

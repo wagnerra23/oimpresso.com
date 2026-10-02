@@ -4,20 +4,17 @@ Portal publico (sem auth) para cliente final acompanhar status de Ordem de Servi
 
 ## Status
 
-**Mock-only** — 4 OS fake no `MockConsultaOsRepository`. Migrar pra `transactions` real esta no backlog (US-CONSULTA-001 em `memory/requisitos/ConsultaOs/SPEC.md`).
+**Fonte real desde 2026-10-02** — lê as folhas de OS do `Modules/Repair` (US-CONSULTA-001). O antigo `/repair-status` redireciona pra cá. O resto deste README (jornada, filtro por estágio) descreve o desenho mock anterior e ficou histórico; o contrato vivo é `resources/js/Pages/ConsultaOs/Index.casos.md`.
 
-## Arquitetura (D4 SoC brutal — Wave 18)
+## Arquitetura
 
 ```
 Routes/web.php (throttle:30,1)
   → ConsultaOsController (validacao + auditoria PiiRedactor)
-    → ConsultaOsMockService (orquestra busca + filtro estagio + OTel span)
+    → ConsultaOsService (found/not_found + OTel span)
       → ConsultaOsRepositoryInterface (contrato)
-        → MockConsultaOsRepository (impl atual)
-        → RepairConsultaOsRepository (TODO US-CONSULTA-001 — transactions real)
+        → RepairConsultaOsRepository (repair_job_sheets real, payload whitelist)
 ```
-
-Trocar fonte = 1 linha em `ConsultaOsServiceProvider::register()`.
 
 ## Como cliente usa (portal publico completo Wave 27)
 
