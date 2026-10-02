@@ -94,6 +94,7 @@ class InicioController extends Controller
             'financeiro' => $financeiro,
             'ponto' => $ponto,
             'ponto_gestor' => app(PontoAprovacoesController::class)->podeVerFila($user),
+            'equipe' => app(EquipeController::class)->podeVerEquipe($user),
             'mais' => true,
         ]));
 
