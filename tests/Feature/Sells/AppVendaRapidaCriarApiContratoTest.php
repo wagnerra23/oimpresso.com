@@ -20,7 +20,7 @@ use Tests\Support\EstoqueFixture;
  * Contrato: memory/requisitos/AppMobile/API-CONTRATO-v1.md §2.2. NÃO derivado do controller.
  *
  * DUPLA PROVA do caso de referência (combinado com a sessão do app, oimpresso-app#39):
- * 2 × Banner R$ 89,90 + 3 × Adesivo R$ 12,50 + 1 × Caneca R$ 26,60.
+ * 2 × Banner a 89,90 + 3 × Adesivo a 12,50 + 1 × Caneca a 26,60 (valores fictícios do teste).
  *   Prova 1 — conta à mão, escrita aqui: 179,80 + 37,50 + 26,60 = 243,90.
  *   Prova 2 — o que o ERP GRAVOU, somado de forma independente das linhas (quantity ×
  *   unit_price_inc_tax) e do pagamento, tem que bater com a prova 1 e com o total do 201.
@@ -147,7 +147,7 @@ function appVcPost(object $t, array $corpo, ?string $chave = null)
     return $t->withHeaders(['Idempotency-Key' => $chave ?? ('k-' . uniqid())])->postJson('/api/app/vendas', $corpo);
 }
 
-it('UC-APPVR-10 · caso de referência: grava a venda final de R$ 243,90 no consumidor final, com PIX, e baixa o estoque (dupla prova)', function () {
+it('UC-APPVR-10 · caso de referência: grava a venda final de 243,90 no consumidor final, com PIX, e baixa o estoque (dupla prova)', function () {
     $r = appVcPost($this, $this->corpo)->assertStatus(201);
 
     // Prova 1 — conta à mão.
