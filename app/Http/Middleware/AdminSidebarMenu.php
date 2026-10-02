@@ -426,7 +426,8 @@ class AdminSidebarMenu
                             );
                         }
 
-                        if (auth()->user()->can('discount.access')) {
+                        // D1 [W] 2026-10-02: quem só VÊ também acha a tela no menu.
+                        if (auth()->user()->can('discount.view') || auth()->user()->can('discount.manage')) {
                             $sub->url(
                                 action([\App\Http\Controllers\DiscountController::class, 'index']),
                                 __('lang_v1.discounts'),
