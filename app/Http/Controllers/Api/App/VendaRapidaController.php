@@ -5,18 +5,23 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Api\App;
 
 use App\BusinessLocation;
+use App\Events\SellCreatedOrModified;
 use App\Http\Controllers\Controller;
+use App\Services\AppLojas\RegistrarVendaRapida;
+use App\Services\AppLojas\VendaRapidaInvalida;
 use App\User;
+use App\Utils\ModuleUtil;
 use App\Utils\ProductUtil;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
 
 /**
  * Venda rápida do app das lojas (tela 11). Contrato: memory/requisitos/AppMobile/API-CONTRATO-v1.md §2.2.
  *
- * Este PR traz só a LEITURA (busca de produtos). A criação da venda vem em PR separado, pela
- * regra mestre de valor/estoque (dupla prova + antes→depois + ok do [W]).
+ * Leitura (busca de produtos) e escrita (POST /api/app/vendas). A escrita é REGRA MESTRE de
+ * valor/estoque: dupla prova + tabela antes→depois + ok do [W] antes do merge.
  *
  * Regras medidas na web (2026-10-02), espelhadas aqui:
  *  - Local de venda: o ERP não tem "local padrão do usuário". A web (SellController::create,
@@ -97,6 +102,138 @@ class VendaRapidaController extends Controller
                 'estoque' => (int) $l->enable_stock === 1 && ! $semTeto ? round((float) ($l->qty_available ?? 0), 4) : null,
             ])->values(),
         ]);
+    }
+
+    /**
+     * POST /api/app/vendas — REGRA MESTRE (valor + estoque). A gravação é do RegistrarVendaRapida; aqui
+     * ficam formato, permissão e a Idempotency-Key, reservada na MESMA transação de banco da venda: se a
+     * venda falha, a reserva some junto; repetida depois do sucesso, devolve a mesma resposta (200).
+     */
+    public function store(Request $request): JsonResponse
+    {
+        /** @var User|null $user */
+        $user = $request->user();
+        if (! $this->podeVender($user)) {
+            return $this->semPermissao();
+        }
+        $bizId = (int) $user->business_id;
+        $moduleUtil = app(ModuleUtil::class);
+        if (! $moduleUtil->isSubscribed($bizId) || ! $moduleUtil->isQuotaAvailable('invoices', $bizId)) {
+            return response()->json(['erro' => 'sem_permissao', 'mensagem' => 'A assinatura da empresa não permite novas vendas.'], 403);
+        }
+
+        $chave = trim((string) $request->header('Idempotency-Key', ''));
+        // Números como TEXTO com ponto e até 2 casas: nunca float locale-ambíguo (incidente num_uf 2026-06-05).
+        $numero = ['required', 'string', 'regex:/^\d{1,9}(\.\d{1,2})?$/'];
+        $v = Validator::make(array_merge($request->all(), ['idempotency_key' => $chave]), [
+            'idempotency_key' => ['required', 'string', 'max:100'],
+            'cliente_id' => ['nullable', 'integer'],
+            'metodo' => ['required', 'in:' . implode(',', array_keys(RegistrarVendaRapida::METODOS))],
+            'itens' => ['required', 'array', 'min:1', 'max:100'],
+            'itens.*.variacao_id' => ['required', 'integer'],
+            'itens.*.quantidade' => $numero,
+            'itens.*.preco_unitario' => $numero,
+            'total_previsto' => $numero,
+        ], [
+            'idempotency_key.required' => 'Envie o header Idempotency-Key.',
+            'metodo.required' => 'Escolha a forma de pagamento.',
+            'metodo.in' => 'Forma de pagamento não aceita: use PIX, crédito, débito ou dinheiro.',
+            'itens.required' => 'Adicione ao menos um produto.',
+            'itens.min' => 'Adicione ao menos um produto.',
+            '*.regex' => 'Use número com ponto e até 2 casas (ex.: 12.50).',
+            'itens.*.quantidade.regex' => 'Use número com ponto e até 2 casas (ex.: 2.00).',
+            'itens.*.preco_unitario.regex' => 'Use número com ponto e até 2 casas (ex.: 12.50).',
+            'total_previsto.regex' => 'Use número com ponto e até 2 casas (ex.: 12.50).',
+        ]);
+        if ($v->fails()) {
+            return $this->invalido(collect($v->errors()->toArray())->map(fn ($m) => $m[0])->all());
+        }
+        $d = $v->validated();
+        unset($d['idempotency_key']);
+        $d['cliente_id'] = isset($d['cliente_id']) ? (int) $d['cliente_id'] : null;
+        $hash = hash('sha256', (string) json_encode([$d['cliente_id'], $d['metodo'], array_map(
+            fn ($i) => [(int) $i['variacao_id'], (string) $i['quantidade'], (string) $i['preco_unitario']],
+            array_values($d['itens'])
+        ), $d['total_previsto']]));
+
+        $local = self::localDeVenda($user);
+        if ($local === null) {
+            return $this->semLocal();
+        }
+
+        $ja = $this->idempotencia($bizId, (int) $user->id, $chave);
+        if ($ja !== null) {
+            return $this->repetida($ja, $hash);
+        }
+
+        DB::beginTransaction();
+        try {
+            try {
+                $reservaId = DB::table('app_idempotencia')->insertGetId([
+                    'business_id' => $bizId, 'user_id' => (int) $user->id, 'rota' => 'vendas', 'chave' => $chave,
+                    'hash_corpo' => $hash, 'created_at' => now(), 'updated_at' => now(),
+                ]);
+            } catch (\Illuminate\Database\UniqueConstraintViolationException) {
+                // Outra requisição com a mesma chave ganhou a corrida e já confirmou (o INSERT esperou o lock).
+                DB::rollBack();
+                $ja = $this->idempotencia($bizId, (int) $user->id, $chave);
+
+                return $ja !== null ? $this->repetida($ja, $hash) : $this->emAndamento();
+            }
+
+            $r = app(RegistrarVendaRapida::class)->registrar($user, $local, $d);
+            DB::table('app_idempotencia')->where('id', $reservaId)->update([
+                'transaction_id' => $r['transaction']->id,
+                'resposta' => json_encode($r['resposta']),
+                'updated_at' => now(),
+            ]);
+            DB::commit();
+        } catch (VendaRapidaInvalida $e) {
+            DB::rollBack();
+
+            return $this->invalido($e->campos);
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            \Log::error('API app vendas.store: ' . $e->getMessage(), ['business_id' => $bizId]);
+
+            return response()->json(['erro' => 'falha', 'mensagem' => 'Não foi possível registrar a venda.'], 500);
+        }
+
+        SellCreatedOrModified::dispatch($r['transaction']);
+
+        return response()->json($r['resposta'], 201);
+    }
+
+    private function idempotencia(int $bizId, int $userId, string $chave): ?object
+    {
+        return DB::table('app_idempotencia')->where('business_id', $bizId)->where('user_id', $userId)
+            ->where('rota', 'vendas')->where('chave', $chave)->first();
+    }
+
+    private function repetida(object $ja, string $hash): JsonResponse
+    {
+        if (! hash_equals((string) $ja->hash_corpo, $hash)) {
+            return response()->json([
+                'erro' => 'idempotencia_conflito',
+                'mensagem' => 'Esta chave já foi usada para outra venda. Gere uma chave nova.',
+            ], 422);
+        }
+        if ($ja->resposta === null) {
+            return $this->emAndamento();
+        }
+
+        return response()->json(json_decode((string) $ja->resposta, true), 200);
+    }
+
+    private function emAndamento(): JsonResponse
+    {
+        return response()->json(['erro' => 'em_andamento', 'mensagem' => 'Esta venda ainda está sendo registrada. Tente de novo.'], 409);
+    }
+
+    /** @param array<string,string> $campos */
+    private function invalido(array $campos): JsonResponse
+    {
+        return response()->json(['erro' => 'validacao', 'campos' => $campos], 422);
     }
 
     /** `pos_settings.allow_overselling` do business — a mesma chave que o mapPurchaseSell lê. */
