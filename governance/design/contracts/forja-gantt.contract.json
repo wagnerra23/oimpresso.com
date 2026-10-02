@@ -1,0 +1,42 @@
+{
+  "_nota": "Copy declarada a partir de FjGanttView (forja-gantt.jsx) e travada só onde ela existe LITERALMENTE no protótipo e no CÓDIGO da tela, fora de comentário (medido 2026-10-02: 7 strings coincidem, 17 só no protótipo).",
+  "_nota_fonte": "O charter declara related_prototype = forja-page.jsx, o hub. O hub monta esta vista com `<FjGanttView>` na view `trabalho`, sub-visão `gantt` (forja-page.jsx L395), e FjGanttView mora em forja-gantt.jsx. A fonte do contrato é o arquivo onde a copy está, dentro da mesma âncora — não é âncora nova. Medido contra o hub inteiro, só 7 de 132 strings batiam, e isso escondia que a vista existe.",
+  "_nota_recorte": "Fora de propósito: a grade de dias e as barras (o gráfico é outro componente, wx-gantt, sem copy fixa em comum); 'arraste a barra = reagendar prazo · clique = detalhe' só aparece quando o usuário pode editar, e entra porque a string está no código mesmo sendo condicional.",
+  "tela": "Forja/Roadmap/Gantt",
+  "fonte": "prototipo-ui/cowork/Wagner/forja-gantt.jsx",
+  "alvo": [
+    "Modules/Forja/Resources/js/Pages/Forja/Roadmap/Gantt.tsx"
+  ],
+  "secoes": [
+    {
+      "id": "forja.gantt.ancora",
+      "copy": [
+        "O que vence esta semana e o que está bloqueando o quê.",
+        "o prazo"
+      ]
+    },
+    {
+      "id": "forja.gantt.timeline",
+      "copy": [
+        "Sem tarefas no filtro atual."
+      ],
+      "estados": [
+        "vazio",
+        "com tarefas"
+      ]
+    },
+    {
+      "id": "forja.gantt.totais",
+      "copy": [
+        "com prazo vencido",
+        "prazo vencido",
+        "arraste a barra = reagendar prazo · clique = detalhe"
+      ]
+    }
+  ],
+  "ordem": [
+    "forja.gantt.ancora",
+    "forja.gantt.timeline",
+    "forja.gantt.totais"
+  ]
+}

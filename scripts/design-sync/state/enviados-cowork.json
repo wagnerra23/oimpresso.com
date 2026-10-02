@@ -220,6 +220,10 @@
     "cowork-inbox/superadmin/playbook/_saida-05.md": {
       "sha256": "be47d92f22640eab50fcd2f547017bed1bd0132f4ae80175d1d2dd210563f806",
       "em": "2026-10-01T14:44:22.329Z"
+    },
+    "cowork-inbox/venda-menu/playbook/_DECISOES-W-2026-10-02.md": {
+      "sha256": "79eaa5a72c08ddc95e3f8437837a6703aa63a86637000192e258e685c1c57f39",
+      "em": "2026-10-02T11:31:04.262Z"
     }
   }
 }
