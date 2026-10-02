@@ -39,6 +39,7 @@ Route::middleware('auth:api')->prefix('app')->name('app.')->group(function () {
     // Throttle como o lookup da web (60/min): o ERP fala com o ViaCEP por todos os tenants.
     Route::get('/cep/{cep}', [\App\Http\Controllers\Api\App\CepController::class, 'show'])
         ->where('cep', '[0-9-]{1,12}')->middleware('throttle:60,1')->name('cep.show');
+    Route::get('/produtos', [\App\Http\Controllers\Api\App\ProdutosController::class, 'produtos'])->name('produtos.index');
     Route::get('/inicio', [\App\Http\Controllers\Api\App\InicioController::class, 'show'])->name('inicio');
     Route::get('/os', [\App\Http\Controllers\Api\App\OficinaController::class, 'index'])->name('os.index');
 });
