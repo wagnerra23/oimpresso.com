@@ -65,6 +65,32 @@ Título, texto do subtítulo e botão "Nova OS" ficaram iguais. Muda junto, pelo
   existem nas duas telas já existiam antes e estão na baseline.
 - `node scripts/casos-coverage-guard.mjs` → sem violação nova deste PR.
 
+## Required vermelho no CI — `Casos-coverage · ratchet` (G-6, frescor) — PARADO aqui
+
+No PR #8531 o job required acusa:
+
+- 2 violações **novas**: `stale:resources/js/Pages/Repair/Index.casos.md` e
+  `stale:resources/js/Pages/Repair/JobSheet/Index.casos.md`;
+- em ambos, o `.tsx` passou a ter commit em 2026-10-02, depois do `last_run` do `.casos.md`
+  (2026-10-01);
+- a run é 37009334748.
+
+O meu `casos-coverage-guard` local deu verde porque rodou **antes** do commit. Com o `.tsx` só no
+working tree, o gate lê a data git antiga (§5 2026-08-20). É a lápide §5 2026-07-27: tocar o
+`.tsx` acorda o G-6.
+
+**Por que não consertei:**
+
+- O conserto é revalidar os casos e subir o `last_run` dos dois `.casos.md`.
+- O `Repair/Index.casos.md` está em edição pelo PR aberto #8524, e esta thread recebeu a ordem de
+  não tocá-lo.
+- Subir o `last_run` sem rodar os UCs seria afirmar uma revalidação que não aconteceu. A lane
+  Verticais, que roda os contratos, não roda neste PR empilhado. O CT 100 roda outro checkout.
+
+**Para fechar:** depois do #8524, com a lane `PHP / Pest (Verticais · MySQL)` verde no branch,
+subir o `last_run` dos dois `.casos.md` para a data do run e citar o run. O `JobSheet/Index.casos.md`
+pode ser feito já; o `Repair/Index.casos.md` precisa ser combinado com o dono do #8524.
+
 ## Ficou fora
 
 - **Charter de `Repair/Index`** (linha 36: *"AppShellV2 + PageHeader shared"*). Ficou desatualizado
