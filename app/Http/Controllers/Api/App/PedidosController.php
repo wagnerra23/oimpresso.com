@@ -138,6 +138,55 @@ class PedidosController extends Controller
         ]);
     }
 
+    /** Colunas da aba Produção (decisão [W] 2026-10-02: Produção usa as etapas da VENDA). */
+    public const COLUNAS_PRODUCAO = ['quote_approved', 'in_production', 'on_hold', 'ready_for_invoice'];
+
+    private const POR_COLUNA = 50;
+
+    /**
+     * GET /api/app/producao — fila de produção por etapa da venda (contrato §5). Mesmas regras de
+     * visibilidade da lista de pedidos; só leitura (mover de etapa é ação FSM, fora da v1).
+     * Rótulo da coluna = nome do estágio cadastrado no business.
+     */
+    public function producao(Request $request): JsonResponse
+    {
+        $user = $request->user();
+        if (! $this->podeVer($user)) {
+            return $this->semPermissao();
+        }
+
+        $linhas = $this->base($user, '')
+            ->whereIn('sps.key', self::COLUNAS_PRODUCAO)
+            ->where('sps.is_terminal', false)
+            ->orderByRaw('t.delivery_date IS NULL, t.delivery_date ASC')
+            ->limit(self::POR_COLUNA * count(self::COLUNAS_PRODUCAO))
+            ->get([
+                't.id', 't.invoice_no', 't.final_total', 't.delivery_date',
+                'c.name as cliente', 'c.supplier_business_name as cliente_empresa',
+                'sps.key as etapa_chave', 'sps.name as etapa_nome', 'sps.is_terminal',
+            ]);
+
+        $colunas = [];
+        foreach (self::COLUNAS_PRODUCAO as $chave) {
+            $daColuna = $linhas->where('etapa_chave', $chave);
+            $colunas[] = [
+                'id' => $chave,
+                'rotulo' => (string) ($daColuna->first()->etapa_nome ?? self::ROTULOS_PADRAO[$chave]),
+                'itens' => $daColuna->take(self::POR_COLUNA)->map(fn ($l) => $this->item($l))->values(),
+            ];
+        }
+
+        return response()->json(['colunas' => $colunas]);
+    }
+
+    /** Rótulo quando a coluna está vazia (os do seed FsmProcessoVendaComProducaoSeeder). */
+    private const ROTULOS_PADRAO = [
+        'quote_approved' => 'Aprovado pelo cliente',
+        'in_production' => 'Em produção',
+        'on_hold' => 'Em espera',
+        'ready_for_invoice' => 'Pronto pra faturar',
+    ];
+
     // ------------------------------------------------------------------
 
     private function podeVer(?User $user): bool

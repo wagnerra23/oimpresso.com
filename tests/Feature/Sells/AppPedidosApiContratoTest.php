@@ -142,3 +142,26 @@ it('sem nenhuma permissão de venda responde 403 sem_permissao', function () {
 
     $this->getJson('/api/app/pedidos')->assertStatus(403)->assertJsonPath('erro', 'sem_permissao');
 });
+
+it('produção: a venda em produção aparece na coluna da etapa; de outro business e concluída não aparecem', function () {
+    $alheia = DB::table('transactions')->insertGetId([
+        'business_id' => $this->outroBiz->id, 'created_by' => $this->user->id, 'type' => 'sell',
+        'status' => 'final', 'payment_status' => 'due', 'invoice_no' => 'APP-PROD-ALHEIA-' . uniqid(),
+        'transaction_date' => now(), 'total_before_tax' => 10, 'final_total' => 10,
+        'created_at' => now(), 'updated_at' => now(),
+    ]);
+    appPedEtapa((int) $this->outroBiz->id, $alheia, 'in_production');
+
+    $r = $this->getJson('/api/app/producao')->assertOk();
+    expect(collect($r->json('colunas'))->pluck('id')->all())
+        ->toBe(['quote_approved', 'in_production', 'on_hold', 'ready_for_invoice']);
+
+    $emProducao = collect($r->json('colunas'))->firstWhere('id', 'in_production');
+    $ids = collect($emProducao['itens'])->pluck('id');
+    expect($ids)->toContain($this->venda);
+    expect($ids)->not->toContain($alheia);
+
+    appPedEtapa((int) $this->biz->id, $this->venda, 'completed', true);
+    $todas = collect($this->getJson('/api/app/producao')->json('colunas'))->flatMap(fn ($c) => collect($c['itens'])->pluck('id'));
+    expect($todas)->not->toContain($this->venda);
+});
