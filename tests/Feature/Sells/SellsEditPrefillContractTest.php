@@ -140,7 +140,7 @@ it('Sells/Edit — payload deferred form.sellDetails mantém contrato flat que o
         'X-Inertia-Version' => '1',
         'X-Inertia-Partial-Component' => 'Sells/Edit',
         'X-Inertia-Partial-Data' => 'form',
-    ])->get("/sells/{$this->transactionId}/edit?react=1"); // tela React fora do paliativo 2026-10-01
+    ])->get("/sells/{$this->transactionId}/edit");
 
     $response->assertStatus(200);
     $page = json_decode($response->getContent(), true);
