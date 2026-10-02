@@ -1,8 +1,8 @@
 {
   "_nota": "Contrato de tela GERADO por criar-tela.mjs junto com o PT-02 Form/Drawer de ImportSales/Preview (2026-10-02). Roda em `node scripts/contrato-de-tela.mjs --contract <este-arquivo>`, no mesmo job que já varre todos os *.contract.json. As seções são as do ARQUÉTIPO e as âncoras data-contract correspondentes já nascem no .tsx — âncora e ordem são wiring do agente. A COPY não: veja _pendente_w.",
   "tela": "ImportSales/Preview",
-  "fonte": "resources/js/Pages/ImportSales/Preview.tsx",
-  "_nota_fonte": "Protótipo: VendaImportPreview em prototipo-ui/cowork/Wagner/venda-blade-telas.jsx (não medido pela A2: só monta após escolher arquivo). `fonte` segue apontando para o .tsx.",
+  "fonte": "prototipo-ui/cowork/Wagner/venda-blade-telas.jsx",
+  "_nota_fonte": "Protótipo VendaImportPreview (só monta depois de escolher arquivo; a A2 não o mediu). As seções aqui são as do arquétipo PT-02 materializadas no .tsx.",
   "alvo": [
     "resources/js/Pages/ImportSales/Preview.tsx"
   ],
