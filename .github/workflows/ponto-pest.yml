@@ -104,6 +104,23 @@ jobs:
           }
           EOF
 
+      # Chaves do Passport 1x pra lane inteira: o checkout não traz storage/oauth-*.key e
+      # qualquer rota `auth:api` estoura `Invalid key supplied`. Antes, só alguns arquivos
+      # geravam a chave no próprio beforeEach (Wave28, PushDispositivo, AppOAuthCliente) e o
+      # resto passava ou caía conforme a ORDEM dos arquivos — medido 2026-10-02, run
+      # 36996084463: ApiAppEspelhoMeContratoTest + DemoRevisorContaTest DEMO-08/09 em
+      # LogicException. Mesmo contorno do connector-pest.yml.
+      - name: Chaves Passport (passport:keys)
+        if: steps.changes.outputs.ponto == 'true'
+        env:
+          DB_CONNECTION: mysql
+          DB_HOST: 127.0.0.1
+          DB_PORT: "3306"
+          DB_DATABASE: oimpresso_test
+          DB_USERNAME: root
+          DB_PASSWORD: root
+        run: php artisan passport:keys --force
+
       - name: Run Pest (Ponto · MySQL) — ALLOWLIST VERDE (catraca)
         if: steps.changes.outputs.ponto == 'true'
         # phpunit.xml força DB_CONNECTION=sqlite :memory: — se não sobrescrever, os
