@@ -2680,7 +2680,9 @@ class SellController extends Controller
         if ($transaction->sub_type !== 'repair') {
             return null;
         }
-        $modulo = $this->moduleUtil->getModuleData('get_pos_screen_view', ['sub_type' => 'repair']);
+        // Pelo container: `$this->moduleUtil` não é propriedade declarada aqui (o baseline do
+        // PHPStan conta os acessos que já existem — não somar mais um).
+        $modulo = app(\App\Utils\ModuleUtil::class)->getModuleData('get_pos_screen_view', ['sub_type' => 'repair']);
         $d = $modulo['Repair']['view_data'] ?? null;
         if (empty($d)) {
             return null;
