@@ -70,7 +70,9 @@ it('UC-APP30-01: sem escolha, a barra é o padrão do ERP dentro das áreas do u
 
     $r = $this->getJson('/api/app/inicio')->assertOk();
 
-    expect($r->json('areas'))->toBe(['inicio', 'pedidos', 'producao', 'orcamentos', 'mais']);
+    // Sem lista exata de `areas`: outras ondas acrescentam áreas a quem vê vendas (ex.: relatorios)
+    // e o padrão da barra não depende delas — vêm primeiro Pedidos, Produção, Orçamentos.
+    expect($r->json('areas'))->toContain('pedidos', 'producao', 'orcamentos');
     expect($r->json('barra'))->toBe(['pedidos', 'producao', 'orcamentos']);
 });
 
