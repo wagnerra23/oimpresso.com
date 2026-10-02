@@ -1,0 +1,25 @@
+--- a/mobile/components/oi/OiHeader.tsx
++++ b/mobile/components/oi/OiHeader.tsx
+@@ ações do header: 38 → 44 px (item 03 da avaliação)
+         {actions?.map((a, i) => (
+           <Pressable
+             key={`${a.icon}-${i}`}
+             onPress={a.onPress}
+             testID={a.testID}
++            accessibilityRole="button"
+             style={{
+-              width: 38,
+-              height: 38,
++              width: 44,
++              height: 44,
+               alignItems: "center",
+               justifyContent: "center",
+               borderRadius: radius.sm,
+             }}
+           >
+@@ badge acompanha o botão maior
+                 position: "absolute",
+-                top: 6,
+-                right: 6,
++                top: 8,
++                right: 8,
