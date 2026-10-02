@@ -537,13 +537,13 @@ class ImportSalesService
         $vendas = Transaction::where('business_id', $businessId)
             ->where('type', 'sell')
             ->where('import_batch', $lote)
-            ->with(['sell_lines', 'payment_lines'])
             ->orderBy('id')
             ->get();
 
         $impedidas = [];
         foreach ($vendas as $venda) {
-            if ($this->transactionUtil->isReturnExist($venda->id)) {
+            // A MESMA regra que faz o deleteSale() recusar — chamada, não copiada.
+            if ($this->transactionUtil->isReturnExist($venda->id)) { // @phpstan-ignore argument.type (docblock legado declara o tipo "id")
                 $impedidas[] = $this->impedida($venda, (string) __('lang_v1.return_exist'));
             }
         }
@@ -584,14 +584,17 @@ class ImportSalesService
     public function retratoDoLote(int $businessId, int $lote, Collection $vendas): array
     {
         $redactor = app(PiiRedactor::class);
-        $produtoIds = $vendas->flatMap(fn (Transaction $v) => $v->sell_lines->pluck('product_id'))->unique()->values()->all();
-        $controlaEstoque = Product::whereIn('id', $produtoIds)->pluck('enable_stock', 'id');
+        $ids = $vendas->pluck('id')->map(fn ($id) => (int) $id)->all();
+        $linhasPorVenda = DB::table('transaction_sell_lines')->whereIn('transaction_id', $ids)->orderBy('id')->get()->groupBy('transaction_id');
+        $pagamentosPorVenda = DB::table('transaction_payments')->whereIn('transaction_id', $ids)->orderBy('id')->get()->groupBy('transaction_id');
+        $controlaEstoque = Product::whereIn('id', $linhasPorVenda->flatten(1)->pluck('product_id')->unique()->values()->all())
+            ->pluck('enable_stock', 'id');
 
         $retrato = [];
         foreach ($vendas as $venda) {
             $linhas = [];
             $devolve = [];
-            foreach ($venda->sell_lines as $linha) {
+            foreach ($linhasPorVenda->get($venda->id, collect()) as $linha) {
                 $linhas[] = [
                     'sell_line_id' => (int) $linha->id,
                     'product_id' => (int) $linha->product_id,
@@ -613,11 +616,11 @@ class ImportSalesService
                 'id' => (int) $venda->id,
                 'invoice_no' => $redactor->redact((string) $venda->invoice_no),
                 'business_id' => (int) $venda->business_id,
-                'contact_id' => $venda->contact_id !== null ? (int) $venda->contact_id : null,
+                'contact_id' => ((int) $venda->contact_id) ?: null,
                 'status' => (string) $venda->status,
                 'final_total' => (float) $venda->final_total,
                 'linhas' => $linhas,
-                'pagamentos' => $venda->payment_lines->map(fn ($p) => [
+                'pagamentos' => $pagamentosPorVenda->get($venda->id, collect())->map(fn ($p) => [
                     'id' => (int) $p->id,
                     'metodo' => (string) $p->method,
                     'valor' => (float) $p->amount,
