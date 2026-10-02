@@ -193,14 +193,18 @@ test('GUARD 9 — buildClienteIndexCustomers select + payload incluem shipping_a
         ->toContain("'shipping_address' => \$contact->shipping_address");
 });
 
-test('GUARD 9b — EnderecoTab.tsx declara shipping_address + autosave on blur', function () {
+// O campo de texto livre `shipping_address` com autosave saiu do drawer no #2118
+// (2026-06-02, US-CRM-078 fase 2): a NF-e (grupo enderEntrega) exige endereço estruturado,
+// e texto livre não serve. O comportamento que fica é a lista estruturada, com CRUD próprio
+// em /cliente/{id}/enderecos. O tipo `shipping_address` segue declarado no payload.
+test('GUARD 9b — EnderecoTab.tsx mostra a lista estruturada de endereços (sem autosave de texto livre)', function () {
     $path = __DIR__ . '/../../../resources/js/Pages/Cliente/_drawer/EnderecoTab.tsx';
     expect($path)->toBeReadableFile();
 
     $contents = file_get_contents($path);
     expect($contents)
         ->toContain('shipping_address?: string | null')
-        ->toContain("useState<string>(contact.shipping_address ??")
-        ->toContain("scheduleAutosave('shipping_address'")
-        ->toContain("handleBlur('shipping_address'");
+        ->toContain("import EnderecosEntregaList from './EnderecosEntregaList'")
+        ->toContain('<EnderecosEntregaList contactId={contact.id}')
+        ->not->toContain("scheduleAutosave('shipping_address'");
 });

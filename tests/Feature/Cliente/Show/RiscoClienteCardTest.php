@@ -54,10 +54,11 @@ test('RiscoClienteCard.tsx — 3 tiers visuais (healthy/warn/high) + paleta sema
         ->toContain("'healthy'")
         ->toContain("'warn'")
         ->toContain("'high'")
-        // Paleta semantica canon
-        ->toContain('bg-emerald-50')
-        ->toContain('bg-amber-50')
-        ->toContain('bg-rose-50')
+        // Paleta semantica canon — tokens do DS desde o #2660 (2026-06-13, eram
+        // bg-emerald-50/amber-50/rose-50 + dark: cru); cada token tem valor no tema escuro.
+        ->toContain("bg: 'bg-success-soft'")
+        ->toContain("bg: 'bg-warning-soft'")
+        ->toContain("bg: 'bg-destructive-soft'")
         // Labels PT-BR
         ->toContain('Saudavel')
         ->toContain('Atencao')

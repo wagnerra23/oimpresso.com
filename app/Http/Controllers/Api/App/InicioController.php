@@ -93,6 +93,7 @@ class InicioController extends Controller
             'oficina' => $oficina,
             'fiscal' => $fiscal,
             'ponto' => $ponto,
+            'ponto_gestor' => app(PontoAprovacoesController::class)->podeVerFila($user),
             'mais' => true,
         ]));
 
