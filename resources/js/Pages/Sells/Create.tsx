@@ -17,7 +17,7 @@ import { router, useForm } from '@inertiajs/react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import { useAuth, useBusiness } from '@/Hooks/usePageProps';
-import { AlertTriangle, CreditCard, FileText, Loader2, Package, Plus, Printer, Receipt, Search, Settings2, Trash2, Truck } from 'lucide-react';
+import { AlertTriangle, CreditCard, FileText, Loader2, Package, Plus, Printer, Receipt, Search, Settings2, Trash2, Truck, Wrench } from 'lucide-react';
 import EmptyState from '@/Components/shared/EmptyState';
 import MercosulPlate from '@/Components/shared/MercosulPlate';
 import { Button } from '@/Components/ui/button';
@@ -39,6 +39,8 @@ import PaymentRow, { type Payment } from './_components/PaymentRow';
 import NumericInputPtBR from '@/Components/ui/numeric-input-ptbr';
 import { dropdownEntries } from './_components/dropdownEntries';
 import { camposDeSubtipo } from './_components/subtipoVenda';
+import ReparoSection, { type RepairPosProps } from './_components/ReparoSection';
+import { camposDeReparo, reparoInicial, reparoValido } from './_components/reparoVenda';
 import {
   Select,
   SelectContent,
@@ -115,6 +117,8 @@ export interface SellsCreatePageProps {
   };
   posSettings: Record<string, unknown>;
   subType: string | null;
+  /** Opções da seção Reparo (UC-S05) — só vem na venda aberta como reparo. */
+  repairPos?: RepairPosProps | null;
   statuses?: Record<string, string>;
   isOrderRequestEnabled?: boolean;
 }
@@ -202,6 +206,8 @@ export default function SellsCreate(props: SellsCreatePageProps) {
     // ADR 0251 — veículo na venda direta de oficina. null = sem veículo. Só
     // relevante quando OficinaAuto habilitado; em vestuário fica sempre null.
     vehicle_id: null as number | null,
+    // UC-S05 — dados do aparelho/atendimento na venda de reparo (seção Reparo).
+    reparo: reparoInicial(props.repairPos?.defaultStatusId),
     products: [] as Array<{
       product_id: number;
       variation_id: number | null;
@@ -283,6 +289,8 @@ export default function SellsCreate(props: SellsCreatePageProps) {
   // do cliente selecionado (vem do payload getCustomers). quickAddVehicleOpen abre o
   // drawer de cadastro rápido (sem perder a venda).
   const hasOficinaAuto = props.hasOficinaAuto === true;
+  // UC-S05 — venda aberta como reparo (/pos/create?sub_type=repair) com o módulo na assinatura.
+  const isReparo = props.subType === 'repair' && !!props.repairPos;
   const [customerVehicles, setCustomerVehicles] = useState<VehicleOption[]>([]);
   const [quickAddVehicleOpen, setQuickAddVehicleOpen] = useState(false);
 
@@ -612,7 +620,9 @@ export default function SellsCreate(props: SellsCreatePageProps) {
     !processing &&
     data.products.length > 0 &&
     data.location_id !== null &&
-    !discountError;
+    !discountError &&
+    // Status do reparo é obrigatório, como o <select required> do POS Blade.
+    (!isReparo || reparoValido(data.reparo));
 
   const handleSubmit = (withPrint = false) => {
     if (!canSubmit) return;
@@ -656,6 +666,9 @@ export default function SellsCreate(props: SellsCreatePageProps) {
       // Reparo é um TIPO de venda (decisão [W] 2026-10-01): aberto por ?sub_type=repair,
       // o envio carrega o tipo. Não muda valor nem estoque — ver subtipoVenda.ts.
       ...camposDeSubtipo(props.subType),
+      // O estado aninhado não vai pro servidor; vão só os campos repair_* (UC-S05).
+      reparo: undefined,
+      ...(isReparo ? camposDeReparo(d.reparo) : {}),
       is_save_and_print: withPrint ? 1 : 0,
       // Rename pra Blade legacy convention
       payment: d.payments,
@@ -884,7 +897,15 @@ export default function SellsCreate(props: SellsCreatePageProps) {
 
   const handleDraftRecover = () => {
     // Draft não guarda File — restaura preservando sell_document=null.
-    if (draftRecover) setData({ ...draftRecover.data, sell_document: null });
+    // Rascunho anterior ao UC-S05 não tem `reparo` (a chave do draft é a mesma pra venda
+    // comum e reparo) — sem o fallback, a seção Reparo leria undefined.
+    if (draftRecover) {
+      setData({
+        ...draftRecover.data,
+        reparo: draftRecover.data.reparo ?? reparoInicial(props.repairPos?.defaultStatusId),
+        sell_document: null,
+      });
+    }
     setDraftRecover(null);
   };
 
@@ -940,7 +961,7 @@ export default function SellsCreate(props: SellsCreatePageProps) {
 
   // Scroll-spy: detecta qual aba está visível e marca como ativa (pattern Cockpit canon).
   // Ref: Pages/Forja/Board/DetailSheet.tsx — abas com border-b-2 border-primary -mb-px no estado ativo.
-  const sectionIds = ['sec-dados', 'sec-produtos', 'sec-pagamento', 'sec-resumo', 'sec-mais-opcoes'];
+  const sectionIds = ['sec-dados', 'sec-reparo', 'sec-produtos', 'sec-pagamento', 'sec-resumo', 'sec-mais-opcoes'];
   const [activeSection, setActiveSection] = useState<string>('sec-dados');
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -988,6 +1009,7 @@ export default function SellsCreate(props: SellsCreatePageProps) {
           >
             {[
               { id: 'sec-dados', label: 'Dados', icon: FileText, count: undefined as number | undefined },
+              ...(isReparo ? [{ id: 'sec-reparo', label: 'Reparo', icon: Wrench, count: undefined as number | undefined }] : []),
               { id: 'sec-produtos', label: 'Produtos', icon: Package, count: itensCount > 0 ? itensCount : undefined },
               // Desconto (card Resumo) antes do Pagamento — aplica desconto e vê o total
               // correto ANTES de lançar a parte financeira (Wagner 2026-06-18).
@@ -1238,6 +1260,15 @@ export default function SellsCreate(props: SellsCreatePageProps) {
           )}
         </CardContent>
       </Card>
+
+      {/* UC-S05 — seção Reparo, só na venda aberta como reparo. */}
+      {isReparo && props.repairPos && (
+        <ReparoSection
+          opcoes={props.repairPos}
+          valor={data.reparo}
+          onChange={(r) => setData('reparo', r)}
+        />
+      )}
 
       {/* Bloco produtos — busca + tabela editável (US-SELL-005) */}
       <Card id="sec-produtos" className="shadow-sm bg-background border-border scroll-mt-32">

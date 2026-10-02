@@ -91,6 +91,41 @@ trait WithSeededTenant
     }
 
     /**
+     * Usuário NOVO no tenant de teste com EXATAMENTE as permissões pedidas.
+     *
+     * Por que existe (medido 2026-10-02, lane cliente-pest): os testes pegavam "o primeiro
+     * usuário do business" e assumiam que ele era admin — verdade no banco de dev, onde ele
+     * tem `Admin#1` e o `Gate::before` libera tudo. O seed do CI (pest-mysql-setup) cria o
+     * usuário SEM papel nenhum, então toda rota com `can()` devolvia 403. Dar `Admin#` aqui
+     * esconderia o gate que o teste existe para exercitar; por isso o papel tem só o que a
+     * rota exige, e o usuário é novo para não herdar nem vazar permissão entre testes.
+     *
+     * Papel com nome único por chamada, no formato `Nome#{business_id}` que o UltimatePOS
+     * exige (roles.business_id é NOT NULL).
+     *
+     * @param  list<string>  $permissoes
+     */
+    public function usuarioComPermissoes(array $permissoes, ?Business $business = null): \App\User
+    {
+        $business ??= $this->seededTenant();
+
+        $user = \App\User::factory()->create(['business_id' => $business->id]);
+        $papel = \Spatie\Permission\Models\Role::create([
+            'name' => 'Teste' . uniqid() . '#' . $business->id,
+            'business_id' => $business->id,
+            'guard_name' => 'web',
+        ]);
+        foreach ($permissoes as $p) {
+            \Spatie\Permission\Models\Permission::findOrCreate($p, 'web');
+        }
+        $papel->syncPermissions($permissoes);
+        $user->assignRole($papel);
+        app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
+
+        return \App\User::findOrFail($user->id);
+    }
+
+    /**
      * Cliente fictício de teste biz=99 (empresa NÃO-operadora) — VÁLIDO e idempotente.
      *
      * Os testes do Modo Suporte (ADR 0305/0308/0309) precisam de uma empresa-cliente
