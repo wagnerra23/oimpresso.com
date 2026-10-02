@@ -155,24 +155,29 @@ class PedidosController extends Controller
             return $this->semPermissao();
         }
 
-        $linhas = $this->base($user, '')
-            ->whereIn('sps.key', self::COLUNAS_PRODUCAO)
-            ->where('sps.is_terminal', false)
-            ->orderByRaw('t.delivery_date IS NULL, t.delivery_date ASC')
-            ->limit(self::POR_COLUNA * count(self::COLUNAS_PRODUCAO))
-            ->get([
-                't.id', 't.invoice_no', 't.final_total', 't.delivery_date',
-                'c.name as cliente', 'c.supplier_business_name as cliente_empresa',
-                'sps.key as etapa_chave', 'sps.name as etapa_nome', 'sps.is_terminal',
-            ]);
-
+        // Uma consulta por coluna: o limite vale POR coluna (contrato §5). Com um limit único no
+        // total, uma etapa cheia ocupava todas as vagas e esvaziava as outras.
         $colunas = [];
         foreach (self::COLUNAS_PRODUCAO as $chave) {
-            $daColuna = $linhas->where('etapa_chave', $chave);
+            $daColuna = fn () => $this->base($user, '')
+                ->where('sps.key', $chave)
+                ->where('sps.is_terminal', false);
+
+            $linhas = $daColuna()
+                ->orderByRaw('t.delivery_date IS NULL, t.delivery_date ASC')
+                ->orderBy('t.id')
+                ->limit(self::POR_COLUNA)
+                ->get([
+                    't.id', 't.invoice_no', 't.final_total', 't.delivery_date',
+                    'c.name as cliente', 'c.supplier_business_name as cliente_empresa',
+                    'sps.key as etapa_chave', 'sps.name as etapa_nome', 'sps.is_terminal',
+                ]);
+
             $colunas[] = [
                 'id' => $chave,
-                'rotulo' => (string) ($daColuna->first()->etapa_nome ?? self::ROTULOS_PADRAO[$chave]),
-                'itens' => $daColuna->take(self::POR_COLUNA)->map(fn ($l) => $this->item($l))->values(),
+                'rotulo' => (string) ($linhas->first()->etapa_nome ?? self::ROTULOS_PADRAO[$chave]),
+                'total' => $linhas->count() < self::POR_COLUNA ? $linhas->count() : $daColuna()->count(),
+                'itens' => $linhas->map(fn ($l) => $this->item($l))->values(),
             ];
         }
 

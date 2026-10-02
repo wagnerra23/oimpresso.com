@@ -100,15 +100,16 @@ computador".
 
 ```json
 { "colunas": [ {
-    "id": "in_production", "rotulo": "Em produção",
+    "id": "in_production", "rotulo": "Em produção", "total": 63,
     "itens": [ "…mesmo item da lista de pedidos (§2)…" ] } ] }
 ```
 
 - Decisão [W] 2026-10-02: *"Produção usa as etapas da venda"* — mesma entidade de Pedidos.
 - Colunas fixas, nesta ordem: `quote_approved` (aprovado pelo cliente, na fila) · `in_production` ·
   `on_hold` · `ready_for_invoice` (pronto). Rótulo = nome do estágio cadastrado no business.
-- Mesmas permissões e regras de visibilidade de Pedidos; até 50 itens por coluna, prazo mais
-  próximo primeiro. Só leitura (mover de etapa é ação FSM, fora da v1). Sem carga % (D11).
+- Mesmas permissões e regras de visibilidade de Pedidos; até 50 itens **por coluna** (o limite
+  é de cada coluna, uma etapa cheia não esvazia as outras), prazo mais próximo primeiro.
+  `total` = quantos pedidos a coluna tem de fato (o app mostra "N" mesmo quando passa de 50). Só leitura (mover de etapa é ação FSM, fora da v1). Sem carga % (D11).
 
 ## 6. Início ⬜
 

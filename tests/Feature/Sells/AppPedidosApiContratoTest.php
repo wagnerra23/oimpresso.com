@@ -165,3 +165,33 @@ it('produção: a venda em produção aparece na coluna da etapa; de outro busin
     $todas = collect($this->getJson('/api/app/producao')->json('colunas'))->flatMap(fn ($c) => collect($c['itens'])->pluck('id'));
     expect($todas)->not->toContain($this->venda);
 });
+
+it('produção: o limite de 50 vale POR coluna — uma etapa cheia não esvazia as outras; total traz a contagem real', function () {
+    // O beforeEach deixa a venda em produção: pega esse estágio e move a venda para "aprovado",
+    // com prazo DEPOIS das 201 vendas abaixo.
+    $emProducao = (int) DB::table('transactions')->where('id', $this->venda)->value('current_stage_id');
+    appPedEtapa((int) $this->biz->id, $this->venda, 'quote_approved');
+    DB::table('transactions')->where('id', $this->venda)->update(['delivery_date' => now()->addDays(30)]);
+
+    // 201 vendas em produção, todas com prazo ANTES da venda aprovada: num limit único de
+    // 200 no total, elas ocupariam todas as vagas e a coluna "aprovado" sairia vazia.
+    $linhas = [];
+    for ($n = 0; $n < 201; $n++) {
+        $linhas[] = [
+            'business_id' => $this->biz->id, 'created_by' => $this->user->id, 'type' => 'sell',
+            'status' => 'final', 'payment_status' => 'due', 'invoice_no' => 'APP-CHEIA-' . $n . '-' . uniqid(),
+            'transaction_date' => now(), 'delivery_date' => now()->addDay(), 'total_before_tax' => 1, 'final_total' => 1,
+            'current_stage_id' => $emProducao, 'created_at' => now(), 'updated_at' => now(),
+        ];
+    }
+    DB::table('transactions')->insert($linhas);
+
+    $colunas = collect($this->getJson('/api/app/producao')->assertOk()->json('colunas'));
+    $aprovado = $colunas->firstWhere('id', 'quote_approved');
+    $producao = $colunas->firstWhere('id', 'in_production');
+
+    expect(collect($aprovado['itens'])->pluck('id'))->toContain($this->venda);
+    expect(count($producao['itens']))->toBe(50);
+    expect($producao['total'])->toBeGreaterThanOrEqual(201);
+    expect($aprovado['total'])->toBe(count($aprovado['itens']));
+});
