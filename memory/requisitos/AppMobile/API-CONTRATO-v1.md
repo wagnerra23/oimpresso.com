@@ -121,8 +121,18 @@ computador".
   "meta_dia": { "valor": 2000.00, "derivada": true },
   "kpis": { "pedidos_ativos": 12, "pedidos_atrasados": 3, "estoque_baixo": 2 },
   "financeiro": { "a_receber": 8200.00, "a_pagar": 3100.00 },
-  "proximas_tarefas": [ "…mesmo item de /tarefas, até 3…" ] }
+  "proximas_tarefas": [ "…mesmo item de /tarefas, até 3…" ],
+  "perfil": "erp", "abre_em": "inicio",
+  "areas": [ "inicio", "tarefas", "pedidos", "producao", "pessoas", "ponto", "mais" ] }
 ```
+
+- `perfil`, `abre_em` e `areas` (D6 [W]: *"perfil colaborador abre no ponto"*): `areas` lista as
+  abas que o usuário pode abrir, na ordem do app. Cada uma segue a mesma regra da rota dela, então
+  aba visível = rota que responde: `tarefas` = Essentials no plano ou quem aprova o Ponto;
+  `pedidos`/`producao` = quem vê vendas; `pessoas` = quem vê cliente ou fornecedor; `ponto` =
+  colaborador com `controla_ponto`; `inicio` só para perfil `erp`; `mais` sempre.
+  `perfil` = `erp` se tem tarefas, vendas ou pessoas, senão `colaborador`. `abre_em` = `inicio`
+  (erp), `ponto` (colaborador) ou `mais` (sem nenhuma das duas).
 
 - `faturado_hoje` e `meta_dia`: só com `dashboard.data` (senão `null`). Meta do dia = meta mensal
   da Jana ÷ dias úteis do mês (D11), sempre com `derivada: true`.

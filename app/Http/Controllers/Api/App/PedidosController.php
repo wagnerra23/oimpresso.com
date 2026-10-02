@@ -212,6 +212,12 @@ class PedidosController extends Controller
 
     // ------------------------------------------------------------------
 
+    /** Quem vê Pedidos e Produção (mesma regra das duas abas). */
+    public function podeVerVendas(User $user): bool
+    {
+        return $this->podeVer($user);
+    }
+
     private function podeVer(?User $user): bool
     {
         return $user !== null && (

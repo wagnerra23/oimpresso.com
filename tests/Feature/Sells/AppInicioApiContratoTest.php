@@ -8,6 +8,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Laravel\Passport\Passport;
 use Spatie\Permission\Models\Permission;
+use App\User;
+use App\Utils\ModuleUtil;
 use Tests\Contract\AutosaveContractRunner;
 
 /**
@@ -124,4 +126,55 @@ it('meta do dia = meta mensal de faturamento ÷ dias úteis; meta de OUTRO busin
     $r = $this->getJson('/api/app/inicio')->assertOk();
     expect((float) $r->json('meta_dia.valor'))->toBe(round(2200 / appIniDiasUteis(), 2));
     expect($r->json('meta_dia.derivada'))->toBeTrue();
+});
+
+/** Usuário do business sem permissão nenhuma; com cadastro de colaborador do ponto se pedido. */
+function appIniUsuario(int $businessId, bool $colaborador): User
+{
+    $id = DB::table('users')->insertGetId([
+        'first_name' => 'APP Perfil', 'username' => 'app_perfil_' . uniqid(), 'password' => 'x',
+        'business_id' => $businessId, 'created_at' => now(), 'updated_at' => now(),
+    ]);
+    if ($colaborador) {
+        DB::table('ponto_colaborador_config')->insert([
+            'business_id' => $businessId, 'user_id' => $id, 'matricula' => 'APP-' . uniqid(),
+            'controla_ponto' => true, 'admissao' => '2020-01-01', 'created_at' => now(), 'updated_at' => now(),
+        ]);
+    }
+
+    return User::findOrFail($id);
+}
+
+/** Sem Essentials no plano: a aba Tarefas não depende do pacote da lane. */
+function appIniSemEssentials($test): void
+{
+    $mu = Mockery::mock(ModuleUtil::class)->makePartial();
+    $mu->shouldReceive('hasThePermissionInSubscription')->andReturn(false);
+    $test->app->instance(ModuleUtil::class, $mu);
+}
+
+it('D6: colaborador do ponto sem acesso ao ERP abre no Ponto e só tem Ponto e Mais', function () {
+    if (! Schema::hasTable('ponto_colaborador_config')) {
+        $this->markTestSkipped('Schema ausente (ponto_colaborador_config).');
+    }
+    appIniSemEssentials($this);
+    Passport::actingAs(appIniUsuario((int) $this->biz->id, true), [], 'api');
+
+    $r = $this->getJson('/api/app/inicio')->assertOk();
+    expect($r->json('perfil'))->toBe('colaborador');
+    expect($r->json('abre_em'))->toBe('ponto');
+    expect($r->json('areas'))->toBe(['ponto', 'mais']);
+});
+
+it('D6: quem vê vendas é perfil erp, abre no Início e tem Pedidos e Produção (sem Ponto, que não é colaborador)', function () {
+    appIniSemEssentials($this);
+    $u = appIniUsuario((int) $this->biz->id, false);
+    Permission::firstOrCreate(['name' => 'direct_sell.view', 'guard_name' => 'web']);
+    $u->givePermissionTo('direct_sell.view');
+    Passport::actingAs($u, [], 'api');
+
+    $r = $this->getJson('/api/app/inicio')->assertOk();
+    expect($r->json('perfil'))->toBe('erp');
+    expect($r->json('abre_em'))->toBe('inicio');
+    expect($r->json('areas'))->toBe(['inicio', 'pedidos', 'producao', 'mais']);
 });

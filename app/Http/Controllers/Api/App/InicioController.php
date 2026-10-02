@@ -56,7 +56,43 @@ class InicioController extends Controller
             ],
             'financeiro' => $this->financeiro($user, $bizId),
             'proximas_tarefas' => app(TarefasController::class)->proximasPara($user, 3),
-        ]);
+        ] + $this->perfil($user));
+    }
+
+    /**
+     * Áreas que o app mostra e onde ele abre (D6 [W]: "perfil colaborador abre no ponto").
+     * Cada área segue a MESMA regra de acesso da rota dela, então aba visível = rota que responde.
+     * perfil 'erp' = tem alguma área do ERP; senão 'colaborador' (só o ponto).
+     *
+     * @return array{perfil: string, abre_em: string, areas: list<string>}
+     */
+    private function perfil(User $user): array
+    {
+        $tarefas = app(TarefasController::class)->podeVerTarefas($user);
+        $vendas = app(PedidosController::class)->podeVerVendas($user);
+        $pessoas = app(PessoasController::class)->podeVerPessoas($user);
+        $ponto = DB::table('ponto_colaborador_config')
+            ->where('business_id', (int) $user->business_id)
+            ->where('user_id', (int) $user->id)
+            ->where('controla_ponto', true)
+            ->exists();
+        $erp = $tarefas || $vendas || $pessoas;
+
+        $areas = array_keys(array_filter([
+            'inicio' => $erp,
+            'tarefas' => $tarefas,
+            'pedidos' => $vendas,
+            'producao' => $vendas,
+            'pessoas' => $pessoas,
+            'ponto' => $ponto,
+            'mais' => true,
+        ]));
+
+        return [
+            'perfil' => $erp ? 'erp' : 'colaborador',
+            'abre_em' => $erp ? 'inicio' : ($ponto ? 'ponto' : 'mais'),
+            'areas' => $areas,
+        ];
     }
 
     /** @return array{valor: float, ontem: float, variacao_pct: float|null}|null */

@@ -132,6 +132,12 @@ class PessoasController extends Controller
 
     // ------------------------------------------------------------------
 
+    /** Quem vê a aba Pessoas. */
+    public function podeVerPessoas(User $u): bool
+    {
+        return $this->podeVer($u);
+    }
+
     private function podeVer(?User $u): bool
     {
         return $u !== null && (

@@ -96,6 +96,15 @@ class TarefasController extends Controller
 
     // ------------------------------------------------------------------
 
+    /**
+     * Quem tem a aba Tarefas: tarefas do Essentials no plano, ou quem aprova justificativas do
+     * Ponto. O colaborador vê as próprias justificativas em Mais › Ponto, não precisa da aba.
+     */
+    public function podeVerTarefas(User $user): bool
+    {
+        return $this->temEssentials($user, (int) $user->business_id) || CheckPontoAccess::permite($user);
+    }
+
     private function temEssentials(User $user, int $bizId): bool
     {
         return $user->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($bizId, 'essentials_module');
