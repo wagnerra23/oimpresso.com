@@ -1,0 +1,62 @@
+{
+  "_nota": "Copy declarada POR REGIÃO a partir de ponto-telas.jsx: para cada âncora, o trecho do protótipo entre o marcador contrato=\"<id>\" e o marcador seguinte. Entra só a string que existe nesse trecho E no código da tela, fora de comentário (medido 2026-10-02). Os ids são os mesmos dos dois lados (thread 17 do playbook do Ponto gravou o par no .tsx).",
+  "_nota_recorte": "Fora de propósito: valores de enum que o componente traduz para rótulo (URGENTE, NORMAL, PENDENTE, RASCUNHO) — o rótulo, quando existe nos dois lados, está na copy. O restante do protótipo que não está aqui é copy que a tela reescreveu ou não tem; não é travado.",
+  "tela": "Ponto/Aprovacoes/Index",
+  "fonte": "prototipo-ui/cowork/Wagner/ponto-telas.jsx",
+  "alvo": [
+    "resources/js/Pages/Ponto/Aprovacoes/Index.tsx"
+  ],
+  "secoes": [
+    {
+      "id": "aprovacoes-kpis-estado",
+      "copy": [
+        "Estado",
+        "Todos",
+        "Tipo",
+        "Prioridade",
+        "Todas",
+        "Urgente",
+        "Normal",
+        "Limpar"
+      ]
+    },
+    {
+      "id": "aprovacoes-fila-de-aprovacoes",
+      "copy": [
+        "Fila de aprovações",
+        "Colaborador",
+        "Tipo",
+        "Data / intervalo",
+        "Estado",
+        "Prioridade",
+        "Ação",
+        "Nenhum resultado",
+        "Limpar filtros",
+        "Nenhuma intercorrência com esses filtros.",
+        "Caixa vazia",
+        "Selecionar",
+        "Só pendentes entram no lote",
+        "impacta apuração",
+        "Dia todo",
+        "Ver",
+        "Aprovar",
+        "Rejeitar",
+        "intercorrência selecionada",
+        "intercorrências selecionadas",
+        "Aprovar intercorrência",
+        "Cancelar",
+        "Esta intercorrência",
+        "impacta a apuração",
+        "Rejeitar intercorrência",
+        "Motivo da rejeição",
+        "Data",
+        "Normal",
+        "Urgente"
+      ]
+    }
+  ],
+  "ordem": [
+    "aprovacoes-kpis-estado",
+    "aprovacoes-fila-de-aprovacoes"
+  ]
+}

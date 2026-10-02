@@ -72,7 +72,7 @@ function sellsEditGet(object $test, int $saleId, array $extraHeaders = [])
     return $test->withHeaders(array_merge([
         'X-Inertia' => 'true',
         'X-Inertia-Version' => sellsEditInertiaVersion(),
-    ], $extraHeaders))->get("/sells/{$saleId}/edit?react=1"); // ?react=1: tela React fora do paliativo (UC-SEDIT-08)
+    ], $extraHeaders))->get("/sells/{$saleId}/edit");
 }
 
 /** Venda `final` do business com 1 linha — estado inicial por INSERT, não pelo fluxo sob teste. */
@@ -390,31 +390,22 @@ it('UC-SEDIT-07 · o pré-fill traz os valores do banco, sem fallback', function
 });
 
 // =============================================================================
-// UC-SEDIT-08 — paliativo [W] 2026-10-01: a edição React não salva (PUT /sells/{id} → 500
-//   em prod; e a tela reaplica o desconto da linha). A navegação React vira visita de página
-//   inteira e abre o Blade, que salva pelo SellPosController@update.
+// UC-SEDIT-08 — o paliativo de 2026-10-01 (navegação React → 409 → Blade) foi removido por [W]
+//   em 2026-10-02, depois do conserto do UC-SEDIT-09. A navegação React volta a abrir a tela
+//   React; a visita de página inteira segue no Blade, que salva pelo SellPosController@update.
 // =============================================================================
 
-it('UC-SEDIT-08 · navegação React pra edição vira página inteira (Blade); ?react=1 ainda abre a tela React', function () {
+it('UC-SEDIT-08 · sem o paliativo: a navegação React abre a tela React; a página inteira segue no Blade', function () {
     $venda = sellsEditVenda($this->bizId);
     $id = $venda['transaction_id'];
 
-    $semFlag = $this->withHeaders([
-        'X-Inertia' => 'true',
-        'X-Inertia-Version' => sellsEditInertiaVersion(),
-    ])->get("/sells/{$id}/edit");
+    // Navegação React (X-Inertia): a tela Sells/Edit, que salva desde o UC-SEDIT-09 — não mais 409.
+    $react = sellsEditGet($this, $id);
+    $react->assertOk();
+    expect($react->json('component'))->toBe('Sells/Edit');
+    expect($react->headers->get('X-Inertia-Location'))->toBeNull();
 
-    // Inertia::location: 409 + X-Inertia-Location → o navegador faz window.location (sem X-Inertia).
-    $semFlag->assertStatus(409);
-    expect((string) $semFlag->headers->get('X-Inertia-Location'))->toEndWith("/sells/{$id}/edit");
-
-    // Controle: com ?react=1 a tela React continua respondendo (é a que o conserto vai usar).
-    $comFlag = sellsEditGet($this, $id);
-    $comFlag->assertOk();
-    expect($comFlag->json('component'))->toBe('Sells/Edit');
-
-    // A visita de página inteira (sem X-Inertia) cai no formulário Blade, que envia pro
-    // SellPosController@update — o caminho canônico de valor.
+    // Visita de página inteira (link aberto direto) continua no formulário Blade.
     $blade = $this->flushHeaders()->get("/sells/{$id}/edit");
     $blade->assertOk();
     $blade->assertViewIs('sell.edit');
@@ -572,4 +563,44 @@ it('UC-SEDIT-09 · a tela React envia pra SellPosController@update (/pos/{id}), 
     $r = sellsEditGet($this, $venda['transaction_id']);
     $r->assertOk();
     expect($r->json('props.urls.submit'))->toBe('/pos/'.$venda['transaction_id']);
+});
+
+// =============================================================================
+// UC-SEDIT-11 — editar uma venda de REPARO pela lista de vendas não apaga as datas do reparo.
+//   Âncora: Modules/Repair DataController::after_sale_saved — grava os campos de reparo só se
+//   vierem no request, mas zerava entrega/conclusão quando NÃO vinham. A edição pela lista
+//   (Sells/Edit React e sell.edit Blade) não manda campo de reparo nenhum.
+// =============================================================================
+
+it('UC-SEDIT-11 · salvar a venda de reparo sem campos de reparo preserva entrega e conclusão; enviados vazios, limpam', function () {
+    if (! Schema::hasColumn('transactions', 'repair_due_date')) {
+        $this->markTestSkipped('colunas do Repair ausentes neste banco');
+    }
+    sedit9Sessao($this);
+    $v = sedit9Venda($this);
+    DB::table('transactions')->where('id', $v['id'])->update([
+        'sub_type' => 'repair',
+        'repair_serial_no' => 'SN-ANTES',
+        'repair_due_date' => '2026-10-10 14:00:00',
+        'repair_completed_on' => '2026-10-05 09:30:00',
+    ]);
+    $ler = fn () => DB::table('transactions')->where('id', $v['id'])
+        ->first(['repair_serial_no', 'repair_due_date', 'repair_completed_on']);
+
+    // 1) Como a edição pela lista manda: nenhum campo de data. O serial vai junto só para provar
+    //    que o hook do Repair RODOU neste ambiente — sem isso, "não apagou" passaria vazio.
+    $this->put("/pos/{$v['id']}", sedit9Payload($v, []) + ['repair_serial_no' => 'SN-DEPOIS'])
+        ->assertSessionHasNoErrors();
+    \PHPUnit\Framework\Assert::assertSame(1, (int) data_get(session('status'), 'success', 0), json_encode(session('status')));
+    $depois = $ler();
+    expect($depois->repair_serial_no)->toBe('SN-DEPOIS');
+    expect((string) $depois->repair_due_date)->toBe('2026-10-10 14:00:00');
+    expect((string) $depois->repair_completed_on)->toBe('2026-10-05 09:30:00');
+
+    // 2) Como o PDV de reparo manda quando a pessoa apaga as datas: chave presente e vazia.
+    $this->put("/pos/{$v['id']}", sedit9Payload($v, []) + ['repair_due_date' => '', 'repair_completed_on' => ''])
+        ->assertSessionHasNoErrors();
+    $limpo = $ler();
+    expect($limpo->repair_due_date)->toBeNull();
+    expect($limpo->repair_completed_on)->toBeNull();
 });

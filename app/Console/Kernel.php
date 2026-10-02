@@ -1328,6 +1328,25 @@ class Kernel extends ConsoleKernel
                 );
             });
 
+        // Worker da fila `sales-import` (thread 05 de Vendas, decisão D2 de [W] 2026-10-02):
+        // drena o ImportarVendasJob, despachado pela tela /import-sales quando a planilha
+        // passa de `config('sells.import.limite_sincrono')` linhas.
+        //
+        // POR QUE FILA PROPRIA — mesma razao de `backups` e `attendance-import` acima: quem
+        // drena `default` esta atras de `queue.backlog_worker_enabled`, e `default` esta na
+        // lista do `jobs:purge-represados`. NAO gated: so recebe job recem-despachado por
+        // acao humana. withoutOverlapping(15) casa com o $timeout=900 do job.
+        $schedule->command('queue:work database --queue=sales-import --max-time=55 --tries=1')
+            ->everyMinute()
+            ->withoutOverlapping(15)
+            ->environments(['live'])
+            ->runInBackground()
+            ->onFailure(function () {
+                \Illuminate\Support\Facades\Log::channel('single')->error(
+                    'Schedule queue:work sales-import FALHOU — importacao de vendas pode ficar parada na jobs table'
+                );
+            });
+
         // US-WA-082 — Cleanup nonces antigos (>24h) da tabela webhook_nonces.
         // Replay window é 5min, mas mantemos 24h por margem segurança vs time
         // skew + audit forense. Após 24h é seguro deletar (replay já seria
