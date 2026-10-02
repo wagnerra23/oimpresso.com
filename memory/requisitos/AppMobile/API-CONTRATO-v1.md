@@ -266,7 +266,7 @@ Mesmos campos e regras do §4.2, **menos** `tipo` e `papeis` (mudar papel fica n
   abas que o usuário pode abrir, na ordem do app. Cada uma segue a mesma regra da rota dela, então
   aba visível = rota que responde: `tarefas` = Essentials no plano ou quem aprova o Ponto;
   `pedidos`/`producao`/`orcamentos` = quem vê vendas; `pessoas` = quem vê cliente ou fornecedor; `ponto` =
-  colaborador com `controla_ponto`; `inicio` só para perfil `erp`; `mais` sempre.
+  colaborador com `controla_ponto`; `ponto_gestor` = quem tem acesso ao módulo Ponto (§12.1); `inicio` só para perfil `erp`; `mais` sempre.
   `perfil` = `erp` se tem tarefas, vendas ou pessoas, senão `colaborador`. `abre_em` = `inicio`
   (erp), `ponto` (colaborador) ou `mais` (sem nenhuma das duas).
 
@@ -393,3 +393,27 @@ menu web da Oficina. Sem acesso → `403 sem_permissao`. Vocabulário de reparo:
 - `valor` = soma dos itens da OS (peças + mão de obra), como o card web; `null` sem item.
   `cliente` = cliente da OS; `null` se a OS não tem cliente.
 - Ordem: etapa mais avançada primeiro; desempate pela OS mais recente.
+
+## 12. Onda E — Ponto, Equipe, Perfil de menu e Chat
+
+### 12.1 Marcações a validar (tela 39) — fila do gestor
+
+`GET /api/app/ponto/aprovacoes?estado=pendente|validada|recusada|todas` (padrão `pendente`) →
+`{ itens:[{id, colaborador_nome, tipo, local_texto, marcada_em, nsr, gps_precisao_m, dispositivo, hash_curto, estado}], contadores:{pendente, validada, recusada, todas}, pode_recusar }`.
+
+- Só marcações do celular (REP-P) **fora do geofence**, dos últimos 7 dias, mais nova primeiro.
+  É a mesma fila da tela web `/ponto/aprovacoes` (`FilaGestorRepPService`, um lugar só).
+- `id` é **uuid** (string), como em `ponto_marcacoes`. `tipo` ∈ `ENTRADA|ALMOCO_INICIO|ALMOCO_FIM|SAIDA`.
+  `marcada_em` ISO 8601 com fuso. `hash_curto` = 8 primeiros caracteres do hash encadeado.
+- `local_texto` = distância até o centro do geofence ("A 84,2 km do local de trabalho"); `null` sem geofence.
+  `gps_precisao_m` vem `null`: o REP-P não grava a precisão do GPS na marcação.
+- `contadores` ignoram o filtro (são os números dos chips). `pode_recusar` = tem `ponto.aprovacoes.manage`.
+- `POST …/{id}/validar` → `200 { estado:"validada" }`: registro na trilha (`activity_log` `ponto.repp`);
+  a marcação não muda. Trilha desligada → `503 { erro:"trilha_desligada" }`.
+- `POST …/{id}/recusar` (sem corpo) → `200 { estado:"recusada", nsr_anulacao }`: grava uma
+  **anulação** nova apontando a original (`Marcacao::anular()`, motivo fixo "Recusada na validação
+  REP-P"). Nunca UPDATE/DELETE em `ponto_marcacoes` (Portaria 671/2021).
+- Acesso = o do módulo Ponto (`ponto.access` ou papel admin/rh/gestor); recusar exige ainda
+  `ponto.aprovacoes.manage`. Erros: `403 sem_permissao` · `404 nao_encontrado` (inexistente ou de
+  outro business) · `409 ja_revisada` (já decidida) · `422 validacao` (estado inválido).
+- Área `ponto_gestor` em `/api/app/inicio` (§6): mesma regra de acesso do GET.
