@@ -68,6 +68,18 @@ Com isso, o *PRODUTO UNIFICADO V2* pode revincular este DS **sem reescrever tela
 
 ## Last sync
 
+### 2026-10-02 (2º envio) — tokens v1.6.0 (+ `--warn` claro com contraste AA)
+
+Mesma versão v1.6.0, segundo envio do dia ([W] 2026-10-02, "faz o warn e o info" + "sobe pro
+design-sync"): `--warn` do `.cockpit` claro `oklch(0.58 0.12 70)` → `oklch(0.56 0.12 70)` — 4,21 → 4,58:1
+sobre `--bg` e 4,40 → 4,78:1 sobre `--surface`. O escuro (0.82) já passava (8,68:1). Só
+`colors_and_type.css` subiu (1 linha de diferença do envio anterior; `cockpit_domains.css` idêntico).
+`--info` não existe no `.cockpit` do DS — o ajuste dele foi só no app (`oimpresso-app` #23).
+
+- Validação do `ds-push`: VALOR 0.
+- Antes de subir: o vivo foi lido e era exatamente o 1º envio do dia (texto apagado novo, `--warn` 0.58).
+  Depois de subir: relido com `--warn` 0.56 e o resto igual.
+
 ### 2026-10-02 — tokens v1.6.0 (texto apagado com contraste AA)
 
 `ds-push` a partir de `resources/css/tokens` do branch `ds/contraste-texto`: só `colors_and_type.css`
