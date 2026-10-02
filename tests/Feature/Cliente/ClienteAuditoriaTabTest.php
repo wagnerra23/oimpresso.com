@@ -219,7 +219,12 @@ test('GET timeline -- per_page acima do cap 100 e clampado', function () {
 // ---------------------------------------------------------------------
 
 test('GET timeline cross-tenant retorna 404 (nao vaza existencia)', function () {
-    $foreignBizId = 99999;
+    // Business REAL de outro tenant (o seed do CI cria o biz=2): 99999 não existe e a FK
+    // de contacts.business_id recusava o insert antes do teste medir qualquer coisa.
+    $foreignBizId = DB::table('business')->where('id', '!=', $this->business->id)->value('id');
+    if (! $foreignBizId) {
+        $this->markTestSkipped('Lane sem 2º tenant semeado — ver .github/actions/pest-mysql-setup.');
+    }
     $now = now();
     $foreignContactId = DB::table('contacts')->insertGetId([
         'business_id' => $foreignBizId,
@@ -238,10 +243,17 @@ test('GET timeline cross-tenant retorna 404 (nao vaza existencia)', function () 
 });
 
 test('GET timeline -- Activity de outro biz nao vaza (defense em where business_id)', function () {
-    // Cria Activity associada ao contact mas com business_id de OUTRO biz
-    // (cenario adversario: alguem injetou activity_log com subject_id certo
-    // mas business_id errado).
-    Activity::create([
+    // Cenario adversario: linha no activity_log com subject_id certo e business_id de
+    // OUTRO tenant. Precisa entrar por DB::table — desde o #8384 (2026-10-01) o
+    // ActivityCauserKindObserver força o business_id do SUBJECT em todo save pelo model,
+    // então Activity::create trocava o tenant adversario pelo do proprio contato e o evento
+    // aparecia legitimamente. O que este teste mede é o `where business_id` da CONSULTA,
+    // a defesa para dado que nao passou pelo model (import, SQL direto, outro app).
+    $foreignBizId = DB::table('business')->where('id', '!=', $this->business->id)->value('id');
+    if (! $foreignBizId) {
+        $this->markTestSkipped('Lane sem 2º tenant semeado — ver .github/actions/pest-mysql-setup.');
+    }
+    DB::table('activity_log')->insert([
         'log_name' => 'crm.contact',
         'description' => 'updated',
         'event' => 'updated',
@@ -250,8 +262,10 @@ test('GET timeline -- Activity de outro biz nao vaza (defense em where business_
         'causer_type' => \App\User::class,
         'causer_id' => $this->user->id,
         'causer_kind' => 'user',
-        'business_id' => 99999, // cross-tenant adversario
-        'properties' => ['old' => [], 'attributes' => ['name' => 'pwned']],
+        'business_id' => $foreignBizId, // cross-tenant adversario
+        'properties' => json_encode(['old' => [], 'attributes' => ['name' => 'pwned']]),
+        'created_at' => now(),
+        'updated_at' => now(),
     ]);
 
     // Activity legitima do biz correto.
@@ -260,8 +274,10 @@ test('GET timeline -- Activity de outro biz nao vaza (defense em where business_
     $response = $this->getJson("/cliente/{$this->contactId}/auditoria");
     $response->assertStatus(200);
 
-    // Apenas a Activity do biz correto deve aparecer (1, nao 2).
+    // Apenas a Activity do biz correto deve aparecer (1, nao 2). A contagem é o
+    // anti-vacuo: sem ela, uma lista vazia passaria pelo laço sem medir nada.
     $events = $response->json('data');
+    expect($events)->toHaveCount(1);
     foreach ($events as $ev) {
         expect($ev['description'])->not->toContain('pwned');
     }
@@ -293,7 +309,11 @@ test('GET /cliente/{id}/auditoria/export retorna CSV download com BOM UTF-8', fu
 });
 
 test('GET CSV export cross-tenant retorna 404', function () {
-    $foreignBizId = 99999;
+    // Business REAL de outro tenant (99999 não existe — a FK recusava o insert).
+    $foreignBizId = DB::table('business')->where('id', '!=', $this->business->id)->value('id');
+    if (! $foreignBizId) {
+        $this->markTestSkipped('Lane sem 2º tenant semeado — ver .github/actions/pest-mysql-setup.');
+    }
     $foreignContactId = DB::table('contacts')->insertGetId([
         'business_id' => $foreignBizId,
         'created_by' => $this->user->id,

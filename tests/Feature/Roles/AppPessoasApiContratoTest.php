@@ -160,6 +160,8 @@ it('cadastro (tela 34): identificação, endereço fiscal, comercial e consentim
         'tax_number' => '11222333000181', // pii-allowlist (CNPJ sintético de teste)
         'supplier_business_name' => 'APS Cadastro Ltda', 'indicador_ie' => '1',
         'city' => 'Blumenau', 'state' => 'SC', 'cep' => '89010-100', 'city_code' => '4202404',
+        'address_line_1' => 'Rua XV', 'numero' => '100', 'neighborhood' => 'Centro', 'nome_fantasia' => 'APS',
+        'email' => 'contato@aps.invalid',
         'email_nfe' => 'nfe@aps.invalid', 'credit_limit' => 1500,
         'pay_term_number' => 28, 'pay_term_type' => 'days',
         'whatsapp_consent' => 1, 'email_consent' => 0,
@@ -171,7 +173,13 @@ it('cadastro (tela 34): identificação, endereço fiscal, comercial e consentim
     expect($r->json('identificacao.razao_social'))->toBe('APS Cadastro Ltda');
     expect($r->json('identificacao.documento'))->toBe('11.222.333/0001-81'); // pii-allowlist (CNPJ sintético de teste)
     expect($r->json('identificacao.papeis'))->toBe(['cliente']);
-    expect($r->json('endereco_fiscal'))->toBe(['cidade' => 'Blumenau', 'uf' => 'SC', 'cep' => '89010-100', 'codigo_ibge' => '4202404', 'email_nfe' => 'nfe@aps.invalid']);
+    expect($r->json('identificacao.nome_fantasia'))->toBe('APS');
+    expect($r->json('identificacao.indicador_ie'))->toBe(1);
+    expect($r->json('contato'))->toBe(['telefone' => '00000000000', 'email' => 'contato@aps.invalid']);
+    expect($r->json('endereco_fiscal'))->toBe([
+        'logradouro' => 'Rua XV', 'numero' => '100', 'complemento' => null, 'bairro' => 'Centro',
+        'cidade' => 'Blumenau', 'uf' => 'SC', 'cep' => '89010-100', 'codigo_ibge' => '4202404', 'email_nfe' => 'nfe@aps.invalid',
+    ]);
     expect($r->json('comercial.classificacao'))->toBeNull();
     expect((float) $r->json('comercial.limite_credito'))->toBe(1500.0);
     expect($r->json('comercial.prazo_padrao_dias'))->toBe(28);
