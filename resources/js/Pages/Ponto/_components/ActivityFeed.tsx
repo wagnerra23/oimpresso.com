@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { LogIn, LogOut, Coffee, Clock } from 'lucide-react';
 import { cn } from '@/Lib/utils';
+import { Inline } from '@/Components/layout/inline';
 
 /**
  * ActivityFeed — timeline vertical das marcações do dia.
@@ -79,10 +80,10 @@ export default function ActivityFeed({ marcacoes, title = 'Atividade de hoje', s
       className={cn('rounded-lg border border-border bg-card p-4', className)}
     >
       <div className="flex items-center justify-between mb-3">
-        <div className="flex min-w-0 items-baseline gap-2">
+        <Inline gap={2} align="baseline" className="min-w-0">
           <h3 className="text-sm font-semibold text-foreground">{title}</h3>
           {subtitle && <span className="truncate text-[11px] text-muted-foreground">{subtitle}</span>}
-        </div>
+        </Inline>
         {marcacoes.length > 0 && (
           <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
             {marcacoes.length} evento{marcacoes.length !== 1 ? 's' : ''}
