@@ -57,6 +57,19 @@ Sem cadastro de ponto → `403 sem_colaborador`.
 com a regra mestre cumprida. Na v1 o app mostra o botão contextual desabilitado com "Abrir no
 computador".
 
+### 2.1 Orçamentos (tela 04) — só leitura
+
+`GET /api/app/orcamentos?status=todos|rascunho|enviado|aprovado|convertido&pagina=N` →
+`{ itens:[{id, numero, titulo, cliente, validade, status, valor, area_m2, itens}], contadores{todos,
+rascunho, enviado, aprovado, convertido}, pagina, tem_mais }`, 20 por página, mais recente primeiro.
+
+- Orçamento no ERP é venda em **rascunho** (`status=draft`); com `sub_status=quotation` foi
+  **enviado** ao cliente (mesma regra do `InitialStageResolver`). **Aprovado** = etapa
+  `quote_approved`. **Convertido** = venda `final` cujo histórico da FSM passou por etapa de orçamento.
+- `titulo` = nome do 1º item; `itens` = nº de itens. `validade` e `area_m2` saem `null` (o ERP não
+  guarda validade de orçamento nem área por venda).
+- Mesmas permissões e visibilidade de Pedidos; a área `orcamentos` entra em `areas` (§6) para quem vê vendas.
+
 ## 3. Tarefas ⬜ — ToDo + justificativas do Ponto (D11)
 
 `GET /api/app/tarefas?origem=todas|todo|ponto`
@@ -146,7 +159,7 @@ tem coluna no ERP e sai sempre `null`. Pessoa de outra empresa: 404.
 - `perfil`, `abre_em` e `areas` (D6 [W]: *"perfil colaborador abre no ponto"*): `areas` lista as
   abas que o usuário pode abrir, na ordem do app. Cada uma segue a mesma regra da rota dela, então
   aba visível = rota que responde: `tarefas` = Essentials no plano ou quem aprova o Ponto;
-  `pedidos`/`producao` = quem vê vendas; `pessoas` = quem vê cliente ou fornecedor; `ponto` =
+  `pedidos`/`producao`/`orcamentos` = quem vê vendas; `pessoas` = quem vê cliente ou fornecedor; `ponto` =
   colaborador com `controla_ponto`; `inicio` só para perfil `erp`; `mais` sempre.
   `perfil` = `erp` se tem tarefas, vendas ou pessoas, senão `colaborador`. `abre_em` = `inicio`
   (erp), `ponto` (colaborador) ou `mais` (sem nenhuma das duas).

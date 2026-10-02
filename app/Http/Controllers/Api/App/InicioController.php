@@ -83,6 +83,7 @@ class InicioController extends Controller
             'pedidos' => $vendas,
             'producao' => $vendas,
             'pessoas' => $pessoas,
+            'orcamentos' => $vendas,
             'ponto' => $ponto,
             'mais' => true,
         ]));
