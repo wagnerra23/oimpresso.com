@@ -41,17 +41,16 @@ const CONSULTA_OS_CHAVES_ATIVIDADE = ['data', 'acao', 'por', 'nota', 'conclusao_
 /** Valores gravados em colunas internas que nunca podem aparecer na resposta. */
 const CONSULTA_OS_SEGREDOS = ['CUSTO-INTERNO-777', 'SENHA-APARELHO-1234', 'DEFEITO-INTERNO', 'Cliente Sigiloso', '11122233344'];
 
-function consultaOsSqlite(): void
-{
+// A guarda mora no beforeEach (forma que o sqlite-test-corruptors reconhece): o arquivo cria
+// tabelas e grava linhas, então fora de SQLite in-memory nenhum caso pode rodar.
+beforeEach(function () {
     if (DB::connection()->getDriverName() !== 'sqlite') {
-        test()->markTestSkipped('Cria schema mínimo do Repair — só em SQLite in-memory.');
+        $this->markTestSkipped('Cria schema mínimo do Repair — só em SQLite in-memory.');
     }
-}
+});
 
 function consultaOsSemear(): void
 {
-    consultaOsSqlite();
-
     foreach (CONSULTA_OS_TABELAS as $tabela) {
         Schema::dropIfExists($tabela);
     }
