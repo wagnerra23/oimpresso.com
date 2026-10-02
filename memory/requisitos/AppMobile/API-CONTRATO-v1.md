@@ -351,6 +351,30 @@ producao:{por_etapa:[{rotulo, total}]}|null, estoque:{baixo:[{nome, quantidade, 
 - `estoque.baixo`: até 20 itens com saldo ≤ mínimo, menor saldo primeiro (`ProductUtil::getProductAlert`,
   o mesmo do Início); produto com variação sai como "Produto — variação".
 
+### 10.3 Relatórios (tela 13) — só leitura
+
+`GET /api/app/relatorios?periodo=mes|trimestre|ano&aba=dre|vendas|producao|estoque` →
+`{ periodo:{de, ate}, kpis:{receitas, despesas, saldo, margem_pct}|null,
+dre:{receitas_por_categoria:[{nome, valor}], despesas_por_categoria:[{nome, valor}]}|null,
+vendas:{receita_por_dia:[{data, valor}], top_clientes:[{nome, valor}]}|null,
+producao:{por_etapa:[{rotulo, total}]}|null, estoque:{baixo:[{nome, quantidade, minimo, unidade}]}|null }`.
+
+- `periodo` = mês, trimestre ou ano corrente (do primeiro ao último dia). Só o bloco da `aba` vem
+  preenchido; os outros vêm `null`.
+- Cada bloco segue a permissão da tela web dele e vem `null` sem ela (o app mostra "Sem acesso a este
+  relatório"): `kpis` e `dre` = regra do Financeiro (§10.1 — `kpis` **pode** vir `null`); `vendas` =
+  `dashboard.data`; `producao` = quem vê vendas (§5); `estoque` = `stock_report.view`. Sem nenhum →
+  `403 sem_permissao`. A área `relatorios` entra em `areas` (§6) quando algum bloco é visível.
+- `kpis`: títulos a receber (receitas) e a pagar (despesas) **não cancelados** com competência no
+  período — a mesma base do DRE web. `saldo` = receitas − despesas; `margem_pct` = saldo ÷ receitas ×
+  100 (1 casa), `null` sem receita. `dre`: os mesmos títulos por categoria (sem categoria → plano de
+  contas → "Sem categoria"), maior primeiro.
+- `vendas.receita_por_dia`: os 14 dias até hoje (independe do período), venda final nos locais do
+  usuário — os filtros do faturado do painel (`getSellTotals`); `top_clientes`: até 5, no período.
+- `producao.por_etapa`: os totais das colunas de `GET /api/app/producao`, na mesma ordem.
+- `estoque.baixo`: até 20 itens com saldo ≤ mínimo, menor saldo primeiro (`ProductUtil::getProductAlert`,
+  o mesmo do Início); produto com variação sai como "Produto — variação".
+
 ### 10.4 Dashboard (tela 35) — só leitura
 
 `GET /api/app/dashboard` →
@@ -389,6 +413,41 @@ recente primeiro.
 - `valor` em reais (a tabela guarda centavos); `descricao` = "Pedido #<nº>" quando a cobrança é de uma
   venda, senão a descrição da cobrança, + " · <cliente>"; `link` = PDF do boleto (`null` sem ele);
   `pago_em` = data/hora do pagamento (ISO com fuso).
+- **Escrita** (gerar, consultar, cancelar): ainda **não existe** — vem em PR próprio, pela regra mestre
+  (dupla prova + antes→depois + ok do [W]).
+
+## 11. Oficina — Onda D (Modules/OficinaAuto)
+
+Área `oficina` em `areas` (§6): módulo `oficina_auto_module` no pacote do business (Camada 1;
+superadmin: módulo instalado) **e** permissão `oficinaauto.service_order.view` — a mesma regra do
+menu web da Oficina. Sem acesso → `403 sem_permissao`. Vocabulário de reparo: `order_type` só
+`manutencao`/`mecanica` (ADR 0265). Sem câmera (ADR 0383).
+
+### 11.1 Ordens de serviço (tela 07) — só leitura ✅
+
+`GET /api/app/os?etapa=<chave|todas>&pagina=N` (20 por página)
+
+```json
+{ "itens": [ {
+    "id": 42, "numero": "OS-00042", "placa": "RLV2E48", "veiculo": "Caminhão",
+    "cliente": "Transportes Vale Norte", "valor": 750.00,
+    "etapa": { "chave": "aguardando_pecas", "rotulo": "Aguardando peças", "indice": 4, "total_etapas": 6 },
+    "travada": true } ],
+  "etapas": [ { "chave": "recepcao", "rotulo": "Recepção", "total": 3 } ],
+  "total": 6, "travadas": 2, "pagina": 1, "tem_mais": false }
+```
+
+- Mesmo universo do quadro web `/oficina-auto/ordens-servico`: OS no processo FSM
+  `oficina_mecanica_os` em etapa **não-terminal**, ou OS de mecânica ainda sem pipeline (conta na
+  etapa inicial). Terminais (entregue, cancelado, garantia acionada) ficam fora. `total` = ativas.
+- `etapas` = as não-terminais do processo do business, na ordem do ERP (`sort_order`), sempre todas,
+  com `total` (pode ser 0). `indice` é 1-based nessa lista.
+- `travada` = etapa `aguardando_aprovacao` ou `aguardando_pecas`.
+- `numero` = `OS-` + id com 5 dígitos (como a web). `veiculo` = rótulo do tipo de veículo da web
+  (o cadastro não tem marca/modelo/ano); `null` se o tipo não tem rótulo.
+- `valor` = soma dos itens da OS (peças + mão de obra), como o card web; `null` sem item.
+  `cliente` = cliente da OS; `null` se a OS não tem cliente.
+- Ordem: etapa mais avançada primeiro; desempate pela OS mais recente.
 - **Escrita** (gerar, consultar, cancelar): §10.6.
 
 ### 10.6 Pagamentos (tela 15) — escrita (mexe em valor: regra mestre)

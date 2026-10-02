@@ -50,4 +50,5 @@ Route::middleware('auth:api')->prefix('app')->name('app.')->group(function () {
     Route::post('/pagamentos/{id}/cancelar', [\App\Http\Controllers\Api\App\PagamentosEscritaController::class, 'cancelar'])->whereNumber('id')->middleware('throttle:20,1')->name('pagamentos.cancelar');
     Route::get('/pagamentos', [\App\Http\Controllers\Api\App\PagamentosController::class, 'index'])->name('pagamentos.index');
     Route::get('/inicio', [\App\Http\Controllers\Api\App\InicioController::class, 'show'])->name('inicio');
+    Route::get('/os', [\App\Http\Controllers\Api\App\OficinaController::class, 'index'])->name('os.index');
 });
