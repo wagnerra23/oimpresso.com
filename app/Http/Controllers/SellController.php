@@ -1142,6 +1142,14 @@ class SellController extends Controller
         // date_from / date_to aplicam ao date_field escolhido.
         $dateFrom = trim((string) $request->input('date_from', ''));
         $dateTo = trim((string) $request->input('date_to', ''));
+        // UC-SIDX-03 — `date_to` só com a data (AAAA-MM-DD, formato dos presets e do
+        // <input type="date"> do SellsDateFilter) cobre o DIA INTEIRO. Comparado cru,
+        // `<= '2026-10-01'` vira `<= '2026-10-01 00:00:00'` e tirava da lista toda venda
+        // do último dia depois da meia-noite — o preset "Dia" mostrava o dia praticamente vazio.
+        // `date_to` que já traz hora é respeitado como veio.
+        if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $dateTo) === 1) {
+            $dateTo .= ' 23:59:59';
+        }
 
         // Whitelist de colunas ordenáveis — alias frontend → expressão SQL.
         $sortMap = [
@@ -2642,8 +2650,8 @@ class SellController extends Controller
     /**
      * Show the form for editing the specified resource.
      *
-     * Tipos reais do retorno: Blade · Inertia · JSON (422 Inertia) · redirect · Inertia::location
-     * (paliativo 2026-10-01). Antes declarava só Response e os demais viviam no phpstan-baseline.
+     * Tipos reais do retorno: Blade · Inertia · JSON (422 Inertia) · redirect. Antes declarava
+     * só Response e os demais viviam no phpstan-baseline.
      *
      * @param  int  $id
      * @return \Illuminate\Http\Response|\Illuminate\Http\JsonResponse|\Illuminate\Http\RedirectResponse|\Illuminate\View\View|\Inertia\Response|\Symfony\Component\HttpFoundation\Response
@@ -2959,16 +2967,9 @@ class SellController extends Controller
         //Added check because $users is of no use if enable_contact_assign if false
         $users = config('constants.enable_contact_assign') ? User::forDropdown($business_id, false, false, false, true) : [];
 
-        // PALIATIVO [W] 2026-10-01 — a edição React de venda NÃO salva: o "Salvar" envia
-        // PUT /sells/{id} (SellController não tem update → 500; 4× no log de prod, todas biz=4)
-        // e, mesmo corrigida a rota, a tela lê o preço da linha JÁ com desconto e reaplica o
-        // desconto (salvar sem mexer mudaria o valor). Até o conserto de verdade, a navegação
-        // React vira visita de página inteira e abre o Blade (sell.edit → SellPosController@update,
-        // o caminho canônico de valor). As checagens acima (403/422/404) continuam valendo.
-        // `?react=1` mantém a tela React acessível para o conserto e para os testes dela.
-        if (request()->header('X-Inertia') && ! request()->boolean('react')) {
-            return Inertia::location(request()->fullUrl());
-        }
+        // Paliativo de 2026-10-01 (navegação React → Blade) removido em 2026-10-02 por [W]:
+        // a tela React salva pelo SellPosController@update e salvar sem mexer não muda o
+        // valor (UC-SEDIT-09). Ver UC-SEDIT-08 em Sells/Edit.casos.md.
 
         // Wave 1 W1-A — branch dual MWART. Inertia se header X-Inertia presente.
         // Form payload pesado (sell_details join 6 tables + payment_lines + dropdowns) vai DEFERRED.
