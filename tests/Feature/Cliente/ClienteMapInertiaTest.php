@@ -26,11 +26,13 @@ beforeEach(function () {
         $this->markTestSkipped('Schema UltimatePOS ausente (sqlite memory) — rode com DB_CONNECTION=mysql.');
     }
 
-    $this->business = $this->seededTenant(); // biz=1 canônico (ADR 0101)
-    $this->user = \App\User::where('business_id', $this->business->id)->first();
-    if (! $this->user) {
-        $this->markTestSkipped('Sem user no business.');
-    }
+    $this->business = $this->seededTenant(); // tenant de teste (ADR 0358)
+    // contactMap exige customer.view ou supplier.view (ContactController).
+    $this->user = $this->usuarioComPermissoes(['customer.view'], $this->business);
+
+    // Versão de assets pedida ao próprio middleware: com '1' fixo, o servidor (que usa o md5
+    // do manifest) via versão diferente e respondia 409 pedindo recarga da página.
+    $this->versaoInertia = app(\App\Http\Middleware\HandleInertiaRequests::class)->version(request());
 
     config(['mwart.cliente_map.enabled' => true, 'mwart.cliente_map.business_ids' => []]);
 
@@ -39,7 +41,7 @@ beforeEach(function () {
 });
 
 test('GET /contacts/map renderiza Inertia Cliente/Map com contacts/all_contacts', function () {
-    $response = $this->withHeaders(['X-Inertia' => 'true', 'X-Inertia-Version' => '1'])
+    $response = $this->withHeaders(['X-Inertia' => 'true', 'X-Inertia-Version' => $this->versaoInertia])
         ->get('/contacts/map');
 
     $response->assertStatus(200);
@@ -60,9 +62,23 @@ test('Tier 0 — o mapa não lista cliente de outro business', function () {
         $this->markTestSkipped('Sem 2º business pra teste cross-tenant.');
     }
 
+    $meuName = 'Cliente Proprio Map '.uniqid();
+    DB::table('contacts')->insert([
+        'business_id' => $this->business->id,
+        // created_by é FK para users: sem ele o INSERT cai (1452).
+        'created_by' => $this->user->id,
+        'type' => 'customer',
+        'name' => $meuName,
+        'contact_status' => 'active',
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+
     $otherName = 'Cliente Estrangeiro Map '.uniqid();
     DB::table('contacts')->insert([
         'business_id' => $otherBusiness->id,
+        // created_by é FK para users: um usuário DAQUELA empresa (o insert nunca tinha rodado).
+        'created_by' => \App\User::factory()->create(['business_id' => $otherBusiness->id])->id,
         'type' => 'customer',
         'name' => $otherName,
         'contact_status' => 'active',
@@ -70,12 +86,15 @@ test('Tier 0 — o mapa não lista cliente de outro business', function () {
         'updated_at' => now(),
     ]);
 
-    $response = $this->withHeaders(['X-Inertia' => 'true', 'X-Inertia-Version' => '1'])
+    $response = $this->withHeaders(['X-Inertia' => 'true', 'X-Inertia-Version' => $this->versaoInertia])
         ->get('/contacts/map');
 
     $response->assertStatus(200);
     $page = json_decode($response->getContent(), true);
 
     $names = collect($page['props']['all_contacts'] ?? [])->pluck('name')->all();
+    // Anti-vácuo: o cliente do PRÓPRIO business tem que aparecer — sem isto, uma lista vazia
+    // passaria pelo not->toContain abaixo sem medir isolamento nenhum.
+    expect($names)->toContain($meuName);
     expect($names)->not->toContain($otherName); // global scope biz esconde o estrangeiro
 });

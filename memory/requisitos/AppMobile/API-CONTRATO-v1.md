@@ -266,7 +266,7 @@ Mesmos campos e regras do §4.2, **menos** `tipo` e `papeis` (mudar papel fica n
   abas que o usuário pode abrir, na ordem do app. Cada uma segue a mesma regra da rota dela, então
   aba visível = rota que responde: `tarefas` = Essentials no plano ou quem aprova o Ponto;
   `pedidos`/`producao`/`orcamentos` = quem vê vendas; `pessoas` = quem vê cliente ou fornecedor; `ponto` =
-  colaborador com `controla_ponto`; `ponto_gestor` = quem tem acesso ao módulo Ponto (§12.1); `equipe` = quem vê a lista de usuários (§12.2); `financeiro` = a regra de §10.1; `inicio` só para perfil `erp`; `mais` sempre.
+  colaborador com `controla_ponto`; `ponto_gestor` = quem tem acesso ao módulo Ponto (§12.1); `equipe` = quem vê a lista de usuários (§12.2); `financeiro` = a regra de §10.1; `assistente` = quem conversa com a Jana (§12.4); `inicio` só para perfil `erp`; `mais` sempre.
   `perfil` = `erp` se tem tarefas, vendas, pessoas ou financeiro, senão `colaborador`. `abre_em` = `inicio`
   (erp), `ponto` (colaborador) ou `mais` (sem nenhuma das duas).
 
@@ -348,18 +348,21 @@ de contrato na lane MySQL) + 1 PR de tela no `oimpresso-app`, contra este contra
 Daqui em diante cada tela tem o seu arquivo: `api/tela-NN-<nome>.md`. Endpoint novo = arquivo novo da tela,
 nunca seção nova aqui (decisão 2026-10-02: todos os PRs do app disputavam este arquivo e cada merge
 derrubava os irmãos). As rotas seguem a mesma regra em `routes/api/app/<área>.php`.
-As §9 a §12 que existiam aqui foram movidas para lá sem mudança de conteúdo (só os ponteiros internos viraram links). Código e testes que citam a
-numeração antiga continuam valendo por esta tabela (fixa; não acrescente linhas):
+As §9 a §12 que existiam aqui foram movidas para lá sem mudança de conteúdo (só os ponteiros internos
+viraram links; o texto de abertura de cada área foi para o arquivo da primeira tela dela). Código e testes
+que citam a numeração antiga continuam valendo por esta tabela (fixa; não acrescente linhas):
 
 | Antiga | Arquivo |
 |---|---|
 | §9.1 | [tela-19-produtos.md](api/tela-19-produtos.md) |
 | §9.2 | [tela-05-estoque.md](api/tela-05-estoque.md) |
 | §9.3 | [tela-29-movimentacoes-de-um-item.md](api/tela-29-movimentacoes-de-um-item.md) |
-| §10, §10.1 | [tela-06-financeiro.md](api/tela-06-financeiro.md) |
-| §11, §11.1 | [tela-07-ordens-de-servico.md](api/tela-07-ordens-de-servico.md) |
+| §9.4 | [tela-20-novo-produto.md](api/tela-20-novo-produto.md) |
+| §10.1 | [tela-06-financeiro.md](api/tela-06-financeiro.md) |
+| §11.1 | [tela-07-ordens-de-servico.md](api/tela-07-ordens-de-servico.md) |
 | §11.2 | [tela-03-detalhe-da-os.md](api/tela-03-detalhe-da-os.md) |
 | §11.4 | [tela-23-manutencao.md](api/tela-23-manutencao.md) |
 | §12.1 | [tela-39-marcacoes-a-validar.md](api/tela-39-marcacoes-a-validar.md) |
 | §12.2 | [tela-26-equipe.md](api/tela-26-equipe.md) |
 | §12.3 | [tela-30-perfil-de-menu.md](api/tela-30-perfil-de-menu.md) |
+| §12.4 | [tela-25-chat-com-a-jana.md](api/tela-25-chat-com-a-jana.md) |
