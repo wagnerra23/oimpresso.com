@@ -269,7 +269,9 @@ class PessoasController extends Controller
             'supplier_business_name' => $d['tipo'] === 'PJ' ? trim($d['nome']) : null,
             'nome_fantasia' => $d['nome_fantasia'] ?? null,
             'cpf_cnpj' => $documento !== '' ? $documento : null,
-            'mobile' => $d['telefone'] ?? null,
+            // `contacts.mobile` é NOT NULL no schema UltimatePOS: sem telefone grava vazio, não null
+            // (null derrubava o INSERT com 500 — medido na lane Acessos, run 37033539499).
+            'mobile' => $d['telefone'] ?? '',
             'email' => $d['email'] ?? null,
             'email_nfe' => $d['email_nfe'] ?? null,
             'indicador_ie' => $d['indicador_ie'] ?? null,
