@@ -433,6 +433,7 @@ producao_concluida:{concluidas, total}|null }`.
   faturar" sobre o total das 4 colunas.
 - `a_receber` / `vencido`: os mesmos da tela 06 (§10.1); `null` sem acesso ao Financeiro.
 
+
 ## 11. Oficina — Onda D (Modules/OficinaAuto)
 
 Área `oficina` em `areas` (§6): módulo `oficina_auto_module` no pacote do business (Camada 1;
