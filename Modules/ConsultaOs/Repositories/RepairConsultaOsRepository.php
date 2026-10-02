@@ -99,13 +99,21 @@ class RepairConsultaOsRepository implements ConsultaOsRepositoryInterface
         });
     }
 
-    /** Tipos aceitos agora — celular depende da config do Repair. */
+    /**
+     * Tipos aceitos agora — celular depende da config do Repair.
+     *
+     * @return list<string>
+     */
     public static function tiposHabilitados(): array
     {
-        return array_values(array_filter(
-            self::TIPOS,
-            fn (string $t) => $t !== 'mobile_num' || (bool) config('repair.enable_repair_check_using_mobile_num'),
-        ));
+        $tipos = [];
+        foreach (self::TIPOS as $t) {
+            if ($t !== 'mobile_num' || (bool) config('repair.enable_repair_check_using_mobile_num')) {
+                $tipos[] = $t;
+            }
+        }
+
+        return $tipos;
     }
 
     /**
@@ -146,7 +154,7 @@ class RepairConsultaOsRepository implements ConsultaOsRepositoryInterface
             ->latest()
             ->limit(50)
             ->get()
-            ->map(function (Activity $a) {
+            ->map(function (Activity $a): array {
                 $acao = $a->description === 'status_changed'
                     ? __('repair::lang.status_changed_to', ['status' => $a->getExtraProperty('updated_status')])
                     : __('lang_v1.'.$a->description);
@@ -154,7 +162,7 @@ class RepairConsultaOsRepository implements ConsultaOsRepositoryInterface
                 return [
                     'data' => $this->iso($a->created_at),
                     'acao' => (string) $acao,
-                    'por' => $a->causer?->user_full_name,
+                    'por' => $a->causer?->getAttribute('user_full_name'),
                     'nota' => $a->getExtraProperty('update_note') ?: null,
                     'conclusao_de' => $this->iso($a->getExtraProperty('completed_on_from')),
                     'conclusao_para' => $this->iso($a->getExtraProperty('completed_on_to')),
