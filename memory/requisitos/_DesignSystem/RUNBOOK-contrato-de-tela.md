@@ -157,7 +157,7 @@ Cada correção tem no `contrato-de-tela.test.mjs` o caso que ela conserta **e**
 
 ⚠️ **O escopo é o que decide se este modo morde.** Sobre os `alvo[]` dos contratos (os ~40 paths declarados) ele é **cego**: na janela medida houve 172 linhas removidas ali e **zero** casaram qualquer regex, porque o que some numa tela é JSX, copy e bloco de UI — não símbolo exportado. Por isso o CI o roda sobre a árvore de telas/módulos. ⚠️ **Mas a leitura "a superfície é parada" estava errada** e é a armadilha a não repetir: um zero tem **três** causas incompatíveis — predicado cego, superfície parada e **corpus anacrônico** (aqui, 23 dos 40 alvos nasceram depois do último elemento do corpus). Separá-las exige medir a **população bruta** (`git diff` contando as linhas `-`), nunca só o que o predicado capturou.
 
-⚠️ **Cobertura parcial, declarada:** o `detect` do job casa `resources/js/Pages/**`, não `Modules/**` (fora um controller específico). PR que só toca `Modules/` não dispara o step. Ampliar o `detect` mudaria o disparo de **todos** os steps do job — é outro intent, não foi feito aqui.
+⚠️ **Cobertura do `detect` — fato datado, já resolvido.** Quando este step foi ligado (2026-09-22), o `detect` casava `resources/js/Pages/**` e não `Modules/**` (fora um controller específico); PR que só tocava tela de módulo pulava o job inteiro. Medido em 2026-10-01: em 100 PRs mergeados, 4 pularam assim, um deles (#8378) mexendo no alvo de um contrato. O [#8385](https://github.com/wagnerra23/oimpresso.com/pull/8385) trocou o regex à mão pelo predicado derivado em `scripts/contrato-de-tela-relevante.mjs` (raízes de Pages via `scripts/qa/page-path.mjs` + os `alvo[]` dos contratos). O que dispara o job hoje se lê **lá**, não aqui.
 
 ---
 

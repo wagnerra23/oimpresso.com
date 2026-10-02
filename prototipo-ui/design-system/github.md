@@ -68,6 +68,22 @@ Com isso, o *PRODUTO UNIFICADO V2* pode revincular este DS **sem reescrever tela
 
 ## Last sync
 
+### 2026-10-02 — tokens v1.6.0 (texto apagado com contraste AA)
+
+`ds-push` a partir de `resources/css/tokens` do branch `ds/contraste-texto`: só `colors_and_type.css`
+subiu (o `cockpit_domains.css` do pacote saiu idêntico ao espelho). Mudou o `--text-mute` do escopo
+`.cockpit` nos dois temas — claro `oklch(0.65 0.01 80)` → `oklch(0.555 0.01 80)`, escuro
+`oklch(0.58 0.005 90)` → `oklch(0.67 0.005 90)` — para 4,5:1 sobre `--bg` e `--surface` (decisão [W]
+2026-10-02, opção B: não sobre `--accent-soft`, para não colar no `--text-dim`).
+
+- Validação do `ds-push`: VALOR 0. **Não cobre** o apelido `--fg-3` (o git não tem esse nome); ele
+  tinha o mesmo cinza antigo (claro `0.65 0.01 80`, escuro `0.55 0.01 80`) e foi alinhado por script ao
+  `--text-mute` novo, conferido por diff (2 linhas). `var(--fg-3)` não tem consumidor no repo.
+- Antes de subir: o `colors_and_type.css` vivo foi lido e batia com este espelho nos pontos conferidos
+  (incluindo o `--sla-expired` de 2026-09-28 e o `--text-mute` antigo). Depois de subir: relido do
+  Cowork com os 4 valores novos.
+- Este `github.md` **não** foi enviado ao Cowork, para não sobrescrever o diário vivo de lá.
+
 ### 2026-09-28 — tokens v1.5.0 (Vencido separado de Atrasado no dark)
 
 `ds-push` a partir de `resources/css/tokens` do branch `claude/sla-late-expired-dark` (#8035):
