@@ -342,200 +342,24 @@ de contrato na lane MySQL) + 1 PR de tela no `oimpresso-app`, contra este contra
 - **Lado ERP:** uma sessão por onda (C, D, E) e uma para a tela 11. A Onda B fica com a sessão coordenadora.
 
 
-## 9. Produtos e estoque (Onda B)
 
-### 9.1 Produtos (tela 19) — só leitura
+## 9. Contrato por tela — pasta [`api/`](api/)
 
-`GET /api/app/produtos?categoria=<id|todas>&q=<texto>&pagina=N` →
-`{ itens:[{id, nome, codigo, categoria, calculo, preco, variacoes, estoque:{controla, qtd, unidade}, baixo}],
-categorias:[{id, nome, total}], total, baixo_estoque, pagina, tem_mais }`, 30 por página, por nome.
+Daqui em diante cada tela tem o seu arquivo: `api/tela-NN-<nome>.md`. Endpoint novo = arquivo novo da tela,
+nunca seção nova aqui (decisão 2026-10-02: todos os PRs do app disputavam este arquivo e cada merge
+derrubava os irmãos). As rotas seguem a mesma regra em `routes/api/app/<área>.php`.
+As §9 a §12 que existiam aqui foram movidas para lá sem mudança de conteúdo (só os ponteiros internos viraram links). Código e testes que citam a
+numeração antiga continuam valendo por esta tabela (fixa; não acrescente linhas):
 
-- Permissão `product.view` (a da lista web); sem ela, 403. Produtos ativos do business, sem os `modifier`.
-  A área `produtos` entra em `areas` do Início (§6) com essa mesma regra.
-- Busca `q` em nome, código (SKU) e categoria. `categorias` e `total` respeitam a busca, não o filtro de categoria.
-- `calculo` = "por " + unidade curta do produto ("por m²", "por un"); `null` sem unidade.
-- `preco` = preço de venda com imposto (`sell_price_inc_tax`); produto com variação traz o menor e
-  `variacoes` = quantas. Só exibição.
-- `estoque.qtd` = soma nos locais que o usuário pode ver; `null` quando o produto não controla estoque
-  ("sob demanda"). Usuário sem nenhum local permitido vê 0, nunca o estoque de todos.
-- `baixo` / `baixo_estoque` = a mesma regra do alerta da web (`ProductUtil::getProductAlert`): alguma
-  variação × local com quantidade ≤ `alert_quantity`.
-
-### 9.2 Estoque (tela 05) — só leitura
-
-`GET /api/app/estoque?filtro=todos|baixo&q=<texto>&pagina=N` →
-`{ itens:[{id, produto_id, nome, codigo, qtd, minimo, unidade, local, prateleira}], contadores:{todos, baixo}, pagina, tem_mais }`,
-30 por página, por nome.
-
-- Uma linha por **variação × loja** (`id` = `variation_location_details.id`), só nas lojas que o usuário
-  pode ver e só de produto que **controla estoque** (sem estoque fica fora; na 19 ele aparece "sob demanda").
-- `nome` traz a variação quando o produto é variável ("Caneca · Azul"); `codigo` = SKU da variação, ou do produto.
-- `minimo` = `alert_quantity` (ou `null`); `baixo` = a regra do alerta da web (`qtd ≤ minimo`).
-- `local` = nome da loja; `prateleira` = "rack · fileira · posição" de `product_racks`, ou `null`.
-- Permissão `product.view` (403 sem ela); a área `estoque` entra em `areas` (§6) com a mesma regra.
-
-### 9.3 Movimentações de um item (tela 29) — só leitura
-
-`GET /api/app/estoque/{id}?pagina=N` (`id` = a linha da 05) →
-`{ item:<a mesma linha da §9.2>, historico:[{id, tipo, rotulo, referencia, quando, qtd, saldo}], pagina, tem_mais }`,
-30 por página, do mais novo ao mais velho.
-
-- O histórico é o mesmo da tela web de histórico de estoque (`ProductUtil::getVariationStockHistory`):
-  `tipo` = tipo da transação (`purchase`, `sell`, `stock_adjustment`, `opening_stock`, `sell_transfer`,
-  `purchase_transfer`, `production_*`, devoluções); `rotulo` = o texto da web; `qtd` com sinal; `saldo` = saldo
-  acumulado depois do movimento; `referencia` = nº da nota/pedido · fornecedor ou cliente (só o nome), ou `null`.
-- Mesmas regras da §9.2 (`product.view`, lojas permitidas); linha de outra empresa ou de loja não permitida → 404.
-- **Registrar movimento fica na web** (decisão [W] 2026-10-02): no ERP cada tipo é uma transação contábil
-  (entrada = compra/estoque inicial com custo; saída/perda = ajuste com valor e custeio FIFO), não um "+N" avulso.
-
-## 10. Financeiro (Onda C)
-
-### 10.1 Financeiro (tela 06) — só leitura
-
-`GET /api/app/financeiro?aba=receber|pagar|extrato&pagina=N` →
-`{ resumo:{mes, recebido, pago, saldo, a_receber, vencido, a_pagar}, contas:[{id, nome, detalhe, saldo}],
-itens:[{id, tipo, descricao, parte, vencimento, pago_em, valor, status}], contadores:{receber, pagar, extrato},
-pagina, tem_mais }`, 20 por página. `resumo` e `contas` não mudam com a aba.
-
-- Acesso: módulo Financeiro no plano + `financeiro.access` (ou superadmin) — a mesma regra do bloco
-  `financeiro` do Início. Sem ela, `403 sem_permissao`. A área `financeiro` entra em `areas` (§6) com essa
-  regra e conta para o perfil `erp`.
-- `resumo.a_receber` / `a_pagar`: `Financeiro\UnificadoService::kpis` — o mesmo número do Início e do
-  cockpit web. `vencido` = parte vencida do a receber (já contida nele: aberto/parcial, vencimento < hoje).
-- `recebido` / `pago`: baixas do mês corrente (`mes` = `YYYY-MM`) dos títulos a receber / a pagar, sem as
-  de estorno (regra do `FluxoRealizadoService`); `saldo` = recebido − pago.
-- Abas `receber` e `pagar`: títulos aberto/parcial do tipo, por vencimento (mais antigo primeiro);
-  `valor` = o que falta (`valor_aberto`); `status` = `vencido` se o vencimento passou, senão `aberto`.
-- Aba `extrato`: títulos quitados cuja última baixa caiu no mês, por `pago_em` (mais recente primeiro);
-  `valor` = soma das baixas do título; `status` = `liquidado`. Cancelados não aparecem em aba nenhuma.
-- `descricao` = "Título <número>" (+ " · parcela N/M" quando parcelado); `parte` = cliente/fornecedor
-  do título (`null` sem). Valor sempre positivo: o sinal vem de `tipo`.
-- `contas`: contas bancárias do Financeiro; `detalhe` = banco · agência; `saldo` = saldo em cache, `null`
-  quando o ERP não tem.
-- Tier 0: todas as tabelas filtradas pelo business do token (os models do Financeiro filtram pela sessão,
-  que a API não tem).
-
-
-## 11. Oficina — Onda D (Modules/OficinaAuto)
-
-Área `oficina` em `areas` (§6): módulo `oficina_auto_module` no pacote do business (Camada 1;
-superadmin: módulo instalado) **e** permissão `oficinaauto.service_order.view` — a mesma regra do
-menu web da Oficina. Sem acesso → `403 sem_permissao`. Vocabulário de reparo: `order_type` só
-`manutencao`/`mecanica` (ADR 0265). Sem câmera (ADR 0383).
-
-### 11.1 Ordens de serviço (tela 07) — só leitura ✅
-
-`GET /api/app/os?etapa=<chave|todas>&pagina=N` (20 por página)
-
-```json
-{ "itens": [ {
-    "id": 42, "numero": "OS-00042", "placa": "RLV2E48", "veiculo": "Caminhão",
-    "cliente": "Transportes Vale Norte", "valor": 750.00,
-    "etapa": { "chave": "aguardando_pecas", "rotulo": "Aguardando peças", "indice": 4, "total_etapas": 6 },
-    "travada": true } ],
-  "etapas": [ { "chave": "recepcao", "rotulo": "Recepção", "total": 3 } ],
-  "total": 6, "travadas": 2, "pagina": 1, "tem_mais": false }
-```
-
-- Mesmo universo do quadro web `/oficina-auto/ordens-servico`: OS no processo FSM
-  `oficina_mecanica_os` em etapa **não-terminal**, ou OS de mecânica ainda sem pipeline (conta na
-  etapa inicial). Terminais (entregue, cancelado, garantia acionada) ficam fora. `total` = ativas.
-- `etapas` = as não-terminais do processo do business, na ordem do ERP (`sort_order`), sempre todas,
-  com `total` (pode ser 0). `indice` é 1-based nessa lista.
-- `travada` = etapa `aguardando_aprovacao` ou `aguardando_pecas`.
-- `numero` = `OS-` + id com 5 dígitos (como a web). `veiculo` = rótulo do tipo de veículo da web
-  (o cadastro não tem marca/modelo/ano); `null` se o tipo não tem rótulo.
-- `valor` = soma dos itens da OS (peças + mão de obra), como o card web; `null` sem item.
-  `cliente` = cliente da OS; `null` se a OS não tem cliente.
-- Ordem: etapa mais avançada primeiro; desempate pela OS mais recente.
-- O filtro `etapa` só filtra `itens` (e `tem_mais`). `total`, `travadas` e `etapas[].total` contam
-  sempre TODAS as OS ativas, com ou sem filtro.
-
-### 11.2 Detalhe da OS (tela 03) — só leitura ✅
-
-`GET /api/app/os/{id}` — qualquer OS do business (inclusive terminal e fora do pipeline, abertas
-pelo histórico do veículo). Outra empresa ou inexistente → `404 nao_encontrado`. Mesma permissão da 07.
-
-```json
-{ "id": 42, "numero": "OS-00042", "local": "Elevador 1",
-  "etapa": { "chave": "em_execucao", "rotulo": "Em execução", "indice": 5, "total_etapas": 6, "terminal": false },
-  "travada": false,
-  "veiculo": { "placa": "RLV2E48", "descricao": "Caminhão", "km": 48312 },
-  "cliente": { "id": 7, "nome": "Transportes Vale Norte" },
-  "observacoes": "Barulho na suspensão",
-  "vistoria": { "ok": 8, "atencao": 2, "critico": 1 },
-  "itens": [ { "tipo": "peca", "descricao": "Bieleta", "quantidade": 2, "valor_unitario": 210.00, "valor": 420.00 } ],
-  "totais": { "pecas": 420.00, "mao_de_obra": 330.00, "terceiros": 80.00, "total": 830.00 },
-  "fotos_laudo": 3 }
-```
-
-- `local` = box da OS (texto livre); não existe cadastro de box/elevador.
-- `etapa`: terminal → `indice: null, terminal: true`; OS de mecânica sem pipeline → etapa inicial;
-  OS fora do processo da oficina (ex.: importadas sem pipeline) → `etapa: null`.
-- `veiculo.km` = km na entrada da OS. `cliente` = cliente da OS (pode diferir do dono do veículo).
-- O ERP não tem queixa/diagnóstico: vêm `observacoes` (Observações da OS) e `vistoria` (contagem
-  dos itens da vistoria digital por severidade).
-- `itens.tipo` ∈ `peca · mao_obra · servico_terceiro`; o ERP não guarda unidade nem horas.
-- `totais` = soma dos itens por tipo; `total` = soma de todos (o mesmo número da 07 e da web).
-- `fotos_laudo` = quantas fotos do laudo a OS tem (só contagem; o app não exibe nem tira foto, ADR 0383).
-
-### 11.4 Manutenção (tela 23) — derivada da 07, sem rota própria
-
-Os 3 números saem de `GET /api/app/os` sem filtro: no pátio = `total`; aguardando peças =
-`etapas[chave=aguardando_pecas].total`; prontos = `etapas[chave=pronto_retirada].total`. Sem
-preventiva (o ERP não tem plano de preventiva). Telas 24/31/32 (Equipamentos) e 33 (Locais) ficam
-fora até o ERP ter cadastro de equipamento de cliente e de box (decisão [W] 2026-10-02).
-
-
-## 12. Onda E — Ponto, Equipe, Perfil de menu e Chat
-
-### 12.1 Marcações a validar (tela 39) — fila do gestor
-
-`GET /api/app/ponto/aprovacoes?estado=pendente|validada|recusada|todas` (padrão `pendente`) →
-`{ itens:[{id, colaborador_nome, tipo, local_texto, marcada_em, nsr, gps_precisao_m, dispositivo, hash_curto, estado}], contadores:{pendente, validada, recusada, todas}, pode_recusar }`.
-
-- Só marcações do celular (REP-P) **fora do geofence**, dos últimos 7 dias, mais nova primeiro.
-  É a mesma fila da tela web `/ponto/aprovacoes` (`FilaGestorRepPService`, um lugar só).
-- `id` é **uuid** (string), como em `ponto_marcacoes`. `tipo` ∈ `ENTRADA|ALMOCO_INICIO|ALMOCO_FIM|SAIDA`.
-  `marcada_em` ISO 8601 com fuso. `hash_curto` = 8 primeiros caracteres do hash encadeado.
-- `local_texto` = distância até o centro do geofence ("A 84,2 km do local de trabalho"); `null` sem geofence.
-  `gps_precisao_m` vem `null`: o REP-P não grava a precisão do GPS na marcação.
-- `contadores` ignoram o filtro (são os números dos chips). `pode_recusar` = tem `ponto.aprovacoes.manage`.
-- `POST …/{id}/validar` → `200 { estado:"validada" }`: registro na trilha (`activity_log` `ponto.repp`);
-  a marcação não muda. Trilha desligada → `503 { erro:"trilha_desligada" }`.
-- `POST …/{id}/recusar` (sem corpo) → `200 { estado:"recusada", nsr_anulacao }`: grava uma
-  **anulação** nova apontando a original (`Marcacao::anular()`, motivo fixo "Recusada na validação
-  REP-P"). Nunca UPDATE/DELETE em `ponto_marcacoes` (Portaria 671/2021).
-- Acesso = o do módulo Ponto (`ponto.access` ou papel admin/rh/gestor); recusar exige ainda
-  `ponto.aprovacoes.manage`. Erros: `403 sem_permissao` · `404 nao_encontrado` (inexistente ou de
-  outro business) · `409 ja_revisada` (já decidida) · `422 validacao` (estado inválido).
-- Área `ponto_gestor` em `/api/app/inicio` (§6): mesma regra de acesso do GET.
-
-### 12.2 Equipe (tela 26) — só leitura
-
-`GET /api/app/equipe` →
-`{ itens:[{ id, nome, funcao, carga, status:{ rotulo, tom } }] }`, em ordem alfabética.
-
-- Pessoas = usuários do business (a mesma lista da tela web de Usuários), ativos e inativos. Sem
-  telefone e sem ponto: "Marcação de ponto fica no módulo Ponto".
-- `funcao` = cargo do Essentials (`categories` `hrm_designation`), senão o cargo do CRM; `null` sem cargo.
-- `carga` = OS abertas atribuídas à pessoa (`service_orders.assigned_user_id`, mesmo universo do
-  quadro web da Oficina: etapa não-terminal, ou OS de mecânica ainda sem pipeline), ex.: `"2 OS"`;
-  `null` quando não há nenhuma. O ERP não atribui OP de produção a uma pessoa, então OP não entra.
-- `status`: usuário inativo → `{ rotulo:"Inativo", tom:"ausente" }`; com carga → `{ "Em serviço", "ocupado" }`;
-  senão → `{ "Disponível", "livre" }`.
-- Acesso = o da tela web de Usuários (`user.view`); sem ele `403 sem_permissao`. Área `equipe` em
-  `/api/app/inicio` (§6) com a mesma regra.
-
-### 12.3 Perfil de menu (tela 30) — escrita
-
-`PUT /api/app/perfil-menu { modulos:[≤3, em ordem] }` → `200 { modulos, barra }`.
-
-- A escolha fica guardada no ERP (`app_menu_preferencias`, [ADR 0426](../../decisions/0426-preferencia-de-barra-do-app-guardada-no-erp.md)), por usuário e business.
-- `modulos` aceita qualquer chave de `areas` (§6), exceto `inicio` e `mais`, que são fixos. O app
-  mostra como opção só as áreas que já têm tela de aba no build dele; o ERP não mantém essa lista.
-  Mais de 3, repetido, ou módulo fora disso → `422 { erro:"validacao", campos:{ modulos:"mensagem" } }`.
-- `modulos: []` apaga a escolha e volta ao padrão.
-- `GET /api/app/inicio` traz `barra` (lista com até 3 itens, nunca `null`) = escolha ∩ módulos permitidos, na ordem escolhida. Sem
-  escolha, ou se nada da escolha estiver mais em `areas`, vale o padrão do ERP: Tarefas, Pedidos,
-  Produção (§7.1), completado com as outras áreas do usuário na ordem de `areas`.
+| Antiga | Arquivo |
+|---|---|
+| §9.1 | [tela-19-produtos.md](api/tela-19-produtos.md) |
+| §9.2 | [tela-05-estoque.md](api/tela-05-estoque.md) |
+| §9.3 | [tela-29-movimentacoes-de-um-item.md](api/tela-29-movimentacoes-de-um-item.md) |
+| §10, §10.1 | [tela-06-financeiro.md](api/tela-06-financeiro.md) |
+| §11, §11.1 | [tela-07-ordens-de-servico.md](api/tela-07-ordens-de-servico.md) |
+| §11.2 | [tela-03-detalhe-da-os.md](api/tela-03-detalhe-da-os.md) |
+| §11.4 | [tela-23-manutencao.md](api/tela-23-manutencao.md) |
+| §12.1 | [tela-39-marcacoes-a-validar.md](api/tela-39-marcacoes-a-validar.md) |
+| §12.2 | [tela-26-equipe.md](api/tela-26-equipe.md) |
+| §12.3 | [tela-30-perfil-de-menu.md](api/tela-30-perfil-de-menu.md) |
