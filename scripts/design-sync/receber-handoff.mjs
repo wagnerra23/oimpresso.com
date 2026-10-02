@@ -43,6 +43,9 @@
  *   node scripts/design-sync/receber-handoff.mjs --zip <arquivo.zip> --conta w    # declara a origem
  *                                                                                 # (exigido quando o
  *                                                                                 # PASSO 0 da indeterminado)
+ *   node scripts/design-sync/receber-handoff.mjs --zip <arquivo.zip> --projeto mobile [--apply]
+ *                                                                                 # projeto de rota
+ *                                                                                 # COPIA-FIEL do painel
  *   node scripts/design-sync/receber-handoff.mjs --selftest
  *
  * Exit: 0 = ok · 1 = insumo/validação reprovou (inclui PASSO 0 não liberado) · 2 = erro de uso.
@@ -153,11 +156,11 @@ function morre(msg, code = 1) {
 }
 
 /** Acha, na árvore extraída, o diretório que contém o shell (o `--root` do gerador). */
-export function acharRaiz(base, existe = existsSync, listar = readdirSync) {
+export function acharRaiz(base, existe = existsSync, listar = readdirSync, entrada = ENTRY) {
   const fila = [base];
   while (fila.length) {
     const dir = fila.shift();
-    if (existe(join(dir, ENTRY))) return dir;
+    if (existe(join(dir, entrada))) return dir;
     let itens = [];
     try { itens = listar(dir, { withFileTypes: true }); } catch { continue; }
     for (const d of itens) if (d.isDirectory()) fila.push(join(dir, d.name));
@@ -410,6 +413,113 @@ export function jaEsteveNoEspelho(pathRepo, hashZip, { repo = REPO, limite = 40 
   return null;
 }
 
+// ── ROTA CÓPIA-FIEL (projeto com `importacao: 'copia-fiel'` no painel) ────────────────────────
+// Projeto de telas que NÃO é o shell do ERP — hoje só o `mobile` ("Mobile app structure review",
+// [W] 2026-10-01). Ele não tem `oimpresso.com.html`, não vira bundle, não entra no ledger de
+// frescor: o espelho é cópia fiel do export, e o que importa é (a) não apagar nada às cegas,
+// (b) mostrar o que muda e (c) não deixar CPF/CNPJ com dígito verificador válido entrar no repo.
+// Sem `--projeto`, NADA disto roda: a rota do shell segue exatamente como era.
+
+/** Paths do export que nunca pousam no espelho: o DS é linkado (mora em prototipo-ui/design-system/),
+ *  `uploads/` são anexos de conversa e `.thumbnail` é a miniatura do projeto. */
+export const FORA_DA_COPIA_FIEL = (rel) => /^(_ds|uploads)\//.test(rel) || rel === '.thumbnail';
+
+/** `--projeto` declarado → projeto do painel, ou a razão da recusa. Pura. */
+export function decidirProjetoDeclarado(dono, chave, projetos = PROJETOS, contas = CONTAS) {
+  const p = projetos[chave];
+  if (!p) return { ok: false, motivo: `projeto "${chave}" nao esta em PROJETOS (${Object.keys(projetos).join(' | ')})` };
+  if (p.importacao !== 'copia-fiel') {
+    return { ok: false, motivo: `projeto "${chave}" nao usa a rota copia-fiel — sem --projeto, a rota do shell decide sozinha` };
+  }
+  if (!p.espelho) return { ok: false, motivo: `projeto "${chave}" nao tem espelho no repo` };
+  if (contas[p.conta]?.aposentada) return { ok: false, motivo: `conta "${p.conta}" do projeto "${chave}" foi aposentada` };
+  // Declarar é escolha humana; o material só pode CONTRADIZER: id de OUTRO projeto fora do cache.
+  if (dono && dono.veredito === 'vinculada' && dono.projeto && dono.projeto !== chave) {
+    return { ok: false, motivo: `o material e do projeto "${dono.projeto}" (${dono.porque}), nao de "${chave}"` };
+  }
+  return { ok: true, projeto: chave, conta: p.conta, espelho: p.espelho };
+}
+
+const dvCpf = (d) => {
+  const c = (n) => { let s = 0; for (let i = 0; i < n; i++) s += +d[i] * (n + 1 - i); const r = (s * 10) % 11; return r === 10 ? 0 : r; };
+  return !/^(\d)\1+$/.test(d) && c(9) === +d[9] && c(10) === +d[10];
+};
+const dvCnpj = (d) => {
+  const w1 = [5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2]; const w2 = [6, ...w1];
+  const c = (w, n) => { let s = 0; for (let i = 0; i < n; i++) s += +d[i] * w[i]; const r = s % 11; return r < 2 ? 0 : 11 - r; };
+  return !/^(\d)\1+$/.test(d) && c(w1, 12) === +d[12] && c(w2, 13) === +d[13];
+};
+
+/** CPF/CNPJ FORMATADO com dígito verificador VÁLIDO vira inválido (último dígito +1). Mock de
+ *  protótipo não pode carregar documento que talvez exista: o pii-scan acusa o formato, e só o
+ *  DV inválido prova que não é de ninguém. Caso real: o mock do `mobile` trouxe 1 CNPJ válido
+ *  em 2 exports seguidos (2026-10-01, PRs #8467 e #8485). Pura. */
+export function invalidarDocumentosValidos(texto) {
+  const trocados = [];
+  const out = String(texto).replace(/\d{3}\.\d{3}\.\d{3}-\d{2}|\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2}/g, (m) => {
+    const d = m.replace(/\D/g, '');
+    const valido = d.length === 11 ? dvCpf(d) : dvCnpj(d);
+    if (!valido) return m;
+    const novo = m.slice(0, -1) + ((+m.slice(-1) + 1) % 10);
+    trocados.push(d.length === 11 ? 'CPF' : 'CNPJ');
+    return novo;
+  });
+  return { texto: out, trocados };
+}
+
+/** Plano da cópia fiel: o que é novo, alterado, igual e o que só existe no espelho. Pura. */
+export function planoCopiaFiel(relsZip, relsEspelho, lerZip, lerEspelho) {
+  const zip = relsZip.filter((r) => !FORA_DA_COPIA_FIEL(r)).sort();
+  const noZip = new Set(zip);
+  const plano = { novos: [], alterados: [], iguais: [], soNoEspelho: [] };
+  for (const rel of zip) {
+    const atual = lerEspelho(rel);
+    if (atual === null) plano.novos.push(rel);
+    else if (Buffer.compare(lerZip(rel), atual) === 0) plano.iguais.push(rel);
+    else plano.alterados.push(rel);
+  }
+  plano.soNoEspelho = relsEspelho.filter((r) => !noZip.has(r) && !FORA_DA_COPIA_FIEL(r)).sort();
+  return plano;
+}
+
+const EXT_TEXTO = /\.(html?|jsx?|tsx?|md|json|css|txt|patch)$/i;
+
+function importarCopiaFiel(raiz, decisao, aplicar) {
+  const base = join(REPO, ...decisao.espelho.replace(/[/]$/, '').split('/'));
+  // PII antes de comparar: o que vai pousar é o texto já com DV inválido.
+  let docs = 0;
+  for (const rel of listarRelativos(raiz)) {
+    if (FORA_DA_COPIA_FIEL(rel) || !EXT_TEXTO.test(rel)) continue;
+    const abs = join(raiz, ...rel.split('/'));
+    const { texto, trocados } = invalidarDocumentosValidos(readFileSync(abs, 'utf8'));
+    if (trocados.length) { writeFileSync(abs, texto); docs += trocados.length; console.log(`                   ${rel}: ${trocados.join(', ')} com DV valido -> invalido`); }
+  }
+  console.log(`\n  [P] PII          ${docs ? `${docs} documento(s) com DV valido trocado(s) por invalido` : 'nenhum CPF/CNPJ com DV valido'}`);
+
+  const ler = (dir) => (rel) => { const p = join(dir, ...rel.split('/')); return existsSync(p) ? readFileSync(p) : null; };
+  const relsEspelho = existsSync(base) ? listarRelativos(base) : [];
+  const plano = planoCopiaFiel(listarRelativos(raiz), relsEspelho, ler(raiz), ler(base));
+  console.log(`\n  [C] COPIA-FIEL   ${decisao.projeto} -> ${decisao.espelho}`);
+  console.log(`                   novos ${plano.novos.length} · alterados ${plano.alterados.length} · iguais ${plano.iguais.length} · so no espelho ${plano.soNoEspelho.length}`);
+  for (const r of plano.novos) console.log(`                   + ${r}`);
+  for (const r of plano.alterados) console.log(`                   ~ ${r}`);
+  // NUNCA apaga: arquivo que sumiu do export pode ser export parcial. Decide quem lê.
+  for (const r of plano.soNoEspelho) console.log(`                   ? ${r}  (so no espelho — nao apagado)`);
+  const mudam = [...plano.novos, ...plano.alterados];
+  if (!aplicar) {
+    console.log(`\n  Nada foi promovido (sem --apply).${mudam.length ? ` Para gravar os ${mudam.length}: repita com --apply.` : ' O espelho ja esta igual ao export.'}\n`);
+    return;
+  }
+  for (const rel of mudam) {
+    const dest = join(base, ...rel.split('/'));
+    mkdirSync(dirname(dest), { recursive: true });
+    writeFileSync(dest, readFileSync(join(raiz, ...rel.split('/'))));
+  }
+  console.log(`\n  [A] APLICADO     ${mudam.length} arquivo(s) gravado(s) em ${decisao.espelho}`);
+  console.log(`                   antes do commit: bash .github/scripts/pii-scan.sh <arquivos> (mock com CPF/CNPJ formatado`);
+  console.log(`                   precisa de entrada em .github/pii-scan-allowlist.txt) · git diff --stat ${decisao.espelho}\n`);
+}
+
 /** Linhas que a poda de árvore imprime (bundle-transaction.mjs): o que apagou e o que poupou. */
 export function linhasDePoda(out) {
   return String(out || '').split('\n').filter((l) => /^\s+(✂|⬜ RECIBO PRESERVADO|⬜ cowork-inbox\/)/.test(l));
@@ -443,8 +553,21 @@ function principal() {
   console.log(`\n  [1] EXTRAIR      ${entradas.length} arquivo(s) - CRC-32 conferido em todos`);
   console.log(`                   ${destino}`);
 
-  const raiz = acharRaiz(destino);
-  if (!raiz) morre(`nao achei ${ENTRY} na arvore extraida - este ZIP nao e um handoff do Cowork`);
+  // `--projeto <chave>` só existe para projeto com `importacao: 'copia-fiel'` no painel (hoje: o
+  // mobile). Ele tem entrada própria; sem a flag, a rota do shell segue idêntica à de antes.
+  const projetoDeclarado = arg('--projeto');
+  const pCopia = projetoDeclarado ? PROJETOS[projetoDeclarado] : null;
+  const entrada = pCopia && pCopia.importacao === 'copia-fiel' && pCopia.entrada ? pCopia.entrada : ENTRY;
+  const raiz = acharRaiz(destino, existsSync, readdirSync, entrada);
+  if (!raiz) {
+    // Diz QUAL projeto o zip parece ser, em vez de só "não é handoff": a entrada de outro projeto
+    // registrado presente na árvore é o sinal de que faltou o `--projeto`.
+    const outros = Object.entries(PROJETOS)
+      .filter(([, p]) => p.importacao === 'copia-fiel' && p.entrada && acharRaiz(destino, existsSync, readdirSync, p.entrada))
+      .map(([k]) => k);
+    morre(`nao achei ${entrada} na arvore extraida - este ZIP nao e um handoff do Cowork`
+      + (outros.length ? `\n    Parece export do projeto "${outros[0]}": repita com --projeto ${outros[0]}` : ''));
+  }
   console.log(`                   raiz do projeto: ${relative(destino, raiz) || '.'}`);
 
   // 1b. FIM DE LINHA — o repo e `* text=auto eol=lf` (.gitattributes). O Cowork exporta parte
@@ -468,6 +591,14 @@ function principal() {
   //    primeiro PORTAO: nada abaixo roda se ele nao liberar.
   const relDaRaiz = listarRelativos(raiz);
   const dono = deQuemEhOHandoff(relDaRaiz);
+  if (projetoDeclarado) {
+    const dp = decidirProjetoDeclarado(dono, projetoDeclarado);
+    console.log(`\n  [0] DE QUEM      ${dono.veredito} - declarado --projeto ${projetoDeclarado}`);
+    if (!dp.ok) morre(`PASSO 0 nao liberou: ${dp.motivo}`);
+    console.log(`                   conta ${dp.conta}, espelho ${dp.espelho}`);
+    importarCopiaFiel(raiz, dp, aplicar);
+    return;
+  }
   const decisao = decidirDono(dono, arg('--conta'));
   console.log(`\n  [0] DE QUEM      ${dono.veredito}${decisao.conta ? ` - conta ${decisao.conta}` : ''}`);
   console.log(`                   ${decisao.motivo}`);

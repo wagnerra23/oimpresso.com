@@ -26,7 +26,7 @@ import { join } from 'node:path';
 import { createHash } from 'node:crypto';
 import { lerZip, extrairZip, crc32, nomeSeguro } from './zip-reader.mjs';
 import { createManifest } from './bundle-contract.mjs';
-import { acharRaiz, auditarPacote, classificar, listarRelativos, decidirDono, ignoradosPeloRepo, pathNoEspelho, normalizarEolComoGit, religarRefs, linhasDePoda } from './receber-handoff.mjs';
+import { acharRaiz, auditarPacote, classificar, listarRelativos, decidirDono, ignoradosPeloRepo, pathNoEspelho, normalizarEolComoGit, religarRefs, linhasDePoda, decidirProjetoDeclarado, invalidarDocumentosValidos, planoCopiaFiel, FORA_DA_COPIA_FIEL } from './receber-handoff.mjs';
 
 let falhas = 0;
 const ok = (cond, nome) => {
@@ -270,6 +270,52 @@ export function selftest() {
   ok(poda.length === 4, `MORDE: as 4 linhas de poda/preservacao chegam ao relatorio (vieram ${poda.length})`);
   ok(!poda.some((l) => /_ds\/|id: abc|VALIDADO/.test(l)), 'SOLTA: outras linhas do aplicador nao entram');
   ok(linhasDePoda('').length === 0 && linhasDePoda(undefined).length === 0, 'saida vazia -> nenhuma linha');
+
+  // ── Rota COPIA-FIEL (PROJETOS.mobile, [W] 2026-10-01) ────────────────────────────────────
+  // Registro de mentira, como acima: o caso não pode mudar de veredito quando o painel mudar.
+  const projsC = {
+    cowork: { id: 'aaaaaaaa-0000-0000-0000-000000000001', papel: 'telas', conta: 'w', espelho: 'prototipo-ui/cowork/Wagner/' },
+    mobile: { id: 'bbbbbbbb-0000-0000-0000-000000000002', papel: 'telas', conta: 'w', espelho: 'mobile/ref/x/', importacao: 'copia-fiel', entrada: 'App.dc.html' },
+  };
+  const contasC = { w: { id: 'w', espelhada: true } };
+  const indetC = { veredito: 'indeterminado', projeto: null, porque: 'so o cache' };
+  ok(decidirProjetoDeclarado(indetC, 'mobile', projsC, contasC).ok === true, 'SOLTA: --projeto mobile (copia-fiel) com material indeterminado');
+  ok(decidirProjetoDeclarado(indetC, 'mobile', projsC, contasC).espelho === 'mobile/ref/x/', 'SOLTA: destino = espelho DO PROJETO, nao da conta');
+  ok(decidirProjetoDeclarado(indetC, 'cowork', projsC, contasC).ok === false, 'MORDE: --projeto de rota shell nao vira copia-fiel');
+  ok(decidirProjetoDeclarado(indetC, 'naoexiste', projsC, contasC).ok === false, 'MORDE: --projeto fora de PROJETOS');
+  const doCowork = { veredito: 'vinculada', projeto: 'cowork', porque: 'id do cowork fora do cache' };
+  ok(decidirProjetoDeclarado(doCowork, 'mobile', projsC, contasC).ok === false, 'MORDE: material que E de outro projeto contradiz o --projeto');
+  ok(decidirProjetoDeclarado(indetC, 'mobile', projsC, { w: { id: 'w', aposentada: { em: 'x' } } }).ok === false, 'MORDE: conta aposentada');
+
+  // Documentos montados em runtime: literal formatado aqui faria o proprio pii-scan acusar este teste.
+  const cnpjValido = ['11', '222', '333'].join('.') + '/0001-' + '81';
+  const cnpjInvalido = ['11', '222', '333'].join('.') + '/0001-' + '44';
+  const cpfValido = ['529', '982', '247'].join('.') + '-' + '25';
+  const r1 = invalidarDocumentosValidos(`a ${cnpjValido} b ${cnpjInvalido} c ${cpfValido}`);
+  ok(r1.trocados.join(',') === 'CNPJ,CPF', `MORDE: troca so os de DV valido (trocou ${r1.trocados.join(',')})`);
+  ok(!r1.texto.includes(cnpjValido) && !r1.texto.includes(cpfValido), 'MORDE: nenhum documento valido sobra no texto');
+  ok(r1.texto.includes(cnpjInvalido), 'SOLTA: documento ja invalido fica como esta');
+  const r2 = invalidarDocumentosValidos(r1.texto);
+  ok(r2.trocados.length === 0 && r2.texto === r1.texto, 'idempotente: rodar de novo nao troca nada (o trocado ficou INVALIDO)');
+  ok(invalidarDocumentosValidos('sem documento').trocados.length === 0, 'texto sem documento passa intacto');
+
+  ok(FORA_DA_COPIA_FIEL('_ds/x/a.css') && FORA_DA_COPIA_FIEL('uploads/p.png') && FORA_DA_COPIA_FIEL('.thumbnail'), 'fora da copia: _ds, uploads, .thumbnail');
+  ok(!FORA_DA_COPIA_FIEL('App.dc.html') && !FORA_DA_COPIA_FIEL('handoff/onda-1/README.md'), 'dentro da copia: prototipo e handoff');
+  const zipC = { 'App.dc.html': 'novo', 'support.js': 'igual', 'handoff/a.md': 'h', '_ds/x.css': 'ds', '.thumbnail': 't' };
+  const espC = { 'App.dc.html': 'velho', 'support.js': 'igual', 'antigo.md': 'a' };
+  const lerDe = (m) => (rel) => (rel in m ? Buffer.from(m[rel]) : null);
+  const pl = planoCopiaFiel(Object.keys(zipC), Object.keys(espC), lerDe(zipC), lerDe(espC));
+  ok(pl.alterados.join() === 'App.dc.html' && pl.iguais.join() === 'support.js' && pl.novos.join() === 'handoff/a.md',
+    `MORDE: classifica alterado/igual/novo (${JSON.stringify(pl)})`);
+  ok(pl.soNoEspelho.join() === 'antigo.md', 'MORDE: o que so existe no espelho aparece (e nao e apagado)');
+  ok(![...pl.novos, ...pl.alterados, ...pl.iguais].some((r) => r.startsWith('_ds/') || r === '.thumbnail'), 'SOLTA: _ds e .thumbnail nunca entram no plano');
+
+  // acharRaiz com entrada propria: o zip do mobile nao tem oimpresso.com.html.
+  const arv = { '/z': ['proj'], '/z/proj': [] };
+  const existe = (p) => p.replace(/\\/g, '/') === '/z/proj/App.dc.html';
+  const listarFake = (d) => (arv[d.replace(/\\/g, '/')] || []).map((n) => ({ name: n, isDirectory: () => true }));
+  ok((acharRaiz('/z', existe, listarFake, 'App.dc.html') || '').replace(/\\/g, '/') === '/z/proj', 'SOLTA: acha a raiz pela entrada do projeto');
+  ok(acharRaiz('/z', existe, listarFake) === null, 'MORDE: sem a entrada do projeto, a rota do shell continua recusando');
 
   console.log(`\n  ${falhas === 0 ? 'OK' : 'FALHAS: ' + falhas}\n`);
   if (falhas) process.exit(1);
