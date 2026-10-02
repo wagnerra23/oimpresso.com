@@ -156,7 +156,8 @@ class ProdutosController extends Controller
             return response()->json(['erro' => 'nao_encontrado', 'mensagem' => 'Item de estoque não encontrado.'], 404);
         }
 
-        $historico = array_reverse($this->productUtil()->getVariationStockHistory($bizId, (int) $e->variation_id, (int) $e->location_id));
+        // getVariationStockHistory já devolve do mais novo ao mais velho (termina em array_reverse).
+        $historico = $this->productUtil()->getVariationStockHistory($bizId, (int) $e->variation_id, (int) $e->location_id);
         $fatia = array_slice($historico, ($pagina - 1) * self::POR_PAGINA, self::POR_PAGINA);
 
         return response()->json([
