@@ -280,3 +280,63 @@ de contrato na lane MySQL) + 1 PR de tela no `oimpresso-app`, contra este contra
 - Leitura primeiro; a ação que escreve vem num PR separado. Em valor ou estoque: dupla prova, tabela antes→depois e ok do [W] antes do merge.
 - Tela de módulo que o business não tem no pacote não aparece (Camada 1).
 
+**Ajustes de escopo, 2026-10-02.** Decisões do [W]: as três primeiras chegaram relatadas pelas sessões do app que as perguntaram; a 20 e a 29 foram respondidas a esta sessão.
+- **28 Detalhe da tarefa:** o checklist saiu. O ToDo do Essentials não tem checklist, e criar exigiria schema novo.
+- **27 Detalhe da OP:** fica só na retaguarda web, sem rota `/api/app`. O Manufacturing não tem etapas, artes nem apontamentos de OP.
+- **11 Venda rápida:** liberada para começar, mas o merge depende da regra mestre e do ok do [W].
+- **20 Novo produto:** criada **sem preço**, igual à tela React de hoje. O preço se acerta na web, então a tela sai da regra mestre (§9.4).
+- **29 Movimentações:** **só leitura** (§9.3). Registrar movimento continua na web, porque no ERP cada tipo é uma transação contábil (compra com custo; ajuste com valor e FIFO).
+- **Lado ERP:** uma sessão por onda (C, D, E) e uma para a tela 11. A Onda B fica com a sessão coordenadora.
+
+
+## 9. Produtos e estoque (Onda B)
+
+### 9.1 Produtos (tela 19) — só leitura
+
+`GET /api/app/produtos?categoria=<id|todas>&q=<texto>&pagina=N` →
+`{ itens:[{id, nome, codigo, categoria, calculo, preco, variacoes, estoque:{controla, qtd, unidade}, baixo}],
+categorias:[{id, nome, total}], total, baixo_estoque, pagina, tem_mais }`, 30 por página, por nome.
+
+- Permissão `product.view` (a da lista web); sem ela, 403. Produtos ativos do business, sem os `modifier`.
+  A área `produtos` entra em `areas` do Início (§6) com essa mesma regra.
+- Busca `q` em nome, código (SKU) e categoria. `categorias` e `total` respeitam a busca, não o filtro de categoria.
+- `calculo` = "por " + unidade curta do produto ("por m²", "por un"); `null` sem unidade.
+- `preco` = preço de venda com imposto (`sell_price_inc_tax`); produto com variação traz o menor e
+  `variacoes` = quantas. Só exibição.
+- `estoque.qtd` = soma nos locais que o usuário pode ver; `null` quando o produto não controla estoque
+  ("sob demanda"). Usuário sem nenhum local permitido vê 0, nunca o estoque de todos.
+- `baixo` / `baixo_estoque` = a mesma regra do alerta da web (`ProductUtil::getProductAlert`): alguma
+  variação × local com quantidade ≤ `alert_quantity`.
+
+## 11. Oficina — Onda D (Modules/OficinaAuto)
+
+Área `oficina` em `areas` (§6): módulo `oficina_auto_module` no pacote do business (Camada 1;
+superadmin: módulo instalado) **e** permissão `oficinaauto.service_order.view` — a mesma regra do
+menu web da Oficina. Sem acesso → `403 sem_permissao`. Vocabulário de reparo: `order_type` só
+`manutencao`/`mecanica` (ADR 0265). Sem câmera (ADR 0383).
+
+### 11.1 Ordens de serviço (tela 07) — só leitura ✅
+
+`GET /api/app/os?etapa=<chave|todas>&pagina=N` (20 por página)
+
+```json
+{ "itens": [ {
+    "id": 42, "numero": "OS-00042", "placa": "RLV2E48", "veiculo": "Caminhão",
+    "cliente": "Transportes Vale Norte", "valor": 750.00,
+    "etapa": { "chave": "aguardando_pecas", "rotulo": "Aguardando peças", "indice": 4, "total_etapas": 6 },
+    "travada": true } ],
+  "etapas": [ { "chave": "recepcao", "rotulo": "Recepção", "total": 3 } ],
+  "total": 6, "travadas": 2, "pagina": 1, "tem_mais": false }
+```
+
+- Mesmo universo do quadro web `/oficina-auto/ordens-servico`: OS no processo FSM
+  `oficina_mecanica_os` em etapa **não-terminal**, ou OS de mecânica ainda sem pipeline (conta na
+  etapa inicial). Terminais (entregue, cancelado, garantia acionada) ficam fora. `total` = ativas.
+- `etapas` = as não-terminais do processo do business, na ordem do ERP (`sort_order`), sempre todas,
+  com `total` (pode ser 0). `indice` é 1-based nessa lista.
+- `travada` = etapa `aguardando_aprovacao` ou `aguardando_pecas`.
+- `numero` = `OS-` + id com 5 dígitos (como a web). `veiculo` = rótulo do tipo de veículo da web
+  (o cadastro não tem marca/modelo/ano); `null` se o tipo não tem rótulo.
+- `valor` = soma dos itens da OS (peças + mão de obra), como o card web; `null` sem item.
+  `cliente` = cliente da OS; `null` se a OS não tem cliente.
+- Ordem: etapa mais avançada primeiro; desempate pela OS mais recente.

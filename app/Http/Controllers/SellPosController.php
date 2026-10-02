@@ -336,6 +336,9 @@ class SellPosController extends Controller
                 ],
                 'posSettings'          => $pos_settings,
                 'subType'              => $sub_type,
+                // Reparo como tipo de venda (UC-S05): as opções que o POS Blade já monta via
+                // getModuleData('get_pos_screen_view') e o React descartava. Sem query nova.
+                'repairPos'            => $this->repairPosProps($pos_module_data),
             ]);
         }
 
@@ -373,6 +376,36 @@ class SellPosController extends Controller
                 'invoice_layouts',
                 'users',
             ));
+    }
+
+    /**
+     * Opções da seção "Reparo" do Sells/Create (UC-S05). Formata o `view_data` que o
+     * `Modules\Repair\...\DataController::get_pos_screen_view` já devolve pro POS Blade —
+     * esse método só entrega quando o sub_type é `repair` e o módulo está na assinatura,
+     * então `null` aqui = não é venda de reparo. Os dados já vêm escopados por business_id.
+     */
+    private function repairPosProps($pos_module_data): ?array
+    {
+        $d = $pos_module_data['Repair']['view_data'] ?? null;
+        if (empty($d)) {
+            return null;
+        }
+
+        $sugeridos = explode(',', (string) ($d['repair_settings']['problem_reported_by_customer'] ?? ''));
+
+        return [
+            'statuses' => collect($d['repair_statuses'] ?? [])->map(fn ($s) => [
+                'id' => (int) $s->id,
+                'name' => (string) $s->name,
+                'color' => $s->color,
+            ])->values()->all(),
+            'defaultStatusId' => ! empty($d['default_status']) ? (int) $d['default_status'] : null,
+            'brands' => $d['brands'] ?? [],
+            'devices' => $d['devices'] ?? [],
+            'deviceModels' => $d['device_models'] ?? [],
+            'warranties' => $d['warranties'] ?? [],
+            'defeitosSugeridos' => array_values(array_filter(array_map('trim', $sugeridos), fn ($v) => $v !== '')),
+        ];
     }
 
     /**
