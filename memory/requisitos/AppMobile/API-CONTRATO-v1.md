@@ -499,6 +499,44 @@ menu web da Oficina. Sem acesso → `403 sem_permissao`. Vocabulário de reparo:
 - `valor` = soma dos itens da OS (peças + mão de obra), como o card web; `null` sem item.
   `cliente` = cliente da OS; `null` se a OS não tem cliente.
 - Ordem: etapa mais avançada primeiro; desempate pela OS mais recente.
+- O filtro `etapa` só filtra `itens` (e `tem_mais`). `total`, `travadas` e `etapas[].total` contam
+  sempre TODAS as OS ativas, com ou sem filtro.
+
+### 11.2 Detalhe da OS (tela 03) — só leitura ✅
+
+`GET /api/app/os/{id}` — qualquer OS do business (inclusive terminal e fora do pipeline, abertas
+pelo histórico do veículo). Outra empresa ou inexistente → `404 nao_encontrado`. Mesma permissão da 07.
+
+```json
+{ "id": 42, "numero": "OS-00042", "local": "Elevador 1",
+  "etapa": { "chave": "em_execucao", "rotulo": "Em execução", "indice": 5, "total_etapas": 6, "terminal": false },
+  "travada": false,
+  "veiculo": { "placa": "RLV2E48", "descricao": "Caminhão", "km": 48312 },
+  "cliente": { "id": 7, "nome": "Transportes Vale Norte" },
+  "observacoes": "Barulho na suspensão",
+  "vistoria": { "ok": 8, "atencao": 2, "critico": 1 },
+  "itens": [ { "tipo": "peca", "descricao": "Bieleta", "quantidade": 2, "valor_unitario": 210.00, "valor": 420.00 } ],
+  "totais": { "pecas": 420.00, "mao_de_obra": 330.00, "terceiros": 80.00, "total": 830.00 },
+  "fotos_laudo": 3 }
+```
+
+- `local` = box da OS (texto livre); não existe cadastro de box/elevador.
+- `etapa`: terminal → `indice: null, terminal: true`; OS de mecânica sem pipeline → etapa inicial;
+  OS fora do processo da oficina (ex.: importadas sem pipeline) → `etapa: null`.
+- `veiculo.km` = km na entrada da OS. `cliente` = cliente da OS (pode diferir do dono do veículo).
+- O ERP não tem queixa/diagnóstico: vêm `observacoes` (Observações da OS) e `vistoria` (contagem
+  dos itens da vistoria digital por severidade).
+- `itens.tipo` ∈ `peca · mao_obra · servico_terceiro`; o ERP não guarda unidade nem horas.
+- `totais` = soma dos itens por tipo; `total` = soma de todos (o mesmo número da 07 e da web).
+- `fotos_laudo` = quantas fotos do laudo a OS tem (só contagem; o app não exibe nem tira foto, ADR 0383).
+
+### 11.4 Manutenção (tela 23) — derivada da 07, sem rota própria
+
+Os 3 números saem de `GET /api/app/os` sem filtro: no pátio = `total`; aguardando peças =
+`etapas[chave=aguardando_pecas].total`; prontos = `etapas[chave=pronto_retirada].total`. Sem
+preventiva (o ERP não tem plano de preventiva). Telas 24/31/32 (Equipamentos) e 33 (Locais) ficam
+fora até o ERP ter cadastro de equipamento de cliente e de box (decisão [W] 2026-10-02).
+
 
 ## 12. Onda E — Ponto, Equipe, Perfil de menu e Chat
 
@@ -523,3 +561,16 @@ menu web da Oficina. Sem acesso → `403 sem_permissao`. Vocabulário de reparo:
   `ponto.aprovacoes.manage`. Erros: `403 sem_permissao` · `404 nao_encontrado` (inexistente ou de
   outro business) · `409 ja_revisada` (já decidida) · `422 validacao` (estado inválido).
 - Área `ponto_gestor` em `/api/app/inicio` (§6): mesma regra de acesso do GET.
+
+### 12.3 Perfil de menu (tela 30) — escrita
+
+`PUT /api/app/perfil-menu { modulos:[≤3, em ordem] }` → `200 { modulos, barra }`.
+
+- A escolha fica guardada no ERP (`app_menu_preferencias`, [ADR 0426](../../decisions/0426-preferencia-de-barra-do-app-guardada-no-erp.md)), por usuário e business.
+- `modulos` aceita qualquer chave de `areas` (§6), exceto `inicio` e `mais`, que são fixos. O app
+  mostra como opção só as áreas que já têm tela de aba no build dele; o ERP não mantém essa lista.
+  Mais de 3, repetido, ou módulo fora disso → `422 { erro:"validacao", campos:{ modulos:"mensagem" } }`.
+- `modulos: []` apaga a escolha e volta ao padrão.
+- `GET /api/app/inicio` traz `barra` (lista com até 3 itens, nunca `null`) = escolha ∩ módulos permitidos, na ordem escolhida. Sem
+  escolha, ou se nada da escolha estiver mais em `areas`, vale o padrão do ERP: Tarefas, Pedidos,
+  Produção (§7.1), completado com as outras áreas do usuário na ordem de `areas`.
