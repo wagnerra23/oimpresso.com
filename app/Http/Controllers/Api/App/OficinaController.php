@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api\App;
 
+use App\Domain\Oficina\TiposVeiculo;
 use App\Http\Controllers\Controller;
 use App\User;
 use App\Utils\ModuleUtil;
@@ -11,7 +12,6 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
-use Modules\OficinaAuto\Http\Controllers\VehicleController;
 
 /**
  * Oficina do app das lojas (oimpresso-app) — SÓ LEITURA. Contrato:
@@ -206,7 +206,7 @@ class OficinaController extends Controller
     /** Rótulo do tipo de veículo como a web mostra; tipo fora da lista da web → null. */
     private function tipoVeiculo(?string $tipo): ?string
     {
-        return $tipo === null ? null : (VehicleController::vehicleTypes()[$tipo] ?? null);
+        return $tipo === null ? null : (TiposVeiculo::ROTULOS[$tipo] ?? null);
     }
 
     private function semPermissao(): JsonResponse
