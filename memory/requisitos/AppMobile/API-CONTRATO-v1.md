@@ -213,8 +213,8 @@ Mesmos campos e regras do §4.2, **menos** `tipo` e `papeis` (mudar papel fica n
   abas que o usuário pode abrir, na ordem do app. Cada uma segue a mesma regra da rota dela, então
   aba visível = rota que responde: `tarefas` = Essentials no plano ou quem aprova o Ponto;
   `pedidos`/`producao`/`orcamentos` = quem vê vendas; `pessoas` = quem vê cliente ou fornecedor; `ponto` =
-  colaborador com `controla_ponto`; `inicio` só para perfil `erp`; `mais` sempre.
-  `perfil` = `erp` se tem tarefas, vendas ou pessoas, senão `colaborador`. `abre_em` = `inicio`
+  colaborador com `controla_ponto`; `fiscal` = a regra de §10.2; `inicio` só para perfil `erp`; `mais` sempre.
+  `perfil` = `erp` se tem tarefas, vendas, pessoas ou fiscal, senão `colaborador`. `abre_em` = `inicio`
   (erp), `ponto` (colaborador) ou `mais` (sem nenhuma das duas).
 
 - `faturado_hoje` e `meta_dia`: só com `dashboard.data` (senão `null`). Meta do dia = meta mensal
@@ -280,3 +280,29 @@ de contrato na lane MySQL) + 1 PR de tela no `oimpresso-app`, contra este contra
 - Leitura primeiro; a ação que escreve vem num PR separado. Em valor ou estoque: dupla prova, tabela antes→depois e ok do [W] antes do merge.
 - Tela de módulo que o business não tem no pacote não aparece (Camada 1).
 
+
+## 10. Financeiro (Onda C)
+
+> §10.1 (Financeiro, tela 06) chega no PR do ERP #8584.
+
+### 10.2 Fiscal (tela 14) — só leitura
+
+`GET /api/app/fiscal?status=todos|rascunho|processando|autorizado|cancelado|rejeitado&pagina=N` →
+`{ itens:[{id, tipo, numero, referencia, valor, status, chave, erro, emitido_em}],
+contadores:{todos, rascunho, processando, autorizado, cancelado, rejeitado}, pagina, tem_mais }`,
+20 por página, mais recente primeiro.
+
+- Fontes: `nfe_emissoes` (modelo 55 → `NFe`, 65 → `NFCe`) e `nfse_emissoes` (`NFSe`), numa lista só.
+  `id` é o id da tabela de origem — único só junto com `tipo` (uma NF-e e uma NFS-e podem ter o mesmo).
+- Acesso = o da web: módulo Fiscal no plano e, por tipo, a permissão da tela dele (`fiscal.nfe.view`
+  para NF-e/NFC-e, `fiscal.nfse.view` para NFS-e). Quem vê só um tipo recebe só aquele (lista e
+  contadores). Sem nenhum → `403 sem_permissao`. A área `fiscal` entra em `areas` (§6) com essa regra.
+- Status: NF-e/NFC-e `pendente`/`enviando` → `processando` (a web conta "pendente" como processando),
+  `autorizada` → `autorizado`, `cancelada`/`inutilizada` → `cancelado`, `rejeitada`/`denegada`/`erro_envio`
+  → `rejeitado`. NFS-e `rascunho`, `processando`, `emitida` → `autorizado`, `cancelada`, `erro` → `rejeitado`.
+- `referencia` = "Pedido #<nº da venda> · <cliente>" quando a nota tem venda; sem venda, o destinatário
+  (NF-e) ou o tomador (NFS-e). `valor` = total da nota (NFS-e: valor dos serviços).
+- `chave` só em `autorizado` (NF-e/NFC-e: chave de 44 dígitos; NFS-e: código de verificação da
+  prefeitura). `erro` só em `rejeitado`: "Rejeição <cStat>: <motivo da SEFAZ>" (NFS-e: a mensagem do provedor).
+- `emitido_em` = data de emissão (sem ela, a de criação), ISO com fuso.
+- Tier 0: as duas tabelas e os joins filtrados pelo business do token.
