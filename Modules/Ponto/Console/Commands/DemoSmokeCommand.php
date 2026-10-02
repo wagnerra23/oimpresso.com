@@ -22,8 +22,10 @@ use Modules\Ponto\Entities\Marcacao;
  * Confere, no business demo (achado pelo nome, nunca 1/4/98):
  *  1. GET /ponto/mobile → Ponto/Mobile/Index, colaborador DEMO-0001, sem as abas do módulo;
  *  2. GET /ponto/colaboradores e /contacts?type=customer → não abrem (302/403/404);
- *  3. POST /ponto/mobile/marcar com GPS da Califórnia → 201 com NSR (revisor fora do Brasil
- *     não é recusado). Pule com --sem-marcar: marcação é append-only e fica para sempre.
+ *  3. o caminho do APP pela API Passport (guard api, token emitido em processo):
+ *     GET /ponto/api/marcacoes/hoje e /ponto/api/saldo → 200;
+ *  4. POST /ponto/api/marcar com GPS da Califórnia → 201 com NSR (revisor fora do Brasil não é
+ *     recusado) e a marcação aparece em hoje. Pule com --sem-marcar: marcação é append-only.
  *
  * Uso:
  *   php artisan ponto:demo-smoke               # inclui 1 marcação real no business demo
@@ -77,22 +79,31 @@ class DemoSmokeCommand extends Command
             $ok(in_array($s, [302, 403, 404], true), "GET {$rota} bloqueado → HTTP {$s}");
         }
 
-        // 3. Bater ponto de fora do Brasil.
+        // 3. O caminho do APP (telas próprias falando com o ERP pela API Passport — [W] 2026-10-01).
+        //    Token de acesso emitido em processo para o revisor, sem senha e sem client OAuth.
+        $http->entrarComoApi($revisor);
+        $h0 = $http->getJson('/ponto/api/marcacoes/hoje');
+        $ok($h0->getStatusCode() === 200, "GET /ponto/api/marcacoes/hoje → HTTP {$h0->getStatusCode()}");
+        $hoje0 = count((json_decode((string) $h0->getContent(), true) ?: [])['marcacoes'] ?? []);
+        $sd = $http->getJson('/ponto/api/saldo');
+        $ok($sd->getStatusCode() === 200, "GET /ponto/api/saldo → HTTP {$sd->getStatusCode()}");
+
+        // 4. Bater ponto de fora do Brasil, pela API (é o que o app faz).
         if (! $this->option('sem-marcar')) {
             $antes = DB::table('ponto_marcacoes')->where('business_id', $business->id)->count();
-            $m = $http->postJson('/ponto/mobile/marcar', [
+            $m = $http->postJson('/ponto/api/marcar', [
                 'tipo' => Marcacao::TIPO_ENTRADA, 'lat' => 37.3349, 'lng' => -122.0090, 'accuracy' => 30,
                 'device_uuid' => 'demo-smoke', 'timestamp_device' => now()->toIso8601String(),
             ]);
-            $ok($m->getStatusCode() === 201, "POST /ponto/mobile/marcar (GPS Califórnia) → HTTP {$m->getStatusCode()}");
+            $ok($m->getStatusCode() === 201, "POST /ponto/api/marcar (GPS Califórnia) → HTTP {$m->getStatusCode()}");
             $dados = json_decode((string) $m->getContent(), true) ?: [];
             $ok((int) ($dados['marcacao']['nsr'] ?? 0) > 0, 'NSR do servidor = ' . ($dados['marcacao']['nsr'] ?? '—') . ' · revisar=' . var_export($dados['marcacao']['revisar'] ?? null, true));
             $depois = DB::table('ponto_marcacoes')->where('business_id', $business->id)->count();
             $ok($depois === $antes + 1, "marcações no business demo: {$antes} → {$depois}");
 
-            $h = $http->get('/ponto/mobile');
-            $p2 = self::paginaInertia((string) $h->getContent());
-            $ok(count($p2['props']['marcacoes_hoje'] ?? []) >= 1, 'aparece em Hoje: ' . count($p2['props']['marcacoes_hoje'] ?? []) . ' marcação(ões)');
+            $h1 = $http->getJson('/ponto/api/marcacoes/hoje');
+            $hoje1 = count((json_decode((string) $h1->getContent(), true) ?: [])['marcacoes'] ?? []);
+            $ok($hoje1 === $hoje0 + 1, "aparece em hoje (API): {$hoje0} → {$hoje1}");
         }
 
         if ($falhas > 0) {

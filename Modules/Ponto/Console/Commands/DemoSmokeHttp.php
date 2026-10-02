@@ -31,4 +31,13 @@ final class DemoSmokeHttp
         $this->withoutMiddleware(\App\Http\Middleware\VerifyCsrfToken::class);
         $this->actingAs($user, 'web');
     }
+
+    /**
+     * Troca para o guard da API (Passport), como o app: token de acesso em processo, sem senha e
+     * sem client OAuth. `Passport::actingAs` não usa Mockery (roda com o vendor de produção).
+     */
+    public function entrarComoApi(User $user): void
+    {
+        \Laravel\Passport\Passport::actingAs($user, [], 'api');
+    }
 }
