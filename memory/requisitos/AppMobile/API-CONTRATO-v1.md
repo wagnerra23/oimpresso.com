@@ -213,7 +213,7 @@ Mesmos campos e regras do §4.2, **menos** `tipo` e `papeis` (mudar papel fica n
   abas que o usuário pode abrir, na ordem do app. Cada uma segue a mesma regra da rota dela, então
   aba visível = rota que responde: `tarefas` = Essentials no plano ou quem aprova o Ponto;
   `pedidos`/`producao`/`orcamentos` = quem vê vendas; `pessoas` = quem vê cliente ou fornecedor; `ponto` =
-  colaborador com `controla_ponto`; `inicio` só para perfil `erp`; `mais` sempre.
+  colaborador com `controla_ponto`; `equipe` = quem vê a lista de usuários (§12.2); `inicio` só para perfil `erp`; `mais` sempre.
   `perfil` = `erp` se tem tarefas, vendas ou pessoas, senão `colaborador`. `abre_em` = `inicio`
   (erp), `ponto` (colaborador) ou `mais` (sem nenhuma das duas).
 
@@ -280,3 +280,20 @@ de contrato na lane MySQL) + 1 PR de tela no `oimpresso-app`, contra este contra
 - Leitura primeiro; a ação que escreve vem num PR separado. Em valor ou estoque: dupla prova, tabela antes→depois e ok do [W] antes do merge.
 - Tela de módulo que o business não tem no pacote não aparece (Camada 1).
 
+## 12. Onda E — Ponto, Equipe, Perfil de menu e Chat
+
+### 12.2 Equipe (tela 26) — só leitura
+
+`GET /api/app/equipe` →
+`{ itens:[{ id, nome, funcao, carga, status:{ rotulo, tom } }] }`, em ordem alfabética.
+
+- Pessoas = usuários do business (a mesma lista da tela web de Usuários), ativos e inativos. Sem
+  telefone e sem ponto: "Marcação de ponto fica no módulo Ponto".
+- `funcao` = cargo do Essentials (`categories` `hrm_designation`), senão o cargo do CRM; `null` sem cargo.
+- `carga` = OS abertas atribuídas à pessoa (`service_orders.assigned_user_id`, mesmo universo do
+  quadro web da Oficina: etapa não-terminal, ou OS de mecânica ainda sem pipeline), ex.: `"2 OS"`;
+  `null` quando não há nenhuma. O ERP não atribui OP de produção a uma pessoa, então OP não entra.
+- `status`: usuário inativo → `{ rotulo:"Inativo", tom:"ausente" }`; com carga → `{ "Em serviço", "ocupado" }`;
+  senão → `{ "Disponível", "livre" }`.
+- Acesso = o da tela web de Usuários (`user.view`); sem ele `403 sem_permissao`. Área `equipe` em
+  `/api/app/inicio` (§6) com a mesma regra.

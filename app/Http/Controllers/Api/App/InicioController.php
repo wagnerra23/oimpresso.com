@@ -87,6 +87,7 @@ class InicioController extends Controller
             'pessoas' => $pessoas,
             'orcamentos' => $vendas,
             'ponto' => $ponto,
+            'equipe' => app(EquipeController::class)->podeVerEquipe($user),
             'mais' => true,
         ]));
 
