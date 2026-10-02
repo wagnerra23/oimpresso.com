@@ -39,6 +39,7 @@ Route::middleware('auth:api')->prefix('app')->name('app.')->group(function () {
     // Throttle como o lookup da web (60/min): o ERP fala com o ViaCEP por todos os tenants.
     Route::get('/cep/{cep}', [\App\Http\Controllers\Api\App\CepController::class, 'show'])
         ->where('cep', '[0-9-]{1,12}')->middleware('throttle:60,1')->name('cep.show');
+    Route::put('/perfil-menu', [\App\Http\Controllers\Api\App\PerfilMenuController::class, 'update'])->name('perfil-menu.update');
     // Marcações a validar (tela 39): fila do gestor do REP-P. Id é UUID (ponto_marcacoes).
     Route::get('/ponto/aprovacoes', [\App\Http\Controllers\Api\App\PontoAprovacoesController::class, 'index'])->name('ponto.aprovacoes.index');
     Route::post('/ponto/aprovacoes/{id}/validar', [\App\Http\Controllers\Api\App\PontoAprovacoesController::class, 'validar'])->whereUuid('id')->name('ponto.aprovacoes.validar');
@@ -56,5 +57,6 @@ Route::middleware('auth:api')->prefix('app')->name('app.')->group(function () {
     Route::get('/pagamentos', [\App\Http\Controllers\Api\App\PagamentosController::class, 'index'])->name('pagamentos.index');
     Route::get('/inicio', [\App\Http\Controllers\Api\App\InicioController::class, 'show'])->name('inicio');
     Route::get('/os', [\App\Http\Controllers\Api\App\OficinaController::class, 'index'])->name('os.index');
+    Route::get('/os/{id}', [\App\Http\Controllers\Api\App\OficinaController::class, 'show'])->whereNumber('id')->name('os.show');
     Route::get('/venda/produtos', [\App\Http\Controllers\Api\App\VendaRapidaController::class, 'produtos'])->name('venda.produtos');
 });
