@@ -19,13 +19,7 @@ tests/Feature/Cliente/IsOtherFlagTest.php  # usa RefreshDatabase (dropa o seed)
 
 # (B) 403 onde o teste espera outro status: o fixture não concede a permissão / sessão
 #     que a rota exige hoje.
-tests/Feature/Cliente/BrasilApiLookupTest.php  # 403 (esperava 422) — 5 casos
-tests/Feature/Cliente/ClienteAuditoriaTabTest.php  # 403 (esperava 200) — 13 casos; permissão customer.view_own inexistente no guard
-tests/Feature/Cliente/ClienteIaTabTest.php  # 403 (esperava 200) — 9 casos
-tests/Feature/Cliente/ClientePagamentosPiiTest.php  # 403 (esperava 200) — 4 casos
-tests/Feature/Cliente/ClienteTypeOtherRouteTest.php  # 403 (esperava 200) — 2 casos
-tests/Feature/Cliente/RedirectLegacyContactsTest.php  # 403 (esperava redirect) — 1 caso
-tests/Feature/Cliente/SefazConsultaCadastroChainTest.php  # 403 (esperava 422) — 4 casos
+tests/Feature/Cliente/SefazConsultaCadastroChainTest.php  # 403 consertado (usuário com customer.update); segue 1 caso: tenant 98 em homologação responde env_homolog onde o teste espera sefaz_or_cert_error
 
 # (C) Guard que lê o código-fonte e procura um texto que o código não tem mais.
 tests/Feature/Cliente/ClienteDrawerRowsCanonBrPayloadTest.php  # texto esperado no EnderecoTab.tsx não bate — 1 caso

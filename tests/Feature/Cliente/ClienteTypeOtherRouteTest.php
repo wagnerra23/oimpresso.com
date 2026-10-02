@@ -64,13 +64,9 @@ test('GET /cliente?type=other renderiza Inertia com activeType=other (não custo
         test()->markTestSkipped('DB indisponível: ' . $e->getMessage());
     }
 
-    $user = User::where('business_id', $business->id)
-        ->where('user_type', '!=', 'user_customer')
-        ->first();
-
-    if (! $user) {
-        test()->markTestSkipped('Sem user não-customer no business.');
-    }
+    // /cliente (Cliente/Index) exige customer.view|view_own ou supplier.view|view_own
+    // desde o #8442/#8443 (2026-10-01).
+    $user = test()->usuarioComPermissoes(['customer.view'], $business);
 
     // Força o branch Inertia pra qualquer business (sem gate por biz).
     config([

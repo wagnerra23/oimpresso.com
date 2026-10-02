@@ -48,11 +48,9 @@ beforeEach(function () {
         $this->markTestSkipped('Coluna business_id ausente em activity_log -- rode migration 2021_03_16.');
     }
 
-    $this->business = $this->seededTenant(); // biz=1 canônico (ADR 0101) — skip acionável se o seed faltar
-    $this->user = \App\User::where('business_id', $this->business->id)->first();
-    if (! $this->user) {
-        $this->markTestSkipped('Sem user no business.');
-    }
+    $this->business = $this->seededTenant(); // tenant de teste (ADR 0358) — skip acionável se o seed faltar
+    // A timeline exige customer.view|view_own ou supplier.view|view_own (ClienteAuditoriaController).
+    $this->user = $this->usuarioComPermissoes(['customer.view'], $this->business);
 
     $now = now();
     $this->contactId = DB::table('contacts')->insertGetId([
@@ -330,40 +328,18 @@ test('GET CSV export -- causer name em coluna Causer', function () {
 // ---------------------------------------------------------------------
 
 test('GET timeline -- user sem nenhuma permission .view retorna 403', function () {
-    // Cria user sem permissions de view (revoga todas).
-    /** @var \App\User $user */
-    $user = \App\User::where('business_id', $this->business->id)->first();
-    if (! $user) {
-        $this->markTestSkipped('Sem user pra teste de permissao.');
-    }
-
-    // Salva permissions atuais e revoga as 4 .view.
-    $perms = ['customer.view', 'customer.view_own', 'supplier.view', 'supplier.view_own'];
-    foreach ($perms as $p) {
-        if ($user->hasPermissionTo($p)) {
-            $user->revokePermissionTo($p);
-        }
-    }
-    $user->refresh();
+    // Usuário NOVO com uma permissão que não é de leitura de contato: autenticado, do
+    // mesmo tenant, mas sem nenhuma das 4 `.view`. Antes este caso revogava permissões do
+    // usuário compartilhado e tentava restaurá-las — e quebrava no CI porque a permissão
+    // customer.view_own nem existia no seed.
+    $user = $this->usuarioComPermissoes(['customer.create'], $this->business);
 
     fakeActivity($this->contactId, $this->business->id, 'created', [], ['name' => 'X'], $user->id);
 
     $this->actingAs($user);
     session(['user.business_id' => $this->business->id]);
 
-    $response = $this->getJson("/cliente/{$this->contactId}/auditoria");
-
-    // Pode retornar 403 (sem permissao) ou 404 se o middleware fizer outro
-    // shortcut. O importante: NAO retorna 200.
-    expect($response->status())->toBeIn([403, 404, 401]);
-
-    // Restaura permissions pra nao afetar outros testes (DatabaseTransactions
-    // ja rollback mas spatie/permission usa cache).
-    foreach ($perms as $p) {
-        try {
-            $user->givePermissionTo($p);
-        } catch (\Throwable $e) {
-            // ignora -- permissao pode nao existir nesse seed
-        }
-    }
+    $this->getJson("/cliente/{$this->contactId}/auditoria")
+        ->assertStatus(403)
+        ->assertJsonPath('message', 'Sem permissao');
 });
