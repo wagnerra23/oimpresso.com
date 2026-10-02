@@ -101,3 +101,32 @@ it('o Início traz nao_lidas do usuário do token', function () {
 
     expect($this->getJson('/api/app/inicio')->assertOk()->json('nao_lidas'))->toBe(2);
 });
+
+it('marca uma como lida (idempotente); a de outro usuário dá 404 e segue não lida', function () {
+    $eu = appNotUsuario((int) $this->tenant->id);
+    $outro = appNotUsuario((int) $this->tenant->id);
+    $minha = appNotCriar($eu, 'App\Notifications\RecurringExpenseNotification', ['ref_no' => 'EXP-APP-7'], false, now()->toDateTimeString());
+    appNotCriar($eu, 'App\Notifications\RecurringExpenseNotification', ['ref_no' => 'EXP-APP-8'], false, now()->toDateTimeString());
+    $alheia = appNotCriar($outro, 'App\Notifications\RecurringExpenseNotification', ['ref_no' => 'EXP-APP-9'], false, now()->toDateTimeString());
+    Passport::actingAs($eu, [], 'api');
+
+    $this->postJson("/api/app/notificacoes/{$minha}/lida")->assertOk()->assertJsonPath('nao_lidas', 1);
+    $this->postJson("/api/app/notificacoes/{$minha}/lida")->assertOk()->assertJsonPath('nao_lidas', 1);
+    expect(DB::table('notifications')->where('id', $minha)->value('read_at'))->not->toBeNull();
+
+    $this->postJson("/api/app/notificacoes/{$alheia}/lida")->assertNotFound()->assertJsonPath('erro', 'nao_encontrado');
+    expect(DB::table('notifications')->where('id', $alheia)->value('read_at'))->toBeNull();
+});
+
+it('marca todas como lidas só as do usuário', function () {
+    $eu = appNotUsuario((int) $this->tenant->id);
+    $outro = appNotUsuario((int) $this->tenant->id);
+    appNotCriar($eu, 'App\Notifications\RecurringExpenseNotification', ['ref_no' => 'EXP-APP-10'], false, now()->toDateTimeString());
+    appNotCriar($eu, 'App\Notifications\RecurringExpenseNotification', ['ref_no' => 'EXP-APP-11'], false, now()->toDateTimeString());
+    appNotCriar($eu, 'App\Notifications\RecurringExpenseNotification', ['ref_no' => 'EXP-APP-12'], true, now()->toDateTimeString());
+    $alheia = appNotCriar($outro, 'App\Notifications\RecurringExpenseNotification', ['ref_no' => 'EXP-APP-13'], false, now()->toDateTimeString());
+    Passport::actingAs($eu, [], 'api');
+
+    $this->postJson('/api/app/notificacoes/lidas')->assertOk()->assertExactJson(['nao_lidas' => 0, 'marcadas' => 2]);
+    expect(DB::table('notifications')->where('id', $alheia)->value('read_at'))->toBeNull();
+});
