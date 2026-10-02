@@ -33,7 +33,7 @@ Listagem das Ordens de Serviço (Repair) — a fila operacional de OS com filtro
 - KPIs de topo (`KpiCard`) resumindo a fila
 - Filtros (com estado de "nenhuma OS no filtro" vs "sem ordens de serviço")
 - `EmptyState` distinguindo filtro-vazio de base-vazia
-- AppShellV2 + PageHeader shared ("Ordens de Serviço")
+- AppShellV2 + PageHeader canon `@/Components/PageHeader` ("Ordens de Serviço" · título 22px, `--fs-7`) — migrado do shared congelado em 2026-10-02 (thread 02 do playbook Repair)
 
 ---
 

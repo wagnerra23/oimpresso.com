@@ -112,3 +112,32 @@ it('UC-S04 · sem price_group a busca não traz variation_group_price — é o c
     expect(array_key_exists('variation_group_price', $linha->getAttributes()))->toBeFalse();
     expect((float) $linha->selling_price)->toEqualWithDelta(50.0, 0.0005);
 });
+
+/*
+ * Preço de grupo ZERO (2026-10-02). Medido no MySQL: o Blade (getProductRow) usa o grupo quando
+ * `!empty($price_inc_tax)`. Fixo chega como string "0.0000" (não-vazia) → a linha fica em 0.
+ * Percentual sai de calc_percentage como float 0 (vazio) → a linha fica no preço base. O React
+ * aplica `variation_group_price` sempre que não é nulo (precoDaBusca.ts), então o filterProduct
+ * devolve NULL no percentual que dá zero. Os dois caminhos têm de chegar ao mesmo preço final.
+ */
+dataset('precos de grupo zero', [
+    'fixo 0 → o grupo vale (preço 0)' => ['fixed', 0.0],
+    'percentual 0 → sem preço de grupo (preço base 50)' => ['percentage', 50.0],
+]);
+
+it('UC-S04 · preço de grupo zero: React e Blade chegam ao mesmo preço final', function (string $tipo, float $esperado) {
+    $c = buscaGrupoCenario(50.0, ['valor' => 0, 'tipo' => $tipo]);
+
+    // Caminho React: a linha de /products/list + a regra do precoDaBusca (grupo não-nulo vence).
+    $linha = buscaGrupoLinha($c, $c['grupo']);
+    $react = $linha->variation_group_price !== null
+        ? (float) $linha->variation_group_price
+        : (float) $linha->selling_price;
+
+    // Caminho Blade: a mesma condição do SellPosController::getProductRow.
+    $grupo = app(ProductUtil::class)->getVariationGroupPrice($c['variacao'], $c['grupo'], null);
+    $blade = ! empty($grupo['price_inc_tax']) ? (float) $grupo['price_inc_tax'] : 50.0;
+
+    expect($react)->toEqualWithDelta($esperado, 0.0005);
+    expect($blade)->toEqualWithDelta($esperado, 0.0005);
+})->with('precos de grupo zero');

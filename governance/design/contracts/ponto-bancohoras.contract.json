@@ -1,0 +1,22 @@
+{
+  "_nota": "Copy declarada POR REGIÃO a partir de ponto-telas.jsx: para cada âncora, o trecho do protótipo entre o marcador contrato=\"<id>\" e o marcador seguinte. Entra só a string que existe nesse trecho E no código da tela, fora de comentário (medido 2026-10-02). Os ids são os mesmos dos dois lados (thread 17 do playbook do Ponto gravou o par no .tsx).",
+  "_nota_recorte": "O restante do protótipo que não está aqui é copy que a tela reescreveu ou não tem; não é travado.",
+  "tela": "Ponto/BancoHoras/Index",
+  "fonte": "prototipo-ui/cowork/Wagner/ponto-telas.jsx",
+  "alvo": [
+    "resources/js/Pages/Ponto/BancoHoras/Index.tsx"
+  ],
+  "secoes": [
+    {
+      "id": "bancohoras-saldos-por-colaborador",
+      "copy": [
+        "Colaborador",
+        "Matrícula",
+        "Saldo"
+      ]
+    }
+  ],
+  "ordem": [
+    "bancohoras-saldos-por-colaborador"
+  ]
+}
