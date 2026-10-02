@@ -85,6 +85,14 @@ last_run: "2026-09-05"
 
 ---
 
+## UC-RSHW-06 · Venda fora do prazo de edição volta pro detalhe, sem loop
+- **Por que existe:** smoke em prod (2026-10-01, venda de reparo de 2022): `/repair/repair/{id}/edit` digitado direto dava **`ERR_TOO_MANY_REDIRECTS`**. O `SellPosController@edit` recusa venda fora do prazo (`canBeEdited`) ou com devolução (`isReturnExist`) com `back()`; sem `Referer`, o `back()` cai no "previous URL" da sessão — que era a própria rota do UC-RSHW-05 — e o ciclo não termina. Com clique (há `Referer`) voltava pro detalhe; o defeito era só sem página anterior.
+- **Aceite:** Dado `transaction_edit_days` = 30 · Quando pede "Editar" de uma venda de reparo de 2 dias atrás · Então vai pro PDV (`/pos/{id}/edit?sub_type=repair`, controle) · Quando pede o de uma venda de 2 anos atrás · Então volta pro **detalhe da venda** com a mensagem de recusa na sessão (`status.success` = 0), sem passar pelo PDV.
+- **Teste:** `Modules/Repair/Tests/Feature/RepairShowContratoTest.php` (UC-RSHW-06, lane `verticais-pest`).
+- **Status: 🧪** _(nasce sem run.)_
+
+---
+
 ## Contrato ainda sem UC (prosa honesta, sem gate)
 
 > Já defendido por teste que **não cita UC** — invisível ao G-2. Vira UC quando ganhar um teste que

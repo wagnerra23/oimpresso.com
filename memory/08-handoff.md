@@ -36,6 +36,8 @@
 ---
 
 ## Últimos handoffs
+- [2026-10-02 11:03 BRT — **Protótipo mobile importado + âncora do app das lojas**](handoffs/2026-10-02-1103-importacao-prototipo-mobile-app-lojas.md) (projeto Claude Design b29cacda = o correto · `mobile/ref/design-v4` #8467/#8485 · `github.md` → oimpresso-app #8494 · D13 v1 = 7 áreas + D14 tema do celular #8473 · playbook app-lojas com errata #8498 · CI no oimpresso-app #15 · `receber-handoff --projeto mobile` #8509 aberto · Dashboard 35 a decidir pelo [W])
+- [2026-10-02 08:22 BRT — BUGS PESSOAS: D8 fechado](handoffs/2026-10-02-0822-bugs-pessoas-d8-fechado.md) — view_own (#8469) e ticket médio (#8479, antes→depois [W]) no main; ledger #8484 e mapa #8501 mergeados; API de Pessoas é o #8497 da coordenação, que também fica com o serviço único de saldo/ticket.
 - [2026-10-01 15:30 BRT — **App nas lojas: coordenação passada à BASE MOBILE**](handoffs/2026-10-01-1530-app-lojas-coordenacao-passada.md) (arquitetura final: Capacitor com telas próprias + API por tela; /m revertido #8472 · DECISOES.md no #8473 · lição: decisão conflitante se fecha com pergunta única lado a lado)
 - [2026-10-01 16:14 BRT — **Gestão de merges das sessões paralelas**](handoffs/2026-10-01-1614-gestao-merges-sessoes-paralelas.md) (vigia de merge com retenção de valor/estoque/ADR; vazamento da lista de clientes fechado em #8442/#8443/#8469; 29 sessões arquivadas; retidos p/ [W]: #8454, #8460)
 - [2026-10-01 13:45 BRT — **Auditoria: backfill do business_id NULL no activity_log**](handoffs/2026-10-01-1345-auditoria-backfill-business-id.md) (núcleo já aplicado antes · 6.322 linhas de outros módulos + 146 licenças limpas com ok [W] · 0 divergentes na conferência · BRIEFING #8440)
