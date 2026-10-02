@@ -19,7 +19,7 @@ uses(PontoTestCase::class);
  * API de Marcações a validar do app das lojas (tela 39) — GET /api/app/ponto/aprovacoes,
  * POST …/{id}/validar e POST …/{id}/recusar.
  *
- * Contrato: memory/requisitos/AppMobile/API-CONTRATO-v1.md §1.1 + decisão [W] relatada pela
+ * Contrato: memory/requisitos/AppMobile/API-CONTRATO-v1.md §12.1 + decisão [W] relatada pela
  * sessão do app (só fora do geofence; recusa = ANULAÇÃO, nunca UPDATE/DELETE — Portaria
  * 671/2021; acesso = o das aprovações do Ponto). NÃO derivado do controller.
  *

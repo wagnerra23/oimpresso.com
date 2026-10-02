@@ -14,7 +14,7 @@ use Modules\Ponto\Services\FilaGestorRepPService;
 
 /**
  * Marcações a validar — fila do gestor do REP-P no app das lojas (tela 39).
- * Contrato: memory/requisitos/AppMobile/API-CONTRATO-v1.md §1.1.
+ * Contrato: memory/requisitos/AppMobile/API-CONTRATO-v1.md §12.1.
  *
  * Só marcações do celular FORA do geofence, últimos 7 dias. A regra é a da tela web
  * /ponto/aprovacoes (FilaGestorRepPService, um lugar só):
