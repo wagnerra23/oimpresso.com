@@ -1,5 +1,7 @@
 <?php
 
+// @covers-us US-SELL-064
+
 declare(strict_types=1);
 
 use App\User;
@@ -9,11 +11,10 @@ use Illuminate\Support\Facades\Schema;
 use Spatie\Permission\Models\Permission;
 
 /**
- * Contrato do endpoint de dados da Lista de POS: `GET /sells-list-json?is_direct_sale=0`
- * (`SellController@inertiaList`). O render da tela (`GET /pos`) entra com a Page, no PR seguinte.
+ * Contrato da Lista de POS (`GET /pos` → `SellPosController@index`, dados de
+ * `GET /sells-list-json?is_direct_sale=0` → `SellController@inertiaList`).
  *
- * UCs: textos revisados em prototipo-ui/cowork/Wagner/cowork-inbox/venda-menu/ListaPos.casos.md
- * (UC-POS-01..05); o casos.md ao lado do .tsx chega com a Page.
+ * UCs: resources/js/Pages/Sells/Pos/Index.casos.md (UC-POS-01..05 aqui; 06..08 no E2E).
  * Os casos saem do charter (R1..R6) e do legado `sale_pos/index`, não do `.tsx`.
  *
  * Tenants: 98 (canônico, ADR 0358) × 99 (adversário, criado se faltar). Nunca biz=4.
@@ -100,6 +101,23 @@ function sposLista(object $test, array $query = [])
 {
     return $test->withHeaders(['Accept' => 'application/json', 'X-Requested-With' => 'XMLHttpRequest'])
         ->get('/sells-list-json?' . http_build_query(array_merge(['q' => $test->prefixo], $query)));
+}
+
+function sposInertiaVersion(): string
+{
+    $manifest = public_path('build-inertia/manifest.json');
+
+    return file_exists($manifest) ? md5_file($manifest) : '1';
+}
+
+/** GET /pos como o cliente Inertia manda (X-Inertia E X-Requested-With — §5 2026-09-08). */
+function sposPagina(object $test)
+{
+    return $test->withHeaders([
+        'X-Inertia' => 'true',
+        'X-Inertia-Version' => sposInertiaVersion(),
+        'X-Requested-With' => 'XMLHttpRequest',
+    ])->get('/pos');
 }
 
 beforeEach(function () {
@@ -192,10 +210,26 @@ it('UC-POS-03 venda quitada chega sem saldo devedor', function () {
     expect(round((float) $parcial['final_total'] - (float) $parcial['total_paid'], 2))->toBe(150.0);
 });
 
-it('UC-POS-04 (gate) sem sell.view nem sell.create a Lista de POS é negada', function () {
+it('UC-POS-04 papel sem sell.delete abre a tela com Excluir desabilitado', function () {
+    $response = sposPagina($this);
+    $response->assertStatus(200);
+    $page = json_decode($response->getContent(), true);
+
+    expect($page['component'] ?? null)->toBe('Sells/Pos/Index');
+    expect($page['props']['permissions']['delete'])->toBeFalse();
+    expect($page['props']['permissions']['create'])->toBeTrue();
+
+    $comExclusao = sposUsuario($this->bizId, ['sell.view', 'sell.delete']);
+    sposLogin($this, $comExclusao);
+    $page2 = json_decode(sposPagina($this)->assertStatus(200)->getContent(), true);
+    expect($page2['props']['permissions']['delete'])->toBeTrue();
+});
+
+it('UC-POS-04 (gate) sem sell.view nem sell.create a tela e a lista são negadas', function () {
     $semPermissao = sposUsuario($this->bizId, ['access_all_locations']);
     sposLogin($this, $semPermissao);
 
+    sposPagina($this)->assertStatus(403);
     sposLista($this, ['is_direct_sale' => 0])->assertStatus(403);
 });
 

@@ -27,6 +27,7 @@ Route::middleware('auth:api')->prefix('app')->name('app.')->group(function () {
     Route::get('/pessoas', [\App\Http\Controllers\Api\App\PessoasController::class, 'index'])->name('pessoas.index');
     Route::post('/pessoas', [\App\Http\Controllers\Api\App\PessoasController::class, 'store'])->name('pessoas.store');
     Route::get('/pessoas/{id}', [\App\Http\Controllers\Api\App\PessoasController::class, 'show'])->whereNumber('id')->name('pessoas.show');
+    Route::patch('/pessoas/{id}', [\App\Http\Controllers\Api\App\PessoasController::class, 'update'])->whereNumber('id')->name('pessoas.update');
     Route::get('/pessoas/{id}/cadastro', [\App\Http\Controllers\Api\App\PessoasController::class, 'cadastro'])->whereNumber('id')->name('pessoas.cadastro');
     Route::get('/pedidos', [\App\Http\Controllers\Api\App\PedidosController::class, 'index'])->name('pedidos.index');
     Route::get('/pedidos/{id}', [\App\Http\Controllers\Api\App\PedidosController::class, 'show'])->whereNumber('id')->name('pedidos.show');
@@ -38,6 +39,7 @@ Route::middleware('auth:api')->prefix('app')->name('app.')->group(function () {
     // Throttle como o lookup da web (60/min): o ERP fala com o ViaCEP por todos os tenants.
     Route::get('/cep/{cep}', [\App\Http\Controllers\Api\App\CepController::class, 'show'])
         ->where('cep', '[0-9-]{1,12}')->middleware('throttle:60,1')->name('cep.show');
+    Route::get('/produtos', [\App\Http\Controllers\Api\App\ProdutosController::class, 'produtos'])->name('produtos.index');
     Route::get('/produtos/opcoes', [\App\Http\Controllers\Api\App\NovoProdutoController::class, 'opcoes'])->name('produtos.opcoes');
     Route::post('/produtos', [\App\Http\Controllers\Api\App\NovoProdutoController::class, 'store'])->name('produtos.store');
     Route::get('/inicio', [\App\Http\Controllers\Api\App\InicioController::class, 'show'])->name('inicio');
