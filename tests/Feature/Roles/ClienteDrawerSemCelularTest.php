@@ -12,7 +12,12 @@ declare(strict_types=1);
  *   - PATCH /cliente/{id}/contato: o autosave da aba Contato manda `mobile: ''` quando o
  *     telefone é apagado; ConvertEmptyStringsToNull vira null e updateAndRespond() só trata
  *     UniqueConstraintViolation — um 1048 sairia como 500.
- * É o mesmo defeito que quebrava o cadastro web (run 37035885785).
+ * A hipótese era o mesmo defeito do cadastro web (1048, run 37035885785). Medido em
+ * 2026-10-02 (run 37040955737): NÃO quebra em nenhum dos dois. A conexão MySQL roda com
+ * `'strict' => false` (config/database.php): o draft omite a coluna e o INSERT usa o valor
+ * implícito ''; o autosave faz UPDATE com null, que também vira ''. Só o INSERT com null
+ * EXPLÍCITO dá erro — o caso do store(), consertado no #8564. Este teste fica como
+ * proteção: se o strict for ligado, os dois caminhos passam a falhar e ele acusa.
  *
  * Controle POSITIVO: o autosave trocando o celular por outro número grava. Sem ele, um
  * vermelho no caso vazio poderia ser rota/permissão/sessão, não o celular.
@@ -74,7 +79,7 @@ afterEach(function () {
     }
 });
 
-it('MEDIÇÃO: o rascunho de novo cliente (POST /cliente/draft) é criado sem celular', function () {
+it('o rascunho de novo cliente (POST /cliente/draft) é criado sem celular', function () {
     $r = $this->withHeaders(cdcHeaders())->postJson('/cliente/draft', ['type' => 'customer']);
 
     $this->assertSame(201, $r->getStatusCode(), 'Rascunho sem celular não foi criado. Corpo: ' . mb_substr((string) $r->getContent(), 0, 400));
@@ -89,14 +94,14 @@ it('POSITIVO: o autosave da aba Contato troca o celular por outro número', func
     $this->assertSame('48988887777', DB::table('contacts')->where('id', $this->contatoId)->value('mobile'));
 });
 
-it('MEDIÇÃO: o autosave da aba Contato aceita apagar o celular', function () {
+it('o autosave da aba Contato aceita apagar o celular', function () {
     $r = $this->withHeaders(cdcHeaders())->patchJson("/cliente/{$this->contatoId}/contato", ['mobile' => '']);
 
     $this->assertSame(200, $r->getStatusCode(), 'Apagar o celular no drawer falhou. Corpo: ' . mb_substr((string) $r->getContent(), 0, 400));
     $this->assertSame('', DB::table('contacts')->where('id', $this->contatoId)->value('mobile'), 'Celular apagado deve ficar vazio.');
 });
 
-it('MEDIÇÃO: o autosave com a chave PT-BR do front (tel) aceita apagar o celular', function () {
+it('o autosave com a chave PT-BR do front (tel) aceita apagar o celular', function () {
     $r = $this->withHeaders(cdcHeaders())->patchJson("/cliente/{$this->contatoId}/contato", ['tel' => '']);
 
     $this->assertSame(200, $r->getStatusCode(), 'Apagar o telefone pela chave tel falhou. Corpo: ' . mb_substr((string) $r->getContent(), 0, 400));
