@@ -94,22 +94,21 @@ computador".
   endereco, kpis{pedidos, ticket_medio, saldo_aberto}, pedidos_recentes[…]}`. Documento (CPF/CNPJ)
   só com a permissão de ver contato completo.
 
-## 5. Produção ⬜ — fila do Kanban por etapa, sem carga % (D11/D6)
+## 5. Produção ⬜ — fila por **etapa da venda** ([W] 2026-10-02)
 
 `GET /api/app/producao`
 
 ```json
 { "colunas": [ {
-    "id": "em-execucao", "rotulo": "Em execução",
-    "itens": [ { "id": 77, "numero": "OS-0077", "cliente": "…", "prazo": "2026-10-02", "atrasado": false } ] } ] }
+    "id": "in_production", "rotulo": "Em produção",
+    "itens": [ "…mesmo item da lista de pedidos (§2)…" ] } ] }
 ```
 
-- **Fonte provisória:** o Kanban de produção que existe hoje no ERP é o da OS
-  (`ProducaoOficinaController` + `KanbanProductionService`: colunas recepção · diagnóstico ·
-  aguardando peças · em execução · pronto). ⚠️ **A confirmar com o [W]:** se a "fila do Kanban"
-  da D11 é esse (OS) ou os estágios de produção da **venda** (`in_production`/`on_hold`), já que
-  Pedido = venda. Até a resposta, o app monta a tela com colunas genéricas (`id`, `rotulo`).
-- Só leitura na v1 (mover card grava status fora da FSM hoje — não exposto).
+- Decisão [W] 2026-10-02: *"Produção usa as etapas da venda"* — mesma entidade de Pedidos.
+- Colunas fixas, nesta ordem: `quote_approved` (aprovado pelo cliente, na fila) · `in_production` ·
+  `on_hold` · `ready_for_invoice` (pronto). Rótulo = nome do estágio cadastrado no business.
+- Mesmas permissões e regras de visibilidade de Pedidos; até 50 itens por coluna, prazo mais
+  próximo primeiro. Só leitura (mover de etapa é ação FSM, fora da v1). Sem carga % (D11).
 
 ## 6. Início ⬜
 
@@ -133,6 +132,8 @@ computador".
 
 ## 7. Mais
 
+**Dashboard (tela 35 do protótipo): fora da v1** — D13 define as 7 áreas e o Dashboard não é uma delas.
+
 Sem API própria: itens com tela no app (Pessoas, Ponto, Conta) + "Abrir no computador" para o
 resto. Nada de Produtos/Venda rápida/Finanças na v1 (D13 → v2).
 
@@ -146,5 +147,5 @@ Início + item no Mais.)
 ## 8. Ordem de entrega no ERP
 
 1. Pedidos (lista + detalhe, só leitura) · 2. Tarefas (+ concluir ToDo) · 3. Pessoas ·
-4. Produção (depois da confirmação do §5) · 5. Início (agrega os anteriores).
+4. Produção · 5. Início (agrega os anteriores).
 Cada um em PR próprio com teste de contrato na lane MySQL e entrada neste documento (⬜ → ✅).
