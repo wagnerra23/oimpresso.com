@@ -27,7 +27,7 @@
   "stats": {
     "modules": 35,
     "nodes": 740,
-    "edges": 1027,
+    "edges": 1029,
     "by_node_type": {
       "module": 39,
       "table": 102,
@@ -43,8 +43,8 @@
       "charteredByAdr": 30,
       "governedByAdr": 78,
       "hasComponent": 389,
-      "dependsOn": 116,
-      "delegatesTo": 108,
+      "dependsOn": 117,
+      "delegatesTo": 109,
       "migratesTo": 1,
       "supersedes": 24,
       "supersedesPartially": 62,
@@ -7566,6 +7566,13 @@
     },
     {
       "from": "module:ConsultaOs",
+      "to": "module:Repair",
+      "type": "delegatesTo",
+      "source": "not_contains",
+      "note": "Folhas de OS (repair_job_sheets)"
+    },
+    {
+      "from": "module:ConsultaOs",
       "to": "module:Forja",
       "type": "dependsOn",
       "source": "delegatesTo",
@@ -7584,6 +7591,13 @@
       "type": "dependsOn",
       "source": "delegatesTo",
       "note": "Conhecimento canônico (ADRs, sessions)"
+    },
+    {
+      "from": "module:ConsultaOs",
+      "to": "module:Repair",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Folhas de OS (repair_job_sheets)"
     },
     {
       "from": "module:ConsultaOs",
