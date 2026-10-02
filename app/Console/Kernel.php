@@ -40,6 +40,21 @@ class Kernel extends ConsoleKernel
 
         }
 
+        // Ponto — lembrete de bater ponto por push (ADR 0423). Avisa o colaborador alguns minutos
+        // antes de cada horário da escala de hoje, se a marcação ainda não foi feita. Com a fila
+        // `sync` o Job roda no mesmo tick (sem worker no Hostinger). Desligado até
+        // PONTO_PUSH_ENABLED=true + credenciais do Firebase no servidor.
+        $schedule->command('ponto:lembretes-push')
+            ->everyFiveMinutes()
+            ->withoutOverlapping(10)
+            ->environments(['live'])
+            ->when(fn () => (bool) config('ponto_push.enabled', false))
+            ->onFailure(function () {
+                \Illuminate\Support\Facades\Log::channel('single')->error(
+                    'Schedule ponto:lembretes-push FALHOU — lembretes de ponto podem não ter saído'
+                );
+            });
+
         // PaymentGateway — polling de reconciliação PIX Inter (fallback do webhook).
         // O Inter não empurra confirmação sozinho; este cron PERGUNTA ao Inter
         // quais cobranças PIX emitidas já foram pagas e reconcilia (marca paga +
@@ -762,6 +777,23 @@ class Kernel extends ConsoleKernel
                 );
             });
 
+        // ADR 0423 — aviso ao titular (LGPD Art. 18) por e-mail/WhatsApp, diário 10:00 BRT
+        // ([W] 2026-10-01: "agende o arquivos:avisar-titulares diário no Kernel").
+        // Horário comercial: a mensagem chega a uma pessoa, não a um sistema. `--todos` só
+        // entra em negócio que LIGOU algum canal (default desligado) — sem isso, nada sai.
+        // Re-rodar é seguro: arquivo já avisado sai da janela (registrarAviso é idempotente).
+        $schedule->command('arquivos:avisar-titulares --todos')
+            ->dailyAt('10:00')
+            ->timezone('America/Sao_Paulo')
+            ->name('arquivos-avisar-titulares-daily')
+            ->withoutOverlapping()
+            ->environments(['live'])
+            ->onFailure(function () {
+                \Illuminate\Support\Facades\Log::channel('single')->error(
+                    'Schedule arquivos:avisar-titulares FALHOU — investigar storage/logs/laravel.log'
+                );
+            });
+
         // Onda 3 Ops/DR (AUDITORIA-OPS-DR-2026-07) — catraca de frescor do backup.
         // `backup:run` (01:30) só CRIA o backup; nada VERIFICAVA se ele existe/está
         // fresco. spatie tem `monitor_backups` (config/backup.php: MaximumAgeInDays=1,
@@ -1293,6 +1325,25 @@ class Kernel extends ConsoleKernel
             ->onFailure(function () {
                 \Illuminate\Support\Facades\Log::channel('single')->error(
                     'Schedule queue:work attendance-import FALHOU — import de presenca pode ficar parado na jobs table'
+                );
+            });
+
+        // Worker da fila `sales-import` (thread 05 de Vendas, decisão D2 de [W] 2026-10-02):
+        // drena o ImportarVendasJob, despachado pela tela /import-sales quando a planilha
+        // passa de `config('sells.import.limite_sincrono')` linhas.
+        //
+        // POR QUE FILA PROPRIA — mesma razao de `backups` e `attendance-import` acima: quem
+        // drena `default` esta atras de `queue.backlog_worker_enabled`, e `default` esta na
+        // lista do `jobs:purge-represados`. NAO gated: so recebe job recem-despachado por
+        // acao humana. withoutOverlapping(15) casa com o $timeout=900 do job.
+        $schedule->command('queue:work database --queue=sales-import --max-time=55 --tries=1')
+            ->everyMinute()
+            ->withoutOverlapping(15)
+            ->environments(['live'])
+            ->runInBackground()
+            ->onFailure(function () {
+                \Illuminate\Support\Facades\Log::channel('single')->error(
+                    'Schedule queue:work sales-import FALHOU — importacao de vendas pode ficar parada na jobs table'
                 );
             });
 

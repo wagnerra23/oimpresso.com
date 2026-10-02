@@ -1,0 +1,39 @@
+{
+  "_nota": "Copy declarada POR REGIÃO a partir de ponto-telas.jsx: para cada âncora, o trecho do protótipo entre o marcador contrato=\"<id>\" e o marcador seguinte. Entra só a string que existe nesse trecho E no código da tela, fora de comentário (medido 2026-10-02). Os ids são os mesmos dos dois lados (thread 17 do playbook do Ponto gravou o par no .tsx).",
+  "_nota_recorte": "Fora de propósito: valores de enum que o componente traduz para rótulo (REP_P, REP_C, REP_A) — o rótulo, quando existe nos dois lados, está na copy. O restante do protótipo que não está aqui é copy que a tela reescreveu ou não tem; não é travado.",
+  "tela": "Ponto/Configuracoes/Reps",
+  "fonte": "prototipo-ui/cowork/Wagner/ponto-telas.jsx",
+  "alvo": [
+    "resources/js/Pages/Ponto/Configuracoes/Reps.tsx"
+  ],
+  "secoes": [
+    {
+      "id": "configuracoes-cadastrar-novo-rep",
+      "copy": [
+        "Tipo",
+        "REP-C (Convencional)",
+        "REP-A (Alternativo)",
+        "Descrição",
+        "Local",
+        "CNPJ",
+        "Cadastrar REP"
+      ]
+    },
+    {
+      "id": "configuracoes-reps-cadastrados",
+      "copy": [
+        "REPs cadastrados",
+        "Tipo",
+        "Identificador",
+        "Descrição",
+        "Local",
+        "CNPJ",
+        "Nenhum REP cadastrado ainda."
+      ]
+    }
+  ],
+  "ordem": [
+    "configuracoes-cadastrar-novo-rep",
+    "configuracoes-reps-cadastrados"
+  ]
+}

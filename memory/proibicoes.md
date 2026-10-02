@@ -1844,6 +1844,22 @@ Ocorrência da **LC-08**.
 
 - **O limite (variante também proibida):** confirmação por re-leitura só vale se as leituras puderem discordar. Repetir a **mesma** consulta contra uma fonte que serve retrato velho não é N amostras, é uma amostra lida N vezes. Quando a fonte pode estar atrasada, a re-leitura pergunta por outro caminho (outra forma de URL, outro endpoint, outro filtro) que responda a mesma pergunta. E re-executar o job até ficar verde não é investigação: apaga a falha da listagem padrão e deixa o próximo PR tropeçar no mesmo alarme.
 
+### 2026-10-01 — A catraca de acoplamento oferecia `not_contains` como saída no eixo TABELA, que não lê `not_contains`
+
+- **O limite (variante também proibida):** mensagem compartilhada entre caminhos com regras de isenção diferentes não lista a saída de um como se valesse para todos. Cada opção oferecida tem de ser honrada no caminho que imprime a mensagem, e o teste disso exercita o CLI de fora, não um helper.
+
+### 2026-10-01 — EMENDA da lápide 2026-09-30 (2ª): o pedido chegou por sessão de coordenação, e a sessão irmã que já tinha o PR aberto não estava na lista de quem eu avisaria
+
+- **O limite (variante também proibida):** pedido vindo de documento de coordenação (mapa, playbook, lista de achados) não é atribuição exclusiva. Outras sessões leem o mesmo documento. Antes do primeiro Edit em arquivo citado ali, `dup-detector --path`; antes do `gh pr create`, `git fetch` + `git log HEAD..origin/main -- <arquivos>`.
+
+### 2026-10-02 — EMENDA da lápide 2026-08-13 (retrato atrasado): uma leitura minha, à mão, numa janela de deploy, virou comentário de canon e tirou uma defesa do deploy
+
+- **O limite (variante também proibida):** resposta de produção lida uma vez, durante deploy, não vira afirmação sobre o comportamento da rota. Antes de escrever em canon (comentário, ADR, PR body), repetir a leitura fora da janela de deploy. E não se remove uma defesa com base numa sonda que eu mesmo não confirmei.
+
+### 2026-10-02 — Tamanho da CÉLULA lido como tamanho do TEXTO na comparação app × protótipo
+
+- **O limite (variante também proibida):** divergência de tipografia de célula só se reporta quando a célula tem bloco de texto nos dois lados. `fontPx` de container é herança, não texto.
+
 ## Sempre fazer
 
 - ✅ **LIGUE A MÁQUINA — máquina é sempre melhor que fazer na mão** ([W] 2026-07-26, textual: *"isso ligue as maquinas, é sempre melhor que fazer na mão. isso é regra no sistema. deve ser"*). Ordem obrigatória, nesta sequência:

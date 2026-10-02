@@ -1,0 +1,8 @@
+--- a/mobile/components/oi/OiDetailHeader.tsx
++++ b/mobile/components/oi/OiDetailHeader.tsx
+@@ voltar: 40 + hitSlop 6 = 52 — ok; só acessibilidade
+       <Pressable
+         onPress={onBack}
+         hitSlop={6}
++        accessibilityRole="button"
++        accessibilityLabel="Voltar"

@@ -484,6 +484,25 @@ class ContactController extends Controller
             return redirect()->back();
         }
 
+        // Gate de leitura de contato — vale para TODOS os caminhos do index (React, casca Blade e
+        // AJAX), com a mesma regra de indexCustomer/indexSupplier. Antes ficava só dentro do ramo
+        // React: com a flag `cliente_index` desligada, a casca Blade abria 200 para quem não tem
+        // permissão, expondo os nomes dos usuários (User::forDropdown) e os grupos de cliente
+        // (achado 2026-10-01, DEMO-03 do #8428 — ContatosListaExigePermissaoTest).
+        // Fornecedor usa supplier.*; os demais papéis seguem mapeados em customer.* (ADR 0188);
+        // 'all' passa com qualquer um dos dois.
+        $u = auth()->user();
+        $veCliente = $u->can('customer.view') || $u->can('customer.view_own');
+        $veFornecedor = $u->can('supplier.view') || $u->can('supplier.view_own');
+        $podeVer = match ($type) {
+            'supplier' => $veFornecedor,
+            'all' => $veCliente || $veFornecedor,
+            default => $veCliente,
+        };
+        if (! $podeVer) {
+            abort(403, 'Unauthorized action.');
+        }
+
         if ($this->isLegacyAjax()) {
             if ($type == 'supplier') {
                 return $this->indexSupplier();
@@ -552,6 +571,23 @@ class ContactController extends Controller
     }
 
     /**
+     * Restringe a lista a "só os próprios" para quem tem `X.view_own` sem `X.view` — a MESMA regra
+     * do caminho antigo (Contact::scopeOnlyCustomers / scopeOnlySuppliers / scopeOnlyOwnContact):
+     * `contacts.created_by = usuário` OU contato compartilhado em `user_contact_access`.
+     * Antes os builders do React não aplicavam: quem tinha só view_own via a lista inteira da
+     * empresa (achado 2026-10-01 — ContatosViewOwnTest). Fornecedor usa supplier.*, os demais
+     * papéis customer.* (ADR 0188); 'all' restringe se qualquer um dos dois for só-próprios.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder|\Illuminate\Database\Query\Builder  $q
+     * @return mixed
+     */
+    private function applyViewOwnFilter($q, string $type)
+    {
+        // Regra única com a API do app das lojas (#8469): ver App\Services\Pessoas\PessoaEscopo.
+        return \App\Services\Pessoas\PessoaEscopo::viewOwn($q, $type, auth()->user());
+    }
+
+    /**
      * ADR 0188 — Aplica filtro por papel canônico em Builder · prefere flags `is_X`
      * aditivas (migration 2026_05_24_200000) com fallback `type` enum UPOS legacy
      * pra ambientes pré-migration ou se a coluna for dropada por rollback.
@@ -561,36 +597,7 @@ class ContactController extends Controller
      */
     private function applyContactTypeFilter($q, string $type)
     {
-        $flagColumn = [
-            'customer' => 'is_customer',
-            'supplier' => 'is_supplier',
-            'employee' => 'is_employee',
-            'representative' => 'is_representative',
-            // ADR 0246 (2026-06-03) — categoria "Outros" canônica
-            'other' => 'is_other',
-        ];
-
-        if ($type === 'all') {
-            return $q; // Sem filtro · todos papéis
-        }
-
-        $flag = $flagColumn[$type] ?? null;
-        if ($flag === null) {
-            // Fallback defensivo · tipo inválido cai pra customer (já validado em /cliente route).
-            return $q->where('contacts.type', 'customer');
-        }
-
-        // Prefere flag se a coluna existir (post-migration).
-        if (\Illuminate\Support\Facades\Schema::hasColumn('contacts', $flag)) {
-            return $q->where("contacts.{$flag}", 1);
-        }
-
-        // Fallback legacy: type enum UPOS. Mapeia 'customer' ↔ 'both' (UPOS legacy convention).
-        if ($type === 'customer') {
-            return $q->whereIn('contacts.type', ['customer', 'both']);
-        }
-
-        return $q->where('contacts.type', $type);
+        return \App\Services\Pessoas\PessoaEscopo::papel($q, $type);
     }
 
     /**
@@ -603,6 +610,7 @@ class ContactController extends Controller
         // ADR 0188 — filtra via flag aditiva `is_X` se a coluna existir (migration
         // rodou). Fallback `type` enum legacy UPOS pra ambientes pré-migration.
         $base = $this->applyContactTypeFilter($base, $type);
+        $base = $this->applyViewOwnFilter($base, $type);
 
         $total = (clone $base)->count();
         $com_os_aberta = (clone $base)
@@ -693,13 +701,13 @@ class ContactController extends Controller
         $base = Contact::where('contacts.business_id', $business_id);
 
         $counts = [
-            'all' => (int) (clone $base)->count(),
+            'all' => (int) $this->applyViewOwnFilter(clone $base, 'all')->count(),
         ];
 
         // ADR 0246 — inclui 'other' (5º papel) nos counters da subnav.
         foreach (['customer', 'supplier', 'employee', 'representative', 'other'] as $tipo) {
             $q = clone $base;
-            $counts[$tipo] = (int) $this->applyContactTypeFilter($q, $tipo)->count();
+            $counts[$tipo] = (int) $this->applyViewOwnFilter($this->applyContactTypeFilter($q, $tipo), $tipo)->count();
         }
 
         return $counts;
@@ -860,6 +868,7 @@ class ContactController extends Controller
         // ADR 0188 — filtra por papel (`is_X`) se a coluna existir, fallback `type` enum.
         $contactsQuery = Contact::where('contacts.business_id', $business_id);
         $contactsQuery = $this->applyContactTypeFilter($contactsQuery, $type);
+        $contactsQuery = $this->applyViewOwnFilter($contactsQuery, $type);
 
         // Fix 2026-05-26 — search server-side. Antes o frontend filtrava `rows`
         // em memória sobre a página paginada (default 50) — busca por nome só
@@ -2016,6 +2025,12 @@ class ContactController extends Controller
                 $input['dob'] = $this->commonUtil->uf_date($input['dob']);
             }
 
+            // `contacts.mobile` é NOT NULL no schema UltimatePOS, e ConvertEmptyStringsToNull
+            // transforma o Celular vazio do formulário em null: o INSERT caía (1048) e o catch
+            // abaixo mostrava só "Algo deu errado". Sem celular grava vazio, como a API do app
+            // (PessoasController::store). Decisão [W] 2026-10-02.
+            $input['mobile'] = $input['mobile'] ?? '';
+
             $input['business_id'] = $business_id;
             $input['created_by'] = $request->session()->get('user.id');
 
@@ -2322,7 +2337,8 @@ class ContactController extends Controller
                     'pay_due' => $user->can('purchase.payments') || $user->can('sell.payments'),
                     'delete' => $user->can('customer.delete') || $user->can('supplier.delete'),
                     'toggle_status' => $can_customer_update || $can_supplier_update,
-                    'add_discount' => $user->can('discount.access'),
+                    // discount.access saiu da tela de papéis (D1 [W] 2026-10-02); a escrita de desconto agora é discount.manage.
+                    'add_discount' => $user->can('discount.manage'),
                     'upload' => $can_customer_update || $can_supplier_update,
                     'delete_document' => $can_customer_update || $can_supplier_update,
                     'edit_note' => $can_customer_update || $can_supplier_update,

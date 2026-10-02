@@ -76,6 +76,10 @@ on:
       - 'Modules/Crm/Utils/CrmUtil.php'
       - 'Modules/Connector/Http/Controllers/Api/Crm/FollowUpController.php'
       - 'Modules/Crm/Tests/Feature/CrmLeadsListQueryTest.php'
+      # Ticket médio/saldo da pessoa (D8 do MAPA-DE-DADOS-v1 do app Mobile).
+      - 'Modules/Crm/Http/Controllers/ClienteIaController.php'
+      - 'app/Services/Pessoas/PessoaVendas.php'
+      - 'Modules/Crm/Tests/Feature/ClienteStatsTicketMedioTest.php'
       - 'database/schema/mysql-schema.sql'
       - '.github/workflows/verticais-pest.yml'
       - '.github/actions/pest-mysql-setup/**'
@@ -143,6 +147,9 @@ jobs:
               - 'Modules/Crm/Utils/CrmUtil.php'
               - 'Modules/Connector/Http/Controllers/Api/Crm/FollowUpController.php'
               - 'Modules/Crm/Tests/Feature/CrmLeadsListQueryTest.php'
+              - 'Modules/Crm/Http/Controllers/ClienteIaController.php'
+              - 'app/Services/Pessoas/PessoaVendas.php'
+              - 'Modules/Crm/Tests/Feature/ClienteStatsTicketMedioTest.php'
               - 'database/schema/mysql-schema.sql'
               - '.github/workflows/verticais-pest.yml'
               - '.github/actions/pest-mysql-setup/**'
@@ -334,6 +341,7 @@ jobs:
             Modules/Repair/Tests/Feature/RepairIndexMwartTest.php \
             Modules/Repair/Tests/Feature/RepairSettingsContratoTest.php \
             Modules/Repair/Tests/Feature/RepairIndexContratoTest.php \
+            Modules/Repair/Tests/Feature/RepairListResourceDatasTest.php \
             Modules/Repair/Tests/Feature/RepairShowContratoTest.php \
             Modules/Repair/Tests/Feature/RepairDashboardContratoTest.php \
             Modules/Repair/Tests/Feature/RepairJobSheetIndexContratoTest.php \
@@ -353,7 +361,8 @@ jobs:
             Modules/Crm/Tests/Feature/CrmAcompanhamentosContratoTest.php \
             Modules/Crm/Tests/Feature/CrmLeadsContratoTest.php \
             Modules/Crm/Tests/Feature/CrmPainelContratoTest.php \
-            Modules/Crm/Tests/Feature/CrmLeadsListQueryTest.php
+            Modules/Crm/Tests/Feature/CrmLeadsListQueryTest.php \
+            Modules/Crm/Tests/Feature/ClienteStatsTicketMedioTest.php
 
       # O sumário conta `assertions` POR ARQUIVO — é o discriminador que separa
       # "passou" de "pulou" (LC-13). Aqui só REPORTA.

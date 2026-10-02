@@ -202,3 +202,39 @@ it('a lista de logs da plataforma aponta para classes que existem (rename não c
     }
     expect(\App\Observers\ActivityCauserKindObserver::LOGS_DA_PLATAFORMA)->toHaveCount(2);
 });
+
+/**
+ * Log SEM subject (activity()->withProperties([...])->log(), sem performedOn): não há
+ * registro auditado, então vale o tenant que o CHAMADOR declarou. Origem (medido
+ * 2026-10-01): os 16 logs `nfe.certificado` de prod saíram com business_id NULL porque o
+ * CertificadoController só punha o tenant em properties — e sumiam da /auditoria.
+ */
+it('sem subject: o business_id declarado em properties vira a coluna', function () {
+    t0_sessaoDoNegocio($this->biz98); // sessão de OUTRO negócio: não pode vencer o declarado
+
+    activity('t0.sem_subject')->withProperties(['business_id' => $this->biz99->id])->log('t0.sem_subject.props');
+
+    $log = Activity::query()->where('description', 't0.sem_subject.props')->latest('id')->first();
+    expect($log)->not->toBeNull();
+    expect((int) $log->business_id)->toBe((int) $this->biz99->id);
+});
+
+it('sem subject: coluna setada pelo chamador vence o que está em properties', function () {
+    activity('t0.sem_subject')
+        ->withProperties(['business_id' => $this->biz99->id])
+        ->tap(fn (Activity $a) => $a->setAttribute('business_id', $this->biz98->id))
+        ->log('t0.sem_subject.coluna');
+
+    $log = Activity::query()->where('description', 't0.sem_subject.coluna')->latest('id')->first();
+    expect((int) $log->business_id)->toBe((int) $this->biz98->id);
+});
+
+it('sem subject e sem declaração: fica NULL (nunca cai na sessão aqui)', function () {
+    t0_sessaoDoNegocio($this->biz98);
+
+    activity('t0.sem_subject')->withProperties(['outra' => 'coisa'])->log('t0.sem_subject.nada');
+
+    $log = Activity::query()->where('description', 't0.sem_subject.nada')->latest('id')->first();
+    expect($log)->not->toBeNull();
+    expect($log->business_id)->toBeNull();
+});

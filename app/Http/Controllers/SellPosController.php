@@ -115,12 +115,34 @@ class SellPosController extends Controller
     /**
      * Display a listing of the resource.
      *
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\Response|\Illuminate\Contracts\View\View|\Inertia\Response
      */
     public function index()
     {
         if (!auth()->user()->can('sell.view') && !auth()->user()->can('sell.create')) {
             abort(403, 'Unauthorized action.');
+        }
+
+        // Thread 01 (playbook venda-menu) — branch dual MWART, igual ao Sells/Drafts: o cliente
+        // Inertia recebe a Page React; o GET comum segue no Blade (cutover F5 é humano).
+        // Nenhuma prop cara aqui: as linhas e os totais do rodapé vêm do endpoint que já existe
+        // (`/sells-list-json?is_direct_sale=0`, SellController@inertiaList), pedidos pela Page.
+        if (request()->header('X-Inertia')) {
+            $user = auth()->user();
+
+            return Inertia::render('Sells/Pos/Index', [
+                'permissions' => [
+                    'create' => $user->can('sell.create'),
+                    'update' => $user->can('sell.update'),
+                    'delete' => $user->can('sell.delete'),
+                    'payments' => $user->can('sell.payments') || $user->can('edit_sell_payment'),
+                    'print' => $user->can('print_invoice'),
+                ],
+                'urls' => [
+                    'list' => '/sells-list-json',
+                    'create' => '/pos/create',
+                ],
+            ]);
         }
 
         $business_id = request()->session()->get('user.business_id');
@@ -815,7 +837,10 @@ class SellPosController extends Controller
                     ->with('status', $output);
             } else {
                 if (!empty($input['sub_type']) && $input['sub_type'] == 'repair') {
-                    $redirect_url = $input['print_label'] == 1 ? action([\Modules\Repair\Http\Controllers\RepairController::class, 'printLabel'], [$transaction->id]) : action([\Modules\Repair\Http\Controllers\RepairController::class, 'index']);
+                    // `?? 0`: o PDV React não tem o checkbox de etiqueta. Sem a chave, o
+                    // acesso direto virava ErrorException DEPOIS do commit — venda gravada,
+                    // resposta 500. (UC-S03, Sells/Create.casos.md)
+                    $redirect_url = ($input['print_label'] ?? 0) == 1 ? action([\Modules\Repair\Http\Controllers\RepairController::class, 'printLabel'], [$transaction->id]) : action([\Modules\Repair\Http\Controllers\RepairController::class, 'index']);
 
                     return redirect($redirect_url)
                         ->with('status', $output);
@@ -1223,6 +1248,48 @@ class SellPosController extends Controller
     }
 
     /**
+     * `final_total` da edição pela tela React (Sells/Edit), calculado POR DIFERENÇA.
+     *
+     *   resíduo     = total gravado − F(linhas, desconto, imposto e frete GRAVADOS)
+     *   total novo  = F(linhas, desconto, imposto e frete ENVIADOS) + resíduo
+     *
+     * F é o `calculateInvoiceTotal` (o mesmo que o update já usa) + frete. Por que diferença
+     * e não recálculo do zero: vendas gravadas pela tela de criação React têm linha com
+     * `unit_price_inc_tax` SEM o desconto da linha, enquanto o `final_total` o inclui —
+     * recalcular do zero mudaria o valor de uma venda salva sem alteração. O resíduo também
+     * carrega o que a tela React não edita (embalagem, despesas, arredondamento, pontos).
+     * Salvar sem mudar nada devolve EXATAMENTE o total gravado (UC-SEDIT-09).
+     *
+     * Devolve texto pt-BR com 4 casas ("204,9961"): o updateSellTransaction passa o valor
+     * pelo num_uf, e número com ponto e 3 casas seria lido como milhar (incidente 2026-06-05).
+     */
+    private function totalDaEdicaoReact(array $input, array $invoiceTotal, Transaction $antes): string
+    {
+        $linhasAntes = $antes->sell_lines()
+            ->whereNull('parent_sell_line_id')
+            ->get(['unit_price_inc_tax', 'quantity'])
+            ->map(fn ($l) => ['unit_price_inc_tax' => (float) $l->unit_price_inc_tax, 'quantity' => (float) $l->quantity])
+            ->all();
+
+        $calcAntes = $this->productUtil->calculateInvoiceTotal(
+            $linhasAntes,
+            $antes->tax_id,
+            ['discount_type' => $antes->discount_type ?: 'fixed', 'discount_amount' => (float) $antes->discount_amount],
+            false
+        );
+        $baseAntes = ($calcAntes ? (float) $calcAntes['final_total'] : 0.0) + (float) $antes->shipping_charges;
+        $residuo = (float) $antes->final_total - $baseAntes;
+
+        $freteNovo = isset($input['shipping_charges'])
+            ? (float) $this->transactionUtil->num_uf($input['shipping_charges'])
+            : (float) $antes->shipping_charges;
+
+        $total = (float) $invoiceTotal['final_total'] + $freteNovo + $residuo;
+
+        return number_format(round($total, 4), 4, ',', '');
+    }
+
+    /**
      * Update the specified resource in storage.
      * TODO: Add edit log.
      *
@@ -1276,6 +1343,21 @@ class SellPosController extends Controller
                     unset($input['payment']['change_return']);
                 }
 
+                // Edição React (Sells/Edit): o total é do SERVIDOR, por diferença — ver
+                // totalDaEdicaoReact. Calculado AQUI, antes da checagem de limite de crédito,
+                // que lê final_total sem guarda. Só quando a tela pede; o Blade manda o dele.
+                // (Já dentro do `if (!empty($input['products']))` acima.)
+                if ($request->boolean('calcular_total_no_servidor')) {
+                    $input['final_total'] = $this->totalDaEdicaoReact(
+                        $input,
+                        $this->productUtil->calculateInvoiceTotal($input['products'], $input['tax_rate_id'] ?? null, [
+                            'discount_type' => $input['discount_type'] ?? 'fixed',
+                            'discount_amount' => $input['discount_amount'] ?? 0,
+                        ]),
+                        $transaction_before
+                    );
+                }
+
                 //Check Customer credit limit
                 $is_credit_limit_exeeded = $transaction_before->type == 'sell' ? $this->transactionUtil->isCustomerCreditLimitExeeded($input, $id) : false;
 
@@ -1308,7 +1390,9 @@ class SellPosController extends Controller
                 $invoice_total = $this->productUtil->calculateInvoiceTotal($input['products'], $input['tax_rate_id'], $discount);
 
                 if (!empty($request->input('transaction_date'))) {
-                    $input['transaction_date'] = $this->productUtil->uf_date($request->input('transaction_date'), true);
+                    // uf_datetime_input aceita o formato da empresa (o que o Blade manda, via
+                    // uf_date) E o ISO cru que a tela React manda — antes o ISO quebrava aqui.
+                    $input['transaction_date'] = $this->productUtil->uf_datetime_input($request->input('transaction_date'));
                 }
 
                 $input['commission_agent'] = !empty($request->input('commission_agent')) ? $request->input('commission_agent') : null;

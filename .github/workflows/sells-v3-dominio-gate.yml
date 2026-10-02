@@ -87,6 +87,16 @@ on:
       - 'resources/js/Components/ui/document-input.tsx'
       - 'resources/js/Components/ui/phone-input.tsx'
       - 'resources/js/Pages/Sells/_components/ProductSearchAutocomplete.tsx'
+      # UC-S03 (2026-10-01): o tipo de venda que o PDV React envia (reparo). Teste e
+      # arquivo sob teste juntos, pelo mesmo motivo dos de cima.
+      - 'tests/js/sells-subtipo-venda.test.ts'
+      - 'resources/js/Pages/Sells/_components/subtipoVenda.ts'
+      # UC-S04 (2026-10-01): produto entra pelo preço do grupo. Teste e arquivo sob teste juntos.
+      - 'tests/js/sells-busca-preco-grupo.test.tsx'
+      - 'resources/js/Pages/Sells/_components/precoDaBusca.ts'
+      # UC-SEDIT-09 (2026-10-02): regras de valor da edição React (desconto por unidade, pt-BR).
+      - 'tests/js/sells-edicao-venda.test.ts'
+      - 'resources/js/Pages/Sells/_components/edicaoVenda.ts'
       - 'tests/js/setup.ts'
       - '.github/workflows/sells-v3-dominio-gate.yml'
   push:
@@ -120,6 +130,15 @@ on:
       - 'resources/js/Components/ui/document-input.tsx'
       - 'resources/js/Components/ui/phone-input.tsx'
       - 'resources/js/Pages/Sells/_components/ProductSearchAutocomplete.tsx'
+      # UC-S03 (2026-10-01): o tipo de venda que o PDV React envia (reparo). Teste e
+      # arquivo sob teste juntos, pelo mesmo motivo dos de cima.
+      - 'tests/js/sells-subtipo-venda.test.ts'
+      - 'resources/js/Pages/Sells/_components/subtipoVenda.ts'
+      - 'tests/js/sells-busca-preco-grupo.test.tsx'
+      - 'resources/js/Pages/Sells/_components/precoDaBusca.ts'
+      # UC-SEDIT-09 (2026-10-02): regras de valor da edição React (desconto por unidade, pt-BR).
+      - 'tests/js/sells-edicao-venda.test.ts'
+      - 'resources/js/Pages/Sells/_components/edicaoVenda.ts'
       - 'tests/js/setup.ts'
       # o workflow entra no gatilho de push (as lanes irmãs omitem) porque é o run de
       # `main` que o publisher colhe: mexer na lane sem re-rodar deixaria o artifact
@@ -195,6 +214,9 @@ jobs:
             tests/numberPtBR.test.ts \
             tests/br-inputs.test.tsx \
             tests/scanner-race.test.tsx \
+            tests/js/sells-edicao-venda.test.ts \
+            tests/js/sells-subtipo-venda.test.ts \
+            tests/js/sells-busca-preco-grupo.test.tsx \
             --reporter=default \
             --reporter=junit \
             --outputFile=test-results/vitest-sells-v3-dominio-junit.xml

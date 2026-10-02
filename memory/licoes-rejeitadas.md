@@ -3076,3 +3076,40 @@ Ocorrência da **LC-11**.
 - **Sobre virar máquina:** a instância já tem defesa no dono (`--selftest`, na lane `governance-script-tests`, advisory). Para a classe, o predicado ("estas leituras são independentes?") é semântico ([ADR 0224](decisions/0224-hooks-block-vs-advisory-claude-4.8-aware.md)) e acusar toda leitura repetida reprovaria os usos legítimos. Não se propõe gate novo.
 
 Ocorrência da **LC-24**.
+
+### 2026-10-01 — A catraca de acoplamento oferecia `not_contains` como saída no eixo TABELA, que não lê `not_contains`
+
+- **O que aconteceu, medido.** Em `scripts/governance/catalog-graph.mjs`, `--acoplamento --catraca` avalia dois eixos com a mesma mensagem de reprovação. Ela abria com «(a) declarar a delegação no `not_contains` do SCOPE.md do módulo de ORIGEM». No eixo import isso funciona: ele lê `r.naoDeclaradas`, que já exclui o par declarado. No eixo tabela, não: os pares vêm de `paresDeTabelaComoPares(r.tabela.pares)`, sem filtro por declaração, e `catracaAcoplamento()` só isenta por `grandfathered` + `allowlist`. No par Ponto>Financeiro (#8464) a declaração foi feita, a catraca seguiu reprovando e só o allowlist em `governance/module-table-coupling-baseline.json` resolveu.
+- **O conserto.** Removida a promessa, não implementada. Escrever direto na tabela do dono é exatamente o que perde observers, scope e invariantes dele; declarar que o escopo foi delegado não muda isso, então aceitar `not_contains` no eixo tabela abriria um bypass com cara de documentação. As opções da mensagem passaram a ser por eixo, e no eixo tabela ela diz que o SCOPE.md não isenta.
+- **O limite (variante também proibida):** mensagem compartilhada entre caminhos com regras de isenção diferentes não lista a saída de um como se valesse para todos. Cada opção oferecida tem de ser honrada no caminho que imprime a mensagem, e o teste disso exercita o CLI de fora, não um helper.
+- **Defesa.** Bite-test no `catalog-graph.test.mjs`: sandbox git com Ponto declarando a delegação e tocando Financeiro pelos dois eixos, baselines vazias. Controle positivo: o eixo import passa. Contrato: o eixo tabela reprova e as opções não oferecem o `not_contains`. Com a mensagem antiga o teste cai no assert certo. Roda em lanes advisory (`governance-script-tests`) e no `catalog-graph.yml`; não é defesa da classe inteira, só desta instância.
+
+Ocorrência da **LC-15**.
+
+### 2026-10-01 — EMENDA da lápide 2026-09-30 (2ª): o pedido chegou por sessão de coordenação, e a sessão irmã que já tinha o PR aberto não estava na lista de quem eu avisaria
+
+- **O que aconteceu.** Defeito do D8 do MAPA-DE-DADOS-v1 (lista de Pessoas ignorando `view_own`) foi despachado para a sessão BUGS PESSOAS. Outra frente do mesmo projeto já tinha aberto o [#8469](https://github.com/wagnerra23/oimpresso.com/pull/8469) com a mesma correção às 19:05Z; ele foi mergeado às 19:25Z e o meu [#8476](https://github.com/wagnerra23/oimpresso.com/pull/8476) nasceu às 19:28Z, com o mesmo `whereExists` sobre `user_contact_access` na lista, KPIs e contadores.
+- **Por que caiu.** Nenhuma das duas sondas da lápide-mãe rodou: nem `dup-detector --path` no início, nem `git log HEAD..origin/main -- <arquivo>` antes de publicar. O enunciado trazia origem e arquivos exatos, e isso deu a sensação de tarefa exclusiva.
+- **O limite (variante também proibida):** pedido vindo de documento de coordenação (mapa, playbook, lista de achados) não é atribuição exclusiva. Outras sessões leem o mesmo documento. Antes do primeiro Edit em arquivo citado ali, `dup-detector --path`; antes do `gh pr create`, `git fetch` + `git log HEAD..origin/main -- <arquivos>`.
+- **Defesa.** Nenhuma nova. As duas sondas existem e funcionam; o que faltou foi rodá-las.
+
+Ocorrência da **LC-19**.
+
+### 2026-10-02 — EMENDA da lápide 2026-08-13 (retrato atrasado): uma leitura minha, à mão, numa janela de deploy, virou comentário de canon e tirou uma defesa do deploy
+
+- **O que aconteceu.** Para escolher a sonda da chave pública do Passport, rodei uma vez `curl -H 'Accept: application/json' -H 'Authorization: Bearer x.y.z' https://oimpresso.com/api/app/inicio` e recebi `404 "route could not be found"`. Concluí que token inválido não servia de sonda, tirei do #8538 o step que conferia a leitura da chave e escrevi no comentário do `deploy.yml` que o 404 era o comportamento de produção.
+- **Por que caiu.** A sessão da conta demo mediu 401 com `token-invalido`. Remedi com a minha forma (`x.y.z`) e deu 401. O 404 foi da janela em que deploys estavam enfileirando e sendo cancelados, não da rota.
+- **O limite (variante também proibida):** resposta de produção lida uma vez, durante deploy, não vira afirmação sobre o comportamento da rota. Antes de escrever em canon (comentário, ADR, PR body), repetir a leitura fora da janela de deploy. E não se remove uma defesa com base numa sonda que eu mesmo não confirmei.
+- **Conserto.** #8544 repõe a conferência com as duas sondas sem credencial (pública 401, privada 400 em `/oauth/token` com usuário inexistente) e corrige o comentário.
+
+Ocorrência da **LC-24**.
+
+### 2026-10-02 — Tamanho da CÉLULA lido como tamanho do TEXTO na comparação app × protótipo
+
+- **O que aconteceu.** Na comparação medida das 7 telas do app, reportei Tarefas com texto de 15px contra 14px do protótipo e pedi a correção. Os 15px vinham de duas células sem texto (o marcador da linha e o `›`), herdados do botão. O texto visível batia.
+- **Por que caiu.** O snapshot do `design-diff` traz `blocos` por célula. Eu li `fontPx` sem olhar `blocos`, e célula com 0 blocos não tem texto para medir.
+- **O limite (variante também proibida):** divergência de tipografia de célula só se reporta quando a célula tem bloco de texto nos dois lados. `fontPx` de container é herança, não texto.
+- **Defesa.** A sessão do app pediu os seletores antes de mexer e não reproduziu; o item foi retirado e o #22 do app saiu só com as duas correções reais.
+
+Ocorrência da **LC-08**.
+

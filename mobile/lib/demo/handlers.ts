@@ -109,6 +109,9 @@ function replace<T extends { id: string }>(rows: T[], next: T): T[] {
 
 const byDateDesc = <T,>(key: (row: T) => string) => (a: T, b: T) => key(b).localeCompare(key(a));
 
+/** Newest first; on equal timestamps the one inserted last wins (sort is stable). */
+const newestFirst = <T,>(rows: T[], key: (row: T) => string) => [...rows].reverse().sort(byDateDesc(key));
+
 function customerLite(id: string | null) {
   const c = id ? db().customers.find((x) => x.id === id) : undefined;
   return c ? { id: c.id, nome: c.nome, telefone: c.telefone, email: c.email } : null;
@@ -424,16 +427,17 @@ on("inventory", "list", (i) => {
 });
 on("inventory", "lowStockAlert", () => db().inventory.filter((it) => it.ativo && isLow(it)));
 on("inventory", "listMovements", (i) =>
-  db()
-    .movements.filter((m) => m.inventoryId === i.inventoryId)
-    .sort(byDateDesc((m) => m.createdAt))
-    .slice(0, i.limit ?? 50),
+  newestFirst(
+    db().movements.filter((m) => m.inventoryId === i.inventoryId),
+    (m) => m.createdAt,
+  ).slice(0, i.limit ?? 50),
 );
 on("inventory", "getById", (i) => ({
   ...find(db().inventory, i.id, "Item de estoque"),
-  movements: db()
-    .movements.filter((m) => m.inventoryId === i.id)
-    .sort(byDateDesc((m) => m.createdAt)),
+  movements: newestFirst(
+    db().movements.filter((m) => m.inventoryId === i.id),
+    (m) => m.createdAt,
+  ),
 }));
 on("inventory", "create", (i) => {
   const it = stock({ quantidade: 0, estoqueMinimo: 0, custoUnit: 0, ...clean(i), id: newId(), createdAt: now(), updatedAt: now() });
@@ -909,6 +913,20 @@ on3("fiscal", "documents", "emit", (i) => {
   save();
   return doc;
 });
+/**
+ * 44-digit NF-e access key: cUF(2) AAMM(4) CNPJ(14) mod(2) série(3) nNF(9)
+ * tpEmis(1) cNF(8) + check digit (mod 11, weights 2..9 from the right).
+ */
+function chaveNFe(numero: string): string {
+  const base = `35${new Date().toISOString().slice(2, 4)}${new Date().toISOString().slice(5, 7)}1122233300018155001${numero.padStart(9, "0")}1${numero.padStart(8, "0")}`;
+  const soma = base
+    .split("")
+    .reverse()
+    .reduce((s, d, i) => s + Number(d) * ((i % 8) + 2), 0);
+  const dv = 11 - (soma % 11);
+  return base + (dv >= 10 ? 0 : dv);
+}
+
 // Consulting a "processando" note authorizes it, like SEFAZ would.
 on3("fiscal", "documents", "consultStatus", (i) => {
   const s = db();
@@ -919,7 +937,7 @@ on3("fiscal", "documents", "consultStatus", (i) => {
     ...doc,
     status: "autorizado" as const,
     numero,
-    chaveAcesso: doc.tipo === "NFSe" ? null : `3526091122233300018155001${numero.padStart(9, "0")}1${numero.padStart(8, "0")}`,
+    chaveAcesso: doc.tipo === "NFSe" ? null : chaveNFe(numero),
     updatedAt: now(),
   };
   s.fiscalDocs = replace(s.fiscalDocs, next);

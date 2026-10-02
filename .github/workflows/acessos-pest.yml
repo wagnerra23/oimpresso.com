@@ -19,6 +19,8 @@ name: Acessos · Pest (MySQL)
 # entra no comando NO MESMO PR que cria o primeiro arquivo dele.
 #
 # Cobre hoje:
+#   - ContatosListaExigePermissaoTest — /contacts (React) só entrega a lista de clientes a quem
+#     tem customer.view|view_own (achado 2026-10-01: o caminho React não checava permissão).
 #   - RoleTenantIsolationTest — Tier 0 (ADR 0093): /roles/{id} não alcança papel de outro
 #     negócio. Traz o controle POSITIVO junto, senão um filtro largo demais passaria no
 #     negativo e o teste diria "ninguém edita nada" chamando isso de sucesso.
@@ -45,6 +47,14 @@ on:
       # mexer na FSM não dispararia o teste dela — gate mudo com cara de
       # cobertura (a pegadinha que o sells-pest.yml documenta no próprio paths:).
       - 'app/Http/Controllers/RoleController.php'
+      - 'app/Http/Controllers/ContactController.php'
+      - 'app/Services/Pessoas/**'
+      - 'app/Http/Controllers/Api/App/PessoasController.php'
+      - 'app/Http/Controllers/Api/App/ProdutosController.php'
+      - 'app/Http/Controllers/Api/App/CepController.php'
+      - 'app/Contracts/Enderecos/**'
+      - 'Modules/Crm/Services/BuscaCepDoApp.php'
+      - 'Modules/Crm/Services/BrLookupService.php'
       - 'app/Providers/AuthServiceProvider.php'
       - 'app/Http/Controllers/SalesCommissionAgentController.php'
       - 'app/Http/Middleware/AdminSidebarMenu.php'
@@ -92,6 +102,14 @@ jobs:
           filters: |
             acessos:
               - 'app/Http/Controllers/RoleController.php'
+              - 'app/Http/Controllers/ContactController.php'
+              - 'app/Services/Pessoas/**'
+              - 'app/Http/Controllers/Api/App/PessoasController.php'
+              - 'app/Http/Controllers/Api/App/ProdutosController.php'
+              - 'app/Http/Controllers/Api/App/CepController.php'
+              - 'app/Contracts/Enderecos/**'
+              - 'Modules/Crm/Services/BuscaCepDoApp.php'
+              - 'Modules/Crm/Services/BrLookupService.php'
               - 'app/Providers/AuthServiceProvider.php'
               - 'app/Http/Controllers/SalesCommissionAgentController.php'
               - 'app/Http/Middleware/AdminSidebarMenu.php'

@@ -13,7 +13,7 @@
     },
     {
       "screen": "Arquivos",
-      "note": "1 arquivo(s)",
+      "note": "3 arquivo(s)",
       "cells": {
         "tokens": "yes",
         "primitivos": "yes",
@@ -69,6 +69,28 @@
     {
       "screen": "ComunicacaoVisual",
       "note": "1 arquivo(s)",
+      "cells": {
+        "tokens": "yes",
+        "primitivos": "yes",
+        "probe": "na",
+        "dark": "na",
+        "approved": "no"
+      }
+    },
+    {
+      "screen": "Connector",
+      "note": "2 arquivo(s)",
+      "cells": {
+        "tokens": "yes",
+        "primitivos": "yes",
+        "probe": "na",
+        "dark": "na",
+        "approved": "no"
+      }
+    },
+    {
+      "screen": "Crm",
+      "note": "3 arquivo(s)",
       "cells": {
         "tokens": "yes",
         "primitivos": "yes",
@@ -134,7 +156,7 @@
     },
     {
       "screen": "Manufacturing",
-      "note": "8 arquivo(s)",
+      "note": "9 arquivo(s)",
       "cells": {
         "tokens": "yes",
         "primitivos": "yes",
@@ -145,7 +167,7 @@
     },
     {
       "screen": "Officeimpresso",
-      "note": "3 arquivo(s)",
+      "note": "5 arquivo(s)",
       "cells": {
         "tokens": "yes",
         "primitivos": "yes",
@@ -156,7 +178,7 @@
     },
     {
       "screen": "Patrimonio",
-      "note": "11 arquivo(s)",
+      "note": "13 arquivo(s)",
       "cells": {
         "tokens": "yes",
         "primitivos": "yes",
@@ -189,7 +211,7 @@
     },
     {
       "screen": "Sells",
-      "note": "62 arquivo(s)",
+      "note": "65 arquivo(s)",
       "cells": {
         "tokens": "no",
         "primitivos": "yes",
@@ -200,7 +222,7 @@
     },
     {
       "screen": "Site",
-      "note": "2 arquivo(s)",
+      "note": "3 arquivo(s)",
       "cells": {
         "tokens": "yes",
         "primitivos": "no",
@@ -332,7 +354,7 @@
     },
     {
       "screen": "Produto",
-      "note": "20 arquivo(s)",
+      "note": "23 arquivo(s)",
       "cells": {
         "tokens": "no",
         "primitivos": "no",
@@ -354,7 +376,7 @@
     },
     {
       "screen": "Superadmin",
-      "note": "8 arquivo(s)",
+      "note": "10 arquivo(s)",
       "cells": {
         "tokens": "no",
         "primitivos": "no",
@@ -398,7 +420,7 @@
     },
     {
       "screen": "Ponto",
-      "note": "33 arquivo(s)",
+      "note": "36 arquivo(s)",
       "cells": {
         "tokens": "no",
         "primitivos": "no",
@@ -430,18 +452,18 @@
       }
     }
   ],
-  "progressPct": 38,
+  "progressPct": 41,
   "progressLabel": "adoção tokens + primitivos (censo Onda 0)",
   "measured": true,
-  "measuredAgainstSha": "21c14137d",
-  "generatedAt": "2026-09-30T16:03:04.598Z",
+  "measuredAgainstSha": "38f454e5e",
+  "generatedAt": "2026-10-02T16:13:42.680Z",
   "treeGuard": {
     "pass": true,
     "violations": 0
   },
   "counts": {
-    "screens": 39,
-    "done": 15,
+    "screens": 41,
+    "done": 17,
     "references": 0
   }
 }

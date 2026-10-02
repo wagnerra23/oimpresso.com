@@ -185,3 +185,10 @@ regressões `jsx-a11y` que a 1ª versão introduziu foram a zero.
 - O `hitl_pending` do Daily Brief **não** é esta fila: a procedure mede `status='blocked' AND
   owner='wagner'` (o proxy velho). Reconciliar é migration de procedure + `ProcedureDriftSnapshotTest`,
   em PR próprio.
+
+## Contrato visual
+
+Travado por `governance/design/contracts/forja-aprovacoes.contract.json` (gate `contrato-de-tela`), com âncoras
+`data-contract` no `.tsx`. A copy literal e a ordem das seções são de lá — esta seção **aponta**,
+não repete. Só entra copy que existe no protótipo e no código da tela (fora de comentário); o que
+diverge está no `_nota_recorte` do contrato.

@@ -4,7 +4,7 @@
 
 declare(strict_types=1);
 // Cobre UC-SEDIT-01, UC-SEDIT-02, UC-SEDIT-03, UC-SEDIT-04, UC-SEDIT-05, UC-SEDIT-06,
-// UC-SEDIT-07 (resources/js/Pages/Sells/Edit.casos.md) — G-2 rastreabilidade caso↔teste.
+// UC-SEDIT-07, UC-SEDIT-10, UC-SEDIT-11 (resources/js/Pages/Sells/Edit.casos.md) — G-2 rastreabilidade caso↔teste.
 
 use App\User;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
@@ -387,4 +387,279 @@ it('UC-SEDIT-07 · o pré-fill traz os valores do banco, sem fallback', function
         'A quantidade pré-preenchida não é a da venda — pré-fill em fallback (incidente "venda em branco").');
     expect(round((float) $linha['sell_price_inc_tax'], 2))->toBe(49.90,
         'O preço unitário pré-preenchido não é o da venda — pré-fill em fallback.');
+});
+
+// =============================================================================
+// UC-SEDIT-08 — o paliativo de 2026-10-01 (navegação React → 409 → Blade) foi removido por [W]
+//   em 2026-10-02, depois do conserto do UC-SEDIT-09. A navegação React volta a abrir a tela
+//   React; a visita de página inteira segue no Blade, que salva pelo SellPosController@update.
+// =============================================================================
+
+it('UC-SEDIT-08 · sem o paliativo: a navegação React abre a tela React; a página inteira segue no Blade', function () {
+    $venda = sellsEditVenda($this->bizId);
+    $id = $venda['transaction_id'];
+
+    // Navegação React (X-Inertia): a tela Sells/Edit, que salva desde o UC-SEDIT-09 — não mais 409.
+    $react = sellsEditGet($this, $id);
+    $react->assertOk();
+    expect($react->json('component'))->toBe('Sells/Edit');
+    expect($react->headers->get('X-Inertia-Location'))->toBeNull();
+
+    // Visita de página inteira (link aberto direto) continua no formulário Blade.
+    $blade = $this->flushHeaders()->get("/sells/{$id}/edit");
+    $blade->assertOk();
+    $blade->assertViewIs('sell.edit');
+    expect($blade->getContent())->toContain(action([\App\Http\Controllers\SellPosController::class, 'update'], ['po' => $id]));
+});
+
+// =============================================================================
+// UC-SEDIT-09 — a edição React SALVA, e salvar sem mexer não muda nada.
+//   Âncora: REGRA MESTRE valor/estoque (proibicoes.md) + decisão [W] 2026-10-01 (opção B).
+//   O payload abaixo é o que `edicaoVenda.ts::linhaParaEnvio` produz (números em pt-BR,
+//   linha não mexida com os valores GRAVADOS) — os casos espelham tests/js/sells-edicao-venda.test.ts.
+// =============================================================================
+
+/** Venda com 3 linhas e total gravado "estranho" (210,1234) — o resíduo tem que sobreviver. */
+function sedit9Venda(object $test): array
+{
+    $loc = EstoqueFixture::locationId($test->bizId);
+    $produtos = [];
+    foreach (['A', 'B', 'C'] as $k) {
+        $p = EstoqueFixture::singleProduct($test->bizId);
+        EstoqueFixture::setStock($p, 0, $loc, 10);
+        $compra = (int) DB::table('transactions')->insertGetId([
+            'business_id' => $test->bizId, 'type' => 'purchase', 'status' => 'received', 'location_id' => $loc,
+            'payment_status' => 'paid', 'transaction_date' => now()->subDays(3), 'total_before_tax' => 0, 'final_total' => 0,
+            'created_by' => $test->user->id, 'essentials_duration' => 0, 'created_at' => now()->subDays(3), 'updated_at' => now()->subDays(3),
+        ]);
+        DB::table('purchase_lines')->insert([
+            'transaction_id' => $compra, 'product_id' => $p->productId, 'variation_id' => $p->variations[0]['variation_id'],
+            'quantity' => 10, 'quantity_sold' => 0, 'quantity_adjusted' => 0, 'quantity_returned' => 0,
+            'purchase_price' => 0, 'purchase_price_inc_tax' => 0, 'item_tax' => 0, 'created_at' => now()->subDays(3), 'updated_at' => now()->subDays(3),
+        ]);
+        $produtos[$k] = $p;
+    }
+    $contato = (int) DB::table('contacts')->where('business_id', $test->bizId)->orderBy('id')->value('id');
+
+    $venda = (int) DB::table('transactions')->insertGetId([
+        'business_id' => $test->bizId, 'location_id' => $loc, 'contact_id' => $contato, 'type' => 'sell', 'status' => 'final',
+        'is_direct_sale' => 1, 'payment_status' => 'due', 'transaction_date' => now()->subDay()->startOfMinute(),
+        'discount_type' => 'percentage', 'discount_amount' => 10, 'shipping_charges' => 0,
+        'total_before_tax' => 265, 'final_total' => 210.1234, 'created_by' => $test->user->id,
+        'essentials_duration' => 0, 'created_at' => now(), 'updated_at' => now(),
+    ]);
+    // A: 100 com 10% → 90, qtd 2 · B: 50 com 5 fixo/un → 45, qtd 1
+    // C: inconsistente como a criação React — inc gravado SEM o desconto de 10% (40, não 36)
+    $linhas = [
+        // `unit_price` = preço DEPOIS do desconto, sem imposto — o que createOrUpdateSellLines grava.
+        'A' => ['qtd' => 2, 'antes' => 100, 'desc' => 10, 'tipo' => 'percentage', 'unit' => 90, 'inc' => 90],
+        'B' => ['qtd' => 1, 'antes' => 50, 'desc' => 5, 'tipo' => 'fixed', 'unit' => 45, 'inc' => 45],
+        'C' => ['qtd' => 1, 'antes' => 40, 'desc' => 10, 'tipo' => 'percentage', 'unit' => 36, 'inc' => 40],
+    ];
+    $ids = [];
+    foreach ($linhas as $k => $l) {
+        $ids[$k] = (int) DB::table('transaction_sell_lines')->insertGetId([
+            'transaction_id' => $venda, 'product_id' => $produtos[$k]->productId,
+            'variation_id' => $produtos[$k]->variations[0]['variation_id'], 'quantity' => $l['qtd'], 'quantity_returned' => 0,
+            'unit_price_before_discount' => $l['antes'], 'unit_price' => $l['unit'], 'line_discount_type' => $l['tipo'],
+            'line_discount_amount' => $l['desc'], 'unit_price_inc_tax' => $l['inc'], 'item_tax' => 0,
+            'created_at' => now(), 'updated_at' => now(),
+        ]);
+        DB::table('variation_location_details')
+            ->where('variation_id', $produtos[$k]->variations[0]['variation_id'])->where('location_id', $loc)
+            ->update(['qty_available' => 10 - $l['qtd']]);
+    }
+
+    return ['id' => $venda, 'loc' => $loc, 'contato' => $contato, 'produtos' => $produtos, 'linhas' => $linhas, 'ids' => $ids];
+}
+
+/** O payload da tela React (edicaoVenda.ts), com as quantidades dadas. */
+function sedit9Payload(array $v, array $qtd): array
+{
+    $pt = fn ($n) => number_format((float) $n, 4, ',', '');
+    $produtos = [];
+    foreach ($v['linhas'] as $k => $l) {
+        $produtos[] = [
+            'transaction_sell_lines_id' => $v['ids'][$k],
+            'product_id' => $v['produtos'][$k]->productId,
+            'variation_id' => $v['produtos'][$k]->variations[0]['variation_id'],
+            'quantity' => $pt($qtd[$k] ?? $l['qtd']),
+            'unit_price' => $pt($l['antes']),
+            'unit_price_inc_tax' => $pt($l['inc']), // linha não mexida: valor GRAVADO
+            'item_tax' => $pt(0),
+            'tax_id' => null,
+            'line_discount_amount' => $pt($l['desc']),
+            'line_discount_type' => $l['tipo'],
+            'imei_number' => '',
+        ];
+    }
+    $data = (string) DB::table('transactions')->where('id', $v['id'])->value('transaction_date'); // ISO cru, como a tela manda
+
+    return [
+        '_method' => 'PUT', 'transaction_date' => $data, 'contact_id' => $v['contato'], 'location_id' => $v['loc'],
+        'status' => 'final', 'discount_type' => 'percentage', 'discount_amount' => $pt(10), 'tax_rate_id' => null,
+        'shipping_charges' => $pt(0), 'calcular_total_no_servidor' => 1, 'products' => $produtos,
+    ];
+}
+
+function sedit9Estado(array $v): array
+{
+    return [
+        'final_total' => (string) DB::table('transactions')->where('id', $v['id'])->value('final_total'),
+        'linhas' => DB::table('transaction_sell_lines')->where('transaction_id', $v['id'])->orderBy('id')
+            ->get(['quantity', 'unit_price_before_discount', 'unit_price', 'unit_price_inc_tax', 'line_discount_amount'])
+            ->map(fn ($r) => array_map('strval', (array) $r))->all(),
+        'estoque' => collect($v['produtos'])->map(fn ($p) => EstoqueFixture::currentStock($p, 0, $v['loc']))->all(),
+    ];
+}
+
+/** O update grava com a sessão de produção: `business` é o MODELO (SetSessionData), não array. */
+function sedit9Sessao(object $test): void
+{
+    $business = \App\Business::findOrFail($test->bizId);
+    $business->date_format = 'd/m/Y';
+    $business->time_format = 24;
+    session(['business' => $business]);
+    foreach (['sell.update', 'direct_sell.access'] as $perm) {
+        Permission::findOrCreate($perm, 'web');
+        $test->user->givePermissionTo($perm);
+    }
+    app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
+}
+
+it('UC-SEDIT-09 · salvar pela tela React SEM mexer não muda total, linhas nem estoque', function () {
+    sedit9Sessao($this);
+    $v = sedit9Venda($this);
+    $antes = sedit9Estado($v);
+
+    $resposta = $this->put("/pos/{$v['id']}", sedit9Payload($v, []));
+    $resposta->assertSessionHasNoErrors();
+    \PHPUnit\Framework\Assert::assertSame(
+        1,
+        (int) data_get(session('status'), 'success', 0),
+        'update não gravou: '.json_encode(session('status'), JSON_UNESCAPED_UNICODE)
+    );
+
+    expect(sedit9Estado($v))->toBe($antes);
+    expect($antes['final_total'])->toBe('210.1234');
+});
+
+it('UC-SEDIT-09 · mudar uma quantidade aplica só a diferença, na regra do servidor', function () {
+    sedit9Sessao($this);
+    $v = sedit9Venda($this);
+
+    $this->put("/pos/{$v['id']}", sedit9Payload($v, ['A' => 3]))->assertSessionHasNoErrors();
+    \PHPUnit\Framework\Assert::assertSame(1, (int) data_get(session('status'), 'success', 0), json_encode(session('status')));
+
+    // 210,1234 gravado + 1 unidade de A (90) com o desconto de 10% do pedido = + 81
+    expect((string) DB::table('transactions')->where('id', $v['id'])->value('final_total'))->toBe('291.1234');
+    expect(EstoqueFixture::currentStock($v['produtos']['A'], 0, $v['loc']))->toBe(7.0); // 10 − 3
+    expect(EstoqueFixture::currentStock($v['produtos']['B'], 0, $v['loc']))->toBe(9.0); // intacto
+});
+
+it('UC-SEDIT-09 · a tela React envia pra SellPosController@update (/pos/{id}), não pro /sells/{id} sem método', function () {
+    $venda = sellsEditVenda($this->bizId);
+    // `urls` é prop de 1º nível (não está no `form` deferido): visita completa, sem partial.
+    $r = sellsEditGet($this, $venda['transaction_id']);
+    $r->assertOk();
+    expect($r->json('props.urls.submit'))->toBe('/pos/'.$venda['transaction_id']);
+});
+
+// =============================================================================
+// UC-SEDIT-10 — o alerta "Cliente vencido" mostra a dívida do cliente no valor certo.
+//   Smoke prod 2026-10-02 (biz=1): a tela React mostrava 100× a dívida que o Blade mostrava,
+//   porque `dues_total` re-parseava o texto pt-BR e a vírgula decimal sumia.
+// =============================================================================
+
+/** Contato próprio do caso: a dívida dele é só a venda que o teste cria (sem herdar o seed). */
+function sedit10Contato(object $test): int
+{
+    return (int) DB::table('contacts')->insertGetId([
+        'business_id' => $test->bizId,
+        'type' => 'customer',
+        'name' => 'SEDIT10-'.uniqid(),
+        'mobile' => '',
+        'created_by' => $test->user->id,
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+}
+
+it('UC-SEDIT-10 · o alerta de cliente vencido traz a dívida no valor certo', function (float $preco, bool $quitada, float $esperado) {
+    $venda = sellsEditVenda($this->bizId, 1.0, $preco);
+    $saleId = $venda['transaction_id'];
+    $contato = sedit10Contato($this);
+    DB::table('transactions')->where('id', $saleId)->update(['contact_id' => $contato]);
+
+    if ($quitada) {
+        DB::table('transaction_payments')->insert([
+            'transaction_id' => $saleId, 'payment_for' => $contato, 'business_id' => $this->bizId,
+            'amount' => $preco, 'method' => 'cash', 'is_return' => 0, 'paid_on' => now(),
+            'created_by' => $this->user->id, 'created_at' => now(), 'updated_at' => now(),
+        ]);
+    }
+
+    // Fato independente: a dívida pela mesma conta que o Blade usa (Util::getContactDue).
+    $noBanco = round((float) app(\App\Utils\TransactionUtil::class)->getContactDue($contato, $this->bizId), 2);
+    expect($noBanco)->toBe($esperado);
+
+    $response = sellsEditGet($this, $saleId, [
+        'X-Inertia-Partial-Component' => 'Sells/Edit',
+        'X-Inertia-Partial-Data' => 'form',
+    ]);
+    $response->assertStatus(200);
+    $form = json_decode($response->getContent(), true)['props']['form'];
+
+    // PRÉ-CONDIÇÃO ANTI-VÁCUO: o cliente do payload é o contato do caso.
+    expect($form['customer']['id'])->toBe($contato);
+
+    \PHPUnit\Framework\Assert::assertSame(
+        $esperado,
+        round((float) $form['customer']['dues_total'], 2),
+        'dues_total diverge da dívida do cliente — o alerta "Cliente vencido" mostra outro valor que o Blade.'
+    );
+})->with([
+    'dívida 500,00' => [500.0, false, 500.0],
+    'dívida 1.234,56 (milhar)' => [1234.56, false, 1234.56],
+    'dívida zero (quitada)' => [500.0, true, 0.0],
+]);
+
+// =============================================================================
+// UC-SEDIT-11 — editar uma venda de REPARO pela lista de vendas não apaga as datas do reparo.
+//   Âncora: Modules/Repair DataController::after_sale_saved — grava os campos de reparo só se
+//   vierem no request, mas zerava entrega/conclusão quando NÃO vinham. A edição pela lista
+//   (Sells/Edit React e sell.edit Blade) não manda campo de reparo nenhum.
+// =============================================================================
+
+it('UC-SEDIT-11 · salvar a venda de reparo sem campos de reparo preserva entrega e conclusão; enviados vazios, limpam', function () {
+    if (! Schema::hasColumn('transactions', 'repair_due_date')) {
+        $this->markTestSkipped('colunas do Repair ausentes neste banco');
+    }
+    sedit9Sessao($this);
+    $v = sedit9Venda($this);
+    DB::table('transactions')->where('id', $v['id'])->update([
+        'sub_type' => 'repair',
+        'repair_serial_no' => 'SN-ANTES',
+        'repair_due_date' => '2026-10-10 14:00:00',
+        'repair_completed_on' => '2026-10-05 09:30:00',
+    ]);
+    $ler = fn () => DB::table('transactions')->where('id', $v['id'])
+        ->first(['repair_serial_no', 'repair_due_date', 'repair_completed_on']);
+
+    // 1) Como a edição pela lista manda: nenhum campo de data. O serial vai junto só para provar
+    //    que o hook do Repair RODOU neste ambiente — sem isso, "não apagou" passaria vazio.
+    $this->put("/pos/{$v['id']}", sedit9Payload($v, []) + ['repair_serial_no' => 'SN-DEPOIS'])
+        ->assertSessionHasNoErrors();
+    \PHPUnit\Framework\Assert::assertSame(1, (int) data_get(session('status'), 'success', 0), json_encode(session('status')));
+    $depois = $ler();
+    expect($depois->repair_serial_no)->toBe('SN-DEPOIS');
+    expect((string) $depois->repair_due_date)->toBe('2026-10-10 14:00:00');
+    expect((string) $depois->repair_completed_on)->toBe('2026-10-05 09:30:00');
+
+    // 2) Como o PDV de reparo manda quando a pessoa apaga as datas: chave presente e vazia.
+    $this->put("/pos/{$v['id']}", sedit9Payload($v, []) + ['repair_due_date' => '', 'repair_completed_on' => ''])
+        ->assertSessionHasNoErrors();
+    $limpo = $ler();
+    expect($limpo->repair_due_date)->toBeNull();
+    expect($limpo->repair_completed_on)->toBeNull();
 });

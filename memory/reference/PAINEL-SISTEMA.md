@@ -12,7 +12,7 @@ lente: [construir]
 
 # 🗺️ PAINEL-SISTEMA — estado do oimpresso
 
-> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-09-30**. NÃO edite à mão — a próxima geração sobrescreve.
+> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-10-02**. NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/system-map.mjs`. Este é um **índice que aponta pros donos canônicos**, não uma cópia deles.
 > Views humanas (mapa 🗺️ / guia 🧭 em claude.ai) derivam DESTES dados.
 
@@ -23,8 +23,8 @@ lente: [construir]
 | Módulo | BRIEFING | Último toque |
 |---|---|---|
 | Arquivos | [BRIEFING](../requisitos/Arquivos/BRIEFING.md) | 2026-08-25 |
-| AssetManagement | [BRIEFING](../requisitos/AssetManagement/BRIEFING.md) | 2026-07-23 |
-| Auditoria | [BRIEFING](../requisitos/Auditoria/BRIEFING.md) | 2026-09-11 |
+| AssetManagement | [BRIEFING](../requisitos/AssetManagement/BRIEFING.md) | 2026-09-30 |
+| Auditoria | [BRIEFING](../requisitos/Auditoria/BRIEFING.md) | 2026-10-01 |
 | Cms | [BRIEFING](../requisitos/Cms/BRIEFING.md) | 2026-09-15 |
 | Compras | [BRIEFING](../requisitos/Compras/BRIEFING.md) | 2026-09-15 |
 | ComunicacaoVisual | [BRIEFING](../requisitos/ComunicacaoVisual/BRIEFING.md) | 2026-08-12 |
@@ -39,7 +39,7 @@ lente: [construir]
 | Jana | [BRIEFING](../requisitos/Jana/BRIEFING.md) | 2026-09-24 |
 | KB | [BRIEFING](../requisitos/KB/BRIEFING.md) | 2026-07-29 |
 | Manufacturing | [BRIEFING](../requisitos/Manufacturing/BRIEFING.md) | 2026-09-15 |
-| NfeBrasil | [BRIEFING](../requisitos/NfeBrasil/BRIEFING.md) | 2026-09-07 |
+| NfeBrasil | [BRIEFING](../requisitos/NfeBrasil/BRIEFING.md) | 2026-10-01 |
 | NFSe | [BRIEFING](../requisitos/NFSe/BRIEFING.md) | 2026-09-15 |
 | Officeimpresso | [BRIEFING](../requisitos/Officeimpresso/BRIEFING.md) | 2026-07-30 |
 | OficinaAuto | [BRIEFING](../requisitos/OficinaAuto/BRIEFING.md) | 2026-09-15 |
@@ -47,7 +47,7 @@ lente: [construir]
 | Ponto | [BRIEFING](../requisitos/Ponto/BRIEFING.md) | 2026-09-30 |
 | ProductCatalogue | [BRIEFING](../requisitos/ProductCatalogue/BRIEFING.md) | 2026-07-23 |
 | RecurringBilling | [BRIEFING](../requisitos/RecurringBilling/BRIEFING.md) | 2026-09-07 |
-| Repair | [BRIEFING](../requisitos/Repair/BRIEFING.md) | 2026-09-23 |
+| Repair | [BRIEFING](../requisitos/Repair/BRIEFING.md) | 2026-10-01 |
 | Spreadsheet | [BRIEFING](../requisitos/Spreadsheet/BRIEFING.md) | 2026-08-01 |
 | Superadmin | [BRIEFING](../requisitos/Superadmin/BRIEFING.md) | 2026-08-11 |
 | Vestuario | [BRIEFING](../requisitos/Vestuario/BRIEFING.md) | 2026-07-28 |
@@ -72,7 +72,7 @@ lente: [construir]
 
 ## Programa SDD (governança)
 
-- Scorecard: **11/13** métricas medidas · floor full-suite = **276**.
+- Scorecard: **11/13** métricas medidas · floor full-suite = **269**.
 - Fonte viva: `governance/sdd-scorecard.json` (gerado por `sdd-scorecard.mjs`). Avaliação adversarial: `/sdd-avaliar`.
 - Roadmap dono: [`memory/requisitos/_Governanca/roadmap/_ROADMAP.md`](../requisitos/_Governanca/roadmap/_ROADMAP.md).
 
@@ -132,13 +132,13 @@ lente: [construir]
 - Contratos de tela (fidelidade + intenção)
 - Governance Gate (índice + memory-health + meta-teste)
 
-### Censo — 150 workflows por classe
+### Censo — 152 workflows por classe
 
 > Lista completa + propósito de cada um: [`gates-registry.json`](../../scripts/governance/gates-registry.json) (o dono). Aqui: contagem + exemplos.
 
 | Classe | Qtd | Exemplos |
 |---|---|---|
-| gate (bloqueia/valida PR) | 114 | a11y-axe-gate, a11y-gate, acessos-pest, adr-index-gate, … |
+| gate (bloqueia/valida PR) | 116 | a11y-axe-gate, a11y-gate, acessos-pest, adr-index-gate, … |
 | meta (testa os gates) | 7 | block-brl-values-selftest, devcontainer-firewall, gate-selftest, guards-meta-gate, … |
 | automacao (cron/dispatch) | 25 | agent-cost-per-pr, agent-pr-outcomes, baseline-folga, briefing-code-staleness, … |
 | deploy (entrega) | 2 | deploy, quick-sync |
@@ -147,13 +147,13 @@ lente: [construir]
 
 ## Decisões (ADRs)
 
-- **425** ADRs no total. Índice gerado: [`_INDEX-GENERATED.md`](../decisions/_INDEX-GENERATED.md) · lifecycle: [`_INDEX-LIFECYCLE.md`](../decisions/_INDEX-LIFECYCLE.md).
-- Por status: aceito: 376 · superseded: 25 · deprecated: 11 · proposto: 11 · rascunho: 1 · recusado: 1.
+- **429** ADRs no total. Índice gerado: [`_INDEX-GENERATED.md`](../decisions/_INDEX-GENERATED.md) · lifecycle: [`_INDEX-LIFECYCLE.md`](../decisions/_INDEX-LIFECYCLE.md).
+- Por status: aceito: 377 · superseded: 25 · proposto: 14 · deprecated: 11 · rascunho: 1 · recusado: 1.
 - **5** reversões de rota (ADR com `supersedes:`).
 
 ## Ideias avaliadas e ABANDONADAS (§5 — não re-propor)
 
-> Dono canônico: [`memory/proibicoes.md §5`](../proibicoes.md). 243 entradas.
+> Dono canônico: [`memory/proibicoes.md §5`](../proibicoes.md). 252 entradas.
 
 <!-- transcrito-de: memory/proibicoes.md §5 -->
 - ~~2026-06-05 — Roadmap/plano de evolução PARALELO a canon existente~~
@@ -399,6 +399,15 @@ lente: [construir]
 - ~~2026-09-28 — EMENDA da lápide 2026-07-30 (`rg` não lê dotfile): a LEI dela, `rg --hidden -g '!.git/**'`, ainda é cega a arquivo de TEXTO com byte NUL — e o único cego era o único consumidor~~
 - ~~2026-09-29 — Afirmar "este check é required" citando uma NOTA DATADA do baseline, com a lista de contexts e a nota da demoção no MESMO arquivo~~
 - ~~2026-09-30 — EMENDA do rec 09-16 da LC-19 e da lápide 2026-09-05 (dono-é-sessão-viva): TRÊS sessões re-mediram o mesmo baseline, e a sonda de "PR aberto no arquivo" precisa casar ARQUIVO, não texto~~
+- ~~2026-09-30 (2ª) — EMENDA da lápide acima (três sessões no mesmo baseline): a sonda por arquivo virou modo do `dup-detector` no mesmo dia, e na mesma sessão o 2º PR duplicado saiu sem rodá-la~~
+- ~~2026-09-30 — EMENDA da lápide 2026-08-18 (gap protótipo × produção por grep): o vetor LISTA DE MUDANÇAS — promovi para produção só o delta da sessão~~
+- ~~2026-09-30 — O `--conferir` imprimia "1 verificado(s)" e gravava prova VAZIA para `.md`: editar um recibo já verificado travava o required do espelho sem saída~~
+- ~~2026-09-30 — Gate de bundle do deploy decidia "a publicação chegou?" por "arquivo de front mudou no diff" — um commit de só-comentário travou a esteira~~
+- ~~2026-10-01 — EMENDA da lápide 2026-08-13 (retrato atrasado): o `max()` sobre N leituras supunha amostras INDEPENDENTES, e as 3 leituras pela mesma URL saíram velhas e iguais~~
+- ~~2026-10-01 — A catraca de acoplamento oferecia `not_contains` como saída no eixo TABELA, que não lê `not_contains`~~
+- ~~2026-10-01 — EMENDA da lápide 2026-09-30 (2ª): o pedido chegou por sessão de coordenação, e a sessão irmã que já tinha o PR aberto não estava na lista de quem eu avisaria~~
+- ~~2026-10-02 — EMENDA da lápide 2026-08-13 (retrato atrasado): uma leitura minha, à mão, numa janela de deploy, virou comentário de canon e tirou uma defesa do deploy~~
+- ~~2026-10-02 — Tamanho da CÉLULA lido como tamanho do TEXTO na comparação app × protótipo~~
 <!-- /transcrito-de -->
 
 ## Tier 0 gaps (esperam decisão/desbloqueio)
@@ -409,14 +418,14 @@ lente: [construir]
 
 ## Rastro
 
-- **574** handoffs · **777** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
+- **586** handoffs · **778** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
 - Sessions recentes:
+  - `2026-09-30-patrimonio-garantias-recortes-visreg`
   - `2026-09-29-refutacao-gt-g5-lote-8195-r1`
   - `2026-09-29-refutacao-gt-g5-lote-8194-r2`
   - `2026-09-29-refutacao-gt-g5-lote-8194-r1`
   - `2026-09-29-refutacao-gt-g5-lote-8120-r2`
   - `2026-09-29-refutacao-gt-g5-lote-8120-r1`
-  - `2026-09-28-refutacao-gt-g5-lote-8073-r1`
 
 ---
-_Gerado por `scripts/governance/system-map.mjs` · 2026-09-30 · deriva das fontes canônicas, não as substitui._
+_Gerado por `scripts/governance/system-map.mjs` · 2026-10-02 · deriva das fontes canônicas, não as substitui._

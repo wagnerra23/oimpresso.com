@@ -78,7 +78,7 @@
       "border-2":      { "$value": "oklch(0.93 0.004 90)",  "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --border-2", "com.oimpresso.dark": "oklch(0.31 0.008 240)" } },
       "text":          { "$value": "oklch(0.22 0.01 80)",   "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --text", "com.oimpresso.dark": "oklch(0.94 0.005 90)" } },
       "text-dim":      { "$value": "oklch(0.50 0.01 80)",   "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --text-dim", "com.oimpresso.dark": "oklch(0.72 0.005 90)" } },
-      "text-mute":     { "$value": "oklch(0.65 0.01 80)",   "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --text-mute", "com.oimpresso.dark": "oklch(0.58 0.005 90)" } }
+      "text-mute":     { "$value": "oklch(0.555 0.01 80)",  "$description": "Contraste AA (4,5:1) sobre --bg e --surface nos dois temas — [W] 2026-10-02, opção B: não passa sobre --accent-soft, para não colar no --text-dim. Antes 0.65 / 0.58 (3,10 e 3,18:1).", "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --text-mute", "com.oimpresso.dark": "oklch(0.67 0.005 90)" } }
     },
     "accent": {
       "$type": "color",
@@ -94,7 +94,7 @@
       "pos-soft":  { "$value": "oklch(0.95 0.075 150)", "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --pos-soft", "com.oimpresso.dark": "oklch(0.34 0.11 150)" } },
       "neg":       { "$value": "oklch(0.55 0.18 25)",   "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --neg", "com.oimpresso.dark": "oklch(0.74 0.19 25)" } },
       "neg-soft":  { "$value": "oklch(0.955 0.055 25)", "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --neg-soft", "com.oimpresso.dark": "oklch(0.36 0.12 25)" } },
-      "warn":      { "$value": "oklch(0.58 0.12 70)",   "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --warn", "com.oimpresso.dark": "oklch(0.82 0.16 75)" } },
+      "warn":      { "$value": "oklch(0.56 0.12 70)",   "$description": "Contraste AA (4,5:1) como texto sobre --bg e --surface — [W] 2026-10-02, mesma regra do --text-mute. Antes 0.58 (4,21:1 sobre --bg). O escuro (0.82) já passava.", "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --warn", "com.oimpresso.dark": "oklch(0.82 0.16 75)" } },
       "warn-soft": { "$value": "oklch(0.955 0.072 75)", "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --warn-soft", "com.oimpresso.dark": "oklch(0.37 0.11 70)" } }
     },
     "bubble": {

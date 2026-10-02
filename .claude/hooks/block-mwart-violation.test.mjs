@@ -12,7 +12,7 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { decide, parsePagePath, toKebab, runbookStatus, charterRunbookExists } from './block-mwart-violation.mjs';
+import { decide, parsePagePath, toKebab, runbookStatus, charterRunbookExists, raizDoArquivo } from './block-mwart-violation.mjs';
 
 const HOOK = join(dirname(fileURLToPath(import.meta.url)), 'block-mwart-violation.mjs');
 let fails = 0;
@@ -191,6 +191,22 @@ check('E2E: related_runbook: fantasma → exit 2 (BLOQUEIA)', runHook(j('Edit', 
 check('E2E: fora de escopo → exit 0', runHook(j('Edit', 'Modules/Jana/Services/Foo.php')) === 0);
 check('E2E: stdin vazio → exit 0 (fail-open)', runHook('') === 0);
 check('E2E: JSON inválido → exit 0 (fail-open, NUNCA trava sessão)', runHook('{lixo') === 0);
+
+// ── raiz do ARQUIVO, não o cwd: o harness roda o hook com cwd = repo principal mesmo editando
+//    num worktree (2026-10-01). RUNBOOK só no worktree tem de contar.
+{
+  // O "repo principal" do caso real TEM memory/requisitos/<Mod>/ — só não tem o RUNBOOK novo,
+  // que mora no worktree. Sem a pasta, o hook antigo liberava tudo e o teste não provava nada.
+  const outro = mkdtempSync(join(tmpdir(), 'mwart-cwd-'));
+  mkdirSync(join(outro, 'memory', 'requisitos', 'Sells'), { recursive: true });
+  const rodaEm = (arquivo, cwd) => spawnSync(process.execPath, [HOOK], { input: j('Write', arquivo), encoding: 'utf8', cwd }).status;
+  check('BITE: cwd em outro repo, RUNBOOK no repo do arquivo → libera (exit 0)',
+    rodaEm(join(root, 'resources', 'js', 'Pages', 'Sells', 'Index.tsx'), outro) === 0);
+  check('CONTROLE: mesmo cwd alheio, tela sem RUNBOOK → bloqueia (exit 2)',
+    rodaEm(join(root, 'resources', 'js', 'Pages', 'Sells', 'Create.tsx'), outro) === 2);
+  check('raizDoArquivo: path relativo cai no fallback', raizDoArquivo('resources/js/Pages/X/Y.tsx', 'FB') === 'FB');
+  rmSync(outro, { recursive: true, force: true });
+}
 
 rmSync(root, { recursive: true, force: true });
 

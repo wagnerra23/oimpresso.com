@@ -851,10 +851,22 @@ class SellController extends Controller
     /**
      * Show the form for creating a new resource.
      *
-     * @return \Illuminate\Http\Response
+     * Tipos reais do retorno: Inertia (V2) · Blade (legado) · redirect (reparo → /pos/create).
+     * Antes declarava só Response e os dois primeiros viviam no phpstan-baseline.
+     *
+     * @return \Illuminate\Http\Response|\Illuminate\Http\RedirectResponse|\Inertia\Response|\Illuminate\View\View
      */
     public function create()
     {
+        // Reparo é um TIPO de venda (UC-S03): quem lê ?sub_type= e entrega o tipo ao
+        // Sells/Create é o SellPosController (/pos/create). Esta tela lê ?sale_type= e
+        // gravava o reparo como venda comum — medido 2026-10-01 a partir do botão "Nova OS"
+        // do Repair/Index. O destino aplica a própria permissão e exige caixa aberto,
+        // como os links Blade do Repair sempre exigiram.
+        if (request()->get('sub_type') === 'repair') {
+            return redirect('/pos/create?sub_type=repair');
+        }
+
         $sale_type = request()->get('sale_type', '');
 
         if ($sale_type == 'sales_order') {
@@ -1095,9 +1107,22 @@ class SellController extends Controller
      */
     public function inertiaList(Request $request)
     {
+        // Thread 01 (Lista de POS · Sells/Pos/Index) — filtro OPCIONAL por tipo de venda.
+        // Whitelist 0/1; ausente (ou qualquer outro valor) = comportamento de sempre, todas as
+        // vendas finais (o default do Sells/Index não muda). `is_direct_sale=0` é a "Lista de
+        // POS": o legado `sale_pos/index` chamava `SellController@index?is_direct_sale=0`.
+        $isDirectSaleRaw = (string) $request->input('is_direct_sale', '');
+        $isDirectSale = in_array($isDirectSaleRaw, ['0', '1'], true) ? (int) $isDirectSaleRaw : null;
+        $listaPos = $isDirectSale === 0;
+
+        // Na Lista de POS vale o gate do legado (`SellPosController@index`: sell.view OU
+        // sell.create). Fora dela, o gate de sempre — quem só tem sell.view continua 403 na
+        // lista geral.
+        $podeListaPos = $listaPos && (auth()->user()->can('sell.view') || auth()->user()->can('sell.create'));
         if (!auth()->user()->can('direct_sell.view') &&
             !auth()->user()->can('view_own_sell_only') &&
-            !auth()->user()->can('view_commission_agent_sell')) {
+            !auth()->user()->can('view_commission_agent_sell') &&
+            !$podeListaPos) {
             abort(403);
         }
 
@@ -1130,6 +1155,14 @@ class SellController extends Controller
         // date_from / date_to aplicam ao date_field escolhido.
         $dateFrom = trim((string) $request->input('date_from', ''));
         $dateTo = trim((string) $request->input('date_to', ''));
+        // UC-SIDX-03 — `date_to` só com a data (AAAA-MM-DD, formato dos presets e do
+        // <input type="date"> do SellsDateFilter) cobre o DIA INTEIRO. Comparado cru,
+        // `<= '2026-10-01'` vira `<= '2026-10-01 00:00:00'` e tirava da lista toda venda
+        // do último dia depois da meia-noite — o preset "Dia" mostrava o dia praticamente vazio.
+        // `date_to` que já traz hora é respeitado como veio.
+        if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $dateTo) === 1) {
+            $dateTo .= ' 23:59:59';
+        }
 
         // Whitelist de colunas ordenáveis — alias frontend → expressão SQL.
         $sortMap = [
@@ -1170,6 +1203,18 @@ class SellController extends Controller
             ->where('transactions.type', 'sell')
             ->where('transactions.status', 'final')
             ->whereNull('transactions.sub_type');
+
+        if ($isDirectSale !== null) {
+            $q->where('transactions.is_direct_sale', $isDirectSale);
+        }
+        // Lista de POS: mesma restrição de local do legado (SellController@index AJAX,
+        // `permitted_locations`). Só neste modo — o default do Sells/Index não muda.
+        if ($listaPos) {
+            $permittedLocations = auth()->user()->permitted_locations();
+            if ($permittedLocations !== 'all') {
+                $q->whereIn('transactions.location_id', $permittedLocations);
+            }
+        }
 
         // US-SELL-021 — JOIN nfe_emissoes só quando precisamos da NF_DT_EMISSAO.
         // Tabela tem unique (business_id, transaction_id) — não duplica linhas.
@@ -2630,8 +2675,11 @@ class SellController extends Controller
     /**
      * Show the form for editing the specified resource.
      *
+     * Tipos reais do retorno: Blade · Inertia · JSON (422 Inertia) · redirect. Antes declarava
+     * só Response e os demais viviam no phpstan-baseline.
+     *
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\Response|\Illuminate\Http\JsonResponse|\Illuminate\Http\RedirectResponse|\Illuminate\View\View|\Inertia\Response|\Symfony\Component\HttpFoundation\Response
      */
     public function edit($id)
     {
@@ -2939,10 +2987,18 @@ class SellController extends Controller
 
         $customer_due = $this->transactionUtil->getContactDue($transaction->contact_id, $transaction->business_id);
 
+        // Número cru da dívida, guardado ANTES da formatação pt-BR: o payload React precisa
+        // do float, e re-parsear o texto pt-BR quebrava (o ponto é milhar, a vírgula é decimal).
+        $customer_due_raw = round((float) $customer_due, 2);
+
         $customer_due = $customer_due != 0 ? $this->transactionUtil->num_f($customer_due, true) : '';
 
         //Added check because $users is of no use if enable_contact_assign if false
         $users = config('constants.enable_contact_assign') ? User::forDropdown($business_id, false, false, false, true) : [];
+
+        // Paliativo de 2026-10-01 (navegação React → Blade) removido em 2026-10-02 por [W]:
+        // a tela React salva pelo SellPosController@update e salvar sem mexer não muda o
+        // valor (UC-SEDIT-09). Ver UC-SEDIT-08 em Sells/Edit.casos.md.
 
         // Wave 1 W1-A — branch dual MWART. Inertia se header X-Inertia presente.
         // Form payload pesado (sell_details join 6 tables + payment_lines + dropdowns) vai DEFERRED.
@@ -2955,7 +3011,7 @@ class SellController extends Controller
                 'current_stage_key' => null,  // FSM ADR 0143 (lazy)
             ];
 
-            $formPayload = function () use ($transaction, $business_details, $taxes, $sell_details, $commission_agent, $types, $customer_groups, $pos_settings, $waiters, $invoice_schemes, $default_invoice_schemes, $redeem_details, $edit_discount, $edit_price, $shipping_statuses, $warranties, $statuses, $sales_orders, $payment_types, $accounts, $payment_lines, $change_return, $is_order_request_enabled, $customer_due, $users) {
+            $formPayload = function () use ($transaction, $business_details, $taxes, $sell_details, $commission_agent, $types, $customer_groups, $pos_settings, $waiters, $invoice_schemes, $default_invoice_schemes, $redeem_details, $edit_discount, $edit_price, $shipping_statuses, $warranties, $statuses, $sales_orders, $payment_types, $accounts, $payment_lines, $change_return, $is_order_request_enabled, $customer_due, $customer_due_raw, $users) {
                 return [
                     'transaction' => [
                         'id' => (int) $transaction->id,
@@ -3025,9 +3081,10 @@ class SellController extends Controller
                         'name' => (string) ($transaction->contact->name ?? ''),
                         'mobile' => $transaction->contact->mobile ? (string) $transaction->contact->mobile : null,
                         'email' => $transaction->contact->email ? (string) $transaction->contact->email : null,
-                        // dues_total = soma de transactions.final_total - total_paid de outras vendas due
-                        // do mesmo contact. Lazy fallback ao $customer_due variable já existente acima.
-                        'dues_total' => (float) ($customer_due ? floatval(preg_replace('/[^\d.]/', '', $customer_due)) : 0.0),
+                        // dues_total = saldo devedor do contato (Util::getContactDue), em número cru.
+                        // Não re-parsear $customer_due: ele já vem formatado em pt-BR e o
+                        // preg_replace descartava a vírgula decimal (a dívida aparecia 100× maior).
+                        'dues_total' => $customer_due_raw,
                     ] : null,
                 ];
             };
@@ -3042,7 +3099,10 @@ class SellController extends Controller
                     'update' => true,
                 ],
                 'urls' => array_filter([
-                    'submit' => '/sells/' . $id,
+                    // PUT /pos/{id} = SellPosController@update, o caminho canônico de valor (o
+                    // mesmo do form Blade sell.edit). /sells/{id} caía em SellController@update,
+                    // que não existe → 500 (4× em prod, biz=4). UC-SEDIT-09.
+                    'submit' => '/pos/' . $id,
                     'cancel' => '/sells/' . $id,
                     'back' => '/sells',
                     // ADR 0192 Onda 2 follow-up — endpoint dedicado pra salvar commission_split.
@@ -3464,10 +3524,10 @@ class SellController extends Controller
     }
 
     /**
-     * Shows modal to edit shipping details.
+     * Shows modal to edit shipping details (ou JSON pro drawer de Sells/Shipments/Index).
      *
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\View\View|\Illuminate\Http\JsonResponse
      */
     public function editShipping($id)
     {
@@ -3486,6 +3546,27 @@ class SellController extends Controller
         $users = User::forDropdown($business_id, false, false, false);
 
         $shipping_statuses = $this->transactionUtil->shipping_statuses();
+
+        // Thread 02 (venda-menu) — o drawer de Sells/Shipments/Index pede JSON pelo MESMO endpoint.
+        // O modal Blade segue recebendo HTML: o jQuery dele manda Accept text/html (wantsJson=false).
+        if (request()->wantsJson() && ! request()->header('X-Inertia')) {
+            return response()->json([
+                'id' => $transaction->id,
+                'invoice_no' => $transaction->invoice_no,
+                'shipping_status' => $transaction->shipping_status,
+                'delivery_person' => $transaction->delivery_person,
+                'delivered_to' => $transaction->delivered_to,
+                'shipping_details' => $transaction->shipping_details,
+                'shipping_address' => $transaction->shipping_address,
+                'shipping_custom_field_1' => $transaction->shipping_custom_field_1,
+                'shipping_custom_field_2' => $transaction->shipping_custom_field_2,
+                'shipping_custom_field_3' => $transaction->shipping_custom_field_3,
+                'shipping_custom_field_4' => $transaction->shipping_custom_field_4,
+                'shipping_custom_field_5' => $transaction->shipping_custom_field_5,
+                'shipping_statuses' => $shipping_statuses,
+                'users' => $users,
+            ]);
+        }
 
         $activities = Activity::forSubject($transaction)
            ->with(['causer', 'subject'])

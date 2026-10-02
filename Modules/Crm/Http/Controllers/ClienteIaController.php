@@ -7,6 +7,7 @@ namespace Modules\Crm\Http\Controllers;
 use App\Contact;
 use App\Http\Controllers\Controller;
 use App\Transaction;
+use App\Services\Pessoas\PessoaVendas;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -464,30 +465,19 @@ class ClienteIaController extends Controller
         }
 
         try {
-            $agg = Transaction::where('business_id', $businessId)
-                ->where('contact_id', $contact->id)
-                ->where('type', 'sell')
-                ->whereIn('status', ['final'])
-                ->selectRaw('COUNT(*) as cnt, COALESCE(SUM(final_total), 0) as total, MAX(transaction_date) as ultima')
-                ->first();
-
-            $cnt = (int) ($agg->cnt ?? 0);
-            $total = (float) ($agg->total ?? 0);
+            // Fórmula única em App\Services\Pessoas\PessoaVendas (a mesma da API do app das lojas):
+            // venda = sell/final; saldo = final_total − pago, só em due/partial (D8 do MAPA-DE-DADOS-v1).
+            // Aqui o saldo ganha piso em zero, como já tinha antes da extração.
+            $resumo = PessoaVendas::resumo($businessId, (int) $contact->id);
+            $cnt = $resumo['qtd'];
+            $total = $resumo['soma'];
             $ticketMedio = $cnt > 0 ? $total / $cnt : 0.0;
-
-            // Saldo aberto: soma final_total - amount_paid de payment_status nao paid.
-            $saldoAgg = Transaction::where('business_id', $businessId)
-                ->where('contact_id', $contact->id)
-                ->where('type', 'sell')
-                ->whereIn('payment_status', ['due', 'partial', 'overdue', 'partial-overdue'])
-                ->selectRaw('COALESCE(SUM(final_total - COALESCE(total_paid, 0)), 0) as saldo')
-                ->first();
-            $saldo = max(0.0, (float) ($saldoAgg->saldo ?? 0));
+            $saldo = max(0.0, (float) (PessoaVendas::saldosAbertos($businessId, [(int) $contact->id])[(int) $contact->id] ?? 0));
 
             $diasUltima = null;
-            if (! empty($agg->ultima)) {
+            if (! empty($resumo['ultima'])) {
                 try {
-                    $diasUltima = (int) Carbon::parse($agg->ultima)->diffInDays(now());
+                    $diasUltima = (int) Carbon::parse($resumo['ultima'])->diffInDays(now());
                 } catch (\Throwable $e) {
                     $diasUltima = null;
                 }

@@ -29,6 +29,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
 import ProductSearchAutocomplete, {
   type ProductSearchResult,
 } from './_components/ProductSearchAutocomplete';
+import { precoDaBusca } from './_components/precoDaBusca';
 import CustomerSearchAutocomplete, {
   type CustomerSearchResult,
   type VehicleOption,
@@ -37,6 +38,7 @@ import QuickAddVehicleSheet from './_components/QuickAddVehicleSheet';
 import PaymentRow, { type Payment } from './_components/PaymentRow';
 import NumericInputPtBR from '@/Components/ui/numeric-input-ptbr';
 import { dropdownEntries } from './_components/dropdownEntries';
+import { camposDeSubtipo } from './_components/subtipoVenda';
 import {
   Select,
   SelectContent,
@@ -379,7 +381,8 @@ export default function SellsCreate(props: SellsCreatePageProps) {
         variation: hasVariation ? p.variation ?? null : null,
         sku: hasVariation ? p.sub_sku ?? p.sku : p.sku,
         quantity: 1,
-        unit_price: Number(p.selling_price ?? 0),
+        // Preço do grupo quando a busca veio com `price_group` (ver precoDaBusca.ts).
+        unit_price: precoDaBusca(p),
         discount: 0,
         discount_type: 'fixed' as const,
         imei_number: '',
@@ -442,11 +445,7 @@ export default function SellsCreate(props: SellsCreatePageProps) {
           : undefined;
         if (!match) return null;
         // Pattern legacy public/js/pos.js: variation_group_price tem prioridade
-        const newPrice =
-          match.variation_group_price !== undefined &&
-          match.variation_group_price !== null
-            ? Number(match.variation_group_price)
-            : Number(match.selling_price ?? line.unit_price);
+        const newPrice = precoDaBusca(match, line.unit_price);
         return { variation_id: line.variation_id, unit_price: newPrice };
       } catch (err) {
         console.warn(
@@ -654,6 +653,9 @@ export default function SellsCreate(props: SellsCreatePageProps) {
           : props.defaultDatetime,
       // Flag CRÍTICO: sem is_direct_sale=1, controller cai em cashRegister check (linha 364).
       is_direct_sale: 1,
+      // Reparo é um TIPO de venda (decisão [W] 2026-10-01): aberto por ?sub_type=repair,
+      // o envio carrega o tipo. Não muda valor nem estoque — ver subtipoVenda.ts.
+      ...camposDeSubtipo(props.subType),
       is_save_and_print: withPrint ? 1 : 0,
       // Rename pra Blade legacy convention
       payment: d.payments,
@@ -1246,6 +1248,7 @@ export default function SellsCreate(props: SellsCreatePageProps) {
           <div ref={productSearchRef}>
             <ProductSearchAutocomplete
               locationId={data.location_id}
+              priceGroupId={data.price_group_id}
               onSelect={handleAddProduct}
             />
           </div>

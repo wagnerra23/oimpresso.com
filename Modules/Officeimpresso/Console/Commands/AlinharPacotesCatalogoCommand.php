@@ -14,10 +14,11 @@ use Modules\Superadmin\Entities\Subscription;
  * ── POR QUE ─────────────────────────────────────────────────────────────────
  * Decisão [W] 2026-10-01 (D3 do playbook Officeimpresso, 2ª rodada, "pode ajustar
  * primeiro"): o catálogo tem dono, o `Modules/ProductCatalogue`. O gerador de QR
- * daqui (`/officeimpresso/catalogue-qr`) aceita `officeimpresso_module`; o de lá
- * (`/product-catalogue/catalogue-qr`) exige `productcatalogue_module`. Redirecionar
- * antes de alinhar os pacotes faria quem só tem o primeiro tomar 403. Ordem: este
- * comando aplicado em prod → só então o redirect.
+ * daqui (`/officeimpresso/catalogue-qr`) aceitava `officeimpresso_module` até
+ * 2026-10-01, quando passou a redirecionar; o de lá (`/product-catalogue/catalogue-qr`)
+ * exige `productcatalogue_module`. Redirecionar antes de alinhar os pacotes faria quem
+ * só tinha o primeiro tomar 403. Ordem: este comando aplicado em prod → só então o
+ * redirect.
  *
  * ── POR QUE NÃO É O HARDCODE PROIBIDO ───────────────────────────────────────
  * Nenhum business_id aparece aqui. O comando grava o MESMO dado que a tela

@@ -51,8 +51,15 @@ class DataController extends Controller
             $transaction->repair_checklist = json_encode($input['repair_checklist']);
         }
 
-        $transaction->repair_completed_on = ! empty($input['repair_completed_on']) ? $repairUtil->uf_date($input['repair_completed_on'], true) : null;
-        $transaction->repair_due_date = ! empty($input['repair_due_date']) ? $repairUtil->uf_date($input['repair_due_date'], true) : null;
+        // As datas só mudam quando o formulário as envia. O PDV de reparo sempre envia (vazio =
+        // limpar); a edição pela lista de vendas (Sells/Edit React e sell.edit Blade) não envia
+        // nenhum campo de reparo — antes, salvar por ali zerava entrega e conclusão (UC-SEDIT-11).
+        if (array_key_exists('repair_completed_on', $input)) {
+            $transaction->repair_completed_on = ! empty($input['repair_completed_on']) ? $repairUtil->uf_date($input['repair_completed_on'], true) : null;
+        }
+        if (array_key_exists('repair_due_date', $input)) {
+            $transaction->repair_due_date = ! empty($input['repair_due_date']) ? $repairUtil->uf_date($input['repair_due_date'], true) : null;
+        }
 
         $transaction->save();
 
@@ -186,7 +193,9 @@ class DataController extends Controller
                         'shortcut' => 'G O',
                         'primary'  => [
                             'label'    => 'Nova OS',
-                            'href'     => '/sells/pos/create?sub_type=repair',
+                            // /sells/pos/create não existe (404 em prod, medido 2026-10-01);
+                            // /pos/create é a rota do SellPosController que lê ?sub_type=.
+                            'href'     => '/pos/create?sub_type=repair',
                             'shortcut' => 'N',
                         ],
                         'ghosts'   => [

@@ -31,6 +31,16 @@ on:
       - 'resources/js/Pages/Ponto/**'
       - 'app/Concerns/HasBusinessScope.php'
       - 'app/Scopes/ScopeByBusiness.php'
+      - 'app/Auth/AppMobileOAuth.php'
+      - 'app/Console/Commands/AppMobileOAuthClientCommand.php'
+      - 'app/User.php'
+      - 'app/Http/Controllers/Api/App/TarefasController.php'
+      # A aba Tarefas chega aos módulos por contrato (2026-10-02): o contrato, a implementação
+      # do Essentials e o registro dela acordam o AppTarefasApiContratoTest junto do controller.
+      - 'app/Contracts/Tarefas/**'
+      - 'Modules/Essentials/Services/TarefasDoApp.php'
+      - 'Modules/Essentials/Providers/EssentialsServiceProvider.php'
+      - 'Modules/Essentials/Services/TodoService.php'
       - 'config/ponto_afd.php'
       - 'database/schema/mysql-schema.sql'
       - '.github/workflows/ponto-pest.yml'
@@ -72,6 +82,14 @@ jobs:
               - 'resources/js/Pages/Ponto/**'
               - 'app/Concerns/HasBusinessScope.php'
               - 'app/Scopes/ScopeByBusiness.php'
+              - 'app/Auth/AppMobileOAuth.php'
+              - 'app/Console/Commands/AppMobileOAuthClientCommand.php'
+              - 'app/User.php'
+              - 'app/Http/Controllers/Api/App/TarefasController.php'
+              - 'app/Contracts/Tarefas/**'
+              - 'Modules/Essentials/Services/TarefasDoApp.php'
+              - 'Modules/Essentials/Providers/EssentialsServiceProvider.php'
+              - 'Modules/Essentials/Services/TodoService.php'
               - 'config/ponto_afd.php'
               - 'database/schema/mysql-schema.sql'
               - '.github/workflows/ponto-pest.yml'
@@ -97,6 +115,23 @@ jobs:
             "resources/js/app.tsx": { "file": "assets/app.js", "src": "resources/js/app.tsx", "isEntry": true }
           }
           EOF
+
+      # Chaves do Passport 1x pra lane inteira: o checkout não traz storage/oauth-*.key e
+      # qualquer rota `auth:api` estoura `Invalid key supplied`. Antes, só alguns arquivos
+      # geravam a chave no próprio beforeEach (Wave28, PushDispositivo, AppOAuthCliente) e o
+      # resto passava ou caía conforme a ORDEM dos arquivos — medido 2026-10-02, run
+      # 36996084463: ApiAppEspelhoMeContratoTest + DemoRevisorContaTest DEMO-08/09 em
+      # LogicException. Mesmo contorno do connector-pest.yml.
+      - name: Chaves Passport (passport:keys)
+        if: steps.changes.outputs.ponto == 'true'
+        env:
+          DB_CONNECTION: mysql
+          DB_HOST: 127.0.0.1
+          DB_PORT: "3306"
+          DB_DATABASE: oimpresso_test
+          DB_USERNAME: root
+          DB_PASSWORD: root
+        run: php artisan passport:keys --force
 
       - name: Run Pest (Ponto · MySQL) — ALLOWLIST VERDE (catraca)
         if: steps.changes.outputs.ponto == 'true'
@@ -307,6 +342,7 @@ jobs:
             Modules/Ponto/Tests/Feature/EspelhoContratoTest.php \
             Modules/Ponto/Tests/Feature/PrivacidadePublicaContratoTest.php \
             Modules/Ponto/Tests/Feature/ExclusaoDadosPublicaContratoTest.php \
+            Modules/Ponto/Tests/Feature/AppLinksContratoTest.php \
             Modules/Ponto/Tests/Feature/JornadaWorkflowContratoTest.php \
             Modules/Ponto/Tests/Feature/BancoHorasImportacaoContratoTest.php \
             Modules/Ponto/Tests/Feature/BancoHorasIndexContratoTest.php \
@@ -346,6 +382,13 @@ jobs:
             Modules/Ponto/Tests/Feature/Wave25SaturationTest.php \
             Modules/Ponto/Tests/Feature/Wave28MobileMarcacaoTest.php \
             Modules/Ponto/Tests/Feature/RepPMobileContratoTest.php \
+            Modules/Ponto/Tests/Feature/DemoRevisorContaTest.php \
+            Modules/Ponto/Tests/Feature/PushDispositivoContratoTest.php \
+            Modules/Ponto/Tests/Feature/AppOAuthClienteContratoTest.php \
+            Modules/Ponto/Tests/Feature/AppTarefasApiContratoTest.php \
+            Modules/Ponto/Tests/Feature/ApiAppEspelhoMeContratoTest.php \
+            Modules/Ponto/Tests/Feature/EnviarLembretePontoJobTest.php \
+            Modules/Ponto/Tests/Feature/LembretesPushContratoTest.php \
             Modules/Ponto/Tests/Feature/RepPFilaGestorContratoTest.php \
             Modules/Ponto/Tests/Feature/AnulacaoMotivoTest.php \
             Modules/Ponto/Tests/Feature/RepPNsrSequencialTest.php \
