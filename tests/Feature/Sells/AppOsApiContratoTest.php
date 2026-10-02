@@ -258,4 +258,52 @@ it('o filtro de etapa filtra só os itens; total, travadas e contagem por etapa 
     expect($filtrada->json('etapas'))->toBe($todas->json('etapas'));
     expect(collect($filtrada->json('itens'))->pluck('etapa.chave')->unique()->all())->toBe(['aguardando_pecas']);
     expect(collect($filtrada->json('itens'))->pluck('id'))->not->toContain($emExecucao);
+
+// ── Tela 08 — GET /api/app/veiculos (contrato §11.3) ────────────────────────────
+
+it('veículos: lista o meu com tipo, ano, reboque, cor, dono e o maior km conhecido', function () {
+    Permission::firstOrCreate(['name' => 'oficinaauto.vehicle.view', 'guard_name' => 'web']);
+    $this->user->givePermissionTo('oficinaauto.vehicle.view');
+    $dono = DB::table('contacts')->where('business_id', $this->biz->id)->value('id');
+
+    $placa = 'APP' . random_int(1000, 9999);
+    $v = DB::table('vehicles')->insertGetId([
+        'business_id' => $this->biz->id, 'plate' => $placa, 'secondary_plate' => 'REB1A23',
+        'vehicle_type' => 'cavalo', 'color' => 'Branco', 'manufacture_year' => 2019, 'model_year' => 2020,
+        'mileage_at_entry' => 40000, 'contact_id' => $dono, 'created_at' => now(), 'updated_at' => now(),
+    ]);
+    DB::table('service_orders')->insert([
+        'business_id' => $this->biz->id, 'vehicle_id' => $v, 'order_type' => 'mecanica', 'status' => 'aberta',
+        'mileage_at_service' => 48312, 'created_at' => now(), 'updated_at' => now(),
+    ]);
+
+    $item = collect($this->getJson('/api/app/veiculos?q=' . $placa)->assertOk()->json('itens'))->firstWhere('id', $v);
+    expect($item)->not->toBeNull();
+    expect($item['placa'])->toBe($placa);
+    expect($item['placa_secundaria'])->toBe('REB1A23');
+    expect($item['descricao'])->toBe('Cavalo (truck-cabine)');
+    expect($item['ano'])->toBe('2019/2020');
+    expect($item['cor'])->toBe('Branco');
+    expect($item['km'])->toBe(48312);
+    expect($item['cliente'])->toBe($dono ? DB::table('contacts')->where('id', $dono)->value('name') : null);
+});
+
+it('veículos: sem oficinaauto.vehicle.view responde 403; veículo de OUTRO business não aparece', function () {
+    $this->getJson('/api/app/veiculos')->assertStatus(403)->assertJsonPath('erro', 'sem_permissao');
+
+    Permission::firstOrCreate(['name' => 'oficinaauto.vehicle.view', 'guard_name' => 'web']);
+    $this->user->givePermissionTo('oficinaauto.vehicle.view');
+    $sufixo = (string) random_int(100, 999);
+    $meu = DB::table('vehicles')->insertGetId([
+        'business_id' => $this->biz->id, 'plate' => 'MEU' . $sufixo, 'vehicle_type' => 'caminhao',
+        'created_at' => now(), 'updated_at' => now(),
+    ]);
+    $alheio = DB::table('vehicles')->insertGetId([
+        'business_id' => $this->outroBiz->id, 'plate' => 'OUT' . $sufixo, 'vehicle_type' => 'caminhao',
+        'created_at' => now(), 'updated_at' => now(),
+    ]);
+
+    $ids = collect($this->getJson('/api/app/veiculos?q=' . $sufixo)->assertOk()->json('itens'))->pluck('id');
+    expect($ids)->toContain($meu);
+    expect($ids)->not->toContain($alheio);
 });

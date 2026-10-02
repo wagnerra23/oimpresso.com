@@ -241,6 +241,100 @@ class OficinaController extends Controller
     }
 
     /**
+     * GET /api/app/veiculos?q=&pagina=N — tela 08. Veículos de cliente do business (tabela
+     * `vehicles`); permissão da tela web de veículos. Busca por placa (principal e reboque),
+     * rótulo do tipo e nome do dono. `km` = maior km conhecido (cadastro ou OS do veículo).
+     */
+    public function veiculos(Request $request): JsonResponse
+    {
+        $user = $request->user();
+        if (! $this->podeVerVeiculos($user)) {
+            return $this->semPermissao();
+        }
+
+        $bizId = (int) $user->business_id;
+        $pagina = max((int) $request->query('pagina', 1), 1);
+        $busca = trim((string) $request->query('q', ''));
+
+        $q = DB::table('vehicles as v')
+            ->leftJoin('contacts as c', function ($j) {
+                $j->on('c.id', '=', 'v.contact_id')->on('c.business_id', '=', 'v.business_id');
+            })
+            ->where('v.business_id', $bizId)
+            ->whereNull('v.deleted_at');
+
+        if ($busca !== '') {
+            $like = '%' . $busca . '%';
+            $tipos = array_keys(array_filter(
+                VehicleController::vehicleTypes(),
+                fn ($rotulo) => mb_stripos($rotulo, $busca) !== false
+            ));
+            $q->where(function ($w) use ($like, $tipos) {
+                $w->where('v.plate', 'like', $like)
+                    ->orWhere('v.secondary_plate', 'like', $like)
+                    ->orWhere('c.name', 'like', $like);
+                if ($tipos !== []) {
+                    $w->orWhereIn('v.vehicle_type', $tipos);
+                }
+            });
+        }
+
+        $total = (clone $q)->count();
+        $linhas = $q->orderBy('v.plate')
+            ->orderBy('v.id')
+            ->offset(($pagina - 1) * self::POR_PAGINA)
+            ->limit(self::POR_PAGINA + 1)
+            ->get([
+                'v.id', 'v.plate', 'v.secondary_plate', 'v.vehicle_type', 'v.color',
+                'v.manufacture_year', 'v.model_year', 'c.name as cliente',
+                DB::raw('GREATEST(COALESCE(v.mileage_at_entry, 0), COALESCE((SELECT MAX(so.mileage_at_service)'
+                    . ' FROM service_orders so WHERE so.vehicle_id = v.id AND so.business_id = v.business_id'
+                    . ' AND so.deleted_at IS NULL), 0)) as km'),
+            ]);
+
+        return response()->json([
+            'itens' => $linhas->take(self::POR_PAGINA)->map(fn ($v) => [
+                'id' => (int) $v->id,
+                'placa' => (string) $v->plate,
+                'placa_secundaria' => $this->texto($v->secondary_plate),
+                'descricao' => $this->tipoVeiculo($v->vehicle_type),
+                'ano' => $this->ano($v->manufacture_year, $v->model_year),
+                'cliente' => $v->cliente,
+                'km' => (int) $v->km > 0 ? (int) $v->km : null,
+                'cor' => $this->texto($v->color),
+            ])->values(),
+            'total' => $total,
+            'pagina' => $pagina,
+            'tem_mais' => $linhas->count() > self::POR_PAGINA,
+        ]);
+    }
+
+    /** Mesma regra da tela web de veículos: pacote da Oficina + `oficinaauto.vehicle.view`. */
+    public function podeVerVeiculos(?User $user): bool
+    {
+        return $user !== null
+            && $this->moduloHabilitado($user)
+            && ($user->can('superadmin') || $user->can('oficinaauto.vehicle.view'));
+    }
+
+    private function texto(?string $v): ?string
+    {
+        return is_string($v) && trim($v) !== '' ? trim($v) : null;
+    }
+
+    /** "2019/2020" (fabricação/modelo); um só ano quando só um existe ou os dois são iguais. */
+    private function ano($fab, $mod): ?string
+    {
+        $f = $fab ? (int) $fab : null;
+        $m = $mod ? (int) $mod : null;
+        if ($f && $m) {
+            return $f === $m ? (string) $f : $f . '/' . $m;
+        }
+
+        return $f ? (string) $f : ($m ? (string) $m : null);
+    }
+
+    /**
      * Mesma regra do menu web da Oficina (DataController::modifyAdminMenu): módulo no pacote do
      * business (superadmin: módulo instalado) + permissão de ver OS. Usado também pela área
      * `oficina` do /api/app/inicio.
@@ -250,16 +344,21 @@ class OficinaController extends Controller
         if ($user === null) {
             return false;
         }
-        $superadmin = $user->can('superadmin');
-        $habilitado = $superadmin
-            ? $this->moduleUtil->isModuleInstalled('OficinaAuto')
+
+        return $this->moduloHabilitado($user)
+            && ($user->can('superadmin') || $user->can('oficinaauto.service_order.view'));
+    }
+
+    /** Módulo da Oficina no pacote do business (Camada 1); superadmin: módulo instalado. */
+    private function moduloHabilitado(User $user): bool
+    {
+        return $user->can('superadmin')
+            ? (bool) $this->moduleUtil->isModuleInstalled('OficinaAuto')
             : (bool) $this->moduleUtil->hasThePermissionInSubscription(
                 (int) $user->business_id,
                 'oficina_auto_module',
                 'superadmin_package'
             );
-
-        return $habilitado && ($superadmin || $user->can('oficinaauto.service_order.view'));
     }
 
     /** Etapas NÃO-terminais do processo da oficina no business, na ordem do ERP. */
