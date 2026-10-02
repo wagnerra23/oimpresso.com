@@ -41,9 +41,9 @@ tests/Feature/Cliente/ClienteContatoEmailsExtrasTest.php  # 1054 Unknown column 
 tests/Feature/Cliente/ClienteEditInertiaTest.php  # 1054 Unknown column 'first_name' — 3 casos
 tests/Feature/Cliente/Show/VehiclesTabTest.php  # 1054 Unknown column 'first_name' — 4 casos
 
-# (E) 409 = versão de assets do Inertia não confere com o stub da lane.
-tests/Feature/Cliente/ClienteImportInertiaTest.php  # 409 (esperava 200) — 1 caso
-tests/Feature/Cliente/ClienteMapInertiaTest.php  # 409 (esperava 200) — 2 casos
+# (E) 409 = versão de assets do Inertia não confere com o stub da lane — VAZIO desde 2026-10-02:
+#     os testes mandavam X-Inertia-Version '1' fixo e o servidor usa o md5 do manifest. Agora
+#     pedem a versão ao próprio HandleInertiaRequests::version().
 
 # (F) Outras falhas, uma causa cada.
 tests/Feature/Cliente/BackfillCpfCnpjCommandTest.php  # 1062 duplicate uk_contacts_biz_tax no tenant 98 — 1 caso
