@@ -1,0 +1,62 @@
+{
+  "_nota": "Copy declarada a partir da view `trabalho` do hub forja-page.jsx (barra de visão, KPIs que filtram, toolbar e barra de filtros) e travada só onde ela existe LITERALMENTE no protótipo e no CÓDIGO da tela, fora de comentário (medido 2026-10-02). A tela é réplica declarada do protótipo (ADR 0388, decisão [W] 2026-09-02 citada no cabeçalho do .tsx).",
+  "_nota_recorte": "Fora de propósito: a lista em si (FjListaView, forja-lista.jsx) — a tela renderiza linhas com os slots que têm dado real e quase nenhuma copy fixa coincide; 'Perguntar ✦' e a barra de ações em massa, ausentes por decisão declarada no .tsx (exigem comportamento novo). 'Perguntar' aparece na tela só em comentário e por isso não entra.",
+  "tela": "Forja/Trabalho",
+  "fonte": "prototipo-ui/cowork/Wagner/forja-page.jsx",
+  "_nota_fonte": "Mesma âncora que o charter declara em related_prototype — view `trabalho`, sub-visão `lista` (fj-frentebar L371, fj-kpirow L380, fj-toolbar L288, fj-filterbar2 L326).",
+  "alvo": [
+    "Modules/Forja/Resources/js/Pages/Forja/Trabalho/Index.tsx"
+  ],
+  "secoes": [
+    {
+      "id": "forja.trabalho.visao",
+      "copy": [
+        "Visão do trabalho",
+        "Lista",
+        "Quadro",
+        "Gantt",
+        "mcp_tasks numa lista só — FORJA junto das demais frentes (agrupe por Frente ou busque)"
+      ]
+    },
+    {
+      "id": "forja.trabalho.kpis",
+      "_papel": "o KPI filtra: a frase 'clique filtra a lista e o quadro' é a afordância declarada (D8 do comparativo).",
+      "copy": [
+        "Total",
+        "P0 abertas",
+        "Fazendo",
+        "Bloqueadas",
+        "clique filtra a lista e o quadro"
+      ]
+    },
+    {
+      "id": "forja.trabalho.toolbar",
+      "copy": [
+        "Agrupar",
+        "Eixo",
+        "Ordem",
+        "Pipeline de telas",
+        "Execução (status)",
+        "densidade: compacta",
+        "densidade: normal",
+        "Só favoritos",
+        "Papéis"
+      ]
+    },
+    {
+      "id": "forja.trabalho.filtros",
+      "copy": [
+        "Papel",
+        "Visões",
+        "aplicar visão",
+        "+ salvar visão"
+      ]
+    }
+  ],
+  "ordem": [
+    "forja.trabalho.visao",
+    "forja.trabalho.kpis",
+    "forja.trabalho.toolbar",
+    "forja.trabalho.filtros"
+  ]
+}
