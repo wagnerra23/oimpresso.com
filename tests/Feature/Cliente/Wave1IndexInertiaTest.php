@@ -20,7 +20,10 @@ test('Cliente/Index.tsx exists e usa AppShellV2 + PageHeader pattern', function 
         ->toContain('Clientes')               // h1 PT-BR
         ->toContain('export default function ClienteIndex')
         ->not->toContain(': any')             // TS estrito
-        ->not->toContain('sessionStorage');   // canon = localStorage
+        // canon = localStorage. Barra o USO da API, não a palavra: desde o #1309 o arquivo
+        // tem um comentário que cita a proibição ("no sessionStorage"), e a busca pela
+        // palavra acusava esse comentário.
+        ->not->toMatch('/\bsessionStorage\s*[.\[]/');
 });
 
 test('Cliente/Index.tsx — Inertia::defer wrapping em props caras', function () {

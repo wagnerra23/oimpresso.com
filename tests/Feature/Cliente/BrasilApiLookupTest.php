@@ -25,11 +25,9 @@ beforeEach(function () {
         $this->markTestSkipped('Schema UltimatePOS ausente (sqlite memory). Rode com DB_CONNECTION=mysql.');
     }
 
-    $this->business = $this->seededTenant(); // biz=1 canônico (ADR 0101) — skip acionável se o seed faltar
-    $this->user = \App\User::where('business_id', $this->business->id)->first();
-    if (! $this->user) {
-        $this->markTestSkipped('Sem user no business.');
-    }
+    $this->business = $this->seededTenant(); // tenant de teste (ADR 0358) — skip acionável se o seed faltar
+    // O lookup exige customer.create|update ou supplier.create|update (ContactLookupController).
+    $this->user = $this->usuarioComPermissoes(['customer.create'], $this->business);
 
     Cache::flush();
     Http::preventStrayRequests();
