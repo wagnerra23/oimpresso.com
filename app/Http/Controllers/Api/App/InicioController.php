@@ -98,6 +98,7 @@ class InicioController extends Controller
             'dashboard' => $dashboard,
             'ponto' => $ponto,
             'ponto_gestor' => app(PontoAprovacoesController::class)->podeVerFila($user),
+            'equipe' => app(EquipeController::class)->podeVerEquipe($user),
             'mais' => true,
         ]));
 
