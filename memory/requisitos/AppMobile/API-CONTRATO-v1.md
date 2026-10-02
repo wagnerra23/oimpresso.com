@@ -95,8 +95,10 @@ computador".
   vem para quem pode ver a pessoa, igual à ficha web. Correção 2026-10-02: a versão anterior
   dizia "só com a permissão de ver contato completo", mas essa permissão não existe no ERP — a
   ficha web mostra o documento inteiro para `customer.view`/`customer.view_own` (o
-  `maskTaxNumber` do ContactController só formata, não esconde). Esconder no app é decisão [W]
-  pendente, e valeria também para a web.
+  `maskTaxNumber` do ContactController só formata, não esconde).
+  **Decisão [W] 2026-10-02 ("faça todas"):** no app o **CPF sai mascarado**, só com os 5 últimos
+  dígitos (`***.***.789-09`); o **CNPJ sai inteiro**, formatado, porque é dado público da empresa.
+  A ficha web não muda.
 
 ## 5. Produção ⬜ — fila por **etapa da venda** ([W] 2026-10-02)
 

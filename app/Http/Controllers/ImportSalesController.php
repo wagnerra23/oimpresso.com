@@ -215,6 +215,11 @@ class ImportSalesController extends Controller
      *
      * ⚠️ Achado conhecido, fora deste PR: a rota é GET e apaga (`routes/web.php`).
      *
+     * ⚠️ D3 de [W] (2026-10-02) pede CANCELAR em vez de apagar. Não implementado nesta
+     * thread: o projeto não tem hoje um "cancelar venda" que tire a venda dos totais sem
+     * efeito externo — ver prototipo-ui/cowork/Wagner/cowork-inbox/venda-menu/playbook/_saida-05.md.
+     * Até a decisão, o comportamento é o do legado.
+     *
      * @return \Illuminate\Http\Response
      */
     public function revertSaleImport($batch)
