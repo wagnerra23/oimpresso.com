@@ -368,3 +368,13 @@ fora até o ERP ter cadastro de equipamento de cliente e de box (decisão [W] 20
 - `km` = maior km conhecido (cadastro do veículo ou km de entrada das OS dele); `null` sem registro.
 - Busca `q`: placa (principal e do reboque), rótulo do tipo e nome do dono.
 - Sem padrão de placa: o app deduz pelo formato.
+
+#### 11.3.1 Histórico do veículo (tela 08, ao expandir) — só leitura ✅
+
+`GET /api/app/veiculos/{id}/os` → `{ "itens": [ { "os_id": 42, "numero": "OS-00042", "data": "2026-09-29",
+"etapa_rotulo": "Em execução", "cliente": "Transportes Vale Norte", "valor": 750.00 } ] }`
+
+- TODAS as OS do veículo (terminais e fora do pipeline inclusive), mais nova primeiro.
+- `data` = entrada da OS (senão a criação); `etapa_rotulo` = nome da etapa atual, `null` sem pipeline;
+  `cliente` = cliente da OS (pode não ser o dono do veículo); `valor` = soma dos itens, `null` sem item.
+- Pede `oficinaauto.vehicle.view` **e** a permissão da 07. Veículo de outra empresa → `404 nao_encontrado`.

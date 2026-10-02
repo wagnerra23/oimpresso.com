@@ -43,4 +43,5 @@ Route::middleware('auth:api')->prefix('app')->name('app.')->group(function () {
     Route::get('/os', [\App\Http\Controllers\Api\App\OficinaController::class, 'index'])->name('os.index');
     Route::get('/os/{id}', [\App\Http\Controllers\Api\App\OficinaController::class, 'show'])->whereNumber('id')->name('os.show');
     Route::get('/veiculos', [\App\Http\Controllers\Api\App\OficinaController::class, 'veiculos'])->name('veiculos.index');
+    Route::get('/veiculos/{id}/os', [\App\Http\Controllers\Api\App\OficinaController::class, 'historicoVeiculo'])->whereNumber('id')->name('veiculos.os');
 });

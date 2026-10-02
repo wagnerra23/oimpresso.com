@@ -307,3 +307,48 @@ it('veículos: sem oficinaauto.vehicle.view responde 403; veículo de OUTRO busi
     expect($ids)->toContain($meu);
     expect($ids)->not->toContain($alheio);
 });
+
+// ── Tela 08 — GET /api/app/veiculos/{id}/os (contrato §11.3.1) ──────────────────
+
+it('histórico do veículo traz todas as OS (terminal e fora do pipeline), mais nova primeiro', function () {
+    Permission::firstOrCreate(['name' => 'oficinaauto.vehicle.view', 'guard_name' => 'web']);
+    $this->user->givePermissionTo('oficinaauto.vehicle.view');
+
+    $v = DB::table('vehicles')->insertGetId([
+        'business_id' => $this->biz->id, 'plate' => 'HIS' . random_int(1000, 9999), 'vehicle_type' => 'caminhao',
+        'created_at' => now(), 'updated_at' => now(),
+    ]);
+    $nova = function (?int $stage, string $tipo, string $entrada) use ($v) {
+        return DB::table('service_orders')->insertGetId([
+            'business_id' => $this->biz->id, 'vehicle_id' => $v, 'order_type' => $tipo, 'status' => 'aberta',
+            'current_stage_id' => $stage, 'entered_at' => $entrada, 'created_at' => now(), 'updated_at' => now(),
+        ]);
+    };
+    $velha = $nova(null, 'manutencao', '2026-01-10 08:00:00');
+    $entregue = $nova($this->etapas['entregue'], 'mecanica', '2026-05-10 08:00:00');
+    $atual = $nova($this->etapas['em_execucao'], 'mecanica', '2026-09-29 08:00:00');
+
+    $itens = $this->getJson("/api/app/veiculos/{$v}/os")->assertOk()->json('itens');
+    expect(collect($itens)->pluck('os_id')->all())->toBe([$atual, $entregue, $velha]);
+    expect($itens[0]['data'])->toBe('2026-09-29');
+    expect($itens[0]['etapa_rotulo'])->toBe('Em execução');
+    expect($itens[1]['etapa_rotulo'])->toBe('Entregue');
+    expect($itens[2]['etapa_rotulo'])->toBeNull();
+    expect($itens[2]['valor'])->toBeNull();
+});
+
+it('histórico de veículo de OUTRO business responde 404', function () {
+    Permission::firstOrCreate(['name' => 'oficinaauto.vehicle.view', 'guard_name' => 'web']);
+    $this->user->givePermissionTo('oficinaauto.vehicle.view');
+    $meu = DB::table('vehicles')->insertGetId([
+        'business_id' => $this->biz->id, 'plate' => 'MEU' . random_int(1000, 9999), 'vehicle_type' => 'caminhao',
+        'created_at' => now(), 'updated_at' => now(),
+    ]);
+    $alheio = DB::table('vehicles')->insertGetId([
+        'business_id' => $this->outroBiz->id, 'plate' => 'OUT' . random_int(1000, 9999), 'vehicle_type' => 'caminhao',
+        'created_at' => now(), 'updated_at' => now(),
+    ]);
+
+    $this->getJson("/api/app/veiculos/{$meu}/os")->assertOk();
+    $this->getJson("/api/app/veiculos/{$alheio}/os")->assertStatus(404)->assertJsonPath('erro', 'nao_encontrado');
+});

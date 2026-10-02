@@ -309,6 +309,57 @@ class OficinaController extends Controller
         ]);
     }
 
+    /**
+     * GET /api/app/veiculos/{id}/os — histórico da 08. TODAS as OS do veículo (terminais e fora do
+     * pipeline inclusive), mais nova primeiro. Pede ver veículo E ver OS. Veículo de outra empresa
+     * ou inexistente → 404.
+     */
+    public function historicoVeiculo(Request $request, int $id): JsonResponse
+    {
+        $user = $request->user();
+        if (! $this->podeVerVeiculos($user) || ! $this->podeVerOficina($user)) {
+            return $this->semPermissao();
+        }
+
+        $bizId = (int) $user->business_id;
+        $existe = DB::table('vehicles')->where('business_id', $bizId)->where('id', $id)->whereNull('deleted_at')->exists();
+        if (! $existe) {
+            return response()->json(['erro' => 'nao_encontrado', 'mensagem' => 'Veículo não encontrado.'], 404);
+        }
+
+        $linhas = DB::table('service_orders as so')
+            ->leftJoin('sale_process_stages as s', 's.id', '=', 'so.current_stage_id')
+            ->leftJoin('sale_processes as p', function ($j) {
+                $j->on('p.id', '=', 's.process_id')->on('p.business_id', '=', 'so.business_id');
+            })
+            ->leftJoin('contacts as c', function ($j) {
+                $j->on('c.id', '=', 'so.contact_id')->on('c.business_id', '=', 'so.business_id');
+            })
+            ->where('so.business_id', $bizId)
+            ->where('so.vehicle_id', $id)
+            ->whereNull('so.deleted_at')
+            ->orderByRaw('COALESCE(so.entered_at, so.created_at) DESC')
+            ->orderByDesc('so.id')
+            ->get([
+                'so.id', 'so.entered_at', 'so.created_at', 'p.id as processo', 's.name as etapa', 'c.name as cliente',
+                DB::raw('(SELECT SUM(i.valor_total) FROM oficina_service_order_items i'
+                    . ' WHERE i.service_order_id = so.id AND i.business_id = so.business_id'
+                    . ' AND i.deleted_at IS NULL) as valor'),
+            ]);
+
+        return response()->json([
+            'itens' => $linhas->map(fn ($l) => [
+                'os_id' => (int) $l->id,
+                'numero' => 'OS-' . str_pad((string) $l->id, 5, '0', STR_PAD_LEFT),
+                'data' => substr((string) ($l->entered_at ?? $l->created_at), 0, 10) ?: null,
+                // Etapa só quando o estágio é de um processo do mesmo business.
+                'etapa_rotulo' => $l->processo !== null ? $l->etapa : null,
+                'cliente' => $l->cliente,
+                'valor' => $l->valor === null ? null : round((float) $l->valor, 2),
+            ])->values(),
+        ]);
+    }
+
     /** Mesma regra da tela web de veículos: pacote da Oficina + `oficinaauto.vehicle.view`. */
     public function podeVerVeiculos(?User $user): bool
     {
