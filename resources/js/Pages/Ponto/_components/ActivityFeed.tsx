@@ -36,6 +36,8 @@ interface Marcacao {
 interface Props {
   marcacoes: Marcacao[];
   title?: string;
+  /** Nota curta ao lado do título — o `sub` do Card do protótipo (ponto-ui.jsx). Sem ela, nada muda. */
+  subtitle?: string;
   emptyLabel?: string;
   className?: string;
 }
@@ -70,14 +72,17 @@ const tipoConfig: Record<
   },
 };
 
-export default function ActivityFeed({ marcacoes, title = 'Atividade de hoje', emptyLabel = 'Nenhuma marcação ainda hoje.', className }: Props) {
+export default function ActivityFeed({ marcacoes, title = 'Atividade de hoje', subtitle, emptyLabel = 'Nenhuma marcação ainda hoje.', className }: Props) {
   return (
     <div
       data-slot="activity-feed"
       className={cn('rounded-lg border border-border bg-card p-4', className)}
     >
       <div className="flex items-center justify-between mb-3">
-        <h3 className="text-sm font-semibold text-foreground">{title}</h3>
+        <div className="flex min-w-0 items-baseline gap-2">
+          <h3 className="text-sm font-semibold text-foreground">{title}</h3>
+          {subtitle && <span className="truncate text-[11px] text-muted-foreground">{subtitle}</span>}
+        </div>
         {marcacoes.length > 0 && (
           <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
             {marcacoes.length} evento{marcacoes.length !== 1 ? 's' : ''}
