@@ -322,14 +322,7 @@ class VehicleController extends Controller
      */
     public static function vehicleTypes(): array
     {
-        return [
-            'caminhao'              => 'Caminhão',
-            'cavalo'                => 'Cavalo (truck-cabine)',
-            'semi_reboque'          => 'Semi-reboque',
-            'cacamba_estacionaria'  => 'Caçamba estacionária',
-            'automovel'             => 'Automóvel',
-            'motocicleta'           => 'Motocicleta',
-            'outro'                 => 'Outro',
-        ];
+        // Fonte única no núcleo (o app das lojas lê de lá sem importar deste módulo).
+        return \App\Domain\Oficina\TiposVeiculo::ROTULOS;
     }
 }
