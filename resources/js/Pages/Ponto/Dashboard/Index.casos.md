@@ -5,10 +5,16 @@ irmaos: Index.charter.md (lei) · governance/design/contracts/ponto-painel.contr
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: é a home do módulo e o único lugar onde o gestor vê, antes de tentar fechar a competência, o que a impede de consolidar.
 owner: wagner
-last_run: "2026-09-29"
+last_run: "2026-10-02"
 last_run_ci: "69 de 69 UC do Ponto com veredito pass no manifesto scripts/casos-test-results.json (fonte: test-results/pest-ponto-junit.xml). Lane PHP / Pest (Ponto - MySQL) run 34215745965 em main (sha dced5fd3d8, 2026-09-08T10:32Z): 302 passed - 1 skipped - 1009 assertions, coherent=true, provou_algo=true. Li ASSERTIONS, nao a conclusion: 1009 > 0 prova que a suite rodou e nao caiu no skip-as-pass da lane (LC-13). O unico skipped da run nao e UC (o coletor trata skip como nao-pass, e os 69 vieram pass). A lane e ADVISORY: reprova e visivel, nao bloqueia merge."
 smoke_prod: "2026-08-24, apos o deploy de 8e7583e05b (PR #6160), Chrome MCP em https://oimpresso.com/ponto, biz=1 WR2 Sistemas. CONFIRMADO no ar: as 6 legendas de KPI, o subtitulo '(0 pendentes)' da fila, a frase de vazio e o rodape da Portaria MTP 671/2021. NAO verificaveis nesta janela: NSR no feed e Estado na fila — nao havia marcacao nem intercorrencia no dia, entao nao ha linha pra exibir. DOIS DEFEITOS MEDIDOS no DOM, ambos anteriores a este PR: (1) so 3 das 4 ancoras do contrato existem na pagina — `painel-kpis` nunca chegou ao DOM porque o KpiGrid nao repassava a prop; (2) rotulo de KPI truncado (scrollWidth 157 > clientWidth 114 em 'Colaboradores ativos', com text-overflow: ellipsis) a 1440px de viewport."
 ---
+
+> ℹ️ **`last_run` 2026-09-29 → 2026-10-02 (G-6).** O card "Atividade recente" passou a mostrar a nota
+> **"marcações de hoje"** ao lado do título, como o `sub` do protótipo (`ponto-page.jsx` L75). Antes a frase
+> não era renderizada: o contrato `painel-atividade` só passava porque um comentário no `Index.tsx` a citava.
+> A mudança é só visual nesse card (prop opcional `subtitle` no `ActivityFeed`). Nenhum dos UC-PAINEL-01..08
+> trata do card de atividade, e **nenhum foi reexecutado**: o bump significa *trio reconciliado com a tela nesta data*.
 
 # Casos de Uso & Aceite — Painel do Ponto
 
