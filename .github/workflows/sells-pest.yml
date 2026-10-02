@@ -42,6 +42,10 @@ on:
       - 'app/Utils/TransactionUtil.php'
       # Sob teste em BuscaProdutoPrecoDeGrupoContratoTest (filterProduct × getVariationGroupPrice).
       - 'app/Utils/ProductUtil.php'
+      # Sob teste em ImportSalesContratoTest (thread 05 · importação de vendas por planilha).
+      - 'app/Http/Controllers/ImportSalesController.php'
+      - 'app/Services/Sells/**'
+      - 'app/Jobs/ImportarVendasJob.php'
       - 'resources/js/Pages/Sells/**'
       - 'database/schema/mysql-schema.sql'
       - '.github/workflows/sells-pest.yml'
@@ -85,6 +89,9 @@ jobs:
               - 'app/Utils/TransactionUtil.php'
               - 'app/Utils/ProductUtil.php'
               - 'app/Http/Controllers/SellController.php'
+              - 'app/Http/Controllers/ImportSalesController.php'
+              - 'app/Services/Sells/**'
+              - 'app/Jobs/ImportarVendasJob.php'
               - 'app/Http/Controllers/Api/App/PedidosController.php'
               - 'app/Http/Controllers/Api/App/InicioController.php'
               - 'routes/api.php'
@@ -151,6 +158,15 @@ jobs:
         # do Create.tsx: a venda aberta como reparo grava `sub_type=repair` com o MESMO
         # total, as mesmas linhas e a mesma baixa de estoque da venda comum (dupla prova da
         # REGRA MESTRE). EstoqueFixture, tenant 98. NASCE SEM RUN: vermelho aqui é este arquivo.
+        #
+        # 2026-10-01 — + SellsPosIndexContratoTest (UC-POS-01..05 de `Sells/Pos/Index.casos.md`,
+        # thread 01 do playbook venda-menu): Lista de POS — o filtro `is_direct_sale=0` de
+        # /sells-list-json (rodapé do servidor, vencido, período, gate sell.view); o render de
+        # GET /pos entra junto com a Page. Tenant 98 × 99. NASCE SEM RUN: vermelho aqui é este arquivo.
+        # 2026-10-02 — + ImportSalesContratoTest (thread 05 de Vendas, UC-IMPV-*): importação
+        # de vendas por planilha pelo REQUEST e pela FILA (ImportarVendasJob, decisão D2), com
+        # o mesmo total e a mesma baixa nos dois caminhos e na conta à mão (REGRA MESTRE), +
+        # SKU e local de outro negócio recusados (ADR 0093). NASCE SEM RUN.
         env:
           DB_CONNECTION: mysql
           DB_HOST: 127.0.0.1
@@ -165,6 +181,7 @@ jobs:
             tests/Feature/Sells/SellsShowContratoTest.php \
             tests/Feature/Sells/SellsEditContratoTest.php \
             tests/Feature/Sells/SellsIndexTenantContratoTest.php \
+            tests/Feature/Sells/SellsIndexFiltroDataFimContratoTest.php \
             tests/Feature/Sells/AppPedidosApiContratoTest.php \
             tests/Feature/Sells/AppInicioApiContratoTest.php \
             tests/Feature/Sells/SellsCreateV3ContratoTest.php \
@@ -172,7 +189,9 @@ jobs:
             tests/Feature/Sells/Wave1ShowInertiaTest.php \
             tests/Feature/Sells/SellsCaixaContratoTest.php \
             tests/Feature/Sells/SellsRepairSubtipoContratoTest.php \
-            tests/Feature/Sells/BuscaProdutoPrecoDeGrupoContratoTest.php
+            tests/Feature/Sells/BuscaProdutoPrecoDeGrupoContratoTest.php \
+            tests/Feature/Sells/SellsPosIndexContratoTest.php \
+            tests/Feature/Sells/ImportSalesContratoTest.php
 
 
       # Passo 1 do plano da LC-13 (Gate:): a lane JA emitia JUnit e NINGUEM lia.
