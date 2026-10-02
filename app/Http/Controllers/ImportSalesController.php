@@ -32,7 +32,7 @@ class ImportSalesController extends Controller
     /**
      * Display a listing of the resource.
      *
-     * @return \Illuminate\Http\Response
+     * @return \Inertia\Response|\Illuminate\View\View
      */
     public function index()
     {
@@ -91,7 +91,7 @@ class ImportSalesController extends Controller
     /**
      * Preview imported data and map columns with sale fields
      *
-     * @return \Illuminate\Http\Response
+     * @return mixed Inertia (X-Inertia), Blade, redirect, ou nada sem arquivo pelo Blade (legado)
      */
     public function preview(Request $request)
     {
@@ -238,7 +238,7 @@ class ImportSalesController extends Controller
     /**
      * Lotes importados do negócio (mais novo primeiro) — a mesma consulta do Blade.
      *
-     * @return list<array{lote:int, quando:mixed, criadoPor:string, faturas:list<string>}>
+     * @return array<int, array<string, mixed>> lote · quando · criadoPor · faturas
      */
     private function lotesImportados(int $business_id): array
     {
