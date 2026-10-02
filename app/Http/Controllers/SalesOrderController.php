@@ -9,6 +9,7 @@ use App\Utils\BusinessUtil;
 use App\Utils\TransactionUtil;
 use App\Utils\Util;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 
 class SalesOrderController extends Controller
 {
@@ -48,7 +49,7 @@ class SalesOrderController extends Controller
     /**
      * Display a listing of the resource.
      *
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\View\View|\Inertia\Response
      */
     public function index()
     {
@@ -66,6 +67,38 @@ class SalesOrderController extends Controller
         $sales_order_statuses = [];
         foreach ($this->sales_order_statuses as $key => $value) {
             $sales_order_statuses[$key] = $value['label'];
+        }
+
+        // Thread 06 venda-menu — branch dual MWART (golden: SellController@getDrafts).
+        // Blade segue como fallback até o cutover F5 (humano). As linhas vêm do MESMO
+        // endpoint AJAX do Blade (/sells?sale_type=sales_order), então os filtros de
+        // permissão (so.view_own, locais permitidos, business_id) seguem num lugar só.
+        if (request()->header('X-Inertia')) {
+            $pos_settings_raw = \App\Business::where('id', $business_id)->value('pos_settings');
+            $pos_settings = ! empty($pos_settings_raw) ? json_decode($pos_settings_raw, true) : [];
+
+            return Inertia::render('SalesOrder/Index', [
+                // R1: o menu já esconde o item sem enable_sales_order (AdminSidebarMenu).
+                // A tela só informa — acesso direto pela URL continua como no Blade.
+                'salesOrderEnabled' => ! empty($pos_settings['enable_sales_order']),
+                'filters' => [
+                    'businessLocations' => $business_locations,
+                    'customers' => Inertia::defer(fn () => Contact::customersDropdown($business_id, false)),
+                    'statuses' => $sales_order_statuses,
+                    'shippingStatuses' => $shipping_statuses,
+                ],
+                'permissions' => [
+                    'view_all' => auth()->user()->can('so.view_all'),
+                    'view_own' => auth()->user()->can('so.view_own'),
+                    'create' => auth()->user()->can('so.create'),
+                    'edit_status' => $this->businessUtil->is_admin(auth()->user()),
+                ],
+                'urls' => [
+                    'datatable' => '/sells?sale_type=sales_order',
+                    'updateStatus' => '/update-sales-orders/{id}/status',
+                    'create' => '/sells/create?sale_type=sales_order',
+                ],
+            ]);
         }
 
         return view('sales_order.index')

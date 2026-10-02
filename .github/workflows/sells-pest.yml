@@ -43,6 +43,9 @@ on:
       # Sob teste em SellsCreateV3ContratoTest (UC-V302/V303). Sem este gatilho, mexer no
       # controller do preview não dispararia o teste dele — gate mudo com cara de cobertura.
       - 'app/Http/Controllers/SellsV3Controller.php'
+      # Sob teste em SalesOrderIndexContratoTest (UC-SORD-01..04, thread 06 venda-menu).
+      - 'app/Http/Controllers/SalesOrderController.php'
+      - 'resources/js/Pages/SalesOrder/**'
       # Sob teste em SellReturnIndexContratoTest (UC-SRIDX-*, lista de devoluções).
       - 'app/Http/Controllers/SellReturnController.php'
       - 'resources/js/Pages/SellReturn/**'
@@ -101,6 +104,8 @@ jobs:
               - 'tests/Feature/Sells/**'
               - 'app/Http/Controllers/SellPosController.php'
               - 'app/Http/Controllers/SellsV3Controller.php'
+              - 'app/Http/Controllers/SalesOrderController.php'
+              - 'resources/js/Pages/SalesOrder/**'
               - 'app/Http/Controllers/SellReturnController.php'
               - 'resources/js/Pages/SellReturn/**'
               - 'app/Utils/TransactionUtil.php'
@@ -185,6 +190,9 @@ jobs:
         # total, as mesmas linhas e a mesma baixa de estoque da venda comum (dupla prova da
         # REGRA MESTRE). EstoqueFixture, tenant 98. NASCE SEM RUN: vermelho aqui é este arquivo.
         #
+        # 2026-10-01 — + SalesOrderIndexContratoTest (UC-SORD-01..04 de `SalesOrder/Index.casos.md`,
+        # thread 06 venda-menu): render Inertia de /sales-order, 403, flag enable_sales_order e PUT
+        # de status escopado por business (tenant 98 × 99). NASCE SEM RUN: vermelho aqui é este arquivo.
         # 2026-10-01 — + SellsShipmentsContratoTest (UC-REM-01..07 de
         # `Sells/Shipments/Index.casos.md`, thread 02 do playbook venda-menu): a tela Remessas
         # migra pra React sem rota nova — lista pelo DataTables de index() e escrita pelo
@@ -244,6 +252,7 @@ jobs:
             tests/Feature/Sells/SellsRepairSubtipoContratoTest.php \
             tests/Feature/Sells/SellsShipmentsContratoTest.php \
             tests/Feature/Sells/BuscaProdutoPrecoDeGrupoContratoTest.php \
+            tests/Feature/Sells/SalesOrderIndexContratoTest.php \
             tests/Feature/Sells/SellReturnIndexContratoTest.php \
             tests/Feature/Sells/DescontosContratoTest.php \
             tests/Feature/Sells/SellsPosIndexContratoTest.php \
