@@ -332,7 +332,7 @@ it('UC-S05 · os campos da seção Reparo são gravados na venda, sem mudar o va
         'print_label' => 0,
         'repair_status_id' => $status,
         'repair_serial_no' => 'SN-UC-S05',
-        'repair_due_date' => '15/10/2026 14:30',
+        'repair_due_date' => '2026-10-15 14:30',
         'repair_defects' => '[{"value":"tela"},{"value":"bateria"}]',
     ]);
 
@@ -593,4 +593,33 @@ it('UC-S07 · com grupo de preço padrão no local, a peça da OS entra pelo pre
     expect((float) $peca['unit_price'])->toBe(30.0);                                     // = preço do grupo gravado
     expect((float) $peca['unit_price'])->toBe((float) $daLista['variation_group_price']); // = adição à mão com grupo
     expect((float) $peca['quantity'])->toBe(2.0);
+});
+
+it('UC-S05 · data do reparo em ISO grava certo numa empresa m/d/Y; o formato da empresa (PDV Blade) segue aceito', function () {
+    if (! Schema::hasTable('repair_statuses')) {
+        $this->markTestSkipped('Tabela repair_statuses ausente — rode as migrations do Repair.');
+    }
+    $status = repairSubtipoStatus($this->bizId, 'Aguardando peça UC-S05 mdY');
+    // Empresa com data no formato americano. Dia 5 de outubro: DD/MM fixo (o que o React mandava)
+    // seria lido como 10 de maio aqui. ISO não depende do formato.
+    session('business')->date_format = 'm/d/Y';
+
+    $iso = repairSubtipoVender($this, [
+        'sub_type' => 'repair',
+        'print_label' => 0,
+        'transaction_date' => now()->format('m/d/Y H:i'),
+        'repair_status_id' => $status,
+        'repair_due_date' => '2026-10-05 09:30',
+    ]);
+    expect((string) $iso['venda']->repair_due_date)->toStartWith('2026-10-05 09:30');
+
+    // O PDV Blade manda no formato da empresa — continua valendo.
+    $blade = repairSubtipoVender($this, [
+        'sub_type' => 'repair',
+        'print_label' => 0,
+        'transaction_date' => now()->format('m/d/Y H:i'),
+        'repair_status_id' => $status,
+        'repair_due_date' => '10/05/2026 09:30',
+    ]);
+    expect((string) $blade['venda']->repair_due_date)->toStartWith('2026-10-05 09:30');
 });

@@ -10,6 +10,7 @@ use Laravel\Passport\Passport;
 use Spatie\Permission\Models\Permission;
 use App\User;
 use App\Utils\ModuleUtil;
+use App\Utils\ProductUtil;
 use Tests\Contract\AutosaveContractRunner;
 
 /**
@@ -166,7 +167,7 @@ it('D6: colaborador do ponto sem acesso ao ERP abre no Ponto e só tem Ponto e M
     expect($r->json('areas'))->toBe(['ponto', 'mais']);
 });
 
-it('D6: quem vê vendas é perfil erp, abre no Início e tem Pedidos e Produção (sem Ponto, que não é colaborador)', function () {
+it('D6: quem vê vendas é perfil erp, abre no Início e tem Pedidos, Produção e Orçamentos (sem Ponto, que não é colaborador)', function () {
     appIniSemEssentials();
     $u = appIniUsuario((int) $this->biz->id, false);
     Permission::firstOrCreate(['name' => 'direct_sell.view', 'guard_name' => 'web']);
@@ -176,5 +177,21 @@ it('D6: quem vê vendas é perfil erp, abre no Início e tem Pedidos e Produçã
     $r = $this->getJson('/api/app/inicio')->assertOk();
     expect($r->json('perfil'))->toBe('erp');
     expect($r->json('abre_em'))->toBe('inicio');
-    expect($r->json('areas'))->toBe(['inicio', 'pedidos', 'producao', 'mais']);
+    expect($r->json('areas'))->toBe(['inicio', 'pedidos', 'producao', 'orcamentos', 'mais']);
+});
+
+it('com stock_report.view: estoque_baixo é um número (antes dava 500 — count() num Builder)', function () {
+    foreach (['stock_report.view', 'access_all_locations'] as $p) {
+        Permission::firstOrCreate(['name' => $p, 'guard_name' => 'web']);
+        $this->user->givePermissionTo($p);
+    }
+    Passport::actingAs($this->user, [], 'api');
+
+    $r = $this->getJson('/api/app/inicio')->assertOk();
+    expect($r->json('kpis.estoque_baixo'))->toBeInt();
+    expect($r->json('kpis.estoque_baixo'))->toBeGreaterThanOrEqual(0);
+
+    // Caminho 2: as mesmas linhas contadas depois de trazidas (o agrupamento não pode colapsar a contagem).
+    $linhas = app(ProductUtil::class)->getProductAlert($this->biz->id, 'all')->get()->count();
+    expect($r->json('kpis.estoque_baixo'))->toBe($linhas);
 });

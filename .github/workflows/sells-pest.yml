@@ -34,14 +34,30 @@ on:
       - 'app/Http/Controllers/SellController.php'
       - 'app/Http/Controllers/Api/App/PedidosController.php'
       - 'app/Http/Controllers/Api/App/InicioController.php'
+      - 'app/Http/Controllers/Api/App/NotificacoesController.php'
       - 'routes/api.php'
       - 'app/Http/Controllers/SellPosController.php'
       # Sob teste em SellsCreateV3ContratoTest (UC-V302/V303). Sem este gatilho, mexer no
       # controller do preview não dispararia o teste dele — gate mudo com cara de cobertura.
       - 'app/Http/Controllers/SellsV3Controller.php'
+      # Sob teste em SellReturnIndexContratoTest (UC-SRIDX-*, lista de devoluções).
+      - 'app/Http/Controllers/SellReturnController.php'
+      - 'resources/js/Pages/SellReturn/**'
       - 'app/Utils/TransactionUtil.php'
       # Sob teste em BuscaProdutoPrecoDeGrupoContratoTest (filterProduct × getVariationGroupPrice).
       - 'app/Utils/ProductUtil.php'
+      # Sob teste em SellsEditContratoTest UC-SEDIT-11 (hook after_sale_saved do Repair no update).
+      - 'Modules/Repair/Http/Controllers/DataController.php'
+      # Thread 04 de Vendas (Descontos): sob teste em DescontosContratoTest — controller, FormRequest,
+      # a migration que concede discount.view|manage e a tela. Sem isto, mexer neles não dispara o teste.
+      - 'app/Http/Controllers/DiscountController.php'
+      - 'app/Http/Requests/SalvarDescontoRequest.php'
+      - 'database/migrations/2026_10_02_120000_add_discount_view_manage_permissions.php'
+      - 'resources/js/Pages/Discount/**'
+      # Sob teste em ImportSalesContratoTest (thread 05 · importação de vendas por planilha).
+      - 'app/Http/Controllers/ImportSalesController.php'
+      - 'app/Services/Sells/**'
+      - 'app/Jobs/ImportarVendasJob.php'
       - 'resources/js/Pages/Sells/**'
       - 'database/schema/mysql-schema.sql'
       - '.github/workflows/sells-pest.yml'
@@ -82,11 +98,22 @@ jobs:
               - 'tests/Feature/Sells/**'
               - 'app/Http/Controllers/SellPosController.php'
               - 'app/Http/Controllers/SellsV3Controller.php'
+              - 'app/Http/Controllers/SellReturnController.php'
+              - 'resources/js/Pages/SellReturn/**'
               - 'app/Utils/TransactionUtil.php'
               - 'app/Utils/ProductUtil.php'
+              - 'Modules/Repair/Http/Controllers/DataController.php'
               - 'app/Http/Controllers/SellController.php'
+              - 'app/Http/Controllers/DiscountController.php'
+              - 'app/Http/Requests/SalvarDescontoRequest.php'
+              - 'database/migrations/2026_10_02_120000_add_discount_view_manage_permissions.php'
+              - 'resources/js/Pages/Discount/**'
+              - 'app/Http/Controllers/ImportSalesController.php'
+              - 'app/Services/Sells/**'
+              - 'app/Jobs/ImportarVendasJob.php'
               - 'app/Http/Controllers/Api/App/PedidosController.php'
               - 'app/Http/Controllers/Api/App/InicioController.php'
+              - 'app/Http/Controllers/Api/App/NotificacoesController.php'
               - 'routes/api.php'
               - 'resources/js/Pages/Sells/**'
               - 'database/schema/mysql-schema.sql'
@@ -151,6 +178,30 @@ jobs:
         # do Create.tsx: a venda aberta como reparo grava `sub_type=repair` com o MESMO
         # total, as mesmas linhas e a mesma baixa de estoque da venda comum (dupla prova da
         # REGRA MESTRE). EstoqueFixture, tenant 98. NASCE SEM RUN: vermelho aqui é este arquivo.
+        #
+        # 2026-10-01 — + SellReturnIndexContratoTest (UC-SRIDX-01..07 de
+        # `SellReturn/Index.casos.md`): lista de devoluções em React (thread 03 venda-menu,
+        # PR 1 de 2). Só LEITURA — não toca add/store. Tenant 98 × 99. NASCE SEM RUN.
+        # 2026-10-02 — + DescontosContratoTest (UC-DSC-01..07, thread 04 de Vendas + D1 [W]):
+        # ver × editar (`discount.view|manage`), a migration que concede as duas a quem tinha
+        # `discount.access`, a MESMA linha gravada antes/depois do FormRequest (desconto é
+        # valor — dupla prova contra cópia congelada do código antigo) e [T0] 98 × 99.
+        # NASCE SEM RUN: vermelho aqui é este arquivo.
+        #
+        # 2026-10-01 — + SellsPosIndexContratoTest (UC-POS-01..05 de `Sells/Pos/Index.casos.md`,
+        # thread 01 do playbook venda-menu): Lista de POS — o filtro `is_direct_sale=0` de
+        # /sells-list-json (rodapé do servidor, vencido, período, gate sell.view); o render de
+        # GET /pos entra junto com a Page. Tenant 98 × 99. NASCE SEM RUN: vermelho aqui é este arquivo.
+        #
+        # 2026-10-02 — + ImportSalesContratoTest (thread 05 de Vendas, UC-IMPV-*): importação
+        # de vendas por planilha pelo REQUEST e pela FILA (ImportarVendasJob, decisão D2), com
+        # o mesmo total e a mesma baixa nos dois caminhos e na conta à mão (REGRA MESTRE), +
+        # SKU e local de outro negócio recusados (ADR 0093). NASCE SEM RUN.
+        #
+        # 2026-10-02 — + ImportSalesReverterContratoTest (UC-IMPREV-*, D3 de [W] 2ª rodada,
+        # "opção 2 no D3"): reverter lote importado apaga tudo ou nada, com retrato no log.
+        # Lote normal volta estoque e total ao número exato de antes da importação; lote com
+        # venda devolvida não muda nada (REGRA MESTRE, dupla prova) + cruzamento de tenant.
         env:
           DB_CONNECTION: mysql
           DB_HOST: 127.0.0.1
@@ -165,14 +216,21 @@ jobs:
             tests/Feature/Sells/SellsShowContratoTest.php \
             tests/Feature/Sells/SellsEditContratoTest.php \
             tests/Feature/Sells/SellsIndexTenantContratoTest.php \
+            tests/Feature/Sells/SellsIndexFiltroDataFimContratoTest.php \
             tests/Feature/Sells/AppPedidosApiContratoTest.php \
             tests/Feature/Sells/AppInicioApiContratoTest.php \
+            tests/Feature/Sells/AppNotificacoesApiContratoTest.php \
             tests/Feature/Sells/SellsCreateV3ContratoTest.php \
             tests/Feature/Sells/Wave1ShowBaselineTest.php \
             tests/Feature/Sells/Wave1ShowInertiaTest.php \
             tests/Feature/Sells/SellsCaixaContratoTest.php \
             tests/Feature/Sells/SellsRepairSubtipoContratoTest.php \
-            tests/Feature/Sells/BuscaProdutoPrecoDeGrupoContratoTest.php
+            tests/Feature/Sells/BuscaProdutoPrecoDeGrupoContratoTest.php \
+            tests/Feature/Sells/SellReturnIndexContratoTest.php \
+            tests/Feature/Sells/DescontosContratoTest.php \
+            tests/Feature/Sells/SellsPosIndexContratoTest.php \
+            tests/Feature/Sells/ImportSalesContratoTest.php \
+            tests/Feature/Sells/ImportSalesReverterContratoTest.php
 
 
       # Passo 1 do plano da LC-13 (Gate:): a lane JA emitia JUnit e NINGUEM lia.

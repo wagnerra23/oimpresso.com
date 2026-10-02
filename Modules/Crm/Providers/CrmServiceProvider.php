@@ -97,6 +97,9 @@ class CrmServiceProvider extends ServiceProvider
             \Modules\Crm\Contracts\CrmLeadRepositoryInterface::class,
             \Modules\Crm\Repositories\CrmLeadRepository::class,
         );
+
+        // Implementa o contrato do núcleo da busca de CEP do app das lojas (sobrepõe o vazio).
+        $this->app->bind(\App\Contracts\Enderecos\BuscaCep::class, \Modules\Crm\Services\BuscaCepDoApp::class);
     }
 
     /**

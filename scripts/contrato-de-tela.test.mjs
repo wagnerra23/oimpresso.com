@@ -149,6 +149,53 @@ export default function I(){return(<section data-contract="lista">x</section>);}
   drop(root);
 }
 
+// ── Copy em COMENTÁRIO não conta (2026-10-02) ──────────────────────────────────
+// O furo real: o `ponto-painel` travava "marcações de hoje", que na tela só existia num
+// comentário JSX dizendo onde a frase "vivia" — e ela não vivia em lugar nenhum. O gate lia o
+// arquivo cru e passava. Os 3 casos abaixo travam os dois sentidos.
+
+// 4f. NEGATIVO — copy só em comentário de linha e só em comentário JSX → exit 1, dizendo por quê.
+{
+  const tsx = `// Selecione uma conversa
+export default function I(){return(<>
+  <section data-contract="lista">{/* "Conversas" (copy do contrato) vive no subtítulo */}<h2>Outra</h2></section>
+  <div data-contract="thread">x</div>
+</>);}`;
+  const root = makeContractRoot({ tsx, contract: GOOD_CONTRACT });
+  const r = node(root, ['--contract', 'contrato.json']);
+  const o = out(r);
+  check('copy só em comentário (// e {/* */}) → exit 1, com a causa',
+    r.status === 1 && (o.match(/só existe em COMENTÁRIO/g) || []).length === 2, o);
+  drop(root);
+}
+
+// 4g. POSITIVO — `//` DENTRO de string (URL) não é comentário: a copy depois dele continua no código.
+// Sem este par, um strip ingênuo por regex derrubaria copy legítima de link/ajuda.
+{
+  const tsx = `export default function I(){return(<>
+  <section data-contract="lista"><a href="https://oimpresso.com/ajuda">Conversas</a></section>
+  <div data-contract="thread">{'Selecione uma conversa'}</div>
+</>);}`;
+  const root = makeContractRoot({ tsx, contract: GOOD_CONTRACT });
+  const r = node(root, ['--contract', 'contrato.json']);
+  check('`//` dentro de string (URL) não é comentário → exit 0', r.status === 0, out(r));
+  drop(root);
+}
+
+// 4h. POSITIVO — a MESMA copy, presente no código E num comentário, continua passando
+// (o comentário não pode tirar o que o código tem).
+{
+  const tsx = `export default function I(){return(<>
+  {/* Conversas e Selecione uma conversa vêm do protótipo */}
+  <section data-contract="lista"><h2>Conversas</h2></section>
+  <div data-contract="thread">Selecione uma conversa</div>
+</>);}`;
+  const root = makeContractRoot({ tsx, contract: GOOD_CONTRACT });
+  const r = node(root, ['--contract', 'contrato.json']);
+  check('copy no código e também em comentário → exit 0', r.status === 0, out(r));
+  drop(root);
+}
+
 // ── Acordo de estado backend↔frontend (catraca SEMÂNTICA · ADR 0286 §5) ───────
 // Reproduz o bug 2026-06-18: o `connect` emite state:'paired', o `status` emite state:'connected';
 // o ReconnectModal só tratava 'connected' → "Canal já pareado — sessão ativa" caía no ramo de ERRO.

@@ -27,7 +27,7 @@ describe('UC-S05 · reparoVenda', () => {
   });
 
   it('data do input vai no formato que o servidor lê (uf_date)', () => {
-    expect(dataParaServidor('2026-10-15T14:30')).toBe('15/10/2026 14:30');
+    expect(dataParaServidor('2026-10-15T14:30')).toBe('2026-10-15 14:30');
     expect(dataParaServidor('')).toBeNull();
     expect(dataParaServidor('lixo')).toBeNull();
   });
@@ -53,7 +53,7 @@ describe('UC-S05 · reparoVenda', () => {
       repair_status_id: 2,
       repair_brand_id: 5,
       repair_serial_no: 'SN-1',
-      repair_due_date: '15/10/2026 14:30',
+      repair_due_date: '2026-10-15 14:30',
       repair_defects: '[{"value":"tela"}]',
     });
   });

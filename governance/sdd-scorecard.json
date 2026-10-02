@@ -68,22 +68,14 @@
     },
     "full_suite_pass_rate": {
       "status": "measured",
-      "value": 269,
+      "value": 267,
       "unit": "arquivos-que-falham (interseção ≥2 runs · ADR 0279)",
       "direction": "down",
       "target": 0,
       "source": "governance/nightly-floor.json (transporte CT100→scorecard · ADR 0279 Opção A · US-GOV-023)",
       "detail": {
-        "floor_files_hash": "2a6af22d65457465",
+        "floor_files_hash": "bff3dfd82adf54ef",
         "runs": [
-          {
-            "sha": "9630f5b8",
-            "ts": "20260929-020001",
-            "failed": 451,
-            "errors": 344,
-            "skipped": 2282,
-            "all_shards_measured": true
-          },
           {
             "sha": "76cb5eb6",
             "ts": "20260930-020001",
@@ -93,15 +85,23 @@
             "all_shards_measured": true
           },
           {
-            "sha": null,
+            "sha": "fb486f6f",
             "ts": "20261001-020001",
             "failed": 441,
             "errors": 390,
             "skipped": 2289,
             "all_shards_measured": true
+          },
+          {
+            "sha": null,
+            "ts": "20261002-020001",
+            "failed": 446,
+            "errors": 350,
+            "skipped": 2312,
+            "all_shards_measured": true
           }
         ],
-        "computed_at": "20261001-020001",
+        "computed_at": "20261002-020001",
         "intersection_of": 3
       },
       "stream": "FV"
@@ -141,8 +141,8 @@
           "B": 0,
           "C": 0
         },
-        "with_manual_ddl": 278,
-        "effectively_guarded": 278
+        "with_manual_ddl": 279,
+        "effectively_guarded": 279
       },
       "stream": "FV"
     },
@@ -166,8 +166,8 @@
       "target": 100,
       "source": "scripts/governance/knowledge-drift.mjs --json (BRIEFING.md presente por módulo)",
       "detail": {
-        "with_door": 77,
-        "modules": 77
+        "with_door": 78,
+        "modules": 78
       },
       "stream": "MEM"
     },
@@ -210,8 +210,8 @@
       "target": 0,
       "source": "memory/requisitos/*/BRIEFING.md frontmatter distilled_at vs UNIÃO(data-git do doc não-gerado mais novo, data-git do código do módulo) — determinístico, ADR 0291 D-D",
       "detail": {
-        "portas": 80,
-        "carimbadas": 14,
+        "portas": 81,
+        "carimbadas": 15,
         "sem_carimbo": 66,
         "stale": 9,
         "oldest_distilled_at": "2026-09-06",
@@ -227,7 +227,7 @@
       "target": 1,
       "source": "scripts/governance/knowledge-drift.mjs --json .[].hops → mediana (mesma fórmula do relatório humano · ADR 0270 D-5)",
       "detail": {
-        "modules": 77,
+        "modules": 78,
         "hops_worst": 8
       },
       "stream": "MEM"
