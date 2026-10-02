@@ -127,9 +127,12 @@ class VendaRapidaController extends Controller
     {
         $preco = $base;
         if (! empty($local->selling_price_group_id)) {
-            $grupo = app(ProductUtil::class)->getVariationGroupPrice($variacaoId, (int) $local->selling_price_group_id, $taxId);
-            if (! empty($grupo['price_inc_tax'])) {
-                $preco = (float) $grupo['price_inc_tax'];
+            // O docblock do getVariationGroupPrice declara `decimal`, mas ele devolve array
+            // ['price_inc_tax', 'price_exc_tax']; o (array) só torna isso explícito para o PHPStan.
+            $grupo = (array) app(ProductUtil::class)->getVariationGroupPrice($variacaoId, (int) $local->selling_price_group_id, $taxId);
+            $doGrupo = $grupo['price_inc_tax'] ?? null;
+            if (! empty($doGrupo)) {
+                $preco = (float) $doGrupo;
             }
         }
 
