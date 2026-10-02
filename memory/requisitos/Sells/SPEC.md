@@ -1453,3 +1453,27 @@ Perceived performance no `Sells/Create`: skeleton inicial enquanto carrega + alv
 - [ ] Filtros de local, cliente, vendedor e tipo de serviço.
 
 - Charter: [`Pos/Index.charter.md`](../../../resources/js/Pages/Sells/Pos/Index.charter.md) · RUNBOOK: [RUNBOOK-pos.md](RUNBOOK-pos.md) · casos: [`Pos/Index.casos.md`](../../../resources/js/Pages/Sells/Pos/Index.casos.md)
+
+---
+
+### US-SELL-065 · Cadastro de descontos com ver × editar (`/discount`)
+
+**Implementado em:** `resources/js/Pages/Discount/Index.tsx` · `app/Http/Controllers/DiscountController.php` (`index()`, `store()`, `update()`) · `app/Http/Requests/SalvarDescontoRequest.php` · `database/migrations/2026_10_02_120000_add_discount_view_manage_permissions.php`
+
+**Testado em:** `tests/Feature/Sells/DescontosContratoTest.php` (UC-DSC-01..08, lane `sells-pest.yml`).
+
+> owner: wagner · priority: p2 · estimate: 0h · type: story
+> blocked_by: —
+
+**Origem:** thread 04 do playbook `venda-menu` + decisão D1 de [W] (2026-10-02): ver a lista e criar/editar/excluir viram permissões separadas.
+
+**Problema:** a tela tinha uma permissão só, `discount.access` — quem conferia preço também apagava desconto. Desconto é valor que o PDV aplica sozinho.
+
+**Aceite:**
+- [x] `discount.view` vê a lista; `discount.manage` cria, edita, desativa, reativa e exclui; sem `manage` os botões aparecem desabilitados com o motivo.
+- [x] Quem tinha `discount.access` recebe as duas no deploy (papel e usuário direto).
+- [x] A gravação grava a mesma linha de antes (FormRequest sem regras novas; números crus, datas pelo formato do negócio).
+- [x] Toda leitura e escrita escopada por `business_id` (Tier 0, ADR 0093).
+- [ ] Validação no servidor (achado A2) — decisão [W].
+
+- Charter: [`Discount/Index.charter.md`](../../../resources/js/Pages/Discount/Index.charter.md) · runbook: [RUNBOOK-discount.md](RUNBOOK-discount.md)
