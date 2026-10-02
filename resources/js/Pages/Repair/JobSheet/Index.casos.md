@@ -47,6 +47,10 @@ last_run: "2026-10-02"
 > [37040619260](https://github.com/wagnerra23/oimpresso.com/actions/runs/37040619260) (verde): `RepairJobSheetIndexContratoTest` 6 testes, 21 asserções,
 > 0 falhas, 0 skipped (01=1 · 02=1 · 03=9 · 04=3 · 05=2 · 06=5).
 >
+> **Revalidação 2026-10-02 (thread 05 do playbook Repair).** A tela ganhou o recorte em abas e as
+> âncoras `data-contract`. Run [37041333904](https://github.com/wagnerra23/oimpresso.com/actions/runs/37041333904) da mesma lane (verde):
+> `RepairJobSheetIndexContratoTest` 7 testes, 43 asserções, 0 falhas, 0 skipped (UC-JSIDX-07 = 22).
+>
 > Os UCs 03/04/06 ficam **🧪**, e não ✅, até o manifesto por-UC ser republicado pelo cron
 > (`casos-results-publish`) — ✅ é o veredito do manifesto, não deste arquivo.
 ---
@@ -106,7 +110,8 @@ last_run: "2026-10-02"
   - sem o parâmetro `recorte` (o que o Blade manda), o endpoint segue devolvendo as pendentes.
 - **Por que é assim:** decisão [W] 2026-10-02, textual *"A tela ganha as abas"* — o recorte da rota `rep-folhas` do protótipo e do alvo `repair--jobsheet--index.alvo.json`. "Concluída" = status com `is_completed_status`; "Entrega vencida" = mesma regra do protótipo (`repair-data.jsx`, `atrasada`): pendente com prazo de entrega num dia anterior a hoje. O filtro é do backend, no mesmo endpoint compartilhado (UC-JSIDX-04/05), e herda o mesmo escopo de business, permissão e local.
 - **Teste:** `RepairJobSheetIndexContratoTest` — *"UC-JSIDX-07: o recorte filtra pendentes, concluídas, entrega vencida e todas no backend"*.
-- **Status: ⬜** _aguarda o run da lane Verticais no branch da thread 05_
+- **Status: 🧪** _(teste cita o UC e passa — CI `PHP / Pest (Verticais · MySQL)`, run
+  [37041333904](https://github.com/wagnerra23/oimpresso.com/actions/runs/37041333904), 2026-10-02: passed, 22 asserções, não pulado)_
 
 ---
 

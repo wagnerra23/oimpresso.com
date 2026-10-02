@@ -24,6 +24,10 @@ last_run: "2026-10-02"
 > 0 falhas, **1 skipped** — o UC-RIDX-02 saiu `skipped` (0 asserções) neste run, logo **não foi
 > medido** aqui; o status dele abaixo segue sendo o do run de 2026-09-05.
 >
+> **Revalidação 2026-10-02 (thread 05, âncoras `data-contract` do contrato `repair-index`).** Run
+> [37041333904](https://github.com/wagnerra23/oimpresso.com/actions/runs/37041333904) da mesma lane (verde): `RepairIndexContratoTest` 6 testes, 21 asserções,
+> 0 falhas, 1 skipped (de novo o UC-RIDX-02).
+>
 > ⚠️ **A distinção que dá nome à tela:** `/repair/repair` lista a **VENDA-de-reparo**
 > (`transactions` com `sub_type='repair'`), **não** a Ordem-de-Serviço (`repair_job_sheets`, que é
 > a tela `/repair/job-sheet`). O RUNBOOK grifa isso em maiúsculas no F1 §3 porque os dois nomes
