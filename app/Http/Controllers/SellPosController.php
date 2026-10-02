@@ -1324,7 +1324,8 @@ class SellPosController extends Controller
                 // Edição React (Sells/Edit): o total é do SERVIDOR, por diferença — ver
                 // totalDaEdicaoReact. Calculado AQUI, antes da checagem de limite de crédito,
                 // que lê final_total sem guarda. Só quando a tela pede; o Blade manda o dele.
-                if ($request->boolean('calcular_total_no_servidor') && ! empty($input['products'])) {
+                // (Já dentro do `if (!empty($input['products']))` acima.)
+                if ($request->boolean('calcular_total_no_servidor')) {
                     $input['final_total'] = $this->totalDaEdicaoReact(
                         $input,
                         $this->productUtil->calculateInvoiceTotal($input['products'], $input['tax_rate_id'] ?? null, [
