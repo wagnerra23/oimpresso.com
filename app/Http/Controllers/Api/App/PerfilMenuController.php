@@ -14,8 +14,8 @@ use Illuminate\Support\Facades\DB;
  * Perfil de menu do app das lojas (tela 30). Contrato: memory/requisitos/AppMobile/API-CONTRATO-v1.md §12.3.
  * Decisão [W]: a escolha fica guardada NO ERP (tabela app_menu_preferencias, ADR 0426).
  *
- * A barra de baixo tem Início e Mais fixos; no meio, até 3 módulos. O usuário escolhe quais e em
- * que ordem; o Início devolve `barra` = escolha ∩ `areas` (perdeu acesso a um módulo → ele some
+ * A barra de baixo tem Início e Mais fixos; no meio, até 3 módulos (só os que têm tela de aba no
+ * app). O usuário escolhe quais e em que ordem; o Início devolve `barra` = escolha ∩ `areas` (perdeu acesso a um módulo → ele some
  * da barra sem apagar a escolha). Sem escolha, ou se a interseção ficar vazia, vale o padrão do
  * ERP: Tarefas, Pedidos e Produção (§7.1), completado com as outras áreas do usuário.
  *
@@ -28,8 +28,14 @@ class PerfilMenuController extends Controller
     /** Ordem do padrão do ERP (§7.1); o resto das áreas entra depois, na ordem de `areas`. */
     private const PADRAO = ['tarefas', 'pedidos', 'producao'];
 
-    /** Fixos da barra, fora da escolha. */
-    private const FIXOS = ['inicio', 'mais'];
+    /**
+     * Módulos que têm tela de aba no app (lista da sessão do app, 2026-10-02). Equipe, validar
+     * ponto e assistente ficam no Mais por enquanto. Início e Mais são fixos e nunca entram.
+     */
+    private const COM_TELA = [
+        'tarefas', 'pedidos', 'producao', 'pessoas', 'orcamentos', 'produtos', 'estoque',
+        'financeiro', 'fiscal', 'relatorios', 'dashboard', 'ponto',
+    ];
 
     /**
      * PUT /api/app/perfil-menu { modulos:[≤3, em ordem] } → 200 { modulos, barra }.
@@ -60,7 +66,7 @@ class PerfilMenuController extends Controller
             return response()->json([
                 'erro' => 'validacao',
                 'mensagem' => $erro,
-                'campos' => ['modulos' => [$erro]],
+                'campos' => ['modulos' => $erro],
             ], 422);
         }
 
@@ -111,6 +117,6 @@ class PerfilMenuController extends Controller
      */
     private function escolhiveis(array $areas): array
     {
-        return array_values(array_diff($areas, self::FIXOS));
+        return array_values(array_intersect($areas, self::COM_TELA));
     }
 }

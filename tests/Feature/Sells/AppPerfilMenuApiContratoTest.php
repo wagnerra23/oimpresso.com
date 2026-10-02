@@ -96,7 +96,7 @@ it('UC-APP30-02: a escolha fica gravada no ERP, na ordem, e volta no Início; li
     expect(DB::table('app_menu_preferencias')->where('user_id', $u->id)->count())->toBe(0);
 });
 
-it('UC-APP30-03: mais de 3, repetido, módulo fora das áreas ou fixo é 422 em campos.modulos e nada é gravado', function () {
+it('UC-APP30-03: mais de 3, repetido, módulo fora das áreas, fixo ou sem tela de aba é 422 em campos.modulos e nada é gravado', function () {
     $u = appPmUsuario();
     Passport::actingAs($u, [], 'api');
 
@@ -105,9 +105,11 @@ it('UC-APP30-03: mais de 3, repetido, módulo fora das áreas ou fixo é 422 em 
         ['pedidos', 'pedidos'],
         ['ponto'],
         ['inicio'],
+        ['mais'],
     ] as $modulos) {
         $this->putJson('/api/app/perfil-menu', ['modulos' => $modulos])
-            ->assertStatus(422)->assertJsonPath('erro', 'validacao')->assertJsonStructure(['campos' => ['modulos']]);
+            ->assertStatus(422)->assertJsonPath('erro', 'validacao');
+        expect($this->putJson('/api/app/perfil-menu', ['modulos' => $modulos])->json('campos.modulos'))->toBeString();
     }
     $this->putJson('/api/app/perfil-menu', [])->assertStatus(422);
     expect(DB::table('app_menu_preferencias')->where('user_id', $u->id)->count())->toBe(0);
