@@ -181,8 +181,9 @@ checklist:[{texto, feito}], comentarios:[{quando, autor, texto, detalhe}], concl
 ### 4.1 Ficha cadastral (tela 34) — só leitura
 
 `GET /api/app/pessoas/{id}/cadastro` → `{ id, nome, tipo,
-identificacao{razao_social, documento, indicador_ie, papeis[]},
-endereco_fiscal{cidade, uf, cep, codigo_ibge, email_nfe},
+identificacao{razao_social, nome_fantasia, documento, indicador_ie (1|2|9), papeis[]},
+contato{telefone, email},
+endereco_fiscal{logradouro, numero, complemento, bairro, cidade, uf, cep, codigo_ibge, email_nfe},
 comercial{classificacao, limite_credito, prazo_padrao_dias},
 consentimento{whatsapp, email_nfe, sms, registrado_em} }`. Mesmas permissões e escopo do §4;
 documento com a mesma máscara (CPF parcial, CNPJ inteiro). Campo sem dado sai `null` (a tela mostra
@@ -216,6 +217,18 @@ prazo_padrao_dias, consentimento: { whatsapp, email_nfe } }` (só `tipo`, `nome`
   da web já usa (`BrLookupService`, ViaCEP, cache 90 dias), via o contrato `App\Contracts\Enderecos\BuscaCep`.
 - `codigo_ibge` pode vir `null` para CEP que já estava em cache antes deste campo existir.
 - Limite de 60 buscas por minuto, como na web.
+
+### 4.4 Editar cadastro (telas 09/34) — escrita
+
+`PATCH /api/app/pessoas/{id}`, **parcial**: só grava as chaves que vierem (`null` limpa o campo).
+Mesmos campos e regras do §4.2, **menos** `tipo` e `papeis` (mudar papel fica na web).
+
+- `200 { id }` · `422 { erro: "validacao", campos }` · `403 { erro: "sem_permissao" }` · `404 { erro: "nao_encontrado" }`.
+- Permissão pelos papéis atuais da pessoa: cliente exige `customer.update`; fornecedor, `supplier.update`.
+  Visibilidade igual à da leitura (§4): outra empresa ou fora do "só os próprios" → 404.
+- **Não** passa pelo `ContactUtil::updateContact`: ele assume saldo inicial 0 quando o campo não vem e
+  reescreve o lançamento de saldo inicial (valor). O app grava só campos de cadastro, direto no contato,
+  com evento e log de atividade (antes→depois). Saldo e limite de crédito seguem só na web.
 
 ## 5. Produção ⬜ — fila por **etapa da venda** ([W] 2026-10-02)
 
@@ -320,3 +333,55 @@ de contrato na lane MySQL) + 1 PR de tela no `oimpresso-app`, contra este contra
 - Leitura primeiro; a ação que escreve vem num PR separado. Em valor ou estoque: dupla prova, tabela antes→depois e ok do [W] antes do merge.
 - Tela de módulo que o business não tem no pacote não aparece (Camada 1).
 
+
+## 9. Produtos e estoque (Onda B)
+
+### 9.1 Produtos (tela 19) — só leitura
+
+`GET /api/app/produtos?categoria=<id|todas>&q=<texto>&pagina=N` →
+`{ itens:[{id, nome, codigo, categoria, calculo, preco, variacoes, estoque:{controla, qtd, unidade}, baixo}],
+categorias:[{id, nome, total}], total, baixo_estoque, pagina, tem_mais }`, 30 por página, por nome.
+
+- Permissão `product.view` (a da lista web); sem ela, 403. Produtos ativos do business, sem os `modifier`.
+  A área `produtos` entra em `areas` do Início (§6) com essa mesma regra.
+- Busca `q` em nome, código (SKU) e categoria. `categorias` e `total` respeitam a busca, não o filtro de categoria.
+- `calculo` = "por " + unidade curta do produto ("por m²", "por un"); `null` sem unidade.
+- `preco` = preço de venda com imposto (`sell_price_inc_tax`); produto com variação traz o menor e
+  `variacoes` = quantas. Só exibição.
+- `estoque.qtd` = soma nos locais que o usuário pode ver; `null` quando o produto não controla estoque
+  ("sob demanda"). Usuário sem nenhum local permitido vê 0, nunca o estoque de todos.
+- `baixo` / `baixo_estoque` = a mesma regra do alerta da web (`ProductUtil::getProductAlert`): alguma
+  variação × local com quantidade ≤ `alert_quantity`.
+
+## 11. Oficina — Onda D (Modules/OficinaAuto)
+
+Área `oficina` em `areas` (§6): módulo `oficina_auto_module` no pacote do business (Camada 1;
+superadmin: módulo instalado) **e** permissão `oficinaauto.service_order.view` — a mesma regra do
+menu web da Oficina. Sem acesso → `403 sem_permissao`. Vocabulário de reparo: `order_type` só
+`manutencao`/`mecanica` (ADR 0265). Sem câmera (ADR 0383).
+
+### 11.1 Ordens de serviço (tela 07) — só leitura ✅
+
+`GET /api/app/os?etapa=<chave|todas>&pagina=N` (20 por página)
+
+```json
+{ "itens": [ {
+    "id": 42, "numero": "OS-00042", "placa": "RLV2E48", "veiculo": "Caminhão",
+    "cliente": "Transportes Vale Norte", "valor": 750.00,
+    "etapa": { "chave": "aguardando_pecas", "rotulo": "Aguardando peças", "indice": 4, "total_etapas": 6 },
+    "travada": true } ],
+  "etapas": [ { "chave": "recepcao", "rotulo": "Recepção", "total": 3 } ],
+  "total": 6, "travadas": 2, "pagina": 1, "tem_mais": false }
+```
+
+- Mesmo universo do quadro web `/oficina-auto/ordens-servico`: OS no processo FSM
+  `oficina_mecanica_os` em etapa **não-terminal**, ou OS de mecânica ainda sem pipeline (conta na
+  etapa inicial). Terminais (entregue, cancelado, garantia acionada) ficam fora. `total` = ativas.
+- `etapas` = as não-terminais do processo do business, na ordem do ERP (`sort_order`), sempre todas,
+  com `total` (pode ser 0). `indice` é 1-based nessa lista.
+- `travada` = etapa `aguardando_aprovacao` ou `aguardando_pecas`.
+- `numero` = `OS-` + id com 5 dígitos (como a web). `veiculo` = rótulo do tipo de veículo da web
+  (o cadastro não tem marca/modelo/ano); `null` se o tipo não tem rótulo.
+- `valor` = soma dos itens da OS (peças + mão de obra), como o card web; `null` sem item.
+  `cliente` = cliente da OS; `null` se a OS não tem cliente.
+- Ordem: etapa mais avançada primeiro; desempate pela OS mais recente.
