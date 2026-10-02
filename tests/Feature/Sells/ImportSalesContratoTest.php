@@ -20,15 +20,20 @@ use Tests\Support\EstoqueFixture;
  *  (a) a mesma planilha é importada pelo REQUEST (abaixo do limite) e pela FILA
  *      (ImportarVendasJob), e os dois caminhos têm de dar o mesmo total e a mesma baixa;
  *  (b) os dois são comparados com a conta feita à mão abaixo:
- *        venda A = 2 × 50 + 1 × 30 = 130,00 · venda B = 3 × 50 = 150,00 · lote = 280,00
- *        estoque = 10 − 2 − 1 − 3 = 4
+ *        venda A = 2 × 50 (produto P) + 1 × 30 (produto Q) = 130,00 · venda B = 3 × 50 (P) = 150,00
+ *        lote = 280,00 · estoque P = 10 − 2 − 3 = 5 · estoque Q = 10 − 1 = 9
+ *
+ * A venda A usa DOIS produtos de propósito: `transaction_sell_lines` tem UNIQUE
+ * (`transaction_id`, `product_id`, `variation_id`) (`uk_tsl_dup_prevent`, schema baseline), então
+ * duas linhas do mesmo produto na mesma fatura são recusadas pelo banco — no legado também
+ * (medido no 1º run do CI deste arquivo).
  *
  * Tenant 98 (ADR 0358). Nunca biz=4.
  */
 uses(DatabaseTransactions::class);
 
-/** CSV com 3 linhas de dados (2 vendas) em public/uploads/temp, onde a prévia grava. */
-function impvPlanilha(string $sku, string $sufixo, ?string $skuLinha3 = null): string
+/** CSV com 3 linhas de dados (2 vendas) em public/uploads/temp, onde a prévia grava. Linha 3 = 2º produto. */
+function impvPlanilha(string $sku, string $sufixo, string $skuLinha3): string
 {
     $nome = 'impv_'.$sufixo.'_'.bin2hex(random_bytes(3)).'.csv';
     $dir = public_path('uploads/temp');
@@ -39,7 +44,7 @@ function impvPlanilha(string $sku, string $sufixo, ?string $skuLinha3 = null): s
     $linhas = [
         'Fatura,Cliente,Telefone,SKU,Quantidade,Preco',
         "IMPV-A-{$sufixo},Cliente A,559999{$sufixo}01,{$sku},2,50",
-        "IMPV-A-{$sufixo},Cliente A,559999{$sufixo}01,".($skuLinha3 ?? $sku).',1,30',
+        "IMPV-A-{$sufixo},Cliente A,559999{$sufixo}01,{$skuLinha3},1,30",
         "IMPV-B-{$sufixo},Cliente B,559999{$sufixo}02,{$sku},3,50",
     ];
     file_put_contents($dir.'/'.$nome, implode("\n", $linhas)."\n");
@@ -141,13 +146,14 @@ beforeEach(function () {
     app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
 });
 
-it('UC-IMPV-01 · abaixo do limite importa na hora: 2 vendas, 130,00 + 150,00, estoque 10 → 4', function () {
+it('UC-IMPV-01 · abaixo do limite importa na hora: 2 vendas, 130,00 + 150,00, estoque P 10 → 5 e Q 10 → 9', function () {
     config(['sells.import.limite_sincrono' => 200]);
     Queue::fake();
     $p = impvProduto($this);
+    $q = impvProduto($this);
     $sufixo = (string) random_int(1000, 9999);
 
-    $resposta = impvPost($this, impvPlanilha($p->sku, $sufixo));
+    $resposta = impvPost($this, impvPlanilha($p->sku, $sufixo, $q->sku));
 
     $resposta->assertRedirect('import-sales');
     expect(session('status')['success'] ?? null)->toBe(1, json_encode(session('notification')));
@@ -159,16 +165,18 @@ it('UC-IMPV-01 · abaixo do limite importa na hora: 2 vendas, 130,00 + 150,00, e
     expect((float) $vendas["IMPV-B-{$sufixo}"]->final_total)->toBe(150.0);
     expect($vendas["IMPV-A-{$sufixo}"]->status)->toBe('final');
     expect((int) $vendas["IMPV-A-{$sufixo}"]->import_batch)->toBe((int) $vendas["IMPV-B-{$sufixo}"]->import_batch);
-    expect(EstoqueFixture::currentStock($p->produto, 0, $this->locationId))->toBe(4.0);
+    expect(EstoqueFixture::currentStock($p->produto, 0, $this->locationId))->toBe(5.0);
+    expect(EstoqueFixture::currentStock($q->produto, 0, $this->locationId))->toBe(9.0);
 });
 
 it('UC-IMPV-02 · acima do limite vai para a fila com o business e o usuário no construtor, sem gravar venda no request', function () {
     config(['sells.import.limite_sincrono' => 2]); // a planilha tem 3 linhas
     Queue::fake();
     $p = impvProduto($this);
+    $q = impvProduto($this);
     $sufixo = (string) random_int(1000, 9999);
 
-    $resposta = impvPost($this, impvPlanilha($p->sku, $sufixo));
+    $resposta = impvPost($this, impvPlanilha($p->sku, $sufixo, $q->sku));
 
     $resposta->assertRedirect('import-sales');
     Queue::assertPushed(ImportarVendasJob::class, function (ImportarVendasJob $job) {
@@ -184,8 +192,9 @@ it('UC-IMPV-02 · acima do limite vai para a fila com o business e o usuário no
 
 it('UC-IMPV-03 · a fila grava o mesmo valor e a mesma baixa que o request (REGRA MESTRE, 2º caminho)', function () {
     $p = impvProduto($this);
+    $q = impvProduto($this);
     $sufixo = (string) random_int(1000, 9999);
-    $arquivo = impvPlanilha($p->sku, $sufixo);
+    $arquivo = impvPlanilha($p->sku, $sufixo, $q->sku);
 
     $job = new ImportarVendasJob(
         $this->bizId,
@@ -206,7 +215,8 @@ it('UC-IMPV-03 · a fila grava o mesmo valor e a mesma baixa que o request (REGR
     expect($vendas)->toHaveCount(2);
     expect((float) $vendas["IMPV-A-{$sufixo}"]->final_total)->toBe(130.0);
     expect((float) $vendas["IMPV-B-{$sufixo}"]->final_total)->toBe(150.0);
-    expect(EstoqueFixture::currentStock($p->produto, 0, $this->locationId))->toBe(4.0);
+    expect(EstoqueFixture::currentStock($p->produto, 0, $this->locationId))->toBe(5.0);
+    expect(EstoqueFixture::currentStock($q->produto, 0, $this->locationId))->toBe(9.0);
     // O handle devolve a sessão e o usuário como encontrou (worker roda vários negócios).
     expect(auth()->id())->toBe($this->user->id);
     expect(file_exists(public_path('uploads/temp/'.$arquivo)))->toBeFalse();
@@ -243,7 +253,8 @@ it('UC-IMPV-05 · local de outro negócio é recusado antes de baixar estoque', 
     $p = impvProduto($this);
     $sufixo = (string) random_int(1000, 9999);
 
-    $resposta = impvPost($this, impvPlanilha($p->sku, $sufixo), [
+    $q = impvProduto($this);
+    $resposta = impvPost($this, impvPlanilha($p->sku, $sufixo, $q->sku), [
         'location_id' => EstoqueFixture::locationId($outro),
     ]);
 
