@@ -3093,7 +3093,10 @@ class SellController extends Controller
                     'update' => true,
                 ],
                 'urls' => array_filter([
-                    'submit' => '/sells/' . $id,
+                    // PUT /pos/{id} = SellPosController@update, o caminho canônico de valor (o
+                    // mesmo do form Blade sell.edit). /sells/{id} caía em SellController@update,
+                    // que não existe → 500 (4× em prod, biz=4). UC-SEDIT-09.
+                    'submit' => '/pos/' . $id,
                     'cancel' => '/sells/' . $id,
                     'back' => '/sells',
                     // ADR 0192 Onda 2 follow-up — endpoint dedicado pra salvar commission_split.
