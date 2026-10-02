@@ -12,7 +12,7 @@ lente: [construir]
 
 # 🗺️ PAINEL-SISTEMA — estado do oimpresso
 
-> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-10-01**. NÃO edite à mão — a próxima geração sobrescreve.
+> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-10-02**. NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/system-map.mjs`. Este é um **índice que aponta pros donos canônicos**, não uma cópia deles.
 > Views humanas (mapa 🗺️ / guia 🧭 em claude.ai) derivam DESTES dados.
 
@@ -147,13 +147,13 @@ lente: [construir]
 
 ## Decisões (ADRs)
 
-- **428** ADRs no total. Índice gerado: [`_INDEX-GENERATED.md`](../decisions/_INDEX-GENERATED.md) · lifecycle: [`_INDEX-LIFECYCLE.md`](../decisions/_INDEX-LIFECYCLE.md).
-- Por status: aceito: 377 · superseded: 25 · proposto: 13 · deprecated: 11 · rascunho: 1 · recusado: 1.
+- **429** ADRs no total. Índice gerado: [`_INDEX-GENERATED.md`](../decisions/_INDEX-GENERATED.md) · lifecycle: [`_INDEX-LIFECYCLE.md`](../decisions/_INDEX-LIFECYCLE.md).
+- Por status: aceito: 377 · superseded: 25 · proposto: 14 · deprecated: 11 · rascunho: 1 · recusado: 1.
 - **5** reversões de rota (ADR com `supersedes:`).
 
 ## Ideias avaliadas e ABANDONADAS (§5 — não re-propor)
 
-> Dono canônico: [`memory/proibicoes.md §5`](../proibicoes.md). 248 entradas.
+> Dono canônico: [`memory/proibicoes.md §5`](../proibicoes.md). 252 entradas.
 
 <!-- transcrito-de: memory/proibicoes.md §5 -->
 - ~~2026-06-05 — Roadmap/plano de evolução PARALELO a canon existente~~
@@ -404,6 +404,10 @@ lente: [construir]
 - ~~2026-09-30 — O `--conferir` imprimia "1 verificado(s)" e gravava prova VAZIA para `.md`: editar um recibo já verificado travava o required do espelho sem saída~~
 - ~~2026-09-30 — Gate de bundle do deploy decidia "a publicação chegou?" por "arquivo de front mudou no diff" — um commit de só-comentário travou a esteira~~
 - ~~2026-10-01 — EMENDA da lápide 2026-08-13 (retrato atrasado): o `max()` sobre N leituras supunha amostras INDEPENDENTES, e as 3 leituras pela mesma URL saíram velhas e iguais~~
+- ~~2026-10-01 — A catraca de acoplamento oferecia `not_contains` como saída no eixo TABELA, que não lê `not_contains`~~
+- ~~2026-10-01 — EMENDA da lápide 2026-09-30 (2ª): o pedido chegou por sessão de coordenação, e a sessão irmã que já tinha o PR aberto não estava na lista de quem eu avisaria~~
+- ~~2026-10-02 — EMENDA da lápide 2026-08-13 (retrato atrasado): uma leitura minha, à mão, numa janela de deploy, virou comentário de canon e tirou uma defesa do deploy~~
+- ~~2026-10-02 — Tamanho da CÉLULA lido como tamanho do TEXTO na comparação app × protótipo~~
 <!-- /transcrito-de -->
 
 ## Tier 0 gaps (esperam decisão/desbloqueio)
@@ -414,7 +418,7 @@ lente: [construir]
 
 ## Rastro
 
-- **581** handoffs · **778** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
+- **586** handoffs · **778** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
 - Sessions recentes:
   - `2026-09-30-patrimonio-garantias-recortes-visreg`
   - `2026-09-29-refutacao-gt-g5-lote-8195-r1`
@@ -424,4 +428,4 @@ lente: [construir]
   - `2026-09-29-refutacao-gt-g5-lote-8120-r1`
 
 ---
-_Gerado por `scripts/governance/system-map.mjs` · 2026-10-01 · deriva das fontes canônicas, não as substitui._
+_Gerado por `scripts/governance/system-map.mjs` · 2026-10-02 · deriva das fontes canônicas, não as substitui._
