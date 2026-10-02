@@ -36,6 +36,7 @@
 ---
 
 ## Últimos handoffs
+- [2026-10-02 11:43 BRT — **Conta demo dos revisores das lojas no ar**](handoffs/2026-10-02-1143-conta-demo-revisores-lojas.md) (business 235: revisor.ponto + gestor.demo · smoke sem senha pela API Passport verde em prod (me/espelho/marcar) · vazamento de /contacts fechado em #8442/#8443/#8469 · falta só o login real com senha, do [W])
 - [2026-10-01 15:30 BRT — **App nas lojas: coordenação passada à BASE MOBILE**](handoffs/2026-10-01-1530-app-lojas-coordenacao-passada.md) (arquitetura final: Capacitor com telas próprias + API por tela; /m revertido #8472 · DECISOES.md no #8473 · lição: decisão conflitante se fecha com pergunta única lado a lado)
 - [2026-10-01 16:14 BRT — **Gestão de merges das sessões paralelas**](handoffs/2026-10-01-1614-gestao-merges-sessoes-paralelas.md) (vigia de merge com retenção de valor/estoque/ADR; vazamento da lista de clientes fechado em #8442/#8443/#8469; 29 sessões arquivadas; retidos p/ [W]: #8454, #8460)
 - [2026-10-01 13:45 BRT — **Auditoria: backfill do business_id NULL no activity_log**](handoffs/2026-10-01-1345-auditoria-backfill-business-id.md) (núcleo já aplicado antes · 6.322 linhas de outros módulos + 146 licenças limpas com ok [W] · 0 divergentes na conferência · BRIEFING #8440)
