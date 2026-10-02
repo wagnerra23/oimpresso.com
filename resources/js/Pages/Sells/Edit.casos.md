@@ -15,6 +15,10 @@ last_run: "2026-10-02"
      form); deles, este PR só muda `urls.submit` (/sells → /pos), que nenhum dos 7 asserta —
      status mantidos. UC-SEDIT-08 (paliativo) segue ativo.
      UC-SEDIT-09 nasce 🧪. -->
+<!-- REVALIDAÇÃO 2026-10-02 (alerta "Cliente vencido"): SellController@edit passa a mandar
+     `customer.dues_total` a partir do número cru da dívida, não do texto pt-BR re-parseado. Só o
+     campo `customer.dues_total` do payload muda; UC-SEDIT-01..09 não o assertam — status mantidos.
+     UC-SEDIT-10 nasce 🧪. -->
 <!-- REVALIDAÇÃO 2026-10-02 (paliativo removido): SellController@edit deixa de devolver 409 na
      navegação React. Muda só o UC-SEDIT-08 (aceite reescrito, volta a 🧪); UC-SEDIT-05/06/07 e o
      prefill passam a pedir /sells/{id}/edit sem ?react=1 — mesmo payload, status mantidos. -->
@@ -136,6 +140,16 @@ last_run: "2026-10-02"
   - a data aceita o ISO cru que a tela manda (`uf_datetime_input`).
 - **Aceite:** Dado uma venda com linhas a 10% e 5 fixo/un, uma linha inconsistente (inc sem desconto), desconto de 10% no pedido e total gravado **210,1234** · Quando salva pela tela React sem mexer · Então total, linhas e estoque ficam **idênticos** · Quando muda a quantidade de uma linha de 2 para 3 (preço com desconto 90) · Então o total vira **291,1234** (= 210,1234 + 90 × 0,9) e o estoque daquela linha cai 1, os outros intactos · E a página entrega `urls.submit` = `/pos/{id}`.
 - **Teste:** `tests/Feature/Sells/SellsEditContratoTest.php` (UC-SEDIT-09, lane `sells-pest`) + `tests/js/sells-edicao-venda.test.ts` (regras da tela, lane `sells-v3-dominio-gate`).
+- **Status: 🧪** _(nasce sem run.)_
+
+---
+
+## UC-SEDIT-10 · O alerta "Cliente vencido" mostra a dívida no valor certo
+- **Persona:** Larissa abrindo uma venda pra corrigir — o aviso de que o cliente deve dinheiro tem que trazer o mesmo valor que o Blade e o extrato mostram. Um aviso 100× maior faz ela cobrar errado ou desconfiar da tela.
+- **Por que existe:** smoke em produção 2026-10-02 (biz=1): a tela React mostrava 100× a dívida que o Blade mostrava na mesma venda. O payload re-parseava o texto já formatado em pt-BR, e a vírgula decimal sumia.
+- **Aceite:** Dado um cliente cuja única venda está em aberto · Quando o payload `form` chega · Então `customer.dues_total` é igual à dívida calculada por `Util::getContactDue` (a mesma conta do Blade), nos casos **500,00**, **1.234,56** (com separador de milhar) e **0** (venda quitada — sem alerta).
+- **Âncora:** REGRA MESTRE valor ([`proibicoes.md`](../../../../memory/proibicoes.md) — parsing de número pt-BR, separador de milhar tem 3 dígitos) + `SDD-tela-venda-v1.0.md` §3.2 (incidente `num_uf`) + paridade com o Blade `sell.edit` (`customerDue`).
+- **Teste:** `tests/Feature/Sells/SellsEditContratoTest.php` (UC-SEDIT-10, dataset com os 3 casos) — contato próprio criado no teste, dívida conferida antes pela mesma função do Blade.
 - **Status: 🧪** _(nasce sem run.)_
 
 ---

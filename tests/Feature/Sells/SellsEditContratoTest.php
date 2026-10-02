@@ -4,7 +4,7 @@
 
 declare(strict_types=1);
 // Cobre UC-SEDIT-01, UC-SEDIT-02, UC-SEDIT-03, UC-SEDIT-04, UC-SEDIT-05, UC-SEDIT-06,
-// UC-SEDIT-07 (resources/js/Pages/Sells/Edit.casos.md) — G-2 rastreabilidade caso↔teste.
+// UC-SEDIT-07, UC-SEDIT-10 (resources/js/Pages/Sells/Edit.casos.md) — G-2 rastreabilidade caso↔teste.
 
 use App\User;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
@@ -564,3 +564,62 @@ it('UC-SEDIT-09 · a tela React envia pra SellPosController@update (/pos/{id}), 
     $r->assertOk();
     expect($r->json('props.urls.submit'))->toBe('/pos/'.$venda['transaction_id']);
 });
+
+// =============================================================================
+// UC-SEDIT-10 — o alerta "Cliente vencido" mostra a dívida do cliente no valor certo.
+//   Smoke prod 2026-10-02 (biz=1): a tela React mostrava 100× a dívida que o Blade mostrava,
+//   porque `dues_total` re-parseava o texto pt-BR e a vírgula decimal sumia.
+// =============================================================================
+
+/** Contato próprio do caso: a dívida dele é só a venda que o teste cria (sem herdar o seed). */
+function sedit10Contato(object $test): int
+{
+    return (int) DB::table('contacts')->insertGetId([
+        'business_id' => $test->bizId,
+        'type' => 'customer',
+        'name' => 'SEDIT10-'.uniqid(),
+        'mobile' => '',
+        'created_by' => $test->user->id,
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+}
+
+it('UC-SEDIT-10 · o alerta de cliente vencido traz a dívida no valor certo', function (float $preco, bool $quitada, float $esperado) {
+    $venda = sellsEditVenda($this->bizId, 1.0, $preco);
+    $saleId = $venda['transaction_id'];
+    $contato = sedit10Contato($this);
+    DB::table('transactions')->where('id', $saleId)->update(['contact_id' => $contato]);
+
+    if ($quitada) {
+        DB::table('transaction_payments')->insert([
+            'transaction_id' => $saleId, 'payment_for' => $contato, 'business_id' => $this->bizId,
+            'amount' => $preco, 'method' => 'cash', 'is_return' => 0, 'paid_on' => now(),
+            'created_by' => $this->user->id, 'created_at' => now(), 'updated_at' => now(),
+        ]);
+    }
+
+    // Fato independente: a dívida pela mesma conta que o Blade usa (Util::getContactDue).
+    $noBanco = round((float) app(\App\Utils\TransactionUtil::class)->getContactDue($contato, $this->bizId), 2);
+    expect($noBanco)->toBe($esperado);
+
+    $response = sellsEditGet($this, $saleId, [
+        'X-Inertia-Partial-Component' => 'Sells/Edit',
+        'X-Inertia-Partial-Data' => 'form',
+    ]);
+    $response->assertStatus(200);
+    $form = json_decode($response->getContent(), true)['props']['form'];
+
+    // PRÉ-CONDIÇÃO ANTI-VÁCUO: o cliente do payload é o contato do caso.
+    expect($form['customer']['id'])->toBe($contato);
+
+    \PHPUnit\Framework\Assert::assertSame(
+        $esperado,
+        round((float) $form['customer']['dues_total'], 2),
+        'dues_total diverge da dívida do cliente — o alerta "Cliente vencido" mostra outro valor que o Blade.'
+    );
+})->with([
+    'dívida 500,00' => [500.0, false, 500.0],
+    'dívida 1.234,56 (milhar)' => [1234.56, false, 1234.56],
+    'dívida zero (quitada)' => [500.0, true, 0.0],
+]);
