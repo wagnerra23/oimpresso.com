@@ -322,7 +322,7 @@ class PedidosController extends Controller
             ->groupBy(DB::raw('DATE(t.transaction_date)'))
             ->selectRaw('DATE(t.transaction_date) as dia, COUNT(*) as total')
             ->get()
-            ->pluck('total', 'dia');
+            ->mapWithKeys(fn ($l) => [$l->dia => $l->total]);
 
         $serie = [];
         for ($d = $ini->copy(); $d->lte($hoje); $d->addDay()) {
