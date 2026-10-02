@@ -104,15 +104,16 @@ computador".
 
 ```json
 { "colunas": [ {
-    "id": "in_production", "rotulo": "Em produção",
+    "id": "in_production", "rotulo": "Em produção", "total": 63,
     "itens": [ "…mesmo item da lista de pedidos (§2)…" ] } ] }
 ```
 
 - Decisão [W] 2026-10-02: *"Produção usa as etapas da venda"* — mesma entidade de Pedidos.
 - Colunas fixas, nesta ordem: `quote_approved` (aprovado pelo cliente, na fila) · `in_production` ·
   `on_hold` · `ready_for_invoice` (pronto). Rótulo = nome do estágio cadastrado no business.
-- Mesmas permissões e regras de visibilidade de Pedidos; até 50 itens por coluna, prazo mais
-  próximo primeiro. Só leitura (mover de etapa é ação FSM, fora da v1). Sem carga % (D11).
+- Mesmas permissões e regras de visibilidade de Pedidos; até 50 itens **por coluna** (o limite
+  é de cada coluna, uma etapa cheia não esvazia as outras), prazo mais próximo primeiro.
+  `total` = quantos pedidos a coluna tem de fato (o app mostra "N" mesmo quando passa de 50). Só leitura (mover de etapa é ação FSM, fora da v1). Sem carga % (D11).
 
 ## 6. Início ⬜
 
@@ -124,8 +125,18 @@ computador".
   "meta_dia": { "valor": 2000.00, "derivada": true },
   "kpis": { "pedidos_ativos": 12, "pedidos_atrasados": 3, "estoque_baixo": 2 },
   "financeiro": { "a_receber": 8200.00, "a_pagar": 3100.00 },
-  "proximas_tarefas": [ "…mesmo item de /tarefas, até 3…" ] }
+  "proximas_tarefas": [ "…mesmo item de /tarefas, até 3…" ],
+  "perfil": "erp", "abre_em": "inicio",
+  "areas": [ "inicio", "tarefas", "pedidos", "producao", "pessoas", "ponto", "mais" ] }
 ```
+
+- `perfil`, `abre_em` e `areas` (D6 [W]: *"perfil colaborador abre no ponto"*): `areas` lista as
+  abas que o usuário pode abrir, na ordem do app. Cada uma segue a mesma regra da rota dela, então
+  aba visível = rota que responde: `tarefas` = Essentials no plano ou quem aprova o Ponto;
+  `pedidos`/`producao` = quem vê vendas; `pessoas` = quem vê cliente ou fornecedor; `ponto` =
+  colaborador com `controla_ponto`; `inicio` só para perfil `erp`; `mais` sempre.
+  `perfil` = `erp` se tem tarefas, vendas ou pessoas, senão `colaborador`. `abre_em` = `inicio`
+  (erp), `ponto` (colaborador) ou `mais` (sem nenhuma das duas).
 
 - `faturado_hoje` e `meta_dia`: só com `dashboard.data` (senão `null`). Meta do dia = meta mensal
   da Jana ÷ dias úteis do mês (D11), sempre com `derivada: true`.
