@@ -78,6 +78,7 @@ on:
       - 'Modules/Crm/Tests/Feature/CrmLeadsListQueryTest.php'
       # Ticket médio/saldo da pessoa (D8 do MAPA-DE-DADOS-v1 do app Mobile).
       - 'Modules/Crm/Http/Controllers/ClienteIaController.php'
+      - 'app/Services/Pessoas/PessoaVendas.php'
       - 'Modules/Crm/Tests/Feature/ClienteStatsTicketMedioTest.php'
       - 'database/schema/mysql-schema.sql'
       - '.github/workflows/verticais-pest.yml'
@@ -147,6 +148,7 @@ jobs:
               - 'Modules/Connector/Http/Controllers/Api/Crm/FollowUpController.php'
               - 'Modules/Crm/Tests/Feature/CrmLeadsListQueryTest.php'
               - 'Modules/Crm/Http/Controllers/ClienteIaController.php'
+              - 'app/Services/Pessoas/PessoaVendas.php'
               - 'Modules/Crm/Tests/Feature/ClienteStatsTicketMedioTest.php'
               - 'database/schema/mysql-schema.sql'
               - '.github/workflows/verticais-pest.yml'
