@@ -1,20 +1,39 @@
-repo: wagnerra23/oimpresso.com
+repo: wagnerra23/oimpresso-app
 branch: main
-path: mobile/
+path: /
+
+> **Alvo mudou em 2026-10-01 (decisão [W]).** O app das lojas é o `oimpresso-app` (Capacitor + React/Vite, telas próprias, dados pela API Passport do ERP). O app Expo (`wagnerra23/oimpresso.com` · `mobile/`) saiu das lojas e o `/m` dentro do ERP foi descartado. Novos handoffs deste projeto miram o `oimpresso-app`; as ondas em `handoff/` foram escritas para o Expo e valem só como referência (tokens, toque ≥ 44, status da OS, offline, regras do Ponto).
+> Cópia de referência deste projeto no ERP: `wagnerra23/oimpresso.com` · `mobile/ref/design-v4/` (PR #8467 mergeado; PR #8485 aberto, traz a versão atual).
 
 ## Last sync
-date: 2026-10-01T18:22:18Z
+date: 2026-10-01T20:23:45Z
 
 ### Updated in this project
-- Pacotes de handoff das 5 ondas em handoff/ (tokens, Oficina, adaptadores erp-ui, offline visível, Ponto nativo)
-- Lidos: oi-theme.ts, _layout.tsx, mutation-queue.ts, offline-banner.tsx, erp-ui.tsx, oss.tsx, oss/[id].tsx, veiculos.tsx, componentes oi/*
-- Avaliação corrigida: fila offline e registro de push já existem no app
-- Rev. 2: rotas reais da /ponto/api (Modules/Ponto/Http/routes.php + MobileMarcacaoController); achado app de ponto Capacitor (ADR 0423)
+- Alvo trocado de `oimpresso.com/mobile/` (Expo) para `oimpresso-app`
+- Escopo da v1 ([W] 2026-10-01, D13 do `docs/lojas-app/DECISOES.md`, PR #8473 aberto): **7 áreas** — Início, Tarefas, Pedidos, Produção, Pessoas, Ponto e Mais. v2: Produtos, Venda rápida e Finanças. A submissão às lojas só sai com as 7.
+- Tema ([W] 2026-10-01, D14): o app segue o tema claro/escuro do celular, como este protótipo.
+- Hoje o oimpresso-app tem Login, Início (só ponto), Ponto e Conta; as outras áreas da v1 estão em construção.
 
-## Sync history
+## Screen map (oimpresso-app)
+| Tela | Arquivos do repo |
+| --- | --- |
+| 00 Login | src/telas/Login.tsx |
+| 01 Início | src/telas/Inicio.tsx |
+| 36 Bater ponto · 37 Meu espelho · 38 Justificar | src/telas/Ponto.tsx, src/ponto-regras.ts, src/api.ts |
+| Conta (excluir conta, sair) | src/telas/Conta.tsx |
+| Tokens | src/styles/oimpresso-tokens.css (v4: design/oi-theme.v4.ts → src/styles/oi-v4.css, PR #6 aberto) |
+| Lembrete de ponto | src/push.ts |
+| 01 Início (gestão) · 12 Tarefas · 21–22 Pedidos · 02/27 Produção · 17–18 Pessoas · 10 Mais | **v1 (D13)** — em construção no oimpresso-app |
+| 19–20 Produtos · 11 Venda rápida · 06/15 Finanças | v2 |
+| 35 Dashboard | **a decidir pelo [W]** (v1 em Mais, como Início, ou depois) |
+| demais telas do protótipo (Oficina, Estoque, Fiscal…) | fora da v1 e da v2 por ora |
+| 39 Marcações a validar | fora do app (tela de gestor, desktop) |
+
+## Histórico — mapa do app Expo (`oimpresso.com` · `mobile/`), alvo até 2026-10-01
+### Sync history (Expo)
 - 2026-09-29T19:51:44Z · commit 7a6c977b621b4169050b3184ac1f4a95bdd04b3c · espelho inicial (PR #8193), telas 00–39, pele do DS
 
-## Screen map
+### Screen map (Expo)
 | Tela | Arquivos do repo |
 | --- | --- |
 | 01 Início | mobile/app/(tabs)/index.tsx, components/oi/OiHeader.tsx, OiKpi.tsx |
