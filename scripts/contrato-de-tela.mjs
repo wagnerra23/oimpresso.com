@@ -203,6 +203,15 @@ function checkContract(file) {
   const files = c.alvo.flatMap(collectTargets);
   if (!files.length) { err(`nenhum .tsx/.ts no alvo do contrato (${c.alvo.join(', ')})`); return 1; }
   const blob = files.map(f => readFileSync(f, 'utf8')).join('\n');
+  // A copy é comparada contra o CÓDIGO, sem comentários (2026-10-02). Antes ela casava no arquivo
+  // cru, e uma string citada só num comentário satisfazia o contrato. Medido nos 54 contratos do
+  // main: de 822 strings de copy presentes, 1 só existia em comentário — `ponto-painel` travava
+  // "marcações de hoje" num comentário que dizia "(copy do contrato) vive no subtítulo do
+  // ActivityFeed", e o ActivityFeed não renderiza subtítulo. Mesmo `stripComments` dos acordos de
+  // estado (string-aware), pra não ter dois strips divergindo; a regra `#` do PHP não derrubou
+  // nenhuma copy de TSX nessa medição.
+  const code = stripComments(blob);
+  const copyNoCodigo = (str) => copyPresente(code, str);
   // sequência de âncoras data-contract no fonte (ordem de arquivo, depois posição)
   const seq = [];
   for (const f of files) {
@@ -218,9 +227,12 @@ function checkContract(file) {
     const hasAnchor = seq.includes(s.id);
     if (!hasAnchor) { err(`seção "${s.id}" sem âncora data-contract no alvo`); fail++; }
     for (const str of (s.copy ?? [])) {
-      if (!copyPresente(blob, str)) { err(`copy ausente em "${s.id}": ${JSON.stringify(str)}`); fail++; }
+      if (copyNoCodigo(str)) continue;
+      if (copyPresente(blob, str)) err(`copy ausente em "${s.id}": ${JSON.stringify(str)} — só existe em COMENTÁRIO no alvo, e comentário não renderiza`);
+      else err(`copy ausente em "${s.id}": ${JSON.stringify(str)}`);
+      fail++;
     }
-    if (hasAnchor && !s.copy?.some(x => !copyPresente(blob, x))) ok(`seção "${s.id}" — âncora + copy presentes`);
+    if (hasAnchor && !s.copy?.some(x => !copyNoCodigo(x))) ok(`seção "${s.id}" — âncora + copy presentes`);
   }
 
   // ordem: a `ordem` declarada deve ser subsequência da sequência de âncoras no fonte
