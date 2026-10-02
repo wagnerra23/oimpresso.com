@@ -339,6 +339,7 @@ jobs:
             Modules/Repair/Tests/Feature/RepairIndexMwartTest.php \
             Modules/Repair/Tests/Feature/RepairSettingsContratoTest.php \
             Modules/Repair/Tests/Feature/RepairIndexContratoTest.php \
+            Modules/Repair/Tests/Feature/RepairListResourceDatasTest.php \
             Modules/Repair/Tests/Feature/RepairShowContratoTest.php \
             Modules/Repair/Tests/Feature/RepairDashboardContratoTest.php \
             Modules/Repair/Tests/Feature/RepairJobSheetIndexContratoTest.php \
