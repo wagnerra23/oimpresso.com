@@ -8,17 +8,18 @@ use App\Util\OtelHelper;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
 use Modules\ConsultaOs\Contracts\ConsultaOsRepositoryInterface;
-use Modules\ConsultaOs\Services\ConsultaOsMockService;
+use Modules\ConsultaOs\Services\ConsultaOsService;
 
 /**
  * consultaos:health — health-check do portal publico ConsultaOs (D9 observabilidade Wave 23).
  *
  * Verifica saúde dos componentes minimos do portal publico:
- *   - Repository bindado (ConsultaOsRepositoryInterface — Mock OU Repair-real US-CONSULTA-001)
+ *   - Repository bindado (ConsultaOsRepositoryInterface — RepairConsultaOsRepository, US-CONSULTA-001)
  *   - Service resolvel via container
  *   - Config retention.php declarado (D7 LGPD compliance)
- *   - Smoke probe: buscar numero conhecido retorna found+payload
+ *   - Smoke probe: criterio invalido (tipo fora da lista) e recusado sem consultar
  *   - Smoke probe: buscar numero inexistente retorna not_found limpo
+ *   (Sem probe de "numero conhecido": com dados reais nao ha OS fixa garantida.)
  *
  * Default: silencioso + log estruturado (cron). `--detail`: tabela humano.
  * NAO usa `--verbose` (Symfony reserved — .claude/rules/commands.md).
@@ -28,10 +29,9 @@ use Modules\ConsultaOs\Services\ConsultaOsMockService;
  *   php artisan consultaos:health --detail
  *
  * Multi-tenant Tier 0 (ADR 0093): portal publico NAO scopa por business_id
- * (cliente externo sem sessao). Quando US-CONSULTA-001 ativar query real,
- * Service resolve business_id via lookup do protocolo + rate-limit IP.
+ * (cliente externo sem sessao) — ver PENDENTE [W] no RepairConsultaOsRepository.
  *
- * @see Modules\ConsultaOs\Services\ConsultaOsMockService
+ * @see Modules\ConsultaOs\Services\ConsultaOsService
  * @see Modules\ConsultaOs\Contracts\ConsultaOsRepositoryInterface
  * @see memory/decisions/0155-module-grade-v3-sub-dimensoes-gate-ci.md F6 health
  */
@@ -63,11 +63,11 @@ class ConsultaOsHealthCommand extends Command
             'repository_bound'   => false,
             'service_resolvable' => false,
             'retention_declared' => false,
-            'smoke_known_ok'     => false,
+            'smoke_invalid_ok'   => false,
             'smoke_unknown_ok'   => false,
         ];
 
-        // 1) Repository bindado (Mock OU Repair-real US-CONSULTA-001)
+        // 1) Repository bindado (RepairConsultaOsRepository — US-CONSULTA-001)
         try {
             $repo = app(ConsultaOsRepositoryInterface::class);
             $report['repository_bound'] = is_object($repo);
@@ -78,8 +78,8 @@ class ConsultaOsHealthCommand extends Command
 
         // 2) Service resolvel via container (DI cadeia completa)
         try {
-            $service = app(ConsultaOsMockService::class);
-            $report['service_resolvable'] = $service instanceof ConsultaOsMockService;
+            $service = app(ConsultaOsService::class);
+            $report['service_resolvable'] = $service instanceof ConsultaOsService;
         } catch (\Throwable $e) {
             Log::warning('consultaos.health.service_resolve_failed', ['err' => $e->getMessage()]);
         }
@@ -93,19 +93,18 @@ class ConsultaOsHealthCommand extends Command
                 && isset($cfg['strategy']);
         }
 
-        // 4) Smoke probe — numero conhecido (4821 padrao Mock)
+        // 4) Smoke probe — criterio invalido nao consulta e volta not_found (Tier 0)
         if ($report['service_resolvable']) {
             try {
-                $res = $service->buscar('4821');
-                $report['smoke_known_ok'] = ($res['found'] ?? false) === true
-                    && isset($res['os']['client']);
+                $res = $service->buscar('tipo_invalido', 'x');
+                $report['smoke_invalid_ok'] = ($res['found'] ?? null) === false;
             } catch (\Throwable $e) {
-                Log::warning('consultaos.health.smoke_known_failed', ['err' => $e->getMessage()]);
+                Log::warning('consultaos.health.smoke_invalid_failed', ['err' => $e->getMessage()]);
             }
 
             // 5) Smoke probe — numero inexistente retorna not_found limpo
             try {
-                $res = $service->buscar('99999999');
+                $res = $service->buscar('job_sheet_no', 'HEALTH-0000-INEXISTENTE');
                 $report['smoke_unknown_ok'] = ($res['found'] ?? null) === false;
             } catch (\Throwable $e) {
                 Log::warning('consultaos.health.smoke_unknown_failed', ['err' => $e->getMessage()]);
@@ -115,7 +114,7 @@ class ConsultaOsHealthCommand extends Command
         $hasIssue = ! ($report['repository_bound']
             && $report['service_resolvable']
             && $report['retention_declared']
-            && $report['smoke_known_ok']
+            && $report['smoke_invalid_ok']
             && $report['smoke_unknown_ok']);
 
         Log::info('consultaos.health', $report + ['ok' => ! $hasIssue]);
