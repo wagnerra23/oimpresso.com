@@ -639,7 +639,7 @@ function RoadmapGantt(props: Props) {
               `forja-page.jsx` :553). Copy literal, menos a promessa de arrastar, que
               aqui é condicional: sem `jana.mcp.tasks.write` a barra é readonly, e
               anunciar o gesto seria afordância falsa (LC-15). */}
-          <p className="fj-quadro-ancora" data-testid="gantt-ancora">
+          <p className="fj-quadro-ancora" data-testid="gantt-ancora" data-contract="forja.gantt.ancora">
             <b>O que vence esta semana e o que está bloqueando o quê.</b> Barras por módulo,
             progresso pelo status;{' '}
             {can_edit
@@ -649,7 +649,7 @@ function RoadmapGantt(props: Props) {
           </p>
 
           {/* Gantt */}
-          <Card>
+          <Card data-contract="forja.gantt.timeline">
             <CardHeader>
               <CardTitle className="text-sm font-semibold">
                 Timeline ({ganttTasks.length} linha{ganttTasks.length === 1 ? '' : 's'})
@@ -700,7 +700,7 @@ function RoadmapGantt(props: Props) {
               MEDIDO em prod 2026-09-03: mostra **5** — das 7 com prazo, 5 já
               venceram. (A versão anterior deste comentário previa "0"; era
               afirmação sem medição, e o smoke a corrigiu.) */}
-          <div className="fj-totalbar fj-g-foot" data-testid="gantt-totalbar">
+          <div className="fj-totalbar fj-g-foot" data-testid="gantt-totalbar" data-contract="forja.gantt.totais">
             <span><b>{tasks.length}</b> tarefa{tasks.length === 1 ? '' : 's'}</span>
             <span className="fj-total-warn"><b data-testid="gantt-vencidas">{vencidas}</b> com prazo vencido</span>
             <span className="fj-g-leg"><i className="lg-prog" />progresso</span>

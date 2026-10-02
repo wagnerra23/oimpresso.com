@@ -23,7 +23,8 @@ use Modules\Ponto\Entities\Marcacao;
  *  1. GET /ponto/mobile → Ponto/Mobile/Index, colaborador DEMO-0001, sem as abas do módulo;
  *  2. GET /ponto/colaboradores e /contacts?type=customer → não abrem (302/403/404);
  *  3. o caminho do APP pela API Passport (guard api, token emitido em processo):
- *     GET /ponto/api/marcacoes/hoje e /ponto/api/saldo → 200;
+ *     GET /ponto/api/marcacoes/hoje e /ponto/api/saldo → 200; /ponto/api/me traz a matrícula
+ *     DEMO-0001; /ponto/api/espelho?mes=<mês atual> → 200 com as linhas, mês futuro → 422;
  *  4. POST /ponto/api/marcar com GPS da Califórnia → 201 com NSR (revisor fora do Brasil não é
  *     recusado) e a marcação aparece em hoje. Pule com --sem-marcar: marcação é append-only.
  *
@@ -87,6 +88,17 @@ class DemoSmokeCommand extends Command
         $hoje0 = count((json_decode((string) $h0->getContent(), true) ?: [])['marcacoes'] ?? []);
         $sd = $http->getJson('/ponto/api/saldo');
         $ok($sd->getStatusCode() === 200, "GET /ponto/api/saldo → HTTP {$sd->getStatusCode()}");
+        $me = $http->getJson('/ponto/api/me');
+        $meDados = json_decode((string) $me->getContent(), true) ?: [];
+        $ok($me->getStatusCode() === 200 && ($meDados['matricula'] ?? null) === 'DEMO-0001',
+            "GET /ponto/api/me → HTTP {$me->getStatusCode()} · matrícula " . ($meDados['matricula'] ?? '—'));
+        $mes = now()->format('Y-m');
+        $esp = $http->getJson('/ponto/api/espelho?mes=' . $mes);
+        $espDados = json_decode((string) $esp->getContent(), true) ?: [];
+        $ok($esp->getStatusCode() === 200 && ($espDados['mes'] ?? null) === $mes && is_array($espDados['linhas'] ?? null),
+            "GET /ponto/api/espelho?mes={$mes} → HTTP {$esp->getStatusCode()} · " . count($espDados['linhas'] ?? []) . ' linha(s)');
+        $futuro = $http->getJson('/ponto/api/espelho?mes=' . now()->addMonthNoOverflow()->format('Y-m'));
+        $ok($futuro->getStatusCode() === 422, "GET /ponto/api/espelho (mês futuro) recusado → HTTP {$futuro->getStatusCode()}");
 
         // 4. Bater ponto de fora do Brasil, pela API (é o que o app faz).
         if (! $this->option('sem-marcar')) {
