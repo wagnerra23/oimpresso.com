@@ -607,8 +607,12 @@ class RepairController extends Controller
         // Anota campos derivados antes do Resource (evita repetir logica no Resource).
         $today = now();
         $paginated->getCollection()->transform(function ($row) use ($today, $currencySymbol) {
-            $row->is_overdue = $row->repair_due_date
-                && $row->repair_due_date->lessThan($today)
+            // `transactions.repair_due_date` não tem cast em App\Transaction: chega como STRING.
+            // `->lessThan()` direto nela dava 500 na fila sempre que a página trazia uma venda
+            // de reparo com entrega preenchida (prod biz=1, 2026-10-01). Ver UC-RIDX-05.
+            $dueDate = $row->repair_due_date ? \Carbon\Carbon::parse($row->repair_due_date) : null;
+            $row->is_overdue = $dueDate
+                && $dueDate->lessThan($today)
                 && (int) ($row->is_completed_status ?? 0) === 0;
             $row->final_total_formatted = $currencySymbol . ' ' . number_format((float) ($row->final_total ?? 0), 2, ',', '.');
             return $row;
@@ -634,7 +638,9 @@ class RepairController extends Controller
             'filters'    => $validated,
             'meta'       => [
                 'totals'           => $totals,
-                'repair_statuses'  => RepairStatus::forDropdown($business_id),
+                // forDropdown() devolve {statuses, template}; a tela espera só o mapa id→nome.
+                // Passar o retorno inteiro virava dois chips falsos no filtro ("" e "null"). UC-RIDX-07.
+                'repair_statuses'  => RepairStatus::forDropdown($business_id)['statuses'],
                 'service_staff'    => $this->transactionUtil->serviceStaffDropdown($business_id),
                 'business_locations' => BusinessLocation::forDropdown($business_id, false),
                 'currency_symbol'  => $currencySymbol,
@@ -966,6 +972,23 @@ class RepairController extends Controller
             ->whereKey($id)
             ->exists();
         abort_unless($existe, 404);
+
+        // As duas recusas do SellPosController@edit, ANTES de encaminhar. Lá elas respondem
+        // com back(); sem Referer (URL digitada, favorito) o back() cai no "previous URL" da
+        // sessão — que é ESTA rota — e o navegador entra em ERR_TOO_MANY_REDIRECTS (medido em
+        // prod 2026-10-01, venda de 2022 fora do prazo). Aqui a recusa volta pro detalhe da venda.
+        $edit_days = request()->session()->get('business.transaction_edit_days');
+        $recusa = null;
+        if (! $this->transactionUtil->canBeEdited($id, $edit_days)) {
+            $recusa = __('messages.transaction_edit_not_allowed', ['days' => $edit_days]);
+        } elseif ($this->transactionUtil->isReturnExist($id)) {
+            $recusa = __('lang_v1.return_exist');
+        }
+        if ($recusa !== null) {
+            session()->flash('status', ['success' => 0, 'msg' => $recusa]);
+
+            return Inertia::location(action([self::class, 'show'], [$id]));
+        }
 
         return Inertia::location(action([\App\Http\Controllers\SellPosController::class, 'edit'], [$id]).'?sub_type=repair');
     }

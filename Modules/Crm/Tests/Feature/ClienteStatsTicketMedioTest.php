@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use App\Services\Pessoas\PessoaVendas;
 use Modules\Crm\Http\Controllers\ClienteIaController;
 
 uses(Tests\TestCase::class);
@@ -139,6 +140,27 @@ it('caminho 2 — SQL direto, sem o controller, chega nos mesmos números', func
     expect($qtd)->toBe(3);
     expect(round((float) $s['ticket_medio'], 2))->toBe(round($soma / $qtd, 2));
     expect(round((float) $s['invoice_due'], 2))->toBe(round($saldo, 2));
+});
+
+it('a aba IA e a API do app saem da MESMA fonte (PessoaVendas): 3 vendas, 600,00, saldo 450,00', function () {
+    $s = tmStats($this->contatoId);
+    $r = PessoaVendas::resumo(TM_BIZ, $this->contatoId);
+    $saldos = PessoaVendas::saldosAbertos(TM_BIZ, [$this->contatoId]);
+
+    expect($r['qtd'])->toBe(3);
+    expect(round($r['soma'], 2))->toBe(600.0);
+    expect(round($saldos[$this->contatoId], 2))->toBe(450.0);
+    expect($s['total_invoice_count'])->toBe($r['qtd']);
+    expect(round((float) $s['invoice_due'], 2))->toBe(round($saldos[$this->contatoId], 2));
+});
+
+it('saldo pago a mais: a fonte devolve o número cru (−50,00); a aba IA mantém o piso em zero', function () {
+    $c = tmNovoContato($this->user);
+    $v = tmVenda(TM_BIZ, $c, $this->user, '100.0000', 'final', 'due');
+    tmPagamento(TM_BIZ, $v, '150.0000', $this->user);
+
+    expect(round(PessoaVendas::saldosAbertos(TM_BIZ, [$c])[$c], 2))->toBe(-50.0);
+    expect((float) tmStats($c)['invoice_due'])->toBe(0.0);
 });
 
 it('CROSS-TENANT: venda do mesmo contact_id em outra empresa não entra na conta', function () {
