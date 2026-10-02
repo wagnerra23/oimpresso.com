@@ -92,6 +92,93 @@ class ProdutosController extends Controller
         ]);
     }
 
+    /**
+     * GET /api/app/estoque?filtro=todos|baixo&q=&pagina= — Estoque (tela 05), §9.2. Só leitura.
+     * Uma linha por variação × loja (variation_location_details), só nas lojas permitidas e só de
+     * produto que controla estoque. `minimo` = alert_quantity; baixo = a regra do alerta da web.
+     */
+    public function estoque(Request $request): JsonResponse
+    {
+        /** @var User $user */
+        $user = $request->user();
+        if (! $user->can('product.view')) {
+            return response()->json(['erro' => 'sem_permissao', 'mensagem' => 'Seu usuário não tem acesso ao estoque.'], 403);
+        }
+        $bizId = (int) $user->business_id;
+        $locais = $this->locais($user, $bizId);
+        $busca = trim((string) $request->query('q', ''));
+        $filtro = $request->query('filtro') === 'baixo' ? 'baixo' : 'todos';
+        $pagina = max((int) $request->query('pagina', 1), 1);
+
+        $base = function () use ($bizId, $locais, $busca): Builder {
+            $q = DB::table('variation_location_details as vld')
+                ->join('variations as v', 'v.id', '=', 'vld.variation_id')
+                ->join('products as p', 'p.id', '=', 'vld.product_id')
+                ->join('business_locations as l', 'l.id', '=', 'vld.location_id')
+                ->where('p.business_id', $bizId)
+                ->where('l.business_id', $bizId)
+                ->where('p.enable_stock', 1)
+                ->where('p.is_inactive', 0)
+                ->where('p.type', '!=', 'modifier')
+                ->whereNull('v.deleted_at');
+            $this->noLocal($q, $locais);
+            if ($busca !== '') {
+                $like = '%' . $busca . '%';
+                $q->where(fn ($w) => $w->where('p.name', 'like', $like)
+                    ->orWhere('p.sku', 'like', $like)
+                    ->orWhere('v.sub_sku', 'like', $like));
+            }
+
+            return $q;
+        };
+        $soBaixo = fn (Builder $q): Builder => $q->whereNotNull('p.alert_quantity')
+            ->whereColumn('vld.qty_available', '<=', 'p.alert_quantity');
+
+        $q = $base();
+        if ($filtro === 'baixo') {
+            $soBaixo($q);
+        }
+        $linhas = $q
+            ->leftJoin('units as u', 'u.id', '=', 'p.unit_id')
+            ->leftJoin('product_racks as r', function ($j) use ($bizId) {
+                $j->on('r.product_id', '=', 'p.id')->on('r.location_id', '=', 'vld.location_id')->where('r.business_id', $bizId);
+            })
+            ->orderBy('p.name')->orderBy('v.name')->orderBy('l.name')
+            ->offset(($pagina - 1) * self::POR_PAGINA)
+            ->limit(self::POR_PAGINA + 1)
+            ->get([
+                'vld.id', 'p.id as produto_id', 'p.name', 'p.type', 'v.name as variacao', 'p.sku', 'v.sub_sku',
+                'vld.qty_available', 'p.alert_quantity', 'u.short_name as unidade', 'l.name as local',
+                'r.rack', 'r.row', 'r.position',
+            ]);
+
+        $temMais = $linhas->count() > self::POR_PAGINA;
+
+        return response()->json([
+            'itens' => $linhas->take(self::POR_PAGINA)->map(function ($e) {
+                $prateleira = implode(' · ', array_filter([$e->rack, $e->row, $e->position], fn ($x) => (string) $x !== ''));
+
+                return [
+                    'id' => (int) $e->id,
+                    'produto_id' => (int) $e->produto_id,
+                    'nome' => $e->type === 'variable' ? $e->name . ' · ' . $e->variacao : (string) $e->name,
+                    'codigo' => (string) ($e->sub_sku ?: $e->sku),
+                    'qtd' => round((float) $e->qty_available, 4),
+                    'minimo' => $e->alert_quantity !== null ? round((float) $e->alert_quantity, 4) : null,
+                    'unidade' => $e->unidade ?: null,
+                    'local' => (string) $e->local,
+                    'prateleira' => $prateleira !== '' ? $prateleira : null,
+                ];
+            })->values(),
+            'contadores' => [
+                'todos' => $base()->count(),
+                'baixo' => $soBaixo($base())->count(),
+            ],
+            'pagina' => $pagina,
+            'tem_mais' => $temMais,
+        ]);
+    }
+
     // ------------------------------------------------------------------
 
     /** Produtos ativos e vendáveis do business, com a busca por nome, código ou categoria. */

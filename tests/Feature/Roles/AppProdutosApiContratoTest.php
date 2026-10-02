@@ -176,3 +176,40 @@ it('o Início traz a área produtos para quem tem product.view, e não para quem
     Passport::actingAs(appPrdUsuario([]), [], 'api');
     expect($this->getJson('/api/app/inicio')->assertOk()->json('areas'))->not->toContain('produtos');
 });
+
+it('estoque (tela 05): uma linha por variação × loja permitida, com mínimo, prateleira e filtro baixo', function () {
+    $lojaA = appPrdLoja(APP_PRD_BIZ, "APP Loja A {$this->sufixo}");
+    $lojaB = appPrdLoja(APP_PRD_BIZ, "APP Loja B {$this->sufixo}");
+    Permission::findOrCreate("location.{$lojaA}", 'web');
+    $u = appPrdUsuario(['product.view', "location.{$lojaA}"]);
+    $ok = appPrdProduto(APP_PRD_BIZ, (int) $u->id, "APP Lona {$this->sufixo}", [], [$lojaA => 10, $lojaB => 7]);
+    $baixo = appPrdProduto(APP_PRD_BIZ, (int) $u->id, "APP Adesivo {$this->sufixo}", [], [$lojaA => 2]);
+    $semControle = appPrdProduto(APP_PRD_BIZ, (int) $u->id, "APP Arte {$this->sufixo}", ['enable_stock' => 0], [$lojaA => 3]);
+    $alheio = appPrdProduto(APP_PRD_OUTRO, (int) $u->id, "APP Alheio {$this->sufixo}");
+    DB::table('product_racks')->insert(['business_id' => APP_PRD_BIZ, 'location_id' => $lojaA, 'product_id' => $ok, 'rack' => 'A3', 'row' => '2', 'position' => null, 'created_at' => now(), 'updated_at' => now()]);
+    Passport::actingAs($u, [], 'api');
+
+    $r = $this->getJson('/api/app/estoque?q=' . urlencode($this->sufixo))->assertOk();
+    $linhas = collect($r->json('itens'));
+
+    // Só a loja A (a única permitida): a loja B do produto $ok não aparece.
+    expect($linhas->pluck('produto_id')->sort()->values()->all())->toBe(collect([$ok, $baixo])->sort()->values()->all());
+    $linhaOk = $linhas->firstWhere('produto_id', $ok);
+    expect((float) $linhaOk['qtd'])->toBe(10.0);
+    expect((float) $linhaOk['minimo'])->toBe(5.0);
+    expect($linhaOk['local'])->toBe("APP Loja A {$this->sufixo}");
+    expect($linhaOk['prateleira'])->toBe('A3 · 2');
+    expect($linhas->firstWhere('produto_id', $baixo)['prateleira'])->toBeNull();
+    expect($r->json('contadores'))->toBe(['todos' => 2, 'baixo' => 1]);
+    // Um needle por assert (§5 2026-09-22, LC-31).
+    expect($linhas->pluck('produto_id')->all())->not->toContain($semControle);
+    expect($linhas->pluck('produto_id')->all())->not->toContain($alheio);
+
+    $soBaixo = $this->getJson('/api/app/estoque?filtro=baixo&q=' . urlencode($this->sufixo))->assertOk();
+    expect(collect($soBaixo->json('itens'))->pluck('produto_id')->all())->toBe([$baixo]);
+});
+
+it('estoque sem product.view responde 403', function () {
+    Passport::actingAs(appPrdUsuario([]), [], 'api');
+    $this->getJson('/api/app/estoque')->assertStatus(403)->assertJsonPath('erro', 'sem_permissao');
+});
