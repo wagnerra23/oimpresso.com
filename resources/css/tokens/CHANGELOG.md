@@ -2,12 +2,6 @@
 
 > Gerado por `ds-token-version.mjs` a partir da superfície dos `_generated-*.css`. Semver: MAJOR=remoção · MINOR=adição/valor.
 
-## v1.6.0 — 2026-10-02  (MINOR)
-
-**Valor alterado**
-- `--text-mute` [cockpit-light]: `oklch(0.65 0.01 80)` → `oklch(0.555 0.01 80)`
-- `--text-mute` [cockpit-dark]: `oklch(0.58 0.005 90)` → `oklch(0.67 0.005 90)`
-
 ## v1.5.0 — 2026-09-28  (MINOR)
 
 **Valor alterado**
