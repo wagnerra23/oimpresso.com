@@ -108,7 +108,7 @@ endereco_fiscal{cidade, uf, cep, codigo_ibge, email_nfe},
 comercial{classificacao, limite_credito, prazo_padrao_dias},
 consentimento{whatsapp, email_nfe, sms, registrado_em} }`. Mesmas permissões e escopo do §4;
 documento com a mesma máscara (CPF parcial, CNPJ inteiro). Campo sem dado sai `null` (a tela mostra
-"—"). `classificacao` = `contacts.segmento`; `prazo_padrao_dias` converte meses em 30 dias; `sms` não
+"—"). `classificacao` sai `null`: o ERP não tem classificação ABC do cliente (`segmento` é ramo de negócio, outra coisa); `prazo_padrao_dias` converte meses em 30 dias; `sms` não
 tem coluna no ERP e sai sempre `null`. Pessoa de outra empresa: 404.
 
 ## 5. Produção ⬜ — fila por **etapa da venda** ([W] 2026-10-02)

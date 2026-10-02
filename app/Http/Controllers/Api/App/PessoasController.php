@@ -94,7 +94,7 @@ class PessoasController extends Controller
             'contacts.tax_number', 'contacts.cpf_cnpj', 'contacts.indicador_ie', 'contacts.ind_ie_dest',
             'contacts.is_customer', 'contacts.is_supplier', 'contacts.is_employee',
             'contacts.city', 'contacts.state', 'contacts.cep', 'contacts.zip_code', 'contacts.city_code',
-            'contacts.email_nfe', 'contacts.segmento', 'contacts.credit_limit',
+            'contacts.email_nfe', 'contacts.credit_limit',
             'contacts.pay_term_number', 'contacts.pay_term_type',
             'contacts.whatsapp_consent', 'contacts.email_consent', 'contacts.consent_updated_at',
         ]);
@@ -124,7 +124,8 @@ class PessoasController extends Controller
                 'email_nfe' => $c->email_nfe ?: null,
             ],
             'comercial' => [
-                'classificacao' => $c->segmento ?: null,
+                // O ERP não tem classificação ABC do cliente (`segmento` é ramo: varejo, atacado…).
+                'classificacao' => null,
                 'limite_credito' => $c->credit_limit !== null ? round((float) $c->credit_limit, 2) : null,
                 'prazo_padrao_dias' => $prazo,
             ],

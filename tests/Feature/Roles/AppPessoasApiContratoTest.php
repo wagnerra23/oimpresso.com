@@ -160,7 +160,7 @@ it('cadastro (tela 34): identificação, endereço fiscal, comercial e consentim
         'tax_number' => '11222333000181', // pii-allowlist (CNPJ sintético de teste)
         'supplier_business_name' => 'APS Cadastro Ltda', 'indicador_ie' => '1',
         'city' => 'Blumenau', 'state' => 'SC', 'cep' => '89010-100', 'city_code' => '4202404',
-        'email_nfe' => 'nfe@aps.invalid', 'segmento' => 'B', 'credit_limit' => 1500,
+        'email_nfe' => 'nfe@aps.invalid', 'credit_limit' => 1500,
         'pay_term_number' => 28, 'pay_term_type' => 'days',
         'whatsapp_consent' => 1, 'email_consent' => 0,
     ]);
@@ -172,7 +172,7 @@ it('cadastro (tela 34): identificação, endereço fiscal, comercial e consentim
     expect($r->json('identificacao.documento'))->toBe('11.222.333/0001-81'); // pii-allowlist (CNPJ sintético de teste)
     expect($r->json('identificacao.papeis'))->toBe(['cliente']);
     expect($r->json('endereco_fiscal'))->toBe(['cidade' => 'Blumenau', 'uf' => 'SC', 'cep' => '89010-100', 'codigo_ibge' => '4202404', 'email_nfe' => 'nfe@aps.invalid']);
-    expect($r->json('comercial.classificacao'))->toBe('B');
+    expect($r->json('comercial.classificacao'))->toBeNull();
     expect((float) $r->json('comercial.limite_credito'))->toBe(1500.0);
     expect($r->json('comercial.prazo_padrao_dias'))->toBe(28);
     expect($r->json('consentimento.whatsapp'))->toBeTrue();
