@@ -1,0 +1,29 @@
+{
+  "_nota": "Contrato de tela GERADO por criar-tela.mjs junto com o PT-02 Form/Drawer de ImportSales/Preview (2026-10-02). Roda em `node scripts/contrato-de-tela.mjs --contract <este-arquivo>`, no mesmo job que já varre todos os *.contract.json. As seções são as do ARQUÉTIPO e as âncoras data-contract correspondentes já nascem no .tsx — âncora e ordem são wiring do agente. A COPY não: veja _pendente_w.",
+  "tela": "ImportSales/Preview",
+  "fonte": "resources/js/Pages/ImportSales/Preview.tsx",
+  "_nota_fonte": "Protótipo: VendaImportPreview em prototipo-ui/cowork/Wagner/venda-blade-telas.jsx (não medido pela A2: só monta após escolher arquivo). `fonte` segue apontando para o .tsx.",
+  "alvo": [
+    "resources/js/Pages/ImportSales/Preview.tsx"
+  ],
+  "secoes": [
+    {
+      "id": "formulario",
+      "copy": []
+    },
+    {
+      "id": "acoes",
+      "copy": []
+    }
+  ],
+  "ordem": [
+    "formulario",
+    "acoes"
+  ],
+  "_pendente_w": [
+    "COPY DE CADA SEÇÃO — hoje todas as `copy` estão vazias, e o gate passa sem exigir string nenhuma. A copy literal que o design exige é decisão [W] (how-trabalhar.md §Pedido de tela: \"`## Contrato visual` (copy literal + ordem)\"). Preencha seção a seção conforme os TODO do .tsx forem virando texto real — cada string vira match exato no alvo.",
+    "ESTADOS — `estados` foi omitido de propósito (empty/loading/erro dependem do domínio, não do arquétipo). Declare quando a tela tiver os estados de verdade.",
+    "seção `formulario` — agrupar por + local + tabela de mapeamento. Copy pendente.",
+    "seção `acoes` — aviso do que falta + Voltar / Importar vendas. Copy pendente."
+  ]
+}

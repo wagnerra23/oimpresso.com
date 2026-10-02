@@ -1,0 +1,53 @@
+{
+  "_nota": "Contrato de tela GERADO por criar-tela.mjs junto com o PT-01 Lista de ImportSales/Index (2026-10-02). Roda em `node scripts/contrato-de-tela.mjs --contract <este-arquivo>`, no mesmo job que já varre todos os *.contract.json. As seções são as do ARQUÉTIPO e as âncoras data-contract correspondentes já nascem no .tsx — âncora e ordem são wiring do agente. A COPY não: veja _pendente_w.",
+  "tela": "ImportSales/Index",
+  "fonte": "resources/js/Pages/ImportSales/Index.tsx",
+  "_nota_fonte": "Protótipo: TelaImportar em prototipo-ui/cowork/Wagner/venda-blade.jsx; alvo medido governance/design/targets/vendas--importacao--index.secoes.json (header · tabs · enviar · instrucoes · importacoes). `fonte` segue apontando para o .tsx até o contrato ganhar copy literal.",
+  "alvo": [
+    "resources/js/Pages/ImportSales/Index.tsx"
+  ],
+  "secoes": [
+    {
+      "id": "cabecalho",
+      "copy": []
+    },
+    {
+      "id": "andamento",
+      "copy": []
+    },
+    {
+      "id": "enviar",
+      "copy": []
+    },
+    {
+      "id": "instrucoes",
+      "copy": []
+    },
+    {
+      "id": "filtros",
+      "copy": []
+    },
+    {
+      "id": "lista",
+      "copy": []
+    }
+  ],
+  "ordem": [
+    "cabecalho",
+    "andamento",
+    "enviar",
+    "instrucoes",
+    "filtros",
+    "lista"
+  ],
+  "_pendente_w": [
+    "COPY DE CADA SEÇÃO — hoje todas as `copy` estão vazias, e o gate passa sem exigir string nenhuma. A copy literal que o design exige é decisão [W] (how-trabalhar.md §Pedido de tela: \"`## Contrato visual` (copy literal + ordem)\"). Preencha seção a seção conforme os TODO do .tsx forem virando texto real — cada string vira match exato no alvo.",
+    "ESTADOS — `estados` foi omitido de propósito (empty/loading/erro dependem do domínio, não do arquétipo). Declare quando a tela tiver os estados de verdade.",
+    "seção `cabecalho` — PageHeader \"Importação de vendas\". Copy pendente.",
+    "seção `andamento` — estado da importação em fila (D2). Só aparece com importação recente. Copy pendente.",
+    "seção `enviar` — upload da planilha + arquivo modelo (alvo `enviar`). Copy pendente.",
+    "seção `instrucoes` — passos + campos importáveis (alvo `instrucoes`). Copy pendente.",
+    "seção `filtros` — busca nos lotes. Copy pendente.",
+    "seção `lista` — lotes importados (alvo `importacoes`). Copy pendente."
+  ]
+}

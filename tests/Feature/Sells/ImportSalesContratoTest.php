@@ -262,3 +262,134 @@ it('UC-IMPV-06 · a prévia pré-mapeia por semelhança de rótulo (R2)', functi
     expect($mapa[0])->toBe('quantity');
     expect($mapa[1])->toBeNull();
 });
+
+// ── Tela React (PR 2 da thread 05) ────────────────────────────────────────────
+// Headers que o browser manda de fato (Inertia envia X-Inertia E X-Requested-With — §5 2026-09-08).
+
+function impvHeaders(): array
+{
+    $manifest = public_path('build-inertia/manifest.json');
+
+    return [
+        'X-Inertia' => 'true',
+        'X-Inertia-Version' => file_exists($manifest) ? md5_file($manifest) : '1',
+        'X-Requested-With' => 'XMLHttpRequest',
+    ];
+}
+
+/** Página Inertia devolvida, com pré-condição anti-vácuo: a tela certa renderizou. */
+function impvPagina(\Illuminate\Testing\TestResponse $resposta, string $componente): array
+{
+    $resposta->assertStatus(200);
+    $pagina = json_decode($resposta->getContent(), true);
+    expect($pagina['component'] ?? null)->toBe($componente);
+
+    return $pagina['props'];
+}
+
+it('UC-IMPV-07 · a tela abre pelo browser com os campos importáveis, o limite e o estado da fila', function () {
+    config(['sells.import.limite_sincrono' => 200]);
+    ImportarVendasJob::publicarEstado($this->bizId, ['estado' => 'na_fila', 'arquivo' => 'vendas.xlsx', 'feitas' => 0, 'total' => null]);
+
+    $props = impvPagina($this->withHeaders(impvHeaders())->get('/import-sales'), 'ImportSales/Index');
+
+    expect(collect($props['campos'])->pluck('key')->all())
+        ->toContain('invoice_no', 'customer_phone_number', 'sku', 'quantity', 'unit_price', 'order_total');
+    expect($props['limiteSincrono'])->toBe(200);
+    expect($props['estado']['estado'])->toBe('na_fila');
+    expect($props['urls']['preview'])->toBe('/import-sales/preview');
+});
+
+it('UC-IMPV-08 · a lista de lotes mostra só os lotes do próprio negócio', function () {
+    $outro = EstoqueFixture::secondBusinessId();
+    if ($outro === null) {
+        $this->markTestSkipped('Só um business semeado — sem 2º tenant para o cruzamento.');
+    }
+    $sufixo = (string) random_int(1000, 9999);
+    foreach ([[$this->bizId, "IMPV-MEU-{$sufixo}"], [$outro, "IMPV-ALHEIO-{$sufixo}"]] as [$biz, $fatura]) {
+        DB::table('transactions')->insert([
+            'business_id' => $biz,
+            'type' => 'sell',
+            'status' => 'final',
+            'payment_status' => 'due',
+            'invoice_no' => $fatura,
+            'import_batch' => 900000 + (int) $sufixo,
+            'import_time' => now(),
+            'transaction_date' => now(),
+            'total_before_tax' => 10,
+            'final_total' => 10,
+            'created_by' => EstoqueFixture::userId($biz),
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+    }
+
+    // `lotes` é Inertia::defer — pedido como a recarga parcial que a tela faz.
+    $resposta = $this->withHeaders(impvHeaders() + [
+        'X-Inertia-Partial-Component' => 'ImportSales/Index',
+        'X-Inertia-Partial-Data' => 'lotes',
+    ])->get('/import-sales');
+    $faturas = collect(impvPagina($resposta, 'ImportSales/Index')['lotes'] ?? [])->pluck('faturas')->flatten()->all();
+
+    expect($faturas)->toContain("IMPV-MEU-{$sufixo}");
+    expect($faturas)->not->toContain("IMPV-ALHEIO-{$sufixo}");
+});
+
+it('UC-IMPV-09 · a prévia mostra as linhas da planilha e quantas vendas cada coluna geraria', function () {
+    $p = impvProduto($this);
+    $sufixo = (string) random_int(1000, 9999);
+    $arquivo = impvPlanilha($p->sku, $sufixo);
+    $upload = new \Illuminate\Http\UploadedFile(public_path('uploads/temp/'.$arquivo), 'vendas.csv', 'text/csv', null, true);
+
+    $props = impvPagina(
+        $this->withHeaders(impvHeaders())->post('/import-sales/preview', ['sales' => $upload]),
+        'ImportSales/Preview'
+    );
+
+    expect($props['totalLinhas'])->toBe(3);
+    expect($props['linhas'])->toHaveCount(3);
+    expect($props['linhas'][0][0])->toBe("IMPV-A-{$sufixo}");
+    // Coluna 0 (fatura) agrupa em 2 vendas; coluna 4 (quantidade: 2, 1, 3) daria 3.
+    expect($props['vendasPorColuna']['0'])->toBe(2);
+    expect($props['vendasPorColuna']['4'])->toBe(3);
+    expect(collect($props['cabecalho'])->pluck('rotulo')->all())->toBe(['Fatura', 'Cliente', 'Telefone', 'SKU', 'Quantidade', 'Preco']);
+    @unlink(public_path('uploads/temp/'.$props['arquivo']));
+});
+
+it('UC-IMPV-10 · sem sell.create a tela devolve 403', function () {
+    $id = DB::table('users')->insertGetId([
+        'first_name' => 'IMPV sem permissão',
+        'username' => 'impv_'.uniqid(),
+        'password' => bcrypt('ci'),
+        'business_id' => $this->bizId,
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+    $semPermissao = User::findOrFail($id);
+    expect($semPermissao->can('sell.create'))->toBeFalse();
+    $this->actingAs($semPermissao);
+
+    $this->withHeaders(impvHeaders())->get('/import-sales')->assertStatus(403);
+});
+
+it('UC-IMPV-11 · planilha sem telefone nem e-mail mapeado é recusada citando a linha, sem gravar nada', function () {
+    config(['sells.import.limite_sincrono' => 200]);
+    $p = impvProduto($this);
+    $sufixo = (string) random_int(1000, 9999);
+    $campos = impvCampos();
+    $campos[2] = ''; // coluna do telefone marcada como "Ignorar"
+
+    $resposta = $this->withHeaders(impvHeaders())->post('/import-sales', [
+        'file_name' => impvPlanilha($p->sku, $sufixo),
+        'import_fields' => $campos,
+        'group_by' => 0,
+        'location_id' => $this->locationId,
+    ]);
+
+    $resposta->assertRedirect('import-sales');
+    // Pela tela React o erro vem em `status` (o flash que o HandleInertiaRequests compartilha).
+    expect(session('status')['success'] ?? null)->toBe(0);
+    expect((string) (session('status')['msg'] ?? ''))->toBe(__('lang_v1.email_or_phone_cannot_be_empty_in_row', ['row' => 2]));
+    expect(impvVendas($this->bizId, $sufixo))->toHaveCount(0);
+    expect(EstoqueFixture::currentStock($p->produto, 0, $this->locationId))->toBe(10.0);
+});

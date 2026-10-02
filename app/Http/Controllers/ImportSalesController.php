@@ -10,6 +10,8 @@ use App\Utils\BusinessUtil;
 use App\Utils\TransactionUtil;
 use DB;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
+use Inertia\Inertia;
 
 /**
  * Importação de vendas por planilha (`/import-sales`).
@@ -39,6 +41,32 @@ class ImportSalesController extends Controller
         }
 
         $business_id = request()->session()->get('user.business_id');
+
+        // Branch dual MWART (thread 05 · golden Sells/Drafts): o Blade segue como fallback
+        // até o cutover F5, que é humano.
+        if (request()->header('X-Inertia')) {
+            return Inertia::render('ImportSales/Index', [
+                'campos' => collect($this->importSalesService->campos((int) $business_id))
+                    ->map(fn ($c, $key) => ['key' => $key, 'label' => $c['label'], 'instrucao' => $c['instruction'] ?? null])
+                    ->values(),
+                // Lista de lotes pode ser grande (uma linha por fatura importada) — deferred.
+                'lotes' => Inertia::defer(fn () => $this->lotesImportados((int) $business_id)),
+                // Estado da última importação em fila (D2). A tela recarrega só esta prop
+                // enquanto o job anda — sem rota nova.
+                'estado' => Cache::get(ImportarVendasJob::chaveDeEstado((int) $business_id)),
+                'limiteSincrono' => $this->importSalesService->limiteSincrono(),
+                'permissions' => [
+                    'importar' => true,
+                    'reverter' => auth()->user()->can('sell.delete'),
+                ],
+                'urls' => [
+                    'preview' => '/import-sales/preview',
+                    'modelo' => asset('files/import_sales_template.xlsx'),
+                    'reverter' => '/revert-sale-import/{lote}',
+                    'vendas' => '/sells',
+                ],
+            ]);
+        }
 
         $imported_sales = Transaction::where('business_id', $business_id)
                             ->where('type', 'sell')
@@ -95,7 +123,15 @@ class ImportSalesController extends Controller
 
             $business_locations = BusinessLocation::forDropdown($business_id);
 
+            if ($request->header('X-Inertia')) {
+                return Inertia::render('ImportSales/Preview', $this->propsDaPrevia($parsed_array, $import_fields, $match_array, $file_name, $business_locations));
+            }
+
             return view('import_sales.preview')->with(compact('parsed_array', 'import_fields', 'file_name', 'business_locations', 'match_array'));
+        }
+
+        if ($request->header('X-Inertia')) {
+            return redirect('import-sales')->with('status', ['success' => 0, 'msg' => 'Escolha a planilha antes de enviar.']);
         }
     }
 
@@ -189,12 +225,108 @@ class ImportSalesController extends Controller
 
             @unlink($file_path);
 
-            return redirect('import-sales')->with('notification', $output);
+            // A tela React lê o flash de `status` (HandleInertiaRequests); o Blade, o de
+            // `notification`. Mesma mensagem — a que cita a linha da planilha (R6).
+            return redirect('import-sales')->with($request->header('X-Inertia') ? 'status' : 'notification', $output);
         }
 
         @unlink($file_path);
 
         return redirect('import-sales')->with('status', $output);
+    }
+
+    /**
+     * Lotes importados do negócio (mais novo primeiro) — a mesma consulta do Blade.
+     *
+     * @return list<array{lote:int, quando:mixed, criadoPor:string, faturas:list<string>}>
+     */
+    private function lotesImportados(int $business_id): array
+    {
+        $lotes = [];
+        $vendas = Transaction::where('transactions.business_id', $business_id)
+            ->where('transactions.type', 'sell')
+            ->whereNotNull('transactions.import_batch')
+            ->leftJoin('users as imp_u', 'imp_u.id', '=', 'transactions.created_by')
+            ->select(
+                'transactions.import_batch',
+                'transactions.import_time',
+                'transactions.invoice_no',
+                DB::raw("TRIM(CONCAT(COALESCE(imp_u.surname, ''), ' ', COALESCE(imp_u.first_name, ''), ' ', COALESCE(imp_u.last_name, ''))) as criado_por")
+            )
+            ->orderBy('transactions.import_batch', 'desc')
+            ->toBase()
+            ->get();
+
+        foreach ($vendas as $venda) {
+            $lote = (int) $venda->import_batch;
+            if (! isset($lotes[$lote])) {
+                $lotes[$lote] = ['lote' => $lote, 'quando' => $venda->import_time, 'criadoPor' => (string) $venda->criado_por, 'faturas' => []];
+            }
+            $lotes[$lote]['faturas'][] = (string) $venda->invoice_no;
+        }
+
+        return array_values($lotes);
+    }
+
+    /**
+     * Props da prévia (R1–R4): cabeçalho com o índice real da coluna (é ele que o POST
+     * devolve em `import_fields[...]` e `group_by`, como no Blade), as 100 primeiras linhas
+     * para conferência — o Blade mostrava as mesmas 100 — e quantas vendas cada coluna
+     * geraria se usada em "Agrupar por", contada sobre TODAS as linhas.
+     *
+     * @param  array<int, array<int, mixed>>  $parsed_array
+     * @param  array<string, string>  $rotulos
+     * @param  array<int|string, string|null>  $mapa
+     * @param  mixed  $locais
+     * @return array<string, mixed>
+     */
+    private function propsDaPrevia(array $parsed_array, array $rotulos, array $mapa, string $file_name, $locais): array
+    {
+        $texto = static fn ($v): string => $v === null ? '' : (is_scalar($v) ? (string) $v : (string) json_encode($v));
+        $cabecalho = $parsed_array[0] ?? [];
+        $dados = array_slice($parsed_array, 1);
+
+        $grupos = [];
+        foreach ($cabecalho as $coluna => $rotulo) {
+            $valores = [];
+            foreach ($dados as $linha) {
+                $valores[$texto($linha[$coluna] ?? null)] = true;
+            }
+            $grupos[(string) $coluna] = count($valores);
+        }
+
+        $linhas = [];
+        foreach (array_slice($dados, 0, 100) as $linha) {
+            $linhas[] = array_map($texto, array_values($linha));
+        }
+
+        $cab = [];
+        foreach ($cabecalho as $k => $r) {
+            $cab[] = ['coluna' => (string) $k, 'rotulo' => $texto($r)];
+        }
+
+        $mapaInicial = [];
+        foreach ($mapa as $k => $v) {
+            $mapaInicial[(string) $k] = $v;
+        }
+
+        $campos = [];
+        foreach ($rotulos as $key => $label) {
+            $campos[] = ['key' => $key, 'label' => $label];
+        }
+
+        return [
+            'arquivo' => $file_name,
+            'cabecalho' => $cab,
+            'linhas' => $linhas,
+            'totalLinhas' => count($dados),
+            'vendasPorColuna' => $grupos,
+            'mapaInicial' => $mapaInicial,
+            'campos' => $campos,
+            'businessLocations' => $locais,
+            'limiteSincrono' => $this->importSalesService->limiteSincrono(),
+            'urls' => ['importar' => '/import-sales', 'voltar' => '/import-sales'],
+        ];
     }
 
     /** Onde o `storeAs('temp', …)` da prévia grava (disco `local` = public/uploads). */
