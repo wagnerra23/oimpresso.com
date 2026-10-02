@@ -71,6 +71,7 @@ class InicioController extends Controller
         $tarefas = app(TarefasController::class)->podeVerTarefas($user);
         $vendas = app(PedidosController::class)->podeVerVendas($user);
         $pessoas = app(PessoasController::class)->podeVerPessoas($user);
+        $produtos = $user->can('product.view'); // a regra da rota /produtos (§9.1)
         $financeiro = app(FinanceiroController::class)->podeVerFinanceiro($user);
         $relatorios = app(RelatoriosController::class)->podeVerRelatorios($user);
         $dashboard = app(DashboardController::class)->podeVerDashboard($user);
@@ -79,7 +80,7 @@ class InicioController extends Controller
             ->where('user_id', (int) $user->id)
             ->where('controla_ponto', true)
             ->exists();
-        $erp = $tarefas || $vendas || $pessoas || $financeiro || $relatorios || $dashboard;
+        $erp = $tarefas || $vendas || $pessoas || $produtos || $financeiro || $relatorios || $dashboard;
 
         $areas = array_keys(array_filter([
             'inicio' => $erp,
@@ -88,6 +89,7 @@ class InicioController extends Controller
             'producao' => $vendas,
             'pessoas' => $pessoas,
             'orcamentos' => $vendas,
+            'produtos' => $produtos,
             'financeiro' => $financeiro,
             'relatorios' => $relatorios,
             'dashboard' => $dashboard,
