@@ -72,6 +72,10 @@ function dscLogin(object $test, User $user): void
         'user.id' => $user->id,
         'business.date_format' => DSC_FORMATO_DATA,
         'business.time_format' => '24',
+        // O DataTable da lista formata valor com @num_format, que lê session('currency').
+        // Sem isto o yajra captura a exceção e devolve 200 com `data` vazio — a lista
+        // "funcionaria" sem trazer nada (foi como o 1º run deste arquivo caiu).
+        'currency' => ['id' => 1, 'code' => 'BRL', 'symbol' => 'R$', 'thousand_separator' => '.', 'decimal_separator' => ','],
     ]);
 }
 
@@ -291,7 +295,9 @@ it('UC-DSC-04 quem só vê lista, mas recebe 403 em toda escrita', function () {
     $id = dscDesconto($this->bizId, ['is_active' => 0]);
     dscLogin($this, $this->leitor);
 
-    dscAjax($this)->get('/discount')->assertOk();
+    $lista = dscAjax($this)->get('/discount')->assertOk()->json();
+    expect($lista)->not->toHaveKey('error');
+    expect(array_map(fn ($r) => (int) $r['id'], $lista['data'] ?? []))->toContain($id);
 
     $antes = dscLinhaGravada($id);
     dscAjax($this)->post('/discount', ['name' => 'X', 'discount_amount' => '1'])->assertForbidden();
@@ -341,6 +347,7 @@ it('UC-DSC-06 [T0] desconto de outro negócio não aparece nem é alcançado pel
     dscLogin($this, $this->editor);
 
     $json = dscAjax($this)->get('/discount')->assertOk()->json();
+    expect($json)->not->toHaveKey('error');
     $ids = array_map(fn ($r) => (int) $r['id'], $json['data'] ?? []);
     // Âncora positiva: a lista funciona e traz o desconto do próprio negócio.
     expect(in_array($meu, $ids, true))->toBeTrue();
