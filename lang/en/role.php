@@ -25,6 +25,8 @@ return [
     'user.delete' => 'Delete user',
     'commission_agent.view' => 'View sales commission agents',
     'commission_agent.manage' => 'Add, edit and remove sales commission agents',
+    'discount.view' => 'View discounts',
+    'discount.manage' => 'Add, edit, deactivate and delete discounts',
 
     'supplier.view' => 'View supplier',
     'supplier.create' => 'Add supplier',

@@ -91,8 +91,9 @@ class SyncMemoryWebhookController extends Controller
             @file_put_contents($shaFile, $after);
         }
 
-        // Sincroniza filesystem com origin/main antes de indexar.
-        // Sem isso, IndexarMemoryGitParaDb indexa estado parado do disco.
+        // Atualiza SÓ memory/ com o origin/main antes de indexar — o código não se
+        // move aqui (vem pelo deploy.yml). Sem isso, IndexarMemoryGitParaDb indexa
+        // estado parado do disco.
         $gitInfo = $this->sincronizarComOrigin($request);
 
         // Roda em foreground (job não-async pra retornar 200 rápido com stats)
@@ -189,23 +190,23 @@ class SyncMemoryWebhookController extends Controller
     }
 
     /**
-     * Faz `git fetch + reset --hard origin/main` no filesystem antes de indexar.
+     * Atualiza SÓ a pasta `memory/` com o `origin/main` antes de indexar.
      *
-     * Pula o reset se o push tocou arquivos que exigem deploy manual
-     * (composer.lock, migrations, package.json, build assets) — nesse caso
-     * retorna `pulled: false, reason: needs_manual_deploy` e ainda assim
-     * deixa a indexação rodar sobre o filesystem atual.
+     * Até 2026-10-02 este método fazia reset do working tree inteiro para o topo
+     * do main, e isso publicava código PHP em produção ~3 s depois de cada merge,
+     * sem autoload, OPcache nem bundles — o caminho que derrubou produção por
+     * 2h31 em 2026-05-28 (ADR 0216). Código agora chega só pelo deploy.yml
+     * (ADR 0269); o webhook continua sendo o único caminho de doc de memória,
+     * porque o deploy.yml ignora pushes em `memory/**`. Decisão [W] 2026-10-02,
+     * opção A de memory/decisions/proposals/webhook-sync-memory-sem-reset-do-codigo.md.
+     *
+     * `git restore --source --staged --worktree` deixa `memory/` igual ao
+     * origin/main, inclusive APAGANDO doc que saiu do main — o que um checkout
+     * simples não faz. O HEAD não se move: o próximo deploy.yml (reset no SHA
+     * do run) volta a alinhar índice e working tree.
      */
     private function sincronizarComOrigin(Request $request): array
     {
-        if ($this->pushExigeDeployManual($request)) {
-            return [
-                'pulled' => false,
-                'reason' => 'needs_manual_deploy',
-                'head'   => $this->gitHead(),
-            ];
-        }
-
         $repo = base_path();
 
         $fetch = Process::path($repo)->timeout(30)->run('git fetch origin main');
@@ -217,27 +218,31 @@ class SyncMemoryWebhookController extends Controller
             ]);
             return [
                 'pulled' => false,
+                'scope'  => 'memory',
                 'reason' => 'git_fetch_failed',
                 'head'   => $this->gitHead(),
             ];
         }
 
-        $reset = Process::path($repo)->timeout(15)->run('git reset --hard origin/main');
-        if (! $reset->successful()) {
+        $restore = Process::path($repo)->timeout(30)
+            ->run(['git', 'restore', '--source=origin/main', '--staged', '--worktree', '--', 'memory']);
+        if (! $restore->successful()) {
             // D7 LGPD Wave 15 — git stderr pode conter PII via paths/author.
             $redactor = app(PiiRedactor::class);
-            Log::channel('copiloto-ai')->error('SyncMemoryWebhook: git reset falhou', [
-                'stderr' => $redactor->redact($reset->errorOutput()),
+            Log::channel('copiloto-ai')->error('SyncMemoryWebhook: git restore de memory/ falhou', [
+                'stderr' => $redactor->redact($restore->errorOutput()),
             ]);
             return [
                 'pulled' => false,
-                'reason' => 'git_reset_failed',
+                'scope'  => 'memory',
+                'reason' => 'git_restore_failed',
                 'head'   => $this->gitHead(),
             ];
         }
 
         return [
             'pulled' => true,
+            'scope'  => 'memory',
             'head'   => $this->gitHead(),
         ];
     }
@@ -247,36 +252,6 @@ class SyncMemoryWebhookController extends Controller
         $r = Process::path(base_path())->timeout(5)->run('git rev-parse --short HEAD');
 
         return $r->successful() ? trim($r->output()) : null;
-    }
-
-    /**
-     * Detecta paths que precisam de composer install / migrate / build pra
-     * não desnudar produção. Se algum push tem esses paths, mantemos o
-     * filesystem na versão anterior até alguém deployar manualmente.
-     */
-    private function pushExigeDeployManual(Request $request): bool
-    {
-        $padroes = [
-            '#^composer\.lock$#',
-            '#^composer\.json$#',
-            '#^package\.json$#',
-            '#^package-lock\.json$#',
-            '#^bun\.lockb?$#',
-            '#^vite\.config\.(js|ts)$#',
-            '#^database/migrations/#',
-            '#/Database/Migrations/#',
-            '#^public/build/#',
-        ];
-
-        foreach ($this->pathsTocadosNoPush($request) as $path) {
-            foreach ($padroes as $regex) {
-                if (preg_match($regex, $path)) {
-                    return true;
-                }
-            }
-        }
-
-        return false;
     }
 
     /**
