@@ -57,6 +57,19 @@ Sem cadastro de ponto → `403 sem_colaborador`.
 com a regra mestre cumprida. Na v1 o app mostra o botão contextual desabilitado com "Abrir no
 computador".
 
+### 2.1 Orçamentos (tela 04) — só leitura
+
+`GET /api/app/orcamentos?status=todos|rascunho|enviado|aprovado|convertido&pagina=N` →
+`{ itens:[{id, numero, titulo, cliente, validade, status, valor, area_m2, itens}], contadores{todos,
+rascunho, enviado, aprovado, convertido}, pagina, tem_mais }`, 20 por página, mais recente primeiro.
+
+- Orçamento no ERP é venda em **rascunho** (`status=draft`); com `sub_status=quotation` foi
+  **enviado** ao cliente (mesma regra do `InitialStageResolver`). **Aprovado** = etapa
+  `quote_approved`. **Convertido** = venda `final` cujo histórico da FSM passou por etapa de orçamento.
+- `titulo` = nome do 1º item; `itens` = nº de itens. `validade` e `area_m2` saem `null` (o ERP não
+  guarda validade de orçamento nem área por venda).
+- Mesmas permissões e visibilidade de Pedidos; a área `orcamentos` entra em `areas` (§6) para quem vê vendas.
+
 ## 3. Tarefas ⬜ — ToDo + justificativas do Ponto (D11)
 
 `GET /api/app/tarefas?origem=todas|todo|ponto`
@@ -100,6 +113,34 @@ computador".
   dígitos (`***.***.789-09`); o **CNPJ sai inteiro**, formatado, porque é dado público da empresa.
   A ficha web não muda.
 
+### 4.1 Ficha cadastral (tela 34) — só leitura
+
+`GET /api/app/pessoas/{id}/cadastro` → `{ id, nome, tipo,
+identificacao{razao_social, documento, indicador_ie, papeis[]},
+endereco_fiscal{cidade, uf, cep, codigo_ibge, email_nfe},
+comercial{classificacao, limite_credito, prazo_padrao_dias},
+consentimento{whatsapp, email_nfe, sms, registrado_em} }`. Mesmas permissões e escopo do §4;
+documento com a mesma máscara (CPF parcial, CNPJ inteiro). Campo sem dado sai `null` (a tela mostra
+"—"). `classificacao` sai `null`: o ERP não tem classificação ABC do cliente (`segmento` é ramo de negócio, outra coisa); `prazo_padrao_dias` converte meses em 30 dias; `sms` não
+tem coluna no ERP e sai sempre `null`. Pessoa de outra empresa: 404.
+
+### 4.2 Nova pessoa (tela 09) — escrita
+
+`POST /api/app/pessoas` com
+`{ tipo: "PF"|"PJ", nome, nome_fantasia, documento, indicador_ie (1|2|9), papeis: ["cliente"|"fornecedor"],
+telefone, email, email_nfe, cep, logradouro, numero, complemento, bairro, cidade, uf, codigo_ibge,
+prazo_padrao_dias, consentimento: { whatsapp, email_nfe } }` (só `tipo`, `nome` e `papeis` obrigatórios).
+
+- `201 { id }` · `422 { erro: "validacao", campos: { <campo>: "mensagem" } }` (regras da web: CPF/CNPJ por
+  dígito verificador, e-mail válido) · `403 { erro: "sem_permissao" }`.
+- Permissão por papel pedido, como na web: cliente exige `customer.create`; fornecedor, `supplier.create`.
+- Grava pelo mesmo caminho do `ContactController::store` (`ContactUtil::createNewContact` + evento +
+  log de atividade), no business do token; um `business_id` no corpo é ignorado.
+- Fora do app: papel `funcionario`, saldo inicial e limite de crédito (valor fica no ERP web);
+  número de WhatsApp separado e classificação ABC não existem no ERP.
+- `consentimento` grava `whatsapp_consent` / `email_consent` e a data em `consent_updated_at`
+  (LGPD Art. 7º, I); chave ausente não altera nada.
+
 ## 5. Produção ⬜ — fila por **etapa da venda** ([W] 2026-10-02)
 
 `GET /api/app/producao`
@@ -135,7 +176,7 @@ computador".
 - `perfil`, `abre_em` e `areas` (D6 [W]: *"perfil colaborador abre no ponto"*): `areas` lista as
   abas que o usuário pode abrir, na ordem do app. Cada uma segue a mesma regra da rota dela, então
   aba visível = rota que responde: `tarefas` = Essentials no plano ou quem aprova o Ponto;
-  `pedidos`/`producao` = quem vê vendas; `pessoas` = quem vê cliente ou fornecedor; `ponto` =
+  `pedidos`/`producao`/`orcamentos` = quem vê vendas; `pessoas` = quem vê cliente ou fornecedor; `ponto` =
   colaborador com `controla_ponto`; `inicio` só para perfil `erp`; `mais` sempre.
   `perfil` = `erp` se tem tarefas, vendas ou pessoas, senão `colaborador`. `abre_em` = `inicio`
   (erp), `ponto` (colaborador) ou `mais` (sem nenhuma das duas).
@@ -146,6 +187,21 @@ computador".
   Financeiro (senão `null`).
 - Atalhos (Novo pedido, Venda rápida, Cobrar PIX, Conciliar) ficam fora da v1 — são v2 ou tela de
   computador.
+
+### 6.1 Notificações (tela 16) — só leitura
+
+`GET /api/app/notificacoes?pagina=N` →
+`{ itens:[{id, origem, titulo, texto, lida, quando, destino:{tipo, id}}], nao_lidas, pagina, tem_mais }`,
+20 por página, mais recente primeiro.
+
+- Fonte: a tabela `notifications` do Laravel, a mesma do sino da web, só as do usuário do token.
+  O texto (`titulo`) sai de `Util::parseNotifications`, o mesmo tradutor da web; `texto` vem `null`.
+- `origem` = chip pelo tipo da notificação: `FIN` (recorrentes), `TAR` (tarefa), `RH` (demais do
+  Essentials), `CRM`, `IA` (Jana), `PAT`, `LOJ`, `DOC`; o resto sai `SIS`.
+- `destino` só vem preenchido quando a notificação carrega o id de uma tela do app (hoje: tarefa nova
+  → `{tipo:"tarefa", id:"todo:15"}`); nos outros casos, `{tipo:null, id:null}`.
+- `GET /api/app/inicio` passa a trazer `nao_lidas` (int), para o ponto no sino.
+- Marcar como lida (`POST .../{id}/lida` e `.../lidas`) vem em PR separado.
 
 ## 7. Mais
 
