@@ -878,7 +878,7 @@ export default function SellsCreate(props: SellsCreatePageProps) {
     // carrinho e cliente de origens diferentes.
     if (osOrigem) return null;
     return `oimpresso.sells.create.draft.${bizId}.${userId}`;
-  }, [auth, business]);
+  }, [auth, business, osOrigem]);
 
   // Recover ao montar (apenas 1x). Pergunta antes — Larissa pode ter terminado em outro tab.
   // Wagner 2026-05-27 HOTFIX: substituído window.confirm() nativo (botões cinza do browser,
