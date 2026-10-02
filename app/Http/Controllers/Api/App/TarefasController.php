@@ -81,6 +81,40 @@ class TarefasController extends Controller
         return response()->json(['id' => 'todo:' . $id, 'concluida' => true]);
     }
 
+    /**
+     * GET /api/app/tarefas/todo/{id} — detalhe da ToDo (tela 28), só se visível ao usuário (§3.1).
+     * O Essentials não tem checklist, cliente nem origem: saem vazios, e a tela se adapta.
+     */
+    public function todo(Request $request, int $id): JsonResponse
+    {
+        $user = $request->user();
+        $bizId = (int) $user->business_id;
+
+        if (! $this->temEssentials($user, $bizId)) {
+            return response()->json(['erro' => 'sem_permissao', 'mensagem' => 'Sua empresa não tem o módulo de tarefas.'], 403);
+        }
+
+        $t = $this->todos->detalhe($user, $bizId, $id);
+        if ($t === null) {
+            return response()->json(['erro' => 'nao_encontrado', 'mensagem' => 'Tarefa não encontrada.'], 404);
+        }
+
+        return response()->json([
+            'id' => 'todo:' . $t['id'],
+            'titulo' => $t['titulo'],
+            'descricao' => $t['descricao'],
+            'modulo' => $t['rotulo'],
+            'responsavel' => $t['responsavel'],
+            'cliente' => null,
+            'prazo' => $t['prazo'],
+            'atrasado' => ! $t['concluida'] && $t['prazo'] !== null && Carbon::parse($t['prazo'])->lt(Carbon::today()),
+            'origem' => null,
+            'checklist' => [],
+            'comentarios' => array_map(fn ($c) => $c + ['detalhe' => null], $t['comentarios']),
+            'concluida' => $t['concluida'],
+        ]);
+    }
+
     /** As próximas N tarefas do usuário (ToDo + Ponto), prazo mais próximo primeiro — para o Início. */
     public function proximasPara(User $user, int $n = 3): array
     {

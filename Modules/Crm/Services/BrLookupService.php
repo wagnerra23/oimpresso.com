@@ -59,7 +59,7 @@ class BrLookupService
      * -> SOBRESCREVE (Receita/Correios e fonte da verdade pro endereco).
      *
      * @param  string  $cep  CEP em qualquer formato (so digitos sao usados)
-     * @return array{logradouro:string,complemento:string,bairro:string,cidade:string,uf:string}|null
+     * @return array{logradouro:string,complemento:string,bairro:string,cidade:string,uf:string,ibge?:string}|null
      *                                                                                              null = CEP invalido (formato), CEP nao existe, ou erro upstream
      */
     public function lookupCep(string $cep): ?array
@@ -102,6 +102,9 @@ class BrLookupService
                         'bairro' => (string) ($response->json('bairro') ?? ''),
                         'cidade' => (string) ($response->json('localidade') ?? ''),
                         'uf' => (string) ($response->json('uf') ?? ''),
+                        // Código IBGE do município (2026-10-02, app das lojas tela 09 — NF-e
+                        // usa). Campo novo e aditivo; quem não lê, não muda.
+                        'ibge' => (string) ($response->json('ibge') ?? ''),
                     ];
                 } catch (\Throwable $e) {
                     Log::warning('BrLookupService::lookupCep exception', [

@@ -88,6 +88,18 @@ rascunho, enviado, aprovado, convertido}, pagina, tem_mais }`, 20 por página, m
 - `grupo` ∈ `atrasadas · hoje · amanha · semana · depois`.
 - Escrita v1: `POST /api/app/tarefas/todo/{id}/concluir` (só ToDo do próprio usuário).
 
+### 3.1 Detalhe da tarefa (tela 28) — só leitura
+
+`GET /api/app/tarefas/todo/{id}` →
+`{ id: "todo:15", titulo, descricao, modulo, responsavel, cliente, prazo, atrasado, origem,
+checklist:[{texto, feito}], comentarios:[{quando, autor, texto, detalhe}], concluida }`
+
+- Mesmo escopo do §3 (admin vê as da empresa; os demais, as criadas por eles ou atribuídas a
+  eles), concluída ou não. Fora disso, ou de outra empresa → 404. Sem o Essentials no plano → 403.
+- `modulo` = o rótulo da lista (`Tarefa · alta`); `responsavel` = os atribuídos, separados por vírgula.
+- O ToDo do Essentials não tem checklist, cliente nem origem: `checklist: []`, `cliente`/`origem`
+  `null`. Comentários do mais antigo para o mais novo; `detalhe` sai `null`.
+
 ## 4. Pessoas ⬜
 
 `GET /api/app/pessoas?papel=todos|clientes|fornecedores|funcionarios|em_debito&q=&pagina=`
@@ -140,6 +152,17 @@ prazo_padrao_dias, consentimento: { whatsapp, email_nfe } }` (só `tipo`, `nome`
   número de WhatsApp separado e classificação ABC não existem no ERP.
 - `consentimento` grava `whatsapp_consent` / `email_consent` e a data em `consent_updated_at`
   (LGPD Art. 7º, I); chave ausente não altera nada.
+
+### 4.3 Busca de CEP (tela 09, botão "Buscar") — só leitura
+
+`GET /api/app/cep/{cep}` → `200 { cep, logradouro, complemento, bairro, cidade, uf, codigo_ibge }` ·
+`404 { erro: "nao_encontrado" }` (CEP não existe ou o serviço falhou: preencher à mão) ·
+`422 { erro: "validacao" }` (não tem 8 dígitos).
+
+- O app não chama serviço de CEP externo: o ERP responde pelo proxy com cache que o drawer de cliente
+  da web já usa (`BrLookupService`, ViaCEP, cache 90 dias), via o contrato `App\Contracts\Enderecos\BuscaCep`.
+- `codigo_ibge` pode vir `null` para CEP que já estava em cache antes deste campo existir.
+- Limite de 60 buscas por minuto, como na web.
 
 ## 5. Produção ⬜ — fila por **etapa da venda** ([W] 2026-10-02)
 
