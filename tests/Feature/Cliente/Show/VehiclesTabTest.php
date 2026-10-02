@@ -32,11 +32,9 @@ beforeEach(function () {
         $this->markTestSkipped('Schema Modules/OficinaAuto ausente neste ambiente — migration vehicles não rodou.');
     }
 
-    $this->business = $this->seededTenant(); // biz=1 canônico (ADR 0101) — skip acionável se o seed faltar
-    $this->user = \App\User::where('business_id', $this->business->id)->first();
-    if (! $this->user) {
-        $this->markTestSkipped('Sem user no business.');
-    }
+    $this->business = $this->seededTenant(); // tenant de teste (ADR 0358) — skip acionável se o seed faltar
+    // show() exige customer.view (ou supplier.view / *.view_own) no ContactController.
+    $this->user = $this->usuarioComPermissoes(['customer.view'], $this->business);
 
     config(['mwart.cliente_show.enabled' => true]);
 
@@ -46,8 +44,8 @@ beforeEach(function () {
         'created_by' => $this->user->id,
         'type' => 'customer',
         'contact_type' => 'business',
+        // Sem first_name: a coluna não existe mais em contacts (schema:dump de prod).
         'name' => 'Cliente Frota Test',
-        'first_name' => 'Cliente Frota',
         'mobile' => '11999990000',
         'contact_status' => 'active',
         'created_at' => $now,
@@ -139,10 +137,8 @@ test('Tier 0 — user de outro business recebe 404 no Show', function () {
     if (! $otherBusiness) {
         $this->markTestSkipped('Sem 2º business pra teste cross-tenant.');
     }
-    $otherUser = \App\User::where('business_id', $otherBusiness->id)->first();
-    if (! $otherUser) {
-        $this->markTestSkipped('Sem user no business secundário.');
-    }
+    // Com a MESMA permissão: assim o 404 prova isolamento por business, e não falta de acesso.
+    $otherUser = $this->usuarioComPermissoes(['customer.view'], \App\Business::findOrFail($otherBusiness->id));
 
     $this->actingAs($otherUser);
     session(['user.business_id' => $otherBusiness->id]);

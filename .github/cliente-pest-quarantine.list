@@ -35,10 +35,9 @@ tests/Feature/Cliente/Wave1IndexInertiaTest.php  # Cliente/Index.tsx contém ses
 tests/Feature/Cliente/Wave1LedgerInertiaTest.php  # texto esperado no Cliente/Ledger.tsx não bate — 1 caso
 tests/Feature/Cliente/Wave1MapInertiaTest.php  # texto esperado no Cliente/Map.tsx não bate — 1 caso
 
-# (D) Fixture grava coluna que não existe em `contacts` (first_name).
-tests/Feature/Cliente/ClienteContatoEmailsExtrasTest.php  # 1054 Unknown column 'first_name' — 6 casos
-tests/Feature/Cliente/ClienteEditInertiaTest.php  # 1054 Unknown column 'first_name' — 3 casos
-tests/Feature/Cliente/Show/VehiclesTabTest.php  # 1054 Unknown column 'first_name' — 4 casos
+# (D) Fixture grava coluna que não existe em `contacts` (first_name) — VAZIO desde 2026-10-02:
+#     a coluna saiu de prod (o baseline é schema:dump de prod), os 3 fixtures pararam de
+#     gravá-la e passaram a usar usuário com a permissão que a rota exige.
 
 # (E) 409 = versão de assets do Inertia não confere com o stub da lane.
 tests/Feature/Cliente/ClienteImportInertiaTest.php  # 409 (esperava 200) — 1 caso

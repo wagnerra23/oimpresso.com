@@ -36,11 +36,9 @@ beforeEach(function () {
         $this->markTestSkipped('Migration 2026_05_21_140000 (BR fields) ainda não rodou neste ambiente.');
     }
 
-    $this->business = $this->seededTenant(); // biz=1 canônico (ADR 0101) — skip acionável se o seed faltar
-    $this->user = \App\User::where('business_id', $this->business->id)->first();
-    if (! $this->user) {
-        $this->markTestSkipped('Sem user no business.');
-    }
+    $this->business = $this->seededTenant(); // tenant de teste (ADR 0358) — skip acionável se o seed faltar
+    // edit()/update() exigem customer.update (ou supplier.update / *.view_own) no ContactController.
+    $this->user = $this->usuarioComPermissoes(['customer.update'], $this->business);
 
     config(['mwart.cliente_edit.enabled' => true]);
 
@@ -50,9 +48,9 @@ beforeEach(function () {
         'created_by' => $this->user->id,
         'type' => 'customer',
         'contact_type' => 'business',
+        // Sem first_name/last_name: as colunas não existem mais em contacts (schema:dump de prod).
+        // O formulário ainda MANDA esses campos no PUT abaixo — o controller monta `name` e os descarta.
         'name' => 'Cliente Edit Inertia Test',
-        'first_name' => 'Cliente Edit',
-        'last_name' => 'Inertia Test',
         'mobile' => '11999990000',
         'contact_status' => 'active',
         // Campos BR que o bug fix preserva no payload edit().
@@ -156,10 +154,8 @@ test('Tier 0 — user de outro business recebe 404 ao tentar GET edit', function
         $this->markTestSkipped('Sem 2º business pra teste cross-tenant.');
     }
 
-    $otherUser = \App\User::where('business_id', $otherBusiness->id)->first();
-    if (! $otherUser) {
-        $this->markTestSkipped('Sem user no business secundário.');
-    }
+    // Com a MESMA permissão: assim o 404 prova isolamento por business, e não falta de acesso.
+    $otherUser = $this->usuarioComPermissoes(['customer.update'], \App\Business::findOrFail($otherBusiness->id));
 
     $this->actingAs($otherUser);
     session(['user.business_id' => $otherBusiness->id]);
