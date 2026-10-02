@@ -34,6 +34,8 @@ on:
       - 'app/Http/Controllers/SellController.php'
       - 'app/Http/Controllers/Api/App/PedidosController.php'
       - 'app/Http/Controllers/Api/App/InicioController.php'
+      - 'app/Http/Controllers/Api/App/PerfilMenuController.php'
+      - 'database/migrations/2026_10_02_190000_create_app_menu_preferencias_table.php'
       - 'app/Http/Controllers/Api/App/NotificacoesController.php'
       - 'routes/api.php'
       - 'app/Http/Controllers/SellPosController.php'
@@ -118,6 +120,8 @@ jobs:
               - 'app/Jobs/ImportarVendasJob.php'
               - 'app/Http/Controllers/Api/App/PedidosController.php'
               - 'app/Http/Controllers/Api/App/InicioController.php'
+              - 'app/Http/Controllers/Api/App/PerfilMenuController.php'
+              - 'database/migrations/2026_10_02_190000_create_app_menu_preferencias_table.php'
               - 'app/Http/Controllers/Api/App/NotificacoesController.php'
               - 'routes/api.php'
               - 'resources/js/Pages/Sells/**'
@@ -231,6 +235,7 @@ jobs:
             tests/Feature/Sells/SellsIndexFiltroDataFimContratoTest.php \
             tests/Feature/Sells/AppPedidosApiContratoTest.php \
             tests/Feature/Sells/AppInicioApiContratoTest.php \
+            tests/Feature/Sells/AppPerfilMenuApiContratoTest.php \
             tests/Feature/Sells/AppNotificacoesApiContratoTest.php \
             tests/Feature/Sells/SellsCreateV3ContratoTest.php \
             tests/Feature/Sells/Wave1ShowBaselineTest.php \

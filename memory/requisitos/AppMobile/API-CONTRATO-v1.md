@@ -280,3 +280,16 @@ de contrato na lane MySQL) + 1 PR de tela no `oimpresso-app`, contra este contra
 - Leitura primeiro; a ação que escreve vem num PR separado. Em valor ou estoque: dupla prova, tabela antes→depois e ok do [W] antes do merge.
 - Tela de módulo que o business não tem no pacote não aparece (Camada 1).
 
+## 12. Onda E — Ponto, Equipe, Perfil de menu e Chat
+
+### 12.3 Perfil de menu (tela 30) — escrita
+
+`PUT /api/app/perfil-menu { modulos:[≤3, em ordem] }` → `200 { modulos, barra }`.
+
+- A escolha fica guardada no ERP (`app_menu_preferencias`, [ADR 0426](../../decisions/0426-preferencia-de-barra-do-app-guardada-no-erp.md)), por usuário e business.
+- `modulos` só aceita chaves que estão em `areas` (§6), exceto `inicio` e `mais`, que são fixos.
+  Mais de 3, repetido, ou módulo fora das áreas → `422 { erro:"validacao", campos:{ modulos:[…] } }`.
+- `modulos: []` apaga a escolha e volta ao padrão.
+- `GET /api/app/inicio` traz `barra` (lista, até 3) = escolha ∩ `areas`, na ordem escolhida. Sem
+  escolha, ou se nada da escolha estiver mais em `areas`, vale o padrão do ERP: Tarefas, Pedidos,
+  Produção (§7.1), completado com as outras áreas do usuário na ordem de `areas`.

@@ -65,7 +65,7 @@ class InicioController extends Controller
      * Cada área segue a MESMA regra de acesso da rota dela, então aba visível = rota que responde.
      * perfil 'erp' = tem alguma área do ERP; senão 'colaborador' (só o ponto).
      *
-     * @return array{perfil: string, abre_em: string, areas: list<string>}
+     * @return array{perfil: string, abre_em: string, areas: list<string>, barra: list<string>}
      */
     private function perfil(User $user): array
     {
@@ -94,7 +94,19 @@ class InicioController extends Controller
             'perfil' => $erp ? 'erp' : 'colaborador',
             'abre_em' => $erp ? 'inicio' : ($ponto ? 'ponto' : 'mais'),
             'areas' => $areas,
+            // Perfil de menu (tela 30): os até 3 módulos do meio da barra (§12.3).
+            'barra' => app(PerfilMenuController::class)->barraPara($user, $areas),
         ];
+    }
+
+    /**
+     * As mesmas `areas` do Início, para o Perfil de menu validar a escolha (tela 30).
+     *
+     * @return list<string>
+     */
+    public function areasPara(User $user): array
+    {
+        return $this->perfil($user)['areas'];
     }
 
     /**
