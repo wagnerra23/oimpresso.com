@@ -41,8 +41,13 @@ function appVcUsuario(array $permissoes): User
     foreach ($permissoes as $p) {
         Permission::findOrCreate($p, 'web');
     }
-    $papel->syncPermissions($permissoes);
+    // `location.<id>` vai DIRETO no usuário: User::permitted_locations lê só as permissões diretas.
+    $locais = array_values(array_filter($permissoes, fn ($p) => str_starts_with($p, 'location.')));
+    $papel->syncPermissions(array_values(array_diff($permissoes, $locais)));
     $user->assignRole($papel);
+    if ($locais !== []) {
+        $user->givePermissionTo($locais);
+    }
     app(PermissionRegistrar::class)->forgetCachedPermissions();
 
     return User::findOrFail($user->id);
