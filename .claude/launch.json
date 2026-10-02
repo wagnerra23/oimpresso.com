@@ -144,27 +144,6 @@
         "D:/oimpresso.com/prototipo-ui"
       ],
       "port": 5634
-    },
-    {
-      "name": "mobile-proto-v4",
-      "runtimeExecutable": "node",
-      "runtimeArgs": [
-        "--input-type=module",
-        "-e",
-        "import('./scripts/design/design-diff-lote.mjs').then(m=>m.servirEspelho('mobile/ref/design-v4/project',5593))"
-      ],
-      "port": 5593
-    },
-    {
-      "name": "oimpresso-app-demo",
-      "runtimeExecutable": "node",
-      "runtimeArgs": [
-        "C:/Users/wagne/AppData/Local/Temp/claude/D--oimpresso-com--claude-worktrees-confident-elbakyan-dcdcc7/31454663-3d97-4952-aafd-6e852288defb/scratchpad/app-server.mjs",
-        "D:/oimpresso-app-trava/www",
-        "C:/Users/wagne/AppData/Local/Temp/claude/D--oimpresso-com--claude-worktrees-confident-elbakyan-dcdcc7/31454663-3d97-4952-aafd-6e852288defb/scratchpad/snaps",
-        "5602"
-      ],
-      "port": 5602
     }
   ]
 }
