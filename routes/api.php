@@ -40,5 +40,6 @@ Route::middleware('auth:api')->prefix('app')->name('app.')->group(function () {
     Route::get('/cep/{cep}', [\App\Http\Controllers\Api\App\CepController::class, 'show'])
         ->where('cep', '[0-9-]{1,12}')->middleware('throttle:60,1')->name('cep.show');
     Route::put('/perfil-menu', [\App\Http\Controllers\Api\App\PerfilMenuController::class, 'update'])->name('perfil-menu.update');
+    Route::get('/produtos', [\App\Http\Controllers\Api\App\ProdutosController::class, 'produtos'])->name('produtos.index');
     Route::get('/inicio', [\App\Http\Controllers\Api\App\InicioController::class, 'show'])->name('inicio');
 });
