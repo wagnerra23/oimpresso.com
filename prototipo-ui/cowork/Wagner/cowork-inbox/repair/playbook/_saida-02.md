@@ -5,7 +5,7 @@ autor: "[CL]"
 data: 2026-10-02
 base: "claude/repair-thread-A1-alvos, sobre origin/main 13bc079894"
 thread: 04-titulo.md
-veredito: "código entregue; a prova D4 está pela METADE — o lado design foi medido (22px), o lado produção só pode ser medido depois do deploy"
+veredito: "código entregue; casos revalidados (run 37040619260, verde); a prova D4 segue pela METADE — o lado design foi medido (22px), o lado produção SÓ pode ser medido depois do deploy"
 ---
 
 # _saída 02 · Título 24→22px
@@ -65,37 +65,38 @@ Título, texto do subtítulo e botão "Nova OS" ficaram iguais. Muda junto, pelo
   existem nas duas telas já existiam antes e estão na baseline.
 - `node scripts/casos-coverage-guard.mjs` → sem violação nova deste PR.
 
-## Required vermelho no CI — `Casos-coverage · ratchet` (G-6, frescor) — PARADO aqui
+## Required `Casos-coverage · ratchet` (G-6, frescor) — revalidado em 2026-10-02
 
-No PR #8531 o job required acusa:
+Histórico: o job acusou `stale:` nos dois `.casos.md` (run 37009334748), porque o `.tsx` ganhou
+commit em 2026-10-02, depois do `last_run`. O bloqueio era o PR #8524, que mexia no
+`Repair/Index.casos.md`; ele entrou no `main` em 2026-10-02 13:25 UTC.
 
-- 2 violações **novas**: `stale:resources/js/Pages/Repair/Index.casos.md` e
-  `stale:resources/js/Pages/Repair/JobSheet/Index.casos.md`;
-- em ambos, o `.tsx` passou a ter commit em 2026-10-02, depois do `last_run` do `.casos.md`
-  (2026-10-01);
-- a run é 37009334748.
+O que foi feito:
 
-O meu `casos-coverage-guard` local deu verde porque rodou **antes** do commit. Com o `.tsx` só no
-working tree, o gate lê a data git antiga (§5 2026-08-20). É a lápide §5 2026-07-27: tocar o
-`.tsx` acorda o G-6.
+1. `origin/main` mergeado no branch (merge, sem rebase). Os dois conflitos foram nos ledgers de
+   subida ao Cowork (`enviados-cowork.json`, `.cowork-freshness-ledger.json`): resolvidos por união
+   das entradas dos dois lados, nada descartado.
+2. Os testes de contrato que citam os UCs das duas telas rodaram de verdade, na lane que os executa
+   (`.github/workflows/verticais-pest.yml`, lista explícita de arquivos), disparada no branch por
+   `workflow_dispatch`: run
+   [37040619260](https://github.com/wagnerra23/oimpresso.com/actions/runs/37040619260), **success**.
+   No JUnit:
+   - `RepairIndexContratoTest`: 6 testes, 21 asserções, 0 falhas, **1 skipped** (UC-RIDX-02,
+     0 asserções — não medido neste run, dito no `.casos.md`);
+   - `RepairJobSheetIndexContratoTest`: 6 testes, 21 asserções, 0 falhas, 0 skipped.
+3. Só depois do verde: `last_run: "2026-10-02"` nos dois `.casos.md`, com o run citado. O
+   UC-RIDX-07 (que estava ⬜) passou a 🧪 com 4 asserções neste run.
 
-**Por que não consertei:**
-
-- O conserto é revalidar os casos e subir o `last_run` dos dois `.casos.md`.
-- O `Repair/Index.casos.md` está em edição pelo PR aberto #8524, e esta thread recebeu a ordem de
-  não tocá-lo.
-- Subir o `last_run` sem rodar os UCs seria afirmar uma revalidação que não aconteceu. A lane
-  Verticais, que roda os contratos, não roda neste PR empilhado. O CT 100 roda outro checkout.
-
-**Para fechar:** depois do #8524, com a lane `PHP / Pest (Verticais · MySQL)` verde no branch,
-subir o `last_run` dos dois `.casos.md` para a data do run e citar o run. O `JobSheet/Index.casos.md`
-pode ser feito já; o `Repair/Index.casos.md` precisa ser combinado com o dono do #8524.
+Ressalva: o PR #8531 tem base `claude/repair-thread-A1-alvos`, e o merge do `main` deixou o PR em
+conflito com essa base (os mesmos ledgers). Enquanto isso, o GitHub não roda os checks de
+`pull_request` neste PR; o `Casos-coverage · ratchet` volta a rodar quando a base for `main`.
 
 ## Ficou fora
 
-- **Charter de `Repair/Index`** (linha 36: *"AppShellV2 + PageHeader shared"*). Ficou desatualizado
-  e precisa virar *"PageHeader canon"*. Não toquei: o prefixo desta thread é só os `.tsx`.
-- **`Repair/Index.casos.md` e `RepairController.php`**: não toquei. A sessão do PR #8524 está
-  nesses arquivos.
+- O charter de `Repair/Index` (linha 36, *"PageHeader shared"*) foi corrigido para *"PageHeader
+  canon"* em 2026-10-02, neste mesmo branch.
+- **`RepairController.php`**: não toquei.
+- **Prova D4 do lado produção:** só existe depois do deploy. Os três passos estão na seção "Prova
+  D4" acima; até lá, nenhuma medida de produção deve ser citada como feita.
 - O subtítulo de `Repair/Index` é texto de desenvolvimento ("Listagem MWART (Sprint 2)…"). Trocar
   essa copy é decisão do dono, não desta thread.
