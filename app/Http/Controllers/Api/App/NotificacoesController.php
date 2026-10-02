@@ -13,7 +13,7 @@ use Illuminate\Notifications\DatabaseNotification;
 
 /**
  * Notificações do app das lojas (tela 16). Contrato: memory/requisitos/AppMobile/API-CONTRATO-v1.md §6.1.
- * Só leitura nesta etapa; marcar como lida vem em PR separado.
+ * Lista, e marca como lida (uma ou todas) só as do próprio usuário.
  *
  * Fonte: a tabela `notifications` do Laravel, a mesma do sino da web. O texto sai de
  * Util::parseNotifications, o tradutor que a web e a API do Connector já usam, para o app não
@@ -62,6 +62,33 @@ class NotificacoesController extends Controller
             'pagina' => $pagina,
             'tem_mais' => $temMais,
         ]);
+    }
+
+    /**
+     * POST /api/app/notificacoes/{id}/lida — marca UMA notificação do usuário como lida (§6.1).
+     * Idempotente: já lida responde 200 igual. De outro usuário ou inexistente → 404.
+     */
+    public function marcarLida(Request $request, string $id): JsonResponse
+    {
+        /** @var User $user */
+        $user = $request->user();
+        $n = $user->notifications()->where('id', $id)->first();
+        if (! $n) {
+            return response()->json(['erro' => 'nao_encontrado', 'mensagem' => 'Notificação não encontrada.'], 404);
+        }
+        $n->markAsRead();
+
+        return response()->json(['nao_lidas' => $this->naoLidas($user)]);
+    }
+
+    /** POST /api/app/notificacoes/lidas — marca TODAS as do usuário como lidas (§6.1). */
+    public function marcarTodasLidas(Request $request): JsonResponse
+    {
+        /** @var User $user */
+        $user = $request->user();
+        $marcadas = $user->unreadNotifications()->update(['read_at' => now()]);
+
+        return response()->json(['nao_lidas' => $this->naoLidas($user), 'marcadas' => (int) $marcadas]);
     }
 
     /** Usado também pelo Início (o ponto no sino). */
