@@ -3085,3 +3085,12 @@ Ocorrência da **LC-24**.
 - **Defesa.** Bite-test no `catalog-graph.test.mjs`: sandbox git com Ponto declarando a delegação e tocando Financeiro pelos dois eixos, baselines vazias. Controle positivo: o eixo import passa. Contrato: o eixo tabela reprova e as opções não oferecem o `not_contains`. Com a mensagem antiga o teste cai no assert certo. Roda em lanes advisory (`governance-script-tests`) e no `catalog-graph.yml`; não é defesa da classe inteira, só desta instância.
 
 Ocorrência da **LC-15**.
+
+### 2026-10-01 — EMENDA da lápide 2026-09-30 (2ª): o pedido chegou por sessão de coordenação, e a sessão irmã que já tinha o PR aberto não estava na lista de quem eu avisaria
+
+- **O que aconteceu.** Defeito do D8 do MAPA-DE-DADOS-v1 (lista de Pessoas ignorando `view_own`) foi despachado para a sessão BUGS PESSOAS. Outra frente do mesmo projeto já tinha aberto o [#8469](https://github.com/wagnerra23/oimpresso.com/pull/8469) com a mesma correção às 19:05Z; ele foi mergeado às 19:25Z e o meu [#8476](https://github.com/wagnerra23/oimpresso.com/pull/8476) nasceu às 19:28Z, com o mesmo `whereExists` sobre `user_contact_access` na lista, KPIs e contadores.
+- **Por que caiu.** Nenhuma das duas sondas da lápide-mãe rodou: nem `dup-detector --path` no início, nem `git log HEAD..origin/main -- <arquivo>` antes de publicar. O enunciado trazia origem e arquivos exatos, e isso deu a sensação de tarefa exclusiva.
+- **O limite (variante também proibida):** pedido vindo de documento de coordenação (mapa, playbook, lista de achados) não é atribuição exclusiva. Outras sessões leem o mesmo documento. Antes do primeiro Edit em arquivo citado ali, `dup-detector --path`; antes do `gh pr create`, `git fetch` + `git log HEAD..origin/main -- <arquivos>`.
+- **Defesa.** Nenhuma nova. As duas sondas existem e funcionam; o que faltou foi rodá-las.
+
+Ocorrência da **LC-19**.

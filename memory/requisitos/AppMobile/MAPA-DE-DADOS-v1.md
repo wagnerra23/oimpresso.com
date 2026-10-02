@@ -214,6 +214,29 @@ Regras que não mudam: sem biometria/câmera (ADR 0383); marcação imutável (P
 | **D7** | Transportadora como papel de pessoa: criar flag, ou tirar o chip? | hoje é tabela separada da NF-e | tirar o chip na v1 |
 | **D8** | Dois achados fora do escopo do app, mas na rota dele: `view_own` ignorado na lista de pessoas e ticket médio sempre 0 | ambos aparecem assim que Pessoas for para o celular | corrigir antes da tela Pessoas (PRs próprios) |
 
+### 8.1 Respostas do [W] — 2026-10-01
+
+Dadas no chat da sessão de coordenação "Publicar protótipo mobile nas lojas", uma pergunta por
+decisão, com as opções lado a lado. Onde a resposta difere da recomendação acima, vale a resposta.
+
+> ⚠️ **Mudou o ONDE, não o QUÊ (mesmo dia):** o cabeçalho deste mapa diz que as telas seriam
+> páginas Inertia sob `/m`. Isso foi **revertido** pelo [W] depois de ver `/m` no emulador ("não
+> gostei dele dentro do sistema" → telas próprias no app; #8472). Vale agora: telas empacotadas no
+> repo `oimpresso-app`, falando com o ERP por API Passport por tela. As fontes de dado deste mapa
+> e as decisões abaixo **continuam valendo** — mudam só a camada que as entrega (endpoint JSON por
+> tela em vez de props Inertia). Registro único: `docs/lojas-app/DECISOES.md` (D5, D11).
+
+| # | Decisão [W] |
+|---|---|
+| **D1** | Meta do dia = meta **mensal da Jana ÷ dias úteis**, rotulada como derivada. |
+| **D2** | **Sem seletor de empresa** na v1; mostra só o nome da empresa. |
+| **D3** | **Urgente = atrasado** (prazo vencido). Nenhum campo de prioridade novo. |
+| **D4** | Tarefas na v1 = **ToDo + justificativas do Ponto pendentes**. O agregador fica para depois. |
+| **D5** | **Pedido = VENDA do ERP** (`Transaction` + pipeline FSM de vendas, ADR 0143). OS de Repair e ordem de CV ficam fora da aba Pedidos. |
+| **D6** | Produção = **adaptar ao Kanban existente**, fila por etapa, **sem carga %** por estação. |
+| **D7** | **Sem o chip Transportadora** em Pessoas na v1. |
+| **D8** | Os dois defeitos viram sessão própria ("Corrigir 2 bugs da lista de Pessoas antes do app"), antes da tela Pessoas. |
+
 ---
 
 ## 9. Varreduras que sustentam os ❌ (repo inteiro, sem `vendor`/`node_modules`)
