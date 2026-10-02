@@ -36,6 +36,7 @@
 ---
 
 ## Últimos handoffs
+- [2026-10-02 17:26 BRT — **Conta demo: gestor com 7 áreas + deploy duplo resolvido**](handoffs/2026-10-02-1726-conta-demo-gestor-7-areas-e-deploy-duplo.md) (smoke pela API completo · gestor.demo DEMO-0002 com as 7 áreas · chaves Passport 660 · webhook sync-memory dava reset em prod e recuou produção 5×, restrito a memory/ no #8547 e confirmado no reflog · falta o login real do [W])
 - [2026-10-02 11:43 BRT — **Conta demo dos revisores das lojas no ar**](handoffs/2026-10-02-1143-conta-demo-revisores-lojas.md) (business 235: revisor.ponto + gestor.demo · smoke sem senha pela API Passport verde em prod (me/espelho/marcar) · vazamento de /contacts fechado em #8442/#8443/#8469 · falta só o login real com senha, do [W])
 - [2026-10-02 11:03 BRT — **Protótipo mobile importado + âncora do app das lojas**](handoffs/2026-10-02-1103-importacao-prototipo-mobile-app-lojas.md) (projeto Claude Design b29cacda = o correto · `mobile/ref/design-v4` #8467/#8485 · `github.md` → oimpresso-app #8494 · D13 v1 = 7 áreas + D14 tema do celular #8473 · playbook app-lojas com errata #8498 · CI no oimpresso-app #15 · `receber-handoff --projeto mobile` #8509 aberto · Dashboard 35 a decidir pelo [W])
 - [2026-10-02 08:22 BRT — BUGS PESSOAS: D8 fechado](handoffs/2026-10-02-0822-bugs-pessoas-d8-fechado.md) — view_own (#8469) e ticket médio (#8479, antes→depois [W]) no main; ledger #8484 e mapa #8501 mergeados; API de Pessoas é o #8497 da coordenação, que também fica com o serviço único de saldo/ticket.

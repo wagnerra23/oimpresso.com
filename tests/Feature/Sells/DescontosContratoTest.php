@@ -1,5 +1,7 @@
 <?php
 
+// @covers-us US-SELL-065
+
 declare(strict_types=1);
 
 use App\Discount;
@@ -395,4 +397,59 @@ it('UC-DSC-07 a migration concede ver e editar a quem tinha discount.access — 
 
     $viewId = (int) DB::table('permissions')->where('name', 'discount.view')->where('guard_name', 'web')->value('id');
     expect(DB::table('role_has_permissions')->where('role_id', $papelAntigo->id)->where('permission_id', $viewId)->count())->toBe(1);
+});
+
+/** Versão Inertia igual à do servidor — evita o 409 antes de o controller rodar. */
+function dscInertiaVersion(): string
+{
+    $manifest = public_path('build-inertia/manifest.json');
+
+    return file_exists($manifest) ? md5_file($manifest) : '1';
+}
+
+/** Visita como o navegador faz: o Inertia manda X-Inertia E X-Requested-With. */
+function dscVisita(object $test, array $parcial = []): array
+{
+    $headers = [
+        'X-Inertia' => 'true',
+        'X-Inertia-Version' => dscInertiaVersion(),
+        'X-Requested-With' => 'XMLHttpRequest',
+    ];
+    if ($parcial !== []) {
+        $headers['X-Inertia-Partial-Component'] = 'Discount/Index';
+        $headers['X-Inertia-Partial-Data'] = implode(',', $parcial);
+    }
+    // flushHeaders: o withHeaders acumula entre requests do mesmo teste — sem isto a visita
+    // seguinte herda o X-Inertia-Partial-* da anterior e vira parcial sem querer.
+    $response = $test->flushHeaders()->withHeaders($headers)->get('/discount');
+    $response->assertOk();
+    $page = json_decode($response->getContent(), true);
+
+    // Pré-condição anti-vácuo: a Page certa, não o JSON do DataTable do ramo ajax.
+    expect($page['component'] ?? null)->toBe('Discount/Index');
+
+    return $page['props'];
+}
+
+it('UC-DSC-08 a tela React renderiza com os dados do negócio e a permissão de editar', function () {
+    $meu = dscDesconto($this->bizId, ['name' => 'DSC tela 98', 'discount_amount' => 12.5]);
+    $alheio = dscDesconto($this->outroBizId, ['name' => 'DSC tela 99']);
+
+    dscLogin($this, $this->editor);
+    $props = dscVisita($this);
+    expect($props['permissoes']['editar'])->toBeTrue();
+    expect(array_key_exists('descontos', $props))->toBeFalse(); // deferida: não vem na 1ª carga
+
+    $lista = dscVisita($this, ['descontos'])['descontos'];
+    $ids = array_map(fn ($d) => (int) $d['id'], $lista);
+    expect(in_array($meu, $ids, true))->toBeTrue();
+    expect(in_array($alheio, $ids, true))->toBeFalse();
+
+    $linha = collect($lista)->firstWhere('id', $meu);
+    expect($linha['valor'])->toBe('12.5000'); // cru do banco, sem conta nenhuma
+    expect($linha['ativo'])->toBeTrue();
+
+    // Quem só vê abre a mesma tela, com a gravação desabilitada.
+    dscLogin($this, $this->leitor);
+    expect(dscVisita($this)['permissoes']['editar'])->toBeFalse();
 });
