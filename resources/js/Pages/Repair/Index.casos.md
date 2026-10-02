@@ -106,6 +106,20 @@ last_run: "2026-09-05"
 
 ---
 
+## UC-RIDX-07 · O filtro de status mostra só os status do negócio
+- **Persona:** atendente quer filtrar a fila por status da OS.
+- **Aceite:** Dado o tenant com seus status de reparo · Quando abro a fila · Então
+  `meta.repair_statuses` é o mapa `id → nome` desses status, sem nenhuma outra chave; e os chips do
+  filtro são exatamente esses status (nenhum, se o negócio não tem status cadastrado).
+- **Regressão que defende:** `RepairStatus::forDropdown()` devolve `{statuses, template}`, não o
+  mapa. O Controller passava o retorno inteiro, e a tela transformava as duas chaves em chips: em
+  prod biz=1 (2026-10-02) apareciam um chip vazio e um chip "null", e clicar neles mandava
+  `repair_status_id` não numérico. Num negócio com status, os status reais nem viravam chip.
+- **Teste:** `Modules/Repair/Tests/Feature/RepairIndexContratoTest.php`
+- **Status: ⬜** _(teste escrito em 2026-10-02; veredito pelo CI da lane `verticais-pest`)_
+
+---
+
 ## Contrato ainda sem UC (prosa honesta, sem gate)
 
 > Comportamento real, hoje defendido por teste que **não cita UC** — logo invisível ao G-2. Vira UC
