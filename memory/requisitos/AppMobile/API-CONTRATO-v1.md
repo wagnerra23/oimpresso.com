@@ -332,6 +332,8 @@ menu web da Oficina. Sem acesso → `403 sem_permissao`. Vocabulário de reparo:
 - `valor` = soma dos itens da OS (peças + mão de obra), como o card web; `null` sem item.
   `cliente` = cliente da OS; `null` se a OS não tem cliente.
 - Ordem: etapa mais avançada primeiro; desempate pela OS mais recente.
+- O filtro `etapa` só filtra `itens` (e `tem_mais`). `total`, `travadas` e `etapas[].total` contam
+  sempre TODAS as OS ativas, com ou sem filtro.
 
 ### 11.2 Detalhe da OS (tela 03) — só leitura ✅
 
