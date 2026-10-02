@@ -416,6 +416,33 @@ recente primeiro.
 - **Escrita** (gerar, consultar, cancelar): ainda **não existe** — vem em PR próprio, pela regra mestre
   (dupla prova + antes→depois + ok do [W]).
 
+### 10.6 Pagamentos (tela 15) — escrita (mexe em valor: regra mestre)
+
+Decisões [W] 2026-10-02: **valor = saldo em aberto** do documento; **credencial = a padrão** do business.
+
+- `GET /api/app/pagamentos/referencias` → `{ itens:[{tipo:"pedido"|"orcamento", id, rotulo, cliente, valor}] }`:
+  pedidos (vendas finais) e orçamentos (rascunhos) que o usuário vê na lista de Pedidos (§2), com
+  cliente e saldo em aberto > 0, até 30 de cada, mais recentes primeiro. `valor` = o saldo, só para exibir.
+- `POST /api/app/pagamentos { referencia:{tipo, id}, metodo, vencimento_dias: 3|7|15 }` → `201` com o
+  item no formato da lista (§10.5). **O app nunca manda valor** (se mandar, é ignorado).
+  - Valor = **saldo em aberto** = `final_total` − pago, com pago = `TransactionUtil::getTotalPaid`
+    (devolução ao cliente subtrai do pago). Saldo zero → 422.
+  - `metodo`: `boleto` e `qualquer` → boleto (o banco pode embutir PIX); `pix` → PIX com vencimento
+    (`cobv`); `cartao` → 422 (cartão exige token e não sai do app).
+  - Conta/credencial: `ContaBancaria::padraoParaCobranca` — a primeira conta do business com
+    credencial de gateway (a mesma regra da emissão pela venda na web).
+  - `422 {erro:"validacao", campos}` · `404 nao_encontrado` (documento que o usuário não vê ou de
+    outra empresa) · `409 ja_existe` com `item` (cobrança em aberto e no prazo, **ou já paga** — o
+    pagamento no gateway não é lançado na venda, então cobrar de novo seria em dobro) ·
+    `503 sem_configuracao` (sem conta com gateway) · `503 provedor_indisponivel` (o banco falhou;
+    a tentativa fica registrada como `erro`, fora da lista, e não bloqueia tentar de novo).
+- `POST /api/app/pagamentos/{id}/consultar` → item atualizado. Se o banco diz paga, aplica a mesma
+  reconciliação do webhook (`ReconciliarCobrancaService::marcarPaga`); senão continua como estava.
+- `POST /api/app/pagamentos/{id}/cancelar` → item atualizado (cancelada no banco) · `409 nao_cancelavel`
+  se já paga · cancelada de novo devolve o item sem chamar o banco.
+- Acesso: a regra do Financeiro (§10.1) + o documento visível ao usuário. Cobrança/documento de outra
+  empresa → 404. Limite: 20 gerações/min, 30 consultas/min.
+
 ## 11. Oficina — Onda D (Modules/OficinaAuto)
 
 Área `oficina` em `areas` (§6): módulo `oficina_auto_module` no pacote do business (Camada 1;
@@ -449,30 +476,3 @@ menu web da Oficina. Sem acesso → `403 sem_permissao`. Vocabulário de reparo:
   `cliente` = cliente da OS; `null` se a OS não tem cliente.
 - Ordem: etapa mais avançada primeiro; desempate pela OS mais recente.
 - **Escrita** (gerar, consultar, cancelar): §10.6.
-
-### 10.6 Pagamentos (tela 15) — escrita (mexe em valor: regra mestre)
-
-Decisões [W] 2026-10-02: **valor = saldo em aberto** do documento; **credencial = a padrão** do business.
-
-- `GET /api/app/pagamentos/referencias` → `{ itens:[{tipo:"pedido"|"orcamento", id, rotulo, cliente, valor}] }`:
-  pedidos (vendas finais) e orçamentos (rascunhos) que o usuário vê na lista de Pedidos (§2), com
-  cliente e saldo em aberto > 0, até 30 de cada, mais recentes primeiro. `valor` = o saldo, só para exibir.
-- `POST /api/app/pagamentos { referencia:{tipo, id}, metodo, vencimento_dias: 3|7|15 }` → `201` com o
-  item no formato da lista (§10.5). **O app nunca manda valor** (se mandar, é ignorado).
-  - Valor = **saldo em aberto** = `final_total` − pago, com pago = `TransactionUtil::getTotalPaid`
-    (devolução ao cliente subtrai do pago). Saldo zero → 422.
-  - `metodo`: `boleto` e `qualquer` → boleto (o banco pode embutir PIX); `pix` → PIX com vencimento
-    (`cobv`); `cartao` → 422 (cartão exige token e não sai do app).
-  - Conta/credencial: `ContaBancaria::padraoParaCobranca` — a primeira conta do business com
-    credencial de gateway (a mesma regra da emissão pela venda na web).
-  - `422 {erro:"validacao", campos}` · `404 nao_encontrado` (documento que o usuário não vê ou de
-    outra empresa) · `409 ja_existe` com `item` (cobrança em aberto e no prazo, **ou já paga** — o
-    pagamento no gateway não é lançado na venda, então cobrar de novo seria em dobro) ·
-    `503 sem_configuracao` (sem conta com gateway) · `503 provedor_indisponivel` (o banco falhou;
-    a tentativa fica registrada como `erro`, fora da lista, e não bloqueia tentar de novo).
-- `POST /api/app/pagamentos/{id}/consultar` → item atualizado. Se o banco diz paga, aplica a mesma
-  reconciliação do webhook (`ReconciliarCobrancaService::marcarPaga`); senão continua como estava.
-- `POST /api/app/pagamentos/{id}/cancelar` → item atualizado (cancelada no banco) · `409 nao_cancelavel`
-  se já paga · cancelada de novo devolve o item sem chamar o banco.
-- Acesso: a regra do Financeiro (§10.1) + o documento visível ao usuário. Cobrança/documento de outra
-  empresa → 404. Limite: 20 gerações/min, 30 consultas/min.
