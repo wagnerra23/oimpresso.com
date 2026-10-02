@@ -392,9 +392,7 @@ class PessoasController extends Controller
         try {
             $c = \App\Contact::where('business_id', $bizId)->findOrFail($id);
             $antes = clone $c;
-            foreach ($alterar as $coluna => $valor) {
-                $c->{$coluna} = $valor;
-            }
+            $c->fill($alterar); // Contact::$guarded = ['id']: as colunas de $alterar são todas preenchíveis.
             $c->save();
             event(new ContactCreatedOrModified($c, 'updated'));
             app(ContactUtil::class)->activityLog($c, 'edited', $antes);
