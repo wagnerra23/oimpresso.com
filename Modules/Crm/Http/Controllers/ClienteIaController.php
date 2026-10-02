@@ -475,12 +475,19 @@ class ClienteIaController extends Controller
             $total = (float) ($agg->total ?? 0);
             $ticketMedio = $cnt > 0 ? $total / $cnt : 0.0;
 
-            // Saldo aberto: soma final_total - amount_paid de payment_status nao paid.
+            // Saldo aberto: final_total menos o que foi pago (transaction_payments), nas vendas
+            // due/partial — a fórmula do `valor_aberto` da lista de pessoas
+            // (ContactController::buildClienteIndexCustomers), só que restrita a status `final`
+            // (rascunho/orçamento não é dívida; a lista ainda os conta). payment_status é
+            // enum('paid','due','partial') — 'overdue' nunca existiu na coluna. Antes usava `transactions.total_paid`, coluna que não existe: o Unknown column caía
+            // no catch e zerava TUDO, inclusive o ticket médio acima (D8 do MAPA-DE-DADOS-v1).
+            $pagoSub = '(SELECT COALESCE(SUM(tp.amount), 0) FROM transaction_payments tp WHERE tp.transaction_id = transactions.id)';
             $saldoAgg = Transaction::where('business_id', $businessId)
                 ->where('contact_id', $contact->id)
                 ->where('type', 'sell')
-                ->whereIn('payment_status', ['due', 'partial', 'overdue', 'partial-overdue'])
-                ->selectRaw('COALESCE(SUM(final_total - COALESCE(total_paid, 0)), 0) as saldo')
+                ->where('status', 'final')
+                ->whereIn('payment_status', ['due', 'partial'])
+                ->selectRaw("COALESCE(SUM(final_total - {$pagoSub}), 0) as saldo")
                 ->first();
             $saldo = max(0.0, (float) ($saldoAgg->saldo ?? 0));
 

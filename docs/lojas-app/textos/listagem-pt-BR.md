@@ -1,5 +1,10 @@
 # oimpresso — textos das lojas (pt-BR) · 1ª SUBMISSÃO · RASCUNHO para [W] revisar
 
+> ⛔ **NÃO USAR NA SUBMISSÃO (D13, [W] 2026-10-01):** a v1 voltou às 7 áreas (Início, Tarefas, Pedidos, Produção,
+> Pessoas, Ponto, Mais) e a submissão só acontece quando elas existirem no app. Este arquivo "só Ponto" fica guardado
+> como histórico. O texto a usar será o de `listagem-pt-BR-completa.md`, revisado quando as telas ficarem prontas.
+
+
 > **Escopo da 1ª submissão = o que o app tem hoje** (sessão que gerencia o app, 2026-10-01): Login, Início (escala do
 > dia + indicadores do ponto), Ponto (Bater · Meu espelho · Justificar) e Conta, mais o lembrete de bater ponto (push).
 > Texto de loja que promete função ausente é motivo de recusa. A versão com Tarefas, Pedidos, Produção e Pessoas

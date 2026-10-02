@@ -39,6 +39,14 @@ class User extends Authenticatable
             return false;
         }
 
+        // App das lojas (client público, password grant): o /oauth/token não passa pelo
+        // LoginController, então as travas do login web são repetidas aqui — só para o
+        // client do app, sem mudar os clients do desktop abaixo.
+        if (\App\Auth\AppMobileOAuth::ehClienteDoApp((int) request()->input('client_id'))
+            && \App\Auth\AppMobileOAuth::bloqueio($this) !== null) {
+            return false;
+        }
+
         // Clients de desktop Delphi (officeimpresso). Se adicionar novos,
         // listar aqui — validacao so bloqueia desktop, nao usuarios web.
         $desktopClients = [39, 107]; // WR Server, Registro do OfficeImpresso Offliine
