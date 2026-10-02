@@ -686,6 +686,13 @@ jobs:
       - name: Permissions storage + bootstrap/cache
         run: /tmp/ssh_exec.sh "cd $RDIR && chmod -R 775 storage bootstrap/cache 2>&1 | tail -3 || true"
 
+      - name: Chaves do Passport sem leitura para outros (660)
+        # O chmod -R 775 acima deixava storage/oauth-private.key legível por qualquer usuário do
+        # servidor; o league/oauth2-server recomenda 600 ou 660. 660 mantém a leitura do grupo
+        # caso o PHP web não rode como o dono do arquivo. A leitura é conferida pela web no step
+        # "Chaves do Passport legíveis", depois do smoke, que volta para 775 se quebrar.
+        run: /tmp/ssh_exec.sh "cd $RDIR && for f in storage/oauth-private.key storage/oauth-public.key; do [ -f \$f ] && chmod 660 \$f; done; ls -l storage/oauth-*.key 2>&1 || true"
+
       - name: Force OPcache invalidate (touch mtime — best-effort)
         # LSPHP/LiteSpeed segura bytecode entre deploys. `find -exec touch` bump o mtime
         # dos PHPs → LSPHP re-stata (validate_timestamps). `public` incluído pra recompilar
@@ -845,6 +852,27 @@ jobs:
             echo "::error::O /login não serve os assets de entrada do manifest deste build (ver ESPERADO × SERVIDO acima). Publicação não chegou ao prod. Deploy FALHA."
             echo "smoke_failed=true" >> "$GITHUB_OUTPUT"
             exit 0
+          fi
+
+      - name: Chaves do Passport legíveis pelo PHP web (sondas sem credencial)
+        # Pública: Bearer inválido em /api/app/inicio → 401 (o guard leu a chave e recusou).
+        # Privada: grant password com usuário inexistente em /oauth/token → 400 invalid_grant (o
+        # servidor carrega a chave privada antes de validar o usuário). Chave ilegível = 500 nas
+        # duas. Se der 500, volta para 775 e avisa, sem derrubar o deploy.
+        # (Uma medição avulsa de 404 numa janela de deploy, em 2026-10-02, era transitória.)
+        run: |
+          set -uo pipefail
+          # Cabeçalho montado fora da linha do curl: o valor é um token inválido de propósito, mas o
+          # gitleaks (regra curl-auth-header) lê "curl -H Authorization" na mesma linha como segredo.
+          SONDA_AUTH="Authorization: Bearer token-invalido"
+          PUB=$(curl -s -o /dev/null -w '%{http_code}' --max-time 30 -H 'Accept: application/json' -H "$SONDA_AUTH" https://oimpresso.com/api/app/inicio)
+          PRIV=$(curl -s -o /dev/null -w '%{http_code}' --max-time 30 -X POST -H 'Accept: application/json' -d 'grant_type=password&client_id=110&client_secret=&username=sonda-deploy-inexistente@invalid&password=x&scope=' https://oimpresso.com/oauth/token)
+          echo "chave pública → HTTP $PUB (esperado 401) · chave privada → HTTP $PRIV (esperado 400)"
+          if [ "$PUB" = "500" ] || [ "$PRIV" = "500" ]; then
+            /tmp/ssh_exec.sh "cd $RDIR && chmod 775 storage/oauth-private.key storage/oauth-public.key 2>&1 || true"
+            echo "::warning::Chave do Passport ilegível com 660; voltei para 775. Investigar o usuário do PHP web."
+          elif [ "$PUB" != "401" ] || [ "$PRIV" != "400" ]; then
+            echo "::warning::Sonda fora do esperado (pública $PUB, privada $PRIV) — leitura da chave não comprovada."
           fi
 
       - name: Failsafe — site no ar SÓ se bootar; senão mantém maintenance (503 gracioso)

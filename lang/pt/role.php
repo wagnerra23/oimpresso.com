@@ -14,6 +14,8 @@
      'user.delete' => 'Excluir usuário',
      'commission_agent.view' => 'Ver agentes comerciais',
      'commission_agent.manage' => 'Adicionar, editar e remover agentes comerciais',
+     'discount.view' => 'Ver descontos',
+     'discount.manage' => 'Adicionar, editar, desativar e excluir descontos',
      'supplier.view' => 'Ver provedor',
      'supplier.create' => 'Adicionar provedor',
      'supplier.update' => 'Editar provedor',
