@@ -38,5 +38,6 @@ Route::middleware('auth:api')->prefix('app')->name('app.')->group(function () {
         ->where('cep', '[0-9-]{1,12}')->middleware('throttle:60,1')->name('cep.show');
     Route::get('/produtos', [\App\Http\Controllers\Api\App\ProdutosController::class, 'produtos'])->name('produtos.index');
     Route::get('/estoque', [\App\Http\Controllers\Api\App\ProdutosController::class, 'estoque'])->name('estoque.index');
+    Route::get('/estoque/{id}', [\App\Http\Controllers\Api\App\ProdutosController::class, 'estoqueItem'])->whereNumber('id')->name('estoque.show');
     Route::get('/inicio', [\App\Http\Controllers\Api\App\InicioController::class, 'show'])->name('inicio');
 });
