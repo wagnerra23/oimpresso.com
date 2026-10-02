@@ -39,4 +39,5 @@ Route::middleware('auth:api')->prefix('app')->name('app.')->group(function () {
     Route::get('/cep/{cep}', [\App\Http\Controllers\Api\App\CepController::class, 'show'])
         ->where('cep', '[0-9-]{1,12}')->middleware('throttle:60,1')->name('cep.show');
     Route::get('/inicio', [\App\Http\Controllers\Api\App\InicioController::class, 'show'])->name('inicio');
+    Route::get('/venda/produtos', [\App\Http\Controllers\Api\App\VendaRapidaController::class, 'produtos'])->name('venda.produtos');
 });
