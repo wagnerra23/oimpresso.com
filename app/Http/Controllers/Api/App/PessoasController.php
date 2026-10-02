@@ -78,6 +78,66 @@ class PessoasController extends Controller
         ]);
     }
 
+    /**
+     * GET /api/app/pessoas/{id}/cadastro — Ficha cadastral (tela 34, só leitura, contrato §4.1).
+     * Mesmas permissões e o mesmo escopo da ficha. Campo que o cadastro não tem sai null.
+     */
+    public function cadastro(Request $request, int $id): JsonResponse
+    {
+        $user = $request->user();
+        if (! $this->podeVer($user)) {
+            return $this->semPermissao();
+        }
+
+        $c = $this->base($user, '')->where('contacts.id', $id)->first([
+            'contacts.id', 'contacts.name', 'contacts.supplier_business_name', 'contacts.tipo',
+            'contacts.tax_number', 'contacts.cpf_cnpj', 'contacts.indicador_ie', 'contacts.ind_ie_dest',
+            'contacts.is_customer', 'contacts.is_supplier', 'contacts.is_employee',
+            'contacts.city', 'contacts.state', 'contacts.cep', 'contacts.zip_code', 'contacts.city_code',
+            'contacts.email_nfe', 'contacts.credit_limit',
+            'contacts.pay_term_number', 'contacts.pay_term_type',
+            'contacts.whatsapp_consent', 'contacts.email_consent', 'contacts.consent_updated_at',
+        ]);
+        if (! $c) {
+            return response()->json(['erro' => 'nao_encontrado', 'mensagem' => 'Pessoa não encontrada.'], 404);
+        }
+
+        $prazo = $c->pay_term_number !== null
+            ? (int) $c->pay_term_number * ($c->pay_term_type === 'months' ? 30 : 1)
+            : null;
+
+        return response()->json([
+            'id' => (int) $c->id,
+            'nome' => $this->nome($c),
+            'tipo' => $c->tipo ?: null,
+            'identificacao' => [
+                'razao_social' => $c->supplier_business_name ?: ($c->name ?: null),
+                'documento' => $this->documento($c->cpf_cnpj ?: $c->tax_number),
+                'indicador_ie' => $c->indicador_ie ?: ($c->ind_ie_dest ?: null),
+                'papeis' => $this->papeis($c),
+            ],
+            'endereco_fiscal' => [
+                'cidade' => $c->city ?: null,
+                'uf' => $c->state ?: null,
+                'cep' => $c->cep ?: ($c->zip_code ?: null),
+                'codigo_ibge' => $c->city_code ?: null,
+                'email_nfe' => $c->email_nfe ?: null,
+            ],
+            'comercial' => [
+                // O ERP não tem classificação ABC do cliente (`segmento` é ramo: varejo, atacado…).
+                'classificacao' => null,
+                'limite_credito' => $c->credit_limit !== null ? round((float) $c->credit_limit, 2) : null,
+                'prazo_padrao_dias' => $prazo,
+            ],
+            'consentimento' => [
+                'whatsapp' => $c->whatsapp_consent === null ? null : (bool) $c->whatsapp_consent,
+                'email_nfe' => $c->email_consent === null ? null : (bool) $c->email_consent,
+                'sms' => null,
+                'registrado_em' => $c->consent_updated_at ? \Carbon\Carbon::parse($c->consent_updated_at)->toIso8601String() : null,
+            ],
+        ]);
+    }
+
     public function show(Request $request, int $id): JsonResponse
     {
         $user = $request->user();
