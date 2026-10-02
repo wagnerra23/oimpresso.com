@@ -73,7 +73,9 @@ final class RegistrarVendaRapida
         }
 
         $total = $totalC / 100;
+        // getCustomerGroup devolve [] (sem grupo) ou o objeto do grupo; o docblock diz só array.
         $cg = $this->contactUtil->getCustomerGroup($bizId, $contato->id);
+        $grupoClienteId = is_object($cg) && ! empty($cg->id) ? (int) $cg->id : null;
         $input = [
             'location_id' => $local->id,
             'status' => 'final',
@@ -85,14 +87,14 @@ final class RegistrarVendaRapida
             'tax_rate_id' => null,
             'is_direct_sale' => 1,
             'is_created_from_api' => 1,
-            'customer_group_id' => (empty($cg) || empty($cg->id)) ? null : $cg->id,
+            'customer_group_id' => $grupoClienteId,
             'selling_price_group_id' => $local->selling_price_group_id ?: null,
             'commission_agent' => $business->sales_cmsn_agnt === 'logged_in_user' ? $user->id : null,
         ];
-        $invoiceTotal = $this->productUtil->calculateInvoiceTotal($produtos, null, null, false);
+        $invoiceTotal = $this->productUtil->calculateInvoiceTotal($produtos, 0, null, false); // 0 = sem imposto da venda (o método testa !empty)
 
         $tx = $this->transactionUtil->createSellTransaction($bizId, $input, $invoiceTotal, $user->id, false);
-        $this->transactionUtil->createOrUpdateSellLines($tx, $produtos, $local->id, false, null, [], false);
+        $this->transactionUtil->createOrUpdateSellLines($tx, $produtos, $local->id, false, null, [], false); // @phpstan-ignore argument.type (docblock do TransactionUtil diz array; o id do local é o que o SellPosController passa)
 
         $metodo = self::METODOS[$d['metodo']];
         $this->transactionUtil->createOrUpdatePaymentLines($tx, [[
@@ -213,7 +215,8 @@ final class RegistrarVendaRapida
             $totalC += $subtotalC;
             $inc = $precoC / 100;
             $taxa = $v->tax_amount !== null ? (float) $v->tax_amount : null;
-            $exc = $taxa !== null ? $this->productUtil->calc_percentage_base($inc, $taxa) : $inc;
+            // Mesma conta do Util::calc_percentage_base (number * 100 / (100 + percent)), sem o int do docblock.
+            $exc = $taxa !== null ? ($inc * 100) / (100 + $taxa) : $inc;
 
             $produtos[] = [
                 'product_id' => (int) $v->product_id,

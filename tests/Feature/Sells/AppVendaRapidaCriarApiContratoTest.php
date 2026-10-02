@@ -278,7 +278,8 @@ it('UC-APPVR-17 · permissão, forma de pagamento e header: sem permissão 403; 
     $corpo['metodo'] = 'boleto';
     appVcPost($this, $corpo)->assertStatus(422)->assertJsonPath('campos', fn ($c) => isset($c['metodo']));
 
-    $this->postJson('/api/app/vendas', $this->corpo)->assertStatus(422)
+    // withHeaders persiste entre requisições do mesmo teste: sem o flush, a chave anterior ia junto.
+    $this->flushHeaders()->postJson('/api/app/vendas', $this->corpo)->assertStatus(422)
         ->assertJsonPath('campos', fn ($c) => isset($c['idempotency_key']));
     expect(appVcEstoque($this, $this->banner))->toEqualWithDelta(5.0, 0.0001);
 });
