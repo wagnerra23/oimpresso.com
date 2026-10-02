@@ -175,6 +175,11 @@ jobs:
         # valor — dupla prova contra cópia congelada do código antigo) e [T0] 98 × 99.
         # NASCE SEM RUN: vermelho aqui é este arquivo.
         #
+        # 2026-10-01 — + SellsPosIndexContratoTest (UC-POS-01..05 de `Sells/Pos/Index.casos.md`,
+        # thread 01 do playbook venda-menu): Lista de POS — o filtro `is_direct_sale=0` de
+        # /sells-list-json (rodapé do servidor, vencido, período, gate sell.view); o render de
+        # GET /pos entra junto com a Page. Tenant 98 × 99. NASCE SEM RUN: vermelho aqui é este arquivo.
+        #
         # 2026-10-02 — + ImportSalesContratoTest (thread 05 de Vendas, UC-IMPV-*): importação
         # de vendas por planilha pelo REQUEST e pela FILA (ImportarVendasJob, decisão D2), com
         # o mesmo total e a mesma baixa nos dois caminhos e na conta à mão (REGRA MESTRE), +
@@ -203,6 +208,7 @@ jobs:
             tests/Feature/Sells/SellsRepairSubtipoContratoTest.php \
             tests/Feature/Sells/BuscaProdutoPrecoDeGrupoContratoTest.php \
             tests/Feature/Sells/DescontosContratoTest.php \
+            tests/Feature/Sells/SellsPosIndexContratoTest.php \
             tests/Feature/Sells/ImportSalesContratoTest.php
 
 
