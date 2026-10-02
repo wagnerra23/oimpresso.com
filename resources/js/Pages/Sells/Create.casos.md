@@ -5,7 +5,7 @@ irmaos: Create.charter.md (lei)
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso E material de treino.
 owner: wagner
-last_run: "2026-10-01"
+last_run: "2026-10-02"
 ---
 
 <!-- REVALIDAÇÃO 2026-10-01 (G-6: o .tsx mudou de novo — UC-S04, preço do grupo ao adicionar).
@@ -67,6 +67,12 @@ last_run: "2026-10-01"
      O que está afirmado aqui é o ALCANCE do diff — medido — não um veredito de
      execução. O comportamento novo em si ainda não tem teste: está no Backlog
      abaixo, sem id, conforme G-2. -->
+
+<!-- REVALIDAÇÃO 2026-10-02 (G-6: o .tsx mudou depois do last_run de 01/10).
+     Única mudança no .tsx: `osOrigem` entrou nas dependências do useMemo do `draftKey`
+     (ESLint exhaustive-deps). osOrigem vem das props e não muda durante a tela, então o
+     rascunho segue igual: venda aberta da OS não usa rascunho (UC-S07), venda comum usa.
+     Nenhum UC muda de status. -->
 
 
 
