@@ -1952,12 +1952,7 @@ class SellController extends Controller
 
         $contaBancaria = isset($validated['account_id'])
             ? ContaBancaria::query()->where('business_id', $businessId)->find($validated['account_id'])
-            : ContaBancaria::query()
-                ->where('business_id', $businessId)
-                ->whereNull('deleted_at')
-                ->whereNotNull('payment_gateway_credential_id')
-                ->orderBy('id')
-                ->first();
+            : ContaBancaria::padraoParaCobranca($businessId);
 
         if (! $contaBancaria) {
             return response()->json([

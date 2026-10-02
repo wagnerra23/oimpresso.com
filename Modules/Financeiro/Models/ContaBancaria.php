@@ -78,6 +78,22 @@ class ContaBancaria extends Model
         return $this->hasMany(BoletoRemessa::class, 'conta_bancaria_id');
     }
 
+    /**
+     * Conta "padrão" para emitir cobrança: a primeira conta do business (menor id) que tem
+     * credencial de gateway ligada. Não existe coluna de padrão — esta é a regra que a emissão
+     * pela venda (SellController::emitirCobranca) já usava e que o app (tela 15) reusa.
+     * business_id explícito: a API do app não tem sessão, e o BusinessScope depende dela.
+     */
+    public static function padraoParaCobranca(int $businessId): ?self
+    {
+        return static::query()
+            ->where('business_id', $businessId)
+            ->whereNull('deleted_at')
+            ->whereNotNull('payment_gateway_credential_id')
+            ->orderBy('id')
+            ->first();
+    }
+
     public function gatewayCredential(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(BoletoCredential::class, 'rb_gateway_credential_id');
