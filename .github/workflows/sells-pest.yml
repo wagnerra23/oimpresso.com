@@ -159,6 +159,7 @@ jobs:
             tests/Feature/Sells/SellsShowContratoTest.php \
             tests/Feature/Sells/SellsEditContratoTest.php \
             tests/Feature/Sells/SellsIndexTenantContratoTest.php \
+            tests/Feature/Sells/SellsIndexFiltroDataFimContratoTest.php \
             tests/Feature/Sells/SellsCreateV3ContratoTest.php \
             tests/Feature/Sells/Wave1ShowBaselineTest.php \
             tests/Feature/Sells/Wave1ShowInertiaTest.php \
