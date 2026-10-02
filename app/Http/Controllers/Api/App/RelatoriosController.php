@@ -221,7 +221,7 @@ class RelatoriosController extends Controller
         $q->addSelect('p.alert_quantity');
 
         return [
-            'baixo' => $q->limit(self::ESTOQUE_MAX)->get()->map(fn ($p) => [
+            'baixo' => $q->toBase()->limit(self::ESTOQUE_MAX)->get()->map(fn ($p) => [
                 'nome' => $p->type === 'variable'
                     ? trim($p->product . ' — ' . trim(($p->product_variation ?? '') . ' ' . ($p->variation ?? '')))
                     : (string) $p->product,
