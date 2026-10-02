@@ -65,6 +65,8 @@ test('Tier 0 — o mapa não lista cliente de outro business', function () {
     $meuName = 'Cliente Proprio Map '.uniqid();
     DB::table('contacts')->insert([
         'business_id' => $this->business->id,
+        // created_by é FK para users: sem ele o INSERT cai (1452).
+        'created_by' => $this->user->id,
         'type' => 'customer',
         'name' => $meuName,
         'contact_status' => 'active',
@@ -75,6 +77,8 @@ test('Tier 0 — o mapa não lista cliente de outro business', function () {
     $otherName = 'Cliente Estrangeiro Map '.uniqid();
     DB::table('contacts')->insert([
         'business_id' => $otherBusiness->id,
+        // created_by é FK para users: um usuário DAQUELA empresa (o insert nunca tinha rodado).
+        'created_by' => \App\User::factory()->create(['business_id' => $otherBusiness->id])->id,
         'type' => 'customer',
         'name' => $otherName,
         'contact_status' => 'active',
