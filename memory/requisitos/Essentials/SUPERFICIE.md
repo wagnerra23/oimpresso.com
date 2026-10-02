@@ -14,7 +14,7 @@ module: Essentials
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Essentials/**` + `resources/js/Pages/Essentials/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 306 arquivos em 17 papéis.
+**Total mapeado:** 307 arquivos em 17 papéis.
 
 ## Controllers — 19
 
@@ -52,7 +52,7 @@ module: Essentials
 - [ToDoUploadDocumentRequest.php](../../../Modules/Essentials/Http/Requests/ToDoUploadDocumentRequest.php)
 - [UpdateReminderRequest.php](../../../Modules/Essentials/Http/Requests/UpdateReminderRequest.php)
 
-## Services — 8
+## Services — 9
 
 - [AttendanceImportService.php](../../../Modules/Essentials/Services/AttendanceImportService.php)
 - [LeaveAuditService.php](../../../Modules/Essentials/Services/LeaveAuditService.php)
@@ -61,6 +61,7 @@ module: Essentials
 - [PayrollTotalCalculator.php](../../../Modules/Essentials/Services/PayrollTotalCalculator.php)
 - [ReminderAuditService.php](../../../Modules/Essentials/Services/ReminderAuditService.php)
 - [SalesTargetFaixaValidator.php](../../../Modules/Essentials/Services/SalesTargetFaixaValidator.php)
+- [TarefasDoApp.php](../../../Modules/Essentials/Services/TarefasDoApp.php)
 - [TodoService.php](../../../Modules/Essentials/Services/TodoService.php)
 
 ## Models / Entities — 18

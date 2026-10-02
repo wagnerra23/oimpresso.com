@@ -7,6 +7,7 @@ namespace App\Services\Sells;
 use App\Business;
 use App\Contact;
 use App\Product;
+use App\Support\Privacy\PiiRedactor;
 use App\TaxRate;
 use App\Transaction;
 use App\TypesOfService;
@@ -17,6 +18,9 @@ use App\Utils\ProductUtil;
 use App\Utils\TransactionUtil;
 use App\Variation;
 use Carbon\Carbon;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Facades\Excel;
 
 /**
@@ -501,5 +505,156 @@ class ImportSalesService
     public function contarLinhas(array $parsed_array): int
     {
         return max(0, count($parsed_array) - 1);
+    }
+
+    /** Mensagem do log que carrega o retrato do lote (o teste e a auditoria procuram por ela). */
+    public const LOG_RETRATO = '[sells.import.reverter] retrato do lote antes de apagar';
+
+    /** Mensagem do log quando o lote é recusado (tudo-ou-nada). */
+    public const LOG_RECUSA = '[sells.import.reverter] lote recusado, nada apagado';
+
+    /**
+     * Reverte (APAGA) as vendas de um lote importado — tudo ou nada.
+     *
+     * Decisão D3 de [W], 2ª rodada (2026-10-02, textual: "opção 2 no D3"): o reverter
+     * CONTINUA APAGANDO, mas
+     *  1. antes de apagar grava no log um RETRATO completo do lote (`retratoDoLote`);
+     *  2. se QUALQUER venda do lote não pode ser apagada, NADA é apagado e a resposta diz
+     *     quais vendas impediram e por quê. O legado pulava a venda e respondia "sucesso".
+     *
+     * Fora disso o apagar é o do legado, sem reescrita: cada venda passa pelo mesmo
+     * `TransactionUtil::deleteSale()` (devolução de estoque, desfazer custeio FIFO,
+     * pagamentos e os eventos que o Financeiro escuta). A única regra que hoje faz o
+     * `deleteSale()` recusar uma venda é "já tem devolução" (`isReturnExist`) — é ela que a
+     * checagem prévia aplica. Se o `deleteSale()` recusar por outro motivo no meio do
+     * caminho (regra nova, ou devolução criada entre a checagem e o apagar), a transação
+     * inteira volta atrás: o tudo-ou-nada não depende de a lista prévia estar completa.
+     *
+     * @return array{ok: bool, lote: int, apagadas: int, impedidas: list<array{id: int, invoice_no: string, motivo: string}>}
+     */
+    public function reverterLote(int $businessId, int $lote): array
+    {
+        $vendas = Transaction::where('business_id', $businessId)
+            ->where('type', 'sell')
+            ->where('import_batch', $lote)
+            ->orderBy('id')
+            ->get();
+
+        $impedidas = [];
+        foreach ($vendas as $venda) {
+            // A MESMA regra que faz o deleteSale() recusar — chamada, não copiada.
+            if ($this->transactionUtil->isReturnExist($venda->id)) { // @phpstan-ignore argument.type (docblock legado declara o tipo "id")
+                $impedidas[] = $this->impedida($venda, (string) __('lang_v1.return_exist'));
+            }
+        }
+
+        if ($impedidas !== []) {
+            return $this->recusar($businessId, $lote, $impedidas);
+        }
+
+        // Retrato ANTES de qualquer escrita — é o que permite reconstituir o lote depois.
+        Log::info(self::LOG_RETRATO, $this->retratoDoLote($businessId, $lote, $vendas));
+
+        try {
+            DB::transaction(function () use ($businessId, $vendas) {
+                foreach ($vendas as $venda) {
+                    $resultado = $this->transactionUtil->deleteSale($businessId, $venda->id);
+                    if (empty($resultado['success'])) {
+                        throw new LoteImpedidoException([
+                            $this->impedida($venda, (string) ($resultado['msg'] ?? '')),
+                        ]);
+                    }
+                }
+            });
+        } catch (LoteImpedidoException $e) {
+            return $this->recusar($businessId, $lote, $e->impedidas);
+        }
+
+        return ['ok' => true, 'lote' => $lote, 'apagadas' => $vendas->count(), 'impedidas' => []];
+    }
+
+    /**
+     * Retrato do lote para o log. Sem PII crua: o contato vai pelo `contact_id` (nome e
+     * telefone ficam no banco, não no log) e o `invoice_no` — texto livre da planilha —
+     * passa pelo `PiiRedactor`. O "devolve ao estoque" espelha o `deleteSellLines()`: venda
+     * não-rascunho, produto com `enable_stock = 1`, na quantidade da linha.
+     *
+     * @param  Collection<int, Transaction>  $vendas
+     */
+    public function retratoDoLote(int $businessId, int $lote, Collection $vendas): array
+    {
+        $redactor = app(PiiRedactor::class);
+        $ids = $vendas->pluck('id')->map(fn ($id) => (int) $id)->all();
+        $linhasPorVenda = DB::table('transaction_sell_lines')->whereIn('transaction_id', $ids)->orderBy('id')->get()->groupBy('transaction_id');
+        $pagamentosPorVenda = DB::table('transaction_payments')->whereIn('transaction_id', $ids)->orderBy('id')->get()->groupBy('transaction_id');
+        $controlaEstoque = Product::whereIn('id', $linhasPorVenda->flatten(1)->pluck('product_id')->unique()->values()->all())
+            ->pluck('enable_stock', 'id');
+
+        $retrato = [];
+        foreach ($vendas as $venda) {
+            $linhas = [];
+            $devolve = [];
+            foreach ($linhasPorVenda->get($venda->id, collect()) as $linha) {
+                $linhas[] = [
+                    'sell_line_id' => (int) $linha->id,
+                    'product_id' => (int) $linha->product_id,
+                    'variation_id' => (int) $linha->variation_id,
+                    'quantidade' => (float) $linha->quantity,
+                    'preco_unitario' => (float) $linha->unit_price_inc_tax,
+                ];
+                if ($venda->status !== 'draft' && (int) ($controlaEstoque[$linha->product_id] ?? 0) === 1) {
+                    $devolve[] = [
+                        'product_id' => (int) $linha->product_id,
+                        'variation_id' => (int) $linha->variation_id,
+                        'location_id' => (int) $venda->location_id,
+                        'quantidade' => (float) $linha->quantity,
+                    ];
+                }
+            }
+
+            $retrato[] = [
+                'id' => (int) $venda->id,
+                'invoice_no' => $redactor->redact((string) $venda->invoice_no),
+                'business_id' => (int) $venda->business_id,
+                'contact_id' => ((int) $venda->contact_id) ?: null,
+                'status' => (string) $venda->status,
+                'final_total' => (float) $venda->final_total,
+                'linhas' => $linhas,
+                'pagamentos' => $pagamentosPorVenda->get($venda->id, collect())->map(fn ($p) => [
+                    'id' => (int) $p->id,
+                    'metodo' => (string) $p->method,
+                    'valor' => (float) $p->amount,
+                ])->values()->all(),
+                'devolve_ao_estoque' => $devolve,
+            ];
+        }
+
+        return [
+            'business_id' => $businessId,
+            'lote' => $lote,
+            'vendas' => $retrato,
+            'total_do_lote' => (float) $vendas->sum('final_total'),
+        ];
+    }
+
+    /**
+     * @param  list<array{id: int, invoice_no: string, motivo: string}>  $impedidas
+     * @return array{ok: bool, lote: int, apagadas: int, impedidas: list<array{id: int, invoice_no: string, motivo: string}>}
+     */
+    private function recusar(int $businessId, int $lote, array $impedidas): array
+    {
+        Log::warning(self::LOG_RECUSA, [
+            'business_id' => $businessId,
+            'lote' => $lote,
+            'impedidas' => array_map(fn (array $i) => ['id' => $i['id'], 'motivo' => $i['motivo']], $impedidas),
+        ]);
+
+        return ['ok' => false, 'lote' => $lote, 'apagadas' => 0, 'impedidas' => $impedidas];
+    }
+
+    /** @return array{id: int, invoice_no: string, motivo: string} */
+    private function impedida(Transaction $venda, string $motivo): array
+    {
+        return ['id' => (int) $venda->id, 'invoice_no' => (string) $venda->invoice_no, 'motivo' => $motivo];
     }
 }
