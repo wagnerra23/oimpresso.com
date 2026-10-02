@@ -638,7 +638,9 @@ class RepairController extends Controller
             'filters'    => $validated,
             'meta'       => [
                 'totals'           => $totals,
-                'repair_statuses'  => RepairStatus::forDropdown($business_id),
+                // forDropdown() devolve {statuses, template}; a tela espera só o mapa id→nome.
+                // Passar o retorno inteiro virava dois chips falsos no filtro ("" e "null"). UC-RIDX-07.
+                'repair_statuses'  => RepairStatus::forDropdown($business_id)['statuses'],
                 'service_staff'    => $this->transactionUtil->serviceStaffDropdown($business_id),
                 'business_locations' => BusinessLocation::forDropdown($business_id, false),
                 'currency_symbol'  => $currencySymbol,
