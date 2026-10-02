@@ -26,6 +26,10 @@
     "app/Jobs/CancelarCobrancaInterJob.php",
     "app/Services/CriarOsPorVendaService.php"
   ],
-  "allowlist": [],
-  "allowlist_razoes": {}
+  "allowlist": [
+    "app/Http/Controllers/Api/App/TarefasController.php"
+  ],
+  "allowlist_razoes": {
+    "app/Http/Controllers/Api/App/TarefasController.php": "Divida consciente 2026-10-02 (app das lojas, D11 [W]): a aba Tarefas junta ToDo do Essentials (TodoService::scopedQueryForUser, ToDo) e justificativas do Ponto (Intercorrencia, CheckPontoAccess::permite). Reusa a regra de visibilidade dos donos em vez de duplica-la no nucleo. Sai quando os dois modulos expuserem contrato em app/ (opcao b do teste). Registrado no PR #8519."
+  }
 }

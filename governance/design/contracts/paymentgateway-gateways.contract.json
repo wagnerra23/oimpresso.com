@@ -1,0 +1,67 @@
+{
+  "_nota": "Copy declarada a partir de PaymentGatewaysPage() do protótipo (F1+F1.5 aprovado por [W] em 2026-05-19) e travada só onde ela existe LITERALMENTE no protótipo e na tela (medido 2026-10-02: 217 strings coincidem, 67 só no protótipo). Cada string abaixo está em pg-payment-gateways-page.jsx.",
+  "_nota_recorte": "Fora de propósito: o aviso de mTLS do protótipo é texto do mock ('BCB · Recebedor Pix Aut. — mTLS expira em 47 dias'), e a tela mostra um aviso genérico; o cabeçalho de coluna 'Health · latência' virou 'Health'; 'última sync' virou a data de hoje; o sub do KPI de health com falha ('BCB Pix degradado · ver detalhes') virou 'ver detalhes no drawer'. Drawer, wizard de novo gateway, modal de confirmação e cheat sheet não entram nesta primeira versão — cada um é componente próprio e merece âncora própria.",
+  "tela": "Settings/PaymentGateways",
+  "fonte": "prototipo-ui/cowork/Wagner/pg-payment-gateways-page.jsx",
+  "_nota_fonte": "Mesma âncora que o charter declara em related_prototype — PaymentGatewaysPage() (L53).",
+  "alvo": [
+    "Modules/PaymentGateway/Resources/js/Pages/Settings/PaymentGateways/Index.tsx"
+  ],
+  "secoes": [
+    {
+      "id": "paymentgateway.gateways.kpis",
+      "_papel": "os 3 KPIs. Título, breadcrumb e ações do cabeçalho entram aqui porque o Header fica fora de qualquer âncora.",
+      "copy": [
+        "Gateways de Pagamento",
+        "Configurações · Pagamento",
+        "Testar todos",
+        "Novo gateway",
+        "Credenciais ativas",
+        "Health check",
+        "100% OK",
+        "todos drivers respondendo",
+        "Cobranças hoje ↗",
+        "emitidas em todos drivers · clique pra ver"
+      ],
+      "estados": [
+        "carregando",
+        "ok",
+        "com falha"
+      ]
+    },
+    {
+      "id": "paymentgateway.gateways.tabela",
+      "copy": [
+        "Gateways configurados",
+        "Apelido",
+        "Driver",
+        "Ambiente",
+        "Conta destino",
+        "Ativo",
+        "Produção",
+        "Sandbox",
+        "não vinculado",
+        "Rodar health check",
+        "Mais ações"
+      ],
+      "estados": [
+        "carregando",
+        "vazio",
+        "lista"
+      ]
+    },
+    {
+      "id": "paymentgateway.gateways.drivers",
+      "copy": [
+        "Drivers disponíveis",
+        "deprecated",
+        "Configurar"
+      ]
+    }
+  ],
+  "ordem": [
+    "paymentgateway.gateways.kpis",
+    "paymentgateway.gateways.tabela",
+    "paymentgateway.gateways.drivers"
+  ]
+}

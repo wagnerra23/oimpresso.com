@@ -5,9 +5,16 @@ irmaos: Index.charter.md (lei)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso.
 owner: wagner
-last_run: "2026-09-11"
+last_run: "2026-10-02"
 ---
 
+> ℹ️ **`last_run` 2026-09-11 → 2026-10-02 (G-6), e o que mudou na tela NÃO foi comportamento.**
+> O único toque em `Index.tsx` no [#8505](https://github.com/wagnerra23/oimpresso.com/pull/8505) foram **3 atributos `data-contract`**
+> (âncoras do contrato de tela `paymentgateway-gateways.contract.json`) em elementos que já existiam. Zero handler, zero prop,
+> zero copy, zero classe (verificado: removido o atributo `data-contract`, as linhas `-` e `+` do
+> `git diff origin/main...HEAD -- Modules/PaymentGateway/Resources/js/Pages/Settings/PaymentGateways/Index.tsx` ficam idênticas).
+> **Nenhum UC desta tela foi reexecutado**; o bump significa *trio reconciliado com a tela nesta data*, igual ao de 2026-09-11 abaixo.
+>
 > ℹ️ **`last_run` 2026-08-25 → 2026-09-11 (G-6), e o que mudou na tela NÃO foi comportamento.**
 > O único toque em `Index.tsx` no [#7224](https://github.com/wagnerra23/oimpresso.com/pull/7224) foi **1 linha(s) de COMENTÁRIO** —
 > o path do protótipo (`prototipo-ui/cowork/…` → `prototipo-ui/cowork/Wagner/…`, topologia por dono da ADR 0397).

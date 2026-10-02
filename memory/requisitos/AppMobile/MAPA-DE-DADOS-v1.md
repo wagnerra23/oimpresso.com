@@ -146,7 +146,7 @@ A própria SPEC de CV registra o Kanban PCP como não construído (`ComunicacaoV
 | Filtro "Em débito" | total no servidor (`kpis.com_atraso`); filtro roda no navegador | 🟡 | falta filtro no servidor |
 | Saldo / valor em aberto na lista | `buildClienteIndexCustomers` (`valor_aberto`, `saldo_devedor`, `os_abertas`) | ✅ | |
 | PF/PJ, doc, limite, bloqueado, situação | colunas em `contacts` (`tipo`, `credit_limit`, `bloqueado`, `situacao`) | ✅ | |
-| KPIs Pedidos / Ticket médio | `ClienteIaController::calcularStatsCliente` | ❌ bug | usa `total_paid`, coluna ausente no schema (`database/schema/mysql-schema.sql`); o `catch` zera tudo → ticket médio sai 0. Ver **D8** |
+| KPIs Pedidos / Ticket médio | `ClienteIaController::calcularStatsCliente` | ✅ | corrigido em 2026-10-01 pelo [#8479](https://github.com/wagnerra23/oimpresso.com/pull/8479): o saldo usava `transactions.total_paid` (coluna inexistente) e o `catch` zerava tudo; agora desconta `transaction_payments`. Em 2026-10-01 saía sempre 0. Ver **D8** |
 | Pedidos recentes | `ContactController::salesJson` (`/cliente/{id}/sales-json`) | ✅ | |
 | Novo pedido para X | `SellPosController` lê `contact_id` da URL | 🟡 | |
 | Ficha + edição por seção | `ClienteAutosaveController` (identificação, contato, endereço, comercial, classificação, papéis) | ✅ | |
@@ -154,7 +154,7 @@ A própria SPEC de CV registra o Kanban PCP como não construído (`ComunicacaoV
 | LGPD consentimentos | `whatsapp_consent`, `email_consent`; `Contact::canReceive*` | 🟡 | só leitura; nada grava |
 | Busca CNPJ / CEP | `Modules/Crm/Services/BrLookupService` (BrasilAPI / ViaCEP), `/cliente/lookup/*` | ✅ | |
 | Detalhe de fornecedor puro | `/cliente/{id}` aceita só `type` customer/both | 🟡 | fornecedor puro dá 404 |
-| **Permissão `view_own` na lista** | `buildClienteIndexCustomers` | ❌ achado | conferido por leitura: a lista não aplica `created_by`/`contactAccess` (o detalhe aplica, `ContactController::show`). Quem só tem `view_own` vê todas as pessoas **da própria empresa** (não cruza tenant) → **D8** |
+| **Permissão `view_own` na lista** | `buildClienteIndexCustomers` | ✅ | corrigido em 2026-10-01 pelo [#8469](https://github.com/wagnerra23/oimpresso.com/pull/8469): lista, KPIs e contadores das abas mostram só as pessoas criadas pelo usuário ou liberadas em `user_contact_access`. Antes, quem só tinha `view_own` via todas as pessoas da própria empresa → **D8** |
 
 ## 6. Ponto (colaborador)
 
@@ -212,7 +212,7 @@ Regras que não mudam: sem biometria/câmera (ADR 0383); marcação imutável (P
 | **D5** | **Qual entidade é "Pedido"** — Venda, OS de Repair, ou ordem de CV? E "Pular etapa" fica fora? | 5 candidatas; protótipo é de gráfica (arte), o pipeline com arte é o CV, que não tem endpoint | a decidir pelo [W] (muda o escopo da tela inteira) |
 | **D6** | Produção: construir cadastro de estações com carga, adaptar a tela para o Kanban existente, ou tirar da v1? | estação com carga % não existe | tirar da v1 ou adaptar ao Kanban |
 | **D7** | Transportadora como papel de pessoa: criar flag, ou tirar o chip? | hoje é tabela separada da NF-e | tirar o chip na v1 |
-| **D8** | Dois achados fora do escopo do app, mas na rota dele: `view_own` ignorado na lista de pessoas e ticket médio sempre 0 | ambos aparecem assim que Pessoas for para o celular | corrigir antes da tela Pessoas (PRs próprios) |
+| **D8** | Dois achados fora do escopo do app, mas na rota dele: `view_own` ignorado na lista de pessoas e ticket médio sempre 0 | ambos aparecem assim que Pessoas for para o celular | **fechado**: #8469 (view_own) e #8479 (ticket médio) |
 
 ### 8.1 Respostas do [W] — 2026-10-01
 
@@ -235,7 +235,7 @@ decisão, com as opções lado a lado. Onde a resposta difere da recomendação 
 | **D5** | **Pedido = VENDA do ERP** (`Transaction` + pipeline FSM de vendas, ADR 0143). OS de Repair e ordem de CV ficam fora da aba Pedidos. |
 | **D6** | Produção = **adaptar ao Kanban existente**, fila por etapa, **sem carga %** por estação. |
 | **D7** | **Sem o chip Transportadora** em Pessoas na v1. |
-| **D8** | Os dois defeitos viram sessão própria ("Corrigir 2 bugs da lista de Pessoas antes do app"), antes da tela Pessoas. |
+| **D8** | Os dois defeitos viram sessão própria ("Corrigir 2 bugs da lista de Pessoas antes do app"), antes da tela Pessoas. **Feito:** #8469 e #8479. |
 
 ---
 
@@ -251,8 +251,8 @@ decisão, com as opções lado a lado. Onde a resposta difere da recomendação 
 - Pular/saiu para entrega: `pular_etapa|skip_stage|voltar_etapa|saiu_para_entrega|out_for_delivery` → 0.
 - Estações: `Schema::create` com `estacao|station|workcenter|maquina|machine|centro_trabalho` → 0.
 - Transportadora como papel: `is_carrier`, flag em `contacts` → 0.
-- `view_own` na lista: `created_by|contactAccess|_own` dentro de `buildClienteIndexCustomers` → 0.
-- `total_paid` em `transactions`: ausente em `database/schema/mysql-schema.sql`.
+- `view_own` na lista: `created_by|contactAccess|_own` dentro de `buildClienteIndexCustomers` → 0 (medido 2026-10-01; fechado pelo #8469).
+- `total_paid` em `transactions`: ausente em `database/schema/mysql-schema.sql` (a coluna segue ausente; o #8479 deixou de usá-la).
 
 ## 10. Para a conta demo (business 235)
 

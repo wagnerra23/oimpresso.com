@@ -26,12 +26,12 @@
   ],
   "stats": {
     "modules": 35,
-    "nodes": 736,
-    "edges": 1025,
+    "nodes": 738,
+    "edges": 1026,
     "by_node_type": {
       "module": 39,
       "table": 102,
-      "adr": 129,
+      "adr": 131,
       "component": 389,
       "api": 77
     },
@@ -47,7 +47,7 @@
       "delegatesTo": 108,
       "migratesTo": 1,
       "supersedes": 24,
-      "supersedesPartially": 60,
+      "supersedesPartially": 61,
       "supersededBy": 28
     },
     "dangling": 0
@@ -955,6 +955,20 @@
       "type": "adr",
       "num": "0417",
       "slug": "0417-aposenta-tela-piloto-0253",
+      "exists": true
+    },
+    {
+      "id": "adr:0423",
+      "type": "adr",
+      "num": "0423",
+      "slug": "0423-ponto-push-lembrete-fcm",
+      "exists": true
+    },
+    {
+      "id": "adr:0424",
+      "type": "adr",
+      "num": "0424",
+      "slug": "0424-ponto-push-registro-pelo-app",
       "exists": true
     },
     {
@@ -6614,6 +6628,12 @@
     {
       "from": "adr:0417",
       "to": "adr:0253",
+      "type": "supersedesPartially",
+      "source": "supersedes_partially"
+    },
+    {
+      "from": "adr:0424",
+      "to": "adr:0423",
       "type": "supersedesPartially",
       "source": "supersedes_partially"
     },
