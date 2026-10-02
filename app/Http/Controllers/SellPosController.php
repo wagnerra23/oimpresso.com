@@ -444,7 +444,8 @@ class SellPosController extends Controller
                 'product_id' => (int) $linha->product_id,
                 'variation_id' => (int) $linha->variation_id,
                 'name' => (string) $linha->name,
-                'variation' => $linha->type === 'variable' ? (string) $linha->variation : null,
+                // Produto simples tem uma variação só, com o nome-placeholder 'DUMMY' do ProductUtil.
+                'variation' => $linha->variation !== 'DUMMY' ? (string) $linha->variation : null,
                 'sku' => (string) $linha->sub_sku,
                 'quantity' => (float) ($parte['quantity'] ?? 1),
                 // Mesma regra do precoDaBusca.ts (#8455): preço do grupo se houver, senão o base.
@@ -475,7 +476,8 @@ class SellPosController extends Controller
                 'pay_term_number' => $cliente->pay_term_number,
                 'pay_term_type' => $cliente->pay_term_type,
                 'shipping_address' => $cliente->shipping_address,
-                'selling_price_group_id' => $cliente->selling_price_group_id !== null ? (int) $cliente->selling_price_group_id : null,
+                'selling_price_group_id' => $cliente->getAttribute('selling_price_group_id') !== null
+                    ? (int) $cliente->getAttribute('selling_price_group_id') : null,
             ],
             'reparo' => [
                 'repair_status_id' => (int) $os->status_id,
