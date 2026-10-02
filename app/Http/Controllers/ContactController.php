@@ -583,31 +583,8 @@ class ContactController extends Controller
      */
     private function applyViewOwnFilter($q, string $type)
     {
-        $u = auth()->user();
-        if (! $u) {
-            return $q;
-        }
-        $soCliente = ! $u->can('customer.view') && $u->can('customer.view_own');
-        $soFornecedor = ! $u->can('supplier.view') && $u->can('supplier.view_own');
-        $soProprios = match ($type) {
-            'supplier' => $soFornecedor,
-            'all' => $soCliente || $soFornecedor,
-            default => $soCliente,
-        };
-        if (! $soProprios) {
-            return $q;
-        }
-        $uid = (int) $u->id;
-
-        return $q->where(function ($w) use ($uid) {
-            $w->where('contacts.created_by', $uid)
-                ->orWhereExists(function ($e) use ($uid) {
-                    $e->select(DB::raw(1))
-                        ->from('user_contact_access')
-                        ->whereColumn('user_contact_access.contact_id', 'contacts.id')
-                        ->where('user_contact_access.user_id', $uid);
-                });
-        });
+        // Regra única com a API do app das lojas (#8469): ver App\Services\Pessoas\PessoaEscopo.
+        return \App\Services\Pessoas\PessoaEscopo::viewOwn($q, $type, auth()->user());
     }
 
     /**
@@ -620,36 +597,7 @@ class ContactController extends Controller
      */
     private function applyContactTypeFilter($q, string $type)
     {
-        $flagColumn = [
-            'customer' => 'is_customer',
-            'supplier' => 'is_supplier',
-            'employee' => 'is_employee',
-            'representative' => 'is_representative',
-            // ADR 0246 (2026-06-03) — categoria "Outros" canônica
-            'other' => 'is_other',
-        ];
-
-        if ($type === 'all') {
-            return $q; // Sem filtro · todos papéis
-        }
-
-        $flag = $flagColumn[$type] ?? null;
-        if ($flag === null) {
-            // Fallback defensivo · tipo inválido cai pra customer (já validado em /cliente route).
-            return $q->where('contacts.type', 'customer');
-        }
-
-        // Prefere flag se a coluna existir (post-migration).
-        if (\Illuminate\Support\Facades\Schema::hasColumn('contacts', $flag)) {
-            return $q->where("contacts.{$flag}", 1);
-        }
-
-        // Fallback legacy: type enum UPOS. Mapeia 'customer' ↔ 'both' (UPOS legacy convention).
-        if ($type === 'customer') {
-            return $q->whereIn('contacts.type', ['customer', 'both']);
-        }
-
-        return $q->where('contacts.type', $type);
+        return \App\Services\Pessoas\PessoaEscopo::papel($q, $type);
     }
 
     /**
