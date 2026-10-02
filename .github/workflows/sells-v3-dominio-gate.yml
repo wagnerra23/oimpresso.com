@@ -94,6 +94,9 @@ on:
       # UC-S04 (2026-10-01): produto entra pelo preço do grupo. Teste e arquivo sob teste juntos.
       - 'tests/js/sells-busca-preco-grupo.test.tsx'
       - 'resources/js/Pages/Sells/_components/precoDaBusca.ts'
+      # UC-S05 (2026-10-01): campos da seção Reparo (formato de data e defeitos do Tagify).
+      - 'tests/js/sells-reparo-venda.test.ts'
+      - 'resources/js/Pages/Sells/_components/reparoVenda.ts'
       # UC-SEDIT-09 (2026-10-02): regras de valor da edição React (desconto por unidade, pt-BR).
       - 'tests/js/sells-edicao-venda.test.ts'
       - 'resources/js/Pages/Sells/_components/edicaoVenda.ts'
@@ -136,6 +139,9 @@ on:
       - 'resources/js/Pages/Sells/_components/subtipoVenda.ts'
       - 'tests/js/sells-busca-preco-grupo.test.tsx'
       - 'resources/js/Pages/Sells/_components/precoDaBusca.ts'
+      # UC-S05 (2026-10-01): campos da seção Reparo (formato de data e defeitos do Tagify).
+      - 'tests/js/sells-reparo-venda.test.ts'
+      - 'resources/js/Pages/Sells/_components/reparoVenda.ts'
       # UC-SEDIT-09 (2026-10-02): regras de valor da edição React (desconto por unidade, pt-BR).
       - 'tests/js/sells-edicao-venda.test.ts'
       - 'resources/js/Pages/Sells/_components/edicaoVenda.ts'
@@ -217,6 +223,7 @@ jobs:
             tests/js/sells-edicao-venda.test.ts \
             tests/js/sells-subtipo-venda.test.ts \
             tests/js/sells-busca-preco-grupo.test.tsx \
+            tests/js/sells-reparo-venda.test.ts \
             --reporter=default \
             --reporter=junit \
             --outputFile=test-results/vitest-sells-v3-dominio-junit.xml
