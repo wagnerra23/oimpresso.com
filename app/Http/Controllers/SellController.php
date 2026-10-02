@@ -1155,6 +1155,14 @@ class SellController extends Controller
         // date_from / date_to aplicam ao date_field escolhido.
         $dateFrom = trim((string) $request->input('date_from', ''));
         $dateTo = trim((string) $request->input('date_to', ''));
+        // UC-SIDX-03 — `date_to` só com a data (AAAA-MM-DD, formato dos presets e do
+        // <input type="date"> do SellsDateFilter) cobre o DIA INTEIRO. Comparado cru,
+        // `<= '2026-10-01'` vira `<= '2026-10-01 00:00:00'` e tirava da lista toda venda
+        // do último dia depois da meia-noite — o preset "Dia" mostrava o dia praticamente vazio.
+        // `date_to` que já traz hora é respeitado como veio.
+        if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $dateTo) === 1) {
+            $dateTo .= ' 23:59:59';
+        }
 
         // Whitelist de colunas ordenáveis — alias frontend → expressão SQL.
         $sortMap = [
