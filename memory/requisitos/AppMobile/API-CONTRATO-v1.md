@@ -124,6 +124,23 @@ documento com a mesma máscara (CPF parcial, CNPJ inteiro). Campo sem dado sai `
 "—"). `classificacao` sai `null`: o ERP não tem classificação ABC do cliente (`segmento` é ramo de negócio, outra coisa); `prazo_padrao_dias` converte meses em 30 dias; `sms` não
 tem coluna no ERP e sai sempre `null`. Pessoa de outra empresa: 404.
 
+### 4.2 Nova pessoa (tela 09) — escrita
+
+`POST /api/app/pessoas` com
+`{ tipo: "PF"|"PJ", nome, nome_fantasia, documento, indicador_ie (1|2|9), papeis: ["cliente"|"fornecedor"],
+telefone, email, email_nfe, cep, logradouro, numero, complemento, bairro, cidade, uf, codigo_ibge,
+prazo_padrao_dias, consentimento: { whatsapp, email_nfe } }` (só `tipo`, `nome` e `papeis` obrigatórios).
+
+- `201 { id }` · `422 { erro: "validacao", campos: { <campo>: "mensagem" } }` (regras da web: CPF/CNPJ por
+  dígito verificador, e-mail válido) · `403 { erro: "sem_permissao" }`.
+- Permissão por papel pedido, como na web: cliente exige `customer.create`; fornecedor, `supplier.create`.
+- Grava pelo mesmo caminho do `ContactController::store` (`ContactUtil::createNewContact` + evento +
+  log de atividade), no business do token; um `business_id` no corpo é ignorado.
+- Fora do app: papel `funcionario`, saldo inicial e limite de crédito (valor fica no ERP web);
+  número de WhatsApp separado e classificação ABC não existem no ERP.
+- `consentimento` grava `whatsapp_consent` / `email_consent` e a data em `consent_updated_at`
+  (LGPD Art. 7º, I); chave ausente não altera nada.
+
 ## 5. Produção ⬜ — fila por **etapa da venda** ([W] 2026-10-02)
 
 `GET /api/app/producao`
