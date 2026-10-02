@@ -172,6 +172,20 @@ class MobileMarcacaoService
     }
 
     /**
+     * Distancia (m) do ponto ate o centro do geofence do business; null sem geofence configurado.
+     * Mesma conta do validarGeolocation — a fila do gestor mostra "a quanto da area".
+     */
+    public function distanciaDoGeofenceMetros(float $lat, float $lng, int $businessId): ?float
+    {
+        $centro = config("pontowr2.geofence.business_{$businessId}");
+        if (! is_array($centro) || ! isset($centro['lat'], $centro['lng'])) {
+            return null;
+        }
+
+        return $this->haversineMetros($lat, $lng, (float) $centro['lat'], (float) $centro['lng']);
+    }
+
+    /**
      * Lista marcacoes mobile que precisam de revisao humana
      * (ex: fora geofence).
      * Filtra por dispositivo_id LIKE 'mobile:%' + business_id scope ([ADR 0093]).

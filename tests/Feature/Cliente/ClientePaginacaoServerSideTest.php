@@ -24,14 +24,16 @@ test('paginação — onPageChange manda page + per_page pro servidor (seta deix
     $src = file_get_contents($index);
     expect($src)
         ->toContain('onPageChange={(p) => {')
-        ->toContain('data: { q: search || undefined, page: p, per_page: perPage }');
+        // Sem o `}` final: desde o #2625 (2026-06-12) o mesmo objeto também leva sort/dir.
+        ->toContain('data: { q: search || undefined, page: p, per_page: perPage,');
 });
 
 test('paginação — onPerPageChange reseta page=1 e manda o novo per_page', function () use ($index) {
     $src = file_get_contents($index);
     expect($src)
         ->toContain('onPerPageChange={(n) => {')
-        ->toContain('data: { q: search || undefined, page: 1, per_page: n }');
+        // Sem o `}` final: desde o #2625 (2026-06-12) o mesmo objeto também leva sort/dir.
+        ->toContain('data: { q: search || undefined, page: 1, per_page: n,');
 });
 
 test('paginação — perPage default 50 = default do backend (dropdown não diverge do "/ N")', function () use ($index) {
@@ -43,7 +45,9 @@ test('paginação — busca preserva o tamanho de página (per_page via ref, sem
     $src = file_get_contents($index);
     expect($src)
         ->toContain('const perPageRef = useRef(perPage)')
-        ->toContain('data: { q: search || undefined, page: 1, per_page: perPageRef.current }');
+        // Desde o #2625 (2026-06-12) o objeto também leva sort/dir. O `sort: sortRef.current.key`
+        // amarra ao efeito de BUSCA: o handler de ordenação usa o mesmo per_page com `sort: key`.
+        ->toContain('data: { q: search || undefined, page: 1, per_page: perPageRef.current, sort: sortRef.current.key');
 });
 
 test('backend — buildClienteIndexCustomers já pagina via per_page (paginate lê page da query)', function () use ($controller) {
@@ -53,7 +57,12 @@ test('backend — buildClienteIndexCustomers já pagina via per_page (paginate l
         ->toContain('->paginate($perPage)');
 });
 
-test('alinhamento — spacer de clearance pro FAB de atalhos não cobrir a paginação', function () use ($index) {
+// O FAB flutuante de atalhos (e o spacer que o afastava da paginação) saiu no #2778
+// (2026-06-15), a pedido do [W]: "mais discreto, só encaixar no rodapé". O risco que este
+// teste guardava — FAB cobrindo o pager — deixou de existir. O que fica é o atalho NO rodapé.
+test('alinhamento — atalhos de teclado ficam no rodapé da paginação, sem botão flutuante', function () use ($index) {
     $src = file_get_contents($index);
-    expect($src)->toContain('Clearance pro FAB de atalhos');
+    expect($src)
+        ->toContain('onShowShortcuts={() => setCheatOpen(true)}')
+        ->not->toContain('bottom-4 right-4');
 });

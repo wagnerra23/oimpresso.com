@@ -451,9 +451,12 @@ export default function DataTable<T>({
     let newDir: 'asc' | 'desc' = 'asc';
     if (currentSort === columnId) newDir = currentDir === 'asc' ? 'desc' : 'asc';
 
+    // A busca só é da tabela quando ela MOSTRA a busca. Com `showSearch={false}` a tela tem a
+    // própria busca e manda o `q` em `filters` — sobrescrevê-lo com o `searchTerm` interno (vazio)
+    // apagava a busca da tela a cada clique de ordenar.
     router.get(
       endpoint,
-      { ...filters, q: searchTerm || undefined, sort: columnId, dir: newDir },
+      { ...filters, ...(showSearch ? { q: searchTerm || undefined } : {}), sort: columnId, dir: newDir },
       { preserveScroll: true, preserveState: true, replace: true }
     );
   };

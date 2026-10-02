@@ -36,6 +36,7 @@ on:
       - 'app/Http/Controllers/Api/App/InicioController.php'
       - 'app/Http/Controllers/Api/App/NotificacoesController.php'
       - 'app/Http/Controllers/Api/App/OficinaController.php'
+      - 'app/Http/Controllers/Api/App/VendaRapidaController.php'
       - 'app/Http/Controllers/Api/App/FinanceiroController.php'
       - 'app/Http/Controllers/Api/App/RelatoriosController.php'
       - 'app/Http/Controllers/Api/App/DashboardController.php'
@@ -125,6 +126,7 @@ jobs:
               - 'app/Http/Controllers/Api/App/InicioController.php'
               - 'app/Http/Controllers/Api/App/NotificacoesController.php'
               - 'app/Http/Controllers/Api/App/OficinaController.php'
+              - 'app/Http/Controllers/Api/App/VendaRapidaController.php'
               - 'app/Http/Controllers/Api/App/FinanceiroController.php'
               - 'app/Http/Controllers/Api/App/RelatoriosController.php'
               - 'app/Http/Controllers/Api/App/DashboardController.php'
@@ -248,6 +250,7 @@ jobs:
             tests/Feature/Sells/AppInicioApiContratoTest.php \
             tests/Feature/Sells/AppNotificacoesApiContratoTest.php \
             tests/Feature/Sells/AppOsApiContratoTest.php \
+            tests/Feature/Sells/AppVendaRapidaProdutosApiContratoTest.php \
             tests/Feature/Sells/AppFinanceiroApiContratoTest.php \
             tests/Feature/Sells/AppRelatoriosApiContratoTest.php \
             tests/Feature/Sells/AppDashboardApiContratoTest.php \
