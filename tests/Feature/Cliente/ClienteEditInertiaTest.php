@@ -40,6 +40,10 @@ beforeEach(function () {
     // edit()/update() exigem customer.update (ou supplier.update / *.view_own) no ContactController.
     $this->user = $this->usuarioComPermissoes(['customer.update'], $this->business);
 
+    // Versão de assets pedida ao próprio middleware: com '1' fixo, o servidor (que usa o md5
+    // do manifest) via versão diferente e respondia 409 pedindo recarga da página.
+    $this->versaoInertia = app(\App\Http\Middleware\HandleInertiaRequests::class)->version(request());
+
     config(['mwart.cliente_edit.enabled' => true]);
 
     $now = now();
@@ -79,7 +83,7 @@ beforeEach(function () {
 // ---------------------------------------------------------------------
 
 test('GET /contacts/{id}/edit Inertia retorna campos BR no props.contact (não-null)', function () {
-    $response = $this->withHeaders(['X-Inertia' => 'true', 'X-Inertia-Version' => '1'])
+    $response = $this->withHeaders(['X-Inertia' => 'true', 'X-Inertia-Version' => $this->versaoInertia])
         ->get("/contacts/{$this->contactId}/edit");
 
     $response->assertStatus(200);
@@ -119,7 +123,7 @@ test('GET /contacts/{id}/edit Inertia retorna campos BR no props.contact (não-n
 // ---------------------------------------------------------------------
 
 test('PUT /contacts/{id} via Inertia atualiza cpf_cnpj e redireciona com flash', function () {
-    $response = $this->withHeaders(['X-Inertia' => 'true', 'X-Inertia-Version' => '1'])
+    $response = $this->withHeaders(['X-Inertia' => 'true', 'X-Inertia-Version' => $this->versaoInertia])
         ->put("/contacts/{$this->contactId}", [
             'type' => 'customer',
             'contact_type_radio' => 'business',
@@ -135,7 +139,9 @@ test('PUT /contacts/{id} via Inertia atualiza cpf_cnpj e redireciona com flash',
         ]);
 
     // Inertia redirect: 302 (Inertia client interpreta como navegação interna).
-    $response->assertStatus(302);
+    // 303, não 302: o middleware do Inertia (v3) converte o 302 de PUT/PATCH/DELETE em 303
+    // para o navegador seguir com GET (vendor/inertiajs/inertia-laravel/src/Middleware.php).
+    $response->assertStatus(303);
 
     $contact = DB::table('contacts')->where('id', $this->contactId)->first();
 
@@ -160,7 +166,7 @@ test('Tier 0 — user de outro business recebe 404 ao tentar GET edit', function
     $this->actingAs($otherUser);
     session(['user.business_id' => $otherBusiness->id]);
 
-    $response = $this->withHeaders(['X-Inertia' => 'true', 'X-Inertia-Version' => '1'])
+    $response = $this->withHeaders(['X-Inertia' => 'true', 'X-Inertia-Version' => $this->versaoInertia])
         ->get("/contacts/{$this->contactId}/edit");
 
     // findOrFail no edit() retorna 404 quando contact não pertence ao business da sessão.

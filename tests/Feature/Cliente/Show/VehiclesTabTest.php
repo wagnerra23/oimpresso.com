@@ -36,6 +36,10 @@ beforeEach(function () {
     // show() exige customer.view (ou supplier.view / *.view_own) no ContactController.
     $this->user = $this->usuarioComPermissoes(['customer.view'], $this->business);
 
+    // Versão de assets pedida ao próprio middleware: com '1' fixo, o servidor (que usa o md5
+    // do manifest) via versão diferente e respondia 409 pedindo recarga da página.
+    $this->versaoInertia = app(\App\Http\Middleware\HandleInertiaRequests::class)->version(request());
+
     config(['mwart.cliente_show.enabled' => true]);
 
     $now = now();
@@ -83,7 +87,7 @@ beforeEach(function () {
 // ---------------------------------------------------------------------
 
 test('GET /contacts/{id} Inertia inclui modules.oficinaauto_enabled', function () {
-    $response = $this->withHeaders(['X-Inertia' => 'true', 'X-Inertia-Version' => '1'])
+    $response = $this->withHeaders(['X-Inertia' => 'true', 'X-Inertia-Version' => $this->versaoInertia])
         ->get("/contacts/{$this->contactId}");
 
     $response->assertStatus(200);
@@ -109,7 +113,7 @@ test('Partial reload only=vehicles retorna paginator filtrado por contact_id + b
 
     $response = $this->withHeaders([
             'X-Inertia' => 'true',
-            'X-Inertia-Version' => '1',
+            'X-Inertia-Version' => $this->versaoInertia,
             'X-Inertia-Partial-Component' => 'Cliente/Show',
             'X-Inertia-Partial-Data' => 'vehicles',
         ])
@@ -143,7 +147,7 @@ test('Tier 0 — user de outro business recebe 404 no Show', function () {
     $this->actingAs($otherUser);
     session(['user.business_id' => $otherBusiness->id]);
 
-    $response = $this->withHeaders(['X-Inertia' => 'true', 'X-Inertia-Version' => '1'])
+    $response = $this->withHeaders(['X-Inertia' => 'true', 'X-Inertia-Version' => $this->versaoInertia])
         ->get("/contacts/{$this->contactId}");
 
     $response->assertStatus(404);
@@ -161,7 +165,7 @@ test('vehicles_q=ABC1 filtra paginator pra 1 veículo', function () {
 
     $response = $this->withHeaders([
             'X-Inertia' => 'true',
-            'X-Inertia-Version' => '1',
+            'X-Inertia-Version' => $this->versaoInertia,
             'X-Inertia-Partial-Component' => 'Cliente/Show',
             'X-Inertia-Partial-Data' => 'vehicles',
         ])
