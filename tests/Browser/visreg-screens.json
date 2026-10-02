@@ -547,5 +547,21 @@
     "route": "/comunicacao-visual",
     "anchor": "Calculadora de m²",
     "baseline": "it_ComunicacaoVisual_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
+  },
+  {
+    "screen": "Repair",
+    "source": "Repair",
+    "component": "Repair/Index",
+    "route": "/repair/repair",
+    "anchor": "Ordens de Serviço",
+    "baseline": "it_Repair_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
+  },
+  {
+    "screen": "Repair/JobSheet",
+    "source": "Repair/JobSheet",
+    "component": "Repair/JobSheet/Index",
+    "route": "/repair/job-sheet",
+    "anchor": "Gestão de OS de reparo por status, cliente, equipe e local.",
+    "baseline": "it_Repair_JobSheet_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
   }
 ]
