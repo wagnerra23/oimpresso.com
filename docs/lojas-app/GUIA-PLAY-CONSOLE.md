@@ -5,6 +5,8 @@
 > Quem clica e salva é o [W]: cada "Salvar" é declaração em nome da empresa.
 > Respostas derivadas de [`textos/listagem-pt-BR.md`](textos/listagem-pt-BR.md) e [`textos/privacidade-lojas.md`](textos/privacidade-lojas.md).
 > Senhas nunca entram aqui: vêm do Vaultwarden e são coladas direto no console.
+> ⛔ **Página da loja e Segurança dos dados: esperar.** D13 ([W] 2026-10-01): a submissão só sai quando as 7 áreas
+> da v1 existirem no app; os textos "só Ponto" e as screenshots do 1º lote não serão enviados.
 
 Caminho: **Painel → "Termine de configurar seu app" → Ver tarefas**. Ordem sugerida (as mais fáceis primeiro):
 
