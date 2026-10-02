@@ -27,6 +27,7 @@ Route::middleware('auth:api')->prefix('app')->name('app.')->group(function () {
     Route::get('/pessoas', [\App\Http\Controllers\Api\App\PessoasController::class, 'index'])->name('pessoas.index');
     Route::post('/pessoas', [\App\Http\Controllers\Api\App\PessoasController::class, 'store'])->name('pessoas.store');
     Route::get('/pessoas/{id}', [\App\Http\Controllers\Api\App\PessoasController::class, 'show'])->whereNumber('id')->name('pessoas.show');
+    Route::patch('/pessoas/{id}', [\App\Http\Controllers\Api\App\PessoasController::class, 'update'])->whereNumber('id')->name('pessoas.update');
     Route::get('/pessoas/{id}/cadastro', [\App\Http\Controllers\Api\App\PessoasController::class, 'cadastro'])->whereNumber('id')->name('pessoas.cadastro');
     Route::get('/pedidos', [\App\Http\Controllers\Api\App\PedidosController::class, 'index'])->name('pedidos.index');
     Route::get('/pedidos/{id}', [\App\Http\Controllers\Api\App\PedidosController::class, 'show'])->whereNumber('id')->name('pedidos.show');
@@ -42,5 +43,6 @@ Route::middleware('auth:api')->prefix('app')->name('app.')->group(function () {
     Route::get('/ponto/aprovacoes', [\App\Http\Controllers\Api\App\PontoAprovacoesController::class, 'index'])->name('ponto.aprovacoes.index');
     Route::post('/ponto/aprovacoes/{id}/validar', [\App\Http\Controllers\Api\App\PontoAprovacoesController::class, 'validar'])->whereUuid('id')->name('ponto.aprovacoes.validar');
     Route::post('/ponto/aprovacoes/{id}/recusar', [\App\Http\Controllers\Api\App\PontoAprovacoesController::class, 'recusar'])->whereUuid('id')->name('ponto.aprovacoes.recusar');
+    Route::get('/produtos', [\App\Http\Controllers\Api\App\ProdutosController::class, 'produtos'])->name('produtos.index');
     Route::get('/inicio', [\App\Http\Controllers\Api\App\InicioController::class, 'show'])->name('inicio');
 });
