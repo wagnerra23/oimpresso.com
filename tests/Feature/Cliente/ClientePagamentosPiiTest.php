@@ -55,11 +55,11 @@ beforeEach(function () {
         $this->markTestSkipped('Schema UltimatePOS ausente (sqlite memory) — rode com DB_CONNECTION=mysql.');
     }
 
-    $this->business = $this->seededTenant(); // biz=1 canônico (ADR 0101)
-    $this->user = \App\User::where('business_id', $this->business->id)->first();
-    if (! $this->user) {
-        $this->markTestSkipped('Sem user no business canônico.');
-    }
+    $this->business = $this->seededTenant(); // tenant de teste (ADR 0358)
+    // payments-json exige customer.view|view_own ou supplier.view|view_own (ContactController).
+    // Sem a permissão o 403 vinha ANTES do escopo por business, e o UC-CSHW-03 (Tier 0)
+    // nunca chegava a provar o 404 cross-tenant.
+    $this->user = $this->usuarioComPermissoes(['customer.view'], $this->business);
 
     $this->location = DB::table('business_locations')->where('business_id', $this->business->id)->first();
     if (! $this->location) {

@@ -37,11 +37,9 @@ beforeEach(function () {
         $this->markTestSkipped('Schema UltimatePOS ausente (sqlite memory) -- rode com DB_CONNECTION=mysql (dev) ou CI integration job.');
     }
 
-    $this->business = $this->seededTenant(); // biz=1 canônico (ADR 0101) — skip acionável se o seed faltar
-    $this->user = \App\User::where('business_id', $this->business->id)->first();
-    if (! $this->user) {
-        $this->markTestSkipped('Sem user no business.');
-    }
+    $this->business = $this->seededTenant(); // tenant de teste (ADR 0358) — skip acionável se o seed faltar
+    // Os 4 endpoints de IA exigem customer.view|view_own (ClienteIaController, contato customer).
+    $this->user = $this->usuarioComPermissoes(['customer.view'], $this->business);
 
     // Cria contact customer ativo no biz alvo.
     $now = now();

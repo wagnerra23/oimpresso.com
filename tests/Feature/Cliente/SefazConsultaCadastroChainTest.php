@@ -39,11 +39,9 @@ beforeEach(function () {
         $this->markTestSkipped('Schema NfeBrasil ausente — rode migrate.');
     }
 
-    $this->business = $this->seededTenant(); // biz=1 canônico (ADR 0101) — skip acionável se o seed faltar
-    $this->user = \App\User::where('business_id', $this->business->id)->first();
-    if (! $this->user) {
-        $this->markTestSkipped('Sem user no business.');
-    }
+    $this->business = $this->seededTenant(); // tenant de teste (ADR 0358) — skip acionável se o seed faltar
+    // O autosave PATCH /cliente/{id}/identificacao exige customer.update (ClienteAutosaveController).
+    $this->user = $this->usuarioComPermissoes(['customer.update'], $this->business);
 
     $this->actingAs($this->user);
     session(['user.business_id' => $this->business->id]);
