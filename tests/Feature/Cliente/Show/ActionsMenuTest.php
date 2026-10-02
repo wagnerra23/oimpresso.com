@@ -114,7 +114,9 @@ test('AddDiscountModal.tsx — dark mode tokens + acessibilidade', function () {
     $contents = file_get_contents($tsxPath);
 
     expect($contents)
-        ->toContain('dark:bg-rose-950')
+        // Caixa de erro em token do DS desde o #2660 (2026-06-13, era bg-rose-50 + dark:bg-rose-950);
+        // o token carrega o tema escuro. Ancorado no role="alert" para provar que é a caixa de erro.
+        ->toContain('bg-destructive-soft p-3 text-xs text-destructive-fg" role="alert"')
         ->toContain('aria-label="Fechar"')
         ->toContain('role="alert"')
         ->toContain('htmlFor=');

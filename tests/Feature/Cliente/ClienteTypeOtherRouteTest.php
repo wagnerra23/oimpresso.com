@@ -49,8 +49,13 @@ test('controller $types e $inertiaTypes também aceitam other (3 camadas alinhad
         ->toMatch("/\\\$types\s*=\s*\[[^\]]*'other'[^\]]*\];/")
         // $inertiaTypes = [...,'other',...]; (guard do Inertia::render)
         ->toMatch("/\\\$inertiaTypes\s*=\s*\[[^\]]*'other'[^\]]*\];/")
-        // mapeamento de filtro 'other' => 'is_other'
-        ->toContain("'other' => 'is_other'");
+        // O filtro de papel delega ao serviço único (o mapeamento saiu daqui no #8497).
+        ->toContain('PessoaEscopo::papel($q, $type)');
+
+    // mapeamento de filtro 'other' => 'is_other' — mora em PessoaEscopo desde o #8497
+    // (2026-10-02, regra de visibilidade num serviço só, compartilhada com a API do app).
+    $escopo = file_get_contents(__DIR__ . '/../../../app/Services/Pessoas/PessoaEscopo.php');
+    expect($escopo)->toContain("'other' => 'is_other'");
 });
 
 /**
@@ -64,13 +69,9 @@ test('GET /cliente?type=other renderiza Inertia com activeType=other (não custo
         test()->markTestSkipped('DB indisponível: ' . $e->getMessage());
     }
 
-    $user = User::where('business_id', $business->id)
-        ->where('user_type', '!=', 'user_customer')
-        ->first();
-
-    if (! $user) {
-        test()->markTestSkipped('Sem user não-customer no business.');
-    }
+    // /cliente (Cliente/Index) exige customer.view|view_own ou supplier.view|view_own
+    // desde o #8442/#8443 (2026-10-01).
+    $user = test()->usuarioComPermissoes(['customer.view'], $business);
 
     // Força o branch Inertia pra qualquer business (sem gate por biz).
     config([
