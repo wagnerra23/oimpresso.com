@@ -1,3 +1,4 @@
+import { Grid, Inline } from '@/Components/layout';
 import { Button } from '@/Components/ui/button';
 import { tocarPonto } from './reparoVenda';
 
@@ -14,12 +15,14 @@ type Props = {
  */
 export default function PadraoDesbloqueio({ id, valor, onChange }: Props) {
   return (
-    <div className="flex items-start gap-3">
-      <div
+    <Inline align="start" gap={3}>
+      <Grid
+        cols={3}
+        gap={2}
         id={id}
         role="group"
         aria-label={`Padrão de desbloqueio${valor ? `: ${valor.split('').join(' → ')}` : ''}`}
-        className="grid grid-cols-3 gap-2 rounded-md border border-border p-2"
+        className="rounded-md border border-border p-2"
       >
         {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((ponto) => {
           const ordem = valor.indexOf(String(ponto));
@@ -40,10 +43,10 @@ export default function PadraoDesbloqueio({ id, valor, onChange }: Props) {
             </button>
           );
         })}
-      </div>
+      </Grid>
       <Button type="button" variant="ghost" size="sm" onClick={() => onChange('')} disabled={valor === ''}>
         Limpar
       </Button>
-    </div>
+    </Inline>
   );
 }

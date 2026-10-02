@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="_ds/office-impresso-design-system-019dd02f-d2d0-7ba6-a57f-24b3ddd073ac/colors_and_type.css">
+  <link rel="stylesheet" href="_ds/office-impresso-design-system-019dd02f-d2d0-7ba6-a57f-24b3ddd073ac/styles.css">
+  <script src="_ds/office-impresso-design-system-019dd02f-d2d0-7ba6-a57f-24b3ddd073ac/_ds_bundle.js"></script>
+  <style>
+    body { margin: 0; background: oklch(0.985 0.003 90); }
+    a { color: oklch(0.55 0.15 295); text-decoration: none; }
+    a:hover { text-decoration: underline; text-underline-offset: 4px; }
+  </style>
+</helmet>
+<main class="cockpit" data-theme="light" style="min-height: 100vh; background: var(--bg); color: var(--text); font-family: var(--font-sans); padding: 48px 24px 96px;">
+  <div style="max-width: 1180px; margin: 0 auto; display: flex; flex-direction: column; gap: 48px;">
+
+    <header style="display: flex; flex-direction: column; gap: 10px;">
+      <div style="font-family: var(--font-mono); font-size: 11.5px; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text-mute);">Avaliação · app Expo (mobile/) · main</div>
+      <h1 style="margin: 0; font-size: 28px; font-weight: 600; letter-spacing: -0.4px; color: var(--text);">Onde o app precisa de atenção</h1>
+      <p style="margin: 0; max-width: 760px; font-size: 15px; line-height: 1.55; color: var(--text-dim); text-wrap: pretty;">Notas de 0 a 10 por tela, em seis critérios — refeita em 01/10 depois de ler o código das telas, da fila offline e do erp-ui. É leitura de código, não teste em aparelho.</p>
+      <div style="display: flex; gap: 16px; flex-wrap: wrap; padding-top: 4px; font-size: 13.5px;">
+        <a href="Oimpresso Mobile.dc.html">Telas espelhadas →</a>
+        <a href="Mobile DS Proposta.dc.html">Proposta da camada mobile no DS →</a>
+      </div>
+    </header>
+
+    <section style="display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px;">
+      <sc-for list="{{ resumo }}" as="r" hint-placeholder-count="4">
+        <div style="border: 1px solid var(--border); border-radius: 12px; background: var(--surface); padding: 14px 16px; display: flex; flex-direction: column; gap: 4px;">
+          <span style="font-size: 10.5px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--text-mute);">{{ r.label }}</span>
+          <span style="font-family: var(--font-mono); font-size: 26px; font-weight: 500; color: {{ r.fg }};">{{ r.v }}</span>
+          <span style="font-size: 12px; color: var(--text-dim);">{{ r.sub }}</span>
+        </div>
+      </sc-for>
+    </section>
+
+    <section style="display: flex; flex-direction: column; gap: 14px;">
+      <div style="display: flex; align-items: baseline; gap: 12px;">
+        <span style="font-family: var(--font-mono); font-size: 12px; font-weight: 600; color: var(--accent);">01</span>
+        <h2 style="margin: 0; font-size: 18px; font-weight: 600; color: var(--text);">Precisa de atenção</h2>
+      </div>
+      <div style="border: 1px solid var(--border); border-radius: 12px; background: var(--surface); overflow: hidden;">
+        <sc-for list="{{ atencao }}" as="a" hint-placeholder-count="7">
+          <div style="display: grid; grid-template-columns: 28px 86px minmax(0, 1fr); gap: 14px; padding: 12px 16px; border-bottom: 1px solid var(--border-2); align-items: baseline;">
+            <span style="font-family: var(--font-mono); font-size: 12px; color: var(--text-mute);">{{ a.n }}</span>
+            <span style="display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: {{ a.tint }};"><span style="width: 7px; height: 7px; border-radius: 99px; background: {{ a.tint }};"></span>{{ a.sev }}</span>
+            <div style="display: flex; flex-direction: column; gap: 3px;">
+              <span style="font-size: 14px; font-weight: 600;">{{ a.titulo }}</span>
+              <span style="font-size: 13px; color: var(--text-dim); line-height: 1.45; text-wrap: pretty;">{{ a.desc }}</span>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+    </section>
+
+    <section style="display: flex; flex-direction: column; gap: 14px;">
+      <div style="display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap;">
+        <span style="font-family: var(--font-mono); font-size: 12px; font-weight: 600; color: var(--accent);">02</span>
+        <h2 style="margin: 0; font-size: 18px; font-weight: 600; color: var(--text);">Grade por tela</h2>
+        <div style="display: flex; gap: 3px; padding: 3px; border-radius: 8px; background: var(--bg-2);">
+          <sc-for list="{{ visoes }}" as="v" hint-placeholder-count="2">
+            <div onClick="{{ v.pick }}" style="height: 28px; padding: 0 12px; border-radius: 6px; background: {{ v.bg }}; color: {{ v.fg }}; display: flex; align-items: center; font-size: 12.5px; font-weight: 600; cursor: pointer;">{{ v.label }}</div>
+          </sc-for>
+        </div>
+        <div style="display: flex; gap: 6px; margin-left: auto; flex-wrap: wrap;">
+          <sc-for list="{{ ordens }}" as="o" hint-placeholder-count="3">
+            <div onClick="{{ o.pick }}" style="height: 28px; padding: 0 10px; border-radius: 6px; border: 1px solid {{ o.border }}; background: {{ o.bg }}; color: {{ o.fg }}; display: flex; align-items: center; font-size: 12.5px; font-weight: 500; cursor: pointer;">{{ o.label }}</div>
+          </sc-for>
+        </div>
+      </div>
+      <div style="border: 1px solid var(--border); border-radius: 12px; background: var(--surface); overflow-x: auto;">
+        <div style="min-width: 1040px;">
+          <div style="display: grid; grid-template-columns: 100px 170px repeat(6, 62px) 66px minmax(0, 1fr); gap: 8px; padding: 10px 16px; border-bottom: 1px solid var(--border); font-size: 10.5px; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase; color: var(--text-mute); align-items: end;">
+            <span>Módulo</span><span>Tela</span>
+            <sc-for list="{{ criterios }}" as="c" hint-placeholder-count="6"><span style="text-align: center;">{{ c.curto }}</span></sc-for>
+            <span style="text-align: center;">Nota</span><span>Principal ponto</span>
+          </div>
+          <sc-for list="{{ linhas }}" as="l" hint-placeholder-count="12">
+            <div style="display: grid; grid-template-columns: 100px 170px repeat(6, 62px) 66px minmax(0, 1fr); gap: 8px; padding: 7px 16px; border-bottom: 1px solid var(--border-2); align-items: center; font-size: 13px;">
+              <span style="font-size: 12px; color: var(--text-dim);">{{ l.mod }}</span>
+              <div style="display: flex; flex-direction: column; min-width: 0;">
+                <a href="{{ l.href }}" style="font-weight: 600; color: var(--text);">{{ l.tela }}</a>
+                <span style="font-family: var(--font-mono); font-size: 10.5px; color: var(--text-mute); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ l.arq }}</span>
+              </div>
+              <sc-for list="{{ l.cel }}" as="c" hint-placeholder-count="6">
+                <span style="height: 30px; border-radius: 6px; background: {{ c.bg }}; color: {{ c.fg }}; display: flex; align-items: center; justify-content: center; font-family: var(--font-mono); font-size: 13px; font-weight: 600;">{{ c.v }}</span>
+              </sc-for>
+              <span style="height: 30px; border-radius: 6px; border: 1.5px solid {{ l.notaTint }}; color: {{ l.notaTint }}; display: flex; align-items: center; justify-content: center; font-family: var(--font-mono); font-size: 14px; font-weight: 700;">{{ l.nota }}</span>
+              <span style="font-size: 12.5px; color: var(--text-dim); line-height: 1.4; text-wrap: pretty;">{{ l.obs }}</span>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+      <span style="font-size: 12.5px; color: var(--text-mute); text-wrap: pretty;">{{ visaoNota }}</span>
+      <div style="display: flex; flex-wrap: wrap; gap: 8px 20px; font-size: 12px; color: var(--text-dim);">
+        <sc-for list="{{ criterios }}" as="c" hint-placeholder-count="6">
+          <span><b style="font-family: var(--font-mono); color: var(--text);">{{ c.curto }}</b> {{ c.desc }}</span>
+        </sc-for>
+      </div>
+    </section>
+
+    <section style="display: flex; flex-direction: column; gap: 14px;">
+      <div style="display: flex; align-items: baseline; gap: 12px;">
+        <span style="font-family: var(--font-mono); font-size: 12px; font-weight: 600; color: var(--accent);">03</span>
+        <h2 style="margin: 0; font-size: 18px; font-weight: 600; color: var(--text);">Nota por módulo</h2>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;">
+        <sc-for list="{{ modulos }}" as="m" hint-placeholder-count="6">
+          <div style="border: 1px solid var(--border); border-radius: 12px; background: var(--surface); padding: 14px 16px; display: flex; flex-direction: column; gap: 10px;">
+            <div style="display: flex; align-items: baseline; gap: 8px;">
+              <span style="font-size: 14px; font-weight: 600;">{{ m.nome }}</span>
+              <span style="font-size: 12px; color: var(--text-mute);">{{ m.qtd }}</span>
+              <span style="margin-left: auto; font-family: var(--font-mono); font-size: 22px; font-weight: 600; color: {{ m.tint }};">{{ m.nota }}</span>
+            </div>
+            <div style="height: 6px; border-radius: 3px; background: var(--bg-2); overflow: hidden;"><div style="height: 100%; width: {{ m.pct }}; background: {{ m.tint }};"></div></div>
+            <span style="font-size: 12px; color: var(--text-dim); line-height: 1.4;">{{ m.pior }}</span>
+          </div>
+        </sc-for>
+      </div>
+    </section>
+
+    <section style="display: flex; flex-direction: column; gap: 14px;">
+      <div style="display: flex; align-items: baseline; gap: 12px;">
+        <span style="font-family: var(--font-mono); font-size: 12px; font-weight: 600; color: var(--accent);">04</span>
+        <h2 style="margin: 0; font-size: 18px; font-weight: 600; color: var(--text);">Capacidades do app</h2>
+      </div>
+      <div style="border: 1px solid var(--border); border-radius: 12px; background: var(--surface); overflow-x: auto;">
+        <div style="min-width: 680px;">
+          <div style="display: grid; grid-template-columns: 220px 120px minmax(0, 1fr); gap: 16px; padding: 10px 16px; border-bottom: 1px solid var(--border); font-size: 10.5px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; color: var(--text-mute);">
+            <span>Capacidade</span><span>Situação</span><span>Observação</span>
+          </div>
+          <sc-for list="{{ caps }}" as="c" hint-placeholder-count="10">
+            <div style="display: grid; grid-template-columns: 220px 120px minmax(0, 1fr); gap: 16px; padding: 9px 16px; border-bottom: 1px solid var(--border-2); align-items: baseline; font-size: 13px;">
+              <span style="font-weight: 600;">{{ c.nome }}</span>
+              <span style="display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: {{ c.tint }};"><span style="width: 7px; height: 7px; border-radius: 99px; background: {{ c.tint }};"></span>{{ c.st }}</span>
+              <span style="color: var(--text-dim); line-height: 1.45; text-wrap: pretty;">{{ c.obs }}</span>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </section>
+
+    <section style="display: flex; flex-direction: column; gap: 14px;">
+      <div style="display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap;">
+        <span style="font-family: var(--font-mono); font-size: 12px; font-weight: 600; color: var(--accent);">05</span>
+        <h2 style="margin: 0; font-size: 18px; font-weight: 600; color: var(--text);">Ondas para resolver</h2>
+        <span style="font-size: 13px; color: var(--text-mute);">Nota projetada aplicando cada onda sobre a grade acima — estimativa.</span>
+      </div>
+      <div style="border: 1px solid var(--border); border-radius: 12px; background: var(--surface); padding: 18px 20px 14px; display: flex; flex-direction: column; gap: 10px;">
+        <div style="display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 10px; align-items: end; height: 150px;">
+          <sc-for list="{{ ondasBar }}" as="b" hint-placeholder-count="6">
+            <div style="height: 100%; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; gap: 6px;">
+              <span style="font-family: var(--font-mono); font-size: 14px; font-weight: 600; color: {{ b.tint }};">{{ b.nota }}</span>
+              <div style="width: 100%; max-width: 72px; height: {{ b.h }}; border-radius: 6px 6px 0 0; background: {{ b.tint }}; opacity: {{ b.op }};"></div>
+            </div>
+          </sc-for>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 10px; border-top: 1px solid var(--border); padding-top: 8px;">
+          <sc-for list="{{ ondasBar }}" as="b" hint-placeholder-count="6">
+            <div style="display: flex; flex-direction: column; align-items: center; gap: 1px; text-align: center;">
+              <span style="font-size: 12px; font-weight: 600;">{{ b.label }}</span>
+              <span style="font-size: 11px; color: var(--text-mute);">{{ b.sub }}</span>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px;">
+        <sc-for list="{{ ondas }}" as="o" hint-placeholder-count="5">
+          <div style="border: 1px solid var(--border); border-radius: 12px; background: var(--surface); padding: 16px; display: flex; flex-direction: column; gap: 10px;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span style="font-family: var(--font-mono); font-size: 11.5px; font-weight: 600; color: var(--accent-fg); background: var(--accent); padding: 2px 8px; border-radius: 6px;">Onda {{ o.n }}</span>
+              <span style="font-size: 15px; font-weight: 600;">{{ o.titulo }}</span>
+              <span style="font-family: var(--font-mono); font-size: 10.5px; font-weight: 600; color: var(--pos); padding: 1px 6px; border-radius: 4px; border: 1px solid var(--pos);">pacote pronto</span>
+              <span style="margin-left: auto; display: inline-flex; align-items: center; gap: 5px; font-size: 11.5px; font-weight: 600; color: {{ o.riscoTint }};"><span style="width: 6px; height: 6px; border-radius: 99px; background: {{ o.riscoTint }};"></span>{{ o.risco }}</span>
+            </div>
+            <span style="font-size: 13px; color: var(--text-dim); line-height: 1.45; text-wrap: pretty;">{{ o.escopo }}</span>
+            <span style="font-size: 12px; color: var(--text-mute); line-height: 1.4;">{{ o.telas }}</span>
+            <span style="font-family: var(--font-mono); font-size: 11.5px; color: var(--text-dim);">handoff/onda-{{ o.n }}/</span>
+            <div style="display: flex; gap: 16px; padding-top: 8px; border-top: 1px solid var(--border-2); font-size: 12px; color: var(--text-dim);">
+              <span>Nota <b style="font-family: var(--font-mono); font-size: 14px; color: {{ o.tint }};">{{ o.antes }} → {{ o.depois }}</b></span>
+              <span>Abaixo de 5 <b style="font-family: var(--font-mono); font-size: 14px; color: var(--text);">{{ o.baixas }}</b></span>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+      <span style="font-size: 12.5px; color: var(--text-mute); text-wrap: pretty;">Os 5 pacotes estão em handoff/ (um README por onda). Não testados em aparelho nem com tsc. Ondas 1–3 são só visual. 4 e 5 mexem em servidor e regra de negócio — dependem de decisão do Wagner. A 5 pode subir para antes da 2 se o ponto de campo for mais urgente.</span>
+    </section>
+
+    <section style="display: flex; flex-direction: column; gap: 14px;">
+      <div style="display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap;">
+        <span style="font-family: var(--font-mono); font-size: 12px; font-weight: 600; color: var(--accent);">06</span>
+        <h2 style="margin: 0; font-size: 18px; font-weight: 600; color: var(--text);">Revisão crítica</h2>
+        <span style="font-size: 13px; color: var(--text-mute);">O que esta avaliação e os pacotes ainda não provam.</span>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 12px;">
+        <sc-for list="{{ critica }}" as="c" hint-placeholder-count="4">
+          <div style="border: 1px solid var(--border); border-radius: 12px; background: var(--surface); padding: 16px; display: flex; flex-direction: column; gap: 10px;">
+            <span style="font-size: 14px; font-weight: 600;">{{ c.titulo }}</span>
+            <sc-for list="{{ c.itens }}" as="it" hint-placeholder-count="3">
+              <div style="display: grid; grid-template-columns: 74px minmax(0, 1fr); gap: 10px; align-items: baseline;">
+                <span style="display: inline-flex; align-items: center; gap: 5px; font-size: 11.5px; font-weight: 600; color: {{ it.tint }};"><span style="width: 6px; height: 6px; border-radius: 99px; background: {{ it.tint }};"></span>{{ it.tag }}</span>
+                <span style="font-size: 12.5px; color: var(--text-dim); line-height: 1.45; text-wrap: pretty;">{{ it.txt }}</span>
+              </div>
+            </sc-for>
+          </div>
+        </sc-for>
+      </div>
+    </section>
+
+  </div>
+</main>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { ordem: 'nota', visao: 'hoje' };
+  renderVals() {
+    const CR = [
+      ['DS', 'peso 25% · visual alinhado ao DS (tokens, ícones, sem emoji/hex)'],
+      ['Toque', 'peso 25% · alvos ≥ 44 px, legibilidade no sol'],
+      ['Estados', 'peso 20% · vazio, erro e carregando tratados'],
+      ['Offline', 'peso 15% · avisa e guarda na fila sem perder dado'],
+      ['Fluxo', 'peso 10% · ligações com outras telas, poucos becos'],
+      ['Dados', 'peso 5% · ligado à API real, sem mock']
+    ];
+    const T = [
+      ['Início', 'Início', 'app/(tabs)/index.tsx', '01', [6, 6, 6, 6, 7, 7], 'Hero com degradê magenta; ações do header com 38 px.'],
+      ['Início', 'Login', 'app/login.tsx', '00', [6, 7, 6, 3, 7, 8], 'Degradê da marca; login exige rede (esperado).'],
+      ['Início', 'Empresas', 'app/empresas.tsx', '00', [3, 5, 5, 4, 5, 7], 'ScreenContainer + erp-ui + Alert.alert nativo.'],
+      ['Início', 'Mais', 'app/(tabs)/mais.tsx', '10', [7, 7, 7, 6, 8, 8], 'Cores purple/amber em hex.'],
+      ['Início', 'Notificações', 'app/notificacoes', '16', [7, 7, 6, 6, 5, 3], 'Sem tabela no servidor — estado local.'],
+      ['Início', 'Dashboard', 'app/(tabs)/dashboard.tsx', '35', [3, 5, 5, 6, 5, 6], 'ScreenContainer + MetricCard/KanbanCard com hex.'],
+      ['Vendas', 'Clientes', 'app/(tabs)/clientes.tsx', '17', [6, 6, 6, 5, 6, 7], 'Formulário e modal ainda do erp-ui.'],
+      ['Vendas', 'Orçamentos', 'app/(tabs)/orcamentos.tsx', '04', [3, 4, 5, 5, 5, 7], 'Status em hex, emoji 📄 🧠, botões de 28 px.'],
+      ['Vendas', 'Pedidos', 'app/(tabs)/vendas.tsx', '21', [6, 6, 6, 5, 6, 7], 'Formulário e modal do erp-ui.'],
+      ['Vendas', 'Venda rápida', 'app/venda-rapida.tsx', '11', [7, 7, 6, 5, 7, 7], 'Animação em loop (OiScanline).'],
+      ['Produção', 'Produção', 'app/(tabs)/producao.tsx', '02', [7, 6, 7, 5, 7, 7], 'Modal de edição do erp-ui.'],
+      ['Produção', 'Produtos', 'app/(tabs)/produtos.tsx', '19', [6, 6, 6, 5, 6, 7], 'Campos do erp-ui.'],
+      ['Produção', 'Tarefas', 'app/(tabs)/tarefas.tsx', '12', [8, 7, 8, 5, 8, 7], 'No padrão; botões sm de 32 px.'],
+      ['Produção', 'Estoque', 'app/(tabs)/estoque.tsx', '05', [3, 4, 5, 5, 5, 7], 'colorForStock em hex, emoji 📊 ⚠.'],
+      ['Produção', 'Movimentações', 'app/estoque/[id].tsx', '29', [3, 4, 5, 5, 5, 7], 'ScreenContainer + tipos de movimento em hex.'],
+      ['Oficina', 'OS — lista', 'app/(tabs)/oss.tsx', '07', [3, 4, 5, 5, 6, 7], 'Dois mapas de status em hex; placa como texto; 🔗.'],
+      ['Oficina', 'OS — detalhe', 'app/oss/[id].tsx', '03', [2, 4, 5, 5, 6, 7], 'ScreenContainer + erp-ui, emoji 🧠 🔗, IA em cores fixas.'],
+      ['Oficina', 'Veículos', 'app/(tabs)/veiculos.tsx', '08', [4, 4, 5, 5, 5, 6], 'Placa como texto; histórico em modal; "×" de 18 px.'],
+      ['Financeiro', 'Financeiro', 'app/(tabs)/financeiro.tsx', '06', [8, 7, 7, 5, 7, 7], 'No padrão.'],
+      ['Financeiro', 'Pagamentos', 'app/(tabs)/pagamentos.tsx', '15', [3, 4, 5, 6, 4, 6], 'Status em hex, emoji; referência por UUID. Fila com idempotência.'],
+      ['Financeiro', 'Fiscal', 'app/(tabs)/fiscal.tsx', '14', [3, 4, 5, 6, 5, 7], 'Status em hex, emoji 📄 🔄. Emissão idempotente na fila.'],
+      ['Financeiro', 'Relatórios', 'app/(tabs)/relatorios.tsx', '13', [3, 6, 5, 6, 5, 6], '5 cores fixas nos gráficos; MetricCard.'],
+      ['Suporte', 'Chat', 'app/(tabs)/chat.tsx', '25', [5, 6, 5, 4, 6, 6], 'Toast do erp-ui; placeholder em cor fixa.'],
+      ['Ponto', 'REP-P (bater ponto)', '— não existe no app', '36', null, 'Só no web. Fora da média até existir.']
+    ];
+    const tone = (v) => v >= 8 ? ['color-mix(in oklch, var(--pos) 14%, transparent)', 'var(--pos)'] : v >= 6 ? ['color-mix(in oklch, var(--accent) 10%, transparent)', 'var(--accent)'] : v >= 4 ? ['color-mix(in oklch, var(--warn) 16%, transparent)', 'var(--warn)'] : ['color-mix(in oklch, var(--neg) 14%, transparent)', 'var(--neg)'];
+    const tint = (v) => tone(v)[1];
+    const fmt = (n) => n.toFixed(1).replace('.', ',');
+    const PESOS = [0.25, 0.25, 0.2, 0.15, 0.1, 0.05];
+    const avg = (a) => a.reduce((x, y, i) => x + y * PESOS[i], 0);
+    const allRows = T.map(([mod, tela, arq, s, notas, obs]) => {
+      const href = 'Oimpresso Mobile.dc.html#s' + s;
+      if (!notas) return { mod, tela, arq, obs, media: -1, ausente: true, href, nota: '—', notaTint: 'var(--text-mute)', cel: CR.map(() => ({ v: '—', bg: 'var(--bg-2)', fg: 'var(--text-mute)' })) };
+      const media = avg(notas);
+      return { mod, tela, arq, obs, media, href, nota: fmt(media), notaTint: tint(media), cel: notas.map(v => { const [bg, fg] = tone(v); return { v: String(v), bg, fg }; }) };
+    });
+    const rows = allRows.filter(r => !r.ausente);
+    const o = this.state.ordem;
+    const linhas = o === 'nota' ? [...allRows].sort((a, b) => (a.ausente ? 99 : a.media) - (b.ausente ? 99 : b.media)) : o === 'melhor' ? [...allRows].sort((a, b) => b.media - a.media) : allRows;
+    const ordens = [['nota', 'Pior primeiro'], ['melhor', 'Melhor primeiro'], ['modulo', 'Por módulo']].map(([id, label]) => ({ label, border: o === id ? 'var(--accent)' : 'var(--border)', bg: o === id ? 'var(--accent-soft)' : 'var(--surface)', fg: o === id ? 'var(--accent)' : 'var(--text-dim)', pick: () => this.setState({ ordem: id }) }));
+    const mods = [...new Set(T.map(t => t[0]))].map(nome => {
+      const rs = rows.filter(r => r.mod === nome);
+      if (!rs.length) return { nome, qtd: 'não existe no app', nota: '—', m: -1, tint: 'var(--text-mute)', pct: '0%', pior: 'Só no sistema web — entra com a Onda 5.' };
+      const m = rs.reduce((a, r) => a + r.media, 0) / rs.length, pior = [...rs].sort((a, b) => a.media - b.media)[0];
+      return { nome, qtd: rs.length + (rs.length === 1 ? ' tela' : ' telas'), nota: fmt(m), m, tint: tint(m), pct: (m * 10) + '%', pior: rs.length > 1 ? 'Mais fraca: ' + pior.tela + ' (' + pior.nota + ')' : pior.obs };
+    }).sort((a, b) => a.m - b.m);
+    const geral = rows.reduce((a, r) => a + r.media, 0) / rows.length;
+    const TN = T.filter(t => t[4]);
+    const critMed = CR.map((c, i) => ({ c: c[0], m: TN.reduce((a, t) => a + t[4][i], 0) / TN.length })).sort((a, b) => a.m - b.m);
+    const SEV = { Alta: 'var(--neg)', 'Média': 'var(--warn)', Baixa: 'var(--accent)' };
+    const AT = [
+      ['Alta', 'Cores do app copiadas à mão e divergentes do DS', 'oi-theme.ts tem hex escritos à mão; o roxo do app (#663e9e) não bate com o do DS. Um arquivo muda o app inteiro. Pacote: handoff/onda-1.'],
+      ['Alta', '13 telas ainda dependem do erp-ui / ScreenContainer', 'Mais do que a primeira leitura indicava: além de OS, Orçamentos, Estoque, Fiscal, Pagamentos, Relatórios, Empresas e Chat, também Clientes, Pedidos, Produtos, Dashboard e Movimentações. Pacote: handoff/onda-3 troca o miolo dos dois arquivos de uma vez.'],
+      ['Alta', 'Alvos de toque abaixo de 44 px', 'OiBtn sm tem 32 px, ações do header 38 px, chips ~28 px, botões do erp-ui ~28 px e "×" de remover com 18 px. Ruim para técnico de luva no pátio. Pacote: handoff/TOQUE.md (OiBtn, OiHeader, OiChip, erp-ui, "×", faixa offline).'],
+      ['Alta', 'Ponto (REP-P) não existe no app Expo', 'Existe no web e num app de ponto separado (Capacitor, ADR 0423). Recomendação: Onda 5b — o Expo abre o app de ponto por link (App Links já configurados), sem Passport nem rota nova. Pacote: handoff/onda-5b.'],
+      ['Média', 'Offline: a fila existe, as telas não contam', 'mutation-queue guarda e reenvia (com idempotência em pagamento e NF-e), mas as telas mostram "Erro ao salvar" para o que foi guardado.'],
+      ['Média', 'Status da OS com dois mapas diferentes', 'App tem 9 etapas em hex, DS tem 6. Um mapa único resolve OS, Veículos e histórico.'],
+      ['Média', 'Notificações sem servidor', 'Registro do aparelho para push existe; a tabela e as rotas não.'],
+      ['Baixa', 'Fontes IBM Plex não carregadas', 'O app carrega Inter + JetBrains Mono.']
+    ];
+    const CS = { Tem: 'var(--pos)', Parcial: 'var(--warn)', 'Não tem': 'var(--neg)', 'A confirmar': 'var(--text-mute)', 'Fora do escopo': 'var(--text-mute)' };
+    const CAPS = [
+      ['Login e troca de empresa', 'Tem', 'login.tsx + empresas.tsx.'],
+      ['Modo escuro', 'Tem', 'darkPalette em oi-theme.ts — cores fora do DS.'],
+      ['Leitor de código (câmera)', 'Tem', 'Venda rápida.'],
+      ['Diagnóstico com IA na OS', 'Tem', 'Card em oss/[id].tsx.'],
+      ['Link de pagamento (Asaas)', 'Tem', 'pagamentos.tsx — referência digitada por UUID.'],
+      ['Consulta fiscal (NF-e)', 'Tem', 'fiscal.tsx.'],
+      ['Aviso de sem conexão', 'Tem', 'offline-banner.tsx.'],
+      ['Fila de sincronização offline', 'Tem', 'lib/mutation-queue: mutação que falha por rede entra na fila e é reenviada ao reconectar e a cada 60 s; cache persistido 7 dias por empresa.'],
+      ['Notificações push', 'Parcial', 'Registro do aparelho existe (use-push-registration); falta a tabela de notificações no backend.'],
+      ['Localização (GPS)', 'Não tem', 'Necessário para o REP-P.'],
+      ['Bater ponto (REP-P)', 'Não tem', 'Não no app Expo. Existe no web e num app de ponto separado (Capacitor, ADR 0423).'],
+      ['Selfie / biometria no ponto', 'Fora do escopo', 'Decisão do Wagner (ADR 0383, LGPD).']
+    ];
+    const tem = CAPS.filter(c => c[1] === 'Tem').length;
+    const media = (m) => { const vals = Object.values(m).filter(Boolean).map(a => avg(a)); return { m: vals.reduce((a, b) => a + b, 0) / vals.length, baixas: vals.filter(v => v < 5).length }; };
+    let cur = Object.fromEntries(T.map(t => [t[1], t[4] ? [...t[4]] : null]));
+    const novo = [8, 8, 7, 5, 7, 7], migr = [8, 8, 7, 4, 6, 7];
+    const ERPUI = ['Orçamentos', 'Estoque', 'Movimentações', 'Fiscal', 'Pagamentos', 'Relatórios', 'Empresas', 'Chat', 'Clientes', 'Produtos', 'Pedidos', 'Dashboard', 'Produção'];
+    const ONDAS = [
+      ['Base', 'Cores do DS em oi-theme.ts, fontes IBM Plex e mapa único de status da OS.', 'Todas as telas (só tokens)', 'Baixo', (c) => { Object.keys(c).forEach(k => { if (c[k]) c[k][0] = Math.min(9, c[k][0] + 1); }); }],
+      ['Oficina', 'OS e Veículos em Oi*, placa como componente, OiForm, OiStatus com info, OiBtn sm 36 px + hitSlop.', 'OS — lista · OS — detalhe · Veículos (+ toque em todas as Oi*)', 'Baixo', (c) => { Object.keys(c).forEach(k => { if (c[k] && !ERPUI.includes(k)) c[k][1] = Math.max(c[k][1], 7); }); c['OS — lista'] = [8, 8, 7, 5, 7, 7]; c['OS — detalhe'] = [8, 8, 7, 5, 7, 7]; c['Veículos'] = [8, 8, 7, 5, 7, 6]; }],
+      ['Telas antigas', 'erp-ui e ScreenContainer viram adaptadores no DS; status-tones; patches de hex e emoji.', '13 telas que importam erp-ui', 'Baixo', (c) => { ERPUI.forEach(k => { if (c[k]) { c[k][0] = Math.max(c[k][0], 7); c[k][1] = Math.max(c[k][1], 7); c[k][2] = Math.max(c[k][2], 6); } }); }],
+      ['Offline + servidor', 'Erro de rede vira "guardado"; pendências por registro; aviso em Fiscal/Pagamentos; spec de notificações.', 'Todas · Notificações', 'Médio', (c) => { Object.keys(c).forEach(k => { if (c[k] && k !== 'Login') c[k][3] = Math.max(c[k][3], k === 'Fiscal' || k === 'Pagamentos' ? 8 : 7); }); if (c['Notificações']) c['Notificações'][5] = 7; }],
+      ['Ponto por link (5b)', 'Módulo Ponto abre o app de ponto (Capacitor) por App Link ou o REP-P web. Sem Passport, sem rota nova. A 5 nativa fica como alternativa.', 'REP-P (via app de ponto / web)', 'Baixo', (c) => { c['REP-P (bater ponto)'] = [7, 7, 6, 4, 6, 8]; }]
+    ];
+    const RT = { Baixo: 'var(--pos)', 'Médio': 'var(--warn)' };
+    const hoje = media(cur);
+    const ondas = [], passos = [{ label: 'Hoje', sub: hoje.baixas + ' abaixo de 5', m: hoje.m }];
+    let prev = hoje;
+    ONDAS.forEach(([titulo, escopo, telas, risco, fn], k) => {
+      fn(cur); const d = media(cur);
+      ondas.push({ n: k + 1, titulo, escopo, telas, risco, riscoTint: RT[risco], antes: fmt(prev.m), depois: fmt(d.m), tint: tint(d.m), baixas: String(d.baixas) });
+      passos.push({ label: 'Onda ' + (k + 1), sub: titulo, m: d.m });
+      prev = d;
+    });
+    const linhasPac = T.map(([mod, tela, arq, s, , obs]) => {
+      const n = cur[tela], href = 'Oimpresso Mobile.dc.html#s' + s;
+      if (!n) return { mod, tela, arq, obs, media: -1, ausente: true, href, nota: '—', notaTint: 'var(--text-mute)', cel: CR.map(() => ({ v: '—', bg: 'var(--bg-2)', fg: 'var(--text-mute)' })) };
+      const media = avg(n), base = T.find(t => t[1] === tela)[4];
+      return { mod, tela, arq, obs: base ? 'Com pacotes: ' + n.map((v, i) => v !== base[i] ? CR[i][0] + ' ' + base[i] + '→' + v : null).filter(Boolean).join(' · ') : 'Com pacotes: via app de ponto / REP-P web (5b).', media, href, nota: fmt(media), notaTint: tint(media), cel: n.map(v => { const [bg, fg] = tone(v); return { v: String(v), bg, fg }; }) };
+    });
+    const ordenar = (arr) => o === 'nota' ? [...arr].sort((a, b) => (a.ausente ? 99 : a.media) - (b.ausente ? 99 : b.media)) : o === 'melhor' ? [...arr].sort((a, b) => b.media - a.media) : arr;
+    const pac = this.state.visao === 'pacotes';
+    const ondasBar = passos.map((p, k) => ({ label: p.label, sub: p.sub, nota: fmt(p.m), tint: tint(p.m), h: Math.round(p.m / 10 * 120) + 'px', op: k === 0 ? 0.55 : 1 }));
+    return {
+      criterios: CR.map(([curto, desc]) => ({ curto, desc })),
+      linhas: pac ? ordenar(linhasPac) : linhas, ordens, modulos: mods, ondas, ondasBar,
+      visoes: [['hoje', 'Hoje (main)'], ['pacotes', 'Com os pacotes aplicados']].map(([id, label]) => { const on = this.state.visao === id; return { label, border: on ? 'var(--accent)' : 'var(--border)', bg: on ? 'var(--accent)' : 'var(--surface)', fg: on ? 'var(--accent-fg)' : 'var(--text-dim)', pick: () => this.setState({ visao: id }) }; }),
+      visaoNota: pac ? 'Projeção: as notas assumem que cada pacote foi aplicado e funciona — ainda não testado no aparelho.' : 'Estado real do app hoje no main. Os pacotes ainda não foram aplicados — por isso estas notas não mudam até o PR entrar.',
+      critica: (() => {
+        const K = { Corrigido: 'var(--pos)', Limite: 'var(--warn)', Risco: 'var(--neg)' };
+        const g = (titulo, itens) => ({ titulo, itens: itens.map(([tag, txt]) => ({ tag, txt, tint: K[tag] })) });
+        return [
+          g('Teste dos pacotes (estático)', [
+            ['Corrigido', 'OiForm: anel de foco; lista de OS com 1 requisição; botão offline 44 px; grade do Ponto.'],
+            ['Corrigido', 'Rotas do Ponto estavam erradas (/ponto/api/mobile/…). Agora as 7 reais, lidas no routes.php.'],
+            ['Corrigido', 'Sheet sobre sheet: Select inline no adaptador e em Veículos.'],
+            ['Corrigido', 'Tipos de erp-queries e ciclo de import conferidos; data do relógio sem Intl.'],
+            ['Risco', 'Nada rodou: sem aparelho, sem Expo, sem tsc. Detalhes em handoff/TESTE.md.']
+          ]),
+          g('Método da nota', [
+            ['Corrigido', 'Pesos: DS 25, Toque 25, Estados 20, Offline 15, Fluxo 10, Dados 5. "Dados" quase não varia e deixou de diluir.'],
+            ['Limite', 'Notas por leitura de código, uma pessoa só. Sem teste com técnico no pátio, Toque e Estados são palpite informado.'],
+            ['Limite', 'A projeção das ondas é circular: eu defini a nota pós-onda e o gráfico só soma. Mede intenção, não resultado.']
+          ]),
+          g('O que a nota não mostra', [
+            ['Risco', 'Onda 3 por adaptador muda 13 telas sem tocá-las — rápido, mas qualquer prop usada fora do contrato antigo só aparece no tsc.'],
+            ['Risco', 'Achado: já existe um app de ponto separado (Capacitor). A Onda 5 pode duplicar — decisão do Wagner antes de tudo.'],
+            ['Risco', 'Onda 5 ainda depende de token Passport no app Expo, rota do espelho mensal e rota dos motivos.'],
+            ['Limite', 'Desempenho, acessibilidade (leitor de tela, contraste no sol) e tamanho do app não foram avaliados.']
+          ]),
+          g('Para a nota valer', [
+            ['Limite', 'Rodar tsc + lint após cada onda e anexar no PR.'],
+            ['Limite', '15 min com 2 técnicos: abrir OS, avançar etapa, copiar link, sem rede. Reavaliar Toque e Offline com o que observar.'],
+            ['Limite', 'Repetir esta grade depois da Onda 1 com print das telas reais — não do espelho.']
+          ])
+        ];
+      })(),
+      resumo: [
+        { label: 'Nota geral', v: fmt(geral), fg: tint(geral), sub: rows.length + ' telas · Ponto fora da média' },
+        { label: 'Abaixo de 5', v: String(rows.filter(r => r.media < 5).length), fg: 'var(--neg)', sub: 'telas para priorizar' },
+        { label: 'Critério mais fraco', v: critMed[0].c, fg: tint(critMed[0].m), sub: 'média ' + fmt(critMed[0].m) },
+        { label: 'Capacidades', v: tem + '/' + CAPS.length, fg: 'var(--text)', sub: 'confirmadas no código' }
+      ],
+      atencao: AT.map(([sev, titulo, desc], i) => ({ n: String(i + 1).padStart(2, '0'), sev, titulo, desc, tint: SEV[sev] })),
+      caps: CAPS.map(([nome, st, obs]) => ({ nome, st, obs, tint: CS[st] }))
+    };
+  }
+}
+</script>
+</body>
+</html>

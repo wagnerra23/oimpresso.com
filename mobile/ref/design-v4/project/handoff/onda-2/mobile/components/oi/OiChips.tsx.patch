@@ -1,0 +1,33 @@
+--- a/mobile/components/oi/OiChips.tsx
++++ b/mobile/components/oi/OiChips.tsx
+@@ chip: ~28 px → 36 px visível + hitSlop 4 = 44 (item 03)
+     <Pressable
+       onPress={onPress}
++      hitSlop={4}
++      accessibilityRole="button"
++      accessibilityState={{ selected: !!active }}
+       style={{
+         flexDirection: "row",
+         alignItems: "center",
+         gap: 5,
+         borderWidth: 1,
+         borderColor: border,
+         backgroundColor: bg,
+         paddingHorizontal: 12,
+-        paddingVertical: 5,
++        height: 36,
+         borderRadius: radius.pill,
+       }}
+     >
+@@ ativo em accent (DS: filtro selecionado = accent, não preto)
+-  const bg = active ? palette.text : palette.surface;
+-  const fg = active ? palette.bg : palette.textDim;
+-  const border = active ? palette.text : palette.border;
++  const bg = active ? palette.accentSoft : palette.surface;
++  const fg = active ? palette.accent : palette.textDim;
++  const border = active ? palette.accent : palette.border;
+@@ contador
+             backgroundColor: active
+-              ? "rgba(255,255,255,0.18)"
++              ? palette.surface
+               : palette.border2,
