@@ -2,6 +2,7 @@
 .github/ci-sqlite-pest.list merge=union
 .github/financeiro-pest-quarantine.list merge=union
 .github/estoque-pest-quarantine.list merge=union
+.github/cliente-pest-quarantine.list merge=union
 
 # ── Índices append-no-topo: conflito estrutural entre sessões paralelas ──────────
 # O ARQUIVO de handoff nunca conflita (nome único por sessão, `YYYY-MM-DD-HHMM-slug`).
