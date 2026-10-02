@@ -108,7 +108,7 @@ class NovoProdutoController extends Controller
         $codigo = trim((string) ($d['codigo'] ?? ''));
         $locais = $user->permitted_locations($bizId);
         $lojas = DB::table('business_locations')->where('business_id', $bizId)
-            ->when($locais !== 'all', fn ($q) => $q->whereIn('id', (array) $locais ?: [0]))
+            ->when($locais !== 'all', fn ($q) => $q->whereIn('id', array_merge([0], (array) $locais)))
             ->orderBy('id')->pluck('id')->map(fn ($id) => (int) $id)->all();
 
         DB::beginTransaction();
