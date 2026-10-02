@@ -1,0 +1,14 @@
+# Quarentena da lane "PHP / Pest (Cliente · MySQL)" — .github/workflows/cliente-pest.yml
+#
+# COMO A LANE SELECIONA: run-set = TUDO em tests/Feature/Cliente/**/*Test.php MENOS o que
+# este arquivo lista. Arquivo NOVO entra RODANDO. Todo item aqui é dívida VISÍVEL, com motivo.
+#
+# 1 path por linha · '#' comenta · motivo inline obrigatório · merge=union no .gitattributes.
+# ⚠️ O union une ADIÇÕES mas desfaz REMOÇÃO adjacente em silêncio (§5 2026-09-18). Depois
+# de mergear, confira duplicata por PATH, não por linha:
+#   sed 's/#.*//; s/[[:space:]]*$//' .github/cliente-pest-quarantine.list | grep -vE '^$' | sort | uniq -d
+
+# (A) Envenenam o schema compartilhado: usam RefreshDatabase, que dropa as tabelas e apaga o
+#     seed multi-tenant da action pest-mysql-setup — derrubaria os outros arquivos da lane.
+tests/Feature/Cliente/ClienteIndexDrawer760CharterTest.php  # usa RefreshDatabase (dropa o seed)
+tests/Feature/Cliente/IsOtherFlagTest.php  # usa RefreshDatabase (dropa o seed)
