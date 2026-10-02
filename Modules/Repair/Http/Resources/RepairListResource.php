@@ -16,12 +16,18 @@ class RepairListResource extends JsonResource
 {
     public function toArray($request): array
     {
+        // As duas datas chegam como STRING: App\Transaction não tem cast de data. Antes,
+        // `optional($string)?->toIso8601String()` devolvia null sem erro (o Optional só chama
+        // método em objeto) e a fila mostrava as colunas de data vazias. Ver UC-RIDX-06.
+        $transactionDate = $this->asCarbon($this->transaction_date);
+        $repairDueDate = $this->asCarbon($this->repair_due_date);
+
         return [
             'id'                    => (int) $this->id,
             'invoice_no'            => $this->invoice_no,
-            'transaction_date'      => optional($this->transaction_date)?->toIso8601String(),
-            'repair_due_date'       => optional($this->repair_due_date)?->toIso8601String(),
-            'repair_due_human'      => optional($this->repair_due_date)?->diffForHumans(),
+            'transaction_date'      => $transactionDate?->toIso8601String(),
+            'repair_due_date'       => $repairDueDate?->toIso8601String(),
+            'repair_due_human'      => $repairDueDate?->diffForHumans(),
             'is_overdue'            => $this->is_overdue ?? false,
             'serial_no'             => $this->repair_serial_no,
             'defects'               => $this->repair_defects,
@@ -51,5 +57,15 @@ class RepairListResource extends JsonResource
             'device_model_name'     => $this->device_model_name ?? null,
             'created_by'            => $this->created_by ? (int) $this->created_by : null,
         ];
+    }
+
+    /** Aceita string do banco, Carbon ou vazio; devolve Carbon ou null. */
+    private function asCarbon($valor): ?\Carbon\Carbon
+    {
+        if (empty($valor)) {
+            return null;
+        }
+
+        return $valor instanceof \Carbon\Carbon ? $valor : \Carbon\Carbon::parse($valor);
     }
 }
