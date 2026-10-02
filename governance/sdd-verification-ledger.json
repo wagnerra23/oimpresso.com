@@ -2073,6 +2073,25 @@
       "evidencia": "memory/sessions/2026-09-29-refutacao-gt-g5-lote-8195-r1.md (rodada aprovada)",
       "trajetoria": "1 rodada: 0,00% (r1, 0/624)",
       "marcador_absorcao": "n/a — lote não afrouxa baseline nenhum"
+    },
+    {
+      "pr": 8612,
+      "lote_id": "gt-g5-lote-8612",
+      "data": "2026-10-02",
+      "tipo": "anchors",
+      "gerador": "claude-opus-5-5 (Anthropic) — sessão confident-elbakyan-dcdcc7 (coordenação do app das lojas), reorganização por script com conferência de conservação",
+      "refutador": "claude-fable-5-1 (Anthropic) — subagente em contexto próprio, sem contexto do gerador, roteiro do .claude/workflows/refutador-gt-g5.js (proibido abrir evidências anteriores)",
+      "sessao_fresca": true,
+      "amostra_pct": 100,
+      "itens_verificados": 308,
+      "erros_confirmados": 1,
+      "error_rate_pct": 0.32,
+      "pii_scan": true,
+      "pii_hits": 0,
+      "veredito": "aprovado",
+      "evidencia": "memory/sessions/2026-10-02-refutacao-gt-g5-lote-8612-r1.md (rodada aprovada)",
+      "trajetoria": "1 rodada: 0,32% (r1, 1/308); o refutado (tabela da numeração antiga sem §11/§10 de área, citado em OficinaController.php:18) foi corrigido no mesmo PR após a rodada",
+      "marcador_absorcao": "n/a — lote não afrouxa baseline nenhum"
     }
   ]
 }

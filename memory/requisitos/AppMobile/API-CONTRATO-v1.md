@@ -358,7 +358,9 @@ que citam a numeração antiga continuam valendo por esta tabela (fixa; não acr
 | §9.2 | [tela-05-estoque.md](api/tela-05-estoque.md) |
 | §9.3 | [tela-29-movimentacoes-de-um-item.md](api/tela-29-movimentacoes-de-um-item.md) |
 | §9.4 | [tela-20-novo-produto.md](api/tela-20-novo-produto.md) |
+| §10 (área) | [tela-06-financeiro.md](api/tela-06-financeiro.md) |
 | §10.1 | [tela-06-financeiro.md](api/tela-06-financeiro.md) |
+| §11 (área: regra de acesso da Oficina) | [tela-07-ordens-de-servico.md](api/tela-07-ordens-de-servico.md) |
 | §11.1 | [tela-07-ordens-de-servico.md](api/tela-07-ordens-de-servico.md) |
 | §11.2 | [tela-03-detalhe-da-os.md](api/tela-03-detalhe-da-os.md) |
 | §11.4 | [tela-23-manutencao.md](api/tela-23-manutencao.md) |
