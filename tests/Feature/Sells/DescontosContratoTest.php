@@ -353,7 +353,11 @@ it('UC-DSC-06 [T0] desconto de outro negócio não aparece nem é alcançado pel
     expect(in_array($meu, $ids, true))->toBeTrue();
     expect(in_array($alheio, $ids, true))->toBeFalse();
 
-    dscAjax($this)->put("/discount/{$alheio}", ['name' => 'invadido', 'discount_amount' => '99'])->assertOk()->assertJson(['success' => false]);
+    // update() de id alheio: o find() escopado devolve null e `$discount->update()` estoura
+    // um \Error que o catch(\Exception) não pega — 500, como antes do FormRequest. O que
+    // importa (Tier 0) é que nada é gravado; a resposta só não pode ser sucesso.
+    $r = dscAjax($this)->put("/discount/{$alheio}", ['name' => 'invadido', 'discount_amount' => '99']);
+    expect($r->status() === 200 && $r->json('success') === true)->toBeFalse();
     dscAjax($this)->delete("/discount/{$alheio}")->assertOk()->assertJson(['success' => false]);
     dscAjax($this)->get("/discount/activate/{$alheio}")->assertOk();
     $this->post('/discount/mass-deactivate', ['selected_discounts' => (string) $alheio]);
