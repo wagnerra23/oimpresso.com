@@ -49,8 +49,13 @@ test('controller $types e $inertiaTypes também aceitam other (3 camadas alinhad
         ->toMatch("/\\\$types\s*=\s*\[[^\]]*'other'[^\]]*\];/")
         // $inertiaTypes = [...,'other',...]; (guard do Inertia::render)
         ->toMatch("/\\\$inertiaTypes\s*=\s*\[[^\]]*'other'[^\]]*\];/")
-        // mapeamento de filtro 'other' => 'is_other'
-        ->toContain("'other' => 'is_other'");
+        // O filtro de papel delega ao serviço único (o mapeamento saiu daqui no #8497).
+        ->toContain('PessoaEscopo::papel($q, $type)');
+
+    // mapeamento de filtro 'other' => 'is_other' — mora em PessoaEscopo desde o #8497
+    // (2026-10-02, regra de visibilidade num serviço só, compartilhada com a API do app).
+    $escopo = file_get_contents(__DIR__ . '/../../../app/Services/Pessoas/PessoaEscopo.php');
+    expect($escopo)->toContain("'other' => 'is_other'");
 });
 
 /**
