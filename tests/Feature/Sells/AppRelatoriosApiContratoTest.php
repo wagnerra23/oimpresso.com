@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use Laravel\Passport\Passport;
 use Spatie\Permission\Models\Permission;
+use Tests\Contract\AutosaveContractRunner;
 use Tests\Support\EstoqueFixture;
 
 /**
@@ -126,18 +127,19 @@ it('kpis e DRE por competência no período: delta bate com a conta à mão; can
 
 it('sem Financeiro: kpis e dre vêm null; vendas por dia bate com getSellTotals de hoje e o top cliente é do business', function () {
     appRelPlano(false);
-    $biz = (int) $this->tenant->id;
+    // Venda criada aqui (com cliente e local): o seed do tenant não tem venda com cliente, e o
+    // markTestSkipped de antes fazia este caso sair verde sem rodar (CI 2026-10-02: 1 skipped).
+    $ctx = AutosaveContractRunner::setupSellsContext($this);
+    $biz = (int) $ctx['business']->id;
+    $venda = (int) $ctx['transactionId'];
     $eu = appRelUsuario($biz, ['dashboard.data', 'access_all_locations']);
     Passport::actingAs($eu, [], 'api');
     $hoje = CarbonImmutable::today()->toDateString();
-    $venda = DB::table('transactions')->where('business_id', $biz)->where('type', 'sell')->whereNotNull('contact_id')->value('id');
-    if (! $venda) {
-        $this->markTestSkipped('Seed sem venda no tenant.');
-    }
     DB::table('transactions')->where('id', $venda)->update([
         'status' => 'final', 'final_total' => 987654.32, 'transaction_date' => now(),
     ]);
-    $cliente = DB::table('contacts')->where('id', DB::table('transactions')->where('id', $venda)->value('contact_id'))->value('name');
+    $contato = DB::table('contacts')->where('id', DB::table('transactions')->where('id', $venda)->value('contact_id'))->first();
+    $cliente = $contato->name ?: $contato->supplier_business_name ?: 'Cliente';
 
     $r = $this->getJson('/api/app/relatorios?periodo=mes&aba=vendas')->assertOk()->json();
 
