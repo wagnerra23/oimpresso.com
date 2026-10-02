@@ -404,11 +404,11 @@ class ChatController extends Controller
      */
     public function send(SendChatMessageRequest $request, $id)
     {
-        // Tier 0 (ADR 0093): Conversa usa HasBusinessScope — o BusinessScope global filtra pela
-        // sessão; o dono da conversa é conferido logo abaixo. Igual ao que era antes do turno sair
-        // para o ChatTurnoService.
         $conversa = Conversa::findOrFail($id);
         abort_unless($conversa->user_id === auth()->id(), 403);
+        // Tier 0 (ADR 0093): além do escopo global da Conversa, a conversa tem de ser do business
+        // do usuário — o turno (ChatTurnoService) não olha sessão.
+        abort_unless((int) $conversa->business_id === (int) auth()->user()->business_id, 403);
 
         // Turno inteiro (grava pergunta, responde, grava resposta com tokens) num lugar só,
         // compartilhado com o app das lojas (POST /api/app/chat).
