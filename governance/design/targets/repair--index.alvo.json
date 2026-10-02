@@ -1,0 +1,455 @@
+{
+  "aguardou_sumir": null,
+  "ausentes": [],
+  "base": {
+    "assinatura": "OI WR REPAIR · Matriz + 1 filial · 14 folhas · 11 pendentes Assistência técnica administrador Atualizado 09:42 ⌕ Buscar Adicionar folha Painel Produção 11 Folhas de OS 14 Reparos 14 Status 9 Modelos 6 Portal do cliente Configurações Em andamento 11 clique filtra a lista Concluídas 3 Total exibido 14 Buscar Local Todos os locais Matriz — Centro Filial — Zona Norte Responsável Todos os responsáveis Anderson Prado Rafael Uchoa Bruna Sales Não atribuído 0 Recebido no balcão Em diagnóstico Orçamento enviado Aguardando peça Em reparo Em teste final Pronto p/ retirada Entregue Sem reparo (devolvido) OS ↕ Status ↕ Cliente ↕ Aparelho Série Resp. Aberta ↕ Prazo ↕ Total ↕ Pgto REP-2026-0418 Recebido no balcão Comunicação Rota Livre Roland GR2-540 RL-GR2-88123 — 24/08/2026 27/08/2026 em 3d R$ 0,00 Pendente REP-2026-0417 Recebido no balcão Gráfica Martinho ME Dell Latitude 5440 DL-5440-A991 — 24/08/2026 26/08/2026 em 2d R$ 240,00 Vencido REP-2026-0412 Em diagnóstico Studio Vento Sul Epson SureColor S60600 EP-S606-77401 Anderson Prado 21/08/2026 25/08/2026 em 1d R$ 1.450,00 Vencido REP-2026-0410 Em diagnóstico Eduardo Pessoa Dell Latitude 5440 DL-5440-B120 Bruna Sales 20/08/2026 25/08/2026 em 1d R$ 380,00 Vencido REP-2026-0405 Orçamento enviado Comunicação Rota Livre HP Latex 315 HP-315-55210 Rafael Uchoa 18/08/2026 24/08/2026 vence hoje R$ 3.890,00 Vencido REP-2026-0402 Orçamento enviado Sinalize Já Ltda Mimaki CJV150-75 MK-CJV-31007 Anderson Prado 17/08/2026 28/08/2026 em 4d R$ 2.240,00 Vencido REP-2026-0398 Aguardando peça Ateliê Casa Forte Brother GTX-600 BR-GTX-90881 Bruna Sales 14/08/2026 23/08/2026 atrasada 1d R$ 4.800,00 Vencido REP-2026-0394 Aguardando peça Gráfica Martinho ME Roland GR2-540 RL-GR2-77320 Rafael Uchoa 13/08/2026 26/08/2026 em 2d R$ 1.100,00 Vencido REP-2026-0289 Em reparo Studio Vento Sul Epson SureColor S60600 EP-S606-11902 Anderson Prado 14/08/2026 24/08/2026 vence hoje R$ 1.980,00 Pendente Mostrando 1–9 de 14 Anterior 1 2 Próximo 1 – 9 de 14 O reparo é a venda derivada da folha — pagamento, garantia e cobrança são de Vendas/Financeiro. Aqui só se lê.",
+    "roles": {
+      "celulas": null,
+      "chart": null,
+      "contratos": [],
+      "filterRows": null,
+      "kpi": {
+        "count": 0,
+        "items": [],
+        "overflowX": null,
+        "tag": null
+      },
+      "primary": null,
+      "shell": null,
+      "tabela": null,
+      "title": null
+    },
+    "saude": {
+      "folhasVazias": [],
+      "nFolhas": 73,
+      "tokensMortos": []
+    },
+    "theme": "dark",
+    "url": "http://127.0.0.1:5577/"
+  },
+  "nos_totais": 794,
+  "quieto_ms": 2000,
+  "rota": "rep-reparos",
+  "secoes": {
+    "filtros": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "body",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "flex",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "8px",
+        "padding": "0px"
+      },
+      "filhos": 4,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "rep-list"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "rep-root"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "main-body"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "main"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "app"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "div"
+        },
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "body"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "rep-filtro",
+        "rep-filtro",
+        "rep-filtro",
+        "sp"
+      ],
+      "rect": {
+        "h": 53,
+        "w": 1176
+      },
+      "seletor": ".rep-root > .rep-list > .rep-toolbar",
+      "truncado": false
+    },
+    "header": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "body",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "block",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "padding": "20px 24px 0px"
+      },
+      "filhos": 2,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "rep-root"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "main-body"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "main"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "app"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "div"
+        },
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "body"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "p",
+        "header"
+      ],
+      "rect": {
+        "h": 103,
+        "w": 1224
+      },
+      "seletor": ".rep-root > .cli-ph",
+      "truncado": false
+    },
+    "kpis": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "body",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "grid",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "10px",
+        "padding": "0px"
+      },
+      "filhos": 3,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "rep-list"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "rep-root"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "main-body"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "main"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "app"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "div"
+        },
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "body"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "div",
+        "div",
+        "div"
+      ],
+      "rect": {
+        "h": 98,
+        "w": 1176
+      },
+      "seletor": ".rep-root > .rep-list > .rep-kpis",
+      "truncado": false
+    },
+    "lista": {
+      "contraste": {
+        "fundo": "oklch(0.3 0.008 240)",
+        "fundo_de": "proprio",
+        "razao": 11.42,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.027108,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.3 0.008 240)",
+        "borderRadius": "8px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "block",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "padding": "0px"
+      },
+      "filhos": 1,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.3 0.008 240)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "div"
+      ],
+      "rect": {
+        "h": 464,
+        "w": 1176
+      },
+      "seletor": ".rep-root > .rep-list > .rep-grid",
+      "truncado": false
+    },
+    "rodape": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "body",
+        "razao": 6.26,
+        "texto": "oklch(0.72 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.373341
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.72 0.005 90)",
+        "display": "flex",
+        "fontSize": "11.5px",
+        "fontWeight": "400",
+        "gap": "12px",
+        "padding": "0px"
+      },
+      "filhos": 3,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "rep-list"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "rep-root"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "main-body"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "main"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "app"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "div"
+        },
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "body"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "span",
+        "sp",
+        "nav"
+      ],
+      "rect": {
+        "h": 28,
+        "w": 1176
+      },
+      "seletor": ".rep-root > .rep-list > .rep-foot",
+      "truncado": false
+    },
+    "status": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "body",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "flex",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "4px",
+        "padding": "0px"
+      },
+      "filhos": 9,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "rep-list"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "rep-root"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "main-body"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "main"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "app"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "div"
+        },
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "body"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "rep-st",
+        "rep-st",
+        "rep-st",
+        "rep-st",
+        "rep-st",
+        "rep-st",
+        "rep-st",
+        "rep-st",
+        "rep-st"
+      ],
+      "rect": {
+        "h": 18,
+        "w": 1176
+      },
+      "seletor": ".rep-root > .rep-list > .rep-chips",
+      "truncado": false
+    },
+    "tabs": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "proprio",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.26 0.006 240)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "flex",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "0px",
+        "padding": "0px 24px"
+      },
+      "filhos": 8,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "button",
+        "button",
+        "button",
+        "button",
+        "button",
+        "button",
+        "button",
+        "button"
+      ],
+      "rect": {
+        "h": 36,
+        "w": 1224
+      },
+      "seletor": ".rep-root > .ds-tabbar",
+      "truncado": false
+    }
+  },
+  "tela": "repair--index",
+  "url": "http://127.0.0.1:5577/"
+}

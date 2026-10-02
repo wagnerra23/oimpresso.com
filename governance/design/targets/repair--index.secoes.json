@@ -1,0 +1,11 @@
+{
+  "_": "A1 [CL] 2026-10-02 — playbook repair. Protótipo: rota `rep-reparos` do espelho (window.RepRotas, criada na thread 00 · repair-page.jsx Reparos). Papel administrador, estado dados.",
+  "_mapa": "alvo:mapa --rota rep-reparos contra o espelho servido por servirEstatico (porta 5577), 2026-10-02: .rep-root = div.cli-ph · nav.ds-tabbar · div.rep-list · div.rep-aviso-live; .rep-list = rep-kpis · rep-toolbar · rep-chips · rep-grid · rep-foot · p.rep-nota.",
+  "header": { "seletor": ".rep-root > .cli-ph" },
+  "tabs": { "seletor": ".rep-root > .ds-tabbar" },
+  "kpis": { "seletor": ".rep-root > .rep-list > .rep-kpis" },
+  "filtros": { "seletor": ".rep-root > .rep-list > .rep-toolbar" },
+  "status": { "seletor": ".rep-root > .rep-list > .rep-chips" },
+  "lista": { "seletor": ".rep-root > .rep-list > .rep-grid" },
+  "rodape": { "seletor": ".rep-root > .rep-list > .rep-foot" }
+}

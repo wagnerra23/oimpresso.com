@@ -1,0 +1,10 @@
+{
+  "_": "A1 [CL] 2026-10-02 — playbook repair. Protótipo: rota `rep-folhas` do espelho (window.RepRotas, thread 00 · repair-page.jsx Folhas). Papel administrador (job_sheet.view_all), então o aviso de view_assigned não monta.",
+  "_mapa": "alvo:mapa --rota rep-folhas --raiz .rep-list, 2026-10-02: .rep-list = rep-subtabs · rep-toolbar · rep-grid · rep-foot.",
+  "header": { "seletor": ".rep-root > .cli-ph" },
+  "tabs": { "seletor": ".rep-root > .ds-tabbar" },
+  "recorte": { "seletor": ".rep-root > .rep-list > .rep-subtabs" },
+  "filtros": { "seletor": ".rep-root > .rep-list > .rep-toolbar" },
+  "lista": { "seletor": ".rep-root > .rep-list > .rep-grid" },
+  "rodape": { "seletor": ".rep-root > .rep-list > .rep-foot" }
+}
