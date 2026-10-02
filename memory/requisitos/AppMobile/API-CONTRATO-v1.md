@@ -153,6 +153,17 @@ prazo_padrao_dias, consentimento: { whatsapp, email_nfe } }` (só `tipo`, `nome`
 - `consentimento` grava `whatsapp_consent` / `email_consent` e a data em `consent_updated_at`
   (LGPD Art. 7º, I); chave ausente não altera nada.
 
+### 4.3 Busca de CEP (tela 09, botão "Buscar") — só leitura
+
+`GET /api/app/cep/{cep}` → `200 { cep, logradouro, complemento, bairro, cidade, uf, codigo_ibge }` ·
+`404 { erro: "nao_encontrado" }` (CEP não existe ou o serviço falhou: preencher à mão) ·
+`422 { erro: "validacao" }` (não tem 8 dígitos).
+
+- O app não chama serviço de CEP externo: o ERP responde pelo proxy com cache que o drawer de cliente
+  da web já usa (`BrLookupService`, ViaCEP, cache 90 dias), via o contrato `App\Contracts\Enderecos\BuscaCep`.
+- `codigo_ibge` pode vir `null` para CEP que já estava em cache antes deste campo existir.
+- Limite de 60 buscas por minuto, como na web.
+
 ## 5. Produção ⬜ — fila por **etapa da venda** ([W] 2026-10-02)
 
 `GET /api/app/producao`
