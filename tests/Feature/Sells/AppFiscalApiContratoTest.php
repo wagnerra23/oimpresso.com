@@ -20,7 +20,7 @@ use Spatie\Permission\Models\Permission;
  * Tier 0 (ADR 0093): notas do business 2 nunca aparecem no 98. Controle positivo em par: as do
  * próprio business aparecem, senão o "não aparece" seria verde por vácuo.
  *
- * As notas criadas aqui ficam em 2099 para ficarem no topo da lista "mais recente primeiro"
+ * As notas criadas aqui ficam em 2037 (created_at é TIMESTAMP: o MySQL só vai até 2038-01-19) para ficarem no topo da lista "mais recente primeiro"
  * independente do que o seed tiver; os contadores são conferidos por delta.
  */
 uses(DatabaseTransactions::class);
@@ -85,7 +85,7 @@ function appFisNfe(int $biz, string $modelo, string $status, string $quando, arr
 function appFisNfse(int $biz, string $status, string $quando, array $extra = []): int
 {
     return (int) DB::table('nfse_emissoes')->insertGetId($extra + [
-        'business_id' => $biz, 'competencia' => '2099-01-01', 'tomador_nome' => 'Tomador APP', 'descricao' => 'Serviço APP',
+        'business_id' => $biz, 'competencia' => '2037-01-01', 'tomador_nome' => 'Tomador APP', 'descricao' => 'Serviço APP',
         'valor_servicos' => 250.00, 'status' => $status, 'idempotency_key' => (string) Str::uuid(),
         'created_at' => $quando, 'updated_at' => $quando,
     ]);
@@ -114,14 +114,14 @@ it('lista NF-e, NFC-e e NFS-e do business, mais recente primeiro, com status map
     $antes = $this->getJson('/api/app/fiscal')->assertOk()->json('contadores');
 
     $chave = str_repeat('4', 44);
-    $nfe = appFisNfe($biz, '55', 'autorizada', '2099-01-05 10:00:00', ['chave_44' => $chave, 'cstat' => '100', 'motivo' => 'Autorizado o uso da NF-e']);
-    $nfce = appFisNfe($biz, '65', 'rejeitada', '2099-01-04 10:00:00', ['cstat' => '539', 'motivo' => 'Duplicidade de NF-e']);
-    $nfse = appFisNfse($biz, 'emitida', '2099-01-03 10:00:00', ['numero' => '77', 'provider_codigo_verificacao' => 'ABC123']);
-    $inut = appFisNfe($biz, '55', 'inutilizada', '2099-01-02 10:00:00');
-    $pend = appFisNfe($biz, '55', 'pendente', '2099-01-01 10:00:00');
-    $rasc = appFisNfse($biz, 'rascunho', '2098-12-31 10:00:00');
-    $alheia = appFisNfe((int) $this->outro->id, '55', 'autorizada', '2099-01-06 10:00:00');
-    $alheiaS = appFisNfse((int) $this->outro->id, 'emitida', '2099-01-06 11:00:00');
+    $nfe = appFisNfe($biz, '55', 'autorizada', '2037-01-05 10:00:00', ['chave_44' => $chave, 'cstat' => '100', 'motivo' => 'Autorizado o uso da NF-e']);
+    $nfce = appFisNfe($biz, '65', 'rejeitada', '2037-01-04 10:00:00', ['cstat' => '539', 'motivo' => 'Duplicidade de NF-e']);
+    $nfse = appFisNfse($biz, 'emitida', '2037-01-03 10:00:00', ['numero' => '77', 'provider_codigo_verificacao' => 'ABC123']);
+    $inut = appFisNfe($biz, '55', 'inutilizada', '2037-01-02 10:00:00');
+    $pend = appFisNfe($biz, '55', 'pendente', '2037-01-01 10:00:00');
+    $rasc = appFisNfse($biz, 'rascunho', '2036-12-31 10:00:00');
+    $alheia = appFisNfe((int) $this->outro->id, '55', 'autorizada', '2037-01-06 10:00:00');
+    $alheiaS = appFisNfse((int) $this->outro->id, 'emitida', '2037-01-06 11:00:00');
 
     $r = $this->getJson('/api/app/fiscal')->assertOk();
     $topo = array_map(fn ($i) => $i['tipo'] . ':' . $i['id'], array_slice($r->json('itens'), 0, 6));
@@ -135,7 +135,7 @@ it('lista NF-e, NFC-e e NFS-e do business, mais recente primeiro, com status map
         'tipo' => 'NFe', 'valor' => 100, 'status' => 'autorizado', 'chave' => $chave, 'erro' => null,
         'referencia' => 'Destinatário APP',
     ]);
-    expect($r->json('itens.0.emitido_em'))->toStartWith('2099-01-05T10:00:00');
+    expect($r->json('itens.0.emitido_em'))->toStartWith('2037-01-05T10:00:00');
     expect($r->json('itens.1'))->toMatchArray(['status' => 'rejeitado', 'chave' => null, 'erro' => 'Rejeição 539: Duplicidade de NF-e']);
     expect($r->json('itens.2'))->toMatchArray(['numero' => '77', 'valor' => 250, 'status' => 'autorizado', 'referencia' => 'Tomador APP']);
     expect($r->json('itens.3.status'))->toBe('cancelado');
@@ -154,8 +154,8 @@ it('filtro de status: só as do status; referencia traz o pedido da venda do mes
     $biz = (int) $this->tenant->id;
     Passport::actingAs(appFisUsuario($biz, ['fiscal.nfe.view']), [], 'api');
     $venda = DB::table('transactions')->where('business_id', $biz)->whereNotNull('invoice_no')->value('id');
-    $rej = appFisNfe($biz, '55', 'rejeitada', '2099-02-01 10:00:00', ['cstat' => '204', 'motivo' => 'Duplicidade', 'transaction_id' => $venda]);
-    appFisNfe($biz, '55', 'autorizada', '2099-02-02 10:00:00');
+    $rej = appFisNfe($biz, '55', 'rejeitada', '2037-02-01 10:00:00', ['cstat' => '204', 'motivo' => 'Duplicidade', 'transaction_id' => $venda]);
+    appFisNfe($biz, '55', 'autorizada', '2037-02-02 10:00:00');
 
     $r = $this->getJson('/api/app/fiscal?status=rejeitado')->assertOk();
 
@@ -171,8 +171,8 @@ it('quem só vê NF-e não recebe NFS-e (lista nem contador)', function () {
     appFisPlano(true);
     $biz = (int) $this->tenant->id;
     Passport::actingAs(appFisUsuario($biz, ['fiscal.nfe.view']), [], 'api');
-    $nfse = appFisNfse($biz, 'emitida', '2099-03-01 10:00:00');
-    $nfe = appFisNfe($biz, '55', 'autorizada', '2099-03-01 09:00:00');
+    $nfse = appFisNfse($biz, 'emitida', '2037-03-01 10:00:00');
+    $nfe = appFisNfe($biz, '55', 'autorizada', '2037-03-01 09:00:00');
 
     $tipos = array_map(fn ($i) => $i['tipo'] . ':' . $i['id'], $this->getJson('/api/app/fiscal')->assertOk()->json('itens'));
 
