@@ -170,7 +170,7 @@ class FinanceiroController extends Controller
             ->groupBy('t.tipo')
             ->selectRaw('t.tipo as tipo, SUM(b.valor_baixa) as total')
             ->get()
-            ->pluck('total', 'tipo');
+            ->mapWithKeys(fn ($l) => [$l->tipo => $l->total]);
 
         $recebido = round((float) ($mov['receber'] ?? 0), 2);
         $pago = round((float) ($mov['pagar'] ?? 0), 2);

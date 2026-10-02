@@ -107,7 +107,7 @@ class DashboardController extends Controller
         $dia = $q->groupBy(DB::raw('DATE(t.transaction_date)'))
             ->selectRaw('DATE(t.transaction_date) as dia, SUM(t.final_total) as total')
             ->get()
-            ->pluck('total', 'dia');
+            ->mapWithKeys(fn ($l) => [$l->dia => $l->total]);
         $serie = [];
         for ($d = $ini; $d->lte($hoje); $d = $d->addDay()) {
             $serie[] = round((float) ($dia[$d->toDateString()] ?? 0), 2);

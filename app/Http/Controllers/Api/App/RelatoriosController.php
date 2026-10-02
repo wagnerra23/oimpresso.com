@@ -127,7 +127,7 @@ class RelatoriosController extends Controller
             ->groupBy('tipo')
             ->selectRaw('tipo, SUM(valor_total) as total')
             ->get()
-            ->pluck('total', 'tipo');
+            ->mapWithKeys(fn ($l) => [$l->tipo => $l->total]);
         $receitas = round((float) ($tot['receber'] ?? 0), 2);
         $despesas = round((float) ($tot['pagar'] ?? 0), 2);
         $saldo = round($receitas - $despesas, 2);
@@ -178,7 +178,7 @@ class RelatoriosController extends Controller
             ->groupBy(DB::raw('DATE(t.transaction_date)'))
             ->selectRaw('DATE(t.transaction_date) as dia, SUM(t.final_total) as total')
             ->get()
-            ->pluck('total', 'dia');
+            ->mapWithKeys(fn ($l) => [$l->dia => $l->total]);
 
         $serie = [];
         for ($d = $ini; $d->lte($hoje); $d = $d->addDay()) {
