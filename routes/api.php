@@ -21,6 +21,8 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 // do próprio app; tenant = business do usuário do token. Contrato:
 // memory/requisitos/AppMobile/API-CONTRATO-v1.md.
 Route::middleware('auth:api')->prefix('app')->name('app.')->group(function () {
+    Route::get('/tarefas', [\App\Http\Controllers\Api\App\TarefasController::class, 'index'])->name('tarefas.index');
+    Route::post('/tarefas/todo/{id}/concluir', [\App\Http\Controllers\Api\App\TarefasController::class, 'concluirTodo'])->whereNumber('id')->name('tarefas.todo.concluir');
     Route::get('/pedidos', [\App\Http\Controllers\Api\App\PedidosController::class, 'index'])->name('pedidos.index');
     Route::get('/pedidos/{id}', [\App\Http\Controllers\Api\App\PedidosController::class, 'show'])->whereNumber('id')->name('pedidos.show');
     Route::get('/producao', [\App\Http\Controllers\Api\App\PedidosController::class, 'producao'])->name('producao.index');
