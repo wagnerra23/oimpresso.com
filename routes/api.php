@@ -42,4 +42,5 @@ Route::middleware('auth:api')->prefix('app')->name('app.')->group(function () {
     Route::get('/produtos', [\App\Http\Controllers\Api\App\ProdutosController::class, 'produtos'])->name('produtos.index');
     Route::get('/fiscal', [\App\Http\Controllers\Api\App\FiscalController::class, 'index'])->name('fiscal.index');
     Route::get('/inicio', [\App\Http\Controllers\Api\App\InicioController::class, 'show'])->name('inicio');
+    Route::get('/os', [\App\Http\Controllers\Api\App\OficinaController::class, 'index'])->name('os.index');
 });
