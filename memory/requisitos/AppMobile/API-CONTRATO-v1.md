@@ -88,6 +88,18 @@ rascunho, enviado, aprovado, convertido}, pagina, tem_mais }`, 20 por página, m
 - `grupo` ∈ `atrasadas · hoje · amanha · semana · depois`.
 - Escrita v1: `POST /api/app/tarefas/todo/{id}/concluir` (só ToDo do próprio usuário).
 
+### 3.1 Detalhe da tarefa (tela 28) — só leitura
+
+`GET /api/app/tarefas/todo/{id}` →
+`{ id: "todo:15", titulo, descricao, modulo, responsavel, cliente, prazo, atrasado, origem,
+checklist:[{texto, feito}], comentarios:[{quando, autor, texto, detalhe}], concluida }`
+
+- Mesmo escopo do §3 (admin vê as da empresa; os demais, as criadas por eles ou atribuídas a
+  eles), concluída ou não. Fora disso, ou de outra empresa → 404. Sem o Essentials no plano → 403.
+- `modulo` = o rótulo da lista (`Tarefa · alta`); `responsavel` = os atribuídos, separados por vírgula.
+- O ToDo do Essentials não tem checklist, cliente nem origem: `checklist: []`, `cliente`/`origem`
+  `null`. Comentários do mais antigo para o mais novo; `detalhe` sai `null`.
+
 ## 4. Pessoas ⬜
 
 `GET /api/app/pessoas?papel=todos|clientes|fornecedores|funcionarios|em_debito&q=&pagina=`

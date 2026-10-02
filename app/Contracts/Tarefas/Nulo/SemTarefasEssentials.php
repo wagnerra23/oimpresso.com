@@ -19,4 +19,9 @@ final class SemTarefasEssentials implements TarefasEssentials
     {
         return false;
     }
+
+    public function detalhe(User $user, int $businessId, int $id): ?array
+    {
+        return null;
+    }
 }
