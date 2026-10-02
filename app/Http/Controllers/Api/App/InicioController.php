@@ -72,12 +72,13 @@ class InicioController extends Controller
         $tarefas = app(TarefasController::class)->podeVerTarefas($user);
         $vendas = app(PedidosController::class)->podeVerVendas($user);
         $pessoas = app(PessoasController::class)->podeVerPessoas($user);
+        $oficina = app(OficinaController::class)->podeVerOficina($user);
         $ponto = DB::table('ponto_colaborador_config')
             ->where('business_id', (int) $user->business_id)
             ->where('user_id', (int) $user->id)
             ->where('controla_ponto', true)
             ->exists();
-        $erp = $tarefas || $vendas || $pessoas;
+        $erp = $tarefas || $vendas || $pessoas || $oficina;
 
         $areas = array_keys(array_filter([
             'inicio' => $erp,
@@ -86,6 +87,7 @@ class InicioController extends Controller
             'producao' => $vendas,
             'pessoas' => $pessoas,
             'orcamentos' => $vendas,
+            'oficina' => $oficina,
             'ponto' => $ponto,
             'mais' => true,
         ]));
