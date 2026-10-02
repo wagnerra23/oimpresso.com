@@ -60,14 +60,14 @@ final class TarefasDoApp implements TarefasEssentials
     public function detalhe(User $user, int $businessId, int $id): ?array
     {
         /** @var ToDo|null $t */
-        $t = $this->todos->scopedQueryForUser($businessId, $user)->with(['users', 'comments.added_by'])->find($id);
+        $t = $this->todos->scopedQueryForUser($businessId, $user)->find($id);
         if (! $t) {
             return null;
         }
 
         $prazo = $t->end_date ?? $t->date;
         $descricao = trim(strip_tags((string) $t->description));
-        $responsaveis = $t->users->map(fn ($u) => $this->nome($u))->filter()->implode(', ');
+        $responsaveis = $t->users()->get()->map(fn ($u) => $this->nome($u))->filter()->implode(', ');
 
         return [
             'id' => (int) $t->id,
@@ -77,7 +77,7 @@ final class TarefasDoApp implements TarefasEssentials
             'responsavel' => $responsaveis !== '' ? $responsaveis : null,
             'prazo' => $prazo ? Carbon::parse($prazo)->toDateString() : null,
             'concluida' => $t->status === 'completed',
-            'comentarios' => $t->comments->sortBy('id')->map(fn ($c) => [
+            'comentarios' => $t->comments()->with('added_by')->reorder('id')->get()->map(fn ($c) => [
                 'quando' => $c->created_at ? Carbon::parse($c->created_at)->toIso8601String() : null,
                 'autor' => $c->added_by ? $this->nome($c->added_by) : null,
                 'texto' => trim(strip_tags((string) $c->comment)),

@@ -60,9 +60,9 @@ function appTarUsuario(int $businessId, string $nome): User
 function appTarTodo(int $businessId, int $criadoPor, array $extra = []): int
 {
     return (int) DB::table('essentials_to_dos')->insertGetId(array_merge([
-        'business_id' => $businessId, 'user_id' => $criadoPor, 'task' => '<p>Conferir tiragem</p>',
+        'business_id' => $businessId, 'task' => '<p>Conferir tiragem</p>',
         'task_id' => 'APP-' . uniqid(), 'date' => now()->subDays(5), 'end_date' => now()->subDay(),
-        'is_completed' => 0, 'status' => 'new', 'priority' => 'high', 'created_by' => $criadoPor,
+        'status' => 'new', 'priority' => 'high', 'created_by' => $criadoPor,
         'created_at' => now(), 'updated_at' => now(),
     ], $extra));
 }
