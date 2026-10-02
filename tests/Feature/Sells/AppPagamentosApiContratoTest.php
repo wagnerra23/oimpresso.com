@@ -18,7 +18,7 @@ use Spatie\Permission\Models\Permission;
  * NÃO derivado do controller. A escrita (gerar cobrança) não existe aqui: o POST tem que dar 405.
  *
  * Tier 0 (ADR 0093): cobrança do business 2 nunca aparece no 98 (controle positivo em par).
- * As cobranças do teste ficam em 2099 para ficarem no topo da lista "mais recente primeiro";
+ * As cobranças do teste ficam em 2037 (created_at é TIMESTAMP: o MySQL só vai até 2038-01-19) para ficarem no topo da lista "mais recente primeiro";
  * os contadores são conferidos por delta.
  */
 uses(DatabaseTransactions::class);
@@ -89,13 +89,13 @@ it('lista as cobranças do business com status, método e valor do app; erro e o
     $ontem = now()->subDay()->toDateString();
     $amanha = now()->addDay()->toDateString();
 
-    $paga = appPagCobranca($biz, 'paga', 'pix_cob', $ontem, '2099-01-06 10:00:00', ['paga_em' => '2099-01-06 11:00:00']);
-    $aberta = appPagCobranca($biz, 'emitida', 'boleto', $amanha, '2099-01-05 10:00:00', ['boleto_pdf_url' => 'https://exemplo.test/b.pdf']);
-    $bolepix = appPagCobranca($biz, 'emitida', 'boleto', $amanha, '2099-01-04 10:00:00', ['pix_emv' => '000201...']);
-    $vencida = appPagCobranca($biz, 'emitida', 'card', $ontem, '2099-01-03 10:00:00');
-    $cancelada = appPagCobranca($biz, 'cancelada', 'boleto', $amanha, '2099-01-02 10:00:00');
-    $erro = appPagCobranca($biz, 'erro', 'boleto', $amanha, '2099-01-07 10:00:00');
-    $alheia = appPagCobranca((int) $this->outro->id, 'emitida', 'boleto', $amanha, '2099-01-08 10:00:00');
+    $paga = appPagCobranca($biz, 'paga', 'pix_cob', $ontem, '2037-01-06 10:00:00', ['paga_em' => '2037-01-06 11:00:00']);
+    $aberta = appPagCobranca($biz, 'emitida', 'boleto', $amanha, '2037-01-05 10:00:00', ['boleto_pdf_url' => 'https://exemplo.test/b.pdf']);
+    $bolepix = appPagCobranca($biz, 'emitida', 'boleto', $amanha, '2037-01-04 10:00:00', ['pix_emv' => '000201...']);
+    $vencida = appPagCobranca($biz, 'emitida', 'card', $ontem, '2037-01-03 10:00:00');
+    $cancelada = appPagCobranca($biz, 'cancelada', 'boleto', $amanha, '2037-01-02 10:00:00');
+    $erro = appPagCobranca($biz, 'erro', 'boleto', $amanha, '2037-01-07 10:00:00');
+    $alheia = appPagCobranca((int) $this->outro->id, 'emitida', 'boleto', $amanha, '2037-01-08 10:00:00');
 
     $r = $this->getJson('/api/app/pagamentos')->assertOk();
     $ids = array_column($r->json('itens'), 'id');
@@ -104,7 +104,7 @@ it('lista as cobranças do business com status, método e valor do app; erro e o
     expect($ids)->not->toContain($erro);
     expect($ids)->not->toContain($alheia);
     expect($r->json('itens.0'))->toMatchArray(['valor' => 2315, 'metodo' => 'pix', 'status' => 'pago', 'link' => null]);
-    expect($r->json('itens.0.pago_em'))->toStartWith('2099-01-06');
+    expect($r->json('itens.0.pago_em'))->toStartWith('2037-01-06');
     expect($r->json('itens.1'))->toMatchArray([
         'descricao' => 'Cobrança APP · Pagador APP', 'vencimento' => $amanha, 'metodo' => 'boleto',
         'status' => 'pendente', 'pago_em' => null, 'link' => 'https://exemplo.test/b.pdf',
