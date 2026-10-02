@@ -132,7 +132,6 @@ class DiscountController extends Controller
     /**
      * Store a newly created resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
     public function store(SalvarDescontoRequest $request)
@@ -213,8 +212,6 @@ class DiscountController extends Controller
     /**
      * Update the specified resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Discount  $discount
      * @return \Illuminate\Http\Response
      */
     public function update(SalvarDescontoRequest $request, $id)
