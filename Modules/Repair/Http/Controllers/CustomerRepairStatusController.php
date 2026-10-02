@@ -75,11 +75,12 @@ class CustomerRepairStatusController extends Controller
                                 'repair_job_sheets.device_id'
                             );
 
-                if (! empty($search_type) && $search_type == 'job_sheet_no') {
+                // $search_type já foi validado acima: é um dos três, nunca vazio.
+                if ($search_type === 'job_sheet_no') {
                     $query->where('repair_job_sheets.job_sheet_no', $search_number);
-                } elseif (! empty($search_type) && $search_type == 'invoice_no') {
+                } elseif ($search_type === 'invoice_no') {
                     $query->where('transactions.invoice_no', $search_number);
-                } elseif (! empty($search_type) && $search_type == 'mobile_num') {
+                } else { // mobile_num
                     $query->where('contacts.mobile', $search_number);
                 }
 
