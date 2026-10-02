@@ -2025,6 +2025,12 @@ class ContactController extends Controller
                 $input['dob'] = $this->commonUtil->uf_date($input['dob']);
             }
 
+            // `contacts.mobile` é NOT NULL no schema UltimatePOS, e ConvertEmptyStringsToNull
+            // transforma o Celular vazio do formulário em null: o INSERT caía (1048) e o catch
+            // abaixo mostrava só "Algo deu errado". Sem celular grava vazio, como a API do app
+            // (PessoasController::store). Decisão [W] 2026-10-02.
+            $input['mobile'] = $input['mobile'] ?? '';
+
             $input['business_id'] = $business_id;
             $input['created_by'] = $request->session()->get('user.id');
 
