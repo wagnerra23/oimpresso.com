@@ -146,18 +146,18 @@ function appIniUsuario(int $businessId, bool $colaborador): User
 }
 
 /** Sem Essentials no plano: a aba Tarefas não depende do pacote da lane. */
-function appIniSemEssentials($test): void
+function appIniSemEssentials(): void
 {
     $mu = Mockery::mock(ModuleUtil::class)->makePartial();
     $mu->shouldReceive('hasThePermissionInSubscription')->andReturn(false);
-    $test->app->instance(ModuleUtil::class, $mu);
+    app()->instance(ModuleUtil::class, $mu);
 }
 
 it('D6: colaborador do ponto sem acesso ao ERP abre no Ponto e só tem Ponto e Mais', function () {
     if (! Schema::hasTable('ponto_colaborador_config')) {
         $this->markTestSkipped('Schema ausente (ponto_colaborador_config).');
     }
-    appIniSemEssentials($this);
+    appIniSemEssentials();
     Passport::actingAs(appIniUsuario((int) $this->biz->id, true), [], 'api');
 
     $r = $this->getJson('/api/app/inicio')->assertOk();
@@ -167,7 +167,7 @@ it('D6: colaborador do ponto sem acesso ao ERP abre no Ponto e só tem Ponto e M
 });
 
 it('D6: quem vê vendas é perfil erp, abre no Início e tem Pedidos e Produção (sem Ponto, que não é colaborador)', function () {
-    appIniSemEssentials($this);
+    appIniSemEssentials();
     $u = appIniUsuario((int) $this->biz->id, false);
     Permission::firstOrCreate(['name' => 'direct_sell.view', 'guard_name' => 'web']);
     $u->givePermissionTo('direct_sell.view');
