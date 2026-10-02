@@ -1726,10 +1726,6 @@ class ProductUtil extends Util
             );
 
         if (! empty($price_group_id)) {
-            // Percentual que dá 0 vira NULL ("sem preço de grupo"), como no getProductRow: lá o
-            // percentual sai de calc_percentage como float e `!empty(0.0)` é falso, então a linha
-            // fica no preço base. Fixo com 0 segue 0: a coluna decimal chega como "0.0000" e
-            // `!empty("0.0000")` é verdadeiro. Medido no MySQL em 2026-10-02 (tenant 98).
             $query->addSelect(DB::raw('IF (VGP.price_type = "fixed", VGP.price_inc_tax, NULLIF(VGP.price_inc_tax * variations.sell_price_inc_tax / 100, 0)) as variation_group_price'));
         }
 
