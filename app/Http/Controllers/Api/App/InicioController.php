@@ -130,8 +130,8 @@ class InicioController extends Controller
         $k = app(\Modules\Financeiro\Services\UnificadoService::class)->kpis($bizId);
 
         return [
-            'a_receber' => round((float) ($k['total_receber'] ?? 0), 2),
-            'a_pagar' => round((float) ($k['total_pagar'] ?? 0), 2),
+            'a_receber' => round((float) $k['total_receber'], 2),
+            'a_pagar' => round((float) $k['total_pagar'], 2),
         ];
     }
 }
