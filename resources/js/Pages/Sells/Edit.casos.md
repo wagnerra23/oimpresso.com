@@ -15,6 +15,9 @@ last_run: "2026-10-02"
      form); deles, este PR só muda `urls.submit` (/sells → /pos), que nenhum dos 7 asserta —
      status mantidos. UC-SEDIT-08 (paliativo) segue ativo.
      UC-SEDIT-09 nasce 🧪. -->
+<!-- REVALIDAÇÃO 2026-10-02 (paliativo removido): SellController@edit deixa de devolver 409 na
+     navegação React. Muda só o UC-SEDIT-08 (aceite reescrito, volta a 🧪); UC-SEDIT-05/06/07 e o
+     prefill passam a pedir /sells/{id}/edit sem ?react=1 — mesmo payload, status mantidos. -->
 
 # Casos de Uso & Aceite — Editar venda
 
@@ -111,10 +114,11 @@ last_run: "2026-10-02"
 
 ---
 
-## UC-SEDIT-08 · Editar venda abre o formulário que salva (paliativo [W] 2026-10-01)
+## UC-SEDIT-08 · Editar venda abre a tela React (paliativo de 2026-10-01 removido em 2026-10-02)
 - **Persona:** Larissa corrigindo uma venda pela lista React.
 - **Por que existe:** a tela React de edição **não salva** — o "Salvar" envia `PUT /sells/{id}`, e o `SellController` não tem `update` (500; 4 ocorrências no log de prod, todas biz=4: 03/07, 28/07 ×2, 29/08). Além disso a tela lê o preço da linha **já com desconto** e reaplica o desconto: corrigida só a rota, salvar sem mexer mudaria o valor da venda. Decisão [W] 2026-10-01: até o conserto completo, a edição abre o **Blade**, que salva pelo `SellPosController@update`.
-- **Aceite:** Dado uma venda editável · Quando a navegação React pede `/sells/{id}/edit` · Então a resposta é **409 com `X-Inertia-Location`** para a mesma URL (o navegador recarrega a página inteira) · E a visita de página inteira devolve a view `sell.edit`, cujo formulário envia para `SellPosController@update` · E com `?react=1` a tela React continua abrindo (para o conserto e para os UC-SEDIT-05/06/07, que agora pedem `?react=1`). As checagens de permissão, prazo, devolução e business (UC-SEDIT-01..04) continuam **antes** do desvio.
+- **Aceite (desde 2026-10-02):** Dado uma venda editável · Quando a navegação React pede `/sells/{id}/edit` · Então a resposta é **200 com o componente `Sells/Edit`**, sem `X-Inertia-Location` · E a visita de página inteira (link aberto direto) continua devolvendo a view `sell.edit`. As checagens de permissão, prazo, devolução e business (UC-SEDIT-01..04) seguem valendo nos dois caminhos.
+- **Histórico:** de 2026-10-01 a 2026-10-02 a navegação React recebia **409 com `X-Inertia-Location`** (paliativo) e a tela React só abria com `?react=1`. Removido por [W] depois do conserto do UC-SEDIT-09 (a tela salva pelo `SellPosController@update` e salvar sem mexer não muda o valor).
 - **Teste:** `tests/Feature/Sells/SellsEditContratoTest.php` (UC-SEDIT-08).
 - **Status: 🧪** _(nasce sem run.)_
 
@@ -122,7 +126,7 @@ last_run: "2026-10-02"
 
 ## UC-SEDIT-09 · A edição React salva — e salvar sem mexer não muda nada
 - **Persona:** Larissa corrigindo quantidade, preço ou desconto de uma venda.
-- **Por que existe:** a tela React nunca salvou em prod (UC-SEDIT-08) e, corrigida só a rota, mudaria o valor ao salvar sem alteração. Decisão [W] 2026-10-02 (opção B): conserto completo, com o paliativo do UC-SEDIT-08 **mantido** até [W] validar em prod com `?react=1`.
+- **Por que existe:** a tela React nunca salvou em prod (UC-SEDIT-08) e, corrigida só a rota, mudaria o valor ao salvar sem alteração. Decisão [W] 2026-10-02 (opção B): conserto completo, com o paliativo do UC-SEDIT-08 mantido até a validação e removido por [W] em 2026-10-02.
 - **Regras (VALOR — REGRA MESTRE):**
   - o "Salvar" envia para `PUT /pos/{id}` = `SellPosController@update`, o caminho do form Blade;
   - o pré-fill usa o preço **antes** do desconto (`unit_price_before_discount`), e o desconto **fixo é por unidade**, como o servidor aplica (rótulo `R$/un`);

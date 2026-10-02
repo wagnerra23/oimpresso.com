@@ -54,8 +54,11 @@ class PurgeJobsRepresadosCommand extends Command
      * `attendance-import` (HRM-O6 / PR-6) entra aqui porque tem worker NÃO gated no
      * Kernel e carrega dado de jornada: purgar um import pendente apagaria marcação de
      * colaborador em silêncio, que é exatamente o estrago que o achado A7 descreve.
+     *
+     * `sales-import` (thread 05 de Vendas, D2) pelo mesmo motivo: worker não gated, e
+     * purgar uma importação pendente sumiria com a planilha que o usuário já mandou.
      */
-    private const FILAS_PROTEGIDAS = ['whatsapp', 'whatsapp-history', 'attendance-import'];
+    private const FILAS_PROTEGIDAS = ['whatsapp', 'whatsapp-history', 'attendance-import', 'sales-import'];
 
     protected $signature = 'jobs:purge-represados
                             {--queue=* : Fila(s) alvo (default: todas as filas órfãs catalogadas)}

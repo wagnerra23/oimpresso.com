@@ -38,7 +38,8 @@ use Spatie\Permission\Models\Role;
  *  - o colaborador com papel `Revisor#<biz>` SEM nenhuma permissão: só alcança
  *    `/ponto/mobile`, que não pede `ponto.access` ([W] 2026-09-29);
  *  - o gestor com `Admin#<biz>` deste business (o escopo business_id o prende aqui);
- *  - cadastro de ponto (controla_ponto) do colaborador + escala seg–sex 08–12 / 13–17.
+ *  - cadastro de ponto (controla_ponto) do colaborador (DEMO-0001) e do gestor (DEMO-0002, para a
+ *    área Ponto aparecer no app — D7) + escala seg–sex 08–12 / 13–17. Nenhuma marcação.
  *
  * Idempotente: acha o business pelo nome e as contas pelo username; rodar 2× não duplica.
  *
@@ -183,6 +184,16 @@ class DemoRevisorCommand extends Command
                 ->updateOrCreate(
                     ['business_id' => $bizId, 'user_id' => $revisor->id],
                     ['matricula' => 'DEMO-0001', 'controla_ponto' => true, 'usa_banco_horas' => false,
+                        'escala_atual_id' => $escala->id, 'admissao' => now()->startOfYear()->toDateString()]
+                );
+
+            // Gestor também com cadastro de ponto (DEMO-0002): a área "Ponto" do app só aparece para
+            // quem tem cadastro ativo (InicioController::perfil), e a D7 [W] pede as 7 áreas ao
+            // gestor. Só o cadastro — nenhuma marcação (D8 proíbe marcação de exemplo em produção).
+            Colaborador::withoutGlobalScopes() // SUPERADMIN: CLI sem sessão; filtro explícito por business_id
+                ->updateOrCreate(
+                    ['business_id' => $bizId, 'user_id' => $gestor->id],
+                    ['matricula' => 'DEMO-0002', 'controla_ponto' => true, 'usa_banco_horas' => false,
                         'escala_atual_id' => $escala->id, 'admissao' => now()->startOfYear()->toDateString()]
                 );
 
