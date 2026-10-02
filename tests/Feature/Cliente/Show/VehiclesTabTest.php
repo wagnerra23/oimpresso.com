@@ -32,11 +32,13 @@ beforeEach(function () {
         $this->markTestSkipped('Schema Modules/OficinaAuto ausente neste ambiente — migration vehicles não rodou.');
     }
 
-    $this->business = $this->seededTenant(); // biz=1 canônico (ADR 0101) — skip acionável se o seed faltar
-    $this->user = \App\User::where('business_id', $this->business->id)->first();
-    if (! $this->user) {
-        $this->markTestSkipped('Sem user no business.');
-    }
+    $this->business = $this->seededTenant(); // tenant de teste (ADR 0358) — skip acionável se o seed faltar
+    // show() exige customer.view (ou supplier.view / *.view_own) no ContactController.
+    $this->user = $this->usuarioComPermissoes(['customer.view'], $this->business);
+
+    // Versão de assets pedida ao próprio middleware: com '1' fixo, o servidor (que usa o md5
+    // do manifest) via versão diferente e respondia 409 pedindo recarga da página.
+    $this->versaoInertia = app(\App\Http\Middleware\HandleInertiaRequests::class)->version(request());
 
     config(['mwart.cliente_show.enabled' => true]);
 
@@ -46,8 +48,8 @@ beforeEach(function () {
         'created_by' => $this->user->id,
         'type' => 'customer',
         'contact_type' => 'business',
+        // Sem first_name: a coluna não existe mais em contacts (schema:dump de prod).
         'name' => 'Cliente Frota Test',
-        'first_name' => 'Cliente Frota',
         'mobile' => '11999990000',
         'contact_status' => 'active',
         'created_at' => $now,
@@ -85,7 +87,7 @@ beforeEach(function () {
 // ---------------------------------------------------------------------
 
 test('GET /contacts/{id} Inertia inclui modules.oficinaauto_enabled', function () {
-    $response = $this->withHeaders(['X-Inertia' => 'true', 'X-Inertia-Version' => '1'])
+    $response = $this->withHeaders(['X-Inertia' => 'true', 'X-Inertia-Version' => $this->versaoInertia])
         ->get("/contacts/{$this->contactId}");
 
     $response->assertStatus(200);
@@ -111,7 +113,7 @@ test('Partial reload only=vehicles retorna paginator filtrado por contact_id + b
 
     $response = $this->withHeaders([
             'X-Inertia' => 'true',
-            'X-Inertia-Version' => '1',
+            'X-Inertia-Version' => $this->versaoInertia,
             'X-Inertia-Partial-Component' => 'Cliente/Show',
             'X-Inertia-Partial-Data' => 'vehicles',
         ])
@@ -139,15 +141,13 @@ test('Tier 0 — user de outro business recebe 404 no Show', function () {
     if (! $otherBusiness) {
         $this->markTestSkipped('Sem 2º business pra teste cross-tenant.');
     }
-    $otherUser = \App\User::where('business_id', $otherBusiness->id)->first();
-    if (! $otherUser) {
-        $this->markTestSkipped('Sem user no business secundário.');
-    }
+    // Com a MESMA permissão: assim o 404 prova isolamento por business, e não falta de acesso.
+    $otherUser = $this->usuarioComPermissoes(['customer.view'], \App\Business::findOrFail($otherBusiness->id));
 
     $this->actingAs($otherUser);
     session(['user.business_id' => $otherBusiness->id]);
 
-    $response = $this->withHeaders(['X-Inertia' => 'true', 'X-Inertia-Version' => '1'])
+    $response = $this->withHeaders(['X-Inertia' => 'true', 'X-Inertia-Version' => $this->versaoInertia])
         ->get("/contacts/{$this->contactId}");
 
     $response->assertStatus(404);
@@ -165,7 +165,7 @@ test('vehicles_q=ABC1 filtra paginator pra 1 veículo', function () {
 
     $response = $this->withHeaders([
             'X-Inertia' => 'true',
-            'X-Inertia-Version' => '1',
+            'X-Inertia-Version' => $this->versaoInertia,
             'X-Inertia-Partial-Component' => 'Cliente/Show',
             'X-Inertia-Partial-Data' => 'vehicles',
         ])

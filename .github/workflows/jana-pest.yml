@@ -63,6 +63,7 @@ on:
       # chaves: o quinto caso do mesmo gate mudo que as notas acima ja corrigiram
       # (lapide 5 2026-08-02 — "inclua o arquivo SOB TESTE no trigger").
       - 'app/Http/Middleware/HandleInertiaRequests.php'
+      - 'app/Http/Controllers/Api/App/ChatController.php'
       - 'database/schema/mysql-schema.sql'
       - '.github/workflows/jana-pest.yml'
       - '.github/jana-pest-quarantine.list'
@@ -127,6 +128,7 @@ jobs:
               # chaves: o quinto caso do mesmo gate mudo que as notas acima ja corrigiram
               # (lapide 5 2026-08-02 — "inclua o arquivo SOB TESTE no trigger").
               - 'app/Http/Middleware/HandleInertiaRequests.php'
+              - 'app/Http/Controllers/Api/App/ChatController.php'
               - 'database/schema/mysql-schema.sql'
               - '.github/workflows/jana-pest.yml'
               - '.github/actions/pest-mysql-setup/**'
