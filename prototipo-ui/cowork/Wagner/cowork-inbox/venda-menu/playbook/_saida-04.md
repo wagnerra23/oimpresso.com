@@ -15,7 +15,7 @@ veredito: "entregue em 2 PRs (backend → tela); prova da thread (Inertia::rende
 | PR | conteúdo |
 |---|---|
 | **#8514** (backend) | `discount.view` × `discount.manage` (D1) + migration que concede as duas a quem tinha `discount.access` (papel **e** usuário direto, idempotente) · `SalvarDescontoRequest` (autoriza `manage`, monta a mesma linha, **não valida**) · tela de papéis, `PermissionCatalog`, menu lateral, Blade da lista e botão de desconto do cliente seguem as permissões novas · `DescontosContratoTest` UC-DSC-01..07 |
-| **PR 2** (tela, empilhado no #8514) | `DiscountController@index` ganha ramo `X-Inertia` → `Inertia::render('Discount/Index')` **antes** do `ajax()` · `resources/js/Pages/Discount/Index.{tsx,charter.md,casos.md}` · `memory/requisitos/Sells/RUNBOOK-discount.md` · contrato de tela + stub e2e · UC-DSC-08 |
+| **#8517** (tela, empilhado no #8514) | `DiscountController@index` ganha ramo `X-Inertia` → `Inertia::render('Discount/Index')` **antes** do `ajax()` · `resources/js/Pages/Discount/Index.{tsx,charter.md,casos.md}` · `memory/requisitos/Sells/RUNBOOK-discount.md` · **US-SELL-065** no SPEC de Sells · contrato de tela + stub e2e · UC-DSC-08 |
 
 ## Decisões aplicadas
 

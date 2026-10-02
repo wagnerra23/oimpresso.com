@@ -1,5 +1,7 @@
 <?php
 
+// @covers-us US-SELL-065
+
 declare(strict_types=1);
 
 use App\Discount;

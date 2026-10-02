@@ -8,6 +8,7 @@ parent_module: Sells
 related_prototype: prototipo-ui/cowork/Wagner/venda-blade.jsx
 related_runbook: memory/requisitos/Sells/RUNBOOK-discount.md
 tier: B
+related_us: [US-SELL-065]
 charter_version: 1
 ---
 
