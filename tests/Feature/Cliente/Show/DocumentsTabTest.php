@@ -29,7 +29,10 @@ test('DocumentsTab.tsx — upload anexo (input + endpoint canon)', function () {
     expect($contents)
         ->toContain('data-testid="documents-file-input"')
         ->toContain('data-testid="documents-upload-btn"')
-        ->toContain("'/post-document-upload'")
+        // O upload legado /post-document-upload não persistia o vínculo com o contato e saiu
+        // no #2088 (2026-06-01) para o endpoint próprio com escopo business_id (US-CRM-066).
+        ->toContain('fetch(`/cliente/${contactId}/anexos`, {')
+        ->toContain("method: 'POST'")
         ->toContain('multiple')
         ->toContain('X-CSRF-TOKEN');
 });
@@ -38,12 +41,13 @@ test('DocumentsTab.tsx — delete anexo (DELETE polimórfico)', function () {
     $tsxPath = __DIR__ . '/../../../../resources/js/Pages/Cliente/_show/DocumentsTab.tsx';
     $contents = file_get_contents($tsxPath);
 
-    // Template literal `/note-documents/${docId}` — busca substring sem aspas
+    // O delete é `/cliente/${contactId}/anexos/${docId}` com _method=DELETE (#2088). Antes
+    // este teste procurava '/note-documents/' e passava por coincidência: essa string é a
+    // URL de EDITAR NOTA (PUT /note-documents/{id}), não a de excluir anexo.
     expect($contents)
         ->toContain('handleDelete')
-        ->toContain('/note-documents/')
-        ->toContain('_method')
-        ->toContain('DELETE')
+        ->toContain('`/cliente/${contactId}/anexos/${docId}`')
+        ->toContain("fd.append('_method', 'DELETE')")
         ->toContain('notable_id')
         ->toContain('notable_type');
 });
@@ -89,8 +93,10 @@ test('DocumentsTab.tsx — dark mode tokens', function () {
     $contents = file_get_contents($tsxPath);
 
     expect($contents)
-        ->toContain('dark:text-rose-400')
-        ->toContain('dark:text-emerald-400')
+        // Desde o #2660 (2026-06-13) as cores são tokens do DS, que carregam light e dark
+        // (_generated-inertia-dark.css) — por isso não há mais `dark:` cru aqui.
+        ->toContain("saved: 'text-success-fg'")
+        ->toContain("error: 'text-destructive-fg'")
         ->toContain('bg-background')
         ->toContain('border-border');
 });

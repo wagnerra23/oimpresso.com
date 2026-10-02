@@ -172,6 +172,22 @@ describe('grid — cabeçalho ordenável', () => {
     expect(router.get).toHaveBeenCalledWith('/x', { sort: 'nome', dir: 'asc', cat: 'Bolos', q: undefined }, expect.anything());
   });
 
+  it('com a busca da TELA (showSearch=false), ordenar mantém o `q` dela', () => {
+    // Antes de 2026-10-02 o `q` interno (vazio) sobrescrevia o da tela a cada clique de
+    // ordenar — a busca digitada sumia. A tela das Receitas tem busca própria.
+    montar({ filters: { q: 'lona', sort: 'nome', dir: 'asc' } });
+    fireEvent.click(screen.getByRole('button', { name: /Nome/ }));
+    const enviado = vi.mocked(router.get).mock.calls[0]?.[1] as Record<string, unknown>;
+    expect(enviado.q).toBe('lona');
+    expect(enviado.dir).toBe('desc');
+  });
+
+  it('com a busca DA TABELA (showSearch=true), o `q` sai do campo dela', () => {
+    montar({ showSearch: true, initialSearch: 'placa', filters: { q: 'velho' } });
+    fireEvent.click(screen.getByRole('button', { name: /Nome/ }));
+    expect((vi.mocked(router.get).mock.calls[0]?.[1] as Record<string, unknown>).q).toBe('placa');
+  });
+
   it('coluna com enableSorting:false não vira botão', () => {
     const { table } = montar();
     expect(within(table.querySelectorAll('th')[1]!).queryByRole('button')).toBeNull();
