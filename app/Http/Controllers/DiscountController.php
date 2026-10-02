@@ -6,6 +6,7 @@ use App\Brands;
 use App\BusinessLocation;
 use App\Category;
 use App\Discount;
+use App\Http\Requests\SalvarDescontoRequest;
 use App\SellingPriceGroup;
 use App\Utils\Util;
 use Illuminate\Http\Request;
@@ -37,7 +38,9 @@ class DiscountController extends Controller
      */
     public function index()
     {
-        if (! auth()->user()->can('discount.access')) {
+        // D1 ([W] 2026-10-02): ver a lista exige `discount.view`; quem pode gravar
+        // (`discount.manage`) também vê — não faz sentido editar sem enxergar.
+        if (! auth()->user()->can('discount.view') && ! auth()->user()->can('discount.manage')) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -106,7 +109,7 @@ class DiscountController extends Controller
      */
     public function create()
     {
-        if (! auth()->user()->can('discount.access')) {
+        if (! auth()->user()->can('discount.manage')) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -132,33 +135,17 @@ class DiscountController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(SalvarDescontoRequest $request)
     {
-        if (! auth()->user()->can('discount.access')) {
-            abort(403, 'Unauthorized action.');
-        }
-
+        // Autorização (`discount.manage`) e montagem da linha moraram para o FormRequest.
+        // A linha gravada é a mesma de antes — DescontoGravacaoContratoTest compara.
         try {
-            $input = $request->only(['name', 'brand_id', 'category_id',
-                'location_id', 'priority', 'discount_type', 'discount_amount', 'spg', ]);
+            $input = $request->dadosParaGravar($this->commonUtil);
 
             $business_id = $request->session()->get('user.business_id');
             $input['business_id'] = $business_id;
 
-            $variation_ids = $request->input('variation_ids');
-
-            if (! empty($variation_ids)) {
-                unset($input['brand_id']);
-                unset($input['category_id']);
-            }
-
-            $input['starts_at'] = $request->has('starts_at') ? $this->commonUtil->uf_date($request->input('starts_at'), true) : null;
-            $input['ends_at'] = $request->has('ends_at') ? $this->commonUtil->uf_date($request->input('ends_at'), true) : null;
-            $checkboxes = ['is_active', 'applicable_in_cg'];
-
-            foreach ($checkboxes as $checkbox) {
-                $input[$checkbox] = $request->has($checkbox) ? 1 : 0;
-            }
+            $variation_ids = $request->variationIds();
 
             $discount = Discount::create($input);
 
@@ -188,7 +175,7 @@ class DiscountController extends Controller
      */
     public function edit($id)
     {
-        if (! auth()->user()->can('discount.access')) {
+        if (! auth()->user()->can('discount.manage')) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -230,33 +217,16 @@ class DiscountController extends Controller
      * @param  \App\Discount  $discount
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
+    public function update(SalvarDescontoRequest $request, $id)
     {
-        if (! auth()->user()->can('discount.access')) {
-            abort(403, 'Unauthorized action.');
-        }
-
+        // Autorização (`discount.manage`) e montagem da linha no FormRequest — mesma linha de antes.
         if (request()->ajax()) {
             try {
-                $input = $request->only(['name', 'brand_id', 'category_id',
-                    'location_id', 'priority', 'discount_type', 'discount_amount', 'spg', ]);
+                $input = $request->dadosParaGravar($this->commonUtil);
 
                 $business_id = $request->session()->get('user.business_id');
 
-                $input['starts_at'] = $request->has('starts_at') ? $this->commonUtil->uf_date($request->input('starts_at'), true) : null;
-                $input['ends_at'] = $request->has('ends_at') ? $this->commonUtil->uf_date($request->input('ends_at'), true) : null;
-                $checkboxes = ['is_active', 'applicable_in_cg'];
-
-                foreach ($checkboxes as $checkbox) {
-                    $input[$checkbox] = $request->has($checkbox) ? 1 : 0;
-                }
-
-                $variation_ids = $request->input('variation_ids');
-
-                if (! empty($variation_ids)) {
-                    unset($input['brand_id']);
-                    unset($input['category_id']);
-                }
+                $variation_ids = $request->variationIds();
 
                 $discount = Discount::where('business_id', $business_id)
                             ->find($id);
@@ -288,7 +258,7 @@ class DiscountController extends Controller
      */
     public function destroy($id)
     {
-        if (! auth()->user()->can('discount.access')) {
+        if (! auth()->user()->can('discount.manage')) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -322,7 +292,7 @@ class DiscountController extends Controller
      */
     public function massDeactivate(Request $request)
     {
-        if (! auth()->user()->can('discount.access')) {
+        if (! auth()->user()->can('discount.manage')) {
             abort(403, 'Unauthorized action.');
         }
         try {
@@ -363,7 +333,7 @@ class DiscountController extends Controller
      */
     public function activate($id)
     {
-        if (! auth()->user()->can('discount.access')) {
+        if (! auth()->user()->can('discount.manage')) {
             abort(403, 'Unauthorized action.');
         }
 

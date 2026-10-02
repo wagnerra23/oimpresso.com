@@ -981,11 +981,21 @@
               </label>
             </div>
           </div>
+          {{-- D1 [W] 2026-10-02: discount.access (uma permissão só) virou ver x editar.
+               Migration 2026_10_02_120000 concede as duas a quem tinha discount.access. --}}
           <div class="col-md-12">
             <div class="checkbox">
               <label>
-                {!! Form::checkbox('permissions[]', 'discount.access', false, ['class' => 'input-icheck']); !!}
-                {{ __('lang_v1.discount.access') }}
+                {!! Form::checkbox('permissions[]', 'discount.view', false, ['class' => 'input-icheck']); !!}
+                {{ __('role.discount.view') }}
+              </label>
+            </div>
+          </div>
+          <div class="col-md-12">
+            <div class="checkbox">
+              <label>
+                {!! Form::checkbox('permissions[]', 'discount.manage', false, ['class' => 'input-icheck']); !!}
+                {{ __('role.discount.manage') }}
               </label>
             </div>
           </div>
