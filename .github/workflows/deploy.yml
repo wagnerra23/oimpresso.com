@@ -686,6 +686,14 @@ jobs:
       - name: Permissions storage + bootstrap/cache
         run: /tmp/ssh_exec.sh "cd $RDIR && chmod -R 775 storage bootstrap/cache 2>&1 | tail -3 || true"
 
+      - name: Chaves do Passport sem leitura para outros (660)
+        # O chmod -R 775 acima deixava storage/oauth-private.key legível por qualquer usuário do
+        # servidor; o league/oauth2-server recomenda 600 ou 660. 660 mantém a leitura do grupo
+        # caso o PHP web não rode como o dono do arquivo. Prova de leitura: login do app com token
+        # válido depois do deploy (token inválido devolve 404 em prod, não serve de sonda).
+        # Reverter: trocar 660 por 775 aqui.
+        run: /tmp/ssh_exec.sh "cd $RDIR && for f in storage/oauth-private.key storage/oauth-public.key; do [ -f \$f ] && chmod 660 \$f; done; ls -l storage/oauth-*.key 2>&1 || true"
+
       - name: Force OPcache invalidate (touch mtime — best-effort)
         # LSPHP/LiteSpeed segura bytecode entre deploys. `find -exec touch` bump o mtime
         # dos PHPs → LSPHP re-stata (validate_timestamps). `public` incluído pra recompilar
