@@ -209,7 +209,15 @@ class ProdutosController extends Controller
     {
         $p = $user->permitted_locations($bizId);
 
-        return $p === 'all' ? null : array_values(array_map('intval', (array) $p));
+        if ($p === 'all') {
+            return null;
+        }
+        $ids = [];
+        foreach ((array) $p as $id) {
+            $ids[] = (int) $id;
+        }
+
+        return $ids;
     }
 
     /** @param  list<int>|null  $locais */
