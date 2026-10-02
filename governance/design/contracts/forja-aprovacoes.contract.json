@@ -1,0 +1,61 @@
+{
+  "_nota": "Copy declarada a partir de ForjaAprovacoes() do protótipo e travada só onde ela existe LITERALMENTE no protótipo e no CÓDIGO da tela, fora de comentário (medido 2026-10-02). Cada string abaixo está em forja-aprova.jsx.",
+  "_nota_recorte": "Fora de propósito: os verbos dos botões ('Aprovar plano', 'Aprovar aplicação', 'Aprovar screenshot (F2)', 'Aprovar → backlog', 'Devolver c/ comentário') e os rótulos de tipo ('Plano', 'Modificação', 'Proposta') — na tela eles vêm do FSM e do payload, não do código (divergência 1 do cabeçalho do .tsx). Nesta tela essas strings só aparecem em comentário, e o gate hoje compara contra o arquivo cru: travá-las faria um comentário satisfazer o contrato.",
+  "tela": "Forja/Aprovacoes",
+  "fonte": "prototipo-ui/cowork/Wagner/forja-aprova.jsx",
+  "_nota_fonte": "Mesma âncora que o charter declara em related_prototype — ForjaAprovacoes().",
+  "alvo": [
+    "Modules/Forja/Resources/js/Pages/Forja/Aprovacoes/Index.tsx"
+  ],
+  "secoes": [
+    {
+      "id": "forja.aprovacoes.cabecalho",
+      "_papel": "o número herói da fila. 'Fila zerada.' entra aqui porque o estado vazio substitui a mesa.",
+      "copy": [
+        "esperando o seu aval",
+        "Fila zerada."
+      ],
+      "estados": [
+        "vazio",
+        "com fila"
+      ]
+    },
+    {
+      "id": "forja.aprovacoes.ao-vivo",
+      "copy": [
+        "Ao vivo no MCP",
+        "espera você"
+      ]
+    },
+    {
+      "id": "forja.aprovacoes.mesa",
+      "_papel": "fila à esquerda, artefato à direita. Os limiares de espera são regra (SLA de 2h), não decoração.",
+      "copy": [
+        "SLA estourado: espera acima de 2h",
+        "esperando há mais de 30 min",
+        "Cancelar",
+        "Desfazer"
+      ]
+    },
+    {
+      "id": "forja.aprovacoes.placar",
+      "copy": [
+        "Equipe de agentes · placar",
+        "Agente",
+        "Sinal",
+        "Sessões hoje",
+        "Custo hoje / quota",
+        "Critique F1.5",
+        "Retrabalho",
+        "Entregas 7d",
+        "sem sinal"
+      ]
+    }
+  ],
+  "ordem": [
+    "forja.aprovacoes.cabecalho",
+    "forja.aprovacoes.ao-vivo",
+    "forja.aprovacoes.mesa",
+    "forja.aprovacoes.placar"
+  ]
+}
