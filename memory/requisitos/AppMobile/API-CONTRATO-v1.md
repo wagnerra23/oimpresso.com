@@ -200,8 +200,8 @@ prazo_padrao_dias, consentimento: { whatsapp, email_nfe } }` (só `tipo`, `nome`
   abas que o usuário pode abrir, na ordem do app. Cada uma segue a mesma regra da rota dela, então
   aba visível = rota que responde: `tarefas` = Essentials no plano ou quem aprova o Ponto;
   `pedidos`/`producao`/`orcamentos` = quem vê vendas; `pessoas` = quem vê cliente ou fornecedor; `ponto` =
-  colaborador com `controla_ponto`; `financeiro` = a regra de §10.1; `inicio` só para perfil `erp`; `mais` sempre.
-  `perfil` = `erp` se tem tarefas, vendas, pessoas ou financeiro, senão `colaborador`. `abre_em` = `inicio`
+  colaborador com `controla_ponto`; `financeiro` = a regra de §10.1; `relatorios` = algum bloco de §10.3 visível; `inicio` só para perfil `erp`; `mais` sempre.
+  `perfil` = `erp` se tem tarefas, vendas, pessoas, financeiro ou relatórios, senão `colaborador`. `abre_em` = `inicio`
   (erp), `ponto` (colaborador) ou `mais` (sem nenhuma das duas).
 
 - `faturado_hoje` e `meta_dia`: só com `dashboard.data` (senão `null`). Meta do dia = meta mensal
@@ -294,3 +294,27 @@ pagina, tem_mais }`, 20 por página. `resumo` e `contas` não mudam com a aba.
   quando o ERP não tem.
 - Tier 0: todas as tabelas filtradas pelo business do token (os models do Financeiro filtram pela sessão,
   que a API não tem).
+
+### 10.3 Relatórios (tela 13) — só leitura
+
+`GET /api/app/relatorios?periodo=mes|trimestre|ano&aba=dre|vendas|producao|estoque` →
+`{ periodo:{de, ate}, kpis:{receitas, despesas, saldo, margem_pct}|null,
+dre:{receitas_por_categoria:[{nome, valor}], despesas_por_categoria:[{nome, valor}]}|null,
+vendas:{receita_por_dia:[{data, valor}], top_clientes:[{nome, valor}]}|null,
+producao:{por_etapa:[{rotulo, total}]}|null, estoque:{baixo:[{nome, quantidade, minimo, unidade}]}|null }`.
+
+- `periodo` = mês, trimestre ou ano corrente (do primeiro ao último dia). Só o bloco da `aba` vem
+  preenchido; os outros vêm `null`.
+- Cada bloco segue a permissão da tela web dele e vem `null` sem ela (o app mostra "Sem acesso a este
+  relatório"): `kpis` e `dre` = regra do Financeiro (§10.1 — `kpis` **pode** vir `null`); `vendas` =
+  `dashboard.data`; `producao` = quem vê vendas (§5); `estoque` = `stock_report.view`. Sem nenhum →
+  `403 sem_permissao`. A área `relatorios` entra em `areas` (§6) quando algum bloco é visível.
+- `kpis`: títulos a receber (receitas) e a pagar (despesas) **não cancelados** com competência no
+  período — a mesma base do DRE web. `saldo` = receitas − despesas; `margem_pct` = saldo ÷ receitas ×
+  100 (1 casa), `null` sem receita. `dre`: os mesmos títulos por categoria (sem categoria → plano de
+  contas → "Sem categoria"), maior primeiro.
+- `vendas.receita_por_dia`: os 14 dias até hoje (independe do período), venda final nos locais do
+  usuário — os filtros do faturado do painel (`getSellTotals`); `top_clientes`: até 5, no período.
+- `producao.por_etapa`: os totais das colunas de `GET /api/app/producao`, na mesma ordem.
+- `estoque.baixo`: até 20 itens com saldo ≤ mínimo, menor saldo primeiro (`ProductUtil::getProductAlert`,
+  o mesmo do Início); produto com variação sai como "Produto — variação".
