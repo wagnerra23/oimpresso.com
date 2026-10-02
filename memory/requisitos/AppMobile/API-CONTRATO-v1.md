@@ -479,6 +479,24 @@ pelo histórico do veículo). Outra empresa ou inexistente → `404 nao_encontra
 - `totais` = soma dos itens por tipo; `total` = soma de todos (o mesmo número da 07 e da web).
 - `fotos_laudo` = quantas fotos do laudo a OS tem (só contagem; o app não exibe nem tira foto, ADR 0383).
 
+### 11.3 Veículos (tela 08) — só leitura ✅
+
+`GET /api/app/veiculos?q=&pagina=N` (20 por página, ordem por placa)
+
+```json
+{ "itens": [ { "id": 7, "placa": "RLV2E48", "placa_secundaria": "REB1A23", "descricao": "Caminhão",
+    "ano": "2019/2020", "cliente": "Transportes Vale Norte", "km": 48312, "cor": "Branco" } ],
+  "total": 91, "pagina": 1, "tem_mais": true }
+```
+
+- Veículos de cliente do business (`vehicles`, Modules/OficinaAuto). Permissão da tela web de
+  veículos: `oficinaauto.vehicle.view` + pacote da Oficina; sem ela → `403 sem_permissao`.
+- O cadastro não tem marca/modelo: `descricao` = rótulo do tipo (como a web). `ano` =
+  fabricação/modelo. `cliente` = dono do veículo. `cor`/`placa_secundaria` `null` quando vazias.
+- `km` = maior km conhecido (cadastro do veículo ou km de entrada das OS dele); `null` sem registro.
+- Busca `q`: placa (principal e do reboque), rótulo do tipo e nome do dono.
+- Sem padrão de placa: o app deduz pelo formato.
+
 ### 11.4 Manutenção (tela 23) — derivada da 07, sem rota própria
 
 Os 3 números saem de `GET /api/app/os` sem filtro: no pátio = `total`; aguardando peças =
