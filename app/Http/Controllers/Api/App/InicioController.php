@@ -74,6 +74,7 @@ class InicioController extends Controller
         $financeiro = app(FinanceiroController::class)->podeVerFinanceiro($user);
         $relatorios = app(RelatoriosController::class)->podeVerRelatorios($user);
         $dashboard = app(DashboardController::class)->podeVerDashboard($user);
+        $pagamentos = app(PagamentosController::class)->podeVerPagamentos($user);
         $ponto = DB::table('ponto_colaborador_config')
             ->where('business_id', (int) $user->business_id)
             ->where('user_id', (int) $user->id)
@@ -91,6 +92,7 @@ class InicioController extends Controller
             'financeiro' => $financeiro,
             'relatorios' => $relatorios,
             'dashboard' => $dashboard,
+            'pagamentos' => $pagamentos,
             'ponto' => $ponto,
             'mais' => true,
         ]));
