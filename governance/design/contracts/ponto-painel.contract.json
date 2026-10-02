@@ -30,8 +30,7 @@
     },
     {
       "id": "painel-atividade",
-      "copy": ["Atividade recente"],
-      "_lacuna": "O protótipo (ponto-page.jsx L75) põe sub=\"marcações de hoje\" neste card. A tela NÃO renderiza essa frase: o ActivityFeed não tem subtítulo. Até 2026-10-02 o contrato passava porque o Index.tsx citava a frase num comentário que dizia, sem ser verdade, que ela vivia no subtítulo do ActivityFeed, e o gate lia o arquivo cru. Tirada daqui quando o gate passou a ignorar comentário. Conserto pendente: renderizar o subtítulo (a tela está no manifesto visual, então exige aprovação [W]) e devolver a frase a este copy."
+      "copy": ["Atividade recente", "marcações de hoje"]
     }
   ],
 

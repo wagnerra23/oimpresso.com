@@ -207,7 +207,8 @@ function checkContract(file) {
   // cru, e uma string citada só num comentário satisfazia o contrato. Medido nos 54 contratos do
   // main: de 822 strings de copy presentes, 1 só existia em comentário — `ponto-painel` travava
   // "marcações de hoje" num comentário que dizia "(copy do contrato) vive no subtítulo do
-  // ActivityFeed", e o ActivityFeed não renderiza subtítulo. Mesmo `stripComments` dos acordos de
+  // ActivityFeed", e o ActivityFeed não renderizava subtítulo nenhum. A tela foi consertada no #8541
+  // (prop `subtitle`), antes deste gate entrar. Mesmo `stripComments` dos acordos de
   // estado (string-aware), pra não ter dois strips divergindo; a regra `#` do PHP não derrubou
   // nenhuma copy de TSX nessa medição.
   const code = stripComments(blob);
