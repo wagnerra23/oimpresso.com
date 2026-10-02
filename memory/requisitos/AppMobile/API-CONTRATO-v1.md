@@ -298,5 +298,5 @@ em ordem cronológica.
 - A conversa é do usuário: de outro usuário ou de outro business → `404 nao_encontrado`.
 - Acesso = o do chat web: módulo Jana no plano (`jana_module`) + `jana.access` + `jana.chat`;
   sem isso `403 sem_permissao`. Área `assistente` em `/api/app/inicio` (§6) com a mesma regra.
-- Mensagem vazia ou acima de 1000 caracteres → `422 { erro:"validacao", campos:{ mensagem } }`.
+- Mensagem vazia ou acima de 1000 caracteres → `422 { erro:"validacao", campos:{ mensagem:"…" } }`.
   Limite de 60 mensagens por minuto, como na web (`429`).

@@ -199,8 +199,8 @@ it('UC-APP25-03: conversa de OUTRO usuário ou de OUTRO business é 404, nada é
 it('UC-APP25-04: mensagem vazia ou acima de 1000 caracteres é 422 e não chama a Jana', function () {
     Passport::actingAs(appChatUsuario(['jana.access', 'jana.chat']), [], 'api');
 
-    $this->postJson('/api/app/chat', ['mensagem' => '   '])->assertStatus(422)->assertJsonPath('erro', 'validacao')
-        ->assertJsonStructure(['campos' => ['mensagem']]);
+    $r = $this->postJson('/api/app/chat', ['mensagem' => '   '])->assertStatus(422)->assertJsonPath('erro', 'validacao');
+    expect($r->json('campos.mensagem'))->toBe('Digite uma mensagem antes de enviar.');
     $this->postJson('/api/app/chat', ['mensagem' => str_repeat('a', 1001)])->assertStatus(422);
     $this->postJson('/api/app/chat', [])->assertStatus(422);
     expect($this->ia->recebidas)->toBe([]);

@@ -56,16 +56,16 @@ class ChatController extends Controller
         $texto = $request->input('mensagem');
         $erro = null;
         if (! is_string($texto) || trim($texto) === '') {
-            $erro = ['mensagem' => ['Digite uma mensagem antes de enviar.']];
+            $erro = ['mensagem' => 'Digite uma mensagem antes de enviar.'];
         } elseif (mb_strlen($texto) > self::MAX_MENSAGEM) {
-            $erro = ['mensagem' => ['Mensagem muito longa (máx ' . self::MAX_MENSAGEM . ' caracteres).']];
+            $erro = ['mensagem' => 'Mensagem muito longa (máx ' . self::MAX_MENSAGEM . ' caracteres).'];
         }
         $conversaId = $request->input('conversa_id');
         if ($erro === null && $conversaId !== null && ! (is_string($conversaId) || is_int($conversaId))) {
-            $erro = ['conversa_id' => ['Conversa inválida.']];
+            $erro = ['conversa_id' => 'Conversa inválida.'];
         }
         if ($erro !== null) {
-            return response()->json(['erro' => 'validacao', 'mensagem' => reset($erro)[0], 'campos' => $erro], 422);
+            return response()->json(['erro' => 'validacao', 'mensagem' => (string) reset($erro), 'campos' => $erro], 422);
         }
         $texto = trim($texto);
 
