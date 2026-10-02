@@ -2955,7 +2955,7 @@ class SellController extends Controller
         $customer_due = $this->transactionUtil->getContactDue($transaction->contact_id, $transaction->business_id);
 
         // Número cru da dívida, guardado ANTES da formatação pt-BR: o payload React precisa
-        // do float, e re-parsear "R$ 1.234,56" quebrava (o ponto é milhar, a vírgula é decimal).
+        // do float, e re-parsear o texto pt-BR quebrava (o ponto é milhar, a vírgula é decimal).
         $customer_due_raw = round((float) $customer_due, 2);
 
         $customer_due = $customer_due != 0 ? $this->transactionUtil->num_f($customer_due, true) : '';
@@ -3050,7 +3050,7 @@ class SellController extends Controller
                         'email' => $transaction->contact->email ? (string) $transaction->contact->email : null,
                         // dues_total = saldo devedor do contato (Util::getContactDue), em número cru.
                         // Não re-parsear $customer_due: ele já vem formatado em pt-BR e o
-                        // preg_replace descartava a vírgula decimal (R$ 500,00 virava 50000).
+                        // preg_replace descartava a vírgula decimal (a dívida aparecia 100× maior).
                         'dues_total' => $customer_due_raw,
                     ] : null,
                 ];
