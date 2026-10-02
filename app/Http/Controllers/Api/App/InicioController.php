@@ -98,6 +98,7 @@ class InicioController extends Controller
             'dashboard' => $dashboard,
             'pagamentos' => $pagamentos,
             'ponto' => $ponto,
+            'ponto_gestor' => app(PontoAprovacoesController::class)->podeVerFila($user),
             'mais' => true,
         ]));
 
