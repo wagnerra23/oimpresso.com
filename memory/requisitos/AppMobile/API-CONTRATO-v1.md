@@ -213,7 +213,9 @@ prazo_padrao_dias, consentimento: { whatsapp, email_nfe } }` (só `tipo`, `nome`
 - `destino` só vem preenchido quando a notificação carrega o id de uma tela do app (hoje: tarefa nova
   → `{tipo:"tarefa", id:"todo:15"}`); nos outros casos, `{tipo:null, id:null}`.
 - `GET /api/app/inicio` passa a trazer `nao_lidas` (int), para o ponto no sino.
-- Marcar como lida (`POST .../{id}/lida` e `.../lidas`) vem em PR separado.
+- Marcar como lida: `POST /api/app/notificacoes/{id}/lida` (id = uuid) → `200 { nao_lidas }`, idempotente;
+  de outro usuário ou inexistente → `404 { erro: "nao_encontrado" }`.
+  `POST /api/app/notificacoes/lidas` marca todas → `200 { nao_lidas: 0, marcadas }`.
 
 ## 7. Mais
 

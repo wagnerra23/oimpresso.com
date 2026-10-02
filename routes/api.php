@@ -33,5 +33,7 @@ Route::middleware('auth:api')->prefix('app')->name('app.')->group(function () {
     Route::get('/orcamentos', [\App\Http\Controllers\Api\App\PedidosController::class, 'orcamentos'])->name('orcamentos.index');
     Route::get('/producao', [\App\Http\Controllers\Api\App\PedidosController::class, 'producao'])->name('producao.index');
     Route::get('/notificacoes', [\App\Http\Controllers\Api\App\NotificacoesController::class, 'index'])->name('notificacoes.index');
+    Route::post('/notificacoes/lidas', [\App\Http\Controllers\Api\App\NotificacoesController::class, 'marcarTodasLidas'])->name('notificacoes.lidas');
+    Route::post('/notificacoes/{id}/lida', [\App\Http\Controllers\Api\App\NotificacoesController::class, 'marcarLida'])->whereUuid('id')->name('notificacoes.lida');
     Route::get('/inicio', [\App\Http\Controllers\Api\App\InicioController::class, 'show'])->name('inicio');
 });
