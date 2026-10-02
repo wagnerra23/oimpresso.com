@@ -32,6 +32,8 @@ on:
       - 'Modules/Connector/Http/Controllers/Api/AttendanceController.php'
       - 'tests/Feature/Calculo/CalculoValorPayrollTest.php'
       - 'tests/Feature/Essentials/**'
+      - 'app/Contracts/Tarefas/**'
+      - 'app/Http/Controllers/Api/App/TarefasController.php'
       - 'resources/js/Pages/Essentials/**'
       - 'database/schema/mysql-schema.sql'
       - '.github/workflows/essentials-pest.yml'
@@ -74,6 +76,8 @@ jobs:
               - 'Modules/Connector/Http/Controllers/Api/AttendanceController.php'
               - 'tests/Feature/Calculo/CalculoValorPayrollTest.php'
               - 'tests/Feature/Essentials/**'
+              - 'app/Contracts/Tarefas/**'
+              - 'app/Http/Controllers/Api/App/TarefasController.php'
               - 'resources/js/Pages/Essentials/**'
               - 'database/schema/mysql-schema.sql'
               - '.github/workflows/essentials-pest.yml'
@@ -117,6 +121,7 @@ jobs:
             --log-junit test-results/pest-essentials-junit.xml \
             Modules/Essentials/Tests/Feature/SalesTargetShiftCrossTenantTest.php \
             tests/Feature/Essentials/TodoIndexContratoTest.php \
+            tests/Feature/Essentials/AppTarefaDetalheApiContratoTest.php \
             Modules/Essentials/Tests/Feature/HrmExclusaoGuardaTest.php \
             Modules/Essentials/Tests/Feature/HrmLicencaTest.php \
             tests/Feature/Essentials/RemindersIndexContratoTest.php \
