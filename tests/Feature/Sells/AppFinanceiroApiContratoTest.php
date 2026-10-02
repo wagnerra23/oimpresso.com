@@ -101,18 +101,22 @@ function appFinConta(int $biz, int $criador, string $nome, ?float $saldo): int
 
     return DB::table('fin_contas_bancarias')->insertGetId([
         'business_id' => $biz, 'account_id' => $acc, 'banco_codigo' => '077', 'agencia' => '0001',
-        'carteira' => '112', 'beneficiario_documento' => '00.000.000/0000-00', 'beneficiario_razao_social' => 'APP Fin',
+        'carteira' => '112', 'beneficiario_documento' => 'DOC-TESTE-APP', 'beneficiario_razao_social' => 'APP Fin',
         'ativo_para_boleto' => false, 'saldo_cached' => $saldo, 'created_at' => now(), 'updated_at' => now(),
     ]);
 }
 
-it('sem token 401; sem financeiro.access 403; sem o módulo no plano 403', function () {
+it('sem token 401; sem financeiro.access 403', function () {
     $this->getJson('/api/app/financeiro')->assertStatus(401);
 
     appFinPlano(true);
     Passport::actingAs(appFinUsuario((int) $this->tenant->id, false), [], 'api');
     $this->getJson('/api/app/financeiro')->assertStatus(403)->assertJsonPath('erro', 'sem_permissao');
+});
 
+// Caso próprio: o Laravel guarda o controller na rota depois do 1º request, então trocar o mock
+// do plano no meio de um mesmo teste não chega ao controller (o 2º request usaria o mock antigo).
+it('sem o módulo Financeiro no plano 403, mesmo com financeiro.access', function () {
     appFinPlano(false);
     Passport::actingAs(appFinUsuario((int) $this->tenant->id, true), [], 'api');
     $this->getJson('/api/app/financeiro')->assertStatus(403)->assertJsonPath('erro', 'sem_permissao');
