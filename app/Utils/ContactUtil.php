@@ -84,6 +84,15 @@ class ContactUtil extends Util
                         'contacts.*'
                     )->first();
 
+        // Os SUM() sem GROUP BY fazem o MySQL devolver UMA linha mesmo quando nenhum contato
+        // casa (id de outra empresa, ou inexistente): todas as colunas NULL. Sem esta guarda o
+        // chamador recebia um Contact "vazio" em vez de null — o show() respondia 200 com a
+        // tela em branco a quem pedisse um contato de outra empresa, onde o Tier 0 (ADR 0093)
+        // manda 404. Não vazava dado (o where business_id segura), mas o contrato era falso.
+        if ($contact === null || $contact->id === null) {
+            return null;
+        }
+
         return $contact;
     }
 

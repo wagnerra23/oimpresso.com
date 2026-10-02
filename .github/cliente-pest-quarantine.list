@@ -45,7 +45,6 @@ tests/Feature/Cliente/ClienteImportInertiaTest.php  # 409 (esperava 200) — 1 c
 tests/Feature/Cliente/ClienteMapInertiaTest.php  # 409 (esperava 200) — 2 casos
 
 # (F) Outras falhas, uma causa cada.
-tests/Feature/Cliente/Show/VehiclesTabTest.php  # DEFEITO REAL (Tier 0): show() responde 200 com contato vazio a usuário de OUTRA empresa, onde deveria 404. ContactUtil::getContactInfo soma colunas sem GROUP BY e devolve 1 linha toda NULL quando nada casa. Sem vazamento de dado (o where business_id segura). O teste está certo; conserto em PR próprio.
 tests/Feature/Cliente/BackfillCpfCnpjCommandTest.php  # 1062 duplicate uk_contacts_biz_tax no tenant 98 — 1 caso
 tests/Feature/Cliente/ClienteDrawerCadastroAutosaveTest.php  # 1452 FK de contacts falha no fixture — 1 caso
 tests/Feature/Cliente/ClienteLookupCnpjCepTest.php  # JSON esperado ausente na resposta — 2 casos

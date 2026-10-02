@@ -2097,6 +2097,11 @@ class ContactController extends Controller
 
         $business_id = request()->session()->get('user.business_id');
         $contact = $this->contactUtil->getContactInfo($business_id, $id);
+        // Contato de outra empresa (ou inexistente): 404, mesma resposta nos dois casos
+        // para não revelar se o id existe em outro tenant (Tier 0, ADR 0093).
+        if ($contact === null) {
+            abort(404);
+        }
 
         $is_selected_contacts = User::isSelectedContacts(auth()->user()->id);
         $user_contacts = [];
