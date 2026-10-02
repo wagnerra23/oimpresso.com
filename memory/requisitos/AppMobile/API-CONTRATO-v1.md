@@ -396,6 +396,26 @@ producao_concluida:{concluidas, total}|null }`.
   faturar" sobre o total das 4 colunas.
 - `a_receber` / `vencido`: os mesmos da tela 06 (§10.1); `null` sem acesso ao Financeiro.
 
+### 10.5 Pagamentos (tela 15) — leitura
+
+`GET /api/app/pagamentos?status=todos|pendente|pago|vencido|cancelado&pagina=N` →
+`{ itens:[{id, descricao, valor, vencimento, metodo, status, pago_em, link}],
+contadores:{todos, pendente, pago, vencido, cancelado}, pagina, tem_mais }`, 20 por página, mais
+recente primeiro.
+
+- Fonte: `cobrancas` (PaymentGateway), a mesma tabela da tela web `/financeiro/cobranca`. Cobrança com
+  `status = erro` (o gateway recusou, nunca virou cobrança) não aparece.
+- Acesso: a regra do Financeiro (§10.1); sem ela, `403 sem_permissao`. A área `pagamentos` entra em
+  `areas` (§6) com essa regra.
+- `status`: `paga` → `pago`; `cancelada` → `cancelado`; `vencida`, ou ainda aberta com vencimento
+  passado → `vencido`; o resto (`pending`, `emitida`) → `pendente`.
+- `metodo`: cartão → `cartao`; PIX → `pix`; boleto com PIX embutido (bolepix) → `qualquer`; boleto → `boleto`.
+- `valor` em reais (a tabela guarda centavos); `descricao` = "Pedido #<nº>" quando a cobrança é de uma
+  venda, senão a descrição da cobrança, + " · <cliente>"; `link` = PDF do boleto (`null` sem ele);
+  `pago_em` = data/hora do pagamento (ISO com fuso).
+- **Escrita** (gerar, consultar, cancelar): ainda **não existe** — vem em PR próprio, pela regra mestre
+  (dupla prova + antes→depois + ok do [W]).
+
 ## 11. Oficina — Onda D (Modules/OficinaAuto)
 
 Área `oficina` em `areas` (§6): módulo `oficina_auto_module` no pacote do business (Camada 1;
@@ -428,23 +448,3 @@ menu web da Oficina. Sem acesso → `403 sem_permissao`. Vocabulário de reparo:
 - `valor` = soma dos itens da OS (peças + mão de obra), como o card web; `null` sem item.
   `cliente` = cliente da OS; `null` se a OS não tem cliente.
 - Ordem: etapa mais avançada primeiro; desempate pela OS mais recente.
-
-### 10.5 Pagamentos (tela 15) — leitura
-
-`GET /api/app/pagamentos?status=todos|pendente|pago|vencido|cancelado&pagina=N` →
-`{ itens:[{id, descricao, valor, vencimento, metodo, status, pago_em, link}],
-contadores:{todos, pendente, pago, vencido, cancelado}, pagina, tem_mais }`, 20 por página, mais
-recente primeiro.
-
-- Fonte: `cobrancas` (PaymentGateway), a mesma tabela da tela web `/financeiro/cobranca`. Cobrança com
-  `status = erro` (o gateway recusou, nunca virou cobrança) não aparece.
-- Acesso: a regra do Financeiro (§10.1); sem ela, `403 sem_permissao`. A área `pagamentos` entra em
-  `areas` (§6) com essa regra.
-- `status`: `paga` → `pago`; `cancelada` → `cancelado`; `vencida`, ou ainda aberta com vencimento
-  passado → `vencido`; o resto (`pending`, `emitida`) → `pendente`.
-- `metodo`: cartão → `cartao`; PIX → `pix`; boleto com PIX embutido (bolepix) → `qualquer`; boleto → `boleto`.
-- `valor` em reais (a tabela guarda centavos); `descricao` = "Pedido #<nº>" quando a cobrança é de uma
-  venda, senão a descrição da cobrança, + " · <cliente>"; `link` = PDF do boleto (`null` sem ele);
-  `pago_em` = data/hora do pagamento (ISO com fuso).
-- **Escrita** (gerar, consultar, cancelar): ainda **não existe** — vem em PR próprio, pela regra mestre
-  (dupla prova + antes→depois + ok do [W]).
