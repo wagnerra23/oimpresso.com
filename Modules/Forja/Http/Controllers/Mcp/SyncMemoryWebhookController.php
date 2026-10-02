@@ -198,6 +198,20 @@ class SyncMemoryWebhookController extends Controller
      */
     private function sincronizarComOrigin(Request $request): array
     {
+        // Só o servidor do MCP (CT 100, MCP_TOOLS_EXPOSED=true) sincroniza o próprio checkout.
+        // No Hostinger este webhook também chega (o GitHub aponta para oimpresso.com), e o
+        // reset publicava o tip de main em produção a cada push, sem composer, migrate nem
+        // limpeza de cache, competindo com o deploy do Actions. Em 2026-10-02 isso fez um
+        // deploy mais lento pinar produção num commit velho por cima de 5 PRs. Ali quem
+        // publica código é só o deploy.yml; o webhook só indexa o que já está no disco.
+        if (! config('mcp.tools_exposed')) {
+            return [
+                'pulled' => false,
+                'reason' => 'deploy_e_do_actions',
+                'head'   => $this->gitHead(),
+            ];
+        }
+
         if ($this->pushExigeDeployManual($request)) {
             return [
                 'pulled' => false,
