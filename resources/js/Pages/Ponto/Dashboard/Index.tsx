@@ -358,9 +358,7 @@ export default function DashboardIndex({
 
             <div data-contract="painel-atividade">
               <Deferred data="atividade_recente" fallback={<CardListSkeleton />}>
-                {/* "marcações de hoje" (copy do contrato) vive no subtítulo do
-                    ActivityFeed; o rótulo da seção é o título. */}
-                <ActivityFeed marcacoes={atividade_recente ?? []} title="Atividade recente" />
+                <ActivityFeed marcacoes={atividade_recente ?? []} title="Atividade recente" subtitle="marcações de hoje" />
               </Deferred>
             </div>
           </div>

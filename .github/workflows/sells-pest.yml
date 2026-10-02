@@ -45,6 +45,12 @@ on:
       - 'app/Utils/TransactionUtil.php'
       # Sob teste em BuscaProdutoPrecoDeGrupoContratoTest (filterProduct × getVariationGroupPrice).
       - 'app/Utils/ProductUtil.php'
+      # Thread 04 de Vendas (Descontos): sob teste em DescontosContratoTest — controller, FormRequest,
+      # a migration que concede discount.view|manage e a tela. Sem isto, mexer neles não dispara o teste.
+      - 'app/Http/Controllers/DiscountController.php'
+      - 'app/Http/Requests/SalvarDescontoRequest.php'
+      - 'database/migrations/2026_10_02_120000_add_discount_view_manage_permissions.php'
+      - 'resources/js/Pages/Discount/**'
       # Sob teste em ImportSalesContratoTest (thread 05 · importação de vendas por planilha).
       - 'app/Http/Controllers/ImportSalesController.php'
       - 'app/Services/Sells/**'
@@ -94,6 +100,10 @@ jobs:
               - 'app/Utils/TransactionUtil.php'
               - 'app/Utils/ProductUtil.php'
               - 'app/Http/Controllers/SellController.php'
+              - 'app/Http/Controllers/DiscountController.php'
+              - 'app/Http/Requests/SalvarDescontoRequest.php'
+              - 'database/migrations/2026_10_02_120000_add_discount_view_manage_permissions.php'
+              - 'resources/js/Pages/Discount/**'
               - 'app/Http/Controllers/ImportSalesController.php'
               - 'app/Services/Sells/**'
               - 'app/Jobs/ImportarVendasJob.php'
@@ -167,10 +177,17 @@ jobs:
         # 2026-10-01 — + SalesOrderIndexContratoTest (UC-SORD-01..04 de `SalesOrder/Index.casos.md`,
         # thread 06 venda-menu): render Inertia de /sales-order, 403, flag enable_sales_order e PUT
         # de status escopado por business (tenant 98 × 99). NASCE SEM RUN: vermelho aqui é este arquivo.
+        # 2026-10-02 — + DescontosContratoTest (UC-DSC-01..07, thread 04 de Vendas + D1 [W]):
+        # ver × editar (`discount.view|manage`), a migration que concede as duas a quem tinha
+        # `discount.access`, a MESMA linha gravada antes/depois do FormRequest (desconto é
+        # valor — dupla prova contra cópia congelada do código antigo) e [T0] 98 × 99.
+        # NASCE SEM RUN: vermelho aqui é este arquivo.
+        #
         # 2026-10-01 — + SellsPosIndexContratoTest (UC-POS-01..05 de `Sells/Pos/Index.casos.md`,
         # thread 01 do playbook venda-menu): Lista de POS — o filtro `is_direct_sale=0` de
         # /sells-list-json (rodapé do servidor, vencido, período, gate sell.view); o render de
         # GET /pos entra junto com a Page. Tenant 98 × 99. NASCE SEM RUN: vermelho aqui é este arquivo.
+        #
         # 2026-10-02 — + ImportSalesContratoTest (thread 05 de Vendas, UC-IMPV-*): importação
         # de vendas por planilha pelo REQUEST e pela FILA (ImportarVendasJob, decisão D2), com
         # o mesmo total e a mesma baixa nos dois caminhos e na conta à mão (REGRA MESTRE), +
@@ -199,6 +216,7 @@ jobs:
             tests/Feature/Sells/SellsRepairSubtipoContratoTest.php \
             tests/Feature/Sells/BuscaProdutoPrecoDeGrupoContratoTest.php \
             tests/Feature/Sells/SalesOrderIndexContratoTest.php \
+            tests/Feature/Sells/DescontosContratoTest.php \
             tests/Feature/Sells/SellsPosIndexContratoTest.php \
             tests/Feature/Sells/ImportSalesContratoTest.php
 

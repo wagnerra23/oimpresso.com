@@ -16,7 +16,7 @@
             class=" tw-transition-all lg:tw-col-span-1 tw-duration-200 tw-bg-white tw-shadow-sm tw-rounded-xl tw-ring-1 hover:tw-shadow-md hover:tw-translate-y-0.5 tw-ring-gray-200">
             <div class="tw-p-4 sm:tw-p-5">
                 <div class="tw-flex tw-gap-2.5 tw-justify-end">
-                    @can('brand.create')
+                    @can('discount.manage')
                             <a class="tw-dw-btn tw-bg-gradient-to-r tw-from-indigo-600 tw-to-blue-500 tw-font-bold tw-text-white tw-border-none tw-rounded-full btn-modal pull-right"
                                 data-href="{{ action([\App\Http\Controllers\DiscountController::class, 'create']) }}"
                                 data-container=".discount_modal">
@@ -33,7 +33,7 @@
                 <div class="tw-flow-root tw-mt-5 tw-border-b tw-border-gray-200">
                     <div class="tw-mx-4 tw--my-2 tw-overflow-x-auto sm:tw--mx-5">
                         <div class="tw-inline-block tw-min-w-full tw-py-2 tw-align-middle sm:tw-px-5">
-                            @can('brand.view')
+                            @canany(['discount.view', 'discount.manage'])
                                 <table class="table table-bordered table-striped" id="discounts_table">
                                     <thead>
                                         <tr>
@@ -70,7 +70,7 @@
                                         </tr>
                                     </tfoot>
                                 </table>
-                            @endcan
+                            @endcanany
                         </div>
                     </div>
                 </div>
