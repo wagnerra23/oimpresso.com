@@ -2667,8 +2667,8 @@ class SellController extends Controller
     /**
      * Show the form for editing the specified resource.
      *
-     * Tipos reais do retorno: Blade · Inertia · JSON (422 Inertia) · redirect · Inertia::location
-     * (paliativo 2026-10-01). Antes declarava só Response e os demais viviam no phpstan-baseline.
+     * Tipos reais do retorno: Blade · Inertia · JSON (422 Inertia) · redirect. Antes declarava
+     * só Response e os demais viviam no phpstan-baseline.
      *
      * @param  int  $id
      * @return \Illuminate\Http\Response|\Illuminate\Http\JsonResponse|\Illuminate\Http\RedirectResponse|\Illuminate\View\View|\Inertia\Response|\Symfony\Component\HttpFoundation\Response
@@ -2984,16 +2984,9 @@ class SellController extends Controller
         //Added check because $users is of no use if enable_contact_assign if false
         $users = config('constants.enable_contact_assign') ? User::forDropdown($business_id, false, false, false, true) : [];
 
-        // PALIATIVO [W] 2026-10-01 — a edição React de venda NÃO salva: o "Salvar" envia
-        // PUT /sells/{id} (SellController não tem update → 500; 4× no log de prod, todas biz=4)
-        // e, mesmo corrigida a rota, a tela lê o preço da linha JÁ com desconto e reaplica o
-        // desconto (salvar sem mexer mudaria o valor). Até o conserto de verdade, a navegação
-        // React vira visita de página inteira e abre o Blade (sell.edit → SellPosController@update,
-        // o caminho canônico de valor). As checagens acima (403/422/404) continuam valendo.
-        // `?react=1` mantém a tela React acessível para o conserto e para os testes dela.
-        if (request()->header('X-Inertia') && ! request()->boolean('react')) {
-            return Inertia::location(request()->fullUrl());
-        }
+        // Paliativo de 2026-10-01 (navegação React → Blade) removido em 2026-10-02 por [W]:
+        // a tela React salva pelo SellPosController@update e salvar sem mexer não muda o
+        // valor (UC-SEDIT-09). Ver UC-SEDIT-08 em Sells/Edit.casos.md.
 
         // Wave 1 W1-A — branch dual MWART. Inertia se header X-Inertia presente.
         // Form payload pesado (sell_details join 6 tables + payment_lines + dropdowns) vai DEFERRED.
@@ -3093,7 +3086,10 @@ class SellController extends Controller
                     'update' => true,
                 ],
                 'urls' => array_filter([
-                    'submit' => '/sells/' . $id,
+                    // PUT /pos/{id} = SellPosController@update, o caminho canônico de valor (o
+                    // mesmo do form Blade sell.edit). /sells/{id} caía em SellController@update,
+                    // que não existe → 500 (4× em prod, biz=4). UC-SEDIT-09.
+                    'submit' => '/pos/' . $id,
                     'cancel' => '/sells/' . $id,
                     'back' => '/sells',
                     // ADR 0192 Onda 2 follow-up — endpoint dedicado pra salvar commission_split.
