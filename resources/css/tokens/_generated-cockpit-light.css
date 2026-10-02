@@ -29,7 +29,7 @@
   --border-2: oklch(0.93 0.004 90);
   --text: oklch(0.22 0.01 80);
   --text-dim: oklch(0.50 0.01 80);
-  --text-mute: oklch(0.65 0.01 80);
+  --text-mute: oklch(0.555 0.01 80);
   --accent: oklch(0.55 0.15 295);
   --accent-2: oklch(0.62 0.15 295);
   --accent-soft: oklch(0.95 0.04 295);
