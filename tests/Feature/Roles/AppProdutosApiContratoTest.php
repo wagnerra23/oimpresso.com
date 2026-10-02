@@ -163,3 +163,16 @@ it('estoque soma só os locais permitidos; sem local permitido o estoque é 0', 
     $item = collect($this->getJson('/api/app/produtos?q=' . urlencode($this->sufixo))->assertOk()->json('itens'))->firstWhere('id', $p);
     expect((float) $item['estoque']['qtd'])->toBe(0.0);
 });
+
+it('o Início traz a área produtos para quem tem product.view, e não para quem não tem', function () {
+    if (! \Illuminate\Support\Facades\Schema::hasTable('ponto_colaborador_config')) {
+        $this->markTestSkipped('Schema ausente (ponto_colaborador_config).');
+    }
+    Passport::actingAs(appPrdUsuario(['product.view']), [], 'api');
+    $r = $this->getJson('/api/app/inicio')->assertOk();
+    expect($r->json('areas'))->toContain('produtos');
+    expect($r->json('perfil'))->toBe('erp');
+
+    Passport::actingAs(appPrdUsuario([]), [], 'api');
+    expect($this->getJson('/api/app/inicio')->assertOk()->json('areas'))->not->toContain('produtos');
+});

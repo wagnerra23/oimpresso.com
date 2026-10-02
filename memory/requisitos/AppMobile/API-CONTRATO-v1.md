@@ -275,6 +275,7 @@ de contrato na lane MySQL) + 1 PR de tela no `oimpresso-app`, contra este contra
 categorias:[{id, nome, total}], total, baixo_estoque, pagina, tem_mais }`, 30 por página, por nome.
 
 - Permissão `product.view` (a da lista web); sem ela, 403. Produtos ativos do business, sem os `modifier`.
+  A área `produtos` entra em `areas` do Início (§6) com essa mesma regra.
 - Busca `q` em nome, código (SKU) e categoria. `categorias` e `total` respeitam a busca, não o filtro de categoria.
 - `calculo` = "por " + unidade curta do produto ("por m²", "por un"); `null` sem unidade.
 - `preco` = preço de venda com imposto (`sell_price_inc_tax`); produto com variação traz o menor e
