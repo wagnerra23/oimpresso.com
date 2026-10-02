@@ -347,9 +347,9 @@ it('UC-IMPV-08 · a lista de lotes mostra só os lotes do próprio negócio', fu
 });
 
 it('UC-IMPV-09 · a prévia mostra as linhas da planilha e quantas vendas cada coluna geraria', function () {
-    $p = impvProduto($this);
+    // A prévia só lê a planilha — nenhum produto precisa existir.
     $sufixo = (string) random_int(1000, 9999);
-    $arquivo = impvPlanilha($p->sku, $sufixo);
+    $arquivo = impvPlanilha('IMPV-SKU-P', $sufixo, 'IMPV-SKU-Q');
     $upload = new \Illuminate\Http\UploadedFile(public_path('uploads/temp/'.$arquivo), 'vendas.csv', 'text/csv', null, true);
 
     $props = impvPagina(
@@ -391,7 +391,7 @@ it('UC-IMPV-11 · planilha sem telefone nem e-mail mapeado é recusada citando a
     $campos[2] = ''; // coluna do telefone marcada como "Ignorar"
 
     $resposta = $this->withHeaders(impvHeaders())->post('/import-sales', [
-        'file_name' => impvPlanilha($p->sku, $sufixo),
+        'file_name' => impvPlanilha($p->sku, $sufixo, 'IMPV-SKU-Q'),
         'import_fields' => $campos,
         'group_by' => 0,
         'location_id' => $this->locationId,
