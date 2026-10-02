@@ -97,6 +97,9 @@ on:
       # UC-S05 (2026-10-01): campos da seção Reparo (formato de data e defeitos do Tagify).
       - 'tests/js/sells-reparo-venda.test.ts'
       - 'resources/js/Pages/Sells/_components/reparoVenda.ts'
+      # UC-SEDIT-09 (2026-10-02): regras de valor da edição React (desconto por unidade, pt-BR).
+      - 'tests/js/sells-edicao-venda.test.ts'
+      - 'resources/js/Pages/Sells/_components/edicaoVenda.ts'
       - 'tests/js/setup.ts'
       - '.github/workflows/sells-v3-dominio-gate.yml'
   push:
@@ -139,6 +142,9 @@ on:
       # UC-S05 (2026-10-01): campos da seção Reparo (formato de data e defeitos do Tagify).
       - 'tests/js/sells-reparo-venda.test.ts'
       - 'resources/js/Pages/Sells/_components/reparoVenda.ts'
+      # UC-SEDIT-09 (2026-10-02): regras de valor da edição React (desconto por unidade, pt-BR).
+      - 'tests/js/sells-edicao-venda.test.ts'
+      - 'resources/js/Pages/Sells/_components/edicaoVenda.ts'
       - 'tests/js/setup.ts'
       # o workflow entra no gatilho de push (as lanes irmãs omitem) porque é o run de
       # `main` que o publisher colhe: mexer na lane sem re-rodar deixaria o artifact
@@ -214,6 +220,7 @@ jobs:
             tests/numberPtBR.test.ts \
             tests/br-inputs.test.tsx \
             tests/scanner-race.test.tsx \
+            tests/js/sells-edicao-venda.test.ts \
             tests/js/sells-subtipo-venda.test.ts \
             tests/js/sells-busca-preco-grupo.test.tsx \
             tests/js/sells-reparo-venda.test.ts \

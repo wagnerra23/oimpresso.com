@@ -4,8 +4,15 @@ casos: Forja · lista única de trabalho · /forja/trabalho
 irmaos: Index.charter.md (lei) · Index.tsx (tela)
 tecnica: Caso de uso = narrativa + critério de aceite verificável
 owner: wagner
-last_run: "2026-09-03"
+last_run: "2026-10-02"
 ---
+
+> ℹ️ **`last_run` 2026-09-03 → 2026-10-02 (G-6), e o que mudou na tela NÃO foi comportamento.**
+> O único toque em `Index.tsx` no [#8508](https://github.com/wagnerra23/oimpresso.com/pull/8508) foram **4 atributos `data-contract`**
+> (âncoras do contrato de tela `forja-trabalho.contract.json`) em elementos que já existiam. Zero handler, zero prop,
+> zero copy, zero classe (verificado: removido o atributo `data-contract`, as linhas `-` e `+` do
+> `git diff origin/main...HEAD -- Modules/Forja/Resources/js/Pages/Forja/Trabalho/Index.tsx` ficam idênticas).
+> **Nenhum UC desta tela foi reexecutado**; o bump significa *trio reconciliado com a tela nesta data*.
 
 # Casos de uso — /forja/trabalho
 
