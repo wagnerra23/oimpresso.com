@@ -5,8 +5,16 @@ irmaos: Edit.charter.md (lei) · tests/Feature/Sells/SellsEditContratoTest.php (
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso E material de treino.
 owner: wagner
-last_run: "2026-08-28"
+last_run: "2026-10-02"
 ---
+
+<!-- REVALIDAÇÃO 2026-10-02 (G-6: o .tsx mudou — UC-SEDIT-09, conserto da edição React).
+     Mudanças no .tsx: pré-fill pelo preço antes do desconto, subtotal na regra do servidor
+     (desconto fixo por unidade) e payload pro SellPosController@update. Revalidação por alcance:
+     UC-SEDIT-01..07 exercem o GET do SellController@edit (guards, defer, leitura pura, payload do
+     form); deles, este PR só muda `urls.submit` (/sells → /pos), que nenhum dos 7 asserta —
+     status mantidos. UC-SEDIT-08 (paliativo) segue ativo.
+     UC-SEDIT-09 nasce 🧪. -->
 
 # Casos de Uso & Aceite — Editar venda
 
@@ -112,9 +120,25 @@ last_run: "2026-08-28"
 
 ---
 
+## UC-SEDIT-09 · A edição React salva — e salvar sem mexer não muda nada
+- **Persona:** Larissa corrigindo quantidade, preço ou desconto de uma venda.
+- **Por que existe:** a tela React nunca salvou em prod (UC-SEDIT-08) e, corrigida só a rota, mudaria o valor ao salvar sem alteração. Decisão [W] 2026-10-02 (opção B): conserto completo, com o paliativo do UC-SEDIT-08 **mantido** até [W] validar em prod com `?react=1`.
+- **Regras (VALOR — REGRA MESTRE):**
+  - o "Salvar" envia para `PUT /pos/{id}` = `SellPosController@update`, o caminho do form Blade;
+  - o pré-fill usa o preço **antes** do desconto (`unit_price_before_discount`), e o desconto **fixo é por unidade**, como o servidor aplica (rótulo `R$/un`);
+  - linha **não mexida** volta com os valores **gravados**, intactos — vendas da tela de criação React gravam `unit_price_inc_tax` sem o desconto da linha, e recalcular "consertaria" a linha em silêncio;
+  - o `final_total` é do **servidor**, **por diferença**: resíduo = total gravado − F(linhas e desconto gravados); total novo = F(linhas e desconto enviados) + resíduo. Salvar sem mudar devolve **exatamente** o total gravado; o resíduo carrega o que a tela não edita (embalagem, despesas, arredondamento, pontos);
+  - todo número vai como texto pt-BR com 4 casas (`1,1250`): com ponto e 3 casas o `num_uf` leria milhar (incidente 2026-06-05);
+  - a data aceita o ISO cru que a tela manda (`uf_datetime_input`).
+- **Aceite:** Dado uma venda com linhas a 10% e 5 fixo/un, uma linha inconsistente (inc sem desconto), desconto de 10% no pedido e total gravado **210,1234** · Quando salva pela tela React sem mexer · Então total, linhas e estoque ficam **idênticos** · Quando muda a quantidade de uma linha de 2 para 3 (preço com desconto 90) · Então o total vira **291,1234** (= 210,1234 + 90 × 0,9) e o estoque daquela linha cai 1, os outros intactos · E a página entrega `urls.submit` = `/pos/{id}`.
+- **Teste:** `tests/Feature/Sells/SellsEditContratoTest.php` (UC-SEDIT-09, lane `sells-pest`) + `tests/js/sells-edicao-venda.test.ts` (regras da tela, lane `sells-v3-dominio-gate`).
+- **Status: 🧪** _(nasce sem run.)_
+
+---
+
 ## Backlog — achados sem teste ainda (prosa honesta, sem id)
 
-- **[BACKLOG] Desconto de linha aplicado duas vezes ao editar pela tela React** — o pré-fill usa `sell_price_inc_tax`, que no select do `SellController@edit` é `transaction_sell_lines.unit_price_inc_tax` (preço **depois** do desconto), e a tela mostra o desconto de novo por cima; o `createOrUpdateSellLines` aplica `line_discount_amount` sobre o `unit_price` enviado. Ex.: linha de 100 com 10 fixo, gravada a 90 → salvar sem mexer gravaria 80. Hoje inofensivo só porque o "Salvar" quebra antes (UC-SEDIT-08). Pré-requisito do conserto da tela React: pré-fill com `unit_price_before_discount` + `final_total` calculado no servidor + invariante "salvar sem mexer não muda total, linhas nem estoque". O UC-SEDIT-07 não pega porque a fixture não tem desconto.
+- ~~**[BACKLOG] Desconto de linha aplicado duas vezes ao editar pela tela React**~~ → virou o **UC-SEDIT-09** (2026-10-02), com conserto e teste.
 
 Itens medidos ao derivar os casos acima. **Não são UC** (nenhum teste os cita) e nenhum foi
 corrigido — mexer em guard de venda é Tier 0, decisão [W].

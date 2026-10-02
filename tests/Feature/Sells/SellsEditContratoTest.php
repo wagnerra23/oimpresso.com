@@ -420,3 +420,156 @@ it('UC-SEDIT-08 · navegação React pra edição vira página inteira (Blade); 
     $blade->assertViewIs('sell.edit');
     expect($blade->getContent())->toContain(action([\App\Http\Controllers\SellPosController::class, 'update'], ['po' => $id]));
 });
+
+// =============================================================================
+// UC-SEDIT-09 — a edição React SALVA, e salvar sem mexer não muda nada.
+//   Âncora: REGRA MESTRE valor/estoque (proibicoes.md) + decisão [W] 2026-10-01 (opção B).
+//   O payload abaixo é o que `edicaoVenda.ts::linhaParaEnvio` produz (números em pt-BR,
+//   linha não mexida com os valores GRAVADOS) — os casos espelham tests/js/sells-edicao-venda.test.ts.
+// =============================================================================
+
+/** Venda com 3 linhas e total gravado "estranho" (210,1234) — o resíduo tem que sobreviver. */
+function sedit9Venda(object $test): array
+{
+    $loc = EstoqueFixture::locationId($test->bizId);
+    $produtos = [];
+    foreach (['A', 'B', 'C'] as $k) {
+        $p = EstoqueFixture::singleProduct($test->bizId);
+        EstoqueFixture::setStock($p, 0, $loc, 10);
+        $compra = (int) DB::table('transactions')->insertGetId([
+            'business_id' => $test->bizId, 'type' => 'purchase', 'status' => 'received', 'location_id' => $loc,
+            'payment_status' => 'paid', 'transaction_date' => now()->subDays(3), 'total_before_tax' => 0, 'final_total' => 0,
+            'created_by' => $test->user->id, 'essentials_duration' => 0, 'created_at' => now()->subDays(3), 'updated_at' => now()->subDays(3),
+        ]);
+        DB::table('purchase_lines')->insert([
+            'transaction_id' => $compra, 'product_id' => $p->productId, 'variation_id' => $p->variations[0]['variation_id'],
+            'quantity' => 10, 'quantity_sold' => 0, 'quantity_adjusted' => 0, 'quantity_returned' => 0,
+            'purchase_price' => 0, 'purchase_price_inc_tax' => 0, 'item_tax' => 0, 'created_at' => now()->subDays(3), 'updated_at' => now()->subDays(3),
+        ]);
+        $produtos[$k] = $p;
+    }
+    $contato = (int) DB::table('contacts')->where('business_id', $test->bizId)->orderBy('id')->value('id');
+
+    $venda = (int) DB::table('transactions')->insertGetId([
+        'business_id' => $test->bizId, 'location_id' => $loc, 'contact_id' => $contato, 'type' => 'sell', 'status' => 'final',
+        'is_direct_sale' => 1, 'payment_status' => 'due', 'transaction_date' => now()->subDay()->startOfMinute(),
+        'discount_type' => 'percentage', 'discount_amount' => 10, 'shipping_charges' => 0,
+        'total_before_tax' => 265, 'final_total' => 210.1234, 'created_by' => $test->user->id,
+        'essentials_duration' => 0, 'created_at' => now(), 'updated_at' => now(),
+    ]);
+    // A: 100 com 10% → 90, qtd 2 · B: 50 com 5 fixo/un → 45, qtd 1
+    // C: inconsistente como a criação React — inc gravado SEM o desconto de 10% (40, não 36)
+    $linhas = [
+        // `unit_price` = preço DEPOIS do desconto, sem imposto — o que createOrUpdateSellLines grava.
+        'A' => ['qtd' => 2, 'antes' => 100, 'desc' => 10, 'tipo' => 'percentage', 'unit' => 90, 'inc' => 90],
+        'B' => ['qtd' => 1, 'antes' => 50, 'desc' => 5, 'tipo' => 'fixed', 'unit' => 45, 'inc' => 45],
+        'C' => ['qtd' => 1, 'antes' => 40, 'desc' => 10, 'tipo' => 'percentage', 'unit' => 36, 'inc' => 40],
+    ];
+    $ids = [];
+    foreach ($linhas as $k => $l) {
+        $ids[$k] = (int) DB::table('transaction_sell_lines')->insertGetId([
+            'transaction_id' => $venda, 'product_id' => $produtos[$k]->productId,
+            'variation_id' => $produtos[$k]->variations[0]['variation_id'], 'quantity' => $l['qtd'], 'quantity_returned' => 0,
+            'unit_price_before_discount' => $l['antes'], 'unit_price' => $l['unit'], 'line_discount_type' => $l['tipo'],
+            'line_discount_amount' => $l['desc'], 'unit_price_inc_tax' => $l['inc'], 'item_tax' => 0,
+            'created_at' => now(), 'updated_at' => now(),
+        ]);
+        DB::table('variation_location_details')
+            ->where('variation_id', $produtos[$k]->variations[0]['variation_id'])->where('location_id', $loc)
+            ->update(['qty_available' => 10 - $l['qtd']]);
+    }
+
+    return ['id' => $venda, 'loc' => $loc, 'contato' => $contato, 'produtos' => $produtos, 'linhas' => $linhas, 'ids' => $ids];
+}
+
+/** O payload da tela React (edicaoVenda.ts), com as quantidades dadas. */
+function sedit9Payload(array $v, array $qtd): array
+{
+    $pt = fn ($n) => number_format((float) $n, 4, ',', '');
+    $produtos = [];
+    foreach ($v['linhas'] as $k => $l) {
+        $produtos[] = [
+            'transaction_sell_lines_id' => $v['ids'][$k],
+            'product_id' => $v['produtos'][$k]->productId,
+            'variation_id' => $v['produtos'][$k]->variations[0]['variation_id'],
+            'quantity' => $pt($qtd[$k] ?? $l['qtd']),
+            'unit_price' => $pt($l['antes']),
+            'unit_price_inc_tax' => $pt($l['inc']), // linha não mexida: valor GRAVADO
+            'item_tax' => $pt(0),
+            'tax_id' => null,
+            'line_discount_amount' => $pt($l['desc']),
+            'line_discount_type' => $l['tipo'],
+            'imei_number' => '',
+        ];
+    }
+    $data = (string) DB::table('transactions')->where('id', $v['id'])->value('transaction_date'); // ISO cru, como a tela manda
+
+    return [
+        '_method' => 'PUT', 'transaction_date' => $data, 'contact_id' => $v['contato'], 'location_id' => $v['loc'],
+        'status' => 'final', 'discount_type' => 'percentage', 'discount_amount' => $pt(10), 'tax_rate_id' => null,
+        'shipping_charges' => $pt(0), 'calcular_total_no_servidor' => 1, 'products' => $produtos,
+    ];
+}
+
+function sedit9Estado(array $v): array
+{
+    return [
+        'final_total' => (string) DB::table('transactions')->where('id', $v['id'])->value('final_total'),
+        'linhas' => DB::table('transaction_sell_lines')->where('transaction_id', $v['id'])->orderBy('id')
+            ->get(['quantity', 'unit_price_before_discount', 'unit_price', 'unit_price_inc_tax', 'line_discount_amount'])
+            ->map(fn ($r) => array_map('strval', (array) $r))->all(),
+        'estoque' => collect($v['produtos'])->map(fn ($p) => EstoqueFixture::currentStock($p, 0, $v['loc']))->all(),
+    ];
+}
+
+/** O update grava com a sessão de produção: `business` é o MODELO (SetSessionData), não array. */
+function sedit9Sessao(object $test): void
+{
+    $business = \App\Business::findOrFail($test->bizId);
+    $business->date_format = 'd/m/Y';
+    $business->time_format = 24;
+    session(['business' => $business]);
+    foreach (['sell.update', 'direct_sell.access'] as $perm) {
+        Permission::findOrCreate($perm, 'web');
+        $test->user->givePermissionTo($perm);
+    }
+    app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
+}
+
+it('UC-SEDIT-09 · salvar pela tela React SEM mexer não muda total, linhas nem estoque', function () {
+    sedit9Sessao($this);
+    $v = sedit9Venda($this);
+    $antes = sedit9Estado($v);
+
+    $resposta = $this->put("/pos/{$v['id']}", sedit9Payload($v, []));
+    $resposta->assertSessionHasNoErrors();
+    \PHPUnit\Framework\Assert::assertSame(
+        1,
+        (int) data_get(session('status'), 'success', 0),
+        'update não gravou: '.json_encode(session('status'), JSON_UNESCAPED_UNICODE)
+    );
+
+    expect(sedit9Estado($v))->toBe($antes);
+    expect($antes['final_total'])->toBe('210.1234');
+});
+
+it('UC-SEDIT-09 · mudar uma quantidade aplica só a diferença, na regra do servidor', function () {
+    sedit9Sessao($this);
+    $v = sedit9Venda($this);
+
+    $this->put("/pos/{$v['id']}", sedit9Payload($v, ['A' => 3]))->assertSessionHasNoErrors();
+    \PHPUnit\Framework\Assert::assertSame(1, (int) data_get(session('status'), 'success', 0), json_encode(session('status')));
+
+    // 210,1234 gravado + 1 unidade de A (90) com o desconto de 10% do pedido = + 81
+    expect((string) DB::table('transactions')->where('id', $v['id'])->value('final_total'))->toBe('291.1234');
+    expect(EstoqueFixture::currentStock($v['produtos']['A'], 0, $v['loc']))->toBe(7.0); // 10 − 3
+    expect(EstoqueFixture::currentStock($v['produtos']['B'], 0, $v['loc']))->toBe(9.0); // intacto
+});
+
+it('UC-SEDIT-09 · a tela React envia pra SellPosController@update (/pos/{id}), não pro /sells/{id} sem método', function () {
+    $venda = sellsEditVenda($this->bizId);
+    // `urls` é prop de 1º nível (não está no `form` deferido): visita completa, sem partial.
+    $r = sellsEditGet($this, $venda['transaction_id']);
+    $r->assertOk();
+    expect($r->json('props.urls.submit'))->toBe('/pos/'.$venda['transaction_id']);
+});

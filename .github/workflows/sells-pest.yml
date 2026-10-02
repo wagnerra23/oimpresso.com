@@ -32,6 +32,9 @@ on:
     paths:
       - 'tests/Feature/Sells/**'
       - 'app/Http/Controllers/SellController.php'
+      - 'app/Http/Controllers/Api/App/PedidosController.php'
+      - 'app/Http/Controllers/Api/App/InicioController.php'
+      - 'routes/api.php'
       - 'app/Http/Controllers/SellPosController.php'
       # Sob teste em SellsCreateV3ContratoTest (UC-V302/V303). Sem este gatilho, mexer no
       # controller do preview não dispararia o teste dele — gate mudo com cara de cobertura.
@@ -89,6 +92,9 @@ jobs:
               - 'app/Http/Controllers/ImportSalesController.php'
               - 'app/Services/Sells/**'
               - 'app/Jobs/ImportarVendasJob.php'
+              - 'app/Http/Controllers/Api/App/PedidosController.php'
+              - 'app/Http/Controllers/Api/App/InicioController.php'
+              - 'routes/api.php'
               - 'resources/js/Pages/Sells/**'
               - 'database/schema/mysql-schema.sql'
               - '.github/workflows/sells-pest.yml'
@@ -171,6 +177,8 @@ jobs:
             tests/Feature/Sells/SellsShowContratoTest.php \
             tests/Feature/Sells/SellsEditContratoTest.php \
             tests/Feature/Sells/SellsIndexTenantContratoTest.php \
+            tests/Feature/Sells/AppPedidosApiContratoTest.php \
+            tests/Feature/Sells/AppInicioApiContratoTest.php \
             tests/Feature/Sells/SellsCreateV3ContratoTest.php \
             tests/Feature/Sells/Wave1ShowBaselineTest.php \
             tests/Feature/Sells/Wave1ShowInertiaTest.php \
