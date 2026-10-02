@@ -20,8 +20,8 @@ authority: generated
 | CU no SDD | 0 |
 | Telas (.tsx) | 14 |
 | Telas com `casos.md` | 14 |
-| UC declarados | 86 |
-| UC com teste que os cita | 86 |
+| UC declarados | 87 |
+| UC com teste que os cita | 87 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -80,6 +80,7 @@ _Nenhuma lacuna: toda tela tem caso **com UC**, todo CU é citado, e toda US **e
 | UC-JSIDX-04 | JobSheet/Index | 🧪 aguarda veredito da lane |
 | UC-JSIDX-05 | JobSheet/Index | 🧪 aguarda veredito da lane |
 | UC-JSIDX-06 | JobSheet/Index | 🧪 aguarda veredito da lane |
+| UC-JSIDX-07 | JobSheet/Index | 🧪 aguarda veredito da lane |
 | UC-JSP-01 | JobSheet/AddParts | 🧪 aguarda veredito da lane |
 | UC-JSP-02 | JobSheet/AddParts | 🧪 aguarda veredito da lane |
 | UC-JSP-03 | JobSheet/AddParts | 🧪 aguarda veredito da lane |
