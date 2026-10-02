@@ -8,11 +8,11 @@ declare(strict_types=1);
  * Cadastro web de cliente (Cliente/Create.tsx → POST /contacts → ContactController::store)
  * com o campo "Celular" vazio.
  *
- * Hipótese medida aqui: `contacts.mobile` é NOT NULL (database/schema/mysql-schema.sql), o
- * formulário manda `mobile: ''`, o middleware ConvertEmptyStringsToNull o transforma em null,
- * a StoreContactRequest aceita null e ContactUtil::createNewContact grava null → o INSERT cai
- * (MySQL 1048), o catch do store() engole a exceção e devolve o erro genérico. Na API do app
- * o mesmo caminho deu 500 (run 37033539499 da lane acessos-pest).
+ * `contacts.mobile` é NOT NULL (database/schema/mysql-schema.sql), o formulário manda
+ * `mobile: ''` e o middleware ConvertEmptyStringsToNull o transforma em null. Antes do conserto
+ * o INSERT caía (MySQL 1048 "Column 'mobile' cannot be null", run 37035885785 desta lane) e o
+ * catch do store() mostrava só "Algo deu errado". Decisão [W] 2026-10-02: sem celular grava
+ * vazio, como a API do app (PessoasController::store).
  *
  * Controle POSITIVO: a mesma requisição com celular preenchido cria o contato — sem ele, um
  * vermelho no caso vazio poderia ser assinatura/permissão/validação, não o celular.
@@ -112,13 +112,12 @@ it('POSITIVO: com celular preenchido o cadastro web cria o contato no tenant', f
     );
 });
 
-it('MEDIÇÃO: com celular vazio o cadastro web cria o contato', function () {
+it('com celular vazio o cadastro web cria o contato e grava celular vazio', function () {
     $nome = "CSC Sem Celular {$this->sufixo}";
 
-    cscPostar($this, cscPayload($nome, ''))->assertRedirect();
+    cscPostar($this, cscPayload($nome, ''))->assertRedirect()->assertSessionHasNoErrors();
 
-    $this->assertTrue(
-        DB::table('contacts')->where('business_id', CSC_BIZ)->where('name', $nome)->exists(),
-        'Celular vazio NÃO criou o contato. Logs: ' . implode(' | ', $this->logs),
-    );
+    $mobile = DB::table('contacts')->where('business_id', CSC_BIZ)->where('name', $nome)->value('mobile');
+    $this->assertNotNull($mobile, 'Celular vazio NÃO criou o contato. Logs: ' . implode(' | ', $this->logs));
+    $this->assertSame('', $mobile, 'Sem celular deve gravar vazio, não outro valor.');
 });
