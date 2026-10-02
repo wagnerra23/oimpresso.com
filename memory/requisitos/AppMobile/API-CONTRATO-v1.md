@@ -266,7 +266,7 @@ Mesmos campos e regras do §4.2, **menos** `tipo` e `papeis` (mudar papel fica n
   abas que o usuário pode abrir, na ordem do app. Cada uma segue a mesma regra da rota dela, então
   aba visível = rota que responde: `tarefas` = Essentials no plano ou quem aprova o Ponto;
   `pedidos`/`producao`/`orcamentos` = quem vê vendas; `pessoas` = quem vê cliente ou fornecedor; `ponto` =
-  colaborador com `controla_ponto`; `equipe` = quem vê a lista de usuários (§12.2); `ponto_gestor` = quem tem acesso ao módulo Ponto (§12.1); `financeiro` = a regra de §10.1; `relatorios` = algum bloco de §10.3 visível; `dashboard` = `dashboard.data` (§10.4); `inicio` só para perfil `erp`; `mais` sempre.
+  colaborador com `controla_ponto`; `assistente` = quem conversa com a Jana (§12.4); `equipe` = quem vê a lista de usuários (§12.2); `ponto_gestor` = quem tem acesso ao módulo Ponto (§12.1); `financeiro` = a regra de §10.1; `relatorios` = algum bloco de §10.3 visível; `dashboard` = `dashboard.data` (§10.4); `inicio` só para perfil `erp`; `mais` sempre.
   `perfil` = `erp` se tem tarefas, vendas, pessoas, financeiro, relatórios ou dashboard, senão `colaborador`. `abre_em` = `inicio`
   (erp), `ponto` (colaborador) ou `mais` (sem nenhuma das duas).
 
@@ -373,6 +373,20 @@ categorias:[{id, nome, total}], total, baixo_estoque, pagina, tem_mais }`, 30 po
 - `minimo` = `alert_quantity` (ou `null`); `baixo` = a regra do alerta da web (`qtd ≤ minimo`).
 - `local` = nome da loja; `prateleira` = "rack · fileira · posição" de `product_racks`, ou `null`.
 - Permissão `product.view` (403 sem ela); a área `estoque` entra em `areas` (§6) com a mesma regra.
+
+### 9.3 Movimentações de um item (tela 29) — só leitura
+
+`GET /api/app/estoque/{id}?pagina=N` (`id` = a linha da 05) →
+`{ item:<a mesma linha da §9.2>, historico:[{id, tipo, rotulo, referencia, quando, qtd, saldo}], pagina, tem_mais }`,
+30 por página, do mais novo ao mais velho.
+
+- O histórico é o mesmo da tela web de histórico de estoque (`ProductUtil::getVariationStockHistory`):
+  `tipo` = tipo da transação (`purchase`, `sell`, `stock_adjustment`, `opening_stock`, `sell_transfer`,
+  `purchase_transfer`, `production_*`, devoluções); `rotulo` = o texto da web; `qtd` com sinal; `saldo` = saldo
+  acumulado depois do movimento; `referencia` = nº da nota/pedido · fornecedor ou cliente (só o nome), ou `null`.
+- Mesmas regras da §9.2 (`product.view`, lojas permitidas); linha de outra empresa ou de loja não permitida → 404.
+- **Registrar movimento fica na web** (decisão [W] 2026-10-02): no ERP cada tipo é uma transação contábil
+  (entrada = compra/estoque inicial com custo; saída/perda = ajuste com valor e custeio FIFO), não um "+N" avulso.
 
 ## 10. Financeiro (Onda C)
 
@@ -570,3 +584,22 @@ fora até o ERP ter cadastro de equipamento de cliente e de box (decisão [W] 20
 - `GET /api/app/inicio` traz `barra` (lista com até 3 itens, nunca `null`) = escolha ∩ módulos permitidos, na ordem escolhida. Sem
   escolha, ou se nada da escolha estiver mais em `areas`, vale o padrão do ERP: Tarefas, Pedidos,
   Produção (§7.1), completado com as outras áreas do usuário na ordem de `areas`.
+
+### 12.4 Chat com a Jana (tela 25)
+
+`POST /api/app/chat { mensagem:string(≤1000), conversa_id:string|null }` →
+`200 { conversa_id:string, resposta:{ de:"jana", texto, criada_em } }`. Resposta síncrona.
+
+`GET /api/app/chat/{conversa_id}` → `{ conversa_id, mensagens:[{ de:"eu"|"jana", texto, criada_em }] }`,
+em ordem cronológica.
+
+- Canal = Jana (decisão [W]). São as mesmas conversas do chat web (`jana_conversas` /
+  `jana_mensagens`) e o mesmo turno (`ChatTurnoService`): o pedido de brief diário vai para o
+  brief, os tokens do turno ficam gravados, e uma falha da IA vira a resposta
+  "Estou com dificuldades técnicas no momento…" em vez de erro.
+- `conversa_id: null` (ou ausente) abre uma conversa nova, com a 1ª mensagem como título.
+- A conversa é do usuário: de outro usuário ou de outro business → `404 nao_encontrado`.
+- Acesso = o do chat web: módulo Jana no plano (`jana_module`) + `jana.access` + `jana.chat`;
+  sem isso `403 sem_permissao`. Área `assistente` em `/api/app/inicio` (§6) com a mesma regra.
+- Mensagem vazia ou acima de 1000 caracteres → `422 { erro:"validacao", campos:{ mensagem:"…" } }`.
+  Limite de 60 mensagens por minuto, como na web (`429`).
