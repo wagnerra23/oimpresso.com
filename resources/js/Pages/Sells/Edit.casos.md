@@ -140,11 +140,11 @@ last_run: "2026-10-02"
 
 ---
 
-## UC-SEDIT-10 · Editar uma venda de reparo pela lista não apaga as datas do reparo
+## UC-SEDIT-11 · Editar uma venda de reparo pela lista não apaga as datas do reparo
 - **Persona:** Larissa corrigindo, pela lista de vendas, uma venda que nasceu como reparo.
 - **Por que existe:** o `after_sale_saved` do Repair grava os campos de reparo só quando vêm no request, mas zerava a **entrega** (`repair_due_date`) e a **conclusão** (`repair_completed_on`) quando não vinham. A edição pela lista (esta tela e o `sell.edit` Blade) não manda campo de reparo nenhum — só o PDV de reparo (`/pos/{id}/edit?sub_type=repair`) manda. Achado em 2026-10-02 ao seguir com a venda de reparo na edição.
 - **Aceite:** Dado uma venda de reparo com entrega e conclusão gravadas · Quando salva sem enviar esses campos · Então as duas datas ficam **iguais** (e um campo de reparo enviado, como o número de série, é gravado — prova que o hook rodou) · Quando o PDV de reparo envia as datas **vazias** · Então elas são limpas, como antes.
-- **Teste:** `tests/Feature/Sells/SellsEditContratoTest.php` (UC-SEDIT-10, lane `sells-pest`).
+- **Teste:** `tests/Feature/Sells/SellsEditContratoTest.php` (UC-SEDIT-11, lane `sells-pest`).
 - **Status: 🧪** _(nasce sem run.)_
 
 ---

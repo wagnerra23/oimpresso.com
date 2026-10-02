@@ -53,7 +53,7 @@ class DataController extends Controller
 
         // As datas só mudam quando o formulário as envia. O PDV de reparo sempre envia (vazio =
         // limpar); a edição pela lista de vendas (Sells/Edit React e sell.edit Blade) não envia
-        // nenhum campo de reparo — antes, salvar por ali zerava entrega e conclusão (UC-SEDIT-10).
+        // nenhum campo de reparo — antes, salvar por ali zerava entrega e conclusão (UC-SEDIT-11).
         if (array_key_exists('repair_completed_on', $input)) {
             $transaction->repair_completed_on = ! empty($input['repair_completed_on']) ? $repairUtil->uf_date($input['repair_completed_on'], true) : null;
         }

@@ -566,13 +566,13 @@ it('UC-SEDIT-09 · a tela React envia pra SellPosController@update (/pos/{id}), 
 });
 
 // =============================================================================
-// UC-SEDIT-10 — editar uma venda de REPARO pela lista de vendas não apaga as datas do reparo.
+// UC-SEDIT-11 — editar uma venda de REPARO pela lista de vendas não apaga as datas do reparo.
 //   Âncora: Modules/Repair DataController::after_sale_saved — grava os campos de reparo só se
 //   vierem no request, mas zerava entrega/conclusão quando NÃO vinham. A edição pela lista
 //   (Sells/Edit React e sell.edit Blade) não manda campo de reparo nenhum.
 // =============================================================================
 
-it('UC-SEDIT-10 · salvar a venda de reparo sem campos de reparo preserva entrega e conclusão; enviados vazios, limpam', function () {
+it('UC-SEDIT-11 · salvar a venda de reparo sem campos de reparo preserva entrega e conclusão; enviados vazios, limpam', function () {
     if (! Schema::hasColumn('transactions', 'repair_due_date')) {
         $this->markTestSkipped('colunas do Repair ausentes neste banco');
     }

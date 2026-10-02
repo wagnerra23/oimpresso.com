@@ -42,7 +42,7 @@ on:
       - 'app/Utils/TransactionUtil.php'
       # Sob teste em BuscaProdutoPrecoDeGrupoContratoTest (filterProduct × getVariationGroupPrice).
       - 'app/Utils/ProductUtil.php'
-      # Sob teste em SellsEditContratoTest UC-SEDIT-10 (hook after_sale_saved do Repair no update).
+      # Sob teste em SellsEditContratoTest UC-SEDIT-11 (hook after_sale_saved do Repair no update).
       - 'Modules/Repair/Http/Controllers/DataController.php'
       # Thread 04 de Vendas (Descontos): sob teste em DescontosContratoTest — controller, FormRequest,
       # a migration que concede discount.view|manage e a tela. Sem isto, mexer neles não dispara o teste.
