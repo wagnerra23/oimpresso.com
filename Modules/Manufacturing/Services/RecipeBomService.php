@@ -194,6 +194,89 @@ class RecipeBomService
         ]);
     }
 
+    /** Colunas ordenáveis da tela (§4.2) e a chave de cada uma — as mesmas do cliente até 2026-10-02. */
+    public const ORDENAVEIS = ['name', 'cat', 'qtd', 'total', 'unit', 'venda', 'margem'];
+
+    /**
+     * Os 4 números do topo da tela, sobre TODAS as receitas do business — nunca sobre a página
+     * nem sobre o filtro (§4.2: os KPIs descrevem o conjunto; o 2º e o 3º são o próprio filtro).
+     *
+     * Leitura pura sobre o que `presentRecipe` já derivou: nenhum custo é recalculado aqui.
+     *
+     * @param  list<array<string, mixed>>  $receitas  saída de `listRecipesWithCost`
+     * @return array{total: int, custo_medio: float, margem_baixa: int, desperdicio: int}
+     */
+    public function kpis(array $receitas): array
+    {
+        $n = count($receitas);
+
+        return [
+            'total'        => $n,
+            'custo_medio'  => $n ? array_sum(array_map(fn ($r) => (float) $r['custos']['unit'], $receitas)) / $n : 0.0,
+            'margem_baixa' => count(array_filter($receitas, fn ($r) => $r['custos']['margem'] < 45)), // R-05
+            'desperdicio'  => count(array_filter($receitas, fn ($r) => $r['waste'] >= 8)),
+        ];
+    }
+
+    /**
+     * Filtra e ordena as receitas JÁ calculadas — o que a tela fazia no navegador até 2026-10-02,
+     * agora no servidor pra a lista paginar aqui (playbook ds-atomos D-GRADE · ADR de design 0412
+     * item 2 do handoff). Mesmas regras, uma por uma:
+     *  · categoria exata; ausente = todas
+     *  · `kpi=margem` → margem < 45 (R-05) · `kpi=custo` → desperdício ≥ 8
+     *  · busca em nome + SKU + categoria + subcategoria, sem diferenciar maiúscula (R-03)
+     *  · ordem por uma das 7 colunas; empate mantém a ordem de chegada (nome, do SELECT)
+     *
+     * @param  list<array<string, mixed>>  $receitas
+     * @param  array{q?: ?string, cat?: ?string, kpi?: ?string, sort?: ?string, dir?: ?string}  $filtros
+     * @return list<array<string, mixed>>
+     */
+    public function filtrarOrdenar(array $receitas, array $filtros): array
+    {
+        $q   = mb_strtolower(trim((string) ($filtros['q'] ?? '')));
+        $cat = (string) ($filtros['cat'] ?? '');
+        $kpi = $filtros['kpi'] ?? null;
+
+        $saida = array_values(array_filter($receitas, function (array $r) use ($q, $cat, $kpi): bool {
+            if ($cat !== '' && $r['cat'] !== $cat) {
+                return false;
+            }
+            if ($kpi === 'margem' && $r['custos']['margem'] >= 45) {
+                return false;
+            }
+            if ($kpi === 'custo' && $r['waste'] < 8) {
+                return false;
+            }
+
+            return $q === '' || str_contains(mb_strtolower("{$r['name']} {$r['sku']} {$r['cat']} {$r['sub']}"), $q);
+        }));
+
+        $sort = in_array($filtros['sort'] ?? null, self::ORDENAVEIS, true) ? $filtros['sort'] : 'name';
+        $sinal = ($filtros['dir'] ?? 'asc') === 'desc' ? -1 : 1;
+        $chave = match ($sort) {
+            'name'   => fn ($r) => mb_strtolower($r['name']),
+            'cat'    => fn ($r) => $r['cat'] . $r['sub'],
+            'qtd'    => fn ($r) => (float) $r['custos']['qtd_liq'],
+            'total'  => fn ($r) => (float) $r['custos']['total'],
+            'unit'   => fn ($r) => (float) $r['custos']['unit'],
+            'venda'  => fn ($r) => (float) $r['venda'],
+            'margem' => fn ($r) => (float) $r['custos']['margem'],
+        };
+
+        // `usort` é estável desde o PHP 8: empate fica na ordem de chegada, como o `sort` do JS.
+        // Texto compara por `strcmp`, nunca `<=>`: o `<=>` do PHP compara NUMERICAMENTE duas
+        // strings numéricas ("10" > "9"), e o JS comparava por caractere ("10" < "9").
+        usort($saida, function ($a, $b) use ($chave, $sinal): int {
+            $x = $chave($a);
+            $y = $chave($b);
+            $c = is_string($x) ? strcmp($x, (string) $y) : ($x <=> $y);
+
+            return ($c <=> 0) * $sinal;
+        });
+
+        return $saida;
+    }
+
     /**
      * Monta a linha da tela a partir da recipe — nome, cadeia de categoria, grupos de
      * ingredientes e o bloco de custo de §7 do handoff.

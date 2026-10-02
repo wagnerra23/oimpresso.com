@@ -70,6 +70,59 @@ rascunho, enviado, aprovado, convertido}, pagina, tem_mais }`, 20 por página, m
   guarda validade de orçamento nem área por venda).
 - Mesmas permissões e visibilidade de Pedidos; a área `orcamentos` entra em `areas` (§6) para quem vê vendas.
 
+### 2.2 Venda rápida (tela 11): leitura ⬜ · escrita ⬜ (regra mestre)
+
+`GET /api/app/venda/produtos?q=` → `{ itens:[{ id, nome, categoria, preco, estoque }] }`. Até 20 itens,
+por nome. `id` = **variação** (é o que a venda grava). Busca por nome do produto ou da variação, SKU e
+categoria.
+
+- **Local de venda:** o ERP não tem "local padrão do usuário". Como na web (`SellController::create`,
+  `BusinessLocation::forDropdown`), vale o **1º local ativo** que o usuário acessa (`access_all_locations`
+  ou `location.<id>`). Sem nenhum → `403 { erro: "sem_local" }`.
+- **Preço** = `variations.sell_price_inc_tax`. Se o local tem grupo de preço padrão e a variação tem preço
+  não-vazio nesse grupo, vale o preço do grupo, pelo mesmo cálculo do PDV (`ProductUtil::getVariationGroupPrice`).
+  2 casas. O POST recalcula pela **mesma** função.
+- **Estoque** = saldo no local de venda. Vem `null` quando o produto não controla estoque **ou** quando o
+  business vende sem estoque (`pos_settings.allow_overselling`): nesse caso o ERP não barra a venda, e o
+  app não deve pôr teto. O saldo pode vir fracionado; na v1 o app vende só quantidade inteira.
+- Ficam fora: produto inativo, `not_for_selling`, sem vínculo com o local, combo e modificador.
+- Permissão: `sell.create` ou `direct_sell.access` (as da venda direta na web, sem `so.create`). Sem
+  nenhuma → `403 { erro: "sem_permissao" }`.
+
+`POST /api/app/vendas`: **⬜ PR separado. Só mergeia com dupla prova, tabela antes→depois e ok do [W].**
+Header `Idempotency-Key` obrigatório. Corpo `{ cliente_id|null, metodo, itens:[{ variacao_id, quantidade,
+preco_unitario }], total_previsto }`. Os números vão como texto `"N.NN"` (ponto, até 2 casas).
+
+- **Caminho:** venda direta pelo `TransactionUtil` (`createSellTransaction` → `createOrUpdateSellLines` →
+  `createOrUpdatePaymentLines` → baixa de estoque → `updatePaymentStatus` → `mapPurchaseSell`), igual ao
+  `SellPosController::store` com `is_direct_sale=1` (o caminho que o `/sells/create` em React usa). A venda
+  nasce `status=final` e **fora da FSM**: `current_stage_id` fica null, e o pipeline só começa pelo botão
+  "Iniciar". Venda direta não exige caixa aberto.
+- **Números:** nada do app passa pelo `Util::num_uf`. Medido: `num_uf("1.500")` = 1500 (com 3 casas o
+  ponto vira milhar; ver o incidente de 2026-06-05). A validação é `^\d+(\.\d{1,2})?$` e os utilitários
+  recebem `uf_data=false`, como o conector de API (`Modules/Connector`) já faz. O
+  `isCustomerCreditLimitExeeded` chama `num_uf` no valor do pagamento mesmo com `uf=false`; o valor vai
+  com no máximo 2 casas, que ele lê certo.
+- **Dupla prova:** o ERP recalcula o preço (função do GET) e o total. `preco_unitario` diferente →
+  `422 campos["itens.N.preco_unitario"]`. Total diferente de `total_previsto` → `422 campos.total_previsto`.
+  Se divergir, nada é gravado.
+- **Estoque:** baixa na criação. Sem saldo, num business sem `allow_overselling`, o `mapPurchaseSell` lança
+  `PurchaseSellMismatch`: tudo é desfeito e o ERP responde `422 campos["itens.N.quantidade"]`.
+- **Cliente:** `cliente_id` null → consumidor final do business (`contacts.is_default=1`). Se o business
+  não tem consumidor final → `422 campos.cliente_id`. Quando informado, precisa ser cliente do mesmo business.
+- **Pagamento:** `dinheiro`→`cash` · `credito`→`card` (`card_type=credit`) · `debito`→`card`
+  (`card_type=debit`) · `pix`→`custom_pay_1`. Qualquer outro valor → `422 campos.metodo`. O rótulo
+  devolvido vem do ERP, porque é configurável por business. **Boleto fica fora da v1** (decisão [W],
+  2026-10-02). No ERP, boleto é venda a prazo: o título a receber nasce no Financeiro pelo observer, mas
+  a emissão do boleto (PaymentGateway) está desligada em produção.
+- **Idempotência:** tabela `app_idempotencia` (business_id, user_id, chave única, hash do corpo,
+  transaction_id), reservada na **mesma** transação de banco da venda. Mesma chave com o mesmo corpo →
+  `200` com a mesma venda. Corpo diferente → `422 { erro: "idempotencia_conflito" }`. Chave ainda em
+  processamento → `409 { erro: "em_andamento" }`.
+- `201 { id, numero, data, total, itens:[{ variacao_id, nome, quantidade, preco_unitario, subtotal }],
+  metodo }`, números como número JSON. Também responde `403 sem_permissao` com assinatura vencida ou
+  cota de vendas estourada.
+
 ## 3. Tarefas ⬜ — ToDo + justificativas do Ponto (D11)
 
 `GET /api/app/tarefas?origem=todas|todo|ponto`
@@ -213,7 +266,7 @@ Mesmos campos e regras do §4.2, **menos** `tipo` e `papeis` (mudar papel fica n
   abas que o usuário pode abrir, na ordem do app. Cada uma segue a mesma regra da rota dela, então
   aba visível = rota que responde: `tarefas` = Essentials no plano ou quem aprova o Ponto;
   `pedidos`/`producao`/`orcamentos` = quem vê vendas; `pessoas` = quem vê cliente ou fornecedor; `ponto` =
-  colaborador com `controla_ponto`; `inicio` só para perfil `erp`; `mais` sempre.
+  colaborador com `controla_ponto`; `ponto_gestor` = quem tem acesso ao módulo Ponto (§12.1); `inicio` só para perfil `erp`; `mais` sempre.
   `perfil` = `erp` se tem tarefas, vendas ou pessoas, senão `colaborador`. `abre_em` = `inicio`
   (erp), `ponto` (colaborador) ou `mais` (sem nenhuma das duas).
 
@@ -377,3 +430,28 @@ Os 3 números saem de `GET /api/app/os` sem filtro: no pátio = `total`; aguarda
 `etapas[chave=aguardando_pecas].total`; prontos = `etapas[chave=pronto_retirada].total`. Sem
 preventiva (o ERP não tem plano de preventiva). Telas 24/31/32 (Equipamentos) e 33 (Locais) ficam
 fora até o ERP ter cadastro de equipamento de cliente e de box (decisão [W] 2026-10-02).
+
+
+## 12. Onda E — Ponto, Equipe, Perfil de menu e Chat
+
+### 12.1 Marcações a validar (tela 39) — fila do gestor
+
+`GET /api/app/ponto/aprovacoes?estado=pendente|validada|recusada|todas` (padrão `pendente`) →
+`{ itens:[{id, colaborador_nome, tipo, local_texto, marcada_em, nsr, gps_precisao_m, dispositivo, hash_curto, estado}], contadores:{pendente, validada, recusada, todas}, pode_recusar }`.
+
+- Só marcações do celular (REP-P) **fora do geofence**, dos últimos 7 dias, mais nova primeiro.
+  É a mesma fila da tela web `/ponto/aprovacoes` (`FilaGestorRepPService`, um lugar só).
+- `id` é **uuid** (string), como em `ponto_marcacoes`. `tipo` ∈ `ENTRADA|ALMOCO_INICIO|ALMOCO_FIM|SAIDA`.
+  `marcada_em` ISO 8601 com fuso. `hash_curto` = 8 primeiros caracteres do hash encadeado.
+- `local_texto` = distância até o centro do geofence ("A 84,2 km do local de trabalho"); `null` sem geofence.
+  `gps_precisao_m` vem `null`: o REP-P não grava a precisão do GPS na marcação.
+- `contadores` ignoram o filtro (são os números dos chips). `pode_recusar` = tem `ponto.aprovacoes.manage`.
+- `POST …/{id}/validar` → `200 { estado:"validada" }`: registro na trilha (`activity_log` `ponto.repp`);
+  a marcação não muda. Trilha desligada → `503 { erro:"trilha_desligada" }`.
+- `POST …/{id}/recusar` (sem corpo) → `200 { estado:"recusada", nsr_anulacao }`: grava uma
+  **anulação** nova apontando a original (`Marcacao::anular()`, motivo fixo "Recusada na validação
+  REP-P"). Nunca UPDATE/DELETE em `ponto_marcacoes` (Portaria 671/2021).
+- Acesso = o do módulo Ponto (`ponto.access` ou papel admin/rh/gestor); recusar exige ainda
+  `ponto.aprovacoes.manage`. Erros: `403 sem_permissao` · `404 nao_encontrado` (inexistente ou de
+  outro business) · `409 ja_revisada` (já decidida) · `422 validacao` (estado inválido).
+- Área `ponto_gestor` em `/api/app/inicio` (§6): mesma regra de acesso do GET.
