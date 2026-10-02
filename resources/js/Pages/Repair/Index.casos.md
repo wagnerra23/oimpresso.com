@@ -75,6 +75,21 @@ last_run: "2026-09-05"
 - **Teste:** `Modules/Repair/Tests/Feature/RepairIndexContratoTest.php`
 - **Status: 🧪** _(teste cita o UC e passa — run CT 100 2026-09-05: 12 passed, 57 assertions)_
 
+## UC-RIDX-05 · Venda de reparo com entrega preenchida não derruba a fila
+- **Persona:** atendente abre a fila num tenant que tem reparo com data de entrega marcada — o caso
+  normal, não a exceção.
+- **Aceite:** Dado no tenant uma venda-de-reparo não concluída com `repair_due_date` no passado, outra
+  com data futura e outra sem data · Quando faço o `GET` da fila · Então a resposta é **200** e
+  `is_overdue` vem `true` só para a de data passada, `false` para a futura e para a sem data.
+- **Regressão que defende:** `repair_due_date` não tem cast em `App\Transaction` e chega ao
+  Controller como **string**. Chamar método de data direto nela dá
+  `Call to a member function lessThan() on string` — 500 na tela inteira, não numa linha. Medido em
+  prod 2026-10-01: o biz=1 tem vendas de reparo com entrega preenchida, então a fila quebrava
+  **sempre** para ele. As três amostras com desfechos diferentes impedem que um `is_overdue`
+  constante passe.
+- **Teste:** `Modules/Repair/Tests/Feature/RepairIndexContratoTest.php`
+- **Status: ⬜** _(teste escrito em 2026-10-01; veredito pelo CI da lane `verticais-pest`)_
+
 ---
 
 ## Contrato ainda sem UC (prosa honesta, sem gate)

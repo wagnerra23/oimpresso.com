@@ -4,6 +4,7 @@ import { Button } from '@/Components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
+import { Grid, Inline } from '@/Components/layout';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import { dropdownEntries } from './dropdownEntries';
 import PadraoDesbloqueio from './PadraoDesbloqueio';
@@ -102,12 +103,15 @@ export default function ReparoSection({ opcoes, valor, onChange }: Props) {
   return (
     <Card id="sec-reparo" className="shadow-sm bg-background border-border scroll-mt-32">
       <CardHeader>
-        <CardTitle className="text-base flex items-center gap-2">
-          <Wrench className="h-4 w-4 text-muted-foreground" />
-          Reparo
+        <CardTitle className="text-base">
+          <Inline gap={2}>
+            <Wrench className="h-4 w-4 text-muted-foreground" />
+            Reparo
+          </Inline>
         </CardTitle>
       </CardHeader>
-      <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <CardContent>
+        <Grid cols={1} gap={4} className="md:grid-cols-2 lg:grid-cols-4">
         <div className="space-y-1.5">
           <Label htmlFor="repair_status_id">Status do reparo *</Label>
           <Select
@@ -188,7 +192,7 @@ export default function ReparoSection({ opcoes, valor, onChange }: Props) {
 
         <div className="space-y-1.5 md:col-span-2 lg:col-span-4">
           <Label htmlFor="repair_defects">Problema relatado pelo cliente</Label>
-          <div className="flex gap-2">
+          <Inline gap={2}>
             <Input
               id="repair_defects"
               value={digitando}
@@ -204,9 +208,9 @@ export default function ReparoSection({ opcoes, valor, onChange }: Props) {
             <Button type="button" variant="outline" onClick={confirmarDigitado}>
               Adicionar
             </Button>
-          </div>
+          </Inline>
           {valor.defeitos.length > 0 && (
-            <div className="flex flex-wrap gap-1.5" aria-label="Defeitos informados">
+            <Inline wrap gap={1} className="gap-1.5" aria-label="Defeitos informados">
               {valor.defeitos.map((d) => (
                 <span key={d} className="inline-flex items-center gap-1 rounded-full border border-border bg-muted px-2 py-0.5 text-xs">
                   {d}
@@ -219,10 +223,10 @@ export default function ReparoSection({ opcoes, valor, onChange }: Props) {
                   </button>
                 </span>
               ))}
-            </div>
+            </Inline>
           )}
           {sugestoesRestantes.length > 0 && (
-            <div className="flex flex-wrap gap-1.5">
+            <Inline wrap gap={1} className="gap-1.5">
               {sugestoesRestantes.map((s) => (
                 <button
                   key={s}
@@ -233,7 +237,7 @@ export default function ReparoSection({ opcoes, valor, onChange }: Props) {
                   + {s}
                 </button>
               ))}
-            </div>
+            </Inline>
           )}
         </div>
 
@@ -259,13 +263,13 @@ export default function ReparoSection({ opcoes, valor, onChange }: Props) {
         {itensChecklist.length > 0 && (
           <fieldset className="space-y-2 md:col-span-2 lg:col-span-4">
             <legend className="text-sm font-medium">Checklist pré-reparo</legend>
-            <div className="grid grid-cols-1 gap-2 md:grid-cols-2 lg:grid-cols-3">
+            <Grid cols={1} gap={2} className="md:grid-cols-2 lg:grid-cols-3">
               {itensChecklist.map((item) => {
                 const atual = valor.checklist[item] ?? 'not_applicable';
                 return (
-                  <div key={item} className="flex items-center justify-between gap-2 rounded-md border border-border px-2 py-1.5">
+                  <Inline key={item} gap={2} justify="between" className="rounded-md border border-border px-2 py-1.5">
                     <span className="text-sm">{item}</span>
-                    <div role="radiogroup" aria-label={item} className="flex gap-1">
+                    <Inline role="radiogroup" aria-label={item} gap={1}>
                       {RESPOSTAS.map((r) => (
                         <button
                           key={r.valor}
@@ -283,13 +287,14 @@ export default function ReparoSection({ opcoes, valor, onChange }: Props) {
                           {r.rotulo}
                         </button>
                       ))}
-                    </div>
-                  </div>
+                    </Inline>
+                  </Inline>
                 );
               })}
-            </div>
+            </Grid>
           </fieldset>
         )}
+        </Grid>
       </CardContent>
     </Card>
   );

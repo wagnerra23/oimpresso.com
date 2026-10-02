@@ -1,0 +1,6 @@
+--- a/mobile/app/_layout.tsx
++++ b/mobile/app/_layout.tsx
+@@ Stack
+                   <Stack.Screen name="notificacoes/index" options={{ presentation: "card" }} />
++                  <Stack.Screen name="ponto/index" options={{ presentation: "card" }} />
+                 </Stack>

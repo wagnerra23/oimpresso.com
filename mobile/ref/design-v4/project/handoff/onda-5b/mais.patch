@@ -1,0 +1,18 @@
+--- a/mobile/app/(tabs)/mais.tsx  (e lib/menu-modules.ts, se o catálogo de módulos morar lá)
++++ b/mobile/app/(tabs)/mais.tsx
+@@ imports
++import { abrirPonto } from "@/lib/ponto-link";
++import { useNotify } from "@/lib/notify";
+@@ no componente
++  const notify = useNotify();
+@@ lista de módulos — novo item (grupo RH)
++  {
++    key: "ponto",
++    label: "Ponto",
++    desc: "Bater ponto · REP-P",
++    icon: "clock",
++    onPress: async () => {
++      const r = await abrirPonto();
++      if (r === "erro") notify("erro", "Não foi possível abrir o ponto. Confira a conexão.");
++    },
++  },
