@@ -18,10 +18,10 @@ authority: generated
 |---|---:|
 | US no SPEC | 16 |
 | CU no SDD | 14 |
-| Telas (.tsx) | 26 |
-| Telas com `casos.md` | 26 |
-| UC declarados | 140 |
-| UC com teste que os cita | 138 |
+| Telas (.tsx) | 24 |
+| Telas com `casos.md` | 24 |
+| UC declarados | 126 |
+| UC com teste que os cita | 124 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -104,10 +104,6 @@ authority: generated
 | UC-ESPSH-04 | Espelho/Show | 🧪 aguarda veredito da lane |
 | UC-ESPSH-05 | Espelho/Show | 🧪 aguarda veredito da lane |
 | UC-ESPSH-06 | Espelho/Show | 📝 sem_teste |
-| UC-EXCL-01 | Publico/Exclusao | 🧪 aguarda veredito da lane |
-| UC-EXCL-02 | Publico/Exclusao | 🧪 aguarda veredito da lane |
-| UC-EXCL-03 | Publico/Exclusao | 🧪 aguarda veredito da lane |
-| UC-EXCL-04 | Publico/Exclusao | 🧪 aguarda veredito da lane |
 | UC-IMPCRE-01 | Importacoes/Create | 🧪 aguarda veredito da lane |
 | UC-IMPCRE-02 | Importacoes/Create | 🧪 aguarda veredito da lane |
 | UC-IMPIDX-01 | Importacoes/Index | 🧪 aguarda veredito da lane |
@@ -150,10 +146,6 @@ authority: generated
 | UC-PAPR-07 | Aprovacoes/Index | 🧪 aguarda veredito da lane |
 | UC-PAPR-08 | Aprovacoes/Index | 🧪 aguarda veredito da lane |
 | UC-PAPR-09 | Aprovacoes/Index | 🧪 aguarda veredito da lane |
-| UC-PRIV-01 | Publico/Privacidade | 🧪 aguarda veredito da lane |
-| UC-PRIV-02 | Publico/Privacidade | 🧪 aguarda veredito da lane |
-| UC-PRIV-03 | Publico/Privacidade | 🧪 aguarda veredito da lane |
-| UC-PRIV-04 | Publico/Privacidade | 🧪 aguarda veredito da lane |
 | UC-PTF-01 | Fechamento/Index | 🧪 aguarda veredito da lane |
 | UC-PTF-02 | Fechamento/Index | 🧪 aguarda veredito da lane |
 | UC-PTF-03 | Fechamento/Index | 🧪 aguarda veredito da lane |
@@ -185,12 +177,6 @@ authority: generated
 | UC-REPP-08 | Mobile/Index | 🧪 aguarda veredito da lane |
 | UC-REPP-09 | Mobile/Index | 🧪 aguarda veredito da lane |
 | UC-REPP-10 | Mobile/Index | 🧪 aguarda veredito da lane |
-| UC-REPP-11 | Mobile/Index | 🧪 aguarda veredito da lane |
-| UC-REPP-12 | Mobile/Index | 🧪 aguarda veredito da lane |
-| UC-REPP-13 | Mobile/Index | 🧪 aguarda veredito da lane |
-| UC-REPP-14 | Mobile/Index | 🧪 aguarda veredito da lane |
-| UC-REPP-15 | Mobile/Index | 🧪 aguarda veredito da lane |
-| UC-REPP-16 | Mobile/Index | 🧪 aguarda veredito da lane |
 
 ---
 

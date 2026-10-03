@@ -20,8 +20,8 @@ authority: generated
 | CU no SDD | 0 |
 | Telas (.tsx) | 14 |
 | Telas com `casos.md` | 14 |
-| UC declarados | 86 |
-| UC com teste que os cita | 86 |
+| UC declarados | 81 |
+| UC com teste que os cita | 81 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -101,9 +101,6 @@ _Nenhuma lacuna: toda tela tem caso **com UC**, todo CU é citado, e toda US **e
 | UC-RIDX-02 | Index | 🧪 aguarda veredito da lane |
 | UC-RIDX-03 | Index | 🧪 aguarda veredito da lane |
 | UC-RIDX-04 | Index | 🧪 aguarda veredito da lane |
-| UC-RIDX-05 | Index | 🧪 aguarda veredito da lane |
-| UC-RIDX-06 | Index | 🧪 aguarda veredito da lane |
-| UC-RIDX-07 | Index | 🧪 aguarda veredito da lane |
 | UC-RPOE-01 | ProducaoOficina/Index | 🧪 aguarda veredito da lane |
 | UC-RPOE-02 | ProducaoOficina/Index | 🧪 aguarda veredito da lane |
 | UC-RPOE-03 | ProducaoOficina/Index | 🧪 aguarda veredito da lane |
@@ -122,8 +119,6 @@ _Nenhuma lacuna: toda tela tem caso **com UC**, todo CU é citado, e toda US **e
 | UC-RSHW-02 | Show | 🧪 aguarda veredito da lane |
 | UC-RSHW-03 | Show | 🧪 aguarda veredito da lane |
 | UC-RSHW-04 | Show | 🧪 aguarda veredito da lane |
-| UC-RSHW-05 | Show | 🧪 aguarda veredito da lane |
-| UC-RSHW-06 | Show | 🧪 aguarda veredito da lane |
 | UC-RSTIDX-01 | Status/Index | 🧪 aguarda veredito da lane |
 | UC-RSTIDX-02 | Status/Index | 🧪 aguarda veredito da lane |
 | UC-RSTIDX-03 | Status/Index | 🧪 aguarda veredito da lane |
