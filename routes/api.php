@@ -49,9 +49,12 @@ Route::middleware('auth:api')->prefix('app')->name('app.')->group(function () {
     Route::post('/chat', [\App\Http\Controllers\Api\App\ChatController::class, 'enviar'])->middleware('throttle:60,1')->name('chat.enviar');
     Route::get('/chat/{conversa_id}', [\App\Http\Controllers\Api\App\ChatController::class, 'mostrar'])->whereNumber('conversa_id')->name('chat.mostrar');
     Route::get('/produtos', [\App\Http\Controllers\Api\App\ProdutosController::class, 'produtos'])->name('produtos.index');
+    Route::get('/produtos/opcoes', [\App\Http\Controllers\Api\App\NovoProdutoController::class, 'opcoes'])->name('produtos.opcoes');
+    Route::post('/produtos', [\App\Http\Controllers\Api\App\NovoProdutoController::class, 'store'])->name('produtos.store');
     Route::get('/estoque', [\App\Http\Controllers\Api\App\ProdutosController::class, 'estoque'])->name('estoque.index');
     Route::get('/estoque/{id}', [\App\Http\Controllers\Api\App\ProdutosController::class, 'estoqueItem'])->whereNumber('id')->name('estoque.show');
     Route::get('/financeiro', [\App\Http\Controllers\Api\App\FinanceiroController::class, 'index'])->name('financeiro.index');
+    Route::get('/fiscal', [\App\Http\Controllers\Api\App\FiscalController::class, 'index'])->name('fiscal.index');
     Route::get('/relatorios', [\App\Http\Controllers\Api\App\RelatoriosController::class, 'index'])->name('relatorios.index');
     Route::get('/dashboard', [\App\Http\Controllers\Api\App\DashboardController::class, 'show'])->name('dashboard');
     Route::get('/pagamentos', [\App\Http\Controllers\Api\App\PagamentosController::class, 'index'])->name('pagamentos.index');
