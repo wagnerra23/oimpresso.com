@@ -2,6 +2,10 @@ import { describe, expect, it } from 'vitest';
 import {
   adicionarDefeitos,
   camposDeReparo,
+  checklistParaEnvio,
+  itensDoChecklist,
+  modelosFiltrados,
+  tocarPonto,
   dataParaServidor,
   defeitosParaTagify,
   reparoInicial,
@@ -55,5 +59,44 @@ describe('UC-S05 · reparoVenda', () => {
 
   it('nada preenchido além do status não manda campos vazios', () => {
     expect(camposDeReparo(reparoInicial(2))).toEqual({ repair_status_id: 2 });
+  });
+});
+
+// UC-S06 — checklist pré-reparo, senha e padrão, e modelos filtrados por marca/aparelho.
+describe('UC-S06 · checklist, senha/padrão e modelos', () => {
+  const modelos = [
+    { id: 1, name: 'A1', brand_id: 10, device_id: 20, checklist: ['Liga'] },
+    { id: 2, name: 'A2', brand_id: 10, device_id: 21, checklist: [] },
+    { id: 3, name: 'B1', brand_id: 11, device_id: 20, checklist: ['Tela', 'Liga'] },
+  ];
+
+  it('modelos seguem marca e aparelho; sem nenhum, todos', () => {
+    expect(modelosFiltrados(modelos, null, null).map((m) => m.id)).toEqual([1, 2, 3]);
+    expect(modelosFiltrados(modelos, null, 20).map((m) => m.id)).toEqual([1, 3]);
+    expect(modelosFiltrados(modelos, 10, 20).map((m) => m.id)).toEqual([1]);
+  });
+
+  it('itens do checklist: padrão primeiro, depois o do modelo, sem repetir', () => {
+    expect(itensDoChecklist(['Liga', 'Carrega'], modelos[2])).toEqual(['Liga', 'Carrega', 'Tela']);
+    expect(itensDoChecklist(['Carrega'], undefined)).toEqual(['Carrega']);
+  });
+
+  it('checklist envia todos os itens exibidos, N/A onde não houve resposta (como o Blade)', () => {
+    expect(checklistParaEnvio(['Liga', 'Tela'], { Tela: 'no' })).toEqual({ Liga: 'not_applicable', Tela: 'no' });
+  });
+
+  it('padrão é a sequência 1–9 tocada, sem repetir ponto', () => {
+    expect(['1', '4', '7', '8', '4'].reduce((p, n) => tocarPonto(p, Number(n)), '')).toBe('1478');
+    expect(tocarPonto('12', 0)).toBe('12');
+  });
+
+  it('envio leva senha, padrão e checklist só quando existem', () => {
+    const r = { ...reparoInicial(2), repair_security_pwd: '1234', repair_security_pattern: '159', checklist: { Liga: 'yes' as const } };
+    expect(camposDeReparo(r, ['Liga', 'Tela'])).toMatchObject({
+      repair_security_pwd: '1234',
+      repair_security_pattern: '159',
+      repair_checklist: { Liga: 'yes', Tela: 'not_applicable' },
+    });
+    expect(camposDeReparo(reparoInicial(2), [])).toEqual({ repair_status_id: 2 });
   });
 });
