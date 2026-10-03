@@ -11,8 +11,7 @@ use Tests\Support\EstoqueFixture;
 
 /**
  * Contrato da tela Remessas (`GET /shipments` → `SellController@shipments`, thread 02 do
- * playbook venda-menu). UCs: resources/js/Pages/Sells/Shipments/Index.casos.md (UC-REM-01..07;
- * 03/04/07 e a metade "tela" do 06 entram junto com a tela e o render Inertia).
+ * playbook venda-menu). UCs: resources/js/Pages/Sells/Shipments/Index.casos.md (UC-REM-01..07).
  *
  * O que a migração NÃO pode mudar: a lista vem do DataTables de `index()` (only_shipments=true)
  * e a escrita do `updateShipping` existente. A tela nova só ganha o branch Inertia em
@@ -22,6 +21,23 @@ use Tests\Support\EstoqueFixture;
  * faltar). Nunca biz=4. Não roda local (proibicoes.md): lane sells-pest.yml (MySQL).
  */
 uses(DatabaseTransactions::class);
+
+function remInertiaVersion(): string
+{
+    $manifest = public_path('build-inertia/manifest.json');
+
+    return file_exists($manifest) ? md5_file($manifest) : '1';
+}
+
+/** Os dois headers que o cliente Inertia manda (X-Inertia E X-Requested-With). */
+function remInertiaHeaders(): array
+{
+    return [
+        'X-Inertia' => 'true',
+        'X-Inertia-Version' => remInertiaVersion(),
+        'X-Requested-With' => 'XMLHttpRequest',
+    ];
+}
 
 /** Os headers do fetch da tela (padrão Drafts): JSON + AJAX, sem X-Inertia. */
 function remAjaxHeaders(): array
@@ -175,6 +191,22 @@ it('UC-REM-02 filtro por entregador deixa só as remessas dele', function () {
     expect(in_array($this->vendaB, $ids, true))->toBeFalse();
 });
 
+it('UC-REM-03 a tela troca célula vazia por travessão', function () {
+    $tsx = (string) file_get_contents(resource_path('js/Pages/Sells/Shipments/Index.tsx'));
+
+    expect($tsx)->toContain("const VAZIO = '—';");
+    expect($tsx)->toContain("return v === '' ? VAZIO : v;");
+    expect($tsx)->toContain('{celula(r.detalhes)}');
+});
+
+it('UC-REM-04 imprimir romaneio usa o modo packing_slip', function () {
+    $tsx = (string) file_get_contents(resource_path('js/Pages/Sells/Shipments/Index.tsx'));
+    $lib = (string) file_get_contents(resource_path('js/Lib/printSaleReceipt.ts'));
+
+    expect($tsx)->toContain("mode: 'packing_slip'");
+    expect($lib)->toContain("packing_slip: '?package_slip=true'");
+});
+
 it('UC-REM-05 [T0] remessa de outro business não abre nem muda', function () {
     // PRÉ-CONDIÇÃO ANTI-VÁCUO: a venda alheia existe, com status próprio.
     expect((int) DB::table('transactions')->where('id', $this->vendaX)->value('business_id'))->toBe($this->outroBizId);
@@ -191,9 +223,36 @@ it('UC-REM-05 [T0] remessa de outro business não abre nem muda', function () {
     expect(in_array($this->vendaX, remIdsDaLista($lista->json()), true))->toBeFalse();
 });
 
-it('UC-REM-06 sem permissão de remessa o drawer devolve 403', function () {
+it('UC-REM-06 sem permissão de remessa a tela e o drawer devolvem 403', function () {
     $semPermissao = remUsuario($this->bizId, []);
     remLogin($this, $semPermissao);
 
+    $this->withHeaders(remInertiaHeaders())->get('/shipments')->assertStatus(403);
     $this->withHeaders(remAjaxHeaders())->get('/sells/edit-shipping/' . $this->vendaA)->assertStatus(403);
+});
+
+it('UC-REM-07 Inertia renderiza Sells/Shipments/Index e o Blade segue como fallback', function () {
+    $res = $this->withHeaders(remInertiaHeaders())->get('/shipments');
+    $res->assertOk();
+    $page = json_decode($res->getContent(), true);
+
+    expect($page['component'] ?? null)->toBe('Sells/Shipments/Index');
+    $p = $page['props'];
+    expect(array_keys($p['shippingStatuses']))->toBe(['ordered', 'packed', 'shipped', 'delivered', 'cancelled']);
+    expect(array_key_exists((string) $this->entregadorA->id, $p['filters']['deliveryPersons']))->toBeTrue();
+    expect($p['urls'])->toBe([
+        'datatable' => '/sells',
+        'edit' => '/sells/edit-shipping/',
+        'update' => '/sells/update-shipping/',
+    ]);
+
+    // As URLs apontam para rotas que JÁ existem (nenhuma rota nova).
+    $rotas = collect(app('router')->getRoutes()->getRoutes())->map(fn ($r) => implode('|', $r->methods()) . ' ' . $r->uri());
+    expect($rotas->contains(fn ($r) => str_contains($r, 'GET') && str_ends_with($r, ' sells/edit-shipping/{id}')))->toBeTrue();
+    expect($rotas->contains(fn ($r) => str_contains($r, 'PUT') && str_ends_with($r, ' sells/update-shipping/{id}')))->toBeTrue();
+
+    // Fallback Blade preservado (cutover F5 é humano).
+    $ctrl = (string) file_get_contents(app_path('Http/Controllers/SellController.php'));
+    expect($ctrl)->toContain("Inertia::render('Sells/Shipments/Index'");
+    expect($ctrl)->toContain("return view('sell.shipments')");
 });
