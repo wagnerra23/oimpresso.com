@@ -36,6 +36,7 @@ on:
       - 'app/User.php'
       - 'app/Http/Controllers/Api/App/TarefasController.php'
       - 'app/Http/Controllers/Api/App/PontoAprovacoesController.php'
+      - 'app/Contracts/Ponto/**'
       # A aba Tarefas chega aos módulos por contrato (2026-10-02): o contrato, a implementação
       # do Essentials e o registro dela acordam o AppTarefasApiContratoTest junto do controller.
       - 'app/Contracts/Tarefas/**'
@@ -88,6 +89,7 @@ jobs:
               - 'app/User.php'
               - 'app/Http/Controllers/Api/App/TarefasController.php'
               - 'app/Http/Controllers/Api/App/PontoAprovacoesController.php'
+              - 'app/Contracts/Ponto/**'
               - 'app/Contracts/Tarefas/**'
               - 'Modules/Essentials/Services/TarefasDoApp.php'
               - 'Modules/Essentials/Providers/EssentialsServiceProvider.php'
