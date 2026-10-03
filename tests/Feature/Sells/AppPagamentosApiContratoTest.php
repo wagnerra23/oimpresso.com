@@ -15,7 +15,7 @@ use Spatie\Permission\Models\Permission;
  * API de Pagamentos do app das lojas (tela 15) — GET /api/app/pagamentos, SÓ LEITURA.
  *
  * Contrato: memory/requisitos/AppMobile/API-CONTRATO-v1.md §10.5 (formato do oimpresso-app#47).
- * NÃO derivado do controller. A escrita (gerar cobrança) não existe aqui: o POST tem que dar 405.
+ * NÃO derivado do controller. A escrita está em AppPagamentosEscritaContratoTest (§10.6).
  *
  * Tier 0 (ADR 0093): cobrança do business 2 nunca aparece no 98 (controle positivo em par).
  * As cobranças do teste ficam em 2037 (created_at é TIMESTAMP: o MySQL só vai até 2038-01-19) para ficarem no topo da lista "mais recente primeiro";
@@ -73,12 +73,13 @@ function appPagCobranca(int $biz, string $status, string $tipo, string $vencimen
     ]);
 }
 
-it('sem token 401; sem acesso ao Financeiro 403; e não existe escrita (POST 405)', function () {
+it('sem token 401; sem acesso ao Financeiro 403 (na lista e no POST de gerar)', function () {
     $this->getJson('/api/app/pagamentos')->assertStatus(401);
     appPagPlano(true);
     Passport::actingAs(appPagUsuario((int) $this->tenant->id, false), [], 'api');
     $this->getJson('/api/app/pagamentos')->assertStatus(403)->assertJsonPath('erro', 'sem_permissao');
-    $this->postJson('/api/app/pagamentos', [])->assertStatus(405);
+    // A escrita existe desde §10.6 (#8603): sem acesso, o POST também é 403 — e nada é gravado.
+    $this->postJson('/api/app/pagamentos', [])->assertStatus(403)->assertJsonPath('erro', 'sem_permissao');
 });
 
 it('lista as cobranças do business com status, método e valor do app; erro e outro business ficam fora', function () {

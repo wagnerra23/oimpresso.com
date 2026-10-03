@@ -57,6 +57,11 @@ Route::middleware('auth:api')->prefix('app')->name('app.')->group(function () {
     Route::get('/fiscal', [\App\Http\Controllers\Api\App\FiscalController::class, 'index'])->name('fiscal.index');
     Route::get('/relatorios', [\App\Http\Controllers\Api\App\RelatoriosController::class, 'index'])->name('relatorios.index');
     Route::get('/dashboard', [\App\Http\Controllers\Api\App\DashboardController::class, 'show'])->name('dashboard');
+    // Escrita da tela 15 (mexe em valor — regra mestre; valor = saldo em aberto, decisão [W] 2026-10-02).
+    Route::get('/pagamentos/referencias', [\App\Http\Controllers\Api\App\PagamentosEscritaController::class, 'referencias'])->name('pagamentos.referencias');
+    Route::post('/pagamentos', [\App\Http\Controllers\Api\App\PagamentosEscritaController::class, 'store'])->middleware('throttle:20,1')->name('pagamentos.store');
+    Route::post('/pagamentos/{id}/consultar', [\App\Http\Controllers\Api\App\PagamentosEscritaController::class, 'consultar'])->whereNumber('id')->middleware('throttle:30,1')->name('pagamentos.consultar');
+    Route::post('/pagamentos/{id}/cancelar', [\App\Http\Controllers\Api\App\PagamentosEscritaController::class, 'cancelar'])->whereNumber('id')->middleware('throttle:20,1')->name('pagamentos.cancelar');
     Route::get('/pagamentos', [\App\Http\Controllers\Api\App\PagamentosController::class, 'index'])->name('pagamentos.index');
     Route::get('/inicio', [\App\Http\Controllers\Api\App\InicioController::class, 'show'])->name('inicio');
     Route::get('/os', [\App\Http\Controllers\Api\App\OficinaController::class, 'index'])->name('os.index');

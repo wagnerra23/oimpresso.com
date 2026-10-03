@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\Schema;
 
 /**
  * Pagamentos do app das lojas (tela 15) — LEITURA. Contrato: API-CONTRATO-v1.md §10.5.
- * A escrita (gerar/consultar/cancelar cobrança) mexe em valor e vem em PR separado, pela regra mestre.
+ * A escrita (gerar/consultar/cancelar cobrança) mora no PagamentosEscritaController (§10.6).
  *
  * Fonte: `cobrancas` (PaymentGateway) — a mesma tabela da tela web /financeiro/cobranca.
  * Acesso: a regra do Financeiro (FinanceiroController::podeVerFinanceiro), a mesma da tela 06.
@@ -74,6 +74,15 @@ class PagamentosController extends Controller
             'pagina' => $pagina,
             'tem_mais' => $linhas->count() > self::POR_PAGINA,
         ]);
+    }
+
+    /** Um item no formato da lista (resposta da escrita, §10.6). null se não é do business. */
+    public function itemPorId(int $bizId, int $id): ?array
+    {
+        $statusSql = $this->statusSql(CarbonImmutable::today()->toDateString());
+        $c = $this->base($bizId)->where('c.id', $id)->selectRaw("{$statusSql} as status_app")->first();
+
+        return $c ? $this->item($c) : null;
     }
 
     /** Cobranças do business, menos as que deram erro no gateway (nunca viraram cobrança). */
