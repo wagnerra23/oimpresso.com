@@ -27,6 +27,11 @@ export type ReparoForm = {
   repair_security_pwd: string;
   /** Sequência de pontos da grade 3×3 (1–9), o formato do patternlock.js do POS Blade. */
   repair_security_pattern: string;
+  /**
+   * UC-S07 — OS de origem. Liga a fatura à OS (JobSheet::invoices) e é a chave de
+   * idempotência do JobSheetObserver: com ela, concluir a OS não gera uma 2ª venda.
+   */
+  repair_job_sheet_id: number | null;
 };
 
 export type ChecklistValor = 'yes' | 'no' | 'not_applicable';
@@ -53,6 +58,7 @@ export function reparoInicial(defaultStatusId: number | null | undefined): Repar
     checklist: {},
     repair_security_pwd: '',
     repair_security_pattern: '',
+    repair_job_sheet_id: null,
   };
 }
 
@@ -85,7 +91,14 @@ export function camposDeReparo(
   itensChecklist: string[] = [],
 ): Record<string, string | number | Record<string, ChecklistValor>> {
   const campos: Record<string, string | number | Record<string, ChecklistValor>> = {};
-  const ids = ['repair_status_id', 'repair_brand_id', 'repair_device_id', 'repair_model_id', 'repair_warranty_id'] as const;
+  const ids = [
+    'repair_status_id',
+    'repair_brand_id',
+    'repair_device_id',
+    'repair_model_id',
+    'repair_warranty_id',
+    'repair_job_sheet_id',
+  ] as const;
   for (const k of ids) {
     if (r[k] !== null) campos[k] = r[k] as number;
   }
@@ -99,6 +112,28 @@ export function camposDeReparo(
   if (r.repair_security_pwd !== '') campos.repair_security_pwd = r.repair_security_pwd;
   if (r.repair_security_pattern !== '') campos.repair_security_pattern = r.repair_security_pattern;
   if (itensChecklist.length > 0) campos.repair_checklist = checklistParaEnvio(itensChecklist, r.checklist);
+  return campos;
+}
+
+/**
+ * UC-SEDIT-12 — envio da EDIÇÃO de uma venda de reparo. O mesmo do PDV (`camposDeReparo`) e,
+ * além disso, o que tinha valor gravado e a pessoa esvaziou, quando o servidor sabe limpar:
+ * - datas vão vazias: o hook do Repair limpa a data quando a chave vem (mesmo como null);
+ * - defeitos vão como "[]".
+ * Número de série, senha e padrão NÃO limpam por aqui: o ConvertEmptyStringsToNull vira ""
+ * em null e o hook só grava esses campos quando não são null — o PDV Blade também não limpa.
+ */
+export function camposDeReparoEdicao(
+  r: ReparoForm,
+  gravado: ReparoForm,
+  itensChecklist: string[] = [],
+): Record<string, string | number | Record<string, ChecklistValor>> {
+  const campos = camposDeReparo(r, itensChecklist);
+  const datas = ['repair_due_date', 'repair_completed_on'] as const;
+  for (const k of datas) {
+    if (gravado[k].trim() !== '' && r[k].trim() === '') campos[k] = '';
+  }
+  if (gravado.defeitos.length > 0 && r.defeitos.length === 0) campos.repair_defects = '[]';
   return campos;
 }
 
@@ -140,4 +175,40 @@ export function checklistParaEnvio(
   const out: Record<string, ChecklistValor> = {};
   for (const item of itens) out[item] = respostas[item] ?? 'not_applicable';
   return out;
+}
+
+/** Peça da OS como o servidor manda (UC-S07): preço = `selling_price` do /products/list. */
+export type PecaDaOs = {
+  product_id: number;
+  variation_id: number;
+  name: string;
+  variation: string | null;
+  sku: string;
+  quantity: number;
+  unit_price: number;
+};
+
+/**
+ * Peças da OS → linhas do carrinho, no MESMO formato do `handleAddProduct` (desconto 0,
+ * "fixed"). A quantidade é a da OS; o preço é o que a linha teria se adicionada à mão.
+ * Mesma variação repetida vira uma linha só, com as quantidades somadas.
+ */
+export function pecasParaCarrinho(pecas: PecaDaOs[]) {
+  const linhas = new Map<number, PecaDaOs>();
+  for (const p of pecas) {
+    const atual = linhas.get(p.variation_id);
+    linhas.set(p.variation_id, atual ? { ...atual, quantity: atual.quantity + p.quantity } : { ...p });
+  }
+  return Array.from(linhas.values()).map((p) => ({
+    product_id: p.product_id,
+    variation_id: p.variation_id as number | null,
+    name: p.name,
+    variation: p.variation,
+    sku: p.sku,
+    quantity: p.quantity,
+    unit_price: p.unit_price,
+    discount: 0,
+    discount_type: 'fixed' as const,
+    imei_number: '',
+  }));
 }

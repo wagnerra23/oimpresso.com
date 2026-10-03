@@ -22,6 +22,10 @@ last_run: "2026-10-02"
 <!-- REVALIDAÇÃO 2026-10-02 (paliativo removido): SellController@edit deixa de devolver 409 na
      navegação React. Muda só o UC-SEDIT-08 (aceite reescrito, volta a 🧪); UC-SEDIT-05/06/07 e o
      prefill passam a pedir /sells/{id}/edit sem ?react=1 — mesmo payload, status mantidos. -->
+<!-- REVALIDAÇÃO 2026-10-02 (G-6: o .tsx mudou — UC-SEDIT-12, seção Reparo). O .tsx ganhou a
+     seção Reparo e os campos repair_* no envio, só quando o `form` traz `reparo` (venda de
+     reparo). Venda comum: `reparo` = null, nada muda no que a tela mostra nem no que envia —
+     UC-SEDIT-01..11 seguem com os status que tinham. UC-SEDIT-12 nasce 🧪. -->
 
 # Casos de Uso & Aceite — Editar venda
 
@@ -159,6 +163,20 @@ last_run: "2026-10-02"
 - **Por que existe:** o `after_sale_saved` do Repair grava os campos de reparo só quando vêm no request, mas zerava a **entrega** (`repair_due_date`) e a **conclusão** (`repair_completed_on`) quando não vinham. A edição pela lista (esta tela e o `sell.edit` Blade) não manda campo de reparo nenhum — só o PDV de reparo (`/pos/{id}/edit?sub_type=repair`) manda. Achado em 2026-10-02 ao seguir com a venda de reparo na edição.
 - **Aceite:** Dado uma venda de reparo com entrega e conclusão gravadas · Quando salva sem enviar esses campos · Então as duas datas ficam **iguais** (e um campo de reparo enviado, como o número de série, é gravado — prova que o hook rodou) · Quando o PDV de reparo envia as datas **vazias** · Então elas são limpas, como antes.
 - **Teste:** `tests/Feature/Sells/SellsEditContratoTest.php` (UC-SEDIT-11, lane `sells-pest`).
+- **Status: 🧪** _(nasce sem run.)_
+
+---
+
+## UC-SEDIT-12 · A edição de uma venda de reparo mostra e salva a seção Reparo
+- **Persona:** Larissa corrigindo, pela lista de vendas, o aparelho, o status ou as datas de uma venda de reparo.
+- **Por que existe:** reparo é um **tipo de venda** (decisão [W] 2026-10-01). O PDV React já tem a seção Reparo na criação (UC-S05/S06 do Sells/Create); a edição pela lista não tinha, e os campos de reparo só eram editáveis pelo PDV de reparo do módulo.
+- **Regras:**
+  - a seção aparece **só** na venda de reparo (`sub_type = repair`) com o módulo na assinatura; venda comum não muda;
+  - as opções são as mesmas do PDV de reparo (status, marcas, aparelhos, modelos com checklist, garantias), escopadas pelo business;
+  - os valores vêm do que está gravado; as datas vão cruas do banco ("AAAA-MM-DDTHH:mm") e voltam em ISO, sem passar pelo formato da empresa;
+  - salvar manda os mesmos campos do PDV; data ou defeitos esvaziados vão vazios para limpar. Número de série, senha e padrão não limpam (o `ConvertEmptyStringsToNull` vira "" em null e o hook só grava não-nulos — o PDV Blade também não limpa).
+- **Aceite:** Dado uma venda de reparo com status, série, entrega, defeitos e checklist gravados · Quando a tela pede o `form` · Então `reparo.valor` traz esses valores (entrega `2026-10-10T14:00`, defeitos em lista, checklist como objeto) e `reparo.opcoes` traz os status do próprio business · Dado uma venda comum · Então `reparo` é null.
+- **Teste:** `tests/Feature/Sells/SellsEditContratoTest.php` (UC-SEDIT-12, lane `sells-pest`) + `tests/js/sells-reparo-venda.test.ts` (envio da edição, lane `sells-v3-dominio-gate`).
 - **Status: 🧪** _(nasce sem run.)_
 
 ---
