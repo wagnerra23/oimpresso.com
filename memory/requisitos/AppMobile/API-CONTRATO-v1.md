@@ -366,6 +366,7 @@ que citam a numeração antiga continuam valendo por esta tabela (fixa; não acr
 | §10.3 | [tela-13-relatorios.md](api/tela-13-relatorios.md) |
 | §10.4 | [tela-35-dashboard.md](api/tela-35-dashboard.md) |
 | §10.5 | [tela-15-pagamentos.md](api/tela-15-pagamentos.md) |
+| §10.6 | [tela-15-pagamentos.md](api/tela-15-pagamentos.md) |
 | §11 (área: regra de acesso da Oficina) | [tela-07-ordens-de-servico.md](api/tela-07-ordens-de-servico.md) |
 | §11.1 | [tela-07-ordens-de-servico.md](api/tela-07-ordens-de-servico.md) |
 | §11.2 | [tela-03-detalhe-da-os.md](api/tela-03-detalhe-da-os.md) |
