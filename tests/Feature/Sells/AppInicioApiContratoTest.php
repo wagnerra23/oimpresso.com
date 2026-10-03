@@ -177,7 +177,8 @@ it('D6: quem vê vendas é perfil erp, abre no Início e tem Pedidos, Produção
     $r = $this->getJson('/api/app/inicio')->assertOk();
     expect($r->json('perfil'))->toBe('erp');
     expect($r->json('abre_em'))->toBe('inicio');
-    expect($r->json('areas'))->toBe(['inicio', 'pedidos', 'producao', 'orcamentos', 'mais']);
+    // `relatorios` vem junto: o bloco produção dos Relatórios segue a regra de vendas (§10.3).
+    expect($r->json('areas'))->toBe(['inicio', 'pedidos', 'producao', 'orcamentos', 'relatorios', 'mais']);
 });
 
 it('com stock_report.view: estoque_baixo é um número (antes dava 500 — count() num Builder)', function () {

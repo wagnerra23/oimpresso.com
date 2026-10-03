@@ -268,8 +268,8 @@ Mesmos campos e regras do §4.2, **menos** `tipo` e `papeis` (mudar papel fica n
   abas que o usuário pode abrir, na ordem do app. Cada uma segue a mesma regra da rota dela, então
   aba visível = rota que responde: `tarefas` = Essentials no plano ou quem aprova o Ponto;
   `pedidos`/`producao`/`orcamentos` = quem vê vendas; `pessoas` = quem vê cliente ou fornecedor; `ponto` =
-  colaborador com `controla_ponto`; `assistente` = quem conversa com a Jana (§12.4); `equipe` = quem vê a lista de usuários (§12.2); `ponto_gestor` = quem tem acesso ao módulo Ponto (§12.1); `financeiro` = a regra de §10.1; `fiscal` = a regra de §10.2; `inicio` só para perfil `erp`; `mais` sempre.
-  `perfil` = `erp` se tem tarefas, vendas, pessoas, financeiro ou fiscal, senão `colaborador`. `abre_em` = `inicio`
+  colaborador com `controla_ponto`; `fiscal` = a regra de §10.2; `assistente` = quem conversa com a Jana (§12.4); `equipe` = quem vê a lista de usuários (§12.2); `ponto_gestor` = quem tem acesso ao módulo Ponto (§12.1); `financeiro` = a regra de §10.1; `relatorios` = algum bloco de §10.3 visível; `dashboard` = `dashboard.data` (§10.4); `inicio` só para perfil `erp`; `mais` sempre.
+  `perfil` = `erp` se tem tarefas, vendas, pessoas, financeiro, fiscal, relatórios ou dashboard, senão `colaborador`. `abre_em` = `inicio`
   (erp), `ponto` (colaborador) ou `mais` (sem nenhuma das duas).
 
 - `faturado_hoje` e `meta_dia`: só com `dashboard.data` (senão `null`). Meta do dia = meta mensal
@@ -454,6 +454,51 @@ contadores:{todos, rascunho, processando, autorizado, cancelado, rejeitado}, pag
   prefeitura). `erro` só em `rejeitado`: "Rejeição <cStat>: <motivo da SEFAZ>" (NFS-e: a mensagem do provedor).
 - `emitido_em` = data de emissão (sem ela, a de criação), ISO com fuso.
 - Tier 0: as duas tabelas e os joins filtrados pelo business do token.
+
+### 10.3 Relatórios (tela 13) — só leitura
+
+`GET /api/app/relatorios?periodo=mes|trimestre|ano&aba=dre|vendas|producao|estoque` →
+`{ periodo:{de, ate}, kpis:{receitas, despesas, saldo, margem_pct}|null,
+dre:{receitas_por_categoria:[{nome, valor}], despesas_por_categoria:[{nome, valor}]}|null,
+vendas:{receita_por_dia:[{data, valor}], top_clientes:[{nome, valor}]}|null,
+producao:{por_etapa:[{rotulo, total}]}|null, estoque:{baixo:[{nome, quantidade, minimo, unidade}]}|null }`.
+
+- `periodo` = mês, trimestre ou ano corrente (do primeiro ao último dia). Só o bloco da `aba` vem
+  preenchido; os outros vêm `null`.
+- Cada bloco segue a permissão da tela web dele e vem `null` sem ela (o app mostra "Sem acesso a este
+  relatório"): `kpis` e `dre` = regra do Financeiro (§10.1 — `kpis` **pode** vir `null`); `vendas` =
+  `dashboard.data`; `producao` = quem vê vendas (§5); `estoque` = `stock_report.view`. Sem nenhum →
+  `403 sem_permissao`. A área `relatorios` entra em `areas` (§6) quando algum bloco é visível.
+- `kpis`: títulos a receber (receitas) e a pagar (despesas) **não cancelados** com competência no
+  período — a mesma base do DRE web. `saldo` = receitas − despesas; `margem_pct` = saldo ÷ receitas ×
+  100 (1 casa), `null` sem receita. `dre`: os mesmos títulos por categoria (sem categoria → plano de
+  contas → "Sem categoria"), maior primeiro.
+- `vendas.receita_por_dia`: os 14 dias até hoje (independe do período), venda final nos locais do
+  usuário — os filtros do faturado do painel (`getSellTotals`); `top_clientes`: até 5, no período.
+- `producao.por_etapa`: os totais das colunas de `GET /api/app/producao`, na mesma ordem.
+- `estoque.baixo`: até 20 itens com saldo ≤ mínimo, menor saldo primeiro (`ProductUtil::getProductAlert`,
+  o mesmo do Início); produto com variação sai como "Produto — variação".
+
+### 10.4 Dashboard (tela 35) — só leitura
+
+`GET /api/app/dashboard` →
+`{ faturamento_30d:{valor, variacao_pct, serie_semanal:[7]}, kpis:{pedidos_ativos, pedidos_novos,
+producao_em_curso, a_receber, vencido}, pedidos_por_dia:[{data, total}]|null, meta_mes:{valor, realizado_pct}|null,
+producao_concluida:{concluidas, total}|null }`.
+
+- Acesso: `dashboard.data` (a do faturado do Início). Sem ela → `403 sem_permissao` e a área
+  `dashboard` não entra em `areas` (§6).
+- `faturamento_30d`: vendas finais dos últimos 30 dias (hoje incluso) nos locais do usuário, pelo
+  `getSellTotals` do painel web; `variacao_pct` contra os 30 dias anteriores (`null` sem venda antes);
+  `serie_semanal` = os 7 últimos dias, dia a dia, do mais antigo a hoje.
+- `meta_mes`: a meta mensal de faturamento da Jana (a mesma que gera a meta do dia, §6) e
+  `realizado_pct` = vendido no mês até hoje ÷ meta × 100, inteiro. `null` sem meta vigente.
+- Números de pedidos e produção seguem a regra de quem vê vendas (§2/§5) e vêm `null` sem ela —
+  assim batem com as abas Pedidos e Produção: `pedidos_ativos` = o do Início; `pedidos_por_dia` = 14
+  dias até hoje, vendas finais visíveis por data da venda; `pedidos_novos` = o dia de hoje dessa série;
+  `producao_em_curso` = coluna "em produção" de `/producao`; `producao_concluida` = coluna "pronto para
+  faturar" sobre o total das 4 colunas.
+- `a_receber` / `vencido`: os mesmos da tela 06 (§10.1); `null` sem acesso ao Financeiro.
 
 
 ## 11. Oficina — Onda D (Modules/OficinaAuto)
