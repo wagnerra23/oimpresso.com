@@ -111,7 +111,10 @@ function insereVenda(array $over = []): int
         'business_id'          => bizRecorte(),
         'type'                 => 'sell',
         'status'               => 'final',
-        'transaction_date'     => now()->startOfMonth()->addDays(2)->toDateTimeString(),
+        // Hoje às 00:00: sempre no mês corrente e nunca no futuro. O backfill apura o mês até
+        // `Carbon::today()`; com "dia 3 do mês" a venda ficava no futuro nos dias 1 e 2 e a
+        // apuração dava 0 (medido 2026-10-02: os 3 casos vermelhos na lane Jana).
+        'transaction_date'     => now()->startOfDay()->toDateTimeString(),
         'final_total'          => 100,
         'created_by'           => 1,
         'essentials_duration'  => 0,
