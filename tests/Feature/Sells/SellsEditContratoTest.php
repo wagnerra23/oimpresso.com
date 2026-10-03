@@ -663,3 +663,50 @@ it('UC-SEDIT-11 · salvar a venda de reparo sem campos de reparo preserva entreg
     expect($limpo->repair_due_date)->toBeNull();
     expect($limpo->repair_completed_on)->toBeNull();
 });
+
+// =============================================================================
+// UC-SEDIT-12 — a edição de uma venda de reparo traz a seção Reparo com o que está gravado.
+//   Âncora: decisão [W] 2026-10-01 (reparo é um TIPO de venda) + UC-S05 do Sells/Create (as
+//   mesmas opções do PDV de reparo). Venda comum não ganha a seção.
+// =============================================================================
+
+it('UC-SEDIT-12 · venda de reparo abre a edição com as opções do Repair e os valores gravados; venda comum vem sem', function () {
+    if (! Schema::hasTable('repair_statuses') || ! Schema::hasColumn('transactions', 'repair_due_date')) {
+        $this->markTestSkipped('tabelas/colunas do Repair ausentes neste banco');
+    }
+    $status = (int) DB::table('repair_statuses')->insertGetId([
+        'name' => 'Em bancada UC-SEDIT-12', 'color' => '#2563eb', 'sort_order' => 1,
+        'business_id' => $this->bizId, 'is_completed_status' => 0, 'created_at' => now(), 'updated_at' => now(),
+    ]);
+    $pedirForm = fn (int $id) => json_decode(sellsEditGet($this, $id, [
+        'X-Inertia-Partial-Component' => 'Sells/Edit',
+        'X-Inertia-Partial-Data' => 'form',
+    ])->getContent(), true)['props']['form'];
+
+    $comum = sellsEditVenda($this->bizId);
+    expect($pedirForm($comum['transaction_id'])['reparo'])->toBeNull();
+
+    $reparo = sellsEditVenda($this->bizId);
+    DB::table('transactions')->where('id', $reparo['transaction_id'])->update([
+        'sub_type' => 'repair',
+        'repair_status_id' => $status,
+        'repair_serial_no' => 'SN-EDIT',
+        'repair_due_date' => '2026-10-10 14:00:00',
+        'repair_completed_on' => null,
+        'repair_defects' => '[{"value":"tela"},{"value":"bateria"}]',
+        'repair_checklist' => '{"Liga":"yes"}',
+    ]);
+    $secao = $pedirForm($reparo['transaction_id'])['reparo'];
+
+    expect($secao)->not->toBeNull();
+    // Opções do PRÓPRIO business (o status criado acima está na lista).
+    expect(collect($secao['opcoes']['statuses'])->pluck('id')->all())->toContain($status);
+    expect($secao['opcoes']['osOrigem'])->toBeNull();
+    // Valores gravados, no formato do ReparoForm — data crua do banco, sem formato da empresa.
+    expect($secao['valor']['repair_status_id'])->toBe($status);
+    expect($secao['valor']['repair_serial_no'])->toBe('SN-EDIT');
+    expect($secao['valor']['repair_due_date'])->toBe('2026-10-10T14:00');
+    expect($secao['valor']['repair_completed_on'])->toBe('');
+    expect($secao['valor']['defeitos'])->toBe(['tela', 'bateria']);
+    expect($secao['valor']['checklist'])->toBe(['Liga' => 'yes']);
+});

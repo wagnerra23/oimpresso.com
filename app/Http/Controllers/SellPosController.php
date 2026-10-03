@@ -68,6 +68,8 @@ use Inertia\Inertia;
 
 class SellPosController extends Controller
 {
+    use \App\Http\Controllers\Concerns\OpcoesReparo;
+
     /**
      * All Utils instance.
      */
@@ -338,7 +340,7 @@ class SellPosController extends Controller
                 'subType'              => $sub_type,
                 // Reparo como tipo de venda (UC-S05): as opções que o POS Blade já monta via
                 // getModuleData('get_pos_screen_view') e o React descartava. Sem query nova.
-                'repairPos'            => $this->repairPosProps($pos_module_data),
+                'repairPos'            => $this->repairPosProps($pos_module_data, $default_price_group_id),
             ]);
         }
 
@@ -384,43 +386,108 @@ class SellPosController extends Controller
      * esse método só entrega quando o sub_type é `repair` e o módulo está na assinatura,
      * então `null` aqui = não é venda de reparo. Os dados já vêm escopados por business_id.
      */
-    private function repairPosProps($pos_module_data): ?array
+    private function repairPosProps($pos_module_data, $defaultPriceGroupId = null): ?array
     {
         $d = $pos_module_data['Repair']['view_data'] ?? null;
         if (empty($d)) {
             return null;
         }
 
-        $sugeridos = explode(',', (string) ($d['repair_settings']['problem_reported_by_customer'] ?? ''));
-        $semVazios = fn (array $l) => array_values(array_filter(array_map('trim', $l), fn ($v) => $v !== ''));
+        return $this->opcoesReparo($d) + [
+            'osOrigem' => $this->repairOsOrigem($d, $defaultPriceGroupId),
+        ];
+    }
 
-        // UC-S06: modelos com marca/aparelho (o Blade filtra a lista ao trocar marca/aparelho,
-        // via /repair/get-device-models) e o checklist de cada um (o Blade busca por AJAX em
-        // /repair/models-repair-checklist). Uma query, escopada por business — sem endpoint novo.
-        $modelos = \Modules\Repair\Entities\DeviceModel::where('business_id', (int) session('user.business_id'))
-            ->orderBy('name')
-            ->get(['id', 'name', 'brand_id', 'device_id', 'repair_checklist'])
-            ->map(fn ($m) => [
-                'id' => (int) $m->id,
-                'name' => (string) $m->name,
-                'brand_id' => $m->brand_id !== null ? (int) $m->brand_id : null,
-                'device_id' => $m->device_id !== null ? (int) $m->device_id : null,
-                'checklist' => $semVazios(explode('|', (string) $m->repair_checklist)),
-            ])->values()->all();
+    /**
+     * Venda aberta a partir de uma OS (UC-S07): `/pos/create?sub_type=repair&job_sheet_id=N`,
+     * o link "Adicionar fatura" da listagem de OS. O provider do Repair já carrega a OS
+     * (escopada por business) e as peças usadas (só variação + quantidade).
+     *
+     * VALOR — cada peça entra pelo MESMO preço que o React daria se o operador a adicionasse
+     * à mão: o `ProductUtil::filterProduct` com o grupo de preço com que a venda abre
+     * (`defaultPriceGroupId`), e `variation_group_price ?? selling_price` — a regra do
+     * `precoDaBusca.ts` que o autocomplete aplica desde o #8455. O cliente da OS vai junto com o grupo de preço
+     * dele; o React aplica pelo próprio `handleCustomerSelect`, que reprecifica como faria na
+     * mão. Peça que o filterProduct não acha (outro business, fora do local) NÃO entra calada:
+     * vai em `pecasNaoEncontradas` para a tela avisar.
+     */
+    private function repairOsOrigem(array $d, $priceGroupId = null): ?array
+    {
+        $os = $d['job_sheet'] ?? null;
+        if (empty($os) || empty($os->id)) {
+            return null;
+        }
+
+        $bizId = (int) $os->business_id;
+        $locationId = $os->location_id !== null ? (int) $os->location_id : null;
+
+        $pecas = [];
+        $naoEncontradas = [];
+        foreach (($d['parts'] ?? []) as $variationId => $parte) {
+            $subSku = (string) \App\Variation::whereKey($variationId)->value('sub_sku');
+            $linha = $subSku === '' ? null : $this->productUtil
+                ->filterProduct($bizId, $subSku, $locationId, null, $priceGroupId, [], ['sub_sku'], false, 'exact')
+                ->firstWhere('variation_id', (int) $variationId);
+
+            if ($linha === null) {
+                $naoEncontradas[] = (string) ($parte['variation_name'] ?? $variationId);
+
+                continue;
+            }
+
+            $pecas[] = [
+                'product_id' => (int) $linha->product_id,
+                'variation_id' => (int) $linha->variation_id,
+                'name' => (string) $linha->name,
+                // Produto simples tem uma variação só, com o nome-placeholder 'DUMMY' do ProductUtil.
+                'variation' => $linha->variation !== 'DUMMY' ? (string) $linha->variation : null,
+                'sku' => (string) $linha->sub_sku,
+                'quantity' => (float) ($parte['quantity'] ?? 1),
+                // Mesma regra do precoDaBusca.ts (#8455): preço do grupo se houver, senão o base.
+                'unit_price' => (float) ($linha->variation_group_price ?? $linha->selling_price),
+            ];
+        }
+
+        // Defeitos: a OS guarda o que o form mandou — JSON do Tagify (Blade) ou texto (React).
+        $defeitosBrutos = (string) $os->defects;
+        $tagify = json_decode($defeitosBrutos, true);
+        $defeitos = is_array($tagify)
+            ? array_map(fn ($t) => is_array($t) ? (string) ($t['value'] ?? '') : (string) $t, $tagify)
+            : explode(',', $defeitosBrutos);
+
+        $cliente = \App\Contact::where('contacts.business_id', $bizId)
+            ->leftJoin('customer_groups as cg', 'cg.id', '=', 'contacts.customer_group_id')
+            ->where('contacts.id', $os->contact_id)
+            ->first(['contacts.id', 'contacts.name', 'contacts.supplier_business_name', 'contacts.pay_term_number',
+                'contacts.pay_term_type', 'contacts.shipping_address', 'cg.selling_price_group_id']);
 
         return [
-            'statuses' => collect($d['repair_statuses'] ?? [])->map(fn ($s) => [
-                'id' => (int) $s->id,
-                'name' => (string) $s->name,
-                'color' => $s->color,
-            ])->values()->all(),
-            'defaultStatusId' => ! empty($d['default_status']) ? (int) $d['default_status'] : null,
-            'brands' => $d['brands'] ?? [],
-            'devices' => $d['devices'] ?? [],
-            'modelos' => $modelos,
-            'warranties' => $d['warranties'] ?? [],
-            'defeitosSugeridos' => $semVazios($sugeridos),
-            'checklistPadrao' => $semVazios(explode('|', (string) ($d['repair_settings']['default_repair_checklist'] ?? ''))),
+            'job_sheet_id' => (int) $os->id,
+            'job_sheet_no' => (string) $os->job_sheet_no,
+            'location_id' => $locationId,
+            'cliente' => $cliente === null ? null : [
+                'id' => (int) $cliente->id,
+                'text' => (string) ($cliente->supplier_business_name ?: $cliente->name),
+                'pay_term_number' => $cliente->pay_term_number,
+                'pay_term_type' => $cliente->pay_term_type,
+                'shipping_address' => $cliente->shipping_address,
+                'selling_price_group_id' => $cliente->getAttribute('selling_price_group_id') !== null
+                    ? (int) $cliente->getAttribute('selling_price_group_id') : null,
+            ],
+            'reparo' => [
+                'repair_status_id' => (int) $os->status_id,
+                'repair_brand_id' => $os->brand_id !== null ? (int) $os->brand_id : null,
+                'repair_device_id' => $os->device_id !== null ? (int) $os->device_id : null,
+                'repair_model_id' => $os->device_model_id !== null ? (int) $os->device_model_id : null,
+                'repair_serial_no' => (string) $os->serial_no,
+                'repair_due_date' => $os->delivery_date ? \Carbon\Carbon::parse($os->delivery_date)->format('Y-m-d\TH:i') : '',
+                'repair_security_pwd' => (string) $os->security_pwd,
+                'repair_security_pattern' => (string) $os->security_pattern,
+                'checklist' => is_array($os->checklist) ? $os->checklist : (object) [],
+                'defeitos' => array_values(array_filter(array_map('trim', $defeitos), fn ($v) => $v !== '')),
+            ],
+            'pecas' => $pecas,
+            'pecasNaoEncontradas' => $naoEncontradas,
         ];
     }
 

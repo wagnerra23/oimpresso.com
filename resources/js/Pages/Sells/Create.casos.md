@@ -5,7 +5,7 @@ irmaos: Create.charter.md (lei)
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso E material de treino.
 owner: wagner
-last_run: "2026-10-01"
+last_run: "2026-10-02"
 ---
 
 <!-- REVALIDAÇÃO 2026-10-01 (G-6: o .tsx mudou de novo — UC-S04, preço do grupo ao adicionar).
@@ -67,6 +67,12 @@ last_run: "2026-10-01"
      O que está afirmado aqui é o ALCANCE do diff — medido — não um veredito de
      execução. O comportamento novo em si ainda não tem teste: está no Backlog
      abaixo, sem id, conforme G-2. -->
+
+<!-- REVALIDAÇÃO 2026-10-02 (G-6: o .tsx mudou depois do last_run de 01/10).
+     Única mudança no .tsx: `osOrigem` entrou nas dependências do useMemo do `draftKey`
+     (ESLint exhaustive-deps). osOrigem vem das props e não muda durante a tela, então o
+     rascunho segue igual: venda aberta da OS não usa rascunho (UC-S07), venda comum usa.
+     Nenhum UC muda de status. -->
 
 
 
@@ -137,6 +143,17 @@ last_run: "2026-10-01"
 - **Teste:** `tests/Feature/Sells/SellsRepairSubtipoContratoTest.php` (UC-S06, tenant 98, lane `sells-pest`) + `tests/js/sells-reparo-venda.test.ts` (filtro de modelos, itens, padrão e envio; lane `sells-v3-dominio-gate`).
 - **Status: 🧪** _(nasce sem run.)_
 - **Diferença consciente do Blade:** sem marca nem aparelho escolhidos, a lista mostra **todos** os modelos (o Blade, depois de trocar o aparelho para vazio, filtra por `device_id IS NULL`). O padrão é tocado ponto a ponto em vez de arrastado — mesmo valor gravado, e funciona com teclado.
+
+---
+
+## UC-S07 · Venda de reparo aberta a partir de uma OS
+- **Persona:** técnico que conclui a OS e vai faturar ("Adicionar fatura" na listagem de OS → `/pos/create?sub_type=repair&job_sheet_id=N`).
+- **Como usa:** a venda abre com o **cliente**, o **local**, os dados do aparelho (status, marca, aparelho, modelo, série, defeitos, entrega, senha, padrão, checklist) e as **peças usadas** da OS no carrinho, com aviso do que veio da OS e de peça que não pôde entrar.
+- **Valor (REGRA MESTRE):** cada peça entra pelo **mesmo preço** que teria se o operador a adicionasse à mão no React: o `/products/list` com o grupo de preço com que a venda abre, e a regra do `precoDaBusca` (#8455) — preço do grupo se houver, senão o base; a quantidade é a da OS; mesma variação repetida vira uma linha só, somada. O cliente da OS entra pelo próprio `handleCustomerSelect` — se ele tiver grupo de preço, o React reprecifica como faria na mão. A venda leva `repair_job_sheet_id`.
+- **Aceite:** Dado uma OS do próprio business com 2 unidades de uma peça de preço 37,50 (valor fictício do teste) · Quando a venda da OS abre · Então a peça vem com `unit_price` = 37,50 = o `selling_price` que `/products/list` devolve pra mesma variação (dupla prova) e `quantity` = 2 · Quando salva · Então `final_total` = 75,00, estoque 10 → 8 e `repair_job_sheet_id` = a OS · Quando a OS é concluída depois · Então **não** nasce uma 2ª venda (o `JobSheetObserver` é idempotente pela OS; controle positivo: OS sem fatura, ao concluir, gera a venda) · Dado uma OS de **outro business** · Então a venda abre **sem** origem, com 200 (antes caía em 500). · Dado o local com **grupo de preço padrão** e preço de grupo 30 para a peça (base 37,50) · Então a peça da OS entra a **30** = o `variation_group_price` que `/products/list?price_group=` devolve ao React.
+- **Teste:** `tests/Feature/Sells/SellsRepairSubtipoContratoTest.php` (UC-S07, tenant 98, lane `sells-pest`) + `tests/js/sells-reparo-venda.test.ts` (peças → carrinho, vínculo no envio).
+- **Status: 🧪** _(nasce sem run.)_
+- **Diferenças conscientes do Blade:** o técnico da OS (`service_staff` → `res_waiter_id`) não é trazido — o PDV React não tem esse campo; a venda da OS não usa rascunho no `localStorage` (recuperar outra venda por cima misturaria origens).
 
 ---
 
