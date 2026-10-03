@@ -335,6 +335,9 @@ class AppServiceProvider extends ServiceProvider
         // registram a implementação real; sem o módulo, nada a ver.
         $this->app->bindIf(\App\Contracts\Ponto\FilaGestorPonto::class, \App\Contracts\Ponto\Nulo\SemFilaGestorPonto::class);
         $this->app->bindIf(\App\Contracts\Chat\ChatAssistente::class, \App\Contracts\Chat\Nulo\SemChatAssistente::class);
+        // Cobrança pelo app (tela 15): o PaymentGateway registra a implementação real; sem ele,
+        // gerar/consultar/cancelar respondem 503 sem_configuracao.
+        $this->app->bindIf(\App\Contracts\Cobranca\CobrancaDoApp::class, \App\Contracts\Cobranca\Nulo\SemCobrancaDoApp::class);
     }
 
     /**

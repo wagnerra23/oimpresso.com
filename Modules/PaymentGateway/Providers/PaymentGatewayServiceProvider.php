@@ -61,6 +61,13 @@ class PaymentGatewayServiceProvider extends ServiceProvider
             \Modules\PaymentGateway\Contracts\PaymentGatewayContract::class,
             \Modules\PaymentGateway\Services\PaymentGatewayService::class,
         );
+
+        // Contrato do núcleo da tela 15 do app (gerar/consultar/cancelar cobrança) — a seta fica
+        // módulo → núcleo (DependencyDirectionTest).
+        $this->app->bind(
+            \App\Contracts\Cobranca\CobrancaDoApp::class,
+            \Modules\PaymentGateway\Services\CobrancaDoAppGateway::class,
+        );
     }
 
     /**
