@@ -50,6 +50,7 @@ on:
       - 'app/Services/AppLojas/**'
       - 'database/migrations/2026_10_02_160000_create_app_idempotencia_table.php'
       - 'routes/api.php'
+      - 'routes/api/app/**'
       - 'app/Http/Controllers/SellPosController.php'
       # Sob teste em SellsCreateV3ContratoTest (UC-V302/V303). Sem este gatilho, mexer no
       # controller do preview não dispararia o teste dele — gate mudo com cara de cobertura.
@@ -148,6 +149,7 @@ jobs:
               - 'app/Services/AppLojas/**'
               - 'database/migrations/2026_10_02_160000_create_app_idempotencia_table.php'
               - 'routes/api.php'
+              - 'routes/api/app/**'
               - 'resources/js/Pages/Sells/**'
               - 'database/schema/mysql-schema.sql'
               - '.github/workflows/sells-pest.yml'
