@@ -334,6 +334,16 @@ class PedidosController extends Controller
 
     // ------------------------------------------------------------------
 
+    /**
+     * Vendas que o usuário vê na lista de Pedidos (mesmas regras: business, locais, próprias/comissão),
+     * com `c` = cliente e `sps` = estágio. `$status` null = qualquer status (orçamentos são `draft`).
+     * Usado pelos Pagamentos (tela 15) para só cobrar documento que o usuário enxerga.
+     */
+    public function baseVisivel(User $user, ?string $status = 'final'): Builder
+    {
+        return $this->base($user, '', $status);
+    }
+
     /** Quem vê Pedidos e Produção (mesma regra das duas abas). */
     public function podeVerVendas(User $user): bool
     {
