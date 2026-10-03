@@ -1,7 +1,7 @@
 {
   "screen": "Sells/Create",
   "path": "resources/js/Pages/Sells/Create.tsx",
-  "measured_against_sha": "793dd6678",
+  "measured_against_sha": "cc9f1541a",
   "generated_by": "scripts/design-spec-gen.mjs (DERIVADO — não editar à mão)",
   "shell": [
     "AppShellV2"
@@ -31,6 +31,7 @@
       "camposDeReparo (./_components/reparoVenda)",
       "camposDeSubtipo (./_components/subtipoVenda)",
       "dropdownEntries (./_components/dropdownEntries)",
+      "itensDoChecklist (./_components/reparoVenda)",
       "precoDaBusca (./_components/precoDaBusca)",
       "reparoInicial (./_components/reparoVenda)",
       "reparoValido (./_components/reparoVenda)",
@@ -52,7 +53,7 @@
   },
   "totals": {
     "canon_components": 12,
-    "local_components": 11,
+    "local_components": 12,
     "uses_layout_primitives": false,
     "structural_violations": 8
   }

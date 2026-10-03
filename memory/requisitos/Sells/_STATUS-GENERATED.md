@@ -18,10 +18,10 @@ authority: generated
 |---|---:|
 | US no SPEC | 59 |
 | CU no SDD | 6 |
-| Telas (.tsx) | 10 |
-| Telas com `casos.md` | 7 |
-| UC declarados | 89 |
-| UC com teste que os cita | 88 |
+| Telas (.tsx) | 11 |
+| Telas com `casos.md` | 8 |
+| UC declarados | 97 |
+| UC com teste que os cita | 96 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -117,11 +117,19 @@ authority: generated
 | UC-POS-06 | Pos/Index | 🧪 stub (não executa) |
 | UC-POS-07 | Pos/Index | 🧪 stub (não executa) |
 | UC-POS-08 | Pos/Index | 🧪 stub (não executa) |
+| UC-REM-01 | Shipments/Index | 🧪 aguarda veredito da lane |
+| UC-REM-02 | Shipments/Index | 🧪 aguarda veredito da lane |
+| UC-REM-03 | Shipments/Index | 🧪 aguarda veredito da lane |
+| UC-REM-04 | Shipments/Index | 🧪 aguarda veredito da lane |
+| UC-REM-05 | Shipments/Index | 🧪 aguarda veredito da lane |
+| UC-REM-06 | Shipments/Index | 🧪 aguarda veredito da lane |
+| UC-REM-07 | Shipments/Index | 🧪 aguarda veredito da lane |
 | UC-S01 | Create | 🧪 aguarda veredito da lane |
 | UC-S02 | Create | 🧪 aguarda veredito da lane |
 | UC-S03 | Create | 🧪 aguarda veredito da lane |
 | UC-S04 | Create | 🧪 aguarda veredito da lane |
 | UC-S05 | Create | 🧪 aguarda veredito da lane |
+| UC-S06 | Create | 🧪 aguarda veredito da lane |
 | UC-S10 | Index | 🧪 aguarda veredito da lane |
 | UC-S11 | Index | 🧪 aguarda veredito da lane |
 | UC-S12 | Index | 🧪 aguarda veredito da lane |
