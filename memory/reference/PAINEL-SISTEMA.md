@@ -12,7 +12,7 @@ lente: [construir]
 
 # 🗺️ PAINEL-SISTEMA — estado do oimpresso
 
-> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-10-02**. NÃO edite à mão — a próxima geração sobrescreve.
+> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-10-03**. NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/system-map.mjs`. Este é um **índice que aponta pros donos canônicos**, não uma cópia deles.
 > Views humanas (mapa 🗺️ / guia 🧭 em claude.ai) derivam DESTES dados.
 
@@ -29,16 +29,16 @@ lente: [construir]
 | Compras | [BRIEFING](../requisitos/Compras/BRIEFING.md) | 2026-09-15 |
 | ComunicacaoVisual | [BRIEFING](../requisitos/ComunicacaoVisual/BRIEFING.md) | 2026-08-12 |
 | Connector | [BRIEFING](../requisitos/Connector/BRIEFING.md) | 2026-08-03 |
-| ConsultaOs | [BRIEFING](../requisitos/ConsultaOs/BRIEFING.md) | 2026-08-12 |
+| ConsultaOs | [BRIEFING](../requisitos/ConsultaOs/BRIEFING.md) | 2026-10-02 |
 | Crm | [BRIEFING](../requisitos/Crm/BRIEFING.md) | 2026-09-07 |
 | Essentials | [BRIEFING](../requisitos/Essentials/BRIEFING.md) | 2026-09-29 |
 | Financeiro | [BRIEFING](../requisitos/Financeiro/BRIEFING.md) | 2026-09-07 |
 | Fiscal | [BRIEFING](../requisitos/Fiscal/BRIEFING.md) | 2026-09-24 |
 | Forja | [BRIEFING](../requisitos/Forja/BRIEFING.md) | 2026-09-15 |
 | Governance | [BRIEFING](../requisitos/Governance/BRIEFING.md) | 2026-09-15 |
-| Jana | [BRIEFING](../requisitos/Jana/BRIEFING.md) | 2026-09-24 |
+| Jana | [BRIEFING](../requisitos/Jana/BRIEFING.md) | 2026-10-02 |
 | KB | [BRIEFING](../requisitos/KB/BRIEFING.md) | 2026-07-29 |
-| Manufacturing | [BRIEFING](../requisitos/Manufacturing/BRIEFING.md) | 2026-09-15 |
+| Manufacturing | [BRIEFING](../requisitos/Manufacturing/BRIEFING.md) | 2026-10-02 |
 | NfeBrasil | [BRIEFING](../requisitos/NfeBrasil/BRIEFING.md) | 2026-10-01 |
 | NFSe | [BRIEFING](../requisitos/NFSe/BRIEFING.md) | 2026-09-15 |
 | Officeimpresso | [BRIEFING](../requisitos/Officeimpresso/BRIEFING.md) | 2026-07-30 |
@@ -72,7 +72,7 @@ lente: [construir]
 
 ## Programa SDD (governança)
 
-- Scorecard: **11/13** métricas medidas · floor full-suite = **269**.
+- Scorecard: **11/13** métricas medidas · floor full-suite = **267**.
 - Fonte viva: `governance/sdd-scorecard.json` (gerado por `sdd-scorecard.mjs`). Avaliação adversarial: `/sdd-avaliar`.
 - Roadmap dono: [`memory/requisitos/_Governanca/roadmap/_ROADMAP.md`](../requisitos/_Governanca/roadmap/_ROADMAP.md).
 
@@ -132,13 +132,13 @@ lente: [construir]
 - Contratos de tela (fidelidade + intenção)
 - Governance Gate (índice + memory-health + meta-teste)
 
-### Censo — 152 workflows por classe
+### Censo — 153 workflows por classe
 
 > Lista completa + propósito de cada um: [`gates-registry.json`](../../scripts/governance/gates-registry.json) (o dono). Aqui: contagem + exemplos.
 
 | Classe | Qtd | Exemplos |
 |---|---|---|
-| gate (bloqueia/valida PR) | 116 | a11y-axe-gate, a11y-gate, acessos-pest, adr-index-gate, … |
+| gate (bloqueia/valida PR) | 117 | a11y-axe-gate, a11y-gate, acessos-pest, adr-index-gate, … |
 | meta (testa os gates) | 7 | block-brl-values-selftest, devcontainer-firewall, gate-selftest, guards-meta-gate, … |
 | automacao (cron/dispatch) | 25 | agent-cost-per-pr, agent-pr-outcomes, baseline-folga, briefing-code-staleness, … |
 | deploy (entrega) | 2 | deploy, quick-sync |
@@ -147,8 +147,8 @@ lente: [construir]
 
 ## Decisões (ADRs)
 
-- **429** ADRs no total. Índice gerado: [`_INDEX-GENERATED.md`](../decisions/_INDEX-GENERATED.md) · lifecycle: [`_INDEX-LIFECYCLE.md`](../decisions/_INDEX-LIFECYCLE.md).
-- Por status: aceito: 377 · superseded: 25 · proposto: 14 · deprecated: 11 · rascunho: 1 · recusado: 1.
+- **431** ADRs no total. Índice gerado: [`_INDEX-GENERATED.md`](../decisions/_INDEX-GENERATED.md) · lifecycle: [`_INDEX-LIFECYCLE.md`](../decisions/_INDEX-LIFECYCLE.md).
+- Por status: aceito: 378 · superseded: 25 · proposto: 15 · deprecated: 11 · rascunho: 1 · recusado: 1.
 - **5** reversões de rota (ADR com `supersedes:`).
 
 ## Ideias avaliadas e ABANDONADAS (§5 — não re-propor)
@@ -418,14 +418,14 @@ lente: [construir]
 
 ## Rastro
 
-- **586** handoffs · **778** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
+- **588** handoffs · **780** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
 - Sessions recentes:
+  - `2026-10-02-refutacao-gt-g5-lote-8612-r1`
+  - `2026-10-02-refutacao-gt-g5-lote-8528-r1`
   - `2026-09-30-patrimonio-garantias-recortes-visreg`
   - `2026-09-29-refutacao-gt-g5-lote-8195-r1`
   - `2026-09-29-refutacao-gt-g5-lote-8194-r2`
   - `2026-09-29-refutacao-gt-g5-lote-8194-r1`
-  - `2026-09-29-refutacao-gt-g5-lote-8120-r2`
-  - `2026-09-29-refutacao-gt-g5-lote-8120-r1`
 
 ---
-_Gerado por `scripts/governance/system-map.mjs` · 2026-10-02 · deriva das fontes canônicas, não as substitui._
+_Gerado por `scripts/governance/system-map.mjs` · 2026-10-03 · deriva das fontes canônicas, não as substitui._
