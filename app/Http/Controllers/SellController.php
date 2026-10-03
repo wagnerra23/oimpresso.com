@@ -1952,12 +1952,7 @@ class SellController extends Controller
 
         $contaBancaria = isset($validated['account_id'])
             ? ContaBancaria::query()->where('business_id', $businessId)->find($validated['account_id'])
-            : ContaBancaria::query()
-                ->where('business_id', $businessId)
-                ->whereNull('deleted_at')
-                ->whereNotNull('payment_gateway_credential_id')
-                ->orderBy('id')
-                ->first();
+            : ContaBancaria::padraoParaCobranca($businessId);
 
         if (! $contaBancaria) {
             return response()->json([
@@ -3626,9 +3621,9 @@ class SellController extends Controller
     }
 
     /**
-     * Display list of shipments.
+     * Display list of shipments (Blade, ou Sells/Shipments/Index quando a requisição é Inertia).
      *
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\View\View|\Inertia\Response
      */
     public function shipments()
     {
@@ -3656,6 +3651,38 @@ class SellController extends Controller
         }
 
         $delevery_person = User::forDropdown($business_id, false, false, true);
+
+        // Thread 02 (venda-menu) — branch dual MWART (golden: getDrafts). A lista segue vindo do
+        // DataTables de index() (only_shipments=true) e a escrita do updateShipping existente.
+        if (request()->header('X-Inertia')) {
+            $custom_labels = json_decode((string) session('business.custom_labels'), true);
+            $shipping_labels = [];
+            for ($i = 1; $i <= 5; $i++) {
+                if (! empty($custom_labels['shipping']['custom_field_'.$i])) {
+                    $shipping_labels['shipping_custom_field_'.$i] = (string) $custom_labels['shipping']['custom_field_'.$i];
+                }
+            }
+
+            return Inertia::render('Sells/Shipments/Index', [
+                'shippingStatuses' => $shipping_statuses,
+                'customLabels' => $shipping_labels,
+                'filters' => [
+                    'businessLocations' => $business_locations,
+                    'customers' => Inertia::defer(fn () => Contact::customersDropdown($business_id, false)),
+                    'salesRepresentative' => $sales_representative,
+                    'deliveryPersons' => $delevery_person,
+                ],
+                'permissions' => [
+                    'print' => $is_admin || auth()->user()->can('print_invoice'),
+                    'view_sell' => $is_admin || auth()->user()->hasAnyPermission(['sell.view', 'direct_sell.view', 'view_own_sell_only']),
+                ],
+                'urls' => [
+                    'datatable' => '/sells',
+                    'edit' => '/sells/edit-shipping/',
+                    'update' => '/sells/update-shipping/',
+                ],
+            ]);
+        }
 
         return view('sell.shipments')->with(compact('shipping_statuses'))
                 ->with(compact('business_locations', 'customers', 'sales_representative', 'is_service_staff_enabled', 'service_staffs', 'delevery_person'));

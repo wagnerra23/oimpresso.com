@@ -126,7 +126,17 @@ last_run: "2026-10-01"
 - **Aceite:** Dado a venda aberta como reparo · Então a tela recebe as opções de reparo **só do próprio business** (status de outro business nunca aparece) e sem status não dá pra salvar · Quando salva · Então a venda grava `repair_status_id`, `repair_serial_no`, `repair_due_date` (lido no formato da data da venda) e `repair_defects` no JSON do Tagify (`[{"value":"…"}]`, o que a tela Blade e o recibo leem), com o **mesmo** `final_total` e a mesma baixa de estoque da venda comum.
 - **Teste:** `tests/Feature/Sells/SellsRepairSubtipoContratoTest.php` (UC-S05: opções por business + gravação, tenant 98, lane `sells-pest`) + `tests/js/sells-reparo-venda.test.ts` (o que o envio produz, lane `sells-v3-dominio-gate`).
 - **Status: 🧪** _(nasce sem run — vira ✅ com o veredito `pass` no manifesto G-7.)_
-- **Fora deste UC:** checklist pré-reparo e senha/padrão do aparelho (próxima onda) · abrir a venda a partir de uma OS (`job_sheet_id`), que **adiciona peças ao carrinho** e por isso é mudança de valor, sob a REGRA MESTRE.
+- **Fora deste UC:** checklist pré-reparo e senha/padrão do aparelho (→ UC-S06) · abrir a venda a partir de uma OS (`job_sheet_id`), que **adiciona peças ao carrinho** e por isso é mudança de valor, sob a REGRA MESTRE.
+
+---
+
+## UC-S06 · Venda de reparo registra checklist pré-reparo e senha/padrão do aparelho
+- **Persona:** técnico de assistência recebendo o aparelho no balcão.
+- **Como usa:** na seção Reparo, ao trocar marca ou aparelho, a lista de **modelos** se restringe aos que cabem (como o Blade, que recarrega via `/repair/get-device-models`). Escolhido o modelo, aparece o **checklist pré-reparo**: os itens padrão das configurações do Repair e depois os do modelo, cada um Sim / Não / N/A (N/A por padrão). Registra também a **senha** do aparelho e o **padrão de desbloqueio** tocando os pontos da grade 3×3 em ordem.
+- **Aceite:** Dado a venda aberta como reparo · Então a tela recebe **só os modelos do próprio business** (modelo de outro business nunca aparece), cada um com seu checklist sem itens vazios · Quando salva com modelo, senha, padrão e respostas · Então a venda grava `repair_model_id`, `repair_security_pwd`, `repair_security_pattern` (a sequência 1–9, formato do `patternlock.js` do Blade) e `repair_checklist` com **todos** os itens exibidos (`not_applicable` onde não houve resposta, como o Blade) — com o **mesmo** `final_total` e a mesma baixa de estoque da venda comum.
+- **Teste:** `tests/Feature/Sells/SellsRepairSubtipoContratoTest.php` (UC-S06, tenant 98, lane `sells-pest`) + `tests/js/sells-reparo-venda.test.ts` (filtro de modelos, itens, padrão e envio; lane `sells-v3-dominio-gate`).
+- **Status: 🧪** _(nasce sem run.)_
+- **Diferença consciente do Blade:** sem marca nem aparelho escolhidos, a lista mostra **todos** os modelos (o Blade, depois de trocar o aparelho para vazio, filtra por `device_id IS NULL`). O padrão é tocado ponto a ponto em vez de arrastado — mesmo valor gravado, e funciona com teclado.
 
 ---
 
