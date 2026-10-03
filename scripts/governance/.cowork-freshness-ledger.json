@@ -36133,5 +36133,24 @@
     },
     "origin": "medicao",
     "projetoCowork": "w"
+  },
+  {
+    "date": "2026-10-02T13:24:51.414Z",
+    "files": 274,
+    "sync": 2,
+    "stale": 0,
+    "liveAbsent": 0,
+    "unchecked": 272,
+    "staleList": [],
+    "verified": [
+      "cowork-inbox/repair/playbook/_saida-00.md",
+      "repair-page.jsx"
+    ],
+    "verifiedHash": {
+      "cowork-inbox/repair/playbook/_saida-00.md": "ff2c6fc7920d69df7ba80b15cc38c581db226a9b8d90c5061b0f0a4ad2d4929c",
+      "repair-page.jsx": "d571d3ca49eef0380f6a0ffc25d87275b13100cbe23dbb53f1179c5c6a35959c"
+    },
+    "origin": "medicao",
+    "projetoCowork": "w"
   }
 ]

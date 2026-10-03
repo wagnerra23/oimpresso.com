@@ -252,6 +252,14 @@
     "cowork-inbox/venda-menu/playbook/_saida-06.md": {
       "sha256": "3b71bba35f4d006028a0f4251a80d55e8eae772efbbb7e292c24ec961bac85e4",
       "em": "2026-10-03T12:01:56.557Z"
+    },
+    "cowork-inbox/repair/playbook/_saida-00.md": {
+      "sha256": "ff2c6fc7920d69df7ba80b15cc38c581db226a9b8d90c5061b0f0a4ad2d4929c",
+      "em": "2026-10-02T13:24:51.450Z"
+    },
+    "repair-page.jsx": {
+      "sha256": "d571d3ca49eef0380f6a0ffc25d87275b13100cbe23dbb53f1179c5c6a35959c",
+      "em": "2026-10-02T13:24:51.450Z"
     }
   }
 }
