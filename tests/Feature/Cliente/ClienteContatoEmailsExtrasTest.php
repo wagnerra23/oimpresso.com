@@ -25,19 +25,17 @@ beforeEach(function () {
         $this->markTestSkipped('Schema UltimatePOS ausente (sqlite memory) — rode com DB_CONNECTION=mysql.');
     }
 
-    $this->business = $this->seededTenant(); // biz=1 canônico (ADR 0101) — skip acionável se o seed faltar
-    $this->user = \App\User::where('business_id', $this->business->id)->first();
-    if (! $this->user) {
-        $this->markTestSkipped('Sem user no business.');
-    }
+    $this->business = $this->seededTenant(); // tenant de teste (ADR 0358) — skip acionável se o seed faltar
+    // PATCH /cliente/{id}/contato exige customer.update (ClienteAutosaveController::locateContact).
+    $this->user = $this->usuarioComPermissoes(['customer.update'], $this->business);
 
     $now = now();
     $this->contactId = DB::table('contacts')->insertGetId([
         'business_id' => $this->business->id,
         'created_by' => $this->user->id,
         'type' => 'customer',
+        // Sem first_name: a coluna não existe mais em contacts (schema:dump de prod).
         'name' => 'Cliente Contato Extras Test',
-        'first_name' => 'Cliente',
         'mobile' => '11900000001',
         'contact_status' => 'active',
         'created_at' => $now,
@@ -115,10 +113,8 @@ test('Tier 0 — user de outro business recebe 404 ao tentar PATCH contato', fun
     if (! $otherBusiness) {
         $this->markTestSkipped('Sem 2º business pra teste cross-tenant.');
     }
-    $otherUser = \App\User::where('business_id', $otherBusiness->id)->first();
-    if (! $otherUser) {
-        $this->markTestSkipped('Sem user no business secundário.');
-    }
+    // Com a MESMA permissão: assim o 404 prova isolamento por business, e não falta de acesso.
+    $otherUser = $this->usuarioComPermissoes(['customer.update'], \App\Business::findOrFail($otherBusiness->id));
 
     $this->actingAs($otherUser);
     session(['user.business_id' => $otherBusiness->id]);

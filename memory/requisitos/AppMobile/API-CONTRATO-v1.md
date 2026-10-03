@@ -268,8 +268,8 @@ Mesmos campos e regras do §4.2, **menos** `tipo` e `papeis` (mudar papel fica n
   abas que o usuário pode abrir, na ordem do app. Cada uma segue a mesma regra da rota dela, então
   aba visível = rota que responde: `tarefas` = Essentials no plano ou quem aprova o Ponto;
   `pedidos`/`producao`/`orcamentos` = quem vê vendas; `pessoas` = quem vê cliente ou fornecedor; `ponto` =
-  colaborador com `controla_ponto`; `ponto_gestor` = quem tem acesso ao módulo Ponto (§12.1); `financeiro` = a regra de §10.1; `inicio` só para perfil `erp`; `mais` sempre.
-  `perfil` = `erp` se tem tarefas, vendas, pessoas ou financeiro, senão `colaborador`. `abre_em` = `inicio`
+  colaborador com `controla_ponto`; `assistente` = quem conversa com a Jana (§12.4); `equipe` = quem vê a lista de usuários (§12.2); `ponto_gestor` = quem tem acesso ao módulo Ponto (§12.1); `financeiro` = a regra de §10.1; `fiscal` = a regra de §10.2; `inicio` só para perfil `erp`; `mais` sempre.
+  `perfil` = `erp` se tem tarefas, vendas, pessoas, financeiro ou fiscal, senão `colaborador`. `abre_em` = `inicio`
   (erp), `ponto` (colaborador) ou `mais` (sem nenhuma das duas).
 
 - `faturado_hoje` e `meta_dia`: só com `dashboard.data` (senão `null`). Meta do dia = meta mensal
@@ -376,6 +376,36 @@ categorias:[{id, nome, total}], total, baixo_estoque, pagina, tem_mais }`, 30 po
 - `local` = nome da loja; `prateleira` = "rack · fileira · posição" de `product_racks`, ou `null`.
 - Permissão `product.view` (403 sem ela); a área `estoque` entra em `areas` (§6) com a mesma regra.
 
+### 9.3 Movimentações de um item (tela 29) — só leitura
+
+`GET /api/app/estoque/{id}?pagina=N` (`id` = a linha da 05) →
+`{ item:<a mesma linha da §9.2>, historico:[{id, tipo, rotulo, referencia, quando, qtd, saldo}], pagina, tem_mais }`,
+30 por página, do mais novo ao mais velho.
+
+- O histórico é o mesmo da tela web de histórico de estoque (`ProductUtil::getVariationStockHistory`):
+  `tipo` = tipo da transação (`purchase`, `sell`, `stock_adjustment`, `opening_stock`, `sell_transfer`,
+  `purchase_transfer`, `production_*`, devoluções); `rotulo` = o texto da web; `qtd` com sinal; `saldo` = saldo
+  acumulado depois do movimento; `referencia` = nº da nota/pedido · fornecedor ou cliente (só o nome), ou `null`.
+- Mesmas regras da §9.2 (`product.view`, lojas permitidas); linha de outra empresa ou de loja não permitida → 404.
+- **Registrar movimento fica na web** (decisão [W] 2026-10-02): no ERP cada tipo é uma transação contábil
+  (entrada = compra/estoque inicial com custo; saída/perda = ajuste com valor e custeio FIFO), não um "+N" avulso.
+
+### 9.4 Novo produto (tela 20) — escrita, SEM preço
+
+Decisão [W] 2026-10-02: o app cria produto **sem preço**, como a tela React de criar produto hoje
+(`Produto/Create.casos.md`, pendência de contrato com o [F]). A variação nasce com preço zerado e o preço
+se acerta na web. Não grava valor; fora da regra mestre.
+
+- `GET /api/app/produtos/opcoes` → `{ categorias:[{id, nome}], unidades:[{id, nome, curta}] }` (do business).
+- `POST /api/app/produtos` com
+  `{ nome*, codigo|null (vazio = o ERP gera), categoria_id|null, unidade_id*, estoque:{controla, minimo|null},
+  prateleira:{rack, fileira, posicao}|null, fiscal:{ncm (8 díg.)|null, cest (7)|null, cfop_interno (4)|null, cfop_externo (4)|null} }`
+  → `201 { id, codigo }` · `422 { erro:"validacao", campos }` (chaves aninhadas: `estoque.minimo`, `fiscal.ncm`…) ·
+  `403 { erro:"sem_permissao" }` (sem `product.create`).
+- Só tipo simples. Categoria e unidade precisam ser do business (a trava UC-PCAD-05 da web).
+- O produto fica disponível nas lojas que o usuário pode ver; a prateleira vai para a primeira delas.
+- Números com ponto decimal, sem `num_uf` (o parser do incidente de 2026-06-05). `origem` não existe em `products`.
+
 ## 10. Financeiro (Onda C)
 
 ### 10.1 Financeiro (tela 06) — só leitura
@@ -402,6 +432,28 @@ pagina, tem_mais }`, 20 por página. `resumo` e `contas` não mudam com a aba.
   quando o ERP não tem.
 - Tier 0: todas as tabelas filtradas pelo business do token (os models do Financeiro filtram pela sessão,
   que a API não tem).
+
+### 10.2 Fiscal (tela 14) — só leitura
+
+`GET /api/app/fiscal?status=todos|rascunho|processando|autorizado|cancelado|rejeitado&pagina=N` →
+`{ itens:[{id, tipo, numero, referencia, valor, status, chave, erro, emitido_em}],
+contadores:{todos, rascunho, processando, autorizado, cancelado, rejeitado}, pagina, tem_mais }`,
+20 por página, mais recente primeiro.
+
+- Fontes: `nfe_emissoes` (modelo 55 → `NFe`, 65 → `NFCe`) e `nfse_emissoes` (`NFSe`), numa lista só.
+  `id` é o id da tabela de origem — único só junto com `tipo` (uma NF-e e uma NFS-e podem ter o mesmo).
+- Acesso = o da web: módulo Fiscal no plano e, por tipo, a permissão da tela dele (`fiscal.nfe.view`
+  para NF-e/NFC-e, `fiscal.nfse.view` para NFS-e). Quem vê só um tipo recebe só aquele (lista e
+  contadores). Sem nenhum → `403 sem_permissao`. A área `fiscal` entra em `areas` (§6) com essa regra.
+- Status: NF-e/NFC-e `pendente`/`enviando` → `processando` (a web conta "pendente" como processando),
+  `autorizada` → `autorizado`, `cancelada`/`inutilizada` → `cancelado`, `rejeitada`/`denegada`/`erro_envio`
+  → `rejeitado`. NFS-e `rascunho`, `processando`, `emitida` → `autorizado`, `cancelada`, `erro` → `rejeitado`.
+- `referencia` = "Pedido #<nº da venda> · <cliente>" quando a nota tem venda; sem venda, o destinatário
+  (NF-e) ou o tomador (NFS-e). `valor` = total da nota (NFS-e: valor dos serviços).
+- `chave` só em `autorizado` (NF-e/NFC-e: chave de 44 dígitos; NFS-e: código de verificação da
+  prefeitura). `erro` só em `rejeitado`: "Rejeição <cStat>: <motivo da SEFAZ>" (NFS-e: a mensagem do provedor).
+- `emitido_em` = data de emissão (sem ela, a de criação), ISO com fuso.
+- Tier 0: as duas tabelas e os joins filtrados pelo business do token.
 
 
 ## 11. Oficina — Onda D (Modules/OficinaAuto)
@@ -499,6 +551,22 @@ fora até o ERP ter cadastro de equipamento de cliente e de box (decisão [W] 20
   outro business) · `409 ja_revisada` (já decidida) · `422 validacao` (estado inválido).
 - Área `ponto_gestor` em `/api/app/inicio` (§6): mesma regra de acesso do GET.
 
+### 12.2 Equipe (tela 26) — só leitura
+
+`GET /api/app/equipe` →
+`{ itens:[{ id, nome, funcao, carga, status:{ rotulo, tom } }] }`, em ordem alfabética.
+
+- Pessoas = usuários do business (a mesma lista da tela web de Usuários), ativos e inativos. Sem
+  telefone e sem ponto: "Marcação de ponto fica no módulo Ponto".
+- `funcao` = cargo do Essentials (`categories` `hrm_designation`), senão o cargo do CRM; `null` sem cargo.
+- `carga` = OS abertas atribuídas à pessoa (`service_orders.assigned_user_id`, mesmo universo do
+  quadro web da Oficina: etapa não-terminal, ou OS de mecânica ainda sem pipeline), ex.: `"2 OS"`;
+  `null` quando não há nenhuma. O ERP não atribui OP de produção a uma pessoa, então OP não entra.
+- `status`: usuário inativo → `{ rotulo:"Inativo", tom:"ausente" }`; com carga → `{ "Em serviço", "ocupado" }`;
+  senão → `{ "Disponível", "livre" }`.
+- Acesso = o da tela web de Usuários (`user.view`); sem ele `403 sem_permissao`. Área `equipe` em
+  `/api/app/inicio` (§6) com a mesma regra.
+
 ### 12.3 Perfil de menu (tela 30) — escrita
 
 `PUT /api/app/perfil-menu { modulos:[≤3, em ordem] }` → `200 { modulos, barra }`.
@@ -511,3 +579,22 @@ fora até o ERP ter cadastro de equipamento de cliente e de box (decisão [W] 20
 - `GET /api/app/inicio` traz `barra` (lista com até 3 itens, nunca `null`) = escolha ∩ módulos permitidos, na ordem escolhida. Sem
   escolha, ou se nada da escolha estiver mais em `areas`, vale o padrão do ERP: Tarefas, Pedidos,
   Produção (§7.1), completado com as outras áreas do usuário na ordem de `areas`.
+
+### 12.4 Chat com a Jana (tela 25)
+
+`POST /api/app/chat { mensagem:string(≤1000), conversa_id:string|null }` →
+`200 { conversa_id:string, resposta:{ de:"jana", texto, criada_em } }`. Resposta síncrona.
+
+`GET /api/app/chat/{conversa_id}` → `{ conversa_id, mensagens:[{ de:"eu"|"jana", texto, criada_em }] }`,
+em ordem cronológica.
+
+- Canal = Jana (decisão [W]). São as mesmas conversas do chat web (`jana_conversas` /
+  `jana_mensagens`) e o mesmo turno (`ChatTurnoService`): o pedido de brief diário vai para o
+  brief, os tokens do turno ficam gravados, e uma falha da IA vira a resposta
+  "Estou com dificuldades técnicas no momento…" em vez de erro.
+- `conversa_id: null` (ou ausente) abre uma conversa nova, com a 1ª mensagem como título.
+- A conversa é do usuário: de outro usuário ou de outro business → `404 nao_encontrado`.
+- Acesso = o do chat web: módulo Jana no plano (`jana_module`) + `jana.access` + `jana.chat`;
+  sem isso `403 sem_permissao`. Área `assistente` em `/api/app/inicio` (§6) com a mesma regra.
+- Mensagem vazia ou acima de 1000 caracteres → `422 { erro:"validacao", campos:{ mensagem:"…" } }`.
+  Limite de 60 mensagens por minuto, como na web (`429`).

@@ -26,11 +26,9 @@ beforeEach(function () {
         $this->markTestSkipped('Schema UltimatePOS ausente (sqlite memory) — rode com DB_CONNECTION=mysql.');
     }
 
-    $this->business = $this->seededTenant(); // biz=1 canônico (ADR 0101)
-    $this->user = \App\User::where('business_id', $this->business->id)->first();
-    if (! $this->user) {
-        $this->markTestSkipped('Sem user no business.');
-    }
+    $this->business = $this->seededTenant(); // tenant de teste (ADR 0358)
+    // getImportContacts exige customer.create ou supplier.create (ContactController).
+    $this->user = $this->usuarioComPermissoes(['customer.create'], $this->business);
 
     // Força o branch Inertia pra qualquer tenant (sem gate por biz).
     config(['mwart.cliente_import.enabled' => true, 'mwart.cliente_import.business_ids' => []]);
@@ -40,7 +38,10 @@ beforeEach(function () {
 });
 
 test('GET /contacts/import renderiza Inertia Cliente/Import quando a flag liga', function () {
-    $response = $this->withHeaders(['X-Inertia' => 'true', 'X-Inertia-Version' => '1'])
+    // Versão de assets pedida ao próprio middleware: com '1' fixo, o servidor (que usa o md5
+    // do manifest) via versão diferente e respondia 409 pedindo recarga da página.
+    $versao = app(\App\Http\Middleware\HandleInertiaRequests::class)->version(request());
+    $response = $this->withHeaders(['X-Inertia' => 'true', 'X-Inertia-Version' => $versao])
         ->get('/contacts/import');
 
     $response->assertStatus(200);

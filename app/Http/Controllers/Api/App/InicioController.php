@@ -74,12 +74,13 @@ class InicioController extends Controller
         $produtos = $user->can('product.view'); // a regra da rota /produtos (§9.1)
         $oficina = app(OficinaController::class)->podeVerOficina($user);
         $financeiro = app(FinanceiroController::class)->podeVerFinanceiro($user);
+        $fiscal = app(FiscalController::class)->podeVerFiscal($user);
         $ponto = DB::table('ponto_colaborador_config')
             ->where('business_id', (int) $user->business_id)
             ->where('user_id', (int) $user->id)
             ->where('controla_ponto', true)
             ->exists();
-        $erp = $tarefas || $vendas || $pessoas || $produtos || $oficina || $financeiro;
+        $erp = $tarefas || $vendas || $pessoas || $produtos || $oficina || $financeiro || $fiscal;
 
         $areas = array_keys(array_filter([
             'inicio' => $erp,
@@ -92,8 +93,11 @@ class InicioController extends Controller
             'estoque' => $produtos, // mesma regra (product.view) da rota /estoque (§9.2)
             'oficina' => $oficina,
             'financeiro' => $financeiro,
+            'fiscal' => $fiscal,
             'ponto' => $ponto,
             'ponto_gestor' => app(PontoAprovacoesController::class)->podeVerFila($user),
+            'equipe' => app(EquipeController::class)->podeVerEquipe($user),
+            'assistente' => app(ChatController::class)->podeConversar($user),
             'mais' => true,
         ]));
 
