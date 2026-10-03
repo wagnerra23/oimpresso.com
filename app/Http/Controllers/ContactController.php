@@ -267,6 +267,10 @@ class ContactController extends Controller
         $business_id = request()->session()->get('user.business_id');
         \App\Contact::where('business_id', $business_id)->findOrFail($id);
         $contact = $this->contactUtil->getContactInfo($business_id, $id);
+        // Não acontece depois do findOrFail acima, mas getContactInfo devolve Contact|null.
+        if ($contact === null) {
+            abort(404);
+        }
 
         $enabled = request()->session()->get('business.enable_rp') == 1
             && in_array($contact->type, ['customer', 'both'], true);
@@ -2097,6 +2101,11 @@ class ContactController extends Controller
 
         $business_id = request()->session()->get('user.business_id');
         $contact = $this->contactUtil->getContactInfo($business_id, $id);
+        // Contato de outra empresa (ou inexistente): 404, mesma resposta nos dois casos
+        // para não revelar se o id existe em outro tenant (Tier 0, ADR 0093).
+        if ($contact === null) {
+            abort(404);
+        }
 
         $is_selected_contacts = User::isSelectedContacts(auth()->user()->id);
         $user_contacts = [];
