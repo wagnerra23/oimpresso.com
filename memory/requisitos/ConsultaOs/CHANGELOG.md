@@ -6,6 +6,17 @@ id: requisitos-consulta-os-changelog
 
 Formato: [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) · [Semver](https://semver.org/).
 
+## [Unreleased] - US-CONSULTA-001 fonte real (2026-10-02)
+
+### Mudou
+- Busca lê as folhas de OS reais do `Modules/Repair` (`RepairConsultaOsRepository`); `MockConsultaOsRepository` removido; `ConsultaOsMockService` → `ConsultaOsService`.
+- `GET /consulta-os/buscar` agora exige `tipo` (`job_sheet_no|invoice_no|mobile_num`) + `numero`; `serie` opcional; resposta `{found, ordens[]}`. Filtro por estágio saiu (status do Repair é livre por empresa).
+- `/repair-status` (Repair) redireciona pro `/consulta-os` (decisão [W] D-PORTAL).
+- Testes do módulo que só verificavam o mock (Wave18/23/25/26/27/28, CustomerJourney, SmokeRoutes, PublicTokenSecurity, LgpdCompliance) removidos — nenhum rodava em lane de CI; o contrato vivo é `tests/Feature/ConsultaOs/ConsultaOsIndexContratoTest.php`.
+
+### Pendente
+- Identificar a empresa do cliente; captcha.
+
 ## [Unreleased] - Wave 18 RETRY (2026-05-16)
 
 ### Confirmado / Reforçado

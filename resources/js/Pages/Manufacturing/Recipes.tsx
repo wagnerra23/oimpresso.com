@@ -9,21 +9,23 @@
 // §8 ficha PT-07 · §11 acessibilidade medida · §16 mapa de campos · §17 R-01..R-24.
 // F1 PLAN: memory/requisitos/Manufacturing/RUNBOOK-recipes.md
 //
-// PT-01 Lista (UI-0013). A estrutura de tabela NÃO usa `shared/DataTable` de propósito:
-// ele exige `pagination` + `endpoint` do servidor (DataTable.tsx:113-152) e esta tela
-// filtra/ordena/pagina no cliente sobre o conjunto do business — é a limitação que o
-// próprio handoff registra em ADR `0412` e contorna com tabela local. As abas também são
-// locais em vez de `PageHeaderTabs`... exceto que AQUI elas navegam de verdade.
+// PT-01 Lista (UI-0013). A grade é o `shared/DataTable` na anatomia `grid` — o par React do
+// `DataGrid` do DS, que é a grade do protótipo (HANDOFF.md §4). Até 2026-10-02 a tela filtrava,
+// ordenava e paginava no NAVEGADOR sobre a lista inteira e tinha tabela própria; agora isso
+// acontece no SERVIDOR (`RecipeController@index` + `RecipeBomService::filtrarOrdenar`), como
+// decidido no playbook ds-atomos (D-GRADE) e no item 2 da ADR de design 0412 do handoff. O custo
+// de cada receita continua o mesmo `presentRecipe` — só mudou onde a lista é cortada.
 //
 // CSS: `cowork-manufacturing-bundle.css` aplicado INTEIRO (proibicoes.md §"Design System /
 // Pacote Cowork novo" — 1ª aplicação nunca é cherry-pick). Escopo `.mfg-root`.
 
 import { router } from '@inertiajs/react';
-import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
+import type { ColumnDef } from '@tanstack/react-table';
 import { Pencil, Plus, Printer, Search } from 'lucide-react';
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Button } from '@/Components/ui/button';
-import { Checkbox } from '@/Components/ui/checkbox';
+import DataTable, { type PaginatorShape } from '@/Components/shared/DataTable';
 import KpiCard from '@/Components/shared/KpiCard';
 import { Segmented } from '@/Components/ui/segmented';
 import StatusBadge from '@/Components/shared/StatusBadge';
@@ -33,14 +35,31 @@ import type { ContadoresProducao, Permissoes, Receita } from './_lib/tipos';
 import FabricacaoAbas from './_components/FabricacaoAbas';
 import '../../../css/cowork-manufacturing-bundle.css';
 
+/** Filtros da URL — o servidor devolve o que entendeu, já normalizado. */
+interface Filtros {
+  q: string | null;
+  cat: string | null;
+  kpi: 'margem' | 'custo' | null;
+  sort: string;
+  dir: 'asc' | 'desc';
+}
+
 interface Props {
-  recipes: Receita[];
+  recipes: PaginatorShape<Receita>;
+  filtros: Filtros;
+  /** Sobre TODAS as receitas do business, nunca sobre a página nem o filtro (§4.2). */
+  kpis: { total: number; custo_medio: number; margem_baixa: number; desperdicio: number };
+  categorias: string[];
+  /** R-08 — os ids de TODAS as filtradas, de todas as páginas. */
+  ids_filtrados: number[];
+  /** Só chega no reload parcial que a impressão pede (`Inertia::optional`). */
+  fichas?: Receita[];
   permissions: Permissoes;
   producao: ContadoresProducao;
   settings: { enable_updating_product_price: boolean };
 }
 
-const POR_PAG = 10;
+const ROTA = '/manufacturing/recipe';
 
 /** R-10 — faixa da margem → tom do `StatusBadge` (≥55 sucesso · ≥45 atenção · abaixo perigo). */
 const TOM_MARGEM = { ok: 'success', warn: 'warning', bad: 'danger' } as const;
@@ -50,24 +69,88 @@ const ROTA_NOVA = '/manufacturing/recipe/create';
 const ROTA_EDITAR_INGREDIENTES = '/manufacturing/add-ingredient?variation_id=';
 const ROTA_PRODUZIR = '/manufacturing/production/create';
 
-type ChaveOrd = 'name' | 'cat' | 'qtd' | 'total' | 'unit' | 'venda' | 'margem';
+/**
+ * Colunas do `manufacturing-page.jsx`. O `id` de cada uma é a chave de ordenação que o servidor
+ * entende (`RecipeBomService::ORDENAVEIS`) — é ele que o `DataTable` manda em `?sort=`.
+ */
+const COLUNAS: ColumnDef<Receita, unknown>[] = [
+  {
+    id: 'name',
+    accessorFn: (r) => r.name,
+    header: 'Receita',
+    cell: ({ row: { original: r } }) => (
+      <>
+        <span className="block truncate font-semibold tracking-[-.006em]">{r.name}</span>
+        <span className="block truncate text-[11px] text-[var(--text-dim)]">
+          {r.sku} · {r.n_ingredientes} ingrediente{r.n_ingredientes === 1 ? '' : 's'}
+        </span>
+      </>
+    ),
+  },
+  {
+    id: 'cat',
+    accessorFn: (r) => `${r.cat} / ${r.sub}`,
+    header: 'Categoria',
+  },
+  {
+    // R-09 — a coluna DECLARA a unidade que está exibindo. Com sub-unidade de saída, mostra a
+    // quantidade convertida COM o rótulo da sub-unidade.
+    id: 'qtd',
+    accessorFn: (r) => r.custos.qtd_liq,
+    header: 'Quantidade',
+    meta: { align: 'right', mono: true },
+    cell: ({ row: { original: r } }) =>
+      `${r.sub_un && r.sub_fator ? num(r.custos.qtd_liq * r.sub_fator, 2) : num(r.custos.qtd_liq, 2)} ${r.sub_un ?? r.un}`,
+  },
+  {
+    id: 'total',
+    accessorFn: (r) => r.custos.total,
+    header: 'Custo total',
+    meta: { align: 'right', mono: true },
+    cell: ({ row: { original: r } }) => fmt(r.custos.total),
+  },
+  {
+    id: 'unit',
+    accessorFn: (r) => r.custos.unit,
+    header: 'Custo unitário',
+    meta: { align: 'right', mono: true },
+    cell: ({ row: { original: r } }) => fmt(r.custos.unit),
+  },
+  {
+    id: 'venda',
+    accessorFn: (r) => r.venda,
+    header: 'Venda',
+    meta: { align: 'right', mono: true },
+    cell: ({ row: { original: r } }) => fmt(r.venda),
+  },
+  {
+    id: 'margem',
+    accessorFn: (r) => r.custos.margem,
+    header: 'Margem',
+    meta: { align: 'right' },
+    // R-10 — 3 faixas, no `StatusBadge` do DS como no protótipo.
+    cell: ({ row: { original: r } }) => (
+      <StatusBadge
+        kind="margem"
+        value={faixaMargem(r.custos.margem)}
+        label={`${num(r.custos.margem, 0)}%`}
+        tone={TOM_MARGEM[faixaMargem(r.custos.margem)]}
+      />
+    ),
+  },
+];
 
-const CHAVES: Record<ChaveOrd, (r: Receita) => string | number> = {
-  name: (r) => r.name.toLowerCase(),
-  cat: (r) => r.cat + r.sub,
-  qtd: (r) => r.custos.qtd_liq,
-  total: (r) => r.custos.total,
-  unit: (r) => r.custos.unit,
-  venda: (r) => r.venda,
-  margem: (r) => r.custos.margem,
-};
-
-export default function Recipes({ recipes = [], permissions, producao, settings }: Props) {
-  const [q, setQ] = useState('');
-  const [cat, setCat] = useState('Todas');
-  const [kpi, setKpi] = useState<'margem' | 'custo' | null>(null);
-  const [ord, setOrd] = useState<{ k: ChaveOrd; dir: 'asc' | 'desc' }>({ k: 'name', dir: 'asc' });
-  const [pag, setPag] = useState(1);
+export default function Recipes({
+  recipes,
+  filtros,
+  kpis,
+  categorias,
+  ids_filtrados,
+  permissions,
+  producao,
+  settings,
+}: Props) {
+  const [q, setQ] = useState(filtros.q ?? '');
   const [sel, setSel] = useState<number[]>([]);
   const [openId, setOpenId] = useState<number | null>(null);
   const [imprimir, setImprimir] = useState<{ itens: Receita[]; semCusto: boolean } | null>(null);
@@ -89,66 +172,52 @@ export default function Recipes({ recipes = [], permissions, producao, settings 
     return () => window.removeEventListener('keydown', onKey);
   }, []);
 
-  const CATS = useMemo(
-    () => ['Todas', ...Array.from(new Set(recipes.map((r) => r.cat)))],
-    [recipes],
-  );
-
-  // Derivados — NUNCA em estado (§13 do handoff).
-  const filtradas = useMemo(() => {
-    const t = q.trim().toLowerCase();
-    const base = recipes.filter((r) => {
-      if (cat !== 'Todas' && r.cat !== cat) return false;
-      if (kpi === 'margem' && r.custos.margem >= 45) return false; // R-05
-      if (kpi === 'custo' && r.waste < 8) return false;
-      // R-03 — a busca casa nome + SKU + categoria + subcategoria.
-      return !t || `${r.name} ${r.sku} ${r.cat} ${r.sub}`.toLowerCase().includes(t);
-    });
-    const f = CHAVES[ord.k] ?? CHAVES.name;
-    return [...base].sort((a, b) => {
-      const va = f(a);
-      const vb = f(b);
-      const s = va > vb ? 1 : va < vb ? -1 : 0;
-      return ord.dir === 'asc' ? s : -s;
-    });
-  }, [recipes, q, cat, kpi, ord]);
-
-  const nPags = Math.max(1, Math.ceil(filtradas.length / POR_PAG));
-  const pagina = Math.min(pag, nPags);
-  const visiveis = filtradas.slice((pagina - 1) * POR_PAG, pagina * POR_PAG); // R-07
-
-  // R-06 — ordenar alterna a direção e volta pra página 1.
-  const ordenar = (k: ChaveOrd) => {
-    setOrd((o) => ({ k, dir: o.k === k && o.dir === 'asc' ? 'desc' : 'asc' }));
-    setPag(1);
+  // Toda mudança de filtro volta pra página 1 (R-06): a página não entra no pedido. A seleção
+  // fica — `preserveState` mantém o estado da tela entre as visitas.
+  const filtrar = (troca: Partial<Filtros>) => {
+    const f = { ...filtros, q: q || null, ...troca };
+    router.get(
+      ROTA,
+      { q: f.q || undefined, cat: f.cat || undefined, kpi: f.kpi || undefined, sort: f.sort, dir: f.dir },
+      { preserveState: true, preserveScroll: true, replace: true },
+    );
   };
 
-  const magra = recipes.filter((r) => r.custos.margem < 45).length;
-  const perda = recipes.filter((r) => r.waste >= 8).length;
-  const custoMed = recipes.length
-    ? recipes.reduce((s, r) => s + r.custos.unit, 0) / recipes.length
-    : 0;
+  // Busca com espera de 300ms, como a do `DataTable` — não manda um pedido por tecla.
+  useEffect(() => {
+    if (q === (filtros.q ?? '')) return;
+    const t = setTimeout(() => filtrar({ q: q || null }), 300);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [q]);
 
-  // R-08 — "selecionar todas" marca as FILTRADAS, não só as visíveis.
-  const allSel = filtradas.length > 0 && filtradas.every((r) => sel.includes(r.id));
-  const aberta = recipes.find((r) => r.id === openId) ?? null;
-  const selecionadas = recipes.filter((r) => sel.includes(r.id));
+  const CATS = ['Todas', ...categorias];
+  const cat = filtros.cat ?? 'Todas';
+  const trocarCat = (c: string) => filtrar({ cat: c === 'Todas' ? null : c });
+  const trocarKpi = (k: 'margem' | 'custo') => filtrar({ kpi: filtros.kpi === k ? null : k });
 
-  // Cabeçalho como o `DataGrid` do DS (`prototipo-ui/design-system/components/DataGrid`): o
-  // indicador vem SEMPRE depois do rótulo — ↕ quando a coluna não ordena, ↑/↓ quando ordena.
-  // Até 2026-09-30 as colunas de número punham ⇵ ANTES do rótulo.
-  const Th = ({ k, children, r: right }: { k: ChaveOrd; children: ReactNode; r?: boolean }) => (
-    <button
-      type="button"
-      className={`mfg-th sort${right ? ' r' : ''}${ord.k === k ? ' act' : ''}`}
-      onClick={() => ordenar(k)}
-    >
-      {children}
-      <span className="ind" aria-hidden>
-        {ord.k === k ? (ord.dir === 'asc' ? '↑' : '↓') : '↕'}
-      </span>
-    </button>
-  );
+  // R-08 — "selecionar todas" marca as FILTRADAS de todas as páginas, não só as visíveis.
+  const marcadasNoFiltro = ids_filtrados.filter((id) => sel.includes(id)).length;
+  const allState =
+    ids_filtrados.length > 0 && marcadasNoFiltro === ids_filtrados.length
+      ? 'all'
+      : marcadasNoFiltro > 0
+        ? 'some'
+        : 'none';
+  const aberta = recipes.data.find((r) => r.id === openId) ?? null;
+
+  // As marcadas podem estar em OUTRAS páginas — a ficha delas vem num reload parcial que só
+  // calcula `fichas`. `preserveUrl` não deixa o `?fichas=` sujar o endereço da tela.
+  const imprimirSelecionadas = () =>
+    router.reload({
+      only: ['fichas'],
+      data: { fichas: sel.join(',') },
+      preserveUrl: true,
+      onSuccess: (page) => {
+        const itens = (page.props as unknown as Props).fichas ?? [];
+        if (itens.length) setImprimir({ itens, semCusto: false });
+      },
+    });
 
   return (
     <div className="mfg-root" data-screen-label="Fabricação · Receitas">
@@ -156,7 +225,7 @@ export default function Recipes({ recipes = [], permissions, producao, settings 
         <div className="os-page-h-l">
           <h1>Fabricação</h1>
           <p>
-            {recipes.length} receita{recipes.length === 1 ? '' : 's'} · {producao.total} ordem
+            {kpis.total} receita{kpis.total === 1 ? '' : 's'} · {producao.total} ordem
             {producao.total === 1 ? '' : 's'} de produção · custo recalculado pelo preço atual dos
             ingredientes
           </p>
@@ -175,44 +244,38 @@ export default function Recipes({ recipes = [], permissions, producao, settings 
       {/* §4.1 — abas do módulo. Cada uma navega pra uma tela que EXISTE hoje.
           "Insumos" passou a existir na US-MANU-005 (`usosDoInsumo` no RecipeBomService) — o
           §18.3 do handoff dizia "sem backend, a aba não sai", e o backend saiu. */}
-      <FabricacaoAbas ativa="receitas" receitas={recipes.length} producao={producao} podeProduzir={permissions.prod} />
+      <FabricacaoAbas ativa="receitas" receitas={kpis.total} producao={producao} podeProduzir={permissions.prod} />
 
-      {/* §4.2 — 4 KPIs; o 2º e o 3º FILTRAM (liga/desliga), o 1º e o 4º são leitura (R-05). */}
-      {/* Os 4 cartões são o `KpiCard` do DS, como no protótipo (`manufacturing-page.jsx`): os
+      {/* §4.2 — 4 KPIs; o 2º e o 3º FILTRAM (liga/desliga), o 1º e o 4º são leitura (R-05).
+          Os 4 cartões são o `KpiCard` do DS, como no protótipo (`manufacturing-page.jsx`): os
           de leitura na variante padrão; os 2 que filtram na `variant="filter"`, com a placa de
-          ícone e o tom âmbar. Até 2026-09-30 eram divs locais `.mfg-kpi` com o valor pintado de
-          âmbar — o protótipo pinta o ÍCONE, não o número (medido com a sonda nos dois lados). */}
+          ícone e o tom âmbar. O protótipo pinta o ÍCONE, não o número (medido com a sonda nos
+          dois lados, 2026-09-30). */}
       <div className="mfg-kpis" data-contract="kpis">
         <KpiCard
           label="Custo médio / unidade"
-          value={fmt(custoMed)}
-          description={`média das ${recipes.length} receita${recipes.length === 1 ? '' : 's'}`}
+          value={fmt(kpis.custo_medio)}
+          description={`média das ${kpis.total} receita${kpis.total === 1 ? '' : 's'}`}
         />
         <KpiCard
           variant="filter"
           label="Margem abaixo de 45%"
-          value={magra}
+          value={kpis.margem_baixa}
           description="preço de venda desatualizado"
           icon="Scale"
           filterTone="amber"
-          selected={kpi === 'margem'}
-          onClick={() => {
-            setKpi(kpi === 'margem' ? null : 'margem');
-            setPag(1);
-          }}
+          selected={filtros.kpi === 'margem'}
+          onClick={() => trocarKpi('margem')}
         />
         <KpiCard
           variant="filter"
           label="Desperdício ≥ 8%"
-          value={perda}
+          value={kpis.desperdicio}
           description="revisar plotagem / encaixe"
           icon="Scissors"
           filterTone="amber"
-          selected={kpi === 'custo'}
-          onClick={() => {
-            setKpi(kpi === 'custo' ? null : 'custo');
-            setPag(1);
-          }}
+          selected={filtros.kpi === 'custo'}
+          onClick={() => trocarKpi('custo')}
         />
         <KpiCard
           label="Produção do mês"
@@ -233,10 +296,7 @@ export default function Recipes({ recipes = [], permissions, producao, settings 
             ref={buscaRef}
             placeholder="Buscar receita por nome, SKU, categoria…  (tecla /)"
             value={q}
-            onChange={(e) => {
-              setQ(e.target.value);
-              setPag(1);
-            }}
+            onChange={(e) => setQ(e.target.value)}
             aria-label="Buscar receita"
           />
         </div>
@@ -248,10 +308,7 @@ export default function Recipes({ recipes = [], permissions, producao, settings 
           <Segmented
             aria-label="Categoria"
             value={cat}
-            onValueChange={(v) => {
-              setCat(v);
-              setPag(1);
-            }}
+            onValueChange={trocarCat}
             options={CATS.map((c) => ({ value: c, label: c }))}
           />
         ) : (
@@ -262,10 +319,7 @@ export default function Recipes({ recipes = [], permissions, producao, settings 
                 key={c}
                 className={`mfg-chip${cat === c ? ' act' : ''}`}
                 aria-pressed={cat === c}
-                onClick={() => {
-                  setCat(c);
-                  setPag(1);
-                }}
+                onClick={() => trocarCat(c)}
               >
                 {c}
               </button>
@@ -275,120 +329,27 @@ export default function Recipes({ recipes = [], permissions, producao, settings 
       </div>
 
       <div className="mfg-tablewrap" data-contract="lista">
-        <div className="mfg-table rec">
-          <div className="mfg-tr mfg-thead">
-            <Checkbox
-              checked={allSel}
-              onCheckedChange={() => setSel(allSel ? [] : filtradas.map((r) => r.id))}
-              aria-label="Selecionar todas"
-            />
-            <Th k="name">Receita</Th>
-            <Th k="cat">Categoria</Th>
-            <Th k="qtd" r>
-              Quantidade
-            </Th>
-            <Th k="total" r>
-              Custo total
-            </Th>
-            <Th k="unit" r>
-              Custo unitário
-            </Th>
-            <Th k="venda" r>
-              Venda
-            </Th>
-            <Th k="margem" r>
-              Margem
-            </Th>
-          </div>
-
-          {visiveis.map((r) => (
-            <div
-              key={r.id}
-              role="button"
-              tabIndex={0}
-              className={`mfg-tr mfg-row${sel.includes(r.id) ? ' sel' : ''}`}
-              onClick={() => setOpenId(r.id)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault();
-                  setOpenId(r.id);
-                }
-              }}
-            >
-              <Checkbox
-                checked={sel.includes(r.id)}
-                // §4.2 — clicar no checkbox NÃO abre o drawer.
-                onClick={(e) => e.stopPropagation()}
-                onCheckedChange={() =>
-                  setSel((s) => (s.includes(r.id) ? s.filter((x) => x !== r.id) : [...s, r.id]))
-                }
-                aria-label={`Selecionar ${r.name}`}
-              />
-              <span className="mfg-name">
-                <b>{r.name}</b>
-                <span className="mfg-sku">
-                  {r.sku} · {r.n_ingredientes} ingrediente{r.n_ingredientes === 1 ? '' : 's'}
-                </span>
-              </span>
-              <span className="mfg-cat">
-                {r.cat} <i>/ {r.sub}</i>
-              </span>
-              {/* R-09 — a coluna DECLARA a unidade que está exibindo. Com sub-unidade de
-                  saída, mostra a quantidade convertida COM o rótulo da sub-unidade. */}
-              <span className="mfg-td mfg-num r">
-                {r.sub_un && r.sub_fator
-                  ? num(r.custos.qtd_liq * r.sub_fator, 2)
-                  : num(r.custos.qtd_liq, 2)}
-                <span className="mfg-u">{r.sub_un ?? r.un}</span>
-              </span>
-              <span className="mfg-td mfg-num r">{fmt(r.custos.total)}</span>
-              <span className="mfg-td mfg-num r">{fmt(r.custos.unit)}</span>
-              <span className="mfg-td mfg-num dim r">{fmt(r.venda)}</span>
-              <span className="mfg-td r">
-                {/* R-10 — 3 faixas, agora no `StatusBadge` do DS como no protótipo. */}
-                <StatusBadge
-                  kind="margem"
-                  value={faixaMargem(r.custos.margem)}
-                  label={`${num(r.custos.margem, 0)}%`}
-                  tone={TOM_MARGEM[faixaMargem(r.custos.margem)]}
-                />
-              </span>
-            </div>
-          ))}
-
-          {filtradas.length === 0 && (
-            <div className="mfg-empty">
-              <b>Nenhuma receita encontrada</b>
-              <span>Ajuste a busca, troque a categoria ou limpe o filtro de KPI.</span>
-            </div>
-          )}
-        </div>
-
-        {filtradas.length > POR_PAG && (
-          <div className="mfg-pag">
-            <span>
-              {(pagina - 1) * POR_PAG + 1}–{Math.min(pagina * POR_PAG, filtradas.length)} de{' '}
-              {filtradas.length}
-            </span>
-            <span className="sp" />
-            <button type="button" disabled={pagina === 1} onClick={() => setPag(pagina - 1)}>
-              ‹
-            </button>
-            {Array.from({ length: nPags }, (_, i) => i + 1).map((n) => (
-              <button
-                type="button"
-                key={n}
-                className={n === pagina ? 'act' : ''}
-                onClick={() => setPag(n)}
-              >
-                {n}
-              </button>
-            ))}
-            <button type="button" disabled={pagina === nPags} onClick={() => setPag(pagina + 1)}>
-              ›
-            </button>
-          </div>
-        )}
+        <DataTable<Receita>
+          columns={COLUNAS}
+          data={recipes.data}
+          pagination={recipes}
+          endpoint={ROTA}
+          filters={{ q: filtros.q, cat: filtros.cat, kpi: filtros.kpi, sort: filtros.sort, dir: filtros.dir }}
+          caption="Receitas"
+          density="grid"
+          totalLabel="receitas"
+          showSearch={false}
+          rowKey={(r) => r.id}
+          onRowClick={(r) => setOpenId(r.id)}
+          emptyMessage="Nenhuma receita encontrada. Ajuste a busca, troque a categoria ou limpe o filtro de KPI."
+          selection={{
+            isSelected: (r) => sel.includes(r.id),
+            onToggle: (r) => setSel((s) => (s.includes(r.id) ? s.filter((x) => x !== r.id) : [...s, r.id])),
+            allState,
+            onToggleAll: (marcar) => setSel(marcar ? ids_filtrados : []),
+            rowLabel: (r) => r.name,
+          }}
+        />
       </div>
 
       {/* §4.2 BulkBar. A 3ª ação do protótipo — "Atualizar preço de venda do produto" — NÃO
@@ -405,11 +366,7 @@ export default function Recipes({ recipes = [], permissions, producao, settings 
           <Button variant="ghost" size="sm" onClick={() => setSel([])}>
             Limpar
           </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setImprimir({ itens: selecionadas, semCusto: false })}
-          >
+          <Button variant="ghost" size="sm" onClick={imprimirSelecionadas}>
             <Printer className="mr-1.5 h-3.5 w-3.5" /> Imprimir fichas
           </Button>
         </div>

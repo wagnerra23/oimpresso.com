@@ -1,4 +1,4 @@
-import { useState, useEffect, ReactNode } from 'react';
+import { useState, useEffect, useRef, ReactNode } from 'react';
 import { router } from '@inertiajs/react';
 import {
   ColumnDef,
@@ -113,22 +113,99 @@ const CLASSE_ESTADO: Record<EstadoDaLinha, string> = {
  * pad 7×10 · divisória `--border` a 60% · hover accent 5%. "Accent" ali é o roxo da marca, que
  * aqui é `primary`: o `accent` do shadcn é neutro.
  */
-export type DensidadeDaTabela = 'default' | 'dense';
+export type DensidadeDaTabela = 'default' | 'dense' | 'grid';
 
-const CLASSE_DENSIDADE: Record<DensidadeDaTabela, { th: string; td: string; tbody: string; tr: string }> = {
+const THEAD_PADRAO = 'border-b border-border bg-muted/30 text-xs text-muted-foreground';
+
+/**
+ * `grid` — a anatomia do componente `DataGrid` do DS
+ * (`prototipo-ui/design-system/components/DataGrid/DataGrid.jsx`), que é a grade das telas do
+ * protótipo da Fabricação. NÃO é o `dense`: o `dense` veio da `table.pt-tbl` do Ponto (th 11px
+ * .07em, pad 8×10, td 7×10, divisória); o DataGrid é outra anatomia (th 10px .05em sobre
+ * `--bg-2`, pad 7×10, td 5×10, borda `--border-2` por célula, linhas listradas, moldura com o
+ * rodapé dentro). As duas existem no protótipo, então as duas existem aqui — fundir mudaria uma
+ * tela pra parecer a outra.
+ *
+ * Duas trocas deliberadas em relação ao DS, ambas já canon no app:
+ * - cabeçalho em `--text-dim`, não `--text-mute` (contraste AA em texto de 10px — ADR 0410);
+ * - linha selecionada e caixinha no roxo da marca (`--color-primary`), não `--accent`/`--accent-soft`,
+ *   que o `AppShellV2` reescreve a partir do matiz salvo no navegador de cada pessoa
+ *   (`Manufacturing/Recipes.charter.md` §Acento visual).
+ *
+ * O fundo da LINHA (listra · selecionada) é decidido por linha no JS e posto na `<td>`, não no
+ * `<tr>`: com `border-collapse: separate` o fundo do `<tr>` some atrás do da célula, e três
+ * variantes arbitrárias concorrendo no mesmo `<td>` dependeriam da ordem de geração do CSS.
+ */
+const CLASSE_DENSIDADE: Record<DensidadeDaTabela, { thead: string; th: string; td: string; tbody: string; tr: string }> = {
   default: {
+    thead: THEAD_PADRAO,
     th: 'p-3 font-medium whitespace-nowrap',
     td: 'p-3 align-top',
     tbody: 'divide-y divide-border',
     tr: 'hover:bg-accent/30',
   },
   dense: {
+    thead: THEAD_PADRAO,
     th: 'px-2.5 py-2 text-[11px] uppercase tracking-[.07em] font-semibold whitespace-nowrap',
     td: 'px-2.5 py-[7px] text-[12.5px] align-top',
     tbody: 'divide-y divide-border/60',
     tr: 'hover:bg-primary/5',
   },
+  grid: {
+    thead: 'text-[var(--text-dim)]',
+    th: 'sticky top-0 z-[1] bg-[var(--bg-2)] px-2.5 py-[7px] text-[10px] leading-[1.2] uppercase tracking-[.05em] font-semibold whitespace-nowrap border-b border-border select-none',
+    td: 'px-2.5 py-[5px] text-[12.5px] align-middle border-b border-[var(--border-2)] whitespace-nowrap overflow-hidden text-ellipsis max-w-[320px]',
+    tbody: '',
+    tr: '',
+  },
 };
+
+/** `grid`: listra das linhas pares — `color-mix` do DS, literal. */
+const GRID_LISTRA = 'bg-[color-mix(in_oklch,var(--bg-2)_55%,transparent)]';
+/** `grid`: linha selecionada — roxo da marca (ver nota da `CLASSE_DENSIDADE`). */
+const GRID_SELECIONADA = 'bg-primary/15';
+/** `grid`: hover vale só pra linha NÃO selecionada, como no DS. */
+const GRID_HOVER = 'hover:[&>td]:bg-[var(--bg-2)]';
+/**
+ * `grid`: a moldura — borda, raio, superfície e a sombra leve medidas no protótipo da
+ * Fabricação (2026-10-01). `overflow-hidden` recorta o cabeçalho e o rodapé no raio.
+ */
+const MOLDURA_GRID = 'overflow-hidden rounded-lg border border-border bg-[var(--surface)] shadow-[0_1px_2px_rgba(0,0,0,.04)]';
+
+/**
+ * No `grid` a rolagem mora num filho da moldura (pro rodapé não rolar junto). O
+ * `containerType` vai com ela: é o container de `cqw` da mensagem de lista vazia.
+ */
+function Rolagem({ ativa, children }: { ativa: boolean; children: ReactNode }) {
+  if (!ativa) return <>{children}</>;
+  return (
+    <div className="overflow-auto" style={{ containerType: 'inline-size' }}>
+      {children}
+    </div>
+  );
+}
+
+/** Caixinha nativa do DataGrid: 13px tingida. A célula dela tem 34px. */
+const CLASSE_CAIXINHA = 'm-0 size-[13px] cursor-pointer align-middle accent-[var(--color-primary)]';
+
+/**
+ * SELEÇÃO POR CAIXINHA — o `selectable` do DataGrid do DS, controlado por fora.
+ *
+ * A tabela não guarda quais linhas estão marcadas: ela pergunta (`isSelected`) e avisa
+ * (`onToggle`). É a tela que sabe o ESCOPO do "marcar todas" — que pode ser a página, ou todas
+ * as filtradas inclusive de outras páginas (R-08 da Fabricação). Por isso o estado do cabeçalho
+ * (`allState`) também vem de fora: a tabela só vê a página atual e não teria como calculá-lo.
+ */
+export interface SelecaoDaTabela<T> {
+  isSelected: (row: T) => boolean;
+  onToggle: (row: T) => void;
+  allState: 'all' | 'some' | 'none';
+  onToggleAll: (marcar: boolean) => void;
+  /** Nome acessível da caixinha da linha — "Selecionar <isto>". */
+  rowLabel: (row: T) => string;
+  /** Nome acessível da caixinha do cabeçalho. Omitido = "Selecionar todas". */
+  allLabel?: string;
+}
 
 export interface PaginatorShape<T> {
   data: T[];
@@ -143,8 +220,16 @@ export interface PaginatorShape<T> {
 interface Props<T> {
   columns: ColumnDef<T, any>[];
   data: T[];
-  pagination: PaginatorShape<T>;
-  endpoint: string;
+  /**
+   * Paginador do servidor. OPCIONAL desde 2026-10-02: lista que cabe numa página só (os
+   * Insumos e o Relatório da Fabricação) não tem paginador, e sem ele não há rodapé.
+   */
+  pagination?: PaginatorShape<T>;
+  /**
+   * Rota que recebe busca (`?q=`) e ordenação (`?sort=&dir=`). OPCIONAL desde 2026-10-02: sem
+   * ela a busca integrada não é mostrada e o cabeçalho não vira botão de ordenar.
+   */
+  endpoint?: string;
   /**
    * NOME ACESSÍVEL da tabela — vira `<caption class="sr-only">`. OBRIGATÓRIO.
    *
@@ -216,6 +301,79 @@ interface Props<T> {
   tableWrapperClassName?: string;
   /** Anatomia da tabela — ver `DensidadeDaTabela`. Omitido = `default` (markup de sempre). */
   density?: DensidadeDaTabela;
+  /** Caixinha por linha + "marcar todas" no cabeçalho — ver `SelecaoDaTabela`. */
+  selection?: SelecaoDaTabela<T>;
+  /**
+   * Com `onRowClick`, diz QUAIS linhas são clicáveis. Omitido = todas. A linha que devolve
+   * `false` volta a ser linha comum: sem `role`, sem foco, sem cursor.
+   */
+  rowClickable?: (row: T) => boolean;
+  /**
+   * Substantivo do rodapé do `grid` — "1–10 de 32 <totalLabel>". Omitido = "itens".
+   * Só o `grid` usa: os outros rodapés seguem "Página X de Y · N item(s)".
+   */
+  totalLabel?: string;
+}
+
+/**
+ * Rodapé do `grid`, a partir dos `links` do paginador do Laravel — as URLs vêm do servidor
+ * (com `withQueryString`), então filtro, busca e ordem atravessam a troca de página sem a
+ * tabela precisar conhecê-los. O primeiro link é "anterior", o último é "próxima", e o "..."
+ * do Laravel vira a reticência do DS.
+ */
+function RodapeGrid<T>({ pagination, totalLabel }: { pagination: PaginatorShape<T>; totalLabel: string }) {
+  const links = pagination.links;
+  const anterior = links[0];
+  const proxima = links[links.length - 1];
+  const paginas = links.slice(1, -1);
+  const ir = (url: string | null) => url && router.visit(url, { preserveScroll: true, preserveState: true });
+  const botao =
+    'inline-flex h-7 min-w-7 items-center justify-center rounded-[8px] border border-border bg-transparent px-2 text-[12.5px] font-medium leading-none tabular-nums text-[var(--text-dim)] cursor-pointer disabled:cursor-not-allowed disabled:opacity-45 aria-[current=page]:border-transparent aria-[current=page]:bg-primary aria-[current=page]:font-semibold aria-[current=page]:text-primary-foreground';
+  const seta = (dir: 'esq' | 'dir') => (
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <polyline points={dir === 'esq' ? '15 18 9 12 15 6' : '9 18 15 12 9 6'} />
+    </svg>
+  );
+  return (
+    <div
+      data-slot="datatable-rodape"
+      className="flex flex-wrap items-center justify-end gap-3 border-t border-border bg-[var(--bg-2)] px-2.5 py-[7px]"
+    >
+      <nav aria-label="Paginação" className="inline-flex items-center gap-2">
+        <div className="inline-flex items-center gap-1">
+          <button type="button" className={`${botao} w-7 px-0`} disabled={!anterior?.url} aria-label="Página anterior" onClick={() => ir(anterior?.url ?? null)}>
+            {seta('esq')}
+          </button>
+          {paginas.map((l, i) =>
+            l.url === null && !l.active ? (
+              <span key={`e${i}`} className="px-0.5 text-[11.5px] text-[var(--text-dim)]">
+                …
+              </span>
+            ) : (
+              <button
+                type="button"
+                key={`${l.label}-${i}`}
+                className={botao}
+                aria-current={l.active ? 'page' : undefined}
+                onClick={() => !l.active && ir(l.url)}
+              >
+                {l.label}
+              </button>
+            ),
+          )}
+          <button type="button" className={`${botao} w-7 px-0`} disabled={!proxima?.url} aria-label="Próxima página" onClick={() => ir(proxima?.url ?? null)}>
+            {seta('dir')}
+          </button>
+        </div>
+        <span className="pl-3 text-[11.5px] leading-none tabular-nums text-[var(--text-dim)]">
+          <b className="font-semibold">
+            {pagination.total === 0 ? 0 : (pagination.from ?? 0)}–{pagination.to ?? 0}
+          </b>{' '}
+          de {pagination.total} {totalLabel}
+        </span>
+      </nav>
+    </div>
+  );
 }
 
 export default function DataTable<T>({
@@ -235,9 +393,21 @@ export default function DataTable<T>({
   minTableWidth,
   tableWrapperClassName,
   density = 'default',
+  selection,
+  rowClickable,
+  totalLabel = 'itens',
 }: Props<T>) {
   const [searchTerm, setSearchTerm] = useState(initialSearch);
   const dens = CLASSE_DENSIDADE[density];
+  const grid = density === 'grid';
+  const nColunas = columns.length + (selection ? 1 : 0);
+
+  // O "marcar todas" pode estar parcial — e `indeterminate` só existe como propriedade do DOM,
+  // não como atributo HTML.
+  const caixinhaTodas = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    if (caixinhaTodas.current) caixinhaTodas.current.indeterminate = selection?.allState === 'some';
+  }, [selection?.allState]);
 
   // A geometria é lida das colunas UMA vez e vira `<colgroup>` — que é a forma canônica de
   // declarar largura em tabela HTML, e a única que o navegador respeita sob `table-layout:
@@ -246,11 +416,11 @@ export default function DataTable<T>({
   const larguras = columns.map((c) => c.meta?.width);
   const temLargura = larguras.some((w) => typeof w === 'number' && w > 0);
   const somaDeclarada = larguras.reduce<number>((s, w) => s + (typeof w === 'number' ? w : 0), 0);
-  const pisoDaTabela = temLargura ? (minTableWidth ?? somaDeclarada) : undefined;
+  const pisoDaTabela = temLargura ? (minTableWidth ?? somaDeclarada + (selection ? 34 : 0)) : undefined;
 
   // Debounce busca — envia pro backend (Scout faz keyword/vector lookup)
   useEffect(() => {
-    if (searchTerm === initialSearch) return;
+    if (searchTerm === initialSearch || !endpoint) return;
     const handle = setTimeout(() => {
       router.get(
         endpoint,
@@ -268,25 +438,32 @@ export default function DataTable<T>({
     getCoreRowModel: getCoreRowModel(),
     manualPagination: true,   // paginação é server-side
     manualSorting: true,      // sort é server-side
-    pageCount: pagination.last_page,
+    pageCount: pagination?.last_page ?? 1,
   });
 
+  const sortAtual = typeof filters.sort === 'string' ? filters.sort : undefined;
+  const dirAtual = filters.dir === 'desc' ? 'desc' : 'asc';
+
   const handleSort = (columnId: string) => {
+    if (!endpoint) return;
     const currentSort = (filters as any).sort as string | undefined;
     const currentDir = (filters as any).dir as string | undefined;
     let newDir: 'asc' | 'desc' = 'asc';
     if (currentSort === columnId) newDir = currentDir === 'asc' ? 'desc' : 'asc';
 
+    // A busca só é da tabela quando ela MOSTRA a busca. Com `showSearch={false}` a tela tem a
+    // própria busca e manda o `q` em `filters` — sobrescrevê-lo com o `searchTerm` interno (vazio)
+    // apagava a busca da tela a cada clique de ordenar.
     router.get(
       endpoint,
-      { ...filters, q: searchTerm || undefined, sort: columnId, dir: newDir },
+      { ...filters, ...(showSearch ? { q: searchTerm || undefined } : {}), sort: columnId, dir: newDir },
       { preserveScroll: true, preserveState: true, replace: true }
     );
   };
 
   return (
     <div className="space-y-3">
-      {showSearch && (
+      {showSearch && endpoint && (
         <div className="relative">
           <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
           {/* O className abaixo NÃO volta a ser `pl-9 pr-9`: o <Input> nasce `variant="cowork"`,
@@ -322,12 +499,18 @@ export default function DataTable<T>({
           mensagem de lista vazia medir a largura VISÍVEL da rolagem (ver o `<td>` vazio abaixo).
           Vai em `style`, não em classe, pra valer também quando `tableWrapperClassName`
           substitui as classes do default. */}
+      {/* No `grid` o wrapper é a MOLDURA (borda, raio, rodapé dentro) e a rolagem mora num
+          filho — senão o rodapé rolaria junto com a tabela. Fora do `grid`, o de sempre. */}
       <div
-        className={tableWrapperClassName ?? 'border border-border rounded overflow-x-auto'}
-        style={{ containerType: 'inline-size' }}
+        className={
+          tableWrapperClassName ??
+          (grid ? MOLDURA_GRID : 'border border-border rounded overflow-x-auto')
+        }
+        style={grid ? undefined : { containerType: 'inline-size' }}
       >
+        <Rolagem ativa={grid}>
         <table
-          className={`w-full text-sm${temLargura ? ' table-fixed' : ''}`}
+          className={`w-full ${grid ? 'border-separate border-spacing-0 text-[12.5px]' : 'text-sm'}${temLargura ? ' table-fixed' : ''}`}
           style={pisoDaTabela ? { minWidth: pisoDaTabela } : undefined}
         >
           {/* PRIMEIRO filho do <table>, antes do <colgroup>: o HTML só admite <caption> nessa
@@ -335,6 +518,7 @@ export default function DataTable<T>({
           <caption className="sr-only">{caption}</caption>
           {temLargura && (
             <colgroup>
+              {selection && <col style={{ width: 34 }} />}
               {larguras.map((w, i) => (
                 // Coluna sem largura declarada fica sem `<col style>` de propósito: ela é a
                 // FLUIDA, e absorve a sobra. Declarar todas tira essa folga.
@@ -342,12 +526,25 @@ export default function DataTable<T>({
               ))}
             </colgroup>
           )}
-          <thead className="border-b border-border bg-muted/30 text-xs text-muted-foreground">
+          <thead className={dens.thead}>
             {table.getHeaderGroups().map((group) => (
               <tr key={group.id}>
+                {selection && (
+                  <th scope="col" className={`${dens.th} w-[34px] text-center`}>
+                    <input
+                      ref={caixinhaTodas}
+                      type="checkbox"
+                      className={CLASSE_CAIXINHA}
+                      checked={selection.allState === 'all'}
+                      onChange={(e) => selection.onToggleAll(e.target.checked)}
+                      aria-label={selection.allLabel ?? 'Selecionar todas'}
+                    />
+                  </th>
+                )}
                 {group.headers.map((header) => {
-                  const canSort = header.column.getCanSort();
+                  const canSort = header.column.getCanSort() && !!endpoint;
                   const align = header.column.columnDef.meta?.align;
+                  const ordenada = sortAtual === header.id;
                   return (
                     <th
                       key={header.id}
@@ -369,8 +566,24 @@ export default function DataTable<T>({
                       // dela move o texto e deixa o cabeçalho à esquerda — número à direita
                       // sob rótulo à esquerda foi exatamente o defeito reportado.
                       className={`${CLASSE_ALINHAMENTO[align ?? 'left']} ${dens.th}`}
+                      aria-sort={grid && canSort && ordenada ? (dirAtual === 'desc' ? 'descending' : 'ascending') : undefined}
                     >
-                      {canSort ? (
+                      {canSort && grid ? (
+                        // Indicador do DataGrid: SEMPRE depois do rótulo — ↕ apagado quando a
+                        // coluna não ordena, ↑/↓ cheio quando ordena; a coluna ativa sobe pra
+                        // `--text`. O DS usa `<span onClick>`; aqui é `<button>` pra ordenação
+                        // continuar no teclado. O visual é o mesmo.
+                        <button
+                          type="button"
+                          onClick={() => handleSort(header.id)}
+                          className={`inline-flex items-center gap-[3px] uppercase tracking-[inherit] ${ordenada ? 'text-[var(--text)]' : ''}`}
+                        >
+                          {flexRender(header.column.columnDef.header, header.getContext()) as ReactNode}
+                          <span aria-hidden className={ordenada ? '' : 'opacity-40'}>
+                            {ordenada ? (dirAtual === 'desc' ? '↓' : '↑') : '↕'}
+                          </span>
+                        </button>
+                      ) : canSort ? (
                         <button
                           type="button"
                           onClick={() => handleSort(header.id)}
@@ -391,7 +604,7 @@ export default function DataTable<T>({
           <tbody className={dens.tbody}>
             {table.getRowModel().rows.length === 0 ? (
               <tr>
-                <td colSpan={columns.length} className="p-0 text-sm text-muted-foreground">
+                <td colSpan={nColunas} className="p-0 text-sm text-muted-foreground">
                   {/* A célula tem a largura da TABELA, que pode ser bem maior que a área visível
                       (Bens: 1626px). Centralizar nela jogava o texto fora da tela — medido em prod
                       em 2026-09-30: texto em x=842..1306 com o wrapper visível em 260..1024.
@@ -402,39 +615,63 @@ export default function DataTable<T>({
                 </td>
               </tr>
             ) : (
-              table.getRowModel().rows.map((row) => {
-                const estado = rowState?.(row.original);
-                const clicavel = onRowClick !== undefined;
+              table.getRowModel().rows.map((row, i) => {
+                const marcada = selection?.isSelected(row.original) ?? false;
+                // Linha marcada pela caixinha herda o estado `selected` — exceto no `grid`, que
+                // pinta a seleção na `<td>` (ver `CLASSE_DENSIDADE`).
+                const estado = rowState?.(row.original) ?? (marcada && !grid ? 'selected' : undefined);
+                const clicavel = onRowClick !== undefined && (rowClickable?.(row.original) ?? true);
+                const fundoGrid = grid ? (marcada ? GRID_SELECIONADA : i % 2 === 1 ? GRID_LISTRA : '') : '';
+                const classeTd = `${dens.td}${fundoGrid ? ' ' + fundoGrid : ''}`;
                 return (
                   <tr
                     key={rowKey ? rowKey(row.original) : row.id}
-                    className={`${dens.tr}${estado ? ' ' + CLASSE_ESTADO[estado] : ''}${
+                    className={`${dens.tr}${estado ? ' ' + CLASSE_ESTADO[estado] : ''}${grid && !marcada ? ' ' + GRID_HOVER : ''}${
                       clicavel ? ' cursor-pointer focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring' : ''
                     }`}
+                    data-selecionada={selection ? String(marcada) : undefined}
                     data-estado={estado}
                     // A linha só vira controle quando a tela pede. Sem `onRowClick` ela
                     // continua sendo uma linha de tabela — nem `role`, nem foco, nem cursor.
                     role={clicavel ? 'button' : undefined}
                     tabIndex={clicavel ? 0 : undefined}
-                    onClick={clicavel ? () => onRowClick(row.original) : undefined}
+                    onClick={clicavel ? () => onRowClick!(row.original) : undefined}
                     onKeyDown={
                       clicavel
                         ? (e) => {
                             if (e.key === 'Enter' || e.key === ' ') {
                               e.preventDefault();
-                              onRowClick(row.original);
+                              onRowClick!(row.original);
                             }
                           }
                         : undefined
                     }
                   >
+                    {selection && (
+                      // A caixinha não abre a linha: clique E teclado param aqui. Sem parar o
+                      // `keydown`, o Espaço na caixinha subiria até o `<tr>`, que dá
+                      // `preventDefault` — a caixinha não marcaria e a linha abriria.
+                      <td
+                        className={`${classeTd} w-[34px] text-center`}
+                        onClick={(e) => e.stopPropagation()}
+                        onKeyDown={(e) => e.stopPropagation()}
+                      >
+                        <input
+                          type="checkbox"
+                          className={CLASSE_CAIXINHA}
+                          checked={marcada}
+                          onChange={() => selection.onToggle(row.original)}
+                          aria-label={`Selecionar ${selection.rowLabel(row.original)}`}
+                        />
+                      </td>
+                    )}
                     {row.getVisibleCells().map((cell) => {
                       const meta = cell.column.columnDef.meta;
                       const align = meta?.align;
                       return (
                         <td
                           key={cell.id}
-                          className={`${CLASSE_ALINHAMENTO[align ?? 'left']} ${dens.td}${meta?.mono ? ' font-mono tabular-nums' : ''}`}
+                          className={`${CLASSE_ALINHAMENTO[align ?? 'left']} ${classeTd}${meta?.mono ? ' font-mono tabular-nums' : ''}`}
                         >
                           {flexRender(cell.column.columnDef.cell, cell.getContext()) as ReactNode}
                         </td>
@@ -446,9 +683,11 @@ export default function DataTable<T>({
             )}
           </tbody>
         </table>
+        </Rolagem>
+        {grid && pagination && <RodapeGrid pagination={pagination} totalLabel={totalLabel} />}
       </div>
 
-      {pagination.last_page > 1 && (
+      {!grid && pagination && pagination.last_page > 1 && (
         <div className="flex items-center justify-between text-xs text-muted-foreground">
           <span>
             Página {pagination.current_page} de {pagination.last_page} · {pagination.total} item(s)

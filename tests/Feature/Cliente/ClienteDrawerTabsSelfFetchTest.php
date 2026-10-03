@@ -48,8 +48,22 @@ test('GUARD 2 — paymentsJson/rewardsJson/subscriptionsJson com business_id sco
         ->toContain("'****' . substr((string) \$p->bank_account_number, -4)")
         // Shapes esperados pelos componentes.
         ->toContain("response()->json(['payments' => \$payments])")
-        ->toContain("'enabled' => true,")
-        ->toContain("'is_recurring', 1");
+        ->toContain("'enabled' => true,");
+
+    // Assinaturas = só o PAI da série recorrente. A 1ª versão procurava "'is_recurring', 1"
+    // no arquivo inteiro — string que o controller nunca escreveu (é 'transactions.is_recurring'),
+    // então o guard nasceu vermelho e ninguém viu porque não rodava. Recortado ao corpo de
+    // subscriptionsJson: o mesmo filtro aparece no show(), e o arquivo inteiro não provaria
+    // este endpoint.
+    $ini = strpos($contents, 'public function subscriptionsJson($id)');
+    expect($ini)->not->toBeFalse();
+    // Termina na próxima função de QUALQUER visibilidade, para o recorte não engolir helpers.
+    $fim = preg_match('/\n    (?:public|protected|private) function /', $contents, $m, PREG_OFFSET_CAPTURE, $ini + 10)
+        ? $m[0][1] : null;
+    $corpo = substr($contents, $ini, $fim === null ? null : $fim - $ini);
+    expect($corpo)
+        ->toContain("->where('transactions.is_recurring', 1)")
+        ->toContain("->whereNull('transactions.recur_parent_id')");
 });
 
 // ─── GUARD 3: componentes fazem self-fetch via contactId ──────────────────

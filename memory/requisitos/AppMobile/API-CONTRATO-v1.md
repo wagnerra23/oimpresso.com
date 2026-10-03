@@ -70,6 +70,61 @@ rascunho, enviado, aprovado, convertido}, pagina, tem_mais }`, 20 por página, m
   guarda validade de orçamento nem área por venda).
 - Mesmas permissões e visibilidade de Pedidos; a área `orcamentos` entra em `areas` (§6) para quem vê vendas.
 
+### 2.2 Venda rápida (tela 11): leitura ⬜ · escrita ⬜ (regra mestre)
+
+`GET /api/app/venda/produtos?q=` → `{ itens:[{ id, nome, categoria, preco, estoque }] }`. Até 20 itens,
+por nome. `id` = **variação** (é o que a venda grava). Busca por nome do produto ou da variação, SKU e
+categoria.
+
+- **Local de venda:** o ERP não tem "local padrão do usuário". Como na web (`SellController::create`,
+  `BusinessLocation::forDropdown`), vale o **1º local ativo** que o usuário acessa (`access_all_locations`
+  ou `location.<id>`). Sem nenhum → `403 { erro: "sem_local" }`.
+- **Preço** = `variations.sell_price_inc_tax`. Se o local tem grupo de preço padrão e a variação tem preço
+  não-vazio nesse grupo, vale o preço do grupo, pelo mesmo cálculo do PDV (`ProductUtil::getVariationGroupPrice`).
+  2 casas. O POST recalcula pela **mesma** função.
+- **Estoque** = saldo no local de venda. Vem `null` quando o produto não controla estoque **ou** quando o
+  business vende sem estoque (`pos_settings.allow_overselling`): nesse caso o ERP não barra a venda, e o
+  app não deve pôr teto. O saldo pode vir fracionado; na v1 o app vende só quantidade inteira.
+- Ficam fora: produto inativo, `not_for_selling`, sem vínculo com o local, combo e modificador.
+- Permissão: `sell.create` ou `direct_sell.access` (as da venda direta na web, sem `so.create`). Sem
+  nenhuma → `403 { erro: "sem_permissao" }`.
+
+`POST /api/app/vendas`: **⬜ PR separado. Só mergeia com dupla prova, tabela antes→depois e ok do [W].**
+Header `Idempotency-Key` obrigatório. Corpo `{ cliente_id|null, metodo, itens:[{ variacao_id, quantidade,
+preco_unitario }], total_previsto }`. Os números vão como texto `"N.NN"` (ponto, até 2 casas). Na v1 a
+quantidade é inteira (`"3.00"`); fração → `422 campos["itens.N.quantidade"]`. Assim o total da venda é a
+soma exata em centavos de preço × quantidade, sem arredondamento por linha.
+
+- **Caminho:** venda direta pelo `TransactionUtil` (`createSellTransaction` → `createOrUpdateSellLines` →
+  `createOrUpdatePaymentLines` → baixa de estoque → `updatePaymentStatus` → `mapPurchaseSell`), igual ao
+  `SellPosController::store` com `is_direct_sale=1` (o caminho que o `/sells/create` em React usa). A venda
+  nasce `status=final` e **fora da FSM**: `current_stage_id` fica null, e o pipeline só começa pelo botão
+  "Iniciar". Venda direta não exige caixa aberto.
+- **Números:** nada do app passa pelo `Util::num_uf`. Medido: `num_uf("1.500")` = 1500 (com 3 casas o
+  ponto vira milhar; ver o incidente de 2026-06-05). A validação é `^\d+(\.\d{1,2})?$` e os utilitários
+  recebem `uf_data=false`, como o conector de API (`Modules/Connector`) já faz. O
+  `isCustomerCreditLimitExeeded` chama `num_uf` no valor do pagamento mesmo com `uf=false`; o valor vai
+  com no máximo 2 casas, que ele lê certo.
+- **Dupla prova:** o ERP recalcula o preço (função do GET) e o total. `preco_unitario` diferente →
+  `422 campos["itens.N.preco_unitario"]`. Total diferente de `total_previsto` → `422 campos.total_previsto`.
+  Se divergir, nada é gravado.
+- **Estoque:** baixa na criação. Sem saldo, num business sem `allow_overselling`, o `mapPurchaseSell` lança
+  `PurchaseSellMismatch`: tudo é desfeito e o ERP responde `422 campos["itens.N.quantidade"]`.
+- **Cliente:** `cliente_id` null → consumidor final do business (`contacts.is_default=1`). Se o business
+  não tem consumidor final → `422 campos.cliente_id`. Quando informado, precisa ser cliente do mesmo business.
+- **Pagamento:** `dinheiro`→`cash` · `credito`→`card` (`card_type=credit`) · `debito`→`card`
+  (`card_type=debit`) · `pix`→`custom_pay_1`. Qualquer outro valor → `422 campos.metodo`. O rótulo
+  devolvido vem do ERP, porque é configurável por business. **Boleto fica fora da v1** (decisão [W],
+  2026-10-02). No ERP, boleto é venda a prazo: o título a receber nasce no Financeiro pelo observer, mas
+  a emissão do boleto (PaymentGateway) está desligada em produção.
+- **Idempotência:** tabela `app_idempotencia` (business_id, user_id, chave única, hash do corpo,
+  transaction_id), reservada na **mesma** transação de banco da venda. Mesma chave com o mesmo corpo →
+  `200` com a mesma venda. Corpo diferente → `422 { erro: "idempotencia_conflito" }`. Chave ainda em
+  processamento → `409 { erro: "em_andamento" }`.
+- `201 { id, numero, data, total, itens:[{ variacao_id, nome, quantidade, preco_unitario, subtotal }],
+  metodo }`, números como número JSON. Também responde `403 sem_permissao` com assinatura vencida ou
+  cota de vendas estourada.
+
 ## 3. Tarefas ⬜ — ToDo + justificativas do Ponto (D11)
 
 `GET /api/app/tarefas?origem=todas|todo|ponto`
@@ -213,8 +268,8 @@ Mesmos campos e regras do §4.2, **menos** `tipo` e `papeis` (mudar papel fica n
   abas que o usuário pode abrir, na ordem do app. Cada uma segue a mesma regra da rota dela, então
   aba visível = rota que responde: `tarefas` = Essentials no plano ou quem aprova o Ponto;
   `pedidos`/`producao`/`orcamentos` = quem vê vendas; `pessoas` = quem vê cliente ou fornecedor; `ponto` =
-  colaborador com `controla_ponto`; `inicio` só para perfil `erp`; `mais` sempre.
-  `perfil` = `erp` se tem tarefas, vendas ou pessoas, senão `colaborador`. `abre_em` = `inicio`
+  colaborador com `controla_ponto`; `fiscal` = a regra de §10.2; `assistente` = quem conversa com a Jana (§12.4); `equipe` = quem vê a lista de usuários (§12.2); `ponto_gestor` = quem tem acesso ao módulo Ponto (§12.1); `financeiro` = a regra de §10.1; `relatorios` = algum bloco de §10.3 visível; `dashboard` = `dashboard.data` (§10.4); `inicio` só para perfil `erp`; `mais` sempre.
+  `perfil` = `erp` se tem tarefas, vendas, pessoas, financeiro, fiscal, relatórios ou dashboard, senão `colaborador`. `abre_em` = `inicio`
   (erp), `ponto` (colaborador) ou `mais` (sem nenhuma das duas).
 
 - `faturado_hoje` e `meta_dia`: só com `dashboard.data` (senão `null`). Meta do dia = meta mensal
@@ -280,3 +335,311 @@ de contrato na lane MySQL) + 1 PR de tela no `oimpresso-app`, contra este contra
 - Leitura primeiro; a ação que escreve vem num PR separado. Em valor ou estoque: dupla prova, tabela antes→depois e ok do [W] antes do merge.
 - Tela de módulo que o business não tem no pacote não aparece (Camada 1).
 
+**Ajustes de escopo, 2026-10-02.** Decisões do [W]: as três primeiras chegaram relatadas pelas sessões do app que as perguntaram; a 20 e a 29 foram respondidas a esta sessão.
+- **28 Detalhe da tarefa:** o checklist saiu. O ToDo do Essentials não tem checklist, e criar exigiria schema novo.
+- **27 Detalhe da OP:** fica só na retaguarda web, sem rota `/api/app`. O Manufacturing não tem etapas, artes nem apontamentos de OP.
+- **11 Venda rápida:** liberada para começar, mas o merge depende da regra mestre e do ok do [W].
+- **20 Novo produto:** criada **sem preço**, igual à tela React de hoje. O preço se acerta na web, então a tela sai da regra mestre (§9.4).
+- **29 Movimentações:** **só leitura** (§9.3). Registrar movimento continua na web, porque no ERP cada tipo é uma transação contábil (compra com custo; ajuste com valor e FIFO).
+- **Lado ERP:** uma sessão por onda (C, D, E) e uma para a tela 11. A Onda B fica com a sessão coordenadora.
+
+
+## 9. Produtos e estoque (Onda B)
+
+### 9.1 Produtos (tela 19) — só leitura
+
+`GET /api/app/produtos?categoria=<id|todas>&q=<texto>&pagina=N` →
+`{ itens:[{id, nome, codigo, categoria, calculo, preco, variacoes, estoque:{controla, qtd, unidade}, baixo}],
+categorias:[{id, nome, total}], total, baixo_estoque, pagina, tem_mais }`, 30 por página, por nome.
+
+- Permissão `product.view` (a da lista web); sem ela, 403. Produtos ativos do business, sem os `modifier`.
+  A área `produtos` entra em `areas` do Início (§6) com essa mesma regra.
+- Busca `q` em nome, código (SKU) e categoria. `categorias` e `total` respeitam a busca, não o filtro de categoria.
+- `calculo` = "por " + unidade curta do produto ("por m²", "por un"); `null` sem unidade.
+- `preco` = preço de venda com imposto (`sell_price_inc_tax`); produto com variação traz o menor e
+  `variacoes` = quantas. Só exibição.
+- `estoque.qtd` = soma nos locais que o usuário pode ver; `null` quando o produto não controla estoque
+  ("sob demanda"). Usuário sem nenhum local permitido vê 0, nunca o estoque de todos.
+- `baixo` / `baixo_estoque` = a mesma regra do alerta da web (`ProductUtil::getProductAlert`): alguma
+  variação × local com quantidade ≤ `alert_quantity`.
+
+### 9.2 Estoque (tela 05) — só leitura
+
+`GET /api/app/estoque?filtro=todos|baixo&q=<texto>&pagina=N` →
+`{ itens:[{id, produto_id, nome, codigo, qtd, minimo, unidade, local, prateleira}], contadores:{todos, baixo}, pagina, tem_mais }`,
+30 por página, por nome.
+
+- Uma linha por **variação × loja** (`id` = `variation_location_details.id`), só nas lojas que o usuário
+  pode ver e só de produto que **controla estoque** (sem estoque fica fora; na 19 ele aparece "sob demanda").
+- `nome` traz a variação quando o produto é variável ("Caneca · Azul"); `codigo` = SKU da variação, ou do produto.
+- `minimo` = `alert_quantity` (ou `null`); `baixo` = a regra do alerta da web (`qtd ≤ minimo`).
+- `local` = nome da loja; `prateleira` = "rack · fileira · posição" de `product_racks`, ou `null`.
+- Permissão `product.view` (403 sem ela); a área `estoque` entra em `areas` (§6) com a mesma regra.
+
+### 9.3 Movimentações de um item (tela 29) — só leitura
+
+`GET /api/app/estoque/{id}?pagina=N` (`id` = a linha da 05) →
+`{ item:<a mesma linha da §9.2>, historico:[{id, tipo, rotulo, referencia, quando, qtd, saldo}], pagina, tem_mais }`,
+30 por página, do mais novo ao mais velho.
+
+- O histórico é o mesmo da tela web de histórico de estoque (`ProductUtil::getVariationStockHistory`):
+  `tipo` = tipo da transação (`purchase`, `sell`, `stock_adjustment`, `opening_stock`, `sell_transfer`,
+  `purchase_transfer`, `production_*`, devoluções); `rotulo` = o texto da web; `qtd` com sinal; `saldo` = saldo
+  acumulado depois do movimento; `referencia` = nº da nota/pedido · fornecedor ou cliente (só o nome), ou `null`.
+- Mesmas regras da §9.2 (`product.view`, lojas permitidas); linha de outra empresa ou de loja não permitida → 404.
+- **Registrar movimento fica na web** (decisão [W] 2026-10-02): no ERP cada tipo é uma transação contábil
+  (entrada = compra/estoque inicial com custo; saída/perda = ajuste com valor e custeio FIFO), não um "+N" avulso.
+
+### 9.4 Novo produto (tela 20) — escrita, SEM preço
+
+Decisão [W] 2026-10-02: o app cria produto **sem preço**, como a tela React de criar produto hoje
+(`Produto/Create.casos.md`, pendência de contrato com o [F]). A variação nasce com preço zerado e o preço
+se acerta na web. Não grava valor; fora da regra mestre.
+
+- `GET /api/app/produtos/opcoes` → `{ categorias:[{id, nome}], unidades:[{id, nome, curta}] }` (do business).
+- `POST /api/app/produtos` com
+  `{ nome*, codigo|null (vazio = o ERP gera), categoria_id|null, unidade_id*, estoque:{controla, minimo|null},
+  prateleira:{rack, fileira, posicao}|null, fiscal:{ncm (8 díg.)|null, cest (7)|null, cfop_interno (4)|null, cfop_externo (4)|null} }`
+  → `201 { id, codigo }` · `422 { erro:"validacao", campos }` (chaves aninhadas: `estoque.minimo`, `fiscal.ncm`…) ·
+  `403 { erro:"sem_permissao" }` (sem `product.create`).
+- Só tipo simples. Categoria e unidade precisam ser do business (a trava UC-PCAD-05 da web).
+- O produto fica disponível nas lojas que o usuário pode ver; a prateleira vai para a primeira delas.
+- Números com ponto decimal, sem `num_uf` (o parser do incidente de 2026-06-05). `origem` não existe em `products`.
+
+## 10. Financeiro (Onda C)
+
+### 10.1 Financeiro (tela 06) — só leitura
+
+`GET /api/app/financeiro?aba=receber|pagar|extrato&pagina=N` →
+`{ resumo:{mes, recebido, pago, saldo, a_receber, vencido, a_pagar}, contas:[{id, nome, detalhe, saldo}],
+itens:[{id, tipo, descricao, parte, vencimento, pago_em, valor, status}], contadores:{receber, pagar, extrato},
+pagina, tem_mais }`, 20 por página. `resumo` e `contas` não mudam com a aba.
+
+- Acesso: módulo Financeiro no plano + `financeiro.access` (ou superadmin) — a mesma regra do bloco
+  `financeiro` do Início. Sem ela, `403 sem_permissao`. A área `financeiro` entra em `areas` (§6) com essa
+  regra e conta para o perfil `erp`.
+- `resumo.a_receber` / `a_pagar`: `Financeiro\UnificadoService::kpis` — o mesmo número do Início e do
+  cockpit web. `vencido` = parte vencida do a receber (já contida nele: aberto/parcial, vencimento < hoje).
+- `recebido` / `pago`: baixas do mês corrente (`mes` = `YYYY-MM`) dos títulos a receber / a pagar, sem as
+  de estorno (regra do `FluxoRealizadoService`); `saldo` = recebido − pago.
+- Abas `receber` e `pagar`: títulos aberto/parcial do tipo, por vencimento (mais antigo primeiro);
+  `valor` = o que falta (`valor_aberto`); `status` = `vencido` se o vencimento passou, senão `aberto`.
+- Aba `extrato`: títulos quitados cuja última baixa caiu no mês, por `pago_em` (mais recente primeiro);
+  `valor` = soma das baixas do título; `status` = `liquidado`. Cancelados não aparecem em aba nenhuma.
+- `descricao` = "Título <número>" (+ " · parcela N/M" quando parcelado); `parte` = cliente/fornecedor
+  do título (`null` sem). Valor sempre positivo: o sinal vem de `tipo`.
+- `contas`: contas bancárias do Financeiro; `detalhe` = banco · agência; `saldo` = saldo em cache, `null`
+  quando o ERP não tem.
+- Tier 0: todas as tabelas filtradas pelo business do token (os models do Financeiro filtram pela sessão,
+  que a API não tem).
+
+### 10.2 Fiscal (tela 14) — só leitura
+
+`GET /api/app/fiscal?status=todos|rascunho|processando|autorizado|cancelado|rejeitado&pagina=N` →
+`{ itens:[{id, tipo, numero, referencia, valor, status, chave, erro, emitido_em}],
+contadores:{todos, rascunho, processando, autorizado, cancelado, rejeitado}, pagina, tem_mais }`,
+20 por página, mais recente primeiro.
+
+- Fontes: `nfe_emissoes` (modelo 55 → `NFe`, 65 → `NFCe`) e `nfse_emissoes` (`NFSe`), numa lista só.
+  `id` é o id da tabela de origem — único só junto com `tipo` (uma NF-e e uma NFS-e podem ter o mesmo).
+- Acesso = o da web: módulo Fiscal no plano e, por tipo, a permissão da tela dele (`fiscal.nfe.view`
+  para NF-e/NFC-e, `fiscal.nfse.view` para NFS-e). Quem vê só um tipo recebe só aquele (lista e
+  contadores). Sem nenhum → `403 sem_permissao`. A área `fiscal` entra em `areas` (§6) com essa regra.
+- Status: NF-e/NFC-e `pendente`/`enviando` → `processando` (a web conta "pendente" como processando),
+  `autorizada` → `autorizado`, `cancelada`/`inutilizada` → `cancelado`, `rejeitada`/`denegada`/`erro_envio`
+  → `rejeitado`. NFS-e `rascunho`, `processando`, `emitida` → `autorizado`, `cancelada`, `erro` → `rejeitado`.
+- `referencia` = "Pedido #<nº da venda> · <cliente>" quando a nota tem venda; sem venda, o destinatário
+  (NF-e) ou o tomador (NFS-e). `valor` = total da nota (NFS-e: valor dos serviços).
+- `chave` só em `autorizado` (NF-e/NFC-e: chave de 44 dígitos; NFS-e: código de verificação da
+  prefeitura). `erro` só em `rejeitado`: "Rejeição <cStat>: <motivo da SEFAZ>" (NFS-e: a mensagem do provedor).
+- `emitido_em` = data de emissão (sem ela, a de criação), ISO com fuso.
+- Tier 0: as duas tabelas e os joins filtrados pelo business do token.
+
+### 10.3 Relatórios (tela 13) — só leitura
+
+`GET /api/app/relatorios?periodo=mes|trimestre|ano&aba=dre|vendas|producao|estoque` →
+`{ periodo:{de, ate}, kpis:{receitas, despesas, saldo, margem_pct}|null,
+dre:{receitas_por_categoria:[{nome, valor}], despesas_por_categoria:[{nome, valor}]}|null,
+vendas:{receita_por_dia:[{data, valor}], top_clientes:[{nome, valor}]}|null,
+producao:{por_etapa:[{rotulo, total}]}|null, estoque:{baixo:[{nome, quantidade, minimo, unidade}]}|null }`.
+
+- `periodo` = mês, trimestre ou ano corrente (do primeiro ao último dia). Só o bloco da `aba` vem
+  preenchido; os outros vêm `null`.
+- Cada bloco segue a permissão da tela web dele e vem `null` sem ela (o app mostra "Sem acesso a este
+  relatório"): `kpis` e `dre` = regra do Financeiro (§10.1 — `kpis` **pode** vir `null`); `vendas` =
+  `dashboard.data`; `producao` = quem vê vendas (§5); `estoque` = `stock_report.view`. Sem nenhum →
+  `403 sem_permissao`. A área `relatorios` entra em `areas` (§6) quando algum bloco é visível.
+- `kpis`: títulos a receber (receitas) e a pagar (despesas) **não cancelados** com competência no
+  período — a mesma base do DRE web. `saldo` = receitas − despesas; `margem_pct` = saldo ÷ receitas ×
+  100 (1 casa), `null` sem receita. `dre`: os mesmos títulos por categoria (sem categoria → plano de
+  contas → "Sem categoria"), maior primeiro.
+- `vendas.receita_por_dia`: os 14 dias até hoje (independe do período), venda final nos locais do
+  usuário — os filtros do faturado do painel (`getSellTotals`); `top_clientes`: até 5, no período.
+- `producao.por_etapa`: os totais das colunas de `GET /api/app/producao`, na mesma ordem.
+- `estoque.baixo`: até 20 itens com saldo ≤ mínimo, menor saldo primeiro (`ProductUtil::getProductAlert`,
+  o mesmo do Início); produto com variação sai como "Produto — variação".
+
+### 10.4 Dashboard (tela 35) — só leitura
+
+`GET /api/app/dashboard` →
+`{ faturamento_30d:{valor, variacao_pct, serie_semanal:[7]}, kpis:{pedidos_ativos, pedidos_novos,
+producao_em_curso, a_receber, vencido}, pedidos_por_dia:[{data, total}]|null, meta_mes:{valor, realizado_pct}|null,
+producao_concluida:{concluidas, total}|null }`.
+
+- Acesso: `dashboard.data` (a do faturado do Início). Sem ela → `403 sem_permissao` e a área
+  `dashboard` não entra em `areas` (§6).
+- `faturamento_30d`: vendas finais dos últimos 30 dias (hoje incluso) nos locais do usuário, pelo
+  `getSellTotals` do painel web; `variacao_pct` contra os 30 dias anteriores (`null` sem venda antes);
+  `serie_semanal` = os 7 últimos dias, dia a dia, do mais antigo a hoje.
+- `meta_mes`: a meta mensal de faturamento da Jana (a mesma que gera a meta do dia, §6) e
+  `realizado_pct` = vendido no mês até hoje ÷ meta × 100, inteiro. `null` sem meta vigente.
+- Números de pedidos e produção seguem a regra de quem vê vendas (§2/§5) e vêm `null` sem ela —
+  assim batem com as abas Pedidos e Produção: `pedidos_ativos` = o do Início; `pedidos_por_dia` = 14
+  dias até hoje, vendas finais visíveis por data da venda; `pedidos_novos` = o dia de hoje dessa série;
+  `producao_em_curso` = coluna "em produção" de `/producao`; `producao_concluida` = coluna "pronto para
+  faturar" sobre o total das 4 colunas.
+- `a_receber` / `vencido`: os mesmos da tela 06 (§10.1); `null` sem acesso ao Financeiro.
+
+
+## 11. Oficina — Onda D (Modules/OficinaAuto)
+
+Área `oficina` em `areas` (§6): módulo `oficina_auto_module` no pacote do business (Camada 1;
+superadmin: módulo instalado) **e** permissão `oficinaauto.service_order.view` — a mesma regra do
+menu web da Oficina. Sem acesso → `403 sem_permissao`. Vocabulário de reparo: `order_type` só
+`manutencao`/`mecanica` (ADR 0265). Sem câmera (ADR 0383).
+
+### 11.1 Ordens de serviço (tela 07) — só leitura ✅
+
+`GET /api/app/os?etapa=<chave|todas>&pagina=N` (20 por página)
+
+```json
+{ "itens": [ {
+    "id": 42, "numero": "OS-00042", "placa": "RLV2E48", "veiculo": "Caminhão",
+    "cliente": "Transportes Vale Norte", "valor": 750.00,
+    "etapa": { "chave": "aguardando_pecas", "rotulo": "Aguardando peças", "indice": 4, "total_etapas": 6 },
+    "travada": true } ],
+  "etapas": [ { "chave": "recepcao", "rotulo": "Recepção", "total": 3 } ],
+  "total": 6, "travadas": 2, "pagina": 1, "tem_mais": false }
+```
+
+- Mesmo universo do quadro web `/oficina-auto/ordens-servico`: OS no processo FSM
+  `oficina_mecanica_os` em etapa **não-terminal**, ou OS de mecânica ainda sem pipeline (conta na
+  etapa inicial). Terminais (entregue, cancelado, garantia acionada) ficam fora. `total` = ativas.
+- `etapas` = as não-terminais do processo do business, na ordem do ERP (`sort_order`), sempre todas,
+  com `total` (pode ser 0). `indice` é 1-based nessa lista.
+- `travada` = etapa `aguardando_aprovacao` ou `aguardando_pecas`.
+- `numero` = `OS-` + id com 5 dígitos (como a web). `veiculo` = rótulo do tipo de veículo da web
+  (o cadastro não tem marca/modelo/ano); `null` se o tipo não tem rótulo.
+- `valor` = soma dos itens da OS (peças + mão de obra), como o card web; `null` sem item.
+  `cliente` = cliente da OS; `null` se a OS não tem cliente.
+- Ordem: etapa mais avançada primeiro; desempate pela OS mais recente.
+- O filtro `etapa` só filtra `itens` (e `tem_mais`). `total`, `travadas` e `etapas[].total` contam
+  sempre TODAS as OS ativas, com ou sem filtro.
+
+### 11.2 Detalhe da OS (tela 03) — só leitura ✅
+
+`GET /api/app/os/{id}` — qualquer OS do business (inclusive terminal e fora do pipeline, abertas
+pelo histórico do veículo). Outra empresa ou inexistente → `404 nao_encontrado`. Mesma permissão da 07.
+
+```json
+{ "id": 42, "numero": "OS-00042", "local": "Elevador 1",
+  "etapa": { "chave": "em_execucao", "rotulo": "Em execução", "indice": 5, "total_etapas": 6, "terminal": false },
+  "travada": false,
+  "veiculo": { "placa": "RLV2E48", "descricao": "Caminhão", "km": 48312 },
+  "cliente": { "id": 7, "nome": "Transportes Vale Norte" },
+  "observacoes": "Barulho na suspensão",
+  "vistoria": { "ok": 8, "atencao": 2, "critico": 1 },
+  "itens": [ { "tipo": "peca", "descricao": "Bieleta", "quantidade": 2, "valor_unitario": 210.00, "valor": 420.00 } ],
+  "totais": { "pecas": 420.00, "mao_de_obra": 330.00, "terceiros": 80.00, "total": 830.00 },
+  "fotos_laudo": 3 }
+```
+
+- `local` = box da OS (texto livre); não existe cadastro de box/elevador.
+- `etapa`: terminal → `indice: null, terminal: true`; OS de mecânica sem pipeline → etapa inicial;
+  OS fora do processo da oficina (ex.: importadas sem pipeline) → `etapa: null`.
+- `veiculo.km` = km na entrada da OS. `cliente` = cliente da OS (pode diferir do dono do veículo).
+- O ERP não tem queixa/diagnóstico: vêm `observacoes` (Observações da OS) e `vistoria` (contagem
+  dos itens da vistoria digital por severidade).
+- `itens.tipo` ∈ `peca · mao_obra · servico_terceiro`; o ERP não guarda unidade nem horas.
+- `totais` = soma dos itens por tipo; `total` = soma de todos (o mesmo número da 07 e da web).
+- `fotos_laudo` = quantas fotos do laudo a OS tem (só contagem; o app não exibe nem tira foto, ADR 0383).
+
+### 11.4 Manutenção (tela 23) — derivada da 07, sem rota própria
+
+Os 3 números saem de `GET /api/app/os` sem filtro: no pátio = `total`; aguardando peças =
+`etapas[chave=aguardando_pecas].total`; prontos = `etapas[chave=pronto_retirada].total`. Sem
+preventiva (o ERP não tem plano de preventiva). Telas 24/31/32 (Equipamentos) e 33 (Locais) ficam
+fora até o ERP ter cadastro de equipamento de cliente e de box (decisão [W] 2026-10-02).
+
+
+## 12. Onda E — Ponto, Equipe, Perfil de menu e Chat
+
+### 12.1 Marcações a validar (tela 39) — fila do gestor
+
+`GET /api/app/ponto/aprovacoes?estado=pendente|validada|recusada|todas` (padrão `pendente`) →
+`{ itens:[{id, colaborador_nome, tipo, local_texto, marcada_em, nsr, gps_precisao_m, dispositivo, hash_curto, estado}], contadores:{pendente, validada, recusada, todas}, pode_recusar }`.
+
+- Só marcações do celular (REP-P) **fora do geofence**, dos últimos 7 dias, mais nova primeiro.
+  É a mesma fila da tela web `/ponto/aprovacoes` (`FilaGestorRepPService`, um lugar só).
+- `id` é **uuid** (string), como em `ponto_marcacoes`. `tipo` ∈ `ENTRADA|ALMOCO_INICIO|ALMOCO_FIM|SAIDA`.
+  `marcada_em` ISO 8601 com fuso. `hash_curto` = 8 primeiros caracteres do hash encadeado.
+- `local_texto` = distância até o centro do geofence ("A 84,2 km do local de trabalho"); `null` sem geofence.
+  `gps_precisao_m` vem `null`: o REP-P não grava a precisão do GPS na marcação.
+- `contadores` ignoram o filtro (são os números dos chips). `pode_recusar` = tem `ponto.aprovacoes.manage`.
+- `POST …/{id}/validar` → `200 { estado:"validada" }`: registro na trilha (`activity_log` `ponto.repp`);
+  a marcação não muda. Trilha desligada → `503 { erro:"trilha_desligada" }`.
+- `POST …/{id}/recusar` (sem corpo) → `200 { estado:"recusada", nsr_anulacao }`: grava uma
+  **anulação** nova apontando a original (`Marcacao::anular()`, motivo fixo "Recusada na validação
+  REP-P"). Nunca UPDATE/DELETE em `ponto_marcacoes` (Portaria 671/2021).
+- Acesso = o do módulo Ponto (`ponto.access` ou papel admin/rh/gestor); recusar exige ainda
+  `ponto.aprovacoes.manage`. Erros: `403 sem_permissao` · `404 nao_encontrado` (inexistente ou de
+  outro business) · `409 ja_revisada` (já decidida) · `422 validacao` (estado inválido).
+- Área `ponto_gestor` em `/api/app/inicio` (§6): mesma regra de acesso do GET.
+
+### 12.2 Equipe (tela 26) — só leitura
+
+`GET /api/app/equipe` →
+`{ itens:[{ id, nome, funcao, carga, status:{ rotulo, tom } }] }`, em ordem alfabética.
+
+- Pessoas = usuários do business (a mesma lista da tela web de Usuários), ativos e inativos. Sem
+  telefone e sem ponto: "Marcação de ponto fica no módulo Ponto".
+- `funcao` = cargo do Essentials (`categories` `hrm_designation`), senão o cargo do CRM; `null` sem cargo.
+- `carga` = OS abertas atribuídas à pessoa (`service_orders.assigned_user_id`, mesmo universo do
+  quadro web da Oficina: etapa não-terminal, ou OS de mecânica ainda sem pipeline), ex.: `"2 OS"`;
+  `null` quando não há nenhuma. O ERP não atribui OP de produção a uma pessoa, então OP não entra.
+- `status`: usuário inativo → `{ rotulo:"Inativo", tom:"ausente" }`; com carga → `{ "Em serviço", "ocupado" }`;
+  senão → `{ "Disponível", "livre" }`.
+- Acesso = o da tela web de Usuários (`user.view`); sem ele `403 sem_permissao`. Área `equipe` em
+  `/api/app/inicio` (§6) com a mesma regra.
+
+### 12.3 Perfil de menu (tela 30) — escrita
+
+`PUT /api/app/perfil-menu { modulos:[≤3, em ordem] }` → `200 { modulos, barra }`.
+
+- A escolha fica guardada no ERP (`app_menu_preferencias`, [ADR 0426](../../decisions/0426-preferencia-de-barra-do-app-guardada-no-erp.md)), por usuário e business.
+- `modulos` aceita qualquer chave de `areas` (§6), exceto `inicio` e `mais`, que são fixos. O app
+  mostra como opção só as áreas que já têm tela de aba no build dele; o ERP não mantém essa lista.
+  Mais de 3, repetido, ou módulo fora disso → `422 { erro:"validacao", campos:{ modulos:"mensagem" } }`.
+- `modulos: []` apaga a escolha e volta ao padrão.
+- `GET /api/app/inicio` traz `barra` (lista com até 3 itens, nunca `null`) = escolha ∩ módulos permitidos, na ordem escolhida. Sem
+  escolha, ou se nada da escolha estiver mais em `areas`, vale o padrão do ERP: Tarefas, Pedidos,
+  Produção (§7.1), completado com as outras áreas do usuário na ordem de `areas`.
+
+### 12.4 Chat com a Jana (tela 25)
+
+`POST /api/app/chat { mensagem:string(≤1000), conversa_id:string|null }` →
+`200 { conversa_id:string, resposta:{ de:"jana", texto, criada_em } }`. Resposta síncrona.
+
+`GET /api/app/chat/{conversa_id}` → `{ conversa_id, mensagens:[{ de:"eu"|"jana", texto, criada_em }] }`,
+em ordem cronológica.
+
+- Canal = Jana (decisão [W]). São as mesmas conversas do chat web (`jana_conversas` /
+  `jana_mensagens`) e o mesmo turno (`ChatTurnoService`): o pedido de brief diário vai para o
+  brief, os tokens do turno ficam gravados, e uma falha da IA vira a resposta
+  "Estou com dificuldades técnicas no momento…" em vez de erro.
+- `conversa_id: null` (ou ausente) abre uma conversa nova, com a 1ª mensagem como título.
+- A conversa é do usuário: de outro usuário ou de outro business → `404 nao_encontrado`.
+- Acesso = o do chat web: módulo Jana no plano (`jana_module`) + `jana.access` + `jana.chat`;
+  sem isso `403 sem_permissao`. Área `assistente` em `/api/app/inicio` (§6) com a mesma regra.
+- Mensagem vazia ou acima de 1000 caracteres → `422 { erro:"validacao", campos:{ mensagem:"…" } }`.
+  Limite de 60 mensagens por minuto, como na web (`429`).

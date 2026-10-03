@@ -40,7 +40,7 @@ memory/requisitos/RecurringBilling/ @wagnerra23
 memory/requisitos/Boleto.md         @wagnerra23
 
 # ──────────────────────────────────────────────
-# 🛒 VENDA — Wagner + Felipe
+# 🛒 VENDA — Wagner
 # ──────────────────────────────────────────────
 # [W] 2026-09-21, textual: *"quem é o dono da venda então, é o Felipe"*. Registro do
 # ato em TEAM.md §3.3.1; aqui é o enforcement.
@@ -57,12 +57,18 @@ memory/requisitos/Boleto.md         @wagnerra23
 #
 # OS DOIS handles, de propósito: qualquer um dos dois aprova. Só @felipewr2-cell
 # travaria o [W], porque o GitHub não deixa ninguém aprovar PR próprio.
-resources/js/Pages/Sells/                   @wagnerra23 @felipewr2-cell
-app/Http/Controllers/SellController.php     @wagnerra23 @felipewr2-cell
-app/Http/Controllers/SellPosController.php  @wagnerra23 @felipewr2-cell
-resources/views/sell/                       @wagnerra23 @felipewr2-cell   # Blade legada (MWART pendente)
-resources/views/sale_pos/                   @wagnerra23 @felipewr2-cell   # Blade legada (MWART pendente)
-memory/requisitos/Sells/                    @wagnerra23 @felipewr2-cell   # SPEC · charter · casos
+# ⚠️ 2026-10-03: o [W] tirou o @felipewr2-cell da venda ("como removo as permissões que
+# o Felipe tem que fazer na venda para aprovar no github, eu quero fazer, sou o dono").
+# Mesmo mecanismo da Jana (2026-09-28, seção LGPD abaixo): com 2 donos, PR de autoria
+# do [W] nesses paths esperava a aprovação do Felipe. Com o [W] como dono único, o
+# #8018 da Jana mergeou com zero reviews. Os dois parágrafos acima são o fato de
+# 2026-09-21/22 e ficam como registro.
+resources/js/Pages/Sells/                   @wagnerra23
+app/Http/Controllers/SellController.php     @wagnerra23
+app/Http/Controllers/SellPosController.php  @wagnerra23
+resources/views/sell/                       @wagnerra23   # Blade legada (MWART pendente)
+resources/views/sale_pos/                   @wagnerra23   # Blade legada (MWART pendente)
+memory/requisitos/Sells/                    @wagnerra23   # SPEC · charter · casos
 
 # ──────────────────────────────────────────────
 # 🔒 LGPD / DADOS PESSOAIS — Wagner

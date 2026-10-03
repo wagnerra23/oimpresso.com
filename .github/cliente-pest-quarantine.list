@@ -1,0 +1,42 @@
+# Quarentena da lane "PHP / Pest (Cliente · MySQL)" — .github/workflows/cliente-pest.yml
+#
+# COMO A LANE SELECIONA: run-set = TUDO em tests/Feature/Cliente/**/*Test.php MENOS o que
+# este arquivo lista. Arquivo NOVO entra RODANDO. Todo item aqui é dívida VISÍVEL, com motivo.
+#
+# 1 path por linha · '#' comenta · motivo inline obrigatório · merge=union no .gitattributes.
+# ⚠️ O union une ADIÇÕES mas desfaz REMOÇÃO adjacente em silêncio (§5 2026-09-18). Depois
+# de mergear, confira duplicata por PATH, não por linha:
+#   sed 's/#.*//; s/[[:space:]]*$//' .github/cliente-pest-quarantine.list | grep -vE '^$' | sort | uniq -d
+
+# (A) Envenenam o schema compartilhado: usam RefreshDatabase, que dropa as tabelas e apaga o
+#     seed multi-tenant da action pest-mysql-setup — derrubaria os outros arquivos da lane.
+tests/Feature/Cliente/ClienteIndexDrawer760CharterTest.php  # usa RefreshDatabase (dropa o seed)
+tests/Feature/Cliente/IsOtherFlagTest.php  # usa RefreshDatabase (dropa o seed)
+
+# ── Medido na 1ª rodada da lane (run 37045239737, 2026-10-02): 29 arquivos com falha. ──
+# Nenhum rodava em lane de PR antes desta — não é regressão nova, é dívida que estava
+# escondida. O motivo é a 1ª falha medida de cada arquivo. Consertar = tirar daqui.
+
+# (B) 403 onde o teste espera outro status: o fixture não concede a permissão / sessão
+#     que a rota exige hoje.
+tests/Feature/Cliente/RedirectLegacyContactsTest.php  # 403 consertado; segue 1 caso: o RedirectLegacyContacts está DORMENTE desde o #1289 (comentado no Kernel, aguarda canário aprovado pelo [W]) — o 301 esperado nunca acontece, e os casos "não é 301" passam sem medir nada
+tests/Feature/Cliente/SefazConsultaCadastroChainTest.php  # 403 consertado (usuário com customer.update); segue 1 caso: tenant 98 em homologação responde env_homolog onde o teste espera sefaz_or_cert_error
+
+# (C) Guard que lê o código-fonte e procura um texto que o código não tem mais — VAZIO desde
+#     2026-10-02: os 12 arquivos foram consertados (16 afirmações, 0 regressões: 12 com o
+#     comportamento reescrito, 4 com o comportamento removido de propósito).
+
+# (D) Fixture grava coluna que não existe em `contacts` (first_name) — VAZIO desde 2026-10-02:
+#     a coluna saiu de prod (o baseline é schema:dump de prod), os 3 fixtures pararam de
+#     gravá-la e passaram a usar usuário com a permissão que a rota exige.
+
+# (E) 409 = versão de assets do Inertia não confere com o stub da lane — VAZIO desde 2026-10-02:
+#     os testes mandavam X-Inertia-Version '1' fixo e o servidor usa o md5 do manifest. Agora
+#     pedem a versão ao próprio HandleInertiaRequests::version().
+
+# (F) Outras falhas, uma causa cada.
+tests/Feature/Cliente/BackfillCpfCnpjCommandTest.php  # 1062 duplicate uk_contacts_biz_tax no tenant 98 — 1 caso
+tests/Feature/Cliente/ClienteDrawerCadastroAutosaveTest.php  # 1452 FK de contacts falha no fixture — 1 caso
+tests/Feature/Cliente/ClienteLookupCnpjCepTest.php  # JSON esperado ausente na resposta — 2 casos
+tests/Feature/Cliente/SefazInvariantesAntiRegressaoTest.php  # contagem 2 onde espera ≤1 — 2 casos
+tests/Feature/Cliente/StoreContactRequestTest.php  # sessão sem a chave errors — 4 casos
