@@ -43,6 +43,7 @@ on:
       - 'app/Http/Controllers/Api/App/RelatoriosController.php'
       - 'app/Http/Controllers/Api/App/DashboardController.php'
       - 'Modules/Financeiro/Services/UnificadoService.php'
+      - 'app/Http/Controllers/Api/App/FiscalController.php'
       - 'routes/api.php'
       - 'app/Http/Controllers/SellPosController.php'
       # Sob teste em SellsCreateV3ContratoTest (UC-V302/V303). Sem este gatilho, mexer no
@@ -135,6 +136,7 @@ jobs:
               - 'app/Http/Controllers/Api/App/RelatoriosController.php'
               - 'app/Http/Controllers/Api/App/DashboardController.php'
               - 'Modules/Financeiro/Services/UnificadoService.php'
+              - 'app/Http/Controllers/Api/App/FiscalController.php'
               - 'routes/api.php'
               - 'resources/js/Pages/Sells/**'
               - 'database/schema/mysql-schema.sql'
@@ -257,6 +259,7 @@ jobs:
             tests/Feature/Sells/AppOsApiContratoTest.php \
             tests/Feature/Sells/AppVendaRapidaProdutosApiContratoTest.php \
             tests/Feature/Sells/AppFinanceiroApiContratoTest.php \
+            tests/Feature/Sells/AppFiscalApiContratoTest.php \
             tests/Feature/Sells/AppRelatoriosApiContratoTest.php \
             tests/Feature/Sells/AppDashboardApiContratoTest.php \
             tests/Feature/Sells/SellsCreateV3ContratoTest.php \
