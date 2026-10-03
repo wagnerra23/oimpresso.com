@@ -40,7 +40,13 @@ import NumericInputPtBR from '@/Components/ui/numeric-input-ptbr';
 import { dropdownEntries } from './_components/dropdownEntries';
 import { camposDeSubtipo } from './_components/subtipoVenda';
 import ReparoSection, { type RepairPosProps } from './_components/ReparoSection';
-import { camposDeReparo, itensDoChecklist, reparoInicial, reparoValido } from './_components/reparoVenda';
+import {
+  camposDeReparo,
+  itensDoChecklist,
+  pecasParaCarrinho,
+  reparoInicial,
+  reparoValido,
+} from './_components/reparoVenda';
 import {
   Select,
   SelectContent,
@@ -190,9 +196,11 @@ function defaultTransactionDate(backendDefault: string): string {
 }
 
 export default function SellsCreate(props: SellsCreatePageProps) {
+  // UC-S07 — venda aberta a partir de uma OS (/pos/create?sub_type=repair&job_sheet_id=N).
+  const osOrigem = props.repairPos?.osOrigem ?? null;
   // Defaults conservadores ROTA LIVRE: status=final, transaction_date=HOJE (robusto).
   const { data, setData, post, processing, errors, transform } = useForm({
-    location_id: props.defaultLocation?.id ?? null,
+    location_id: osOrigem?.location_id ?? props.defaultLocation?.id ?? null,
     contact_id: props.walkInCustomer.id,
     transaction_date: defaultTransactionDate(props.defaultDatetime),
     status: 'final' as 'final' | 'quotation' | 'draft' | 'proforma',
@@ -207,8 +215,11 @@ export default function SellsCreate(props: SellsCreatePageProps) {
     // relevante quando OficinaAuto habilitado; em vestuário fica sempre null.
     vehicle_id: null as number | null,
     // UC-S05 — dados do aparelho/atendimento na venda de reparo (seção Reparo).
-    reparo: reparoInicial(props.repairPos?.defaultStatusId),
-    products: [] as Array<{
+    reparo: osOrigem
+      ? { ...reparoInicial(props.repairPos?.defaultStatusId), ...osOrigem.reparo, repair_job_sheet_id: osOrigem.job_sheet_id }
+      : reparoInicial(props.repairPos?.defaultStatusId),
+    // UC-S07 — peças da OS entram como se adicionadas à mão (preço do /products/list).
+    products: (osOrigem ? pecasParaCarrinho(osOrigem.pecas) : []) as Array<{
       product_id: number;
       variation_id: number | null;
       name: string;
@@ -863,8 +874,11 @@ export default function SellsCreate(props: SellsCreatePageProps) {
     const bizId = business?.id;
     const userId = auth?.user?.id;
     if (!bizId || !userId) return null;
+    // UC-S07 — venda da OS não usa rascunho: recuperar outra venda por cima da OS misturaria
+    // carrinho e cliente de origens diferentes.
+    if (osOrigem) return null;
     return `oimpresso.sells.create.draft.${bizId}.${userId}`;
-  }, [auth, business]);
+  }, [auth, business, osOrigem]);
 
   // Recover ao montar (apenas 1x). Pergunta antes — Larissa pode ter terminado em outro tab.
   // Wagner 2026-05-27 HOTFIX: substituído window.confirm() nativo (botões cinza do browser,
@@ -951,6 +965,15 @@ export default function SellsCreate(props: SellsCreatePageProps) {
 
   // postMessage: recebe contato criado na aba de cadastro (/contacts/create-page).
   const [forcedCustomer, setForcedCustomer] = useState<{ id: number; text: string } | null>(null);
+
+  // UC-S07 — o cliente da OS entra pelo MESMO caminho de quando o operador o escolhe:
+  // contato, prazo, endereço e — se o cliente tiver grupo de preço — a reprecificação.
+  useEffect(() => {
+    if (!osOrigem?.cliente) return;
+    handleCustomerSelect(osOrigem.cliente as unknown as CustomerSearchResult);
+    setForcedCustomer({ id: osOrigem.cliente.id, text: osOrigem.cliente.text });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   useEffect(() => {
     const handler = (event: MessageEvent) => {
       if (event.data?.type === 'contact_created' && event.data?.contact) {

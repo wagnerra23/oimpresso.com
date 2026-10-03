@@ -14,6 +14,7 @@ import {
   modelosFiltrados,
   type ChecklistValor,
   type ModeloAparelho,
+  type PecaDaOs,
   type ReparoForm,
 } from './reparoVenda';
 
@@ -24,6 +25,23 @@ export type RepairPosProps = {
   devices: Record<string, string>;
   modelos: ModeloAparelho[];
   checklistPadrao: string[];
+  /** UC-S07 — venda aberta a partir de uma OS (`job_sheet_id`); null na venda de reparo avulsa. */
+  osOrigem: {
+    job_sheet_id: number;
+    job_sheet_no: string;
+    location_id: number | null;
+    cliente: {
+      id: number;
+      text: string;
+      pay_term_number: number | string | null;
+      pay_term_type: string | null;
+      shipping_address: string | null;
+      selling_price_group_id: number | null;
+    } | null;
+    reparo: Omit<ReparoForm, 'repair_warranty_id' | 'repair_completed_on' | 'repair_job_sheet_id'>;
+    pecas: PecaDaOs[];
+    pecasNaoEncontradas: string[];
+  } | null;
   warranties: Record<string, string>;
   defeitosSugeridos: string[];
 };
@@ -109,6 +127,20 @@ export default function ReparoSection({ opcoes, valor, onChange }: Props) {
             Reparo
           </Inline>
         </CardTitle>
+        {opcoes.osOrigem && (
+          <div className="mt-2 space-y-1 text-sm" role="status">
+            <p className="text-muted-foreground">
+              Venda da OS <b>{opcoes.osOrigem.job_sheet_no}</b>: cliente, aparelho e{' '}
+              {opcoes.osOrigem.pecas.length} peça(s) trazidos da OS. Confira preços e quantidades antes de salvar.
+            </p>
+            {opcoes.osOrigem.pecasNaoEncontradas.length > 0 && (
+              <p className="text-destructive">
+                Não entraram no carrinho (produto fora deste local ou indisponível):{' '}
+                {opcoes.osOrigem.pecasNaoEncontradas.join(', ')}.
+              </p>
+            )}
+          </div>
+        )}
       </CardHeader>
       <CardContent>
         <Grid cols={1} gap={4} className="md:grid-cols-2 lg:grid-cols-4">
