@@ -91,7 +91,9 @@ categoria.
 
 `POST /api/app/vendas`: **⬜ PR separado. Só mergeia com dupla prova, tabela antes→depois e ok do [W].**
 Header `Idempotency-Key` obrigatório. Corpo `{ cliente_id|null, metodo, itens:[{ variacao_id, quantidade,
-preco_unitario }], total_previsto }`. Os números vão como texto `"N.NN"` (ponto, até 2 casas).
+preco_unitario }], total_previsto }`. Os números vão como texto `"N.NN"` (ponto, até 2 casas). Na v1 a
+quantidade é inteira (`"3.00"`); fração → `422 campos["itens.N.quantidade"]`. Assim o total da venda é a
+soma exata em centavos de preço × quantidade, sem arredondamento por linha.
 
 - **Caminho:** venda direta pelo `TransactionUtil` (`createSellTransaction` → `createOrUpdateSellLines` →
   `createOrUpdatePaymentLines` → baixa de estoque → `updatePaymentStatus` → `mapPurchaseSell`), igual ao
@@ -266,8 +268,8 @@ Mesmos campos e regras do §4.2, **menos** `tipo` e `papeis` (mudar papel fica n
   abas que o usuário pode abrir, na ordem do app. Cada uma segue a mesma regra da rota dela, então
   aba visível = rota que responde: `tarefas` = Essentials no plano ou quem aprova o Ponto;
   `pedidos`/`producao`/`orcamentos` = quem vê vendas; `pessoas` = quem vê cliente ou fornecedor; `ponto` =
-  colaborador com `controla_ponto`; `assistente` = quem conversa com a Jana (§12.4); `equipe` = quem vê a lista de usuários (§12.2); `ponto_gestor` = quem tem acesso ao módulo Ponto (§12.1); `financeiro` = a regra de §10.1; `fiscal` = a regra de §10.2; `inicio` só para perfil `erp`; `mais` sempre.
-  `perfil` = `erp` se tem tarefas, vendas, pessoas, financeiro ou fiscal, senão `colaborador`. `abre_em` = `inicio`
+  colaborador com `controla_ponto`; `fiscal` = a regra de §10.2; `assistente` = quem conversa com a Jana (§12.4); `equipe` = quem vê a lista de usuários (§12.2); `ponto_gestor` = quem tem acesso ao módulo Ponto (§12.1); `financeiro` = a regra de §10.1; `relatorios` = algum bloco de §10.3 visível; `dashboard` = `dashboard.data` (§10.4); `pagamentos` = a regra do Financeiro (§10.5); `inicio` só para perfil `erp`; `mais` sempre.
+  `perfil` = `erp` se tem tarefas, vendas, pessoas, financeiro, fiscal, relatórios ou dashboard, senão `colaborador`. `abre_em` = `inicio`
   (erp), `ponto` (colaborador) ou `mais` (sem nenhuma das duas).
 
 - `faturado_hoje` e `meta_dia`: só com `dashboard.data` (senão `null`). Meta do dia = meta mensal
@@ -361,6 +363,9 @@ que citam a numeração antiga continuam valendo por esta tabela (fixa; não acr
 | §10 (área) | [tela-06-financeiro.md](api/tela-06-financeiro.md) |
 | §10.1 | [tela-06-financeiro.md](api/tela-06-financeiro.md) |
 | §10.2 | [tela-14-fiscal.md](api/tela-14-fiscal.md) |
+| §10.3 | [tela-13-relatorios.md](api/tela-13-relatorios.md) |
+| §10.4 | [tela-35-dashboard.md](api/tela-35-dashboard.md) |
+| §10.5 | [tela-15-pagamentos.md](api/tela-15-pagamentos.md) |
 | §11 (área: regra de acesso da Oficina) | [tela-07-ordens-de-servico.md](api/tela-07-ordens-de-servico.md) |
 | §11.1 | [tela-07-ordens-de-servico.md](api/tela-07-ordens-de-servico.md) |
 | §11.2 | [tela-03-detalhe-da-os.md](api/tela-03-detalhe-da-os.md) |

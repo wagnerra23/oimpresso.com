@@ -108,6 +108,8 @@ class JanaServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
+        // Chat com a Jana do app das lojas (tela 25): implementa o contrato do núcleo.
+        $this->app->bind(\App\Contracts\Chat\ChatAssistente::class, \Modules\Jana\Services\ChatDoApp::class);
         $this->app->singleton(\Modules\Jana\Services\SuggestionEngine::class);
         $this->app->singleton(\Modules\Jana\Services\ApuracaoService::class);
         $this->app->singleton(\Modules\Jana\Services\ContextSnapshotService::class);

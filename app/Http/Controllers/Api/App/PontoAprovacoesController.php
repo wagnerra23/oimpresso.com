@@ -4,25 +4,23 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api\App;
 
+use App\Contracts\Ponto\FilaGestorPonto;
 use App\Http\Controllers\Controller;
 use App\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Modules\Ponto\Entities\Marcacao;
-use Modules\Ponto\Http\Middleware\CheckPontoAccess;
-use Modules\Ponto\Services\FilaGestorRepPService;
 
 /**
  * Marcações a validar — fila do gestor do REP-P no app das lojas (tela 39).
  * Contrato: memory/requisitos/AppMobile/API-CONTRATO-v1.md §12.1.
  *
  * Só marcações do celular FORA do geofence, últimos 7 dias. A regra é a da tela web
- * /ponto/aprovacoes (FilaGestorRepPService, um lugar só):
+ * /ponto/aprovacoes, e chega aqui pelo contrato do núcleo FilaGestorPonto, que o módulo Ponto
+ * implementa (a seta de dependência fica módulo → núcleo):
  *  - validar → registro na trilha; a marcação não muda;
  *  - recusar → Marcacao::anular(): lançamento NOVO de anulação. Nunca UPDATE/DELETE em
  *    ponto_marcacoes (Portaria 671/2021).
- * Acesso = o do módulo Ponto (CheckPontoAccess::permite); recusar exige ainda
- * `ponto.aprovacoes.manage`, como a rota web.
+ * Acesso = o do módulo Ponto; recusar exige ainda `ponto.aprovacoes.manage`, como a rota web.
  *
  * Tier 0 (ADR 0093): business_id do usuário do token em tudo; marcação de outro business = 404.
  */
@@ -30,14 +28,14 @@ class PontoAprovacoesController extends Controller
 {
     private const ESTADOS = ['pendente', 'validada', 'recusada', 'todas'];
 
-    public function __construct(private FilaGestorRepPService $fila)
+    public function __construct(private FilaGestorPonto $fila)
     {
     }
 
     /** Área `ponto_gestor` do Início: a mesma regra que abre esta rota. */
     public function podeVerFila(User $user): bool
     {
-        return CheckPontoAccess::permite($user);
+        return $this->fila->podeVer($user);
     }
 
     public function index(Request $request): JsonResponse
@@ -56,32 +54,32 @@ class PontoAprovacoesController extends Controller
             ], 422);
         }
 
-        $bizId = (int) $user->business_id;
-        $marcacoes = $this->fila->fila($bizId);
-        $estados = $this->fila->estados($bizId, $marcacoes->map(fn (Marcacao $m) => (string) $m->id)->all());
-        $nomes = $this->fila->nomes($bizId, $marcacoes);
+        $marcacoes = $this->fila->marcacoes((int) $user->business_id);
 
-        $contadores = ['pendente' => 0, 'validada' => 0, 'recusada' => 0, 'todas' => $marcacoes->count()];
-        foreach ($estados as $e) {
-            $contadores[strtolower($e)]++;
+        $contadores = ['pendente' => 0, 'validada' => 0, 'recusada' => 0, 'todas' => count($marcacoes)];
+        foreach ($marcacoes as $m) {
+            $contadores[$m['estado']]++;
         }
 
-        $itens = $marcacoes
-            ->filter(fn (Marcacao $m) => $estado === 'todas' || strtolower($estados[(string) $m->id]) === $estado)
-            ->map(fn (Marcacao $m) => [
-                'id' => (string) $m->id,
-                'colaborador_nome' => $nomes[$m->colaborador_config_id] ?? '—',
-                'tipo' => (string) $m->tipo,
-                'local_texto' => $this->localTexto($bizId, $m),
-                'marcada_em' => $m->momento?->toIso8601String(),
-                'nsr' => (int) $m->nsr,
+        $itens = [];
+        foreach ($marcacoes as $m) {
+            if ($estado !== 'todas' && $m['estado'] !== $estado) {
+                continue;
+            }
+            $itens[] = [
+                'id' => $m['id'],
+                'colaborador_nome' => $m['colaborador_nome'],
+                'tipo' => $m['tipo'],
+                'local_texto' => $m['local_texto'],
+                'marcada_em' => $m['marcada_em'],
+                'nsr' => $m['nsr'],
                 // O REP-P não grava a precisão do GPS na marcação (só no log de auditoria).
                 'gps_precisao_m' => null,
-                'dispositivo' => $m->dispositivo_id !== null ? (string) $m->dispositivo_id : null,
-                'hash_curto' => substr((string) $m->hash, 0, 8),
-                'estado' => strtolower($estados[(string) $m->id]),
-            ])
-            ->values();
+                'dispositivo' => $m['dispositivo'],
+                'hash_curto' => $m['hash_curto'],
+                'estado' => $m['estado'],
+            ];
+        }
 
         return response()->json([
             'itens' => $itens,
@@ -97,22 +95,16 @@ class PontoAprovacoesController extends Controller
         if (! $this->podeVerFila($user)) {
             return $this->semPermissao();
         }
-        $bizId = (int) $user->business_id;
-        $m = $this->fila->marcacao($bizId, $id);
-        if (! $m) {
-            return $this->naoEncontrada();
-        }
-        if ($this->fila->estado($bizId, $m) !== FilaGestorRepPService::PENDENTE) {
-            return $this->jaRevisada();
-        }
-        if (! $this->fila->validar($user, $bizId, $m)) {
-            return response()->json([
+
+        return match ($this->fila->validar($user, (int) $user->business_id, $id)) {
+            FilaGestorPonto::VALIDADA => response()->json(['estado' => 'validada']),
+            FilaGestorPonto::JA_REVISADA => $this->jaRevisada(),
+            FilaGestorPonto::TRILHA_DESLIGADA => response()->json([
                 'erro' => 'trilha_desligada',
                 'mensagem' => 'A trilha de auditoria está desligada — a validação não foi registrada.',
-            ], 503);
-        }
-
-        return response()->json(['estado' => 'validada']);
+            ], 503),
+            default => $this->naoEncontrada(),
+        };
     }
 
     public function recusar(Request $request, string $id): JsonResponse
@@ -122,30 +114,14 @@ class PontoAprovacoesController extends Controller
         if (! $this->podeVerFila($user) || ! $user->can('ponto.aprovacoes.manage')) {
             return $this->semPermissao();
         }
-        $bizId = (int) $user->business_id;
-        $m = $this->fila->marcacao($bizId, $id);
-        if (! $m) {
-            return $this->naoEncontrada();
-        }
-        if ($this->fila->estado($bizId, $m) !== FilaGestorRepPService::PENDENTE) {
-            return $this->jaRevisada();
-        }
 
-        $anulacao = $this->fila->recusar($user, $m);
+        $r = $this->fila->recusar($user, (int) $user->business_id, $id);
 
-        return response()->json(['estado' => 'recusada', 'nsr_anulacao' => (int) $anulacao->nsr]);
-    }
-
-    private function localTexto(int $bizId, Marcacao $m): ?string
-    {
-        $d = $this->fila->distanciaMetros($bizId, $m);
-        if ($d === null) {
-            return null;
-        }
-
-        return $d >= 1000
-            ? 'A ' . number_format($d / 1000, 1, ',', '.') . ' km do local de trabalho'
-            : 'A ' . (int) round($d) . ' m do local de trabalho';
+        return match ($r['resultado']) {
+            FilaGestorPonto::RECUSADA => response()->json(['estado' => 'recusada', 'nsr_anulacao' => $r['nsr_anulacao']]),
+            FilaGestorPonto::JA_REVISADA => $this->jaRevisada(),
+            default => $this->naoEncontrada(),
+        };
     }
 
     private function semPermissao(): JsonResponse

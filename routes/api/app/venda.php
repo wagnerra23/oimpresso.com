@@ -6,3 +6,5 @@ use Illuminate\Support\Facades\Route;
 // Um arquivo por área do app, para cada PR tocar só o seu (contrato: memory/requisitos/AppMobile/).
 
 Route::get('/venda/produtos', [\App\Http\Controllers\Api\App\VendaRapidaController::class, 'produtos'])->name('venda.produtos');
+// REGRA MESTRE (valor + estoque): API-CONTRATO-v1 §2.2. Idempotency-Key obrigatória.
+Route::post('/vendas', [\App\Http\Controllers\Api\App\VendaRapidaController::class, 'store'])->name('vendas.store');

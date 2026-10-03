@@ -40,8 +40,13 @@ on:
       - 'app/Http/Controllers/Api/App/OficinaController.php'
       - 'app/Http/Controllers/Api/App/VendaRapidaController.php'
       - 'app/Http/Controllers/Api/App/FinanceiroController.php'
+      - 'app/Http/Controllers/Api/App/RelatoriosController.php'
+      - 'app/Http/Controllers/Api/App/DashboardController.php'
+      - 'app/Http/Controllers/Api/App/PagamentosController.php'
       - 'Modules/Financeiro/Services/UnificadoService.php'
       - 'app/Http/Controllers/Api/App/FiscalController.php'
+      - 'app/Services/AppLojas/**'
+      - 'database/migrations/2026_10_02_160000_create_app_idempotencia_table.php'
       - 'routes/api.php'
       - 'routes/api/app/**'
       - 'app/Http/Controllers/SellPosController.php'
@@ -132,8 +137,13 @@ jobs:
               - 'app/Http/Controllers/Api/App/OficinaController.php'
               - 'app/Http/Controllers/Api/App/VendaRapidaController.php'
               - 'app/Http/Controllers/Api/App/FinanceiroController.php'
+              - 'app/Http/Controllers/Api/App/RelatoriosController.php'
+              - 'app/Http/Controllers/Api/App/DashboardController.php'
+              - 'app/Http/Controllers/Api/App/PagamentosController.php'
               - 'Modules/Financeiro/Services/UnificadoService.php'
               - 'app/Http/Controllers/Api/App/FiscalController.php'
+              - 'app/Services/AppLojas/**'
+              - 'database/migrations/2026_10_02_160000_create_app_idempotencia_table.php'
               - 'routes/api.php'
               - 'routes/api/app/**'
               - 'resources/js/Pages/Sells/**'
@@ -258,6 +268,10 @@ jobs:
             tests/Feature/Sells/AppVendaRapidaProdutosApiContratoTest.php \
             tests/Feature/Sells/AppFinanceiroApiContratoTest.php \
             tests/Feature/Sells/AppFiscalApiContratoTest.php \
+            tests/Feature/Sells/AppRelatoriosApiContratoTest.php \
+            tests/Feature/Sells/AppDashboardApiContratoTest.php \
+            tests/Feature/Sells/AppVendaRapidaCriarApiContratoTest.php \
+            tests/Feature/Sells/AppPagamentosApiContratoTest.php \
             tests/Feature/Sells/SellsCreateV3ContratoTest.php \
             tests/Feature/Sells/Wave1ShowBaselineTest.php \
             tests/Feature/Sells/Wave1ShowInertiaTest.php \

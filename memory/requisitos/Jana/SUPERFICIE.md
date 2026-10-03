@@ -14,7 +14,7 @@ module: Jana
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Jana/**` + `resources/js/Pages/Jana/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 576 arquivos em 19 papéis.
+**Total mapeado:** 577 arquivos em 19 papéis.
 
 ## Controllers — 11
 
@@ -44,7 +44,7 @@ module: Jana
 
 - [McpAuthMiddleware.php](../../../Modules/Jana/Http/Middleware/McpAuthMiddleware.php)
 
-## Services — 94
+## Services — 95
 
 - [AcaoHitlService.php](../../../Modules/Jana/Services/AcaoHitlService.php)
 - [ProximaPerguntaService.php](../../../Modules/Jana/Services/Advisor/ProximaPerguntaService.php)
@@ -59,6 +59,7 @@ module: Jana
 - [BriefDiarioService.php](../../../Modules/Jana/Services/BriefDiarioService.php)
 - [SemanticCacheService.php](../../../Modules/Jana/Services/Cache/SemanticCacheService.php)
 - [CharterHealthChecker.php](../../../Modules/Jana/Services/CharterHealthChecker.php)
+- [ChatDoApp.php](../../../Modules/Jana/Services/ChatDoApp.php)
 - [ChatTurnoService.php](../../../Modules/Jana/Services/ChatTurnoService.php)
 - [ContextSnapshotService.php](../../../Modules/Jana/Services/ContextSnapshotService.php)
 - [CustosService.php](../../../Modules/Jana/Services/CustosService.php)
