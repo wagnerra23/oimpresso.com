@@ -8,71 +8,70 @@ use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 use Inertia\Response;
 use Modules\ConsultaOs\Http\Requests\ConsultaPublicaRequest;
-use Modules\ConsultaOs\Services\ConsultaOsMockService;
+use Modules\ConsultaOs\Repositories\RepairConsultaOsRepository;
+use Modules\ConsultaOs\Services\ConsultaOsService;
 use App\Support\Privacy\PiiRedactor;
 
 /**
- * ConsultaOsController — Portal publico de consulta de OS (mock-only).
+ * ConsultaOsController — portal público de consulta de OS (US-CONSULTA-001).
  *
- * Arquitetura (SoC — D4):
+ * Desde 2026-10-02 (decisão [W] "Ligar o ConsultaOs ao Repair") a busca lê as folhas de OS
+ * reais do Modules/Repair — o mock de 4 OS fixas saiu. O antigo /repair-status passou a
+ * redirecionar pra cá (CustomerRepairStatusController::index).
  *
- * - index(): boot do Inertia React (zero props — pagina opera 100% client-side via
- *   useState; nao usa Inertia partial reload). D6.a Inertia::defer marcado N/A
- *   justificado no SPEC.md (frontmatter `na_justified.D6.a`, ADR 0155).
+ * - index(): boot do Inertia React. Uma prop só, `buscaPorCelular` — leitura de config,
+ *   barata, eager (exceção do Inertia::defer pra config static).
+ * - buscar(): JSON público (sem auth). Critério validado pelo ConsultaPublicaRequest
+ *   (tipo em lista fechada + número não vazio) e revalidado no repositório; throttle 30/min.
  *
- * - buscar(): endpoint JSON publico (sem auth). Validacao anti-enumeration via
- *   ConsultaPublicaRequest (FormRequest dedicado — D8.c): `alpha_num` + `max:20`
- *   + lista controlada de estagios. Throttle/rate-limit aplicado via middleware
- *   na rota (defesa em profundidade — TODO infra na US-CONSULTA-001).
- *
- * Status: mock-only ate US-CONSULTA-001 substituir mockData() por query real em
- * Modules/Repair via Service read-only (canary 7d ROTA LIVRE antes outros tenants).
- * Mapping pendente Wagner: invoice_no + ultimos 4 do telefone (padrao Repair).
- *
- * Tier 0 multi-tenant: consulta publica por protocolo unico globally — NAO scopa
- * por business_id hoje. Quando US-CONSULTA-001 ativar busca real, Service deve
- * resolver business_id via lookup do protocolo + rate limit por IP.
+ * Tier 0 (ADR 0093): sem business_id — o portal não sabe a empresa do cliente; um nº válido
+ * é procurado em todas as empresas (igual ao /repair-status). PENDENTE [W], ver o docblock do
+ * RepairConsultaOsRepository. O payload é a whitelist montada no repositório.
  *
  * @see memory/requisitos/ConsultaOs/SPEC.md
- * @see memory/decisions/0155-module-grade-v3-sub-dimensoes-gate-ci.md §188 (D6.a N/A pattern)
- * @see Modules\ConsultaOs\Http\Requests\ConsultaPublicaRequest (D8.c FormRequest)
+ * @see Modules\ConsultaOs\Repositories\RepairConsultaOsRepository
  */
 class ConsultaOsController extends Controller
 {
     public function __construct(
-        private readonly ConsultaOsMockService $service,
+        private readonly ConsultaOsService $service,
     ) {
     }
 
     public function index(): Response
     {
-        // D6.a N/A justified — zero props (pagina React opera client-state + fetch
-        // JSON via @buscar). Quando US-CONSULTA-001 entregar payload real via Inertia
-        // props, aplicar Inertia::defer pattern (RUNBOOK-inertia-defer-pattern.md).
-        return Inertia::render('ConsultaOs/Index');
+        return Inertia::render('ConsultaOs/Index', [
+            'buscaPorCelular' => in_array('mobile_num', RepairConsultaOsRepository::tiposHabilitados(), true),
+        ]);
     }
 
     public function buscar(ConsultaPublicaRequest $request): JsonResponse
     {
-        $numero  = $request->input('numero');
-        $estagio = $request->input('estagio', 'todos');
+        $tipo = (string) $request->input('tipo');
+        $numero = (string) $request->input('numero');
+        $serie = $request->filled('serie') ? (string) $request->input('serie') : null;
 
-        // Wave 18 D4 — Service-driven (SoC brutal). Controller responsabiliza-se
-        // apenas por validacao (ConsultaPublicaRequest) + auditoria. Mock vs real
-        // e decidido no Provider via bind(ConsultaOsRepositoryInterface).
-        $resultado = $this->service->buscar($numero, $estagio);
+        try {
+            $resultado = $this->service->buscar($tipo, $numero, $serie);
+        } catch (\Throwable $e) {
+            // Mesma postura do #8527: nada de detalhe técnico pro público.
+            Log::error('consultaos.busca_falhou', ['erro' => class_basename($e)]);
+            $this->auditarConsulta($request, $numero, $tipo, 'erro');
+
+            return response()->json(['found' => false], 500);
+        }
 
         if (! $resultado['found']) {
-            $this->auditarConsulta($request, $numero, $estagio, $resultado['reason'] ?? 'not_found');
+            $this->auditarConsulta($request, $numero, $tipo, $resultado['reason'] ?? 'not_found');
 
             return response()->json(['found' => false], 404);
         }
 
-        $this->auditarConsulta($request, $numero, $estagio, 'found');
+        $this->auditarConsulta($request, $numero, $tipo, 'found');
 
         return response()->json([
             'found' => true,
-            'os'    => $resultado['os'],
+            'ordens' => $resultado['ordens'],
         ]);
     }
 
@@ -84,8 +83,7 @@ class ConsultaOsController extends Controller
      * truncado a 80 chars, resultado e timestamp. Retencao 365d conforme
      * `Modules/ConsultaOs/Config/retention.php` (consulta_os_logs).
      *
-     * NAO loga: business_id (rota publica nao tem sessao), dados da OS encontrada
-     * (mock-only nao tem PII real; query-real fase US-CONSULTA-001 manter mesma regra).
+     * NAO loga: business_id (rota publica nao tem sessao) nem dados da OS encontrada.
      *
      * LGPD Art. 5º §II — registro tecnico de seguranca da rede (necessidade legitima
      * + nao requer aviso previo ao titular conforme retention.notice_period_days=0).
@@ -93,7 +91,7 @@ class ConsultaOsController extends Controller
     private function auditarConsulta(
         ConsultaPublicaRequest $request,
         string $numero,
-        string $estagio,
+        string $tipo,
         string $resultado
     ): void {
         $redactor = app(PiiRedactor::class);
@@ -104,7 +102,7 @@ class ConsultaOsController extends Controller
 
         Log::channel(config('logging.default'))->info('consultaos.busca_publica', [
             'numero_redacted' => $redactor->redact($numero),
-            'estagio'         => $estagio,
+            'tipo'            => $tipo,
             'resultado'       => $resultado,
             'ip_truncado'     => $ipTruncado,
             'user_agent'      => substr((string) $request->userAgent(), 0, 80),
@@ -135,7 +133,4 @@ class ConsultaOsController extends Controller
 
         return '0.0.0.0';
     }
-
-    // mockData() removido Wave 18 — extraido pra MockConsultaOsRepository
-    // (Repository pattern + bind no Provider). Trocar fonte = 1 linha (US-CONSULTA-001).
 }

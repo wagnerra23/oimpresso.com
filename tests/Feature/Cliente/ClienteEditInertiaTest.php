@@ -36,11 +36,13 @@ beforeEach(function () {
         $this->markTestSkipped('Migration 2026_05_21_140000 (BR fields) ainda não rodou neste ambiente.');
     }
 
-    $this->business = $this->seededTenant(); // biz=1 canônico (ADR 0101) — skip acionável se o seed faltar
-    $this->user = \App\User::where('business_id', $this->business->id)->first();
-    if (! $this->user) {
-        $this->markTestSkipped('Sem user no business.');
-    }
+    $this->business = $this->seededTenant(); // tenant de teste (ADR 0358) — skip acionável se o seed faltar
+    // edit()/update() exigem customer.update (ou supplier.update / *.view_own) no ContactController.
+    $this->user = $this->usuarioComPermissoes(['customer.update'], $this->business);
+
+    // Versão de assets pedida ao próprio middleware: com '1' fixo, o servidor (que usa o md5
+    // do manifest) via versão diferente e respondia 409 pedindo recarga da página.
+    $this->versaoInertia = app(\App\Http\Middleware\HandleInertiaRequests::class)->version(request());
 
     config(['mwart.cliente_edit.enabled' => true]);
 
@@ -50,9 +52,9 @@ beforeEach(function () {
         'created_by' => $this->user->id,
         'type' => 'customer',
         'contact_type' => 'business',
+        // Sem first_name/last_name: as colunas não existem mais em contacts (schema:dump de prod).
+        // O formulário ainda MANDA esses campos no PUT abaixo — o controller monta `name` e os descarta.
         'name' => 'Cliente Edit Inertia Test',
-        'first_name' => 'Cliente Edit',
-        'last_name' => 'Inertia Test',
         'mobile' => '11999990000',
         'contact_status' => 'active',
         // Campos BR que o bug fix preserva no payload edit().
@@ -81,7 +83,7 @@ beforeEach(function () {
 // ---------------------------------------------------------------------
 
 test('GET /contacts/{id}/edit Inertia retorna campos BR no props.contact (não-null)', function () {
-    $response = $this->withHeaders(['X-Inertia' => 'true', 'X-Inertia-Version' => '1'])
+    $response = $this->withHeaders(['X-Inertia' => 'true', 'X-Inertia-Version' => $this->versaoInertia])
         ->get("/contacts/{$this->contactId}/edit");
 
     $response->assertStatus(200);
@@ -121,7 +123,7 @@ test('GET /contacts/{id}/edit Inertia retorna campos BR no props.contact (não-n
 // ---------------------------------------------------------------------
 
 test('PUT /contacts/{id} via Inertia atualiza cpf_cnpj e redireciona com flash', function () {
-    $response = $this->withHeaders(['X-Inertia' => 'true', 'X-Inertia-Version' => '1'])
+    $response = $this->withHeaders(['X-Inertia' => 'true', 'X-Inertia-Version' => $this->versaoInertia])
         ->put("/contacts/{$this->contactId}", [
             'type' => 'customer',
             'contact_type_radio' => 'business',
@@ -129,7 +131,11 @@ test('PUT /contacts/{id} via Inertia atualiza cpf_cnpj e redireciona com flash',
             'last_name' => 'Inertia Atualizado',
             'cpf_cnpj' => '11444777000161',
             'nome_fantasia' => 'Fantasia Renomeada',
-            'regime' => 'lucro_presumido',
+            // 'presumido' é o valor que o formulário de cliente manda (resources/js/Lib/format-br.ts)
+            // e o único que a UpdateContactRequest aceita (in:simples,presumido,real,mei). O teste
+            // nasceu mandando 'lucro_presumido' — vocabulário do Fiscal/NF-e —, a validação recusava
+            // o PUT, e como o arquivo nunca rodou em CI ninguém viu.
+            'regime' => 'presumido',
             'consumidor_final' => false,
             'contribuinte' => true,
             'opening_balance' => '0',
@@ -137,13 +143,18 @@ test('PUT /contacts/{id} via Inertia atualiza cpf_cnpj e redireciona com flash',
         ]);
 
     // Inertia redirect: 302 (Inertia client interpreta como navegação interna).
-    $response->assertStatus(302);
+    // 303, não 302: o middleware do Inertia (v3) converte o 302 de PUT/PATCH/DELETE em 303
+    // para o navegador seguir com GET (vendor/inertiajs/inertia-laravel/src/Middleware.php).
+    $response->assertStatus(303);
+    // O 303 também é o que volta quando a validação recusa (redirect back). Sem isto a recusa
+    // aparecia lá embaixo como "o CPF não mudou", longe da causa.
+    $response->assertSessionHasNoErrors();
 
     $contact = DB::table('contacts')->where('id', $this->contactId)->first();
 
     expect($contact->cpf_cnpj)->toBe('11444777000161');
     expect($contact->nome_fantasia)->toBe('Fantasia Renomeada');
-    expect($contact->regime)->toBe('lucro_presumido');
+    expect($contact->regime)->toBe('presumido');
 });
 
 // ---------------------------------------------------------------------
@@ -156,15 +167,13 @@ test('Tier 0 — user de outro business recebe 404 ao tentar GET edit', function
         $this->markTestSkipped('Sem 2º business pra teste cross-tenant.');
     }
 
-    $otherUser = \App\User::where('business_id', $otherBusiness->id)->first();
-    if (! $otherUser) {
-        $this->markTestSkipped('Sem user no business secundário.');
-    }
+    // Com a MESMA permissão: assim o 404 prova isolamento por business, e não falta de acesso.
+    $otherUser = $this->usuarioComPermissoes(['customer.update'], \App\Business::findOrFail($otherBusiness->id));
 
     $this->actingAs($otherUser);
     session(['user.business_id' => $otherBusiness->id]);
 
-    $response = $this->withHeaders(['X-Inertia' => 'true', 'X-Inertia-Version' => '1'])
+    $response = $this->withHeaders(['X-Inertia' => 'true', 'X-Inertia-Version' => $this->versaoInertia])
         ->get("/contacts/{$this->contactId}/edit");
 
     // findOrFail no edit() retorna 404 quando contact não pertence ao business da sessão.

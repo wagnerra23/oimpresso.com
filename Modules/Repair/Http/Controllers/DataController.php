@@ -54,11 +54,14 @@ class DataController extends Controller
         // As datas só mudam quando o formulário as envia. O PDV de reparo sempre envia (vazio =
         // limpar); a edição pela lista de vendas (Sells/Edit React e sell.edit Blade) não envia
         // nenhum campo de reparo — antes, salvar por ali zerava entrega e conclusão (UC-SEDIT-11).
+        // uf_datetime_input aceita ISO (o que o PDV React manda) e, fora disso, o formato de
+        // data da empresa (o que o PDV Blade manda). Antes era só uf_date: o React mandava
+        // DD/MM fixo, que numa empresa m/d/Y trocava dia e mês ou falhava.
         if (array_key_exists('repair_completed_on', $input)) {
-            $transaction->repair_completed_on = ! empty($input['repair_completed_on']) ? $repairUtil->uf_date($input['repair_completed_on'], true) : null;
+            $transaction->repair_completed_on = ! empty($input['repair_completed_on']) ? $repairUtil->uf_datetime_input($input['repair_completed_on']) : null;
         }
         if (array_key_exists('repair_due_date', $input)) {
-            $transaction->repair_due_date = ! empty($input['repair_due_date']) ? $repairUtil->uf_date($input['repair_due_date'], true) : null;
+            $transaction->repair_due_date = ! empty($input['repair_due_date']) ? $repairUtil->uf_datetime_input($input['repair_due_date']) : null;
         }
 
         $transaction->save();

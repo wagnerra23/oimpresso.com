@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Cliente;
 
+use App\Business;
 use App\Contact;
 use App\User;
 use Tests\TestCase;
@@ -22,11 +23,15 @@ class RedirectLegacyContactsTest extends TestCase
 {
     private function actingAsBiz1User(): User
     {
-        $user = User::where('business_id', 1)->first();
-
-        if (! $user) {
-            $this->markTestSkipped('biz=1 user não existe no DB de teste.');
+        // Fica no business 1 porque os casos de canário configuram `business_ids => [1]`.
+        // Usuário NOVO com leitura e criação de contato: desde o #8442/#8443 (2026-10-01)
+        // /contacts exige customer.view antes de redirecionar, e o usuário do seed do CI
+        // não tem papel nenhum — sem isto os casos "não é 301" passavam por um 403.
+        $business = Business::find(1);
+        if (! $business) {
+            $this->markTestSkipped('biz=1 não existe no DB de teste.');
         }
+        $user = $this->usuarioComPermissoes(['customer.view', 'supplier.view', 'customer.create'], $business);
 
         session(['user.business_id' => 1]);
         $this->actingAs($user);

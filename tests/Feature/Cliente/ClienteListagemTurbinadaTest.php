@@ -66,8 +66,11 @@ test('GUARD 2 — Pages/Cliente/_components/Pills.tsx contem TipoPill + TagChip 
         ->toContain("'recente'")
         ->toContain("'distante'")
         ->toContain("'frio'")
-        // SaldoCell vermelho devedor (positivo = cliente nos deve = text-rose-700).
-        ->toContain('text-rose-700');
+        // SaldoCell vermelho devedor (positivo = cliente nos deve). Token do DS desde o #2655
+        // (2026-06-13, era text-rose-700). Ancorado no ternário do SaldoCell porque
+        // text-destructive-fg solto também aparece no StatusPill/FrescorPill do mesmo arquivo.
+        ->toContain('const isDevedor = valor > 0;')
+        ->toContain("(isDevedor ? 'text-destructive-fg' : 'text-success-fg')");
 });
 
 // ─── GUARD 3: Index.tsx importa Avatar + Pills + Star ────────────────────────

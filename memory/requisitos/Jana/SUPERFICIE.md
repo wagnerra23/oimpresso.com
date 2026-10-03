@@ -14,7 +14,7 @@ module: Jana
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Jana/**` + `resources/js/Pages/Jana/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 574 arquivos em 19 papéis.
+**Total mapeado:** 577 arquivos em 19 papéis.
 
 ## Controllers — 11
 
@@ -44,7 +44,7 @@ module: Jana
 
 - [McpAuthMiddleware.php](../../../Modules/Jana/Http/Middleware/McpAuthMiddleware.php)
 
-## Services — 93
+## Services — 95
 
 - [AcaoHitlService.php](../../../Modules/Jana/Services/AcaoHitlService.php)
 - [ProximaPerguntaService.php](../../../Modules/Jana/Services/Advisor/ProximaPerguntaService.php)
@@ -59,6 +59,8 @@ module: Jana
 - [BriefDiarioService.php](../../../Modules/Jana/Services/BriefDiarioService.php)
 - [SemanticCacheService.php](../../../Modules/Jana/Services/Cache/SemanticCacheService.php)
 - [CharterHealthChecker.php](../../../Modules/Jana/Services/CharterHealthChecker.php)
+- [ChatDoApp.php](../../../Modules/Jana/Services/ChatDoApp.php)
+- [ChatTurnoService.php](../../../Modules/Jana/Services/ChatTurnoService.php)
 - [ContextSnapshotService.php](../../../Modules/Jana/Services/ContextSnapshotService.php)
 - [CustosService.php](../../../Modules/Jana/Services/CustosService.php)
 - [GovernancaService.php](../../../Modules/Jana/Services/GovernancaService.php)
@@ -354,14 +356,14 @@ module: Jana
 - [Plataforma.casos.md](../../../resources/js/Pages/Jana/Plataforma.casos.md)
 - [Pro.casos.md](../../../resources/js/Pages/Jana/Pro.casos.md)
 
-## Testes (Pest) — 196
+## Testes (Pest) — 197
 
 - 42 em [Modules/Jana/Tests/Feature/](../../../Modules/Jana/Tests/Feature)
 - 12 em [Modules/Jana/Tests/Feature/Ai/](../../../Modules/Jana/Tests/Feature/Ai)
 - 2 em [Modules/Jana/Tests/Feature/Ai/Advisor/](../../../Modules/Jana/Tests/Feature/Ai/Advisor)
 - 2 em [Modules/Jana/Tests/Feature/Ai/Clarify/](../../../Modules/Jana/Tests/Feature/Ai/Clarify)
 - 2 em [Modules/Jana/Tests/Feature/Backlinks/](../../../Modules/Jana/Tests/Feature/Backlinks)
-- 4 em [Modules/Jana/Tests/Feature/Chat/](../../../Modules/Jana/Tests/Feature/Chat)
+- 5 em [Modules/Jana/Tests/Feature/Chat/](../../../Modules/Jana/Tests/Feature/Chat)
 - 8 em [Modules/Jana/Tests/Feature/Console/](../../../Modules/Jana/Tests/Feature/Console)
 - 5 em [Modules/Jana/Tests/Feature/Http/](../../../Modules/Jana/Tests/Feature/Http)
 - 2 em [Modules/Jana/Tests/Feature/Kb/](../../../Modules/Jana/Tests/Feature/Kb)
