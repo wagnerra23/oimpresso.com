@@ -41,6 +41,7 @@ on:
       - 'app/Http/Controllers/Api/App/VendaRapidaController.php'
       - 'app/Http/Controllers/Api/App/FinanceiroController.php'
       - 'Modules/Financeiro/Services/UnificadoService.php'
+      - 'app/Http/Controllers/Api/App/FiscalController.php'
       - 'routes/api.php'
       - 'routes/api/app/**'
       - 'app/Http/Controllers/SellPosController.php'
@@ -132,6 +133,7 @@ jobs:
               - 'app/Http/Controllers/Api/App/VendaRapidaController.php'
               - 'app/Http/Controllers/Api/App/FinanceiroController.php'
               - 'Modules/Financeiro/Services/UnificadoService.php'
+              - 'app/Http/Controllers/Api/App/FiscalController.php'
               - 'routes/api.php'
               - 'routes/api/app/**'
               - 'resources/js/Pages/Sells/**'
@@ -255,6 +257,7 @@ jobs:
             tests/Feature/Sells/AppOsApiContratoTest.php \
             tests/Feature/Sells/AppVendaRapidaProdutosApiContratoTest.php \
             tests/Feature/Sells/AppFinanceiroApiContratoTest.php \
+            tests/Feature/Sells/AppFiscalApiContratoTest.php \
             tests/Feature/Sells/SellsCreateV3ContratoTest.php \
             tests/Feature/Sells/Wave1ShowBaselineTest.php \
             tests/Feature/Sells/Wave1ShowInertiaTest.php \

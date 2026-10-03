@@ -266,8 +266,8 @@ Mesmos campos e regras do §4.2, **menos** `tipo` e `papeis` (mudar papel fica n
   abas que o usuário pode abrir, na ordem do app. Cada uma segue a mesma regra da rota dela, então
   aba visível = rota que responde: `tarefas` = Essentials no plano ou quem aprova o Ponto;
   `pedidos`/`producao`/`orcamentos` = quem vê vendas; `pessoas` = quem vê cliente ou fornecedor; `ponto` =
-  colaborador com `controla_ponto`; `ponto_gestor` = quem tem acesso ao módulo Ponto (§12.1); `equipe` = quem vê a lista de usuários (§12.2); `financeiro` = a regra de §10.1; `assistente` = quem conversa com a Jana (§12.4); `inicio` só para perfil `erp`; `mais` sempre.
-  `perfil` = `erp` se tem tarefas, vendas, pessoas ou financeiro, senão `colaborador`. `abre_em` = `inicio`
+  colaborador com `controla_ponto`; `assistente` = quem conversa com a Jana (§12.4); `equipe` = quem vê a lista de usuários (§12.2); `ponto_gestor` = quem tem acesso ao módulo Ponto (§12.1); `financeiro` = a regra de §10.1; `fiscal` = a regra de §10.2; `inicio` só para perfil `erp`; `mais` sempre.
+  `perfil` = `erp` se tem tarefas, vendas, pessoas, financeiro ou fiscal, senão `colaborador`. `abre_em` = `inicio`
   (erp), `ponto` (colaborador) ou `mais` (sem nenhuma das duas).
 
 - `faturado_hoje` e `meta_dia`: só com `dashboard.data` (senão `null`). Meta do dia = meta mensal
@@ -360,6 +360,7 @@ que citam a numeração antiga continuam valendo por esta tabela (fixa; não acr
 | §9.4 | [tela-20-novo-produto.md](api/tela-20-novo-produto.md) |
 | §10 (área) | [tela-06-financeiro.md](api/tela-06-financeiro.md) |
 | §10.1 | [tela-06-financeiro.md](api/tela-06-financeiro.md) |
+| §10.2 | [tela-14-fiscal.md](api/tela-14-fiscal.md) |
 | §11 (área: regra de acesso da Oficina) | [tela-07-ordens-de-servico.md](api/tela-07-ordens-de-servico.md) |
 | §11.1 | [tela-07-ordens-de-servico.md](api/tela-07-ordens-de-servico.md) |
 | §11.2 | [tela-03-detalhe-da-os.md](api/tela-03-detalhe-da-os.md) |
