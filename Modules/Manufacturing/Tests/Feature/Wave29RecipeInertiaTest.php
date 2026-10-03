@@ -146,6 +146,92 @@ describe('UC-RECIPE-03/04/05 — modelo de custo (§7 do handoff · DB-less)', f
     });
 });
 
+/**
+ * Uma linha já CALCULADA, no formato de `presentRecipe` — só os campos que filtro, KPI e ordem
+ * leem. Os testes abaixo não recalculam custo nenhum: eles provam onde a lista é cortada.
+ */
+function mfgLinha(int $id, string $name, array $over = []): array
+{
+    return array_replace_recursive([
+        'id' => $id, 'name' => $name, 'sku' => "SKU-{$id}", 'cat' => 'Impressos', 'sub' => '—',
+        'waste' => 0.0, 'venda' => 10.0,
+        'custos' => ['qtd_liq' => 1.0, 'total' => 1.0, 'unit' => 1.0, 'margem' => 50.0],
+    ], $over);
+}
+
+/** Ids na ordem em que saíram — é o que a lista mostra. */
+function mfgIds(array $linhas): array
+{
+    return array_map(fn ($l) => $l['id'], $linhas);
+}
+
+describe('UC-RECIPE-09/10/11 — filtro, KPI e ordem no servidor (DB-less)', function () {
+
+    // Desde 2026-10-02 a lista pagina no SERVIDOR e estas regras saíram do navegador pra
+    // `RecipeBomService::filtrarOrdenar`. Os valores de cada caso foram escolhidos pra separar
+    // a regra certa da errada vizinha (44,9 × 45 · 7,99 × 8 · "10" × "9"), não pra passar.
+
+    it('UC-RECIPE-09 a busca casa nome, SKU, categoria e subcategoria, sem diferenciar maiuscula', function () {
+        $s = new RecipeBomService();
+        $todas = [
+            mfgLinha(1, 'Banner Lona', ['sku' => 'BN-01', 'cat' => 'Impressos', 'sub' => 'Lona']),
+            mfgLinha(2, 'Adesivo', ['sku' => 'AD-02', 'cat' => 'Adesivos', 'sub' => 'Vinil']),
+            mfgLinha(3, 'Placa', ['sku' => 'PL-03', 'cat' => 'Placas', 'sub' => 'ACM']),
+        ];
+
+        expect(mfgIds($s->filtrarOrdenar($todas, ['q' => 'LONA'])))->toBe([1]);   // nome e sub
+        expect(mfgIds($s->filtrarOrdenar($todas, ['q' => 'ad-02'])))->toBe([2]);  // SKU
+        expect(mfgIds($s->filtrarOrdenar($todas, ['q' => 'placas'])))->toBe([3]); // categoria
+        expect(mfgIds($s->filtrarOrdenar($todas, ['q' => 'acm'])))->toBe([3]);    // subcategoria
+        expect(mfgIds($s->filtrarOrdenar($todas, ['q' => '   '])))->toBe([2, 1, 3]);
+
+        // Categoria é EXATA: "Adesivo" não casa "Adesivos".
+        expect(mfgIds($s->filtrarOrdenar($todas, ['cat' => 'Adesivos'])))->toBe([2]);
+        expect($s->filtrarOrdenar($todas, ['cat' => 'Adesivo']))->toBe([]);
+    });
+
+    it('UC-RECIPE-10 o KPI 2 e o 3 filtram; os numeros do topo contam TODAS as receitas', function () {
+        $s = new RecipeBomService();
+        $todas = [
+            mfgLinha(1, 'a', ['custos' => ['margem' => 44.9, 'unit' => 1.0], 'waste' => 7.99]),
+            mfgLinha(2, 'b', ['custos' => ['margem' => 45.0, 'unit' => 2.0], 'waste' => 8.0]),
+            mfgLinha(3, 'c', ['custos' => ['margem' => 60.0, 'unit' => 6.0], 'waste' => 0.0]),
+        ];
+
+        // R-05: margem ABAIXO de 45 (45 fica fora) · desperdício a partir de 8 (7,99 fica fora).
+        expect(mfgIds($s->filtrarOrdenar($todas, ['kpi' => 'margem'])))->toBe([1]);
+        expect(mfgIds($s->filtrarOrdenar($todas, ['kpi' => 'custo'])))->toBe([2]);
+
+        // Os KPIs saem da lista inteira — o filtro e a página não mexem neles (§4.2).
+        expect($s->kpis($todas))->toBe([
+            'total' => 3, 'custo_medio' => 3.0, 'margem_baixa' => 1, 'desperdicio' => 1,
+        ]);
+        expect($s->kpis([]))->toBe(['total' => 0, 'custo_medio' => 0.0, 'margem_baixa' => 0, 'desperdicio' => 0]);
+    });
+
+    it('UC-RECIPE-11 ordena pelas 7 colunas nos dois sentidos, texto por caractere como o navegador', function () {
+        $s = new RecipeBomService();
+        $todas = [
+            mfgLinha(1, '9', ['custos' => ['unit' => 5.0]]),
+            mfgLinha(2, '10', ['custos' => ['unit' => 1.0]]),
+            mfgLinha(3, 'b', ['custos' => ['unit' => 5.0]]),
+        ];
+
+        // Por caractere, "10" vem antes de "9". O `<=>` do PHP compararia como NÚMERO e
+        // inverteria os dois — é a diferença que este caso existe pra pegar.
+        expect(mfgIds($s->filtrarOrdenar($todas, ['sort' => 'name'])))->toBe([2, 1, 3]);
+        expect(mfgIds($s->filtrarOrdenar($todas, ['sort' => 'name', 'dir' => 'desc'])))->toBe([3, 1, 2]);
+
+        // Número em ordem numérica, e o empate (1 e 3 com 5,00) mantém a ordem de chegada.
+        expect(mfgIds($s->filtrarOrdenar($todas, ['sort' => 'unit'])))->toBe([2, 1, 3]);
+        expect(mfgIds($s->filtrarOrdenar($todas, ['sort' => 'unit', 'dir' => 'desc'])))->toBe([1, 3, 2]);
+
+        // Coluna desconhecida cai no nome — nunca num campo que a URL inventou.
+        expect(mfgIds($s->filtrarOrdenar($todas, ['sort' => 'business_id'])))->toBe([2, 1, 3]);
+        expect(RecipeBomService::ORDENAVEIS)->toBe(['name', 'cat', 'qtd', 'total', 'unit', 'venda', 'margem']);
+    });
+});
+
 describe('UC-RECIPE-00 — alcance pelo menu (DB-less)', function () {
 
     // UC-RECIPE-00 · o item do sidebar precisa APONTAR pra esta rota.

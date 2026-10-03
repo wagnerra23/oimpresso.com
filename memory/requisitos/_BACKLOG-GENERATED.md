@@ -1282,7 +1282,7 @@
 
 ### todo
 
-- **US-CONSULTA-001** — Substituir mock por query real em Modules/Repair `pendente`
+- **US-CONSULTA-001** — Substituir mock por query real em Modules/Repair `parcial`
 - **US-CONSULTA-002** — Canary 7d em ROTA LIVRE `pendente`
 - **US-CONSULTA-003** — Criar BRIEFING.md após migração real `pendente`
 

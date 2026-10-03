@@ -5,6 +5,7 @@ namespace Modules\Repair\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\View;
 use Modules\Repair\Concerns\LogsWithPiiRedactor;
 use Modules\Repair\Entities\JobSheet;
@@ -14,12 +15,23 @@ class CustomerRepairStatusController extends Controller
 {
     use LogsWithPiiRedactor; // D7.a Wave 17 — wrap Log::emergency com PiiRedactor
     /**
-     * Display a listing of the resource.
+     * Portal do cliente (GET /repair-status) — leva ao ConsultaOs.
      *
-     * @return Response
+     * Decisão [W] 2026-10-02 (D-PORTAL, playbook repair/_DECISOES-W-2026-10-02): o portal
+     * público é o ConsultaOs (Inertia), que passou a ler estas mesmas folhas de OS
+     * (US-CONSULTA-001). Redireciona em vez de renderizar a Page aqui pra a tela ter UMA
+     * URL — links antigos e QR impressos seguem funcionando. 302 (não 301): se o
+     * ConsultaOs for desligado, o navegador não guardou o desvio.
+     *
+     * Sem o ConsultaOs registrado (módulo desligado) cai na tela Blade de sempre, que usa
+     * o POST endurecido abaixo.
      */
     public function index()
     {
+        if (Route::has('consulta-os.index')) {
+            return redirect()->route('consulta-os.index');
+        }
+
         return view('repair::customer_repair.index');
     }
 

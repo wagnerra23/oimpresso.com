@@ -8,6 +8,7 @@ use App\Utils\TransactionUtil;
 use App\Variation;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
@@ -172,10 +173,51 @@ class RecipeController extends Controller
         $ordens = $productionService->summary($business_id);
         $mes = $productionService->monthSummary($business_id);
 
+        // §9 — custo recalculado NO SERVIDOR a cada leitura, a partir do
+        // `variations.dpp_inc_tax` de hoje. O cliente formata, não calcula.
+        $todas = $this->recipeBomService->listRecipesWithCost($business_id);
+
+        // Desde 2026-10-02 a lista pagina AQUI (playbook ds-atomos D-GRADE · ADR de design 0412
+        // item 2 do handoff da Fabricação), pra a tela usar o `shared/DataTable` como o resto do
+        // app. Muda ONDE se filtra, ordena e corta — o custo de cada receita é o mesmo
+        // `presentRecipe` de antes, calculado sobre a lista inteira.
+        $filtros = [
+            'q'    => trim((string) request()->query('q', '')) ?: null,
+            'cat'  => trim((string) request()->query('cat', '')) ?: null,
+            'kpi'  => in_array(request()->query('kpi'), ['margem', 'custo'], true) ? request()->query('kpi') : null,
+            'sort' => in_array(request()->query('sort'), RecipeBomService::ORDENAVEIS, true) ? request()->query('sort') : 'name',
+            'dir'  => request()->query('dir') === 'desc' ? 'desc' : 'asc',
+        ];
+        $filtradas = $this->recipeBomService->filtrarOrdenar($todas, $filtros);
+
+        $porPagina = 10; // R-07 — 10 por página, como o protótipo
+        $ultima = max(1, (int) ceil(count($filtradas) / $porPagina));
+        // Filtro que encolhe a lista não deixa a pessoa numa página que não existe mais.
+        $pagina = min(max(1, (int) request()->query('page', 1)), $ultima);
+        $recipes = (new LengthAwarePaginator(
+            array_slice($filtradas, ($pagina - 1) * $porPagina, $porPagina),
+            count($filtradas),
+            $porPagina,
+            $pagina,
+            ['path' => request()->url()]
+        ))->withQueryString();
+
         return Inertia::render('Manufacturing/Recipes', [
-            // §9 — custo recalculado NO SERVIDOR a cada leitura, a partir do
-            // `variations.dpp_inc_tax` de hoje. O cliente formata, não calcula.
-            'recipes' => $this->recipeBomService->listRecipesWithCost($business_id),
+            'recipes' => $recipes,
+            'filtros' => $filtros,
+            // KPIs sobre TODAS as receitas, nunca sobre a página nem o filtro (§4.2).
+            'kpis' => $this->recipeBomService->kpis($todas),
+            // Categorias na ordem de chegada (nome do produto) — a mesma do `Set` que o cliente montava.
+            'categorias' => array_values(array_unique(array_map(fn ($r) => $r['cat'], $todas))),
+            // R-08 — "Selecionar todas" marca as FILTRADAS, não só as da página: a tela precisa dos ids.
+            'ids_filtrados' => array_map(fn ($r) => $r['id'], $filtradas),
+            // Fichas das receitas marcadas em OUTRAS páginas — só calculado no reload parcial que
+            // a impressão pede (`only: ['fichas']`). Sai da mesma lista já isolada por tenant.
+            'fichas' => Inertia::optional(function () use ($todas) {
+                $ids = array_map('intval', array_filter(explode(',', (string) request()->query('fichas', ''))));
+
+                return array_values(array_filter($todas, fn ($r) => in_array($r['id'], $ids, true)));
+            }),
             'permissions' => [
                 'criar'  => auth()->user()->can('manufacturing.add_recipe'),
                 'editar' => auth()->user()->can('manufacturing.edit_recipe'),

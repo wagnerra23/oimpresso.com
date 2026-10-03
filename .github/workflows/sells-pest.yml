@@ -34,8 +34,18 @@ on:
       - 'app/Http/Controllers/SellController.php'
       - 'app/Http/Controllers/Api/App/PedidosController.php'
       - 'app/Http/Controllers/Api/App/InicioController.php'
+      - 'app/Http/Controllers/Api/App/PerfilMenuController.php'
+      - 'database/migrations/2026_10_02_190000_create_app_menu_preferencias_table.php'
       - 'app/Http/Controllers/Api/App/NotificacoesController.php'
       - 'app/Http/Controllers/Api/App/OficinaController.php'
+      - 'app/Http/Controllers/Api/App/VendaRapidaController.php'
+      - 'app/Http/Controllers/Api/App/FinanceiroController.php'
+      - 'app/Http/Controllers/Api/App/RelatoriosController.php'
+      - 'app/Http/Controllers/Api/App/DashboardController.php'
+      - 'Modules/Financeiro/Services/UnificadoService.php'
+      - 'app/Http/Controllers/Api/App/FiscalController.php'
+      - 'app/Services/AppLojas/**'
+      - 'database/migrations/2026_10_02_160000_create_app_idempotencia_table.php'
       - 'routes/api.php'
       - 'app/Http/Controllers/SellPosController.php'
       # Sob teste em SellsCreateV3ContratoTest (UC-V302/V303). Sem este gatilho, mexer no
@@ -119,8 +129,18 @@ jobs:
               - 'app/Jobs/ImportarVendasJob.php'
               - 'app/Http/Controllers/Api/App/PedidosController.php'
               - 'app/Http/Controllers/Api/App/InicioController.php'
+              - 'app/Http/Controllers/Api/App/PerfilMenuController.php'
+              - 'database/migrations/2026_10_02_190000_create_app_menu_preferencias_table.php'
               - 'app/Http/Controllers/Api/App/NotificacoesController.php'
               - 'app/Http/Controllers/Api/App/OficinaController.php'
+              - 'app/Http/Controllers/Api/App/VendaRapidaController.php'
+              - 'app/Http/Controllers/Api/App/FinanceiroController.php'
+              - 'app/Http/Controllers/Api/App/RelatoriosController.php'
+              - 'app/Http/Controllers/Api/App/DashboardController.php'
+              - 'Modules/Financeiro/Services/UnificadoService.php'
+              - 'app/Http/Controllers/Api/App/FiscalController.php'
+              - 'app/Services/AppLojas/**'
+              - 'database/migrations/2026_10_02_160000_create_app_idempotencia_table.php'
               - 'routes/api.php'
               - 'resources/js/Pages/Sells/**'
               - 'database/schema/mysql-schema.sql'
@@ -216,6 +236,11 @@ jobs:
         # "opção 2 no D3"): reverter lote importado apaga tudo ou nada, com retrato no log.
         # Lote normal volta estoque e total ao número exato de antes da importação; lote com
         # venda devolvida não muda nada (REGRA MESTRE, dupla prova) + cruzamento de tenant.
+        #
+        # 2026-10-02 — + AppFinanceiroApiContratoTest (tela 06 do app, §10.1 do contrato):
+        # GET /api/app/financeiro, só leitura. Resumo conferido por delta contra a conta à mão
+        # e contra o UnificadoService::kpis; títulos, baixas e contas do business 2 fora do 98.
+        # NASCE SEM RUN: vermelho aqui é este arquivo.
         env:
           DB_CONNECTION: mysql
           DB_HOST: 127.0.0.1
@@ -233,8 +258,15 @@ jobs:
             tests/Feature/Sells/SellsIndexFiltroDataFimContratoTest.php \
             tests/Feature/Sells/AppPedidosApiContratoTest.php \
             tests/Feature/Sells/AppInicioApiContratoTest.php \
+            tests/Feature/Sells/AppPerfilMenuApiContratoTest.php \
             tests/Feature/Sells/AppNotificacoesApiContratoTest.php \
             tests/Feature/Sells/AppOsApiContratoTest.php \
+            tests/Feature/Sells/AppVendaRapidaProdutosApiContratoTest.php \
+            tests/Feature/Sells/AppFinanceiroApiContratoTest.php \
+            tests/Feature/Sells/AppFiscalApiContratoTest.php \
+            tests/Feature/Sells/AppRelatoriosApiContratoTest.php \
+            tests/Feature/Sells/AppDashboardApiContratoTest.php \
+            tests/Feature/Sells/AppVendaRapidaCriarApiContratoTest.php \
             tests/Feature/Sells/SellsCreateV3ContratoTest.php \
             tests/Feature/Sells/Wave1ShowBaselineTest.php \
             tests/Feature/Sells/Wave1ShowInertiaTest.php \
