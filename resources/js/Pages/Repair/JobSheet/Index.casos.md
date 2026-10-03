@@ -6,7 +6,7 @@ tecnica: Caso de uso = narrativa do operador + critério de aceite verificável 
 por_que: comportamento é durável — "a lista vem do mesmo endpoint do Blade" e "OS de outro negócio não aparece" valem em qualquer troca do motor da tabela
 owner: wagner
 autor: "[CL] 2026-09-30"
-last_run: "2026-10-01"
+last_run: "2026-10-02"
 ---
 
 # Casos de Uso & Aceite — Lista de OS
@@ -41,6 +41,11 @@ last_run: "2026-10-01"
 > positiva. Prova no run
 > [36851236035](https://github.com/wagnerra23/oimpresso.com/actions/runs/36851236035): os 6 UCs
 > `passed`, nenhum `skipped` (asserções no JUnit: 03=9 · 04=3 · 06=5).
+>
+> **Revalidação 2026-10-02 (thread 02 do playbook Repair, `last_run`).** A tela trocou o header shared
+> pelo canon (título 22px). Lane `PHP / Pest (Verticais · MySQL)` no branch, run
+> [37040619260](https://github.com/wagnerra23/oimpresso.com/actions/runs/37040619260) (verde): `RepairJobSheetIndexContratoTest` 6 testes, 21 asserções,
+> 0 falhas, 0 skipped (01=1 · 02=1 · 03=9 · 04=3 · 05=2 · 06=5).
 >
 > Os UCs 03/04/06 ficam **🧪**, e não ✅, até o manifesto por-UC ser republicado pelo cron
 > (`casos-results-publish`) — ✅ é o veredito do manifesto, não deste arquivo.

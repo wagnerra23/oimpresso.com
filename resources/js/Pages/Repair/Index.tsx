@@ -9,7 +9,8 @@ import { Plus, ChevronLeft, ChevronRight, Search, X } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
-import PageHeader from '@/Components/shared/PageHeader';
+import { PageHeader } from '@/Components/PageHeader';
+import { Icon } from '@/Components/Icon';
 import KpiCard from '@/Components/shared/KpiCard';
 import EmptyState from '@/Components/shared/EmptyState';
 
@@ -189,11 +190,13 @@ function Index({ repairs, filters, meta, permissions }: Props) {
 
   return (
     <div className="space-y-6 p-6">
+      {/* Header canon (@/Components/PageHeader, ADR 0189/0190): título 22px = --fs-7. O shared
+          (deprecated) fixava text-2xl = 24px — thread 02 do playbook Repair, 2026-10-02. */}
       <PageHeader
-        icon="wrench"
+        leading={<Icon name="wrench" size={18} className="mr-2 inline-block align-[-2px] text-primary" />}
         title="Ordens de Serviço"
-        description="Listagem MWART (Sprint 2). Port 1:1 da tela Blade — mesmos filtros, mesmos dados."
-        action={
+        subtitle="Listagem MWART (Sprint 2). Port 1:1 da tela Blade — mesmos filtros, mesmos dados."
+        actions={
           permissions.create ? (
             <Button asChild>
               <a href="/sells/create?sub_type=repair">

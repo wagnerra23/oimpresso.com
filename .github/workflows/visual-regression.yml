@@ -462,6 +462,15 @@ jobs:
           # é 200, mas é o Blade `contact.contact_map`. Provado no dispatch 32981167404.
           # Escopo: ambiente do runner do visreg. Não toca produção.
           MWART_CLIENTE_MAP=true
+          # MWART_REPAIR_INDEX / MWART_REPAIR_JOB_SHEET_INDEX=true: mesma razão dos de cima,
+          # medida em 2026-10-02 — RepairController::index e JobSheetController::index só
+          # renderizam a Page Inertia sob mwartEnabled(...) (config/mwart.php, default false).
+          # Sem os flags, /repair/repair e /repair/job-sheet servem o Blade e o
+          # assertInertia(component) do PixelBaselineTest reprova. Entram no gate por decisão
+          # [W] 2026-10-02 ("gera as fotos de Repair e JobSheet").
+          # Escopo: ambiente do runner do visreg. Não toca produção.
+          MWART_REPAIR_INDEX=true
+          MWART_REPAIR_JOB_SHEET_INDEX=true
           # VISREG_FREEZE_CLOCK: congela `new Date()`/`Date.now()` DO NAVEGADOR no mesmo
           # instante que as suítes passam pro Carbon::setTestNow (PixelBaselineTest:78 e
           # irmãs). Sem isso, tela que renderiza "agora" no browser (JanaAreaHeader.tsx:80,

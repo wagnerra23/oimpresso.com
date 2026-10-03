@@ -6,7 +6,7 @@ tecnica: Caso de uso = narrativa do operador + criterio de aceite verificavel (D
 por_que: o que dura e o CONTRATO — "a fila e de venda-de-reparo, nao de JobSheet" e "quem so tem view_own nao ve a fila inteira" valem em qualquer refactor da tela
 owner: wagner
 autor: "[C] 2026-09-05"
-last_run: "2026-09-05"
+last_run: "2026-10-02"
 ---
 
 # Casos de Uso & Aceite — Ordens de Serviço (fila)
@@ -17,6 +17,12 @@ last_run: "2026-09-05"
 > derivar o caso (§5 2026-06-05 — teste tautológico).
 >
 > **Status:** ✅ passa (prova no manifesto) · 🧪 teste cita o UC e passa · ⬜ não verificado · ❌ quebrou.
+>
+> **Revalidação 2026-10-02 (thread 02 do playbook Repair, `last_run`).** A tela trocou o header shared
+> pelo canon (título 22px). Lane `PHP / Pest (Verticais · MySQL)` no branch, run
+> [37040619260](https://github.com/wagnerra23/oimpresso.com/actions/runs/37040619260) (verde): `RepairIndexContratoTest` 6 testes, 21 asserções,
+> 0 falhas, **1 skipped** — o UC-RIDX-02 saiu `skipped` (0 asserções) neste run, logo **não foi
+> medido** aqui; o status dele abaixo segue sendo o do run de 2026-09-05.
 >
 > ⚠️ **A distinção que dá nome à tela:** `/repair/repair` lista a **VENDA-de-reparo**
 > (`transactions` com `sub_type='repair'`), **não** a Ordem-de-Serviço (`repair_job_sheets`, que é
@@ -120,7 +126,8 @@ last_run: "2026-09-05"
   prod biz=1 (2026-10-02) apareciam um chip vazio e um chip "null", e clicar neles mandava
   `repair_status_id` não numérico. Num negócio com status, os status reais nem viravam chip.
 - **Teste:** `Modules/Repair/Tests/Feature/RepairIndexContratoTest.php`
-- **Status: ⬜** _(teste escrito em 2026-10-02; veredito pelo CI da lane `verticais-pest`)_
+- **Status: 🧪** _(teste cita o UC e passa — CI `PHP / Pest (Verticais · MySQL)`, run
+  [37040619260](https://github.com/wagnerra23/oimpresso.com/actions/runs/37040619260), 2026-10-02: passed, 4 asserções, não pulado)_
 
 ---
 
