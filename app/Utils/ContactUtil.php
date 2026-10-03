@@ -66,7 +66,7 @@ class ContactUtil extends Util
      *
      * @param  int  $business_id
      * @param  int  $contact_id
-     * @return array
+     * @return \App\Contact|null  null quando o contato não existe NESTE business
      */
     public function getContactInfo($business_id, $contact_id)
     {

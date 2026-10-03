@@ -267,6 +267,10 @@ class ContactController extends Controller
         $business_id = request()->session()->get('user.business_id');
         \App\Contact::where('business_id', $business_id)->findOrFail($id);
         $contact = $this->contactUtil->getContactInfo($business_id, $id);
+        // Não acontece depois do findOrFail acima, mas getContactInfo devolve Contact|null.
+        if ($contact === null) {
+            abort(404);
+        }
 
         $enabled = request()->session()->get('business.enable_rp') == 1
             && in_array($contact->type, ['customer', 'both'], true);

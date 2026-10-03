@@ -24369,12 +24369,6 @@ parameters:
 			path: app/Utils/ContactUtil.php
 
 		-
-			message: '#^Method App\\Utils\\ContactUtil\:\:getContactInfo\(\) should return array but returns App\\Contact\|null\.$#'
-			identifier: return.type
-			count: 1
-			path: app/Utils/ContactUtil.php
-
-		-
 			message: '#^Method App\\Utils\\ContactUtil\:\:getCustomerGroup\(\) should return array but returns App\\Contact\|null\.$#'
 			identifier: return.type
 			count: 1
