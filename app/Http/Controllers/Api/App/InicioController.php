@@ -75,12 +75,14 @@ class InicioController extends Controller
         $oficina = app(OficinaController::class)->podeVerOficina($user);
         $financeiro = app(FinanceiroController::class)->podeVerFinanceiro($user);
         $fiscal = app(FiscalController::class)->podeVerFiscal($user);
+        $relatorios = app(RelatoriosController::class)->podeVerRelatorios($user);
+        $dashboard = app(DashboardController::class)->podeVerDashboard($user);
         $ponto = DB::table('ponto_colaborador_config')
             ->where('business_id', (int) $user->business_id)
             ->where('user_id', (int) $user->id)
             ->where('controla_ponto', true)
             ->exists();
-        $erp = $tarefas || $vendas || $pessoas || $produtos || $oficina || $financeiro || $fiscal;
+        $erp = $tarefas || $vendas || $pessoas || $produtos || $oficina || $financeiro || $fiscal || $relatorios || $dashboard;
 
         $areas = array_keys(array_filter([
             'inicio' => $erp,
@@ -94,6 +96,8 @@ class InicioController extends Controller
             'oficina' => $oficina,
             'financeiro' => $financeiro,
             'fiscal' => $fiscal,
+            'relatorios' => $relatorios,
+            'dashboard' => $dashboard,
             'ponto' => $ponto,
             'ponto_gestor' => app(PontoAprovacoesController::class)->podeVerFila($user),
             'equipe' => app(EquipeController::class)->podeVerEquipe($user),
@@ -163,17 +167,7 @@ class InicioController extends Controller
     private function metaDia(int $bizId): ?array
     {
         $hoje = Carbon::today();
-
-        $alvo = DB::table('jana_meta_periodos as p')
-            ->join('jana_metas as m', 'm.id', '=', 'p.meta_id')
-            ->where('m.business_id', $bizId)
-            ->where('m.ativo', true)
-            ->where('m.slug', 'like', 'faturamento%')
-            ->where('p.tipo_periodo', 'mes')
-            ->whereDate('p.data_ini', '<=', $hoje->toDateString())
-            ->whereDate('p.data_fim', '>=', $hoje->toDateString())
-            ->orderByDesc('p.id')
-            ->value('p.valor_alvo');
+        $alvo = $this->alvoMensal($bizId);
 
         if ($alvo === null) {
             return null;
@@ -187,6 +181,27 @@ class InicioController extends Controller
         }
 
         return ['valor' => round((float) $alvo / max($uteis, 1), 2), 'derivada' => true];
+    }
+
+    /**
+     * Alvo do período MENSAL vigente de uma meta ativa de faturamento (slug começando com
+     * "faturamento") do business — base da meta do dia (Início) e da meta do mês (Dashboard §10.4).
+     */
+    public function alvoMensal(int $bizId): ?float
+    {
+        $hoje = Carbon::today()->toDateString();
+        $alvo = DB::table('jana_meta_periodos as p')
+            ->join('jana_metas as m', 'm.id', '=', 'p.meta_id')
+            ->where('m.business_id', $bizId)
+            ->where('m.ativo', true)
+            ->where('m.slug', 'like', 'faturamento%')
+            ->where('p.tipo_periodo', 'mes')
+            ->whereDate('p.data_ini', '<=', $hoje)
+            ->whereDate('p.data_fim', '>=', $hoje)
+            ->orderByDesc('p.id')
+            ->value('p.valor_alvo');
+
+        return $alvo === null ? null : (float) $alvo;
     }
 
     /** @return array{a_receber: float, a_pagar: float}|null */
