@@ -47,6 +47,8 @@ on:
       - 'Modules/Financeiro/Models/ContaBancaria.php'
       - 'Modules/Financeiro/Services/UnificadoService.php'
       - 'app/Http/Controllers/Api/App/FiscalController.php'
+      - 'app/Services/AppLojas/**'
+      - 'database/migrations/2026_10_02_160000_create_app_idempotencia_table.php'
       - 'routes/api.php'
       - 'app/Http/Controllers/SellPosController.php'
       # Sob teste em SellsCreateV3ContratoTest (UC-V302/V303). Sem este gatilho, mexer no
@@ -143,6 +145,8 @@ jobs:
               - 'Modules/Financeiro/Models/ContaBancaria.php'
               - 'Modules/Financeiro/Services/UnificadoService.php'
               - 'app/Http/Controllers/Api/App/FiscalController.php'
+              - 'app/Services/AppLojas/**'
+              - 'database/migrations/2026_10_02_160000_create_app_idempotencia_table.php'
               - 'routes/api.php'
               - 'resources/js/Pages/Sells/**'
               - 'database/schema/mysql-schema.sql'
@@ -268,6 +272,7 @@ jobs:
             tests/Feature/Sells/AppFiscalApiContratoTest.php \
             tests/Feature/Sells/AppRelatoriosApiContratoTest.php \
             tests/Feature/Sells/AppDashboardApiContratoTest.php \
+            tests/Feature/Sells/AppVendaRapidaCriarApiContratoTest.php \
             tests/Feature/Sells/AppPagamentosApiContratoTest.php \
             tests/Feature/Sells/AppPagamentosEscritaContratoTest.php \
             tests/Feature/Sells/SellsCreateV3ContratoTest.php \

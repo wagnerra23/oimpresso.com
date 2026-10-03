@@ -64,6 +64,7 @@ on:
       # (lapide 5 2026-08-02 — "inclua o arquivo SOB TESTE no trigger").
       - 'app/Http/Middleware/HandleInertiaRequests.php'
       - 'app/Http/Controllers/Api/App/ChatController.php'
+      - 'app/Contracts/Chat/**'
       - 'database/schema/mysql-schema.sql'
       - '.github/workflows/jana-pest.yml'
       - '.github/jana-pest-quarantine.list'
@@ -129,6 +130,7 @@ jobs:
               # (lapide 5 2026-08-02 — "inclua o arquivo SOB TESTE no trigger").
               - 'app/Http/Middleware/HandleInertiaRequests.php'
               - 'app/Http/Controllers/Api/App/ChatController.php'
+              - 'app/Contracts/Chat/**'
               - 'database/schema/mysql-schema.sql'
               - '.github/workflows/jana-pest.yml'
               - '.github/actions/pest-mysql-setup/**'

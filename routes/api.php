@@ -67,4 +67,6 @@ Route::middleware('auth:api')->prefix('app')->name('app.')->group(function () {
     Route::get('/os', [\App\Http\Controllers\Api\App\OficinaController::class, 'index'])->name('os.index');
     Route::get('/os/{id}', [\App\Http\Controllers\Api\App\OficinaController::class, 'show'])->whereNumber('id')->name('os.show');
     Route::get('/venda/produtos', [\App\Http\Controllers\Api\App\VendaRapidaController::class, 'produtos'])->name('venda.produtos');
+    // REGRA MESTRE (valor + estoque): API-CONTRATO-v1 §2.2. Idempotency-Key obrigatória.
+    Route::post('/vendas', [\App\Http\Controllers\Api\App\VendaRapidaController::class, 'store'])->name('vendas.store');
 });

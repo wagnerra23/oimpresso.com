@@ -91,7 +91,9 @@ categoria.
 
 `POST /api/app/vendas`: **⬜ PR separado. Só mergeia com dupla prova, tabela antes→depois e ok do [W].**
 Header `Idempotency-Key` obrigatório. Corpo `{ cliente_id|null, metodo, itens:[{ variacao_id, quantidade,
-preco_unitario }], total_previsto }`. Os números vão como texto `"N.NN"` (ponto, até 2 casas).
+preco_unitario }], total_previsto }`. Os números vão como texto `"N.NN"` (ponto, até 2 casas). Na v1 a
+quantidade é inteira (`"3.00"`); fração → `422 campos["itens.N.quantidade"]`. Assim o total da venda é a
+soma exata em centavos de preço × quantidade, sem arredondamento por linha.
 
 - **Caminho:** venda direta pelo `TransactionUtil` (`createSellTransaction` → `createOrUpdateSellLines` →
   `createOrUpdatePaymentLines` → baixa de estoque → `updatePaymentStatus` → `mapPurchaseSell`), igual ao
