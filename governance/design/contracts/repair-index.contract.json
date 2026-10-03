@@ -1,0 +1,15 @@
+{
+  "_nota": "Derivado do alvo governance/design/targets/repair--index.alvo.json (thread A1 do playbook repair), não do .tsx. Uma seção por seção do alvo; ids com prefixo repair-. Copy só onde o charter de Repair/Index a declara literal (título e os dois vazios do Goals); o resto da copy é decisão do dono.",
+  "tela": "Repair/Index",
+  "fonte": "prototipo-ui/cowork/Wagner/repair-page.jsx",
+  "alvo": ["resources/js/Pages/Repair/Index.tsx"],
+  "secoes": [
+    { "id": "repair-header", "copy": ["Ordens de Serviço"] },
+    { "id": "repair-kpis", "copy": [] },
+    { "id": "repair-filtros", "copy": [] },
+    { "id": "repair-status", "copy": [] },
+    { "id": "repair-lista", "copy": ["Nenhuma OS no filtro", "Sem ordens de serviço"], "estados": ["empty", "no-results"] },
+    { "id": "repair-rodape", "copy": [] }
+  ],
+  "ordem": ["repair-header", "repair-kpis", "repair-filtros", "repair-status", "repair-lista", "repair-rodape"]
+}
