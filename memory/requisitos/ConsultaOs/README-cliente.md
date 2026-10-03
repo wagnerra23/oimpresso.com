@@ -40,9 +40,8 @@ Cliente externo (sem login) acompanha o pipeline da OS via link público compart
 
 ## Status atual
 
-- **Mock-only** até US-CONSULTA-001 substituir `MockConsultaOsRepository` por query real `Modules/Repair`
-- **Numeros mock disponíveis:** 4821 (aprovacao), 4819 (orcado), 4817 (producao), 4815 (entregue)
-- **Quando real entrar:** Repository resolve `business_id` via lookup do protocolo + canary 7d ROTA LIVRE antes de demais tenants
+- **Fonte real desde 2026-10-02:** as folhas de OS do `Modules/Repair` (US-CONSULTA-001). Busca por nº da OS, nº da venda ou celular.
+- **Pendente:** identificar a empresa do cliente (hoje um nº válido é procurado em todas as empresas) e captcha — decisão [W].
 
 ## Spans OTel
 

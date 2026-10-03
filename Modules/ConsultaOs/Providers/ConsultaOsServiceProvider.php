@@ -5,7 +5,7 @@ namespace Modules\ConsultaOs\Providers;
 use Illuminate\Support\ServiceProvider;
 use Modules\ConsultaOs\Console\Commands\ConsultaOsHealthCommand;
 use Modules\ConsultaOs\Contracts\ConsultaOsRepositoryInterface;
-use Modules\ConsultaOs\Repositories\MockConsultaOsRepository;
+use Modules\ConsultaOs\Repositories\RepairConsultaOsRepository;
 
 class ConsultaOsServiceProvider extends ServiceProvider
 {
@@ -31,12 +31,11 @@ class ConsultaOsServiceProvider extends ServiceProvider
     {
         $this->app->register(RouteServiceProvider::class);
 
-        // Wave 18 D4 — Repository bind. Mock-only ate US-CONSULTA-001 entregar
-        // RepairConsultaOsRepository com query real em transactions (multi-tenant
-        // via protocolo + rate limit IP). Troca = 1 linha aqui.
+        // US-CONSULTA-001 (2026-10-02) — fonte real: folhas de OS do Modules/Repair.
+        // O mock de 4 OS fixas (MockConsultaOsRepository) foi removido.
         $this->app->bind(
             ConsultaOsRepositoryInterface::class,
-            MockConsultaOsRepository::class,
+            RepairConsultaOsRepository::class,
         );
     }
 

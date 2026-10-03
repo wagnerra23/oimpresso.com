@@ -69,8 +69,10 @@ test('LedgerTab.tsx — empty state + dark mode tokens', function () {
 
     expect($contents)
         ->toContain('Nenhum lançamento no período selecionado.')
-        ->toContain('dark:text-rose-400')
-        ->toContain('dark:text-emerald-400')
+        // Débito/crédito em token do DS desde o #2660 (2026-06-13, eram rose/emerald + dark: cru);
+        // os tokens carregam o tema escuro. Ancorado na célula (`tabular-nums`).
+        ->toContain('tabular-nums text-destructive-fg')
+        ->toContain('tabular-nums text-success-fg')
         ->toContain('bg-background')
         ->toContain('text-muted-foreground');
 });
