@@ -1,0 +1,383 @@
+{
+  "aguardou_sumir": null,
+  "ausentes": [],
+  "base": {
+    "assinatura": "OI WR REPAIR · Matriz + 1 filial · 14 folhas · 11 pendentes Assistência técnica administrador Atualizado 09:42 ⌕ Buscar Adicionar folha Painel Produção 11 Folhas de OS 14 Reparos 14 Status 9 Modelos 6 Portal do cliente Configurações Pendentes 11 Concluídas 3 Entrega vencida 1 Todas 14 Pendente = status sem is_completed_status . A folha só sai daqui quando o status conclui. Técnico Todos Anderson Prado Rafael Uchoa Bruna Sales Não atribuído Local Todos Matriz — Centro Filial — Zona Norte Status Todos os status Recebido no balcão Em diagnóstico Orçamento enviado Aguardando peça Em reparo Em teste final Pronto p/ retirada Entregue Sem reparo (devolvido) Cliente Todos os clientes Comunicação Rota Livre Gráfica Martinho ME Studio Vento Sul Sinalize Já Ltda Ateliê Casa Forte Eduardo Pessoa Folha nº ↕ Tipo de serviço ↕ Entrega prevista ↑ Status ↕ Pipeline Técnico ↕ Cliente ↕ Equipamento Nº de série Custo estimado ↕ Ações JS-2026-0418 Balcão 27/08/2026 em 3d Recebido no balcão recep não atribuído Comunicação Rota Livre Matriz — Centro Roland GR2-540 Plotter de recorte RL-GR2-88123 — status da folha JS-2026-0418 editar a folha JS-2026-0418 imprimir a folha JS-2026-0418 excluir a folha JS-2026-0418 JS-2026-0417 Coleta 26/08/2026 em 2d Recebido no balcão recep não atribuído Gráfica Martinho ME Filial — Zona Norte Dell Latitude 5440 Notebook DL-5440-A991 R$ 240,00 status da folha JS-2026-0417 editar a folha JS-2026-0417 imprimir a folha JS-2026-0417 excluir a folha JS-2026-0417 JS-2026-0412 Balcão 25/08/2026 em 1d Em diagnóstico diag Anderson Prado Studio Vento Sul Matriz — Centro Epson SureColor S60600 Impressora látex EP-S606-77401 R$ 1.450,00 status da folha JS-2026-0412 editar a folha JS-2026-0412 imprimir a folha JS-2026-0412 excluir a folha JS-2026-0412 JS-2026-0410 Balcão 25/08/2026 em 1d Em diagnóstico diag Bruna Sales Eduardo Pessoa Matriz — Centro Dell Latitude 5440 Notebook DL-5440-B120 R$ 380,00 status da folha JS-2026-0410 editar a folha JS-2026-0410 imprimir a folha JS-2026-0410 excluir a folha JS-2026-0410 JS-2026-0405 No local 24/08/2026 vence hoje Orçamento enviado diag Rafael Uchoa Comunicação Rota Livre Matriz — Centro HP Latex 315 Impressora látex HP-315-55210 R$ 3.890,00 status da folha JS-2026-0405 editar a folha JS-2026-0405 imprimir a folha JS-2026-0405 excluir a folha JS-2026-0405 JS-2026-0402 Balcão 28/08/2026 em 4d Orçamento enviado diag Anderson Prado Sinalize Já Ltda Filial — Zona Norte Mimaki CJV150-75 Impressora DTF MK-CJV-31007 R$ 2.240,00 status da folha JS-2026-0402 editar a folha JS-2026-0402 imprimir a folha JS-2026-0402 excluir a folha JS-2026-0402 JS-2026-0398 Balcão 23/08/2026 atrasada 1d Aguardando peça peça Bruna Sales Ateliê Casa Forte Matriz — Centro Brother GTX-600 Impressora DTF BR-GTX-90881 R$ 4.120,00 status da folha JS-2026-0398 editar a folha JS-2026-0398 imprimir a folha JS-2026-0398 excluir a folha JS-2026-0398 JS-2026-0394 Balcão 26/08/2026 em 2d Aguardando peça peça Rafael Uchoa Gráfica Martinho ME Filial — Zona Norte Roland GR2-540 Plotter de recorte RL-GR2-77320 R$ 890,00 status da folha JS-2026-0394 editar a folha JS-2026-0394 imprimir a folha JS-2026-0394 excluir a folha JS-2026-0394 JS-2026-0390 Balcão 24/08/2026 vence hoje Em reparo reparo Anderson Prado Studio Vento Sul Matriz — Centro Epson SureColor S60600 Impressora látex EP-S606-11902 R$ 1.980,00 status da folha JS-2026-0390 editar a folha JS-2026-0390 imprimir a folha JS-2026-0390 excluir a folha JS-2026-0390 11 folha(s) · 11 pendente(s) Anterior 1 2 Próximo 1 – 9 de 11",
+    "roles": {
+      "celulas": null,
+      "chart": null,
+      "contratos": [],
+      "filterRows": null,
+      "kpi": {
+        "count": 0,
+        "items": [],
+        "overflowX": null,
+        "tag": null
+      },
+      "primary": null,
+      "shell": null,
+      "tabela": null,
+      "title": null
+    },
+    "saude": {
+      "folhasVazias": [],
+      "nFolhas": 73,
+      "tokensMortos": []
+    },
+    "theme": "dark",
+    "url": "http://127.0.0.1:5577/"
+  },
+  "nos_totais": 989,
+  "quieto_ms": 2000,
+  "rota": "rep-folhas",
+  "secoes": {
+    "filtros": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "body",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "flex",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "8px",
+        "padding": "0px"
+      },
+      "filhos": 5,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "rep-list"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "rep-root"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "main-body"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "main"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "app"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "div"
+        },
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "body"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "rep-filtro",
+        "rep-filtro",
+        "rep-filtro",
+        "rep-filtro",
+        "sp"
+      ],
+      "rect": {
+        "h": 53,
+        "w": 1176
+      },
+      "seletor": ".rep-root > .rep-list > .rep-toolbar",
+      "truncado": false
+    },
+    "header": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "body",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "block",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "padding": "20px 24px 0px"
+      },
+      "filhos": 2,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "rep-root"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "main-body"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "main"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "app"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "div"
+        },
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "body"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "p",
+        "header"
+      ],
+      "rect": {
+        "h": 103,
+        "w": 1224
+      },
+      "seletor": ".rep-root > .cli-ph",
+      "truncado": false
+    },
+    "lista": {
+      "contraste": {
+        "fundo": "oklch(0.3 0.008 240)",
+        "fundo_de": "proprio",
+        "razao": 11.42,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.027108,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.3 0.008 240)",
+        "borderRadius": "8px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "block",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "padding": "0px"
+      },
+      "filhos": 1,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.3 0.008 240)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "div"
+      ],
+      "rect": {
+        "h": 582,
+        "w": 1176
+      },
+      "seletor": ".rep-root > .rep-list > .rep-grid",
+      "truncado": false
+    },
+    "recorte": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "body",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "flex",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "12px",
+        "padding": "0px"
+      },
+      "filhos": 3,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "rep-list"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "rep-root"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "main-body"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "main"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "app"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "div"
+        },
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "body"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "ds-tabbar",
+        "sp",
+        "rep-hint"
+      ],
+      "rect": {
+        "h": 36,
+        "w": 1176
+      },
+      "seletor": ".rep-root > .rep-list > .rep-subtabs",
+      "truncado": false
+    },
+    "rodape": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "body",
+        "razao": 6.26,
+        "texto": "oklch(0.72 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.373341
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.72 0.005 90)",
+        "display": "flex",
+        "fontSize": "11.5px",
+        "fontWeight": "400",
+        "gap": "12px",
+        "padding": "0px"
+      },
+      "filhos": 3,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "rep-list"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "rep-root"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "main-body"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "main"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "app"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "div"
+        },
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "body"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "span",
+        "sp",
+        "nav"
+      ],
+      "rect": {
+        "h": 28,
+        "w": 1176
+      },
+      "seletor": ".rep-root > .rep-list > .rep-foot",
+      "truncado": false
+    },
+    "tabs": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "proprio",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.26 0.006 240)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "flex",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "0px",
+        "padding": "0px 24px"
+      },
+      "filhos": 8,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "button",
+        "button",
+        "button",
+        "button",
+        "button",
+        "button",
+        "button",
+        "button"
+      ],
+      "rect": {
+        "h": 36,
+        "w": 1224
+      },
+      "seletor": ".rep-root > .ds-tabbar",
+      "truncado": false
+    }
+  },
+  "tela": "repair--jobsheet--index",
+  "url": "http://127.0.0.1:5577/"
+}

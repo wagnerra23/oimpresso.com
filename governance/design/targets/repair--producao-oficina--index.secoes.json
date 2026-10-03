@@ -1,0 +1,9 @@
+{
+  "_": "A1 [CL] 2026-10-02 — playbook repair. Protótipo: rota `rep-producao` do espelho (window.RepRotas, thread 00 · repair-page.jsx Producao). Papel administrador (repair_status.update), então a nota de arraste desabilitado não monta.",
+  "_mapa": "alvo:mapa --rota rep-producao --raiz .rep-board-wrap, 2026-10-02: .rep-board-wrap = div (Alert do kanban derivado) · rep-subtabs (contagem) · rep-board (5 colunas).",
+  "header": { "seletor": ".rep-root > .cli-ph" },
+  "tabs": { "seletor": ".rep-root > .ds-tabbar" },
+  "aviso": { "seletor": ".rep-board-wrap > div:first-child" },
+  "contagem": { "seletor": ".rep-board-wrap > .rep-subtabs" },
+  "kanban": { "seletor": ".rep-board-wrap > .rep-board" }
+}
