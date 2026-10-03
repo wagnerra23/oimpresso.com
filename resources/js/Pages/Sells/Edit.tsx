@@ -34,6 +34,13 @@ import {
   type LinhaEdicao,
   type LinhaGravada,
 } from '@/Pages/Sells/_components/edicaoVenda';
+import ReparoSection, { type RepairPosProps } from '@/Pages/Sells/_components/ReparoSection';
+import {
+  camposDeReparoEdicao,
+  itensDoChecklist,
+  reparoValido,
+  type ReparoForm,
+} from '@/Pages/Sells/_components/reparoVenda';
 
 // PR parking-lot P2 — auto-save draft TTL (24h espelha Create.tsx).
 const DRAFT_TTL_MS = 24 * 60 * 60 * 1000;
@@ -109,6 +116,8 @@ interface EditFormPayload {
     /** Soma de outras vendas due deste cliente (R$) — pra alerta inline 'cliente vencido'. */
     dues_total: number;
   } | null;
+  /** UC-SEDIT-12 — venda de reparo: opções do PDV de reparo + o que está gravado. */
+  reparo?: { opcoes: RepairPosProps; valor: ReparoForm } | null;
 }
 
 export interface SellsEditPageProps {
@@ -165,6 +174,8 @@ export default function SellsEdit(props: SellsEditPageProps) {
     commission_agent: null as number | null,
     /** Documento anexo (file upload Blade legacy `sell_document`). */
     sell_document: null as File | null,
+    /** UC-SEDIT-12 — seção Reparo; null fora da venda de reparo. */
+    reparo: null as ReparoForm | null,
   });
 
   // Re-popula form quando deferred form chegar (initial render veio sem dados).
@@ -203,6 +214,7 @@ export default function SellsEdit(props: SellsEditPageProps) {
         is_recurring: ((tx as unknown as { is_recurring?: 0 | 1 }).is_recurring ?? 0) as 0 | 1,
         commission_agent: (tx as unknown as { commission_agent?: number | null }).commission_agent ?? null,
         sell_document: null,
+        reparo: props.form.reparo?.valor ?? null,
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -252,6 +264,8 @@ export default function SellsEdit(props: SellsEditPageProps) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!permissions.update || processing) return;
+    const reparo = props.form?.reparo;
+    if (reparo && data.reparo && !reparoValido(data.reparo)) return;
     // ⚠️ NUNCA setamos current_stage_id — FSM trait GuardsFsmTransitions ADR 0143 bloqueia.
     // PR #1659 — usar router.put direto pra customizar payload (Inertia useForm.put
     // não suporta transform; useForm.data é tipado e não bate com backend `products`
@@ -270,6 +284,18 @@ export default function SellsEdit(props: SellsEditPageProps) {
       calcular_total_no_servidor: 1,
       discount_amount: numeroParaEnvio(Number(data.discount_amount) || 0),
       shipping_charges: numeroParaEnvio(Number(data.shipping_charges) || 0),
+      // UC-SEDIT-12 — o estado aninhado não vai; vão só os campos repair_* (o hook do Repair).
+      reparo: undefined,
+      ...(reparo && data.reparo
+        ? camposDeReparoEdicao(
+            data.reparo,
+            reparo.valor,
+            itensDoChecklist(
+              reparo.opcoes.checklistPadrao,
+              reparo.opcoes.modelos.find((m) => m.id === data.reparo?.repair_model_id),
+            ),
+          )
+        : {}),
     };
     if (sell_document) {
       // Anexo presente — usa POST + _method=PUT pra multipart (Laravel form spoofing).
@@ -581,6 +607,7 @@ interface EditFormData {
   is_recurring: 0 | 1;
   commission_agent: number | null;
   sell_document: File | null;
+  reparo: ReparoForm | null;
 }
 
 interface EditFormBodyProps {
@@ -657,6 +684,15 @@ function EditFormBody({ data, setData, errors, processing, permissions, urls, fo
           </div>
         </div>
       </section>
+
+      {/* UC-SEDIT-12 — seção Reparo, só na venda de reparo (a mesma do PDV de reparo). */}
+      {form.reparo && data.reparo && (
+        <ReparoSection
+          opcoes={form.reparo.opcoes}
+          valor={data.reparo}
+          onChange={(r) => setData('reparo', r)}
+        />
+      )}
 
       {/* Bloco Desconto + Notas · ID scroll-target pra filter pill "Resumo" */}
       <section id="edit-sec-resumo" className="rounded-lg border border-border bg-card p-5 space-y-4 scroll-mt-32">

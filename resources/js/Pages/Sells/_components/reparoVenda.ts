@@ -116,6 +116,28 @@ export function camposDeReparo(
 }
 
 /**
+ * UC-SEDIT-12 — envio da EDIÇÃO de uma venda de reparo. O mesmo do PDV (`camposDeReparo`) e,
+ * além disso, o que tinha valor gravado e a pessoa esvaziou, quando o servidor sabe limpar:
+ * - datas vão vazias: o hook do Repair limpa a data quando a chave vem (mesmo como null);
+ * - defeitos vão como "[]".
+ * Número de série, senha e padrão NÃO limpam por aqui: o ConvertEmptyStringsToNull vira ""
+ * em null e o hook só grava esses campos quando não são null — o PDV Blade também não limpa.
+ */
+export function camposDeReparoEdicao(
+  r: ReparoForm,
+  gravado: ReparoForm,
+  itensChecklist: string[] = [],
+): Record<string, string | number | Record<string, ChecklistValor>> {
+  const campos = camposDeReparo(r, itensChecklist);
+  const datas = ['repair_due_date', 'repair_completed_on'] as const;
+  for (const k of datas) {
+    if (gravado[k].trim() !== '' && r[k].trim() === '') campos[k] = '';
+  }
+  if (gravado.defeitos.length > 0 && r.defeitos.length === 0) campos.repair_defects = '[]';
+  return campos;
+}
+
+/**
  * Modelos que cabem na marca/aparelho escolhidos (o Blade recarrega a lista via
  * /repair/get-device-models ao trocar marca ou aparelho). Sem nenhum dos dois: todos.
  */

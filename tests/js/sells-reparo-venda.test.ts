@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   adicionarDefeitos,
   camposDeReparo,
+  camposDeReparoEdicao,
   checklistParaEnvio,
   itensDoChecklist,
   modelosFiltrados,
@@ -125,5 +126,37 @@ describe('UC-S07 · peças da OS no carrinho', () => {
 
   it('o vínculo com a OS vai no envio (chave anti-faturamento em dobro)', () => {
     expect(camposDeReparo({ ...reparoInicial(2), repair_job_sheet_id: 99 })).toEqual({ repair_status_id: 2, repair_job_sheet_id: 99 });
+  });
+});
+
+// UC-SEDIT-12 (Sells/Edit.casos.md) — envio da EDIÇÃO de uma venda de reparo.
+describe('UC-SEDIT-12 · camposDeReparoEdicao', () => {
+  const gravado = {
+    ...reparoInicial(2),
+    repair_serial_no: 'SN-1',
+    repair_due_date: '2026-10-10T14:00',
+    repair_completed_on: '2026-10-05T09:30',
+    defeitos: ['tela'],
+  };
+
+  it('sem mexer, manda o mesmo que o PDV mandaria — datas em ISO', () => {
+    expect(camposDeReparoEdicao(gravado, gravado)).toEqual({
+      repair_status_id: 2,
+      repair_serial_no: 'SN-1',
+      repair_due_date: '2026-10-10 14:00',
+      repair_completed_on: '2026-10-05 09:30',
+      repair_defects: '[{"value":"tela"}]',
+    });
+  });
+
+  it('data e defeitos esvaziados vão vazios, para o servidor limpar', () => {
+    const r = { ...gravado, repair_due_date: '', repair_completed_on: '', defeitos: [] };
+    expect(camposDeReparoEdicao(r, gravado)).toMatchObject({ repair_due_date: '', repair_completed_on: '', repair_defects: '[]' });
+  });
+
+  it('o que já era vazio não vai — e série esvaziada não vai (o servidor não sabe limpar)', () => {
+    const vazio = reparoInicial(2);
+    expect(camposDeReparoEdicao(vazio, vazio)).toEqual({ repair_status_id: 2 });
+    expect(camposDeReparoEdicao({ ...gravado, repair_serial_no: '' }, gravado)).not.toHaveProperty('repair_serial_no');
   });
 });
