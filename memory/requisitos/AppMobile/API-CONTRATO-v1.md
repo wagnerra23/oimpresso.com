@@ -268,7 +268,7 @@ Mesmos campos e regras do §4.2, **menos** `tipo` e `papeis` (mudar papel fica n
   abas que o usuário pode abrir, na ordem do app. Cada uma segue a mesma regra da rota dela, então
   aba visível = rota que responde: `tarefas` = Essentials no plano ou quem aprova o Ponto;
   `pedidos`/`producao`/`orcamentos` = quem vê vendas; `pessoas` = quem vê cliente ou fornecedor; `ponto` =
-  colaborador com `controla_ponto`; `fiscal` = a regra de §10.2; `assistente` = quem conversa com a Jana (§12.4); `equipe` = quem vê a lista de usuários (§12.2); `ponto_gestor` = quem tem acesso ao módulo Ponto (§12.1); `financeiro` = a regra de §10.1; `relatorios` = algum bloco de §10.3 visível; `dashboard` = `dashboard.data` (§10.4); `inicio` só para perfil `erp`; `mais` sempre.
+  colaborador com `controla_ponto`; `fiscal` = a regra de §10.2; `assistente` = quem conversa com a Jana (§12.4); `equipe` = quem vê a lista de usuários (§12.2); `ponto_gestor` = quem tem acesso ao módulo Ponto (§12.1); `financeiro` = a regra de §10.1; `relatorios` = algum bloco de §10.3 visível; `dashboard` = `dashboard.data` (§10.4); `pagamentos` = a regra do Financeiro (§10.5); `inicio` só para perfil `erp`; `mais` sempre.
   `perfil` = `erp` se tem tarefas, vendas, pessoas, financeiro, fiscal, relatórios ou dashboard, senão `colaborador`. `abre_em` = `inicio`
   (erp), `ponto` (colaborador) ou `mais` (sem nenhuma das duas).
 
@@ -499,6 +499,26 @@ producao_concluida:{concluidas, total}|null }`.
   `producao_em_curso` = coluna "em produção" de `/producao`; `producao_concluida` = coluna "pronto para
   faturar" sobre o total das 4 colunas.
 - `a_receber` / `vencido`: os mesmos da tela 06 (§10.1); `null` sem acesso ao Financeiro.
+
+### 10.5 Pagamentos (tela 15) — leitura
+
+`GET /api/app/pagamentos?status=todos|pendente|pago|vencido|cancelado&pagina=N` →
+`{ itens:[{id, descricao, valor, vencimento, metodo, status, pago_em, link}],
+contadores:{todos, pendente, pago, vencido, cancelado}, pagina, tem_mais }`, 20 por página, mais
+recente primeiro.
+
+- Fonte: `cobrancas` (PaymentGateway), a mesma tabela da tela web `/financeiro/cobranca`. Cobrança com
+  `status = erro` (o gateway recusou, nunca virou cobrança) não aparece.
+- Acesso: a regra do Financeiro (§10.1); sem ela, `403 sem_permissao`. A área `pagamentos` entra em
+  `areas` (§6) com essa regra.
+- `status`: `paga` → `pago`; `cancelada` → `cancelado`; `vencida`, ou ainda aberta com vencimento
+  passado → `vencido`; o resto (`pending`, `emitida`) → `pendente`.
+- `metodo`: cartão → `cartao`; PIX → `pix`; boleto com PIX embutido (bolepix) → `qualquer`; boleto → `boleto`.
+- `valor` em reais (a tabela guarda centavos); `descricao` = "Pedido #<nº>" quando a cobrança é de uma
+  venda, senão a descrição da cobrança, + " · <cliente>"; `link` = PDF do boleto (`null` sem ele);
+  `pago_em` = data/hora do pagamento (ISO com fuso).
+- **Escrita** (gerar, consultar, cancelar): ainda **não existe** — vem em PR próprio, pela regra mestre
+  (dupla prova + antes→depois + ok do [W]).
 
 
 ## 11. Oficina — Onda D (Modules/OficinaAuto)
