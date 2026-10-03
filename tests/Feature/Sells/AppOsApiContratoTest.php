@@ -258,6 +258,7 @@ it('o filtro de etapa filtra só os itens; total, travadas e contagem por etapa 
     expect($filtrada->json('etapas'))->toBe($todas->json('etapas'));
     expect(collect($filtrada->json('itens'))->pluck('etapa.chave')->unique()->all())->toBe(['aguardando_pecas']);
     expect(collect($filtrada->json('itens'))->pluck('id'))->not->toContain($emExecucao);
+});
 
 // ── Tela 08 — GET /api/app/veiculos (contrato §11.3) ────────────────────────────
 
