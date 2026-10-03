@@ -5,26 +5,34 @@ declare(strict_types=1);
 namespace Modules\ConsultaOs\Contracts;
 
 /**
- * ConsultaOsRepositoryInterface — fonte de dados de OS publica.
+ * ConsultaOsRepositoryInterface — fonte de dados do portal público de OS.
  *
- * Wave 18 D4 — Repository pattern (SoC brutal). Hoje implementacao unica
- * (MockRepository) retorna array fixo; US-CONSULTA-001 entrega RepairRepository
- * que consulta `transactions` real com filtro multi-tenant via protocolo.
+ * US-CONSULTA-001 (2026-10-02): a única implementação é RepairConsultaOsRepository,
+ * que lê as folhas de OS reais do Modules/Repair (repair_job_sheets). O mock de 4 OS
+ * fixas foi removido.
  *
- * Contrato deliberadamente simples: retorna array ou null. Service decide
- * found/stage_mismatch. Reposicao no Provider via bind() troca implementacao.
+ * Contrato: o repositório devolve SÓ os campos públicos, já montados campo a campo
+ * (nunca `repair_job_sheets.*`). O critério de busca chega já validado pelo
+ * ConsultaPublicaRequest, mas o repositório revalida (defesa em profundidade): com
+ * tipo fora da lista ou número vazio ele devolve [] sem consultar o banco.
  *
- * @see Modules\ConsultaOs\Services\ConsultaOsMockService
- * @see Modules\ConsultaOs\Repositories\MockConsultaOsRepository
+ * @see Modules\ConsultaOs\Repositories\RepairConsultaOsRepository
  */
 interface ConsultaOsRepositoryInterface
 {
+    /** Tipos de busca aceitos — mesma lista do portal do Repair (#8527). */
+    public const TIPOS = ['job_sheet_no', 'invoice_no', 'mobile_num'];
+
+    /** Teto de OS por resposta (anti-varredura por celular compartilhado). */
+    public const LIMITE = 20;
+
     /**
-     * Busca OS por numero (protocolo).
+     * Busca OS pelo critério do cliente.
      *
-     * @return array<string, mixed>|null Array com chaves: id, client, contact,
-     *                                    vendedor, designer, created, updated,
-     *                                    stage, items[]. Ou null se nao encontrada.
+     * @param  string       $tipo    job_sheet_no | invoice_no | mobile_num
+     * @param  string       $numero  nº da OS, nº da venda ou celular (não vazio)
+     * @param  string|null  $serie   nº de série do aparelho (filtro opcional, só estreita)
+     * @return list<array<string, mixed>> OS públicas; [] quando nada casa ou o critério é inválido
      */
-    public function buscarPorNumero(string $numero): ?array;
+    public function buscar(string $tipo, string $numero, ?string $serie = null): array;
 }

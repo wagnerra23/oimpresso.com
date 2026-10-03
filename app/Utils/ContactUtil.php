@@ -66,7 +66,7 @@ class ContactUtil extends Util
      *
      * @param  int  $business_id
      * @param  int  $contact_id
-     * @return array
+     * @return \App\Contact|null  null quando o contato não existe NESTE business
      */
     public function getContactInfo($business_id, $contact_id)
     {
@@ -83,6 +83,15 @@ class ContactUtil extends Util
                         DB::raw("SUM(IF(t.type = 'opening_balance', (SELECT SUM(amount) FROM transaction_payments WHERE transaction_payments.transaction_id=t.id), 0)) as opening_balance_paid"),
                         'contacts.*'
                     )->first();
+
+        // Os SUM() sem GROUP BY fazem o MySQL devolver UMA linha mesmo quando nenhum contato
+        // casa (id de outra empresa, ou inexistente): todas as colunas NULL. Sem esta guarda o
+        // chamador recebia um Contact "vazio" em vez de null — o show() respondia 200 com a
+        // tela em branco a quem pedisse um contato de outra empresa, onde o Tier 0 (ADR 0093)
+        // manda 404. Não vazava dado (o where business_id segura), mas o contrato era falso.
+        if ($contact === null || $contact->id === null) {
+            return null;
+        }
 
         return $contact;
     }

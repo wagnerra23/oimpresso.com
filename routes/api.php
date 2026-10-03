@@ -39,7 +39,29 @@ Route::middleware('auth:api')->prefix('app')->name('app.')->group(function () {
     // Throttle como o lookup da web (60/min): o ERP fala com o ViaCEP por todos os tenants.
     Route::get('/cep/{cep}', [\App\Http\Controllers\Api\App\CepController::class, 'show'])
         ->where('cep', '[0-9-]{1,12}')->middleware('throttle:60,1')->name('cep.show');
+    Route::get('/equipe', [\App\Http\Controllers\Api\App\EquipeController::class, 'index'])->name('equipe.index');
+    Route::put('/perfil-menu', [\App\Http\Controllers\Api\App\PerfilMenuController::class, 'update'])->name('perfil-menu.update');
+    // Marcações a validar (tela 39): fila do gestor do REP-P. Id é UUID (ponto_marcacoes).
+    Route::get('/ponto/aprovacoes', [\App\Http\Controllers\Api\App\PontoAprovacoesController::class, 'index'])->name('ponto.aprovacoes.index');
+    Route::post('/ponto/aprovacoes/{id}/validar', [\App\Http\Controllers\Api\App\PontoAprovacoesController::class, 'validar'])->whereUuid('id')->name('ponto.aprovacoes.validar');
+    Route::post('/ponto/aprovacoes/{id}/recusar', [\App\Http\Controllers\Api\App\PontoAprovacoesController::class, 'recusar'])->whereUuid('id')->name('ponto.aprovacoes.recusar');
+    // Chat com a Jana (tela 25). Mesmo teto do chat web (60/min): cada mensagem chama o LLM.
+    Route::post('/chat', [\App\Http\Controllers\Api\App\ChatController::class, 'enviar'])->middleware('throttle:60,1')->name('chat.enviar');
+    Route::get('/chat/{conversa_id}', [\App\Http\Controllers\Api\App\ChatController::class, 'mostrar'])->whereNumber('conversa_id')->name('chat.mostrar');
     Route::get('/produtos', [\App\Http\Controllers\Api\App\ProdutosController::class, 'produtos'])->name('produtos.index');
+    Route::get('/produtos/opcoes', [\App\Http\Controllers\Api\App\NovoProdutoController::class, 'opcoes'])->name('produtos.opcoes');
+    Route::post('/produtos', [\App\Http\Controllers\Api\App\NovoProdutoController::class, 'store'])->name('produtos.store');
+    Route::get('/estoque', [\App\Http\Controllers\Api\App\ProdutosController::class, 'estoque'])->name('estoque.index');
+    Route::get('/estoque/{id}', [\App\Http\Controllers\Api\App\ProdutosController::class, 'estoqueItem'])->whereNumber('id')->name('estoque.show');
+    Route::get('/financeiro', [\App\Http\Controllers\Api\App\FinanceiroController::class, 'index'])->name('financeiro.index');
+    Route::get('/fiscal', [\App\Http\Controllers\Api\App\FiscalController::class, 'index'])->name('fiscal.index');
+    Route::get('/relatorios', [\App\Http\Controllers\Api\App\RelatoriosController::class, 'index'])->name('relatorios.index');
+    Route::get('/dashboard', [\App\Http\Controllers\Api\App\DashboardController::class, 'show'])->name('dashboard');
+    Route::get('/pagamentos', [\App\Http\Controllers\Api\App\PagamentosController::class, 'index'])->name('pagamentos.index');
     Route::get('/inicio', [\App\Http\Controllers\Api\App\InicioController::class, 'show'])->name('inicio');
     Route::get('/os', [\App\Http\Controllers\Api\App\OficinaController::class, 'index'])->name('os.index');
+    Route::get('/os/{id}', [\App\Http\Controllers\Api\App\OficinaController::class, 'show'])->whereNumber('id')->name('os.show');
+    Route::get('/venda/produtos', [\App\Http\Controllers\Api\App\VendaRapidaController::class, 'produtos'])->name('venda.produtos');
+    // REGRA MESTRE (valor + estoque): API-CONTRATO-v1 §2.2. Idempotency-Key obrigatória.
+    Route::post('/vendas', [\App\Http\Controllers\Api\App\VendaRapidaController::class, 'store'])->name('vendas.store');
 });

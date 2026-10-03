@@ -5,8 +5,15 @@ tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (
 por_que: comportamento é durável — o contrato de teste nasce junto com a tela, não depois.
 fonte: handoff "PROTÓTIPO OFICIAL - FABRICAÇÃO V1" §17 (R-01..R-24) — os UC abaixo DERIVAM dele
 owner: wagner
-last_run: "2026-09-30"
+last_run: "2026-10-02"
 ---
+
+> ℹ️ **`last_run` 2026-09-30 → 2026-10-02 (G-6): a lista passou a paginar no SERVIDOR.** A grade virou o
+> `shared/DataTable` na anatomia `grid` (o par React do `DataGrid` do DS) e busca, categoria, KPI-filtro,
+> ordenação e as 10 por página saíram do navegador pra `RecipeController@index` +
+> `RecipeBomService::filtrarOrdenar`. **As regras são as mesmas** — e por isso três itens do backlog viraram
+> UC com teste (09 busca · 10 KPI-filtro · 11 ordenação). O custo de cada receita continua o mesmo
+> `presentRecipe`: muda onde a lista é cortada, não a conta. Os UC-03/04/05 não foram tocados.
 
 > ℹ️ **`last_run` 2026-09-11 → 2026-09-30 (G-6): forma, não comportamento.** A promoção do protótipo
 > trocou os cartões pelo `KpiCard` do DS, a margem pelo `StatusBadge`, e o cabeçalho e o alinhamento da
@@ -140,6 +147,44 @@ last_run: "2026-09-30"
 
 ---
 
+## UC-RECIPE-09 · A busca acha a receita pelo nome, código, categoria ou subcategoria
+- **Persona:** Larissa — no balcão, digita o que lembra: às vezes o nome, às vezes o código.
+- **Aceite:** Dado as receitas "Banner Lona" (`BN-01`, Impressos / Lona), "Adesivo" (`AD-02`, Adesivos /
+  Vinil) e "Placa" (`PL-03`, Placas / ACM) · Quando busco `LONA`, `ad-02`, `placas` ou `acm` · Então
+  aparece só a receita que tem aquilo no nome, no código, na categoria ou na subcategoria, sem
+  diferenciar maiúscula. E a categoria escolhida nos botões é **exata**: "Adesivo" não traz "Adesivos".
+- **Fonte:** **R-03** + §4.2.
+- **Teste:** `Wave29RecipeInertiaTest.php`
+- **Regressão que defende:** a busca voltar a olhar só o nome, ou a categoria virar "começa com".
+- **Status: 🧪**
+
+---
+
+## UC-RECIPE-10 · Os cartões de margem e desperdício filtram a lista; os números do topo contam todas
+- **Persona:** Wagner — quer achar as receitas com margem magra sem perder o tamanho do cadastro.
+- **Aceite:** Dado margens 44,9 · 45 · 60 e desperdícios 7,99 · 8 · 0 · Quando ligo "Margem abaixo de
+  45%" · Então só aparece a de 44,9 (45 fica fora) · Quando ligo "Desperdício ≥ 8%" · Então só a de 8
+  (7,99 fica fora). E os 4 números do topo seguem contando **todas** as receitas, com ou sem filtro.
+- **Fonte:** **R-05** + §4.2 (e a ambiguidade do KPI 1 registrada abaixo).
+- **Teste:** `Wave29RecipeInertiaTest.php`
+- **Regressão que defende:** trocar `<` por `<=` no limite de 45, ou o KPI passar a contar só a página.
+- **Status: 🧪**
+
+---
+
+## UC-RECIPE-11 · Clicar no cabeçalho ordena a lista nos dois sentidos
+- **Persona:** Wagner — ordena por custo unitário pra ver as receitas mais caras primeiro.
+- **Aceite:** Dado receitas com custo unitário 5 · 1 · 5 · Quando ordeno por "Custo unitário" · Então a
+  de 1 vem primeiro e as duas de 5 mantêm a ordem em que estavam · Quando clico de novo · Então inverte.
+  Nomes comparam por caractere, como o navegador comparava: "10" vem antes de "9".
+- **Fonte:** **R-06** + §4.2. A volta pra página 1 ao ordenar é do pedido: o `DataTable` não manda `page`.
+- **Teste:** `Wave29RecipeInertiaTest.php`
+- **Regressão que defende:** o servidor comparar nome como número (o `<=>` do PHP faz isso com
+  "10" e "9") e a ordem mudar de um dia pro outro sem ninguém ter mexido na tela.
+- **Status: 🧪**
+
+---
+
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
 - **[BACKLOG]** `?legacy=1` responde **200 com a tela Blade** (não só "o ramo existe") e uma
@@ -147,17 +192,20 @@ last_run: "2026-09-30"
   UC-RECIPE-06/07 não alcançam: precisa de fixture autenticada (user + business + permissão)
   que a suíte deste módulo ainda não tem — hoje **todos** os testes dela pulam HTTP. Enquanto
   não existir, a prova é o `curl` do RUNBOOK §5. Vira UC quando o teste existir.
-- **[BACKLOG]** A busca casa nome, SKU, categoria e subcategoria; `/` foca o campo (R-03 · R-04).
-- **[BACKLOG]** KPI 2 e 3 filtram a lista; KPI 1 e 4 não (R-05).
-- **[BACKLOG]** Ordenar alterna asc/desc e volta pra página 1 (R-06); 10 por página com `a–b de N` (R-07).
-- **[BACKLOG]** "Selecionar todas" marca as **filtradas**, não só as visíveis (R-08).
+- **[BACKLOG]** `/` foca o campo de busca (R-04). A metade de BUSCA virou o UC-RECIPE-09.
+- **[BACKLOG]** 10 por página com `a–b de N receitas` (R-07) — o corte vive no `RecipeController@index`,
+  que só se prova com a fixture HTTP que a suíte ainda não tem (mesma limitação do item acima).
+- **[BACKLOG]** "Selecionar todas" marca as **filtradas** de todas as páginas, não só as visíveis
+  (R-08). Desde 2026-10-02 o servidor manda `ids_filtrados` e a tela marca todos eles; a prova é de
+  navegador.
 - **[BACKLOG]** A coluna Quantidade declara a unidade que exibe — sub-unidade com o rótulo dela (R-09).
 - **[BACKLOG]** Margem colorida em 3 faixas: ≥55 · 45–54,9 · <45 (R-10).
 - **[BACKLOG]** Drawer fecha com `esc` e com clique no scrim (R-14).
 - **[BACKLOG]** A "via de produção" não mostra nenhum valor de compra (R-22); lote gera uma folha
   A4 por receita (R-23).
 
-> Os oito acima são comportamento de **navegador** — o lugar deles é o spec Playwright
+> Fora o da paginação (Pest com fixture HTTP) e o primeiro, os seis acima são comportamento de
+> **navegador** (eram oito até 2026-10-02; busca, KPI-filtro e ordenação viraram UC) — o lugar deles é o spec Playwright
 > (`e2e/manufacturing-recipes.spec.ts`), não Pest. Entram como UC quando o teste existir e citar o id.
 
 ## Ambiguidade declarada (não inventei desempate)
@@ -171,6 +219,10 @@ que está somando.
 
 Se a intenção era a segunda leitura, é troca de uma linha (`recipes` → `filtradas`) — mas é
 decisão de quem escreveu o §4.2, não minha. Fica registrado em vez de silenciado.
+
+> 2026-10-02 · a linha a trocar mudou de lugar: com a lista paginando no servidor, a média sai de
+> `kpis($todas)` no `RecipeController@index` — a segunda leitura seria `kpis($filtradas)`. A decisão
+> continua em aberto e a tela continua na primeira leitura.
 
 ## Trilha do tempo
 - 2026-09-02 · [CC] carimbado por `criar-tela.mjs` e preenchido a partir do handoff

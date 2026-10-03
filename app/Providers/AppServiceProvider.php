@@ -331,6 +331,10 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bindIf(\App\Contracts\Tarefas\JustificativasPonto::class, \App\Contracts\Tarefas\Nulo\SemJustificativasPonto::class);
         // Busca de CEP do app das lojas: o Crm registra a implementação real; sem ele, nunca acha.
         $this->app->bindIf(\App\Contracts\Enderecos\BuscaCep::class, \App\Contracts\Enderecos\Nulo\SemBuscaCep::class);
+        // Fila do gestor do REP-P (tela 39) e chat com a Jana (tela 25) do app: o Ponto e a Jana
+        // registram a implementação real; sem o módulo, nada a ver.
+        $this->app->bindIf(\App\Contracts\Ponto\FilaGestorPonto::class, \App\Contracts\Ponto\Nulo\SemFilaGestorPonto::class);
+        $this->app->bindIf(\App\Contracts\Chat\ChatAssistente::class, \App\Contracts\Chat\Nulo\SemChatAssistente::class);
     }
 
     /**
