@@ -9,6 +9,7 @@ import AppShellV2 from '@/Layouts/AppShellV2';
 import { Link } from '@inertiajs/react';
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { PageHeader } from '@/Components/PageHeader';
+import PageHeaderTabs from '@/Components/shared/PageHeaderTabs';
 import { Icon } from '@/Components/Icon';
 import EmptyState from '@/Components/shared/EmptyState';
 import { Button } from '@/Components/ui/button';
@@ -56,6 +57,20 @@ interface JobSheetRow {
 
 const ALL = '__all__';
 
+/**
+ * Recorte (abas) da lista — decisão [W] 2026-10-02 "A tela ganha as abas" (UC-JSIDX-07).
+ * O filtro é do BACKEND (`recorte` no mesmo endpoint DataTables): "Concluídas" = status com
+ * `is_completed_status`; "Entrega vencida" = pendente com prazo de entrega num dia anterior a
+ * hoje. "Pendentes" é o default e é o que a tela sempre mostrou.
+ */
+type Recorte = 'pendentes' | 'concluidas' | 'vencidas' | 'todas';
+const RECORTES: Array<{ key: Recorte; label: string }> = [
+  { key: 'pendentes', label: 'Pendentes' },
+  { key: 'concluidas', label: 'Concluídas' },
+  { key: 'vencidas', label: 'Entrega vencida' },
+  { key: 'todas', label: 'Todas' },
+];
+
 export default function JobSheetIndex({ filters, flags, datatable_url }: PageProps) {
   const [rows, setRows] = useState<JobSheetRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -63,12 +78,13 @@ export default function JobSheetIndex({ filters, flags, datatable_url }: PagePro
   const [loc, setLoc] = useState<string>(ALL);
   const [status, setStatus] = useState<string>(ALL);
   const [customer, setCustomer] = useState<string>(ALL);
+  const [recorte, setRecorte] = useState<Recorte>('pendentes');
 
   useEffect(() => {
     let alive = true;
     setLoading(true);
     setError(false);
-    const params = new URLSearchParams({ draw: '1', start: '0', length: '200' });
+    const params = new URLSearchParams({ draw: '1', start: '0', length: '200', recorte });
     if (loc !== ALL) params.set('location_id', loc);
     if (status !== ALL) params.set('status_id', status);
     if (customer !== ALL) params.set('contact_id', customer);
@@ -88,9 +104,11 @@ export default function JobSheetIndex({ filters, flags, datatable_url }: PagePro
     return () => {
       alive = false;
     };
-  }, [datatable_url, loc, status, customer]);
+  }, [datatable_url, loc, status, customer, recorte]);
 
   const hasFilters = loc !== ALL || status !== ALL || customer !== ALL;
+  // Vazio num recorte que não é o default também é "sem resultado no filtro", não base vazia.
+  const semResultadoNoFiltro = hasFilters || recorte !== 'pendentes';
   const locOpts = useMemo(() => Object.entries(filters.business_locations), [filters]);
   const statusOpts = useMemo(() => Object.entries(filters.status_dropdown), [filters]);
   const customerOpts = useMemo(() => Object.entries(filters.customers), [filters]);
@@ -99,19 +117,33 @@ export default function JobSheetIndex({ filters, flags, datatable_url }: PagePro
     <div className="container mx-auto space-y-5 p-4">
       {/* Header canon (@/Components/PageHeader, ADR 0189/0190): título 22px = --fs-7 (o shared
           deprecated fixava 24px) — thread 02 do playbook Repair, 2026-10-02. */}
-      <PageHeader
-        leading={<Icon name="clipboard-list" size={18} className="mr-2 inline-block align-[-2px] text-primary" />}
-        title="Ordens de serviço"
-        subtitle="Gestão de OS de reparo por status, cliente, equipe e local."
-        actions={
-          <Button asChild>
-            <Link href="/repair/job-sheet/create">Nova OS</Link>
-          </Button>
-        }
-      />
+      <div data-contract="repair-jobsheet-header">
+        <PageHeader
+          leading={<Icon name="clipboard-list" size={18} className="mr-2 inline-block align-[-2px] text-primary" />}
+          title="Ordens de serviço"
+          subtitle="Gestão de OS de reparo por status, cliente, equipe e local."
+          actions={
+            <Button asChild>
+              <Link href="/repair/job-sheet/create">Nova OS</Link>
+            </Button>
+          }
+        />
+      </div>
+
+      {/* Recorte — abas do protótipo (rota rep-folhas). Trocar de aba refaz a busca no backend. */}
+      <div data-contract="repair-jobsheet-recorte">
+        <PageHeaderTabs
+          activeGhostKey={recorte}
+          ghosts={RECORTES.map((r) => ({ key: r.key, label: r.label, href: `?recorte=${r.key}` }))}
+          onGhostChange={(k) => setRecorte(k as Recorte)}
+        />
+      </div>
 
       {/* Filtros — usam os dropdowns reais que o controller já manda */}
-      <div className="flex flex-wrap items-center gap-2 rounded-lg border border-border bg-card p-3">
+      <div
+        data-contract="repair-jobsheet-filtros"
+        className="flex flex-wrap items-center gap-2 rounded-lg border border-border bg-card p-3"
+      >
         <FilterSelect label="Local" value={loc} onChange={setLoc} options={locOpts} allLabel="Todos os locais" />
         <FilterSelect label="Status" value={status} onChange={setStatus} options={statusOpts} allLabel="Todos os status" />
         <FilterSelect label="Cliente" value={customer} onChange={setCustomer} options={customerOpts} allLabel="Todos os clientes" />
@@ -135,7 +167,7 @@ export default function JobSheetIndex({ filters, flags, datatable_url }: PagePro
         )}
       </div>
 
-      <div className="overflow-hidden rounded-lg border border-border">
+      <div data-contract="repair-jobsheet-lista" className="overflow-hidden rounded-lg border border-border">
         {loading ? (
           <div className="space-y-2 p-4" aria-busy="true">
             {Array.from({ length: 6 }).map((_, i) => (
@@ -152,11 +184,11 @@ export default function JobSheetIndex({ filters, flags, datatable_url }: PagePro
         ) : rows.length === 0 ? (
           <EmptyState
             icon="wrench"
-            variant={hasFilters ? 'search' : 'default'}
-            title={hasFilters ? 'Nenhuma OS no filtro' : 'Nenhuma ordem de serviço'}
+            variant={semResultadoNoFiltro ? 'search' : 'default'}
+            title={semResultadoNoFiltro ? 'Nenhuma OS no filtro' : 'Nenhuma ordem de serviço'}
             description={
-              hasFilters
-                ? 'Ajuste os filtros para ver mais resultados.'
+              semResultadoNoFiltro
+                ? 'Troque a aba ou ajuste os filtros para ver mais resultados.'
                 : 'As OS de reparo criadas aparecerão aqui.'
             }
           />
@@ -205,7 +237,9 @@ export default function JobSheetIndex({ filters, flags, datatable_url }: PagePro
       </div>
 
       {!loading && !error && rows.length > 0 && (
-        <p className="text-xs text-muted-foreground">{rows.length} OS exibida(s).</p>
+        <p data-contract="repair-jobsheet-rodape" className="text-xs text-muted-foreground">
+          {rows.length} OS exibida(s).
+        </p>
       )}
     </div>
   );
