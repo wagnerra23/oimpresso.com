@@ -100,6 +100,17 @@
       }
     },
     {
+      "screen": "Discount",
+      "note": "1 arquivo(s)",
+      "cells": {
+        "tokens": "yes",
+        "primitivos": "yes",
+        "probe": "na",
+        "dark": "na",
+        "approved": "no"
+      }
+    },
+    {
       "screen": "Documentacao",
       "note": "6 arquivo(s)",
       "cells": {
@@ -141,6 +152,17 @@
         "probe": "na",
         "dark": "na",
         "approved": "yes"
+      }
+    },
+    {
+      "screen": "ImportSales",
+      "note": "2 arquivo(s)",
+      "cells": {
+        "tokens": "yes",
+        "primitivos": "yes",
+        "probe": "na",
+        "dark": "na",
+        "approved": "no"
       }
     },
     {
@@ -210,8 +232,30 @@
       }
     },
     {
+      "screen": "SalesOrder",
+      "note": "1 arquivo(s)",
+      "cells": {
+        "tokens": "yes",
+        "primitivos": "yes",
+        "probe": "na",
+        "dark": "na",
+        "approved": "no"
+      }
+    },
+    {
+      "screen": "SellReturn",
+      "note": "1 arquivo(s)",
+      "cells": {
+        "tokens": "yes",
+        "primitivos": "yes",
+        "probe": "na",
+        "dark": "na",
+        "approved": "no"
+      }
+    },
+    {
       "screen": "Sells",
-      "note": "65 arquivo(s)",
+      "note": "71 arquivo(s)",
       "cells": {
         "tokens": "no",
         "primitivos": "yes",
@@ -266,7 +310,7 @@
     },
     {
       "screen": "ConsultaOs",
-      "note": "5 arquivo(s)",
+      "note": "3 arquivo(s)",
       "cells": {
         "tokens": "no",
         "primitivos": "yes",
@@ -452,18 +496,18 @@
       }
     }
   ],
-  "progressPct": 41,
+  "progressPct": 47,
   "progressLabel": "adoção tokens + primitivos (censo Onda 0)",
   "measured": true,
-  "measuredAgainstSha": "38f454e5e",
-  "generatedAt": "2026-10-02T16:13:42.680Z",
+  "measuredAgainstSha": "cfb71022b",
+  "generatedAt": "2026-10-03T14:24:11.258Z",
   "treeGuard": {
     "pass": true,
     "violations": 0
   },
   "counts": {
-    "screens": 41,
-    "done": 17,
+    "screens": 45,
+    "done": 21,
     "references": 0
   }
 }
