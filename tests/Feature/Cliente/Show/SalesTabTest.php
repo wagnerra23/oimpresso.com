@@ -60,10 +60,12 @@ test('SalesTab.tsx — status pagamento PT-BR + dark mode tokens', function () {
         ->toContain("'A receber'")
         ->toContain("'Parcial'")
         ->toContain("'Vencido'")
-        ->toContain('dark:bg-emerald-950')
-        ->toContain('dark:bg-amber-950')
+        // Pago/A receber/Vencido em token do DS desde o #2666 (2026-06-13, eram emerald/amber/rose
+        // + dark: cru); os tokens carregam o tema escuro. Parcial segue azul cru com dark:.
+        ->toContain("paid: 'bg-success-soft")
+        ->toContain("due: 'bg-warning-soft")
         ->toContain('dark:bg-blue-950')
-        ->toContain('dark:bg-rose-950');
+        ->toContain("overdue: 'bg-destructive-soft");
 });
 
 test('SalesTab.tsx — paginação server-side com only: sales (Inertia partial reload)', function () {

@@ -857,6 +857,14 @@
       "promote_by": "2026-12-23",
       "anchor": "tests/Feature/PaymentGateway/ nao rodava em lane nenhuma (medido 2026-09-23): test-lane-coverage acusa o modulo PaymentGateway com 45 de 48 arquivos de teste fora de lane, e a modules-pest.yml roda em sqlite, onde o contrato pularia (skip sai exit 0, LC-13). Nasce com PaymentGatewaysSettingsContratoTest (UC-PGSET-01..07, tela /settings/payment-gateways, credenciais de gateway Tier 0): isolamento por business na lista e no toggle, config_json nunca no payload. MySQL porque o teste precisa do schema UltimatePOS e do tenant 98 (ADR 0358); o adversario 99 e criado pelo proprio teste.",
       "promote_by_razao": "Nasce advisory (ADR 0275): area sem execucao conhecida, promocao so com mordida provada (ADR 0336), flip de [W]. Sem continue-on-error de proposito (lapide 2026-07-09). Na promocao: reinserir synchronize nos types antes do flip (lapide 2026-08-08) e re-postar branch protection so via gh api --input com arquivo UTF-8 sem BOM (o nome tem U+00B7)."
+    },
+    "cliente-pest.yml": {
+      "nome": "Cliente · Pest (MySQL)",
+      "classe": "gate",
+      "terminal": "advisory",
+      "promote_by": "2026-12-31",
+      "anchor": "tests/Feature/Cliente/ (64 arquivos) nao rodava em lane de PR NENHUMA — medido 2026-10-02 (git grep \"Feature/Cliente\" -- .github/ sem alvo em workflow). Mesma sessao provou o custo: o cadastro web de cliente sem celular quebrava em producao (1048, run 37035885785, consertado no #8564) sem nenhum teste da area rodar. Arvore-menos-quarentena (.github/cliente-pest-quarantine.list), mesmo mecanismo do estoque-pest.yml.",
+      "promote_by_razao": "Nasce advisory (ADR 0275) porque a area nunca teve execucao conhecida — a 1a rodada mede quais arquivos passam e o resto vai para a quarentena com motivo. Promocao a required so com mordida provada (ADR 0336); o flip e de [W]. Sem continue-on-error: advisory = nao bloqueia merge, nunca = nao pode ficar vermelha (lapide 2026-07-09)."
     }
   }
 }

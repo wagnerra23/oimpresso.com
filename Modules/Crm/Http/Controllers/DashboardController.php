@@ -40,6 +40,11 @@ class DashboardController extends Controller
         $crm_contact_id = auth()->user()->crm_contact_id;
 
         $contact = $this->contactUtil->getContactInfo($business_id, $crm_contact_id);
+        // getContactInfo devolve null quando o contato do usuário não existe neste business
+        // (antes vinha um Contact vazio e a tela abria em branco).
+        if ($contact === null) {
+            abort(404);
+        }
 
         return view('crm::dashboard.index')
             ->with(compact('contact'));
