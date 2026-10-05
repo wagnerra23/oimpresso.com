@@ -536,3 +536,33 @@ it('UC-SAASS-16 · admin de negócio não consegue mudar status nem vigência', 
     // 302 sozinho não prova nada (pode ser redirect de sucesso). O que prova é o DADO intacto.
     expect(DB::table('subscriptions')->where('id', $id)->value('status'))->toBe('approved');
 });
+
+// ── UC-SAASS-18 · os formulários Blade de assinatura levam à lista (thread 04) ──
+
+it('UC-SAASS-18 · criar, mudar status e editar vigência pela rota antiga levam à lista', function () {
+    $rotas = [
+        ROTA_ASS.'/create?business_id='.BIZ_ASS,
+        ROTA_ASS.'/1/edit',
+        '/superadmin/edit-subscription/1',
+    ];
+
+    // A visita Inertia leva a versão dos assets, como o cliente real: sem ela o middleware
+    // responde 409 (versão divergente) antes de chegar ao controller.
+    $versao = (string) app(\App\Http\Middleware\HandleInertiaRequests::class)->version(request());
+    $inertia = ['X-Requested-With' => 'XMLHttpRequest', 'X-Inertia' => 'true', 'X-Inertia-Version' => $versao];
+
+    foreach ($rotas as $rota) {
+        // Como o browser abre e como o cliente Inertia visita: os dois mandavam ao modal Blade.
+        foreach ([[], $inertia] as $cabecalhos) {
+            $r = $this->actingAs(assSuperadmin())->get($rota, $cabecalhos);
+            expect($r->getStatusCode())->toBe(302);
+            expect(parse_url((string) $r->headers->get('Location'), PHP_URL_PATH))->toBe(ROTA_ASS);
+            expect($r->getContent())->not->toContain('modal-dialog');
+        }
+
+        // Quem não é superadmin não chega à lista por aqui.
+        $barrado = $this->actingAs(assAdminDeNegocio())->get($rota);
+        expect($barrado->getStatusCode())->toBeIn([302, 403]);
+        expect(parse_url((string) $barrado->headers->get('Location'), PHP_URL_PATH))->not->toBe(ROTA_ASS);
+    }
+});
