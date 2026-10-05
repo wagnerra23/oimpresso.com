@@ -195,6 +195,8 @@ final class RegistrarVendaRapida
         $resumo = [];
         $erros = [];
         $totalC = 0;
+        // Ajuste da empresa: com ele ligado, preço do catálogo ≤ 0 centavo recusa a venda inteira.
+        $bloqueiaPrecoZero = VendaRapidaController::bloqueiaPrecoZero($bizId);
         foreach ($itens as $i => $item) {
             $v = $vars->get((int) $item['variacao_id']);
             if ($v === null) {
@@ -206,7 +208,13 @@ final class RegistrarVendaRapida
                 $erros["itens.{$i}.quantidade"] = 'Informe uma quantidade inteira maior que zero.';
                 continue;
             }
-            $precoC = self::centavos((string) VendaRapidaController::precoDeVenda($local, (int) $v->id, (float) $v->sell_price_inc_tax, $v->tax_id));
+            $precoCatalogo = VendaRapidaController::precoDeVenda($local, (int) $v->id, (float) $v->sell_price_inc_tax, $v->tax_id);
+            $precoC = self::centavos((string) $precoCatalogo);
+            // Pelo número (já arredondado a 2 casas), não pelo texto: centavos() não trata sinal.
+            if ($bloqueiaPrecoZero && (int) round($precoCatalogo * 100) <= 0) {
+                $erros["itens.{$i}.preco_unitario"] = 'Produto sem preço. Corrija o cadastro na web.';
+                continue;
+            }
             if ($precoC !== self::centavos($item['preco_unitario'])) {
                 $erros["itens.{$i}.preco_unitario"] = 'O preço mudou para ' . self::brl($precoC) . '.';
                 continue;

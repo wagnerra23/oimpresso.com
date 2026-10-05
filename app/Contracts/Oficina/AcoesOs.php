@@ -14,14 +14,15 @@ use App\User;
  * OS encontrada). A seta de dependência fica módulo → núcleo (DependencyDirectionTest).
  *
  * Só as ações que AVANÇAM a OS na linha principal (ACOES_DO_APP) e as que a ENCERRAM sem
- * efeito (ACOES_QUE_ENCERRAM: cancelar, recusar orçamento — pedido [W] 2026-10-05). Acionar
- * garantia e o override do gate ficam só na web. Ação que no banco tenha efeito colateral
- * (side_effect_class / event_class) é recusada: o app não move valor nem estoque.
+ * efeito (ACOES_QUE_ENCERRAM: cancelar, recusar orçamento — pedido [W] 2026-10-05; acionar
+ * garantia — pedido [W] 2026-10-05, com motivo obrigatório). O override do gate fica só na web.
+ * Ação que no banco tenha efeito colateral (side_effect_class / event_class) é recusada: o app
+ * não move valor nem estoque.
  *
  * Tier 0 (ADR 0093): toda consulta recebe o business_id explícito (o escopo do model lê a
  * sessão, que a API não tem).
  *
- * @phpstan-type AcaoOs array{chave: string, rotulo: string, tipo: string, critica: bool, pode: bool, bloqueio: ?string}
+ * @phpstan-type AcaoOs array{chave: string, rotulo: string, tipo: string, critica: bool, pode: bool, bloqueio: ?string, motivo_obrigatorio: bool, destino: ?array{chave: string, rotulo: string}}
  */
 interface AcoesOs
 {
@@ -40,6 +41,15 @@ interface AcoesOs
     public const ACOES_QUE_ENCERRAM = [
         'recusar_orcamento',
         'cancelar_os',
+        'acionar_garantia',
+    ];
+
+    /**
+     * Ações que só saem com motivo (≤ 500). A garantia vai ser questionada depois, e o pipeline do
+     * Repair já exige motivo para ela (ReopenJobSheetRequest); no app ela não sai sem explicação.
+     */
+    public const ACOES_COM_MOTIVO = [
+        'acionar_garantia',
     ];
 
     /**
