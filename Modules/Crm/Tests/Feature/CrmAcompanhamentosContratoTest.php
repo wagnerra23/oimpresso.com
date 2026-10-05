@@ -372,3 +372,43 @@ it('UC-CRMACO-17 · registro em acompanhamento de outro negócio não grava nem 
     expect(DB::table('crm_schedule_logs')->where('schedule_id', $alheio)->exists())->toBeFalse();
     expect(DB::table('crm_schedules')->where('id', $alheio)->value('status'))->toBe('scheduled');
 });
+
+// ── UC-CRMACO-18 · acompanhamento antecipado só aceita contato, usuário e fatura do negócio [T0] ──
+
+/** O corpo do antecipado: cada chave de `follow_ups` é um contato, com atribuídos e faturas. */
+function acoCorpoAntecipado(string $titulo, array $followUps): array
+{
+    $corpo = acoCorpo($titulo, 0, acoUsuario('aco_todos_test', ['crm.access_all_schedule']), ['follow_ups' => $followUps]);
+    unset($corpo['contact_id'], $corpo['user_id']);
+
+    return $corpo;
+}
+
+it('UC-CRMACO-18 · antecipado recusa contato, usuário e fatura de outro negócio e grava o meu com o nome no título [T0]', function () {
+    $user = acoUsuario('aco_todos_test', ['crm.access_all_schedule']);
+    $vizinho = acoUsuario('aco_vizinho_test', ['crm.access_all_schedule'], ACO_OUTRO);
+    $meu = acoContato(ACO_BIZ, $user);
+    $alheio = acoContato(ACO_OUTRO, $vizinho);
+    $semFatura = (int) DB::table('transactions')->max('id') + 100000; // não existe neste negócio
+
+    // Contato alheio como chave: o {customer_name} puxaria o nome dele para o meu acompanhamento.
+    $this->actingAs($user)->post(ACO_ROTA, acoCorpoAntecipado('Antecipado alheio', [$alheio => ['user_id' => [$user->id]]]), ACO_AJAX)
+        ->assertStatus(422)->assertJsonValidationErrors('follow_ups');
+    // Usuário de outro negócio como atribuído.
+    $this->actingAs($user)->post(ACO_ROTA, acoCorpoAntecipado('Antecipado usuario', [$meu => ['user_id' => [$vizinho->id]]]), ACO_AJAX)
+        ->assertStatus(422)->assertJsonValidationErrors("follow_ups.$meu.user_id.0");
+    // Fatura que não é deste negócio.
+    $this->actingAs($user)->post(ACO_ROTA, acoCorpoAntecipado('Antecipado fatura', [$meu => ['user_id' => [$user->id], 'invoices' => [$semFatura]]]), ACO_AJAX)
+        ->assertStatus(422)->assertJsonValidationErrors("follow_ups.$meu.invoices.0");
+
+    expect(DB::table('crm_schedules')->where('title', 'like', 'Antecipado%')->where('title', 'like', '%'.ACO_TAG.'%')->exists())->toBeFalse();
+
+    // O caminho certo grava no meu negócio, com o nome do MEU contato no lugar da etiqueta.
+    $this->actingAs($user)->post(ACO_ROTA, acoCorpoAntecipado('Ligar {customer_name}', [$meu => ['user_id' => [$user->id]]]), ACO_AJAX)
+        ->assertOk()->assertJson(['success' => true]);
+
+    $linha = DB::table('crm_schedules')->where('contact_id', $meu)->where('title', 'like', 'Ligar %')->first();
+    $this->assertNotNull($linha, 'o antecipado do meu contato não foi gravado');
+    expect($linha->title)->toBe('Ligar Contato '.ACO_TAG.' '.ACO_TAG)
+        ->and((int) $linha->business_id)->toBe(ACO_BIZ);
+});

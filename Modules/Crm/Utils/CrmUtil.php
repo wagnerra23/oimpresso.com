@@ -77,20 +77,26 @@ class CrmUtil extends Util
             unset($input['in_days']);
         }
 
+        // Tier 0 (ADR 0093): contato e faturas só do negócio do acompanhamento. O FormRequest já
+        // recusa os alheios; aqui é a 2ª linha, que vale também para o comando recorrente.
+        $business_id = (int) ($input['business_id'] ?? $user->business_id);
+
         foreach ($follow_ups as $key => $value) {
             $input['contact_id'] = $key;
             $input['user_id'] = $value['user_id'];
-            $invoices = ! empty($value['invoices']) ? $value['invoices'] : [];
+            $invoices = ! empty($value['invoices'])
+                ? Transaction::where('business_id', $business_id)->whereIn('id', (array) $value['invoices'])->pluck('id')->all()
+                : [];
 
-            $replaced_tag_input = $this->replaceAdvFollowUpTags($input['contact_id'], $invoices, $replacable_inputs);
+            $replaced_tag_input = $this->replaceAdvFollowUpTags($input['contact_id'], $invoices, $replacable_inputs, $business_id);
 
             $input['title'] = $replaced_tag_input['title'];
             $input['description'] = $replaced_tag_input['description'];
 
             $follow_up = $this->addFollowUp($input, $user);
 
-            if (! empty($value['invoices'])) {
-                $follow_up->invoices()->sync($value['invoices']);
+            if (! empty($invoices)) {
+                $follow_up->invoices()->sync($invoices);
             }
         }
     }
@@ -209,14 +215,17 @@ class CrmUtil extends Util
         ];
     }
 
-    public function replaceAdvFollowUpTags($contact_id, $invoices, $input)
+    public function replaceAdvFollowUpTags($contact_id, $invoices, $input, ?int $business_id = null)
     {
         $contact = CrmContact::where('id', $contact_id)
-                        ->first();
+                        ->when($business_id !== null, fn ($q) => $q->where('business_id', $business_id))
+                        ->firstOrFail();
 
         $invoice_numbers = '';
         if (! empty($invoices)) {
-            $transactions = Transaction::find($invoices);
+            $transactions = Transaction::whereIn('id', (array) $invoices)
+                ->when($business_id !== null, fn ($q) => $q->where('business_id', $business_id))
+                ->get();
             $invoice_numbers = implode(', ', $transactions->pluck('invoice_no')->toArray());
         }
 

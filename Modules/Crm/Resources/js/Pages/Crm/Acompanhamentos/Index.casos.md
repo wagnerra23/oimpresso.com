@@ -200,3 +200,17 @@ Status: 🧪
 **Então** recebo 404 (como em editar e excluir), nenhum registro é gravado e o status dele não muda.
 
 Status: 🧪
+
+## UC-CRMACO-18 · Antecipado só aceita contato, usuário e fatura do negócio · `must` `[T0]`
+
+**Dado** um acompanhamento antecipado (`follow_ups[<contato>][user_id][]`, `[invoices][]`)
+**Quando** algum contato, usuário atribuído ou fatura é de outro negócio
+**Então** o servidor recusa com erro no campo e nada é gravado. Com os do meu negócio, grava no meu
+negócio e troca `{customer_name}` pelo nome do **meu** contato.
+
+> Antes, nada disso era validado: o contato de outro negócio entrava no título pelas etiquetas
+> `{customer_name}`/`{invoice_numbers}`, e as faturas dele eram vinculadas ao acompanhamento
+> (pendente 2 do `_saida-07`). O `CrmUtil` também filtra contato e faturas pelo negócio, como
+> segunda linha que vale para o comando recorrente.
+
+Status: 🧪
