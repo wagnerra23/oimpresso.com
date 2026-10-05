@@ -106,6 +106,19 @@ class BusinessController extends BaseController
             'moeda_padrao' => DB::table('currencies')->where('code', 'BRL')->value('id'),
             'fusos' => array_values($this->businessUtil->allTimeZones()),
             'fuso_padrao' => config('app.timezone'),
+        ] + $this->opcoesDeAssinatura();
+    }
+
+    /**
+     * Pacotes ativos (por `sort_order`) e formas de pagamento configuradas — as listas que a
+     * Blade `add_subscription` montava. Servem ao "Novo negócio" e ao "Adicionar assinatura" do
+     * drawer, que gravam pelo mesmo `_add_subscription`.
+     *
+     * @return array{pacotes: list<array<string, mixed>>, gateways: list<array{id: string, nome: string}>}
+     */
+    private function opcoesDeAssinatura(): array
+    {
+        return [
             'pacotes' => Package::active()->orderBy('sort_order')
                 ->get(['id', 'name', 'user_count', 'location_count'])
                 ->map(fn ($p) => [
@@ -113,7 +126,7 @@ class BusinessController extends BaseController
                     'nome' => (string) $p->name,
                     'usuarios' => (int) $p->user_count,
                     'locais' => (int) $p->location_count,
-                ])->all(),
+                ])->values()->all(),
             'gateways' => collect($this->_payment_gateways())
                 ->map(fn ($nome, $id) => ['id' => (string) $id, 'nome' => (string) $nome])
                 ->values()->all(),
@@ -400,6 +413,8 @@ class BusinessController extends BaseController
             ],
             'locais' => $locais,
             'usuarios' => $this->usuariosDoNegocio($negocioId),
+            // "Adicionar assinatura" no rodapé do drawer (protótipo NegocioDrawer).
+            'opcoes_assinatura' => $this->opcoesDeAssinatura(),
         ];
     }
 

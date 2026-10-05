@@ -374,3 +374,72 @@ it('UC-SANEG-13 · store recusa usuario e e-mail ja existentes e pacote sem pago
 
     expect(DB::table('business')->count())->toBe($antes);
 });
+
+// ── UC-SANEG-14 · "Adicionar assinatura" do drawer grava pelo store() ───────
+
+/** Pacote de fixture, criado e apagado pelo próprio caso (a base do CT 100 persiste). */
+function negPacote(string $nome, bool $ativo): \Modules\Superadmin\Entities\Package
+{
+    return \Modules\Superadmin\Entities\Package::create([
+        'name' => $nome, 'description' => 'fixture UC-SANEG-14',
+        'location_count' => 1, 'user_count' => 3, 'product_count' => 0, 'invoice_count' => 0,
+        'interval' => 'months', 'interval_count' => 1, 'trial_days' => 0,
+        'price' => 37.5, 'created_by' => 1, 'sort_order' => 999, 'is_active' => $ativo ? 1 : 0,
+    ]);
+}
+
+it('UC-SANEG-14 · adicionar assinatura grava no negocio com o preco do pacote; pacote inativo e quem nao e superadmin sao barrados', function () {
+    if (! Schema::hasTable('packages') || ! Schema::hasTable('subscriptions') || ! Schema::hasTable('system')) {
+        $this->markTestSkipped('schema Superadmin ausente.');
+    }
+
+    $superadmin = negSuperadmin();
+    $ativo = negPacote('Pacote UC-SANEG-14 ativo', true);
+    $inativo = negPacote('Pacote UC-SANEG-14 inativo', false);
+    $offlineAntes = DB::table('system')->where('key', 'enable_offline_payment')->value('value');
+    DB::table('system')->updateOrInsert(['key' => 'enable_offline_payment'], ['value' => 1]);
+
+    try {
+        // O drawer recebe as opções: pacote ativo sim, inativo não, e a forma "offline".
+        $versao = app(\App\Http\Middleware\HandleInertiaRequests::class)->version(request());
+        $detalhe = $this->actingAs($superadmin)->get('/superadmin/business?negocio='.BIZ_NEG, [
+            'X-Inertia' => 'true', 'X-Inertia-Version' => (string) $versao,
+            'X-Inertia-Partial-Data' => 'detalhe', 'X-Inertia-Partial-Component' => 'superadmin/Negocios/Index',
+        ])->assertOk()->json('props.detalhe.opcoes_assinatura');
+        $ids = array_column($detalhe['pacotes'], 'id');
+        expect($ids)->toContain($ativo->id)->not->toContain($inativo->id)
+            ->and(array_column($detalhe['gateways'], 'id'))->toContain('offline');
+
+        $antes = DB::table('subscriptions')->where('business_id', BIZ_NEG)->count();
+
+        // Recusas: pacote inativo, e admin de negócio. Nada é gravado.
+        $this->actingAs($superadmin)->from('/superadmin/business?negocio='.BIZ_NEG)
+            ->post('/superadmin/superadmin-subscription', ['business_id' => BIZ_NEG, 'package_id' => $inativo->id, 'paid_via' => 'offline'])
+            ->assertSessionHasErrors(['package_id']);
+        $barrado = $this->actingAs(negAdminDeNegocio())
+            ->post('/superadmin/superadmin-subscription', ['business_id' => BIZ_NEG, 'package_id' => $ativo->id, 'paid_via' => 'offline']);
+        expect($barrado->getStatusCode())->toBeIn([302, 403])
+            ->and(DB::table('subscriptions')->where('business_id', BIZ_NEG)->count())->toBe($antes);
+
+        // Gravação: o valor vem do pacote, não da tela.
+        $this->actingAs($superadmin)->from('/superadmin/business?negocio='.BIZ_NEG)
+            ->post('/superadmin/superadmin-subscription', [
+                'business_id' => BIZ_NEG, 'package_id' => $ativo->id, 'paid_via' => 'offline', 'payment_transaction_id' => 'UC-SANEG-14',
+            ])->assertRedirect('/superadmin/business?negocio='.BIZ_NEG)->assertSessionHasNoErrors();
+
+        $nova = DB::table('subscriptions')->where('business_id', BIZ_NEG)->where('payment_transaction_id', 'UC-SANEG-14')->first();
+        expect($nova)->not->toBeNull()
+            ->and((int) $nova->package_id)->toBe($ativo->id)
+            ->and((float) $nova->package_price)->toBe((float) DB::table('packages')->where('id', $ativo->id)->value('price'))
+            ->and($nova->status)->toBe('approved')
+            ->and($nova->start_date)->not->toBeNull()
+            ->and(DB::table('subscriptions')->where('business_id', BIZ_NEG)->count())->toBe($antes + 1);
+    } finally {
+        DB::table('subscriptions')->whereIn('package_id', [$ativo->id, $inativo->id])->delete();
+        $ativo->forceDelete();
+        $inativo->forceDelete();
+        $offlineAntes === null
+            ? DB::table('system')->where('key', 'enable_offline_payment')->delete()
+            : DB::table('system')->where('key', 'enable_offline_payment')->update(['value' => $offlineAntes]);
+    }
+});

@@ -193,6 +193,24 @@ Status: 🧪
 
 ---
 
+## UC-SANEG-14 · "Adicionar assinatura" do drawer grava no negócio com o preço do pacote · `must` `[T0]`
+
+**Dado** o drawer de um negócio aberto
+**Quando** o superadmin clica em **Adicionar assinatura** (rodapé, como no protótipo) e escolhe
+pacote e "pago via"
+**Então** a assinatura nasce **naquele** negócio, aprovada, com a vigência do pacote e
+`package_price` igual ao preço do pacote — nenhum número sai da tela. O diálogo só oferece pacote
+**ativo** e forma de pagamento **configurada**; pacote inativo volta como erro do campo, e quem não
+é superadmin não grava nada.
+
+> Substitui a Blade `add_subscription`, que ficou sem entrada quando Negócios e Assinaturas viraram
+> Inertia (thread Superadmin 04). O `store()` antes não validava nada: `package_id` vazio caía no
+> erro genérico.
+
+Status: 🧪
+
+---
+
 ## Testes mínimos
 
 - DQE: 1 negócio com 2 locais, 1 com 2 assinaturas, 1 sem assinatura, 1 inativo.
