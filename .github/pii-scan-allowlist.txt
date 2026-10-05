@@ -154,3 +154,17 @@ mobile/ref/design-v4/project/Oimpresso Mobile.dc.html|67.890.123/0001-00
 mobile/ref/design-v4/project/Oimpresso Mobile.dc.html|78.901.234/0001-00
 mobile/ref/design-v4/project/Oimpresso Mobile.dc.html|89.012.345/0001-00
 mobile/ref/design-v4/project/Oimpresso Mobile.dc.html|56.789.012/0001-01
+
+# Catalogado 2026-10-05: cópia "v1 (antes da sync 05-10)" que o Claude Design guardou no projeto
+# Mobile (PROJETOS.mobile) e o handoff de 05/10 trouxe. Mesmo caso do #8193: snapshot congelado,
+# mock de tela. Os 10 literais têm DV inválido (conferido; o receber-handoff já invalidou os válidos).
+mobile/ref/design-v4/project/Oimpresso Mobile v1 (antes da sync 05-10).dc.html|00.000.000/0001-00
+mobile/ref/design-v4/project/Oimpresso Mobile v1 (antes da sync 05-10).dc.html|000.000.000-00
+mobile/ref/design-v4/project/Oimpresso Mobile v1 (antes da sync 05-10).dc.html|12.345.678/0001-00
+mobile/ref/design-v4/project/Oimpresso Mobile v1 (antes da sync 05-10).dc.html|23.456.789/0001-00
+mobile/ref/design-v4/project/Oimpresso Mobile v1 (antes da sync 05-10).dc.html|34.567.890/0001-00
+mobile/ref/design-v4/project/Oimpresso Mobile v1 (antes da sync 05-10).dc.html|45.678.901/0001-00
+mobile/ref/design-v4/project/Oimpresso Mobile v1 (antes da sync 05-10).dc.html|56.789.012/0001-01
+mobile/ref/design-v4/project/Oimpresso Mobile v1 (antes da sync 05-10).dc.html|67.890.123/0001-00
+mobile/ref/design-v4/project/Oimpresso Mobile v1 (antes da sync 05-10).dc.html|78.901.234/0001-00
+mobile/ref/design-v4/project/Oimpresso Mobile v1 (antes da sync 05-10).dc.html|89.012.345/0001-00

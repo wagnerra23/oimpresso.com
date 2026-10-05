@@ -1,0 +1,861 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <meta name="design_doc_mode" content="canvas">
+  <link rel="stylesheet" href="_ds/office-impresso-design-system-019dd02f-d2d0-7ba6-a57f-24b3ddd073ac/colors_and_type.css">
+  <link rel="stylesheet" href="_ds/office-impresso-design-system-019dd02f-d2d0-7ba6-a57f-24b3ddd073ac/styles.css">
+  <script src="_ds/office-impresso-design-system-019dd02f-d2d0-7ba6-a57f-24b3ddd073ac/_ds_bundle.js"></script>
+  <style>
+    body { margin: 0; background: oklch(0.2 0.006 240); }
+    [data-phone-scroll] { scrollbar-width: none; }
+    [data-phone-scroll]::-webkit-scrollbar { display: none; }
+    a { color: oklch(0.72 0.12 295); text-decoration: none; }
+    a:hover { text-decoration: underline; text-underline-offset: 4px; }
+  </style>
+</helmet>
+
+<section class="cockpit" data-theme="{{ themeAttr }}" style="min-height: 100vh; padding: 56px 64px 80px; background: var(--bg-2); color: var(--text); font-family: var(--font-sans); display: flex; flex-direction: column; gap: 40px;">
+  <header style="display: flex; flex-direction: column; gap: 10px; max-width: 980px;">
+    <div style="font-family: var(--font-mono); font-size: 11.5px; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text-mute);">Propostas · oimpresso-app × Mubisys, HoldApp, shopVOX Go · 05/10/2026</div>
+    <h1 style="color: var(--text); margin: 0; font-size: 28px; font-weight: 600; letter-spacing: -0.4px;">O que falta no app — 9 telas propostas</h1>
+    <p style="margin: 0; font-size: 15px; line-height: 1.5; color: var(--text-dim); text-wrap: pretty;">Nada disto está no oimpresso-app hoje. Cada tela fecha uma diferença com os apps do ramo. As que escrevem no ERP passam pela regra mestre antes de virar código.</p>
+    <div style="display: flex; gap: 14px; flex-wrap: wrap;">
+      <a href="Oimpresso Mobile.dc.html" style="font-size: 13.5px;">← Telas que já estão em produção</a>
+    </div>
+    <div style="margin-top: 8px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); overflow: hidden;">
+      <div style="min-height: 36px; padding: 0 16px; display: grid; grid-template-columns: 44px minmax(0, 1.4fr) minmax(0, 1.5fr) 110px 64px 150px; gap: 12px; align-items: center; border-bottom: 1px solid var(--border); font-size: 10.5px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text-mute);">
+        <span>#</span><span>Tela</span><span>Quem já tem</span><span>Escreve no ERP</span><span>Esforço</span><span>Situação</span>
+      </div>
+      <sc-for list="{{ lista }}" as="p" hint-placeholder-count="9">
+        <a href="{{ p.href }}" style="min-height: 48px; padding: 8px 16px; display: grid; grid-template-columns: 44px minmax(0, 1.4fr) minmax(0, 1.5fr) 110px 64px 150px; gap: 12px; align-items: center; border-bottom: 1px solid var(--border-2); color: var(--text); text-decoration: none;" style-hover="background: var(--bg-2); text-decoration: none;">
+          <span style="font-family: var(--font-mono); font-size: 12px; font-weight: 600; color: var(--accent);">{{ p.id }}</span>
+          <span style="font-size: 14px; font-weight: 600;">{{ p.nome }}</span>
+          <span style="font-size: 12.5px; color: var(--text-dim);">{{ p.quem }}</span>
+          <span style="font-size: 12.5px; color: {{ p.escFg }};">{{ p.esc }}</span>
+          <span style="font-family: var(--font-mono); font-size: 12px; font-weight: 600; color: var(--text-dim);">{{ p.esf }}</span>
+          <span style="justify-self: start; height: 22px; padding: 0 9px; border-radius: 99px; border: 1px solid {{ p.bd }}; background: {{ p.bg }}; color: {{ p.fg }}; display: flex; align-items: center; font-size: 11.5px; font-weight: 600;">{{ p.status }}</span>
+        </a>
+      </sc-for>
+    </div>
+    <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+      <span style="font-size: 10.5px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text-mute);">Ordem sugerida</span>
+      <span style="font-family: var(--font-mono); font-size: 12.5px; color: var(--text-dim);">P7 → P1 → P8 → P2 → P3 → P9 → P6 → P4 → P5</span>
+    </div>
+    <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+      <span style="font-size: 10.5px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text-mute);">Simular rede</span>
+      <div style="display: flex; gap: 3px; padding: 3px; border-radius: 8px; background: var(--surface); border: 1px solid var(--border);">
+        <sc-for list="{{ redeOpts }}" as="r" hint-placeholder-count="2">
+          <div onClick="{{ r.pick }}" style="height: 28px; padding: 0 12px; border-radius: 6px; background: {{ r.bg }}; color: {{ r.fg }}; display: flex; align-items: center; font-size: 12.5px; font-weight: 600; cursor: pointer;">{{ r.label }}</div>
+        </sc-for>
+      </div>
+      <span style="font-size: 12.5px; color: var(--text-mute);">Offline, tudo que escreve no ERP trava — o app não guarda fila.</span>
+    </div>
+    <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+      <span style="font-size: 10.5px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text-mute);">Simular resposta do ERP</span>
+      <div style="display: flex; gap: 3px; padding: 3px; border-radius: 8px; background: var(--surface); border: 1px solid var(--border);">
+        <sc-for list="{{ erroOpts }}" as="r" hint-placeholder-count="2">
+          <div onClick="{{ r.pick }}" style="height: 28px; padding: 0 12px; border-radius: 6px; background: {{ r.bg }}; color: {{ r.fg }}; display: flex; align-items: center; font-size: 12.5px; font-weight: 600; cursor: pointer;">{{ r.label }}</div>
+        </sc-for>
+      </div>
+    </div>
+    <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+      <span style="font-size: 10.5px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text-mute);">Canal WhatsApp</span>
+      <div style="display: flex; gap: 3px; padding: 3px; border-radius: 8px; background: var(--surface); border: 1px solid var(--border);">
+        <sc-for list="{{ canalOpts }}" as="r" hint-placeholder-count="2">
+          <div onClick="{{ r.pick }}" style="height: 28px; padding: 0 12px; border-radius: 6px; background: {{ r.bg }}; color: {{ r.fg }}; display: flex; align-items: center; font-size: 12.5px; font-weight: 600; cursor: pointer;">{{ r.label }}</div>
+        </sc-for>
+      </div>
+    </div>
+    <div style="margin-top: 6px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); padding: 14px 16px; display: flex; flex-direction: column; gap: 10px;">
+      <div style="display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap;">
+        <span style="font-size: 10.5px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text-mute);">Ajustes da empresa · Configurações → App das lojas</span>
+        <span style="font-size: 12px; color: var(--text-mute);">pos_settings.app_* · o app lê em /api/app/inicio → ajustes · a rota confere de novo</span>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 6px 16px;">
+        <sc-for list="{{ ajustesUi }}" as="a" hint-placeholder-count="6">
+          <div onClick="{{ a.toggle }}" style="min-height: 44px; display: flex; align-items: center; gap: 10px; cursor: pointer;">
+            <span style="width: 34px; height: 20px; border-radius: 99px; background: {{ a.trilho }}; position: relative; flex-shrink: 0;"><span style="position: absolute; top: 2px; left: {{ a.x }}; width: 16px; height: 16px; border-radius: 99px; background: #ffffff;"></span></span>
+            <div style="display: flex; flex-direction: column; min-width: 0;"><span style="font-size: 13px; font-weight: 500;">{{ a.label }}</span><span style="font-family: var(--font-mono); font-size: 10.5px; color: var(--text-mute);">{{ a.chave }} · {{ a.p }}</span></div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </header>
+
+  <div style="display: flex; flex-wrap: wrap; gap: 48px; align-items: flex-start;">
+
+    <!-- P1 Avançar etapa -->
+    <div id="p1" data-screen-label="P1 Avançar etapa" style="display: flex; flex-direction: column; gap: 10px; width: 410px;">
+      <div style="display: flex; align-items: baseline; gap: 10px;">
+        <span style="font-family: var(--font-mono); font-size: 12px; font-weight: 600; color: var(--accent-fg); background: var(--accent); padding: 2px 8px; border-radius: 6px;">P1</span>
+        <span style="font-size: 15px; font-weight: 600;">Avançar etapa</span>
+        <span style="font-family: var(--font-mono); font-size: 11.5px; color: var(--text-mute);">telas 02 · 07 · 22</span>
+      </div>
+      <span style="font-size: 12.5px; color: var(--text-dim); text-wrap: pretty;">A OS já avança no app (tela 03, rota que existe). Falta o pedido: hoje a 22 manda para o computador. Mubisys e shopVOX Go fazem pelo celular.</span>
+      <div style="width: 390px; height: 844px; border-radius: 48px; border: 10px solid #0b0b0e; background: var(--bg); position: relative; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 30px 60px rgba(0,0,0,0.35);">
+        <div style="height: 44px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 28px; font-family: var(--font-mono); font-size: 13px; font-weight: 600;"><span>09:41</span><span style="font-size: 11px; color: var(--text-dim);">5G ▮▮▮</span></div>
+        <sc-if value="{{ offline }}" hint-placeholder-val="{{ false }}">
+          <div style="flex-shrink: 0; min-height: 34px; padding: 6px 16px; background: var(--warn); color: oklch(0.22 0.01 80); display: flex; align-items: center; font-size: 12.5px; font-weight: 600;">Sem conexão. Bater ponto precisa de internet.</div>
+        </sc-if>
+        <div style="padding: 4px 8px 10px; display: flex; align-items: center; gap: 4px; border-bottom: 1px solid var(--border);">
+          <div style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; color: var(--text-dim);"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"></path></svg></div>
+          <div style="flex: 1; min-width: 0;">
+            <div style="font-size: 10.5px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text-mute);">Ótica Visão Clara</div>
+            <div style="font-size: 17px; font-weight: 600;">Pedido #4812</div>
+          </div>
+          <span style="padding-right: 12px; display: flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 600; color: {{ et.tint }};"><span style="width: 6px; height: 6px; border-radius: 99px; background: {{ et.tint }};"></span>{{ et.atual }}</span>
+        </div>
+        <div data-phone-scroll="" style="flex: 1; overflow-y: auto; overflow-x: hidden; padding: 12px 16px 20px; display: flex; flex-direction: column; gap: 12px;">
+          <div data-phone-scroll="" style="background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 12px; flex-shrink: 0; overflow-x: auto;">
+            <x-import component-from-global-scope="OfficeImpressoPontoWR2DesignSystem_019dd0.FsmStepper" variant="full" steps="{{ et.steps }}" current="{{ et.idx }}" hue="{{ 295 }}" hint-size="100%,56px"></x-import>
+            <div style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-dim);">Prazo <b style="font-family: var(--font-mono); color: var(--text);">02/10/2026</b></div>
+          </div>
+          <div style="font-size: 10.5px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text-mute);">Histórico</div>
+          <x-import component-from-global-scope="OfficeImpressoPontoWR2DesignSystem_019dd0.Timeline" entries="{{ et.log }}" dense="{{ true }}" hint-size="100%,160px"></x-import>
+          <span style="font-size: 11.5px; color: var(--text-mute); text-wrap: pretty;">Cada mudança grava quem moveu e quando — igual à web. Voltar etapa continua no computador.</span>
+        </div>
+        <div style="flex-shrink: 0; padding: 12px 16px 26px; border-top: 1px solid var(--border); background: var(--surface);">
+          <sc-if value="{{ et.semPerm }}" hint-placeholder-val="{{ false }}"><span style="display: flex; justify-content: center; font-size: 12.5px; color: var(--text-mute);">Seu usuário só consulta este pedido.</span></sc-if>
+          <sc-if value="{{ et.podeMover }}" hint-placeholder-val="{{ true }}"><div onClick="{{ et.pedir }}" style="height: 48px; border-radius: 10px; background: {{ et.btnBg }}; color: {{ et.btnFg }}; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; cursor: pointer;">{{ et.btnLabel }}</div></sc-if>
+        </div>
+        <sc-if value="{{ et.conf }}" hint-placeholder-val="{{ false }}">
+          <div onClick="{{ et.fechar }}" style="position: absolute; inset: 0; background: rgba(0,0,0,0.45); z-index: 5;"></div>
+          <div style="position: absolute; left: 0; right: 0; bottom: 0; z-index: 6; background: var(--surface); border-radius: 18px 18px 0 0; padding: 10px 16px 28px; display: flex; flex-direction: column; gap: 12px;">
+            <span style="align-self: center; width: 40px; height: 4px; border-radius: 99px; background: var(--border);"></span>
+            <span style="font-size: 16px; font-weight: 600;">Mover para {{ et.prox }}?</span>
+            <span style="font-size: 13px; line-height: 1.45; color: var(--text-dim);">O pedido #4812 sai de {{ et.atual }}. Fica no histórico com seu nome e a hora.</span>
+            <div style="display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px;">
+              <div onClick="{{ et.fechar }}" style="height: 48px; border-radius: 10px; border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; cursor: pointer;">Cancelar</div>
+              <div onClick="{{ et.confirmar }}" style="height: 48px; border-radius: 10px; background: var(--accent); color: var(--accent-fg); display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; cursor: pointer;">Mover</div>
+            </div>
+          </div>
+        </sc-if>
+        <sc-if value="{{ toast.p1 }}" hint-placeholder-val="{{ false }}">
+          <div style="position: absolute; left: 16px; right: 16px; bottom: 104px; z-index: 7; display: flex; justify-content: center; pointer-events: none;">
+            <x-import component-from-global-scope="OfficeImpressoPontoWR2DesignSystem_019dd0.Toast" tone="{{ toast.tone }}" hint-size="auto,36px">{{ toast.msg }}</x-import>
+          </div>
+        </sc-if>
+      </div>
+      <div style="border: 1px solid var(--border); border-radius: 12px; background: var(--surface); overflow: hidden;">
+        <sc-for list="{{ fichas.p1 }}" as="r" hint-placeholder-count="5">
+          <div style="padding: 9px 14px; display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 10px; border-bottom: 1px solid var(--border-2);">
+            <span style="font-size: 10.5px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; color: var(--text-mute); padding-top: 2px;">{{ r.k }}</span>
+            <span style="font-size: 12.5px; line-height: 1.45; color: var(--text-dim); text-wrap: pretty;">{{ r.v }}</span>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+
+    <!-- P2 Fotos e anexos -->
+    <div id="p2" data-screen-label="P2 Fotos e anexos" style="display: flex; flex-direction: column; gap: 10px; width: 410px;">
+      <div style="display: flex; align-items: baseline; gap: 10px;">
+        <span style="font-family: var(--font-mono); font-size: 12px; font-weight: 600; color: var(--accent-fg); background: var(--accent); padding: 2px 8px; border-radius: 6px;">P2</span>
+        <span style="font-size: 15px; font-weight: 600;">Fotos e anexos</span>
+        <span style="font-family: var(--font-mono); font-size: 11.5px; color: var(--text-mute);">telas 03 · 22</span>
+      </div>
+      <span style="font-size: 12.5px; color: var(--text-dim); text-wrap: pretty;">Mubisys sobe imagem na produção; shopVOX Go anexa foto à transação. Tira a foto na hora ou escolhe da galeria.</span>
+      <div style="width: 390px; height: 844px; border-radius: 48px; border: 10px solid #0b0b0e; background: var(--bg); position: relative; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 30px 60px rgba(0,0,0,0.35);">
+        <div style="height: 44px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 28px; font-family: var(--font-mono); font-size: 13px; font-weight: 600;"><span>09:41</span><span style="font-size: 11px; color: var(--text-dim);">5G ▮▮▮</span></div>
+        <sc-if value="{{ offline }}" hint-placeholder-val="{{ false }}">
+          <div style="flex-shrink: 0; min-height: 34px; padding: 6px 16px; background: var(--warn); color: oklch(0.22 0.01 80); display: flex; align-items: center; font-size: 12.5px; font-weight: 600;">Sem conexão. Bater ponto precisa de internet.</div>
+        </sc-if>
+        <div style="padding: 4px 8px 10px; display: flex; align-items: center; gap: 4px; border-bottom: 1px solid var(--border);">
+          <div style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; color: var(--text-dim);"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"></path></svg></div>
+          <div style="flex: 1; min-width: 0;">
+            <div style="font-size: 10.5px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text-mute);">{{ fo.eyebrow }}</div>
+            <div style="font-size: 17px; font-weight: 600;">OS #1042 · anexos</div>
+          </div>
+        </div>
+        <div data-phone-scroll="" style="flex: 1; overflow-y: auto; overflow-x: hidden; padding: 12px 16px 20px; display: flex; flex-direction: column; gap: 12px;">
+          <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 3px; padding: 3px; border-radius: 10px; background: var(--bg-2); flex-shrink: 0;">
+            <sc-for list="{{ fo.abas }}" as="a" hint-placeholder-count="3">
+              <div onClick="{{ a.pick }}" style="height: 36px; border-radius: 7px; background: {{ a.bg }}; color: {{ a.fg }}; display: flex; align-items: center; justify-content: center; font-size: 12.5px; font-weight: 600; cursor: pointer;">{{ a.label }}</div>
+            </sc-for>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px;">
+            <sc-for list="{{ fo.itens }}" as="f" hint-placeholder-count="4">
+              <div style="display: flex; flex-direction: column; gap: 4px;">
+                <div style="aspect-ratio: 1; border-radius: 8px; border: 1px solid var(--border); background: repeating-linear-gradient(135deg, var(--surface) 0 8px, var(--bg-2) 8px 16px); display: flex; align-items: flex-end; padding: 6px;">
+                  <span style="font-family: var(--font-mono); font-size: 9.5px; color: var(--text-mute);">{{ f.n }}</span>
+                </div>
+                <span style="font-size: 11.5px; color: var(--text-dim); line-height: 1.3;">{{ f.q }}</span>
+              </div>
+            </sc-for>
+          </div>
+          <sc-if value="{{ fo.vazio }}" hint-placeholder-val="{{ false }}">
+            <x-import component-from-global-scope="OfficeImpressoPontoWR2DesignSystem_019dd0.EmptyState" variant="first" title="Nenhum anexo nesta etapa" description="Tire uma foto ou escolha da galeria: medição, arte aprovada, instalação pronta." hint-size="100%,170px"></x-import>
+          </sc-if>
+          <span style="font-size: 11.5px; color: var(--text-mute); text-wrap: pretty;">As fotos ficam na OS e aparecem também na web. Câmera e galeria pedem permissão só no primeiro uso.</span>
+        </div>
+        <div style="flex-shrink: 0; padding: 12px 16px 26px; border-top: 1px solid var(--border); background: var(--surface);">
+          <div style="display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px;">
+            <div onClick="{{ fo.galeria }}" style="height: 48px; border-radius: 10px; border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; cursor: pointer;">Da galeria</div>
+            <sc-if value="{{ fo.camera }}" hint-placeholder-val="{{ true }}"><div onClick="{{ fo.add }}" style="height: 48px; border-radius: 10px; background: var(--accent); color: var(--accent-fg); display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; cursor: pointer;">Tirar foto</div></sc-if>
+          </div>
+        </div>
+        <sc-if value="{{ toast.p2 }}" hint-placeholder-val="{{ false }}">
+          <div style="position: absolute; left: 16px; right: 16px; bottom: 104px; z-index: 7; display: flex; justify-content: center; pointer-events: none;">
+            <x-import component-from-global-scope="OfficeImpressoPontoWR2DesignSystem_019dd0.Toast" tone="{{ toast.tone }}" hint-size="auto,36px">{{ toast.msg }}</x-import>
+          </div>
+        </sc-if>
+      </div>
+      <div style="border: 1px solid var(--border); border-radius: 12px; background: var(--surface); overflow: hidden;">
+        <sc-for list="{{ fichas.p2 }}" as="r" hint-placeholder-count="5">
+          <div style="padding: 9px 14px; display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 10px; border-bottom: 1px solid var(--border-2);">
+            <span style="font-size: 10.5px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; color: var(--text-mute); padding-top: 2px;">{{ r.k }}</span>
+            <span style="font-size: 12.5px; line-height: 1.45; color: var(--text-dim); text-wrap: pretty;">{{ r.v }}</span>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+
+    <!-- P3 Protocolo de entrega -->
+    <div id="p3" data-screen-label="P3 Protocolo de entrega" style="display: flex; flex-direction: column; gap: 10px; width: 410px;">
+      <div style="display: flex; align-items: baseline; gap: 10px;">
+        <span style="font-family: var(--font-mono); font-size: 12px; font-weight: 600; color: var(--accent-fg); background: var(--accent); padding: 2px 8px; border-radius: 6px;">P3</span>
+        <span style="font-size: 15px; font-weight: 600;">Protocolo de entrega</span>
+        <span style="font-family: var(--font-mono); font-size: 11.5px; color: var(--text-mute);">tela 22</span>
+      </div>
+      <span style="font-size: 12.5px; color: var(--text-dim); text-wrap: pretty;">shopVOX Go colhe a assinatura na entrega; Mubisys anuncia protocolo de entrega e instalação.</span>
+      <div style="width: 390px; height: 844px; border-radius: 48px; border: 10px solid #0b0b0e; background: var(--bg); position: relative; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 30px 60px rgba(0,0,0,0.35);">
+        <div style="height: 44px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 28px; font-family: var(--font-mono); font-size: 13px; font-weight: 600;"><span>09:41</span><span style="font-size: 11px; color: var(--text-dim);">5G ▮▮▮</span></div>
+        <sc-if value="{{ offline }}" hint-placeholder-val="{{ false }}">
+          <div style="flex-shrink: 0; min-height: 34px; padding: 6px 16px; background: var(--warn); color: oklch(0.22 0.01 80); display: flex; align-items: center; font-size: 12.5px; font-weight: 600;">Sem conexão. Bater ponto precisa de internet.</div>
+        </sc-if>
+        <div style="padding: 4px 8px 10px; display: flex; align-items: center; gap: 4px; border-bottom: 1px solid var(--border);">
+          <div style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; color: var(--text-dim);"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"></path></svg></div>
+          <div style="flex: 1; min-width: 0;">
+            <div style="font-size: 10.5px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text-mute);">Pedido #4790 · Clínica Vida Plena</div>
+            <div style="font-size: 17px; font-weight: 600;">Registrar entrega</div>
+          </div>
+        </div>
+        <div data-phone-scroll="" style="flex: 1; overflow-y: auto; overflow-x: hidden; padding: 12px 16px 20px; display: flex; flex-direction: column; gap: 12px;">
+          <sc-if value="{{ en.feito }}" hint-placeholder-val="{{ false }}">
+            <x-import component-from-global-scope="OfficeImpressoPontoWR2DesignSystem_019dd0.ProofFrame" padding="{{ 14 }}" hint-size="100%,170px">
+              <div style="display: flex; flex-direction: column; gap: 6px;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <span style="font-size: 10.5px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text-mute);">Protocolo de entrega</span>
+                  <span style="margin-left: auto; font-size: 11px; font-weight: 600; color: var(--pos);">Registrado</span>
+                </div>
+                <div style="display: flex; align-items: baseline; gap: 10px;">
+                  <span style="font-family: var(--font-mono); font-size: 26px; font-weight: 600;">{{ en.hora }}</span>
+                  <span style="font-size: 14px; font-weight: 600;">{{ en.nome }}</span>
+                </div>
+                <div style="display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 2px 12px; font-family: var(--font-mono); font-size: 11.5px; color: var(--text-dim);">
+                  <span style="color: var(--text-mute);">Nº</span><span>ENT-0418</span>
+                  <span style="color: var(--text-mute);">Itens</span><span>3 de 3 conferidos</span>
+                  <span style="color: var(--text-mute);">Local</span><span style="font-family: var(--font-sans);">Indaial/SC · ±12 m</span>
+                </div>
+              </div>
+            </x-import>
+          </sc-if>
+          <div style="font-size: 10.5px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text-mute);">Conferir itens</div>
+          <div style="border: 1px solid var(--border); border-radius: 12px; background: var(--surface); overflow: hidden; flex-shrink: 0;">
+            <sc-for list="{{ en.itens }}" as="i" hint-placeholder-count="3">
+              <div onClick="{{ i.toggle }}" style="min-height: 52px; padding: 8px 14px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid var(--border-2); cursor: pointer;">
+                <span style="width: 22px; height: 22px; border-radius: 6px; border: 1.5px solid {{ i.ring }}; background: {{ i.fill }}; color: #ffffff; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700;">{{ i.mark }}</span>
+                <div style="flex: 1; min-width: 0;"><div style="font-size: 13.5px; font-weight: 500;">{{ i.d }}</div><div style="font-family: var(--font-mono); font-size: 11.5px; color: var(--text-mute);">{{ i.q }}</div></div>
+              </div>
+            </sc-for>
+          </div>
+          <div style="font-size: 10.5px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text-mute);">Quem recebeu</div>
+          <input value="{{ en.nome }}" onChange="{{ en.setNome }}" placeholder="Nome de quem recebeu" style="height: 44px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface); color: var(--text); padding: 0 12px; font-family: var(--font-sans); font-size: 14px;">
+          <sc-if value="{{ en.podeSemAss }}" hint-placeholder-val="{{ true }}"><div onClick="{{ en.toggleSemAss }}" style="min-height: 44px; display: flex; align-items: center; gap: 10px; cursor: pointer;">
+            <span style="width: 20px; height: 20px; border-radius: 5px; border: 1.5px solid {{ en.chkRing }}; background: {{ en.chkFill }}; color: #ffffff; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700;">{{ en.chkMark }}</span>
+            <span style="font-size: 14px;">Recebido sem assinatura</span>
+          </div></sc-if>
+          <sc-if value="{{ en.semAssOn }}" hint-placeholder-val="{{ false }}">
+            <input value="{{ en.motivo }}" onChange="{{ en.setMotivo }}" placeholder="Por quê? Ex.: deixado com o porteiro" aria-label="Motivo da entrega sem assinatura" style="height: 44px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface); color: var(--text); padding: 0 12px; font-family: var(--font-sans); font-size: 14px;">
+          </sc-if>
+          <sc-if value="{{ en.comAss }}" hint-placeholder-val="{{ true }}">
+          <div style="display: flex; align-items: baseline;">
+            <span style="font-size: 10.5px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text-mute);">Assinatura</span>
+            <span onClick="{{ en.limpar }}" style="margin-left: auto; min-height: 32px; display: flex; align-items: center; font-size: 12.5px; font-weight: 600; color: var(--accent); cursor: pointer;">Limpar</span>
+          </div>
+          <div style="position: relative; border: 1px dashed var(--border); border-radius: 12px; background: var(--surface); flex-shrink: 0;">
+            <canvas aria-label="Área de assinatura. Sem como assinar, marque Recebido sem assinatura." role="img" ref="{{ sigRef }}" width="636" height="280" onPointerDown="{{ sigDown }}" onPointerMove="{{ sigMove }}" onPointerUp="{{ sigUp }}" onPointerLeave="{{ sigUp }}" style="display: block; width: 100%; height: 140px; touch-action: none; cursor: crosshair; color: var(--text);"></canvas>
+            <sc-if value="{{ en.semAss }}" hint-placeholder-val="{{ true }}">
+              <span style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 13px; color: var(--text-mute); pointer-events: none;">Assine aqui com o dedo</span>
+            </sc-if>
+            <span style="position: absolute; left: 16px; right: 16px; bottom: 28px; height: 1px; background: var(--border); pointer-events: none;"></span>
+          </div>
+          </sc-if>
+          <sc-if value="{{ en.temFalta }}" hint-placeholder-val="{{ true }}">
+            <span style="font-size: 12.5px; color: var(--warn); font-weight: 500;">{{ en.falta }}</span>
+          </sc-if>
+        </div>
+        <div style="flex-shrink: 0; padding: 12px 16px 26px; border-top: 1px solid var(--border); background: var(--surface);">
+          <div onClick="{{ en.registrar }}" style="height: 48px; border-radius: 10px; background: {{ en.btnBg }}; color: {{ en.btnFg }}; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; cursor: pointer;">Registrar entrega</div>
+        </div>
+        <sc-if value="{{ toast.p3 }}" hint-placeholder-val="{{ false }}">
+          <div style="position: absolute; left: 16px; right: 16px; bottom: 104px; z-index: 7; display: flex; justify-content: center; pointer-events: none;">
+            <x-import component-from-global-scope="OfficeImpressoPontoWR2DesignSystem_019dd0.Toast" tone="{{ toast.tone }}" hint-size="auto,36px">{{ toast.msg }}</x-import>
+          </div>
+        </sc-if>
+      </div>
+      <div style="border: 1px solid var(--border); border-radius: 12px; background: var(--surface); overflow: hidden;">
+        <sc-for list="{{ fichas.p3 }}" as="r" hint-placeholder-count="5">
+          <div style="padding: 9px 14px; display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 10px; border-bottom: 1px solid var(--border-2);">
+            <span style="font-size: 10.5px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; color: var(--text-mute); padding-top: 2px;">{{ r.k }}</span>
+            <span style="font-size: 12.5px; line-height: 1.45; color: var(--text-dim); text-wrap: pretty;">{{ r.v }}</span>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+
+    <!-- P4 Orçamento rápido -->
+    <div id="p4" data-screen-label="P4 Orçamento rápido" style="display: flex; flex-direction: column; gap: 10px; width: 410px;">
+      <div style="display: flex; align-items: baseline; gap: 10px;">
+        <span style="font-family: var(--font-mono); font-size: 12px; font-weight: 600; color: var(--accent-fg); background: var(--accent); padding: 2px 8px; border-radius: 6px;">P4</span>
+        <span style="font-size: 15px; font-weight: 600;">Orçamento rápido</span>
+        <span style="font-family: var(--font-mono); font-size: 11.5px; color: var(--text-mute);">tela 04</span>
+      </div>
+      <span style="font-size: 12.5px; color: var(--text-dim); text-wrap: pretty;">Mubisys adiciona produto e perímetro ao orçamento no app. Aqui: cálculo por m² na hora, preço vindo do ERP.</span>
+      <div style="width: 390px; height: 844px; border-radius: 48px; border: 10px solid #0b0b0e; background: var(--bg); position: relative; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 30px 60px rgba(0,0,0,0.35);">
+        <div style="height: 44px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 28px; font-family: var(--font-mono); font-size: 13px; font-weight: 600;"><span>09:41</span><span style="font-size: 11px; color: var(--text-dim);">5G ▮▮▮</span></div>
+        <sc-if value="{{ offline }}" hint-placeholder-val="{{ false }}">
+          <div style="flex-shrink: 0; min-height: 34px; padding: 6px 16px; background: var(--warn); color: oklch(0.22 0.01 80); display: flex; align-items: center; font-size: 12.5px; font-weight: 600;">Sem conexão. Bater ponto precisa de internet.</div>
+        </sc-if>
+        <div style="padding: 4px 8px 10px; display: flex; align-items: center; gap: 4px; border-bottom: 1px solid var(--border);">
+          <div style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; color: var(--text-dim);"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"></path></svg></div>
+          <div style="flex: 1; min-width: 0;">
+            <div style="font-size: 10.5px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text-mute);">Rascunho · ORC-2231</div>
+            <div style="font-size: 17px; font-weight: 600;">Novo orçamento</div>
+          </div>
+        </div>
+        <div data-phone-scroll="" style="flex: 1; overflow-y: auto; overflow-x: hidden; padding: 12px 16px 20px; display: flex; flex-direction: column; gap: 12px;">
+          <div style="font-size: 10.5px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text-mute);">Cliente</div>
+          <div style="min-height: 52px; padding: 8px 14px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); display: flex; align-items: center; gap: 12px;">
+            <x-import component-from-global-scope="OfficeImpressoPontoWR2DesignSystem_019dd0.Avatar" name="Ótica Visão Clara" size="md" hint-size="32px,32px"></x-import>
+            <div style="flex: 1; min-width: 0;"><div style="font-size: 14px; font-weight: 500;">Ótica Visão Clara</div><div style="font-family: var(--font-mono); font-size: 11.5px; color: var(--text-mute);">(47) 3321-0400</div></div>
+            <span style="font-size: 12.5px; font-weight: 600; color: var(--accent);">Trocar</span>
+          </div>
+          <div style="font-size: 10.5px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text-mute);">Produto</div>
+          <div style="display: flex; flex-direction: column; gap: 6px;">
+            <sc-for list="{{ or.prods }}" as="p" hint-placeholder-count="3">
+              <div onClick="{{ p.pick }}" style="min-height: 48px; padding: 8px 12px; border-radius: 10px; border: 1px solid {{ p.bd }}; background: {{ p.bg }}; display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                <span style="flex: 1; font-size: 14px; font-weight: 600; color: {{ p.fg }};">{{ p.nome }}</span>
+                <span style="font-family: var(--font-mono); font-size: 12px; color: var(--text-dim);">{{ p.preco }}/m²</span>
+              </div>
+            </sc-for>
+          </div>
+          <div style="font-size: 10.5px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text-mute);">Medidas</div>
+          <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px;">
+            <label style="display: flex; flex-direction: column; gap: 5px;"><span style="font-size: 11px; font-weight: 600; letter-spacing: 0.6px; text-transform: uppercase; color: var(--text-dim);">Largura m</span><input inputmode="decimal" value="{{ or.l }}" onChange="{{ or.setL }}" style="height: 44px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface); color: var(--text); padding: 0 10px; font-family: var(--font-mono); font-size: 14px; min-width: 0;"></label>
+            <label style="display: flex; flex-direction: column; gap: 5px;"><span style="font-size: 11px; font-weight: 600; letter-spacing: 0.6px; text-transform: uppercase; color: var(--text-dim);">Altura m</span><input inputmode="decimal" value="{{ or.a }}" onChange="{{ or.setA }}" style="height: 44px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface); color: var(--text); padding: 0 10px; font-family: var(--font-mono); font-size: 14px; min-width: 0;"></label>
+            <label style="display: flex; flex-direction: column; gap: 5px;"><span style="font-size: 11px; font-weight: 600; letter-spacing: 0.6px; text-transform: uppercase; color: var(--text-dim);">Qtd</span><input inputmode="numeric" value="{{ or.q }}" onChange="{{ or.setQ }}" style="height: 44px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface); color: var(--text); padding: 0 10px; font-family: var(--font-mono); font-size: 14px; min-width: 0;"></label>
+          </div>
+          <div style="border: 1px solid var(--border); border-radius: 12px; background: var(--surface); padding: 14px; display: flex; flex-direction: column; gap: 6px; flex-shrink: 0;">
+            <div style="display: flex; font-size: 13px; color: var(--text-dim);"><span>Área</span><span style="margin-left: auto; font-family: var(--font-mono); color: var(--text);">{{ or.area }}</span></div>
+            <div style="display: flex; font-size: 13px; color: var(--text-dim);"><span>Preço do m²</span><span style="margin-left: auto; font-family: var(--font-mono); color: var(--text);">{{ or.pm2 }}</span></div>
+            <div style="height: 1px; background: var(--border-2);"></div>
+            <div style="display: flex; align-items: baseline; font-size: 15px; font-weight: 600;"><span>Total</span><span style="margin-left: auto; font-family: var(--font-mono); font-size: 20px;">{{ or.total }}</span></div>
+            <span style="align-self: flex-end; font-size: 11px; color: {{ or.fonteFg }};">{{ or.fonte }}</span>
+          </div>
+          <span style="font-size: 11.5px; color: var(--text-mute); text-wrap: pretty;">O app manda produto e medidas; o ERP calcula (mesma conta da calculadora da web) e devolve. Acabamento, instalação e desconto continuam no computador.</span>
+        </div>
+        <div style="flex-shrink: 0; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); gap: 8px; padding: 12px 16px 26px; border-top: 1px solid var(--border); background: var(--surface);">
+          <div onClick="{{ or.salvar }}" style="height: 48px; border-radius: 10px; border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; cursor: pointer;">Salvar</div>
+          <div onClick="{{ or.enviar }}" style="height: 48px; border-radius: 10px; background: var(--accent); color: var(--accent-fg); display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; cursor: pointer;">Enviar no WhatsApp</div>
+        </div>
+        <sc-if value="{{ toast.p4 }}" hint-placeholder-val="{{ false }}">
+          <div style="position: absolute; left: 16px; right: 16px; bottom: 104px; z-index: 7; display: flex; justify-content: center; pointer-events: none;">
+            <x-import component-from-global-scope="OfficeImpressoPontoWR2DesignSystem_019dd0.Toast" tone="{{ toast.tone }}" hint-size="auto,36px">{{ toast.msg }}</x-import>
+          </div>
+        </sc-if>
+      </div>
+      <div style="border: 1px solid var(--border); border-radius: 12px; background: var(--surface); overflow: hidden;">
+        <sc-for list="{{ fichas.p4 }}" as="r" hint-placeholder-count="5">
+          <div style="padding: 9px 14px; display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 10px; border-bottom: 1px solid var(--border-2);">
+            <span style="font-size: 10.5px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; color: var(--text-mute); padding-top: 2px;">{{ r.k }}</span>
+            <span style="font-size: 12.5px; line-height: 1.45; color: var(--text-dim); text-wrap: pretty;">{{ r.v }}</span>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+
+    <!-- P5 Atendimento WhatsApp -->
+    <div id="p5" data-screen-label="P5 Atendimento WhatsApp" style="display: flex; flex-direction: column; gap: 10px; width: 410px;">
+      <div style="display: flex; align-items: baseline; gap: 10px;">
+        <span style="font-family: var(--font-mono); font-size: 12px; font-weight: 600; color: var(--accent-fg); background: var(--accent); padding: 2px 8px; border-radius: 6px;">P5</span>
+        <span style="font-size: 15px; font-weight: 600;">Atendimento WhatsApp</span>
+        <span style="font-family: var(--font-mono); font-size: 11.5px; color: var(--text-mute);">nova · Mais</span>
+      </div>
+      <span style="font-size: 12.5px; color: var(--text-dim); text-wrap: pretty;">Mubichat: conversa vinculada ao cliente, transferência e envio de orçamento. Aqui com atalhos para o que o ERP já sabe.</span>
+      <div style="width: 390px; height: 844px; border-radius: 48px; border: 10px solid #0b0b0e; background: var(--bg); position: relative; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 30px 60px rgba(0,0,0,0.35);">
+        <div style="height: 44px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 28px; font-family: var(--font-mono); font-size: 13px; font-weight: 600;"><span>09:41</span><span style="font-size: 11px; color: var(--text-dim);">5G ▮▮▮</span></div>
+        <sc-if value="{{ offline }}" hint-placeholder-val="{{ false }}">
+          <div style="flex-shrink: 0; min-height: 34px; padding: 6px 16px; background: var(--warn); color: oklch(0.22 0.01 80); display: flex; align-items: center; font-size: 12.5px; font-weight: 600;">Sem conexão. Bater ponto precisa de internet.</div>
+        </sc-if>
+        <div style="padding: 4px 16px 10px; display: flex; flex-direction: column; gap: 10px; border-bottom: 1px solid var(--border);">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <div style="flex: 1; min-width: 0;">
+              <div style="font-size: 10.5px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text-mute);">{{ ch.eyebrow }}</div>
+              <div style="font-size: 17px; font-weight: 600;">Atendimento</div>
+            </div>
+            <span style="font-size: 12.5px; font-weight: 600; color: var(--accent);">Transferir</span>
+          </div>
+          <div data-phone-scroll="" style="display: flex; gap: 6px; overflow-x: auto;">
+            <sc-for list="{{ ch.convs }}" as="c" hint-placeholder-count="3">
+              <div onClick="{{ c.pick }}" style="flex-shrink: 0; height: 36px; padding: 0 12px; border-radius: 99px; border: 1px solid {{ c.bd }}; background: {{ c.bg }}; color: {{ c.fg }}; display: flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 600; cursor: pointer; white-space: nowrap;">{{ c.nome }}<sc-if value="{{ c.temNovas }}" hint-placeholder-val="{{ false }}"><span style="min-width: 18px; height: 18px; padding: 0 5px; border-radius: 99px; background: var(--pos); color: #ffffff; display: flex; align-items: center; justify-content: center; font-family: var(--font-mono); font-size: 10.5px;">{{ c.novas }}</span></sc-if></div>
+            </sc-for>
+          </div>
+        </div>
+        <sc-if value="{{ ch.semCanal }}" hint-placeholder-val="{{ false }}">
+          <div style="flex: 1; padding: 24px 16px; display: flex; flex-direction: column; justify-content: center;">
+            <x-import component-from-global-scope="OfficeImpressoPontoWR2DesignSystem_019dd0.EmptyState" variant="no-perm" title="WhatsApp não está ligado" description="A empresa ainda não conectou o número no módulo WhatsApp do ERP. Peça ao administrador; até lá, esta área não aparece em Mais." hint-size="100%,200px"></x-import>
+          </div>
+        </sc-if>
+        <sc-if value="{{ ch.canal }}" hint-placeholder-val="{{ true }}">
+        <div data-phone-scroll="" style="flex: 1; overflow-y: auto; overflow-x: hidden; padding: 12px 16px 16px; display: flex; flex-direction: column; gap: 8px;">
+          <div style="align-self: center; font-size: 11px; color: var(--text-mute); padding: 2px 10px; border-radius: 99px; background: var(--surface); border: 1px solid var(--border);">Vinculado a {{ ch.cliente }} · WhatsApp</div>
+          <sc-if value="{{ ch.semConsent }}" hint-placeholder-val="{{ false }}">
+            <x-import component-from-global-scope="OfficeImpressoPontoWR2DesignSystem_019dd0.Alert" tone="warn" title="Sem consentimento de WhatsApp" hint-size="100%,80px">A ficha não registra autorização (LGPD Art. 7º, I). Dá para responder ao que o cliente mandou; envio ativo de orçamento fica bloqueado.</x-import>
+          </sc-if>
+          <sc-for list="{{ ch.msgs }}" as="m" hint-placeholder-count="4">
+            <div style="display: flex; justify-content: {{ m.just }};">
+              <div style="max-width: 80%; padding: 8px 12px; border-radius: 14px; border: 1px solid {{ m.bd }}; background: {{ m.bg }}; color: {{ m.fg }}; display: flex; flex-direction: column; gap: 2px;">
+                <span style="font-size: 13.5px; line-height: 1.4;">{{ m.t }}</span>
+                <span style="align-self: flex-end; font-family: var(--font-mono); font-size: 10px; opacity: 0.75;">{{ m.h }}</span>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+        <div style="flex-shrink: 0; padding: 10px 16px 26px; border-top: 1px solid var(--border); background: var(--surface); display: flex; flex-direction: column; gap: 8px;">
+          <sc-if value="{{ ch.temAtalhos }}" hint-placeholder-val="{{ true }}"><div data-phone-scroll="" style="display: flex; gap: 6px; overflow-x: auto;">
+            <sc-for list="{{ ch.atalhos }}" as="a" hint-placeholder-count="3">
+              <div onClick="{{ a.enviar }}" style="flex-shrink: 0; height: 36px; padding: 0 12px; border-radius: 99px; border: 1px solid var(--accent); background: var(--accent-soft); color: var(--accent); display: flex; align-items: center; font-size: 12.5px; font-weight: 600; cursor: pointer; white-space: nowrap;">{{ a.label }}</div>
+            </sc-for>
+          </div></sc-if>
+          <div style="display: flex; gap: 8px;">
+            <input value="{{ ch.txt }}" onChange="{{ ch.setTxt }}" onKeyDown="{{ ch.tecla }}" placeholder="{{ ch.ph }}" style="flex: 1; min-width: 0; height: 44px; border-radius: 22px; border: 1px solid var(--border); background: var(--bg); color: var(--text); padding: 0 16px; font-family: var(--font-sans); font-size: 14px;">
+            <div onClick="{{ ch.enviar }}" style="width: 44px; height: 44px; border-radius: 99px; background: var(--accent); color: var(--accent-fg); display: flex; align-items: center; justify-content: center; cursor: pointer;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="m13 6 6 6-6 6"></path></svg></div>
+          </div>
+        </sc-if>
+        <sc-if value="{{ toast.p5 }}" hint-placeholder-val="{{ false }}">
+          <div style="position: absolute; left: 16px; right: 16px; bottom: 150px; z-index: 7; display: flex; justify-content: center; pointer-events: none;">
+            <x-import component-from-global-scope="OfficeImpressoPontoWR2DesignSystem_019dd0.Toast" tone="{{ toast.tone }}" hint-size="auto,36px">{{ toast.msg }}</x-import>
+          </div>
+        </sc-if>
+      </div>
+      </div>
+      <div style="border: 1px solid var(--border); border-radius: 12px; background: var(--surface); overflow: hidden;">
+        <sc-for list="{{ fichas.p5 }}" as="r" hint-placeholder-count="5">
+          <div style="padding: 9px 14px; display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 10px; border-bottom: 1px solid var(--border-2);">
+            <span style="font-size: 10.5px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; color: var(--text-mute); padding-top: 2px;">{{ r.k }}</span>
+            <span style="font-size: 12.5px; line-height: 1.45; color: var(--text-dim); text-wrap: pretty;">{{ r.v }}</span>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+
+    <!-- P6 Comissões e lucratividade -->
+    <div id="p6" data-screen-label="P6 Comissões e lucratividade" style="display: flex; flex-direction: column; gap: 10px; width: 410px;">
+      <div style="display: flex; align-items: baseline; gap: 10px;">
+        <span style="font-family: var(--font-mono); font-size: 12px; font-weight: 600; color: var(--accent-fg); background: var(--accent); padding: 2px 8px; border-radius: 6px;">P6</span>
+        <span style="font-size: 15px; font-weight: 600;">Comissões e lucratividade</span>
+        <span style="font-family: var(--font-mono); font-size: 11.5px; color: var(--text-mute);">telas 13 · 35</span>
+      </div>
+      <span style="font-size: 12.5px; color: var(--text-dim); text-wrap: pretty;">HoldApp mostra lucratividade, ponto de equilíbrio e comissões da equipe. Só leitura.</span>
+      <div style="width: 390px; height: 844px; border-radius: 48px; border: 10px solid #0b0b0e; background: var(--bg); position: relative; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 30px 60px rgba(0,0,0,0.35);">
+        <div style="height: 44px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 28px; font-family: var(--font-mono); font-size: 13px; font-weight: 600;"><span>09:41</span><span style="font-size: 11px; color: var(--text-dim);">5G ▮▮▮</span></div>
+        <sc-if value="{{ offline }}" hint-placeholder-val="{{ false }}">
+          <div style="flex-shrink: 0; min-height: 34px; padding: 6px 16px; background: var(--warn); color: oklch(0.22 0.01 80); display: flex; align-items: center; font-size: 12.5px; font-weight: 600;">Sem conexão. Bater ponto precisa de internet.</div>
+        </sc-if>
+        <div style="padding: 4px 8px 10px; display: flex; align-items: center; gap: 4px; border-bottom: 1px solid var(--border);">
+          <div style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; color: var(--text-dim);"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"></path></svg></div>
+          <div style="flex: 1; min-width: 0;">
+            <div style="font-size: 10.5px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text-mute);">Margem · equilíbrio · comissões</div>
+            <div style="font-size: 17px; font-weight: 600;">Lucratividade</div>
+          </div>
+        </div>
+        <div data-phone-scroll="" style="flex: 1; overflow-y: auto; overflow-x: hidden; padding: 12px 16px 20px; display: flex; flex-direction: column; gap: 12px;">
+          <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 3px; padding: 3px; border-radius: 10px; background: var(--bg-2); flex-shrink: 0;">
+            <sc-for list="{{ co.pers }}" as="a" hint-placeholder-count="3">
+              <div onClick="{{ a.pick }}" style="height: 36px; border-radius: 7px; background: {{ a.bg }}; color: {{ a.fg }}; display: flex; align-items: center; justify-content: center; font-size: 12.5px; font-weight: 600; cursor: pointer;">{{ a.label }}</div>
+            </sc-for>
+          </div>
+          <div style="border: 1px solid var(--border); border-radius: 12px; background: var(--surface); padding: 14px; display: flex; flex-direction: column; gap: 10px; flex-shrink: 0;">
+            <span style="font-size: 10.5px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text-mute);">Margem de contribuição</span>
+            <div style="display: flex; align-items: baseline; gap: 10px;"><span style="font-family: var(--font-mono); font-size: 28px; font-weight: 600;">{{ co.mc }}</span><span style="font-family: var(--font-mono); font-size: 14px; color: var(--pos);">{{ co.mcPct }}</span></div>
+            <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px;">
+              <div style="display: flex; flex-direction: column; gap: 2px;"><span style="font-size: 11px; color: var(--text-mute);">Receita</span><span style="font-family: var(--font-mono); font-size: 13px; font-weight: 600;">{{ co.rec }}</span></div>
+              <div style="display: flex; flex-direction: column; gap: 2px;"><span style="font-size: 11px; color: var(--text-mute);">Custo variável</span><span style="font-family: var(--font-mono); font-size: 13px; font-weight: 600;">{{ co.cv }}</span></div>
+              <div style="display: flex; flex-direction: column; gap: 2px;"><span style="font-size: 11px; color: var(--text-mute);">Custo fixo</span><span style="font-family: var(--font-mono); font-size: 13px; font-weight: 600;">{{ co.cf }}</span></div>
+            </div>
+          </div>
+          <div style="border: 1px solid var(--border); border-radius: 12px; background: var(--surface); padding: 14px; display: flex; flex-direction: column; gap: 8px; flex-shrink: 0;">
+            <span style="font-size: 10.5px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text-mute);">Ponto de equilíbrio</span>
+            <x-import component-from-global-scope="OfficeImpressoPontoWR2DesignSystem_019dd0.Progress" value="{{ co.pePct }}" tone="success" label="{{ co.peLabel }}" hint-size="100%,32px"></x-import>
+            <span style="font-size: 12px; color: var(--text-dim);">{{ co.peTxt }}</span>
+          </div>
+          <div style="font-size: 10.5px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text-mute);">Comissões · liberadas quando o cliente paga</div>
+          <div style="border: 1px solid var(--border); border-radius: 12px; background: var(--surface); overflow: hidden; flex-shrink: 0;">
+            <sc-for list="{{ co.vend }}" as="v" hint-placeholder-count="3">
+              <div style="min-height: 56px; padding: 8px 14px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid var(--border-2);">
+                <x-import component-from-global-scope="OfficeImpressoPontoWR2DesignSystem_019dd0.Avatar" name="{{ v.nome }}" size="md" hint-size="32px,32px"></x-import>
+                <div style="flex: 1; min-width: 0;"><div style="font-size: 14px; font-weight: 500;">{{ v.nome }}</div><div style="font-family: var(--font-mono); font-size: 11.5px; color: var(--text-mute);">vendeu {{ v.vend }} · recebido {{ v.rec }}</div></div>
+                <div style="display: flex; flex-direction: column; align-items: flex-end;"><span style="font-family: var(--font-mono); font-size: 14px; font-weight: 600;">{{ v.com }}</span><span style="font-size: 11px; color: var(--text-mute);">{{ v.pend }} a liberar</span></div>
+              </div>
+            </sc-for>
+          </div>
+          <div style="font-size: 10.5px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text-mute);">Pedidos com menor margem</div>
+          <div style="border: 1px solid var(--border); border-radius: 12px; background: var(--surface); overflow: hidden; flex-shrink: 0;">
+            <sc-for list="{{ co.peds }}" as="p" hint-placeholder-count="3">
+              <div style="min-height: 52px; padding: 8px 14px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid var(--border-2);">
+                <div style="flex: 1; min-width: 0;"><div style="font-size: 13.5px; font-weight: 500;">{{ p.d }}</div><div style="font-family: var(--font-mono); font-size: 11.5px; color: var(--text-mute);">#{{ p.n }} · {{ p.v }}</div></div>
+                <span style="font-family: var(--font-mono); font-size: 13px; font-weight: 600; color: {{ p.fg }};">{{ p.m }}</span>
+              </div>
+            </sc-for>
+          </div>
+          <span style="font-size: 11.5px; color: var(--text-mute); text-wrap: pretty;">Custos e regra de comissão vêm do ERP. Pagar comissão continua no computador.</span>
+        </div>
+      </div>
+      <div style="border: 1px solid var(--border); border-radius: 12px; background: var(--surface); overflow: hidden;">
+        <sc-for list="{{ fichas.p6 }}" as="r" hint-placeholder-count="5">
+          <div style="padding: 9px 14px; display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 10px; border-bottom: 1px solid var(--border-2);">
+            <span style="font-size: 10.5px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; color: var(--text-mute); padding-top: 2px;">{{ r.k }}</span>
+            <span style="font-size: 12.5px; line-height: 1.45; color: var(--text-dim); text-wrap: pretty;">{{ r.v }}</span>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+
+    <!-- P7 Contador no ícone -->
+    <div id="p7" data-screen-label="P7 Contador no ícone" style="display: flex; flex-direction: column; gap: 10px; width: 410px;">
+      <div style="display: flex; align-items: baseline; gap: 10px;">
+        <span style="font-family: var(--font-mono); font-size: 12px; font-weight: 600; color: var(--accent-fg); background: var(--accent); padding: 2px 8px; border-radius: 6px;">P7</span>
+        <span style="font-size: 15px; font-weight: 600;">Contador no ícone</span>
+        <span style="font-family: var(--font-mono); font-size: 11.5px; color: var(--text-mute);">tela 16 · push</span>
+      </div>
+      <span style="font-size: 12.5px; color: var(--text-dim); text-wrap: pretty;">Mubisys mostra as não lidas no ícone do app. Barato: o número já existe em /api/app/inicio.</span>
+      <div style="width: 390px; height: 844px; border-radius: 48px; border: 10px solid #0b0b0e; background: oklch(0.3 0.06 295); position: relative; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 30px 60px rgba(0,0,0,0.35); color: #ffffff;">
+        <div style="height: 44px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 28px; font-family: var(--font-mono); font-size: 13px; font-weight: 600;"><span>09:41</span><span style="font-size: 11px; opacity: 0.8;">5G ▮▮▮</span></div>
+        <sc-if value="{{ bd.banner }}" hint-placeholder-val="{{ false }}">
+          <div style="margin: 6px 10px 0; padding: 10px 12px; border-radius: 16px; background: rgba(250,250,250,0.92); color: oklch(0.22 0.01 80); display: flex; gap: 10px; align-items: flex-start;">
+            <div style="width: 34px; height: 34px; border-radius: 9px; background: oklch(0.55 0.15 295); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+              <x-import component-from-global-scope="OfficeImpressoPontoWR2DesignSystem_019dd0.Logo" size="{{ 20 }}" hint-size="20px,20px"></x-import>
+            </div>
+            <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px;">
+              <div style="display: flex;"><span style="font-size: 12px; font-weight: 600;">oimpresso</span><span style="margin-left: auto; font-size: 11px; opacity: 0.6;">agora</span></div>
+              <span style="font-size: 13px; font-weight: 600;">{{ bd.titulo }}</span>
+              <span style="font-size: 12.5px; opacity: 0.8;">{{ bd.texto }}</span>
+            </div>
+          </div>
+        </sc-if>
+        <div style="flex: 1; padding: 28px 22px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); grid-auto-rows: 92px; gap: 10px 12px; align-content: start;">
+          <sc-for list="{{ bd.apps }}" as="a" hint-placeholder-count="8">
+            <div style="display: flex; flex-direction: column; align-items: center; gap: 6px;">
+              <div style="width: 60px; height: 60px; border-radius: 15px; background: rgba(255,255,255,0.16);"></div>
+              <span style="font-size: 11px; opacity: 0.85;">{{ a }}</span>
+            </div>
+          </sc-for>
+          <div onClick="{{ bd.abrir }}" style="display: flex; flex-direction: column; align-items: center; gap: 6px; cursor: pointer; position: relative;">
+            <div style="width: 60px; height: 60px; border-radius: 15px; background: oklch(0.55 0.15 295); border: 1px solid rgba(255,255,255,0.25); display: flex; align-items: center; justify-content: center;">
+              <x-import component-from-global-scope="OfficeImpressoPontoWR2DesignSystem_019dd0.Logo" size="{{ 34 }}" hint-size="34px,34px"></x-import>
+            </div>
+            <sc-if value="{{ bd.tem }}" hint-placeholder-val="{{ true }}">
+              <span style="position: absolute; top: -6px; right: 2px; min-width: 22px; height: 22px; padding: 0 6px; border-radius: 99px; background: oklch(0.6 0.21 25); color: #ffffff; display: flex; align-items: center; justify-content: center; font-size: 12.5px; font-weight: 700; border: 2px solid oklch(0.3 0.06 295);">{{ bd.n }}</span>
+            </sc-if>
+            <span style="font-size: 11px; font-weight: 600;">oimpresso</span>
+          </div>
+        </div>
+        <div style="flex-shrink: 0; margin: 0 14px 22px; padding: 12px; border-radius: 26px; background: rgba(255,255,255,0.14); display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px;">
+          <div onClick="{{ bd.nova }}" style="height: 44px; border-radius: 14px; background: rgba(255,255,255,0.9); color: oklch(0.3 0.06 295); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; cursor: pointer;">Simular aviso</div>
+          <div onClick="{{ bd.abrir }}" style="height: 44px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.5); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; cursor: pointer;">Abrir o app</div>
+        </div>
+      </div>
+      <span style="font-size: 11.5px; color: var(--text-mute); text-wrap: pretty;">Abrir o app zera o número quando o sino é lido. "Marcar todas como lidas" (tela 16) também zera.</span>
+      <div style="border: 1px solid var(--border); border-radius: 12px; background: var(--surface); overflow: hidden;">
+        <sc-for list="{{ fichas.p7 }}" as="r" hint-placeholder-count="5">
+          <div style="padding: 9px 14px; display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 10px; border-bottom: 1px solid var(--border-2);">
+            <span style="font-size: 10.5px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; color: var(--text-mute); padding-top: 2px;">{{ r.k }}</span>
+            <span style="font-size: 12.5px; line-height: 1.45; color: var(--text-dim); text-wrap: pretty;">{{ r.v }}</span>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+
+    <!-- P8 Apontamento por código -->
+    <div id="p8" data-screen-label="P8 Apontamento por QR" style="display: flex; flex-direction: column; gap: 10px; width: 410px;">
+      <div style="display: flex; align-items: baseline; gap: 10px;">
+        <span style="font-family: var(--font-mono); font-size: 12px; font-weight: 600; color: var(--accent-fg); background: var(--accent); padding: 2px 8px; border-radius: 6px;">P8</span>
+        <span style="font-size: 15px; font-weight: 600;">Apontamento por QR</span>
+        <span style="font-family: var(--font-mono); font-size: 11.5px; color: var(--text-mute);">tela 02</span>
+      </div>
+      <span style="font-size: 12.5px; color: var(--text-dim); text-wrap: pretty;">Mubisys e shopVOX Go apontam pelo QR do job. Lê o QR da etiqueta; se estiver ilegível, digita o número.</span>
+      <div style="width: 390px; height: 844px; border-radius: 48px; border: 10px solid #0b0b0e; background: var(--bg); position: relative; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 30px 60px rgba(0,0,0,0.35);">
+        <div style="height: 44px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 28px; font-family: var(--font-mono); font-size: 13px; font-weight: 600;"><span>09:41</span><span style="font-size: 11px; color: var(--text-dim);">5G ▮▮▮</span></div>
+        <sc-if value="{{ offline }}" hint-placeholder-val="{{ false }}">
+          <div style="flex-shrink: 0; min-height: 34px; padding: 6px 16px; background: var(--warn); color: oklch(0.22 0.01 80); display: flex; align-items: center; font-size: 12.5px; font-weight: 600;">Sem conexão. Bater ponto precisa de internet.</div>
+        </sc-if>
+        <div style="padding: 8px 16px 12px; border-bottom: 1px solid var(--border);">
+          <div style="font-size: 10.5px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text-mute);">Produção · apontar</div>
+          <div style="font-size: 22px; font-weight: 600; letter-spacing: -0.4px; line-height: 26px;">Apontar etapa</div>
+        </div>
+        <div data-phone-scroll="" style="flex: 1; overflow-y: auto; overflow-x: hidden; padding: 14px 16px 20px; display: flex; flex-direction: column; gap: 12px;">
+          <sc-if value="{{ ap.semJob }}" hint-placeholder-val="{{ true }}">
+            <div style="display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 3px; padding: 3px; border-radius: 10px; background: var(--bg-2); flex-shrink: 0;">
+              <sc-for list="{{ ap.modos }}" as="a" hint-placeholder-count="2">
+                <div onClick="{{ a.pick }}" style="height: 36px; border-radius: 7px; background: {{ a.bg }}; color: {{ a.fg }}; display: flex; align-items: center; justify-content: center; font-size: 12.5px; font-weight: 600; cursor: pointer;">{{ a.label }}</div>
+              </sc-for>
+            </div>
+          </sc-if>
+          <sc-if value="{{ ap.modoQr }}" hint-placeholder-val="{{ true }}">
+            <div onClick="{{ ap.ler }}" style="position: relative; height: 360px; border-radius: 16px; background: #0b0b0e; overflow: hidden; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0;">
+              <div style="width: 220px; height: 220px; position: relative;">
+                <span style="position: absolute; left: 0; top: 0; width: 34px; height: 34px; border-left: 3px solid #ffffff; border-top: 3px solid #ffffff; border-top-left-radius: 10px;"></span>
+                <span style="position: absolute; right: 0; top: 0; width: 34px; height: 34px; border-right: 3px solid #ffffff; border-top: 3px solid #ffffff; border-top-right-radius: 10px;"></span>
+                <span style="position: absolute; left: 0; bottom: 0; width: 34px; height: 34px; border-left: 3px solid #ffffff; border-bottom: 3px solid #ffffff; border-bottom-left-radius: 10px;"></span>
+                <span style="position: absolute; right: 0; bottom: 0; width: 34px; height: 34px; border-right: 3px solid #ffffff; border-bottom: 3px solid #ffffff; border-bottom-right-radius: 10px;"></span>
+                <span style="position: absolute; left: 14px; right: 14px; top: 50%; height: 2px; background: oklch(0.72 0.12 295);"></span>
+              </div>
+              <span style="position: absolute; left: 0; right: 0; bottom: 18px; text-align: center; font-size: 13px; color: rgba(255,255,255,0.85);">Aponte para o QR da etiqueta do pedido</span>
+            </div>
+            <span style="font-size: 11.5px; color: var(--text-mute); text-wrap: pretty;">Toque no quadro para simular a leitura do #4812.</span>
+          </sc-if>
+          <sc-if value="{{ ap.modoCod }}" hint-placeholder-val="{{ false }}">
+            <div style="display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 4px 0;">
+              <span style="font-size: 12px; color: var(--text-mute);">número do pedido na etiqueta</span>
+              <span style="font-family: var(--font-mono); font-size: 40px; font-weight: 600; letter-spacing: 6px; min-height: 52px;">{{ ap.cod }}</span>
+              <span style="font-size: 12px; color: var(--warn); min-height: 16px;">{{ ap.erro }}</span>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px;">
+              <sc-for list="{{ ap.teclas }}" as="k" hint-placeholder-count="12">
+                <div onClick="{{ k.tap }}" style="height: 56px; border-radius: 12px; border: 1px solid var(--border); background: {{ k.bg }}; color: {{ k.fg }}; display: flex; align-items: center; justify-content: center; font-family: var(--font-mono); font-size: 20px; font-weight: 600; cursor: pointer;">{{ k.l }}</div>
+              </sc-for>
+            </div>
+            <span style="font-size: 11.5px; color: var(--text-mute); text-wrap: pretty;">Tente 4812 ou 4815.</span>
+          </sc-if>
+          <sc-if value="{{ ap.temJob }}" hint-placeholder-val="{{ false }}">
+            <div style="background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--accent); border-radius: 10px; padding: 12px; display: flex; flex-direction: column; gap: 6px;">
+              <div style="display: flex; align-items: center; gap: 8px;"><span style="font-family: var(--font-mono); font-size: 12px; font-weight: 600; color: var(--text-mute);">#{{ ap.job.n }}</span><span style="margin-left: auto; font-size: 11px; font-weight: 600; color: var(--accent);">{{ ap.job.etapa }}</span></div>
+              <div style="font-size: 14px; font-weight: 600;">{{ ap.job.d }}</div>
+              <div style="font-size: 12.5px; color: var(--text-dim);">{{ ap.job.c }}</div>
+            </div>
+            <div style="display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 14px 0;">
+              <span style="font-size: 12px; color: var(--text-mute);">{{ ap.estado }}</span>
+              <span style="font-family: var(--font-mono); font-size: 52px; font-weight: 600; letter-spacing: -1.5px; font-variant-numeric: tabular-nums;">{{ ap.tempo }}</span>
+              <span style="font-size: 12px; color: var(--text-mute);">Marcos Teixeira · Impressora 1</span>
+            </div>
+            <div style="display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px;">
+              <div onClick="{{ ap.alternar }}" style="height: 52px; border-radius: 10px; background: {{ ap.btnBg }}; color: {{ ap.btnFg }}; border: 1px solid {{ ap.btnBd }}; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 600; cursor: pointer;">{{ ap.btnLabel }}</div>
+              <div onClick="{{ ap.concluir }}" style="height: 52px; border-radius: 10px; border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 600; cursor: pointer;">Cancelar</div>
+            </div>
+            <div onClick="{{ ap.outro }}" style="min-height: 44px; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; color: var(--accent); cursor: pointer;">Apontar outro pedido</div>
+          </sc-if>
+        </div>
+        <sc-if value="{{ toast.p8 }}" hint-placeholder-val="{{ false }}">
+          <div style="position: absolute; left: 16px; right: 16px; bottom: 40px; z-index: 7; display: flex; justify-content: center; pointer-events: none;">
+            <x-import component-from-global-scope="OfficeImpressoPontoWR2DesignSystem_019dd0.Toast" tone="{{ toast.tone }}" hint-size="auto,36px">{{ toast.msg }}</x-import>
+          </div>
+        </sc-if>
+      </div>
+      <div style="border: 1px solid var(--border); border-radius: 12px; background: var(--surface); overflow: hidden;">
+        <sc-for list="{{ fichas.p8 }}" as="r" hint-placeholder-count="5">
+          <div style="padding: 9px 14px; display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 10px; border-bottom: 1px solid var(--border-2);">
+            <span style="font-size: 10.5px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; color: var(--text-mute); padding-top: 2px;">{{ r.k }}</span>
+            <span style="font-size: 12.5px; line-height: 1.45; color: var(--text-dim); text-wrap: pretty;">{{ r.v }}</span>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+
+    <!-- P9 Entrar com biometria -->
+    <div id="p9" data-screen-label="P9 Entrar com biometria" style="display: flex; flex-direction: column; gap: 10px; width: 410px;">
+      <div style="display: flex; align-items: baseline; gap: 10px;">
+        <span style="font-family: var(--font-mono); font-size: 12px; font-weight: 600; color: var(--accent-fg); background: var(--accent); padding: 2px 8px; border-radius: 6px;">P9</span>
+        <span style="font-size: 15px; font-weight: 600;">Entrar com biometria</span>
+        <span style="font-family: var(--font-mono); font-size: 11.5px; color: var(--text-mute);">Conta</span>
+      </div>
+      <span style="font-size: 12.5px; color: var(--text-dim); text-wrap: pretty;">HoldApp entra com Face ID ou digital. Só destrava o token guardado — não serve para bater ponto.</span>
+      <div style="width: 390px; height: 844px; border-radius: 48px; border: 10px solid #0b0b0e; background: var(--bg); position: relative; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 30px 60px rgba(0,0,0,0.35);">
+        <div style="height: 44px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 28px; font-family: var(--font-mono); font-size: 13px; font-weight: 600;"><span>09:41</span><span style="font-size: 11px; color: var(--text-dim);">5G ▮▮▮</span></div>
+        <sc-if value="{{ offline }}" hint-placeholder-val="{{ false }}">
+          <div style="flex-shrink: 0; min-height: 34px; padding: 6px 16px; background: var(--warn); color: oklch(0.22 0.01 80); display: flex; align-items: center; font-size: 12.5px; font-weight: 600;">Sem conexão. Bater ponto precisa de internet.</div>
+        </sc-if>
+        <div style="padding: 4px 8px 10px; display: flex; align-items: center; gap: 4px; border-bottom: 1px solid var(--border);">
+          <div style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; color: var(--text-dim);"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"></path></svg></div>
+          <div style="flex: 1; min-width: 0;"><div style="font-size: 17px; font-weight: 600;">Conta</div></div>
+        </div>
+        <div data-phone-scroll="" style="flex: 1; overflow-y: auto; overflow-x: hidden; padding: 14px 16px 20px; display: flex; flex-direction: column; gap: 12px;">
+          <x-import component-from-global-scope="OfficeImpressoPontoWR2DesignSystem_019dd0.Alert" tone="info" title="O oimpresso não vê a biometria" hint-size="100%,92px">Quem confere a digital ou o rosto é o próprio celular. O app só recebe "ok" e destrava o acesso guardado — nada biométrico vai para o servidor.</x-import>
+          <div style="font-size: 10.5px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text-mute);">Acesso</div>
+          <div style="border: 1px solid var(--border); border-radius: 12px; background: var(--surface); padding: 14px; display: flex; flex-direction: column; gap: 10px; flex-shrink: 0;">
+            <sc-if value="{{ bi.bloqueado }}" hint-placeholder-val="{{ false }}"><span style="font-size: 13px; color: var(--text-dim);">A empresa desligou a entrada com biometria. Use usuário e senha.</span></sc-if>
+            <sc-if value="{{ bi.permitido }}" hint-placeholder-val="{{ true }}"><x-import component-from-global-scope="OfficeImpressoPontoWR2DesignSystem_019dd0.Switch" checked="{{ bi.on }}" onChange="{{ bi.toggle }}" label="Entrar com digital ou Face ID" sublabel="Pede a biometria do celular ao abrir o app. A senha continua valendo." hint-size="100%,48px"></x-import></sc-if>
+          </div>
+          <div style="font-size: 10.5px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text-mute);">Ao abrir o app</div>
+          <div style="border: 1px solid var(--border); border-radius: 12px; background: var(--surface); padding: 24px 16px; display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center; flex-shrink: 0;">
+            <span style="width: 56px; height: 56px; border-radius: 99px; border: 1.5px solid {{ bi.ring }}; color: {{ bi.ring }}; display: flex; align-items: center; justify-content: center;"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 10a2 2 0 0 0-2 2c0 1.02-.1 2.51-.26 4"></path><path d="M14 13.12c0 2.38 0 6.38-1 8.88"></path><path d="M17.29 21.02c.12-.6.43-2.3.5-3.02"></path><path d="M2 12a10 10 0 0 1 18-6"></path><path d="M2 16h.01"></path><path d="M21.8 16c.2-2 .131-5.354 0-6"></path><path d="M5 19.5C5.5 18 6 15 6 12a6 6 0 0 1 .34-2"></path><path d="M8.65 22c.21-.66.45-1.32.57-2"></path><path d="M9 6.8a6 6 0 0 1 9 5.2v2"></path></svg></span>
+            <span style="font-size: 14px; font-weight: 600;">{{ bi.titulo }}</span>
+            <span style="font-size: 12.5px; color: var(--text-dim); text-wrap: pretty;">{{ bi.sub }}</span>
+          </div>
+          <span style="font-size: 11.5px; color: var(--text-mute); text-wrap: pretty;">Bater ponto continua sem selfie nem biometria — a regra do Ponto não muda.</span>
+        </div>
+      </div>
+      <div style="border: 1px solid var(--border); border-radius: 12px; background: var(--surface); overflow: hidden;">
+        <sc-for list="{{ fichas.p9 }}" as="r" hint-placeholder-count="5">
+          <div style="padding: 9px 14px; display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 10px; border-bottom: 1px solid var(--border-2);">
+            <span style="font-size: 10.5px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; color: var(--text-mute); padding-top: 2px;">{{ r.k }}</span>
+            <span style="font-size: 12.5px; line-height: 1.45; color: var(--text-dim); text-wrap: pretty;">{{ r.v }}</span>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+
+  </div>
+</section>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;dark&quot;,&quot;light&quot;],&quot;default&quot;:&quot;dark&quot;,&quot;tsType&quot;:&quot;'dark'|'light'&quot;}}">
+class Component extends DCLogic {
+  state = {
+    online: true, aj: { assinatura: false, camera: true, qr: false, biometria: true, comissaoPropria: true, atalhos: true }, erroSim: 'ok', canal: true, toast: null, orPend: false, enSemAss: false, enMotivo: '', etIdx: 1, etConf: false,
+    etLog: [{ time: '28/09 16:20', actor: 'Ana Souza', action: 'Aprovado → Produção', tone: 'info' }, { time: '27/09 10:05', actor: 'Cliente', action: 'Arte aprovada pelo link', tone: 'success' }],
+    foAba: 'todas', fotos: [{ n: 'IMG_0412.jpg', q: 'Fachada · antes', a: 'entrada' }, { n: 'IMG_0413.jpg', q: 'Medição lateral', a: 'entrada' }, { n: 'arte-v3.pdf', q: 'Arte aprovada', a: 'arte' }, { n: 'IMG_0430.jpg', q: 'Peça cortada', a: 'producao' }], foSeq: 431,
+    enItens: { a: true, b: false, c: false }, enNome: '', enAss: false, enFeito: null,
+    orProd: 'lona', orL: '3,00', orA: '1,20', orQ: '1',
+    chSel: 'c1', chTxt: '', chMsgs: {
+      c1: [{ eu: false, t: 'Bom dia! Vocês fazem fachada em ACM?', h: '08:52' }, { eu: true, t: 'Fazemos sim. Me passa a medida que eu já calculo.', h: '08:55' }, { eu: false, t: 'Uns 6,40 por 0,90. Pode mandar o orçamento?', h: '09:31' }],
+      c2: [{ eu: false, t: 'O kit PDV fica pronto quando?', h: 'ontem' }, { eu: true, t: 'Sai sexta, 03/10.', h: 'ontem' }, { eu: false, t: 'Obrigado!', h: 'ontem' }],
+      c3: [{ eu: false, t: 'Qual o prazo das placas?', h: '09:12' }]
+    }, chLidas: {},
+    coPer: 'mes', badge: 4, banner: false,
+    apModo: 'qr', apCod: '', apJob: null, apRodando: false, apIni: 0, apAcum: 0, apSeg: 0,
+    biOn: false
+  };
+  sigRef = React.createRef();
+  componentDidMount() {
+    this._t = setInterval(() => { if (this.state.apRodando) this.setState(s => ({ apSeg: s.apAcum + Math.floor((Date.now() - s.apIni) / 1000) })); }, 500);
+  }
+  componentWillUnmount() { clearInterval(this._t); clearTimeout(this._tt); clearTimeout(this._oc); }
+  toast(p, msg, tone = 'ok') { clearTimeout(this._tt); this.setState({ toast: { p, msg, tone } }); this._tt = setTimeout(() => this.setState({ toast: null }), 2600); }
+  calc(patch) { this.setState({ ...patch, orPend: true }); clearTimeout(this._oc); this._oc = setTimeout(() => this.setState({ orPend: false }), 700); }
+  pos(e) { const c = this.sigRef.current; const r = c.getBoundingClientRect(); return [(e.clientX - r.left) * c.width / r.width, (e.clientY - r.top) * c.height / r.height]; }
+  renderVals() {
+    const S = this.state;
+    const ERR = { perm: ['Seu usuário não pode fazer isso.', 'danger'], conflito: ['Alguém mudou isto antes de você. A tela foi atualizada.', 'warn'], valid: ['O ERP recusou: confira os campos.', 'warn'], tempo: ['O ERP não respondeu. Tente de novo.', 'danger'] };
+    const falha = (p) => { if (S.erroSim === 'ok') return false; const [m, t] = ERR[S.erroSim]; this.toast(p, m, t); return true; };
+    const off = (p, o) => { if (S.online) return false; this.toast(p, 'Sem conexão — ' + o + ' precisa de internet.', 'warn'); return true; };
+    const brl = (v) => 'R$ ' + v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const seg = (on) => ({ bg: on ? 'var(--surface)' : 'transparent', fg: on ? 'var(--text)' : 'var(--text-mute)' });
+    const st = { par: ['Paridade', 'var(--accent)'], dif: ['Vantagem', 'var(--pos)'], dec: ['Depende de decisão', 'var(--warn)'] };
+    const L = [['P1', 'Avançar etapa', 'Mubisys · shopVOX Go', 'par', 1, 'M'], ['P2', 'Fotos e anexos', 'Mubisys · shopVOX Go', 'par', 1, 'M'], ['P3', 'Protocolo de entrega', 'shopVOX Go · Mubisys', 'par', 1, 'M'], ['P4', 'Orçamento rápido', 'Mubisys', 'par', 1, 'G'], ['P5', 'Atendimento WhatsApp', 'Mubisys (Mubichat) · HoldApp', 'par', 1, 'G'], ['P6', 'Comissões e lucratividade', 'HoldApp', 'par', 0, 'M'], ['P7', 'Contador no ícone', 'Mubisys', 'par', 0, 'P'], ['P8', 'Apontamento por QR', 'Mubisys · shopVOX Go', 'par', 1, 'M'], ['P9', 'Entrar com biometria', 'HoldApp', 'par', 0, 'P']];
+    const lista = L.map(([id, nome, quem, k, w, esf]) => ({ id, nome, quem, esc: w ? 'Sim · regra mestre' : 'Não, só lê', escFg: w ? 'var(--warn)' : 'var(--text-mute)', esf, href: '#' + id.toLowerCase(), status: st[k][0], fg: st[k][1], bd: 'color-mix(in oklch, ' + st[k][1] + ' 30%, transparent)', bg: 'color-mix(in oklch, ' + st[k][1] + ' 8%, transparent)' }));
+    // P1
+    const ET = [['Aprovado', 'oklch(0.6 0.13 240)'], ['Produção', 'var(--accent)'], ['Em espera', 'var(--warn)'], ['Faturar', 'var(--pos)']];
+    const fim = S.etIdx >= ET.length - 1;
+    const et = { idx: S.etIdx, atual: ET[S.etIdx][0], tint: ET[S.etIdx][1], prox: fim ? '' : ET[S.etIdx + 1][0], conf: S.etConf, log: S.etLog,
+      steps: ET.map(([label], i) => ({ label, state: i < S.etIdx ? 'done' : i === S.etIdx ? (fim ? 'term' : 'current') : 'todo' })),
+      btnLabel: fim ? 'Pronto para faturar' : 'Avançar para ' + ET[S.etIdx + 1][0], btnBg: fim ? 'var(--bg-2)' : 'var(--accent)', btnFg: fim ? 'var(--text-mute)' : 'var(--accent-fg)',
+      pedir: () => { if (!fim && !off('1', 'mover etapa')) this.setState({ etConf: true }); }, podeMover: S.erroSim !== 'perm', semPerm: S.erroSim === 'perm', fechar: () => this.setState({ etConf: false }),
+      confirmar: () => { if (falha('1')) { this.setState({ etConf: false }); return; } const de = ET[S.etIdx][0], para = ET[S.etIdx + 1][0]; this.setState(s => ({ etIdx: s.etIdx + 1, etConf: false, etLog: [{ time: 'agora', actor: 'Você', action: de + ' → ' + para, tone: 'info' }, ...s.etLog] })); this.toast('1', 'Pedido #4812 em ' + para); } };
+    // P2
+    const fv = S.fotos.filter(f => S.foAba === 'todas' || f.a === S.foAba);
+    const fo = { camera: S.aj.camera, eyebrow: S.fotos.length + ' anexos · Auto Center Rota', itens: fv, vazio: fv.length === 0,
+      abas: [['todas', 'Todas'], ['entrada', 'Entrada'], ['producao', 'Produção']].map(([id, label]) => ({ label, ...seg(S.foAba === id), pick: () => this.setState({ foAba: id }) })),
+      galeria: () => { if (off('2', 'anexar foto') || falha('2')) return; const n = S.foSeq + 1; this.setState(s => ({ foSeq: n, fotos: [...s.fotos, { n: 'IMG_0' + n + '.jpg', q: 'Da galeria · agora', a: s.foAba === 'todas' ? 'producao' : s.foAba }] })); this.toast('2', 'Foto anexada à OS #1042'); },
+      add: () => { if (off('2', 'anexar foto') || falha('2')) return; const n = S.foSeq + 1; this.setState(s => ({ foSeq: n, fotos: [...s.fotos, { n: 'CAM_0' + n + '.jpg', q: 'Câmera · agora', a: s.foAba === 'todas' ? 'producao' : s.foAba }] })); this.toast('2', 'Foto anexada à OS #1042'); } };
+    // P3
+    const IT = [['a', 'Placa ACM recortada', '12 un'], ['b', 'Kit de fixação', '1 cx'], ['c', 'Adesivo de porta', '2 un']];
+    const todos = IT.every(([k]) => S.enItens[k]);
+    const falta = !todos ? 'Confira todos os itens.' : !S.enNome.trim() ? 'Informe quem recebeu.' : S.enSemAss && !S.aj.assinatura ? (S.enMotivo.trim().length < 5 ? 'Diga por que ficou sem assinatura.' : '') : !S.enAss ? 'Falta a assinatura — ou marque "Recebido sem assinatura".' : '';
+    const en = { feito: !!S.enFeito, hora: S.enFeito ? S.enFeito.hora : '', nome: S.enNome, semAss: !S.enAss, temFalta: !!falta && !S.enFeito, falta,
+      itens: IT.map(([k, d, q]) => { const on = S.enItens[k]; return { d, q, ring: on ? 'var(--accent)' : 'var(--border)', fill: on ? 'var(--accent)' : 'transparent', mark: on ? '✓' : '', toggle: () => this.setState(s => ({ enItens: { ...s.enItens, [k]: !s.enItens[k] } })) }; }),
+      setNome: (e) => this.setState({ enNome: e.target.value }), podeSemAss: !S.aj.assinatura, semAssOn: S.enSemAss && !S.aj.assinatura, comAss: !S.enSemAss || S.aj.assinatura, motivo: S.enMotivo, setMotivo: (e) => this.setState({ enMotivo: e.target.value }),
+      toggleSemAss: () => this.setState(s => ({ enSemAss: !s.enSemAss })), chkRing: S.enSemAss ? 'var(--accent)' : 'var(--border)', chkFill: S.enSemAss ? 'var(--accent)' : 'transparent', chkMark: S.enSemAss ? '✓' : '',
+      limpar: () => { const c = this.sigRef.current; if (c) c.getContext('2d').clearRect(0, 0, c.width, c.height); this.setState({ enAss: false }); },
+      btnBg: falta ? 'var(--bg-2)' : 'var(--accent)', btnFg: falta ? 'var(--text-mute)' : 'var(--accent-fg)',
+      registrar: () => { if (falta || off('3', 'registrar a entrega') || falha('3')) return; const d = new Date(); this.setState({ enFeito: { hora: String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0') } }); this.toast('3', 'Entrega registrada · ENT-0418'); } };
+    const sigDown = (e) => { const c = this.sigRef.current; if (!c) return; const ctx = c.getContext('2d'); const [x, y] = this.pos(e); ctx.strokeStyle = getComputedStyle(c).color; ctx.lineWidth = 4; ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.beginPath(); ctx.moveTo(x, y); this._draw = true; try { c.setPointerCapture(e.pointerId); } catch (_) {} };
+    const sigMove = (e) => { if (!this._draw) return; const ctx = this.sigRef.current.getContext('2d'); const [x, y] = this.pos(e); ctx.lineTo(x, y); ctx.stroke(); if (!this.state.enAss) this.setState({ enAss: true }); };
+    const sigUp = () => { this._draw = false; };
+    // P4
+    const PR = { lona: ['Lona 440g', 65], adesivo: ['Adesivo vinil', 85], acm: ['ACM 3 mm', 280] };
+    const num = (s) => parseFloat(String(s).replace(',', '.')) || 0;
+    const area = num(S.orL) * num(S.orA) * Math.max(0, Math.round(num(S.orQ)));
+    const total = area * PR[S.orProd][1];
+    const or = { fonte: S.orPend ? 'calculando no ERP…' : 'valor devolvido pelo ERP', fonteFg: S.orPend ? 'var(--warn)' : 'var(--text-mute)', l: S.orL, a: S.orA, q: S.orQ, area: area.toLocaleString('pt-BR', { maximumFractionDigits: 2 }) + ' m²', pm2: brl(PR[S.orProd][1]), total: S.orPend ? '…' : brl(total),
+      prods: Object.entries(PR).map(([id, [nome, p]]) => { const on = S.orProd === id; return { nome, preco: brl(p), bd: on ? 'var(--accent)' : 'var(--border)', bg: on ? 'var(--accent-soft)' : 'var(--surface)', fg: on ? 'var(--accent)' : 'var(--text)', pick: () => this.calc({ orProd: id }) }; }),
+      setL: (e) => this.calc({ orL: e.target.value }), setA: (e) => this.calc({ orA: e.target.value }), setQ: (e) => this.calc({ orQ: e.target.value }),
+      salvar: () => off('4', 'salvar o orçamento') || falha('4') || this.toast('4', 'ORC-2231 salvo como rascunho'), enviar: () => off('4', 'enviar o orçamento') || falha('4') ? null : total > 0 ? this.toast('4', 'ORC-2231 · ' + brl(total) + ' enviado no WhatsApp') : this.toast('4', 'Informe as medidas', 'warn') };
+    // P5
+    const CV = [['c1', 'Ótica Visão Clara', 2], ['c2', 'Mercado Bom Preço', 0], ['c3', 'Padaria Trigo Fino', 1]];
+    const hora = () => { const d = new Date(); return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0'); };
+    const mandar = (t) => { if (!t.trim() || off('5', 'enviar mensagem') || falha('5')) return; if (S.chSel === 'c3') { this.toast('5', 'Sem consentimento de WhatsApp: só dá para responder na janela de 24 h.', 'warn'); } this.setState(s => ({ chTxt: '', chMsgs: { ...s.chMsgs, [s.chSel]: [...s.chMsgs[s.chSel], { eu: true, t, h: hora() }] } })); };
+    const cliente = CV.find(c => c[0] === S.chSel)[1];
+    const naoLidas = CV.filter(([id, , n]) => n && !S.chLidas[id] && id !== S.chSel).length + (S.chLidas[S.chSel] ? 0 : 0);
+    const ch = { temAtalhos: S.aj.atalhos, canal: S.canal, semCanal: !S.canal, semConsent: S.chSel === 'c3', cliente, txt: S.chTxt, eyebrow: CV.reduce((a, [id, , n]) => a + (S.chLidas[id] || id === S.chSel ? 0 : n), 0) + ' não lidas · WhatsApp',
+      convs: CV.map(([id, nome, n]) => { const on = S.chSel === id; const nv = on || S.chLidas[id] ? 0 : n; return { nome, novas: nv, temNovas: nv > 0, bd: on ? 'var(--accent)' : 'var(--border)', bg: on ? 'var(--accent-soft)' : 'var(--surface)', fg: on ? 'var(--accent)' : 'var(--text-dim)', pick: () => this.setState(s => ({ chSel: id, chLidas: { ...s.chLidas, [s.chSel]: true, [id]: true } })) }; }),
+      msgs: S.chMsgs[S.chSel].map(m => ({ t: m.t, h: m.h, just: m.eu ? 'flex-end' : 'flex-start', bg: m.eu ? 'var(--accent)' : 'var(--surface)', fg: m.eu ? 'var(--accent-fg)' : 'var(--text)', bd: m.eu ? 'var(--accent)' : 'var(--border)' })),
+      atalhos: [['Orçamento ORC-2231', 'Segue o orçamento ORC-2231: fachada ACM 6,40 × 0,90 m · R$ 1.612,80. Validade 10 dias.'], ['Status do pedido', 'Seu pedido #4812 está em Produção. Prazo 02/10.'], ['Pedir aprovação da arte', 'Para aprovar a arte, toque no link: oimpresso.com/a/4812']].map(([label, t]) => ({ label, enviar: () => mandar(t) })),
+      ph: S.online ? 'Mensagem' : 'Sem conexão', setTxt: (e) => this.setState({ chTxt: e.target.value }), enviar: () => mandar(S.chTxt), tecla: (e) => { if (e.key === 'Enter') mandar(S.chTxt); } };
+    // P6
+    const mult = { mes: 1, tri: 2.9, ano: 11.4 }[S.coPer];
+    const rec = 148230 * mult, cv = 79400 * mult, cf = 41000 * mult, mc = rec - cv, mcP = mc / rec, pe = cf / mcP;
+    const k = (v) => 'R$ ' + (v >= 1e6 ? (v / 1e6).toLocaleString('pt-BR', { maximumFractionDigits: 2 }) + ' mi' : (v / 1000).toLocaleString('pt-BR', { maximumFractionDigits: 1 }) + 'k');
+    const co = { mc: k(mc), mcPct: (mcP * 100).toLocaleString('pt-BR', { maximumFractionDigits: 1 }) + '%', rec: k(rec), cv: k(cv), cf: k(cf),
+      pePct: Math.min(100, Math.round(pe / rec * 100)), peLabel: 'Equilíbrio em ' + k(pe), peTxt: 'Passou do equilíbrio em ' + k(rec - pe) + ' — o que vier daqui é lucro.',
+      pers: [['mes', 'Este mês'], ['tri', '3 meses'], ['ano', '12 meses']].map(([id, label]) => ({ label, ...seg(S.coPer === id), pick: () => this.setState({ coPer: id }) })),
+      vend: [['Ana Souza', 62100, 54300], ['Bruno Lima', 48400, 39800], ['Carla Mendes', 37700, 36100]].map(([nome, v, r]) => ({ nome, vend: k(v * mult), rec: k(r * mult), com: brl(r * mult * 0.03), pend: brl((v - r) * mult * 0.03) })),
+      peds: [['4819', 'Placas PS 30 × 40 cm', 452, 12], ['4807', 'Kit PDV campanha verão', 2315, 21], ['4815', 'Banners formatura', 1180, 28]].map(([n, d, v, m]) => ({ n, d, v: brl(v), m: m + '%', fg: m < 15 ? 'var(--neg)' : m < 25 ? 'var(--warn)' : 'var(--text)' })) };
+    // P7
+    const bd = { n: S.badge > 99 ? '99+' : String(S.badge), tem: S.badge > 0, banner: S.banner, titulo: 'Pedido #4812 atrasado', texto: 'Ótica Visão Clara · prazo era 02/10',
+      apps: ['Fotos', 'Mapas', 'Banco', 'Agenda', 'WhatsApp', 'E-mail', 'Câmera', 'Ajustes'],
+      nova: () => { this.setState(s => ({ badge: s.badge + 1, banner: true })); clearTimeout(this._bn); this._bn = setTimeout(() => this.setState({ banner: false }), 3000); },
+      abrir: () => this.setState({ badge: 0, banner: false }) };
+    // P8
+    const JOBS = { '4812': { n: '4812', d: 'Fachada ACM + letra caixa', c: 'Ótica Visão Clara', etapa: 'Produção · Impressão' }, '4815': { n: '4815', d: 'Banners formatura', c: 'Escola Aprender', etapa: 'Produção · Acabamento' } };
+    const mm = (s) => String(Math.floor(s / 3600)).padStart(2, '0') + ':' + String(Math.floor(s / 60) % 60).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0');
+    const tap = (l) => () => {
+      if (l === '⌫') { this.setState(s => ({ apCod: s.apCod.slice(0, -1), apErro: '' })); return; }
+      if (l === 'OK') { if (off('8', 'apontar')) return; const j = JOBS[S.apCod]; if (j) this.setState({ apJob: j, apErro: '', apSeg: 0, apAcum: 0, apRodando: false }); else this.setState({ apErro: S.apCod ? 'Pedido ' + S.apCod + ' não está na produção' : 'Digite o número' }); return; }
+      if (S.apCod.length < 6) this.setState(s => ({ apCod: s.apCod + l, apErro: '' }));
+    };
+    const apModo = S.aj.qr ? 'qr' : S.apModo;
+    const ap = { modoQr: !S.apJob && apModo === 'qr', modoCod: !S.apJob && apModo === 'cod',
+      modos: (S.aj.qr ? [['qr', 'Ler QR']] : [['qr', 'Ler QR'], ['cod', 'Digitar número']]).map(([id, label]) => ({ label, ...seg(S.apModo === id), pick: () => this.setState({ apModo: id }) })),
+      ler: () => { if (off('8', 'apontar')) return; this.setState({ apJob: JOBS['4812'], apSeg: 0, apAcum: 0, apRodando: false }); this.toast('8', 'QR lido · pedido #4812'); },
+      semJob: !S.apJob, temJob: !!S.apJob, cod: S.apCod || '····', erro: S.apErro || '', job: S.apJob || { n: '', d: '', c: '', etapa: '' },
+      teclas: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '⌫', '0', 'OK'].map(l => ({ l, tap: tap(l), bg: l === 'OK' ? 'var(--accent)' : 'var(--surface)', fg: l === 'OK' ? 'var(--accent-fg)' : 'var(--text)' })),
+      tempo: mm(S.apSeg), estado: S.apRodando ? 'em andamento' : 'pronto para iniciar',
+      btnLabel: S.apRodando ? 'Finalizar' : 'Iniciar', btnBg: S.apRodando ? 'var(--surface)' : 'var(--accent)', btnFg: S.apRodando ? 'var(--text)' : 'var(--accent-fg)', btnBd: S.apRodando ? 'var(--border)' : 'var(--accent)',
+      alternar: () => { if (off('8', 'apontar') || falha('8')) return; if (S.apRodando) { this.setState({ apRodando: false, apJob: null, apCod: '', apAcum: 0 }); this.toast('8', 'Apontamento finalizado · ' + mm(S.apSeg) + ' no #' + S.apJob.n); } else this.setState({ apRodando: true, apIni: Date.now(), apAcum: 0, apSeg: 0 }); },
+      concluir: () => { if (!S.apRodando) { this.setState({ apJob: null, apCod: '' }); return; } if (off('8', 'cancelar') || falha('8')) return; this.setState({ apRodando: false, apSeg: 0, apAcum: 0 }); this.toast('8', 'Apontamento cancelado — não conta tempo.', 'warn'); },
+      outro: () => this.setState({ apJob: null, apCod: '', apRodando: false, apSeg: 0, apAcum: 0 }) };
+    // P9
+    const bi = { permitido: S.aj.biometria, bloqueado: !S.aj.biometria, on: S.biOn && S.aj.biometria, toggle: (v) => this.setState({ biOn: typeof v === 'boolean' ? v : !S.biOn }), ring: S.biOn ? 'var(--accent)' : 'var(--text-mute)',
+      titulo: S.biOn ? 'Toque no sensor para entrar' : 'Entrar com usuário e senha', sub: S.biOn ? 'Se a biometria falhar 3 vezes, o app pede a senha do oimpresso.' : 'Ligue a opção acima para pular a senha nas próximas vezes.' };
+    const toast = { msg: S.toast ? S.toast.msg : '', tone: S.toast ? S.toast.tone : 'ok' };
+    if (S.toast) toast['p' + S.toast.p] = true;
+    const F = (rows) => rows.map(([k, v]) => ({ k, v }));
+    const fichas = {
+      p1: F([['No ERP hoje', 'OS: já existe — POST /api/app/os/{id}/acoes/{chave} (AcoesOs, throttle 30/min, motivo opcional). Pedido: só GET em routes/api/app/pedidos.php.'], ['Falta', 'POST /api/app/pedidos/{id}/acoes/{chave} no mesmo molde, sobre o processo FSM da venda.'], ['Quem pode', 'A ação só vem em acoes[] se o usuário pode; sem permissão o botão não aparece.'], ['Erros', '403 sem_permissao (botão some) · 404 · 409 etapa_mudou (recarrega) · 422 validacao/bloqueado · 503 sem_configuracao · 429 throttle — os mesmos códigos de /api/app/os.'], ['Fora', 'Voltar etapa e mover em lote.']]),
+      p2: F([['No ERP hoje', 'Tabela arquivos (morph arquivable_type/id) já guarda as fotos da OS; GET /api/app/os/{id} só devolve fotos_laudo (contagem).'], ['Falta', 'GET e POST /api/app/os/{id}/arquivos (multipart, jpg/png/pdf ≤ 10 MB), depois o mesmo para pedido.'], ['Permissão', 'Câmera (nova: CAMERA / NSCameraUsageDescription) e galeria (já existe), pedidas no primeiro uso.'], ['Erros', '403 sem_permissao (botão some) · 404 · 409 etapa_mudou (recarrega) · 422 validacao/bloqueado · 503 sem_configuracao · 429 throttle — os mesmos códigos de /api/app/os.'], ['Fora', 'Apagar anexo e editar imagem.']]),
+      p3: F([['No ERP hoje', 'Não achei rota de entrega/protocolo em routes/api/app nem na Oficina.'], ['Falta', 'POST /api/app/pedidos/{id}/entrega { itens, recebido_por, assinatura_png | sem_assinatura_motivo, lat, lng } — fecha a etapa Entrega pela FSM.'], ['Decidir', 'Assinatura obrigatória? A tela propõe "Recebido sem assinatura" com motivo.'], ['Erros', '403 sem_permissao (botão some) · 404 · 409 etapa_mudou (recarrega) · 422 validacao/bloqueado · 503 sem_configuracao · 429 throttle — os mesmos códigos de /api/app/os.'], ['Acessível', 'Quem não consegue assinar usa o motivo; a área tem rótulo para leitor de tela.']]),
+      p4: F([['No ERP hoje', 'Cálculo por m² existe só na web: POST /comunicacao-visual/api/calcular e /orcamentos (sessão, throttle 60/min); preço em comvis_materiais.preco_venda_m2.'], ['Falta', 'POST /api/app/orcamentos/calcular e /api/app/orcamentos sobre o mesmo OrcamentoController — o app nunca calcula sozinho.'], ['Regra mestre', 'Mexe em valor: dupla prova + antes→depois + aprovação [W] (BRIEFING AppMobile).'], ['Erros', '403 sem_permissao (botão some) · 404 · 409 etapa_mudou (recarrega) · 422 validacao/bloqueado · 503 sem_configuracao · 429 throttle — os mesmos códigos de /api/app/os.'], ['Fora', 'Acabamento, instalação, desconto e produto composto.']]),
+      p5: F([['No ERP hoje', 'Modules/Whatsapp tem a caixa completa na web: /inbox, /inbox/{id}/send, send-media, conversations, contacts/search, macros e IA (suggest-reply).'], ['Consentimento', 'contacts.whatsapp_consent (+ whatsapp_opt_in_at) já vem em GET /api/app/pessoas/{id}/cadastro.'], ['Falta', 'Rotas /api/app/atendimento/* por cima do InboxController, com token e business_id explícito (ADR 0093).'], ['Erros', '403 sem_permissao (botão some) · 404 · 409 etapa_mudou (recarrega) · 422 validacao/bloqueado · 503 sem_configuracao · 429 throttle — os mesmos códigos de /api/app/os.'], ['Fora', 'Áudio, figurinhas e transferir entre filas (v2).']]),
+      p6: F([['No ERP hoje', 'Comissão do UltimatePOS: users.cmmsn_percent por vendedor; pos_settings.cmmsn_calculation_type = valor da venda ou pagamento recebido; relatório no ReportController.'], ['Corrige', 'Não é margem nem valor fixo (isso é o Mubisys): é % por vendedor, sobre venda ou recebido.'], ['Quem vê', 'commission_agent.view para a lista; lucratividade com dashboard.data. Vendedor vê só a própria.'], ['Falta', 'GET /api/app/relatorios?aba=lucratividade e ?aba=comissoes no RelatoriosController que já existe.'], ['Fora', 'Pagar comissão e mudar a regra.']]),
+      p7: F([['No ERP hoje', 'Pronto: nao_lidas já vem em GET /api/app/inicio e as rotas de lida existem (/notificacoes/{id}/lida, /notificacoes/lidas).'], ['Falta', 'Só no app: plugin de badge do Capacitor + atualizar o número ao receber push (src/push.ts) e ao ler (16).'], ['Permissão', 'Nenhuma nova — usa a de notificação.'], ['Esforço', 'Pequeno; nenhuma mudança no ERP.']]),
+      p8: F([['No ERP hoje', 'Apontamento existe na web: /comunicacao-visual/api/apontamentos/iniciar, /{id}/finalizar, /{id}/cancelar e /em-andamento (US-COMVIS-004, por spool).'], ['Ajuste', 'Sem pausa: a API só inicia, finaliza ou cancela. A tela segue isso.'], ['Falta', 'Rotas /api/app/producao/apontamentos/* com token sobre o ApontamentoController; QR com o id do pedido na etiqueta.'], ['Permissão', 'Câmera, pedida no primeiro uso (a mesma do P2).'], ['Erros', '403 sem_permissao (botão some) · 404 · 409 etapa_mudou (recarrega) · 422 validacao/bloqueado · 503 sem_configuracao · 429 throttle — os mesmos códigos de /api/app/os.']]),
+      p9: F([['No ERP hoje', 'Nada a fazer no ERP: o token Passport já fica no aparelho.'], ['Falta', 'Plugin de biometria do Capacitor + NSFaceIDUsageDescription (iOS) e USE_BIOMETRIC (Android).'], ['Papel', 'ADR nova curta (biometria só no login, Art. 11 LGPD) — a 0383 manda abrir uma para biometria fora do ponto.'], ['Ponto', 'Continua sem selfie e sem biometria.'], ['Esforço', 'Pequeno.']]),
+    };
+    const AJ = [['assinatura', 'Entrega exige assinatura', 'app_entrega_exige_assinatura', 'P3'], ['camera', 'Anexos pela câmera', 'app_anexos_camera', 'P2'], ['qr', 'Apontamento só por QR', 'app_apontamento_exige_qr', 'P8'], ['biometria', 'Entrar com biometria', 'app_biometria_login', 'P9'], ['atalhos', 'Atalhos no WhatsApp', 'app_atendimento_atalhos', 'P5'], ['comissaoPropria', 'Vendedor vê a própria comissão', 'app_comissao_vendedor_ve_propria', 'P6']];
+    const ajustesUi = AJ.map(([k, label, chave, p]) => { const on = S.aj[k]; return { label, chave, p, trilho: on ? 'var(--accent)' : 'var(--border)', x: on ? '16px' : '2px', toggle: () => this.setState(s => ({ aj: { ...s.aj, [k]: !s.aj[k] } })) }; });
+    const mkOpt = (cur, set) => ([v, label]) => { const on = cur === v; return { label, bg: on ? 'var(--accent)' : 'transparent', fg: on ? 'var(--accent-fg)' : 'var(--text-dim)', pick: () => this.setState(set(v)) }; };
+    const erroOpts = [['ok', 'Ok'], ['perm', 'Sem permissão'], ['conflito', '409 Conflito'], ['valid', '422 Validação'], ['tempo', 'Sem resposta']].map(mkOpt(S.erroSim, v => ({ erroSim: v })));
+    const canalOpts = [[true, 'Ligado'], [false, 'Desligado']].map(mkOpt(S.canal, v => ({ canal: v })));
+    const redeOpts = [[true, 'Online'], [false, 'Offline']].map(([v, label]) => { const on = S.online === v; return { label, bg: on ? 'var(--accent)' : 'transparent', fg: on ? 'var(--accent-fg)' : 'var(--text-dim)', pick: () => this.setState({ online: v }) }; });
+    return { themeAttr: this.props.theme ?? 'dark', fichas, redeOpts, erroOpts, canalOpts, ajustesUi, offline: !S.online, lista, et, fo, en, or, ch, co, bd, ap, bi, toast, sigRef: this.sigRef, sigDown, sigMove, sigUp };
+  }
+}
+</script>
+</body>
+</html>
