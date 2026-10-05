@@ -126,6 +126,25 @@ atualizar e desinstalar levam às confirmações do `InstallController` (o GET n
 
 Status: 🧪
 
+## UC-CONN-26 · Cada execução do `connector:health` vira uma entrada do histórico · `should`
+
+**Dado** a rotina `connector:health` **Quando** ela roda **Então** grava em
+`storage/app/connector/health-history.json` uma entrada com data, os três valores (tokens em 24 h,
+licenças em 24 h, rotas), `issues[]` e o desvio do DelphiSync em 24 h (chamadas do `log.delphi` com
+corpo × as de formato desconhecido), e poda o que passou de 14 dias. Check que não pôde medir grava
+`null`, não zero (thread 08). Teste: `ObservabilityTest.php`.
+
+Status: 🧪
+
+## UC-CONN-27 · A aba Saúde lê o histórico, não executa o comando · `should`
+
+**Dado** o histórico publicado **Quando** abro a aba Saúde **Então** recebo as execuções dos últimos
+14 dias (a mais antiga sai), vejo a última execução com os alertas, uma série por check (a última
+execução de cada dia) e os desvios do dia; sem execução publicada, um vazio que diz que a rotina não
+rodou (thread 08).
+
+Status: 🧪
+
 ## Backlog (sem teste ainda — não são UC até ganharem um)
 
 - [BACKLOG] Nome repetido avisa e não bloqueia ("depois ninguém sabe qual revogar") — implementado na tela, sem teste.
@@ -133,7 +152,6 @@ Status: 🧪
 - [BACKLOG] Primeira vez: estado vazio explica o que é a credencial e oferece "Criar o primeiro API client" — implementado, sem teste.
 - [BACKLOG] Perder o segredo tem caminho: kebab oferece "Emitir credencial nova", nunca "revelar" — implementado, sem teste.
 - [BACKLOG] Credencial instalada nunca para de autenticar (`POST /oauth/token` com client pré-existente) — há teste sem id de UC.
-- [BACKLOG] Aba Saúde mostra os três checks do `connector:health` com limiar e origem — hoje só o que a tela mede ao abrir (rotas, tokens do negócio); licenças em 24 h fica "não medido aqui" até o histórico da thread 08. Sem teste.
 - [BACKLOG] Aba Módulo avisa do `passport:install --force` antes de instalar/atualizar — implementado na tela, sem teste.
 - [BACKLOG] O menu leva à aba Documentação (`/connector/client?aba=docs`) — implementado no `DataController`, sem teste.
 - [BACKLOG] Menu depende de instalação ou de `connector_module` no pacote — thread 05.
