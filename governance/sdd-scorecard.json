@@ -23,18 +23,18 @@
       "detail": {
         "coverage_pct": 86,
         "specs_total": 53,
-        "us_total": 1051,
+        "us_total": 1052,
         "anchor_coverage_pct": 86,
         "by_state": {
           "sem_campo": 146,
           "placeholder": 1,
           "pendente": 437,
           "parcial": 121,
-          "anchored_ok": 346,
+          "anchored_ok": 347,
           "anchored_dead": 0,
           "anchored_zombie": 0
         },
-        "fields_total": 911,
+        "fields_total": 912,
         "fields_placeholder": 1,
         "fields_grammar_ok": 820,
         "orphan_fields": 6,
@@ -46,7 +46,7 @@
         "req_sem_lane_total": 26,
         "behavior_known": false,
         "servido_total": 27,
-        "nao_servido_total": 78,
+        "nao_servido_total": 79,
         "servido_ledger": true,
         "anchor_stale_on": false,
         "anchor_stale_total": null,
@@ -234,15 +234,22 @@
     },
     "drift_alarms": {
       "status": "measured",
-      "value": 0,
+      "value": 6,
       "unit": "alarmes duros (reds do protection-drift · GT-G4)",
       "direction": "down",
       "target": "advisory perene (0 alarmes duros)",
       "source": "scripts/governance/protection-drift.mjs --json .reds.length (drift de branch protection + watchdog staleness · GT-G4 · P08)",
       "detail": {
-        "reds": [],
+        "reds": [
+          "anchor_coverage: fonte sdd-scorecard.yml sem run verde há >48h (último sucesso: 2026-10-01T13:30:17Z) — canário parado é regressão silenciosa (ADR 0275 §3: desarmar MANUALMENTE via PR no baseline até nova sequência de 3 — o ratchet required não afrouxa sozinho)",
+          "n_quarantine: fonte sdd-scorecard.yml sem run verde há >48h (último sucesso: 2026-10-01T13:30:17Z) — canário parado é regressão silenciosa (ADR 0275 §3: desarmar MANUALMENTE via PR no baseline até nova sequência de 3 — o ratchet required não afrouxa sozinho)",
+          "sqlite_corruptors: fonte sdd-scorecard.yml sem run verde há >48h (último sucesso: 2026-10-01T13:30:17Z) — canário parado é regressão silenciosa (ADR 0275 §3: desarmar MANUALMENTE via PR no baseline até nova sequência de 3 — o ratchet required não afrouxa sozinho)",
+          "ghost_count: fonte sdd-scorecard.yml sem run verde há >48h (último sucesso: 2026-10-01T13:30:17Z) — canário parado é regressão silenciosa (ADR 0275 §3: desarmar MANUALMENTE via PR no baseline até nova sequência de 3 — o ratchet required não afrouxa sozinho)",
+          "front_door_coverage: fonte sdd-scorecard.yml sem run verde há >48h (último sucesso: 2026-10-01T13:30:17Z) — canário parado é regressão silenciosa (ADR 0275 §3: desarmar MANUALMENTE via PR no baseline até nova sequência de 3 — o ratchet required não afrouxa sozinho)",
+          "distiller_freshness: fonte sdd-scorecard.yml sem run verde há >48h (último sucesso: 2026-10-01T13:30:17Z) — canário parado é regressão silenciosa (ADR 0275 §3: desarmar MANUALMENTE via PR no baseline até nova sequência de 3 — o ratchet required não afrouxa sozinho)"
+        ],
         "warns": 0,
-        "verdict": "green"
+        "verdict": "red"
       },
       "stream": "GT"
     },
