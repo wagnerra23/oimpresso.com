@@ -33,25 +33,31 @@ pelo histórico do veículo). Outra empresa ou inexistente → `404 nao_encontra
 O `GET /api/app/os/{id}` traz também:
 
 ```json
-"acoes": [ { "chave": "concluir_servico", "rotulo": "Concluir serviço", "critica": true, "pode": true,
+"acoes": [ { "chave": "concluir_servico", "rotulo": "Concluir serviço", "tipo": "avanco", "critica": true, "pode": true,
              "bloqueio": "Falta: Orçamento com ≥ 1 item lançado." } ]
 ```
 
 - Só as ações que **avançam** a OS na linha principal e saem da etapa atual, nesta ordem:
   `iniciar_diagnostico`, `enviar_orcamento`, `aprovar_pedir_pecas`, `aprovar_executar`, `pecas_chegaram`,
-  `concluir_servico`, `entregar`. Cancelar, recusar orçamento, acionar garantia e o override do gate
-  ficam só na web. OS fora do pipeline ou em etapa terminal → `[]`.
+  `concluir_servico`, `entregar` (`tipo` = `avanco`); depois as que **encerram** a OS (`tipo` = `encerra`):
+  `recusar_orcamento` (só em aguardando aprovação) e `cancelar_os` (pedido [W] 2026-10-05). Acionar garantia
+  e o override do gate ficam só na web. OS fora do pipeline ou em etapa terminal → `[]`.
 - `pode` = o usuário pode executar (permissão `oficinaauto.service_order.update` ou superadmin, e a
   regra de papel da ação, a mesma da web). `critica` = a ação é crítica ou pede confirmação (o app
   confirma antes). `bloqueio` = os requisitos do gate da etapa que faltam; `null` quando passa.
 
-`POST /api/app/os/{id}/acoes/{chave}` (corpo vazio, sem override; throttle 30/min):
+`POST /api/app/os/{id}/acoes/{chave}` com corpo opcional `{ "motivo": "texto" | null }` (≤ 500, vai para a trilha
+`sale_stage_history.payload_snapshot`; a web não exige). Sem override; throttle 30/min:
 
 - `200` → o mesmo JSON do `GET /api/app/os/{id}`, já na etapa nova.
 - `422 { erro:"bloqueado", mensagem }` quando o gate barra (a OS não muda).
 - `409 { erro:"etapa_mudou", mensagem }` quando a ação não sai da etapa atual (outro usuário moveu antes).
-- `422 { erro:"nao_suportada", mensagem }` para ação fora da lista acima.
+- `422 { erro:"nao_suportada", mensagem }` para ação fora das listas acima (ex.: `acionar_garantia`).
+- `422 { erro:"validacao", campos:{ motivo } }` para motivo acima de 500 caracteres.
 - `403 sem_permissao` (sem permissão de ver ou de alterar OS) · `404 nao_encontrado` (inexistente ou de outra empresa).
 - A transição passa pela FSM canônica (a mesma da web), com trilha em `sale_stage_history`. As ações do
   processo da oficina não têm efeito colateral; se no banco alguma tiver (`side_effect_class` ou
   `event_class`), o app não a mostra nem a executa — valor e estoque nunca mudam por aqui.
+- Encerrar (cancelar/recusar) também só muda a etapa pela FSM: não toca a coluna legada `status` (então a
+  venda automática e o WhatsApp do observer não disparam), nem valor, estoque ou cobrança, e não libera o
+  veículo — igual à web.
