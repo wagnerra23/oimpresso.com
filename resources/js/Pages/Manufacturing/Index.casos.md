@@ -5,8 +5,14 @@ tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (
 por_que: comportamento é durável — o contrato de teste nasce junto com a tela, não depois.
 fonte: handoff "PROTÓTIPO OFICIAL - FABRICAÇÃO V1" §4.5 + §15.1 — os UC abaixo DERIVAM dele
 owner: wagner
-last_run: "2026-09-30"
+last_run: "2026-10-05"
 ---
+
+> ℹ️ **`last_run` 2026-09-30 → 2026-10-05 (G-6): forma, não regra de negócio.** Os dados, os filtros e
+> os totais são os mesmos; o que muda de visível: a lista virou o `shared/DataTable` na anatomia `grid`
+> (o par React do `DataGrid` do DS): `<table>`, cabeçalho 10px caixa-alta, linhas listradas, data,
+> referência e números em fonte mono à direita. O selo "Rascunho" passa de âmbar a contorno, como o
+> protótipo atual. Nenhum UC foi reexecutado nesta data.
 
 # Casos de Uso & Aceite — Manufacturing/Index
 

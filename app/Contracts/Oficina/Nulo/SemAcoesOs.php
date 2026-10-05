@@ -15,8 +15,13 @@ final class SemAcoesOs implements AcoesOs
         return null;
     }
 
-    public function executar(User $user, int $businessId, int $osId, string $chave): array
+    public function executar(User $user, int $businessId, int $osId, string $chave, ?string $motivo = null): array
     {
         return ['resultado' => 'nao_encontrado', 'mensagem' => 'OS não encontrada.'];
+    }
+
+    public function criar(User $user, int $businessId, array $dados): ?int
+    {
+        return null;
     }
 }

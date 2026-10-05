@@ -884,7 +884,8 @@ function App() {
   if (route === "sa-assinaturas") content = <window.SuperadminPage view="assinaturas" />;else
   if (route === "sa-pacotes") content = <window.SuperadminPage view="pacotes" />;else
   if (route === "sa-comunicador") content = <window.SuperadminPage view="comunicador" />;else
-  if (route === "sa-config") content = <window.SuperadminPage view="config" />;
+  if (route === "sa-config") content = <window.SuperadminPage view="config" />;else
+  if (route === "sa-usuarios") content = <window.SuperadminUsuariosPage />;
   // Office Impresso (licenciamento desktop Delphi) — espelha topnav.php do módulo
   else if (route === "officeimpresso") content = <window.OfficeimpressoPage view="empresas" />;else
   if (route === "oi-licencas") content = <window.OfficeimpressoPage view="licencas" />;else

@@ -13,6 +13,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
 
 /**
  * Oficina do app das lojas (oimpresso-app) — SÓ LEITURA. Contrato:
@@ -62,6 +63,8 @@ class OficinaController extends Controller
             return response()->json([
                 'itens' => [], 'etapas' => [], 'total' => 0, 'travadas' => 0,
                 'pagina' => $pagina, 'tem_mais' => false,
+                // Sem o processo da oficina a OS nova nasceria fora do quadro: não oferece criar.
+                'pode_criar' => false,
             ]);
         }
 
@@ -107,7 +110,71 @@ class OficinaController extends Controller
             'travadas' => $travadas,
             'pagina' => $pagina,
             'tem_mais' => $linhas->count() > self::POR_PAGINA,
+            'pode_criar' => $this->podeCriarOs($user),
         ]);
+    }
+
+    /**
+     * POST /api/app/os — nova OS de mecânica (tela 07). Mesmo create da web
+     * (ServiceOrderController@store): nasce `aberta`, entra no pipeline na Recepção, liga o
+     * veículo livre; não gera item, valor, venda nem WhatsApp. 201 = o JSON do GET /os/{id}.
+     */
+    public function store(Request $request): JsonResponse
+    {
+        $user = $request->user();
+        if (! $this->podeVerOficina($user) || ! $this->podeCriarOs($user)) {
+            return $this->semPermissao();
+        }
+
+        $bizId = (int) $user->business_id;
+        $v = Validator::make($request->all(), [
+            'vehicle_id' => ['required', 'integer'],
+            'contact_id' => ['nullable', 'integer'],
+            'mileage_at_service' => ['nullable', 'integer', 'min:0'],
+            'box_label' => ['nullable', 'string', 'max:60'],
+            'notes' => ['nullable', 'string', 'max:2000'],
+        ], [
+            'vehicle_id.required' => 'Escolha o veículo.',
+            'mileage_at_service.min' => 'O km não pode ser negativo.',
+        ]);
+        $campos = $v->fails() ? collect($v->errors()->toArray())->map(fn ($m) => $m[0])->all() : [];
+
+        // Tier 0 (ADR 0093): veículo e cliente só do business do token (a validação da web
+        // não escopa o veículo; aqui escopa os dois).
+        if (! isset($campos['vehicle_id']) && ! DB::table('vehicles')->where('business_id', $bizId)
+            ->whereNull('deleted_at')->where('id', (int) $request->input('vehicle_id'))->exists()) {
+            $campos['vehicle_id'] = 'Veículo não encontrado.';
+        }
+        if (! isset($campos['contact_id']) && $request->filled('contact_id') && ! DB::table('contacts')
+            ->where('business_id', $bizId)->where('id', (int) $request->input('contact_id'))->exists()) {
+            $campos['contact_id'] = 'Cliente não encontrado.';
+        }
+        if ($campos !== []) {
+            return response()->json(['erro' => 'validacao', 'campos' => $campos], 422);
+        }
+
+        $d = $v->validated();
+        $texto = fn (?string $s) => is_string($s) && trim($s) !== '' ? trim($s) : null;
+        $id = app(AcoesOs::class)->criar($user, $bizId, [
+            'vehicle_id' => (int) $d['vehicle_id'],
+            'contact_id' => isset($d['contact_id']) ? (int) $d['contact_id'] : null,
+            'mileage_at_service' => isset($d['mileage_at_service']) ? (int) $d['mileage_at_service'] : null,
+            'box_label' => $texto($d['box_label'] ?? null),
+            'notes' => $texto($d['notes'] ?? null),
+        ]);
+        if ($id === null) {
+            return response()->json(['erro' => 'sem_configuracao', 'mensagem' => 'A oficina não está disponível.'], 503);
+        }
+
+        return $this->show($request, $id)->setStatusCode(201);
+    }
+
+    /** Criar OS: permissão da web (`oficinaauto.service_order.create`) com o processo da oficina cadastrado. */
+    private function podeCriarOs(?User $user): bool
+    {
+        return $user !== null
+            && ($user->can('superadmin') || $user->can('oficinaauto.service_order.create'))
+            && $this->etapas((int) $user->business_id)->isNotEmpty();
     }
 
     /**
@@ -206,8 +273,9 @@ class OficinaController extends Controller
     }
 
     /**
-     * POST /api/app/os/{id}/acoes/{chave} — avança a OS pela ação (tela 03). Corpo vazio, sem
-     * override do gate. 200 = o mesmo JSON do GET /os/{id}, já na etapa nova.
+     * POST /api/app/os/{id}/acoes/{chave} — avança ou encerra a OS pela ação (tela 03). Corpo
+     * opcional { motivo } (≤ 500, vai para a trilha), sem override do gate. 200 = o mesmo JSON do
+     * GET /os/{id}, já na etapa nova.
      */
     public function executarAcao(Request $request, int $id, string $chave): JsonResponse
     {
@@ -216,7 +284,19 @@ class OficinaController extends Controller
             return $this->semPermissao();
         }
 
-        $r = app(AcoesOs::class)->executar($user, (int) $user->business_id, $id, $chave);
+        $v = Validator::make($request->all(), ['motivo' => ['nullable', 'string', 'max:500']], [
+            'motivo.max' => 'O motivo tem no máximo 500 caracteres.',
+            'motivo.string' => 'O motivo precisa ser texto.',
+        ]);
+        if ($v->fails()) {
+            return response()->json([
+                'erro' => 'validacao',
+                'campos' => collect($v->errors()->toArray())->map(fn ($m) => $m[0])->all(),
+            ], 422);
+        }
+        $motivo = trim((string) ($v->validated()['motivo'] ?? ''));
+
+        $r = app(AcoesOs::class)->executar($user, (int) $user->business_id, $id, $chave, $motivo !== '' ? $motivo : null);
 
         return match ($r['resultado']) {
             'ok' => $this->show($request, $id),
@@ -316,7 +396,7 @@ class OficinaController extends Controller
             ->limit(self::POR_PAGINA + 1)
             ->get([
                 'v.id', 'v.plate', 'v.secondary_plate', 'v.vehicle_type', 'v.color',
-                'v.manufacture_year', 'v.model_year', 'c.name as cliente',
+                'v.manufacture_year', 'v.model_year', 'c.id as cliente_id', 'c.name as cliente',
                 DB::raw('GREATEST(COALESCE(v.mileage_at_entry, 0), COALESCE((SELECT MAX(so.mileage_at_service)'
                     . ' FROM service_orders so WHERE so.vehicle_id = v.id AND so.business_id = v.business_id'
                     . ' AND so.deleted_at IS NULL), 0)) as km'),
@@ -330,6 +410,7 @@ class OficinaController extends Controller
                 'descricao' => $this->tipoVeiculo($v->vehicle_type),
                 'ano' => $this->ano($v->manufacture_year, $v->model_year),
                 'cliente' => $v->cliente,
+                'cliente_id' => $v->cliente_id !== null ? (int) $v->cliente_id : null,
                 'km' => (int) $v->km > 0 ? (int) $v->km : null,
                 'cor' => $this->texto($v->color),
             ])->values(),

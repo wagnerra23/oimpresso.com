@@ -52,9 +52,34 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/cliente/playbook/
     "CONTRATOS": "governance/design/contracts"
   },
   "decisoes": [
-    {"id": "D1", "pergunta": "Aposentar o dual-render /contacts × /cliente?", "respondida": false, "destrava": ["04"]},
-    {"id": "D2", "pergunta": "Grupos de clientes: tela própria ou aba/filtro?", "respondida": false, "destrava": ["03"]},
-    {"id": "D3", "pergunta": "Fornecedores usam Cliente/Index ou índice próprio?", "respondida": false, "destrava": []}
+    {
+      "id": "D1",
+      "pergunta": "Aposentar o dual-render /contacts × /cliente?",
+      "respondida": true,
+      "destrava": [
+        "04"
+      ],
+      "resposta": "sim, aposentar; /contacts -> /cliente com ?type=supplier",
+      "fonte": "_DECISOES-W-2026-10-01.md"
+    },
+    {
+      "id": "D2",
+      "pergunta": "Grupos de clientes: tela própria ou aba/filtro?",
+      "respondida": true,
+      "destrava": [
+        "03"
+      ],
+      "resposta": "tela própria Cliente/Grupos",
+      "fonte": "_DECISOES-W-2026-10-01.md"
+    },
+    {
+      "id": "D3",
+      "pergunta": "Fornecedores usam Cliente/Index ou índice próprio?",
+      "respondida": true,
+      "destrava": [],
+      "resposta": "mesmo Cliente/Index com ?type=supplier",
+      "fonte": "_DECISOES-W-2026-10-01.md"
+    }
   ],
   "threads": [
     {
@@ -62,9 +87,15 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/cliente/playbook/
       "titulo": "PUXAR as 7 Pages vivas de Cliente → protótipo",
       "dono": "CC",
       "vaga": 1,
-      "arquivo": "01-puxar-vivo.md",
-      "prefixo": ["prototipo-ui/cowork/Wagner/clientes-page.*", "prototipo-ui/cowork/Wagner/cliente-*", "prototipo-ui/cowork/Wagner/cli-*"],
-      "nao_toca": ["${PAGES}/Cliente/"],
+      "arquivo": "00-puxar-vivo.md",
+      "prefixo": [
+        "prototipo-ui/cowork/Wagner/clientes-page.*",
+        "prototipo-ui/cowork/Wagner/cliente-*",
+        "prototipo-ui/cowork/Wagner/cli-*"
+      ],
+      "nao_toca": [
+        "${PAGES}/Cliente/"
+      ],
       "provas": [],
       "nota_provas": "read-only no main + build aqui: prova = _saida-00.md com o diff nos dois sentidos por tela"
     },
@@ -73,22 +104,50 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/cliente/playbook/
       "titulo": "ALVO cliente--index",
       "dono": "CL",
       "vaga": 1,
-      "arquivo": "02-alvos.md",
-      "depende_threads": ["00"],
-      "prefixo": ["${ALVOS}/cliente--index.*"],
-      "nao_toca": ["${PAGES}/"],
-      "provas": [{"tipo": "json_com_chaves", "path": "${ALVOS}/cliente--index.alvo.json", "chaves": ["secoes"]}]
+      "arquivo": "A1-alvos.md",
+      "depende_threads": [
+        "00"
+      ],
+      "prefixo": [
+        "${ALVOS}/cliente--index.*"
+      ],
+      "nao_toca": [
+        "${PAGES}/"
+      ],
+      "provas": [
+        {
+          "tipo": "json_com_chaves",
+          "path": "${ALVOS}/cliente--index.alvo.json",
+          "chaves": [
+            "secoes"
+          ]
+        }
+      ]
     },
     {
       "id": "A2",
       "titulo": "ALVO cliente--grupos--index",
       "dono": "CL",
       "vaga": 1,
-      "arquivo": "02-alvos.md",
-      "depende_decisoes": ["D2"],
-      "prefixo": ["${ALVOS}/cliente--grupos--index.*"],
-      "nao_toca": ["${PAGES}/"],
-      "provas": [{"tipo": "json_com_chaves", "path": "${ALVOS}/cliente--grupos--index.alvo.json", "chaves": ["secoes"]}]
+      "arquivo": "A2-alvos.md",
+      "depende_decisoes": [
+        "D2"
+      ],
+      "prefixo": [
+        "${ALVOS}/cliente--grupos--index.*"
+      ],
+      "nao_toca": [
+        "${PAGES}/"
+      ],
+      "provas": [
+        {
+          "tipo": "json_com_chaves",
+          "path": "${ALVOS}/cliente--grupos--index.alvo.json",
+          "chaves": [
+            "secoes"
+          ]
+        }
+      ]
     },
     {
       "id": "01",
@@ -96,11 +155,22 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/cliente/playbook/
       "dono": "CL",
       "vaga": 2,
       "prs": 1,
-      "arquivo": "03-contratos.md",
-      "depende_threads": ["A1"],
-      "prefixo": ["${CONTRATOS}/cliente-index.contract.json"],
-      "nao_toca": ["${PAGES}/"],
-      "provas": [{"tipo": "arquivo", "path": "${CONTRATOS}/cliente-index.contract.json"}]
+      "arquivo": "01-contratos.md",
+      "depende_threads": [
+        "A1"
+      ],
+      "prefixo": [
+        "${CONTRATOS}/cliente-index.contract.json"
+      ],
+      "nao_toca": [
+        "${PAGES}/"
+      ],
+      "provas": [
+        {
+          "tipo": "arquivo",
+          "path": "${CONTRATOS}/cliente-index.contract.json"
+        }
+      ]
     },
     {
       "id": "02",
@@ -108,11 +178,24 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/cliente/playbook/
       "dono": "CL",
       "vaga": 2,
       "prs": 1,
-      "arquivo": "04-divergencia-index.md",
-      "depende_threads": ["A1"],
-      "prefixo": ["${PAGES}/Cliente/Index.tsx", "${PAGES}/Cliente/_components/"],
-      "nao_toca": ["${PAGES}/Cliente/_drawer/", "resources/js/Components/PageHeader/"],
-      "provas": [],
+      "arquivo": "02-divergencia-index.md",
+      "depende_threads": [
+        "A1"
+      ],
+      "prefixo": [
+        "${PAGES}/Cliente/Index.tsx",
+        "${PAGES}/Cliente/_components/"
+      ],
+      "nao_toca": [
+        "${PAGES}/Cliente/_drawer/",
+        "resources/js/Components/PageHeader/"
+      ],
+      "provas": [
+        {
+          "tipo": "comparacao",
+          "nota": "design-diff --compare --check sem DIVERGE (bug), run citado no _saida"
+        }
+      ],
       "nota_provas": "prova = design-diff --compare --check verde na D4 (título) e tableRow medido nos dois lados; citar o run no _saida-02.md"
     },
     {
@@ -121,16 +204,39 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/cliente/playbook/
       "dono": "CL",
       "vaga": 3,
       "prs": 1,
-      "arquivo": "05-grupos.md",
-      "depende_threads": ["A2"],
-      "depende_decisoes": ["D2"],
-      "prefixo": ["${PAGES}/Cliente/Grupos/", "${CTRL}/CustomerGroupController.php", "${CONTRATOS}/cliente-grupos.contract.json"],
-      "nao_toca": ["${PAGES}/Cliente/Index.tsx"],
+      "arquivo": "03-grupos.md",
+      "depende_threads": [
+        "A2"
+      ],
+      "depende_decisoes": [
+        "D2"
+      ],
+      "prefixo": [
+        "${PAGES}/Cliente/Grupos/",
+        "${CTRL}/CustomerGroupController.php",
+        "${CONTRATOS}/cliente-grupos.contract.json"
+      ],
+      "nao_toca": [
+        "${PAGES}/Cliente/Index.tsx"
+      ],
       "provas": [
-        {"tipo": "arquivo", "path": "${CONTRATOS}/cliente-grupos.contract.json"},
-        {"tipo": "arquivo", "path": "${PAGES}/Cliente/Grupos/Index.charter.md"},
-        {"tipo": "arquivo", "path": "${PAGES}/Cliente/Grupos/Index.casos.md"},
-        {"tipo": "contem", "path": "${CTRL}/CustomerGroupController.php", "padrao": "Inertia::render('Cliente/Grupos/Index'"}
+        {
+          "tipo": "arquivo",
+          "path": "${CONTRATOS}/cliente-grupos.contract.json"
+        },
+        {
+          "tipo": "arquivo",
+          "path": "${PAGES}/Cliente/Grupos/Index.charter.md"
+        },
+        {
+          "tipo": "arquivo",
+          "path": "${PAGES}/Cliente/Grupos/Index.casos.md"
+        },
+        {
+          "tipo": "contem",
+          "path": "${CTRL}/CustomerGroupController.php",
+          "padrao": "Inertia::render('Cliente/Grupos/Index'"
+        }
       ]
     },
     {
@@ -139,15 +245,31 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/cliente/playbook/
       "dono": "CL",
       "vaga": 4,
       "prs": 1,
-      "arquivo": "06-dual-render.md",
-      "depende_decisoes": ["D1"],
-      "depende_threads": ["01"],
-      "prefixo": ["routes/web.php", "config/mwart.php", "${CTRL}/ContactController.php"],
-      "nao_toca": ["${PAGES}/Cliente/"],
-      "provas": [],
+      "arquivo": "04-dual-render.md",
+      "depende_decisoes": [
+        "D1"
+      ],
+      "depende_threads": [
+        "01"
+      ],
+      "prefixo": [
+        "routes/web.php",
+        "config/mwart.php",
+        "${CTRL}/ContactController.php"
+      ],
+      "nao_toca": [
+        "${PAGES}/Cliente/"
+      ],
+      "provas": [
+        {
+          "tipo": "execucao",
+          "nota": "/contacts redireciona pra /cliente preservando ?type=supplier; teste de redirect no recibo"
+        }
+      ],
       "nota_provas": "o nome do arquivo de config não foi lido no turno — fixar no _saida-04.md"
     }
-  ]
+  ],
+  "revisado": "2026-10-01 — recibos e _DECISOES do main c12552f40e2a aplicados"
 }
 ```
 

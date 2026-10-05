@@ -13,14 +13,15 @@ use App\User;
  * próprio ServiceProvider. Sem o módulo, vale App\Contracts\Oficina\Nulo\SemAcoesOs (nenhuma
  * OS encontrada). A seta de dependência fica módulo → núcleo (DependencyDirectionTest).
  *
- * Só as ações que AVANÇAM a OS na linha principal (ACOES_DO_APP). Cancelar, recusar orçamento,
- * acionar garantia e o override do gate ficam só na web. Ação que no banco tenha efeito
- * colateral (side_effect_class / event_class) é recusada: o app não move valor nem estoque.
+ * Só as ações que AVANÇAM a OS na linha principal (ACOES_DO_APP) e as que a ENCERRAM sem
+ * efeito (ACOES_QUE_ENCERRAM: cancelar, recusar orçamento — pedido [W] 2026-10-05). Acionar
+ * garantia e o override do gate ficam só na web. Ação que no banco tenha efeito colateral
+ * (side_effect_class / event_class) é recusada: o app não move valor nem estoque.
  *
  * Tier 0 (ADR 0093): toda consulta recebe o business_id explícito (o escopo do model lê a
  * sessão, que a API não tem).
  *
- * @phpstan-type AcaoOs array{chave: string, rotulo: string, critica: bool, pode: bool, bloqueio: ?string}
+ * @phpstan-type AcaoOs array{chave: string, rotulo: string, tipo: string, critica: bool, pode: bool, bloqueio: ?string}
  */
 interface AcoesOs
 {
@@ -35,9 +36,16 @@ interface AcoesOs
         'entregar',
     ];
 
+    /** Ações que encerram a OS (etapa terminal), oferecidas depois das de avanço. */
+    public const ACOES_QUE_ENCERRAM = [
+        'recusar_orcamento',
+        'cancelar_os',
+    ];
+
     /**
-     * Ações de avanço que saem da etapa atual da OS. null se a OS não existe neste business.
-     * Lista vazia quando a OS está fora do pipeline ou numa etapa sem avanço (terminal).
+     * Ações que saem da etapa atual da OS: primeiro as de avanço (`tipo` = avanco), depois as que
+     * encerram (`tipo` = encerra). null se a OS não existe neste business. Lista vazia quando a
+     * OS está fora do pipeline ou numa etapa terminal.
      *
      * @return list<AcaoOs>|null
      */
@@ -45,10 +53,21 @@ interface AcoesOs
 
     /**
      * Executa a ação. `resultado`: ok · nao_encontrado · sem_permissao · bloqueado (gate) ·
-     * etapa_mudou (a ação não sai da etapa atual) · nao_suportada (fora de ACOES_DO_APP ou com
-     * efeito colateral no banco). `mensagem` explica os não-ok.
+     * etapa_mudou (a ação não sai da etapa atual) · nao_suportada (fora das duas listas ou com
+     * efeito colateral no banco). `mensagem` explica os não-ok. `$motivo` vai para a trilha
+     * (sale_stage_history.payload_snapshot).
      *
      * @return array{resultado: string, mensagem: ?string}
      */
-    public function executar(User $user, int $businessId, int $osId, string $chave): array;
+    public function executar(User $user, int $businessId, int $osId, string $chave, ?string $motivo = null): array;
+
+    /**
+     * Nova OS de mecânica, como o create da web: nasce `aberta`, entra no pipeline da oficina
+     * (Recepção) e liga o veículo se ele estiver livre. Sem item, valor, venda nem WhatsApp.
+     * Veículo e cliente já validados como do business pelo chamador. null se a oficina não
+     * está disponível (módulo ausente).
+     *
+     * @param  array{vehicle_id: int, contact_id: ?int, mileage_at_service: ?int, box_label: ?string, notes: ?string}  $dados
+     */
+    public function criar(User $user, int $businessId, array $dados): ?int;
 }

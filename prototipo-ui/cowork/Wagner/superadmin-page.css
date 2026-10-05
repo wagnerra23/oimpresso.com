@@ -352,3 +352,16 @@
 .sa-dr-uso{ gap:14px; }
 .sa-uso-l{ display:block; }
 .sa-check-wrap{ display:inline-flex; }
+
+/* Usuário 360° (superadmin-usuarios.jsx) */
+.sa-row-click{ cursor:pointer; }
+.sa-row-click:hover td{ background:var(--bg-2); }
+.sa-u-skel{ display:flex; flex-direction:column; gap:8px; padding:16px 24px 0; }
+.sa-u-nota{ font-weight:400; color:var(--text-mute); font-size:11.5px; }
+.sa-u-mod{ border:1px solid var(--border); border-radius:var(--radius-sm); margin-top:8px; }
+.sa-u-mod-h{ display:flex; justify-content:space-between; gap:12px; padding:8px 12px; border-bottom:1px solid var(--border); font-size:12.5px; }
+.sa-u-mod-h span{ color:var(--text-dim); }
+.sa-u-perms{ list-style:none; margin:0; padding:4px 12px 8px; display:flex; flex-direction:column; gap:6px; }
+.sa-u-perms li{ display:flex; justify-content:space-between; align-items:center; gap:12px; font-size:12.5px; color:var(--text); }
+.sa-u-perms li.off{ color:var(--text-mute); }
+.sa-acoes{ display:flex; flex-wrap:wrap; gap:8px; }

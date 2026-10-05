@@ -5,7 +5,8 @@ irmaos: Create.charter.md (lei)
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — a validação fiscal do cadastro não muda no refactor.
 owner: wagner
-last_run: "2026-07-08"
+last_run: "2026-10-05"
+last_run_nota: "2026-10-05 revalidado por leitura na thread Crm/06: o Create.tsx ganhou o modo lead (só com `destino`); o caminho do cliente que estes UC descrevem não mudou. O teste deles (StoreContactRequestTest) está na quarentena da lane cliente-pest desde antes — os Status seguem 🧪."
 ---
 
 # Casos de Uso & Aceite — Cadastro de novo cliente
@@ -13,6 +14,11 @@ last_run: "2026-07-08"
 > Fase 2 (lanes do Cliente). UCs ancorados no `StoreContactRequestTest` (Pest, CT100) — validação fiscal SEFAZ (mod 11) do `StoreContactRequest` wirado em `ContactController@store`. Derivam do SDD [§6.1 CU-CLI-01](../../../../memory/requisitos/Cliente/SDD-cadastro-cliente-v1.0.md).
 >
 > ⚖️ **Onde estes UC rodam, e com que força** (medido 2026-07-27): lane `PHP / Pest (Cliente · MySQL)` — [`cliente-pest.yml`](../../../../.github/workflows/cliente-pest.yml), criada 2026-07-27, **advisory** (não está em [`required-checks-baseline.json`](../../../../governance/required-checks-baseline.json): reprova visível, **não bloqueia merge**). **Antes dela** o teste rodava só no nightly do CT 100 e em nenhuma lane de PR — a redação anterior dizia "lane ativa" e era falsa. Onde as linhas abaixo dizem "passa no CI", leia-se **passava no nightly**.
+>
+> **Modo lead** (thread Crm/06, 2026-10-05): o `LeadController::create()` renderiza esta tela com
+> `destino` + `lead_opcoes`. Os casos desse modo moram em
+> [`Crm/Leads/Index.casos.md`](../../../../Modules/Crm/Resources/js/Pages/Crm/Leads/Index.casos.md)
+> (UC-CRMLD-08..10). Sem `destino` — o cadastro de cliente — os UC abaixo seguem valendo sem mudança.
 >
 > **Status:** ✅ passa (prova no manifesto G-7) · 🧪 teste cita o UC e passa (manifesto não regravado) · ⬜ não verificado · ❌ quebrou.
 
