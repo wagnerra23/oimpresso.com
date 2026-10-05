@@ -269,5 +269,7 @@ class VariationTemplateController extends Controller
 
             return $output;
         }
+
+        return null;
     }
 }
