@@ -64,6 +64,25 @@ aparencia de valido.
 e descer no proximo bundle. Ate la, esta tela permanece sem paridade medida, e isso e estado
 declarado, nao silencio.
 
+## Medição 2026-10-01 e grade nova 2026-10-04
+
+A tela FOI medida em 2026-10-01 (empresa 1, tema escuro, 1440px), com a sonda do `style-fingerprint`
+e a complementar de controles e células, a mesma régua nos dois lados. As seções acima ("nunca foi
+medida") ficam como registro do que valia até ali. O que a medição mostrou na **grade**, e o que o PR
+de 2026-10-04 faz com isso (a grade passa a ser o `shared/DataTable`, `density="grid"`):
+
+| item | protótipo (DataGrid) | produção em 10-01 | depois deste PR |
+|---|---|---|---|
+| estrutura | `<table>`, linhas listradas | div-grid local | `<table>`, linhas listradas |
+| nome do insumo | texto normal, 12,5px | negrito 600 | texto normal |
+| código | mono 12px, cor do texto | mono 10,5px, apagado | mono 12px, cor do texto |
+| custo / estoque / receitas | à direita, mono 12px | à esquerda, 10,5px | à direita, mono 12px |
+| maior peso | `StatusBadge` | pílula local `.mfg-pill` | `StatusBadge` (suave com ponto, regra AP7) |
+| clique | foco em toda linha, abre só com receita | igual | igual |
+
+**Não medido depois do PR:** a confirmação em produção vem depois do deploy. **Fora da grade, segue
+igual:** a busca (protótipo 360×34 com ícone; produção 384×30 sem ícone).
+
 ## Cobertura desta tela hoje
 
 | camada | estado |

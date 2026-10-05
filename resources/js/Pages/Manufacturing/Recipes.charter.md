@@ -106,6 +106,11 @@ mandar no Design System — cada pessoa veria uma cor diferente.
 
 ### O empate de especificidade do cabeçalho ordenado
 
+> 2026-10-04 · **histórico:** as regras abaixo (`.mfg-th.sort*`) saíram do bundle junto com a tabela
+> antiga. Desde o #8604 a grade é o `shared/DataTable` (`density="grid"`), que pinta a coluna ordenada
+> em `--text`, como o `DataGrid` do DS. O registro fica porque explica a ordem de força do bloco §11,
+> que segue valendo para os rótulos de campo e de seção.
+
 `.mfg-th.sort.act` (0,3,0) **empata** com `.mfg-root .mfg-th.sort` (0,3,0) do bloco §11
 (`--text-dim`), e no empate vence quem vem **depois** no arquivo — que é o §11.
 
