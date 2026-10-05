@@ -38,6 +38,8 @@ import {
   type Local,
   type Usuarios,
 } from './_components/SecoesDoDetalhe';
+import { Casca } from './_components/Gaveta';
+import { NovoNegocio, NovoNegocioEsqueleto, type FormNovo } from './_components/NovoNegocio';
 
 interface Filtros {
   q: string;
@@ -116,6 +118,8 @@ interface Props {
   pacotes?: PacoteOpcao[];
   negocios?: Pagina;
   detalhe?: Detalhe | null;
+  novo?: boolean;
+  formNovo?: FormNovo | null;
 }
 
 const ROTA = '/superadmin/business';
@@ -144,7 +148,7 @@ const VENDAS = [
 
 /** Tom do badge por rótulo já traduzido — a tela nunca vê o enum cru. */
 
-function NegociosIndex({ filtros, aberto, pacotes, negocios, detalhe }: Props) {
+function NegociosIndex({ filtros, aberto, pacotes, negocios, detalhe, novo, formNovo }: Props) {
   const [q, setQ] = useState(filtros.q ?? '');
   const buscaRef = useRef<HTMLInputElement>(null);
   const primeiraRodada = useRef(true);
@@ -153,15 +157,20 @@ function NegociosIndex({ filtros, aberto, pacotes, negocios, detalhe }: Props) {
   useEffect(() => {
     const h = (e: KeyboardEvent) => {
       const alvo = (e.target as HTMLElement)?.tagName;
-      if (alvo === 'INPUT' || alvo === 'TEXTAREA' || e.metaKey || e.ctrlKey) return;
+      if (alvo === 'INPUT' || alvo === 'TEXTAREA' || alvo === 'SELECT' || e.metaKey || e.ctrlKey) return;
       if (e.key === '/') {
         e.preventDefault();
         buscaRef.current?.focus();
       }
+      // `n` abre "Novo negócio" — o atalho do protótipo (ViewNegocios).
+      if (e.key === 'n') {
+        e.preventDefault();
+        abrirNovo();
+      }
     };
     document.addEventListener('keydown', h);
     return () => document.removeEventListener('keydown', h);
-  }, []);
+  }, [filtros]);
 
   // Busca com debounce 300ms — mesmo padrão do Usuario360 do módulo.
   useEffect(() => {
@@ -192,6 +201,32 @@ function NegociosIndex({ filtros, aberto, pacotes, negocios, detalhe }: Props) {
       { only: ['detalhe', 'aberto'], preserveState: true, preserveScroll: true, replace: true },
     );
   };
+
+  // "Novo negócio" também é estado da lista (`?novo=1`): as opções do form só vêm quando abre.
+  const abrirNovo = () => {
+    router.get(
+      ROTA,
+      { ...filtrosAtuais(), novo: 1 },
+      { only: ['novo', 'formNovo'], preserveState: true, preserveScroll: true, replace: true },
+    );
+  };
+
+  const fecharNovo = () => {
+    router.get(
+      ROTA,
+      filtrosAtuais(),
+      { only: ['novo', 'formNovo'], preserveState: true, preserveScroll: true, replace: true },
+    );
+  };
+
+  useEffect(() => {
+    if (!novo) return;
+    const h = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && !e.defaultPrevented) fecharNovo();
+    };
+    document.addEventListener('keydown', h);
+    return () => document.removeEventListener('keydown', h);
+  }, [novo]);
 
   // `esc` fecha — o F1 pede (UC-SA-005). Só escuta quando há drawer aberto.
   useEffect(() => {
@@ -233,7 +268,15 @@ function NegociosIndex({ filtros, aberto, pacotes, negocios, detalhe }: Props) {
 
   return (
     <div className="pb-8">
-      <PageHeader title="Negócios" subtitle="Todos os clientes da plataforma" />
+      <PageHeader
+        title="Negócios"
+        subtitle="Todos os clientes da plataforma"
+        actions={
+          <Button size="sm" className="h-8 text-xs" onClick={abrirNovo} data-contract="superadmin.negocios.novo-botao">
+            Novo negócio <kbd className="ml-1 rounded border px-1 text-[10px] opacity-70">n</kbd>
+          </Button>
+        }
+      />
 
       <div className="flex flex-wrap items-center gap-2 px-6 pt-4" data-contract="superadmin.negocios.busca-filtros">
         <Input
@@ -276,6 +319,12 @@ function NegociosIndex({ filtros, aberto, pacotes, negocios, detalhe }: Props) {
       {aberto ? (
         <Deferred data="detalhe" fallback={<DrawerEsqueleto onFechar={fechar} />}>
           <Drawer detalhe={detalhe} onFechar={fechar} />
+        </Deferred>
+      ) : null}
+
+      {novo ? (
+        <Deferred data="formNovo" fallback={<NovoNegocioEsqueleto onFechar={fecharNovo} />}>
+          {formNovo ? <NovoNegocio opcoes={formNovo} onFechar={fecharNovo} /> : <NovoNegocioEsqueleto onFechar={fecharNovo} />}
         </Deferred>
       ) : null}
     </div>
@@ -400,26 +449,6 @@ function Tabela({
         </div>
       </CardContent>
     </Card>
-  );
-}
-
-function Scrim({ onFechar }: { onFechar: () => void }) {
-  return <div className="fixed inset-0 z-40 bg-black/40" onClick={onFechar} aria-hidden="true" />;
-}
-
-function Casca({ children, onFechar, titulo }: { children: ReactNode; onFechar: () => void; titulo: string }) {
-  return (
-    <>
-      <Scrim onFechar={onFechar} />
-      <aside
-        role="dialog"
-        aria-modal="true"
-        aria-label={titulo}
-        className="fixed inset-y-0 right-0 z-50 flex w-[min(460px,92vw)] flex-col border-l bg-background shadow-2xl"
-      >
-        {children}
-      </aside>
-    </>
   );
 }
 

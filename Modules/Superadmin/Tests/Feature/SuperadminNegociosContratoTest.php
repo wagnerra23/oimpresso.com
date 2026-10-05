@@ -308,3 +308,66 @@ it('UC-SANEG-10 · o detalhe traz cadastro, locais e usuarios, sem o superadmin 
         expect($h)->toHaveKeys(['fim_teste', 'pago_via', 'transacao', 'lancada_em', 'lancada_por']);
     }
 });
+
+// ── UC-SANEG-11 · criar é o drawer da lista ─────────────────────────────────
+
+it('UC-SANEG-11 · /superadmin/business/create redireciona para o drawer Novo negocio', function () {
+    $this->actingAs(negSuperadmin())
+        ->get('/superadmin/business/create')
+        ->assertRedirect('/superadmin/business?novo=1');
+});
+
+// ── UC-SANEG-12 · as opções do formulário só vêm com o drawer aberto ───────
+
+it('UC-SANEG-12 · formNovo so e montado com ?novo=1 e traz moedas, fusos, pacotes e gateways', function () {
+    $versao = app(\App\Http\Middleware\HandleInertiaRequests::class)->version(request());
+    $cabecalhos = [
+        'X-Inertia' => 'true',
+        'X-Inertia-Version' => (string) $versao,
+        'X-Inertia-Partial-Data' => 'novo,formNovo',
+        'X-Inertia-Partial-Component' => 'superadmin/Negocios/Index',
+    ];
+
+    $fechado = $this->actingAs(negSuperadmin())->get('/superadmin/business', $cabecalhos)->assertOk();
+    expect($fechado->json('props.novo'))->toBeFalse()
+        ->and($fechado->json('props.formNovo'))->toBeNull();
+
+    $aberto = $this->actingAs(negSuperadmin())->get('/superadmin/business?novo=1', $cabecalhos)->assertOk();
+    $form = $aberto->json('props.formNovo');
+
+    expect($aberto->json('props.novo'))->toBeTrue()
+        ->and($form)->toHaveKeys(['moedas', 'moeda_padrao', 'fusos', 'fuso_padrao', 'pacotes', 'gateways'])
+        ->and($form['moedas'])->not->toBeEmpty()
+        ->and($form['fusos'])->toContain('America/Sao_Paulo');
+});
+
+// ── UC-SANEG-13 · duplicado e assinatura sem "pago via" voltam como erro do campo ─
+
+it('UC-SANEG-13 · store recusa usuario e e-mail ja existentes e pacote sem pago via, sem criar nada', function () {
+    $superadmin = negSuperadmin();
+    $antes = DB::table('business')->count();
+    $pacote = DB::table('packages')->value('id');
+
+    $payload = [
+        'name' => 'Negocio duplicado teste',
+        'currency_id' => DB::table('currencies')->value('id'),
+        'first_name' => 'Dono',
+        'username' => $superadmin->username,
+        'email' => $superadmin->email,
+        'password' => 'senha-forte-123',
+        'city' => 'Cidade', 'state' => 'SC', 'zip_code' => '8800000', 'country' => 'Brasil',
+    ];
+    if ($pacote !== null) {
+        $payload['package_id'] = $pacote;
+    }
+
+    $resposta = $this->actingAs($superadmin)->from('/superadmin/business?novo=1')->post('/superadmin/business', $payload);
+
+    $erros = ['username', 'email'];
+    if ($pacote !== null) {
+        $erros[] = 'paid_via';
+    }
+    $resposta->assertRedirect('/superadmin/business?novo=1')->assertSessionHasErrors($erros);
+
+    expect(DB::table('business')->count())->toBe($antes);
+});

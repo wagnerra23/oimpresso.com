@@ -61,6 +61,7 @@ class BusinessController extends BaseController
 
         return OtelHelper::spanBiz('superadmin.negocios.index', function () use ($request) {
             $aberto = (int) $request->input('negocio', 0);
+            $novo = $request->boolean('novo');
 
             $filtros = [
                 'q' => trim((string) $request->input('q', '')),
@@ -80,8 +81,43 @@ class BusinessController extends BaseController
                 'detalhe' => Inertia::defer(
                     fn () => $aberto > 0 ? $this->detalheDoNegocio($aberto) : null
                 ),
+                // Drawer "Novo negócio" (thread Superadmin 02, PR-2): também é estado da lista
+                // (`?novo=1`). As opções do formulário só são consultadas quando ele abre.
+                'novo' => $novo,
+                'formNovo' => Inertia::defer(fn () => $novo ? $this->opcoesDoFormNovo() : null),
             ]);
         }, ['component' => 'superadmin.negocios.index']);
+    }
+
+    /**
+     * Opções do drawer "Novo negócio" — as mesmas listas que a Blade `business.create` montava
+     * (moedas, fusos, pacotes ativos por `sort_order`, gateways configurados).
+     *
+     * @return array<string, mixed>
+     */
+    private function opcoesDoFormNovo(): array
+    {
+        $moedas = collect($this->businessUtil->allCurrencies())
+            ->map(fn ($nome, $id) => ['id' => (int) $id, 'nome' => trim((string) $nome)])
+            ->values()->all();
+
+        return [
+            'moedas' => $moedas,
+            'moeda_padrao' => DB::table('currencies')->where('code', 'BRL')->value('id'),
+            'fusos' => array_values($this->businessUtil->allTimeZones()),
+            'fuso_padrao' => config('app.timezone'),
+            'pacotes' => Package::active()->orderBy('sort_order')
+                ->get(['id', 'name', 'user_count', 'location_count'])
+                ->map(fn ($p) => [
+                    'id' => (int) $p->id,
+                    'nome' => (string) $p->name,
+                    'usuarios' => (int) $p->user_count,
+                    'locais' => (int) $p->location_count,
+                ])->all(),
+            'gateways' => collect($this->_payment_gateways())
+                ->map(fn ($nome, $id) => ['id' => (string) $id, 'nome' => (string) $nome])
+                ->values()->all(),
+        ];
     }
 
     /** Opção de filtro fora da lista vira `null` — nunca chega cru na query. */
@@ -447,31 +483,8 @@ class BusinessController extends BaseController
             abort(403, 'Unauthorized action.');
         }
 
-        $currencies = $this->businessUtil->allCurrencies();
-        $timezone_list = $this->businessUtil->allTimeZones();
-
-        $accounting_methods = $this->businessUtil->allAccountingMethods();
-
-        $months = [];
-        for ($i = 1; $i <= 12; $i++) {
-            $months[$i] = __('business.months.'.$i);
-        }
-
-        $is_admin = true;
-
-        $packages = Package::active()->orderby('sort_order')->pluck('name', 'id');
-        $gateways = $this->_payment_gateways();
-
-        return view('superadmin::business.create')
-            ->with(compact(
-                'currencies',
-                'timezone_list',
-                'accounting_methods',
-                'months',
-                'is_admin',
-                'packages',
-                'gateways'
-            ));
+        // Thread Superadmin 02, PR-2: criar é o drawer "Novo negócio" da lista (`?novo=1`).
+        return redirect()->action([self::class, 'index'], ['novo' => 1]);
     }
 
     /**

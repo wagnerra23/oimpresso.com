@@ -154,6 +154,44 @@ Status: 🧪
 
 ---
 
+## UC-SANEG-11 · Criar é o drawer da lista · `must`
+
+**Dado** um link antigo para `/superadmin/business/create`
+**Quando** o superadmin o abre
+**Então** cai na lista com o drawer "Novo negócio" aberto (`?novo=1`) — a Blade `business.create`
+saiu na thread Superadmin 02 (PR-2). O botão "Novo negócio" e a tecla `n` abrem o mesmo drawer.
+
+Status: 🧪
+
+---
+
+## UC-SANEG-12 · As opções do formulário só vêm com o drawer aberto · `must`
+
+**Dado** a lista sem `?novo`
+**Então** `formNovo` é nulo — nenhuma consulta de moedas, fusos, pacotes ou gateways.
+**E dado** `?novo=1`
+**Então** `formNovo` traz moedas, fusos (com `America/Sao_Paulo`), pacotes ativos e gateways
+configurados — as mesmas listas da Blade.
+
+Status: 🧪
+
+---
+
+## UC-SANEG-13 · Duplicado e pacote sem "pago via" voltam como erro do campo · `must`
+
+**Dado** um usuário ou e-mail que já tem conta, ou um pacote escolhido sem "pago via"
+**Quando** o formulário é enviado
+**Então** o servidor recusa com erro em cada campo e **nenhum negócio é criado**. A Blade checava
+o duplicado no navegador (`/business/register/check-*`); o drawer checa no `StoreBusinessRequest`.
+
+> Decisão [W] 2026-10-05: layout do protótipo, regras de hoje. O dono entra com usuário e senha
+> definidos no drawer; convite por e-mail, dias de teste e CNPJ são do protótipo e não existem no
+> backend.
+
+Status: 🧪
+
+---
+
 ## Testes mínimos
 
 - DQE: 1 negócio com 2 locais, 1 com 2 assinaturas, 1 sem assinatura, 1 inativo.
