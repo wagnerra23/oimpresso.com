@@ -30,7 +30,6 @@ contains:
   - "Api/UnitController"
   - "Api/UserController"
   - "ClientController"
-  - "ConnectorController"
   - "DataController"
   - "InstallController"
 not_contains:

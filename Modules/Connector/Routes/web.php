@@ -13,7 +13,9 @@ Route::middleware('throttle:30,1', 'web', 'authh', 'auth', 'SetSessionData', 'la
 
 // D8.a Security Wave 10 — throttle:60,1 em UI Client management (OAuth clients).
 Route::middleware('throttle:60,1', 'web', 'SetSessionData', 'auth', 'language', 'timezone', 'AdminSidebarMenu')->prefix('connector')->group(function () {
-    Route::get('/api', [Modules\Connector\Http\Controllers\ConnectorController::class, 'index']);
+    // CONN-O5 (thread 06): o ConnectorController saiu (devolvia `connector::index`, view que
+    // nunca existiu — o GET dava 500). O endereço antigo do menu leva ao painel.
+    Route::redirect('/api', '/connector/client');
     // 'as'=>'connector' prefixa route names → connector.client.{index,create,...}
     // Evita colisão com Route::resource('client', Officeimpresso\ClientController) — ambos OAuth clients management
     // (route:cache falhava com "Another route has already been assigned name [client.index]").

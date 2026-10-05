@@ -14,9 +14,9 @@ module: Connector
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Connector/**` + `resources/js/Pages/Connector/**` + `resources/js/Pages/Api/**` (namespaces Inertia `Connector`, `Api`, declarados em `module-surface.mjs::PAGES_NS` porque diferem do nome do módulo `Connector` — confira com `--namespaces`), separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 126 arquivos em 17 papéis.
+**Total mapeado:** 121 arquivos em 16 papéis.
 
-## Controllers — 30
+## Controllers — 29
 
 - [ApiController.php](../../../Modules/Connector/Http/Controllers/Api/ApiController.php)
 - [AttendanceController.php](../../../Modules/Connector/Http/Controllers/Api/AttendanceController.php)
@@ -45,7 +45,6 @@ module: Connector
 - [UnitController.php](../../../Modules/Connector/Http/Controllers/Api/UnitController.php)
 - [UserController.php](../../../Modules/Connector/Http/Controllers/Api/UserController.php)
 - [ClientController.php](../../../Modules/Connector/Http/Controllers/ClientController.php)
-- [ConnectorController.php](../../../Modules/Connector/Http/Controllers/ConnectorController.php)
 - [DataController.php](../../../Modules/Connector/Http/Controllers/DataController.php)
 - [InstallController.php](../../../Modules/Connector/Http/Controllers/InstallController.php)
 
@@ -103,11 +102,6 @@ module: Connector
 
 - [config.php](../../../Modules/Connector/Config/config.php)
 
-## Views (Blade) — 2
-
-- [index.blade.php](../../../Modules/Connector/Resources/views/clients/index.blade.php)
-- [master.blade.php](../../../Modules/Connector/Resources/views/layouts/master.blade.php)
-
 ## Telas (Inertia/React) — 1
 
 - [Index.tsx](../../../Modules/Connector/Resources/js/Pages/Api/Index.tsx)
@@ -130,7 +124,7 @@ module: Connector
 - 13 em [Modules/Connector/Tests/Feature/](../../../Modules/Connector/Tests/Feature)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
-## Demais arquivos (manifestos, docs, assets e misc) — 49
+## Demais arquivos (manifestos, docs, assets e misc) — 47
 
 - [.gitkeep](../../../Modules/Connector/Config/.gitkeep)
 - [.gitkeep](../../../Modules/Connector/Console/.gitkeep)
@@ -144,8 +138,6 @@ module: Connector
 - [NewPassword.php](../../../Modules/Connector/Notifications/NewPassword.php)
 - [.gitkeep](../../../Modules/Connector/Providers/.gitkeep)
 - [.gitkeep](../../../Modules/Connector/Resources/assets/.gitkeep)
-- [app.js](../../../Modules/Connector/Resources/assets/js/app.js)
-- [app.scss](../../../Modules/Connector/Resources/assets/sass/app.scss)
 - [quemUsaTexto.ts](../../../Modules/Connector/Resources/js/Pages/Api/_components/quemUsaTexto.ts)
 - [.gitkeep](../../../Modules/Connector/Resources/lang/.gitkeep)
 - [lang.php](../../../Modules/Connector/Resources/lang/ar/lang.php)

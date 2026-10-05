@@ -1851,54 +1851,6 @@ parameters:
 			path: Modules/Connector/Http/Controllers/ClientController.php
 
 		-
-			message: '#^Method Modules\\Connector\\Http\\Controllers\\ConnectorController\:\:create\(\) should return Illuminate\\Http\\Response but returns Illuminate\\View\\View\.$#'
-			identifier: return.type
-			count: 1
-			path: Modules/Connector/Http/Controllers/ConnectorController.php
-
-		-
-			message: '#^Method Modules\\Connector\\Http\\Controllers\\ConnectorController\:\:destroy\(\) should return Illuminate\\Http\\Response but return statement is missing\.$#'
-			identifier: return.missing
-			count: 1
-			path: Modules/Connector/Http/Controllers/ConnectorController.php
-
-		-
-			message: '#^Method Modules\\Connector\\Http\\Controllers\\ConnectorController\:\:edit\(\) should return Illuminate\\Http\\Response but returns Illuminate\\View\\View\.$#'
-			identifier: return.type
-			count: 1
-			path: Modules/Connector/Http/Controllers/ConnectorController.php
-
-		-
-			message: '#^Method Modules\\Connector\\Http\\Controllers\\ConnectorController\:\:index\(\) should return Illuminate\\Http\\Response but returns Illuminate\\View\\View\.$#'
-			identifier: return.type
-			count: 1
-			path: Modules/Connector/Http/Controllers/ConnectorController.php
-
-		-
-			message: '#^Method Modules\\Connector\\Http\\Controllers\\ConnectorController\:\:show\(\) should return Illuminate\\Http\\Response but returns Illuminate\\View\\View\.$#'
-			identifier: return.type
-			count: 1
-			path: Modules/Connector/Http/Controllers/ConnectorController.php
-
-		-
-			message: '#^Method Modules\\Connector\\Http\\Controllers\\ConnectorController\:\:store\(\) should return Illuminate\\Http\\Response but return statement is missing\.$#'
-			identifier: return.missing
-			count: 1
-			path: Modules/Connector/Http/Controllers/ConnectorController.php
-
-		-
-			message: '#^Method Modules\\Connector\\Http\\Controllers\\ConnectorController\:\:update\(\) should return Illuminate\\Http\\Response but return statement is missing\.$#'
-			identifier: return.missing
-			count: 1
-			path: Modules/Connector/Http/Controllers/ConnectorController.php
-
-		-
-			message: '#^Parameter \#1 \$view of function view expects view\-string\|null, string given\.$#'
-			identifier: argument.type
-			count: 4
-			path: Modules/Connector/Http/Controllers/ConnectorController.php
-
-		-
 			message: '#^Method Modules\\Connector\\Http\\Controllers\\DataController\:\:modifyAdminMenu\(\) should return null but return statement is missing\.$#'
 			identifier: return.missing
 			count: 2

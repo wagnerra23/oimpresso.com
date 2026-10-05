@@ -26,13 +26,13 @@
   ],
   "stats": {
     "modules": 35,
-    "nodes": 742,
-    "edges": 1030,
+    "nodes": 741,
+    "edges": 1029,
     "by_node_type": {
       "module": 39,
       "table": 102,
       "adr": 135,
-      "component": 389,
+      "component": 388,
       "api": 77
     },
     "by_edge_type": {
@@ -42,7 +42,7 @@
       "providesApi": 81,
       "charteredByAdr": 30,
       "governedByAdr": 78,
-      "hasComponent": 389,
+      "hasComponent": 388,
       "dependsOn": 117,
       "delegatesTo": 109,
       "migratesTo": 1,
@@ -2072,13 +2072,6 @@
       "type": "component",
       "module": "Connector",
       "name": "ClientController",
-      "desc": ""
-    },
-    {
-      "id": "component:Connector/ConnectorController",
-      "type": "component",
-      "module": "Connector",
-      "name": "ConnectorController",
       "desc": ""
     },
     {
@@ -7530,12 +7523,6 @@
     {
       "from": "module:Connector",
       "to": "component:Connector/ClientController",
-      "type": "hasComponent",
-      "source": "contains"
-    },
-    {
-      "from": "module:Connector",
-      "to": "component:Connector/ConnectorController",
       "type": "hasComponent",
       "source": "contains"
     },
