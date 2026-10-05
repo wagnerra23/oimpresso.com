@@ -413,7 +413,48 @@ class OficinaController extends Controller
 
         return response()->json([
             'tipos' => collect(TiposVeiculo::ROTULOS)->map(fn ($rotulo, $chave) => ['chave' => $chave, 'rotulo' => $rotulo])->values(),
+            // Botão "Buscar pela placa" só aparece quando há fornecedor (em produção o stub não responde).
+            'consulta_placa' => app(AcoesOs::class)->consultaPlacaDisponivel(),
         ]);
+    }
+
+    /**
+     * GET /api/app/veiculos/consulta-placa/{placa} — preencher o novo veículo pela placa (pedido [W]
+     * 2026-10-05). Mesma consulta da web (só dados técnicos, sem proprietário, cache 24h). Placa já em
+     * veículo ativo da empresa → devolve o id dele SEM consultar (não gasta consulta paga).
+     */
+    public function consultaPlaca(Request $request, string $placa): JsonResponse
+    {
+        $user = $request->user();
+        if (! $this->podeVerVeiculos($user) || ! $this->podeCriarVeiculo($user)) {
+            return $this->semPermissao();
+        }
+
+        $norm = self::placa($placa);
+        if (preg_match('/^[A-Z]{3}[0-9][A-Z0-9][0-9]{2}$/', $norm) !== 1) {
+            return response()->json(['erro' => 'validacao', 'campos' => [
+                'placa' => 'Placa inválida — use o formato ABC1234 (antiga) ou ABC1D23 (Mercosul).',
+            ]], 422);
+        }
+
+        $bizId = (int) $user->business_id;
+        $existente = $this->veiculoAtivoComPlaca($bizId, $norm);
+        if ($existente !== null) {
+            return response()->json([
+                'encontrado' => false,
+                'mensagem' => 'Esta placa já está em outro veículo ativo.',
+                'veiculo_existente_id' => $existente,
+            ]);
+        }
+
+        $r = app(AcoesOs::class)->consultarPlaca($bizId, $norm);
+
+        return match ($r['resultado']) {
+            'ok' => response()->json(['encontrado' => true, 'dados' => $r['dados'] ?? null]),
+            'nao_encontrado' => response()->json(['encontrado' => false, 'mensagem' => 'Nenhum dado encontrado para esta placa.']),
+            'indisponivel' => response()->json(['erro' => 'indisponivel', 'mensagem' => 'Consulta de placa indisponível no momento. Preencha os dados manualmente.'], 502),
+            default => response()->json(['erro' => 'sem_configuracao', 'mensagem' => 'Consulta de placa não configurada.'], 503),
+        };
     }
 
     /**
