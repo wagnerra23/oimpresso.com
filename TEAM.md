@@ -328,9 +328,9 @@ de módulo neste repo.** A atribuição dos 29 é ato do [W], não inferência d
 > | Envio às lojas (Play Console / App Store) | — | ❌ é do [W] |
 > | Qualquer coisa que mexa em valor, estoque, pagamento ou PII | — | ❌ zona vermelha (§1 e `proibicoes.md`) |
 >
-> **Acesso:** em 2026-10-05 o `oimpresso-app` tinha só `wagnerra23` como colaborador. No mesmo dia,
-> a pedido do [W], o `LuizWr2` foi convidado com permissão `write` (convite 336234019). O acesso só
-> vale depois que ele aceitar o convite no GitHub.
+> **Acesso (medido em 2026-10-05):** o `LuizWr2` é colaborador `write` do `oimpresso-app` — convidado
+> a pedido do [W] e já aceito. ⚠️ O `main` do `oimpresso-app` **não tem proteção** (`protected: false`,
+> nenhum ruleset), então lá a regra "[L] não mergeia sozinho" é combinação, não trava do GitHub.
 >
 > **O que este registro NÃO faz, de propósito** (mesmas razões da §3.3.1): não arma o
 > `CODEOWNERS` e não abre linha na §3 — a §3 exigiria definir os 5 níveis, e o [W] decidiu só o [L].
