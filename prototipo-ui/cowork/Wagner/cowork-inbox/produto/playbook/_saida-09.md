@@ -32,7 +32,7 @@ Nenhuma chamada precisava de conserto, então **não toquei código de produçã
 O teste entra na lane sozinho: o run-set é `find tests/Feature/{Estoque,Produto,Stock} -name '*Test.php'`.
 
 ## Provas
-- Execução: **CI do PR** (lane `estoque-pest`). Não rodei no CT 100: o checkout do container não tem este branch e a limpeza do arquivo copiado foi barrada pelo hook `block-destructive`; não contornei.
+- Execução: **CI do PR [#8644](https://github.com/wagnerra23/oimpresso.com/pull/8644)**, lane `PHP / Pest (Estoque · MySQL)`, run `37306631908` (commit `bc2a9eb3ea`). Resultado: `SubSkuEscopoNegocioContratoTest` com **tests 2 · passed 2 · skipped 0 · assertions 12**, e os dois casos `T09` aparecem com ✓ no log. Não rodei no CT 100: o checkout do container não tem este branch e a limpeza do arquivo copiado foi barrada pelo hook `block-destructive`; não contornei.
 - Mutação: **não feita** (no CT 100 o banco persiste e o teste escreve — §5 2026-09-18).
 
 ## Placar
