@@ -44,6 +44,10 @@
     "cowork-inbox/superadmin/playbook/_saida-A1.md": {
       "sha256": "20e56476ef97286c128898bcddcf521d6846101581b366ffcaca56960b849dcf",
       "em": "2026-10-05T14:02:39.453Z"
+    },
+    "cowork-inbox/produto/playbook/_saida-03.md": {
+      "sha256": "f9a6e2906b516cf49bf35754bd8443b0f63f8775843190afcd05fdd29c251e48",
+      "em": "2026-10-05T13:37:29.421Z"
     }
   }
 }

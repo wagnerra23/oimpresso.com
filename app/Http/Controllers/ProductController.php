@@ -1571,7 +1571,7 @@ class ProductController extends Controller
      * Get product form parts.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
+     * @return array<string, mixed> HTML da linha de variação + valores do modelo
      */
     public function getVariationTemplate(Request $request)
     {

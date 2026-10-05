@@ -34,12 +34,18 @@ class SellingPriceGroupController extends Controller
     /**
      * Display a listing of the resource.
      *
-     * @return \Illuminate\Http\Response
+     * @return mixed Inertia (tela Produto/Cadastros) · JSON do DataTables · view clássica
      */
     public function index()
     {
         if (! auth()->user()->can('product.create')) {
             abort(403, 'Unauthorized action.');
+        }
+
+        // Playbook Produto · thread 03: a visita abre Produto/Cadastros nesta aba. Inertia manda
+        // `X-Requested-With` junto do `X-Inertia` (§5 2026-09-08); `?classico=1` mantém a Blade e os modais.
+        if (! request()->boolean('classico') && (! request()->ajax() || request()->header('X-Inertia'))) {
+            return Inertia::render('Produto/Cadastros/Index', app(UnitController::class)->propsCadastros('grupos'));
         }
 
         if (request()->ajax()) {
