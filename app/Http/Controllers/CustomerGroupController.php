@@ -6,7 +6,8 @@ use App\CustomerGroup;
 use App\SellingPriceGroup;
 use App\Utils\Util;
 use Illuminate\Http\Request;
-use Yajra\DataTables\Facades\DataTables;
+use Illuminate\Support\Facades\DB;
+use Inertia\Inertia;
 
 class CustomerGroupController extends Controller
 {
@@ -24,7 +25,7 @@ class CustomerGroupController extends Controller
     /**
      * Display a listing of the resource.
      *
-     * @return \Illuminate\Http\Response
+     * @return \Inertia\Response
      */
     public function index()
     {
@@ -32,34 +33,24 @@ class CustomerGroupController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
-        if (request()->ajax()) {
-            $business_id = request()->session()->get('user.business_id');
+        // Thread Cliente/03 (D2 = tela própria): a lista é Inertia. A DataTable da Blade
+        // (`request()->ajax()`) saiu daqui: o Inertia manda X-Requested-With, então o ramo
+        // ajax engoliria a visita e devolveria o JSON da DataTable no lugar da página.
+        $business_id = request()->session()->get('user.business_id');
 
-            $customer_group = CustomerGroup::where('customer_groups.business_id', $business_id)
-                                    ->leftjoin('selling_price_groups as spg', 'spg.id', '=', 'customer_groups.selling_price_group_id')
-                                ->select(['customer_groups.name', 'customer_groups.amount', 'spg.name as selling_price_group', 'customer_groups.id', 'price_calculation_type']);
+        $tabelas = collect(SellingPriceGroup::forDropdown($business_id, false))
+            ->map(fn ($nome, $id) => ['id' => (int) $id, 'nome' => (string) $nome])->values();
 
-            return Datatables::of($customer_group)
-                    ->addColumn(
-                        'action',
-                        '@can("customer.update")
-                            <button data-href="{{action(\'App\Http\Controllers\CustomerGroupController@edit\', [$id])}}" class="tw-dw-btn tw-dw-btn-xs tw-dw-btn-outline tw-dw-btn-primary tw-m-0.5 edit_customer_group_button"><i class="glyphicon glyphicon-edit"></i> @lang("messages.edit")</button>
-                        &nbsp;
-                        @endcan
-
-                        @can("customer.delete")
-                            <button data-href="{{action(\'App\Http\Controllers\CustomerGroupController@destroy\', [$id])}}" class="tw-dw-btn tw-dw-btn-outline tw-dw-btn-xs tw-dw-btn-error tw-m-0.5 delete_customer_group_button"><i class="glyphicon glyphicon-trash"></i> @lang("messages.delete")</button>
-                        @endcan'
-                    )
-                    ->editColumn('selling_price_group', '@if($price_calculation_type=="selling_price_group") {{$selling_price_group}} @else -- @endif ')
-                    ->editColumn('amount', '@if($price_calculation_type=="percentage") {{$amount}} @else -- @endif ')
-                    ->removeColumn('id')
-                    ->removeColumn('price_calculation_type')
-                    ->rawColumns([3])
-                    ->make(false);
-        }
-
-        return view('customer_group.index');
+        return Inertia::render('Cliente/Grupos/Index', [
+            // defer: conta cadastros por grupo (RUNBOOK-inertia-defer-pattern).
+            'grupos' => Inertia::defer(fn () => $this->gruposDoNegocio((int) $business_id)),
+            'tabelas' => $tabelas,
+            'pode' => [
+                'criar' => auth()->user()->can('customer.create'),
+                'editar' => auth()->user()->can('customer.update'),
+                'excluir' => auth()->user()->can('customer.delete'),
+            ],
+        ]);
     }
 
     /**
@@ -93,8 +84,11 @@ class CustomerGroupController extends Controller
 
         try {
             $input = $request->only(['name', 'amount', 'price_calculation_type', 'selling_price_group_id']);
-            $input['business_id'] = $request->session()->get('user.business_id');
+            $business_id = $request->session()->get('user.business_id');
+            $input['business_id'] = $business_id;
             $input['created_by'] = $request->session()->get('user.id');
+            $this->exigirTabelaDoNegocio($input, $business_id);
+
             $input['amount'] = ! empty($input['amount']) ? $this->commonUtil->num_uf($input['amount']) : 0;
 
             $customer_group = CustomerGroup::create($input);
@@ -154,6 +148,7 @@ class CustomerGroupController extends Controller
             try {
                 $input = $request->only(['name', 'amount', 'price_calculation_type', 'selling_price_group_id']);
                 $business_id = $request->session()->get('user.business_id');
+                $this->exigirTabelaDoNegocio($input, $business_id);
 
                 $input['amount'] = ! empty($input['amount']) ? $this->commonUtil->num_uf($input['amount']) : 0;
 
@@ -207,6 +202,57 @@ class CustomerGroupController extends Controller
             }
 
             return $output;
+        }
+    }
+
+    /** Lista da tela: grupos do negócio, ajuste, tabela e quantos cadastros (não apagados) usam cada um. */
+    private function gruposDoNegocio(int $business_id): array
+    {
+        $cadastros = DB::table('contacts')
+            ->where('business_id', $business_id)
+            ->whereNotNull('customer_group_id')
+            ->whereNull('deleted_at')
+            ->groupBy('customer_group_id')
+            ->pluck(DB::raw('COUNT(*)'), 'customer_group_id');
+
+        return DB::table('customer_groups')
+            ->where('customer_groups.business_id', $business_id)
+            ->leftJoin('selling_price_groups as spg', function ($j) use ($business_id) {
+                $j->on('spg.id', '=', 'customer_groups.selling_price_group_id')
+                    ->where('spg.business_id', $business_id);
+            })
+            ->orderBy('customer_groups.name')
+            ->get(['customer_groups.id', 'customer_groups.name', 'customer_groups.amount',
+                'customer_groups.price_calculation_type', 'customer_groups.selling_price_group_id',
+                'spg.name as tabela_nome'])
+            ->map(fn (object $g) => [
+                'id' => (int) $g->id,
+                'nome' => (string) $g->name,
+                'calculo' => $g->price_calculation_type === 'selling_price_group' ? 'selling_price_group' : 'percentage',
+                'percentual' => (float) $g->amount,
+                'tabela_id' => $g->selling_price_group_id !== null ? (int) $g->selling_price_group_id : null,
+                'tabela_nome' => $g->tabela_nome,
+                'cadastros' => (int) ($cadastros[$g->id] ?? 0),
+            ])->values()->all();
+    }
+
+    /**
+     * Tier 0 (ADR 0093): a tabela de preço do grupo tem de ser do negócio da sessão. Antes da
+     * thread Cliente/03, store/update gravavam qualquer `selling_price_group_id` recebido.
+     */
+    private function exigirTabelaDoNegocio(array $input, $business_id): void
+    {
+        if (($input['price_calculation_type'] ?? null) !== 'selling_price_group' || empty($input['selling_price_group_id'])) {
+            return;
+        }
+
+        $daEmpresa = SellingPriceGroup::where('business_id', $business_id)
+            ->where('id', $input['selling_price_group_id'])
+            ->exists();
+
+        // Cai no catch de store/update, que já devolve {success:false} sem gravar.
+        if (! $daEmpresa) {
+            throw new \RuntimeException('Tabela de preço de outro negócio recusada no grupo de cliente.');
         }
     }
 }
