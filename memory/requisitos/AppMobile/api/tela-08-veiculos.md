@@ -17,3 +17,21 @@
 - `km` = maior km conhecido (cadastro do veículo ou km de entrada das OS dele); `null` sem registro.
 - Busca `q`: placa (principal e do reboque), rótulo do tipo e nome do dono.
 - Sem padrão de placa: o app deduz pelo formato.
+
+## Histórico do veículo — só leitura ✅
+
+`GET /api/app/veiculos/{id}/os` →
+
+```json
+{ "itens": [ { "os_id": 998, "numero": "OS-00998", "data": "2026-06-12",
+    "etapa_rotulo": "Entregue", "cliente": "Transportes Vale Norte", "valor": 750.0 } ] }
+```
+
+- Todas as OS do veículo, inclusive as encerradas e as fora do fluxo da oficina, da entrada mais nova
+  para a mais antiga (`entered_at`; sem ela, a data de criação). Sem paginação; no máximo as 200 mais recentes.
+- `etapa_rotulo` = nome da etapa no processo da oficina, terminais incluídas ("Entregue"); OS de
+  mecânica ainda sem pipeline = etapa inicial (como no quadro web); OS fora do processo → `null`.
+- `valor` = soma dos itens da OS, o mesmo número da 07; `null` sem item. `cliente` = cliente da OS
+  (pode não ser o dono do veículo); `null` se a OS não tem cliente. `data` = `AAAA-MM-DD`.
+- Mesma permissão da lista (`oficinaauto.vehicle.view` + pacote da Oficina) → `403 sem_permissao`.
+  Veículo de outra empresa ou inexistente → `404 nao_encontrado`. OS de outra empresa nunca entra.
