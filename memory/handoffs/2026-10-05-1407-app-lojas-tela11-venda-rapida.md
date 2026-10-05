@@ -7,7 +7,6 @@ decided_by: [W]
 next_steps:
   - "[W]: cancelar pela web a venda de conferência na empresa demo 235, se a demo precisar ficar limpa para os revisores das lojas"
   - "[W]: cobrança do GitHub Actions — o CI do oimpresso-app não inicia; os merges da tela 11 foram com verificação local"
-  - "Confirmar com login que o GET /api/app/venda/produtos já devolve bloqueia_preco_zero em produção (o deploy do #8655 não foi medido daqui: a rota pede token)"
 ---
 
 # App das lojas — tela 11 Venda rápida concluída
@@ -32,7 +31,7 @@ app-lojas-tela20-screenshots-textos-d16`.
     da busca, e ausente vale false. Mergeado no commit `428aca6`, com ok [W] dado à fila de merges.
 - **ERP (feito pelas sessões ERP/coordenação, não por esta):** #8589 busca de produtos, #8597 criar venda
   (TransactionUtil, venda direta final fora da FSM, idempotência em `app_idempotencia`), #8655 ajuste
-  `pos_settings.bloquear_venda_preco_zero_app`.
+  `pos_settings.bloquear_venda_preco_zero_app` (deploy em produção às 14:23Z, confirmado pela coordenação; o campo vem `false` até alguém ligar a opção).
 - **Conferência em produção:** [W] vendeu pelo app (`gestor.demo`, empresa 235, build de debug do main) 2
   Camisetas + 3 Canecas. A prévia que calculei antes e o total gravado pelo ERP foram iguais, e o estoque
   foi de 5 para 3 e de 6 para 3, como previsto. Detalhe com valores no comentário do app#39.
