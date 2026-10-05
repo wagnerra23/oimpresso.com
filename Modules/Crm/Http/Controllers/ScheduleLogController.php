@@ -66,17 +66,20 @@ class ScheduleLogController extends Controller
                 if ($request->boolean('lista')) {
                     $quando = fn ($d) => empty($d) ? null : \Carbon::parse($d)->format('d/m/Y H:i');
 
-                    return ['success' => true, 'registros' => $schedule_logs->map(fn ($l) => [
-                        'id' => (int) $l->id,
-                        'assunto' => (string) $l->subject,
-                        'tipo' => (string) $l->log_type,
-                        'inicio' => $quando($l->start_datetime),
-                        'fim' => $quando($l->end_datetime),
-                        'descricao' => strip_tags((string) $l->description),
-                        'por' => $l->createdBy ? trim($l->createdBy->user_full_name) : null,
-                    ])->values()];
-                }
+                    $output = ['success' => true, 'registros' => $schedule_logs->map(function ($l) use ($quando) {
+                        $autor = $l->getRelation('createdBy');
 
+                        return [
+                            'id' => (int) $l->id,
+                            'assunto' => (string) $l->subject,
+                            'tipo' => (string) $l->log_type,
+                            'inicio' => $quando($l->start_datetime),
+                            'fim' => $quando($l->end_datetime),
+                            'descricao' => strip_tags((string) $l->description),
+                            'por' => $autor ? trim($autor->user_full_name) : null,
+                        ];
+                    })->values()];
+                } else {
                 //if call log is enabled
                 $call_logs = [];
                 if (config('constants.enable_crm_call_log')) {
@@ -101,6 +104,7 @@ class ScheduleLogController extends Controller
                     'msg' => __('lang_v1.success'),
                     'log' => $logs_html,
                 ];
+                }
             } catch (Exception $e) {
                 // D7 LGPD: redaciona PII em mensagens de erro antes de logar (call logs gravam telefone/contato).
             \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.app(PiiRedactor::class)->redact($e->getMessage()));
