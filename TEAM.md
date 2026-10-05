@@ -328,8 +328,10 @@ de módulo neste repo.** A atribuição dos 29 é ato do [W], não inferência d
 > | Envio às lojas (Play Console / App Store) | — | ❌ é do [W] |
 > | Qualquer coisa que mexa em valor, estoque, pagamento ou PII | — | ❌ zona vermelha (§1 e `proibicoes.md`) |
 >
-> **Acesso (medido em 2026-10-05):** o `LuizWr2` é colaborador `write` do `oimpresso-app` — convidado
-> a pedido do [W] e já aceito. O `main` do `oimpresso-app` estava **sem proteção**; no mesmo dia,
+> **Acesso (medido em 2026-10-05):** a pedido do [W], foram convidados ao `oimpresso-app` com `write`
+> o `LuizWr2` ([L]), o `felipewr2-cell` ([F]) e o `SupportWR` ([M], perfil "MaiaraWR"). Os três
+> convites estavam **pendentes** na medição — cada um só ganha acesso ao aceitar.
+> O `main` do `oimpresso-app` estava **sem proteção**; no mesmo dia,
 > a pedido do [W], passou a exigir PR com 1 aprovação (review velha cai a cada push novo), sem
 > force-push e sem apagar a branch. `enforce_admins: false` — o [W], admin, segue mergeando sozinho;
 > o [L] (`write`) não consegue mais.
