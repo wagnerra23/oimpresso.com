@@ -1,7 +1,8 @@
 ---
 date: "2026-10-05"
-topic: "Superadmin Minha assinatura: UC-SAMA-03/04/05 verdes e lápide do skip"
-owner: "W"
+time: "16:01 BRT"
+slug: superadmin-minha-assinatura-uc-sama
+tldr: "Superadmin Minha assinatura: #8705 semeia system.app_currency_id no CI e conserta o harness do UC-SAMA-04 (main verde, run 37351365699); #8712 lápide §5 do skip que escondia o caso (LC-13). Errata: UC-SAMA-03/05 foram consertados pelo #8700."
 prs: [8705, 8712]
 ---
 
