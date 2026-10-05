@@ -16,12 +16,12 @@ authority: generated
 
 | Elo | Quantidade |
 |---|---:|
-| US no SPEC | 59 |
+| US no SPEC | 60 |
 | CU no SDD | 6 |
 | Telas (.tsx) | 11 |
 | Telas com `casos.md` | 8 |
-| UC declarados | 97 |
-| UC com teste que os cita | 96 |
+| UC declarados | 102 |
+| UC com teste que os cita | 101 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -103,6 +103,7 @@ authority: generated
 | US-SELL-063 | `desconhecido` | Caixa do dia por forma de pagamento e por origem (`/vendas/caixa`) |
 | US-SELL-064 | `desconhecido` | Listar vendas de POS com rodapé de totais (`/pos`) |
 | US-SELL-065 | `desconhecido` | Cadastro de descontos com ver × editar (`/discount`) |
+| US-SELL-066 | `desconhecido` | Devolução de venda em React — lista e registro (`/sell-return`) |
 
 ## UC por status
 
@@ -130,6 +131,7 @@ authority: generated
 | UC-S04 | Create | 🧪 aguarda veredito da lane |
 | UC-S05 | Create | 🧪 aguarda veredito da lane |
 | UC-S06 | Create | 🧪 aguarda veredito da lane |
+| UC-S07 | Create | 🧪 aguarda veredito da lane |
 | UC-S10 | Index | 🧪 aguarda veredito da lane |
 | UC-S11 | Index | 🧪 aguarda veredito da lane |
 | UC-S12 | Index | 🧪 aguarda veredito da lane |
@@ -143,6 +145,9 @@ authority: generated
 | UC-SCAIXA-07 | Caixa/Index | 🧪 aguarda veredito da lane |
 | UC-SCAIXA-08 | Caixa/Index | 🧪 aguarda veredito da lane |
 | UC-SCAIXA-09 | Caixa/Index | 🧪 aguarda veredito da lane |
+| UC-SCAIXA-10 | Caixa/Index | 🧪 aguarda veredito da lane |
+| UC-SCAIXA-11 | Caixa/Index | 🧪 aguarda veredito da lane |
+| UC-SCAIXA-12 | Caixa/Index | 🧪 aguarda veredito da lane |
 | UC-SEDIT-01 | Edit | 🧪 aguarda veredito da lane |
 | UC-SEDIT-02 | Edit | 🧪 aguarda veredito da lane |
 | UC-SEDIT-03 | Edit | 🧪 aguarda veredito da lane |
@@ -154,6 +159,7 @@ authority: generated
 | UC-SEDIT-09 | Edit | 🧪 aguarda veredito da lane |
 | UC-SEDIT-10 | Edit | 🧪 aguarda veredito da lane |
 | UC-SEDIT-11 | Edit | 🧪 aguarda veredito da lane |
+| UC-SEDIT-12 | Edit | 🧪 aguarda veredito da lane |
 | UC-SIDX-01 | Index | 🧪 aguarda veredito da lane |
 | UC-SIDX-02 | Index | 🧪 aguarda veredito da lane |
 | UC-SIDX-03 | Index | 🧪 aguarda veredito da lane |
