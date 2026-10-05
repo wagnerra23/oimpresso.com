@@ -139,3 +139,16 @@ item `connector`, label **"Conector (API)"**, com 3 ghosts (`conn-docs`, `conn-s
 - [ADR 0180](../../decisions/0180-sidebar-v3-5-grupos-ghosts-header.md) — sidebar v3 (item + ghosts)
 - [ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md) — multi-tenant Tier 0
 - [CHARTER-rest-api-external.md](CHARTER-rest-api-external.md) — contrato do módulo
+
+## 12. Registro da F5 — 2026-10-05
+
+- A tela saiu pela trilha do playbook Connector (threads 01–06), não pela flag desta F1: desde a
+  thread 04 (2026-10-01, #8354) `ClientController::index` responde **só** Inertia `Api/Index`,
+  sem fallback. A Blade `clients/index.blade.php` ficou sem nenhuma rota que a renderizasse a
+  partir daí.
+- [W] aprovou o screenshot em produção ([W2]) em 2026-10-05, depois do ajuste de espaçamento
+  (#8677). Na thread 06 saíram a Blade, `layouts/master.blade.php`, o `app.scss` vazio, o
+  `ConnectorController` (4 views fantasma) e a rota `GET /connector/api`.
+- O item do DoD "Blade removido só após 30d sem incidente" pressupunha a Blade como fallback atrás
+  de flag. Esse fallback nunca existiu nesta trilha, então a espera de 30d não protegia nada; a
+  remoção foi decidida pelo [W] no [W2].
