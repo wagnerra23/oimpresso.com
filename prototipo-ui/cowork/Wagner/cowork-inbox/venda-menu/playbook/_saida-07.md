@@ -64,6 +64,20 @@ Dupla prova no `UC-SCAIXA-10`: cada número é comparado com o retorno de `getRe
 - **Diferença** = contado − esperado, só exibida (não é gravada). Calculada em centavos inteiros no front.
 - **Gravação** pelo `POST /cash-register/close-register` que já existe, com `closing_amount` enviado como `175,00` (vírgula decimal), forma que o `num_uf` lê sem ambiguidade.
 
+## Depois do PR 2 (conferência física)
+
+- **Conferência física** deixa de ser placeholder: esperado em dinheiro, campo "contado", diferença ("bateu certinho" · "sobra R$ x" · "falta R$ x"), comprovantes de cartão e cheques pré-preenchidos como no modal, observação obrigatória quando há diferença, e "Fechar caixa com esta contagem" (só com `close_cash_register`) pelo `POST /cash-register/close-register` existente.
+- Antes → depois no caso acima, contado 170,00:
+
+| campo | Blade (modal de fechamento) | tela antes | tela depois | conta à mão |
+|---|---|---|---|---|
+| esperado em dinheiro | 175,00 (pré-preenche "Total em dinheiro") | placeholder | 175,00 | 100 + 105 − 10 − 20 = 175 |
+| diferença (contado 170,00) | não mostra | placeholder | falta R$ 5,00 | 17000 − 17500 = −500 centavos |
+| `closing_amount` gravado | 170,00 → 170.0000 | — | 170,00 → 170.0000 (mesmo POST) | 170 |
+| turno do mesmo usuário no 99 | intocado | — | intocado | — |
+
+Dupla prova: `UC-SCAIXA-13` compara o esperado com a expressão do modal sobre `getRegisterDetails` e com 175,00; `UC-SCAIXA-14` posta o payload que a tela envia e lê o registro gravado.
+
 ## Provas locais (antes do CI)
 
 - `php -l` no controller e no teste: sem erro.

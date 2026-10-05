@@ -915,6 +915,14 @@ class SellController extends Controller
             'totalVendas' => $m2($d->total_sale),
             'totalDespesas' => $m2($d->total_expense),
             'totalDevolucoes' => $m2($d->total_refund),
+            // Conferência física (thread 07, PR 2). Esperado em dinheiro = a MESMA expressão com
+            // que close_register_modal.blade.php preenche "Total em dinheiro" (o campo gravado):
+            // cash_in_hand + total_cash − total_cash_refund − total_cash_expense. Nada novo.
+            'esperadoDinheiro' => $m2((float) $d->cash_in_hand + (float) $d->total_cash
+                - (float) $d->total_cash_refund - (float) $d->total_cash_expense),
+            'cartoes' => (int) $d->total_card_slips,
+            'cheques' => (int) $d->total_cheques,
+            'userId' => (int) $reg->user_id,
             'porForma' => $porForma,
             'movimentos' => $movimentos,
         ];
