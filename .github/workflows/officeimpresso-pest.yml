@@ -149,6 +149,7 @@ jobs:
             Modules/Officeimpresso/Tests/Feature/AlinharPacotesCatalogoCommandTest.php \
             Modules/Officeimpresso/Tests/Feature/ClientesSegredoUmaVezTest.php \
             Modules/Officeimpresso/Tests/Feature/OauthClientIdTest.php \
+            Modules/Officeimpresso/Tests/Feature/LicencaComputadorSemSegredoNoFillableTest.php \
             tests/Feature/Connector/SalvarEquipamentoTenantGuardTest.php
 
 
