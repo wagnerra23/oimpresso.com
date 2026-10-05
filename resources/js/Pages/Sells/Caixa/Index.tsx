@@ -9,6 +9,7 @@
 //  - ADR 0192 · 0104 MWART · 0107 visual gate · 0114 Cowork loop · 0143 FSM
 
 import AppShellV2 from '@/Layouts/AppShellV2';
+import { Button } from '@/Components/ui/button';
 import { useCallback, useMemo, useState, type ReactNode } from 'react';
 import { usePage, router, Deferred } from '@inertiajs/react';
 import { parseDecimalPtBR, formatDecimalPtBR } from '@/Lib/numberPtBR';
@@ -481,10 +482,10 @@ function ConferenciaFisica({ turno, podeFechar }: { turno: Turno | null; podeFec
       <textarea id="vc-nota" className="vc-date" rows={2} value={nota} onChange={e => setNota(e.target.value)} />
       {erro && <p className="vc-empty" role="alert">{erro}</p>}
       {podeFechar ? (
-        <button type="button" className="os-btn primary" onClick={fechar} disabled={enviando}>
+        <Button type="button" size="sm" onClick={fechar} disabled={enviando}>
           <CheckCircle2 size={11} />
           {enviando ? 'Fechando…' : 'Fechar caixa com esta contagem'}
-        </button>
+        </Button>
       ) : (
         <p className="vc-empty">Fechar o caixa exige a permissão de fechar caixa.</p>
       )}

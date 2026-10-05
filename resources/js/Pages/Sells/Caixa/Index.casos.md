@@ -124,7 +124,7 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 
 ## UC-SCAIXA-14 · Fechar com a contagem `[V0]` `[T0]` `[must]`
 - **Persona:** operador com `close_cash_register` — conta a gaveta, vê a diferença e fecha.
-- **Aceite:** Dado contado 170,00 contra esperado 175,00 · Então a tela diz "falta R$ 5,00" e exige a observação (front) · Quando fecho · Então o `POST /cash-register/close-register` existente grava `closing_amount` 170.00, a observação e os comprovantes no turno do 98, o turno do mesmo usuário no 99 continua aberto e intocado, e a tela fica sem turno.
+- **Aceite:** Dado contado 170,00 contra esperado 175,00 · Então a tela diz que falta 5,00 (diferença negativa) e exige a observação (front) · Quando fecho · Então o `POST /cash-register/close-register` existente grava `closing_amount` 170.00, a observação e os comprovantes no turno do 98, o turno do mesmo usuário no 99 continua aberto e intocado, e a tela fica sem turno.
 - **Teste:** `SellsCaixaContratoTest` — `UC-SCAIXA-14 [V0] [T0] fechar com a contagem grava pelo caminho legado e só o turno do próprio business`. O texto da diferença e a nota obrigatória são do front, sem teste de render.
 - **Regressão que defende:** valor contado gravado com separador errado (`num_uf`); fechamento atingindo o caixa de outro business.
 - **Status: 🧪**
