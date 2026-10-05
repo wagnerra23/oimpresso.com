@@ -16,7 +16,7 @@
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Deferred, router } from '@inertiajs/react';
-import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { MoreHorizontal, Plus, Search } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
@@ -61,7 +61,7 @@ async function enviar(url: string, campos: Record<string, string>): Promise<{ su
 }
 
 function GruposIndex({ grupos: gruposProp, tabelas, pode }: Props) {
-  const grupos = gruposProp ?? [];
+  const grupos = useMemo(() => gruposProp ?? [], [gruposProp]);
   const [q, setQ] = useState('');
   const [edicao, setEdicao] = useState<Edicao | null>(null);
   const [excluir, setExcluir] = useState<Grupo | null>(null);
@@ -69,7 +69,7 @@ function GruposIndex({ grupos: gruposProp, tabelas, pode }: Props) {
   const [salvando, setSalvando] = useState(false);
   const busca = useRef<HTMLInputElement>(null);
 
-  const novo = () => { setErro(null); setEdicao({ nome: '', calculo: 'percentage', percentual: '', tabela: '' }); };
+  const novo = useCallback(() => { setErro(null); setEdicao({ nome: '', calculo: 'percentage', percentual: '', tabela: '' }); }, []);
   useEffect(() => {
     const k = (e: KeyboardEvent) => {
       if (/^(INPUT|TEXTAREA|SELECT)$/.test((e.target as HTMLElement).tagName)) return;
@@ -78,7 +78,7 @@ function GruposIndex({ grupos: gruposProp, tabelas, pode }: Props) {
     };
     document.addEventListener('keydown', k);
     return () => document.removeEventListener('keydown', k);
-  }, [pode.criar]);
+  }, [pode.criar, novo]);
 
   const termo = q.trim().toLowerCase();
   const lista = useMemo(() => grupos.filter((g) => !termo || g.nome.toLowerCase().includes(termo)), [grupos, termo]);
@@ -184,38 +184,38 @@ function GruposIndex({ grupos: gruposProp, tabelas, pode }: Props) {
           </DialogHeader>
           {edicao && (
             <Stack data-contract="grupo-form" gap={3} className="text-sm">
-              <Stack asChild gap={1}><label>
-                <span>Nome</span>
-                <Input autoFocus value={edicao.nome} maxLength={191} placeholder="Ex.: Atacado"
+              <Stack gap={1}>
+                <label htmlFor="grupo-nome">Nome</label>
+                <Input id="grupo-nome" autoFocus value={edicao.nome} maxLength={191} placeholder="Ex.: Atacado"
                   onChange={(e) => setEdicao({ ...edicao, nome: e.target.value })} />
-              </label></Stack>
-              <Stack asChild gap={1}><label>
-                <span>Cálculo do preço</span>
+              </Stack>
+              <Stack gap={1}>
+                <label htmlFor="grupo-calculo">Cálculo do preço</label>
                 <Select value={edicao.calculo} onValueChange={(v) => setEdicao({ ...edicao, calculo: v as Calculo })}>
-                  <SelectTrigger aria-label="Cálculo do preço"><SelectValue /></SelectTrigger>
+                  <SelectTrigger id="grupo-calculo"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="percentage">Percentual sobre o preço</SelectItem>
                     <SelectItem value="selling_price_group">Tabela de preço própria</SelectItem>
                   </SelectContent>
                 </Select>
-              </label></Stack>
+              </Stack>
               {edicao.calculo === 'percentage' ? (
-                <Stack asChild gap={1}><label>
-                  <span>Ajuste (%)</span>
-                  <Input inputMode="decimal" value={edicao.percentual} placeholder="Ex.: -10 ou 5,5"
+                <Stack gap={1}>
+                  <label htmlFor="grupo-ajuste">Ajuste (%)</label>
+                  <Input id="grupo-ajuste" inputMode="decimal" value={edicao.percentual} placeholder="Ex.: -10 ou 5,5"
                     onChange={(e) => setEdicao({ ...edicao, percentual: e.target.value.replace(/[^0-9,.-]/g, '') })} />
                   <span className="text-xs text-muted-foreground">Positivo aumenta o preço de venda; negativo diminui.</span>
-                </label></Stack>
+                </Stack>
               ) : (
-                <Stack asChild gap={1}><label>
-                  <span>Tabela de preço</span>
+                <Stack gap={1}>
+                  <label htmlFor="grupo-tabela">Tabela de preço</label>
                   <Select value={edicao.tabela} onValueChange={(v) => setEdicao({ ...edicao, tabela: v })}>
-                    <SelectTrigger aria-label="Tabela de preço"><SelectValue placeholder="Selecione" /></SelectTrigger>
+                    <SelectTrigger id="grupo-tabela"><SelectValue placeholder="Selecione" /></SelectTrigger>
                     <SelectContent>
                       {tabelasValidas.map((t) => <SelectItem key={t.id} value={String(t.id)}>{t.nome}</SelectItem>)}
                     </SelectContent>
                   </Select>
-                </label></Stack>
+                </Stack>
               )}
               <p className="text-xs text-muted-foreground">Ou o grupo aplica um percentual sobre o preço, ou usa uma tabela de preço própria — nunca os dois. Quem não tem grupo paga o preço de tabela.</p>
               {erro && <p role="alert" className="text-destructive">{erro}</p>}
