@@ -230,12 +230,21 @@ class BusinessController extends BaseController
         // SUPERADMIN: leitura GLOBAL cross-tenant intencional (ADR 0093 §exceções).
         $b = DB::table('business')
             ->leftJoin('users AS u', 'u.id', '=', 'business.owner_id')
+            ->leftJoin('currencies AS cur', 'cur.id', '=', 'business.currency_id')
             ->where('business.id', $negocioId)
             ->select([
                 'business.id',
                 'business.name',
                 'business.is_active',
                 'business.created_at',
+                'business.tax_label_1',
+                'business.tax_number_1',
+                'business.tax_label_2',
+                'business.tax_number_2',
+                'business.time_zone',
+                'business.logo',
+                'business.created_by',
+                'cur.currency AS moeda',
                 'u.email AS dono_email',
                 'u.contact_number AS dono_fone',
                 DB::raw("TRIM(CONCAT(COALESCE(u.first_name, ''), ' ', COALESCE(u.last_name, ''))) AS dono"),
@@ -248,22 +257,55 @@ class BusinessController extends BaseController
             return null;
         }
 
-        // Histórico completo de licenciamento, do mais recente pro mais antigo.
+        // Histórico completo de licenciamento, do mais recente pro mais antigo. Sem limite:
+        // a página /superadmin/business/{id} mostrava todas, e ela saiu (thread Superadmin 02).
+        // Pago via, transação, fim do teste e quem lançou vieram de lá.
         $historico = DB::table('subscriptions AS s')
             ->leftJoin('packages AS p', 'p.id', '=', 's.package_id')
+            ->leftJoin('users AS cu', 'cu.id', '=', 's.created_id')
             ->where('s.business_id', $negocioId)
             ->whereNull('s.deleted_at')
             ->orderByDesc('s.id')
-            ->limit(12)
-            ->get(['s.id', 's.status', 's.start_date', 's.end_date', 'p.name AS pacote'])
+            ->get([
+                's.id', 's.status', 's.start_date', 's.end_date', 's.trial_end_date',
+                's.paid_via', 's.payment_transaction_id', 's.created_at', 'p.name AS pacote',
+                DB::raw("TRIM(CONCAT(COALESCE(cu.first_name, ''), ' ', COALESCE(cu.last_name, ''))) AS criado_por"),
+            ])
             ->map(fn ($s) => [
                 'id' => (int) $s->id,
                 'pacote' => $s->pacote,
                 'inicio' => $s->start_date ? \Carbon::parse($s->start_date)->format('d/m/Y') : null,
                 'fim' => $s->end_date ? \Carbon::parse($s->end_date)->format('d/m/Y') : null,
+                'fim_teste' => $s->trial_end_date ? \Carbon::parse($s->trial_end_date)->format('d/m/Y') : null,
+                'pago_via' => $s->paid_via ?: null,
+                'transacao' => $s->payment_transaction_id ?: null,
+                'lancada_em' => $s->created_at ? \Carbon::parse($s->created_at)->format('d/m/Y') : null,
+                'lancada_por' => trim((string) ($s->criado_por ?? '')) ?: null,
                 'situacao' => $this->rotuloDeAssinatura($s->status, $s->end_date),
             ])
             ->all();
+
+        // Locais do negócio — vieram da página show (thread Superadmin 02).
+        $locais = DB::table('business_locations')
+            ->where('business_id', $negocioId)
+            ->orderBy('id')
+            ->get(['id', 'name', 'location_id', 'landmark', 'city', 'zip_code', 'state', 'country'])
+            ->map(fn ($l) => [
+                'id' => (int) $l->id,
+                'nome' => (string) $l->name,
+                'codigo' => $l->location_id ?: null,
+                'referencia' => $l->landmark ?: null,
+                'cidade' => $l->city ?: null,
+                'cep' => $l->zip_code ?: null,
+                'uf' => $l->state ?: null,
+                'pais' => $l->country ?: null,
+            ])
+            ->all();
+
+        $criadoPor = ! empty($b->created_by)
+            ? DB::table('users')->where('id', $b->created_by)
+                ->value(DB::raw("TRIM(CONCAT(COALESCE(surname, ''), ' ', COALESCE(first_name, ''), ' ', COALESCE(last_name, '')))"))
+            : null;
 
         // Uso contra o teto do pacote VIGENTE. Teto 0 = ILIMITADO no UltimatePOS — confirmado
         // por [W] em 2026-08-19 — e ilimitado NÃO vira barra de progresso: vira a palavra.
@@ -312,6 +354,46 @@ class BusinessController extends BaseController
             'ultima_venda' => $ultimaVenda ? \Carbon::parse($ultimaVenda)->format('d/m/Y') : null,
             'uso' => $uso,
             'historico' => $historico,
+            'cadastro' => [
+                'moeda' => $b->moeda,
+                'imposto_1' => ! empty($b->tax_number_1) ? trim($b->tax_label_1.': '.$b->tax_number_1, ': ') : null,
+                'imposto_2' => ! empty($b->tax_number_2) ? trim($b->tax_label_2.': '.$b->tax_number_2, ': ') : null,
+                'fuso' => $b->time_zone ?: null,
+                'criado_por' => trim((string) $criadoPor) ?: null,
+                'logo' => ! empty($b->logo) ? url('uploads/business_logos/'.$b->logo) : null,
+            ],
+            'locais' => $locais,
+            'usuarios' => $this->usuariosDoNegocio($negocioId),
+        ];
+    }
+
+    /**
+     * Usuários do negócio para o drawer — a mesma lista que a página show buscava por
+     * DataTables em `usersList()`: sem o próprio superadmin logado e sem agente de comissão.
+     * As ações (definir senha, entrar como) seguem o `@can('user.update')` de lá.
+     *
+     * SUPERADMIN: leitura cross-tenant intencional (ADR 0093 §exceções) — o negócio é escolhido
+     * na lista de todos os negócios.
+     *
+     * @return array{pode_agir: bool, lista: array<int, array<string, mixed>>}
+     */
+    private function usuariosDoNegocio(int $negocioId): array
+    {
+        $usuarios = User::where('business_id', $negocioId)
+            ->where('id', '!=', auth()->id())
+            ->where('is_cmmsn_agnt', 0)
+            ->orderBy('id')
+            ->get(['id', 'username', 'surname', 'first_name', 'last_name', 'email']);
+
+        return [
+            'pode_agir' => auth()->user()->can('user.update'),
+            'lista' => $usuarios->map(fn ($u) => [
+                'id' => (int) $u->id,
+                'username' => $u->username ?: null,
+                'nome' => trim(implode(' ', array_filter([$u->surname, $u->first_name, $u->last_name]))) ?: null,
+                'email' => $u->email,
+                'papel' => $this->moduleUtil->getUserRoleName($u->id) ?: null,
+            ])->all(),
         ];
     }
 
@@ -494,14 +576,10 @@ class BusinessController extends BaseController
             abort(403, 'Unauthorized action.');
         }
 
-        $business = Business::with(['currency', 'locations', 'subscriptions', 'owner'])->find($business_id);
-
-        $created_id = $business->created_by;
-
-        $created_by = ! empty($created_id) ? User::find($created_id) : null;
-
-        return view('superadmin::business.show')
-            ->with(compact('business', 'created_by'));
+        // Thread Superadmin 02: o detalhe é o drawer da lista (`?negocio=<id>`). Tudo que a
+        // página Blade mostrava — dados fiscais, locais, usuários com definir senha e entrar
+        // como, pago via e transação de cada assinatura — está no `detalheDoNegocio()`.
+        return redirect()->action([self::class, 'index'], ['negocio' => (int) $business_id]);
     }
 
     /**

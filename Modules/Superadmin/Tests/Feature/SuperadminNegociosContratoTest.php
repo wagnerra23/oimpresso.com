@@ -256,3 +256,55 @@ it('UC-SANEG-08 · o detalhe nao traz valor recorrente e trata teto 0 como ilimi
         }
     }
 });
+
+// ── UC-SANEG-09 · a página show virou o drawer ─────────────────────────────
+
+it('UC-SANEG-09 · /superadmin/business/{id} redireciona para o drawer da lista', function () {
+    negSuperadmin();
+
+    $this->actingAs(negSuperadmin())
+        ->get('/superadmin/business/'.BIZ_NEG)
+        ->assertRedirect('/superadmin/business?negocio='.BIZ_NEG);
+});
+
+// ── UC-SANEG-10 · o drawer carrega o que a página show mostrava ─────────────
+
+it('UC-SANEG-10 · o detalhe traz cadastro, locais e usuarios, sem o superadmin logado nem agente de comissao', function () {
+    $superadmin = negSuperadmin();
+
+    $comum = User::firstOrCreate(
+        ['username' => 'neg_usuario_comum_test'],
+        ['email' => 'neg_comum@test.local', 'password' => bcrypt('secret'), 'business_id' => BIZ_NEG, 'first_name' => 'Comum', 'is_cmmsn_agnt' => 0]
+    );
+    $agente = User::firstOrCreate(
+        ['username' => 'neg_agente_test'],
+        ['email' => 'neg_agente@test.local', 'password' => bcrypt('secret'), 'business_id' => BIZ_NEG, 'first_name' => 'Agente', 'is_cmmsn_agnt' => 1]
+    );
+    DB::table('users')->where('id', $agente->id)->update(['is_cmmsn_agnt' => 1, 'business_id' => BIZ_NEG]);
+    DB::table('users')->where('id', $comum->id)->update(['is_cmmsn_agnt' => 0, 'business_id' => BIZ_NEG]);
+
+    $versao = app(\App\Http\Middleware\HandleInertiaRequests::class)->version(request());
+
+    $detalhe = $this->actingAs($superadmin)->get('/superadmin/business?negocio='.BIZ_NEG, [
+        'X-Inertia' => 'true',
+        'X-Inertia-Version' => (string) $versao,
+        'X-Inertia-Partial-Data' => 'detalhe',
+        'X-Inertia-Partial-Component' => 'superadmin/Negocios/Index',
+    ])->assertOk()->json('props.detalhe');
+
+    expect($detalhe)->toHaveKeys(['cadastro', 'locais', 'usuarios'])
+        ->and($detalhe['cadastro'])->toHaveKeys(['moeda', 'imposto_1', 'imposto_2', 'fuso', 'criado_por', 'logo'])
+        ->and($detalhe['locais'])->toHaveCount(DB::table('business_locations')->where('business_id', BIZ_NEG)->count())
+        ->and($detalhe['usuarios']['pode_agir'])->toBeBool();
+
+    $ids = array_column($detalhe['usuarios']['lista'], 'id');
+
+    // Pré-condição anti-vácuo: a lista não está vazia, senão as ausências abaixo não provam nada.
+    expect($ids)->toContain($comum->id);
+    expect(in_array($superadmin->id, $ids, true))->toBeFalse();
+    expect(in_array($agente->id, $ids, true))->toBeFalse();
+
+    foreach ($detalhe['historico'] as $h) {
+        expect($h)->toHaveKeys(['fim_teste', 'pago_via', 'transacao', 'lancada_em', 'lancada_por']);
+    }
+});

@@ -128,6 +128,32 @@ Status: 🧪
 
 ---
 
+## UC-SANEG-09 · A página show virou o drawer · `must`
+
+**Dado** um link antigo para `/superadmin/business/{id}`
+**Quando** o superadmin o abre
+**Então** cai na lista com o drawer daquele negócio aberto (`?negocio=<id>`) — a página Blade
+saiu na thread Superadmin 02.
+
+Status: 🧪
+
+---
+
+## UC-SANEG-10 · O drawer carrega o que a página show mostrava · `must`
+
+**Dado** um negócio com usuários, entre eles o superadmin logado e um agente de comissão
+**Quando** o drawer é montado
+**Então** ele traz os dados do cadastro (moeda, impostos, fuso, quem cadastrou, logo), os locais,
+os usuários — **sem** o superadmin logado e **sem** agente de comissão, como a lista da show — e,
+em cada assinatura, pago via, transação, fim do teste e quem lançou.
+
+**E** "Definir senha" e "Entrar como" só aparecem para quem tem `user.update`, como na show.
+Decisão [W] 2026-10-05: nada que a show mostrava some.
+
+Status: 🧪
+
+---
+
 ## Testes mínimos
 
 - DQE: 1 negócio com 2 locais, 1 com 2 assinaturas, 1 sem assinatura, 1 inativo.
