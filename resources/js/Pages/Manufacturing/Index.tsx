@@ -118,13 +118,15 @@ function formatQuantity(value: number): string {
 /**
  * Medidas dos filtros do `MfgProducaoView` (medição protótipo × produção de 2026-10-01, 1440 px):
  * rótulo 10,5px/600 em caixa alta; campo de data 150×36, canto 8, texto 13,5px, fundo `--surface`.
+ * O canto é `rounded-[8px]` e não `rounded-lg`: neste projeto o `rounded-lg` vale 12px (medido em
+ * produção em 2026-10-05, depois do #8690, que usou `rounded-lg` supondo 8).
  * O rótulo usa `--text-dim` e não o `--text-mute` do DS: texto pequeno em `--text-mute` reprova AA
  * (ADR 0410). O campo usa o `Input` na variante `shadcn`: a `cowork` passa pelo `.cw-input`, que é
  * CSS fora de camada e vence a altura/largura/texto das classes (medido: `h-9 w-[150px]` saía 133×30).
  */
 const ROTULO = 'text-[10.5px] font-semibold uppercase tracking-[0.06em] text-[var(--text-dim)]';
 const CAMPO_DATA =
-  'h-9 w-[150px] rounded-lg border-[var(--border)] bg-[var(--surface)] px-2.5 text-[13.5px] md:text-[13.5px] text-foreground dark:bg-[var(--surface)]';
+  'h-9 w-[150px] rounded-[8px] border-[var(--border)] bg-[var(--surface)] px-2.5 text-[13.5px] md:text-[13.5px] text-foreground dark:bg-[var(--surface)]';
 
 /**
  * As 8 colunas do `MfgProducaoView` (`manufacturing-producao.jsx`), na anatomia do `DataGrid` do
@@ -343,7 +345,7 @@ function Index({ productions = [], summary, business_locations = {}, filters = {
                 {/* eslint-disable-next-line no-restricted-syntax -- select nativo: filtro simples de local, estilizado com tokens DS */}
                 <select
                   id="mfg-op-local"
-                  className="h-[34px] w-[180px] rounded-lg border border-[var(--border)] bg-[var(--surface)] px-2.5 text-[13px] text-foreground"
+                  className="h-[34px] w-[180px] rounded-[8px] border border-[var(--border)] bg-[var(--surface)] px-2.5 text-[13px] text-foreground"
                   value={filters.location_id ?? ''}
                   onChange={(e) =>
                     applyFilter(filters, {
@@ -407,7 +409,7 @@ function Index({ productions = [], summary, business_locations = {}, filters = {
               primitivos (ADR 0253). O ratchet pegou o caso na primeira tentativa — e depois
               pegou o COMENTÁRIO que citava o anti-padrão, porque o guard casa texto. */}
           <Inline gap={2} align="center" asChild>
-            <label className="text-[12.5px] font-medium text-foreground" htmlFor="mfg-op-so-finalizadas">
+            <label className="text-[12.5px] font-medium text-[var(--text)]" htmlFor="mfg-op-so-finalizadas">
               <Checkbox
                 id="mfg-op-so-finalizadas"
                 checked={!!filters.is_final}
