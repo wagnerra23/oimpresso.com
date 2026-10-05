@@ -165,10 +165,27 @@ data/referência/números em mono 12px e linhas listradas. O PR de 2026-10-05 tr
 | produto | nome 600 + 2ª linha 11px | nome 500 + 2ª linha 12px | nome 600 + 2ª linha 11px (`--text-dim`, AA) |
 | situação "Rascunho" | contorno, sem cor | âmbar | contorno (mapa `producao` do `StatusBadge`) |
 
-**Fora deste PR:** os filtros (o protótipo usa `Select`/`DatePicker` do DS sem cartão em volta), as
-descrições dos 4 indicadores e o painel lateral da ordem (`MfgProducaoDrawer`), que precisa dos
-ingredientes consumidos vindos do servidor. **Não medido depois do PR:** a confirmação em produção
-vem depois do deploy.
+**Medido em produção em 2026-10-05** (deploy `37311669756`, com o #8651; empresa 1, tema escuro,
+1440 px; sonda complementar de células, a mesma do protótipo, conferida por hash): as 8 células batem
+com o protótipo — linha 45px, data/referência/números em mono 12px, texto 12,5px, mesma cor e
+alinhamento, 2ª linha listrada. "Rascunho" em contorno (fundo transparente, borda `--border`). Única
+diferença: o selo tem 12px contra 11,5px do protótipo — a versão do `StatusBadge`, como nos Insumos.
+
+### Filtros 2026-10-05
+
+| item | protótipo | produção em 10-01 | depois deste PR |
+|---|---|---|---|
+| faixa | sem cartão, controles pela base, gap 12px | dentro de cartão com borda | sem cartão, gap 12px |
+| rótulos Local/De/Até | 10,5px/600 caixa alta, `--text-mute` | 10px/400, apagado | 10,5px/600, `--text-dim` (AA, ADR 0410) |
+| Local | 180×34, canto 8, 13px, fundo `--surface` | 180×36, canto 6, 14px | 180×34, canto 8, 13px, `--surface` |
+| De / Até | `DatePicker` 150×36, canto 8, 13,5px | `<input type=date>` 133×30, canto 5 | `<input type=date>` 150×36, canto 8, 13,5px |
+| "Só finalizadas" | 12,5px/500, cor do texto | 14px/400, apagado | 12,5px/500, cor do texto |
+
+**Ficam diferentes, de propósito:** "Todos os locais" (o protótipo diz "Todos") é copy do contrato
+da tela (`manufacturing-index.contract.json`) — decisão [W]; e o campo de data continua o nativo,
+porque o `DatePicker` do DS não tem par React. **Ficam para depois:** as descrições dos 4
+indicadores e o painel lateral da ordem (`MfgProducaoDrawer`), que precisa dos ingredientes
+consumidos vindos do servidor.
 
 ## Cobertura desta tela hoje
 

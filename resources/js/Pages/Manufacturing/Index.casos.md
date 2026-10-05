@@ -12,7 +12,9 @@ last_run: "2026-10-05"
 > os totais são os mesmos; o que muda de visível: a lista virou o `shared/DataTable` na anatomia `grid`
 > (o par React do `DataGrid` do DS): `<table>`, cabeçalho 10px caixa-alta, linhas listradas, data,
 > referência e números em fonte mono à direita. O selo "Rascunho" passa de âmbar a contorno, como o
-> protótipo atual. Nenhum UC foi reexecutado nesta data.
+> protótipo atual. Num segundo PR do mesmo dia, os filtros saem do cartão e ganham as medidas do
+> protótipo (rótulo 10,5px/600, campos de 34–36px com canto 8 e texto 13–13,5px); o que eles filtram
+> não muda. Nenhum UC foi reexecutado nesta data.
 
 # Casos de Uso & Aceite — Manufacturing/Index
 
