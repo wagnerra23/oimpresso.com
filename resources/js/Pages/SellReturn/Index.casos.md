@@ -74,13 +74,11 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 
 ---
 
-## Backlog de casos (sem id nesta tela — entram com o PR 2, `SellReturn/Add`)
+## Backlog de casos
 
-- **[BACKLOG]** Quantidade devolvida trava na vendida: dado item com 3 unidades vendidas, quando digito 5, o campo trava em 3 (era `UC-DEV-01` no texto revisado).
-- **[BACKLOG]** Sem quantidade preenchida, "Salvar devolução" fica desabilitado (era `UC-DEV-02`).
-- **[BACKLOG]** Total devolvido = preço unitário × quantidade devolvida (era `UC-DEV-03`) — eixo valor, REGRA MESTRE.
-- **[BACKLOG]** Chegando pela lista de POS, a venda de origem já vem carregada (era `UC-DEV-04`).
+- Os `UC-DEV-01..04` do texto revisado viraram casos do registro: `Add.casos.md` (`UC-SRADD-01..06`, PR 2).
 - **[BACKLOG]** Excluir devolução e adicionar pagamento pela tela React (hoje só na Blade).
 
 ## Trilha do tempo
 - 2026-10-01 · [CL] trio nascido junto (charter + casos + teste) na thread 03 de venda-menu, PR 1 de 2.
+- 2026-10-05 · [CL] backlog do registro movido para `Add.casos.md` (PR 2); "Editar" passa a abrir `SellReturn/Add` por visita Inertia.

@@ -1,6 +1,6 @@
 // SellReturn/Index — lista de devoluções de venda (/sell-return), visita Inertia.
-// Thread 03 de venda-menu, PR 1 de 2: só a LISTA. O registro (/sell-return/add/{venda})
-// segue na Blade até o PR 2, que espera a REGRA MESTRE de valor/estoque.
+// Thread 03 de venda-menu, PR 1 de 2: a LISTA. O registro (/sell-return/add/{venda}) é a
+// Page SellReturn/Add (PR 2); "Editar" abre ela por visita Inertia.
 //
 // Estrutura do desenho VendasDevolucoesPage (vendas-extras.jsx; alvo
 // governance/design/targets/vendas--devolucao--index.secoes.json): cabeçalho · navegação de
@@ -108,10 +108,10 @@ const colunas: ColumnDef<LinhaDevolucao>[] = [
     id: 'acoes',
     header: () => <span className="sr-only">Ações</span>,
     cell: ({ row }) => (
-      // Registro/edição segue na Blade até o PR 2 (SellReturn/Add).
-      <a href={`/sell-return/add/${row.original.venda_id}`} aria-label={`Editar a devolução ${row.original.numero}`}>
+      // Visita Inertia → SellReturn/Add (PR 2). Carga completa da mesma URL segue na Blade.
+      <Link href={`/sell-return/add/${row.original.venda_id}`} aria-label={`Editar a devolução ${row.original.numero}`}>
         Editar
-      </a>
+      </Link>
     ),
   },
 ];
