@@ -78,7 +78,7 @@ class ScheduleLogController extends Controller
                             'descricao' => strip_tags((string) $l->description),
                             'por' => $autor ? trim($autor->user_full_name) : null,
                         ];
-                    })->values()];
+                    })->values()->all()];
                 } else {
                 //if call log is enabled
                 $call_logs = [];
