@@ -369,6 +369,7 @@ jobs:
             Modules/Superadmin/Tests/Feature/Usuario360ContratoTest.php \
             Modules/Superadmin/Tests/Feature/SuperadminComunicadorContratoTest.php \
             Modules/Superadmin/Tests/Feature/SuperadminConfiguracoesContratoTest.php \
+            Modules/Superadmin/Tests/Feature/SuperadminMinhaAssinaturaContratoTest.php \
             Modules/Cms/Tests/Feature/CmsConteudoIndexContratoTest.php \
             Modules/Cms/Tests/Feature/CmsSiteDetailsPainelTest.php \
             Modules/Crm/Tests/Feature/CrmAcompanhamentosContratoTest.php \
