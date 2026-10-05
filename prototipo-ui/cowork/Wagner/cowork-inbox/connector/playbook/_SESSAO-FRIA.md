@@ -18,3 +18,5 @@ Leia só: placar · o `NN-*.md` · o objeto da thread · o "lido no turno", reli
 | **06** | Apagar legado | `06-legado.md` | 05 · [W2] |
 | **07** | Quem usa a credencial | `07-quem-usa.md` | 04 |
 | **08** | Saúde com histórico | `08-saude.md` | 04 |
+| **09** | Aba Documentação (PR-b da 04) | CL | `09-documentacao.md` | 04 |
+| **10** | Rodar UC-CONN-12 na lane MySQL (pulado em SQLite) | CL | `10-mysql.md` | 02 |

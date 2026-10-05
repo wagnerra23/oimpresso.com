@@ -3,11 +3,30 @@ branch: main
 path: prototipo-ui/cowork
 
 ## Last sync
+date: 2026-10-05T11:31:25Z
+tree: 8d66694ee724
+branch: main
+
+### Updated in this project
+- **Reconferência 05/10:** puxados `repair/_DECISOES-W-2026-10-02.md` + `repair/_saida-04.md`; D-PORTAL e D-RECORTE aplicadas no índice do Repair (thread 04 → ConsultaOs). Rota `repair` ganhou entrada no `ROTAS` (abre o Painel). Os 10 `00-INDICE.md` daqui estão à frente do `main` — o pacote não desceu.
+
+## Sync 2026-10-01 14:59
+date: 2026-10-01T14:59:06Z
+tree: 6ce55fcfb8ca
+branch: main
+
+### Updated in this project (01/10)
+- **Repair thread 00 (PUXAR):** causa das 6 medidas iguais — rota `repair` abria a aba salva em `localStorage`; agora força o Painel. Reparos (`rep-reparos`) puxou de `Repair/Index.tsx` os KPIs-filtro (Em andamento · Concluídas · Total exibido) e as colunas de produção (`repair-page.jsx?v=rp4a11yp`). Recibo `cowork-inbox/repair/playbook/_saida-00.md` com mapa rota↔Page das 12.
+- **Retorno do Code puxado:** 40 `_saida` + 8 `_DECISOES-W-2026-10-01` dos 10 playbooks (produto · cliente · repair · atendimento · arquivos · connector · officeimpresso · superadmin · crm · lote-trio-medida) trazidos byte a byte — o import com `/PURGE` apagaria 34. Decisões aplicadas nos índices; erratas estruturais aplicadas; fichas renomeadas para `<id>-*.md` (o `/onda` abre por prefixo).
+- **Reconferência das provas no `main`:** threads com recibo conferidas; threads novas pros pendentes declarados nos recibos (Produto 09/10 · Crm 06/07/08 · Connector 09/10 · Officeimpresso A3/09 + D6). Protocolo §12 ganhou o passo RETORNO (regras 1–8).
+- **Superadmin thread 00 (PUXAR):** `superadmin-usuarios.jsx` novo (Usuário 360°: busca + 9 blocos em drawer, trancar com motivo / destrancar sem devolver tokens), rota `sa-usuarios`, item no menu (`data.jsx?v=sb25`, `app.jsx?v=eb30-su`); Assinaturas com KPI "Ativas" e as 3 ações de produção (`superadmin-page.jsx?v=sa15k`). Recibo `cowork-inbox/superadmin/playbook/_saida-00.md`.
+
+## Sync anterior (2026-09-29 16:58)
 date: 2026-09-29T16:58:04Z
 tree: 38921d4f1027
 branch: main
 
-### Updated in this project
+### Updated in this project (29/09)
 - **HRM × Ponto por dono ([W] ratificou D4/D5 2026-09-29):** aba/ghost Turnos sai do HRM; `hrm-turnos` vira aviso → `pt-escalas` (FK real `escala_atual_id` → `ponto_escalas`). View morta `hrm-presenca` removida · "Ponto WR2" → "Ponto" · copy de Feriados sem prometer integração inexistente (Ponto não lê `EssentialsHoliday`) (`hrm-page.jsx?v=hrm12dono`, `data.jsx?v=sb23`).
 - **Ponto `00-INDICE.md` rev. 29/09:** W10 aplicada (`_DECISOES-W-2026-09-29`) · placar medido `entregue 22 de 29 · próximo 07/12/14/27/28 · pendente 13/15` · **§2-ter novo: dimensionamento por tamanho de tela** (P/M/G pelo `.tsx` vivo; ALVO em lotes L1–L6; 20 telas = 31 PRs, antes 17 = 35; +Fechamento/Conformidade/Mobile que faltavam; 13→2 PRs, 15→3) · W11 **respondida: servidor** (`shared/DataTable.tsx`). **Thread 28 feita, 1:1 com `Modules/Ponto/Http/routes.php`** (regra `pt-` + caminho com `/`→`-`): intercorrencias `{uuid}` · `create` · `{uuid}-edit` · importacoes `{id}` · `novo` · escalas `create` · `{id}-edit` · banco-horas `{colaborador}` · colaboradores `{id}-editar` · configuracoes `reps`; drawer removido; id inexistente = "não encontrado" (`ponto-page.jsx?v=pt29rotareal`, `ponto-telas.jsx?v=pt32rotareal`). `_saida-06.md` está só aqui — desce no pacote.
 - **Decisões 29/09 (decide-for-me → recomendação [CC]):** W14 = D-KPI-LABEL (11px/600 caixa-alta, ADR 0110) · W15 (sem rejeitar em lote; 15 = 2 PRs) · W8 (remover /react) · D-GARANTIAS (filtro em Bens) · D-GHOST (remover) · D-FORN (Non-Goal) · D-GATE (restringir) · RESIDUO-5 (sem alerta no rail) · D-FIN-IA-CONTEUDO (vale produção) · D-RECEPCAO-FALHA (CI falha). **Já decididas antes, só registradas:** W9 = 13 abas (ADR 0418, 28/09) · W11 (ADR 0418) · D-FIN-DW-TEMA (25/09).

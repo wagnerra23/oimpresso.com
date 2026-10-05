@@ -4,6 +4,8 @@ titulo: Produto/Cadastros
 dono: "[CL]"
 base: 4fa39eb8f007
 ---
+> Ficha da thread **03** (o mesmo texto serve 02, cada uma com o seu arquivo).
+
 # 02 · 03 · Cadastros de apoio (6 abas)
 
 Fonte F1: `produto-cadastros.jsx`. Trio proposto: `cowork-inbox/produto-telas-novas/Cadastros.charter.md` + `.casos.md` (16 UC) — copiar para `resources/js/Pages/Produto/Cadastros/Index.*`.

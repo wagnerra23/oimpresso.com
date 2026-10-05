@@ -43,32 +43,40 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/crm/playbook/
     {
       "id": "D1",
       "pergunta": "Ordem das fatias do Crm (proposta: Leads → Acompanhamentos → Painel → Campanhas → Propostas)",
-      "respondida": false,
+      "respondida": true,
       "destrava": [
         "01"
-      ]
+      ],
+      "resposta": "ordem proposta",
+      "fonte": "_DECISOES-W-2026-10-01.md"
     },
     {
       "id": "D2",
       "pergunta": "Lead reusa o formulário de Cliente (hoje LeadController:323/448 devolve contact.create/edit)? Se sim, o form de lead = Cliente/Create",
-      "respondida": false,
+      "respondida": true,
       "destrava": [
         "02"
-      ]
+      ],
+      "resposta": "sim, reusa Cliente/Create",
+      "fonte": "_DECISOES-W-2026-10-01.md"
     },
     {
       "id": "D3",
       "pergunta": "Portal do contato (ContactLoginController: logins, comissões) é cliente-facing — entra agora?",
-      "respondida": false,
-      "destrava": []
+      "respondida": true,
+      "destrava": [],
+      "resposta": "sim, entra (Cowork fatia)",
+      "fonte": "_DECISOES-W-2026-10-01.md"
     },
     {
       "id": "D4",
       "pergunta": "Onde moram as Pages do Crm: Modules/Crm/Resources/js/Pages (como Superadmin/Whatsapp) ou resources/js/Pages/Crm?",
-      "respondida": false,
+      "respondida": true,
       "destrava": [
         "02"
-      ]
+      ],
+      "resposta": "Modules/Crm/Resources/js/Pages",
+      "fonte": "_DECISOES-W-2026-10-01.md"
     }
   ],
   "threads": [
@@ -77,7 +85,7 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/crm/playbook/
       "titulo": "ALVO lote 1: crm--leads--index · --acompanhamentos--index · --painel--index",
       "dono": "CL",
       "vaga": 1,
-      "arquivo": "01-alvos.md",
+      "arquivo": "A1-alvos.md",
       "prefixo": [
         "${ALVOS}/crm--leads--index.*",
         "${ALVOS}/crm--acompanhamentos--index.*",
@@ -116,7 +124,7 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/crm/playbook/
       "dono": "CL",
       "vaga": 2,
       "prs": 1,
-      "arquivo": "02-trio-lote1.md",
+      "arquivo": "01-trio-lote1.md",
       "depende_threads": [
         "A1"
       ],
@@ -124,29 +132,14 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/crm/playbook/
         "D1",
         "D4"
       ],
-      "prefixo": [
-        "${CONTRATOS}/crm-leads.contract.json",
-        "${CONTRATOS}/crm-acompanhamentos.contract.json",
-        "${CONTRATOS}/crm-painel.contract.json"
-      ],
+      "prefixo": [],
       "nao_toca": [
         "${MOD}/Http/",
         "${MOD}/Http/Controllers/Cliente*"
       ],
-      "provas": [
-        {
-          "tipo": "arquivo",
-          "path": "${CONTRATOS}/crm-leads.contract.json"
-        },
-        {
-          "tipo": "arquivo",
-          "path": "${CONTRATOS}/crm-acompanhamentos.contract.json"
-        },
-        {
-          "tipo": "arquivo",
-          "path": "${CONTRATOS}/crm-painel.contract.json"
-        }
-      ]
+      "provas": [],
+      "nota_provas": "errata do recibo: o gate required recusa contrato sem Page; cada contrato entra no PR da Page dele. O contrato derivado está no _saida desta thread.",
+      "bloqueio": "absorvida — contrato sem Page é reprovado pelo gate required; contratos entraram em 02 · 03 · 04 (lei IT2). Derivação no _saida-01."
     },
     {
       "id": "02",
@@ -154,16 +147,17 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/crm/playbook/
       "dono": "CL",
       "vaga": 3,
       "prs": 1,
-      "arquivo": "03-leads.md",
+      "arquivo": "02-leads.md",
       "depende_threads": [
-        "01"
+        "A1"
       ],
       "depende_decisoes": [
         "D2",
         "D4"
       ],
       "prefixo": [
-        "${MOD}/Http/Controllers/LeadController.php"
+        "${MOD}/Http/Controllers/LeadController.php",
+        "${CONTRATOS}/crm-leads.contract.json"
       ],
       "nao_toca": [
         "resources/js/Pages/Cliente/",
@@ -174,6 +168,10 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/crm/playbook/
           "tipo": "contem",
           "path": "${MOD}/Http/Controllers/LeadController.php",
           "padrao": "Inertia::render("
+        },
+        {
+          "tipo": "arquivo",
+          "path": "${CONTRATOS}/crm-leads.contract.json"
         }
       ]
     },
@@ -183,12 +181,13 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/crm/playbook/
       "dono": "CL",
       "vaga": 3,
       "prs": 1,
-      "arquivo": "04-acompanhamentos.md",
+      "arquivo": "03-acompanhamentos.md",
       "depende_threads": [
-        "01"
+        "A1"
       ],
       "prefixo": [
-        "${MOD}/Http/Controllers/ScheduleController.php"
+        "${MOD}/Http/Controllers/ScheduleController.php",
+        "${CONTRATOS}/crm-acompanhamentos.contract.json"
       ],
       "nao_toca": [
         "${MOD}/Http/Controllers/LeadController.php",
@@ -199,6 +198,10 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/crm/playbook/
           "tipo": "contem",
           "path": "${MOD}/Http/Controllers/ScheduleController.php",
           "padrao": "Inertia::render("
+        },
+        {
+          "tipo": "arquivo",
+          "path": "${CONTRATOS}/crm-acompanhamentos.contract.json"
         }
       ]
     },
@@ -208,13 +211,14 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/crm/playbook/
       "dono": "CL",
       "vaga": 3,
       "prs": 1,
-      "arquivo": "05-painel.md",
+      "arquivo": "04-painel.md",
       "depende_threads": [
-        "01"
+        "A1"
       ],
       "prefixo": [
         "${MOD}/Http/Controllers/CrmDashboardController.php",
-        "${MOD}/Http/Controllers/DashboardController.php"
+        "${MOD}/Http/Controllers/DashboardController.php",
+        "${CONTRATOS}/crm-painel.contract.json"
       ],
       "nao_toca": [
         "${MOD}/Http/Controllers/LeadController.php",
@@ -225,15 +229,19 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/crm/playbook/
           "tipo": "contem",
           "path": "${MOD}/Http/Controllers/CrmDashboardController.php",
           "padrao": "Inertia::render("
+        },
+        {
+          "tipo": "arquivo",
+          "path": "${CONTRATOS}/crm-painel.contract.json"
         }
       ]
     },
     {
       "id": "05",
-      "titulo": "Lote 2 — levantar Campanhas, Propostas (+modelos), Ligações, Agendamentos, Pedidos, Relatórios, Extrato, Marketplace, Configurações",
+      "titulo": "Lote 2 + portal do contato (D3) — o Cowork levanta e fatia",
       "dono": "CC",
       "vaga": 4,
-      "arquivo": "06-lote2.md",
+      "arquivo": "05-lote2.md",
       "depende_threads": [
         "02"
       ],
@@ -245,8 +253,82 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/crm/playbook/
       ],
       "provas": [],
       "nota_provas": "o Cowork reescreve este índice com as threads do lote 2 depois que o lote 1 provar o molde"
+    },
+    {
+      "id": "06",
+      "titulo": "Leads: formulário (reusa Cliente/Create parametrizado — D2)",
+      "dono": "CL",
+      "vaga": 3,
+      "prs": 1,
+      "arquivo": "06-leads-form.md",
+      "depende_threads": [
+        "02"
+      ],
+      "prefixo": [
+        "resources/js/Pages/Cliente/Create.tsx",
+        "${MPAGES}/Crm/Leads/",
+        "${MOD}/Http/Controllers/LeadController.php"
+      ],
+      "nao_toca": [
+        "resources/js/Pages/Cliente/Index.tsx"
+      ],
+      "provas": [
+        {
+          "tipo": "nao_contem",
+          "path": "${MOD}/Http/Controllers/LeadController.php",
+          "padrao": "view('contact.create')"
+        }
+      ]
+    },
+    {
+      "id": "07",
+      "titulo": "Acompanhamentos: escrita em Inertia (adicionar, recorrente, editar, log, excluir)",
+      "dono": "CL",
+      "vaga": 3,
+      "prs": 2,
+      "arquivo": "07-acompanhamentos-escrita.md",
+      "depende_threads": [
+        "03"
+      ],
+      "prefixo": [
+        "${MPAGES}/Crm/Acompanhamentos/",
+        "${MOD}/Http/Controllers/ScheduleController.php"
+      ],
+      "nao_toca": [
+        "${MOD}/Http/Controllers/LeadController.php"
+      ],
+      "provas": [
+        {
+          "tipo": "execucao",
+          "nota": "UCs de escrita verdes; os botões da toolbar deixam de levar a ?classico=1"
+        }
+      ]
+    },
+    {
+      "id": "08",
+      "titulo": "Leads: show sem filtro type=lead + raiz do SELECT de colunas removidas (CrmUtil)",
+      "dono": "CL",
+      "vaga": 2,
+      "prs": 1,
+      "arquivo": "08-leads-escopo.md",
+      "prefixo": [
+        "${MOD}/Utils/CrmUtil.php",
+        "${MOD}/Http/Controllers/LeadController.php",
+        "Modules/Connector/Http/Controllers/Api/Crm/FollowUpController.php",
+        "${MOD}/Tests/Feature/"
+      ],
+      "nao_toca": [
+        "${MPAGES}/"
+      ],
+      "provas": [
+        {
+          "tipo": "execucao",
+          "nota": "show de um cliente (não lead) pelo id → 404; API de follow-up não dá 500 por coluna inexistente"
+        }
+      ]
     }
-  ]
+  ],
+  "revisado": "2026-10-01 — recibos e _DECISOES do main c12552f40e2a aplicados · 2026-10-01 reconferência @99e6fa3e08f0: threads novas 06,07,08"
 }
 ```
 
