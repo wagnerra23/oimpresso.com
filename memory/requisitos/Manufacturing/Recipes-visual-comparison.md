@@ -6,7 +6,7 @@ tela: Manufacturing/Recipes
 owner: W
 status: rascunho
 inertia_target: resources/js/Pages/Manufacturing/Recipes.tsx
-last_updated: "2026-09-22"
+last_updated: "2026-10-05"
 ---
 
 # Comparação design × produção — `Manufacturing/Recipes` (Receitas)
@@ -153,7 +153,7 @@ os JSON da medição não foram versionados — a re-medição pós-deploy entra
 | R11 | Tabela | colunas de número à direita | visual | `DataGrid` `align:'right'` | células e cabeçalhos alinhados à direita | prod: 5 cabeçalhos e 5 células com `justify-self: end` | ACEITO |
 | R12 | Tabela | margem como `StatusBadge` | visual | protótipo R-10 (≥55 · ≥45 · abaixo) | badge do DS no tom da faixa | prod: margem 0% → tom `danger` (`oklch(0.26 0.07 18)` fundo), 12px | ACEITO |
 | R13 | Tabela | margem com fundo SÓLIDO | visual | `StatusBadge` do DS do Cowork | — | medido: o `StatusBadge` do React é suave com ponto (AP7) | FORA DE ESCOPO — 2026-10-02: suave com ponto é a regra AP7 (decidida em 2026-09-01), não pendência. O texto anterior ("BLOQUEADO, pedido ao dono do DS") estava errado |
-| R14 | Tabela | estrutura `<table>` + rodapé de paginação | visual | `DataGrid` → `shared/DataTable` (mapa do `prototipo-ui/design-system/HANDOFF.md` §4) | `<table>`, caixinha nativa 13px, cabeçalho 10px caixa-alta sobre `--bg-2`, linhas listradas, rodapé "‹ 1 › a–b de N receitas" dentro da moldura | — | EM PR — 2026-10-02: `density="grid"` no `shared/DataTable` (#8579, mergeado) + Receitas paginando no servidor. O texto anterior ("BLOQUEADO — gap do DS, sem par React") estava errado: o par é o `shared/DataTable` |
+| R14 | Tabela | estrutura `<table>` + rodapé de paginação | visual | `DataGrid` → `shared/DataTable` (mapa do `prototipo-ui/design-system/HANDOFF.md` §4) | `<table>`, caixinha nativa 13px, cabeçalho 10px caixa-alta sobre `--bg-2`, linhas listradas, rodapé "‹ 1 › a–b de N receitas" dentro da moldura | prod 2026-10-05 (deploy `37270930132`, com o #8604 e o #8628): `<table>`, cabeçalho 34px (com a caixinha), linha 45px, números mono 12px −0,01em — os três valores do protótipo | ACEITO — 2026-10-05. Histórico: em 2026-10-02 estava EM PR (`density="grid"` no `shared/DataTable`, #8579 + Receitas paginando no servidor); o texto antes disso ("BLOQUEADO — gap do DS, sem par React") estava errado: o par é o `shared/DataTable` |
 | R15 | Tabela | vazio (`EmptyState`) · seleção (`BulkBar`) | visual | protótipo | — | — | NÃO INICIADO |
 | R16 | Drawer | leitura da receita | visual | protótipo | — | — | NÃO INICIADO (não medido) |
 | R17 | Indicadores | peso do valor nos cartões de leitura | visual | protótipo: 700 | — | prod: 600 (padrão do `KpiCard`) | NÃO INICIADO — é o componente do DS, não da tela |
