@@ -129,7 +129,8 @@ class SellPosController extends Controller
         // Inertia recebe a Page React; o GET comum segue no Blade (cutover F5 é humano).
         // Nenhuma prop cara aqui: as linhas e os totais do rodapé vêm do endpoint que já existe
         // (`/sells-list-json?is_direct_sale=0`, SellController@inertiaList), pedidos pela Page.
-        if (request()->header('X-Inertia')) {
+        // Cutover por empresa no GET comum: flag `mwart.vendas_pos_index` (nasce desligada).
+        if (\App\Support\Mwart::telaReact('vendas_pos_index')) {
             $user = auth()->user();
 
             return Inertia::render('Sells/Pos/Index', [
