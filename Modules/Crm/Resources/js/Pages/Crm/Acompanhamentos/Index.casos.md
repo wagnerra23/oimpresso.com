@@ -214,3 +214,17 @@ negócio e troca `{customer_name}` pelo nome do **meu** contato.
 > segunda linha que vale para o comando recorrente.
 
 Status: 🧪
+
+## UC-CRMACO-19 · O antecipado monta "Quem vai receber" na própria tela · `must` `[T0]`
+
+**Dado** a tela de acompanhamentos
+**Quando** clico em **Acompanhamento antecipado**, escolho o critério (status do pagamento, pedidos
+ou nome) e peço **Próximo**
+**Então** a lista "Quem vai receber" vem do `getFollowUpGroups` em JSON — uma linha por contato, com
+as faturas dele e o atribuído padrão — e **só com contatos do meu negócio**. Salvar cria um
+acompanhamento por linha, pelo mesmo `store`. A tela clássica segue recebendo o partial Blade.
+
+> Âncora: protótipo `crm-blade-forms.jsx` → AntecipadoForm. A notificação do formulário Blade
+> ficou fora deste modal (vai desligada) — registrado no `_saida-07c`.
+
+Status: 🧪

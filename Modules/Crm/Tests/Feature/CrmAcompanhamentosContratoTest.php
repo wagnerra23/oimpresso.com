@@ -412,3 +412,34 @@ it('UC-CRMACO-18 · antecipado recusa contato, usuário e fatura de outro negóc
     expect($linha->title)->toBe('Ligar Contato '.ACO_TAG.' '.ACO_TAG)
         ->and((int) $linha->business_id)->toBe(ACO_BIZ);
 });
+
+// ── UC-CRMACO-19 · "Quem vai receber" do antecipado em JSON, só com contatos do negócio [T0] ──
+
+it('UC-CRMACO-19 · os grupos do antecipado vêm em JSON só com contatos do meu negócio, e a Blade segue recebendo HTML [T0]', function () {
+    $user = acoUsuario('aco_todos_test', ['crm.access_all_schedule']);
+    $vizinho = acoUsuario('aco_vizinho_test', ['crm.access_all_schedule'], ACO_OUTRO);
+    $meu = acoContato(ACO_BIZ, $user);
+    $alheio = acoContato(ACO_OUTRO, $vizinho);
+    $json = ['Accept' => 'application/json', 'X-Requested-With' => 'XMLHttpRequest'];
+
+    // Por nome: o id alheio é descartado, o meu volta com o atribuído padrão (quem cadastrou).
+    $grupos = $this->actingAs($user)
+        ->get('/crm/get-followup-groups?follow_up_by=contact_name&contact_ids[]='.$meu.'&contact_ids[]='.$alheio, $json)
+        ->assertOk()->json('grupos');
+    expect(array_column($grupos, 'contact_id'))->toBe([$meu]);
+    expect($grupos[0]['atribuido'])->toBe((string) $user->id);
+    expect($grupos[0]['faturas'])->toBe([]);
+
+    // Sem compra nos últimos dias: meu cliente sem transação entra, o do vizinho não.
+    $semCompra = $this->actingAs($user)
+        ->get('/crm/get-followup-groups?follow_up_by=has_no_transactions&days=30', $json)
+        ->assertOk()->json('grupos');
+    $ids = array_column($semCompra, 'contact_id');
+    expect(in_array($meu, $ids, true))->toBeTrue();
+    expect(in_array($alheio, $ids, true))->toBeFalse();
+
+    // A tela clássica pede sem Accept JSON e continua recebendo o partial Blade.
+    $html = $this->actingAs($user)->get('/crm/get-followup-groups?follow_up_by=contact_name&contact_ids[]='.$meu, ['X-Requested-With' => 'XMLHttpRequest']);
+    $html->assertOk();
+    expect($html->headers->get('Content-Type'))->not->toContain('application/json');
+});

@@ -783,13 +783,21 @@ class ScheduleController extends Controller
                 $sells_by_customer[$sell->contact_id][] = $sell;
             }
 
+            if (request()->wantsJson()) {
+                return $this->gruposJson(collect($sells_by_customer)->map(fn ($v) => $v[0]->contact)->values(), $sells_by_customer);
+            }
+
             return view('crm::schedule.partial.group_invoices_by_customer')
                 ->with(compact('sells_by_customer', 'users'));
         } elseif ($follow_up_by == 'contact_name') {
             $contact_ids = request()->input('contact_ids');
             $customers = Contact::where('contacts.business_id', $business_id)
-                ->whereIn('id', $contact_ids)
+                ->whereIn('id', (array) $contact_ids)
                 ->get();
+
+            if (request()->wantsJson()) {
+                return $this->gruposJson($customers);
+            }
 
             return view('crm::schedule.partial.group_customers')
                 ->with(compact('customers', 'users'));
@@ -815,9 +823,29 @@ class ScheduleController extends Controller
                 ->groupBy('contacts.id')
                 ->get();
 
+            if (request()->wantsJson()) {
+                return $this->gruposJson($customers);
+            }
+
             return view('crm::schedule.partial.group_customers')
                 ->with(compact('customers', 'users'));
         }
+    }
+
+    /**
+     * "Quem vai receber" do acompanhamento antecipado em JSON (thread Crm/07, PR-c2) — o mesmo
+     * agrupamento dos partials Blade, que seguem servindo a tela clássica. Uma linha por contato,
+     * com as faturas dele (só no caso por pagamento) e o atribuído padrão (`created_by`, como o
+     * `<select>` da Blade). Os contatos já vêm filtrados pelo negócio da sessão.
+     */
+    private function gruposJson($contatos, array $faturasPorContato = [])
+    {
+        return response()->json(['grupos' => collect($contatos)->map(fn ($c) => [
+            'contact_id' => (int) $c->id,
+            'cliente' => trim(($c->supplier_business_name ? $c->supplier_business_name.' · ' : '').$c->name),
+            'faturas' => collect($faturasPorContato[$c->id] ?? [])->map(fn ($s) => ['id' => (int) $s->id, 'numero' => (string) $s->invoice_no])->values(),
+            'atribuido' => $c->created_by ? (string) $c->created_by : null,
+        ])->values()]);
     }
 
     public function getCustomerDropdown($business_id)
