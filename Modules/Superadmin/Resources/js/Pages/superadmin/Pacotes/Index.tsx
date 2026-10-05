@@ -17,18 +17,21 @@
 // permitido" (é o COMMENT da coluna no UltimatePOS). Por isso o backend manda NÚMERO e quem
 // escreve "ilimitado" é aqui — a decisão precisa do valor e do vocabulário PT-BR juntos.
 //
-// Esta onda é LEITURA. O FormDrawer do F1 (UC-SA-010/011) é a SA-O4d: ele escreve `price`, e
-// isso exige a REGRA MESTRE de memory/proibicoes.md antes de existir.
+// Criar e editar pacote (thread Superadmin 03) é drawer da grade, ESTADO da tela:
+// `?pacote=novo` ou `?pacote=<id>`. Ele escreve `price` — a regra mestre de valor está no
+// `PacoteForm` (envio com ponto e 2 casas) e no controller (`num_uf` nos dois caminhos).
 
 import AppShellV2 from '@/Layouts/AppShellV2';
-import { Deferred } from '@inertiajs/react';
-import { type ReactNode } from 'react';
+import { Deferred, router } from '@inertiajs/react';
+import { useEffect, useRef, type ReactNode } from 'react';
+import { Button } from '@/Components/ui/button';
 import { Card, CardContent } from '@/Components/ui/card';
 import { Badge } from '@/Components/ui/badge';
 import { Skeleton } from '@/Components/ui/skeleton';
-import PageHeader from '@/Components/shared/PageHeader';
+import { PageHeader } from '@/Components/PageHeader';
 import EmptyState from '@/Components/shared/EmptyState';
 import { plural } from '../_components/assinatura';
+import { PacoteForm, PacoteFormEsqueleto, PacoteNaoEncontrado, type FormPacote } from './_components/PacoteForm';
 
 interface Pacote {
   id: number;
@@ -52,7 +55,12 @@ interface Pacote {
 
 interface Props {
   pacotes?: Pacote[];
+  /** `'novo'`, o id do pacote em edição, ou null com o drawer fechado. */
+  editando?: 'novo' | number | null;
+  formPacote?: FormPacote | null;
 }
+
+const ROTA = '/superadmin/packages';
 
 // Formatador de moeda: o VALOR vem do payload, sempre. Não existe literal monetário neste
 // arquivo — Tier 0 (memory/proibicoes.md).
@@ -92,16 +100,67 @@ function limite(n: number, sing: string, plur: string, ilimitado: string): strin
   return n === 0 ? ilimitado : plural(n, sing, plur);
 }
 
-function PacotesIndex({ pacotes }: Props) {
+function PacotesIndex({ pacotes, editando, formPacote }: Props) {
+  const abrir = (alvo: 'novo' | number) =>
+    router.get(ROTA, { pacote: alvo }, { only: ['editando', 'formPacote'], preserveState: true, preserveScroll: true, replace: true });
+  const fechar = () =>
+    router.get(ROTA, {}, { only: ['editando', 'formPacote'], preserveState: true, preserveScroll: true, replace: true });
+
+  // Os atalhos leem a versão mais recente de abrir/fechar sem re-registrar o listener.
+  const acoes = useRef({ abrir, fechar });
+  acoes.current = { abrir, fechar };
+
+  // `n` abre "Novo pacote" — o atalho do protótipo.
+  useEffect(() => {
+    const h = (e: KeyboardEvent) => {
+      const alvo = (e.target as HTMLElement)?.tagName;
+      if (alvo === 'INPUT' || alvo === 'TEXTAREA' || alvo === 'SELECT' || e.metaKey || e.ctrlKey) return;
+      if (e.key === 'n') {
+        e.preventDefault();
+        acoes.current.abrir('novo');
+      }
+    };
+    document.addEventListener('keydown', h);
+    return () => document.removeEventListener('keydown', h);
+  }, []);
+
+  // `esc` fecha o drawer. Um Select aberto dentro dele fecha primeiro (o Radix marca o evento).
+  useEffect(() => {
+    if (editando === null || editando === undefined) return;
+    const h = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && !e.defaultPrevented) acoes.current.fechar();
+    };
+    document.addEventListener('keydown', h);
+    return () => document.removeEventListener('keydown', h);
+  }, [editando]);
+
   return (
     <div className="pb-8">
-      <PageHeader title="Pacotes de assinatura" moduleNav description="A grade comercial da plataforma" />
+      <PageHeader
+        title="Pacotes de assinatura"
+        subtitle="A grade comercial da plataforma"
+        actions={
+          <Button size="sm" className="h-8 text-xs" onClick={() => abrir('novo')} data-contract="superadmin.pacotes.novo-botao">
+            Novo pacote <kbd className="ml-1 rounded border px-1 text-[10px] opacity-70">n</kbd>
+          </Button>
+        }
+      />
 
       <div className="px-6 pt-4" data-contract="superadmin.pacotes.grid">
         <Deferred data="pacotes" fallback={<GridEsqueleto />}>
-          <Grid pacotes={pacotes} />
+          <Grid pacotes={pacotes} onEditar={(id) => abrir(id)} />
         </Deferred>
       </div>
+
+      {editando !== null && editando !== undefined ? (
+        <Deferred data="formPacote" fallback={<PacoteFormEsqueleto onFechar={fechar} />}>
+          {formPacote ? (
+            <PacoteForm key={String(editando)} dados={formPacote} onFechar={fechar} />
+          ) : (
+            <PacoteNaoEncontrado onFechar={fechar} />
+          )}
+        </Deferred>
+      ) : null}
     </div>
   );
 }
@@ -118,7 +177,7 @@ function GridEsqueleto() {
   );
 }
 
-function Grid({ pacotes }: { pacotes?: Pacote[] }) {
+function Grid({ pacotes, onEditar }: { pacotes?: Pacote[]; onEditar: (id: number) => void }) {
   const lista = pacotes ?? [];
 
   if (lista.length === 0) {
@@ -137,13 +196,13 @@ function Grid({ pacotes }: { pacotes?: Pacote[] }) {
   return (
     <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
       {lista.map((p) => (
-        <CartaoPacote key={p.id} pacote={p} />
+        <CartaoPacote key={p.id} pacote={p} onEditar={onEditar} />
       ))}
     </div>
   );
 }
 
-function CartaoPacote({ pacote: p }: { pacote: Pacote }) {
+function CartaoPacote({ pacote: p, onEditar }: { pacote: Pacote; onEditar: (id: number) => void }) {
   return (
     <Card className={p.ativo ? undefined : 'opacity-60'}>
       <CardContent className="flex h-full flex-col gap-3 p-4">
@@ -156,6 +215,9 @@ function CartaoPacote({ pacote: p }: { pacote: Pacote }) {
               <Badge variant={p.ativo ? 'default' : 'secondary'}>{p.ativo ? 'ativo' : 'inativo'}</Badge>
             </div>
           </div>
+          <Button variant="outline" size="sm" className="h-7 shrink-0 text-[11px]" onClick={() => onEditar(p.id)} aria-label={`Editar o pacote ${p.nome}`}>
+            Editar
+          </Button>
         </header>
 
         <div className="flex items-baseline gap-1.5">
