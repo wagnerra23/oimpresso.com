@@ -278,20 +278,34 @@ function Index({ productions = [], summary, business_locations = {}, filters = {
         />
       </div>
 
-      {/* KPI strip — "Finalizadas" e "Pendentes" filtram a lista */}
+      {/* Indicadores — como o `MfgProducaoView`: cada cartão com a linha de apoio. O protótipo
+          explica por quê: sem ela a faixa media 75px aqui e 98px na aba Receitas, e trocar de aba
+          fazia a faixa pular (medido a 1280px). Pelo mesmo motivo o tamanho é o padrão, igual ao
+          da Receitas, e não o `compact`. Só "Finalizadas" filtra a lista (o MESMO filtro do
+          checkbox "Só finalizadas").
+
+          Duas descrições diferem do protótipo PORQUE o dado difere, e copiar a frase poria uma
+          afirmação falsa na tela (o mesmo motivo que tira a 3ª parte do subtítulo):
+           · lá os 4 números são calculados sobre local + período ("no filtro de local e data",
+             "ordens do período"); aqui `ProductionService::summary($business_id)` não recebe os
+             filtros — os números são de TODAS as ordens. Fazer os indicadores seguirem o filtro
+             muda o valor somado na tela: é passo próprio, com a regra de valor (2 caminhos +
+             antes→depois);
+           · lá o rascunho entra "a preço de hoje" (ele recalcula); aqui é o `final_total` GRAVADO
+             em cada ordem, nunca recalculado (US-MANU-004 + RUNBOOK-producao.md §1). */}
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4" data-contract="kpis">
         <KpiCard
           label="Total"
           value={summary?.total_count ?? 0}
           icon="layers"
-          size="compact"
+          description="ordens cadastradas"
         />
         <KpiCard
           label="Finalizadas"
           value={summary?.final_count ?? 0}
           icon="check-circle-2"
           tone={filters.is_final ? 'success' : 'default'}
-          size="compact"
+          description="estoque já movimentado"
           onClick={() => applyFilter(filters, { is_final: filters.is_final ? null : true })}
           selected={!!filters.is_final}
         />
@@ -299,13 +313,13 @@ function Index({ productions = [], summary, business_locations = {}, filters = {
           label="Pendentes"
           value={summary?.pending_count ?? 0}
           icon="clock"
-          size="compact"
+          description="rascunhos, sem movimentar estoque"
         />
         <KpiCard
           label="Valor total"
           value={formatCurrency(summary?.total_value ?? 0)}
           icon="dollar-sign"
-          size="compact"
+          description="todas as ordens cadastradas"
         />
       </div>
 

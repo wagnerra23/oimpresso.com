@@ -187,6 +187,24 @@ porque o `DatePicker` do DS não tem par React. **Ficam para depois:** as descri
 indicadores e o painel lateral da ordem (`MfgProducaoDrawer`), que precisa dos ingredientes
 consumidos vindos do servidor.
 
+### Indicadores 2026-10-05
+
+O protótipo dá a cada um dos 4 cartões uma linha de apoio e o tamanho padrão do `KpiCard`. A razão,
+declarada nele: sem a linha, a faixa media 75px nas Ordens e 98px na Receitas, e trocar de aba fazia a
+faixa pular. O PR de 2026-10-05 faz o mesmo, com o tamanho padrão no lugar do `compact`.
+
+| cartão | protótipo | produção depois do PR | por quê |
+|---|---|---|---|
+| Total | "ordens cadastradas" / "no filtro de local e data" | "ordens cadastradas" | os números aqui não seguem o filtro (abaixo) |
+| Finalizadas | "estoque já movimentado" | igual | — |
+| Pendentes | "rascunhos, sem movimentar estoque" | igual | — |
+| Valor total | "ordens do período · rascunho a preço de hoje" | "todas as ordens cadastradas" | sem filtro aqui, e o valor é o gravado, nunca recalculado |
+
+**DÍVIDA A FECHAR — os indicadores não seguem o filtro.** No protótipo os 4 números são calculados sobre
+local + período. Aqui `ProductionController@indexV2` chama `ProductionService::summary($business_id)`
+sem os filtros, e os números são de todas as ordens da empresa. Fechar muda o valor somado que aparece
+na tela, então segue a regra de valor (prova por 2 caminhos + antes→depois) e é PR próprio.
+
 ## Cobertura desta tela hoje
 
 | camada | estado |
