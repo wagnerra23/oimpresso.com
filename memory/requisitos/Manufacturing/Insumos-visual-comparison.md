@@ -6,7 +6,7 @@ tela: Manufacturing/Insumos
 owner: W
 status: rascunho
 inertia_target: resources/js/Pages/Manufacturing/Insumos.tsx
-last_updated: "2026-09-22"
+last_updated: "2026-10-05"
 ---
 
 # Comparação design × produção — `Manufacturing/Insumos`
@@ -80,8 +80,20 @@ de 2026-10-04 faz com isso (a grade passa a ser o `shared/DataTable`, `density="
 | maior peso | `StatusBadge` | pílula local `.mfg-pill` | `StatusBadge` (suave com ponto, regra AP7) |
 | clique | foco em toda linha, abre só com receita | igual | igual |
 
-**Não medido depois do PR:** a confirmação em produção vem depois do deploy. **Fora da grade, segue
-igual:** a busca (protótipo 360×34 com ícone; produção 384×30 sem ícone).
+**Medido em produção em 2026-10-05** (deploy `37270930132`, commit `f79b5f3f27`, que contém o #8628; biz=1, tema escuro, 1440 px; mesmas sondas do protótipo — `style-fingerprint --snippet` e a complementar de células/controles — e arquivos conferidos por hash). A produção tem 1 insumo (o protótipo, 22):
+
+| item | protótipo | produção 2026-10-05 | veredito |
+|---|---|---|---|
+| estrutura | `<table>` | `<table>`, nenhuma `.mfg-table` | IGUAL |
+| cabeçalho | 10px, 27px de altura, fundo `--bg-2` | 10px, 27px, mesmo fundo | IGUAL |
+| nome | 12,5px/400, cor do texto | 12,5px/400, mesma cor | IGUAL |
+| código, custo, estoque, receitas | mono 12px, custo/estoque/receitas à direita | igual | IGUAL |
+| cor do texto do cabeçalho | `--text-mute` (0,58) | `--text-dim` (0,72) | troca de contraste AA (ADR 0410) — a mesma da Receitas (R19 de [Recipes-visual-comparison](Recipes-visual-comparison.md)) |
+| selo "% do custo" | sólido, texto branco, 11,5px | tintado com ponto, 12px, 22px de altura | o protótipo usa o mesmo `StatusBadge` do DS, num pacote compilado anterior à regra AP7 (selo de estado é tintado com ponto, nunca sólido — `prototipo-ui/design-system/README.md`). Faixas de cor iguais: ≥50 vermelho, ≥25 amarelo, abaixo verde |
+| altura da linha | 34px | 33px | consequência do selo acima (22px + 5+5 + borda) |
+| listras | linhas alternadas | — | não verificável: 1 linha só |
+
+**Fora da grade, segue igual:** a busca (protótipo 360×34 com ícone; produção 384×30 sem ícone).
 
 ## Cobertura desta tela hoje
 
@@ -89,7 +101,7 @@ igual:** a busca (protótipo 360×34 com ícone; produção 384×30 sem ícone).
 |---|---|
 | charter | ✓ `Insumos.charter.md` — **`status: draft`** |
 | casos | ✓ **5 UCs** em `Insumos.casos.md` |
-| medição design×prod | ✗ **nunca rodou** |
+| medição design×prod | ✓ 2026-10-01 e 2026-10-05 (seções acima) |
 | e2e / browser | ✗ nenhum |
 | scorecard | ✗ nenhum |
 | baseline de pixel | ✗ **0 `.snap`** |

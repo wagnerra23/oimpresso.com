@@ -6,7 +6,7 @@ tela: Manufacturing/Report
 owner: W
 status: rascunho
 inertia_target: resources/js/Pages/Manufacturing/Report.tsx
-last_updated: "2026-09-22"
+last_updated: "2026-10-05"
 ---
 
 # Comparação design × produção — `Manufacturing/Report` (Relatório)
@@ -108,7 +108,22 @@ filtros padrão da tela, então a **grade** não pôde ser comparada célula a c
 reproduz essa anatomia (o mono 12px e a altura de linha 1,45 entraram no mesmo PR, medidos na
 Receitas). A barra de "% do período" segue a local do bundle: o `Progress` do DS não tem par React.
 
-**Não medido depois do PR:** a confirmação em produção precisa de um período com produção finalizada.
+**Medido em produção em 2026-10-05** (deploy `37270930132`, commit `f79b5f3f27`, que contém o #8628; biz=1, tema escuro, 1440 px; mesmas sondas do protótipo — `style-fingerprint --snippet` e a complementar de células/controles — e arquivos conferidos por hash). Com os filtros padrão (só finalizadas) a produção
+segue sem linhas; com "Só finalizadas" desmarcado (`?is_final=0`, só leitura) aparece 1 linha, e foi ela a medida:
+
+| item | protótipo | produção 2026-10-05 | veredito |
+|---|---|---|---|
+| estrutura | `<table>` | `<table>`, nenhuma `.mfg-table` | IGUAL |
+| cabeçalho | 10px, 27px de altura, fundo `--bg-2` | 10px, 27px, mesmo fundo | IGUAL |
+| linha | 29px | 29px | IGUAL |
+| produto | 12,5px/400 à esquerda | igual | IGUAL |
+| ordens, quantidade, custo total, custo médio | mono 12px à direita | igual | IGUAL |
+| % do período | 12,5px à direita | igual | IGUAL |
+| cor do texto do cabeçalho | `--text-mute` (0,58) | `--text-dim` (0,72) | troca de contraste AA (ADR 0410) — a mesma da Receitas |
+| listras | linhas alternadas | — | não verificável: 1 linha só |
+
+**Fora da grade:** os filtros. O protótipo mostra a caixa "Só finalizadas"; a produção tem também os campos De/Até
+(140×32) e a caixa como `Checkbox` do DS. Fica para o item "filtros do Relatório" da fila.
 
 ## Cobertura desta tela hoje
 
@@ -116,7 +131,7 @@ Receitas). A barra de "% do período" segue a local do bundle: o `Progress` do D
 |---|---|
 | charter | ✓ `Report.charter.md` — **`status: draft`** |
 | casos | ✓ **6 UCs** em `Report.casos.md` |
-| medição design×prod | ✗ **nunca rodou** |
+| medição design×prod | ✓ 2026-09-22, 2026-10-01 e 2026-10-05 (seções acima) |
 | e2e / browser | ✗ nenhum |
 | scorecard | ✗ nenhum |
 | baseline de pixel | ✗ **0 `.snap`** |
