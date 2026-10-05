@@ -8,9 +8,9 @@
 // Âncora de design: prototipo-ui/cowork/Wagner/crm-blade.jsx → TelaAcompanhamentos()
 // Contrato: governance/design/contracts/crm-acompanhamentos.contract.json
 //
-// Escrita (thread Crm/07): adicionar, editar, excluir (PR-a) e recorrente (PR-b) abrem aqui e
-// gravam pelas mesmas rotas da Blade. O "Acompanhamento antecipado" segue na Blade (`?classico=1`):
-// ele monta grupos por fatura via getFollowUpGroups, que devolve HTML.
+// Escrita (thread Crm/07): adicionar, editar, excluir (PR-a), recorrente e registro (PR-b) abrem
+// aqui e gravam pelas mesmas rotas da Blade. Só o "Acompanhamento antecipado" segue na Blade
+// (`?classico=1`): ele monta grupos por fatura via getFollowUpGroups, que devolve HTML.
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Deferred, router } from '@inertiajs/react';
@@ -36,6 +36,7 @@ import {
 } from '@/Components/ui/alert-dialog';
 import FormAcompanhamento from './_components/FormAcompanhamento';
 import FormRecorrente from './_components/FormRecorrente';
+import FormRegistro from './_components/FormRegistro';
 import { NOVO, NOVO_RECORRENTE, csrf, type Recorrente, type Valores } from './_components/acompanhamento';
 
 const ROTA = '/crm/follow-ups';
@@ -76,6 +77,7 @@ export default function AcompanhamentosIndex({ filtros, opcoes, acompanhamentos 
   const [form, setForm] = useState<{ id: number | null; inicial: Valores } | null>(null);
   const [excluir, setExcluir] = useState<Acompanhamento | null>(null);
   const [rec, setRec] = useState<{ id: number | null; inicial: Recorrente } | null>(null);
+  const [registro, setRegistro] = useState<Acompanhamento | null>(null);
   const recarregar = () => router.reload({ only: ['acompanhamentos'] });
   const acoes = {
     editar: (r: Acompanhamento) => setForm({ id: r.id, inicial: { ...r.editar, title: r.titulo } }),
@@ -83,6 +85,7 @@ export default function AcompanhamentosIndex({ filtros, opcoes, acompanhamentos 
       const { contact_id: _c, start_datetime: _s, end_datetime: _e, ...resto } = r.editar;
       setRec({ id: r.id, inicial: { ...resto, title: r.titulo } });
     },
+    registrar: setRegistro,
     excluir: setExcluir,
   };
 
@@ -179,6 +182,11 @@ export default function AcompanhamentosIndex({ filtros, opcoes, acompanhamentos 
           onFechar={() => setRec(null)} onSalvo={() => { setRec(null); recarregar(); }} />
       ) : null}
 
+      {registro ? (
+        <FormRegistro acompanhamento={registro} opcoes={opcoes}
+          onFechar={() => setRegistro(null)} onSalvo={() => { setRegistro(null); recarregar(); }} />
+      ) : null}
+
       <AlertDialog open={!!excluir} onOpenChange={(aberto) => { if (!aberto) setExcluir(null); }}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -212,7 +220,7 @@ function Filtro({ rotulo: nome, campo, lista, filtros }: { rotulo: string; campo
 
 interface Acoes {
   editar: (r: Acompanhamento) => void; editarRecorrente: (r: Acompanhamento) => void;
-  excluir: (r: Acompanhamento) => void;
+  registrar: (r: Acompanhamento) => void; excluir: (r: Acompanhamento) => void;
 }
 
 function colunas(opcoes: Opcoes | undefined, recorrente: boolean, acoes: Acoes): ColumnDef<Acompanhamento>[] {
@@ -228,10 +236,13 @@ function colunas(opcoes: Opcoes | undefined, recorrente: boolean, acoes: Acoes):
           <Button variant="ghost" size="sm" aria-label={`Ações de ${row.original.titulo}`}><MoreHorizontal className="size-4" /></Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start">
-          {/* Recorrente tem modal próprio (sem contato e sem datas). */}
+          {/* Recorrente tem modal próprio; o registro (log) só existe no avulso, como na Blade. */}
           {recorrente
             ? <DropdownMenuItem onSelect={() => acoes.editarRecorrente(row.original)}>Editar</DropdownMenuItem>
-            : <DropdownMenuItem onSelect={() => acoes.editar(row.original)}>Editar</DropdownMenuItem>}
+            : <>
+                <DropdownMenuItem onSelect={() => acoes.editar(row.original)}>Editar</DropdownMenuItem>
+                <DropdownMenuItem onSelect={() => acoes.registrar(row.original)}>Adicionar registro</DropdownMenuItem>
+              </>}
           <DropdownMenuItem variant="destructive" onSelect={() => acoes.excluir(row.original)}>Excluir</DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

@@ -5,7 +5,7 @@ autor: "[CL]"
 data: 2026-10-05
 base: origin/main ce42054202
 thread: 07-acompanhamentos-escrita.md
-veredito: "PR-a (adicionar, editar, excluir) e PR-b (recorrente: adicionar e editar) entregues em Inertia, pelas mesmas rotas. Registro (log) no PR seguinte; antecipado pendente (PR-c)."
+veredito: "PR-a (adicionar, editar, excluir) e PR-b (recorrente: adicionar e editar) entregues em Inertia, pelas mesmas rotas. PR-b2 (adicionar registro/log) entregue. Antecipado pendente (PR-c)."
 ---
 
 # _saida-07 · Acompanhamentos → escrita em Inertia
@@ -15,8 +15,8 @@ veredito: "PR-a (adicionar, editar, excluir) e PR-b (recorrente: adicionar e edi
 | PR | escopo | estado |
 |---|---|---|
 | PR-a (#8649) | modal "Adicionar/Editar acompanhamento" + coluna "Ação" (Editar, Excluir com confirmação) | mergeado |
-| PR-b (`claude/crm-acompanhamentos-recorrente-prb`) | modal "Acompanhamento recorrente": adicionar pela toolbar e "Editar" na aba recorrente | aberto |
-| PR-b2 (empilhado no PR-b) | "Adicionar registro" (log) no kebab do avulso, por `ScheduleLogController@store` | a abrir |
+| PR-b (#8678) | modal "Acompanhamento recorrente": adicionar pela toolbar e "Editar" na aba recorrente | aberto |
+| PR-b2 (`claude/crm-acompanhamentos-registro-prb2`, empilhado no #8678) | "Adicionar registro" (log) no kebab do avulso, por `ScheduleLogController@store` | aberto |
 | PR-c | "Acompanhamento antecipado"; rodapé por status/tipo; drawer de detalhe (com a lista de registros) | **não feito** |
 
 Prova do json: *"UCs de escrita verdes; os botões da toolbar deixam de levar a `?classico=1`"* —
@@ -68,11 +68,25 @@ trazê-lo exige um formato JSON daquela rota, e o PR-b passaria de 300 linhas. A
 
 Achado, **não consertado** (fora do prefixo): a Blade `create_recursive_follow_up` manda `is_recursive=true`, e a regra `boolean` do `StoreScheduleRequest` não aceita `"true"` — a tela clássica deve dar 422 no recorrente. Não medido em produção.
 
+## O que entrou (PR-b2)
+
+| arquivo | o quê |
+|---|---|
+| `…/_components/FormRegistro.tsx` | modal com os campos da Blade `schedule_log.create`: assunto, tipo de registro, início, fim, descrição, status do acompanhamento |
+| `…/Acompanhamentos/Index.tsx` | kebab do avulso ganha "Adicionar registro" (no recorrente a Blade também não tem) |
+| `Modules/Crm/Http/Controllers/ScheduleLogController.php` | `store` lê as datas por `uf_datetime_input` (ISO do modal e formato da empresa da Blade); sem isso o ISO estourava no `uf_date` |
+| `.github/workflows/verticais-pest.yml` | a lane dispara também com o `ScheduleLogController` |
+| casos · charter · teste | UC-CRMACO-16 (registro grava log e status) e 17 (registro em acompanhamento de outro negócio não grava — Tier 0) |
+
+`ScheduleLogController` está fora do `prefixo` da thread (que lista só o `ScheduleController`), mas
+o "log" faz parte do título da thread e a Blade grava por ele; a mudança é a leitura das datas.
+
 ## Pendente
 
-1. **PR-b2**: "Adicionar registro" (log), empilhado neste PR.
-2. **PR-c**: acompanhamento antecipado (precisa de JSON em `getFollowUpGroups`); rodapé por
+1. **PR-c**: acompanhamento antecipado (precisa de JSON em `getFollowUpGroups`); rodapé por
    status/tipo e drawer de detalhe com a lista de registros (pendente 2 do `_saida-03`).
-3. Tier 0 a olhar no PR-c: `addAdvanceFollowUp` usa as chaves de `follow_ups` como `contact_id` e
+2. Tier 0 a olhar no PR-c: `addAdvanceFollowUp` usa as chaves de `follow_ups` como `contact_id` e
    sincroniza `invoices` sem validar contra o negócio.
+3. `ScheduleLogController@store` só filtra por negócio: quem tem só `crm.access_own_schedule` registra em
+   acompanhamento de colega do mesmo negócio (não é vazamento entre negócios).
 4. Smoke em produção após o merge (Regra 0 / R1).

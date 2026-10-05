@@ -158,9 +158,10 @@ Status: 🧪
 
 ## Escrita (thread Crm/07, PR-b)
 
-> **Âncora:** SPEC do Crm §0 ("Follow-up agendado — funcional") e a tela Blade
-> `crm::schedule.create_recursive_follow_up` (mesmos campos), com as regras que o `store`/`update`
-> do `ScheduleController` já aplicavam (escopo por `business_id`). Nenhum endpoint novo.
+> **Âncora:** SPEC do Crm §0 ("Follow-up agendado — funcional") e as telas Blade
+> `crm::schedule.create_recursive_follow_up` e `crm::schedule_log.create`, com as regras que o
+> `store`/`update` do `ScheduleController` e o `store` do `ScheduleLogController` já aplicavam
+> (escopo por `business_id`). Nenhum endpoint novo.
 
 ## UC-CRMACO-14 · Adicionar recorrente grava no meu negócio · `must`
 
@@ -180,3 +181,22 @@ Status: 🧪
 
 Status: 🧪
 
+---
+
+## UC-CRMACO-16 · Adicionar registro grava o log e o status · `must`
+
+**Dado** um acompanhamento do meu negócio
+**Quando** salvo "Adicionar registro" com as datas do campo de data e hora e um status
+**Então** o registro fica gravado com o início que escolhi, e o acompanhamento passa ao status escolhido.
+
+Status: 🧪
+
+---
+
+## UC-CRMACO-17 · Registro em acompanhamento de outro negócio é recusado · `must` `[T0]`
+
+**Dado** um acompanhamento de outro negócio
+**Quando** tento adicionar um registro pelo id dele
+**Então** a resposta é `success: false`, nenhum registro é gravado e o status dele não muda.
+
+Status: 🧪
