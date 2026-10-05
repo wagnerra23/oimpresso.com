@@ -153,6 +153,14 @@ final class AcoesOsDoApp implements AcoesOs
         return (int) $os->id;
     }
 
+    public function criarVeiculo(User $user, int $businessId, array $dados): int
+    {
+        // business_id explícito: o `creating` do model só lê a sessão, que a API não tem.
+        $v = Vehicle::create(['business_id' => $businessId] + $dados);
+
+        return (int) $v->id;
+    }
+
     private function os(int $businessId, int $osId): ?ServiceOrder
     {
         return ServiceOrder::query()

@@ -368,12 +368,7 @@ class OficinaController extends Controller
         $pagina = max((int) $request->query('pagina', 1), 1);
         $busca = trim((string) $request->query('q', ''));
 
-        $q = DB::table('vehicles as v')
-            ->leftJoin('contacts as c', function ($j) {
-                $j->on('c.id', '=', 'v.contact_id')->on('c.business_id', '=', 'v.business_id');
-            })
-            ->where('v.business_id', $bizId)
-            ->whereNull('v.deleted_at');
+        $q = $this->consultaVeiculos($bizId);
 
         if ($busca !== '') {
             $like = '%' . $busca . '%';
@@ -396,30 +391,198 @@ class OficinaController extends Controller
             ->orderBy('v.id')
             ->offset(($pagina - 1) * self::POR_PAGINA)
             ->limit(self::POR_PAGINA + 1)
-            ->get([
-                'v.id', 'v.plate', 'v.secondary_plate', 'v.vehicle_type', 'v.color',
-                'v.manufacture_year', 'v.model_year', 'c.id as cliente_id', 'c.name as cliente',
-                DB::raw('GREATEST(COALESCE(v.mileage_at_entry, 0), COALESCE((SELECT MAX(so.mileage_at_service)'
-                    . ' FROM service_orders so WHERE so.vehicle_id = v.id AND so.business_id = v.business_id'
-                    . ' AND so.deleted_at IS NULL), 0)) as km'),
-            ]);
+            ->get($this->colunasVeiculo());
 
         return response()->json([
-            'itens' => $linhas->take(self::POR_PAGINA)->map(fn ($v) => [
-                'id' => (int) $v->id,
-                'placa' => (string) $v->plate,
-                'placa_secundaria' => $this->texto($v->secondary_plate),
-                'descricao' => $this->tipoVeiculo($v->vehicle_type),
-                'ano' => $this->ano($v->manufacture_year, $v->model_year),
-                'cliente' => $v->cliente,
-                'cliente_id' => $v->cliente_id !== null ? (int) $v->cliente_id : null,
-                'km' => (int) $v->km > 0 ? (int) $v->km : null,
-                'cor' => $this->texto($v->color),
-            ])->values(),
+            'itens' => $linhas->take(self::POR_PAGINA)->map(fn ($v) => $this->itemVeiculo($v))->values(),
             'total' => $total,
             'pagina' => $pagina,
             'tem_mais' => $linhas->count() > self::POR_PAGINA,
+            // "+ Veículo" no app: permissão de criar da web.
+            'pode_criar' => $this->podeCriarVeiculo($user),
         ]);
+    }
+
+    /** GET /api/app/veiculos/opcoes — tipos de veículo do ERP, na ordem da web (novo veículo). */
+    public function opcoesVeiculo(Request $request): JsonResponse
+    {
+        $user = $request->user();
+        if (! $this->podeVerVeiculos($user)) {
+            return $this->semPermissao();
+        }
+
+        return response()->json([
+            'tipos' => collect(TiposVeiculo::ROTULOS)->map(fn ($rotulo, $chave) => ['chave' => $chave, 'rotulo' => $rotulo])->values(),
+        ]);
+    }
+
+    /**
+     * POST /api/app/veiculos — novo veículo (pedido [W] 2026-10-05), como o store da web: só insere em
+     * vehicles. Diferenças, para restringir: o dono tem de ser do business do token (a web valida só
+     * `integer`), e placa já usada em outro veículo ativo do business é recusada (decisão [W]
+     * 2026-10-05: "o erp deve recusar duas placa ativas"), com o id dele para o app abrir.
+     * 201 = o item no formato da lista GET /api/app/veiculos.
+     */
+    public function storeVeiculo(Request $request): JsonResponse
+    {
+        $user = $request->user();
+        if (! $this->podeVerVeiculos($user) || ! $this->podeCriarVeiculo($user)) {
+            return $this->semPermissao();
+        }
+
+        $bizId = (int) $user->business_id;
+        $v = Validator::make($request->all(), [
+            'placa' => ['required', 'string', 'max:10'],
+            'tipo' => ['required', 'in:' . implode(',', array_keys(TiposVeiculo::ROTULOS))],
+            'placa_secundaria' => ['nullable', 'string', 'max:10'],
+            'ano_fabricacao' => ['nullable', 'integer', 'min:1900', 'max:2100'],
+            'ano_modelo' => ['nullable', 'integer', 'min:1900', 'max:2100'],
+            'cor' => ['nullable', 'string', 'max:30'],
+            'km' => ['nullable', 'integer', 'min:0'],
+            'chassi' => ['nullable', 'string', 'max:30'],
+            'renavam' => ['nullable', 'string', 'max:11'],
+            'contact_id' => ['nullable', 'integer'],
+        ], [
+            'placa.required' => 'A placa do veículo é obrigatória.',
+            'tipo.required' => 'Selecione o tipo do veículo.',
+            'tipo.in' => 'Tipo de veículo inválido.',
+            'renavam.max' => 'RENAVAM aceita no máximo 11 caracteres (padrão DENATRAN).',
+            'km.min' => 'O km não pode ser negativo.',
+        ]);
+        $campos = $v->fails() ? collect($v->errors()->toArray())->map(fn ($m) => $m[0])->all() : [];
+
+        // Como a consulta de placa da web: maiúsculas, só letras e números.
+        $placa = self::placa((string) $request->input('placa', ''));
+        $secundaria = self::placa((string) $request->input('placa_secundaria', ''));
+        if (! isset($campos['placa']) && $placa === '') {
+            $campos['placa'] = 'A placa do veículo é obrigatória.';
+        }
+        if (! isset($campos['placa_secundaria']) && $secundaria !== '' && $secundaria === $placa) {
+            $campos['placa_secundaria'] = 'A placa do reboque não pode ser igual à principal.';
+        }
+
+        // Tier 0 (ADR 0093): dono só do business do token.
+        if (! isset($campos['contact_id']) && $request->filled('contact_id') && ! DB::table('contacts')
+            ->where('business_id', $bizId)->where('id', (int) $request->input('contact_id'))->exists()) {
+            $campos['contact_id'] = 'Cliente não encontrado.';
+        }
+
+        $existente = null;
+        foreach (['placa' => $placa, 'placa_secundaria' => $secundaria] as $campo => $valor) {
+            if (isset($campos[$campo]) || $valor === '') {
+                continue;
+            }
+            $id = $this->veiculoAtivoComPlaca($bizId, $valor);
+            if ($id !== null) {
+                $campos[$campo] = 'Esta placa já está em outro veículo ativo.';
+                $existente ??= $id;
+            }
+        }
+
+        if ($campos !== []) {
+            return response()->json(array_filter([
+                'erro' => 'validacao',
+                'campos' => $campos,
+                'veiculo_existente_id' => $existente,
+            ], fn ($x) => $x !== null), 422);
+        }
+
+        $d = $v->validated();
+        $id = app(AcoesOs::class)->criarVeiculo($user, $bizId, [
+            'plate' => $placa,
+            'vehicle_type' => (string) $d['tipo'],
+            'secondary_plate' => $secundaria !== '' ? $secundaria : null,
+            'manufacture_year' => isset($d['ano_fabricacao']) ? (int) $d['ano_fabricacao'] : null,
+            'model_year' => isset($d['ano_modelo']) ? (int) $d['ano_modelo'] : null,
+            'color' => $this->texto($d['cor'] ?? null),
+            'mileage_at_entry' => isset($d['km']) ? (int) $d['km'] : null,
+            'chassis' => $this->texto($d['chassi'] ?? null),
+            'renavam' => $this->texto($d['renavam'] ?? null),
+            'contact_id' => isset($d['contact_id']) ? (int) $d['contact_id'] : null,
+        ]);
+        if ($id === null) {
+            return response()->json(['erro' => 'sem_configuracao', 'mensagem' => 'A oficina não está disponível.'], 503);
+        }
+
+        $linha = $this->consultaVeiculos($bizId)->where('v.id', $id)->first($this->colunasVeiculo());
+        if ($linha === null) {
+            return response()->json(['erro' => 'falha', 'mensagem' => 'Não foi possível ler o veículo criado.'], 500);
+        }
+
+        return response()->json($this->itemVeiculo($linha), 201);
+    }
+
+    /** Criar veículo: permissão da web (`oficinaauto.vehicle.create`). */
+    private function podeCriarVeiculo(?User $user): bool
+    {
+        return $user !== null && ($user->can('superadmin') || $user->can('oficinaauto.vehicle.create'));
+    }
+
+    /** "rba-2h78 " → "RBA2H78" (mesma regra do VehicleLookupService::normalizePlate da web). */
+    private static function placa(string $bruta): string
+    {
+        return strtoupper((string) preg_replace('/[^A-Za-z0-9]/', '', $bruta));
+    }
+
+    /**
+     * Id do veículo ATIVO (não excluído) do business que já usa a placa, como principal ou de reboque.
+     * Compara normalizado dos dois lados: o legado gravou placa com hífen, espaço e minúscula.
+     */
+    private function veiculoAtivoComPlaca(int $bizId, string $placa): ?int
+    {
+        $norm = "UPPER(REPLACE(REPLACE(REPLACE(COALESCE(%s, ''), '-', ''), ' ', ''), '.', ''))";
+        $id = DB::table('vehicles')
+            ->where('business_id', $bizId)
+            ->whereNull('deleted_at')
+            ->where(fn ($w) => $w->whereRaw(sprintf($norm, 'plate') . ' = ?', [$placa])
+                ->orWhereRaw(sprintf($norm, 'secondary_plate') . ' = ?', [$placa]))
+            ->orderBy('id')
+            ->value('id');
+
+        return $id !== null ? (int) $id : null;
+    }
+
+    /** Veículos ativos do business com o dono (só contato do mesmo business). */
+    private function consultaVeiculos(int $bizId): \Illuminate\Database\Query\Builder
+    {
+        return DB::table('vehicles as v')
+            ->leftJoin('contacts as c', function ($j) {
+                $j->on('c.id', '=', 'v.contact_id')->on('c.business_id', '=', 'v.business_id');
+            })
+            ->where('v.business_id', $bizId)
+            ->whereNull('v.deleted_at');
+    }
+
+    /** @return list<mixed> */
+    private function colunasVeiculo(): array
+    {
+        return [
+            'v.id', 'v.plate', 'v.secondary_plate', 'v.vehicle_type', 'v.color',
+            'v.manufacture_year', 'v.model_year', 'c.id as cliente_id', 'c.name as cliente',
+            DB::raw('GREATEST(COALESCE(v.mileage_at_entry, 0), COALESCE((SELECT MAX(so.mileage_at_service)'
+                . ' FROM service_orders so WHERE so.vehicle_id = v.id AND so.business_id = v.business_id'
+                . ' AND so.deleted_at IS NULL), 0)) as km'),
+        ];
+    }
+
+    /**
+     * Item da lista de veículos (o mesmo formato no 201 do POST).
+     *
+     * @return array<string, mixed>
+     */
+    private function itemVeiculo(object $v): array
+    {
+        return [
+            'id' => (int) $v->id,
+            'placa' => (string) $v->plate,
+            'placa_secundaria' => $this->texto($v->secondary_plate),
+            'descricao' => $this->tipoVeiculo($v->vehicle_type),
+            'ano' => $this->ano($v->manufacture_year, $v->model_year),
+            'cliente' => $v->cliente,
+            'cliente_id' => $v->cliente_id !== null ? (int) $v->cliente_id : null,
+            'km' => (int) $v->km > 0 ? (int) $v->km : null,
+            'cor' => $this->texto($v->color),
+        ];
     }
 
     /**

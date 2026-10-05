@@ -80,4 +80,13 @@ interface AcoesOs
      * @param  array{vehicle_id: int, contact_id: ?int, mileage_at_service: ?int, box_label: ?string, notes: ?string}  $dados
      */
     public function criar(User $user, int $businessId, array $dados): ?int;
+
+    /**
+     * Novo veículo, como o store da web (VehicleController@store): só insere em vehicles, sem valor,
+     * estoque, venda nem cobrança. Dados já validados pelo chamador (placa normalizada, tipo da lista,
+     * dono do business). null se a oficina não está disponível (módulo ausente).
+     *
+     * @param  array{plate: string, vehicle_type: string, secondary_plate: ?string, manufacture_year: ?int, model_year: ?int, color: ?string, mileage_at_entry: ?int, chassis: ?string, renavam: ?string, contact_id: ?int}  $dados
+     */
+    public function criarVeiculo(User $user, int $businessId, array $dados): ?int;
 }
