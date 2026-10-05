@@ -33,7 +33,8 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription,
   AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/Components/ui/alert-dialog';
-import FormAcompanhamento, { NOVO, csrf, type Valores } from './_components/FormAcompanhamento';
+import FormAcompanhamento from './_components/FormAcompanhamento';
+import { NOVO, csrf, type Valores } from './_components/acompanhamento';
 
 const ROTA = '/crm/follow-ups';
 const CLASSICO = `${ROTA}?classico=1`;

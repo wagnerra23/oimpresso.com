@@ -14,25 +14,8 @@ import { Checkbox } from '@/Components/ui/checkbox';
 import { Select, SelectContent, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import { SafeSelectItem } from '@/Components/ui/SafeSelectItem';
 import { Grid, Inline, Stack } from '@/Components/layout';
+import { csrf, type Listas, type Opcao, type Valores } from './acompanhamento';
 
-export interface Opcao { value: string; label: string }
-export interface Valores {
-  title: string; contact_id: string; status: string; start_datetime: string; end_datetime: string;
-  description: string; schedule_type: string; followup_category_id: string; user_id: string[];
-  allow_notification: boolean; notify_via: { sms: boolean; mail: boolean };
-  notify_before: number | string | null; notify_type: string;
-}
-interface Listas { contatos?: Opcao[]; usuarios?: Opcao[]; status?: Opcao[]; tipos?: Opcao[]; categorias?: Opcao[]; notificar?: Opcao[] }
-
-export const NOVO: Valores = {
-  title: '', contact_id: '', status: 'scheduled', start_datetime: '', end_datetime: '', description: '',
-  schedule_type: 'call', followup_category_id: '', user_id: [], allow_notification: false,
-  notify_via: { sms: false, mail: true }, notify_before: 30, notify_type: 'minute',
-};
-
-export function csrf(): string {
-  return (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement | null)?.content ?? '';
-}
 
 export default function FormAcompanhamento({ id, inicial, opcoes, onFechar, onSalvo }: {
   id: number | null; inicial: Valores; opcoes?: Listas; onFechar: () => void; onSalvo: () => void;
@@ -98,8 +81,8 @@ export default function FormAcompanhamento({ id, inicial, opcoes, onFechar, onSa
             <Stack gap={1} className="max-h-32 overflow-y-auto rounded-md border p-2" id="aco-user_id">
               {(opcoes?.usuarios ?? []).map((u) => (
                 <Inline key={u.value} gap={2} align="center" asChild>
-                  <label className="text-sm">
-                    <Checkbox checked={v.user_id.includes(u.value)} onCheckedChange={(c) => muda({ user_id: c ? [...v.user_id, u.value] : v.user_id.filter((x) => x !== u.value) })} />
+                  <label className="text-sm" htmlFor={`aco-u-${u.value}`}>
+                    <Checkbox id={`aco-u-${u.value}`} checked={v.user_id.includes(u.value)} onCheckedChange={(c) => muda({ user_id: c ? [...v.user_id, u.value] : v.user_id.filter((x) => x !== u.value) })} />
                     {u.label}
                   </label>
                 </Inline>
@@ -108,8 +91,8 @@ export default function FormAcompanhamento({ id, inicial, opcoes, onFechar, onSa
           ))}
         </Grid>
         <Inline gap={2} align="center" asChild>
-          <label className="text-sm">
-            <Checkbox checked={v.allow_notification} onCheckedChange={(c) => muda({ allow_notification: !!c })} />
+          <label className="text-sm" htmlFor="aco-allow_notification">
+            <Checkbox id="aco-allow_notification" checked={v.allow_notification} onCheckedChange={(c) => muda({ allow_notification: !!c })} />
             Enviar notificação <span className="text-muted-foreground">— sai no tempo escolhido antes do início do acompanhamento.</span>
           </label>
         </Inline>
@@ -120,8 +103,8 @@ export default function FormAcompanhamento({ id, inicial, opcoes, onFechar, onSa
               <Inline gap={4}>
                 {(['sms', 'mail'] as const).map((k) => (
                   <Inline key={k} gap={2} align="center" asChild>
-                    <label className="text-sm">
-                      <Checkbox checked={v.notify_via[k]} onCheckedChange={(c) => muda({ notify_via: { ...v.notify_via, [k]: !!c } })} />
+                    <label className="text-sm" htmlFor={`aco-via-${k}`}>
+                      <Checkbox id={`aco-via-${k}`} checked={v.notify_via[k]} onCheckedChange={(c) => muda({ notify_via: { ...v.notify_via, [k]: !!c } })} />
                       {k === 'sms' ? 'SMS' : 'E-mail'}
                     </label>
                   </Inline>
