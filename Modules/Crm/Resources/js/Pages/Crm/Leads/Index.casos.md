@@ -81,8 +81,45 @@ Status: 🧪
 
 ## UC-CRMLD-07 · `?classico=1` e o kanban devolvem a tela Blade · `should`
 
-**Dado** que formulário, conversão, kanban e "local" ainda vivem na Blade
+**Dado** que conversão, kanban e "local" ainda vivem na Blade
 **Quando** abro `/crm/leads?classico=1` ou `/crm/leads?lead_view=kanban`
 **Então** recebo a view `crm::lead.index`.
+
+Status: 🧪
+
+---
+
+> **Thread Crm/06 — formulário de lead.** Âncora: D2 ([W] 2026-10-01, *"o form de lead reusa
+> `Cliente/Create`"*) e os campos que a tela Blade (`contact.create` com `types = lead`) já
+> pedia: fonte, estágio de vida e atribuído a. O store é o mesmo `LeadController@store`.
+
+## UC-CRMLD-08 · "Adicionar" abre o Cliente/Create em modo lead · `must` `[T0]`
+
+**Dado** que tenho `crm.access_all_leads` e há fonte e usuário no meu negócio e no vizinho
+**Quando** abro `/crm/leads/create`
+**Então** recebo Inertia `Cliente/Create` com tipo `lead`, título "Novo lead" e destino
+`/crm/leads`; e as opções de fonte e de atribuído trazem só as do meu negócio.
+
+Status: 🧪
+
+---
+
+## UC-CRMLD-09 · Salvar grava lead com fonte, estágio e atribuído · `must`
+
+**Dado** o formulário de lead preenchido com nome, fonte, estágio e atribuído
+**Quando** salvo
+**Então** o contato é gravado no meu negócio com `type = lead` (mesmo que o payload diga
+outro tipo), com a fonte, o estágio e o atribuído escolhidos, e volto para `/crm/leads`.
+Sem nome, o campo acusa erro.
+
+Status: 🧪
+
+---
+
+## UC-CRMLD-10 · Atribuído, fonte e estágio de outro negócio não entram · `must` `[T0]`
+
+**Dado** um payload com usuário, fonte e estágio de outro negócio
+**Quando** salvo o lead
+**Então** o lead é gravado no meu negócio sem atribuído, sem fonte e sem estágio.
 
 Status: 🧪

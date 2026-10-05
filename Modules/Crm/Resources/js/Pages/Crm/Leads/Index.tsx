@@ -8,8 +8,8 @@
 // Âncora de design: prototipo-ui/cowork/Wagner/crm-blade.jsx → TelaLeads()
 // Contrato: governance/design/contracts/crm-leads.contract.json
 //
-// Esta onda é LEITURA. O formulário (D2: reusar Cliente/Create), a conversão para cliente, o
-// kanban e o "local" do contato seguem na tela Blade, aberta por `?classico=1`.
+// "Adicionar" abre o formulário de lead (Cliente/Create parametrizado, thread Crm/06). A
+// conversão para cliente, o kanban e o "local" do contato seguem na Blade (`?classico=1`).
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Deferred, router } from '@inertiajs/react';
@@ -29,6 +29,8 @@ import DataTable, { type DensidadeDaTabela, type PaginatorShape } from '@/Compon
 const ROTA = '/crm/leads';
 const CLASSICO = `${ROTA}?classico=1`;
 const KANBAN = `${ROTA}?lead_view=kanban`;
+// Formulário de lead = Cliente/Create parametrizado (thread Crm/06, D2).
+const NOVO = `${ROTA}/create`;
 const TODOS = '__todos';
 
 interface Opcao { value: string; label: string }
@@ -85,7 +87,7 @@ export default function LeadsIndex({ filtros, opcoes, leads, lead }: Props) {
               <Button asChild variant="outline" size="sm"><a href={KANBAN}>Kanban</a></Button>
               <Button variant={densidade === 'default' ? 'secondary' : 'outline'} size="sm" aria-pressed={densidade === 'default'} onClick={() => setDensidade('default')}>Confortável</Button>
               <Button variant={densidade === 'dense' ? 'secondary' : 'outline'} size="sm" aria-pressed={densidade === 'dense'} onClick={() => setDensidade('dense')}>Compacto</Button>
-              <Button asChild size="sm"><a href={CLASSICO}>Adicionar</a></Button>
+              <Button asChild size="sm"><a href={NOVO}>Adicionar</a></Button>
             </div>
           </div>
 
