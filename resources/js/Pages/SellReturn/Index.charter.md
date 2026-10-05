@@ -38,8 +38,8 @@ valor já foi pago ao cliente.
 - L2 Quem tem só `access_own_sell_return` vê apenas as devoluções que criou.
 - L3 Os três números do topo são leitura do que já está gravado: devoluções com saldo a pagar,
   quantidade no mês e soma de `final_total` no mês. A tela não recalcula valor.
-- L4 "Editar" abre o registro legado `/sell-return/add/{venda}`; o link vindo de `Sells/Index`
-  não muda.
+- L4 "Editar" abre o registro `/sell-return/add/{venda}` por visita Inertia (`SellReturn/Add`,
+  PR 2 — `Add.charter.md`); o link vindo de `Sells/Index` não muda e segue abrindo a Blade.
 
 ## Regras do registro (PR 2 — `SellReturn/Add`, não implementadas aqui)
 
