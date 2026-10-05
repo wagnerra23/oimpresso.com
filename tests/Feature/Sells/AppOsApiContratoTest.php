@@ -308,3 +308,73 @@ it('veículos: sem oficinaauto.vehicle.view responde 403; veículo de OUTRO busi
     expect($ids)->toContain($meu);
     expect($ids)->not->toContain($alheio);
 });
+
+// ── Tela 08 — GET /api/app/veiculos/{id}/os (contrato api/tela-08-veiculos.md, histórico) ──
+
+/** Veículo do business com permissão de ver veículos já dada ao usuário do teste. */
+function appOsVeiculoComPermissao(object $t): int
+{
+    Permission::firstOrCreate(['name' => 'oficinaauto.vehicle.view', 'guard_name' => 'web']);
+    $t->user->givePermissionTo('oficinaauto.vehicle.view');
+
+    return (int) DB::table('vehicles')->insertGetId([
+        'business_id' => $t->biz->id, 'plate' => 'HIS' . random_int(1000, 9999), 'vehicle_type' => 'caminhao',
+        'created_at' => now(), 'updated_at' => now(),
+    ]);
+}
+
+function appOsDoVeiculo(int $bizId, int $veiculo, ?int $stageId, string $tipo, string $entrada): int
+{
+    return (int) DB::table('service_orders')->insertGetId([
+        'business_id' => $bizId, 'vehicle_id' => $veiculo, 'order_type' => $tipo, 'status' => 'aberta',
+        'current_stage_id' => $stageId, 'entered_at' => $entrada, 'created_at' => now(), 'updated_at' => now(),
+    ]);
+}
+
+it('histórico do veículo: todas as OS dele, da entrada mais nova para a mais antiga, com etapa e valor do ERP', function () {
+    $v = appOsVeiculoComPermissao($this);
+    $biz = (int) $this->biz->id;
+    $entregue = appOsDoVeiculo($biz, $v, $this->etapas['entregue'], 'mecanica', now()->subDays(10)->toDateTimeString());
+    $fora = appOsDoVeiculo($biz, $v, null, 'manutencao', now()->subDays(5)->toDateTimeString());
+    $semPipeline = appOsDoVeiculo($biz, $v, null, 'mecanica', now()->subDays(2)->toDateTimeString());
+    DB::table('oficina_service_order_items')->insert([
+        ['business_id' => $biz, 'service_order_id' => $entregue, 'tipo' => 'peca', 'descricao' => 'Bieleta',
+            'quantidade' => 2, 'valor_unitario' => 210, 'valor_total' => 420, 'created_at' => now(), 'updated_at' => now()],
+        ['business_id' => $biz, 'service_order_id' => $entregue, 'tipo' => 'mao_obra', 'descricao' => 'Troca',
+            'quantidade' => 1, 'valor_unitario' => 330, 'valor_total' => 330, 'created_at' => now(), 'updated_at' => now()],
+    ]);
+    // OS de outro veículo do mesmo business não entra.
+    $outroVeiculo = appOsCriar($biz, $this->etapas['recepcao']);
+
+    $itens = $this->getJson("/api/app/veiculos/{$v}/os")->assertOk()->json('itens');
+
+    expect(array_column($itens, 'os_id'))->toBe([$semPipeline, $fora, $entregue]);
+    expect(array_column($itens, 'os_id'))->not->toContain($outroVeiculo);
+    expect(array_column($itens, 'etapa_rotulo'))->toBe(['Recepção', null, 'Entregue']);
+    // JSON grava 750.0 como 750: compara como número (null continua null).
+    expect(array_map(fn ($x) => $x === null ? null : (float) $x, array_column($itens, 'valor')))->toBe([null, null, 750.0]);
+    expect($itens[2]['numero'])->toBe('OS-' . str_pad((string) $entregue, 5, '0', STR_PAD_LEFT));
+    expect($itens[2]['data'])->toBe(now()->subDays(10)->toDateString());
+});
+
+it('histórico do veículo: sem oficinaauto.vehicle.view responde 403; veículo de OUTRO business responde 404', function () {
+    $alheio = (int) DB::table('vehicles')->insertGetId([
+        'business_id' => $this->outroBiz->id, 'plate' => 'OUT' . random_int(1000, 9999), 'vehicle_type' => 'caminhao',
+        'created_at' => now(), 'updated_at' => now(),
+    ]);
+    $this->getJson("/api/app/veiculos/{$alheio}/os")->assertStatus(403)->assertJsonPath('erro', 'sem_permissao');
+
+    $meu = appOsVeiculoComPermissao($this);
+    $this->getJson("/api/app/veiculos/{$meu}/os")->assertOk();
+    $this->getJson("/api/app/veiculos/{$alheio}/os")->assertStatus(404)->assertJsonPath('erro', 'nao_encontrado');
+});
+
+it('histórico do veículo: OS de OUTRO business apontando para o meu veículo não aparece', function () {
+    $v = appOsVeiculoComPermissao($this);
+    $minha = appOsDoVeiculo((int) $this->biz->id, $v, $this->etapas['recepcao'], 'mecanica', now()->toDateTimeString());
+    $alheia = appOsDoVeiculo((int) $this->outroBiz->id, $v, null, 'mecanica', now()->toDateTimeString());
+
+    $ids = array_column($this->getJson("/api/app/veiculos/{$v}/os")->assertOk()->json('itens'), 'os_id');
+    expect($ids)->toContain($minha);
+    expect($ids)->not->toContain($alheia);
+});

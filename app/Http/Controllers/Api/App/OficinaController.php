@@ -34,6 +34,9 @@ class OficinaController extends Controller
 
     private const POR_PAGINA = 20;
 
+    /** Teto do histórico do veículo (sem paginação no app): as mais recentes. */
+    private const HISTORICO_MAX = 200;
+
     public function __construct(private ModuleUtil $moduleUtil)
     {
     }
@@ -307,6 +310,75 @@ class OficinaController extends Controller
             'total' => $total,
             'pagina' => $pagina,
             'tem_mais' => $linhas->count() > self::POR_PAGINA,
+        ]);
+    }
+
+    /**
+     * GET /api/app/veiculos/{id}/os — histórico do veículo na tela 08. Todas as OS do veículo,
+     * inclusive encerradas e fora do fluxo da oficina, da entrada mais nova para a mais antiga.
+     * Mesma permissão da lista de veículos; veículo de outra empresa ou inexistente → 404.
+     */
+    public function veiculoOs(Request $request, int $id): JsonResponse
+    {
+        $user = $request->user();
+        if (! $this->podeVerVeiculos($user)) {
+            return $this->semPermissao();
+        }
+
+        $bizId = (int) $user->business_id;
+        $existe = DB::table('vehicles')
+            ->where('business_id', $bizId)
+            ->whereNull('deleted_at')
+            ->where('id', $id)
+            ->exists();
+        if (! $existe) {
+            return response()->json(['erro' => 'nao_encontrado', 'mensagem' => 'Veículo não encontrado.'], 404);
+        }
+
+        // Rótulo de toda etapa do processo da oficina (terminais incluídas); OS de mecânica ainda
+        // sem pipeline fica na etapa inicial, como no quadro web; fora do processo → null.
+        $rotulos = DB::table('sale_process_stages as s')
+            ->join('sale_processes as p', 'p.id', '=', 's.process_id')
+            ->where('p.business_id', $bizId)
+            ->where('p.key', self::PROCESSO)
+            ->pluck('s.name', 's.id');
+        $inicial = $this->etapas($bizId)->first();
+
+        $linhas = DB::table('service_orders as so')
+            ->leftJoin('contacts as c', function ($j) {
+                $j->on('c.id', '=', 'so.contact_id')->on('c.business_id', '=', 'so.business_id');
+            })
+            ->where('so.business_id', $bizId)
+            ->where('so.vehicle_id', $id)
+            ->whereNull('so.deleted_at')
+            ->orderByRaw('COALESCE(so.entered_at, so.created_at) DESC')
+            ->orderByDesc('so.id')
+            ->limit(self::HISTORICO_MAX)
+            ->get([
+                'so.id', 'so.order_type', 'so.current_stage_id', 'c.name as cliente',
+                DB::raw('COALESCE(so.entered_at, so.created_at) as data'),
+                DB::raw('(SELECT SUM(i.valor_total) FROM oficina_service_order_items i'
+                    . ' WHERE i.service_order_id = so.id AND i.business_id = so.business_id'
+                    . ' AND i.deleted_at IS NULL) as valor'),
+            ]);
+
+        return response()->json([
+            'itens' => $linhas->map(function ($o) use ($rotulos, $inicial) {
+                if ($o->current_stage_id !== null) {
+                    $etapa = $rotulos[(int) $o->current_stage_id] ?? null;
+                } else {
+                    $etapa = $o->order_type === 'mecanica' && $inicial !== null ? $inicial->name : null;
+                }
+
+                return [
+                    'os_id' => (int) $o->id,
+                    'numero' => 'OS-' . str_pad((string) $o->id, 5, '0', STR_PAD_LEFT),
+                    'data' => $o->data !== null ? substr((string) $o->data, 0, 10) : null,
+                    'etapa_rotulo' => $etapa,
+                    'cliente' => $o->cliente,
+                    'valor' => $o->valor === null ? null : round((float) $o->valor, 2),
+                ];
+            })->values(),
         ]);
     }
 

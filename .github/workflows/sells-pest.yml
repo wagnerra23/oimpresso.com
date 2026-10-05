@@ -81,6 +81,9 @@ on:
       - 'app/Http/Controllers/ImportSalesController.php'
       - 'app/Services/Sells/**'
       - 'app/Jobs/ImportarVendasJob.php'
+      # Sob teste em VendasMwartCutoverTest (flags de cutover por empresa das telas de Vendas).
+      - 'config/mwart.php'
+      - 'app/Support/Mwart.php'
       - 'resources/js/Pages/Sells/**'
       - 'database/schema/mysql-schema.sql'
       - '.github/workflows/sells-pest.yml'
@@ -138,6 +141,8 @@ jobs:
               - 'app/Http/Controllers/ImportSalesController.php'
               - 'app/Services/Sells/**'
               - 'app/Jobs/ImportarVendasJob.php'
+              - 'config/mwart.php'
+              - 'app/Support/Mwart.php'
               - 'app/Http/Controllers/Api/App/PedidosController.php'
               - 'app/Http/Controllers/Api/App/InicioController.php'
               - 'app/Http/Controllers/Api/App/PerfilMenuController.php'
@@ -258,6 +263,16 @@ jobs:
         # GET /api/app/financeiro, só leitura. Resumo conferido por delta contra a conta à mão
         # e contra o UnificadoService::kpis; títulos, baixas e contas do business 2 fora do 98.
         # NASCE SEM RUN: vermelho aqui é este arquivo.
+        #
+        # 2026-10-05 — + VendasMwartCutoverTest: flags `mwart.vendas_*` que ligam a tela React
+        # das 7 telas de Vendas no GET comum, POR EMPRESA (nascem desligadas). Por tela: flag
+        # desligada → Blade; ligada p/ a empresa → React; ligada p/ outra → Blade; X-Inertia →
+        # React como hoje; AJAX sem X-Inertia → JSON. Tenant 98. NASCE SEM RUN.
+        #
+        # 2026-10-05 — + SellReturnAddContratoTest (UC-SRADD-01..06 de `SellReturn/Add.casos.md`,
+        # thread 03 venda-menu, PR 2 de 2): registro de devolução em React gravando pelo MESMO
+        # store(). Dupla prova da REGRA MESTRE: payload da Blade e da Page na mesma conta à mão
+        # (total 2.222,10 · estoque +2 cada) + [T0] 98 × 99. NASCE SEM RUN.
         env:
           DB_CONNECTION: mysql
           DB_HOST: 127.0.0.1
@@ -295,10 +310,12 @@ jobs:
             tests/Feature/Sells/BuscaProdutoPrecoDeGrupoContratoTest.php \
             tests/Feature/Sells/SalesOrderIndexContratoTest.php \
             tests/Feature/Sells/SellReturnIndexContratoTest.php \
+            tests/Feature/Sells/SellReturnAddContratoTest.php \
             tests/Feature/Sells/DescontosContratoTest.php \
             tests/Feature/Sells/SellsPosIndexContratoTest.php \
             tests/Feature/Sells/ImportSalesContratoTest.php \
-            tests/Feature/Sells/ImportSalesReverterContratoTest.php
+            tests/Feature/Sells/ImportSalesReverterContratoTest.php \
+            tests/Feature/Sells/VendasMwartCutoverTest.php
 
 
       # Passo 1 do plano da LC-13 (Gate:): a lane JA emitia JUnit e NINGUEM lia.

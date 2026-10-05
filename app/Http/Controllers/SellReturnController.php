@@ -66,7 +66,9 @@ class SellReturnController extends Controller
         // completa de página → Blade (cutover F5 é humano). TEM de vir ANTES do ajax():
         // o cliente Inertia manda X-Inertia E X-Requested-With, e o ramo ajax() devolveria
         // o JSON do DataTable no lugar da página.
-        if (request()->header('X-Inertia')) {
+        // Cutover por empresa no GET comum: flag `mwart.vendas_sell_return_index` (nasce
+        // desligada). AJAX sem X-Inertia segue no DataTable abaixo mesmo com a flag ligada.
+        if (\App\Support\Mwart::telaReact('vendas_sell_return_index', (int) $business_id)) {
             return $this->inertiaIndex((int) $business_id);
         }
 
@@ -349,6 +351,14 @@ class SellReturnController extends Controller
             return $this->moduleUtil->expiredResponse();
         }
 
+        // MWART dual (thread 03 de venda-menu, PR 2 de 2): visita Inertia → React
+        // (SellReturn/Add); carga completa de página → Blade abaixo, intacta. A Page grava
+        // pelo MESMO store() sem mudar a regra de cálculo: ela só monta o payload que o
+        // form Blade monta. Casos: resources/js/Pages/SellReturn/Add.casos.md (UC-SRADD-*).
+        if (request()->header('X-Inertia')) {
+            return $this->inertiaAdd((int) $business_id, (int) $id);
+        }
+
         $sell = Transaction::where('business_id', $business_id)
                             ->with(['sell_lines', 'location', 'return_parent', 'contact', 'tax', 'sell_lines.sub_unit', 'sell_lines.product', 'sell_lines.product.unit'])
                             ->find($id);
@@ -364,6 +374,95 @@ class SellReturnController extends Controller
 
         return view('sell_return.add')
             ->with(compact('sell'));
+    }
+
+    /**
+     * Registro de devolução em React (`SellReturn/Add`). Só LEITURA aqui: a gravação é o
+     * store() de sempre. A venda é buscada com o escopo do business da sessão; de outra
+     * empresa (ou id que não é venda) responde 404 já na carga inicial (ADR 0093).
+     */
+    private function inertiaAdd(int $business_id, int $id)
+    {
+        $existe = Transaction::where('business_id', $business_id)
+            ->where('type', 'sell')
+            ->where('id', $id)
+            ->exists();
+        if (! $existe) {
+            abort(404);
+        }
+
+        return Inertia::render('SellReturn/Add', [
+            'venda' => Inertia::defer(fn () => $this->inertiaAddVenda($business_id, $id), 'venda'),
+        ]);
+    }
+
+    /**
+     * Os mesmos valores que sell_return/add.blade.php põe no form, já como TEXTO no formato
+     * da empresa (as mesmas expressões das diretivas @num_format / @format_quantity /
+     * @format_datetime). A Page envia esses textos sem reformatar: o store() recebe a mesma
+     * coisa pelos dois caminhos.
+     */
+    private function inertiaAddVenda(int $business_id, int $id): array
+    {
+        // Mesmas relações que o ramo Blade carrega. As relações do núcleo UltimatePOS não
+        // declaram tipo de retorno e o larastan não as enxerga (mesmos erros já no baseline
+        // para add()/show()); por isso a leitura vai por getRelationValue() e a carga, numa
+        // linha só, com o ignore pontual.
+        // @phpstan-ignore-next-line
+        $sell = Transaction::where('business_id', $business_id)->with(['sell_lines', 'location', 'return_parent', 'contact', 'tax', 'sell_lines.sub_unit', 'sell_lines.product', 'sell_lines.product.unit', 'sell_lines.variations.product_variation'])->findOrFail($id);
+        $devolucao = $sell->getRelationValue('return_parent');
+        $contato = $sell->getRelationValue('contact');
+        $local = $sell->getRelationValue('location');
+        $imposto = $sell->getRelationValue('tax');
+
+        $sep_dec = session('currency')['decimal_separator'] ?? ',';
+        $sep_mil = session('currency')['thousand_separator'] ?? '.';
+        $num = fn ($v) => number_format((float) $v, (int) session('business.currency_precision', 2), $sep_dec, $sep_mil);
+        $qtd = fn ($v) => number_format((float) $v, (int) session('business.quantity_precision', 2), $sep_dec, $sep_mil);
+
+        $linhas = [];
+        foreach ($sell->getRelationValue('sell_lines') as $sell_line) {
+            if (! empty($sell_line->sub_unit_id)) {
+                $sell_line = $this->transactionUtil->recalculateSellLineTotals($business_id, $sell_line);
+            }
+            $unidade = ! empty($sell_line->sub_unit) ? $sell_line->sub_unit : $sell_line->product->unit;
+            $nome = $sell_line->product->name;
+            if ($sell_line->product->type == 'variable' && ! empty($sell_line->variations)) {
+                $nome .= ' - '.($sell_line->variations->product_variation->name ?? '').' - '.$sell_line->variations->name;
+            }
+
+            $linhas[] = [
+                'sell_line_id' => (int) $sell_line->id,
+                'produto' => $nome,
+                'sku' => $sell_line->variations->sub_sku ?? null,
+                'unidade' => (string) ($unidade->short_name ?? ''),
+                'permite_decimal' => (int) ($unidade->allow_decimal ?? 1) !== 0,
+                'quantidade_vendida' => (float) $sell_line->quantity,
+                'quantidade_vendida_txt' => $this->transactionUtil->num_f($sell_line->quantity, false, null, true),
+                'quantidade_devolvida_txt' => $qtd($sell_line->quantity_returned),
+                'preco_unitario_txt' => $num($sell_line->unit_price_inc_tax),
+            ];
+        }
+
+        $data = ! empty($devolucao->transaction_date) ? (string) $devolucao->transaction_date : 'now';
+        $formato_hora = session('business.time_format') == 24 ? 'H:i' : 'h:i A';
+
+        return [
+            'id' => (int) $sell->id,
+            'numero' => (string) $sell->invoice_no,
+            'data' => (string) $sell->getAttribute('transaction_date'),
+            'cliente' => $contato->name ?? null,
+            'local' => $local->name ?? null,
+            'devolucao' => empty($devolucao) ? null : ['id' => (int) $devolucao->id, 'numero' => (string) $devolucao->invoice_no],
+            'numero_devolucao_txt' => $devolucao->invoice_no ?? '',
+            'data_devolucao_txt' => \Carbon\Carbon::createFromTimestamp((int) strtotime($data))
+                ->format(session('business.date_format', config('constants.default_date_format', 'd/m/Y')).' '.$formato_hora),
+            'tax_id' => $sell->tax_id,
+            'imposto' => empty($imposto) ? null : ['nome' => (string) $imposto->name, 'percentual' => (float) $imposto->amount],
+            'desconto_tipo' => (string) (! empty($devolucao->discount_type) ? $devolucao->discount_type : $sell->discount_type),
+            'desconto_valor_txt' => $num(! empty($devolucao->discount_amount) ? $devolucao->discount_amount : $sell->discount_amount),
+            'linhas' => $linhas,
+        ];
     }
 
     /**
