@@ -66,6 +66,10 @@ de superadmin); esta thread não muda isso. O teto de negócios afetados medido 
 recibo"): menu com o ghost Documentação, UC-CONN-19 verde na lane MySQL, run citado acima.
 O `00-INDICE.md` não foi editado.
 
+O `placar.mjs` lê este recibo como `09 [em curso] (indecidível)`: a prova é do tipo `execucao`, e o
+avaliador de recibo ficou fora do repo (ADR 0397). É o mesmo estado da thread 10. O "entregue 1 de
+1" acima é a leitura humana do recibo contra a prova do json, não a saída da máquina.
+
 ## NÃO MEDI
 - Render da aba em produção (screenshot). A prova aqui é o teste de contrato das props, não o DOM.
 - O que a URL antiga `/docs` serve hoje.
