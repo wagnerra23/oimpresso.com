@@ -15,8 +15,8 @@ veredito: "PR-a (adicionar, editar, excluir) e PR-b (recorrente: adicionar e edi
 | PR | escopo | estado |
 |---|---|---|
 | PR-a (#8649) | modal "Adicionar/Editar acompanhamento" + coluna "Ação" (Editar, Excluir com confirmação) | mergeado |
-| PR-b (#8678) | modal "Acompanhamento recorrente": adicionar pela toolbar e "Editar" na aba recorrente | aberto |
-| PR-b2 (`claude/crm-acompanhamentos-registro-prb2`, empilhado no #8678) | "Adicionar registro" (log) no kebab do avulso, por `ScheduleLogController@store` | aberto |
+| PR-b (#8678) | modal "Acompanhamento recorrente": adicionar pela toolbar e "Editar" na aba recorrente | mergeado |
+| PR-b2 (#8680) | "Adicionar registro" (log) no kebab do avulso, por `ScheduleLogController@store` | aberto |
 | PR-c | "Acompanhamento antecipado"; rodapé por status/tipo; drawer de detalhe (com a lista de registros) | **não feito** |
 
 Prova do json: *"UCs de escrita verdes; os botões da toolbar deixam de levar a `?classico=1`"* —
