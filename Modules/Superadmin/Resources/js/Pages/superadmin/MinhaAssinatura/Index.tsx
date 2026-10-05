@@ -23,7 +23,7 @@ import { Badge } from '@/Components/ui/badge';
 import { Button } from '@/Components/ui/button';
 import { Skeleton } from '@/Components/ui/skeleton';
 import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from '@/Components/ui/sheet';
-import PageHeader from '@/Components/shared/PageHeader';
+import { PageHeader } from '@/Components/PageHeader';
 import EmptyState from '@/Components/shared/EmptyState';
 import { plural, tomDaAssinatura } from '../_components/assinatura';
 
@@ -52,7 +52,7 @@ const limite = (n: number, s: string, p: string, ilim: string) => (n === 0 ? ili
 function MinhaAssinaturaIndex({ assinatura }: { assinatura?: Dados }) {
   return (
     <div className="pb-8">
-      <PageHeader title="Minha assinatura" moduleNav description="O plano do seu negócio e os pacotes disponíveis" />
+      <PageHeader title="Minha assinatura" subtitle="O plano do seu negócio e os pacotes disponíveis" />
       <Deferred data="assinatura" fallback={<div className="px-6 pt-4"><Skeleton className="h-64 w-full" /></div>}>
         <Conteudo dados={assinatura} />
       </Deferred>

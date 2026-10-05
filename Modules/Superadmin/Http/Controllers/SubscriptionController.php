@@ -44,7 +44,7 @@ class SubscriptionController extends BaseController
     /**
      * Display a listing of the resource.
      *
-     * @return Response
+     * @return \Inertia\Response
      */
     public function index()
     {
@@ -75,7 +75,13 @@ class SubscriptionController extends BaseController
             'offline' => $s->paid_via === 'offline',
         ];
 
+        // Os helpers da Entity declaram `@return Response`; o tipo real vai aqui.
+        /** @var Subscription|null $ativa */
         $ativa = Subscription::active_subscription($business_id);
+        /** @var \Illuminate\Support\Collection<int, Subscription> $proximas */
+        $proximas = Subscription::upcoming_subscriptions($business_id);
+        /** @var \Illuminate\Support\Collection<int, Subscription> $aguardando */
+        $aguardando = Subscription::waiting_approval($business_id);
 
         $permissoes = [];
         foreach ($this->moduleUtil->getModuleData('superadmin_package') as $lista) {
@@ -115,7 +121,7 @@ class SubscriptionController extends BaseController
             ->get()
             ->map(fn ($s) => [
                 'id' => $s->id,
-                'pacote' => (string) $s->package_name,
+                'pacote' => (string) $s->getAttribute('package_name'),
                 'inicio' => $s->start_date ? $this->dataComoBlade($s->start_date) : null,
                 'trial_fim' => $s->trial_end_date ? $this->dataComoBlade($s->trial_end_date) : null,
                 'fim' => $s->end_date ? $this->dataComoBlade($s->end_date) : null,
@@ -123,8 +129,8 @@ class SubscriptionController extends BaseController
                 'pago_via' => (string) $s->paid_via,
                 'transacao' => (string) $s->payment_transaction_id,
                 'status' => RotuloAssinatura::de($s->status, $s->end_date),
-                'criado_em' => $s->created_at ? $this->dataComoBlade($s->created_at) : null,
-                'criado_por' => (string) $s->criado_por,
+                'criado_em' => $s->getRawOriginal('created_at') ? $this->dataComoBlade($s->getRawOriginal('created_at')) : null,
+                'criado_por' => (string) $s->getAttribute('criado_por'),
             ]);
 
         // Os dois quadros do recibo (antigo modal `show_subscription_modal`): quem cobra e quem paga.
@@ -141,8 +147,8 @@ class SubscriptionController extends BaseController
                     ->filter(fn ($t) => ! empty($t[0]) && ! empty($t[1]))->map(fn ($t) => ['rotulo' => $t[0], 'numero' => $t[1]])->values(),
             ],
             'ativa' => $ativa ? $cartao($ativa) + ['dias_restantes' => \Carbon::today()->diffInDays($ativa->end_date)] : null,
-            'proximas' => Subscription::upcoming_subscriptions($business_id)->map($cartao)->values(),
-            'aguardando' => Subscription::waiting_approval($business_id)->map($cartao)->values(),
+            'proximas' => $proximas->map($cartao)->values(),
+            'aguardando' => $aguardando->map($cartao)->values(),
             'historico' => $historico,
             'pacotes' => $pacotes,
         ];
