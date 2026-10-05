@@ -61,6 +61,22 @@ class ScheduleLogController extends Controller
                                 ->latest()->get();
                 //->simplePaginate(10);
 
+                // Drawer de detalhe da tela Inertia (thread Crm/07): os registros em lista, sem o HTML
+                // do modal Blade. O acompanhamento já foi buscado no negócio da sessão (findOrFail acima).
+                if ($request->boolean('lista')) {
+                    $quando = fn ($d) => empty($d) ? null : \Carbon::parse($d)->format('d/m/Y H:i');
+
+                    return ['success' => true, 'registros' => $schedule_logs->map(fn ($l) => [
+                        'id' => (int) $l->id,
+                        'assunto' => (string) $l->subject,
+                        'tipo' => (string) $l->log_type,
+                        'inicio' => $quando($l->start_datetime),
+                        'fim' => $quando($l->end_datetime),
+                        'descricao' => strip_tags((string) $l->description),
+                        'por' => $l->createdBy ? trim($l->createdBy->user_full_name) : null,
+                    ])->values()];
+                }
+
                 //if call log is enabled
                 $call_logs = [];
                 if (config('constants.enable_crm_call_log')) {

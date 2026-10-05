@@ -38,6 +38,7 @@ import FormAcompanhamento from './_components/FormAcompanhamento';
 import FormRecorrente from './_components/FormRecorrente';
 import FormRegistro from './_components/FormRegistro';
 import FormAntecipado from './_components/FormAntecipado';
+import DrawerAcompanhamento from './_components/DrawerAcompanhamento';
 import { NOVO, NOVO_RECORRENTE, csrf, type Recorrente, type Valores } from './_components/acompanhamento';
 
 const ROTA = '/crm/follow-ups';
@@ -60,6 +61,7 @@ interface Props {
   filtros: Filtros;
   opcoes?: Opcoes;
   acompanhamentos?: PaginatorShape<Acompanhamento>;
+  contagem?: { total: number; status: Record<string, number>; tipo: Record<string, number> };
 }
 
 const TOM: Record<string, 'info' | 'warning' | 'success' | 'neutral'> = {
@@ -67,19 +69,23 @@ const TOM: Record<string, 'info' | 'warning' | 'success' | 'neutral'> = {
 };
 
 const rotulo = (lista: Opcao[] | undefined, v: string | null) => lista?.find((o) => o.value === v)?.label ?? v ?? '—';
+/** "Agendado: 3 · Concluído: 1" — só os valores que aparecem na consulta. */
+const resumo = (n: Record<string, number> | undefined, lista: Opcao[] | undefined) =>
+  Object.entries(n ?? {}).filter(([, q]) => q > 0).map(([k, q]) => `${rotulo(lista, k)}: ${q}`).join(' · ') || '—';
 
 function filtrar(filtros: Filtros, mudanca: Filtros) {
   router.get(ROTA, { ...filtros, ...mudanca }, { preserveState: true, preserveScroll: true, replace: true });
 }
 
-export default function AcompanhamentosIndex({ filtros, opcoes, acompanhamentos }: Props) {
+export default function AcompanhamentosIndex({ filtros, opcoes, acompanhamentos, contagem }: Props) {
   const recorrente = filtros.is_recursive === '1';
   const [form, setForm] = useState<{ id: number | null; inicial: Valores } | null>(null);
   const [excluir, setExcluir] = useState<Acompanhamento | null>(null);
   const [rec, setRec] = useState<{ id: number | null; inicial: Recorrente } | null>(null);
   const [registro, setRegistro] = useState<Acompanhamento | null>(null);
   const [antecipado, setAntecipado] = useState(false);
-  const recarregar = () => router.reload({ only: ['acompanhamentos'] });
+  const [ver, setVer] = useState<Acompanhamento | null>(null);
+  const recarregar = () => router.reload({ only: ['acompanhamentos', 'contagem'] });
   const acoes = {
     editar: (r: Acompanhamento) => setForm({ id: r.id, inicial: { ...r.editar, title: r.titulo } }),
     editarRecorrente: (r: Acompanhamento) => {
@@ -163,9 +169,15 @@ export default function AcompanhamentosIndex({ filtros, opcoes, acompanhamentos 
                   searchPlaceholder="Buscar por título ou contato"
                   emptyMessage="Nada com esses filtros"
                   rowKey={(r) => r.id}
+                  onRowClick={recorrente ? undefined : setVer}
                 />
-                <div className="text-xs text-muted-foreground" data-contract="crm-rodape">
-                  Total: {acompanhamentos.total}
+                <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground" data-contract="crm-rodape">
+                  <span>Total: {acompanhamentos.total}</span>
+                  {/* Contagens do protótipo, sobre a consulta filtrada inteira (não só a página). */}
+                  <Deferred data="contagem" fallback={null}>
+                    <span className="ml-auto">{resumo(contagem?.status, opcoes?.status)}</span>
+                    <span>{resumo(contagem?.tipo, opcoes?.tipos)}</span>
+                  </Deferred>
                 </div>
               </>
             ) : null}
@@ -185,6 +197,12 @@ export default function AcompanhamentosIndex({ filtros, opcoes, acompanhamentos 
 
       {antecipado ? (
         <FormAntecipado opcoes={opcoes} onFechar={() => setAntecipado(false)} onSalvo={() => { setAntecipado(false); recarregar(); }} />
+      ) : null}
+
+      {ver ? (
+        <DrawerAcompanhamento item={ver} opcoes={opcoes} onFechar={() => setVer(null)}
+          onRegistrar={() => { setRegistro(ver); setVer(null); }}
+          onConcluido={() => { setVer(null); recarregar(); }} />
       ) : null}
 
       {registro ? (
@@ -238,9 +256,11 @@ function colunas(opcoes: Opcoes | undefined, recorrente: boolean, acoes: Acoes):
     cell: ({ row }) => (
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="sm" aria-label={`Ações de ${row.original.titulo}`}><MoreHorizontal className="size-4" /></Button>
+          {/* A linha abre o drawer; o menu não pode abrir os dois (aviso do DataTable). */}
+          <Button variant="ghost" size="sm" aria-label={`Ações de ${row.original.titulo}`}
+            onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}><MoreHorizontal className="size-4" /></Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="start">
+        <DropdownMenuContent align="start" onClick={(e) => e.stopPropagation()}>
           {/* Recorrente tem modal próprio; o registro (log) só existe no avulso, como na Blade. */}
           {recorrente
             ? <DropdownMenuItem onSelect={() => acoes.editarRecorrente(row.original)}>Editar</DropdownMenuItem>

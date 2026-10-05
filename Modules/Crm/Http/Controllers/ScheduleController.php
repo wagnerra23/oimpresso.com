@@ -903,6 +903,15 @@ class ScheduleController extends Controller
                     ['value' => 'has_no_transactions', 'label' => 'Pedidos: '.__('crm::lang.has_no_transactions'), 'grupo' => 'orders'],
                 ],
             ]),
+            // Rodapé do protótipo (TelaAcompanhamentos): contagem por status e por tipo sobre a MESMA
+            // consulta filtrada da lista — não sobre a página, que é só um recorte de 25 (thread Crm/07).
+            'contagem' => Inertia::defer(function () use ($schedules) {
+                $ids = (clone $schedules)->pluck('crm_schedules.id');
+                $por = fn (string $col) => Schedule::whereIn('id', $ids)->groupBy($col)->selectRaw("{$col} as chave, count(*) as n")
+                    ->pluck('n', 'chave')->map(fn ($n) => (int) $n);
+
+                return ['total' => $ids->count(), 'status' => $por('status'), 'tipo' => $por('schedule_type')];
+            }),
             'acompanhamentos' => Inertia::defer(fn () => $schedules
                 ->orderByDesc('crm_schedules.start_datetime')
                 ->paginate(25)
