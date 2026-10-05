@@ -5,7 +5,8 @@ irmaos: Index.charter.md (lei) · Index.tsx (tela)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: é a tela onde `0` significa o CONTRÁRIO do que parece — zero é "sem teto", não "nenhum". Sem caso travando isso, a próxima sessão "simplifica" a renderização e a grade comercial passa a dizer o oposto do contrato. E é a tela vizinha da vitrine pública `/pricing`: unificar as duas consultas expõe pacote privado ao mundo.
 owner: wagner
-last_run: "2026-09-11"
+last_run: "2026-10-05"
+revalidacao_2026_10_05: "O `.tsx` mudou na thread Superadmin 03: a grade ganhou o botão Novo pacote, Editar em cada card e o drawer de formulário, e o cabeçalho migrou para o PageHeader canon. Os UC-SAPAC-01..08 não mudam de veredito — a leitura da grade é a mesma, e abrir a tela segue sem escrever (UC-08). O que a thread acrescenta está nos UC-SAPAC-09..11, novos e com teste."
 nota_data: "O trio nasceu em 20/08, mas o PR foi RECRIADO do main fresco em 21/08 (o #6066 ficou irreconciliável depois do squash do #6064). O commit do `.tsx` é de 21/08, então o G-6 compara contra esta data — não há re-execução a declarar, o conteúdo é o mesmo do dia anterior."
 last_run_ci: "_pendente_ — o trio nasce nesta onda (SA-O4c). O veredito por UC entra no manifesto quando a lane rodar; até lá o Status é 🧪, nunca ✅."
 ---
@@ -117,6 +118,42 @@ Status: 🧪
 **Dado** o catálogo em qualquer estado
 **Quando** o superadmin apenas **abre** a tela
 **Então** nenhuma linha de `packages` muda — nem `is_active`, nem `price`, nem `sort_order`.
+
+Status: 🧪
+
+---
+
+## UC-SAPAC-09 · Criar e editar são drawer da grade · `must`
+
+**Dado** um link antigo para `/superadmin/packages/create` ou `/superadmin/packages/{id}/edit`
+**Então** cai na grade com o drawer aberto (`?pacote=novo` ou `?pacote=<id>`). As Blades
+`packages.create` e `packages.edit` saíram na thread Superadmin 03. O botão "Novo pacote", a
+tecla `n` e o "Editar" de cada card abrem o mesmo drawer.
+
+Status: 🧪
+
+---
+
+## UC-SAPAC-10 · As opções do drawer só vêm com ele aberto · `must`
+
+**Dado** a grade sem `?pacote`
+**Então** `formPacote` é nulo.
+**E dado** `?pacote=novo`, o drawer recebe o catálogo de módulos liberáveis e nenhum pacote.
+**E dado** um id que não existe, `formPacote` é nulo e a tela diz que o pacote não foi encontrado.
+
+Status: 🧪
+
+---
+
+## UC-SAPAC-11 · Criar e editar gravam o mesmo preço · `must` `[T0]`
+
+**Dado** o mesmo texto de preço ("49.90", "1234.56", "25000.00", "0.00")
+**Quando** o pacote é criado e depois editado com ele
+**Então** o preço gravado é o mesmo nos dois caminhos.
+**E dado** "49,90" numa edição, grava 49,90 — antes o `update()` gravava o texto cru.
+
+> Regra mestre de valor. Decisão [W] 2026-10-05 (RUNBOOK-pacotes §5.1): o drawer envia ponto e 2
+> casas, e `store()` e `update()` leem pelo mesmo `num_uf`. Os pacotes já gravados não mudam.
 
 Status: 🧪
 

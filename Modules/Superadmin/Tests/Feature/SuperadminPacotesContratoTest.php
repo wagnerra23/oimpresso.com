@@ -384,3 +384,85 @@ it('UC-PAC-08 - chave fora do catalogo sobrevive ao salvar, e o checkbox do cata
     expect($depois)->toHaveKey($orfa, '1');
     expect(array_key_exists($doCatalogo, $depois))->toBeFalse();
 });
+
+// ── UC-SAPAC-09 · criar e editar são drawer da grade ────────────────────────
+
+it('UC-SAPAC-09 · /packages/create e /packages/{id}/edit redirecionam para o drawer da grade', function () {
+    $this->actingAs(pacSuperadmin())->get(ROTA_PAC.'/create')->assertRedirect(ROTA_PAC.'?pacote=novo');
+    $this->actingAs(pacSuperadmin())->get(ROTA_PAC.'/7/edit')->assertRedirect(ROTA_PAC.'?pacote=7');
+});
+
+// ── UC-SAPAC-10 · as opções do drawer só vêm com ele aberto ────────────────
+
+it('UC-SAPAC-10 · formPacote só é montado com ?pacote, e id inexistente vira null', function () {
+    $versao = app(\App\Http\Middleware\HandleInertiaRequests::class)->version(request());
+    $cab = [
+        'X-Inertia' => 'true',
+        'X-Inertia-Version' => (string) $versao,
+        'X-Inertia-Partial-Data' => 'editando,formPacote',
+        'X-Inertia-Partial-Component' => 'superadmin/Pacotes/Index',
+    ];
+
+    $fechado = $this->actingAs(pacSuperadmin())->get(ROTA_PAC, $cab)->assertOk();
+    expect($fechado->json('props.editando'))->toBeNull()
+        ->and($fechado->json('props.formPacote'))->toBeNull();
+
+    $novo = $this->actingAs(pacSuperadmin())->get(ROTA_PAC.'?pacote=novo', $cab)->assertOk();
+    expect($novo->json('props.editando'))->toBe('novo')
+        ->and($novo->json('props.formPacote.pacote'))->toBeNull()
+        ->and($novo->json('props.formPacote.modulos'))->toBeArray();
+
+    $semPacote = (int) DB::table('packages')->max('id') + 1000;
+    $inexistente = $this->actingAs(pacSuperadmin())->get(ROTA_PAC.'?pacote='.$semPacote, $cab)->assertOk();
+    expect($inexistente->json('props.formPacote'))->toBeNull();
+});
+
+// ── UC-SAPAC-11 · criar e editar gravam o MESMO preço para o mesmo texto ────
+// Regra mestre de valor (decisão [W] 2026-10-05, RUNBOOK-pacotes §5.1): o drawer envia ponto e
+// 2 casas; store() e update() leem pelo mesmo num_uf.
+
+it('UC-SAPAC-11 · criar e editar gravam o mesmo preço, e editar com vírgula deixa de truncar', function () {
+    $superadmin = pacSuperadmin();
+    $nome = 'Pacote ficticio preco UC-SAPAC-11';
+    DB::table('packages')->where('name', $nome)->delete();
+
+    $base = [
+        'name' => $nome,
+        'description' => 'So para a prova do preco.',
+        'location_count' => 0, 'user_count' => 0, 'product_count' => 0, 'invoice_count' => 0,
+        'interval' => 'months', 'interval_count' => 1, 'trial_days' => 0,
+        'sort_order' => 901, 'is_active' => 1,
+        // `custom_permissions` é NOT NULL: o form sempre manda ao menos o que estiver ligado.
+        'custom_permissions' => ['zz_prova_preco_module' => 1],
+    ];
+
+    $casos = ['49.90' => 49.9, '1234.56' => 1234.56, '25000.00' => 25000.0, '0.00' => 0.0];
+
+    foreach ($casos as $texto => $esperado) {
+        $this->actingAs($superadmin)->withSession(['user.id' => $superadmin->id])
+            ->post(ROTA_PAC, $base + ['price' => $texto]);
+
+        $id = DB::table('packages')->where('name', $nome)->orderByDesc('id')->value('id');
+        expect($id)->not->toBeNull();
+        $criado = (float) DB::table('packages')->where('id', $id)->value('price');
+
+        $this->actingAs($superadmin)->put(ROTA_PAC.'/'.$id, $base + ['price' => $texto]);
+        $editado = (float) DB::table('packages')->where('id', $id)->value('price');
+
+        DB::table('packages')->where('id', $id)->delete();
+
+        expect($criado)->toBe($esperado)
+            ->and($editado)->toBe($esperado);
+    }
+
+    // Antes do update() passar pelo num_uf, "49,90" chegava cru na coluna decimal.
+    $id = DB::table('packages')->insertGetId(['custom_permissions' => json_encode($base['custom_permissions'])] + $base + [
+        'price' => 10, 'created_by' => $superadmin->id, 'is_private' => 0, 'is_one_time' => 0,
+        'created_at' => now(), 'updated_at' => now(),
+    ]);
+    $this->actingAs($superadmin)->put(ROTA_PAC.'/'.$id, $base + ['price' => '49,90']);
+    $comVirgula = (float) DB::table('packages')->where('id', $id)->value('price');
+    DB::table('packages')->where('id', $id)->delete();
+
+    expect($comVirgula)->toBe(49.9);
+});
