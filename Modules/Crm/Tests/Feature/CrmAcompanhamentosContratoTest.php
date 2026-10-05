@@ -443,3 +443,40 @@ it('UC-CRMACO-19 · os grupos do antecipado vêm em JSON só com contatos do meu
     $html->assertOk();
     expect($html->headers->get('Content-Type'))->not->toContain('application/json');
 });
+
+// ── UC-CRMACO-20 · rodapé conta a consulta filtrada; o drawer lista os registros do meu negócio [T0] ──
+
+it('UC-CRMACO-20 · o rodapé conta status e tipo sobre a consulta filtrada e o drawer lê os registros só do meu negócio [T0]', function () {
+    $user = acoUsuario('aco_todos_test', ['crm.access_all_schedule']);
+    $vizinho = acoUsuario('aco_vizinho_test', ['crm.access_all_schedule'], ACO_OUTRO);
+    $a = acoAcompanhamento(ACO_BIZ, 'Rodape A', $user);
+    acoAcompanhamento(ACO_BIZ, 'Rodape B', $user);
+    $c = acoAcompanhamento(ACO_BIZ, 'Rodape C', $user);
+    DB::table('crm_schedules')->where('id', $c)->update(['status' => 'completed']);
+    $alheio = acoAcompanhamento(ACO_OUTRO, 'Rodape vizinho', $vizinho);
+
+    // Contagem pedida como o browser pede, filtrada pela etiqueta deste arquivo.
+    $versao = app(\App\Http\Middleware\HandleInertiaRequests::class)->version(request());
+    $contagem = $this->actingAs($user)->get(ACO_ROTA.'?q='.urlencode(ACO_TAG), [
+        'X-Inertia' => 'true', 'X-Requested-With' => 'XMLHttpRequest', 'X-Inertia-Version' => (string) $versao,
+        'X-Inertia-Partial-Data' => 'contagem', 'X-Inertia-Partial-Component' => 'Crm/Acompanhamentos/Index',
+    ])->assertOk()->json('props.contagem');
+    expect($contagem['total'])->toBe(3);
+    expect($contagem['status'])->toEqual(['completed' => 1, 'scheduled' => 2]);
+    expect($contagem['tipo'])->toEqual(['call' => 3]);
+
+    // Registros do drawer: os do meu acompanhamento; o do vizinho não abre.
+    DB::table('crm_schedule_logs')->insert([
+        'schedule_id' => $a, 'subject' => 'Cliente atendeu '.ACO_TAG, 'log_type' => 'call', 'description' => 'pediu orçamento',
+        'start_datetime' => '2026-10-10 09:00:00', 'end_datetime' => '2026-10-10 09:10:00',
+        'created_by' => $user->id, 'created_at' => now(), 'updated_at' => now(),
+    ]);
+    $meus = $this->actingAs($user)->get('/crm/follow-up-log?schedule_id='.$a.'&lista=1', ACO_AJAX)->assertOk();
+    expect($meus->json('success'))->toBeTrue();
+    expect(array_column($meus->json('registros'), 'assunto'))->toBe(['Cliente atendeu '.ACO_TAG]);
+    expect($meus->json('registros.0.inicio'))->toBe('10/10/2026 09:00');
+
+    $dele = $this->actingAs($user)->get('/crm/follow-up-log?schedule_id='.$alheio.'&lista=1', ACO_AJAX)->assertOk();
+    expect($dele->json('success'))->toBeFalse();
+    expect($dele->json('registros'))->toBeNull();
+});

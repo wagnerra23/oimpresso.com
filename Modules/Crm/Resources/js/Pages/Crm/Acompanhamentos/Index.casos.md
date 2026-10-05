@@ -228,3 +228,18 @@ acompanhamento por linha, pelo mesmo `store`. A tela clássica segue recebendo o
 > ficou fora deste modal (vai desligada) — registrado no `_saida-07c`.
 
 Status: 🧪
+
+## UC-CRMACO-20 · Rodapé por status e tipo, e drawer de detalhe com os registros · `should` `[T0]`
+
+**Dado** a lista de acompanhamentos filtrada
+**Então** o rodapé mostra o total e as contagens por status e por tipo **da consulta inteira**, não só
+da página de 25
+**E quando** clico numa linha, abre o drawer de detalhe (informações, descrição e os registros do
+acompanhamento), com **Log de acompanhamento** e **Marcar concluído** no rodapé
+**E** os registros de acompanhamento de outro negócio não abrem.
+
+> Âncora: protótipo `crm-blade.jsx` → TelaAcompanhamentos (Rodape + Drawer). Registros em
+> `GET /crm/follow-up-log?schedule_id=…&lista=1`; o modal Blade segue com o HTML. Pendente 2 do
+> `_saida-03`.
+
+Status: 🧪
