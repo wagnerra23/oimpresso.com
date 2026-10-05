@@ -411,8 +411,12 @@ class LeadController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
+        // Thread Crm/08: sem `type = lead` a ficha abria qualquer contato do negócio pelo id
+        // (um cliente, um fornecedor). Fora do tipo é 404, como fora do negócio. Os links para
+        // cá (lista, kanban, agenda) já só apontam lead; contato convertido vai pro ContactController.
         $query = CrmContact::with('leadUsers', 'Source', 'lifeStage')
-                    ->where('business_id', $business_id);
+                    ->where('business_id', $business_id)
+                    ->where('type', 'lead');
 
         if (! $can_access_all_leads && $can_access_own_leads) {
             $query->OnlyOwnLeads();
