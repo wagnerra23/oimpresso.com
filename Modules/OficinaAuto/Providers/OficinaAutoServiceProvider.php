@@ -58,6 +58,9 @@ class OficinaAutoServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->register(RouteServiceProvider::class);
+
+        // Avançar etapa da OS pelo app (contrato do núcleo; o núcleo não importa o módulo).
+        $this->app->bind(\App\Contracts\Oficina\AcoesOs::class, \Modules\OficinaAuto\Services\AcoesOsDoApp::class);
     }
 
     /**

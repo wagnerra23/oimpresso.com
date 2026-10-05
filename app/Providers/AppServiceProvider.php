@@ -338,6 +338,9 @@ class AppServiceProvider extends ServiceProvider
         // Cobrança pelo app (tela 15): o PaymentGateway registra a implementação real; sem ele,
         // gerar/consultar/cancelar respondem 503 sem_configuracao.
         $this->app->bindIf(\App\Contracts\Cobranca\CobrancaDoApp::class, \App\Contracts\Cobranca\Nulo\SemCobrancaDoApp::class);
+        // Avançar etapa da OS pelo app (tela 03): a OficinaAuto registra a implementação real;
+        // sem ela, nenhuma OS é encontrada.
+        $this->app->bindIf(\App\Contracts\Oficina\AcoesOs::class, \App\Contracts\Oficina\Nulo\SemAcoesOs::class);
     }
 
     /**
