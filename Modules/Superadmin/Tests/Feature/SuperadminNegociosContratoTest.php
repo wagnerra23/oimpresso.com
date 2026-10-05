@@ -347,6 +347,9 @@ it('UC-SANEG-13 · store recusa usuario e e-mail ja existentes e pacote sem pago
     $superadmin = negSuperadmin();
     $antes = DB::table('business')->count();
     $pacote = DB::table('packages')->value('id');
+    // Só precisa passar no min:8 — a validação recusa antes por usuário/e-mail duplicado.
+    // Em variável: o literal na linha de 'password' era lido pelo gitleaks como chave de API.
+    $senhaFicticia = str_repeat('x', 12);
 
     $payload = [
         'name' => 'Negocio duplicado teste',
@@ -354,8 +357,7 @@ it('UC-SANEG-13 · store recusa usuario e e-mail ja existentes e pacote sem pago
         'first_name' => 'Dono',
         'username' => $superadmin->username,
         'email' => $superadmin->email,
-        // Só precisa passar no min:8 — a validação recusa antes por usuário/e-mail duplicado.
-        'password' => str_repeat('x', 12),
+        'password' => $senhaFicticia,
         'city' => 'Cidade', 'state' => 'SC', 'zip_code' => '8800000', 'country' => 'Brasil',
     ];
     if ($pacote !== null) {
