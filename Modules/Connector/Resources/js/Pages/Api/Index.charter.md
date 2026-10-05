@@ -4,24 +4,24 @@ page: /connector/client
 component: Modules/Connector/Resources/js/Pages/Api/Index.tsx
 related_prototype: prototipo-ui/cowork/Wagner/connector-page.jsx
 owner: wagner
-status: draft
-last_validated: "2026-10-01"
+status: live
+last_validated: "2026-10-05"
 parent_module: Connector
 related_adrs: [21, 93, 155, 180, 190, 286, 300]
 tier: A
 charter_version: 1
 mwart_pattern_reuse:
   blueprint_cowork: "prototipo-ui/cowork/Wagner/connector-page.jsx"
-  blueprint_screenshot_approval: "pendente [W2]"
+  blueprint_screenshot_approval: "Wagner 2026-10-05 — screenshot em produção a 1280px, depois do ajuste de espaçamento (#8677)"
   derived_screens: [Api/Index (clients), Api/Docs, Api/Health, Api/Module]
   divergence_from_blueprint: "nenhuma — PT-01 lista + PT-04 confirmação; sem drawer (o client tem 4 campos)"
 related_us: [US-CONN-001, US-CONN-013]
 ---
 
-# Page Charter — /connector/client (DRAFT)
+# Page Charter — /connector/client
 
-> **Status:** draft. F1 em `prototipo-ui/cowork/Wagner/connector-page.jsx`. Desde a thread Connector/04 (2026-10-01) `/connector/client` (`ClientController::index`) responde Inertia `Api/Index` — PR-a: lista, criar, excluir; PR-b: abas Documentação, Saúde e Módulo (`?aba=docs|saude|modulo`, componentes em `_components/ConnectorAbas.tsx`). A Blade `connector::clients.index` sai na thread 06. Vira `live` quando [W2] aprovar o screenshot da tela Inertia em produção.
-> Errata da cópia do Cowork: a rota da lista é `/connector/client`, não `/connector/api` (esta é `ConnectorController::index`, outra tela — ver `_saida-01`).
+> **Status:** live desde 2026-10-05 ([W2] aprovou o screenshot em produção, depois do ajuste de espaçamento do #8677). Até essa data era draft. F1 em `prototipo-ui/cowork/Wagner/connector-page.jsx`. Desde a thread Connector/04 (2026-10-01) `/connector/client` (`ClientController::index`) responde Inertia `Api/Index` — PR-a: lista, criar, excluir; PR-b: abas Documentação, Saúde e Módulo (`?aba=docs|saude|modulo`, componentes em `_components/ConnectorAbas.tsx`). A Blade `connector::clients.index` saiu na thread 06 (2026-10-05), junto com o `ConnectorController` e a rota `GET /connector/api`.
+> Errata da cópia do Cowork: a rota da lista é `/connector/client`, não `/connector/api` (esta era `ConnectorController::index`, outra tela, que devolvia uma view inexistente — ver `_saida-01`; removida na thread 06 em 2026-10-05).
 > Backend canon: `Modules\Connector\Http\Controllers\ClientController` (`index/store/destroy`; `regenerate` sai na thread 05) + `Http\Requests\StoreOauthClientRequest`.
 > Middleware da rota: `web · SetSessionData · auth · language · timezone · AdminSidebarMenu · throttle:60,1`. As rotas de instalação usam `throttle:30,1` e o grupo `authh`.
 > Autorização vigente: `auth()->user()->can('superadmin')` inline em `index`, `destroy`, `regenerate` + `authorize()` do FormRequest.
@@ -80,7 +80,7 @@ Uma tela para **quem entra na empresa por API**: emitir credencial pra um app ex
 | R5 | O client nasce com `secret` de 40 caracteres, `redirect=http://localhost`, `password_client=1`, `personal_access_client=0`, `revoked=false`; o segredo volta **uma vez** na resposta da criação | `ClientController::store` |
 | R6 | Excluir apaga a linha de `oauth_clients` do negócio e, na mesma transação, revoga os `oauth_access_tokens` ativos e os `oauth_refresh_tokens` deles ([W] D2, thread 02) | `ClientController::destroy` |
 | R7 | Regenerar chaves da plataforma **não é ação de tela** ([W] 2026-08-19): `regenerate()` e a rota GET saem do módulo | `ClientController::regenerate` (a remover) |
-| R8 | Em ambiente demo (`config('app.env') == 'demo'`) a tela mostra recusa e não lista nada | `index` + `clients/index.blade.php` |
+| R8 | Em ambiente demo (`config('app.env') == 'demo'`) a tela mostra recusa e não lista nada | `index` + `Index.tsx` (`is_demo`) |
 | R9 | O menu do módulo só aparece se o módulo estiver instalado (superadmin) ou se o pacote da assinatura tiver `connector_module` | `DataController::modifyAdminMenu` |
 | R10 | Emitir/excluir credencial é `superadmin` **no código vigente**. A regra [W] 2026-08-19 que tornava isso obrigatório foi **revogada em 2026-10-01** (ver D1): delegar a funcionário do negócio operador é permitido. A permissão órfã `connector.access` segue sem verificador | `ClientController` + `DataController::user_permissions` |
 | R11 | Instalar o módulo roda as migrações e depois `passport:install --force` | `InstallController::postMigrationSteps` |
@@ -134,9 +134,9 @@ Estado local da tela: aba (`clients|docs|saude|modulo`), busca, segredo revelado
 | D7 | **Licenças/equipamentos é do Officeimpresso, com permissão de suporte** — assunto diferente da API. | A proposta sai do escopo do Conector: tela no módulo Officeimpresso, permissão própria do suporte (não superadmin). |
 | D5 | **`/docs` é substituído** pela aba Documentação (catálogo lido das rotas). | Item de menu removido no `DataController::modifyAdminMenu`. |
 
-### Pendência que resta
+### Pendência que restava (fechada em 2026-10-05)
 
-- **[W2]** screenshot da tela Inertia em produção (gate `golden_live`, ADR 0107) → charter vira `status: live`.
+- **[W2]** screenshot da tela Inertia em produção (gate `golden_live`, ADR 0107) → charter vira `status: live`. ✅ Aprovado por [W] em 2026-10-05.
 
 ## Restrição dura — o Delphi em campo ([W] 2026-08-19)
 
