@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace Modules\OficinaAuto\Http\Requests;
 
+use App\Domain\Oficina\PlacaVeiculo;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Validator;
+use Modules\OficinaAuto\Entities\Vehicle;
 use Modules\OficinaAuto\Http\Controllers\VehicleController;
 
 /**
@@ -55,5 +58,31 @@ class UpdateVehicleRequest extends FormRequest
             'vehicle_type.required' => 'Selecione o tipo do veículo.',
             'vehicle_type.in'       => 'Tipo de veículo inválido.',
         ];
+    }
+
+    /**
+     * Trocar a placa (principal ou reboque) por uma que já está em OUTRO veículo ativo da empresa é
+     * recusado (decisão [W] 2026-10-05: "ativas não pode duplicar"). Só quando a placa MUDA: os
+     * veículos que já nasceram duplicados antes da regra continuam editáveis (km, dono, cor...)
+     * até alguém corrigir a placa. Mesma regra do app: App\Domain\Oficina\PlacaVeiculo.
+     */
+    public function withValidator(Validator $validator): void
+    {
+        $validator->after(function (Validator $v) {
+            $veiculo = $this->route('vehicle');
+            if (! $veiculo instanceof Vehicle) {
+                return;
+            }
+            $bizId = (int) $veiculo->business_id;
+            foreach (['plate', 'secondary_plate'] as $campo) {
+                $nova = PlacaVeiculo::normalizar($this->input($campo));
+                if ($v->errors()->has($campo) || $nova === '' || $nova === PlacaVeiculo::normalizar($veiculo->{$campo})) {
+                    continue;
+                }
+                if (PlacaVeiculo::veiculoAtivoCom($bizId, $nova, (int) $veiculo->id) !== null) {
+                    $v->errors()->add($campo, PlacaVeiculo::MENSAGEM_DUPLICADA);
+                }
+            }
+        });
     }
 }
