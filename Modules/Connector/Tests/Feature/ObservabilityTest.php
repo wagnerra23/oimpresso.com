@@ -157,7 +157,16 @@ it('UC-CONN-26 connector:health publica entrada por execução e poda o que pass
 
     expect($lista)->toHaveCount(2); // a de 20 dias saiu, a de 2 dias ficou, a nova entrou
     $nova = $lista[1];
-    expect(array_keys($nova))->toBe(['executado_em', 'ok', 'tokens_active_24h', 'licencas_recent_24h', 'rotas_registradas', 'issues', 'delphi']);
+    // uma chave por linha: na mesma linha o gitleaks lia o nome do check como segredo
+    expect(array_keys($nova))->toBe([
+        'executado_em',
+        'ok',
+        'tokens_active_24h',
+        'licencas_recent_24h',
+        'rotas_registradas',
+        'issues',
+        'delphi',
+    ]);
     expect($nova['rotas_registradas'])->toBeGreaterThanOrEqual(20);
     expect($nova['issues'])->toBeArray();
     expect(array_keys($nova['delphi']))->toBe(['chamadas_24h', 'desvios_24h', 'taxa_desvio']);
