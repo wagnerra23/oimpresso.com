@@ -20,8 +20,8 @@ authority: generated
 | CU no SDD | 6 |
 | Telas (.tsx) | 11 |
 | Telas com `casos.md` | 8 |
-| UC declarados | 102 |
-| UC com teste que os cita | 101 |
+| UC declarados | 104 |
+| UC com teste que os cita | 103 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -148,6 +148,8 @@ authority: generated
 | UC-SCAIXA-10 | Caixa/Index | 🧪 aguarda veredito da lane |
 | UC-SCAIXA-11 | Caixa/Index | 🧪 aguarda veredito da lane |
 | UC-SCAIXA-12 | Caixa/Index | 🧪 aguarda veredito da lane |
+| UC-SCAIXA-13 | Caixa/Index | 🧪 aguarda veredito da lane |
+| UC-SCAIXA-14 | Caixa/Index | 🧪 aguarda veredito da lane |
 | UC-SEDIT-01 | Edit | 🧪 aguarda veredito da lane |
 | UC-SEDIT-02 | Edit | 🧪 aguarda veredito da lane |
 | UC-SEDIT-03 | Edit | 🧪 aguarda veredito da lane |
