@@ -11,6 +11,7 @@
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { router } from '@inertiajs/react';
 import { useState, type ReactNode } from 'react';
+import type { ColumnDef } from '@tanstack/react-table';
 import { Plus, X } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
@@ -20,6 +21,7 @@ import { Stack } from '@/Components/layout/stack';
 import { PageHeader, PageHeaderPrimary } from '@/Components/PageHeader';
 import KpiCard from '@/Components/shared/KpiCard';
 import '../../../css/cowork-manufacturing-bundle.css';
+import DataTable from '@/Components/shared/DataTable';
 import EmptyState from '@/Components/shared/EmptyState';
 import StatusBadge from '@/Components/shared/StatusBadge';
 import FabricacaoAbas from './_components/FabricacaoAbas';
@@ -112,6 +114,74 @@ function formatQuantity(value: number): string {
     maximumFractionDigits: 2,
   }).format(value ?? 0);
 }
+
+/**
+ * As 8 colunas do `MfgProducaoView` (`manufacturing-producao.jsx`), na anatomia do `DataGrid` do
+ * DS (`shared/DataTable` `density="grid"`): data, referência e números em mono, números à
+ * direita. Sem ordenação e sem paginação, como o protótipo (`pagination={false}`, nenhuma
+ * coluna `sortable`): a lista vem do servidor por data desc.
+ */
+const COLUNAS: ColumnDef<Production, unknown>[] = [
+  { id: 'data', accessorFn: (p) => p.transaction_date ?? '—', header: 'Data', meta: { mono: true } },
+  { id: 'ref', accessorFn: (p) => p.ref_no ?? '—', header: 'Referência', meta: { mono: true } },
+  { id: 'local', accessorFn: (p) => p.location_name ?? '—', header: 'Local' },
+  {
+    id: 'produto',
+    header: 'Produto',
+    // `{primary, sub}` do DataGrid: nome 600/12,5 e a 2ª linha 11px. A 2ª linha usa `--text-dim`
+    // em vez do `--text-mute` do DS: texto pequeno em `--text-mute` reprova AA (ADR 0410).
+    cell: ({ row: { original: p } }) => (
+      <>
+        <b className="block truncate font-semibold tracking-[-0.006em]" title={p.produto}>
+          {p.produto}
+        </b>
+        <small className="block truncate text-[11px] text-[var(--text-dim)]">
+          {p.n_ingredientes} ingrediente{p.n_ingredientes === 1 ? '' : 's'}
+          {p.criado_por ? ` · ${p.criado_por}` : ''}
+        </small>
+      </>
+    ),
+  },
+  {
+    id: 'qtd',
+    header: 'Qtd',
+    meta: { align: 'right', mono: true },
+    cell: ({ row: { original: p } }) => `${formatQuantity(p.quantidade)}${p.unidade ? ` ${p.unidade}` : ''}`,
+  },
+  {
+    id: 'total',
+    header: 'Custo total',
+    meta: { align: 'right', mono: true },
+    cell: ({ row: { original: p } }) => (
+      <>
+        {formatCurrency(p.final_total)}
+        {/* R-21 — o `fix` marca que, na ordem finalizada, este é o custo congelado na data da
+            produção (não recalculado pelo preço de hoje). */}
+        {p.mfg_is_final ? (
+          <span
+            className="ml-1 text-[10.5px] text-[var(--text-dim)]"
+            title="custo congelado na data da produção"
+          >
+            fix
+          </span>
+        ) : null}
+      </>
+    ),
+  },
+  {
+    id: 'unit',
+    header: 'Custo unit.',
+    meta: { align: 'right', mono: true },
+    cell: ({ row: { original: p } }) => formatCurrency(p.custo_unitario),
+  },
+  {
+    id: 'sit',
+    header: 'Situação',
+    cell: ({ row: { original: p } }) => (
+      <StatusBadge kind="producao" value={p.mfg_is_final ? 'finalizada' : 'rascunho'} />
+    ),
+  },
+];
 
 function Index({ productions = [], summary, business_locations = {}, filters = {}, recipes_count }: Props) {
   const [start, setStart] = useState<string>(filters.start_date ?? '');
@@ -327,93 +397,45 @@ function Index({ productions = [], summary, business_locations = {}, filters = {
         </Inline>
       </div>
 
-      {/* Slot 5 — Tabela tokenizada */}
-      <div className="rounded-lg border border-border bg-card overflow-x-auto" data-contract="lista">
+      {/* Slot 5 — a grade do `DataGrid` do DS (`shared/DataTable` `density="grid"`), como nas
+          abas Receitas, Insumos e Relatório. A moldura é da própria tabela; o vazio continua no
+          cartão. Sem lista, o protótipo não desenha a grade — só o `EmptyState`. */}
+      <div data-contract="lista">
         {productions.length === 0 ? (
-          <EmptyState
-            icon="factory"
-            variant={hasActiveFilters ? 'search' : 'default'}
-            title={hasActiveFilters ? 'Nenhuma produção no filtro' : 'Sem produções cadastradas'}
-            description={
-              hasActiveFilters
-                ? 'Ajuste ou limpe os filtros pra ver mais resultados.'
-                : 'Crie a primeira ordem de produção pelo botão "Nova produção".'
-            }
-            action={
-              hasActiveFilters ? (
-                <Button variant="outline" size="sm" onClick={clearAll}>
-                  <X className="mr-1 h-4 w-4" /> Limpar filtros
-                </Button>
-              ) : (
-                <Button asChild size="sm">
-                  <a href={CREATE_ROUTE}>
-                    <Plus className="mr-2 h-4 w-4" /> Nova produção
-                  </a>
-                </Button>
-              )
-            }
-          />
+          <div className="rounded-lg border border-border bg-card">
+            <EmptyState
+              icon="factory"
+              variant={hasActiveFilters ? 'search' : 'default'}
+              title={hasActiveFilters ? 'Nenhuma produção no filtro' : 'Sem produções cadastradas'}
+              description={
+                hasActiveFilters
+                  ? 'Ajuste ou limpe os filtros pra ver mais resultados.'
+                  : 'Crie a primeira ordem de produção pelo botão "Nova produção".'
+              }
+              action={
+                hasActiveFilters ? (
+                  <Button variant="outline" size="sm" onClick={clearAll}>
+                    <X className="mr-1 h-4 w-4" /> Limpar filtros
+                  </Button>
+                ) : (
+                  <Button asChild size="sm">
+                    <a href={CREATE_ROUTE}>
+                      <Plus className="mr-2 h-4 w-4" /> Nova produção
+                    </a>
+                  </Button>
+                )
+              }
+            />
+          </div>
         ) : (
-          <table className="w-full text-sm">
-            {/* §4.5 — 8 colunas, na ordem do protótipo (MfgProducaoView). */}
-            <thead className="bg-muted/50">
-              <tr className="text-left">
-                <th className="px-3 py-2 font-medium text-muted-foreground">Data</th>
-                <th className="px-3 py-2 font-medium text-muted-foreground">Referência</th>
-                <th className="px-3 py-2 font-medium text-muted-foreground">Local</th>
-                <th className="px-3 py-2 font-medium text-muted-foreground">Produto</th>
-                <th className="px-3 py-2 font-medium text-muted-foreground text-right">Qtd</th>
-                <th className="px-3 py-2 font-medium text-muted-foreground text-right">Custo total</th>
-                <th className="px-3 py-2 font-medium text-muted-foreground text-right">Custo unit.</th>
-                <th className="px-3 py-2 font-medium text-muted-foreground">Situação</th>
-              </tr>
-            </thead>
-            <tbody>
-              {productions.map((p) => (
-                <tr key={p.id} className="border-t border-border hover:bg-muted/30 transition-colors">
-                  <td className="px-3 py-2 text-muted-foreground tabular-nums">
-                    {p.transaction_date ?? '—'}
-                  </td>
-                  <td className="px-3 py-2 font-mono text-foreground">{p.ref_no ?? '—'}</td>
-                  <td className="px-3 py-2 max-w-[180px] truncate text-foreground" title={p.location_name ?? ''}>
-                    {p.location_name ?? '—'}
-                  </td>
-                  <td className="px-3 py-2 max-w-[260px]">
-                    <span className="block truncate font-medium text-foreground" title={p.produto}>
-                      {p.produto}
-                    </span>
-                    <span className="block truncate text-xs text-muted-foreground">
-                      {p.n_ingredientes} ingrediente{p.n_ingredientes === 1 ? '' : 's'}
-                      {p.criado_por ? ` · ${p.criado_por}` : ''}
-                    </span>
-                  </td>
-                  <td className="px-3 py-2 text-right text-foreground tabular-nums">
-                    {formatQuantity(p.quantidade)}
-                    {p.unidade ? <span className="ml-1 text-xs text-muted-foreground">{p.unidade}</span> : null}
-                  </td>
-                  <td className="px-3 py-2 text-right font-medium text-foreground tabular-nums">
-                    {formatCurrency(p.final_total)}
-                    {/* R-21 — o `fix` marca que, na ordem finalizada, este é o custo
-                        congelado na data da produção (não recalculado pelo preço de hoje). */}
-                    {p.mfg_is_final ? (
-                      <span
-                        className="ml-1 text-xs text-muted-foreground"
-                        title="custo congelado na data da produção"
-                      >
-                        fix
-                      </span>
-                    ) : null}
-                  </td>
-                  <td className="px-3 py-2 text-right text-muted-foreground tabular-nums">
-                    {formatCurrency(p.custo_unitario)}
-                  </td>
-                  <td className="px-3 py-2">
-                    <StatusBadge kind="producao" value={p.mfg_is_final ? 'finalizada' : 'rascunho'} />
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <DataTable<Production>
+            columns={COLUNAS}
+            data={productions}
+            caption="Ordens de produção"
+            density="grid"
+            showSearch={false}
+            rowKey={(p) => p.id}
+          />
         )}
       </div>
 
