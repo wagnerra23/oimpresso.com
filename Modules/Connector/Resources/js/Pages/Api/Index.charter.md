@@ -110,6 +110,9 @@ Api/Index (Inertia) — PR-a, thread 04 (2026-10-01)
 // PR-b (2026-10-01)
   endpoints: Array<{ metodos: string, rota: string, acao: string }>   // lido das rotas connector/api/
   modulo: { instalado: bool, versao: string, migracoes: number }
+// Thread 07 (CONN-O7) — por client, acessos abertos de usuários do MESMO negócio (UC-CONN-21)
+  clients[].tokens: Array<{ user_name: string, last_used_at: string|null, expires_at: string|null }>  // top 5
+  clients[].tokens_resto: number                                          // demais acessos abertos
 // Thread 08 (2026-10-05)
   saude: Array<{ executado_em: string, ok: bool, tokens_active_24h: number|null,
                  licencas_recent_24h: number|null, rotas_registradas: number, issues: string[],

@@ -120,6 +120,17 @@ toda linha existe nas rotas, nenhuma é escrita à mão (thread 04 PR-b).
 
 Status: 🧪
 
+## UC-CONN-21 · Quem usa a credencial · `should` `[T0]`
+
+**Dado** um client com acessos abertos **Quando** a lista carrega **Então** cada client traz
+`tokens` (colaborador, último uso, vencimento) dos tokens não revogados e não vencidos, do uso
+mais recente ao mais antigo, até 5, e `tokens_resto` com a contagem dos demais. Só entram
+usuários do negócio da sessão: token aberto por usuário de outro negócio com o mesmo client
+nunca aparece. "Ver quem usa" abre o drawer; a confirmação de excluir nomeia quem perde o
+acesso (thread 07).
+
+Status: 🧪
+
 ## UC-CONN-25 · A aba Módulo mostra o estado medido · `should`
 
 **Dado** o painel **Quando** abro a aba Módulo **Então** versão (`config('connector.module_version')`),
