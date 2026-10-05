@@ -32,6 +32,12 @@ uses(Tests\TestCase::class);
 beforeEach(function () {
     // Garantir OTel desligado (zero-cost path) — não exige collector.
     config(['otel.enabled' => false]);
+    // Histórico do connector:health (thread 08) num arquivo do teste — nunca no storage real.
+    config(['connector.health_history_path' => sys_get_temp_dir().'/connector-health-'.uniqid().'.json']);
+});
+
+afterEach(function () {
+    @unlink((string) config('connector.health_history_path'));
 });
 
 it('OtelHelper::spanBiz é zero-cost quando otel.enabled=false', function () {
@@ -133,4 +139,56 @@ it('logs estruturados nos endpoints Delphi têm chave biz + endpoint (D9.b)', fu
         expect(str_contains($content, "'biz' =>"))->toBeTrue("{$path} log sem chave 'biz'");
         expect(str_contains($content, "'endpoint' =>"))->toBeTrue("{$path} log sem chave 'endpoint'");
     }
+});
+
+// ── UC-CONN-26 · connector:health publica uma entrada por execução (thread 08) ──
+it('UC-CONN-26 connector:health publica entrada por execução e poda o que passou de 14 dias', function () {
+    if (DB::connection()->getDriverName() === 'sqlite') {
+        $this->markTestSkipped('SQLite-incompatível: connector:health usa tabelas MySQL UltimatePOS');
+    }
+    $p = ConnectorHealthCommand::caminhoHistorico();
+    file_put_contents($p, json_encode([
+        ['executado_em' => now()->subDays(20)->toIso8601String(), 'ok' => true],
+        ['executado_em' => now()->subDays(2)->toIso8601String(), 'ok' => true],
+    ]));
+
+    Artisan::call('connector:health');
+    $lista = json_decode((string) file_get_contents($p), true);
+
+    expect($lista)->toHaveCount(2); // a de 20 dias saiu, a de 2 dias ficou, a nova entrou
+    $nova = $lista[1];
+    expect(array_keys($nova))->toBe(['executado_em', 'ok', 'tokens_active_24h', 'licencas_recent_24h', 'rotas_registradas', 'issues', 'delphi']);
+    expect($nova['rotas_registradas'])->toBeGreaterThanOrEqual(20);
+    expect($nova['issues'])->toBeArray();
+    expect(array_keys($nova['delphi']))->toBe(['chamadas_24h', 'desvios_24h', 'taxa_desvio']);
+    expect(Artisan::output())->toContain('histórico publicado em');
+});
+
+it('UC-CONN-26 taxa de desvio conta corpo em formato desconhecido do log.delphi', function () {
+    if (DB::connection()->getDriverName() === 'sqlite' || ! \Illuminate\Support\Facades\Schema::hasTable('licenca_log')) {
+        $this->markTestSkipped('precisa de licenca_log (MySQL)');
+    }
+    DB::beginTransaction();
+    try {
+        Artisan::call('connector:health');
+        $antes = ConnectorHealthCommand::historico();
+        $a = end($antes)['delphi'];
+
+        foreach (['json_flat', 'unknown', 'empty'] as $fmt) {
+            DB::table('licenca_log')->insert([
+                'event' => 'api_call', 'source' => 'delphi_middleware', 'created_at' => now(),
+                'metadata' => json_encode(['body_format' => $fmt]),
+            ]);
+        }
+        Artisan::call('connector:health');
+        $depois = ConnectorHealthCommand::historico();
+        $d = end($depois)['delphi'];
+    } finally {
+        DB::rollBack();
+    }
+
+    // corpo vazio não conta como chamada com corpo; unknown conta como desvio
+    expect($d['chamadas_24h'] - $a['chamadas_24h'])->toBe(2);
+    expect($d['desvios_24h'] - $a['desvios_24h'])->toBe(1);
+    expect($d['taxa_desvio'])->toBe(round($d['desvios_24h'] / $d['chamadas_24h'], 4));
 });

@@ -444,6 +444,24 @@ class ApiClientsPanelTest extends TestCase
         $this->assertIsBool($modulo['instalado']);
     }
 
+    // ── UC-CONN-27 · a aba Saúde lê o histórico publicado, só os últimos 14 dias ──
+    public function test_aba_saude_le_o_historico_publicado_dos_ultimos_14_dias(): void
+    {
+        $p = sys_get_temp_dir().'/connector-health-'.uniqid().'.json';
+        config(['connector.health_history_path' => $p]);
+        $recente = ['executado_em' => now()->subDay()->toIso8601String(), 'ok' => false, 'issues' => ['licencas_recent_24h=0']];
+        file_put_contents($p, json_encode([['executado_em' => now()->subDays(30)->toIso8601String(), 'ok' => true], $recente]));
+
+        try {
+            $res = $this->actingAs($this->superadmin)->get('/connector/client?aba=saude');
+        } finally {
+            @unlink($p);
+        }
+
+        $res->assertOk();
+        $this->assertSame([$recente], $res->viewData('page')['props']['saude']);
+    }
+
     // ── UC-CONN-16 · demonstração recusa ──────────────────────────────────
     public function test_ambiente_demo_nao_expoe_clients(): void
     {
