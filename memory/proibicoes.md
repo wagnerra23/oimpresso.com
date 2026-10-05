@@ -1860,6 +1860,10 @@ Ocorrência da **LC-08**.
 
 - **O limite (variante também proibida):** divergência de tipografia de célula só se reporta quando a célula tem bloco de texto nos dois lados. `fontPx` de container é herança, não texto.
 
+### 2026-10-05 — EMENDA das lápides 2026-09-05 (dono-é-sessão-viva) e 2026-09-30 (2ª): a sessão dona tinha o número da thread no título, e eu armei o auto-merge no mesmo comando que abriu o PR
+
+- **O limite (variante também proibida):** **(a)** em playbook com uma sessão por thread, antes de pegar a thread procurar em `ListAgents` uma sessão com o número dela no título; `gh pr list` vazio só diz que ninguém publicou ainda. **(b)** `gh pr merge --auto` não vai no mesmo comando do `gh pr create`: o aviso de colisão sai nesse comando, e encadeado o auto-merge já está armado quando eu o leio. O incremento sobre as lápides de 09-05 é só de forma: qual sonda, e a ordem dos dois comandos.
+
 ## Sempre fazer
 
 - ✅ **LIGUE A MÁQUINA — máquina é sempre melhor que fazer na mão** ([W] 2026-07-26, textual: *"isso ligue as maquinas, é sempre melhor que fazer na mão. isso é regra no sistema. deve ser"*). Ordem obrigatória, nesta sequência:
