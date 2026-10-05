@@ -315,3 +315,149 @@ it('UC-SCAIXA-09 Imprimir Z aponta para uma rota registrada do caixa legado', fu
 
     expect($rota->getActionName())->toBe('App\Http\Controllers\CashRegisterController@getRegisterDetails');
 });
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Thread 07 venda-menu — movimentos do turno (UC-SCAIXA-10..12, prop deferida `turno`).
+//
+// REGRA MESTRE valor — DUPLA PROVA: (a) o payload é comparado com
+// CashRegisterUtil::getRegisterDetails($id), o MESMO método do Blade
+// cash_register/payment_details; (b) e com a conta à mão abaixo.
+//
+//   turno aberto do usuário no 98 (cash_register_transactions gravadas como o
+//   CashRegisterUtil grava — troco de venda é credit NEGATIVO, addSellPayments):
+//     initial cash +100.00 · sell cash +60.00 (V1) · sell cash −5.00 (troco V1)
+//     sell card +40.00 (V1) · sell cash +50.00 (V2) · expense cash 20.00 (debit)
+//     refund cash 10.00 (debit, V1)
+//   ⇒ troco inicial 100.00 · dinheiro: vendas 105.00 (60 − 5 + 50) · despesas 20.00 · devoluções 10.00
+//     cartão: vendas 40.00 · total vendas 135.00 (60 − 5 + 40 + 50 − 10) · despesas 20.00
+//     devoluções 10.00 · 7 movimentos · 2 formas (as zeradas não vêm)
+//   turno do mesmo usuário no 99: initial cash 70000.00 (NUNCA aparece no 98)
+// ─────────────────────────────────────────────────────────────────────────────
+
+function scaixaTurno(int $bizId, int $userId, array $movs): int
+{
+    $regId = DB::table('cash_registers')->insertGetId([
+        'business_id' => $bizId, 'user_id' => $userId, 'status' => 'open',
+        'created_at' => now()->subHour(), 'updated_at' => now()->subHour(),
+    ]);
+    foreach ($movs as [$tipo, $forma, $sentido, $valor, $vendaId]) {
+        DB::table('cash_register_transactions')->insert([
+            'cash_register_id' => $regId, 'transaction_type' => $tipo, 'pay_method' => $forma,
+            'type' => $sentido, 'amount' => $valor, 'transaction_id' => $vendaId,
+            'created_at' => now(), 'updated_at' => now(),
+        ]);
+    }
+
+    return $regId;
+}
+
+function scaixaTurnoFixture(object $t): int
+{
+    return scaixaTurno($t->bizId, $t->user->id, [
+        ['initial', 'cash', 'credit', 100.00, null],
+        ['sell', 'cash', 'credit', 60.00, $t->v1],
+        ['sell', 'cash', 'credit', -5.00, $t->v1],
+        ['sell', 'card', 'credit', 40.00, $t->v1],
+        ['sell', 'cash', 'credit', 50.00, $t->v2],
+        ['expense', 'cash', 'debit', 20.00, null],
+        ['refund', 'cash', 'debit', 10.00, $t->v1],
+    ]);
+}
+
+/** A prop `turno` é deferida: só vem num partial reload por header. */
+function scaixaTurnoProp(object $test): ?array
+{
+    $r = $test->withHeaders([
+        'X-Inertia' => 'true',
+        'X-Inertia-Version' => scaixaInertiaVersion(),
+        'X-Requested-With' => 'XMLHttpRequest',
+        'X-Inertia-Partial-Component' => 'Sells/Caixa/Index',
+        'X-Inertia-Partial-Data' => 'turno',
+    ])->get('/vendas/caixa?date=' . SCAIXA_DIA);
+    $r->assertStatus(200);
+    $page = json_decode($r->getContent(), true);
+    // anti-vácuo: a chave veio (null é resposta; ausência seria o defer não resolvido).
+    expect(array_key_exists('turno', $page['props']))->toBeTrue();
+
+    return scaixaValoresComoDecimal($page['props']['turno']);
+}
+
+/**
+ * O JSON não distingue 100 de 100.0: o valor redondo chega como inteiro e o
+ * `toBe(100.0)` estrito reprovaria um valor CERTO. Converte para float todo
+ * número que não é identificador, para a comparação medir o valor, não o tipo.
+ */
+function scaixaValoresComoDecimal(mixed $v, string $chave = ''): mixed
+{
+    if (is_array($v)) {
+        $out = [];
+        foreach ($v as $k => $item) {
+            $out[$k] = scaixaValoresComoDecimal($item, (string) $k);
+        }
+
+        return $out;
+    }
+    if (is_int($v) && ! preg_match('/(^id$|Id$)/', $chave)) {
+        return (float) $v;
+    }
+
+    return $v;
+}
+
+it('UC-SCAIXA-10 [V0] movimentos e totais do turno batem com o caminho do Blade e com a conta à mão', function () {
+    $regId = scaixaTurnoFixture($this);
+    $turno = scaixaTurnoProp($this);
+
+    expect($turno)->not->toBeNull();
+    expect((int) $turno['id'])->toBe($regId);
+
+    // (a) caminho do Blade: CashRegisterUtil::getRegisterDetails
+    $blade = app(\App\Utils\CashRegisterUtil::class)->getRegisterDetails($regId);
+    expect($turno['trocoInicial'])->toBe(round((float) $blade->cash_in_hand, 2));
+    expect($turno['totalVendas'])->toBe(round((float) $blade->total_sale, 2));
+    expect($turno['totalDespesas'])->toBe(round((float) $blade->total_expense, 2));
+    expect($turno['totalDevolucoes'])->toBe(round((float) $blade->total_refund, 2));
+
+    // (b) conta à mão (cabeçalho do bloco)
+    expect($turno['trocoInicial'])->toBe(100.0);
+    expect($turno['totalVendas'])->toBe(135.0);
+    expect($turno['totalDespesas'])->toBe(20.0);
+    expect($turno['totalDevolucoes'])->toBe(10.0);
+
+    expect(count($turno['porForma']))->toBe(2);
+    $dinheiro = scaixaLinha($turno['porForma'], 'key', 'cash');
+    $cartao = scaixaLinha($turno['porForma'], 'key', 'card');
+    expect($dinheiro['vendas'])->toBe(round((float) $blade->total_cash, 2));
+    expect($dinheiro['vendas'])->toBe(105.0);
+    expect($dinheiro['despesas'])->toBe(20.0);
+    expect($dinheiro['devolucoes'])->toBe(10.0);
+    expect($dinheiro['label'])->toBe('Dinheiro');
+    expect($cartao['vendas'])->toBe(round((float) $blade->total_card, 2));
+    expect($cartao['vendas'])->toBe(40.0);
+
+    expect(count($turno['movimentos']))->toBe(7);
+    expect($turno['movimentos'][0]['tipo'])->toBe('refund');
+    expect($turno['movimentos'][0]['sentido'])->toBe('debit');
+    expect((int) $turno['movimentos'][0]['vendaId'])->toBe($this->v1);
+});
+
+it('UC-SCAIXA-11 [T0] turno de outro business nunca aparece, nem os movimentos dele', function () {
+    $alheio = scaixaTurno($this->outroBizId, $this->user->id, [['initial', 'cash', 'credit', 70000.00, null]]);
+
+    // Só o turno do 99 aberto (mesmo user_id): no 98 não há turno.
+    expect(scaixaTurnoProp($this))->toBeNull();
+
+    $regId = scaixaTurnoFixture($this);
+    $turno = scaixaTurnoProp($this);
+    expect((int) $turno['id'])->toBe($regId);
+    expect((int) $turno['id'])->not->toBe($alheio);
+    expect($turno['trocoInicial'])->toBe(100.0);
+    expect(count($turno['movimentos']))->toBe(7);
+    foreach ($turno['movimentos'] as $m) {
+        expect($m['valor'])->not->toBe(70000.0);
+    }
+});
+
+it('UC-SCAIXA-12 sem caixa aberto o turno vem vazio', function () {
+    expect(scaixaTurnoProp($this))->toBeNull();
+});

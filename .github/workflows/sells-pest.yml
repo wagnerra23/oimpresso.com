@@ -60,6 +60,9 @@ on:
       # Sob teste em SalesOrderIndexContratoTest (UC-SORD-01..04, thread 06 venda-menu).
       - 'app/Http/Controllers/SalesOrderController.php'
       - 'resources/js/Pages/SalesOrder/**'
+      # Caminho do Blade comparado em SellsCaixaContratoTest (UC-SCAIXA-10, thread 07 venda-menu).
+      - 'app/Utils/CashRegisterUtil.php'
+      - 'app/Http/Controllers/CashRegisterController.php'
       # Sob teste em SellReturnIndexContratoTest (UC-SRIDX-*, lista de devoluções).
       - 'app/Http/Controllers/SellReturnController.php'
       - 'resources/js/Pages/SellReturn/**'
@@ -123,6 +126,8 @@ jobs:
               - 'app/Http/Controllers/SellsV3Controller.php'
               - 'app/Http/Controllers/SalesOrderController.php'
               - 'resources/js/Pages/SalesOrder/**'
+              - 'app/Utils/CashRegisterUtil.php'
+              - 'app/Http/Controllers/CashRegisterController.php'
               - 'app/Http/Controllers/SellReturnController.php'
               - 'resources/js/Pages/SellReturn/**'
               - 'app/Utils/TransactionUtil.php'

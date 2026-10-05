@@ -5,7 +5,7 @@ irmaos: Index.charter.md (lei) · Index.tsx
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: o que a tela garante é o agregado do dia (valor, forma de pagamento, origem, caixa aberto) — isso não muda num refactor visual.
 owner: wagner
-last_run: "2026-09-23"
+last_run: "2026-10-05"
 last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane PHP / Pest (Sells · MySQL)"
 ---
 
@@ -94,4 +94,25 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 - **Regressão que defende:** botão apontando para rota removida (404).
 - **Status: 🧪**
 
-- `[BACKLOG]` Esperado em caixa · Conferido · Diferença (contagem física e sangrias) — estavam no charter v1, o código não tem; fica para a Onda 6+1.
+## UC-SCAIXA-10 · Movimentos e totais do turno `[V0]` `[must]`
+- **Persona:** Larissa — durante o turno vê o que entrou e saiu da gaveta sem abrir o modal legado.
+- **Fonte:** thread 07 venda-menu (`01-telas-legadas.md` §07) + `Caixa.charter.md` do playbook ("acompanhar o que entrou por forma de pagamento"). Totais = `CashRegisterUtil::getRegisterDetails`, o mesmo do Blade `cash_register/payment_details`.
+- **Aceite:** Dado um turno aberto com abertura 100.00, vendas em dinheiro 60.00 − troco 5.00 + 50.00, cartão 40.00, despesa 20.00 e devolução 10.00 · Quando abro `/vendas/caixa` · Então a prop deferida `turno` traz troco inicial 100.00, total de vendas 135.00, despesas 20.00, devoluções 10.00, dinheiro (vendas 105.00 · despesas 20.00 · devoluções 10.00), cartão (vendas 40.00) e os 7 movimentos, o mais recente primeiro; os mesmos números que `getRegisterDetails` devolve.
+- **Teste:** `SellsCaixaContratoTest` — `UC-SCAIXA-10 [V0] movimentos e totais do turno batem com o caminho do Blade e com a conta à mão`.
+- **Regressão que defende:** total da tela divergindo do relatório do caixa legado; troco somado como entrada.
+- **Status: 🧪**
+
+## UC-SCAIXA-11 · Turno de outro business não aparece `[T0]` `[must]`
+- **Persona:** Larissa — o turno dela nunca mostra gaveta de outra empresa.
+- **Aceite:** Dado um turno aberto do mesmo `user_id` no business 99 com abertura 70000.00 · Quando o 98 abre a tela · Então `turno` é vazio; aberto também o turno do 98, `turno` é o do 98 e nenhum movimento do 99 entra.
+- **Teste:** `SellsCaixaContratoTest` — `UC-SCAIXA-11 [T0] turno de outro business nunca aparece, nem os movimentos dele`.
+- **Regressão que defende:** `cash_registers` sem global scope (ADR 0093) lido sem `business_id`.
+- **Status: 🧪**
+
+## UC-SCAIXA-12 · Sem turno aberto `[should]`
+- **Aceite:** Dado nenhum caixa aberto · Então `turno` vem vazio e a seção mostra o link para abrir o caixa.
+- **Teste:** `SellsCaixaContratoTest` — `UC-SCAIXA-12 sem caixa aberto o turno vem vazio`.
+- **Status: 🧪**
+
+- `[BACKLOG]` Conferência física: esperado em dinheiro, contado e diferença, fechando pelo `POST /cash-register/close-register` que já existe — PR 2 da thread 07.
+- `[BACKLOG]` Sangria e suprimento: o caixa do UltimatePOS não grava esses tipos (`cash_register_transactions.transaction_type` só tem `initial`/`sell`/`expense`/`refund`); exigiria regra e endpoint novos — decisão [W].

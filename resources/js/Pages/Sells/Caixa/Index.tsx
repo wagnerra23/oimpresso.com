@@ -10,7 +10,7 @@
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { useCallback, useMemo, useState, type ReactNode } from 'react';
-import { usePage, router } from '@inertiajs/react';
+import { usePage, router, Deferred } from '@inertiajs/react';
 import {
   Printer, CheckCircle2,
   Banknote, CreditCard, FileText, Landmark, Wallet, ReceiptText,
@@ -42,6 +42,40 @@ interface PorOrigem {
   refs: OsRef[];
 }
 
+// Thread 07 venda-menu — turno aberto (SellController::buildCaixaTurnoPayload).
+// Totais = CashRegisterUtil::getRegisterDetails (o mesmo do Blade payment_details).
+interface TurnoForma {
+  key: string;
+  label: string;
+  vendas: number;
+  despesas: number;
+  devolucoes: number;
+}
+
+interface TurnoMovimento {
+  id: number;
+  hora: string;
+  tipo: string;
+  tipoLabel: string;
+  formaLabel: string;
+  sentido: 'credit' | 'debit' | string;
+  valor: number;
+  vendaId: number | null;
+  invoiceNo: string | null;
+}
+
+interface Turno {
+  id: number;
+  abertoEm: string;
+  local: string | null;
+  trocoInicial: number;
+  totalVendas: number;
+  totalDespesas: number;
+  totalDevolucoes: number;
+  porForma: TurnoForma[];
+  movimentos: TurnoMovimento[];
+}
+
 interface CaixaPageProps {
   porFormaPagamento: PorFormaPagamento[];
   porOrigem: PorOrigem[];
@@ -50,6 +84,7 @@ interface CaixaPageProps {
   caixaAberto: boolean;
   cashRegisterId: number | null;
   dateSelected: string; // 'Y-m-d'
+  turno?: Turno | null; // deferred
   permissions: {
     view: boolean;
     close: boolean;
@@ -81,6 +116,7 @@ export default function SellsCaixaIndex() {
     cashRegisterId,
     dateSelected,
     permissions,
+    turno,
   } = props;
 
   const [date, setDate] = useState<string>(dateSelected);
@@ -298,18 +334,15 @@ export default function SellsCaixaIndex() {
             })}
           </section>
 
-          {/* Section 3 — Movimentos do caixa (placeholder Onda 6+1) */}
+          {/* Section 3 — Movimentos do turno (thread 07 · leitura) */}
           <section className="vc-card">
             <header className="vc-card-h">
               <h3>Movimentos do caixa</h3>
-              <span className="vc-muted">read-only · Onda 6+1 wire-up</span>
+              <span className="vc-muted">turno aberto · somente leitura</span>
             </header>
-            <p className="vc-empty">
-              Sangrias e suprimentos continuam via fluxo legacy{' '}
-              <a href="/cash-register">/cash-register</a> nesta wave.
-              <br />
-              <small>Onda 6+1 substitui por drawer Inertia read-write.</small>
-            </p>
+            <Deferred data="turno" fallback={<p className="vc-empty">Carregando turno…</p>}>
+              <TurnoMovimentos turno={turno ?? null} />
+            </Deferred>
           </section>
 
           {/* Section 4 — Conferência física (placeholder Onda 6+1) */}
@@ -338,6 +371,83 @@ export default function SellsCaixaIndex() {
         </div>
       </div>
     </div>
+  );
+}
+
+// Movimentos + totais do turno aberto. Nenhuma conta no front: todo número vem
+// pronto do controller (REGRA MESTRE valor) — aqui só formata.
+function TurnoMovimentos({ turno }: { turno: Turno | null }) {
+  if (!turno) {
+    return (
+      <p className="vc-empty">
+        Nenhum caixa aberto para você. Abra o turno em <a href="/cash-register/create">/cash-register/create</a>.
+      </p>
+    );
+  }
+  return (
+    <>
+      <p className="vc-muted">
+        Turno #{turno.id} · aberto em {turno.abertoEm}
+        {turno.local ? ` · ${turno.local}` : ''} · troco inicial {fmtBRL(turno.trocoInicial)}
+      </p>
+      <table className="vc-pay-table" aria-label="Totais do turno por forma de pagamento">
+        <thead>
+          <tr>
+            <th>Forma</th>
+            <th>Vendas</th>
+            <th>Despesas</th>
+            <th>Devoluções</th>
+          </tr>
+        </thead>
+        <tbody>
+          {turno.porForma.map(f => (
+            <tr key={f.key}>
+              <td>{f.label}</td>
+              <td className="vc-num">{fmtBRL(f.vendas)}</td>
+              <td className="vc-num">{fmtBRL(f.despesas)}</td>
+              <td className="vc-num">{fmtBRL(f.devolucoes)}</td>
+            </tr>
+          ))}
+        </tbody>
+        <tfoot>
+          <tr>
+            <td>Total do turno</td>
+            <td className="vc-num strong">{fmtBRL(turno.totalVendas)}</td>
+            <td className="vc-num strong">{fmtBRL(turno.totalDespesas)}</td>
+            <td className="vc-num strong">{fmtBRL(turno.totalDevolucoes)}</td>
+          </tr>
+        </tfoot>
+      </table>
+      {turno.movimentos.length === 0 ? (
+        <p className="vc-empty">Sem movimentos no turno.</p>
+      ) : (
+        <table className="vc-pay-table" aria-label="Movimentos do turno">
+          <thead>
+            <tr>
+              <th>Hora</th>
+              <th>Tipo</th>
+              <th>Forma</th>
+              <th>Venda</th>
+              <th>Valor</th>
+            </tr>
+          </thead>
+          <tbody>
+            {turno.movimentos.map(m => (
+              <tr key={m.id}>
+                <td className="vc-muted">{m.hora}</td>
+                <td>{m.tipoLabel}</td>
+                <td>{m.formaLabel}</td>
+                <td>{m.vendaId ? <a href={`/sells?open=${m.vendaId}`}>{m.invoiceNo}</a> : '—'}</td>
+                <td className="vc-num">
+                  {m.sentido === 'debit' ? '− ' : ''}
+                  {fmtBRL(m.valor)}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+    </>
   );
 }
 
