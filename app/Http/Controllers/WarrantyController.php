@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Warranty;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 use Yajra\DataTables\Facades\DataTables;
 
 class WarrantyController extends Controller
@@ -17,6 +18,12 @@ class WarrantyController extends Controller
     {
         if (! auth()->user()->can('warranty.view') && ! auth()->user()->can('warranty.create')) {
             abort(403, 'Unauthorized action.');
+        }
+
+        // Playbook Produto · thread 03: a visita abre Produto/Cadastros nesta aba. Inertia manda
+        // `X-Requested-With` junto do `X-Inertia` (§5 2026-09-08); `?classico=1` mantém a Blade e os modais.
+        if (! request()->boolean('classico') && (! request()->ajax() || request()->header('X-Inertia'))) {
+            return Inertia::render('Produto/Cadastros/Index', app(UnitController::class)->propsCadastros('garantias'));
         }
 
         $business_id = request()->session()->get('user.business_id');

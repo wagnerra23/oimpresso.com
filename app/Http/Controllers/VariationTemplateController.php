@@ -8,6 +8,7 @@ use App\VariationTemplate;
 use App\VariationValueTemplate;
 use DB;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 use Yajra\DataTables\Facades\DataTables;
 
 class VariationTemplateController extends Controller
@@ -21,6 +22,12 @@ class VariationTemplateController extends Controller
     {
         if (! auth()->user()->can('variation.view') && ! auth()->user()->can('variation.create')) {
             abort(403, 'Unauthorized action.');
+        }
+
+        // Playbook Produto · thread 03: a visita abre Produto/Cadastros nesta aba. Inertia manda
+        // `X-Requested-With` junto do `X-Inertia` (§5 2026-09-08); `?classico=1` mantém a Blade e os modais.
+        if (! request()->boolean('classico') && (! request()->ajax() || request()->header('X-Inertia'))) {
+            return Inertia::render('Produto/Cadastros/Index', app(UnitController::class)->propsCadastros('variacoes'));
         }
 
         if (request()->ajax()) {

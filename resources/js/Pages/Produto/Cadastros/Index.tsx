@@ -1,16 +1,16 @@
 // @memcofre
 //   tela: /units (Cadastros de apoio · abas)
 //   module: Produto
-//   stories: playbook Produto thread 02 (UnitController@index · Blade → Inertia)
-//   permissao: unit.* · category.* (type=product) · brand.* (cada aba pela sua)
+//   stories: playbook Produto threads 02 e 03 (Unit/VariationTemplate/SellingPriceGroup/Warranty@index · Blade → Inertia)
+//   permissao: unit.* · category.* (type=product) · brand.* · variation.* · warranty.* · product.create (grupos)
 //
 // Cadastros de apoio do produto. Charter: ./Index.charter.md · Casos: ./Index.casos.md
 // Âncora de design: prototipo-ui/cowork/Wagner/produto-cadastros.jsx → ProdutoCadastros()
 // Contrato: governance/design/contracts/produto-cadastros.contract.json
 //
-// Thread 02 traz Unidades, Categorias e Marcas: lista, contagem de uso clicável e exclusão com a
-// recusa dita antes. Criar e editar seguem nos modais da Blade (`?classico=1`; Categorias em
-// `/taxonomies?type=product`). Variações, Grupos de preço e Garantias abrem a tela atual (thread 03).
+// As 6 abas são vivas: lista, contagem de uso clicável e exclusão com a recusa dita antes (threads
+// 02 e 03). Criar e editar seguem nos modais da Blade (`?classico=1`; Categorias em
+// `/taxonomies?type=product`) — o drawer é a thread 10.
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Deferred, Link, router } from '@inertiajs/react';
@@ -28,10 +28,13 @@ import SubNav, { type SubNavItem } from '@/Components/shared/SubNav';
 import EmptyState from '@/Components/shared/EmptyState';
 import { Inline, Stack } from '@/Components/layout';
 
-type AbaViva = 'unidades' | 'categorias' | 'marcas';
+type AbaViva = 'variacoes' | 'grupos' | 'unidades' | 'categorias' | 'marcas' | 'garantias';
 interface Pode { view: boolean; create: boolean; update: boolean; delete: boolean }
+interface Variacao { id: number; nome: string; valores: string[]; em_uso: number }
+interface Grupo { id: number; nome: string; descricao: string; ativo: boolean }
 interface Unidade { id: number; nome: string; simbolo: string; decimal: boolean; base: string | null; em_uso: number }
 interface Marca { id: number; nome: string; descricao: string; em_uso: number }
+interface Garantia { id: number; nome: string; descricao: string; duracao: string | null }
 interface Categoria {
   id: number; nome: string; codigo: string; descricao: string;
   pai_id: number | null; pai: string | null; em_uso: number; filhas: number;
@@ -39,48 +42,75 @@ interface Categoria {
 interface Props {
   aba: AbaViva;
   can: Record<AbaViva, Pode>;
+  variacoes?: Variacao[] | null;
+  grupos?: Grupo[] | null;
   unidades?: Unidade[] | null;
   categorias?: Categoria[] | null;
   marcas?: Marca[] | null;
+  garantias?: Garantia[] | null;
 }
-// `filtro`: id que o índice de produtos recebe (subcategoria abre pela categoria pai — R3/R7).
+// `filtro`: query do índice de produtos (subcategoria abre pela categoria pai — R3/R7). Vazio = o índice não
+// filtra por aquilo (variação: `/products/unificado` não tem filtro por modelo) e o número não vira link.
 // `filhas`: subcategorias vivas — junto com `em_uso`, é o que faz o servidor recusar a exclusão.
-type Linha = { id: number; nome: string; busca: string; em_uso: number; filhas: number; filtro: number; celulas: ReactNode[] };
+type Linha = { id: number; nome: string; busca: string; em_uso: number; filhas: number; filtro: string; celulas: ReactNode[] };
 
-// Copy de cada aba, tirada de produto-cadastros.jsx (AbaUnidades :290 · AbaCategorias :375 · AbaMarcas :405).
-// `rota` recebe o DELETE (JSON do legado); `escrita` abre os modais de criar/editar da Blade.
+// Copy de cada aba, tirada de produto-cadastros.jsx (AbaVariacoes :214 · AbaGrupos :264 · AbaUnidades :310 ·
+// AbaCategorias :374 · AbaMarcas :425 · AbaGarantias :463). `rota` recebe o DELETE (JSON do legado);
+// `escrita` abre os modais da Blade; `uso: false` = aba sem coluna Produtos; `corpo` = confirmação de excluir livre.
+const LIVRE = 'Nenhum produto usa este registro — sai limpo. Ação sem volta.';
 const ABA = {
+  variacoes: {
+    o: 'variações', base: 'variation', rota: '/variation-templates', escrita: '/variation-templates?classico=1', novo: 'Nova variação',
+    busca: 'Buscar variação ou valor…', uso: true, corpo: 'O modelo deixa de aparecer no cadastro novo. Nenhum produto usa esses valores hoje.',
+    ajuda: 'Modelo reaproveitado no cadastro de produto variável: escolher “Cor” já traz os valores abaixo como variações.',
+    primeiro: 'Modelo de variação é o atalho do produto variável: cadastre “Cor” uma vez e todo produto novo já oferece os valores.',
+    colunas: ['Variação', 'Valores', 'Produtos', 'Ações'],
+  },
+  grupos: {
+    o: 'grupos de preço', base: 'product', rota: '/selling-price-group', escrita: '/selling-price-group?classico=1', novo: 'Novo grupo',
+    busca: 'Buscar grupo…', uso: false,
+    corpo: 'Os preços digitados neste grupo somem junto. Vendas já emitidas mantêm o valor praticado. Se a ideia é só esconder, desative.',
+    ajuda: 'Cada grupo ativo vira uma coluna em Preços por grupo e uma opção de preço no PDV e no orçamento. Desativar esconde o grupo sem apagar os preços já digitados.',
+    primeiro: 'Sem grupo cadastrado todo mundo paga o preço de tabela. Crie “Atacado” pra ter um segundo preço no PDV e no orçamento.',
+    colunas: ['Grupo', 'Descrição', 'Situação', 'Ações'],
+  },
   unidades: {
-    o: 'unidades', base: 'unit', rota: '/units', escrita: '/units?classico=1', filtro: 'unidade', novo: 'Nova unidade',
-    busca: 'Buscar unidade…',
+    o: 'unidades', base: 'unit', rota: '/units', escrita: '/units?classico=1', novo: 'Nova unidade',
+    busca: 'Buscar unidade…', uso: true, corpo: LIVRE,
     ajuda: 'Unidade decimal aceita quantidade fracionada (m², kg). Múltiplo de unidade base converte compra em caixa para venda em peça.',
     primeiro: 'Todo produto precisa de unidade. Comece pelas três da gráfica: Unidade (Un), Metro quadrado (m²) e Metro linear (m).',
     colunas: ['Unidade', 'Aceita decimal', 'Múltiplo da base', 'Produtos', 'Ações'],
   },
   categorias: {
-    o: 'categorias', base: 'category', rota: '/taxonomies', escrita: '/taxonomies?type=product', filtro: 'categoria', novo: 'Nova categoria',
-    busca: 'Buscar categoria ou código…',
+    o: 'categorias', base: 'category', rota: '/taxonomies', escrita: '/taxonomies?type=product', novo: 'Nova categoria',
+    busca: 'Buscar categoria ou código…', uso: true, corpo: LIVRE,
     ajuda: 'Categoria e subcategoria do produto — as mesmas do filtro do índice e do relatório de lucro por categoria. Código curto entra no SKU automático.',
     primeiro: 'Categoria é o que faz o relatório de lucro por categoria existir e o SKU sair automático. Comece pelas famílias que você orça.',
     colunas: ['Categoria', 'Código', 'Descrição', 'Produtos', 'Ações'],
   },
   marcas: {
-    o: 'marcas', base: 'brand', rota: '/brands', escrita: '/brands?classico=1', filtro: 'marca', novo: 'Nova marca',
-    busca: 'Buscar marca…',
+    o: 'marcas', base: 'brand', rota: '/brands', escrita: '/brands?classico=1', novo: 'Nova marca',
+    busca: 'Buscar marca…', uso: true, corpo: LIVRE,
     ajuda: 'Marca do produto — filtro do índice, relatório por marca e, quando marcada, lista de marcas de aparelho da Oficina.',
     primeiro: 'Marca é opcional no produto, mas é ela que faz o relatório por marca e a lista de aparelhos da Oficina.',
     colunas: ['Marca', 'Descrição curta', 'Produtos', 'Ações'],
   },
+  garantias: {
+    o: 'garantias', base: 'warranty', rota: '/warranties', escrita: '/warranties?classico=1', novo: 'Nova garantia',
+    busca: 'Buscar garantia…', uso: false, corpo: LIVRE,
+    ajuda: 'Prazo de garantia do produto — imprime na OS e na nota, e serve de base pro atendimento aceitar ou recusar retorno.',
+    primeiro: 'Sem prazo cadastrado o atendimento decide retorno de cabeça. Cadastre os prazos que você já pratica.',
+    colunas: ['Garantia', 'Descrição', 'Duração', 'Ações'],
+  },
 } as const;
 
-// Abas que ainda vivem na tela atual (thread 03).
-const [VARIACOES, GRUPOS, GARANTIAS]: [SubNavItem, SubNavItem, SubNavItem] = [
-  { value: 'variacoes', label: 'Variações', href: '/variation-templates' },
-  { value: 'grupos', label: 'Grupos de preço', href: '/selling-price-group' },
-  { value: 'garantias', label: 'Garantias', href: '/warranties' },
+// Ordem do protótipo: Variações · Grupos de preço · Unidades · Categorias · Marcas · Garantias.
+const ORDEM: [AbaViva, string][] = [
+  ['variacoes', 'Variações'], ['grupos', 'Grupos de preço'], ['unidades', 'Unidades'],
+  ['categorias', 'Categorias'], ['marcas', 'Marcas'], ['garantias', 'Garantias'],
 ];
 
-export default function CadastrosIndex({ aba: inicial, can, unidades, categorias, marcas }: Props) {
+export default function CadastrosIndex({ aba: inicial, can, variacoes, grupos, unidades, categorias, marcas, garantias }: Props) {
   const [aba, setAba] = useState<AbaViva>(inicial);
   const [busca, setBusca] = useState('');
   const [excluir, setExcluir] = useState<Linha | null>(null);
@@ -88,6 +118,7 @@ export default function CadastrosIndex({ aba: inicial, can, unidades, categorias
   const buscaRef = useRef<HTMLInputElement>(null);
   const cfg = ABA[aba];
   const pode = can[aba];
+  const dados = { variacoes, grupos, unidades, categorias, marcas, garantias };
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -101,15 +132,30 @@ export default function CadastrosIndex({ aba: inicial, can, unidades, categorias
     return () => window.removeEventListener('keydown', onKey);
   }, []);
 
-  const linhas: Linha[] | null = aba === 'unidades'
-    ? unidades?.map((u) => ({ id: u.id, nome: u.nome, busca: u.nome, em_uso: u.em_uso, filhas: 0, filtro: u.id, celulas: [
+  const linhas: Linha[] | null = aba === 'variacoes'
+    ? variacoes?.map((v) => ({ id: v.id, nome: v.nome, busca: `${v.nome} ${v.valores.join(' ')}`, em_uso: v.em_uso, filhas: 0,
+      filtro: '', celulas: [
+        <Stack gap={0}><b>{v.nome}</b><span className="text-xs text-muted-foreground">{v.valores.length} valor(es)</span></Stack>,
+        <Inline wrap gap={1}>{v.valores.map((x, i) => <span key={i} className="rounded border border-border px-1.5 text-xs">{x}</span>)}</Inline>,
+      ] })) ?? null
+    : aba === 'grupos'
+      ? grupos?.map((g) => ({ id: g.id, nome: g.nome, busca: `${g.nome} ${g.descricao}`, em_uso: 0, filhas: 0, filtro: '', celulas: [
+        <b className={g.ativo ? undefined : 'text-muted-foreground'}>{g.nome}</b>, g.descricao || '—', g.ativo ? 'Ativo' : 'Inativo',
+      ] })) ?? null
+    : aba === 'garantias'
+      ? garantias?.map((w) => ({ id: w.id, nome: w.nome, busca: `${w.nome} ${w.descricao}`, em_uso: 0, filhas: 0, filtro: '', celulas: [
+        <Stack gap={0}><b>{w.nome}</b><span className="text-xs text-muted-foreground">{w.duracao ?? 'sem prazo'}</span></Stack>,
+        w.descricao || '—', <span className="font-mono text-xs">{w.duracao ?? '—'}</span>,
+      ] })) ?? null
+    : aba === 'unidades'
+    ? unidades?.map((u) => ({ id: u.id, nome: u.nome, busca: u.nome, em_uso: u.em_uso, filhas: 0, filtro: `unidade=${u.id}`, celulas: [
       <><b>{u.nome}</b> <span className="text-muted-foreground">({u.simbolo})</span></>,
       u.decimal ? 'Sim' : 'Não',
       <span className="font-mono text-xs">{u.base ?? '—'}</span>,
     ] })) ?? null
     : aba === 'categorias'
       ? categorias?.map((c) => ({ id: c.id, nome: c.nome, busca: `${c.nome} ${c.codigo}`, em_uso: c.em_uso, filhas: c.filhas,
-        filtro: c.pai_id ?? c.id, celulas: [
+        filtro: `categoria=${c.pai_id ?? c.id}`, celulas: [
           <Stack gap={0}>
             <b className={c.pai_id ? 'pl-4' : undefined}>{c.pai_id ? `↳ ${c.nome}` : c.nome}</b>
             <span className={`text-xs text-muted-foreground${c.pai_id ? ' pl-4' : ''}`}>
@@ -119,7 +165,7 @@ export default function CadastrosIndex({ aba: inicial, can, unidades, categorias
           <span className="font-mono text-xs">{c.codigo || '—'}</span>,
           c.descricao || '—',
         ] })) ?? null
-      : marcas?.map((m) => ({ id: m.id, nome: m.nome, busca: m.nome, em_uso: m.em_uso, filhas: 0, filtro: m.id, celulas: [<b>{m.nome}</b>, m.descricao || '—'] })) ?? null;
+      : marcas?.map((m) => ({ id: m.id, nome: m.nome, busca: m.nome, em_uso: m.em_uso, filhas: 0, filtro: `marca=${m.id}`, celulas: [<b>{m.nome}</b>, m.descricao || '—'] })) ?? null;
 
   const termo = busca.trim().toLowerCase();
   const filtradas = linhas?.filter((l) => !termo || l.busca.toLowerCase().includes(termo)) ?? [];
@@ -132,13 +178,13 @@ export default function CadastrosIndex({ aba: inicial, can, unidades, categorias
     if (!excluir) return;
     // A rota legada devolve JSON (não Inertia) e já escopa por business_id; a recusa de uso é dela.
     const csrf = document.head.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content ?? '';
-    const dados = await fetch(`${cfg.rota}/${excluir.id}`, {
+    const resposta = await fetch(`${cfg.rota}/${excluir.id}`, {
       method: 'DELETE',
       headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest', 'X-CSRF-TOKEN': csrf },
     }).then((r) => r.json() as Promise<{ success?: boolean; msg?: string }>).catch(() => null);
     setExcluir(null);
-    if (dados?.success) router.reload({ only: [aba] });
-    else setErro(dados?.msg ?? 'Não foi possível excluir. Nada foi alterado.');
+    if (resposta?.success) router.reload({ only: [aba] });
+    else setErro(resposta?.msg ?? 'Não foi possível excluir. Nada foi alterado.');
   };
 
   return (
@@ -157,19 +203,13 @@ export default function CadastrosIndex({ aba: inicial, can, unidades, categorias
               ariaLabel="Cadastros de apoio"
               value={aba}
               onChange={(v) => { setAba(v as AbaViva); setBusca(''); setErro(null); }}
-              items={[
-                VARIACOES, GRUPOS,
-                { value: 'unidades', label: 'Unidades', badge: can.unidades.view ? unidades?.length : '—' },
-                { value: 'categorias', label: 'Categorias', badge: can.categorias.view ? categorias?.length : '—' },
-                { value: 'marcas', label: 'Marcas', badge: can.marcas.view ? marcas?.length : '—' },
-                GARANTIAS,
-              ]}
+              items={ORDEM.map(([value, label]): SubNavItem => ({ value, label, badge: can[value].view ? dados[value]?.length : '—' }))}
             />
           </div>
 
           {!pode.view ? (
             <EmptyState icon="lock" title={`Você não vê ${cfg.o}`}
-              description={`Seu papel não tem ${cfg.base}.view — quem libera é o administrador, em Papéis.`} />
+              description={`Seu papel não tem ${aba === 'grupos' ? 'product.create' : `${cfg.base}.view`} — quem libera é o administrador, em Papéis.`} />
           ) : (
             <>
               <Inline wrap gap={2} data-contract="produto-cadastros-barra">
@@ -203,11 +243,13 @@ export default function CadastrosIndex({ aba: inicial, can, unidades, categorias
                         {filtradas.map((l) => (
                           <tr key={l.id} className="border-b border-border">
                             {l.celulas.map((c, i) => <td key={i} className="py-2 pr-3">{c}</td>)}
-                            <td className="py-2 pr-3 text-right tabular-nums">
-                              {l.em_uso > 0
-                                ? <Link href={`/products/unificado?${cfg.filtro}=${l.filtro}`} className="text-primary underline-offset-2 hover:underline">{l.em_uso}</Link>
-                                : 0}
-                            </td>
+                            {cfg.uso && (
+                              <td className="py-2 pr-3 text-right tabular-nums">
+                                {l.em_uso > 0 && l.filtro
+                                  ? <Link href={`/products/unificado?${l.filtro}`} className="text-primary underline-offset-2 hover:underline">{l.em_uso}</Link>
+                                  : l.em_uso}
+                              </td>
+                            )}
                             <td className="py-2 pr-3">
                               <Inline gap={2}>
                                 {pode.update && <Button asChild variant="outline" size="sm"><a href={cfg.escrita}>Editar</a></Button>}
@@ -234,7 +276,7 @@ export default function CadastrosIndex({ aba: inicial, can, unidades, categorias
             <AlertDialogDescription>
               {excluir && recusa(excluir)
                 ? `${recusa(excluir)}. ${excluir.filhas > 0 ? 'Mova ou exclua as subcategorias' : 'Troque o valor nesses produtos'} primeiro${excluir.em_uso > 0 ? ' — pela Edição em massa resolve em uma passada' : ''}.`
-                : 'Nenhum produto usa este registro — sai limpo. Ação sem volta.'}
+                : cfg.corpo}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

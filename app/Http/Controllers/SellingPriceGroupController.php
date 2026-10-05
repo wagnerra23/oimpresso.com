@@ -42,6 +42,12 @@ class SellingPriceGroupController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
+        // Playbook Produto · thread 03: a visita abre Produto/Cadastros nesta aba. Inertia manda
+        // `X-Requested-With` junto do `X-Inertia` (§5 2026-09-08); `?classico=1` mantém a Blade e os modais.
+        if (! request()->boolean('classico') && (! request()->ajax() || request()->header('X-Inertia'))) {
+            return Inertia::render('Produto/Cadastros/Index', app(UnitController::class)->propsCadastros('grupos'));
+        }
+
         if (request()->ajax()) {
             $business_id = request()->session()->get('user.business_id');
 
