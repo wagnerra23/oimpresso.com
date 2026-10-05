@@ -792,6 +792,60 @@ it('novo veículo: dono de OUTRA empresa é 422; sem placa ou tipo é 422; sem p
     expect(DB::table('vehicles')->where('plate', $placa)->exists())->toBeFalse();
 });
 
+// ── Consulta de placa pelo app: GET /api/app/veiculos/consulta-placa/{placa} (pedido [W] 2026-10-05) ──
+
+it('consulta de placa: em teste (stub) devolve só dados técnicos no formato do cadastro, sem proprietário; NF* não encontrada', function () {
+    appOsPodeCriarVeiculo($this);
+    config()->set('oficina-auto.placa_lookup.driver', 'stub');
+    \Illuminate\Support\Facades\Cache::flush();
+
+    expect($this->getJson('/api/app/veiculos/opcoes')->assertOk()->json('consulta_placa'))->toBeTrue();
+
+    $placa = appOsPlacaNova();
+    $r = $this->getJson('/api/app/veiculos/consulta-placa/' . strtolower($placa))->assertOk();
+    expect($r->json('encontrado'))->toBeTrue();
+    expect(array_keys($r->json('dados')))->toBe(['placa', 'ano_fabricacao', 'ano_modelo', 'cor', 'chassi', 'renavam', 'marca_modelo']);
+    expect($r->json('dados.placa'))->toBe($placa);
+
+    $this->getJson('/api/app/veiculos/consulta-placa/NFA1B23')->assertOk()
+        ->assertJsonPath('encontrado', false)
+        ->assertJsonPath('mensagem', 'Nenhum dado encontrado para esta placa.');
+});
+
+it('consulta de placa: em produção sem fornecedor (stub) responde 503 sem_configuracao e opções avisam que não há consulta', function () {
+    appOsPodeCriarVeiculo($this);
+    config()->set('oficina-auto.placa_lookup.driver', 'stub');
+    $env = app()['env'];
+    app()['env'] = 'live';
+    try {
+        expect($this->getJson('/api/app/veiculos/opcoes')->assertOk()->json('consulta_placa'))->toBeFalse();
+        $this->getJson('/api/app/veiculos/consulta-placa/' . appOsPlacaNova())->assertStatus(503)
+            ->assertJsonPath('erro', 'sem_configuracao')
+            ->assertJsonPath('mensagem', 'Consulta de placa não configurada.');
+    } finally {
+        app()['env'] = $env;
+    }
+});
+
+it('consulta de placa: placa já em veículo ativo devolve o id dele sem consultar; inválida é 422; sem permissão de criar é 403', function () {
+    Permission::firstOrCreate(['name' => 'oficinaauto.vehicle.view', 'guard_name' => 'web']);
+    $this->user->givePermissionTo('oficinaauto.vehicle.view');
+    $this->getJson('/api/app/veiculos/consulta-placa/' . appOsPlacaNova())->assertStatus(403)->assertJsonPath('erro', 'sem_permissao');
+
+    appOsPodeCriarVeiculo($this);
+    // Driver que falharia se fosse chamado: prova que a placa existente não gasta consulta.
+    config()->set('oficina-auto.placa_lookup.driver', 'nenhum');
+    $placa = appOsPlacaNova();
+    $ativo = DB::table('vehicles')->insertGetId([
+        'business_id' => $this->biz->id, 'plate' => $placa, 'vehicle_type' => 'caminhao',
+        'created_at' => now(), 'updated_at' => now(),
+    ]);
+    $this->getJson('/api/app/veiculos/consulta-placa/' . $placa)->assertOk()
+        ->assertJsonPath('encontrado', false)
+        ->assertJsonPath('veiculo_existente_id', $ativo);
+
+    $this->getJson('/api/app/veiculos/consulta-placa/ABC12')->assertStatus(422)->assertJsonPath('erro', 'validacao');
+
 // ── Web: cadastro e edição de veículo também recusam placa ativa repetida (decisão [W] 2026-10-05) ──
 
 /** Roda as regras + o after() do FormRequest da web com o usuário do teste (sem passar pelo HTTP da web). */

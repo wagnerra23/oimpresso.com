@@ -2,73 +2,48 @@ repo: wagnerra23/oimpresso-app
 branch: main
 path: /
 
-> **Alvo mudou em 2026-10-01 (decisão [W]).** O app das lojas é o `oimpresso-app` (Capacitor + React/Vite, telas próprias, dados pela API Passport do ERP). O app Expo (`wagnerra23/oimpresso.com` · `mobile/`) saiu das lojas e o `/m` dentro do ERP foi descartado. Novos handoffs deste projeto miram o `oimpresso-app`; as ondas em `handoff/` foram escritas para o Expo e valem só como referência (tokens, toque ≥ 44, status da OS, offline, regras do Ponto).
-> Cópia de referência deste projeto no ERP: `wagnerra23/oimpresso.com` · `mobile/ref/design-v4/` (PR #8467 mergeado; PR #8485 aberto, traz a versão atual).
+> **Alvo mudou em 2026-10-01 (decisão [W]).** O app das lojas é o `oimpresso-app` (Capacitor + React/Vite, telas próprias, dados pela API Passport do ERP). O app Expo (`wagnerra23/oimpresso.com` · `mobile/`) saiu das lojas. As ondas em `handoff/` foram escritas para o Expo e valem só como referência.
 
 ## Last sync
-date: 2026-10-01T20:23:45Z
+date: 2026-10-05T14:55:00Z
 
 ### Updated in this project
-- Alvo trocado de `oimpresso.com/mobile/` (Expo) para `oimpresso-app`
-- Escopo da v1 ([W] 2026-10-01, D13 do `docs/lojas-app/DECISOES.md`, PR #8473 aberto): **7 áreas** — Início, Tarefas, Pedidos, Produção, Pessoas, Ponto e Mais. v2: Produtos, Venda rápida e Finanças. A submissão às lojas só sai com as 7.
-- Tema ([W] 2026-10-01, D14): o app segue o tema claro/escuro do celular, como este protótipo.
-- Hoje o oimpresso-app tem Login, Início (só ponto), Ponto e Conta; as outras áreas da v1 estão em construção.
-- Dashboard (tela 35) fora da v1 ([W] 2026-10-02, D15 do `docs/lojas-app/DECISOES.md`, PR #8512): não entra em Mais nem substitui o Início.
+- Contratos por rota (`handoff/propostas-app/api/`), fixtures (`demo-propostas.ts`) e decisões como ajuste da empresa (`AJUSTES-DA-EMPRESA.md`, `pos_settings.app_*`); P1 alinhado ao §2 do API-CONTRATO-v1 (`POST /pedidos/{id}/acao`)
+- Propostas conferidas contra o `oimpresso.com@main` (routes/api/app, OficinaController, ComunicacaoVisual, Whatsapp, comissão UltimatePOS); lista para o Code em `handoff/propostas-app/TAREFAS.md`
+- Propostas: câmera (QR em P8, foto em P2) e biometria no login (P9) liberadas por [W]; a ADR 0383 vale só para o ponto (texto da própria ADR). Pendente no repo: README do oimpresso-app ainda diz "nunca adicionar permissão de câmera"
+- Novo: `Mobile Propostas.dc.html` — 9 telas propostas (P1–P9) a partir da comparação com Mubisys, HoldApp e shopVOX Go; base: `memory/research/2026-05-prospeccao/33-grade-producao-concorrentes.md` (oimpresso.com)
+- Navegação e Mais como produção: barra Início · Tarefas · Pedidos · Produção · Mais, 18 módulos, Meu menu (até 3), "Abrir o oimpresso completo"; sem Venda rápida, perfis nem troca de empresa
+- Telas viram só leitura onde produção é só leitura: Produção (etapas da venda), Pedidos, Estoque, Movimentações, Orçamentos, Fiscal, Financeiro, Relatórios, OS; ações ficam "no computador"
+- Ponto: sem REP-P (D9), 8 motivos do ERP, espelho com banco de horas/escala/justificativas, "Ponto não liberado", fila do gestor com confirmação de anulação
+- Banner offline sem fila ("Bater ponto precisa de internet"); Login sem OAuth/empresa; Assistente = Jana
+- Cópia anterior: `Oimpresso Mobile v1 (antes da sync 05-10).dc.html`
+
+## Sync history
+- 2026-10-05T14:20Z · Início, Ponto 36–38, Meu menu (1ª parte desta sync)
+- 2026-10-01T20:23:45Z · alvo trocado para oimpresso-app
 
 ## Screen map (oimpresso-app)
 | Tela | Arquivos do repo |
 | --- | --- |
 | 00 Login | src/telas/Login.tsx |
 | 01 Início | src/telas/Inicio.tsx |
-| 36 Bater ponto · 37 Meu espelho · 38 Justificar | src/telas/Ponto.tsx, src/ponto-regras.ts, src/api.ts |
-| Conta (excluir conta, sair) | src/telas/Conta.tsx |
-| Tokens | src/styles/oimpresso-tokens.css (v4: design/oi-theme.v4.ts → src/styles/oi-v4.css, PR #6 aberto) |
-| Lembrete de ponto | src/push.ts |
-| 01 Início (gestão) · 12 Tarefas · 21–22 Pedidos · 02/27 Produção · 17–18 Pessoas · 10 Mais | **v1 (D13)** — em construção no oimpresso-app |
-| 19–20 Produtos · 11 Venda rápida · 06/15 Finanças | v2 |
-| 35 Dashboard | **fora da v1** ([W] 2026-10-02, D15): não entra em Mais nem substitui o Início; fica para depois |
-| demais telas do protótipo (Oficina, Estoque, Fiscal…) | fora da v1 e da v2 por ora |
-| 39 Marcações a validar | fora do app (tela de gestor, desktop) |
-
-## Histórico — mapa do app Expo (`oimpresso.com` · `mobile/`), alvo até 2026-10-01
-### Sync history (Expo)
-- 2026-09-29T19:51:44Z · commit 7a6c977b621b4169050b3184ac1f4a95bdd04b3c · espelho inicial (PR #8193), telas 00–39, pele do DS
-
-### Screen map (Expo)
-| Tela | Arquivos do repo |
-| --- | --- |
-| 01 Início | mobile/app/(tabs)/index.tsx, components/oi/OiHeader.tsx, OiKpi.tsx |
-| 02 Produção | mobile/app/(tabs)/producao.tsx, components/oi/OiStatus.tsx |
-| 03 OS da oficina | mobile/app/oss/[id].tsx |
-| 04 Orçamentos | mobile/app/(tabs)/orcamentos.tsx |
-| 05 Estoque | mobile/app/(tabs)/estoque.tsx |
-| 06 Financeiro | mobile/app/(tabs)/financeiro.tsx, lib/use-financeiro.tsx |
-| 07 Ordens de serviço | mobile/app/(tabs)/oss.tsx |
-| 08 Veículos | mobile/app/(tabs)/veiculos.tsx |
-| 09 Nova pessoa | mobile/app/clientes/_wizard.tsx |
-| 00 Login + empresa | mobile/app/login.tsx, app/empresas.tsx |
-| 10 Mais + perfis | mobile/app/(tabs)/mais.tsx, lib/menu-perfis.ts, lib/menu-modules.ts |
-| 11 Venda rápida | mobile/app/venda-rapida.tsx |
-| 12 Tarefas | mobile/app/(tabs)/tarefas.tsx |
-| Offline (todas) | mobile/components/offline-banner.tsx, OFFLINE.md |
-| Faturar (03) | mobile/components/oi/OiFaturarSheet.tsx |
-| 13 Relatórios | mobile/app/(tabs)/relatorios.tsx |
-| 14 Fiscal | mobile/app/(tabs)/fiscal.tsx |
-| 15 Pagamentos | mobile/app/(tabs)/pagamentos.tsx |
-| 16 Notificações | mobile/app/notificacoes/index.tsx |
-| 17 Pessoas | mobile/app/(tabs)/clientes.tsx |
-| 18 Ficha do cliente | mobile/app/clientes/[id]/index.tsx |
-| 19 Produtos · 20 Novo produto | mobile/app/(tabs)/produtos.tsx, app/produtos/_wizard.tsx |
-| 21 Pedidos · 22 Detalhe | mobile/app/(tabs)/vendas.tsx, app/pedidos/[id].tsx |
-| 23 Manutenção · 24 Equipamentos | mobile/app/(tabs)/manutencao.tsx, (tabs)/equipamentos.tsx, lib/equipamentos-mock.ts |
-| 25 Chat · 26 Equipe | mobile/app/(tabs)/chat.tsx, app/equipe/index.tsx |
-| 27 OP · 28 Tarefa · 29 Movimentações | mobile/app/producao/[id].tsx, tarefas/[id].tsx, estoque/[id].tsx |
-| 30 Editar perfil de menu | mobile/app/perfis/index.tsx, perfis/[id]/edit.tsx |
-| 31 Equipamento · 32 Novo | mobile/app/equipamentos/[id].tsx, equipamentos/new.tsx |
-| 33 Locais | mobile/app/locais/index.tsx |
-| 34 Ficha cadastral | mobile/app/clientes/[id]/ficha.tsx |
-| 35 Dashboard | mobile/app/(tabs)/dashboard.tsx |
-| 36 Bater ponto · 37 Meu espelho · 38 Justificar | resources/js/Pages/Ponto/Mobile/Index.tsx, _components/MeuEspelho.tsx, _components/Justificar.tsx (repo web) |
-| 39 Marcações a validar | resources/js/Pages/Ponto/Aprovacoes/_components/FilaMobile.tsx (repo web) |
-| Tabbar | mobile/app/(tabs)/_layout.tsx, components/oi/OiTabbar.tsx |
-| Tokens | mobile/lib/oi-theme.ts |
+| 02 Produção | src/telas/Producao.tsx |
+| 04 Orçamentos | src/telas/Orcamentos.tsx |
+| 05 Estoque · 29 Movimentações | src/telas/Estoque.tsx, src/telas/Movimentacoes.tsx |
+| 06 Financeiro | src/telas/Financeiro.tsx |
+| 07 Ordens de serviço | src/telas/OrdensServico.tsx |
+| 10 Mais · 30 Meu menu | src/telas/Mais.tsx, src/telas/PerfilMenu.tsx, src/navegacao.ts, src/App.tsx |
+| 12 Tarefas | src/telas/Tarefas.tsx |
+| 13 Relatórios | src/telas/Relatorios.tsx |
+| 14 Fiscal | src/telas/Fiscal.tsx |
+| 15 Pagamentos | src/telas/Pagamentos.tsx, src/pagamento-regras.ts |
+| 16 Notificações | src/telas/Notificacoes.tsx |
+| 17 Pessoas · 18 Ficha | src/telas/Pessoas.tsx |
+| 21 Pedidos · 22 Detalhe | src/telas/Pedidos.tsx |
+| 25 Assistente | src/telas/Assistente.tsx |
+| 26 Equipe | src/telas/Equipe.tsx |
+| 35 Dashboard | src/telas/Dashboard.tsx |
+| 36 Bater ponto · 37 Meu espelho · 38 Justificar | src/telas/Ponto.tsx, src/ponto-regras.ts |
+| 39 Marcações a validar | src/telas/FilaGestor.tsx |
+| Não comparados ainda | 03 OsDetalhe, NovaOs, 08 Veiculos, 09 NovaPessoa, 11 VendaRapida, 20 NovoProduto, 28 TarefaDetalhe, 34 PessoaCadastro, Conta |
+| Fora do app | 23 Manutenção, 24/31/32 Equipamentos, 33 Locais (sem tela no oimpresso-app) |

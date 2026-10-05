@@ -68,3 +68,20 @@ do ERP. Mesma permissão da lista.
   `oficinaauto.vehicle.view` ou `oficinaauto.vehicle.create`.
 - Só insere em `vehicles`: sem OS, valor, estoque, venda ou cobrança. Fora por ora: consulta de placa
   externa, motor, combustível, chassi secundário e observações.
+
+## Consulta de placa — leitura (pedido [W] 2026-10-05)
+
+`GET /api/app/veiculos/opcoes` traz também `"consulta_placa": bool` — o app só mostra "Buscar" pela placa
+quando é `true`. Em produção ele fica `false` enquanto não houver fornecedor contratado (o driver de
+teste inventa dados e não responde em produção).
+
+`GET /api/app/veiculos/consulta-placa/{placa}` (mesma permissão do cadastro; throttle 10/min — a consulta
+pode ser paga). A mesma consulta da web: só dados técnicos, nunca proprietário; cache 24h por empresa+placa.
+
+- `200 { "encontrado": true, "dados": { "placa", "ano_fabricacao", "ano_modelo", "cor", "chassi", "renavam",
+  "marca_modelo" } }` — `marca_modelo` só para mostrar (o veículo não guarda marca/modelo).
+- `200 { "encontrado": false, "mensagem": "Nenhum dado encontrado para esta placa." }`.
+- Placa já em veículo ativo da empresa → `200 { "encontrado": false, "mensagem": "Esta placa já está em
+  outro veículo ativo.", "veiculo_existente_id" }`, **sem** consultar o fornecedor.
+- `422 campos.placa` placa fora do formato ABC1234/ABC1D23 · `502 indisponivel` fornecedor fora ·
+  `503 sem_configuracao` "Consulta de placa não configurada." · `403 sem_permissao`.

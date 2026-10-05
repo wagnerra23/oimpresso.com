@@ -69,15 +69,19 @@ class VehicleLookupService
                 return null;
             }
 
+            // Resolve ANTES da cache: driver indisponível neste ambiente nunca serve o que já cacheou.
+            $provider = $this->resolveProvider();
+
             $ttl = (int) config('oficina-auto.placa_lookup.cache_ttl', 86400);
-            $cacheKey = "oficina:placa:{$businessId}:{$plate}";
+            // O driver entra na chave: o que o stub cacheou não vale para o fornecedor real (e vice-versa).
+            $cacheKey = 'oficina:placa:' . ($this->provider !== null ? 'injetado' : self::driver()) . ":{$businessId}:{$plate}";
 
             $cached = Cache::get($cacheKey);
             if ($cached instanceof PlacaLookupResult) {
                 return $cached;
             }
 
-            $result = $this->resolveProvider()->lookup($plate);
+            $result = $provider->lookup($plate);
 
             if ($result !== null && $ttl > 0) {
                 Cache::put($cacheKey, $result, $ttl);
@@ -100,7 +104,10 @@ class VehicleLookupService
             return $this->provider;
         }
 
-        $driver = (string) config('oficina-auto.placa_lookup.driver', 'stub');
+        $driver = self::driver();
+        if (! self::disponivel()) {
+            throw PlacaLookupException::notConfigured($driver);
+        }
 
         return match ($driver) {
             'http'  => new HttpPlacaProvider((array) config('oficina-auto.placa_lookup.http', [])),
@@ -108,4 +115,28 @@ class VehicleLookupService
             default => throw PlacaLookupException::notConfigured($driver),
         };
     }
+
+    /** Driver configurado (`oficina-auto.placa_lookup.driver`; padrão `stub`). */
+    public static function driver(): string
+    {
+        return (string) config('oficina-auto.placa_lookup.driver', 'stub');
+    }
+
+    /**
+     * A consulta pode responder neste ambiente? O `stub` INVENTA dados a partir da placa: só vale
+     * em desenvolvimento, teste e staging. Em produção (APP_ENV "live" no Hostinger, que não é
+     * "production") ele não responde — dado falso iria parar em veículo real (decisão [W]
+     * 2026-10-05, medido: produção estava em stub, sem nenhuma variável OFICINA_* no .env).
+     */
+    public static function disponivel(): bool
+    {
+        return match (self::driver()) {
+            'http' => true,
+            'stub' => app()->environment(self::AMBIENTES_COM_STUB),
+            default => false,
+        };
+    }
+
+    /** Ambientes onde o stub pode responder (dado inventado é aceitável). */
+    private const AMBIENTES_COM_STUB = ['local', 'testing', 'development', 'dev', 'staging'];
 }

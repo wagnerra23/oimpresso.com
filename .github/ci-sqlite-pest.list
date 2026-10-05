@@ -653,3 +653,4 @@ tests/Feature/Testing/GuardableColumnsCacheResetTest.php
 tests/Feature/Install/ManageModulesPostTest.php
 tests/Feature/Install/InstalacaoSoPorPostTest.php
 tests/Feature/Site/PrivacidadeAppContratoTest.php
+tests/Feature/Modules/OficinaAuto/PlacaStubForaDeProducaoTest.php
