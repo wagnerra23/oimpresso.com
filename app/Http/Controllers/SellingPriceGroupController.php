@@ -34,7 +34,7 @@ class SellingPriceGroupController extends Controller
     /**
      * Display a listing of the resource.
      *
-     * @return \Illuminate\Http\Response
+     * @return mixed Inertia (tela Produto/Cadastros) · JSON do DataTables · view clássica
      */
     public function index()
     {

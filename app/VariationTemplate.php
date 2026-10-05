@@ -16,7 +16,10 @@ class VariationTemplate extends Model
     /**
      * Get the attributes for the variation.
      */
-    public function values()
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany<\App\VariationValueTemplate, $this>
+     */
+    public function values(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(\App\VariationValueTemplate::class);
     }

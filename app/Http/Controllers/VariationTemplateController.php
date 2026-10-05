@@ -16,7 +16,7 @@ class VariationTemplateController extends Controller
     /**
      * Display a listing of the resource.
      *
-     * @return \Illuminate\Http\Response
+     * @return mixed Inertia (tela Produto/Cadastros) · JSON do DataTables · view clássica
      */
     public function index()
     {
@@ -235,7 +235,7 @@ class VariationTemplateController extends Controller
      * Remove the specified resource from storage.
      *
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return array<string, mixed>|null JSON pro modal/tela (só responde ajax)
      */
     public function destroy($id)
     {
