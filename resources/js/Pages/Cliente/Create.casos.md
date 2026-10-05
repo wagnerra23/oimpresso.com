@@ -14,6 +14,11 @@ last_run: "2026-07-08"
 >
 > ⚖️ **Onde estes UC rodam, e com que força** (medido 2026-07-27): lane `PHP / Pest (Cliente · MySQL)` — [`cliente-pest.yml`](../../../../.github/workflows/cliente-pest.yml), criada 2026-07-27, **advisory** (não está em [`required-checks-baseline.json`](../../../../governance/required-checks-baseline.json): reprova visível, **não bloqueia merge**). **Antes dela** o teste rodava só no nightly do CT 100 e em nenhuma lane de PR — a redação anterior dizia "lane ativa" e era falsa. Onde as linhas abaixo dizem "passa no CI", leia-se **passava no nightly**.
 >
+> **Modo lead** (thread Crm/06, 2026-10-05): o `LeadController::create()` renderiza esta tela com
+> `destino` + `lead_opcoes`. Os casos desse modo moram em
+> [`Crm/Leads/Index.casos.md`](../../../../Modules/Crm/Resources/js/Pages/Crm/Leads/Index.casos.md)
+> (UC-CRMLD-08..10). Sem `destino` — o cadastro de cliente — os UC abaixo seguem valendo sem mudança.
+>
 > **Status:** ✅ passa (prova no manifesto G-7) · 🧪 teste cita o UC e passa (manifesto não regravado) · ⬜ não verificado · ❌ quebrou.
 
 ---
