@@ -273,8 +273,9 @@ class OficinaController extends Controller
     }
 
     /**
-     * POST /api/app/os/{id}/acoes/{chave} — avança a OS pela ação (tela 03). Corpo vazio, sem
-     * override do gate. 200 = o mesmo JSON do GET /os/{id}, já na etapa nova.
+     * POST /api/app/os/{id}/acoes/{chave} — avança ou encerra a OS pela ação (tela 03). Corpo
+     * opcional { motivo } (≤ 500, vai para a trilha), sem override do gate. 200 = o mesmo JSON do
+     * GET /os/{id}, já na etapa nova.
      */
     public function executarAcao(Request $request, int $id, string $chave): JsonResponse
     {
@@ -283,7 +284,19 @@ class OficinaController extends Controller
             return $this->semPermissao();
         }
 
-        $r = app(AcoesOs::class)->executar($user, (int) $user->business_id, $id, $chave);
+        $v = Validator::make($request->all(), ['motivo' => ['nullable', 'string', 'max:500']], [
+            'motivo.max' => 'O motivo tem no máximo 500 caracteres.',
+            'motivo.string' => 'O motivo precisa ser texto.',
+        ]);
+        if ($v->fails()) {
+            return response()->json([
+                'erro' => 'validacao',
+                'campos' => collect($v->errors()->toArray())->map(fn ($m) => $m[0])->all(),
+            ], 422);
+        }
+        $motivo = trim((string) ($v->validated()['motivo'] ?? ''));
+
+        $r = app(AcoesOs::class)->executar($user, (int) $user->business_id, $id, $chave, $motivo !== '' ? $motivo : null);
 
         return match ($r['resultado']) {
             'ok' => $this->show($request, $id),

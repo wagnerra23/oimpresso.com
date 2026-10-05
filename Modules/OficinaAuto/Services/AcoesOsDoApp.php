@@ -22,7 +22,8 @@ use Modules\OficinaAuto\Entities\Vehicle;
  * `oficinaauto.service_order.update` (ou superadmin), papel da ação pela StageActionPolicy,
  * gate do StageGateEvaluator e transição só pelo ExecuteStageActionService (FSM canônica,
  * trilha em sale_stage_history). Diferenças, todas para restringir:
- *  - só as ações de ACOES_DO_APP (cancelar, recusar, garantia ficam na web);
+ *  - só as ações de ACOES_DO_APP (avanço) e ACOES_QUE_ENCERRAM (cancelar, recusar orçamento);
+ *    acionar garantia fica na web;
  *  - sem override do gate;
  *  - ação com side_effect_class ou event_class no banco é recusada (nao_suportada): o
  *    seeder do processo da oficina não tem nenhuma, e o app não pode mover valor nem estoque.
@@ -58,6 +59,7 @@ final class AcoesOsDoApp implements AcoesOs
             $saida[] = [
                 'chave' => (string) $a->key,
                 'rotulo' => (string) $a->label,
+                'tipo' => in_array($a->key, self::ACOES_QUE_ENCERRAM, true) ? 'encerra' : 'avanco',
                 'critica' => (bool) ($a->is_critical ?? false) || (bool) $a->requires_confirmation,
                 'pode' => $podeEditar && $this->policy->canExecute($user, $os, (string) $a->key),
                 'bloqueio' => $gate['satisfied'] ? null : $this->textoBloqueio($gate),
@@ -67,13 +69,13 @@ final class AcoesOsDoApp implements AcoesOs
         return $saida;
     }
 
-    public function executar(User $user, int $businessId, int $osId, string $chave): array
+    public function executar(User $user, int $businessId, int $osId, string $chave, ?string $motivo = null): array
     {
         $os = $this->os($businessId, $osId);
         if ($os === null) {
             return ['resultado' => 'nao_encontrado', 'mensagem' => 'OS não encontrada.'];
         }
-        if (! in_array($chave, self::ACOES_DO_APP, true)) {
+        if (! in_array($chave, self::ACOES_DO_APP, true) && ! in_array($chave, self::ACOES_QUE_ENCERRAM, true)) {
             return ['resultado' => 'nao_suportada', 'mensagem' => 'Esta ação só pode ser feita na web.'];
         }
         if (! $this->podeEditar($user)) {
@@ -97,7 +99,8 @@ final class AcoesOsDoApp implements AcoesOs
         }
 
         try {
-            $this->fsm->execute($os, $chave, $user, ['origem' => 'app']);
+            // O motivo vai para a trilha (payload_snapshot), como o payload da web.
+            $this->fsm->execute($os, $chave, $user, array_filter(['origem' => 'app', 'motivo' => $motivo], fn ($x) => $x !== null));
         } catch (UnauthorizedActionException $e) {
             return ['resultado' => 'sem_permissao', 'mensagem' => 'Seu usuário não pode executar esta ação.'];
         } catch (InvalidActionForCurrentStageException $e) {
@@ -156,7 +159,8 @@ final class AcoesOsDoApp implements AcoesOs
     }
 
     /**
-     * Ações de ACOES_DO_APP que saem da etapa atual, na ordem da lista (a linha principal).
+     * Ações do app que saem da etapa atual: as de avanço na ordem da linha principal, depois as
+     * que encerram.
      *
      * @return list<SaleStageAction>
      */
@@ -164,13 +168,13 @@ final class AcoesOsDoApp implements AcoesOs
     {
         $daEtapa = SaleStageAction::query()
             ->where('stage_id', (int) $os->current_stage_id)
-            ->whereIn('key', self::ACOES_DO_APP)
+            ->whereIn('key', [...self::ACOES_DO_APP, ...self::ACOES_QUE_ENCERRAM])
             ->get()
             ->filter(fn (SaleStageAction $a) => empty($a->side_effect_class) && empty($a->event_class))
             ->keyBy('key');
 
         $ordem = [];
-        foreach (self::ACOES_DO_APP as $chave) {
+        foreach ([...self::ACOES_DO_APP, ...self::ACOES_QUE_ENCERRAM] as $chave) {
             if ($daEtapa->has($chave)) {
                 $ordem[] = $daEtapa->get($chave);
             }

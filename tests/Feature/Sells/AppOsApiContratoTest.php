@@ -34,6 +34,7 @@ function appOsProcesso(int $bizId): array
         'aguardando_aprovacao' => [2, 'Aguardando aprovação', false], 'aguardando_pecas' => [3, 'Aguardando peças', false],
         'em_execucao' => [4, 'Em execução', false], 'pronto_retirada' => [5, 'Pronto p/ retirar', false],
         'entregue' => [6, 'Entregue', true],
+        'cancelado' => [7, 'Cancelado', true],
     ];
     $ids = [];
     foreach ($etapas as $key => [$ordem, $nome, $terminal]) {
@@ -402,7 +403,9 @@ function appOsComAcoes(object $t, bool $comUpdate = true): void
     $e = $t->etapas;
     appOsAcao($e['recepcao'], 'iniciar_diagnostico', 'Iniciar diagnóstico', $e['em_diagnostico']);
     appOsAcao($e['em_execucao'], 'concluir_servico', 'Concluir serviço', $e['pronto_retirada'], true);
-    appOsAcao($e['em_execucao'], 'cancelar_os', 'Cancelar OS', $e['entregue'], true);
+    appOsAcao($e['em_execucao'], 'cancelar_os', 'Cancelar OS', $e['cancelado'], true);
+    appOsAcao($e['aguardando_aprovacao'], 'recusar_orcamento', 'Cliente recusou orçamento', $e['cancelado'], true);
+    appOsAcao($e['pronto_retirada'], 'acionar_garantia', 'Acionar garantia', $e['cancelado'], true);
     appOsAcao($e['pronto_retirada'], 'entregar', 'Entregar ao cliente', $e['entregue']);
     if ($comUpdate) {
         Permission::firstOrCreate(['name' => 'oficinaauto.service_order.update', 'guard_name' => 'web']);
@@ -415,8 +418,9 @@ it('detalhe traz só as ações de avanço da etapa, com o gate; sem permissão 
     $os = appOsCriar((int) $this->biz->id, $this->etapas['em_execucao']);
 
     $acoes = $this->getJson('/api/app/os/' . $os)->assertOk()->json('acoes');
-    // cancelar_os sai da mesma etapa, mas encerra a OS: fica só na web.
-    expect(array_column($acoes, 'chave'))->toBe(['concluir_servico']);
+    // Avanço primeiro, depois a que encerra (cancelar_os), separadas por `tipo`.
+    expect(array_column($acoes, 'chave'))->toBe(['concluir_servico', 'cancelar_os']);
+    expect(array_column($acoes, 'tipo'))->toBe(['avanco', 'encerra']);
     expect($acoes[0]['critica'])->toBeTrue();
     expect($acoes[0]['pode'])->toBeFalse();
     // OS sem item: o gate do ERP barra a conclusão e diz o que falta.
@@ -461,7 +465,8 @@ it('409 quando a ação não sai da etapa atual; 422 para ação que só a web f
     $this->user->givePermissionTo('oficinaauto.service_order.update');
 
     $this->postJson("/api/app/os/{$minha}/acoes/entregar")->assertStatus(409)->assertJsonPath('erro', 'etapa_mudou');
-    $this->postJson("/api/app/os/{$emExecucao}/acoes/cancelar_os")->assertStatus(422)->assertJsonPath('erro', 'nao_suportada');
+    // Acionar garantia continua só na web.
+    $this->postJson("/api/app/os/{$emExecucao}/acoes/acionar_garantia")->assertStatus(422)->assertJsonPath('erro', 'nao_suportada');
     $this->postJson("/api/app/os/{$alheia}/acoes/iniciar_diagnostico")->assertStatus(404)->assertJsonPath('erro', 'nao_encontrado');
     // Controle positivo: na OS do próprio business a mesma ação avança.
     $this->postJson("/api/app/os/{$minha}/acoes/iniciar_diagnostico")->assertOk()->assertJsonPath('etapa.chave', 'em_diagnostico');
@@ -563,4 +568,51 @@ it('veículos trazem cliente_id do dono', function () {
 
     $item = collect($this->getJson('/api/app/veiculos?q=' . $placa)->assertOk()->json('itens'))->firstWhere('id', $v);
     expect($item['cliente_id'])->toBe($dono);
+});
+
+// ── Tela 03 — encerrar pela FSM: cancelar_os e recusar_orcamento (pedido [W] 2026-10-05) ─────
+
+it('cancelar com motivo encerra a OS pela FSM, grava o motivo na trilha e não toca status, veículo nem venda', function () {
+    appOsComAcoes($this);
+    $os = appOsCriar((int) $this->biz->id, $this->etapas['em_execucao']);
+    $veiculo = (int) DB::table('service_orders')->where('id', $os)->value('vehicle_id');
+    DB::table('vehicles')->where('id', $veiculo)->update(['current_rental_id' => $os]);
+
+    $r = $this->postJson("/api/app/os/{$os}/acoes/cancelar_os", ['motivo' => 'Cliente desistiu'])->assertOk();
+
+    expect($r->json('etapa.chave'))->toBe('cancelado');
+    expect($r->json('etapa.terminal'))->toBeTrue();
+    expect($r->json('acoes'))->toBe([]);
+    $linha = DB::table('service_orders')->where('id', $os)->first();
+    expect((int) $linha->current_stage_id)->toBe($this->etapas['cancelado']);
+    // Coluna legada intocada: o observer (venda automática / WhatsApp) só age quando ela muda.
+    expect($linha->status)->toBe('aberta');
+    expect($linha->transaction_id)->toBeNull();
+    // Como na web: cancelar pela FSM da oficina não libera o veículo.
+    expect((int) DB::table('vehicles')->where('id', $veiculo)->value('current_rental_id'))->toBe($os);
+    $trilha = DB::table('sale_stage_history')->where('transaction_id', $os)
+        ->where('to_stage_id', $this->etapas['cancelado'])->value('payload_snapshot');
+    expect(json_decode((string) $trilha, true))->toMatchArray(['origem' => 'app', 'motivo' => 'Cliente desistiu']);
+});
+
+it('recusar orçamento aparece como encerra só em aguardando aprovação; sem motivo também vale', function () {
+    appOsComAcoes($this);
+    $os = appOsCriar((int) $this->biz->id, $this->etapas['aguardando_aprovacao']);
+
+    $acoes = $this->getJson('/api/app/os/' . $os)->assertOk()->json('acoes');
+    $recusar = collect($acoes)->firstWhere('chave', 'recusar_orcamento');
+    expect($recusar)->not->toBeNull();
+    expect($recusar['tipo'])->toBe('encerra');
+    expect($recusar['critica'])->toBeTrue();
+
+    $this->postJson("/api/app/os/{$os}/acoes/recusar_orcamento")->assertOk()->assertJsonPath('etapa.chave', 'cancelado');
+});
+
+it('motivo acima de 500 caracteres é 422 validacao e a OS não muda', function () {
+    appOsComAcoes($this);
+    $os = appOsCriar((int) $this->biz->id, $this->etapas['em_execucao']);
+
+    $this->postJson("/api/app/os/{$os}/acoes/cancelar_os", ['motivo' => str_repeat('a', 501)])
+        ->assertStatus(422)->assertJsonPath('erro', 'validacao');
+    expect((int) DB::table('service_orders')->where('id', $os)->value('current_stage_id'))->toBe($this->etapas['em_execucao']);
 });
