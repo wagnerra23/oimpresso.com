@@ -31,7 +31,7 @@ beforeEach(function () {
     if (DB::connection()->getDriverName() === 'sqlite') {
         $this->markTestSkipped('SQLite-incompatível: crm_schedules requer schema MySQL UltimatePOS.');
     }
-    foreach (['business', 'users', 'contacts', 'crm_schedules', 'crm_schedule_users'] as $t) {
+    foreach (['business', 'users', 'contacts', 'crm_schedules', 'crm_schedule_users', 'crm_schedule_logs'] as $t) {
         if (! Schema::hasTable($t)) {
             $this->markTestSkipped("Schema incompleto — tabela {$t} ausente.");
         }
@@ -340,4 +340,35 @@ it('UC-CRMACO-15 · editar recorrente altera os dias, segue recorrente e não tr
     expect((int) $linha->recursion_days)->toBe(15);
     expect((int) $linha->is_recursive)->toBe(1);
     expect((int) $linha->business_id)->toBe(ACO_BIZ);
+});
+
+it('UC-CRMACO-16 · adicionar registro grava o log com as datas ISO e troca o status do acompanhamento', function () {
+    $user = acoUsuario('aco_todos_test', ['crm.access_all_schedule']);
+    $id = acoAcompanhamento(ACO_BIZ, 'Com registro', $user);
+
+    $this->actingAs($user)->post('/crm/follow-up-log', [
+        'schedule_id' => $id, 'subject' => 'Cliente atendeu', 'log_type' => 'call',
+        'start_datetime' => '2026-10-10T09:00', 'end_datetime' => '2026-10-10T09:10', 'description' => '', 'status' => 'completed',
+    ], ACO_AJAX)->assertOk()->assertJson(['success' => true]);
+
+    $log = DB::table('crm_schedule_logs')->where('schedule_id', $id)->first();
+    $this->assertNotNull($log, 'o store do registro não gravou o log');
+    expect((string) $log->start_datetime)->toBe('2026-10-10 09:00:00');
+    expect(DB::table('crm_schedules')->where('id', $id)->value('status'))->toBe('completed');
+});
+
+it('UC-CRMACO-17 · registro em acompanhamento de outro negócio não grava nem muda o status [T0]', function () {
+    $user = acoUsuario('aco_todos_test', ['crm.access_all_schedule']);
+    $vizinho = acoUsuario('aco_vizinho_test', ['crm.access_all_schedule'], ACO_OUTRO);
+    $alheio = acoAcompanhamento(ACO_OUTRO, 'Do vizinho', $vizinho);
+
+    // A rota recusa pelo findOrFail no negócio da sessão: 404, como editar/excluir (UC-10).
+    // Medido na lane verticais-pest (run 37319306701): o catch não engole o ModelNotFound.
+    $this->actingAs($user)->post('/crm/follow-up-log', [
+        'schedule_id' => $alheio, 'subject' => 'Intruso', 'log_type' => 'call',
+        'start_datetime' => '2026-10-10T09:00', 'end_datetime' => '2026-10-10T09:10', 'status' => 'completed',
+    ], ACO_AJAX)->assertNotFound();
+
+    expect(DB::table('crm_schedule_logs')->where('schedule_id', $alheio)->exists())->toBeFalse();
+    expect(DB::table('crm_schedules')->where('id', $alheio)->value('status'))->toBe('scheduled');
 });

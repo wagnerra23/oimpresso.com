@@ -65,6 +65,7 @@ on:
       # Thread Crm/03 — a lista de acompanhamentos virou Inertia; o contrato dela roda aqui.
       - 'Modules/Crm/Http/Controllers/ScheduleController.php'
       - 'Modules/Crm/Services/ScheduleService.php'
+      - 'Modules/Crm/Http/Controllers/ScheduleLogController.php'
       - 'Modules/Crm/Http/Requests/*ScheduleRequest.php'
       - 'Modules/Crm/Resources/js/Pages/**'
       - 'Modules/Crm/Tests/Feature/CrmAcompanhamentosContratoTest.php'
@@ -143,6 +144,7 @@ jobs:
               - 'Modules/Crm/Http/Controllers/ScheduleController.php'
               # Thread Crm/07 — a escrita do modal passa pelo Service e pelos FormRequests.
               - 'Modules/Crm/Services/ScheduleService.php'
+              - 'Modules/Crm/Http/Controllers/ScheduleLogController.php'
               - 'Modules/Crm/Http/Requests/*ScheduleRequest.php'
               - 'Modules/Crm/Resources/js/Pages/**'
               - 'Modules/Crm/Tests/Feature/CrmAcompanhamentosContratoTest.php'
