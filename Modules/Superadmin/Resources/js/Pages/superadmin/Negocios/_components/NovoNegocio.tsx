@@ -11,6 +11,7 @@ import { useForm } from '@inertiajs/react';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import { Skeleton } from '@/Components/ui/skeleton';
 import { Casca } from './Gaveta';
 
@@ -39,16 +40,26 @@ function Campo({ id, rotulo, erro, ajuda, children }: { id: string; rotulo: stri
   );
 }
 
+// Sentinela do "nenhum": o Radix não aceita SelectItem com valor vazio (§5 2026-06-29).
+const NENHUM = '__nenhum__';
+
 function Lista({ id, valor, onChange, opcoes, vazio }: { id: string; valor: string; onChange: (v: string) => void; opcoes: { v: string; label: string }[]; vazio?: string }) {
   return (
-    <select id={id} value={valor} onChange={(e) => onChange(e.target.value)} className="h-9 rounded-md border bg-background px-3 text-xs text-foreground">
-      {vazio !== undefined && <option value="">{vazio}</option>}
-      {opcoes.map((o) => (
-        <option key={o.v} value={o.v}>
-          {o.label}
-        </option>
-      ))}
-    </select>
+    <Select value={valor || (vazio !== undefined ? NENHUM : undefined)} onValueChange={(v) => onChange(v === NENHUM ? '' : v)}>
+      <SelectTrigger id={id} className="h-9 w-full text-xs">
+        <SelectValue />
+      </SelectTrigger>
+      <SelectContent>
+        {vazio !== undefined && <SelectItem value={NENHUM}>{vazio}</SelectItem>}
+        {opcoes
+          .filter((o) => Boolean(o.v))
+          .map((o) => (
+            <SelectItem key={o.v} value={o.v}>
+              {o.label}
+            </SelectItem>
+          ))}
+      </SelectContent>
+    </Select>
   );
 }
 

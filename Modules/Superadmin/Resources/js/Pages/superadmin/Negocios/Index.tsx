@@ -152,6 +152,9 @@ function NegociosIndex({ filtros, aberto, pacotes, negocios, detalhe, novo, form
   const [q, setQ] = useState(filtros.q ?? '');
   const buscaRef = useRef<HTMLInputElement>(null);
   const primeiraRodada = useRef(true);
+  // Os atalhos de teclado chamam a versão MAIS RECENTE de abrir/fechar "Novo negócio" (que lê
+  // os filtros do render atual) sem re-registrar o listener a cada render.
+  const acoesNovo = useRef<{ abrir: () => void; fechar: () => void }>({ abrir: () => {}, fechar: () => {} });
 
   // `/` foca a busca — atalho que o F1 pede (UC-SA-004).
   useEffect(() => {
@@ -165,12 +168,12 @@ function NegociosIndex({ filtros, aberto, pacotes, negocios, detalhe, novo, form
       // `n` abre "Novo negócio" — o atalho do protótipo (ViewNegocios).
       if (e.key === 'n') {
         e.preventDefault();
-        abrirNovo();
+        acoesNovo.current.abrir();
       }
     };
     document.addEventListener('keydown', h);
     return () => document.removeEventListener('keydown', h);
-  }, [filtros]);
+  }, []);
 
   // Busca com debounce 300ms — mesmo padrão do Usuario360 do módulo.
   useEffect(() => {
@@ -219,10 +222,12 @@ function NegociosIndex({ filtros, aberto, pacotes, negocios, detalhe, novo, form
     );
   };
 
+  acoesNovo.current = { abrir: abrirNovo, fechar: fecharNovo };
+
   useEffect(() => {
     if (!novo) return;
     const h = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && !e.defaultPrevented) fecharNovo();
+      if (e.key === 'Escape' && !e.defaultPrevented) acoesNovo.current.fechar();
     };
     document.addEventListener('keydown', h);
     return () => document.removeEventListener('keydown', h);
