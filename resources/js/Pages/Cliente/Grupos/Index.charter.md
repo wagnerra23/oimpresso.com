@@ -38,7 +38,7 @@ sobre o preço de venda **ou** uma tabela de preço própria.
 ## Non-Goals
 
 - ❌ Mudar o parser do valor: o percentual vai como texto pt-BR e o `num_uf` do `store/update` converte, como na Blade.
-- ❌ Tratar o percentual como desconto: positivo aumenta e negativo diminui o preço de venda.
+- ❌ Tratar o percentual como desconto: positivo aumenta e negativo diminui o preço de venda. Copy "Ajuste" aprovada por [W] em 2026-10-05.
 
 ## Regras
 

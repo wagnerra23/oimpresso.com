@@ -32,18 +32,17 @@ O percentual do grupo muda o preço de venda, então:
   endpoint e o `num_uf` aplicado ao mesmo texto dão o mesmo número.
 - **Antes → depois nos dados:** nenhum registro muda. Não há migration nem backfill; a mudança é só de tela.
 
-## Divergência com o protótipo (decisão [W])
+## Divergência com o protótipo (decidida por [W] em 2026-10-05)
 O protótipo chama o percentual de **"Desconto"**, mostra `−X%` e só aceita dígitos. O sistema aplica o valor
 como **ajuste com sinal**: positivo aumenta e negativo diminui o preço (dica `lang_v1.tooltip_calculation_percentage`).
-A tela usa "Ajuste (%)" e aceita sinal e decimal. Copiar o protótipo inverteria o sentido do preço. A copy
-final é do [W].
+A tela usa "Ajuste (%)" e aceita sinal e decimal. Copiar o protótipo inverteria o sentido do preço. [W]
+aprovou "Ajuste" em 2026-10-05.
 
 Também ficaram de fora, no backlog do casos: "Ver cadastros do grupo" (a lista de clientes não lê o filtro da URL)
 e o grupo padrão não-excluível (não existe no backend).
 
 ## Pendente / [W]
 - Screenshot [W2] da tela em produção → charter `live` e remoção das Blades `resources/views/customer_group/*`.
-- Copy "Ajuste" × "Desconto".
 - Sem baseline de visual-regression regravada (ADR 0409).
 
 ## NÃO MEDI
