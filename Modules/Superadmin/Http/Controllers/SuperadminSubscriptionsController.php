@@ -243,19 +243,21 @@ class SuperadminSubscriptionsController extends BaseController
     }
 
     /**
-     * Show the form for creating a new resource.
+     * `GET /superadmin/superadmin-subscription/create` — thread Superadmin/04.
      *
-     * @return Response
+     * Devolvia o fragmento Blade do modal "Adicionar assinatura", que só abria por AJAX de
+     * dentro das listas Blade de Negócios e de Assinaturas. As duas viraram Inertia e nenhuma
+     * tela chama mais esta rota; aberta direto, ela mostrava um modal solto sem página. Agora
+     * leva à lista. Pelo protótipo (`superadmin-page.jsx`, NegocioDrawer), "Adicionar
+     * assinatura" mora no drawer do NEGÓCIO e grava pelo `store()` abaixo, que fica.
      */
     public function create()
     {
-        $business_id = request()->input('business_id');
-        $packages = Package::active()->orderby('sort_order')->pluck('name', 'id');
+        if (! auth()->user()->can('superadmin')) {
+            abort(403, 'Unauthorized action.');
+        }
 
-        $gateways = $this->_payment_gateways();
-
-        return view('superadmin::superadmin_subscription.add_subscription')
-              ->with(compact('packages', 'business_id', 'gateways'));
+        return redirect()->action([self::class, 'index']);
     }
 
     /**
@@ -307,9 +309,11 @@ class SuperadminSubscriptionsController extends BaseController
     }
 
     /**
-     * Show the form for editing the specified resource.
+     * `GET /superadmin/superadmin-subscription/{id}/edit` — thread Superadmin/04.
      *
-     * @return Response
+     * Devolvia o modal Blade de status. Mudar status já é a gaveta "Mudar status" da lista
+     * (`Assinaturas/Index.tsx`, `PUT` no `update()` abaixo), e nada chama esta rota. Leva à
+     * lista. Sem `ajax()` como antes: o cliente Inertia manda `X-Requested-With` em toda visita.
      */
     public function edit($id)
     {
@@ -317,13 +321,7 @@ class SuperadminSubscriptionsController extends BaseController
             abort(403, 'Unauthorized action.');
         }
 
-        if (request()->ajax()) {
-            $status = Subscription::package_subscription_status();
-            $subscription = Subscription::find($id);
-
-            return view('superadmin::superadmin_subscription.edit')
-                        ->with(compact('subscription', 'status'));
-        }
+        return redirect()->action([self::class, 'index']);
     }
 
     /**
@@ -434,9 +432,10 @@ class SuperadminSubscriptionsController extends BaseController
     }
 
     /**
-     * Show the form for editing the specified resource.
+     * `GET /superadmin/edit-subscription/{id}` — thread Superadmin/04.
      *
-     * @return Response
+     * Devolvia o modal Blade de datas. Editar vigência já é a gaveta "Editar vigência" da lista
+     * (`POST /superadmin/update-subscription`, `updateSubscription()` abaixo). Leva à lista.
      */
     public function editSubscription($id)
     {
@@ -444,12 +443,7 @@ class SuperadminSubscriptionsController extends BaseController
             abort(403, 'Unauthorized action.');
         }
 
-        if (request()->ajax()) {
-            $subscription = Subscription::find($id);
-
-            return view('superadmin::superadmin_subscription.edit_date_modal')
-                        ->with(compact('subscription'));
-        }
+        return redirect()->action([self::class, 'index']);
     }
 
     /**

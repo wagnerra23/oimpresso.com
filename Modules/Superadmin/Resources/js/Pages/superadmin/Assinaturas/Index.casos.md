@@ -243,6 +243,22 @@ Status: 🧪
 
 ---
 
+## UC-SAASS-18 · Os formulários Blade de assinatura levam à lista · `should`
+
+**Dado** um superadmin
+**Quando** ele abre `…/superadmin-subscription/create`, `…/{id}/edit` ou `/superadmin/edit-subscription/{id}`
+(pelo browser ou numa visita Inertia)
+**Então** vai para a lista de assinaturas, sem o modal Blade — mudar status e editar vigência são as
+gavetas da própria lista; quem não é superadmin não chega à lista por essas rotas (thread 04).
+
+> "Adicionar assinatura" não tinha mais entrada em tela nenhuma desde que Negócios e Assinaturas
+> viraram Inertia. Pelo protótipo, o botão mora no drawer do **negócio**; o `store()` que grava
+> fica. A entrada nova é trabalho da tela de Negócios.
+
+Status: 🧪
+
+---
+
 ## Testes mínimos (do F1 §2)
 
 - **DQE:** 1 assinatura pendente · 1 vencida · 1 cancelada · 1 em trial · 1 bloqueada.
