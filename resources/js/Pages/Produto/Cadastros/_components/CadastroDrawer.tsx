@@ -16,6 +16,7 @@ import { Switch } from '@/Components/ui/switch';
 import { Textarea } from '@/Components/ui/textarea';
 import { Select, SelectContent, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import { SafeSelectItem } from '@/Components/ui/SafeSelectItem';
+import { Grid, Inline, Stack } from '@/Components/layout';
 
 type Opcao = { id: number; rotulo: string };
 export type Pedido =
@@ -40,23 +41,23 @@ const META = {
 
 function Campo({ id, label, ajuda, children }: { id: string; label?: string; ajuda?: string; children: ReactNode }) {
   return (
-    <div className="flex flex-col gap-1.5">
+    <Stack gap={1}>
       {label && <Label htmlFor={id}>{label}</Label>}
       {children}
       {ajuda && <p className="text-xs text-muted-foreground">{ajuda}</p>}
-    </div>
+    </Stack>
   );
 }
 
 function Chave({ id, checked, onChange, label, sub, disabled }: { id: string; checked: boolean; onChange: (v: boolean) => void; label: string; sub?: string; disabled?: boolean }) {
   return (
-    <div className="flex items-start gap-3">
+    <Inline gap={3} align="start">
       <Switch id={id} variant="cowork" checked={checked} onCheckedChange={onChange} disabled={disabled} className="mt-0.5" />
-      <div className="flex flex-col">
+      <Stack gap={0}>
         <Label htmlFor={id}>{label}</Label>
         {sub && <span className="text-xs text-muted-foreground">{sub}</span>}
-      </div>
-    </div>
+      </Stack>
+    </Inline>
   );
 }
 
@@ -134,22 +135,22 @@ export default function CadastroDrawer({ pedido, onClose, onSalvo }: { pedido: P
     const bases = p.bases.filter((b) => b.id !== p.id);
     campos = (
       <>
-        <div className="grid gap-4 sm:grid-cols-2">
+        <Grid fit="sm" gap={4}>
           <Campo id="dr-nome" label="Nome *"><Input id="dr-nome" autoFocus value={v.nome} placeholder="Metro quadrado" onChange={(e) => set({ nome: e.target.value })} /></Campo>
           <Campo id="dr-simbolo" label="Símbolo *" ajuda="Como aparece na tabela, na OS e na nota.">
             <Input id="dr-simbolo" value={v.simbolo} placeholder="m²" onChange={(e) => set({ simbolo: e.target.value })} />
           </Campo>
-        </div>
+        </Grid>
         <Chave id="dr-decimal" checked={v.decimal} onChange={(x) => set({ decimal: x })} label="Aceita quantidade decimal" sub="Ligado para m² e kg; desligado para peça e caixa." />
         <Chave id="dr-base" checked={!!v.base_id} onChange={(x) => set({ base_id: x ? (bases[0]?.id ?? null) : null })}
           label="Cadastrar como múltiplo de uma unidade base" sub="Ex.: 1 caixa = 1.000 peças. A conversão vale na compra e na venda." />
         {!!v.base_id && (
-          <div className="grid gap-4 sm:grid-cols-2">
+          <Grid fit="sm" gap={4}>
             <Campo id="dr-mult" label="Quantidade da base"><Input id="dr-mult" inputMode="decimal" value={v.multiplicador} placeholder="1000" onChange={(e) => set({ multiplicador: e.target.value })} /></Campo>
             <Campo id="dr-base-id" label="Unidade base">
               <Lista id="dr-base-id" value={String(v.base_id)} onChange={(x) => set({ base_id: Number(x) })} opcoes={bases.map((b) => ({ value: String(b.id), rotulo: b.rotulo }))} />
             </Campo>
-          </div>
+          </Grid>
         )}
       </>
     );
@@ -165,10 +166,10 @@ export default function CadastroDrawer({ pedido, onClose, onSalvo }: { pedido: P
     const pais = p.pais.filter((x) => x.id !== p.id);
     campos = (
       <>
-        <div className="grid gap-4 sm:grid-cols-2">
+        <Grid fit="sm" gap={4}>
           <Campo id="dr-nome" label="Nome da categoria *"><Input id="dr-nome" autoFocus value={p.v.nome} placeholder="Comunicação visual" onChange={(e) => set({ nome: e.target.value })} /></Campo>
           <Campo id="dr-codigo" label="Código" ajuda="Curto e único — entra no SKU gerado."><Input id="dr-codigo" value={p.v.codigo} placeholder="CV" onChange={(e) => set({ codigo: e.target.value })} /></Campo>
-        </div>
+        </Grid>
         <Campo id="dr-desc" label="Descrição"><Textarea id="dr-desc" value={p.v.descricao} onChange={(e) => set({ descricao: e.target.value })} /></Campo>
         {/* Hierarquia de 2 níveis: categoria com subcategoria não vira subcategoria (o servidor também recusa). */}
         <Chave id="dr-sub" checked={!!p.v.pai_id} onChange={(x) => set({ pai_id: x ? (pais[0]?.id ?? null) : null })} label="Cadastrar como subcategoria"
@@ -185,21 +186,21 @@ export default function CadastroDrawer({ pedido, onClose, onSalvo }: { pedido: P
     campos = (
       <>
         <Campo id="dr-nome" label="Nome da variação *"><Input id="dr-nome" autoFocus value={p.v.nome} placeholder="Cor, Acabamento, Gramatura…" onChange={(e) => set({ nome: e.target.value })} /></Campo>
-        <div className="flex flex-col gap-1.5">
+        <Stack gap={1}>
           <Label>Valores da variação *</Label>
           {valores.map((x, i) => (
-            <div key={i} className="flex items-center gap-2">
+            <Inline key={i} gap={2}>
               <Input aria-label={`Valor ${i + 1}`} value={x.nome} placeholder={`Valor ${i + 1}`}
                 onChange={(e) => set({ valores: valores.map((y, k) => (k === i ? { ...y, nome: e.target.value } : y)) })} />
               {/* Valor já gravado não sai por aqui: o servidor não remove valor de modelo (só renomeia). */}
               <Button type="button" variant="outline" size="sm" aria-label={`Remover valor ${i + 1}`} disabled={!!x.id || valores.length === 1}
                 title={x.id ? 'Valor já gravado — renomeie; remover não é feito por aqui.' : undefined}
                 onClick={() => set({ valores: valores.filter((_, k) => k !== i) })}>✕</Button>
-            </div>
+            </Inline>
           ))}
           <Button type="button" variant="outline" size="sm" className="self-start" disabled={!valores[valores.length - 1]?.nome.trim()}
             onClick={() => set({ valores: [...valores, { nome: '' }] })}>Adicionar valor</Button>
-        </div>
+        </Stack>
       </>
     );
   } else {
@@ -207,13 +208,13 @@ export default function CadastroDrawer({ pedido, onClose, onSalvo }: { pedido: P
       <>
         <Campo id="dr-nome" label="Nome *"><Input id="dr-nome" autoFocus value={p.v.nome} placeholder="12 meses" onChange={(e) => set({ nome: e.target.value })} /></Campo>
         <Campo id="dr-desc" label="Descrição"><Textarea id="dr-desc" value={p.v.descricao} placeholder="O que cobre e o que não cobre." onChange={(e) => set({ descricao: e.target.value })} /></Campo>
-        <div className="grid gap-4 sm:grid-cols-2">
+        <Grid fit="sm" gap={4}>
           <Campo id="dr-dur" label="Duração *"><Input id="dr-dur" inputMode="numeric" value={p.v.duracao} placeholder="12" onChange={(e) => set({ duracao: e.target.value })} /></Campo>
           <Campo id="dr-tipo" label="Unidade do prazo *">
             <Lista id="dr-tipo" value={p.v.tipo_prazo} onChange={(x) => set({ tipo_prazo: x })}
               opcoes={[{ value: 'days', rotulo: 'Dias' }, { value: 'months', rotulo: 'Meses' }, { value: 'years', rotulo: 'Anos' }]} />
           </Campo>
-        </div>
+        </Grid>
       </>
     );
   }
@@ -225,10 +226,10 @@ export default function CadastroDrawer({ pedido, onClose, onSalvo }: { pedido: P
           <SheetTitle>{p.id ? meta.editar : meta.novo}</SheetTitle>
           <SheetDescription>{meta.ajuda}</SheetDescription>
         </SheetHeader>
-        <form id="cadastro-drawer" onSubmit={salvar} className="flex flex-col gap-4 px-4">
+        <Stack asChild gap={4} className="px-4"><form id="cadastro-drawer" onSubmit={salvar}>
           {campos}
           {erro && <p role="alert" className="text-sm text-destructive">{erro}</p>}
-        </form>
+        </form></Stack>
         <SheetFooter className="flex-row justify-end">
           <Button type="button" variant="outline" onClick={onClose}>Cancelar</Button>
           <Button type="submit" form="cadastro-drawer" disabled={salvando || !completo(p)}>{salvando ? 'Salvando…' : 'Salvar'}</Button>
