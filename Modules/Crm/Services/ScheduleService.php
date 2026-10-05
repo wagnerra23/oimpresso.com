@@ -58,8 +58,8 @@ class ScheduleService
     {
         OtelHelper::spanBiz('crm.schedule.create', function () use (&$input, $user) {
             if (empty($input['is_recursive'])) {
-                $input['start_datetime'] = $this->commonUtil->uf_date($input['start_datetime'], true);
-                $input['end_datetime']   = $this->commonUtil->uf_date($input['end_datetime'], true);
+                $input['start_datetime'] = $this->commonUtil->uf_datetime_input($input['start_datetime']);
+                $input['end_datetime']   = $this->commonUtil->uf_datetime_input($input['end_datetime']);
             }
 
             DB::beginTransaction();
@@ -94,8 +94,8 @@ class ScheduleService
      */
     public function updateFollowUp(int $id, array $payload, $user): void
     {
-        $payload['start_datetime'] = $this->commonUtil->uf_date($payload['start_datetime'], true);
-        $payload['end_datetime']   = $this->commonUtil->uf_date($payload['end_datetime'], true);
+        $payload['start_datetime'] = $this->commonUtil->uf_datetime_input($payload['start_datetime']);
+        $payload['end_datetime']   = $this->commonUtil->uf_datetime_input($payload['end_datetime']);
 
         $this->crmUtil->updateFollowUp($id, $payload, $user);
     }

@@ -512,7 +512,9 @@ class ScheduleController extends Controller
         $can_access_own_schedule = auth()->user()->can('crm.access_own_schedule');
 
         try {
-            $payload = $request->except(['_method', '_token', 'schedule_for']);
+            // business_id/created_by nunca vêm do formulário: o model tem `$guarded = ['id']`
+            // e o update em massa moveria o acompanhamento de negócio (Tier 0, ADR 0093).
+            $payload = $request->except(['_method', '_token', 'schedule_for', 'business_id', 'created_by']);
 
             // Service thin: normaliza datas + delega pra CrmUtil::updateFollowUp.
             $this->scheduleService->updateFollowUp((int) $id, $payload, \Auth::user());
@@ -851,6 +853,7 @@ class ScheduleController extends Controller
 
         $lista = fn ($mapa) => collect($mapa)->map(fn ($label, $value) => ['value' => (string) $value, 'label' => (string) $label])->values();
         $data = fn ($d) => empty($d) ? null : Carbon::parse($d)->format('d/m/Y H:i');
+        $iso = fn ($d) => empty($d) ? '' : Carbon::parse($d)->format('Y-m-d\TH:i');
 
         return Inertia::render('Crm/Acompanhamentos/Index', [
             'filtros' => request()->only(['is_recursive', 'contact_id', 'assgined_to', 'status', 'schedule_type', 'followup_category_id', 'start_date_time', 'end_date_time', 'follow_up_by', 'q']),
@@ -861,6 +864,7 @@ class ScheduleController extends Controller
                 'tipos' => $lista(Schedule::followUpTypeDropdown()),
                 'categorias' => $lista(Category::forDropdown($business_id, 'followup_category')),
                 'por' => $lista(['payment_status' => __('sale.payment_status'), 'orders' => __('restaurant.orders')]),
+                'notificar' => $lista(Schedule::followUpNotifyTypeDropdown()),
             ]),
             'acompanhamentos' => Inertia::defer(fn () => $schedules
                 ->orderByDesc('crm_schedules.start_datetime')
@@ -881,6 +885,22 @@ class ScheduleController extends Controller
                     'em_dias' => $s->recursion_days,
                     'adicionado_por' => trim("{$s->surname} {$s->first_name} {$s->last_name}"),
                     'adicionado_em' => $data($s->added_on),
+                    // Valores crus pro modal de edição (thread Crm/07): o form grava pelas mesmas
+                    // rotas da Blade (store/update/destroy), com datas ISO.
+                    'editar' => [
+                        'contact_id' => $s->contact_id ? (string) $s->contact_id : '',
+                        'user_id' => $s->users->pluck('id')->map(fn ($i) => (string) $i)->values(),
+                        'followup_category_id' => $s->followup_category_id ? (string) $s->followup_category_id : '',
+                        'status' => (string) $s->status,
+                        'schedule_type' => (string) $s->schedule_type,
+                        'start_datetime' => $iso($s->start_datetime),
+                        'end_datetime' => $iso($s->end_datetime),
+                        'description' => (string) $s->description,
+                        'allow_notification' => (bool) $s->allow_notification,
+                        'notify_via' => ['sms' => ! empty($s->notify_via['sms']), 'mail' => ! empty($s->notify_via['mail'])],
+                        'notify_before' => $s->notify_before,
+                        'notify_type' => (string) $s->notify_type,
+                    ],
                 ])),
         ]);
     }
