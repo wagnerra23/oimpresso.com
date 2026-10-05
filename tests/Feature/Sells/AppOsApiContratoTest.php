@@ -1068,3 +1068,21 @@ it('excluir veículo: de OUTRA empresa é 404 e não é tocado', function () {
     $this->deleteJson('/api/app/veiculos/' . $alheio)->assertStatus(404)->assertJsonPath('erro', 'nao_encontrado');
     expect(DB::table('vehicles')->where('id', $alheio)->value('deleted_at'))->toBeNull();
 });
+
+// ── Histórico de km do veículo (pedido [W] 2026-10-05): km do cadastro + km de entrada de cada OS ──
+
+it('histórico do veículo traz o km de entrada de cada OS e o km/data do cadastro', function () {
+    $v = appOsVeiculoComPermissao($this);
+    DB::table('vehicles')->where('id', $v)->update(['mileage_at_entry' => 40000, 'created_at' => '2026-01-10 08:00:00']);
+    $velha = appOsDoVeiculo((int) $this->biz->id, $v, $this->etapas['entregue'], 'mecanica', '2026-03-01 09:00:00');
+    $nova = appOsDoVeiculo((int) $this->biz->id, $v, $this->etapas['recepcao'], 'mecanica', '2026-06-01 09:00:00');
+    DB::table('service_orders')->where('id', $velha)->update(['mileage_at_service' => 45200]);
+
+    $r = $this->getJson("/api/app/veiculos/{$v}/os")->assertOk();
+
+    expect($r->json('km_cadastro'))->toBe(40000);
+    expect($r->json('cadastrado_em'))->toBe('2026-01-10');
+    expect(array_column($r->json('itens'), 'os_id'))->toBe([$nova, $velha]);
+    // Km da entrada de cada OS; null quando não foi anotado.
+    expect(array_column($r->json('itens'), 'km'))->toBe([null, 45200]);
+});
