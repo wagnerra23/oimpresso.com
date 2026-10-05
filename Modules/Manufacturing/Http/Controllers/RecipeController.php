@@ -305,10 +305,15 @@ class RecipeController extends Controller
         $business_id = request()->session()->get('user.business_id');
 
         try {
+            // Tier 0 (ADR 0093): os ids do POST (produto, ingredientes, linhas) só valem se forem da
+            // empresa da sessão — a validação (`exists:variations,id`) não olha a empresa. E tudo
+            // grava junto: recusado um ingrediente no meio, o cabeçalho não fica pela metade.
+            DB::beginTransaction();
+
             $input = $request->only(['variation_id', 'ingredients', 'total', 'instructions',
                 'ingredients_cost', 'waste_percent', 'total_quantity', 'extra_cost', 'production_cost_type', ]);
             if (! empty($input['ingredients'])) {
-                $variation = Variation::findOrFail($input['variation_id']);
+                $variation = $this->recipeBomService->variacaoDaEmpresa((int) $input['variation_id'], (int) $business_id);
 
                 $recipe = MfgRecipe::updateOrCreate(
                     [
@@ -334,11 +339,12 @@ class RecipeController extends Controller
                 $created_ig_groups = [];
 
                 foreach ($input['ingredients'] as $key => $value) {
-                    $variation = Variation::with(['product'])
-                                        ->findOrFail($value['ingredient_id']);
+                    $variation = $this->recipeBomService->variacaoDaEmpresa((int) $value['ingredient_id'], (int) $business_id, ['product']);
 
                     if (! empty($value['ingredient_line_id'])) {
-                        $ingredient = MfgRecipeIngredient::find($value['ingredient_line_id']);
+                        // Só linha DESTA receita — que já é da empresa (variacaoDaEmpresa acima).
+                        $ingredient = MfgRecipeIngredient::where('mfg_recipe_id', $recipe->id)
+                                                ->findOrFail($value['ingredient_line_id']);
                         $edited_ingredients[] = $ingredient->id;
                     } else {
                         $ingredient = new MfgRecipeIngredient(['variation_id' => $value['ingredient_id']]);
@@ -396,10 +402,13 @@ class RecipeController extends Controller
 
                 $recipe->ingredients()->saveMany($ingredients);
             }
+            DB::commit();
+
             $output = ['success' => 1,
                 'msg' => __('lang_v1.added_success'),
             ];
         } catch (\Exception $e) {
+            DB::rollBack();
             $this->logSafeEmergency('recipe', $e); // D7.a Wave 17 LGPD
 
             $output = ['success' => 0,

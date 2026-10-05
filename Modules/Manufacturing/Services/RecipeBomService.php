@@ -98,6 +98,30 @@ class RecipeBomService
     }
 
     /**
+     * A variação (produto da receita ou ingrediente) que o `store()` vai gravar, só se ela
+     * pertencer ao business. Fora dele, `ModelNotFoundException` — o mesmo desfecho de um id
+     * que não existe.
+     *
+     * Tier 0 ({@see ADR 0093}): `variation_id` e `ingredients.*.ingredient_id` chegam no POST, e a
+     * validação (`exists:variations,id`) não olha a empresa. Antes, o `store()` fazia
+     * `Variation::findOrFail($id)` sem tenant e em seguida `MfgRecipe::updateOrCreate` pela
+     * variação: com o id de um produto de OUTRA empresa, dava para criar ou sobrescrever a receita
+     * dela, ou pôr o produto dela como ingrediente.
+     *
+     * @param  int  $variationId  variations.id vindo do request
+     * @param  int  $businessId  Tier 0 — o business da sessão
+     * @param  array<int|string, mixed>  $with  eager-load do chamador
+     */
+    public function variacaoDaEmpresa(int $variationId, int $businessId, array $with = []): Variation
+    {
+        // Subconsulta em `products`, e não `whereHas('product')`: o Larastan não reconhece a
+        // relação `product` do `App\Variation` (sem tipo de retorno) e reprova o ratchet.
+        return Variation::with($with)
+            ->whereIn('product_id', fn ($q) => $q->select('id')->from('products')->where('business_id', $businessId))
+            ->findOrFail($variationId);
+    }
+
+    /**
      * Calcula custo total dinâmico de uma recipe — soma dos ingredientes × quantidade × multiplier
      * de sub-unidade + production cost (per_unit / percentage / fixed).
      *
