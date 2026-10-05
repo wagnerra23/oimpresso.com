@@ -1864,6 +1864,10 @@ Ocorrência da **LC-08**.
 
 - **O limite (variante também proibida):** **(a)** em playbook com uma sessão por thread, antes de pegar a thread procurar em `ListAgents` uma sessão com o número dela no título; `gh pr list` vazio só diz que ninguém publicou ainda. **(b)** `gh pr merge --auto` não vai no mesmo comando do `gh pr create`: o aviso de colisão sai nesse comando, e encadeado o auto-merge já está armado quando eu o leio. O incremento sobre as lápides de 09-05 é só de forma: qual sonda, e a ordem dos dois comandos.
 
+### 2026-10-05 — O skip por fixture ausente escondia um defeito do PRÓPRIO teste: destravado, o UC-SAMA-04 deixou o `main` vermelho
+
+- **O limite (variante também proibida):** **(a)** caso que nasce com `markTestSkipped` por fixture ausente no CI não é contrato provado. Antes do merge, rode-o uma vez com a fixture presente e cite o run. O G-7 já impede marcar ✅ sem teste verde; o que fica aqui é rodar antes de mergear. **(b)** quem semeia uma fixture tem de contar os skips que ela destrava e ler o resultado de cada um no próprio PR, antes do merge. **(c)** o conserto de um caso que cai ao ser destravado vai no teste quando o código só roda dentro da requisição. Não mexa no controller para caber no teste.
+
 ## Sempre fazer
 
 - ✅ **LIGUE A MÁQUINA — máquina é sempre melhor que fazer na mão** ([W] 2026-07-26, textual: *"isso ligue as maquinas, é sempre melhor que fazer na mão. isso é regra no sistema. deve ser"*). Ordem obrigatória, nesta sequência:
