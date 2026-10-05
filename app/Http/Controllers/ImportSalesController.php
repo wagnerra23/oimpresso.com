@@ -43,8 +43,9 @@ class ImportSalesController extends Controller
         $business_id = request()->session()->get('user.business_id');
 
         // Branch dual MWART (thread 05 · golden Sells/Drafts): o Blade segue como fallback
-        // até o cutover F5, que é humano.
-        if (request()->header('X-Inertia')) {
+        // até o cutover F5, que é humano — por empresa, pela flag `mwart.vendas_import_sales`
+        // (nasce desligada; a mesma chave vale para a prévia abaixo).
+        if (\App\Support\Mwart::telaReact('vendas_import_sales', (int) $business_id)) {
             return Inertia::render('ImportSales/Index', [
                 'campos' => collect($this->importSalesService->campos((int) $business_id))
                     ->map(fn ($c, $key) => ['key' => $key, 'label' => $c['label'], 'instrucao' => $c['instruction'] ?? null])
@@ -106,6 +107,9 @@ class ImportSalesController extends Controller
 
         $business_id = request()->session()->get('user.business_id');
 
+        // Mesma chave da tela inicial: com a flag ligada a prévia também é React.
+        $telaReact = \App\Support\Mwart::telaReact('vendas_import_sales', (int) $business_id);
+
         if ($request->hasFile('sales')) {
             // basename: o nome volta do formulário no POST /import-sales e compõe um caminho.
             $file_name = time().'_'.basename($request->sales->getClientOriginalName());
@@ -123,14 +127,14 @@ class ImportSalesController extends Controller
 
             $business_locations = BusinessLocation::forDropdown($business_id);
 
-            if ($request->header('X-Inertia')) {
+            if ($telaReact) {
                 return Inertia::render('ImportSales/Preview', $this->propsDaPrevia($parsed_array, $import_fields, $match_array, $file_name, $business_locations));
             }
 
             return view('import_sales.preview')->with(compact('parsed_array', 'import_fields', 'file_name', 'business_locations', 'match_array'));
         }
 
-        if ($request->header('X-Inertia')) {
+        if ($telaReact) {
             return redirect('import-sales')->with('status', ['success' => 0, 'msg' => 'Escolha a planilha antes de enviar.']);
         }
     }

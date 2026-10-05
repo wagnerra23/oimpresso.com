@@ -73,7 +73,8 @@ class SalesOrderController extends Controller
         // Blade segue como fallback até o cutover F5 (humano). As linhas vêm do MESMO
         // endpoint AJAX do Blade (/sells?sale_type=sales_order), então os filtros de
         // permissão (so.view_own, locais permitidos, business_id) seguem num lugar só.
-        if (request()->header('X-Inertia')) {
+        // Cutover por empresa no GET comum: flag `mwart.vendas_sales_order_index` (nasce desligada).
+        if (\App\Support\Mwart::telaReact('vendas_sales_order_index', (int) $business_id)) {
             $pos_settings_raw = \App\Business::where('id', $business_id)->value('pos_settings');
             $pos_settings = ! empty($pos_settings_raw) ? json_decode($pos_settings_raw, true) : [];
 
