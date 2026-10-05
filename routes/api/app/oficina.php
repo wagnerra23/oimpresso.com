@@ -22,4 +22,6 @@ Route::post('/veiculos', [\App\Http\Controllers\Api\App\OficinaController::class
 // Editar veículo (pedido [W] 2026-10-05): detalhe completo + PUT com throttle de escrita.
 Route::get('/veiculos/{id}', [\App\Http\Controllers\Api\App\OficinaController::class, 'showVeiculo'])->whereNumber('id')->name('veiculos.show');
 Route::put('/veiculos/{id}', [\App\Http\Controllers\Api\App\OficinaController::class, 'updateVeiculo'])->whereNumber('id')->middleware('throttle:30,1')->name('veiculos.update');
+// Excluir veículo (pedido [W] 2026-10-05): soft delete como a web; recusa com OS em andamento.
+Route::delete('/veiculos/{id}', [\App\Http\Controllers\Api\App\OficinaController::class, 'destroyVeiculo'])->whereNumber('id')->middleware('throttle:30,1')->name('veiculos.destroy');
 Route::get('/veiculos/{id}/os', [\App\Http\Controllers\Api\App\OficinaController::class, 'veiculoOs'])->whereNumber('id')->name('veiculos.os');

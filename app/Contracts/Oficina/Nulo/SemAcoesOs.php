@@ -35,6 +35,11 @@ final class SemAcoesOs implements AcoesOs
         return false;
     }
 
+    public function excluirVeiculo(int $businessId, int $veiculoId): bool
+    {
+        return false;
+    }
+
     public function consultaPlacaDisponivel(): bool
     {
         return false;

@@ -999,3 +999,72 @@ it('editar veículo: trocar para placa de outro ativo é 422 com o id; manter a 
         ->assertStatus(422)->assertJsonPath('campos.contact_id', 'Cliente não encontrado.');
     expect((int) DB::table('vehicles')->where('id', $alheio)->value('business_id'))->toBe((int) $this->outroBiz->id);
 });
+
+// ── Excluir veículo pelo app: DELETE /api/app/veiculos/{id} (pedido [W] 2026-10-05) ──
+
+/** Ver e excluir veículo (permissões da web). */
+function appOsPodeExcluirVeiculo(object $t): void
+{
+    foreach (['oficinaauto.vehicle.view', 'oficinaauto.vehicle.delete'] as $p) {
+        Permission::firstOrCreate(['name' => $p, 'guard_name' => 'web']);
+        $t->user->givePermissionTo($p);
+    }
+}
+
+it('excluir veículo: soft delete, some da lista, libera a placa; pode_excluir acompanha a permissão', function () {
+    Permission::firstOrCreate(['name' => 'oficinaauto.vehicle.view', 'guard_name' => 'web']);
+    $this->user->givePermissionTo('oficinaauto.vehicle.view');
+    $placa = appOsPlacaNova();
+    $v = DB::table('vehicles')->insertGetId(['business_id' => $this->biz->id, 'plate' => $placa, 'vehicle_type' => 'caminhao', 'created_at' => now(), 'updated_at' => now()]);
+    expect($this->getJson('/api/app/veiculos/' . $v)->assertOk()->json('pode_excluir'))->toBeFalse();
+    $this->deleteJson('/api/app/veiculos/' . $v)->assertStatus(403)->assertJsonPath('erro', 'sem_permissao');
+
+    appOsPodeExcluirVeiculo($this);
+    expect($this->getJson('/api/app/veiculos/' . $v)->assertOk()->json('pode_excluir'))->toBeTrue();
+    $this->deleteJson('/api/app/veiculos/' . $v)->assertOk()->assertJsonPath('ok', true);
+
+    // Soft delete: a linha continua no banco, com deleted_at.
+    expect(DB::table('vehicles')->where('id', $v)->value('deleted_at'))->not->toBeNull();
+    $this->getJson('/api/app/veiculos/' . $v)->assertStatus(404);
+    expect(collect($this->getJson('/api/app/veiculos?q=' . $placa)->assertOk()->json('itens'))->pluck('id'))->not->toContain($v);
+    // A placa fica livre para outro cadastro.
+    Permission::firstOrCreate(['name' => 'oficinaauto.vehicle.create', 'guard_name' => 'web']);
+    $this->user->givePermissionTo('oficinaauto.vehicle.create');
+    $this->postJson('/api/app/veiculos', ['placa' => $placa, 'tipo' => 'caminhao'])->assertStatus(201);
+});
+
+it('excluir veículo: com OS em andamento é 409 em_uso e nada muda; OS encerrada ou fora do processo não impede', function () {
+    appOsPodeExcluirVeiculo($this);
+    $e = $this->etapas;
+    $v = DB::table('vehicles')->insertGetId(['business_id' => $this->biz->id, 'plate' => appOsPlacaNova(), 'vehicle_type' => 'caminhao', 'created_at' => now(), 'updated_at' => now()]);
+    $osAberta = (int) DB::table('service_orders')->insertGetId([
+        'business_id' => $this->biz->id, 'vehicle_id' => $v, 'order_type' => 'mecanica', 'status' => 'aberta',
+        'current_stage_id' => $e['em_execucao'], 'created_at' => now(), 'updated_at' => now(),
+    ]);
+    DB::table('service_orders')->insert([
+        'business_id' => $this->biz->id, 'vehicle_id' => $v, 'order_type' => 'mecanica', 'status' => 'aberta',
+        'current_stage_id' => $e['entregue'], 'created_at' => now(), 'updated_at' => now(),
+    ]);
+
+    $this->deleteJson('/api/app/veiculos/' . $v)->assertStatus(409)
+        ->assertJsonPath('erro', 'em_uso')
+        ->assertJsonPath('os_abertas', 1)
+        ->assertJsonPath('mensagem', 'Este veículo tem 1 OS em andamento. Encerre a OS antes de excluir.');
+    expect(DB::table('vehicles')->where('id', $v)->value('deleted_at'))->toBeNull();
+
+    // OS de mecânica ainda sem pipeline também conta (aparece na Recepção).
+    DB::table('service_orders')->where('id', $osAberta)->update(['current_stage_id' => null]);
+    $this->deleteJson('/api/app/veiculos/' . $v)->assertStatus(409)->assertJsonPath('os_abertas', 1);
+
+    // Encerrada a OS, exclui.
+    DB::table('service_orders')->where('id', $osAberta)->update(['current_stage_id' => $e['cancelado']]);
+    $this->deleteJson('/api/app/veiculos/' . $v)->assertOk();
+});
+
+it('excluir veículo: de OUTRA empresa é 404 e não é tocado', function () {
+    appOsPodeExcluirVeiculo($this);
+    $alheio = DB::table('vehicles')->insertGetId(['business_id' => $this->outroBiz->id, 'plate' => appOsPlacaNova(), 'vehicle_type' => 'caminhao', 'created_at' => now(), 'updated_at' => now()]);
+
+    $this->deleteJson('/api/app/veiculos/' . $alheio)->assertStatus(404)->assertJsonPath('erro', 'nao_encontrado');
+    expect(DB::table('vehicles')->where('id', $alheio)->value('deleted_at'))->toBeNull();
+});

@@ -522,7 +522,52 @@ class OficinaController extends Controller
             'contact_id' => $v->cliente_id !== null ? (int) $v->cliente_id : null,
             'cliente' => $v->cliente,
             'pode_editar' => $this->podeEditarVeiculo($user),
+            'pode_excluir' => $this->podeExcluirVeiculo($user),
         ]);
+    }
+
+    /**
+     * DELETE /api/app/veiculos/{id} — excluir o veículo (pedido [W] 2026-10-05), como o destroy da web:
+     * soft delete (some das listas e libera a placa; a web não restaura). Diferença, decisão [W]: com OS
+     * em andamento o app recusa (409), para não deixar OS aberta apontando para veículo excluído.
+     * "Em andamento" = etapa não terminal, ou OS de mecânica ainda sem pipeline (conta na Recepção, como
+     * na 07). OS encerrada ou fora do processo da oficina não impede.
+     */
+    public function destroyVeiculo(Request $request, int $id): JsonResponse
+    {
+        $user = $request->user();
+        if (! $this->podeVerVeiculos($user) || ! $this->podeExcluirVeiculo($user)) {
+            return $this->semPermissao();
+        }
+
+        $bizId = (int) $user->business_id;
+        if (! DB::table('vehicles')->where('business_id', $bizId)->whereNull('deleted_at')->where('id', $id)->exists()) {
+            return response()->json(['erro' => 'nao_encontrado', 'mensagem' => 'Veículo não encontrado.'], 404);
+        }
+
+        $abertas = DB::table('service_orders as so')
+            ->leftJoin('sale_process_stages as st', 'st.id', '=', 'so.current_stage_id')
+            ->where('so.business_id', $bizId)
+            ->where('so.vehicle_id', $id)
+            ->whereNull('so.deleted_at')
+            ->where(fn ($w) => $w->where(fn ($x) => $x->whereNotNull('so.current_stage_id')->where('st.is_terminal', false))
+                ->orWhere(fn ($x) => $x->whereNull('so.current_stage_id')->where('so.order_type', 'mecanica')))
+            ->count();
+        if ($abertas > 0) {
+            return response()->json([
+                'erro' => 'em_uso',
+                'mensagem' => $abertas === 1
+                    ? 'Este veículo tem 1 OS em andamento. Encerre a OS antes de excluir.'
+                    : "Este veículo tem {$abertas} OS em andamento. Encerre as OS antes de excluir.",
+                'os_abertas' => $abertas,
+            ], 409);
+        }
+
+        if (! app(AcoesOs::class)->excluirVeiculo($bizId, $id)) {
+            return response()->json(['erro' => 'sem_configuracao', 'mensagem' => 'A oficina não está disponível.'], 503);
+        }
+
+        return response()->json(['ok' => true]);
     }
 
     /**
@@ -652,6 +697,12 @@ class OficinaController extends Controller
         }
 
         return response()->json($this->itemVeiculo($linha), $status);
+    }
+
+    /** Excluir veículo: a mesma permissão da policy `delete` da web (`oficinaauto.vehicle.delete`). */
+    private function podeExcluirVeiculo(?User $user): bool
+    {
+        return $user !== null && $user->can('oficinaauto.vehicle.delete');
     }
 
     /** Editar veículo: permissão da web (`oficinaauto.vehicle.update`). */
