@@ -270,6 +270,7 @@ const SUPERADMIN_MENU = [
     { id: "sa-pacotes",     icon: "folder",  label: "Pacotes" },
     { id: "sa-comunicador", icon: "inbox",   label: "Comunicador" },
     { id: "sa-config",      icon: "cog",     label: "Configurações" },
+    { id: "sa-usuarios",    icon: "users",   label: "Usuário 360°" },
   ]},
   { id: "modulos",        icon: "grid",    label: "Módulos" },
   { id: "backup",         icon: "archive", label: "Backup" },

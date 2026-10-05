@@ -10,10 +10,10 @@ Leia só: placar (se não for `proximo`, pare) · o `NN-*.md` · o objeto da thr
 
 | # | o que faz | dono | ficha | depende de |
 |---|---|---|---|---|
-| **00** | PUXAR 12 Pages, 1 rota por Page | CC | `01-puxar-vivo.md` | — |
-| **A1** | ALVO 4 telas + remedir as 6 | CL | `02-alvos.md` | 00 |
-| **01** | Trio do JobSheet/Index | CL | `03-trio-jobsheet.md` | — |
-| **02** | Título 24→22 | CL | `04-titulo.md` | A1 |
+| **00** | PUXAR 12 Pages, 1 rota por Page | CC | `00-puxar-vivo.md` | — |
+| **A1** | ALVO 4 telas + remedir as 6 | CL | `A1-alvos.md` | 00 |
+| **01** | Trio do JobSheet/Index | CL | `01-trio-jobsheet.md` | — |
+| **02** | Título 24→22 | CL | `02-titulo.md` | A1 |
 | **05** | Contratos | CL | `05-contratos.md` | A1 |
-| **03** | repair.create/edit | CL | `06-repair-form.md` | D1 |
-| **04** | Portal do cliente | CL | `07-portal.md` | D2 |
+| **03** | repair.create/edit | CL | `03-repair-form.md` | D1 |
+| **04** | Portal do cliente | CL | `04-portal.md` | D2 |

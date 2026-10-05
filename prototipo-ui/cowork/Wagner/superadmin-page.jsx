@@ -533,29 +533,43 @@ function PacoteForm({ modo, base, onClose, onSalvar }) {
 
 // ── Editar assinatura: status e vigência ──
 function AssinaturaForm({ campo, base, onClose, onSalvar }) {
-  const [status, setStatus] = useState(base.status);
+  // PUXAR 2026-10-01 (superadmin-assinaturas.contract.json · form): produção oferece 3 AÇÕES,
+  // não 5 status — o SubscriptionLifecycleService só modela essas transições.
+  const [status, setStatus] = useState(null);
   const [inicio, setInicio] = useState(base.inicio);
   const [fim, setFim] = useState(base.fim);
   const [trialFim, setTrialFim] = useState(base.trialFim === "—" ? "" : base.trialFim);
   const [motivo, setMotivo] = useState("");
-  const mudouStatus = status !== base.status;
+  const mudouStatus = !!status;
+  const ACOES = [
+    { id:"aprovada", label:"Aprovar", nota:"Libera o acesso na hora e conta na receita do mês.", pode: base.status !== "aprovada" },
+    { id:"vencida", label:"Marcar como vencida", nota:"Corta o acesso agora. O registro fica e pode ser aprovado de novo.", pode: base.status === "aprovada" || base.status === "trial" },
+    { id:"cancelada", label:"Cancelar", nota:"Para de renovar no fim da vigência. O acesso continua até lá e o registro fica.", pode: base.status !== "cancelada" },
+  ].filter((a) => a.pode);
+  const acao = ACOES.find((a) => a.id === status);
   return (
     <FormDrawer onClose={onClose}
       titulo={campo === "status" ? "Mudar status da assinatura" : "Editar vigência"}
       sub={`${base.id} · ${base.negocio} · ${base.pacote}`}
-      ctaSalvar={campo === "status" ? "Aplicar status" : "Salvar datas"}
+      ctaSalvar={campo === "status" ? (acao ? acao.label : "Escolha uma ação") : "Salvar datas"}
       podeSalvar={campo === "status" ? mudouStatus : true}
       onSalvar={() => onSalvar(campo === "status" ? { status, motivo } : { inicio, fim, trialFim })}>
       <section className="sa-dr-sec">
         <div className="sa-form sa-form--drawer">
           {campo === "status" ? (
             <>
-              <Sel label="Status" valor={status} onChange={setStatus} opcoes={[
-                { id:"aprovada", label:"Aprovada" }, { id:"trial", label:"Trial" }, { id:"pendente", label:"Pendente" },
-                { id:"vencida", label:"Vencida" }, { id:"cancelada", label:"Cancelada" }]}/>
-              <Campo label="Motivo (fica no log)" valor={motivo} onChange={setMotivo} placeholder="Pix confirmado fora do gateway"/>
-              {status === "aprovada" && base.status !== "aprovada" && <Nota>Aprovar libera o acesso na hora e conta na receita do mês.</Nota>}
-              {status === "cancelada" && <Nota>Cancelar não apaga o registro: ele sai da lista ativa e para de renovar.</Nota>}
+              <div className="sa-field" role="radiogroup" aria-label="Ação">
+                <span className="sa-field-l">Ação</span>
+                <div className="sa-acoes">
+                  {ACOES.map((a) => (
+                    <button key={a.id} type="button" role="radio" aria-checked={status === a.id}
+                      className={"os-btn " + (status === a.id ? (a.id === "aprovada" ? "primary" : "danger") : "ghost")}
+                      onClick={() => setStatus(a.id)}>{a.label}</button>
+                  ))}
+                </div>
+              </div>
+              {acao && <Nota tone={acao.id === "aprovada" ? "info" : "warn"}>{acao.nota}</Nota>}
+              <Campo label="Motivo (fica no log)" valor={motivo} onChange={setMotivo} placeholder="Sem motivo declarado"/>
             </>
           ) : (
             <>
@@ -1050,7 +1064,7 @@ function ViewAssinaturas() {
         </>}/>
 
       <div className="sa-kpis sa-kpis--4">
-        <Kpi v={ASSINATURAS.filter(s=>s.status==="aprovada").length} l="Aprovadas" tone="ok"/>
+        <Kpi v={ASSINATURAS.filter(s=>s.status==="aprovada").length} l="Ativas" tone="ok"/>
         <Kpi v={ASSINATURAS.filter(s=>s.status==="trial").length} l="Em trial"/>
         <Kpi v={ASSINATURAS.filter(s=>s.status==="pendente").length} l="Pendentes" tone="warn"/>
         <Kpi v={ASSINATURAS.filter(s=>s.status==="vencida"||s.status==="cancelada").length} l="Vencidas ou canceladas" tone="danger"/>
