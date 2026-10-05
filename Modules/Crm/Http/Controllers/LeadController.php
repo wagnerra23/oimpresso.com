@@ -315,7 +315,7 @@ class LeadController extends Controller
     /**
      * Show the form for creating a new resource.
      *
-     * @return Response
+     * @return \Inertia\Response
      */
     public function create()
     {
@@ -355,7 +355,7 @@ class LeadController extends Controller
      * Store a newly created resource in storage.
      *
      * @param  Request  $request
-     * @return Response
+     * @return array<string, mixed>|\Illuminate\Http\RedirectResponse
      */
     public function store(StoreLeadRequest $request)
     {
