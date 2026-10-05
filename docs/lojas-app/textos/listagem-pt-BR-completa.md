@@ -24,7 +24,7 @@
 
 ## Google Play
 - **Título:** `oimpresso` (9/30)
-- **Descrição curta:** `Pedidos, produção, estoque, financeiro e ponto da sua empresa no celular.` (73/80)
+- **Descrição curta:** `Vendas, pedidos, produção, estoque, financeiro e ponto da empresa no celular.` (77/80)
 - **Descrição completa (≤4000):**
 
 O oimpresso leva para o celular o sistema de gestão da sua empresa. Acompanhe pedidos e produção, consulte produtos, estoque e financeiro, cuide das ordens de serviço da oficina e registre o ponto com a localização do aparelho.
@@ -32,6 +32,7 @@ O oimpresso leva para o celular o sistema de gestão da sua empresa. Acompanhe p
 Vendas e pedidos
 • Início: o resumo do dia, com faturamento, pedidos atrasados, itens com estoque baixo e contas a receber e a pagar.
 • Pedidos: consulte cada pedido, o prazo e a etapa em que está.
+• Venda rápida: registre uma venda no balcão pelo celular, com carrinho e forma de pagamento.
 • Orçamentos: veja as propostas enviadas e as aprovadas.
 • Pessoas: clientes, fornecedores e colaboradores num cadastro só, com a ficha de cada um.
 
@@ -68,13 +69,13 @@ Registro de ponto
 
 Para quem é: empresas clientes do oimpresso e os seus colaboradores. O acesso é liberado pela empresa; não é possível criar conta pelo app. Cada pessoa vê só o que o seu perfil permite, e cada módulo aparece só para a empresa que o contratou.
 
-- **Novidades desta versão (Play, ≤500):** `Primeira versão do oimpresso nas lojas: pedidos, produção, tarefas, produtos, estoque, financeiro, ordens de serviço e registro de ponto no celular.` (148/500)
+- **Novidades desta versão (Play, ≤500):** `Primeira versão do oimpresso nas lojas: venda rápida, pedidos, produção, tarefas, produtos, estoque, financeiro, ordens de serviço e registro de ponto no celular.` (162/500)
 
 ## Apple App Store
 - **Nome:** `oimpresso` (9/30)
 - **Subtítulo (30):** `Gestão e ponto da sua empresa` (29/30)
 - **Texto promocional (170):** `Pedidos, produção, estoque, financeiro, oficina e o ponto da equipe no mesmo app. Ponto com localização, sem câmera e sem biometria.` (132/170)
-- **Palavras-chave (100):** `ERP,gestão,pedidos,produção,estoque,financeiro,oficina,ponto,jornada,clientes,orçamento,gráfica` (95/100)
+- **Palavras-chave (100):** `ERP,gestão,pedidos,venda,produção,estoque,financeiro,oficina,ponto,jornada,clientes,orçamento` (93/100)
 - **Descrição:** a mesma da Play acima.
 - **Novidades desta versão (What's New):** a mesma da Play acima. Na 1ª versão a Apple não mostra este campo; ele passa a valer na 2ª.
 - **URL de privacidade:** `https://oimpresso.com/privacidade` (#8437)
@@ -87,16 +88,13 @@ Para quem é: empresas clientes do oimpresso e os seus colaboradores. O acesso �
 ## Conferir no build antes de enviar
 Cada item abaixo tem de abrir no build enviado. O que faltar sai do texto antes do envio.
 
-| Função citada | Tela do protótipo | No `main` do app em 2026-10-05 |
+| Função citada | Tela do protótipo | No `main` do app em 2026-10-05 (`f107dcf`) |
 |---|---|---|
 | Início, Pedidos, Produção, Tarefas, Pessoas, Ponto, Mais, Conta | 00, 01, 02, 10, 12, 17, 18, 21, 22, 36, 37, 38 | sim |
 | Orçamentos, Notificações, Detalhe da tarefa, Nova pessoa, Ficha cadastral | 04, 16, 28, 09, 34 | sim |
 | Produtos, Estoque, Movimentações | 19, 05, 29 | sim |
-| Cadastrar produto pelo celular | 20 | **só depois do merge do PR #51** |
+| Cadastrar produto pelo celular | 20 | sim (#51) |
+| Venda rápida | 11 | sim (#39) |
 | Financeiro, Pagamentos, Fiscal, Relatórios, Dashboard | 06, 15, 14, 13, 35 | sim (Pagamentos já gera link de cobrança) |
 | Ordens de serviço, Veículos, histórico de OS | 07, 03, 08, 23 | sim |
 | Equipe, Assistente, Meu menu, Validar ponto | 26, 25, 30, 39 | sim |
-
-**Venda rápida (tela 11)** não está no texto: o PR #39 ainda não entrou no `main`. Quando entrar, acrescentar em
-"Vendas e pedidos" a linha `• Venda rápida: registre uma venda no balcão pelo celular.` e trocar `gráfica` por `venda` nas
-palavras-chave (`,venda` não cabe somado: a folga é de 5 caracteres).
