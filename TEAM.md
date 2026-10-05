@@ -306,26 +306,35 @@ de módulo neste repo.** A atribuição dos 29 é ato do [W], não inferência d
 > corpus de maps, 84d em 2026-09-21, com 5 das 7 partes acionáveis) passa a ter destinatário — **[F]**,
 > não [W] e não o agente.
 
-### 3.3.2 O APP MOBILE tem o [L] — por ato do [W] em 2026-10-05
+### 3.3.2 O APP DAS LOJAS (`oimpresso-app`) tem o [L] — por ato do [W] em 2026-10-05
 
 > **[W] 2026-10-05, textual:** *"dá para colocar o Luiz no projeto do mobile"* e, em seguida,
 > *"git"* (registrar). A atribuição é ato dele; registrar é do agente, pela mesma regra da §3.3.1.
 >
-> **[L] entra no app mobile como executor (degrau 1), pareado com IA.** Não é dono de processo:
-> a §3.2 regra 1 segue valendo — ele não mergeia sozinho, e toda PR dele passa por [F] ou [W].
+> **"Projeto do mobile" = o app das lojas, repo privado [`wagnerra23/oimpresso-app`](https://github.com/wagnerra23/oimpresso-app)**
+> (Capacitor, pasta local `D:\oimpresso-app`). **Não** é o Expo de `mobile/` neste repo: a
+> decisão D1 de [`docs/lojas-app/DECISOES.md`](docs/lojas-app/DECISOES.md) tirou o Expo das lojas.
 >
-> **Já tem rastro no app** (medido em 2026-10-05 contra `origin/main`, autor `LuizWr2`):
-> [#8193](https://github.com/wagnerra23/oimpresso.com/pull/8193) importou o app Expo para `mobile/`
-> e [#8197](https://github.com/wagnerra23/oimpresso.com/pull/8197) escreveu os testes Vitest das
-> regras do app.
+> **[L] entra como executor (degrau 1), pareado com IA.** Não é dono de processo: a §3.2 regra 1
+> segue valendo — ele não mergeia sozinho, e toda PR dele passa por [F] ou [W]. As instruções às
+> sessões do app passam pela sessão "Coordenar app das lojas (oimpresso-app)" (D12).
 >
 > | Parte do app | Onde | [L] |
 > |---|---|---|
-> | Telas, componentes, hooks, testes Vitest | `mobile/` (Expo + React Native) | 🟢 pareado |
-> | Docs e contrato do app | `memory/requisitos/AppMobile/` | 🟢 pareado |
+> | Telas, componentes, build do app | repo `oimpresso-app` | 🟢 pareado |
+> | Contrato e docs do app | `memory/requisitos/AppMobile/` · `docs/lojas-app/` | 🟢 pareado |
 > | API do app no Laravel | `routes/api/app/**`, `app/Http/Controllers/Api/App/**` | 🟡 só com review [F] — é Tier 0 multi-tenant (`business_id`) |
 > | Login do app (OAuth) | `app/Auth/AppMobileOAuth.php`, `AppMobileOAuthClientCommand` | ❌ zona vermelha (credencial) |
+> | Envio às lojas (Play Console / App Store) | — | ❌ é do [W] |
 > | Qualquer coisa que mexa em valor, estoque, pagamento ou PII | — | ❌ zona vermelha (§1 e `proibicoes.md`) |
+>
+> **Acesso (medido em 2026-10-05):** a pedido do [W], foram convidados ao `oimpresso-app` com `write`
+> o `LuizWr2` ([L]), o `felipewr2-cell` ([F]) e o `SupportWR` ([M], perfil "MaiaraWR"). Os três
+> convites estavam **pendentes** na medição — cada um só ganha acesso ao aceitar.
+> O `main` do `oimpresso-app` estava **sem proteção**; no mesmo dia,
+> a pedido do [W], passou a exigir PR com 1 aprovação (review velha cai a cada push novo), sem
+> force-push e sem apagar a branch. `enforce_admins: false` — o [W], admin, segue mergeando sozinho;
+> o [L] (`write`) não consegue mais.
 >
 > **O que este registro NÃO faz, de propósito** (mesmas razões da §3.3.1): não arma o
 > `CODEOWNERS` e não abre linha na §3 — a §3 exigiria definir os 5 níveis, e o [W] decidiu só o [L].
