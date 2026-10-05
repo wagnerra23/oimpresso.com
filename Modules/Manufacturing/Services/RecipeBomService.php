@@ -78,9 +78,12 @@ class RecipeBomService
      * tivesse sido escolhido.
      *
      * Tier 0 ({@see ADR 0093}): o `copy_recipe_id` chega pela query string. Antes, o
-     * controller fazia `MfgRecipe::with(...)->find($id)` sem tenant — trocando o número no
-     * endereço, a página mostrava os ingredientes e o custo de compra de receita de OUTRA
-     * empresa. A lista do modal já vinha filtrada (`forDropdown($business_id)`); a busca, não.
+     * controller fazia `MfgRecipe::with(...)->find($id)` sem tenant: trocando o número no
+     * endereço, o servidor LIA a receita de OUTRA empresa. A tela não chegava a mostrá-la só
+     * por acaso — `getSubUnits()` busca a unidade de cada ingrediente no business da sessão
+     * com `findOrFail`, e a unidade alheia dava 404 (medido na lane MySQL em 2026-10-05,
+     * run 37316751680). A lista do modal já vinha filtrada (`forDropdown($business_id)`);
+     * a busca, não.
      *
      * @param  int  $recipeId  mfg_recipes.id vindo do request
      * @param  int  $businessId  Tier 0 — o business da sessão, nunca o da receita

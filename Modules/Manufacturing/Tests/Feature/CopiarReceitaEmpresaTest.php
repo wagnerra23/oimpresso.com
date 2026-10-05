@@ -19,8 +19,10 @@ uses(Tests\TestCase::class, DatabaseTransactions::class);
  * receita do PRÓPRIO business — Tier 0, ADR 0093.
  *
  * O `copy_recipe_id` chega pela query string. Até 2026-10-05 o controller fazia
- * `MfgRecipe::with(...)->find($id)` sem tenant: trocando o número no endereço, a página
- * mostrava os ingredientes (nome e custo de compra) de receita de OUTRA empresa.
+ * `MfgRecipe::with(...)->find($id)` sem tenant: o servidor LIA a receita de OUTRA empresa, e a
+ * página só não a mostrava por acaso — a unidade de cada ingrediente é buscada no business da
+ * sessão com `findOrFail`, então a página dava 404 (medido: run 37316751680, este teste antes
+ * da correção). Com a regra, a página abre normal (200) e sem a cópia — é o que se asserta.
  *
  * O caso da receita do próprio business é a âncora positiva: prova que a requisição chega
  * ao código da cópia, para a ausência do ingrediente alheio não ser página que nem abriu.
