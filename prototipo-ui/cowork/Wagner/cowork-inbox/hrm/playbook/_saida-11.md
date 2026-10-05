@@ -5,7 +5,7 @@ dono: "[CL]"
 data: 2026-10-05
 base_lida: wagnerra23/oimpresso.com@main cb1fe1d6f4
 prefixo_tocado: "7 blades órfãs do Essentials (dashboard · leave · leave_type · sales_targets · sidebar_hrm) · SUPERFICIE.md do Essentials (derivado) · 1 comentário em HrmLicencaTest e 1 em HrmMetasTest"
-entregue_em: "#8659 · #8662 · PR desta _saida"
+entregue_em: "#8659 · #8662 · #8665 · #8675"
 ---
 # _saida-11
 
@@ -52,8 +52,10 @@ absorverem o modal/rota correspondente e a rota morrer, o que é `Routes/web.php
   pelas 7 blades. **9** não aparecem em mais nenhum arquivo fora dos `lang/`:
   `add_leave_type`, `all_leave_types`, `all_leaves`, `allowance_and_deduction`, `my_leaves`,
   `my_sales_targets`, `target_achieved_last_month`, `target_achieved_this_month`, `todays_attendance`.
-  A medida é por grep literal, então não vê chave montada dinamicamente. Tirar 9 × 16 idiomas vai em
-  PR próprio, depois que estes três entrarem.
+  A medida é por grep literal, então não vê chave montada dinamicamente. Saíram em
+  [#8675](https://github.com/wagnerra23/oimpresso.com/pull/8675): 8 chaves, 82 linhas nos 16 idiomas,
+  depois de conferir as chaves dinâmicas do módulo (`->type`, `->share_with`). `allowance_and_deduction`
+  ficou fora porque não tem definição em lang nenhum.
 - **Item 4 (`show()`/`edit()` → 500):** é `Routes/web.php`, `nao_toca`.
 - **Testes `EssentialsBladeT1InertiaSmoke`:** não precisaram de ajuste. O arquivo não cita nenhuma
   das 7 views.
