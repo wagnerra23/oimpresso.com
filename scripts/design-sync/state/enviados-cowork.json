@@ -101,6 +101,10 @@
       "sha256": "ef363b7749d161c46bc9f624e4adb44250ff7e7dc829b9484f95396a3fb4e3c3",
       "em": "2026-10-01T14:44:22.329Z"
     },
+    "cowork-inbox/crm/playbook/_saida-08.md": {
+      "sha256": "fcdc3835cbbd721d2e4c00cb13ddb9ef04dced574b7787491701ce54710afcbf",
+      "em": "2026-10-05T12:47:26.576Z"
+    },
     "cowork-inbox/crm/playbook/_saida-A1.md": {
       "sha256": "bead2e178263df606e258a1726d1b7b181f2c8ca59c1cb092361ba29a22b66cb",
       "em": "2026-10-01T14:44:22.329Z"
@@ -213,6 +217,10 @@
       "sha256": "51e9b0a7cd394769c9a11f5e9b00441290ff4751e023f6f01a34062fc292b5ef",
       "em": "2026-10-02T18:36:58.261Z"
     },
+    "cowork-inbox/repair/playbook/_saida-05.md": {
+      "sha256": "984e6cd656848f2af25dbafdbf20eacff80a7b7817b4f63283760433080e8a37",
+      "em": "2026-10-02T18:35:52.505Z"
+    },
     "cowork-inbox/repair/playbook/_saida-A1.md": {
       "sha256": "dc195ca6397eb166ac4cd32b1e494b7871e308e373f6d8e8692e5fe844d997e3",
       "em": "2026-10-02T13:25:42.336Z"
@@ -276,10 +284,6 @@
     "repair-page.jsx": {
       "sha256": "d571d3ca49eef0380f6a0ffc25d87275b13100cbe23dbb53f1179c5c6a35959c",
       "em": "2026-10-02T13:24:51.450Z"
-    },
-    "cowork-inbox/repair/playbook/_saida-05.md": {
-      "sha256": "984e6cd656848f2af25dbafdbf20eacff80a7b7817b4f63283760433080e8a37",
-      "em": "2026-10-02T18:35:52.505Z"
     }
   }
 }
