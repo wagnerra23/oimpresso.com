@@ -11,10 +11,10 @@ Leia só: (1) a saída do `placar` — se não for `proximo`, pare; (2) o `NN-*.
 
 | # | o que faz | dono | ficha | depende de |
 |---|---|---|---|---|
-| **00** | PUXAR 7 Pages → protótipo | CC | `01-puxar-vivo.md` | — |
-| **A1** | ALVO cliente--index | CL | `02-alvos.md` | 00 |
-| **A2** | ALVO cliente--grupos--index | CL | `02-alvos.md` | D2 |
-| **01** | Contrato cliente-index | CL | `03-contratos.md` | A1 |
-| **02** | Título 18→22 + linha da tabela | CL | `04-divergencia-index.md` | A1 |
-| **03** | Cliente/Grupos | CL | `05-grupos.md` | A2 · D2 |
-| **04** | Aposentar dual-render | CL | `06-dual-render.md` | 01 · D1 |
+| **00** | PUXAR 7 Pages → protótipo | CC | `00-puxar-vivo.md` | — |
+| **A1** | ALVO cliente--index | CL | `A1-alvos.md` | 00 |
+| **A2** | ALVO cliente--grupos--index | CL | `A2-alvos.md` | D2 |
+| **01** | Contrato cliente-index | CL | `01-contratos.md` | A1 |
+| **02** | Título 18→22 + linha da tabela | CL | `02-divergencia-index.md` | A1 |
+| **03** | Cliente/Grupos | CL | `03-grupos.md` | A2 · D2 |
+| **04** | Aposentar dual-render | CL | `04-dual-render.md` | 01 · D1 |

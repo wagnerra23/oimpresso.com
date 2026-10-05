@@ -44,8 +44,40 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/repair/playbook/
     "CONTRATOS": "governance/design/contracts"
   },
   "decisoes": [
-    {"id": "D1", "pergunta": "repair.create/edit: migrar ou redirecionar pra JobSheet?", "respondida": false, "destrava": ["03"]},
-    {"id": "D2", "pergunta": "Portal do cliente entra agora?", "respondida": false, "destrava": ["04"]}
+    {
+      "id": "D1",
+      "pergunta": "repair.create/edit: migrar ou redirecionar pra JobSheet?",
+      "respondida": true,
+      "destrava": [
+        "03"
+      ],
+      "resposta": "é venda: tipo de venda igual à OS da OficinaAuto",
+      "fonte": "_DECISOES-W-2026-10-01b.md"
+    },
+    {
+      "id": "D2",
+      "pergunta": "Portal do cliente entra agora?",
+      "respondida": true,
+      "destrava": [
+        "04"
+      ],
+      "resposta": "sim, entra agora",
+      "fonte": "_DECISOES-W-2026-10-01.md"
+    },
+    {
+      "id": "D-PORTAL",
+      "pergunta": "(nova, vinda de _DECISOES-W-2026-10-02.md)",
+      "respondida": true,
+      "resposta": "o portal é o ConsultaOs; sem Pages/Repair/Portal; /repair-status leva ao /consulta-os",
+      "fonte": "_DECISOES-W-2026-10-02.md"
+    },
+    {
+      "id": "D-RECORTE",
+      "pergunta": "(nova, vinda de _DECISOES-W-2026-10-02.md)",
+      "respondida": true,
+      "resposta": "JobSheet/Index ganha as abas Pendentes/Concluídas/Entrega vencida/Todas (thread 05)",
+      "fonte": "_DECISOES-W-2026-10-02.md"
+    }
   ],
   "threads": [
     {
@@ -53,9 +85,13 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/repair/playbook/
       "titulo": "PUXAR as 12 Pages vivas de Repair → protótipo (uma vista rep-* por Page)",
       "dono": "CC",
       "vaga": 1,
-      "arquivo": "01-puxar-vivo.md",
-      "prefixo": ["prototipo-ui/cowork/Wagner/repair-page.jsx"],
-      "nao_toca": ["${PAGES}/Repair/"],
+      "arquivo": "00-puxar-vivo.md",
+      "prefixo": [
+        "prototipo-ui/cowork/Wagner/repair-page.jsx"
+      ],
+      "nao_toca": [
+        "${PAGES}/Repair/"
+      ],
       "provas": [],
       "nota_provas": "read-only no main + build aqui: prova = _saida-00.md com o diff por tela e a lista rota rep-* ↔ Page"
     },
@@ -64,15 +100,49 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/repair/playbook/
       "titulo": "ALVO lote: repair--index · --jobsheet--index · --dashboard--index · --producao-oficina--index",
       "dono": "CL",
       "vaga": 2,
-      "arquivo": "02-alvos.md",
-      "depende_threads": ["00"],
-      "prefixo": ["${ALVOS}/repair--index.*", "${ALVOS}/repair--jobsheet--index.*", "${ALVOS}/repair--dashboard--index.*", "${ALVOS}/repair--producao-oficina--index.*", "${ALVOS}/medidas/Repair--*"],
-      "nao_toca": ["${PAGES}/"],
+      "arquivo": "A1-alvos.md",
+      "depende_threads": [
+        "00"
+      ],
+      "prefixo": [
+        "${ALVOS}/repair--index.*",
+        "${ALVOS}/repair--jobsheet--index.*",
+        "${ALVOS}/repair--dashboard--index.*",
+        "${ALVOS}/repair--producao-oficina--index.*",
+        "${ALVOS}/medidas/Repair--*"
+      ],
+      "nao_toca": [
+        "${PAGES}/"
+      ],
       "provas": [
-        {"tipo": "json_com_chaves", "path": "${ALVOS}/repair--index.alvo.json", "chaves": ["secoes"]},
-        {"tipo": "json_com_chaves", "path": "${ALVOS}/repair--jobsheet--index.alvo.json", "chaves": ["secoes"]},
-        {"tipo": "json_com_chaves", "path": "${ALVOS}/repair--dashboard--index.alvo.json", "chaves": ["secoes"]},
-        {"tipo": "json_com_chaves", "path": "${ALVOS}/repair--producao-oficina--index.alvo.json", "chaves": ["secoes"]}
+        {
+          "tipo": "json_com_chaves",
+          "path": "${ALVOS}/repair--index.alvo.json",
+          "chaves": [
+            "secoes"
+          ]
+        },
+        {
+          "tipo": "json_com_chaves",
+          "path": "${ALVOS}/repair--jobsheet--index.alvo.json",
+          "chaves": [
+            "secoes"
+          ]
+        },
+        {
+          "tipo": "json_com_chaves",
+          "path": "${ALVOS}/repair--dashboard--index.alvo.json",
+          "chaves": [
+            "secoes"
+          ]
+        },
+        {
+          "tipo": "json_com_chaves",
+          "path": "${ALVOS}/repair--producao-oficina--index.alvo.json",
+          "chaves": [
+            "secoes"
+          ]
+        }
       ]
     },
     {
@@ -81,10 +151,20 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/repair/playbook/
       "dono": "CL",
       "vaga": 1,
       "prs": 1,
-      "arquivo": "03-trio-jobsheet.md",
-      "prefixo": ["${PAGES}/Repair/JobSheet/Index.casos.md", "tests/"],
-      "nao_toca": ["${PAGES}/Repair/JobSheet/Index.tsx"],
-      "provas": [{"tipo": "arquivo", "path": "${PAGES}/Repair/JobSheet/Index.casos.md"}]
+      "arquivo": "01-trio-jobsheet.md",
+      "prefixo": [
+        "${PAGES}/Repair/JobSheet/Index.casos.md",
+        "tests/"
+      ],
+      "nao_toca": [
+        "${PAGES}/Repair/JobSheet/Index.tsx"
+      ],
+      "provas": [
+        {
+          "tipo": "arquivo",
+          "path": "${PAGES}/Repair/JobSheet/Index.casos.md"
+        }
+      ]
     },
     {
       "id": "02",
@@ -92,11 +172,23 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/repair/playbook/
       "dono": "CL",
       "vaga": 3,
       "prs": 1,
-      "arquivo": "04-titulo.md",
-      "depende_threads": ["A1"],
-      "prefixo": ["${PAGES}/Repair/Index.tsx", "${PAGES}/Repair/JobSheet/Index.tsx"],
-      "nao_toca": ["resources/js/Components/PageHeader/"],
-      "provas": [],
+      "arquivo": "02-titulo.md",
+      "depende_threads": [
+        "A1"
+      ],
+      "prefixo": [
+        "${PAGES}/Repair/Index.tsx",
+        "${PAGES}/Repair/JobSheet/Index.tsx"
+      ],
+      "nao_toca": [
+        "resources/js/Components/PageHeader/"
+      ],
+      "provas": [
+        {
+          "tipo": "comparacao",
+          "nota": "design-diff --compare --check sem DIVERGE (bug), run citado no _saida"
+        }
+      ],
       "nota_provas": "prova = design-diff --compare --check verde na D4 das duas telas, com design.json próprio de cada uma (não o blob 86af1436070d); run citado no _saida-02.md"
     },
     {
@@ -106,12 +198,25 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/repair/playbook/
       "vaga": 3,
       "prs": 1,
       "arquivo": "05-contratos.md",
-      "depende_threads": ["A1"],
-      "prefixo": ["${CONTRATOS}/repair-index.contract.json", "${CONTRATOS}/repair-jobsheet-index.contract.json"],
-      "nao_toca": ["${PAGES}/"],
+      "depende_threads": [
+        "A1"
+      ],
+      "prefixo": [
+        "${CONTRATOS}/repair-index.contract.json",
+        "${CONTRATOS}/repair-jobsheet-index.contract.json"
+      ],
+      "nao_toca": [
+        "${PAGES}/"
+      ],
       "provas": [
-        {"tipo": "arquivo", "path": "${CONTRATOS}/repair-index.contract.json"},
-        {"tipo": "arquivo", "path": "${CONTRATOS}/repair-jobsheet-index.contract.json"}
+        {
+          "tipo": "arquivo",
+          "path": "${CONTRATOS}/repair-index.contract.json"
+        },
+        {
+          "tipo": "arquivo",
+          "path": "${CONTRATOS}/repair-jobsheet-index.contract.json"
+        }
       ]
     },
     {
@@ -120,11 +225,24 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/repair/playbook/
       "dono": "CL",
       "vaga": 4,
       "prs": 1,
-      "arquivo": "06-repair-form.md",
-      "depende_decisoes": ["D1"],
-      "prefixo": ["${MOD}/Http/Controllers/RepairController.php", "${PAGES}/Repair/"],
-      "nao_toca": ["${PAGES}/Repair/JobSheet/"],
-      "provas": [{"tipo": "nao_contem", "path": "${MOD}/Http/Controllers/RepairController.php", "padrao": "view('repair::repair.create')"}]
+      "arquivo": "03-repair-form.md",
+      "depende_decisoes": [
+        "D1"
+      ],
+      "prefixo": [
+        "${MOD}/Http/Controllers/RepairController.php",
+        "${PAGES}/Repair/"
+      ],
+      "nao_toca": [
+        "${PAGES}/Repair/JobSheet/"
+      ],
+      "provas": [
+        {
+          "tipo": "nao_contem",
+          "path": "${MOD}/Http/Controllers/RepairController.php",
+          "padrao": "view('repair::repair.create')"
+        }
+      ]
     },
     {
       "id": "04",
@@ -132,13 +250,32 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/repair/playbook/
       "dono": "CL",
       "vaga": 4,
       "prs": 1,
-      "arquivo": "07-portal.md",
-      "depende_decisoes": ["D2"],
-      "prefixo": ["${MOD}/Http/Controllers/CustomerRepairStatusController.php", "${PAGES}/Repair/Portal/"],
-      "nao_toca": ["${PAGES}/Repair/Index.tsx"],
-      "provas": [{"tipo": "contem", "path": "${MOD}/Http/Controllers/CustomerRepairStatusController.php", "padrao": "Inertia::render("}]
+      "arquivo": "04-portal.md",
+      "depende_decisoes": [
+        "D2"
+      ],
+      "prefixo": [
+        "Modules/ConsultaOs/",
+        "resources/js/Pages/ConsultaOs/",
+        "${MOD}/Http/Controllers/CustomerRepairStatusController.php"
+      ],
+      "nao_toca": [
+        "${PAGES}/Repair/Index.tsx"
+      ],
+      "provas": [
+        {
+          "tipo": "contem",
+          "path": "${MOD}/Http/Controllers/CustomerRepairStatusController.php",
+          "padrao": "consulta-os"
+        },
+        {
+          "tipo": "arquivo",
+          "path": "Modules/ConsultaOs/Repositories/RepairConsultaOsRepository.php"
+        }
+      ]
     }
-  ]
+  ],
+  "revisado": "2026-10-01 — recibos e _DECISOES do main c12552f40e2a aplicados"
 }
 ```
 

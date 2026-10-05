@@ -878,6 +878,7 @@ function usePaleta({ folhas, onAba, onAbrir, onNova }) {
 // Pages de detalhe/formulário, abre o drawer correspondente com uma folha/modelo fixos (medida
 // reprodutível). `page` é a Page Inertia que a vista representa (resources/js/Pages/Repair/…).
 const ROTAS = {
+  "repair":            { page: "Repair/Dashboard/Index",       aba: "painel" },
   "rep-painel":        { page: "Repair/Dashboard/Index",       aba: "painel" },
   "rep-reparos":       { page: "Repair/Index",                 aba: "reparos" },
   "rep-reparo":        { page: "Repair/Show",                  aba: "reparos", reparo: 11 },

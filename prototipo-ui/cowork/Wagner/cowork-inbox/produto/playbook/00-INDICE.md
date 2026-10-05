@@ -67,26 +67,32 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/produto/playbook/
     {
       "id": "D1",
       "pergunta": "Criar as 3 permissões que faltam (variation, warranty, print_labels) e com que nomes?",
-      "respondida": false,
+      "respondida": true,
       "destrava": [
         "01"
-      ]
+      ],
+      "resposta": "sim, nomes propostos",
+      "fonte": "_DECISOES-W-2026-10-01.md"
     },
     {
       "id": "D2",
       "pergunta": "Distribuição das permissões por papel (Balcão, Gerente, Admin)",
-      "respondida": false,
+      "respondida": true,
       "destrava": [
         "01"
-      ]
+      ],
+      "resposta": "distribuição proposta; lote segue product.create",
+      "fonte": "_DECISOES-W-2026-10-01.md"
     },
     {
       "id": "D3",
       "pergunta": "Categoria: Page parametrizada ou uma por domínio?",
-      "respondida": false,
+      "respondida": true,
       "destrava": [
         "02"
-      ]
+      ],
+      "resposta": "Page parametrizada Produto/Cadastros",
+      "fonte": "_DECISOES-W-2026-10-01.md"
     },
     {
       "id": "D4",
@@ -123,7 +129,7 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/produto/playbook/
       "titulo": "PUXAR as 8 Pages vivas de Produto → protótipo",
       "dono": "CC",
       "vaga": 1,
-      "arquivo": "01-puxar-vivo.md",
+      "arquivo": "00-puxar-vivo.md",
       "prefixo": [
         "prototipo-ui/cowork/Wagner/produto*.jsx",
         "prototipo-ui/cowork/Wagner/produtos-page.jsx"
@@ -139,7 +145,7 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/produto/playbook/
       "titulo": "ALVO produto--unificado--index",
       "dono": "CL",
       "vaga": 1,
-      "arquivo": "02-alvos.md",
+      "arquivo": "A1-alvos.md",
       "depende_threads": [
         "00"
       ],
@@ -164,7 +170,7 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/produto/playbook/
       "titulo": "ALVO lote: produto--cadastros · --etiquetas · --importacao · --atualizar-preco",
       "dono": "CL",
       "vaga": 1,
-      "arquivo": "02-alvos.md",
+      "arquivo": "A2-alvos.md",
       "prefixo": [
         "${ALVOS}/produto--cadastros--index.*",
         "${ALVOS}/produto--etiquetas--index.*",
@@ -211,7 +217,7 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/produto/playbook/
       "dono": "CL",
       "vaga": 1,
       "prs": 1,
-      "arquivo": "03-permissoes.md",
+      "arquivo": "01-permissoes.md",
       "depende_decisoes": [
         "D1",
         "D2"
@@ -251,37 +257,17 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/produto/playbook/
       "dono": "CL",
       "vaga": 1,
       "prs": 1,
-      "arquivo": "04-contratos.md",
+      "arquivo": "07-contratos.md",
       "depende_threads": [
         "A2"
       ],
-      "prefixo": [
-        "${CONTRATOS}/produto-cadastros.contract.json",
-        "${CONTRATOS}/produto-etiquetas.contract.json",
-        "${CONTRATOS}/produto-importacao.contract.json",
-        "${CONTRATOS}/produto-atualizar-preco.contract.json"
-      ],
+      "prefixo": [],
       "nao_toca": [
         "${PAGES}/"
       ],
-      "provas": [
-        {
-          "tipo": "arquivo",
-          "path": "${CONTRATOS}/produto-cadastros.contract.json"
-        },
-        {
-          "tipo": "arquivo",
-          "path": "${CONTRATOS}/produto-etiquetas.contract.json"
-        },
-        {
-          "tipo": "arquivo",
-          "path": "${CONTRATOS}/produto-importacao.contract.json"
-        },
-        {
-          "tipo": "arquivo",
-          "path": "${CONTRATOS}/produto-atualizar-preco.contract.json"
-        }
-      ]
+      "provas": [],
+      "nota_provas": "errata do recibo: o gate required recusa contrato sem Page; cada contrato entra no PR da Page dele. O contrato derivado está no _saida desta thread.",
+      "bloqueio": "absorvida — contrato sem Page é reprovado pelo gate required; cada contrato entrou na thread da Page (02 · 04 · 05 · 06). Derivação no _saida-07."
     },
     {
       "id": "02",
@@ -289,9 +275,9 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/produto/playbook/
       "dono": "CL",
       "vaga": 2,
       "prs": 1,
-      "arquivo": "05-cadastros.md",
+      "arquivo": "02-cadastros.md",
       "depende_threads": [
-        "07"
+        "A2"
       ],
       "depende_decisoes": [
         "D3"
@@ -300,7 +286,8 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/produto/playbook/
         "${PAGES}/Produto/Cadastros/",
         "${CTRL}/UnitController.php",
         "${CTRL}/BrandController.php",
-        "${CTRL}/TaxonomyController.php"
+        "${CTRL}/TaxonomyController.php",
+        "${CONTRATOS}/produto-cadastros.contract.json"
       ],
       "nao_toca": [
         "${PAGES}/Produto/Unificado/"
@@ -322,6 +309,10 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/produto/playbook/
           "tipo": "contem",
           "path": "${CTRL}/UnitController.php",
           "padrao": "Inertia::render('Produto/Cadastros/Index'"
+        },
+        {
+          "tipo": "arquivo",
+          "path": "${CONTRATOS}/produto-cadastros.contract.json"
         }
       ]
     },
@@ -331,7 +322,7 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/produto/playbook/
       "dono": "CL",
       "vaga": 3,
       "prs": 1,
-      "arquivo": "05-cadastros.md",
+      "arquivo": "03-cadastros.md",
       "depende_threads": [
         "01",
         "02"
@@ -364,17 +355,18 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/produto/playbook/
       "dono": "CL",
       "vaga": 2,
       "prs": 1,
-      "arquivo": "06-etiquetas.md",
+      "arquivo": "04-etiquetas.md",
       "depende_threads": [
         "01",
-        "07"
+        "A2"
       ],
       "depende_decisoes": [
         "D4"
       ],
       "prefixo": [
         "${PAGES}/Produto/Etiquetas/",
-        "${CTRL}/LabelsController.php"
+        "${CTRL}/LabelsController.php",
+        "${CONTRATOS}/produto-etiquetas.contract.json"
       ],
       "nao_toca": [
         "${CTRL}/BarcodeController.php"
@@ -388,6 +380,10 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/produto/playbook/
           "tipo": "contem",
           "path": "${CTRL}/LabelsController.php",
           "padrao": "Inertia::render('Produto/Etiquetas/Index'"
+        },
+        {
+          "tipo": "arquivo",
+          "path": "${CONTRATOS}/produto-etiquetas.contract.json"
         }
       ]
     },
@@ -397,15 +393,16 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/produto/playbook/
       "dono": "CL",
       "vaga": 2,
       "prs": 2,
-      "arquivo": "07-importacao.md",
+      "arquivo": "05-importacao.md",
       "depende_threads": [
         "01",
-        "07"
+        "A2"
       ],
       "prefixo": [
         "${PAGES}/Produto/Importacao/",
         "${CTRL}/ImportProductsController.php",
-        "${CTRL}/ImportOpeningStockController.php"
+        "${CTRL}/ImportOpeningStockController.php",
+        "${CONTRATOS}/produto-importacao.contract.json"
       ],
       "nao_toca": [
         "${CTRL}/ProductController.php"
@@ -424,6 +421,10 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/produto/playbook/
           "tipo": "contem",
           "path": "${CTRL}/ImportOpeningStockController.php",
           "padrao": "Inertia::render('Produto/Importacao/Index'"
+        },
+        {
+          "tipo": "arquivo",
+          "path": "${CONTRATOS}/produto-importacao.contract.json"
         }
       ]
     },
@@ -433,14 +434,15 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/produto/playbook/
       "dono": "CL",
       "vaga": 2,
       "prs": 1,
-      "arquivo": "08-atualizar-preco.md",
+      "arquivo": "06-atualizar-preco.md",
       "depende_threads": [
         "01",
-        "07"
+        "A2"
       ],
       "prefixo": [
         "${PAGES}/Produto/AtualizarPreco/",
-        "${CTRL}/SellingPriceGroupController.php"
+        "${CTRL}/SellingPriceGroupController.php",
+        "${CONTRATOS}/produto-atualizar-preco.contract.json"
       ],
       "nao_toca": [
         "${PAGES}/Produto/SellingPrices.tsx"
@@ -454,6 +456,10 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/produto/playbook/
           "tipo": "contem",
           "path": "${CTRL}/SellingPriceGroupController.php",
           "padrao": "Inertia::render('Produto/AtualizarPreco/Index'"
+        },
+        {
+          "tipo": "arquivo",
+          "path": "${CONTRATOS}/produto-atualizar-preco.contract.json"
         }
       ]
     },
@@ -463,7 +469,7 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/produto/playbook/
       "dono": "CL",
       "vaga": 4,
       "prs": 1,
-      "arquivo": "09-menu.md",
+      "arquivo": "08-menu.md",
       "depende_threads": [
         "02",
         "03",
@@ -477,10 +483,67 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/produto/playbook/
       "nao_toca": [
         "${PAGES}/"
       ],
-      "provas": [],
+      "provas": [
+        {
+          "tipo": "execucao",
+          "nota": "menu do Produto aponta pras Pages novas; nenhum item leva a rota Blade aposentada (lista no recibo)"
+        }
+      ],
       "nota_provas": "o caminho do menu não foi medido neste turno — fixar no _saida-08.md"
+    },
+    {
+      "id": "09",
+      "titulo": "P0 · busca por sub_sku sem escopo de negócio fora do import de preço",
+      "dono": "CL",
+      "vaga": 1,
+      "prs": 1,
+      "arquivo": "09-sub-sku-escopo.md",
+      "prefixo": [
+        "app/Http/Controllers/ImportOpeningStockController.php",
+        "app/Http/Controllers/ImportSalesController.php",
+        "app/Http/Controllers/ProductController.php",
+        "app/Http/Controllers/PurchaseController.php",
+        "tests/Feature/Produto/"
+      ],
+      "nao_toca": [
+        "app/Http/Controllers/SellingPriceGroupController.php"
+      ],
+      "provas": [
+        {
+          "tipo": "execucao",
+          "nota": "um teste por chamada: SKU repetido em outro negócio não é encontrado nem gravado"
+        }
+      ]
+    },
+    {
+      "id": "10",
+      "titulo": "Cadastros: criar/editar em drawer (hoje abre o modal da Blade)",
+      "dono": "CL",
+      "vaga": 3,
+      "prs": 2,
+      "arquivo": "10-cadastros-form.md",
+      "depende_threads": [
+        "02",
+        "03"
+      ],
+      "prefixo": [
+        "resources/js/Pages/Produto/Cadastros/",
+        "app/Http/Controllers/UnitController.php",
+        "app/Http/Controllers/BrandController.php",
+        "app/Http/Controllers/TaxonomyController.php"
+      ],
+      "nao_toca": [
+        "governance/design/contracts/produto-cadastros.contract.json"
+      ],
+      "provas": [
+        {
+          "tipo": "comparacao",
+          "nota": "drawer do protótipo × Page, design-diff no recibo"
+        }
+      ]
     }
-  ]
+  ],
+  "revisado": "2026-10-01 — recibos e _DECISOES do main c12552f40e2a aplicados · 2026-10-01 reconferência @99e6fa3e08f0: threads novas 09,10"
 }
 ```
 

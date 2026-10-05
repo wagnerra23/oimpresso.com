@@ -41,18 +41,22 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/superadmin/playbook/
     {
       "id": "D1",
       "pergunta": "superadmin::pages (CRUD de páginas) × Modules/Cms Admin/Content: fundir ou manter?",
-      "respondida": false,
+      "respondida": true,
       "destrava": [
         "06"
-      ]
+      ],
+      "resposta": "manter separado do Cms",
+      "fonte": "_DECISOES-W-2026-10-01b.md"
     },
     {
       "id": "D2",
       "pergunta": "SubscriptionController (assinatura vista pelo NEGÓCIO: index, pagar) entra aqui ou em Financeiro/RecurringBilling?",
-      "respondida": false,
+      "respondida": true,
       "destrava": [
         "07"
-      ]
+      ],
+      "resposta": "aqui no Superadmin",
+      "fonte": "_DECISOES-W-2026-10-01.md"
     }
   ],
   "threads": [
@@ -61,7 +65,7 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/superadmin/playbook/
       "titulo": "PUXAR 6 Pages vivas → superadmin-page (sa-*)",
       "dono": "CC",
       "vaga": 1,
-      "arquivo": "01-puxar.md",
+      "arquivo": "00-puxar.md",
       "prefixo": [
         "prototipo-ui/cowork/Wagner/superadmin*"
       ],
@@ -76,7 +80,7 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/superadmin/playbook/
       "titulo": "Remedir as 4 medidas (design.json compartilhado) + ALVO usuario360",
       "dono": "CL",
       "vaga": 2,
-      "arquivo": "02-alvos.md",
+      "arquivo": "A1-alvos.md",
       "depende_threads": [
         "00"
       ],
@@ -103,10 +107,10 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/superadmin/playbook/
       "dono": "CL",
       "vaga": 1,
       "prs": 1,
-      "arquivo": "03-casos.md",
+      "arquivo": "01-casos.md",
       "prefixo": [
         "${MPAGES}/Usuario360/",
-        "tests/"
+        "Modules/Superadmin/Tests/Feature/"
       ],
       "nao_toca": [
         "${MPAGES}/Usuario360/Show.tsx"
@@ -128,7 +132,7 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/superadmin/playbook/
       "dono": "CL",
       "vaga": 3,
       "prs": 1,
-      "arquivo": "04-formularios.md",
+      "arquivo": "02-formularios.md",
       "depende_threads": [
         "A1"
       ],
@@ -153,7 +157,7 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/superadmin/playbook/
       "dono": "CL",
       "vaga": 3,
       "prs": 1,
-      "arquivo": "04-formularios.md",
+      "arquivo": "03-formularios.md",
       "depende_threads": [
         "A1"
       ],
@@ -242,7 +246,12 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/superadmin/playbook/
       "nao_toca": [
         "Modules/Cms/"
       ],
-      "provas": [],
+      "provas": [
+        {
+          "tipo": "execucao",
+          "nota": "superadmin::pages redireciona para Cms Admin/Content com paridade de campos medida no recibo"
+        }
+      ],
       "nota_provas": "depende de D1"
     },
     {
@@ -269,7 +278,8 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/superadmin/playbook/
         }
       ]
     }
-  ]
+  ],
+  "revisado": "2026-10-01 — recibos e _DECISOES do main c12552f40e2a aplicados · 2026-10-01 reconferência @99e6fa3e08f0: threads novas —"
 }
 ```
 
