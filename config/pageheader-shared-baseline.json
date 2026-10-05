@@ -1,7 +1,7 @@
 {
   "_meta": {
-    "generated_at": "2026-09-30T11:52:00.601Z",
-    "count": 62,
+    "generated_at": "2026-10-05T17:32:34.572Z",
+    "count": 59,
     "adr": "0409 — divida transitoria, nao tolerancia",
     "note": "DIVIDA TRANSITORIA do PageHeader antigo (shared/PageHeader), nao selo de conformidade. Estar nesta lista ADIA a cura; nao perdoa: tocar a tela reprova o gate (ADR 0409). A lista so DESCE — o --write recusa crescimento. Meta: zero, e entao este arquivo e apagado."
   },
@@ -18,7 +18,6 @@
     "Modules/PaymentGateway/Resources/js/Pages/Settings/PaymentGateways/CnabRetorno.tsx",
     "Modules/Superadmin/Resources/js/Pages/superadmin/Assinaturas/Index.tsx",
     "Modules/Superadmin/Resources/js/Pages/superadmin/Dashboard/Index.tsx",
-    "Modules/Superadmin/Resources/js/Pages/superadmin/Negocios/Index.tsx",
     "Modules/Superadmin/Resources/js/Pages/superadmin/Pacotes/Index.tsx",
     "Modules/Superadmin/Resources/js/Pages/superadmin/Usuario360/Index.tsx",
     "Modules/Superadmin/Resources/js/Pages/superadmin/Usuario360/Show.tsx",
@@ -53,11 +52,9 @@
     "resources/js/Pages/Repair/DeviceModels/Create.tsx",
     "resources/js/Pages/Repair/DeviceModels/Edit.tsx",
     "resources/js/Pages/Repair/DeviceModels/Index.tsx",
-    "resources/js/Pages/Repair/Index.tsx",
     "resources/js/Pages/Repair/JobSheet/AddParts.tsx",
     "resources/js/Pages/Repair/JobSheet/Create.tsx",
     "resources/js/Pages/Repair/JobSheet/Edit.tsx",
-    "resources/js/Pages/Repair/JobSheet/Index.tsx",
     "resources/js/Pages/Repair/JobSheet/Show.tsx",
     "resources/js/Pages/Repair/Show.tsx",
     "resources/js/Pages/Repair/Status/Index.tsx",

@@ -25,7 +25,7 @@ import { Badge } from '@/Components/ui/badge';
 import { Input } from '@/Components/ui/input';
 import { Button } from '@/Components/ui/button';
 import { Skeleton } from '@/Components/ui/skeleton';
-import PageHeader from '@/Components/shared/PageHeader';
+import { PageHeader } from '@/Components/PageHeader';
 import EmptyState from '@/Components/shared/EmptyState';
 import { Select, plural, tomDaAssinatura } from '../_components/assinatura';
 import {
@@ -233,7 +233,7 @@ function NegociosIndex({ filtros, aberto, pacotes, negocios, detalhe }: Props) {
 
   return (
     <div className="pb-8">
-      <PageHeader title="Negócios" moduleNav description="Todos os clientes da plataforma" />
+      <PageHeader title="Negócios" subtitle="Todos os clientes da plataforma" />
 
       <div className="flex flex-wrap items-center gap-2 px-6 pt-4" data-contract="superadmin.negocios.busca-filtros">
         <Input
