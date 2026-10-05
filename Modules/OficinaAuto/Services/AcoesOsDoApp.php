@@ -107,7 +107,7 @@ final class AcoesOsDoApp implements AcoesOs
         return ['resultado' => 'ok', 'mensagem' => null];
     }
 
-    public function criar(User $user, int $businessId, array $dados): ?int
+    public function criar(User $user, int $businessId, array $dados): int
     {
         // business_id explícito: o `creating` do model só lê a sessão, que a API não tem.
         $os = ServiceOrder::create([
