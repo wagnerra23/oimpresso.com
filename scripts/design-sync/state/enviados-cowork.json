@@ -30,8 +30,8 @@
       "em": "2026-10-05T12:50:01.387Z"
     },
     "cowork-inbox/crm/playbook/_saida-07.md": {
-      "sha256": "8e3e4d030e2090ee1f32d122ba6a12ae8001ab88f8fb8a88ab924e49d9014cb5",
-      "em": "2026-10-05T13:08:22.380Z"
+      "sha256": "563b30f7e44ad1f4d5f38cd8bbe3171b2d28d41af2edb554a7b324bcb28e91fb",
+      "em": "2026-10-05T18:16:34.464Z"
     },
     "cowork-inbox/crm/playbook/_saida-08.md": {
       "sha256": "fcdc3835cbbd721d2e4c00cb13ddb9ef04dced574b7787491701ce54710afcbf",
@@ -40,6 +40,14 @@
     "cowork-inbox/hrm/playbook/_saida-11.md": {
       "sha256": "3ca5a079ce3d2fff322686d137b7d5b07427e691975f7d9cb439e2ae56d59f32",
       "em": "2026-10-05T14:41:28.291Z"
+    },
+    "cowork-inbox/officeimpresso/playbook/_saida-03.md": {
+      "sha256": "62c0160ba558121a543185cba2875454c2f5a53acd1bed5537a1d23e892e4be7",
+      "em": "2026-10-05T18:16:34.464Z"
+    },
+    "cowork-inbox/officeimpresso/playbook/_saida-A3.md": {
+      "sha256": "2c2b2a2c25e9589133d5ac25ae98166bad2a7475e98534a45f6f1eb5b176608c",
+      "em": "2026-10-05T18:16:34.464Z"
     },
     "cowork-inbox/produto/playbook/_saida-03.md": {
       "sha256": "f9a6e2906b516cf49bf35754bd8443b0f63f8775843190afcd05fdd29c251e48",
@@ -55,7 +63,15 @@
     },
     "cowork-inbox/superadmin/playbook/_saida-02.md": {
       "sha256": "e87b67393553805215c246354aee189763ab52b0c06df06d4c3b3eea41d9f0da",
-      "em": "2026-10-05T18:06:28.478Z"
+      "em": "2026-10-05T18:16:34.464Z"
+    },
+    "cowork-inbox/superadmin/playbook/_saida-06.md": {
+      "sha256": "3d4d720bddd175e6be886211f735ad174fd44476572a00439af4cbd8fccdb187",
+      "em": "2026-10-05T18:16:34.464Z"
+    },
+    "cowork-inbox/superadmin/playbook/_saida-07.md": {
+      "sha256": "d8eb6a0c29bd6d7224e50c19dc75a222f178672891cb896d5777db618dff170a",
+      "em": "2026-10-05T18:16:34.464Z"
     },
     "cowork-inbox/superadmin/playbook/_saida-A1.md": {
       "sha256": "20e56476ef97286c128898bcddcf521d6846101581b366ffcaca56960b849dcf",

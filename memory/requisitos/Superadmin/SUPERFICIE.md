@@ -14,7 +14,7 @@ module: Superadmin
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Superadmin/**` + `resources/js/Pages/superadmin/**` (namespace Inertia `superadmin`, declarado em `module-surface.mjs::PAGES_NS` porque difere do nome do módulo `Superadmin` — confira com `--namespaces`), separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 196 arquivos em 19 papéis.
+**Total mapeado:** 197 arquivos em 19 papéis.
 
 ## Controllers — 14
 
@@ -106,9 +106,8 @@ module: Superadmin
 - [config.php](../../../Modules/Superadmin/Config/config.php)
 - [retention.php](../../../Modules/Superadmin/Config/retention.php)
 
-## Views (Blade) — 41
+## Views (Blade) — 40
 
-- [create.blade.php](../../../Modules/Superadmin/Resources/views/business/create.blade.php)
 - [index.blade.php](../../../Modules/Superadmin/Resources/views/business/index.blade.php)
 - [index.blade.php](../../../Modules/Superadmin/Resources/views/communicator/index.blade.php)
 - [nav.blade.php](../../../Modules/Superadmin/Resources/views/layouts/nav.blade.php)
@@ -163,8 +162,10 @@ module: Superadmin
 - [Index.tsx](../../../Modules/Superadmin/Resources/js/Pages/superadmin/Usuario360/Index.tsx)
 - [Show.tsx](../../../Modules/Superadmin/Resources/js/Pages/superadmin/Usuario360/Show.tsx)
 
-## Componentes / apoio de tela — 2
+## Componentes / apoio de tela — 4
 
+- [Gaveta.tsx](../../../Modules/Superadmin/Resources/js/Pages/superadmin/Negocios/_components/Gaveta.tsx)
+- [NovoNegocio.tsx](../../../Modules/Superadmin/Resources/js/Pages/superadmin/Negocios/_components/NovoNegocio.tsx)
 - [SecoesDoDetalhe.tsx](../../../Modules/Superadmin/Resources/js/Pages/superadmin/Negocios/_components/SecoesDoDetalhe.tsx)
 - [assinatura.tsx](../../../Modules/Superadmin/Resources/js/Pages/superadmin/_components/assinatura.tsx)
 

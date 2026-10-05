@@ -97,3 +97,5 @@ d9d4f846b984d6ece9445fc96d723d88c3710979:resources/js/Pages/governance/Qualidade
 edaf567a860a78952fb36814f70da9b0651461fd:.github/workflows/deploy.yml:curl-auth-header:865
 # 2026-10-05 #8667: lista de chaves do histórico do connector:health num teste (nome do check "tokens_active_24h"), não é credencial; a linha atual quebra a lista uma chave por linha.
 017d08f03faf15bf7e6a09785a61b458f81b2724:Modules/Connector/Tests/Feature/ObservabilityTest.php:generic-api-key:160
+# 2026-10-05 #8714: senha FICTÍCIA de teste (str_repeat de 12 caracteres) no UC-SANEG-13, commit histórico do PR; a linha atual guarda o valor em variável e não casa a regra.
+5e035ba13e43b2d75d72688bf89be434d58cf7af:Modules/Superadmin/Tests/Feature/SuperadminNegociosContratoTest.php:generic-api-key:357
