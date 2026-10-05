@@ -379,7 +379,29 @@ function scaixaTurnoProp(object $test): ?array
     // anti-vácuo: a chave veio (null é resposta; ausência seria o defer não resolvido).
     expect(array_key_exists('turno', $page['props']))->toBeTrue();
 
-    return $page['props']['turno'];
+    return scaixaValoresComoDecimal($page['props']['turno']);
+}
+
+/**
+ * O JSON não distingue 100 de 100.0: o valor redondo chega como inteiro e o
+ * `toBe(100.0)` estrito reprovaria um valor CERTO. Converte para float todo
+ * número que não é identificador, para a comparação medir o valor, não o tipo.
+ */
+function scaixaValoresComoDecimal(mixed $v, string $chave = ''): mixed
+{
+    if (is_array($v)) {
+        $out = [];
+        foreach ($v as $k => $item) {
+            $out[$k] = scaixaValoresComoDecimal($item, (string) $k);
+        }
+
+        return $out;
+    }
+    if (is_int($v) && ! preg_match('/(^id$|Id$)/', $chave)) {
+        return (float) $v;
+    }
+
+    return $v;
 }
 
 it('UC-SCAIXA-10 [V0] movimentos e totais do turno batem com o caminho do Blade e com a conta à mão', function () {
