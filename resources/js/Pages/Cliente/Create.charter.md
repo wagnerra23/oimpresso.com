@@ -40,6 +40,10 @@ Formulário de cadastro de novo cliente/fornecedor — substitui Blade `contact.
 - **Rail de contexto** sticky — preview vivo + prontidão fiscal client-side (PR-A; copiloto IA = PR-A2)
 - Corpo compartilhado `_form/ClienteForm` (Create + Edit dividem ~90%)
 - Submit via Inertia POST `/contacts` — backend valida e retorna redirect ou errors
+- **Modo lead** (thread Crm/06, D2 [W] 2026-10-01): o `LeadController::create()` renderiza esta
+  tela com `destino` (url `/crm/leads`, títulos) + `lead_opcoes` deferida (fonte, estágio de vida,
+  atribuído a). Sem `destino` o comportamento é o do cliente, intacto. Casos do modo lead:
+  `Modules/Crm/Resources/js/Pages/Crm/Leads/Index.casos.md` (UC-CRMLD-08..10)
 - PT-BR labels obrigatório
 
 ## Non-Goals — Features (NÃO faz)
