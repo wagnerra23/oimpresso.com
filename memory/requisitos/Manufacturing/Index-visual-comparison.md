@@ -181,6 +181,12 @@ diferença: o selo tem 12px contra 11,5px do protótipo — a versão do `Status
 | De / Até | `DatePicker` 150×36, canto 8, 13,5px | `<input type=date>` 133×30, canto 5 | `<input type=date>` 150×36, canto 8, 13,5px |
 | "Só finalizadas" | 12,5px/500, cor do texto | 14px/400, apagado | 12,5px/500, cor do texto |
 
+**Medido em produção em 2026-10-05** (deploy `37349124454`, com o #8690; empresa 1, tema escuro, 1440 px,
+computed style): faixa sem cartão; rótulos 10,5px/600 caixa alta; Local 180×34 e 13px; datas 150×36 e
+13,5px; fundo `--surface` e borda `--border` nos três — como o protótipo. **Duas diferenças achadas pela
+medição e corrigidas no PR seguinte:** o canto saiu **12px** (o `rounded-lg` deste projeto vale 12, e o
+#8690 supôs 8) e "Só finalizadas" usava `text-foreground` em vez do `--text` da tabela.
+
 **Ficam diferentes, de propósito:** "Todos os locais" (o protótipo diz "Todos") é copy do contrato
 da tela (`manufacturing-index.contract.json`) — decisão [W]; e o campo de data continua o nativo,
 porque o `DatePicker` do DS não tem par React. **Ficam para depois:** as descrições dos 4
