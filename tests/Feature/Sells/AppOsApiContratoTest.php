@@ -351,7 +351,8 @@ it('histórico do veículo: todas as OS dele, da entrada mais nova para a mais a
     expect(array_column($itens, 'os_id'))->toBe([$semPipeline, $fora, $entregue]);
     expect(array_column($itens, 'os_id'))->not->toContain($outroVeiculo);
     expect(array_column($itens, 'etapa_rotulo'))->toBe(['Recepção', null, 'Entregue']);
-    expect(array_column($itens, 'valor'))->toBe([null, null, 750.0]);
+    // JSON grava 750.0 como 750: compara como número (null continua null).
+    expect(array_map(fn ($x) => $x === null ? null : (float) $x, array_column($itens, 'valor')))->toBe([null, null, 750.0]);
     expect($itens[2]['numero'])->toBe('OS-' . str_pad((string) $entregue, 5, '0', STR_PAD_LEFT));
     expect($itens[2]['data'])->toBe(now()->subDays(10)->toDateString());
 });
