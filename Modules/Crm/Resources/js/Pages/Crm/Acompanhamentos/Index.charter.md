@@ -37,12 +37,18 @@ clientes e leads, com o responsável e o status. Termo na UI: "acompanhamentos",
 - Escrita (thread Crm/07, PR-a): "Adicionar" e a coluna "Ação" (Editar, Excluir) abrem o modal e
   a confirmação aqui, gravando pelas MESMAS rotas da Blade (`store`/`update`/`destroy`).
   Guardas: UC-CRMACO-08..13.
+- Escrita (thread Crm/07, PR-b): "Recorrente" abre o modal de recorrente — adicionar, e na aba
+  recorrente o "Editar" — gravando por `store`/`update` do `ScheduleController`, os mesmos da Blade.
+  Guardas: UC-CRMACO-14 e 15.
 
 ## Non-Goals (nesta fase)
 
-- ❌ Recorrente, antecipado e log de acompanhamento nesta fase: seguem nos modais da tela Blade
-  (`?classico=1`) até o PR-b da thread 07; "Recorrente", "Acompanhamento antecipado" e o "Editar"
-  da aba recorrente levam pra lá.
+- ❌ Acompanhamento antecipado nesta fase: segue na tela Blade (`?classico=1`). Ele monta os grupos
+  de clientes/faturas por `getFollowUpGroups`, que devolve HTML; trazê-lo exige um formato JSON
+  daquela rota (PR-c da thread 07).
+- ❌ Registro (log) de acompanhamento: segue na Blade até o PR seguinte da thread 07 (o
+  "Adicionar registro"); ver os registros fica com o drawer de detalhe, porque
+  `ScheduleLogController@index` devolve HTML.
 - ❌ Contagem por status/tipo no rodapé, densidade e drawer de detalhe do protótipo — pendentes
   registrados no `_saida-03`.
 
@@ -55,4 +61,4 @@ clientes e leads, com o responsável e o status. Termo na UI: "acompanhamentos",
 - ❌ Endpoint de gravação próprio da tela nova: o modal usa `store`/`update`/`destroy` do
   `ScheduleController`, os mesmos da Blade. Guardas: UC-CRMACO-08, 09 e 11.
 - ❌ Aceitar `business_id`/`created_by` ou contato de outro negócio vindos do formulário.
-  Guardas: UC-CRMACO-09, 10 e 12.
+  Guardas: UC-CRMACO-09, 10, 12 e 15.

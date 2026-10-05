@@ -153,3 +153,30 @@ Status: 🧪
 **Então** o modal já vem com atribuídos, tipo e datas (início em formato de campo de data e hora).
 
 Status: 🧪
+
+---
+
+## Escrita (thread Crm/07, PR-b)
+
+> **Âncora:** SPEC do Crm §0 ("Follow-up agendado — funcional") e a tela Blade
+> `crm::schedule.create_recursive_follow_up` (mesmos campos), com as regras que o `store`/`update`
+> do `ScheduleController` já aplicavam (escopo por `business_id`). Nenhum endpoint novo.
+
+## UC-CRMACO-14 · Adicionar recorrente grava no meu negócio · `must`
+
+**Dado** que tenho `crm.access_all_schedule`
+**Quando** salvo o modal "Adicionar acompanhamento recorrente" com "acompanhamento por" e "em dias"
+**Então** o acompanhamento fica gravado no meu negócio, marcado como recorrente, com os dias e o critério escolhidos e sem datas.
+
+Status: 🧪
+
+---
+
+## UC-CRMACO-15 · Editar recorrente altera e não troca o negócio · `must` `[T0]`
+
+**Dado** um acompanhamento recorrente do meu negócio
+**Quando** salvo o modal "Editar acompanhamento recorrente" — mesmo que o pedido traga outro `business_id`
+**Então** o título e os dias mudam, ele continua recorrente e continua no meu negócio.
+
+Status: 🧪
+

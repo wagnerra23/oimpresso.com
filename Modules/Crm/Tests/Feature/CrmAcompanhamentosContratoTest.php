@@ -298,3 +298,46 @@ it('UC-CRMACO-13 · a linha da lista traz os valores do modal de edição', func
     expect($linha['editar']['start_datetime'])->toMatch('/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/');
     expect($linha['editar']['schedule_type'])->toBe('call');
 });
+
+// ── Escrita (thread Crm/07, PR-b): recorrente e registro, pelas mesmas rotas da Blade ─────────
+
+/** O corpo do modal de recorrente: sem contato e sem datas, como a Blade create_recursive_follow_up. */
+function acoCorpoRecorrente(string $titulo, User $atribuido, array $extra = []): array
+{
+    return array_merge([
+        'title' => $titulo.' '.ACO_TAG, 'status' => 'scheduled', 'description' => '', 'schedule_type' => 'call',
+        'followup_category_id' => null, 'user_id' => [$atribuido->id], 'follow_up_by' => 'payment_status',
+        'follow_up_by_value' => 'overdue', 'recursion_days' => 7, 'allow_notification' => 0,
+        'notify_via' => ['sms' => 0, 'mail' => 1], 'notify_before' => 1, 'notify_type' => 'hour',
+    ], $extra);
+}
+
+it('UC-CRMACO-14 · adicionar recorrente grava no meu negócio, marcado como recorrente e sem datas', function () {
+    $user = acoUsuario('aco_todos_test', ['crm.access_all_schedule']);
+
+    $this->actingAs($user)->post(ACO_ROTA, acoCorpoRecorrente('Cobrar vencidos', $user, ['is_recursive' => 1]), ACO_AJAX)
+        ->assertOk()->assertJson(['success' => true]);
+
+    $linha = DB::table('crm_schedules')->where('title', 'Cobrar vencidos '.ACO_TAG)->first();
+    $this->assertNotNull($linha, 'o store não gravou o recorrente');
+    expect((int) $linha->business_id)->toBe(ACO_BIZ);
+    expect((int) $linha->is_recursive)->toBe(1);
+    expect((int) $linha->recursion_days)->toBe(7);
+    expect($linha->follow_up_by_value)->toBe('overdue');
+    expect($linha->start_datetime)->toBeNull();
+});
+
+it('UC-CRMACO-15 · editar recorrente altera os dias, segue recorrente e não troca o negócio [T0]', function () {
+    $user = acoUsuario('aco_todos_test', ['crm.access_all_schedule']);
+    $id = acoAcompanhamento(ACO_BIZ, 'Recorrente antes', $user, 1);
+    DB::table('crm_schedules')->where('id', $id)->update(['start_datetime' => null, 'end_datetime' => null]);
+
+    $this->actingAs($user)->put(ACO_ROTA.'/'.$id, acoCorpoRecorrente('Recorrente depois', $user, ['recursion_days' => 15, 'business_id' => ACO_OUTRO]), ACO_AJAX)
+        ->assertOk()->assertJson(['success' => true]);
+
+    $linha = DB::table('crm_schedules')->where('id', $id)->first();
+    expect($linha->title)->toBe('Recorrente depois '.ACO_TAG);
+    expect((int) $linha->recursion_days)->toBe(15);
+    expect((int) $linha->is_recursive)->toBe(1);
+    expect((int) $linha->business_id)->toBe(ACO_BIZ);
+});
