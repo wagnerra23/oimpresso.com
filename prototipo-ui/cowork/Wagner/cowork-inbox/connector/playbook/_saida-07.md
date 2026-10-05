@@ -41,6 +41,12 @@ Os dois casos novos aparecem no log com ✓:
 Controle: último run da mesma lane em `main` (36868265003) = 194 passed (725 assertions). O delta
 +2 testes / +11 assertions é exatamente o dos dois casos novos — o teste executou, não pulou.
 
+**Depois do merge com a thread 08** (#8667 entrou no `main` com o PR aberto; conflito resolvido
+mantendo os dois lados): run manual
+[37327088955](https://github.com/wagnerra23/oimpresso.com/actions/runs/37327088955) no head
+`501289ca66`: **199 passed (748 assertions)**, com os dois casos de UC-CONN-21 e o de UC-CONN-27
+da thread 08 aparecendo ✓ no log.
+
 ## Pendente / [W]
 - **Contrato visual:** as âncoras `quem-usa` e `confirm-quem-perde` não entraram em
   `governance/design/contracts/connector-api.contract.json`. Aprovação F1.5 do drawer e entrada
