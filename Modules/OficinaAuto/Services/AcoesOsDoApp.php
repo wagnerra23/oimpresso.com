@@ -7,6 +7,7 @@ namespace Modules\OficinaAuto\Services;
 use App\Contracts\Oficina\AcoesOs;
 use App\Domain\Fsm\Exceptions\InvalidActionForCurrentStageException;
 use App\Domain\Fsm\Exceptions\UnauthorizedActionException;
+use App\Domain\Fsm\Models\SaleProcessStage;
 use App\Domain\Fsm\Models\SaleStageAction;
 use App\Domain\Fsm\Policies\StageActionPolicy;
 use App\Domain\Fsm\Services\ExecuteStageActionService;
@@ -22,8 +23,8 @@ use Modules\OficinaAuto\Entities\Vehicle;
  * `oficinaauto.service_order.update` (ou superadmin), papel da ação pela StageActionPolicy,
  * gate do StageGateEvaluator e transição só pelo ExecuteStageActionService (FSM canônica,
  * trilha em sale_stage_history). Diferenças, todas para restringir:
- *  - só as ações de ACOES_DO_APP (avanço) e ACOES_QUE_ENCERRAM (cancelar, recusar orçamento);
- *    acionar garantia fica na web;
+ *  - só as ações de ACOES_DO_APP (avanço) e ACOES_QUE_ENCERRAM (cancelar, recusar orçamento,
+ *    acionar garantia — esta com motivo obrigatório, ACOES_COM_MOTIVO);
  *  - sem override do gate;
  *  - ação com side_effect_class ou event_class no banco é recusada (nao_suportada): o
  *    seeder do processo da oficina não tem nenhuma, e o app não pode mover valor nem estoque.
@@ -56,6 +57,7 @@ final class AcoesOsDoApp implements AcoesOs
         $saida = [];
         foreach ($this->acoesDaEtapa($os) as $a) {
             $gate = $this->gate->evaluate($os, $processo, $a->key);
+            $alvo = $a->targetStage;
             $saida[] = [
                 'chave' => (string) $a->key,
                 'rotulo' => (string) $a->label,
@@ -63,6 +65,12 @@ final class AcoesOsDoApp implements AcoesOs
                 'critica' => (bool) ($a->is_critical ?? false) || (bool) $a->requires_confirmation,
                 'pode' => $podeEditar && $this->policy->canExecute($user, $os, (string) $a->key),
                 'bloqueio' => $gate['satisfied'] ? null : $this->textoBloqueio($gate),
+                'motivo_obrigatorio' => in_array($a->key, self::ACOES_COM_MOTIVO, true),
+                // Etapa para onde a ação leva, para o app não deduzir pela chave.
+                'destino' => $alvo instanceof SaleProcessStage ? [
+                    'chave' => (string) $alvo->key,
+                    'rotulo' => (string) $alvo->name,
+                ] : null,
             ];
         }
 
@@ -169,6 +177,7 @@ final class AcoesOsDoApp implements AcoesOs
         $daEtapa = SaleStageAction::query()
             ->where('stage_id', (int) $os->current_stage_id)
             ->whereIn('key', [...self::ACOES_DO_APP, ...self::ACOES_QUE_ENCERRAM])
+            ->with('targetStage')
             ->get()
             ->filter(fn (SaleStageAction $a) => empty($a->side_effect_class) && empty($a->event_class))
             ->keyBy('key');
