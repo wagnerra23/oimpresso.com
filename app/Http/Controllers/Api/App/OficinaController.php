@@ -785,12 +785,12 @@ class OficinaController extends Controller
         }
 
         $bizId = (int) $user->business_id;
-        $existe = DB::table('vehicles')
+        $veiculo = DB::table('vehicles')
             ->where('business_id', $bizId)
             ->whereNull('deleted_at')
             ->where('id', $id)
-            ->exists();
-        if (! $existe) {
+            ->first(['mileage_at_entry', 'created_at']);
+        if ($veiculo === null) {
             return response()->json(['erro' => 'nao_encontrado', 'mensagem' => 'Veículo não encontrado.'], 404);
         }
 
@@ -814,7 +814,7 @@ class OficinaController extends Controller
             ->orderByDesc('so.id')
             ->limit(self::HISTORICO_MAX)
             ->get([
-                'so.id', 'so.order_type', 'so.current_stage_id', 'c.name as cliente',
+                'so.id', 'so.order_type', 'so.current_stage_id', 'so.mileage_at_service', 'c.name as cliente',
                 DB::raw('COALESCE(so.entered_at, so.created_at) as data'),
                 DB::raw('(SELECT SUM(i.valor_total) FROM oficina_service_order_items i'
                     . ' WHERE i.service_order_id = so.id AND i.business_id = so.business_id'
@@ -836,8 +836,13 @@ class OficinaController extends Controller
                     'etapa_rotulo' => $etapa,
                     'cliente' => $o->cliente,
                     'valor' => $o->valor === null ? null : round((float) $o->valor, 2),
+                    // Km na entrada desta OS (pedido [W] 2026-10-05, histórico de km); null se não foi anotado.
+                    'km' => $o->mileage_at_service !== null ? (int) $o->mileage_at_service : null,
                 ];
             })->values(),
+            // Histórico de km: não há tabela de leituras; vale o km do cadastro + o km de entrada de cada OS.
+            'km_cadastro' => $veiculo->mileage_at_entry !== null ? (int) $veiculo->mileage_at_entry : null,
+            'cadastrado_em' => $veiculo->created_at !== null ? substr((string) $veiculo->created_at, 0, 10) : null,
         ]);
     }
 

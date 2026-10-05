@@ -123,3 +123,13 @@ definitivo). Sem valor, estoque ou cobrança.
   da oficina não impede.
 - `404 nao_encontrado` outra empresa ou inexistente · `403 sem_permissao` sem `vehicle.view` ou
   `vehicle.delete` · `503 sem_configuracao`.
+
+## Histórico de km — leitura (pedido [W] 2026-10-05)
+
+Não há tabela de leituras de km. O histórico vem do `GET /api/app/veiculos/{id}/os`, só com campos a mais
+(quem já consome a rota não muda):
+
+- cada item ganha `"km": int | null` — o km anotado **na entrada daquela OS** (`mileage_at_service`); a `data`
+  do item é a da entrada (`entered_at`; sem ela, a de criação).
+- a raiz ganha `"km_cadastro": int | null` (km do cadastro do veículo) e `"cadastrado_em": "AAAA-MM-DD" | null`.
+- Vale o mesmo limite de OS do histórico (as 200 mais recentes).
