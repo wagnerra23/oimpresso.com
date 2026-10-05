@@ -207,6 +207,18 @@ final class AcoesOsDoApp implements AcoesOs
         return true;
     }
 
+    public function excluirVeiculo(int $businessId, int $veiculoId): bool
+    {
+        // Soft delete (SoftDeletes do model), como a web; business_id explícito (sem sessão na API).
+        Vehicle::query()
+            ->where('vehicles.business_id', $businessId)
+            ->whereKey($veiculoId)
+            ->firstOrFail()
+            ->delete();
+
+        return true;
+    }
+
     private function os(int $businessId, int $osId): ?ServiceOrder
     {
         return ServiceOrder::query()

@@ -106,3 +106,20 @@ inexistente → `404 nao_encontrado`. Mesma permissão da lista.
   `404` outra empresa · `503 sem_configuracao`.
 - Só atualiza `vehicles`: sem valor, estoque ou cobrança. As OS já existentes guardam o próprio cliente e
   km; **placa e tipo mostrados na OS vêm do veículo**, então refletem a edição.
+
+## Excluir veículo — escrita (pedido [W] 2026-10-05)
+
+`GET /api/app/veiculos/{id}` traz também `"pode_excluir": bool` (`oficinaauto.vehicle.delete`, a mesma da
+policy da web).
+
+`DELETE /api/app/veiculos/{id}` (throttle 30/min), como o destroy da web: **soft delete** — o veículo some
+das listas e a placa fica livre para outro cadastro; a web **não** tem como restaurar (para o usuário é
+definitivo). Sem valor, estoque ou cobrança.
+
+- `200 { "ok": true }`.
+- **OS em andamento** (decisão [W] 2026-10-05) → `409 { erro:"em_uso", mensagem, os_abertas }`, ex.
+  "Este veículo tem 2 OS em andamento. Encerre as OS antes de excluir." Em andamento = etapa não terminal,
+  ou OS de mecânica ainda sem pipeline (conta na Recepção, como na 07). OS encerrada ou fora do processo
+  da oficina não impede.
+- `404 nao_encontrado` outra empresa ou inexistente · `403 sem_permissao` sem `vehicle.view` ou
+  `vehicle.delete` · `503 sem_configuracao`.

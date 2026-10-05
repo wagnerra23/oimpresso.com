@@ -99,6 +99,12 @@ interface AcoesOs
      */
     public function atualizarVeiculo(int $businessId, int $veiculoId, array $dados): bool;
 
+    /**
+     * Excluir veículo, como o destroy da web: soft delete. Veículo já conferido como do business e sem
+     * OS em andamento pelo chamador. false se a oficina não está disponível (módulo ausente).
+     */
+    public function excluirVeiculo(int $businessId, int $veiculoId): bool;
+
     /** A consulta de placa pode responder neste ambiente (fornecedor real, ou stub fora de produção)? */
     public function consultaPlacaDisponivel(): bool;
 
