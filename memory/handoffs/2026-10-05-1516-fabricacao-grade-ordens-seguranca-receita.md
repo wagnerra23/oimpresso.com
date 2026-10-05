@@ -1,8 +1,9 @@
 ---
-data: 2026-10-05 15:16 BRT
-autor: "[M+C]"
-modulo: Manufacturing
-tema: Fabricação — grade do DS nas 4 listas, Ordens (filtros/indicadores) e segurança do cadastro de receita
+date: "2026-10-05"
+time: "15:16 BRT"
+slug: fabricacao-grade-ordens-seguranca-receita
+tldr: "Fabricação: grade do DS nas 4 listas (#8628/#8651, medidas em prod), copiar e salvar receita só da própria empresa (#8671/#8698, vermelho→verde), filtros e indicadores das Ordens (#8690/#8707). Aberto #8715 (canto 8px). Aguardam [W]: indicadores seguindo o filtro (regra de valor) e 3 perguntas da janela Nova receita."
+prs: [8628, 8636, 8651, 8671, 8690, 8698, 8707, 8715]
 ---
 
 # Handoff — Fabricação: grade, Ordens e segurança da receita
@@ -54,7 +55,7 @@ da sessão com `findOrFail`). O servidor lia o dado alheio, mas a tela não o mo
    `rounded-lg` suposto como 8px são ocorrências de LC-08 (afirmar sem medir) e ainda não têm recibo no
    `memory/LICOES_CODE.md`. Registrar com o adversário (`ciclo-adversary`) antes.
 
-## Estado no fechamento
+## Estado MCP no momento do fechamento
 
 - Servidor MCP `oimpresso` **indisponível nesta sessão** (HTTP 401 no cabeçalho de autorização), então o
   checklist MCP-first (`cycles-active`, `my-work`, `sessions-recent`, `decisions-search`) **não rodou**. O
