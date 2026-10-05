@@ -412,6 +412,8 @@ class UnitController extends Controller
                     'id' => (int) $v->getAttribute('id'),
                     'nome' => (string) $v->getAttribute('name'),
                     'valores' => $v->values->pluck('name')->map(fn ($n) => (string) $n)->values()->all(),
+                    // Pro drawer de edição: valor existente se edita pelo id (`edit_variation_values[id]`).
+                    'valor_ids' => $v->values->pluck('id')->map(fn ($i) => (int) $i)->values()->all(),
                     'em_uso' => (int) $v->getAttribute('em_uso'),
                 ])->values()->all()) : null,
             'grupos' => $can['grupos']['view'] ? Inertia::defer(fn () => SellingPriceGroup::where('business_id', $business_id)
@@ -430,6 +432,8 @@ class UnitController extends Controller
                     'id' => (int) $w->getAttribute('id'),
                     'nome' => (string) $w->getAttribute('name'),
                     'descricao' => (string) $w->getAttribute('description'),
+                    'duracao_n' => (string) $w->getAttribute('duration'),
+                    'duracao_tipo' => (string) $w->getAttribute('duration_type'),
                     'duracao' => $w->getAttribute('duration')
                         ? $w->getAttribute('duration').' '.(['days' => 'dias', 'months' => 'meses', 'years' => 'anos'][$w->getAttribute('duration_type')] ?? $w->getAttribute('duration_type'))
                         : null,

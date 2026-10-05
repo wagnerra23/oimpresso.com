@@ -125,6 +125,14 @@ class TaxonomyController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
+    /** Pai aceito: categoria raiz (`parent_id = 0`) do negócio da sessão, do mesmo tipo, e não a própria. */
+    private function paiValido($parentId, int $business_id, string $tipo, int $propria = 0): bool
+    {
+        return (int) $parentId !== $propria
+            && Category::where('business_id', $business_id)->where('category_type', $tipo)
+                ->where('parent_id', 0)->where('id', (int) $parentId)->exists();
+    }
+
     public function store(Request $request)
     {
         $category_type = request()->input('category_type');
@@ -134,12 +142,15 @@ class TaxonomyController extends Controller
 
         try {
             $input = $request->only(['name', 'short_code', 'category_type', 'description']);
+            $input['business_id'] = $request->session()->get('user.business_id');
             if (! empty($request->input('add_as_sub_cat')) && $request->input('add_as_sub_cat') == 1 && ! empty($request->input('parent_id'))) {
+                if (! $this->paiValido($request->input('parent_id'), (int) $input['business_id'], (string) $category_type)) {
+                    return ['success' => false, 'msg' => 'A categoria pai escolhida não serve: precisa ser uma categoria principal deste negócio. Nada foi gravado.'];
+                }
                 $input['parent_id'] = $request->input('parent_id');
             } else {
                 $input['parent_id'] = 0;
             }
-            $input['business_id'] = $request->session()->get('user.business_id');
             $input['created_by'] = $request->session()->get('user.id');
 
             $category = Category::create($input);
@@ -232,6 +243,12 @@ class TaxonomyController extends Controller
                 $category->short_code = $request->input('short_code');
 
                 if (! empty($request->input('add_as_sub_cat')) && $request->input('add_as_sub_cat') == 1 && ! empty($request->input('parent_id'))) {
+                    // Tier 0 + hierarquia de 2 níveis: o mesmo filtro da lista de pais do modal clássico
+                    // (raiz, mesmo negócio e tipo, não ela mesma) e categoria com filhas não vira filha.
+                    if (! $this->paiValido($request->input('parent_id'), (int) $business_id, (string) $category->category_type, (int) $category->id)
+                        || Category::where('business_id', $business_id)->where('parent_id', $category->id)->exists()) {
+                        return ['success' => false, 'msg' => 'A categoria pai escolhida não serve: precisa ser uma categoria principal deste negócio. Nada foi gravado.'];
+                    }
                     $category->parent_id = $request->input('parent_id');
                 } else {
                     $category->parent_id = 0;
