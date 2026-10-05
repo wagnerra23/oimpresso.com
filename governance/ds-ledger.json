@@ -1,6 +1,17 @@
 {
   "ledger": [
     {
+      "screen": "Connector",
+      "note": "4 arquivo(s)",
+      "cells": {
+        "tokens": "yes",
+        "primitivos": "yes",
+        "probe": "na",
+        "dark": "na",
+        "approved": "yes"
+      }
+    },
+    {
       "screen": "Jana",
       "note": "25 arquivo(s)",
       "cells": {
@@ -78,19 +89,8 @@
       }
     },
     {
-      "screen": "Connector",
-      "note": "2 arquivo(s)",
-      "cells": {
-        "tokens": "yes",
-        "primitivos": "yes",
-        "probe": "na",
-        "dark": "na",
-        "approved": "no"
-      }
-    },
-    {
       "screen": "Crm",
-      "note": "3 arquivo(s)",
+      "note": "7 arquivo(s)",
       "cells": {
         "tokens": "yes",
         "primitivos": "yes",
@@ -244,7 +244,7 @@
     },
     {
       "screen": "SellReturn",
-      "note": "1 arquivo(s)",
+      "note": "3 arquivo(s)",
       "cells": {
         "tokens": "yes",
         "primitivos": "yes",
@@ -420,7 +420,7 @@
     },
     {
       "screen": "Superadmin",
-      "note": "10 arquivo(s)",
+      "note": "12 arquivo(s)",
       "cells": {
         "tokens": "no",
         "primitivos": "no",
@@ -499,8 +499,8 @@
   "progressPct": 47,
   "progressLabel": "adoção tokens + primitivos (censo Onda 0)",
   "measured": true,
-  "measuredAgainstSha": "28bb8ad06",
-  "generatedAt": "2026-10-04T14:56:39.000Z",
+  "measuredAgainstSha": "5f43e759c",
+  "generatedAt": "2026-10-05T18:50:19.051Z",
   "treeGuard": {
     "pass": true,
     "violations": 0
