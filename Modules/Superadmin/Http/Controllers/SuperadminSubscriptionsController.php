@@ -281,7 +281,7 @@ class SuperadminSubscriptionsController extends BaseController
         $request->validate([
             'business_id' => ['required', 'integer', 'exists:business,id'],
             'package_id' => ['required', 'integer', Rule::exists('packages', 'id')->where('is_active', 1)],
-            'paid_via' => ['required', 'string', Rule::in(array_keys($this->_payment_gateways()))],
+            'paid_via' => ['required', 'string', Rule::in(array_keys((array) $this->_payment_gateways()))],
             'payment_transaction_id' => ['nullable', 'string', 'max:191'],
         ], [
             'package_id.required' => 'Escolha o pacote.',
