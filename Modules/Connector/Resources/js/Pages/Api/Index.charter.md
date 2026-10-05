@@ -110,7 +110,11 @@ Api/Index (Inertia) — PR-a, thread 04 (2026-10-01)
 // PR-b (2026-10-01)
   endpoints: Array<{ metodos: string, rota: string, acao: string }>   // lido das rotas connector/api/
   modulo: { instalado: bool, versao: string, migracoes: number }
-// Saúde: sem prop própria — mostra rotas e tokens já medidos; licenças "não medido" até a thread 08
+// Thread 08 (2026-10-05)
+  saude: Array<{ executado_em: string, ok: bool, tokens_active_24h: number|null,
+                 licencas_recent_24h: number|null, rotas_registradas: number, issues: string[],
+                 delphi: { chamadas_24h: number|null, desvios_24h: number|null, taxa_desvio: number|null } }>
+        // histórico do connector:health, 14 dias, de todos os negócios (tela só de superadmin)
 ```
 
 Estado local da tela: aba (`clients|docs|saude|modulo`), busca, segredo revelado por linha, modal de criação, confirmação de exclusão, confirmação de regeneração, painel de credencial recém-criada, aviso fugaz.

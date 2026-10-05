@@ -1,0 +1,7 @@
+{
+  "_": "A1 [CL] 2026-10-05 — playbook superadmin. Tela Superadmin/Usuario360/Index. Protótipo: rota `sa-usuarios` do espelho (app.jsx:888 → SuperadminUsuariosPage em superadmin-usuarios.jsx). Estado medido: o de entrada, sem busca — EmptyState `Comece uma busca` (a lista não aparece sem busca, por desenho). Tabela, paginação, drawer 360° e o estado sem-resultado exigem digitar no campo; o alvo.mjs só tem --clicar, então não foram medidos.",
+  "_mapa": "alvo:mapa --rota sa-usuarios --raiz .os-page.sa-page contra o espelho servido por servirEstatico, 2026-10-05: .os-page.sa-page = div.sa-ph · div.sa-toolbar · div.sa-vazio-wrap. Sem data-contract no protótipo: seletores por classe.",
+  "header": { "seletor": ".os-page.sa-page > .sa-ph" },
+  "toolbar": { "seletor": ".os-page.sa-page > .sa-toolbar" },
+  "vazio": { "seletor": ".os-page.sa-page > .sa-vazio-wrap" }
+}

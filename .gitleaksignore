@@ -95,3 +95,5 @@ d9d4f846b984d6ece9445fc96d723d88c3710979:resources/js/Pages/governance/Qualidade
 28849710bd1d7b7a034bcd99de0846bc8cf69b64:mobile/HANDOFF.md:generic-api-key:257
 # 2026-10-02 #8544: sonda sem credencial do deploy (Bearer token-invalido), commit histórico do PR; a linha atual monta o cabeçalho fora do curl.
 edaf567a860a78952fb36814f70da9b0651461fd:.github/workflows/deploy.yml:curl-auth-header:865
+# 2026-10-05 #8667: lista de chaves do histórico do connector:health num teste (nome do check "tokens_active_24h"), não é credencial; a linha atual quebra a lista uma chave por linha.
+017d08f03faf15bf7e6a09785a61b458f81b2724:Modules/Connector/Tests/Feature/ObservabilityTest.php:generic-api-key:160

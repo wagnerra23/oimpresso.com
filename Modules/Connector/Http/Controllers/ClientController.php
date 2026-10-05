@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Laravel\Passport\Passport;
+use Modules\Connector\Console\Commands\ConnectorHealthCommand;
 use Modules\Connector\Http\Requests\StoreOauthClientRequest;
 
 class ClientController extends Controller
@@ -95,6 +96,10 @@ class ClientController extends Controller
                 'versao' => (string) config('connector.module_version', '2.0'),
                 'migracoes' => count(glob(module_path('Connector', 'Database/Migrations/*.php')) ?: []),
             ],
+            // Aba Saude (thread 08): historico publicado pelo connector:health, 14 dias. Numeros de
+            // TODOS os negocios — a tela ja e so de superadmin (abort 403 acima). Le um arquivo
+            // pequeno do storage, por isso eager.
+            'saude' => ConnectorHealthCommand::historico(),
             // Unica vez que o segredo sai: o flash da criacao, lido aqui e descartado.
             'credencial' => $is_demo ? null : session('connector_credencial'),
         ]);
