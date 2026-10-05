@@ -7,6 +7,7 @@ use App\Category;
 use App\Product;
 use App\SellingPriceGroup;
 use App\Unit;
+use App\Utils\ModuleUtil;
 use App\Utils\Util;
 use App\VariationTemplate;
 use App\Warranty;
@@ -135,6 +136,9 @@ class UnitController extends Controller
 
             if ($request->has('define_base_unit')) {
                 if (! empty($request->input('base_unit_id')) && ! empty($request->input('base_unit_multiplier'))) {
+                    if (! $this->baseDoNegocio($request->input('base_unit_id'), (int) $input['business_id'])) {
+                        throw new \DomainException('A unidade base escolhida não existe neste negócio. Nada foi gravado.');
+                    }
                     $base_unit_multiplier = $this->commonUtil->num_uf($request->input('base_unit_multiplier'));
                     if ($base_unit_multiplier != 0) {
                         $input['base_unit_id'] = $request->input('base_unit_id');
@@ -148,6 +152,8 @@ class UnitController extends Controller
                 'data' => $unit,
                 'msg' => __('unit.added_success'),
             ];
+        } catch (\DomainException $e) {
+            $output = ['success' => false, 'msg' => $e->getMessage()];
         } catch (\Exception $e) {
             \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
 
@@ -222,6 +228,10 @@ class UnitController extends Controller
                 // Blade) remove a base; ausencia preserva o que esta gravado.
                 if ($request->boolean('define_base_unit')) {
                     if (! empty($request->input('base_unit_id')) && ! empty($request->input('base_unit_multiplier'))) {
+                        // Tier 0: a base vem do form; só vale unidade do MEU negócio e nunca a própria unidade.
+                        if (! $this->baseDoNegocio($request->input('base_unit_id'), (int) $business_id, (int) $unit->id)) {
+                            throw new \DomainException('A unidade base escolhida não existe neste negócio. Nada foi gravado.');
+                        }
                         $base_unit_multiplier = $this->commonUtil->num_uf($request->input('base_unit_multiplier'));
                         if ($base_unit_multiplier != 0) {
                             $unit->base_unit_id = $request->input('base_unit_id');
@@ -238,6 +248,8 @@ class UnitController extends Controller
                 $output = ['success' => true,
                     'msg' => __('unit.updated_success'),
                 ];
+            } catch (\DomainException $e) {
+                $output = ['success' => false, 'msg' => $e->getMessage()];
             } catch (\Exception $e) {
                 \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
 
@@ -312,6 +324,13 @@ class UnitController extends Controller
      *
      * @return array<string, mixed>
      */
+    /** Unidade base aceita no múltiplo: existe, é do negócio da sessão e não é a própria unidade. */
+    private function baseDoNegocio($baseId, int $business_id, int $propria = 0): bool
+    {
+        return (int) $baseId !== $propria
+            && Unit::where('business_id', $business_id)->where('id', (int) $baseId)->exists();
+    }
+
     public function propsCadastros(string $abaPadrao): array
     {
         $user = auth()->user();
@@ -347,11 +366,13 @@ class UnitController extends Controller
         return [
             'aba' => $aba,
             'can' => $can,
+            // O BrandController só grava `use_for_repair` com o módulo Repair instalado: sem ele o drawer não oferece.
+            'oficina' => app(ModuleUtil::class)->isModuleInstalled('Repair'),
             'unidades' => $can['unidades']['view'] ? Inertia::defer(fn () => Unit::where('units.business_id', $business_id)
                 ->leftJoin('units as base', function ($j) use ($business_id) {
                     $j->on('base.id', '=', 'units.base_unit_id')->where('base.business_id', $business_id);
                 })
-                ->select('units.id', 'units.actual_name', 'units.short_name', 'units.allow_decimal', 'units.base_unit_multiplier', 'base.short_name as base_simbolo')
+                ->select('units.id', 'units.actual_name', 'units.short_name', 'units.allow_decimal', 'units.base_unit_multiplier', 'base.id as base_id', 'base.short_name as base_simbolo')
                 ->selectSub($emUso('unit_id', 'units'), 'em_uso')
                 ->orderBy('units.actual_name')
                 ->get()
@@ -364,10 +385,16 @@ class UnitController extends Controller
                         ? '1 '.$u->getAttribute('short_name').' = '.(float) $u->getAttribute('base_unit_multiplier').' '.$u->getAttribute('base_simbolo')
                         : null,
                     'em_uso' => (int) $u->getAttribute('em_uso'),
+                    // Pro drawer de edição: base só se for do negócio (o join já filtra) e o múltiplo no
+                    // formato que o num_uf lê de volta, igual ao modal clássico (`1000`, `0,5`).
+                    'base_id' => $u->getAttribute('base_id') ? (int) $u->getAttribute('base_id') : null,
+                    'multiplicador' => $u->getAttribute('base_id')
+                        ? rtrim(rtrim(number_format((float) $u->getAttribute('base_unit_multiplier'), 4, ',', ''), '0'), ',')
+                        : '',
                 ])->values()->all()) : null,
             'categorias' => $can['categorias']['view'] ? Inertia::defer(fn () => $this->categoriasDeProduto($business_id)) : null,
             'marcas' => $can['marcas']['view'] ? Inertia::defer(fn () => Brands::where('brands.business_id', $business_id)
-                ->select('brands.id', 'brands.name', 'brands.description')
+                ->select('brands.id', 'brands.name', 'brands.description', 'brands.use_for_repair')
                 ->selectSub($emUso('brand_id', 'brands'), 'em_uso')
                 ->orderBy('brands.name')
                 ->get()
@@ -375,6 +402,7 @@ class UnitController extends Controller
                     'id' => (int) $b->getAttribute('id'),
                     'nome' => (string) $b->getAttribute('name'),
                     'descricao' => (string) $b->getAttribute('description'),
+                    'oficina' => (bool) $b->getAttribute('use_for_repair'),
                     'em_uso' => (int) $b->getAttribute('em_uso'),
                 ])->values()->all()) : null,
             // Uso da variação = produtos do MEU negócio com variação daquele modelo (é o que a exclusão recusa).
@@ -388,6 +416,8 @@ class UnitController extends Controller
                     'id' => (int) $v->getAttribute('id'),
                     'nome' => (string) $v->getAttribute('name'),
                     'valores' => $v->values->pluck('name')->map(fn ($n) => (string) $n)->values()->all(),
+                    // Pro drawer de edição: valor existente se edita pelo id (`edit_variation_values[id]`).
+                    'valor_ids' => $v->values->pluck('id')->map(fn ($i) => (int) $i)->values()->all(),
                     'em_uso' => (int) $v->getAttribute('em_uso'),
                 ])->values()->all()) : null,
             'grupos' => $can['grupos']['view'] ? Inertia::defer(fn () => SellingPriceGroup::where('business_id', $business_id)
@@ -406,6 +436,8 @@ class UnitController extends Controller
                     'id' => (int) $w->getAttribute('id'),
                     'nome' => (string) $w->getAttribute('name'),
                     'descricao' => (string) $w->getAttribute('description'),
+                    'duracao_n' => (string) $w->getAttribute('duration'),
+                    'duracao_tipo' => (string) $w->getAttribute('duration_type'),
                     'duracao' => $w->getAttribute('duration')
                         ? $w->getAttribute('duration').' '.(['days' => 'dias', 'months' => 'meses', 'years' => 'anos'][$w->getAttribute('duration_type')] ?? $w->getAttribute('duration_type'))
                         : null,

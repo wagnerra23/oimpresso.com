@@ -40,6 +40,11 @@ deixa quebrar o catálogo por engano. D3 [W] 2026-10-01: Page parametrizada, uma
   categoria de produto (`category_type = product`). **Excluir categoria com subcategoria é recusado**
   pelo servidor (`TaxonomyController@destroy`), igual à categoria em uso — o protótipo dizia que as
   filhas iam junto; a troca está registrada no `_saida-02`.
+- **R2** (thread 10) Unidades, Marcas, Categorias, Variações e Garantias criam e editam num drawer na própria
+  tela, gravando nas rotas do modal clássico (`POST/PUT` de `/units`, `/brands`, `/taxonomies`, `/variation-templates`,
+  `/warranties`). A base do múltiplo só vale se for unidade do mesmo negócio e não a própria (UC-PCADAP-18); o pai
+  da subcategoria só vale se for categoria principal do mesmo negócio, e categoria com filhas não vira filha (UC-PCADAP-20). Forma: drawer PT-02 (ficha da thread); copy e
+  campos: os do protótipo, que desenha um modal central.
 - **R8** Primeira vez explica pra que serve o cadastro; busca sem resultado oferece limpar.
 - Cada aba pela sua permissão (`unit.*`, `category.*`, `brand.*`, `variation.*`, `warranty.*`; Grupos de preço por
   `product.create`/`product.update`, as que o `SellingPriceGroupController` já cobra). Sem `view` a aba mostra o motivo; sem `create` o
@@ -47,9 +52,9 @@ deixa quebrar o catálogo por engano. D3 [W] 2026-10-01: Page parametrizada, uma
 
 ## Non-Goals (nesta fase)
 
-- ❌ Modal de criar/editar na tela nova (R2). Segue nos modais da Blade (`?classico=1`) — pendente no `_saida-02`.
+- ❌ Drawer de criar/editar em Grupos de preço: fora da ficha da thread 10, segue no modal da Blade (`?classico=1`).
+- ❌ Remover valor já gravado de um modelo de variação pelo drawer (o servidor só renomeia).
 - ❌ Ativar/desativar grupo de preço na linha (UC-CAD-09): a linha mostra a situação; a troca segue na tela clássica.
-- ❌ Criar/editar categoria na tela nova: segue no modal de `/taxonomies?type=product`.
 - ❌ Cadastro de imposto, de local, taxonomia de despesa ou de Oficina; merge de duplicata.
 
 ## Anti-hooks
