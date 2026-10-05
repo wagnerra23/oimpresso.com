@@ -12,7 +12,7 @@ lente: [construir]
 
 # 🗺️ PAINEL-SISTEMA — estado do oimpresso
 
-> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-10-04**. NÃO edite à mão — a próxima geração sobrescreve.
+> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-10-05**. NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/system-map.mjs`. Este é um **índice que aponta pros donos canônicos**, não uma cópia deles.
 > Views humanas (mapa 🗺️ / guia 🧭 em claude.ai) derivam DESTES dados.
 
@@ -72,7 +72,7 @@ lente: [construir]
 
 ## Programa SDD (governança)
 
-- Scorecard: **11/13** métricas medidas · floor full-suite = **250**.
+- Scorecard: **11/13** métricas medidas · floor full-suite = **245**.
 - Fonte viva: `governance/sdd-scorecard.json` (gerado por `sdd-scorecard.mjs`). Avaliação adversarial: `/sdd-avaliar`.
 - Roadmap dono: [`memory/requisitos/_Governanca/roadmap/_ROADMAP.md`](../requisitos/_Governanca/roadmap/_ROADMAP.md).
 
@@ -147,13 +147,13 @@ lente: [construir]
 
 ## Decisões (ADRs)
 
-- **431** ADRs no total. Índice gerado: [`_INDEX-GENERATED.md`](../decisions/_INDEX-GENERATED.md) · lifecycle: [`_INDEX-LIFECYCLE.md`](../decisions/_INDEX-LIFECYCLE.md).
-- Por status: aceito: 378 · superseded: 25 · proposto: 15 · deprecated: 11 · rascunho: 1 · recusado: 1.
+- **432** ADRs no total. Índice gerado: [`_INDEX-GENERATED.md`](../decisions/_INDEX-GENERATED.md) · lifecycle: [`_INDEX-LIFECYCLE.md`](../decisions/_INDEX-LIFECYCLE.md).
+- Por status: aceito: 379 · superseded: 25 · proposto: 15 · deprecated: 11 · rascunho: 1 · recusado: 1.
 - **5** reversões de rota (ADR com `supersedes:`).
 
 ## Ideias avaliadas e ABANDONADAS (§5 — não re-propor)
 
-> Dono canônico: [`memory/proibicoes.md §5`](../proibicoes.md). 252 entradas.
+> Dono canônico: [`memory/proibicoes.md §5`](../proibicoes.md). 254 entradas.
 
 <!-- transcrito-de: memory/proibicoes.md §5 -->
 - ~~2026-06-05 — Roadmap/plano de evolução PARALELO a canon existente~~
@@ -408,6 +408,8 @@ lente: [construir]
 - ~~2026-10-01 — EMENDA da lápide 2026-09-30 (2ª): o pedido chegou por sessão de coordenação, e a sessão irmã que já tinha o PR aberto não estava na lista de quem eu avisaria~~
 - ~~2026-10-02 — EMENDA da lápide 2026-08-13 (retrato atrasado): uma leitura minha, à mão, numa janela de deploy, virou comentário de canon e tirou uma defesa do deploy~~
 - ~~2026-10-02 — Tamanho da CÉLULA lido como tamanho do TEXTO na comparação app × protótipo~~
+- ~~2026-10-05 — EMENDA das lápides 2026-09-05 (dono-é-sessão-viva) e 2026-09-30 (2ª): a sessão dona tinha o número da thread no título, e eu armei o auto-merge no mesmo comando que abriu o PR~~
+- ~~2026-10-05 — O skip por fixture ausente escondia um defeito do PRÓPRIO teste: destravado, o UC-SAMA-04 deixou o `main` vermelho~~
 <!-- /transcrito-de -->
 
 ## Tier 0 gaps (esperam decisão/desbloqueio)
@@ -418,14 +420,14 @@ lente: [construir]
 
 ## Rastro
 
-- **588** handoffs · **780** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
+- **594** handoffs · **781** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
 - Sessions recentes:
+  - `2026-10-05-refutacao-gt-g5-lote-8642-r1`
   - `2026-10-02-refutacao-gt-g5-lote-8612-r1`
   - `2026-10-02-refutacao-gt-g5-lote-8528-r1`
   - `2026-09-30-patrimonio-garantias-recortes-visreg`
   - `2026-09-29-refutacao-gt-g5-lote-8195-r1`
   - `2026-09-29-refutacao-gt-g5-lote-8194-r2`
-  - `2026-09-29-refutacao-gt-g5-lote-8194-r1`
 
 ---
-_Gerado por `scripts/governance/system-map.mjs` · 2026-10-04 · deriva das fontes canônicas, não as substitui._
+_Gerado por `scripts/governance/system-map.mjs` · 2026-10-05 · deriva das fontes canônicas, não as substitui._
