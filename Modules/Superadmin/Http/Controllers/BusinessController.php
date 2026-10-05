@@ -475,7 +475,7 @@ class BusinessController extends BaseController
     /**
      * Show the form for creating a new resource.
      *
-     * @return Response
+     * @return \Illuminate\Http\RedirectResponse
      */
     public function create()
     {
