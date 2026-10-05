@@ -480,7 +480,8 @@ it('ação com efeito colateral no banco não aparece nem executa pelo app', fun
     appOsAcao($e['pronto_retirada'], 'entregar', 'Entregar ao cliente', $e['entregue'], false, 'App\Fake\EfeitoQualquer');
     $os = appOsCriar((int) $this->biz->id, $e['pronto_retirada']);
 
-    expect($this->getJson('/api/app/os/' . $os)->assertOk()->json('acoes'))->toBe([]);
+    // A ação com efeito some; só sobra a que não tem (acionar garantia, nesta etapa).
+    expect(array_column($this->getJson('/api/app/os/' . $os)->assertOk()->json('acoes'), 'chave'))->toBe(['acionar_garantia']);
     $this->postJson("/api/app/os/{$os}/acoes/entregar")->assertStatus(422)->assertJsonPath('erro', 'nao_suportada');
     expect((int) DB::table('service_orders')->where('id', $os)->value('current_stage_id'))->toBe($e['pronto_retirada']);
 });

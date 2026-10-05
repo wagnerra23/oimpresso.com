@@ -7,6 +7,7 @@ namespace Modules\OficinaAuto\Services;
 use App\Contracts\Oficina\AcoesOs;
 use App\Domain\Fsm\Exceptions\InvalidActionForCurrentStageException;
 use App\Domain\Fsm\Exceptions\UnauthorizedActionException;
+use App\Domain\Fsm\Models\SaleProcessStage;
 use App\Domain\Fsm\Models\SaleStageAction;
 use App\Domain\Fsm\Policies\StageActionPolicy;
 use App\Domain\Fsm\Services\ExecuteStageActionService;
@@ -56,6 +57,7 @@ final class AcoesOsDoApp implements AcoesOs
         $saida = [];
         foreach ($this->acoesDaEtapa($os) as $a) {
             $gate = $this->gate->evaluate($os, $processo, $a->key);
+            $alvo = $a->targetStage;
             $saida[] = [
                 'chave' => (string) $a->key,
                 'rotulo' => (string) $a->label,
@@ -65,10 +67,10 @@ final class AcoesOsDoApp implements AcoesOs
                 'bloqueio' => $gate['satisfied'] ? null : $this->textoBloqueio($gate),
                 'motivo_obrigatorio' => in_array($a->key, self::ACOES_COM_MOTIVO, true),
                 // Etapa para onde a ação leva, para o app não deduzir pela chave.
-                'destino' => $a->targetStage === null ? null : [
-                    'chave' => (string) $a->targetStage->key,
-                    'rotulo' => (string) $a->targetStage->name,
-                ],
+                'destino' => $alvo instanceof SaleProcessStage ? [
+                    'chave' => (string) $alvo->key,
+                    'rotulo' => (string) $alvo->name,
+                ] : null,
             ];
         }
 
