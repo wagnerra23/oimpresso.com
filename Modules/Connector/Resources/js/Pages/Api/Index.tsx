@@ -30,7 +30,7 @@ import EmptyState from '@/Components/shared/EmptyState';
 import KpiCard from '@/Components/shared/KpiCard';
 import KpiGrid from '@/Components/shared/KpiGrid';
 import PageHeaderTabs from '@/Components/shared/PageHeaderTabs';
-import { DocsAba, ModuloAba, SaudeAba, type Endpoint, type Modulo } from './_components/ConnectorAbas';
+import { DocsAba, ModuloAba, SaudeAba, type Endpoint, type Execucao, type Modulo } from './_components/ConnectorAbas';
 import { QuemUsaDrawer } from './_components/QuemUsa';
 import { nomesQuePerdem, type TokenUso } from './_components/quemUsaTexto';
 
@@ -41,7 +41,7 @@ interface Client {
 interface Credencial { id: number; name: string; secret: string }
 interface Props {
   clients: Client[]; is_demo: boolean; endpoints_count: number; credencial: Credencial | null;
-  endpoints: Endpoint[]; modulo: Modulo;
+  endpoints: Endpoint[]; modulo: Modulo; saude: Execucao[];
 }
 
 const ABAS = [
@@ -61,7 +61,7 @@ const MSG_TETO = 'O nome do client não pode ultrapassar 191 caracteres.';
 const dataCurta = (iso: string | null) => (iso ? new Date(`${iso}T00:00:00`).toLocaleDateString('pt-BR') : '—');
 const copiar = (txt: string) => { try { void navigator.clipboard?.writeText(txt); } catch { /* sem clipboard: o valor segue na tela */ } };
 
-function ApiIndex({ clients, is_demo, endpoints_count, credencial, endpoints, modulo }: Props) {
+function ApiIndex({ clients, is_demo, endpoints_count, credencial, endpoints, modulo, saude }: Props) {
   const [aba, setAba] = useState<Aba>(abaDaUrl);
   const trocarAba = (k: string) => {
     setAba(k as Aba);
@@ -100,7 +100,7 @@ function ApiIndex({ clients, is_demo, endpoints_count, credencial, endpoints, mo
           ghosts={ABAS.map((x) => ({ key: x.key, label: x.label, href: x.key === 'clients' ? '/connector/client' : `/connector/client?aba=${x.key}` }))} />
       </div>
       {aba === 'docs' && <div className="px-6 pt-4"><DocsAba endpoints={endpoints} /></div>}
-      {aba === 'saude' && <div className="px-6 pt-4"><SaudeAba tokens24h={clients.reduce((n, c) => n + c.active_tokens_24h, 0)} rotas={endpoints_count} /></div>}
+      {aba === 'saude' && <div className="px-6 pt-4"><SaudeAba historico={saude ?? []} /></div>}
       {aba === 'modulo' && <div className="px-6 pt-4"><ModuloAba modulo={modulo} rotas={endpoints_count} /></div>}
       {aba === 'clients' && <div className="flex flex-col gap-4 px-6 pt-4">
         {is_demo ? (

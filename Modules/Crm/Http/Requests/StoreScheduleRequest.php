@@ -4,6 +4,7 @@ namespace Modules\Crm\Http\Requests;
 
 use App\Utils\ModuleUtil;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 /**
  * FormRequest pra criar follow-up (Schedule) no Crm.
@@ -47,7 +48,9 @@ class StoreScheduleRequest extends FormRequest
         return [
             'start_datetime' => ['nullable', 'date'],
             'end_datetime' => ['nullable', 'date', 'after_or_equal:start_datetime'],
-            'contact_id' => ['nullable', 'integer'],
+            // Contato precisa ser do negócio da sessão: sem isto o acompanhamento gravava com
+            // contact_id de outro tenant e a lista mostrava o nome dele (Tier 0, ADR 0093).
+            'contact_id' => ['nullable', 'integer', Rule::exists('contacts', 'id')->where('business_id', session('user.business_id'))],
             'contact_ids' => ['nullable', 'array'],
             'contact_ids.*' => ['integer'],
             'schedule_type' => ['nullable', 'string', 'max:191'],
@@ -58,7 +61,7 @@ class StoreScheduleRequest extends FormRequest
             'follow_up_by' => ['nullable', 'string', 'max:50'],
             'schedule_for' => ['nullable', 'in:customer,lead'],
             'user_id' => ['nullable', 'array'],
-            'user_id.*' => ['integer'],
+            'user_id.*' => ['integer', Rule::exists('users', 'id')->where('business_id', session('user.business_id'))],
         ];
     }
 }

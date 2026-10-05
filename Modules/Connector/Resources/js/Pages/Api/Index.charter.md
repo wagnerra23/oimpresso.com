@@ -113,7 +113,11 @@ Api/Index (Inertia) — PR-a, thread 04 (2026-10-01)
 // Thread 07 (CONN-O7) — por client, acessos abertos de usuários do MESMO negócio (UC-CONN-21)
   clients[].tokens: Array<{ user_name: string, last_used_at: string|null, expires_at: string|null }>  // top 5
   clients[].tokens_resto: number                                          // demais acessos abertos
-// Saúde: sem prop própria — mostra rotas e tokens já medidos; licenças "não medido" até a thread 08
+// Thread 08 (2026-10-05)
+  saude: Array<{ executado_em: string, ok: bool, tokens_active_24h: number|null,
+                 licencas_recent_24h: number|null, rotas_registradas: number, issues: string[],
+                 delphi: { chamadas_24h: number|null, desvios_24h: number|null, taxa_desvio: number|null } }>
+        // histórico do connector:health, 14 dias, de todos os negócios (tela só de superadmin)
 ```
 
 Estado local da tela: aba (`clients|docs|saude|modulo`), busca, segredo revelado por linha, modal de criação, confirmação de exclusão, confirmação de regeneração, painel de credencial recém-criada, aviso fugaz.

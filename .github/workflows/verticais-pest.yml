@@ -64,11 +64,15 @@ on:
       - 'Modules/Cms/**'
       # Thread Crm/03 — a lista de acompanhamentos virou Inertia; o contrato dela roda aqui.
       - 'Modules/Crm/Http/Controllers/ScheduleController.php'
+      - 'Modules/Crm/Services/ScheduleService.php'
+      - 'Modules/Crm/Http/Requests/*ScheduleRequest.php'
       - 'Modules/Crm/Resources/js/Pages/**'
       - 'Modules/Crm/Tests/Feature/CrmAcompanhamentosContratoTest.php'
       # Thread Crm/02 — a lista de leads virou Inertia; o contrato dela roda aqui.
       - 'Modules/Crm/Http/Controllers/LeadController.php'
       - 'Modules/Crm/Tests/Feature/CrmLeadsContratoTest.php'
+      # Thread Crm/06 — o form de lead é o Cliente/Create parametrizado.
+      - 'resources/js/Pages/Cliente/Create.tsx'
       # Thread Crm/08 — a ficha Blade do lead (show) só abre `type = lead`.
       - 'Modules/Crm/Tests/Feature/CrmLeadShowEscopoTest.php'
       # Thread Crm/04 — o painel do CRM virou Inertia; o contrato dele roda aqui.
@@ -137,11 +141,16 @@ jobs:
               - 'Modules/Cms/**'
               # Thread Crm/03 — a lista de acompanhamentos virou Inertia; o contrato dela roda aqui.
               - 'Modules/Crm/Http/Controllers/ScheduleController.php'
+              # Thread Crm/07 — a escrita do modal passa pelo Service e pelos FormRequests.
+              - 'Modules/Crm/Services/ScheduleService.php'
+              - 'Modules/Crm/Http/Requests/*ScheduleRequest.php'
               - 'Modules/Crm/Resources/js/Pages/**'
               - 'Modules/Crm/Tests/Feature/CrmAcompanhamentosContratoTest.php'
               # Thread Crm/02 — a lista de leads virou Inertia; o contrato dela roda aqui.
               - 'Modules/Crm/Http/Controllers/LeadController.php'
               - 'Modules/Crm/Tests/Feature/CrmLeadsContratoTest.php'
+              # Thread Crm/06 — o form de lead é o Cliente/Create parametrizado.
+              - 'resources/js/Pages/Cliente/Create.tsx'
               # Thread Crm/08 — a ficha Blade do lead (show) só abre `type = lead`.
               - 'Modules/Crm/Tests/Feature/CrmLeadShowEscopoTest.php'
               # Thread Crm/04 — o painel do CRM virou Inertia; o contrato dele roda aqui.
@@ -351,6 +360,7 @@ jobs:
             Modules/Repair/Tests/Feature/RepairJobSheetIndexContratoTest.php \
             Modules/Repair/Tests/Feature/DeviceModelsContratoTest.php \
             Modules/Repair/Tests/Feature/RepairStatusContratoTest.php \
+            Modules/Repair/Tests/Feature/RepairFormVendaContratoTest.php \
             Modules/Vestuario/Tests/Feature/SmokeRoutesVestuarioTest.php \
             Modules/Superadmin/Tests/Feature/SuperadminDashboardContratoTest.php \
             Modules/Superadmin/Tests/Feature/SubscriptionLifecycleServiceTest.php \

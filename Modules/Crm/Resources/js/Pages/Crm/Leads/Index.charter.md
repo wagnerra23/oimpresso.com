@@ -40,9 +40,10 @@ abre o detalhe num drawer, sem sair da lista.
 
 ## Non-Goals (nesta fase)
 
-- ❌ Formulário de lead. D2 ([W] 2026-10-01) decidiu reusar `Cliente/Create`, mas ele grava em
-  `/contacts` e reusá-lo exige mexer em `resources/js/Pages/Cliente/`, fora do escopo da thread.
-  "Adicionar" leva à tela Blade (`?classico=1`).
+- ~~❌ Formulário de lead~~ — entregue na thread Crm/06 (2026-10-05): "Adicionar" abre
+  `/crm/leads/create`, que é o `Cliente/Create` parametrizado (D2) com fonte, estágio de vida e
+  atribuído a, gravando pelo `LeadController@store`. Guardas: UC-CRMLD-08..10. A edição do lead
+  (`edit()` → `contact.edit`) segue na Blade.
 - ❌ Kanban, conversão para cliente e "Adicionar/Remover do local": seguem na Blade.
 
 ## Anti-hooks

@@ -5,11 +5,11 @@ component: Modules/Crm/Resources/js/Pages/Crm/Acompanhamentos/Index.tsx
 related_prototype: prototipo-ui/cowork/Wagner/crm-blade.jsx
 owner: wagner
 status: draft
-last_validated: "2026-10-01"
+last_validated: "2026-10-05"
 parent_module: Crm
 related_adrs: [93, 104]
 tier: B
-charter_version: 1
+charter_version: 2
 ---
 
 # Page Charter — /crm/follow-ups (DRAFT · lista de acompanhamentos)
@@ -34,11 +34,15 @@ clientes e leads, com o responsável e o status. Termo na UI: "acompanhamentos",
 - Abas "Acompanhamentos" e "Acompanhamento recorrente" (`is_recursive`).
 - Escopo de visibilidade **igual ao da Blade**: a Inertia recebe a mesma consulta do DataTables
   (`business_id` + filtros + "só os atribuídos a mim" para quem tem só `crm.access_own_schedule`).
+- Escrita (thread Crm/07, PR-a): "Adicionar" e a coluna "Ação" (Editar, Excluir) abrem o modal e
+  a confirmação aqui, gravando pelas MESMAS rotas da Blade (`store`/`update`/`destroy`).
+  Guardas: UC-CRMACO-08..13.
 
 ## Non-Goals (nesta fase)
 
-- ❌ Escrever. Adicionar, recorrente, antecipado, editar, log e excluir seguem nos modais da tela
-  Blade (`?classico=1`); os três botões da toolbar levam pra lá.
+- ❌ Recorrente, antecipado e log de acompanhamento nesta fase: seguem nos modais da tela Blade
+  (`?classico=1`) até o PR-b da thread 07; "Recorrente", "Acompanhamento antecipado" e o "Editar"
+  da aba recorrente levam pra lá.
 - ❌ Contagem por status/tipo no rodapé, densidade e drawer de detalhe do protótipo — pendentes
   registrados no `_saida-03`.
 
@@ -48,3 +52,7 @@ clientes e leads, com o responsável e o status. Termo na UI: "acompanhamentos",
   junto do `X-Inertia` (§5 2026-09-08). Guarda: UC-CRMACO-02.
 - ❌ Montar consulta própria para a tela nova: ela herda a do DataTables, para não divergir de
   escopo. Guardas: UC-CRMACO-03 (outro negócio) e UC-CRMACO-04 (só os meus).
+- ❌ Endpoint de gravação próprio da tela nova: o modal usa `store`/`update`/`destroy` do
+  `ScheduleController`, os mesmos da Blade. Guardas: UC-CRMACO-08, 09 e 11.
+- ❌ Aceitar `business_id`/`created_by` ou contato de outro negócio vindos do formulário.
+  Guardas: UC-CRMACO-09, 10 e 12.

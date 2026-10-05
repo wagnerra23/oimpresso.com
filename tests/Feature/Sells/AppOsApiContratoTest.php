@@ -21,7 +21,7 @@ use Tests\Contract\AutosaveContractRunner;
  */
 uses(DatabaseTransactions::class);
 
-/** Processo da oficina com as 6 etapas de quadro + 1 terminal, no business. @return array<string,int> */
+/** Processo da oficina com as 6 etapas de quadro + as terminais, no business. @return array<string,int> */
 function appOsProcesso(int $bizId): array
 {
     $proc = DB::table('sale_processes')->where('business_id', $bizId)->where('key', 'oficina_mecanica_os')->value('id')
@@ -35,6 +35,7 @@ function appOsProcesso(int $bizId): array
         'em_execucao' => [4, 'Em execução', false], 'pronto_retirada' => [5, 'Pronto p/ retirar', false],
         'entregue' => [6, 'Entregue', true],
         'cancelado' => [7, 'Cancelado', true],
+        'garantia_acionada' => [8, 'Garantia acionada', true],
     ];
     $ids = [];
     foreach ($etapas as $key => [$ordem, $nome, $terminal]) {
@@ -405,7 +406,7 @@ function appOsComAcoes(object $t, bool $comUpdate = true): void
     appOsAcao($e['em_execucao'], 'concluir_servico', 'Concluir serviço', $e['pronto_retirada'], true);
     appOsAcao($e['em_execucao'], 'cancelar_os', 'Cancelar OS', $e['cancelado'], true);
     appOsAcao($e['aguardando_aprovacao'], 'recusar_orcamento', 'Cliente recusou orçamento', $e['cancelado'], true);
-    appOsAcao($e['pronto_retirada'], 'acionar_garantia', 'Acionar garantia', $e['cancelado'], true);
+    appOsAcao($e['pronto_retirada'], 'acionar_garantia', 'Acionar garantia', $e['garantia_acionada'], true);
     appOsAcao($e['pronto_retirada'], 'entregar', 'Entregar ao cliente', $e['entregue']);
     if ($comUpdate) {
         Permission::firstOrCreate(['name' => 'oficinaauto.service_order.update', 'guard_name' => 'web']);
@@ -465,8 +466,8 @@ it('409 quando a ação não sai da etapa atual; 422 para ação que só a web f
     $this->user->givePermissionTo('oficinaauto.service_order.update');
 
     $this->postJson("/api/app/os/{$minha}/acoes/entregar")->assertStatus(409)->assertJsonPath('erro', 'etapa_mudou');
-    // Acionar garantia continua só na web.
-    $this->postJson("/api/app/os/{$emExecucao}/acoes/acionar_garantia")->assertStatus(422)->assertJsonPath('erro', 'nao_suportada');
+    // Ação fora das listas do app (ex.: o override do gate da web) segue 422.
+    $this->postJson("/api/app/os/{$emExecucao}/acoes/override_gate")->assertStatus(422)->assertJsonPath('erro', 'nao_suportada');
     $this->postJson("/api/app/os/{$alheia}/acoes/iniciar_diagnostico")->assertStatus(404)->assertJsonPath('erro', 'nao_encontrado');
     // Controle positivo: na OS do próprio business a mesma ação avança.
     $this->postJson("/api/app/os/{$minha}/acoes/iniciar_diagnostico")->assertOk()->assertJsonPath('etapa.chave', 'em_diagnostico');
@@ -479,7 +480,8 @@ it('ação com efeito colateral no banco não aparece nem executa pelo app', fun
     appOsAcao($e['pronto_retirada'], 'entregar', 'Entregar ao cliente', $e['entregue'], false, 'App\Fake\EfeitoQualquer');
     $os = appOsCriar((int) $this->biz->id, $e['pronto_retirada']);
 
-    expect($this->getJson('/api/app/os/' . $os)->assertOk()->json('acoes'))->toBe([]);
+    // A ação com efeito some; só sobra a que não tem (acionar garantia, nesta etapa).
+    expect(array_column($this->getJson('/api/app/os/' . $os)->assertOk()->json('acoes'), 'chave'))->toBe(['acionar_garantia']);
     $this->postJson("/api/app/os/{$os}/acoes/entregar")->assertStatus(422)->assertJsonPath('erro', 'nao_suportada');
     expect((int) DB::table('service_orders')->where('id', $os)->value('current_stage_id'))->toBe($e['pronto_retirada']);
 });
@@ -615,4 +617,75 @@ it('motivo acima de 500 caracteres é 422 validacao e a OS não muda', function 
     $this->postJson("/api/app/os/{$os}/acoes/cancelar_os", ['motivo' => str_repeat('a', 501)])
         ->assertStatus(422)->assertJsonPath('erro', 'validacao');
     expect((int) DB::table('service_orders')->where('id', $os)->value('current_stage_id'))->toBe($this->etapas['em_execucao']);
+});
+
+// ── Tela 03 — acionar garantia pelo app, com motivo obrigatório (pedido [W] 2026-10-05) ────────
+
+it('acionar garantia aparece como encerra depois de cancelar, só em pronto p/ retirar, com destino e motivo obrigatório', function () {
+    appOsComAcoes($this);
+    $e = $this->etapas;
+    appOsAcao($e['pronto_retirada'], 'cancelar_os', 'Cancelar OS', $e['cancelado'], true);
+    $os = appOsCriar((int) $this->biz->id, $e['pronto_retirada']);
+
+    $acoes = $this->getJson('/api/app/os/' . $os)->assertOk()->json('acoes');
+    expect(array_column($acoes, 'chave'))->toBe(['entregar', 'cancelar_os', 'acionar_garantia']);
+    expect(array_column($acoes, 'tipo'))->toBe(['avanco', 'encerra', 'encerra']);
+    $garantia = $acoes[2];
+    expect($garantia['critica'])->toBeTrue();
+    expect($garantia['motivo_obrigatorio'])->toBeTrue();
+    expect($garantia['destino'])->toBe(['chave' => 'garantia_acionada', 'rotulo' => 'Garantia acionada']);
+    // Toda ação diz o destino; só a garantia exige motivo.
+    expect($acoes[0]['destino'])->toBe(['chave' => 'entregue', 'rotulo' => 'Entregue']);
+    expect($acoes[1]['destino'])->toBe(['chave' => 'cancelado', 'rotulo' => 'Cancelado']);
+    expect($acoes[0]['motivo_obrigatorio'])->toBeFalse();
+    expect($acoes[1]['motivo_obrigatorio'])->toBeFalse();
+
+    // Fora de pronto p/ retirar ela não aparece.
+    $emExecucao = appOsCriar((int) $this->biz->id, $e['em_execucao']);
+    expect(array_column($this->getJson('/api/app/os/' . $emExecucao)->assertOk()->json('acoes'), 'chave'))
+        ->not->toContain('acionar_garantia');
+});
+
+it('acionar garantia sem motivo é 422 validacao com a mensagem da garantia, e a OS não muda', function () {
+    appOsComAcoes($this);
+    $os = appOsCriar((int) $this->biz->id, $this->etapas['pronto_retirada']);
+
+    foreach ([[], ['motivo' => null], ['motivo' => '']] as $corpo) {
+        $this->postJson("/api/app/os/{$os}/acoes/acionar_garantia", $corpo)
+            ->assertStatus(422)
+            ->assertJsonPath('erro', 'validacao')
+            ->assertJsonPath('campos.motivo', 'Informe o motivo da garantia.');
+    }
+    expect((int) DB::table('service_orders')->where('id', $os)->value('current_stage_id'))->toBe($this->etapas['pronto_retirada']);
+    expect(DB::table('sale_stage_history')->where('transaction_id', $os)->exists())->toBeFalse();
+});
+
+it('acionar garantia com motivo encerra pela FSM, grava o motivo e não toca status, veículo, venda nem abre OS filha', function () {
+    appOsComAcoes($this);
+    $os = appOsCriar((int) $this->biz->id, $this->etapas['pronto_retirada']);
+    $veiculo = (int) DB::table('service_orders')->where('id', $os)->value('vehicle_id');
+    DB::table('vehicles')->where('id', $veiculo)->update(['current_rental_id' => $os]);
+    $osAntes = DB::table('service_orders')->where('business_id', $this->biz->id)->count();
+
+    $r = $this->postJson("/api/app/os/{$os}/acoes/acionar_garantia", ['motivo' => 'Barulho voltou na suspensão'])->assertOk();
+
+    expect($r->json('etapa.chave'))->toBe('garantia_acionada');
+    expect($r->json('etapa.terminal'))->toBeTrue();
+    expect($r->json('acoes'))->toBe([]);
+    $linha = DB::table('service_orders')->where('id', $os)->first();
+    expect((int) $linha->current_stage_id)->toBe($this->etapas['garantia_acionada']);
+    expect($linha->status)->toBe('aberta');
+    expect($linha->transaction_id)->toBeNull();
+    expect((int) DB::table('vehicles')->where('id', $veiculo)->value('current_rental_id'))->toBe($os);
+    expect(DB::table('service_orders')->where('business_id', $this->biz->id)->count())->toBe($osAntes);
+    $trilha = DB::table('sale_stage_history')->where('transaction_id', $os)
+        ->where('to_stage_id', $this->etapas['garantia_acionada'])->value('payload_snapshot');
+    expect(json_decode((string) $trilha, true))->toMatchArray(['origem' => 'app', 'motivo' => 'Barulho voltou na suspensão']);
+});
+
+it('cancelar e recusar seguem com motivo opcional', function () {
+    appOsComAcoes($this);
+    $os = appOsCriar((int) $this->biz->id, $this->etapas['em_execucao']);
+
+    $this->postJson("/api/app/os/{$os}/acoes/cancelar_os")->assertOk()->assertJsonPath('etapa.chave', 'cancelado');
 });

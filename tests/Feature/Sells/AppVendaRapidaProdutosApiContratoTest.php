@@ -186,3 +186,18 @@ it('UC-APPVR-08 · business que vende sem estoque: estoque vem null (sem teto no
     appVrVenderSemEstoque(true);
     expect(collect($this->getJson($url)->json('itens'))->firstWhere('id', $v)['estoque'])->toBeNull();
 });
+
+it('UC-APPVR-09 · bloqueia_preco_zero no topo da busca: false por padrão e quando desligado; true só com o ajuste da empresa ligado', function () {
+    $pos = json_decode((string) DB::table('business')->where('id', APP_VR_BIZ)->value('pos_settings'), true) ?: [];
+    unset($pos['bloquear_venda_preco_zero_app']);
+    DB::table('business')->where('id', APP_VR_BIZ)->update(['pos_settings' => json_encode($pos)]);
+    $this->getJson('/api/app/venda/produtos')->assertOk()->assertJsonPath('bloqueia_preco_zero', false);
+
+    $pos['bloquear_venda_preco_zero_app'] = 0;
+    DB::table('business')->where('id', APP_VR_BIZ)->update(['pos_settings' => json_encode($pos)]);
+    $this->getJson('/api/app/venda/produtos')->assertOk()->assertJsonPath('bloqueia_preco_zero', false);
+
+    $pos['bloquear_venda_preco_zero_app'] = 1;
+    DB::table('business')->where('id', APP_VR_BIZ)->update(['pos_settings' => json_encode($pos)]);
+    $this->getJson('/api/app/venda/produtos')->assertOk()->assertJsonPath('bloqueia_preco_zero', true);
+});

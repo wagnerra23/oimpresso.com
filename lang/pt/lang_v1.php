@@ -1565,4 +1565,6 @@ return [
     'dropdown' => 'Lista suspensa',
     'enter_dropdown_values' => 'Informe as opções da lista suspensa, uma opção por linha',
     'overall_summary' => 'Resumo geral',
+    'bloquear_venda_preco_zero_app' => 'Bloquear venda de produto com preço zero no app',
+    'bloquear_venda_preco_zero_app_help' => 'Vale só para a Venda rápida do app das lojas. Desligado, o app vende produto com preço R$ 0,00 (ex.: brinde).',
 ];

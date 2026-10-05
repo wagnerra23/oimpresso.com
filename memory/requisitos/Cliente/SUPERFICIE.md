@@ -15,7 +15,7 @@ tabelas_dominio: ["contacts", "customer_groups"]
 >
 > **O que isto é:** o módulo `Cliente` é CLASSE B — o código mora no núcleo UltimatePOS (`app/`), sem diretório modular homônimo. A membership vem de uma **semente curada** de paths do core declarada em `module-surface.mjs::CORE_APP_MODULES` (revisável no diff) + `resources/js/Pages/Cliente/**`. **O que NÃO é:** cobertura/nota/status (donos: `screen-coverage-map.mjs` + `casos-gate`) nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve). As **tabelas do domínio** (`contacts`, `customer_groups`) são metadado-ÂNCORA declarado, **não** o derivador (derivar por tabela over-inclui — medido 2026-07-21).
 
-**Total mapeado:** 326 arquivos em 18 papéis.
+**Total mapeado:** 328 arquivos em 18 papéis.
 
 ## Controllers — 29
 
@@ -265,8 +265,9 @@ tabelas_dominio: ["contacts", "customer_groups"]
 - [Map.tsx](../../../resources/js/Pages/Cliente/Map.tsx)
 - [Show.tsx](../../../resources/js/Pages/Cliente/Show.tsx)
 
-## Componentes / apoio de tela — 31
+## Componentes / apoio de tela — 32
 
+- [FormAcompanhamento.tsx](../../../Modules/Crm/Resources/js/Pages/Crm/Acompanhamentos/_components/FormAcompanhamento.tsx)
 - [ActiveChip.tsx](../../../resources/js/Pages/Cliente/_components/ActiveChip.tsx)
 - [Avatar.tsx](../../../resources/js/Pages/Cliente/_components/Avatar.tsx)
 - [KpiStripClickable.tsx](../../../resources/js/Pages/Cliente/_components/KpiStripClickable.tsx)
@@ -330,7 +331,7 @@ tabelas_dominio: ["contacts", "customer_groups"]
 - 20 em [Modules/Crm/Tests/Feature/](../../../Modules/Crm/Tests/Feature)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
-## Demais arquivos (manifestos, docs, assets e misc) — 46
+## Demais arquivos (manifestos, docs, assets e misc) — 47
 
 - [ClienteProximaAcaoAgent.php](../../../Modules/Crm/Ai/Agents/ClienteProximaAcaoAgent.php)
 - [ClienteResumoAgent.php](../../../Modules/Crm/Ai/Agents/ClienteResumoAgent.php)
@@ -355,6 +356,7 @@ tabelas_dominio: ["contacts", "customer_groups"]
 - [.gitkeep](../../../Modules/Crm/Resources/assets/.gitkeep)
 - [crm.js](../../../Modules/Crm/Resources/assets/js/crm.js)
 - [crm.css](../../../Modules/Crm/Resources/assets/sass/crm.css)
+- [acompanhamento.ts](../../../Modules/Crm/Resources/js/Pages/Crm/Acompanhamentos/_components/acompanhamento.ts)
 - [.gitkeep](../../../Modules/Crm/Resources/lang/.gitkeep)
 - [lang.php](../../../Modules/Crm/Resources/lang/ar/lang.php)
 - [lang.php](../../../Modules/Crm/Resources/lang/ce/lang.php)

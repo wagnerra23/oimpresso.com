@@ -274,8 +274,8 @@ class OficinaController extends Controller
 
     /**
      * POST /api/app/os/{id}/acoes/{chave} — avança ou encerra a OS pela ação (tela 03). Corpo
-     * opcional { motivo } (≤ 500, vai para a trilha), sem override do gate. 200 = o mesmo JSON do
-     * GET /os/{id}, já na etapa nova.
+     * { motivo } (≤ 500, vai para a trilha): opcional, exceto nas ações de AcoesOs::ACOES_COM_MOTIVO
+     * (acionar garantia). Sem override do gate. 200 = o mesmo JSON do GET /os/{id}, já na etapa nova.
      */
     public function executarAcao(Request $request, int $id, string $chave): JsonResponse
     {
@@ -284,7 +284,9 @@ class OficinaController extends Controller
             return $this->semPermissao();
         }
 
-        $v = Validator::make($request->all(), ['motivo' => ['nullable', 'string', 'max:500']], [
+        $exigeMotivo = in_array($chave, AcoesOs::ACOES_COM_MOTIVO, true);
+        $v = Validator::make($request->all(), ['motivo' => [$exigeMotivo ? 'required' : 'nullable', 'string', 'max:500']], [
+            'motivo.required' => 'Informe o motivo da garantia.',
             'motivo.max' => 'O motivo tem no máximo 500 caracteres.',
             'motivo.string' => 'O motivo precisa ser texto.',
         ]);
