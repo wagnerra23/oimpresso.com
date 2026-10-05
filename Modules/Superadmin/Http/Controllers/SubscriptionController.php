@@ -38,7 +38,9 @@ class SubscriptionController extends BaseController
             define('CURLOPT_SSLVERSION', 6);
         }
 
-        $this->moduleUtil = $moduleUtil;
+        // O container entrega o default `null` a parâmetro opcional de classe; resolve explícito
+        // (sem isso o `index` deferido caía em 500: getModuleData() on null — prod 2026-10-05).
+        $this->moduleUtil = $moduleUtil ?? app(ModuleUtil::class);
     }
 
     /**
