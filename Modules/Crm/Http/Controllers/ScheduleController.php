@@ -1,957 +1,957 @@
-<?php
-
-namespace Modules\Crm\Http\Controllers;
-
-use App\Category;
-use App\Contact;
-use App\Http\Controllers\Controller;
-use App\Transaction;
-use App\User;
-use App\Utils\ModuleUtil;
-use App\Utils\Util;
-use Carbon\Carbon;
-use DB;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\View;
-use Inertia\Inertia;
-use Modules\Crm\Entities\CrmContact;
-use Modules\Crm\Entities\Schedule;
-use Modules\Crm\Http\Requests\StoreScheduleRequest;
-use Modules\Crm\Http\Requests\UpdateScheduleRequest;
-use Modules\Crm\Services\ScheduleService;
-use Modules\Crm\Utils\CrmUtil;
-use App\Support\Privacy\PiiRedactor;
-use Yajra\DataTables\Facades\DataTables;
-
-class ScheduleController extends Controller
-{
-    /**
-     * All Utils instance.
-     */
-    protected $commonUtil;
-
-    protected $moduleUtil;
-
-    protected $crmUtil;
-
-    protected ScheduleService $scheduleService;
-
-    /**
-     * Constructor
-     *
-     * @param CommonUtil
-     * @return void
-     */
-    public function __construct(Util $commonUtil, ModuleUtil $moduleUtil, CrmUtil $crmUtil, ScheduleService $scheduleService)
-    {
-        $this->commonUtil = $commonUtil;
-        $this->moduleUtil = $moduleUtil;
-        $this->crmUtil = $crmUtil;
-        $this->scheduleService = $scheduleService;
-        $this->status_bg = [
-            'scheduled' => 'bg-yellow',
-            'open' => 'bg-blue',
-            'canceled' => 'bg-red',
-            'cancelled' => 'bg-red',
-            'completed' => 'bg-green',
-        ];
-    }
-
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function index()
-    {
-        $business_id = request()->session()->get('user.business_id');
-        $can_access_all_schedule = auth()->user()->can('crm.access_all_schedule');
-        $can_access_own_schedule = auth()->user()->can('crm.access_own_schedule');
-
-        if (!(auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'crm_module')) || !($can_access_all_schedule || $can_access_own_schedule)) {
-            abort(403, 'Unauthorized action.');
-        }
-
-        // Thread Crm/03: a lista abre em Inertia. O Inertia manda `X-Requested-With` junto do
-        // `X-Inertia`, então `ajax()` sozinho mandaria a visita pro DataTables (§5 2026-09-08).
-        // `?classico=1` mantém a tela Blade, que ainda hospeda os modais de escrita.
-        $inertia = ! request()->boolean('classico') && (! request()->ajax() || request()->header('X-Inertia'));
-
-        if (request()->ajax() || $inertia) {
-            $schedules = Schedule::leftjoin('contacts', 'crm_schedules.contact_id', '=', 'contacts.id')
-                ->leftjoin('users as U', 'crm_schedules.created_by', '=', 'U.id')
-                ->leftjoin('categories as C', 'crm_schedules.followup_category_id', '=', 'C.id')
-                ->with(['users'])
-                ->where('crm_schedules.business_id', $business_id)
-                ->select(
-                    'crm_schedules.*',
-                    'contacts.name as contact',
-                    'contacts.supplier_business_name as biz_name',
-                    'U.surname',
-                    'U.first_name',
-                    'U.last_name',
-                    'crm_schedules.status as status',
-                    'crm_schedules.created_at as added_on',
-                    'contacts.type as contact_type',
-                    'contacts.id as contact_id',
-                    'C.name as followup_category'
-                );
-
-            if (request()->input('is_recursive') == 1) {
-                $schedules->where('crm_schedules.is_recursive', 1);
-            } else {
-                $schedules->where('crm_schedules.is_recursive', 0);
-            }
-
-            if (!empty(request()->input('contact_id'))) {
-                $schedules->where('crm_schedules.contact_id', request()->input('contact_id'));
-            }
-
-            if (!empty(request()->input('assgined_to'))) {
-                $user_id = request()->input('assgined_to');
-                $schedules->whereHas('users', function ($q) use ($user_id) {
-                    $q->where('user_id', $user_id);
-                });
-            }
-
-            if (!empty(request()->input('status'))) {
-                if (request()->input('status') == 'none') {
-                    $schedules->whereNull('crm_schedules.status');
-                } else {
-                    $schedules->where('crm_schedules.status', request()->input('status'));
-                }
-            }
-
-            if (!empty(request()->input('schedule_type'))) {
-                $schedules->where('crm_schedules.schedule_type', request()->input('schedule_type'));
-            }
-
-            if (!empty(request()->input('followup_category_id'))) {
-                $schedules->where('crm_schedules.followup_category_id', request()->input('followup_category_id'));
-            }
-
-            if (!empty(request()->input('start_date_time')) && !empty(request()->input('end_date_time'))) {
-                $start_date = request()->input('start_date_time');
-                $end_date = request()->input('end_date_time');
-                $schedules->whereBetween(DB::raw('date(start_datetime)'), [$start_date, $end_date]);
-            }
-
-            if (!empty(request()->input('follow_up_by'))) {
-                $schedules->where('crm_schedules.follow_up_by', request()->input('follow_up_by'));
-            }
-
-            if (!auth()->user()->can('superadmin') && !$can_access_all_schedule) {
-                $user_id = auth()->user()->id;
-                $schedules->whereHas('users', function ($q) use ($user_id) {
-                    $q->where('user_id', $user_id);
-                });
-            }
-
-            if ($inertia) {
-                return $this->acompanhamentosInertia($business_id, $schedules);
-            }
-
-            return Datatables::of($schedules)
-                ->addColumn('action', function ($row) {
-                    $html = '<div class="btn-group">
-                                <button class="btn btn-info dropdown-toggle btn-xs" type="button"  data-toggle="dropdown" aria-expanded="false">
-                                    ' . __('messages.action') . '
-                                    <span class="caret"></span>
-                                    <span class="sr-only">'
-                        . __('messages.action') . '
-                                    </span>
-                                </button>
-                                  <ul class="dropdown-menu dropdown-menu-left" role="menu">';
-                    // <li>
-                    //      <a href="' . action([\Modules\Crm\Http\Controllers\ScheduleController::class, 'show'], ['follow_up' => $row->id]) . '" class="cursor-pointer view_schedule">
-                    //          <i class="fa fa-eye"></i>
-                    //          '.__("messages.view").'
-                    //      </a>
-                    //  </li>';
-                    if ($row->is_recursive != 1) {
-                        $html .= '<li>
-                                        <a data-schedule_id="' . $row->id . '"class="cursor-pointer view_schedule_log">
-                                            <i class="fa fa-eye"></i>
-                                            ' . __('crm::lang.view_follow_up') . '
-                                        </a>
-                                    </li>';
-
-                        $html .= '<li>
-                                        <a data-href="' . action([\Modules\Crm\Http\Controllers\ScheduleLogController::class, 'create'], ['schedule_id' => $row->id]) . '"class="cursor-pointer schedule_log_add">
-                                            <i class="fa fa-edit"></i>
-                                            ' . __('crm::lang.add_schedule_log') . '
-                                        </a>
-                                    </li>';
-
-                        $html .= '<li>
-                                        <a data-href="' . action([\Modules\Crm\Http\Controllers\ScheduleController::class, 'edit'], ['follow_up' => $row->id]) . '"class="cursor-pointer schedule_edit">
-                                            <i class="fa fa-edit"></i>
-                                            ' . __('messages.edit') . '
-                                        </a>
-                                    </li>';
-                    }
-
-                    $html .= '<li>
-                                        <a data-href="' . action([\Modules\Crm\Http\Controllers\ScheduleController::class, 'destroy'], ['follow_up' => $row->id]) . '" class="cursor-pointer schedule_delete">
-                                            <i class="fas fa-trash"></i>
-                                            ' . __('messages.delete') . '
-                                        </a>
-                                    </li>';
-
-                    $html .= '</ul>
-                            </div>';
-
-                    return $html;
-                })
-                ->editColumn('start_datetime', ' @if(!empty($start_datetime))
-                    {{@format_datetime($start_datetime)}}<br>
-                    <i>(<span class="time-from-now">{{$start_datetime}}</span>)</i> @endif
-                ')
-                ->editColumn('end_datetime', '
-                    @if(!empty($end_datetime)){{@format_datetime($end_datetime)}} @endif
-                ')
-                ->editColumn('contact', '
-                    @if(!empty($biz_name)) {{$biz_name}},<br>@endif {{$contact}}
-                    <br>
-                    @if($contact_type == "lead")
-                        <a href="{{action(\'\Modules\Crm\Http\Controllers\LeadController@show\', [\'lead\' => $contact_id])}}" target="_blank">
-                            <i class="fas fa-external-link-square-alt text-info"></i>
-                        </a>
-                    @else
-                    <a href="{{action(\'App\Http\Controllers\ContactController@show\', [$contact_id])}}" target="_blank">
-                            <i class="fas fa-external-link-square-alt text-info"></i>
-                        </a>
-                    @endif
-                ')
-                ->addColumn('added_by', function ($row) {
-                    return "{$row->surname} {$row->first_name} {$row->last_name}";
-                })
-                ->addColumn('additional_info', function ($row) {
-                    $html = '';
-                    $infos = $row->followup_additional_info;
-                    if (!empty($infos)) {
-                        foreach ($infos as $key => $value) {
-                            $html .= $key . ' : ' . $value . '<br>';
-                        }
-                    }
-
-                    return $html;
-                })
-                ->editColumn('added_on', '
-                    {{@format_datetime($added_on)}}
-                ')
-                ->editColumn('schedule_type', function ($row) {
-                    $html = '';
-                    if (!empty($row->schedule_type)) {
-                        $html = '<div class="schedule_type" data-orig-value="' . __('crm::lang.' . $row->schedule_type) . '" data-status-name="' . __('crm::lang.' . $row->schedule_type) . '">
-                                    ' . __('crm::lang.' . $row->schedule_type) .
-                            '</div>';
-                    }
-
-                    return $html;
-                })
-                ->editColumn('users', function ($row) {
-                    $html = '&nbsp;';
-                    if ($row->users->count() > 0) {
-                        foreach ($row->users as $user) {
-                            if (isset($user->media->display_url)) {
-                                $html .= '<img class="user_avatar" src="' . $user->media->display_url . '" data-toggle="tooltip" title="' . $user->user_full_name . '">';
-                            } else {
-                                $html .= '<img class="user_avatar" src="https://ui-avatars.com/api/?name=' . $user->first_name . '" data-toggle="tooltip" title="' . $user->user_full_name . '">';
-                            }
-                        }
-                    }
-
-                    return $html;
-                })
-                ->editColumn('status', function ($row) {
-                    $html = '';
-                    if (!empty($row->status)) {
-                        $html = '<span class="text-center label status ' . $this->status_bg[$row->status] . '" data-orig-value="' . __('crm::lang.' . $row->status) . '" data-status-name="' . __('crm::lang.' . $row->status) . '"><small>
-                                    ' . __('crm::lang.' . $row->status) .
-                            '</small></span>';
-                    }
-
-                    return $html;
-                })
-                ->editColumn('follow_up_by', function ($row) {
-                    $follow_up_by = '';
-
-                    if ($row->follow_up_by == 'payment_status') {
-                        $follow_up_by = __('sale.payment_status') . ' - ' . __('lang_v1.' . $row->follow_up_by_value);
-                    } elseif ($row->follow_up_by == 'orders') {
-                        $follow_up_by = __('restaurant.orders') . ' - ' . __('crm::lang.has_no_transactions');
-                    }
-
-                    return $follow_up_by;
-                })
-                ->removeColumn('id')
-                ->rawColumns([
-                    'action', 'start_datetime', 'end_datetime', 'users', 'contact', 'added_on',
-                    'additional_info', 'schedule_type', 'status', 'description',
-                ])
-                ->make(true);
-        }
-
-        $leads = CrmContact::leadsDropdown($business_id, false);
-        $contacts = Contact::customersDropdown($business_id, false)->toArray();
-
-        foreach ($contacts as $key => $value) {
-            $contacts[$key] = $value . ' (' . __('contact.customer') . ')';
-        }
-        foreach ($leads as $key => $value) {
-            $contacts[$key] = $value . ' (' . __('crm::lang.lead') . ')';
-        }
-
-        $assigned_to = User::forDropdown($business_id, false);
-        $statuses = Schedule::statusDropdown(true);
-        $follow_up_types = Schedule::followUpTypeDropdown();
-
-        // Set default user from get parameter
-        $default_user = request()->input('assigned_to', null);
-
-        // Set default status from get parameter
-        $default_status = request()->input('status', null);
-
-        // Set default date from get parameter
-        $default_start_date = request()->input('start_date', null);
-        $default_end_date = request()->input('end_date', null);
-
-        $default_followup_category_id = request()->input('followup_category_id', null);
-
-        $followup_category = Category::forDropdown($business_id, 'followup_category');
-
-        return view('crm::schedule.index')
-            ->with(compact(
-                'contacts',
-                'assigned_to',
-                'statuses',
-                'follow_up_types',
-                'default_start_date',
-                'default_end_date',
-                'default_status',
-                'default_user',
-                'followup_category',
-                'default_followup_category_id'
-            ));
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
-    {
-        $business_id = request()->session()->get('user.business_id');
-        if (!(auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'crm_module'))) {
-            abort(403, 'Unauthorized action.');
-        }
-
-        $schedule_for = request()->get('schedule_for', 'customer');
-        $statuses = Schedule::statusDropdown();
-        $follow_up_types = Schedule::followUpTypeDropdown();
-        $notify_type = Schedule::followUpNotifyTypeDropdown();
-        $followup_tags = $this->crmUtil->getAdvFollowupsTags();
-        $users = User::forDropdown($business_id, false);
-        $followup_category = Category::forDropdown($business_id, 'followup_category');
-
-        if (request()->has('is_recursive')) {
-            return view('crm::schedule.create_recursive_follow_up')
-                ->with(compact('statuses', 'follow_up_types', 'notify_type', 'followup_tags', 'users', 'followup_category'));
-        }
-
-        $customers = CrmContact::getCustomerAndLeadsDropdown($business_id);
-        if (request()->ajax()) {
-            $contact_id = request()->get('contact_id', '');
-
-            return view('crm::schedule.create')
-                ->with(compact('customers', 'users', 'statuses', 'contact_id', 'schedule_for', 'follow_up_types', 'notify_type', 'followup_category'));
-        }
-
-        return view('crm::schedule.create_advance_follow_up')
-            ->with(compact('statuses', 'schedule_for', 'follow_up_types', 'notify_type', 'followup_tags', 'customers', 'followup_category'));
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
-    public function store(StoreScheduleRequest $request)
-    {
-        // Permissão + escopo Crm validados em StoreScheduleRequest::authorize().
-        // business_id continua sendo lido da sessão pra preservar multi-tenant (ADR 0093).
-        $business_id = request()->session()->get('user.business_id');
-
-        try {
-            $input = $request->except(['_token', 'schedule_for', 'contact_ids']);
-
-            // Service thin: normaliza datas + roteia entre 3 modos follow-up (simples/recursivo/advanced).
-            $this->scheduleService->createFollowUp($input, \Auth::user());
-
-            $schedule_for = request()->get('schedule_for', 'customer');
-
-            $output = [
-                'success' => true,
-                'msg' => __('lang_v1.success'),
-                'schedule_for' => $schedule_for,
-            ];
-        } catch (Exception $e) {
-            // D7 LGPD: redaciona PII em mensagens de erro antes de logar (schedule toca contato + notify).
-            \Log::emergency('File:' . $e->getFile() . 'Line:' . $e->getLine() . 'Message:' . app(PiiRedactor::class)->redact($e->getMessage()));
-
-            $output = [
-                'success' => false,
-                'msg' => __('messages.something_went_wrong'),
-            ];
-        }
-
-        if (request()->ajax()) {
-            return $output;
-        } else {
-            return redirect()->action([\Modules\Crm\Http\Controllers\ScheduleController::class, 'index'])->with(['status' => $output]);
-        }
-    }
-
-    /**
-     * Display the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    // public function show($id)
-    // {
-    //     $business_id = request()->session()->get('user.business_id');
-    //     $can_access_all_schedule = auth()->user()->can('crm.access_all_schedule');
-    //     $can_access_own_schedule = auth()->user()->can('crm.access_own_schedule');
-
-    //     if (!(auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'crm_module')) || !($can_access_all_schedule || $can_access_own_schedule)) {
-    //         abort(403, 'Unauthorized action.');
-    //     }
-
-    //     $query = Schedule::with(['customer', 'users', 'invoices', 'invoices.payment_lines'])
-    //                     ->where('business_id', $business_id);
-
-    //     if (!$can_access_all_schedule && $can_access_own_schedule) {
-    //         $query->where( function($qry) {
-    //             $qry->whereHas('users', function($q){
-    //                 $q->where('user_id', auth()->user()->id);
-    //             })->orWhere('created_by', auth()->user()->id);
-    //         });
-    //     }
-    //     $schedule = $query->findOrFail($id);
-
-    //     return view('crm::schedule.show')
-    //         ->with(compact('schedule'));
-    // }
-
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function edit($id)
-    {
-        $business_id = request()->session()->get('user.business_id');
-        $can_access_all_schedule = auth()->user()->can('crm.access_all_schedule');
-        $can_access_own_schedule = auth()->user()->can('crm.access_own_schedule');
-
-        if (!(auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'crm_module')) || !($can_access_all_schedule || $can_access_own_schedule)) {
-            abort(403, 'Unauthorized action.');
-        }
-
-        $query = Schedule::with(['customer', 'users'])
-            ->where('business_id', $business_id);
-
-        if (!$can_access_all_schedule && $can_access_own_schedule) {
-            $query->where(function ($qry) {
-                $qry->whereHas('users', function ($q) {
-                    $q->where('user_id', auth()->user()->id);
-                })->orWhere('created_by', auth()->user()->id);
-            });
-        }
-        $schedule = $query->findOrFail($id);
-
-        $schedule_for = request()->get('schedule_for', 'customer');
-
-        $leads = CrmContact::leadsDropdown($business_id, false, false);
-        $customers = Contact::customersDropdown($business_id, false, false)->toArray();
-        $followup_category = Category::forDropdown($business_id, 'followup_category');
-
-        foreach ($customers as $key => $value) {
-            $customers[$key] = $value . ' (' . __('contact.customer') . ')';
-        }
-        foreach ($leads as $key => $value) {
-            $customers[$key] = $value . ' (' . __('crm::lang.lead') . ')';
-        }
-
-        $users = User::forDropdown($business_id, false);
-        $statuses = Schedule::statusDropdown();
-        $follow_up_types = Schedule::followUpTypeDropdown();
-        $notify_type = Schedule::followUpNotifyTypeDropdown();
-
-        return view('crm::schedule.edit')
-            ->with(compact('schedule', 'customers', 'users', 'statuses', 'schedule_for', 'follow_up_types', 'notify_type', 'followup_category'));
-    }
-
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function update(UpdateScheduleRequest $request, $id)
-    {
-        // Permissões crm_module + access_all/own_schedule validadas em UpdateScheduleRequest::authorize().
-        $business_id = request()->session()->get('user.business_id');
-        $can_access_all_schedule = auth()->user()->can('crm.access_all_schedule');
-        $can_access_own_schedule = auth()->user()->can('crm.access_own_schedule');
-
-        try {
-            // business_id/created_by nunca vêm do formulário: o model tem `$guarded = ['id']`
-            // e o update em massa moveria o acompanhamento de negócio (Tier 0, ADR 0093).
-            $payload = $request->except(['_method', '_token', 'schedule_for', 'business_id', 'created_by']);
-
-            // Service thin: normaliza datas + delega pra CrmUtil::updateFollowUp.
-            $this->scheduleService->updateFollowUp((int) $id, $payload, \Auth::user());
-
-            $schedule_for = request()->get('schedule_for', 'customer');
-
-            $output = [
-                'success' => true,
-                'msg' => __('lang_v1.success'),
-                'schedule_for' => $schedule_for,
-            ];
-        } catch (Exception $e) {
-            // D7 LGPD: redaciona PII em mensagens de erro antes de logar (schedule toca contato + notify).
-            \Log::emergency('File:' . $e->getFile() . 'Line:' . $e->getLine() . 'Message:' . app(PiiRedactor::class)->redact($e->getMessage()));
-
-            $output = [
-                'success' => false,
-                'msg' => __('messages.something_went_wrong'),
-            ];
-        }
-
-        return $output;
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy($id)
-    {
-        $business_id = request()->session()->get('user.business_id');
-        $can_access_all_schedule = auth()->user()->can('crm.access_all_schedule');
-        $can_access_own_schedule = auth()->user()->can('crm.access_own_schedule');
-
-        if (!(auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'crm_module')) || !($can_access_all_schedule || $can_access_own_schedule)) {
-            abort(403, 'Unauthorized action.');
-        }
-
-        if (request()->ajax()) {
-            try {
-                $query = Schedule::where('business_id', $business_id);
-
-                if (!$can_access_all_schedule && $can_access_own_schedule) {
-                    $query->where(function ($qry) {
-                        $qry->whereHas('users', function ($q) {
-                            $q->where('user_id', auth()->user()->id);
-                        })->orWhere('created_by', auth()->user()->id);
-                    });
-                }
-                $schedule = $query->findOrFail($id);
-
-                $schedule->delete();
-
-                $view_type = request()->get('view_type', 'schedule');
-                $output = [
-                    'success' => true,
-                    'msg' => __('lang_v1.success'),
-                    'action' => action([\Modules\Crm\Http\Controllers\ScheduleController::class, 'index']),
-                    'view_type' => $view_type,
-                ];
-            } catch (Exception $e) {
-                // D7 LGPD: redaciona PII em mensagens de erro antes de logar (schedule toca contato + notify).
-            \Log::emergency('File:' . $e->getFile() . 'Line:' . $e->getLine() . 'Message:' . app(PiiRedactor::class)->redact($e->getMessage()));
-
-                $output = [
-                    'success' => false,
-                    'msg' => __('messages.something_went_wrong'),
-                ];
-            }
-
-            return $output;
-        }
-    }
-
-    /**
-     * Get today's schedule
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function getTodaysSchedule()
-    {
-        $business_id = request()->session()->get('user.business_id');
-        if (!(auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'crm_module'))) {
-            abort(403, 'Unauthorized action.');
-        }
-
-        try {
-            $start_date = Carbon::today();
-
-            $query = $this->crmUtil->getFollowUpForGivenDate(\Auth::user(), $start_date);
-
-            $schedules = $query->get();
-
-            $schedule_html = view('crm::schedule.partial.today_schedule')
-                ->with(compact('schedules'))
-                ->render();
-            $output = [
-                'success' => true,
-                'msg' => __('lang_v1.success'),
-                'todays_schedule' => $schedule_html,
-            ];
-        } catch (Exception $e) {
-            // D7 LGPD: redaciona PII em mensagens de erro antes de logar (schedule toca contato + notify).
-            \Log::emergency('File:' . $e->getFile() . 'Line:' . $e->getLine() . 'Message:' . app(PiiRedactor::class)->redact($e->getMessage()));
-
-            $output = [
-                'success' => false,
-                'msg' => __('messages.something_went_wrong'),
-            ];
-        }
-
-        return $output;
-    }
-
-    public function getLeadSchedule(Request $request)
-    {
-        $business_id = request()->session()->get('user.business_id');
-        if (!(auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'crm_module'))) {
-            abort(403, 'Unauthorized action.');
-        }
-
-        $lead_id = $request->get('lead_id');
-        $schedules = Schedule::with('users')
-            ->where('business_id', $business_id)
-            ->where('contact_id', $lead_id)
-            ->select('*');
-
-        return Datatables::of($schedules)
-            ->addColumn('action', function ($row) {
-                $html = '<div class="btn-group">
-                            <button class="btn btn-info dropdown-toggle btn-xs" type="button"  data-toggle="dropdown" aria-expanded="false">
-                                ' . __('messages.action') . '
-                                <span class="caret"></span>
-                                <span class="sr-only">'
-                    . __('messages.action') . '
-                                </span>
-                            </button>
-                              <ul class="dropdown-menu dropdown-menu-left" role="menu">
-                                <li>
-                                    <a data-schedule_id="' . $row->id . '"class="cursor-pointer view_schedule_log">
-                                        <i class="fa fa-eye"></i>
-                                        ' . __('crm::lang.view_follow_up') . '
-                                    </a>
-                                </li>
-                                <li>
-                                    <a data-href="' . action([\Modules\Crm\Http\Controllers\ScheduleController::class, 'edit'], ['follow_up' => $row->id]) . '?schedule_for=lead"class="cursor-pointer schedule_edit">
-                                        <i class="fa fa-edit"></i>
-                                        ' . __('messages.edit') . '
-                                    </a>
-                                </li>
-                                <li>
-                                    <a data-href="' . action([\Modules\Crm\Http\Controllers\ScheduleController::class, 'destroy'], ['follow_up' => $row->id]) . '" class="cursor-pointer schedule_delete">
-                                        <i class="fas fa-trash"></i>
-                                        ' . __('messages.delete') . '
-                                    </a>
-                                </li>';
-
-                $html .= '</ul>
-                        </div>';
-
-                return $html;
-            })
-            ->editColumn('start_datetime', '
-                {{@format_datetime($start_datetime)}}
-            ')
-            ->editColumn('end_datetime', '
-                {{@format_datetime($end_datetime)}}
-            ')
-            ->editColumn('users', function ($row) {
-                $html = '&nbsp;';
-                foreach ($row->users as $user) {
-                    if (isset($user->media->display_url)) {
-                        $html .= '<img class="user_avatar" src="' . $user->media->display_url . '" data-toggle="tooltip" title="' . $user->user_full_name . '">';
-                    } else {
-                        $html .= '<img class="user_avatar" src="https://ui-avatars.com/api/?name=' . $user->first_name . '" data-toggle="tooltip" title="' . $user->user_full_name . '">';
-                    }
-                }
-
-                return $html;
-            })
-            ->removeColumn('id')
-            ->rawColumns(['action', 'start_datetime', 'end_datetime', 'users'])
-            ->make(true);
-    }
-
-    /**
-     * Get invoices dropdaown by payment status or transaction activity
-     *
-     * @return array
-     */
-    public function getInvoicesForFollowUp()
-    {
-        $business_id = request()->session()->get('user.business_id');
-        $follow_up_by = request()->input('follow_up_by');
-        $payment_status = request()->input('payment_status');
-
-        $query = Transaction::with(['contact'])
-            ->where('business_id', $business_id)
-            ->where('type', 'sell')
-            ->where('status', 'final');
-
-        $permitted_locations = auth()->user()->permitted_locations();
-        if ($permitted_locations != 'all') {
-            $query->whereIn('transactions.location_id', $permitted_locations);
-        }
-
-        if ($follow_up_by == 'payment_status') {
-            if ($payment_status == 'all') {
-                $query->whereIn('payment_status', ['due', 'partial']);
-            } elseif ($payment_status == 'due') {
-                $query->where('payment_status', 'due');
-            } elseif ($payment_status == 'partial') {
-                $query->where('payment_status', 'partial');
-            } elseif ($payment_status == 'overdue') {
-                $query->overDue();
-            }
-        }
-
-        $sells = $query->select('id', 'invoice_no', 'payment_status', 'contact_id', 'pay_term_number', 'pay_term_type', 'transaction_date')
-            ->get();
-
-        $sells_array = [];
-
-        foreach ($sells as $sell) {
-            $payment_status = Transaction::getPaymentStatus($sell);
-            $contact = ' - ' . $sell->contact->name;
-            if (!empty($sell->contact->supplier_business_name)) {
-                $contact = ' - ' . $sell->contact->supplier_business_name . $contact;
-            }
-
-            $sells_array[] = [
-                'id' => $sell->id,
-                'text' => $sell->invoice_no . ' (' . __('lang_v1.' . $payment_status) . $contact . ')',
-            ];
-        }
-
-        return $sells_array;
-    }
-
-    /**
-     * Groups customers for follow-up based on payment status
-     * or transaction activity
-     *
-     * @return html
-     */
-    public function getFollowUpGroups()
-    {
-        $business_id = request()->session()->get('user.business_id');
-        $users = User::forDropdown($business_id, false);
-        $follow_up_by = request()->input('follow_up_by');
-        if ($follow_up_by == 'payment_status') {
-            $invoices = request()->input('invoices');
-            $sells = Transaction::where('business_id', $business_id)
-                ->where('type', 'sell')
-                ->where('status', 'final')
-                ->whereIn('id', $invoices)
-                ->with(['contact'])
-                ->select('id', 'invoice_no', 'contact_id')
-                ->get();
-
-            $sells_by_customer = [];
-
-            foreach ($sells as $sell) {
-                $sells_by_customer[$sell->contact_id][] = $sell;
-            }
-
-            if (request()->wantsJson()) {
-                return $this->gruposJson(collect($sells_by_customer)->map(fn ($v) => $v[0]->getRelation('contact'))->values(), $sells_by_customer);
-            }
-
-            return view('crm::schedule.partial.group_invoices_by_customer')
-                ->with(compact('sells_by_customer', 'users'));
-        } elseif ($follow_up_by == 'contact_name') {
-            $contact_ids = request()->input('contact_ids');
-            $customers = Contact::where('contacts.business_id', $business_id)
-                ->whereIn('id', (array) $contact_ids)
-                ->get();
-
-            if (request()->wantsJson()) {
-                return $this->gruposJson($customers);
-            }
-
-            return view('crm::schedule.partial.group_customers')
-                ->with(compact('customers', 'users'));
-        } else {
-            $days = request()->input('days');
-
-            $from_transaction_date = \Carbon::now()->subDays($days)->format('Y-m-d');
-            $query = Contact::where('contacts.business_id', $business_id)
-                ->OnlyCustomers()
-                ->leftJoin('transactions as t', 't.contact_id', '=', 'contacts.id');
-
-            if ($follow_up_by == 'has_transactions') {
-                $query->whereNotNull('t.id')
-                    ->havingRaw("MAX(DATE(transaction_date)) >= '{$from_transaction_date}'");
-            }
-
-            if ($follow_up_by == 'has_no_transactions') {
-                $query->havingRaw("MAX(DATE(transaction_date)) < '{$from_transaction_date}'")
-                    ->orHavingRaw('transaction_date IS NULL');
-            }
-
-            $customers = $query->select('contacts.*', 'transaction_date')
-                ->groupBy('contacts.id')
-                ->get();
-
-            if (request()->wantsJson()) {
-                return $this->gruposJson($customers);
-            }
-
-            return view('crm::schedule.partial.group_customers')
-                ->with(compact('customers', 'users'));
-        }
-    }
-
-    /**
-     * "Quem vai receber" do acompanhamento antecipado em JSON (thread Crm/07, PR-c2) — o mesmo
-     * agrupamento dos partials Blade, que seguem servindo a tela clássica. Uma linha por contato,
-     * com as faturas dele (só no caso por pagamento) e o atribuído padrão (`created_by`, como o
-     * `<select>` da Blade). Os contatos já vêm filtrados pelo negócio da sessão.
-     */
-    private function gruposJson($contatos, array $faturasPorContato = [])
-    {
-        return response()->json(['grupos' => collect($contatos)->map(fn ($c) => [
-            'contact_id' => (int) $c->id,
-            'cliente' => trim(($c->supplier_business_name ? $c->supplier_business_name.' · ' : '').$c->name),
-            'faturas' => collect($faturasPorContato[$c->id] ?? [])->map(fn ($s) => ['id' => (int) $s->id, 'numero' => (string) $s->invoice_no])->values(),
-            'atribuido' => $c->created_by ? (string) $c->created_by : null,
-        ])->values()]);
-    }
-
-    public function getCustomerDropdown($business_id)
-    {
-        $leads = CrmContact::leadsDropdown($business_id, false);
-        $customers = Contact::customersDropdown($business_id, false)->toArray();
-
-        foreach ($customers as $key => $value) {
-            $customers[$key] = $value . ' (' . __('contact.customer') . ')';
-        }
-        foreach ($leads as $key => $value) {
-            $customers[$key] = $value . ' (' . __('crm::lang.lead') . ')';
-        }
-
-        return $customers;
-    }
-
-    /**
-     * Lista de acompanhamentos em Inertia (thread Crm/03). Recebe a MESMA consulta do
-     * DataTables — business_id, filtros e a restrição "só os meus" já aplicados —, então
-     * a tela nova não tem como ver mais do que a Blade via.
-     */
-    private function acompanhamentosInertia($business_id, $schedules)
-    {
-        $busca = trim((string) request()->input('q', ''));
-        if ($busca !== '') {
-            $schedules->where(function ($w) use ($busca) {
-                $w->where('crm_schedules.title', 'like', "%{$busca}%")
-                    ->orWhere('contacts.name', 'like', "%{$busca}%")
-                    ->orWhere('contacts.supplier_business_name', 'like', "%{$busca}%");
-            });
-        }
-
-        $lista = fn ($mapa) => collect($mapa)->map(fn ($label, $value) => ['value' => (string) $value, 'label' => (string) $label])->values();
-        $data = fn ($d) => empty($d) ? null : Carbon::parse($d)->format('d/m/Y H:i');
-        $iso = fn ($d) => empty($d) ? '' : Carbon::parse($d)->format('Y-m-d\TH:i');
-
-        return Inertia::render('Crm/Acompanhamentos/Index', [
-            'filtros' => request()->only(['is_recursive', 'contact_id', 'assgined_to', 'status', 'schedule_type', 'followup_category_id', 'start_date_time', 'end_date_time', 'follow_up_by', 'q']),
-            'opcoes' => Inertia::defer(fn () => [
-                'contatos' => $lista($this->getCustomerDropdown($business_id)),
-                'usuarios' => $lista(User::forDropdown($business_id, false)),
-                'status' => $lista(Schedule::statusDropdown(true)),
-                'tipos' => $lista(Schedule::followUpTypeDropdown()),
-                'categorias' => $lista(Category::forDropdown($business_id, 'followup_category')),
-                'por' => $lista(['payment_status' => __('sale.payment_status'), 'orders' => __('restaurant.orders')]),
-                'notificar' => $lista(Schedule::followUpNotifyTypeDropdown()),
-                // "Acompanhamento por" do recorrente: as opções da Blade
-                // (create_recursive_follow_up), com o grupo que vira `follow_up_by`.
-                'recorrencia' => [
-                    ['value' => 'all', 'label' => 'Status de pagamento: todos', 'grupo' => 'payment_status'],
-                    ['value' => 'due', 'label' => 'Status de pagamento: em aberto', 'grupo' => 'payment_status'],
-                    ['value' => 'partial', 'label' => 'Status de pagamento: parcial', 'grupo' => 'payment_status'],
-                    ['value' => 'overdue', 'label' => 'Status de pagamento: vencido', 'grupo' => 'payment_status'],
-                    ['value' => 'has_no_transactions', 'label' => 'Pedidos: '.__('crm::lang.has_no_transactions'), 'grupo' => 'orders'],
-                ],
-            ]),
-            // Rodapé do protótipo (TelaAcompanhamentos): contagem por status e por tipo sobre a MESMA
-            // consulta filtrada da lista — não sobre a página, que é só um recorte de 25 (thread Crm/07).
-            'contagem' => Inertia::defer(function () use ($schedules) {
-                $ids = (clone $schedules)->pluck('crm_schedules.id');
-                $por = fn (string $col) => Schedule::whereIn('id', $ids)->groupBy($col)->selectRaw("{$col} as chave, count(*) as n")
-                    ->pluck('n', 'chave')->map(fn ($n) => (int) $n);
-
-                return ['total' => $ids->count(), 'status' => $por('status'), 'tipo' => $por('schedule_type')];
-            }),
-            'acompanhamentos' => Inertia::defer(fn () => $schedules
-                ->orderByDesc('crm_schedules.start_datetime')
-                ->paginate(25)
-                ->withQueryString()
-                ->through(fn ($s) => [
-                    'id' => $s->id,
-                    'titulo' => $s->title,
-                    'contato' => trim(($s->biz_name ? $s->biz_name.', ' : '').$s->contact),
-                    'inicio' => $data($s->start_datetime),
-                    'fim' => $data($s->end_datetime),
-                    'status' => $s->status,
-                    'tipo' => $s->schedule_type,
-                    'categoria' => $s->followup_category,
-                    'atribuidos' => $s->users->pluck('user_full_name')->values(),
-                    'descricao' => strip_tags((string) $s->description),
-                    'por' => $s->follow_up_by,
-                    'em_dias' => $s->recursion_days,
-                    'adicionado_por' => trim("{$s->surname} {$s->first_name} {$s->last_name}"),
-                    'adicionado_em' => $data($s->added_on),
-                    // Valores crus pro modal de edição (thread Crm/07): o form grava pelas mesmas
-                    // rotas da Blade (store/update/destroy), com datas ISO.
-                    'editar' => [
-                        'contact_id' => $s->contact_id ? (string) $s->contact_id : '',
-                        'user_id' => $s->users->pluck('id')->map(fn ($i) => (string) $i)->values(),
-                        'followup_category_id' => $s->followup_category_id ? (string) $s->followup_category_id : '',
-                        'status' => (string) $s->status,
-                        'schedule_type' => (string) $s->schedule_type,
-                        'start_datetime' => $iso($s->start_datetime),
-                        'end_datetime' => $iso($s->end_datetime),
-                        'description' => (string) $s->description,
-                        'allow_notification' => (bool) $s->allow_notification,
-                        'notify_via' => ['sms' => ! empty($s->notify_via['sms']), 'mail' => ! empty($s->notify_via['mail'])],
-                        'notify_before' => $s->notify_before,
-                        'notify_type' => (string) $s->notify_type,
-                        // Recorrente (thread Crm/07, PR-b): o modal de recorrente reabre com isto.
-                        'follow_up_by' => (string) $s->follow_up_by,
-                        'follow_up_by_value' => (string) $s->follow_up_by_value,
-                        'recursion_days' => $s->recursion_days,
-                    ],
-                ])),
-        ]);
-    }
-}
+<?php
+
+namespace Modules\Crm\Http\Controllers;
+
+use App\Category;
+use App\Contact;
+use App\Http\Controllers\Controller;
+use App\Transaction;
+use App\User;
+use App\Utils\ModuleUtil;
+use App\Utils\Util;
+use Carbon\Carbon;
+use DB;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\View;
+use Inertia\Inertia;
+use Modules\Crm\Entities\CrmContact;
+use Modules\Crm\Entities\Schedule;
+use Modules\Crm\Http\Requests\StoreScheduleRequest;
+use Modules\Crm\Http\Requests\UpdateScheduleRequest;
+use Modules\Crm\Services\ScheduleService;
+use Modules\Crm\Utils\CrmUtil;
+use App\Support\Privacy\PiiRedactor;
+use Yajra\DataTables\Facades\DataTables;
+
+class ScheduleController extends Controller
+{
+    /**
+     * All Utils instance.
+     */
+    protected $commonUtil;
+
+    protected $moduleUtil;
+
+    protected $crmUtil;
+
+    protected ScheduleService $scheduleService;
+
+    /**
+     * Constructor
+     *
+     * @param CommonUtil
+     * @return void
+     */
+    public function __construct(Util $commonUtil, ModuleUtil $moduleUtil, CrmUtil $crmUtil, ScheduleService $scheduleService)
+    {
+        $this->commonUtil = $commonUtil;
+        $this->moduleUtil = $moduleUtil;
+        $this->crmUtil = $crmUtil;
+        $this->scheduleService = $scheduleService;
+        $this->status_bg = [
+            'scheduled' => 'bg-yellow',
+            'open' => 'bg-blue',
+            'canceled' => 'bg-red',
+            'cancelled' => 'bg-red',
+            'completed' => 'bg-green',
+        ];
+    }
+
+    /**
+     * Display a listing of the resource.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function index()
+    {
+        $business_id = request()->session()->get('user.business_id');
+        $can_access_all_schedule = auth()->user()->can('crm.access_all_schedule');
+        $can_access_own_schedule = auth()->user()->can('crm.access_own_schedule');
+
+        if (!(auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'crm_module')) || !($can_access_all_schedule || $can_access_own_schedule)) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        // Thread Crm/03: a lista abre em Inertia. O Inertia manda `X-Requested-With` junto do
+        // `X-Inertia`, então `ajax()` sozinho mandaria a visita pro DataTables (§5 2026-09-08).
+        // `?classico=1` mantém a tela Blade, que ainda hospeda os modais de escrita.
+        $inertia = ! request()->boolean('classico') && (! request()->ajax() || request()->header('X-Inertia'));
+
+        if (request()->ajax() || $inertia) {
+            $schedules = Schedule::leftjoin('contacts', 'crm_schedules.contact_id', '=', 'contacts.id')
+                ->leftjoin('users as U', 'crm_schedules.created_by', '=', 'U.id')
+                ->leftjoin('categories as C', 'crm_schedules.followup_category_id', '=', 'C.id')
+                ->with(['users'])
+                ->where('crm_schedules.business_id', $business_id)
+                ->select(
+                    'crm_schedules.*',
+                    'contacts.name as contact',
+                    'contacts.supplier_business_name as biz_name',
+                    'U.surname',
+                    'U.first_name',
+                    'U.last_name',
+                    'crm_schedules.status as status',
+                    'crm_schedules.created_at as added_on',
+                    'contacts.type as contact_type',
+                    'contacts.id as contact_id',
+                    'C.name as followup_category'
+                );
+
+            if (request()->input('is_recursive') == 1) {
+                $schedules->where('crm_schedules.is_recursive', 1);
+            } else {
+                $schedules->where('crm_schedules.is_recursive', 0);
+            }
+
+            if (!empty(request()->input('contact_id'))) {
+                $schedules->where('crm_schedules.contact_id', request()->input('contact_id'));
+            }
+
+            if (!empty(request()->input('assgined_to'))) {
+                $user_id = request()->input('assgined_to');
+                $schedules->whereHas('users', function ($q) use ($user_id) {
+                    $q->where('user_id', $user_id);
+                });
+            }
+
+            if (!empty(request()->input('status'))) {
+                if (request()->input('status') == 'none') {
+                    $schedules->whereNull('crm_schedules.status');
+                } else {
+                    $schedules->where('crm_schedules.status', request()->input('status'));
+                }
+            }
+
+            if (!empty(request()->input('schedule_type'))) {
+                $schedules->where('crm_schedules.schedule_type', request()->input('schedule_type'));
+            }
+
+            if (!empty(request()->input('followup_category_id'))) {
+                $schedules->where('crm_schedules.followup_category_id', request()->input('followup_category_id'));
+            }
+
+            if (!empty(request()->input('start_date_time')) && !empty(request()->input('end_date_time'))) {
+                $start_date = request()->input('start_date_time');
+                $end_date = request()->input('end_date_time');
+                $schedules->whereBetween(DB::raw('date(start_datetime)'), [$start_date, $end_date]);
+            }
+
+            if (!empty(request()->input('follow_up_by'))) {
+                $schedules->where('crm_schedules.follow_up_by', request()->input('follow_up_by'));
+            }
+
+            if (!auth()->user()->can('superadmin') && !$can_access_all_schedule) {
+                $user_id = auth()->user()->id;
+                $schedules->whereHas('users', function ($q) use ($user_id) {
+                    $q->where('user_id', $user_id);
+                });
+            }
+
+            if ($inertia) {
+                return $this->acompanhamentosInertia($business_id, $schedules);
+            }
+
+            return Datatables::of($schedules)
+                ->addColumn('action', function ($row) {
+                    $html = '<div class="btn-group">
+                                <button class="btn btn-info dropdown-toggle btn-xs" type="button"  data-toggle="dropdown" aria-expanded="false">
+                                    ' . __('messages.action') . '
+                                    <span class="caret"></span>
+                                    <span class="sr-only">'
+                        . __('messages.action') . '
+                                    </span>
+                                </button>
+                                  <ul class="dropdown-menu dropdown-menu-left" role="menu">';
+                    // <li>
+                    //      <a href="' . action([\Modules\Crm\Http\Controllers\ScheduleController::class, 'show'], ['follow_up' => $row->id]) . '" class="cursor-pointer view_schedule">
+                    //          <i class="fa fa-eye"></i>
+                    //          '.__("messages.view").'
+                    //      </a>
+                    //  </li>';
+                    if ($row->is_recursive != 1) {
+                        $html .= '<li>
+                                        <a data-schedule_id="' . $row->id . '"class="cursor-pointer view_schedule_log">
+                                            <i class="fa fa-eye"></i>
+                                            ' . __('crm::lang.view_follow_up') . '
+                                        </a>
+                                    </li>';
+
+                        $html .= '<li>
+                                        <a data-href="' . action([\Modules\Crm\Http\Controllers\ScheduleLogController::class, 'create'], ['schedule_id' => $row->id]) . '"class="cursor-pointer schedule_log_add">
+                                            <i class="fa fa-edit"></i>
+                                            ' . __('crm::lang.add_schedule_log') . '
+                                        </a>
+                                    </li>';
+
+                        $html .= '<li>
+                                        <a data-href="' . action([\Modules\Crm\Http\Controllers\ScheduleController::class, 'edit'], ['follow_up' => $row->id]) . '"class="cursor-pointer schedule_edit">
+                                            <i class="fa fa-edit"></i>
+                                            ' . __('messages.edit') . '
+                                        </a>
+                                    </li>';
+                    }
+
+                    $html .= '<li>
+                                        <a data-href="' . action([\Modules\Crm\Http\Controllers\ScheduleController::class, 'destroy'], ['follow_up' => $row->id]) . '" class="cursor-pointer schedule_delete">
+                                            <i class="fas fa-trash"></i>
+                                            ' . __('messages.delete') . '
+                                        </a>
+                                    </li>';
+
+                    $html .= '</ul>
+                            </div>';
+
+                    return $html;
+                })
+                ->editColumn('start_datetime', ' @if(!empty($start_datetime))
+                    {{@format_datetime($start_datetime)}}<br>
+                    <i>(<span class="time-from-now">{{$start_datetime}}</span>)</i> @endif
+                ')
+                ->editColumn('end_datetime', '
+                    @if(!empty($end_datetime)){{@format_datetime($end_datetime)}} @endif
+                ')
+                ->editColumn('contact', '
+                    @if(!empty($biz_name)) {{$biz_name}},<br>@endif {{$contact}}
+                    <br>
+                    @if($contact_type == "lead")
+                        <a href="{{action(\'\Modules\Crm\Http\Controllers\LeadController@show\', [\'lead\' => $contact_id])}}" target="_blank">
+                            <i class="fas fa-external-link-square-alt text-info"></i>
+                        </a>
+                    @else
+                    <a href="{{action(\'App\Http\Controllers\ContactController@show\', [$contact_id])}}" target="_blank">
+                            <i class="fas fa-external-link-square-alt text-info"></i>
+                        </a>
+                    @endif
+                ')
+                ->addColumn('added_by', function ($row) {
+                    return "{$row->surname} {$row->first_name} {$row->last_name}";
+                })
+                ->addColumn('additional_info', function ($row) {
+                    $html = '';
+                    $infos = $row->followup_additional_info;
+                    if (!empty($infos)) {
+                        foreach ($infos as $key => $value) {
+                            $html .= $key . ' : ' . $value . '<br>';
+                        }
+                    }
+
+                    return $html;
+                })
+                ->editColumn('added_on', '
+                    {{@format_datetime($added_on)}}
+                ')
+                ->editColumn('schedule_type', function ($row) {
+                    $html = '';
+                    if (!empty($row->schedule_type)) {
+                        $html = '<div class="schedule_type" data-orig-value="' . __('crm::lang.' . $row->schedule_type) . '" data-status-name="' . __('crm::lang.' . $row->schedule_type) . '">
+                                    ' . __('crm::lang.' . $row->schedule_type) .
+                            '</div>';
+                    }
+
+                    return $html;
+                })
+                ->editColumn('users', function ($row) {
+                    $html = '&nbsp;';
+                    if ($row->users->count() > 0) {
+                        foreach ($row->users as $user) {
+                            if (isset($user->media->display_url)) {
+                                $html .= '<img class="user_avatar" src="' . $user->media->display_url . '" data-toggle="tooltip" title="' . $user->user_full_name . '">';
+                            } else {
+                                $html .= '<img class="user_avatar" src="https://ui-avatars.com/api/?name=' . $user->first_name . '" data-toggle="tooltip" title="' . $user->user_full_name . '">';
+                            }
+                        }
+                    }
+
+                    return $html;
+                })
+                ->editColumn('status', function ($row) {
+                    $html = '';
+                    if (!empty($row->status)) {
+                        $html = '<span class="text-center label status ' . $this->status_bg[$row->status] . '" data-orig-value="' . __('crm::lang.' . $row->status) . '" data-status-name="' . __('crm::lang.' . $row->status) . '"><small>
+                                    ' . __('crm::lang.' . $row->status) .
+                            '</small></span>';
+                    }
+
+                    return $html;
+                })
+                ->editColumn('follow_up_by', function ($row) {
+                    $follow_up_by = '';
+
+                    if ($row->follow_up_by == 'payment_status') {
+                        $follow_up_by = __('sale.payment_status') . ' - ' . __('lang_v1.' . $row->follow_up_by_value);
+                    } elseif ($row->follow_up_by == 'orders') {
+                        $follow_up_by = __('restaurant.orders') . ' - ' . __('crm::lang.has_no_transactions');
+                    }
+
+                    return $follow_up_by;
+                })
+                ->removeColumn('id')
+                ->rawColumns([
+                    'action', 'start_datetime', 'end_datetime', 'users', 'contact', 'added_on',
+                    'additional_info', 'schedule_type', 'status', 'description',
+                ])
+                ->make(true);
+        }
+
+        $leads = CrmContact::leadsDropdown($business_id, false);
+        $contacts = Contact::customersDropdown($business_id, false)->toArray();
+
+        foreach ($contacts as $key => $value) {
+            $contacts[$key] = $value . ' (' . __('contact.customer') . ')';
+        }
+        foreach ($leads as $key => $value) {
+            $contacts[$key] = $value . ' (' . __('crm::lang.lead') . ')';
+        }
+
+        $assigned_to = User::forDropdown($business_id, false);
+        $statuses = Schedule::statusDropdown(true);
+        $follow_up_types = Schedule::followUpTypeDropdown();
+
+        // Set default user from get parameter
+        $default_user = request()->input('assigned_to', null);
+
+        // Set default status from get parameter
+        $default_status = request()->input('status', null);
+
+        // Set default date from get parameter
+        $default_start_date = request()->input('start_date', null);
+        $default_end_date = request()->input('end_date', null);
+
+        $default_followup_category_id = request()->input('followup_category_id', null);
+
+        $followup_category = Category::forDropdown($business_id, 'followup_category');
+
+        return view('crm::schedule.index')
+            ->with(compact(
+                'contacts',
+                'assigned_to',
+                'statuses',
+                'follow_up_types',
+                'default_start_date',
+                'default_end_date',
+                'default_status',
+                'default_user',
+                'followup_category',
+                'default_followup_category_id'
+            ));
+    }
+
+    /**
+     * Show the form for creating a new resource.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function create()
+    {
+        $business_id = request()->session()->get('user.business_id');
+        if (!(auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'crm_module'))) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $schedule_for = request()->get('schedule_for', 'customer');
+        $statuses = Schedule::statusDropdown();
+        $follow_up_types = Schedule::followUpTypeDropdown();
+        $notify_type = Schedule::followUpNotifyTypeDropdown();
+        $followup_tags = $this->crmUtil->getAdvFollowupsTags();
+        $users = User::forDropdown($business_id, false);
+        $followup_category = Category::forDropdown($business_id, 'followup_category');
+
+        if (request()->has('is_recursive')) {
+            return view('crm::schedule.create_recursive_follow_up')
+                ->with(compact('statuses', 'follow_up_types', 'notify_type', 'followup_tags', 'users', 'followup_category'));
+        }
+
+        $customers = CrmContact::getCustomerAndLeadsDropdown($business_id);
+        if (request()->ajax()) {
+            $contact_id = request()->get('contact_id', '');
+
+            return view('crm::schedule.create')
+                ->with(compact('customers', 'users', 'statuses', 'contact_id', 'schedule_for', 'follow_up_types', 'notify_type', 'followup_category'));
+        }
+
+        return view('crm::schedule.create_advance_follow_up')
+            ->with(compact('statuses', 'schedule_for', 'follow_up_types', 'notify_type', 'followup_tags', 'customers', 'followup_category'));
+    }
+
+    /**
+     * Store a newly created resource in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function store(StoreScheduleRequest $request)
+    {
+        // Permissão + escopo Crm validados em StoreScheduleRequest::authorize().
+        // business_id continua sendo lido da sessão pra preservar multi-tenant (ADR 0093).
+        $business_id = request()->session()->get('user.business_id');
+
+        try {
+            $input = $request->except(['_token', 'schedule_for', 'contact_ids']);
+
+            // Service thin: normaliza datas + roteia entre 3 modos follow-up (simples/recursivo/advanced).
+            $this->scheduleService->createFollowUp($input, \Auth::user());
+
+            $schedule_for = request()->get('schedule_for', 'customer');
+
+            $output = [
+                'success' => true,
+                'msg' => __('lang_v1.success'),
+                'schedule_for' => $schedule_for,
+            ];
+        } catch (Exception $e) {
+            // D7 LGPD: redaciona PII em mensagens de erro antes de logar (schedule toca contato + notify).
+            \Log::emergency('File:' . $e->getFile() . 'Line:' . $e->getLine() . 'Message:' . app(PiiRedactor::class)->redact($e->getMessage()));
+
+            $output = [
+                'success' => false,
+                'msg' => __('messages.something_went_wrong'),
+            ];
+        }
+
+        if (request()->ajax()) {
+            return $output;
+        } else {
+            return redirect()->action([\Modules\Crm\Http\Controllers\ScheduleController::class, 'index'])->with(['status' => $output]);
+        }
+    }
+
+    /**
+     * Display the specified resource.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    // public function show($id)
+    // {
+    //     $business_id = request()->session()->get('user.business_id');
+    //     $can_access_all_schedule = auth()->user()->can('crm.access_all_schedule');
+    //     $can_access_own_schedule = auth()->user()->can('crm.access_own_schedule');
+
+    //     if (!(auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'crm_module')) || !($can_access_all_schedule || $can_access_own_schedule)) {
+    //         abort(403, 'Unauthorized action.');
+    //     }
+
+    //     $query = Schedule::with(['customer', 'users', 'invoices', 'invoices.payment_lines'])
+    //                     ->where('business_id', $business_id);
+
+    //     if (!$can_access_all_schedule && $can_access_own_schedule) {
+    //         $query->where( function($qry) {
+    //             $qry->whereHas('users', function($q){
+    //                 $q->where('user_id', auth()->user()->id);
+    //             })->orWhere('created_by', auth()->user()->id);
+    //         });
+    //     }
+    //     $schedule = $query->findOrFail($id);
+
+    //     return view('crm::schedule.show')
+    //         ->with(compact('schedule'));
+    // }
+
+    /**
+     * Show the form for editing the specified resource.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function edit($id)
+    {
+        $business_id = request()->session()->get('user.business_id');
+        $can_access_all_schedule = auth()->user()->can('crm.access_all_schedule');
+        $can_access_own_schedule = auth()->user()->can('crm.access_own_schedule');
+
+        if (!(auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'crm_module')) || !($can_access_all_schedule || $can_access_own_schedule)) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $query = Schedule::with(['customer', 'users'])
+            ->where('business_id', $business_id);
+
+        if (!$can_access_all_schedule && $can_access_own_schedule) {
+            $query->where(function ($qry) {
+                $qry->whereHas('users', function ($q) {
+                    $q->where('user_id', auth()->user()->id);
+                })->orWhere('created_by', auth()->user()->id);
+            });
+        }
+        $schedule = $query->findOrFail($id);
+
+        $schedule_for = request()->get('schedule_for', 'customer');
+
+        $leads = CrmContact::leadsDropdown($business_id, false, false);
+        $customers = Contact::customersDropdown($business_id, false, false)->toArray();
+        $followup_category = Category::forDropdown($business_id, 'followup_category');
+
+        foreach ($customers as $key => $value) {
+            $customers[$key] = $value . ' (' . __('contact.customer') . ')';
+        }
+        foreach ($leads as $key => $value) {
+            $customers[$key] = $value . ' (' . __('crm::lang.lead') . ')';
+        }
+
+        $users = User::forDropdown($business_id, false);
+        $statuses = Schedule::statusDropdown();
+        $follow_up_types = Schedule::followUpTypeDropdown();
+        $notify_type = Schedule::followUpNotifyTypeDropdown();
+
+        return view('crm::schedule.edit')
+            ->with(compact('schedule', 'customers', 'users', 'statuses', 'schedule_for', 'follow_up_types', 'notify_type', 'followup_category'));
+    }
+
+    /**
+     * Update the specified resource in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function update(UpdateScheduleRequest $request, $id)
+    {
+        // Permissões crm_module + access_all/own_schedule validadas em UpdateScheduleRequest::authorize().
+        $business_id = request()->session()->get('user.business_id');
+        $can_access_all_schedule = auth()->user()->can('crm.access_all_schedule');
+        $can_access_own_schedule = auth()->user()->can('crm.access_own_schedule');
+
+        try {
+            // business_id/created_by nunca vêm do formulário: o model tem `$guarded = ['id']`
+            // e o update em massa moveria o acompanhamento de negócio (Tier 0, ADR 0093).
+            $payload = $request->except(['_method', '_token', 'schedule_for', 'business_id', 'created_by']);
+
+            // Service thin: normaliza datas + delega pra CrmUtil::updateFollowUp.
+            $this->scheduleService->updateFollowUp((int) $id, $payload, \Auth::user());
+
+            $schedule_for = request()->get('schedule_for', 'customer');
+
+            $output = [
+                'success' => true,
+                'msg' => __('lang_v1.success'),
+                'schedule_for' => $schedule_for,
+            ];
+        } catch (Exception $e) {
+            // D7 LGPD: redaciona PII em mensagens de erro antes de logar (schedule toca contato + notify).
+            \Log::emergency('File:' . $e->getFile() . 'Line:' . $e->getLine() . 'Message:' . app(PiiRedactor::class)->redact($e->getMessage()));
+
+            $output = [
+                'success' => false,
+                'msg' => __('messages.something_went_wrong'),
+            ];
+        }
+
+        return $output;
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function destroy($id)
+    {
+        $business_id = request()->session()->get('user.business_id');
+        $can_access_all_schedule = auth()->user()->can('crm.access_all_schedule');
+        $can_access_own_schedule = auth()->user()->can('crm.access_own_schedule');
+
+        if (!(auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'crm_module')) || !($can_access_all_schedule || $can_access_own_schedule)) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        if (request()->ajax()) {
+            try {
+                $query = Schedule::where('business_id', $business_id);
+
+                if (!$can_access_all_schedule && $can_access_own_schedule) {
+                    $query->where(function ($qry) {
+                        $qry->whereHas('users', function ($q) {
+                            $q->where('user_id', auth()->user()->id);
+                        })->orWhere('created_by', auth()->user()->id);
+                    });
+                }
+                $schedule = $query->findOrFail($id);
+
+                $schedule->delete();
+
+                $view_type = request()->get('view_type', 'schedule');
+                $output = [
+                    'success' => true,
+                    'msg' => __('lang_v1.success'),
+                    'action' => action([\Modules\Crm\Http\Controllers\ScheduleController::class, 'index']),
+                    'view_type' => $view_type,
+                ];
+            } catch (Exception $e) {
+                // D7 LGPD: redaciona PII em mensagens de erro antes de logar (schedule toca contato + notify).
+            \Log::emergency('File:' . $e->getFile() . 'Line:' . $e->getLine() . 'Message:' . app(PiiRedactor::class)->redact($e->getMessage()));
+
+                $output = [
+                    'success' => false,
+                    'msg' => __('messages.something_went_wrong'),
+                ];
+            }
+
+            return $output;
+        }
+    }
+
+    /**
+     * Get today's schedule
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function getTodaysSchedule()
+    {
+        $business_id = request()->session()->get('user.business_id');
+        if (!(auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'crm_module'))) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        try {
+            $start_date = Carbon::today();
+
+            $query = $this->crmUtil->getFollowUpForGivenDate(\Auth::user(), $start_date);
+
+            $schedules = $query->get();
+
+            $schedule_html = view('crm::schedule.partial.today_schedule')
+                ->with(compact('schedules'))
+                ->render();
+            $output = [
+                'success' => true,
+                'msg' => __('lang_v1.success'),
+                'todays_schedule' => $schedule_html,
+            ];
+        } catch (Exception $e) {
+            // D7 LGPD: redaciona PII em mensagens de erro antes de logar (schedule toca contato + notify).
+            \Log::emergency('File:' . $e->getFile() . 'Line:' . $e->getLine() . 'Message:' . app(PiiRedactor::class)->redact($e->getMessage()));
+
+            $output = [
+                'success' => false,
+                'msg' => __('messages.something_went_wrong'),
+            ];
+        }
+
+        return $output;
+    }
+
+    public function getLeadSchedule(Request $request)
+    {
+        $business_id = request()->session()->get('user.business_id');
+        if (!(auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'crm_module'))) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $lead_id = $request->get('lead_id');
+        $schedules = Schedule::with('users')
+            ->where('business_id', $business_id)
+            ->where('contact_id', $lead_id)
+            ->select('*');
+
+        return Datatables::of($schedules)
+            ->addColumn('action', function ($row) {
+                $html = '<div class="btn-group">
+                            <button class="btn btn-info dropdown-toggle btn-xs" type="button"  data-toggle="dropdown" aria-expanded="false">
+                                ' . __('messages.action') . '
+                                <span class="caret"></span>
+                                <span class="sr-only">'
+                    . __('messages.action') . '
+                                </span>
+                            </button>
+                              <ul class="dropdown-menu dropdown-menu-left" role="menu">
+                                <li>
+                                    <a data-schedule_id="' . $row->id . '"class="cursor-pointer view_schedule_log">
+                                        <i class="fa fa-eye"></i>
+                                        ' . __('crm::lang.view_follow_up') . '
+                                    </a>
+                                </li>
+                                <li>
+                                    <a data-href="' . action([\Modules\Crm\Http\Controllers\ScheduleController::class, 'edit'], ['follow_up' => $row->id]) . '?schedule_for=lead"class="cursor-pointer schedule_edit">
+                                        <i class="fa fa-edit"></i>
+                                        ' . __('messages.edit') . '
+                                    </a>
+                                </li>
+                                <li>
+                                    <a data-href="' . action([\Modules\Crm\Http\Controllers\ScheduleController::class, 'destroy'], ['follow_up' => $row->id]) . '" class="cursor-pointer schedule_delete">
+                                        <i class="fas fa-trash"></i>
+                                        ' . __('messages.delete') . '
+                                    </a>
+                                </li>';
+
+                $html .= '</ul>
+                        </div>';
+
+                return $html;
+            })
+            ->editColumn('start_datetime', '
+                {{@format_datetime($start_datetime)}}
+            ')
+            ->editColumn('end_datetime', '
+                {{@format_datetime($end_datetime)}}
+            ')
+            ->editColumn('users', function ($row) {
+                $html = '&nbsp;';
+                foreach ($row->users as $user) {
+                    if (isset($user->media->display_url)) {
+                        $html .= '<img class="user_avatar" src="' . $user->media->display_url . '" data-toggle="tooltip" title="' . $user->user_full_name . '">';
+                    } else {
+                        $html .= '<img class="user_avatar" src="https://ui-avatars.com/api/?name=' . $user->first_name . '" data-toggle="tooltip" title="' . $user->user_full_name . '">';
+                    }
+                }
+
+                return $html;
+            })
+            ->removeColumn('id')
+            ->rawColumns(['action', 'start_datetime', 'end_datetime', 'users'])
+            ->make(true);
+    }
+
+    /**
+     * Get invoices dropdaown by payment status or transaction activity
+     *
+     * @return array
+     */
+    public function getInvoicesForFollowUp()
+    {
+        $business_id = request()->session()->get('user.business_id');
+        $follow_up_by = request()->input('follow_up_by');
+        $payment_status = request()->input('payment_status');
+
+        $query = Transaction::with(['contact'])
+            ->where('business_id', $business_id)
+            ->where('type', 'sell')
+            ->where('status', 'final');
+
+        $permitted_locations = auth()->user()->permitted_locations();
+        if ($permitted_locations != 'all') {
+            $query->whereIn('transactions.location_id', $permitted_locations);
+        }
+
+        if ($follow_up_by == 'payment_status') {
+            if ($payment_status == 'all') {
+                $query->whereIn('payment_status', ['due', 'partial']);
+            } elseif ($payment_status == 'due') {
+                $query->where('payment_status', 'due');
+            } elseif ($payment_status == 'partial') {
+                $query->where('payment_status', 'partial');
+            } elseif ($payment_status == 'overdue') {
+                $query->overDue();
+            }
+        }
+
+        $sells = $query->select('id', 'invoice_no', 'payment_status', 'contact_id', 'pay_term_number', 'pay_term_type', 'transaction_date')
+            ->get();
+
+        $sells_array = [];
+
+        foreach ($sells as $sell) {
+            $payment_status = Transaction::getPaymentStatus($sell);
+            $contact = ' - ' . $sell->contact->name;
+            if (!empty($sell->contact->supplier_business_name)) {
+                $contact = ' - ' . $sell->contact->supplier_business_name . $contact;
+            }
+
+            $sells_array[] = [
+                'id' => $sell->id,
+                'text' => $sell->invoice_no . ' (' . __('lang_v1.' . $payment_status) . $contact . ')',
+            ];
+        }
+
+        return $sells_array;
+    }
+
+    /**
+     * Groups customers for follow-up based on payment status
+     * or transaction activity
+     *
+     * @return html
+     */
+    public function getFollowUpGroups()
+    {
+        $business_id = request()->session()->get('user.business_id');
+        $users = User::forDropdown($business_id, false);
+        $follow_up_by = request()->input('follow_up_by');
+        if ($follow_up_by == 'payment_status') {
+            $invoices = request()->input('invoices');
+            $sells = Transaction::where('business_id', $business_id)
+                ->where('type', 'sell')
+                ->where('status', 'final')
+                ->whereIn('id', $invoices)
+                ->with(['contact'])
+                ->select('id', 'invoice_no', 'contact_id')
+                ->get();
+
+            $sells_by_customer = [];
+
+            foreach ($sells as $sell) {
+                $sells_by_customer[$sell->contact_id][] = $sell;
+            }
+
+            if (request()->wantsJson()) {
+                return $this->gruposJson(collect($sells_by_customer)->map(fn ($v) => $v[0]->getRelation('contact'))->values(), $sells_by_customer);
+            }
+
+            return view('crm::schedule.partial.group_invoices_by_customer')
+                ->with(compact('sells_by_customer', 'users'));
+        } elseif ($follow_up_by == 'contact_name') {
+            $contact_ids = request()->input('contact_ids');
+            $customers = Contact::where('contacts.business_id', $business_id)
+                ->whereIn('id', (array) $contact_ids)
+                ->get();
+
+            if (request()->wantsJson()) {
+                return $this->gruposJson($customers);
+            }
+
+            return view('crm::schedule.partial.group_customers')
+                ->with(compact('customers', 'users'));
+        } else {
+            $days = request()->input('days');
+
+            $from_transaction_date = \Carbon::now()->subDays($days)->format('Y-m-d');
+            $query = Contact::where('contacts.business_id', $business_id)
+                ->OnlyCustomers()
+                ->leftJoin('transactions as t', 't.contact_id', '=', 'contacts.id');
+
+            if ($follow_up_by == 'has_transactions') {
+                $query->whereNotNull('t.id')
+                    ->havingRaw("MAX(DATE(transaction_date)) >= '{$from_transaction_date}'");
+            }
+
+            if ($follow_up_by == 'has_no_transactions') {
+                $query->havingRaw("MAX(DATE(transaction_date)) < '{$from_transaction_date}'")
+                    ->orHavingRaw('transaction_date IS NULL');
+            }
+
+            $customers = $query->select('contacts.*', 'transaction_date')
+                ->groupBy('contacts.id')
+                ->get();
+
+            if (request()->wantsJson()) {
+                return $this->gruposJson($customers);
+            }
+
+            return view('crm::schedule.partial.group_customers')
+                ->with(compact('customers', 'users'));
+        }
+    }
+
+    /**
+     * "Quem vai receber" do acompanhamento antecipado em JSON (thread Crm/07, PR-c2) — o mesmo
+     * agrupamento dos partials Blade, que seguem servindo a tela clássica. Uma linha por contato,
+     * com as faturas dele (só no caso por pagamento) e o atribuído padrão (`created_by`, como o
+     * `<select>` da Blade). Os contatos já vêm filtrados pelo negócio da sessão.
+     */
+    private function gruposJson($contatos, array $faturasPorContato = [])
+    {
+        return response()->json(['grupos' => collect($contatos)->map(fn ($c) => [
+            'contact_id' => (int) $c->id,
+            'cliente' => trim(($c->supplier_business_name ? $c->supplier_business_name.' · ' : '').$c->name),
+            'faturas' => collect($faturasPorContato[$c->id] ?? [])->map(fn ($s) => ['id' => (int) $s->id, 'numero' => (string) $s->invoice_no])->values(),
+            'atribuido' => $c->created_by ? (string) $c->created_by : null,
+        ])->values()]);
+    }
+
+    public function getCustomerDropdown($business_id)
+    {
+        $leads = CrmContact::leadsDropdown($business_id, false);
+        $customers = Contact::customersDropdown($business_id, false)->toArray();
+
+        foreach ($customers as $key => $value) {
+            $customers[$key] = $value . ' (' . __('contact.customer') . ')';
+        }
+        foreach ($leads as $key => $value) {
+            $customers[$key] = $value . ' (' . __('crm::lang.lead') . ')';
+        }
+
+        return $customers;
+    }
+
+    /**
+     * Lista de acompanhamentos em Inertia (thread Crm/03). Recebe a MESMA consulta do
+     * DataTables — business_id, filtros e a restrição "só os meus" já aplicados —, então
+     * a tela nova não tem como ver mais do que a Blade via.
+     */
+    private function acompanhamentosInertia($business_id, $schedules)
+    {
+        $busca = trim((string) request()->input('q', ''));
+        if ($busca !== '') {
+            $schedules->where(function ($w) use ($busca) {
+                $w->where('crm_schedules.title', 'like', "%{$busca}%")
+                    ->orWhere('contacts.name', 'like', "%{$busca}%")
+                    ->orWhere('contacts.supplier_business_name', 'like', "%{$busca}%");
+            });
+        }
+
+        $lista = fn ($mapa) => collect($mapa)->map(fn ($label, $value) => ['value' => (string) $value, 'label' => (string) $label])->values();
+        $data = fn ($d) => empty($d) ? null : Carbon::parse($d)->format('d/m/Y H:i');
+        $iso = fn ($d) => empty($d) ? '' : Carbon::parse($d)->format('Y-m-d\TH:i');
+
+        return Inertia::render('Crm/Acompanhamentos/Index', [
+            'filtros' => request()->only(['is_recursive', 'contact_id', 'assgined_to', 'status', 'schedule_type', 'followup_category_id', 'start_date_time', 'end_date_time', 'follow_up_by', 'q']),
+            'opcoes' => Inertia::defer(fn () => [
+                'contatos' => $lista($this->getCustomerDropdown($business_id)),
+                'usuarios' => $lista(User::forDropdown($business_id, false)),
+                'status' => $lista(Schedule::statusDropdown(true)),
+                'tipos' => $lista(Schedule::followUpTypeDropdown()),
+                'categorias' => $lista(Category::forDropdown($business_id, 'followup_category')),
+                'por' => $lista(['payment_status' => __('sale.payment_status'), 'orders' => __('restaurant.orders')]),
+                'notificar' => $lista(Schedule::followUpNotifyTypeDropdown()),
+                // "Acompanhamento por" do recorrente: as opções da Blade
+                // (create_recursive_follow_up), com o grupo que vira `follow_up_by`.
+                'recorrencia' => [
+                    ['value' => 'all', 'label' => 'Status de pagamento: todos', 'grupo' => 'payment_status'],
+                    ['value' => 'due', 'label' => 'Status de pagamento: em aberto', 'grupo' => 'payment_status'],
+                    ['value' => 'partial', 'label' => 'Status de pagamento: parcial', 'grupo' => 'payment_status'],
+                    ['value' => 'overdue', 'label' => 'Status de pagamento: vencido', 'grupo' => 'payment_status'],
+                    ['value' => 'has_no_transactions', 'label' => 'Pedidos: '.__('crm::lang.has_no_transactions'), 'grupo' => 'orders'],
+                ],
+            ]),
+            // Rodapé do protótipo (TelaAcompanhamentos): contagem por status e por tipo sobre a MESMA
+            // consulta filtrada da lista — não sobre a página, que é só um recorte de 25 (thread Crm/07).
+            'contagem' => Inertia::defer(function () use ($schedules) {
+                $ids = (clone $schedules)->pluck('crm_schedules.id');
+                $por = fn (string $col) => Schedule::whereIn('id', $ids)->groupBy($col)->selectRaw("{$col} as chave, count(*) as n")
+                    ->pluck('n', 'chave')->map(fn ($n) => (int) $n);
+
+                return ['total' => $ids->count(), 'status' => $por('status'), 'tipo' => $por('schedule_type')];
+            }),
+            'acompanhamentos' => Inertia::defer(fn () => $schedules
+                ->orderByDesc('crm_schedules.start_datetime')
+                ->paginate(25)
+                ->withQueryString()
+                ->through(fn ($s) => [
+                    'id' => $s->id,
+                    'titulo' => $s->title,
+                    'contato' => trim(($s->biz_name ? $s->biz_name.', ' : '').$s->contact),
+                    'inicio' => $data($s->start_datetime),
+                    'fim' => $data($s->end_datetime),
+                    'status' => $s->status,
+                    'tipo' => $s->schedule_type,
+                    'categoria' => $s->followup_category,
+                    'atribuidos' => $s->users->pluck('user_full_name')->values(),
+                    'descricao' => strip_tags((string) $s->description),
+                    'por' => $s->follow_up_by,
+                    'em_dias' => $s->recursion_days,
+                    'adicionado_por' => trim("{$s->surname} {$s->first_name} {$s->last_name}"),
+                    'adicionado_em' => $data($s->added_on),
+                    // Valores crus pro modal de edição (thread Crm/07): o form grava pelas mesmas
+                    // rotas da Blade (store/update/destroy), com datas ISO.
+                    'editar' => [
+                        'contact_id' => $s->contact_id ? (string) $s->contact_id : '',
+                        'user_id' => $s->users->pluck('id')->map(fn ($i) => (string) $i)->values(),
+                        'followup_category_id' => $s->followup_category_id ? (string) $s->followup_category_id : '',
+                        'status' => (string) $s->status,
+                        'schedule_type' => (string) $s->schedule_type,
+                        'start_datetime' => $iso($s->start_datetime),
+                        'end_datetime' => $iso($s->end_datetime),
+                        'description' => (string) $s->description,
+                        'allow_notification' => (bool) $s->allow_notification,
+                        'notify_via' => ['sms' => ! empty($s->notify_via['sms']), 'mail' => ! empty($s->notify_via['mail'])],
+                        'notify_before' => $s->notify_before,
+                        'notify_type' => (string) $s->notify_type,
+                        // Recorrente (thread Crm/07, PR-b): o modal de recorrente reabre com isto.
+                        'follow_up_by' => (string) $s->follow_up_by,
+                        'follow_up_by_value' => (string) $s->follow_up_by_value,
+                        'recursion_days' => $s->recursion_days,
+                    ],
+                ])),
+        ]);
+    }
+}
