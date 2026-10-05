@@ -9,8 +9,8 @@
 // Contrato: governance/design/contracts/crm-acompanhamentos.contract.json
 //
 // Escrita (thread Crm/07): adicionar, editar, excluir (PR-a), recorrente e registro (PR-b) abrem
-// aqui e gravam pelas mesmas rotas da Blade. Só o "Acompanhamento antecipado" segue na Blade
-// (`?classico=1`): ele monta grupos por fatura via getFollowUpGroups, que devolve HTML.
+// aqui e gravam pelas mesmas rotas da Blade. O "Acompanhamento antecipado" (PR-c2) também: lê os
+// grupos do getFollowUpGroups em JSON e grava pelo store, que valida o negócio (PR-c1).
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Deferred, router } from '@inertiajs/react';
@@ -37,10 +37,10 @@ import {
 import FormAcompanhamento from './_components/FormAcompanhamento';
 import FormRecorrente from './_components/FormRecorrente';
 import FormRegistro from './_components/FormRegistro';
+import FormAntecipado from './_components/FormAntecipado';
 import { NOVO, NOVO_RECORRENTE, csrf, type Recorrente, type Valores } from './_components/acompanhamento';
 
 const ROTA = '/crm/follow-ups';
-const CLASSICO = `${ROTA}?classico=1`;
 const TODOS = '__todos';
 
 interface Opcao { value: string; label: string }
@@ -78,6 +78,7 @@ export default function AcompanhamentosIndex({ filtros, opcoes, acompanhamentos 
   const [excluir, setExcluir] = useState<Acompanhamento | null>(null);
   const [rec, setRec] = useState<{ id: number | null; inicial: Recorrente } | null>(null);
   const [registro, setRegistro] = useState<Acompanhamento | null>(null);
+  const [antecipado, setAntecipado] = useState(false);
   const recarregar = () => router.reload({ only: ['acompanhamentos'] });
   const acoes = {
     editar: (r: Acompanhamento) => setForm({ id: r.id, inicial: { ...r.editar, title: r.titulo } }),
@@ -133,7 +134,7 @@ export default function AcompanhamentosIndex({ filtros, opcoes, acompanhamentos 
             <h3 className="text-sm font-medium">Todos os acompanhamentos</h3>
             <div className="ml-auto flex flex-wrap gap-2" data-contract="crm-toolbar">
               <Button variant="outline" size="sm" onClick={() => setRec({ id: null, inicial: NOVO_RECORRENTE })}>Recorrente</Button>
-              <Button asChild variant="outline" size="sm"><a href={CLASSICO}>Acompanhamento antecipado</a></Button>
+              <Button variant="outline" size="sm" onClick={() => setAntecipado(true)}>Acompanhamento antecipado</Button>
               <Button size="sm" onClick={() => setForm({ id: null, inicial: NOVO })}>Adicionar</Button>
             </div>
           </div>
@@ -180,6 +181,10 @@ export default function AcompanhamentosIndex({ filtros, opcoes, acompanhamentos 
       {rec ? (
         <FormRecorrente key={rec.id ?? 'novo'} id={rec.id} inicial={rec.inicial} opcoes={opcoes}
           onFechar={() => setRec(null)} onSalvo={() => { setRec(null); recarregar(); }} />
+      ) : null}
+
+      {antecipado ? (
+        <FormAntecipado opcoes={opcoes} onFechar={() => setAntecipado(false)} onSalvo={() => { setAntecipado(false); recarregar(); }} />
       ) : null}
 
       {registro ? (
