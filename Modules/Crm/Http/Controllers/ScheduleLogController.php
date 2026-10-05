@@ -136,8 +136,9 @@ class ScheduleLogController extends Controller
 
         try {
             $input = $request->only('log_type', 'subject', 'description');
-            $input['start_datetime'] = $this->commonUtil->uf_date($request->input('start_datetime'), true);
-            $input['end_datetime'] = $this->commonUtil->uf_date($request->input('end_datetime'), true);
+            // Aceita o ISO do modal Inertia (thread Crm/07, PR-b) e o formato da empresa da Blade.
+            $input['start_datetime'] = $this->commonUtil->uf_datetime_input($request->input('start_datetime'));
+            $input['end_datetime'] = $this->commonUtil->uf_datetime_input($request->input('end_datetime'));
             $input['created_by'] = $request->user()->id;
 
             $schedule = Schedule::where('business_id', $business_id)

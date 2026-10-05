@@ -13,7 +13,7 @@ last_run_ci: "_pendente_ — o trio nasce na thread Produto/02. O veredito por U
 
 > **Âncora:** o [charter](Index.charter.md) (R1, R3, R4, R6 e os Anti-hooks), copiado do trio proposto
 > `cowork-inbox/produto-telas-novas/Cadastros.casos.md` (UC-CAD-01..16, F1 [CC] 2026-08-21), a ficha
-> `05-cadastros.md` do playbook e as permissões que as Blades já exigiam (`unit.*`, `brand.*`,
+> `05-cadastros.md` e `03-cadastros.md` do playbook e as permissões que as Blades já exigiam (`unit.*`, `brand.*`,
 > `category.*` só para `category_type = product`).
 > Os UCs não derivam do `.tsx`. A coluna "origem" diz de qual UC-CAD cada um veio.
 
@@ -173,8 +173,60 @@ Status: 🧪
 
 ---
 
+## UC-PCADAP-13 · As rotas de Variações, Grupos de preço e Garantias abrem a mesma tela · `must`
+
+Origem: charter R1 · D3 [W] 2026-10-01 · ficha `03-cadastros.md` (thread 03).
+
+**Dado** que tenho a permissão de cada aba
+**Quando** abro `/variation-templates`, `/selling-price-group` ou `/warranties`
+**Então** recebo Inertia `Produto/Cadastros/Index` na aba Variações, Grupos de preço ou Garantias — e o ajax
+sem `X-Inertia` da tela clássica continua recebendo o JSON do DataTables.
+
+Status: 🧪
+
+---
+
+## UC-PCADAP-14 · Variações, grupos e garantias só do meu negócio · `must` · [T0]
+
+Origem: Anti-hook do charter (Tier 0) · UC-CAD-08 (valores em chips) · UC-CAD-13 (coluna Duração `24 meses`).
+
+**Dado** que um negócio vizinho tem variação, grupo e garantia, e um produto dele aponta pro **meu** modelo de variação
+**Quando** abro as abas
+**Então** vejo só os meus registros, a variação traz os valores na linha, a garantia mostra `12 meses`, e a
+contagem de uso da variação conta só produto do meu negócio (1, não 2).
+
+Status: 🧪
+
+---
+
+## UC-PCADAP-15 · Variação em uso não sai · `must`
+
+Origem: charter R4 · a tela clássica já escondia o Excluir de variação em uso, mas o servidor apagava.
+
+**Dado** um modelo de variação usado por um produto meu e outro sem uso
+**Quando** peço a exclusão dos dois
+**Então** o servidor recusa o primeiro (`success: false`, nada apagado) e apaga o segundo.
+
+Status: 🧪
+
+---
+
+## UC-PCADAP-16 · Permissão das abas novas · `must`
+
+Origem: thread 01 (`variation.*`, `warranty.*`) · `SellingPriceGroupController`, que já cobrava `product.create`.
+
+**Dado** um papel com `warranty.view` e `warranty.delete`, sem `product.create` nem `variation.view`
+**Quando** abro a tela
+**Então** a aba Garantias aparece **sem** Excluir (o `WarrantyController@destroy` nunca foi implementado), Grupos de
+preço e Variações aparecem bloqueadas sem lista, e `/variation-templates` responde 403.
+
+Status: 🧪
+
+---
+
 ## Backlog (sem teste ainda — não é contrato até ganhar teste que o cite)
 
 - [BACKLOG] Criar e editar em modal na própria tela (UC-CAD-01, UC-CAD-02 "Quando", charter R2) — hoje vai pros modais da Blade (`?classico=1`).
-- [BACKLOG] Abas Variações, Grupos de preço e Garantias (UC-CAD-08, UC-CAD-09, UC-CAD-13) — thread 03.
+- [BACKLOG] Desativar/ativar grupo de preço na própria linha (UC-CAD-09) — hoje a linha mostra Ativo/Inativo e a troca vai pela tela clássica.
+- [BACKLOG] Contagem de produtos da variação clicável (filtro do índice por modelo de variação) — `/products/unificado` não tem esse filtro e é `nao_toca` da thread 03.
 - [BACKLOG] Marca da Oficina na lista (UC-CAD-12), atalho `/` e busca sem resultado (UC-CAD-06/07), estados primeira-vez/carregando/densidade (UC-CAD-14..16) — a tela já tem `/`, busca e primeira-vez; falta teste de browser.

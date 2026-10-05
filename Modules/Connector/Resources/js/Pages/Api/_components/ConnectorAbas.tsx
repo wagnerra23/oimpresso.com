@@ -2,14 +2,16 @@
 // Âncora de design: prototipo-ui/cowork/Wagner/connector-api.jsx (DocsView, SaudeView) +
 // connector-page.jsx (ModuloView). O que o protótipo escreveu à mão aqui é DERIVADO:
 //   - o catálogo vem das rotas registradas (prop `endpoints`), não de uma lista copiada;
-//   - a Saúde mostra só o que a tela já mede. O histórico do `connector:health` é da thread 08;
-//     até lá, licenças em 24 h aparece como "não medido aqui", nunca com um número;
+//   - a Saúde lê o histórico que o `connector:health` publica (thread 08): última execução, série
+//     de 14 dias (uma barra por dia, a última execução do dia) e os desvios do DelphiSync. Valor
+//     que a rotina não mediu (null) aparece "não medido", nunca como zero;
 //   - o Módulo mostra estado/versão/migrações medidos e leva às confirmações do InstallController.
 import { useMemo, useState } from 'react';
 import { Search } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import EmptyState from '@/Components/shared/EmptyState';
+import Chart from '@/Components/shared/Chart';
 
 export interface Endpoint { metodos: string; rota: string; acao: string }
 export interface Modulo { instalado: boolean; versao: string; migracoes: number }
@@ -96,8 +98,8 @@ export function DocsAba({ endpoints }: { endpoints: Endpoint[] }) {
 
       <div className="flex flex-wrap items-center gap-2">
         <div className="relative min-w-64 flex-1">
-          <Search className="absolute left-2 top-2.5 size-4 text-muted-foreground" />
-          <Input className="pl-8" value={q} onChange={(e) => setQ(e.target.value)}
+          <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+          <Input className="cw-input-icon-left" value={q} onChange={(e) => setQ(e.target.value)}
             placeholder="Buscar endpoint, controller ou observação…" aria-label="Buscar endpoint" />
         </div>
         <span className="text-xs text-muted-foreground">{busca ? `${achados} de ${endpoints.length} rotas` : `${endpoints.length} rotas lidas do arquivo de rotas`}</span>
@@ -108,7 +110,7 @@ export function DocsAba({ endpoints }: { endpoints: Endpoint[] }) {
           <section key={g.id}>
             <h3 className="font-semibold">{g.label} <span className="font-mono text-xs text-muted-foreground">{g.eps.length}</span></h3>
             {'desc' in g && <p className="text-xs text-muted-foreground">{g.desc}</p>}
-            <table className="mt-1 w-full text-sm">
+            <table className="mt-1 w-full text-sm [&_td]:px-3 [&_th]:px-3 [&_td:first-child]:pl-0 [&_th:first-child]:pl-0 [&_td:last-child]:pr-0 [&_th:last-child]:pr-0">
               <thead><tr className="border-b text-left text-xs text-muted-foreground"><th className="w-32 py-1">Método</th><th>Rota</th><th>Controller</th><th>Observação</th></tr></thead>
               <tbody>{g.eps.map((e) => (
                 <tr key={`${e.metodos} ${e.rota}`} className="border-b">
@@ -139,30 +141,78 @@ export function DocsAba({ endpoints }: { endpoints: Endpoint[] }) {
   );
 }
 
-export function SaudeAba({ tokens24h, rotas }: { tokens24h: number; rotas: number }) {
+// Uma entrada do histórico publicado pelo `connector:health` (storage/app/connector/health-history.json).
+// Os números são de todos os negócios — o painel é só de superadmin.
+export interface Execucao {
+  executado_em: string; ok: boolean;
+  tokens_active_24h: number | null; licencas_recent_24h: number | null; rotas_registradas: number;
+  issues: string[];
+  delphi: { chamadas_24h: number | null; desvios_24h: number | null; taxa_desvio: number | null };
+}
+
+const CHECKS = [
+  { k: 'tokens_active_24h', label: 'Tokens ativos em 24 h', min: 1, fonte: 'oauth_access_tokens sem revogação, sem vencimento passado, tocados em 24 h. Zero: nenhum app externo autenticou.' },
+  { k: 'licencas_recent_24h', label: 'Licenças com acesso em 24 h', min: 1, fonte: 'licenca_computador.dt_ultimo_acesso em 24 h. Zero: nenhum WR Comercial abriu.' },
+  { k: 'rotas_registradas', label: 'Rotas registradas', min: 20, fonte: 'Rotas com prefixo connector/api. Abaixo de 20 o provedor do módulo não subiu.' },
+] as const;
+
+const dia = (iso: string) => iso.slice(0, 10);
+const dataHora = (iso: string) => new Date(iso).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
+
+export function SaudeAba({ historico }: { historico: Execucao[] }) {
+  // Série de 14 dias: a última execução de cada dia (a rotina roda 1× ao dia; execução manual repete o dia).
+  const porDia = useMemo(() => {
+    const m = new Map<string, Execucao>();
+    for (const e of historico) m.set(dia(e.executado_em), e);
+    return [...m.entries()].sort(([a], [b]) => a.localeCompare(b)).slice(-14);
+  }, [historico]);
+  const ultima = historico[historico.length - 1];
+
+  if (!ultima) {
+    return (
+      <div data-contract="saude-checks">
+        <EmptyState title="Nenhuma execução publicada nos últimos 14 dias"
+          description="A rotina connector:health roda às 06:15 (Brasília) e publica uma entrada por execução. Esta tela não executa o comando: se o histórico está vazio, a rotina não rodou." />
+      </div>
+    );
+  }
+
+  const d = ultima.delphi;
   return (
     <div className="flex flex-col gap-4">
-      <div className="rounded-md border border-info/30 bg-info/5 p-3 text-sm">
-        Esta tela não executa o <code>connector:health</code> e ainda não lê o registro dele: o histórico de 14 dias é a próxima
-        etapa. Abaixo, só o que a tela mede ao abrir. A rotina roda às 06:15 (Brasília) e sai com falha se um limiar não bater.
+      <div data-contract="saude-ultima" className={`rounded-md border p-3 text-sm ${ultima.ok ? 'border-info/30 bg-info/5' : 'border-warning/30 bg-warning/5'}`}>
+        <b>{ultima.ok ? 'Última execução sem alerta' : 'Última execução com alerta'}</b> · {dataHora(ultima.executado_em)}
+        {ultima.issues.length > 0 && <ul className="mt-1 list-disc pl-5 font-mono text-xs">{ultima.issues.map((i) => <li key={i}>{i}</li>)}</ul>}
+        <p className="mt-1 text-xs text-muted-foreground">Os números vêm do registro da rotina, de todos os negócios — esta tela não executa o comando. {historico.length} execução(ões) em 14 dias.</p>
       </div>
       <div data-contract="saude-checks" className="grid gap-3 md:grid-cols-3">
-        <section className={card}>
-          <span className="text-xs text-muted-foreground">Tokens ativos em 24 h</span>
-          <b className="block text-2xl tabular-nums">{tokens24h}</b>
-          <p className="text-xs">Só dos clients deste negócio. O limiar da rotina (≥ 1) vale para todos os negócios juntos, por isso aqui não há selo.</p>
-        </section>
-        <section className={card}>
-          <span className="text-xs text-muted-foreground">Licenças com acesso em 24 h</span>
-          <b className="block text-2xl">—</b>
-          <p className="text-xs">Não medido aqui. A rotina conta <code>licenca_computador.dt_ultimo_acesso</code>; zero significa que nenhum WR Comercial abriu.</p>
-        </section>
-        <section className={card}>
-          <span className="text-xs text-muted-foreground">Rotas registradas</span>
-          <b className="block text-2xl tabular-nums">{rotas}</b>
-          <p className="text-xs">{rotas >= 20 ? 'Dentro do limiar' : 'Abaixo do limiar'} (≥ 20). Abaixo disso o provedor do módulo não subiu.</p>
-        </section>
+        {CHECKS.map((c) => {
+          const v = ultima[c.k];
+          const serie = porDia.flatMap(([d1, e]) => (e[c.k] === null ? [] : [{ label: `${d1.slice(8, 10)}/${d1.slice(5, 7)}`, value: e[c.k] as number }]));
+          return (
+            <section key={c.k} className={card}>
+              <div className="flex items-start justify-between gap-2">
+                <span className="text-xs text-muted-foreground">{c.label}</span>
+                {v !== null && <span className={`text-xs ${v >= c.min ? 'text-success' : 'text-destructive'}`}>{v >= c.min ? 'Dentro do limiar' : 'Abaixo do limiar'}</span>}
+              </div>
+              <b className="block text-2xl tabular-nums">{v ?? '—'}</b>
+              <p className="font-mono text-xs text-muted-foreground">limiar ≥ {c.min}{v === null ? ' · não medido nesta execução' : ''}</p>
+              {serie.length > 1 && <div className="mt-2"><Chart type="bar" data={serie} height={56} /></div>}
+              <p className="mt-1 text-xs">{c.fonte}</p>
+            </section>
+          );
+        })}
       </div>
+      <section data-contract="saude-desvios" className={card}>
+        <h3 className="mb-1 font-semibold">Desvios do DelphiSync em 24 h</h3>
+        {d.chamadas_24h === null ? (
+          <p className="text-xs">Não medido: o registro do <code>log.delphi</code> (<code>licenca_log</code>) não existe nesta base.</p>
+        ) : (
+          <p className="text-sm"><b className="tabular-nums">{d.desvios_24h}</b> de <span className="tabular-nums">{d.chamadas_24h}</span> chamadas com corpo em formato desconhecido
+            {d.taxa_desvio === null ? ' — sem chamada com corpo, sem taxa.' : ` · taxa ${(d.taxa_desvio * 100).toLocaleString('pt-BR', { maximumFractionDigits: 2 })}%`}</p>
+        )}
+        <p className="mt-1 text-xs text-muted-foreground">Formato fora de array_tabelas, json_flat e pipe. Taxa acima de zero merece olhada: é cliente legado mandando formato novo sem avisar.</p>
+      </section>
     </div>
   );
 }

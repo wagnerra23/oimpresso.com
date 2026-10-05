@@ -5,7 +5,7 @@ irmaos: Index.charter.md (lei) · Index.tsx (tela)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: é a tela que emite e corta o acesso dos apps externos (WR Comercial em campo). Segredo vazado na lista ou credencial de outro negócio visível é incidente; credencial instalada que para de autenticar quebra cliente que não pode ser atualizado.
 owner: wagner
-last_run: "2026-10-01"
+last_run: "2026-10-05"
 ---
 
 # Casos de Uso & Aceite — Connector · API clients (`/connector/client`)
@@ -15,6 +15,8 @@ last_run: "2026-10-01"
 > `Index.tsx`. Erratas aplicadas na thread 04: a rota da lista é `/connector/client`; UCs em
 > `## UC-`. Todos `🧪` até o run MySQL — o teste faz `markTestSkipped` em SQLite.
 > Teste: `Modules/Connector/Tests/Feature/ApiClientsPanelTest.php`.
+> Revalidado em 2026-10-05: a tela mudou só no espaçamento das células e no recuo da busca
+> (#8677); nenhum UC descreve layout, então nenhum caso mudou.
 
 ## UC-CONN-01 · A lista é do meu negócio · `must` `[T0]`
 
@@ -118,11 +120,41 @@ toda linha existe nas rotas, nenhuma é escrita à mão (thread 04 PR-b).
 
 Status: 🧪
 
+## UC-CONN-21 · Quem usa a credencial · `should` `[T0]`
+
+**Dado** um client com acessos abertos **Quando** a lista carrega **Então** cada client traz
+`tokens` (colaborador, último uso, vencimento) dos tokens não revogados e não vencidos, do uso
+mais recente ao mais antigo, até 5, e `tokens_resto` com a contagem dos demais. Só entram
+usuários do negócio da sessão: token aberto por usuário de outro negócio com o mesmo client
+nunca aparece. "Ver quem usa" abre o drawer; a confirmação de excluir nomeia quem perde o
+acesso (thread 07).
+
+Status: 🧪
+
 ## UC-CONN-25 · A aba Módulo mostra o estado medido · `should`
 
 **Dado** o painel **Quando** abro a aba Módulo **Então** versão (`config('connector.module_version')`),
 número de migrações do módulo e situação de instalação vêm do servidor, não de texto fixo; instalar,
 atualizar e desinstalar levam às confirmações do `InstallController` (o GET não executa nada).
+
+Status: 🧪
+
+## UC-CONN-26 · Cada execução do `connector:health` vira uma entrada do histórico · `should`
+
+**Dado** a rotina `connector:health` **Quando** ela roda **Então** grava em
+`storage/app/connector/health-history.json` uma entrada com data, os três valores (tokens em 24 h,
+licenças em 24 h, rotas), `issues[]` e o desvio do DelphiSync em 24 h (chamadas do `log.delphi` com
+corpo × as de formato desconhecido), e poda o que passou de 14 dias. Check que não pôde medir grava
+`null`, não zero (thread 08). Teste: `ObservabilityTest.php`.
+
+Status: 🧪
+
+## UC-CONN-27 · A aba Saúde lê o histórico, não executa o comando · `should`
+
+**Dado** o histórico publicado **Quando** abro a aba Saúde **Então** recebo as execuções dos últimos
+14 dias (a mais antiga sai), vejo a última execução com os alertas, uma série por check (a última
+execução de cada dia) e os desvios do dia; sem execução publicada, um vazio que diz que a rotina não
+rodou (thread 08).
 
 Status: 🧪
 
@@ -133,7 +165,6 @@ Status: 🧪
 - [BACKLOG] Primeira vez: estado vazio explica o que é a credencial e oferece "Criar o primeiro API client" — implementado, sem teste.
 - [BACKLOG] Perder o segredo tem caminho: kebab oferece "Emitir credencial nova", nunca "revelar" — implementado, sem teste.
 - [BACKLOG] Credencial instalada nunca para de autenticar (`POST /oauth/token` com client pré-existente) — há teste sem id de UC.
-- [BACKLOG] Aba Saúde mostra os três checks do `connector:health` com limiar e origem — hoje só o que a tela mede ao abrir (rotas, tokens do negócio); licenças em 24 h fica "não medido aqui" até o histórico da thread 08. Sem teste.
 - [BACKLOG] Aba Módulo avisa do `passport:install --force` antes de instalar/atualizar — implementado na tela, sem teste.
 - [BACKLOG] O menu leva à aba Documentação (`/connector/client?aba=docs`) — implementado no `DataController`, sem teste.
 - [BACKLOG] Menu depende de instalação ou de `connector_module` no pacote — thread 05.

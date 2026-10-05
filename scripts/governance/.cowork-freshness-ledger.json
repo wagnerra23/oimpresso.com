@@ -40729,5 +40729,22 @@
       "voz-do-cliente-page.jsx": "cc69e438ed3dda67401383654ddf2225cdbebbd1f31f1fc5b9e6ba4b38d8e2a1"
     },
     "origin": "bundle:51bab41570b7dd2a"
+  },
+  {
+    "date": "2026-10-05T13:37:29.374Z",
+    "files": 275,
+    "sync": 1,
+    "stale": 0,
+    "liveAbsent": 0,
+    "unchecked": 274,
+    "staleList": [],
+    "verified": [
+      "cowork-inbox/produto/playbook/_saida-03.md"
+    ],
+    "verifiedHash": {
+      "cowork-inbox/produto/playbook/_saida-03.md": "f9a6e2906b516cf49bf35754bd8443b0f63f8775843190afcd05fdd29c251e48"
+    },
+    "origin": "medicao",
+    "projetoCowork": "w"
   }
 ]

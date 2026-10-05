@@ -116,6 +116,17 @@ function formatQuantity(value: number): string {
 }
 
 /**
+ * Medidas dos filtros do `MfgProducaoView` (medição protótipo × produção de 2026-10-01, 1440 px):
+ * rótulo 10,5px/600 em caixa alta; campo de data 150×36, canto 8, texto 13,5px, fundo `--surface`.
+ * O rótulo usa `--text-dim` e não o `--text-mute` do DS: texto pequeno em `--text-mute` reprova AA
+ * (ADR 0410). O campo usa o `Input` na variante `shadcn`: a `cowork` passa pelo `.cw-input`, que é
+ * CSS fora de camada e vence a altura/largura/texto das classes (medido: `h-9 w-[150px]` saía 133×30).
+ */
+const ROTULO = 'text-[10.5px] font-semibold uppercase tracking-[0.06em] text-[var(--text-dim)]';
+const CAMPO_DATA =
+  'h-9 w-[150px] rounded-lg border-[var(--border)] bg-[var(--surface)] px-2.5 text-[13.5px] md:text-[13.5px] text-foreground dark:bg-[var(--surface)]';
+
+/**
  * As 8 colunas do `MfgProducaoView` (`manufacturing-producao.jsx`), na anatomia do `DataGrid` do
  * DS (`shared/DataTable` `density="grid"`): data, referência e números em mono, números à
  * direita. Sem ordenação e sem paginação, como o protótipo (`pagination={false}`, nenhuma
@@ -298,11 +309,12 @@ function Index({ productions = [], summary, business_locations = {}, filters = {
         />
       </div>
 
-      {/* Slot 3 — Toolbar de filtros (local + intervalo de data) */}
-      <div className="rounded-lg border border-border bg-card p-4 space-y-3" data-contract="filtros">
+      {/* Slot 3 — filtros (local + intervalo de data), na faixa do protótipo (`.mfg-filters` do
+          `MfgProducaoView`): sem cartão em volta, controles alinhados pela base, gap 12px. */}
+      <div data-contract="filtros">
         {/* Rótulos LOCAL / DE / ATÉ: o protótipo (`MfgProducaoView`) põe cada controle num
-            `<Campo label=…>`, que rende `.mfg-fld > span` — 10px, caixa alta, tracking .07em,
-            cor `--text-mute`. Aqui a forma é replicada com token do DS. Sem eles a barra só
+            `<Campo label=…>` (medido em 2026-10-01: 10,5px/600, caixa alta — ver `ROTULO`).
+            Aqui a forma é replicada com token do DS. Sem eles a barra só
             tinha `aria-label`: quem usa leitor de tela ouvia o campo, quem enxerga não lia
             nada. Os `aria-label` saem porque o `<label>` visível já nomeia o controle — manter
             os dois faria o leitor anunciar um nome diferente do que está escrito na tela.
@@ -311,13 +323,13 @@ function Index({ productions = [], summary, business_locations = {}, filters = {
           {hasLocations && (
             <Stack gap={1} asChild>
               <label htmlFor="mfg-op-local">
-                <span className="text-[10px] uppercase tracking-[0.07em] text-muted-foreground">
+                <span className={ROTULO}>
                   Local
                 </span>
                 {/* eslint-disable-next-line no-restricted-syntax -- select nativo: filtro simples de local, estilizado com tokens DS */}
                 <select
                   id="mfg-op-local"
-                  className="h-9 w-[180px] rounded-md border border-input bg-background px-2 text-sm text-foreground"
+                  className="h-[34px] w-[180px] rounded-lg border border-[var(--border)] bg-[var(--surface)] px-2.5 text-[13px] text-foreground"
                   value={filters.location_id ?? ''}
                   onChange={(e) =>
                     applyFilter(filters, {
@@ -339,10 +351,11 @@ function Index({ productions = [], summary, business_locations = {}, filters = {
           <Inline gap={2} align="end">
             <Stack gap={1} asChild>
               <label htmlFor="mfg-op-data-inicial">
-                <span className="text-[10px] uppercase tracking-[0.07em] text-muted-foreground">
+                <span className={ROTULO}>
                   De
                 </span>
                 <Input
+                  variant="shadcn"
                   id="mfg-op-data-inicial"
                   type="date"
                   value={start}
@@ -350,16 +363,17 @@ function Index({ productions = [], summary, business_locations = {}, filters = {
                     setStart(e.target.value);
                     applyDateRange(e.target.value, end);
                   }}
-                  className="h-9 w-[150px]"
+                  className={CAMPO_DATA}
                 />
               </label>
             </Stack>
             <Stack gap={1} asChild>
               <label htmlFor="mfg-op-data-final">
-                <span className="text-[10px] uppercase tracking-[0.07em] text-muted-foreground">
+                <span className={ROTULO}>
                   Até
                 </span>
                 <Input
+                  variant="shadcn"
                   id="mfg-op-data-final"
                   type="date"
                   value={end}
@@ -367,7 +381,7 @@ function Index({ productions = [], summary, business_locations = {}, filters = {
                     setEnd(e.target.value);
                     applyDateRange(start, e.target.value);
                   }}
-                  className="h-9 w-[150px]"
+                  className={CAMPO_DATA}
                 />
               </label>
             </Stack>
@@ -379,7 +393,7 @@ function Index({ productions = [], summary, business_locations = {}, filters = {
               primitivos (ADR 0253). O ratchet pegou o caso na primeira tentativa — e depois
               pegou o COMENTÁRIO que citava o anti-padrão, porque o guard casa texto. */}
           <Inline gap={2} align="center" asChild>
-            <label className="text-sm text-muted-foreground" htmlFor="mfg-op-so-finalizadas">
+            <label className="text-[12.5px] font-medium text-foreground" htmlFor="mfg-op-so-finalizadas">
               <Checkbox
                 id="mfg-op-so-finalizadas"
                 checked={!!filters.is_final}
@@ -391,7 +405,7 @@ function Index({ productions = [], summary, business_locations = {}, filters = {
 
           {hasActiveFilters && (
             <Button variant="ghost" size="sm" onClick={clearAll}>
-              <X className="mr-1 h-4 w-4" /> Limpar
+              <X className="mr-1 h-3 w-3" /> Limpar
             </Button>
           )}
         </Inline>

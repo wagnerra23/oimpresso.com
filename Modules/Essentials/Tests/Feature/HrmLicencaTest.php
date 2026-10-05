@@ -432,8 +432,9 @@ it('UC-HRM-33 · quem só tem crud_own_leave não recebe o recorte de todos [R3]
 });
 
 it('UC-HRM-34 · o DataTables do Blade continua respondendo (anti-regressão HRM-O8)', function () {
-    // A blade `leave/index.blade.php:93` aponta o ajax do DataTables para ESTA rota.
-    // Ela só sai no HRM-O8; migrar a rota não pode matar o JSON que ela consome.
+    // Até a thread 11 do playbook HRM (2026-10-05), a blade `leave/index.blade.php:93`
+    // apontava o ajax do DataTables para ESTA rota. A blade saiu; o ramo JSON segue
+    // travado por este teste até alguém decidir aposentá-lo junto com o controller.
     $resp = $this->withHeaders(['X-Requested-With' => 'XMLHttpRequest'])
         ->get('/hrm/leave')
         ->assertStatus(200);

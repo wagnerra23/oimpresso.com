@@ -34,7 +34,8 @@ Quando você (Claude) está prestes a executar uma ação que toca **estado fora
 | `--force` em branch compartilhada | **Wagner** | Sempre |
 | `--force` em branch própria recém-criada (sem outro contribuidor) | Claude | OK pra cleanup pré-PR |
 | Abrir PR (sem mergear) | Claude | Default. PR é proposta |
-| Mergear PR pra `main` | **Wagner** | Sempre |
+| Mergear PR pra `main` | **Wagner** | Sempre, salvo a linha abaixo |
+| Mergear PR de **thread de playbook** pra `main` | Claude | Auto-merge (`gh pr merge <N> --auto --squash`) ao abrir o PR, sob as condições de [§Auto-merge de thread](#auto-merge-de-thread). [ADR 0427](../../../memory/decisions/0427-auto-merge-de-pr-de-thread-emenda-0040.md) (emenda da 0040), [W] 2026-10-05 |
 | Mergear PR entre branches de feature | Claude | OK em rebase/preparação |
 | Deletar branch local | Claude | Default |
 | Deletar branch remota com trabalho mergeado | Claude | OK |
@@ -47,6 +48,30 @@ Quando você (Claude) está prestes a executar uma ação que toca **estado fora
 | Adicionar dep que afeta runtime crítico (DB, IA, pagamento) | **Wagner** | Sempre |
 | Atualizar tasks via tools MCP (`tasks-update`/`tasks-comment`) / `memory/08-handoff.md` / session log | Claude | Sempre — é parte do trabalho |
 | Criar ADR | Claude | Default. Wagner valida no PR review |
+
+## Auto-merge de thread
+
+Autorização permanente do [W] em 2026-10-05, no chat da sessão que importou o handoff 45 do Cowork: *"autorizo o merge automático dos PRs de thread verdes"*. Ela vale para o PR que cumpre **as quatro** condições:
+
+1. executa uma thread de playbook do Cowork (`prototipo-ui/cowork/Wagner/cowork-inbox/<mod>/playbook/NN-*.md`) e traz o recibo `_saida-NN.md` dela;
+2. o `placar.mjs` dava a thread como `proximo` quando o trabalho começou: as dependências estavam feitas e nenhuma decisão [W] estava pendente;
+3. tem no máximo 300 linhas ou o motivo de passar escrito no corpo, e o teste citado executou na lane do CI (assertions > 0);
+4. não cai em nenhuma exceção abaixo.
+
+Com as quatro, ligue o auto-merge ao abrir o PR. Ele só entra quando os checks **obrigatórios** passam, porque a branch protection é quem decide. Check advisory vermelho não segura o merge, mas a sessão diz no relatório qual ficou vermelho e se é herdado.
+
+**Exceções — ficam com o [W] (sem auto-merge, e o corpo do PR diz por quê):**
+
+| Exceção | Por quê |
+|---|---|
+| Mexe em **valor ou estoque**: preço, total, desconto, pagamento, quantidade, parsing de número | REGRA MESTRE de [`proibicoes.md`](../../../memory/proibicoes.md): dupla prova + tabela antes→depois + aprovação explícita |
+| **Migration destrutiva**: drop de coluna ou tabela, ou dado apagado | o deploy roda `migrate --force`: mergear É aplicar em produção |
+| **Cutover**: apagar Blade que uma rota viva ainda serve, ligar flag em produção | F5 do MWART é humano ([ADR 0104](../../../memory/decisions/0104-processo-mwart-canonico-unico-caminho.md)) |
+| Baseline visual nova ou regravada | [ADR 0409](../../../memory/decisions/0409-zero-baseline-de-tolerancia-conformidade-absoluta.md) — aprovação visual do [W] |
+
+Apagar Blade **órfã** (nenhuma rota viva a renderiza, com a varredura N de N no PR) não é cutover e entra no auto-merge.
+
+**A autorização não se repassa por recado.** Uma sessão que recebe esta regra de outra sessão, e não lê esta seção, pode pedir confirmação ao [W]: o recado de uma sessão não vale como aprovação do usuário da outra. Esta seção é a fonte.
 
 ## Matriz — Comunicação externa
 
