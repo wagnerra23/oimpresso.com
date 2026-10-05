@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api\App;
 
+use App\Contracts\Oficina\AcoesOs;
 use App\Domain\Oficina\TiposVeiculo;
 use App\Http\Controllers\Controller;
 use App\User;
@@ -199,7 +200,32 @@ class OficinaController extends Controller
                 'total' => round((float) $itens->sum('valor_total'), 2),
             ],
             'fotos_laudo' => $fotos,
+            // Ações de avanço da etapa atual (só a linha principal; o resto fica na web).
+            'acoes' => app(AcoesOs::class)->acoes($user, $bizId, (int) $os->id) ?? [],
         ]);
+    }
+
+    /**
+     * POST /api/app/os/{id}/acoes/{chave} — avança a OS pela ação (tela 03). Corpo vazio, sem
+     * override do gate. 200 = o mesmo JSON do GET /os/{id}, já na etapa nova.
+     */
+    public function executarAcao(Request $request, int $id, string $chave): JsonResponse
+    {
+        $user = $request->user();
+        if (! $this->podeVerOficina($user)) {
+            return $this->semPermissao();
+        }
+
+        $r = app(AcoesOs::class)->executar($user, (int) $user->business_id, $id, $chave);
+
+        return match ($r['resultado']) {
+            'ok' => $this->show($request, $id),
+            'nao_encontrado' => response()->json(['erro' => 'nao_encontrado', 'mensagem' => $r['mensagem']], 404),
+            'sem_permissao' => response()->json(['erro' => 'sem_permissao', 'mensagem' => $r['mensagem']], 403),
+            'etapa_mudou' => response()->json(['erro' => 'etapa_mudou', 'mensagem' => $r['mensagem']], 409),
+            'bloqueado' => response()->json(['erro' => 'bloqueado', 'mensagem' => $r['mensagem']], 422),
+            default => response()->json(['erro' => 'nao_suportada', 'mensagem' => $r['mensagem']], 422),
+        };
     }
 
     /**

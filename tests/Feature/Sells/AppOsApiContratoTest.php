@@ -378,3 +378,103 @@ it('histórico do veículo: OS de OUTRO business apontando para o meu veículo n
     expect($ids)->toContain($minha);
     expect($ids)->not->toContain($alheia);
 });
+
+// ── Tela 03 — avançar etapa: GET /os/{id} traz `acoes`; POST /os/{id}/acoes/{chave} ─────────
+
+/** Ações da fixture (idempotente pela chave única stage_id+key). Devolve o id da ação. */
+function appOsAcao(int $stageId, string $chave, string $rotulo, int $alvo, bool $critica = false, ?string $efeito = null): int
+{
+    $dados = [
+        'label' => $rotulo, 'target_stage_id' => $alvo, 'requires_confirmation' => $critica,
+        'side_effect_class' => $efeito, 'event_class' => null, 'updated_at' => now(),
+    ];
+    if (Schema::hasColumn('sale_stage_actions', 'is_critical')) {
+        $dados['is_critical'] = $critica;
+    }
+    DB::table('sale_stage_actions')->updateOrInsert(['stage_id' => $stageId, 'key' => $chave], $dados + ['created_at' => now()]);
+
+    return (int) DB::table('sale_stage_actions')->where('stage_id', $stageId)->where('key', $chave)->value('id');
+}
+
+/** Liga as ações usadas nos casos abaixo e dá ao usuário a permissão de alterar OS. */
+function appOsComAcoes(object $t, bool $comUpdate = true): void
+{
+    $e = $t->etapas;
+    appOsAcao($e['recepcao'], 'iniciar_diagnostico', 'Iniciar diagnóstico', $e['em_diagnostico']);
+    appOsAcao($e['em_execucao'], 'concluir_servico', 'Concluir serviço', $e['pronto_retirada'], true);
+    appOsAcao($e['em_execucao'], 'cancelar_os', 'Cancelar OS', $e['entregue'], true);
+    appOsAcao($e['pronto_retirada'], 'entregar', 'Entregar ao cliente', $e['entregue']);
+    if ($comUpdate) {
+        Permission::firstOrCreate(['name' => 'oficinaauto.service_order.update', 'guard_name' => 'web']);
+        $t->user->givePermissionTo('oficinaauto.service_order.update');
+    }
+}
+
+it('detalhe traz só as ações de avanço da etapa, com o gate; sem permissão de alterar, pode=false', function () {
+    appOsComAcoes($this, false);
+    $os = appOsCriar((int) $this->biz->id, $this->etapas['em_execucao']);
+
+    $acoes = $this->getJson('/api/app/os/' . $os)->assertOk()->json('acoes');
+    // cancelar_os sai da mesma etapa, mas encerra a OS: fica só na web.
+    expect(array_column($acoes, 'chave'))->toBe(['concluir_servico']);
+    expect($acoes[0]['critica'])->toBeTrue();
+    expect($acoes[0]['pode'])->toBeFalse();
+    // OS sem item: o gate do ERP barra a conclusão e diz o que falta.
+    expect($acoes[0]['bloqueio'])->toContain('Orçamento com ≥ 1 item lançado');
+
+    Permission::firstOrCreate(['name' => 'oficinaauto.service_order.update', 'guard_name' => 'web']);
+    $this->user->givePermissionTo('oficinaauto.service_order.update');
+    expect($this->getJson('/api/app/os/' . $os)->assertOk()->json('acoes.0.pode'))->toBeTrue();
+});
+
+it('executar avança a OS pela FSM e devolve o detalhe já na etapa nova', function () {
+    appOsComAcoes($this);
+    $os = appOsCriar((int) $this->biz->id, $this->etapas['pronto_retirada']);
+
+    $r = $this->postJson("/api/app/os/{$os}/acoes/entregar")->assertOk();
+    expect($r->json('id'))->toBe($os);
+    expect($r->json('etapa.chave'))->toBe('entregue');
+    expect($r->json('etapa.terminal'))->toBeTrue();
+    expect($r->json('acoes'))->toBe([]);
+    expect((int) DB::table('service_orders')->where('id', $os)->value('current_stage_id'))->toBe($this->etapas['entregue']);
+    // Trilha auditável da FSM (a mesma da web).
+    expect(DB::table('sale_stage_history')->where('transaction_id', $os)->where('to_stage_id', $this->etapas['entregue'])->exists())->toBeTrue();
+});
+
+it('gate barra: 422 bloqueado e a OS não muda de etapa', function () {
+    appOsComAcoes($this);
+    $os = appOsCriar((int) $this->biz->id, $this->etapas['em_execucao']);
+
+    $this->postJson("/api/app/os/{$os}/acoes/concluir_servico")->assertStatus(422)->assertJsonPath('erro', 'bloqueado');
+    expect((int) DB::table('service_orders')->where('id', $os)->value('current_stage_id'))->toBe($this->etapas['em_execucao']);
+});
+
+it('409 quando a ação não sai da etapa atual; 422 para ação que só a web faz; 403 sem permissão; 404 outra empresa', function () {
+    appOsComAcoes($this, false);
+    $minha = appOsCriar((int) $this->biz->id, $this->etapas['recepcao']);
+    $emExecucao = appOsCriar((int) $this->biz->id, $this->etapas['em_execucao']);
+    $alheia = appOsCriar((int) $this->outroBiz->id, $this->etapas['recepcao']);
+
+    $this->postJson("/api/app/os/{$minha}/acoes/iniciar_diagnostico")->assertStatus(403)->assertJsonPath('erro', 'sem_permissao');
+
+    Permission::firstOrCreate(['name' => 'oficinaauto.service_order.update', 'guard_name' => 'web']);
+    $this->user->givePermissionTo('oficinaauto.service_order.update');
+
+    $this->postJson("/api/app/os/{$minha}/acoes/entregar")->assertStatus(409)->assertJsonPath('erro', 'etapa_mudou');
+    $this->postJson("/api/app/os/{$emExecucao}/acoes/cancelar_os")->assertStatus(422)->assertJsonPath('erro', 'nao_suportada');
+    $this->postJson("/api/app/os/{$alheia}/acoes/iniciar_diagnostico")->assertStatus(404)->assertJsonPath('erro', 'nao_encontrado');
+    // Controle positivo: na OS do próprio business a mesma ação avança.
+    $this->postJson("/api/app/os/{$minha}/acoes/iniciar_diagnostico")->assertOk()->assertJsonPath('etapa.chave', 'em_diagnostico');
+    expect((int) DB::table('service_orders')->where('id', $alheia)->value('current_stage_id'))->toBe($this->etapas['recepcao']);
+});
+
+it('ação com efeito colateral no banco não aparece nem executa pelo app', function () {
+    appOsComAcoes($this);
+    $e = $this->etapas;
+    appOsAcao($e['pronto_retirada'], 'entregar', 'Entregar ao cliente', $e['entregue'], false, 'App\Fake\EfeitoQualquer');
+    $os = appOsCriar((int) $this->biz->id, $e['pronto_retirada']);
+
+    expect($this->getJson('/api/app/os/' . $os)->assertOk()->json('acoes'))->toBe([]);
+    $this->postJson("/api/app/os/{$os}/acoes/entregar")->assertStatus(422)->assertJsonPath('erro', 'nao_suportada');
+    expect((int) DB::table('service_orders')->where('id', $os)->value('current_stage_id'))->toBe($e['pronto_retirada']);
+});

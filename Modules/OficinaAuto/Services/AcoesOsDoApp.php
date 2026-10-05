@@ -1,0 +1,157 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Modules\OficinaAuto\Services;
+
+use App\Contracts\Oficina\AcoesOs;
+use App\Domain\Fsm\Exceptions\InvalidActionForCurrentStageException;
+use App\Domain\Fsm\Exceptions\UnauthorizedActionException;
+use App\Domain\Fsm\Models\SaleStageAction;
+use App\Domain\Fsm\Policies\StageActionPolicy;
+use App\Domain\Fsm\Services\ExecuteStageActionService;
+use App\User;
+use Modules\OficinaAuto\Entities\ServiceOrder;
+
+/**
+ * Avançar a etapa da OS pelo app das lojas (contrato App\Contracts\Oficina\AcoesOs, tela 03).
+ *
+ * Mesmas regras da web (ServiceOrderFsmActionController): permissão
+ * `oficinaauto.service_order.update` (ou superadmin), papel da ação pela StageActionPolicy,
+ * gate do StageGateEvaluator e transição só pelo ExecuteStageActionService (FSM canônica,
+ * trilha em sale_stage_history). Diferenças, todas para restringir:
+ *  - só as ações de ACOES_DO_APP (cancelar, recusar, garantia ficam na web);
+ *  - sem override do gate;
+ *  - ação com side_effect_class ou event_class no banco é recusada (nao_suportada): o
+ *    seeder do processo da oficina não tem nenhuma, e o app não pode mover valor nem estoque.
+ *
+ * Tier 0 (ADR 0093): o escopo global do ServiceOrder lê a sessão, que a API não tem; por isso
+ * toda busca filtra business_id explicitamente.
+ */
+final class AcoesOsDoApp implements AcoesOs
+{
+    public function __construct(
+        private StageActionPolicy $policy,
+        private StageGateEvaluator $gate,
+        private ServiceOrderPipelineStarter $starter,
+        private ExecuteStageActionService $fsm,
+    ) {
+    }
+
+    public function acoes(User $user, int $businessId, int $osId): ?array
+    {
+        $os = $this->os($businessId, $osId);
+        if ($os === null) {
+            return null;
+        }
+        if ($os->current_stage_id === null) {
+            return [];
+        }
+
+        $processo = $this->starter->resolveProcessKey($os);
+        $podeEditar = $this->podeEditar($user);
+        $saida = [];
+        foreach ($this->acoesDaEtapa($os) as $a) {
+            $gate = $this->gate->evaluate($os, $processo, $a->key);
+            $saida[] = [
+                'chave' => (string) $a->key,
+                'rotulo' => (string) $a->label,
+                'critica' => (bool) ($a->is_critical ?? false) || (bool) $a->requires_confirmation,
+                'pode' => $podeEditar && $this->policy->canExecute($user, $os, (string) $a->key),
+                'bloqueio' => $gate['satisfied'] ? null : $this->textoBloqueio($gate),
+            ];
+        }
+
+        return $saida;
+    }
+
+    public function executar(User $user, int $businessId, int $osId, string $chave): array
+    {
+        $os = $this->os($businessId, $osId);
+        if ($os === null) {
+            return ['resultado' => 'nao_encontrado', 'mensagem' => 'OS não encontrada.'];
+        }
+        if (! in_array($chave, self::ACOES_DO_APP, true)) {
+            return ['resultado' => 'nao_suportada', 'mensagem' => 'Esta ação só pode ser feita na web.'];
+        }
+        if (! $this->podeEditar($user)) {
+            return ['resultado' => 'sem_permissao', 'mensagem' => 'Seu usuário não pode alterar OS.'];
+        }
+
+        $acao = $os->current_stage_id === null ? null : SaleStageAction::query()
+            ->where('stage_id', (int) $os->current_stage_id)
+            ->where('key', $chave)
+            ->first();
+        if ($acao === null) {
+            return ['resultado' => 'etapa_mudou', 'mensagem' => 'A OS já não está na etapa desta ação. Atualize a tela.'];
+        }
+        if (! empty($acao->side_effect_class) || ! empty($acao->event_class)) {
+            return ['resultado' => 'nao_suportada', 'mensagem' => 'Esta ação só pode ser feita na web.'];
+        }
+
+        $gate = $this->gate->evaluate($os, $this->starter->resolveProcessKey($os), $chave);
+        if (! $gate['satisfied']) {
+            return ['resultado' => 'bloqueado', 'mensagem' => $this->textoBloqueio($gate)];
+        }
+
+        try {
+            $this->fsm->execute($os, $chave, $user, ['origem' => 'app']);
+        } catch (UnauthorizedActionException $e) {
+            return ['resultado' => 'sem_permissao', 'mensagem' => 'Seu usuário não pode executar esta ação.'];
+        } catch (InvalidActionForCurrentStageException $e) {
+            return ['resultado' => 'etapa_mudou', 'mensagem' => 'A OS já não está na etapa desta ação. Atualize a tela.'];
+        }
+
+        return ['resultado' => 'ok', 'mensagem' => null];
+    }
+
+    private function os(int $businessId, int $osId): ?ServiceOrder
+    {
+        return ServiceOrder::query()
+            ->where('service_orders.business_id', $businessId)
+            ->whereKey($osId)
+            ->first();
+    }
+
+    private function podeEditar(User $user): bool
+    {
+        return $user->can('superadmin') || $user->can('oficinaauto.service_order.update');
+    }
+
+    /**
+     * Ações de ACOES_DO_APP que saem da etapa atual, na ordem da lista (a linha principal).
+     *
+     * @return list<SaleStageAction>
+     */
+    private function acoesDaEtapa(ServiceOrder $os): array
+    {
+        $daEtapa = SaleStageAction::query()
+            ->where('stage_id', (int) $os->current_stage_id)
+            ->whereIn('key', self::ACOES_DO_APP)
+            ->get()
+            ->filter(fn (SaleStageAction $a) => empty($a->side_effect_class) && empty($a->event_class))
+            ->keyBy('key');
+
+        $ordem = [];
+        foreach (self::ACOES_DO_APP as $chave) {
+            if ($daEtapa->has($chave)) {
+                $ordem[] = $daEtapa->get($chave);
+            }
+        }
+
+        return $ordem;
+    }
+
+    /** "Falta: foto da vistoria; orçamento aprovado" — os requisitos bloqueantes pendentes. */
+    private function textoBloqueio(array $gate): string
+    {
+        $faltam = [];
+        foreach ($gate['requirements'] ?? [] as $r) {
+            if (($r['blocking'] ?? false) && ! ($r['ok'] ?? false)) {
+                $faltam[] = (string) ($r['label'] ?? $r['key'] ?? '');
+            }
+        }
+
+        return $faltam === [] ? 'Checklist da etapa incompleto.' : 'Falta: ' . implode('; ', $faltam) . '.';
+    }
+}
