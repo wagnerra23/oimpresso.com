@@ -497,9 +497,13 @@ class RecipeController extends Controller
         $copy_recipe = null;
 
         //If new recipe and copy from recipe selected get copy recipe
+        // Tier 0 (ADR 0093): só copia receita do próprio business — o id vem da query string.
         if (empty($recipe) && ! empty(request()->input('copy_recipe_id'))) {
-            $copy_recipe = MfgRecipe::with($with)
-                        ->find(request()->input('copy_recipe_id'));
+            $copy_recipe = $this->recipeBomService->receitaParaCopiar(
+                (int) request()->input('copy_recipe_id'),
+                (int) $business_id,
+                $with
+            );
         }
 
         $ingredients = [];

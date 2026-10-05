@@ -24,4 +24,9 @@ final class SemAcoesOs implements AcoesOs
     {
         return null;
     }
+
+    public function criarVeiculo(User $user, int $businessId, array $dados): ?int
+    {
+        return null;
+    }
 }

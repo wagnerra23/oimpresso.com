@@ -360,6 +360,7 @@ jobs:
             Modules/Repair/Tests/Feature/RepairJobSheetIndexContratoTest.php \
             Modules/Repair/Tests/Feature/DeviceModelsContratoTest.php \
             Modules/Repair/Tests/Feature/RepairStatusContratoTest.php \
+            Modules/Repair/Tests/Feature/RepairFormVendaContratoTest.php \
             Modules/Vestuario/Tests/Feature/SmokeRoutesVestuarioTest.php \
             Modules/Superadmin/Tests/Feature/SuperadminDashboardContratoTest.php \
             Modules/Superadmin/Tests/Feature/SubscriptionLifecycleServiceTest.php \

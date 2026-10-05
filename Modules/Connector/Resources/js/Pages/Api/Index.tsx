@@ -30,13 +30,13 @@ import EmptyState from '@/Components/shared/EmptyState';
 import KpiCard from '@/Components/shared/KpiCard';
 import KpiGrid from '@/Components/shared/KpiGrid';
 import PageHeaderTabs from '@/Components/shared/PageHeaderTabs';
-import { DocsAba, ModuloAba, SaudeAba, type Endpoint, type Modulo } from './_components/ConnectorAbas';
+import { DocsAba, ModuloAba, SaudeAba, type Endpoint, type Execucao, type Modulo } from './_components/ConnectorAbas';
 
 interface Client { id: number; name: string; user_name: string; created_at: string | null; active_tokens_24h: number }
 interface Credencial { id: number; name: string; secret: string }
 interface Props {
   clients: Client[]; is_demo: boolean; endpoints_count: number; credencial: Credencial | null;
-  endpoints: Endpoint[]; modulo: Modulo;
+  endpoints: Endpoint[]; modulo: Modulo; saude: Execucao[];
 }
 
 const ABAS = [
@@ -56,7 +56,7 @@ const MSG_TETO = 'O nome do client não pode ultrapassar 191 caracteres.';
 const dataCurta = (iso: string | null) => (iso ? new Date(`${iso}T00:00:00`).toLocaleDateString('pt-BR') : '—');
 const copiar = (txt: string) => { try { void navigator.clipboard?.writeText(txt); } catch { /* sem clipboard: o valor segue na tela */ } };
 
-function ApiIndex({ clients, is_demo, endpoints_count, credencial, endpoints, modulo }: Props) {
+function ApiIndex({ clients, is_demo, endpoints_count, credencial, endpoints, modulo, saude }: Props) {
   const [aba, setAba] = useState<Aba>(abaDaUrl);
   const trocarAba = (k: string) => {
     setAba(k as Aba);
@@ -94,7 +94,7 @@ function ApiIndex({ clients, is_demo, endpoints_count, credencial, endpoints, mo
           ghosts={ABAS.map((x) => ({ key: x.key, label: x.label, href: x.key === 'clients' ? '/connector/client' : `/connector/client?aba=${x.key}` }))} />
       </div>
       {aba === 'docs' && <div className="px-6 pt-4"><DocsAba endpoints={endpoints} /></div>}
-      {aba === 'saude' && <div className="px-6 pt-4"><SaudeAba tokens24h={clients.reduce((n, c) => n + c.active_tokens_24h, 0)} rotas={endpoints_count} /></div>}
+      {aba === 'saude' && <div className="px-6 pt-4"><SaudeAba historico={saude ?? []} /></div>}
       {aba === 'modulo' && <div className="px-6 pt-4"><ModuloAba modulo={modulo} rotas={endpoints_count} /></div>}
       {aba === 'clients' && <div className="flex flex-col gap-4 px-6 pt-4">
         {is_demo ? (
@@ -116,11 +116,11 @@ function ApiIndex({ clients, is_demo, endpoints_count, credencial, endpoints, mo
 
         <div data-contract="toolbar" className="flex flex-wrap items-center gap-2">
           <div className="relative min-w-64 flex-1">
-            <Search className="absolute left-2 top-2.5 size-4 text-muted-foreground" />
-            <Input ref={busca} className="pl-8" value={q} onChange={(e) => setQ(e.target.value)}
+            <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+            <Input ref={busca} className="cw-input-icon-left" value={q} onChange={(e) => setQ(e.target.value)}
               placeholder="Buscar client por nome ou id…" aria-label="Buscar client" />
           </div>
-          <span className="text-xs text-muted-foreground"><kbd>n</kbd> novo client · <kbd>/</kbd> buscar</span>
+          <span className="text-xs text-muted-foreground"><kbd className="rounded border border-border px-1.5 py-0.5">n</kbd> novo client · <kbd className="rounded border border-border px-1.5 py-0.5">/</kbd> buscar</span>
           <Button disabled={is_demo} onClick={() => setNovo(true)}>Criar API client</Button>
         </div>
 
@@ -140,7 +140,7 @@ function ApiIndex({ clients, is_demo, endpoints_count, credencial, endpoints, mo
         )}
 
         {lista.length > 0 ? (
-          <table data-contract="clients-table" className="w-full text-sm">
+          <table data-contract="clients-table" className="w-full text-sm [&_td]:px-3 [&_th]:px-3 [&_td:first-child]:pl-0 [&_th:first-child]:pl-0 [&_td:last-child]:pr-0 [&_th:last-child]:pr-0">
             <thead><tr className="border-b text-left text-xs text-muted-foreground">
               <th className="py-2">ID</th><th>Nome</th><th>Segredo</th><th className="text-right">Tokens 24 h</th><th>Criado</th><th />
             </tr></thead>
