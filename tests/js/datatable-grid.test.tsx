@@ -99,14 +99,26 @@ describe('grid — anatomia do DataGrid do DS', () => {
     expect(cls(table.querySelector('thead'))).toContain('text-[var(--text-dim)]');
   });
 
-  it('td: 12.5px · pad 5×10 · borda --border-2 · listra só nas linhas pares', () => {
-    const { linhas } = montar();
+  it('td: 12.5px herdado da tabela · altura de linha 1,45 · pad 5×10 · borda --border-2 · listra só nas pares', () => {
+    const { table, linhas } = montar();
     const td = (l: HTMLElement) => l.querySelector('td');
-    expect(cls(td(linhas[0]!))).toEqual(expect.arrayContaining(['py-[5px]', 'px-2.5', 'text-[12.5px]', 'border-[var(--border-2)]']));
+    // O 12,5 mora no <table> e a célula herda — a célula mono pode então pôr 12px sem disputa.
+    expect(cls(table)).toContain('text-[12.5px]');
+    expect(cls(td(linhas[0]!))).toEqual(expect.arrayContaining(['py-[5px]', 'px-2.5', 'leading-[1.45]', 'border-[var(--border-2)]']));
+    expect(cls(td(linhas[0]!))).not.toContain('text-[12.5px]');
     const LISTRA = 'bg-[color-mix(in_oklch,var(--bg-2)_55%,transparent)]';
     expect(cls(td(linhas[0]!))).not.toContain(LISTRA);
     expect(cls(td(linhas[1]!))).toContain(LISTRA);
     expect(cls(td(linhas[2]!))).not.toContain(LISTRA);
+  });
+
+  it('número em mono sai 12px com −0,01em no grid; fora do grid fica como sempre', () => {
+    const { linhas } = montar();
+    const tdValor = linhas[0]!.querySelectorAll('td')[1]!;
+    expect(cls(tdValor)).toEqual(expect.arrayContaining(['font-mono', 'tabular-nums', 'text-[12px]', 'tracking-[-.01em]']));
+    const fora = montar({ density: 'default' }).linhas[0]!.querySelectorAll('td')[1]!;
+    expect(cls(fora)).toEqual(expect.arrayContaining(['font-mono', 'tabular-nums']));
+    expect(cls(fora)).not.toContain('text-[12px]');
   });
 
   it('moldura com o rodapé DENTRO, e sem o rodapé antigo', () => {
@@ -199,6 +211,9 @@ describe('seleção por caixinha', () => {
     montar({ selection: selecao() });
     expect(screen.getAllByRole('checkbox')).toHaveLength(4);
     expect(screen.getByRole('checkbox', { name: 'Selecionar todas' })).toBeTruthy();
+    // Margem padrão do navegador, escrita à mão (o reset do Tailwind a zera) — é ela que dá ao
+    // cabeçalho os 34px do protótipo.
+    for (const c of screen.getAllByRole('checkbox')) expect(cls(c)).toContain('m-[3px_3px_3px_4px]');
     expect((screen.getByRole('checkbox', { name: 'Selecionar Segunda' }) as HTMLInputElement).checked).toBe(true);
     expect((screen.getByRole('checkbox', { name: 'Selecionar Primeira' }) as HTMLInputElement).checked).toBe(false);
   });

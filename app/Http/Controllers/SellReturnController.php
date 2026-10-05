@@ -66,7 +66,9 @@ class SellReturnController extends Controller
         // completa de página → Blade (cutover F5 é humano). TEM de vir ANTES do ajax():
         // o cliente Inertia manda X-Inertia E X-Requested-With, e o ramo ajax() devolveria
         // o JSON do DataTable no lugar da página.
-        if (request()->header('X-Inertia')) {
+        // Cutover por empresa no GET comum: flag `mwart.vendas_sell_return_index` (nasce
+        // desligada). AJAX sem X-Inertia segue no DataTable abaixo mesmo com a flag ligada.
+        if (\App\Support\Mwart::telaReact('vendas_sell_return_index', (int) $business_id)) {
             return $this->inertiaIndex((int) $business_id);
         }
 

@@ -100,6 +100,16 @@ Agora o frescor e **medido**: antes da parametrizacao do espelho, `frescorDaFont
 `fora do espelho` para ancora fora de `Wagner/`. O `STALE` e porque a ultima rodada do ledger de
 frescor nao cobriu o espelho do Felipe — nao e defeito da tela.
 
+## Grade nova 2026-10-04
+
+Na medição de 2026-10-01 (empresa 1, tema escuro, 1440px) a produção mostrou **0 linhas** com os
+filtros padrão da tela, então a **grade** não pôde ser comparada célula a célula. Do protótipo ficaram medidas: `<table>`, linhas de 29px, listradas, números à direita em mono
+12px. O PR de 2026-10-04 troca a div-grid local pelo `shared/DataTable` (`density="grid"`), que
+reproduz essa anatomia (o mono 12px e a altura de linha 1,45 entraram no mesmo PR, medidos na
+Receitas). A barra de "% do período" segue a local do bundle: o `Progress` do DS não tem par React.
+
+**Não medido depois do PR:** a confirmação em produção precisa de um período com produção finalizada.
+
 ## Cobertura desta tela hoje
 
 | camada | estado |

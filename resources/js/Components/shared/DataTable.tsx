@@ -154,7 +154,11 @@ const CLASSE_DENSIDADE: Record<DensidadeDaTabela, { thead: string; th: string; t
   grid: {
     thead: 'text-[var(--text-dim)]',
     th: 'sticky top-0 z-[1] bg-[var(--bg-2)] px-2.5 py-[7px] text-[10px] leading-[1.2] uppercase tracking-[.05em] font-semibold whitespace-nowrap border-b border-border select-none',
-    td: 'px-2.5 py-[5px] text-[12.5px] align-middle border-b border-[var(--border-2)] whitespace-nowrap overflow-hidden text-ellipsis max-w-[320px]',
+    // `leading-[1.45]`: a altura de linha do texto no protótipo (medido 2026-10-04: nome 18,125px
+    // sobre 12,5px, sub 15,95px sobre 11px). Com o 1,5 herdado do app a linha saía 1px mais alta.
+    // Sem `text-[12.5px]` aqui: o tamanho vem do `<table>` (herda), pra a célula mono poder pôr
+    // 12px sem duas classes de fonte disputando a mesma célula.
+    td: 'px-2.5 py-[5px] leading-[1.45] align-middle border-b border-[var(--border-2)] whitespace-nowrap overflow-hidden text-ellipsis max-w-[320px]',
     tbody: '',
     tr: '',
   },
@@ -185,8 +189,17 @@ function Rolagem({ ativa, children }: { ativa: boolean; children: ReactNode }) {
   );
 }
 
-/** Caixinha nativa do DataGrid: 13px tingida. A célula dela tem 34px. */
-const CLASSE_CAIXINHA = 'm-0 size-[13px] cursor-pointer align-middle accent-[var(--color-primary)]';
+/**
+ * Caixinha nativa do DataGrid: 13px tingida. A célula dela tem 34px.
+ *
+ * A margem é a PADRÃO do navegador para checkbox (3px 3px 3px 4px), escrita à mão porque o reset
+ * do Tailwind a zera. O protótipo não tem reset, e é essa margem que dá ao cabeçalho os 34px dele
+ * (medido 2026-10-04: 34 no protótipo × 28 com margem zero).
+ */
+const CLASSE_CAIXINHA = 'm-[3px_3px_3px_4px] size-[13px] cursor-pointer align-middle accent-[var(--color-primary)]';
+
+/** `grid`: número em fonte mono sai em 12px com −0,01em, como o `GridCell mono` do DataGrid. */
+const GRID_MONO = 'font-mono tabular-nums text-[12px] tracking-[-.01em]';
 
 /**
  * SELEÇÃO POR CAIXINHA — o `selectable` do DataGrid do DS, controlado por fora.
@@ -671,7 +684,7 @@ export default function DataTable<T>({
                       return (
                         <td
                           key={cell.id}
-                          className={`${CLASSE_ALINHAMENTO[align ?? 'left']} ${classeTd}${meta?.mono ? ' font-mono tabular-nums' : ''}`}
+                          className={`${CLASSE_ALINHAMENTO[align ?? 'left']} ${classeTd}${meta?.mono ? ' ' + (grid ? GRID_MONO : 'font-mono tabular-nums') : ''}`}
                         >
                           {flexRender(cell.column.columnDef.cell, cell.getContext()) as ReactNode}
                         </td>

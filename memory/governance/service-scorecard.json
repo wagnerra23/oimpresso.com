@@ -15,7 +15,7 @@
     },
     "vital_signs": {
       "path": "memory/governance/vital-signs.json",
-      "generated_at": "2026-10-02"
+      "generated_at": "2026-10-04"
     }
   },
   "stats": {
@@ -24,10 +24,14 @@
     "unmatched_screen_dirs": [],
     "orphan_screen_ns": [
       "Backup",
+      "Discount",
       "Documentacao",
       "Home",
+      "ImportSales",
       "Modules",
       "Purchase",
+      "SalesOrder",
+      "SellReturn",
       "Site",
       "StockAdjustment",
       "StockTransfer",
@@ -264,7 +268,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": false,
-          "idade_max_dias": 9
+          "idade_max_dias": 11
         },
         "graph": {
           "depends_on": 2,
@@ -366,7 +370,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": false,
-          "idade_max_dias": 9
+          "idade_max_dias": 11
         },
         "graph": {
           "depends_on": 3,
@@ -468,7 +472,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": true,
-          "idade_max_dias": 89
+          "idade_max_dias": 91
         },
         "graph": {
           "depends_on": 4,
@@ -570,7 +574,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": true,
-          "idade_max_dias": 89
+          "idade_max_dias": 91
         },
         "graph": {
           "depends_on": 0,
@@ -774,7 +778,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": true,
-          "idade_max_dias": 89
+          "idade_max_dias": 91
         },
         "graph": {
           "depends_on": 3,
@@ -876,7 +880,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": true,
-          "idade_max_dias": 89
+          "idade_max_dias": 91
         },
         "graph": {
           "depends_on": 2,
@@ -1080,10 +1084,10 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": true,
-          "idade_max_dias": 89
+          "idade_max_dias": 91
         },
         "graph": {
-          "depends_on": 3,
+          "depends_on": 4,
           "dependents": 1,
           "provides_api": 1,
           "owns_tables": 0,
@@ -1096,7 +1100,7 @@
         },
         "briefing": {
           "present": true,
-          "last_commit": "2026-08-12",
+          "last_commit": "2026-10-02",
           "verdict_owner": "briefing-code-staleness.mjs"
         },
         "cost": {
@@ -1284,7 +1288,7 @@
           "charter_pct": 100,
           "casos_pct": 53,
           "stale": true,
-          "idade_max_dias": 89
+          "idade_max_dias": 91
         },
         "graph": {
           "depends_on": 0,
@@ -1386,7 +1390,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": true,
-          "idade_max_dias": 89
+          "idade_max_dias": 91
         },
         "graph": {
           "depends_on": 3,
@@ -1488,7 +1492,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": true,
-          "idade_max_dias": 89
+          "idade_max_dias": 91
         },
         "graph": {
           "depends_on": 4,
@@ -1590,7 +1594,7 @@
           "charter_pct": 100,
           "casos_pct": 56,
           "stale": true,
-          "idade_max_dias": 89
+          "idade_max_dias": 91
         },
         "graph": {
           "depends_on": 4,
@@ -1692,7 +1696,7 @@
           "charter_pct": 100,
           "casos_pct": 29,
           "stale": true,
-          "idade_max_dias": 89
+          "idade_max_dias": 91
         },
         "graph": {
           "depends_on": 5,
@@ -1794,7 +1798,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": true,
-          "idade_max_dias": 89
+          "idade_max_dias": 91
         },
         "graph": {
           "depends_on": 7,
@@ -1810,7 +1814,7 @@
         },
         "briefing": {
           "present": true,
-          "last_commit": "2026-09-24",
+          "last_commit": "2026-10-02",
           "verdict_owner": "briefing-code-staleness.mjs"
         },
         "cost": {
@@ -1896,7 +1900,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": true,
-          "idade_max_dias": 89
+          "idade_max_dias": 91
         },
         "graph": {
           "depends_on": 7,
@@ -1998,7 +2002,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": true,
-          "idade_max_dias": 89
+          "idade_max_dias": 91
         },
         "graph": {
           "depends_on": 3,
@@ -2014,7 +2018,7 @@
         },
         "briefing": {
           "present": true,
-          "last_commit": "2026-09-15",
+          "last_commit": "2026-10-02",
           "verdict_owner": "briefing-code-staleness.mjs"
         },
         "cost": {
@@ -2100,7 +2104,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": true,
-          "idade_max_dias": 89
+          "idade_max_dias": 91
         },
         "graph": {
           "depends_on": 3,
@@ -2202,7 +2206,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": true,
-          "idade_max_dias": 89
+          "idade_max_dias": 91
         },
         "graph": {
           "depends_on": 3,
@@ -2304,7 +2308,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": true,
-          "idade_max_dias": 9
+          "idade_max_dias": 11
         },
         "graph": {
           "depends_on": 3,
@@ -2406,7 +2410,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": true,
-          "idade_max_dias": 91
+          "idade_max_dias": 93
         },
         "graph": {
           "depends_on": 3,
@@ -2508,7 +2512,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": true,
-          "idade_max_dias": 91
+          "idade_max_dias": 93
         },
         "graph": {
           "depends_on": 5,
@@ -2610,7 +2614,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": true,
-          "idade_max_dias": 89
+          "idade_max_dias": 91
         },
         "graph": {
           "depends_on": 4,
@@ -2809,7 +2813,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": true,
-          "idade_max_dias": 89
+          "idade_max_dias": 91
         },
         "graph": {
           "depends_on": 0,
@@ -3008,7 +3012,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": true,
-          "idade_max_dias": 89
+          "idade_max_dias": 91
         },
         "graph": {
           "depends_on": 3,
@@ -3110,11 +3114,11 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": true,
-          "idade_max_dias": 89
+          "idade_max_dias": 91
         },
         "graph": {
           "depends_on": 3,
-          "dependents": 4,
+          "dependents": 5,
           "provides_api": 3,
           "owns_tables": 0,
           "owns_legacy_views": 0,
@@ -3204,15 +3208,15 @@
           "matched": true,
           "ns": "Sells",
           "via": "direto",
-          "telas": 9,
+          "telas": 11,
           "com_scorecard": 9,
           "nota_media": 81,
           "nota_min": 72,
           "pior_tela": "Sells/Subscriptions",
           "charter_pct": 100,
-          "casos_pct": 67,
+          "casos_pct": 73,
           "stale": true,
-          "idade_max_dias": 89
+          "idade_max_dias": 91
         },
         "graph": {
           "depends_on": 0,
@@ -3508,7 +3512,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": true,
-          "idade_max_dias": 9
+          "idade_max_dias": 11
         },
         "graph": {
           "depends_on": 4,
@@ -3610,7 +3614,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": true,
-          "idade_max_dias": 89
+          "idade_max_dias": 91
         },
         "graph": {
           "depends_on": 3,
@@ -3809,7 +3813,7 @@
           "charter_pct": 100,
           "casos_pct": 100,
           "stale": true,
-          "idade_max_dias": 89
+          "idade_max_dias": 91
         },
         "graph": {
           "depends_on": 6,

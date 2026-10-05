@@ -12,7 +12,10 @@
 
 import { router } from '@inertiajs/react';
 import { useEffect, useState, type ReactNode } from 'react';
+import type { ColumnDef } from '@tanstack/react-table';
 import AppShellV2 from '@/Layouts/AppShellV2';
+import DataTable from '@/Components/shared/DataTable';
+import StatusBadge from '@/Components/shared/StatusBadge';
 import { Input } from '@/Components/ui/input';
 import { fmt, num } from './_lib/formato';
 import FabricacaoAbas from './_components/FabricacaoAbas';
@@ -52,6 +55,54 @@ interface Props {
 }
 
 const ROUTE = '/manufacturing/insumos';
+
+/** Faixa do "maior peso" → tom do `StatusBadge` (≥50 perigo · ≥25 atenção · abaixo sucesso), como no protótipo. */
+const tomPeso = (peso: number) => (peso >= 50 ? 'danger' : peso >= 25 ? 'warning' : 'success');
+
+/**
+ * Colunas do `manufacturing-insumos.jsx`. Sem ordenação: o protótipo não declara `sortable`
+ * em nenhuma, e a tabela não tem rota de ordenar (sem `endpoint`).
+ */
+const COLUNAS: ColumnDef<LinhaInsumo, unknown>[] = [
+  { id: 'n', accessorFn: (i) => i.nome, header: 'Insumo' },
+  { id: 'sku', accessorFn: (i) => i.sku, header: 'Código', meta: { mono: true } },
+  {
+    id: 'c',
+    header: 'Custo',
+    meta: { align: 'right', mono: true },
+    cell: ({ row: { original: i } }) => `${fmt(i.custo)} / ${i.unidade}`,
+  },
+  {
+    id: 'est',
+    header: 'Estoque',
+    meta: { align: 'right', mono: true },
+    cell: ({ row: { original: i } }) => `${num(i.estoque, 0)} ${i.unidade}`,
+  },
+  {
+    id: 'rec',
+    header: 'Receitas',
+    meta: { align: 'right', mono: true },
+    cell: ({ row: { original: i } }) => i.n_receitas || '—',
+  },
+  {
+    id: 'peso',
+    header: 'Maior peso',
+    meta: { align: 'right' },
+    // O estado "sem receita" não ocorre com a derivação atual da lista — o caminho fica aqui de
+    // propósito (RUNBOOK-insumos.md §2), como no protótipo.
+    cell: ({ row: { original: i } }) =>
+      i.n_receitas ? (
+        <StatusBadge
+          kind="peso"
+          value={tomPeso(i.maior_peso)}
+          label={`${num(i.maior_peso, 0)}% do custo`}
+          tone={tomPeso(i.maior_peso)}
+        />
+      ) : (
+        'sem receita'
+      ),
+  },
+];
 
 /** Faixa do §4.4 — o servidor reclampa; aqui é só o que o controle oferece. */
 const PCT_MIN = -30;
@@ -127,73 +178,31 @@ export default function Insumos({
       </div>
 
       <div className="mfg-tablewrap" data-contract="lista">
-        <div className="mfg-table ins">
-          <div className="mfg-tr mfg-thead">
-            <span className="mfg-th">Insumo</span>
-            <span className="mfg-th">Código</span>
-            <span className="mfg-th r">Custo</span>
-            <span className="mfg-th r">Estoque</span>
-            <span className="mfg-th r">Receitas</span>
-            <span className="mfg-th r">Maior peso</span>
+        {/* A grade é o `shared/DataTable` na anatomia `grid` — o par React do `DataGrid` do DS,
+            como no protótipo (`manufacturing-insumos.jsx`, `pagination={false}`). Quando nenhum
+            insumo sobra, o protótipo NÃO desenha a grade: mostra só o vazio. Aqui também. */}
+        {filtrados.length > 0 ? (
+          <DataTable<LinhaInsumo>
+            columns={COLUNAS}
+            data={filtrados}
+            caption="Insumos"
+            density="grid"
+            showSearch={false}
+            rowKey={(i) => i.variation_id}
+            // O protótipo dá foco e cursor a TODA linha; o clique só abre a que tem receita.
+            // A derivação da lista só traz insumo COM receita (RUNBOOK-insumos.md §2).
+            onRowClick={(i) => i.n_receitas && abrir(i.variation_id)}
+          />
+        ) : (
+          <div className="mfg-empty">
+            <b>Nenhum insumo encontrado</b>
+            <span>
+              {insumos.length === 0
+                ? 'Nenhuma receita deste negócio declara ingredientes ainda.'
+                : 'Ajuste a busca para ver mais resultados.'}
+            </span>
           </div>
-
-          {filtrados.map((i) => (
-            <div
-              key={i.variation_id}
-              className={`mfg-tr${i.n_receitas ? ' mfg-row' : ''}`}
-              // role/tabIndex incondicionais (igual Recipes.tsx): toda linha desta lista é
-              // clicável por construção — a derivação só traz insumo COM receita
-              // (RUNBOOK-insumos.md §2). Os guardas de n_receitas ficam nos handlers.
-              role="button"
-              tabIndex={0}
-              onClick={() => i.n_receitas && abrir(i.variation_id)}
-              onKeyDown={(e) => {
-                if (i.n_receitas && (e.key === 'Enter' || e.key === ' ')) {
-                  e.preventDefault();
-                  abrir(i.variation_id);
-                }
-              }}
-            >
-              <span className="mfg-name">
-                <b>{i.nome}</b>
-              </span>
-              <span className="mfg-sku">{i.sku}</span>
-              <span className="mfg-num r">
-                {fmt(i.custo)}
-                <span className="mfg-u">/ {i.unidade}</span>
-              </span>
-              <span className="mfg-num dim r">
-                {num(i.estoque, 0)}
-                <span className="mfg-u">{i.unidade}</span>
-              </span>
-              <span className="mfg-num r">{i.n_receitas || '—'}</span>
-              <span className="r">
-                {/* O estado "sem receita" não ocorre com a derivação atual da lista — o
-                    caminho fica aqui de propósito (RUNBOOK-insumos.md §2). */}
-                {i.n_receitas ? (
-                  <span
-                    className={`mfg-pill ${i.maior_peso >= 50 ? 'bad' : i.maior_peso >= 25 ? 'warn' : 'ok'}`}
-                  >
-                    {num(i.maior_peso, 0)}% do custo
-                  </span>
-                ) : (
-                  <span className="mfg-cat">sem receita</span>
-                )}
-              </span>
-            </div>
-          ))}
-
-          {filtrados.length === 0 && (
-            <div className="mfg-empty">
-              <b>Nenhum insumo encontrado</b>
-              <span>
-                {insumos.length === 0
-                  ? 'Nenhuma receita deste negócio declara ingredientes ainda.'
-                  : 'Ajuste a busca para ver mais resultados.'}
-              </span>
-            </div>
-          )}
-        </div>
+        )}
       </div>
 
       {sel && (

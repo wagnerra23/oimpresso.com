@@ -3708,7 +3708,8 @@ class SellController extends Controller
 
         // Thread 02 (venda-menu) — branch dual MWART (golden: getDrafts). A lista segue vindo do
         // DataTables de index() (only_shipments=true) e a escrita do updateShipping existente.
-        if (request()->header('X-Inertia')) {
+        // Cutover por empresa no GET comum: flag `mwart.vendas_shipments_index` (nasce desligada).
+        if (\App\Support\Mwart::telaReact('vendas_shipments_index', (int) $business_id)) {
             $custom_labels = json_decode((string) session('business.custom_labels'), true);
             $shipping_labels = [];
             for ($i = 1; $i <= 5; $i++) {

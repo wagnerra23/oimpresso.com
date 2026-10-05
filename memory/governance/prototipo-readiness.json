@@ -103,6 +103,16 @@
       ]
     },
     {
+      "tela": "Discount/Index",
+      "arquivo": "resources/js/Pages/Discount/Index.tsx",
+      "modulo": "core",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/Wagner/venda-blade.jsx",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
       "tela": "Documentacao/Index",
       "arquivo": "resources/js/Pages/Documentacao/Index.tsx",
       "modulo": "core",
@@ -128,6 +138,26 @@
       "modulo": "core",
       "status": "1-ciclo",
       "prototipo": "prototipo-ui/cowork/Wagner/hrm-page.jsx",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
+      "tela": "ImportSales/Index",
+      "arquivo": "resources/js/Pages/ImportSales/Index.tsx",
+      "modulo": "core",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/Wagner/venda-blade.jsx",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
+      "tela": "ImportSales/Preview",
+      "arquivo": "resources/js/Pages/ImportSales/Preview.tsx",
+      "modulo": "core",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/Wagner/venda-blade-telas.jsx",
       "falta": [
         "scorecard"
       ]
@@ -233,6 +263,46 @@
       ]
     },
     {
+      "tela": "SalesOrder/Index",
+      "arquivo": "resources/js/Pages/SalesOrder/Index.tsx",
+      "modulo": "core",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/Wagner/venda-blade-telas.jsx",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
+      "tela": "SellReturn/Index",
+      "arquivo": "resources/js/Pages/SellReturn/Index.tsx",
+      "modulo": "core",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/Wagner/vendas-extras.jsx",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
+      "tela": "Sells/Pos/Index",
+      "arquivo": "resources/js/Pages/Sells/Pos/Index.tsx",
+      "modulo": "core",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/Wagner/venda-blade.jsx (TelaPos)",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
+      "tela": "Sells/Shipments/Index",
+      "arquivo": "resources/js/Pages/Sells/Shipments/Index.tsx",
+      "modulo": "core",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/Wagner/venda-blade.jsx — função TelaRemessas, rota venda-remessas (alvo medido em governance/design/targets/vendas--remessas--index.*)",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
       "tela": "Crm/Acompanhamentos/Index",
       "arquivo": "Modules/Crm/Resources/js/Pages/Crm/Acompanhamentos/Index.tsx",
       "modulo": "Crm",
@@ -293,5 +363,5 @@
       ]
     }
   ],
-  "total": 110
+  "total": 117
 }

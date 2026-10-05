@@ -172,4 +172,46 @@ return [
         'enabled'      => env('MWART_CLIENTE_MAP', false),
         'business_ids' => $parseBizIds('MWART_CLIENTE_MAP_BIZ'),
     ],
+
+    // Vendas — cutover das telas React já em produção no GET comum (URL direta, menu).
+    // Hoje elas só respondem com `X-Inertia`; sem ele cai no Blade. Cada chave liga a
+    // tela React POR EMPRESA no GET comum. NASCEM DESLIGADAS. Regra em App\Support\Mwart.
+    // Ligar: MWART_<TELA>=true e MWART_<TELA>_BIZ=1 (lista vazia = todas as empresas).
+
+    // SellPosController@index → Sells/Pos/Index
+    'vendas_pos_index' => [
+        'enabled'      => env('MWART_VENDAS_POS_INDEX', false),
+        'business_ids' => $parseBizIds('MWART_VENDAS_POS_INDEX_BIZ'),
+    ],
+
+    // SellController@shipments → Sells/Shipments/Index
+    'vendas_shipments_index' => [
+        'enabled'      => env('MWART_VENDAS_SHIPMENTS_INDEX', false),
+        'business_ids' => $parseBizIds('MWART_VENDAS_SHIPMENTS_INDEX_BIZ'),
+    ],
+
+    // SellReturnController@index → SellReturn/Index
+    'vendas_sell_return_index' => [
+        'enabled'      => env('MWART_VENDAS_SELL_RETURN_INDEX', false),
+        'business_ids' => $parseBizIds('MWART_VENDAS_SELL_RETURN_INDEX_BIZ'),
+    ],
+
+    // DiscountController@index → Discount/Index
+    'vendas_discount_index' => [
+        'enabled'      => env('MWART_VENDAS_DISCOUNT_INDEX', false),
+        'business_ids' => $parseBizIds('MWART_VENDAS_DISCOUNT_INDEX_BIZ'),
+    ],
+
+    // ImportSalesController@index → ImportSales/Index e @preview → ImportSales/Preview
+    // (uma chave só: a prévia é o passo 2 da mesma tela).
+    'vendas_import_sales' => [
+        'enabled'      => env('MWART_VENDAS_IMPORT_SALES', false),
+        'business_ids' => $parseBizIds('MWART_VENDAS_IMPORT_SALES_BIZ'),
+    ],
+
+    // SalesOrderController@index → SalesOrder/Index
+    'vendas_sales_order_index' => [
+        'enabled'      => env('MWART_VENDAS_SALES_ORDER_INDEX', false),
+        'business_ids' => $parseBizIds('MWART_VENDAS_SALES_ORDER_INDEX_BIZ'),
+    ],
 ];
