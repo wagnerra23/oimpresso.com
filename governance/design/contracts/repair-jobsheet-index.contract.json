@@ -1,0 +1,14 @@
+{
+  "_nota": "Derivado do alvo governance/design/targets/repair--jobsheet--index.alvo.json (thread A1 do playbook repair), não do .tsx. Copy só onde o charter de JobSheet/Index a declara literal: botões \"Nova OS\" e \"Limpar\" e as 4 abas do recorte (decisão [W] 2026-10-02 \"A tela ganha as abas\", rótulos do protótipo rep-folhas); o resto da copy é decisão do dono.",
+  "tela": "Repair/JobSheet/Index",
+  "fonte": "prototipo-ui/cowork/Wagner/repair-page.jsx",
+  "alvo": ["resources/js/Pages/Repair/JobSheet/Index.tsx"],
+  "secoes": [
+    { "id": "repair-jobsheet-header", "copy": ["Nova OS"] },
+    { "id": "repair-jobsheet-recorte", "copy": ["Pendentes", "Concluídas", "Entrega vencida", "Todas"] },
+    { "id": "repair-jobsheet-filtros", "copy": ["Limpar"] },
+    { "id": "repair-jobsheet-lista", "copy": [], "estados": ["loading", "error", "empty", "no-results"] },
+    { "id": "repair-jobsheet-rodape", "copy": [] }
+  ],
+  "ordem": ["repair-jobsheet-header", "repair-jobsheet-recorte", "repair-jobsheet-filtros", "repair-jobsheet-lista", "repair-jobsheet-rodape"]
+}

@@ -12,7 +12,7 @@ related_visual_comparison: memory/requisitos/Repair/jobsheet-visual-comparison.m
 related_adrs: [101, 104, 149, 143, 93]
 related_us: [US-REPA-004]
 tier: A
-charter_version: 3
+charter_version: 4
 mwart_pattern_reuse:
   blueprint_cowork: "prototipo-ui/cowork/Wagner/os-page.jsx"
   blueprint_screenshot_approval: "SYNC_LOG (pendente)"
@@ -37,7 +37,11 @@ Listar e filtrar Ordens de Serviço por status, cliente, equipe e local — pont
 ## Goals — Features (faz)
 
 - Header com título + descrição + botão "Nova OS" → `/repair/job-sheet/create`
-- 3 dropdowns de filtro em `Select` do DS (local, status, cliente) + botão "Limpar"
+- Recorte em abas (`PageHeaderTabs`): "Pendentes" (default) · "Concluídas" · "Entrega vencida" · "Todas"
+  — decisão [W] 2026-10-02 *"A tela ganha as abas"* (rota `rep-folhas` do protótipo). Filtro do
+  backend (parâmetro `recorte` no mesmo endpoint): concluída = status com `is_completed_status`;
+  entrega vencida = pendente com prazo de entrega num dia anterior a hoje (UC-JSIDX-07)
+- 3 dropdowns de filtro em `Select` do DS (local, status, cliente) + botão "Limpar" (não mexe na aba)
 - Busca a lista via `fetch` no endpoint DataTables legacy (`datatable_url`) e renderiza em
   `<table>` React própria, lendo só campos escalares do payload
 - Skeleton `aria-busy` durante a carga; `EmptyState` com variante erro / vazio / filtro-sem-resultado
@@ -83,6 +87,8 @@ Listar e filtrar Ordens de Serviço por status, cliente, equipe e local — pont
 - A lista vem do MESMO endpoint que serve o Blade legado (`route('job-sheet.index')` sob
   `request()->ajax()`) — o endpoint é compartilhado, não exclusivo desta tela
 - Multi-tenant scoping via Eloquent global scope (`business_id`)
+- O recorte (`recorte=pendentes|concluidas|vencidas|todas`) é opcional no endpoint: sem ele vale o
+  filtro legado `is_completed_status` que o Blade manda — o ramo `ajax` do Blade não muda
 
 ---
 
@@ -120,3 +126,4 @@ Listar e filtrar Ordens de Serviço por status, cliente, equipe e local — pont
 |---|---|---|
 | 2026-05-07 | Opus + Wagner | Charter criado em S6 F1 (Foundation). Não enforced ainda — workflow `charter-gate.yml` em modo soft (warn-only) até F2. |
 | 2026-09-05 | Claude | v3 — reconciliação com o código. A tela foi reescrita em 2026-05-31 (score-up: placeholder → tabela real) e o charter continuou descrevendo a versão anterior. Corrigido: (a) 7 GUARDs fantasmas revogados; (b) "embed do DataTables via container ref" → `fetch` + tabela React; (c) anti-padrão "sem loading skeleton no shell" removido — o skeleton `aria-busy` **é** a implementação atual; (d) guard XSS reescrito: não há `document.createElement` no código, a proteção real é não consumir as colunas HTML do payload; (e) "filtros persistem em URL/state ao recarregar" removido — são `useState`, somem no reload; (f) Non-Goal de export removido: não há botão de export em lugar nenhum, é lacuna e não delegação ao DataTables. |
+| 2026-10-02 | Claude [CL] | v4 — recorte em abas (Pendentes / Concluídas / Entrega vencida / Todas), decisão [W] *"A tela ganha as abas"*; âncoras `data-contract` do contrato `repair-jobsheet-index` (thread 05 do playbook Repair). Contagem por aba **não** entrou: o endpoint DataTables devolve só o total do recorte pedido. |

@@ -151,14 +151,30 @@ class JobSheetController extends Controller
                 $job_sheets->where('repair_job_sheets.status_id', request()->status_id);
             }
 
-            //filter out mark as completed status
-            if (request()->get('is_completed_status') === '1') {
+            // Recorte (abas) da Page React — decisão [W] 2026-10-02 "A tela ganha as abas"
+            // (Pendentes / Concluídas / Entrega vencida / Todas, UC-JSIDX-07). `recorte` é
+            // opcional: sem ele vale o filtro legado `is_completed_status`, que o Blade manda.
+            // O escopo de business/permissão/local acima vale para todos os recortes.
+            $recorte = request()->get('recorte');
+            if (! in_array($recorte, ['pendentes', 'concluidas', 'vencidas', 'todas'], true)) {
+                $recorte = request()->get('is_completed_status') === '1' ? 'concluidas' : 'pendentes';
+            }
+
+            if ($recorte === 'concluidas') {
                 $job_sheets->where('rs.is_completed_status', 1);
-            } else {
+            } elseif ($recorte !== 'todas') {
+                // pendentes e vencidas: status sem is_completed_status (ou OS sem status)
                 $job_sheets->where(function ($q) {
                     $q->where('rs.is_completed_status', 0)
                         ->orWhereNull('rs.is_completed_status');
                 });
+
+                // Entrega vencida = prazo de entrega num DIA anterior a hoje; "vence hoje" não conta
+                // (mesma regra do protótipo, repair-data.jsx `atrasada`).
+                if ($recorte === 'vencidas') {
+                    $job_sheets->whereNotNull('repair_job_sheets.delivery_date')
+                        ->whereDate('repair_job_sheets.delivery_date', '<', \Carbon\Carbon::today()->toDateString());
+                }
             }
 
             return DataTables::of($job_sheets)
