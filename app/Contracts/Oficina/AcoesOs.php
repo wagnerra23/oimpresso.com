@@ -51,4 +51,14 @@ interface AcoesOs
      * @return array{resultado: string, mensagem: ?string}
      */
     public function executar(User $user, int $businessId, int $osId, string $chave): array;
+
+    /**
+     * Nova OS de mecânica, como o create da web: nasce `aberta`, entra no pipeline da oficina
+     * (Recepção) e liga o veículo se ele estiver livre. Sem item, valor, venda nem WhatsApp.
+     * Veículo e cliente já validados como do business pelo chamador. null se a oficina não
+     * está disponível (módulo ausente).
+     *
+     * @param  array{vehicle_id: int, contact_id: ?int, mileage_at_service: ?int, box_label: ?string, notes: ?string}  $dados
+     */
+    public function criar(User $user, int $businessId, array $dados): ?int;
 }

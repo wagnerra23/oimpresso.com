@@ -11,7 +11,9 @@ use App\Domain\Fsm\Models\SaleStageAction;
 use App\Domain\Fsm\Policies\StageActionPolicy;
 use App\Domain\Fsm\Services\ExecuteStageActionService;
 use App\User;
+use Illuminate\Support\Facades\Log;
 use Modules\OficinaAuto\Entities\ServiceOrder;
+use Modules\OficinaAuto\Entities\Vehicle;
 
 /**
  * Avançar a etapa da OS pelo app das lojas (contrato App\Contracts\Oficina\AcoesOs, tela 03).
@@ -103,6 +105,41 @@ final class AcoesOsDoApp implements AcoesOs
         }
 
         return ['resultado' => 'ok', 'mensagem' => null];
+    }
+
+    public function criar(User $user, int $businessId, array $dados): ?int
+    {
+        // business_id explícito: o `creating` do model só lê a sessão, que a API não tem.
+        $os = ServiceOrder::create([
+            'business_id' => $businessId,
+            'vehicle_id' => $dados['vehicle_id'],
+            'contact_id' => $dados['contact_id'],
+            'order_type' => 'mecanica',
+            'status' => 'aberta',
+            'entered_at' => now(),
+            'mileage_at_service' => $dados['mileage_at_service'],
+            'box_label' => $dados['box_label'],
+            'notes' => $dados['notes'],
+        ]);
+
+        // Como a web: a OS vira o documento vivo do veículo no quadro, se ele estiver livre.
+        Vehicle::query()
+            ->where('business_id', $businessId)
+            ->whereKey($dados['vehicle_id'])
+            ->whereNull('current_rental_id')
+            ->update(['current_rental_id' => $os->id]);
+
+        // Como a web: falha no início do pipeline não desfaz a OS (fica fora do quadro, e a
+        // web tem o botão manual); só registra.
+        try {
+            $this->starter->start($os, null, (int) $user->id);
+        } catch (\Throwable $e) {
+            Log::warning('AcoesOsDoApp@criar: início do pipeline falhou', [
+                'business_id' => $businessId, 'service_order_id' => $os->id, 'error' => $e->getMessage(),
+            ]);
+        }
+
+        return (int) $os->id;
     }
 
     private function os(int $businessId, int $osId): ?ServiceOrder

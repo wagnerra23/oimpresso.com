@@ -32,3 +32,26 @@ menu web da Oficina. Sem acesso → `403 sem_permissao`. Vocabulário de reparo:
 - Ordem: etapa mais avançada primeiro; desempate pela OS mais recente.
 - O filtro `etapa` só filtra `itens` (e `tem_mais`). `total`, `travadas` e `etapas[].total` contam
   sempre TODAS as OS ativas, com ou sem filtro.
+
+## Nova OS — escrita (sem valor nem estoque)
+
+`GET /api/app/os` traz também `pode_criar: bool`: o usuário tem `oficinaauto.service_order.create` (ou é
+superadmin) **e** o business tem o processo da oficina (sem ele a OS nasceria fora do quadro). O app só
+mostra "+ Nova OS" quando é `true`.
+
+`POST /api/app/os` (throttle 30/min)
+
+```json
+{ "vehicle_id": 7, "contact_id": 12, "mileage_at_service": 48312, "box_label": "Elevador 1", "notes": "Barulho na suspensão" }
+```
+
+- `vehicle_id` obrigatório; `contact_id`, `mileage_at_service` (inteiro ≥ 0), `box_label` (≤ 60) e
+  `notes` (≤ 2000) opcionais. Veículo e cliente têm de ser do business do token. `contact_id` vazio fica
+  vazio, como na web; o app pode sugerir o dono do veículo (`cliente_id` da lista de veículos, tela 08).
+- O ERP fixa `order_type = mecanica`, `status = aberta`, `entered_at = agora` e o business do token, põe a
+  OS no pipeline da oficina (Recepção, para aparecer nesta lista) e a liga ao veículo se ele estiver livre.
+  Mesmo create da web (`ServiceOrderController@store`): não gera item, valor, venda nem WhatsApp.
+- `201` → o mesmo JSON do `GET /api/app/os/{id}` (tela 03). `422 { erro:"validacao", campos }` (inclui
+  veículo/cliente de outra empresa: "Veículo não encontrado.") · `403 sem_permissao` (sem permissão de ver
+  ou de criar OS) · `503 sem_configuracao` (módulo da oficina indisponível).
+- Fica na web, por ora: nível de combustível, avarias na entrada, mecânico responsável e criar veículo junto.
