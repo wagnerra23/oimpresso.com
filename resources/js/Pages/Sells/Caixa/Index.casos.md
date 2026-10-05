@@ -114,5 +114,20 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 - **Teste:** `SellsCaixaContratoTest` — `UC-SCAIXA-12 sem caixa aberto o turno vem vazio`.
 - **Status: 🧪**
 
-- `[BACKLOG]` Conferência física: esperado em dinheiro, contado e diferença, fechando pelo `POST /cash-register/close-register` que já existe — PR 2 da thread 07.
+## UC-SCAIXA-13 · Esperado em dinheiro `[V0]` `[must]`
+- **Persona:** Larissa — antes de contar a gaveta sabe quanto deveria ter.
+- **Fonte:** `Caixa.charter.md` do playbook R2 ("valor inicial + dinheiro recebido − despesas − devoluções") = a expressão com que `close_register_modal.blade.php` preenche o "Total em dinheiro".
+- **Aceite:** Dado o turno do UC-SCAIXA-10 · Quando abro a tela · Então `turno.esperadoDinheiro` = 175.00 (100 + 105 − 10 − 20), igual à expressão do modal sobre `getRegisterDetails`; `cartoes` = 1 e `cheques` = 0 (o que o modal pré-preenche).
+- **Teste:** `SellsCaixaContratoTest` — `UC-SCAIXA-13 [V0] esperado em dinheiro é a expressão do modal de fechamento do Blade`.
+- **Regressão que defende:** a tela esperar um valor diferente do que o fechamento legado grava.
+- **Status: 🧪**
+
+## UC-SCAIXA-14 · Fechar com a contagem `[V0]` `[T0]` `[must]`
+- **Persona:** operador com `close_cash_register` — conta a gaveta, vê a diferença e fecha.
+- **Aceite:** Dado contado 170,00 contra esperado 175,00 · Então a tela diz "falta R$ 5,00" e exige a observação (front) · Quando fecho · Então o `POST /cash-register/close-register` existente grava `closing_amount` 170.00, a observação e os comprovantes no turno do 98, o turno do mesmo usuário no 99 continua aberto e intocado, e a tela fica sem turno.
+- **Teste:** `SellsCaixaContratoTest` — `UC-SCAIXA-14 [V0] [T0] fechar com a contagem grava pelo caminho legado e só o turno do próprio business`. O texto da diferença e a nota obrigatória são do front, sem teste de render.
+- **Regressão que defende:** valor contado gravado com separador errado (`num_uf`); fechamento atingindo o caixa de outro business.
+- **Status: 🧪**
+
+- `[BACKLOG]` Contagem por cédula (denominações) na tela — segue no modal legado `/cash-register/close-register/{id}`.
 - `[BACKLOG]` Sangria e suprimento: o caixa do UltimatePOS não grava esses tipos (`cash_register_transactions.transaction_type` só tem `initial`/`sell`/`expense`/`refund`); exigiria regra e endpoint novos — decisão [W].

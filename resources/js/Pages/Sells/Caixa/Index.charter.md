@@ -53,7 +53,8 @@ Caixa do dia — resumo financeiro por forma de pagamento + **por origem** (Balc
        - _Reconciliado 2026-09-23 (decisão [W]). Antes: disparava `CustomEvent('oimpresso:open-venda')`._
   3. Movimentos do caixa — turno aberto do usuário, somente leitura: troco inicial, totais por forma (vendas · despesas · devoluções) e lista de `cash_register_transactions` (prop deferida `turno`; totais de `CashRegisterUtil::getRegisterDetails`, o mesmo do Blade)
      - _Thread 07 venda-menu, 2026-10-05. Antes: placeholder Onda 6+1._
-  4. Conferência física — render somente leitura (placeholder Onda 6+1: substituir legacy modal)
+  4. Conferência física — esperado em dinheiro (expressão do modal Blade de fechamento, vinda do controller), campo "contado", diferença em reais com sinal (só exibida), comprovantes de cartão/cheques, observação obrigatória quando há diferença; "Fechar caixa com esta contagem" (só com `close_cash_register`) grava pelo `POST /cash-register/close-register` existente
+     - _Thread 07 venda-menu PR 2, 2026-10-05. Antes: placeholder Onda 6+1._
 - Backend endpoint REST canon: `GET /vendas/caixa` (Inertia render) + props pré-agregadas pelo controller (`SellController@inertiaCaixa` ou novo método)
 - Multi-tenant Tier 0 ADR 0093 IRREVOGÁVEL: `business_id` em todo `where()` (global scope + explícito defesa em profundidade)
 - Permission gate: `direct_sell.view` (paridade Sells/Index · UltimatePOS canonical)
@@ -65,7 +66,7 @@ Caixa do dia — resumo financeiro por forma de pagamento + **por origem** (Balc
 
 - ❌ Lançar sangria/suprimento — o caixa do UltimatePOS não grava esses tipos; seria regra nova (decisão [W])
 - ❌ Histórico de caixas fechados — vai pra `/cash-register/close-register/{id}` legacy ou `/financeiro/caixa` (ADR 0183 PR D já entrega)
-- ❌ Fechamento de caixa propriamente dito — CTA "Fechar caixa" navega legacy
+- ❌ Rota/endpoint novo de fechamento — a conferência física grava pelo `POST /cash-register/close-register` existente; o botão do topo segue abrindo o modal legado (contagem por cédula)
 - ❌ Impressão Z própria — por ora "Imprimir Z" reaproveita `/cash-register/register-details` legacy (Onda 6+2 substitui) · _reconciliado 2026-09-23 (decisão [W])_
 - ❌ Substituir `/cash-register/*` Blade legacy — coexiste durante esta wave (rollback trivial)
 

@@ -11,6 +11,7 @@
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { useCallback, useMemo, useState, type ReactNode } from 'react';
 import { usePage, router, Deferred } from '@inertiajs/react';
+import { parseDecimalPtBR, formatDecimalPtBR } from '@/Lib/numberPtBR';
 import {
   Printer, CheckCircle2,
   Banknote, CreditCard, FileText, Landmark, Wallet, ReceiptText,
@@ -72,6 +73,10 @@ interface Turno {
   totalVendas: number;
   totalDespesas: number;
   totalDevolucoes: number;
+  esperadoDinheiro: number;
+  cartoes: number;
+  cheques: number;
+  userId: number;
   porForma: TurnoForma[];
   movimentos: TurnoMovimento[];
 }
@@ -146,8 +151,7 @@ export default function SellsCaixaIndex() {
     );
   }, []);
 
-  // KPIs derivados — esperado/conferido/diferença ficam pra Onda 6+1 (read-write
-  // integrar movimentos). Por ora mostra placeholders dependentes do legacy.
+  // Esperado/contado/diferença vivem na seção Conferência física (thread 07, PR 2).
   const cashSales = useMemo(
     () => porFormaPagamento.find(p => p.key === 'cash')?.total || 0,
     [porFormaPagamento]
@@ -345,32 +349,146 @@ export default function SellsCaixaIndex() {
             </Deferred>
           </section>
 
-          {/* Section 4 — Conferência física (placeholder Onda 6+1) */}
+          {/* Section 4 — Conferência física (thread 07 · PR 2) */}
           <section className="vc-card">
             <header className="vc-card-h">
               <h3>Conferência física</h3>
-              <span className="vc-muted">read-only · Onda 6+1 wire-up</span>
+              <span className="vc-muted">contagem e fechamento do turno</span>
             </header>
-            <p className="vc-empty">
-              Fechamento de caixa real (denominations + closing note) preservado em{' '}
-              {caixaAberto && cashRegisterId ? (
-                <a href={`/cash-register/close-register/${cashRegisterId}`}>
-                  /cash-register/close-register/{cashRegisterId}
-                </a>
-              ) : (
-                <a href="/cash-register">/cash-register</a>
-              )}
-              .
-              <br />
-              <small>
-                Onda 6+1 substitui modal legacy por drawer Inertia + denominations form
-                replicado do Cowork canon.
-              </small>
-            </p>
+            <Deferred data="turno" fallback={<p className="vc-empty">Carregando turno…</p>}>
+              <ConferenciaFisica turno={turno ?? null} podeFechar={permissions.close} />
+            </Deferred>
           </section>
         </div>
       </div>
     </div>
+  );
+}
+
+// Diferença exibida: zero = bateu; positivo = sobra; negativo = falta (playbook Caixa R3).
+function textoDiferenca(centavos: number | null): string {
+  if (centavos === null) return '—';
+  if (centavos === 0) return 'bateu certinho';
+  return `${centavos > 0 ? 'sobra' : 'falta'} ${fmtBRL(Math.abs(centavos) / 100)}`;
+}
+
+// Conferência física: o operador informa o contado; a tela mostra a diferença e fecha o
+// turno pelo POST /cash-register/close-register que o modal legado já usa.
+// REGRA MESTRE valor: o esperado vem pronto do controller (expressão do modal Blade).
+// A única conta aqui é a diferença exibida (não gravada), feita em centavos inteiros.
+function ConferenciaFisica({ turno, podeFechar }: { turno: Turno | null; podeFechar: boolean }) {
+  const [contado, setContado] = useState('');
+  const [cartoes, setCartoes] = useState(String(turno?.cartoes ?? 0));
+  const [cheques, setCheques] = useState(String(turno?.cheques ?? 0));
+  const [nota, setNota] = useState('');
+  const [enviando, setEnviando] = useState(false);
+  const [erro, setErro] = useState<string | null>(null);
+
+  if (!turno) {
+    return <p className="vc-empty">Sem turno aberto para conferir.</p>;
+  }
+
+  const contadoNum = parseDecimalPtBR(contado);
+  const temContado = contado.trim() !== '' && Number.isFinite(contadoNum);
+  const difCentavos = temContado
+    ? Math.round(contadoNum * 100) - Math.round(turno.esperadoDinheiro * 100)
+    : null;
+  const precisaNota = difCentavos !== null && difCentavos !== 0;
+
+  const fechar = () => {
+    if (!temContado) {
+      setErro('Informe o valor contado em dinheiro.');
+      return;
+    }
+    if (precisaNota && nota.trim() === '') {
+      setErro('Há diferença: escreva a observação de fechamento.');
+      return;
+    }
+    setErro(null);
+    setEnviando(true);
+    router.post(
+      '/cash-register/close-register',
+      {
+        user_id: turno.userId,
+        // pt-BR com 2 casas ("1.234,56"): a forma que o num_uf do backend lê sem ambiguidade.
+        closing_amount: formatDecimalPtBR(Math.round(contadoNum * 100) / 100),
+        total_card_slips: Number.parseInt(cartoes, 10) || 0,
+        total_cheques: Number.parseInt(cheques, 10) || 0,
+        closing_note: nota,
+      },
+      {
+        preserveScroll: true,
+        onSuccess: page => {
+          if ((page.props as unknown as CaixaPageProps).caixaAberto) {
+            setErro('O caixa não fechou. Tente pelo /cash-register.');
+          }
+        },
+        onFinish: () => setEnviando(false),
+      }
+    );
+  };
+
+  return (
+    <>
+      <table className="vc-pay-table" aria-label="Conferência do dinheiro">
+        <tbody>
+          <tr>
+            <td>Esperado em dinheiro</td>
+            <td className="vc-num strong">{fmtBRL(turno.esperadoDinheiro)}</td>
+          </tr>
+          <tr>
+            <td>
+              <label htmlFor="vc-contado">Contado em dinheiro</label>
+            </td>
+            <td className="vc-num">
+              <input
+                id="vc-contado"
+                className="vc-date"
+                inputMode="decimal"
+                placeholder="0,00"
+                value={contado}
+                onChange={e => setContado(e.target.value)}
+              />
+            </td>
+          </tr>
+          <tr>
+            <td>Diferença</td>
+            <td className="vc-num strong" aria-live="polite">
+              {textoDiferenca(difCentavos)}
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <label htmlFor="vc-cartoes">Comprovantes de cartão</label>
+            </td>
+            <td className="vc-num">
+              <input id="vc-cartoes" className="vc-date" type="number" min={0} value={cartoes} onChange={e => setCartoes(e.target.value)} />
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <label htmlFor="vc-cheques">Cheques</label>
+            </td>
+            <td className="vc-num">
+              <input id="vc-cheques" className="vc-date" type="number" min={0} value={cheques} onChange={e => setCheques(e.target.value)} />
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <label htmlFor="vc-nota" className="vc-muted">
+        Observação de fechamento{precisaNota ? ' (obrigatória: há diferença)' : ''}
+      </label>
+      <textarea id="vc-nota" className="vc-date" rows={2} value={nota} onChange={e => setNota(e.target.value)} />
+      {erro && <p className="vc-empty" role="alert">{erro}</p>}
+      {podeFechar ? (
+        <button type="button" className="os-btn primary" onClick={fechar} disabled={enviando}>
+          <CheckCircle2 size={11} />
+          {enviando ? 'Fechando…' : 'Fechar caixa com esta contagem'}
+        </button>
+      ) : (
+        <p className="vc-empty">Fechar o caixa exige a permissão de fechar caixa.</p>
+      )}
+    </>
   );
 }
 
