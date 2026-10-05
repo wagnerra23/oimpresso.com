@@ -845,6 +845,7 @@ it('consulta de placa: placa já em veículo ativo devolve o id dele sem consult
         ->assertJsonPath('veiculo_existente_id', $ativo);
 
     $this->getJson('/api/app/veiculos/consulta-placa/ABC12')->assertStatus(422)->assertJsonPath('erro', 'validacao');
+});
 
 // ── Web: cadastro e edição de veículo também recusam placa ativa repetida (decisão [W] 2026-10-05) ──
 
