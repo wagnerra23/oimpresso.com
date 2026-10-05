@@ -5,7 +5,7 @@ irmaos: Index.charter.md (lei) · Index.tsx (tela)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: é a tela que emite e corta o acesso dos apps externos (WR Comercial em campo). Segredo vazado na lista ou credencial de outro negócio visível é incidente; credencial instalada que para de autenticar quebra cliente que não pode ser atualizado.
 owner: wagner
-last_run: "2026-10-01"
+last_run: "2026-10-05"
 ---
 
 # Casos de Uso & Aceite — Connector · API clients (`/connector/client`)
