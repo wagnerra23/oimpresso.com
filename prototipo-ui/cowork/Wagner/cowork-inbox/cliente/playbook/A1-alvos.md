@@ -4,6 +4,8 @@ titulo: Alvos de Cliente
 dono: "[CL]"
 base: ca44a3d54cd2
 ---
+> Ficha da thread **A1** (o mesmo texto serve A2, cada uma com o seu arquivo).
+
 # A1 · A2 · ALVO
 
 Nenhum `cliente--*.alvo.json` @ca44a3d54cd2. A medida em `targets/medidas/Cliente--Index/` é design-diff, não alvo.

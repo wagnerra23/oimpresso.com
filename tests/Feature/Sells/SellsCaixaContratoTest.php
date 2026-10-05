@@ -461,3 +461,59 @@ it('UC-SCAIXA-11 [T0] turno de outro business nunca aparece, nem os movimentos d
 it('UC-SCAIXA-12 sem caixa aberto o turno vem vazio', function () {
     expect(scaixaTurnoProp($this))->toBeNull();
 });
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Thread 07 venda-menu, PR 2 — conferência física (UC-SCAIXA-13..14).
+//
+// REGRA MESTRE valor — DUPLA PROVA do esperado em dinheiro:
+//   (a) expressão do close_register_modal.blade.php sobre getRegisterDetails:
+//       cash_in_hand + total_cash − total_cash_refund − total_cash_expense
+//   (b) conta à mão na fixture do turno: 100 + 105 − 10 − 20 = 175.00
+// Contado 170,00 ⇒ diferença −5,00 (front, só exibida: 17000 − 17500 = −500 centavos).
+// Gravação pelo POST /cash-register/close-register que já existe (num_uf("170,00") = 170).
+// ─────────────────────────────────────────────────────────────────────────────
+
+it('UC-SCAIXA-13 [V0] esperado em dinheiro é a expressão do modal de fechamento do Blade', function () {
+    $regId = scaixaTurnoFixture($this);
+    $turno = scaixaTurnoProp($this);
+
+    $d = app(\App\Utils\CashRegisterUtil::class)->getRegisterDetails($regId);
+    $blade = round((float) $d->cash_in_hand + (float) $d->total_cash
+        - (float) $d->total_cash_refund - (float) $d->total_cash_expense, 2);
+
+    expect($turno['esperadoDinheiro'])->toBe($blade);
+    expect($turno['esperadoDinheiro'])->toBe(175.0);
+    expect((int) $turno['cartoes'])->toBe(1);
+    expect((int) $turno['cheques'])->toBe(0);
+    expect((int) $turno['userId'])->toBe($this->user->id);
+});
+
+it('UC-SCAIXA-14 [V0] [T0] fechar com a contagem grava pelo caminho legado e só o turno do próprio business', function () {
+    $fechador = scaixaUsuario($this->bizId, ['direct_sell.view', 'close_cash_register']);
+    scaixaLogin($this, $fechador);
+    $this->user = $fechador;
+    $regId = scaixaTurnoFixture($this);
+    $alheio = scaixaTurno($this->outroBizId, $fechador->id, [['initial', 'cash', 'credit', 70000.00, null]]);
+
+    // Payload idêntico ao que ConferenciaFisica envia (Index.tsx).
+    $this->post('/cash-register/close-register', [
+        'user_id' => $fechador->id,
+        'closing_amount' => '170,00',
+        'total_card_slips' => 1,
+        'total_cheques' => 0,
+        'closing_note' => 'falta 5,00 na gaveta',
+    ])->assertStatus(302);
+
+    $reg = DB::table('cash_registers')->where('id', $regId)->first();
+    expect($reg->status)->toBe('close');
+    expect(round((float) $reg->closing_amount, 2))->toBe(170.0);
+    expect((int) $reg->total_card_slips)->toBe(1);
+    expect($reg->closing_note)->toBe('falta 5,00 na gaveta');
+
+    $outro = DB::table('cash_registers')->where('id', $alheio)->first();
+    expect($outro->status)->toBe('open');
+    expect(round((float) $outro->closing_amount, 2))->toBe(0.0);
+
+    // Depois de fechar, a tela não tem mais turno.
+    expect(scaixaTurnoProp($this))->toBeNull();
+});

@@ -57,10 +57,6 @@ Todas fechadas em 19/08. Resta só o portão [W2] (screenshot em produção) ant
         {
           "tipo": "arquivo",
           "path": "${MOD}/Tests/Feature/ApiClientsPanelTest.php"
-        },
-        {
-          "tipo": "arquivo",
-          "path": "${MPAGES}/Api/Index.charter.md"
         }
       ]
     },
@@ -155,6 +151,10 @@ Todas fechadas em 19/08. Resta só o portão [W2] (screenshot em produção) ant
         {
           "tipo": "arquivo",
           "path": "${CONTRATOS}/connector-api.contract.json"
+        },
+        {
+          "tipo": "arquivo",
+          "path": "${MPAGES}/Api/Index.charter.md"
         }
       ]
     },
@@ -236,7 +236,12 @@ Todas fechadas em 19/08. Resta só o portão [W2] (screenshot em produção) ant
       "nao_toca": [
         "${MOD}/Routes/api.php"
       ],
-      "provas": [],
+      "provas": [
+        {
+          "tipo": "execucao",
+          "nota": "UC-CONN-21 verde no recibo"
+        }
+      ],
       "nota_provas": "UC-CONN-21 verde, citado no recibo"
     },
     {
@@ -256,10 +261,63 @@ Todas fechadas em 19/08. Resta só o portão [W2] (screenshot em produção) ant
       "nao_toca": [
         "${MOD}/Services/DelphiSyncService.php"
       ],
-      "provas": [],
+      "provas": [
+        {
+          "tipo": "execucao",
+          "nota": "connector:health publica uma entrada por execução; caminho do json no recibo"
+        }
+      ],
       "nota_provas": "caminho do json de histórico fixado no recibo"
+    },
+    {
+      "id": "09",
+      "titulo": "Aba Documentação (PR-b da 04)",
+      "dono": "CL",
+      "vaga": 3,
+      "prs": 1,
+      "arquivo": "09-documentacao.md",
+      "depende_threads": [
+        "04"
+      ],
+      "prefixo": [
+        "${MPAGES}/Api/",
+        "Modules/Connector/Http/Controllers/ClientController.php"
+      ],
+      "nao_toca": [
+        "Modules/Connector/Routes/api.php"
+      ],
+      "provas": [
+        {
+          "tipo": "execucao",
+          "nota": "aba Documentação no menu do Connector, UC no recibo"
+        }
+      ]
+    },
+    {
+      "id": "10",
+      "titulo": "Rodar UC-CONN-12 na lane MySQL (pulado em SQLite)",
+      "dono": "CL",
+      "vaga": 2,
+      "prs": 1,
+      "arquivo": "10-mysql.md",
+      "depende_threads": [
+        "02"
+      ],
+      "prefixo": [
+        "Modules/Connector/Tests/Feature/ApiClientsPanelTest.php"
+      ],
+      "nao_toca": [
+        "Modules/Connector/Http/"
+      ],
+      "provas": [
+        {
+          "tipo": "execucao",
+          "nota": "UC-CONN-12 verde na lane MySQL, run citado no recibo"
+        }
+      ]
     }
-  ]
+  ],
+  "revisado": "2026-10-01 — recibos e _DECISOES do main c12552f40e2a aplicados · 2026-10-01 reconferência @99e6fa3e08f0: threads novas 09,10"
 }
 ```
 

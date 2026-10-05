@@ -44,10 +44,12 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/arquivos/playbook/
     {
       "id": "D5",
       "pergunta": "Aviso ao titular (LGPD Art. 18 §VI): cunhar a ADR + coluna titular_avisado_at?",
-      "respondida": false,
+      "respondida": true,
       "destrava": [
         "05"
-      ]
+      ],
+      "resposta": "sim — ADR + titular_avisado_at, desenho da ficha 05",
+      "fonte": "_DECISOES-W-2026-10-01.md"
     }
   ],
   "threads": [
@@ -65,7 +67,12 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/arquivos/playbook/
         "${MOD}/Http/",
         "${CONTRATOS}/arquivos-index.contract.json"
       ],
-      "provas": [],
+      "provas": [
+        {
+          "tipo": "comparacao",
+          "nota": "design-diff --compare --check sem DIVERGE (bug), run citado no _saida"
+        }
+      ],
       "nota_provas": "prova = design-diff --compare --check sem DIVERGE (bug) em Arquivos--Index; run citado no _saida-01.md"
     },
     {
@@ -165,7 +172,16 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/arquivos/playbook/
       "nao_toca": [
         "${MOD}/Console/Commands/RetentionCleanupCommand.php"
       ],
-      "provas": [],
+      "provas": [
+        {
+          "tipo": "arquivo",
+          "path": "Modules/Arquivos/Database/Migrations/2026_10_01_000001_add_titular_avisado_at_and_notice_to_arquivos.php"
+        },
+        {
+          "tipo": "arquivo",
+          "path": "Modules/Arquivos/Services/AvisoTitularService.php"
+        }
+      ],
       "nota_provas": "migração titular_avisado_at + ação notice no enum; nome do arquivo de migração não existe ainda"
     },
     {
@@ -190,7 +206,8 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/arquivos/playbook/
         }
       ]
     }
-  ]
+  ],
+  "revisado": "2026-10-01 — recibos e _DECISOES do main c12552f40e2a aplicados"
 }
 ```
 

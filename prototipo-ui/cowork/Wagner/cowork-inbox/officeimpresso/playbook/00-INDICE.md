@@ -18,7 +18,7 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/officeimpresso/playbook
 **Guardas:** `LicencaComputadorController` do Officeimpresso já tem 4 portões (`officeimpresso.access`, `.licencas.gerenciar`, `.empresa.gerenciar`, `.licencas.excluir`) — o "qualquer logado acessa" que o docblock cita foi fechado.
 
 **🔴 Segurança ainda aberta (API do desktop, em `Modules/Connector/Http/Controllers/Api/LicencaComputadorController.php`):**
-- **L1** `:243` `Licenca_Computador::all()` — devolve equipamento de **todos** os negócios a qualquer token `auth:api`. ⚠️ **Retratação:** no roteiro do Connector eu escrevi que L1 "pode já ter sido consertado" porque procurei no módulo errado (Officeimpresso). Está aberto.
+- **L1** `:243` `Licenca_Computador::all()` — sem escopo de negócio. ⚠️ **Errata do `_saida-01`:** era **latente** — `index/show/update/destroy/store` não tinham rota; só `processa-dados-cliente` e `salvar-equipamento/{business_id}` apontam pro controller. Conserto valeu (rota futura vazaria), vazamento ativo não havia. ⚠️ **Retratação:** no roteiro do Connector eu escrevi que L1 "pode já ter sido consertado" porque procurei no módulo errado (Officeimpresso). Está aberto.
 - **L7** `:267` · `:293` · `:310` `Licenca_Computador::find($id)` sem `business_id`.
 - **L2** `:195` `->senha =` e `:214` `->contra_senha =` — credencial do cliente gravada em claro.
 
@@ -58,40 +58,58 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/officeimpresso/playbook
     {
       "id": "D1",
       "pergunta": "Officeimpresso/client (clone do painel de API do Connector, com makeVisible('secret') e /regenerate): aposentar e usar o do Connector, ou manter?",
-      "respondida": false,
+      "respondida": true,
       "destrava": [
         "05"
-      ]
+      ],
+      "resposta": "manter painel; delegação a todo funcionário do negócio 1; testar Delphi conectado",
+      "fonte": "_DECISOES-W-2026-10-01b.md"
     },
     {
       "id": "D2",
       "pergunta": "Tela de licenças: nasce em Officeimpresso ou funde com Suporte/Empresas + Suporte/Visao (já em React, SupportController)?",
-      "respondida": false,
+      "respondida": true,
       "destrava": [
         "06"
-      ]
+      ],
+      "resposta": "tela nova Officeimpresso/Licencas",
+      "fonte": "_DECISOES-W-2026-10-01.md"
     },
     {
       "id": "D3",
       "pergunta": "Catálogo duplicado (Officeimpresso catalogue × ProductCatalogue — as mesmas 3 views): qual fica?",
-      "respondida": false,
+      "respondida": true,
       "destrava": [
         "08"
-      ]
+      ],
+      "resposta": "ajustar pacotes antes do redirect do QR",
+      "fonte": "_DECISOES-W-2026-10-01b.md"
     },
     {
       "id": "D4",
       "pergunta": "Dropar as colunas senha/contra_senha (depois de parar de gravar)?",
-      "respondida": false,
+      "respondida": true,
       "destrava": [
         "03"
-      ]
+      ],
+      "resposta": "NÃO dropar senha/contra_senha",
+      "fonte": "_DECISOES-W-2026-10-01b.md"
     },
     {
       "id": "D5",
       "pergunta": "Cobrança por equipamento (dt_validade, valor, gera_mensalidade): nesta tela ou no Financeiro/Superadmin?",
+      "respondida": true,
+      "destrava": [],
+      "resposta": "fora desta tela (Financeiro/Superadmin)",
+      "fonte": "_DECISOES-W-2026-10-01.md"
+    },
+    {
+      "id": "D6",
+      "pergunta": "Ligar a flag useV2OfficeimpressoLicencas em produção (hoje OFF: produção segue na Blade)?",
       "respondida": false,
-      "destrava": []
+      "destrava": [
+        "09"
+      ]
     }
   ],
   "threads": [
@@ -151,7 +169,7 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/officeimpresso/playbook
       "dono": "CL",
       "vaga": 2,
       "prs": 1,
-      "arquivo": "02-segredo-desktop.md",
+      "arquivo": "03-segredo-desktop.md",
       "depende_threads": [
         "02"
       ],
@@ -179,7 +197,7 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/officeimpresso/playbook
       "dono": "CL",
       "vaga": 1,
       "prs": 1,
-      "arquivo": "03-get.md",
+      "arquivo": "04-get.md",
       "prefixo": [
         "${MOD}/Routes/web.php",
         "${MOD}/Resources/views/"
@@ -206,7 +224,7 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/officeimpresso/playbook
       "dono": "CL",
       "vaga": 2,
       "prs": 1,
-      "arquivo": "04-client-duplicado.md",
+      "arquivo": "05-client-duplicado.md",
       "depende_decisoes": [
         "D1"
       ],
@@ -228,16 +246,15 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/officeimpresso/playbook
     },
     {
       "id": "A1",
-      "titulo": "ALVO officeimpresso--licencas--index + remedir Logs Index/Timeline",
+      "titulo": "ALVO officeimpresso--licencas--index",
       "dono": "CL",
       "vaga": 2,
-      "arquivo": "05-alvos.md",
+      "arquivo": "A1-alvos.md",
       "depende_decisoes": [
         "D2"
       ],
       "prefixo": [
-        "${ALVOS}/officeimpresso--licencas--index.*",
-        "${ALVOS}/medidas/Officeimpresso--*"
+        "${ALVOS}/officeimpresso--licencas--index.*"
       ],
       "nao_toca": [
         "${MPAGES}/"
@@ -249,6 +266,25 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/officeimpresso/playbook
           "chaves": [
             "secoes"
           ]
+        }
+      ]
+    },
+    {
+      "id": "A3",
+      "titulo": "Remedir Logs Index e Timeline, um design.json por tela",
+      "dono": "CL",
+      "vaga": 2,
+      "arquivo": "A3-remedir-logs.md",
+      "prefixo": [
+        "${ALVOS}/medidas/Officeimpresso--*"
+      ],
+      "nao_toca": [
+        "${MPAGES}/"
+      ],
+      "provas": [
+        {
+          "tipo": "medicao",
+          "nota": "duas medidas byte-idênticas por tela, cada uma com o seu design.json (hoje as duas usam o blob 0369a411b2dd)"
         }
       ]
     },
@@ -296,7 +332,7 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/officeimpresso/playbook
       "prs": 1,
       "arquivo": "07-logs.md",
       "depende_threads": [
-        "A1"
+        "A3"
       ],
       "prefixo": [
         "${MPAGES}/Officeimpresso/Logs/"
@@ -304,7 +340,12 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/officeimpresso/playbook
       "nao_toca": [
         "${MOD}/Http/"
       ],
-      "provas": [],
+      "provas": [
+        {
+          "tipo": "comparacao",
+          "nota": "design-diff --compare --check sem DIVERGE (bug), run citado no _saida"
+        }
+      ],
       "nota_provas": "design-diff --compare --check sem DIVERGE (bug), run no recibo"
     },
     {
@@ -324,10 +365,44 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/officeimpresso/playbook
       "nao_toca": [
         "${MOD}/Http/Controllers/LicencaComputadorController.php"
       ],
-      "provas": [],
+      "provas": [
+        {
+          "tipo": "contem",
+          "path": "${MOD}/Http/Controllers/OfficeimpressoController.php",
+          "padrao": "paraProductCatalogue("
+        }
+      ],
       "nota_provas": "prova depende de D3 — fixar no recibo qual controller perdeu as 3 views"
+    },
+    {
+      "id": "09",
+      "titulo": "Ligar a tela nova de licenças (flag useV2OfficeimpressoLicencas)",
+      "dono": "CL",
+      "vaga": 3,
+      "prs": 1,
+      "arquivo": "09-ligar-flag.md",
+      "depende_threads": [
+        "06"
+      ],
+      "depende_decisoes": [
+        "D6"
+      ],
+      "prefixo": [
+        "${MOD}/Http/Controllers/LicencaComputadorController.php",
+        "config/"
+      ],
+      "nao_toca": [
+        "${MPAGES}/"
+      ],
+      "provas": [
+        {
+          "tipo": "execucao",
+          "nota": "flag ligada no ambiente, RUNBOOK-licencas §F2 seguido, rota de fuga testada"
+        }
+      ]
     }
-  ]
+  ],
+  "revisado": "2026-10-01 — recibos e _DECISOES do main c12552f40e2a aplicados · 2026-10-01 reconferência @99e6fa3e08f0: threads novas 09"
 }
 ```
 

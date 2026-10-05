@@ -493,6 +493,17 @@ _saida-NN.md         escrito pela própria thread — prova IMPLÍCITA de toda t
 3. **Máquina:** `prototipo-ui/cowork/Wagner/scripts/qa/placar-indice.mjs` **já vive no `main`** (não há cópia aqui — §6-bis); já está no `main` como `scripts/qa/placar.mjs --indice` + `placar-de-lista.yml` (advisory). Aceite T5 da lista: apagar uma `prova:` faz X cair para X−1 **nomeando a thread e o arquivo** (verificado).
 4. **Fim** = 100% das provas verdes **e** T7 por seção. Antes disso o estado é "em curso", nunca "pronto".
 
+### RETORNO — o passo 6 que faltava (validado 2026-10-01 contra o `main` c12552f40e2a)
+> **Medido:** 10 playbooks importados, o Code executou e gravou **40 `_saida`** + **8 `_DECISOES-W-*.md`** no `main`; o Cowork tinha **6** recibos. O canal `pendentes-cowork.mjs` (subir o retorno na mesma sessão) não entregou. Com `/PURGE`, o próximo pacote apagaria **34 recibos** — as threads voltariam a `proximo` e o `/onda` mandaria refazê-las. A guarda `--recibos-perdidos` acusaria, mas é advisory.
+1. **Antes de editar qualquer `cowork-inbox/<mod>/`:** listar `prototipo-ui/cowork/Wagner/cowork-inbox/<mod>/playbook/` no `main` e importar todo `_saida-*` e `_DECISOES-*` que falte aqui (byte a byte, `github_copy_files`). Conferir também o tamanho do `00-INDICE.md` dos dois lados.
+2. **`_DECISOES-W-*.md` se aplica no índice:** o bloco json dele vira `respondida/resposta` no `decisoes[]`. Decisão só no arquivo lateral não vale — o placar lê só o índice, e a thread continua `pendente`.
+3. **Errata de recibo se aplica no índice:** toda seção "Errata" de `_saida` é pedido ao Cowork (o Code não edita o espelho). Aplicar e marcar `revisado` no topo do json.
+4. **Ficha = `<id>-*.md`:** o `/onda` abre a ficha por `ls "$NN"-*.md`, não pelo campo `arquivo`. Ficha com outro prefixo abre a ficha de outra thread. Ficha partilhada → um arquivo por thread, cada um com nota própria (bytes diferentes, R4).
+5. **Contrato nasce no PR da Page:** o gate required reprova `*.contract.json` sem `.tsx` (`contrato-de-tela.mjs checkContract`); charter sem `.tsx` irmão reprova na IT2. Thread "só contratos/charter antes do código" é proibida.
+6. **Thread visual sem prova estrutural leva prova de recibo** (`tipo: comparacao`): sem prova, `_saida` sozinho dá `feito` (fail-open); com ela, a thread fica `indecidível` até o avaliador de recibo voltar — honesto nas duas direções.
+7. **Prefixo de teste = onde a lane do módulo roda** (`Modules/<Mod>/Tests/Feature/`), nunca `tests/` genérico — teste na lane sqlite pula e não prova.
+8. **Recibo "NÃO entregue" + thread sem prova = `feito` falso.** O placar dá `feito` a quem tem `_saida` e zero provas falhando — e zero provas nunca falha. Thread absorvida por outras vira `bloqueio` com motivo, **e** as dependentes passam a depender do que ela dependia (dependente de bloqueada nunca fecha). Recibo "PARCIAL" se divide: a parte entregue fica, o resto vira thread nova com o próprio `NN-*.md`. Caso real 2026-10-01: Produto/07 e Crm/01 contavam como entregues; Officeimpresso/A1 parcial segurava a 07.
+
 ### O que o comando NÃO faz (e não deve)
 Não decide qual seção entra na onda (julgamento) · não mergeia `.tsx` (ADR 0283) · **não regenera o pacote pelo contexto onde há rota de máquina** (ADR 0374 **ativa**; 0389 abre só o caso `get_file` inline sem rota, sob 4 condições) — quando houver arquivo em disco, `--export-from`; sempre declarando o cabeçalho como canonicalização própria · não afirma paridade sem T7 · não grava mapa/inventário fora do índice-pedido (L-42).
 

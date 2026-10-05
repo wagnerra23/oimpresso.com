@@ -10,7 +10,7 @@ status: rascunho
 # apontada (regex `^inertia_target:\s*["']?(\S+?\.tsx)`, datas em last_updated/date/updated_at).
 # Sem os dois campos, o doc cai no balde "nao-avaliado" e envelhece calado.
 inertia_target: resources/js/Pages/Manufacturing/Index.tsx
-last_updated: "2026-09-22"
+last_updated: "2026-10-05"
 ---
 
 # Comparação design × produção — `Manufacturing/Index` (Ordens de produção)
@@ -147,6 +147,28 @@ Enquanto isso nao for calibrado, o veredito agregado fala de **4 celulas**, nao 
 Agora o frescor e **medido**: antes da parametrizacao do espelho, `frescorDaFonte` devolvia
 `fora do espelho` para ancora fora de `Wagner/`. O `STALE` e porque a ultima rodada do ledger de
 frescor nao cobriu o espelho do Felipe — nao e defeito da tela.
+
+## Grade nova 2026-10-05
+
+Na medição de 2026-10-01 (empresa 1, tema escuro, 1440 px; sonda complementar de células) a lista de
+ordens ainda era a tabela local: linha de 53px, texto 14px, data em cor apagada, números sem mono e
+sem linhas listradas. O protótipo (`MfgProducaoView`, `DataGrid` do DS) tem linha de 45px, 12,5px,
+data/referência/números em mono 12px e linhas listradas. O PR de 2026-10-05 troca a tabela pelo
+`shared/DataTable` (`density="grid"`), a mesma das abas Receitas, Insumos e Relatório:
+
+| item | protótipo | produção em 10-01 | depois deste PR |
+|---|---|---|---|
+| estrutura | `<table>` do `DataGrid`, listrada | tabela local | `<table>` do `shared/DataTable`, listrada |
+| texto | 12,5px | 14px | 12,5px |
+| data, referência | mono 12px, cor do texto | data 14px apagada; ref. mono 14px | mono 12px, cor do texto |
+| qtd, custos | mono 12px à direita | 14px à direita | mono 12px à direita |
+| produto | nome 600 + 2ª linha 11px | nome 500 + 2ª linha 12px | nome 600 + 2ª linha 11px (`--text-dim`, AA) |
+| situação "Rascunho" | contorno, sem cor | âmbar | contorno (mapa `producao` do `StatusBadge`) |
+
+**Fora deste PR:** os filtros (o protótipo usa `Select`/`DatePicker` do DS sem cartão em volta), as
+descrições dos 4 indicadores e o painel lateral da ordem (`MfgProducaoDrawer`), que precisa dos
+ingredientes consumidos vindos do servidor. **Não medido depois do PR:** a confirmação em produção
+vem depois do deploy.
 
 ## Cobertura desta tela hoje
 
