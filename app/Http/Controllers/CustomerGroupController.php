@@ -87,9 +87,7 @@ class CustomerGroupController extends Controller
             $business_id = $request->session()->get('user.business_id');
             $input['business_id'] = $business_id;
             $input['created_by'] = $request->session()->get('user.id');
-            if (! $this->tabelaDoNegocio($input, $business_id)) {
-                return ['success' => false, 'msg' => __('messages.something_went_wrong')];
-            }
+            $this->exigirTabelaDoNegocio($input, $business_id);
 
             $input['amount'] = ! empty($input['amount']) ? $this->commonUtil->num_uf($input['amount']) : 0;
 
@@ -150,9 +148,7 @@ class CustomerGroupController extends Controller
             try {
                 $input = $request->only(['name', 'amount', 'price_calculation_type', 'selling_price_group_id']);
                 $business_id = $request->session()->get('user.business_id');
-                if (! $this->tabelaDoNegocio($input, $business_id)) {
-                    return ['success' => false, 'msg' => __('messages.something_went_wrong')];
-                }
+                $this->exigirTabelaDoNegocio($input, $business_id);
 
                 $input['amount'] = ! empty($input['amount']) ? $this->commonUtil->num_uf($input['amount']) : 0;
 
@@ -219,7 +215,8 @@ class CustomerGroupController extends Controller
             ->groupBy('customer_group_id')
             ->pluck(DB::raw('COUNT(*)'), 'customer_group_id');
 
-        return CustomerGroup::where('customer_groups.business_id', $business_id)
+        return DB::table('customer_groups')
+            ->where('customer_groups.business_id', $business_id)
             ->leftJoin('selling_price_groups as spg', function ($j) use ($business_id) {
                 $j->on('spg.id', '=', 'customer_groups.selling_price_group_id')
                     ->where('spg.business_id', $business_id);
@@ -228,7 +225,7 @@ class CustomerGroupController extends Controller
             ->get(['customer_groups.id', 'customer_groups.name', 'customer_groups.amount',
                 'customer_groups.price_calculation_type', 'customer_groups.selling_price_group_id',
                 'spg.name as tabela_nome'])
-            ->map(fn ($g) => [
+            ->map(fn (object $g) => [
                 'id' => (int) $g->id,
                 'nome' => (string) $g->name,
                 'calculo' => $g->price_calculation_type === 'selling_price_group' ? 'selling_price_group' : 'percentage',
@@ -243,14 +240,19 @@ class CustomerGroupController extends Controller
      * Tier 0 (ADR 0093): a tabela de preço do grupo tem de ser do negócio da sessão. Antes da
      * thread Cliente/03, store/update gravavam qualquer `selling_price_group_id` recebido.
      */
-    private function tabelaDoNegocio(array $input, $business_id): bool
+    private function exigirTabelaDoNegocio(array $input, $business_id): void
     {
         if (($input['price_calculation_type'] ?? null) !== 'selling_price_group' || empty($input['selling_price_group_id'])) {
-            return true;
+            return;
         }
 
-        return SellingPriceGroup::where('business_id', $business_id)
+        $daEmpresa = SellingPriceGroup::where('business_id', $business_id)
             ->where('id', $input['selling_price_group_id'])
             ->exists();
+
+        // Cai no catch de store/update, que já devolve {success:false} sem gravar.
+        if (! $daEmpresa) {
+            throw new \RuntimeException('Tabela de preço de outro negócio recusada no grupo de cliente.');
+        }
     }
 }
