@@ -408,3 +408,93 @@ it('UC-PCADAP-16 · permissões das abas novas: grupos por product.create, garan
 
     pcadapLogin($this, pcadapUsuario($this->biz->id, ['unit.view']))->get('/variation-templates')->assertForbidden();
 });
+
+// ── Thread 10 · PR-a · drawer de criar/editar (Unidades e Marcas) ──────────────────────────
+// O corpo de cada requisição é o que o CadastroDrawer.tsx monta (JSON, X-Requested-With).
+
+it('UC-PCADAP-17 · drawer de unidade grava o múltiplo pela mesma rota e a edição devolve o que leu', function () {
+    $user = pcadapUsuario($this->biz->id, ['unit.view', 'unit.create', 'unit.update']);
+    $un = pcadapUnidade($this->biz->id, 'Unidade base', 'Und');
+    $ajax = ['X-Requested-With' => 'XMLHttpRequest'];
+    $base = fn (string $simbolo) => DB::table('units')->where('business_id', $this->biz->id)->where('short_name', $simbolo)
+        ->first(['id', 'base_unit_id', 'base_unit_multiplier']);
+
+    // Caminho 1: o que o operador digita, como o drawer manda (pt-BR, vírgula decimal e ponto de milhar).
+    foreach (['mei' => ['0,5', 0.5], 'cxd' => ['1.000', 1000.0]] as $simbolo => [$digitado, $esperado]) {
+        pcadapLogin($this, $user)->postJson('/units', [
+            'actual_name' => "Drawer {$simbolo} " . PCADAP_TAG, 'short_name' => $simbolo, 'allow_decimal' => 0,
+            'define_base_unit' => '1', 'base_unit_id' => $un, 'base_unit_multiplier' => $digitado,
+        ], $ajax)->assertOk()->assertJson(['success' => true]);
+        expect((int) $base($simbolo)->base_unit_id)->toBe($un);
+        expect((float) $base($simbolo)->base_unit_multiplier)->toBe($esperado);
+    }
+
+    // Caminho 2: o drawer de edição abre com o múltiplo da prop e salva sem mexer — o valor não anda.
+    $linhas = collect(pcadapProps($this, $user, 'unidades')['unidades'] ?? []);
+    foreach (['mei' => 0.5, 'cxd' => 1000.0] as $simbolo => $esperado) {
+        $linha = $linhas->firstWhere('simbolo', $simbolo);
+        expect($linha['base_id'])->toBe($un);
+        pcadapLogin($this, $user)->putJson("/units/{$linha['id']}", [
+            'actual_name' => $linha['nome'], 'short_name' => $simbolo, 'allow_decimal' => 0,
+            'define_base_unit' => '1', 'base_unit_id' => $linha['base_id'], 'base_unit_multiplier' => $linha['multiplicador'],
+        ], $ajax)->assertOk()->assertJson(['success' => true]);
+        expect((float) $base($simbolo)->base_unit_multiplier)->toBe($esperado);
+    }
+    expect($linhas->firstWhere('simbolo', 'mei')['multiplicador'])->toBe('0,5');
+    expect($linhas->firstWhere('simbolo', 'cxd')['multiplicador'])->toBe('1000');
+
+    // Desligar o múltiplo no drawer de edição manda define_base_unit=0: aí a base sai.
+    $cx = $base('cxd')->id;
+    pcadapLogin($this, $user)->putJson("/units/{$cx}", [
+        'actual_name' => 'Drawer cxd ' . PCADAP_TAG, 'short_name' => 'cxd', 'allow_decimal' => 0, 'define_base_unit' => '0',
+    ], $ajax)->assertOk()->assertJson(['success' => true]);
+    expect($base('cxd')->base_unit_id)->toBeNull();
+});
+
+it('UC-PCADAP-18 · unidade base de outro negócio, ou a própria, é recusada e nada é gravado [T0]', function () {
+    $user = pcadapUsuario($this->biz->id, ['unit.view', 'unit.create', 'unit.update']);
+    $alheia = pcadapUnidade($this->vizinho->id, 'Base do vizinho', 'Unv');
+    $minha = pcadapUnidade($this->biz->id, 'Minha', 'mnh');
+    $ajax = ['X-Requested-With' => 'XMLHttpRequest'];
+
+    pcadapLogin($this, $user)->postJson('/units', [
+        'actual_name' => 'Intrusa ' . PCADAP_TAG, 'short_name' => 'itr', 'allow_decimal' => 0,
+        'define_base_unit' => '1', 'base_unit_id' => $alheia, 'base_unit_multiplier' => '10',
+    ], $ajax)->assertOk()->assertJson(['success' => false]);
+    expect(DB::table('units')->where('short_name', 'itr')->where('business_id', $this->biz->id)->exists())->toBeFalse();
+
+    foreach ([$alheia, $minha] as $baseId) {
+        pcadapLogin($this, $user)->putJson("/units/{$minha}", [
+            'actual_name' => 'Renomeada ' . PCADAP_TAG, 'short_name' => 'mnh', 'allow_decimal' => 0,
+            'define_base_unit' => '1', 'base_unit_id' => $baseId, 'base_unit_multiplier' => '10',
+        ], $ajax)->assertOk()->assertJson(['success' => false]);
+        $gravada = DB::table('units')->where('id', $minha)->first(['actual_name', 'base_unit_id']);
+        expect($gravada->base_unit_id)->toBeNull();
+        expect($gravada->actual_name)->toBe('Minha ' . PCADAP_TAG);
+    }
+});
+
+it('UC-PCADAP-19 · drawer de marca cria e edita no meu negócio; marca do vizinho não muda [T0]', function () {
+    $user = pcadapUsuario($this->biz->id, ['brand.view', 'brand.create', 'brand.update']);
+    $vizinha = pcadapMarca($this->vizinho->id, 'Marca vizinha');
+    $ajax = ['X-Requested-With' => 'XMLHttpRequest'];
+
+    pcadapLogin($this, $user)->postJson('/brands', [
+        'name' => 'Vinilcor ' . PCADAP_TAG, 'description' => 'Lonas e banners.', 'use_for_repair' => 0,
+    ], $ajax)->assertOk()->assertJson(['success' => true]);
+    $id = (int) DB::table('brands')->where('business_id', $this->biz->id)->where('name', 'Vinilcor ' . PCADAP_TAG)->value('id');
+    expect($id)->toBeGreaterThan(0);
+
+    pcadapLogin($this, $user)->putJson("/brands/{$id}", [
+        'name' => 'Vinilcor Pro ' . PCADAP_TAG, 'description' => 'Lonas.', 'use_for_repair' => 0,
+    ], $ajax)->assertOk()->assertJson(['success' => true]);
+    expect(DB::table('brands')->where('id', $id)->value('name'))->toBe('Vinilcor Pro ' . PCADAP_TAG);
+
+    pcadapLogin($this, $user)->putJson("/brands/{$vizinha}", ['name' => 'Tomada ' . PCADAP_TAG, 'description' => ''], $ajax)
+        ->assertOk()->assertJson(['success' => false]);
+    expect(DB::table('brands')->where('id', $vizinha)->value('name'))->toBe('Marca vizinha ' . PCADAP_TAG);
+
+    $props = pcadapProps($this, $user, 'oficina,marcas', '?aba=marcas');
+    expect($props['oficina'])->toBe(app(\App\Utils\ModuleUtil::class)->isModuleInstalled('Repair'));
+    expect(collect($props['marcas'] ?? [])->firstWhere('id', $id))->toHaveKey('oficina');
+});

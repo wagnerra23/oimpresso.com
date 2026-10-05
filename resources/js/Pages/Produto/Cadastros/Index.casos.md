@@ -224,9 +224,46 @@ Status: 🧪
 
 ---
 
+## UC-PCADAP-17 · Drawer de unidade grava o múltiplo como o operador digitou · `must`
+
+Origem: UC-CAD-01/02 (charter R2) + ficha `10-cadastros-form.md` (PR-a) + decisão [W] 2026-10-01 item 11.
+É ESTOQUE: o múltiplo converte toda movimentação da unidade.
+
+**Dado** a unidade base "Und" do meu negócio
+**Quando** crio pelo drawer "Meia" com `0,5` e "Caixa" com `1.000`, reabro cada uma no drawer e salvo sem mexer, e depois desligo o múltiplo da Caixa
+**Então** grava 0,5 e 1000 pelas mesmas rotas do modal clássico (`POST /units`, `PUT /units/{id}`); o drawer abre com `0,5` e `1000` e salvar sem mexer não muda o valor; desligar manda `define_base_unit=0` e só aí a base sai.
+
+Status: 🧪
+
+---
+
+## UC-PCADAP-18 · Unidade base de outro negócio, ou a própria, é recusada · `must` `[T0]`
+
+Origem: ADR 0093 (Tier 0). O `base_unit_id` vem do form; antes desta thread o servidor gravava qualquer id.
+
+**Dado** uma unidade do negócio vizinho e uma minha
+**Quando** crio ou edito uma unidade apontando a base para a do vizinho, ou para ela mesma
+**Então** o servidor responde `success: false` e não grava nada (nem a unidade nova, nem o nome trocado).
+
+Status: 🧪
+
+---
+
+## UC-PCADAP-19 · Drawer de marca cria e edita só no meu negócio · `must` `[T0]`
+
+Origem: UC-CAD-01/02 (charter R2) + UC-CAD-12 (marca da Oficina) + ADR 0093.
+
+**Dado** uma marca do negócio vizinho
+**Quando** crio e edito uma marca pelo drawer e tento editar a do vizinho pelo mesmo `PUT /brands/{id}`
+**Então** a minha é criada e renomeada; a do vizinho fica como estava; a lista traz `oficina` por marca e a tela só oferece a chave da Oficina quando o módulo Repair está instalado.
+
+Status: 🧪
+
+---
+
 ## Backlog (sem teste ainda — não é contrato até ganhar teste que o cite)
 
-- [BACKLOG] Criar e editar em modal na própria tela (UC-CAD-01, UC-CAD-02 "Quando", charter R2) — hoje vai pros modais da Blade (`?classico=1`).
+- [BACKLOG] Criar e editar no drawer em Categorias, Variações, Grupos de preço e Garantias (UC-CAD-01/02, charter R2) — thread 10, PR-b. Unidades e Marcas já estão no drawer (UC-PCADAP-17..19).
 - [BACKLOG] Desativar/ativar grupo de preço na própria linha (UC-CAD-09) — hoje a linha mostra Ativo/Inativo e a troca vai pela tela clássica.
 - [BACKLOG] Contagem de produtos da variação clicável (filtro do índice por modelo de variação) — `/products/unificado` não tem esse filtro e é `nao_toca` da thread 03.
 - [BACKLOG] Marca da Oficina na lista (UC-CAD-12), atalho `/` e busca sem resultado (UC-CAD-06/07), estados primeira-vez/carregando/densidade (UC-CAD-14..16) — a tela já tem `/`, busca e primeira-vez; falta teste de browser.

@@ -9,8 +9,8 @@
 // Contrato: governance/design/contracts/produto-cadastros.contract.json
 //
 // As 6 abas são vivas: lista, contagem de uso clicável e exclusão com a recusa dita antes (threads
-// 02 e 03). Criar e editar seguem nos modais da Blade (`?classico=1`; Categorias em
-// `/taxonomies?type=product`) — o drawer é a thread 10.
+// 02 e 03). Unidades e Marcas criam e editam no drawer (thread 10, PR-a); as outras quatro seguem nos
+// modais da Blade (`?classico=1`; Categorias em `/taxonomies?type=product`) até o PR-b.
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Deferred, Link, router } from '@inertiajs/react';
@@ -27,13 +27,17 @@ import { PageHeader } from '@/Components/PageHeader';
 import SubNav, { type SubNavItem } from '@/Components/shared/SubNav';
 import EmptyState from '@/Components/shared/EmptyState';
 import { Inline, Stack } from '@/Components/layout';
+import CadastroDrawer, { type Pedido } from './_components/CadastroDrawer';
 
 type AbaViva = 'variacoes' | 'grupos' | 'unidades' | 'categorias' | 'marcas' | 'garantias';
 interface Pode { view: boolean; create: boolean; update: boolean; delete: boolean }
 interface Variacao { id: number; nome: string; valores: string[]; em_uso: number }
 interface Grupo { id: number; nome: string; descricao: string; ativo: boolean }
-interface Unidade { id: number; nome: string; simbolo: string; decimal: boolean; base: string | null; em_uso: number }
-interface Marca { id: number; nome: string; descricao: string; em_uso: number }
+interface Unidade {
+  id: number; nome: string; simbolo: string; decimal: boolean; base: string | null; em_uso: number;
+  base_id: number | null; multiplicador: string;
+}
+interface Marca { id: number; nome: string; descricao: string; oficina: boolean; em_uso: number }
 interface Garantia { id: number; nome: string; descricao: string; duracao: string | null }
 interface Categoria {
   id: number; nome: string; codigo: string; descricao: string;
@@ -42,6 +46,7 @@ interface Categoria {
 interface Props {
   aba: AbaViva;
   can: Record<AbaViva, Pode>;
+  oficina: boolean;
   variacoes?: Variacao[] | null;
   grupos?: Grupo[] | null;
   unidades?: Unidade[] | null;
@@ -110,11 +115,12 @@ const ORDEM: [AbaViva, string][] = [
   ['categorias', 'Categorias'], ['marcas', 'Marcas'], ['garantias', 'Garantias'],
 ];
 
-export default function CadastrosIndex({ aba: inicial, can, variacoes, grupos, unidades, categorias, marcas, garantias }: Props) {
+export default function CadastrosIndex({ aba: inicial, can, oficina, variacoes, grupos, unidades, categorias, marcas, garantias }: Props) {
   const [aba, setAba] = useState<AbaViva>(inicial);
   const [busca, setBusca] = useState('');
   const [excluir, setExcluir] = useState<Linha | null>(null);
   const [erro, setErro] = useState<string | null>(null);
+  const [drawer, setDrawer] = useState<Pedido | null>(null);
   const buscaRef = useRef<HTMLInputElement>(null);
   const cfg = ABA[aba];
   const pode = can[aba];
@@ -167,6 +173,25 @@ export default function CadastrosIndex({ aba: inicial, can, variacoes, grupos, u
         ] })) ?? null
       : marcas?.map((m) => ({ id: m.id, nome: m.nome, busca: m.nome, em_uso: m.em_uso, filhas: 0, filtro: `marca=${m.id}`, celulas: [<b>{m.nome}</b>, m.descricao || '—'] })) ?? null;
 
+  // Drawer (thread 10, PR-a): só Unidades e Marcas. Base válida = unidade que não é múltiplo de outra (protótipo :332).
+  const abrir = (id?: number): Pedido | null => {
+    if (aba === 'unidades') {
+      const x = unidades?.find((r) => r.id === id);
+      return { tipo: 'unidade', bases: (unidades ?? []).filter((r) => !r.base_id),
+        valor: x ? { id: x.id, nome: x.nome, simbolo: x.simbolo, decimal: x.decimal, base_id: x.base_id, multiplicador: x.multiplicador }
+          : { nome: '', simbolo: '', decimal: false, base_id: null, multiplicador: '' } };
+    }
+    if (aba === 'marcas') {
+      const x = marcas?.find((r) => r.id === id);
+      return { tipo: 'marca', oficina, valor: x ? { id: x.id, nome: x.nome, descricao: x.descricao, oficina: x.oficina } : { nome: '', descricao: '', oficina: false } };
+    }
+    return null;
+  };
+  const noDrawer = aba === 'unidades' || aba === 'marcas';
+  const botaoEscrita = (rotulo: string, id?: number, props: { size?: 'sm'; variant?: 'outline'; className?: string } = {}) => (noDrawer
+    ? <Button {...props} onClick={() => setDrawer(abrir(id))}>{rotulo}</Button>
+    : <Button asChild {...props}><a href={cfg.escrita}>{rotulo}</a></Button>);
+
   const termo = busca.trim().toLowerCase();
   const filtradas = linhas?.filter((l) => !termo || l.busca.toLowerCase().includes(termo)) ?? [];
   const recusa = (l: Linha) => [
@@ -217,7 +242,7 @@ export default function CadastrosIndex({ aba: inicial, can, variacoes, grupos, u
                   onChange={(e) => setBusca(e.target.value)} />
                 <span className="text-xs text-muted-foreground"><kbd>/</kbd> foca a busca</span>
                 {pode.create ? (
-                  <Button asChild size="sm" className="ml-auto"><a href={cfg.escrita}>{cfg.novo}</a></Button>
+                  botaoEscrita(cfg.novo, undefined, { size: 'sm', className: 'ml-auto' })
                 ) : (
                   <Button size="sm" className="ml-auto" disabled title={`Seu papel não tem ${cfg.base}.create`}>{cfg.novo}</Button>
                 )}
@@ -229,7 +254,7 @@ export default function CadastrosIndex({ aba: inicial, can, variacoes, grupos, u
                 <Deferred data={aba} fallback={<Skeleton className="h-48 w-full" />}>
                   {!linhas?.length ? (
                     <EmptyState title={`Nenhum registro de ${cfg.o}`} description={cfg.primeiro}
-                      action={pode.create ? <Button asChild><a href={cfg.escrita}>{cfg.novo}</a></Button> : undefined} />
+                      action={pode.create ? botaoEscrita(cfg.novo) : undefined} />
                   ) : !filtradas.length ? (
                     <EmptyState variant="search" icon="search-x" title="Nada com esse termo"
                       description={`Nenhuma das ${linhas.length} ${cfg.o} bate com “${busca}”.`}
@@ -252,7 +277,7 @@ export default function CadastrosIndex({ aba: inicial, can, variacoes, grupos, u
                             )}
                             <td className="py-2 pr-3">
                               <Inline gap={2}>
-                                {pode.update && <Button asChild variant="outline" size="sm"><a href={cfg.escrita}>Editar</a></Button>}
+                                {pode.update && botaoEscrita('Editar', l.id, { variant: 'outline', size: 'sm' })}
                                 {pode.delete && <Button variant="outline" size="sm" onClick={() => setExcluir(l)}>Excluir</Button>}
                               </Inline>
                             </td>
@@ -268,6 +293,11 @@ export default function CadastrosIndex({ aba: inicial, can, variacoes, grupos, u
           </Stack>
         </CardContent>
       </Card>
+
+      {drawer && (
+        <CadastroDrawer pedido={drawer} onClose={() => setDrawer(null)}
+          onSalvo={() => { const a = drawer.tipo === 'unidade' ? 'unidades' : 'marcas'; setDrawer(null); router.reload({ only: [a] }); }} />
+      )}
 
       <AlertDialog open={!!excluir} onOpenChange={(o) => !o && setExcluir(null)}>
         <AlertDialogContent>
