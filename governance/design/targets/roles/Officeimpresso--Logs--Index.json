@@ -1,0 +1,14 @@
+{
+  "_medido_em": "2026-10-05",
+  "_por_que": "Thread Officeimpresso/A3. A derivação do driver dava route=officeimpresso, que no protótipo renderiza a vista 'empresas' (app.jsx: view=\"empresas\"), e o design.json de 2026-09-18 foi tirado dela, o mesmo blob da Timeline. A vista de log é a rota oi-log (app.jsx: OfficeimpressoPage view=\"log\"). tableRow aponta a tabela de cada lado: no protótipo a grade de eventos (table.sa-table), em produção a MaquinasTable da Logs/Index.",
+  "token": "oi-log",
+  "roles": {
+    "prod": {
+      "tableRow": "main table tbody tr"
+    },
+    "design": {
+      "kpi": ".sa-kpis > *",
+      "tableRow": "table.sa-table tbody tr"
+    }
+  }
+}
