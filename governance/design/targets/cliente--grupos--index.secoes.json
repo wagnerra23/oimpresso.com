@@ -1,0 +1,12 @@
+{
+  "_": "A2 [CL] 2026-10-05 — playbook cliente. Protótipo: rota `cli-grupos` do espelho (app.jsx:801 → window.ClienteGruposPage em cliente-grupos.jsx). Vivo hoje: Blade `customer-group` (CustomerGroupController); a tela Inertia Cliente/Grupos/Index é a thread 03 (D2 = tela própria). O modal Novo/Editar grupo só existe após clique e não é medido.",
+  "_mapa": "alvo:mapa --rota cli-grupos contra o espelho servido por servirEstatico, 2026-10-05: .cg-page = header.os-page-h · div.os-table-wrap; .os-page-h = div.os-page-h-l · div.os-page-h-r; .os-page-h-l = button.ci-voltar · h1 · p. A tela não tem data-contract: seletores estruturais.",
+  "header": { "seletor": ".cg-page > .os-page-h" },
+  "voltar": { "seletor": ".cg-page > .os-page-h > .os-page-h-l > .ci-voltar" },
+  "titulo": { "seletor": ".cg-page > .os-page-h > .os-page-h-l > h1" },
+  "resumo": { "seletor": ".cg-page > .os-page-h > .os-page-h-l > p" },
+  "acoes": { "seletor": ".cg-page > .os-page-h > .os-page-h-r" },
+  "tabela": { "seletor": ".cg-page > .os-table-wrap" },
+  "cabecalho": { "seletor": ".cg-page > .os-table-wrap thead > tr" },
+  "linha": { "seletor": ".cg-page > .os-table-wrap tbody > tr.cli-row:first-child" }
+}
