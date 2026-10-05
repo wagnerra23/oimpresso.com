@@ -6,7 +6,7 @@ tecnica: Caso de uso = narrativa do operador + critério de aceite verificável 
 por_que: é a lista que enxerga TODOS os negócios da plataforma — cross-tenant por desenho, o inverso do resto do ERP. Sem casos, a próxima sessão "conserta" isso aplicando escopo de tenant e quebra o produto. E a paginação server-side tem uma armadilha silenciosa (join 1-para-N que faz o total mentir) que só um caso pega.
 owner: wagner
 last_run: "2026-10-05"
-revalidacao_2026_10_05: "O G-6 acusou stale porque o `.tsx` mudou na thread Superadmin 02: o drawer ganhou as seções que eram da página show (cadastro, locais, usuários) e o cabeçalho migrou para o PageHeader canon. Os UC-SANEG-01..08 não mudam de veredito — a lista, os filtros e as 4 seções do drawer ficaram iguais. O que a mudança acrescenta está nos UC-SANEG-09 e 10, novos e com teste. O bump de data é higiene do gate, não afirmação de re-execução."
+revalidacao_2026_10_05: "O G-6 acusou stale porque o `.tsx` mudou na thread Superadmin 02: o drawer ganhou as seções que eram da página show (cadastro, locais, usuários) e o cabeçalho migrou para o PageHeader canon. Os UC-SANEG-01..08 não mudam de veredito — a lista, os filtros e as 4 seções do drawer ficaram iguais. O que a mudança acrescenta está nos UC-SANEG-09 e 10 (PR-1) e 11 a 13 (PR-2, drawer Novo negócio), novos e com teste. O bump de data é higiene do gate, não afirmação de re-execução."
 revalidacao_2026_08_21: "O G-6 acusou stale porque o `.tsx` foi tocado pela SA-O4a: `Select`, `plural` e `tomDaAssinatura` saíram deste arquivo para `../_components/assinatura` — a tela de Assinaturas precisava do MESMO mapa rótulo→tom, e uma segunda cópia é como as duas divergem no primeiro status novo (§5 proibicoes 2026-08-02). A extração é MOVIMENTO, não alteração: o `Select` foi copiado byte a byte (inclusive o `aria-label`) e o render é idêntico. Nenhum UC deste arquivo muda de veredito. O bump de data é higiene do gate, não afirmação de re-execução."
 last_run_ci: "_pendente_ — o trio nasce nesta onda (SA-O2). O veredito por UC entra no manifesto quando a lane rodar; até lá o Status é 🧪, nunca ✅."
 revalidacao_2026_08_20: "O `.tsx` mudou (G-6 acusou stale), então o `last_run` sobe — mas a mudança foi ATRIBUTO PURO: 4 `data-contract` em elementos que já existiam, zero alteração de DOM, lógica ou copy (diff 4/4). Nenhum UC deste arquivo muda de veredito por causa dela; o que os UCs afirmam continua exatamente o mesmo. O que a mudança ACRESCENTA é defesa: as copy da tabela, dos filtros e das 4 seções do drawer passam a ser travadas por `governance/design/contracts/superadmin-negocios.contract.json`, verificado no CI — antes elas só viviam na prosa daqui."
@@ -150,6 +150,44 @@ em cada assinatura, pago via, transação, fim do teste e quem lançou.
 
 **E** "Definir senha" e "Entrar como" só aparecem para quem tem `user.update`, como na show.
 Decisão [W] 2026-10-05: nada que a show mostrava some.
+
+Status: 🧪
+
+---
+
+## UC-SANEG-11 · Criar é o drawer da lista · `must`
+
+**Dado** um link antigo para `/superadmin/business/create`
+**Quando** o superadmin o abre
+**Então** cai na lista com o drawer "Novo negócio" aberto (`?novo=1`) — a Blade `business.create`
+saiu na thread Superadmin 02 (PR-2). O botão "Novo negócio" e a tecla `n` abrem o mesmo drawer.
+
+Status: 🧪
+
+---
+
+## UC-SANEG-12 · As opções do formulário só vêm com o drawer aberto · `must`
+
+**Dado** a lista sem `?novo`
+**Então** `formNovo` é nulo — nenhuma consulta de moedas, fusos, pacotes ou gateways.
+**E dado** `?novo=1`
+**Então** `formNovo` traz moedas, fusos (com `America/Sao_Paulo`), pacotes ativos e gateways
+configurados — as mesmas listas da Blade.
+
+Status: 🧪
+
+---
+
+## UC-SANEG-13 · Duplicado e pacote sem "pago via" voltam como erro do campo · `must`
+
+**Dado** um usuário ou e-mail que já tem conta, ou um pacote escolhido sem "pago via"
+**Quando** o formulário é enviado
+**Então** o servidor recusa com erro em cada campo e **nenhum negócio é criado**. A Blade checava
+o duplicado no navegador (`/business/register/check-*`); o drawer checa no `StoreBusinessRequest`.
+
+> Decisão [W] 2026-10-05: layout do protótipo, regras de hoje. O dono entra com usuário e senha
+> definidos no drawer; convite por e-mail, dias de teste e CNPJ são do protótipo e não existem no
+> backend.
 
 Status: 🧪
 

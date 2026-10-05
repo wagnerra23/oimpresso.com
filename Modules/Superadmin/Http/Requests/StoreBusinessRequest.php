@@ -50,13 +50,17 @@ class StoreBusinessRequest extends FormRequest
             'surname'          => ['nullable', 'string', 'max:50'],
             'first_name'       => ['required', 'string', 'max:255'],
             'last_name'        => ['nullable', 'string', 'max:255'],
-            'username'         => ['required', 'string', 'max:255'],
-            'email'            => ['required', 'email', 'max:255'],
+            // unique: a Blade checava no navegador (/business/register/check-*); o drawer Inertia
+            // (thread Superadmin 02) checa aqui, e o duplicado volta como erro do campo em vez de
+            // exceção no create_user.
+            'username'         => ['required', 'string', 'max:255', 'unique:users,username'],
+            'email'            => ['required', 'email', 'max:255', 'unique:users,email'],
             'password'         => ['required', 'string', 'min:8', 'max:255'],
 
             // Subscription opcional
             'package_id'       => ['nullable', 'integer', 'exists:packages,id'],
-            'paid_via'         => ['nullable', 'string', 'max:32'],
+            // A Blade exigia "pago via" quando havia pacote (regra do jQuery Validate).
+            'paid_via'         => ['nullable', 'required_with:package_id', 'string', 'max:32'],
             'payment_transaction_id' => ['nullable', 'string', 'max:191'],
         ];
     }
@@ -71,6 +75,9 @@ class StoreBusinessRequest extends FormRequest
             'email.email'          => 'Email inválido.',
             'password.required'    => 'Informe a senha do owner.',
             'password.min'         => 'Senha deve ter ao menos 8 caracteres.',
+            'username.unique'      => 'Esse usuário já existe.',
+            'email.unique'         => 'Esse e-mail já tem conta.',
+            'paid_via.required_with' => 'Diga como a assinatura foi paga.',
         ];
     }
 }
