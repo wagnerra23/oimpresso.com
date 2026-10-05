@@ -14,10 +14,12 @@
 
 import { router } from '@inertiajs/react';
 import { useState, type ReactNode } from 'react';
+import type { ColumnDef } from '@tanstack/react-table';
 import AppShellV2 from '@/Layouts/AppShellV2';
+import DataTable from '@/Components/shared/DataTable';
 import { Checkbox } from '@/Components/ui/checkbox';
 import { fmt, num } from './_lib/formato';
-import type { FiltrosRelatorio, Relatorio } from './_lib/tipos';
+import type { FiltrosRelatorio, LinhaRelatorio, Relatorio } from './_lib/tipos';
 import FabricacaoAbas from './_components/FabricacaoAbas';
 import '../../../css/cowork-manufacturing-bundle.css';
 
@@ -30,6 +32,50 @@ interface Props {
 }
 
 const ROUTE = '/manufacturing/report';
+
+/**
+ * Colunas do `manufacturing-producao.jsx::MfgRelatorio`. Sem ordenação: o protótipo não declara
+ * `sortable`, e a lista já chega ordenada pelo custo, do maior para o menor.
+ * Todo número vem do servidor (`ProductionService::reportByProduct`); aqui só se formata.
+ */
+const COLUNAS: ColumnDef<LinhaRelatorio, unknown>[] = [
+  { id: 'produto', accessorFn: (l) => l.nome, header: 'Produto' },
+  { id: 'ordens', accessorFn: (l) => l.ordens, header: 'Ordens', meta: { align: 'right', mono: true } },
+  {
+    id: 'qtd',
+    header: 'Quantidade',
+    meta: { align: 'right', mono: true },
+    cell: ({ row: { original: l } }) => `${num(l.quantidade, 2)} ${l.unidade}`,
+  },
+  {
+    id: 'custo',
+    header: 'Custo total',
+    meta: { align: 'right', mono: true },
+    cell: ({ row: { original: l } }) => fmt(l.custo_total),
+  },
+  {
+    id: 'medio',
+    header: 'Custo médio',
+    meta: { align: 'right', mono: true },
+    cell: ({ row: { original: l } }) => fmt(l.custo_medio),
+  },
+  {
+    id: 'pct',
+    header: '% do período',
+    meta: { align: 'right' },
+    // Barra + número, como o `Progress` + texto do protótipo. A barra é a local do bundle
+    // (`.mfg-bar-mini`): o `Progress` do DS não tem par React (`prototipo-ui/design-system/HANDOFF.md`
+    // §4, "Sem par no main"; medido 2026-10-04: nenhum `progress` em `Components/ui`).
+    cell: ({ row: { original: l } }) => (
+      <>
+        <span className="mfg-bar-mini">
+          <i style={{ width: `${l.percentual}%` }} />
+        </span>
+        <span className="mfg-num dim">{num(l.percentual, 0)}%</span>
+      </>
+    ),
+  },
+];
 
 export default function Report({
   relatorio,
@@ -123,44 +169,24 @@ export default function Report({
       </div>
 
       <div className="mfg-tablewrap" data-contract="lista">
-        <div className="mfg-table rep">
-          <div className="mfg-tr mfg-thead">
-            <span className="mfg-th">Produto</span>
-            <span className="mfg-th r">Ordens</span>
-            <span className="mfg-th r">Quantidade</span>
-            <span className="mfg-th r">Custo total</span>
-            <span className="mfg-th r">Custo médio</span>
-            <span className="mfg-th r">% do período</span>
+        {/* A grade é o `shared/DataTable` na anatomia `grid` — o par React do `DataGrid` do DS,
+            como no protótipo (`manufacturing-producao.jsx::MfgRelatorio`, `pagination={false}`).
+            Sem produção no período o protótipo NÃO desenha a grade: mostra só o vazio. */}
+        {linhas.length > 0 ? (
+          <DataTable<LinhaRelatorio>
+            columns={COLUNAS}
+            data={linhas}
+            caption="Relatório de produção"
+            density="grid"
+            showSearch={false}
+            rowKey={(l) => l.recipe_id}
+          />
+        ) : (
+          <div className="mfg-empty">
+            <b>Sem produção no período</b>
+            <span>Ajuste as datas ou inclua os rascunhos.</span>
           </div>
-
-          {linhas.map((l) => (
-            <div className="mfg-tr" key={l.recipe_id}>
-              <span className="mfg-name">
-                <b>{l.nome}</b>
-              </span>
-              <span className="mfg-num dim r">{l.ordens}</span>
-              <span className="mfg-num r">
-                {num(l.quantidade, 2)}
-                <span className="mfg-u">{l.unidade}</span>
-              </span>
-              <span className="mfg-num r">{fmt(l.custo_total)}</span>
-              <span className="mfg-num dim r">{fmt(l.custo_medio)}</span>
-              <span className="r">
-                <span className="mfg-bar-mini">
-                  <i style={{ width: `${l.percentual}%` }} />
-                </span>
-                <span className="mfg-num dim">{num(l.percentual, 0)}%</span>
-              </span>
-            </div>
-          ))}
-
-          {linhas.length === 0 && (
-            <div className="mfg-empty">
-              <b>Sem produção no período</b>
-              <span>Ajuste as datas ou inclua os rascunhos.</span>
-            </div>
-          )}
-        </div>
+        )}
 
         {linhas.length > 0 && (
           <p className="mfg-foot">

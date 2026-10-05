@@ -5,8 +5,11 @@ tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (
 por_que: comportamento é durável — o contrato de teste nasce junto com a tela, não depois.
 fonte: handoff "PROTÓTIPO OFICIAL - FABRICAÇÃO V1" §4.6 — os UC abaixo DERIVAM dele
 owner: wagner
-last_run: "2026-09-30"
+last_run: "2026-10-04"
 ---
+
+> ℹ️ **`last_run` 2026-09-30 → 2026-10-04 (G-6): forma, não regra de negócio.** Os dados, os filtros e o que
+> cada linha abre são os mesmos; o que muda de visível: a grade virou o `shared/DataTable` na anatomia `grid` (o par React do `DataGrid` do DS): `<table>` de verdade, cabeçalho 10px caixa-alta, linhas listradas, números em fonte mono. A barra de "% do período" segue a local do bundle (o `Progress` do DS não tem par React). Nenhum UC foi reexecutado nesta data.
 
 > ℹ️ **`last_run` 2026-09-04 → 2026-09-11 (G-6), e o que mudou na tela NÃO foi comportamento.**
 > O único toque em `Report.tsx` no [#7224](https://github.com/wagnerra23/oimpresso.com/pull/7224) foi **1 linha(s) de COMENTÁRIO** —
