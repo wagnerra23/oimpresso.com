@@ -11,10 +11,10 @@ use Spatie\Permission\Models\Permission;
 use Tests\Support\EstoqueFixture;
 
 /**
- * Contrato da tela Produto/Cadastros (`/units`, abas Unidades, Categorias e Marcas) — playbook Produto · thread 02.
+ * Contrato da tela Produto/Cadastros (`/units`, abas Unidades, Categorias e Marcas) — playbook Produto · thread 02 (+ UC-PCADAP-15 da 03).
  *
  * Os UCs vêm do contrato, não do código:
- *   resources/js/Pages/Produto/Cadastros/Index.casos.md (UC-PCADAP-01..11)
+ *   resources/js/Pages/Produto/Cadastros/Index.casos.md (UC-PCADAP-01..12, 15)
  *
  * ⛔ Tenant 98 (ADR 0358) contra o cliente fictício 99. NUNCA biz=4.
  * ⚠️ SKIP sem schema MySQL: leia assertions, não "0 failed" (LC-13).
@@ -22,6 +22,7 @@ use Tests\Support\EstoqueFixture;
  * @see app/Http/Controllers/UnitController.php  cadastros()
  * @see app/Http/Controllers/BrandController.php destroy()
  * @see app/Http/Controllers/TaxonomyController.php destroy()
+ * @see app/Http/Controllers/VariationTemplateController.php destroy()
  */
 uses(DatabaseTransactions::class);
 
@@ -312,4 +313,48 @@ it('UC-PCADAP-12 · editar unidade não mexe na conversão de estoque sem pedido
     ], $ajax)->assertOk();
     expect($base($cx)->base_unit_id)->toBeNull();
     expect($base($cx)->base_unit_multiplier)->toBeNull();
+});
+
+// ── Thread 03 · variação em uso (as abas novas entram no PR seguinte) ─────────────────────────────────
+
+function pcadapVariacao(int $bizId, string $nome, array $valores = []): int
+{
+    $id = (int) DB::table('variation_templates')->insertGetId([
+        'business_id' => $bizId, 'name' => $nome . ' ' . PCADAP_TAG, 'created_at' => now(), 'updated_at' => now(),
+    ]);
+    foreach ($valores as $v) {
+        DB::table('variation_value_templates')->insert(['name' => $v, 'variation_template_id' => $id, 'created_at' => now(), 'updated_at' => now()]);
+    }
+
+    return $id;
+}
+
+/** Produto variável do negócio `$bizId` usando o modelo `$templateId`. */
+function pcadapUsaVariacao(int $bizId, int $templateId): void
+{
+    $produto = Product::forceCreate([
+        'name' => 'Variável ' . PCADAP_TAG, 'business_id' => $bizId, 'type' => 'variable',
+        'unit_id' => EstoqueFixture::unitId($bizId), 'tax_type' => 'exclusive', 'enable_stock' => 0,
+        'sku' => 'PCADAPV-' . strtoupper(bin2hex(random_bytes(4))), 'barcode_type' => 'C128', 'created_by' => EstoqueFixture::userId($bizId),
+    ]);
+    DB::table('product_variations')->insert([
+        'variation_template_id' => $templateId, 'name' => 'Cor', 'product_id' => $produto->id, 'is_dummy' => 0,
+        'created_at' => now(), 'updated_at' => now(),
+    ]);
+}
+
+it('UC-PCADAP-15 · variação em uso não sai; variação livre sai', function () {
+    $user = pcadapUsuario($this->biz->id, ['variation.view', 'variation.delete']);
+    $usada = pcadapVariacao($this->biz->id, 'Acabamento');
+    $livre = pcadapVariacao($this->biz->id, 'Gramatura');
+    pcadapUsaVariacao($this->biz->id, $usada);
+
+    $recusa = pcadapLogin($this, $user)->delete("/variation-templates/{$usada}", [], ['X-Requested-With' => 'XMLHttpRequest']);
+    $recusa->assertOk();
+    expect($recusa->json('success'))->toBeFalse();
+    expect(DB::table('variation_templates')->where('id', $usada)->exists())->toBeTrue();
+
+    $ok = pcadapLogin($this, $user)->delete("/variation-templates/{$livre}", [], ['X-Requested-With' => 'XMLHttpRequest']);
+    expect($ok->json('success'))->toBeTrue();
+    expect(DB::table('variation_templates')->where('id', $livre)->exists())->toBeFalse();
 });

@@ -241,12 +241,18 @@ class VariationTemplateController extends Controller
                 $business_id = request()->session()->get('user.business_id');
 
                 $variation = VariationTemplate::where('business_id', $business_id)->findOrFail($id);
+                // Modelo em uso não sai: o produto variável perderia a referência (charter R4).
+                $emUso = (int) VariationTemplate::whereKey($variation->id)
+                    ->selectSub(VariationTemplate::produtosQueUsam((int) $business_id), 'n')->value('n');
+                if ($emUso > 0) {
+                    return ['success' => false, 'msg' => "{$emUso} produto(s) usam esta variação. Nada foi excluído."];
+                }
                 $variation->delete();
 
                 $output = ['success' => true,
                     'msg' => 'Category deleted succesfully',
                 ];
-            } catch (\Eexception $e) {
+            } catch (\Exception $e) {
                 \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
 
                 $output = ['success' => false,

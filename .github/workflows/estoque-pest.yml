@@ -139,6 +139,9 @@ on:
       - 'app/Console/Commands/Unidades/**'
       - 'app/Http/Controllers/BrandController.php'
       - 'app/Http/Controllers/TaxonomyController.php'
+      # Playbook Produto · thread 03 — SOB TESTE do ProdutoCadastrosContratoTest (UC-PCADAP-15).
+      - 'app/Http/Controllers/VariationTemplateController.php'
+      - 'app/VariationTemplate.php'
       - 'resources/js/Pages/Produto/Cadastros/**'
       # Playbook Produto · thread 05 — SOB TESTE do ProdutoImportacaoContratoTest.
       - 'app/Http/Controllers/ImportProductsController.php'
@@ -217,6 +220,9 @@ jobs:
               - 'app/Console/Commands/Unidades/**'
               - 'app/Http/Controllers/BrandController.php'
               - 'app/Http/Controllers/TaxonomyController.php'
+              # Playbook Produto · thread 03 — SOB TESTE do ProdutoCadastrosContratoTest (UC-PCADAP-15).
+              - 'app/Http/Controllers/VariationTemplateController.php'
+              - 'app/VariationTemplate.php'
               - 'resources/js/Pages/Produto/Cadastros/**'
               # Playbook Produto · thread 05 — SOB TESTE do ProdutoImportacaoContratoTest.
               - 'app/Http/Controllers/ImportProductsController.php'
