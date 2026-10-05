@@ -5,7 +5,8 @@ irmaos: Create.charter.md (lei)
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — a validação fiscal do cadastro não muda no refactor.
 owner: wagner
-last_run: "2026-07-08"
+last_run: "2026-10-05"
+last_run_nota: "2026-10-05 revalidado por leitura na thread Crm/06: o Create.tsx ganhou o modo lead (só com `destino`); o caminho do cliente que estes UC descrevem não mudou. O teste deles (StoreContactRequestTest) está na quarentena da lane cliente-pest desde antes — os Status seguem 🧪."
 ---
 
 # Casos de Uso & Aceite — Cadastro de novo cliente
