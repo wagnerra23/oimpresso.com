@@ -189,6 +189,10 @@
       "sha256": "e403a9c2ac6d8e774fecc0dd15babd53e9832ebb5c0fe0d087e79db2916f722b",
       "em": "2026-10-01T14:44:22.329Z"
     },
+    "cowork-inbox/produto/playbook/_saida-09.md": {
+      "sha256": "b7fa71539d826298448b82bc5411153f40e2ad48c225f06d38b8344a9e45147c",
+      "em": "2026-10-05T12:47:25.914Z"
+    },
     "cowork-inbox/produto/playbook/_saida-A2.md": {
       "sha256": "edb6d2ffd50c5e12881849dcc112aee78cd5d868dd0c7883e9c7c869c8ee6eaa",
       "em": "2026-10-01T14:44:22.329Z"
@@ -212,6 +216,10 @@
     "cowork-inbox/repair/playbook/_saida-02.md": {
       "sha256": "51e9b0a7cd394769c9a11f5e9b00441290ff4751e023f6f01a34062fc292b5ef",
       "em": "2026-10-02T18:36:58.261Z"
+    },
+    "cowork-inbox/repair/playbook/_saida-05.md": {
+      "sha256": "984e6cd656848f2af25dbafdbf20eacff80a7b7817b4f63283760433080e8a37",
+      "em": "2026-10-02T18:35:52.505Z"
     },
     "cowork-inbox/repair/playbook/_saida-A1.md": {
       "sha256": "dc195ca6397eb166ac4cd32b1e494b7871e308e373f6d8e8692e5fe844d997e3",
@@ -276,10 +284,6 @@
     "repair-page.jsx": {
       "sha256": "d571d3ca49eef0380f6a0ffc25d87275b13100cbe23dbb53f1179c5c6a35959c",
       "em": "2026-10-02T13:24:51.450Z"
-    },
-    "cowork-inbox/repair/playbook/_saida-05.md": {
-      "sha256": "984e6cd656848f2af25dbafdbf20eacff80a7b7817b4f63283760433080e8a37",
-      "em": "2026-10-02T18:35:52.505Z"
     }
   }
 }
