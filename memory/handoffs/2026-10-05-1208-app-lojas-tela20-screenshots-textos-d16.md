@@ -1,10 +1,14 @@
 ---
 date: "2026-10-05"
 time: "12:08 BRT"
-session: great-roentgen-0ad299
-owner: W
-modulo: AppMobile
-tags: [app-lojas, oimpresso-app, screenshots, textos-loja, D16]
+slug: app-lojas-tela20-screenshots-textos-d16
+tldr: "Tela 20 (Novo produto, sem preço) ligada no app de loja depois de medir a API em produção (401/401, controle 404). Screenshots de loja D16 refeitos do main com a Venda rápida (Android 8, iPhone 9) e textos de loja reescritos para a D16. Os 5 PRs entraram. Falta o que é só do [W]: Vaultwarden, Demo lojas, login real, envio e a D9."
+decided_by: [W]
+prs: [8638, 8641]
+next_steps:
+  - "[W]: senhas das contas demo no Vaultwarden, pacote Demo lojas para o gestor.demo, login real, envio às lojas e tipo de conta do Play Console."
+  - "Sessão Coordenar app das lojas + [W]: atualizar a D9 de docs/lojas-app/DECISOES.md, que ainda cita as 7 áreas (D13)."
+  - "Refazer screenshots e a tabela Conferir no build quando entrarem as telas que faltam da D16."
 ---
 
 # App das lojas: tela 20 ligada, screenshots e textos D16
