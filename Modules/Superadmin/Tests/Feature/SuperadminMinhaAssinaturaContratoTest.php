@@ -30,6 +30,25 @@ beforeEach(function () {
     }
     // Ninguém destes testes é superadmin por username (Gate::before).
     config(['constants.administrator_usernames' => 'ninguem_ma_test']);
+
+    // O payload formata preço com a moeda do sistema (`System::getCurrency()`), como a Blade.
+    // Produção tem `app_currency_id`; a lane MySQL não semeia. Sem a chave a tela dava 500 e
+    // UC-SAMA-03/05 caíam por isso, não pelo contrato. Semeia só quando falta, e desfaz no fim.
+    $this->maMoedaSemeada = false;
+    if (! DB::table('system')->where('key', 'app_currency_id')->exists()) {
+        $moeda = DB::table('currencies')->orderBy('id')->value('id');
+        if ($moeda === null) {
+            $this->markTestSkipped('Sem moeda em currencies — o payload não tem como formatar preço.');
+        }
+        DB::table('system')->insert(['key' => 'app_currency_id', 'value' => (string) $moeda]);
+        $this->maMoedaSemeada = true;
+    }
+});
+
+afterEach(function () {
+    if ($this->maMoedaSemeada ?? false) {
+        DB::table('system')->where('key', 'app_currency_id')->delete();
+    }
 });
 
 /** Tenant fictício. NUNCA biz=4 (ROTA LIVRE, produção) — ADR 0358. */
