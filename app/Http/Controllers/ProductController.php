@@ -1571,7 +1571,7 @@ class ProductController extends Controller
      * Get product form parts.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
+     * @return array<string, mixed> HTML da linha de variação + valores do modelo
      */
     public function getVariationTemplate(Request $request)
     {
@@ -1579,9 +1579,11 @@ class ProductController extends Controller
         $business = Business::findorfail($business_id);
         $profit_percent = $business->default_profit_percent;
 
-        $template = VariationTemplate::where('id', $request->input('template_id'))
+        // Tier 0 (ADR 0093): modelo de variação de outro negócio = 404, nunca nome/valores alheios.
+        $template = VariationTemplate::where('business_id', $business_id)
+                                                ->where('id', $request->input('template_id'))
                                                 ->with(['values'])
-                                                ->first();
+                                                ->firstOrFail();
         $row_index = $request->input('row_index');
 
         $values = [];

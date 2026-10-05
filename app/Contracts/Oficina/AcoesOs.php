@@ -80,4 +80,25 @@ interface AcoesOs
      * @param  array{vehicle_id: int, contact_id: ?int, mileage_at_service: ?int, box_label: ?string, notes: ?string}  $dados
      */
     public function criar(User $user, int $businessId, array $dados): ?int;
+
+    /**
+     * Novo veículo, como o store da web (VehicleController@store): só insere em vehicles, sem valor,
+     * estoque, venda nem cobrança. Dados já validados pelo chamador (placa normalizada, tipo da lista,
+     * dono do business). null se a oficina não está disponível (módulo ausente).
+     *
+     * @param  array{plate: string, vehicle_type: string, secondary_plate: ?string, manufacture_year: ?int, model_year: ?int, color: ?string, mileage_at_entry: ?int, chassis: ?string, renavam: ?string, contact_id: ?int}  $dados
+     */
+    public function criarVeiculo(User $user, int $businessId, array $dados): ?int;
+
+    /** A consulta de placa pode responder neste ambiente (fornecedor real, ou stub fora de produção)? */
+    public function consultaPlacaDisponivel(): bool;
+
+    /**
+     * Consulta de placa da web (VehicleLookupService, cache 24h por business+placa, só dados técnicos,
+     * sem proprietário). `resultado`: ok · nao_encontrado · sem_configuracao · indisponivel. Placa já
+     * normalizada e validada pelo chamador.
+     *
+     * @return array{resultado: string, dados?: array{placa: string, ano_fabricacao: ?int, ano_modelo: ?int, cor: ?string, chassi: ?string, renavam: ?string, marca_modelo: ?string}}
+     */
+    public function consultarPlaca(int $businessId, string $placa): array;
 }

@@ -61,14 +61,15 @@ class ClientController extends Controller
                             ->where('oauth_access_tokens.updated_at', '>=', now()->subDay());
                     }, 'active_tokens_24h')
                     ->orderBy('oauth_clients.id')
-                    ->get()
-                    ->map(fn ($c) => [
+                    ->get();
+        $quemUsa = $this->quemUsa($clients->pluck('id')->map(fn ($id) => (int) $id)->all(), (int) $business_id);
+        $clients = $clients->map(fn ($c) => [
                         'id' => (int) $c->id,
                         'name' => (string) $c->name,
                         'user_name' => (string) $c->getAttribute('user_name'),
                         'created_at' => optional($c->created_at)->toDateString(),
                         'active_tokens_24h' => (int) $c->getAttribute('active_tokens_24h'),
-                    ])->values();
+                    ] + ($quemUsa[(int) $c->id] ?? ['tokens' => [], 'tokens_resto' => 0]))->values();
 
         // CONN-O3 PR-b · aba Documentacao: o catalogo e LIDO das rotas registradas (nada
         // escrito a mao), entao o KPI e o catalogo contam o mesmo conjunto (UC-CONN-19).
@@ -263,6 +264,42 @@ class ClientController extends Controller
             'msg' => __('lang_v1.deleted_success'),
             'revoked_tokens' => $revogados,
         ];
+    }
+
+    /**
+     * CONN-O7 · quem tem acesso aberto com cada client: tokens nao revogados e nao vencidos,
+     * do mais recente ao mais antigo, top 5 + contagem do resto (UC-CONN-21).
+     * Tier 0: o usuario do token tambem tem de ser do negocio da sessao. Client de senha
+     * aceita login de qualquer usuario; uso por outro negocio nunca aparece aqui.
+     * `last_used_at` e o updated_at do token, o mesmo sinal da coluna "Tokens 24 h".
+     *
+     * @param  array<int, int>  $clientIds
+     * @return array<int, array{tokens: array<int, array<string, ?string>>, tokens_resto: int}>
+     */
+    private function quemUsa(array $clientIds, int $business_id): array
+    {
+        if ($clientIds === []) {
+            return [];
+        }
+
+        return DB::table('oauth_access_tokens as t')
+            ->join('users as u', 't.user_id', '=', 'u.id')
+            ->where('u.business_id', $business_id)
+            ->whereIn('t.client_id', $clientIds)
+            ->where('t.revoked', 0)
+            ->where(fn ($w) => $w->whereNull('t.expires_at')->orWhere('t.expires_at', '>', now()))
+            ->orderByDesc('t.updated_at')
+            ->get(['t.client_id', 't.updated_at', 't.expires_at', 'u.first_name', 'u.last_name'])
+            ->groupBy('client_id')
+            ->mapWithKeys(fn ($linhas, $clientId) => [(int) $clientId => [
+                'tokens' => $linhas->take(5)->map(fn ($t) => [
+                    'user_name' => trim($t->first_name.' '.$t->last_name),
+                    'last_used_at' => $t->updated_at,
+                    'expires_at' => $t->expires_at,
+                ])->values()->all(),
+                'tokens_resto' => max(0, $linhas->count() - 5),
+            ]])
+            ->all();
     }
 
     /**

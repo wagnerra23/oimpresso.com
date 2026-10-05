@@ -98,8 +98,8 @@ export function DocsAba({ endpoints }: { endpoints: Endpoint[] }) {
 
       <div className="flex flex-wrap items-center gap-2">
         <div className="relative min-w-64 flex-1">
-          <Search className="absolute left-2 top-2.5 size-4 text-muted-foreground" />
-          <Input className="pl-8" value={q} onChange={(e) => setQ(e.target.value)}
+          <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+          <Input className="cw-input-icon-left" value={q} onChange={(e) => setQ(e.target.value)}
             placeholder="Buscar endpoint, controller ou observação…" aria-label="Buscar endpoint" />
         </div>
         <span className="text-xs text-muted-foreground">{busca ? `${achados} de ${endpoints.length} rotas` : `${endpoints.length} rotas lidas do arquivo de rotas`}</span>
@@ -110,7 +110,7 @@ export function DocsAba({ endpoints }: { endpoints: Endpoint[] }) {
           <section key={g.id}>
             <h3 className="font-semibold">{g.label} <span className="font-mono text-xs text-muted-foreground">{g.eps.length}</span></h3>
             {'desc' in g && <p className="text-xs text-muted-foreground">{g.desc}</p>}
-            <table className="mt-1 w-full text-sm">
+            <table className="mt-1 w-full text-sm [&_td]:px-3 [&_th]:px-3 [&_td:first-child]:pl-0 [&_th:first-child]:pl-0 [&_td:last-child]:pr-0 [&_th:last-child]:pr-0">
               <thead><tr className="border-b text-left text-xs text-muted-foreground"><th className="w-32 py-1">Método</th><th>Rota</th><th>Controller</th><th>Observação</th></tr></thead>
               <tbody>{g.eps.map((e) => (
                 <tr key={`${e.metodos} ${e.rota}`} className="border-b">

@@ -865,6 +865,15 @@ class ScheduleController extends Controller
                 'categorias' => $lista(Category::forDropdown($business_id, 'followup_category')),
                 'por' => $lista(['payment_status' => __('sale.payment_status'), 'orders' => __('restaurant.orders')]),
                 'notificar' => $lista(Schedule::followUpNotifyTypeDropdown()),
+                // "Acompanhamento por" do recorrente: as opções da Blade
+                // (create_recursive_follow_up), com o grupo que vira `follow_up_by`.
+                'recorrencia' => [
+                    ['value' => 'all', 'label' => 'Status de pagamento: todos', 'grupo' => 'payment_status'],
+                    ['value' => 'due', 'label' => 'Status de pagamento: em aberto', 'grupo' => 'payment_status'],
+                    ['value' => 'partial', 'label' => 'Status de pagamento: parcial', 'grupo' => 'payment_status'],
+                    ['value' => 'overdue', 'label' => 'Status de pagamento: vencido', 'grupo' => 'payment_status'],
+                    ['value' => 'has_no_transactions', 'label' => 'Pedidos: '.__('crm::lang.has_no_transactions'), 'grupo' => 'orders'],
+                ],
             ]),
             'acompanhamentos' => Inertia::defer(fn () => $schedules
                 ->orderByDesc('crm_schedules.start_datetime')
@@ -900,6 +909,10 @@ class ScheduleController extends Controller
                         'notify_via' => ['sms' => ! empty($s->notify_via['sms']), 'mail' => ! empty($s->notify_via['mail'])],
                         'notify_before' => $s->notify_before,
                         'notify_type' => (string) $s->notify_type,
+                        // Recorrente (thread Crm/07, PR-b): o modal de recorrente reabre com isto.
+                        'follow_up_by' => (string) $s->follow_up_by,
+                        'follow_up_by_value' => (string) $s->follow_up_by_value,
+                        'recursion_days' => $s->recursion_days,
                     ],
                 ])),
         ]);

@@ -292,7 +292,8 @@ it('UC-METAS-05: o texto pt-BR do front grava o MESMO valor que o numero cru —
 it('UC-METAS-07: a rota Inertia NAO quebrou o ramo DataTables que a Blade legada consome', function () {
     hmPular($this);
 
-    // Enquanto sales_targets/index.blade.php existir, o jQuery dele chama ESTA rota via ajax.
+    // Até a thread 11 do playbook HRM (2026-10-05), o jQuery de sales_targets/index.blade.php
+    // chamava ESTA rota via ajax. A blade saiu; o ramo DataTables segue travado por este teste.
     $this->get(HM_ROTA_LISTA, ['X-Requested-With' => 'XMLHttpRequest'])
         ->assertOk()
         ->assertJsonStructure(['data', 'recordsTotal', 'recordsFiltered']);

@@ -689,3 +689,160 @@ it('cancelar e recusar seguem com motivo opcional', function () {
 
     $this->postJson("/api/app/os/{$os}/acoes/cancelar_os")->assertOk()->assertJsonPath('etapa.chave', 'cancelado');
 });
+
+// ── Novo veículo pelo app: GET /api/app/veiculos/opcoes + POST /api/app/veiculos (pedido [W] 2026-10-05) ──
+
+/** Ver e criar veículo (permissões da web). */
+function appOsPodeCriarVeiculo(object $t): void
+{
+    foreach (['oficinaauto.vehicle.view', 'oficinaauto.vehicle.create'] as $p) {
+        Permission::firstOrCreate(['name' => $p, 'guard_name' => 'web']);
+        $t->user->givePermissionTo($p);
+    }
+}
+
+function appOsPlacaNova(): string
+{
+    return 'TZ' . chr(random_int(65, 90)) . random_int(1, 9) . chr(random_int(65, 90)) . random_int(10, 99);
+}
+
+it('novo veículo: opções trazem os tipos do ERP na ordem; pode_criar acompanha a permissão de criar', function () {
+    Permission::firstOrCreate(['name' => 'oficinaauto.vehicle.view', 'guard_name' => 'web']);
+    $this->user->givePermissionTo('oficinaauto.vehicle.view');
+
+    $tipos = $this->getJson('/api/app/veiculos/opcoes')->assertOk()->json('tipos');
+    expect($tipos[0])->toBe(['chave' => 'caminhao', 'rotulo' => 'Caminhão']);
+    expect(array_column($tipos, 'chave'))->toBe(array_keys(\App\Domain\Oficina\TiposVeiculo::ROTULOS));
+
+    expect($this->getJson('/api/app/veiculos')->assertOk()->json('pode_criar'))->toBeFalse();
+    appOsPodeCriarVeiculo($this);
+    expect($this->getJson('/api/app/veiculos')->assertOk()->json('pode_criar'))->toBeTrue();
+});
+
+it('novo veículo: cria no business do token com a placa normalizada e devolve 201 no formato da lista', function () {
+    appOsPodeCriarVeiculo($this);
+    $dono = (int) DB::table('contacts')->where('business_id', $this->biz->id)->value('id');
+    $placa = appOsPlacaNova();
+
+    $r = $this->postJson('/api/app/veiculos', [
+        'placa' => strtolower(substr($placa, 0, 3)) . '-' . substr($placa, 3), 'tipo' => 'cavalo',
+        'ano_fabricacao' => 2019, 'ano_modelo' => 2020, 'cor' => 'Branco', 'km' => 48312,
+        'renavam' => '12345678901', 'contact_id' => $dono,
+    ])->assertStatus(201);
+
+    expect($r->json('placa'))->toBe($placa);
+    expect($r->json('descricao'))->toBe('Cavalo (truck-cabine)');
+    expect($r->json('ano'))->toBe('2019/2020');
+    expect($r->json('km'))->toBe(48312);
+    expect($r->json('cliente_id'))->toBe($dono);
+    $linha = DB::table('vehicles')->where('id', $r->json('id'))->first();
+    expect((int) $linha->business_id)->toBe((int) $this->biz->id);
+    expect($linha->plate)->toBe($placa);
+    expect($linha->renavam)->toBe('12345678901');
+    // Só o veículo: nenhuma OS nem venda nasce junto.
+    expect(DB::table('service_orders')->where('vehicle_id', $linha->id)->exists())->toBeFalse();
+});
+
+it('novo veículo: placa em outro veículo ativo do business (principal ou reboque) é 422 com o id dele; excluído e de outra empresa não bloqueiam', function () {
+    appOsPodeCriarVeiculo($this);
+    $placa = appOsPlacaNova();
+    $reboque = appOsPlacaNova();
+    $ativo = DB::table('vehicles')->insertGetId([
+        'business_id' => $this->biz->id, 'plate' => substr($placa, 0, 3) . '-' . substr($placa, 3),
+        'secondary_plate' => $reboque, 'vehicle_type' => 'caminhao', 'created_at' => now(), 'updated_at' => now(),
+    ]);
+
+    $this->postJson('/api/app/veiculos', ['placa' => $placa, 'tipo' => 'caminhao'])->assertStatus(422)
+        ->assertJsonPath('erro', 'validacao')
+        ->assertJsonPath('campos.placa', 'Esta placa já está em outro veículo ativo.')
+        ->assertJsonPath('veiculo_existente_id', $ativo);
+    $this->postJson('/api/app/veiculos', ['placa' => appOsPlacaNova(), 'placa_secundaria' => $reboque, 'tipo' => 'semi_reboque'])
+        ->assertStatus(422)->assertJsonPath('campos.placa_secundaria', 'Esta placa já está em outro veículo ativo.');
+    expect(DB::table('vehicles')->where('business_id', $this->biz->id)->whereNull('deleted_at')
+        ->whereIn('plate', [$placa, $reboque])->count())->toBe(0);
+
+    // Excluído (soft delete) não bloqueia; placa igual em outra empresa também não.
+    $livre = appOsPlacaNova();
+    DB::table('vehicles')->insert([
+        'business_id' => $this->biz->id, 'plate' => $livre, 'vehicle_type' => 'caminhao',
+        'deleted_at' => now(), 'created_at' => now(), 'updated_at' => now(),
+    ]);
+    DB::table('vehicles')->insert([
+        'business_id' => $this->outroBiz->id, 'plate' => $livre, 'vehicle_type' => 'caminhao',
+        'created_at' => now(), 'updated_at' => now(),
+    ]);
+    $this->postJson('/api/app/veiculos', ['placa' => $livre, 'tipo' => 'caminhao'])->assertStatus(201);
+});
+
+it('novo veículo: dono de OUTRA empresa é 422; sem placa ou tipo é 422; sem permissão de criar é 403', function () {
+    Permission::firstOrCreate(['name' => 'oficinaauto.vehicle.view', 'guard_name' => 'web']);
+    $this->user->givePermissionTo('oficinaauto.vehicle.view');
+    $this->postJson('/api/app/veiculos', ['placa' => appOsPlacaNova(), 'tipo' => 'caminhao'])
+        ->assertStatus(403)->assertJsonPath('erro', 'sem_permissao');
+
+    appOsPodeCriarVeiculo($this);
+    $alheio = (int) DB::table('contacts')->where('business_id', $this->outroBiz->id)->value('id');
+    $placa = appOsPlacaNova();
+    $this->postJson('/api/app/veiculos', ['placa' => $placa, 'tipo' => 'caminhao', 'contact_id' => $alheio])
+        ->assertStatus(422)->assertJsonPath('campos.contact_id', 'Cliente não encontrado.');
+    $this->postJson('/api/app/veiculos', ['placa' => '--', 'tipo' => 'foguete'])
+        ->assertStatus(422)
+        ->assertJsonPath('campos.placa', 'A placa do veículo é obrigatória.')
+        ->assertJsonPath('campos.tipo', 'Tipo de veículo inválido.');
+    expect(DB::table('vehicles')->where('plate', $placa)->exists())->toBeFalse();
+});
+
+// ── Consulta de placa pelo app: GET /api/app/veiculos/consulta-placa/{placa} (pedido [W] 2026-10-05) ──
+
+it('consulta de placa: em teste (stub) devolve só dados técnicos no formato do cadastro, sem proprietário; NF* não encontrada', function () {
+    appOsPodeCriarVeiculo($this);
+    config()->set('oficina-auto.placa_lookup.driver', 'stub');
+    \Illuminate\Support\Facades\Cache::flush();
+
+    expect($this->getJson('/api/app/veiculos/opcoes')->assertOk()->json('consulta_placa'))->toBeTrue();
+
+    $placa = appOsPlacaNova();
+    $r = $this->getJson('/api/app/veiculos/consulta-placa/' . strtolower($placa))->assertOk();
+    expect($r->json('encontrado'))->toBeTrue();
+    expect(array_keys($r->json('dados')))->toBe(['placa', 'ano_fabricacao', 'ano_modelo', 'cor', 'chassi', 'renavam', 'marca_modelo']);
+    expect($r->json('dados.placa'))->toBe($placa);
+
+    $this->getJson('/api/app/veiculos/consulta-placa/NFA1B23')->assertOk()
+        ->assertJsonPath('encontrado', false)
+        ->assertJsonPath('mensagem', 'Nenhum dado encontrado para esta placa.');
+});
+
+it('consulta de placa: em produção sem fornecedor (stub) responde 503 sem_configuracao e opções avisam que não há consulta', function () {
+    appOsPodeCriarVeiculo($this);
+    config()->set('oficina-auto.placa_lookup.driver', 'stub');
+    $env = app()['env'];
+    app()['env'] = 'live';
+    try {
+        expect($this->getJson('/api/app/veiculos/opcoes')->assertOk()->json('consulta_placa'))->toBeFalse();
+        $this->getJson('/api/app/veiculos/consulta-placa/' . appOsPlacaNova())->assertStatus(503)
+            ->assertJsonPath('erro', 'sem_configuracao')
+            ->assertJsonPath('mensagem', 'Consulta de placa não configurada.');
+    } finally {
+        app()['env'] = $env;
+    }
+});
+
+it('consulta de placa: placa já em veículo ativo devolve o id dele sem consultar; inválida é 422; sem permissão de criar é 403', function () {
+    Permission::firstOrCreate(['name' => 'oficinaauto.vehicle.view', 'guard_name' => 'web']);
+    $this->user->givePermissionTo('oficinaauto.vehicle.view');
+    $this->getJson('/api/app/veiculos/consulta-placa/' . appOsPlacaNova())->assertStatus(403)->assertJsonPath('erro', 'sem_permissao');
+
+    appOsPodeCriarVeiculo($this);
+    // Driver que falharia se fosse chamado: prova que a placa existente não gasta consulta.
+    config()->set('oficina-auto.placa_lookup.driver', 'nenhum');
+    $placa = appOsPlacaNova();
+    $ativo = DB::table('vehicles')->insertGetId([
+        'business_id' => $this->biz->id, 'plate' => $placa, 'vehicle_type' => 'caminhao',
+        'created_at' => now(), 'updated_at' => now(),
+    ]);
+    $this->getJson('/api/app/veiculos/consulta-placa/' . $placa)->assertOk()
+        ->assertJsonPath('encontrado', false)
+        ->assertJsonPath('veiculo_existente_id', $ativo);
+
+    $this->getJson('/api/app/veiculos/consulta-placa/ABC12')->assertStatus(422)->assertJsonPath('erro', 'validacao');
+});

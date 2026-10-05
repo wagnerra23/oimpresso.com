@@ -153,3 +153,50 @@ Status: 🧪
 **Então** o modal já vem com atribuídos, tipo e datas (início em formato de campo de data e hora).
 
 Status: 🧪
+
+---
+
+## Escrita (thread Crm/07, PR-b)
+
+> **Âncora:** SPEC do Crm §0 ("Follow-up agendado — funcional") e as telas Blade
+> `crm::schedule.create_recursive_follow_up` e `crm::schedule_log.create`, com as regras que o
+> `store`/`update` do `ScheduleController` e o `store` do `ScheduleLogController` já aplicavam
+> (escopo por `business_id`). Nenhum endpoint novo.
+
+## UC-CRMACO-14 · Adicionar recorrente grava no meu negócio · `must`
+
+**Dado** que tenho `crm.access_all_schedule`
+**Quando** salvo o modal "Adicionar acompanhamento recorrente" com "acompanhamento por" e "em dias"
+**Então** o acompanhamento fica gravado no meu negócio, marcado como recorrente, com os dias e o critério escolhidos e sem datas.
+
+Status: 🧪
+
+---
+
+## UC-CRMACO-15 · Editar recorrente altera e não troca o negócio · `must` `[T0]`
+
+**Dado** um acompanhamento recorrente do meu negócio
+**Quando** salvo o modal "Editar acompanhamento recorrente" — mesmo que o pedido traga outro `business_id`
+**Então** o título e os dias mudam, ele continua recorrente e continua no meu negócio.
+
+Status: 🧪
+
+---
+
+## UC-CRMACO-16 · Adicionar registro grava o log e o status · `must`
+
+**Dado** um acompanhamento do meu negócio
+**Quando** salvo "Adicionar registro" com as datas do campo de data e hora e um status
+**Então** o registro fica gravado com o início que escolhi, e o acompanhamento passa ao status escolhido.
+
+Status: 🧪
+
+---
+
+## UC-CRMACO-17 · Registro em acompanhamento de outro negócio é recusado · `must` `[T0]`
+
+**Dado** um acompanhamento de outro negócio
+**Quando** tento adicionar um registro pelo id dele
+**Então** recebo 404 (como em editar e excluir), nenhum registro é gravado e o status dele não muda.
+
+Status: 🧪

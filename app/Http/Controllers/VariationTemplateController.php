@@ -8,6 +8,7 @@ use App\VariationTemplate;
 use App\VariationValueTemplate;
 use DB;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 use Yajra\DataTables\Facades\DataTables;
 
 class VariationTemplateController extends Controller
@@ -15,12 +16,18 @@ class VariationTemplateController extends Controller
     /**
      * Display a listing of the resource.
      *
-     * @return \Illuminate\Http\Response
+     * @return mixed Inertia (tela Produto/Cadastros) · JSON do DataTables · view clássica
      */
     public function index()
     {
         if (! auth()->user()->can('variation.view') && ! auth()->user()->can('variation.create')) {
             abort(403, 'Unauthorized action.');
+        }
+
+        // Playbook Produto · thread 03: a visita abre Produto/Cadastros nesta aba. Inertia manda
+        // `X-Requested-With` junto do `X-Inertia` (§5 2026-09-08); `?classico=1` mantém a Blade e os modais.
+        if (! request()->boolean('classico') && (! request()->ajax() || request()->header('X-Inertia'))) {
+            return Inertia::render('Produto/Cadastros/Index', app(UnitController::class)->propsCadastros('variacoes'));
         }
 
         if (request()->ajax()) {
@@ -228,7 +235,7 @@ class VariationTemplateController extends Controller
      * Remove the specified resource from storage.
      *
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return array<string, mixed>|null JSON pro modal/tela (só responde ajax)
      */
     public function destroy($id)
     {
@@ -241,12 +248,18 @@ class VariationTemplateController extends Controller
                 $business_id = request()->session()->get('user.business_id');
 
                 $variation = VariationTemplate::where('business_id', $business_id)->findOrFail($id);
+                // Modelo em uso não sai: o produto variável perderia a referência (charter R4).
+                $emUso = (int) VariationTemplate::whereKey($variation->id)
+                    ->selectSub(VariationTemplate::produtosQueUsam((int) $business_id), 'n')->value('n');
+                if ($emUso > 0) {
+                    return ['success' => false, 'msg' => "{$emUso} produto(s) usam esta variação. Nada foi excluído."];
+                }
                 $variation->delete();
 
                 $output = ['success' => true,
                     'msg' => 'Category deleted succesfully',
                 ];
-            } catch (\Eexception $e) {
+            } catch (\Exception $e) {
                 \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
 
                 $output = ['success' => false,
@@ -256,5 +269,7 @@ class VariationTemplateController extends Controller
 
             return $output;
         }
+
+        return null;
     }
 }

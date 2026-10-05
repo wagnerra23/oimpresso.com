@@ -11,10 +11,10 @@ use Spatie\Permission\Models\Permission;
 use Tests\Support\EstoqueFixture;
 
 /**
- * Contrato da tela Produto/Cadastros (`/units`, abas Unidades, Categorias e Marcas) — playbook Produto · thread 02.
+ * Contrato da tela Produto/Cadastros (`/units` e as rotas das outras abas) — playbook Produto · threads 02 e 03.
  *
  * Os UCs vêm do contrato, não do código:
- *   resources/js/Pages/Produto/Cadastros/Index.casos.md (UC-PCADAP-01..11)
+ *   resources/js/Pages/Produto/Cadastros/Index.casos.md (UC-PCADAP-01..16)
  *
  * ⛔ Tenant 98 (ADR 0358) contra o cliente fictício 99. NUNCA biz=4.
  * ⚠️ SKIP sem schema MySQL: leia assertions, não "0 failed" (LC-13).
@@ -22,6 +22,7 @@ use Tests\Support\EstoqueFixture;
  * @see app/Http/Controllers/UnitController.php  cadastros()
  * @see app/Http/Controllers/BrandController.php destroy()
  * @see app/Http/Controllers/TaxonomyController.php destroy()
+ * @see app/Http/Controllers/VariationTemplateController.php index() · destroy()
  */
 uses(DatabaseTransactions::class);
 
@@ -312,4 +313,98 @@ it('UC-PCADAP-12 · editar unidade não mexe na conversão de estoque sem pedido
     ], $ajax)->assertOk();
     expect($base($cx)->base_unit_id)->toBeNull();
     expect($base($cx)->base_unit_multiplier)->toBeNull();
+});
+
+// ── Thread 03 · abas Variações, Grupos de preço e Garantias ─────────────────────────────────
+
+function pcadapVariacao(int $bizId, string $nome, array $valores = []): int
+{
+    $id = (int) DB::table('variation_templates')->insertGetId([
+        'business_id' => $bizId, 'name' => $nome . ' ' . PCADAP_TAG, 'created_at' => now(), 'updated_at' => now(),
+    ]);
+    foreach ($valores as $v) {
+        DB::table('variation_value_templates')->insert(['name' => $v, 'variation_template_id' => $id, 'created_at' => now(), 'updated_at' => now()]);
+    }
+
+    return $id;
+}
+
+/** Produto variável do negócio `$bizId` usando o modelo `$templateId`. */
+function pcadapUsaVariacao(int $bizId, int $templateId): void
+{
+    $produto = Product::forceCreate([
+        'name' => 'Variável ' . PCADAP_TAG, 'business_id' => $bizId, 'type' => 'variable',
+        'unit_id' => EstoqueFixture::unitId($bizId), 'tax_type' => 'exclusive', 'enable_stock' => 0,
+        'sku' => 'PCADAPV-' . strtoupper(bin2hex(random_bytes(4))), 'barcode_type' => 'C128', 'created_by' => EstoqueFixture::userId($bizId),
+    ]);
+    DB::table('product_variations')->insert([
+        'variation_template_id' => $templateId, 'name' => 'Cor', 'product_id' => $produto->id, 'is_dummy' => 0,
+        'created_at' => now(), 'updated_at' => now(),
+    ]);
+}
+
+it('UC-PCADAP-13 · /variation-templates, /selling-price-group e /warranties abrem Produto/Cadastros na aba de cada um', function () {
+    $user = pcadapUsuario($this->biz->id, ['variation.view', 'warranty.view', 'product.create', 'unit.view']);
+
+    foreach (['/variation-templates' => 'variacoes', '/selling-price-group' => 'grupos', '/warranties' => 'garantias', '/units' => 'unidades'] as $rota => $aba) {
+        pcadapLogin($this, $user)->get($rota)->assertOk()
+            ->assertInertia(fn (AssertableInertia $p) => $p->component('Produto/Cadastros/Index', false)->where('aba', $aba));
+    }
+
+    $json = pcadapLogin($this, $user)->get('/warranties', ['X-Requested-With' => 'XMLHttpRequest']);
+    $json->assertOk();
+    $this->assertArrayHasKey('data', (array) $json->json(), 'o DataTables da tela clássica de garantias deve continuar recebendo JSON');
+    $this->assertNull($json->headers->get('X-Inertia'), 'ajax sem X-Inertia não pode virar resposta Inertia');
+});
+
+it('UC-PCADAP-14 · variações, grupos e garantias de outro negócio não aparecem; uso conta só produto meu [T0]', function () {
+    $user = pcadapUsuario($this->biz->id, ['variation.view', 'warranty.view', 'product.create']);
+    $cor = pcadapVariacao($this->biz->id, 'Cor', ['Azul', 'Vermelho']);
+    pcadapVariacao($this->vizinho->id, 'Variação vizinha');
+    pcadapUsaVariacao($this->biz->id, $cor);
+    pcadapUsaVariacao($this->vizinho->id, $cor); // referência do vizinho ao MEU modelo não conta
+    foreach ([$this->biz->id => 'Atacado', $this->vizinho->id => 'Grupo vizinho'] as $biz => $nome) {
+        DB::table('selling_price_groups')->insert(['business_id' => $biz, 'name' => $nome . ' ' . PCADAP_TAG, 'is_active' => 1, 'created_at' => now(), 'updated_at' => now()]);
+    }
+    foreach ([$this->biz->id => '12 meses', $this->vizinho->id => 'Garantia vizinha'] as $biz => $nome) {
+        DB::table('warranties')->insert(['business_id' => $biz, 'name' => $nome . ' ' . PCADAP_TAG, 'duration' => 12, 'duration_type' => 'months', 'created_at' => now(), 'updated_at' => now()]);
+    }
+
+    $props = pcadapProps($this, $user, 'variacoes,grupos,garantias', '?aba=variacoes');
+    expect(pcadapNomes($props['variacoes'] ?? []))->toBe(['Cor ' . PCADAP_TAG]);
+    expect(pcadapNomes($props['grupos'] ?? []))->toBe(['Atacado ' . PCADAP_TAG]);
+    expect(pcadapNomes($props['garantias'] ?? []))->toBe(['12 meses ' . PCADAP_TAG]);
+
+    $linha = collect($props['variacoes'])->firstWhere('id', $cor);
+    expect($linha['em_uso'])->toBe(1);
+    expect($linha['valores'])->toBe(['Azul', 'Vermelho']);
+    expect(collect($props['garantias'])->firstWhere('nome', '12 meses ' . PCADAP_TAG)['duracao'])->toBe('12 meses');
+});
+
+it('UC-PCADAP-15 · variação em uso não sai; variação livre sai', function () {
+    $user = pcadapUsuario($this->biz->id, ['variation.view', 'variation.delete']);
+    $usada = pcadapVariacao($this->biz->id, 'Acabamento');
+    $livre = pcadapVariacao($this->biz->id, 'Gramatura');
+    pcadapUsaVariacao($this->biz->id, $usada);
+
+    $recusa = pcadapLogin($this, $user)->delete("/variation-templates/{$usada}", [], ['X-Requested-With' => 'XMLHttpRequest']);
+    $recusa->assertOk();
+    expect($recusa->json('success'))->toBeFalse();
+    expect(DB::table('variation_templates')->where('id', $usada)->exists())->toBeTrue();
+
+    $ok = pcadapLogin($this, $user)->delete("/variation-templates/{$livre}", [], ['X-Requested-With' => 'XMLHttpRequest']);
+    expect($ok->json('success'))->toBeTrue();
+    expect(DB::table('variation_templates')->where('id', $livre)->exists())->toBeFalse();
+});
+
+it('UC-PCADAP-16 · permissões das abas novas: grupos por product.create, garantia nunca oferece excluir', function () {
+    $props = pcadapProps($this, pcadapUsuario($this->biz->id, ['warranty.view', 'warranty.delete', 'unit.view']), 'can,grupos,variacoes');
+    expect($props['can']['garantias']['view'])->toBeTrue();
+    expect($props['can']['garantias']['delete'])->toBeFalse();
+    expect($props['can']['grupos']['view'])->toBeFalse();
+    expect($props['can']['variacoes']['view'])->toBeFalse();
+    $this->assertEmpty($props['grupos'] ?? null, 'quem não tem product.create recebeu os grupos de preço');
+    $this->assertEmpty($props['variacoes'] ?? null, 'quem não tem variation.view recebeu as variações');
+
+    pcadapLogin($this, pcadapUsuario($this->biz->id, ['unit.view']))->get('/variation-templates')->assertForbidden();
 });

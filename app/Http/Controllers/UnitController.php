@@ -5,8 +5,11 @@ namespace App\Http\Controllers;
 use App\Brands;
 use App\Category;
 use App\Product;
+use App\SellingPriceGroup;
 use App\Unit;
 use App\Utils\Util;
+use App\VariationTemplate;
+use App\Warranty;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
@@ -300,6 +303,17 @@ class UnitController extends Controller
      */
     private function cadastros()
     {
+        return Inertia::render('Produto/Cadastros/Index', $this->propsCadastros('unidades'));
+    }
+
+    /**
+     * Props da tela Produto/Cadastros. `/units`, `/variation-templates`, `/selling-price-group` e
+     * `/warranties` abrem a mesma tela (thread 03); `$abaPadrao` é a aba de quem chamou, `?aba=` vence.
+     *
+     * @return array<string, mixed>
+     */
+    public function propsCadastros(string $abaPadrao): array
+    {
         $user = auth()->user();
         $business_id = (int) request()->session()->get('user.business_id');
         $pode = fn (string $base) => [
@@ -309,20 +323,28 @@ class UnitController extends Controller
             'delete' => $user->can("{$base}.delete"),
         ];
         // Categorias: só a taxonomia de produto (`category_type = product`), pela `category.*`.
-        $can = ['unidades' => $pode('unit'), 'categorias' => $pode('category'), 'marcas' => $pode('brand')];
+        $can = ['unidades' => $pode('unit'), 'categorias' => $pode('category'), 'marcas' => $pode('brand'),
+            'variacoes' => $pode('variation'),
+            // Grupos de preço seguem as permissões que o SellingPriceGroupController já cobra.
+            'grupos' => ['view' => $user->can('product.create'), 'create' => $user->can('product.create'),
+                'update' => $user->can('product.update'), 'delete' => $user->can('product.create')],
+            // WarrantyController@destroy nunca foi implementado: a tela não oferece excluir.
+            'garantias' => ['delete' => false] + $pode('warranty'),
+        ];
 
         $visiveis = array_keys(array_filter($can, fn ($p) => $p['view']));
         if (! $visiveis) {
             abort(403, 'Unauthorized action.');
         }
-        $aba = in_array(request()->input('aba'), array_keys($can), true) ? request()->input('aba') : $visiveis[0];
+        $aba = in_array(request()->input('aba'), $visiveis, true) ? request()->input('aba')
+            : (in_array($abaPadrao, $visiveis, true) ? $abaPadrao : $visiveis[0]);
 
         $emUso = fn (string $coluna, string $tabela) => DB::table('products')
             ->selectRaw('count(*)')
             ->whereColumn("products.{$coluna}", "{$tabela}.id")
             ->where('products.business_id', $business_id);
 
-        return Inertia::render('Produto/Cadastros/Index', [
+        return [
             'aba' => $aba,
             'can' => $can,
             'unidades' => $can['unidades']['view'] ? Inertia::defer(fn () => Unit::where('units.business_id', $business_id)
@@ -355,7 +377,40 @@ class UnitController extends Controller
                     'descricao' => (string) $b->getAttribute('description'),
                     'em_uso' => (int) $b->getAttribute('em_uso'),
                 ])->values()->all()) : null,
-        ]);
+            // Uso da variação = produtos do MEU negócio com variação daquele modelo (é o que a exclusão recusa).
+            'variacoes' => $can['variacoes']['view'] ? Inertia::defer(fn () => VariationTemplate::where('variation_templates.business_id', $business_id)
+                ->with('values:id,variation_template_id,name')
+                ->select('variation_templates.id', 'variation_templates.name')
+                ->selectSub(VariationTemplate::produtosQueUsam($business_id), 'em_uso')
+                ->orderBy('variation_templates.name')
+                ->get()
+                ->map(fn ($v) => [
+                    'id' => (int) $v->getAttribute('id'),
+                    'nome' => (string) $v->getAttribute('name'),
+                    'valores' => $v->values->pluck('name')->map(fn ($n) => (string) $n)->values()->all(),
+                    'em_uso' => (int) $v->getAttribute('em_uso'),
+                ])->values()->all()) : null,
+            'grupos' => $can['grupos']['view'] ? Inertia::defer(fn () => SellingPriceGroup::where('business_id', $business_id)
+                ->orderBy('name')
+                ->get(['id', 'name', 'description', 'is_active'])
+                ->map(fn ($g) => [
+                    'id' => (int) $g->getAttribute('id'),
+                    'nome' => (string) $g->getAttribute('name'),
+                    'descricao' => (string) $g->getAttribute('description'),
+                    'ativo' => (bool) $g->getAttribute('is_active'),
+                ])->values()->all()) : null,
+            'garantias' => $can['garantias']['view'] ? Inertia::defer(fn () => Warranty::where('business_id', $business_id)
+                ->orderBy('name')
+                ->get(['id', 'name', 'description', 'duration', 'duration_type'])
+                ->map(fn ($w) => [
+                    'id' => (int) $w->getAttribute('id'),
+                    'nome' => (string) $w->getAttribute('name'),
+                    'descricao' => (string) $w->getAttribute('description'),
+                    'duracao' => $w->getAttribute('duration')
+                        ? $w->getAttribute('duration').' '.(['days' => 'dias', 'months' => 'meses', 'years' => 'anos'][$w->getAttribute('duration_type')] ?? $w->getAttribute('duration_type'))
+                        : null,
+                ])->values()->all()) : null,
+        ];
     }
 
     /**

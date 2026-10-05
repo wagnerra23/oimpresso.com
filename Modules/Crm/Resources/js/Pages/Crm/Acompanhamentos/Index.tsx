@@ -8,8 +8,9 @@
 // Âncora de design: prototipo-ui/cowork/Wagner/crm-blade.jsx → TelaAcompanhamentos()
 // Contrato: governance/design/contracts/crm-acompanhamentos.contract.json
 //
-// Escrita (thread Crm/07, PR-a): adicionar, editar e excluir abrem aqui, e gravam pelas mesmas
-// rotas da Blade. Recorrente, antecipado e log seguem na Blade (`?classico=1`) até o PR-b.
+// Escrita (thread Crm/07): adicionar, editar, excluir (PR-a), recorrente e registro (PR-b) abrem
+// aqui e gravam pelas mesmas rotas da Blade. Só o "Acompanhamento antecipado" segue na Blade
+// (`?classico=1`): ele monta grupos por fatura via getFollowUpGroups, que devolve HTML.
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Deferred, router } from '@inertiajs/react';
@@ -34,7 +35,9 @@ import {
   AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/Components/ui/alert-dialog';
 import FormAcompanhamento from './_components/FormAcompanhamento';
-import { NOVO, csrf, type Valores } from './_components/acompanhamento';
+import FormRecorrente from './_components/FormRecorrente';
+import FormRegistro from './_components/FormRegistro';
+import { NOVO, NOVO_RECORRENTE, csrf, type Recorrente, type Valores } from './_components/acompanhamento';
 
 const ROTA = '/crm/follow-ups';
 const CLASSICO = `${ROTA}?classico=1`;
@@ -43,13 +46,14 @@ const TODOS = '__todos';
 interface Opcao { value: string; label: string }
 interface Opcoes {
   contatos: Opcao[]; usuarios: Opcao[]; status: Opcao[]; tipos: Opcao[]; categorias: Opcao[]; por: Opcao[]; notificar: Opcao[];
+  recorrencia: (Opcao & { grupo: string })[];
 }
 interface Acompanhamento {
   id: number; titulo: string; contato: string; inicio: string | null; fim: string | null;
   status: string | null; tipo: string | null; categoria: string | null; atribuidos: string[];
   descricao: string; por: string | null; em_dias: number | null;
   adicionado_por: string; adicionado_em: string | null;
-  editar: Omit<Valores, 'title'>;
+  editar: Omit<Valores, 'title'> & Pick<Recorrente, 'follow_up_by' | 'follow_up_by_value' | 'recursion_days'>;
 }
 type Filtros = Record<string, string | undefined>;
 interface Props {
@@ -72,9 +76,16 @@ export default function AcompanhamentosIndex({ filtros, opcoes, acompanhamentos 
   const recorrente = filtros.is_recursive === '1';
   const [form, setForm] = useState<{ id: number | null; inicial: Valores } | null>(null);
   const [excluir, setExcluir] = useState<Acompanhamento | null>(null);
+  const [rec, setRec] = useState<{ id: number | null; inicial: Recorrente } | null>(null);
+  const [registro, setRegistro] = useState<Acompanhamento | null>(null);
   const recarregar = () => router.reload({ only: ['acompanhamentos'] });
   const acoes = {
     editar: (r: Acompanhamento) => setForm({ id: r.id, inicial: { ...r.editar, title: r.titulo } }),
+    editarRecorrente: (r: Acompanhamento) => {
+      const { contact_id: _c, start_datetime: _s, end_datetime: _e, ...resto } = r.editar;
+      setRec({ id: r.id, inicial: { ...resto, title: r.titulo } });
+    },
+    registrar: setRegistro,
     excluir: setExcluir,
   };
 
@@ -121,7 +132,7 @@ export default function AcompanhamentosIndex({ filtros, opcoes, acompanhamentos 
           <div className="flex flex-wrap items-center gap-2">
             <h3 className="text-sm font-medium">Todos os acompanhamentos</h3>
             <div className="ml-auto flex flex-wrap gap-2" data-contract="crm-toolbar">
-              <Button asChild variant="outline" size="sm"><a href={CLASSICO}>Recorrente</a></Button>
+              <Button variant="outline" size="sm" onClick={() => setRec({ id: null, inicial: NOVO_RECORRENTE })}>Recorrente</Button>
               <Button asChild variant="outline" size="sm"><a href={CLASSICO}>Acompanhamento antecipado</a></Button>
               <Button size="sm" onClick={() => setForm({ id: null, inicial: NOVO })}>Adicionar</Button>
             </div>
@@ -166,6 +177,16 @@ export default function AcompanhamentosIndex({ filtros, opcoes, acompanhamentos 
           onFechar={() => setForm(null)} onSalvo={() => { setForm(null); recarregar(); }} />
       ) : null}
 
+      {rec ? (
+        <FormRecorrente key={rec.id ?? 'novo'} id={rec.id} inicial={rec.inicial} opcoes={opcoes}
+          onFechar={() => setRec(null)} onSalvo={() => { setRec(null); recarregar(); }} />
+      ) : null}
+
+      {registro ? (
+        <FormRegistro acompanhamento={registro} opcoes={opcoes}
+          onFechar={() => setRegistro(null)} onSalvo={() => { setRegistro(null); recarregar(); }} />
+      ) : null}
+
       <AlertDialog open={!!excluir} onOpenChange={(aberto) => { if (!aberto) setExcluir(null); }}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -197,7 +218,10 @@ function Filtro({ rotulo: nome, campo, lista, filtros }: { rotulo: string; campo
   );
 }
 
-interface Acoes { editar: (r: Acompanhamento) => void; excluir: (r: Acompanhamento) => void }
+interface Acoes {
+  editar: (r: Acompanhamento) => void; editarRecorrente: (r: Acompanhamento) => void;
+  registrar: (r: Acompanhamento) => void; excluir: (r: Acompanhamento) => void;
+}
 
 function colunas(opcoes: Opcoes | undefined, recorrente: boolean, acoes: Acoes): ColumnDef<Acompanhamento>[] {
   const texto = (header: string, acc: (r: Acompanhamento) => ReactNode, width = 150): ColumnDef<Acompanhamento> => ({
@@ -212,10 +236,13 @@ function colunas(opcoes: Opcoes | undefined, recorrente: boolean, acoes: Acoes):
           <Button variant="ghost" size="sm" aria-label={`Ações de ${row.original.titulo}`}><MoreHorizontal className="size-4" /></Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start">
-          {/* Recorrente se edita no modal próprio da Blade até o PR-b da thread 07. */}
+          {/* Recorrente tem modal próprio; o registro (log) só existe no avulso, como na Blade. */}
           {recorrente
-            ? <DropdownMenuItem asChild><a href={CLASSICO}>Editar</a></DropdownMenuItem>
-            : <DropdownMenuItem onSelect={() => acoes.editar(row.original)}>Editar</DropdownMenuItem>}
+            ? <DropdownMenuItem onSelect={() => acoes.editarRecorrente(row.original)}>Editar</DropdownMenuItem>
+            : <>
+                <DropdownMenuItem onSelect={() => acoes.editar(row.original)}>Editar</DropdownMenuItem>
+                <DropdownMenuItem onSelect={() => acoes.registrar(row.original)}>Adicionar registro</DropdownMenuItem>
+              </>}
           <DropdownMenuItem variant="destructive" onSelect={() => acoes.excluir(row.original)}>Excluir</DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

@@ -23,10 +23,13 @@
 
 <section class="cockpit" data-theme="{{ themeAttr }}" style="min-height: 100vh; padding: 56px 64px 80px; background: var(--bg-2); color: var(--text); font-family: var(--font-sans); display: flex; flex-direction: column; gap: 40px;">
   <header style="display: flex; flex-direction: column; gap: 8px; max-width: 880px;">
-    <div style="font-family: var(--font-mono); font-size: 11.5px; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text-mute);">Espelho · wagnerra23/oimpresso.com · mobile/ · PR #8193 (7a6c977)</div>
+    <div style="font-family: var(--font-mono); font-size: 11.5px; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text-mute);">Espelho · wagnerra23/oimpresso-app · main · sync 05/10/2026</div>
     <h1 style="color: var(--text); margin: 0; font-size: 28px; font-weight: 600; letter-spacing: -0.4px;">Oimpresso Mobile — telas no DS</h1>
-    <p style="margin: 0; font-size: 15px; line-height: 1.5; color: var(--text-dim); text-wrap: pretty;">Estrutura e comportamento vêm do app Expo do Luiz (<span style="font-family: var(--font-mono); font-size: 13px;">app/(tabs)/index.tsx</span>, <span style="font-family: var(--font-mono); font-size: 13px;">producao.tsx</span>, <span style="font-family: var(--font-mono); font-size: 13px;">oss/[id].tsx</span>). A pele vem do DS Office Impresso — IBM Plex, roxo 295, sem gradiente.</p>
-    <a href="Mobile DS Proposta.dc.html" style="font-size: 13.5px;">Proposta da camada mobile no DS →</a>
+    <p style="margin: 0; font-size: 15px; line-height: 1.5; color: var(--text-dim); text-wrap: pretty;">Estrutura e comportamento vêm do oimpresso-app (Capacitor) (<span style="font-family: var(--font-mono); font-size: 13px;">app/(tabs)/index.tsx</span>, <span style="font-family: var(--font-mono); font-size: 13px;">producao.tsx</span>, <span style="font-family: var(--font-mono); font-size: 13px;">oss/[id].tsx</span>). A pele vem do DS Office Impresso — IBM Plex, roxo 295, sem gradiente.</p>
+    <div style="display: flex; gap: 16px; flex-wrap: wrap;">
+      <a href="Mobile DS Proposta.dc.html" style="font-size: 13.5px;">Proposta da camada mobile no DS →</a>
+      <a href="Mobile Propostas.dc.html" style="font-size: 13.5px;">9 telas propostas vs. Mubisys, HoldApp, shopVOX →</a>
+    </div>
     <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding-top: 6px;">
       <span style="font-size: 10.5px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text-mute);">Simular rede</span>
       <div style="display: flex; gap: 3px; padding: 3px; border-radius: 8px; background: var(--surface); border: 1px solid var(--border);">
@@ -34,7 +37,13 @@
           <div onClick="{{ r.pick }}" style="height: 28px; padding: 0 12px; border-radius: 6px; background: {{ r.bg }}; color: {{ r.fg }}; display: flex; align-items: center; font-size: 12.5px; font-weight: 600; cursor: pointer;">{{ r.label }}</div>
         </sc-for>
       </div>
-      <span style="font-family: var(--font-mono); font-size: 12px; color: var(--text-dim);">fila: {{ fila }} · perfil: {{ perfilNome }} · empresa: {{ empresa.nome }}</span>
+      <span style="font-size: 10.5px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text-mute);">Simular ponto</span>
+      <div style="display: flex; gap: 3px; padding: 3px; border-radius: 8px; background: var(--surface); border: 1px solid var(--border);">
+        <sc-for list="{{ ptCadOpts }}" as="r" hint-placeholder-count="2">
+          <div onClick="{{ r.pick }}" style="height: 28px; padding: 0 12px; border-radius: 6px; background: {{ r.bg }}; color: {{ r.fg }}; display: flex; align-items: center; font-size: 12.5px; font-weight: 600; cursor: pointer;">{{ r.label }}</div>
+        </sc-for>
+      </div>
+      <span style="font-family: var(--font-mono); font-size: 12px; color: var(--text-dim);">perfil: {{ perfilNome }} · empresa: {{ empresa.nome }}</span>
     </div>
   </header>
 
@@ -56,7 +65,7 @@
       <div style="display: flex; align-items: baseline; gap: 10px;">
         <span style="font-family: var(--font-mono); font-size: 12px; font-weight: 600; color: var(--accent-fg); background: var(--accent); padding: 2px 8px; border-radius: 6px;">00</span>
         <span style="font-size: 15px; font-weight: 600;">Login + empresa</span>
-        <span style="font-family: var(--font-mono); font-size: 11.5px; color: var(--text-mute);">login.tsx · empresas.tsx</span>
+        <span style="font-family: var(--font-mono); font-size: 11.5px; color: var(--text-mute);">src/telas/Login.tsx</span>
       </div>
       <div style="width: 390px; height: 844px; border-radius: 48px; border: 10px solid #0b0b0e; outline: 3px solid {{ foco.s00 }}; outline-offset: 6px; background: var(--accent); position: relative; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 30px 60px rgba(0,0,0,0.35);">
         <div style="height: 44px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 28px; font-family: var(--font-mono); font-size: 13px; font-weight: 600;"><span>09:41</span><span style="font-size: 11px; color: var(--text-dim);">5G ▮▮▮</span></div>
@@ -84,12 +93,10 @@
               <sc-if value="{{ login.isRegister }}" hint-placeholder-val="{{ false }}">
                 <div style="height: 44px; border-radius: 10px; background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2); display: flex; align-items: center; padding: 0 12px; font-size: 14px;">Wagner Rodrigues</div>
               </sc-if>
-              <div style="height: 44px; border-radius: 10px; background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2); display: flex; align-items: center; padding: 0 12px; font-size: 14px;">wagner@rotalivre.com.br</div>
-              <div style="height: 44px; border-radius: 10px; background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2); display: flex; align-items: center; padding: 0 12px; font-size: 14px; letter-spacing: 2px;">••••••••••</div>
+              <div style="height: 44px; border-radius: 10px; background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2); display: flex; align-items: center; padding: 0 12px; font-size: 14px;">Usuário ou e-mail</div>
+              <div style="height: 44px; border-radius: 10px; background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2); display: flex; align-items: center; padding: 0 12px; font-size: 14px; letter-spacing: 2px;"><span style="flex: 1;">••••••••••</span><span style="font-size: 12.5px; font-weight: 600; letter-spacing: 0; opacity: 0.9;">Mostrar</span></div>
               <div onClick="{{ login.entrar }}" style="height: 48px; margin-top: 6px; border-radius: 10px; background: #ffffff; color: var(--accent); display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; cursor: pointer;">{{ login.cta }}</div>
-              <span onClick="{{ login.alternar }}" style="min-height: 36px; display: flex; align-items: center; justify-content: center; font-size: 12.5px; font-weight: 500; cursor: pointer;">{{ login.switchLabel }}</span>
             </div>
-            <div onClick="{{ login.entrar }}" style="height: 48px; border-radius: 10px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.22); display: flex; align-items: center; justify-content: center; font-size: 13.5px; font-weight: 600; cursor: pointer;">Entrar com OAuth</div>
           </sc-if>
           <sc-if value="{{ login.isEmpresas }}" hint-placeholder-val="{{ false }}">
             <div style="display: flex; flex-direction: column; gap: 10px;">
@@ -130,7 +137,7 @@
       <div style="display: flex; align-items: baseline; gap: 10px;">
         <span style="font-family: var(--font-mono); font-size: 12px; font-weight: 600; color: var(--accent-fg); background: var(--accent); padding: 2px 8px; border-radius: 6px;">01</span>
         <span style="font-size: 15px; font-weight: 600;">Início</span>
-        <span style="font-family: var(--font-mono); font-size: 11.5px; color: var(--text-mute);">(tabs)/index.tsx</span>
+        <span style="font-family: var(--font-mono); font-size: 11.5px; color: var(--text-mute);">src/telas/Inicio.tsx</span>
       </div>
       <div style="width: 390px; height: 844px; border-radius: 48px; border: 10px solid #0b0b0e; outline: 3px solid {{ foco.s01 }}; outline-offset: 6px; background: var(--bg); position: relative; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 30px 60px rgba(0,0,0,0.35);">
         <div style="height: 44px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 28px; font-family: var(--font-mono); font-size: 13px; font-weight: 600; color: var(--text);"><span>09:41</span><span style="font-size: 11px; color: var(--text-dim);">5G ▮▮▮</span></div>
@@ -159,21 +166,30 @@
               <div style="font-size: 13.5px; font-weight: 600;">{{ empresa.nome }}</div>
               <div style="font-size: 11.5px; color: var(--text-mute);">{{ empresa.sub }}</div>
             </div>
-            <span onClick="{{ trocarEmpresa }}" style="height: 36px; display: flex; align-items: center; font-size: 12px; color: var(--accent); cursor: pointer;">Trocar</span>
           </div>
 
-          <x-import component-from-global-scope="OfficeImpressoPontoWR2DesignSystem_019dd0.KpiCard" hero="{{ true }}" label="Faturamento hoje" value="R$ 8.420" description="70% da meta de R$ 12.000 · +18% margem" progress="{{ 70 }}" hint-size="100%,120px"></x-import>
+          <div onClick="{{ pt.inicio.ir }}" style="padding: 14px; border-radius: 12px; background: var(--accent-soft); border: 1px solid color-mix(in oklch, var(--accent) 25%, transparent); display: flex; align-items: center; gap: 12px; cursor: pointer;">
+            <span style="color: var(--accent); display: flex;"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M12 6v6l4 2"></path></svg></span>
+            <div style="flex: 1; min-width: 0; display: flex; flex-direction: column;">
+              <span style="font-size: 12px; color: var(--text-dim);">{{ pt.inicio.rotulo }}</span>
+              <span style="font-size: 16px; font-weight: 600;">{{ pt.inicio.label }}</span>
+              <sc-if value="{{ pt.inicio.temPrevista }}" hint-placeholder-val="{{ true }}"><span style="font-family: var(--font-mono); font-size: 12.5px; color: var(--text-dim);">{{ pt.inicio.prevista }}</span></sc-if>
+            </div>
+            <span style="font-size: 14px; font-weight: 600; color: var(--accent);">Bater ›</span>
+          </div>
+
+          <x-import component-from-global-scope="OfficeImpressoPontoWR2DesignSystem_019dd0.KpiCard" hero="{{ true }}" label="Faturamento hoje" value="R$ 8.420" description="+18% em relação a ontem (R$ 7.135) · 70% da meta do dia de R$ 12.000" progress="{{ 70 }}" hint-size="100%,120px"></x-import>
 
           <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px;">
             <div onClick="{{ kpiIr.a }}" style="background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 12px; display: flex; flex-direction: column; gap: 2px; cursor: pointer;" style-hover="border-color: var(--accent);">
               <span style="font-size: 10px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; color: var(--text-mute);">Pedidos</span>
               <span style="font-family: var(--font-mono); font-size: 22px; font-weight: 500; font-variant-numeric: tabular-nums;">14</span>
-              <span style="font-size: 11px; color: var(--pos);">+3 hoje</span>
+              <span style="font-size: 11px; color: var(--text-dim);">ativos</span>
             </div>
-            <div onClick="{{ kpiIr.b }}" style="background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 12px; display: flex; flex-direction: column; gap: 2px; cursor: pointer;" style-hover="border-color: var(--accent);">
-              <span style="font-size: 10px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; color: var(--text-mute);">OPs</span>
-              <span style="font-family: var(--font-mono); font-size: 22px; font-weight: 500; font-variant-numeric: tabular-nums;">{{ opsAtivas }}</span>
-              <span style="font-size: 11px; color: var(--text-dim);">em curso</span>
+            <div onClick="{{ kpiIr.a }}" style="background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 12px; display: flex; flex-direction: column; gap: 2px; cursor: pointer;" style-hover="border-color: var(--accent);">
+              <span style="font-size: 10px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; color: var(--text-mute);">Atrasados</span>
+              <span style="font-family: var(--font-mono); font-size: 22px; font-weight: 500; font-variant-numeric: tabular-nums; color: var(--neg);">3</span>
+              <span style="font-size: 11px; color: var(--text-dim);">pedidos</span>
             </div>
             <div onClick="{{ kpiIr.c }}" style="background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 12px; display: flex; flex-direction: column; gap: 2px; cursor: pointer;" style-hover="border-color: var(--accent);">
               <span style="font-size: 10px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; color: var(--text-mute);">Estoque</span>
@@ -183,31 +199,37 @@
           </div>
 
           <div style="display: flex; flex-direction: column; gap: 10px;">
-            <div style="font-size: 10.5px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text-mute);">Atalhos</div>
-            <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px;">
-              <sc-for list="{{ atalhos }}" as="a" hint-placeholder-count="4">
-                <div onClick="{{ a.ir }}" style="background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 12px 4px; display: flex; flex-direction: column; align-items: center; gap: 6px; cursor: pointer;" style-hover="border-color: var(--accent);">
-                  <div style="width: 36px; height: 36px; border-radius: 10px; background: var(--accent-soft); color: var(--accent); display: flex; align-items: center; justify-content: center; font-family: var(--font-mono); font-size: 13px; font-weight: 600;">{{ a.icon }}</div>
-                  <span style="font-size: 11px; font-weight: 500; color: var(--text-dim); text-align: center;">{{ a.label }}</span>
-                </div>
-              </sc-for>
+            <div style="display: flex; align-items: baseline;">
+              <span style="font-size: 10.5px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text-mute);">Financeiro</span>
+              <span onClick="{{ irFin }}" style="margin-left: auto; min-height: 32px; display: flex; align-items: center; font-size: 12px; color: var(--accent); cursor: pointer;">Detalhes</span>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px;">
+              <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 12px; display: flex; flex-direction: column; gap: 4px;">
+                <span style="font-size: 10px; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase; color: var(--text-mute);">A receber</span>
+                <span style="font-family: var(--font-mono); font-size: 17px; font-weight: 600; font-variant-numeric: tabular-nums;">R$ 42.180</span>
+              </div>
+              <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 12px; display: flex; flex-direction: column; gap: 4px;">
+                <span style="font-size: 10px; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase; color: var(--text-mute);">A pagar</span>
+                <span style="font-family: var(--font-mono); font-size: 17px; font-weight: 600; font-variant-numeric: tabular-nums;">R$ 18.940</span>
+              </div>
             </div>
           </div>
 
           <div style="display: flex; flex-direction: column; gap: 10px;">
             <div style="display: flex; align-items: baseline;">
-              <span style="font-size: 10.5px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text-mute);">Financeiro · 30 dias</span>
-              <span onClick="{{ irFin }}" style="margin-left: auto; min-height: 32px; display: flex; align-items: center; font-size: 12px; color: var(--accent); cursor: pointer;">Detalhes</span>
+              <span style="font-size: 10.5px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text-mute);">Próximas tarefas</span>
+              <span onClick="{{ pt.irTarefas }}" style="margin-left: auto; min-height: 32px; display: flex; align-items: center; font-size: 12px; color: var(--accent); cursor: pointer;">Ver todas</span>
             </div>
-            <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px;">
-              <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 12px; display: flex; flex-direction: column; gap: 4px;">
-                <span style="font-size: 10px; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase; color: var(--text-mute);">Receitas</span>
-                <span style="font-family: var(--font-mono); font-size: 17px; font-weight: 600; color: var(--pos); font-variant-numeric: tabular-nums;">R$ 148.230</span>
-              </div>
-              <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 12px; display: flex; flex-direction: column; gap: 4px;">
-                <span style="font-size: 10px; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase; color: var(--text-mute);">Despesas</span>
-                <span style="font-family: var(--font-mono); font-size: 17px; font-weight: 600; color: var(--neg); font-variant-numeric: tabular-nums;">R$ 96.410</span>
-              </div>
+            <div style="border: 1px solid var(--border); border-radius: 12px; background: var(--surface); overflow: hidden; flex-shrink: 0;">
+              <sc-for list="{{ pt.tarefas }}" as="t" hint-placeholder-count="3">
+                <div onClick="{{ t.ir }}" style="min-height: 52px; padding: 8px 14px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid var(--border-2); cursor: pointer;">
+                  <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px;">
+                    <span style="font-size: 13.5px; font-weight: 600;">{{ t.titulo }}</span>
+                    <span style="font-size: 11.5px; color: var(--text-dim);">{{ t.sub }}</span>
+                  </div>
+                  <span style="font-family: var(--font-mono); font-size: 12px; font-weight: 600; color: {{ t.fg }};">{{ t.prazo }}</span>
+                </div>
+              </sc-for>
             </div>
           </div>
         </div>
@@ -232,8 +254,9 @@
       <div style="display: flex; align-items: baseline; gap: 10px;">
         <span style="font-family: var(--font-mono); font-size: 12px; font-weight: 600; color: var(--accent-fg); background: var(--accent); padding: 2px 8px; border-radius: 6px;">02</span>
         <span style="font-size: 15px; font-weight: 600;">Produção</span>
-        <span style="font-family: var(--font-mono); font-size: 11.5px; color: var(--text-mute);">(tabs)/producao.tsx</span>
+        <span style="font-family: var(--font-mono); font-size: 11.5px; color: var(--text-mute);">src/telas/Producao.tsx</span>
       </div>
+      <div style="display: flex; gap: 6px; flex-wrap: wrap;"><a href="Mobile Propostas.dc.html#p1" style="height: 24px; padding: 0 9px; border-radius: 99px; border: 1px dashed var(--accent); color: var(--accent); display: flex; align-items: center; gap: 6px; font-size: 11.5px; font-weight: 600; text-decoration: none;"><span style="font-family: var(--font-mono);">P1</span>proposta · Avançar etapa</a><a href="Mobile Propostas.dc.html#p8" style="height: 24px; padding: 0 9px; border-radius: 99px; border: 1px dashed var(--accent); color: var(--accent); display: flex; align-items: center; gap: 6px; font-size: 11.5px; font-weight: 600; text-decoration: none;"><span style="font-family: var(--font-mono);">P8</span>proposta · Apontamento por QR</a></div>
       <div style="width: 390px; height: 844px; border-radius: 48px; border: 10px solid #0b0b0e; outline: 3px solid {{ foco.s02 }}; outline-offset: 6px; background: var(--bg); position: relative; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 30px 60px rgba(0,0,0,0.35);">
         <div style="height: 44px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 28px; font-family: var(--font-mono); font-size: 13px; font-weight: 600;"><span>09:41</span><span style="font-size: 11px; color: var(--text-dim);">5G ▮▮▮</span></div>
         <sc-if value="{{ banner.show }}" hint-placeholder-val="{{ false }}">
@@ -250,7 +273,6 @@
               <div style="font-size: 10.5px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text-mute);">{{ prodEyebrow }}</div>
               <div style="font-size: 22px; font-weight: 600; letter-spacing: -0.4px; line-height: 26px;">Produção</div>
             </div>
-            <div style="height: 36px; padding: 0 12px; border-radius: 8px; background: var(--accent); color: var(--accent-fg); display: flex; align-items: center; font-size: 13px; font-weight: 600;">Gerar OP</div>
           </div>
           <div style="height: 40px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface); display: flex; align-items: center; gap: 8px; padding: 0 12px; color: var(--text-mute); font-size: 13.5px;">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>
@@ -267,31 +289,24 @@
         </div>
         <div data-phone-scroll="" style="flex: 1; overflow-y: auto; overflow-x: hidden; padding: 12px 16px 20px; display: flex; flex-direction: column; gap: 10px;">
           <sc-for list="{{ opsVisiveis }}" as="op" hint-placeholder-count="3">
-            <div style="background: var(--surface); border: 1px solid var(--border); border-left: 3px solid {{ op.tint }}; border-radius: 10px; padding: 12px; display: flex; flex-direction: column; gap: 6px;">
+            <div onClick="{{ irOP }}" style="background: var(--surface); border: 1px solid var(--border); border-left: 3px solid {{ op.tint }}; border-radius: 10px; padding: 12px; display: flex; flex-direction: column; gap: 6px; cursor: pointer;">
               <div style="display: flex; align-items: center; gap: 8px;">
-                <span style="font-family: var(--font-mono); font-size: 10.5px; font-weight: 600; padding: 1px 6px; border-radius: 4px; background: var(--bg-2); color: var(--text-dim);">OP</span>
-                <span style="font-family: var(--font-mono); font-size: 11.5px; font-weight: 600; color: var(--text-mute);">{{ op.id }}</span>
-                <span style="margin-left: auto; display: flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 500; color: {{ op.tint }};"><span style="width: 6px; height: 6px; border-radius: 99px; background: {{ op.tint }};"></span>{{ op.etapa }}</span>
+                <span style="font-family: var(--font-mono); font-size: 12px; font-weight: 600; color: var(--text-mute);">#{{ op.num }}</span>
+                <span style="font-size: 11px; color: {{ op.prazoFg }};">{{ op.prazo }}</span>
               </div>
-              <div onClick="{{ irOP }}" style="font-size: 14px; font-weight: 600; letter-spacing: -0.1px; cursor: pointer;">{{ op.produto }} <span style="color: var(--accent); font-size: 12px; font-weight: 500;">abrir →</span></div>
-              <div style="font-size: 12px; color: var(--text-dim);">{{ op.cliente }} · {{ op.medida }}</div>
+              <div style="font-size: 14px; font-weight: 600; letter-spacing: -0.1px;">{{ op.produto }}</div>
+              <div style="display: flex; align-items: baseline;"><span style="font-size: 12.5px; color: var(--text-dim);">{{ op.cliente }}</span><span style="margin-left: auto; font-family: var(--font-mono); font-size: 14px; font-weight: 600;">{{ op.valor }}</span></div>
               <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 3px; margin-top: 2px;">
                 <sc-for list="{{ op.pipe }}" as="p" hint-placeholder-count="4">
                   <span style="height: 4px; border-radius: 2px; background: {{ p }};"></span>
                 </sc-for>
               </div>
-              <div style="display: flex; gap: 6px; margin-top: 4px;">
-                <sc-if value="{{ op.podeAvancar }}" hint-placeholder-val="{{ true }}">
-                  <div onClick="{{ op.avancar }}" style="height: 36px; padding: 0 14px; border-radius: 8px; background: var(--accent); color: var(--accent-fg); display: flex; align-items: center; font-size: 13px; font-weight: 600; cursor: pointer;">{{ op.acao }}</div>
-                </sc-if>
-                <div style="height: 36px; padding: 0 12px; border-radius: 8px; border: 1px solid var(--border); color: var(--text-dim); display: flex; align-items: center; font-size: 13px; font-weight: 500;">Arte ({{ op.artes }})</div>
-                <div style="height: 36px; padding: 0 12px; border-radius: 8px; border: 1px solid var(--border); color: var(--text-dim); display: flex; align-items: center; font-size: 13px; font-weight: 500; cursor: pointer;" onClick="{{ linkLista }}">Link</div>
-              </div>
             </div>
           </sc-for>
           <sc-if value="{{ semOps }}" hint-placeholder-val="{{ false }}">
-            <x-import component-from-global-scope="OfficeImpressoPontoWR2DesignSystem_019dd0.EmptyState" variant="done" title="Nenhuma OP nesta etapa" description="Tudo que estava aqui já avançou." hint-size="100%,180px"></x-import>
+            <x-import component-from-global-scope="OfficeImpressoPontoWR2DesignSystem_019dd0.EmptyState" variant="done" title="Nenhum pedido nesta etapa" description="Tudo que estava aqui já avançou." hint-size="100%,180px"></x-import>
           </sc-if>
+          <span style="font-size: 11.5px; color: var(--text-mute); text-wrap: pretty;">Mudar a etapa de um pedido continua no computador.</span>
         </div>
         <div style="flex-shrink: 0; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); background: var(--surface); border-top: 1px solid var(--border); padding: 6px 4px 22px;">
           <sc-for list="{{ tabsProd }}" as="t" hint-placeholder-count="5">
@@ -314,8 +329,9 @@
       <div style="display: flex; align-items: baseline; gap: 10px;">
         <span style="font-family: var(--font-mono); font-size: 12px; font-weight: 600; color: var(--accent-fg); background: var(--accent); padding: 2px 8px; border-radius: 6px;">03</span>
         <span style="font-size: 15px; font-weight: 600;">OS da oficina</span>
-        <span style="font-family: var(--font-mono); font-size: 11.5px; color: var(--text-mute);">oss/[id].tsx</span>
+        <span style="font-family: var(--font-mono); font-size: 11.5px; color: var(--text-mute);">src/telas/OsDetalhe.tsx</span>
       </div>
+      <div style="display: flex; gap: 6px; flex-wrap: wrap;"><a href="Mobile Propostas.dc.html#p2" style="height: 24px; padding: 0 9px; border-radius: 99px; border: 1px dashed var(--accent); color: var(--accent); display: flex; align-items: center; gap: 6px; font-size: 11.5px; font-weight: 600; text-decoration: none;"><span style="font-family: var(--font-mono);">P2</span>proposta · Fotos e anexos</a></div>
       <div style="width: 390px; height: 844px; border-radius: 48px; border: 10px solid #0b0b0e; outline: 3px solid {{ foco.s03 }}; outline-offset: 6px; background: var(--bg); position: relative; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 30px 60px rgba(0,0,0,0.35);">
         <div style="height: 44px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 28px; font-family: var(--font-mono); font-size: 13px; font-weight: 600;"><span>09:41</span><span style="font-size: 11px; color: var(--text-dim);">5G ▮▮▮</span></div>
         <sc-if value="{{ banner.show }}" hint-placeholder-val="{{ false }}">
@@ -466,8 +482,9 @@
       <div style="display: flex; align-items: baseline; gap: 10px;">
         <span style="font-family: var(--font-mono); font-size: 12px; font-weight: 600; color: var(--accent-fg); background: var(--accent); padding: 2px 8px; border-radius: 6px;">04</span>
         <span style="font-size: 15px; font-weight: 600;">Orçamentos</span>
-        <span style="font-family: var(--font-mono); font-size: 11.5px; color: var(--text-mute);">(tabs)/orcamentos.tsx</span>
+        <span style="font-family: var(--font-mono); font-size: 11.5px; color: var(--text-mute);">src/telas/Orcamentos.tsx</span>
       </div>
+      <div style="display: flex; gap: 6px; flex-wrap: wrap;"><a href="Mobile Propostas.dc.html#p4" style="height: 24px; padding: 0 9px; border-radius: 99px; border: 1px dashed var(--accent); color: var(--accent); display: flex; align-items: center; gap: 6px; font-size: 11.5px; font-weight: 600; text-decoration: none;"><span style="font-family: var(--font-mono);">P4</span>proposta · Orçamento rápido</a></div>
       <div style="width: 390px; height: 844px; border-radius: 48px; border: 10px solid #0b0b0e; outline: 3px solid {{ foco.s04 }}; outline-offset: 6px; background: var(--bg); position: relative; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 30px 60px rgba(0,0,0,0.35);">
         <div style="height: 44px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 28px; font-family: var(--font-mono); font-size: 13px; font-weight: 600;"><span>09:41</span><span style="font-size: 11px; color: var(--text-dim);">5G ▮▮▮</span></div>
         <sc-if value="{{ banner.show }}" hint-placeholder-val="{{ false }}">
@@ -484,7 +501,6 @@
             <div style="font-size: 10.5px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text-mute);">{{ orcEyebrow }}</div>
             <div style="font-size: 22px; font-weight: 600; letter-spacing: -0.4px; line-height: 26px;">Orçamentos</div>
           </div>
-          <div style="height: 36px; padding: 0 12px; border-radius: 8px; background: var(--accent); color: var(--accent-fg); display: flex; align-items: center; font-size: 13px; font-weight: 600;">+ Novo</div>
         </div>
         <div data-phone-scroll="" style="flex: 1; overflow-y: auto; overflow-x: hidden; padding: 12px 16px 20px; display: flex; flex-direction: column; gap: 10px;">
           <div data-phone-scroll="" style="display: flex; gap: 6px; overflow-x: auto; flex-shrink: 0;">
@@ -505,13 +521,6 @@
                 <span style="font-family: var(--font-mono); font-size: 18px; font-weight: 600; font-variant-numeric: tabular-nums;">{{ q.valor }}</span>
                 <span style="font-family: var(--font-mono); font-size: 11.5px; color: var(--text-mute);">{{ q.area }} m² · {{ q.itens }} itens</span>
               </div>
-              <div style="display: flex; gap: 6px;">
-                <div style="height: 36px; padding: 0 12px; border-radius: 8px; border: 1px solid var(--border); color: var(--text-dim); display: flex; align-items: center; font-size: 13px; font-weight: 500;">Editar</div>
-                <div style="height: 36px; padding: 0 12px; border-radius: 8px; border: 1px solid var(--border); color: var(--text-dim); display: flex; align-items: center; font-size: 13px; font-weight: 500;">PDF</div>
-                <sc-if value="{{ q.aprovado }}" hint-placeholder-val="{{ false }}">
-                  <div onClick="{{ q.converter }}" style="height: 36px; padding: 0 12px; border-radius: 8px; background: var(--accent); color: var(--accent-fg); display: flex; align-items: center; font-size: 13px; font-weight: 600; cursor: pointer;">Converter em pedido</div>
-                </sc-if>
-              </div>
             </div>
           </sc-for>
         </div>
@@ -522,6 +531,7 @@
               <span>{{ t.label }}</span>
             </div>
           </sc-for>
+          <span style="font-size: 11.5px; color: var(--text-mute); text-wrap: pretty;">Criar, editar, gerar PDF e converter em pedido continuam no computador.</span>
         </div>
         <sc-if value="{{ toast.p04 }}" hint-placeholder-val="{{ false }}">
           <div style="position: absolute; left: 16px; right: 16px; bottom: 104px; z-index: 6; display: flex; justify-content: center; pointer-events: none;">
@@ -535,7 +545,7 @@
       <div style="display: flex; align-items: baseline; gap: 10px;">
         <span style="font-family: var(--font-mono); font-size: 12px; font-weight: 600; color: var(--accent-fg); background: var(--accent); padding: 2px 8px; border-radius: 6px;">05</span>
         <span style="font-size: 15px; font-weight: 600;">Estoque</span>
-        <span style="font-family: var(--font-mono); font-size: 11.5px; color: var(--text-mute);">(tabs)/estoque.tsx</span>
+        <span style="font-family: var(--font-mono); font-size: 11.5px; color: var(--text-mute);">src/telas/Estoque.tsx</span>
       </div>
       <div style="width: 390px; height: 844px; border-radius: 48px; border: 10px solid #0b0b0e; outline: 3px solid {{ foco.s05 }}; outline-offset: 6px; background: var(--bg); position: relative; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 30px 60px rgba(0,0,0,0.35);">
         <div style="height: 44px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 28px; font-family: var(--font-mono); font-size: 13px; font-weight: 600;"><span>09:41</span><span style="font-size: 11px; color: var(--text-dim);">5G ▮▮▮</span></div>
@@ -553,12 +563,11 @@
             <div style="font-size: 10.5px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text-mute);">{{ estEyebrow }}</div>
             <div style="font-size: 22px; font-weight: 600; letter-spacing: -0.4px; line-height: 26px;">Estoque</div>
           </div>
-          <div style="height: 36px; padding: 0 12px; border-radius: 8px; background: var(--accent); color: var(--accent-fg); display: flex; align-items: center; font-size: 13px; font-weight: 600;">+ Item</div>
         </div>
         <div data-phone-scroll="" style="flex: 1; overflow-y: auto; overflow-x: hidden; padding: 12px 16px 20px; display: flex; flex-direction: column; gap: 10px;">
           <sc-if value="{{ mostraAlerta }}" hint-placeholder-val="{{ true }}">
             <div onClick="{{ filtrarBaixo }}" style="cursor: pointer;">
-              <x-import component-from-global-scope="OfficeImpressoPontoWR2DesignSystem_019dd0.Alert" tone="danger" title="{{ alertaTitulo }}" hint-size="100%,56px">Toque pra ver só os itens abaixo do mínimo.</x-import>
+              <x-import component-from-global-scope="OfficeImpressoPontoWR2DesignSystem_019dd0.Alert" tone="danger" title="{{ alertaTitulo }}" hint-size="100%,56px">Toque para ver só os itens abaixo do mínimo.</x-import>
             </div>
           </sc-if>
           <div style="height: 40px; flex-shrink: 0; border-radius: 10px; border: 1px solid var(--border); background: var(--surface); display: flex; align-items: center; gap: 8px; padding: 0 12px; color: var(--text-mute); font-size: 13.5px;">
@@ -571,20 +580,16 @@
             </sc-for>
           </div>
           <sc-for list="{{ estVisiveis }}" as="i" hint-placeholder-count="4">
-            <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; display: flex; flex-direction: column; gap: 8px;">
+            <div onClick="{{ irMov }}" style="background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; cursor: pointer;" style-hover="border-color: var(--accent);">
               <div style="display: flex; align-items: baseline; gap: 8px;">
                 <span style="flex: 1; min-width: 0; font-size: 14px; font-weight: 600;">{{ i.nome }}</span>
                 <span style="font-family: var(--font-mono); font-size: 11px; color: var(--text-mute);">{{ i.codigo }}</span>
               </div>
               <div style="display: flex; align-items: baseline; gap: 8px;">
                 <span style="font-family: var(--font-mono); font-size: 17px; font-weight: 600; color: {{ i.tint }}; font-variant-numeric: tabular-nums;">{{ i.qtd }}</span>
-                <span style="font-size: 11.5px; color: var(--text-mute);">mín {{ i.min }} · {{ i.local }}</span>
+                <span style="font-size: 11.5px; color: var(--text-mute);">mín {{ i.min }} · {{ i.local }}{{ i.baixoTxt }}</span>
               </div>
               <div style="height: 4px; border-radius: 99px; background: var(--border); overflow: hidden;"><div style="height: 100%; width: {{ i.pct }}; background: {{ i.tint }};"></div></div>
-              <div style="display: flex; gap: 6px;">
-                <div onClick="{{ i.entrada }}" style="height: 36px; padding: 0 12px; border-radius: 8px; background: var(--accent-soft); color: var(--accent); display: flex; align-items: center; font-size: 13px; font-weight: 600; cursor: pointer;">+ Entrada</div>
-                <div onClick="{{ irMov }}" style="cursor: pointer; height: 36px; padding: 0 12px; border-radius: 8px; border: 1px solid var(--border); color: var(--text-dim); display: flex; align-items: center; font-size: 13px; font-weight: 500;">Movimentações</div>
-              </div>
             </div>
           </sc-for>
         </div>
@@ -608,7 +613,7 @@
       <div style="display: flex; align-items: baseline; gap: 10px;">
         <span style="font-family: var(--font-mono); font-size: 12px; font-weight: 600; color: var(--accent-fg); background: var(--accent); padding: 2px 8px; border-radius: 6px;">06</span>
         <span style="font-size: 15px; font-weight: 600;">Financeiro</span>
-        <span style="font-family: var(--font-mono); font-size: 11.5px; color: var(--text-mute);">(tabs)/financeiro.tsx</span>
+        <span style="font-family: var(--font-mono); font-size: 11.5px; color: var(--text-mute);">src/telas/Financeiro.tsx</span>
       </div>
       <div style="width: 390px; height: 844px; border-radius: 48px; border: 10px solid #0b0b0e; outline: 3px solid {{ foco.s06 }}; outline-offset: 6px; background: var(--bg); position: relative; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 30px 60px rgba(0,0,0,0.35);">
         <div style="height: 44px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 28px; font-family: var(--font-mono); font-size: 13px; font-weight: 600;"><span>09:41</span><span style="font-size: 11px; color: var(--text-dim);">5G ▮▮▮</span></div>
@@ -678,6 +683,7 @@
               <span>{{ t.label }}</span>
             </div>
           </sc-for>
+          <span style="font-size: 11.5px; color: var(--text-mute); text-wrap: pretty;">Baixar títulos, pagar e conciliar continuam no computador.</span>
         </div>
         <sc-if value="{{ toast.p06 }}" hint-placeholder-val="{{ false }}">
           <div style="position: absolute; left: 16px; right: 16px; bottom: 104px; z-index: 6; display: flex; justify-content: center; pointer-events: none;">
@@ -692,7 +698,7 @@
       <div style="display: flex; align-items: baseline; gap: 10px;">
         <span style="font-family: var(--font-mono); font-size: 12px; font-weight: 600; color: var(--accent-fg); background: var(--accent); padding: 2px 8px; border-radius: 6px;">07</span>
         <span style="font-size: 15px; font-weight: 600;">Ordens de serviço</span>
-        <span style="font-family: var(--font-mono); font-size: 11.5px; color: var(--text-mute);">(tabs)/oss.tsx</span>
+        <span style="font-family: var(--font-mono); font-size: 11.5px; color: var(--text-mute);">src/telas/OrdensServico.tsx</span>
       </div>
       <div style="width: 390px; height: 844px; border-radius: 48px; border: 10px solid #0b0b0e; outline: 3px solid {{ foco.s07 }}; outline-offset: 6px; background: var(--bg); position: relative; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 30px 60px rgba(0,0,0,0.35);">
         <div style="height: 44px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 28px; font-family: var(--font-mono); font-size: 13px; font-weight: 600;"><span>09:41</span><span style="font-size: 11px; color: var(--text-dim);">5G ▮▮▮</span></div>
@@ -713,13 +719,25 @@
           <div style="height: 36px; padding: 0 12px; border-radius: 8px; background: var(--accent); color: var(--accent-fg); display: flex; align-items: center; font-size: 13px; font-weight: 600;">+ Nova OS</div>
         </div>
         <div data-phone-scroll="" style="flex: 1; overflow-y: auto; overflow-x: hidden; padding: 12px 16px 20px; display: flex; flex-direction: column; gap: 10px;">
+          <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 3px; padding: 3px; border-radius: 10px; background: var(--bg-2); flex-shrink: 0;">
+            <div style="height: 38px; border-radius: 7px; background: var(--surface); color: var(--text); display: flex; align-items: center; justify-content: center; font-size: 12.5px; font-weight: 600;">Ordens de serviço</div>
+            <div onClick="{{ irVeiculos }}" style="height: 38px; border-radius: 7px; color: var(--text-mute); display: flex; align-items: center; justify-content: center; font-size: 12.5px; font-weight: 600; cursor: pointer;">Veículos</div>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; flex-shrink: 0;">
+            <sc-for list="{{ manKpis }}" as="k" hint-placeholder-count="3">
+              <div onClick="{{ k.ir }}" style="border: 1px solid var(--border); border-radius: 10px; background: var(--surface); padding: 10px 12px; display: flex; flex-direction: column; gap: 2px; cursor: pointer;">
+                <span style="font-size: 10px; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase; color: var(--text-mute);">{{ k.label }}</span>
+                <span style="font-family: var(--font-mono); font-size: 20px; font-weight: 600; color: {{ k.c }};">{{ k.v }}</span>
+              </div>
+            </sc-for>
+          </div>
           <div data-phone-scroll="" style="display: flex; gap: 6px; overflow-x: auto; flex-shrink: 0;">
             <sc-for list="{{ ossChips }}" as="c" hint-placeholder-count="4">
               <div onClick="{{ c.pick }}" style="flex-shrink: 0; height: 36px; padding: 0 12px; border-radius: 99px; border: 1px solid {{ c.border }}; background: {{ c.bg }}; color: {{ c.fg }}; display: flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 600; cursor: pointer; white-space: nowrap;">{{ c.label }}<span style="font-family: var(--font-mono); font-size: 11px; opacity: 0.75;">{{ c.count }}</span></div>
             </sc-for>
           </div>
           <sc-for list="{{ ossVisiveis }}" as="o" hint-placeholder-count="3">
-            <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; display: flex; flex-direction: column; gap: 8px;">
+            <div onClick="{{ irOS03 }}" style="cursor: pointer; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; display: flex; flex-direction: column; gap: 8px;">
               <div style="display: flex; align-items: center; gap: 8px;">
                 <span style="font-family: var(--font-mono); font-size: 15px; font-weight: 600;">OS #{{ o.numero }}</span>
                 <span style="margin-left: auto; display: flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 500; color: {{ o.tint }};"><span style="width: 6px; height: 6px; border-radius: 99px; background: {{ o.tint }};"></span>{{ o.statusLabel }}</span>
@@ -737,15 +755,9 @@
                   <span style="height: 4px; border-radius: 2px; background: {{ p }};"></span>
                 </sc-for>
               </div>
-              <div style="display: flex; gap: 6px;">
-                <sc-if value="{{ o.podeAvancar }}" hint-placeholder-val="{{ true }}">
-                  <div onClick="{{ o.avancar }}" style="height: 36px; padding: 0 12px; border-radius: 8px; background: var(--accent); color: var(--accent-fg); display: flex; align-items: center; font-size: 13px; font-weight: 600; cursor: pointer;">{{ o.proxLabel }}</div>
-                </sc-if>
-                <div style="height: 36px; padding: 0 12px; border-radius: 8px; border: 1px solid var(--border); color: var(--text-dim); display: flex; align-items: center; font-size: 13px; font-weight: 500; cursor: pointer;" onClick="{{ irOS03 }}">Abrir</div>
-                <div style="height: 36px; padding: 0 12px; border-radius: 8px; border: 1px solid var(--border); color: var(--text-dim); display: flex; align-items: center; font-size: 13px; font-weight: 500; cursor: pointer;" onClick="{{ linkLista }}">Link</div>
-              </div>
             </div>
           </sc-for>
+          <span style="font-size: 11.5px; color: var(--text-mute); text-wrap: pretty;">Toque numa OS para ver os itens. Mudar de etapa ou faturar fica no computador.</span>
         </div>
 
         <div style="flex-shrink: 0; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); background: var(--surface); border-top: 1px solid var(--border); padding: 6px 4px 22px;">
@@ -768,7 +780,7 @@
       <div style="display: flex; align-items: baseline; gap: 10px;">
         <span style="font-family: var(--font-mono); font-size: 12px; font-weight: 600; color: var(--accent-fg); background: var(--accent); padding: 2px 8px; border-radius: 6px;">08</span>
         <span style="font-size: 15px; font-weight: 600;">Veículos</span>
-        <span style="font-family: var(--font-mono); font-size: 11.5px; color: var(--text-mute);">(tabs)/veiculos.tsx</span>
+        <span style="font-family: var(--font-mono); font-size: 11.5px; color: var(--text-mute);">src/telas/Veiculos.tsx</span>
       </div>
       <div style="width: 390px; height: 844px; border-radius: 48px; border: 10px solid #0b0b0e; outline: 3px solid {{ foco.s08 }}; outline-offset: 6px; background: var(--bg); position: relative; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 30px 60px rgba(0,0,0,0.35);">
         <div style="height: 44px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 28px; font-family: var(--font-mono); font-size: 13px; font-weight: 600;"><span>09:41</span><span style="font-size: 11px; color: var(--text-dim);">5G ▮▮▮</span></div>
@@ -840,7 +852,7 @@
       <div style="display: flex; align-items: baseline; gap: 10px;">
         <span style="font-family: var(--font-mono); font-size: 12px; font-weight: 600; color: var(--accent-fg); background: var(--accent); padding: 2px 8px; border-radius: 6px;">09</span>
         <span style="font-size: 15px; font-weight: 600;">Nova pessoa</span>
-        <span style="font-family: var(--font-mono); font-size: 11.5px; color: var(--text-mute);">clientes/_wizard.tsx</span>
+        <span style="font-family: var(--font-mono); font-size: 11.5px; color: var(--text-mute);">src/telas/NovaPessoa.tsx</span>
       </div>
       <div style="width: 390px; height: 844px; border-radius: 48px; border: 10px solid #0b0b0e; outline: 3px solid {{ foco.s09 }}; outline-offset: 6px; background: var(--bg); position: relative; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 30px 60px rgba(0,0,0,0.35);">
         <div style="height: 44px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 28px; font-family: var(--font-mono); font-size: 13px; font-weight: 600;"><span>09:41</span><span style="font-size: 11px; color: var(--text-dim);">5G ▮▮▮</span></div>
@@ -1033,9 +1045,10 @@
     <div id="s10" data-screen-label="10 Mais + perfis de menu" style="display: flex; flex-direction: column; gap: 14px;">
       <div style="display: flex; align-items: baseline; gap: 10px;">
         <span style="font-family: var(--font-mono); font-size: 12px; font-weight: 600; color: var(--accent-fg); background: var(--accent); padding: 2px 8px; border-radius: 6px;">10</span>
-        <span style="font-size: 15px; font-weight: 600;">Mais + perfis de menu</span>
-        <span style="font-family: var(--font-mono); font-size: 11.5px; color: var(--text-mute);">(tabs)/mais.tsx · lib/menu-perfis.ts</span>
+        <span style="font-size: 15px; font-weight: 600;">Mais</span>
+        <span style="font-family: var(--font-mono); font-size: 11.5px; color: var(--text-mute);">src/telas/Mais.tsx</span>
       </div>
+      <div style="display: flex; gap: 6px; flex-wrap: wrap;"><a href="Mobile Propostas.dc.html#p5" style="height: 24px; padding: 0 9px; border-radius: 99px; border: 1px dashed var(--accent); color: var(--accent); display: flex; align-items: center; gap: 6px; font-size: 11.5px; font-weight: 600; text-decoration: none;"><span style="font-family: var(--font-mono);">P5</span>proposta · Atendimento WhatsApp</a><a href="Mobile Propostas.dc.html#p9" style="height: 24px; padding: 0 9px; border-radius: 99px; border: 1px dashed var(--accent); color: var(--accent); display: flex; align-items: center; gap: 6px; font-size: 11.5px; font-weight: 600; text-decoration: none;"><span style="font-family: var(--font-mono);">P9</span>proposta · Biometria</a></div>
       <div style="width: 390px; height: 844px; border-radius: 48px; border: 10px solid #0b0b0e; outline: 3px solid {{ foco.s10 }}; outline-offset: 6px; background: var(--bg); position: relative; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 30px 60px rgba(0,0,0,0.35);">
         <div style="height: 44px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 28px; font-family: var(--font-mono); font-size: 13px; font-weight: 600;"><span>09:41</span><span style="font-size: 11px; color: var(--text-dim);">5G ▮▮▮</span></div>
         <sc-if value="{{ banner.show }}" hint-placeholder-val="{{ false }}">
@@ -1049,57 +1062,35 @@
 
         <div style="padding: 8px 16px 12px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px;">
           <div style="flex: 1; min-width: 0;">
-            <div style="font-size: 10.5px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text-mute);">Módulos · ferramentas · conta</div>
+            <div style="font-size: 10.5px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text-mute);">Módulos e preferências</div>
             <div style="font-size: 22px; font-weight: 600; letter-spacing: -0.4px; line-height: 26px;">Mais</div>
           </div>
         </div>
         <div data-phone-scroll="" style="flex: 1; overflow-y: auto; overflow-x: hidden; padding: 12px 16px 20px; display: flex; flex-direction: column; gap: 10px;">
-          <div onClick="{{ irVR }}" style="cursor: pointer; flex-shrink: 0; min-height: 76px; border-radius: 14px; background: var(--accent); color: var(--accent-fg); padding: 14px 16px; display: flex; align-items: center; gap: 14px;">
-            <div style="width: 48px; height: 48px; border-radius: 12px; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; ">{{ icoScan }}</div>
-            <div style="flex: 1; min-width: 0;">
-              <div style="font-size: 10.5px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; opacity: 0.85;">PDV móvel</div>
-              <div style="font-size: 17px; font-weight: 600;">Venda rápida</div>
-              <div style="font-size: 12px; opacity: 0.9;">Tela 11 — PIX, cartão ou boleto</div>
-            </div>
-          </div>
-          <div style="font-size: 10.5px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text-mute); padding-top: 4px;">Perfil de menu · define a barra inferior</div>
-          <div onClick="{{ irPerfis }}" style="margin-top: -4px; min-height: 36px; display: flex; align-items: center; font-size: 12.5px; font-weight: 600; color: var(--accent); cursor: pointer;">Criar ou editar perfil →</div>
-          <div style="border: 1px solid var(--border); border-radius: 12px; background: var(--surface); overflow: hidden; flex-shrink: 0;">
-            <sc-for list="{{ perfis }}" as="p" hint-placeholder-count="4">
-              <div onClick="{{ p.pick }}" style="min-height: 60px; padding: 8px 14px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid var(--border-2); cursor: pointer;">
-                <span style="width: 18px; height: 18px; border-radius: 99px; border: 2px solid {{ p.ring }}; display: flex; align-items: center; justify-content: center;"><span style="width: 8px; height: 8px; border-radius: 99px; background: {{ p.dot }};"></span></span>
-                <div style="flex: 1; min-width: 0;">
-                  <div style="font-size: 14px; font-weight: 600;">{{ p.nome }}</div>
-                  <div style="font-size: 11.5px; color: var(--text-mute);">{{ p.funcao }}</div>
-                  <div style="font-family: var(--font-mono); font-size: 11px; color: var(--text-dim); margin-top: 2px;">Início · {{ p.mods }} · Mais</div>
-                </div>
-              </div>
-            </sc-for>
-          </div>
-          <div style="font-size: 10.5px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text-mute); padding-top: 4px;">Empresa ativa</div>
-          <div style="border: 1px solid var(--border); border-radius: 12px; background: var(--surface); overflow: hidden; flex-shrink: 0;">
-            <sc-for list="{{ empresasLista }}" as="e" hint-placeholder-count="3">
-              <div style="min-height: 56px; padding: 8px 14px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid var(--border-2);">
-                <div style="flex: 1; min-width: 0;">
-                  <div style="font-size: 13.5px; font-weight: 600;">{{ e.nome }}</div>
-                  <div style="font-size: 11.5px; color: var(--text-mute);">{{ e.vertical }} · {{ e.papel }}</div>
-                </div>
-                <div onClick="{{ e.usar }}" style="height: 36px; padding: 0 12px; border-radius: 8px; border: 1px solid {{ e.border }}; color: {{ e.fg }}; display: flex; align-items: center; font-size: 12.5px; font-weight: 600; cursor: pointer;">{{ e.acao }}</div>
-              </div>
-            </sc-for>
-          </div>
-          <div style="font-size: 10.5px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text-mute); padding-top: 4px;">Módulos</div>
+          <div style="font-size: 10.5px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text-mute);">Módulos</div>
           <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px;">
-            <sc-for list="{{ modulosMais }}" as="m" hint-placeholder-count="6">
-              <div onClick="{{ m.ir }}" style="border: 1px solid var(--border); border-radius: 10px; background: var(--surface); padding: 12px; display: flex; flex-direction: column; gap: 6px; cursor: pointer;" style-hover="border-color: var(--accent);">
-                <span style="width: 32px; height: 32px; border-radius: 8px; background: var(--accent-soft); color: var(--accent); display: flex; align-items: center; justify-content: center; ">{{ m.icon }}</span>
+            <sc-for list="{{ modulosMais }}" as="m" hint-placeholder-count="10">
+              <div onClick="{{ m.ir }}" style="border: 1px solid var(--border); border-radius: 10px; background: var(--surface); padding: 12px; display: flex; flex-direction: column; gap: 6px; cursor: pointer; min-height: 44px;" style-hover="border-color: var(--accent);">
+                <span style="width: 32px; height: 32px; border-radius: 8px; background: var(--accent-soft); color: var(--accent); display: flex; align-items: center; justify-content: center;">{{ m.icon }}</span>
                 <span style="font-size: 13.5px; font-weight: 600;">{{ m.label }}</span>
                 <span style="font-size: 11px; color: var(--text-mute);">{{ m.desc }}</span>
               </div>
             </sc-for>
           </div>
-          <div onClick="{{ login.sair }}" style="flex-shrink: 0; height: 48px; border-radius: 10px; border: 1px solid var(--border); color: var(--neg); display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; cursor: pointer;">Sair da conta</div>
-          <span style="font-family: var(--font-mono); font-size: 11px; color: var(--text-mute); text-align: center;">Oimpresso ERP Mobile · v0.4</span>
+          <div style="font-size: 10.5px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text-mute); padding-top: 4px;">Preferências</div>
+          <div onClick="{{ irPerfis }}" style="flex-shrink: 0; min-height: 56px; padding: 8px 14px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); display: flex; align-items: center; gap: 12px; cursor: pointer;">
+            <div style="flex: 1; min-width: 0;"><div style="font-size: 14px; font-weight: 600;">Meu menu</div><div style="font-size: 12px; color: var(--text-dim);">Escolha até 3 módulos para a barra de baixo</div></div>
+            <span style="color: var(--text-mute);">{{ icoChev }}</span>
+          </div>
+          <div style="font-size: 10.5px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text-mute); padding-top: 4px;">No computador</div>
+          <div onClick="{{ abrirWeb }}" style="flex-shrink: 0; min-height: 56px; padding: 8px 14px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); display: flex; align-items: center; gap: 12px; cursor: pointer;">
+            <div style="flex: 1; min-width: 0;"><div style="font-size: 14px; font-weight: 600;">Abrir o oimpresso completo</div><div style="font-size: 12px; color: var(--text-dim);">Produtos, vendas, finanças e o resto do sistema</div></div>
+            <span style="color: var(--text-mute);">{{ icoChev }}</span>
+          </div>
+          <div style="display: flex; align-items: center; justify-content: center; gap: 8px; padding-top: 8px; color: var(--text-mute);">
+            <x-import component-from-global-scope="OfficeImpressoPontoWR2DesignSystem_019dd0.Logo" size="{{ 18 }}" hint-size="18px,18px"></x-import>
+            <span style="font-size: 12.5px; font-weight: 600;">oimpresso</span>
+          </div>
         </div>
 
         <div style="flex-shrink: 0; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); background: var(--surface); border-top: 1px solid var(--border); padding: 6px 4px 22px;">
@@ -1122,7 +1113,7 @@
       <div style="display: flex; align-items: baseline; gap: 10px;">
         <span style="font-family: var(--font-mono); font-size: 12px; font-weight: 600; color: var(--accent-fg); background: var(--accent); padding: 2px 8px; border-radius: 6px;">11</span>
         <span style="font-size: 15px; font-weight: 600;">Venda rápida</span>
-        <span style="font-family: var(--font-mono); font-size: 11.5px; color: var(--text-mute);">venda-rapida.tsx</span>
+        <span style="font-family: var(--font-mono); font-size: 11.5px; color: var(--text-mute);">src/telas/VendaRapida.tsx</span>
       </div>
       <div style="width: 390px; height: 844px; border-radius: 48px; border: 10px solid #0b0b0e; outline: 3px solid {{ foco.s11 }}; outline-offset: 6px; background: var(--bg); position: relative; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 30px 60px rgba(0,0,0,0.35);">
         <div style="height: 44px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 28px; font-family: var(--font-mono); font-size: 13px; font-weight: 600;"><span>09:41</span><span style="font-size: 11px; color: var(--text-dim);">5G ▮▮▮</span></div>
@@ -1267,7 +1258,7 @@
       <div style="display: flex; align-items: baseline; gap: 10px;">
         <span style="font-family: var(--font-mono); font-size: 12px; font-weight: 600; color: var(--accent-fg); background: var(--accent); padding: 2px 8px; border-radius: 6px;">12</span>
         <span style="font-size: 15px; font-weight: 600;">Tarefas</span>
-        <span style="font-family: var(--font-mono); font-size: 11.5px; color: var(--text-mute);">(tabs)/tarefas.tsx</span>
+        <span style="font-family: var(--font-mono); font-size: 11.5px; color: var(--text-mute);">src/telas/Tarefas.tsx</span>
       </div>
       <div style="width: 390px; height: 844px; border-radius: 48px; border: 10px solid #0b0b0e; outline: 3px solid {{ foco.s12 }}; outline-offset: 6px; background: var(--bg); position: relative; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 30px 60px rgba(0,0,0,0.35);">
         <div style="height: 44px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 28px; font-family: var(--font-mono); font-size: 13px; font-weight: 600;"><span>09:41</span><span style="font-size: 11px; color: var(--text-dim);">5G ▮▮▮</span></div>
@@ -1292,26 +1283,31 @@
               <div onClick="{{ c.pick }}" style="flex-shrink: 0; height: 36px; padding: 0 12px; border-radius: 99px; border: 1px solid {{ c.border }}; background: {{ c.bg }}; color: {{ c.fg }}; display: flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 600; cursor: pointer; white-space: nowrap;">{{ c.label }}<span style="font-family: var(--font-mono); font-size: 11px; opacity: 0.75;">{{ c.count }}</span></div>
             </sc-for>
           </div>
-          <div style="border: 1px solid var(--border); border-radius: 12px; background: var(--surface); overflow: hidden; flex-shrink: 0;">
-            <sc-for list="{{ tarVisiveis }}" as="t" hint-placeholder-count="5">
-              <div onClick="{{ t.ir }}" style="min-height: 64px; padding: 8px 14px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid var(--border-2); cursor: pointer;" style-hover="background: var(--bg-2);">
-                <span style="width: 40px; height: 40px; border-radius: 10px; border: 1px solid {{ t.tint }}; color: {{ t.tint }}; display: flex; align-items: center; justify-content: center; ">{{ t.icon }}</span>
-                <div style="flex: 1; min-width: 0;">
-                  <div style="font-size: 14px; font-weight: 500;">{{ t.titulo }}</div>
-                  <div style="font-size: 12px; color: var(--text-dim);">{{ t.sub }}</div>
-                </div>
-                <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 4px;">
-                  <span style="font-family: var(--font-mono); font-size: 10px; font-weight: 600; padding: 1px 6px; border-radius: 4px; background: var(--bg-2); color: var(--text-dim);">{{ t.origem }}</span>
-                  <span style="font-family: var(--font-mono); font-size: 10.5px; color: var(--text-mute);">{{ t.quando }}</span>
-                </div>
-                <span style="color: var(--text-mute); display: flex;">{{ icoChev }}</span>
+          <sc-for list="{{ tarGrupos }}" as="g" hint-placeholder-count="3">
+            <div style="display: flex; flex-direction: column; gap: 8px; flex-shrink: 0;">
+              <div style="font-size: 10.5px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: {{ g.fg }};">{{ g.label }}</div>
+              <div style="border: 1px solid var(--border); border-radius: 12px; background: var(--surface); overflow: hidden;">
+                <sc-for list="{{ g.itens }}" as="t" hint-placeholder-count="2">
+                  <div onClick="{{ t.ir }}" style="min-height: 64px; padding: 8px 14px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid var(--border-2); cursor: pointer;" style-hover="background: var(--bg-2);">
+                    <span style="width: 40px; height: 40px; border-radius: 10px; border: 1px solid {{ t.tint }}; color: {{ t.tint }}; display: flex; align-items: center; justify-content: center;">{{ t.icon }}</span>
+                    <div style="flex: 1; min-width: 0;">
+                      <div style="font-size: 14px; font-weight: 500;">{{ t.titulo }}</div>
+                      <div style="font-size: 12px; color: var(--text-dim);">{{ t.sub }}</div>
+                    </div>
+                    <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 4px;">
+                      <span style="font-family: var(--font-mono); font-size: 10px; font-weight: 600; padding: 1px 6px; border-radius: 4px; background: var(--bg-2); color: var(--text-dim);">{{ t.origem }}</span>
+                      <span style="font-family: var(--font-mono); font-size: 10.5px; color: {{ t.quandoFg }};">{{ t.quando }}</span>
+                    </div>
+                    <span style="color: var(--text-mute); display: flex;">{{ icoChev }}</span>
+                  </div>
+                </sc-for>
               </div>
-            </sc-for>
-          </div>
+            </div>
+          </sc-for>
           <sc-if value="{{ tarVazio }}" hint-placeholder-val="{{ false }}">
-            <x-import component-from-global-scope="OfficeImpressoPontoWR2DesignSystem_019dd0.EmptyState" variant="done" title="Tudo em dia" description="Nenhuma pendência operacional no momento." hint-size="100%,180px"></x-import>
+            <x-import component-from-global-scope="OfficeImpressoPontoWR2DesignSystem_019dd0.EmptyState" variant="done" title="Tudo em dia" description="Nenhuma pendência no momento." hint-size="100%,180px"></x-import>
           </sc-if>
-          <span style="font-size: 11.5px; color: var(--text-mute); text-wrap: pretty;">Lista montada ao vivo a partir das outras telas: OP em fila (02), OS travada (07), estoque baixo (05). Avance lá e veja sumir aqui.</span>
+          <span style="font-size: 11.5px; color: var(--text-mute); text-wrap: pretty;">ToDo concluído aqui some da lista. Justificativas do ponto se aprovam no computador.</span>
         </div>
 
         <div style="flex-shrink: 0; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); background: var(--surface); border-top: 1px solid var(--border); padding: 6px 4px 22px;">
@@ -1335,8 +1331,9 @@
       <div style="display: flex; align-items: baseline; gap: 10px;">
         <span style="font-family: var(--font-mono); font-size: 12px; font-weight: 600; color: var(--accent-fg); background: var(--accent); padding: 2px 8px; border-radius: 6px;">13</span>
         <span style="font-size: 15px; font-weight: 600;">Relatórios</span>
-        <span style="font-family: var(--font-mono); font-size: 11.5px; color: var(--text-mute);">(tabs)/relatorios.tsx</span>
+        <span style="font-family: var(--font-mono); font-size: 11.5px; color: var(--text-mute);">src/telas/Relatorios.tsx</span>
       </div>
+      <div style="display: flex; gap: 6px; flex-wrap: wrap;"><a href="Mobile Propostas.dc.html#p6" style="height: 24px; padding: 0 9px; border-radius: 99px; border: 1px dashed var(--accent); color: var(--accent); display: flex; align-items: center; gap: 6px; font-size: 11.5px; font-weight: 600; text-decoration: none;"><span style="font-family: var(--font-mono);">P6</span>proposta · Lucratividade</a></div>
       <div style="width: 390px; height: 844px; border-radius: 48px; border: 10px solid #0b0b0e; outline: 3px solid {{ foco.s13 }}; outline-offset: 6px; background: var(--bg); position: relative; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 30px 60px rgba(0,0,0,0.35);">
         <div style="height: 44px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 28px; font-family: var(--font-mono); font-size: 13px; font-weight: 600;"><span>09:41</span><span style="font-size: 11px; color: var(--text-dim);">5G ▮▮▮</span></div>
         <sc-if value="{{ banner.show }}" hint-placeholder-val="{{ false }}">
@@ -1453,10 +1450,7 @@
             </sc-for>
           </div>
           </sc-if>
-          <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; flex-shrink: 0;">
-            <div onClick="{{ rel.pdf }}" style="height: 44px; border-radius: 10px; background: var(--accent); color: var(--accent-fg); display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; cursor: pointer;">Exportar PDF</div>
-            <div onClick="{{ rel.xlsx }}" style="height: 44px; border-radius: 10px; border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; cursor: pointer;">Excel</div>
-          </div>
+          <span style="font-size: 11.5px; color: var(--text-mute); text-wrap: pretty;">Exportar em PDF ou Excel continua no computador.</span>
         </div>
 
         <div style="flex-shrink: 0; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); background: var(--surface); border-top: 1px solid var(--border); padding: 6px 4px 22px;">
@@ -1479,7 +1473,7 @@
       <div style="display: flex; align-items: baseline; gap: 10px;">
         <span style="font-family: var(--font-mono); font-size: 12px; font-weight: 600; color: var(--accent-fg); background: var(--accent); padding: 2px 8px; border-radius: 6px;">14</span>
         <span style="font-size: 15px; font-weight: 600;">Fiscal</span>
-        <span style="font-family: var(--font-mono); font-size: 11.5px; color: var(--text-mute);">(tabs)/fiscal.tsx</span>
+        <span style="font-family: var(--font-mono); font-size: 11.5px; color: var(--text-mute);">src/telas/Fiscal.tsx</span>
       </div>
       <div style="width: 390px; height: 844px; border-radius: 48px; border: 10px solid #0b0b0e; outline: 3px solid {{ foco.s14 }}; outline-offset: 6px; background: var(--bg); position: relative; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 30px 60px rgba(0,0,0,0.35);">
         <div style="height: 44px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 28px; font-family: var(--font-mono); font-size: 13px; font-weight: 600;"><span>09:41</span><span style="font-size: 11px; color: var(--text-dim);">5G ▮▮▮</span></div>
@@ -1497,7 +1491,6 @@
             <div style="font-size: 10.5px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text-mute);">{{ fisEyebrow }}</div>
             <div style="font-size: 22px; font-weight: 600; letter-spacing: -0.4px; line-height: 26px;">Fiscal</div>
           </div>
-          <div onClick="{{ fis.abrir }}" style="height: 36px; padding: 0 12px; border-radius: 8px; background: var(--accent); color: var(--accent-fg); display: flex; align-items: center; font-size: 13px; font-weight: 600; cursor: pointer;">+ Emitir</div>
         </div>
         <div data-phone-scroll="" style="flex: 1; overflow-y: auto; overflow-x: hidden; padding: 12px 16px 20px; display: flex; flex-direction: column; gap: 12px;">
           <div data-phone-scroll="" style="display: flex; gap: 6px; overflow-x: auto; flex-shrink: 0;">
@@ -1519,19 +1512,10 @@
                 <div style="font-size: 12px; color: var(--neg); line-height: 1.4;">{{ d.erro }}</div>
               </sc-if>
               <div style="display: flex; gap: 6px; margin-top: 2px;">
-                <sc-if value="{{ d.podePdf }}" hint-placeholder-val="{{ false }}">
-                  <div onClick="{{ d.pdf }}" style="height: 36px; padding: 0 12px; border-radius: 8px; border: 1px solid var(--border); color: var(--text-dim); display: flex; align-items: center; font-size: 13px; font-weight: 500; cursor: pointer;">DANFE</div>
-                </sc-if>
-                <sc-if value="{{ d.podeAtualizar }}" hint-placeholder-val="{{ false }}">
-                  <div onClick="{{ d.atualizar }}" style="height: 36px; padding: 0 12px; border-radius: 8px; background: var(--accent); color: var(--accent-fg); display: flex; align-items: center; font-size: 13px; font-weight: 600; cursor: pointer;">Consultar SEFAZ</div>
-                </sc-if>
-                <sc-if value="{{ d.podeCancelar }}" hint-placeholder-val="{{ false }}">
-                  <div onClick="{{ d.cancelar }}" style="height: 36px; padding: 0 12px; border-radius: 8px; border: 1px solid var(--neg); color: var(--neg); display: flex; align-items: center; font-size: 13px; font-weight: 500; cursor: pointer;">Cancelar</div>
-                </sc-if>
               </div>
             </div>
           </sc-for>
-          <span style="font-size: 11.5px; color: var(--text-mute); text-wrap: pretty;">Provedor: Focus NFe. Sem configuração, o documento fica como rascunho. Offline, a emissão entra na fila mas só é autorizada com resposta da SEFAZ.</span>
+          <span style="font-size: 11.5px; color: var(--text-mute); text-wrap: pretty;">Emitir, consultar a SEFAZ, cancelar e abrir o DANFE continuam no computador.</span>
         </div>
         <sc-if value="{{ fis.open }}" hint-placeholder-val="{{ false }}">
           <div style="position: absolute; inset: 0; z-index: 5; display: flex; flex-direction: column;">
@@ -1583,7 +1567,7 @@
       <div style="display: flex; align-items: baseline; gap: 10px;">
         <span style="font-family: var(--font-mono); font-size: 12px; font-weight: 600; color: var(--accent-fg); background: var(--accent); padding: 2px 8px; border-radius: 6px;">15</span>
         <span style="font-size: 15px; font-weight: 600;">Pagamentos</span>
-        <span style="font-family: var(--font-mono); font-size: 11.5px; color: var(--text-mute);">(tabs)/pagamentos.tsx</span>
+        <span style="font-family: var(--font-mono); font-size: 11.5px; color: var(--text-mute);">src/telas/Pagamentos.tsx</span>
       </div>
       <div style="width: 390px; height: 844px; border-radius: 48px; border: 10px solid #0b0b0e; outline: 3px solid {{ foco.s15 }}; outline-offset: 6px; background: var(--bg); position: relative; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 30px 60px rgba(0,0,0,0.35);">
         <div style="height: 44px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 28px; font-family: var(--font-mono); font-size: 13px; font-weight: 600;"><span>09:41</span><span style="font-size: 11px; color: var(--text-dim);">5G ▮▮▮</span></div>
@@ -1627,7 +1611,7 @@
               <div style="display: flex; gap: 6px; margin-top: 2px;">
                 <div onClick="{{ p.copiar }}" style="height: 36px; padding: 0 12px; border-radius: 8px; border: 1px solid var(--border); color: var(--text-dim); display: flex; align-items: center; font-size: 13px; font-weight: 500; cursor: pointer;">Copiar link</div>
                 <sc-if value="{{ p.podeAtualizar }}" hint-placeholder-val="{{ false }}">
-                  <div onClick="{{ p.atualizar }}" style="height: 36px; padding: 0 12px; border-radius: 8px; background: var(--accent); color: var(--accent-fg); display: flex; align-items: center; font-size: 13px; font-weight: 600; cursor: pointer;">Consultar Asaas</div>
+                  <div onClick="{{ p.atualizar }}" style="height: 36px; padding: 0 12px; border-radius: 8px; background: var(--accent); color: var(--accent-fg); display: flex; align-items: center; font-size: 13px; font-weight: 600; cursor: pointer;">Consultar</div>
                 </sc-if>
                 <sc-if value="{{ p.podeCancelar }}" hint-placeholder-val="{{ false }}">
                   <div onClick="{{ p.cancelar }}" style="height: 36px; padding: 0 12px; border-radius: 8px; border: 1px solid var(--neg); color: var(--neg); display: flex; align-items: center; font-size: 13px; font-weight: 500; cursor: pointer;">Cancelar</div>
@@ -1635,7 +1619,7 @@
               </div>
             </div>
           </sc-for>
-          <span style="font-size: 11.5px; color: var(--text-mute);">Provedor: Asaas. Sem configuração, o link não é gerado.</span>
+          <span style="font-size: 11.5px; color: var(--text-mute);">Provedor: Asaas. O valor do link é o do pedido ou orçamento, calculado no ERP.</span>
         </div>
         <sc-if value="{{ pag.open }}" hint-placeholder-val="{{ false }}">
           <div style="position: absolute; inset: 0; z-index: 5; display: flex; flex-direction: column;">
@@ -1654,7 +1638,7 @@
               </div>
               <span style="font-size: 10.5px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; color: var(--text-mute);">Método preferido</span>
               <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 3px; padding: 3px; border-radius: 10px; background: var(--bg-2);">
-                <sc-for list="{{ pag.metodos }}" as="a" hint-placeholder-count="4">
+                <sc-for list="{{ pag.metodos }}" as="a" hint-placeholder-count="3">
                   <div onClick="{{ a.pick }}" style="height: 38px; border-radius: 7px; background: {{ a.bg }}; color: {{ a.fg }}; display: flex; align-items: center; justify-content: center; font-size: 12.5px; font-weight: 600; cursor: pointer;">{{ a.label }}</div>
                 </sc-for>
               </div>
@@ -1681,8 +1665,9 @@
       <div style="display: flex; align-items: baseline; gap: 10px;">
         <span style="font-family: var(--font-mono); font-size: 12px; font-weight: 600; color: var(--accent-fg); background: var(--accent); padding: 2px 8px; border-radius: 6px;">16</span>
         <span style="font-size: 15px; font-weight: 600;">Notificações</span>
-        <span style="font-family: var(--font-mono); font-size: 11.5px; color: var(--text-mute);">notificacoes/index.tsx</span>
+        <span style="font-family: var(--font-mono); font-size: 11.5px; color: var(--text-mute);">src/telas/Notificacoes.tsx</span>
       </div>
+      <div style="display: flex; gap: 6px; flex-wrap: wrap;"><a href="Mobile Propostas.dc.html#p7" style="height: 24px; padding: 0 9px; border-radius: 99px; border: 1px dashed var(--accent); color: var(--accent); display: flex; align-items: center; gap: 6px; font-size: 11.5px; font-weight: 600; text-decoration: none;"><span style="font-family: var(--font-mono);">P7</span>proposta · Contador no ícone</a></div>
       <div style="width: 390px; height: 844px; border-radius: 48px; border: 10px solid #0b0b0e; outline: 3px solid {{ foco.s16 }}; outline-offset: 6px; background: var(--bg); position: relative; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 30px 60px rgba(0,0,0,0.35);">
         <div style="height: 44px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 28px; font-family: var(--font-mono); font-size: 13px; font-weight: 600;"><span>09:41</span><span style="font-size: 11px; color: var(--text-dim);">5G ▮▮▮</span></div>
         <sc-if value="{{ banner.show }}" hint-placeholder-val="{{ false }}">
@@ -1703,7 +1688,7 @@
             <div style="font-size: 17px; font-weight: 600;">Notificações</div>
           </div>
           <sc-if value="{{ notifUnread }}" hint-placeholder-val="{{ true }}">
-            <div onClick="{{ notifLerTodas }}" style="height: 36px; padding: 0 10px; margin-right: 8px; border-radius: 8px; border: 1px solid var(--border); display: flex; align-items: center; font-size: 12px; font-weight: 600; cursor: pointer;">Marcar lidas</div>
+            <div onClick="{{ notifLerTodas }}" style="height: 36px; padding: 0 10px; margin-right: 8px; border-radius: 8px; border: 1px solid var(--border); display: flex; align-items: center; font-size: 12px; font-weight: 600; cursor: pointer;">Marcar todas como lidas</div>
           </sc-if>
         </div>
         <div data-phone-scroll="" style="flex: 1; overflow-y: auto; overflow-x: hidden; padding: 12px 16px 20px; display: flex; flex-direction: column; gap: 10px;">
@@ -1718,7 +1703,7 @@
               <span style="width: 8px; height: 8px; margin-top: 6px; border-radius: 99px; background: {{ n.dot }};"></span>
             </div>
           </sc-for>
-          <span style="font-size: 11.5px; color: var(--text-mute);">Tocar marca como lida e abre a tela de origem. Estado local — a tabela de notificações ainda não existe no backend.</span>
+          <span style="font-size: 11.5px; color: var(--text-mute);">Tocar marca como lida e abre a tela de origem, quando houver.</span>
         </div>
 
         <sc-if value="{{ toast.p16 }}" hint-placeholder-val="{{ false }}">
@@ -1734,7 +1719,7 @@
       <div style="display: flex; align-items: baseline; gap: 10px;">
         <span style="font-family: var(--font-mono); font-size: 12px; font-weight: 600; color: var(--accent-fg); background: var(--accent); padding: 2px 8px; border-radius: 6px;">17</span>
         <span style="font-size: 15px; font-weight: 600;">Pessoas</span>
-        <span style="font-family: var(--font-mono); font-size: 11.5px; color: var(--text-mute);">(tabs)/clientes.tsx</span>
+        <span style="font-family: var(--font-mono); font-size: 11.5px; color: var(--text-mute);">src/telas/Pessoas.tsx</span>
       </div>
       <div style="width: 390px; height: 844px; border-radius: 48px; border: 10px solid #0b0b0e; outline: 3px solid {{ foco.s17 }}; outline-offset: 6px; background: var(--bg); position: relative; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 30px 60px rgba(0,0,0,0.35);">
         <div style="height: 44px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 28px; font-family: var(--font-mono); font-size: 13px; font-weight: 600;"><span>09:41</span><span style="font-size: 11px; color: var(--text-dim);">5G ▮▮▮</span></div>
@@ -1772,7 +1757,7 @@
                     <x-import component-from-global-scope="OfficeImpressoPontoWR2DesignSystem_019dd0.Avatar" name="{{ p.nome }}" size="md" hint-size="32px,32px"></x-import>
                     <div style="flex: 1; min-width: 0;">
                       <div style="font-size: 14px; font-weight: 500;">{{ p.nome }}</div>
-                      <div style="font-size: 12px; color: var(--text-dim);">{{ p.papeisTxt }} · {{ p.cidade }}</div>
+                      <div style="font-size: 12px; color: var(--text-dim);">{{ p.papeisTxt }}</div><sc-if value="{{ p.temDebito }}" hint-placeholder-val="{{ false }}"><div style="font-family: var(--font-mono); font-size: 11.5px; font-weight: 600; color: var(--neg);">{{ p.debitoTxt }}</div></sc-if>
                     </div>
                     <x-import component-from-global-scope="OfficeImpressoPontoWR2DesignSystem_019dd0.StatusBadge" kind="tipo" value="{{ p.tipoKey }}" hint-size="32px,20px"></x-import>
                   </div>
@@ -1802,7 +1787,7 @@
       <div style="display: flex; align-items: baseline; gap: 10px;">
         <span style="font-family: var(--font-mono); font-size: 12px; font-weight: 600; color: var(--accent-fg); background: var(--accent); padding: 2px 8px; border-radius: 6px;">18</span>
         <span style="font-size: 15px; font-weight: 600;">Ficha do cliente</span>
-        <span style="font-family: var(--font-mono); font-size: 11.5px; color: var(--text-mute);">clientes/[id]/index.tsx</span>
+        <span style="font-family: var(--font-mono); font-size: 11.5px; color: var(--text-mute);">src/telas/Pessoas.tsx · Ficha</span>
       </div>
       <div style="width: 390px; height: 844px; border-radius: 48px; border: 10px solid #0b0b0e; outline: 3px solid {{ foco.s18 }}; outline-offset: 6px; background: var(--bg); position: relative; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 30px 60px rgba(0,0,0,0.35);">
         <div style="height: 44px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 28px; font-family: var(--font-mono); font-size: 13px; font-weight: 600;"><span>09:41</span><span style="font-size: 11px; color: var(--text-dim);">5G ▮▮▮</span></div>
@@ -1823,7 +1808,6 @@
             <div style="font-size: 10.5px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text-mute);">{{ cli.tipoLabel }}</div>
             <div style="font-size: 17px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ cli.nome }}</div>
           </div>
-          <div onClick="{{ irWizard }}" style="height: 44px; padding: 0 12px; display: flex; align-items: center; font-size: 13px; font-weight: 600; color: var(--accent); cursor: pointer;">Editar</div>
         </div>
         <div data-phone-scroll="" style="flex: 1; overflow-y: auto; overflow-x: hidden; padding: 12px 16px 20px; display: flex; flex-direction: column; gap: 10px;">
           <div style="border: 1px solid var(--border); border-radius: 12px; background: var(--surface); padding: 20px 14px 14px; display: flex; flex-direction: column; align-items: center; gap: 6px; flex-shrink: 0;">
@@ -1880,7 +1864,7 @@
               <div style="padding: 20px; text-align: center; font-size: 12.5px; color: var(--text-mute);">Sem pedidos ainda</div>
             </sc-if>
           </div>
-          <div onClick="{{ irPedidos }}" style="height: 48px; border-radius: 10px; background: var(--accent); color: var(--accent-fg); display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; cursor: pointer; flex-shrink: 0;">Novo pedido para {{ cli.primeiro }}</div>
+          <span style="font-size: 11.5px; color: var(--text-mute);">Editar o cadastro continua no computador.</span>
         </div>
 
         <sc-if value="{{ toast.p18 }}" hint-placeholder-val="{{ false }}">
@@ -1895,7 +1879,7 @@
       <div style="display: flex; align-items: baseline; gap: 10px;">
         <span style="font-family: var(--font-mono); font-size: 12px; font-weight: 600; color: var(--accent-fg); background: var(--accent); padding: 2px 8px; border-radius: 6px;">19</span>
         <span style="font-size: 15px; font-weight: 600;">Produtos</span>
-        <span style="font-family: var(--font-mono); font-size: 11.5px; color: var(--text-mute);">(tabs)/produtos.tsx</span>
+        <span style="font-family: var(--font-mono); font-size: 11.5px; color: var(--text-mute);">src/telas/Produtos.tsx</span>
       </div>
       <div style="width: 390px; height: 844px; border-radius: 48px; border: 10px solid #0b0b0e; outline: 3px solid {{ foco.s19 }}; outline-offset: 6px; background: var(--bg); position: relative; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 30px 60px rgba(0,0,0,0.35);">
         <div style="height: 44px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 28px; font-family: var(--font-mono); font-size: 13px; font-weight: 600;"><span>09:41</span><span style="font-size: 11px; color: var(--text-dim);">5G ▮▮▮</span></div>
@@ -1961,7 +1945,7 @@
       <div style="display: flex; align-items: baseline; gap: 10px;">
         <span style="font-family: var(--font-mono); font-size: 12px; font-weight: 600; color: var(--accent-fg); background: var(--accent); padding: 2px 8px; border-radius: 6px;">20</span>
         <span style="font-size: 15px; font-weight: 600;">Novo produto</span>
-        <span style="font-family: var(--font-mono); font-size: 11.5px; color: var(--text-mute);">produtos/_wizard.tsx</span>
+        <span style="font-family: var(--font-mono); font-size: 11.5px; color: var(--text-mute);">src/telas/NovoProduto.tsx</span>
       </div>
       <div style="width: 390px; height: 844px; border-radius: 48px; border: 10px solid #0b0b0e; outline: 3px solid {{ foco.s20 }}; outline-offset: 6px; background: var(--bg); position: relative; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 30px 60px rgba(0,0,0,0.35);">
         <div style="height: 44px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 28px; font-family: var(--font-mono); font-size: 13px; font-weight: 600;"><span>09:41</span><span style="font-size: 11px; color: var(--text-dim);">5G ▮▮▮</span></div>
@@ -2099,7 +2083,7 @@
       <div style="display: flex; align-items: baseline; gap: 10px;">
         <span style="font-family: var(--font-mono); font-size: 12px; font-weight: 600; color: var(--accent-fg); background: var(--accent); padding: 2px 8px; border-radius: 6px;">21</span>
         <span style="font-size: 15px; font-weight: 600;">Pedidos</span>
-        <span style="font-family: var(--font-mono); font-size: 11.5px; color: var(--text-mute);">(tabs)/vendas.tsx</span>
+        <span style="font-family: var(--font-mono); font-size: 11.5px; color: var(--text-mute);">src/telas/Pedidos.tsx</span>
       </div>
       <div style="width: 390px; height: 844px; border-radius: 48px; border: 10px solid #0b0b0e; outline: 3px solid {{ foco.s21 }}; outline-offset: 6px; background: var(--bg); position: relative; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 30px 60px rgba(0,0,0,0.35);">
         <div style="height: 44px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 28px; font-family: var(--font-mono); font-size: 13px; font-weight: 600;"><span>09:41</span><span style="font-size: 11px; color: var(--text-dim);">5G ▮▮▮</span></div>
@@ -2129,8 +2113,8 @@
             <div onClick="{{ p.abrir }}" style="border: 1px solid var(--border); border-left: 3px solid {{ p.tint }}; border-radius: 12px; background: var(--surface); padding: 12px 14px; display: flex; flex-direction: column; gap: 6px; cursor: pointer;">
               <div style="display: flex; align-items: center; gap: 8px;">
                 <span style="font-family: var(--font-mono); font-size: 12px; font-weight: 600; color: var(--text-mute);">#{{ p.id }}</span>
-                <span style="font-size: 11px; color: var(--text-mute);">{{ p.data }}</span>
-                <span style="margin-left: auto;"><span style="display: flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 500; color: {{ p.tint }}; white-space: nowrap;"><span style="width: 6px; height: 6px; border-radius: 99px; background: {{ p.tint }};"></span>{{ p.statusLabel }}</span></span>
+                <span style="font-size: 11px; color: {{ p.prazoFg }};">{{ p.prazoTxt }}</span>
+                <span style="margin-left: auto;"><span style="display: flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 500; color: {{ p.stTint }}; white-space: nowrap;"><span style="width: 6px; height: 6px; border-radius: 99px; background: {{ p.stTint }};"></span>{{ p.statusLabel }}</span></span>
               </div>
               <div style="font-size: 14px; font-weight: 600;">{{ p.produto }}</div>
               <div style="display: flex; align-items: baseline;"><span style="font-size: 12.5px; color: var(--text-dim);">{{ p.cliente }}</span><span style="margin-left: auto; font-family: var(--font-mono); font-size: 14px; font-weight: 600;">{{ p.valor }}</span></div>
@@ -2158,8 +2142,9 @@
       <div style="display: flex; align-items: baseline; gap: 10px;">
         <span style="font-family: var(--font-mono); font-size: 12px; font-weight: 600; color: var(--accent-fg); background: var(--accent); padding: 2px 8px; border-radius: 6px;">22</span>
         <span style="font-size: 15px; font-weight: 600;">Detalhe do pedido</span>
-        <span style="font-family: var(--font-mono); font-size: 11.5px; color: var(--text-mute);">pedidos/[id].tsx</span>
+        <span style="font-family: var(--font-mono); font-size: 11.5px; color: var(--text-mute);">src/telas/Pedidos.tsx · Detalhe</span>
       </div>
+      <div style="display: flex; gap: 6px; flex-wrap: wrap;"><a href="Mobile Propostas.dc.html#p1" style="height: 24px; padding: 0 9px; border-radius: 99px; border: 1px dashed var(--accent); color: var(--accent); display: flex; align-items: center; gap: 6px; font-size: 11.5px; font-weight: 600; text-decoration: none;"><span style="font-family: var(--font-mono);">P1</span>proposta · Avançar etapa</a><a href="Mobile Propostas.dc.html#p2" style="height: 24px; padding: 0 9px; border-radius: 99px; border: 1px dashed var(--accent); color: var(--accent); display: flex; align-items: center; gap: 6px; font-size: 11.5px; font-weight: 600; text-decoration: none;"><span style="font-family: var(--font-mono);">P2</span>proposta · Fotos e anexos</a><a href="Mobile Propostas.dc.html#p3" style="height: 24px; padding: 0 9px; border-radius: 99px; border: 1px dashed var(--accent); color: var(--accent); display: flex; align-items: center; gap: 6px; font-size: 11.5px; font-weight: 600; text-decoration: none;"><span style="font-family: var(--font-mono);">P3</span>proposta · Protocolo de entrega</a></div>
       <div style="width: 390px; height: 844px; border-radius: 48px; border: 10px solid #0b0b0e; outline: 3px solid {{ foco.s22 }}; outline-offset: 6px; background: var(--bg); position: relative; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 30px 60px rgba(0,0,0,0.35);">
         <div style="height: 44px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 28px; font-family: var(--font-mono); font-size: 13px; font-weight: 600;"><span>09:41</span><span style="font-size: 11px; color: var(--text-dim);">5G ▮▮▮</span></div>
         <sc-if value="{{ banner.show }}" hint-placeholder-val="{{ false }}">
@@ -2183,8 +2168,9 @@
         </div>
         <div data-phone-scroll="" style="flex: 1; overflow-y: auto; overflow-x: hidden; padding: 12px 16px 20px; display: flex; flex-direction: column; gap: 10px;">
           
-          <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 12px; flex-shrink: 0;">
+          <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 12px; flex-shrink: 0; overflow-x: auto;" data-phone-scroll="">
             <x-import component-from-global-scope="OfficeImpressoPontoWR2DesignSystem_019dd0.FsmStepper" variant="full" steps="{{ ped.steps }}" current="{{ ped.idx }}" hue="{{ 295 }}" hint-size="100%,56px"></x-import>
+            <div style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-dim);">Prazo <b style="font-family: var(--font-mono); color: var(--text);">{{ ped.prazo }}</b><sc-if value="{{ ped.atrasado }}" hint-placeholder-val="{{ false }}"><span style="font-size: 11.5px; font-weight: 600; color: var(--neg);">atrasado</span></sc-if></div>
           </div>
           <div style="font-size: 10.5px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text-mute); padding-top: 4px;">Itens</div>
           
@@ -2202,8 +2188,8 @@
           <div style="border: 1px solid var(--border); border-radius: 12px; background: var(--surface); overflow: hidden; flex-shrink: 0;">
             <div onClick="{{ ped.abrirCli }}" style="min-height: 56px; padding: 8px 14px; display: flex; align-items: center; gap: 12px; cursor: pointer;">
               <x-import component-from-global-scope="OfficeImpressoPontoWR2DesignSystem_019dd0.Avatar" name="{{ ped.cliente }}" size="md" hint-size="32px,32px"></x-import>
-              <div style="flex: 1;"><div style="font-size: 14px; font-weight: 500;">{{ ped.cliente }}</div><div style="font-size: 12px; color: var(--text-dim);">Ver ficha</div></div>
-              <span style="color: var(--text-mute); display: flex;">{{ icoChev }}</span>
+              <div style="flex: 1;"><div style="font-size: 14px; font-weight: 500;">{{ ped.cliente }}</div><div style="font-family: var(--font-mono); font-size: 12px; color: var(--text-dim);">{{ ped.fone }}</div></div>
+              <span style="min-height: 44px; display: flex; align-items: center; padding: 0 4px; font-size: 13px; font-weight: 600; color: var(--accent);">Ligar</span>
             </div>
           </div>
           <sc-if value="{{ ped.temOP }}" hint-placeholder-val="{{ false }}">
@@ -2211,9 +2197,9 @@
           </sc-if>
         </div>
 
-        <div style="flex-shrink: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; padding: 12px 16px 26px; border-top: 1px solid var(--border); background: var(--surface);">
-          <div onClick="{{ linkOS }}" style="height: 48px; border-radius: 10px; border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; cursor: pointer;">Link de aprovação</div>
-          <div onClick="{{ ped.acao }}" style="height: 48px; border-radius: 10px; background: {{ ped.acaoBg }}; color: var(--accent-fg); display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; cursor: pointer;">{{ ped.acaoLabel }}</div>
+        <div style="flex-shrink: 0; display: flex; flex-direction: column; gap: 6px; padding: 12px 16px 26px; border-top: 1px solid var(--border); background: var(--surface);">
+          <div style="height: 48px; border-radius: 10px; background: var(--bg-2); color: var(--text-mute); display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; cursor: not-allowed;">{{ ped.acaoLabel }}</div>
+          <span style="font-size: 11.5px; color: var(--text-mute); text-align: center;">Abrir no computador — no app esta etapa é só consulta.</span>
         </div>
         <sc-if value="{{ toast.p22 }}" hint-placeholder-val="{{ false }}">
           <div style="position: absolute; left: 16px; right: 16px; bottom: 104px; z-index: 6; display: flex; justify-content: center; pointer-events: none;">
@@ -2354,8 +2340,8 @@
     <div id="s25" data-screen-label="25 Chat" style="display: flex; flex-direction: column; gap: 14px;">
       <div style="display: flex; align-items: baseline; gap: 10px;">
         <span style="font-family: var(--font-mono); font-size: 12px; font-weight: 600; color: var(--accent-fg); background: var(--accent); padding: 2px 8px; border-radius: 6px;">25</span>
-        <span style="font-size: 15px; font-weight: 600;">Chat</span>
-        <span style="font-family: var(--font-mono); font-size: 11.5px; color: var(--text-mute);">(tabs)/chat.tsx</span>
+        <span style="font-size: 15px; font-weight: 600;">Assistente</span>
+        <span style="font-family: var(--font-mono); font-size: 11.5px; color: var(--text-mute);">src/telas/Assistente.tsx</span>
       </div>
       <div style="width: 390px; height: 844px; border-radius: 48px; border: 10px solid #0b0b0e; outline: 3px solid {{ foco.s25 }}; outline-offset: 6px; background: var(--bg); position: relative; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 30px 60px rgba(0,0,0,0.35);">
         <div style="height: 44px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 28px; font-family: var(--font-mono); font-size: 13px; font-weight: 600;"><span>09:41</span><span style="font-size: 11px; color: var(--text-dim);">5G ▮▮▮</span></div>
@@ -2370,8 +2356,8 @@
 
         <div style="padding: 8px 16px 12px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px;">
           <div style="flex: 1; min-width: 0;">
-            <div style="font-size: 10.5px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text-mute);">Assistente disponível 24/7</div>
-            <div style="font-size: 22px; font-weight: 600; letter-spacing: -0.4px; line-height: 26px;">Chat de suporte</div>
+            <div style="font-size: 10.5px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text-mute);">Jana · assistente do oimpresso</div>
+            <div style="font-size: 22px; font-weight: 600; letter-spacing: -0.4px; line-height: 26px;">Assistente</div>
           </div>
           
         </div>
@@ -2385,7 +2371,7 @@
             </div>
           </sc-for>
           <sc-if value="{{ chatDigitando }}" hint-placeholder-val="{{ false }}">
-            <span style="font-size: 12px; color: var(--text-mute);">Assistente digitando…</span>
+            <span style="font-size: 12px; color: var(--text-mute);">Jana está escrevendo…</span>
           </sc-if>
         </div>
 
@@ -2412,7 +2398,7 @@
       <div style="display: flex; align-items: baseline; gap: 10px;">
         <span style="font-family: var(--font-mono); font-size: 12px; font-weight: 600; color: var(--accent-fg); background: var(--accent); padding: 2px 8px; border-radius: 6px;">26</span>
         <span style="font-size: 15px; font-weight: 600;">Equipe</span>
-        <span style="font-family: var(--font-mono); font-size: 11.5px; color: var(--text-mute);">equipe/index.tsx</span>
+        <span style="font-family: var(--font-mono); font-size: 11.5px; color: var(--text-mute);">src/telas/Equipe.tsx</span>
       </div>
       <div style="width: 390px; height: 844px; border-radius: 48px; border: 10px solid #0b0b0e; outline: 3px solid {{ foco.s26 }}; outline-offset: 6px; background: var(--bg); position: relative; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 30px 60px rgba(0,0,0,0.35);">
         <div style="height: 44px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 28px; font-family: var(--font-mono); font-size: 13px; font-weight: 600;"><span>09:41</span><span style="font-size: 11px; color: var(--text-dim);">5G ▮▮▮</span></div>
@@ -2430,7 +2416,7 @@
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"></path></svg>
           </div>
           <div style="flex: 1; min-width: 0;">
-            <div style="font-size: 10.5px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text-mute);">Mecânicos + administração</div>
+            <div style="font-size: 10.5px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text-mute);">{{ eqEyebrow }}</div>
             <div style="font-size: 17px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Equipe</div>
           </div>
         </div>
@@ -2462,7 +2448,7 @@
       <div style="display: flex; align-items: baseline; gap: 10px;">
         <span style="font-family: var(--font-mono); font-size: 12px; font-weight: 600; color: var(--accent-fg); background: var(--accent); padding: 2px 8px; border-radius: 6px;">27</span>
         <span style="font-size: 15px; font-weight: 600;">Detalhe da OP</span>
-        <span style="font-family: var(--font-mono); font-size: 11.5px; color: var(--text-mute);">producao/[id].tsx</span>
+        <span style="font-family: var(--font-mono); font-size: 11.5px; color: var(--text-mute);">src/telas/Pedidos.tsx · Detalhe</span>
       </div>
       <div style="width: 390px; height: 844px; border-radius: 48px; border: 10px solid #0b0b0e; outline: 3px solid {{ foco.s27 }}; outline-offset: 6px; background: var(--bg); position: relative; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 30px 60px rgba(0,0,0,0.35);">
         <div style="height: 44px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 28px; font-family: var(--font-mono); font-size: 13px; font-weight: 600;"><span>09:41</span><span style="font-size: 11px; color: var(--text-dim);">5G ▮▮▮</span></div>
@@ -2486,7 +2472,7 @@
         </div>
         <div data-phone-scroll="" style="flex: 1; overflow-y: auto; overflow-x: hidden; padding: 12px 16px 20px; display: flex; flex-direction: column; gap: 10px;">
           
-          <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 12px; flex-shrink: 0;">
+          <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 12px; flex-shrink: 0; overflow-x: auto;" data-phone-scroll="">
             <x-import component-from-global-scope="OfficeImpressoPontoWR2DesignSystem_019dd0.FsmStepper" variant="full" steps="{{ op.steps }}" current="{{ op.idx }}" hue="{{ 295 }}" hint-size="100%,56px"></x-import>
           </div>
           <div style="font-size: 10.5px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text-mute); padding-top: 4px;">Medidas</div>
@@ -2529,7 +2515,7 @@
       <div style="display: flex; align-items: baseline; gap: 10px;">
         <span style="font-family: var(--font-mono); font-size: 12px; font-weight: 600; color: var(--accent-fg); background: var(--accent); padding: 2px 8px; border-radius: 6px;">28</span>
         <span style="font-size: 15px; font-weight: 600;">Detalhe da tarefa</span>
-        <span style="font-family: var(--font-mono); font-size: 11.5px; color: var(--text-mute);">tarefas/[id].tsx</span>
+        <span style="font-family: var(--font-mono); font-size: 11.5px; color: var(--text-mute);">src/telas/TarefaDetalhe.tsx</span>
       </div>
       <div style="width: 390px; height: 844px; border-radius: 48px; border: 10px solid #0b0b0e; outline: 3px solid {{ foco.s28 }}; outline-offset: 6px; background: var(--bg); position: relative; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 30px 60px rgba(0,0,0,0.35);">
         <div style="height: 44px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 28px; font-family: var(--font-mono); font-size: 13px; font-weight: 600;"><span>09:41</span><span style="font-size: 11px; color: var(--text-dim);">5G ▮▮▮</span></div>
@@ -2588,7 +2574,7 @@
       <div style="display: flex; align-items: baseline; gap: 10px;">
         <span style="font-family: var(--font-mono); font-size: 12px; font-weight: 600; color: var(--accent-fg); background: var(--accent); padding: 2px 8px; border-radius: 6px;">29</span>
         <span style="font-size: 15px; font-weight: 600;">Movimentações</span>
-        <span style="font-family: var(--font-mono); font-size: 11.5px; color: var(--text-mute);">estoque/[id].tsx</span>
+        <span style="font-family: var(--font-mono); font-size: 11.5px; color: var(--text-mute);">src/telas/Movimentacoes.tsx</span>
       </div>
       <div style="width: 390px; height: 844px; border-radius: 48px; border: 10px solid #0b0b0e; outline: 3px solid {{ foco.s29 }}; outline-offset: 6px; background: var(--bg); position: relative; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 30px 60px rgba(0,0,0,0.35);">
         <div style="height: 44px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 28px; font-family: var(--font-mono); font-size: 13px; font-weight: 600;"><span>09:41</span><span style="font-size: 11px; color: var(--text-dim);">5G ▮▮▮</span></div>
@@ -2615,24 +2601,13 @@
             <div style="display: flex; flex-direction: column; gap: 2px;"><span style="font-size: 10px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; color: var(--text-mute);">Saldo</span><span style="font-family: var(--font-mono); font-size: 26px; font-weight: 600; color: {{ mov.tint }};">{{ mov.saldo }}</span></div>
             <span style="margin-left: auto; font-size: 12px; color: var(--text-mute);">mín 50 m²</span>
           </div>
-          <div style="font-size: 10.5px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text-mute); padding-top: 4px;">Registrar movimento</div>
-          <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 3px; padding: 3px; border-radius: 10px; background: var(--bg-2); flex-shrink: 0;">
-            <sc-for list="{{ mov.tipos }}" as="a" hint-placeholder-count="4">
-              <div onClick="{{ a.pick }}" style="height: 38px; border-radius: 7px; background: {{ a.bg }}; color: {{ a.fg }}; display: flex; align-items: center; justify-content: center; font-size: 12.5px; font-weight: 600; cursor: pointer;">{{ a.label }}</div>
-            </sc-for>
-          </div>
-          <div style="display: flex; gap: 6px;">
-            <sc-for list="{{ mov.qtds }}" as="q" hint-placeholder-count="4">
-              <div onClick="{{ q.add }}" style="flex: 1; height: 44px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface); display: flex; align-items: center; justify-content: center; font-family: var(--font-mono); font-size: 13px; font-weight: 600; cursor: pointer;">{{ q.label }}</div>
-            </sc-for>
-          </div>
           <div style="font-size: 10.5px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text-mute); padding-top: 4px;">Histórico</div>
           
           <div style="border: 1px solid var(--border); border-radius: 12px; background: var(--surface); overflow: hidden; flex-shrink: 0;">
             <sc-for list="{{ mov.hist }}" as="m" hint-placeholder-count="4">
               <div style="min-height: 52px; padding: 8px 14px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid var(--border-2);">
                 <div style="flex: 1; min-width: 0;"><div style="font-size: 13.5px; font-weight: 500;">{{ m.tipo }}</div><div style="font-size: 12px; color: var(--text-dim);">{{ m.motivo }} · {{ m.quando }}</div></div>
-                <span style="font-family: var(--font-mono); font-size: 13.5px; font-weight: 600; color: {{ m.c }};">{{ m.qtd }}</span>
+                <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 2px;"><span style="font-family: var(--font-mono); font-size: 13.5px; font-weight: 600; color: {{ m.c }};">{{ m.qtd }}</span><span style="font-family: var(--font-mono); font-size: 11px; color: var(--text-mute);">{{ m.saldoTxt }}</span></div>
               </div>
             </sc-for>
           </div>
@@ -2651,7 +2626,7 @@
       <div style="display: flex; align-items: baseline; gap: 10px;">
         <span style="font-family: var(--font-mono); font-size: 12px; font-weight: 600; color: var(--accent-fg); background: var(--accent); padding: 2px 8px; border-radius: 6px;">30</span>
         <span style="font-size: 15px; font-weight: 600;">Editar perfil de menu</span>
-        <span style="font-family: var(--font-mono); font-size: 11.5px; color: var(--text-mute);">perfis/[id]/edit.tsx</span>
+        <span style="font-family: var(--font-mono); font-size: 11.5px; color: var(--text-mute);">src/telas/PerfilMenu.tsx</span>
       </div>
       <div style="width: 390px; height: 844px; border-radius: 48px; border: 10px solid #0b0b0e; outline: 3px solid {{ foco.s30 }}; outline-offset: 6px; background: var(--bg); position: relative; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 30px 60px rgba(0,0,0,0.35);">
         <div style="height: 44px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 28px; font-family: var(--font-mono); font-size: 13px; font-weight: 600;"><span>09:41</span><span style="font-size: 11px; color: var(--text-dim);">5G ▮▮▮</span></div>
@@ -2668,8 +2643,8 @@
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"></path></svg>
           </div>
           <div style="flex: 1; min-width: 0;">
-            <div style="font-size: 10.5px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text-mute);">Personalizado · {{ ed.contagem }}</div>
-            <div style="font-size: 17px; font-weight: 600;">Meu perfil</div>
+            <div style="font-size: 10.5px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text-mute);">{{ ed.contagem }}</div>
+            <div style="font-size: 17px; font-weight: 600;">Meu menu</div>
           </div>
           <span onClick="{{ ed.restaurar }}" style="height: 44px; padding: 0 12px; display: flex; align-items: center; font-size: 13px; color: var(--text-dim); cursor: pointer;">Restaurar</span>
         </div>
@@ -2683,7 +2658,7 @@
               </div>
             </sc-for>
           </div>
-          <span style="font-size: 12px; color: var(--text-mute); text-wrap: pretty;">Início e Mais são fixos. Toque na ordem em que quer os módulos — o número mostra a posição.</span>
+          <span style="font-size: 12px; color: var(--text-mute); text-wrap: pretty;">Início e Mais são fixos. Toque nos módulos na ordem em que quer vê-los; o número mostra a posição. O que ficar fora da barra continua em Mais. Restaurar volta ao menu padrão da empresa.</span>
           <div style="font-size: 10.5px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text-mute); padding-top: 4px;">Módulos</div>
           <div style="border: 1px solid var(--border); border-radius: 12px; background: var(--surface); overflow: hidden; flex-shrink: 0;">
             <sc-for list="{{ ed.mods }}" as="m" hint-placeholder-count="10">
@@ -2937,7 +2912,7 @@
       <div style="display: flex; align-items: baseline; gap: 10px;">
         <span style="font-family: var(--font-mono); font-size: 12px; font-weight: 600; color: var(--accent-fg); background: var(--accent); padding: 2px 8px; border-radius: 6px;">34</span>
         <span style="font-size: 15px; font-weight: 600;">Ficha cadastral</span>
-        <span style="font-family: var(--font-mono); font-size: 11.5px; color: var(--text-mute);">clientes/[id]/ficha.tsx</span>
+        <span style="font-family: var(--font-mono); font-size: 11.5px; color: var(--text-mute);">src/telas/PessoaCadastro.tsx</span>
       </div>
       <div style="width: 390px; height: 844px; border-radius: 48px; border: 10px solid #0b0b0e; outline: 3px solid {{ foco.s34 }}; outline-offset: 6px; background: var(--bg); position: relative; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 30px 60px rgba(0,0,0,0.35);">
         <div style="height: 44px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 28px; font-family: var(--font-mono); font-size: 13px; font-weight: 600;"><span>09:41</span><span style="font-size: 11px; color: var(--text-dim);">5G ▮▮▮</span></div>
@@ -3011,8 +2986,9 @@
       <div style="display: flex; align-items: baseline; gap: 10px;">
         <span style="font-family: var(--font-mono); font-size: 12px; font-weight: 600; color: var(--accent-fg); background: var(--accent); padding: 2px 8px; border-radius: 6px;">35</span>
         <span style="font-size: 15px; font-weight: 600;">Dashboard</span>
-        <span style="font-family: var(--font-mono); font-size: 11.5px; color: var(--text-mute);">(tabs)/dashboard.tsx</span>
+        <span style="font-family: var(--font-mono); font-size: 11.5px; color: var(--text-mute);">src/telas/Dashboard.tsx</span>
       </div>
+      <div style="display: flex; gap: 6px; flex-wrap: wrap;"><a href="Mobile Propostas.dc.html#p6" style="height: 24px; padding: 0 9px; border-radius: 99px; border: 1px dashed var(--accent); color: var(--accent); display: flex; align-items: center; gap: 6px; font-size: 11.5px; font-weight: 600; text-decoration: none;"><span style="font-family: var(--font-mono);">P6</span>proposta · Lucratividade</a></div>
       <div style="width: 390px; height: 844px; border-radius: 48px; border: 10px solid #0b0b0e; outline: 3px solid {{ foco.s35 }}; outline-offset: 6px; background: var(--bg); position: relative; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 30px 60px rgba(0,0,0,0.35);">
         <div style="height: 44px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 28px; font-family: var(--font-mono); font-size: 13px; font-weight: 600;"><span>09:41</span><span style="font-size: 11px; color: var(--text-dim);">5G ▮▮▮</span></div>
         <sc-if value="{{ banner.show }}" hint-placeholder-val="{{ false }}">
@@ -3068,7 +3044,7 @@
       <div style="display: flex; align-items: baseline; gap: 10px;">
         <span style="font-family: var(--font-mono); font-size: 12px; font-weight: 600; color: var(--accent-fg); background: var(--accent); padding: 2px 8px; border-radius: 6px;">36</span>
         <span style="font-size: 15px; font-weight: 600;">Bater ponto</span>
-        <span style="font-family: var(--font-mono); font-size: 11.5px; color: var(--text-mute);">Pages/Ponto/Mobile/Index.tsx</span>
+        <span style="font-family: var(--font-mono); font-size: 11.5px; color: var(--text-mute);">src/telas/Ponto.tsx</span>
       </div>
       <div style="width: 390px; height: 844px; border-radius: 48px; border: 10px solid #0b0b0e; outline: 3px solid {{ foco.s36 }}; outline-offset: 6px; background: var(--bg); position: relative; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 30px 60px rgba(0,0,0,0.35);">
         <div style="height: 44px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 28px; font-family: var(--font-mono); font-size: 13px; font-weight: 600;"><span>09:41</span><span style="font-size: 11px; color: var(--text-dim);">5G ▮▮▮</span></div>
@@ -3088,7 +3064,7 @@
               <div style="font-size: 17px; font-weight: 600;">Ponto</div>
               <div style="font-size: 12px; color: var(--text-dim);">Marcos Teixeira · matrícula 0021</div>
             </div>
-            <span style="font-family: var(--font-mono); font-size: 10.5px; font-weight: 600; padding: 2px 8px; border-radius: 99px; border: 1px solid var(--accent); color: var(--accent); background: var(--accent-soft);">REP-P</span>
+            
           </div>
           <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 3px; padding: 3px; border-radius: 10px; background: var(--bg-2); margin-left: 8px;">
             <sc-for list="{{ pt.abas36 }}" as="a" hint-placeholder-count="3">
@@ -3096,6 +3072,14 @@
             </sc-for>
           </div>
         </div>
+        <sc-if value="{{ pt.semCad }}" hint-placeholder-val="{{ false }}">
+          <div style="flex: 1; padding: 48px 28px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; text-align: center;">
+            <x-import component-from-global-scope="OfficeImpressoPontoWR2DesignSystem_019dd0.RegistrationMark" size="{{ 40 }}" color="var(--text-mute)" hint-size="40px,40px"></x-import>
+            <span style="font-size: 16px; font-weight: 600;">Ponto não liberado neste aparelho</span>
+            <span style="font-size: 13.5px; line-height: 1.45; color: var(--text-dim); text-wrap: pretty;">Seu usuário precisa de cadastro de ponto. Peça ao RH em Colaboradores.</span>
+          </div>
+        </sc-if>
+        <sc-if value="{{ pt.comCad }}" hint-placeholder-val="{{ true }}">
         <div data-phone-scroll="" style="flex: 1; overflow-y: auto; overflow-x: hidden; padding: 14px 16px 20px; display: flex; flex-direction: column; gap: 12px;">
           <div style="display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 6px 0;">
             <span style="font-size: 12px; color: var(--text-mute);">agora</span>
@@ -3152,8 +3136,9 @@
               </div>
             </sc-for>
           </div>
-          <span style="font-size: 11.5px; color: var(--text-mute); text-wrap: pretty;">Marcação imutável (Portaria MTP 671/2021). Correção só por intercorrência. Sem selfie nem biometria.</span>
+          <span style="font-size: 11.5px; color: var(--text-mute); text-wrap: pretty;">Marcação imutável: correção só por justificativa, que o gestor aprova. Sem selfie nem biometria.</span>
         </div>
+        </sc-if>
 
         <sc-if value="{{ toast.p36 }}" hint-placeholder-val="{{ false }}">
           <div style="position: absolute; left: 16px; right: 16px; bottom: 104px; z-index: 6; display: flex; justify-content: center; pointer-events: none;">
@@ -3167,7 +3152,7 @@
       <div style="display: flex; align-items: baseline; gap: 10px;">
         <span style="font-family: var(--font-mono); font-size: 12px; font-weight: 600; color: var(--accent-fg); background: var(--accent); padding: 2px 8px; border-radius: 6px;">37</span>
         <span style="font-size: 15px; font-weight: 600;">Meu espelho</span>
-        <span style="font-family: var(--font-mono); font-size: 11.5px; color: var(--text-mute);">Ponto/Mobile/_components/MeuEspelho.tsx</span>
+        <span style="font-family: var(--font-mono); font-size: 11.5px; color: var(--text-mute);">src/telas/Ponto.tsx · Meu espelho</span>
       </div>
       <div style="width: 390px; height: 844px; border-radius: 48px; border: 10px solid #0b0b0e; outline: 3px solid {{ foco.s37 }}; outline-offset: 6px; background: var(--bg); position: relative; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 30px 60px rgba(0,0,0,0.35);">
         <div style="height: 44px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 28px; font-family: var(--font-mono); font-size: 13px; font-weight: 600;"><span>09:41</span><span style="font-size: 11px; color: var(--text-dim);">5G ▮▮▮</span></div>
@@ -3187,7 +3172,7 @@
               <div style="font-size: 17px; font-weight: 600;">Meu espelho</div>
               <div style="font-size: 12px; color: var(--text-dim);">Marcos Teixeira · matrícula 0021</div>
             </div>
-            <span style="font-family: var(--font-mono); font-size: 10.5px; font-weight: 600; padding: 2px 8px; border-radius: 99px; border: 1px solid var(--accent); color: var(--accent); background: var(--accent-soft);">REP-P</span>
+            
           </div>
           <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 3px; padding: 3px; border-radius: 10px; background: var(--bg-2); margin-left: 8px;">
             <sc-for list="{{ pt.abas37 }}" as="a" hint-placeholder-count="3">
@@ -3222,6 +3207,27 @@
               </div>
             </sc-for>
           </div>
+          <div style="font-size: 10.5px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text-mute);">Escala de hoje · Comercial 44h</div>
+          <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; flex-shrink: 0;">
+            <sc-for list="{{ pt.escala }}" as="s" hint-placeholder-count="4">
+              <div style="border-radius: 10px; border: 1px solid var(--border); background: var(--surface); padding: 8px; display: flex; flex-direction: column; gap: 2px; min-height: 56px;">
+                <span style="font-size: 10.5px; font-weight: 600; color: var(--text-mute);">{{ s.label }}</span>
+                <span style="font-family: var(--font-mono); font-size: 15px; font-weight: 600;">{{ s.hora }}</span>
+              </div>
+            </sc-for>
+          </div>
+          <div style="font-size: 10.5px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text-mute);">Minhas justificativas</div>
+          <div style="border: 1px solid var(--border); border-radius: 12px; background: var(--surface); overflow: hidden; flex-shrink: 0;">
+            <sc-for list="{{ pt.justs }}" as="j" hint-placeholder-count="3">
+              <div style="min-height: 56px; padding: 8px 14px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid var(--border-2);">
+                <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px;">
+                  <span style="font-size: 13.5px; font-weight: 600;">{{ j.motivo }}</span>
+                  <span style="font-family: var(--font-mono); font-size: 11.5px; color: var(--text-dim);">{{ j.cod }} · {{ j.quando }}</span>
+                </div>
+                <span style="height: 22px; padding: 0 9px; border-radius: 99px; border: 1px solid {{ j.pillBorder }}; background: {{ j.pillBg }}; color: {{ j.tint }}; display: flex; align-items: center; font-size: 11.5px; font-weight: 600;">{{ j.estado }}</span>
+              </div>
+            </sc-for>
+          </div>
           <span style="font-size: 11.5px; color: var(--text-mute); text-wrap: pretty;">Espelho do mês corrente. O oficial sai no fechamento da competência. Toque num dia a conferir para justificar.</span>
         </div>
 
@@ -3237,7 +3243,7 @@
       <div style="display: flex; align-items: baseline; gap: 10px;">
         <span style="font-family: var(--font-mono); font-size: 12px; font-weight: 600; color: var(--accent-fg); background: var(--accent); padding: 2px 8px; border-radius: 6px;">38</span>
         <span style="font-size: 15px; font-weight: 600;">Justificar</span>
-        <span style="font-family: var(--font-mono); font-size: 11.5px; color: var(--text-mute);">Ponto/Mobile/_components/Justificar.tsx</span>
+        <span style="font-family: var(--font-mono); font-size: 11.5px; color: var(--text-mute);">src/telas/Ponto.tsx · Justificar</span>
       </div>
       <div style="width: 390px; height: 844px; border-radius: 48px; border: 10px solid #0b0b0e; outline: 3px solid {{ foco.s38 }}; outline-offset: 6px; background: var(--bg); position: relative; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 30px 60px rgba(0,0,0,0.35);">
         <div style="height: 44px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 28px; font-family: var(--font-mono); font-size: 13px; font-weight: 600;"><span>09:41</span><span style="font-size: 11px; color: var(--text-dim);">5G ▮▮▮</span></div>
@@ -3257,7 +3263,7 @@
               <div style="font-size: 17px; font-weight: 600;">Justificar</div>
               <div style="font-size: 12px; color: var(--text-dim);">Marcos Teixeira · matrícula 0021</div>
             </div>
-            <span style="font-family: var(--font-mono); font-size: 10.5px; font-weight: 600; padding: 2px 8px; border-radius: 99px; border: 1px solid var(--accent); color: var(--accent); background: var(--accent-soft);">REP-P</span>
+            
           </div>
           <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 3px; padding: 3px; border-radius: 10px; background: var(--bg-2); margin-left: 8px;">
             <sc-for list="{{ pt.abas38 }}" as="a" hint-placeholder-count="3">
@@ -3318,7 +3324,7 @@
       <div style="display: flex; align-items: baseline; gap: 10px;">
         <span style="font-family: var(--font-mono); font-size: 12px; font-weight: 600; color: var(--accent-fg); background: var(--accent); padding: 2px 8px; border-radius: 6px;">39</span>
         <span style="font-size: 15px; font-weight: 600;">Marcações a validar</span>
-        <span style="font-family: var(--font-mono); font-size: 11.5px; color: var(--text-mute);">Ponto/Aprovacoes/_components/FilaMobile.tsx</span>
+        <span style="font-family: var(--font-mono); font-size: 11.5px; color: var(--text-mute);">src/telas/FilaGestor.tsx</span>
       </div>
       <div style="width: 390px; height: 844px; border-radius: 48px; border: 10px solid #0b0b0e; outline: 3px solid {{ foco.s39 }}; outline-offset: 6px; background: var(--bg); position: relative; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 30px 60px rgba(0,0,0,0.35);">
         <div style="height: 44px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 28px; font-family: var(--font-mono); font-size: 13px; font-weight: 600;"><span>09:41</span><span style="font-size: 11px; color: var(--text-dim);">5G ▮▮▮</span></div>
@@ -3347,7 +3353,7 @@
           <sc-if value="{{ fila.vazio }}" hint-placeholder-val="{{ false }}">
             <x-import component-from-global-scope="OfficeImpressoPontoWR2DesignSystem_019dd0.EmptyState" variant="done" title="Nada a validar" description="Todas as marcações fora da área foram revisadas." hint-size="100%,180px"></x-import>
           </sc-if>
-          <x-import component-from-global-scope="OfficeImpressoPontoWR2DesignSystem_019dd0.Alert" tone="info" title="Por que uma fila" hint-size="100%,92px">Fora do geofence a marcação não é recusada — entra aqui para revisão humana. Recusar grava uma anulação; a original continua imutável.</x-import>
+          <x-import component-from-global-scope="OfficeImpressoPontoWR2DesignSystem_019dd0.Alert" tone="info" title="Por que uma fila" hint-size="100%,92px">Fora da área, a marcação não é recusada: entra aqui para revisão. Recusar grava uma anulação; a original continua imutável.</x-import>
           <sc-for list="{{ fila.itens }}" as="f" hint-placeholder-count="4">
             <div style="border: 1px solid var(--border); border-radius: 12px; background: var(--surface); padding: 12px 14px; display: flex; flex-direction: column; gap: 8px;">
               <div style="display: flex; align-items: flex-start; gap: 10px;">
@@ -3360,15 +3366,27 @@
               <div style="display: flex; flex-wrap: wrap; gap: 4px 12px; font-family: var(--font-mono); font-size: 11.5px; color: var(--text-mute);">
                 <span>{{ f.quando }}</span><span>NSR {{ f.nsr }}</span><span style="color: {{ f.gpsTint }}; font-weight: 600;">GPS {{ f.gps }}</span><span>{{ f.disp }}</span><span>#{{ f.hash }}</span>
               </div>
-              <sc-if value="{{ f.pendente }}" hint-placeholder-val="{{ true }}">
+              <sc-if value="{{ f.anulada }}" hint-placeholder-val="{{ false }}">
+                <span style="font-size: 12px; color: var(--neg);">Anulação gravada. A marcação original continua no registro.</span>
+              </sc-if>
+              <sc-if value="{{ f.confirmando }}" hint-placeholder-val="{{ false }}">
+                <div style="display: flex; flex-direction: column; gap: 8px; padding: 10px; border-radius: 8px; border: 1px solid color-mix(in oklch, var(--neg) 25%, transparent); background: color-mix(in oklch, var(--neg) 6%, transparent);">
+                  <span style="font-size: 12.5px; line-height: 1.4;">Recusar grava uma anulação da marcação NSR {{ f.nsr }}. Não dá para desfazer pelo app.</span>
+                  <div style="display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px;">
+                    <div onClick="{{ f.cancelar }}" style="height: 44px; border-radius: 8px; border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 13.5px; font-weight: 600; cursor: pointer;">Cancelar</div>
+                    <div onClick="{{ f.recusar }}" style="height: 44px; border-radius: 8px; background: var(--neg); color: #ffffff; display: flex; align-items: center; justify-content: center; font-size: 13.5px; font-weight: 600; cursor: pointer;">Gravar anulação</div>
+                  </div>
+                </div>
+              </sc-if>
+              <sc-if value="{{ f.semConfirma }}" hint-placeholder-val="{{ true }}">
                 <div style="display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px;">
-                  <div onClick="{{ f.recusar }}" style="height: 44px; border-radius: 8px; border: 1px solid var(--neg); color: var(--neg); display: flex; align-items: center; justify-content: center; font-size: 13.5px; font-weight: 600; cursor: pointer;">Recusar</div>
+                  <div onClick="{{ f.pedirRecusa }}" style="height: 44px; border-radius: 8px; border: 1px solid var(--neg); color: var(--neg); display: flex; align-items: center; justify-content: center; font-size: 13.5px; font-weight: 600; cursor: pointer;">Recusar</div>
                   <div onClick="{{ f.validar }}" style="height: 44px; border-radius: 8px; background: var(--accent); color: var(--accent-fg); display: flex; align-items: center; justify-content: center; font-size: 13.5px; font-weight: 600; cursor: pointer;">Validar</div>
                 </div>
               </sc-if>
             </div>
           </sc-for>
-          <span style="font-size: 11.5px; color: var(--text-mute); text-wrap: pretty;">Visão do gestor. Precisão GPS acima de 500 m é recusada no servidor e nem chega aqui.</span>
+          <span style="font-size: 11.5px; color: var(--text-mute); text-wrap: pretty;">Visão do gestor. Precisão de GPS acima de 500 m é recusada no servidor e nem chega aqui.</span>
         </div>
 
         <sc-if value="{{ toast.p39 }}" hint-placeholder-val="{{ false }}">
@@ -3411,16 +3429,17 @@ class Component extends DCLogic {
       { id: 'g4', desc: 'Orçamento #4799 · Studio Forma', valor: 640, venc: '20/09', metodo: 'Cartão', status: 'cancelado' }
     ],
     eqSel: 0, eqKm: {}, neqTipo: 'veiculo', locOcup: { b1: true, b2: true, b3: false, e1: true, e2: false, p1: false },
-    ptTipo: 'ALMOCO_INICIO', ptGps: 1, ptNsr: 348821, ptRecibo: null, filaTab: 'pendente',
+    ptTipo: 'ALMOCO_INICIO', ptSemCad: false, filaConf: null, ptGps: 1, ptNsr: 348821, ptRecibo: null, filaTab: 'pendente',
     ptHoje: [{ hora: '07:02', tipo: 'ENTRADA', nsr: 348821, revisar: true }],
     jusMot: '', jusData: '2026-09-29', jusDia: false, jusDas: '', jusAs: '', jusTxt: '', jusSeq: 231,
+    jusList: [{ cod: 'INT-0231', motivo: 'Esquecimento de marcação', quando: '24/09 · 12:10–13:00', estado: 'Pendente' }, { cod: 'INT-0224', motivo: 'Atestado médico', quando: '15/09 · dia todo', estado: 'Aprovada' }, { cod: 'INT-0219', motivo: 'Visita a cliente', quando: '09/09 · 14:00–16:30', estado: 'Rejeitada' }],
     ptFila: [
       { id: 'f1', nome: 'Marcos Teixeira', tipo: 'Entrada', local: 'Obra Mercado União · Palhoça/SC', quando: '29/09 07:02', nsr: 348821, gps: '±38m', disp: 'Android', hash: '295f5666', estado: 'pendente' },
       { id: 'f2', nome: 'Marcos Teixeira', tipo: 'Saída', local: 'Obra Mercado União · Palhoça/SC', quando: '28/09 17:12', nsr: 348809, gps: '±44m', disp: 'Android', hash: '27d9d853', estado: 'pendente' },
       { id: 'f3', nome: 'Joana Lima', tipo: 'Entrada', local: 'Acme Comércio (visita)', quando: '28/09 08:04', nsr: 348715, gps: '±412m', disp: 'iOS 19', hash: 'd1dbb32b', estado: 'pendente' },
       { id: 'f4', nome: 'Felipe Andrade', tipo: 'Saída', local: 'Posto BR · fachada', quando: '27/09 21:31', nsr: 348690, gps: '±22m', disp: 'Android', hash: '32619e21', estado: 'validada' }
     ],
-    cliSel: 'c1', pesTab: 'todos', pedSel: '4807', pedTab: 'todos', prodCat: 'todos', eqTab: 'todos',
+    cliSel: 'c1', pesTab: 'todos', pedSel: '4807', pedTab: 'ativos', prodCat: 'todos', eqTab: 'todos',
     npStep: 0, npTipo: 'm2', npMargem: 120, npBaixa: true, npDone: false,
     opIdx: 1, tarCheck: [true, true, false, false], tarDone: false,
     movSaldo: 18, movTipo: 'entrada', movHist: [
@@ -3429,14 +3448,14 @@ class Component extends DCLogic {
       { tipo: 'Perda', motivo: 'Refilo · ajuste de cor', quando: '26/09', qtd: -1.2 },
       { tipo: 'Saída', motivo: 'OP-2301 · Escola Aprender', quando: '25/09', qtd: -4 }
     ],
-    chat: [{ de: 'sis', texto: 'Olá! Bem-vindo ao Oimpresso Mobile. Como posso ajudar?', hora: '09:38' }], chatDig: false,
+    chat: [{ de: 'sis', texto: 'Olá! Sou a Jana, a assistente do oimpresso. Como posso ajudar?', hora: '09:38' }], chatDig: false,
     manAg: {},
     peds: [
-      { id: '4807', cliente: 'Mercado Bom Preço', cli: 'c3', produto: 'Kit PDV campanha verão', data: 'hoje', status: 'novo', itens: [['Wobbler 15 cm', '200 un', 620], ['Faixa de gôndola 1,00 × 0,10 m', '80 un', 960], ['Totem de chão 0,60 × 1,60 m', '3 un', 735]] },
-      { id: '4819', cliente: 'Padaria Trigo Fino', cli: 'c6', produto: 'Placas PS 30 × 40 cm', data: 'hoje', status: 'novo', itens: [['Placa PS 2 mm impressa', '12 un', 452]] },
-      { id: '4812', cliente: 'Ótica Visão Clara', cli: 'c1', produto: 'Fachada ACM + letra caixa', data: 'ontem', status: 'aprovado', itens: [['ACM 3 mm · 6,40 × 0,90 m', '5,76 m²', 5184], ['Letra caixa inox', '14 un', 2656]] },
-      { id: '4815', cliente: 'Escola Aprender', cli: 'c7', produto: 'Banners formatura', data: '27/09', status: 'execucao', itens: [['Banner lona 440g 0,90 × 1,20 m', '10 un', 1180]] },
-      { id: '4790', cliente: 'Clínica Vida Plena', cli: 'c4', produto: 'Placas de sinalização interna', data: '22/09', status: 'entregue', itens: [['Placa ACM recortada', '12 un', 3420]] }
+      { id: '4807', prazo: '03/10', atrasado: false, fone: '(48) 99807-4807', cliente: 'Mercado Bom Preço', cli: 'c3', produto: 'Kit PDV campanha verão', data: 'hoje', status: 'novo', itens: [['Wobbler 15 cm', '200 un', 620], ['Faixa de gôndola 1,00 × 0,10 m', '80 un', 960], ['Totem de chão 0,60 × 1,60 m', '3 un', 735]] },
+      { id: '4819', prazo: '01/10', atrasado: false, fone: '(48) 99819-4819', cliente: 'Padaria Trigo Fino', cli: 'c6', produto: 'Placas PS 30 × 40 cm', data: 'hoje', status: 'novo', itens: [['Placa PS 2 mm impressa', '12 un', 452]] },
+      { id: '4812', prazo: '28/09', atrasado: true, fone: '(48) 99812-4812', cliente: 'Ótica Visão Clara', cli: 'c1', produto: 'Fachada ACM + letra caixa', data: 'ontem', status: 'aprovado', itens: [['ACM 3 mm · 6,40 × 0,90 m', '5,76 m²', 5184], ['Letra caixa inox', '14 un', 2656]] },
+      { id: '4815', prazo: '30/09', atrasado: false, fone: '(48) 99815-4815', cliente: 'Escola Aprender', cli: 'c7', produto: 'Banners formatura', data: '27/09', status: 'execucao', itens: [['Banner lona 440g 0,90 × 1,20 m', '10 un', 1180]] },
+      { id: '4790', prazo: '22/09', atrasado: false, fone: '(48) 99790-4790', cliente: 'Clínica Vida Plena', cli: 'c4', produto: 'Placas de sinalização interna', data: '22/09', status: 'entregue', itens: [['Placa ACM recortada', '12 un', 3420]] }
     ],
     relPer: 'mes', relTab: 'dre', fisTab: 'todos', fisOpen: false, fisTipo: 'NFSe', fisRef: 'os1042',
     fisDocs: [
@@ -3499,7 +3518,7 @@ class Component extends DCLogic {
     this._tt = setTimeout(() => this.setState({ toast: null }), 2400);
   }
   mut(p, msg) {
-    if (!this.state.online) { this.setState(s => ({ fila: s.fila + 1 })); this.showToast(p, 'Sem conexão — alteração guardada na fila', 'warn'); }
+    if (!this.state.online) { this.showToast(p, 'Sem conexão — tente de novo quando a internet voltar.', 'warn'); }
     else this.showToast(p, msg, 'ok');
   }
   componentWillUnmount() { clearTimeout(this._tt); clearTimeout(this._ia); clearTimeout(this._ft); }
@@ -3539,10 +3558,10 @@ class Component extends DCLogic {
   }
   renderVals() {
     const ETAPAS = [
-      { id: 'fila', label: 'Fila', tint: 'var(--warn)', acao: 'Iniciar' },
-      { id: 'andamento', label: 'Andamento', tint: 'var(--accent)', acao: 'Concluir etapa' },
-      { id: 'revisao', label: 'Revisão', tint: 'var(--warn)', acao: 'Expedir' },
-      { id: 'concluido', label: 'Concluído', tint: 'var(--pos)', acao: '' }
+      { id: 'fila', label: 'Aprovado', tint: 'oklch(0.6 0.13 240)', acao: '' },
+      { id: 'andamento', label: 'Produção', tint: 'var(--accent)', acao: '' },
+      { id: 'revisao', label: 'Em espera', tint: 'var(--warn)', acao: '' },
+      { id: 'concluido', label: 'Faturar', tint: 'var(--pos)', acao: '' }
     ];
     const next = { fila: 'andamento', andamento: 'revisao', revisao: 'concluido', concluido: 'concluido' };
     const { ops, etapa } = this.state;
@@ -3557,11 +3576,13 @@ class Component extends DCLogic {
         pick: () => this.setState({ etapa: e.id })
       };
     });
+    const OPX = { 'OP-2318': ['4821', '02/10', false, 'R$ 1.180,00'], 'OP-2319': ['4822', '03/10', false, 'R$ 456,00'], 'OP-2311': ['4812', '28/09', true, 'R$ 7.840,00'], 'OP-2314': ['4815', '30/09', false, 'R$ 1.180,00'], 'OP-2316': ['4819', '01/10', false, 'R$ 452,00'] };
     const opsVisiveis = ops.filter(o => o.status === etapa).map(o => {
       const e = ETAPAS[idx(o.status)];
       const i = idx(o.status);
       return {
-        ...o, etapa: e.label, tint: e.tint, acao: e.acao,
+        ...o, etapa: e.label, tint: OPX[o.id] && OPX[o.id][2] ? 'var(--neg)' : e.tint, acao: e.acao,
+        num: OPX[o.id] ? OPX[o.id][0] : o.id.replace('OP-', ''), prazo: OPX[o.id] ? (OPX[o.id][2] ? 'atrasado · ' : 'prazo ') + OPX[o.id][1] : 'prazo —', prazoFg: OPX[o.id] && OPX[o.id][2] ? 'var(--neg)' : 'var(--text-mute)', valor: OPX[o.id] ? OPX[o.id][3] : '—',
         podeAvancar: o.status !== 'concluido',
         pipe: ETAPAS.map((_, j) => j <= i ? e.tint : 'var(--border)'),
         avancar: () => this.mut('02', 'OP avançada para ' + (ETAPAS[idx(next[o.status])] || {}).label) || this.setState(s => ({ ops: s.ops.map(x => x.id === o.id ? { ...x, status: next[x.status] } : x) }))
@@ -3605,7 +3626,7 @@ class Component extends DCLogic {
     const fmtN = (n) => n.toLocaleString('pt-BR');
     const estChips = [['todos', 'Todos', estoque.length], ['baixo', 'Baixo estoque', nBaixo]].map(([id, l, c]) => chip(estTab === id, l, c, () => this.setState({ estTab: id })));
     const estVisiveis = estoque.filter(i => estTab === 'todos' || baixo(i)).map(i => ({
-      ...i, qtd: `${fmtN(i.qtd)} ${i.un}`, min: fmtN(i.min),
+      ...i, qtd: `${fmtN(i.qtd)} ${i.un}`, min: fmtN(i.min), baixoTxt: i.qtd <= i.min ? ' · baixo' : '',
       tint: i.qtd <= i.min ? 'var(--neg)' : i.qtd <= i.min * 2 ? 'var(--warn)' : 'var(--pos)',
       pct: Math.min(100, Math.round(i.qtd / (i.min * 3) * 100)) + '%',
       entrada: () => this.mut('05', 'Entrada registrada · ' + i.nome) || this.setState(s => ({ estoque: s.estoque.map(x => x.id === i.id ? { ...x, qtd: x.qtd + (x.min >= 50 ? 50 : x.min) } : x) }))
@@ -3624,10 +3645,10 @@ class Component extends DCLogic {
     const lancVisiveis = [...this.state.faturados, ...LANC].filter(l => l.t === filtro).map(l => {
       const tipo = l.tipo || l.t;
       return { ...l, valor: (tipo === 'receber' ? '+ ' : '− ') + brl(l.valor), valColor: tipo === 'receber' ? 'var(--pos)' : 'var(--neg)',
-        stColor: l.status === 'vencido' ? 'var(--neg)' : l.status === 'liquidado' ? 'var(--pos)' : 'var(--text-mute)' };
+        status: { aberto: 'Aberto', vencido: 'Vencido', liquidado: 'Liquidado' }[l.status] || l.status, stColor: l.status === 'vencido' ? 'var(--neg)' : l.status === 'liquidado' ? 'var(--pos)' : 'var(--text-mute)' };
     });
     const finAbas = [['receber', 'A receber'], ['pagar', 'A pagar'], ['extrato', 'Extrato']].map(([id, label]) => ({
-      label, pick: () => this.setState({ finAba: id }),
+      label: label + ' ' + [...this.state.faturados, ...LANC].filter(l => l.t === (id === 'extrato' ? 'liq' : id)).length, pick: () => this.setState({ finAba: id }),
       bg: finAba === id ? 'var(--surface)' : 'transparent', fg: finAba === id ? 'var(--text)' : 'var(--text-mute)'
     }));
     const FSM = [
@@ -3692,8 +3713,7 @@ class Component extends DCLogic {
     const empresa = EMP.find(e => e.id === S.empresaId) || EMP[0];
     const usarEmp = (e, p) => () => { if (e.id === S.empresaId) return; this.setState({ empresaId: e.id, fila: 0 }); this.showToast(p, 'Cache trocado — agora em ' + e.nome, 'default'); };
     const empList = (p) => EMP.map(e => { const on = e.id === S.empresaId; return { ...e, usar: usarEmp(e, p), acao: on ? 'Ativa' : 'Usar esta', border: on ? 'var(--accent)' : 'var(--border)', fg: on ? 'var(--accent)' : 'var(--text-dim)' }; });
-    const banner = { show: !S.online || S.fila > 0, podeSync: S.online && S.fila > 0,
-      msg: !S.online ? 'Você está offline' + (S.fila ? ' · ' + S.fila + ' na fila' : '') : S.fila + (S.fila === 1 ? ' alteração pendente' : ' alterações pendentes') + ' de sincronização' };
+    const banner = { show: !S.online, podeSync: false, msg: 'Sem conexão. Bater ponto precisa de internet.' };
     const toastKeys = {}; if (S.toast) toastKeys['p' + S.toast.p] = true;
     const tot = S.itensOS.reduce((a, it) => { if (it.tipo === 'PÇA') a.p += it.v; else a.m += it.v; return a; }, { p: 0, m: 0 });
     const totalOS = tot.p + tot.m;
@@ -3725,7 +3745,7 @@ class Component extends DCLogic {
     };
     const loginEntrar = () => {
       if (!S.online) { this.setState({ loginErro: 'Sem conexão — o primeiro login precisa de internet.' }); return; }
-      this.setState({ loginStep: 'empresas', loginErro: '' });
+      this.setState({ loginStep: 'ok', loginErro: '' });
     };
     const CAT = [
       { id: 'p1', nome: 'Banner lona 0,80 × 1,20 m', cat: 'Comunicação visual', v: 89 },
@@ -3759,19 +3779,21 @@ class Component extends DCLogic {
       nova: () => this.setState({ cart: [], vrDone: null, vrMetodo: 'pix' })
     };
     const TAR = [
-      ...(S.tarDone ? [] : [{ kind: 'manual', glyph: '', titulo: 'Aprovar arte da fachada', sub: 'Ótica Visão Clara · vence hoje 17:00', origem: 'CRM', quando: '30m', tint: 'var(--accent)' }]),
-      { kind: 'pedidos', glyph: 'PD', titulo: 'Mercado Bom Preço', sub: 'Kit PDV campanha verão · R$ 2.315', origem: 'CRM', quando: '12m', tint: 'var(--accent)' },
-      { kind: 'pedidos', glyph: 'PD', titulo: 'Ótica Visão Clara', sub: 'Fachada ACM · R$ 7.840', origem: 'CRM', quando: '1h', tint: 'var(--accent)' },
-      ...ops.filter(o => o.status === 'fila').map(o => ({ kind: 'producao', glyph: 'OP', titulo: o.produto, sub: 'OP em fila · ' + o.cliente, origem: 'MFG', quando: '2h', tint: 'var(--warn)' })),
-      ...S.oss.filter(o => o.status === 'aguardando_aprovacao' || o.status === 'diagnostico').map(o => ({ kind: 'os', glyph: 'OS', titulo: 'OS #' + o.numero, sub: o.cliente + ' · ' + (o.status === 'diagnostico' ? 'em diagnóstico' : 'aguardando aprovação'), origem: 'OS', quando: '3h', tint: o.status === 'diagnostico' ? 'var(--warn)' : 'var(--neg)' })),
-      ...estoque.filter(i => i.qtd <= i.min).map(i => ({ kind: 'estoque', glyph: '!', titulo: i.nome, sub: 'Estoque baixo · ' + i.qtd + ' / mín ' + i.min, origem: 'MFG', quando: 'agora', tint: 'var(--neg)' }))
+      ...(S.tarDone ? [] : [{ kind: 'todo', grupo: 'atrasadas', titulo: 'Aprovar arte da fachada', sub: 'Ótica Visão Clara · pedido #4812', quando: '28/09', atrasado: true }]),
+      { kind: 'todo', grupo: 'hoje', titulo: 'Conferir saldo de lona 440 g', sub: 'Estoque · Loja centro', quando: '29/09' },
+      ...S.jusList.filter(j => j.estado === 'Pendente').map(j => ({ kind: 'ponto', grupo: 'hoje', titulo: 'Justificativa pendente · ' + j.motivo, sub: j.cod + ' · ' + j.quando, quando: '29/09' })),
+      { kind: 'todo', grupo: 'amanha', titulo: 'Ligar para Gráfica Ponto Certo', sub: 'Orçamento ORC-2210', quando: '30/09' },
+      { kind: 'todo', grupo: 'semana', titulo: 'Revisar tabela de preços do ACM', sub: '', quando: '02/10' }
     ];
-    const tarChips = [['todas', 'Todas'], ['pedidos', 'Pedidos'], ['producao', 'Produção'], ['os', 'OS'], ['estoque', 'Estoque']].map(([id, l]) => chip(S.tarFiltro === id, l, id === 'todas' ? TAR.length : TAR.filter(t => t.kind === id).length, () => this.setState({ tarFiltro: id })));
-    const TK = { manual: ['inbox', 's28'], pedidos: ['file', 's22'], producao: ['printer', 's02'], os: ['wrench', 's07'], estoque: ['alert', 's05'] };
-    const tarVisiveis = TAR.filter(t => S.tarFiltro === 'todas' || t.kind === S.tarFiltro).map(t => ({ ...t, icon: this.ico(TK[t.kind][0], 18), ir: () => { if (t.kind === 'pedidos') this.setState({ pedSel: t.titulo.includes('Mercado') ? '4807' : '4812' }); this.ir(t.titulo === 'OS #1042' ? 's03' : TK[t.kind][1]); } }));
+    const tarChips = [['todas', 'Todas'], ['todo', 'ToDo'], ['ponto', 'Ponto']].map(([id, l]) => chip(S.tarFiltro === id, l, id === 'todas' ? TAR.length : TAR.filter(t => t.kind === id).length, () => this.setState({ tarFiltro: id })));
+    const tarVisiveis = TAR.filter(t => S.tarFiltro === 'todas' || t.kind === S.tarFiltro).map(t => ({ ...t, origem: t.kind === 'todo' ? 'TODO' : 'PNT', tint: t.atrasado ? 'var(--neg)' : t.kind === 'todo' ? 'var(--accent)' : 'var(--warn)', quandoFg: t.atrasado ? 'var(--neg)' : 'var(--text-mute)',
+      icon: this.ico(t.kind === 'todo' ? 'inbox' : 'clock', 18), ir: () => this.ir(t.kind === 'todo' ? 's28' : 's36') }));
+    const tarGrupos = [['atrasadas', 'Atrasadas'], ['hoje', 'Hoje'], ['amanha', 'Amanhã'], ['semana', 'Esta semana'], ['depois', 'Depois']]
+      .map(([id, label]) => ({ label, fg: id === 'atrasadas' ? 'var(--neg)' : 'var(--text-mute)', itens: tarVisiveis.filter(t => t.grupo === id) })).filter(g => g.itens.length);
     const shell = {
-      fila: S.fila, banner, toast: { ...toastKeys, msg: S.toast ? S.toast.msg : '', tone: S.toast ? S.toast.tone : 'ok' },
+      filaCount: S.fila, banner, toast: { ...toastKeys, msg: S.toast ? S.toast.msg : '', tone: S.toast ? S.toast.tone : 'ok' },
       sincronizar: () => this.setState({ fila: 0 }),
+      ptCadOpts: [[false, 'Liberado'], [true, 'Sem cadastro']].map(([v, label]) => { const on = S.ptSemCad === v; return { label, bg: on ? 'var(--accent)' : 'transparent', fg: on ? 'var(--accent-fg)' : 'var(--text-dim)', pick: () => this.setState({ ptSemCad: v }) }; }),
       redeOpts: [['online', 'Online'], ['offline', 'Offline']].map(([id, label]) => { const on = (id === 'online') === S.online; return { label, bg: on ? 'var(--accent)' : 'transparent', fg: on ? 'var(--accent-fg)' : 'var(--text-dim)', pick: () => this.setState({ online: id === 'online' }) }; }),
       perfilNome: perfilAtivo.nome, empresa,
       trocarEmpresa: () => { const i = EMP.findIndex(e => e.id === S.empresaId); usarEmp(EMP[(i + 1) % EMP.length], '01')(); },
@@ -3783,7 +3805,7 @@ class Component extends DCLogic {
         ['Oficina', [['07', 'OS'], ['03', 'OS #1042'], ['08', 'Veículos'], ['23', 'Manutenção'], ['24', 'Equipamentos'], ['31', 'Equipamento'], ['32', 'Novo equip.'], ['33', 'Locais'], ['26', 'Equipe']]],
         ['Financeiro', [['06', 'Financeiro'], ['15', 'Pagamentos'], ['14', 'Fiscal'], ['13', 'Relatórios'], ['35', 'Dashboard']]],
         ['Ponto', [['36', 'Bater ponto'], ['37', 'Meu espelho'], ['38', 'Justificar'], ['39', 'Fila do gestor']]],
-        ['Suporte', [['25', 'Chat']]]
+        ['Suporte', [['25', 'Assistente']]]
       ].map(([grupo, telas]) => ({ grupo, telas: telas.map(([n, nome]) => ({ n, nome, href: '#s' + n, ir: () => { clearTimeout(this._ft); this.setState({ foco: 's' + n }); this._ft = setTimeout(() => this.setState({ foco: null }), 1800); } })) })),
       ed: (() => {
         const ORDER = ['tarefas', 'pedidos', 'vendas', 'producao', 'manutencao', 'equipamentos', 'financas', 'relatorios', 'clientes', 'produtos'];
@@ -3793,17 +3815,19 @@ class Component extends DCLogic {
             toggle: () => { if (on) this.setState({ edMods: em.filter(x => x !== k) }); else if (em.length >= 3) this.showToast('30', 'Máximo de 3 módulos — Início e Mais são fixos', 'warn'); else this.setState({ edMods: [...em, k] }); } }; }),
           preview: ['inicio', ...em, 'mais'].map((k, i) => ({ label: MODS[k][0], icon: this.ico(MODS[k][1], 20), color: i === 0 ? 'var(--accent)' : 'var(--text-mute)', pill: i === 0 ? 'var(--accent-soft)' : 'transparent' })),
           cols: 'repeat(' + (em.length + 2) + ', minmax(0, 1fr))',
-          contagem: em.length + '/3 módulos',
+          contagem: em.length + '/3 módulos na barra',
           salvar: () => { if (em.length === 0) { this.showToast('30', 'Escolha pelo menos 1 módulo', 'warn'); return; } this.setState({ perfilCustom: { id: 'meu', nome: 'Meu perfil', funcao: 'Personalizado', mods: em }, perfil: 'meu' }); this.showToast('30', 'Meu perfil aplicado — todas as barras mudaram', 'ok'); },
           restaurar: () => this.setState({ edMods: ['tarefas', 'producao', 'financas'] })
         };
       })(),
       perfis: PERFIS.map(p => { const on = p.id === S.perfil; return { ...p, mods: p.mods.map(m => MODS[m][0]).join(' · '), ring: on ? 'var(--accent)' : 'var(--border)', dot: on ? 'var(--accent)' : 'transparent', pick: () => { this.setState({ perfil: p.id }); this.showToast('10', 'Perfil ' + p.nome + ' aplicado — veja as barras', 'ok'); } }; }),
       empresasLista: empList('10'), empresasLogin: empList('00').map(e => ({ ...e, usar: () => { this.setState({ empresaId: e.id, loginStep: 'ok' }); } })),
-      modulosMais: ['manutencao', 'equipamentos', 'produtos', 'clientes', 'financas', 'relatorios'].map(k => ({ label: MODS[k][0], icon: this.ico(MODS[k][1], 18), desc: MODS[k][2], ir: () => this.ir(MODS[k][3]) })).concat([{ label: 'Orçamentos', icon: this.ico('file', 18), desc: 'Propostas', ir: () => this.ir('s04') }, { label: 'Estoque', icon: this.ico('layers', 18), desc: 'Inventário', ir: () => this.ir('s05') }, { label: 'Pagamentos', icon: this.ico('qr', 18), desc: 'PIX e links', ir: () => this.ir('s15') }, { label: 'Fiscal', icon: this.ico('shield', 18), desc: 'NF-e · NFS-e · NFC-e', ir: () => this.ir('s14') }, { label: 'Manutenção', icon: this.ico('wrench', 18), desc: 'Pátio e preventivas', ir: () => this.ir('s23') }, { label: 'Chat', icon: this.ico('inbox', 18), desc: 'Suporte e WhatsApp', ir: () => this.ir('s25') }, { label: 'Equipe', icon: this.ico('users', 18), desc: 'Mecânicos + admin', ir: () => this.ir('s26') }, { label: 'Locais', icon: this.ico('grid', 18), desc: 'Boxes, elevadores, pátio', ir: () => this.ir('s33') }, { label: 'Dashboard', icon: this.ico('chart', 18), desc: 'BI do mês', ir: () => this.ir('s35') }, { label: 'Ponto', icon: this.ico('clock', 18), desc: 'REP-P · bater ponto', ir: () => this.ir('s36') }, { label: 'Marcações a validar', icon: this.ico('clock', 18), desc: 'Fila do gestor', ir: () => this.ir('s39') }]),
+      modulosMais: [['tarefas', 'Tarefas', 'Pendências suas e do ponto', 'inbox', 's12'], ['pedidos', 'Pedidos', 'Pedidos e andamento', 'file', 's21'], ['producao', 'Produção', 'Fila por etapa', 'printer', 's02'], ['clientes', 'Pessoas', 'Clientes, fornecedores e equipe', 'users', 's17'], ['orcamentos', 'Orçamentos', 'Propostas enviadas e aprovadas', 'file', 's04'], ['produtos', 'Produtos', 'Catálogo, preço e estoque', 'package', 's19'], ['estoque', 'Estoque', 'Saldo por loja e itens abaixo do mínimo', 'layers', 's05'], ['financas', 'Financeiro', 'Saldo, contas a receber e a pagar', 'wallet', 's06'], ['fiscal', 'Fiscal', 'Notas emitidas e rejeitadas', 'file', 's14'], ['relatorios', 'Relatórios', 'DRE, vendas, produção e estoque', 'chart', 's13'], ['dashboard', 'Dashboard', 'Faturamento e indicadores de 30 dias', 'chart', 's35'], ['manutencao', 'Oficina', 'Ordens de serviço por etapa', 'wrench', 's07'], ['ponto_gestor', 'Validar ponto', 'Marcações fora da área para revisar', 'shield', 's39'], ['equipe', 'Equipe', 'Quem está na equipe e a carga de cada um', 'users', 's26'], ['assistente', 'Assistente', 'Pergunte à Jana sobre o sistema', 'inbox', 's25'], ['pagamentos', 'Pagamentos', 'Links de cobrança e quem já pagou', 'wallet', 's15'], ['ponto', 'Ponto', 'Bater ponto, espelho e justificativas', 'clock', 's36'], ['conta', 'Conta', 'Lembrete, privacidade e sair', 'users', 's00']]
+        .filter(([k]) => !perfilAtivo.mods.includes(k)).map(([k, label, desc, ic, s]) => ({ label, desc, icon: this.ico(ic, 18), ir: () => this.ir(s) })),
+      abrirWeb: () => this.showToast('10', 'Abre oimpresso.com no navegador do celular', 'default'),
       login: { isForm: S.loginStep === 'form', isEmpresas: S.loginStep === 'empresas', isOk: S.loginStep === 'ok', isRegister: S.loginMode === 'register',
-        titulo: S.loginMode === 'login' ? 'Entrar' : 'Criar conta', sub: S.loginMode === 'login' ? 'Use seu e-mail e senha para acessar.' : 'Crie sua conta para começar.',
-        cta: S.loginMode === 'login' ? 'Entrar com e-mail e senha' : 'Criar minha conta', switchLabel: S.loginMode === 'login' ? 'Não tem conta? Criar agora' : 'Já tem conta? Entrar',
+        titulo: S.loginMode === 'login' ? 'Entrar' : 'Criar conta', sub: S.loginMode === 'login' ? 'Use o mesmo usuário do oimpresso.' : 'Crie sua conta para começar.',
+        cta: S.loginMode === 'login' ? 'Entrar' : 'Criar minha conta', switchLabel: S.loginMode === 'login' ? 'Não tem conta? Criar agora' : 'Já tem conta? Entrar',
         showErro: !!S.loginErro, erro: S.loginErro, entrar: loginEntrar,
         alternar: () => this.setState({ loginMode: S.loginMode === 'login' ? 'register' : 'login', loginErro: '' }),
         sair: () => this.setState({ loginStep: 'form', loginErro: '', fila: 0 }) },
@@ -3817,7 +3841,7 @@ class Component extends DCLogic {
       foco: Object.fromEntries(Array.from({ length: 40 }, (_, i) => { const k = 's' + String(i).padStart(2, '0'); return [k, S.foco === k ? 'var(--accent)' : 'transparent']; })),
       icoChev: this.ico('chev', 16), icoScan: this.ico('scan', 24),
       kpiIr: { a: () => this.ir('s21'), b: () => this.ir('s02'), c: () => this.ir('s05') },
-      irFin: () => this.ir('s06'), irVR: () => this.ir('s11'), irOS03: () => this.ir('s03'), irInicio: () => this.ir('s01'),
+      irFin: () => this.ir('s06'), irVR: () => this.ir('s11'), irOS03: () => this.ir('s03'), irVeiculos: () => this.ir('s08'), irInicio: () => this.ir('s01'),
       voltar07: () => this.ir('s07'), voltar10: () => this.ir('s10'),
       ...(() => {
         const segv = (on) => ({ bg: on ? 'var(--surface)' : 'transparent', fg: on ? 'var(--text)' : 'var(--text-mute)' });
@@ -3851,10 +3875,10 @@ class Component extends DCLogic {
             pdf: exp('PDF'), xlsx: exp('Excel')
           },
           tabsRel: tab('relatorios'), tabsFis: tab('fiscal'),
-          fisEyebrow: S.fisDocs.length + ' documentos · ' + S.fisDocs.filter(d => d.status === 'rejeitado').length + ' rejeitado',
+          fisEyebrow: S.fisDocs.length + ' documentos · ' + S.fisDocs.filter(d => d.status === 'rejeitado').length + (S.fisDocs.filter(d => d.status === 'rejeitado').length === 1 ? ' rejeitado' : ' rejeitados'),
           fisChips: [['todos', 'Todos'], ...Object.entries(FIS).map(([id, [l]]) => [id, l])].map(([id, l]) => chip(S.fisTab === id, l, id === 'todos' ? S.fisDocs.length : S.fisDocs.filter(d => d.status === id).length, () => this.setState({ fisTab: id }))),
           fisDocs: S.fisDocs.filter(d => S.fisTab === 'todos' || d.status === S.fisTab).map(d => ({
-            ...d, numero: d.numero || '— sem número', valor: brl(d.valor), statusLabel: FIS[d.status][0], tint: FIS[d.status][1],
+            ...d, tipo: { NFe: 'NF-e', NFCe: 'NFC-e', NFSe: 'NFS-e' }[d.tipo] || d.tipo, numero: d.numero || '— sem número', valor: brl(d.valor), statusLabel: FIS[d.status][0], tint: FIS[d.status][1],
             temChave: !!d.chave, temErro: !!d.erro, podePdf: d.status === 'autorizado', podeAtualizar: d.status === 'processando' || d.status === 'rascunho', podeCancelar: d.status === 'autorizado',
             pdf: () => this.showToast('14', 'DANFE aberto · ' + d.tipo + ' ' + d.numero, 'ok'),
             atualizar: () => { if (!S.online) { this.showToast('14', 'Consultar SEFAZ precisa de conexão', 'warn'); return; } upd(d.id, { status: 'autorizado', numero: d.numero || '#' + (1288 + Math.floor(Math.random() * 20)), chave: d.chave || '4226 0912 3456 7800 0190 5500 1000 0012 9' + String(Math.floor(Math.random() * 900 + 100)) + ' 0004 7732' }); this.showToast('14', d.tipo + ' autorizada pela SEFAZ', 'ok'); },
@@ -3884,7 +3908,7 @@ class Component extends DCLogic {
           { id: 'ped4819', label: 'Pedido #4819', desc: 'Padaria Trigo Fino', valor: 452 }
         ];
         return {
-          notifUnread: unread > 0, notifEyebrow: unread > 0 ? unread + ' não lidas' : 'Em dia',
+          notifUnread: unread > 0, notifEyebrow: unread > 0 ? unread + (unread === 1 ? ' não lida' : ' não lidas') : 'Tudo lido',
           irNotif: () => this.ir('s16'),
           notifLerTodas: () => { this.setState(s => ({ notifs: s.notifs.map(n => ({ ...n, read: true })) })); this.showToast('16', 'Todas marcadas como lidas', 'ok'); },
           notifs: S.notifs.map(n => ({ ...n, weight: n.read ? 400 : 600, border: n.read ? 'var(--border)' : 'var(--accent)', bg: n.read ? 'var(--surface)' : 'var(--accent-soft)', dot: n.read ? 'transparent' : 'var(--accent)',
@@ -3899,7 +3923,7 @@ class Component extends DCLogic {
           pag: {
             open: S.pagOpen, abrir: () => this.setState({ pagOpen: true }), fechar: () => this.setState({ pagOpen: false }),
             refs: REFS.map(r => { const on = S.pagRef === r.id; return { ...r, valor: brl(r.valor), border: on ? 'var(--accent)' : 'var(--border)', bg: on ? 'var(--accent-soft)' : 'var(--surface)', pick: () => this.setState({ pagRef: r.id }) }; }),
-            metodos: [['qualquer', 'Qualquer'], ['pix', 'PIX'], ['boleto', 'Boleto'], ['cartao', 'Cartão']].map(([id, label]) => ({ label, ...segv(S.pagMet === id), pick: () => this.setState({ pagMet: id }) })),
+            metodos: [['qualquer', 'Qualquer'], ['pix', 'PIX'], ['boleto', 'Boleto']].map(([id, label]) => ({ label, ...segv(S.pagMet === id), pick: () => this.setState({ pagMet: id }) })),
             vencs: [3, 7, 15].map(d => ({ label: '+' + d + ' dias', ...segv(S.pagVenc === d), pick: () => this.setState({ pagVenc: d }) })),
             gerar: () => {
               const r = REFS.find(x => x.id === S.pagRef);
@@ -3914,9 +3938,9 @@ class Component extends DCLogic {
       ...(() => {
         const PES = [
           { id: 'c1', nome: 'Ótica Visão Clara', tipo: 'PJ', doc: '12.345.678/0001-00', papeis: ['Cliente'], cidade: 'Blumenau · SC', fone: '(47) 3321-0400', email: 'compras@oticavisaoclara.com.br', limite: 15000 },
-          { id: 'c2', nome: 'Transportes Vale Norte', tipo: 'PJ', doc: '23.456.789/0001-00', papeis: ['Cliente', 'Transportadora'], cidade: 'Gaspar · SC', fone: '(47) 3397-1180', email: 'frota@valenorte.com.br', limite: 30000 },
+          { id: 'c2', saldo: 4320, nome: 'Transportes Vale Norte', tipo: 'PJ', doc: '23.456.789/0001-00', papeis: ['Cliente', 'Transportadora'], cidade: 'Gaspar · SC', fone: '(47) 3397-1180', email: 'frota@valenorte.com.br', limite: 30000 },
           { id: 'c3', nome: 'Mercado Bom Preço', tipo: 'PJ', doc: '34.567.890/0001-00', papeis: ['Cliente'], cidade: 'Blumenau · SC', fone: '(47) 3035-2200', email: 'marketing@bompreco.com.br', limite: 8000 },
-          { id: 'c4', nome: 'Clínica Vida Plena', tipo: 'PJ', doc: '45.678.901/0001-00', papeis: ['Cliente'], cidade: 'Indaial · SC', fone: '(47) 3333-4510', email: 'adm@vidaplena.med.br', limite: 5000 },
+          { id: 'c4', saldo: 1180, nome: 'Clínica Vida Plena', tipo: 'PJ', doc: '45.678.901/0001-00', papeis: ['Cliente'], cidade: 'Indaial · SC', fone: '(47) 3333-4510', email: 'adm@vidaplena.med.br', limite: 5000 },
           { id: 'c5', nome: 'Studio Forma', tipo: 'PJ', doc: '56.789.012/0001-01', papeis: ['Cliente', 'Fornecedor'], cidade: 'Itajaí · SC', fone: '(47) 99120-7788', email: 'ola@studioforma.art', limite: 4000 },
           { id: 'c6', nome: 'Padaria Trigo Fino', tipo: 'PJ', doc: '67.890.123/0001-00', papeis: ['Cliente'], cidade: 'Blumenau · SC', fone: '(47) 3322-9090', email: 'trigofino@email.com', limite: 2000 },
           { id: 'c7', nome: 'Escola Aprender', tipo: 'PJ', doc: '78.901.234/0001-00', papeis: ['Cliente'], cidade: 'Pomerode · SC', fone: '(47) 3387-1200', email: 'secretaria@aprender.edu.br', limite: 6000 },
@@ -3924,10 +3948,10 @@ class Component extends DCLogic {
           { id: 'c9', nome: 'Jefferson Moraes', tipo: 'PF', doc: '000.000.000-00', papeis: ['Funcionário'], cidade: 'Gaspar · SC', fone: '(47) 99701-4455', email: 'jefferson@rotalivre.com.br', limite: 0 },
           { id: 'c10', nome: 'Distribuidora Sul Mídia', tipo: 'PJ', doc: '89.012.345/0001-00', papeis: ['Fornecedor'], cidade: 'Joinville · SC', fone: '(47) 3025-6600', email: 'vendas@sulmidia.com.br', limite: 0 }
         ];
-        const pesF = PES.filter(p => S.pesTab === 'todos' || (S.pesTab === 'pj' ? p.tipo === 'PJ' : S.pesTab === 'pf' ? p.tipo === 'PF' : p.papeis.includes('Fornecedor'))).sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
+        const pesF = PES.filter(p => S.pesTab === 'todos' || (S.pesTab === 'cli' ? p.papeis.includes('Cliente') : S.pesTab === 'func' ? p.papeis.includes('Funcionário') : S.pesTab === 'deb' ? p.saldo > 0 : p.papeis.includes('Fornecedor'))).sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
         const letras = [...new Set(pesF.map(p => p.nome[0].normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase()))];
         const cli = PES.find(p => p.id === S.cliSel) || PES[0];
-        const PSTS = { novo: ['Novo', 'var(--accent)'], aprovado: ['Aprovado', 'var(--pos)'], execucao: ['Em execução', 'var(--warn)'], pronto: ['Pronto', 'var(--pos)'], entregue: ['Entregue', 'var(--text-mute)'] };
+        const PSTS = { novo: ['Orçamento', 'var(--text-dim)'], aprovado: ['Aprovação', 'var(--warn)'], execucao: ['Produção', 'var(--accent)'], pronto: ['Entrega', 'oklch(0.6 0.13 240)'], entregue: ['Concluído', 'var(--text-mute)'] };
         const PORD = ['novo', 'aprovado', 'execucao', 'pronto', 'entregue'];
         const pedTot = (p) => p.itens.reduce((a, i) => a + i[2], 0);
         const pedsCli = S.peds.filter(p => p.cli === cli.id);
@@ -3973,18 +3997,18 @@ class Component extends DCLogic {
         const enviar = (t) => () => { if (S.chatDig) return; this.setState(s => ({ chat: [...s.chat, { de: 'eu', texto: t, hora: nowH() }], chatDig: true })); setTimeout(() => this.setState(s => ({ chat: [...s.chat, { de: 'sis', texto: resp(t), hora: nowH() }], chatDig: false })), 1000); };
         const CHK = ['Receber arte v3 do cliente', 'Conferir medidas com a fachada', 'Enviar prova de cor pelo link', 'Registrar aprovação na OS'];
         const MOVT = { entrada: ['Entrada', 1, 'var(--pos)'], saida: ['Saída', -1, 'var(--neg)'], ajuste: ['Ajuste', 1, 'var(--accent)'], perda: ['Perda', -1, 'var(--neg)'] };
-        const fmtQ = (n) => (n > 0 ? '+' : '') + n.toLocaleString('pt-BR', { maximumFractionDigits: 1 }) + ' m²';
+        const fmtQ = (n) => (n > 0 ? '+' : n < 0 ? '−' : '') + Math.abs(n).toLocaleString('pt-BR', { maximumFractionDigits: 1 }) + ' m²';
         return {
           irWizard: () => this.ir('s09'), irPessoas: () => this.ir('s17'), irPedidos: () => this.ir('s21'), irProdutos: () => this.ir('s19'), irNovoProd: () => this.ir('s20'),
           irProducao: () => this.ir('s02'), irEquip: () => this.ir('s24'), irTarefas: () => this.ir('s12'), irEstoque: () => this.ir('s05'), irMov: () => this.ir('s29'), irOP: () => this.ir('s27'),
           icoFile: this.ico('file', 16),
           pesEyebrow: PES.length + ' cadastradas',
-          pesChips: [['todos', 'Todos', PES.length], ['pj', 'PJ', PES.filter(p => p.tipo === 'PJ').length], ['pf', 'PF', PES.filter(p => p.tipo === 'PF').length], ['forn', 'Fornecedores', PES.filter(p => p.papeis.includes('Fornecedor')).length]].map(([id, l, c]) => chip(S.pesTab === id, l, c, () => this.setState({ pesTab: id }))),
-          pesGrupos: letras.map(L => ({ letra: L, itens: pesF.filter(p => p.nome[0].normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase() === L).map(p => ({ ...p, tipoKey: p.tipo.toLowerCase(), papeisTxt: p.papeis.join(' · '), abrir: () => { this.setState({ cliSel: p.id }); this.ir('s18'); } })) })),
+          pesChips: [['todos', 'Todos', PES.length], ['cli', 'Clientes', PES.filter(p => p.papeis.includes('Cliente')).length], ['forn', 'Fornecedores', PES.filter(p => p.papeis.includes('Fornecedor')).length], ['func', 'Funcionários', PES.filter(p => p.papeis.includes('Funcionário')).length], ['deb', 'Em débito', PES.filter(p => p.saldo > 0).length]].map(([id, l, c]) => chip(S.pesTab === id, l, c, () => this.setState({ pesTab: id }))),
+          pesGrupos: letras.map(L => ({ letra: L, itens: pesF.filter(p => p.nome[0].normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase() === L).map(p => ({ ...p, tipoKey: p.tipo.toLowerCase(), papeisTxt: p.papeis.join(' · '), temDebito: p.saldo > 0, debitoTxt: p.saldo > 0 ? 'em aberto ' + brl(p.saldo) : '', abrir: () => { this.setState({ cliSel: p.id }); this.ir('s18'); } })) })),
           cli: { ...cli, tipoLabel: cli.tipo === 'PJ' ? 'Pessoa jurídica' : 'Pessoa física', primeiro: cli.nome.split(' ')[0],
-            kpis: [{ label: 'Pedidos', v: String(pedsCli.length) }, { label: 'Ticket', v: pedsCli.length ? brl(pedsCli.reduce((a, p) => a + pedTot(p), 0) / pedsCli.length).replace(',00', '') : '—' }, { label: 'Limite', v: cli.limite ? brl(cli.limite).replace(',00', '') : '—' }],
+            kpis: [{ label: 'Pedidos', v: String(pedsCli.length) }, { label: 'Ticket', v: pedsCli.length ? brl(pedsCli.reduce((a, p) => a + pedTot(p), 0) / pedsCli.length).replace(',00', '') : '—' }, { label: 'Em aberto', v: cli.saldo ? brl(cli.saldo) : '—' }],
             contato: [{ k: 'Telefone', v: cli.fone, font: 'var(--font-mono)' }, { k: 'E-mail', v: cli.email, font: 'var(--font-sans)' }, { k: 'Cidade', v: cli.cidade, font: 'var(--font-sans)' }],
-            pedidos: pedsCli.map(p => ({ id: p.id, produto: p.produto, statusLabel: PSTS[p.status][0], valor: brl(pedTot(p)), abrir: () => { this.setState({ pedSel: p.id }); this.ir('s22'); } })),
+            pedidos: pedsCli.map(p => ({ id: p.id, produto: p.produto, statusLabel: p.prazo ? 'prazo ' + p.prazo : PSTS[p.status][0], valor: brl(pedTot(p)), abrir: () => { this.setState({ pedSel: p.id }); this.ir('s22'); } })),
             semPedidos: pedsCli.length === 0,
             whats: () => { this.setState(s => ({ chat: [...s.chat, { de: 'eu', texto: 'Olá ' + cli.nome.split(' ')[0] + ', tudo bem? ', hora: nowH() }] })); this.ir('s25'); },
             ligar: () => this.showToast('18', 'Ligando para ' + cli.fone, 'default'), email: () => this.showToast('18', 'Abrindo e-mail · ' + cli.email, 'default') },
@@ -4001,10 +4025,11 @@ class Component extends DCLogic {
             prevLabel: S.npDone ? 'Novo produto' : S.npStep === 0 ? 'Cancelar' : 'Voltar', nextLabel: S.npDone ? 'Ver catálogo' : S.npStep === 3 ? 'Salvar produto' : 'Continuar',
             prev: () => S.npDone ? this.setState({ npStep: 0, npDone: false }) : S.npStep > 0 ? npGo(S.npStep - 1) : this.ir('s19'),
             next: () => S.npDone ? this.ir('s19') : S.npStep === 3 ? (this.setState({ npDone: true }), this.mut('20', 'Produto salvo')) : npGo(S.npStep + 1) },
-          pedEyebrow: S.peds.length + ' pedidos · ' + S.peds.filter(p => p.status === 'novo').length + ' novos',
-          pedChips: [['todos', 'Todos'], ...PORD.map(k => [k, PSTS[k][0]])].map(([id, l]) => chip(S.pedTab === id, l, id === 'todos' ? S.peds.length : S.peds.filter(p => p.status === id).length, () => this.setState({ pedTab: id }))),
-          pedLista: S.peds.filter(p => S.pedTab === 'todos' || p.status === S.pedTab).map(p => ({ ...p, valor: brl(pedTot(p)), statusLabel: PSTS[p.status][0], tint: PSTS[p.status][1], abrir: () => { this.setState({ pedSel: p.id }); this.ir('s22'); } })),
-          ped: { id: ped.id, cliente: ped.cliente, statusLabel: PSTS[ped.status][0], tint: PSTS[ped.status][1], valor: brl(pedTot(ped)),
+          pedEyebrow: S.peds.filter(p => p.status !== 'entregue').length + ' ativos · ' + S.peds.filter(p => p.atrasado).length + ' atrasados',
+          pedChips: (() => { const F = { ativos: p => p.status !== 'entregue', atrasados: p => p.atrasado, concluidos: p => p.status === 'entregue', todos: () => true };
+            return [['ativos', 'Ativos'], ['atrasados', 'Atrasados'], ['concluidos', 'Concluídos'], ['todos', 'Todos']].map(([id, l]) => chip(S.pedTab === id, l, S.peds.filter(F[id]).length, () => this.setState({ pedTab: id }))); })(),
+          pedLista: S.peds.filter(p => S.pedTab === 'todos' ? true : S.pedTab === 'ativos' ? p.status !== 'entregue' : S.pedTab === 'atrasados' ? p.atrasado : S.pedTab === 'concluidos' ? p.status === 'entregue' : p.status === S.pedTab).map(p => ({ ...p, valor: brl(pedTot(p)), statusLabel: PSTS[p.status][0], tint: p.atrasado ? 'var(--neg)' : PSTS[p.status][1], prazoTxt: (p.atrasado ? 'atrasado · ' : 'prazo ') + p.prazo, prazoFg: p.atrasado ? 'var(--neg)' : 'var(--text-mute)', stTint: PSTS[p.status][1], abrir: () => { this.setState({ pedSel: p.id }); this.ir('s22'); } })),
+          ped: { id: ped.id, cliente: ped.cliente, statusLabel: ped.atrasado ? 'Atrasado' : PSTS[ped.status][0], tint: ped.atrasado ? 'var(--neg)' : PSTS[ped.status][1], valor: brl(pedTot(ped)), prazo: ped.prazo + '/2026', atrasado: !!ped.atrasado, fone: ped.fone,
             steps: PORD.map((k, i) => ({ label: PSTS[k][0], state: i < pi ? 'done' : i === pi ? (k === 'entregue' ? 'term' : 'current') : 'todo' })),
             itens: ped.itens.map(([d, m, v]) => ({ desc: d, meta: m, valor: brl(v) })),
             abrirCli: () => { this.setState({ cliSel: ped.cli }); this.ir('s18'); }, temOP: !!ped.op,
@@ -4047,11 +4072,12 @@ class Component extends DCLogic {
             lgpd: [{ k: 'WhatsApp', v: 'Autorizado', font: 'var(--font-sans)' }, { k: 'NF-e por e-mail', v: 'Autorizado', font: 'var(--font-sans)' }, { k: 'SMS', v: 'Não autorizado', font: 'var(--font-sans)' }, { k: 'Registrado em', v: '12/03/2026 14:22', font: 'var(--font-mono)' }]
           },
           dash: { spark: [92, 104, 98, 121, 117, 133, 148],
-            kpis: [{ label: 'Pedidos', v: String(S.peds.length), sub: S.peds.filter(p => p.status === 'novo').length + ' novos', c: 'var(--accent)', ir: () => this.ir('s21') }, { label: 'OPs em curso', v: String(ops.filter(o => o.status !== 'concluido').length), sub: 'produção', c: 'var(--text-mute)', ir: () => this.ir('s02') }, { label: 'OS no pátio', v: String(S.oss.filter(o => o.status !== 'entregue').length), sub: S.oss.filter(o => o.status.startsWith('aguardando')).length + ' travadas', c: 'var(--neg)', ir: () => this.ir('s07') }, { label: 'A receber', v: 'R$ 38,9k', sub: 'R$ 4,3k vencido', c: 'var(--warn)', ir: () => this.ir('s06') }],
+            kpis: [{ label: 'Pedidos', v: String(S.peds.filter(p => p.status !== 'entregue').length), sub: S.peds.filter(p => p.data === 'hoje').length + ' hoje', c: 'var(--accent)', ir: () => this.ir('s21') }, { label: 'Produção', v: String(ops.filter(o => o.status === 'andamento').length), sub: 'em produção', c: 'var(--text-mute)', ir: () => this.ir('s02') }, { label: 'A receber', v: 'R$ 38,9k', sub: 'R$ 4,3k vencido', c: 'var(--warn)', ir: () => this.ir('s06') }],
             pedidos: [3, 5, 4, 6, 8, 2, 1, 5, 7, 6, 9, 8, 4, S.peds.length],
             opPct: Math.round(ops.filter(o => o.status === 'concluido').length / ops.length * 100), opLabel: 'OPs concluídas · ' + ops.filter(o => o.status === 'concluido').length + '/' + ops.length },
           chatMsgs: S.chat.map(m => { const eu = m.de === 'eu'; return { ...m, just: eu ? 'flex-end' : 'flex-start', canto: eu ? 'right' : 'left', bg: eu ? 'var(--accent)' : 'var(--surface)', fg: eu ? 'var(--accent-fg)' : 'var(--text)', border: eu ? 'var(--accent)' : 'var(--border)' }; }),
           chatDigitando: S.chatDig, chatSug: ['Como vejo meus pedidos?', 'E a produção?', 'Financeiro do mês', 'Ajuda'].map(l => ({ label: l, enviar: enviar(l) })),
+          eqEyebrow: '4 pessoas',
           equipe: [
             { nome: 'Jefferson Moraes', funcao: 'Mecânico · Box 2', carga: '2 OS', status: 'Em serviço', tint: 'var(--warn)' },
             { nome: 'André Silva', funcao: 'Impressor · plotter 1,60', carga: '3 OPs', status: 'Na impressão', tint: 'var(--warn)' },
@@ -4074,7 +4100,7 @@ class Component extends DCLogic {
           mov: { saldo: S.movSaldo.toLocaleString('pt-BR', { maximumFractionDigits: 1 }) + ' m²', tint: S.movSaldo <= 50 ? 'var(--neg)' : 'var(--pos)',
             tipos: Object.entries(MOVT).map(([id, [label]]) => ({ label, ...segv(S.movTipo === id), pick: () => this.setState({ movTipo: id }) })),
             qtds: [1, 5, 10, 50].map(q => ({ label: (MOVT[S.movTipo][1] > 0 ? '+' : '−') + q, add: () => { const d = q * MOVT[S.movTipo][1]; this.setState(s => ({ movSaldo: Math.max(0, s.movSaldo + d), movHist: [{ tipo: MOVT[s.movTipo][0], motivo: 'Registro manual · mobile', quando: 'agora', qtd: d }, ...s.movHist] })); this.mut('29', MOVT[S.movTipo][0] + ' de ' + q + ' m² registrada'); } })),
-            hist: S.movHist.map(m => ({ ...m, qtd: fmtQ(m.qtd), c: m.qtd > 0 ? 'var(--pos)' : 'var(--neg)' })) }
+            hist: (() => { let sal = S.movSaldo; return S.movHist.map(m => { const r = { ...m, qtd: fmtQ(m.qtd), c: m.qtd > 0 ? 'var(--pos)' : 'var(--neg)', saldoTxt: 'saldo ' + sal.toLocaleString('pt-BR', { maximumFractionDigits: 1 }) + ' m²' }; sal -= m.qtd; return r; }); })() }
         };
       })(),
       ...(() => {
@@ -4095,13 +4121,14 @@ class Component extends DCLogic {
           ['28', 'seg', '07:58  12:02  13:01  17:15', '8h18', false], ['26', 'sáb', '08:00  12:00', '4h00', false], ['25', 'sex', '08:05  12:00  13:00  17:02', '7h57', false],
           ['24', 'qui', '07:55  12:10', '4h15', true], ['23', 'qua', '08:00  12:00  13:00  18:30', '9h30', false], ['22', 'ter', '', '0h00', true]
         ];
+        const MOTIVOS = [['CONSULTA_MEDICA', 'Consulta médica'], ['ATESTADO_MEDICO', 'Atestado médico'], ['REUNIAO_EXTERNA', 'Reunião externa'], ['VISITA_CLIENTE', 'Visita a cliente'], ['HORA_EXTRA_AUTORIZADA', 'Hora extra autorizada'], ['ESQUECIMENTO_MARCACAO', 'Esquecimento de marcação'], ['PROBLEMA_EQUIPAMENTO', 'Problema no equipamento'], ['OUTRO', 'Outro']];
         const motivoErr = !S.jusMot ? 'Escolha o motivo.' : !S.jusDia && (!S.jusDas || !S.jusAs) ? 'Informe o horário (das/às) ou marque Dia todo — o gestor decide pela janela.' : !S.jusDia && S.jusAs <= S.jusDas ? 'O fim precisa ser depois do início.' : S.jusTxt.trim().length < 10 ? 'Descreva com pelo menos 10 caracteres.' : null;
         const pendentes = S.ptFila.filter(f => f.estado === 'pendente').length;
         const ESTF = { pendente: ['A validar', 'var(--warn)'], validada: ['Validada', 'var(--pos)'], recusada: ['Recusada · anulação gravada', 'var(--neg)'] };
         const setF = (id, estado) => this.setState(s => ({ ptFila: s.ptFila.map(f => f.id === id ? { ...f, estado } : f) }));
         return {
           pt: {
-            abas36: abaDe('s36'), abas37: abaDe('s37'), abas38: abaDe('s38'), relogio: React.createElement(this._Clock),
+            semCad: S.ptSemCad, comCad: !S.ptSemCad, abas36: abaDe('s36'), abas37: abaDe('s37'), abas38: abaDe('s38'), relogio: React.createElement(this._Clock),
             gps: g, localizar: () => this.setState(s => ({ ptGps: (s.ptGps + 1) % GPS.length })),
             tipos: TIPOS.map(([id, label, hint]) => { const on = S.ptTipo === id; return { label, hint, border: on ? 'var(--accent)' : 'var(--border)', bg: on ? 'var(--accent-soft)' : 'var(--surface)', fg: on ? 'var(--accent)' : 'var(--text)', pick: () => this.setState({ ptTipo: id }) }; }),
             temBloqueio: !!bloqueio, bloqueio: bloqueio || '',
@@ -4122,13 +4149,20 @@ class Component extends DCLogic {
               return { label, hora: m ? m.hora : '—:—', sub: m ? (m.revisar ? 'fora da área' : 'NSR ' + m.nsr) : next ? 'próxima' : '',
                 fg: m ? 'var(--text)' : 'var(--text-mute)', subFg: m && m.revisar ? 'var(--warn)' : next ? 'var(--accent)' : 'var(--text-mute)',
                 border: next ? 'var(--accent)' : m ? 'var(--border)' : 'var(--border)', borderStyle: m || next ? 'solid' : 'dashed', bg: m ? 'var(--surface)' : next ? 'var(--accent-soft)' : 'transparent' }; }),
-            totais: [{ label: 'Trabalhado', v: '148h20', fg: 'var(--text)' }, { label: 'Hora extra', v: '6h40', fg: 'var(--pos)' }, { label: 'Faltas', v: '8h00', fg: 'var(--neg)' }, { label: 'Atrasos', v: '0h35', fg: 'var(--warn)' }],
+            totais: [{ label: 'Banco de horas', v: '+12h40', fg: 'var(--pos)' }, { label: 'Trabalhado', v: '148h20', fg: 'var(--text)' }, { label: 'Hora extra', v: '6h40', fg: 'var(--text)' }, { label: 'Faltas e atrasos', v: '8h35', fg: 'var(--neg)' }],
+            escala: [['Entrada', '08:00'], ['Almoço', '12:00'], ['Retorno', '13:00'], ['Saída', '17:00']].map(([label, hora]) => ({ label, hora })),
+            justs: S.jusList.map(j => { const t = { Pendente: 'var(--warn)', Aprovada: 'var(--pos)', Rejeitada: 'var(--neg)' }[j.estado] || 'var(--text-dim)'; return { ...j, tint: t, pillBg: 'color-mix(in oklch, ' + t + ' 8%, transparent)', pillBorder: 'color-mix(in oklch, ' + t + ' 25%, transparent)' }; }),
+            inicio: (() => { const ESC = { ENTRADA: '08:00', ALMOCO_INICIO: '12:00', ALMOCO_FIM: '13:00', SAIDA: '17:00' }; const nx = S.ptHoje.length < 4 ? TIPOS[S.ptHoje.length] : null;
+              return { rotulo: nx ? 'Próxima marcação' : 'Jornada de hoje', label: nx ? nx[1] : 'Todas registradas', temPrevista: !!nx, prevista: nx ? 'prevista ' + ESC[nx[0]] : '', ir: () => this.ir('s36') }; })(),
+            tarefas: [{ titulo: 'Aprovar arte — Fachada Mercado União', sub: 'OS #1044 · Auto Center Rota', prazo: '27/09', atrasado: true }, { titulo: 'Conferir saldo de lona 440 g', sub: 'Estoque · Loja centro', prazo: '29/09', atrasado: false }, { titulo: 'Ligar para Gráfica Ponto Certo', sub: 'Orçamento ORC-2210', prazo: '30/09', atrasado: false }]
+              .map(t => ({ ...t, fg: t.atrasado ? 'var(--neg)' : 'var(--text-dim)', ir: () => this.ir('s12') })),
+            irTarefas: () => this.ir('s12'),
             dias: [['29', 'ter', hojeStr, 'em curso', false], ...DIAS].map(([dia, dow, marc, trab, div]) => ({ dia, dow, trab, div, marc: marc || 'sem marcação', marcFg: marc ? 'var(--text)' : 'var(--text-mute)',
               bg: div ? 'color-mix(in oklch, var(--warn) 6%, transparent)' : 'transparent', cursor: div ? 'pointer' : 'default',
-              abrir: () => { if (!div) return; this.setState({ jusData: '2026-09-' + dia, jusMot: dia === '22' ? 'ATESTADO' : 'ESQUECIMENTO', jusDia: dia === '22' }); this.ir('s38'); } }))
+              abrir: () => { if (!div) return; this.setState({ jusData: '2026-09-' + dia, jusMot: dia === '22' ? 'ATESTADO_MEDICO' : 'ESQUECIMENTO_MARCACAO', jusDia: dia === '22' }); this.ir('s38'); } }))
           },
           jus: {
-            motivos: [['ESQUECIMENTO', 'Esqueci de marcar'], ['SERVICO_EXTERNO', 'Serviço externo'], ['ATESTADO', 'Atestado médico'], ['FALHA_APARELHO', 'Falha do aparelho'], ['OUTRO', 'Outro']].map(([id, label]) => { const on = S.jusMot === id; return { label, border: on ? 'var(--accent)' : 'var(--border)', bg: on ? 'var(--accent)' : 'var(--surface)', fg: on ? 'var(--accent-fg)' : 'var(--text)', pick: () => this.setState({ jusMot: id }) }; }),
+            motivos: MOTIVOS.map(([id, label]) => { const on = S.jusMot === id; return { label, border: on ? 'var(--accent)' : 'var(--border)', bg: on ? 'var(--accent)' : 'var(--surface)', fg: on ? 'var(--accent-fg)' : 'var(--text)', pick: () => this.setState({ jusMot: id }) }; }),
             data: S.jusData, setData: (e) => this.setState({ jusData: e.target.value }),
             toggleDia: () => this.setState(s => ({ jusDia: !s.jusDia })), chkRing: S.jusDia ? 'var(--accent)' : 'var(--border)', chkFill: S.jusDia ? 'var(--accent)' : 'transparent', chkMark: S.jusDia ? '✓' : '',
             mostraHora: !S.jusDia, das: S.jusDas, as: S.jusAs, setDas: (e) => this.setState({ jusDas: e.target.value }), setAs: (e) => this.setState({ jusAs: e.target.value }),
@@ -4137,7 +4171,8 @@ class Component extends DCLogic {
             enviar: () => {
               if (motivoErr) return;
               const cod = 'INT-' + String(S.jusSeq + 1).padStart(4, '0');
-              this.setState({ jusSeq: S.jusSeq + 1, jusMot: '', jusDia: false, jusDas: '', jusAs: '', jusTxt: '' });
+              const dd = S.jusData.split('-').reverse().slice(0, 2).join('/');
+              this.setState(s => ({ jusSeq: s.jusSeq + 1, jusMot: '', jusDia: false, jusDas: '', jusAs: '', jusTxt: '', jusList: [{ cod, motivo: (MOTIVOS.find(m => m[0] === s.jusMot) || ['', s.jusMot])[1], quando: dd + ' · ' + (s.jusDia ? 'dia todo' : s.jusDas + '–' + s.jusAs), estado: 'Pendente' }, ...s.jusList] }));
               if (!S.online) { this.mut('38', ''); return; }
               this.showToast('38', 'Justificativa ' + cod + ' enviada — está na fila de Aprovações como pendente.', 'ok');
             }
@@ -4149,11 +4184,13 @@ class Component extends DCLogic {
             itens: S.ptFila.filter(f => S.filaTab === 'todas' || f.estado === S.filaTab).map(f => { const acc = parseInt(f.gps.replace(/\D/g, ''), 10); return { ...f, estado: ESTF[f.estado][0], estTint: ESTF[f.estado][1], pendente: f.estado === 'pendente',
               gpsTint: acc > 300 ? 'var(--neg)' : 'var(--warn)',
               validar: () => { setF(f.id, 'validada'); this.mut('39', 'Marcação NSR ' + f.nsr + ' validada'); },
-              recusar: () => { setF(f.id, 'recusada'); this.mut('39', 'Anulação gravada · ORIGEM_ANULACAO → NSR ' + f.nsr); } }; })
+              confirmando: S.filaConf === f.id, semConfirma: f.estado === 'pendente' && S.filaConf !== f.id, anulada: f.estado === 'recusada',
+              pedirRecusa: () => this.setState({ filaConf: f.id }), cancelar: () => this.setState({ filaConf: null }),
+              recusar: () => { setF(f.id, 'recusada'); this.setState({ filaConf: null }); this.mut('39', 'Anulação gravada. A marcação ' + f.nsr + ' continua no registro.'); } }; })
           }
         };
       })(),
-      vr, tarChips, tarVisiveis, tarVazio: tarVisiveis.length === 0, tarEyebrow: TAR.length + ' aguardando ação'
+      vr, tarChips, tarVisiveis, tarGrupos, tarVazio: tarVisiveis.length === 0, tarEyebrow: TAR.length + ' pendentes · ' + TAR.filter(t => t.atrasado).length + ' atrasada'
     };
     return {
       ...wiz, ...shell,
@@ -4176,7 +4213,7 @@ class Component extends DCLogic {
       etapas, opsVisiveis,
       semOps: opsVisiveis.length === 0,
       opsAtivas: ativos,
-      prodEyebrow: `${ops.length} OPs · ${ops.filter(o => o.status === 'andamento').length} em andamento`,
+      prodEyebrow: `${ops.length} na fila · ${Object.values(OPX).filter(x => x[2]).length} atrasado`,
       tabsHome: tab('inicio'), tabsProd: tab('producao'),
       atalhos: [
         { icon: this.ico('plus'), label: 'Novo pedido', ir: () => this.ir('s21') }, { icon: this.ico('wrench'), label: 'Nova OS', ir: () => this.ir('s03') }, { icon: this.ico('qr'), label: 'Pagamento', ir: () => this.ir('s15') }, { icon: this.ico('wallet'), label: 'Financeiro', ir: () => this.ir('s06') }

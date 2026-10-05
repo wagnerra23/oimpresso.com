@@ -94,8 +94,15 @@ class ScheduleService
      */
     public function updateFollowUp(int $id, array $payload, $user): void
     {
-        $payload['start_datetime'] = $this->commonUtil->uf_datetime_input($payload['start_datetime']);
-        $payload['end_datetime']   = $this->commonUtil->uf_datetime_input($payload['end_datetime']);
+        // O recorrente não tem datas (thread Crm/07, PR-b): uf_date('') estourava e o update
+        // devolvia `success:false`. Data vazia não se normaliza nem se grava.
+        foreach (['start_datetime', 'end_datetime'] as $campo) {
+            if (empty($payload[$campo])) {
+                unset($payload[$campo]);
+            } else {
+                $payload[$campo] = $this->commonUtil->uf_datetime_input($payload[$campo]);
+            }
+        }
 
         $this->crmUtil->updateFollowUp($id, $payload, $user);
     }

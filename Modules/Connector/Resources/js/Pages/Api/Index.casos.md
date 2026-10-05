@@ -5,7 +5,7 @@ irmaos: Index.charter.md (lei) · Index.tsx (tela)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: é a tela que emite e corta o acesso dos apps externos (WR Comercial em campo). Segredo vazado na lista ou credencial de outro negócio visível é incidente; credencial instalada que para de autenticar quebra cliente que não pode ser atualizado.
 owner: wagner
-last_run: "2026-10-01"
+last_run: "2026-10-05"
 ---
 
 # Casos de Uso & Aceite — Connector · API clients (`/connector/client`)
@@ -15,6 +15,8 @@ last_run: "2026-10-01"
 > `Index.tsx`. Erratas aplicadas na thread 04: a rota da lista é `/connector/client`; UCs em
 > `## UC-`. Todos `🧪` até o run MySQL — o teste faz `markTestSkipped` em SQLite.
 > Teste: `Modules/Connector/Tests/Feature/ApiClientsPanelTest.php`.
+> Revalidado em 2026-10-05: a tela mudou só no espaçamento das células e no recuo da busca
+> (#8677); nenhum UC descreve layout, então nenhum caso mudou.
 
 ## UC-CONN-01 · A lista é do meu negócio · `must` `[T0]`
 
@@ -115,6 +117,17 @@ Status: 🧪
 **Dado** as rotas com prefixo `connector/api` **Então** são pelo menos 20, o KPI "Endpoints
 publicados" mostra a contagem real, e o catálogo da aba Documentação é esse mesmo conjunto —
 toda linha existe nas rotas, nenhuma é escrita à mão (thread 04 PR-b).
+
+Status: 🧪
+
+## UC-CONN-21 · Quem usa a credencial · `should` `[T0]`
+
+**Dado** um client com acessos abertos **Quando** a lista carrega **Então** cada client traz
+`tokens` (colaborador, último uso, vencimento) dos tokens não revogados e não vencidos, do uso
+mais recente ao mais antigo, até 5, e `tokens_resto` com a contagem dos demais. Só entram
+usuários do negócio da sessão: token aberto por usuário de outro negócio com o mesmo client
+nunca aparece. "Ver quem usa" abre o drawer; a confirmação de excluir nomeia quem perde o
+acesso (thread 07).
 
 Status: 🧪
 
