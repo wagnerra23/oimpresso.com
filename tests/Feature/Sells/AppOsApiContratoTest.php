@@ -791,3 +791,64 @@ it('novo veículo: dono de OUTRA empresa é 422; sem placa ou tipo é 422; sem p
         ->assertJsonPath('campos.tipo', 'Tipo de veículo inválido.');
     expect(DB::table('vehicles')->where('plate', $placa)->exists())->toBeFalse();
 });
+
+// ── Web: cadastro e edição de veículo também recusam placa ativa repetida (decisão [W] 2026-10-05) ──
+
+/** Roda as regras + o after() do FormRequest da web com o usuário do teste (sem passar pelo HTTP da web). */
+function appOsValidaRequestVeiculo(object $t, string $classe, array $dados, ?object $veiculo = null): \Illuminate\Validation\Validator
+{
+    $req = $classe::create('/oficina-auto/veiculos', $veiculo ? 'PUT' : 'POST', $dados);
+    $req->setContainer(app());
+    $req->setUserResolver(fn () => $t->user);
+    if ($veiculo !== null) {
+        $rota = new \Illuminate\Routing\Route('PUT', 'oficina-auto/veiculos/{vehicle}', []);
+        $rota->bind($req);
+        $rota->setParameter('vehicle', $veiculo);
+        $req->setRouteResolver(fn () => $rota);
+    }
+    $v = \Illuminate\Support\Facades\Validator::make($req->all(), $req->rules(), $req->messages());
+    $req->withValidator($v);
+    $v->passes();
+
+    return $v;
+}
+
+it('web: cadastrar veículo com placa já em outro veículo ativo da empresa (principal ou reboque) é recusado; excluído e outra empresa não bloqueiam', function () {
+    $placa = appOsPlacaNova();
+    $reboque = appOsPlacaNova();
+    DB::table('vehicles')->insert([
+        'business_id' => $this->biz->id, 'plate' => strtolower($placa), 'secondary_plate' => $reboque,
+        'vehicle_type' => 'caminhao', 'created_at' => now(), 'updated_at' => now(),
+    ]);
+    $classe = \Modules\OficinaAuto\Http\Requests\StoreVehicleRequest::class;
+
+    $v = appOsValidaRequestVeiculo($this, $classe, ['plate' => substr($placa, 0, 3) . '-' . substr($placa, 3), 'vehicle_type' => 'caminhao']);
+    expect($v->errors()->first('plate'))->toBe('Esta placa já está em outro veículo ativo.');
+    $v = appOsValidaRequestVeiculo($this, $classe, ['plate' => appOsPlacaNova(), 'secondary_plate' => $reboque, 'vehicle_type' => 'semi_reboque']);
+    expect($v->errors()->first('secondary_plate'))->toBe('Esta placa já está em outro veículo ativo.');
+
+    $livre = appOsPlacaNova();
+    DB::table('vehicles')->insert([
+        ['business_id' => $this->biz->id, 'plate' => $livre, 'vehicle_type' => 'caminhao', 'deleted_at' => now(), 'created_at' => now(), 'updated_at' => now()],
+        ['business_id' => $this->outroBiz->id, 'plate' => $livre, 'vehicle_type' => 'caminhao', 'deleted_at' => null, 'created_at' => now(), 'updated_at' => now()],
+    ]);
+    expect(appOsValidaRequestVeiculo($this, $classe, ['plate' => $livre, 'vehicle_type' => 'caminhao'])->errors()->isEmpty())->toBeTrue();
+});
+
+it('web: editar veículo para uma placa de outro veículo ativo é recusado; manter a própria placa (mesmo se já duplicada antes da regra) continua editável', function () {
+    $placaA = appOsPlacaNova();
+    $placaB = appOsPlacaNova();
+    $a = DB::table('vehicles')->insertGetId(['business_id' => $this->biz->id, 'plate' => $placaA, 'vehicle_type' => 'caminhao', 'created_at' => now(), 'updated_at' => now()]);
+    DB::table('vehicles')->insert(['business_id' => $this->biz->id, 'plate' => $placaB, 'vehicle_type' => 'caminhao', 'created_at' => now(), 'updated_at' => now()]);
+    // Duplicata legada (nasceu antes da regra): mesma placa do A.
+    DB::table('vehicles')->insert(['business_id' => $this->biz->id, 'plate' => $placaA, 'vehicle_type' => 'caminhao', 'created_at' => now(), 'updated_at' => now()]);
+    $classe = \Modules\OficinaAuto\Http\Requests\UpdateVehicleRequest::class;
+    $veiculoA = \Modules\OficinaAuto\Entities\Vehicle::withoutGlobalScopes()->findOrFail($a);
+
+    $v = appOsValidaRequestVeiculo($this, $classe, ['plate' => $placaB, 'vehicle_type' => 'caminhao'], $veiculoA);
+    expect($v->errors()->first('plate'))->toBe('Esta placa já está em outro veículo ativo.');
+
+    // Mantendo a própria placa (e mudando só o km), passa — inclusive com a duplicata legada.
+    $v = appOsValidaRequestVeiculo($this, $classe, ['plate' => $placaA, 'vehicle_type' => 'caminhao', 'mileage_at_entry' => 1000], $veiculoA);
+    expect($v->errors()->isEmpty())->toBeTrue();
+});

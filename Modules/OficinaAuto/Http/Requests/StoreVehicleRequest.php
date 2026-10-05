@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Modules\OficinaAuto\Http\Requests;
 
+use App\Domain\Oficina\PlacaVeiculo;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Validator;
 use Modules\OficinaAuto\Http\Controllers\VehicleController;
 
 /**
@@ -61,5 +63,24 @@ class StoreVehicleRequest extends FormRequest
             'vehicle_type.in'       => 'Tipo de veículo inválido.',
             'renavam.max'           => 'RENAVAM aceita no máximo 11 caracteres (padrão DENATRAN).',
         ];
+    }
+
+    /**
+     * Placa (principal ou reboque) já em outro veículo ativo da empresa é recusada (decisão [W]
+     * 2026-10-05: "ativas não pode duplicar"). Mesma regra do app: App\Domain\Oficina\PlacaVeiculo.
+     */
+    public function withValidator(Validator $validator): void
+    {
+        $validator->after(function (Validator $v) {
+            $bizId = (int) ($this->user()?->business_id ?? 0);
+            foreach (['plate', 'secondary_plate'] as $campo) {
+                if ($v->errors()->has($campo) || ! filled($this->input($campo))) {
+                    continue;
+                }
+                if (PlacaVeiculo::veiculoAtivoCom($bizId, (string) $this->input($campo)) !== null) {
+                    $v->errors()->add($campo, PlacaVeiculo::MENSAGEM_DUPLICADA);
+                }
+            }
+        });
     }
 }
