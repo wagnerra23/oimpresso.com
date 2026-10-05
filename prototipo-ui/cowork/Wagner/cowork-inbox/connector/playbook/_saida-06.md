@@ -18,11 +18,13 @@ base_lida: wagnerra23/oimpresso.com@main 77af1c9d3c
   - `Resources/views/clients/index.blade.php` — sem rota que a renderizasse desde a thread 04 (`ClientController::index` responde só `Inertia::render('Api/Index')`, sem flag nem fallback). Ainda chamava `action([ClientController::class, 'regenerate'])`, que não existe desde a thread 05.
   - `Resources/views/layouts/master.blade.php` — nenhum `@extends` o usava (`git grep` em `Modules/Connector`: 0).
   - `Resources/assets/sass/app.scss` — arquivo vazio, sem consumidor.
+  - `Resources/assets/js/app.js` — 0 byte, sem consumidor.
+  - Em `Resources/lang/*/lang.php` (16 idiomas, 49 linhas): as chaves `create_client`, `client_secret`, `documentation` e `regenerate_doc`, que só a Blade lia (`git grep` sem acesso dinâmico a `connector::lang.`). Apontado pela sessão "Fechar o placar da Connector 09".
   - `Http/Controllers/ConnectorController.php` — devolvia `view('connector::index|create|show|edit')`, views que nunca existiram.
   - `Routes/web.php`: `GET /connector/api` (a única rota do `ConnectorController`). Logado, em produção, ela respondia **500** antes deste PR.
   - `phpstan-baseline.neon`: as 8 entradas cujo `path` era o `ConnectorController`.
 - Mantidos de propósito (no prefixo, mas vivos):
-  - `Resources/lang/**` — o `DataController` usa `__('connector::lang.*')` no menu.
+  - `Resources/lang/**` com as chaves `connector_module`, `connector` e `clients` — o `DataController` as usa no menu.
   - `Resources/assets/.gitkeep` e `Resources/views/.gitkeep`.
 - Docs: charter `live` + R8 apontando `Index.tsx` (`is_demo`); `RUNBOOK-connector-index.md` §12 registra a F5; `SUPERFICIE.md` regenerado (`module-surface.mjs Connector --write`).
 
