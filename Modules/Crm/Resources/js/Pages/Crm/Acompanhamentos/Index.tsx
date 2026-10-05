@@ -8,13 +8,15 @@
 // Âncora de design: prototipo-ui/cowork/Wagner/crm-blade.jsx → TelaAcompanhamentos()
 // Contrato: governance/design/contracts/crm-acompanhamentos.contract.json
 //
-// Esta onda é LEITURA. Os modais de escrita (adicionar, recorrente, antecipado, editar, log)
-// seguem na tela Blade, aberta por `?classico=1` — os três botões da toolbar levam pra lá.
+// Escrita (thread Crm/07, PR-a): adicionar, editar e excluir abrem aqui, e gravam pelas mesmas
+// rotas da Blade. Recorrente, antecipado e log seguem na Blade (`?classico=1`) até o PR-b.
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Deferred, router } from '@inertiajs/react';
 import type { ColumnDef } from '@tanstack/react-table';
-import { type ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
+import { toast } from 'sonner';
+import { MoreHorizontal } from 'lucide-react';
 import { Card, CardContent } from '@/Components/ui/card';
 import { Badge } from '@/Components/ui/badge';
 import { Button } from '@/Components/ui/button';
@@ -26,6 +28,12 @@ import { SafeSelectItem } from '@/Components/ui/SafeSelectItem';
 import { PageHeader } from '@/Components/PageHeader';
 import SubNav from '@/Components/shared/SubNav';
 import DataTable, { type PaginatorShape } from '@/Components/shared/DataTable';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/Components/ui/dropdown-menu';
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription,
+  AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from '@/Components/ui/alert-dialog';
+import FormAcompanhamento, { NOVO, csrf, type Valores } from './_components/FormAcompanhamento';
 
 const ROTA = '/crm/follow-ups';
 const CLASSICO = `${ROTA}?classico=1`;
@@ -33,13 +41,14 @@ const TODOS = '__todos';
 
 interface Opcao { value: string; label: string }
 interface Opcoes {
-  contatos: Opcao[]; usuarios: Opcao[]; status: Opcao[]; tipos: Opcao[]; categorias: Opcao[]; por: Opcao[];
+  contatos: Opcao[]; usuarios: Opcao[]; status: Opcao[]; tipos: Opcao[]; categorias: Opcao[]; por: Opcao[]; notificar: Opcao[];
 }
 interface Acompanhamento {
   id: number; titulo: string; contato: string; inicio: string | null; fim: string | null;
   status: string | null; tipo: string | null; categoria: string | null; atribuidos: string[];
   descricao: string; por: string | null; em_dias: number | null;
   adicionado_por: string; adicionado_em: string | null;
+  editar: Omit<Valores, 'title'>;
 }
 type Filtros = Record<string, string | undefined>;
 interface Props {
@@ -60,6 +69,24 @@ function filtrar(filtros: Filtros, mudanca: Filtros) {
 
 export default function AcompanhamentosIndex({ filtros, opcoes, acompanhamentos }: Props) {
   const recorrente = filtros.is_recursive === '1';
+  const [form, setForm] = useState<{ id: number | null; inicial: Valores } | null>(null);
+  const [excluir, setExcluir] = useState<Acompanhamento | null>(null);
+  const recarregar = () => router.reload({ only: ['acompanhamentos'] });
+  const acoes = {
+    editar: (r: Acompanhamento) => setForm({ id: r.id, inicial: { ...r.editar, title: r.titulo } }),
+    excluir: setExcluir,
+  };
+
+  async function confirmarExclusao() {
+    if (!excluir) return;
+    // DELETE /crm/follow-ups/{id}: o destroy só responde a ajax e devolve `{success, msg}`.
+    const r = await fetch(`/crm/follow-ups/${excluir.id}`, {
+      method: 'DELETE', headers: { Accept: 'application/json', 'X-CSRF-TOKEN': csrf(), 'X-Requested-With': 'XMLHttpRequest' },
+    }).catch(() => null);
+    const json = r ? await r.json().catch(() => ({})) : {};
+    if (r?.ok && json.success) { toast.success('Acompanhamento excluído.'); recarregar(); } else toast.error(json.msg || 'Não foi possível excluir.');
+    setExcluir(null);
+  }
 
   return (
     <div className="flex flex-col gap-4">
@@ -95,7 +122,7 @@ export default function AcompanhamentosIndex({ filtros, opcoes, acompanhamentos 
             <div className="ml-auto flex flex-wrap gap-2" data-contract="crm-toolbar">
               <Button asChild variant="outline" size="sm"><a href={CLASSICO}>Recorrente</a></Button>
               <Button asChild variant="outline" size="sm"><a href={CLASSICO}>Acompanhamento antecipado</a></Button>
-              <Button asChild size="sm"><a href={CLASSICO}>Adicionar</a></Button>
+              <Button size="sm" onClick={() => setForm({ id: null, inicial: NOVO })}>Adicionar</Button>
             </div>
           </div>
 
@@ -114,7 +141,7 @@ export default function AcompanhamentosIndex({ filtros, opcoes, acompanhamentos 
               <>
                 <DataTable<Acompanhamento>
                   caption={recorrente ? 'Acompanhamentos recorrentes' : 'Acompanhamentos'}
-                  columns={colunas(opcoes, recorrente)}
+                  columns={colunas(opcoes, recorrente, acoes)}
                   data={acompanhamentos.data}
                   pagination={acompanhamentos}
                   endpoint={ROTA}
@@ -132,6 +159,24 @@ export default function AcompanhamentosIndex({ filtros, opcoes, acompanhamentos 
           </Deferred>
         </CardContent>
       </Card>
+
+      {form ? (
+        <FormAcompanhamento key={form.id ?? 'novo'} id={form.id} inicial={form.inicial} opcoes={opcoes}
+          onFechar={() => setForm(null)} onSalvo={() => { setForm(null); recarregar(); }} />
+      ) : null}
+
+      <AlertDialog open={!!excluir} onOpenChange={(aberto) => { if (!aberto) setExcluir(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir acompanhamento?</AlertDialogTitle>
+            <AlertDialogDescription>{excluir?.titulo} — esta ação não pode ser desfeita.</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmarExclusao}>Excluir</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
@@ -151,12 +196,33 @@ function Filtro({ rotulo: nome, campo, lista, filtros }: { rotulo: string; campo
   );
 }
 
-function colunas(opcoes: Opcoes | undefined, recorrente: boolean): ColumnDef<Acompanhamento>[] {
+interface Acoes { editar: (r: Acompanhamento) => void; excluir: (r: Acompanhamento) => void }
+
+function colunas(opcoes: Opcoes | undefined, recorrente: boolean, acoes: Acoes): ColumnDef<Acompanhamento>[] {
   const texto = (header: string, acc: (r: Acompanhamento) => ReactNode, width = 150): ColumnDef<Acompanhamento> => ({
     id: header, header, cell: ({ row }) => acc(row.original) ?? '—', meta: { width },
   });
 
+  const acao: ColumnDef<Acompanhamento> = {
+    id: 'Ação', header: 'Ação', meta: { width: 92 },
+    cell: ({ row }) => (
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" size="sm" aria-label={`Ações de ${row.original.titulo}`}><MoreHorizontal className="size-4" /></Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="start">
+          {/* Recorrente se edita no modal próprio da Blade até o PR-b da thread 07. */}
+          {recorrente
+            ? <DropdownMenuItem asChild><a href={CLASSICO}>Editar</a></DropdownMenuItem>
+            : <DropdownMenuItem onSelect={() => acoes.editar(row.original)}>Editar</DropdownMenuItem>}
+          <DropdownMenuItem variant="destructive" onSelect={() => acoes.excluir(row.original)}>Excluir</DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    ),
+  };
+
   return [
+    acao,
     ...(recorrente ? [] : [
       texto('Contato', (r) => r.contato, 200),
       texto('Início', (r) => r.inicio),

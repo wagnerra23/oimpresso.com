@@ -5,7 +5,7 @@ irmaos: Index.charter.md (lei) · Index.tsx (tela)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: a agenda comercial mostra compromissos de clientes e leads. Errar o escopo vaza agenda de outro negócio ou de colega que não devia ver; errar o desvio Inertia × DataTables entrega JSON cru no lugar da tela.
 owner: wagner
-last_run: "2026-10-01"
+last_run: "2026-10-05"
 last_run_ci: "_pendente_ — o trio nasce na thread Crm/03. O veredito por UC entra no manifesto quando a lane verticais-pest rodar; até lá o Status é 🧪."
 ---
 
@@ -84,5 +84,72 @@ Status: 🧪
 **Dado** que a escrita ainda vive nos modais da Blade
 **Quando** abro `/crm/follow-ups?classico=1`
 **Então** recebo a view `crm::schedule.index`.
+
+Status: 🧪
+
+---
+
+## Escrita (thread Crm/07, PR-a)
+
+> **Âncora:** SPEC do Crm §0 ("Follow-up agendado — funcional"), o modal "Adicionar
+> acompanhamento" do protótipo (`crm-blade.jsx` → `TelaAcompanhamentos`) e as regras que o
+> `ScheduleController` já aplicava na Blade (escopo por `business_id`, "só os meus").
+> O modal grava pelas MESMAS rotas (`store`/`update`/`destroy`); nenhum endpoint novo.
+
+## UC-CRMACO-08 · Adicionar grava no meu negócio · `must`
+
+**Dado** que tenho `crm.access_all_schedule` e um contato do meu negócio
+**Quando** salvo o modal "Adicionar acompanhamento" com as datas do campo de data e hora
+**Então** o acompanhamento fica gravado no meu negócio, com o início que escolhi e atribuído a quem marquei.
+
+Status: 🧪
+
+---
+
+## UC-CRMACO-09 · Editar altera, mas não troca o negócio · `must` `[T0]`
+
+**Dado** um acompanhamento do meu negócio
+**Quando** salvo o modal "Editar acompanhamento" — mesmo que o pedido traga outro `business_id`
+**Então** o título muda e o acompanhamento continua no meu negócio.
+
+Status: 🧪
+
+---
+
+## UC-CRMACO-10 · Acompanhamento de outro negócio não se edita nem se exclui · `must` `[T0]`
+
+**Dado** um acompanhamento de outro negócio
+**Quando** tento editar ou excluir pelo id dele
+**Então** recebo 404 nas duas ações e ele continua lá, sem alteração.
+
+Status: 🧪
+
+---
+
+## UC-CRMACO-11 · Excluir remove o acompanhamento · `must`
+
+**Dado** um acompanhamento do meu negócio
+**Quando** confirmo "Excluir"
+**Então** ele sai do banco e da lista.
+
+Status: 🧪
+
+---
+
+## UC-CRMACO-12 · Contato de outro negócio é recusado · `must` `[T0]`
+
+**Dado** um contato que pertence a outro negócio
+**Quando** tento adicionar um acompanhamento para ele
+**Então** recebo erro de validação em `contact_id` e nada é gravado — e o mesmo vale para atribuir a um usuário de outro negócio (`user_id`).
+
+Status: 🧪
+
+---
+
+## UC-CRMACO-13 · A linha traz os valores do modal de edição · `should`
+
+**Dado** um acompanhamento na lista
+**Quando** abro "Editar"
+**Então** o modal já vem com atribuídos, tipo e datas (início em formato de campo de data e hora).
 
 Status: 🧪

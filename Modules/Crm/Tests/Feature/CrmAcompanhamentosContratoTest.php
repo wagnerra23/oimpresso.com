@@ -187,3 +187,114 @@ it('UC-CRMACO-07 · ?classico=1 devolve a tela Blade, que hospeda os modais de e
     $resposta->assertOk();
     $resposta->assertViewIs('crm::schedule.index');
 });
+
+// ── Escrita (thread Crm/07, PR-a): o modal da tela grava pelas MESMAS rotas da Blade ──────────
+
+const ACO_AJAX = ['X-Requested-With' => 'XMLHttpRequest', 'Accept' => 'application/json'];
+
+/** Contato cru no negócio `$biz` (marcado pela tag, limpo no afterEach). */
+function acoContato(int $biz, User $criador): int
+{
+    acoNegocio($biz);
+
+    return DB::table('contacts')->insertGetId([
+        'business_id' => $biz, 'type' => 'customer', 'name' => 'Contato '.ACO_TAG, 'mobile' => '0',
+        'created_by' => $criador->id, 'created_at' => now(), 'updated_at' => now(),
+    ]);
+}
+
+/** O corpo que o modal manda: datas ISO do `<input type="datetime-local">`. */
+function acoCorpo(string $titulo, int $contato, User $atribuido, array $extra = []): array
+{
+    return array_merge([
+        'title' => $titulo.' '.ACO_TAG, 'contact_id' => $contato, 'status' => 'scheduled',
+        'start_datetime' => '2026-10-10T09:00', 'end_datetime' => '2026-10-10T09:30',
+        'description' => 'medir fachada', 'schedule_type' => 'call', 'followup_category_id' => null,
+        'user_id' => [$atribuido->id], 'allow_notification' => 0,
+        'notify_via' => ['sms' => 0, 'mail' => 1], 'notify_before' => 30, 'notify_type' => 'minute',
+    ], $extra);
+}
+
+it('UC-CRMACO-08 · adicionar grava no meu negócio, com as datas ISO do modal', function () {
+    $user = acoUsuario('aco_todos_test', ['crm.access_all_schedule']);
+    $contato = acoContato(ACO_BIZ, $user);
+
+    $this->actingAs($user)->post(ACO_ROTA, acoCorpo('Novo pelo modal', $contato, $user), ACO_AJAX)
+        ->assertOk()->assertJson(['success' => true]);
+
+    $linha = DB::table('crm_schedules')->where('title', 'Novo pelo modal '.ACO_TAG)->first();
+    $this->assertNotNull($linha, 'o store não gravou o acompanhamento');
+    expect((int) $linha->business_id)->toBe(ACO_BIZ);
+    expect((string) $linha->start_datetime)->toBe('2026-10-10 09:00:00');
+    expect(DB::table('crm_schedule_users')->where('schedule_id', $linha->id)->pluck('user_id')->map(fn ($i) => (int) $i)->all())->toBe([$user->id]);
+});
+
+it('UC-CRMACO-09 · editar altera o acompanhamento e não aceita trocar o negócio', function () {
+    $user = acoUsuario('aco_todos_test', ['crm.access_all_schedule']);
+    $id = acoAcompanhamento(ACO_BIZ, 'Antes', $user);
+    $contato = (int) DB::table('crm_schedules')->where('id', $id)->value('contact_id');
+
+    $this->actingAs($user)->put(ACO_ROTA.'/'.$id, acoCorpo('Depois', $contato, $user, ['business_id' => ACO_OUTRO]), ACO_AJAX)
+        ->assertOk()->assertJson(['success' => true]);
+
+    $linha = DB::table('crm_schedules')->where('id', $id)->first();
+    expect($linha->title)->toBe('Depois '.ACO_TAG);
+    expect((int) $linha->business_id)->toBe(ACO_BIZ);
+});
+
+it('UC-CRMACO-10 · editar ou excluir acompanhamento de outro negócio dá 404 e nada muda [T0]', function () {
+    $user = acoUsuario('aco_todos_test', ['crm.access_all_schedule']);
+    $vizinho = acoUsuario('aco_vizinho_test', ['crm.access_all_schedule'], ACO_OUTRO);
+    $alheio = acoAcompanhamento(ACO_OUTRO, 'Do vizinho', $vizinho);
+    $meuContato = acoContato(ACO_BIZ, $user);
+
+    $this->actingAs($user)->put(ACO_ROTA.'/'.$alheio, acoCorpo('Sequestrado', $meuContato, $user), ACO_AJAX)->assertNotFound();
+    $this->actingAs($user)->delete(ACO_ROTA.'/'.$alheio, [], ACO_AJAX)->assertNotFound();
+
+    $linha = DB::table('crm_schedules')->where('id', $alheio)->first();
+    $this->assertNotNull($linha, 'o acompanhamento de outro negócio foi excluído');
+    expect($linha->title)->toBe('Do vizinho '.ACO_TAG);
+});
+
+it('UC-CRMACO-11 · excluir remove o acompanhamento do meu negócio', function () {
+    $user = acoUsuario('aco_todos_test', ['crm.access_all_schedule']);
+    $id = acoAcompanhamento(ACO_BIZ, 'Para excluir', $user);
+
+    $this->actingAs($user)->delete(ACO_ROTA.'/'.$id, [], ACO_AJAX)->assertOk()->assertJson(['success' => true]);
+
+    expect(DB::table('crm_schedules')->where('id', $id)->exists())->toBeFalse();
+});
+
+it('UC-CRMACO-12 · adicionar com contato de outro negócio é recusado e nada é gravado [T0]', function () {
+    $user = acoUsuario('aco_todos_test', ['crm.access_all_schedule']);
+    $vizinho = acoUsuario('aco_vizinho_test', ['crm.access_all_schedule'], ACO_OUTRO);
+    $contatoAlheio = acoContato(ACO_OUTRO, $vizinho);
+
+    $this->actingAs($user)->post(ACO_ROTA, acoCorpo('Contato alheio', $contatoAlheio, $user), ACO_AJAX)
+        ->assertStatus(422)->assertJsonValidationErrors('contact_id');
+
+    // Mesmo vale para atribuir a um usuário de outro negócio (o `sync` aceitaria o id cru).
+    $meuContato = acoContato(ACO_BIZ, $user);
+    $this->actingAs($user)->post(ACO_ROTA, acoCorpo('Usuario alheio', $meuContato, $vizinho), ACO_AJAX)
+        ->assertStatus(422)->assertJsonValidationErrors('user_id.0');
+
+    expect(DB::table('crm_schedules')->where('title', 'Contato alheio '.ACO_TAG)->exists())->toBeFalse();
+    expect(DB::table('crm_schedules')->where('title', 'Usuario alheio '.ACO_TAG)->exists())->toBeFalse();
+});
+
+it('UC-CRMACO-13 · a linha da lista traz os valores do modal de edição', function () {
+    $user = acoUsuario('aco_todos_test', ['crm.access_all_schedule']);
+    acoAcompanhamento(ACO_BIZ, 'Com edicao', $user);
+    $versao = app(\App\Http\Middleware\HandleInertiaRequests::class)->version(request());
+
+    $linhas = $this->actingAs($user)->get(ACO_ROTA, [
+        'X-Inertia' => 'true', 'X-Requested-With' => 'XMLHttpRequest', 'X-Inertia-Version' => (string) $versao,
+        'X-Inertia-Partial-Data' => 'acompanhamentos', 'X-Inertia-Partial-Component' => 'Crm/Acompanhamentos/Index',
+    ])->assertOk()->json('props.acompanhamentos.data');
+
+    $linha = collect($linhas)->firstWhere('titulo', 'Com edicao '.ACO_TAG);
+    $this->assertNotNull($linha, 'a linha criada não veio na lista');
+    expect($linha['editar']['user_id'])->toBe([(string) $user->id]);
+    expect($linha['editar']['start_datetime'])->toMatch('/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/');
+    expect($linha['editar']['schedule_type'])->toBe('call');
+});
