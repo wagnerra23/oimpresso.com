@@ -372,3 +372,111 @@ it('UC-CRMACO-17 · registro em acompanhamento de outro negócio não grava nem 
     expect(DB::table('crm_schedule_logs')->where('schedule_id', $alheio)->exists())->toBeFalse();
     expect(DB::table('crm_schedules')->where('id', $alheio)->value('status'))->toBe('scheduled');
 });
+
+// ── UC-CRMACO-18 · acompanhamento antecipado só aceita contato, usuário e fatura do negócio [T0] ──
+
+/** O corpo do antecipado: cada chave de `follow_ups` é um contato, com atribuídos e faturas. */
+function acoCorpoAntecipado(string $titulo, array $followUps): array
+{
+    $corpo = acoCorpo($titulo, 0, acoUsuario('aco_todos_test', ['crm.access_all_schedule']), ['follow_ups' => $followUps]);
+    unset($corpo['contact_id'], $corpo['user_id']);
+
+    return $corpo;
+}
+
+it('UC-CRMACO-18 · antecipado recusa contato, usuário e fatura de outro negócio e grava o meu com o nome no título [T0]', function () {
+    $user = acoUsuario('aco_todos_test', ['crm.access_all_schedule']);
+    $vizinho = acoUsuario('aco_vizinho_test', ['crm.access_all_schedule'], ACO_OUTRO);
+    $meu = acoContato(ACO_BIZ, $user);
+    $alheio = acoContato(ACO_OUTRO, $vizinho);
+    $semFatura = (int) DB::table('transactions')->max('id') + 100000; // não existe neste negócio
+
+    // Contato alheio como chave: o {customer_name} puxaria o nome dele para o meu acompanhamento.
+    $this->actingAs($user)->post(ACO_ROTA, acoCorpoAntecipado('Antecipado alheio', [$alheio => ['user_id' => [$user->id]]]), ACO_AJAX)
+        ->assertStatus(422)->assertJsonValidationErrors('follow_ups');
+    // Usuário de outro negócio como atribuído.
+    $this->actingAs($user)->post(ACO_ROTA, acoCorpoAntecipado('Antecipado usuario', [$meu => ['user_id' => [$vizinho->id]]]), ACO_AJAX)
+        ->assertStatus(422)->assertJsonValidationErrors("follow_ups.$meu.user_id.0");
+    // Fatura que não é deste negócio.
+    $this->actingAs($user)->post(ACO_ROTA, acoCorpoAntecipado('Antecipado fatura', [$meu => ['user_id' => [$user->id], 'invoices' => [$semFatura]]]), ACO_AJAX)
+        ->assertStatus(422)->assertJsonValidationErrors("follow_ups.$meu.invoices.0");
+
+    expect(DB::table('crm_schedules')->where('title', 'like', 'Antecipado%')->where('title', 'like', '%'.ACO_TAG.'%')->exists())->toBeFalse();
+
+    // O caminho certo grava no meu negócio, com o nome do MEU contato no lugar da etiqueta.
+    $this->actingAs($user)->post(ACO_ROTA, acoCorpoAntecipado('Ligar {customer_name}', [$meu => ['user_id' => [$user->id]]]), ACO_AJAX)
+        ->assertOk()->assertJson(['success' => true]);
+
+    $linha = DB::table('crm_schedules')->where('contact_id', $meu)->where('title', 'like', 'Ligar %')->first();
+    $this->assertNotNull($linha, 'o antecipado do meu contato não foi gravado');
+    expect($linha->title)->toBe('Ligar Contato '.ACO_TAG.' '.ACO_TAG)
+        ->and((int) $linha->business_id)->toBe(ACO_BIZ);
+});
+
+// ── UC-CRMACO-19 · "Quem vai receber" do antecipado em JSON, só com contatos do negócio [T0] ──
+
+it('UC-CRMACO-19 · os grupos do antecipado vêm em JSON só com contatos do meu negócio, e a Blade segue recebendo HTML [T0]', function () {
+    $user = acoUsuario('aco_todos_test', ['crm.access_all_schedule']);
+    $vizinho = acoUsuario('aco_vizinho_test', ['crm.access_all_schedule'], ACO_OUTRO);
+    $meu = acoContato(ACO_BIZ, $user);
+    $alheio = acoContato(ACO_OUTRO, $vizinho);
+    $json = ['Accept' => 'application/json', 'X-Requested-With' => 'XMLHttpRequest'];
+
+    // Por nome: o id alheio é descartado, o meu volta com o atribuído padrão (quem cadastrou).
+    $grupos = $this->actingAs($user)
+        ->get('/crm/get-followup-groups?follow_up_by=contact_name&contact_ids[]='.$meu.'&contact_ids[]='.$alheio, $json)
+        ->assertOk()->json('grupos');
+    expect(array_column($grupos, 'contact_id'))->toBe([$meu]);
+    expect($grupos[0]['atribuido'])->toBe((string) $user->id);
+    expect($grupos[0]['faturas'])->toBe([]);
+
+    // Sem compra nos últimos dias: meu cliente sem transação entra, o do vizinho não.
+    $semCompra = $this->actingAs($user)
+        ->get('/crm/get-followup-groups?follow_up_by=has_no_transactions&days=30', $json)
+        ->assertOk()->json('grupos');
+    $ids = array_column($semCompra, 'contact_id');
+    expect(in_array($meu, $ids, true))->toBeTrue();
+    expect(in_array($alheio, $ids, true))->toBeFalse();
+
+    // A tela clássica pede sem Accept JSON e continua recebendo o partial Blade.
+    $html = $this->actingAs($user)->get('/crm/get-followup-groups?follow_up_by=contact_name&contact_ids[]='.$meu, ['X-Requested-With' => 'XMLHttpRequest']);
+    $html->assertOk();
+    expect($html->headers->get('Content-Type'))->not->toContain('application/json');
+});
+
+// ── UC-CRMACO-20 · rodapé conta a consulta filtrada; o drawer lista os registros do meu negócio [T0] ──
+
+it('UC-CRMACO-20 · o rodapé conta status e tipo sobre a consulta filtrada e o drawer lê os registros só do meu negócio [T0]', function () {
+    $user = acoUsuario('aco_todos_test', ['crm.access_all_schedule']);
+    $vizinho = acoUsuario('aco_vizinho_test', ['crm.access_all_schedule'], ACO_OUTRO);
+    $a = acoAcompanhamento(ACO_BIZ, 'Rodape A', $user);
+    acoAcompanhamento(ACO_BIZ, 'Rodape B', $user);
+    $c = acoAcompanhamento(ACO_BIZ, 'Rodape C', $user);
+    DB::table('crm_schedules')->where('id', $c)->update(['status' => 'completed']);
+    $alheio = acoAcompanhamento(ACO_OUTRO, 'Rodape vizinho', $vizinho);
+
+    // Contagem pedida como o browser pede, filtrada pela etiqueta deste arquivo.
+    $versao = app(\App\Http\Middleware\HandleInertiaRequests::class)->version(request());
+    $contagem = $this->actingAs($user)->get(ACO_ROTA.'?q='.urlencode(ACO_TAG), [
+        'X-Inertia' => 'true', 'X-Requested-With' => 'XMLHttpRequest', 'X-Inertia-Version' => (string) $versao,
+        'X-Inertia-Partial-Data' => 'contagem', 'X-Inertia-Partial-Component' => 'Crm/Acompanhamentos/Index',
+    ])->assertOk()->json('props.contagem');
+    expect($contagem['total'])->toBe(3);
+    expect($contagem['status'])->toEqual(['completed' => 1, 'scheduled' => 2]);
+    expect($contagem['tipo'])->toEqual(['call' => 3]);
+
+    // Registros do drawer: os do meu acompanhamento; o do vizinho não abre.
+    DB::table('crm_schedule_logs')->insert([
+        'schedule_id' => $a, 'subject' => 'Cliente atendeu '.ACO_TAG, 'log_type' => 'call', 'description' => 'pediu orçamento',
+        'start_datetime' => '2026-10-10 09:00:00', 'end_datetime' => '2026-10-10 09:10:00',
+        'created_by' => $user->id, 'created_at' => now(), 'updated_at' => now(),
+    ]);
+    $meus = $this->actingAs($user)->get('/crm/follow-up-log?schedule_id='.$a.'&lista=1', ACO_AJAX)->assertOk();
+    expect($meus->json('success'))->toBeTrue();
+    expect(array_column($meus->json('registros'), 'assunto'))->toBe(['Cliente atendeu '.ACO_TAG]);
+    expect($meus->json('registros.0.inicio'))->toBe('10/10/2026 09:00');
+
+    $dele = $this->actingAs($user)->get('/crm/follow-up-log?schedule_id='.$alheio.'&lista=1', ACO_AJAX)->assertOk();
+    expect($dele->json('success'))->toBeFalse();
+    expect($dele->json('registros'))->toBeNull();
+});

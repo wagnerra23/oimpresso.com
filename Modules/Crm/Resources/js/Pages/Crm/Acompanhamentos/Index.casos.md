@@ -200,3 +200,46 @@ Status: 🧪
 **Então** recebo 404 (como em editar e excluir), nenhum registro é gravado e o status dele não muda.
 
 Status: 🧪
+
+## UC-CRMACO-18 · Antecipado só aceita contato, usuário e fatura do negócio · `must` `[T0]`
+
+**Dado** um acompanhamento antecipado (`follow_ups[<contato>][user_id][]`, `[invoices][]`)
+**Quando** algum contato, usuário atribuído ou fatura é de outro negócio
+**Então** o servidor recusa com erro no campo e nada é gravado. Com os do meu negócio, grava no meu
+negócio e troca `{customer_name}` pelo nome do **meu** contato.
+
+> Antes, nada disso era validado: o contato de outro negócio entrava no título pelas etiquetas
+> `{customer_name}`/`{invoice_numbers}`, e as faturas dele eram vinculadas ao acompanhamento
+> (pendente 2 do `_saida-07`). O `CrmUtil` também filtra contato e faturas pelo negócio, como
+> segunda linha que vale para o comando recorrente.
+
+Status: 🧪
+
+## UC-CRMACO-19 · O antecipado monta "Quem vai receber" na própria tela · `must` `[T0]`
+
+**Dado** a tela de acompanhamentos
+**Quando** clico em **Acompanhamento antecipado**, escolho o critério (status do pagamento, pedidos
+ou nome) e peço **Próximo**
+**Então** a lista "Quem vai receber" vem do `getFollowUpGroups` em JSON — uma linha por contato, com
+as faturas dele e o atribuído padrão — e **só com contatos do meu negócio**. Salvar cria um
+acompanhamento por linha, pelo mesmo `store`. A tela clássica segue recebendo o partial Blade.
+
+> Âncora: protótipo `crm-blade-forms.jsx` → AntecipadoForm. A notificação do formulário Blade
+> ficou fora deste modal (vai desligada) — registrado no `_saida-07c`.
+
+Status: 🧪
+
+## UC-CRMACO-20 · Rodapé por status e tipo, e drawer de detalhe com os registros · `should` `[T0]`
+
+**Dado** a lista de acompanhamentos filtrada
+**Então** o rodapé mostra o total e as contagens por status e por tipo **da consulta inteira**, não só
+da página de 25
+**E quando** clico numa linha, abre o drawer de detalhe (informações, descrição e os registros do
+acompanhamento), com **Log de acompanhamento** e **Marcar concluído** no rodapé
+**E** os registros de acompanhamento de outro negócio não abrem.
+
+> Âncora: protótipo `crm-blade.jsx` → TelaAcompanhamentos (Rodape + Drawer). Registros em
+> `GET /crm/follow-up-log?schedule_id=…&lista=1`; o modal Blade segue com o HTML. Pendente 2 do
+> `_saida-03`.
+
+Status: 🧪

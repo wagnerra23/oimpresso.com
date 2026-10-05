@@ -62,6 +62,21 @@ class StoreScheduleRequest extends FormRequest
             'schedule_for' => ['nullable', 'in:customer,lead'],
             'user_id' => ['nullable', 'array'],
             'user_id.*' => ['integer', Rule::exists('users', 'id')->where('business_id', session('user.business_id'))],
+            // Acompanhamento antecipado (`follow_ups[<contato>][user_id][]`, `[invoices][]`): a
+            // CHAVE de cada item é o contato. Sem estas regras, contato e fatura de outro negócio
+            // entravam no título ({customer_name}, {invoice_numbers}) e as faturas eram vinculadas
+            // ao acompanhamento (Tier 0, ADR 0093 — thread Crm/07).
+            'follow_ups' => ['nullable', 'array', function (string $campo, mixed $valor, \Closure $falha) {
+                $ids = array_map('intval', array_keys((array) $valor));
+                $meus = \DB::table('contacts')->where('business_id', session('user.business_id'))->whereIn('id', $ids)->count();
+                if ($meus !== count(array_unique($ids))) {
+                    $falha('Há contato que não é deste negócio.');
+                }
+            }],
+            'follow_ups.*.user_id' => ['nullable', 'array'],
+            'follow_ups.*.user_id.*' => ['integer', Rule::exists('users', 'id')->where('business_id', session('user.business_id'))],
+            'follow_ups.*.invoices' => ['nullable', 'array'],
+            'follow_ups.*.invoices.*' => ['integer', Rule::exists('transactions', 'id')->where('business_id', session('user.business_id'))],
         ];
     }
 }
