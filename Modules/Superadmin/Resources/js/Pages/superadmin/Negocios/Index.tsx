@@ -40,6 +40,7 @@ import {
 } from './_components/SecoesDoDetalhe';
 import { Casca } from './_components/Gaveta';
 import { NovoNegocio, NovoNegocioEsqueleto, type FormNovo } from './_components/NovoNegocio';
+import { AdicionarAssinatura, type OpcoesAssinatura } from './_components/AdicionarAssinatura';
 
 interface Filtros {
   q: string;
@@ -110,6 +111,7 @@ interface Detalhe {
   cadastro: Cadastro;
   locais: Local[];
   usuarios: Usuarios;
+  opcoes_assinatura: OpcoesAssinatura;
 }
 
 interface Props {
@@ -497,6 +499,8 @@ function Uso({ item }: { item: UsoItem }) {
 }
 
 function Drawer({ detalhe, onFechar }: { detalhe?: Detalhe | null; onFechar: () => void }) {
+  // Hook antes do retorno antecipado do "não encontrado" (regra dos hooks).
+  const [assinar, setAssinar] = useState(false);
   if (!detalhe) {
     return (
       <Casca onFechar={onFechar} titulo="Negócio não encontrado">
@@ -595,6 +599,14 @@ function Drawer({ detalhe, onFechar }: { detalhe?: Detalhe | null; onFechar: () 
         <SecaoLocais locais={d.locais} />
         <SecaoUsuarios usuarios={d.usuarios} />
       </div>
+
+      {/* Rodapé do protótipo (NegocioDrawer): a ação de assinatura fica fixa, fora da rolagem. */}
+      <footer className="flex justify-end gap-2 border-t px-5 py-3" data-contract="superadmin.negocios.drawer-rodape">
+        <Button size="sm" className="h-8 text-xs" onClick={() => setAssinar(true)}>
+          Adicionar assinatura
+        </Button>
+      </footer>
+      <AdicionarAssinatura negocio={{ id: d.id, nome: d.nome }} opcoes={d.opcoes_assinatura} aberto={assinar} onFechar={() => setAssinar(false)} />
     </Casca>
   );
 }

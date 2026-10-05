@@ -7,6 +7,7 @@ use App\Utils\BusinessUtil;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response as InertiaResponse;
 use Modules\Superadmin\Entities\Package;
@@ -261,16 +262,35 @@ class SuperadminSubscriptionsController extends BaseController
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Adiciona assinatura a um negócio (`POST /superadmin/superadmin-subscription`) — chamado
+     * pelo "Adicionar assinatura" do drawer do negócio (`Negocios/Index.tsx`).
      *
-     * @param  Request  $request
-     * @return Response
+     * Valida o que a Blade `add_subscription` só garantia pelo `<select>`: negócio existente,
+     * pacote ATIVO e forma de pagamento entre as configuradas. Sem isso, `package_id` vazio caía
+     * no `catch` genérico e um pacote inativo entrava por requisição montada.
+     *
+     * VALOR: nenhum número vem da tela. O `_add_subscription` grava `package_price` do próprio
+     * pacote e, como superadmin, aprova na hora com as datas do pacote — cálculo inalterado.
+     *
+     * SUPERADMIN: escrita cross-tenant intencional (ADR 0093 §exceções).
      */
     public function store(Request $request)
     {
-        if (! auth()->user()->can('subscribe')) {
+        if (! auth()->user()->can('superadmin') && ! auth()->user()->can('subscribe')) {
             abort(403, 'Unauthorized action.');
         }
+
+        $request->validate([
+            'business_id' => ['required', 'integer', 'exists:business,id'],
+            'package_id' => ['required', 'integer', Rule::exists('packages', 'id')->where('is_active', 1)],
+            'paid_via' => ['required', 'string', Rule::in(array_keys((array) $this->_payment_gateways()))],
+            'payment_transaction_id' => ['nullable', 'string', 'max:191'],
+        ], [
+            'package_id.required' => 'Escolha o pacote.',
+            'package_id.exists' => 'Esse pacote não existe ou não está ativo.',
+            'paid_via.required' => 'Diga como a assinatura foi paga.',
+            'paid_via.in' => 'Forma de pagamento não configurada.',
+        ]);
 
         try {
             DB::beginTransaction();
