@@ -401,6 +401,8 @@ class OficinaController extends Controller
             'tem_mais' => $linhas->count() > self::POR_PAGINA,
             // "+ Veículo" no app: permissão de criar da web.
             'pode_criar' => $this->podeCriarVeiculo($user),
+            // Editar veículo no app (pedido [W] 2026-10-05): permissão de editar da web.
+            'pode_editar' => $this->podeEditarVeiculo($user),
         ]);
     }
 
@@ -473,6 +475,97 @@ class OficinaController extends Controller
         }
 
         $bizId = (int) $user->business_id;
+        [$campos, $existente, $dados] = $this->validarVeiculo($request, $bizId, null);
+        if ($campos !== []) {
+            return $this->veiculoInvalido($campos, $existente);
+        }
+
+        $id = app(AcoesOs::class)->criarVeiculo($user, $bizId, $dados);
+        if ($id === null) {
+            return response()->json(['erro' => 'sem_configuracao', 'mensagem' => 'A oficina não está disponível.'], 503);
+        }
+
+        return $this->respostaItemVeiculo($bizId, $id, 201);
+    }
+
+    /**
+     * GET /api/app/veiculos/{id} — o veículo completo para o formulário de edição (pedido [W] 2026-10-05).
+     * `km` aqui é o km do CADASTRO (`mileage_at_entry`), o campo que o PUT grava; a lista mostra o maior
+     * km conhecido (cadastro ou OS). Outra empresa ou inexistente → 404.
+     */
+    public function showVeiculo(Request $request, int $id): JsonResponse
+    {
+        $user = $request->user();
+        if (! $this->podeVerVeiculos($user)) {
+            return $this->semPermissao();
+        }
+
+        $v = $this->consultaVeiculos((int) $user->business_id)->where('v.id', $id)->first([
+            'v.id', 'v.plate', 'v.secondary_plate', 'v.vehicle_type', 'v.manufacture_year', 'v.model_year',
+            'v.color', 'v.mileage_at_entry', 'v.chassis', 'v.renavam', 'c.id as cliente_id', 'c.name as cliente',
+        ]);
+        if ($v === null) {
+            return response()->json(['erro' => 'nao_encontrado', 'mensagem' => 'Veículo não encontrado.'], 404);
+        }
+
+        return response()->json([
+            'id' => (int) $v->id,
+            'placa' => (string) $v->plate,
+            'placa_secundaria' => $this->texto($v->secondary_plate),
+            'tipo' => $v->vehicle_type,
+            'ano_fabricacao' => $v->manufacture_year !== null ? (int) $v->manufacture_year : null,
+            'ano_modelo' => $v->model_year !== null ? (int) $v->model_year : null,
+            'cor' => $this->texto($v->color),
+            'km' => $v->mileage_at_entry !== null ? (int) $v->mileage_at_entry : null,
+            'chassi' => $this->texto($v->chassis),
+            'renavam' => $this->texto($v->renavam),
+            'contact_id' => $v->cliente_id !== null ? (int) $v->cliente_id : null,
+            'cliente' => $v->cliente,
+            'pode_editar' => $this->podeEditarVeiculo($user),
+        ]);
+    }
+
+    /**
+     * PUT /api/app/veiculos/{id} — editar o veículo (pedido [W] 2026-10-05), como o update da web: só
+     * atualiza vehicles. Mesmo corpo e regras do POST; placa trocada para uma de outro veículo ativo da
+     * empresa → 422 (mantida a própria, passa, como na web — #8697). km menor que o atual é aceito
+     * (decisão [W]: como a web). As OS já existentes guardam o próprio cliente e km.
+     */
+    public function updateVeiculo(Request $request, int $id): JsonResponse
+    {
+        $user = $request->user();
+        if (! $this->podeVerVeiculos($user) || ! $this->podeEditarVeiculo($user)) {
+            return $this->semPermissao();
+        }
+
+        $bizId = (int) $user->business_id;
+        $atual = DB::table('vehicles')->where('business_id', $bizId)->whereNull('deleted_at')->where('id', $id)
+            ->first(['id', 'plate', 'secondary_plate']);
+        if ($atual === null) {
+            return response()->json(['erro' => 'nao_encontrado', 'mensagem' => 'Veículo não encontrado.'], 404);
+        }
+
+        [$campos, $existente, $dados] = $this->validarVeiculo($request, $bizId, $atual);
+        if ($campos !== []) {
+            return $this->veiculoInvalido($campos, $existente);
+        }
+
+        if (! app(AcoesOs::class)->atualizarVeiculo($bizId, $id, $dados)) {
+            return response()->json(['erro' => 'sem_configuracao', 'mensagem' => 'A oficina não está disponível.'], 503);
+        }
+
+        return $this->respostaItemVeiculo($bizId, $id, 200);
+    }
+
+    /**
+     * Validação comum de POST e PUT. Placa normalizada (maiúsculas, só letras e números); dono só do
+     * business do token (Tier 0 — a web valida só `integer`); placa já em outro veículo ativo é recusada
+     * (regra única App\Domain\Oficina\PlacaVeiculo). Na edição, só confere a placa que MUDOU.
+     *
+     * @return array{0: array<string, string>, 1: ?int, 2: array{plate: string, vehicle_type: string, secondary_plate: ?string, manufacture_year: ?int, model_year: ?int, color: ?string, mileage_at_entry: ?int, chassis: ?string, renavam: ?string, contact_id: ?int}}
+     */
+    private function validarVeiculo(Request $request, int $bizId, ?object $atual): array
+    {
         $v = Validator::make($request->all(), [
             'placa' => ['required', 'string', 'max:10'],
             'tipo' => ['required', 'in:' . implode(',', array_keys(TiposVeiculo::ROTULOS))],
@@ -493,7 +586,6 @@ class OficinaController extends Controller
         ]);
         $campos = $v->fails() ? collect($v->errors()->toArray())->map(fn ($m) => $m[0])->all() : [];
 
-        // Como a consulta de placa da web: maiúsculas, só letras e números.
         $placa = self::placa((string) $request->input('placa', ''));
         $secundaria = self::placa((string) $request->input('placa_secundaria', ''));
         if (! isset($campos['placa']) && $placa === '') {
@@ -503,36 +595,31 @@ class OficinaController extends Controller
             $campos['placa_secundaria'] = 'A placa do reboque não pode ser igual à principal.';
         }
 
-        // Tier 0 (ADR 0093): dono só do business do token.
         if (! isset($campos['contact_id']) && $request->filled('contact_id') && ! DB::table('contacts')
             ->where('business_id', $bizId)->where('id', (int) $request->input('contact_id'))->exists()) {
             $campos['contact_id'] = 'Cliente não encontrado.';
         }
 
         $existente = null;
+        $doAtual = ['placa' => $atual?->plate, 'placa_secundaria' => $atual?->secondary_plate];
         foreach (['placa' => $placa, 'placa_secundaria' => $secundaria] as $campo => $valor) {
             if (isset($campos[$campo]) || $valor === '') {
                 continue;
             }
-            $id = $this->veiculoAtivoComPlaca($bizId, $valor);
-            if ($id !== null) {
-                $campos[$campo] = 'Esta placa já está em outro veículo ativo.';
-                $existente ??= $id;
+            if ($atual !== null && $valor === self::placa((string) $doAtual[$campo])) {
+                continue;
+            }
+            $outro = PlacaVeiculo::veiculoAtivoCom($bizId, $valor, $atual !== null ? (int) $atual->id : null);
+            if ($outro !== null) {
+                $campos[$campo] = PlacaVeiculo::MENSAGEM_DUPLICADA;
+                $existente ??= $outro;
             }
         }
 
-        if ($campos !== []) {
-            return response()->json(array_filter([
-                'erro' => 'validacao',
-                'campos' => $campos,
-                'veiculo_existente_id' => $existente,
-            ], fn ($x) => $x !== null), 422);
-        }
-
-        $d = $v->validated();
-        $id = app(AcoesOs::class)->criarVeiculo($user, $bizId, [
+        $d = $campos === [] ? $v->validated() : [];
+        $dados = [
             'plate' => $placa,
-            'vehicle_type' => (string) $d['tipo'],
+            'vehicle_type' => (string) ($d['tipo'] ?? ''),
             'secondary_plate' => $secundaria !== '' ? $secundaria : null,
             'manufacture_year' => isset($d['ano_fabricacao']) ? (int) $d['ano_fabricacao'] : null,
             'model_year' => isset($d['ano_modelo']) ? (int) $d['ano_modelo'] : null,
@@ -541,17 +628,36 @@ class OficinaController extends Controller
             'chassis' => $this->texto($d['chassi'] ?? null),
             'renavam' => $this->texto($d['renavam'] ?? null),
             'contact_id' => isset($d['contact_id']) ? (int) $d['contact_id'] : null,
-        ]);
-        if ($id === null) {
-            return response()->json(['erro' => 'sem_configuracao', 'mensagem' => 'A oficina não está disponível.'], 503);
-        }
+        ];
 
+        return [$campos, $existente, $dados];
+    }
+
+    /** @param array<string, string> $campos */
+    private function veiculoInvalido(array $campos, ?int $existente): JsonResponse
+    {
+        return response()->json(array_filter([
+            'erro' => 'validacao',
+            'campos' => $campos,
+            'veiculo_existente_id' => $existente,
+        ], fn ($x) => $x !== null), 422);
+    }
+
+    /** O veículo no formato da lista (resposta de POST e PUT). */
+    private function respostaItemVeiculo(int $bizId, int $id, int $status): JsonResponse
+    {
         $linha = $this->consultaVeiculos($bizId)->where('v.id', $id)->first($this->colunasVeiculo());
         if ($linha === null) {
-            return response()->json(['erro' => 'falha', 'mensagem' => 'Não foi possível ler o veículo criado.'], 500);
+            return response()->json(['erro' => 'falha', 'mensagem' => 'Não foi possível ler o veículo.'], 500);
         }
 
-        return response()->json($this->itemVeiculo($linha), 201);
+        return response()->json($this->itemVeiculo($linha), $status);
+    }
+
+    /** Editar veículo: permissão da web (`oficinaauto.vehicle.update`). */
+    private function podeEditarVeiculo(?User $user): bool
+    {
+        return $user !== null && ($user->can('superadmin') || $user->can('oficinaauto.vehicle.update'));
     }
 
     /** Criar veículo: permissão da web (`oficinaauto.vehicle.create`). */
