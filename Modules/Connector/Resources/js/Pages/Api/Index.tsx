@@ -31,8 +31,12 @@ import KpiCard from '@/Components/shared/KpiCard';
 import KpiGrid from '@/Components/shared/KpiGrid';
 import PageHeaderTabs from '@/Components/shared/PageHeaderTabs';
 import { DocsAba, ModuloAba, SaudeAba, type Endpoint, type Modulo } from './_components/ConnectorAbas';
+import { QuemUsaDrawer, nomesQuePerdem, type TokenUso } from './_components/QuemUsa';
 
-interface Client { id: number; name: string; user_name: string; created_at: string | null; active_tokens_24h: number }
+interface Client {
+  id: number; name: string; user_name: string; created_at: string | null; active_tokens_24h: number;
+  tokens: TokenUso[]; tokens_resto: number;
+}
 interface Credencial { id: number; name: string; secret: string }
 interface Props {
   clients: Client[]; is_demo: boolean; endpoints_count: number; credencial: Credencial | null;
@@ -65,6 +69,7 @@ function ApiIndex({ clients, is_demo, endpoints_count, credencial, endpoints, mo
   const [q, setQ] = useState('');
   const [novo, setNovo] = useState(false);
   const [excluir, setExcluir] = useState<Client | null>(null);
+  const [quemUsa, setQuemUsa] = useState<Client | null>(null);
   const [criada, setCriada] = useState<Credencial | null>(credencial);
   const busca = useRef<HTMLInputElement>(null);
   useEffect(() => setCriada(credencial), [credencial]);
@@ -156,6 +161,7 @@ function ApiIndex({ clients, is_demo, endpoints_count, credencial, endpoints, mo
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild><Button variant="ghost" size="sm" aria-label="Ações do client"><MoreHorizontal className="size-4" /></Button></DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
+                        <DropdownMenuItem onSelect={() => setQuemUsa(c)}>Ver quem usa</DropdownMenuItem>
                         <DropdownMenuItem onSelect={() => copiar(String(c.id))}>Copiar o ID do client</DropdownMenuItem>
                         <DropdownMenuItem onSelect={() => setNovo(true)}>Emitir credencial nova</DropdownMenuItem>
                         <DropdownMenuSeparator />
@@ -183,15 +189,17 @@ function ApiIndex({ clients, is_demo, endpoints_count, credencial, endpoints, mo
         )}
       </div>}
 
+      <QuemUsaDrawer client={quemUsa} onClose={() => setQuemUsa(null)} />
+
       <NovoClient open={novo} onClose={() => setNovo(false)} nomes={clients.map((c) => c.name)} />
 
       <AlertDialog open={!!excluir} onOpenChange={(v) => !v && setExcluir(null)}>
         <AlertDialogContent data-contract="confirm-excluir">
           <AlertDialogHeader><AlertDialogTitle>Excluir este API client?</AlertDialogTitle></AlertDialogHeader>
           <p className="text-sm">O client <b>{excluir?.name}</b> sai da lista e ninguém mais consegue pedir token novo com ele.</p>
-          <p className="text-sm text-warning">{excluir && excluir.active_tokens_24h > 0
-            ? `Os acessos abertos com esta credencial caem na hora (${excluir.active_tokens_24h} usados nas últimas 24 h) — a exclusão revoga os tokens junto.`
-            : 'Nenhum acesso usado nas últimas 24 h — os tokens que existirem são revogados junto.'}</p>
+          <p data-contract="confirm-quem-perde" className="text-sm text-warning">{excluir && excluir.tokens.length > 0
+            ? `Perdem o acesso na hora: ${nomesQuePerdem(excluir.tokens, excluir.tokens_resto)}. A exclusão revoga os tokens junto.`
+            : 'Ninguém deste negócio tem acesso aberto com esta credencial — os tokens que existirem são revogados junto.'}</p>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction className="bg-destructive text-white hover:bg-destructive/90"

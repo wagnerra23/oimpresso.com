@@ -97,19 +97,19 @@ class ApiClientsPanelTest extends TestCase
         return $client;
     }
 
-    private function token(object $client, bool $revoked = false): string
+    private function token(object $client, bool $revoked = false, ?User $user = null, ?\DateTimeInterface $usadoEm = null, ?\DateTimeInterface $venceEm = null): string
     {
         $id = Str::random(80);
 
         DB::table('oauth_access_tokens')->insert([
             'id' => $id,
-            'user_id' => $this->superadmin->id,
+            'user_id' => ($user ?? $this->superadmin)->id,
             'client_id' => $client->id,
             'scopes' => '[]',
             'revoked' => $revoked,
             'created_at' => now(),
-            'updated_at' => now(),
-            'expires_at' => now()->addDays(15),
+            'updated_at' => $usadoEm ?? now(),
+            'expires_at' => $venceEm ?? now()->addDays(15),
         ]);
 
         return $id;
@@ -442,6 +442,52 @@ class ApiClientsPanelTest extends TestCase
         $this->assertSame((string) config('connector.module_version', '2.0'), $modulo['versao']);
         $this->assertSame(count(glob(module_path('Connector', 'Database/Migrations/*.php')) ?: []), $modulo['migracoes']);
         $this->assertIsBool($modulo['instalado']);
+    }
+
+    // ── UC-CONN-21 · quem usa a credencial — só deste negócio ─────────────
+    public function test_quem_usa_lista_so_acessos_abertos_de_usuarios_do_negocio(): void
+    {
+        $c = $this->client();
+        $this->tecnico->forceFill(['first_name' => 'Tecnico', 'last_name' => 'Campo'])->save();
+        $this->superadmin->forceFill(['first_name' => 'Admin', 'last_name' => 'Balcao'])->save();
+        $alheio = $this->user($this->seededSupportClientTenant());
+        $alheio->forceFill(['first_name' => 'Alheio', 'last_name' => 'Outro'])->save();
+
+        $this->token($c, user: $this->tecnico, usadoEm: now()->subMinutes(5));
+        $this->token($c, user: $this->superadmin, usadoEm: now()->subHours(3));
+        $this->token($c, user: $alheio, usadoEm: now());                       // outro negócio
+        $this->token($c, revoked: true, user: $this->tecnico);                 // revogado
+        $this->token($c, user: $this->tecnico, venceEm: now()->subDay());      // vencido
+
+        $res = $this->actingAs($this->superadmin)->get('/connector/client');
+
+        $res->assertOk();
+        $linha = collect($res->viewData('page')['props']['clients'])->firstWhere('id', $c->id);
+        $this->assertNotNull($linha, 'o client do próprio negócio precisa estar na lista');
+        $this->assertSame(['Tecnico Campo', 'Admin Balcao'], array_column($linha['tokens'], 'user_name'));
+        $this->assertSame(0, $linha['tokens_resto']);
+        $this->assertNotNull($linha['tokens'][0]['last_used_at']);
+        $this->assertNotNull($linha['tokens'][0]['expires_at']);
+        $this->assertStringNotContainsString('Alheio', json_encode($res->viewData('page')['props']['clients']));
+    }
+
+    // ── UC-CONN-21 · top 5 + contagem do resto ────────────────────────────
+    public function test_quem_usa_mostra_cinco_e_conta_o_resto(): void
+    {
+        $c = $this->client();
+        foreach (range(1, 7) as $i) {
+            $this->token($c, user: $this->tecnico, usadoEm: now()->subMinutes($i));
+        }
+        $vazio = $this->client(name: 'Sem uso');
+
+        $res = $this->actingAs($this->superadmin)->get('/connector/client');
+
+        $clients = collect($res->viewData('page')['props']['clients']);
+        $linha = $clients->firstWhere('id', $c->id);
+        $this->assertCount(5, $linha['tokens']);
+        $this->assertSame(2, $linha['tokens_resto']);
+        $this->assertSame([], $clients->firstWhere('id', $vazio->id)['tokens']);
+        $this->assertSame(0, $clients->firstWhere('id', $vazio->id)['tokens_resto']);
     }
 
     // ── UC-CONN-16 · demonstração recusa ──────────────────────────────────
