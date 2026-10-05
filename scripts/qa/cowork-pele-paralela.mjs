@@ -78,6 +78,8 @@ const WAIVERS = new Map([
   ['R1:produto-cadastros.jsx', 'idem produto-blade — mesma rota, mesmo wrapper'],
   ['R2:pb', 'produto-blade: data-testid por botao usado em teste de contrato'],
   ['R2:hrm', 'essenciais: paginador de mes, nao escolha unica — nao e segmented'],
+  ['R4:MOCK', 'app-lojas/ref/oimpresso-mobile e app separado: o Oimpresso Mobile.html carrega so o mock-data.jsx, nunca o data.jsx da raiz — os dois window.MOCK nao coexistem (decisao [W] 2026-10-05)'],
+  ['R4:Screens', 'app-lojas/ref/oimpresso-mobile: os 5 screens-* fazem window.Screens = window.Screens || {} e estendem o mesmo namespace — nao e pele paralela (decisao [W] 2026-10-05)'],
 ]);
 
 // Mini-DS toleradas hoje. Meta = 0; cada saida daqui e uma leva de migracao pro DS.
