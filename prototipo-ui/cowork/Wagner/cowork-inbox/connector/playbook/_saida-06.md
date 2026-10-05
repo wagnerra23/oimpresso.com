@@ -29,7 +29,7 @@ base_lida: wagnerra23/oimpresso.com@main 77af1c9d3c
 - Docs: charter `live` + R8 apontando `Index.tsx` (`is_demo`); `RUNBOOK-connector-index.md` §12 registra a F5; `SUPERFICIE.md` regenerado (`module-surface.mjs Connector --write`).
 
 ## Quem ainda usava (varredura)
-- `ConnectorController`: 1 uso fora de docs/baselines — a rota `/api` deste PR. `catalog.json` não drifou (`catalog-graph --check` rc=0).
+- `ConnectorController`: 1 uso fora de docs/baselines — a rota `/api` deste PR. Saiu também do `SCOPE.md` (`contains[]`), e o `catalog.json` foi regenerado (−1 nó, −1 aresta); `catalog-graph --check` rc=0. Na 1ª leitura eu tinha concluído que o catálogo não mudava — errado, o CI pegou.
 - `clients/index.blade.php` / `connector::clients.index`: 0 renderizações; só citações em docblock (`ClientController`, `ClientControllerBaselineTest`) e no RUNBOOK.
 - `GET /connector/api` exato: nenhum link no menu (`DataController` aponta `/connector/client` desde a thread 05). As rotas `connector/api/*` são do `Routes/api.php` (Bearer) e não mudam. O teste de ≥20 rotas no prefixo continua valendo; o KPI "Endpoints publicados" perde 1, porque a rota web removida era contada como endpoint.
 
