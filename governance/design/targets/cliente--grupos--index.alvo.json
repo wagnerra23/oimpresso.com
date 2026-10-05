@@ -1,0 +1,404 @@
+{
+  "aguardou_sumir": null,
+  "ausentes": [],
+  "base": {
+    "assinatura": "OI WR ← Clientes Grupos de cliente 4 grupos · definem a tabela de preço aplicada na venda Novo grupo Grupo Cálculo do preço Desconto Tabela de preço Cadastros Padrão padrão Desconto percentual sem desconto — 3 Atacado Desconto percentual − 12 % — 6 Parceiro Desconto percentual − 18 % — 3 Evento Tabela de preço própria — Tabela evento 3",
+    "roles": {
+      "celulas": null,
+      "chart": null,
+      "contratos": [],
+      "filterRows": null,
+      "kpi": {
+        "count": 0,
+        "items": [],
+        "overflowX": null,
+        "tag": null
+      },
+      "primary": null,
+      "shell": null,
+      "tabela": null,
+      "title": null
+    },
+    "saude": {
+      "folhasVazias": [],
+      "nFolhas": 72,
+      "tokensMortos": []
+    },
+    "theme": "dark",
+    "url": "http://127.0.0.1:5571/"
+  },
+  "nos_totais": 488,
+  "quieto_ms": 2000,
+  "rota": "cli-grupos",
+  "secoes": {
+    "acoes": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "os-page",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "flex",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "6px",
+        "padding": "0px"
+      },
+      "filhos": 1,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "os-page-h"
+        },
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "os-page"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "os-btn"
+      ],
+      "rect": {
+        "h": 32,
+        "w": 110
+      },
+      "seletor": ".cg-page > .os-page-h > .os-page-h-r",
+      "truncado": false
+    },
+    "cabecalho": {
+      "contraste": {
+        "fundo": "oklch(0.3 0.008 240)",
+        "fundo_de": "os-table",
+        "razao": 11.42,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.027108,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "table-row",
+        "fontSize": "12.5px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "padding": "0px"
+      },
+      "filhos": 6,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "thead"
+        },
+        {
+          "bg": "oklch(0.3 0.008 240)",
+          "de": "os-table"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "th",
+        "th",
+        "num",
+        "th",
+        "num",
+        "th"
+      ],
+      "rect": {
+        "h": 36,
+        "w": 1175
+      },
+      "seletor": ".cg-page > .os-table-wrap thead > tr",
+      "truncado": false
+    },
+    "header": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "os-page",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "flex",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "16px",
+        "padding": "12px 24px"
+      },
+      "filhos": 2,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "os-page"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "os-page-h-l",
+        "os-page-h-r"
+      ],
+      "rect": {
+        "h": 93,
+        "w": 1224
+      },
+      "seletor": ".cg-page > .os-page-h",
+      "truncado": false
+    },
+    "linha": {
+      "contraste": {
+        "fundo": "oklch(0.3 0.008 240)",
+        "fundo_de": "os-table",
+        "razao": 11.42,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.027108,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "table-row",
+        "fontSize": "12.5px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "padding": "0px"
+      },
+      "filhos": 6,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "tbody"
+        },
+        {
+          "bg": "oklch(0.3 0.008 240)",
+          "de": "os-table"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "td",
+        "cli-cell-muted",
+        "num",
+        "td",
+        "num",
+        "cli-td-kebab"
+      ],
+      "rect": {
+        "h": 44,
+        "w": 1175
+      },
+      "seletor": ".cg-page > .os-table-wrap tbody > tr.cli-row:first-child",
+      "truncado": false
+    },
+    "resumo": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "os-page",
+        "razao": 5.19,
+        "texto": "oklch(0.67 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.300843
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.67 0.005 90)",
+        "display": "block",
+        "fontSize": "12px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "padding": "0px"
+      },
+      "filhos": 1,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "os-page-h-l"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "os-page-h"
+        },
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "os-page"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "strong"
+      ],
+      "rect": {
+        "h": 17,
+        "w": 432
+      },
+      "seletor": ".cg-page > .os-page-h > .os-page-h-l > p",
+      "truncado": false
+    },
+    "tabela": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "proprio",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.26 0.006 240)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "block",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "padding": "14px 24px 20px"
+      },
+      "filhos": 1,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "os-table"
+      ],
+      "rect": {
+        "h": 807,
+        "w": 1224
+      },
+      "seletor": ".cg-page > .os-table-wrap",
+      "truncado": false
+    },
+    "titulo": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "os-page",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "block",
+        "fontSize": "22px",
+        "fontWeight": "600",
+        "gap": "normal",
+        "padding": "0px"
+      },
+      "filhos": 0,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "os-page-h-l"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "os-page-h"
+        },
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "os-page"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [],
+      "rect": {
+        "h": 26,
+        "w": 1050
+      },
+      "seletor": ".cg-page > .os-page-h > .os-page-h-l > h1",
+      "truncado": false
+    },
+    "voltar": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "os-page",
+        "razao": 6.26,
+        "texto": "oklch(0.72 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.373341
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.72 0.005 90)",
+        "display": "inline-block",
+        "fontSize": "11.5px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "padding": "0px"
+      },
+      "filhos": 0,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "os-page-h-l"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "os-page-h"
+        },
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "os-page"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [],
+      "rect": {
+        "h": 17,
+        "w": 54
+      },
+      "seletor": ".cg-page > .os-page-h > .os-page-h-l > .ci-voltar",
+      "truncado": false
+    }
+  },
+  "tela": "cliente--grupos--index",
+  "url": "http://127.0.0.1:5571/"
+}
