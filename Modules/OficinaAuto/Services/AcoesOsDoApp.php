@@ -15,6 +15,7 @@ use App\User;
 use Illuminate\Support\Facades\Log;
 use Modules\OficinaAuto\Entities\ServiceOrder;
 use Modules\OficinaAuto\Entities\Vehicle;
+use Modules\OficinaAuto\Services\PlacaLookup\PlacaLookupException;
 
 /**
  * Avançar a etapa da OS pelo app das lojas (contrato App\Contracts\Oficina\AcoesOs, tela 03).
@@ -159,6 +160,39 @@ final class AcoesOsDoApp implements AcoesOs
         $v = Vehicle::create(['business_id' => $businessId] + $dados);
 
         return (int) $v->id;
+    }
+
+    public function consultaPlacaDisponivel(): bool
+    {
+        return VehicleLookupService::disponivel();
+    }
+
+    public function consultarPlaca(int $businessId, string $placa): array
+    {
+        if (! VehicleLookupService::disponivel()) {
+            return ['resultado' => 'sem_configuracao'];
+        }
+        try {
+            $r = app(VehicleLookupService::class)->lookup($placa, $businessId);
+        } catch (PlacaLookupException $e) {
+            // A exceção não carrega a placa (PII-safe); mesmo assim só o business vai ao log.
+            Log::warning('AcoesOsDoApp@consultarPlaca: fornecedor falhou', ['business_id' => $businessId]);
+
+            return ['resultado' => 'indisponivel'];
+        }
+        if ($r === null) {
+            return ['resultado' => 'nao_encontrado'];
+        }
+
+        return ['resultado' => 'ok', 'dados' => [
+            'placa' => $r->plate,
+            'ano_fabricacao' => $r->manufactureYear,
+            'ano_modelo' => $r->modelYear,
+            'cor' => $r->color,
+            'chassi' => $r->chassis,
+            'renavam' => $r->renavam,
+            'marca_modelo' => $r->brandModelLabel(),
+        ]];
     }
 
     private function os(int $businessId, int $osId): ?ServiceOrder

@@ -29,4 +29,14 @@ final class SemAcoesOs implements AcoesOs
     {
         return null;
     }
+
+    public function consultaPlacaDisponivel(): bool
+    {
+        return false;
+    }
+
+    public function consultarPlaca(int $businessId, string $placa): array
+    {
+        return ['resultado' => 'sem_configuracao'];
+    }
 }

@@ -89,4 +89,16 @@ interface AcoesOs
      * @param  array{plate: string, vehicle_type: string, secondary_plate: ?string, manufacture_year: ?int, model_year: ?int, color: ?string, mileage_at_entry: ?int, chassis: ?string, renavam: ?string, contact_id: ?int}  $dados
      */
     public function criarVeiculo(User $user, int $businessId, array $dados): ?int;
+
+    /** A consulta de placa pode responder neste ambiente (fornecedor real, ou stub fora de produção)? */
+    public function consultaPlacaDisponivel(): bool;
+
+    /**
+     * Consulta de placa da web (VehicleLookupService, cache 24h por business+placa, só dados técnicos,
+     * sem proprietário). `resultado`: ok · nao_encontrado · sem_configuracao · indisponivel. Placa já
+     * normalizada e validada pelo chamador.
+     *
+     * @return array{resultado: string, dados?: array{placa: string, ano_fabricacao: ?int, ano_modelo: ?int, cor: ?string, chassi: ?string, renavam: ?string, marca_modelo: ?string}}
+     */
+    public function consultarPlaca(int $businessId, string $placa): array;
 }
