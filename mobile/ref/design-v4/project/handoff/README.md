@@ -13,6 +13,8 @@ Pacotes gerados no projeto de design a partir de `wagnerra23/oimpresso.com@main`
 
 Ordem: 1 → 2 → 3 → 4. A 5 depende só da 1 e pode subir antes se o ponto de campo for urgente.
 
+> **Alvo atual (2026-10-05): `oimpresso-app`.** As ondas acima foram escritas para o app Expo e ficam como referência. O pacote vigente é **`propostas-app/`**: comece pelo `PLAYBOOK-PRS.md` (20 PRs em 3 ondas), depois `TAREFAS.md`, `AJUSTES-DA-EMPRESA.md`, `api/` e `demo-propostas.ts`.
+
 Pastas `-tabs-` = `mobile/app/(tabs)/`; `-id-` = `[id]` (o pacote não aceita parênteses/colchetes no nome).
 
 Não testado em aparelho nem com `tsc` — conferir tipos de `erp-queries` (ex.: `os.vehicle`, `h.dataEntrada`) no PR.
