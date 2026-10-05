@@ -14,7 +14,8 @@ last_run: "2026-10-05"
 > referência e números em fonte mono à direita. O selo "Rascunho" passa de âmbar a contorno, como o
 > protótipo atual. Num segundo PR do mesmo dia, os filtros saem do cartão e ganham as medidas do
 > protótipo (rótulo 10,5px/600, campos de 34–36px com canto 8 e texto 13–13,5px); o que eles filtram
-> não muda. Nenhum UC foi reexecutado nesta data.
+> não muda. Num terceiro PR, os 4 indicadores ganham a linha de apoio e o tamanho padrão (como na
+> Receitas); os números são os mesmos. Nenhum UC foi reexecutado nesta data.
 
 # Casos de Uso & Aceite — Manufacturing/Index
 

@@ -30,6 +30,25 @@ beforeEach(function () {
     }
     // Ninguém destes testes é superadmin por username (Gate::before).
     config(['constants.administrator_usernames' => 'ninguem_ma_test']);
+
+    // O payload formata preço com a moeda do sistema (`System::getCurrency()`), como a Blade.
+    // Produção tem `app_currency_id`; a lane MySQL não semeia. Sem a chave a tela dava 500 e
+    // UC-SAMA-03/05 caíam por isso, não pelo contrato. Semeia só quando falta, e desfaz no fim.
+    $this->maMoedaSemeada = false;
+    if (! DB::table('system')->where('key', 'app_currency_id')->exists()) {
+        $moeda = DB::table('currencies')->orderBy('id')->value('id');
+        if ($moeda === null) {
+            $this->markTestSkipped('Sem moeda em currencies — o payload não tem como formatar preço.');
+        }
+        DB::table('system')->insert(['key' => 'app_currency_id', 'value' => (string) $moeda]);
+        $this->maMoedaSemeada = true;
+    }
+});
+
+afterEach(function () {
+    if ($this->maMoedaSemeada ?? false) {
+        DB::table('system')->where('key', 'app_currency_id')->delete();
+    }
 });
 
 /** Tenant fictício. NUNCA biz=4 (ROTA LIVRE, produção) — ADR 0358. */
@@ -129,6 +148,11 @@ it('UC-SAMA-04 · o valor sai no mesmo texto que a Blade mostrava', function () 
     }
     $m = System::getCurrency();
     $ctrl = app(SubscriptionController::class);
+    // O método é chamado direto, fora de uma requisição HTTP: sem isto `request()->session()`
+    // lança "Session store not set on request.". Em produção ele só roda dentro da requisição
+    // da tela, onde o middleware `web` já ligou a sessão. Liga o MESMO store que `session([...])`
+    // escreve. Até 2026-10-05 o caso pulava no CI por falta de app_currency_id e o defeito não aparecia.
+    request()->setLaravelSession(app('session.store'));
 
     session(['business' => ['currency_precision' => 2, 'currency_symbol_placement' => 'before']]);
     // 1.005 é o discriminante: accounting.js dá "1.00" (1.005*100 = 100.4999…); o round() do PHP daria "1.01".

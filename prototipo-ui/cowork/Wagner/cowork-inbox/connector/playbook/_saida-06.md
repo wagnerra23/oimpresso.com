@@ -31,7 +31,7 @@ base_lida: wagnerra23/oimpresso.com@main 77af1c9d3c
 ## Quem ainda usava (varredura)
 - `ConnectorController`: 1 uso fora de docs/baselines — a rota `/api` deste PR. Saiu também do `SCOPE.md` (`contains[]`), e o `catalog.json` foi regenerado (−1 nó, −1 aresta); `catalog-graph --check` rc=0. Na 1ª leitura eu tinha concluído que o catálogo não mudava — errado, o CI pegou.
 - `clients/index.blade.php` / `connector::clients.index`: 0 renderizações; só citações em docblock (`ClientController`, `ClientControllerBaselineTest`) e no RUNBOOK.
-- `GET /connector/api` exato: nenhum link no menu (`DataController` aponta `/connector/client` desde a thread 05). As rotas `connector/api/*` são do `Routes/api.php` (Bearer) e não mudam. O teste de ≥20 rotas no prefixo continua valendo; o KPI "Endpoints publicados" perde 1, porque a rota web removida era contada como endpoint.
+- `GET /connector/api` exato: nenhum link no menu (`DataController` aponta `/connector/client` desde a thread 05). As rotas `connector/api/*` são do `Routes/api.php` (Bearer) e não mudam. O teste de ≥20 rotas no prefixo continua valendo; o KPI "Endpoints publicados" segue 78: o `ClientController` só conta `connector/api/` com a barra final, então a rota web `connector/api` nunca entrava na conta. _Errata 2026-10-05: a 1ª versão deste recibo dizia que o KPI perdia 1 — não medido; a medição em produção depois do deploy deu 78._
 
 ## Provas do json, medidas no branch
 1. `Modules/Connector/Resources/views/clients/index.blade.php` ausente — ✅
@@ -45,8 +45,14 @@ A ficha pede também `grep -r "connector::" Modules/` vazio. Isso não fecha sem
 
 ## Entregue 1 de 1 (Connector/06).
 
+## Medido em produção depois do deploy (2026-10-05, merge `dd525fd6d8b9`)
+- `GET /connector/api` logado: 500 → **404**; sem sessão: 302 → 404.
+- `GET /connector/client` logado: 200, componente `Api/Index`, 6 clients; sem sessão: 302 → `/login`.
+- `GET /connector/install` sem sessão: 302 → `/login`.
+- `/connector/api/business-location` JSON sem token: 401 (API do Delphi intacta).
+
 ## NÃO MEDI
-Pest local (regra: só CI/CT 100). O resultado da lane `Connector · Pest (MySQL)` vai no PR. A remoção da rota em produção (`/connector/api` passa de 500 a 404) é medida depois do deploy.
+Pest local (regra: só CI/CT 100); o veredito é o CI do #8696.
 
 ## PR
 (no corpo do PR)

@@ -85,3 +85,24 @@ pode ser paga). A mesma consulta da web: só dados técnicos, nunca proprietári
   outro veículo ativo.", "veiculo_existente_id" }`, **sem** consultar o fornecedor.
 - `422 campos.placa` placa fora do formato ABC1234/ABC1D23 · `502 indisponivel` fornecedor fora ·
   `503 sem_configuracao` "Consulta de placa não configurada." · `403 sem_permissao`.
+
+## Editar veículo — escrita (pedido [W] 2026-10-05)
+
+A lista `GET /api/app/veiculos` traz também `"pode_editar": bool` (`oficinaauto.vehicle.update` ou superadmin).
+
+`GET /api/app/veiculos/{id}` → `{ id, placa, placa_secundaria, tipo, ano_fabricacao, ano_modelo, cor, km, chassi,
+renavam, contact_id, cliente, pode_editar }` — `tipo` é a chave de `opcoes`; `km` é o km do **cadastro**
+(o campo que o PUT grava; a lista mostra o maior km conhecido, cadastro ou OS). Outra empresa ou
+inexistente → `404 nao_encontrado`. Mesma permissão da lista.
+
+`PUT /api/app/veiculos/{id}` (throttle 30/min) com o mesmo corpo e as mesmas regras do POST:
+
+- `200` → o item no formato da lista.
+- Placa (principal ou reboque) **trocada** para uma de outro veículo ativo da empresa → `422` com
+  `campos.placa | placa_secundaria` "Esta placa já está em outro veículo ativo." e `veiculo_existente_id`.
+  Mantida a própria placa, passa (inclusive nos veículos que já estavam duplicados antes da regra) — igual à web.
+- km menor que o atual é **aceito** (decisão [W] 2026-10-05: como a web).
+- `contact_id` só da própria empresa · `403 sem_permissao` sem `vehicle.view` ou `vehicle.update` ·
+  `404` outra empresa · `503 sem_configuracao`.
+- Só atualiza `vehicles`: sem valor, estoque ou cobrança. As OS já existentes guardam o próprio cliente e
+  km; **placa e tipo mostrados na OS vêm do veículo**, então refletem a edição.

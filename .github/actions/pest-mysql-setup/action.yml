@@ -147,6 +147,18 @@ runs:
         php artisan tinker --execute="
           use Illuminate\\Support\\Facades\\DB;
           \$curId = optional(DB::table('currencies')->first())->id ?? 1;
+          // system.app_currency_id (2026-10-05). O baseline registra a migration
+          // 2018_07_17_182021_add_rows_to_system_table como rodada, mas o dump é só de
+          // schema: as linhas que ela inseria na tabela system NÃO vêm junto. Sem esta,
+          // System::getCurrency() lê ->value de null e a tela /subscription dá 500
+          // (UC-SAMA-03/05, verticais-pest run 37345383487). Produção tem a linha (lida
+          // em 2026-10-05) — a falta é só deste ambiente. Valor 2 = o que a migration
+          // gravaria; cai pra \$curId se a moeda 2 não existir.
+          if (! DB::table('system')->where('key', 'app_currency_id')->exists()) {
+            \$sysCur = DB::table('currencies')->where('id', 2)->exists() ? 2 : \$curId;
+            DB::table('system')->insert(['key'=>'app_currency_id','value'=>\$sysCur]);
+            echo 'seed system.app_currency_id='.\$sysCur.PHP_EOL;
+          }
           if (! DB::table('business')->where('id', 1)->exists()) {
             \$uid = DB::table('users')->insertGetId(['first_name'=>'CI','username'=>'ci_admin','password'=>bcrypt('ci'),'created_at'=>now(),'updated_at'=>now()]);
             \$bid = DB::table('business')->insertGetId(['name'=>'CI Biz','currency_id'=>\$curId,'owner_id'=>\$uid,'stop_selling_before'=>0,'weighing_scale_setting'=>'','certificado'=>'','officeimpresso_numerodemaquinas'=>0,'created_at'=>now(),'updated_at'=>now()]);
