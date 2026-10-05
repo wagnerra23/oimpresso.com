@@ -306,6 +306,30 @@ de módulo neste repo.** A atribuição dos 29 é ato do [W], não inferência d
 > corpus de maps, 84d em 2026-09-21, com 5 das 7 partes acionáveis) passa a ter destinatário — **[F]**,
 > não [W] e não o agente.
 
+### 3.3.2 O APP MOBILE tem o [L] — por ato do [W] em 2026-10-05
+
+> **[W] 2026-10-05, textual:** *"dá para colocar o Luiz no projeto do mobile"* e, em seguida,
+> *"git"* (registrar). A atribuição é ato dele; registrar é do agente, pela mesma regra da §3.3.1.
+>
+> **[L] entra no app mobile como executor (degrau 1), pareado com IA.** Não é dono de processo:
+> a §3.2 regra 1 segue valendo — ele não mergeia sozinho, e toda PR dele passa por [F] ou [W].
+>
+> **Já tem rastro no app** (medido em 2026-10-05 contra `origin/main`, autor `LuizWr2`):
+> [#8193](https://github.com/wagnerra23/oimpresso.com/pull/8193) importou o app Expo para `mobile/`
+> e [#8197](https://github.com/wagnerra23/oimpresso.com/pull/8197) escreveu os testes Vitest das
+> regras do app.
+>
+> | Parte do app | Onde | [L] |
+> |---|---|---|
+> | Telas, componentes, hooks, testes Vitest | `mobile/` (Expo + React Native) | 🟢 pareado |
+> | Docs e contrato do app | `memory/requisitos/AppMobile/` | 🟢 pareado |
+> | API do app no Laravel | `routes/api/app/**`, `app/Http/Controllers/Api/App/**` | 🟡 só com review [F] — é Tier 0 multi-tenant (`business_id`) |
+> | Login do app (OAuth) | `app/Auth/AppMobileOAuth.php`, `AppMobileOAuthClientCommand` | ❌ zona vermelha (credencial) |
+> | Qualquer coisa que mexa em valor, estoque, pagamento ou PII | — | ❌ zona vermelha (§1 e `proibicoes.md`) |
+>
+> **O que este registro NÃO faz, de propósito** (mesmas razões da §3.3.1): não arma o
+> `CODEOWNERS` e não abre linha na §3 — a §3 exigiria definir os 5 níveis, e o [W] decidiu só o [L].
+
 ---
 
 ## 4. Convenção de identificação em commits / PRs / SPEC.md
