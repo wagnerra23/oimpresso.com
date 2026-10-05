@@ -47,4 +47,4 @@ Placar: **entregue 1 de 1** (a prova do json passa: `SubscriptionController.php`
 
 ## PR
 
-(preencher com o número do PR)
+#8669 — `feat(superadmin): Minha assinatura em Inertia — thread 07`.
