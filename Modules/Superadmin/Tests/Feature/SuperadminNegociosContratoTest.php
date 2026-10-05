@@ -354,7 +354,8 @@ it('UC-SANEG-13 · store recusa usuario e e-mail ja existentes e pacote sem pago
         'first_name' => 'Dono',
         'username' => $superadmin->username,
         'email' => $superadmin->email,
-        'password' => 'senha-forte-123',
+        // Só precisa passar no min:8 — a validação recusa antes por usuário/e-mail duplicado.
+        'password' => str_repeat('x', 12),
         'city' => 'Cidade', 'state' => 'SC', 'zip_code' => '8800000', 'country' => 'Brasil',
     ];
     if ($pacote !== null) {
