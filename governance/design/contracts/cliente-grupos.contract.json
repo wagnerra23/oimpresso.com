@@ -1,0 +1,20 @@
+{
+  "_nota": "Contrato de Tela dos Grupos de cliente (ADR 0286), thread cliente/playbook/03 (D2 = tela própria), 2026-10-05. Derivado do protótipo cliente-grupos.jsx (ClienteGruposPage) e do alvo medido governance/design/targets/cliente--grupos--index.* (#8663). Recortes declarados: (1) o protótipo chama o percentual de 'Desconto' e só aceita dígitos; o sistema o aplica como AJUSTE com sinal (positivo aumenta, negativo diminui — dica da Blade lang_v1.tooltip_calculation_percentage), então a copy é 'Ajuste'; (2) 'Ver cadastros do grupo' e o grupo padrão não-excluível ficam no backlog do casos (sem backend que os sustente). Copy 'Ajuste' aprovada por [W] em 2026-10-05.",
+  "tela": "Cliente/Grupos",
+  "fonte": "prototipo-ui/cowork/Wagner/cliente-grupos.jsx",
+  "alvo": ["resources/js/Pages/Cliente/Grupos"],
+  "secoes": [
+    { "id": "page-header", "copy": ["Grupos de cliente", "definem o preço aplicado na venda", "Novo grupo"] },
+    { "id": "toolbar", "copy": ["← Clientes", "Buscar grupo pelo nome…"] },
+    { "id": "grupos-table", "copy": ["Grupo", "Cálculo do preço", "Ajuste", "Tabela de preço", "Cadastros", "Percentual sobre o preço", "Tabela de preço própria", "sem ajuste", "Editar grupo", "Excluir grupo"], "estados": ["normal"] },
+    { "id": "vazio", "copy": ["Nenhum grupo de cliente ainda", "Criar o primeiro grupo", "Nenhum grupo com esse nome"], "estados": ["primeira-vez", "sem-resultado"] },
+    { "id": "grupo-form", "copy": ["Nome", "Cálculo do preço", "Ajuste (%)", "Positivo aumenta o preço de venda; negativo diminui.", "Tabela de preço", "nunca os dois"], "estados": ["percentual", "tabela"] },
+    { "id": "confirm-excluir", "copy": ["Excluir este grupo?", "Excluir grupo"], "estados": ["com-cadastros", "sem-cadastros"] }
+  ],
+  "ordem": ["page-header", "toolbar", "grupos-table"],
+  "proibicoes": [
+    "Percentual apresentado como 'Desconto' ou sem sinal: o valor é ajuste e pode aumentar o preço.",
+    "Percentual enviado ao endpoint como número JS (10.5): o contrato do store/update é o texto pt-BR que o num_uf lê.",
+    "Grupo, contagem ou tabela de preço de outro negócio na tela."
+  ]
+}

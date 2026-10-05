@@ -14,7 +14,7 @@ module: Superadmin
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Superadmin/**` + `resources/js/Pages/superadmin/**` (namespace Inertia `superadmin`, declarado em `module-surface.mjs::PAGES_NS` porque difere do nome do módulo `Superadmin` — confira com `--namespaces`), separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 201 arquivos em 19 papéis.
+**Total mapeado:** 198 arquivos em 19 papéis.
 
 ## Controllers — 14
 
@@ -106,7 +106,7 @@ module: Superadmin
 - [config.php](../../../Modules/Superadmin/Config/config.php)
 - [retention.php](../../../Modules/Superadmin/Config/retention.php)
 
-## Views (Blade) — 43
+## Views (Blade) — 40
 
 - [index.blade.php](../../../Modules/Superadmin/Resources/views/business/index.blade.php)
 - [index.blade.php](../../../Modules/Superadmin/Resources/views/communicator/index.blade.php)
@@ -147,9 +147,6 @@ module: Superadmin
 - [payment_gateways.blade.php](../../../Modules/Superadmin/Resources/views/superadmin_settings/partials/payment_gateways.blade.php)
 - [pusher_setting.blade.php](../../../Modules/Superadmin/Resources/views/superadmin_settings/partials/pusher_setting.blade.php)
 - [super_admin_settings.blade.php](../../../Modules/Superadmin/Resources/views/superadmin_settings/partials/super_admin_settings.blade.php)
-- [add_subscription.blade.php](../../../Modules/Superadmin/Resources/views/superadmin_subscription/add_subscription.blade.php)
-- [edit.blade.php](../../../Modules/Superadmin/Resources/views/superadmin_subscription/edit.blade.php)
-- [edit_date_modal.blade.php](../../../Modules/Superadmin/Resources/views/superadmin_subscription/edit_date_modal.blade.php)
 - [index.blade.php](../../../Modules/Superadmin/Resources/views/superadmin_subscription/index.blade.php)
 
 ## Telas (Inertia/React) — 10
