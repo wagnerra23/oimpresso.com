@@ -89,6 +89,14 @@ function appVcVendasNoLocal(object $t): int
     return DB::table('transactions')->where('business_id', APP_VC_BIZ)->where('type', 'sell')->where('location_id', $t->local)->count();
 }
 
+/** Ajuste "Bloquear venda de produto com preço zero no app" (pos_settings) do 98. */
+function appVcBloqueiaPrecoZero(bool $liga): void
+{
+    $pos = json_decode((string) DB::table('business')->where('id', APP_VC_BIZ)->value('pos_settings'), true) ?: [];
+    $pos['bloquear_venda_preco_zero_app'] = $liga ? 1 : 0;
+    DB::table('business')->where('id', APP_VC_BIZ)->update(['pos_settings' => json_encode($pos)]);
+}
+
 function appVcVenderSemEstoque(bool $permite): void
 {
     $pos = json_decode((string) DB::table('business')->where('id', APP_VC_BIZ)->value('pos_settings'), true) ?: [];
@@ -114,6 +122,7 @@ beforeEach(function () {
     app()->instance(ModuleUtil::class, $mu);
 
     appVcVenderSemEstoque(false);
+    appVcBloqueiaPrecoZero(false);
     $this->local = EstoqueFixture::locationId(APP_VC_BIZ, '-APPVC');
     $this->user = appVcUsuario(['direct_sell.access', 'location.' . $this->local]);
     // Consumidor final do 98 (cliente_id null usa ele): o seed pode não ter.
@@ -282,4 +291,48 @@ it('UC-APPVR-17 · permissão, forma de pagamento e header: sem permissão 403; 
     $this->flushHeaders()->postJson('/api/app/vendas', $this->corpo)->assertStatus(422)
         ->assertJsonPath('campos', fn ($c) => isset($c['idempotency_key']));
     expect(appVcEstoque($this, $this->banner))->toEqualWithDelta(5.0, 0.0001);
+});
+
+it('UC-APPVR-18 · preço zero: com o ajuste ligado, produto a R$ 0,00 (ou que arredonda a 0, ou negativo) é 422 no item e nada é gravado; desligado (padrão), vende como antes', function () {
+    $pre = 'AppVC0 ' . uniqid();
+    $zero = appVcProduto($this, APP_VC_BIZ, $pre . ' Brinde', 0.00, 4);
+    $quase = appVcProduto($this, APP_VC_BIZ, $pre . ' Quase zero', 0.004, 4);
+    $negativo = appVcProduto($this, APP_VC_BIZ, $pre . ' Negativo', -1.00, 4);
+    $comBrinde = [
+        'cliente_id' => null, 'metodo' => 'pix',
+        'itens' => [
+            ['variacao_id' => $this->adesivo, 'quantidade' => '1.00', 'preco_unitario' => '12.50'],
+            ['variacao_id' => $zero, 'quantidade' => '1.00', 'preco_unitario' => '0.00'],
+        ],
+        'total_previsto' => '12.50',
+    ];
+
+    appVcBloqueiaPrecoZero(true);
+    $vendas = appVcVendasNoLocal($this);
+    foreach ([$zero, $quase, $negativo] as $variacao) {
+        $corpo = $comBrinde;
+        $corpo['itens'][1]['variacao_id'] = $variacao;
+        appVcPost($this, $corpo)->assertStatus(422)
+            ->assertJsonPath('erro', 'validacao')
+            ->assertJsonPath('campos', ['itens.1.preco_unitario' => 'Produto sem preço. Corrija o cadastro na web.']);
+    }
+    // Nada gravado: nem venda, nem baixa de estoque, nem chave de idempotência.
+    expect(appVcVendasNoLocal($this))->toBe($vendas);
+    expect(appVcEstoque($this, $this->adesivo))->toEqualWithDelta(10.0, 0.0001);
+    expect(appVcEstoque($this, $zero))->toEqualWithDelta(4.0, 0.0001);
+    expect(DB::table('app_idempotencia')->where('business_id', APP_VC_BIZ)->where('user_id', $this->user->id)->count())->toBe(0);
+
+    // Ajuste ligado não muda venda com preço: o caso de referência grava os mesmos 243,90.
+    $ref = appVcPost($this, $this->corpo)->assertStatus(201);
+    expect((float) DB::table('transactions')->where('id', $ref->json('id'))->value('final_total'))->toEqualWithDelta(243.90, 0.0001);
+
+    // Desligado (padrão): o brinde a R$ 0,00 vende como antes.
+    appVcBloqueiaPrecoZero(false);
+    $r = appVcPost($this, $comBrinde)->assertStatus(201);
+    // Prova 1 — à mão: 1 × 12,50 + 1 × 0,00 = 12,50. Prova 2 — o que o ERP gravou, pelas linhas.
+    expect((float) $r->json('total'))->toEqualWithDelta(12.50, 0.0001);
+    $linhas = DB::table('transaction_sell_lines')->where('transaction_id', $r->json('id'))->get();
+    expect($linhas)->toHaveCount(2);
+    expect($linhas->sum(fn ($l) => (float) $l->quantity * (float) $l->unit_price_inc_tax))->toEqualWithDelta(12.50, 0.0001);
+    expect(appVcEstoque($this, $zero))->toEqualWithDelta(3.0, 0.0001);
 });

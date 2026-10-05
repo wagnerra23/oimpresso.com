@@ -91,6 +91,19 @@
                 </div>
             </div>
         </div>
+        <div class="col-sm-4">
+            <div class="form-group">
+                <div class="checkbox">
+                <br>
+                  <label>
+                    {!! Form::checkbox('pos_settings[bloquear_venda_preco_zero_app]', 1,
+                        !empty($pos_settings['bloquear_venda_preco_zero_app']),
+                    [ 'class' => 'input-icheck']); !!} {{ __( 'lang_v1.bloquear_venda_preco_zero_app' ) }}
+                  </label>
+                  @show_tooltip(__('lang_v1.bloquear_venda_preco_zero_app_help'))
+                </div>
+            </div>
+        </div>
         <div class="clearfix"></div>
         <div class="col-sm-4">
             <div class="form-group">

@@ -56,6 +56,7 @@ class VendaRapidaController extends Controller
         // Business que vende sem estoque (pos_settings.allow_overselling): o ERP aceita a venda
         // mesmo com saldo zero ou negativo, então o app não deve pôr teto — estoque vai `null`.
         $semTeto = self::permiteVenderSemEstoque($bizId);
+        $bloqueiaPrecoZero = self::bloqueiaPrecoZero($bizId);
 
         $q = DB::table('products as p')
             ->join('variations as v', 'v.product_id', '=', 'p.id')
@@ -101,6 +102,9 @@ class VendaRapidaController extends Controller
                 'preco' => self::precoDeVenda($local, (int) $l->variacao_id, (float) $l->sell_price_inc_tax, $l->tax_id),
                 'estoque' => (int) $l->enable_stock === 1 && ! $semTeto ? round((float) ($l->qty_available ?? 0), 4) : null,
             ])->values(),
+            // Ajuste da empresa (configurações de venda): com ele ligado, o app não deixa vender
+            // produto com preço ≤ R$ 0,00 e o POST recusa. Desligado (padrão), vende como hoje.
+            'bloqueia_preco_zero' => $bloqueiaPrecoZero,
         ]);
     }
 
@@ -234,6 +238,17 @@ class VendaRapidaController extends Controller
     private function invalido(array $campos): JsonResponse
     {
         return response()->json(['erro' => 'validacao', 'campos' => $campos], 422);
+    }
+
+    /**
+     * `pos_settings.bloquear_venda_preco_zero_app` do business (configurações de venda da web).
+     * Padrão desligado (decisão [W] 2026-10-05): há empresa que vende a R$ 0,00 como brinde.
+     */
+    public static function bloqueiaPrecoZero(int $bizId): bool
+    {
+        $pos = json_decode((string) DB::table('business')->where('id', $bizId)->value('pos_settings'), true);
+
+        return ! empty($pos['bloquear_venda_preco_zero_app']);
     }
 
     /** `pos_settings.allow_overselling` do business — a mesma chave que o mapPurchaseSell lê. */

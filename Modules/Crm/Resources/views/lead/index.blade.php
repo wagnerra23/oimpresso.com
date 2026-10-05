@@ -39,9 +39,11 @@
 	@component('components.widget', ['class' => 'box-primary', 'title' => __('crm::lang.all_leads')])
         @slot('tool')
             <div class="box-tools">
-                <button type="button" class="btn btn-sm btn-primary btn-add-lead pull-right m-5" data-href="{{action([\Modules\Crm\Http\Controllers\LeadController::class, 'create'])}}">
+                {{-- Thread Crm/06: o formulário de lead virou a tela Inertia (Cliente/Create
+                     parametrizado); o create não devolve mais o fragmento de modal. --}}
+                <a class="btn btn-sm btn-primary pull-right m-5" href="{{action([\Modules\Crm\Http\Controllers\LeadController::class, 'create'])}}">
                     <i class="fa fa-plus"></i> @lang('messages.add')
-                </button>
+                </a>
 
                 <div class="btn-group btn-group-toggle pull-right m-5" data-toggle="buttons">
                     <label class="btn btn-info btn-sm active list">
