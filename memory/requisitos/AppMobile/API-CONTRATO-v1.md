@@ -72,7 +72,7 @@ rascunho, enviado, aprovado, convertido}, pagina, tem_mais }`, 20 por página, m
 
 ### 2.2 Venda rápida (tela 11): leitura ⬜ · escrita ⬜ (regra mestre)
 
-`GET /api/app/venda/produtos?q=` → `{ itens:[{ id, nome, categoria, preco, estoque }] }`. Até 20 itens,
+`GET /api/app/venda/produtos?q=` → `{ itens:[{ id, nome, categoria, preco, estoque }], bloqueia_preco_zero }`. Até 20 itens,
 por nome. `id` = **variação** (é o que a venda grava). Busca por nome do produto ou da variação, SKU e
 categoria.
 
@@ -85,6 +85,10 @@ categoria.
 - **Estoque** = saldo no local de venda. Vem `null` quando o produto não controla estoque **ou** quando o
   business vende sem estoque (`pos_settings.allow_overselling`): nesse caso o ERP não barra a venda, e o
   app não deve pôr teto. O saldo pode vir fracionado; na v1 o app vende só quantidade inteira.
+- **`bloqueia_preco_zero`** (bool, sempre presente) = ajuste da empresa "Bloquear venda de produto com preço
+  zero no app" (`pos_settings.bloquear_venda_preco_zero_app`, nas configurações de venda da web). Padrão
+  **desligado** (decisão [W] 2026-10-05: há empresa que vende a R$ 0,00 como brinde). `true` → o app não deixa
+  pôr no carrinho produto com `preco` ≤ 0. Campo ausente (ERP antigo) = `false`.
 - Ficam fora: produto inativo, `not_for_selling`, sem vínculo com o local, combo e modificador.
 - Permissão: `sell.create` ou `direct_sell.access` (as da venda direta na web, sem `so.create`). Sem
   nenhuma → `403 { erro: "sem_permissao" }`.
@@ -108,6 +112,9 @@ soma exata em centavos de preço × quantidade, sem arredondamento por linha.
 - **Dupla prova:** o ERP recalcula o preço (função do GET) e o total. `preco_unitario` diferente →
   `422 campos["itens.N.preco_unitario"]`. Total diferente de `total_previsto` → `422 campos.total_previsto`.
   Se divergir, nada é gravado.
+- **Preço zero:** com o ajuste `bloqueia_preco_zero` ligado, item cujo preço do catálogo (já arredondado a
+  2 casas) seja ≤ R$ 0,00 → `422 campos["itens.N.preco_unitario"] = "Produto sem preço. Corrija o cadastro
+  na web."`, e nada é gravado. Desligado, vende como antes (inclusive item a R$ 0,00).
 - **Estoque:** baixa na criação. Sem saldo, num business sem `allow_overselling`, o `mapPurchaseSell` lança
   `PurchaseSellMismatch`: tudo é desfeito e o ERP responde `422 campos["itens.N.quantidade"]`.
 - **Cliente:** `cliente_id` null → consumidor final do business (`contacts.is_default=1`). Se o business

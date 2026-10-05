@@ -1557,5 +1557,7 @@ return [
     'in_stock' => 'in stock',
     'cogs' => 'COGS:',
     'cogs_help_text' => 'Cost of Goods Sold = Starting inventory(opening stock) + purchases − ending inventory(closing stock)',
-    'overall_summary' => 'Overall Summary'
+    'overall_summary' => 'Overall Summary',
+    'bloquear_venda_preco_zero_app' => 'Block selling zero-price products in the app',
+    'bloquear_venda_preco_zero_app_help' => 'Applies only to the store app quick sale. When off, the app sells products priced at 0.00 (e.g. gifts).',
 ];
