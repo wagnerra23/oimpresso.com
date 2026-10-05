@@ -148,6 +148,11 @@ it('UC-SAMA-04 · o valor sai no mesmo texto que a Blade mostrava', function () 
     }
     $m = System::getCurrency();
     $ctrl = app(SubscriptionController::class);
+    // O método é chamado direto, fora de uma requisição HTTP: sem isto `request()->session()`
+    // lança "Session store not set on request.". Em produção ele só roda dentro da requisição
+    // da tela, onde o middleware `web` já ligou a sessão. Liga o MESMO store que `session([...])`
+    // escreve. Até 2026-10-05 o caso pulava no CI por falta de app_currency_id e o defeito não aparecia.
+    request()->setLaravelSession(app('session.store'));
 
     session(['business' => ['currency_precision' => 2, 'currency_symbol_placement' => 'before']]);
     // 1.005 é o discriminante: accounting.js dá "1.00" (1.005*100 = 100.4999…); o round() do PHP daria "1.01".
