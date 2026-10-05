@@ -315,7 +315,7 @@ class LeadController extends Controller
     /**
      * Show the form for creating a new resource.
      *
-     * @return Response
+     * @return \Inertia\Response
      */
     public function create()
     {
@@ -324,24 +324,38 @@ class LeadController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
-        $users = User::forDropdown($business_id, false);
-        $sources = Category::forDropdown($business_id, 'source');
-        $life_stages = Category::forDropdown($business_id, 'life_stage');
+        // Thread Crm/06 (D2 [W] 2026-10-01): o formulário de lead é o `Cliente/Create`
+        // parametrizado — destino, títulos e os campos de lead (fonte, estágio, atribuído)
+        // chegam por props. As opções saem de consultas por business_id; ficam deferidas.
+        $lista = fn ($mapa) => collect($mapa)->map(fn ($label, $value) => ['value' => (string) $value, 'label' => (string) $label])->values();
 
-        $types['lead'] = __('crm::lang.lead');
-        $store_action = action([\Modules\Crm\Http\Controllers\LeadController::class, 'store']);
-
-        $module_form_parts = $this->moduleUtil->getModuleData('contact_form_part');
-
-        return view('contact.create')
-            ->with(compact('types', 'store_action', 'sources', 'life_stages', 'users', 'module_form_parts'));
+        return Inertia::render('Cliente/Create', [
+            'types' => ['lead' => __('crm::lang.lead')],
+            'customer_groups' => [],
+            'selected_type' => 'lead',
+            'prefill_name' => '',
+            'permissions' => ['create_customer' => false, 'create_supplier' => false],
+            'destino' => [
+                'url' => action([\Modules\Crm\Http\Controllers\LeadController::class, 'store']),
+                'voltar_href' => action([\Modules\Crm\Http\Controllers\LeadController::class, 'index']),
+                'voltar_label' => 'Voltar para leads',
+                'titulo' => 'Novo lead',
+                'subtitulo' => 'Preencha os dados do lead. Campos com * são obrigatórios.',
+                'salvar' => 'Salvar lead',
+            ],
+            'lead_opcoes' => Inertia::defer(fn () => [
+                'fontes' => $lista(Category::forDropdown($business_id, 'source')),
+                'estagios' => $lista(Category::forDropdown($business_id, 'life_stage')),
+                'usuarios' => $lista(User::forDropdown($business_id, false)),
+            ]),
+        ]);
     }
 
     /**
      * Store a newly created resource in storage.
      *
      * @param  Request  $request
-     * @return Response
+     * @return array<string, mixed>|\Illuminate\Http\RedirectResponse
      */
     public function store(StoreLeadRequest $request)
     {
@@ -351,7 +365,13 @@ class LeadController extends Controller
         try {
             $input = $request->only(['type', 'prefix', 'first_name', 'middle_name', 'last_name', 'tax_number', 'mobile', 'landline', 'alternate_number', 'city', 'state', 'country', 'landmark', 'contact_id', 'custom_field1', 'custom_field2', 'custom_field3', 'custom_field4', 'custom_field5', 'custom_field6', 'custom_field7', 'custom_field8', 'custom_field9', 'custom_field10', 'email', 'crm_source', 'crm_life_stage', 'dob', 'address_line_1', 'address_line_2', 'zip_code', 'supplier_business_name', 'shipping_custom_field_details']);
 
-            $input['name'] = implode(' ', [$input['prefix'], $input['first_name'], $input['middle_name'], $input['last_name']]);
+            // As partes do nome não são colunas de `contacts` (saíram do schema; o
+            // ContactController@store já faz o mesmo): montam o `name` e saem do insert. Sem isso
+            // o create caía em "Unknown column 'prefix'" e a resposta era "algo deu errado".
+            $input['name'] = trim(implode(' ', array_filter([$input['prefix'] ?? null, $input['first_name'] ?? null, $input['middle_name'] ?? null, $input['last_name'] ?? null])));
+            unset($input['prefix'], $input['first_name'], $input['middle_name'], $input['last_name']);
+            // Esta rota só cria lead — o tipo não vem do formulário.
+            $input['type'] = 'lead';
 
             if (! empty($request->input('is_export'))) {
                 $input['is_export'] = true;
@@ -370,10 +390,18 @@ class LeadController extends Controller
             $input['business_id'] = $business_id;
             $input['created_by'] = $request->session()->get('user.id');
 
-            $assigned_to = $request->input('user_id');
+            // Tier 0: atribuído, fonte e estágio só valem se forem DESTE negócio. O request aceita
+            // qualquer inteiro; sem este filtro um id de outro business entrava no lead.
+            $assigned_to = User::where('business_id', $business_id)
+                ->whereIn('id', array_map('intval', (array) $request->input('user_id', [])))
+                ->pluck('id')->all();
+            foreach (['crm_source' => 'source', 'crm_life_stage' => 'life_stage'] as $campo => $tipo) {
+                if (! empty($input[$campo]) && ! Category::where('business_id', $business_id)->where('category_type', $tipo)->whereKey($input[$campo])->exists()) {
+                    $input[$campo] = null;
+                }
+            }
 
             // Wave Massive D4.a — delegação ao Service thin (zero regressão; mesma chamada CrmContact)
-            // $assigned_to é array de user_ids (sync()) ou null — preservar tipo original.
             $contact = $this->leadAssignment->createLead($input, $assigned_to);
 
             if (! empty($contact)) {
@@ -390,6 +418,18 @@ class LeadController extends Controller
             $output = ['success' => false,
                 'msg' => __('messages.something_went_wrong'),
             ];
+        }
+
+        // O formulário Inertia (thread Crm/06) espera redirect, não JSON — o mesmo desvio do
+        // ContactController@store. O modal Blade (ajax sem X-Inertia) segue recebendo o JSON.
+        if ($request->header('X-Inertia')) {
+            if (! empty($output['success'])) {
+                return redirect()
+                    ->action([\Modules\Crm\Http\Controllers\LeadController::class, 'index'])
+                    ->with('status', $output['msg']);
+            }
+
+            return back()->withInput()->withErrors(['msg' => $output['msg']]);
         }
 
         return $output;

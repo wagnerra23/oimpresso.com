@@ -47,6 +47,21 @@ function leadLimpa(): void
         // crm_lead_users cai junto (FK on delete cascade).
         DB::table('contacts')->where('name', 'like', '%'.LEAD_TAG.'%')->delete();
     }
+    if (Schema::hasTable('categories')) {
+        DB::table('categories')->where('name', 'like', '%'.LEAD_TAG.'%')->delete();
+    }
+}
+
+/** Fonte (`source`) ou estágio (`life_stage`) do CRM, no negócio `$biz`. */
+function leadCategoria(int $biz, string $tipo, string $nome, User $autor): int
+{
+    leadNegocio($biz);
+
+    return DB::table('categories')->insertGetId([
+        'name' => $nome.' '.LEAD_TAG, 'business_id' => $biz, 'parent_id' => 0,
+        'created_by' => $autor->id, 'category_type' => $tipo,
+        'created_at' => now(), 'updated_at' => now(),
+    ]);
 }
 
 /**
@@ -187,4 +202,90 @@ it('UC-CRMLD-07 · ?classico=1 e o kanban devolvem a tela Blade', function () {
         ->assertOk()->assertViewIs('crm::lead.index');
     $this->actingAs($user)->withSession($sessao)->get(LEAD_ROTA.'?lead_view=kanban')
         ->assertOk()->assertViewIs('crm::lead.index');
+});
+
+// ── Thread Crm/06 — formulário de lead = Cliente/Create parametrizado (D2 [W] 2026-10-01) ──
+
+/** Cabeçalhos de uma visita Inertia como o browser manda. */
+function leadInertia(array $extra = []): array
+{
+    $versao = app(\App\Http\Middleware\HandleInertiaRequests::class)->version(request());
+
+    return array_merge([
+        'X-Inertia' => 'true',
+        'X-Requested-With' => 'XMLHttpRequest',
+        'X-Inertia-Version' => (string) $versao,
+    ], $extra);
+}
+
+it('UC-CRMLD-08 · "Adicionar" abre o Cliente/Create em modo lead, com opções só do meu negócio [T0]', function () {
+    $user = leadUsuario('lead_todos_test', ['crm.access_all_leads']);
+    $vizinho = leadUsuario('lead_vizinho_test', ['crm.access_all_leads'], LEAD_OUTRO);
+    $minhaFonte = leadCategoria(LEAD_BIZ, 'source', 'Feira', $user);
+    $fonteVizinha = leadCategoria(LEAD_OUTRO, 'source', 'Fonte vizinha', $vizinho);
+
+    $this->actingAs($user)->get(LEAD_ROTA.'/create')
+        ->assertOk()
+        ->assertInertia(fn (AssertableInertia $p) => $p->component('Cliente/Create', false)
+            ->where('selected_type', 'lead')
+            ->where('destino.titulo', 'Novo lead')
+            ->where('destino.url', fn ($url) => str_ends_with((string) $url, LEAD_ROTA)));
+
+    $opcoes = $this->actingAs($user)->get(LEAD_ROTA.'/create', leadInertia([
+        'X-Inertia-Partial-Data' => 'lead_opcoes',
+        'X-Inertia-Partial-Component' => 'Cliente/Create',
+    ]))->assertOk()->json('props.lead_opcoes');
+
+    $fontes = collect($opcoes['fontes'] ?? [])->pluck('value')->all();
+    $usuarios = collect($opcoes['usuarios'] ?? [])->pluck('value')->all();
+    expect($fontes)->toContain((string) $minhaFonte);
+    $this->assertNotContains((string) $fonteVizinha, $fontes, 'o form ofereceu fonte de outro business');
+    expect($usuarios)->toContain((string) $user->id);
+    $this->assertNotContains((string) $vizinho->id, $usuarios, 'o form ofereceu usuário de outro business');
+});
+
+it('UC-CRMLD-09 · salvar o formulário grava type=lead com fonte, estágio e atribuído e volta para a lista', function () {
+    $user = leadUsuario('lead_todos_test', ['crm.access_all_leads']);
+    $fonte = leadCategoria(LEAD_BIZ, 'source', 'Indicacao', $user);
+    $estagio = leadCategoria(LEAD_BIZ, 'life_stage', 'Qualificado', $user);
+
+    $this->actingAs($user)->post(LEAD_ROTA, [
+        // o payload do Cliente/Create (inclui campos que o store do Crm ignora)
+        'type' => 'customer', 'contact_type_radio' => 'person', 'prefix' => '',
+        'first_name' => 'Grafica Nova '.LEAD_TAG, 'mobile' => '48999990000', 'email' => '',
+        'cpf_cnpj' => '', 'tax_number' => '', 'opening_balance' => '0',
+        'crm_source' => (string) $fonte, 'crm_life_stage' => (string) $estagio, 'user_id' => [(string) $user->id],
+    ], leadInertia())->assertRedirect(LEAD_ROTA);
+
+    $lead = DB::table('contacts')->where('name', 'Grafica Nova '.LEAD_TAG)->first();
+    $this->assertNotNull($lead, 'o lead não foi gravado');
+    expect($lead->type)->toBe('lead');
+    expect((int) $lead->business_id)->toBe(LEAD_BIZ);
+    expect((int) $lead->crm_source)->toBe($fonte);
+    expect((int) $lead->crm_life_stage)->toBe($estagio);
+    expect(DB::table('crm_lead_users')->where('contact_id', $lead->id)->pluck('user_id')->map(fn ($v) => (int) $v)->all())
+        ->toBe([(int) $user->id]);
+
+    // sem nome: erro no campo, nada gravado
+    $this->actingAs($user)->post(LEAD_ROTA, ['first_name' => ''], leadInertia())->assertSessionHasErrors('first_name');
+});
+
+it('UC-CRMLD-10 · atribuído, fonte e estágio de outro negócio não entram no lead [T0]', function () {
+    $user = leadUsuario('lead_todos_test', ['crm.access_all_leads']);
+    $vizinho = leadUsuario('lead_vizinho_test', ['crm.access_all_leads'], LEAD_OUTRO);
+    $fonteVizinha = leadCategoria(LEAD_OUTRO, 'source', 'Fonte vizinha', $vizinho);
+    $estagioVizinho = leadCategoria(LEAD_OUTRO, 'life_stage', 'Estagio vizinho', $vizinho);
+
+    $this->actingAs($user)->post(LEAD_ROTA, [
+        'first_name' => 'Lead cruzado '.LEAD_TAG,
+        'crm_source' => (string) $fonteVizinha, 'crm_life_stage' => (string) $estagioVizinho,
+        'user_id' => [(string) $vizinho->id],
+    ], leadInertia())->assertRedirect(LEAD_ROTA);
+
+    $lead = DB::table('contacts')->where('name', 'Lead cruzado '.LEAD_TAG)->first();
+    $this->assertNotNull($lead, 'o lead não foi gravado');
+    expect((int) $lead->business_id)->toBe(LEAD_BIZ);
+    $this->assertNull($lead->crm_source, 'fonte de outro business entrou no lead');
+    $this->assertNull($lead->crm_life_stage, 'estágio de outro business entrou no lead');
+    $this->assertSame(0, DB::table('crm_lead_users')->where('contact_id', $lead->id)->count(), 'usuário de outro business foi atribuído');
 });
