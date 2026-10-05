@@ -317,14 +317,13 @@ class SuperadminSubscriptionsController extends BaseController
             abort(403, 'Unauthorized action.');
         }
 
-        if (request()->ajax()) {
-            $status = Subscription::package_subscription_status();
-            $subscription = Subscription::find($id);
-
-            return view('superadmin::superadmin_subscription.edit')
-                        ->with(compact('subscription', 'status'));
-        }
+        // Thread 04: o modal Blade `edit` saiu. "Mudar status" é a gaveta da lista desde a
+        // SA-O4b, e grava pelo mesmo `update()`. Quem chegar por esta URL vai para a lista.
+        return redirect()->to(self::ROTA_LISTA);
     }
+
+    /** A lista é onde as gavetas moram (status · vigência). */
+    private const ROTA_LISTA = '/superadmin/superadmin-subscription';
 
     /**
      * Muda o STATUS de uma assinatura (`PUT /superadmin/superadmin-subscription/{id}`) — SA-O4b.
@@ -444,12 +443,9 @@ class SuperadminSubscriptionsController extends BaseController
             abort(403, 'Unauthorized action.');
         }
 
-        if (request()->ajax()) {
-            $subscription = Subscription::find($id);
-
-            return view('superadmin::superadmin_subscription.edit_date_modal')
-                        ->with(compact('subscription'));
-        }
+        // Thread 04: o modal Blade `edit_date_modal` saiu. "Editar vigência" é a gaveta da
+        // lista desde a SA-O4b, e grava pelo mesmo `updateSubscription()`.
+        return redirect()->to(self::ROTA_LISTA);
     }
 
     /**

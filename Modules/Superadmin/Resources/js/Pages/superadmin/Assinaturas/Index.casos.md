@@ -243,6 +243,20 @@ Status: 🧪
 
 ---
 
+## UC-SAASS-21 · Os modais de status e vigência não são mais Blade · `must`
+
+**Dado** uma assinatura
+**Quando** alguém abre as URLs antigas dos modais (`/{id}/edit` e `/edit-subscription/{id}`)
+**Então** cai na lista, onde as duas gavetas moram — e nada é gravado.
+
+> Thread 04 do playbook do Superadmin: os modais Blade `edit` e `edit_date_modal` saem. As
+> gavetas que os substituem existem desde a SA-O4b e gravam pelos mesmos `update()` e
+> `updateSubscription()`.
+
+Status: 🧪
+
+---
+
 ## Testes mínimos (do F1 §2)
 
 - **DQE:** 1 assinatura pendente · 1 vencida · 1 cancelada · 1 em trial · 1 bloqueada.

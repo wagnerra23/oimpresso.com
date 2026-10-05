@@ -536,3 +536,24 @@ it('UC-SAASS-16 · admin de negócio não consegue mudar status nem vigência', 
     // 302 sozinho não prova nada (pode ser redirect de sucesso). O que prova é o DADO intacto.
     expect(DB::table('subscriptions')->where('id', $id)->value('status'))->toBe('approved');
 });
+
+// ════════════════════════════════════════════════════════════════════════════
+// Thread 04 — os modais Blade de status e vigência saem. As gavetas da lista ficam.
+// ════════════════════════════════════════════════════════════════════════════
+
+// ── UC-SAASS-21 · os modais de status e vigência não são mais Blade ────────
+
+it('UC-SAASS-21 · as URLs dos antigos modais de status e vigência levam à lista', function () {
+    $id = assFixtureEscrita('sa-thread04-modais', 'approved', -10, 20);
+
+    $this->actingAs(assSuperadmin())
+        ->get(ROTA_ASS.'/'.$id.'/edit', ['X-Requested-With' => 'XMLHttpRequest'])
+        ->assertRedirect(ROTA_ASS);
+
+    $this->actingAs(assSuperadmin())
+        ->get('/superadmin/edit-subscription/'.$id, ['X-Requested-With' => 'XMLHttpRequest'])
+        ->assertRedirect(ROTA_ASS);
+
+    // Ler a URL antiga não escreve nada.
+    expect(DB::table('subscriptions')->where('id', $id)->value('status'))->toBe('approved');
+});
