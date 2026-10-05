@@ -29,6 +29,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import { PageHeader } from '@/Components/PageHeader';
 import EmptyState from '@/Components/shared/EmptyState';
+import { Inline, Stack } from '@/Components/layout';
 
 type Calculo = 'percentage' | 'selling_price_group';
 interface Grupo {
@@ -115,15 +116,15 @@ function GruposIndex({ grupos: gruposProp, tabelas, pode }: Props) {
           actions={pode.criar ? <Button onClick={novo}><Plus className="size-4" /> Novo grupo</Button> : undefined} />
       </div>
 
-      <div className="flex flex-col gap-4 px-6 pt-4">
-        <div data-contract="toolbar" className="flex flex-wrap items-center gap-2">
+      <Stack gap={4} className="px-6 pt-4">
+        <Inline data-contract="toolbar" wrap gap={2}>
           <a href="/cliente" className="text-sm text-muted-foreground hover:underline">← Clientes</a>
           <div className="relative min-w-64 flex-1">
             <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
             <Input ref={busca} className="cw-input-icon-left" value={q} onChange={(e) => setQ(e.target.value)}
               placeholder="Buscar grupo pelo nome…" aria-label="Buscar grupo" />
           </div>
-        </div>
+        </Inline>
 
         <Deferred data="grupos" fallback={<p className="py-6 text-sm text-muted-foreground">Carregando grupos…</p>}>
         {lista.length > 0 ? (
@@ -173,7 +174,7 @@ function GruposIndex({ grupos: gruposProp, tabelas, pode }: Props) {
           </div>
         )}
         </Deferred>
-      </div>
+      </Stack>
 
       <Dialog open={!!edicao} onOpenChange={(v) => !v && setEdicao(null)}>
         <DialogContent>
@@ -182,13 +183,13 @@ function GruposIndex({ grupos: gruposProp, tabelas, pode }: Props) {
             <DialogDescription>O ajuste vale para toda venda de quem estiver no grupo.</DialogDescription>
           </DialogHeader>
           {edicao && (
-            <div data-contract="grupo-form" className="flex flex-col gap-3 text-sm">
-              <label className="flex flex-col gap-1">
+            <Stack data-contract="grupo-form" gap={3} className="text-sm">
+              <Stack asChild gap={1}><label>
                 <span>Nome</span>
                 <Input autoFocus value={edicao.nome} maxLength={191} placeholder="Ex.: Atacado"
                   onChange={(e) => setEdicao({ ...edicao, nome: e.target.value })} />
-              </label>
-              <label className="flex flex-col gap-1">
+              </label></Stack>
+              <Stack asChild gap={1}><label>
                 <span>Cálculo do preço</span>
                 <Select value={edicao.calculo} onValueChange={(v) => setEdicao({ ...edicao, calculo: v as Calculo })}>
                   <SelectTrigger aria-label="Cálculo do preço"><SelectValue /></SelectTrigger>
@@ -197,16 +198,16 @@ function GruposIndex({ grupos: gruposProp, tabelas, pode }: Props) {
                     <SelectItem value="selling_price_group">Tabela de preço própria</SelectItem>
                   </SelectContent>
                 </Select>
-              </label>
+              </label></Stack>
               {edicao.calculo === 'percentage' ? (
-                <label className="flex flex-col gap-1">
+                <Stack asChild gap={1}><label>
                   <span>Ajuste (%)</span>
                   <Input inputMode="decimal" value={edicao.percentual} placeholder="Ex.: -10 ou 5,5"
                     onChange={(e) => setEdicao({ ...edicao, percentual: e.target.value.replace(/[^0-9,.-]/g, '') })} />
                   <span className="text-xs text-muted-foreground">Positivo aumenta o preço de venda; negativo diminui.</span>
-                </label>
+                </label></Stack>
               ) : (
-                <label className="flex flex-col gap-1">
+                <Stack asChild gap={1}><label>
                   <span>Tabela de preço</span>
                   <Select value={edicao.tabela} onValueChange={(v) => setEdicao({ ...edicao, tabela: v })}>
                     <SelectTrigger aria-label="Tabela de preço"><SelectValue placeholder="Selecione" /></SelectTrigger>
@@ -214,11 +215,11 @@ function GruposIndex({ grupos: gruposProp, tabelas, pode }: Props) {
                       {tabelasValidas.map((t) => <SelectItem key={t.id} value={String(t.id)}>{t.nome}</SelectItem>)}
                     </SelectContent>
                   </Select>
-                </label>
+                </label></Stack>
               )}
               <p className="text-xs text-muted-foreground">Ou o grupo aplica um percentual sobre o preço, ou usa uma tabela de preço própria — nunca os dois. Quem não tem grupo paga o preço de tabela.</p>
               {erro && <p role="alert" className="text-destructive">{erro}</p>}
-            </div>
+            </Stack>
           )}
           <DialogFooter>
             <Button variant="ghost" onClick={() => setEdicao(null)}>Cancelar</Button>
