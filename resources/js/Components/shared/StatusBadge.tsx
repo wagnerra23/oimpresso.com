@@ -105,11 +105,11 @@ const mappings: Record<string, Record<string, StatusEntry>> = {
   // `mfg_is_final` é booleano no banco; o domínio nomeia os dois estados que a tela mostra.
   producao: {
     finalizada: { variant: 'success',   label: 'Finalizada' },
-    // Âmbar, não cinza: o protótipo pinta o rascunho com `.mfg-pill.warn` (o `.ok` é a
-    // finalizada). UI-0029 — o protótipo é soberano na FORMA. Só ficou legível depois da
-    // UI-0033: com o par `warning` quebrado o texto dava 1,25:1; em 2026-09-03 dava 7,72:1
-    // (medido no FILL sólido, que saiu em 2026-09-23 — ver nota AP7 no fim do docblock do tipo).
-    rascunho:   { variant: 'warning',   label: 'Rascunho' },
+    // Contorno, sem cor: o protótipo atual (`manufacturing-producao.jsx`, `MfgProducaoView`, desde
+    // o commit 83e3b6652b de 2026-09-28) usa `tone="outline"` no rascunho e `success` na
+    // finalizada. UI-0029 — o protótipo é soberano na FORMA. Até 2026-10-05 o rascunho era âmbar
+    // (`warning`), porque o protótipo anterior o pintava com `.mfg-pill.warn`.
+    rascunho:   { variant: 'outline',   label: 'Rascunho' },
   },
   os: {
     ordered:    { variant: 'neutral',   label: 'Solicitado' },
