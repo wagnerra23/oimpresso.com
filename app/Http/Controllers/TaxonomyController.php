@@ -145,7 +145,7 @@ class TaxonomyController extends Controller
             $input['business_id'] = $request->session()->get('user.business_id');
             if (! empty($request->input('add_as_sub_cat')) && $request->input('add_as_sub_cat') == 1 && ! empty($request->input('parent_id'))) {
                 if (! $this->paiValido($request->input('parent_id'), (int) $input['business_id'], (string) $category_type)) {
-                    return ['success' => false, 'msg' => 'A categoria pai escolhida não serve: precisa ser uma categoria principal deste negócio. Nada foi gravado.'];
+                    throw new \DomainException('A categoria pai escolhida não serve: precisa ser uma categoria principal deste negócio. Nada foi gravado.');
                 }
                 $input['parent_id'] = $request->input('parent_id');
             } else {
@@ -158,6 +158,8 @@ class TaxonomyController extends Controller
                 'data' => $category,
                 'msg' => __('category.added_success'),
             ];
+        } catch (\DomainException $e) {
+            $output = ['success' => false, 'msg' => $e->getMessage()];
         } catch (\Exception $e) {
             \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
 
@@ -247,7 +249,7 @@ class TaxonomyController extends Controller
                     // (raiz, mesmo negócio e tipo, não ela mesma) e categoria com filhas não vira filha.
                     if (! $this->paiValido($request->input('parent_id'), (int) $business_id, (string) $category->category_type, (int) $category->id)
                         || Category::where('business_id', $business_id)->where('parent_id', $category->id)->exists()) {
-                        return ['success' => false, 'msg' => 'A categoria pai escolhida não serve: precisa ser uma categoria principal deste negócio. Nada foi gravado.'];
+                        throw new \DomainException('A categoria pai escolhida não serve: precisa ser uma categoria principal deste negócio. Nada foi gravado.');
                     }
                     $category->parent_id = $request->input('parent_id');
                 } else {
@@ -258,6 +260,8 @@ class TaxonomyController extends Controller
                 $output = ['success' => true,
                     'msg' => __('category.updated_success'),
                 ];
+            } catch (\DomainException $e) {
+                $output = ['success' => false, 'msg' => $e->getMessage()];
             } catch (\Exception $e) {
                 \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
 
