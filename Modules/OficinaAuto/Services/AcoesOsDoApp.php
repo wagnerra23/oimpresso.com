@@ -195,6 +195,18 @@ final class AcoesOsDoApp implements AcoesOs
         ]];
     }
 
+    public function atualizarVeiculo(int $businessId, int $veiculoId, array $dados): bool
+    {
+        // Tier 0: busca com business_id explícito (o escopo do model lê a sessão, que a API não tem).
+        $v = Vehicle::query()
+            ->where('vehicles.business_id', $businessId)
+            ->whereKey($veiculoId)
+            ->firstOrFail();
+        $v->update($dados);
+
+        return true;
+    }
+
     private function os(int $businessId, int $osId): ?ServiceOrder
     {
         return ServiceOrder::query()

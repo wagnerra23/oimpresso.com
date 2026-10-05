@@ -907,3 +907,95 @@ it('web: editar veículo para uma placa de outro veículo ativo é recusado; man
     $v = appOsValidaRequestVeiculo($this, $classe, ['plate' => $placaA, 'vehicle_type' => 'caminhao', 'mileage_at_entry' => 1000], $veiculoA);
     expect($v->errors()->isEmpty())->toBeTrue();
 });
+
+// ── Editar veículo pelo app: GET + PUT /api/app/veiculos/{id} (pedido [W] 2026-10-05) ──
+
+/** Ver e editar veículo (permissões da web). */
+function appOsPodeEditarVeiculo(object $t): void
+{
+    foreach (['oficinaauto.vehicle.view', 'oficinaauto.vehicle.update'] as $p) {
+        Permission::firstOrCreate(['name' => $p, 'guard_name' => 'web']);
+        $t->user->givePermissionTo($p);
+    }
+}
+
+it('editar veículo: detalhe traz os campos do formulário (tipo como chave, anos separados, km do cadastro) e pode_editar acompanha a permissão', function () {
+    Permission::firstOrCreate(['name' => 'oficinaauto.vehicle.view', 'guard_name' => 'web']);
+    $this->user->givePermissionTo('oficinaauto.vehicle.view');
+    $dono = (int) DB::table('contacts')->where('business_id', $this->biz->id)->value('id');
+    $placa = appOsPlacaNova();
+    $v = DB::table('vehicles')->insertGetId([
+        'business_id' => $this->biz->id, 'plate' => $placa, 'vehicle_type' => 'cavalo', 'manufacture_year' => 2019,
+        'model_year' => 2020, 'color' => 'Branco', 'mileage_at_entry' => 40000, 'chassis' => '9BWZZZ377VT004251',
+        'renavam' => '12345678901', 'contact_id' => $dono, 'created_at' => now(), 'updated_at' => now(),
+    ]);
+
+    $r = $this->getJson('/api/app/veiculos/' . $v)->assertOk();
+    expect($r->json())->toMatchArray([
+        'id' => $v, 'placa' => $placa, 'tipo' => 'cavalo', 'ano_fabricacao' => 2019, 'ano_modelo' => 2020,
+        'cor' => 'Branco', 'km' => 40000, 'chassi' => '9BWZZZ377VT004251', 'renavam' => '12345678901',
+        'contact_id' => $dono, 'pode_editar' => false,
+    ]);
+    expect($this->getJson('/api/app/veiculos')->assertOk()->json('pode_editar'))->toBeFalse();
+
+    appOsPodeEditarVeiculo($this);
+    expect($this->getJson('/api/app/veiculos/' . $v)->assertOk()->json('pode_editar'))->toBeTrue();
+    expect($this->getJson('/api/app/veiculos')->assertOk()->json('pode_editar'))->toBeTrue();
+});
+
+it('editar veículo: PUT grava os campos, aceita km menor, não toca as OS existentes e devolve o item da lista', function () {
+    appOsPodeEditarVeiculo($this);
+    $placa = appOsPlacaNova();
+    $v = DB::table('vehicles')->insertGetId([
+        'business_id' => $this->biz->id, 'plate' => $placa, 'vehicle_type' => 'caminhao', 'mileage_at_entry' => 50000,
+        'created_at' => now(), 'updated_at' => now(),
+    ]);
+    $os = DB::table('service_orders')->insertGetId([
+        'business_id' => $this->biz->id, 'vehicle_id' => $v, 'order_type' => 'mecanica', 'status' => 'aberta',
+        'mileage_at_service' => 50100, 'contact_id' => null, 'created_at' => now(), 'updated_at' => now(),
+    ]);
+    $dono = (int) DB::table('contacts')->where('business_id', $this->biz->id)->value('id');
+    $nova = appOsPlacaNova();
+
+    $r = $this->putJson('/api/app/veiculos/' . $v, [
+        'placa' => strtolower($nova), 'tipo' => 'cavalo', 'cor' => 'Azul', 'km' => 1000, 'contact_id' => $dono,
+    ])->assertOk();
+
+    expect($r->json('id'))->toBe($v);
+    expect($r->json('placa'))->toBe($nova);
+    $linha = DB::table('vehicles')->where('id', $v)->first();
+    expect($linha->plate)->toBe($nova);
+    expect($linha->vehicle_type)->toBe('cavalo');
+    expect((int) $linha->mileage_at_entry)->toBe(1000);
+    expect((int) $linha->contact_id)->toBe($dono);
+    $osDepois = DB::table('service_orders')->where('id', $os)->first();
+    expect((int) $osDepois->mileage_at_service)->toBe(50100);
+    expect($osDepois->contact_id)->toBeNull();
+});
+
+it('editar veículo: trocar para placa de outro ativo é 422 com o id; manter a própria passa; outra empresa é 404; dono de outra empresa é 422; sem permissão é 403', function () {
+    Permission::firstOrCreate(['name' => 'oficinaauto.vehicle.view', 'guard_name' => 'web']);
+    $this->user->givePermissionTo('oficinaauto.vehicle.view');
+    $placaA = appOsPlacaNova();
+    $placaB = appOsPlacaNova();
+    $a = DB::table('vehicles')->insertGetId(['business_id' => $this->biz->id, 'plate' => $placaA, 'vehicle_type' => 'caminhao', 'created_at' => now(), 'updated_at' => now()]);
+    $b = DB::table('vehicles')->insertGetId(['business_id' => $this->biz->id, 'plate' => $placaB, 'vehicle_type' => 'caminhao', 'created_at' => now(), 'updated_at' => now()]);
+    $alheio = DB::table('vehicles')->insertGetId(['business_id' => $this->outroBiz->id, 'plate' => appOsPlacaNova(), 'vehicle_type' => 'caminhao', 'created_at' => now(), 'updated_at' => now()]);
+
+    $this->putJson('/api/app/veiculos/' . $a, ['placa' => $placaA, 'tipo' => 'caminhao'])->assertStatus(403);
+
+    appOsPodeEditarVeiculo($this);
+    $this->putJson('/api/app/veiculos/' . $a, ['placa' => $placaB, 'tipo' => 'caminhao'])->assertStatus(422)
+        ->assertJsonPath('campos.placa', 'Esta placa já está em outro veículo ativo.')
+        ->assertJsonPath('veiculo_existente_id', $b);
+    // Duplicata legada (nasceu antes da regra): manter a própria placa continua editável.
+    DB::table('vehicles')->insert(['business_id' => $this->biz->id, 'plate' => $placaA, 'vehicle_type' => 'caminhao', 'created_at' => now(), 'updated_at' => now()]);
+    $this->putJson('/api/app/veiculos/' . $a, ['placa' => $placaA, 'tipo' => 'caminhao', 'cor' => 'Verde'])->assertOk();
+
+    $this->getJson('/api/app/veiculos/' . $alheio)->assertStatus(404)->assertJsonPath('erro', 'nao_encontrado');
+    $this->putJson('/api/app/veiculos/' . $alheio, ['placa' => appOsPlacaNova(), 'tipo' => 'caminhao'])->assertStatus(404);
+    $donoAlheio = (int) DB::table('contacts')->where('business_id', $this->outroBiz->id)->value('id');
+    $this->putJson('/api/app/veiculos/' . $a, ['placa' => $placaA, 'tipo' => 'caminhao', 'contact_id' => $donoAlheio])
+        ->assertStatus(422)->assertJsonPath('campos.contact_id', 'Cliente não encontrado.');
+    expect((int) DB::table('vehicles')->where('id', $alheio)->value('business_id'))->toBe((int) $this->outroBiz->id);
+});

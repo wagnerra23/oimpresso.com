@@ -19,4 +19,7 @@ Route::get('/veiculos/consulta-placa/{placa}', [\App\Http\Controllers\Api\App\Of
     ->where('placa', '[A-Za-z0-9 .-]{1,12}')->middleware('throttle:10,1')->name('veiculos.consulta_placa');
 // Novo veículo (pedido [W] 2026-10-05): throttle de escrita, como a nova OS.
 Route::post('/veiculos', [\App\Http\Controllers\Api\App\OficinaController::class, 'storeVeiculo'])->middleware('throttle:30,1')->name('veiculos.store');
+// Editar veículo (pedido [W] 2026-10-05): detalhe completo + PUT com throttle de escrita.
+Route::get('/veiculos/{id}', [\App\Http\Controllers\Api\App\OficinaController::class, 'showVeiculo'])->whereNumber('id')->name('veiculos.show');
+Route::put('/veiculos/{id}', [\App\Http\Controllers\Api\App\OficinaController::class, 'updateVeiculo'])->whereNumber('id')->middleware('throttle:30,1')->name('veiculos.update');
 Route::get('/veiculos/{id}/os', [\App\Http\Controllers\Api\App\OficinaController::class, 'veiculoOs'])->whereNumber('id')->name('veiculos.os');

@@ -30,6 +30,11 @@ final class SemAcoesOs implements AcoesOs
         return null;
     }
 
+    public function atualizarVeiculo(int $businessId, int $veiculoId, array $dados): bool
+    {
+        return false;
+    }
+
     public function consultaPlacaDisponivel(): bool
     {
         return false;
