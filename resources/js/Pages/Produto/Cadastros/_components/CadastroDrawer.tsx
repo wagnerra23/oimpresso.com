@@ -14,6 +14,7 @@ import { Label } from '@/Components/ui/label';
 import { Switch } from '@/Components/ui/switch';
 import { Select, SelectContent, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import { SafeSelectItem } from '@/Components/ui/SafeSelectItem';
+import { Grid, Inline, Stack } from '@/Components/layout';
 
 export interface UnidadeEdit { id?: number; nome: string; simbolo: string; decimal: boolean; base_id: number | null; multiplicador: string }
 export interface MarcaEdit { id?: number; nome: string; descricao: string; oficina: boolean }
@@ -25,23 +26,23 @@ type Resposta = { success?: boolean; msg?: string };
 
 function Campo({ id, label, ajuda, children }: { id: string; label: string; ajuda?: string; children: ReactNode }) {
   return (
-    <div className="flex flex-col gap-1.5">
+    <Stack gap={1}>
       <Label htmlFor={id}>{label}</Label>
       {children}
       {ajuda && <p className="text-xs text-muted-foreground">{ajuda}</p>}
-    </div>
+    </Stack>
   );
 }
 
 function Chave({ id, checked, onChange, label, sub }: { id: string; checked: boolean; onChange: (v: boolean) => void; label: string; sub?: string }) {
   return (
-    <div className="flex items-start gap-3">
+    <Inline gap={3} align="start">
       <Switch id={id} variant="cowork" checked={checked} onCheckedChange={onChange} className="mt-0.5" />
-      <div className="flex flex-col">
+      <Stack gap={0}>
         <Label htmlFor={id}>{label}</Label>
         {sub && <span className="text-xs text-muted-foreground">{sub}</span>}
-      </div>
-    </div>
+      </Stack>
+    </Inline>
   );
 }
 
@@ -95,23 +96,23 @@ export default function CadastroDrawer({ pedido, onClose, onSalvo }: { pedido: P
             : 'Marca do produto — filtro do índice, relatório por marca e, quando marcada, lista de marcas de aparelho da Oficina.'}</SheetDescription>
         </SheetHeader>
 
-        <form id="cadastro-drawer" onSubmit={salvar} className="flex flex-col gap-4 px-4">
+        <Stack asChild gap={4} className="px-4"><form id="cadastro-drawer" onSubmit={salvar}>
           {unidade ? (
             <>
-              <div className="grid gap-4 sm:grid-cols-2">
+              <Grid fit="sm" gap={4}>
                 <Campo id="un-nome" label="Nome *">
                   <Input id="un-nome" autoFocus value={u.nome} placeholder="Metro quadrado" onChange={(e) => setU({ ...u, nome: e.target.value })} />
                 </Campo>
                 <Campo id="un-simbolo" label="Símbolo *" ajuda="Como aparece na tabela, na OS e na nota.">
                   <Input id="un-simbolo" value={u.simbolo} placeholder="m²" onChange={(e) => setU({ ...u, simbolo: e.target.value })} />
                 </Campo>
-              </div>
+              </Grid>
               <Chave id="un-decimal" checked={u.decimal} onChange={(v) => setU({ ...u, decimal: v })}
                 label="Aceita quantidade decimal" sub="Ligado para m² e kg; desligado para peça e caixa." />
               <Chave id="un-base" checked={!!u.base_id} onChange={(v) => setU({ ...u, base_id: v ? (bases[0]?.id ?? null) : null })}
                 label="Cadastrar como múltiplo de uma unidade base" sub="Ex.: 1 caixa = 1.000 peças. A conversão vale na compra e na venda." />
               {!!u.base_id && (
-                <div className="grid gap-4 sm:grid-cols-2">
+                <Grid fit="sm" gap={4}>
                   <Campo id="un-mult" label="Quantidade da base">
                     <Input id="un-mult" inputMode="decimal" value={u.multiplicador} placeholder="1000" onChange={(e) => setU({ ...u, multiplicador: e.target.value })} />
                   </Campo>
@@ -123,7 +124,7 @@ export default function CadastroDrawer({ pedido, onClose, onSalvo }: { pedido: P
                       </SelectContent>
                     </Select>
                   </Campo>
-                </div>
+                </Grid>
               )}
             </>
           ) : (
@@ -141,7 +142,7 @@ export default function CadastroDrawer({ pedido, onClose, onSalvo }: { pedido: P
             </>
           )}
           {erro && <p role="alert" className="text-sm text-destructive">{erro}</p>}
-        </form>
+        </form></Stack>
 
         <SheetFooter className="flex-row justify-end">
           <Button type="button" variant="outline" onClick={onClose}>Cancelar</Button>
