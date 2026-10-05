@@ -546,9 +546,14 @@ it('UC-SAASS-18 · criar, mudar status e editar vigência pela rota antiga levam
         '/superadmin/edit-subscription/1',
     ];
 
+    // A visita Inertia leva a versão dos assets, como o cliente real: sem ela o middleware
+    // responde 409 (versão divergente) antes de chegar ao controller.
+    $versao = (string) app(\App\Http\Middleware\HandleInertiaRequests::class)->version(request());
+    $inertia = ['X-Requested-With' => 'XMLHttpRequest', 'X-Inertia' => 'true', 'X-Inertia-Version' => $versao];
+
     foreach ($rotas as $rota) {
         // Como o browser abre e como o cliente Inertia visita: os dois mandavam ao modal Blade.
-        foreach ([[], ['X-Requested-With' => 'XMLHttpRequest', 'X-Inertia' => 'true']] as $cabecalhos) {
+        foreach ([[], $inertia] as $cabecalhos) {
             $r = $this->actingAs(assSuperadmin())->get($rota, $cabecalhos);
             expect($r->getStatusCode())->toBe(302);
             expect(parse_url((string) $r->headers->get('Location'), PHP_URL_PATH))->toBe(ROTA_ASS);
