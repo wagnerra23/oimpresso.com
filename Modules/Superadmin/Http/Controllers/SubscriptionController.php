@@ -9,9 +9,11 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Inertia\Inertia;
 use Modules\Superadmin\Entities\Package;
 use Modules\Superadmin\Entities\Subscription;
 use Modules\Superadmin\Notifications\SubscriptionOfflinePaymentActivationConfirmation;
+use Modules\Superadmin\Support\RotuloAssinatura;
 use Notification;
 use Paystack;
 use Pesapal;
@@ -42,7 +44,7 @@ class SubscriptionController extends BaseController
     /**
      * Display a listing of the resource.
      *
-     * @return Response
+     * @return \Inertia\Response
      */
     public function index()
     {
@@ -50,29 +52,136 @@ class SubscriptionController extends BaseController
             abort(403, 'Unauthorized action.');
         }
 
-        $business_id = request()->session()->get('user.business_id');
+        $business_id = (int) request()->session()->get('user.business_id');
 
-        //Get active subscription and upcoming subscriptions.
-        $active = Subscription::active_subscription($business_id);
+        // Thread Superadmin/07: a tela era `superadmin::subscription.index` (AdminLTE + DataTables).
+        // O pagamento (`pay`) segue Blade: ele carrega os checkouts dos gateways.
+        return Inertia::render('superadmin/MinhaAssinatura/Index', [
+            'assinatura' => Inertia::defer(fn () => $this->montarMinhaAssinatura($business_id)),
+        ]);
+    }
 
-        $nexts = Subscription::upcoming_subscriptions($business_id);
-        $waiting = Subscription::waiting_approval($business_id);
+    /**
+     * Payload da tela do NEGÓCIO. Tudo filtrado pelo `business_id` da sessão (Tier 0): o negócio
+     * só vê as próprias assinaturas. Os pacotes são o catálogo público, iguais para todos.
+     */
+    protected function montarMinhaAssinatura(int $business_id): array
+    {
+        $cartao = fn ($s) => [
+            'id' => $s->id,
+            'pacote' => $s->package_details['name'] ?? '',
+            'inicio' => $s->start_date ? $this->dataComoBlade($s->start_date) : null,
+            'fim' => $s->end_date ? $this->dataComoBlade($s->end_date) : null,
+            'offline' => $s->paid_via === 'offline',
+        ];
 
-        $packages = Package::active()->orderby('sort_order')->get();
+        // Os helpers da Entity declaram `@return Response`; o tipo real vai aqui.
+        /** @var Subscription|null $ativa */
+        $ativa = Subscription::active_subscription($business_id);
+        /** @var \Illuminate\Support\Collection<int, Subscription> $proximas */
+        $proximas = Subscription::upcoming_subscriptions($business_id);
+        /** @var \Illuminate\Support\Collection<int, Subscription> $aguardando */
+        $aguardando = Subscription::waiting_approval($business_id);
 
-        //Get all module permissions and convert them into name => label
-        $permissions = $this->moduleUtil->getModuleData('superadmin_package');
-        $permission_formatted = [];
-        foreach ($permissions as $permission) {
-            foreach ($permission as $details) {
-                $permission_formatted[$details['name']] = $details['label'];
+        $permissoes = [];
+        foreach ($this->moduleUtil->getModuleData('superadmin_package') as $lista) {
+            foreach ($lista as $p) {
+                $permissoes[$p['name']] = $p['label'];
             }
         }
 
-        $intervals = ['days' => __('lang_v1.days'), 'months' => __('lang_v1.months'), 'years' => __('lang_v1.years')];
+        $podeVerPrivado = auth()->user()->can('superadmin');
+        $pacotes = Package::active()->orderby('sort_order')->get()
+            ->reject(fn ($p) => $p->is_private == 1 && ! $podeVerPrivado)
+            ->values()
+            ->map(fn ($p) => [
+                'id' => $p->id,
+                'nome' => $p->name,
+                'descricao' => (string) $p->description,
+                'gratis' => $p->price == 0,
+                'preco' => $this->moedaComoBlade($p->price),
+                'intervalo' => $p->interval,
+                'intervalo_count' => (int) $p->interval_count,
+                'trial_dias' => (int) $p->trial_days,
+                'locais' => (int) $p->location_count,
+                'usuarios' => (int) $p->user_count,
+                'produtos' => (int) $p->product_count,
+                'faturas' => (int) $p->invoice_count,
+                'modulos' => collect((array) $p->custom_permissions)->keys()
+                    ->filter(fn ($k) => isset($permissoes[$k]))->map(fn ($k) => $permissoes[$k])->values(),
+                'link' => $p->enable_custom_link == 1 ? ['url' => $p->custom_link, 'texto' => $p->custom_link_text] : null,
+            ]);
 
-        return view('superadmin::subscription.index')
-            ->with(compact('packages', 'active', 'nexts', 'waiting', 'permission_formatted', 'intervals'));
+        $historico = Subscription::where('subscriptions.business_id', $business_id)
+            ->leftJoin('packages as P', 'subscriptions.package_id', '=', 'P.id')
+            ->leftJoin('users as U', 'subscriptions.created_id', '=', 'U.id')
+            ->select('subscriptions.*', 'P.name as package_name',
+                DB::raw("TRIM(CONCAT(COALESCE(U.surname, ''), ' ', COALESCE(U.first_name, ''), ' ', COALESCE(U.last_name, ''))) as criado_por"))
+            ->orderByDesc('subscriptions.created_at')
+            ->get()
+            ->map(fn ($s) => [
+                'id' => $s->id,
+                'pacote' => (string) $s->getAttribute('package_name'),
+                'inicio' => $s->start_date ? $this->dataComoBlade($s->start_date) : null,
+                'trial_fim' => $s->trial_end_date ? $this->dataComoBlade($s->trial_end_date) : null,
+                'fim' => $s->end_date ? $this->dataComoBlade($s->end_date) : null,
+                'preco' => $this->moedaComoBlade($s->package_price),
+                'pago_via' => (string) $s->paid_via,
+                'transacao' => (string) $s->payment_transaction_id,
+                'status' => RotuloAssinatura::de($s->status, $s->end_date),
+                'criado_em' => $s->getRawOriginal('created_at') ? $this->dataComoBlade($s->getRawOriginal('created_at')) : null,
+                'criado_por' => (string) $s->getAttribute('criado_por'),
+            ]);
+
+        // Os dois quadros do recibo (antigo modal `show_subscription_modal`): quem cobra e quem paga.
+        $emissor = collect(System::getProperties(['invoice_business_name', 'email', 'invoice_business_landmark',
+            'invoice_business_city', 'invoice_business_zip', 'invoice_business_state', 'invoice_business_country']))
+            ->pluck('value', 'key');
+        $negocio = Business::find($business_id);
+
+        return [
+            'emissor' => $emissor,
+            'negocio' => [
+                'nome' => (string) $negocio?->name,
+                'impostos' => collect([[$negocio?->tax_label_1, $negocio?->tax_number_1], [$negocio?->tax_label_2, $negocio?->tax_number_2]])
+                    ->filter(fn ($t) => ! empty($t[0]) && ! empty($t[1]))->map(fn ($t) => ['rotulo' => $t[0], 'numero' => $t[1]])->values(),
+            ],
+            'ativa' => $ativa ? $cartao($ativa) + ['dias_restantes' => \Carbon::today()->diffInDays($ativa->end_date)] : null,
+            'proximas' => $proximas->map($cartao)->values(),
+            'aguardando' => $aguardando->map($cartao)->values(),
+            'historico' => $historico,
+            'pacotes' => $pacotes,
+        ];
+    }
+
+    /** Data como a diretiva `@format_date` da Blade: sem o deslocamento de fuso do `Util`. */
+    protected function dataComoBlade($data): string
+    {
+        return \Carbon::createFromTimestamp(strtotime((string) $data))
+            ->format(session('business.date_format', config('constants.default_date_format', 'd/m/Y')));
+    }
+
+    /**
+     * Valor no MESMO texto que a Blade mostrava. A Blade imprimia o número cru e o
+     * `__currency_trans_from_en` (accounting.js) o reescrevia no browser com a moeda do SISTEMA
+     * (`p_symbol`, a página tem o partial `currency`), a precisão e a posição do símbolo do
+     * NEGÓCIO. O arredondamento é o do accounting.js — `Math.round(v * 10^p) / 10^p` em ponto
+     * flutuante — e não o `round()` do PHP, que diverge em casos como 1.005.
+     */
+    public function moedaComoBlade($valor): string
+    {
+        $moeda = System::getCurrency();
+        $precisao = (int) request()->session()->get('business.currency_precision', 2);
+        $fator = 10 ** $precisao;
+        // Math.round exato: empate sobe. `x - floor(x)` não tem erro de arredondamento; `x + 0.5` teria.
+        $x = (float) $valor * $fator;
+        $inteiro = floor($x) + (($x - floor($x)) >= 0.5 ? 1 : 0);
+        $numero = number_format($inteiro / $fator, $precisao,
+            (string) $moeda->decimal_separator, (string) $moeda->thousand_separator);
+
+        return request()->session()->get('business.currency_symbol_placement') === 'after'
+            ? $numero.' '.$moeda->symbol
+            : $moeda->symbol.' '.$numero;
     }
 
     /**
