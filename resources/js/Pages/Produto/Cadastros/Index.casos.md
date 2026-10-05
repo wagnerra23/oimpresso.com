@@ -261,9 +261,49 @@ Status: 🧪
 
 ---
 
+## UC-PCADAP-20 · Subcategoria só sob categoria principal do meu negócio · `must` `[T0]`
+
+Origem: UC-CAD-01/02 (charter R2, R7) + ficha `10-cadastros-form.md` (PR-b) + ADR 0093. O modal clássico
+só lista categorias principais do negócio como pai; o servidor não conferia o `parent_id` recebido.
+
+**Dado** "Comunicação visual" com a subcategoria "Lonas", "Impressos" sem filhas e uma categoria do vizinho
+**Quando** crio pelo drawer uma subcategoria sob a principal, sob a do vizinho e sob "Lonas"; e edito
+"Impressos" para ser filha dela mesma e "Comunicação visual" para ser filha de "Impressos"
+**Então** só a primeira grava; as outras respondem `success: false` sem gravar nada, e nenhum vínculo existente muda.
+
+Status: 🧪
+
+---
+
+## UC-PCADAP-21 · Drawer de variação renomeia valor e acrescenta valor novo · `must`
+
+Origem: UC-CAD-01/02 (charter R2) + ficha `10-cadastros-form.md` (PR-b).
+
+**Dado** o modelo "Cor" criado pelo drawer com Branco e Preto
+**Quando** reabro, renomeio Branco para "Branco gelo" e acrescento Azul
+**Então** a lista traz os ids dos valores; o valor existente é renomeado pelo id (`edit_variation_values`) e o novo
+entra no fim. Valor já gravado não é removido pelo drawer: o servidor não remove valor de modelo, só renomeia.
+
+Status: 🧪
+
+---
+
+## UC-PCADAP-22 · Drawer de garantia cria e edita só no meu negócio · `must` `[T0]`
+
+Origem: UC-CAD-01/02 (charter R2) + ficha `10-cadastros-form.md` (PR-b) + ADR 0093.
+
+**Dado** uma garantia do negócio vizinho
+**Quando** crio "12 meses" pelo drawer, reabro e troco para 1 ano, e tento editar a do vizinho
+**Então** a lista devolve o prazo cru (`12` e `months`) pro drawer abrir preenchido; a minha passa a 1 ano; a do vizinho fica como estava.
+
+Status: 🧪
+
+---
+
 ## Backlog (sem teste ainda — não é contrato até ganhar teste que o cite)
 
-- [BACKLOG] Criar e editar no drawer em Categorias, Variações, Grupos de preço e Garantias (UC-CAD-01/02, charter R2) — thread 10, PR-b. Unidades e Marcas já estão no drawer (UC-PCADAP-17..19).
+- [BACKLOG] Criar e editar Grupos de preço no drawer (UC-CAD-01/02) — fora da ficha da thread 10; segue no modal da Blade. As outras 5 abas estão no drawer (UC-PCADAP-17..22).
+- [BACKLOG] Remover valor já gravado de um modelo de variação pelo drawer — o servidor só renomeia; remover pede rota e regra de uso.
 - [BACKLOG] Desativar/ativar grupo de preço na própria linha (UC-CAD-09) — hoje a linha mostra Ativo/Inativo e a troca vai pela tela clássica.
 - [BACKLOG] Contagem de produtos da variação clicável (filtro do índice por modelo de variação) — `/products/unificado` não tem esse filtro e é `nao_toca` da thread 03.
 - [BACKLOG] Marca da Oficina na lista (UC-CAD-12), atalho `/` e busca sem resultado (UC-CAD-06/07), estados primeira-vez/carregando/densidade (UC-CAD-14..16) — a tela já tem `/`, busca e primeira-vez; falta teste de browser.

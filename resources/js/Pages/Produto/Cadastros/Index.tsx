@@ -9,8 +9,8 @@
 // Contrato: governance/design/contracts/produto-cadastros.contract.json
 //
 // As 6 abas são vivas: lista, contagem de uso clicável e exclusão com a recusa dita antes (threads
-// 02 e 03). Unidades e Marcas criam e editam no drawer (thread 10, PR-a); as outras quatro seguem nos
-// modais da Blade (`?classico=1`; Categorias em `/taxonomies?type=product`) até o PR-b.
+// 02 e 03). Cinco abas criam e editam no drawer (thread 10, PR-a e PR-b); Grupos de preço segue no modal
+// da Blade (`?classico=1`) — a ficha da thread não o inclui.
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Deferred, Link, router } from '@inertiajs/react';
@@ -31,14 +31,14 @@ import CadastroDrawer, { type Pedido } from './_components/CadastroDrawer';
 
 type AbaViva = 'variacoes' | 'grupos' | 'unidades' | 'categorias' | 'marcas' | 'garantias';
 interface Pode { view: boolean; create: boolean; update: boolean; delete: boolean }
-interface Variacao { id: number; nome: string; valores: string[]; em_uso: number }
+interface Variacao { id: number; nome: string; valores: string[]; valor_ids: number[]; em_uso: number }
 interface Grupo { id: number; nome: string; descricao: string; ativo: boolean }
 interface Unidade {
   id: number; nome: string; simbolo: string; decimal: boolean; base: string | null; em_uso: number;
   base_id: number | null; multiplicador: string;
 }
 interface Marca { id: number; nome: string; descricao: string; oficina: boolean; em_uso: number }
-interface Garantia { id: number; nome: string; descricao: string; duracao: string | null }
+interface Garantia { id: number; nome: string; descricao: string; duracao: string | null; duracao_n: string; duracao_tipo: string }
 interface Categoria {
   id: number; nome: string; codigo: string; descricao: string;
   pai_id: number | null; pai: string | null; em_uso: number; filhas: number;
@@ -173,21 +173,38 @@ export default function CadastrosIndex({ aba: inicial, can, oficina, variacoes, 
         ] })) ?? null
       : marcas?.map((m) => ({ id: m.id, nome: m.nome, busca: m.nome, em_uso: m.em_uso, filhas: 0, filtro: `marca=${m.id}`, celulas: [<b>{m.nome}</b>, m.descricao || '—'] })) ?? null;
 
-  // Drawer (thread 10, PR-a): só Unidades e Marcas. Base válida = unidade que não é múltiplo de outra (protótipo :332).
+  // Drawer (thread 10). Base válida = unidade que não é múltiplo de outra (protótipo :332); pai válido =
+  // categoria principal (o mesmo filtro da lista de pais do modal clássico).
   const abrir = (id?: number): Pedido | null => {
     if (aba === 'unidades') {
       const x = unidades?.find((r) => r.id === id);
-      return { tipo: 'unidade', bases: (unidades ?? []).filter((r) => !r.base_id),
-        valor: x ? { id: x.id, nome: x.nome, simbolo: x.simbolo, decimal: x.decimal, base_id: x.base_id, multiplicador: x.multiplicador }
+      return { tipo: 'unidade', id: x?.id, bases: (unidades ?? []).filter((r) => !r.base_id).map((r) => ({ id: r.id, rotulo: `${r.nome} (${r.simbolo})` })),
+        v: x ? { nome: x.nome, simbolo: x.simbolo, decimal: x.decimal, base_id: x.base_id, multiplicador: x.multiplicador }
           : { nome: '', simbolo: '', decimal: false, base_id: null, multiplicador: '' } };
     }
     if (aba === 'marcas') {
       const x = marcas?.find((r) => r.id === id);
-      return { tipo: 'marca', oficina, valor: x ? { id: x.id, nome: x.nome, descricao: x.descricao, oficina: x.oficina } : { nome: '', descricao: '', oficina: false } };
+      return { tipo: 'marca', id: x?.id, oficina, v: x ? { nome: x.nome, descricao: x.descricao, oficina: x.oficina } : { nome: '', descricao: '', oficina: false } };
+    }
+    if (aba === 'categorias') {
+      const x = categorias?.find((r) => r.id === id);
+      return { tipo: 'categoria', id: x?.id, temFilhas: (x?.filhas ?? 0) > 0,
+        pais: (categorias ?? []).filter((r) => !r.pai_id).map((r) => ({ id: r.id, rotulo: r.nome })),
+        v: x ? { nome: x.nome, codigo: x.codigo, descricao: x.descricao, pai_id: x.pai_id } : { nome: '', codigo: '', descricao: '', pai_id: null } };
+    }
+    if (aba === 'variacoes') {
+      const x = variacoes?.find((r) => r.id === id);
+      return { tipo: 'variacao', id: x?.id,
+        v: x ? { nome: x.nome, valores: x.valores.map((nome, i) => ({ id: x.valor_ids[i], nome })) } : { nome: '', valores: [{ nome: '' }] } };
+    }
+    if (aba === 'garantias') {
+      const x = garantias?.find((r) => r.id === id);
+      return { tipo: 'garantia', id: x?.id,
+        v: x ? { nome: x.nome, descricao: x.descricao, duracao: x.duracao_n, tipo_prazo: x.duracao_tipo } : { nome: '', descricao: '', duracao: '', tipo_prazo: 'months' } };
     }
     return null;
   };
-  const noDrawer = aba === 'unidades' || aba === 'marcas';
+  const noDrawer = aba !== 'grupos';
   const botaoEscrita = (rotulo: string, id?: number, props: { size?: 'sm'; variant?: 'outline'; className?: string } = {}) => (noDrawer
     ? <Button {...props} onClick={() => setDrawer(abrir(id))}>{rotulo}</Button>
     : <Button asChild {...props}><a href={cfg.escrita}>{rotulo}</a></Button>);
@@ -296,7 +313,7 @@ export default function CadastrosIndex({ aba: inicial, can, oficina, variacoes, 
 
       {drawer && (
         <CadastroDrawer pedido={drawer} onClose={() => setDrawer(null)}
-          onSalvo={() => { const a = drawer.tipo === 'unidade' ? 'unidades' : 'marcas'; setDrawer(null); router.reload({ only: [a] }); }} />
+          onSalvo={() => { setDrawer(null); router.reload({ only: [aba] }); }} />
       )}
 
       <AlertDialog open={!!excluir} onOpenChange={(o) => !o && setExcluir(null)}>
