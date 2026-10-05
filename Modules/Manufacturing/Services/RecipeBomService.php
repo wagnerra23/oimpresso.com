@@ -114,8 +114,10 @@ class RecipeBomService
      */
     public function variacaoDaEmpresa(int $variationId, int $businessId, array $with = []): Variation
     {
+        // Subconsulta em `products`, e não `whereHas('product')`: o Larastan não reconhece a
+        // relação `product` do `App\Variation` (sem tipo de retorno) e reprova o ratchet.
         return Variation::with($with)
-            ->whereHas('product', fn ($q) => $q->where('business_id', $businessId))
+            ->whereIn('product_id', fn ($q) => $q->select('id')->from('products')->where('business_id', $businessId))
             ->findOrFail($variationId);
     }
 
