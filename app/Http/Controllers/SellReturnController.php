@@ -404,10 +404,16 @@ class SellReturnController extends Controller
      */
     private function inertiaAddVenda(int $business_id, int $id): array
     {
-        $sell = Transaction::where('business_id', $business_id)
-            ->with(['sell_lines', 'location', 'return_parent', 'contact', 'tax', 'sell_lines.sub_unit',
-                'sell_lines.product', 'sell_lines.product.unit', 'sell_lines.variations.product_variation'])
-            ->findOrFail($id);
+        // Mesmas relações que o ramo Blade carrega. As relações do núcleo UltimatePOS não
+        // declaram tipo de retorno e o larastan não as enxerga (mesmos erros já no baseline
+        // para add()/show()); por isso a leitura vai por getRelationValue() e a carga, numa
+        // linha só, com o ignore pontual.
+        // @phpstan-ignore-next-line
+        $sell = Transaction::where('business_id', $business_id)->with(['sell_lines', 'location', 'return_parent', 'contact', 'tax', 'sell_lines.sub_unit', 'sell_lines.product', 'sell_lines.product.unit', 'sell_lines.variations.product_variation'])->findOrFail($id);
+        $devolucao = $sell->getRelationValue('return_parent');
+        $contato = $sell->getRelationValue('contact');
+        $local = $sell->getRelationValue('location');
+        $imposto = $sell->getRelationValue('tax');
 
         $sep_dec = session('currency')['decimal_separator'] ?? ',';
         $sep_mil = session('currency')['thousand_separator'] ?? '.';
@@ -415,7 +421,7 @@ class SellReturnController extends Controller
         $qtd = fn ($v) => number_format((float) $v, (int) session('business.quantity_precision', 2), $sep_dec, $sep_mil);
 
         $linhas = [];
-        foreach ($sell->sell_lines as $sell_line) {
+        foreach ($sell->getRelationValue('sell_lines') as $sell_line) {
             if (! empty($sell_line->sub_unit_id)) {
                 $sell_line = $this->transactionUtil->recalculateSellLineTotals($business_id, $sell_line);
             }
@@ -438,22 +444,21 @@ class SellReturnController extends Controller
             ];
         }
 
-        $devolucao = $sell->return_parent;
-        $data = ! empty($devolucao->transaction_date) ? $devolucao->transaction_date : 'now';
+        $data = ! empty($devolucao->transaction_date) ? (string) $devolucao->transaction_date : 'now';
         $formato_hora = session('business.time_format') == 24 ? 'H:i' : 'h:i A';
 
         return [
             'id' => (int) $sell->id,
             'numero' => (string) $sell->invoice_no,
-            'data' => (string) $sell->transaction_date,
-            'cliente' => $sell->contact->name ?? null,
-            'local' => $sell->location->name ?? null,
+            'data' => (string) $sell->getAttribute('transaction_date'),
+            'cliente' => $contato->name ?? null,
+            'local' => $local->name ?? null,
             'devolucao' => empty($devolucao) ? null : ['id' => (int) $devolucao->id, 'numero' => (string) $devolucao->invoice_no],
             'numero_devolucao_txt' => $devolucao->invoice_no ?? '',
-            'data_devolucao_txt' => \Carbon::createFromTimestamp(strtotime($data))
+            'data_devolucao_txt' => \Carbon\Carbon::createFromTimestamp((int) strtotime($data))
                 ->format(session('business.date_format', config('constants.default_date_format', 'd/m/Y')).' '.$formato_hora),
             'tax_id' => $sell->tax_id,
-            'imposto' => empty($sell->tax) ? null : ['nome' => (string) $sell->tax->name, 'percentual' => (float) $sell->tax->amount],
+            'imposto' => empty($imposto) ? null : ['nome' => (string) $imposto->name, 'percentual' => (float) $imposto->amount],
             'desconto_tipo' => (string) (! empty($devolucao->discount_type) ? $devolucao->discount_type : $sell->discount_type),
             'desconto_valor_txt' => $num(! empty($devolucao->discount_amount) ? $devolucao->discount_amount : $sell->discount_amount),
             'linhas' => $linhas,
