@@ -362,11 +362,12 @@ it('UC-CRMACO-17 · registro em acompanhamento de outro negócio não grava nem 
     $vizinho = acoUsuario('aco_vizinho_test', ['crm.access_all_schedule'], ACO_OUTRO);
     $alheio = acoAcompanhamento(ACO_OUTRO, 'Do vizinho', $vizinho);
 
-    // A rota recusa pelo findOrFail no negócio da sessão; o catch devolve `success:false`.
+    // A rota recusa pelo findOrFail no negócio da sessão: 404, como editar/excluir (UC-10).
+    // Medido na lane verticais-pest (run 37319306701): o catch não engole o ModelNotFound.
     $this->actingAs($user)->post('/crm/follow-up-log', [
         'schedule_id' => $alheio, 'subject' => 'Intruso', 'log_type' => 'call',
         'start_datetime' => '2026-10-10T09:00', 'end_datetime' => '2026-10-10T09:10', 'status' => 'completed',
-    ], ACO_AJAX)->assertOk()->assertJson(['success' => false]);
+    ], ACO_AJAX)->assertNotFound();
 
     expect(DB::table('crm_schedule_logs')->where('schedule_id', $alheio)->exists())->toBeFalse();
     expect(DB::table('crm_schedules')->where('id', $alheio)->value('status'))->toBe('scheduled');

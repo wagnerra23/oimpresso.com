@@ -197,6 +197,6 @@ Status: 🧪
 
 **Dado** um acompanhamento de outro negócio
 **Quando** tento adicionar um registro pelo id dele
-**Então** a resposta é `success: false`, nenhum registro é gravado e o status dele não muda.
+**Então** recebo 404 (como em editar e excluir), nenhum registro é gravado e o status dele não muda.
 
 Status: 🧪
