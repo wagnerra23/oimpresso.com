@@ -20,7 +20,7 @@ use Tests\Support\EstoqueFixture;
  * REGRA MESTRE (valor + estoque) — conta à mão, independente do código:
  *
  *   tenant 98 · produto P · local L · saldo inicial 10
- *   venda A e venda B (gêmeas): 1 linha, 3 un × R$ 1.234,50 · desconto da venda 10% · sem imposto
+ *   venda A e venda B (gêmeas): 1 linha, 3 un × 1.234,50 · desconto da venda 10% · sem imposto
  *   devolver 2 un de cada venda:
  *     subtotal = 2 × 1.234,50          = 2.469,00
  *     desconto = 10% × 2.469,00        =   246,90

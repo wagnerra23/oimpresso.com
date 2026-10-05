@@ -53,7 +53,7 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 
 ## UC-SRADD-05 · A tela grava o mesmo que a Blade `[V0]` `[E0]` `[must]`
 - **Origem:** `UC-DEV-03` (total = preço unitário × quantidade devolvida).
-- **Persona:** Larissa — devolve 2 de 3 unidades a R$ 1.234,50 com 10% de desconto na venda.
+- **Persona:** Larissa — devolve 2 de 3 unidades a 1.234,50 por unidade com 10% de desconto na venda.
 - **Aceite:** Dado duas vendas iguais · Quando uma é devolvida pelo payload do form Blade e a outra pelo payload da tela React · Então as duas devoluções gravam total 2.222,10, desconto 10%, imposto 0, 2 unidades devolvidas na linha, +2 no estoque e situação "a pagar" sem pagamento lançado.
 - **Teste:** `SellReturnAddContratoTest` — `UC-SRADD-05 [V0][E0] o payload da tela e o da Blade gravam o mesmo valor e o mesmo estoque`.
 - **Regressão que defende:** número no formato errado inflando o valor (o incidente `num_uf` de 2026-06-05).
