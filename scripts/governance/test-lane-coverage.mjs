@@ -45,6 +45,7 @@
 //   node scripts/governance/test-lane-coverage.mjs            # relatório
 //   node scripts/governance/test-lane-coverage.mjs --json     # consumo por outra máquina
 //   node scripts/governance/test-lane-coverage.mjs --modulo Jana
+//   node scripts/governance/test-lane-coverage.mjs --pr 8669  # EIXO 3: o teste tocado EXECUTOU no head? (gh)
 //   node scripts/governance/test-lane-coverage.mjs --selftest # bite-test (boa/ruim)
 
 import { execFileSync } from 'node:child_process';
@@ -393,6 +394,66 @@ export function testesDeRisco(arquivosTocados, testes, alvos) {
   return achados;
 }
 
+// ══════════════ EIXO 3: O TESTE DO PR EXECUTOU NO HEAD? (2026-10-05) ══════════
+//
+// Os eixos 1 e 2 são estáticos: dizem se uma lane ALCANÇA o arquivo e se o deixa
+// rodar. Nenhum dos dois responde a pergunta que um merge precisa: o teste que ESTE
+// PR adicionou ou mudou RODOU no commit que vai entrar?
+//
+// O caso que originou (2026-10-05, PR #8669): o PR criou
+// `SuperadminMinhaAssinaturaContratoTest.php` e o pôs na lista da `verticais-pest`.
+// Os dois eixos o davam por coberto, e estavam certos. Mas a lane só dispara em
+// `opened/reopened/ready_for_review` (sem `synchronize`, ver o #6622), o PR teve 4
+// commits e nenhuma run dela existia no head. O PR ficou verde nos checks
+// obrigatórios, entrou por auto-merge, e a mesma lane FALHOU no push do merge em
+// main — `/subscription` dava 500 em produção. Na mesma rodada, 5 de 13 PRs de
+// código mergeados não tinham a lane do módulo rodada no head.
+//
+// O sinal é o PASSO do Pest no job, não a cor do check: a lane com
+// paths-filter sai `success` com o passo `skipped` quando nada do domínio
+// mudou (skip-as-pass, ADR 0271). Verde não é execução.
+//
+// ⚠️ LIMITES: (1) "a lane executou" não prova que AQUELE arquivo rodou — prova que o
+// passo do Pest rodou numa lane cuja lista o alcança (estático, eixo 1). (2) Em
+// workflow de matriz, qualquer job da run com passo do Pest executado conta.
+// (3) Só olha arquivo de TESTE tocado: fonte alterada sem teste tocado é o eixo
+// `--diff`, por convenção de nome.
+
+/** Passo que executa o Pest. Não casa Setup/Upload/Sumário — esses existem com a lane pulada. */
+export function ehPassoPest(nome) {
+  return /^Run Pest\b|^Pest\b|vendor\/bin\/pest/i.test(nome || '');
+}
+
+/**
+ * Situação de UMA lane no head: 'executou-passou' · 'executou-falhou' · 'pulou' · 'nao-rodou' · 'pendente'.
+ * `run` = { conclusion, jobs: [{ steps: [{ name, conclusion }] }] } ou null.
+ */
+export function situacaoDaLane(run) {
+  if (!run) return 'nao-rodou';
+  if (run.conclusion === 'pending') return 'pendente';
+  const passos = (run.jobs || []).flatMap((j) => (j.steps || []).filter((s) => ehPassoPest(s.name)));
+  const executados = passos.filter((s) => s.conclusion && s.conclusion !== 'skipped');
+  if (executados.length === 0) return run.conclusion === 'failure' ? 'executou-falhou' : 'pulou';
+  return executados.some((s) => s.conclusion === 'failure') || run.conclusion === 'failure'
+    ? 'executou-falhou'
+    : 'executou-passou';
+}
+
+/**
+ * Veredito por teste tocado. `lanes` = [{ path, alvos }]; `runsPorPath` = Map(path → run|null).
+ * EXECUTOU só se alguma lane que o alcança executou e passou; FALHOU vence EXECUTOU
+ * (uma lane vermelha basta). Sem lane que alcance = SEM-LANE (é o eixo 1).
+ */
+export function vereditoDoTeste(teste, lanes, runsPorPath) {
+  const alcancam = lanes.filter((l) => estaCoberto(teste, l.alvos));
+  if (alcancam.length === 0) return { teste, veredito: 'SEM-LANE', lanes: [] };
+  const sit = alcancam.map((l) => ({ path: l.path, situacao: situacaoDaLane(runsPorPath.get(l.path) || null) }));
+  let veredito = 'NAO-EXECUTADO';
+  if (sit.some((s) => s.situacao === 'executou-passou')) veredito = 'EXECUTOU';
+  if (sit.some((s) => s.situacao === 'executou-falhou')) veredito = 'FALHOU';
+  return { teste, veredito, lanes: sit };
+}
+
 // ───────────────────────────────── selftest ───────────────────────────────────
 
 function selftest() {
@@ -603,6 +664,34 @@ function selftest() {
   ok('CONTROLE NEGATIVO: lane com o driver certo ⇒ não é mudo',
     testesMudos(['Modules/X/Tests/Feature/AlvoTest.php'], pdOk, () => phpSqliteOnly).length === 0);
 
+  // ── EIXO 3: o teste tocado executou no head? ─────────────────────────────────
+  const T3 = 'Modules/S/Tests/Feature/NovoContratoTest.php';
+  const lanes3 = [{ path: 'v.yml', alvos: ['Modules/S/Tests/Feature/NovoContratoTest.php'] }];
+  const run = (passoPest, concl = 'success') => ({ conclusion: concl, jobs: [{ steps: [
+    { name: 'Setup Pest MySQL', conclusion: 'success' },
+    { name: 'Skip-as-pass (nada mudou)', conclusion: passoPest === 'skipped' ? 'success' : 'skipped' },
+    { name: 'Run Pest (S · MySQL)', conclusion: passoPest },
+  ] }] });
+  // BITE do caso de origem (#8669): a lane alcança, mas não há run dela no head.
+  ok('BITE: lane alcança e não rodou no head ⇒ NAO-EXECUTADO (o caso do #8669)',
+    vereditoDoTeste(T3, lanes3, new Map()).veredito === 'NAO-EXECUTADO');
+  // BITE do skip-as-pass: run verde, passo do Pest pulado.
+  ok('BITE: run verde com o passo do Pest PULADO ⇒ NAO-EXECUTADO (verde não é execução)',
+    vereditoDoTeste(T3, lanes3, new Map([['v.yml', run('skipped')]])).veredito === 'NAO-EXECUTADO');
+  ok('BITE: passo do Pest executado e vermelho ⇒ FALHOU',
+    vereditoDoTeste(T3, lanes3, new Map([['v.yml', run('failure', 'failure')]])).veredito === 'FALHOU');
+  ok('LIBERA: passo do Pest executado e verde ⇒ EXECUTOU',
+    vereditoDoTeste(T3, lanes3, new Map([['v.yml', run('success')]])).veredito === 'EXECUTOU');
+  // CONTROLE: Setup/Upload verdes não contam como execução — só o passo do Pest.
+  ok('CONTROLE: só o passo "Run Pest" conta; "Setup Pest MySQL" não é execução',
+    !ehPassoPest('Setup Pest MySQL') && !ehPassoPest('Upload sumario JUnit (pest-x-junit)') && ehPassoPest('Run Pest (S · MySQL)'));
+  ok('CONTROLE: teste que nenhuma lane alcança ⇒ SEM-LANE (é o eixo 1, não este)',
+    vereditoDoTeste('Modules/Z/Tests/Feature/OutroTest.php', lanes3, new Map()).veredito === 'SEM-LANE');
+  // FALHOU vence: uma lane verde e outra vermelha alcançando o mesmo teste.
+  const lanes3b = [...lanes3, { path: 'w.yml', alvos: ['Modules/S/Tests'] }];
+  ok('BITE: uma lane verde e outra vermelha ⇒ FALHOU (vermelho não se dilui)',
+    vereditoDoTeste(T3, lanes3b, new Map([['v.yml', run('success')], ['w.yml', run('failure', 'failure')]])).veredito === 'FALHOU');
+
   const falhas = casos.filter((c) => !c.ok);
   for (const c of casos) console.log(`  ${c.ok ? '✓' : '✗'} ${c.nome}`);
   console.log(`\n  ${casos.length - falhas.length}/${casos.length} — ${falhas.length ? 'FALHOU' : 'a lógica morde (bite + controles negativos)'}`);
@@ -627,6 +716,64 @@ const filtroModulo = (() => {
 
 const { alvos, lanesLidas } = coletarAlvos();
 const testes = testesExistentes();
+
+// --pr <N>: EIXO 3 — o teste que este PR tocou EXECUTOU no head? Consulta o GitHub
+// (gh autenticado). Exit: 0 = todo teste tocado executou e passou · 1 = algum não
+// executou ou falhou · 2 = não consegui medir (gh ausente/sem rede) — NUNCA 0 nesse caso.
+if (args.includes('--pr')) {
+  const n = args[args.indexOf('--pr') + 1];
+  const gh = (a) => execFileSync('gh', a, { cwd: ROOT, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 });
+  const jsonl = (txt) => txt.split(/\r?\n/).filter(Boolean).map((l) => JSON.parse(l));
+  let repo, head, tocados, runs;
+  try {
+    repo = gh(['repo', 'view', '--json', 'nameWithOwner', '--jq', '.nameWithOwner']).trim();
+    head = gh(['pr', 'view', n, '--json', 'headRefOid', '--jq', '.headRefOid']).trim();
+    tocados = jsonl(gh(['api', '--paginate', `repos/${repo}/pulls/${n}/files?per_page=100`,
+      '--jq', '.[]|{p:.filename,s:.status}|tojson']))
+      .filter((f) => f.s !== 'removed' && /Test\.php$/.test(f.p)).map((f) => f.p);
+    const todas = jsonl(gh(['api', '--paginate', `repos/${repo}/actions/runs?head_sha=${head}&per_page=100`,
+      '--jq', '.workflow_runs[]|{id,path,conclusion,status,created_at}|tojson']));
+    runs = new Map();
+    for (const r of todas.sort((a, b) => a.created_at.localeCompare(b.created_at))) runs.set(r.path, r);
+  } catch (e) {
+    console.log(`⚠️  não consegui medir o PR #${n} (${String(e.message).split('\n')[0]}) — ausência de MEDIÇÃO, não de risco.`);
+    process.exit(2);
+  }
+  if (tocados.length === 0) {
+    console.log(`✓ PR #${n}: nenhum arquivo de teste tocado — este eixo não tem o que medir (veja --diff pra fonte sem teste).`);
+    process.exit(0);
+  }
+  const lista = entradasDaListaCurada();
+  const lanes = readdirSync(WF_DIR).filter((f) => /\.ya?ml$/.test(f)).map((f) => {
+    const txt = readFileSync(join(WF_DIR, f), 'utf8');
+    return /vendor\/bin\/pest|ci-sqlite-pest\.list/.test(txt) ? { path: `.github/workflows/${f}`, alvos: extrairAlvos(txt, lista) } : null;
+  }).filter(Boolean);
+  const runsPorPath = new Map();
+  for (const l of lanes) {
+    const r = runs.get(l.path);
+    if (!r) continue;
+    if (r.status !== 'completed') { runsPorPath.set(l.path, { conclusion: 'pending', jobs: [] }); continue; }
+    const jobs = JSON.parse(gh(['api', `repos/${repo}/actions/runs/${r.id}/jobs?per_page=100`, '--jq', '[.jobs[]|{steps:[.steps[]|{name,conclusion}]}]']));
+    runsPorPath.set(l.path, { conclusion: r.conclusion, jobs });
+  }
+  const vs = tocados.map((t) => vereditoDoTeste(t, lanes, runsPorPath));
+  console.log(`\n=== EIXO 3 · PR #${n} · head ${head.slice(0, 9)} — o teste tocado EXECUTOU? ===\n`);
+  const icone = { EXECUTOU: '✓', FALHOU: '✗', 'NAO-EXECUTADO': '⛔', 'SEM-LANE': '⛔' };
+  for (const v of vs) {
+    console.log(`  ${icone[v.veredito]} ${v.veredito.padEnd(13)} ${v.teste}`);
+    for (const l of v.lanes) console.log(`        ${l.situacao.padEnd(16)} ${l.path}`);
+  }
+  const ruins = vs.filter((v) => v.veredito !== 'EXECUTOU');
+  if (ruins.length) {
+    const naoRodou = [...new Set(ruins.flatMap((v) => v.lanes.filter((l) => l.situacao === 'nao-rodou' || l.situacao === 'pulou').map((l) => l.path)))];
+    console.log(`\n  ${ruins.length} de ${vs.length} teste(s) tocado(s) SEM execução verde no head — o PR não está provado.`);
+    for (const p of naoRodou) console.log(`  rode no head:  gh workflow run ${p.split('/').pop()} --ref <branch do PR>   e repita este comando`);
+    console.log('  SEM-LANE = nenhuma lane alcança o arquivo: ponha-o na lista da lane do módulo (eixo 1).\n');
+    process.exit(1);
+  }
+  console.log(`\n  ✓ ${vs.length} de ${vs.length} teste(s) tocado(s) executaram e passaram no head.\n`);
+  process.exit(0);
+}
 
 // --diff <base>: modo FORWARD-ONLY pro PR. Não olha a dívida histórica (que é
 // grande e não é deste PR); só o que ESTE PR está prestes a deixar sem rede.

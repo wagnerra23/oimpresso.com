@@ -55,10 +55,12 @@ Autorização permanente do [W] em 2026-10-05, no chat da sessão que importou o
 
 1. executa uma thread de playbook do Cowork (`prototipo-ui/cowork/Wagner/cowork-inbox/<mod>/playbook/NN-*.md`) e traz o recibo `_saida-NN.md` dela;
 2. o `placar.mjs` dava a thread como `proximo` quando o trabalho começou: as dependências estavam feitas e nenhuma decisão [W] estava pendente;
-3. tem no máximo 300 linhas ou o motivo de passar escrito no corpo, e o teste citado executou na lane do CI (assertions > 0);
+3. tem no máximo 300 linhas ou o motivo de passar escrito no corpo, e **`node scripts/governance/test-lane-coverage.mjs --pr <N>` sai com exit 0**: todo arquivo de teste que o PR tocou executou e passou numa lane, **no head**. Exit 1 (algum teste não rodou ou falhou) ou 2 (não mediu) = sem auto-merge. Se a lane não rodou no head, o próprio comando imprime o `gh workflow run … --ref <branch>` que a dispara; rode, espere e meça de novo;
 4. não cai em nenhuma exceção abaixo.
 
-Com as quatro, ligue o auto-merge ao abrir o PR. Ele só entra quando os checks **obrigatórios** passam, porque a branch protection é quem decide. Check advisory vermelho não segura o merge, mas a sessão diz no relatório qual ficou vermelho e se é herdado.
+Com as quatro, ligue o auto-merge **depois** que o `--pr` sair 0, e não ao abrir o PR. Ele só entra quando os checks **obrigatórios** passam, porque a branch protection é quem decide. Check advisory vermelho não segura o merge, mas a sessão diz no relatório qual ficou vermelho e se é herdado. Novo commit no PR depois do auto-merge ligado: rode o `--pr` de novo no head novo.
+
+**Por que a condição 3 é um comando e não uma frase (2026-10-05):** o #8669 criou o teste de contrato da Minha assinatura e o pôs na lista da `verticais-pest`. A lane, advisory, não roda em `synchronize`; o PR teve 4 commits e nenhuma run dela no head. Os checks obrigatórios ficaram verdes, o auto-merge entrou, e a mesma lane falhou no push do merge — `/subscription` dava 500 em produção. Na mesma rodada, 5 de 13 PRs de código mergeados não tinham a lane do módulo rodada no head. Verde de check não é execução: lane com paths-filter sai `success` com o passo do Pest pulado.
 
 **Exceções — ficam com o [W] (sem auto-merge, e o corpo do PR diz por quê):**
 
