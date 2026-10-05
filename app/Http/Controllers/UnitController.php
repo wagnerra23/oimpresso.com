@@ -137,7 +137,7 @@ class UnitController extends Controller
             if ($request->has('define_base_unit')) {
                 if (! empty($request->input('base_unit_id')) && ! empty($request->input('base_unit_multiplier'))) {
                     if (! $this->baseDoNegocio($request->input('base_unit_id'), (int) $input['business_id'])) {
-                        return ['success' => false, 'msg' => 'A unidade base escolhida não existe neste negócio. Nada foi gravado.'];
+                        throw new \DomainException('A unidade base escolhida não existe neste negócio. Nada foi gravado.');
                     }
                     $base_unit_multiplier = $this->commonUtil->num_uf($request->input('base_unit_multiplier'));
                     if ($base_unit_multiplier != 0) {
@@ -152,6 +152,8 @@ class UnitController extends Controller
                 'data' => $unit,
                 'msg' => __('unit.added_success'),
             ];
+        } catch (\DomainException $e) {
+            $output = ['success' => false, 'msg' => $e->getMessage()];
         } catch (\Exception $e) {
             \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
 
@@ -228,7 +230,7 @@ class UnitController extends Controller
                     if (! empty($request->input('base_unit_id')) && ! empty($request->input('base_unit_multiplier'))) {
                         // Tier 0: a base vem do form; só vale unidade do MEU negócio e nunca a própria unidade.
                         if (! $this->baseDoNegocio($request->input('base_unit_id'), (int) $business_id, (int) $unit->id)) {
-                            return ['success' => false, 'msg' => 'A unidade base escolhida não existe neste negócio. Nada foi gravado.'];
+                            throw new \DomainException('A unidade base escolhida não existe neste negócio. Nada foi gravado.');
                         }
                         $base_unit_multiplier = $this->commonUtil->num_uf($request->input('base_unit_multiplier'));
                         if ($base_unit_multiplier != 0) {
@@ -246,6 +248,8 @@ class UnitController extends Controller
                 $output = ['success' => true,
                     'msg' => __('unit.updated_success'),
                 ];
+            } catch (\DomainException $e) {
+                $output = ['success' => false, 'msg' => $e->getMessage()];
             } catch (\Exception $e) {
                 \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.$e->getMessage());
 
