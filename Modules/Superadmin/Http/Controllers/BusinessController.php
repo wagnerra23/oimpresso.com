@@ -338,10 +338,10 @@ class BusinessController extends BaseController
             ])
             ->all();
 
-        $criadoPor = ! empty($b->created_by)
-            ? DB::table('users')->where('id', $b->created_by)
-                ->value(DB::raw("TRIM(CONCAT(COALESCE(surname, ''), ' ', COALESCE(first_name, ''), ' ', COALESCE(last_name, '')))"))
+        $autor = ! empty($b->created_by)
+            ? DB::table('users')->where('id', $b->created_by)->first(['surname', 'first_name', 'last_name'])
             : null;
+        $criadoPor = $autor ? implode(' ', array_filter([$autor->surname, $autor->first_name, $autor->last_name])) : null;
 
         // Uso contra o teto do pacote VIGENTE. Teto 0 = ILIMITADO no UltimatePOS — confirmado
         // por [W] em 2026-08-19 — e ilimitado NÃO vira barra de progresso: vira a palavra.
@@ -581,7 +581,7 @@ class BusinessController extends BaseController
     /**
      * Show the specified resource.
      *
-     * @return Response
+     * @return \Illuminate\Http\RedirectResponse
      */
     public function show($business_id)
     {
