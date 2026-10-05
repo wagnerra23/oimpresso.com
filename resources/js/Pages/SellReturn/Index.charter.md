@@ -14,6 +14,7 @@ alcance:
   menu_hook: n/a (item do menu de Vendas montado pelo núcleo, não por DataController de módulo)
 tier: B
 charter_version: 1
+related_us: [US-SELL-066]
 ---
 
 # Charter — Devolução de venda · lista (`/sell-return`)

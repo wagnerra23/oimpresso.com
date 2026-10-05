@@ -1477,3 +1477,25 @@ Perceived performance no `Sells/Create`: skeleton inicial enquanto carrega + alv
 - [ ] Validação no servidor (achado A2) — decisão [W].
 
 - Charter: [`Discount/Index.charter.md`](../../../resources/js/Pages/Discount/Index.charter.md) · runbook: [RUNBOOK-discount.md](RUNBOOK-discount.md)
+
+### US-SELL-066 · Devolução de venda em React — lista e registro (`/sell-return`)
+
+**Implementado em:** `resources/js/Pages/SellReturn/Index.tsx` · `resources/js/Pages/SellReturn/Add.tsx` · `app/Http/Controllers/SellReturnController.php` (`index()`, `add()`)
+
+**Testado em:** `tests/Feature/Sells/SellReturnIndexContratoTest.php` · `tests/Feature/Sells/SellReturnAddContratoTest.php` (UC-SRADD-01..06, lane `sells-pest.yml`).
+
+> owner: wagner · priority: p2 · estimate: 0h · type: story
+> blocked_by: —
+
+**Origem:** thread 03 do playbook `venda-menu` (PR 1 #8487 lista · PR 2 registro).
+
+**Problema:** a devolução era só Blade; a lista e o registro não tinham tela no padrão do app.
+
+**Aceite:**
+- [x] Lista de devoluções em React, com o Blade como fallback no GET comum.
+- [x] Registro de devolução em React gravando pelo mesmo `POST /sell-return` do Blade, sem mudar o cálculo (mesmo total, mesmo estoque — dupla prova no UC-SRADD-05).
+- [x] Quantidade devolvida nunca maior que a vendida (teto na tela).
+- [x] Venda de outra empresa = 404; sem permissão = 403 (Tier 0, ADR 0093).
+- [ ] Motivo da devolução (R3) e aviso de item sob medida (R4) — exigem mudar o `store()` ou dado que o produto não guarda.
+
+- Charters: [`SellReturn/Index.charter.md`](../../../resources/js/Pages/SellReturn/Index.charter.md) · [`SellReturn/Add.charter.md`](../../../resources/js/Pages/SellReturn/Add.charter.md) · runbook: [RUNBOOK-sell-return-add.md](RUNBOOK-sell-return-add.md)

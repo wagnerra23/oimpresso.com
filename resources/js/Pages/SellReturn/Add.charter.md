@@ -14,6 +14,7 @@ alcance:
   menu_hook: n/a (a tela é aberta pela venda — Sells/Index e a lista de devoluções —, não pelo menu)
 tier: B
 charter_version: 1
+related_us: [US-SELL-066]
 ---
 
 # Charter — Devolução de venda · registro (`/sell-return/add/{venda}`)
