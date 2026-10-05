@@ -478,3 +478,89 @@ it('ação com efeito colateral no banco não aparece nem executa pelo app', fun
     $this->postJson("/api/app/os/{$os}/acoes/entregar")->assertStatus(422)->assertJsonPath('erro', 'nao_suportada');
     expect((int) DB::table('service_orders')->where('id', $os)->value('current_stage_id'))->toBe($e['pronto_retirada']);
 });
+
+// ── Tela 07 — nova OS: POST /api/app/os + pode_criar; tela 08 — cliente_id ───────────────
+
+function appOsPodeCriar(object $t): void
+{
+    Permission::firstOrCreate(['name' => 'oficinaauto.service_order.create', 'guard_name' => 'web']);
+    $t->user->givePermissionTo('oficinaauto.service_order.create');
+}
+
+it('pode_criar acompanha a permissão de criar OS', function () {
+    expect($this->getJson('/api/app/os')->assertOk()->json('pode_criar'))->toBeFalse();
+    appOsPodeCriar($this);
+    expect($this->getJson('/api/app/os')->assertOk()->json('pode_criar'))->toBeTrue();
+});
+
+it('nova OS nasce de mecânica na Recepção, ligada ao veículo, sem item nem venda', function () {
+    appOsPodeCriar($this);
+    $dono = DB::table('contacts')->where('business_id', $this->biz->id)->value('id');
+    $v = (int) DB::table('vehicles')->insertGetId([
+        'business_id' => $this->biz->id, 'plate' => 'NOV' . random_int(1000, 9999), 'vehicle_type' => 'caminhao',
+        'created_at' => now(), 'updated_at' => now(),
+    ]);
+
+    $r = $this->postJson('/api/app/os', [
+        'vehicle_id' => $v, 'contact_id' => $dono, 'mileage_at_service' => 48312,
+        'box_label' => ' Elevador 1 ', 'notes' => 'Barulho na suspensão',
+    ])->assertStatus(201);
+
+    $id = (int) $r->json('id');
+    expect($r->json('etapa.chave'))->toBe('recepcao');
+    expect($r->json('local'))->toBe('Elevador 1');
+    expect($r->json('veiculo.km'))->toBe(48312);
+    expect($r->json('totais.total'))->toEqual(0);
+    $os = DB::table('service_orders')->where('id', $id)->first();
+    expect((int) $os->business_id)->toBe((int) $this->biz->id);
+    expect($os->order_type)->toBe('mecanica');
+    expect($os->status)->toBe('aberta');
+    expect($os->transaction_id)->toBeNull();
+    expect((int) DB::table('vehicles')->where('id', $v)->value('current_rental_id'))->toBe($id);
+    expect(DB::table('oficina_service_order_items')->where('service_order_id', $id)->count())->toBe(0);
+    // Aparece na lista da 07.
+    expect(collect($this->getJson('/api/app/os')->assertOk()->json('itens'))->pluck('id'))->toContain($id);
+});
+
+it('nova OS: veículo ou cliente de OUTRA empresa é 422; sem permissão de criar é 403', function () {
+    $antes = DB::table('service_orders')->count();
+    $meu = (int) DB::table('vehicles')->insertGetId([
+        'business_id' => $this->biz->id, 'plate' => 'MEU' . random_int(1000, 9999), 'vehicle_type' => 'caminhao',
+        'created_at' => now(), 'updated_at' => now(),
+    ]);
+    $alheio = (int) DB::table('vehicles')->insertGetId([
+        'business_id' => $this->outroBiz->id, 'plate' => 'OUT' . random_int(1000, 9999), 'vehicle_type' => 'caminhao',
+        'created_at' => now(), 'updated_at' => now(),
+    ]);
+    $clienteAlheio = DB::table('contacts')->where('business_id', $this->outroBiz->id)->value('id');
+
+    $this->postJson('/api/app/os', ['vehicle_id' => $meu])->assertStatus(403)->assertJsonPath('erro', 'sem_permissao');
+
+    appOsPodeCriar($this);
+    $this->postJson('/api/app/os', [])->assertStatus(422)->assertJsonPath('campos.vehicle_id', 'Escolha o veículo.');
+    $this->postJson('/api/app/os', ['vehicle_id' => $alheio])->assertStatus(422)->assertJsonPath('campos.vehicle_id', 'Veículo não encontrado.');
+    if ($clienteAlheio) {
+        $this->postJson('/api/app/os', ['vehicle_id' => $meu, 'contact_id' => $clienteAlheio])
+            ->assertStatus(422)->assertJsonPath('campos.contact_id', 'Cliente não encontrado.');
+    }
+    expect(DB::table('service_orders')->count())->toBe($antes);
+    // Controle positivo: com o veículo do próprio business cria.
+    $this->postJson('/api/app/os', ['vehicle_id' => $meu])->assertStatus(201);
+});
+
+it('veículos trazem cliente_id do dono', function () {
+    Permission::firstOrCreate(['name' => 'oficinaauto.vehicle.view', 'guard_name' => 'web']);
+    $this->user->givePermissionTo('oficinaauto.vehicle.view');
+    $dono = (int) DB::table('contacts')->where('business_id', $this->biz->id)->value('id');
+    if ($dono === 0) {
+        $this->markTestSkipped('Lane sem contato no business.');
+    }
+    $placa = 'CLI' . random_int(1000, 9999);
+    $v = DB::table('vehicles')->insertGetId([
+        'business_id' => $this->biz->id, 'plate' => $placa, 'vehicle_type' => 'caminhao', 'contact_id' => $dono,
+        'created_at' => now(), 'updated_at' => now(),
+    ]);
+
+    $item = collect($this->getJson('/api/app/veiculos?q=' . $placa)->assertOk()->json('itens'))->firstWhere('id', $v);
+    expect($item['cliente_id'])->toBe($dono);
+});

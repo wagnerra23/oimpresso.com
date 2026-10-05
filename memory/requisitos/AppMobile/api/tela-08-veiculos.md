@@ -6,10 +6,11 @@
 
 ```json
 { "itens": [ { "id": 7, "placa": "RLV2E48", "placa_secundaria": "REB1A23", "descricao": "Caminhão",
-    "ano": "2019/2020", "cliente": "Transportes Vale Norte", "km": 48312, "cor": "Branco" } ],
+    "ano": "2019/2020", "cliente": "Transportes Vale Norte", "cliente_id": 12, "km": 48312, "cor": "Branco" } ],
   "total": 91, "pagina": 1, "tem_mais": true }
 ```
 
+- `cliente_id` = id do dono (`null` sem dono): o app usa para sugerir o cliente da nova OS (tela 07).
 - Veículos de cliente do business (`vehicles`, Modules/OficinaAuto). Permissão da tela web de
   veículos: `oficinaauto.vehicle.view` + pacote da Oficina; sem ela → `403 sem_permissao`.
 - O cadastro não tem marca/modelo: `descricao` = rótulo do tipo (como a web). `ano` =
