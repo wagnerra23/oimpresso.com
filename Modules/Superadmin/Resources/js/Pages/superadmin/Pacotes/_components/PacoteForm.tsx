@@ -65,7 +65,7 @@ const INTERVALOS = [
 const soDigitos = (v: string) => v.replace(/\D/g, '').slice(0, 6);
 
 /** Preço digitado em pt-BR → texto canônico com ponto e 2 casas, arredondado a centavo. */
-export function precoParaEnvio(digitado: string): string {
+function precoParaEnvio(digitado: string): string {
   const n = parseDecimalPtBR(digitado);
   if (!Number.isFinite(n) || n < 0) return '';
   return (Math.round(n * 100) / 100).toFixed(2);
