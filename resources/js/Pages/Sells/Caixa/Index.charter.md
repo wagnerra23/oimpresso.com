@@ -51,7 +51,8 @@ Caixa do dia — resumo financeiro por forma de pagamento + **por origem** (Balc
      - Meta linha mostra "% do faturamento do dia"
      - Quando `g.id === 'oficina'` E há items com `os_ref`: até 3 links `↗ #OS-NNNN` clicáveis navegam para `/sells?open=<id>` → Sells/Index detecta o `?open` na montagem e abre o drawer SaleSheet
        - _Reconciliado 2026-09-23 (decisão [W]). Antes: disparava `CustomEvent('oimpresso:open-venda')`._
-  3. Movimentos do caixa — render somente leitura (placeholder Onda 6+1: integrar sangria/suprimento read-write)
+  3. Movimentos do caixa — turno aberto do usuário, somente leitura: troco inicial, totais por forma (vendas · despesas · devoluções) e lista de `cash_register_transactions` (prop deferida `turno`; totais de `CashRegisterUtil::getRegisterDetails`, o mesmo do Blade)
+     - _Thread 07 venda-menu, 2026-10-05. Antes: placeholder Onda 6+1._
   4. Conferência física — render somente leitura (placeholder Onda 6+1: substituir legacy modal)
 - Backend endpoint REST canon: `GET /vendas/caixa` (Inertia render) + props pré-agregadas pelo controller (`SellController@inertiaCaixa` ou novo método)
 - Multi-tenant Tier 0 ADR 0093 IRREVOGÁVEL: `business_id` em todo `where()` (global scope + explícito defesa em profundidade)
@@ -62,7 +63,7 @@ Caixa do dia — resumo financeiro por forma de pagamento + **por origem** (Balc
 
 ## Non-Goals — não faz nesta v1 (Onda 6)
 
-- ❌ Edição inline de movimentos (sangria/suprimento) — preserva legacy modal `/cash-register/close-register/{id}` (Onda 6+1 substitui)
+- ❌ Lançar sangria/suprimento — o caixa do UltimatePOS não grava esses tipos; seria regra nova (decisão [W])
 - ❌ Histórico de caixas fechados — vai pra `/cash-register/close-register/{id}` legacy ou `/financeiro/caixa` (ADR 0183 PR D já entrega)
 - ❌ Fechamento de caixa propriamente dito — CTA "Fechar caixa" navega legacy
 - ❌ Impressão Z própria — por ora "Imprimir Z" reaproveita `/cash-register/register-details` legacy (Onda 6+2 substitui) · _reconciliado 2026-09-23 (decisão [W])_

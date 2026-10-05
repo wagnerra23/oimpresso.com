@@ -843,7 +843,81 @@ class SellController extends Controller
                 'view' => true, // Já passou o gate acima
                 'close' => auth()->user()->can('close_cash_register'),
             ],
+            // Thread 07 venda-menu: movimentos do turno aberto. É por turno, não por data
+            // (fica fora do `only:` do onChangeDate). Defer: agrega cash_register_transactions.
+            'turno' => \Inertia\Inertia::defer(fn () => $this->buildCaixaTurnoPayload($business_id, $openCashRegister(), $payMethodLabels)),
         ]);
+    }
+
+    /**
+     * Movimentos + totais do turno aberto (thread 07 venda-menu · UC-SCAIXA-10..12).
+     *
+     * REGRA MESTRE valor: NENHUMA conta nova aqui. Os totais vêm de
+     * CashRegisterUtil::getRegisterDetails($id) — o MESMO método que alimenta o Blade
+     * `cash_register/payment_details` (CashRegisterController@getRegisterDetails/getCloseRegister).
+     * A lista é a leitura crua de cash_register_transactions do registro, escopada por business_id.
+     */
+    private function buildCaixaTurnoPayload(int $business_id, ?\App\CashRegister $reg, array $payMethodLabels): ?array
+    {
+        if ($reg === null || (int) $reg->business_id !== $business_id) {
+            return null;
+        }
+
+        $util = app(\App\Utils\CashRegisterUtil::class);
+        $d = $util->getRegisterDetails($reg->id);
+        $labels = $util->payment_types(null, true, $business_id);
+        $m2 = fn ($v) => round((float) $v, 2);
+        $rotulo = fn ($m) => $payMethodLabels[$m]['label'] ?? ($labels[$m] ?? (string) $m);
+
+        $porForma = [];
+        foreach (['cash', 'card', 'cheque', 'bank_transfer', 'other', 'advance', 'custom_pay_1', 'custom_pay_2',
+            'custom_pay_3', 'custom_pay_4', 'custom_pay_5', 'custom_pay_6', 'custom_pay_7'] as $m) {
+            $linha = [
+                'key' => $m,
+                'label' => $rotulo($m),
+                'vendas' => $m2($d->{"total_{$m}"} ?? 0),
+                'despesas' => $m2($d->{"total_{$m}_expense"} ?? 0),
+                'devolucoes' => $m2($d->{"total_{$m}_refund"} ?? 0),
+            ];
+            if ($linha['vendas'] != 0 || $linha['despesas'] != 0 || $linha['devolucoes'] != 0) {
+                $porForma[] = $linha;
+            }
+        }
+
+        $tipos = ['initial' => 'Abertura', 'sell' => 'Venda', 'expense' => 'Despesa', 'refund' => 'Devolução'];
+        $movimentos = \DB::table('cash_register_transactions as crt')
+            ->join('cash_registers as cr', 'cr.id', '=', 'crt.cash_register_id')
+            ->leftJoin('transactions as t', function ($j) use ($business_id) {
+                $j->on('t.id', '=', 'crt.transaction_id')->where('t.business_id', $business_id);
+            })
+            ->where('cr.business_id', $business_id)
+            ->where('cr.id', $reg->id)
+            ->orderBy('crt.id', 'desc')
+            ->limit(200)
+            ->get(['crt.id', 'crt.created_at', 'crt.transaction_type', 'crt.pay_method', 'crt.type', 'crt.amount', 'crt.transaction_id', 't.invoice_no'])
+            ->map(fn ($r) => [
+                'id' => (int) $r->id,
+                'hora' => $r->created_at ? \Carbon::parse($r->created_at)->format('H:i') : '',
+                'tipo' => (string) $r->transaction_type,
+                'tipoLabel' => $tipos[$r->transaction_type] ?? (string) $r->transaction_type,
+                'formaLabel' => $rotulo($r->pay_method),
+                'sentido' => (string) $r->type, // credit = entra · debit = sai
+                'valor' => $m2($r->amount),
+                'vendaId' => $r->invoice_no !== null ? (int) $r->transaction_id : null,
+                'invoiceNo' => $r->invoice_no,
+            ])->values()->all();
+
+        return [
+            'id' => (int) $reg->id,
+            'abertoEm' => $d->open_time ? \Carbon::parse($d->open_time)->format('d/m H:i') : '',
+            'local' => $d->location_name,
+            'trocoInicial' => $m2($d->cash_in_hand),
+            'totalVendas' => $m2($d->total_sale),
+            'totalDespesas' => $m2($d->total_expense),
+            'totalDevolucoes' => $m2($d->total_refund),
+            'porForma' => $porForma,
+            'movimentos' => $movimentos,
+        ];
     }
 
     // buildCoworkAggregates() extraído para App\Services\Sells\SellsCockpitAggregator
