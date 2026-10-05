@@ -14,7 +14,7 @@ module: Connector
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Connector/**` + `resources/js/Pages/Connector/**` + `resources/js/Pages/Api/**` (namespaces Inertia `Connector`, `Api`, declarados em `module-surface.mjs::PAGES_NS` porque diferem do nome do módulo `Connector` — confira com `--namespaces`), separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 124 arquivos em 17 papéis.
+**Total mapeado:** 126 arquivos em 17 papéis.
 
 ## Controllers — 30
 
@@ -112,9 +112,10 @@ module: Connector
 
 - [Index.tsx](../../../Modules/Connector/Resources/js/Pages/Api/Index.tsx)
 
-## Componentes / apoio de tela — 1
+## Componentes / apoio de tela — 2
 
 - [ConnectorAbas.tsx](../../../Modules/Connector/Resources/js/Pages/Api/_components/ConnectorAbas.tsx)
+- [QuemUsa.tsx](../../../Modules/Connector/Resources/js/Pages/Api/_components/QuemUsa.tsx)
 
 ## Charters (lei da tela) — 1
 
@@ -129,7 +130,7 @@ module: Connector
 - 13 em [Modules/Connector/Tests/Feature/](../../../Modules/Connector/Tests/Feature)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
-## Demais arquivos (manifestos, docs, assets e misc) — 48
+## Demais arquivos (manifestos, docs, assets e misc) — 49
 
 - [.gitkeep](../../../Modules/Connector/Config/.gitkeep)
 - [.gitkeep](../../../Modules/Connector/Console/.gitkeep)
@@ -145,6 +146,7 @@ module: Connector
 - [.gitkeep](../../../Modules/Connector/Resources/assets/.gitkeep)
 - [app.js](../../../Modules/Connector/Resources/assets/js/app.js)
 - [app.scss](../../../Modules/Connector/Resources/assets/sass/app.scss)
+- [quemUsaTexto.ts](../../../Modules/Connector/Resources/js/Pages/Api/_components/quemUsaTexto.ts)
 - [.gitkeep](../../../Modules/Connector/Resources/lang/.gitkeep)
 - [lang.php](../../../Modules/Connector/Resources/lang/ar/lang.php)
 - [lang.php](../../../Modules/Connector/Resources/lang/ce/lang.php)

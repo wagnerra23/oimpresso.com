@@ -31,7 +31,8 @@ import KpiCard from '@/Components/shared/KpiCard';
 import KpiGrid from '@/Components/shared/KpiGrid';
 import PageHeaderTabs from '@/Components/shared/PageHeaderTabs';
 import { DocsAba, ModuloAba, SaudeAba, type Endpoint, type Modulo } from './_components/ConnectorAbas';
-import { QuemUsaDrawer, nomesQuePerdem, type TokenUso } from './_components/QuemUsa';
+import { QuemUsaDrawer } from './_components/QuemUsa';
+import { nomesQuePerdem, type TokenUso } from './_components/quemUsaTexto';
 
 interface Client {
   id: number; name: string; user_name: string; created_at: string | null; active_tokens_24h: number;
