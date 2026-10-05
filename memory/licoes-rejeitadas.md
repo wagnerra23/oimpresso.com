@@ -3113,3 +3113,12 @@ Ocorrência da **LC-24**.
 
 Ocorrência da **LC-08**.
 
+
+### 2026-10-05 — EMENDA das lápides 2026-09-05 (dono-é-sessão-viva) e 2026-09-30 (2ª): a sessão dona tinha o número da thread no título, e eu armei o auto-merge no mesmo comando que abriu o PR
+
+- **O que aconteceu.** Fechada a Connector 09, o [W] pediu a próxima thread do Connector. Conferi `gh pr list` (a 07 e a 08 tinham PR; a 06 não), tirei o screenshot que a 06 exigia, o [W] aprovou e eu executei a 06. Abri o [#8699](https://github.com/wagnerra23/oimpresso.com/pull/8699) às 16:52:37Z com `gh pr create` e `gh pr merge --auto --squash` na MESMA chamada. O aviso do `whats-active-troca-de-alvo` disparou nesse comando: o [#8696](https://github.com/wagnerra23/oimpresso.com/pull/8696), aberto às 16:38:59Z por outra sessão, já continha os 27 arquivos do meu. Desliguei o auto-merge e fechei o #8699 às 16:53:14Z. Nada chegou ao `main`. O `ListAgents` que rodei logo depois mostrava a sessão "Executar thread Connector 06 (apagar legado Blade)", com início "3h ago".
+- **Por que caiu.** É a regra das lápides de 09-05: rodar a checagem de sessões antes de começar, porque `gh pr list` só diz que ninguém publicou ainda. Eu rodei só o `gh pr list`, anterior ao #8696.
+- **O limite (variante também proibida):** **(a)** em playbook com uma sessão por thread, antes de pegar a thread procurar em `ListAgents` uma sessão com o número dela no título; `gh pr list` vazio só diz que ninguém publicou ainda. **(b)** `gh pr merge --auto` não vai no mesmo comando do `gh pr create`: o aviso de colisão sai nesse comando, e encadeado o auto-merge já está armado quando eu o leio. O incremento sobre as lápides de 09-05 é só de forma: qual sonda, e a ordem dos dois comandos.
+- **Defesa.** Nenhuma nova. O aviso disparou e funcionou; faltou rodar `ListAgents` antes e ler o aviso antes de armar o merge.
+
+Ocorrência da **LC-19**.

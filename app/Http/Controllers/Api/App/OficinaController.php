@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Api\App;
 
 use App\Contracts\Oficina\AcoesOs;
+use App\Domain\Oficina\PlacaVeiculo;
 use App\Domain\Oficina\TiposVeiculo;
 use App\Http\Controllers\Controller;
 use App\User;
@@ -562,25 +563,13 @@ class OficinaController extends Controller
     /** "rba-2h78 " → "RBA2H78" (mesma regra do VehicleLookupService::normalizePlate da web). */
     private static function placa(string $bruta): string
     {
-        return strtoupper((string) preg_replace('/[^A-Za-z0-9]/', '', $bruta));
+        return PlacaVeiculo::normalizar($bruta);
     }
 
-    /**
-     * Id do veículo ATIVO (não excluído) do business que já usa a placa, como principal ou de reboque.
-     * Compara normalizado dos dois lados: o legado gravou placa com hífen, espaço e minúscula.
-     */
+    /** Veículo ativo do business com a placa (regra única em App\Domain\Oficina\PlacaVeiculo, a mesma da web). */
     private function veiculoAtivoComPlaca(int $bizId, string $placa): ?int
     {
-        $norm = "UPPER(REPLACE(REPLACE(REPLACE(COALESCE(%s, ''), '-', ''), ' ', ''), '.', ''))";
-        $id = DB::table('vehicles')
-            ->where('business_id', $bizId)
-            ->whereNull('deleted_at')
-            ->where(fn ($w) => $w->whereRaw(sprintf($norm, 'plate') . ' = ?', [$placa])
-                ->orWhereRaw(sprintf($norm, 'secondary_plate') . ' = ?', [$placa]))
-            ->orderBy('id')
-            ->value('id');
-
-        return $id !== null ? (int) $id : null;
+        return PlacaVeiculo::veiculoAtivoCom($bizId, $placa);
     }
 
     /** Veículos ativos do business com o dono (só contato do mesmo business). */
