@@ -57,15 +57,22 @@ class PackagesController extends Controller
      *
      * @see memory/requisitos/Superadmin/RUNBOOK-pacotes.md
      */
-    public function index(): InertiaResponse
+    public function index(Request $request): InertiaResponse
     {
         if (! auth()->user()->can('superadmin')) {
             abort(403, 'Unauthorized action.');
         }
 
-        return OtelHelper::spanBiz('superadmin.pacotes.index', function () {
+        // Thread Superadmin 02-04 (03): o formulário de pacote é drawer da grade, ESTADO da tela —
+        // `?pacote=novo` cria, `?pacote=<id>` edita. As opções só são montadas com o drawer aberto.
+        $alvo = $request->input('pacote');
+        $editando = $alvo === 'novo' ? 'novo' : ((int) $alvo > 0 ? (int) $alvo : null);
+
+        return OtelHelper::spanBiz('superadmin.pacotes.index', function () use ($editando) {
             return Inertia::render('superadmin/Pacotes/Index', [
                 'pacotes' => Inertia::defer(fn () => $this->pacotesPayload()),
+                'editando' => $editando,
+                'formPacote' => Inertia::defer(fn () => $editando !== null ? $this->formPacotePayload($editando) : null),
             ]);
         }, ['component' => 'superadmin.pacotes.index']);
     }
@@ -145,9 +152,80 @@ class PackagesController extends Controller
     }
 
     /**
-     * Show the form for creating a new resource.
+     * Dados do drawer de pacote: os valores do pacote (edição) e o catálogo de módulos liberáveis.
+     * É o que as Blades `packages.create`/`packages.edit` montavam: o catálogo vem do
+     * `getModuleData('superadmin_package')` — sem argumento ao criar, com `true` ao editar,
+     * exatamente como cada Blade fazia.
      *
-     * @return Response
+     * O preço vai como NÚMERO; a tela formata e devolve com ponto e 2 casas, e o servidor lê pelo
+     * `num_uf` nos dois caminhos (decisão [W] 2026-10-05, RUNBOOK-pacotes §5.1).
+     *
+     * @param  'novo'|int  $editando
+     * @return array<string, mixed>|null  null quando o id não existe
+     */
+    private function formPacotePayload($editando): ?array
+    {
+        $pacote = null;
+        if ($editando !== 'novo') {
+            $p = Package::find($editando);
+            if ($p === null) {
+                return null;
+            }
+            $pacote = [
+                'id' => (int) $p->id,
+                'name' => (string) $p->name,
+                'description' => (string) ($p->description ?? ''),
+                'price' => (float) $p->price,
+                'interval' => (string) $p->interval,
+                'interval_count' => (int) $p->interval_count,
+                'trial_days' => (int) $p->trial_days,
+                'location_count' => (int) $p->location_count,
+                'user_count' => (int) $p->user_count,
+                'product_count' => (int) $p->product_count,
+                'invoice_count' => (int) $p->invoice_count,
+                'sort_order' => (int) $p->sort_order,
+                'is_active' => (bool) $p->is_active,
+                'is_private' => (bool) $p->is_private,
+                'is_one_time' => (bool) $p->is_one_time,
+                'enable_custom_link' => (bool) $p->enable_custom_link,
+                'custom_link' => (string) ($p->custom_link ?? ''),
+                'custom_link_text' => (string) ($p->custom_link_text ?? ''),
+                'custom_permissions' => (array) ($p->custom_permissions ?? []),
+                'assinantes' => (int) DB::table('subscriptions')->where('package_id', $p->id)->whereNull('deleted_at')->count(),
+            ];
+        }
+
+        $catalogo = $editando === 'novo'
+            ? $this->moduleUtil->getModuleData('superadmin_package')
+            : $this->moduleUtil->getModuleData('superadmin_package', true);
+
+        $modulos = [];
+        foreach ($catalogo as $modulo => $itens) {
+            foreach ((array) $itens as $item) {
+                if (empty($item['name'])) {
+                    continue;
+                }
+                $modulos[] = [
+                    'modulo' => (string) $modulo,
+                    'nome' => (string) $item['name'],
+                    'rotulo' => (string) ($item['label'] ?? $item['name']),
+                    'padrao' => ! empty($item['default']),
+                    // Sem `field_type` a Blade desenhava checkbox; com ele, campo de texto.
+                    'tipo' => isset($item['field_type']) ? 'texto' : 'liga',
+                ];
+            }
+        }
+
+        return [
+            'pacote' => $pacote,
+            'modulos' => $modulos,
+        ];
+    }
+
+    /**
+     * Criar é o drawer da grade (`?pacote=novo`) — thread Superadmin 03.
+     *
+     * @return \Illuminate\Http\RedirectResponse
      */
     public function create()
     {
@@ -155,12 +233,7 @@ class PackagesController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
-        $intervals = ['days' => __('lang_v1.days'), 'months' => __('lang_v1.months'), 'years' => __('lang_v1.years')];
-        $currency = System::getCurrency();
-        $permissions = $this->moduleUtil->getModuleData('superadmin_package');
-
-        return view('superadmin::packages.create')
-            ->with(compact('intervals', 'currency', 'permissions'));
+        return redirect()->action([self::class, 'index'], ['pacote' => 'novo']);
     }
 
     /**
@@ -224,19 +297,17 @@ class PackagesController extends Controller
     /**
      * Show the form for editing the specified resource.
      *
-     * @return Response
+     * @return \Illuminate\Http\RedirectResponse
      */
     public function edit($id)
     {
-        $packages = Package::where('id', $id)
-                            ->first();
+        // A Blade não checava permissão aqui; o drawer exige `superadmin` como o resto da tela.
+        if (! auth()->user()->can('superadmin')) {
+            abort(403, 'Unauthorized action.');
+        }
 
-        $intervals = ['days' => __('lang_v1.days'), 'months' => __('lang_v1.months'), 'years' => __('lang_v1.years')];
-
-        $permissions = $this->moduleUtil->getModuleData('superadmin_package', true);
-
-        return view('superadmin::packages.edit')
-               ->with(compact('packages', 'intervals', 'permissions'));
+        // Editar é o drawer da grade (`?pacote=<id>`) — thread Superadmin 03.
+        return redirect()->action([self::class, 'index'], ['pacote' => (int) $id]);
     }
 
     /**
@@ -281,6 +352,12 @@ class PackagesController extends Controller
 
         try {
             $packages_details = $request->only(['name', 'id', 'description', 'location_count', 'user_count', 'product_count', 'invoice_count', 'interval', 'interval_count', 'trial_days', 'price', 'sort_order', 'is_active', 'custom_permissions', 'is_private', 'is_one_time', 'enable_custom_link', 'custom_link', 'custom_link_text']);
+
+            // Decisão [W] 2026-10-05 (RUNBOOK-pacotes §5.1): o preço passa pelo MESMO parser do
+            // store(). Antes o update gravava o texto cru, e "49,90" virava 49 ou erro.
+            if (array_key_exists('price', $packages_details)) {
+                $packages_details['price'] = $this->businessUtil->num_uf($packages_details['price'], System::getCurrency());
+            }
 
             $packages_details['is_active'] = empty($packages_details['is_active']) ? 0 : 1;
             $packages_details['custom_permissions'] = empty($packages_details['custom_permissions']) ? null : $packages_details['custom_permissions'];
