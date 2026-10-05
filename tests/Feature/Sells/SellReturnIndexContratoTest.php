@@ -1,5 +1,7 @@
 <?php
 
+// @covers-us US-SELL-066
+
 declare(strict_types=1);
 
 use App\User;

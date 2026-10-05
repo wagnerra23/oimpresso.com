@@ -192,23 +192,25 @@ function Index({ repairs, filters, meta, permissions }: Props) {
     <div className="space-y-6 p-6">
       {/* Header canon (@/Components/PageHeader, ADR 0189/0190): título 22px = --fs-7. O shared
           (deprecated) fixava text-2xl = 24px — thread 02 do playbook Repair, 2026-10-02. */}
-      <PageHeader
-        leading={<Icon name="wrench" size={18} className="mr-2 inline-block align-[-2px] text-primary" />}
-        title="Ordens de Serviço"
-        subtitle="Listagem MWART (Sprint 2). Port 1:1 da tela Blade — mesmos filtros, mesmos dados."
-        actions={
-          permissions.create ? (
-            <Button asChild>
-              <a href="/sells/create?sub_type=repair">
-                <Plus className="mr-2 h-4 w-4" /> Nova OS
-              </a>
-            </Button>
-          ) : null
-        }
-      />
+      <div data-contract="repair-header">
+        <PageHeader
+          leading={<Icon name="wrench" size={18} className="mr-2 inline-block align-[-2px] text-primary" />}
+          title="Ordens de Serviço"
+          subtitle="Listagem MWART (Sprint 2). Port 1:1 da tela Blade — mesmos filtros, mesmos dados."
+          actions={
+            permissions.create ? (
+              <Button asChild>
+                <a href="/sells/create?sub_type=repair">
+                  <Plus className="mr-2 h-4 w-4" /> Nova OS
+                </a>
+              </Button>
+            ) : null
+          }
+        />
+      </div>
 
       {/* KPI strip */}
-      <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+      <div data-contract="repair-kpis" className="grid grid-cols-1 gap-3 md:grid-cols-3">
         <KpiCard
           label="Em andamento"
           value={meta.totals.em_andamento}
@@ -236,7 +238,7 @@ function Index({ repairs, filters, meta, permissions }: Props) {
 
       {/* Filtros */}
       <div className="rounded-lg border bg-card p-4 space-y-3">
-        <div className="flex flex-wrap items-center gap-2">
+        <div data-contract="repair-filtros" className="flex flex-wrap items-center gap-2">
           <div className="relative flex-1 min-w-[280px]">
             <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
@@ -305,7 +307,7 @@ function Index({ repairs, filters, meta, permissions }: Props) {
 
         {/* Status chips */}
         {statusOptions.length > 0 && (
-          <div className="flex flex-wrap gap-1.5">
+          <div data-contract="repair-status" className="flex flex-wrap gap-1.5">
             {statusOptions.map((s) => {
               const active = activeStatusIds.has(s.id);
               return (
@@ -328,7 +330,7 @@ function Index({ repairs, filters, meta, permissions }: Props) {
       </div>
 
       {/* Tabela */}
-      <div className="rounded-md border overflow-x-auto">
+      <div data-contract="repair-lista" className="rounded-md border overflow-x-auto">
         {repairs.data.length === 0 ? (
           <EmptyState
             icon="wrench"
@@ -405,7 +407,7 @@ function Index({ repairs, filters, meta, permissions }: Props) {
 
       {/* Paginação */}
       {repairs.meta.total > 0 && (
-        <div className="flex items-center justify-between text-sm text-muted-foreground">
+        <div data-contract="repair-rodape" className="flex items-center justify-between text-sm text-muted-foreground">
           <div>
             Mostrando {repairs.meta.from ?? 0}–{repairs.meta.to ?? 0} de {repairs.meta.total}
           </div>
