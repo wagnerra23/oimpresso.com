@@ -73,6 +73,28 @@ class RecipeBomService
     }
 
     /**
+     * A receita de origem do "Copiar da receita" (modal `recipe/create` → `addIngredients`),
+     * só se ela pertencer ao business. Fora dele, `null`: a página abre vazia, como se nada
+     * tivesse sido escolhido.
+     *
+     * Tier 0 ({@see ADR 0093}): o `copy_recipe_id` chega pela query string. Antes, o
+     * controller fazia `MfgRecipe::with(...)->find($id)` sem tenant — trocando o número no
+     * endereço, a página mostrava os ingredientes e o custo de compra de receita de OUTRA
+     * empresa. A lista do modal já vinha filtrada (`forDropdown($business_id)`); a busca, não.
+     *
+     * @param  int  $recipeId  mfg_recipes.id vindo do request
+     * @param  int  $businessId  Tier 0 — o business da sessão, nunca o da receita
+     * @param  array<int|string, mixed>  $with  eager-load do chamador
+     */
+    public function receitaParaCopiar(int $recipeId, int $businessId, array $with = []): ?MfgRecipe
+    {
+        return MfgRecipe::query()
+            ->forBusinessViaProductChain($businessId)
+            ->with($with)
+            ->find($recipeId);
+    }
+
+    /**
      * Calcula custo total dinâmico de uma recipe — soma dos ingredientes × quantidade × multiplier
      * de sub-unidade + production cost (per_unit / percentage / fixed).
      *
