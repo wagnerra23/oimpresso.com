@@ -72,7 +72,7 @@ Nenhuma.
       "dono": "CL",
       "vaga": 1,
       "prs": 1,
-      "arquivo": "01-casos.md",
+      "arquivo": "02-casos.md",
       "prefixo": [
         "${PAGES}/ConsultaOs/",
         "tests/"
@@ -93,7 +93,7 @@ Nenhuma.
       "dono": "CL",
       "vaga": 1,
       "prs": 1,
-      "arquivo": "01-casos.md",
+      "arquivo": "03-casos.md",
       "prefixo": [
         "${PAGES}/Nfse/",
         "tests/"
@@ -118,10 +118,10 @@ Nenhuma.
     },
     {
       "id": "A1",
-      "titulo": "ALVO lote: 9 telas (Auditoria ×2, ConsultaOs, Nfse ×3, PaymentGateways ×2, Vestuario/Etiquetas)",
+      "titulo": "ALVO lote: 5 telas medíveis (Auditoria, ConsultaOs, PaymentGateways, Vestuario) — 4 sem rota no protótipo, ver _saida-A1",
       "dono": "CL",
       "vaga": 2,
-      "arquivo": "02-alvos.md",
+      "arquivo": "A1-alvos.md",
       "prefixo": [
         "${ALVOS}/auditoria--*",
         "${ALVOS}/consultaos--*",
@@ -150,7 +150,8 @@ Nenhuma.
       ],
       "nota": "as outras 7 provas entram no recibo com o nome final de cada slug"
     }
-  ]
+  ],
+  "revisado": "2026-10-01 — recibos e _DECISOES do main c12552f40e2a aplicados"
 }
 ```
 

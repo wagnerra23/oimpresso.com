@@ -56,8 +56,24 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/atendimento/playbook/
     "CONTRATOS": "governance/design/contracts"
   },
   "decisoes": [
-    {"id": "D1", "pergunta": "Render órfão Atendimento/Inbox/Index: redirecionar ou existe Page?", "respondida": false, "destrava": ["01"]},
-    {"id": "D2", "pergunta": "Telas de administração entram no protótipo agora?", "respondida": false, "destrava": []}
+    {
+      "id": "D1",
+      "pergunta": "Render órfão Atendimento/Inbox/Index: redirecionar ou existe Page?",
+      "respondida": true,
+      "destrava": [
+        "01"
+      ],
+      "resposta": "redirecionar pra Caixa Unificada preservando query",
+      "fonte": "_DECISOES-W-2026-10-01.md"
+    },
+    {
+      "id": "D2",
+      "pergunta": "Telas de administração entram no protótipo agora?",
+      "respondida": true,
+      "destrava": [],
+      "resposta": "sim, entram no protótipo",
+      "fonte": "_DECISOES-W-2026-10-01.md"
+    }
   ],
   "threads": [
     {
@@ -65,9 +81,13 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/atendimento/playbook/
       "titulo": "PUXAR Caixa Unificada viva → inbox-page.jsx",
       "dono": "CC",
       "vaga": 1,
-      "arquivo": "01-puxar-vivo.md",
-      "prefixo": ["prototipo-ui/cowork/Wagner/inbox-*"],
-      "nao_toca": ["${MPAGES}/"],
+      "arquivo": "00-puxar-vivo.md",
+      "prefixo": [
+        "prototipo-ui/cowork/Wagner/inbox-*"
+      ],
+      "nao_toca": [
+        "${MPAGES}/"
+      ],
       "provas": [],
       "nota_provas": "read-only no main + build aqui: prova = _saida-00.md com o diff nos dois sentidos"
     },
@@ -77,11 +97,24 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/atendimento/playbook/
       "dono": "CL",
       "vaga": 1,
       "prs": 1,
-      "arquivo": "02-inbox-orfao.md",
-      "depende_decisoes": ["D1"],
-      "prefixo": ["${MOD}/Http/Controllers/Admin/InboxController.php", "${MOD}/Routes/"],
-      "nao_toca": ["${MPAGES}/Atendimento/CaixaUnificada/"],
-      "provas": [{"tipo": "nao_contem", "path": "${MOD}/Http/Controllers/Admin/InboxController.php", "padrao": "Inertia::render('Atendimento/Inbox/Index'"}],
+      "arquivo": "01-inbox-orfao.md",
+      "depende_decisoes": [
+        "D1"
+      ],
+      "prefixo": [
+        "${MOD}/Http/Controllers/Admin/InboxController.php",
+        "${MOD}/Routes/"
+      ],
+      "nao_toca": [
+        "${MPAGES}/Atendimento/CaixaUnificada/"
+      ],
+      "provas": [
+        {
+          "tipo": "nao_contem",
+          "path": "${MOD}/Http/Controllers/Admin/InboxController.php",
+          "padrao": "Inertia::render('Atendimento/Inbox/Index'"
+        }
+      ],
       "nota": "se D1 = existe Page, a prova troca para {tipo: arquivo} no caminho achado"
     },
     {
@@ -90,12 +123,24 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/atendimento/playbook/
       "dono": "CL",
       "vaga": 1,
       "prs": 1,
-      "arquivo": "03-casos.md",
-      "prefixo": ["${MPAGES}/Atendimento/Channels/", "tests/"],
-      "nao_toca": ["${MPAGES}/Atendimento/Channels/Index.tsx", "${MPAGES}/Atendimento/Channels/Show.tsx"],
+      "arquivo": "02-casos.md",
+      "prefixo": [
+        "${MPAGES}/Atendimento/Channels/",
+        "tests/"
+      ],
+      "nao_toca": [
+        "${MPAGES}/Atendimento/Channels/Index.tsx",
+        "${MPAGES}/Atendimento/Channels/Show.tsx"
+      ],
       "provas": [
-        {"tipo": "arquivo", "path": "${MPAGES}/Atendimento/Channels/Index.casos.md"},
-        {"tipo": "arquivo", "path": "${MPAGES}/Atendimento/Channels/Show.casos.md"}
+        {
+          "tipo": "arquivo",
+          "path": "${MPAGES}/Atendimento/Channels/Index.casos.md"
+        },
+        {
+          "tipo": "arquivo",
+          "path": "${MPAGES}/Atendimento/Channels/Show.casos.md"
+        }
       ]
     },
     {
@@ -105,12 +150,27 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/atendimento/playbook/
       "vaga": 1,
       "prs": 1,
       "arquivo": "03-casos.md",
-      "prefixo": ["${MPAGES}/Atendimento/Macros/", "${MPAGES}/Atendimento/JanaTemplates.casos.md", "tests/"],
-      "nao_toca": ["${MPAGES}/Atendimento/Macros/Index.tsx"],
+      "prefixo": [
+        "${MPAGES}/Atendimento/Macros/",
+        "${MPAGES}/Atendimento/JanaTemplates.casos.md",
+        "tests/"
+      ],
+      "nao_toca": [
+        "${MPAGES}/Atendimento/Macros/Index.tsx"
+      ],
       "provas": [
-        {"tipo": "arquivo", "path": "${MPAGES}/Atendimento/Macros/Index.casos.md"},
-        {"tipo": "arquivo", "path": "${MPAGES}/Atendimento/Macros/Variants.casos.md"},
-        {"tipo": "arquivo", "path": "${MPAGES}/Atendimento/JanaTemplates.casos.md"}
+        {
+          "tipo": "arquivo",
+          "path": "${MPAGES}/Atendimento/Macros/Index.casos.md"
+        },
+        {
+          "tipo": "arquivo",
+          "path": "${MPAGES}/Atendimento/Macros/Variants.casos.md"
+        },
+        {
+          "tipo": "arquivo",
+          "path": "${MPAGES}/Atendimento/JanaTemplates.casos.md"
+        }
       ]
     },
     {
@@ -119,14 +179,33 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/atendimento/playbook/
       "dono": "CL",
       "vaga": 1,
       "prs": 1,
-      "arquivo": "03-casos.md",
-      "prefixo": ["${MPAGES}/Atendimento/Csat/", "${MPAGES}/Atendimento/Metricas/", "${PAGES}/Whatsapp/", "tests/"],
-      "nao_toca": ["${PAGES}/Whatsapp/_components/"],
+      "arquivo": "04-casos.md",
+      "prefixo": [
+        "${MPAGES}/Atendimento/Csat/",
+        "${MPAGES}/Atendimento/Metricas/",
+        "${PAGES}/Whatsapp/",
+        "tests/"
+      ],
+      "nao_toca": [
+        "${PAGES}/Whatsapp/_components/"
+      ],
       "provas": [
-        {"tipo": "arquivo", "path": "${MPAGES}/Atendimento/Csat/Index.casos.md"},
-        {"tipo": "arquivo", "path": "${MPAGES}/Atendimento/Metricas/Index.casos.md"},
-        {"tipo": "arquivo", "path": "${PAGES}/Whatsapp/Settings.casos.md"},
-        {"tipo": "arquivo", "path": "${PAGES}/Whatsapp/Templates/Index.casos.md"}
+        {
+          "tipo": "arquivo",
+          "path": "${MPAGES}/Atendimento/Csat/Index.casos.md"
+        },
+        {
+          "tipo": "arquivo",
+          "path": "${MPAGES}/Atendimento/Metricas/Index.casos.md"
+        },
+        {
+          "tipo": "arquivo",
+          "path": "${PAGES}/Whatsapp/Settings.casos.md"
+        },
+        {
+          "tipo": "arquivo",
+          "path": "${PAGES}/Whatsapp/Templates/Index.casos.md"
+        }
       ]
     },
     {
@@ -134,11 +213,25 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/atendimento/playbook/
       "titulo": "ALVO atendimento--caixa-unificada--index",
       "dono": "CL",
       "vaga": 2,
-      "arquivo": "04-alvo-contrato.md",
-      "depende_threads": ["00"],
-      "prefixo": ["${ALVOS}/atendimento--caixa-unificada--index.*"],
-      "nao_toca": ["${MPAGES}/"],
-      "provas": [{"tipo": "json_com_chaves", "path": "${ALVOS}/atendimento--caixa-unificada--index.alvo.json", "chaves": ["secoes"]}]
+      "arquivo": "A1-alvo-contrato.md",
+      "depende_threads": [
+        "00"
+      ],
+      "prefixo": [
+        "${ALVOS}/atendimento--caixa-unificada--index.*"
+      ],
+      "nao_toca": [
+        "${MPAGES}/"
+      ],
+      "provas": [
+        {
+          "tipo": "json_com_chaves",
+          "path": "${ALVOS}/atendimento--caixa-unificada--index.alvo.json",
+          "chaves": [
+            "secoes"
+          ]
+        }
+      ]
     },
     {
       "id": "05",
@@ -146,13 +239,25 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/atendimento/playbook/
       "dono": "CL",
       "vaga": 3,
       "prs": 1,
-      "arquivo": "04-alvo-contrato.md",
-      "depende_threads": ["A1"],
-      "prefixo": ["${CONTRATOS}/atendimento-caixa-unificada.contract.json"],
-      "nao_toca": ["${MPAGES}/"],
-      "provas": [{"tipo": "arquivo", "path": "${CONTRATOS}/atendimento-caixa-unificada.contract.json"}]
+      "arquivo": "05-alvo-contrato.md",
+      "depende_threads": [
+        "A1"
+      ],
+      "prefixo": [
+        "${CONTRATOS}/atendimento-caixa-unificada.contract.json"
+      ],
+      "nao_toca": [
+        "${MPAGES}/"
+      ],
+      "provas": [
+        {
+          "tipo": "arquivo",
+          "path": "${CONTRATOS}/atendimento-caixa-unificada.contract.json"
+        }
+      ]
     }
-  ]
+  ],
+  "revisado": "2026-10-01 — recibos e _DECISOES do main c12552f40e2a aplicados"
 }
 ```
 

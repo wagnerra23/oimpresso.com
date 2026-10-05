@@ -4,6 +4,8 @@ titulo: Alvos de Produto
 dono: "[CL]"
 base: 4fa39eb8f007
 ---
+> Ficha da thread **A2** (o mesmo texto serve A1, cada uma com o seu arquivo).
+
 # A1 · A2 · ALVO
 
 Hoje @4fa39eb8f007 não há nenhum `produto--*` em `governance/design/targets/`. Sem alvo, `pedido.mjs` sai exit 2 (NÃO MEDI).

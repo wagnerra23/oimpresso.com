@@ -6,7 +6,7 @@
  "ancora": "prototipo-ui/cowork/Wagner/compras-page.jsx",
  "prototipo_sha": "f325c42fab4bbd585fa7dbbe1df9834213895084",
  "shell": ".",
- "gerado_em": "2026-10-02T18:04:31.691Z",
+ "gerado_em": "2026-10-05T11:49:25.204Z",
  "celulas": {
   "1280|light": {
    "tema": "light",
@@ -17065,5 +17065,5 @@
    ]
   }
  },
- "render_sha256": "9046d5ef69e4fc4924d8327e3bcfebf63e97db47c4eb0591250e4232c2ad7bb9"
+ "render_sha256": "3d6db528cd4c5c7471fd4d5e9e51b68baedb1eea5b18db780bd87dd214c542fd"
 }
