@@ -25,9 +25,19 @@ import { Badge } from '@/Components/ui/badge';
 import { Input } from '@/Components/ui/input';
 import { Button } from '@/Components/ui/button';
 import { Skeleton } from '@/Components/ui/skeleton';
-import PageHeader from '@/Components/shared/PageHeader';
+import { PageHeader } from '@/Components/PageHeader';
 import EmptyState from '@/Components/shared/EmptyState';
 import { Select, plural, tomDaAssinatura } from '../_components/assinatura';
+import {
+  Linha,
+  Secao,
+  SecaoCadastro,
+  SecaoLocais,
+  SecaoUsuarios,
+  type Cadastro,
+  type Local,
+  type Usuarios,
+} from './_components/SecoesDoDetalhe';
 
 interface Filtros {
   q: string;
@@ -67,6 +77,11 @@ interface HistoricoItem {
   pacote: string | null;
   inicio: string | null;
   fim: string | null;
+  fim_teste: string | null;
+  pago_via: string | null;
+  transacao: string | null;
+  lancada_em: string | null;
+  lancada_por: string | null;
   situacao: string;
 }
 
@@ -90,6 +105,9 @@ interface Detalhe {
   ultima_venda: string | null;
   uso: UsoItem[];
   historico: HistoricoItem[];
+  cadastro: Cadastro;
+  locais: Local[];
+  usuarios: Usuarios;
 }
 
 interface Props {
@@ -179,7 +197,8 @@ function NegociosIndex({ filtros, aberto, pacotes, negocios, detalhe }: Props) {
   useEffect(() => {
     if (!aberto) return;
     const h = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') fechar();
+      // O diálogo "Definir senha" fecha primeiro: o Radix marca o esc como tratado.
+      if (e.key === 'Escape' && !e.defaultPrevented) fechar();
     };
     document.addEventListener('keydown', h);
     return () => document.removeEventListener('keydown', h);
@@ -214,7 +233,7 @@ function NegociosIndex({ filtros, aberto, pacotes, negocios, detalhe }: Props) {
 
   return (
     <div className="pb-8">
-      <PageHeader title="Negócios" moduleNav description="Todos os clientes da plataforma" />
+      <PageHeader title="Negócios" subtitle="Todos os clientes da plataforma" />
 
       <div className="flex flex-wrap items-center gap-2 px-6 pt-4" data-contract="superadmin.negocios.busca-filtros">
         <Input
@@ -417,24 +436,6 @@ function DrawerEsqueleto({ onFechar }: { onFechar: () => void }) {
   );
 }
 
-function Linha({ rotulo, valor }: { rotulo: string; valor: ReactNode }) {
-  return (
-    <div className="flex items-center justify-between gap-4">
-      <span className="text-xs text-muted-foreground">{rotulo}</span>
-      <span className="text-right text-xs font-medium">{valor ?? '—'}</span>
-    </div>
-  );
-}
-
-function Secao({ titulo, children }: { titulo: string; children: ReactNode }) {
-  return (
-    <section className="border-b px-5 py-4">
-      <h3 className="mb-2.5 text-[10.5px] font-semibold uppercase tracking-wider text-muted-foreground">{titulo}</h3>
-      {children}
-    </section>
-  );
-}
-
 function Uso({ item }: { item: UsoItem }) {
   const semPacote = item.teto === null;
   const ilimitado = item.teto === 0;
@@ -535,7 +536,19 @@ function Drawer({ detalhe, onFechar }: { detalhe?: Detalhe | null; onFechar: () 
                     <span className="text-xs font-medium">{h.pacote ?? 'sem pacote'}</span>
                     <span className="text-[11px] text-muted-foreground">
                       {h.inicio ?? '—'} a {h.fim ?? '—'}
+                      {h.fim_teste ? ` · teste até ${h.fim_teste}` : ''}
                     </span>
+                    {(h.pago_via || h.transacao) && (
+                      <span className="text-[11px] text-muted-foreground">
+                        {[h.pago_via && `pago via ${h.pago_via}`, h.transacao && `transação ${h.transacao}`].filter(Boolean).join(' · ')}
+                      </span>
+                    )}
+                    {h.lancada_em && (
+                      <span className="text-[11px] text-muted-foreground">
+                        lançada em {h.lancada_em}
+                        {h.lancada_por ? ` por ${h.lancada_por}` : ''}
+                      </span>
+                    )}
                   </div>
                   <Badge variant={tomDaAssinatura(h.situacao)}>{h.situacao}</Badge>
                 </li>
@@ -543,6 +556,10 @@ function Drawer({ detalhe, onFechar }: { detalhe?: Detalhe | null; onFechar: () 
             </ul>
           )}
         </Secao>
+
+        <SecaoCadastro cadastro={d.cadastro} />
+        <SecaoLocais locais={d.locais} />
+        <SecaoUsuarios usuarios={d.usuarios} />
       </div>
     </Casca>
   );
