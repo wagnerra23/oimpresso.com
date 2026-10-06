@@ -59,6 +59,12 @@ Thread `feito` = `_saida-NN.md` **e** provas verdes lendo o `main`. Nada é "igu
 2. **D2** Importação grande vai para fila? (hoje `max_execution_time=0` no request)
 3. **D3** Reverter lote apaga vendas — mantém hard delete ou passa a cancelar?
 
+## 6-bis · Correção [CC] 2026-10-06 (main 1ab4ab51b13a)
+O json citava `C0` (dependência da Q2) sem a thread existir — o placar saía NÃO MEDI no módulo inteiro. Entraram **C0–C6** da ficha `02-cutover-e-fechamento.md`. Lido no turno: C0 já está no `main` (`tests/Feature/Sells/VendasMwartCutoverTest.php`, `app/Support/Mwart.php`, 6 chaves `vendas_*` em `config/mwart.php:182-215`) e **não tem `_saida-C0.md`** → deve sair `sem recibo`. C1–C5 são ligar env e observar em produção: sem prova estrutural possível, fecham pelo recibo — que tem de citar a evidência (GET comum devolvendo a Page, data, biz). Provas novas: Q1 `Quotations.casos.md` (ausente hoje) · Q2 chave `vendas_cotacoes` (ausente hoje) · Q3 `QuotationConvertTest.php`.
+
+## 6-ter · D-ORC-1 decidida [CC] 2026-10-06 (main a8e0624504d0)
+**Converter entra agora.** O "esperar o FSM `quote_accepted`" do charter não se sustenta lido no `main`: (1) `SellPosController.php:3063` já tem `convertToInvoice($id)`; (2) o Blade de cotações **já oferece** "Converter em fatura" na linha (`SellController.php:3500`) — a Page React é que não tem; (3) há FSM de venda viva, `SaleFsmActionController.php:163` mapeia `draft + quotation → quote_sent`. Esperar uma FSM nova travaria a Q3 sem data. **Consequência:** Q2 (ligar Quotations no cutover) passa a depender da Q3 — ligar a Page sem o botão tiraria da Larissa uma função que ela tem hoje no Blade (regra do cutover: React não pode fazer menos que o Blade). O charter sai do Non-Goal "Converter" na própria Q3.
+
 ## 7 · Fonte da máquina
 ```json
 {
@@ -107,12 +113,14 @@ Thread `feito` = `_saida-NN.md` **e** provas verdes lendo o `main`. Nada é "igu
     {
       "id": "D-ORC-1",
       "pergunta": "Converter cotacao em venda agora ou espera FSM quote_accepted?",
-      "respondida": false
+      "respondida": true,
+      "resposta": "entra agora, reusando SellPosController@convertToInvoice (já existe e o Blade de cotações já oferece \"Converter em fatura\" — SellController.php:3500); registrar a transição no SaleFsmActionController se ele já cobrir quote_sent, sem esperar FSM nova — delegada ao [CC] por [W] 2026-10-06"
     },
     {
       "id": "D-ORC-2",
       "pergunta": "Prototipo: fica orcamentos ou venda-cotacoes?",
-      "respondida": false
+      "respondida": true,
+      "resposta": "venda-cotacoes (label \"Orçamentos\", renderiza OrcListPage); orcamentos vira 301 — delegada ao [CC] por [W] 2026-10-06"
     }
   ],
   "threads": [
@@ -350,6 +358,107 @@ Thread `feito` = `_saida-NN.md` **e** provas verdes lendo o `main`. Nada é "igu
       "nota_provas": "_saida-07 com o pendente 'Onda 6+1' que Sells/Caixa/Index.tsx declara em tela, antes e depois"
     },
     {
+      "id": "C0",
+      "titulo": "Cutover: chaves mwart.vendas_* + helper + teste por tela",
+      "dono": "CL",
+      "arquivo": "02-cutover-e-fechamento.md",
+      "prefixo": [
+        "config/mwart.php",
+        "app/Support/Mwart.php",
+        "tests/Feature/Sells/VendasMwartCutoverTest.php"
+      ],
+      "provas": [
+        {
+          "tipo": "arquivo",
+          "path": "tests/Feature/Sells/VendasMwartCutoverTest.php"
+        },
+        {
+          "tipo": "arquivo",
+          "path": "app/Support/Mwart.php"
+        },
+        {
+          "tipo": "contem",
+          "path": "config/mwart.php",
+          "padrao": "'vendas_discount_index'"
+        }
+      ]
+    },
+    {
+      "id": "C1",
+      "titulo": "Liga biz=1: Descontos, Importação, Pedido de venda",
+      "dono": "CL",
+      "arquivo": "02-cutover-e-fechamento.md",
+      "prefixo": [
+        ".env de produção (fora do repo)"
+      ],
+      "depende_threads": [
+        "C0"
+      ],
+      "provas": []
+    },
+    {
+      "id": "C2",
+      "titulo": "Liga biz=1: Lista de POS, Remessas, Devoluções",
+      "dono": "CL",
+      "arquivo": "02-cutover-e-fechamento.md",
+      "prefixo": [
+        ".env de produção (fora do repo)"
+      ],
+      "depende_threads": [
+        "C1"
+      ],
+      "provas": []
+    },
+    {
+      "id": "C3",
+      "titulo": "Observação 7 dias no biz=1",
+      "dono": "W",
+      "arquivo": "02-cutover-e-fechamento.md",
+      "prefixo": [],
+      "depende_threads": [
+        "C2"
+      ],
+      "provas": []
+    },
+    {
+      "id": "C4",
+      "titulo": "Aviso à ROTA LIVRE e liga para todas as empresas",
+      "dono": "W",
+      "arquivo": "02-cutover-e-fechamento.md",
+      "prefixo": [
+        ".env de produção (fora do repo)"
+      ],
+      "depende_threads": [
+        "C3"
+      ],
+      "provas": []
+    },
+    {
+      "id": "C5",
+      "titulo": "Segunda observação 7 dias, todas as empresas",
+      "dono": "W",
+      "arquivo": "02-cutover-e-fechamento.md",
+      "prefixo": [],
+      "depende_threads": [
+        "C4"
+      ],
+      "provas": []
+    },
+    {
+      "id": "C6",
+      "titulo": "Apaga Blade + fallback dos 6 controllers (1 PR por tela)",
+      "dono": "CL",
+      "arquivo": "02-cutover-e-fechamento.md",
+      "prefixo": [
+        "resources/views/",
+        "app/Http/Controllers/"
+      ],
+      "depende_threads": [
+        "C5"
+      ],
+      "provas": []
+    },
+    {
       "id": "Q1",
       "titulo": "Quotations: trio completo (casos.md)",
       "dono": "CL",
@@ -358,7 +467,12 @@ Thread `feito` = `_saida-NN.md` **e** provas verdes lendo o `main`. Nada é "igu
         "resources/js/Pages/Sells/Quotations.casos.md",
         "resources/js/Pages/Sells/Quotations.charter.md"
       ],
-      "provas": []
+      "provas": [
+        {
+          "tipo": "arquivo",
+          "path": "resources/js/Pages/Sells/Quotations.casos.md"
+        }
+      ]
     },
     {
       "id": "Q2",
@@ -369,9 +483,16 @@ Thread `feito` = `_saida-NN.md` **e** provas verdes lendo o `main`. Nada é "igu
         "config/mwart.php"
       ],
       "depende_threads": [
-        "C0"
+        "C0",
+        "Q3"
       ],
-      "provas": []
+      "provas": [
+        {
+          "tipo": "contem",
+          "path": "config/mwart.php",
+          "padrao": "'vendas_cotacoes'"
+        }
+      ]
     },
     {
       "id": "Q3",
@@ -379,12 +500,23 @@ Thread `feito` = `_saida-NN.md` **e** provas verdes lendo o `main`. Nada é "igu
       "dono": "CL",
       "arquivo": "03-orcamentos.md",
       "prefixo": [
-        "app/Http/Controllers/"
+        "app/Http/Controllers/SellController.php",
+        "app/Http/Controllers/SellPosController.php",
+        "resources/js/Pages/Sells/Quotations.tsx",
+        "tests/Feature/Sells/QuotationConvertTest.php"
       ],
       "depende_decisoes": [
         "D-ORC-1"
       ],
-      "provas": []
+      "provas": [
+        {
+          "tipo": "arquivo",
+          "path": "tests/Feature/Sells/QuotationConvertTest.php"
+        }
+      ],
+      "nao_toca": [
+        "config/mwart.php"
+      ]
     },
     {
       "id": "Q-CC",
@@ -397,7 +529,18 @@ Thread `feito` = `_saida-NN.md` **e** provas verdes lendo o `main`. Nada é "igu
       "depende_decisoes": [
         "D-ORC-2"
       ],
-      "provas": []
+      "provas": [
+        {
+          "tipo": "nao_contem",
+          "path": "prototipo-ui/cowork/Wagner/app.jsx",
+          "padrao": "route === \"orcamentos\""
+        },
+        {
+          "tipo": "nao_contem",
+          "path": "prototipo-ui/cowork/Wagner/data.jsx",
+          "padrao": "id: \"orcamentos\""
+        }
+      ]
     }
   ]
 }
