@@ -1,0 +1,184 @@
+{
+  "aguardou_sumir": null,
+  "ausentes": [],
+  "base": {
+    "assinatura": "OI WR Suporte · empresas Empresas-cliente que você pode atender — a empresa operadora não aparece. Log de acessos Somente leitura Esta lista existe pra você escolher quem atender — nada é editado aqui. A autorização e a auditoria ficam no middleware , e a operadora ( ) é bloqueada por desenho. Empresa Plano Cliente desde ID ROTA LIVRE Comunicação Visual 6 usuários · 312 contatos Gold 03/2024 #4 Entrar (suporte) Martinho Oficina Mecânica 4 usuários · 187 contatos Gold 11/2025 #164 Entrar (suporte) Gráfica Vértice ME 3 usuários · 94 contatos Prata 08/2024 #12 Entrar (suporte) WR Comunicação Visual 5 usuários · 221 contatos Gold 01/2025 #27 Entrar (suporte) Ateliê Bordado & Cia 2 usuários · 58 contatos Bronze 05/2025 #38 Entrar (suporte) Placas Norte Sinalização 3 usuários · 76 contatos Prata 09/2025 #71 Entrar (suporte)",
+    "roles": {
+      "celulas": null,
+      "chart": null,
+      "contratos": [
+        {
+          "classes": {
+            "dataBr": 0,
+            "dataIso": 0,
+            "snakeCru": 0
+          },
+          "exemplos": {},
+          "nome": "cabecalho"
+        },
+        {
+          "classes": {
+            "dataBr": 0,
+            "dataIso": 0,
+            "snakeCru": 0
+          },
+          "exemplos": {},
+          "nome": "aviso-escopo"
+        },
+        {
+          "classes": {
+            "dataBr": 0,
+            "dataIso": 0,
+            "snakeCru": 0
+          },
+          "exemplos": {},
+          "nome": "lista"
+        }
+      ],
+      "filterRows": null,
+      "kpi": {
+        "count": 0,
+        "items": [],
+        "overflowX": null,
+        "tag": null
+      },
+      "primary": null,
+      "shell": null,
+      "tabela": null,
+      "title": null
+    },
+    "saude": {
+      "folhasVazias": [],
+      "nFolhas": 72,
+      "tokensMortos": []
+    },
+    "theme": "dark",
+    "url": "http://127.0.0.1:5581/"
+  },
+  "nos_totais": 570,
+  "quieto_ms": 2000,
+  "rota": "suporte",
+  "secoes": {
+    "header": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "os-page",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "block",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "padding": "8px 0px 0px"
+      },
+      "filhos": 1,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "os-page"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "header"
+      ],
+      "rect": {
+        "h": 88,
+        "w": 1176
+      },
+      "seletor": ".main-body > div > :nth-child(1)",
+      "truncado": false
+    },
+    "lista": {
+      "contraste": {
+        "fundo": "oklch(0.3 0.008 240)",
+        "fundo_de": "proprio",
+        "razao": 11.42,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.027108,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.3 0.008 240)",
+        "borderRadius": "12px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "block",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "padding": "8px"
+      },
+      "filhos": 1,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.3 0.008 240)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "div"
+      ],
+      "rect": {
+        "h": 365,
+        "w": 1176
+      },
+      "seletor": ".main-body > div > .sup-lista",
+      "truncado": false
+    },
+    "nota": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "os-page",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "block",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "padding": "0px"
+      },
+      "filhos": 1,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "os-page"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "acs-alert"
+      ],
+      "rect": {
+        "h": 69,
+        "w": 1176
+      },
+      "seletor": ".main-body > div > .sup-nota",
+      "truncado": false
+    }
+  },
+  "tela": "soltas--suporte-empresas--index",
+  "url": "http://127.0.0.1:5581/"
+}

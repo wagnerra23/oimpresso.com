@@ -16,6 +16,8 @@ charter_version: 1
 
 # Page Charter — /hrm/settings (DRAFT)
 
+> **Casos:** [`Index.casos.md`](Index.casos.md) — UC + aceite + teste que defende cada um.
+
 > **Status:** draft criado em 2026-07-11 no lote de cobertura de charters. Wagner aprova **Non-Goals + Anti-hooks** ANTES de virar `status: live`.
 >
 > Backend: `Modules/Essentials/Http/Controllers/EssentialsSettingsController@edit` + `@update` (rotas `GET/POST /hrm/settings`). Formulário admin de configurações do módulo Essentials, persistidas em `businesses.essentials_settings` (JSON).

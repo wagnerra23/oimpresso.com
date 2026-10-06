@@ -133,3 +133,19 @@ Não há tabela de leituras de km. O histórico vem do `GET /api/app/veiculos/{i
   do item é a da entrada (`entered_at`; sem ela, a de criação).
 - a raiz ganha `"km_cadastro": int | null` (km do cadastro do veículo) e `"cadastrado_em": "AAAA-MM-DD" | null`.
 - Vale o mesmo limite de OS do histórico (as 200 mais recentes).
+
+## Lembrete de revisão por km (decisão [W] 2026-10-06)
+
+Parte interna da US-AUTO-014: **só a oficina** é avisada, dentro do app, pelo **km real anotado** (o maior
+km conhecido: cadastro ou entrada de OS). Sem WhatsApp ao cliente, sem estimativa por média.
+
+- Coluna nova `vehicles.next_service_km` (inteiro ≥ 0, nula), preenchida à mão. No app: `proxima_revisao_km`.
+- `POST` e `PUT /api/app/veiculos` aceitam `"proxima_revisao_km": int | null` (≥ 0; pode estar abaixo do km
+  atual — revisão atrasada). No `PUT`, **chave ausente mantém** o valor atual (o app que já estava em
+  produção não conhece o campo); chave presente com `null` apaga; inteiro grava.
+- `GET /api/app/veiculos/{id}` e cada item da lista devolvem `proxima_revisao_km`. O app calcula
+  `faltam = proxima_revisao_km − km`, com o `km` que a lista já manda (o maior conhecido).
+- `GET /api/app/veiculos?revisao=1` → só os veículos com a próxima revisão marcada e o km real a até
+  `revisao_aviso_km` dela, ou já passado; ordem do mais atrasado ao que falta mais.
+- A lista traz sempre `"revisao_proxima": N` (contagem com o mesmo critério, independente do filtro e da
+  busca) e `"revisao_aviso_km": 1000` (decisão [W]; o app só exibe).

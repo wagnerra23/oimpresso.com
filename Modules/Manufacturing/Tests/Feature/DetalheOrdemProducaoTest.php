@@ -194,3 +194,29 @@ describe('Detalhe da ordem de produção — mesmas contas da tela antiga', func
             ->assertInertia(fn (AssertableInertia $pg) => $pg->missing('ordem_detalhe'));
     });
 });
+
+describe('UC-OP-09 — a quantidade é a que entrou no estoque, com as perdidas ao lado', function () {
+    it('UC-OP-09 lista e painel mostram a quantidade líquida e as perdidas; a soma é a bruta da tela antiga', function () {
+        $user = mfgDetUsuario();
+        // Fixture: linha do produto com 5 (o que entrou no estoque) e mfg_wasted_units = 1.
+        $ordem = mfgDetOrdem(MFG_EMP_BIZ, $user->id, 'percentage', 10);
+        $service = new ProductionService();
+
+        $linha = collect($service->enrichProductionRows(
+            $service->listProductions(MFG_EMP_BIZ, [], 500),
+            MFG_EMP_BIZ
+        ))->keyBy('id')[$ordem];
+        $d = $service->detalheOrdem(MFG_EMP_BIZ, $ordem);
+
+        // (a) à mão: 5 em estoque, 1 perdida — na lista e no painel.
+        expect($linha['quantidade'])->toEqualWithDelta(5.0, 0.0001);
+        expect($linha['perdidas'])->toEqualWithDelta(1.0, 0.0001);
+        expect($d['quantidade'])->toEqualWithDelta(5.0, 0.0001);
+        expect($d['perdidas'])->toEqualWithDelta(1.0, 0.0001);
+
+        // (b) a tela antiga mostra a bruta (5 + 1 = 6) e a desperdiçada (1): mesma ordem, mesmos números.
+        $legado = mfgDetLegado($this, $user, $ordem);
+        expect((float) $legado['quantity'])->toEqualWithDelta($d['quantidade'] + $d['perdidas'], 0.0001);
+        expect((float) $legado['quantity_wasted'])->toEqualWithDelta($d['perdidas'], 0.0001);
+    });
+});
