@@ -9,6 +9,7 @@ use App\Utils\ProductUtil;
 use App\Utils\TransactionUtil;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Inertia\Inertia;
 
 class LabelsController extends Controller
 {
@@ -32,9 +33,9 @@ class LabelsController extends Controller
     }
 
     /**
-     * Display labels
+     * Display labels (Inertia Produto/Etiquetas/Index; `?classico=1` = Blade)
      *
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Contracts\View\View|\Inertia\Response
      */
     public function show(Request $request)
     {
@@ -70,8 +71,39 @@ class LabelsController extends Controller
         $default = $barcode_settings->where('is_default', 1)->first();
         $barcode_settings = $barcode_settings->pluck('name', 'id');
 
-        return view('labels.show')
-            ->with(compact('products', 'barcode_settings', 'default', 'price_groups'));
+        // Playbook Produto · thread 04: a tela vira Produto/Etiquetas/Index. A folha impressa
+        // continua saindo de preview() (mesma rota, mesmo código). `?classico=1` mantém a Blade.
+        if ($request->boolean('classico')) {
+            return view('labels.show')
+                ->with(compact('products', 'barcode_settings', 'default', 'price_groups'));
+        }
+
+        $grupos = SellingPriceGroup::where('business_id', $business_id)->active()->orderBy('name')->get(['id', 'name']);
+
+        return Inertia::render('Produto/Etiquetas/Index', [
+            'linhas' => collect($products)->filter(fn ($p) => ! empty(data_get($p, 'variation_id')))->map(fn ($p) => $this->linhaEtiqueta((int) $business_id, (int) data_get($p, 'variation_id'), $grupos->pluck('id')) + [
+                'qtd' => max(1, (int) (data_get($p, 'quantity') ?? 1)),
+                'lote' => (string) (data_get($p, 'lot_number') ?? ''),
+                'validade' => empty(data_get($p, 'exp_date')) ? '' : (string) $this->productUtil->format_date(data_get($p, 'exp_date')),
+            ])->values(),
+            'grupos' => $grupos->map(fn ($g) => ['id' => (int) $g->id, 'nome' => (string) $g->name])->values(),
+            // Mesmo recorte do select da Blade e do preview(): do negócio ou do sistema (business_id NULL).
+            'modelos' => Barcode::where(fn ($q) => $q->where('business_id', $business_id)->orWhereNull('business_id'))
+                ->orderByDesc('is_default')->orderBy('name')->get()
+                ->map(fn ($b) => [
+                    'id' => (int) $b->id,
+                    'nome' => trim($b->name.($b->description ? ', '.$b->description : '')),
+                    'colunas' => max(1, (int) $b->stickers_in_one_row),
+                    // preview(): no contínuo, uma "folha" é uma fileira.
+                    'por_folha' => max(1, (int) ($b->is_continuous ? $b->stickers_in_one_row : $b->stickers_in_one_sheet)),
+                    'largura' => (float) $b->width,
+                    'altura' => (float) $b->height,
+                    'padrao' => (bool) $b->is_default,
+                ])->values(),
+            'negocio' => (string) $request->session()->get('business.name', ''),
+            'usa_lote' => (int) $request->session()->get('business.enable_lot_number') === 1,
+            'usa_validade' => (int) $request->session()->get('business.enable_product_expiry') === 1,
+        ]);
     }
 
     /**
