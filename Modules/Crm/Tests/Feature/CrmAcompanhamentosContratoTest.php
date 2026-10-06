@@ -476,7 +476,11 @@ it('UC-CRMACO-20 · o rodapé conta status e tipo sobre a consulta filtrada e o 
     expect(array_column($meus->json('registros'), 'assunto'))->toBe(['Cliente atendeu '.ACO_TAG]);
     expect($meus->json('registros.0.inicio'))->toBe('10/10/2026 09:00');
 
-    $dele = $this->actingAs($user)->get('/crm/follow-up-log?schedule_id='.$alheio.'&lista=1', ACO_AJAX)->assertOk();
-    expect($dele->json('success'))->toBeFalse();
+    // O acompanhamento é buscado no negócio da sessão (findOrFail) e o controller deixa o
+    // ModelNotFoundException subir: o do vizinho é 404, sem corpo com registros. Os demais erros
+    // viram {success:false,msg} (catch (Exception) — o `use Exception;` estava faltando).
+    $dele = $this->actingAs($user)->get('/crm/follow-up-log?schedule_id='.$alheio.'&lista=1', ACO_AJAX);
+    $dele->assertNotFound();
     expect($dele->json('registros'))->toBeNull();
+    expect($dele->getContent())->not->toContain('Rodape vizinho');
 });
