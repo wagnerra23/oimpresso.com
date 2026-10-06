@@ -184,8 +184,11 @@ class OficinaController extends Controller
         ];
         try {
             // Mesma transação: a OS só existe se o agendamento virou `atendido` (e vice-versa).
-            $id = DB::transaction(function () use ($user, $bizId, $dados, $agendamentoId) {
-                $id = app(AcoesOs::class)->criar($user, $bizId, $dados);
+            // Tipado pelo contrato (?int): sem o módulo, criar() devolve null e nada é marcado.
+            /** @var AcoesOs $acoes */
+            $acoes = app(AcoesOs::class);
+            $id = DB::transaction(function () use ($acoes, $user, $bizId, $dados, $agendamentoId) {
+                $id = $acoes->criar($user, $bizId, $dados);
                 if ($id !== null && $agendamentoId !== null) {
                     $marcados = DB::table('oficina_agendamentos')
                         ->where('business_id', $bizId)->where('id', $agendamentoId)->where('status', 'agendado')

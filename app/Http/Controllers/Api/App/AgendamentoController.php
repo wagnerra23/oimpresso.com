@@ -113,7 +113,7 @@ class AgendamentoController extends Controller
             $campos['contact_id'] = 'Cliente não encontrado.';
         }
         $inicio = null;
-        if (! isset($campos['inicio'])) {
+        if (! array_key_exists('inicio', $campos)) {
             $inicio = Carbon::createFromFormat('Y-m-d\TH:i', (string) $request->input('inicio'))->startOfMinute();
             // Dia passado é recusado; o próprio dia vale (encaixe de última hora).
             if ($inicio->copy()->startOfDay()->lt(now()->startOfDay())) {
