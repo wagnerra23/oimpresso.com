@@ -101,6 +101,8 @@ return [
 
             ['send' => 'engine', 'value' => 'CT-{stamp} V8 Turbo', 'recv' => 'engine'],
             ['send' => 'mileage_at_entry', 'value' => 87654, 'recv' => 'mileage_at_entry', 'match' => 'int'],
+            // Lembrete de revisão por km (decisão [W] 2026-10-06).
+            ['send' => 'next_service_km', 'value' => 97654, 'recv' => 'next_service_km', 'match' => 'int'],
             ['send' => 'fuel_type', 'value' => 'diesel', 'recv' => 'fuel_type'],
             ['send' => 'color', 'value' => 'branco', 'recv' => 'color'],
 

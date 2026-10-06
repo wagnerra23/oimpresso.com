@@ -48,6 +48,8 @@ class StoreVehicleRequest extends FormRequest
             'vehicle_type'      => ['required', 'in:' . implode(',', array_keys(VehicleController::vehicleTypes()))],
             'engine'            => ['nullable', 'string', 'max:50'],
             'mileage_at_entry'  => ['nullable', 'integer', 'min:0'],
+            // Lembrete de revisão por km (decisão [W] 2026-10-06): km da próxima revisão, manual.
+            'next_service_km'   => ['nullable', 'integer', 'min:0'],
             'fuel_type'         => ['nullable', 'string', 'max:30'],
             'color'             => ['nullable', 'string', 'max:30'],
             'notes'             => ['nullable', 'string'],
@@ -61,6 +63,7 @@ class StoreVehicleRequest extends FormRequest
             'plate.required'        => 'A placa do veículo é obrigatória.',
             'vehicle_type.required' => 'Selecione o tipo do veículo.',
             'vehicle_type.in'       => 'Tipo de veículo inválido.',
+            'next_service_km.min'   => 'O km da próxima revisão não pode ser negativo.',
             'renavam.max'           => 'RENAVAM aceita no máximo 11 caracteres (padrão DENATRAN).',
         ];
     }
