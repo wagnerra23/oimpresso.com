@@ -8,6 +8,10 @@ owner: wagner
 last_run: "2026-10-06"
 ---
 
+> ℹ️ **2026-10-06 — UC-OP-08 novo (regra de exibição):** o "N ingredientes" da lista passa a contar
+> as linhas consumidas da ordem (as do painel), não os ingredientes da receita atual. UC-OP-04 reescrito
+> para dizer isso; o teste dele não muda.
+
 > ℹ️ **2026-10-06 — UC-OP-09 novo (rótulo da quantidade):** o número não muda; a lista e o painel
 > passam a dizer que é a quantidade em estoque e mostram as perdidas ao lado.
 
@@ -85,14 +89,15 @@ last_run: "2026-10-06"
 
 ## UC-OP-04 · Ordem sem receita não some da lista — mostra 0 ingredientes
 - **Persona:** Eliana — ordem antiga cujo produto perdeu a receita continua visível.
-- **Aceite:** Dado uma ordem cuja variação produzida não tem `mfg_recipes` · Quando a lista
-  carrega · Então a linha aparece com `n_ingredientes = 0` e `produto` resolvido (ou `—`),
-  nunca sumindo do resultado.
+- **Aceite:** Dado uma ordem cuja variação produzida não tem `mfg_recipes` (e sem linhas
+  consumidas gravadas) · Quando a lista carrega · Então a linha aparece com `n_ingredientes = 0`
+  e `produto` resolvido (ou `—`), nunca sumindo do resultado. Desde o UC-OP-08 a contagem vem do
+  consumo da ordem, não da receita; o caso segue valendo para a ordem que some do join.
 - **Fonte:** §4.5 (a lista é de ORDENS, não de receitas) + sintoma catalogado no
   `RUNBOOK-producao.md §4`.
 - **Teste:** `Wave32ProducaoColunasTest.php`
-- **Regressão que defende:** trocar o `leftJoin` da contagem de ingredientes por `join`, o que
-  faria a ordem sem receita desaparecer silenciosamente da tela.
+- **Regressão que defende:** a contagem de ingredientes (ou o join do produto) filtrar a ordem
+  sem receita, fazendo-a desaparecer silenciosamente da tela.
 - **Status: 🧪**
 
 ---
@@ -144,6 +149,25 @@ last_run: "2026-10-06"
   mostrar ordem de outra empresa.
 - **Status: 🧪**
 
+---
+
+## UC-OP-08 · O "N ingredientes" da lista é o número de ingredientes consumidos pela ordem
+- **Persona:** Eliana (produção) — lê "2 ingredientes" na lista, abre a ordem e espera ver 2.
+- **Aceite:** Dado uma ordem com N linhas gravadas na venda de produção (`production_sell`) ·
+  Quando a lista carrega · Então a segunda linha da coluna Produto diz N ingredientes, o mesmo
+  número de linhas que o painel lista em "Ingredientes consumidos" — mesmo que a receita do produto
+  tenha hoje outro número de ingredientes (ou não exista). Só conta linhas da própria empresa.
+- **Fonte:** protótipo `manufacturing-producao.jsx` — a lista mostra `c.linhas.length + " ingredientes"`
+  e o drawer itera o mesmo `c.linhas` em "Ingredientes consumidos" + `ProductionController::show()`
+  (a tela antiga lista as linhas consumidas). Achado em produção 2026-10-06: ordem 2024/0002 com
+  "2 ingredientes" na lista e 1 ingrediente consumido no painel e na tela antiga.
+- **Teste:** `Modules/Manufacturing/Tests/Feature/DetalheOrdemProducaoTest.php` — a fixture não tem
+  receita (contar pela receita daria 0) e grava 2 linhas; confere à mão e contra o `detalheOrdem`.
+- **Regressão que defende:** voltar a contar os ingredientes da receita atual, que mudam depois
+  da ordem e desencontram a lista do painel.
+- **Status: 🧪**
+
+---
 
 ## UC-OP-09 · A quantidade da ordem é a que entrou no estoque, e a perda aparece ao lado
 - **Persona:** Eliana (produção) — produziu 2, perdeu 1; quer ver que só 1 entrou no estoque, sem

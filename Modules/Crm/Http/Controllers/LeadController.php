@@ -124,7 +124,7 @@ class LeadController extends Controller
                                             </a>
                                         </li>
                                         <li>
-                                            <a data-href="'.action([\Modules\Crm\Http\Controllers\LeadController::class, 'edit'], ['lead' => $row->id]).'"class="cursor-pointer edit_lead">
+                                            <a href="'.action([\Modules\Crm\Http\Controllers\LeadController::class, 'edit'], ['lead' => $row->id]).'" class="cursor-pointer">
                                                 <i class="fa fa-edit"></i>
                                                 '.__('messages.edit').'
                                             </a>
@@ -276,7 +276,6 @@ class LeadController extends Controller
                             'title' => $lead->full_name_with_business,
                             'viewUrl' => $view,
                             'editUrl' => $edit,
-                            'editUrlClass' => 'edit_lead',
                             'deleteUrl' => $delete,
                             'deleteUrlClass' => 'delete_a_lead',
                             'assigned_to' => $assigned_to,
@@ -475,7 +474,7 @@ class LeadController extends Controller
      * Show the form for editing the specified resource.
      *
      * @param  int  $id
-     * @return Response
+     * @return \Inertia\Response
      */
     public function edit($id)
     {
@@ -487,23 +486,55 @@ class LeadController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
-        $query = CrmContact::with('leadUsers')
-                    ->where('business_id', $business_id);
+        // Thread Crm/09 (mesmo molde da 06): a edição é o `Cliente/Edit` parametrizado.
+        // Só abre `type = lead` (fora do tipo é 404, como fora do negócio — o mesmo filtro do show).
+        $contact = $this->leadQuery($business_id)->with('leadUsers')->findOrFail($id);
 
-        if (! $can_access_all_leads && $can_access_own_leads) {
-            $query->OnlyOwnLeads();
-        }
-        $contact = $query->findOrFail($id);
+        $lista = fn ($mapa) => collect($mapa)->map(fn ($label, $value) => ['value' => (string) $value, 'label' => (string) $label])->values();
 
-        $users = User::forDropdown($business_id, false);
-        $sources = Category::forDropdown($business_id, 'source');
-        $life_stages = Category::forDropdown($business_id, 'life_stage');
-
-        $types['lead'] = __('crm::lang.lead');
-        $update_action = action([\Modules\Crm\Http\Controllers\LeadController::class, 'update'], ['lead' => $id]);
-
-        return view('contact.edit')
-            ->with(compact('contact', 'types', 'update_action', 'sources', 'life_stages', 'users'));
+        return Inertia::render('Cliente/Edit', [
+            'contact' => [
+                'id' => (int) $contact->id,
+                'type' => 'lead',
+                'contact_type' => $contact->contact_type ?? null,
+                'name' => (string) $contact->name,
+                'prefix' => null,
+                // As partes do nome não são mais colunas de `contacts`: o nome inteiro vai no 1º campo.
+                'first_name' => (string) $contact->name,
+                'middle_name' => null,
+                'last_name' => null,
+                'supplier_business_name' => $contact->supplier_business_name ?? null,
+                'tax_number' => $contact->tax_number ?? null,
+                'mobile' => $contact->mobile ?? null,
+                'landline' => $contact->landline ?? null,
+                'email' => $contact->email ?? null,
+                'address_line_1' => $contact->address_line_1 ?? null,
+                'city' => $contact->city ?? null,
+                'state' => $contact->state ?? null,
+                'zip_code' => $contact->zip_code ?? null,
+                'shipping_address' => $contact->shipping_address ?? null,
+                'customer_group_id' => null,
+                'credit_limit' => null,
+                'crm_source' => $contact->crm_source ? (int) $contact->crm_source : null,
+                'crm_life_stage' => $contact->crm_life_stage ? (int) $contact->crm_life_stage : null,
+                'user_id' => $contact->leadUsers->pluck('id')->map(fn ($uid) => (int) $uid)->values()->all(),
+            ],
+            'types' => ['lead' => __('crm::lang.lead')],
+            'customer_groups' => [],
+            'opening_balance' => '0',
+            'destino' => [
+                'url' => action([\Modules\Crm\Http\Controllers\LeadController::class, 'update'], ['lead' => $contact->id]),
+                'voltar_href' => action([\Modules\Crm\Http\Controllers\LeadController::class, 'show'], ['lead' => $contact->id]),
+                'voltar_label' => 'Voltar para o lead',
+                'titulo' => 'Editar lead',
+                'salvar' => 'Salvar lead',
+            ],
+            'lead_opcoes' => Inertia::defer(fn () => [
+                'fontes' => $lista(Category::forDropdown($business_id, 'source')),
+                'estagios' => $lista(Category::forDropdown($business_id, 'life_stage')),
+                'usuarios' => $lista(User::forDropdown($business_id, false)),
+            ]),
+        ]);
     }
 
     /**
@@ -511,16 +542,26 @@ class LeadController extends Controller
      *
      * @param  Request  $request
      * @param  int  $id
-     * @return Response
+     * @return array<string, mixed>|\Illuminate\Http\RedirectResponse
      */
     public function update(UpdateLeadRequest $request, $id)
     {
         // Wave 15 D8 Security — authorize() (incl. crm.access_*_leads) + validate() centralizados em UpdateLeadRequest.
+        $business_id = request()->session()->get('user.business_id');
+
+        // Thread Crm/09: só `type = lead` deste negócio (e "só os meus" quando for o caso). Fora
+        // disso é 404 — antes caía no catch e respondia "algo deu errado".
+        $this->leadQuery($business_id)->findOrFail($id);
 
         try {
             $input = $request->only(['type', 'prefix', 'first_name', 'middle_name', 'last_name', 'tax_number', 'mobile', 'landline', 'alternate_number', 'city', 'state', 'country', 'landmark', 'contact_id', 'custom_field1', 'custom_field2', 'custom_field3', 'custom_field4', 'custom_field5', 'custom_field6', 'custom_field7', 'custom_field8', 'custom_field9', 'custom_field10', 'email', 'crm_source', 'crm_life_stage', 'dob', 'address_line_1', 'address_line_2', 'zip_code', 'supplier_business_name', 'shipping_custom_field_details', 'export_custom_field_1', 'export_custom_field_2', 'export_custom_field_3', 'export_custom_field_4', 'export_custom_field_5', 'export_custom_field_6']);
 
-            $input['name'] = implode(' ', [$input['prefix'], $input['first_name'], $input['middle_name'], $input['last_name']]);
+            // As partes do nome não são colunas de `contacts` (o mesmo conserto do store, thread
+            // Crm/06): montam o `name` e saem do update. Sem isso caía em "Unknown column 'prefix'".
+            $input['name'] = trim(implode(' ', array_filter([$input['prefix'] ?? null, $input['first_name'] ?? null, $input['middle_name'] ?? null, $input['last_name'] ?? null])));
+            unset($input['prefix'], $input['first_name'], $input['middle_name'], $input['last_name']);
+            // Esta rota só edita lead — o tipo não vem do formulário (converter tem a sua ação).
+            $input['type'] = 'lead';
 
             $input['is_export'] = ! empty($request->input('is_export')) ? 1 : 0;
 
@@ -532,7 +573,15 @@ class LeadController extends Controller
                 $input['dob'] = $this->commonUtil->uf_date($input['dob']);
             }
 
-            $assigned_to = $request->input('user_id');
+            // Tier 0: atribuído, fonte e estágio só valem se forem DESTE negócio (o mesmo filtro do store).
+            $assigned_to = User::where('business_id', $business_id)
+                ->whereIn('id', array_map('intval', (array) $request->input('user_id', [])))
+                ->pluck('id')->all();
+            foreach (['crm_source' => 'source', 'crm_life_stage' => 'life_stage'] as $campo => $tipo) {
+                if (! empty($input[$campo]) && ! Category::where('business_id', $business_id)->where('category_type', $tipo)->whereKey($input[$campo])->exists()) {
+                    $input[$campo] = null;
+                }
+            }
 
             // Wave Massive D4.a — delegação ao Service thin (zero regressão; mesma chamada CrmContact)
             $contact = $this->leadAssignment->updateLead((int) $id, $input, $assigned_to);
@@ -548,6 +597,17 @@ class LeadController extends Controller
             $output = ['success' => false,
                 'msg' => __('messages.something_went_wrong'),
             ];
+        }
+
+        // O formulário Inertia (thread Crm/09) espera redirect, não JSON — o mesmo desvio do store.
+        if ($request->header('X-Inertia')) {
+            if (! empty($output['success'])) {
+                return redirect()
+                    ->action([\Modules\Crm\Http\Controllers\LeadController::class, 'show'], ['lead' => $id])
+                    ->with('status', $output['msg']);
+            }
+
+            return back()->withInput()->withErrors(['msg' => $output['msg']]);
         }
 
         return $output;
@@ -571,12 +631,8 @@ class LeadController extends Controller
 
         if (request()->ajax()) {
             try {
-                $query = CrmContact::where('business_id', $business_id);
-
-                if (! $can_access_all_leads && $can_access_own_leads) {
-                    $query->OnlyOwnLeads();
-                }
-                $contact = $query->findOrFail($id);
+                // Thread Crm/09: só apaga `type = lead` (um cliente pelo id não sai por aqui).
+                $contact = $this->leadQuery($business_id)->findOrFail($id);
 
                 $contact->delete();
 
@@ -671,6 +727,21 @@ class LeadController extends Controller
      * tela nova não tem como ver mais do que a Blade via. O drawer de detalhe (`?lead=ID`)
      * sai da mesma consulta, por isso herda o mesmo escopo.
      */
+    /**
+     * Leads deste negócio que o usuário pode ver: `business_id` + `type = lead` + "só os meus"
+     * quando ele não tem `crm.access_all_leads`. Base de edit/update/destroy (thread Crm/09).
+     */
+    private function leadQuery($business_id)
+    {
+        $query = CrmContact::where('business_id', $business_id)->where('type', 'lead');
+
+        if (! auth()->user()->can('crm.access_all_leads') && auth()->user()->can('crm.access_own_leads')) {
+            $query->OnlyOwnLeads();
+        }
+
+        return $query;
+    }
+
     private function leadsInertia($business_id, $leads)
     {
         $busca = trim((string) request()->input('q', ''));

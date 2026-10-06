@@ -43,7 +43,8 @@ abre o detalhe num drawer, sem sair da lista.
 - ~~❌ Formulário de lead~~ — entregue na thread Crm/06 (2026-10-05): "Adicionar" abre
   `/crm/leads/create`, que é o `Cliente/Create` parametrizado (D2) com fonte, estágio de vida e
   atribuído a, gravando pelo `LeadController@store`. Guardas: UC-CRMLD-08..10. A edição do lead
-  (`edit()` → `contact.edit`) segue na Blade.
+  (`edit()` → `contact.edit`) seguia na Blade até a thread Crm/09 (2026-10-06): agora é o
+  `Cliente/Edit` parametrizado, gravando pelo `LeadController@update`. Guardas: UC-CRMLD-11..13.
 - ❌ Kanban, conversão para cliente e "Adicionar/Remover do local": seguem na Blade.
 
 ## Anti-hooks
