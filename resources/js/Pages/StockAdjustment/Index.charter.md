@@ -27,3 +27,16 @@ mwart_pattern_reuse:
 - R-ADJ-002: adjustment_type ∈ {normal, abnormal}
 - R-ADJ-003: total_amount_recovered ≤ final_total
 - R-ADJ-004: ownership via view_own_purchase
+
+## Casos
+[Index.casos.md](Index.casos.md) — achados abertos em §Backlog · UC-AJIDX-01/02.
+
+## Permissões
+- Abrir: `purchase.view` **ou** `purchase.create` **ou** `view_own_purchase` (403 sem nenhuma).
+- `view_own_purchase` sem `purchase.view` mostra só os ajustes criados pelo usuário; `permitted_locations` limita as filiais.
+- Excluir: `purchase.delete`. Valores só com `view_purchase_price`.
+
+## Estados
+- Lista vazia sem filtro: "Nenhum ajuste de estoque registrado" + "Registrar primeiro ajuste" (se `create`); com filtro: "Nenhum ajuste com filtros atuais".
+- A lista traz no máximo 200 ajustes, do mais recente para o mais antigo, sem paginação.
+- Só abre em React com `?v=2`; sem isso o mesmo `index()` serve a Blade.
