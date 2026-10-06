@@ -1,0 +1,10 @@
+{
+  "_": "A1 [CL] 2026-10-06 — playbook Fiscal thread 12 (D-ANCORA [W] 2026-10-06: alvo = protótipo do Cowork). Protótipo: rota `fiscal-tributacao` do espelho (fiscal-tributacao.jsx FxTributacaoPage), aba default `saude` (Saúde fiscal). As abas Operações · Exceções · Simulador só montam após clique no chip e estão nos alvos irmãos nfe-brasil--tributacao--{operacoes,excecoes,simulador}. Drawers de regra/operação não medidos (só existem após clique na linha).",
+  "_mapa": "alvo:mapa --rota fiscal-tributacao --raiz .fx-page --quieto-ms 2000 contra o espelho servido por servirEstatico, 2026-10-06: header.fx-h · nav.ds-tabbar · div.fx-chips (13 abas) · div.trb-saude (2 cards) · p.fx-nota-rodape.",
+  "header": { "seletor": ".fx-page > header.fx-h" },
+  "tabs": { "seletor": ".fx-page > nav.ds-tabbar" },
+  "abas": { "seletor": ".fx-page > .fx-chips" },
+  "saude": { "seletor": ".fx-page > .trb-saude" },
+  "pendencias": { "seletor": ".fx-page > .trb-saude > [data-contract=\"saude-fiscal\"]" },
+  "rodape": { "seletor": ".fx-page > p.fx-nota-rodape" }
+}

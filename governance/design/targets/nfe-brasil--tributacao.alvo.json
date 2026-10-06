@@ -1,0 +1,394 @@
+{
+  "aguardou_sumir": null,
+  "ausentes": [],
+  "base": {
+    "assinatura": "OI WR Tributação Regras de imposto por NCM, UF e operação · Simples Nacional · origem SP SEFAZ-SP operacional Procedência ⌘ K Simular nota Notas fiscais NF-e · NFC-e 8 NFS-e 2 Eventos 5 Manifesto DF-e 3 Certificado Tributação SPED e livros Saúde fiscal 8 Operações 7 Exceções 9 Simulador Bateria de notas Contador Vínculo com produtos 2 Por estado Serviços · NFS-e Importação Devoluções Entradas Jana · sugestões 5 Vai virar rejeição se ninguém mexer · 8 checado a cada cadastro e antes de emitir NCM padrão da empresa é 00000000 É o valor de exemplo que vem ao criar a configuração — não é NCM válido. Ele é a rede de segurança de toda nota: com ele inválido, a nota volta da SEFAZ. Escolher NCM padrão Cidade do cliente não casou com a tabela IBGE Quando o nome da cidade não bate, a nota sai com o município da sua empresa no lugar do município do cliente. 14 clientes nessa situação. Conferir pelos CEPs 2 produtos sem NCM Nota com esses itens volta da SEFAZ. 2 já têm sugestão da IA. Usar NCM padrão da empresa e marcar revisão Revisar sugestões Serviço 14.06 sem código municipal Guarulhos exige o código junto do nacional — a NFS-e voltaria com E0312. Preencher código NF-e 8425 rejeitada · cStat 110 Causa cadastral: IE do destinatário inválida no cadastro SP. A IE nova já foi consultada no SINTEGRA. Corrigir cadastro e reenviar Regra NCM 4911.99.00 sem cClassTrib 112 produtos. Não vai pro XML no Simples em 2026; necessário em 2027 ou se mudar de regime. Preencher 000001 · CST 000 2 operações sem aceite do contador Sem aceite registrado, ninguém responde pela regra se ela estiver errada. Pedir aceite Certificado A1 vence em 47 dias Sem certificado nenhuma nota sai. Lembrete automático em 30, 15 e 7 dias. Enviar novo certificado Chamados fiscais · 30 dias demonstração Rejeição por cadastro (IE, NCM, endereço) 38 % Por que saiu esse imposto? 24 % Configuração inicial 18 % Certificado 11 % Outros 9 % A contagem real por motivo vem antes de qualquer automação nova: é ela que diz onde o suporte gasta tempo. Quem define CST, CFOP e alíquota é o contador; o sistema aplica e mostra de onde veio cada número. Alíquotas desta tela são exemplo.",
+    "roles": {
+      "celulas": null,
+      "chart": null,
+      "contratos": [
+        {
+          "classes": {
+            "dataBr": 0,
+            "dataIso": 0,
+            "snakeCru": 0
+          },
+          "exemplos": {},
+          "nome": "procedencia"
+        },
+        {
+          "classes": {
+            "dataBr": 0,
+            "dataIso": 0,
+            "snakeCru": 0
+          },
+          "exemplos": {},
+          "nome": "saude-fiscal"
+        }
+      ],
+      "filterRows": null,
+      "kpi": {
+        "count": 0,
+        "items": [],
+        "overflowX": null,
+        "tag": null
+      },
+      "primary": null,
+      "shell": null,
+      "tabela": null,
+      "title": null
+    },
+    "saude": {
+      "folhasVazias": [],
+      "nFolhas": 76,
+      "tokensMortos": []
+    },
+    "theme": "dark",
+    "url": "http://127.0.0.1:5733/"
+  },
+  "nos_totais": 561,
+  "quieto_ms": 2000,
+  "rota": "fiscal-tributacao",
+  "secoes": {
+    "abas": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "body",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "flex",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "6px",
+        "padding": "0px"
+      },
+      "filhos": 13,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "fx-page"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "main-body"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "main"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "app"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "div"
+        },
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "body"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "fx-chip",
+        "fx-chip",
+        "fx-chip",
+        "fx-chip",
+        "fx-chip",
+        "fx-chip",
+        "fx-chip",
+        "fx-chip",
+        "fx-chip",
+        "fx-chip",
+        "fx-chip",
+        "fx-chip",
+        "fx-chip"
+      ],
+      "rect": {
+        "h": 62,
+        "w": 1172
+      },
+      "seletor": ".fx-page > .fx-chips",
+      "truncado": false
+    },
+    "header": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "body",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "flex",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "14px",
+        "padding": "0px 0px 2px"
+      },
+      "filhos": 2,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "fx-page"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "main-body"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "main"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "app"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "div"
+        },
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "body"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "div",
+        "fx-h-r"
+      ],
+      "rect": {
+        "h": 48,
+        "w": 1172
+      },
+      "seletor": ".fx-page > header.fx-h",
+      "truncado": false
+    },
+    "pendencias": {
+      "contraste": {
+        "fundo": "oklch(0.3 0.008 240)",
+        "fundo_de": "proprio",
+        "razao": 11.42,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.027108,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.3 0.008 240)",
+        "borderRadius": "12px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "block",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "padding": "0px"
+      },
+      "filhos": 2,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.3 0.008 240)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "fx-card-h",
+        "trb-pend"
+      ],
+      "rect": {
+        "h": 647,
+        "w": 772
+      },
+      "seletor": ".fx-page > .trb-saude > [data-contract=\"saude-fiscal\"]",
+      "truncado": false
+    },
+    "rodape": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "body",
+        "razao": 5.19,
+        "texto": "oklch(0.67 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.300843
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.67 0.005 90)",
+        "display": "block",
+        "fontSize": "11.5px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "padding": "0px"
+      },
+      "filhos": 0,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "fx-page"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "main-body"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "main"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "app"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "div"
+        },
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "body"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [],
+      "rect": {
+        "h": 33,
+        "w": 538
+      },
+      "seletor": ".fx-page > p.fx-nota-rodape",
+      "truncado": false
+    },
+    "saude": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "body",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "grid",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "14px",
+        "padding": "0px"
+      },
+      "filhos": 2,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "fx-page"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "main-body"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "main"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "app"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "div"
+        },
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "body"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "fx-card",
+        "fx-card"
+      ],
+      "rect": {
+        "h": 647,
+        "w": 1172
+      },
+      "seletor": ".fx-page > .trb-saude",
+      "truncado": false
+    },
+    "tabs": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "proprio",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.26 0.006 240)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "flex",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "0px",
+        "padding": "0px"
+      },
+      "filhos": 8,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "button",
+        "button",
+        "button",
+        "button",
+        "button",
+        "button",
+        "button",
+        "button"
+      ],
+      "rect": {
+        "h": 36,
+        "w": 1172
+      },
+      "seletor": ".fx-page > nav.ds-tabbar",
+      "truncado": false
+    }
+  },
+  "tela": "nfe-brasil--tributacao",
+  "url": "http://127.0.0.1:5733/"
+}

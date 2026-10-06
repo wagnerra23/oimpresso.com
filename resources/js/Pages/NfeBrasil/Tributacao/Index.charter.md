@@ -1,7 +1,8 @@
 ---
 page: /nfe-brasil/tributacao
 component: resources/js/Pages/NfeBrasil/Tributacao/Index.tsx
-related_prototype: n/a (hub de configuração — cards de config + tabela de regras NCM não-paginada; não casa a assinatura de um dos 5 Padrões de Tela; segue o DS)
+related_prototype: prototipo-ui/cowork/Wagner/fiscal-tributacao.jsx
+# D-ANCORA [W] 2026-10-06 (soberania · UI-0029): alvo de forma = rota `fiscal-tributacao` do protótipo do Cowork; o desenho do PR #7145 (memory/reference/prototipo-ui/sources/Wagner/nfe-tributacao.md) vira material de comparação. Decisão: prototipo-ui/cowork/Wagner/cowork-inbox/fiscal/playbook/_DECISOES-W-2026-10-06.md
 owner: wagner
 status: draft
 last_validated: "2026-07-27"
