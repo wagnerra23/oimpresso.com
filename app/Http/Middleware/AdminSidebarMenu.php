@@ -158,13 +158,30 @@ class AdminSidebarMenu
             }
 
             //Products dropdown
-            if (auth()->user()->can('product.view') || auth()->user()->can('product.create') ||
-                auth()->user()->can('brand.view') || auth()->user()->can('unit.view') ||
-                auth()->user()->can('category.view') || auth()->user()->can('brand.create') ||
-                auth()->user()->can('unit.create') || auth()->user()->can('category.create')) {
+            // Playbook Produto · thread 08: cada item fica atrás da MESMA permissão que a tela dele
+            // cobra (sem link que dá 403, sem esconder link que abre). Até aqui Etiquetas pedia
+            // `product.view` e a tela cobra `print_labels.access`; Atualizar preço pedia
+            // `product.create` e a tela cobra `product.update`; Variações pedia `product.create` e
+            // Garantias não tinha guarda — as telas cobram `variation.*` e `warranty.*` (thread 01).
+            // As 6 tabelas de apoio viraram abas de Produto/Cadastros (threads 02/03), servida em
+            // `/units`, que escolhe a aba por `?aba=` (UnitController::propsCadastros). Os itens
+            // delas apontam pra aba, não mais pras rotas Blade de cada uma.
+            $pode = fn (string ...$perms) => collect($perms)->contains(fn ($p) => auth()->user()->can($p));
+            $cadastros = [
+                // [aba, rótulo da aba em Produto/Cadastros, permissões com que a aba aparece]
+                ['variacoes', 'Variações', ['variation.view', 'variation.create']],
+                ['grupos', 'Grupos de preço', ['product.create']],
+                ['unidades', 'Unidades', ['unit.view', 'unit.create']],
+                ['categorias', 'Categorias', ['category.view', 'category.create']],
+                ['marcas', 'Marcas', ['brand.view', 'brand.create']],
+                ['garantias', 'Garantias', ['warranty.view', 'warranty.create']],
+            ];
+            $abasVisiveis = array_values(array_filter($cadastros, fn ($c) => $pode(...$c[2])));
+            if ($pode('product.view', 'product.create', 'product.update', 'product.opening_stock', 'print_labels.access')
+                || $abasVisiveis) {
                 $menu->dropdown(
                     __('sale.products'),
-                    function ($sub) {
+                    function ($sub) use ($pode, $abasVisiveis) {
                         if (auth()->user()->can('product.view')) {
                             $sub->url(
                                 action([\App\Http\Controllers\ProductController::class, 'index']),
@@ -179,7 +196,7 @@ class AdminSidebarMenu
                         // ela; so quem digitava a URL chegava). O guard espelha exatamente o do
                         // controller (ProdutoUnificadoController:139: view OU create, abort 403,
                         // UC-PUNI-06) - nao mostrar link que da 403, nem esconder link que abre.
-                        if (auth()->user()->can('product.view') || auth()->user()->can('product.create')) {
+                        if ($pode('product.view', 'product.create')) {
                             $sub->url(
                                 route('products.unificado.index'),
                                 'Consulta de Produtos',
@@ -194,73 +211,58 @@ class AdminSidebarMenu
                                 ['icon' => '', 'active' => request()->segment(1) == 'products' && request()->segment(2) == 'create']
                             );
                         }
-                        if (auth()->user()->can('product.create')) {
-                            $sub->url(
-                                action([\App\Http\Controllers\SellingPriceGroupController::class, 'updateProductPrice']),
-                                __('lang_v1.update_product_price'),
-                                ['icon' => '', 'active' => request()->segment(1) == 'update-product-price']
-                            );
-                        }
-                        if (auth()->user()->can('product.view')) {
+
+                        // As 5 telas novas de Produto, com o rótulo do protótipo (data.jsx, ghosts de
+                        // Produtos). Guarda = a primeira checagem do método que serve a tela.
+                        // LabelsController::show
+                        if (auth()->user()->can('print_labels.access')) {
                             $sub->url(
                                 action([\App\Http\Controllers\LabelsController::class, 'show']),
-                                __('barcode.print_labels'),
+                                'Imprimir etiquetas',
                                 ['icon' => '', 'active' => request()->segment(1) == 'labels' && request()->segment(2) == 'show']
                             );
                         }
+                        // SellingPriceGroupController::updateProductPrice
+                        if (auth()->user()->can('product.update')) {
+                            $sub->url(
+                                action([\App\Http\Controllers\SellingPriceGroupController::class, 'updateProductPrice']),
+                                'Atualizar preço',
+                                ['icon' => '', 'active' => request()->segment(1) == 'update-product-price']
+                            );
+                        }
+                        // ImportProductsController::index
                         if (auth()->user()->can('product.create')) {
                             $sub->url(
-                                action([\App\Http\Controllers\VariationTemplateController::class, 'index']),
-                                __('product.variations'),
-                                ['icon' => '', 'active' => request()->segment(1) == 'variation-templates']
-                            );
-                            $sub->url(
                                 action([\App\Http\Controllers\ImportProductsController::class, 'index']),
-                                __('product.import_products'),
+                                'Importar produtos',
                                 ['icon' => '', 'active' => request()->segment(1) == 'import-products']
                             );
                         }
+                        // ImportOpeningStockController::index
                         if (auth()->user()->can('product.opening_stock')) {
                             $sub->url(
                                 action([\App\Http\Controllers\ImportOpeningStockController::class, 'index']),
-                                __('lang_v1.import_opening_stock'),
+                                'Importar estoque inicial',
                                 ['icon' => '', 'active' => request()->segment(1) == 'import-opening-stock']
                             );
                         }
-                        if (auth()->user()->can('product.create')) {
-                            $sub->url(
-                                action([\App\Http\Controllers\SellingPriceGroupController::class, 'index']),
-                                __('lang_v1.selling_price_group'),
-                                ['icon' => '', 'active' => request()->segment(1) == 'selling-price-group']
-                            );
-                        }
-                        if (auth()->user()->can('unit.view') || auth()->user()->can('unit.create')) {
+                        // Produto/Cadastros sem `?aba=`: abre na 1ª aba que o usuário vê.
+                        if ($abasVisiveis) {
                             $sub->url(
                                 action([\App\Http\Controllers\UnitController::class, 'index']),
-                                __('unit.units'),
-                                ['icon' => '', 'active' => request()->segment(1) == 'units']
-                            );
-                        }
-                        if (auth()->user()->can('category.view') || auth()->user()->can('category.create')) {
-                            $sub->url(
-                                action([\App\Http\Controllers\TaxonomyController::class, 'index']) . '?type=product',
-                                __('category.categories'),
-                                ['icon' => '', 'active' => request()->segment(1) == 'taxonomies' && request()->get('type') == 'product']
-                            );
-                        }
-                        if (auth()->user()->can('brand.view') || auth()->user()->can('brand.create')) {
-                            $sub->url(
-                                action([\App\Http\Controllers\BrandController::class, 'index']),
-                                __('brand.brands'),
-                                ['icon' => '', 'active' => request()->segment(1) == 'brands']
+                                'Cadastros de apoio',
+                                ['icon' => '', 'active' => request()->segment(1) == 'units' && ! request()->filled('aba')]
                             );
                         }
 
-                        $sub->url(
-                            action([\App\Http\Controllers\WarrantyController::class, 'index']),
-                            __('lang_v1.warranties'),
-                            ['icon' => '', 'active' => request()->segment(1) == 'warranties']
-                        );
+                        // Os 6 itens antigos viram deep-link pra aba (só as abas que o usuário vê).
+                        foreach ($abasVisiveis as [$aba, $rotulo]) {
+                            $sub->url(
+                                action([\App\Http\Controllers\UnitController::class, 'index']) . '?aba=' . $aba,
+                                $rotulo,
+                                ['icon' => '', 'active' => request()->segment(1) == 'units' && request()->input('aba') == $aba]
+                            );
+                        }
                     },
                     ['icon' => '<svg aria-hidden="true" class="tw-size-5 tw-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
                     <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
