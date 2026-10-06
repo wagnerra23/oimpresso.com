@@ -52,7 +52,10 @@ export interface OrdemResumo {
   location_name: string | null;
   produto: string;
   unidade: string;
+  /** Líquida: o que entrou no estoque (o legado grava produzida − perdidas). */
   quantidade: number;
+  /** `mfg_wasted_units` — perdidas na produção, fora da quantidade acima. */
+  perdidas: number;
   criado_por: string;
   mfg_is_final: number;
 }
@@ -73,7 +76,12 @@ export default function OrdemDrawer({ ordem, detalhe, onClose }: Props) {
         ordem.transaction_date,
         ordem.location_name,
         ordem.produto,
-        `${num(ordem.quantidade, 2)}${ordem.unidade ? ` ${ordem.unidade}` : ''}`,
+        // A quantidade gravada já é líquida. Com perda, o rótulo diz isso (a tela antiga mostra
+        // a bruta, "Quantidade 2,00 · desperdiçada 1,00"; aqui: "1,00 UN em estoque · 1,00 perdida").
+        `${num(ordem.quantidade, 2)}${ordem.unidade ? ` ${ordem.unidade}` : ''}` +
+          (ordem.perdidas > 0
+            ? ` em estoque · ${num(ordem.perdidas, 2)} perdida${ordem.perdidas === 1 ? '' : 's'}`
+            : ''),
         ordem.criado_por ? `por ${ordem.criado_por}` : null,
       ]
         .filter(Boolean)
