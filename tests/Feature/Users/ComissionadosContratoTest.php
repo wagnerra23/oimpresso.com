@@ -119,6 +119,9 @@ test('UC-CMSN-04 Tier 0 — o formulário de edição não abre comissionado de 
     $outro = $this->seededSupportClientTenant();
     $alheio = cmsnAgente($outro->id);
     $meu = cmsnAgente($this->business->id);
+    // A Blade de edicao formata o percentual com @num_format, que le session('currency') —
+    // o SetSessionData do login real preenche; o teste precisa preencher (sem isto: 500).
+    session(['currency' => ['id' => 1, 'code' => 'BRL', 'symbol' => 'R$', 'thousand_separator' => '.', 'decimal_separator' => ',']]);
 
     $this->get("/sales-commission-agents/{$alheio->id}/edit")->assertNotFound();
     // Contraprova: o do próprio negócio abre (sem isto, o 404 acima podia ser a rota quebrada).
