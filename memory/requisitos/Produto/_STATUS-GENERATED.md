@@ -18,10 +18,10 @@ authority: generated
 |---|---:|
 | US no SPEC | 10 |
 | CU no SDD | 14 |
-| Telas (.tsx) | 11 |
-| Telas com `casos.md` | 15 |
-| UC declarados | 134 |
-| UC com teste que os cita | 118 |
+| Telas (.tsx) | 12 |
+| Telas com `casos.md` | 16 |
+| UC declarados | 143 |
+| UC com teste que os cita | 123 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -66,6 +66,10 @@ authority: generated
 | UC-CAD-12 | Cadastros/Index | 📝 sem_teste |
 | UC-CAD-13 | Cadastros/Index | 📝 sem_teste |
 | UC-CAD-14 | Cadastros/Index | 📝 sem_teste |
+| UC-ETQ-01 | Etiquetas/Index | 📝 sem_teste |
+| UC-ETQ-02 | Etiquetas/Index | 📝 sem_teste |
+| UC-ETQ-03 | Etiquetas/Index | 📝 sem_teste |
+| UC-ETQ-05 | Etiquetas/Index | 📝 sem_teste |
 | UC-IMP-01 | Importacao/Index | 🧪 aguarda veredito da lane |
 | UC-IMP-03 | Importacao/Index | 🧪 aguarda veredito da lane |
 | UC-PATPRC-01 | AtualizarPreco/Index | 🧪 aguarda veredito da lane |
@@ -122,6 +126,11 @@ authority: generated
 | UC-PEDIT-06 | Edit | 🧪 aguarda veredito da lane |
 | UC-PEDIT-07 | Edit | 🧪 aguarda veredito da lane |
 | UC-PEDIT-08 | Edit | 🧪 aguarda veredito da lane |
+| UC-PETQ-01 | Etiquetas/Index | 🧪 aguarda veredito da lane |
+| UC-PETQ-02 | Etiquetas/Index | 🧪 aguarda veredito da lane |
+| UC-PETQ-03 | Etiquetas/Index | 🧪 aguarda veredito da lane |
+| UC-PETQ-04 | Etiquetas/Index | 🧪 aguarda veredito da lane |
+| UC-PETQ-05 | Etiquetas/Index | 🧪 aguarda veredito da lane |
 | UC-PFIX-01 | ajuste-estoque-relatorio (blade) | 🧪 aguarda veredito da lane |
 | UC-PFIX-02 | ajuste-estoque-relatorio (blade) | 🧪 aguarda veredito da lane |
 | UC-PFIX-03 | ajuste-estoque-relatorio (blade) | 🧪 aguarda veredito da lane |
