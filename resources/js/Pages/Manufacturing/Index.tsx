@@ -25,7 +25,7 @@ import EmptyState from '@/Components/shared/EmptyState';
 import StatusBadge from '@/Components/shared/StatusBadge';
 import FabricacaoAbas from './_components/FabricacaoAbas';
 import OrdemDrawer, { type OrdemDetalhe } from './_components/OrdemDrawer';
-import { CAMPO_DATA, ROTULO, ROTULO_CHECKBOX, isDataCompleta } from './_lib/filtros';
+import { CAMPO_DATA, ROTULO_CAMPO, ROTULO_CHECKBOX, isDataCompleta } from './_lib/filtros';
 
 interface Production {
   id: number;
@@ -364,7 +364,7 @@ function Index({ productions = [], summary, business_locations = {}, filters = {
           `MfgProducaoView`): sem cartão em volta, controles alinhados pela base, gap 12px. */}
       <div className="px-5 py-3" data-contract="filtros">
         {/* Rótulos LOCAL / DE / ATÉ: o protótipo (`MfgProducaoView`) põe cada controle num
-            `<Campo label=…>` (medido em 2026-10-01: 10,5px/600, caixa alta — ver `ROTULO`).
+            `<Campo label=…>` (medido em 2026-10-01: 10,5px/600, caixa alta — ver `ROTULO_CAMPO`).
             Aqui a forma é replicada com token do DS. Sem eles a barra só
             tinha `aria-label`: quem usa leitor de tela ouvia o campo, quem enxerga não lia
             nada. Os `aria-label` saem porque o `<label>` visível já nomeia o controle — manter
@@ -374,7 +374,7 @@ function Index({ productions = [], summary, business_locations = {}, filters = {
           {hasLocations && (
             <Stack gap={1} asChild>
               <label htmlFor="mfg-op-local">
-                <span className={ROTULO}>
+                <span className={ROTULO_CAMPO}>
                   Local
                 </span>
                 {/* eslint-disable-next-line no-restricted-syntax -- select nativo: filtro simples de local, estilizado com tokens DS */}
@@ -402,7 +402,7 @@ function Index({ productions = [], summary, business_locations = {}, filters = {
           <Inline gap={2} align="end">
             <Stack gap={1} asChild>
               <label htmlFor="mfg-op-data-inicial">
-                <span className={ROTULO}>
+                <span className={ROTULO_CAMPO}>
                   De
                 </span>
                 <Input
@@ -420,7 +420,7 @@ function Index({ productions = [], summary, business_locations = {}, filters = {
             </Stack>
             <Stack gap={1} asChild>
               <label htmlFor="mfg-op-data-final">
-                <span className={ROTULO}>
+                <span className={ROTULO_CAMPO}>
                   Até
                 </span>
                 <Input

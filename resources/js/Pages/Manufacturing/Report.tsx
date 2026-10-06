@@ -24,7 +24,7 @@ import FabricacaoAbas from './_components/FabricacaoAbas';
 import { Input } from '@/Components/ui/input';
 import { Inline } from '@/Components/layout/inline';
 import { Stack } from '@/Components/layout/stack';
-import { CAMPO_DATA, ROTULO, ROTULO_CHECKBOX, intervaloAplicavel } from './_lib/filtros';
+import { CAMPO_DATA, ROTULO_CAMPO, ROTULO_CHECKBOX, intervaloAplicavel } from './_lib/filtros';
 import '../../../css/cowork-manufacturing-bundle.css';
 
 interface Props {
@@ -150,7 +150,7 @@ export default function Report({
           <Inline gap={2} align="end">
             <Stack gap={1} asChild>
               <label htmlFor="mfg-rel-data-inicial">
-                <span className={ROTULO}>De</span>
+                <span className={ROTULO_CAMPO}>De</span>
                 <Input
                   variant="shadcn"
                   id="mfg-rel-data-inicial"
@@ -163,7 +163,7 @@ export default function Report({
             </Stack>
             <Stack gap={1} asChild>
               <label htmlFor="mfg-rel-data-final">
-                <span className={ROTULO}>Até</span>
+                <span className={ROTULO_CAMPO}>Até</span>
                 <Input
                   variant="shadcn"
                   id="mfg-rel-data-final"

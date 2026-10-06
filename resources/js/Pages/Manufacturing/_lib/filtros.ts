@@ -18,7 +18,7 @@
  * (ADR 0410). O campo usa o `Input` na variante `shadcn`: a `cowork` passa pelo `.cw-input`, que é
  * CSS fora de camada e vence a altura/largura/texto das classes (medido: `h-9 w-[150px]` saía 133×30).
  */
-export const ROTULO = 'text-[10.5px] font-semibold uppercase tracking-[0.04em] text-[var(--text-dim)]';
+export const ROTULO_CAMPO = 'text-[10.5px] font-semibold uppercase tracking-[0.04em] text-[var(--text-dim)]';
 
 export const CAMPO_DATA =
   'h-[34px] w-[150px] rounded-[8px] border-[var(--border)] bg-[var(--surface)] px-2.5 text-[13.5px] md:text-[13.5px] text-foreground dark:bg-[var(--surface)]';

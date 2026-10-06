@@ -5,8 +5,15 @@ tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (
 por_que: comportamento é durável — o contrato de teste nasce junto com a tela, não depois.
 fonte: handoff "PROTÓTIPO OFICIAL - FABRICAÇÃO V1" §4.6 — os UC abaixo DERIVAM dele
 owner: wagner
-last_run: "2026-10-04"
+last_run: "2026-10-06"
 ---
+
+> ℹ️ **`last_run` 2026-10-04 → 2026-10-06 (G-6): forma E um comportamento.** Forma: datas 150×34 canto 8, rótulos
+> DE/ATÉ 10,5px semi-negrito e "Só finalizadas" 12,5px peso 500 — as mesmas peças da aba Ordens
+> (`_lib/filtros.ts`). **Comportamento:** a data passa a aplicar **ao escolher**, como em Ordens (D-MFG-DATA, [W]
+> 2026-09-25); antes aplicava ao sair do campo. A regra do intervalo é a mesma (só com as duas datas completas ou
+> as duas vazias). Esse comportamento **não tem UC com teste nesta tela** — está no `[BACKLOG]` abaixo; em Ordens ele
+> é o UC-OP-06. Nenhum UC desta tela foi reexecutado nesta data.
 
 > ℹ️ **`last_run` 2026-09-30 → 2026-10-04 (G-6): forma, não regra de negócio.** Os dados, os filtros e o que
 > cada linha abre são os mesmos; o que muda de visível: a grade virou o `shared/DataTable` na anatomia `grid` (o par React do `DataGrid` do DS): `<table>` de verdade, cabeçalho 10px caixa-alta, linhas listradas, números em fonte mono. A barra de "% do período" segue a local do bundle (o `Progress` do DS não tem par React). Nenhum UC foi reexecutado nesta data.
@@ -107,6 +114,8 @@ last_run: "2026-10-04"
 - **[BACKLOG]** Exportar CSV/Excel/PDF do relatório — o Blade legado tem, o protótipo
   normativo não pede; decisão de escopo, não esquecimento.
 - **[BACKLOG]** Filtro por local (`location_id`) — mesmo caso acima.
+- **[BACKLOG]** A data aplica ao escolher (D-MFG-DATA), com o guard do intervalo — o mesmo UC-OP-06 de
+  Ordens; falta o teste citando um UC desta tela.
 
 ## Trilha do tempo
 - 2026-09-03 · [F+C] US-MANU-002 (a mais barata da fila, decisão [M] 2026-09-02). 4 UC com
