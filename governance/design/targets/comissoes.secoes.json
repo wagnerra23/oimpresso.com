@@ -1,0 +1,11 @@
+{
+  "_": "A1 [CL] 2026-10-06 — playbook comissoes. Rota `comissoes` do espelho (app.jsx:808 → window.ComissoesPage, comissoes-page.jsx). Nenhum charter de Page declara comissoes-page.jsx como âncora hoje (a Page vem na thread 02). Tema dark (default do espelho), viewport 1280x900.",
+  "_mapa": "alvo:mapa --rota comissoes --raiz '.main-body > *', 2026-10-06: div.oi-ph · nav.ds-tabbar.oi-rota-tabs · div.usr-kpis · div.usr-toolbar · div.cmi-aviso · div.os-table-wrap · p.cms-note",
+  "header": { "seletor": ".main-body > .cms-page > .oi-ph" },
+  "abas": { "seletor": ".main-body > .cms-page > .oi-rota-tabs" },
+  "kpis": { "seletor": ".main-body > .cms-page > .usr-kpis" },
+  "filtros": { "seletor": ".main-body > .cms-page > .usr-toolbar" },
+  "aviso": { "seletor": ".main-body > .cms-page > .cmi-aviso" },
+  "tabela": { "seletor": ".main-body > .cms-page > .os-table-wrap" },
+  "nota": { "seletor": ".main-body > .cms-page > .cms-note" }
+}
