@@ -7,6 +7,8 @@ use App\Http\Controllers\Controller;
 use App\Utils\ModuleUtil;
 use App\Utils\Util;
 use DB;
+use Exception;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\View;
 use Modules\Crm\Entities\CrmCallLog;
@@ -105,6 +107,9 @@ class ScheduleLogController extends Controller
                     'log' => $logs_html,
                 ];
                 }
+            } catch (ModelNotFoundException $e) {
+                // Registro fora do negócio da sessão (ou inexistente): 404, não JSON de erro (UC-CRMACO-20).
+                throw $e;
             } catch (Exception $e) {
                 // D7 LGPD: redaciona PII em mensagens de erro antes de logar (call logs gravam telefone/contato).
             \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.app(PiiRedactor::class)->redact($e->getMessage()));
@@ -176,6 +181,9 @@ class ScheduleLogController extends Controller
                 'success' => true,
                 'msg' => __('lang_v1.success'),
             ];
+        } catch (ModelNotFoundException $e) {
+            // Registro fora do negócio da sessão (ou inexistente): 404, não JSON de erro (UC-CRMACO-20).
+            throw $e;
         } catch (Exception $e) {
             // D7 LGPD: redaciona PII em mensagens de erro antes de logar (call logs gravam telefone/contato).
             \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.app(PiiRedactor::class)->redact($e->getMessage()));
@@ -278,6 +286,9 @@ class ScheduleLogController extends Controller
                 'success' => true,
                 'msg' => __('lang_v1.success'),
             ];
+        } catch (ModelNotFoundException $e) {
+            // Registro fora do negócio da sessão (ou inexistente): 404, não JSON de erro (UC-CRMACO-20).
+            throw $e;
         } catch (Exception $e) {
             // D7 LGPD: redaciona PII em mensagens de erro antes de logar (call logs gravam telefone/contato).
             \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.app(PiiRedactor::class)->redact($e->getMessage()));
@@ -316,6 +327,9 @@ class ScheduleLogController extends Controller
                     'success' => true,
                     'msg' => __('lang_v1.success'),
                 ];
+            } catch (ModelNotFoundException $e) {
+                // Registro fora do negócio da sessão (ou inexistente): 404, não JSON de erro (UC-CRMACO-20).
+                throw $e;
             } catch (Exception $e) {
                 // D7 LGPD: redaciona PII em mensagens de erro antes de logar (call logs gravam telefone/contato).
             \Log::emergency('File:'.$e->getFile().'Line:'.$e->getLine().'Message:'.app(PiiRedactor::class)->redact($e->getMessage()));

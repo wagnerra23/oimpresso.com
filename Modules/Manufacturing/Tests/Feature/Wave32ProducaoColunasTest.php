@@ -78,15 +78,10 @@ describe('UC-OP-02 — o custo é o GRAVADO, não uma segunda fórmula (DB-less)
         expect($corpo)->toContain('$ordem->final_total');
     });
 
-    // UC-OP-04 — a contagem de ingredientes é leftJoin: ordem sem receita CONTINUA na lista.
-    it('UC-OP-04 a contagem de ingredientes usa leftJoin, nao join', function () {
-        $fonte = file_get_contents(base_path('Modules/Manufacturing/Services/ProductionService.php'));
-
-        $inicio = strpos($fonte, 'public function enrichProductionRows');
-        $corpo = substr($fonte, $inicio, strpos($fonte, 'public function summary') - $inicio);
-
-        expect($corpo)->toContain("leftJoin('mfg_recipe_ingredients as i'");
-    });
+    // (2026-10-06) Saiu daqui a checagem de TEXTO do UC-OP-04 ("a contagem usa leftJoin em
+    // mfg_recipe_ingredients"): a contagem passou a vir das linhas consumidas (UC-OP-08), e o
+    // que o UC-OP-04 defende — ordem sem receita não some — é provado pelo comportamento no
+    // bloco MySQL abaixo, não pela presença de uma string.
 });
 
 describe('UC-OP-01/03/04/05 — comportamento (schema MySQL real)', function () {
