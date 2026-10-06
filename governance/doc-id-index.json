@@ -1779,7 +1779,15 @@
     "2026-10-05-1407-app-lojas-tela11-venda-rapida": "memory/handoffs/2026-10-05-1407-app-lojas-tela11-venda-rapida.md",
     "2026-10-05-1420-app-lojas-garantia-veiculo-placa": "memory/handoffs/2026-10-05-1420-app-lojas-garantia-veiculo-placa.md",
     "2026-10-05-1516-fabricacao-grade-ordens-seguranca-receita": "memory/handoffs/2026-10-05-1516-fabricacao-grade-ordens-seguranca-receita.md",
+    "2026-10-05-1555-fabricacao-como-abrir-prototipo": "memory/handoffs/2026-10-05-1555-fabricacao-como-abrir-prototipo.md",
+    "2026-10-05-1601-superadmin-minha-assinatura-uc-sama": "memory/handoffs/2026-10-05-1601-superadmin-minha-assinatura-uc-sama.md",
+    "2026-10-05-2155-fabricacao-por-unidade-painel-ordem": "memory/handoffs/2026-10-05-2155-fabricacao-por-unidade-painel-ordem.md",
     "2026-10-05-refutacao-gt-g5-lote-8642-r1": "memory/sessions/2026-10-05-refutacao-gt-g5-lote-8642-r1.md",
+    "2026-10-06-0727-app-lojas-veiculo-editar-excluir-km": "memory/handoffs/2026-10-06-0727-app-lojas-veiculo-editar-excluir-km.md",
+    "2026-10-06-0727-handoffs-cowork-45-e-projeto-threads-paralelas": "memory/handoffs/2026-10-06-0727-handoffs-cowork-45-e-projeto-threads-paralelas.md",
+    "2026-10-06-1035-gestao-fila-merges-05-06-out": "memory/handoffs/2026-10-06-1035-gestao-fila-merges-05-06-out.md",
+    "2026-10-06-1105-gestao-fila-merges-06-out-manha": "memory/handoffs/2026-10-06-1105-gestao-fila-merges-06-out-manha.md",
+    "2026-10-06-refutacao-gt-g5-lote-8746-r1": "memory/sessions/2026-10-06-refutacao-gt-g5-lote-8746-r1.md",
     "calculo-total-fatura": "memory/requisitos/Produto/topicos/calculo-total-fatura.md",
     "componentes-compartilhados": "memory/requisitos/_Geral/topicos/componentes-compartilhados.md",
     "governance-architecture": "memory/governance/ARCHITECTURE.md",
@@ -3708,6 +3716,7 @@
     "memory/requisitos/AppMobile/API-CONTRATO-v1.md",
     "memory/requisitos/AppMobile/BRIEFING.md",
     "memory/requisitos/AppMobile/MAPA-DE-DADOS-v1.md",
+    "memory/requisitos/AppMobile/api/oficina-agenda.md",
     "memory/requisitos/AppMobile/api/tela-03-detalhe-da-os.md",
     "memory/requisitos/AppMobile/api/tela-05-estoque.md",
     "memory/requisitos/AppMobile/api/tela-06-financeiro.md",
@@ -3741,6 +3750,7 @@
     "memory/requisitos/Auditoria/UI-CATALOG.md",
     "memory/requisitos/Backup/DECISOES-ONDA-0.md",
     "memory/requisitos/Cliente/PARIDADE-area-cliente-diagnostico-e-ondas.md",
+    "memory/requisitos/Cliente/RUNBOOK-grupos.md",
     "memory/requisitos/Cliente/SUPERFICIE.md",
     "memory/requisitos/Cms/CHANGELOG.md",
     "memory/requisitos/Cms/SCOPE.md",
@@ -3979,6 +3989,7 @@
     "memory/requisitos/Produto/_telas/RUNBOOK-produto-cadastros.md",
     "memory/requisitos/Produto/_telas/RUNBOOK-produto-create.md",
     "memory/requisitos/Produto/_telas/RUNBOOK-produto-edit.md",
+    "memory/requisitos/Produto/_telas/RUNBOOK-produto-etiquetas.md",
     "memory/requisitos/Produto/_telas/RUNBOOK-produto-importacao.md",
     "memory/requisitos/Produto/_telas/RUNBOOK-produto-index.md",
     "memory/requisitos/Produto/_telas/RUNBOOK-produto-selling-prices.md",
@@ -4280,16 +4291,16 @@
   ],
   "collisions": [],
   "stats": {
-    "total": 4274,
-    "resolved": 2909,
-    "unstamped": 1365,
+    "total": 4285,
+    "resolved": 2917,
+    "unstamped": 1368,
     "collisions": 0,
     "by_source": {
-      "unstamped": 1365,
+      "unstamped": 1368,
       "derived-adr": 432,
       "stamped": 1130,
-      "derived-handoffs": 589,
-      "derived-sessions": 758
+      "derived-handoffs": 596,
+      "derived-sessions": 759
     }
   }
 }
