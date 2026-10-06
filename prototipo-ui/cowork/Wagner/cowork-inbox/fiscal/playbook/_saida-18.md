@@ -37,6 +37,6 @@ No staging do CT 100 o usuário semeado do biz 1 tem `Admin#1,Admin#2`, e o `Gat
 
 ## 4 · Fica para depois (fora do prefixo)
 
-- **O arquivo `TributacaoGatesContratoTest` continua fora da allowlist do `nfebrasil-pest.yml`.** O UC-NFIM-04 (thread 19) ainda nasce vermelho; pôr o arquivo na lane required antes dele fecha o merge de todos. Quando a 19 mergear, o arquivo inteiro pode entrar na lista; aí o 🧪 vira veredito de CI.
+- **O arquivo `TributacaoGatesContratoTest` entrou na allowlist do `nfebrasil-pest.yml` neste PR** (pedido da sessão da fila: sem lane o PR não prova o teste). O UC-NFIM-04 só fica verde com a thread 19 (#8827), então este PR mergeia **depois** dela; até lá a lane deste PR sai vermelha nesse caso. O filtro de caminhos da lane já cobria `Modules/NfeBrasil/**`.
 - **`toggleAutoEmission` e `aplicarTemplate` seguem sem gate** (SDD §5.4.1). Pertencem à `Tributacao/Index`, não a esta thread. A thread 04 mexe no mesmo controller e vem depois desta (índice §2, rev.11).
 - **Fixture do staging:** um usuário de teste sem papel admin tornaria o arquivo confiável no CT 100 sem mexer no papel do usuário 1. Toca o helper compartilhado com a thread 19, então não entrou aqui.

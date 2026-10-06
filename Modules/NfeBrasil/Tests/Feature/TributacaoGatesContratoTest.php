@@ -40,6 +40,9 @@ uses(Tests\TestCase::class);
  * A correção é decisão [W], não conserto silencioso (proibicoes.md §Precedência). Por isso este
  * arquivo NÃO foi adicionado à allowlist do `nfebrasil-pest.yml`: ela é required com
  * `enforce_admins`, e um vermelho lá bloquearia o merge de todo mundo.
+ * ↳ 2026-10-06 (playbook Fiscal thread 18): o arquivo entrou na allowlist junto com o gate do
+ *   `destroy`. O UC-NFIM-04 só fica verde com a thread 19 (#8827) — por isso esta entrada mergeia
+ *   depois dela.
  *
  * POR QUE MYSQL-ONLY · biz=1 e biz=2 (NUNCA biz=4 — ROTA LIVRE em produção, ADR 0101).
  *
