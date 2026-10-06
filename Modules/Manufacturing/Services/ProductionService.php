@@ -354,7 +354,6 @@ class ProductionService
             $ordem = Transaction::query()
                 ->where('business_id', $businessId)
                 ->where('type', 'production_purchase')
-                ->with(['purchase_lines.sub_unit', 'purchase_lines.variations.product.unit'])
                 ->find($ordemId);
             if (! $ordem) {
                 return null;
@@ -364,46 +363,68 @@ class ProductionService
                 ->where('business_id', $businessId)
                 ->where('type', 'production_sell')
                 ->where('mfg_parent_production_purchase_id', $ordem->id)
-                ->with(['sell_lines.variations.product.unit', 'sell_lines.sub_unit'])
+                ->first();
+
+            // Consulta explícita em vez de `with('purchase_lines…')`: as relações do core não
+            // declaram tipo de retorno e o Larastan não as resolve. O JOIN em `products` filtra
+            // pela empresa (defesa em profundidade, além da ordem já ser da empresa).
+            $linhaProduto = DB::table('purchase_lines as l')
+                ->join('variations as v', 'v.id', '=', 'l.variation_id')
+                ->join('products as p', 'p.id', '=', 'v.product_id')
+                ->leftJoin('units as u', 'u.id', '=', 'p.unit_id')
+                ->leftJoin('units as su', 'su.id', '=', 'l.sub_unit_id')
+                ->where('l.transaction_id', $ordem->id)
+                ->where('p.business_id', $businessId)
+                ->orderBy('l.id')
+                ->select('l.quantity', 'su.base_unit_multiplier as mult', 'su.short_name as sub_un', 'u.short_name as un')
                 ->first();
 
             // Quantidade produzida, como o legado: na unidade da linha, somando as perdidas.
-            $linhaProduto = $ordem->getRelation('purchase_lines')->first();
-            $multProduto = $linhaProduto && $linhaProduto->sub_unit ? (float) $linhaProduto->sub_unit->base_unit_multiplier : 1.0;
-            $multProduto = $multProduto > 0 ? $multProduto : 1.0;
+            $multProduto = $linhaProduto && (float) $linhaProduto->mult > 0 ? (float) $linhaProduto->mult : 1.0;
             $produzida = $linhaProduto ? (float) $linhaProduto->quantity / $multProduto : 0.0;
             $perdidas = (float) ($ordem->getAttribute('mfg_wasted_units') ?? 0);
-            $unidadeProduto = $linhaProduto
-                ? ($linhaProduto->sub_unit->short_name ?? optional(optional(optional($linhaProduto->variations)->product)->unit)->short_name ?? '')
-                : '';
+            $unidadeProduto = $linhaProduto ? (string) ($linhaProduto->sub_un ?? $linhaProduto->un ?? '') : '';
 
-            $sellLines = $venda ? $venda->getRelation('sell_lines') : collect();
-            $grupoIds = $sellLines->pluck('mfg_ingredient_group_id')->filter()->unique()->values();
-            $grupos = $grupoIds->isEmpty() ? collect() : \Modules\Manufacturing\Entities\MfgIngredientGroup::query()
-                ->where('business_id', $businessId)
-                ->whereIn('id', $grupoIds)
-                ->pluck('name', 'id');
+            $sellLines = ! $venda ? collect() : DB::table('transaction_sell_lines as l')
+                ->join('variations as v', 'v.id', '=', 'l.variation_id')
+                ->join('products as p', 'p.id', '=', 'v.product_id')
+                ->leftJoin('product_variations as pv', 'pv.id', '=', 'v.product_variation_id')
+                ->leftJoin('units as u', 'u.id', '=', 'p.unit_id')
+                ->leftJoin('units as su', 'su.id', '=', 'l.sub_unit_id')
+                ->leftJoin('mfg_ingredient_groups as g', function ($j) use ($businessId) {
+                    $j->on('g.id', '=', 'l.mfg_ingredient_group_id')->where('g.business_id', '=', $businessId);
+                })
+                ->where('l.transaction_id', $venda->id)
+                ->where('p.business_id', $businessId)
+                ->orderBy('l.id')
+                ->select(
+                    'l.quantity', 'v.dpp_inc_tax', 'v.sub_sku', 'v.name as var_name', 'pv.name as pv_name',
+                    'p.name as product_name', 'p.type as product_type', 'u.short_name as un',
+                    'su.short_name as sub_un', 'su.base_unit_multiplier as mult', 'g.name as grupo'
+                )
+                ->get();
 
             $linhas = [];
             $ingredientes = 0.0;
-            foreach ($sellLines as $sellLine) {
-                $variation = $sellLine->variations;
-                if (! $variation) {
-                    continue;
-                }
-                $mult = $sellLine->sub_unit ? (float) $sellLine->sub_unit->base_unit_multiplier : 1.0;
-                $mult = $mult > 0 ? $mult : 1.0;
-                $dpp = (float) $variation->dpp_inc_tax;
+            foreach ($sellLines as $l) {
+                $mult = (float) $l->mult > 0 ? (float) $l->mult : 1.0;
+                $dpp = (float) $l->dpp_inc_tax;
                 // Legado: subtotal = preço de hoje × quantidade gravada na unidade base.
-                $subtotal = $dpp * (float) $sellLine->quantity;
+                $subtotal = $dpp * (float) $l->quantity;
                 $ingredientes += $subtotal;
 
+                // Nome como o `Variation::full_name`, sem o "(sku)" do fim: o código vai em linha própria.
+                $nome = (string) $l->product_name;
+                if ($l->product_type === 'variable') {
+                    $nome .= ' - '.$l->pv_name.' - '.$l->var_name;
+                }
+
                 $linhas[] = [
-                    'nome' => (string) ($variation->full_name ?? optional($variation->product)->name ?? ''),
-                    'sku' => (string) ($variation->sub_sku ?? ''),
-                    'grupo' => $sellLine->mfg_ingredient_group_id ? ($grupos[$sellLine->mfg_ingredient_group_id] ?? null) : null,
-                    'quantidade' => (float) $sellLine->quantity / $mult,
-                    'unidade' => (string) ($sellLine->sub_unit->short_name ?? optional(optional($variation->product)->unit)->short_name ?? ''),
+                    'nome' => $nome,
+                    'sku' => (string) ($l->sub_sku ?? ''),
+                    'grupo' => $l->grupo,
+                    'quantidade' => (float) $l->quantity / $mult,
+                    'unidade' => (string) ($l->sub_un ?? $l->un ?? ''),
                     'custo_unitario' => $dpp * $mult,
                     'subtotal' => $subtotal,
                 ];
@@ -428,7 +449,7 @@ class ProductionService
                 'ref_no' => $ordem->ref_no,
                 'finalizada' => (int) $ordem->getAttribute('mfg_is_final') === 1,
                 'quantidade' => $produzida,
-                'unidade' => (string) $unidadeProduto,
+                'unidade' => $unidadeProduto,
                 'linhas' => $linhas,
                 'custo' => [
                     'ingredientes' => $ingredientes,
