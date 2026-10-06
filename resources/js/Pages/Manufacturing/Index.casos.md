@@ -119,6 +119,26 @@ last_run: "2026-10-05"
 
 ---
 
+## UC-OP-07 · O detalhe da ordem usa as contas da tela antiga, só da própria empresa
+- **Persona:** Eliana (produção) — abre uma ordem para ver o que foi consumido e quanto custa hoje.
+- **Aceite:** Dado uma ordem com ingredientes gravados · Quando a tela pede o detalhe
+  (`?ordem=ID`, partial reload de `ordem_detalhe`) · Então vêm os ingredientes com a quantidade
+  GRAVADA na produção e o preço de HOJE; o custo extra pela forma gravada na ordem (percentual
+  sobre os ingredientes de hoje · por unidade × produzidas + perdidas · fixo); o total de hoje,
+  o custo por unidade e o valor gravado (`final_total`). Os números batem com os do detalhe
+  antigo (`ProductionController::show()`). Ordem de outra empresa vem sem detalhe, e a carga
+  normal da lista não calcula o detalhe.
+- **Fonte:** `ProductionController::show()` (paridade, a tela antiga) + protótipo
+  `manufacturing-producao.jsx` (`MfgProducaoDrawer`, "Ingredientes (preço de hoje)") +
+  [ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md).
+- **Teste:** `Modules/Manufacturing/Tests/Feature/DetalheOrdemProducaoTest.php` — cada caso
+  confere por dois caminhos (a conta à mão e as variáveis do `show()` legado).
+- **Regressão que defende:** o painel inventar uma fórmula de custo diferente da tela antiga, ou
+  mostrar ordem de outra empresa.
+- **Status: 🧪**
+
+---
+
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
 - **[BACKLOG]** O sufixo `fix` aparece só em ordem finalizada, com o `title` verbatim (R-21) —

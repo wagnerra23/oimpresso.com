@@ -908,6 +908,7 @@ class ProductionController extends Controller
             'end_date' => request()->get('end_date'),
             'is_final' => request()->has('is_final'),
         ];
+        $ordemId = (int) request()->get('ordem');
 
         // ROLLBACK Wave L/W7 PR #963: Inertia::defer quebrava Pages (initial render undefined).
         return Inertia::render('Manufacturing/Index', [
@@ -931,6 +932,9 @@ class ProductionController extends Controller
             // mandam. Esta tela nasceu na Wave J SEM a barra de abas (era a única do módulo
             // na época) e ficou sem os dados dela; virou beco sem saída depois do cutover.
             'recipes_count' => $bomService->countRecipes($business_id),
+            // Painel lateral da ordem (`?ordem=ID`). Optional: só calcula no partial reload que
+            // o pede — a carga da lista não paga o detalhe. Ordem de outra empresa vem null.
+            'ordem_detalhe' => Inertia::optional(fn () => $ordemId > 0 ? $productionService->detalheOrdem($business_id, $ordemId) : null),
         ]);
     }
 

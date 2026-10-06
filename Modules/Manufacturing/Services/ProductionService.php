@@ -329,6 +329,143 @@ class ProductionService
     }
 
     /**
+     * Detalhe de UMA ordem de produção — o painel lateral da tela de Ordens.
+     *
+     * As contas são as do `ProductionController::show()` legado, o detalhe que a tela antiga
+     * mostra, e não uma fórmula nova (UC-OP-02 "o custo é o GRAVADO, não uma segunda fórmula"):
+     *  - quantidade de cada ingrediente = a GRAVADA na venda de produção (`production_sell`);
+     *  - preço do ingrediente = o de HOJE (`dpp_inc_tax`), como no legado e no protótipo
+     *    ("Ingredientes (preço de hoje)");
+     *  - custo extra = `mfg_production_cost` da própria ordem, pela forma gravada nela:
+     *    percentual sobre os ingredientes de hoje, por unidade × quantidade (com as perdidas,
+     *    como o legado), fixo como está;
+     *  - `custo.gravado` = `final_total`, o valor congelado quando a ordem foi lançada.
+     *
+     * Tier 0 (ADR 0093): a ordem e a venda de produção são buscadas pela empresa; o grupo de
+     * ingredientes também. Ordem de outra empresa devolve null.
+     *
+     * @return array{id:int, ref_no:?string, finalizada:bool, quantidade:float, unidade:string,
+     *   linhas: array<int, array{nome:string, sku:string, grupo:?string, quantidade:float, unidade:string, custo_unitario:float, subtotal:float}>,
+     *   custo: array{ingredientes:float, extra:float, total_hoje:float, gravado:float, por_unidade:float}}|null
+     */
+    public function detalheOrdem(int $businessId, int $ordemId): ?array
+    {
+        return OtelHelper::spanBiz('manufacturing.production.detalhe', function () use ($businessId, $ordemId) {
+            $ordem = Transaction::query()
+                ->where('business_id', $businessId)
+                ->where('type', 'production_purchase')
+                ->find($ordemId);
+            if (! $ordem) {
+                return null;
+            }
+
+            $venda = Transaction::query()
+                ->where('business_id', $businessId)
+                ->where('type', 'production_sell')
+                ->where('mfg_parent_production_purchase_id', $ordem->id)
+                ->first();
+
+            // Consulta explícita em vez de `with('purchase_lines…')`: as relações do core não
+            // declaram tipo de retorno e o Larastan não as resolve. O JOIN em `products` filtra
+            // pela empresa (defesa em profundidade, além da ordem já ser da empresa).
+            $linhaProduto = DB::table('purchase_lines as l')
+                ->join('variations as v', 'v.id', '=', 'l.variation_id')
+                ->join('products as p', 'p.id', '=', 'v.product_id')
+                ->leftJoin('units as u', 'u.id', '=', 'p.unit_id')
+                ->leftJoin('units as su', 'su.id', '=', 'l.sub_unit_id')
+                ->where('l.transaction_id', $ordem->id)
+                ->where('p.business_id', $businessId)
+                ->orderBy('l.id')
+                ->select('l.quantity', 'su.base_unit_multiplier as mult', 'su.short_name as sub_un', 'u.short_name as un')
+                ->first();
+
+            // Quantidade produzida, como o legado: na unidade da linha, somando as perdidas.
+            $multProduto = $linhaProduto && (float) $linhaProduto->mult > 0 ? (float) $linhaProduto->mult : 1.0;
+            $produzida = $linhaProduto ? (float) $linhaProduto->quantity / $multProduto : 0.0;
+            $perdidas = (float) ($ordem->getAttribute('mfg_wasted_units') ?? 0);
+            $unidadeProduto = $linhaProduto ? (string) ($linhaProduto->sub_un ?? $linhaProduto->un ?? '') : '';
+
+            $sellLines = ! $venda ? collect() : DB::table('transaction_sell_lines as l')
+                ->join('variations as v', 'v.id', '=', 'l.variation_id')
+                ->join('products as p', 'p.id', '=', 'v.product_id')
+                ->leftJoin('product_variations as pv', 'pv.id', '=', 'v.product_variation_id')
+                ->leftJoin('units as u', 'u.id', '=', 'p.unit_id')
+                ->leftJoin('units as su', 'su.id', '=', 'l.sub_unit_id')
+                ->leftJoin('mfg_ingredient_groups as g', function ($j) use ($businessId) {
+                    $j->on('g.id', '=', 'l.mfg_ingredient_group_id')->where('g.business_id', '=', $businessId);
+                })
+                ->where('l.transaction_id', $venda->id)
+                ->where('p.business_id', $businessId)
+                ->orderBy('l.id')
+                ->select(
+                    'l.quantity', 'v.dpp_inc_tax', 'v.sub_sku', 'v.name as var_name', 'pv.name as pv_name',
+                    'p.name as product_name', 'p.type as product_type', 'u.short_name as un',
+                    'su.short_name as sub_un', 'su.base_unit_multiplier as mult', 'g.name as grupo'
+                )
+                ->get();
+
+            $linhas = [];
+            $ingredientes = 0.0;
+            foreach ($sellLines as $l) {
+                $mult = (float) $l->mult > 0 ? (float) $l->mult : 1.0;
+                $dpp = (float) $l->dpp_inc_tax;
+                // Legado: subtotal = preço de hoje × quantidade gravada na unidade base.
+                $subtotal = $dpp * (float) $l->quantity;
+                $ingredientes += $subtotal;
+
+                // Nome como o `Variation::full_name`, sem o "(sku)" do fim: o código vai em linha própria.
+                $nome = (string) $l->product_name;
+                if ($l->product_type === 'variable') {
+                    $nome .= ' - '.$l->pv_name.' - '.$l->var_name;
+                }
+
+                $linhas[] = [
+                    'nome' => $nome,
+                    'sku' => (string) ($l->sub_sku ?? ''),
+                    'grupo' => $l->grupo,
+                    'quantidade' => (float) $l->quantity / $mult,
+                    'unidade' => (string) ($l->sub_un ?? $l->un ?? ''),
+                    'custo_unitario' => $dpp * $mult,
+                    'subtotal' => $subtotal,
+                ];
+            }
+
+            $custoGravado = (float) $ordem->getAttribute('mfg_production_cost');
+            $tipo = $ordem->getAttribute('mfg_production_cost_type');
+            $extra = 0.0;
+            if (! empty($custoGravado)) {
+                $extra = $custoGravado;
+                if ($tipo === 'percentage') {
+                    $extra = $ingredientes * ($custoGravado / 100);
+                } elseif ($tipo === 'per_unit') {
+                    $extra = $custoGravado * ($produzida + $perdidas);
+                }
+            }
+
+            $totalHoje = $ingredientes + $extra;
+
+            return [
+                'id' => (int) $ordem->id,
+                'ref_no' => $ordem->ref_no,
+                'finalizada' => (int) $ordem->getAttribute('mfg_is_final') === 1,
+                'quantidade' => $produzida,
+                'unidade' => $unidadeProduto,
+                'linhas' => $linhas,
+                'custo' => [
+                    'ingredientes' => $ingredientes,
+                    'extra' => $extra,
+                    'total_hoje' => $totalHoje,
+                    'gravado' => (float) $ordem->final_total,
+                    // Guard de divisão por zero, como o custo_unitario da lista.
+                    'por_unidade' => $produzida > 0 ? $totalHoje / $produzida : 0.0,
+                ],
+            ];
+        }, [
+            'module' => 'Manufacturing',
+        ]);
+    }
+
+    /**
      * Relatório de produção do período, agrupado por produto — US-MANU-002 (SPEC.md).
      *
      * Custo de cada ordem = `RecipeBomService::calculateUnitCost($recipe) × quantidade
