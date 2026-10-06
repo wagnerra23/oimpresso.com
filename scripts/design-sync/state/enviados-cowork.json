@@ -20,6 +20,10 @@
     "cowork-inbox/essenciais/playbook/_saida-01.md": {
       "sha256": "a62b1f02778445f1ef89c355b8b273f48a18a8ea9c8d172a1261fe359181b6bb",
       "em": "2026-10-06T12:35:47.335Z"
+    },
+    "cowork-inbox/crm/playbook/_saida-09.md": {
+      "sha256": "f0e72458bb7c6226827d5148e37c71d67f94f81c4cef69bdb58d52d9bbfab27f",
+      "em": "2026-10-06T12:44:51.098Z"
     }
   }
 }
