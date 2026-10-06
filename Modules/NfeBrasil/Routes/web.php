@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use Modules\NfeBrasil\Http\Controllers\CertificadoController;
 use Modules\NfeBrasil\Http\Controllers\ConfigDefaultController;
 use Modules\NfeBrasil\Http\Controllers\ContingenciaController;
+use Modules\NfeBrasil\Http\Controllers\EmpresaFiscalLookupController;
 use Modules\NfeBrasil\Http\Controllers\ImportRegrasController;
 use Modules\NfeBrasil\Http\Controllers\InstallController;
 use Modules\NfeBrasil\Http\Controllers\NfeBrasilController;
@@ -85,6 +86,10 @@ Route::middleware(['web', 'auth', 'SetSessionData', 'language', 'timezone', 'Adm
         // Config default (Nível 4 cascade)
         Route::get('config-default', [ConfigDefaultController::class, 'show'])->name('config.show');
         Route::post('config-default', [ConfigDefaultController::class, 'upsert'])->name('config.upsert');
+
+        // Configurar pelo certificado — leitura read-only (playbook Fiscal thread 21)
+        Route::get('empresa-fiscal', [EmpresaFiscalLookupController::class, 'show'])
+            ->name('empresa-fiscal');
 
         // Templates tributários L1 (US-NFE-TPL-001)
         Route::post('templates/{slug}/aplicar', [TributacaoController::class, 'aplicarTemplate'])
