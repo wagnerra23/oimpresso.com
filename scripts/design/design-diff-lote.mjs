@@ -46,6 +46,13 @@
  *   node scripts/design/design-diff-lote.mjs                       # todas as `anchored` c/ âncora resolvível
  *   node scripts/design/design-diff-lote.mjs --tela Compras/Index --base-url http://127.0.0.1:8000
  *   node scripts/design/design-diff-lote.mjs --tema dark           # força o mesmo tema nos 2 lados
+ *   node scripts/design/design-diff-lote.mjs --lado design --tela superadmin/Negocios/Index
+ *     só o protótipo (sem app vivo, sem login); `--lado prod` = só o vivo. Um lado só NÃO compara:
+ *     o resultado.json registra o lado e o sha do arquivo gravado.
+ *
+ *   Rota do protótipo POR TELA (A-LOTE, 2026-10-06): a tabela `ROTAS` da âncora (`"tok": { page:
+ *   "Mod/Tela" }`) ganha da rota do grupo. Duas telas do mesmo módulo no MESMO token saem do plano
+ *   (estático); duas com `design.json` byte-idêntico saem do resultado com exit 2 (medido).
  *
  *   Pré-requisitos do render (o `--dry` e o `--selftest` NÃO precisam de nenhum):
  *     · `npm ci` + `npm run e2e:install` (playwright + chromium);
@@ -103,6 +110,7 @@
 import { readFileSync, writeFileSync, mkdirSync, existsSync, readdirSync, statSync, createReadStream } from 'node:fs';
 import { createServer } from 'node:http';
 import { spawnSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import { join, resolve, dirname, basename, extname, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { frontmatter } from './_lib-charter.mjs';
@@ -262,6 +270,83 @@ export function tokenDoMockup(source, { rotas, mockupSrc }) {
   const soPrefixo = [...rotas].find((r) => defs.has(r.componente) && r.prefixos.length);
   if (soPrefixo) return { token: null, via: `só prefixo ${soPrefixo.prefixos.join('|')}* (window.${soPrefixo.componente}) — declare o token no override` };
   return { token: null, via: 'sem rota derivável' };
+}
+
+/**
+ * Rota POR TELA declarada pelo próprio protótipo: a tabela `const ROTAS = { "tok": { page: "Mod/Tela", … } }`
+ * do `-page.jsx` (hoje só o `repair-page.jsx`, thread 00 do playbook Repair). Devolve `Map page → token`
+ * (o primeiro token de cada page), ou `null` quando a âncora não tem a tabela.
+ *
+ * Nasceu na thread A-LOTE do playbook Placar (2026-10-06). Sem isto o lote abria a rota do GRUPO
+ * (`repair`, `superadmin`, `officeimpresso`) para toda tela da âncora e gravou o MESMO `design.json`
+ * em Repair (6), Officeimpresso Logs (2) e Superadmin (4) — medido no `_saida-A1` do Superadmin.
+ */
+export function rotasDaAncora(src) {
+  const s = String(src || '');
+  const ini = s.search(/\bconst ROTAS\s*=\s*\{/);
+  if (ini < 0) return null;
+  const fim = s.indexOf('\n};', ini);
+  const bloco = s.slice(ini, fim < 0 ? undefined : fim);
+  const mapa = new Map();
+  for (const m of bloco.matchAll(/"([^"]+)"\s*:\s*\{\s*page:\s*"([^"]+)"/g)) if (!mapa.has(m[2])) mapa.set(m[2], m[1]);
+  return mapa;
+}
+
+/**
+ * Token do shell para UMA tela. Ordem: override → `ROTAS` da âncora (por `page`) → derivação do
+ * `app.jsx` (`tokenDoMockup`). Âncora COM `ROTAS` mas sem a `page` desta tela devolve `null`:
+ * cair na rota do grupo seria repetir o defeito que a tabela existe para evitar.
+ */
+export function tokenDaTela(tela, { rotas, mockupSrc, override = {} }) {
+  if (override.token) return { token: override.token, via: 'override' };
+  const tab = rotasDaAncora(mockupSrc);
+  if (tab && tab.size) {
+    const tok = tab.get(tela.id);
+    return tok ? { token: tok, via: `ROTAS da âncora (page ${tela.id})` } : { token: null, via: `ROTAS da âncora não lista page ${tela.id}` };
+  }
+  return tokenDoMockup(tela.source, { rotas, mockupSrc });
+}
+
+/**
+ * Sanidade ESTÁTICA: telas distintas que abrem o MESMO token do shell vão medir a mesma vista.
+ * `itens = [{ id, token }]` → `Map id → { token, com: [ids] }`. Token nulo não colide.
+ */
+export function colisoesDeRota(itens) {
+  const por = new Map();
+  for (const i of itens || []) {
+    if (!i || !i.token) continue;
+    if (!por.has(i.token)) por.set(i.token, new Set());
+    por.get(i.token).add(i.id);
+  }
+  const out = new Map();
+  for (const [token, ids] of por) {
+    if (ids.size < 2) continue;
+    for (const id of ids) out.set(id, { token, com: [...ids].filter((x) => x !== id) });
+  }
+  return out;
+}
+
+/**
+ * Sanidade MEDIDA: duas telas diferentes do mesmo módulo com `design.json` de hash igual não foram
+ * medidas — foram a mesma vista duas vezes. `itens = [{ id, module, sha }]` → `Map id → [ids]`.
+ */
+export function colisoesDeHash(itens) {
+  const por = new Map();
+  for (const i of itens || []) {
+    if (!i || !i.sha) continue;
+    const k = `${i.module}#${i.sha}`;
+    if (!por.has(k)) por.set(k, new Set());
+    por.get(k).add(i.id);
+  }
+  const out = new Map();
+  for (const ids of por.values()) if (ids.size > 1) for (const id of ids) out.set(id, [...ids].filter((x) => x !== id));
+  return out;
+}
+
+/** `--lado design|prod|ambos` (default `ambos`). Valor fora da lista = `null` (o CLI sai 2). */
+export function ladoDe(v) {
+  const l = v == null ? 'ambos' : String(v);
+  return ['design', 'prod', 'ambos'].includes(l) ? l : null;
 }
 
 /** Contrato de tela (D0) cujo `tela` é o id — `contratos = [{ path, tela }]`. */
@@ -444,27 +529,14 @@ async function frescorDaFonte(caminhoAncoraRel) {
 /* ═══════════════════════════════════════════════════════════════════════════════════════
  * PLANO — o que o lote VAI fazer, tela a tela (é o que `--dry` imprime)
  * ═════════════════════════════════════════════════════════════════════════════════════ */
-export async function montarPlano({ filtro = null, urlForcada = null, baseUrl }) {
+export async function montarPlano({ filtro = null, urlForcada = null, baseUrl, lado = 'ambos' }) {
   const report = JSON.parse(readFileSync(REPORT, 'utf8'));
   const telas = selecionarTelas(report, filtro, { incluirComparadas: flag('--incluir-comparadas') });
   const rotas = mapaRotasDoShell(readFileSync(APP_JSX, 'utf8'));
   const contratos = lerContratos();
   const { resolveAncora, caminhoDaAncora, ehDeclaracaoNa } = await import('./ancora.mjs');
-  const plano = [];
-  for (const t of telas) {
-    const slug = slugDaTela(t.id);
-    const item = { ...t, slug, dir: relative(ROOT, join(DIR_MEDIDAS, slug)).replace(/\\/g, '/'), problemas: [] };
-    const override = lerOverride(slug);
-    // charter → rota viva
-    const ch = join(ROOT, charterDe(t.target));
-    if (!existsSync(ch)) item.problemas.push('sem charter ao lado do .tsx');
-    const fm = existsSync(ch) ? frontmatter(readFileSync(ch, 'utf8')) : {};
-    const rv = rotaViva(urlForcada || fm.page);
-    item.rota = rv.rota;
-    if (!rv.rota) item.problemas.push('charter sem `page:` — rota viva desconhecida');
-    else if (rv.parametrizada) item.problemas.push(`rota parametrizada (${rv.rota}) — passe --tela X --url /rota/concreta`);
-    // âncora resolvível pelo ancora.mjs (com o espelho como staging)
-    const r = await resolveAncora(t.target, { repoRoot: ROOT, stagingDir: COWORK_DIR });
+  const ancoraDe = async (target) => {
+    const r = await resolveAncora(target, { repoRoot: ROOT, stagingDir: COWORK_DIR });
     let ancora = null, declarouNa = false;
     if (r.ok) {
       for (const a of r.ancoras) {
@@ -473,29 +545,71 @@ export async function montarPlano({ filtro = null, urlForcada = null, baseUrl })
         if (c && existsSync(resolve(a.raiz || ROOT, c))) { ancora = relative(ROOT, resolve(a.raiz || ROOT, c)).replace(/\\/g, '/'); break; }
       }
     }
+    return { r, ancora, declarouNa };
+  };
+  const tokenDe = (t, ancora, override) => {
+    const mockupPath = ancora ? join(ROOT, ancora) : join(COWORK_DIR, basename(t.source));
+    const mockupSrc = existsSync(mockupPath) ? readFileSync(mockupPath, 'utf8') : '';
+    return tokenDaTela(t, { rotas, mockupSrc, override });
+  };
+  const plano = [];
+  for (const t of telas) {
+    const slug = slugDaTela(t.id);
+    const item = { ...t, slug, dir: relative(ROOT, join(DIR_MEDIDAS, slug)).replace(/\\/g, '/'), problemas: [], problemasDesign: [], problemasProd: [] };
+    // `l` diz qual lado o problema impede: com `--lado design` a rota viva não importa, e vice-versa.
+    const prob = (l, msg) => { item.problemas.push(msg); if (l !== 'prod') item.problemasDesign.push(msg); if (l !== 'design') item.problemasProd.push(msg); };
+    const override = lerOverride(slug);
+    // charter → rota viva
+    const ch = join(ROOT, charterDe(t.target));
+    if (!existsSync(ch)) prob('ambos', 'sem charter ao lado do .tsx');
+    const fm = existsSync(ch) ? frontmatter(readFileSync(ch, 'utf8')) : {};
+    const rv = rotaViva(urlForcada || fm.page);
+    item.rota = rv.rota;
+    if (!rv.rota) prob('prod', 'charter sem `page:` — rota viva desconhecida');
+    else if (rv.parametrizada) prob('prod', `rota parametrizada (${rv.rota}) — passe --tela X --url /rota/concreta`);
+    // âncora resolvível pelo ancora.mjs (com o espelho como staging)
+    const { r, ancora, declarouNa } = await ancoraDe(t.target);
     item.ancora = ancora;
     if (!ancora) {
       // Três ausências DIFERENTES — colapsá-las esconde qual é (§5 2026-07-29):
-      item.problemas.push(!r.ok ? 'sem charter resolvível pelo ancora.mjs'
+      prob('design', !r.ok ? 'sem charter resolvível pelo ancora.mjs'
         : declarouNa ? 'charter declara `n/a` (nasce do DS) — sem âncora POR DECISÃO; o report lista como anchored, o charter não'
         : !r.ancoras.length ? 'charter sem related_prototype/bundle_source — nada a renderizar do lado design'
         : 'âncora do charter não resolve em arquivo');
     }
     item.frescor = ancora ? await frescorDaFonte(ancora) : '—';
-    // token do shell
-    const mockupPath = ancora ? join(ROOT, ancora) : join(COWORK_DIR, basename(t.source));
-    const mockupSrc = existsSync(mockupPath) ? readFileSync(mockupPath, 'utf8') : '';
-    const tk = override.token ? { token: override.token, via: 'override' } : tokenDoMockup(t.source, { rotas, mockupSrc });
+    // token do shell — POR TELA (ROTAS da âncora) antes da rota do grupo
+    const tk = tokenDe(t, ancora, override);
     item.token = tk.token; item.tokenVia = tk.via;
-    if (!tk.token) item.problemas.push(`rota do shell: ${tk.via}`);
+    if (!tk.token) prob('design', `rota do shell: ${tk.via}`);
     // identidade (D0)
     item.contrato = override.contrato || contratoDe(t.id, contratos);
     if (!item.contrato) item.avisoD0 = 'sem contrato — identidade da view NÃO provada (âncora pode servir outra tela)';
     item.roles = { prod: { ...ROLES_PADRAO.prod, ...(override.roles?.prod || {}) }, design: { ...ROLES_PADRAO.design, ...(override.roles?.design || {}) } };
     item.shellOverride = override.shell || null;
     item.urlViva = item.rota ? `${baseUrl}${item.rota}` : null;
-    item.executavel = item.problemas.length === 0;
     plano.push(item);
+  }
+  // Sanidade estática: compara o token de cada tela com o das IRMÃS do mesmo módulo — inclusive as
+  // que o `--tela` deixou de fora e as já `compared`, porque é contra elas que o design.json colidiria.
+  const modulos = new Set(plano.map((p) => p.module));
+  const irmas = [];
+  for (const s of selecionarTelas(report, null, { incluirComparadas: true })) {
+    if (!modulos.has(s.module) || plano.some((p) => p.id === s.id)) continue;
+    const { ancora } = await ancoraDe(s.target);
+    if (!ancora) continue; // sem âncora a irmã nunca renderiza — não é parceira de colisão
+    irmas.push({ id: s.id, token: tokenDe(s, ancora, lerOverride(slugDaTela(s.id))).token });
+  }
+  const colisoes = colisoesDeRota([...plano.map((p) => ({ id: p.id, token: p.ancora ? p.token : null })), ...irmas]);
+  for (const p of plano) {
+    const c = colisoes.get(p.id);
+    if (!c) continue;
+    const msg = `rota do GRUPO: route=${c.token} também abre ${c.com.join(', ')} — o design.json sairia igual (declare \`ROTAS\` na âncora ou o token no override)`;
+    p.problemas.push(msg); p.problemasDesign.push(msg);
+  }
+  for (const p of plano) {
+    const pend = lado === 'design' ? p.problemasDesign : lado === 'prod' ? p.problemasProd : p.problemas;
+    p.executavel = pend.length === 0;
   }
   return { plano, bundle: report?.bundle?.id || null, totalAnchored: telas.length };
 }
@@ -584,7 +698,7 @@ async function medirLado(page, { probe, roles, shell, tema }) {
   return page.evaluate(probe);
 }
 
-async function renderDesign(browser, { porta, token, probe, roles, shell, tema }) {
+async function renderDesign(browser, { porta, token, idEsperado, probe, roles, shell, tema }) {
   const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
   try {
     await ctx.addInitScript((t) => { try { localStorage.setItem('oimpresso.route', t); } catch { /* sem storage */ } }, token);
@@ -593,6 +707,9 @@ async function renderDesign(browser, { porta, token, probe, roles, shell, tema }
     await esperarEstavel(page, { sinal: () => window.__oiLazyDone === true });
     const rotaAtiva = await page.evaluate(() => { try { return localStorage.getItem('oimpresso.route'); } catch { return null; } });
     if (rotaAtiva !== token) throw Object.assign(new Error(`o shell não ficou em route=${token} (ficou em ${rotaAtiva})`), { naoMedi: true });
+    // Vista que se declara (`data-page`) tem de ser ESTA tela — senão a rota abriu outra.
+    const dp = await page.evaluate(() => document.querySelector('[data-page]')?.getAttribute('data-page') || null);
+    if (dp && idEsperado && dp !== idEsperado) throw Object.assign(new Error(`a vista declara data-page="${dp}", não ${idEsperado}`), { naoMedi: true });
     return await medirLado(page, { probe, roles, shell, tema });
   } finally { await ctx.close(); }
 }
@@ -629,44 +746,76 @@ function compararTela(dir, contrato) {
   return interpretarCompare({ status: r.status, stdout: r.stdout, stderr: r.stderr });
 }
 
-async function rodarLote(planoObj, { baseUrl, userId, cookie, tema }) {
+async function rodarLote(planoObj, { baseUrl, userId, cookie, tema, lado = 'ambos' }) {
   const { plano, bundle } = planoObj;
+  const fazDesign = lado !== 'prod', fazProd = lado !== 'design';
   const probe = sondaCanonica();
   const shellPadrao = shellRolesDoDono();
   const browser = await abrirBrowser();
-  const espelho = await servirEspelho();
+  const espelho = fazDesign ? await servirEspelho() : null;
   const resultados = [];
+  const sha = (txt) => createHash('sha256').update(txt).digest('hex');
   try {
     for (const p of plano) {
       const dir = join(DIR_MEDIDAS, p.slug);
-      const item = { id: p.id, source: p.source, target: p.target, token: p.token, frescor: p.frescor, contrato: p.contrato || null, compare: null, veredito: null, motivo: '' };
-      if (!p.executavel) { item.veredito = 'NÃO MEDI'; item.motivo = p.problemas.join('; '); resultados.push(item); console.log(`○ ${p.id} — ${item.motivo}`); continue; }
+      const item = { id: p.id, module: p.module, source: p.source, target: p.target, token: p.token, lado, frescor: p.frescor, contrato: p.contrato || null, compare: null, veredito: null, motivo: '', medido: false };
+      if (!p.executavel) { item.veredito = 'NÃO MEDI'; item.motivo = (lado === 'design' ? p.problemasDesign : lado === 'prod' ? p.problemasProd : p.problemas).join('; '); resultados.push(item); console.log(`○ ${p.id} — ${item.motivo}`); continue; }
       mkdirSync(dir, { recursive: true });
+      item.tentado = true;
       const shell = { prod: p.shellOverride?.prod || shellPadrao.prod || null, design: p.shellOverride?.design || shellPadrao.design || null };
       try {
-        const design = await renderDesign(browser, { porta: espelho.porta, token: p.token, probe, roles: p.roles.design, shell: shell.design, tema });
-        writeFileSync(join(dir, 'design.json'), JSON.stringify(design, null, 2) + '\n');
-        const { snap: prod, meta } = await renderVivo(browser, { baseUrl, rota: p.rota, userId, cookie, probe, roles: p.roles.prod, shell: shell.prod, tema });
-        writeFileSync(join(dir, 'prod.json'), JSON.stringify(prod, null, 2) + '\n');
-        item.compare = compararTela(dir, p.contrato);
-        item.meta = meta;
-        console.log(`${item.compare.rc === 0 ? '●' : item.compare.rc === 1 ? '✗' : '⚠'} ${p.id} — ${item.compare.veredito}${item.compare.bugs != null ? ` · bugs=${item.compare.bugs} shell=${item.compare.shell}` : ''}${item.compare.motivo ? ` — ${item.compare.motivo}` : ''}`);
+        if (fazDesign) {
+          const design = await renderDesign(browser, { porta: espelho.porta, token: p.token, idEsperado: p.id, probe, roles: p.roles.design, shell: shell.design, tema });
+          const txt = JSON.stringify(design, null, 2) + '\n';
+          writeFileSync(join(dir, 'design.json'), txt);
+          item.designSha = sha(txt);
+        }
+        if (fazProd) {
+          const { snap: prod, meta } = await renderVivo(browser, { baseUrl, rota: p.rota, userId, cookie, probe, roles: p.roles.prod, shell: shell.prod, tema });
+          const txt = JSON.stringify(prod, null, 2) + '\n';
+          writeFileSync(join(dir, 'prod.json'), txt);
+          item.prodSha = sha(txt);
+          item.meta = meta;
+        }
+        item.medido = true;
+        if (fazDesign && fazProd) {
+          item.compare = compararTela(dir, p.contrato);
+          console.log(`${item.compare.rc === 0 ? '●' : item.compare.rc === 1 ? '✗' : '⚠'} ${p.id} — ${item.compare.veredito}${item.compare.bugs != null ? ` · bugs=${item.compare.bugs} shell=${item.compare.shell}` : ''}${item.compare.motivo ? ` — ${item.compare.motivo}` : ''}`);
+        } else {
+          // Um lado só: o arquivo do OUTRO lado em disco não é deste run — sem comparação, e o
+          // resultado.json diz isso em vez de descrever um par que não foi medido junto (_saida-A1 §4).
+          item.veredito = `MEDIDO · só ${lado} (sem comparação)`;
+          console.log(`● ${p.id} — ${item.veredito} · sha ${(item.designSha || item.prodSha).slice(0, 12)}`);
+        }
       } catch (e) {
         item.veredito = e.naoMedi ? 'NÃO MEDI' : 'ERRO';
         item.motivo = String(e.message).slice(0, 220);
         console.log(`○ ${p.id} — ${item.veredito}: ${item.motivo}`);
       }
-      writeFileSync(join(dir, 'resultado.json'), JSON.stringify({ ...item, medidoEm: new Date().toISOString(), baseUrl, bundle }, null, 2) + '\n');
       resultados.push(item);
     }
   } finally {
     await browser.close();
-    await espelho.fechar();
+    if (espelho) await espelho.fechar();
+  }
+  // Sanidade MEDIDA (A-LOTE): duas telas do mesmo módulo com o mesmo design.json = não medi nenhuma.
+  const iguais = colisoesDeHash(resultados.filter((r) => r.medido).map((r) => ({ id: r.id, module: r.module, sha: r.designSha })));
+  for (const r of resultados) {
+    const com = iguais.get(r.id);
+    if (!com) continue;
+    r.medido = false; r.compare = null; r.veredito = 'NÃO MEDI';
+    r.motivo = `design.json byte-idêntico ao de ${com.join(', ')} — a rota abriu a mesma vista`;
+    console.log(`○ ${r.id} — NÃO MEDI: ${r.motivo}`);
+  }
+  for (const r of resultados) {
+    if (!r.tentado) continue;
+    const { tentado, ...registro } = r;
+    writeFileSync(join(DIR_MEDIDAS, slugDaTela(r.id), 'resultado.json'), JSON.stringify({ ...registro, medidoEm: new Date().toISOString(), baseUrl: fazProd ? baseUrl : null, bundle }, null, 2) + '\n');
   }
   mkdirSync(DIR_MEDIDAS, { recursive: true });
   writeFileSync(RESUMO, gerarResumo(resultados, { baseUrl, bundle, geradoEm: new Date().toISOString() }));
   console.log(`\nRESUMO: ${relative(ROOT, RESUMO).replace(/\\/g, '/')}`);
-  const naoMedi = resultados.filter((r) => !r.compare || r.compare.rc === 2 && !r.compare.rows).length;
+  const naoMedi = resultados.filter((r) => !r.medido || r.compare && r.compare.rc === 2 && !r.compare.rows).length;
   const bugs = resultados.filter((r) => r.compare && r.compare.rc === 1).length;
   return naoMedi ? 2 : bugs ? 1 : 0;
 }
@@ -741,7 +890,33 @@ async function selftest() {
   ok('app.jsx real: nenhum token "string" (typeof route === "string" não é rota)', !rotasReais.some((r) => r.tokens.includes('string')));
   ok('app.jsx real: pg-payment-gateways-page.jsx → payment-gateways (via adaptador)', tokenDoMockup('pg-payment-gateways-page.jsx', { rotas: rotasReais, mockupSrc: readFileSync(join(COWORK_DIR, 'pg-payment-gateways-page.jsx'), 'utf8') }).token === 'payment-gateways');
 
-  ok('contratoDe: casa pelo campo tela', contratoDe('Backup/Index', [{ path: 'x.json', tela: 'Backup/Index' }]) === 'x.json');
+  // A-LOTE (2026-10-06): rota POR TELA, sanidade de rota e de hash, `--lado`.
+  const rotasFx = 'const X = 1;\nconst ROTAS = {\n  "repair": { page: "R/Dash", aba: "p" },\n  "rep-painel": { page: "R/Dash" },\n  "rep-lista": { page: "R/Index", aba: "l" },\n};\nconst Y = { "fora": { page: "R/Fora" } };';
+  const tabFx = rotasDaAncora(rotasFx);
+  ok('rotasDaAncora: page → primeiro token', tabFx.get('R/Dash') === 'repair' && tabFx.get('R/Index') === 'rep-lista');
+  ok('rotasDaAncora: não lê fora do bloco ROTAS', !tabFx.has('R/Fora'));
+  ok('rotasDaAncora: âncora sem ROTAS → null', rotasDaAncora('window.SuperadminPage = 1;') === null);
+  const rotasGrupo = [{ componente: 'SuperadminPage', tokens: ['superadmin', 'sa-negocios'], prefixos: [] }];
+  ok('tokenDaTela: ROTAS ganha da rota do grupo', tokenDaTela({ id: 'R/Index', source: 'r-page.jsx' }, { rotas: [{ componente: 'RPage', tokens: ['repair'], prefixos: [] }], mockupSrc: 'window.RPage = 1;\n' + rotasFx }).token === 'rep-lista');
+  ok('tokenDaTela MORDE: ROTAS sem a page desta tela → null (não cai no grupo)', tokenDaTela({ id: 'R/Outra', source: 'r-page.jsx' }, { rotas: [{ componente: 'RPage', tokens: ['repair'], prefixos: [] }], mockupSrc: 'window.RPage = 1;\n' + rotasFx }).token === null);
+  ok('tokenDaTela: override ganha de tudo', tokenDaTela({ id: 'R/Index', source: 'r-page.jsx' }, { rotas: [], mockupSrc: rotasFx, override: { token: 'x' } }).token === 'x');
+  ok('tokenDaTela: sem ROTAS → derivação do app.jsx (rota do grupo)', tokenDaTela({ id: 'superadmin/Negocios/Index', source: 'superadmin-page.jsx' }, { rotas: rotasGrupo, mockupSrc: 'window.SuperadminPage = 1;' }).token === 'superadmin');
+  const colR = colisoesDeRota([{ id: 'S/A', token: 'superadmin' }, { id: 'S/B', token: 'superadmin' }, { id: 'S/C', token: 'sa-c' }, { id: 'S/D', token: null }]);
+  ok('colisoesDeRota MORDE: duas telas no mesmo token', colR.get('S/A')?.com.join() === 'S/B' && colR.get('S/B')?.token === 'superadmin');
+  ok('colisoesDeRota CONTROLE: token próprio e token nulo não colidem', !colR.has('S/C') && !colR.has('S/D'));
+  ok('colisoesDeRota: mesma tela repetida não colide consigo', colisoesDeRota([{ id: 'S/A', token: 't' }, { id: 'S/A', token: 't' }]).size === 0);
+  const colH = colisoesDeHash([{ id: 'M/A', module: 'M', sha: 'h1' }, { id: 'M/B', module: 'M', sha: 'h1' }, { id: 'M/C', module: 'M', sha: 'h2' }, { id: 'N/A', module: 'N', sha: 'h2' }]);
+  ok('colisoesDeHash MORDE: mesmo módulo, mesmo sha', colH.get('M/A')?.join() === 'M/B' && colH.has('M/B'));
+  ok('colisoesDeHash CONTROLE: sha diferente, ou outro módulo, não colide', !colH.has('M/C') && !colH.has('N/A'));
+  ok('ladoDe: default ambos · aceita design/prod', ladoDe(null) === 'ambos' && ladoDe('design') === 'design' && ladoDe('prod') === 'prod');
+  ok('ladoDe MORDE: valor fora da lista → null', ladoDe('vivo') === null);
+  const repSrc = readFileSync(join(COWORK_DIR, 'repair-page.jsx'), 'utf8');
+  const repTab = rotasDaAncora(repSrc);
+  ok('espelho real: repair-page.jsx tem ROTAS por tela', !!repTab && repTab.get('Repair/Index') === 'rep-reparos' && repTab.get('Repair/Status/Index') === 'rep-status');
+  ok('espelho real: as 6 telas medidas do Repair abrem 6 rotas distintas',
+    new Set(['Repair/Dashboard/Index', 'Repair/DeviceModels/Index', 'Repair/Index', 'Repair/JobSheet/Index', 'Repair/ProducaoOficina/Index', 'Repair/Status/Index'].map((p) => repTab.get(p))).size === 6);
+
+  ok('contratoDe: casa pelo campo tela',contratoDe('Backup/Index', [{ path: 'x.json', tela: 'Backup/Index' }]) === 'x.json');
   ok('contratoDe: sem casamento → null (não inventa D0)', contratoDe('Q/Index', [{ path: 'x.json', tela: 'Backup/Index' }]) === null);
   const contratosReais = lerContratos();
   ok('lerContratos real: Backup/Index tem contrato', contratoDe('Backup/Index', contratosReais) === 'governance/design/contracts/backup.contract.json');
@@ -822,7 +997,9 @@ async function main() {
   const filtro = val('--tela');
   const urlForcada = val('--url');
   if (urlForcada && !filtro) { console.error('--url exige --tela (uma tela só)'); return 2; }
-  const planoObj = await montarPlano({ filtro, urlForcada, baseUrl });
+  const lado = ladoDe(val('--lado'));
+  if (!lado) { console.error('--lado aceita design | prod | ambos'); return 2; }
+  const planoObj = await montarPlano({ filtro, urlForcada, baseUrl, lado });
   if (!planoObj.plano.length) { console.error(`nenhuma tela anchored${filtro ? ` casa com "${filtro}"` : ''} no application-report`); return 2; }
   if (flag('--dry')) { imprimirPlano(planoObj, { baseUrl }); return 0; }
   return rodarLote(planoObj, {
@@ -830,6 +1007,7 @@ async function main() {
     userId: Number(val('--user-id', '1')),
     cookie: process.env.DESIGN_DIFF_COOKIE || null,
     tema: val('--tema'),
+    lado,
   });
 }
 
