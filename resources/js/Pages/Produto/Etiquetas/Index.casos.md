@@ -37,7 +37,7 @@ Origem: charter R2/R3 · UC-ETQ-03/04 · regra mestre de valor (dupla prova).
 
 **Dado** um produto com venda 20, imposto de 10% e preço 15,5 no grupo Atacado
 **Quando** a tela pede a linha a `/labels/add-product-row` em JSON
-**Então** o preço sem grupo é `R$ 20,00` nos dois tipos, e no Atacado é `R$ 15,50` com imposto e `R$ 14,09`
+**Então** o preço sem grupo é `20,00` nos dois tipos, e no Atacado é `15,50` com imposto e `14,09`
 sem imposto — o mesmo que a chamada de `ProductUtil` que `preview()` faz devolve.
 
 Status: 🧪
@@ -50,7 +50,7 @@ Origem: charter R2.
 
 **Dado** um grupo percentual de 10% e um grupo sem preço cadastrado
 **Quando** a tela pede a linha
-**Então** o grupo percentual sai `R$ 2,00` (10% de 20, como `getVariationGroupPrice` calcula) e o grupo sem
+**Então** o grupo percentual sai `2,00` (10% de 20, como `getVariationGroupPrice` calcula) e o grupo sem
 preço sai vazio.
 
 Status: 🧪
