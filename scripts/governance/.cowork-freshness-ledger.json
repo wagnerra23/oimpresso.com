@@ -43140,5 +43140,42 @@
     },
     "origin": "medicao",
     "projetoCowork": "w"
+  },
+  {
+    "date": "2026-10-06T15:08:11.847Z",
+    "kind": "live-only",
+    "liveOnly": 29,
+    "denom": 1279,
+    "liveOnlyList": [
+      ".gitignore",
+      ".thumbnail",
+      "_ds/office-impresso-design-system-019dd02f-d2d0-7ba6-a57f-24b3ddd073ac/_adherence.oxlintrc.json",
+      "_ds/office-impresso-design-system-019dd02f-d2d0-7ba6-a57f-24b3ddd073ac/_ds_manifest.json",
+      "cowork-inbox/app-lojas/ref/oimpresso-mobile/Oimpresso Mobile.html",
+      "cowork-inbox/app-lojas/ref/oimpresso-mobile/android-frame.jsx",
+      "cowork-inbox/app-lojas/ref/oimpresso-mobile/design-canvas.jsx",
+      "cowork-inbox/app-lojas/ref/oimpresso-mobile/icons.jsx",
+      "cowork-inbox/app-lojas/ref/oimpresso-mobile/ios-frame.jsx",
+      "cowork-inbox/app-lojas/ref/oimpresso-mobile/mobile-app.jsx",
+      "cowork-inbox/app-lojas/ref/oimpresso-mobile/mock-data.jsx",
+      "cowork-inbox/app-lojas/ref/oimpresso-mobile/oimpresso-tokens.css",
+      "cowork-inbox/app-lojas/ref/oimpresso-mobile/screens-clientes-producao.jsx",
+      "cowork-inbox/app-lojas/ref/oimpresso-mobile/screens-home-tasks.jsx",
+      "cowork-inbox/app-lojas/ref/oimpresso-mobile/screens-modules.jsx",
+      "cowork-inbox/app-lojas/ref/oimpresso-mobile/screens-novo-cliente.jsx",
+      "cowork-inbox/app-lojas/ref/oimpresso-mobile/screens-novo-produto.jsx",
+      "cowork-inbox/app-lojas/ref/oimpresso-mobile/task-viewers.jsx",
+      "cowork-inbox/app-lojas/ref/oimpresso-mobile/tweaks-panel.jsx",
+      "entregas-page.jsx",
+      "fiscal-tributacao.jsx",
+      "fluxos-data.jsx",
+      "fluxos-page.css",
+      "fluxos-page.jsx",
+      "fluxos-processos.jsx",
+      "fsm-etapa.css",
+      "fsm-etapa.jsx",
+      "fsm-regras.css",
+      "fsm-regras.jsx"
+    ]
   }
 ]
