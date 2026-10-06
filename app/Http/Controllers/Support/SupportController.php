@@ -9,7 +9,9 @@ use App\Http\Controllers\Controller;
 use App\Services\Support\SupportAccessService;
 use App\Services\Support\SupportAuditService;
 use App\Services\Support\SupportClientViewService;
+use App\SupportAccessLog;
 use App\User;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -72,6 +74,62 @@ class SupportController extends Controller
             'contagens' => $resumo['contagens'],
             'usuarios'  => $usuarios,
         ]);
+    }
+
+    /**
+     * Log de acessos de suporte — leitura da trilha append-only `support_access_logs` (RF3).
+     *
+     * Read-only por construção: só existe GET, e o Model barra update/delete. Escopo: linhas
+     * cuja empresa-ALVO está em `accessibleBusinessIds()` — a mesma fonte única da lista de
+     * empresas, que exclui a operadora (ADR 0305). Tentativas negadas contra a operadora ficam
+     * FORA desta tela por isso. Mostra todos os agentes: é a trilha do time de suporte.
+     *
+     * `logs` vai sob Inertia::defer (paginate + 3 joins — rule de Pages).
+     */
+    public function log(): Response
+    {
+        $ids = $this->access->accessibleBusinessIds()->all();
+
+        return Inertia::render('Suporte/Log', [
+            'logs' => Inertia::defer(fn () => $this->logsPaginados($ids)),
+        ]);
+    }
+
+    /**
+     * @param  array<int, int>  $ids  empresas-cliente acessíveis (sem a operadora)
+     */
+    private function logsPaginados(array $ids): LengthAwarePaginator
+    {
+        // SUPORTE: leitura cross-tenant intencional (ADR 0305) — a trilha é do time de suporte,
+        // escopada às empresas-cliente acessíveis; `business_id` aqui é a empresa AUDITADA.
+        return SupportAccessLog::query()
+            ->from('support_access_logs as l')
+            ->leftJoin('users as agente', 'agente.id', '=', 'l.support_user_id')
+            ->leftJoin('users as alvo', 'alvo.id', '=', 'l.target_user_id')
+            ->leftJoin('business as b', 'b.id', '=', 'l.business_id')
+            ->whereIn('l.business_id', $ids)
+            ->orderByDesc('l.id')
+            ->select([
+                'l.id', 'l.business_id', 'l.action', 'l.created_at',
+                'agente.username as agente', 'alvo.username as alvo', 'b.name as empresa',
+            ])
+            ->paginate(50)
+            ->withQueryString()
+            // agente/alvo/empresa vêm do select (joins), não são colunas do Model — por isso
+            // getAttribute(), e não acesso de propriedade.
+            ->through(function (SupportAccessLog $l): array {
+                $alvo = $l->getAttribute('alvo');
+
+                return [
+                    'id'         => (int) $l->id,
+                    'quando'     => $l->created_at?->toIso8601String(),
+                    'agente'     => (string) ($l->getAttribute('agente') ?? '—'),
+                    'alvo'       => $alvo !== null ? (string) $alvo : null,
+                    'acao'       => (string) $l->action,
+                    'empresa'    => (string) ($l->getAttribute('empresa') ?? '—'),
+                    'empresa_id' => (int) $l->business_id,
+                ];
+            });
     }
 
     /**

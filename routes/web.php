@@ -1289,6 +1289,10 @@ Route::middleware(['auth', 'SetSessionData', 'language', 'timezone', 'AdminSideb
     ->group(function () {
         Route::get('empresas', [\App\Http\Controllers\Support\SupportController::class, 'index'])
             ->name('suporte.empresas');
+        // Log de acessos (support_access_logs, append-only) — só GET, sem {business}: o
+        // middleware exige agente ativo e não audita a leitura da própria trilha.
+        Route::get('log', [\App\Http\Controllers\Support\SupportController::class, 'log'])
+            ->name('suporte.log');
         Route::get('empresas/{business}', [\App\Http\Controllers\Support\SupportController::class, 'show'])
             ->whereNumber('business')
             ->name('suporte.empresas.show');
