@@ -1,7 +1,7 @@
 // @memcofre tela=/manufacturing/production module=Manufacturing
 // MWART Wave J → board 2026-05-30 uplift (50 Developing → ≥70).
 // Lista de produções (production_purchase) em Inertia/React no padrão PT-01
-// Lista (AppShellV2 + PageHeader + KpiCard + tabela tokenizada + EmptyState).
+// Lista (AppShellV2 + cabeçalho `.os-page-h` das irmãs + KpiCard + tabela tokenizada + EmptyState).
 // Coexiste com Blade legacy /manufacturing/production (Tier 0: preservado).
 //
 // Backend: ProductionController@indexV2 → ProductionService::listProductions/summary
@@ -18,7 +18,6 @@ import { Input } from '@/Components/ui/input';
 import { Checkbox } from '@/Components/ui/checkbox';
 import { Inline } from '@/Components/layout/inline';
 import { Stack } from '@/Components/layout/stack';
-import { PageHeader, PageHeaderPrimary } from '@/Components/PageHeader';
 import KpiCard from '@/Components/shared/KpiCard';
 import '../../../css/cowork-manufacturing-bundle.css';
 import DataTable from '@/Components/shared/DataTable';
@@ -288,29 +287,37 @@ function Index({ productions = [], summary, business_locations = {}, filters = {
   };
 
   return (
-    <div className="space-y-6 p-6">
-      {/* Slot 1 — PageHeader com CTA habilitado (rota legacy de create existe)
+    <div className="mfg-root" data-screen-label="Fabricação · Ordens de produção">
+      {/* Cabeçalho — o MESMO bloco `.os-page-h` das 4 irmãs (Recipes/Insumos/Report/Settings).
+          No protótipo as 5 abas dividem um só `PageHeader` e uma só `TabBar`
+          (`manufacturing-page.jsx`); aqui a tela usava o `PageHeader` do DS com `p-6` em volta,
+          e o topo pulava ao trocar de aba: título em outra posição e a barra de abas dentro da
+          margem em vez de ocupar a largura toda ([M] 2026-10-06, visto nas fotos do contrato visual).
 
-          §4.5 — o protótipo (`manufacturing-page.jsx:151`) conta receitas e ordens no
-          subtítulo. A 3ª parte dele ("custo recalculado pelo preço atual dos ingredientes")
-          fica de FORA de propósito: nesta tela o custo é o `final_total` GRAVADO, nunca
-          recalculado (US-MANU-004 + RUNBOOK-producao.md §1). Copiar a copy literal poria uma
-          afirmação FALSA na tela — o rodapé já diz a verdade ("custo congelado na data"). */}
-      {/* Header canon (ADR 0409: tocar a tela acorda a dívida do header antigo). Sem ícone,
-          como o protótipo (`manufacturing-page.jsx` `.os-page-h`: título · subtítulo · primário). */}
-      {/* data-contract: o PageHeader não repassa props ao <header> — a âncora vai num wrapper
-          (mesmo idioma de Backup/Index e Arquivos/Index). */}
-      <div data-contract="cabecalho">
-        <PageHeader
-          title="Produção"
-          subtitle={
-            recipes_count === undefined
+          O título segue "Produção", não "Fabricação": é a D-RET-01 do [W] (2026-09-26), que o
+          protótipo registra na mesma linha (`aba === "producao" ? "Produção" : "Fabricação"`).
+
+          §4.5 — o subtítulo conta receitas e ordens, como o protótipo. A 3ª parte dele ("custo
+          recalculado pelo preço atual dos ingredientes") fica de FORA de propósito: nesta tela o
+          custo é o `final_total` GRAVADO, nunca recalculado (US-MANU-004 + RUNBOOK-producao.md §1).
+          Copiar a copy literal poria uma afirmação FALSA na tela — o rodapé já diz a verdade. */}
+      <div className="os-page-h" data-contract="cabecalho">
+        <div className="os-page-h-l">
+          <h1>Produção</h1>
+          <p>
+            {recipes_count === undefined
               ? 'Ordens de produção do módulo de Fabricação.'
               : `${recipes_count} receita${recipes_count === 1 ? '' : 's'} · ` +
-                `${summary?.total_count ?? 0} ordens de produção`
-          }
-          actions={<PageHeaderPrimary label="Nova produção" href={CREATE_ROUTE} />}
-        />
+                `${summary?.total_count ?? 0} ordens de produção`}
+          </p>
+        </div>
+        <div className="os-page-h-r">
+          <Button asChild size="sm">
+            <a href={CREATE_ROUTE}>
+              <Plus className="mr-1.5 h-3.5 w-3.5" /> Nova produção
+            </a>
+          </Button>
+        </div>
       </div>
 
       {/* Barra de abas do módulo — MESMA das 4 telas irmãs (Recipes/Report/Settings/Insumos).
@@ -347,7 +354,9 @@ function Index({ productions = [], summary, business_locations = {}, filters = {
           NÃO têm ícone (o KpiCard de leitura do DS não desenha ícone) e só "Finalizadas" é cartão-filtro,
           com o ícone ao lado — como na aba Receitas. Com ícone no título dos 4, cada cartão media 125px
           contra 105px da Receitas, e a faixa pulava ao trocar de aba. Vão de 10px, o do `.mfg-kpis`. */}
-      <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-4" data-contract="kpis">
+      {/* Recuo das irmãs: `.mfg-kpis` (14px 20px 4px), `.mfg-filters` (12px 20px) e
+          `.mfg-tablewrap` (0 20px 24px), em `manufacturing-bundle.css`. */}
+      <div className="grid grid-cols-1 gap-2.5 px-5 pb-1 pt-3.5 sm:grid-cols-2 lg:grid-cols-4" data-contract="kpis">
         <KpiCard label="Total" value={summary?.total_count ?? 0} description="ordens cadastradas" />
         <KpiCard
           variant="filter"
@@ -373,7 +382,7 @@ function Index({ productions = [], summary, business_locations = {}, filters = {
 
       {/* Slot 3 — filtros (local + intervalo de data), na faixa do protótipo (`.mfg-filters` do
           `MfgProducaoView`): sem cartão em volta, controles alinhados pela base, gap 12px. */}
-      <div data-contract="filtros">
+      <div className="px-5 py-3" data-contract="filtros">
         {/* Rótulos LOCAL / DE / ATÉ: o protótipo (`MfgProducaoView`) põe cada controle num
             `<Campo label=…>` (medido em 2026-10-01: 10,5px/600, caixa alta — ver `ROTULO`).
             Aqui a forma é replicada com token do DS. Sem eles a barra só
@@ -476,7 +485,7 @@ function Index({ productions = [], summary, business_locations = {}, filters = {
       {/* Slot 5 — a grade do `DataGrid` do DS (`shared/DataTable` `density="grid"`), como nas
           abas Receitas, Insumos e Relatório. A moldura é da própria tabela; o vazio continua no
           cartão. Sem lista, o protótipo não desenha a grade — só o `EmptyState`. */}
-      <div data-contract="lista">
+      <div className="px-5 pb-6" data-contract="lista">
         {productions.length === 0 ? (
           <div className="rounded-lg border border-border bg-card">
             <EmptyState
@@ -514,17 +523,18 @@ function Index({ productions = [], summary, business_locations = {}, filters = {
             onRowClick={abrirOrdem}
           />
         )}
-      </div>
 
-      {/* §4.5 — rodapé verbatim do protótipo. O custo somado é o GRAVADO (`final_total`),
-          não o recalculado do Relatório (US-MANU-002) — ver RUNBOOK-producao.md §1. */}
-      {productions.length > 0 && (
-        <p className="text-xs text-muted-foreground tabular-nums">
-          {productions.length} ordens · custo do período{' '}
-          <span className="font-medium text-foreground">{formatCurrency(custoDoPeriodo)}</span> ·
-          ordens finalizadas mostram o custo congelado na data
-        </p>
-      )}
+        {/* §4.5 — rodapé verbatim do protótipo. O custo somado é o GRAVADO (`final_total`),
+            não o recalculado do Relatório (US-MANU-002) — ver RUNBOOK-producao.md §1. Fica dentro
+            da área da lista, como o `.mfg-foot` das irmãs (margem de 10px acima). */}
+        {productions.length > 0 && (
+          <p className="mt-2.5 text-xs text-muted-foreground tabular-nums">
+            {productions.length} ordens · custo do período{' '}
+            <span className="font-medium text-foreground">{formatCurrency(custoDoPeriodo)}</span> ·
+            ordens finalizadas mostram o custo congelado na data
+          </p>
+        )}
+      </div>
 
       <OrdemDrawer ordem={aberta} detalhe={detalheAberto} onClose={() => setAberta(null)} />
     </div>
