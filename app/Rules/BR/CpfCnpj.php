@@ -2,12 +2,14 @@
 
 namespace App\Rules\BR;
 
+use App\Support\BR\Cnpj;
 use Closure;
 use Eduardokum\LaravelBoleto\Util;
 use Illuminate\Contracts\Validation\ValidationRule;
 
 /**
- * Valida CPF (11 dígitos) ou CNPJ (14 dígitos) via algoritmo mod-11 SEFAZ.
+ * Valida CPF (11 dígitos) ou CNPJ (14 posições, numérico ou alfanumérico) via mod-11.
+ * O CNPJ com letra (IN RFB 2.229/2024) é validado por `App\Support\BR\Cnpj`.
  *
  * Delega para `Eduardokum\LaravelBoleto\Util::validarCnpjCpf()` que já é
  * vendored em `lib-custom/laravel-boleto/src/Util.php:1211`. A função auto-
@@ -32,6 +34,16 @@ class CpfCnpj implements ValidationRule
 
         if (! is_string($value) && ! is_numeric($value)) {
             $fail('O campo :attribute deve ser CPF ou CNPJ válido.');
+
+            return;
+        }
+
+        // CNPJ alfanumérico (IN RFB 2.229/2024): a Util só conhece dígitos e
+        // arrancaria as letras, então o formato novo vai para o validador próprio.
+        if (Cnpj::temLetra((string) $value)) {
+            if (! Cnpj::valido((string) $value)) {
+                $fail('O campo :attribute não é um CNPJ alfanumérico válido (dígito verificador não confere).');
+            }
 
             return;
         }
