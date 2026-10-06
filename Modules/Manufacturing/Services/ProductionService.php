@@ -119,10 +119,10 @@ class ProductionService
 
     /**
      * US-MANU-004 — enriquece as linhas de `listProductions()` com o que as 8 colunas do
-     * §4.5 pedem: nome do produto, nº de ingredientes da receita, quem lançou, quantidade
+     * §4.5 pedem: nome do produto, nº de ingredientes consumidos, quem lançou, quantidade
      * produzida e custo unitário.
      *
-     * **Em LOTE, nunca por linha**: 3 queries no total (produtos, receitas, usuários),
+     * **Em LOTE, nunca por linha**: 3 queries no total (produtos, linhas consumidas, usuários),
      * independentemente de quantas ordens vierem.
      *
      * **O custo NÃO é recalculado aqui** (diferente do Relatório, US-MANU-002): a coluna
@@ -152,13 +152,20 @@ class ProductionService
                 ->get()
                 ->keyBy('id');
 
-            // (2) nº de ingredientes por variação produzida (0 quando não há receita).
-            $ingredientes = $variationIds->isEmpty() ? collect() : MfgRecipe::query()
-                ->leftJoin('mfg_recipe_ingredients as i', 'i.mfg_recipe_id', '=', 'mfg_recipes.id')
-                ->whereIn('mfg_recipes.variation_id', $variationIds)
-                ->groupBy('mfg_recipes.variation_id')
-                ->select('mfg_recipes.variation_id', DB::raw('COUNT(i.id) as total'))
-                ->pluck('total', 'variation_id');
+            // (2) nº de ingredientes CONSUMIDOS por ordem = linhas da venda de produção filha,
+            // as mesmas que o painel lista em "Ingredientes consumidos" (protótipo: o "N
+            // ingredientes" da lista é `c.linhas.length`, a lista do drawer). Antes contava os
+            // ingredientes da RECEITA ATUAL — que muda depois da ordem e divergia do painel
+            // (ordem 2024/0002: lista "2", painel e tela antiga 1). 0 quando não há venda.
+            $ordemIds = $ordens->pluck('id')->filter()->unique()->values();
+            $ingredientes = $ordemIds->isEmpty() ? collect() : DB::table('transactions as ps')
+                ->join('transaction_sell_lines as l', 'l.transaction_id', '=', 'ps.id')
+                ->where('ps.business_id', $businessId) // Tier 0
+                ->where('ps.type', 'production_sell')
+                ->whereIn('ps.mfg_parent_production_purchase_id', $ordemIds)
+                ->groupBy('ps.mfg_parent_production_purchase_id')
+                ->select('ps.mfg_parent_production_purchase_id as ordem_id', DB::raw('COUNT(l.id) as total'))
+                ->pluck('total', 'ordem_id');
 
             // (3) quem lançou.
             $usuarios = $userIds->isEmpty() ? collect() : User::query()
@@ -204,7 +211,7 @@ class ProductionService
                     'mfg_is_final' => (int) $ordem->getAttribute('mfg_is_final'),
                     'produto' => $produto?->getAttribute('product_name') ?: '—',
                     'unidade' => $produto?->getAttribute('unit_name') ?: '',
-                    'n_ingredientes' => (int) ($variationId ? ($ingredientes[$variationId] ?? 0) : 0),
+                    'n_ingredientes' => (int) ($ingredientes[$ordem->id] ?? 0),
                     'criado_por' => $usuario ? trim("{$usuario->surname} {$usuario->first_name} {$usuario->last_name}") : '',
                     // Líquida: o que entrou no estoque (o `store()` grava produzida − perdidas).
                     'quantidade' => $quantidade,
