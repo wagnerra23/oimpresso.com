@@ -226,5 +226,6 @@ jobs:
           echo ""
           echo "❌ Preflight de base ou Omissão (este job NÃO é o gate de contrato de tela)."
           echo "   - 'branch atrás' → git rebase origin/main."
-          echo "   - Omissão: símbolo/rota removido sem justificativa → justifique no corpo do PR ou restaure."
+          echo "   - Omissão: símbolo/rota removido sem justificativa → cite o nome na mensagem de um commit da branch, ou restaure."
+          echo "     (o modo lê só as mensagens de commit da branch e o --notes; o corpo do PR NÃO é lido)"
           echo "   Doc: memory/requisitos/_DesignSystem/RUNBOOK-contrato-de-tela.md"

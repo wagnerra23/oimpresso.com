@@ -125,6 +125,8 @@ Visível, rastreável, atribuído — **não** um campo "justificativa" que o r�
 
 O dano real do handoff stale é **omissão** (some um símbolo/rota/teste que o handoff nunca citou). Isso **já tem dono**: o padrão `infra-contract-required` (PR-body section + `evidence-override`). A adoção **estende o escopo desse gate** pros arquivos-alvo de design-port, em vez de criar um terceiro mecanismo. _(diff→handoff, nunca handoff→diff — inverte a fonte pra pegar o omitido.)_
 
+**Onde a justificativa é lida (medido 2026-10-06):** nas mensagens de commit da branch (`git log <base>..HEAD`) e no arquivo do `--notes`. O corpo do PR e o handoff **não são lidos**; no CI, que não passa `--notes`, a única saída é citar o nome removido numa mensagem de commit.
+
 **Ligado no CI em 2026-09-22** (advisory, step `Omissão — símbolo/rota removido sem justificativa` no `contrato-de-tela.yml`). Antes disso o modo era órfão: existia no script, no `package.json` (`contrato:omission`) e no self-test, e **nenhum workflow o chamava** — o caso que `proibicoes.md` §LIGUE A MÁQUINA item 2 chama de bug, não de neutralidade.
 
 O FP foi medido **antes** de ligar (item 4 da mesma regra). A medição original, que sustentou o [#7691](https://github.com/wagnerra23/oimpresso.com/pull/7691), dizia — e fica registrada porque cada número dela é reproduzível:

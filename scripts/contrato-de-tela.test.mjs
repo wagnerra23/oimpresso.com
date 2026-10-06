@@ -405,6 +405,40 @@ function makeGitRepo() {
   drop(root);
 }
 
+// 5b. LC-15 (2026-10-06, #8783) — a mensagem só pode prometer saída que o CLI HONRA.
+//     Antes dizia "cite no PR/handoff", mas o modo nunca leu corpo de PR nem handoff:
+//     quem obedecia seguia vermelho. Aqui cada rota anunciada é exercida pelo CLI de fora
+//     (commit → teste 6; --notes → abaixo) e a rota que não existe não pode voltar ao texto.
+{
+  const root = makeGitRepo();
+  if (git(root, ['rev-parse', 'HEAD']).status !== 0) { console.log('[SKIP] omissão LC-15 (git indisponível)'); }
+  else {
+    git(root, ['commit', '-q', '-m', 'mexe na tela sem citar nada']);
+    const semJust = node(root, ['--omission', 'HEAD~1', '--alvo', 'tela']);
+    const msg = out(semJust);
+    check('LC-15: mensagem anuncia as rotas reais (commit da branch + --notes)',
+      semJust.status === 1 && msg.includes('mensagem de um commit da branch') && msg.includes('--notes'), msg);
+    check('LC-15: mensagem NÃO promete corpo do PR/handoff (o modo não os lê)',
+      !msg.includes('PR/handoff') && !msg.includes('corpo do PR'), msg);
+    writeFileSync(join(root, 'notas.md'), 'fooBar saiu: morto desde o refactor X');
+    const comNotes = node(root, ['--omission', 'HEAD~1', '--alvo', 'tela', '--notes', 'notas.md']);
+    check('LC-15: rota --notes anunciada de fato limpa → exit 0', comNotes.status === 0, out(comNotes));
+    // controle negativo: notes que não cita o símbolo NÃO pode limpar (senão o assert acima mede o arquivo, não a citação)
+    writeFileSync(join(root, 'notas.md'), 'nada a declarar');
+    const notesVazio = node(root, ['--omission', 'HEAD~1', '--alvo', 'tela', '--notes', 'notas.md']);
+    check('LC-15 controle: --notes sem o nome continua acusando → exit 1', notesVazio.status === 1, out(notesVazio));
+  }
+  drop(root);
+}
+
+// 5c. LC-15 no consumidor CI: o diagnóstico do workflow não pode mandar justificar no corpo do PR.
+{
+  const yml = readFileSync(join(__dirname, '..', '.github', 'workflows', 'contrato-de-tela.yml'), 'utf8');
+  const linha = yml.split(String.fromCharCode(10)).find(l => l.includes('Omissão: símbolo/rota removido sem justificativa →')) || '';
+  check('LC-15: diagnóstico do workflow aponta a rota real (commit da branch)',
+    linha.includes('commit da branch') && !linha.includes('justifique no corpo do PR'), linha);
+}
+
 // 6. POSITIVO — símbolo removido COM justificativa no commit → exit 0.
 {
   const root = makeGitRepo();

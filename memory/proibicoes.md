@@ -1872,6 +1872,10 @@ Ocorrência da **LC-08**.
 
 - **O limite (variante também proibida):** instrumento que dá veredito sobre um PR não lê **configuração** (workflows, listas, baselines, allowlists) do `cwd` — lê do head do PR, a mesma árvore cujos runs ele está julgando. E, ao receber contestação de quem é dono do PR, a primeira hipótese é **o instrumento leu a árvore errada**, antes de "o autor errou". Controle de mutante vale só pelas linhas de veredito (`⛔`/`✓`); `grep -c` de uma palavra que também está no rodapé fixo mede o rodapé.
 
+### 2026-10-06 — `--omission` mandava justificar "no PR/handoff", mas só lê as mensagens de commit da branch e o `--notes`
+
+- **O limite (variante também proibida):** mensagem de erro de gate só oferece saída que o CLI honra, e cada saída anunciada tem assert que a exerce pelo CLI de fora. Quando a mensagem é repetida em outro consumidor (aqui, o passo de diagnóstico do `.yml`), os dois mudam juntos. Implementar a leitura do corpo do PR não foi a escolha: exigiria `gh`/token ou env do evento no step, e criaria um terceiro estado ("corpo indisponível") que precisa sair 2 e não verde.
+
 ## Sempre fazer
 
 - ✅ **LIGUE A MÁQUINA — máquina é sempre melhor que fazer na mão** ([W] 2026-07-26, textual: *"isso ligue as maquinas, é sempre melhor que fazer na mão. isso é regra no sistema. deve ser"*). Ordem obrigatória, nesta sequência:

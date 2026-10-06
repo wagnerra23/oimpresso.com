@@ -3141,3 +3141,12 @@ Ocorrência da **LC-13**.
 - **Evidência:** controle no mesmo PR e árvore — antigo `SEM-LANE` × novo `NAO-EXECUTADO · pendente`; `--selftest` 44/44; PR sem teste (#8751) segue `rc=0`.
 
 Ocorrência da **LC-33**.
+
+### 2026-10-06 — `--omission` mandava justificar "no PR/handoff", mas só lê as mensagens de commit da branch e o `--notes`
+
+- **O que foi tentado:** no #8783 a sessão seguiu a instrução do step advisory "Preflight de base + omissão" (`removido "X" SEM justificativa (cite no PR/handoff ou --notes)`), escreveu a justificativa no corpo do PR e continuou vermelha. O diagnóstico do workflow reforçava a mesma rota: "justifique no corpo do PR ou restaure".
+- **Por que caiu:** `checkOmission` monta a justificativa com `git log <base>..HEAD --format=%B` e o arquivo do `--notes`. Não há leitura de corpo de PR nem de handoff, e nunca houve. Duas das três rotas anunciadas não existiam, e a terceira (`--notes`) não está disponível no CI, que não passa a flag. A única saída real no CI era a mensagem de commit, e nenhuma das duas mensagens a citava.
+- **O limite (variante também proibida):** mensagem de erro de gate só oferece saída que o CLI honra, e cada saída anunciada tem assert que a exerce pelo CLI de fora. Quando a mensagem é repetida em outro consumidor (aqui, o passo de diagnóstico do `.yml`), os dois mudam juntos. Implementar a leitura do corpo do PR não foi a escolha: exigiria `gh`/token ou env do evento no step, e criaria um terceiro estado ("corpo indisponível") que precisa sair 2 e não verde.
+- **Evidência:** `contrato-de-tela.test.mjs` 54 OK; mutação que devolve o texto antigo à mensagem derruba 2 asserts (`anuncia as rotas reais`, `NÃO promete corpo do PR`), restauração conferida por hash. Rota `--notes` exercida (exit 0) com controle negativo (notes sem o nome → exit 1).
+
+Ocorrência da **LC-15**.
