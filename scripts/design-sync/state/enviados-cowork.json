@@ -1,6 +1,10 @@
 {
   "_nota": "Arquivos que o Code subiu ao Cowork (DesignSync) e que o bundle ativo ainda não trouxe de volta. Escrito por pendentes-cowork.mjs; o receber-handoff limpa o que o retorno confirmar.",
   "enviados": {
+    "cowork-inbox/fiscal/playbook/_saida-13.md": {
+      "sha256": "fa79a9a661353a439c2ec3c12726f9054bdf3b31576f42fc1071e893fa13b372",
+      "em": "2026-10-06T17:25:25.860Z"
+    },
     "cowork-inbox/tema-escuro/playbook/_saida-01.md": {
       "sha256": "481d61b9107233b96d954e6beee744ae44d6d257575bf4d31f7f7542c756e37a",
       "em": "2026-10-06T17:41:54.909Z"

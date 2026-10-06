@@ -1,0 +1,320 @@
+{
+  "aguardou_sumir": null,
+  "ausentes": [],
+  "base": {
+    "assinatura": "OI WR Apuração de comissão este mês · 3 agentes em aberto Comissionados Ver no financeiro Fechar período Usuários Funções e permissões Comissionados Apuração de comissão Base de cálculo R$ 152.800 Comissão apurada R$ 4.672 Já pago R$ 1.867 A pagar R$ 2.805 Este mês Mês anterior Trimestre Só vendas faturadas Nada disso existe no backend hoje O legado guarda só no cadastro. Para virar produção precisa de agente na venda , regra por agente (fixa/faixa/margem), fechamento por período e o título a pagar . Decisão D6 do trio. Comissionado Regra Faturado Meta Comissão Situação LS Larissa Souza 4 vendas · base R$ 40.400 2,5% % fixo sobre o faturado R$ 40.400 90% R$ 1.010,00 Em aberto Extrato BC Bruno Carvalho 2 vendas · base R$ 53.300 3% / 4% % por faixa de meta R$ 53.300 89% R$ 1.599,00 Em aberto Extrato PG Patrícia Gomes 2 vendas · base R$ 39.900 3,5% % fixo sobre o faturado R$ 39.900 80% R$ 1.396,50 Pago em 05/08 Extrato JL Joana Lima 1 venda · base R$ 9.800 2% % fixo sobre o faturado R$ 9.800 39% R$ 196,00 Em aberto Extrato RN Ricardo Neves 1 venda · base R$ 9.400 5% % sobre a margem R$ 26.700 134% R$ 470,00 Pago em 08/08 Extrato Total do período R$ 170.100 R$ 4.671,50 R$ 2.805,00 a pagar Fechar o período trava a apuração: novas vendas com data dentro dele passam a contar no período seguinte. O pagamento vira título a pagar no Financeiro — nunca baixa direto no caixa.",
+    "roles": {
+      "celulas": null,
+      "chart": null,
+      "contratos": [],
+      "filterRows": null,
+      "kpi": {
+        "count": 0,
+        "items": [],
+        "overflowX": null,
+        "tag": null
+      },
+      "primary": null,
+      "shell": null,
+      "tabela": null,
+      "title": null
+    },
+    "saude": {
+      "folhasVazias": [],
+      "nFolhas": 76,
+      "tokensMortos": []
+    },
+    "theme": "dark",
+    "url": "http://127.0.0.1:5591/"
+  },
+  "nos_totais": 636,
+  "quieto_ms": 2000,
+  "rota": "comissoes",
+  "secoes": {
+    "abas": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "proprio",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.26 0.006 240)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "flex",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "0px",
+        "padding": "0px 24px"
+      },
+      "filhos": 4,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "button",
+        "button",
+        "button",
+        "button"
+      ],
+      "rect": {
+        "h": 36,
+        "w": 1224
+      },
+      "seletor": ".main-body > .cms-page > .oi-rota-tabs",
+      "truncado": false
+    },
+    "aviso": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "os-page",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "block",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "padding": "0px"
+      },
+      "filhos": 1,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "os-page"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "acs-alert"
+      ],
+      "rect": {
+        "h": 87,
+        "w": 1176
+      },
+      "seletor": ".main-body > .cms-page > .cmi-aviso",
+      "truncado": false
+    },
+    "filtros": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "os-page",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "flex",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "14px",
+        "padding": "16px 24px"
+      },
+      "filhos": 1,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "os-page"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "usr-filters"
+      ],
+      "rect": {
+        "h": 64,
+        "w": 1224
+      },
+      "seletor": ".main-body > .cms-page > .usr-toolbar",
+      "truncado": false
+    },
+    "header": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "os-page",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "block",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "padding": "0px 24px"
+      },
+      "filhos": 1,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "os-page"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "header"
+      ],
+      "rect": {
+        "h": 80,
+        "w": 1224
+      },
+      "seletor": ".main-body > .cms-page > .oi-ph",
+      "truncado": false
+    },
+    "kpis": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "os-page",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "grid",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "12px",
+        "padding": "16px 24px 0px"
+      },
+      "filhos": 4,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "os-page"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "div",
+        "div",
+        "div",
+        "div"
+      ],
+      "rect": {
+        "h": 91,
+        "w": 1224
+      },
+      "seletor": ".main-body > .cms-page > .usr-kpis",
+      "truncado": false
+    },
+    "nota": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "os-page",
+        "razao": 5.19,
+        "texto": "oklch(0.67 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.300843
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.67 0.005 90)",
+        "display": "block",
+        "fontSize": "12px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "padding": "0px 24px 24px"
+      },
+      "filhos": 0,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "os-page"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [],
+      "rect": {
+        "h": 59,
+        "w": 662
+      },
+      "seletor": ".main-body > .cms-page > .cms-note",
+      "truncado": false
+    },
+    "tabela": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "proprio",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.26 0.006 240)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "block",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "padding": "14px 24px 20px"
+      },
+      "filhos": 1,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "os-table"
+      ],
+      "rect": {
+        "h": 438,
+        "w": 1224
+      },
+      "seletor": ".main-body > .cms-page > .os-table-wrap",
+      "truncado": false
+    }
+  },
+  "tela": "comissoes",
+  "url": "http://127.0.0.1:5591/"
+}
