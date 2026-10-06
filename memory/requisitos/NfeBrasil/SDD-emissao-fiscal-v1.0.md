@@ -367,6 +367,12 @@ Varredura contada em `Modules/NfeBrasil/Http/Controllers/TributacaoController.ph
 | `@toggleAutoEmission` | `Request` | ❌ **nenhum** | **liga a emissão automática de documento fiscal** do tenant |
 | `@aplicarTemplate` | `Request` | ❌ **nenhum** | substitui regime + `tributacao_default` inteiros |
 
+> ↳ **2026-10-06 (playbook Fiscal thread 18):** `@destroy` passou a receber
+> `DestroyRegraTributariaRequest`, com o mesmo `authorize()` do store/update — `UC-NFRF-04` ficou
+> verde (recibo no [`RegraForm.casos.md`](../../../resources/js/Pages/NfeBrasil/Tributacao/RegraForm.casos.md)).
+> A tabela acima é a varredura de 2026-07-28 e fica como estava. `@toggleAutoEmission` e
+> `@aplicarTemplate` seguem sem gate.
+
 O rota-group é `['web','auth','SetSessionData','language','timezone','AdminSidebarMenu']` — **sem**
 middleware de permissão. E o docblock da classe **afirma o contrário**: *"Permissão:
 `nfe.tributacao.manage` (FormRequest::authorize + `DataController::user_permissions`)"* — verdadeiro
