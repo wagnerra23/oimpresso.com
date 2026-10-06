@@ -7,7 +7,7 @@ module: Produto
 status: ativo
 owner: wagner
 version: "1.0.0"
-last_updated: "2026-07-27"
+last_updated: "2026-10-06"
 ---
 
 # Especificação funcional — Produto (cadastro core / catálogo do ERP)
@@ -221,6 +221,71 @@ E há zeros gravados: a UI (React **e** Blade) pré-preenche célula sem preço 
 
 **Ficou de fora, e é de outra tela.** O `+N reservado` na coluna Disponível (§6 do handoff V3) precisa da **natureza do local** (venda / bloqueado / custódia) em `business_locations`. Felipe 2026-08-24: é decisão do fluxo de estoque, responsabilidade de outra tela — não entra aqui nem vira US do Produto.
 
+### US-PROD-030 · ⚠️Tier0 · Política de preço por produto: atualizar a cada custo novo OU manter o preço
+
+> owner: wagner · priority: p2 · status: todo · type: story · estimate: 16h · origin: pedido-wagner-2026-10-06
+
+**Implementado em:** _pendente_ — não iniciada: não existe coluna nem tela para essa escolha. `products` e `variations` não têm flag de política de preço, e `ProductUtil::updateProductFromPurchase` / `RecipeController::updateRecipeProductPrices` aplicam a mesma regra para todo produto.
+
+**Casos de uso ([W] 2026-10-06, textual):** *"tem produto que deve ser sempre atualizado o preço a cada compra, ou modificação do item da composição. e tem produto que existe tabela de preço dos vendedores e o cliente não quer mudar o valor toda hora então ele escolhe manter desatualizado."*
+
+- **CU-A · Atualiza sempre.** O preço de venda acompanha o custo: a cada **compra do próprio item** ou a cada **mudança de custo de um componente** da composição/receita, o preço é recalculado mantendo a margem.
+- **CU-B · Mantém o preço.** O produto tem tabela de preço dos vendedores, e o cliente não quer o valor mudando a toda hora. O preço fica parado de propósito mesmo com custo novo, e a margem é que varia.
+
+A escolha é **por produto**, não por empresa: os dois casos convivem no mesmo cadastro.
+
+**O que existe hoje (medido em `origin/main` 2026-10-06):**
+
+| Caminho | Chave | Comportamento |
+|---|---|---|
+| Compra (`ProductUtil::createOrUpdatePurchaseLines` → `updateProductFromPurchase`) | `business.enable_editing_product_from_purchase`, **por empresa** | grava custo e preço de venda do **item comprado** com o que foi digitado na tela de compra. Não toca as receitas que usam o item. |
+| Produção finalizada (`ProductionController.php:288`) | `manufacturing_settings.enable_updating_product_price`, **por empresa** | atualiza o **custo** do produto fabricado. |
+| Botão "Atualizar preço do produto" na lista de receitas (`RecipeController::updateRecipeProductPrices`) | manual | grava o custo da receita como custo do produto e **mantém o preço de venda** (margem flutua). |
+
+O custo da receita já acompanha o insumo, porque é recalculado na leitura. O **preço de venda** do produto composto nunca muda sozinho. Ou seja: o oimpresso implementa **só o CU-B**, e para todos os produtos.
+
+**Paridade com o legado (Delphi / Office Comercial):** o CU-A × CU-B é a flag `PRODUTO.TEM_MARGEM_FIXA_CONTIBUICAO` (`S` = mantém margem e sobe o preço · `N` = mantém o preço), com `PODE_ATUALIZAR_VALORES_VENDA` no produto e na linha da nota de entrada (`NF_ENTRADA_PRODUTOS`). Numa base real de oficina medida em 2026-07-15: **83,8% `N` · 8,2% `S` · 8,0% `NULL`** ([ANTI-REGRESSAO A-1](ANTI-REGRESSAO-cadastro-produto-legacy.md)). Migrar como está **quebra em silêncio** quem depende do `S`.
+
+**Perguntas para [W] — respostas de 2026-10-06:**
+
+1. **Default** de produto novo e de produto migrado sem valor (`NULL`) — **mantém o preço** ([W] aceitou a sugestão da pesquisa). Produtos `S` do legado migram como *atualiza*. Medir a flag numa base de cliente CV antes de ligar a migração.
+2. No CU-A, as **tabelas de preço dos vendedores** (`SellingPriceGroup` / `variation_group_prices`) também acompanham? — **a política é por tabela** ([W] aceitou a sugestão): tabela em % sobre o preço base acompanha o preço; tabela de valor fixo nunca muda sozinha e dispara o aviso da pergunta 3. Pareia com US-PROD-022 (multiplicador por tabela). Nota: no legado a flag também existe **por tabela** (`PRODUTO_TABELA_PRECO.TEM_MARGEM_FIXA_CONTIBUICAO`).
+3. No CU-B, avisar que o produto está desatualizado? — **sim, na receita** ([W]). A receita mostra que o custo subiu e a margem caiu, com o antes e o depois.
+4. Composição em mais de um nível propaga até o produto final no CU-A? — **sim** ([W]).
+5. O CU-A recalcula na hora ou vira pendência? — **os dois casos existem** ([W]): há produto que recalcula **na hora** (no lançamento da compra ou na alteração do componente) e há produto em que o preço novo vira **pendência que alguém confirma**. Proposta, a confirmar com [W]: a política por produto passa a ter três valores — *atualiza na hora* · *atualiza com confirmação* · *mantém o preço* (CU-B). Na confirmação, a pendência aparece na receita, no mesmo lugar do aviso da pergunta 3.
+
+**Referência de mercado (pesquisa 2026-10-06 — evidência, não contrato):** nenhum ERP de comunicação visual documenta essas regras em público (Mubisys, Zênite, Calcgraf, Visua e Sisgraf: não documentado). O padrão documentado nos ERPs genéricos é que **o custo sobe sozinho e o preço novo é decisão de alguém**.
+
+| Pergunta | Mercado (fato documentado) | Legado WR Comercial | Premissa vale aqui? |
+|---|---|---|---|
+| 1 · Default | Tablet Cloud: reajuste por markup **desligado por padrão**, e a ajuda dele diz que não serve a quem tem preço impresso ([fonte](https://ajuda.tabletcloud.com.br/retaguarda/produtos/atualizacao-automatica-de-preco-de-venda-por-custo-markup)). Varredura anterior (8 BR + 9 globais): nenhum propaga custo→preço por default ([ANTI-REGRESSAO A-1](ANTI-REGRESSAO-cadastro-produto-legacy.md)) | `TEM_MARGEM_FIXA_CONTIBUICAO` default `S` no código, mas **83,8% `N`** numa base de oficina; **nunca medido em cliente de CV** | sim, para item de catálogo (vinil em rolo, tabela por m² da loja). Item sob encomenda já é precificado no orçamento, com o custo atual |
+| 2 · Tabelas | Alterdata: tabela como **fator sobre outra tabela**, recalcula sozinha quando a origem muda; também aceita valor fixo ([fonte](https://ajuda.alterdata.com.br/retaguarda/cadastro-geral-retaguarda/tabelas-de-precos-retaguarda)). Odoo: tabela pode ser fórmula sobre o custo ([fonte](https://www.odoo.com/documentation/18.0/applications/sales/sales/products_prices/prices/pricing.html)) | a mesma flag **por par produto×tabela** em `PRODUTO_TABELA_PRECO` (com valor, % desconto, % acréscimo), e cópia por tabela na nota de entrada | sim: tabela de vendedor impressa ou combinada com cliente pede política própria |
+| 3 · Aviso | Tablet Cloud: acima de um teto %, **alerta** em vez de aplicar. Avanço: "Preço de Venda Sugerido" a partir da nota de entrada. Aviso dentro da ficha técnica: não documentado | preço sugerido (`CALC_VVENDA_SUGERIDO`) guardado separado do praticado (`VALOR_VENDA`) | sim — e reforça a decisão de mostrar na receita |
+| 4 · Vários níveis | Odoo: recálculo pela BOM é **manual** por produto ([fonte](https://odoo.com/forum/help-1/automated-action-compute-price-from-bom-when-bom-is-changed-194756)). Business Central: "Roll Up Standard Cost" percorre todos os níveis, mas **só gera sugestão** até alguém aplicar ([fonte](https://learn.microsoft.com/en-us/previous-versions/dynamicsnav-2016/hh172114(v=nav.90))) | botão manual **"Atualizar Preços"** na composição (AR-PROD-161); a propagação automática está **comentada no código**, com a nota *"AQUI DEVE PERGUNTAR SE MANTEM O CALCULO"* | a decisão de [W] (propagar em todos os níveis) vai além do mercado; é segura para o **custo**, e o cuidado fica no **preço** |
+| 5 · Quando aplica | Linx: tela que altera custo, markup e preço **a partir da nota de entrada**. Nenhum sistema documenta "na hora × com confirmação" escolhido **por produto** | `PODE_ATUALIZAR_VALORES_VENDA` no produto **e por linha da nota de entrada** (quem lança a compra decide item a item) | sim; o legado é o que mais se aproxima dos dois casos de [W] |
+
+**Sugestões que saem da pesquisa — aceitas por [W] em 2026-10-06 e incorporadas ao aceite abaixo:**
+- 1 · default *mantém o preço* para produto novo e migrado `NULL`; produtos `S` do legado migram como *atualiza*. Medir a flag numa base de cliente CV antes de cravar.
+- 2 · política **por tabela**, como no legado: tabela em % sobre o preço base acompanha o preço; tabela de valor fixo nunca muda sozinha e dispara o aviso da pergunta 3.
+- 3 · mostrar também o preço sugerido ao lado do praticado, e repetir o aviso na linha do item na tela de compra.
+- 4 · proteger contra ciclo na composição e registrar cada alteração de preço propagada.
+- 5 · opção por linha da compra para recusar o reajuste naquela nota (paridade `NF_ENTRADA_PRODUTOS`); teto % com alerta contra nota digitada errada.
+
+**Aceite:**
+
+- [ ] Campo de política por produto, visível no cadastro, e importado do legado a partir de `TEM_MARGEM_FIXA_CONTIBUICAO`.
+- [ ] CU-A: compra do item e mudança de custo de componente recalculam o preço mantendo a margem, **na hora** ou **como pendência confirmada** conforme o produto, propagando por todos os níveis da composição. CU-B: preço intocado nos dois gatilhos.
+- [ ] CU-B: a receita mostra o aviso de desatualizado (custo antes→depois, margem antes→depois) e o **preço sugerido ao lado do praticado**; o mesmo aviso aparece na linha do item na tela de compra.
+- [ ] Default *mantém o preço* para produto novo e migrado `NULL`; `S` do legado migra como *atualiza* — depois de medir a flag numa base de cliente CV.
+- [ ] Política **por tabela de preço**: % sobre o preço base acompanha; valor fixo nunca muda sozinho e gera o aviso.
+- [ ] Na compra, opção por linha para **recusar o reajuste** daquela nota; **teto %** de reajuste acima do qual vira alerta em vez de aplicar.
+- [ ] Propagação multinível protegida contra **ciclo** na composição, com registro de cada alteração de preço propagada.
+- [ ] Teste de contrato dos dois modos nos dois gatilhos (compra × composição), no tenant de teste 98.
+- [ ] **REGRA MESTRE** ([proibicoes.md](../../proibicoes.md)): dupla confirmação do cálculo + tabela antes→depois dos produtos afetados + aprovação [W] antes de ligar em produção.
+- [ ] Multi-tenant Tier 0 ([ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md)): a propagação de componente para composto não atravessa `business_id`.
+
+**Relação com a Fabricação:** independe da correção da janela "Nova receita" (a proposta em análise é a cópia de receita **não** levar o preço de venda). Esta US é o recurso que falta para o preço do composto acompanhar o custo quando o produto pede isso.
+
 
 ## 4. Backlog fora do batch (sem sinal ainda — ADR 0105)
 
@@ -240,6 +305,7 @@ Viram US quando houver cliente/sinal ou drift de métrica:
 
 ## 6. Histórico
 
+- **2026-10-06** — US-PROD-030 registrada: política de preço por produto (atualiza a cada custo novo × mantém o preço), a partir dos dois casos de uso descritos por [W]. Estado atual e paridade com o legado medidos em `origin/main`; 5 perguntas abertas para [W] antes de codar; no mesmo dia [W] respondeu 3 (aviso na receita · propaga em todos os níveis · recalcula na hora OU com confirmação, conforme o produto), e aceitou as sugestões da pesquisa de mercado (1, 2 e os complementos). [W+C]
 - **2026-09-21** — **Reconciliação US-PROD-023 ↔ US-PROD-029 + decisão [W] sobre a navegação.** [W] textual: *"sim, entra na navegação — aplica as duas linhas e a reconciliação"*. **(a)** A 023 passa a ser **6 telas** e a 029 ganha `Create`/`Edit`: o critério é **qual writer a tela toca** — medido submit por submit, só 2 das 8 encostam no `store()`/`update()` compartilhado com a Larissa. **(b)** O `blocked_by: US-PROD-023` saiu da 029: ele contradizia o corpo dela, que declara mudar o desenho da 023 (fazer a 023 antes produziria o trabalho que a 029 descarta). **(c)** O `can:product.view` saiu do aceite da 023 — medição mostrou que o gate **já existe** no controller (`:139`, `view` OU `create`, com `UC-PUNI-06` + teste) e que o middleware seria **regressão**; o `TODO` do código **foi corrigido em vez de cumprido** ([#7583](https://github.com/wagnerra23/oimpresso.com/pull/7583), mergeado 2026-09-21). **(d)** Origem do trabalho: o chip do [#7522](https://github.com/wagnerra23/oimpresso.com/pull/7522) pedia decisão sobre o limbo das telas React, com o enquadramento *"são inalcançáveis"*. **Medido e corrigido:** são **não-linkadas**, não inalcançáveis — `/products/unificado` faz `Inertia::render` incondicional, e de lá `router.visit` alcança `Create`/`Edit` **com** header. Detalhe, recibos e a errata do que eu publiquei errado na [proposal 2026-09-21](../../decisions/proposals/2026-09-21-produto-8-telas-react-limbo-decisao-w.md). [CC]
 - **2026-08-24** — US-PROD-029 registrada: o cadastro de produto ganha rota paralela, decisão de Felipe, execução adiada para sessão própria. Origem: ao fechar as divergências §15 do pacote V3 na Consulta ([PR #6184](https://github.com/wagnerra23/oimpresso.com/pull/6184)), duas do handoff ficaram sem como ser feitas por falta de campo no cadastro. A investigação mediu que a separação Blade↔React é por header `X-Inertia` e que `store()`/`update()` são compartilhados com o caminho da Larissa — daí a rota paralela. O `+N reservado` foi declarado fora do módulo (fluxo de estoque). [M+C]
 - **2026-07-27** — Campo `**Implementado em:**` declarado nas 8 US que não o tinham (anchor coverage do módulo 11,1% → 100%). Estado verificado US a US contra o código em `b6b5fac`, não presumido — **8 `_pendente_`**, cada uma com a evidência da não-implementação na razão. Duas delas (US-020 e US-021) têm **código pré-existente entregue por fora da US** (os `casos.md`+testes das corridas `sdd-from-source`; o `movements` por `Inertia::defer` do PR #4658) — isso está **dito na razão**, não convertido em `_parcial_`: pela [ADR 0302](../../decisions/0302-fonte-unica-doneness-anchor-aposenta-status-spec.md), US com `status:` aberto e âncora `parcial` é conflito, e a US em si continua aberta. O 1º parágrafo do "Por quê" da US-021 estava superado pelo #4658 e foi corrigido no mesmo PR (regra de precedência — código provado > SPEC). [CC]
