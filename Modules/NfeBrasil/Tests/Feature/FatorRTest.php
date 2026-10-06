@@ -17,7 +17,7 @@ uses(Tests\TestCase::class);
  * Números do aceite = bateria C26/C27 do protótipo (`fiscal-tributacao.jsx`,
  * `trFatorR`). Tenant 98 (ADR 0358) · 99 como adversário cross-tenant.
  *
- * O bloco de `apurar()` cria o schema mínimo de `transactions` quando roda no
+ * O bloco de `apurar()` cria (sem DROP) o schema mínimo de `transactions` quando roda no
  * lane sqlite :memory: (modules-pest). No MySQL a tabela real exige
  * location/created_by/contact — o bloco declara o skip com o motivo e as
  * asserções puras seguem rodando.
@@ -81,15 +81,18 @@ describe('apurar() lê transactions do próprio tenant', function () {
             $this->markTestSkipped('MySQL: transactions real exige location/contact/created_by; o cálculo puro acima roda nos dois lanes.');
         }
 
-        Schema::dropIfExists('transactions');
-        Schema::create('transactions', function ($t) {
-            $t->id();
-            $t->unsignedInteger('business_id')->index();
-            $t->string('type');
-            $t->string('status');
-            $t->dateTime('transaction_date');
-            $t->decimal('final_total', 22, 4)->default(0);
-        });
+        // Sem DROP: no :memory: cada teste nasce com o banco vazio, então só cria.
+        // (DROP de tabela compartilhada é o que o auditor sqlite-test-corruptors conta.)
+        if (! Schema::hasTable('transactions')) {
+            Schema::create('transactions', function ($t) {
+                $t->id();
+                $t->unsignedInteger('business_id')->index();
+                $t->string('type');
+                $t->string('status');
+                $t->dateTime('transaction_date');
+                $t->decimal('final_total', 22, 4)->default(0);
+            });
+        }
 
         $linha = fn (int $biz, string $type, string $data, float $total, string $status = 'final') => DB::table('transactions')->insert([
             'business_id' => $biz, 'type' => $type, 'status' => $status,

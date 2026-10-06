@@ -56,6 +56,9 @@ final class FatorRService
     private const LIMITE_NUMERADOR = 28;
     private const LIMITE_DENOMINADOR = 100;
 
+    /** Status de transação finalizada no core (UltimatePOS `transactions`), não vocabulário fiscal. */
+    private const TRANSACAO_FINAL = 'final';
+
     public const PENDENCIA_ABAIXO = 'Fator R abaixo de 28%';
     public const PENDENCIA_ACIMA = 'Fator R atingiu 28%';
 
@@ -74,8 +77,8 @@ final class FatorRService
 
         if ($receitaCent <= 0) {
             return [
-                'folha' => $folhaCent / 100,
-                'receita' => $receitaCent / 100,
+                'folha' => $folhaCent / 100.0,
+                'receita' => $receitaCent / 100.0,
                 'razao' => null,
                 'anexo' => null,
                 'sem_dado' => true,
@@ -89,8 +92,8 @@ final class FatorRService
             : 'V';
 
         return [
-            'folha' => $folhaCent / 100,
-            'receita' => $receitaCent / 100,
+            'folha' => $folhaCent / 100.0,
+            'receita' => $receitaCent / 100.0,
             'razao' => round($folhaCent / $receitaCent, 4),
             'anexo' => $anexo,
             'sem_dado' => false,
@@ -140,7 +143,7 @@ final class FatorRService
         $soma = fn (string $tipo): float => (float) DB::table('transactions')
             ->where('business_id', $businessId)
             ->where('type', $tipo)
-            ->where('status', 'final')
+            ->where('status', self::TRANSACAO_FINAL)
             ->where('transaction_date', '>=', $de->toDateString().' 00:00:00')
             ->where('transaction_date', '<', $inicioCompetencia->toDateString().' 00:00:00')
             ->sum('final_total');
