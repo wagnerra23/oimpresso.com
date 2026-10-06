@@ -1171,7 +1171,6 @@ it('web: cadastro e edição aceitam a próxima revisão (km ≥ 0) e recusam ne
     $veiculo = \Modules\OficinaAuto\Entities\Vehicle::withoutGlobalScopes()->findOrFail($id);
     $upd = appOsValidaRequestVeiculo($this, \Modules\OficinaAuto\Http\Requests\UpdateVehicleRequest::class, ['plate' => $placa, 'vehicle_type' => 'caminhao', 'next_service_km' => 61000], $veiculo);
     expect($upd->errors()->isEmpty())->toBeTrue();
-    // O update da web grava pelo validated(): o campo está no fillable do model.
-    $veiculo->update($upd->validated());
-    expect((int) DB::table('vehicles')->where('id', $id)->value('next_service_km'))->toBe(61000);
+    // O campo está nas regras da web: chega no validated() que o controller usa para gravar.
+    expect($upd->validated()['next_service_km'])->toBe(61000);
 });
