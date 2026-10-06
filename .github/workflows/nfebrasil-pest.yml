@@ -240,6 +240,10 @@ jobs:
         #   33969895189 (main, 2026-09-05) = 317 passed / 978 assertions, 0 mencao aos 3.
         #   DfeController constava em 2026-09-01 como BadMethodCallException no andaime:
         #   se voltar vermelho aqui, e ACHADO — nao afrouxar o teste nem tirar da lista.
+        # + TributacaoGatesContratoTest (2026-10-06, playbook Fiscal thread 18): gates de
+        #   permissão e fronteira de tenant da tributação (UC-NFRF-01..04 · UC-NFIM-01..04).
+        #   Ficou fora da lista desde 2026-07-28 porque UC-NFRF-04 e UC-NFIM-04 nasceram
+        #   vermelhos por desenho; o NFRF-04 fecha na thread 18 e o NFIM-04 na thread 19 (#8827).
         env:
           DB_CONNECTION: mysql
           DB_HOST: 127.0.0.1
@@ -292,7 +296,8 @@ jobs:
             Modules/Fiscal/Tests/Feature/SpedMotorTributarioIntegrationTest.php \
             Modules/Fiscal/Tests/Feature/DfeControllerTest.php \
             Modules/Fiscal/Tests/Feature/AcoesDfeLoteTest.php \
-            Modules/Fiscal/Tests/Feature/AcoesDfeManifestacaoTest.php
+            Modules/Fiscal/Tests/Feature/AcoesDfeManifestacaoTest.php \
+            Modules/NfeBrasil/Tests/Feature/TributacaoGatesContratoTest.php
 
 
       # Passo 1 do plano da LC-13 (Gate:): a lane JA emitia JUnit e NINGUEM lia.
