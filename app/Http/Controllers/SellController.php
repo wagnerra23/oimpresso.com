@@ -3344,10 +3344,19 @@ class SellController extends Controller
                 'permissions' => [
                     'view_all' => auth()->user()->can('quotation.view_all'),
                     'view_own' => auth()->user()->can('quotation.view_own'),
+                    // Q3 venda-menu: mesma condição do item "Converter em fatura" do Blade
+                    // (getDraftDatables) — permissão E a flag `enable_convert_draft_to_invoice`,
+                    // que nasce false em config/constants.php. React não faz mais que o Blade.
+                    'convert' => (auth()->user()->can('sell.create') || auth()->user()->can('direct_sell.access'))
+                        && (bool) config('constants.enable_convert_draft_to_invoice'),
                 ],
                 'urls' => [
-                    'datatable' => '/sells/quotations?is_quotation=1',
+                    // Era '/sells/quotations?is_quotation=1' — cai neste mesmo método, sem ramo
+                    // AJAX, e devolvia o HTML do Blade: a lista React saía sempre vazia.
+                    // O Blade lista por /sells/draft-dt (quotations.blade.php).
+                    'datatable' => '/sells/draft-dt?is_quotation=1',
                     'back' => '/sells',
+                    'convert' => '/sells/convert-to-draft/{id}',
                 ],
             ]);
         }
@@ -3571,6 +3580,9 @@ class SellController extends Controller
                             return '';
                         }
                     }, ])
+                // Q3 venda-menu: a Page Sells/Quotations lê o id da linha (removeColumn('id')
+                // acima o tira do JSON). DT_RowId devolve o id sem mudar as colunas do Blade.
+                ->setRowId('id')
                 ->rawColumns(['action', 'invoice_no', 'transaction_date', 'conatct_name'])
                 ->make(true);
         }

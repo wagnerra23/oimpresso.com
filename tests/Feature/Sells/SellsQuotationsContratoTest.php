@@ -183,7 +183,8 @@ it('UC-QUO-01 a tela abre com quotation.view_own e é negada (403) sem nenhuma d
     $resp->assertOk();
     $page = json_decode($resp->getContent(), true);
     expect($page['component'] ?? null)->toBe('Sells/Quotations');
-    expect($page['props']['permissions'])->toBe(['view_all' => false, 'view_own' => true]);
+    // 'convert' (Q3, #8843): permissão de venda E a flag enable_convert_draft_to_invoice (false no repo).
+    expect($page['props']['permissions'])->toBe(['view_all' => false, 'view_own' => true, 'convert' => false]);
 
     quoLogin($this, quoUsuario($this->bizId, ['access_all_locations']));
     quoPagina($this)->assertStatus(403);

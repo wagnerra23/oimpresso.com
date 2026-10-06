@@ -3066,6 +3066,17 @@ class SellPosController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
+        // UC-QUO-04 (Q3 venda-menu): a 2ª conversão da mesma cotação responde 409 em vez
+        // de 404 — a venda existe no business, só não é mais rascunho. Fica FORA do try
+        // de propósito: dentro dele o abort viraria "algo deu errado" quando o catch
+        // abaixo voltar a casar. Estoque não baixa de novo (o findOrFail segue exigindo draft).
+        $status_atual = Transaction::where('business_id', request()->session()->get('user.business_id'))
+            ->whereKey($id)
+            ->value('status');
+        if ($status_atual !== null && $status_atual !== 'draft') {
+            abort(409, 'Esta cotação já foi convertida em venda.');
+        }
+
         try {
             $business_id = request()->session()->get('user.business_id');
 
