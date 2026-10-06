@@ -12,11 +12,21 @@
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Deferred, Head, Link, router } from '@inertiajs/react';
 import { useCallback, useEffect, useState, type ReactNode } from 'react';
-import { ArrowLeft, FileText, Plus, Search, Send } from 'lucide-react';
+import { ArrowLeft, FileText, Plus, RefreshCw, Search, Send } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import KpiCard from '@/Components/shared/KpiCard';
 import EmptyState from '@/Components/shared/EmptyState';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/Components/ui/alert-dialog';
 
 interface QuoteRow {
   id: number;
@@ -36,8 +46,9 @@ export interface SellsQuotationsPageProps {
     customers?: Record<number, string>;
     salesRepresentative: Record<number, string>;
   };
-  permissions: { view_all: boolean; view_own: boolean };
-  urls: { datatable: string; back: string };
+  // convert = permissão de venda E a flag enable_convert_draft_to_invoice (mesma condição do Blade).
+  permissions: { view_all: boolean; view_own: boolean; convert: boolean };
+  urls: { datatable: string; back: string; convert: string };
 }
 
 function formatDateTime(input: string): string {
@@ -52,7 +63,18 @@ function formatDateTime(input: string): string {
 }
 
 export default function SellsQuotations(props: SellsQuotationsPageProps) {
-  const { kpis, urls } = props;
+  const { kpis, urls, permissions } = props;
+  // Q3: cotação escolhida para converter (abre a confirmação) e trava contra clique duplo.
+  const [converter, setConverter] = useState<QuoteRow | null>(null);
+  const [convertendo, setConvertendo] = useState<boolean>(false);
+
+  // Converter reusa SellPosController@convertToInvoice pela MESMA URL do Blade, em navegação
+  // comum (como o app.js do Blade faz): baixa estoque e vira venda final no servidor.
+  const confirmarConversao = () => {
+    if (!converter || convertendo) return;
+    setConvertendo(true);
+    window.location.assign(urls.convert.replace('{id}', String(converter.id)));
+  };
   const [rows, setRows] = useState<QuoteRow[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [search, setSearch] = useState<string>('');
@@ -234,6 +256,12 @@ export default function SellsQuotations(props: SellsQuotationsPageProps) {
                             Enviar
                           </a>
                         </Button>
+                        {permissions.convert && (
+                          <Button variant="outline" size="sm" onClick={() => setConverter(r)}>
+                            <RefreshCw className="h-3 w-3 mr-1" />
+                            Converter em venda
+                          </Button>
+                        )}
                       </div>
                     </td>
                   </tr>
@@ -242,6 +270,24 @@ export default function SellsQuotations(props: SellsQuotationsPageProps) {
             </table>
           )}
         </section>
+
+        <AlertDialog open={converter !== null} onOpenChange={(open) => { if (!open && !convertendo) setConverter(null); }}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Converter a cotação {converter?.invoice_no} em venda?</AlertDialogTitle>
+              <AlertDialogDescription>
+                A venda é criada com os mesmos itens e preços e o estoque é baixado agora.
+                A cotação sai desta lista.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={convertendo}>Cancelar</AlertDialogCancel>
+              <AlertDialogAction onClick={confirmarConversao} disabled={convertendo}>
+                {convertendo ? 'Convertendo…' : 'Converter'}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
 
         <Deferred data="customers" fallback={null}>
           <></>
