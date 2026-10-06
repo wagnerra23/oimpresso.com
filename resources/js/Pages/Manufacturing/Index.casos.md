@@ -165,6 +165,7 @@ last_run: "2026-10-06"
   receita (contar pela receita daria 0) e grava 2 linhas; confere à mão e contra o `detalheOrdem`.
 - **Regressão que defende:** voltar a contar os ingredientes da receita atual, que mudam depois
   da ordem e desencontram a lista do painel.
+- **Status: 🧪**
 
 ---
 
