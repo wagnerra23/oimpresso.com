@@ -220,6 +220,25 @@ seguinte: mesma forma do protótipo e vão de 10px (o do `.mfg-kpis`). Na mesma 
 #8715 conferem: datas 150×36 com canto 8px, Local 180×34 com canto 8px e texto 13px, e "Só finalizadas"
 na cor do `--text`.
 
+**Depois do deploy do #8745 (2026-10-06 01:48 UTC, mesma medição):** os 4 cartões medem **105px**, igual à
+Receitas; "Total", "Pendentes" e "Valor total" sem ícone; "Finalizadas" é o cartão-filtro com ícone, e o
+clique liga `?is_final=1` (marca o "Só finalizadas", lista de 2 para 1 ordem) e desliga de volta. Vão de 10px.
+
+**Painel lateral da ordem depois do deploy do #8743 (2026-10-06 11:44 UTC, empresa 1, antes do deploy do
+#8761):** o clique na linha abre o painel com 680px e põe `?ordem=<id>` na URL. Comparado com o detalhe da
+tela antiga (`/manufacturing/production/<id>`), sem os valores (regra BRL):
+
+| ordem | ingredientes (linhas, quantidade, preço de hoje) | total |
+|---|---|---|
+| 2021/0001 (finalizada) | iguais à tela antiga (1 linha, quantidade zero) | igual: total, congelado e variação zerados nos dois |
+| 2024/0002 (rascunho) | iguais à tela antiga (1 linha, 1 UN) | **diferente**: o painel mostra ingredientes + extra (extra zero); a tela antiga mostra o `final_total` gravado, que é **o dobro** |
+
+A diferença do rascunho não é erro do painel: ele soma ingredientes a preço de hoje + extra, como o protótipo,
+e no rascunho não mostra o valor gravado. O `final_total` gravado é o que a **lista** mostra na coluna "Custo
+total" e soma no indicador "Valor total". O protótipo mostra o rascunho a preço de hoje também na lista (o
+indicador diz *"rascunho a preço de hoje"*). Resultado em produção: a mesma ordem aparece com um total na lista
+e com a metade dele no painel. Mudar a lista é mudança de valor exibido — fica para decisão [W].
+
 ## Cobertura desta tela hoje
 
 | camada | estado |
