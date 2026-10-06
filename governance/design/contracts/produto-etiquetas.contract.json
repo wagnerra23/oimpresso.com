@@ -1,0 +1,7 @@
+{"tela":"Produto/Etiquetas","fonte":"prototipo-ui/cowork/Wagner/produto-acoes.jsx","alvo":["resources/js/Pages/Produto/Etiquetas"],"alvo_medido":"governance/design/targets/produto--etiquetas--index.alvo.json",
+ "_recorte":"Copiado sem mudança de copy do _saida-07 do playbook Produto (thread 07, bloqueada pela lei 'contrato só entra com a Page'). Entra no PR da thread 04 junto com a Page.",
+ "secoes":[{"id":"produto-etiquetas-header","copy":[]},
+  {"id":"produto-etiquetas-produtos","copy":["Produtos para etiquetar","Buscar produto","Digite o nome do produto para imprimir etiquetas","Nenhum produto na folha"]},
+  {"id":"produto-etiquetas-campos","copy":["Informações na etiqueta","Modelo de etiqueta","Preço a imprimir","Corpo (pt)"]},
+  {"id":"produto-etiquetas-previa","copy":["Prévia da folha","Sem produtos na lista — nada a imprimir."]}],
+ "ordem":["produto-etiquetas-header","produto-etiquetas-produtos","produto-etiquetas-campos","produto-etiquetas-previa"]}
