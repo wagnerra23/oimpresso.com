@@ -103,6 +103,16 @@
       ]
     },
     {
+      "tela": "Cliente/Grupos/Index",
+      "arquivo": "resources/js/Pages/Cliente/Grupos/Index.tsx",
+      "modulo": "core",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/Wagner/cliente-grupos.jsx",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
       "tela": "Discount/Index",
       "arquivo": "resources/js/Pages/Discount/Index.tsx",
       "modulo": "core",
@@ -253,6 +263,16 @@
       ]
     },
     {
+      "tela": "Produto/Etiquetas/Index",
+      "arquivo": "resources/js/Pages/Produto/Etiquetas/Index.tsx",
+      "modulo": "core",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/Wagner/produto-acoes.jsx",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
       "tela": "Produto/Importacao/Index",
       "arquivo": "resources/js/Pages/Produto/Importacao/Index.tsx",
       "modulo": "core",
@@ -363,5 +383,5 @@
       ]
     }
   ],
-  "total": 117
+  "total": 119
 }
