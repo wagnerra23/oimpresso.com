@@ -29,6 +29,8 @@
 //                             nos arquivos-alvo; todo símbolo/rota/teste REMOVIDO que não for citado na
 //                             justificativa (commits da branch + --notes <arquivo>) = FALHA.
 //                             Inverte a fonte: diff→handoff, nunca handoff→diff.
+//                             ⚠️ NÃO lê o corpo do PR nem o handoff (2026-10-06, #8783): a
+//                             mensagem antes mandava citar lá, e quem obedecia seguia vermelho.
 //   --check-symbol-res        Invariante da Catraca 3 (C4): toda família de SYMBOL_RES casa a linha
 //                             "-" e a "+" com o MESMO símbolo (senão o C1 fica inerte pra ela).
 //                             Também roda no início de todo --omission, que se recusa a seguir.
@@ -547,7 +549,7 @@ function checkOmission(base = 'origin/main', alvos, notesFile) {
     if (!SYMBOL_RES.find(s => s.fam === fam).acusa) {
       warn(`removido "${sym}" (${fam}) — detectado, família não acusa`); mudos++; continue;
     }
-    err(`removido "${sym}" SEM justificativa (cite no PR/handoff ou --notes)`); fail++;
+    err(`removido "${sym}" SEM justificativa (cite o nome na mensagem de um commit da branch ou passe --notes <arquivo>)`); fail++;
   }
   if (mudos) log(`  (${mudos} detecção(ões) de família que não acusa — ver SYMBOL_RES, C2)`);
   return fail;
