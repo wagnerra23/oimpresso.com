@@ -1,0 +1,25 @@
+{
+  "_": "A1 [CL] 2026-10-06 — playbook telas-soltas. Rota `cobranca` do espelho (app.jsx), âncora Financeiro/Cobranca/Index → pg-cobranca-page.jsx (ancora.mjs); rota cobranca monta CobrancaPage de pg-shell-adapters.jsx, que embrulha PG_CobrancaPage. Tema dark (default do espelho), viewport 1280x900.",
+  "_mapa": "alvo:mapa --rota cobranca --raiz '.pg-shell-scope > *', 2026-10-06: header · nav.ph-nav · div.px-6.pt-5 · div.grid-cols-4 · div.pb-2 · div.pb-3 · div.overflow-auto (Tailwind, seletores posicionais)",
+  "header": {
+    "seletor": ".pg-shell-scope > div > header"
+  },
+  "nav": {
+    "seletor": ".pg-shell-scope > div > nav.ph-nav"
+  },
+  "bloco_3": {
+    "seletor": ".pg-shell-scope > div > :nth-child(3)"
+  },
+  "kpis": {
+    "seletor": ".pg-shell-scope > div > :nth-child(4)"
+  },
+  "bloco_5": {
+    "seletor": ".pg-shell-scope > div > :nth-child(5)"
+  },
+  "filtros": {
+    "seletor": ".pg-shell-scope > div > :nth-child(6)"
+  },
+  "lista": {
+    "seletor": ".pg-shell-scope > div > :nth-child(7)"
+  }
+}
