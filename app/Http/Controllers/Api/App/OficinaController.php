@@ -142,6 +142,7 @@ class OficinaController extends Controller
             'mileage_at_service' => ['nullable', 'integer', 'min:0'],
             'box_label' => ['nullable', 'string', 'max:60'],
             'notes' => ['nullable', 'string', 'max:2000'],
+            'agendamento_id' => ['nullable', 'integer'],
         ], [
             'vehicle_id.required' => 'Escolha o veículo.',
             'mileage_at_service.min' => 'O km não pode ser negativo.',
@@ -158,19 +159,57 @@ class OficinaController extends Controller
             ->where('business_id', $bizId)->where('id', (int) $request->input('contact_id'))->exists()) {
             $campos['contact_id'] = 'Cliente não encontrado.';
         }
+        // Agenda de revisão (decisão [W] 2026-10-06): "Abrir OS" a partir de um agendamento
+        // AGENDADO deste business e do mesmo veículo. Outra empresa = "não encontrado".
+        $agendamentoId = $request->filled('agendamento_id') && ! isset($campos['agendamento_id'])
+            ? (int) $request->input('agendamento_id') : null;
+        if ($agendamentoId !== null) {
+            $erro = $this->agendamentoInvalido($bizId, $agendamentoId, (int) $request->input('vehicle_id'));
+            if ($erro !== null) {
+                $campos['agendamento_id'] = $erro;
+            }
+        }
         if ($campos !== []) {
             return response()->json(['erro' => 'validacao', 'campos' => $campos], 422);
         }
 
         $d = $v->validated();
         $texto = fn (?string $s) => is_string($s) && trim($s) !== '' ? trim($s) : null;
-        $id = app(AcoesOs::class)->criar($user, $bizId, [
+        $dados = [
             'vehicle_id' => (int) $d['vehicle_id'],
             'contact_id' => isset($d['contact_id']) ? (int) $d['contact_id'] : null,
             'mileage_at_service' => isset($d['mileage_at_service']) ? (int) $d['mileage_at_service'] : null,
             'box_label' => $texto($d['box_label'] ?? null),
             'notes' => $texto($d['notes'] ?? null),
-        ]);
+        ];
+        try {
+            // Mesma transação: a OS só existe se o agendamento virou `atendido` (e vice-versa).
+            // Tipado pelo contrato (?int): sem o módulo, criar() devolve null e nada é marcado.
+            /** @var AcoesOs $acoes */
+            $acoes = app(AcoesOs::class);
+            $id = DB::transaction(function () use ($acoes, $user, $bizId, $dados, $agendamentoId) {
+                $id = $acoes->criar($user, $bizId, $dados);
+                if ($id !== null && $agendamentoId !== null) {
+                    $marcados = DB::table('oficina_agendamentos')
+                        ->where('business_id', $bizId)->where('id', $agendamentoId)->where('status', 'agendado')
+                        ->update(['status' => 'atendido', 'os_id' => $id, 'updated_at' => now()]);
+                    if ($marcados !== 1) {
+                        // Outro pedido atendeu ou cancelou entre a validação e aqui.
+                        throw new \RuntimeException('agendamento_mudou');
+                    }
+                }
+
+                return $id;
+            });
+        } catch (\RuntimeException $e) {
+            if ($e->getMessage() !== 'agendamento_mudou') {
+                throw $e;
+            }
+
+            return response()->json(['erro' => 'validacao', 'campos' => [
+                'agendamento_id' => 'Este agendamento não está mais aberto.',
+            ]], 422);
+        }
         if ($id === null) {
             return response()->json(['erro' => 'sem_configuracao', 'mensagem' => 'A oficina não está disponível.'], 503);
         }
@@ -178,8 +217,23 @@ class OficinaController extends Controller
         return $this->show($request, $id)->setStatusCode(201);
     }
 
+    /** Mensagem do 422 de `agendamento_id`, ou null se ele pode virar esta OS. */
+    private function agendamentoInvalido(int $bizId, int $agendamentoId, int $vehicleId): ?string
+    {
+        $a = DB::table('oficina_agendamentos')->where('business_id', $bizId)->where('id', $agendamentoId)
+            ->first(['status', 'vehicle_id']);
+        if ($a === null) {
+            return 'Agendamento não encontrado.';
+        }
+        if ($a->status !== 'agendado') {
+            return 'Este agendamento não está mais aberto.';
+        }
+
+        return (int) $a->vehicle_id !== $vehicleId ? 'O agendamento é de outro veículo.' : null;
+    }
+
     /** Criar OS: permissão da web (`oficinaauto.service_order.create`) com o processo da oficina cadastrado. */
-    private function podeCriarOs(?User $user): bool
+    public function podeCriarOs(?User $user): bool
     {
         return $user !== null
             && ($user->can('superadmin') || $user->can('oficinaauto.service_order.create'))
