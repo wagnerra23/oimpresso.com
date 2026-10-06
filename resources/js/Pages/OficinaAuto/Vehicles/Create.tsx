@@ -40,6 +40,7 @@ const FIELD_ORDER = [
   'fuel_type',
   'color',
   'mileage_at_entry',
+  'next_service_km',
   'notes',
 ] as const;
 
@@ -55,6 +56,7 @@ export default function VehiclesCreate({ vehicleTypes }: Props) {
     renavam: '',
     engine: '',
     mileage_at_entry: '',
+    next_service_km: '',
     fuel_type: '',
     color: '',
     notes: '',
@@ -381,6 +383,20 @@ export default function VehiclesCreate({ vehicleTypes }: Props) {
               />
               {errors.mileage_at_entry && (
                 <p className="text-sm text-destructive mt-1">{errors.mileage_at_entry}</p>
+              )}
+            </div>
+            <div>
+              <Label htmlFor="next_service_km">Próxima revisão (km)</Label>
+              <Input
+                id="next_service_km"
+                type="number"
+                value={data.next_service_km}
+                onChange={(e) => setData('next_service_km', e.target.value)}
+                min={0}
+                aria-invalid={!!errors.next_service_km}
+              />
+              {errors.next_service_km && (
+                <p className="text-sm text-destructive mt-1">{errors.next_service_km}</p>
               )}
             </div>
           </div>
