@@ -66,8 +66,10 @@ na própria tela, o que cada trava faz na operação.
   comportamento do módulo inteiro sem ninguém perceber.
 - ❌ Assumir que as 3 chaves existem. `ManufacturingUtil::getSettings()` devolve `[]` quando o
   business nunca salvou — o controller normaliza com `?? ''` / `! empty()`; não remover isso.
-- ❌ Usar `<input type="checkbox">` nativo (ds/no-native-checkbox) — `Checkbox` canônico, com
-  `id` + `htmlFor` no label (a11y: `label-has-associated-control`).
+- ❌ Usar `<input type="checkbox">` nativo (ds/no-native-checkbox) — `Switch` canônico, com
+  `id` + `htmlFor` no label (a11y: `label-has-associated-control`). Interruptor e não caixa de
+  marcação desde 2026-10-06: é o controle do protótipo (`manufacturing-producao.jsx`,
+  `<Switch label sublabel>`) para ligar/desligar opção do módulo ([M] viu a diferença entre abas).
 
 ## UX Targets
 

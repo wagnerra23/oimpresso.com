@@ -91,9 +91,13 @@
 
 /* ── Campos ── */
 .mfg-fld{display:flex;flex-direction:column;gap:4px;margin-top:10px}
-.mfg-fld>span{font-size:10px;letter-spacing:.07em;text-transform:uppercase;color:var(--text-mute)}
+/* Rótulo de campo, campo de texto e controle de opção com os valores do protótipo (`manufacturing-page.css`
+   `.mfg-fld>span` · `.mfg-inp`, medido renderizado em 2026-10-06): os mesmos que a aba Ordens já usa
+   (`_lib/filtros.ts`). Antes o Relatório e as Configurações saíam com 10px sem peso, campo 32px de canto 6
+   e fundo --bg-2 — e a diferença aparecia ao trocar de aba ([M] 2026-10-06). */
+.mfg-fld>span{font-size:10.5px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--text-mute)}
 .mfg-fld small{font-size:10.5px;color:var(--text-mute)}
-.mfg-inp{width:100%;height:32px;border:1px solid var(--border);border-radius:6px;background:var(--bg-2);color:var(--text);padding:0 9px;font-family:inherit;font-size:12.5px;font-weight:400;line-height:1;outline:none}
+.mfg-inp{width:100%;height:34px;border:1px solid var(--border);border-radius:8px;background:var(--surface);color:var(--text);padding:0 10px;font-family:inherit;font-size:13px;font-weight:400;line-height:1;outline:none}
 textarea.mfg-inp{height:auto;padding:7px 9px;line-height:1.45;resize:vertical}
 .mfg-inp:focus{border-color:var(--color-primary);box-shadow:0 0 0 3px color-mix(in oklch,var(--color-primary) 22%,transparent)}
 .mfg-inp:disabled{opacity:.55;cursor:not-allowed}
@@ -102,8 +106,8 @@ textarea.mfg-inp{height:auto;padding:7px 9px;line-height:1.45;resize:vertical}
 .mfg-row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .mfg-err{margin:8px 0 0;font-size:11.5px;color:var(--neg)}
 .mfg-link{background:none;border:0;padding:0;color:var(--color-primary);cursor:pointer;font:inherit;text-decoration:underline;text-underline-offset:2px}
-.mfg-check{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--text-dim);cursor:pointer}
-.mfg-check.big{display:grid;grid-template-columns:16px 1fr;gap:4px 8px;align-items:start;margin-top:12px;font-size:12.5px;color:var(--text)}
+.mfg-check{display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:500;color:var(--text);cursor:pointer}
+.mfg-check.big{display:grid;grid-template-columns:32px 1fr;gap:4px 8px;align-items:start;margin-top:12px;font-size:12.5px;color:var(--text)}
 .mfg-check.big small{grid-column:2;color:var(--text-mute);font-size:11px;line-height:1.45}
 .mfg-filters{display:flex;align-items:flex-end;gap:12px;padding:12px 20px;flex-wrap:wrap}
 .mfg-filters .mfg-check{padding-bottom:8px}

@@ -25,6 +25,7 @@ import EmptyState from '@/Components/shared/EmptyState';
 import StatusBadge from '@/Components/shared/StatusBadge';
 import FabricacaoAbas from './_components/FabricacaoAbas';
 import OrdemDrawer, { type OrdemDetalhe } from './_components/OrdemDrawer';
+import { CAMPO_DATA, ROTULO, ROTULO_CHECKBOX, isDataCompleta } from './_lib/filtros';
 
 interface Production {
   id: number;
@@ -101,15 +102,6 @@ function applyFilter(current: FiltersState, patch: Partial<FiltersState>) {
   });
 }
 
-/**
- * `aaaa-mm-dd` com ano ≥ 2000. O `<input type="date">` emite `0002-09-30`, `0020-…`, `0202-…`
- * enquanto o ano é digitado — sem este guard cada tecla viraria um request.
- */
-function isDataCompleta(value: string): boolean {
-  const m = /^(\d{4})-\d{2}-\d{2}$/.exec(value);
-  return !!m && Number(m[1]) >= 2000;
-}
-
 function formatCurrency(value: number): string {
   return new Intl.NumberFormat('pt-BR', {
     style: 'currency',
@@ -125,18 +117,6 @@ function formatQuantity(value: number): string {
   }).format(value ?? 0);
 }
 
-/**
- * Medidas dos filtros do `MfgProducaoView` (medição protótipo × produção de 2026-10-01, 1440 px):
- * rótulo 10,5px/600 em caixa alta; campo de data 150×36, canto 8, texto 13,5px, fundo `--surface`.
- * O canto é `rounded-[8px]` e não `rounded-lg`: neste projeto o `rounded-lg` vale 12px (medido em
- * produção em 2026-10-05, depois do #8690, que usou `rounded-lg` supondo 8).
- * O rótulo usa `--text-dim` e não o `--text-mute` do DS: texto pequeno em `--text-mute` reprova AA
- * (ADR 0410). O campo usa o `Input` na variante `shadcn`: a `cowork` passa pelo `.cw-input`, que é
- * CSS fora de camada e vence a altura/largura/texto das classes (medido: `h-9 w-[150px]` saía 133×30).
- */
-const ROTULO = 'text-[10.5px] font-semibold uppercase tracking-[0.06em] text-[var(--text-dim)]';
-const CAMPO_DATA =
-  'h-9 w-[150px] rounded-[8px] border-[var(--border)] bg-[var(--surface)] px-2.5 text-[13.5px] md:text-[13.5px] text-foreground dark:bg-[var(--surface)]';
 
 /**
  * As 8 colunas do `MfgProducaoView` (`manufacturing-producao.jsx`), na anatomia do `DataGrid` do
@@ -464,7 +444,7 @@ function Index({ productions = [], summary, business_locations = {}, filters = {
               primitivos (ADR 0253). O ratchet pegou o caso na primeira tentativa — e depois
               pegou o COMENTÁRIO que citava o anti-padrão, porque o guard casa texto. */}
           <Inline gap={2} align="center" asChild>
-            <label className="text-[12.5px] font-medium text-[var(--text)]" htmlFor="mfg-op-so-finalizadas">
+            <label className={ROTULO_CHECKBOX} htmlFor="mfg-op-so-finalizadas">
               <Checkbox
                 id="mfg-op-so-finalizadas"
                 checked={!!filters.is_final}

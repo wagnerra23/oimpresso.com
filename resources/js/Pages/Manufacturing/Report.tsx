@@ -21,6 +21,10 @@ import { Checkbox } from '@/Components/ui/checkbox';
 import { fmt, num } from './_lib/formato';
 import type { FiltrosRelatorio, LinhaRelatorio, Relatorio } from './_lib/tipos';
 import FabricacaoAbas from './_components/FabricacaoAbas';
+import { Input } from '@/Components/ui/input';
+import { Inline } from '@/Components/layout/inline';
+import { Stack } from '@/Components/layout/stack';
+import { CAMPO_DATA, ROTULO, ROTULO_CHECKBOX, intervaloAplicavel } from './_lib/filtros';
 import '../../../css/cowork-manufacturing-bundle.css';
 
 interface Props {
@@ -111,15 +115,15 @@ export default function Report({
     );
   };
 
-  // Mesmo guard de `Index.tsx::applyDateRange` — só recarrega quando as DUAS datas estão
-  // preenchidas, ou as DUAS estão vazias. Um único campo preenchido dispararia um round-trip
-  // que o backend ignora (`reportByProduct` só filtra por data com as duas presentes),
-  // gastando request à toa. `onBlur`, não `onChange`, pelo mesmo motivo do irmão: o
-  // `<input type="date">` já só emite `onChange` com data completa, mas o `onBlur` evita
-  // disparar de novo quando o usuário só clicou pra fora sem mudar nada.
-  const aplicarDatas = () => {
-    if ((de && ate) || (!de && !ate)) {
-      recarregar({});
+  // D-MFG-DATA ([W] 2026-09-25): a data aplica AO ESCOLHER, igual à aba Ordens — não no `onBlur`,
+  // que fazia o Relatório reagir diferente da aba ao lado. O guard é o mesmo (`intervaloAplicavel`):
+  // só recarrega com as duas datas completas ou as duas vazias; um só campo não gasta request.
+  const mudarDatas = (novoDe: string, novoAte: string) => {
+    setDe(novoDe);
+    setAte(novoAte);
+    const intervalo = intervaloAplicavel(novoDe, novoAte);
+    if (intervalo && (intervalo.de !== (filters.start_date ?? '') || intervalo.ate !== (filters.end_date ?? ''))) {
+      recarregar(intervalo);
     }
   };
 
@@ -137,35 +141,52 @@ export default function Report({
       {/* Mesma aba do módulo que Recipes.tsx — "Relatório" ativa aqui. */}
       <FabricacaoAbas ativa="relatorio" receitas={recipes_count} producao={producao} podeProduzir={permissions.prod} />
 
-      <div className="mfg-filters" data-contract="filtros">
-        <Campo label="De" w={140}>
-          <input
-            className="mfg-inp"
-            type="date"
-            value={de}
-            onChange={(e) => setDe(e.target.value)}
-            onBlur={aplicarDatas}
-          />
-        </Campo>
-        <Campo label="Até" w={140}>
-          <input
-            className="mfg-inp"
-            type="date"
-            value={ate}
-            onChange={(e) => setAte(e.target.value)}
-            onBlur={aplicarDatas}
-          />
-        </Campo>
-        <label className="mfg-check">
-          {/* ds/no-native-checkbox (eslint DS) — Checkbox canônico, não <input type="checkbox">.
-              O protótipo (manufacturing-producao.jsx) usa nativo; aqui segue a regra do DS,
-              igual às Checkbox de linha em Recipes.tsx. */}
-          <Checkbox
-            checked={soFinal}
-            onCheckedChange={(v) => recarregar({ soFinal: v === true })}
-          />
-          Só finalizadas
-        </label>
+      {/* Filtros com a MESMA peça da aba Ordens (`_lib/filtros.ts`): rótulo, campo de data 150×36 e
+          "Só finalizadas". No protótipo as duas abas usam o mesmo `Campo` + `DatePicker`; aqui o
+          Relatório ainda usava as classes antigas do bundle (data 140×32, canto 6) e a diferença
+          aparecia ao trocar de aba ([M] 2026-10-06). */}
+      <div className="px-5 py-3" data-contract="filtros">
+        <Inline gap={3} align="end" wrap>
+          <Inline gap={2} align="end">
+            <Stack gap={1} asChild>
+              <label htmlFor="mfg-rel-data-inicial">
+                <span className={ROTULO}>De</span>
+                <Input
+                  variant="shadcn"
+                  id="mfg-rel-data-inicial"
+                  type="date"
+                  value={de}
+                  onChange={(e) => mudarDatas(e.target.value, ate)}
+                  className={CAMPO_DATA}
+                />
+              </label>
+            </Stack>
+            <Stack gap={1} asChild>
+              <label htmlFor="mfg-rel-data-final">
+                <span className={ROTULO}>Até</span>
+                <Input
+                  variant="shadcn"
+                  id="mfg-rel-data-final"
+                  type="date"
+                  value={ate}
+                  onChange={(e) => mudarDatas(de, e.target.value)}
+                  className={CAMPO_DATA}
+                />
+              </label>
+            </Stack>
+          </Inline>
+          {/* ds/no-native-checkbox (eslint DS) — Checkbox canônico, como na aba Ordens. */}
+          <Inline gap={2} align="center" asChild>
+            <label className={ROTULO_CHECKBOX} htmlFor="mfg-rel-so-finalizadas">
+              <Checkbox
+                id="mfg-rel-so-finalizadas"
+                checked={soFinal}
+                onCheckedChange={(v) => recarregar({ soFinal: v === true })}
+              />
+              Só finalizadas
+            </label>
+          </Inline>
+        </Inline>
       </div>
 
       <div className="mfg-tablewrap" data-contract="lista">
@@ -196,15 +217,6 @@ export default function Report({
         )}
       </div>
     </div>
-  );
-}
-
-function Campo({ label, w, children }: { label: string; w: number; children: ReactNode }) {
-  return (
-    <label className="mfg-fld" style={{ width: w }}>
-      <span>{label}</span>
-      {children}
-    </label>
   );
 }
 

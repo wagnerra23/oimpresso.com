@@ -16,7 +16,7 @@ import type { ColumnDef } from '@tanstack/react-table';
 import AppShellV2 from '@/Layouts/AppShellV2';
 import DataTable from '@/Components/shared/DataTable';
 import StatusBadge from '@/Components/shared/StatusBadge';
-import { Input } from '@/Components/ui/input';
+import { Search } from 'lucide-react';
 import { fmt, num } from './_lib/formato';
 import FabricacaoAbas from './_components/FabricacaoAbas';
 import '../../../css/cowork-manufacturing-bundle.css';
@@ -165,13 +165,18 @@ export default function Insumos({
       <FabricacaoAbas ativa="insumos" receitas={recipes_count} producao={producao} podeProduzir={permissions.prod} />
 
       <div className="mfg-bar" data-contract="busca">
-        <Input
-          className="max-w-sm"
-          placeholder="Buscar insumo por nome ou SKU…"
-          value={busca}
-          onChange={(e) => setBusca(e.target.value)}
-          aria-label="Buscar insumo"
-        />
+        {/* A MESMA busca da aba Receitas (`.mfg-s`: lupa, 34px, canto 8, texto 13) — o protótipo usa o
+            mesmo `SearchInput` nas duas abas. Aqui era um `Input` simples de 30px, sem lupa, e a
+            diferença aparecia ao trocar de aba ([M] 2026-10-06). */}
+        <div className="mfg-s">
+          <Search size={15} className="ic" aria-hidden />
+          <input
+            placeholder="Buscar insumo por nome ou SKU…"
+            value={busca}
+            onChange={(e) => setBusca(e.target.value)}
+            aria-label="Buscar insumo"
+          />
+        </div>
         <span className="mfg-crumb-meta">
           clique num insumo para ver quem sobe de custo quando o preço muda
         </span>
