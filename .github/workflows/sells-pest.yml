@@ -328,7 +328,8 @@ jobs:
             tests/Feature/Sells/SellsPosIndexContratoTest.php \
             tests/Feature/Sells/ImportSalesContratoTest.php \
             tests/Feature/Sells/ImportSalesReverterContratoTest.php \
-            tests/Feature/Sells/VendasMwartCutoverTest.php \n            tests/Feature/Sells/CommissionSplitAuditTest.php
+            tests/Feature/Sells/VendasMwartCutoverTest.php \
+            tests/Feature/Sells/CommissionSplitAuditTest.php
 
 
       # Passo 1 do plano da LC-13 (Gate:): a lane JA emitia JUnit e NINGUEM lia.
