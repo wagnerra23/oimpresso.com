@@ -41,7 +41,8 @@ it('computadores renderiza com status 200', function () {
 it('licenca_computador index renderiza com status 200', function () {
     $r = $this->get('/officeimpresso/licenca_computador');
     expect($r->getStatusCode())->toBe(200);
-    $r->assertSee('Computadores Cadastrados', false);
+    // Desde o cutover (2026-10-06) a rota serve so a Page Inertia; o Blade com este titulo saiu.
+    $r->assertSee('Licencas', false); // nome do componente no data-page
 });
 
 it('licenca_computador/create renderiza com status 200', function () {

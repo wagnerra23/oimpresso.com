@@ -1,7 +1,7 @@
 // Licenças de computador — Officeimpresso (licenciamento do desktop WR Comercial / Delphi).
 //
-//   rota:     /officeimpresso/licenca_computador (LicencaComputadorController::index, atrás da flag
-//             useV2OfficeimpressoLicencas — desligada, a rota segue servindo o Blade)
+//   rota:     /officeimpresso/licenca_computador (LicencaComputadorController::index; sem flag nem
+//             Blade desde o cutover de 2026-10-06, RUNBOOK-licencas §F5)
 //   padrão:   PT-01 Lista
 //   charter:  ./Index.charter.md · casos: ./Index.casos.md
 //   contrato: governance/design/contracts/officeimpresso-licencas.contract.json

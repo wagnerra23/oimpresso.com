@@ -19,21 +19,23 @@ last_run: "2026-10-01"
 
 ## UC-OILIC-01 · Sem permissão, 403 · `must` `[T0]`
 
-**Dado** um usuário sem `superadmin` nem `officeimpresso.access` **Quando** abre a lista, com a
-flag ligada ou desligada **Então** recebe 403.
+**Dado** um usuário sem `superadmin` nem `officeimpresso.access` **Quando** abre a lista **Então**
+recebe 403.
 
 Status: 🧪
 
-## UC-OILIC-02 · Flag OFF serve o Blade · `must`
+## UC-OILIC-02 · Não há mais Blade nem flag · `must`
 
-**Dado** a flag `useV2OfficeimpressoLicencas` desligada (rota de fuga — produção liga por default desde a decisão [W] 2026-10-01) **Quando** o suporte
-abre a lista **Então** recebe a view Blade de sempre.
+**Dado** o cutover ([W] 2026-10-06, RUNBOOK-licencas §F5: flag `useV2OfficeimpressoLicencas` e Blade
+`licenca_computador/index` removidos) **Quando** o suporte abre a lista, mesmo com uma regra no
+GrowthBook desligando a flag **Então** recebe a tela React, e a view Blade não existe mais.
+(Até 2026-10-06 este UC era a rota de fuga: flag OFF servia o Blade.)
 
 Status: 🧪
 
-## UC-OILIC-03 · Flag ON serve a tela React · `must`
+## UC-OILIC-03 · A rota serve a tela React · `must`
 
-**Dado** a flag ligada **Quando** a lista abre **Então** a resposta é `Officeimpresso/Licencas/Index`,
+**Dado** quem tem acesso **Quando** a lista abre **Então** a resposta é `Officeimpresso/Licencas/Index`,
 com `permissions` no payload inicial e `licencas` adiada.
 
 Status: 🧪

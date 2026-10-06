@@ -70,7 +70,8 @@ filtros. Decisão [W] D2 (2026-10-01): **tela nova no Officeimpresso**, não fus
 ## Anti-hooks
 
 - ❌ Não muda estado em GET (bloquear/liberar já é POST desde a thread 04).
-- ❌ Não liga a flag sozinho: `useV2OfficeimpressoLicencas` nasce OFF e o Blade segue como rota de fuga.
+- ❌ Não volta a ter caminho dual: a flag `useV2OfficeimpressoLicencas` e o Blade da lista saíram no cutover
+  ([W] 2026-10-06, RUNBOOK-licencas §F5). Antes disso a flag nasceu OFF e ficou ligada por default desde o #8394.
 
 ## Dados / props
 

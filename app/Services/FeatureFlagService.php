@@ -43,9 +43,8 @@ class FeatureFlagService
      */
     private array $fallbackDefaults = [
         'useV2SellsCreate' => true,
-        // Cutover da lista de Licencas (Officeimpresso/06) — decisao [W] 2026-10-01, item 9: "pode ligar".
-        // Vale quando o GrowthBook nao conhece a flag; regra explicita no GrowthBook ainda manda.
-        'useV2OfficeimpressoLicencas' => true,
+        // useV2OfficeimpressoLicencas saiu em 2026-10-06: cutover da lista de Licencas, sem flag
+        // nem Blade (RUNBOOK-licencas §F5).
     ];
 
     public function isOn(string $flag, array $attrs = []): bool

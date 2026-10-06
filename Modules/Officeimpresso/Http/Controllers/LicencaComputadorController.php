@@ -8,7 +8,6 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use App\Http\Controllers\Controller;
-use App\Services\FeatureFlagService;
 use Modules\Officeimpresso\Entities\Licenca_Computador;
 use Modules\Officeimpresso\Entities\LicencaLog;
 use App\Support\Privacy\PiiRedactor;
@@ -26,9 +25,6 @@ use Modules\Superadmin\Entities\Package;
  */
 class LicencaComputadorController extends Controller
 {
-    /** Flag do caminho React da lista (`useV2<Modulo><Tela>`), default OFF — RUNBOOK-licencas §F2. */
-    private const FLAG_V2 = 'useV2OfficeimpressoLicencas';
-
     public function __construct(private LicencaService $licencaService)
     {
     }
@@ -116,12 +112,11 @@ class LicencaComputadorController extends Controller
     }
 
     /**
-     * Lista de licenças (máquinas). Caminho dual: com a flag `useV2OfficeimpressoLicencas`
-     * ligada responde a tela Inertia `Officeimpresso/Licencas/Index` (thread Officeimpresso/06
-     * PR-a, 2026-10-01); desligada, segue o Blade de sempre — rota de fuga até o cutover.
-     * Só a flag decide: o first load do Inertia não manda `X-Inertia` (RUNBOOK-licencas §F2).
+     * Lista de licenças (máquinas): a tela Inertia `Officeimpresso/Licencas/Index`.
      *
-     * @return \Illuminate\View\View|\Inertia\Response
+     * Cutover (RUNBOOK-licencas §F5 item 11, [W] 2026-10-06): a flag `useV2OfficeimpressoLicencas`
+     * e o Blade `licenca_computador/index` saíram. A tela estava ligada para todos desde o #8394
+     * (01/10); a decisão foi não esperar o canário porque só o time interno usa a tela.
      */
     public function index()
     {
@@ -129,23 +124,17 @@ class LicencaComputadorController extends Controller
 
         $business_id = (int) request()->session()->get('user.business_id');
 
-        if (app(FeatureFlagService::class)->isOn(self::FLAG_V2, ['business_id' => $business_id])) {
-            $todas = $this->podeVerTodasEmpresas();
+        $todas = $this->podeVerTodasEmpresas();
 
-            return Inertia::render('Officeimpresso/Licencas/Index', [
-                'permissions' => [
-                    'pode_ver_todas_empresas' => $todas,
-                    'pode_gerenciar' => AcessoOperador::pode(auth()->user(), 'officeimpresso.licencas.gerenciar'),
-                ],
-                'licencas'    => Inertia::defer(fn () => $this->buildLicencasPayload($business_id, $todas)),
-                // Drawer (PR-b): só vem quando o drawer pede (`only: ['detalhe']`, `?licenca=`).
-                'detalhe'     => Inertia::optional(fn () => $this->buildDetalhe((int) request()->query('licenca'), $business_id, $todas)),
-            ]);
-        }
-
-        $licencas = $this->licencaService->listarPorEmpresa($business_id);
-
-        return view('officeimpresso::licenca_computador.index', compact('licencas'));
+        return Inertia::render('Officeimpresso/Licencas/Index', [
+            'permissions' => [
+                'pode_ver_todas_empresas' => $todas,
+                'pode_gerenciar' => AcessoOperador::pode(auth()->user(), 'officeimpresso.licencas.gerenciar'),
+            ],
+            'licencas'    => Inertia::defer(fn () => $this->buildLicencasPayload($business_id, $todas)),
+            // Drawer (PR-b): só vem quando o drawer pede (`only: ['detalhe']`, `?licenca=`).
+            'detalhe'     => Inertia::optional(fn () => $this->buildDetalhe((int) request()->query('licenca'), $business_id, $todas)),
+        ]);
     }
 
     /**
