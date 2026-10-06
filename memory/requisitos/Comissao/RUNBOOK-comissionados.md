@@ -17,7 +17,7 @@ related_adrs:
 
 > **Tipo:** runbook reproduzível · MWART ([ADR 0104](../../decisions/0104-processo-mwart-canonico-unico-caminho.md)) · thread `sistema/playbook/03` (o playbook `comissoes` aponta para ela como thread 01)
 > **Fonte de design:** `prototipo-ui/cowork/Wagner/comissionados-page.jsx` (`ComissionadosPage`). Sem alvo medido ainda — o contrato vem depois do alvo.
-> **Fronteira:** [ADR 0151](../../decisions/0151-modules-comissao-feature-wish.md) — nada de `Modules/Comissao`; a tela fica no legado (`users.is_cmmsn_agnt`, `users.cmmsn_percent`).
+> **Fronteira:** [ADR 0151](../../decisions/0151-modules-comissao-feature-wish.md) — nada do módulo `Comissao` (planejado — não existe); a tela fica no legado (`users.is_cmmsn_agnt`, `users.cmmsn_percent`).
 
 ## Estado final esperado
 
@@ -81,7 +81,7 @@ Seções `data-contract`: `page-header`, `toolbar`, `comissionados-table`, `vazi
 
 - O protótipo mostra KPIs (vendas, comissão apurada, a pagar), período, meta, situação de pagamento e regra
   por faixa/margem. **Nada disso tem fonte no legado**: a apuração é a thread `comissoes/02` (base paga ×
-  faturada ainda em D-COM-2) e regras novas são `Modules/Comissao` (ADR 0151). Ficam fora em vez de
+  faturada ainda em D-COM-2) e regras novas são do módulo `Comissao` planejado (ADR 0151). Ficam fora em vez de
   renderizar número inventado.
 - "Excluir" no protótipo; aqui **"Remover dos comissionados"**, porque é o que o `destroy()` faz desde
   #5970: desmarca `is_cmmsn_agnt`, o usuário continua.
