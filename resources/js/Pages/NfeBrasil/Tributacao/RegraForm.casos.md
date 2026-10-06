@@ -38,10 +38,10 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 | UC-NFRF-01 | Criar/editar regra exige a permissão fiscal | must `[T0]` `[V0]` | SDD `CU-NFE-06` · charter §Backend · US-NFE-010 | `TributacaoGatesContratoTest` | 🧪 |
 | UC-NFRF-02 | A regra nasce no meu tenant, nunca no de quem a rota apontar | must `[T0]` `[V0]` | ADR 0093 · SDD `CU-NFE-11` · charter §Non-Goals | `TributacaoGatesContratoTest` | 🧪 |
 | UC-NFRF-03 | Abrir a edição de regra alheia é 404 — e não vaza a alíquota dela | must `[T0]` | ADR 0093 · SDD `CU-NFE-11` | `TributacaoGatesContratoTest` | 🧪 |
-| UC-NFRF-04 | Apagar regra exige a permissão fiscal | must `[T0]` `[V0]` | SDD `CU-NFE-06` · US-NFE-010 · SDD §5.4.1 | `TributacaoGatesContratoTest` | ❌ **falha esperada** |
+| UC-NFRF-04 | Apagar regra exige a permissão fiscal | must `[T0]` `[V0]` | SDD `CU-NFE-06` · US-NFE-010 · SDD §5.4.1 | `TributacaoGatesContratoTest` | 🧪 |
 
-> **Recibo:** ver §Recibo de execução no rodapé. O `❌` do UC-NFRF-04 é **o achado**, não um
-> conserto pendente de disfarce — ver a nota lá.
+> **Recibo:** ver §Recibo de execução no rodapé. O UC-NFRF-04 nasceu `❌` (o achado de 2026-07-28)
+> e saiu dele em 2026-10-06, com o gate no `destroy` (playbook Fiscal thread 18).
 
 ---
 
@@ -114,7 +114,7 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 
 ---
 
-## UC-NFRF-04 · Apagar regra exige a permissão fiscal · `must` `[T0]` `[V0]` — ❌ **falha esperada**
+## UC-NFRF-04 · Apagar regra exige a permissão fiscal · `must` `[T0]` `[V0]`
 
 - **Persona:** o mesmo usuário de caixa do UC-NFRF-01. Apagar uma regra NCM não deixa buraco
   visível: o item simplesmente **desce para o Nível 4** da cascade e passa a ser emitido com a
@@ -137,8 +137,10 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
   `toggleAutoEmission` e `aplicarTemplate`. Só `destroy` vira UC **aqui**, porque é a única cujo
   contrato o charter **desta tela** sustenta; as outras duas pertencem à `Tributacao/Index`
   (arquivo de outra sessão, não tocado) e estão registradas no SDD §5.4.1 + §9 R1.
-- **Status: ❌ esperado** — ver §Recibo. Se vier **verde**, é sinal de que o gate foi adicionado
-  entre esta escrita e a corrida: reconciliar o SDD §5.4.1 no mesmo PR.
+- **Status: 🧪** — o gate existe desde 2026-10-06: `destroy` recebe `DestroyRegraTributariaRequest`
+  (mesmo `authorize()` do store/update). O teste ganhou controle positivo (com a permissão, a mesma
+  rota apaga). O texto *"Por que nasce ❌"* acima é a medição de 2026-07-28 e fica como estava; o
+  SDD §5.4.1 recebeu a nota datada no mesmo PR. Vermelho→verde no §Recibo.
 
 ---
 
@@ -166,6 +168,7 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 | Quando | Onde | Resultado |
 |---|---|---|
 | _pendente_ | lane `PHP / Pest (NfeBrasil · MySQL)` — **required, `enforce_admins`** | a preencher com o run id |
+| 2026-10-06 | CT 100 `oimpresso-staging`, worktree isolado do branch `0e263d01b` · `--filter="UC-NFRF\|UC-NFTR-04"` | **controller do `main`:** 4 passed · 1 failed (UC-NFRF-04: *"Expected 403 but received 302"*) · 30 assertions. **Branch:** 5 passed · 33 assertions. Só o UC-NFRF-04 muda de estado. |
 
 > ⚠️ **Este arquivo de teste NÃO foi adicionado à allowlist da lane** — e aqui a razão é dupla:
 > (1) a allowlist é **catraca por prova verde** e esta corrida não roda teste
@@ -174,6 +177,13 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 > `enforce_admins` **bloquearia o merge de todos** até o gate do Controller existir. O ratchet-up
 > está proposto no [SDD §8.3](../../../../../memory/requisitos/NfeBrasil/SDD-emissao-fiscal-v1.0.md),
 > condicionado à correção.
+>
+> ⚠️ **No staging do CT 100 o usuário semeado do biz=1 tem o papel `Admin#1`** — e o `Gate::before`
+> libera qualquer permissão de business para ele, então o `revokePermissionTo` do fixture *"sem
+> permissão"* não tira nada: UC-NFRF-01 e UC-NFRF-04 caem vermelhos por isso, com ou sem gate. A
+> rodada de 2026-10-06 tirou o papel do usuário 1 só durante os testes e o devolveu em seguida
+> (`Admin#1,Admin#2` conferido depois). No CI o seed (`pest-mysql-setup`) cria o usuário sem papel,
+> então lá o fixture vale como está.
 >
 > ⚠️ **Conferir a contagem de testes passados no JUnit, não só o check verde** — a suíte SKIPa em
 > SQLite e o `oimpresso-staging` do CT 100 não tem as tabelas do NfeBrasil.
