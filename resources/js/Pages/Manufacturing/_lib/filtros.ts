@@ -7,8 +7,11 @@
 
 /**
  * Medidas dos filtros do `MfgProducaoView` (protótipo medido em 2026-10-06, 1600 px):
- * rótulo 10,5px/600 em caixa alta, tracking .04em; campo de data 150×36, canto 8, texto 13,5px,
- * fundo `--surface`.
+ * rótulo 10,5px/600 em caixa alta, tracking .04em; campo de data 150 de largura, canto 8, texto
+ * 13,5px, fundo `--surface`.
+ * Altura 34 e não os 36 do `DatePicker` do DS: no próprio DS o `Input`, o `select` e o `SearchInput`
+ * têm 34, e o "Local" ao lado das datas ficava 2px mais baixo na mesma linha. [M] 2026-10-06: na
+ * mesma família, a mesma altura.
  * O canto é `rounded-[8px]` e não `rounded-lg`: neste projeto o `rounded-lg` vale 12px (medido em
  * produção em 2026-10-05).
  * O rótulo usa `--text-dim` e não o `--text-mute` do DS: texto pequeno em `--text-mute` reprova AA
@@ -18,7 +21,7 @@
 export const ROTULO = 'text-[10.5px] font-semibold uppercase tracking-[0.04em] text-[var(--text-dim)]';
 
 export const CAMPO_DATA =
-  'h-9 w-[150px] rounded-[8px] border-[var(--border)] bg-[var(--surface)] px-2.5 text-[13.5px] md:text-[13.5px] text-foreground dark:bg-[var(--surface)]';
+  'h-[34px] w-[150px] rounded-[8px] border-[var(--border)] bg-[var(--surface)] px-2.5 text-[13.5px] md:text-[13.5px] text-foreground dark:bg-[var(--surface)]';
 
 /** Rótulo do "Só finalizadas" — o `label` do `Checkbox` do protótipo: 12,5px, peso 500, cor do texto. */
 export const ROTULO_CHECKBOX = 'text-[12.5px] font-medium text-[var(--text)]';
