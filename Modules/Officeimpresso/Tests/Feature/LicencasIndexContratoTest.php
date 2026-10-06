@@ -51,29 +51,40 @@ afterEach(function () {
     }
 });
 
-it('UC-OILIC-01 · sem officeimpresso.access nem superadmin, 403 — com a flag ligada também', function () {
+it('UC-OILIC-01 · sem officeimpresso.access nem superadmin, 403', function () {
     $biz = $this->seededTenant();
     $this->actingAs(oiLicUser($this, $biz->id, null));
 
-    oiLicFlag(false);
-    $this->get('/officeimpresso/licenca_computador')->assertForbidden();
-    oiLicFlag(true);
     $this->get('/officeimpresso/licenca_computador')->assertForbidden();
 });
 
-it('UC-OILIC-02 · com a flag OFF a rota segue servindo o Blade', function () {
+/*
+| Cutover (RUNBOOK-licencas §F5 item 11, [W] 2026-10-06): a flag `useV2OfficeimpressoLicencas` e o
+| Blade da lista saíram. Até o #8753 este UC provava a rota de fuga (regra false no GrowthBook →
+| Blade). Agora prova o contrário: não há mais rota de fuga, e nem uma regra false no GrowthBook
+| traz o Blade de volta. Se alguém reintroduzir o caminho dual pela flag, este teste cai.
+*/
+it('UC-OILIC-02 · a Blade da lista saiu: nem a flag desligada no GrowthBook a traz de volta', function () {
     $biz = $this->seededTenant();
     $this->actingAs(oiLicUser($this, $biz->id, 'officeimpresso.access'));
-    oiLicFlag(false);
 
-    // `viewData` só existe em resposta de view: se virar Inertia sem a flag, quebra aqui.
-    expect($this->get('/officeimpresso/licenca_computador')->viewData('licencas'))->not->toBeNull();
+    expect(\Illuminate\Support\Facades\View::exists('officeimpresso::licenca_computador.index'))->toBeFalse();
+
+    try {
+        oiLicGrowthbook(['defaultValue' => false]);
+
+        $this->get('/officeimpresso/licenca_computador')
+            ->assertOk()
+            ->assertInertia(fn (\Inertia\Testing\AssertableInertia $page) => $page
+                ->component('Officeimpresso/Licencas/Index'));
+    } finally {
+        oiLicGrowthbook(null);
+    }
 });
 
-it('UC-OILIC-03 · com a flag ON responde Officeimpresso/Licencas/Index, lista adiada e permissão eager', function () {
+it('UC-OILIC-03 · a rota responde Officeimpresso/Licencas/Index, lista adiada e permissão eager', function () {
     $biz = $this->seededTenant();
     $this->actingAs(oiLicUser($this, $biz->id, 'officeimpresso.access'));
-    oiLicFlag(true);
 
     $this->get('/officeimpresso/licenca_computador')
         ->assertOk()
@@ -81,55 +92,6 @@ it('UC-OILIC-03 · com a flag ON responde Officeimpresso/Licencas/Index, lista a
             ->component('Officeimpresso/Licencas/Index')
             ->where('permissions.pode_ver_todas_empresas', false)
             ->missing('licencas'));
-});
-
-/*
-| Cutover (thread Officeimpresso/09 — F5 do MWART, decisão [W] D6). Os dois testes acima trocam o
-| FeatureFlagService por um dublê; estes usam o serviço REAL, porque o que se quer provar é o estado
-| de produção: o GrowthBook do CT 100 não conhece esta flag (medido 2026-10-06: só `useV2SellsCreate`),
-| então quem decide lá é o `fallbackDefaults`. E a rota de fuga é uma regra no GrowthBook — sem deploy.
-*/
-
-it('UC-OILIC-03 · cutover: sem regra no GrowthBook, o serviço real serve a tela React', function () {
-    $biz = $this->seededTenant();
-    $this->actingAs(oiLicUser($this, $biz->id, 'officeimpresso.access'));
-
-    oiLicGrowthbook([]); // GrowthBook responde, mas não conhece a flag
-
-    try {
-        $this->get('/officeimpresso/licenca_computador')
-            ->assertOk()
-            ->assertInertia(fn (\Inertia\Testing\AssertableInertia $page) => $page
-                ->component('Officeimpresso/Licencas/Index'));
-        // Prova de que a decisão passou pelo GrowthBook falso, e não por um real nem pelo dublê.
-        \Illuminate\Support\Facades\Http::assertSent(fn ($req) => str_contains($req->url(), 'growthbook-oilic-'));
-    } finally {
-        oiLicGrowthbook(null);
-    }
-});
-
-it('UC-OILIC-02 · rota de fuga: regra false no GrowthBook para o negócio volta o Blade, sem deploy', function () {
-    $casa = $this->seededTenant();
-    $outro = $this->seededSupportClientTenant();
-    $this->actingAs(oiLicUser($this, $casa->id, 'officeimpresso.access'));
-
-    try {
-        // Desligada só para o OUTRO negócio: este segue na tela React (controle).
-        oiLicGrowthbook(['defaultValue' => true, 'rules' => [
-            ['condition' => ['business_id' => (int) $outro->id], 'force' => false],
-        ]]);
-        $this->get('/officeimpresso/licenca_computador')
-            ->assertInertia(fn (\Inertia\Testing\AssertableInertia $page) => $page
-                ->component('Officeimpresso/Licencas/Index'));
-
-        // Desligada para o negócio da sessão: volta o Blade.
-        oiLicGrowthbook(['defaultValue' => true, 'rules' => [
-            ['condition' => ['business_id' => (int) $casa->id], 'force' => false],
-        ]]);
-        expect($this->get('/officeimpresso/licenca_computador')->viewData('licencas'))->not->toBeNull();
-    } finally {
-        oiLicGrowthbook(null);
-    }
 });
 
 it('UC-OILIC-04 · quem tem só officeimpresso.access vê apenas as máquinas do negócio da sessão', function () {
@@ -342,7 +304,6 @@ it('operador · cliente com licencas.gerenciar não bloqueia máquina de outra e
 
     // Desde a trava de `officeimpresso.access` (também só da operadora) a tela nem abre
     // para empresa cliente — antes ela abria sem o botão de bloquear.
-    oiLicFlag(true);
     $this->get('/officeimpresso/licenca_computador')->assertForbidden();
 });
 
@@ -357,6 +318,27 @@ it('operador · usuário da operadora com licencas.gerenciar bloqueia máquina d
         ->assertSessionHasNoErrors();
 
     expect((int) DB::table('licenca_computador')->where('id', $id)->value('bloqueado'))->toBe(1);
+});
+
+it('UC-OILIC-16 · Cadastrar: quem gerencia recebe o atalho e abre o formulário; quem só vê, não', function () {
+    $operador = $this->seededTenant();
+
+    // Só ver: a lista abre, mas a tela não oferece Cadastrar e o formulário recusa.
+    $this->actingAs(oiLicUser($this, (int) $operador->id, 'officeimpresso.access'));
+    $this->get('/officeimpresso/licenca_computador')
+        ->assertInertia(fn (\Inertia\Testing\AssertableInertia $page) => $page
+            ->where('permissions.pode_gerenciar', false));
+    $this->get('/officeimpresso/licenca_computador/create')->assertForbidden();
+
+    // Gerenciar (operadora): o atalho aparece e o formulário Blade abre.
+    $gestor = oiLicUser($this, (int) $operador->id, 'officeimpresso.access');
+    Permission::firstOrCreate(['name' => 'officeimpresso.licencas.gerenciar', 'guard_name' => 'web']);
+    $gestor->givePermissionTo('officeimpresso.licencas.gerenciar');
+    $this->actingAs($gestor);
+    $this->get('/officeimpresso/licenca_computador')
+        ->assertInertia(fn (\Inertia\Testing\AssertableInertia $page) => $page
+            ->where('permissions.pode_gerenciar', true));
+    $this->get('/officeimpresso/licenca_computador/create')->assertOk();
 });
 
 // ── Helpers (prefixo oiLic — o LogsBaselineTest roda no mesmo processo) ──────
@@ -398,7 +380,6 @@ function oiLicMaquina($test, int $businessId, array $attrs = []): int
 /** Partial reload do navegador pedindo a prop adiada `licencas`. */
 function oiLicParcialResposta($test)
 {
-    oiLicFlag(true);
     $r = $test->withHeaders([
         'X-Requested-With' => 'XMLHttpRequest',
         'X-Inertia' => 'true',
@@ -414,7 +395,6 @@ function oiLicParcialResposta($test)
 /** Partial reload que o drawer faz: `only: ['detalhe']` com `?licenca={id}`. */
 function oiLicDetalheResposta($test, int $id)
 {
-    oiLicFlag(true);
     $r = $test->withHeaders([
         'X-Requested-With' => 'XMLHttpRequest',
         'X-Inertia' => 'true',
@@ -430,19 +410,6 @@ function oiLicDetalheResposta($test, int $id)
 function oiLicParcial($test): array
 {
     return oiLicParcialResposta($test)->json('props.licencas') ?? [];
-}
-
-function oiLicFlag(bool $ligada): void
-{
-    app()->instance(\App\Services\FeatureFlagService::class, new class($ligada) extends \App\Services\FeatureFlagService
-    {
-        public function __construct(private bool $ligada) {}
-
-        public function isOn(string $flag, array $attrs = []): bool
-        {
-            return $this->ligada;
-        }
-    });
 }
 
 /**

@@ -1,7 +1,7 @@
 // Licenças de computador — Officeimpresso (licenciamento do desktop WR Comercial / Delphi).
 //
-//   rota:     /officeimpresso/licenca_computador (LicencaComputadorController::index, atrás da flag
-//             useV2OfficeimpressoLicencas — desligada, a rota segue servindo o Blade)
+//   rota:     /officeimpresso/licenca_computador (LicencaComputadorController::index; sem flag nem
+//             Blade desde o cutover de 2026-10-06, RUNBOOK-licencas §F5)
 //   padrão:   PT-01 Lista
 //   charter:  ./Index.charter.md · casos: ./Index.casos.md
 //   contrato: governance/design/contracts/officeimpresso-licencas.contract.json
@@ -61,7 +61,12 @@ function LicencasIndex({ permissions, licencas, detalhe }: Props) {
     <div className="pb-8">
       <div data-contract="header">
         <PageHeader title="Licenças de computador"
-          subtitle={todas ? 'Máquinas do WR Comercial em todos os negócios · senha nunca é exibida' : 'Máquinas do WR Comercial deste negócio · senha nunca é exibida'} />
+          subtitle={todas ? 'Máquinas do WR Comercial em todos os negócios · senha nunca é exibida' : 'Máquinas do WR Comercial deste negócio · senha nunca é exibida'}
+          actions={permissions.pode_gerenciar
+            // Cadastro manual (licencas-parity item 23): o formulário segue no Blade
+            // `licenca_computador/create`. Só para quem o `create()` aceita (gerenciar).
+            ? <Button asChild variant="ghost" size="sm"><a href="/officeimpresso/licenca_computador/create">Cadastrar</a></Button>
+            : undefined} />
       </div>
       <div className="flex flex-col gap-4 px-6 pt-4">
         <Deferred data="licencas" fallback={<Skeleton className="h-64 w-full" />}>
