@@ -465,7 +465,7 @@ class NfeService
                 $ncmPadraoUsado[] = ['sell_line_id' => $it['sell_line_id'], 'product_id' => $it['product_id']];
             }
 
-            $base = ($it['vprod_cent'] - $descontos[$i] + $fretes[$i] + $outros[$i]) / 100;
+            $base = ($it['vprod_cent'] - $descontos[$i] + $fretes[$i] + $outros[$i]) / 100.0;
             $tributo = $motor->calcular(
                 new ProdutoFiscalContext(
                     ncm:         $ncm,
@@ -480,7 +480,7 @@ class NfeService
                 ufDestino:  $ufDestino,
             );
 
-            $vprod = $it['vprod_cent'] / 100;
+            $vprod = $it['vprod_cent'] / 100.0;
             $dets[] = [
                 'cprod'   => substr((string) $it['cprod'], 0, 60),
                 'xprod'   => substr((string) $it['xprod'], 0, 120),
@@ -494,9 +494,9 @@ class NfeService
                 'qtrib'   => (float) $it['quantidade'],
                 'vuntrib' => $it['vuncom'],
                 'dec_vun' => 10,
-                'vdesc'   => $descontos[$i] / 100,
-                'vfrete'  => $fretes[$i] / 100,
-                'voutro'  => $outros[$i] / 100,
+                'vdesc'   => $descontos[$i] / 100.0,
+                'vfrete'  => $fretes[$i] / 100.0,
+                'voutro'  => $outros[$i] / 100.0,
                 'ind_tot' => 1,
                 'icms'    => [
                     'cst_csosn' => $tributo->csosn ?? $tributo->cst ?? '102',
@@ -548,17 +548,17 @@ class NfeService
         return [
             'dets'  => $dets,
             'total' => [
-                'v_prod'    => $somaCent / 100,
-                'v_bc_icms' => 0,
+                'v_prod'    => $somaCent / 100.0,
+                'v_bc_icms' => 0.0,
                 'v_icms'    => round($tot['v_icms'], 2),
                 'v_pis'     => round($tot['v_pis'], 2),
                 'v_cofins'  => round($tot['v_cofins'], 2),
                 'v_ibs'     => round($tot['v_ibs'], 2),
                 'v_cbs'     => round($tot['v_cbs'], 2),
-                'v_nf'      => $totalCent / 100,
-                'v_desc'    => array_sum($descontos) / 100,
-                'v_frete'   => array_sum($fretes) / 100,
-                'v_outro'   => array_sum($outros) / 100,
+                'v_nf'      => $totalCent / 100.0,
+                'v_desc'    => array_sum($descontos) / 100.0,
+                'v_frete'   => array_sum($fretes) / 100.0,
+                'v_outro'   => array_sum($outros) / 100.0,
             ],
             'metadata' => $ncmPadraoUsado === [] ? null : ['itens_ncm_padrao' => $ncmPadraoUsado],
         ];
