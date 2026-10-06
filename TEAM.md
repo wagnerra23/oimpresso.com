@@ -336,6 +336,11 @@ de módulo neste repo.** A atribuição dos 29 é ato do [W], não inferência d
 > force-push e sem apagar a branch. `enforce_admins: false` — o [W], admin, segue mergeando sozinho;
 > o [L] (`write`) não consegue mais.
 >
+> **Atualização 2026-10-06:** o `LuizWr2` aceitou o convite e é colaborador do `oimpresso-app`.
+> A 1ª tarefa dele é a issue [oimpresso-app#75](https://github.com/wagnerra23/oimpresso-app/issues/75)
+> (teste Vitest da tela de Pedidos), atribuída a ele às 14:38 UTC. Os convites do [F] e da [M]
+> seguiam pendentes — até o [F] aceitar, quem revisa os PRs do [L] no app é o [W].
+>
 > **O que este registro NÃO faz, de propósito** (mesmas razões da §3.3.1): não arma o
 > `CODEOWNERS` e não abre linha na §3 — a §3 exigiria definir os 5 níveis, e o [W] decidiu só o [L].
 
