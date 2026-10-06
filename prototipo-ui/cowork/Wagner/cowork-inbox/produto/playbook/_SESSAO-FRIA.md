@@ -38,3 +38,4 @@ Leia só isto, nesta ordem:
 > Dono **W** = decisão/merge do Wagner. Dono **CC** = volta pro Cowork.
 | **09** | P0 · busca por sub_sku sem escopo de negócio fora do import de preço | CL | `09-sub-sku-escopo.md` | — |
 | **10** | Cadastros: criar/editar em drawer (hoje abre o modal da Blade) | CL | `10-cadastros-form.md` | 02 · 03 |
+| **11** | Cadastros PR-b (Categorias · Variações · Garantias) | CL | `11-cadastros-form-b.md` | 10 |

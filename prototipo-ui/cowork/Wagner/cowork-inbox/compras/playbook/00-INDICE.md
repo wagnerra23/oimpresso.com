@@ -144,16 +144,20 @@ Thread `feito` = `_saida-NN.md` com os 5 itens **e** provas verdes lendo o `main
     {
       "id": "D-GRADE",
       "pergunta": "Smoke/canary da grade tam x cor (US-COM-005, biz=4): [W] aprova por screenshot?",
-      "respondida": false,
+      "respondida": true,
       "destrava": [
         "05"
-      ]
+      ],
+      "resposta": "sim: [W] aprova por screenshot",
+      "fonte": "[CC] por delegação de [W] 2026-10-05 (\"o resto pode ser medido, escolha\")"
     },
     {
       "id": "D-LANE",
       "pergunta": "Os specs de Compras entram em lane existente ou nasce workflow do modulo?",
-      "respondida": false,
-      "define": "LANE"
+      "respondida": true,
+      "define": "LANE",
+      "resposta": "lane existente (sem workflow novo do módulo)",
+      "fonte": "[CC] por delegação de [W] 2026-10-05 (\"o resto pode ser medido, escolha\")"
     }
   ],
   "threads": [

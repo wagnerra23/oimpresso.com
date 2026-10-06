@@ -277,19 +277,12 @@ function FuncoesPage() {
 
   return (
     <div className="os-page usr-page fnc-page" data-screen-label="Usuários · Funções e permissões">
-      <header className="os-page-h">
-        <div className="os-page-h-l">
-          <h1>Funções e permissões</h1>
-          <p>{FUNCOES.length} funções · {GRUPOS_IDS.length} grupos (53 do <code>/roles</code>) · {LEGACY_N} permissões no catálogo</p>
-        </div>
-        <div className="os-page-h-r">
-          <button className="os-btn ghost" onClick={() => window.__selectRoute?.("usuarios")}>Usuários</button>
+      <window.OiPageHead titulo={"Funções e permissões"} sub={<>{FUNCOES.length} funções · {GRUPOS_IDS.length} grupos (53 do <code>/roles</code>) · {LEGACY_N} permissões no catálogo</>} acoes={<><button className="os-btn ghost" onClick={() => window.__selectRoute?.("usuarios")}>Usuários</button>
           <button className="os-btn primary">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><path d="M12 5v14M5 12h14"/></svg>
             Nova função
-          </button>
-        </div>
-      </header>
+          </button></>} />
+      {window.OiRotaTabs && <window.OiRotaTabs ariaLabel="Seções de usuários" ativo="funcoes" tabs={[{ key: "usuarios", label: "Usuários" }, { key: "funcoes", label: "Funções e permissões" }, { key: "comissionados", label: "Comissionados" }, { key: "comissoes", label: "Apuração de comissão" }]} />}
 
       <Kpis>
         <Kpi v={FUNCOES.length} l="Funções" />

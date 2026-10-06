@@ -462,3 +462,6 @@
 @media (prefers-reduced-motion: reduce){
   .jc-dots i{ animation: none; }
 }
+/* Tema escuro — CTA "dark" invertido (--text) virava botão branco. */
+[data-theme="dark"] .jc-cta.dark{ background: var(--accent); color: oklch(0.99 0 0); }
+[data-theme="dark"] .jc-cta.dark:hover{ background: color-mix(in oklch, var(--accent) 88%, white); }

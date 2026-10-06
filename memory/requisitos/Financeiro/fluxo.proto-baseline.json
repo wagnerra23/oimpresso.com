@@ -6,7 +6,7 @@
  "ancora": "prototipo-ui/cowork/Wagner/financeiro-telas-extras.jsx",
  "prototipo_sha": "4f51a9ec781962b72744cc93c8a1e28d60d346ae",
  "shell": ".",
- "gerado_em": "2026-10-05T11:52:19.282Z",
+ "gerado_em": "2026-10-06T07:36:57.276Z",
  "celulas": {
   "1280|light": {
    "tema": "light",
@@ -2785,28 +2785,28 @@
     {
      "side": "Top",
      "w": 2,
-     "color": "rgb(0, 0, 0)",
+     "color": "rgb(255, 255, 255)",
      "span": 100,
      "banda": 110
     },
     {
      "side": "Bottom",
      "w": 2,
-     "color": "rgb(0, 0, 0)",
+     "color": "rgb(255, 255, 255)",
      "span": 100,
      "banda": 131
     },
     {
      "side": "Left",
      "w": 2,
-     "color": "rgb(0, 0, 0)",
+     "color": "rgb(255, 255, 255)",
      "span": 20,
      "banda": 56
     },
     {
      "side": "Right",
      "w": 2,
-     "color": "rgb(0, 0, 0)",
+     "color": "rgb(255, 255, 255)",
      "span": 20,
      "banda": 146
     },
@@ -10345,28 +10345,28 @@
     {
      "side": "Top",
      "w": 2,
-     "color": "rgb(0, 0, 0)",
+     "color": "rgb(255, 255, 255)",
      "span": 100,
      "banda": 110
     },
     {
      "side": "Bottom",
      "w": 2,
-     "color": "rgb(0, 0, 0)",
+     "color": "rgb(255, 255, 255)",
      "span": 100,
      "banda": 131
     },
     {
      "side": "Left",
      "w": 2,
-     "color": "rgb(0, 0, 0)",
+     "color": "rgb(255, 255, 255)",
      "span": 20,
      "banda": 260
     },
     {
      "side": "Right",
      "w": 2,
-     "color": "rgb(0, 0, 0)",
+     "color": "rgb(255, 255, 255)",
      "span": 20,
      "banda": 350
     },
@@ -11083,5 +11083,5 @@
    ]
   }
  },
- "render_sha256": "3d6db528cd4c5c7471fd4d5e9e51b68baedb1eea5b18db780bd87dd214c542fd"
+ "render_sha256": "a669c36dff7df11220c60352e87030d7330178dd6c9baa62b7c7d6ce8176b743"
 }

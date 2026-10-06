@@ -288,20 +288,13 @@ function UsuariosPage() {
 
   return (
     <div className="os-page usr-page" data-screen-label="Usuários · Lista">
-      <header className="os-page-h">
-        <div className="os-page-h-l">
-          <h1>Usuários</h1>
-          <p>{kpis.total} usuários · {kpis.active} ativos · {kpis.roles} funções</p>
-        </div>
-        <div className="os-page-h-r">
-          <button className="os-btn ghost"
+      <window.OiPageHead titulo={"Usuários"} sub={<>{kpis.total} usuários · {kpis.active} ativos · {kpis.roles} funções</>} acoes={<><button className="os-btn ghost"
             onClick={() => window.__selectRoute?.("funcoes")}>Funções</button>
           <button className="os-btn primary" onClick={() => setConvite(true)}>
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><path d="M12 5v14M5 12h14"/></svg>
             Novo usuário
-          </button>
-        </div>
-      </header>
+          </button></>} />
+      {window.OiRotaTabs && <window.OiRotaTabs ariaLabel="Seções de usuários" ativo="usuarios" tabs={[{ key: "usuarios", label: "Usuários" }, { key: "funcoes", label: "Funções e permissões" }, { key: "comissionados", label: "Comissionados" }, { key: "comissoes", label: "Apuração de comissão" }]} />}
 
       <Kpis>
         <Kpi v={kpis.total} l="Total de usuários" />

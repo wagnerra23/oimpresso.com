@@ -18,10 +18,10 @@ authority: generated
 |---|---:|
 | US no SPEC | 23 |
 | CU no SDD | 15 |
-| Telas (.tsx) | 7 |
-| Telas com `casos.md` | 7 |
-| UC declarados | 23 |
-| UC com teste que os cita | 23 |
+| Telas (.tsx) | 8 |
+| Telas com `casos.md` | 8 |
+| UC declarados | 28 |
+| UC com teste que os cita | 28 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -71,6 +71,11 @@ authority: generated
 | UC-CEDI-02 | Edit | 🧪 aguarda veredito da lane |
 | UC-CEDI-03 | Edit | 🧪 aguarda veredito da lane |
 | UC-CEDI-04 | Edit | 🧪 aguarda veredito da lane |
+| UC-CGRP-01 | Grupos/Index | 🧪 aguarda veredito da lane |
+| UC-CGRP-02 | Grupos/Index | 🧪 aguarda veredito da lane |
+| UC-CGRP-03 | Grupos/Index | 🧪 aguarda veredito da lane |
+| UC-CGRP-04 | Grupos/Index | 🧪 aguarda veredito da lane |
+| UC-CGRP-05 | Grupos/Index | 🧪 aguarda veredito da lane |
 | UC-CIDX-01 | Index | 🧪 aguarda veredito da lane |
 | UC-CIDX-02 | Index | 🧪 aguarda veredito da lane |
 | UC-CIDX-03 | Index | 🧪 aguarda veredito da lane |

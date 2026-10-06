@@ -23,8 +23,8 @@
     },
     {
       "path": "app.jsx",
-      "bytes": 77608,
-      "sha256": "67da0ef55f2cd183aef437d97465078a6523297846bffc477a5e8c12130c1bfb",
+      "bytes": 77704,
+      "sha256": "7f1164613a474db8566062219f3af9325e0eaa03b59c5985bfd3a248be4b4bd4",
       "role": "cowork-source"
     },
     {
@@ -83,8 +83,8 @@
     },
     {
       "path": "chat-jana.css",
-      "bytes": 26353,
-      "sha256": "aa402ca8325a399fdfa69d2c027e929480b4540aa5f84405248f9f18de53f462",
+      "bytes": 26615,
+      "sha256": "d7d51467c5ff7f8540170860b3e43db44564036b800ee45b8da677402cfb716f",
       "role": "cowork-source"
     },
     {
@@ -125,8 +125,8 @@
     },
     {
       "path": "cli-tabs.jsx",
-      "bytes": 11231,
-      "sha256": "fb24ce60506c7848b4d07a18e2ceed618c26db71510db623174ecd33ec4a50c5",
+      "bytes": 12401,
+      "sha256": "040d07e1838393b1cfe639f4b2af3a78110a932d2fd4e3ac19be280e3fdd005a",
       "role": "cowork-source"
     },
     {
@@ -203,14 +203,14 @@
     },
     {
       "path": "cms-page.jsx",
-      "bytes": 40853,
-      "sha256": "704cd70edebb08c06d8c70a52fc80f4f4bcc05a2f932fc7a13d1e0fb9b3c5b28",
+      "bytes": 40714,
+      "sha256": "7049bdc8f0eea38ad233b244cc32a255363ad316a0ec5c2372aeebf67c1f9a6c",
       "role": "cowork-source"
     },
     {
       "path": "cobranca-recorrente-page.css",
-      "bytes": 16804,
-      "sha256": "d6c21afc86935b997705285df1ea8886eed2f8c4a230303bcb122179bb136fe7",
+      "bytes": 17179,
+      "sha256": "f2bbe52effad43c49c0c79374ca291777dfea19061949c172333290d0d8cbc06",
       "role": "cowork-source"
     },
     {
@@ -317,14 +317,14 @@
     },
     {
       "path": "comissionados-page.jsx",
-      "bytes": 17372,
-      "sha256": "eaab6f7a569ed9d6848012e5300e30e50e0905b85e06048c3ed852c7932f7761",
+      "bytes": 17546,
+      "sha256": "4343a2a0a5b683b7e375b6c6b83555ac50b5fcd77ff47f14f3995c3c34b73357",
       "role": "cowork-source"
     },
     {
       "path": "comissoes-page.jsx",
-      "bytes": 15443,
-      "sha256": "2b60b332eb81cfce8b2dba79ed1a12a00bd4f5f250ee6c007be94a53a966afde",
+      "bytes": 15613,
+      "sha256": "2f54a0aff97c92e1a58df290a381a3392262a42c8417211955b6ea0df3114a32",
       "role": "cowork-source"
     },
     {
@@ -407,8 +407,8 @@
     },
     {
       "path": "connector-page.jsx",
-      "bytes": 22542,
-      "sha256": "fb7559984a98bb58a8cf160fbd3a583005726f66deab572dc8507880e127372f",
+      "bytes": 22784,
+      "sha256": "3e6c9ce667ede40f1f910afb94ded9173e3a4b9d69eea8b34340b933fc527f76",
       "role": "cowork-source"
     },
     {
@@ -569,8 +569,8 @@
     },
     {
       "path": "cowork-inbox/ancora/playbook/00-INDICE.md",
-      "bytes": 10909,
-      "sha256": "013eb9d3c218466724c168f32a29d4da168abbdafd608cadfadb617ebf41037b",
+      "bytes": 12171,
+      "sha256": "9423aa290556ff5c6428229cfb282afdff47ac4edbaf9804d02a6bacd906c9d2",
       "role": "cowork-source"
     },
     {
@@ -739,6 +739,12 @@
       "path": "cowork-inbox/atendimento/playbook/_DECISOES-W-2026-10-01.md",
       "bytes": 1079,
       "sha256": "f040fe46f8a0db28eab98a89e50e4f5fa1b54cd76de756510888849c930db62c",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/atendimento/playbook/_saida-00.md",
+      "bytes": 2273,
+      "sha256": "bd8a88f936dfa7ff8cf26519d48cc06064190c25c2e07bc474b8752320aee835",
       "role": "cowork-source"
     },
     {
@@ -934,6 +940,12 @@
       "role": "cowork-source"
     },
     {
+      "path": "cowork-inbox/cliente/playbook/_saida-A2.md",
+      "bytes": 3556,
+      "sha256": "dec077a758c39972a8c08d429559759157db34e91435726f3ecd3403dc0c26ac",
+      "role": "cowork-source"
+    },
+    {
       "path": "cowork-inbox/cliente/playbook/_SESSAO-FRIA.md",
       "bytes": 1009,
       "sha256": "c82d7f4b82db425f26699eb8420eeb786e0e0d30ce6255377e0fafcf329cd017",
@@ -1097,8 +1109,8 @@
     },
     {
       "path": "cowork-inbox/compras/playbook/00-INDICE.md",
-      "bytes": 15089,
-      "sha256": "209cd29133d5cba872ed5eb02837996ce7e1c9088150a609b154271910ea334b",
+      "bytes": 15398,
+      "sha256": "09c53c1a00527926e90fca34ba5e7521819470c975de9e44bebb08a335eeaecf",
       "role": "cowork-source"
     },
     {
@@ -1222,6 +1234,36 @@
       "role": "cowork-source"
     },
     {
+      "path": "cowork-inbox/connector/playbook/_saida-06.md",
+      "bytes": 4743,
+      "sha256": "aba5dca515945d31f991403e8275232a3ddd1e969879f7d2f839c4723e41be6a",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/connector/playbook/_saida-07.md",
+      "bytes": 3839,
+      "sha256": "11853d6552ffe818957f0875391ed486c9a964f6490310bae3ad1b1d13c56187",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/connector/playbook/_saida-08.md",
+      "bytes": 4043,
+      "sha256": "5357c19c6fe3a1b28980dc8d3c3a6772b4a6ab9f39b5c2034c0ea5241aeb3043",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/connector/playbook/_saida-09.md",
+      "bytes": 4371,
+      "sha256": "b4c8c66e3082ae772c7d5aba9d0ee4202600951dbacddcb5d0d5bf8b8319c1a5",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/connector/playbook/_saida-10.md",
+      "bytes": 2958,
+      "sha256": "d7be16bea92954bd47e31439151f81799a9859a4dd247909481b632233312f19",
+      "role": "cowork-source"
+    },
+    {
       "path": "cowork-inbox/connector/playbook/_SESSAO-FRIA.md",
       "bytes": 1073,
       "sha256": "50bb5f343f7634c1bc225a6194abf70bb0fceea337a8e00c1439748ab40c5805",
@@ -1330,6 +1372,24 @@
       "role": "cowork-source"
     },
     {
+      "path": "cowork-inbox/crm/playbook/_saida-06.md",
+      "bytes": 5256,
+      "sha256": "c6613252557e5fc6224f605d2c730003354aa1a43ad07737db3d1a1649fd5be4",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/crm/playbook/_saida-07.md",
+      "bytes": 6670,
+      "sha256": "563b30f7e44ad1f4d5f38cd8bbe3171b2d28d41af2edb554a7b324bcb28e91fb",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/crm/playbook/_saida-08.md",
+      "bytes": 4024,
+      "sha256": "fcdc3835cbbd721d2e4c00cb13ddb9ef04dced574b7787491701ce54710afcbf",
+      "role": "cowork-source"
+    },
+    {
       "path": "cowork-inbox/crm/playbook/_saida-A1.md",
       "bytes": 4155,
       "sha256": "bead2e178263df606e258a1726d1b7b181f2c8ca59c1cb092361ba29a22b66cb",
@@ -1337,14 +1397,14 @@
     },
     {
       "path": "cowork-inbox/crm/playbook/_SESSAO-FRIA.md",
-      "bytes": 1115,
-      "sha256": "703cd1bbf6d57ce68808c8e40dbd791eea9b8cf722bddb03dd3d4ac6fd2aa2a9",
+      "bytes": 1189,
+      "sha256": "e66ae73709fbf2d8c3780db2e2bfa00cb9ffb2632386936240f7183b7d40e547",
       "role": "cowork-source"
     },
     {
       "path": "cowork-inbox/crm/playbook/00-INDICE.md",
-      "bytes": 10963,
-      "sha256": "981bdd6c1592579e0ac8089fa660ba2746f5b1b6e1a22a2980f53bb58d4dbd8c",
+      "bytes": 11667,
+      "sha256": "5af27fe4f618526752df5f58e2e5fe2f95e1959d5bdd612328ebd1aade350046",
       "role": "cowork-source"
     },
     {
@@ -1393,6 +1453,12 @@
       "path": "cowork-inbox/crm/playbook/08-leads-escopo.md",
       "bytes": 568,
       "sha256": "ca7894d4f20fe8fafcdd2d6d44ab8122eb1a14137fb930b97efb66b0f665997b",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/crm/playbook/09-leads-editar.md",
+      "bytes": 330,
+      "sha256": "0bf0327bc8cf246df8c6d654a6f2a8ed259df7e1509068148e6af676f300f8d9",
       "role": "cowork-source"
     },
     {
@@ -1624,6 +1690,48 @@
       "role": "cowork-source"
     },
     {
+      "path": "cowork-inbox/essenciais/playbook/_SESSAO-FRIA.md",
+      "bytes": 748,
+      "sha256": "5c17a9a77f0b577e197c961e63944079694f2f2c1be77daa097791c62061c634",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/essenciais/playbook/00-INDICE.md",
+      "bytes": 6651,
+      "sha256": "05c220a1e255a2815ec6d662410c87a54a3b6a021d71a1ac073ce551453a7f33",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/essenciais/playbook/00-puxar-vivo.md",
+      "bytes": 227,
+      "sha256": "65556c6c040dc411bd6f652f374acf2f22e7d1d23934762b439b7539d9db721b",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/essenciais/playbook/01-casos-forms.md",
+      "bytes": 178,
+      "sha256": "d40d6d6f1c23d0a78aae4c184fd6442f4df6e87ab7a4d39400f67656fd24c9b0",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/essenciais/playbook/02-casos-config.md",
+      "bytes": 152,
+      "sha256": "5dc812119393df38a353368f4eeaa2494b56c7d269af7bcf576ea93a3024021f",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/essenciais/playbook/03-contratos.md",
+      "bytes": 185,
+      "sha256": "144229d7d9092a7dc4748054ffd488e7497716b72c2555b06cc5f4331740c8ad",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/essenciais/playbook/A1-alvos.md",
+      "bytes": 303,
+      "sha256": "e705a2bb87fbe9c025735cdacef8ff457e94c754e72f6d26fc989e4031ef4ebf",
+      "role": "cowork-source"
+    },
+    {
       "path": "cowork-inbox/essenciais/Tarefas.casos.md",
       "bytes": 1243,
       "sha256": "ba223333d24fef19ac138d8834a36dad139ab4f4b76c73efc0af3e017d068437",
@@ -1633,6 +1741,42 @@
       "path": "cowork-inbox/essenciais/Tarefas.charter.md",
       "bytes": 2088,
       "sha256": "30ba5f94fb5af201e86757c67b3de721976ff146e777f43814031a71dc2e631b",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/estoque/playbook/_SESSAO-FRIA.md",
+      "bytes": 650,
+      "sha256": "a932da7f5fafc436c0b96d26641063c4d859cd2f45c671aabf31d1172d07aff8",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/estoque/playbook/00-INDICE.md",
+      "bytes": 4131,
+      "sha256": "19b1748402e1db6e462787bac8d05eaa99c38ffbc904bce4c5227be816d7de7f",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/estoque/playbook/00-puxar-vivo.md",
+      "bytes": 200,
+      "sha256": "7dcb071d79cd585434430f0216c4caa77f7e84d7900052befbbf1326fc81abb6",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/estoque/playbook/01-trio.md",
+      "bytes": 241,
+      "sha256": "2c1661f48b3549b1fa9c74be66008b099665a55515f2c8a5d1146d66050c6435",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/estoque/playbook/02-contratos.md",
+      "bytes": 198,
+      "sha256": "3db1fc614de89923080bfa526762fb086511c267bc1cd63b96aa0caff39efd56",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/estoque/playbook/A1-alvos.md",
+      "bytes": 394,
+      "sha256": "43edc56d6dce63f22997457d73f6b07af01b17ac263e88866bf8f04a3ea9ab50",
       "role": "cowork-source"
     },
     {
@@ -1685,8 +1829,8 @@
     },
     {
       "path": "cowork-inbox/financeiro/playbook/00-INDICE.md",
-      "bytes": 10745,
-      "sha256": "19d058acfe310dcbe07503f4e6ca9ff6d8444d8564939cc49ef33ad7c198ba13",
+      "bytes": 11128,
+      "sha256": "5fb473f0d92102abc0504669dfd79c6aba25d7b1ac2d6232b28ba1c5397a048e",
       "role": "cowork-source"
     },
     {
@@ -1925,8 +2069,8 @@
     },
     {
       "path": "cowork-inbox/governance/playbook/00-INDICE.md",
-      "bytes": 12935,
-      "sha256": "481c12802f96090fd9fd1adecf5019fd5699fe04c5c18ba1ffdd3d98e63d00bf",
+      "bytes": 13085,
+      "sha256": "594c4830937be460856954770c62bee1b60cfc1dc9fdec60eda2f5343efeba12",
       "role": "cowork-source"
     },
     {
@@ -2077,6 +2221,12 @@
       "path": "cowork-inbox/hrm/playbook/_saida-10.md",
       "bytes": 5119,
       "sha256": "773bedccb3a83b3ae2bf08c01e89f0d564e0eefda1d2dce12438870bd5767638",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/hrm/playbook/_saida-11.md",
+      "bytes": 4975,
+      "sha256": "3ca5a079ce3d2fff322686d137b7d5b07427e691975f7d9cb439e2ae56d59f32",
       "role": "cowork-source"
     },
     {
@@ -2279,8 +2429,8 @@
     },
     {
       "path": "cowork-inbox/lote-trio-medida/playbook/00-INDICE.md",
-      "bytes": 4633,
-      "sha256": "1459fd9d13aa17c97a7dd5200c372dd3a8e50e2be25652ca3774f3a312dc5b6e",
+      "bytes": 5324,
+      "sha256": "d5629f9dbf9cf5e35e6b3297a0fe280434b2052cd9f2eb95bad5e11fdd0eb495",
       "role": "cowork-source"
     },
     {
@@ -2644,6 +2794,12 @@
       "role": "cowork-source"
     },
     {
+      "path": "cowork-inbox/officeimpresso/playbook/_saida-03.md",
+      "bytes": 3943,
+      "sha256": "62c0160ba558121a543185cba2875454c2f5a53acd1bed5537a1d23e892e4be7",
+      "role": "cowork-source"
+    },
+    {
       "path": "cowork-inbox/officeimpresso/playbook/_saida-04.md",
       "bytes": 4062,
       "sha256": "7658828bbe051509a7599f59daec0dd6ce1082159095a6e7a36b4206cc590de4",
@@ -2674,15 +2830,27 @@
       "role": "cowork-source"
     },
     {
+      "path": "cowork-inbox/officeimpresso/playbook/_saida-A3.md",
+      "bytes": 3941,
+      "sha256": "2c2b2a2c25e9589133d5ac25ae98166bad2a7475e98534a45f6f1eb5b176608c",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/officeimpresso/playbook/_saida-A4.md",
+      "bytes": 793,
+      "sha256": "8bb656c3fdadd23e1612a9c4549bfd561877180d59ce4da461e6e2b9e004b406",
+      "role": "cowork-source"
+    },
+    {
       "path": "cowork-inbox/officeimpresso/playbook/_SESSAO-FRIA.md",
-      "bytes": 1160,
-      "sha256": "bd47325c08ca1e256fa46ed167c97af46eaae8be1f6a344db63cd499458f7387",
+      "bytes": 1244,
+      "sha256": "557bab9d0cb612ba7789e5a93ace07c5d2471289f79476d3967b6d421ff9c24e",
       "role": "cowork-source"
     },
     {
       "path": "cowork-inbox/officeimpresso/playbook/00-INDICE.md",
-      "bytes": 13650,
-      "sha256": "53ff2d61ac2cf453e9adb5390ede180abb24140d206763dec7ae2ac3699cc663",
+      "bytes": 15225,
+      "sha256": "2d07dfc2c1f0c6ffe8e3b9e775d1ea7a5caa988b2c24c69f56610332d1450934",
       "role": "cowork-source"
     },
     {
@@ -2749,6 +2917,12 @@
       "path": "cowork-inbox/officeimpresso/playbook/A3-remedir-logs.md",
       "bytes": 573,
       "sha256": "759dc2b13b9e294cba83e939c630f702dd0c19517b937699e0a8b3b88e3c6021",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/officeimpresso/playbook/A4-timeline-vista.md",
+      "bytes": 379,
+      "sha256": "16a4fa1f4689c7ce22f731457994bac0651f8fdf67094077f741c33b9f3222b1",
       "role": "cowork-source"
     },
     {
@@ -3221,8 +3395,8 @@
     },
     {
       "path": "cowork-inbox/placar/playbook/00-INDICE.md",
-      "bytes": 2651,
-      "sha256": "397b2a2b2993dcda3ca17474c622f08f29d3fd49fd41a5cbd2aedb2d25d258a8",
+      "bytes": 3805,
+      "sha256": "f3c89a969c80397dec7113abfba02347c97e8c5ed8755e6666e0556cc9015975",
       "role": "cowork-source"
     },
     {
@@ -3241,6 +3415,12 @@
       "path": "cowork-inbox/placar/playbook/03-rotina-cowork-desatualizada.md",
       "bytes": 2343,
       "sha256": "63c8898ac42866a7467f3e1fa4eba65535f98f3ae19344a886ddd23b9f4dcff1",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/placar/playbook/A-LOTE-medicao-por-tela.md",
+      "bytes": 737,
+      "sha256": "cfa6a5e16d9256f0482fb2fc21939e73069dfd63b2a3a2c082a160138a86b668",
       "role": "cowork-source"
     },
     {
@@ -3874,6 +4054,12 @@
       "role": "cowork-source"
     },
     {
+      "path": "cowork-inbox/produto/playbook/_saida-03.md",
+      "bytes": 4436,
+      "sha256": "f9a6e2906b516cf49bf35754bd8443b0f63f8775843190afcd05fdd29c251e48",
+      "role": "cowork-source"
+    },
+    {
       "path": "cowork-inbox/produto/playbook/_saida-05.md",
       "bytes": 9970,
       "sha256": "ff361eceeb927ce28ce9b8c3c4dccad4deee1b68d5f9f3a7dc4830c907120400",
@@ -3892,6 +4078,18 @@
       "role": "cowork-source"
     },
     {
+      "path": "cowork-inbox/produto/playbook/_saida-09.md",
+      "bytes": 3400,
+      "sha256": "b7fa71539d826298448b82bc5411153f40e2ad48c225f06d38b8344a9e45147c",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/produto/playbook/_saida-10.md",
+      "bytes": 4501,
+      "sha256": "6d5c81d515e3f248db351d691ab2a155179636c2e9a34fd8b7fba95e41ce359c",
+      "role": "cowork-source"
+    },
+    {
       "path": "cowork-inbox/produto/playbook/_saida-A2.md",
       "bytes": 5898,
       "sha256": "edb6d2ffd50c5e12881849dcc112aee78cd5d868dd0c7883e9c7c869c8ee6eaa",
@@ -3899,14 +4097,14 @@
     },
     {
       "path": "cowork-inbox/produto/playbook/_SESSAO-FRIA.md",
-      "bytes": 2379,
-      "sha256": "01f6b8238c6f07e0a6dea880e847f987346adf19a9a3f21a09e7c11e89ba50ef",
+      "bytes": 2485,
+      "sha256": "c586717a6f8a4327a781cf56d019f641da13cecfbc7996e1c82e3203c881cd12",
       "role": "cowork-source"
     },
     {
       "path": "cowork-inbox/produto/playbook/00-INDICE.md",
-      "bytes": 18387,
-      "sha256": "ce3e26587f8a4d13281e1f0eba76c2ae2aac82196a2a72d56c6718c116ee1570",
+      "bytes": 20344,
+      "sha256": "285600b573a64778c801c75666d0788dd0bde2cb3f979b615de501e196064de1",
       "role": "cowork-source"
     },
     {
@@ -3973,6 +4171,12 @@
       "path": "cowork-inbox/produto/playbook/10-cadastros-form.md",
       "bytes": 554,
       "sha256": "af831b556b26a5b5937dae574f43a52cdb238fa3cf02bcb63a8e2a635221d007",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/produto/playbook/11-cadastros-form-b.md",
+      "bytes": 291,
+      "sha256": "176f442e251c08cec4bd249e0fb55bba02461c8d87919abcb7a700a4747c06dd",
       "role": "cowork-source"
     },
     {
@@ -4151,8 +4355,8 @@
     },
     {
       "path": "cowork-inbox/prontidao/playbook/00-INDICE.md",
-      "bytes": 15692,
-      "sha256": "a8c53b4f9b86ab5f7d9485bbe1df76c3b1c3df0d515beb58a79a2b86490fd4d7",
+      "bytes": 15841,
+      "sha256": "2cc05fb5ce0d129c1b1b9b8d260f87a4b4bec88f5b0562595b7fcd0698d80597",
       "role": "cowork-source"
     },
     {
@@ -4259,8 +4463,8 @@
     },
     {
       "path": "cowork-inbox/recepcao-pacote/playbook/00-INDICE.md",
-      "bytes": 5340,
-      "sha256": "4941707384783176f59949f3de097c6b7384961f3a2b45855331ffb3d56ddcc1",
+      "bytes": 5529,
+      "sha256": "19403c654fc622047ab1d53bd7bd6ee1e28a8709d09b0199d9a71f5b254433a9",
       "role": "cowork-source"
     },
     {
@@ -4273,6 +4477,36 @@
       "path": "cowork-inbox/recepcao-pacote/playbook/02-pacote-2026-09-16-regerado.md",
       "bytes": 10230,
       "sha256": "0711ac55231f0d98672394b1de0d2ef6f42ed4b4cc539c324e8503a86d9b8865",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/recorrente/playbook/_SESSAO-FRIA.md",
+      "bytes": 501,
+      "sha256": "4ec66eab3d496a49d455eefd34de1a1293de5aca6357b6ff9b7c281a7d70c8dd",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/recorrente/playbook/00-INDICE.md",
+      "bytes": 3835,
+      "sha256": "be89c7577d46d73bbd9c9ab1428be461a0cd0474ee2b70943093975ba128e4de",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/recorrente/playbook/00-puxar-vivo.md",
+      "bytes": 185,
+      "sha256": "f0cdee68c5f4ebb3794a15a18c350c978f00b9729682c3a49ea03659476a2bce",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/recorrente/playbook/01-contratos.md",
+      "bytes": 203,
+      "sha256": "8498d3f27d138f050a8c8959429826f5c356414368fdd4b368dd1be926f0513a",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/recorrente/playbook/A1-alvos.md",
+      "bytes": 303,
+      "sha256": "ace472e069ced9857ec88050a75db6e2eaa61386e6e2fb6a8a2ae9137e9a3123",
       "role": "cowork-source"
     },
     {
@@ -4306,9 +4540,21 @@
       "role": "cowork-source"
     },
     {
+      "path": "cowork-inbox/repair/playbook/_saida-02-producao.md",
+      "bytes": 1502,
+      "sha256": "00ca463b456c761e51075c6651efbf0e7dbb9b105853effbddf8ee20961982a9",
+      "role": "cowork-source"
+    },
+    {
       "path": "cowork-inbox/repair/playbook/_saida-02.md",
       "bytes": 5559,
       "sha256": "51e9b0a7cd394769c9a11f5e9b00441290ff4751e023f6f01a34062fc292b5ef",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/repair/playbook/_saida-03.md",
+      "bytes": 3368,
+      "sha256": "23e85d59a4fde9efe425f24f709e53fb5d27bbae868e32a3e8736f09dbd6c3b7",
       "role": "cowork-source"
     },
     {
@@ -4409,8 +4655,8 @@
     },
     {
       "path": "cowork-inbox/shell-usermenu/playbook/00-INDICE.md",
-      "bytes": 5413,
-      "sha256": "4c5a6446be7c59f0539398bf64074ef1d79cfa51738ab2cbac11af99820e6c4e",
+      "bytes": 6089,
+      "sha256": "981c144acff767035a00aa5276a64a41e6b94a73cc6f583856dc20cbb0db6a11",
       "role": "cowork-source"
     },
     {
@@ -4636,6 +4882,66 @@
       "role": "cowork-source"
     },
     {
+      "path": "cowork-inbox/sistema/playbook/_SESSAO-FRIA.md",
+      "bytes": 1204,
+      "sha256": "26498636a18b5a4cb8f2d29573934e5cc6816e12a3853024c70a4b7b19a182af",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/sistema/playbook/00-INDICE.md",
+      "bytes": 9015,
+      "sha256": "4a49534f48d798d0e533b498054753e80fc456af510e70cddf2b182655fc9b89",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/sistema/playbook/00-mapa.md",
+      "bytes": 280,
+      "sha256": "f790ce209014d8dd4b63949407c7fafdffd219c5753e8a9fd13dd5db41ac5fa5",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/sistema/playbook/01-usuarios-manageuser-inertia.md",
+      "bytes": 474,
+      "sha256": "574da9605162f48370d7fb80cc253d3d964271570868e97b204cac387abcc74b",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/sistema/playbook/02-funcoes-e-permissoes-role-inertia.md",
+      "bytes": 484,
+      "sha256": "0c9092e85fd4e75f4d47ce2a8dc49ca9b20b26655171b280261bec1f3a531170",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/sistema/playbook/03-comissionados-salescommissionagent-inert.md",
+      "bytes": 512,
+      "sha256": "4378f645671de9597c0cfd7963053ec2640c1b092ff8c7fbb97285eefff2f7ad",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/sistema/playbook/04-locais-impressoras-codigo-de-barras-iner.md",
+      "bytes": 570,
+      "sha256": "6a14c3ade98854cd5e17355e3b9867d4999024869164208305e38d71a47ca4d0",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/sistema/playbook/05-esquemas-de-fatura-impostos-tipos-de-ser.md",
+      "bytes": 592,
+      "sha256": "2ec2bb1b7ad8d928d56d889385d81a6035d3c70b3da364e4a7bed84ee1aa9806",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/sistema/playbook/06-modelos-de-notificacao-contas-inertia.md",
+      "bytes": 533,
+      "sha256": "85d01e6fdabdc5754b006a00afa8600b40dc7481d62faa33c82a7515f6e41d6a",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/sistema/playbook/07-relatorios.md",
+      "bytes": 486,
+      "sha256": "3db74b6464c446ea36b7deaa5f21883bb49c2b1778880e943a81fcea07686df2",
+      "role": "cowork-source"
+    },
+    {
       "path": "cowork-inbox/superadmin/playbook/_DECISOES-W-2026-10-01.md",
       "bytes": 1050,
       "sha256": "00c817b1b5c916a95311e42c4b6b8e26d54e79daa22775be7746f71503b3e3a3",
@@ -4660,21 +4966,45 @@
       "role": "cowork-source"
     },
     {
+      "path": "cowork-inbox/superadmin/playbook/_saida-02.md",
+      "bytes": 5758,
+      "sha256": "926731ea5f2229945acec2693869b450c7a684d0cb454cb8fd271d9c74c3c9c5",
+      "role": "cowork-source"
+    },
+    {
       "path": "cowork-inbox/superadmin/playbook/_saida-05.md",
       "bytes": 5235,
       "sha256": "be47d92f22640eab50fcd2f547017bed1bd0132f4ae80175d1d2dd210563f806",
       "role": "cowork-source"
     },
     {
+      "path": "cowork-inbox/superadmin/playbook/_saida-06.md",
+      "bytes": 2509,
+      "sha256": "3d4d720bddd175e6be886211f735ad174fd44476572a00439af4cbd8fccdb187",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/superadmin/playbook/_saida-07.md",
+      "bytes": 2588,
+      "sha256": "d8eb6a0c29bd6d7224e50c19dc75a222f178672891cb896d5777db618dff170a",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/superadmin/playbook/_saida-A1.md",
+      "bytes": 4782,
+      "sha256": "20e56476ef97286c128898bcddcf521d6846101581b366ffcaca56960b849dcf",
+      "role": "cowork-source"
+    },
+    {
       "path": "cowork-inbox/superadmin/playbook/_SESSAO-FRIA.md",
-      "bytes": 975,
-      "sha256": "486413ef9cf233b4bbe2b266394c09a6e74d7a4ae577536168cc70eacc4a812c",
+      "bytes": 1055,
+      "sha256": "0d5a50572c0fb93d3249d9be30931cd62ae209d92a6f5894043b2328d6081fe3",
       "role": "cowork-source"
     },
     {
       "path": "cowork-inbox/superadmin/playbook/00-INDICE.md",
-      "bytes": 8676,
-      "sha256": "1b9caf4134b02d974b93a5d5b65f02687681983300b2ffa93c3a54dd15d23212",
+      "bytes": 9313,
+      "sha256": "75d821191d5aacb87b86ced4d15ee0e976ec1eea302cf324fea87dd17692f101",
       "role": "cowork-source"
     },
     {
@@ -4729,6 +5059,84 @@
       "path": "cowork-inbox/superadmin/playbook/A1-alvos.md",
       "bytes": 498,
       "sha256": "d2f3246d160c06fab0f350694be7bba516e49be45c0a37a476a9bbdab5e3746c",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/superadmin/playbook/A2-remedir-4.md",
+      "bytes": 682,
+      "sha256": "24ec3902969d5fc962006b665654a5dba71d95bbfeafe882655cf3315613705c",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/telas-soltas/playbook/_SESSAO-FRIA.md",
+      "bytes": 677,
+      "sha256": "469252617c1dd37e1f2fe4cdbdce80c32526c943e3aa09f9ffa53c5467542e24",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/telas-soltas/playbook/00-INDICE.md",
+      "bytes": 6364,
+      "sha256": "b7e3a54889194830ef563bcdb15e387ed73aacb9b975a3ad85bfa9c900121c82",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/telas-soltas/playbook/01-contratos.md",
+      "bytes": 209,
+      "sha256": "69db2534c27ad6b4df1a750abc3488739e2957024fdf4e9e90ab8ba4455339ab",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/telas-soltas/playbook/02-forja.md",
+      "bytes": 257,
+      "sha256": "3cfded4d06d3943fe1b0b47f56aa5cfbf6e5e5430ad9792928cefb96547ac404",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/telas-soltas/playbook/03-so-prototipo.md",
+      "bytes": 330,
+      "sha256": "e1fd1d233853c5c093138a4bb8545237131e1f2bf5d48011ee40747930b6c046",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/telas-soltas/playbook/A1-alvos.md",
+      "bytes": 413,
+      "sha256": "37141df82267dfa2ee220bf577ddc59fdcdefc962169e0e7b4fcb1eccba9c3e6",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/tema-escuro/playbook/_SESSAO-FRIA.md",
+      "bytes": 545,
+      "sha256": "b3a086fc2ce8899459396a33051d53d140489325498bed5092fa2666f6e58770",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/tema-escuro/playbook/00-INDICE.md",
+      "bytes": 6391,
+      "sha256": "c0edaf9e018e41bc24923db61c66ecc28f49dc640228fe6012c5d0fa4454e039",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/tema-escuro/playbook/01-sonda.md",
+      "bytes": 2693,
+      "sha256": "94dc700476c32d7d1241222c8df623cc4efec0a5d63cf88643769319379b6bb1",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/tema-escuro/playbook/02-producao.md",
+      "bytes": 395,
+      "sha256": "e74b286b51a901ab6386e0f885105a8668c3161ad32a1149c86d6fc1e92b4a91",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/tema-escuro/playbook/03-invertidas.md",
+      "bytes": 431,
+      "sha256": "9cdf9d41424647935ac75f46af32e9f100dddf5cfc5f518892639f06d02142a8",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/tema-escuro/playbook/04-triagem-prototipo.md",
+      "bytes": 363,
+      "sha256": "cb33c7abe893ce485e2671f39039784252da903e203effc19042ecb032d62480",
       "role": "cowork-source"
     },
     {
@@ -4846,6 +5254,12 @@
       "role": "cowork-source"
     },
     {
+      "path": "cowork-inbox/venda-menu/playbook/_saida-03b.md",
+      "bytes": 4453,
+      "sha256": "9267d5221e298481b132322da4d1476a0462bc1d340528e974800864334bc7e1",
+      "role": "cowork-source"
+    },
+    {
       "path": "cowork-inbox/venda-menu/playbook/_saida-04.md",
       "bytes": 3844,
       "sha256": "50e9e99eb1b4e352fe985beb3422a0d714c437b28ae8ec583d7c612bf9f578d4",
@@ -4861,6 +5275,12 @@
       "path": "cowork-inbox/venda-menu/playbook/_saida-06.md",
       "bytes": 5572,
       "sha256": "3b71bba35f4d006028a0f4251a80d55e8eae772efbbb7e292c24ec961bac85e4",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/venda-menu/playbook/_saida-07.md",
+      "bytes": 6894,
+      "sha256": "f093662f9160194df7edd83991cc8d95ebd97f4dee0bb8fc4ea0b38c43c5faf9",
       "role": "cowork-source"
     },
     {
@@ -4883,8 +5303,8 @@
     },
     {
       "path": "cowork-inbox/venda-menu/playbook/00-INDICE.md",
-      "bytes": 11270,
-      "sha256": "5df1042afa2beeb337a6200180b769d8285677e408a02b1832f19e3a4c132c6e",
+      "bytes": 11788,
+      "sha256": "8fa5169a5a51f7411d9c64e77d9cb4af90036f9543471d08d55e920fb8cb4049",
       "role": "cowork-source"
     },
     {
@@ -5057,8 +5477,8 @@
     },
     {
       "path": "essenciais-page.jsx",
-      "bytes": 41082,
-      "sha256": "91643224c26e9209cf8719bcc2fd6a451e7c5d31e80a8788a2c246885f563ab9",
+      "bytes": 40920,
+      "sha256": "43e6924a00892df3b130d373b65d03be553a0904f18aa9b61b806eb6de6ec43b",
       "role": "cowork-source"
     },
     {
@@ -5351,8 +5771,8 @@
     },
     {
       "path": "funcoes-page.jsx",
-      "bytes": 18110,
-      "sha256": "8b8d6e3c11533442515deefe0396d7a608f9860e5519bb6ebb72d430838e93f6",
+      "bytes": 18278,
+      "sha256": "0e6b22e2d5f0dedbb45b71d5b20b9191dfe54f414683b8f7386dc475df28f76b",
       "role": "cowork-source"
     },
     {
@@ -5363,8 +5783,8 @@
     },
     {
       "path": "github.md",
-      "bytes": 135518,
-      "sha256": "0b125864c06a3a9c202cdd5666014468ea202fb27c71395bf27de3920ffee5c1",
+      "bytes": 136916,
+      "sha256": "20cfe23c5aec7f05f4ad83ea5b9c812b79e0756289e679311e9adc6cfc49bef3",
       "role": "cowork-source"
     },
     {
@@ -5495,8 +5915,8 @@
     },
     {
       "path": "hrm-page.jsx",
-      "bytes": 37114,
-      "sha256": "02b6c9c3deee6820f13c34052c015c473815e12795581a22e889186cb6bf54c2",
+      "bytes": 36952,
+      "sha256": "c00b59f416e1662cb1aebe27f014d604fb1c94ea6d54163f680e30dba5ac0b90",
       "role": "cowork-source"
     },
     {
@@ -5543,14 +5963,14 @@
     },
     {
       "path": "inbox-page.css",
-      "bytes": 103303,
-      "sha256": "379868865cbc041dad23a22f3a8b471ec6a1d9e3ac4fdac76893384892170ba7",
+      "bytes": 104293,
+      "sha256": "24d5c06648b71c272a32c275fcb025c4c954b878a7996a7d7734522e10ed6f9d",
       "role": "cowork-source"
     },
     {
       "path": "inbox-page.jsx",
-      "bytes": 87828,
-      "sha256": "10ab0b18e34509192a30575e994a8474e5caf32e80a4428de586cee6b2534163",
+      "bytes": 89603,
+      "sha256": "78610a87e6a8aef544da74a8b05006fa98b1194f60c7f0cdd03ccf940b1e2c84",
       "role": "cowork-source"
     },
     {
@@ -5777,8 +6197,8 @@
     },
     {
       "path": "modulos-page.jsx",
-      "bytes": 22218,
-      "sha256": "e0bcbd247c6c5bb82dac110259c0357b5784674083960d640d6382e4abcdb429",
+      "bytes": 22461,
+      "sha256": "8210961da17002e23debe026a1e39a3c0e9dbf912fa4b29d6c9bcf64b8aa3226",
       "role": "cowork-source"
     },
     {
@@ -5801,8 +6221,8 @@
     },
     {
       "path": "officeimpresso-page.jsx",
-      "bytes": 72222,
-      "sha256": "39b2cfcfba453ce030bc9f8cb2e76851488ef6ff8dc900daf5f823c722926244",
+      "bytes": 74445,
+      "sha256": "47d55bdfd9a4a08b7c337439032f1af13ac8bce97f04ff191c1d77642ca8422c",
       "role": "cowork-source"
     },
     {
@@ -5843,8 +6263,8 @@
     },
     {
       "path": "oficina-page.jsx",
-      "bytes": 72534,
-      "sha256": "409e02172cd394c3d77838f4b9499d9681a2cbde4b48654cc589fe22015c12e2",
+      "bytes": 72519,
+      "sha256": "731ed2750d5acc99002a642b8f5c8fe89f268634b5ef4632bd5a2b06641fef3d",
       "role": "cowork-source"
     },
     {
@@ -5861,14 +6281,14 @@
     },
     {
       "path": "oimpresso.com.html",
-      "bytes": 36482,
-      "sha256": "e389b12a0c59f9e34b5db79553198c937f61b9934b1c07ce1499ce63bd226d97",
+      "bytes": 36513,
+      "sha256": "fd96b10cfea2a8a0c56a49171567dba34d95f0c46945ad8bccc43ead6d55b3b3",
       "role": "cowork-source"
     },
     {
       "path": "orc-page.jsx",
-      "bytes": 6585,
-      "sha256": "fbf236fd59d183a1119096713b656a14f87d4d1ac97f14fe7743edb1a4ade4fb",
+      "bytes": 6449,
+      "sha256": "14f39d16b7db7944da6de587aa782de16c94c7ee7b7333a38f4bc927fbd3ea30",
       "role": "cowork-source"
     },
     {
@@ -6077,8 +6497,8 @@
     },
     {
       "path": "produto-cadastros.jsx",
-      "bytes": 35934,
-      "sha256": "f22c6a66f0237b2a34a4b7b3147c202676bd6bbe52e1edb315549b671295eae5",
+      "bytes": 36258,
+      "sha256": "5aea5166e10e767908e73be301090a71db56fed819ec2ce318a70e6d1981d0ce",
       "role": "cowork-source"
     },
     {
@@ -6275,26 +6695,26 @@
     },
     {
       "path": "styles.css",
-      "bytes": 223536,
-      "sha256": "123addc81834dcb17c1af494e8c5389a76e92f3e9dcf1582992ab79ee1c59c27",
+      "bytes": 223992,
+      "sha256": "a49fe460c932aae79a537d6fa9354245e6a890ca57e8502b224f5865c616d771",
       "role": "cowork-source"
     },
     {
       "path": "superadmin-page.css",
-      "bytes": 30482,
-      "sha256": "09e2697b85df770651745e4bba67e01dc609e49463e33cdb149617f9803d3726",
+      "bytes": 30526,
+      "sha256": "57cba26db3bfe7f9ac78d286f2ccbd9c5a4574e54b1a19cc24675c1d5d0624f6",
       "role": "cowork-source"
     },
     {
       "path": "superadmin-page.jsx",
-      "bytes": 82628,
-      "sha256": "c6d571d7e3c744523264c9e985bf47e508ef167aed8fffebc825ad125a75dcc5",
+      "bytes": 83556,
+      "sha256": "cc90ebfb68532767552fcda8811d560a569f1fefd2a19e39102d7c9fdf44aef9",
       "role": "cowork-source"
     },
     {
       "path": "superadmin-usuarios.jsx",
-      "bytes": 19665,
-      "sha256": "cb6fbfc2d0a89bbd3d9c4d2f12988f1e9e9a9bc5626c3dd99e35cb94480988fd",
+      "bytes": 19732,
+      "sha256": "0655323b9ed4f6855d43d1b4f923484921e5c0c298084eedff579071770a469c",
       "role": "cowork-source"
     },
     {
@@ -6323,8 +6743,8 @@
     },
     {
       "path": "usuarios-page.jsx",
-      "bytes": 20151,
-      "sha256": "e00ba78600ec81e4ef5678d144db7b5d9339ee3cac4f264aaf1af09e83a96ec0",
+      "bytes": 20320,
+      "sha256": "0060a54296b29ee41f644dd4b31636644405d4a7deaeabc443de71099695d6ab",
       "role": "cowork-source"
     },
     {
@@ -6377,14 +6797,14 @@
     },
     {
       "path": "venda-v3.css",
-      "bytes": 8113,
-      "sha256": "ba5be685f512484183f43eea25808aea92fc4b105411a8038ff32ef176f583e9",
+      "bytes": 8485,
+      "sha256": "bff8a2efc798c22bb91c3f32103d44dd19eaf26b1d09c354825ec6afa0c20164",
       "role": "cowork-source"
     },
     {
       "path": "venda-v3.jsx",
-      "bytes": 241409,
-      "sha256": "4d69336e7134fc10ef60ab8d4d7528d5d15ff8726279953912a42c7497c5f162",
+      "bytes": 241436,
+      "sha256": "f1d0a8489fd2a062f03aab16e543ba7574fe8b70b5b84f7f6c4ddbcc87429a33",
       "role": "cowork-source"
     },
     {
@@ -6455,8 +6875,8 @@
     },
     {
       "path": "venda-v3/sells-create.jsx",
-      "bytes": 50312,
-      "sha256": "d37108c46381d659ef329671ad3260e2de7c85b3312653853e098209ad35c7c0",
+      "bytes": 50339,
+      "sha256": "b2c8e6b9dd94d1c77e7746611f39ac4bbaac6282d82d4bb594a590dc68f79e42",
       "role": "cowork-source"
     },
     {
@@ -6569,8 +6989,8 @@
     },
     {
       "path": "vendas.css",
-      "bytes": 108103,
-      "sha256": "59857c87b7dd674d1bd96a4fefaabf01dc9660ee5437275a621da42cf829a6b1",
+      "bytes": 109281,
+      "sha256": "15735f6bada0450d0015d7468fc6d9a9a2b4c94400afb3ee6d9068db5cd3ed5f",
       "role": "cowork-source"
     },
     {
@@ -6594,10 +7014,10 @@
   ],
   "missing": [],
   "mirrorScope": "tree",
-  "bundleId": "51bab41570b7dd2a74238b3b1e528eebd4028505023047808f4b9443c94d82cc",
-  "baseBundleId": "b80e13f4c23784f17c15f55c206450ce9199413b02fe22af34ed473e4dfc3e87",
+  "bundleId": "c8a922f9285b0e54d703146c33feb4bf08134e7ae92fa38d0839094d51429a04",
+  "baseBundleId": "51bab41570b7dd2a74238b3b1e528eebd4028505023047808f4b9443c94d82cc",
   "mode": "delta",
-  "generatedAt": "2026-10-05T13:06:36.298Z",
+  "generatedAt": "2026-10-06T07:34:29.468Z",
   "dsRequires": {
     "owner": "Wagner",
     "slug": "office-impresso-design-system-019dd02f-d2d0-7ba6-a57f-24b3ddd073ac",
@@ -6649,29 +7069,132 @@
     ]
   },
   "totals": {
-    "files": 1098,
-    "bytes": 11424344
+    "files": 1168,
+    "bytes": 11601835
   },
   "changes": {
-    "added": [],
-    "modified": [],
-    "deleted": [
-      "cowork-inbox/app-lojas/ref/oimpresso-mobile/android-frame.jsx",
-      "cowork-inbox/app-lojas/ref/oimpresso-mobile/design-canvas.jsx",
-      "cowork-inbox/app-lojas/ref/oimpresso-mobile/icons.jsx",
-      "cowork-inbox/app-lojas/ref/oimpresso-mobile/ios-frame.jsx",
-      "cowork-inbox/app-lojas/ref/oimpresso-mobile/mobile-app.jsx",
-      "cowork-inbox/app-lojas/ref/oimpresso-mobile/mock-data.jsx",
-      "cowork-inbox/app-lojas/ref/oimpresso-mobile/Oimpresso Mobile.html",
-      "cowork-inbox/app-lojas/ref/oimpresso-mobile/oimpresso-tokens.css",
-      "cowork-inbox/app-lojas/ref/oimpresso-mobile/screens-clientes-producao.jsx",
-      "cowork-inbox/app-lojas/ref/oimpresso-mobile/screens-home-tasks.jsx",
-      "cowork-inbox/app-lojas/ref/oimpresso-mobile/screens-modules.jsx",
-      "cowork-inbox/app-lojas/ref/oimpresso-mobile/screens-novo-cliente.jsx",
-      "cowork-inbox/app-lojas/ref/oimpresso-mobile/screens-novo-produto.jsx",
-      "cowork-inbox/app-lojas/ref/oimpresso-mobile/task-viewers.jsx",
-      "cowork-inbox/app-lojas/ref/oimpresso-mobile/tweaks-panel.jsx"
+    "added": [
+      "cowork-inbox/atendimento/playbook/_saida-00.md",
+      "cowork-inbox/cliente/playbook/_saida-A2.md",
+      "cowork-inbox/connector/playbook/_saida-06.md",
+      "cowork-inbox/connector/playbook/_saida-07.md",
+      "cowork-inbox/connector/playbook/_saida-08.md",
+      "cowork-inbox/connector/playbook/_saida-09.md",
+      "cowork-inbox/connector/playbook/_saida-10.md",
+      "cowork-inbox/crm/playbook/_saida-06.md",
+      "cowork-inbox/crm/playbook/_saida-07.md",
+      "cowork-inbox/crm/playbook/_saida-08.md",
+      "cowork-inbox/crm/playbook/09-leads-editar.md",
+      "cowork-inbox/essenciais/playbook/_SESSAO-FRIA.md",
+      "cowork-inbox/essenciais/playbook/00-INDICE.md",
+      "cowork-inbox/essenciais/playbook/00-puxar-vivo.md",
+      "cowork-inbox/essenciais/playbook/01-casos-forms.md",
+      "cowork-inbox/essenciais/playbook/02-casos-config.md",
+      "cowork-inbox/essenciais/playbook/03-contratos.md",
+      "cowork-inbox/essenciais/playbook/A1-alvos.md",
+      "cowork-inbox/estoque/playbook/_SESSAO-FRIA.md",
+      "cowork-inbox/estoque/playbook/00-INDICE.md",
+      "cowork-inbox/estoque/playbook/00-puxar-vivo.md",
+      "cowork-inbox/estoque/playbook/01-trio.md",
+      "cowork-inbox/estoque/playbook/02-contratos.md",
+      "cowork-inbox/estoque/playbook/A1-alvos.md",
+      "cowork-inbox/hrm/playbook/_saida-11.md",
+      "cowork-inbox/officeimpresso/playbook/_saida-03.md",
+      "cowork-inbox/officeimpresso/playbook/_saida-A3.md",
+      "cowork-inbox/officeimpresso/playbook/_saida-A4.md",
+      "cowork-inbox/officeimpresso/playbook/A4-timeline-vista.md",
+      "cowork-inbox/placar/playbook/A-LOTE-medicao-por-tela.md",
+      "cowork-inbox/produto/playbook/_saida-03.md",
+      "cowork-inbox/produto/playbook/_saida-09.md",
+      "cowork-inbox/produto/playbook/_saida-10.md",
+      "cowork-inbox/produto/playbook/11-cadastros-form-b.md",
+      "cowork-inbox/recorrente/playbook/_SESSAO-FRIA.md",
+      "cowork-inbox/recorrente/playbook/00-INDICE.md",
+      "cowork-inbox/recorrente/playbook/00-puxar-vivo.md",
+      "cowork-inbox/recorrente/playbook/01-contratos.md",
+      "cowork-inbox/recorrente/playbook/A1-alvos.md",
+      "cowork-inbox/repair/playbook/_saida-02-producao.md",
+      "cowork-inbox/repair/playbook/_saida-03.md",
+      "cowork-inbox/sistema/playbook/_SESSAO-FRIA.md",
+      "cowork-inbox/sistema/playbook/00-INDICE.md",
+      "cowork-inbox/sistema/playbook/00-mapa.md",
+      "cowork-inbox/sistema/playbook/01-usuarios-manageuser-inertia.md",
+      "cowork-inbox/sistema/playbook/02-funcoes-e-permissoes-role-inertia.md",
+      "cowork-inbox/sistema/playbook/03-comissionados-salescommissionagent-inert.md",
+      "cowork-inbox/sistema/playbook/04-locais-impressoras-codigo-de-barras-iner.md",
+      "cowork-inbox/sistema/playbook/05-esquemas-de-fatura-impostos-tipos-de-ser.md",
+      "cowork-inbox/sistema/playbook/06-modelos-de-notificacao-contas-inertia.md",
+      "cowork-inbox/sistema/playbook/07-relatorios.md",
+      "cowork-inbox/superadmin/playbook/_saida-02.md",
+      "cowork-inbox/superadmin/playbook/_saida-06.md",
+      "cowork-inbox/superadmin/playbook/_saida-07.md",
+      "cowork-inbox/superadmin/playbook/_saida-A1.md",
+      "cowork-inbox/superadmin/playbook/A2-remedir-4.md",
+      "cowork-inbox/telas-soltas/playbook/_SESSAO-FRIA.md",
+      "cowork-inbox/telas-soltas/playbook/00-INDICE.md",
+      "cowork-inbox/telas-soltas/playbook/01-contratos.md",
+      "cowork-inbox/telas-soltas/playbook/02-forja.md",
+      "cowork-inbox/telas-soltas/playbook/03-so-prototipo.md",
+      "cowork-inbox/telas-soltas/playbook/A1-alvos.md",
+      "cowork-inbox/tema-escuro/playbook/_SESSAO-FRIA.md",
+      "cowork-inbox/tema-escuro/playbook/00-INDICE.md",
+      "cowork-inbox/tema-escuro/playbook/01-sonda.md",
+      "cowork-inbox/tema-escuro/playbook/02-producao.md",
+      "cowork-inbox/tema-escuro/playbook/03-invertidas.md",
+      "cowork-inbox/tema-escuro/playbook/04-triagem-prototipo.md",
+      "cowork-inbox/venda-menu/playbook/_saida-03b.md",
+      "cowork-inbox/venda-menu/playbook/_saida-07.md"
     ],
-    "unchanged": 1098
+    "modified": [
+      "app.jsx",
+      "chat-jana.css",
+      "cli-tabs.jsx",
+      "cms-page.jsx",
+      "cobranca-recorrente-page.css",
+      "comissionados-page.jsx",
+      "comissoes-page.jsx",
+      "connector-page.jsx",
+      "cowork-inbox/ancora/playbook/00-INDICE.md",
+      "cowork-inbox/compras/playbook/00-INDICE.md",
+      "cowork-inbox/crm/playbook/_SESSAO-FRIA.md",
+      "cowork-inbox/crm/playbook/00-INDICE.md",
+      "cowork-inbox/financeiro/playbook/00-INDICE.md",
+      "cowork-inbox/governance/playbook/00-INDICE.md",
+      "cowork-inbox/lote-trio-medida/playbook/00-INDICE.md",
+      "cowork-inbox/officeimpresso/playbook/_SESSAO-FRIA.md",
+      "cowork-inbox/officeimpresso/playbook/00-INDICE.md",
+      "cowork-inbox/placar/playbook/00-INDICE.md",
+      "cowork-inbox/produto/playbook/_SESSAO-FRIA.md",
+      "cowork-inbox/produto/playbook/00-INDICE.md",
+      "cowork-inbox/prontidao/playbook/00-INDICE.md",
+      "cowork-inbox/recepcao-pacote/playbook/00-INDICE.md",
+      "cowork-inbox/shell-usermenu/playbook/00-INDICE.md",
+      "cowork-inbox/superadmin/playbook/_SESSAO-FRIA.md",
+      "cowork-inbox/superadmin/playbook/00-INDICE.md",
+      "cowork-inbox/venda-menu/playbook/00-INDICE.md",
+      "essenciais-page.jsx",
+      "funcoes-page.jsx",
+      "github.md",
+      "hrm-page.jsx",
+      "inbox-page.css",
+      "inbox-page.jsx",
+      "modulos-page.jsx",
+      "officeimpresso-page.jsx",
+      "oficina-page.jsx",
+      "oimpresso.com.html",
+      "orc-page.jsx",
+      "produto-cadastros.jsx",
+      "styles.css",
+      "superadmin-page.css",
+      "superadmin-page.jsx",
+      "superadmin-usuarios.jsx",
+      "usuarios-page.jsx",
+      "venda-v3.css",
+      "venda-v3.jsx",
+      "venda-v3/sells-create.jsx",
+      "vendas.css"
+    ],
+    "deleted": [],
+    "unchanged": 1051
   }
 }

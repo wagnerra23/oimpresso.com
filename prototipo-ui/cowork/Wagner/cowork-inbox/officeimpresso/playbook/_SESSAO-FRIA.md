@@ -21,3 +21,4 @@ Leia só: placar (se não for `proximo`, pare) · o `NN-*.md` · o objeto da thr
 | **07** | Logs | CL | `07-logs.md` | A3 |
 | **08** | Catálogo | CL | `08-catalogo.md` | D3 |
 | **09** | Ligar a tela nova de licenças (flag useV2OfficeimpressoLicencas) | CL | `09-ligar-flag.md` | 06 · D6 |
+| **A4** | Timeline do log com vista própria | CC | `A4-timeline-vista.md` | — |

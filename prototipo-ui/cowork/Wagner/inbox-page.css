@@ -2863,3 +2863,8 @@
 [data-theme="dark"] .om-q-row { background: var(--omd-raise); border-color: var(--omd-line); }
 [data-theme="dark"] .om-pill.on { background: oklch(0.28 0.06 295); border-color: oklch(0.48 0.10 295); color: oklch(0.83 0.12 295); }
 [data-theme="dark"] .om-chan-note { background: var(--omd-raise); border-color: var(--omd-line); }
+/* Tema escuro — banner de saúde do canal tinha fundo 0.97 fixo. */
+[data-theme="dark"] .om-health-banner.warn{ background: color-mix(in oklch, var(--warn) 10%, var(--surface)); border-color: color-mix(in oklch, var(--warn) 38%, var(--border)); color: var(--warn); }
+[data-theme="dark"] .om-health-banner.err{ background: color-mix(in oklch, var(--neg) 10%, var(--surface)); border-color: color-mix(in oklch, var(--neg) 38%, var(--border)); color: var(--neg); }
+[data-theme="dark"] .om-health-banner.warn .om-hb-ico, [data-theme="dark"] .om-health-banner.warn .om-hb-btn{ background: color-mix(in oklch, var(--warn) 18%, var(--surface)); color: var(--warn); border-color: color-mix(in oklch, var(--warn) 38%, var(--border)); }
+[data-theme="dark"] .om-health-banner.err .om-hb-ico, [data-theme="dark"] .om-health-banner.err .om-hb-btn{ background: color-mix(in oklch, var(--neg) 18%, var(--surface)); color: var(--neg); border-color: color-mix(in oklch, var(--neg) 38%, var(--border)); }

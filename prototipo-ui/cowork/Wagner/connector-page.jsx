@@ -347,26 +347,28 @@ function ConnectorPage({ view = "clients" }) {
     return () => clearTimeout(t);
   }, [toast]);
   const A = API();
-  const titulo = { clients:"Conector — API clients", docs:"Conector — documentação da API", saude:"Conector — saúde", modulo:"Conector — módulo" }[aba];
+  const { PageHeader } = ds();
+  const ROTA = { clients: "connector", docs: "conn-docs", saude: "conn-saude", modulo: "conn-modulo" };
+  const sub = `${A.TOTAL || 0} endpoints · OAuth do Passport · 120 req/min por token`;
+  const acoes = <>
+    {aba === "clients" && (
+      <window.CliSeg ariaLabel="Estado da tela" value={cenario} onChange={setCenario}
+        options={CENARIOS.map((c) => ({ key: c.id, label: c.label }))} />
+    )}
+    <span className="mod-scope">superadmin · cross-tenant</span>
+  </>;
 
   return (
     <div className="os-page cnx-page" data-screen-label={`Conector · ${VIEWS.find((v) => v.id === aba)?.label || aba}`}>
-      <header className="os-page-h" data-contract="page-header">
-        <div className="os-page-h-l">
-          <h1>{titulo}</h1>
-          <p className="tabular">{A.TOTAL || 0} endpoints · OAuth do Passport · 120 req/min por token</p>
-        </div>
-        <div className="os-page-h-r">
-          {aba === "clients" && (
-            <window.CliSeg ariaLabel="Estado da tela" value={cenario} onChange={setCenario}
-              options={CENARIOS.map((c) => ({ key: c.id, label: c.label }))} />
-          )}
-          <span className="mod-scope">superadmin · cross-tenant</span>
-        </div>
-      </header>
+      <div data-contract="page-header">
+        {PageHeader
+          ? <div className="oi-ph" style={{ padding: "0 24px" }}><PageHeader title="Conector (API)" subtitle={sub} actions={acoes} /></div>
+          : <header className="os-page-h"><div className="os-page-h-l"><h1>Conector (API)</h1><p className="tabular">{sub}</p></div><div className="os-page-h-r">{acoes}</div></header>}
+      </div>
 
       <window.CliTabs className="cnx-tabs" dataContract="tabs" ariaLabel="Telas do conector" pad={24}
-        active={aba} onChange={setAba} tabs={VIEWS.map((v) => ({ key: v.id, label: v.label }))} />
+        active={aba} onChange={(k) => { setAba(k); if (ROTA[k] && ROTA[k] !== ROTA[view]) (window.__go || window.__selectRoute)?.(ROTA[k]); }}
+        tabs={VIEWS.map((v) => ({ key: v.id, label: v.label }))} />
 
       <div className="cnx-body">
         {aba === "clients" && <ClientsView key={cenario} toast={setToast} cenario={cenario}/>}

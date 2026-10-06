@@ -3361,6 +3361,10 @@ body:has(.vendas-aplus[data-vd-drawer="largo"]) .os-drawer.wide{ width: 560px; m
 /* ════════ DARK — superfícies brancas do Vendas → token (Tier-2 · [W] 2026-06-20) ════════
    .vd-trans-page fica branca de propósito (documento A4 imprimível). ════════ */
 [data-theme="dark"] .vendas-aplus .vd-tree-row.active .ct{ background: var(--surface); }
+/* IA no escuro: as 3 cores de IA só tinham valor claro (fundo lilás 0.96 no tema escuro). */
+[data-theme="dark"]{ --vd-ai: oklch(0.72 0.15 295); --vd-ai-soft: color-mix(in oklch, oklch(0.72 0.15 295) 12%, var(--surface)); --vd-ai-border: color-mix(in oklch, oklch(0.72 0.15 295) 38%, var(--border)); --vd-ai-text: oklch(0.86 0.08 295); }
+[data-theme="dark"] .vd-ai-suggest-cta{ background: var(--surface); }
+[data-theme="dark"] .vd-drawer-aplus .vd-item-input{ background: var(--surface); color: var(--text); }
 [data-theme="dark"] .vd-ai-block,
 [data-theme="dark"] .vd-ai-prods,
 [data-theme="dark"] .vendas-aplus .vd-pal-ai-answer,
@@ -3372,3 +3376,10 @@ body:has(.vendas-aplus[data-vd-drawer="largo"]) .os-drawer.wide{ width: 560px; m
 [data-theme="dark"] .vendas-aplus .vd-pal-ai-cta kbd,
 [data-theme="dark"] .vd-drawer-aplus .vd-trouble-ct,
 [data-theme="dark"] .vd-drawer-aplus .vd-item-edit{ background: var(--raised, var(--surface)); }
+
+/* Escuro: dicas e barra de lote eram "invertidas" (fundo = --text) — viravam placas brancas com borda branca. */
+[data-theme="dark"] .vendas-aplus .vd-fb-tip{ background: var(--raised, var(--surface)); color: var(--text); border: 1px solid var(--border); }
+[data-theme="dark"] .vendas-aplus .vd-fb-tip::after{ border-top-color: var(--border); }
+[data-theme="dark"] .vendas-aplus .vd-bulk{ background: var(--raised, var(--surface)); color: var(--text); border: 1px solid var(--border); }
+[data-theme="dark"] .vendas-aplus .vd-bulk-ct{ background: var(--bg-2); }
+[data-theme="dark"] .vendas-aplus .vd-bulk-btn{ color: var(--text); border-color: var(--border); }

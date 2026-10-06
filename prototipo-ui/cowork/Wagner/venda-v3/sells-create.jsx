@@ -388,7 +388,7 @@ function Create({ onOpen, modo = 'create', registro }) {
           <span style={{ marginLeft: 'auto' }}><PayPill p={payStatus} /></span>
         </header>
         <div style={{ padding: 16 }}>
-          <div style={{ padding: '14px 16px', borderRadius: 12, background: 'var(--text)', color: 'var(--bg)' }}>
+          <div className="v3-total-plate" style={{ padding: '14px 16px', borderRadius: 12, background: 'var(--text)', color: 'var(--bg)' }}>
             <span style={{ display: 'block', font: '600 10.5px/1 var(--font-sans)', letterSpacing: '.06em', textTransform: 'uppercase', opacity: .72, marginBottom: 8 }}>Total da venda</span>
             {carregando
               ? <Skeleton variant="title" width="60%" />

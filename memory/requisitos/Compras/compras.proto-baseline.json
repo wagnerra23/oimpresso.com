@@ -6,7 +6,7 @@
  "ancora": "prototipo-ui/cowork/Wagner/compras-page.jsx",
  "prototipo_sha": "f325c42fab4bbd585fa7dbbe1df9834213895084",
  "shell": ".",
- "gerado_em": "2026-10-05T11:49:25.204Z",
+ "gerado_em": "2026-10-06T07:35:27.754Z",
  "celulas": {
   "1280|light": {
    "tema": "light",
@@ -4930,9 +4930,9 @@
      "lineHeight": "18.85px",
      "textTransform": "none",
      "fontFamily": "IBM Plex Sans",
-     "color": "rgb(0, 0, 0)",
-     "bgEfetivo": "rgb(240, 240, 240)",
-     "bgProprio": "rgb(240, 240, 240)",
+     "color": "rgb(255, 255, 255)",
+     "bgEfetivo": "rgb(107, 107, 107)",
+     "bgProprio": "rgb(107, 107, 107)",
      "bgImage": "none",
      "radius": "6px",
      "borderW": "1px",
@@ -15642,9 +15642,9 @@
      "lineHeight": "18.85px",
      "textTransform": "none",
      "fontFamily": "IBM Plex Sans",
-     "color": "rgb(0, 0, 0)",
-     "bgEfetivo": "rgb(240, 240, 240)",
-     "bgProprio": "rgb(240, 240, 240)",
+     "color": "rgb(255, 255, 255)",
+     "bgEfetivo": "rgb(107, 107, 107)",
+     "bgProprio": "rgb(107, 107, 107)",
      "bgImage": "none",
      "radius": "6px",
      "borderW": "1px",
@@ -17065,5 +17065,5 @@
    ]
   }
  },
- "render_sha256": "3d6db528cd4c5c7471fd4d5e9e51b68baedb1eea5b18db780bd87dd214c542fd"
+ "render_sha256": "a669c36dff7df11220c60352e87030d7330178dd6c9baa62b7c7d6ce8176b743"
 }

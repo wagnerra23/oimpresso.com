@@ -50,16 +50,8 @@ function OrcListPage() {
 
   return (
     <>
-      <div className="os-page-h">
-        <div className="os-page-h-l">
-          <h1>Orçamentos</h1>
-          <p>Propostas em aberto, aprovadas e perdidas</p>
-        </div>
-        <div className="os-page-h-r">
-          <button className="os-btn ghost"><I.search size={13}/> Filtros</button>
-          <button className="os-btn primary"><I.plus size={13}/> Novo orçamento</button>
-        </div>
-      </div>
+      <window.OiPageHead titulo={"Orçamentos"} sub={<>Propostas em aberto, aprovadas e perdidas</>} acoes={<><button className="os-btn ghost"><I.search size={13}/> Filtros</button>
+          <button className="os-btn primary"><I.plus size={13}/> Novo orçamento</button></>} />
 
       <div className="os-stats">
         <div className="os-stat"><small>Em aberto</small><b>{stats.ativos}</b></div>

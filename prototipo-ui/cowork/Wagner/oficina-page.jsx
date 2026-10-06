@@ -957,18 +957,12 @@ function ProducaoOficina({ foco, setFoco, densidade, setDensidade, pressao, setP
 
   return (
     <div className={"prod-page" + (view === "fila" ? " ofc-fila-mode" : "")} data-screen-label="01 Oficina Auto">
-      <div className="prod-header">
-        <div className="prod-header-l">
-          <h1>Oficina Auto</h1>
-          <p>Recepção, diagnóstico, peças, execução e entrega de veículos</p>
-        </div>
-        <div className="prod-header-r">
-          <button className="os-btn ghost" onClick={() => { notify("Preparando impressão da fila…"); window.OficinaPrint && window.OficinaPrint.printFila(filtered, { filtro: recursoFilter !== "all" ? (recursoOf(recursoFilter) || {}).label : null }); }}><Ico.print size={11}/>Imprimir fila</button>
+      {window.OiPageHead
+        ? <window.OiPageHead titulo="Oficina Auto" sub="Recepção, diagnóstico, peças, execução e entrega de veículos" acoes={<><button className="os-btn ghost" onClick={() => { notify("Preparando impressão da fila…"); window.OficinaPrint && window.OficinaPrint.printFila(filtered, { filtro: recursoFilter !== "all" ? (recursoOf(recursoFilter) || {}).label : null }); }}><Ico.print size={11}/>Imprimir fila</button>
           <button className="os-btn primary" onClick={() => { setEditingOs(null); setCreateOpen(true); }}>
             <Ico.plus size={11}/>Nova OS
-          </button>
-        </div>
-      </div>
+          </button></>} />
+        : <div className="prod-header"><div className="prod-header-l"><h1>Oficina Auto</h1></div></div>}
 
       <div className={"prod-kpis" + (kpiFilter ? " ofc-kpi-filtering" : "")}>
         <div className={"prod-kpi" + (kpiFilter === "recepcao" ? " ofc-kpi-active" : "")} role="button" tabIndex={0} onClick={() => kpiClick("recepcao")}>

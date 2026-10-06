@@ -19,4 +19,4 @@ Leia só: placar (se não for `proximo`, pare) · o `NN-*.md` · o objeto da thr
 | **05** | Comunicador + Config (2 PRs) | CL | `05-comunicador-config.md` | — |
 | **06** | Páginas | CL | `06-paginas.md` | D1 |
 | **07** | Assinatura do negócio | CL | `07-assinatura-negocio.md` | D2 |
-
+| **A2** | Remedir as 4 (rota própria por tela) | CL | `A2-remedir-4.md` | A1 |

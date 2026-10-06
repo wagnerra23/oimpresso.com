@@ -326,9 +326,34 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/crm/playbook/
           "nota": "show de um cliente (não lead) pelo id → 404; API de follow-up não dá 500 por coluna inexistente"
         }
       ]
+    },
+    {
+      "id": "09",
+      "titulo": "Leads: editar no Cliente/Edit parametrizado (hoje view(contact.edit) :505)",
+      "dono": "CL",
+      "vaga": 3,
+      "prs": 1,
+      "arquivo": "09-leads-editar.md",
+      "depende_threads": [
+        "06"
+      ],
+      "prefixo": [
+        "${MOD}/Http/Controllers/LeadController.php",
+        "resources/js/Pages/Cliente/Edit.tsx"
+      ],
+      "nao_toca": [
+        "resources/js/Pages/Cliente/Index.tsx"
+      ],
+      "provas": [
+        {
+          "tipo": "nao_contem",
+          "path": "${MOD}/Http/Controllers/LeadController.php",
+          "padrao": "view('contact.edit')"
+        }
+      ]
     }
   ],
-  "revisado": "2026-10-01 — recibos e _DECISOES do main c12552f40e2a aplicados · 2026-10-01 reconferência @99e6fa3e08f0: threads novas 06,07,08"
+  "revisado": "2026-10-01 — recibos e _DECISOES do main c12552f40e2a aplicados · 2026-10-01 reconferência @99e6fa3e08f0: threads novas 06,07,08 · 2026-10-05 revisão dos recibos @aacb74f4df18"
 }
 ```
 

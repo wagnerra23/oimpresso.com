@@ -172,19 +172,12 @@ function ComissoesPage() {
 
   return (
     <div className="os-page usr-page cms-page" data-screen-label="Usuários · Apuração de comissão">
-      <header className="os-page-h">
-        <div className="os-page-h-l">
-          <h1>Apuração de comissão</h1>
-          <p>{PERIODOS.find((p) => p.id === periodo).label.toLowerCase()} · {abertos.length} {abertos.length === 1 ? "agente em aberto" : "agentes em aberto"}{fechado ? " · período fechado" : ""}</p>
-        </div>
-        <div className="os-page-h-r">
-          <button className="os-btn ghost" onClick={() => window.__selectRoute?.("comissionados")}>Comissionados</button>
+      <window.OiPageHead titulo={"Apuração de comissão"} sub={<>{PERIODOS.find((p) => p.id === periodo).label.toLowerCase()} · {abertos.length} {abertos.length === 1 ? "agente em aberto" : "agentes em aberto"}{fechado ? " · período fechado" : ""}</>} acoes={<><button className="os-btn ghost" onClick={() => window.__selectRoute?.("comissionados")}>Comissionados</button>
           <button className="os-btn" onClick={() => window.__selectRoute?.("financeiro")}>Ver no financeiro</button>
           <button className={`os-btn ${fechado ? "" : "primary"}`} onClick={() => setFechado(!fechado)}>
             {fechado ? "Reabrir período" : "Fechar período"}
-          </button>
-        </div>
-      </header>
+          </button></>} />
+      {window.OiRotaTabs && <window.OiRotaTabs ariaLabel="Seções de usuários" ativo="comissoes" tabs={[{ key: "usuarios", label: "Usuários" }, { key: "funcoes", label: "Funções e permissões" }, { key: "comissionados", label: "Comissionados" }, { key: "comissoes", label: "Apuração de comissão" }]} />}
 
       <Kpis>
         <Kpi v={brl0(tot.base)} l="Base de cálculo" />

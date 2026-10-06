@@ -225,6 +225,7 @@ function SuperadminUsuariosPage() {
       {PageHeader
         ? <div className="sa-ph"><PageHeader title="Usuário 360°" subtitle="Tudo sobre um usuário num lugar só — papéis, permissões, tokens, sessões e auditoria."/></div>
         : <header className="os-page-h"><div className="os-page-h-l"><h1>Usuário 360°</h1></div></header>}
+      {window.SaSubnav && <window.SaSubnav ativo="sa-usuarios" />}
       <div className="sa-toolbar">
         <div className="sa-search">
           {Ico.busca}

@@ -191,4 +191,21 @@ function CliTabs({ tabs = [], active, onChange, ariaLabel, pad = null, fullBleed
 }
 
 window.CliTabs = CliTabs;
+
+// OiRotaTabs — submenu de módulo: uma aba por ROTA (abaixo do PageHeader). Clicar troca a rota
+// do shell (window.__go), então barra lateral, URL e aba nunca divergem.
+function OiRotaTabs({ tabs, ativo, ariaLabel, pad = 24 }) {
+  const ir = (k) => { if (k !== ativo) (window.__go || window.__selectRoute)?.(k); };
+  return <CliTabs className="oi-rota-tabs" ariaLabel={ariaLabel} pad={pad} active={ativo} onChange={ir} tabs={tabs} />;
+}
+window.OiRotaTabs = OiRotaTabs;
+
+// OiPageHead — cabeçalho padrão de módulo: PageHeader do DS (título + subtítulo + ações) com o
+// respiro de 24px do shell. Substitui o <header className="os-page-h"> artesanal das telas.
+function OiPageHead({ titulo, sub, acoes, pad = 24 }) {
+  const PH = (window.OfficeImpressoPontoWR2DesignSystem_019dd0 || {}).PageHeader;
+  if (!PH) return <header className="os-page-h"><div className="os-page-h-l"><h1>{titulo}</h1>{sub != null && <p>{sub}</p>}</div>{acoes && <div className="os-page-h-r">{acoes}</div>}</header>;
+  return <div className="oi-ph" style={{ padding: "0 " + pad + "px" }}><PH title={titulo} subtitle={sub} actions={acoes} /></div>;
+}
+window.OiPageHead = OiPageHead;
 })();

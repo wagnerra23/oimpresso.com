@@ -20,8 +20,8 @@ authority: generated
 | CU no SDD | 0 |
 | Telas (.tsx) | 3 |
 | Telas com `casos.md` | 3 |
-| UC declarados | 23 |
-| UC com teste que os cita | 23 |
+| UC declarados | 36 |
+| UC com teste que os cita | 36 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -47,6 +47,19 @@ _Nenhuma._
 | UC-CRMACO-05 | Acompanhamentos/Index | 🧪 aguarda veredito da lane |
 | UC-CRMACO-06 | Acompanhamentos/Index | 🧪 aguarda veredito da lane |
 | UC-CRMACO-07 | Acompanhamentos/Index | 🧪 aguarda veredito da lane |
+| UC-CRMACO-08 | Acompanhamentos/Index | 🧪 aguarda veredito da lane |
+| UC-CRMACO-09 | Acompanhamentos/Index | 🧪 aguarda veredito da lane |
+| UC-CRMACO-10 | Acompanhamentos/Index | 🧪 aguarda veredito da lane |
+| UC-CRMACO-11 | Acompanhamentos/Index | 🧪 aguarda veredito da lane |
+| UC-CRMACO-12 | Acompanhamentos/Index | 🧪 aguarda veredito da lane |
+| UC-CRMACO-13 | Acompanhamentos/Index | 🧪 aguarda veredito da lane |
+| UC-CRMACO-14 | Acompanhamentos/Index | 🧪 aguarda veredito da lane |
+| UC-CRMACO-15 | Acompanhamentos/Index | 🧪 aguarda veredito da lane |
+| UC-CRMACO-16 | Acompanhamentos/Index | 🧪 aguarda veredito da lane |
+| UC-CRMACO-17 | Acompanhamentos/Index | 🧪 aguarda veredito da lane |
+| UC-CRMACO-18 | Acompanhamentos/Index | 🧪 aguarda veredito da lane |
+| UC-CRMACO-19 | Acompanhamentos/Index | 🧪 aguarda veredito da lane |
+| UC-CRMACO-20 | Acompanhamentos/Index | 🧪 aguarda veredito da lane |
 | UC-CRMLD-01 | Leads/Index | 🧪 aguarda veredito da lane |
 | UC-CRMLD-02 | Leads/Index | 🧪 aguarda veredito da lane |
 | UC-CRMLD-03 | Leads/Index | 🧪 aguarda veredito da lane |
