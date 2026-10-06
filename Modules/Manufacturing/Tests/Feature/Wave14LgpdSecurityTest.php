@@ -101,6 +101,8 @@ it('cenario 6: StoreRecipeRequest tem rules + authorize com permissao manufactur
     expect($rules['variation_id'])->toContain('required');
     expect($rules['variation_id'])->toContain('exists:variations,id');
     expect($rules)->toHaveKey('production_cost_type');
-    // Whitelist anti-injection — apenas valores enumerados aceitos
-    expect($rules['production_cost_type'])->toContain('in:fixed,percentage');
+    // Whitelist anti-injection — apenas valores enumerados aceitos. As 3 formas que a janela de
+    // ingredientes oferece e o cálculo conhece (até 2026-10-05 faltava `per_unit`, e escolher
+    // "Por unidade" não salvava — ver CustoPorUnidadeReceitaTest).
+    expect($rules['production_cost_type'])->toContain('in:fixed,percentage,per_unit');
 });
