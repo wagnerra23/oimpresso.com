@@ -37,6 +37,14 @@ class OficinaController extends Controller
 
     private const POR_PAGINA = 20;
 
+    /** Maior km conhecido do veículo: o do cadastro ou o de entrada de alguma OS (km REAL anotado). */
+    private const KM_REAL = 'GREATEST(COALESCE(v.mileage_at_entry, 0), COALESCE((SELECT MAX(so.mileage_at_service)'
+        . ' FROM service_orders so WHERE so.vehicle_id = v.id AND so.business_id = v.business_id'
+        . ' AND so.deleted_at IS NULL), 0))';
+
+    /** Antecedência do lembrete de revisão, em km (decisão [W] 2026-10-06). O app só exibe. */
+    private const REVISAO_AVISO_KM = 1000;
+
     /** Teto do histórico do veículo (sem paginação no app): as mais recentes. */
     private const HISTORICO_MAX = 200;
 
@@ -387,9 +395,22 @@ class OficinaController extends Controller
             });
         }
 
+        // Lembrete de revisão: veículos com a próxima revisão marcada e o km real a menos de
+        // REVISAO_AVISO_KM dela (ou já passado). A contagem não depende do filtro nem da busca.
+        $comRevisao = fn ($b) => $b->whereNotNull('v.next_service_km')
+            // Soma do lado do km (nunca subtrai da coluna sem sinal: abaixo de zero o MySQL estoura).
+            ->whereRaw(self::KM_REAL . ' + ? >= v.next_service_km', [self::REVISAO_AVISO_KM]);
+        $revisaoProxima = $comRevisao($this->consultaVeiculos($bizId))->count();
+        $soRevisao = $request->boolean('revisao');
+        if ($soRevisao) {
+            $comRevisao($q);
+        }
+
         $total = (clone $q)->count();
-        $linhas = $q->orderBy('v.plate')
-            ->orderBy('v.id')
+        $q = $soRevisao
+            ? $q->orderByRaw('(CAST(' . self::KM_REAL . ' AS SIGNED) - CAST(v.next_service_km AS SIGNED)) DESC')
+            : $q->orderBy('v.plate');
+        $linhas = $q->orderBy('v.id')
             ->offset(($pagina - 1) * self::POR_PAGINA)
             ->limit(self::POR_PAGINA + 1)
             ->get($this->colunasVeiculo());
@@ -403,6 +424,9 @@ class OficinaController extends Controller
             'pode_criar' => $this->podeCriarVeiculo($user),
             // Editar veículo no app (pedido [W] 2026-10-05): permissão de editar da web.
             'pode_editar' => $this->podeEditarVeiculo($user),
+            // Lembrete de revisão por km (decisão [W] 2026-10-06): quantos estão perto ou passaram.
+            'revisao_proxima' => $revisaoProxima,
+            'revisao_aviso_km' => self::REVISAO_AVISO_KM,
         ]);
     }
 
@@ -502,7 +526,7 @@ class OficinaController extends Controller
 
         $v = $this->consultaVeiculos((int) $user->business_id)->where('v.id', $id)->first([
             'v.id', 'v.plate', 'v.secondary_plate', 'v.vehicle_type', 'v.manufacture_year', 'v.model_year',
-            'v.color', 'v.mileage_at_entry', 'v.chassis', 'v.renavam', 'c.id as cliente_id', 'c.name as cliente',
+            'v.color', 'v.mileage_at_entry', 'v.next_service_km', 'v.chassis', 'v.renavam', 'c.id as cliente_id', 'c.name as cliente',
         ]);
         if ($v === null) {
             return response()->json(['erro' => 'nao_encontrado', 'mensagem' => 'Veículo não encontrado.'], 404);
@@ -519,6 +543,7 @@ class OficinaController extends Controller
             'km' => $v->mileage_at_entry !== null ? (int) $v->mileage_at_entry : null,
             'chassi' => $this->texto($v->chassis),
             'renavam' => $this->texto($v->renavam),
+            'proxima_revisao_km' => $v->next_service_km !== null ? (int) $v->next_service_km : null,
             'contact_id' => $v->cliente_id !== null ? (int) $v->cliente_id : null,
             'cliente' => $v->cliente,
             'pode_editar' => $this->podeEditarVeiculo($user),
@@ -622,8 +647,11 @@ class OficinaController extends Controller
             'chassi' => ['nullable', 'string', 'max:30'],
             'renavam' => ['nullable', 'string', 'max:11'],
             'contact_id' => ['nullable', 'integer'],
+            'proxima_revisao_km' => ['nullable', 'integer', 'min:0'],
         ], [
             'placa.required' => 'A placa do veículo é obrigatória.',
+            'proxima_revisao_km.min' => 'O km da próxima revisão não pode ser negativo.',
+            'proxima_revisao_km.integer' => 'Informe o km da próxima revisão como número inteiro.',
             'tipo.required' => 'Selecione o tipo do veículo.',
             'tipo.in' => 'Tipo de veículo inválido.',
             'renavam.max' => 'RENAVAM aceita no máximo 11 caracteres (padrão DENATRAN).',
@@ -673,6 +701,7 @@ class OficinaController extends Controller
             'chassis' => $this->texto($d['chassi'] ?? null),
             'renavam' => $this->texto($d['renavam'] ?? null),
             'contact_id' => isset($d['contact_id']) ? (int) $d['contact_id'] : null,
+            'next_service_km' => isset($d['proxima_revisao_km']) ? (int) $d['proxima_revisao_km'] : null,
         ];
 
         return [$campos, $existente, $dados];
@@ -745,10 +774,8 @@ class OficinaController extends Controller
     {
         return [
             'v.id', 'v.plate', 'v.secondary_plate', 'v.vehicle_type', 'v.color',
-            'v.manufacture_year', 'v.model_year', 'c.id as cliente_id', 'c.name as cliente',
-            DB::raw('GREATEST(COALESCE(v.mileage_at_entry, 0), COALESCE((SELECT MAX(so.mileage_at_service)'
-                . ' FROM service_orders so WHERE so.vehicle_id = v.id AND so.business_id = v.business_id'
-                . ' AND so.deleted_at IS NULL), 0)) as km'),
+            'v.manufacture_year', 'v.model_year', 'v.next_service_km', 'c.id as cliente_id', 'c.name as cliente',
+            DB::raw(self::KM_REAL . ' as km'),
         ];
     }
 
@@ -769,6 +796,8 @@ class OficinaController extends Controller
             'cliente_id' => $v->cliente_id !== null ? (int) $v->cliente_id : null,
             'km' => (int) $v->km > 0 ? (int) $v->km : null,
             'cor' => $this->texto($v->color),
+            // Lembrete de revisão (decisão [W] 2026-10-06): o app calcula "faltam = proxima − km".
+            'proxima_revisao_km' => $v->next_service_km !== null ? (int) $v->next_service_km : null,
         ];
     }
 
