@@ -1,0 +1,12 @@
+{
+  "_": "A1 [CL] 2026-10-06 — playbook cowork-inbox/atendimento. Protótipo: rota `inbox` do espelho (app.jsx:876 → window.InboxPage · inbox-page.jsx, âncora de Atendimento/CaixaUnificada/Index pelo ancora.mjs). Tema dark, viewport 1280x900.",
+  "_mapa": "alvo:mapa --rota inbox contra o espelho servido por servirEstatico (porta 5583), 2026-10-06: .om-page = div.os-page-h · nav.om-mobile-tabs (display:none em 1280, não medida) · div.om-shell.no-ctx; .om-list-c = om-list-h · om-list-search · om-health-banner · ul.om-list; .om-thread-c = om-thread-h · om-msgs · om-composer.",
+  "header": { "seletor": ".om-page > .os-page-h" },
+  "lista_cabecalho": { "seletor": ".om-page .om-list-c > .om-list-h" },
+  "busca": { "seletor": ".om-page .om-list-c > .om-list-search" },
+  "saude": { "seletor": ".om-page .om-list-c > .om-health-banner" },
+  "lista": { "seletor": ".om-page .om-list-c > .om-list" },
+  "thread_cabecalho": { "seletor": ".om-page .om-thread-c > .om-thread-h" },
+  "mensagens": { "seletor": ".om-page .om-thread-c > .om-msgs" },
+  "composer": { "seletor": ".om-page .om-thread-c > .om-composer" }
+}
