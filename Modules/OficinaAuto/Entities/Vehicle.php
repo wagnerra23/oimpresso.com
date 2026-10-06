@@ -77,7 +77,6 @@ class Vehicle extends Model
         'current_rental_id',
         'engine',
         'mileage_at_entry',
-        'next_service_km',
         'fuel_type',
         'color',
         'notes',
@@ -90,7 +89,6 @@ class Vehicle extends Model
         'manufacture_year'  => 'integer',
         'model_year'        => 'integer',
         'mileage_at_entry'  => 'integer',
-        'next_service_km'   => 'integer',
         'capacity_m3'       => 'decimal:2',
         'current_rental_id' => 'integer',
     ];
