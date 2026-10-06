@@ -1,0 +1,426 @@
+{
+  "aguardou_sumir": null,
+  "ausentes": [],
+  "base": {
+    "assinatura": "OI WR Visão geral R$ 312,5k vendas · R$ 68,4k a receber · R$ 41,9k despesas Administrador Período Dia Semana Mês De 07/09/2026 Até 06/10/2026 atualizado agora Loja Todas as lojas Matriz Filial Norte Simular falha Papel simulado Administrador Financeiro (Eliana) Balcão (Larissa) Sem dashboard.data Líquido no período R$ 202.190,00 ↗ + 12 % vs anterior Vendas R$ 312.480,00 ↗ + 9 % vs anterior incluindo impostos A receber R$ 68.420,00 -4% vs anterior · líquido de descontos de razão Despesas R$ 41.870,00 +6% vs anterior · lançadas no período Contrapartidas mesmo período Compras R$ 128,3k incluindo impostos A pagar R$ 37,6k líquido de descontos Devolução de venda R$ 7,5k no período Devolução de compra R$ 2,1k devido ao fornecedor Pendências agora Vencimentos de venda 7 Vencimentos de compra 5 Estoque mínimo 12 Lotes a vencer 4 Expedições pendentes 8 Vendas por dia últimos 30 dias Vendas por dia, últimos 30 dias : total de R$ 357.4k no período; maior valor em dia 27 , R$ 19.2k . Período Valor dia 1 R$ 8.2k dia 2 R$ 11.4k dia 3 R$ 9.6k dia 4 R$ 14.2k dia 5 R$ 12.8k dia 6 R$ 6.1k dia 7 R$ 0.0k dia 8 R$ 10.4k dia 9 R$ 13.6k dia 10 R$ 12.2k dia 11 R$ 15.8k dia 12 R$ 14.1k dia 13 R$ 7.4k dia 14 R$ 0.0k dia 15 R$ 11.9k dia 16 R$ 16.2k dia 17 R$ 14.8k dia 18 R$ 13.1k dia 19 R$ 17.4k dia 20 R$ 15.2k dia 21 R$ 8.8k dia 22 R$ 0.0k dia 23 R$ 12.6k dia 24 R$ 18.1k dia 25 R$ 16.4k dia 26 R$ 15.9k dia 27 R$ 19.2k dia 28 R$ 17.8k dia 29 R$ 9.4k dia 30 R$ 14.8k Vendas por mês ano fiscal Vendas por mês, ano fiscal : total de R$ 3196k no período; maior valor em nov , R$ 334k . Período Valor jan R$ 186k fev R$ 204k mar R$ 241k abr R$ 228k mai R$ 262k jun R$ 254k jul R$ 289k ago R$ 276k set R$ 312k out R$ 298k nov R$ 334k dez R$ 312k Vencimentos de venda 7 Vencimentos de compra 5 Estoque mínimo 12 Lotes a vencer 4 Pedidos de venda 6 Ordens de compra 3 Requisições 2 Expedições pendentes 8 Nota ↕ Cliente ↕ Vencimento ↕ Situação Devido ↕ NF 1240 Acme Comércio 19/08/2026 Atrasado R$ 12.480,00 NF 1236 Padaria Estrela 20/08/2026 Parcial R$ 3.240,00 NF 1231 TechPro Sistemas 21/08/2026 Pendente R$ 8.760,00 NF 1229 Mercado União 22/08/2026 Pendente R$ 2.180,00 NF 1224 Posto BR Centro 23/08/2026 Parcial R$ 15.900,00 NF 1220 Clínica Vida 24/08/2026 Pendente R$ 1.340,00 NF 1218 Auto Center RS 25/08/2026 Pendente R$ 24.520,00 7 de 7 linhas · clique para abrir o detalhe Herança do Blade que não foi portada Os widgets pluggable de módulo (4 posições) estão comentados no Blade legado e ficaram fora desta tela — decidir se voltam.",
+    "roles": {
+      "celulas": null,
+      "chart": null,
+      "contratos": [],
+      "filterRows": null,
+      "kpi": {
+        "count": 0,
+        "items": [],
+        "overflowX": null,
+        "tag": null
+      },
+      "primary": null,
+      "shell": null,
+      "tabela": null,
+      "title": null
+    },
+    "saude": {
+      "folhasVazias": [],
+      "nFolhas": 73,
+      "tokensMortos": []
+    },
+    "theme": "dark",
+    "url": "http://127.0.0.1:5581/"
+  },
+  "nos_totais": 890,
+  "quieto_ms": 2000,
+  "rota": "dash-legacy",
+  "secoes": {
+    "bloco_2": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "body",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "flex",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "6px",
+        "padding": "0px"
+      },
+      "filhos": 3,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "dash-legacy"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "main-body"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "main"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "app"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "div"
+        },
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "body"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "div",
+        "span",
+        "div"
+      ],
+      "rect": {
+        "h": 57,
+        "w": 1196
+      },
+      "seletor": ".main-body > div > :nth-child(2)",
+      "truncado": false
+    },
+    "bloco_3": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "body",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "grid",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "8px",
+        "padding": "0px"
+      },
+      "filhos": 4,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "dash-legacy"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "main-body"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "main"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "app"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "div"
+        },
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "body"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "div",
+        "div",
+        "div",
+        "div"
+      ],
+      "rect": {
+        "h": 156,
+        "w": 1196
+      },
+      "seletor": ".main-body > div > :nth-child(3)",
+      "truncado": false
+    },
+    "bloco_4": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "body",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "grid",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "10px",
+        "padding": "0px"
+      },
+      "filhos": 2,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "dash-legacy"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "main-body"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "main"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "app"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "div"
+        },
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "body"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "section",
+        "section"
+      ],
+      "rect": {
+        "h": 198,
+        "w": 1196
+      },
+      "seletor": ".main-body > div > :nth-child(4)",
+      "truncado": false
+    },
+    "bloco_5": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "body",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "grid",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "10px",
+        "padding": "0px"
+      },
+      "filhos": 2,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "dash-legacy"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "main-body"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "main"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "app"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "div"
+        },
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "body"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "section",
+        "section"
+      ],
+      "rect": {
+        "h": 190,
+        "w": 1196
+      },
+      "seletor": ".main-body > div > :nth-child(5)",
+      "truncado": false
+    },
+    "grades": {
+      "contraste": {
+        "fundo": "oklch(0.3 0.008 240)",
+        "fundo_de": "proprio",
+        "razao": 11.42,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.027108,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.3 0.008 240)",
+        "borderRadius": "12px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "block",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "padding": "0px"
+      },
+      "filhos": 3,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.3 0.008 240)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "div",
+        "div",
+        "div"
+      ],
+      "rect": {
+        "h": 342,
+        "w": 1196
+      },
+      "seletor": ".main-body > div > section",
+      "truncado": false
+    },
+    "header": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "proprio",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.26 0.006 240)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "flex",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "12px",
+        "padding": "14px 0px"
+      },
+      "filhos": 2,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "div",
+        "div"
+      ],
+      "rect": {
+        "h": 80,
+        "w": 1196
+      },
+      "seletor": ".main-body > div > header",
+      "truncado": false
+    },
+    "rodape": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "body",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "block",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "padding": "0px"
+      },
+      "filhos": 1,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "dash-legacy"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "main-body"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "main"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "app"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "div"
+        },
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "body"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "div"
+      ],
+      "rect": {
+        "h": 64,
+        "w": 1196
+      },
+      "seletor": ".main-body > div > :nth-child(7)",
+      "truncado": false
+    }
+  },
+  "tela": "soltas--home--index",
+  "url": "http://127.0.0.1:5581/"
+}

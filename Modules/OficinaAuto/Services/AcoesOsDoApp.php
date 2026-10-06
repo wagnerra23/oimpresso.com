@@ -158,6 +158,7 @@ final class AcoesOsDoApp implements AcoesOs
     {
         // business_id explícito: o `creating` do model só lê a sessão, que a API não tem.
         $v = Vehicle::create(['business_id' => $businessId] + $dados);
+        $this->gravarProximaRevisao($v, $dados);
 
         return (int) $v->id;
     }
@@ -203,8 +204,23 @@ final class AcoesOsDoApp implements AcoesOs
             ->whereKey($veiculoId)
             ->firstOrFail();
         $v->update($dados);
+        $this->gravarProximaRevisao($v, $dados);
 
         return true;
+    }
+
+    /**
+     * `next_service_km` (lembrete de revisão por km) é gravado explicitamente, sem entrar no
+     * $fillable: alterar o Vehicle acordaria a dívida grandfathered de escopo multi-tenant
+     * (MultiTenantScopeArchitectureTest), que é trabalho próprio. Chave ausente = não mexe.
+     *
+     * @param  array<string, mixed>  $dados
+     */
+    private function gravarProximaRevisao(Vehicle $v, array $dados): void
+    {
+        if (array_key_exists('next_service_km', $dados)) {
+            $v->forceFill(['next_service_km' => $dados['next_service_km']])->save();
+        }
     }
 
     public function excluirVeiculo(int $businessId, int $veiculoId): bool
