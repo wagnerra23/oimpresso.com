@@ -1,9 +1,29 @@
 {
   "_nota": "Arquivos que o Code subiu ao Cowork (DesignSync) e que o bundle ativo ainda não trouxe de volta. Escrito por pendentes-cowork.mjs; o receber-handoff limpa o que o retorno confirmar.",
   "enviados": {
+    "cowork-inbox/cliente/playbook/_saida-03.md": {
+      "sha256": "37b13a242a228487cf5640d9090dc68e1f8215f429ce2f9ac84ef27bcd235f08",
+      "em": "2026-10-06T15:07:54.735Z"
+    },
+    "cowork-inbox/crm/playbook/_saida-07b.md": {
+      "sha256": "479068efda75c400e81469df50b4e706cb785495a76583752bb6dff1e2a7a56f",
+      "em": "2026-10-06T15:07:54.735Z"
+    },
+    "cowork-inbox/crm/playbook/_saida-07c.md": {
+      "sha256": "91edc38adbaf9d928c93e4e01bb667255f319cead7053d4849487525075b321a",
+      "em": "2026-10-06T15:07:54.735Z"
+    },
+    "cowork-inbox/crm/playbook/_saida-07d.md": {
+      "sha256": "5ac81240faf8262dd909ee058f22d5471a6484733f2713a479540e8753d29db9",
+      "em": "2026-10-06T15:07:54.735Z"
+    },
     "cowork-inbox/crm/playbook/_saida-09.md": {
       "sha256": "f0e72458bb7c6226827d5148e37c71d67f94f81c4cef69bdb58d52d9bbfab27f",
       "em": "2026-10-06T12:44:51.098Z"
+    },
+    "cowork-inbox/ds-atomos/PEDIDO-M-checkbox-da-tabela-e-alturas-2026-10-06.md": {
+      "sha256": "7ba0bfb7136c0f30c653f31efae16b29ea6cc42b4b0fdf85326488a01d169d07",
+      "em": "2026-10-06T15:07:54.735Z"
     },
     "cowork-inbox/essenciais/playbook/_saida-01.md": {
       "sha256": "a62b1f02778445f1ef89c355b8b273f48a18a8ea9c8d172a1261fe359181b6bb",
@@ -21,9 +41,25 @@
       "sha256": "680b9c6992bef07bfece7c975ef6518441210399a076a49fa62f3175460c6e41",
       "em": "2026-10-06T11:09:48.552Z"
     },
+    "cowork-inbox/placar/playbook/_saida-A-LOTE.md": {
+      "sha256": "0eb9a7dd072836e3e0a7890150c7c017efa09a587b9ad34b670fdb36361bb5de",
+      "em": "2026-10-06T15:07:54.735Z"
+    },
     "cowork-inbox/produto/playbook/_saida-04.md": {
       "sha256": "5b333bfed167c1328ecb179e45ac8eed82e85bd24d3e86cfc802fdcb72b95b0d",
       "em": "2026-10-06T13:26:43.730Z"
+    },
+    "cowork-inbox/superadmin/playbook/_saida-03.md": {
+      "sha256": "60439a5e5c9fcb51e15983b3d0f4c40471b0190a21fa8c5e04d24a4cd474173f",
+      "em": "2026-10-06T15:07:54.735Z"
+    },
+    "cowork-inbox/superadmin/playbook/_saida-04.md": {
+      "sha256": "0299eee7761e2b844efd7356dc5707d5063c68385bb134fb27c547861f61b6a9",
+      "em": "2026-10-06T15:07:54.735Z"
+    },
+    "cowork-inbox/superadmin/playbook/_saida-A2.md": {
+      "sha256": "4d37ecfa06147ef82901c233c3222ac2a366c1e41fa52d32d37edbc19ab9698e",
+      "em": "2026-10-06T15:07:54.735Z"
     },
     "cowork-inbox/telas-soltas/playbook/_saida-A1.md": {
       "sha256": "366b519214b9846b96aaf9127af93c257c1f82528acf4c012791dba7e3f56270",
