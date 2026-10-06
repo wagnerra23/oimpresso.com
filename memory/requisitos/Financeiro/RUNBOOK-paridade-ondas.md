@@ -223,7 +223,7 @@ Cobertura conferida: **21/21**. O `UnificadoController` e irmãos renderizam 19 
 
 ### 6.1 Onda que NÃO deve existir — Boletos
 
-O espelho tem `boletos-page.jsx` (58 KB) e o módulo tem `boletos-visual-comparison.md`. **Não abra onda por causa disso.** A tela `Pages/Financeiro/Boletos/Index` foi **deletada por decisão [W]** (ADR 0144 + ADR 0170) e `GET /boletos` virou **301 → `/financeiro/cobranca`** — quem documentava era o próprio `BoletoController`, cujo `index()` e helpers foram removidos como código inalcançável depois que o `OrphanRenderGateTest` pegou o render órfão. O controller inteiro, com o `POST cancelar` que sobrava, foi removido em 2026-10-06 (#8813, thread 12 do playbook: 0 remessas em prod); a história ficou no comentário da rota `boletos.index` em `Modules/Financeiro/Routes/web.php`.
+O espelho tem `boletos-page.jsx` (58 KB) e o módulo tem `boletos-visual-comparison.md`. **Não abra onda por causa disso.** A tela `Pages/Financeiro/Boletos/Index` foi **deletada por decisão [W]** (ADR 0144 + ADR 0170) e `GET /boletos` virou **301 → `/financeiro/cobranca`** — quem documenta é o próprio [`BoletoController`](../../../Modules/Financeiro/Http/Controllers/BoletoController.php), cujo `index()` e helpers foram removidos como código inalcançável depois que o `OrphanRenderGateTest` pegou o render órfão.
 
 Logo o `boletos-visual-comparison.md` é **fóssil**: seu `inertia_target_atual` aponta pra um path que não existe mais. Presença de protótipo no espelho **não é demanda de tela** — o alvo pode ter sido aposentado.
 

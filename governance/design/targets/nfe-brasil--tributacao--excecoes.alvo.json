@@ -1,0 +1,348 @@
+{
+  "aguardou_sumir": null,
+  "ausentes": [],
+  "base": {
+    "assinatura": "OI WR Tributação Regras de imposto por NCM, UF e operação · Simples Nacional · origem SP SEFAZ-SP operacional Procedência ⌘ K Simular nota Notas fiscais NF-e · NFC-e 8 NFS-e 2 Eventos 5 Manifesto DF-e 3 Certificado Tributação SPED e livros Saúde fiscal 8 Operações 7 Exceções 9 Simulador Bateria de notas Contador Vínculo com produtos 2 Por estado Serviços · NFS-e Importação Devoluções Entradas Jana · sugestões 5 N 1 Exceção do produto 1 Amarrada direto no produto. Só pra casos fora da curva. N 2 Exceção NCM + UF 2 Pra outro estado: interestadual, FCP, DIFAL, ST. N 3 Exceção NCM 6 Vale pra qualquer destino quando não há exceção por UF. N 4 Regra geral da operação 7 O que a operação (venda, devolução…) aplica quando nenhuma exceção casa. Todas as operações Venda Devolução Importação Importar CSV Nova regra Nível NCM · descrição Operação Destino CFOP CSOSN ICMS IPI IBS / CBS Vigência Produtos N 3 39219019 Lona e laminados plásticos Venda todas 5102 102 0% 0% 0,1% / 0,9% 01/01/2026 38 N 2 39219019 Lona e laminados plásticos Venda RJ 6102 102 0% 0% 0,1% / 0,9% 01/01/2026 38 N 3 49119900 Impressos gráficos diversos Sem cClassTrib — necessário se mudar pro regime normal e, no Simples, a partir de 2027 Venda todas 5101 101 1,86% 0% vazio 01/03/2025 112 N 3 94056000 Letreiros e placas luminosas Venda todas 5405 500 0% 3,25% 0,1% / 0,9% 01/01/2026 9 N 2 32151900 Tintas de impressão Venda MG 6102 102 0% 0% 0,1% / 0,9% 01/01/2026 – 31/12/2026 14 N 3 39199090 Adesivo vinil autoadesivo Venda todas 5102 102 0% 0% 0,1% / 0,9% 01/01/2026 26 N 3 39219019 Lona — devolução de venda Devolução todas 1202 900 0% 0% 0,1% / 0,9% 01/01/2026 38 N 3 84433229 Impressora jato de tinta (revenda importada) Importação todas 3102 900 18% 0% 0,1% / 0,9% 01/01/2026 2 N 1 48211000 Etiqueta personalizada — cliente Horizonte Venda todas 5101 103 0% 0% 0,1% / 0,9% 01/06/2026 1 Proposta: exceção pertence a uma operação e tem vigência O motor do main hoje busca só por NCM + UF e cai num padrão único da empresa. A proposta troca o padrão único pela regra geral de cada operação e dá a cada exceção válida de/até : a nota usa a versão vigente na data da emissão. Editar nunca sobrescreve, gera nova versão. Quem define CST, CFOP e alíquota é o contador; o sistema aplica e mostra de onde veio cada número. Alíquotas desta tela são exemplo.",
+    "roles": {
+      "celulas": null,
+      "chart": null,
+      "contratos": [
+        {
+          "classes": {
+            "dataBr": 0,
+            "dataIso": 0,
+            "snakeCru": 0
+          },
+          "exemplos": {},
+          "nome": "procedencia"
+        },
+        {
+          "classes": {
+            "dataBr": 0,
+            "dataIso": 0,
+            "snakeCru": 0
+          },
+          "exemplos": {},
+          "nome": "cascade"
+        },
+        {
+          "classes": {
+            "dataBr": 10,
+            "dataIso": 0,
+            "snakeCru": 0
+          },
+          "exemplos": {
+            "dataBr": [
+              "01/01/2026",
+              "01/03/2025",
+              "31/12/2026"
+            ]
+          },
+          "nome": "regras"
+        }
+      ],
+      "filterRows": null,
+      "kpi": {
+        "count": 0,
+        "items": [],
+        "overflowX": null,
+        "tag": null
+      },
+      "primary": null,
+      "shell": null,
+      "tabela": null,
+      "title": null
+    },
+    "saude": {
+      "folhasVazias": [],
+      "nFolhas": 76,
+      "tokensMortos": []
+    },
+    "theme": "dark",
+    "url": "http://127.0.0.1:5733/"
+  },
+  "clicar": ".fx-page > .fx-chips > [role=tab]:nth-child(3)",
+  "nos_totais": 671,
+  "quieto_ms": 2000,
+  "rota": "fiscal-tributacao",
+  "secoes": {
+    "abas": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "body",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "flex",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "6px",
+        "padding": "0px"
+      },
+      "filhos": 13,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "fx-page"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "main-body"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "main"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "app"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "div"
+        },
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "body"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "fx-chip",
+        "fx-chip",
+        "fx-chip",
+        "fx-chip",
+        "fx-chip",
+        "fx-chip",
+        "fx-chip",
+        "fx-chip",
+        "fx-chip",
+        "fx-chip",
+        "fx-chip",
+        "fx-chip",
+        "fx-chip"
+      ],
+      "rect": {
+        "h": 62,
+        "w": 1172
+      },
+      "seletor": ".fx-page > .fx-chips",
+      "truncado": false
+    },
+    "cascata": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "body",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "grid",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "10px",
+        "padding": "0px"
+      },
+      "filhos": 4,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "fx-page"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "main-body"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "main"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "app"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "div"
+        },
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "body"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "li",
+        "li",
+        "li",
+        "li"
+      ],
+      "rect": {
+        "h": 79,
+        "w": 1172
+      },
+      "seletor": ".fx-page > [data-contract=\"cascade\"]",
+      "truncado": false
+    },
+    "decisao": {
+      "contraste": {
+        "fundo": "oklch(0.322 0.0141 231.75)",
+        "fundo_de": "proprio",
+        "razao": 10.53,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.033673,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.322 0.0141 231.75)",
+        "borderRadius": "10px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "flex",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "3px",
+        "padding": "12px 14px"
+      },
+      "filhos": 2,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.322 0.0141 231.75)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "b",
+        "small"
+      ],
+      "rect": {
+        "h": 99,
+        "w": 1172
+      },
+      "seletor": ".fx-page > .fx-decisao",
+      "truncado": false
+    },
+    "regras": {
+      "contraste": {
+        "fundo": "oklch(0.3 0.008 240)",
+        "fundo_de": "proprio",
+        "razao": 11.42,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.027108,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.3 0.008 240)",
+        "borderRadius": "12px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "block",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "padding": "0px"
+      },
+      "filhos": 1,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.3 0.008 240)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "table"
+      ],
+      "rect": {
+        "h": 587,
+        "w": 1172
+      },
+      "seletor": ".fx-page > [data-contract=\"regras\"]",
+      "truncado": false
+    },
+    "toolbar": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "body",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "flex",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "8px",
+        "padding": "0px"
+      },
+      "filhos": 4,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "fx-page"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "main-body"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "main"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "app"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "div"
+        },
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "body"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "fx-search",
+        "fx-select",
+        "fx-btn",
+        "fx-btn"
+      ],
+      "rect": {
+        "h": 32,
+        "w": 1172
+      },
+      "seletor": ".fx-page > .fx-toolbar",
+      "truncado": false
+    }
+  },
+  "tela": "nfe-brasil--tributacao--excecoes",
+  "url": "http://127.0.0.1:5733/"
+}

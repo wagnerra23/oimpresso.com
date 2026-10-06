@@ -251,11 +251,10 @@ class NfeService
      *   2. `nfe_business_configs.tributacao_default.ncm_default` configurado
      *   3. Transaction `final_total > 0`
      *
-     * **Fase 2B (thread 17):** um `det` por `transaction_sell_lines`, com o NCM
-     *   do produto e o motor chamado por item (`montarItensNfe`). Venda sem
-     *   linha legível volta ao item genérico "Venda PDV #X" de antes, com log.
-     *
-     * **Limitações que seguem** (cada uma é uma thread):
+     * **Limitações fase 2A** (refinar em fase 2B):
+     *   - Item da nota é **placeholder único** (nome="Venda PDV #X") — pra MVP
+     *     não enumeramos `transaction_sell_lines` ainda. Cada linha vira 1 row
+     *     do XML quando enumeração for adicionada (fase 2B).
      *   - CPF do consumidor não capturado da Transaction — fica anônimo (CNPJ
      *     '99999999999999' fictício; SEFAZ aceita NFC-e sem doc destinatário
      *     se valor < R$ [redacted Tier 0]).
@@ -291,37 +290,21 @@ class NfeService
         }
 
         $ufOrigem = $this->resolverUF($business);
-        $valorTotal = (float) $tx->final_total;
 
-        // Fase 2B (thread 17 · R-NFE-023..025c): um `det` por linha da venda, com o
-        // NCM do produto, e o motor chamado POR ITEM. Venda sem linha legível cai no
-        // item genérico de antes (fase 2A) — mesmo XML de hoje, com log.
-        $motor  = $this->motor ?? app(MotorTributarioService::class);
-        $linhas = $this->linhasDaVenda($businessId, (int) $tx->id);
-        if ($linhas === []) {
-            Log::warning('nfe_itens_ausentes', ['business_id' => $businessId, 'transaction_id' => $tx->id]);
-            $linhas = [[
-                'sell_line_id' => null,
-                'product_id'   => null,
-                'cprod'        => 'PDV-' . $tx->id,
-                'xprod'        => "Venda PDV #{$tx->id}",
-                'ncm'          => $ncmDefault,
-                'unidade'      => 'UN',
-                'quantidade'   => 1.0,
-                'valor_unitario' => $valorTotal,
-            ]];
-        }
-
-        $itens = $this->montarItensNfe(
-            linhas:         $linhas,
-            valorNota:      $valorTotal,
-            frete:          (float) ($tx->shipping_charges ?? 0),
-            ncmDefault:     $ncmDefault,
-            motor:          $motor,
-            businessId:     $businessId,
-            ufOrigem:       $ufOrigem,
-            ufDestino:      $ufOrigem, // NFC-e é sempre intra-estadual (varejo balcão)
+        // MotorTributarioService cascade — ADR ARQ-0006
+        $motor = $this->motor ?? app(MotorTributarioService::class);
+        $tributo = $motor->calcular(
+            new ProdutoFiscalContext(
+                ncm:         $ncmDefault,
+                valor:       (float) $tx->final_total,
+                description: "Venda PDV #{$tx->id}",
+            ),
+            businessId: $businessId,
+            ufOrigem:   $ufOrigem,
+            ufDestino:  $ufOrigem, // NFC-e é sempre intra-estadual (varejo balcão)
         );
+
+        $valorTotal = (float) $tx->final_total;
 
         $dadosNfe = [
             'transaction_id' => $tx->id,
@@ -340,165 +323,18 @@ class NfeService
                 'uf'           => $ufOrigem,
                 'cep'          => '00000000',
             ],
-            'dets'     => $itens['dets'],
-            'total'    => $itens['total'],
-            'metadata' => $itens['metadata'],
-            // tpag='01' = dinheiro (default conservador). Fase 2B detecta via transaction_payments.
-            'pag'         => [['tpag' => '01', 'vpag' => $valorTotal]],
-            'valor_total' => $valorTotal,
-            'inf_cpl'     => "Venda PDV #{$tx->id}.",
-        ];
-
-        return $this->emitir($businessId, $dadosNfe);
-    }
-
-    /**
-     * Thread 17 · linhas da venda prontas pro `det` (R-NFE-023).
-     *
-     * Tier 0: o JOIN com `products` filtra `business_id` — linha de produto de
-     * outro tenant não entra na nota, mesmo que a FK aponte pra ela.
-     * Quantidade e preço vêm da linha (`unit_price_inc_tax` = o que o cliente
-     * pagou por unidade, já com desconto de linha e imposto UPos).
-     *
-     * @return list<array{sell_line_id:int|null,product_id:int|null,cprod:string,xprod:string,ncm:string,unidade:string,quantidade:float,valor_unitario:float}>
-     */
-    protected function linhasDaVenda(int $businessId, int $transactionId): array
-    {
-        $rows = DB::table('transaction_sell_lines as tsl')
-            ->join('products as p', 'p.id', '=', 'tsl.product_id')
-            ->leftJoin('variations as v', 'v.id', '=', 'tsl.variation_id')
-            ->leftJoin('units as u', 'u.id', '=', 'p.unit_id')
-            ->where('tsl.transaction_id', $transactionId)
-            ->where('p.business_id', $businessId)
-            ->orderBy('tsl.id')
-            ->get([
-                'tsl.id as sell_line_id', 'tsl.product_id', 'tsl.quantity', 'tsl.unit_price_inc_tax',
-                'p.name', 'p.sku', 'p.ncm', 'v.sub_sku', 'u.short_name',
-            ]);
-
-        $linhas = [];
-        foreach ($rows as $r) {
-            $linhas[] = [
-                'sell_line_id'   => (int) $r->sell_line_id,
-                'product_id'     => (int) $r->product_id,
-                'cprod'          => (string) ($r->sub_sku ?: $r->sku ?: $r->product_id),
-                'xprod'          => (string) $r->name,
-                'ncm'            => (string) ($r->ncm ?? ''),
-                'unidade'        => (string) ($r->short_name ?: 'UN'),
-                'quantidade'     => (float) $r->quantity,
-                'valor_unitario' => (float) $r->unit_price_inc_tax,
-            ];
-        }
-
-        return $linhas;
-    }
-
-    /**
-     * Thread 17 · monta `dets` + `total` + `metadata` a partir das linhas (R-NFE-023..025b).
-     *
-     * Sem DB: tudo que precisa entra por parâmetro (testável com motor falso).
-     *
-     * REGRA MESTRE VALOR — o total da nota NÃO muda: `vNF` = `valorNota` (o
-     * `final_total` da venda, como na fase 2A). O que muda é a decomposição:
-     *   vProd_i = round(qCom × vUnCom, 2)
-     *   Δ = valorNota − Σ vProd_i
-     *   Δ < 0 → desconto, rateado (vDesc por item)
-     *   Δ > 0 → primeiro frete (até `frete`), o resto em vOutro, rateados
-     *   base_i = vProd_i − vDesc_i + vFrete_i + vOutro_i   (Σ base_i = vNF exato)
-     * Rateio em centavos pelo método do maior resto: cada item recebe no máximo
-     * 1 centavo acima da parte proporcional, e o desconto nunca passa o vProd do item.
-     * O motor é chamado por item sobre base_i; os totais de imposto são a soma
-     * dos itens já arredondados (arredondamento por item, como a SEFAZ valida).
-     *
-     * Linha de valor 0 (componente de combo) não vira `det` — NF-e não aceita item zerado.
-     *
-     * @param list<array<string,mixed>> $linhas saída de linhasDaVenda()
-     * @return array{dets:list<array<string,mixed>>,total:array<string,float>,metadata:array<string,mixed>|null}
-     */
-    public function montarItensNfe(
-        array $linhas,
-        float $valorNota,
-        float $frete,
-        string $ncmDefault,
-        MotorTributarioService $motor,
-        int $businessId,
-        string $ufOrigem,
-        string $ufDestino,
-    ): array {
-        // R-NFE-024 controle: sem NCM padrão válido não há saída — mesma recusa do
-        // R-NFE-022 em emitirParaTransaction (defesa em profundidade, sem DB).
-        if (strlen($ncmDefault) !== 8) {
-            throw new RuntimeException("Business {$businessId} sem NCM padrão configurado.");
-        }
-
-        // 1. vProd por item, em centavos
-        $itens = [];
-        foreach ($linhas as $l) {
-            $qtd  = (float) $l['quantidade'];
-            $vun  = round((float) $l['valor_unitario'], 10);
-            $cent = (int) round($qtd * $vun * 100);
-            if ($qtd <= 0 || $cent <= 0) {
-                continue;
-            }
-            $itens[] = $l + ['vuncom' => $vun, 'vprod_cent' => $cent];
-        }
-        if ($itens === []) {
-            throw new RuntimeException('Venda sem item de valor positivo — não emite nota.');
-        }
-
-        $totalCent = (int) round($valorNota * 100);
-        $somaCent  = array_sum(array_column($itens, 'vprod_cent'));
-        $delta     = $totalCent - $somaCent;
-        $pesos     = array_column($itens, 'vprod_cent');
-
-        $descontos = $delta < 0 ? $this->ratearCentavos(-$delta, $pesos) : array_fill(0, count($itens), 0);
-        $freteCent = $delta > 0 ? min((int) round(max($frete, 0) * 100), $delta) : 0;
-        $fretes    = $this->ratearCentavos($freteCent, $pesos);
-        $outros    = $this->ratearCentavos(max($delta, 0) - $freteCent, $pesos);
-
-        // 2. motor por item
-        $dets = [];
-        $ncmPadraoUsado = [];
-        $tot = ['v_icms' => 0.0, 'v_pis' => 0.0, 'v_cofins' => 0.0, 'v_ibs' => 0.0, 'v_cbs' => 0.0];
-        foreach ($itens as $i => $it) {
-            $ncm = preg_replace('/\D/', '', (string) $it['ncm']);
-            if (strlen($ncm) !== 8 || $ncm === '00000000') {
-                $ncm = $ncmDefault;
-                $ncmPadraoUsado[] = ['sell_line_id' => $it['sell_line_id'], 'product_id' => $it['product_id']];
-            }
-
-            $base = ($it['vprod_cent'] - $descontos[$i] + $fretes[$i] + $outros[$i]) / 100.0;
-            $tributo = $motor->calcular(
-                new ProdutoFiscalContext(
-                    ncm:         $ncm,
-                    valor:       $base,
-                    // R-NFE-025 (N1): `products` não tem `fiscal_rule_override_id` no schema
-                    // hoje — a coluna é migration de outra lane 🔴. Até lá, null.
-                    fiscal_rule_override_id: null,
-                    description: (string) $it['xprod'],
-                ),
-                businessId: $businessId,
-                ufOrigem:   $ufOrigem,
-                ufDestino:  $ufDestino,
-            );
-
-            $vprod = $it['vprod_cent'] / 100.0;
-            $dets[] = [
-                'cprod'   => substr((string) $it['cprod'], 0, 60),
-                'xprod'   => substr((string) $it['xprod'], 0, 120),
-                'ncm'     => $ncm,
+            'dets' => [[
+                'cprod'   => 'PDV-' . $tx->id,
+                'xprod'   => substr("Venda PDV #{$tx->id}", 0, 120),
+                'ncm'     => $ncmDefault,
                 'cfop'    => $tributo->cfop,
-                'ucm'     => substr((string) $it['unidade'], 0, 6),
-                'qcom'    => (float) $it['quantidade'],
-                'vuncom'  => $it['vuncom'],
-                'vprod'   => $vprod,
-                'utrib'   => substr((string) $it['unidade'], 0, 6),
-                'qtrib'   => (float) $it['quantidade'],
-                'vuntrib' => $it['vuncom'],
-                'dec_vun' => 10,
-                'vdesc'   => $descontos[$i] / 100.0,
-                'vfrete'  => $fretes[$i] / 100.0,
-                'voutro'  => $outros[$i] / 100.0,
+                'ucm'     => 'UN',
+                'qcom'    => 1.0,
+                'vuncom'  => $valorTotal,
+                'vprod'   => $valorTotal,
+                'utrib'   => 'UN',
+                'qtrib'   => 1.0,
+                'vuntrib' => $valorTotal,
                 'ind_tot' => 1,
                 'icms'    => [
                     'cst_csosn' => $tributo->csosn ?? $tributo->cst ?? '102',
@@ -507,10 +343,8 @@ class NfeService
                     'picms'     => $tributo->aliquota_icms,
                     'vicms'     => $tributo->valor_icms,
                 ],
-                // R-NFE-025b: `nfe_fiscal_rules` não guarda CST de PIS/COFINS hoje — o
-                // motor não devolve. '07' segue como fallback, logado abaixo.
                 'pis'     => [
-                    'cst'   => '07',
+                    'cst'   => '07', // 07 = isenta — Simples Nacional default
                     'vbc'   => 0,
                     'ppis'  => $tributo->aliquota_pis,
                     'vpis'  => $tributo->valor_pis,
@@ -521,84 +355,37 @@ class NfeService
                     'pcofins'  => $tributo->aliquota_cofins,
                     'vcofins'  => $tributo->valor_cofins,
                 ],
+                // IBS/CBS (Reforma · US-FISCAL-021 PR-D). Serializado só quando o business
+                // está em modo full/hybrid (schema PL_010); Simples/legado → alíquota 0 +
+                // cst nulo → grupo omitido. vbc = base do item (mesmo valor que o motor usou).
                 'ibscbs'  => [
                     'cst'          => $tributo->cst_ibs,
                     'cst_cbs'      => $tributo->cst_cbs,
                     'c_class_trib' => $tributo->c_class_trib,
-                    'vbc'          => $base,
+                    'vbc'          => $valorTotal,
                     'aliquota_ibs' => $tributo->aliquota_ibs,
                     'aliquota_cbs' => $tributo->aliquota_cbs,
                     'valor_ibs'    => $tributo->valor_ibs,
                     'valor_cbs'    => $tributo->valor_cbs,
                 ],
-                'nivel_tributacao' => $tributo->nivel_usado,
-            ];
-
-            $tot['v_icms']   += $tributo->valor_icms;
-            $tot['v_pis']    += $tributo->valor_pis;
-            $tot['v_cofins'] += $tributo->valor_cofins;
-            $tot['v_ibs']    += $tributo->valor_ibs;
-            $tot['v_cbs']    += $tributo->valor_cbs;
-        }
-
-        Log::info('pis_cofins_cst_fallback', [
-            'business_id' => $businessId,
-            'itens'       => count($dets),
-            'cst'         => '07',
-        ]);
-
-        return [
-            'dets'  => $dets,
+            ]],
             'total' => [
-                'v_prod'    => $somaCent / 100.0,
-                'v_bc_icms' => 0.0,
-                'v_icms'    => round($tot['v_icms'], 2),
-                'v_pis'     => round($tot['v_pis'], 2),
-                'v_cofins'  => round($tot['v_cofins'], 2),
-                'v_ibs'     => round($tot['v_ibs'], 2),
-                'v_cbs'     => round($tot['v_cbs'], 2),
-                'v_nf'      => $totalCent / 100.0,
-                'v_desc'    => array_sum($descontos) / 100.0,
-                'v_frete'   => array_sum($fretes) / 100.0,
-                'v_outro'   => array_sum($outros) / 100.0,
+                'v_prod'    => $valorTotal,
+                'v_bc_icms' => 0,
+                'v_icms'    => $tributo->valor_icms,
+                'v_pis'     => $tributo->valor_pis,
+                'v_cofins'  => $tributo->valor_cofins,
+                'v_nf'      => $valorTotal,
+                'v_desc'    => 0,
+                'v_frete'   => 0,
             ],
-            'metadata' => $ncmPadraoUsado === [] ? null : ['itens_ncm_padrao' => $ncmPadraoUsado],
+            // tpag='01' = dinheiro (default conservador). Fase 2B detecta via transaction_payments.
+            'pag'         => [['tpag' => '01', 'vpag' => $valorTotal]],
+            'valor_total' => $valorTotal,
+            'inf_cpl'     => "Venda PDV #{$tx->id}.",
         ];
-    }
 
-    /**
-     * Rateia `$centavos` proporcional a `$pesos` (maior resto). Soma exata;
-     * cada parte ≤ floor(proporcional) + 1.
-     *
-     * @param list<int> $pesos
-     * @return list<int>
-     */
-    private function ratearCentavos(int $centavos, array $pesos): array
-    {
-        $n = count($pesos);
-        if ($centavos <= 0 || $n === 0) {
-            return array_fill(0, $n, 0);
-        }
-        $soma   = array_sum($pesos);
-        $partes = [];
-        $restos = [];
-        foreach ($pesos as $i => $p) {
-            $exato      = intdiv($centavos * $p, $soma);
-            $partes[$i] = $exato;
-            $restos[$i] = ($centavos * $p) % $soma;
-        }
-        $falta = $centavos - array_sum($partes);
-        arsort($restos);
-        foreach (array_keys($restos) as $i) {
-            if ($falta <= 0) {
-                break;
-            }
-            $partes[$i]++;
-            $falta--;
-        }
-        ksort($partes);
-
-        return array_values($partes);
+        return $this->emitir($businessId, $dadosNfe);
     }
 
     /**
@@ -738,8 +525,6 @@ class NfeService
                 'status'         => $emContingencia ? 'contingencia' : 'enviando',
                 'tp_emis'        => $tpEmis,
                 'valor_total'    => (float) ($dadosNfe['valor_total'] ?? 0),
-                // Thread 17 · R-NFE-024: itens que saíram com o NCM padrão (saúde fiscal, 14).
-                'metadata'       => $dadosNfe['metadata'] ?? null,
             ]);
         });
 
@@ -1803,7 +1588,7 @@ class NfeService
         $stdICMSTot->vIPIDevol   = 0.00;
         $stdICMSTot->vPIS        = $this->fmt($total['v_pis'] ?? 0);
         $stdICMSTot->vCOFINS     = $this->fmt($total['v_cofins'] ?? 0);
-        $stdICMSTot->vOutro      = $this->fmt($total['v_outro'] ?? 0);
+        $stdICMSTot->vOutro      = 0.00;
         $stdICMSTot->vNF         = $this->fmt($total['v_nf'] ?? 0);
         $nfe->tagICMSTot($stdICMSTot);
 
@@ -1880,24 +1665,18 @@ class NfeService
         $stdProd->CFOP   = (string) ($det['cfop'] ?? '5102');
         $stdProd->uCom   = (string) ($det['ucm'] ?? 'UN');
         $stdProd->qCom   = $this->fmt((float) ($det['qcom'] ?? 1), 4);
-        // `dec_vun` (thread 17): preço unitário real pode ter >2 casas; o leiaute aceita até 10.
-        // Sem a chave = 2 casas, igual a antes (cobrança recorrente inalterada).
-        $decVun          = (int) ($det['dec_vun'] ?? 2);
-        $stdProd->vUnCom = $this->fmt((float) ($det['vuncom'] ?? 0), $decVun);
+        $stdProd->vUnCom = $this->fmt((float) ($det['vuncom'] ?? 0));
         $stdProd->vProd  = $this->fmt((float) ($det['vprod'] ?? 0));
         $stdProd->cEANTrib = 'SEM GTIN';
         $stdProd->uTrib  = (string) ($det['utrib'] ?? 'UN');
         $stdProd->qTrib  = $this->fmt((float) ($det['qtrib'] ?? 1), 4);
-        $stdProd->vUnTrib = $this->fmt((float) ($det['vuntrib'] ?? 0), $decVun);
+        $stdProd->vUnTrib = $this->fmt((float) ($det['vuntrib'] ?? 0));
         $stdProd->indTot = (int) ($det['ind_tot'] ?? 1);
         if (($det['vdesc'] ?? 0) > 0) {
             $stdProd->vDesc = $this->fmt((float) $det['vdesc']);
         }
         if (($det['vfrete'] ?? 0) > 0) {
             $stdProd->vFrete = $this->fmt((float) $det['vfrete']);
-        }
-        if (($det['voutro'] ?? 0) > 0) {
-            $stdProd->vOutro = $this->fmt((float) $det['voutro']);
         }
         $nfe->tagprod($stdProd);
 

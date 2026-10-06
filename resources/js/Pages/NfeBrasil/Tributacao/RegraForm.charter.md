@@ -2,7 +2,8 @@
 id: resources-js-pages-nfe-brasil-tributacao-regra-form-charter
 page: /nfe-brasil/tributacao/regras/create
 component: resources/js/Pages/NfeBrasil/Tributacao/RegraForm.tsx
-related_prototype: n/a (herda PT-02 Formulário; segue o Padrão de Tela)
+related_prototype: prototipo-ui/cowork/Wagner/fiscal-tributacao.jsx
+# D-ANCORA [W] 2026-10-06 (soberania · UI-0029): alvo de forma = rota `fiscal-tributacao` do protótipo do Cowork; o desenho do PR #7145 (memory/reference/prototipo-ui/sources/Wagner/nfe-tributacao.md) vira material de comparação. Decisão: prototipo-ui/cowork/Wagner/cowork-inbox/fiscal/playbook/_DECISOES-W-2026-10-06.md
 owner: wagner
 status: draft
 last_validated: "2026-07-11"

@@ -5,6 +5,7 @@ use Modules\Financeiro\Http\Controllers\Advisor\AdvisorAuthController;
 use Modules\Financeiro\Http\Controllers\Advisor\AdvisorPortalController;
 use Modules\Financeiro\Http\Controllers\AdvisorAccessController;
 use Modules\Financeiro\Http\Controllers\AssinaturaController;
+use Modules\Financeiro\Http\Controllers\BoletoController;
 use Modules\Financeiro\Http\Controllers\CaixaController;
 use Modules\Financeiro\Http\Controllers\CategoriaController;
 use Modules\Financeiro\Http\Controllers\CobrancaController;
@@ -168,9 +169,11 @@ Route::middleware(['web', 'auth', 'SetSessionData', 'language', 'timezone', 'Adm
         // Boletos legacy — sidebar agora aponta pra /cobranca (F3 PaymentGateway UI).
         // GET /boletos → 301 redirect pra /financeiro/cobranca (substitui Inertia
         // render Pages/Financeiro/Boletos/Index, deletado em hotfix 2026-05-19).
-        // POST cancelar aposentado 2026-10 (thread 12): preservado 60d a partir de
-        // 2026-05-19 pra cancelar BoletoRemessa legacy; medido 0 remessas em prod.
+        // POST cancelar preservado durante 60d pra cancelar BoletoRemessa legacy DB.
         Route::redirect('/boletos', '/financeiro/cobranca', 301)->name('boletos.index');
+        Route::post('/boletos/{remessaId}/cancelar', [BoletoController::class, 'cancelar'])
+            ->whereNumber('remessaId')
+            ->name('boletos.cancelar');
 
         // Cobrança (F3 PaymentGateway UI Tela 1) — substitui /financeiro/boletos
         // Cowork F1.5 score 96/100 aprovado [W] 2026-05-19. ADR 0144 + 0170.
