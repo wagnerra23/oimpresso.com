@@ -12,6 +12,9 @@ last_run: "2026-10-06"
 > as linhas consumidas da ordem (as do painel), não os ingredientes da receita atual. UC-OP-04 reescrito
 > para dizer isso; o teste dele não muda.
 
+> ℹ️ **2026-10-06 — UC-OP-09 novo (rótulo da quantidade):** o número não muda; a lista e o painel
+> passam a dizer que é a quantidade em estoque e mostram as perdidas ao lado.
+
 > ℹ️ **`last_run` 2026-10-05 → 2026-10-06 (G-6): só a data.** O `Index.tsx` ganhou data nova pelo merge
 > do `main` no branch do #8743 (conflito de empilhamento sobre o #8742), que trouxe o #8745, já validado
 > sob o `last_run` 2026-10-05. Nenhum UC mudou; a lane de Fabricação e o build do Vite passaram no head.
@@ -146,6 +149,7 @@ last_run: "2026-10-06"
   mostrar ordem de outra empresa.
 - **Status: 🧪**
 
+---
 
 ## UC-OP-08 · O "N ingredientes" da lista é o número de ingredientes consumidos pela ordem
 - **Persona:** Eliana (produção) — lê "2 ingredientes" na lista, abre a ordem e espera ver 2.
@@ -161,6 +165,24 @@ last_run: "2026-10-06"
   receita (contar pela receita daria 0) e grava 2 linhas; confere à mão e contra o `detalheOrdem`.
 - **Regressão que defende:** voltar a contar os ingredientes da receita atual, que mudam depois
   da ordem e desencontram a lista do painel.
+
+---
+
+## UC-OP-09 · A quantidade da ordem é a que entrou no estoque, e a perda aparece ao lado
+- **Persona:** Eliana (produção) — produziu 2, perdeu 1; quer ver que só 1 entrou no estoque, sem
+  achar que a tela "comeu" uma unidade.
+- **Aceite:** Dado uma ordem com perda (`mfg_wasted_units > 0`) · Quando a lista e o painel abrem ·
+  Então a quantidade mostrada é a gravada na linha do produto (líquida, a que entrou no estoque) e,
+  ao lado, quantas se perderam ("+1,00 perdida" na lista; "1,00 UNID em estoque · 1,00 perdida" no
+  cabeçalho do painel). A soma das duas é a "Quantidade" bruta da tela antiga. Sem perda, nada muda.
+- **Fonte:** `ProductionController::store()` (grava produzida − perdidas na `purchase_line`) e
+  `show()` (mostra a bruta e a desperdiçada). O protótipo `manufacturing-producao.jsx` não modela
+  perda na ordem. Achado em produção 2026-10-06: ordem 2021/0001 com "1,00 UNID" na lista e no
+  painel contra "Quantidade 2,00 · desperdiçada 1,00" na tela antiga.
+- **Teste:** `Modules/Manufacturing/Tests/Feature/DetalheOrdemProducaoTest.php` — confere 5 + 1 à mão
+  e contra as variáveis do `show()` legado (`quantity` = 6, `quantity_wasted` = 1).
+- **Regressão que defende:** mostrar a líquida sem dizer que é líquida, ou somar a perda no número
+  principal e dividir o custo por unidade pelo que não entrou no estoque.
 - **Status: 🧪**
 ---
 

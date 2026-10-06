@@ -1086,3 +1086,74 @@ it('histórico do veículo traz o km de entrada de cada OS e o km/data do cadast
     // Km da entrada de cada OS; null quando não foi anotado.
     expect(array_column($r->json('itens'), 'km'))->toBe([null, 45200]);
 });
+
+// ── Lembrete de revisão por km (decisão [W] 2026-10-06): proxima_revisao_km + filtro revisao=1 ──
+
+it('revisão por km: cadastrar e editar gravam a próxima revisão; detalhe e lista devolvem o campo', function () {
+    foreach (['oficinaauto.vehicle.view', 'oficinaauto.vehicle.create', 'oficinaauto.vehicle.update'] as $p) {
+        Permission::firstOrCreate(['name' => $p, 'guard_name' => 'web']);
+        $this->user->givePermissionTo($p);
+    }
+    $placa = appOsPlacaNova();
+
+    $r = $this->postJson('/api/app/veiculos', ['placa' => $placa, 'tipo' => 'caminhao', 'km' => 40000, 'proxima_revisao_km' => 50000])
+        ->assertStatus(201);
+    $id = (int) $r->json('id');
+    expect($r->json('proxima_revisao_km'))->toBe(50000);
+    expect((int) DB::table('vehicles')->where('id', $id)->value('next_service_km'))->toBe(50000);
+
+    $this->putJson('/api/app/veiculos/' . $id, ['placa' => $placa, 'tipo' => 'caminhao', 'km' => 40000, 'proxima_revisao_km' => 60000])->assertOk();
+    expect($this->getJson('/api/app/veiculos/' . $id)->assertOk()->json('proxima_revisao_km'))->toBe(60000);
+
+    // PUT SEM a chave (o app já em produção não conhece o campo) mantém a revisão marcada.
+    $this->putJson('/api/app/veiculos/' . $id, ['placa' => $placa, 'tipo' => 'caminhao', 'cor' => 'Azul'])->assertOk();
+    expect((int) DB::table('vehicles')->where('id', $id)->value('next_service_km'))->toBe(60000);
+    // PUT com a chave em null apaga.
+    $this->putJson('/api/app/veiculos/' . $id, ['placa' => $placa, 'tipo' => 'caminhao', 'proxima_revisao_km' => null])->assertOk();
+    expect(DB::table('vehicles')->where('id', $id)->value('next_service_km'))->toBeNull();
+
+    $this->postJson('/api/app/veiculos', ['placa' => appOsPlacaNova(), 'tipo' => 'caminhao', 'proxima_revisao_km' => -1])
+        ->assertStatus(422)->assertJsonPath('campos.proxima_revisao_km', 'O km da próxima revisão não pode ser negativo.');
+});
+
+it('revisão por km: revisao=1 traz só os perto (até 1.000 km) ou atrasados, do mais atrasado ao que falta mais; a contagem não depende do filtro', function () {
+    Permission::firstOrCreate(['name' => 'oficinaauto.vehicle.view', 'guard_name' => 'web']);
+    $this->user->givePermissionTo('oficinaauto.vehicle.view');
+    $base = $this->getJson('/api/app/veiculos')->assertOk()->json('revisao_proxima');
+    $novo = fn (?int $km, ?int $prox) => DB::table('vehicles')->insertGetId([
+        'business_id' => $this->biz->id, 'plate' => appOsPlacaNova(), 'vehicle_type' => 'caminhao',
+        'mileage_at_entry' => $km, 'next_service_km' => $prox, 'created_at' => now(), 'updated_at' => now(),
+    ]);
+    $atrasado = $novo(52000, 50000);   // passou 2.000
+    $perto = $novo(49500, 50000);      // faltam 500
+    $longe = $novo(40000, 50000);      // faltam 10.000
+    $semRevisao = $novo(90000, null);
+    $proxBaixa = $novo(null, 300);     // km 0, próxima 300: dentro do aviso, e sem estourar a conta sem sinal
+    // Km real vem também da OS: cadastro 30.000, OS com 49.200 → faltam 800.
+    $pelaOs = $novo(30000, 50000);
+    DB::table('service_orders')->insert([
+        'business_id' => $this->biz->id, 'vehicle_id' => $pelaOs, 'order_type' => 'mecanica', 'status' => 'aberta',
+        'mileage_at_service' => 49200, 'created_at' => now(), 'updated_at' => now(),
+    ]);
+    $alheio = DB::table('vehicles')->insertGetId([
+        'business_id' => $this->outroBiz->id, 'plate' => appOsPlacaNova(), 'vehicle_type' => 'caminhao',
+        'mileage_at_entry' => 99999, 'next_service_km' => 1000, 'created_at' => now(), 'updated_at' => now(),
+    ]);
+
+    $r = $this->getJson('/api/app/veiculos?revisao=1')->assertOk();
+    $ids = array_column($r->json('itens'), 'id');
+    foreach ([$atrasado, $perto, $proxBaixa, $pelaOs] as $esperado) {
+        expect($ids)->toContain($esperado);
+    }
+    foreach ([$longe, $semRevisao, $alheio] as $fora) {
+        expect($ids)->not->toContain($fora);
+    }
+    // Do mais atrasado ao que falta mais: atrasado (+2.000) antes de perto (−500) antes de pela OS (−800).
+    $pos = array_flip($ids);
+    expect($pos[$atrasado])->toBeLessThan($pos[$perto]);
+    expect($pos[$perto])->toBeLessThan($pos[$pelaOs]);
+    expect($r->json('revisao_aviso_km'))->toBe(1000);
+    // A contagem é a mesma com e sem o filtro, e conta só os 4 novos deste business.
+    expect($r->json('revisao_proxima'))->toBe($base + 4);
+    expect($this->getJson('/api/app/veiculos')->assertOk()->json('revisao_proxima'))->toBe($base + 4);
+});

@@ -213,7 +213,9 @@ class ProductionService
                     'unidade' => $produto?->getAttribute('unit_name') ?: '',
                     'n_ingredientes' => (int) ($ingredientes[$ordem->id] ?? 0),
                     'criado_por' => $usuario ? trim("{$usuario->surname} {$usuario->first_name} {$usuario->last_name}") : '',
+                    // Líquida: o que entrou no estoque (o `store()` grava produzida − perdidas).
                     'quantidade' => $quantidade,
+                    'perdidas' => (float) ($ordem->getAttribute('mfg_wasted_units') ?? 0),
                     // Guard de divisão por zero — quantidade 0 devolve 0.0, nunca INF/NaN.
                     'custo_unitario' => $quantidade > 0 ? $total / $quantidade : 0.0,
                 ];
@@ -351,7 +353,7 @@ class ProductionService
      * Tier 0 (ADR 0093): a ordem e a venda de produção são buscadas pela empresa; o grupo de
      * ingredientes também. Ordem de outra empresa devolve null.
      *
-     * @return array{id:int, ref_no:?string, finalizada:bool, quantidade:float, unidade:string,
+     * @return array{id:int, ref_no:?string, finalizada:bool, quantidade:float, perdidas:float, unidade:string,
      *   linhas: array<int, array{nome:string, sku:string, grupo:?string, quantidade:float, unidade:string, custo_unitario:float, subtotal:float}>,
      *   custo: array{ingredientes:float, extra:float, total_hoje:float, gravado:float, por_unidade:float}}|null
      */
@@ -386,7 +388,10 @@ class ProductionService
                 ->select('l.quantity', 'su.base_unit_multiplier as mult', 'su.short_name as sub_un', 'u.short_name as un')
                 ->first();
 
-            // Quantidade produzida, como o legado: na unidade da linha, somando as perdidas.
+            // Quantidade da linha do produto = a que ENTROU no estoque: o `store()` já subtrai as
+            // perdidas antes de gravar (ProductionController:240). A tela antiga soma as perdidas
+            // de volta para mostrar "Quantidade" (bruta); aqui fica líquida, com as perdidas ao
+            // lado (`perdidas`), e o custo por unidade divide pelo que entrou no estoque.
             $multProduto = $linhaProduto && (float) $linhaProduto->mult > 0 ? (float) $linhaProduto->mult : 1.0;
             $produzida = $linhaProduto ? (float) $linhaProduto->quantity / $multProduto : 0.0;
             $perdidas = (float) ($ordem->getAttribute('mfg_wasted_units') ?? 0);
@@ -456,6 +461,7 @@ class ProductionService
                 'ref_no' => $ordem->ref_no,
                 'finalizada' => (int) $ordem->getAttribute('mfg_is_final') === 1,
                 'quantidade' => $produzida,
+                'perdidas' => $perdidas,
                 'unidade' => $unidadeProduto,
                 'linhas' => $linhas,
                 'custo' => [

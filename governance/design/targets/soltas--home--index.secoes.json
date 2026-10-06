@@ -1,0 +1,25 @@
+{
+  "_": "A1 [CL] 2026-10-06 — playbook telas-soltas. Rota `dash-legacy` do espelho (app.jsx), âncora Home/Index → dash-legacy-page.jsx (ancora.mjs). Tema dark (default do espelho), viewport 1280x900.",
+  "_mapa": "alvo:mapa --rota dash-legacy --raiz '.main-body > *', 2026-10-06: header · div · div · div · div · section[aria-label=Grades do painel] · div (estilos inline, sem classe — seletores posicionais)",
+  "header": {
+    "seletor": ".main-body > div > header"
+  },
+  "bloco_2": {
+    "seletor": ".main-body > div > :nth-child(2)"
+  },
+  "bloco_3": {
+    "seletor": ".main-body > div > :nth-child(3)"
+  },
+  "bloco_4": {
+    "seletor": ".main-body > div > :nth-child(4)"
+  },
+  "bloco_5": {
+    "seletor": ".main-body > div > :nth-child(5)"
+  },
+  "grades": {
+    "seletor": ".main-body > div > section"
+  },
+  "rodape": {
+    "seletor": ".main-body > div > :nth-child(7)"
+  }
+}

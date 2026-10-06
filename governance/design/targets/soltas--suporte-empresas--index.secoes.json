@@ -1,0 +1,13 @@
+{
+  "_": "A1 [CL] 2026-10-06 — playbook telas-soltas. Rota `suporte` do espelho (app.jsx), âncora Suporte/Empresas: ancora.mjs devolve n/a (herda PT-01); rota suporte monta SuportePage view=empresas de suporte-page.jsx (app.jsx:912), o mesmo arquivo que é bundle_source de Suporte/Visao. Tema dark (default do espelho), viewport 1280x900.",
+  "_mapa": "alvo:mapa --rota suporte --raiz '.main-body > *', 2026-10-06: div · div.sup-nota[data-contract=aviso-escopo] · div.sup-lista[data-contract=lista]",
+  "header": {
+    "seletor": ".main-body > div > :nth-child(1)"
+  },
+  "nota": {
+    "seletor": ".main-body > div > .sup-nota"
+  },
+  "lista": {
+    "seletor": ".main-body > div > .sup-lista"
+  }
+}
