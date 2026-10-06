@@ -53,6 +53,10 @@
       "sha256": "487719e77a6b00ec227437b0f694d1370ecbcf31f197535b271642acfac07828",
       "em": "2026-10-06T22:46:40.581Z"
     },
+    "cowork-inbox/modulos-faltantes/playbook/_saida-02.md": {
+      "sha256": "f57dbb1eabf3f9ca0590e47c336a9dff6d358235abb4ada759d8e6ea0ae18e4c",
+      "em": "2026-10-06T23:36:32.552Z"
+    },
     "cowork-inbox/modulos/playbook/_saida-01.md": {
       "sha256": "f9f1f5051449a4810b1775e26321b6d48795760a0b021fceeef92783e3101751",
       "em": "2026-10-06T22:59:22.232Z"
