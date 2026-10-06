@@ -36,6 +36,10 @@ Listar ordens de produção (production_purchase) do business ativo em UX Inerti
   create/edit/destroy continuam no Blade legado.
 - G6 (US-MANU-004): situação vem do `StatusBadge` compartilhado (domínio `producao`) — o
   `StatusPill` local foi removido
+- G7 (UC-OP-07, 2026-10-05): clicar numa ordem abre o painel lateral do protótipo
+  (`MfgProducaoDrawer`) com os ingredientes consumidos e o custo. Só leitura: as contas são as do
+  detalhe da tela antiga, prontas do servidor (`ProductionService::detalheOrdem`). "Editar ordem"
+  aparece só em rascunho e leva ao formulário antigo — o Non-Goal de CRUD segue intacto.
 
 ## Non-Goals (Wave J)
 - Não migrar CRUD completo (create/edit/destroy) — Blade legacy mantém

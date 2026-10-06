@@ -25,6 +25,7 @@ import DataTable from '@/Components/shared/DataTable';
 import EmptyState from '@/Components/shared/EmptyState';
 import StatusBadge from '@/Components/shared/StatusBadge';
 import FabricacaoAbas from './_components/FabricacaoAbas';
+import OrdemDrawer, { type OrdemDetalhe } from './_components/OrdemDrawer';
 
 interface Production {
   id: number;
@@ -67,22 +68,29 @@ interface Props {
   filters?: FiltersState;
   /** Contador da aba "Receitas". Opcional: payload antigo não mandava. */
   recipes_count?: number;
+  /** Detalhe da ordem aberta no painel (`?ordem=ID`, prop optional — só vem quando pedida). */
+  ordem_detalhe?: OrdemDetalhe | null;
 }
 
 const ROUTE = '/manufacturing/production';
 const CREATE_ROUTE = '/manufacturing/production/create';
 
-function applyFilter(current: FiltersState, patch: Partial<FiltersState>) {
-  // Merge current+patch, depois serializa explicitamente em string|number|undefined
-  // (RequestPayload do Inertia não aceita `unknown`). is_final é flag de presença
-  // no backend (request()->has('is_final')) — só envia quando true.
-  const merged = { ...current, ...patch };
-  const next: Record<string, string | number | undefined> = {
-    location_id: merged.location_id ?? undefined,
-    start_date: merged.start_date ?? undefined,
-    end_date: merged.end_date ?? undefined,
-    is_final: merged.is_final ? 1 : undefined,
+/**
+ * Filtros serializados explicitamente em string|number|undefined (RequestPayload do Inertia não
+ * aceita `unknown`). is_final é flag de presença no backend (request()->has('is_final')) — só
+ * envia quando true.
+ */
+function queryDosFiltros(f: FiltersState): Record<string, string | number | undefined> {
+  return {
+    location_id: f.location_id ?? undefined,
+    start_date: f.start_date ?? undefined,
+    end_date: f.end_date ?? undefined,
+    is_final: f.is_final ? 1 : undefined,
   };
+}
+
+function applyFilter(current: FiltersState, patch: Partial<FiltersState>) {
+  const next = queryDosFiltros({ ...current, ...patch });
   router.get(ROUTE, next, {
     preserveState: true,
     preserveScroll: true,
@@ -196,9 +204,33 @@ const COLUNAS: ColumnDef<Production, unknown>[] = [
   },
 ];
 
-function Index({ productions = [], summary, business_locations = {}, filters = {}, recipes_count }: Props) {
+function Index({ productions = [], summary, business_locations = {}, filters = {}, recipes_count, ordem_detalhe }: Props) {
   const [start, setStart] = useState<string>(filters.start_date ?? '');
   const [end, setEnd] = useState<string>(filters.end_date ?? '');
+  // Painel da ordem (UC-OP-07): o cabeçalho abre na hora com o que a linha já sabe; o detalhe
+  // chega por partial reload de `ordem_detalhe`, sem recarregar a lista.
+  const [aberta, setAberta] = useState<Production | null>(null);
+  const [carregando, setCarregando] = useState(false);
+
+  const abrirOrdem = (p: Production) => {
+    setAberta(p);
+    setCarregando(true);
+    router.get(ROUTE, { ...queryDosFiltros(filters), ordem: p.id }, {
+      preserveState: true,
+      preserveScroll: true,
+      only: ['ordem_detalhe'],
+      replace: true,
+      onFinish: () => setCarregando(false),
+    });
+  };
+  // undefined = carregando (ou a resposta ainda é de outra ordem) · null = não encontrada.
+  const detalheAberto = !aberta || carregando
+    ? undefined
+    : ordem_detalhe && ordem_detalhe.id === aberta.id
+      ? ordem_detalhe
+      : ordem_detalhe === null
+        ? null
+        : undefined;
 
   const locationEntries = Object.entries(business_locations);
   const hasLocations = locationEntries.length > 0;
@@ -463,6 +495,7 @@ function Index({ productions = [], summary, business_locations = {}, filters = {
             density="grid"
             showSearch={false}
             rowKey={(p) => p.id}
+            onRowClick={abrirOrdem}
           />
         )}
       </div>
@@ -476,6 +509,8 @@ function Index({ productions = [], summary, business_locations = {}, filters = {
           ordens finalizadas mostram o custo congelado na data
         </p>
       )}
+
+      <OrdemDrawer ordem={aberta} detalhe={detalheAberto} onClose={() => setAberta(null)} />
     </div>
   );
 }
