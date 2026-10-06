@@ -1,0 +1,13 @@
+{
+  "_": "A1 [CL] 2026-10-06 — playbook telas-soltas. Rota `perfil` do espelho (app.jsx), âncora User/Perfil → perfil-page.jsx (ancora.mjs). NÃO é a rota prefs do A1-alvos.md: prefs monta PrefsPage (prefs-page.jsx, Preferências), outra tela. Tema dark (default do espelho), viewport 1280x900.",
+  "_mapa": "alvo:mapa --rota perfil --raiz '.main-body > *', 2026-10-06: header.upf-head · nav.upf-tabs · div.upf-body",
+  "header": {
+    "seletor": ".main-body > div > .upf-head"
+  },
+  "tabs": {
+    "seletor": ".main-body > div > .upf-tabs"
+  },
+  "corpo": {
+    "seletor": ".main-body > div > .upf-body"
+  }
+}

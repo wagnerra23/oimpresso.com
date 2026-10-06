@@ -1,0 +1,13 @@
+{
+  "_": "A1 [CL] 2026-10-06 — playbook telas-soltas. Rota `documentacao` do espelho (app.jsx), âncora Documentacao/Index → documentacao-page.jsx (ancora.mjs). Tema dark (default do espelho), viewport 1280x900.",
+  "_mapa": "alvo:mapa --rota documentacao --raiz '.main-body > *', 2026-10-06: header.os-page-h · div.doc-lentebar · div.doc-wrap",
+  "header": {
+    "seletor": ".main-body > div > .os-page-h"
+  },
+  "lentebar": {
+    "seletor": ".main-body > div > .doc-lentebar"
+  },
+  "corpo": {
+    "seletor": ".main-body > div > .doc-wrap"
+  }
+}

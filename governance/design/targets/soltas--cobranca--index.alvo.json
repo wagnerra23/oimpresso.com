@@ -1,0 +1,341 @@
+{
+  "aguardou_sumir": null,
+  "ausentes": [],
+  "base": {
+    "assinatura": "OI WR Cobrança Maio 2026 · ROTA LIVRE ✦ Resumir mês Gateways Remessa/Retorno Nova cobrança Financeiro Cobrança Assinaturas Fluxo de caixa Conciliação DRE / Relatórios Plano de contas Impostos e obrigações ⋯ Funil de cobrança · maio 2026 Em aberto 5 R$ 5.484,80 → Lembrete 3 3d antes do vcto → Cobrança ativa 1 1d após vcto → Vencidos +5d 2 R$ 5.790,00 → Protesto 0 30d+ Pago no mês R$ 8.069,80 5 liquidações · ticket R$ 1.613,96 Vencido R$ 5.790,00 2 cobranças · R-mat. cobrança Em aberto R$ 5.484,80 5 cobranças · próximo vencimento amanhã Próx. janela remessa hoje 18:30 C6 CNAB diário · 14 títulos prontos Todos 14 Em aberto 5 Pagas 5 Vencidas 2 Canceladas 1 Erro 1 Exportar Tipo Todos Boleto PIX PIX Automático Cartão Todos gateways Inter PJ C6 Bank Asaas BCB · PIX Automático Todas contas destino Inter PJ · Operacional Itaú PJ · Reserva Asaas · Operacional BCB · Recebedor PIX Aut. Origem Todas Venda Recorrente SaaS Oimpresso Vencimento Pagador / Origem Tipo · Gateway Conta destino Nosso nº Valor Status 22/05/2026 em 3d Padaria Pão Quente LTDA 12.***.***1/0001-08 · Venda TR-9821 IN boleto Inter PJ · Operacional Inter · Ag 0001 00000000018410 480,00 Emitida 20/05/2026 amanhã Sapataria Bom Jesus 08.***.***1/0001-12 · Venda TR-9820 AS pix Asaas · Operacional Asaas cob_ 1840 1.280,00 Emitida 19/06/2026 19/06/2026 Acme Comércio Ltda 11.***.***1/0001-33 · Acme BC pix aut. BCB · Recebedor PIX Aut. BCB mandato # 1839 99,90 Emitida mandato ativo 21/05/2026 em 2d Distrib. Norte Mat. Elétrico 04.***.***1/0001-44 · Fatura RB #9818 IN boleto Inter PJ · Operacional Inter · Ag 0001 00000000018380 3.425,00 Emitida 08/05/2026 há 11d Açougue do Bairro ME 22.***.***2/0001-77 · Venda TR-9815 IN boleto Inter PJ · Operacional Inter · Ag 0001 00000000018350 890,00 Paga 10/05/2026 há 9d Studio Alfa Design 19.***.***2/0001-30 · Venda AS pix Asaas · Operacional Asaas cob_ 1834 2.480,00 Paga 15/05/2026 há 4d TechPro Equipamentos 17.***.***2/0001-22 · TechPro BC pix aut. BCB · Recebedor PIX Aut. BCB mandato # 1833 99,90 Paga 03/05/2026 há 16d Imobiliária Centro 17.***.***2/0001-30 · Venda TR-9812 AS cartão Asaas · Operacional Asaas — 4.500,00 Paga 12/05/2026 há 7d Mercado União 33.***.***1/0001-22 · Venda TR-9809 IN boleto Inter PJ · Operacional Inter · Ag 0001 00000000018290 1.670,00 Vencida 10/05/2026 há 9d Loja Casa & Cia 29.***.***1/0001-15 · Venda AS pix Asaas · Operacional Asaas cob_ 1828 4.120,00 Vencida 15/05/2026 há 4d Farmácia Vida 09.***.***2/0001-55 · Venda IN boleto Inter PJ · Operacional Inter · Ag 0001 — 580,00 Cancelada 20/05/2026 amanhã Auto Posto Rota Mor 42.***.***1/0001-77 · Recorrente C6 boleto — — 1.240,00 Erro 19/05/2026 hoje ROTA LIVRE Comunicação Visual 12.***.***8/0001-90 · ROTA LIVRE BC pix aut. BCB · Recebedor PIX Aut. BCB mandato # 1810 99,90 Paga 19/05/2026 hoje WR Sistemas Ltda 15.***.***2/0001-44 · WR BC pix aut. BCB · Recebedor PIX Aut. BCB mandato # 1809 199,90 Emitida mandato ativo",
+    "roles": {
+      "celulas": null,
+      "chart": null,
+      "contratos": [],
+      "filterRows": null,
+      "kpi": {
+        "count": 0,
+        "items": [],
+        "overflowX": null,
+        "tag": null
+      },
+      "primary": null,
+      "shell": null,
+      "tabela": null,
+      "title": null
+    },
+    "saude": {
+      "folhasVazias": [],
+      "nFolhas": 72,
+      "tokensMortos": []
+    },
+    "theme": "dark",
+    "url": "http://127.0.0.1:5581/"
+  },
+  "nos_totais": 1113,
+  "quieto_ms": 2000,
+  "rota": "cobranca",
+  "secoes": {
+    "bloco_3": {
+      "contraste": {
+        "fundo": "oklch(0.23 0.006 240)",
+        "fundo_de": "h-full",
+        "razao": 14.16,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.012215,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "block",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "padding": "20px 24px 0px"
+      },
+      "filhos": 1,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "oklch(0.23 0.006 240)",
+          "de": "h-full"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "border"
+      ],
+      "rect": {
+        "h": 133,
+        "w": 1224
+      },
+      "seletor": ".pg-shell-scope > div > :nth-child(3)",
+      "truncado": false
+    },
+    "bloco_5": {
+      "contraste": {
+        "fundo": "oklch(0.23 0.006 240)",
+        "fundo_de": "h-full",
+        "razao": 14.16,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.012215,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "flex",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "8px",
+        "padding": "16px 24px 8px"
+      },
+      "filhos": 3,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "oklch(0.23 0.006 240)",
+          "de": "h-full"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "inline-flex",
+        "ml-auto",
+        "inline-flex"
+      ],
+      "rect": {
+        "h": 56,
+        "w": 1224
+      },
+      "seletor": ".pg-shell-scope > div > :nth-child(5)",
+      "truncado": false
+    },
+    "filtros": {
+      "contraste": {
+        "fundo": "oklch(0.23 0.006 240)",
+        "fundo_de": "h-full",
+        "razao": 14.16,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.012215,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "flex",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "8px",
+        "padding": "0px 24px 12px"
+      },
+      "filhos": 8,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "oklch(0.23 0.006 240)",
+          "de": "h-full"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "text-[10px]",
+        "inline-flex",
+        "w-px",
+        "h-6",
+        "h-6",
+        "w-px",
+        "text-[10px]",
+        "inline-flex"
+      ],
+      "rect": {
+        "h": 36,
+        "w": 1224
+      },
+      "seletor": ".pg-shell-scope > div > :nth-child(6)",
+      "truncado": false
+    },
+    "header": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "proprio",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.26 0.006 240)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "flex",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "16px",
+        "padding": "12px 24px"
+      },
+      "filhos": 2,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "min-w-0",
+        "flex"
+      ],
+      "rect": {
+        "h": 71,
+        "w": 1224
+      },
+      "seletor": ".pg-shell-scope > div > header",
+      "truncado": false
+    },
+    "kpis": {
+      "contraste": {
+        "fundo": "oklch(0.23 0.006 240)",
+        "fundo_de": "h-full",
+        "razao": 14.16,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.012215,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "grid",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "12px",
+        "padding": "16px 24px 0px"
+      },
+      "filhos": 4,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "oklch(0.23 0.006 240)",
+          "de": "h-full"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "rounded-md",
+        "rounded-md",
+        "rounded-md",
+        "rounded-md"
+      ],
+      "rect": {
+        "h": 117,
+        "w": 1224
+      },
+      "seletor": ".pg-shell-scope > div > :nth-child(4)",
+      "truncado": false
+    },
+    "lista": {
+      "contraste": {
+        "fundo": "oklch(0.23 0.006 240)",
+        "fundo_de": "h-full",
+        "razao": 14.16,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.012215,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "block",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "padding": "0px 24px 24px"
+      },
+      "filhos": 1,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "oklch(0.23 0.006 240)",
+          "de": "h-full"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "bg-white"
+      ],
+      "rect": {
+        "h": 448,
+        "w": 1224
+      },
+      "seletor": ".pg-shell-scope > div > :nth-child(7)",
+      "truncado": false
+    },
+    "nav": {
+      "contraste": {
+        "fundo": "oklch(0.23 0.006 240)",
+        "fundo_de": "h-full",
+        "razao": 14.16,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.012215,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "flex",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "2px",
+        "padding": "0px"
+      },
+      "filhos": 9,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "oklch(0.23 0.006 240)",
+          "de": "h-full"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "topbar-tab",
+        "topbar-tab",
+        "topbar-tab",
+        "topbar-tab",
+        "topbar-tab",
+        "topbar-tab",
+        "topbar-tab",
+        "topbar-tab",
+        "ph-nav-more"
+      ],
+      "rect": {
+        "h": 36,
+        "w": 1176
+      },
+      "seletor": ".pg-shell-scope > div > nav.ph-nav",
+      "truncado": false
+    }
+  },
+  "tela": "soltas--cobranca--index",
+  "url": "http://127.0.0.1:5581/"
+}
