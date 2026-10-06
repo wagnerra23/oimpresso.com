@@ -29,4 +29,16 @@ Maiara — listagem rápida transferências (origem→destino, status, total).
 - R-XFER-001 (Tier 0)
 - R-XFER-002: ownership filter via `view_own_purchase`
 - R-XFER-003: status final só após `completed` (estoque movido)
-- R-XFER-004: origem ≠ destino (validado server-side)
+- R-XFER-004: origem ≠ destino — hoje conferida só no formulário; `store()` não valida (ver `Create.casos.md` §Backlog)
+
+## Casos
+[Index.casos.md](Index.casos.md) — achados abertos em §Backlog · UC-TRIDX-01/02.
+
+## Permissões
+- Abrir: `purchase.view` **ou** `purchase.create` **ou** `view_own_purchase` (403 sem nenhuma).
+- Mudar status: `purchase.update`. Excluir: `purchase.delete`.
+
+## Estados
+- Cada linha é o par `sell_transfer` (origem) + `purchase_transfer` (destino); status `final` aparece como `completed`.
+- Lista vazia sem filtro: "Registrar primeira transferência" (se `create`); com filtro, aviso de filtro sem resultado. Máximo de 200 linhas, sem paginação.
+- Só abre em React com `?v=2`; sem isso o mesmo `index()` serve a Blade.
