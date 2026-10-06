@@ -31,6 +31,8 @@ on:
     branches: [main]
     paths:
       - 'tests/Feature/Sells/**'
+      - 'app/Transaction.php'
+      - 'app/Http/Controllers/SellCommissionSplitController.php'
       - 'app/Http/Controllers/SellController.php'
       - 'app/Http/Controllers/Api/App/PedidosController.php'
       - 'app/Http/Controllers/Api/App/InicioController.php'
@@ -124,6 +126,8 @@ jobs:
           filters: |
             sells:
               - 'tests/Feature/Sells/**'
+              - 'app/Transaction.php'
+              - 'app/Http/Controllers/SellCommissionSplitController.php'
               - 'app/Http/Controllers/SellPosController.php'
               - 'app/Http/Controllers/SellsV3Controller.php'
               - 'app/Http/Controllers/SalesOrderController.php'
@@ -277,6 +281,10 @@ jobs:
         # thread 03 venda-menu, PR 2 de 2): registro de devolução em React gravando pelo MESMO
         # store(). Dupla prova da REGRA MESTRE: payload da Blade e da Page na mesma conta à mão
         # (total 2.222,10 · estoque +2 cada) + [T0] 98 × 99. NASCE SEM RUN.
+        #
+        # 2026-10-06 — + CommissionSplitAuditTest (UC-COM-01/02, playbook comissões thread 03):
+        # trocar split/comissionado grava auditoria antes→depois; PATCH do split não alcança
+        # venda nem usuário de outro business. NASCE SEM RUN: vermelho aqui é este arquivo.
         env:
           DB_CONNECTION: mysql
           DB_HOST: 127.0.0.1
@@ -320,7 +328,7 @@ jobs:
             tests/Feature/Sells/SellsPosIndexContratoTest.php \
             tests/Feature/Sells/ImportSalesContratoTest.php \
             tests/Feature/Sells/ImportSalesReverterContratoTest.php \
-            tests/Feature/Sells/VendasMwartCutoverTest.php
+            tests/Feature/Sells/VendasMwartCutoverTest.php \n            tests/Feature/Sells/CommissionSplitAuditTest.php
 
 
       # Passo 1 do plano da LC-13 (Gate:): a lane JA emitia JUnit e NINGUEM lia.
