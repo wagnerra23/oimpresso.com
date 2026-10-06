@@ -1157,3 +1157,21 @@ it('revisão por km: revisao=1 traz só os perto (até 1.000 km) ou atrasados, d
     expect($r->json('revisao_proxima'))->toBe($base + 4);
     expect($this->getJson('/api/app/veiculos')->assertOk()->json('revisao_proxima'))->toBe($base + 4);
 });
+
+it('web: cadastro e edição aceitam a próxima revisão (km ≥ 0) e recusam negativo', function () {
+    $store = \Modules\OficinaAuto\Http\Requests\StoreVehicleRequest::class;
+    $ok = appOsValidaRequestVeiculo($this, $store, ['plate' => appOsPlacaNova(), 'vehicle_type' => 'caminhao', 'next_service_km' => 50000]);
+    expect($ok->errors()->isEmpty())->toBeTrue();
+    expect($ok->validated()['next_service_km'])->toBe(50000);
+    $neg = appOsValidaRequestVeiculo($this, $store, ['plate' => appOsPlacaNova(), 'vehicle_type' => 'caminhao', 'next_service_km' => -5]);
+    expect($neg->errors()->first('next_service_km'))->toBe('O km da próxima revisão não pode ser negativo.');
+
+    $placa = appOsPlacaNova();
+    $id = DB::table('vehicles')->insertGetId(['business_id' => $this->biz->id, 'plate' => $placa, 'vehicle_type' => 'caminhao', 'created_at' => now(), 'updated_at' => now()]);
+    $veiculo = \Modules\OficinaAuto\Entities\Vehicle::withoutGlobalScopes()->findOrFail($id);
+    $upd = appOsValidaRequestVeiculo($this, \Modules\OficinaAuto\Http\Requests\UpdateVehicleRequest::class, ['plate' => $placa, 'vehicle_type' => 'caminhao', 'next_service_km' => 61000], $veiculo);
+    expect($upd->errors()->isEmpty())->toBeTrue();
+    // O update da web grava pelo validated(): o campo está no fillable do model.
+    $veiculo->update($upd->validated());
+    expect((int) DB::table('vehicles')->where('id', $id)->value('next_service_km'))->toBe(61000);
+});
