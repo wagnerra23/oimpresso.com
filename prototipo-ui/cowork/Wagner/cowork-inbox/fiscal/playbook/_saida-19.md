@@ -51,7 +51,9 @@ copiado para o autoload não cair no checkout compartilhado). O checkout compart
 - **UC-NFIM-03 falha no staging do CT 100, com ou sem esta mudança.** O usuário semeado do biz 1 lá tem
   os papéis `Admin#1` e `Admin#2`, e `can('nfe.tributacao.manage')` responde sim mesmo depois do
   `revokePermissionTo` do teste, porque o papel de admin concede tudo. O teste mede "sem permissão" com
-  um usuário que continua admin. No CI o seed pode ser outro; no CT 100 esse caso não prova nada.
+  um usuário que continua admin. No CT 100 esse caso não prova nada. A thread 18 mediu o mesmo e
+  informa que no CI o seed cria o usuário sem papel, então lá o fixture vale; para repetir no CT 100,
+  ela tirou o papel do usuário 1 de `model_has_roles` só durante a corrida e devolveu depois.
   **Afeta a thread 18:** o UC-NFRF-04 usa o mesmo `nfgtLogar(comPermissao: false)` e vai bater no mesmo
   muro no staging. Saída provável: o teste usar um usuário sem papel de admin (fixture própria), não
   revogar a permissão direta.
