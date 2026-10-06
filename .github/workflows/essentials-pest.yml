@@ -136,6 +136,7 @@ jobs:
             Modules/Essentials/Tests/Feature/HrmTiposIndexTest.php \
             Modules/Essentials/Tests/Feature/HrmPainelTest.php \
             tests/Feature/Essentials/KnowledgeIndexContratoTest.php \
+            Modules/Essentials/Tests/Feature/KnowledgeFormsContratoTest.php \
             tests/Feature/Calculo/CalculoValorPayrollTest.php
 
 

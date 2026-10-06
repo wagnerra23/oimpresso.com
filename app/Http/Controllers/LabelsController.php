@@ -75,9 +75,9 @@ class LabelsController extends Controller
     }
 
     /**
-     * Returns the html for product row
+     * Returns the html for product row (JSON para a tela Inertia — playbook Produto thread 04)
      *
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\Response|\Illuminate\Http\JsonResponse|\Illuminate\Contracts\View\View|null
      */
     public function addProductRow(Request $request)
     {
@@ -98,10 +98,21 @@ class LabelsController extends Controller
                                             ->active()
                                             ->pluck('name', 'id');
 
+                // Playbook Produto · thread 04: a tela Inertia pede a linha em JSON, com o preço
+                // que a impressão sairia por grupo e por tipo. A Blade segue recebendo o HTML.
+                if ($request->wantsJson()) {
+                    return response()->json(['linhas' => $products
+                        ->map(fn ($p) => $this->linhaEtiqueta((int) $business_id, (int) $p->variation_id, $price_groups->keys()))
+                        ->values()]);
+                }
+
                 return view('labels.partials.show_table_rows')
                         ->with(compact('products', 'index', 'price_groups'));
             }
         }
+
+        // Sem ajax ou sem produto: resposta vazia, como sempre foi (agora explícito).
+        return null;
     }
 
     /**
@@ -259,5 +270,60 @@ class LabelsController extends Controller
         }
 
         //return $output;
+    }
+
+    /**
+     * Uma linha da folha de etiquetas, com o preço que preview() imprimiria.
+     *
+     * ⛔ Regra mestre de valor: isto NÃO calcula preço. São as MESMAS duas chamadas de preview():
+     * getDetailsFromVariation() (preço sem grupo) e getVariationGroupPrice() (preço do grupo), com
+     * o mesmo tax_id que preview() passa no tipo "Sem imposto". No tipo "Com imposto" preview() passa
+     * `true` como tax_id, mas o price_inc_tax não depende dele. A impressão continua em preview().
+     *
+     * @param  iterable<int>  $grupoIds  grupos de preço ATIVOS do negócio
+     */
+    private function linhaEtiqueta(int $business_id, int $variation_id, iterable $grupoIds): array
+    {
+        $d = $this->productUtil->getDetailsFromVariation($variation_id, $business_id, null, false);
+
+        $precos = ['0' => [
+            'inclusive' => $this->precoImpresso($d->sell_price_inc_tax),
+            'exclusive' => $this->precoImpresso($d->default_sell_price),
+        ]];
+        foreach ($grupoIds as $gid) {
+            $g = $this->productUtil->getVariationGroupPrice($variation_id, $gid, $d->tax_id);
+            $precos[(string) $gid] = [
+                'inclusive' => $this->precoImpresso($g['price_inc_tax']),
+                'exclusive' => $this->precoImpresso($g['price_exc_tax']),
+            ];
+        }
+
+        return [
+            'product_id' => (int) $d->product_id,
+            'variation_id' => (int) $d->variation_id,
+            'nome' => (string) $d->product_actual_name,
+            'variacao' => $d->is_dummy == 1 ? null : $d->product_variation_name.': '.$d->variation_name,
+            'sku' => (string) $d->sub_sku,
+            'precos' => $precos,
+        ];
+    }
+
+    /**
+     * O texto do preço como preview_2.blade.php imprime: símbolo da moeda + @num_format.
+     * Grupo sem preço cadastrado volta '' de getVariationGroupPrice(): aqui vira null ("sem preço").
+     */
+    private function precoImpresso($valor): ?string
+    {
+        if ($valor === '' || $valor === null) {
+            return null;
+        }
+        $moeda = session('currency') ?? [];
+
+        return trim(($moeda['symbol'] ?? '').' '.number_format(
+            (float) $valor,
+            (int) session('business.currency_precision', 2),
+            $moeda['decimal_separator'] ?? ',',
+            $moeda['thousand_separator'] ?? '.'
+        ));
     }
 }
