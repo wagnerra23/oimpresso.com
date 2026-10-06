@@ -5,7 +5,8 @@ irmaos: Index.charter.md (lei) · Index.tsx (tela)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: a lista de leads mostra contatos em prospecção com celular, e-mail e documento. Errar o escopo vaza contato de outro negócio ou de colega que não devia ver; errar o desvio Inertia × DataTables entrega JSON cru no lugar da tela.
 owner: wagner
-last_run: "2026-10-01"
+last_run: "2026-10-06"
+last_run_nota: "2026-10-06 thread Crm/09: UC-CRMLD-11..13 novos; LeadController (edit/update/destroy) mudou. Lane verticais-pest no branch do #8756 (run 37451383426): UC-CRMLD-11, 12 e 13 ✓, 268 passed · 1620 assertions; as 2 falhas (UC-CRMACO-20, UC-SANEG-14) já falham no push de main 211b51697c (run 37382355413)."
 last_run_ci: "_pendente_ — o trio nasce na thread Crm/02. O veredito por UC entra no manifesto quando a lane verticais-pest rodar; até lá o Status é 🧪."
 ---
 

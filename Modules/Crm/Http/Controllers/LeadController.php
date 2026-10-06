@@ -474,7 +474,7 @@ class LeadController extends Controller
      * Show the form for editing the specified resource.
      *
      * @param  int  $id
-     * @return Response
+     * @return \Inertia\Response
      */
     public function edit($id)
     {
@@ -542,7 +542,7 @@ class LeadController extends Controller
      *
      * @param  Request  $request
      * @param  int  $id
-     * @return Response
+     * @return array<string, mixed>|\Illuminate\Http\RedirectResponse
      */
     public function update(UpdateLeadRequest $request, $id)
     {
