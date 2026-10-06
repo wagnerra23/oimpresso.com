@@ -1,0 +1,372 @@
+{
+  "aguardou_sumir": null,
+  "ausentes": [],
+  "base": {
+    "assinatura": "OI WR Atendimento 3 contas ativas · 5 filas · 8 abertas · 1 não lidas Templates Filas Canais Broadcast Guia + Nova conversa Conversas 8 Filtros WhatsApp · Vendas está degradado . Sincronização lenta — pode haver atraso. 2 conversas afetadas . · há 3 min ✕ Reconectar canal W Renato Lopes Posso retirar amanhã 9h? expirado 2h WR W Camila Diniz Você: arte aprovada ✓ WR W Diego Vasconcellos Quanto fica em 200un? estourado 1h LM 1 W Marcos Vital Obrigado! Recebi. expirado 18h EC FE W Fátima Estrela em breve Templates aprovados pela Meta? ST ◎ @studio.foco em breve Curti! Faz orçamento? @ @ compras@imobhorizonte.com.br em breve Segue PO #2418 em anexo ML M ML · pedido #4019887214 em breve Posso retirar no balcão? W Renato Lopes WhatsApp · Vendas · +55 21 9 8112-4400 · online · ● degradado expirado 2h Contexto ✓ Resolver Ontem Boa tarde! Os cardápios ficaram prontos? 16:20 + Sim Renato! Estão prontos. Pode passar quando quiser. 16:25 ✓✓ + Hoje Nota interna 08:30 · só a equipe vê Cliente atrasou 3x no último pedido. Exigir PIX antes de soltar peça. + Posso passar pra retirar amanhã 9h? 11:48 + Enviar ✦ Sugerir resposta Resposta Templates Macros Variáveis",
+    "roles": {
+      "celulas": null,
+      "chart": null,
+      "contratos": [],
+      "filterRows": null,
+      "kpi": {
+        "count": 0,
+        "items": [],
+        "overflowX": null,
+        "tag": null
+      },
+      "primary": null,
+      "shell": null,
+      "tabela": null,
+      "title": null
+    },
+    "saude": {
+      "folhasVazias": [],
+      "nFolhas": 76,
+      "tokensMortos": []
+    },
+    "theme": "dark",
+    "url": "http://127.0.0.1:5583/"
+  },
+  "nos_totais": 640,
+  "quieto_ms": 2000,
+  "rota": "inbox",
+  "secoes": {
+    "busca": {
+      "contraste": {
+        "fundo": "oklch(0.3 0.008 240)",
+        "fundo_de": "om-list-c",
+        "razao": 11.42,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.027108,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "block",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "padding": "6px 14px 10px"
+      },
+      "filhos": 1,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "oklch(0.3 0.008 240)",
+          "de": "om-list-c"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "input"
+      ],
+      "rect": {
+        "h": 47,
+        "w": 279
+      },
+      "seletor": ".om-page .om-list-c > .om-list-search",
+      "truncado": false
+    },
+    "composer": {
+      "contraste": {
+        "fundo": "oklch(0.3 0.008 240)",
+        "fundo_de": "proprio",
+        "razao": 11.42,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.027108,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.3 0.008 240)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "flex",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "8px",
+        "padding": "10px 14px 11px"
+      },
+      "filhos": 2,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.3 0.008 240)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "om-input-main",
+        "om-input-tools"
+      ],
+      "rect": {
+        "h": 94,
+        "w": 943
+      },
+      "seletor": ".om-page .om-thread-c > .om-composer",
+      "truncado": false
+    },
+    "header": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "os-page",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "flex",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "16px",
+        "padding": "12px 24px"
+      },
+      "filhos": 2,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "os-page"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "os-page-h-l",
+        "os-page-h-r"
+      ],
+      "rect": {
+        "h": 70,
+        "w": 1224
+      },
+      "seletor": ".om-page > .os-page-h",
+      "truncado": false
+    },
+    "lista": {
+      "contraste": {
+        "fundo": "oklch(0.3 0.008 240)",
+        "fundo_de": "om-list-c",
+        "razao": 11.42,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.027108,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "flex",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "2px",
+        "padding": "6px"
+      },
+      "filhos": 8,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "oklch(0.3 0.008 240)",
+          "de": "om-list-c"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "sel",
+        "li",
+        "li",
+        "li",
+        "ghost",
+        "ghost",
+        "ghost",
+        "ghost"
+      ],
+      "rect": {
+        "h": 590,
+        "w": 279
+      },
+      "seletor": ".om-page .om-list-c > .om-list",
+      "truncado": false
+    },
+    "lista_cabecalho": {
+      "contraste": {
+        "fundo": "oklch(0.3 0.008 240)",
+        "fundo_de": "om-list-c",
+        "razao": 11.42,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.027108,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "flex",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "8px",
+        "padding": "11px 14px 8px"
+      },
+      "filhos": 3,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "oklch(0.3 0.008 240)",
+          "de": "om-list-c"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "b",
+        "mono",
+        "om-list-h-tools"
+      ],
+      "rect": {
+        "h": 45,
+        "w": 279
+      },
+      "seletor": ".om-page .om-list-c > .om-list-h",
+      "truncado": false
+    },
+    "mensagens": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "om-thread-c",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "flex",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "4px",
+        "padding": "16px"
+      },
+      "filhos": 6,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "om-thread-c"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "om-day-sep",
+        "om-msg-wrap",
+        "om-msg-wrap",
+        "om-day-sep",
+        "om-msg-wrap",
+        "om-msg-wrap"
+      ],
+      "rect": {
+        "h": 672,
+        "w": 943
+      },
+      "seletor": ".om-page .om-thread-c > .om-msgs",
+      "truncado": false
+    },
+    "saude": {
+      "contraste": {
+        "fundo": "oklch(0.352 0.0232 223.5)",
+        "fundo_de": "proprio",
+        "razao": 6.24,
+        "texto": "oklch(0.82 0.16 75)",
+        "y_fundo": 0.044301,
+        "y_texto": 0.538339
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.352 0.0232 223.5)",
+        "borderRadius": "8px",
+        "color": "oklch(0.82 0.16 75)",
+        "display": "flex",
+        "fontSize": "11.5px",
+        "fontWeight": "400",
+        "gap": "5px",
+        "padding": "8px 10px"
+      },
+      "filhos": 2,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.352 0.0232 223.5)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "om-hb-head",
+        "om-hb-act"
+      ],
+      "rect": {
+        "h": 136,
+        "w": 259
+      },
+      "seletor": ".om-page .om-list-c > .om-health-banner",
+      "truncado": false
+    },
+    "thread_cabecalho": {
+      "contraste": {
+        "fundo": "oklch(0.3 0.008 240)",
+        "fundo_de": "proprio",
+        "razao": 11.42,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.027108,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.3 0.008 240)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "flex",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "12px",
+        "padding": "11px 18px"
+      },
+      "filhos": 3,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.3 0.008 240)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "om-av-wrap",
+        "om-thread-h-text",
+        "om-thread-h-r"
+      ],
+      "rect": {
+        "h": 64,
+        "w": 943
+      },
+      "seletor": ".om-page .om-thread-c > .om-thread-h",
+      "truncado": false
+    }
+  },
+  "tela": "atendimento--caixa-unificada--index",
+  "url": "http://127.0.0.1:5583/"
+}
