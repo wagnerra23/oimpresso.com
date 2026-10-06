@@ -19,7 +19,9 @@ date: 2026-10-06
 
 ## 1. Estado final esperado
 
-`GET /labels/show` responde `Produto/Etiquetas/Index`; `?classico=1` segue na Blade. A folha impressa
+`GET /labels/show` responde `Produto/Etiquetas/Index` **só** para o negócio na flag MWART `produto_etiquetas`
+(`MWART_PRODUTO_ETIQUETAS=true` + `MWART_PRODUTO_ETIQUETAS_BIZ=<ids>`; ⚠️ `_BIZ` vazio = todos). Fora disso, e
+sempre com `?classico=1`, segue na Blade. A folha impressa
 continua saindo de `GET /labels/preview`, com os mesmos parâmetros que o formulário da Blade enviava.
 A tela monta a folha; não imprime nem calcula preço.
 
@@ -35,7 +37,8 @@ A tela monta a folha; não imprime nem calcula preço.
 2. **F2 BACKEND** — `show()` vira `Inertia::render`; `preview()` não muda.
 3. **F3 FRONTEND** — Page com `data-contract` por seção; "Imprimir" abre `/labels/preview?…` em outra aba.
 4. **F4 QA** — `tests/Feature/Produto/ProdutoEtiquetasContratoTest.php` (lane estoque-pest, tenant 98 × 99).
-5. **F5 CUTOVER** — menu (thread 08) passa a apontar a tela nova; a Blade fica em `?classico=1`.
+5. **F5 CUTOVER** — por negócio, pela flag: biz=1 primeiro (decisão [W] 2026-10-06), depois a lista cresce.
+   Ligar a flag em produção é passo separado do merge. Menu (thread 08) depois.
 
 ## 4. Refs
 

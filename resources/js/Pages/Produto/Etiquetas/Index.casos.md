@@ -17,15 +17,17 @@ last_run_ci: "_pendente_ — o trio nasce na thread Produto/04. O veredito por U
 
 ---
 
-## UC-PETQ-01 · A tela abre com grupos e modelos deste negócio · `must`
+## UC-PETQ-01 · A tela nova só abre para o negócio da flag, com grupos e modelos dele · `must`
 
-Origem: charter R1/R5 · Anti-hooks (outro negócio, permissão).
+Origem: charter R1/R5 · Anti-hooks (outro negócio, permissão) · decisão [W] 2026-10-06 (flag MWART por negócio, biz=1 primeiro).
 
 **Dado** que tenho `print_labels.access` no negócio 98, com um grupo de preço ativo e um modelo de etiqueta,
 e o negócio 99 com outro grupo e outro modelo
 **Quando** abro `/labels/show?product_id=<produto do 98>`
-**Então** recebo Inertia `Produto/Etiquetas/Index` com a linha do produto, só o grupo e o modelo do 98
-(mais os modelos do sistema); sem `print_labels.access` recebo 403; e `?classico=1` devolve a view `labels.show`.
+**Então** com a flag `mwart.produto_etiquetas` desligada, ou ligada com só o 99 na lista, recebo a view
+`labels.show` (a Blade de sempre); com a flag ligada e o 98 na lista, recebo Inertia `Produto/Etiquetas/Index`
+com a linha do produto, só o grupo e o modelo do 98 (mais os modelos do sistema); `?classico=1` devolve
+sempre a Blade; e sem `print_labels.access` recebo 403.
 
 Status: 🧪
 

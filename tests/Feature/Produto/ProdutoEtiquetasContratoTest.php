@@ -82,7 +82,7 @@ beforeEach(function () {
     $this->vizinho = $this->seededSupportClientTenant();
 });
 
-it('UC-PETQ-01 · abre Produto/Etiquetas/Index com grupos e modelos do negócio; 403 sem permissão; ?classico=1 segue Blade', function () {
+it('UC-PETQ-01 · com a flag ligada para o negócio abre Produto/Etiquetas/Index com grupos e modelos dele; flag desligada ou negócio fora da lista = Blade; 403 sem permissão', function () {
     $p = EstoqueFixture::singleProduct($this->biz->id);
     $grupo = petqGrupo($this->biz->id, 'Atacado');
     $grupoAlheio = petqGrupo($this->vizinho->id, 'Vizinho');
@@ -97,6 +97,16 @@ it('UC-PETQ-01 · abre Produto/Etiquetas/Index com grupos e modelos do negócio;
     $this->actingAs($user);
     session(['user.business_id' => (int) $this->biz->id, 'user.id' => $user->id]);
 
+    // Flag desligada (o default do deploy): a Blade de sempre.
+    config(['mwart.produto_etiquetas' => ['enabled' => false, 'business_ids' => []]]);
+    $this->get('/labels/show?product_id=' . $p->productId)->assertOk()->assertViewIs('labels.show');
+
+    // Flag ligada, mas a lista de empresas não inclui o 98: Blade.
+    config(['mwart.produto_etiquetas' => ['enabled' => true, 'business_ids' => [(int) $this->vizinho->id]]]);
+    $this->get('/labels/show?product_id=' . $p->productId)->assertOk()->assertViewIs('labels.show');
+
+    // Flag ligada com o 98 na lista: a tela nova.
+    config(['mwart.produto_etiquetas' => ['enabled' => true, 'business_ids' => [(int) $this->biz->id]]]);
     $this->get('/labels/show?product_id=' . $p->productId)->assertOk()
         ->assertInertia(fn (AssertableInertia $page) => $page->component('Produto/Etiquetas/Index', false)
             ->where('linhas', fn ($l) => count($l) === 1 && (int) $l[0]['variation_id'] === $p->variationId() && (int) $l[0]['qtd'] === 1)

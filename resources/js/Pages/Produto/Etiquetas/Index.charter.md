@@ -37,6 +37,8 @@ tela, volta para reimprimir, e reimpressão é papel perdido.
 - **R6** Lote, validade e data de embalagem só aparecem na etiqueta se preenchidos.
 - **R8** Sem produto, a tela explica o caminho e "Imprimir" fica desabilitado.
 - Gate `print_labels.access`.
+- Atrás da flag MWART por negócio `mwart.produto_etiquetas` (`MWART_PRODUTO_ETIQUETAS` + `_BIZ`, lista só na env).
+  Desligada ou negócio fora da lista: a Blade de sempre. Decisão [W] 2026-10-06: biz=1 primeiro.
 
 ## Non-Goals (nesta fase)
 
@@ -52,3 +54,4 @@ tela, volta para reimprimir, e reimpressão é papel perdido.
 - ❌ Prévia com preço diferente do impresso. Guarda: UC-PETQ-02 e UC-PETQ-03.
 - ❌ Produto, grupo ou modelo de etiqueta de outro negócio. Guarda: UC-PETQ-01 e UC-PETQ-04.
 - ❌ Abrir sem `print_labels.access`. Guarda: UC-PETQ-01.
+- ❌ Virar para todos os negócios no deploy, ou escrever business_id no código. Guarda: UC-PETQ-01.
