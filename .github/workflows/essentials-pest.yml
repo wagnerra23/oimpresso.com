@@ -121,6 +121,7 @@ jobs:
             --log-junit test-results/pest-essentials-junit.xml \
             Modules/Essentials/Tests/Feature/SalesTargetShiftCrossTenantTest.php \
             tests/Feature/Essentials/TodoIndexContratoTest.php \
+            Modules/Essentials/Tests/Feature/TodoFormsContratoTest.php \
             tests/Feature/Essentials/AppTarefaDetalheApiContratoTest.php \
             Modules/Essentials/Tests/Feature/HrmExclusaoGuardaTest.php \
             Modules/Essentials/Tests/Feature/HrmLicencaTest.php \
