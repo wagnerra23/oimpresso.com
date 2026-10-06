@@ -15,7 +15,7 @@ tabelas_dominio: ["transactions", "transaction_sell_lines", "transaction_payment
 >
 > **O que isto é:** o módulo `Sells` é CLASSE B — o código mora no núcleo UltimatePOS (`app/`), sem diretório modular homônimo. A membership vem de uma **semente curada** de paths do core declarada em `module-surface.mjs::CORE_APP_MODULES` (revisável no diff) + `resources/js/Pages/Sells/**`. **O que NÃO é:** cobertura/nota/status (donos: `screen-coverage-map.mjs` + `casos-gate`) nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve). As **tabelas do domínio** (`transactions`, `transaction_sell_lines`, `transaction_payments`) são metadado-ÂNCORA declarado, **não** o derivador (derivar por tabela over-inclui — medido 2026-07-21).
 
-**Total mapeado:** 204 arquivos em 9 papéis.
+**Total mapeado:** 205 arquivos em 9 papéis.
 
 ## Controllers — 6
 
@@ -219,7 +219,7 @@ tabelas_dominio: ["transactions", "transaction_sell_lines", "transaction_payment
 - [Show.charter.md](../../../resources/js/Pages/Sells/Show.charter.md)
 - [Subscriptions.charter.md](../../../resources/js/Pages/Sells/Subscriptions.charter.md)
 
-## Casos (contrato UC) — 8
+## Casos (contrato UC) — 9
 
 - [Index.casos.md](../../../resources/js/Pages/Sells/Caixa/Index.casos.md)
 - [Create.casos.md](../../../resources/js/Pages/Sells/Create.casos.md)
@@ -227,6 +227,7 @@ tabelas_dominio: ["transactions", "transaction_sell_lines", "transaction_payment
 - [Edit.casos.md](../../../resources/js/Pages/Sells/Edit.casos.md)
 - [Index.casos.md](../../../resources/js/Pages/Sells/Index.casos.md)
 - [Index.casos.md](../../../resources/js/Pages/Sells/Pos/Index.casos.md)
+- [Quotations.casos.md](../../../resources/js/Pages/Sells/Quotations.casos.md)
 - [Index.casos.md](../../../resources/js/Pages/Sells/Shipments/Index.casos.md)
 - [Show.casos.md](../../../resources/js/Pages/Sells/Show.casos.md)
 

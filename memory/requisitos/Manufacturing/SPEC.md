@@ -3,7 +3,7 @@ id: requisitos-manufacturing-spec
 module: Manufacturing
 owner: wagner
 version: "1.0"
-last_updated: "2026-09-02"
+last_updated: "2026-10-06"
 na_justified:
   D6.a: "Manufacturing usa pattern Blade legacy + 1 página Inertia v2 (Wave J Onda 1) — Inertia::defer aplicado parcialmente."
 ---
@@ -168,6 +168,17 @@ em LOTE) · `resources/js/Components/shared/StatusBadge.tsx` (domínio `producao
 - [x] `Só finalizadas` como checkbox (hoje só existe como KPI clicável) — os dois governam o mesmo filtro
 - [x] `StatusPill` local → `StatusBadge kind="producao"` (domínio adicionado ao componente compartilhado)
 - [x] Os 4 KPIs atuais **não** mudam — os de §4.2 são da aba Receitas
+
+> 🟢 **Decisão [W] 2026-10-06 (supera o item acima nos 4 KPIs):** os indicadores da aba Ordens —
+> Total · Finalizadas · Pendentes · **Valor total** — passam a **seguir o filtro de local e
+> período**, como no protótipo. Hoje `ProductionService::summary` conta todas as ordens da empresa.
+> Como o Valor total é dinheiro, vale a REGRA MESTRE ([proibicoes.md](../../proibicoes.md)): antes
+> do merge, mostrar a [W] um filtro com o Valor total **antes→depois** e conferir que ele bate com a
+> soma das ordens listadas (dois caminhos).
+
+- [ ] KPIs seguem o filtro de local e período (decisão [W] 2026-10-06) — teste que prove que ordem
+      fora do filtro não entra em nenhum dos 4, e que o Valor total = soma das linhas listadas
+- [ ] Antes→depois do Valor total num filtro apresentado a [W] antes do merge (REGRA MESTRE)
 - [x] **Achado ao construir:** o `optional($p->location)->name` do map era **N+1 desde a Wave J**
       (uma query por linha). Corrigido com eager-load de `location`; UC-OP-03 trava a regressão.
 - [ ] Pest verde na lane de CI — pendente
@@ -236,6 +247,22 @@ endereço canônico `/manufacturing/insumos` desde o **cutover de 2026-09-04** (
       **ordens já lançadas continuam com o custo registrado**
 - [ ] Sem permissão de editar: campos desabilitados + aviso citando `manufacturing.access_recipe`
 - [ ] Servidor **recalcula** o custo antes de gravar (§9) — nunca confia no total do cliente
+
+> 🟢 **Decisões [W] 2026-10-06 — janela "Nova receita"** (hoje o botão está quebrado em produção:
+> a busca de produto não carrega):
+> - **(a)** Categoria e Subcategoria só **exibidas**, vindas do produto, com link para editar no
+>   cadastro. Elas pertencem ao produto, não à receita.
+> - **(b)** A **cópia de receita** leva ingredientes, quantidades, desperdício, custo extra e
+>   instruções — **não** o preço de venda. Preço só muda pelo "Atualizar preço de venda". A política
+>   de preço que acompanha o custo é outra US: [US-PROD-030](../Produto/SPEC.md).
+> - **(c)** Produto que **já tem receita**: avisa **antes** de a pessoa começar a preencher e abre a
+>   receita existente, em vez de bloquear.
+> - **Correção junto:** a cópia hoje **compartilha os grupos** de ingredientes com a receita original
+>   (renomear numa renomeia na outra). A cópia passa a criar grupos próprios.
+
+- [ ] "Nova receita": busca de produto carregando (o defeito em produção) + (a)/(b)/(c) acima
+- [ ] Cópia de receita com grupos próprios — teste que renomeia o grupo da cópia e prova que o da
+      original não muda, e que o preço de venda do destino fica intocado
 
 ### US-MANU-007 · Formulário de ordem de produção
 

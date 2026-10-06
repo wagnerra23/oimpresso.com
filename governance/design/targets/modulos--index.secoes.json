@@ -1,9 +1,0 @@
-{
-  "_": "A1 [CL] 2026-10-06 — playbook cowork-inbox/modulos. Protótipo: rota `modulos` do espelho (app.jsx:812 → window.ModulosPage · modulos-page.jsx, âncora de Modules/Index pelo ancora.mjs). Tema dark, viewport 1280x900.",
-  "_mapa": "alvo:mapa --rota modulos contra o espelho servido por servirEstatico (porta 5591), 2026-10-06: .mod-page = div.oi-ph · div.mod-stats (4) · div.mod-toolbar (usr-search · usr-filters) · div.os-table-wrap. Drawer (os-drawer.mod-drawer) só abre por clique: não medido.",
-  "header": { "seletor": ".mod-page > .oi-ph" },
-  "kpis": { "seletor": ".mod-page > .mod-stats" },
-  "busca": { "seletor": ".mod-page > .mod-toolbar > .usr-search" },
-  "filtros": { "seletor": ".mod-page > .mod-toolbar > .usr-filters" },
-  "tabela": { "seletor": ".mod-page > .os-table-wrap" }
-}
