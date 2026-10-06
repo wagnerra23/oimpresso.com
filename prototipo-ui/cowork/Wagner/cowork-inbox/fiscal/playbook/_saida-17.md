@@ -93,3 +93,8 @@ Modules/NfeBrasil/Tests/Feature/NfeEmissaoPorItemTest.php
 
 ## 5 · Prefixo tocado
 `Modules/NfeBrasil/Services/NfeService.php` · `Modules/NfeBrasil/Tests/Feature/NfeEmissaoPorItemTest.php` · `_saida-17.md`. O `MotorTributarioService` **não** foi tocado (só é chamado, por item).
+
+## 6 · Nota datada — 2026-10-06, após a lane
+As §2, §3 e §5 acima foram escritas antes do teste entrar no CI e ficam como estavam. Desde o merge do #8836 (`0d3ec40`):
+- **O teste roda no CI.** `NfeEmissaoPorItemTest.php` entrou na allowlist do `nfebrasil-pest.yml` no próprio #8836. Run 37508810006: success, com os 9 casos R-NFE-023..025c em ✓. `test-lane-coverage --pr 8836` deu rc=0. O pedido da §3 ao dono do workflow está, portanto, atendido.
+- **Prefixo tocado, completo:** além dos três arquivos da §5, o #8836 mexeu em `.github/workflows/nfebrasil-pest.yml` (1 linha, saída do prefixo declarada no PR) e em `memory/requisitos/NfeBrasil/SUPERFICIE.md` (regerado por `module-surface.mjs`: 219 arquivos, 60 testes).
