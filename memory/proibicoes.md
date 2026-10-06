@@ -1876,6 +1876,10 @@ Ocorrência da **LC-08**.
 
 - **O limite (variante também proibida):** mensagem de erro de gate só oferece saída que o CLI honra, e cada saída anunciada tem assert que a exerce pelo CLI de fora. Quando a mensagem é repetida em outro consumidor (aqui, o passo de diagnóstico do `.yml`), os dois mudam juntos. Implementar a leitura do corpo do PR não foi a escolha: exigiria `gh`/token ou env do evento no step, e criaria um terceiro estado ("corpo indisponível") que precisa sair 2 e não verde.
 
+### 2026-10-06 — `test-lane-coverage --pr` reconhecia o passo do Pest pelo NOME: a lane do Financeiro saía "pulou" com o Pest executado e verde
+
+- **O limite (variante também proibida):** instrumento que procura um elemento por convenção de nome não lê "não achei" como "não aconteceu". O elemento sai da fonte que o define (aqui, o corpo do passo no YAML), e o caso "não achei" tem estado próprio, que sai exit 2. E antes de consertar pela hipótese de quem reportou, leia o predicado que decide o veredito: a hipótese do JUnit levaria a mexer num arquivo que o script nem abre.
+
 ## Sempre fazer
 
 - ✅ **LIGUE A MÁQUINA — máquina é sempre melhor que fazer na mão** ([W] 2026-07-26, textual: *"isso ligue as maquinas, é sempre melhor que fazer na mão. isso é regra no sistema. deve ser"*). Ordem obrigatória, nesta sequência:
