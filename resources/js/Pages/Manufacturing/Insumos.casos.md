@@ -5,8 +5,13 @@ tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (
 por_que: comportamento é durável — o contrato de teste nasce junto com a tela, não depois.
 fonte: handoff "PROTÓTIPO OFICIAL - FABRICAÇÃO V1" §4.4 + §18.3 — os UC abaixo DERIVAM dele
 owner: wagner
-last_run: "2026-10-04"
+last_run: "2026-10-06"
 ---
+
+> ℹ️ **`last_run` 2026-10-04 → 2026-10-06 (G-6): forma, não regra de negócio.** A busca passa a ser a mesma da aba
+> Receitas (`.mfg-s`: lupa, 34px, canto 8) — antes era um `Input` simples de 30px sem lupa ([M] 2026-10-06, abas
+> irmãs com a mesma peça diferente). O que a busca filtra e o que cada linha abre não mudaram. Nenhum UC foi
+> reexecutado nesta data.
 
 > ℹ️ **`last_run` 2026-09-30 → 2026-10-04 (G-6): forma, não regra de negócio.** Os dados, os filtros e o que
 > cada linha abre são os mesmos; o que muda de visível: a grade virou o `shared/DataTable` na anatomia `grid` (o par React do `DataGrid` do DS): `<table>` de verdade, cabeçalho 10px caixa-alta, linhas listradas, nome sem negrito, código e números em fonte mono, e o "% do custo" no `StatusBadge` do DS. Toda linha recebe foco, mas o clique continua abrindo só o insumo que tem receita. Nenhum UC foi reexecutado nesta data.

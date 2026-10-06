@@ -20,7 +20,7 @@ import { Link, router } from '@inertiajs/react';
 import { useState, type FormEvent, type ReactNode } from 'react';
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Button } from '@/Components/ui/button';
-import { Checkbox } from '@/Components/ui/checkbox';
+import { Switch } from '@/Components/ui/switch';
 import FabricacaoAbas from './_components/FabricacaoAbas';
 import '../../../css/cowork-manufacturing-bundle.css';
 
@@ -85,7 +85,7 @@ export default function Settings({
             <span className="ln" />
           </div>
 
-          <label className="mfg-fld" style={{ width: 220 }}>
+          <label className="mfg-fld" style={{ width: 260 }}>
             <span>Prefixo da referência</span>
             <input
               className="mfg-inp"
@@ -95,8 +95,12 @@ export default function Settings({
             <small>usado na numeração das ordens de produção</small>
           </label>
 
+          {/* Interruptores, como o protótipo (`manufacturing-producao.jsx`: `<Switch label sublabel>` dentro
+              de `.mfg-switch-host`). Antes eram caixas de marcação — o mesmo controle do filtro "Só
+              finalizadas" das outras abas, mas aqui é ligar/desligar uma opção do módulo ([M] 2026-10-06).
+              O campo de prefixo ganha a largura do protótipo (260). */}
           <label className="mfg-check big" htmlFor="mfg-cfg-travar-qtd">
-            <Checkbox
+            <Switch
               id="mfg-cfg-travar-qtd"
               checked={s.disable_editing_ingredient_qty}
               onCheckedChange={(v) =>
@@ -111,7 +115,7 @@ export default function Settings({
           </label>
 
           <label className="mfg-check big" htmlFor="mfg-cfg-preco-produto">
-            <Checkbox
+            <Switch
               id="mfg-cfg-preco-produto"
               checked={s.enable_updating_product_price}
               onCheckedChange={(v) =>

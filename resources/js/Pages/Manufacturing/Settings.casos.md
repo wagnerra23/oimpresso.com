@@ -5,8 +5,13 @@ tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (
 por_que: comportamento é durável — o contrato de teste nasce junto com a tela, não depois.
 fonte: handoff "PROTÓTIPO OFICIAL - FABRICAÇÃO V1" §4.7 + §16 — os UC abaixo DERIVAM dele
 owner: wagner
-last_run: "2026-09-30"
+last_run: "2026-10-06"
 ---
+
+> ℹ️ **`last_run` 2026-09-30 → 2026-10-06 (G-6): forma, não regra de negócio.** As duas opções viram
+> **interruptores** (`Switch`), como no protótipo, no lugar das caixas de marcação; o campo de prefixo fica 34px,
+> canto 8, largura 260. O que cada opção grava e o endpoint (`store()` legado) não mudaram. Nenhum UC foi
+> reexecutado nesta data.
 
 > ℹ️ **`last_run` 2026-09-04 → 2026-09-11 (G-6), e o que mudou na tela NÃO foi comportamento.**
 > O único toque em `Settings.tsx` no [#7224](https://github.com/wagnerra23/oimpresso.com/pull/7224) foi **1 linha(s) de COMENTÁRIO** —
