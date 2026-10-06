@@ -67,7 +67,7 @@
       "stream": "SA"
     },
     "full_suite_pass_rate": {
-      "status": "carried_over",
+      "status": "measured",
       "value": 250,
       "unit": "arquivos-que-falham (interseção ≥2 runs · ADR 0279)",
       "direction": "down",
@@ -104,9 +104,6 @@
         "computed_at": "20261006-020001",
         "intersection_of": 3
       },
-      "carried_since": "medição anterior deste arquivo",
-      "read_failure": "governance/nightly-floor.json ainda não publicado pelo write-side CT100 (ADR 0279 PR-2 — precisa de credencial de push no CT100). A nightly FV-F3 roda (15+ runs reais); falta o transporte.",
-      "carried_note": "valor preservado da medição anterior deste arquivo — ESTA execução não leu a fonte (órfã não materializada no checkout). O ratchet segue tratando como não-medida (P14 fail-closed). Materialize a órfã e rode de novo pra medir de verdade.",
       "stream": "FV"
     },
     "n_quarantine": {
@@ -126,7 +123,7 @@
       "value": null,
       "direction": "up",
       "target": "só sobe (catraca C2)",
-      "source": "governance/nightly-coverage.json ainda não publicado pelo write-side CT100 (SDD P07 — pcov instrumentado em ct100-fullsuite.sh; falta rebuild da imagem com pcov + 1ª nightly). Hoje ci.yml roda coverage: none / --no-coverage no lane sqlite (fonte honesta é a suíte inteira CT100 — ADR 0275:68).",
+      "source": "governance/nightly-coverage.json sem coverage_pct numérico (schema nightly-coverage/v1) — fallback honesto.",
       "baseline_rule": "1ª medição real da fonte, nunca do plano (anti-stale)",
       "stream": "FV"
     },
@@ -151,13 +148,13 @@
     },
     "ghost_count": {
       "status": "measured",
-      "value": 13,
+      "value": 12,
       "unit": "nomes distintos",
       "direction": "down",
       "target": 0,
       "source": "scripts/governance/knowledge-drift.mjs --json (Modules/<X> citado e inexistente no disco; nomes: rodar a fonte direto)",
       "detail": {
-        "citing_modules": 27
+        "citing_modules": 26
       },
       "stream": "KL"
     },
@@ -184,7 +181,7 @@
       "stream": "MEM"
     },
     "ragas_real_uptime": {
-      "status": "carried_over",
+      "status": "measured",
       "value": 57.1,
       "unit": "%",
       "direction": "up",
@@ -203,9 +200,6 @@
           "context_recall_avg": null
         }
       },
-      "carried_since": "medição anterior deste arquivo",
-      "read_failure": "governance/ragas-real-trend.json ainda não publicado pelo write-side CT100 — jana:ragas-real-eval semanal (dom 07:00 BRT · CT 100 staging · ADR 0318; baseline honesto em governance/jana-ragas-real-baseline.json). Transporte: órfã governance/ragas-real-trend (write-side ct100-ragas-publish.sh · pattern nightly-floor ADR 0279); 1ª execução do cron 2026-07-05.",
-      "carried_note": "valor preservado da medição anterior deste arquivo — ESTA execução não leu a fonte (órfã não materializada no checkout). O ratchet segue tratando como não-medida (P14 fail-closed). Materialize a órfã e rode de novo pra medir de verdade.",
       "stream": "MEM"
     },
     "distiller_freshness": {
@@ -234,28 +228,21 @@
       "source": "scripts/governance/knowledge-drift.mjs --json .[].hops → mediana (mesma fórmula do relatório humano · ADR 0270 D-5)",
       "detail": {
         "modules": 78,
-        "hops_worst": 1
+        "hops_worst": 8
       },
       "stream": "MEM"
     },
     "drift_alarms": {
       "status": "measured",
-      "value": 6,
+      "value": 0,
       "unit": "alarmes duros (reds do protection-drift · GT-G4)",
       "direction": "down",
       "target": "advisory perene (0 alarmes duros)",
       "source": "scripts/governance/protection-drift.mjs --json .reds.length (drift de branch protection + watchdog staleness · GT-G4 · P08)",
       "detail": {
-        "reds": [
-          "anchor_coverage: fonte sdd-scorecard.yml sem run verde há >48h (último sucesso: 2026-10-01T13:30:17Z) — canário parado é regressão silenciosa (ADR 0275 §3: desarmar MANUALMENTE via PR no baseline até nova sequência de 3 — o ratchet required não afrouxa sozinho)",
-          "n_quarantine: fonte sdd-scorecard.yml sem run verde há >48h (último sucesso: 2026-10-01T13:30:17Z) — canário parado é regressão silenciosa (ADR 0275 §3: desarmar MANUALMENTE via PR no baseline até nova sequência de 3 — o ratchet required não afrouxa sozinho)",
-          "sqlite_corruptors: fonte sdd-scorecard.yml sem run verde há >48h (último sucesso: 2026-10-01T13:30:17Z) — canário parado é regressão silenciosa (ADR 0275 §3: desarmar MANUALMENTE via PR no baseline até nova sequência de 3 — o ratchet required não afrouxa sozinho)",
-          "ghost_count: fonte sdd-scorecard.yml sem run verde há >48h (último sucesso: 2026-10-01T13:30:17Z) — canário parado é regressão silenciosa (ADR 0275 §3: desarmar MANUALMENTE via PR no baseline até nova sequência de 3 — o ratchet required não afrouxa sozinho)",
-          "front_door_coverage: fonte sdd-scorecard.yml sem run verde há >48h (último sucesso: 2026-10-01T13:30:17Z) — canário parado é regressão silenciosa (ADR 0275 §3: desarmar MANUALMENTE via PR no baseline até nova sequência de 3 — o ratchet required não afrouxa sozinho)",
-          "distiller_freshness: fonte sdd-scorecard.yml sem run verde há >48h (último sucesso: 2026-10-01T13:30:17Z) — canário parado é regressão silenciosa (ADR 0275 §3: desarmar MANUALMENTE via PR no baseline até nova sequência de 3 — o ratchet required não afrouxa sozinho)"
-        ],
+        "reds": [],
         "warns": 0,
-        "verdict": "red"
+        "verdict": "green"
       },
       "stream": "GT"
     },
