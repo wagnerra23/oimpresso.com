@@ -34,6 +34,11 @@ Form de edição de cliente existente, pré-preenchido. Mesmo layout de Create +
 - Submit via Inertia PUT `/contacts/{id}` (rota legacy aceita)
 - Display opening_balance ajustado (já descontado pagamento, vindo de TransactionUtil::getTotalAmountPaid)
 - Mesmo corpo do Create via `_form/ClienteForm` compartilhado (DS v4 Onda F: Segmented, FormSection, InputGroup, FieldError) + rail de contexto
+- **Modo lead** (thread Crm/09, mesmo molde da Crm/06 no Create): o `LeadController::edit()`
+  renderiza esta tela com `destino` (PUT `/crm/leads/{id}`, voltar para o lead, títulos) +
+  `lead_opcoes` deferida; a seção "Dados do lead" é o `_form/DadosLeadSection` compartilhado com o
+  Create. Sem `destino` o comportamento é o do cliente, intacto. Casos do modo lead:
+  `Modules/Crm/Resources/js/Pages/Crm/Leads/Index.casos.md` (UC-CRMLD-11..13)
 
 ## Non-Goals
 

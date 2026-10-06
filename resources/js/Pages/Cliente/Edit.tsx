@@ -1,12 +1,15 @@
 // Cliente/Edit — edição Inertia/React (MWART F3). Espelho do Create.
 // PR-A (Onda F): corpo extraído pro _form/ClienteForm (compartilhado).
 // Backend: ContactController::edit($id) — Inertia::render dual via config('mwart.cliente_edit.enabled').
+// Thread Crm/09: o LeadController::edit() renderiza esta MESMA tela com `destino` +
+// `lead_opcoes`. Sem `destino` (o caso do Cliente) nada muda: grava em /contacts/{id}.
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { useForm } from '@inertiajs/react';
 import { type ReactNode, type FormEvent } from 'react';
 import { ChevronLeft } from 'lucide-react';
 import { ClienteForm } from './_form/ClienteForm';
+import { DadosLeadSection, type DadosLeadValores, type LeadOpcoes } from './_form/DadosLeadSection';
 import type { BrasilApiCnpjData } from './_form/DadosFiscaisBRSection';
 import type { ClienteFormShared, CustomerGroup } from './_form/cliente-form-types';
 import { unmaskDigits } from '@/Lib/format-br';
@@ -42,6 +45,9 @@ interface ContactInfo {
   contribuinte?: boolean | null;
   regime?: string | null;
   suframa?: string | null;
+  crm_source?: number | null;
+  crm_life_stage?: number | null;
+  user_id?: number[];
 }
 
 interface ClienteEditPageProps {
@@ -49,11 +55,32 @@ interface ClienteEditPageProps {
   types: Record<string, string>;
   customer_groups: CustomerGroup[];
   opening_balance: string;
+  /** Onde gravar e o texto da tela. Ausente = edição de cliente (/contacts/{id}). */
+  destino?: {
+    url: string;
+    voltar_href: string;
+    voltar_label: string;
+    titulo: string;
+    salvar: string;
+  };
+  /** Opções do formulário de lead (fonte, estágio de vida, atribuído a). Deferida. */
+  lead_opcoes?: LeadOpcoes;
 }
+
+type ClienteEditFormData = ClienteFormShared & DadosLeadValores;
 
 export default function ClienteEdit(props: ClienteEditPageProps) {
   const c = props.contact;
-  const { data, setData, put, processing, errors, transform } = useForm<ClienteFormShared>({
+  // `destino` só vem do LeadController::edit(); a prop `lead_opcoes` é deferida e chega depois.
+  const ehLead = props.destino !== undefined;
+  const destino = props.destino ?? {
+    url: `/contacts/${c.id}`,
+    voltar_href: `/contacts/${c.id}`,
+    voltar_label: 'Voltar para detalhe',
+    titulo: 'Editar cliente',
+    salvar: 'Salvar alterações',
+  };
+  const { data, setData, put, processing, errors, transform } = useForm<ClienteEditFormData>({
     type: c.type ?? 'customer',
     contact_type_radio: c.contact_type ?? 'person',
     first_name: c.first_name ?? c.name ?? '',
@@ -82,6 +109,13 @@ export default function ClienteEdit(props: ClienteEditPageProps) {
     contribuinte: c.contribuinte !== false, // default true se null/undefined (legacy)
     regime: c.regime ?? '',
     suframa: c.suframa ?? '',
+    ...(ehLead
+      ? {
+          crm_source: c.crm_source ? String(c.crm_source) : '',
+          crm_life_stage: c.crm_life_stage ? String(c.crm_life_stage) : '',
+          user_id: (c.user_id ?? []).map(String),
+        }
+      : {}),
   });
 
   const isJuridica = data.contact_type_radio === 'business';
@@ -99,10 +133,20 @@ export default function ClienteEdit(props: ClienteEditPageProps) {
     if (api.cep) setData('zip_code', api.cep);
   };
 
-  transform((payload) => ({ ...payload, cpf_cnpj: unmaskDigits(payload.cpf_cnpj) }));
+  // Lead: o update do Crm grava o documento em `tax_number` (não lê cpf_cnpj).
+  transform((payload) => {
+    const cpf_cnpj = unmaskDigits(payload.cpf_cnpj);
+    return ehLead
+      ? { ...payload, cpf_cnpj, tax_number: payload.tax_number || cpf_cnpj }
+      : { ...payload, cpf_cnpj };
+  });
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (props.destino) {
+      put(props.destino.url, { preserveScroll: true });
+      return;
+    }
     put(`/contacts/${c.id}`, { preserveScroll: true });
   };
 
@@ -111,18 +155,26 @@ export default function ClienteEdit(props: ClienteEditPageProps) {
       <div className="border-b border-border bg-background">
         <div className="container mx-auto max-w-5xl px-8 pb-4 pt-6">
           <a
-            href={`/contacts/${c.id}`}
+            href={destino.voltar_href}
             className="mb-2 inline-flex items-center text-xs text-muted-foreground transition-colors hover:text-foreground"
           >
             <ChevronLeft size={14} className="mr-1" />
-            Voltar para detalhe
+            {destino.voltar_label}
           </a>
-          <h1 className="text-2xl font-semibold tracking-tight text-foreground">Editar cliente</h1>
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground">{destino.titulo}</h1>
           <p className="mt-1 text-sm text-muted-foreground">{c.name}</p>
         </div>
       </div>
 
       <div className="container mx-auto max-w-5xl px-8 py-5">
+        {ehLead && (
+          <DadosLeadSection
+            valores={data}
+            opcoes={props.lead_opcoes}
+            erros={errors as Record<string, string | undefined>}
+            onChange={(campo, valor) => setData(campo, valor as never)}
+          />
+        )}
         <ClienteForm
           data={data}
           setData={setData}
@@ -132,8 +184,8 @@ export default function ClienteEdit(props: ClienteEditPageProps) {
           isJuridica={isJuridica}
           onCnpjLookup={handleCnpjLookup}
           processing={processing}
-          submitLabel="Salvar alterações"
-          cancelHref={`/contacts/${c.id}`}
+          submitLabel={destino.salvar}
+          cancelHref={destino.voltar_href}
           onSubmit={handleSubmit}
         />
       </div>
