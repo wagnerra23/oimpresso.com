@@ -24,6 +24,9 @@ use Modules\NfeBrasil\Services\Tributacao\ImportRegrasCsvService;
  */
 class ImportRegrasController extends Controller
 {
+    /** Chave de sessão com o business em que o preview foi conferido (UC-NFIM-04). */
+    private const SESSAO_BUSINESS = 'nfe_import_csv_business_id';
+
     public function __construct(private readonly ImportRegrasCsvService $service) {}
 
     /** GET /nfe-brasil/tributacao/import */
@@ -39,8 +42,10 @@ class ImportRegrasController extends Controller
     {
         $resultado = $this->service->parse($request->file('arquivo'));
 
-        // Salva validadas em session pra apply chamar sem re-upload
+        // Salva validadas em session pra apply chamar sem re-upload, carimbadas com o business do
+        // preview: o aplicar acontece noutro request e confere o carimbo (UC-NFIM-04 · ADR 0093).
         session()->put('nfe_import_csv_linhas', $resultado['linhas']);
+        session()->put(self::SESSAO_BUSINESS, (int) $request->session()->get('business.id'));
 
         return redirect()
             ->route('nfe-brasil.tributacao.import.show')
@@ -68,9 +73,20 @@ class ImportRegrasController extends Controller
                 ->withErrors(['arquivo' => 'Nenhuma linha válida — faça upload e preview primeiro.']);
         }
 
+        // UC-NFIM-04 · as linhas só gravam no business em que foram conferidas. Empresa trocada
+        // entre o preview e o aplicar (ou carimbo ausente) = recusa e descarta o lote.
+        $businessDoPreview = (int) session(self::SESSAO_BUSINESS, 0);
+        if ($businessDoPreview <= 0 || $businessDoPreview !== $businessId) {
+            session()->forget(['nfe_import_csv_linhas', self::SESSAO_BUSINESS]);
+
+            return redirect()
+                ->route('nfe-brasil.tributacao.import.show')
+                ->withErrors(['arquivo' => 'O arquivo foi conferido em outra empresa. Confira de novo nesta empresa antes de aplicar.']);
+        }
+
         $resumo = $this->service->aplicar($businessId, $linhas);
 
-        session()->forget('nfe_import_csv_linhas');
+        session()->forget(['nfe_import_csv_linhas', self::SESSAO_BUSINESS]);
 
         activity('nfe.tributacao')
             ->causedBy($request->user())

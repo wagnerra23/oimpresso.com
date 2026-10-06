@@ -37,9 +37,9 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 | UC-NFIM-01 | O preview confere sem gravar nada | must `[V0]` | charter §Non-Goals (mecanismo) · SDD `CU-NFE-07` | `TributacaoGatesContratoTest` | 🧪 |
 | UC-NFIM-02 | Aplicar sem preview não grava nada | must `[V0]` | SDD `CU-NFE-07` item 2 | `TributacaoGatesContratoTest` | 🧪 |
 | UC-NFIM-03 | Aplicar exige a permissão fiscal | must `[T0]` `[V0]` | charter §Backend · US-NFE-010 | `TributacaoGatesContratoTest` | 🧪 |
-| UC-NFIM-04 | O que foi conferido num tenant não pode ser gravado noutro | must `[T0]` `[V0]` | ADR 0093 · charter §Non-Goals | `TributacaoGatesContratoTest` | ❌ **falha esperada** |
+| UC-NFIM-04 | O que foi conferido num tenant não pode ser gravado noutro | must `[T0]` `[V0]` | ADR 0093 · charter §Non-Goals | `TributacaoGatesContratoTest` | 🧪 (verde no CT 100 em 2026-10-06; sem veredito de lane) |
 
-> **Recibo:** ver §Recibo de execução no rodapé. O `❌` do UC-NFIM-04 é **o achado** — ver a nota lá.
+> **Recibo:** ver §Recibo de execução no rodapé. O UC-NFIM-04 nasceu `❌` (o achado) e foi fechado em 2026-10-06 pela thread 19 do playbook Fiscal.
 
 ---
 
@@ -108,7 +108,7 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 
 ---
 
-## UC-NFIM-04 · O que foi conferido num tenant não pode ser gravado noutro · `must` `[T0]` `[V0]` — ❌ **falha esperada**
+## UC-NFIM-04 · O que foi conferido num tenant não pode ser gravado noutro · `must` `[T0]` `[V0]`
 
 - **Persona:** um usuário com acesso a **dois** negócios (contador do grupo, ou o próprio [W], que
   troca de business pelo seletor). Ele confere o CSV do negócio A, é interrompido, troca para o
@@ -135,8 +135,12 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 - **Nota de método:** o assert é sobre **onde a regra existe depois** (nenhuma linha do CSV em B),
   não sobre a mensagem nem sobre o status HTTP — status acoplado reprovaria arbitrariamente a saída
   (a), que devolve erro, ou a (b), que devolve sucesso.
-- **Status: ❌ esperado** — ver §Recibo. Se vier **verde**, o guard foi adicionado entre esta
-  escrita e a corrida: reconciliar o SDD §5.3 F8 e §9 R2 no mesmo PR.
+- **Status: 🧪** — fechado em 2026-10-06 pela saída (a): o `preview` carimba o business em
+  `nfe_import_csv_business_id` e o `aplicar` **recusa** e descarta o lote quando o carimbo falta ou
+  diverge. Vermelho com o controller anterior e verde com o novo, no CT 100 (ver §Recibo). Fica 🧪,
+  não ✅, porque o arquivo de teste ainda não está na allowlist da lane. SDD §5.3 F8 e §9 R2
+  reconciliados no mesmo PR. (Até 2026-10-06 este status era `❌ esperado`; o parágrafo "Por que
+  nasce ❌" acima é o retrato de antes.)
 
 ---
 
@@ -164,6 +168,7 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 | Quando | Onde | Resultado |
 |---|---|---|
 | _pendente_ | lane `PHP / Pest (NfeBrasil · MySQL)` — **required, `enforce_admins`** | a preencher com o run id |
+| 2026-10-06 | CT 100 `oimpresso-staging`, cópia isolada da branch da thread 19, `--filter=UC-NFIM` | controller anterior: UC-NFIM-04 **vermelho** (302, regra gravada no biz 2) · controller novo: UC-NFIM-04 **verde**; UC-NFIM-01/02 verdes nos dois. UC-NFIM-03 **vermelho nos dois**: o usuário semeado do biz 1 no staging tem o papel `Admin#1`, que concede todas as permissões, então revogar a permissão direta não muda nada. É ambiente, não a mudança — 17 asserções |
 
 > ⚠️ **Este arquivo de teste NÃO foi adicionado à allowlist da lane** — pelas mesmas duas razões do
 > `RegraForm.casos.md`: a allowlist é **catraca por prova verde** (e esta corrida não roda teste,
