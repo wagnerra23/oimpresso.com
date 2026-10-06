@@ -141,7 +141,8 @@ km conhecido: cadastro ou entrada de OS). Sem WhatsApp ao cliente, sem estimativ
 
 - Coluna nova `vehicles.next_service_km` (inteiro ≥ 0, nula), preenchida à mão. No app: `proxima_revisao_km`.
 - `POST` e `PUT /api/app/veiculos` aceitam `"proxima_revisao_km": int | null` (≥ 0; pode estar abaixo do km
-  atual — revisão atrasada). O `PUT` substitui o cadastro inteiro: omitir o campo apaga a próxima revisão.
+  atual — revisão atrasada). No `PUT`, **chave ausente mantém** o valor atual (o app que já estava em
+  produção não conhece o campo); chave presente com `null` apaga; inteiro grava.
 - `GET /api/app/veiculos/{id}` e cada item da lista devolvem `proxima_revisao_km`. O app calcula
   `faltam = proxima_revisao_km − km`, com o `km` que a lista já manda (o maior conhecido).
 - `GET /api/app/veiculos?revisao=1` → só os veículos com a próxima revisão marcada e o km real a até

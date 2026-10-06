@@ -1105,6 +1105,13 @@ it('revisão por km: cadastrar e editar gravam a próxima revisão; detalhe e li
     $this->putJson('/api/app/veiculos/' . $id, ['placa' => $placa, 'tipo' => 'caminhao', 'km' => 40000, 'proxima_revisao_km' => 60000])->assertOk();
     expect($this->getJson('/api/app/veiculos/' . $id)->assertOk()->json('proxima_revisao_km'))->toBe(60000);
 
+    // PUT SEM a chave (o app já em produção não conhece o campo) mantém a revisão marcada.
+    $this->putJson('/api/app/veiculos/' . $id, ['placa' => $placa, 'tipo' => 'caminhao', 'cor' => 'Azul'])->assertOk();
+    expect((int) DB::table('vehicles')->where('id', $id)->value('next_service_km'))->toBe(60000);
+    // PUT com a chave em null apaga.
+    $this->putJson('/api/app/veiculos/' . $id, ['placa' => $placa, 'tipo' => 'caminhao', 'proxima_revisao_km' => null])->assertOk();
+    expect(DB::table('vehicles')->where('id', $id)->value('next_service_km'))->toBeNull();
+
     $this->postJson('/api/app/veiculos', ['placa' => appOsPlacaNova(), 'tipo' => 'caminhao', 'proxima_revisao_km' => -1])
         ->assertStatus(422)->assertJsonPath('campos.proxima_revisao_km', 'O km da próxima revisão não pode ser negativo.');
 });

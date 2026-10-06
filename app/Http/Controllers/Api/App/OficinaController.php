@@ -701,8 +701,12 @@ class OficinaController extends Controller
             'chassis' => $this->texto($d['chassi'] ?? null),
             'renavam' => $this->texto($d['renavam'] ?? null),
             'contact_id' => isset($d['contact_id']) ? (int) $d['contact_id'] : null,
-            'next_service_km' => isset($d['proxima_revisao_km']) ? (int) $d['proxima_revisao_km'] : null,
         ];
+        // Próxima revisão: no PUT, chave AUSENTE mantém o valor atual (o app #72, já em produção, não
+        // manda o campo e apagaria a revisão marcada); presente com null apaga; inteiro grava.
+        if ($atual === null || array_key_exists('proxima_revisao_km', $request->all())) {
+            $dados['next_service_km'] = isset($d['proxima_revisao_km']) ? (int) $d['proxima_revisao_km'] : null;
+        }
 
         return [$campos, $existente, $dados];
     }
