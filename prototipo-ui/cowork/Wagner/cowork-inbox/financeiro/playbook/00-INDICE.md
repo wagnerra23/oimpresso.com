@@ -4,7 +4,7 @@ titulo: "Financeiro — Unificado: onda = seção"
 dono_pedido: "[CC]"
 executor: "[CL]"
 gerado: 2026-09-13
-atualizado: 2026-09-25
+atualizado: 2026-10-06
 base_lido: 2c115a5ca250
 alvo_medido: PARCIAL — só a seção 07 (drawer), 2026-09-25
 granularidade: secao (decisão [W] 2026-09-13)
@@ -85,6 +85,14 @@ Produção à frente do protótipo: puxar o vivo, não refazer. **Exceção decl
       "respondida": true,
       "dono": "W",
       "resposta": "segue o tema — [W] 2026-09-25 (\"segue o thema\", _saida-08); entregue pela 07 (#7970)"
+    },
+    {
+      "id": "D-FIN-BOLETO-CANCELAR",
+      "pergunta": "POST /boletos/{id}/cancelar (carencia de 60d vencida em 2026-07-18): aposentar ou manter?",
+      "respondida": true,
+      "dono": "W",
+      "resposta": "aposentar SE a contagem de BoletoRemessa cancelavel (gerado/enviado/registrado/vencido) for 0; se >0, a thread 12 para e devolve a [W]",
+      "fonte": "[CC] por delegacao de [W] 2026-10-06 (\"pode fazer tbm\")"
     }
   ],
   "threads": [
@@ -262,6 +270,85 @@ Produção à frente do protótipo: puxar o vivo, não refazer. **Exceção decl
           "padrao": "font-mono"
         }
       ]
+    },
+    {
+      "id": "11",
+      "titulo": "Unificado — vinculo #BL- aponta pra /financeiro/cobranca (rota /financeiro/boletos/{n} nao existe)",
+      "dono": "CL",
+      "vaga": 1,
+      "arquivo": "11-unificado-xlink-boleto.md",
+      "prefixo": [
+        "resources/js/Pages/Financeiro/Unificado/_components/FinCrossLinkify.tsx",
+        "resources/js/Pages/Financeiro/Unificado/Index.tsx",
+        "resources/js/Pages/Financeiro/Unificado/Index.charter.md"
+      ],
+      "nao_toca": [
+        "Modules/Financeiro/Routes/",
+        "Modules/Financeiro/Http/Controllers/BoletoController.php",
+        "resources/js/Pages/Financeiro/Cobranca/",
+        "resources/css/"
+      ],
+      "provas": [
+        {
+          "tipo": "nao_contem",
+          "path": "resources/js/Pages/Financeiro/Unificado/_components/FinCrossLinkify.tsx",
+          "padrao": "/financeiro/boletos/"
+        },
+        {
+          "tipo": "nao_contem",
+          "path": "resources/js/Pages/Financeiro/Unificado/Index.tsx",
+          "padrao": "/financeiro/boletos/"
+        },
+        {
+          "tipo": "contem",
+          "path": "resources/js/Pages/Financeiro/Unificado/_components/FinCrossLinkify.tsx",
+          "padrao": "/financeiro/cobranca"
+        },
+        {
+          "tipo": "contem",
+          "path": "resources/js/Pages/Financeiro/Unificado/_components/FinCrossLinkify.tsx",
+          "padrao": "#BL-",
+          "guarda": true,
+          "nota": "Onda7OutputR3Test.php:40 exige o regex #BL-"
+        }
+      ],
+      "nota": "achado do ataque B (§16) no SINCRONIZAR Boletos 2026-10-06; alvo de comportamento = financeiro-page.jsx (chip Boleto -> Cobranca)"
+    },
+    {
+      "id": "12",
+      "titulo": "Aposentar POST /boletos/{id}/cancelar (condicionado a 0 remessas cancelaveis)",
+      "dono": "CL",
+      "vaga": 1,
+      "arquivo": "12-boletos-cancelar-aposentar.md",
+      "depende_decisoes": [
+        "D-FIN-BOLETO-CANCELAR"
+      ],
+      "prefixo": [
+        "Modules/Financeiro/Routes/web.php",
+        "Modules/Financeiro/Http/Controllers/BoletoController.php",
+        "Modules/Financeiro/Tests/Feature/MultiTenantIsolationTest.php"
+      ],
+      "nao_toca": [
+        "Modules/Financeiro/Models/",
+        "Modules/Financeiro/Services/",
+        "Modules/Financeiro/Database/",
+        "resources/js/"
+      ],
+      "provas": [
+        {
+          "tipo": "nao_contem",
+          "path": "Modules/Financeiro/Routes/web.php",
+          "padrao": "boletos.cancelar"
+        },
+        {
+          "tipo": "contem",
+          "path": "Modules/Financeiro/Routes/web.php",
+          "padrao": "Route::redirect('/boletos', '/financeiro/cobranca', 301)",
+          "guarda": true,
+          "nota": "301 fica — Cobranca/Index.charter.md:124"
+        }
+      ],
+      "nota": "passo 1 mede antes; se >0 a thread fecha com _saida-12 PARADA e as provas nao se aplicam (vira bloqueio com motivo)"
     }
   ],
   "sha": "2c115a5ca250",
@@ -270,6 +357,7 @@ Produção à frente do protótipo: puxar o vivo, não refazer. **Exceção decl
 ```
 
 ## O que este pacote NÃO resolve (bloco 7)
+- Thread 11: o vínculo `#BL-` não leva à cobrança específica (o número só existe no seeder de demonstração). Ver §bloco 7 da ficha 11.
 - Seções 01–06 continuam **sem alvo** — nenhuma thread de layout delas.
 - As 4 telas-irmãs (`Conciliacao`, `Dre`, `Fluxo`, `Impostos`) compartilham `financeiro-telas-extras.jsx` — fora desta view.
 - A thread 07 não resolve os pontos listados no §7 dela (formatação `R$ 1.2k`, anel do stepper, alvos <24px).

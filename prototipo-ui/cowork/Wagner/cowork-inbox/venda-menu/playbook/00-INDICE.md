@@ -103,6 +103,16 @@ Thread `feito` = `_saida-NN.md` **e** provas verdes lendo o `main`. Nada é "igu
       ],
       "resposta": "cancelar (mantém a trilha e o vínculo fiscal), nunca apagar de vez",
       "fonte": "[CC] por delegação de [W] 2026-10-05 (\"o resto pode ser medido, escolha\")"
+    },
+    {
+      "id": "D-ORC-1",
+      "pergunta": "Converter cotacao em venda agora ou espera FSM quote_accepted?",
+      "respondida": false
+    },
+    {
+      "id": "D-ORC-2",
+      "pergunta": "Prototipo: fica orcamentos ou venda-cotacoes?",
+      "respondida": false
     }
   ],
   "threads": [
@@ -338,6 +348,56 @@ Thread `feito` = `_saida-NN.md` **e** provas verdes lendo o `main`. Nada é "igu
       "nao_toca": [],
       "provas": [],
       "nota_provas": "_saida-07 com o pendente 'Onda 6+1' que Sells/Caixa/Index.tsx declara em tela, antes e depois"
+    },
+    {
+      "id": "Q1",
+      "titulo": "Quotations: trio completo (casos.md)",
+      "dono": "CL",
+      "arquivo": "03-orcamentos.md",
+      "prefixo": [
+        "resources/js/Pages/Sells/Quotations.casos.md",
+        "resources/js/Pages/Sells/Quotations.charter.md"
+      ],
+      "provas": []
+    },
+    {
+      "id": "Q2",
+      "titulo": "Quotations no cutover (chave mwart.vendas_cotacoes)",
+      "dono": "CL",
+      "arquivo": "03-orcamentos.md",
+      "prefixo": [
+        "config/mwart.php"
+      ],
+      "depende_threads": [
+        "C0"
+      ],
+      "provas": []
+    },
+    {
+      "id": "Q3",
+      "titulo": "Converter cotacao em venda",
+      "dono": "CL",
+      "arquivo": "03-orcamentos.md",
+      "prefixo": [
+        "app/Http/Controllers/"
+      ],
+      "depende_decisoes": [
+        "D-ORC-1"
+      ],
+      "provas": []
+    },
+    {
+      "id": "Q-CC",
+      "titulo": "Prototipo: uma rota so para cotacoes",
+      "dono": "CC",
+      "arquivo": "03-orcamentos.md",
+      "prefixo": [
+        "prototipo-ui/cowork/Wagner/app.jsx"
+      ],
+      "depende_decisoes": [
+        "D-ORC-2"
+      ],
+      "provas": []
     }
   ]
 }

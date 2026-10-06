@@ -281,6 +281,24 @@ function OsDetailDrawer({ os, onClose, onEdit, onApprove }) {
           <p><b>{os.client}</b> · {os.contact}</p>
         </div>
 
+        {window.OiEtapaPainel && (() => {
+          const MAP = { rascunho: "Aguardando liberação", orcado: "Aguardando liberação", aprovacao: "Aguardando liberação", producao: "Em execução", acabamento: "Em execução", expedicao: "Concluída", entregue: "Concluída", cancelado: "Cancelada" };
+          const n = String(os.id).split("").reduce((s, ch) => s + ch.charCodeAt(0), 0);
+          const SK = "oimpresso.os.sinal.v1";
+          const sinalPago = () => { try { return !!(JSON.parse(localStorage.getItem(SK) || "{}")[os.id]); } catch (e) { return false; } };
+          const arteOk = !(os.stage === "aprovacao" || os.stage === "orcado" || os.stage === "rascunho");
+          const faltas = () => [!arteOk && "arte ainda não aprovada pelo cliente", n % 2 && !sinalPago() && "sinal de 50% não pago"].filter(Boolean);
+          return (
+            <div className="os-drawer-section">
+              <h3>Liberação e produção</h3>
+              <window.OiEtapaPainel modo="leitura" proc="producao" docId={os.id} estado={MAP[os.stage] || "Aguardando liberação"}
+                bloqueios={() => faltas().length ? { "Liberar": "falta " + faltas().join(" e ") } : {}}
+                resolver={() => ({ "Liberar": !arteOk ? { label: "Abrir aprovação de arte", onClick: () => onApprove && onApprove(os) }
+                  : { label: "Registrar sinal recebido", onClick: () => { try { const o2 = JSON.parse(localStorage.getItem(SK) || "{}"); o2[os.id] = true; localStorage.setItem(SK, JSON.stringify(o2)); } catch (e) {} window.dispatchEvent(new Event("oi-etapa")); } } })} />
+            </div>
+          );
+        })()}
+
         <div className="os-drawer-meta">
           <div><small>Quantidade</small><b>{os.qty.toLocaleString('pt-BR')}</b></div>
           <div><small>Valor</small><b className="mono">{os.value}</b></div>
@@ -307,6 +325,8 @@ function OsDetailDrawer({ os, onClose, onEdit, onApprove }) {
             return <window.OiFsmStepper domain="os" current={fsm.current} terminal={fsm.terminal} variant="full-stepper"/>;
           })()}
         </div>
+
+
 
         <div className="os-drawer-section">
           <h3>Histórico</h3>

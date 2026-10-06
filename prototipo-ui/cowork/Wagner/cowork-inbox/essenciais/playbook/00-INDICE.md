@@ -28,7 +28,7 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/essenciais/playbook/
 ## 2 · Decisões
 | id | pergunta | destrava |
 |---|---|---|
-| D1 | Knowledge e Todo: Create/Edit/Show seguem como páginas ou viram drawer da lista (PT-02)? | 03 |
+| D1 | Knowledge e Todo: Create/Edit/Show seguem como páginas ou viram drawer da lista (PT-02)?  → **sim** ([W] 06/10) | 03 |
 
 ## 3 · Threads
 
@@ -41,10 +41,14 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/essenciais/playbook/
     {
       "id": "D1",
       "pergunta": "Knowledge e Todo: Create/Edit/Show seguem como páginas ou viram drawer da lista (PT-02)?",
-      "respondida": false,
+      "respondida": true,
       "destrava": [
         "03"
-      ]
+      ],
+      "resposta": "sim — Create/Edit/Show de Conhecimento e Tarefas viram painel lateral (PT-02) da lista",
+      "quem": "[W]",
+      "quando": "2026-10-06",
+      "fonte": "_DECISOES-W-2026-10-06.md"
     }
   ],
   "threads": [

@@ -20,7 +20,7 @@ async function gerarMapasHandoff({ readFile, ls }) {
     JanaCockpit: 'chat-jana.jsx', TasksPage: 'tasks.jsx', PerfilPage: 'perfil-page.jsx',
     UsuariosPage: 'usuarios-page.jsx', OsListPage: 'os-page.jsx', CliListPage: 'clientes-page.jsx',
     OrcListPage: 'orc-page.jsx', ProdListPage: 'produtos-page.jsx', VendasModule: 'vendas-page.jsx',
-    ProducaoPage: 'producao-page.jsx', FinanceiroPage: 'financeiro-page.jsx', BoletosPage: 'boletos-page.jsx',
+    ProducaoPage: 'producao-page.jsx', FinanceiroPage: 'financeiro-page.jsx',
     CobrancaPage: 'pg-shell-adapters.jsx', PaymentGatewaysPage: 'pg-shell-adapters.jsx',
     SellsCobrancaPreviewPage: 'pg-shell-adapters.jsx', ComprasPage: 'compras-page.jsx',
     OficinaPage: 'oficina-page.jsx', OficinaOSPage: 'oficina-os-page.jsx', CrmPage: 'crm-page.jsx',

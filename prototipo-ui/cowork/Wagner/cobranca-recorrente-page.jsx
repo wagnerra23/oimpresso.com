@@ -168,6 +168,9 @@
 
           <div className="cr-dwr-body">
             {tab === "detalhes" && <>
+              {window.OiEtapaPainel && <window.OiEtapaPainel modo="leitura" proc="contrato" docId={sub.id}
+                estado={{ em_dia: "Ativo", retentando: "Ativo", falhou: "Suspenso", pausada: "Suspenso", cancelada: "Cancelado" }[sub.status] || "Ativo"}
+                bloqueios={sub.status === "falhou" ? { "Reativar": sub.missed + " cobranças falharam — regularize ou renegocie antes" } : {}} />}
               {!inactive &&
               <div className={"cr-next-card " + sub.status}>
                   <div className="cr-blk-label">{sub.status === "falhou" ? "Ação manual" : "Próxima cobrança"}</div>

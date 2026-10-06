@@ -24,6 +24,7 @@ const FX_TABS = [
   { id: "fiscal-eventos", label: "Eventos" },
   { id: "fiscal-dfe", label: "Manifesto DF-e" },
   { id: "fiscal-config", label: "Certificado" },
+  { id: "fiscal-tributacao", label: "Tributação" },
   { id: "fiscal-sped", label: "SPED e livros" },
 ];
 
@@ -247,6 +248,9 @@ function FxNotaDrawer({ nota, onClose, onAcao }) {
           <button className="fx-dr-x" onClick={onClose} aria-label="Fechar">×</button>
         </div>
         <div className="fx-dr-b">
+          {window.OiEtapaPainel && <div className="fx-etapa"><window.OiEtapaPainel modo="leitura" proc={n.kind === "nfse" ? "nfse" : "nfe"} docId={n.id}
+            estado={n.cancelada ? "Cancelada" : fxAuthorized(n) ? "Autorizada" : fxRejected(n) ? "Rejeitada" : fxProcessing(n) ? (n.kind === "nfse" ? "Enviada" : "Transmitida") : "Rascunho"}
+            bloqueios={n.kind !== "nfse" && !n.prazoCancel ? { "Cancelar": "prazo de cancelamento encerrado — use carta de correção ou NF-e de devolução" } : {}} /></div>}
           <div className="fx-sec">
             <span className={"fx-sefaz " + fxTone(n)} style={{ alignSelf: "flex-start" }}>{fxStatusLabel(n)}{n.statusKind === "sefaz" && !n.cancelada ? " · cstat " + n.status : n.cancelada ? " · evento 110111" : ""}</span>
             {n.rejMsg && <div className="fx-rej">↳ {n.rejMsg}</div>}
@@ -553,6 +557,7 @@ Object.assign(window, {
     if (view === "eventos") return <window.FxEventosPage />;
     if (view === "dfe") return <window.FxDfePage />;
     if (view === "config") return <window.FxConfigPage />;
+    if (view === "tributacao") return window.FxTributacaoPage ? <window.FxTributacaoPage /> : null;
     if (view === "sped") return <window.FxSpedPage />;
     if (view === "nfe") return <FxNotasPage route="fiscal-nfe" title="NF-e · NFC-e" preset={["NF-e", "NFC-e"]} crumbExtra="modelos 55 e 65" />;
     if (view === "nfse") return <FxNotasPage route="fiscal-nfse" title="NFS-e" preset={["NFS-e"]} crumbExtra="Sistema Nacional NT 2024-001" />;

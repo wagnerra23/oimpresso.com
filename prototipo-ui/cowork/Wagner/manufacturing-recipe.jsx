@@ -258,6 +258,28 @@ function MfgIngredientesEditor({ recipe, settings, perms, onSave, onCancel, onDe
             <Campo label="Preço de venda (R$)" erro={erros.venda} hint={"margem " + num(c.margem, 1) + "%"}>
               <input className="mfg-inp" type="number" min="0" step="0.01" value={r.venda} disabled={!podeEditar} onChange={(e) => set({ venda: Number(e.target.value) })} />
             </Campo>
+            {(() => {
+              const pol = r.politica || (window.OiFsmRegras && window.OiFsmRegras.POLITICAS[r.produto]) || { tipo: "fixo" };
+              return <>
+                <Campo label="Política de preço" hint="o que acontece com o preço quando o custo dos insumos muda na compra">
+                  <select className="mfg-inp" value={pol.tipo} disabled={!podeEditar} onChange={(e) => set({ politica: { tipo: e.target.value, alvo: e.target.value === "margem" ? (pol.alvo || 45) : undefined } })}>
+                    <option value="fixo">Preço fixo — só a margem muda</option>
+                    <option value="acompanha">Acompanha o custo — mantém o markup</option>
+                    <option value="margem">Margem alvo — recalcula pelo custo</option>
+                  </select>
+                </Campo>
+                {pol.tipo === "margem" && <Campo label="Margem alvo (%)">
+                  <input className="mfg-inp" type="number" min="0" max="95" step="1" value={pol.alvo || 45} disabled={!podeEditar} onChange={(e) => set({ politica: { tipo: "margem", alvo: Number(e.target.value) } })} />
+                </Campo>}
+                <Campo label="Natureza fiscal" hint="decide a nota no faturamento — definir com o contador">
+                  <select className="mfg-inp" value={r.natureza || "servico-grafico"} disabled={!podeEditar} onChange={(e) => set({ natureza: e.target.value })}>
+                    <option value="servico-grafico">Serviço gráfico sob encomenda — NFS-e (ISS)</option>
+                    <option value="mercadoria">Mercadoria / revenda — NF-e (ICMS)</option>
+                    <option value="misto">Produto + instalação — NF-e e NFS-e</option>
+                  </select>
+                </Campo>
+              </>;
+            })()}
           </div>
 
           <div className="mfg-sec"><span>Custo ao vivo</span><span className="ln" /></div>

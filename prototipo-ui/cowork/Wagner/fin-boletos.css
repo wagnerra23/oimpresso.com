@@ -189,28 +189,6 @@
 .fin-ageing-bar .seg.s3 { background: oklch(0.60 0.16 30); }
 .fin-ageing-bar .seg.s4 { background: oklch(0.50 0.18 25); }
 
-/* Boletos · funil de cobrança acima dos KPIs */
-.bol-funnel {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 14px 16px;
-}
-.bol-funnel-h { font-size: var(--fs-1); text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-mute); font-weight: 600; margin-bottom: 10px; }
-.bol-funnel-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; }
-.bol-funnel-step {
-  background: var(--bg);
-  border: 1px solid var(--border-2);
-  border-radius: 6px;
-  padding: 9px 11px;
-  min-width: 0;
-}
-.bol-funnel-step .l { font-size: var(--fs-1); color: var(--text-mute); text-transform: uppercase; letter-spacing: 0.04em; }
-.bol-funnel-step .v { font-size: var(--fs-6); font-family: 'IBM Plex Mono', monospace; font-weight: 700; margin-top: 2px; letter-spacing: -0.01em; }
-.bol-funnel-step .vv { font-size: var(--fs-1); color: var(--text-mute); font-family: 'IBM Plex Mono', monospace; margin-top: 1px; }
-.bol-funnel-step.active { background: oklch(0.97 0.025 220); border-color: oklch(0.90 0.05 220); }
-.bol-funnel-step.alert { background: oklch(0.94 0.05 25); border-color: oklch(0.86 0.08 25); }
-.bol-funnel-step.alert .v { color: oklch(0.50 0.16 25); }
 /* Botões inline dentro de linhas da grid (Financeiro + Boletos) */
 .fin-body table button,
 .bol-root table button {
@@ -382,6 +360,4 @@
 /* ════════ DARK auto-flip dos soft-chips (Tier-2 · [W] 2026-06-20) ════════
    Gerado: bg pastel→tom escuro mesma hue, texto→claro. Light intacto.
    Só selectores SEM override dark prévio. ════════ */
-[data-theme="dark"] .bol-funnel-step.active{ background: oklch(0.275 0.050 220); border-color: oklch(0.40 0.050 220); }
-[data-theme="dark"] .bol-funnel-step.alert{ background: oklch(0.275 0.050 25); border-color: oklch(0.40 0.080 25); }
 [data-theme="dark"] .fin-body table button.text-emerald-700:hover{ background: oklch(0.275 0.050 145); color: oklch(0.84 0.130 145); }

@@ -96,6 +96,9 @@ function DrawerContagem({ c, papel, onClose, onFechar, onIr, onContar, aviso }) 
           {c.status === "fechada" ? "Contagem fechada" : faltam.length ? faltam.length + (faltam.length === 1 ? " item sem contagem" : " itens sem contagem") : div.length ? "Fechar e gerar ajuste" : "Fechar sem divergência"}
         </Button>}
       </>}>
+      {window.OiEtapaPainel && <div style={{ padding: "14px 18px 0" }}><window.OiEtapaPainel modo="leitura" proc="inventario" docId={c.id}
+        estado={{ aberta: "Aberta", contando: "Contando", revisao: "Em revisão", fechada: "Ajuste aprovado", cancelada: "Cancelada" }[c.status] || "Contando"}
+        bloqueios={faltam.length ? { "Fechar contagem": faltam.length + (faltam.length === 1 ? " item sem contagem" : " itens sem contagem") } : {}} /></div>}
       <DrawerSection title={podeContar ? "Linhas a contar" : "Linhas contadas"}>
         <table className="est-drw-tbl">
           <thead><tr><th>Produto</th><th className="num">Sistema</th><th className="num">Contado</th><th className="num">Diferença</th></tr></thead>

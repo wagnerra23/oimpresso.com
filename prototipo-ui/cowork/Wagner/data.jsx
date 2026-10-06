@@ -121,11 +121,13 @@ const MENU = [
       { id: "fiscal-eventos", icon: "refresh", label: "Eventos" },
       { id: "fiscal-dfe",     icon: "archive", label: "Manifesto DF-e" },
       { id: "fiscal-config",  icon: "shield",  label: "Certificado e configuração" },
+      { id: "fiscal-tributacao", icon: "percent", label: "Tributação" },
       { id: "fiscal-sped",    icon: "grid",    label: "SPED e livros" },
     ]},
   ]},
   { group: "PRODUÇÃO", items: [
     { id: "os",     icon: "orders", label: "Ordens de Serviço" },
+    { id: "entregas", icon: "car",  label: "Entregas e instalação" },
     // Comunicação Visual (Modules/ComunicacaoVisual · group 'producao' no vivo, order 55)
     { id: "cv",     icon: "print",  label: "Comunicação Visual" },
     { id: "repair", icon: "wrench", label: "Assistência técnica", ghosts: [
@@ -182,6 +184,7 @@ const MENU = [
   ]},
   { group: "SISTEMA", items: [
     { id: "auditoria",   icon: "audit", label: "Auditoria" },
+    { id: "fluxos",      icon: "cog",   label: "Fluxos e regras" },
     // Voz do Cliente (Modules/VozDoCliente · entry sem group no vivo → default)
     { id: "voz",         icon: "chat",  label: "Voz do Cliente" },
     // Modo Suporte (ADR 0305/0309 · nasce no core, group 'sistema', order 90)
