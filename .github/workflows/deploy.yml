@@ -525,12 +525,21 @@ jobs:
         # Ele continua DENTRO da janela porque o Composer escreve o classmap com
         # file_put_contents, que não é atômico — tirar daqui exige swap atômico do
         # vendor/composer/, que é outro PR.
+        #
+        # rm de packages.php/services.php (2026-10-06, remoção do myfatoorah): com --no-scripts
+        # o package:discover só roda no fim do deploy, mas o `php artisan about` (gate de boot,
+        # passos adiante) já boota com o manifesto VELHO — que ainda lista o ServiceProvider de
+        # um pacote que este install acabou de remover → "Class not found" → deploy falha e o
+        # site fica em 503. Medido em prod antes da remoção: os dois arquivos citavam o provider
+        # do myfatoorah. Sem eles o Laravel reconstrói o manifesto a partir de
+        # vendor/composer/installed.json no primeiro boot (PackageManifest::getManifest).
         if: steps.lock_servidor.outputs.hash != needs.build.outputs.composer_lock_hash
         run: |
           /tmp/ssh_exec.sh "
             set -o pipefail &&
             cd $RDIR &&
-            composer install --optimize-autoloader --no-interaction --no-scripts --ignore-platform-req=ext-opentelemetry --ignore-platform-req=ext-sodium 2>&1 | tail -20
+            composer install --optimize-autoloader --no-interaction --no-scripts --ignore-platform-req=ext-opentelemetry --ignore-platform-req=ext-sodium 2>&1 | tail -20 &&
+            rm -f bootstrap/cache/packages.php bootstrap/cache/services.php
           "
 
       - name: Dump-autoload autoritativo (SEMPRE — depende do fonte, não do lock)
