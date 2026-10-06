@@ -3580,6 +3580,9 @@ class SellController extends Controller
                             return '';
                         }
                     }, ])
+                // Q3 venda-menu: a Page Sells/Quotations lê o id da linha (removeColumn('id')
+                // acima o tira do JSON). DT_RowId devolve o id sem mudar as colunas do Blade.
+                ->setRowId('id')
                 ->rawColumns(['action', 'invoice_no', 'transaction_date', 'conatct_name'])
                 ->make(true);
         }

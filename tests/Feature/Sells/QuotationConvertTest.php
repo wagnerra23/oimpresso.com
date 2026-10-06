@@ -220,7 +220,9 @@ it('UC-QUO-04 o botão Converter segue a flag do Blade e a lista lê o endpoint 
         ->json();
     // Sem access_all_locations o draft-dt filtra por local permitido e a lista sai vazia
     // (permitted_locations) — por isso o usuário do fixture tem a permissão.
-    $ids = array_map(fn ($r) => (int) $r['id'], $json['data']);
+    // Mesmo campo que a Page lê (Quotations.tsx: r.id ?? r.DT_RowId): o draft-dt tira o
+    // id das colunas (removeColumn) e o devolve em DT_RowId.
+    $ids = array_map(fn ($r) => (int) ($r['id'] ?? $r['DT_RowId'] ?? 0), $json['data']);
     expect($ids)->toContain($this->cotacao);
     expect($ids)->toContain($this->outraCotacao);
 });
