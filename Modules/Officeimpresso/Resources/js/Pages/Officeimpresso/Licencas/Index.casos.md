@@ -128,6 +128,15 @@ continua bloqueada. O toggle sem intenção (Blade e tela de Logs) segue funcion
 
 Status: 🧪
 
+## UC-OILIC-16 · Cadastrar leva ao formulário · `should`
+
+**Dado** quem tem `officeimpresso.licencas.gerenciar` na empresa operadora **Quando** abre a lista
+**Então** o cabeçalho oferece **Cadastrar**, que abre o formulário `licenca_computador/create` (segue
+Blade, licencas-parity item 23). Quem só tem `officeimpresso.access` não recebe o atalho e o
+formulário recusa (403). O atalho estava na Blade da lista e faltava na tela React até 2026-10-06.
+
+Status: 🧪
+
 ## Backlog (sem teste ainda — não são UC até ganharem um)
 
 - [BACKLOG] KPI-filtros (Em campo · Sem acesso há 7 dias · Bloqueados · Vencendo em 30 dias) filtram a lista e se desligam no segundo clique — regra no cliente, sem teste.

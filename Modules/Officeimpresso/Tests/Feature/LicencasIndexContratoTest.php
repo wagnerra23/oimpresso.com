@@ -320,6 +320,27 @@ it('operador · usuário da operadora com licencas.gerenciar bloqueia máquina d
     expect((int) DB::table('licenca_computador')->where('id', $id)->value('bloqueado'))->toBe(1);
 });
 
+it('UC-OILIC-16 · Cadastrar: quem gerencia recebe o atalho e abre o formulário; quem só vê, não', function () {
+    $operador = $this->seededTenant();
+
+    // Só ver: a lista abre, mas a tela não oferece Cadastrar e o formulário recusa.
+    $this->actingAs(oiLicUser($this, (int) $operador->id, 'officeimpresso.access'));
+    $this->get('/officeimpresso/licenca_computador')
+        ->assertInertia(fn (\Inertia\Testing\AssertableInertia $page) => $page
+            ->where('permissions.pode_gerenciar', false));
+    $this->get('/officeimpresso/licenca_computador/create')->assertForbidden();
+
+    // Gerenciar (operadora): o atalho aparece e o formulário Blade abre.
+    $gestor = oiLicUser($this, (int) $operador->id, 'officeimpresso.access');
+    Permission::firstOrCreate(['name' => 'officeimpresso.licencas.gerenciar', 'guard_name' => 'web']);
+    $gestor->givePermissionTo('officeimpresso.licencas.gerenciar');
+    $this->actingAs($gestor);
+    $this->get('/officeimpresso/licenca_computador')
+        ->assertInertia(fn (\Inertia\Testing\AssertableInertia $page) => $page
+            ->where('permissions.pode_gerenciar', true));
+    $this->get('/officeimpresso/licenca_computador/create')->assertOk();
+});
+
 // ── Helpers (prefixo oiLic — o LogsBaselineTest roda no mesmo processo) ──────
 
 function oiLicUser($test, int $businessId, ?string $permissao): User
