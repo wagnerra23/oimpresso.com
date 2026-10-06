@@ -33,7 +33,10 @@ use Illuminate\Validation\ValidationException;
  *   - Transaction scoped via where('business_id', session('user.business_id'))
  *   - Validation custom valida que mecanico_id + balcao_id pertencem ao mesmo
  *     business (users.business_id) — bloqueia cross-tenant injection
- *   - Audit log via Spatie ActivityLog (já configurado em Transaction model)
+ *   - Auditoria: `commission_split` (e `commission_agent`) estão no `logOnly` do
+ *     Transaction (log `sales.transaction`, ADR 0127) — cada troca grava antes→depois
+ *     com usuário e business. Até 2026-10-06 este docblock prometia isso sem que os
+ *     campos estivessem na lista; só o `Log::info` em arquivo registrava.
  *
  * Permissão: `sell.update` (mesmo do fluxo POS update).
  *
