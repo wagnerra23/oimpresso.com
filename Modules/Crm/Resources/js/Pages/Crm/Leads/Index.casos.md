@@ -5,7 +5,8 @@ irmaos: Index.charter.md (lei) · Index.tsx (tela)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: a lista de leads mostra contatos em prospecção com celular, e-mail e documento. Errar o escopo vaza contato de outro negócio ou de colega que não devia ver; errar o desvio Inertia × DataTables entrega JSON cru no lugar da tela.
 owner: wagner
-last_run: "2026-10-01"
+last_run: "2026-10-06"
+last_run_nota: "2026-10-06 thread Crm/09: UC-CRMLD-11..13 novos; LeadController (edit/update/destroy) mudou. Lane verticais-pest no branch do #8756 (run 37451383426): UC-CRMLD-11, 12 e 13 ✓, 268 passed · 1620 assertions; as 2 falhas (UC-CRMACO-20, UC-SANEG-14) já falham no push de main 211b51697c (run 37382355413)."
 last_run_ci: "_pendente_ — o trio nasce na thread Crm/02. O veredito por UC entra no manifesto quando a lane verticais-pest rodar; até lá o Status é 🧪."
 ---
 
@@ -121,5 +122,40 @@ Status: 🧪
 **Dado** um payload com usuário, fonte e estágio de outro negócio
 **Quando** salvo o lead
 **Então** o lead é gravado no meu negócio sem atribuído, sem fonte e sem estágio.
+
+Status: 🧪
+
+---
+
+## UC-CRMLD-11 · "Editar" abre o Cliente/Edit em modo lead · `must` `[T0]`
+
+**Dado** um lead do meu negócio, um cliente do meu negócio e um lead de outro negócio
+**Quando** abro `/crm/leads/{id}/edit`
+**Então** para o lead recebo Inertia `Cliente/Edit` com tipo `lead`, o nome no primeiro campo,
+o atribuído atual, título "Editar lead" e destino `/crm/leads/{id}`; para o cliente e para o
+lead de fora, 404.
+
+Status: 🧪
+
+---
+
+## UC-CRMLD-12 · Salvar a edição grava o nome inteiro e só opções do meu negócio · `must` `[T0]`
+
+**Dado** o formulário de edição com nome em partes (nome + sobrenome), fonte e atribuído de
+outro negócio e estágio do meu
+**Quando** salvo
+**Então** o `name` vira as partes juntas, o tipo segue `lead`, o estágio é gravado, a fonte de
+fora não entra e o usuário de fora não é atribuído; volto para a ficha do lead.
+
+Status: 🧪
+
+---
+
+## UC-CRMLD-13 · Editar ou excluir pelo id não alcança cliente nem lead de fora · `must` `[T0]`
+
+**Dado** um lead de outro negócio e um cliente do meu
+**Quando** tento salvar o lead de fora, ou excluir qualquer um dos dois pela rota de leads
+**Então** salvar dá 404 e o nome não muda; excluir responde sem sucesso e os dois seguem lá.
+O meu próprio lead sai pela mesma rota.
 
 Status: 🧪
