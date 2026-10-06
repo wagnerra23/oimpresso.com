@@ -3,7 +3,8 @@
 // ADR 0017) para o DS vivo, seguindo o topnav declarativo Resources/menus/topnav.php:
 //   licenca_computador/businessall → view "empresas"  (grupo econômico, ADR 0020)
 //   licenca_computador/index + computadores → view "licencas"
-//   licenca_log/index + timeline   → view "log"       (append-only, ADR 0018)
+//   licenca_log/index              → view "log"       (append-only, ADR 0018)
+//   licenca_log/timeline/{id}      → view "timeline"  (rota oi-log-timeline · thread A4)
 // Gate real dos controllers: officeimpresso.access (Clientes OAuth: officeimpresso.clientes.liberar).
 // Expõe window.OfficeimpressoPage. Reusa sa-* / os-* / cli-* do shell + oi-* de officeimpresso-page.css.
 (() => {
@@ -130,15 +131,25 @@ function FilterDropdown({ label, value, options, onChange }) {
   );
 }
 
+const OI_ABAS = [
+  { key: "officeimpresso", label: "Empresas" },
+  { key: "oi-licencas", label: "Licenças" },
+  { key: "oi-clientes", label: "Clientes OAuth" },
+  { key: "oi-importar", label: "Importar do Firebird" },
+  { key: "oi-log", label: "Log de acesso" },
+];
+const OiCtx = React.createContext("officeimpresso");
 function PageHead({ titulo, sub, acoes }) {
   const { PageHeader } = ds();
-  if (!PageHeader) return (
+  const ativo = React.useContext(OiCtx);
+  const abas = window.OiRotaTabs ? <window.OiRotaTabs ariaLabel="Seções do Office Impresso" ativo={ativo} tabs={OI_ABAS} /> : null;
+  if (!PageHeader) return (<>
     <header className="os-page-h">
       <div className="os-page-h-l"><h1>{titulo}</h1><p>{sub}</p></div>
       <div className="os-page-h-r">{acoes}</div>
-    </header>
-  );
-  return <div className="sa-ph"><PageHeader title={titulo} subtitle={sub} actions={acoes}/></div>;
+    </header>{abas}
+  </>);
+  return <><div className="sa-ph"><PageHeader title={titulo} subtitle={sub} actions={acoes}/></div>{abas}</>;
 }
 
 function Kpi({ v, l, sub, tone }) {
@@ -636,7 +647,7 @@ function ViewLicencas() {
                       <td className="sa-td-act" onClick={(ev) => ev.stopPropagation()}>
                         <Kebab items={[
                           { label:"Ver licença", action: () => setAberta(l) },
-                          { label:"Timeline no log", action: () => { toast(`Abrindo timeline de ${l.id}`); window.__selectRoute?.("oi-log"); } },
+                          { label:"Timeline no log", action: () => window.__selectRoute?.("oi-log-timeline") },
                           { sep:true },
                           { label: l.status === "bloqueada" ? "Desbloquear" : "Bloquear máquina",
                             action: () => setConfirma({ tipo:"bloqueio", l }) },
@@ -1131,12 +1142,35 @@ function ViewLog() {
   );
 }
 
+// ── View: Timeline de uma licença (licenca_log/timeline/{licenca_id}) ── thread A4: vista própria,
+// licença FIXA (a 1ª ativa) para a medida ser reprodutível; ?licenca= na produção é parâmetro.
+function ViewTimeline() {
+  const { Timeline } = ds();
+  const l = LICENCAS.find((x) => x.status === "ativa") || LICENCAS[0];
+  const e = empresaDe(l.biz);
+  const eventos = LOGS.filter((g) => g.host === l.host);
+  return (
+    <div className="os-page sa-page" data-screen-label="Office Impresso · Timeline da licença">
+      <PageHead titulo={"Timeline · " + l.host} sub={`${l.id} · ${e.nome} (biz #${l.biz}) · ${eventos.length} eventos · append-only`}
+        acoes={<>
+          <button className="os-btn ghost" onClick={() => window.__selectRoute?.("oi-log")}>Voltar ao log</button>
+          <button className="os-btn ghost" onClick={() => window.__selectRoute?.("oi-licencas")}>Abrir a licença</button>
+        </>}/>
+      <div className="sa-body" style={{ padding: "0 24px 24px" }}>
+        {eventos.length === 0
+          ? <p className="sa-modal-p">Nenhum evento desta máquina na janela de retenção.</p>
+          : Timeline
+            ? <Timeline groupByDay entries={eventos.map((g) => ({ time: g.ts, actor: g.autor === "—" ? "desktop" : g.autor, action: EV[g.tipo].l, detail: g.detalhe, meta: g.rota }))}/>
+            : <ul className="sa-dr-hist">{eventos.map((g, i) => <li key={i}><b className="sa-mono">{g.ts}</b><span>{EV[g.tipo].l} · {g.detalhe}</span></li>)}</ul>}
+      </div>
+    </div>
+  );
+}
+
 function OfficeimpressoPage({ view = "empresas" }) {
-  if (view === "licencas") return <ViewLicencas />;
-  if (view === "clientes") return <ViewClientes />;
-  if (view === "importar") return <ViewImportar />;
-  if (view === "log") return <ViewLog />;
-  return <ViewEmpresas />;
+  const M = { licencas: [ViewLicencas, "oi-licencas"], clientes: [ViewClientes, "oi-clientes"], importar: [ViewImportar, "oi-importar"], log: [ViewLog, "oi-log"], timeline: [ViewTimeline, "oi-log"] };
+  const [V, rota] = M[view] || [ViewEmpresas, "officeimpresso"];
+  return <OiCtx.Provider value={rota}><V /></OiCtx.Provider>;
 }
 
 window.OfficeimpressoPage = OfficeimpressoPage;

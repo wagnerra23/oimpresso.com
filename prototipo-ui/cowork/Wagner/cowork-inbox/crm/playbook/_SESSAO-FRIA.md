@@ -19,3 +19,4 @@ Leia só: placar (se não for `proximo`, pare) · o `NN-*.md` · o objeto da thr
 | **06** | Leads: formulário (reusa Cliente/Create parametrizado — D2) | CL | `06-leads-form.md` | 02 |
 | **07** | Acompanhamentos: escrita em Inertia (adicionar, recorrente, editar, log, excluir) | CL | `07-acompanhamentos-escrita.md` | 03 |
 | **08** | Leads: show sem filtro type=lead + raiz do SELECT de colunas removidas (CrmUtil) | CL | `08-leads-escopo.md` | — |
+| **09** | Editar lead no Cliente/Edit | CL | `09-leads-editar.md` | 06 |

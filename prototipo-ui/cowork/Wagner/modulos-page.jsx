@@ -268,19 +268,12 @@ function ModulosPage() {
 
   return (
     <div className="os-page mod-page" data-screen-label="Módulos · Gerenciador">
-      <header className="os-page-h">
-        <div className="os-page-h-l">
-          <h1>Gerenciador de Módulos</h1>
-          <p className="tabular">
-            {counts.total} módulos · {counts.active} ativos · {counts.inactive} inativos
-            {counts.errored > 0 && <span className="mod-err-count"> · {counts.errored} com erro</span>}
-          </p>
-        </div>
-        <div className="os-page-h-r">
-          <span className="mod-kbd-hint"><kbd>/</kbd> buscar</span>
-          <span className="mod-scope">app-wide · cross-tenant</span>
-        </div>
-      </header>
+      {(() => { const PH = (window.OfficeImpressoPontoWR2DesignSystem_019dd0 || {}).PageHeader;
+        const acoes = <><span className="mod-kbd-hint"><kbd>/</kbd> buscar</span><span className="mod-scope">app-wide · cross-tenant</span></>;
+        const sub = `${counts.total} módulos · ${counts.active} ativos · ${counts.inactive} inativos`;
+        const stats = counts.errored > 0 ? [{ value: counts.errored, label: "com erro", tone: "danger" }] : undefined;
+        return PH ? <div className="oi-ph" style={{ padding: "0 24px" }}><PH title="Gerenciador de Módulos" subtitle={sub} stats={stats} actions={acoes} /></div>
+          : <header className="os-page-h"><div className="os-page-h-l"><h1>Gerenciador de Módulos</h1><p className="tabular">{sub}</p></div><div className="os-page-h-r">{acoes}</div></header>; })()}
 
       <div className="mod-stats">
         <StatCard label="Total" value={counts.total} icon="grid" tone="muted"/>

@@ -77,26 +77,32 @@ Thread `feito` = `_saida-NN.md` **e** provas verdes lendo o `main`. Nada é "igu
     {
       "id": "D1",
       "pergunta": "discount.access separa ver × editar?",
-      "respondida": false,
+      "respondida": true,
       "destrava": [
         "04"
-      ]
+      ],
+      "resposta": "sim: discount.access separa ver × editar",
+      "fonte": "[CC] por delegação de [W] 2026-10-05 (\"o resto pode ser medido, escolha\")"
     },
     {
       "id": "D2",
       "pergunta": "Importação grande vai para fila?",
-      "respondida": false,
+      "respondida": true,
       "destrava": [
         "05"
-      ]
+      ],
+      "resposta": "sim: acima de 500 linhas vai pra fila, abaixo roda na hora",
+      "fonte": "[CC] por delegação de [W] 2026-10-05 (\"o resto pode ser medido, escolha\")"
     },
     {
       "id": "D3",
       "pergunta": "Reverter lote de importação: hard delete ou cancelar?",
-      "respondida": false,
+      "respondida": true,
       "destrava": [
         "05"
-      ]
+      ],
+      "resposta": "cancelar (mantém a trilha e o vínculo fiscal), nunca apagar de vez",
+      "fonte": "[CC] por delegação de [W] 2026-10-05 (\"o resto pode ser medido, escolha\")"
     }
   ],
   "threads": [

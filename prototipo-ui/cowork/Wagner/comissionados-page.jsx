@@ -204,19 +204,12 @@ function ComissionadosPage() {
 
   return (
     <div className="os-page usr-page cms-page" data-screen-label="Usuários · Comissionados">
-      <header className="os-page-h">
-        <div className="os-page-h-l">
-          <h1>Comissionados</h1>
-          <p>{tot.agentes} agentes de venda · {PERIODOS.find((p) => p.id === periodo).label.toLowerCase()}</p>
-        </div>
-        <div className="os-page-h-r">
-          <button className="os-btn ghost" onClick={() => window.__selectRoute?.("financeiro")}>Ver no financeiro</button>
+      <window.OiPageHead titulo={"Comissionados"} sub={<>{tot.agentes} agentes de venda · {PERIODOS.find((p) => p.id === periodo).label.toLowerCase()}</>} acoes={<><button className="os-btn ghost" onClick={() => window.__selectRoute?.("financeiro")}>Ver no financeiro</button>
           <button className="os-btn primary" onClick={() => setCad({ novo: true })}>
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><path d="M12 5v14M5 12h14"/></svg>
             Novo comissionado
-          </button>
-        </div>
-      </header>
+          </button></>} />
+      {window.OiRotaTabs && <window.OiRotaTabs ariaLabel="Seções de usuários" ativo="comissionados" tabs={[{ key: "usuarios", label: "Usuários" }, { key: "funcoes", label: "Funções e permissões" }, { key: "comissionados", label: "Comissionados" }, { key: "comissoes", label: "Apuração de comissão" }]} />}
 
       <Kpis>
         <Kpi v={brl0(tot.vendas)} l="Vendas atribuídas" />

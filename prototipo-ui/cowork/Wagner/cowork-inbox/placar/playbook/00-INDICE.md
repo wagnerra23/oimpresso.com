@@ -18,27 +18,108 @@ base: wagnerra23/oimpresso.com@main 701f40c6ec66 (lido 2026-09-22 19:33 UTC)
   "gerado": "2026-09-22",
   "decisoes": [],
   "threads": [
-    { "id": "01", "titulo": "Estado `sem recibo`: provas verdes sem _saida", "dono": "CL", "arquivo": "01-entregue-sem-recibo.md",
-      "prefixo": ["scripts/qa/placar-indice.mjs", "scripts/qa/placar-indice.test.mjs"],
-      "nao_toca": ["scripts/qa/placar.mjs", ".github/workflows/placar-de-lista.yml", "prototipo-ui/cowork/Wagner/cowork-inbox/"],
+    {
+      "id": "01",
+      "titulo": "Estado `sem recibo`: provas verdes sem _saida",
+      "dono": "CL",
+      "arquivo": "01-entregue-sem-recibo.md",
+      "prefixo": [
+        "scripts/qa/placar-indice.mjs",
+        "scripts/qa/placar-indice.test.mjs"
+      ],
+      "nao_toca": [
+        "scripts/qa/placar.mjs",
+        ".github/workflows/placar-de-lista.yml",
+        "prototipo-ui/cowork/Wagner/cowork-inbox/"
+      ],
       "provas": [
-        { "tipo": "contem", "path": "scripts/qa/placar-indice.mjs", "padrao": "'sem recibo'" },
-        { "tipo": "contem", "path": "scripts/qa/placar-indice.test.mjs", "padrao": "sem recibo" }
-      ] },
-    { "id": "02", "titulo": "/onda modo thread: caminho quebrado ($1/$NN) e índice ausente vira PARAR", "dono": "CL", "arquivo": "02-onda-modo-thread.md",
-      "prefixo": [".claude/commands/onda.md"],
-      "nao_toca": ["scripts/qa/", "scripts/design-sync/pedido.mjs"],
+        {
+          "tipo": "contem",
+          "path": "scripts/qa/placar-indice.mjs",
+          "padrao": "'sem recibo'"
+        },
+        {
+          "tipo": "contem",
+          "path": "scripts/qa/placar-indice.test.mjs",
+          "padrao": "sem recibo"
+        }
+      ]
+    },
+    {
+      "id": "02",
+      "titulo": "/onda modo thread: caminho quebrado ($1/$NN) e índice ausente vira PARAR",
+      "dono": "CL",
+      "arquivo": "02-onda-modo-thread.md",
+      "prefixo": [
+        ".claude/commands/onda.md"
+      ],
+      "nao_toca": [
+        "scripts/qa/",
+        "scripts/design-sync/pedido.mjs"
+      ],
       "provas": [
-        { "tipo": "nao_contem", "path": ".claude/commands/onda.md", "padrao": "--thread $NN" },
-        { "tipo": "contem", "path": ".claude/commands/onda.md", "padrao": "PARE" }
-      ] },
-    { "id": "03", "titulo": "COWORK-ESTRUTURA-E-TELAS.md: 3 regras mortas saem da ROTINA", "dono": "CL", "arquivo": "03-rotina-cowork-desatualizada.md",
-      "prefixo": ["memory/reference/prototipo-ui/COWORK-ESTRUTURA-E-TELAS.md"],
-      "nao_toca": ["scripts/", ".github/", "prototipo-ui/"],
+        {
+          "tipo": "nao_contem",
+          "path": ".claude/commands/onda.md",
+          "padrao": "--thread $NN"
+        },
+        {
+          "tipo": "contem",
+          "path": ".claude/commands/onda.md",
+          "padrao": "PARE"
+        }
+      ]
+    },
+    {
+      "id": "03",
+      "titulo": "COWORK-ESTRUTURA-E-TELAS.md: 3 regras mortas saem da ROTINA",
+      "dono": "CL",
+      "arquivo": "03-rotina-cowork-desatualizada.md",
+      "prefixo": [
+        "memory/reference/prototipo-ui/COWORK-ESTRUTURA-E-TELAS.md"
+      ],
+      "nao_toca": [
+        "scripts/",
+        ".github/",
+        "prototipo-ui/"
+      ],
       "provas": [
-        { "tipo": "contem", "path": "memory/reference/prototipo-ui/COWORK-ESTRUTURA-E-TELAS.md", "padrao": "cowork-bundle.yml" },
-        { "tipo": "contem", "path": "memory/reference/prototipo-ui/COWORK-ESTRUTURA-E-TELAS.md", "padrao": "receber-handoff" }
-      ] }
+        {
+          "tipo": "contem",
+          "path": "memory/reference/prototipo-ui/COWORK-ESTRUTURA-E-TELAS.md",
+          "padrao": "cowork-bundle.yml"
+        },
+        {
+          "tipo": "contem",
+          "path": "memory/reference/prototipo-ui/COWORK-ESTRUTURA-E-TELAS.md",
+          "padrao": "receber-handoff"
+        }
+      ]
+    },
+    {
+      "id": "A-LOTE",
+      "titulo": "design-diff-lote: rota por tela + medir um lado só",
+      "dono": "CL",
+      "vaga": 1,
+      "prs": 1,
+      "arquivo": "A-LOTE-medicao-por-tela.md",
+      "prefixo": [
+        "scripts/design/design-diff-lote.mjs",
+        "scripts/design/design-diff-lote.test.mjs"
+      ],
+      "nao_toca": [
+        "governance/design/targets/medidas/"
+      ],
+      "provas": [
+        {
+          "tipo": "contem",
+          "path": "scripts/design/design-diff-lote.mjs",
+          "padrao": "--lado"
+        }
+      ]
+    }
   ]
 }
 ```
+
+**A-LOTE (2026-10-05, [CC]):** três módulos mediram várias telas com o mesmo `design.json`. Ficha `A-LOTE-medicao-por-tela.md`.

@@ -173,3 +173,6 @@
   .venda-acoes { grid-template-columns: 1fr !important; }
   .venda-finalizador { left: 0 !important; } /* sem sidebar nesta faixa */
 }
+
+/* Escuro: a placa "Total da venda" é invertida (--text/--bg) e virava um bloco branco. Divergência do vivo (CreateV3) — registrada pro Code. */
+[data-theme="dark"] .v3-total-plate{ background: color-mix(in oklch, var(--accent) 14%, var(--surface)) !important; color: var(--text) !important; border: 1px solid color-mix(in oklch, var(--accent) 35%, var(--border)); }

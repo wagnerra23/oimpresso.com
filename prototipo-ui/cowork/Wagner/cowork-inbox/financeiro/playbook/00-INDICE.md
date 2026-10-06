@@ -59,14 +59,18 @@ Produção à frente do protótipo: puxar o vivo, não refazer. **Exceção decl
     {
       "id": "D-FIN-ALVO",
       "pergunta": "Medir as secoes 01-06 numa passada so antes das threads delas? Recomendacao: sim.",
-      "respondida": false,
-      "dono": "[W]"
+      "respondida": true,
+      "dono": "[W]",
+      "resposta": "sim: medir 01–06 numa passada só",
+      "fonte": "[CC] por delegação de [W] 2026-10-05 (\"o resto pode ser medido, escolha\")"
     },
     {
       "id": "D-FIN-CONTRATO",
       "pergunta": "Escrever o Contrato de Tela do Unificado (9 UC ja escritos) antes ou depois das ondas de layout?",
-      "respondida": false,
-      "dono": "[W]"
+      "respondida": true,
+      "dono": "[W]",
+      "resposta": "antes das ondas de layout — o contrato trava o comportamento que as ondas não podem quebrar (a Page já existe)",
+      "fonte": "[CC] por delegação de [W] 2026-10-05 (\"o resto pode ser medido, escolha\")"
     },
     {
       "id": "D-FIN-IA-CONTEUDO",

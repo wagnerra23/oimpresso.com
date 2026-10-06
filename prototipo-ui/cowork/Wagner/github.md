@@ -3,11 +3,29 @@ branch: main
 path: prototipo-ui/cowork
 
 ## Last sync
+date: 2026-10-05T20:36:21Z
+tree: aacb74f4df18
+branch: main
+
+### Updated in this project
+- **Revisão dos recibos @aacb74f4df18:** 22 threads fechadas pelo Code conferidas contra as provas do `main`. Entregas parciais viraram threads novas (Officeimpresso A4 · Superadmin A2 · Produto 11 · Crm 09 · Placar A-LOTE); vetadas/não medidas viraram `bloqueio` com motivo (Officeimpresso 03 · A3 · 07). Recibo `repair/_saida-02-producao.md` trazido.
+- **Defeito meu corrigido:** índice do Placar corrompido por `replace` com `$1` no título — restaurado do `main` + A-LOTE; todos os índices revalidados (JSON válido, sem bloco duplicado).
+
+## Sync 2026-10-05 20:28
+date: 2026-10-05T20:28:41Z
+tree: e22d2f85bcf4
+branch: main
+
+### Updated in this project (05/10 tarde)
+- **Tema escuro:** `color-scheme: dark` global + correções de placas invertidas/cores fixas (vendas, inbox, cobrança recorrente, chat, KPI de alerta). Roteiro novo `cowork-inbox/tema-escuro/playbook/` (sonda required + baseline; D1/D2 respondidas).
+- **Decisões:** zeradas as abertas nos roteiros — Produto D4 (vários modelos; o do protótipo é o alvo) e Officeimpresso D6 (ligar a flag) por [W]; o resto por delegação, com a resposta e a fonte no índice. Produto: excluir categoria com subcategorias agora é recusado também no protótipo (`produto-cadastros.jsx?v=pc2c`).
+
+## Sync 2026-10-05 11:31
 date: 2026-10-05T11:31:25Z
 tree: 8d66694ee724
 branch: main
 
-### Updated in this project
+### Updated in this project (05/10 manhã)
 - **Reconferência 05/10:** puxados `repair/_DECISOES-W-2026-10-02.md` + `repair/_saida-04.md`; D-PORTAL e D-RECORTE aplicadas no índice do Repair (thread 04 → ConsultaOs). Rota `repair` ganhou entrada no `ROTAS` (abre o Painel). Os 10 `00-INDICE.md` daqui estão à frente do `main` — o pacote não desceu.
 
 ## Sync 2026-10-01 14:59

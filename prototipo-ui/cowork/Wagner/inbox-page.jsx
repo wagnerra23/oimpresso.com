@@ -506,12 +506,29 @@
       }
     };
 
+    // PUXAR 2026-10-05 — o useInboxKeyboard (inbox-extras.jsx) já cobre J/K/E/? como produção.
+    // Aqui entram só os 2 que faltavam: "/" foca a busca e A marca "aguardando atendente".
+    useEffect(() => {
+      const h = (e) => {
+        const alvo = e.target, ativo = document.activeElement;
+        const emCampo = (el) => el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement || el instanceof HTMLSelectElement || (el instanceof HTMLElement && el.isContentEditable);
+        if (emCampo(alvo) || emCampo(ativo)) return;
+        if (e.metaKey || e.ctrlKey || e.altKey) return;
+        if (e.key === "/") { e.preventDefault(); document.querySelector('[data-testid="caixa-unif-search"]')?.focus(); return; }
+        if ((e.key === "a" || e.key === "A") && conv && conv.status !== "resolvidas" && conv.status !== "aguardando") {
+          e.preventDefault(); setConvs((cs) => cs.map((c) => c.id === selId ? { ...c, status: "aguardando" } : c)); setToast(`${conv.name} aguardando atendente`);
+        }
+      };
+      window.addEventListener("keydown", h);
+      return () => window.removeEventListener("keydown", h);
+    }, [selId, conv]);
     const resolve = () => {
       setConvs((cs) => cs.map((c) => c.id === selId ? { ...c, status: "resolvidas" } : c));
       setToast(`Conversa com ${conv.name} resolvida`);
       const next = filteredConvs.find((c) => c.id !== selId);
       if (next) setSelId(next.id);
     };
+
 
     const reassign = (opId) => {
       setConvs((cs) => cs.map((c) => c.id === selId ? { ...c, assignee: opId || null } : c));
@@ -554,11 +571,15 @@
           {/* TODO US-WA-304: Drawer in-place vs link pra /atendimento/canais (decisão do roadmap §5) */}
           <button className="os-btn ghost" onClick={() => setChSwitcherOpen((v) => !v)}
             data-testid="caixa-unif-topnav-canais">Canais</button>
-          {window.InboxTroubleDialog &&
-            <button className="os-btn ghost" onClick={() => setTbOpen(true)}>Troubleshooters</button>
-            }
-          {window.InboxPathsDialog &&
-            <button className="os-btn ghost" onClick={() => setPathsOpen(true)}>Trilhas</button>
+          {/* PUXAR 2026-10-05 (CaixaUnificada/Index.tsx): produção tem Broadcast no topo e
+              junta Troubleshooters + Trilhas num só "Guia" (InboxGuiaDialog). */}
+          <button className="os-btn ghost" onClick={() => setBcastOpen(true)}
+            title="Broadcast cross-canal — audiência + rascunho (disparo na fase 2)"
+            data-testid="caixa-unif-topnav-broadcast">Broadcast</button>
+          {(window.InboxPathsDialog || window.InboxTroubleDialog) &&
+            <button className="os-btn ghost" onClick={() => window.InboxPathsDialog ? setPathsOpen(true) : setTbOpen(true)}
+              title="Guia — diagnóstico guiado de atendimento + trilhas de onboarding"
+              data-testid="caixa-unif-topnav-guia">Guia</button>
             }
           {/* TODO US-WA-307: + Nova conversa (ContactPickerModal + template inicial) */}
           <button className="os-btn primary"
@@ -1473,8 +1494,9 @@
               <p style={{ fontSize: 11, color: "var(--text-mute)", margin: "8px 0 14px" }}>
                 Respeita janela 24h WhatsApp e templates aprovados.
               </p>
-              <button className="os-btn primary" onClick={() => {setBcastOpen(false);setToast(`Broadcast disparado para ${convs.filter((c) => !c.preview_only).length} contatos`);}}>
-                Disparar broadcast
+              {/* Produção (BroadcastSheet, ADR 0268): fase 1 = pre-flight + rascunho; o disparo é fase 2. */}
+              <button className="os-btn primary" onClick={() => {setBcastOpen(false);setToast(`Rascunho salvo para ${convs.filter((c) => !c.preview_only).length} contatos — o disparo chega na fase 2`);}}>
+                Salvar rascunho
               </button>
             </div>
           </aside>

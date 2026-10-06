@@ -609,6 +609,7 @@ function Detalhes() {
   );
 }
 
+const CMS_ROTA = { paginas: "site", blog: "cms-blog", depoimentos: "cms-depoimentos", leads: "cms-leads", site: "cms-detalhes", modulo: "cms-modulo" };
 function CmsPage({ view = "paginas" }) {
   const [tab, setTab] = useState(view);
   const [editar, setEditar] = useState(null);
@@ -625,20 +626,20 @@ function CmsPage({ view = "paginas" }) {
   const tipo = TIPOS[tab];
   return (
     <div className="os-page cms-page" data-screen-label="Site (CMS) · Conteúdo">
-      <header className="os-page-h">
-        <div className="os-page-h-l">
-          <h1>Site</h1>
-          <p>{PAGES.length} páginas · {BLOG.length} publicações · {DEPOIMENTOS.length} depoimentos · <span className="cms-slug">oimpresso.com</span></p>
-        </div>
-        <div className="os-page-h-r">
+      {(() => { const PH = (window.OfficeImpressoPontoWR2DesignSystem_019dd0 || {}).PageHeader; const sub = `${PAGES.length} páginas · ${BLOG.length} publicações · ${DEPOIMENTOS.length} depoimentos · oimpresso.com`; const acoes = <>
           <button className="os-btn ghost" onClick={() => window.open("/", "_blank")}>Ver o site</button>
           {tab !== "site" && tab !== "modulo" && tab !== "leads" &&
           <button className="os-btn primary" onClick={() => setEditar({ id: "novo", type: tipo.key, layout: null, prio: "", on: false, upd: "agora", by: "você", title: "", content: "<p></p>", meta: "", tags: "" })}>
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>
             {tab === "blog" ? "Nova publicação" : tab === "depoimentos" ? "Novo depoimento" : "Nova página"}
           </button>}
-        </div>
-      </header>
+        </>;
+        return PH ? <div className="oi-ph" style={{ padding: "0 24px" }}><PH title="Site (CMS)" subtitle={sub} actions={acoes} /></div>
+          : <header className="os-page-h"><div className="os-page-h-l"><h1>Site (CMS)</h1><p>{sub}</p></div><div className="os-page-h-r">{acoes}</div></header>; })()}
+      {window.OiRotaTabs && <window.OiRotaTabs ariaLabel="Seções do site" ativo={CMS_ROTA[tab] || "site"} tabs={[
+        { key: "site", label: "Páginas", n: PAGES.length }, { key: "cms-blog", label: "Blog", n: BLOG.length },
+        { key: "cms-depoimentos", label: "Depoimentos", n: DEPOIMENTOS.length }, { key: "cms-leads", label: "Leads do site", n: 5 },
+        { key: "cms-detalhes", label: "Detalhes do site" }, { key: "cms-modulo", label: "Módulo" }]} />}
 
       {tab !== "leads" &&
       <Kpis>
@@ -648,14 +649,6 @@ function CmsPage({ view = "paginas" }) {
         <Kpi v={kpis.semSeo} l="Sem descrição de busca" tone={kpis.semSeo > 0 ? "warning" : undefined} />
       </Kpis>}
 
-      <div className="cms-sub">
-        <button className={`cms-sub-b ${tab === "paginas" ? "active" : ""}`} onClick={() => setTab("paginas")}>Páginas <span className="n">{PAGES.length}</span></button>
-        <button className={`cms-sub-b ${tab === "blog" ? "active" : ""}`} onClick={() => setTab("blog")}>Blog <span className="n">{BLOG.length}</span></button>
-        <button className={`cms-sub-b ${tab === "depoimentos" ? "active" : ""}`} onClick={() => setTab("depoimentos")}>Depoimentos <span className="n">{DEPOIMENTOS.length}</span></button>
-        <button className={`cms-sub-b ${tab === "leads" ? "active" : ""}`} onClick={() => setTab("leads")}>Leads <span className="n">5</span></button>
-        <button className={`cms-sub-b ${tab === "site" ? "active" : ""}`} onClick={() => setTab("site")}>Detalhes do site</button>
-        <button className={`cms-sub-b ${tab === "modulo" ? "active" : ""}`} onClick={() => setTab("modulo")}>Módulo</button>
-      </div>
 
       {tab === "site" ? <Detalhes />
         : tab === "modulo" ? <window.CmsExtras.Modulo />

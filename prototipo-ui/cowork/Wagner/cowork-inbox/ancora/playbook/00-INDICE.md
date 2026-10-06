@@ -58,85 +58,159 @@ Li em `752041ac450d`; a última busca do turno já respondeu de `7742b9621c32`. 
 ## Fonte da máquina (o `placar-indice.mjs` lê o bloco abaixo)
 ```json
 {
- "modulo": "ancora",
- "sha": "752041ac450d",
- "gerado": "2026-09-09",
- "variaveis": {
-  "ALVO": "scripts/design/ancora.mjs",
-  "FIXO": "prototipo-ui/cowork/Wagner"
- },
- "decisoes": [
-  {
-   "id": "D-SIMBOLO",
-   "pergunta": "related_prototype passa a exigir granularidade de símbolo (arquivo :: símbolo :: faixa), como Sells/Caixa já declara? Sem isso, 20 charters do Ponto e 4 do Financeiro apontam pro mesmo arquivo e o contrato de tela não é decidível pela âncora.",
-   "respondida": false,
-   "define": "FORMATO_ANCORA"
+  "modulo": "ancora",
+  "sha": "752041ac450d",
+  "gerado": "2026-09-09",
+  "variaveis": {
+    "ALVO": "scripts/design/ancora.mjs",
+    "FIXO": "prototipo-ui/cowork/Wagner"
   },
-  {
-   "id": "D-COMPONENT",
-   "pergunta": "O fallback mockupJsx(fm.component) do --list pode morrer? Ele é tautológico (âncora = a própria tela), mas nao medi quantas linhas hoje saem com via='component' — se for >0, alguma tela perde 'fonte' no design-coverage e a remoção precisa de [W].",
-   "respondida": false,
-   "define": "MATA_FALLBACK_COMPONENT"
-  },
-  {
-   "id": "D-EVIDENCIA",
-   "pergunta": "O que autoriza afirmar que uma tela tem ancora?",
-   "respondida": true,
-   "resposta": "escala E0..E4 — E0 declarado (nao e evidencia) · E1 abre · E2 simbolo · E3 conteudo (ds-anchor-check) · E4 pixel (T7). Piso: draft=E1, live=E3, onda=E2. via='component' e E0. Ambiguidade = veredito nulo. Decidida por CC em _contrato-evidencia.md; ratifica W.",
-   "custo": "nenhum PR novo — as 3 threads ja existentes mudam de significado, nao de prefixo",
-   "afeta": ["01", "02", "03"],
-   "define": "NIVEL_EVIDENCIA"
-  }
- ],
- "threads": [
-  {
-   "id": "01",
-   "titulo": "perna do bundle resolve no LUGAR_FIXO sem --staging",
-   "dono": "CL",
-   "arquivo": "01-bundle-sem-staging.md",
-   "prefixo": ["scripts/design/ancora.mjs"],
-   "nao_toca": ["resources/js/Pages/**", ".claude/hooks/**", "scripts/governance/**", "prototipo-ui/cowork/Wagner/**"],
-   "depende_threads": [],
-   "depende_decisoes": [],
-   "provas": [
-    { "tipo": "contem", "path": "scripts/design/ancora.mjs", "padrao": "LUGAR_FIXO", "nota": "a constante já existe; a thread passa a usá-la na perna do bundle" },
-    { "tipo": "contem", "path": "scripts/design/ancora.mjs", "padrao": "BITE bundle sem staging" },
-    { "tipo": "contem", "path": ".claude/hooks/post-merge-ui-smoke-required.mjs", "padrao": "caminhoDaAncora", "guarda": true },
-    { "tipo": "arquivo", "path": "prototipo-ui/cowork/Wagner/repair-page.jsx", "guarda": true }
-   ]
-  },
-  {
-   "id": "02",
-   "titulo": "query ambigua deixa de sortear charter",
-   "dono": "CL",
-   "arquivo": "02-query-ambigua.md",
-   "prefixo": ["scripts/design/ancora.mjs"],
-   "nao_toca": ["resources/js/Pages/**", ".claude/hooks/**", "scripts/**"],
-   "depende_threads": ["01"],
-   "depende_decisoes": [],
-   "nota_provas": "mesmo arquivo da 01 — remedir o sha antes de escrever",
-   "provas": [
-    { "tipo": "contem", "path": "scripts/design/ancora.mjs", "padrao": "candidatos" },
-    { "tipo": "contem", "path": "scripts/design/ancora.mjs", "padrao": "BITE ambiguidade" },
-    { "tipo": "contem", "path": "scripts/design/ancora.mjs", "padrao": "CONTROLE ambiguidade" }
-   ]
-  },
-  {
-   "id": "03",
-   "titulo": "--list prova o arquivo e mede o fallback component",
-   "dono": "CL",
-   "arquivo": "03-list-prova-arquivo.md",
-   "prefixo": ["scripts/design/ancora.mjs"],
-   "nao_toca": ["scripts/governance/**", "resources/js/Pages/**"],
-   "depende_threads": ["02"],
-   "depende_decisoes": [],
-   "nota_provas": "a remoção do fallback component fica atrás de D-COMPONENT; a thread entrega o campo medido e o número",
-   "provas": [
-    { "tipo": "contem", "path": "scripts/design/ancora.mjs", "padrao": "existe" },
-    { "tipo": "contem", "path": "scripts/design/ancora.mjs", "padrao": "BITE list: fonte que nao abre" },
-    { "tipo": "contem", "path": "scripts/design/ancora.mjs", "padrao": "hasSource", "guarda": true, "nota": "consumidor design-coverage lê este campo — não pode desaparecer" }
-   ]
-  }
- ]
+  "decisoes": [
+    {
+      "id": "D-SIMBOLO",
+      "pergunta": "related_prototype passa a exigir granularidade de símbolo (arquivo :: símbolo :: faixa), como Sells/Caixa já declara? Sem isso, 20 charters do Ponto e 4 do Financeiro apontam pro mesmo arquivo e o contrato de tela não é decidível pela âncora.",
+      "respondida": true,
+      "define": "FORMATO_ANCORA",
+      "resposta": "sim para charter novo; os 24 legados migram numa thread própria, sem reprovar hoje",
+      "fonte": "[CC] por delegação de [W] 2026-10-05 (\"o resto pode ser medido, escolha\")"
+    },
+    {
+      "id": "D-COMPONENT",
+      "pergunta": "O fallback mockupJsx(fm.component) do --list pode morrer? Ele é tautológico (âncora = a própria tela), mas nao medi quantas linhas hoje saem com via='component' — se for >0, alguma tela perde 'fonte' no design-coverage e a remoção precisa de [W].",
+      "respondida": true,
+      "define": "MATA_FALLBACK_COMPONENT",
+      "resposta": "medir primeiro: se via='component' der ≤5 linhas, o fallback sai; se der mais, fica e vira thread",
+      "fonte": "[CC] por delegação de [W] 2026-10-05 (\"o resto pode ser medido, escolha\")"
+    },
+    {
+      "id": "D-EVIDENCIA",
+      "pergunta": "O que autoriza afirmar que uma tela tem ancora?",
+      "respondida": true,
+      "resposta": "escala E0..E4 — E0 declarado (nao e evidencia) · E1 abre · E2 simbolo · E3 conteudo (ds-anchor-check) · E4 pixel (T7). Piso: draft=E1, live=E3, onda=E2. via='component' e E0. Ambiguidade = veredito nulo. Decidida por CC em _contrato-evidencia.md; ratifica W.",
+      "custo": "nenhum PR novo — as 3 threads ja existentes mudam de significado, nao de prefixo",
+      "afeta": [
+        "01",
+        "02",
+        "03"
+      ],
+      "define": "NIVEL_EVIDENCIA"
+    }
+  ],
+  "threads": [
+    {
+      "id": "01",
+      "titulo": "perna do bundle resolve no LUGAR_FIXO sem --staging",
+      "dono": "CL",
+      "arquivo": "01-bundle-sem-staging.md",
+      "prefixo": [
+        "scripts/design/ancora.mjs"
+      ],
+      "nao_toca": [
+        "resources/js/Pages/**",
+        ".claude/hooks/**",
+        "scripts/governance/**",
+        "prototipo-ui/cowork/Wagner/**"
+      ],
+      "depende_threads": [],
+      "depende_decisoes": [],
+      "provas": [
+        {
+          "tipo": "contem",
+          "path": "scripts/design/ancora.mjs",
+          "padrao": "LUGAR_FIXO",
+          "nota": "a constante já existe; a thread passa a usá-la na perna do bundle"
+        },
+        {
+          "tipo": "contem",
+          "path": "scripts/design/ancora.mjs",
+          "padrao": "BITE bundle sem staging"
+        },
+        {
+          "tipo": "contem",
+          "path": ".claude/hooks/post-merge-ui-smoke-required.mjs",
+          "padrao": "caminhoDaAncora",
+          "guarda": true
+        },
+        {
+          "tipo": "arquivo",
+          "path": "prototipo-ui/cowork/Wagner/repair-page.jsx",
+          "guarda": true
+        }
+      ]
+    },
+    {
+      "id": "02",
+      "titulo": "query ambigua deixa de sortear charter",
+      "dono": "CL",
+      "arquivo": "02-query-ambigua.md",
+      "prefixo": [
+        "scripts/design/ancora.mjs"
+      ],
+      "nao_toca": [
+        "resources/js/Pages/**",
+        ".claude/hooks/**",
+        "scripts/**"
+      ],
+      "depende_threads": [
+        "01"
+      ],
+      "depende_decisoes": [],
+      "nota_provas": "mesmo arquivo da 01 — remedir o sha antes de escrever",
+      "provas": [
+        {
+          "tipo": "contem",
+          "path": "scripts/design/ancora.mjs",
+          "padrao": "candidatos"
+        },
+        {
+          "tipo": "contem",
+          "path": "scripts/design/ancora.mjs",
+          "padrao": "BITE ambiguidade"
+        },
+        {
+          "tipo": "contem",
+          "path": "scripts/design/ancora.mjs",
+          "padrao": "CONTROLE ambiguidade"
+        }
+      ]
+    },
+    {
+      "id": "03",
+      "titulo": "--list prova o arquivo e mede o fallback component",
+      "dono": "CL",
+      "arquivo": "03-list-prova-arquivo.md",
+      "prefixo": [
+        "scripts/design/ancora.mjs"
+      ],
+      "nao_toca": [
+        "scripts/governance/**",
+        "resources/js/Pages/**"
+      ],
+      "depende_threads": [
+        "02"
+      ],
+      "depende_decisoes": [],
+      "nota_provas": "a remoção do fallback component fica atrás de D-COMPONENT; a thread entrega o campo medido e o número",
+      "provas": [
+        {
+          "tipo": "contem",
+          "path": "scripts/design/ancora.mjs",
+          "padrao": "existe"
+        },
+        {
+          "tipo": "contem",
+          "path": "scripts/design/ancora.mjs",
+          "padrao": "BITE list: fonte que nao abre"
+        },
+        {
+          "tipo": "contem",
+          "path": "scripts/design/ancora.mjs",
+          "padrao": "hasSource",
+          "guarda": true,
+          "nota": "consumidor design-coverage lê este campo — não pode desaparecer"
+        }
+      ]
+    }
+  ]
 }
 ```

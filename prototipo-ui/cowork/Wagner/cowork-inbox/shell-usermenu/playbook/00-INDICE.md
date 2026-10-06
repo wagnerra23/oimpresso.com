@@ -26,16 +26,20 @@ alvo_medido: NAO
     {
       "id": "D-CMD-BARRA",
       "pergunta": "Sidebar.tsx:1273 renderiza o kbd '⌘/' no trigger de Modo de trabalho, mas NENHUM listener liga: AppShellV2 liga ⌘K (:389) e ⌘\\ (:395), e useSidebarShortcut.ts:135 descarta evento com metaKey. Alem disso '/' SEM modificador ja e 'focar busca da pagina' em 5+ telas (Cliente/Index:742, Essentials/{Todo,Licencas,Knowledge}, Financeiro/{Cobranca,Unificado}). Liga o atalho ou remove o rotulo?",
-      "respondida": false,
+      "respondida": true,
       "dono": "[W]",
-      "define": "DESTINO_DO_CMD_BARRA"
+      "define": "DESTINO_DO_CMD_BARRA",
+      "resposta": "tirar a dica ⌘/ do gatilho (não prometer atalho que não existe)",
+      "fonte": "[CC] por delegação de [W] 2026-10-05 (\"o resto pode ser medido, escolha\")"
     },
     {
       "id": "D-PRESENCA",
       "pergunta": "Presenca (Disponivel/Ocupado/Ausente/Invisivel) tem receptor? Nao encontrei tabela de status de usuario no main lido. Se nao existe, o controle e UI-only e isso precisa estar declarado no charter — ou o item sai do menu.",
-      "respondida": false,
+      "respondida": true,
       "dono": "[W]",
-      "define": "RECEPTOR_DE_PRESENCA"
+      "define": "RECEPTOR_DE_PRESENCA",
+      "resposta": "esconder o controle de presença até existir receptor no backend",
+      "fonte": "[CC] por delegação de [W] 2026-10-05 (\"o resto pode ser medido, escolha\")"
     }
   ],
   "threads": [
@@ -44,13 +48,25 @@ alvo_medido: NAO
       "titulo": "Aparencia: a cascata de tema abre e escolhe (hoje o botao nao tem handler)",
       "dono": "CL",
       "arquivo": "01-aparencia-tema.md",
-      "prefixo": ["resources/js/Components/cockpit/Sidebar.tsx"],
-      "nao_toca": ["resources/css/**", "resources/js/Layouts/AppShellV2.tsx"],
+      "prefixo": [
+        "resources/js/Components/cockpit/Sidebar.tsx"
+      ],
+      "nao_toca": [
+        "resources/css/**",
+        "resources/js/Layouts/AppShellV2.tsx"
+      ],
       "depende_threads": [],
       "depende_decisoes": [],
       "provas": [
-        { "tipo": "execucao", "cmd": "npm run lint && npx tsc --noEmit", "exige": "exit 0" },
-        { "tipo": "runtime", "exige": "clicar Aparencia abre 2 opcoes (Escuro padrao / Claro); escolher escreve data-theme no <html> e persiste no reload; controle positivo: recarregar com light guardado volta em light" }
+        {
+          "tipo": "execucao",
+          "cmd": "npm run lint && npx tsc --noEmit",
+          "exige": "exit 0"
+        },
+        {
+          "tipo": "runtime",
+          "exige": "clicar Aparencia abre 2 opcoes (Escuro padrao / Claro); escolher escreve data-theme no <html> e persiste no reload; controle positivo: recarregar com light guardado volta em light"
+        }
       ]
     },
     {
@@ -58,13 +74,25 @@ alvo_medido: NAO
       "titulo": "Sair: confirmar antes de encerrar (hoje o item nao tem handler)",
       "dono": "CL",
       "arquivo": "02-sair-confirma.md",
-      "prefixo": ["resources/js/Components/cockpit/Sidebar.tsx"],
-      "nao_toca": ["routes/**", "app/Http/Controllers/**"],
+      "prefixo": [
+        "resources/js/Components/cockpit/Sidebar.tsx"
+      ],
+      "nao_toca": [
+        "routes/**",
+        "app/Http/Controllers/**"
+      ],
       "depende_threads": [],
       "depende_decisoes": [],
       "provas": [
-        { "tipo": "execucao", "cmd": "npm run lint && npx tsc --noEmit", "exige": "exit 0" },
-        { "tipo": "runtime", "exige": "Sair pede confirmacao inline; Cancelar volta ao menu sem efeito; Encerrar dispara o logout REAL do app (POST /logout do UltimatePOS) — nao reload" }
+        {
+          "tipo": "execucao",
+          "cmd": "npm run lint && npx tsc --noEmit",
+          "exige": "exit 0"
+        },
+        {
+          "tipo": "runtime",
+          "exige": "Sair pede confirmacao inline; Cancelar volta ao menu sem efeito; Encerrar dispara o logout REAL do app (POST /logout do UltimatePOS) — nao reload"
+        }
       ]
     },
     {
@@ -72,13 +100,24 @@ alvo_medido: NAO
       "titulo": "+ Adicionar empresa: item com role=menuitem e sem acao nos dois dropdowns",
       "dono": "CL",
       "arquivo": "03-adicionar-empresa.md",
-      "prefixo": ["resources/js/Components/cockpit/Sidebar.tsx"],
-      "nao_toca": ["Modules/Superadmin/**"],
+      "prefixo": [
+        "resources/js/Components/cockpit/Sidebar.tsx"
+      ],
+      "nao_toca": [
+        "Modules/Superadmin/**"
+      ],
       "depende_threads": [],
       "depende_decisoes": [],
       "provas": [
-        { "tipo": "execucao", "cmd": "npm run lint && npx tsc --noEmit", "exige": "exit 0" },
-        { "tipo": "runtime", "exige": "o item navega pro destino de business (Superadmin > Negocios) OU vira disabled com motivo; nenhum role=menuitem sem acao sobra no dropdown — conferir nos DOIS (expandido e rail)" }
+        {
+          "tipo": "execucao",
+          "cmd": "npm run lint && npx tsc --noEmit",
+          "exige": "exit 0"
+        },
+        {
+          "tipo": "runtime",
+          "exige": "o item navega pro destino de business (Superadmin > Negocios) OU vira disabled com motivo; nenhum role=menuitem sem acao sobra no dropdown — conferir nos DOIS (expandido e rail)"
+        }
       ]
     }
   ]

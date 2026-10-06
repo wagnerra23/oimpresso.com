@@ -155,15 +155,33 @@ function FilterDropdown({ label, value, options, onChange }) {
   );
 }
 
+// Submenu do módulo (abas abaixo do PageHeader) — uma aba por rota sa-*; troca de rota via window.__go.
+const SA_ABAS = [
+  { key: "superadmin", label: "Visão geral" },
+  { key: "sa-negocios", label: "Negócios", n: NEGOCIOS.length },
+  { key: "sa-assinaturas", label: "Assinaturas", n: ASSINATURAS.length },
+  { key: "sa-pacotes", label: "Pacotes", n: PACOTES.length },
+  { key: "sa-usuarios", label: "Usuário 360°" },
+  { key: "sa-comunicador", label: "Comunicador" },
+  { key: "sa-config", label: "Configurações" },
+];
+const SaCtx = React.createContext(null);
+function SaSubnav({ ativo }) {
+  const ctx = React.useContext(SaCtx);
+  const atual = ativo || ctx || "superadmin";
+  return window.OiRotaTabs ? <window.OiRotaTabs ariaLabel="Seções do Superadmin" ativo={atual} tabs={SA_ABAS} /> : null;
+}
+window.SaSubnav = SaSubnav;
+
 function PageHead({ titulo, sub, acoes }) {
   const { PageHeader } = ds();
-  if (!PageHeader) return (
+  if (!PageHeader) return (<>
     <header className="os-page-h">
       <div className="os-page-h-l"><h1>{titulo}</h1><p>{sub}</p></div>
       <div className="os-page-h-r">{acoes}</div>
     </header>
-  );
-  return <div className="sa-ph"><PageHeader title={titulo} subtitle={sub} actions={acoes}/></div>;
+  </>);
+  return <><div className="sa-ph"><PageHeader title={titulo} subtitle={sub} actions={acoes}/></div><SaSubnav /></>;
 }
 
 function Kpi({ v, l, sub, tone }) {
@@ -1422,12 +1440,10 @@ function ViewConfig() {
 }
 
 function SuperadminPage({ view = "visao" }) {
-  if (view === "negocios") return <ViewNegocios />;
-  if (view === "assinaturas") return <ViewAssinaturas />;
-  if (view === "pacotes") return <ViewPacotes />;
-  if (view === "comunicador") return <ViewComunicador />;
-  if (view === "config") return <ViewConfig />;
-  return <ViewVisao />;
+  const M = { negocios: [ViewNegocios, "sa-negocios"], assinaturas: [ViewAssinaturas, "sa-assinaturas"], pacotes: [ViewPacotes, "sa-pacotes"],
+    comunicador: [ViewComunicador, "sa-comunicador"], config: [ViewConfig, "sa-config"] };
+  const [V, rota] = M[view] || [ViewVisao, "superadmin"];
+  return <SaCtx.Provider value={rota}><V /></SaCtx.Provider>;
 }
 
 window.SuperadminPage = SuperadminPage;

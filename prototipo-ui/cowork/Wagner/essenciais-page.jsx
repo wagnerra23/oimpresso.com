@@ -650,13 +650,7 @@ function EssenciaisPage({ view = "essenciais" }) {
   return (
     <Ambiente valor={ambiente}>
     <div className="os-page hrm-page ess-page" data-screen-label={`Essenciais · ${cur.label}`}>
-      <header className="os-page-h">
-        <div className="os-page-h-l">
-          <h1>Essenciais</h1>
-          <p className="tabular">{abertas} tarefa{abertas === 1 ? "" : "s"} em aberto{atrasadas ? ` · ${atrasadas} atrasada${atrasadas === 1 ? "" : "s"}` : ""} · {dados.docs.length} documentos · {dados.lemb.length} lembretes no calendário</p>
-        </div>
-        <div className="os-page-h-r">
-          <span className="hrm-sim" title="Afordância de protótipo — não vai pro F3">
+      <window.OiPageHead titulo={"Essenciais"} sub={<>{abertas} tarefa{abertas === 1 ? "" : "s"} em aberto{atrasadas ? ` · ${atrasadas} atrasada${atrasadas === 1 ? "" : "s"}` : ""} · {dados.docs.length} documentos · {dados.lemb.length} lembretes no calendário</>} acoes={<><span className="hrm-sim" title="Afordância de protótipo — não vai pro F3">
             <select className="hrm-sel" value={papel} onChange={trocar(setPapel)} aria-label="Papel simulado">
               {Object.entries(H.PAPEIS).map(([k, v]) => <option key={k} value={k}>{v.l}</option>)}
             </select>
@@ -665,9 +659,7 @@ function EssenciaisPage({ view = "essenciais" }) {
             </select>
           </span>
           <span className="hrm-scope">Essentials · /essentials</span>
-          <button className="os-btn ghost" onClick={() => go("hrm")}>HRM</button>
-        </div>
-      </header>
+          <button className="os-btn ghost" onClick={() => go("hrm")}>HRM</button></>} />
 
       <window.CliTabs className="hrm-tabs" ariaLabel="Telas de essenciais"
         active={TAB_DE[view] || view} onChange={go}

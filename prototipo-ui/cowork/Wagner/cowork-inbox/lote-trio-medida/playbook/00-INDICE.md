@@ -39,7 +39,22 @@ Nenhuma.
     "PG": "Modules/PaymentGateway/Resources/js/Pages/Settings/PaymentGateways",
     "ALVOS": "governance/design/targets"
   },
-  "decisoes": [],
+  "decisoes": [
+    {
+      "id": "E-AUDIT-REVERT",
+      "pergunta": "errata do Code (errata _saida-01)",
+      "respondida": true,
+      "resposta": "Auditoria é só leitura: sem reverter dentro dela; reverter acontece na tela de origem do registro",
+      "fonte": "[CC] por delegação de [W] 2026-10-05 (\"o resto pode ser medido, escolha\")"
+    },
+    {
+      "id": "E-NFSE-DETALHE",
+      "pergunta": "errata do Code (errata _saida-03)",
+      "respondida": true,
+      "resposta": "detalhe da NFS-e em drawer (PT-02), como o protótipo; a página de produção vira drawer na thread da tela",
+      "fonte": "[CC] por delegação de [W] 2026-10-05 (\"o resto pode ser medido, escolha\")"
+    }
+  ],
   "threads": [
     {
       "id": "01",

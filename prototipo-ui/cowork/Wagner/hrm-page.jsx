@@ -554,13 +554,7 @@ function HrmPage({ view = "hrm" }) {
   return (
     <Ambiente valor={ambiente}>
     <div className="os-page hrm-page" data-screen-label={`HRM · ${cur.label}`}>
-      <header className="os-page-h">
-        <div className="os-page-h-l">
-          <h1>HRM</h1>
-          <p className="tabular">{H.EMP.length} colaboradores · {pend} licença{pend === 1 ? "" : "s"} a aprovar · folha 08/2026 em rascunho</p>
-        </div>
-        <div className="os-page-h-r">
-          <span className="hrm-sim" title="Afordância de protótipo — não vai pro F3">
+      <window.OiPageHead titulo={"HRM"} sub={<>{H.EMP.length} colaboradores · {pend} licença{pend === 1 ? "" : "s"} a aprovar · folha 08/2026 em rascunho</>} acoes={<><span className="hrm-sim" title="Afordância de protótipo — não vai pro F3">
             <select className="hrm-sel" value={papel} onChange={trocar(setPapel)} aria-label="Papel simulado">
               {Object.entries(H.PAPEIS).map(([k, v]) => <option key={k} value={k}>{v.l}</option>)}
             </select>
@@ -569,9 +563,7 @@ function HrmPage({ view = "hrm" }) {
             </select>
           </span>
           <span className="hrm-scope">Essentials · /hrm</span>
-          <button className="os-btn ghost" onClick={() => go("ponto")}>Ponto</button>
-        </div>
-      </header>
+          <button className="os-btn ghost" onClick={() => go("ponto")}>Ponto</button></>} />
 
       <window.CliTabs className="hrm-tabs" ariaLabel="Telas de RH" active={view} onChange={go}
         tabs={TABS.map((t) => ({ key: t.id, label: t.label, n: t.n ? t.n({ pend, dados: ambiente.dados }) : null }))} />

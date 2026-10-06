@@ -106,10 +106,19 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/officeimpresso/playbook
     {
       "id": "D6",
       "pergunta": "Ligar a flag useV2OfficeimpressoLicencas em produção (hoje OFF: produção segue na Blade)?",
-      "respondida": false,
+      "respondida": true,
       "destrava": [
         "09"
-      ]
+      ],
+      "resposta": "ligar a flag useV2OfficeimpressoLicencas em produção, seguindo o RUNBOOK §F2 (rota de fuga = Blade)",
+      "fonte": "[W] 2026-10-05 no chat"
+    },
+    {
+      "id": "E-SENHA-DESKTOP",
+      "pergunta": "errata do Code (errata _saida-02)",
+      "respondida": true,
+      "resposta": "a resposta ao WR Comercial NÃO muda; o backend só deixa de gravar senha (restrição do pedido: desktop em campo não pode quebrar)",
+      "fonte": "[CC] por delegação de [W] 2026-10-05 (\"o resto pode ser medido, escolha\")"
     }
   ],
   "threads": [
@@ -189,7 +198,8 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/officeimpresso/playbook
           "path": "${MOD}/Entities/Licenca_Computador.php",
           "padrao": "'contra_senha'"
         }
-      ]
+      ],
+      "bloqueio": "vetado: [W] D4 = \"não\" (_DECISOES-W-2026-10-01b) — colunas ficam; gravação já parada no #8365; tirar do fillable trava no gate Tier 0 (_saida-03)"
     },
     {
       "id": "04",
@@ -286,7 +296,8 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/officeimpresso/playbook
           "tipo": "medicao",
           "nota": "duas medidas byte-idênticas por tela, cada uma com o seu design.json (hoje as duas usam o blob 0369a411b2dd)"
         }
-      ]
+      ],
+      "bloqueio": "NÃO MEDI (_saida-A3): prod não medível (shell AdminLTE, CSS vazio) e Timeline sem vista própria no protótipo"
     },
     {
       "id": "06",
@@ -346,7 +357,8 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/officeimpresso/playbook
           "nota": "design-diff --compare --check sem DIVERGE (bug), run citado no _saida"
         }
       ],
-      "nota_provas": "design-diff --compare --check sem DIVERGE (bug), run no recibo"
+      "nota_provas": "design-diff --compare --check sem DIVERGE (bug), run no recibo",
+      "bloqueio": "depende da A3, que não mediu — reabre quando a A4 der vista à Timeline e houver lado prod medível"
     },
     {
       "id": "08",
@@ -400,9 +412,30 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/officeimpresso/playbook
           "nota": "flag ligada no ambiente, RUNBOOK-licencas §F2 seguido, rota de fuga testada"
         }
       ]
+    },
+    {
+      "id": "A4",
+      "titulo": "Protótipo: Timeline do log com vista própria (rota oi-log-timeline)",
+      "dono": "CC",
+      "vaga": 2,
+      "arquivo": "A4-timeline-vista.md",
+      "prefixo": [
+        "prototipo-ui/cowork/Wagner/officeimpresso-page.jsx",
+        "prototipo-ui/cowork/Wagner/app.jsx"
+      ],
+      "nao_toca": [
+        "Modules/"
+      ],
+      "provas": [
+        {
+          "tipo": "contem",
+          "path": "prototipo-ui/cowork/Wagner/app.jsx",
+          "padrao": "\"oi-log-timeline\""
+        }
+      ]
     }
   ],
-  "revisado": "2026-10-01 — recibos e _DECISOES do main c12552f40e2a aplicados · 2026-10-01 reconferência @99e6fa3e08f0: threads novas 09"
+  "revisado": "2026-10-01 — recibos e _DECISOES do main c12552f40e2a aplicados · 2026-10-01 reconferência @99e6fa3e08f0: threads novas 09 · 2026-10-05 revisão dos recibos @aacb74f4df18"
 }
 ```
 

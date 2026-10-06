@@ -45,9 +45,11 @@ O `sync/` deste projeto está congelado em **2026-09-07** enquanto o build andou
     {
       "id": "D-QUEM-REGENERA",
       "pergunta": "A recepcao REGENERA o pacote automaticamente (commit do bot no PR) ou so DETECTA e exige que o humano rode o gerador? Regenerar sozinha e conveniente e cria um segundo autor de pacote; detectar mantem um dono so.",
-      "respondida": false,
+      "respondida": true,
       "dono": "[W]",
-      "define": "AUTORIA_DO_PACOTE"
+      "define": "AUTORIA_DO_PACOTE",
+      "resposta": "só DETECTA e exige o humano rodar o gerador — sem segundo autor no PR",
+      "fonte": "[CC] por delegação de [W] 2026-10-05 (\"o resto pode ser medido, escolha\")"
     }
   ],
   "threads": [

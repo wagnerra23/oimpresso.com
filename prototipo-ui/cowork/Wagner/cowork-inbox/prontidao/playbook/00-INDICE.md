@@ -25,7 +25,13 @@ base: wagnerra23/oimpresso.com@main árvore dd380c33a374 (lida 2026-09-23 11:20 
     "Manufacturing/Settings"
   ],
   "decisoes": [
-    "[W] 2026-09-23: agrupar por o que falta; Manufacturing fora"
+    {
+      "id": "D-AGRUPAR",
+      "pergunta": "Como agrupar a fila de prontidão",
+      "respondida": true,
+      "resposta": "agrupar por o que falta; Manufacturing fora",
+      "fonte": "[W] 2026-09-23"
+    }
   ],
   "threads": [
     {

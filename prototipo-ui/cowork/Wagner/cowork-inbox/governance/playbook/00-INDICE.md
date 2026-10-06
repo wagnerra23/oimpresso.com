@@ -97,7 +97,9 @@ Você escreve SOMENTE no seu prefixo e no seu _saida-NN.md. Terminou: escreva o 
     {
       "id": "D-CONTRATO-9",
       "pergunta": "Estender o contrato de 5 para 9 telas custa 96 KB de leitura (RECUSA por teto). Vira frente propria depois da 03?",
-      "respondida": false
+      "respondida": true,
+      "resposta": "sim: frente própria depois da 03",
+      "fonte": "[CC] por delegação de [W] 2026-10-05 (\"o resto pode ser medido, escolha\")"
     },
     {
       "id": "G-NOTAS",

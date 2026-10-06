@@ -46,10 +46,8 @@ form, inclusive de outro negócio. Agora respondem `success: false` e não grava
 A ficha pede "drawer PT-02 do protótipo". O protótipo **não tem drawer**: `produto-cadastros.jsx`
 desenha um modal central (`FormModal`, 560/620px), conferido no Cowork vivo em 2026-10-05
 (`get_file` devolve o mesmo `FormModal`). Segui a ficha na forma (drawer PT-02, 760px) e o
-protótipo no conteúdo.
-
-**Decisão [W] 2026-10-05:** "pode seguir com o drawer, mantém PT-02". **Pedido ao Cowork:** atualizar o
-`FormModal` de `produto-cadastros.jsx` para drawer PT-02, para o protótipo voltar a ser a fonte da forma.
+protótipo no conteúdo. **Pedido ao Cowork:** confirmar o drawer na ficha e no protótipo, ou mandar
+voltar ao modal central (troca só o contêiner).
 
 ## Comparação (prova do índice)
 

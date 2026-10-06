@@ -97,30 +97,45 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/produto/playbook/
     {
       "id": "D4",
       "pergunta": "Modelo real de folha de etiqueta",
-      "respondida": false,
+      "respondida": true,
       "destrava": [
         "04"
-      ]
+      ],
+      "resposta": "vários modelos de folha; o catálogo de modelos do protótipo (Etiquetas) é o alvo — o modelo real deixa de ser pergunta",
+      "fonte": "[W] 2026-10-05 no chat"
     },
     {
       "id": "D5",
       "pergunta": "Análises de produto: entra, vai pro BI ou sai?",
-      "respondida": false,
-      "destrava": []
+      "respondida": true,
+      "destrava": [],
+      "resposta": "vai pro BI: sai do menu Produto, entra como relatório em Relatórios/BI",
+      "fonte": "[CC] por delegação de [W] 2026-10-05 (\"o resto pode ser medido, escolha\")"
     },
     {
       "id": "D6",
       "pergunta": "Sugestão de compra: rascunho em Compras ou exportar lista?",
-      "respondida": false,
-      "destrava": []
+      "respondida": true,
+      "destrava": [],
+      "resposta": "vira rascunho de requisição em Compras (não exporta lista)",
+      "fonte": "[CC] por delegação de [W] 2026-10-05 (\"o resto pode ser medido, escolha\")"
     },
     {
       "id": "D7",
       "pergunta": "Rótulos dos campos personalizados 1–7 do piloto",
-      "respondida": false,
+      "respondida": true,
       "destrava": [
         "00"
-      ]
+      ],
+      "resposta": "sem rótulo fixo: ler do cadastro do negócio (custom_field_1..7 nas configurações); vazio = campo oculto",
+      "fonte": "[CC] por delegação de [W] 2026-10-05 (\"o resto pode ser medido, escolha\")"
+    },
+    {
+      "id": "E-CATEGORIA",
+      "pergunta": "errata do Code (errata _saida-02)",
+      "respondida": true,
+      "resposta": "excluir categoria com filhas/produtos é RECUSADO (o que o Code entregou); o protótipo passa a recusar também",
+      "fonte": "[CC] por delegação de [W] 2026-10-05 (\"o resto pode ser medido, escolha\")"
     }
   ],
   "threads": [
@@ -517,7 +532,7 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/produto/playbook/
     },
     {
       "id": "10",
-      "titulo": "Cadastros: criar/editar em drawer (hoje abre o modal da Blade)",
+      "titulo": "Cadastros: criar/editar em drawer — PR-a Unidades + Marcas (#8721)",
       "dono": "CL",
       "vaga": 3,
       "prs": 2,
@@ -541,9 +556,35 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/produto/playbook/
           "nota": "drawer do protótipo × Page, design-diff no recibo"
         }
       ]
+    },
+    {
+      "id": "11",
+      "titulo": "Cadastros: criar/editar em drawer — PR-b Categorias · Variações · Garantias",
+      "dono": "CL",
+      "vaga": 3,
+      "prs": 1,
+      "arquivo": "11-cadastros-form-b.md",
+      "depende_threads": [
+        "10"
+      ],
+      "prefixo": [
+        "resources/js/Pages/Produto/Cadastros/",
+        "app/Http/Controllers/TaxonomyController.php",
+        "app/Http/Controllers/VariationTemplateController.php",
+        "app/Http/Controllers/WarrantyController.php"
+      ],
+      "nao_toca": [
+        "governance/design/contracts/produto-cadastros.contract.json"
+      ],
+      "provas": [
+        {
+          "tipo": "comparacao",
+          "nota": "drawer do protótipo × Page, design-diff no recibo"
+        }
+      ]
     }
   ],
-  "revisado": "2026-10-01 — recibos e _DECISOES do main c12552f40e2a aplicados · 2026-10-01 reconferência @99e6fa3e08f0: threads novas 09,10"
+  "revisado": "2026-10-01 — recibos e _DECISOES do main c12552f40e2a aplicados · 2026-10-01 reconferência @99e6fa3e08f0: threads novas 09,10 · 2026-10-05 revisão dos recibos @aacb74f4df18"
 }
 ```
 

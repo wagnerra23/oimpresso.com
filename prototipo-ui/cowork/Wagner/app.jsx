@@ -891,7 +891,8 @@ function App() {
   if (route === "oi-licencas") content = <window.OfficeimpressoPage view="licencas" />;else
   if (route === "oi-clientes") content = <window.OfficeimpressoPage view="clientes" />;else
   if (route === "oi-importar") content = <window.OfficeimpressoPage view="importar" />;else
-  if (route === "oi-log") content = <window.OfficeimpressoPage view="log" />;
+  if (route === "oi-log") content = <window.OfficeimpressoPage view="log" />;else
+  if (route === "oi-log-timeline") content = <window.OfficeimpressoPage view="timeline" />;
   // Cobrança Recorrente (F1) — sub-nav espelha git RecurringBilling (Assinaturas/Planos/Faturas/Configurações)
   else if (route === "recurring") content = <window.CobrancaRecorrentePage view="assinaturas" />;else
   if (route === "rb-assinaturas") content = <window.CobrancaRecorrentePage view="assinaturas" />;else

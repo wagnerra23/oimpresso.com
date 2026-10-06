@@ -134,13 +134,15 @@ function Confirmar({ pedido, onClose }) {
   const { Modal } = U();
   const { Alert, Button } = DS();
   if (!Modal) return null;
-  const bloqueado = pedido.emUso > 0;
+  const bloqueado = pedido.emUso > 0 || pedido.filhas > 0;
   return (
     <Modal titulo={pedido.titulo} onClose={onClose} largura={520}
       acoes={<><Button onClick={onClose}>{bloqueado ? "Fechar" : "Cancelar"}</Button>
         {!bloqueado && <Button variant="danger" onClick={() => { onClose(); pedido.on?.(); }}>{pedido.cta}</Button>}</>}>
       {bloqueado
-        ? <Alert tone="danger" title="O servidor recusa esta exclusão">{pedido.emUso} produto(s) usam este registro. Troque o valor nesses produtos primeiro — pela <b>Edição em massa</b> resolve em uma passada.</Alert>
+        ? <Alert tone="danger" title="O servidor recusa esta exclusão">{pedido.emUso > 0
+            ? <>{pedido.emUso} produto(s) usam este registro. Troque o valor nesses produtos primeiro — pela <b>Edição em massa</b> resolve em uma passada.</>
+            : <>Esta categoria tem {pedido.filhas} subcategoria(s). Mova ou exclua as subcategorias primeiro.</>}</Alert>
         : <Alert tone="warn" title="Ação sem volta">{pedido.corpo}</Alert>}
     </Modal>
   );
@@ -364,7 +366,8 @@ function AbaCategorias({ rows, setRows, avisar, onIr, estado, perms }) {
         acoes: <AcoesLinha podeEditar={perms.can("category.update")} podeExcluir={perms.can("category.delete")}
           motivo="Seu papel não tem category.update — quem libera é o administrador, em Papéis."
           onEditar={() => setEdit({ ...r })}
-          onExcluir={() => setConfirmar({ titulo: "Excluir “" + r.name + "”", cta: "Excluir", emUso, corpo: r.parent ? "Subcategoria sem produto — sai limpo." : "As subcategorias vão junto.", on: () => { setRows(rows.filter((x) => x.id !== r.id && x.parent !== r.id)); avisar("Categoria excluída.", "warn"); } })} />,
+          onExcluir={() => { const filhas = rows.filter((x) => x.parent === r.id).length; // E-CATEGORIA [W] 05/10: com filhas, recusa (igual ao Code).
+            setConfirmar({ titulo: "Excluir “" + r.name + "”", cta: "Excluir", emUso, filhas, corpo: r.parent ? "Subcategoria sem produto — sai limpo." : "Categoria sem subcategoria nem produto — sai limpo.", on: () => { setRows(rows.filter((x) => x.id !== r.id)); avisar("Categoria excluída.", "warn"); } }); }} />,
       },
     };
   });

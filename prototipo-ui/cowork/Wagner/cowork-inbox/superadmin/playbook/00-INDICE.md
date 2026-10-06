@@ -159,7 +159,7 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/superadmin/playbook/
       "prs": 1,
       "arquivo": "03-formularios.md",
       "depende_threads": [
-        "A1"
+        "A2"
       ],
       "prefixo": [
         "${MOD}/Http/Controllers/PackagesController.php",
@@ -184,7 +184,7 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/superadmin/playbook/
       "prs": 1,
       "arquivo": "04-formularios.md",
       "depende_threads": [
-        "A1"
+        "A2"
       ],
       "prefixo": [
         "${MOD}/Http/Controllers/SuperadminSubscriptionsController.php",
@@ -277,9 +277,31 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/superadmin/playbook/
           "padrao": "Inertia::render("
         }
       ]
+    },
+    {
+      "id": "A2",
+      "titulo": "Remedir Negócios · Pacotes · Assinaturas · Dashboard (o lote só mede os 2 lados juntos)",
+      "dono": "CL",
+      "vaga": 3,
+      "arquivo": "A2-remedir-4.md",
+      "depende_threads": [
+        "A1"
+      ],
+      "prefixo": [
+        "governance/design/targets/medidas/superadmin--*"
+      ],
+      "nao_toca": [
+        "Modules/Superadmin/"
+      ],
+      "provas": [
+        {
+          "tipo": "medicao",
+          "nota": "4 medidas, cada uma com o seu design.json (rota sa-* própria), 2× byte-idêntico"
+        }
+      ]
     }
   ],
-  "revisado": "2026-10-01 — recibos e _DECISOES do main c12552f40e2a aplicados · 2026-10-01 reconferência @99e6fa3e08f0: threads novas —"
+  "revisado": "2026-10-01 — recibos e _DECISOES do main c12552f40e2a aplicados · 2026-10-01 reconferência @99e6fa3e08f0: threads novas — · 2026-10-05 revisão dos recibos @aacb74f4df18"
 }
 ```
 
