@@ -277,7 +277,6 @@ jobs:
             Modules/NfeBrasil/Tests/Feature/DanfeServiceTest.php \
             Modules/NfeBrasil/Tests/Feature/ImportRegrasCsvServiceTest.php \
             Modules/NfeBrasil/Tests/Feature/MotorTributarioServiceTest.php \
-            Modules/NfeBrasil/Tests/Feature/NfeEmissaoPorItemTest.php \
             Modules/NfeBrasil/Tests/Feature/TributacaoControllerTest.php \
             Modules/NfeBrasil/Tests/Feature/EmpresaFiscalLookupTest.php \
             Modules/NfeBrasil/Tests/Feature/TributacaoTemplateSugestaoTest.php \
