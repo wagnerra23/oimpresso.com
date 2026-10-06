@@ -211,24 +211,26 @@ describe('seleção por caixinha', () => {
     montar({ selection: selecao() });
     expect(screen.getAllByRole('checkbox')).toHaveLength(4);
     expect(screen.getByRole('checkbox', { name: 'Selecionar todas' })).toBeTruthy();
-    // Margem padrão do navegador, escrita à mão (o reset do Tailwind a zera) — é ela que dá ao
-    // cabeçalho os 34px do protótipo.
-    for (const c of screen.getAllByRole('checkbox')) expect(cls(c)).toContain('m-[3px_3px_3px_4px]');
-    expect((screen.getByRole('checkbox', { name: 'Selecionar Segunda' }) as HTMLInputElement).checked).toBe(true);
-    expect((screen.getByRole('checkbox', { name: 'Selecionar Primeira' }) as HTMLInputElement).checked).toBe(false);
+    // É o `Checkbox` do DS (botão com `role=checkbox`), não a caixa nativa do navegador — [M]
+    // 2026-10-06. O `-my-0.5` faz os 16px caberem na altura de uma linha de texto do cabeçalho.
+    for (const c of screen.getAllByRole('checkbox')) {
+      expect(c.tagName).toBe('BUTTON');
+      expect(cls(c)).toContain('-my-0.5');
+    }
+    expect(screen.getByRole('checkbox', { name: 'Selecionar Segunda' }).getAttribute('aria-checked')).toBe('true');
+    expect(screen.getByRole('checkbox', { name: 'Selecionar Primeira' }).getAttribute('aria-checked')).toBe('false');
   });
 
   it('o estado do cabeçalho vem de fora: some → indeterminado · all → marcado', () => {
     const { rerender } = montar({ selection: selecao({ allState: 'some' }) });
-    const todas = () => screen.getByRole('checkbox', { name: 'Selecionar todas' }) as HTMLInputElement;
-    expect(todas().indeterminate).toBe(true);
-    expect(todas().checked).toBe(false);
+    // Estado parcial = `aria-checked="mixed"` (o `indeterminate` do `Checkbox` desenha um tracinho).
+    const todas = () => screen.getByRole('checkbox', { name: 'Selecionar todas' });
+    expect(todas().getAttribute('aria-checked')).toBe('mixed');
     rerender(
       <DataTable<Linha> columns={COLUNAS} data={LINHAS} pagination={PAG} endpoint="/x" caption="Receitas"
         density="grid" selection={selecao({ allState: 'all' })} />,
     );
-    expect(todas().indeterminate).toBe(false);
-    expect(todas().checked).toBe(true);
+    expect(todas().getAttribute('aria-checked')).toBe('true');
   });
 
   it('marcar uma linha avisa a tela e NÃO abre a linha (mouse e Espaço)', () => {
