@@ -3,6 +3,124 @@ branch: main
 path: prototipo-ui/cowork
 
 ## Last sync
+date: 2026-10-06T15:01:28Z
+tree: 23c3f080aa94
+branch: main
+
+### Updated in this project
+- **Boletos reconciliado com a produção:** a tela saiu do build (`boletos-page.jsx` removido, rota `boletos` agora é 301 → `cobranca` como no `web.php:173`), e o chip `#BL-` do drawer do Financeiro abre a Cobrança em vez de rota morta.
+
+## Sync 2026-10-06 14:45
+date: 2026-10-06T14:45:00Z
+branch: main
+
+### Updated in this project
+- **Pesquisa online + aba Contador:** corrigi o texto sobre ICMS × ISS (a SEFAZ-SP trata o banner como ICMS) e o aviso de DIFAL no Simples (ADI 5.464). A aba Contador traz o fechamento do mês (10 conferências) e a revisão das regras. Abertas as threads 27–29 e 4 decisões.
+
+## Sync 2026-10-06 14:40
+date: 2026-10-06T14:40:00Z
+tree: 24561f0da83b
+branch: main
+
+### Updated in this project
+- **Bateria com 27 notas, 27 passam:** o simulador ganhou emitente (filial PR), tomador PJ/PF, retenções federais na NFS-e, benefício fiscal (base reduzida + cBenef) e interestadual pela regra do Senado. Fator R entrou na aba Serviços. Threads 23–26 abertas.
+
+## Sync 2026-10-06 14:30
+date: 2026-10-06T14:30:00Z
+tree: 24561f0da83b
+branch: main
+
+### Updated in this project
+- **Bateria de notas:** aba nova com 20 cenários rodando o mesmo cálculo do simulador (agora `trCalcular`, uma função pura); 20/20 passam depois de corrigir 6 defeitos do simulador. A bateria virou o dataset da thread 08.
+
+## Sync 2026-10-06 14:22
+date: 2026-10-06T14:22:00Z
+tree: 24561f0da83b
+branch: main
+
+### Updated in this project
+- **Decisões [W] fechadas:** D-CONTADOR (link 14d + código como padrão, usuário opcional, planilha) e D-ANCORA (o protótipo do Cowork é o alvo; o PR #7145 vira comparação). A thread 12 entra na vaga 1 e promove a âncora nos charters.
+
+## Sync 2026-10-06 14:11
+date: 2026-10-06T14:11:36Z
+tree: 11d035d368ea
+branch: main
+
+### Updated in this project
+- **Configurar pelo certificado:** drawer de 4 passos no protótipo (certificado → dados lidos com fonte → template sugerido + NCM padrão → confirmar). Threads 21 (backend, reusa ADR 0186 + templates L1) e 22 (tela). Lido agora: ADR 0186.
+- Casos de uso: revisão de lacunas (+16) e thread 20 (devolução); UC-TRB-36.
+
+## Sync 2026-10-06 13:49
+date: 2026-10-06T13:49:00Z
+tree: 11d035d368ea
+branch: main
+
+### Updated in this project
+- **Leitura integral:** SPECs NfeBrasil/Fiscal/NFSe, casos e charters das 4 telas de Tributação, `NfeService` inteiro, `proibicoes.md` (filtrado por fiscal/IA). Threads 18 e 19 abertas (UC-NFRF-04 e UC-NFIM-04, falhas T0 já catalogadas); cada thread cita a sua US.
+- **Incidente:** apaguei 10 charters/casos locais de Ponto e Relatórios em `resources/` e restaurei do espelho `prototipo-ui/cowork/Wagner/resources/` @11d035d368ea.
+
+## Sync 2026-10-06 13:46
+date: 2026-10-06T13:46:00Z
+tree: 794f606dcecc
+branch: main
+
+### Updated in this project
+- **Leitura completa:** `NfeService` emite 1 item genérico com o NCM padrão da empresa (fase 2A), então abri a thread 17 (itens reais), pré-requisito de 06/07/14/16. O "NCM da categoria" não existe no código: a saída é o `ncm_default` → `ncm_padrao` que já existe (com o bug do `00000000`). `sefaz-actions.ts` é determinístico, sem IA, e o conserto cadastral segue esse padrão. `fiscal-faturamento.md`: `nfse_emissoes` tem 2 vocabulários, [W] pendente. A contingência já existe (`resolverTpEmis`).
+- Protótipo: Saúde fiscal ganhou NCM padrão inválido e código IBGE ausente; UC-TRB-35.
+
+## Sync 2026-10-06 13:40
+date: 2026-10-06T13:40:00Z
+tree: 3f435ddc3f85
+branch: main
+
+### Updated in this project
+- **Jana confirmada** como motor da IA fiscal: thread 10 segue `SugestoesMetasAgent` (HasStructuredOutput) + `NfeStatusTool` (DeclaraPermissao); aba "Jana · sugestões" no protótipo ganhou "Perguntar à Jana".
+- **Lido agora:** `TributacaoController` grava por `validated()` (:179/:235), então o bug de IBS/CBS está confirmado; `sources/Wagner/nfe-tributacao.md` revela um 2º protótipo da mesma tela, o que abre D-ANCORA.
+
+## Sync 2026-10-06 13:35
+date: 2026-10-06T13:35:00Z
+tree: 3de6bdc5bf8b
+branch: main
+
+### Updated in this project
+- **Decisões [W] registradas** (`cowork-inbox/fiscal/playbook/_DECISOES-W-2026-10-06.md`): D-MOTOR · D-OPERACAO · D-SIM · D-UF · D-IA · D-ENTRADA · D-SUPORTE; threads 05–16 abertas.
+- **Tributação v4:** aba Saúde fiscal (pendências que viram rejeição + chamados por motivo), aceite do contador, aviso de prévia no simulador, confirmação de leitura na IA de risco alto; UC-TRB-30..34.
+
+## Sync 2026-10-06 13:25
+date: 2026-10-06T13:25:00Z
+tree: 3de6bdc5bf8b
+branch: main
+
+### Updated in this project
+- **Tributação v3:** aba Entradas (XML de compra) + ICMS-ST no simulador; UC-TRB-18..29. Âncora corrigida: a tela já existe em produção (`resources/js/Pages/NfeBrasil/Tributacao/` — Index, RegraForm, ConfigDefault, ImportCsv).
+- **Pedido pro Code:** playbook fiscal rev.3 — thread 04 (validação IBS/CBS) executável; 05–11 bloqueadas por 6 decisões [W] (D-MOTOR · D-OPERACAO · D-SIM · D-UF · D-IA · D-ENTRADA).
+
+## Sync 2026-10-06 13:13
+date: 2026-10-06T13:13:11Z
+tree: f91ae9aa14eb
+branch: main
+
+### Updated in this project
+- **Tributação v2:** operação virou a porta de entrada (padrão de mercado), checklist "pronto pra emitir", NFS-e com código municipal/NBS, IBS/CBS do Simples corrigido (não destaca em 2026). Lido no `main`: `memory/research/comparativos/oimpresso-vs-concorrentes-capterra-2026-04-25.md`.
+
+## Sync 2026-10-06 13:03
+date: 2026-10-06T13:03:31Z
+tree: cbc1a2396522
+branch: main
+
+### Updated in this project
+- **Fiscal › Tributação (rota nova `fiscal-tributacao`):** regras em cascata N1–N4, simulador, vínculo com produtos, ICMS por UF, NFS-e/CNAE, importação com câmbio, devoluções e sugestões da IA (`fiscal-tributacao.jsx` + `fiscal-tributacao.casos.md`). Lidos no `main`: `Modules/NfeBrasil/Services/MotorTributarioService.php` e `Http/Requests/UpsertRegraTributariaRequest.php`.
+
+## Sync 2026-10-06 11:42
+date: 2026-10-06T11:42:20Z
+tree: 5b2a14b7e270
+branch: main
+
+### Updated in this project
+- **Fluxos e regras (tela nova, rota `fluxos`, Sistema):** modelos de FSM por porte × atividade, assistente de IA, fluxos da empresa e 27 casos de uso dos concorrentes (`fluxos-page.jsx` + `fluxos-data.jsx` + `fluxos-modelos.casos.md`). Lidos no `main`: ADR 0129, `research/2026-05-prospeccao/02` e `33`.
+- **Compras · regras das etapas** (`fsm-regras.jsx`): recebimento em 4 passos com custo médio e proposta de preço por política do produto.
+
+## Sync 2026-10-05 20:36
 date: 2026-10-05T20:36:21Z
 tree: aacb74f4df18
 branch: main
@@ -574,6 +692,10 @@ date: 2026-09-06 (hora não registrada — ciclo do alvo Jana.Painel, árvore fb
 ## Screen map
 | Tela | Arquivos do build | Âncora no `main` |
 |---|---|---|
+| Sistema · Fluxos e regras | fluxos-page.jsx · fluxos-data.jsx · fsm-regras.jsx | memory/decisions/0129-state-machine-canonica-fsm-rbac.md (UI admin /admin/fsm — sem Page ainda) |
+| Compras · recebimento + regras das etapas | compras-page.jsx · fsm-regras.jsx · fsm-etapa.jsx | ADR 0129 (side-effects por transição) |
+| Painel de etapa (OS, Vendas, Fiscal, Boleto, Contagem, Ponto) | fsm-etapa.jsx + montagem em os-page · vendas-page · fiscal-page · boletos-page · estoque-contagem · ponto-telas | ADR 0129 fase 2 (StageActionPolicy · ExecuteStageActionService · sale_stage_history) |
+| Produção · Entregas e instalação (rota nova) | entregas-page.jsx | sem Page no main — tela nova |
 | Shell · Sidebar | sidebar.jsx · app.jsx (modos + drawer mobile) · styles.css (bloco `.sb-*`) | resources/js/Components/cockpit/Sidebar.tsx · shared.ts · useSidebarShortcut.ts · Layouts/AppShellV2.tsx · resources/css/cockpit.css · app/Sidebar/*.php (contrato v2, ADR 0180) |
 | Fiscal · Cockpit | fiscal-page.jsx · fiscal-actions.jsx · fiscal-page.css | resources/js/Pages/Fiscal/Cockpit.tsx (+ `_components/FxShell.tsx`, `WriteOffAuditoriaCard.tsx`, `SavedViewsChips.tsx`) |
 | Fiscal · NF-e/NFC-e | fiscal-page.jsx (`FxNotasPage` preset 55/65) | resources/js/Pages/Fiscal/Nfe.tsx (+ `NotaDrawer.tsx`, `InutilizacaoModal.tsx`) |

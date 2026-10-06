@@ -225,3 +225,6 @@
 .compras-root .cmp-sum-range b{color:var(--cmp-ink);font-weight:600}
 .compras-root .cmp-pager{display:flex;gap:4px;align-items:center}
 .compras-root .cmp-pager-cur{padding:3px 10px;background:var(--cmp-accent-soft);border:1px solid color-mix(in oklch,var(--accent) 25%,transparent);border-radius:var(--radius-sm);font-size:11.5px;color:var(--cmp-accent);font-weight:600;font-family:var(--cmp-mono)}
+
+/* Drawer largo não pode passar por baixo da sidebar em telas estreitas (medido a 924px: 850px a partir de x=94). */
+.os-drawer.wide.cmp-drawer{max-width:calc(100vw - 260px)}

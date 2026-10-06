@@ -33,8 +33,8 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/sistema/playbook/
 ## 2 · Decisões
 | id | pergunta | destrava |
 |---|---|---|
-| D1 | Configurações: uma Page por cadastro (como hoje no Blade) ou uma tela "Configurações" com abas (como o protótipo)? | 04 |
-| D2 | Relatórios: uma tela com grupos (Financeiro/Comercial/Estoque…, como o protótipo) ou uma Page por relatório? | 07 |
+| D1 | Configurações: uma Page por cadastro (como hoje no Blade) ou uma tela "Configurações" com abas (como o protótipo)?  → **sim** ([W] 06/10) | 04 |
+| D2 | Relatórios: uma tela com grupos (Financeiro/Comercial/Estoque…, como o protótipo) ou uma Page por relatório?  → **sim** ([W] 06/10) | 07 |
 
 ## 3 · Threads
 
@@ -47,18 +47,26 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/sistema/playbook/
     {
       "id": "D1",
       "pergunta": "Configurações: uma Page por cadastro (como hoje no Blade) ou uma tela \"Configurações\" com abas (como o protótipo)?",
-      "respondida": false,
+      "respondida": true,
       "destrava": [
         "04"
-      ]
+      ],
+      "resposta": "sim — Configurações numa tela com abas, como o protótipo",
+      "quem": "[W]",
+      "quando": "2026-10-06",
+      "fonte": "_DECISOES-W-2026-10-06.md"
     },
     {
       "id": "D2",
       "pergunta": "Relatórios: uma tela com grupos (Financeiro/Comercial/Estoque…, como o protótipo) ou uma Page por relatório?",
-      "respondida": false,
+      "respondida": true,
       "destrava": [
         "07"
-      ]
+      ],
+      "resposta": "sim — Relatórios numa tela com grupos, como o protótipo",
+      "quem": "[W]",
+      "quando": "2026-10-06",
+      "fonte": "_DECISOES-W-2026-10-06.md"
     }
   ],
   "threads": [

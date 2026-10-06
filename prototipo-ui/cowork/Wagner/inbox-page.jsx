@@ -1169,6 +1169,9 @@
                   <div className="om-tags">{conv.tags.map((t) => <span key={t} className="om-tag">{t}</span>)}</div>
                 </div>
                 }
+              {window.OiEtapaPainel && <div className="ib-etapa"><window.OiEtapaPainel modo="leitura" proc="atendimento" docId={conv.id}
+                estado={{ abertas: "Nova", pendentes: "Em atendimento", aguardando: "Aguardando cliente", resolvidas: "Resolvida" }[conv.status] || "Nova"}
+                bloqueios={!conv.ctx.os && !conv.ctx.history ? { "Resolver": "ligue a conversa a um orçamento, OS ou cobrança" } : {}} /></div>}
               {conv.ctx.os &&
                 <div className="om-kv">
                   <small>OS vinculada</small>

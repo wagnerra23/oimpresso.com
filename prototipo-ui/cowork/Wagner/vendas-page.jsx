@@ -1308,6 +1308,10 @@ function VendaDetailDrawer({ venda, onClose, onEdit }) {
           </div>
         </header>
 
+        {window.OiEtapaPainel && <div className="vd-etapa"><window.OiEtapaPainel proc="venda" modo="leitura" docId={v.id}
+          estado={v.status === "cancelada" ? "Cancelado" : ["Orçamento", "Aprovado", "Faturado", "Entregue", "Entregue"][Math.max(0, Math.min(4, effFsm || 0))]}
+          nota={wantsNFe || wantsNFSe ? "Ao faturar sai: " + [wantsNFe && "NF-e dos produtos", wantsNFSe && "NFS-e dos serviços"].filter(Boolean).join(" + ") + " — conforme a natureza fiscal de cada item." : null} /></div>}
+
         <window.CliTabs className="vd-drawer-tabs" ariaLabel="Abas da venda" pad={24} size="sm"
           active={tab} onChange={setTab}
           tabs={[

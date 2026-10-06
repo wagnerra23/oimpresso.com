@@ -271,6 +271,8 @@ function Intercorrencias({ avisar, foco, editar, onFoco, onNovo, onEditar, rows,
           {(sel.estado === "RASCUNHO" || sel.estado === "PENDENTE") &&
             <window.PtBtn danger onClick={() => { if (!window.confirm("Cancelar esta intercorrência? A ação não é reversível.")) return; mudarEstado(sel.id, "CANCELADA", "Intercorrência cancelada.", "warn"); }}>Cancelar</window.PtBtn>}
         </div>
+        {window.OiEtapaPainel && <div className="pt-etapa"><window.OiEtapaPainel modo="leitura" proc="ponto" docId={sel.id}
+          estado={({ RASCUNHO: "Rascunho", PENDENTE: "Pendente", APROVADA: "Aprovada", APLICADA: "Aplicada", REJEITADA: "Rejeitada", CANCELADA: "Cancelada" })[sel.estado]} /></div>}
         <Card contrato="intercorrencias-show-dados" icon="alert" titulo="Dados da intercorrência">
           <div className="pt-ficha">
             <div>

@@ -459,6 +459,9 @@ function DrawerCobranca({ cob, onClose }) {
         </div>
 
         <div className="flex-1 overflow-auto">
+          {window.OiEtapaPainel && <div className="px-5 pt-4 pb-1"><window.OiEtapaPainel proc="cobranca" docId={cob.id}
+            estado={{ paga: "Pago", cancelada: "Cancelado", vencida: "Vencido", erro: "Previsto" }[cob.status] || "Emitido"}
+            bloqueios={cob.status === "erro" ? { "Registrar boleto/PIX": "o gateway recusou — corrija o erro abaixo e reenvie" } : {}} /></div>}
           {/* Origem (se houver) */}
           {cob.origem_type && (
             <div className="px-5 py-2.5 border-b border-stone-100 bg-stone-50/40 flex items-center gap-2">

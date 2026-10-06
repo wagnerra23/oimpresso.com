@@ -441,6 +441,12 @@ function RecipeDrawer({ r, c, perms, settings, onClose, onEdit, onProduzir, onIm
           <dd style={{ fontSize: 15, fontWeight: 600, color: "var(--accent)" }}>{fmt(c.unit)}</dd>
           <dt>Preço de venda atual</dt><dd>{fmt(r.venda)}</dd>
           <dt>Margem</dt><dd>{num(c.margem, 1)}%</dd>
+          {(() => {
+            const pol = r.politica || (window.OiFsmRegras && window.OiFsmRegras.POLITICAS[r.produto]) || { tipo: "fixo" };
+            const PR = { fixo: "Preço fixo — só a margem muda", acompanha: "Acompanha o custo (mantém o markup)", margem: "Margem alvo de " + (pol.alvo || 45) + "%" };
+            const NF = { "servico-grafico": "Serviço gráfico — NFS-e", mercadoria: "Mercadoria — NF-e", misto: "Produto + instalação — NF-e e NFS-e" };
+            return <><dt>Quando o insumo encarece</dt><dd>{PR[pol.tipo]}</dd><dt>Nota no faturamento</dt><dd>{NF[r.natureza || "servico-grafico"]}</dd></>;
+          })()}
         </dl>
         <p className="mfg-note">O custo é recalculado a cada leitura a partir do preço atual dos ingredientes — a receita não guarda valor congelado. Uma compra de insumo salva em <button className="mfg-link" onClick={() => window.__go && window.__go("compras")}>Compras</button> muda este número.</p>
       </DrawerSection>

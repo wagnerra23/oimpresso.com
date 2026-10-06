@@ -17,6 +17,7 @@ const STAGES = [
   { id: "pago",     l: "Pago",       ic: "$" },
 ];
 
+const CMP_ESTADO = { rascunho: "Requisição", pedido: "Pedido", transito: "Em trânsito", recebido: "Recebido", conferido: "Conferido", pago: "Pago" };
 // ─── MOCK ───
 const SUPPLIERS = {
   "SUP-001": { name: "Lonas & Vinis Ltda",       doc: "12.345.678/0001-90", city: "São Paulo · SP" },
@@ -46,8 +47,15 @@ const PURCHASES = [
     xmlChave: "35260523456789000101550010000009981000009980", payTerm: "À vista", desc: 5, shipping: 0,   notes: "" },
   { id: "COMP-2845", ref: "NF-e 7711", supplier: "SUP-003", date: "2026-05-06", stage: "conferido", total: 1180.50,  paid: 0,       due: 1180.50, items: 8,  locName: "Matriz",
     xmlChave: "35260534567890000112550010000077111000077110", payTerm: "15 dias", desc: 0, shipping: 45,  notes: "" },
-  { id: "COMP-2844", ref: "NF-e 0234", supplier: "SUP-001", date: "2026-05-05", stage: "transito",  total: 5620.80,  paid: 1000,    due: 4620.80, items: 3,  locName: "Matriz",
-    xmlChave: "35260512345678000190550010000002341000002340", payTerm: "30/60",   desc: 0, shipping: 200, notes: "Previsão chegada: 09/05" },
+  { id: "COMP-2844", ref: "NF-e 0234", supplier: "SUP-001", date: "2026-05-05", stage: "transito",  total: 5620.80,  paid: 1000,    due: 4620.80, items: 4,  locName: "Matriz",
+    xmlChave: "35260512345678000190550010000002341000002340", payTerm: "30/60",   desc: 0, shipping: 200, notes: "Previsão chegada: 09/05",
+    products: [
+      { name: "Lona brilho 440g",      sku: "INS-004",  qty: 300,  unit: "m²", costBefore: 9.20,  disc: 0, net: 10.10, tax: 0, total: 3030.00, lot: "L2860" },
+      { name: "Vinil adesivo brilho",  sku: "PROD-022", qty: 200,  unit: "m²", costBefore: 5.80,  disc: 0, net: 6.30,  tax: 0, total: 1260.00, lot: "L2861" },
+      { name: "Ilhós metálico nº 12",  sku: "INS-014",  qty: 5000, unit: "un", costBefore: 0.12,  disc: 0, net: 0.11,  tax: 0, total: 550.00,  lot: "-" },
+      { name: "Chapa PS 2mm",          sku: "INS-081",  qty: 12,   unit: "m²", costBefore: 42.00, disc: 0, net: 48.40, tax: 0, total: 580.80,  lot: "L2862" },
+    ],
+    timeline: [{ t: "now", by: "Sist.", at: "2026-05-05 10:02", title: "Pedido confirmado · carga despachada" }] },
   { id: "COMP-2843", ref: "-",         supplier: "SUP-004", date: "2026-05-05", stage: "pedido",    total: 12450.00, paid: 0,       due: 0,       items: 12, locName: "Matriz",
     xmlChave: "", payTerm: "45 dias", desc: 0, shipping: 0, notes: "PO emitido · aguardando confirmação fornecedor" },
   { id: "COMP-2842", ref: "-",         supplier: "SUP-002", date: "2026-05-04", stage: "rascunho",  total: 0,        paid: 0,       due: 0,       items: 0,  locName: "Matriz",
@@ -529,7 +537,7 @@ function ComprasPage() {
       </div>
 
       {/* DRAWER — overlay lateral (padrão venda) */}
-      {selected && <DrawerView p={selected} tab={tab} setTab={setTab} stageIdx={stageIdx} close={() => setSel(null)} />}
+      {selected && <DrawerView key={selected.id} p={selected} tab={tab} setTab={setTab} stageIdx={stageIdx} close={() => setSel(null)} />}
       {avisoNode}
     </div>
   );
@@ -540,6 +548,10 @@ function DrawerView({ p, tab, setTab, stageIdx, close }) {
   const s = SUPPLIERS[p.supplier];
   const idx = stageIdx(p.stage);
   const subtotal = p.products ? p.products.reduce((s, i) => s + i.total, 0) : p.total;
+  const [modo, setModo] = useState(null);   // null | "receber" | "regras"
+  const [, bump] = useState(0);
+  const R = window.OiFsmRegras;
+  const R2 = window.OiEtapaPainel;
   const itemsTabs = [
     { id: "resumo",     l: "Resumo",     ct: null },
     { id: "itens",      l: "Itens",      ct: p.items },
@@ -564,7 +576,9 @@ function DrawerView({ p, tab, setTab, stageIdx, close }) {
           </div>
         </header>
 
-      <div className="fsm">
+      {R2 && !modo ? <div className="cmp-etapa"><R2 proc="compra" docId={p.id} estado={CMP_ESTADO[p.stage]}
+        interceptar={{ "Receber": () => (p.products ? setModo("receber") : null) }}
+        bloqueios={!p.products ? { "Receber": "Itens não detalhados — importe o XML da NF-e para conferir" } : {}} /></div> : !modo && <div className="fsm">
         <div className="fsm-track">
           {STAGES.map((st, i) => (
             <div key={st.id} className={`fsm-step ${i < idx ? "done" : i === idx ? "now" : ""}`} title={st.l}>
@@ -572,8 +586,13 @@ function DrawerView({ p, tab, setTab, stageIdx, close }) {
             </div>
           ))}
         </div>
-      </div>
+      </div>}
 
+      {R && !modo && !R2 && <div className="fsm-cfg"><button className="btn sm ghost" onClick={() => setModo("regras")}>Regras das etapas</button></div>}
+
+      {R && modo === "regras" && <R.FsmRegrasPanel dom="compra" stages={STAGES} foco={!R2 && p.stage === "transito" ? "recebido" : p.stage} onClose={() => setModo(null)} />}
+      {R && modo === "receber" && <R.CmpRecebimento p={p} stages={STAGES} onCancel={() => setModo(null)} abrirRegras={() => setModo("regras")} onDone={() => { setModo(null); setTab("historico"); bump((n) => n + 1); }} />}
+      {!modo && <>
       <div className="drw-tabs">
         {itemsTabs.map(t => (
           <button key={t.id} className={tab === t.id ? "active" : ""} onClick={() => setTab(t.id)}>
@@ -763,14 +782,15 @@ function DrawerView({ p, tab, setTab, stageIdx, close }) {
       <footer className="os-drawer-actions">
         <button className="btn ghost" onClick={close}>Fechar</button>
         <div style={{ flex: 1 }} />
-        {p.stage === "rascunho"  && <button className="btn primary">Enviar pedido →</button>}
-        {p.stage === "pedido"    && <button className="btn primary">Marcar em trânsito →</button>}
-        {p.stage === "transito"  && <button className="btn primary">Marcar recebida →</button>}
-        {p.stage === "recebido"  && <button className="btn primary">Conferir itens →</button>}
-        {p.stage === "conferido" && p.due > 0  && <button className="btn warn">Pagar agora →</button>}
-        {p.stage === "conferido" && p.due <= 0 && <button className="btn primary">Concluir →</button>}
-        {p.stage === "pago"      && <button className="btn" disabled>Compra concluída ✓</button>}
+        {!R2 && p.stage === "rascunho"  && <button className="btn primary">Enviar pedido →</button>}
+        {!R2 && p.stage === "pedido"    && <button className="btn primary">Marcar em trânsito →</button>}
+        {!R2 && p.stage === "transito"  && <button className="btn primary" onClick={() => R && p.products ? setModo("receber") : null}>Marcar recebida →</button>}
+        {!R2 && p.stage === "recebido"  && <button className="btn primary">Conferir itens →</button>}
+        {!R2 && p.stage === "conferido" && p.due > 0  && <button className="btn warn">Pagar agora →</button>}
+        {!R2 && p.stage === "conferido" && p.due <= 0 && <button className="btn primary">Concluir →</button>}
+        {!R2 && p.stage === "pago"      && <button className="btn" disabled>Compra concluída ✓</button>}
       </footer>
+      </>}
     </aside>
     </div>
   );
@@ -779,5 +799,5 @@ function DrawerView({ p, tab, setTab, stageIdx, close }) {
 window.ComprasPage = ComprasPage;
 // Catálogo e compras do módulo ficam disponíveis pras telas irmãs (pedido, requisição,
 // devolução) — um fornecedor só por código, em vez de cada tela inventar o seu.
-window.COMPRAS_MOCK = { SUPPLIERS, PURCHASES };
+window.COMPRAS_MOCK = { SUPPLIERS, PURCHASES, STAGES };
 })();

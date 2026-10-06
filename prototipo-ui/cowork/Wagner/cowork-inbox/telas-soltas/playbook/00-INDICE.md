@@ -29,7 +29,7 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/telas-soltas/playbook/
 ## 2 · Decisões
 | id | pergunta | destrava |
 |---|---|---|
-| D1 | Planilhas, Voz do Cliente e Ordens de Serviço existem só no protótipo: entram em produção, ficam como exploração ou saem do menu? | 03 |
+| D1 | Planilhas, Voz do Cliente e Ordens de Serviço existem só no protótipo: entram em produção, ficam como exploração ou saem do menu?  → **sim** ([W] 06/10) | 03 |
 
 ## 3 · Threads
 
@@ -42,10 +42,14 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/telas-soltas/playbook/
     {
       "id": "D1",
       "pergunta": "Planilhas, Voz do Cliente e Ordens de Serviço existem só no protótipo: entram em produção, ficam como exploração ou saem do menu?",
-      "respondida": false,
+      "respondida": true,
       "destrava": [
         "03"
-      ]
+      ],
+      "resposta": "sim — Planilhas, Voz do Cliente e OS ficam como exploração, com aviso na tela, até [W] decidir se entram em produção",
+      "quem": "[W]",
+      "quando": "2026-10-06",
+      "fonte": "_DECISOES-W-2026-10-06.md"
     }
   ],
   "threads": [

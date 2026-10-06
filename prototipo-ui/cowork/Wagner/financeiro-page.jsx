@@ -1551,7 +1551,7 @@
               {hasEdits && <span className="fin-edit-pill-inline">✎ editado</span>}
             </div>
             <div className="text-[length:var(--fs-4)] font-semibold truncate">
-              {Linkify ? <Linkify text={eff.desc} onPick={(id) => console.log("→", id)} /> : eff.desc}
+              {Linkify ? <Linkify text={eff.desc} onPick={(id) => /^BL-/i.test(id) ? window.__go?.("cobranca") : console.log("→", id)} /> : eff.desc}
             </div>
           </div>
           {pos && pos.total > 0 &&
@@ -1683,7 +1683,7 @@
             <div className="flex items-center gap-2 flex-wrap">
               <span className="fin-lens-ic fin-lens-ic-accent"><I.Link size={12} /></span>
               <h4 className="text-[length:var(--fs-3)] font-semibold text-[var(--text)] mr-1.5 fin-lens-h4 fin-lens-h4-accent">Vínculos</h4>
-              <CrossLinkChips row={eff} onPick={(k, n) => console.log("→ abrir", k, n)} />
+              <CrossLinkChips row={eff} onPick={(k, n) => k === "boleto" ? window.__go?.("cobranca") : console.log("→ abrir", k, n)} />
             </div>
           </section>
           <div className="fin-lens py-4">

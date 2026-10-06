@@ -6,7 +6,7 @@
 
 ## 0 · Leis DESTE módulo (preservadas — as únicas linhas do pacote antigo que continuam valendo)
 1. **A produção não se repinta "pro protótipo"** *(C4)*. As 7 telas do Fiscal são réplica viva e estão **à frente** do alvo em vários pontos medidos.
-2. **Nenhuma onda escreve motor fiscal.** Cálculo é do `MotorTributarioService`; CC-e/inutilização/cancelamento/retransmissão são Services do `NfeBrasil` (o `AcoesController` delega); emissão de serviço é do `NfseEmissaoService`; SPED é do `SpedIcmsIpiGeneratorService`.
+2. **Nenhuma onda escreve motor fiscal** — *emenda [W] 2026-10-06 (D-MOTOR): exceto lane 🔴 própria, sozinha no PR, com `MotorTributarioServiceTest` estendido (threads 06 · 07).* Cálculo é do `MotorTributarioService`; CC-e/inutilização/cancelamento/retransmissão são Services do `NfeBrasil` (o `AcoesController` delega); emissão de serviço é do `NfseEmissaoService`; SPED é do `SpedIcmsIpiGeneratorService`.
 3. **Ledger de `Eventos` é append-only** — sem `UPDATE`/`DELETE`; correção é evento novo.
 4. **Sem número fiscal sem lei citada literal** (`Ajuste SINIEF 07/2005`, janela 24h NFC-e / 168h NF-e, `cstat 102`, `tpEvento 110110/110111`, LC 116, CONFAZ Guia Prático v3.1.1 perfil A).
 5. **`501`/`NAO_IMPLEMENTADO` nunca se apresenta como sucesso** (XML, DANFE, TXT do SPED).
@@ -34,6 +34,8 @@
 | 01 | Rede: `e2e/fiscal-cockpit.spec.ts` + `fiscal-nfe.spec.ts` | [CL] | **próximo** |
 | 02 | Paginação `.fx-pager` no Cockpit | [CL] | **próximo** |
 | 03 | Aferição read-only | [CC] | **FEITA** → `_saida-03.md` |
+| 04 | Validação IBS/CBS no `UpsertRegraTributariaRequest` (rev.3, 2026-10-06) | [CL] | **próximo** — `playbook/04-validacao-ibs-cbs.md` |
+| 05–26 | Tributação + redução de suporte (decisões [W] 2026-10-06 em `playbook/_DECISOES-W-2026-10-06.md`) | [CL] | **abertas** — vaga 1: 18 ∥ 19 ∥ 17 ∥ 11 ∥ 13 ∥ 21 ∥ 12 ∥ 24, depois 04 — todas as decisões [W] respondidas (rev.6: 18/19 são T0 já catalogados como falha esperada; a 17 é pré-requisito da 06/07/14/16) |
 
 ## 3 · RESÍDUO — fila [W] (as 11 perguntas preservadas)
 **Respondidas pelo código — confirmar ou contestar, não decidir de novo:** ~~#1 tipo+densidade~~ · ~~#2 sparklines~~ · ~~#3 DF-e lote (uma requisição **por nota**, de propósito) + CSV (**servidor**)~~ · ~~#4 Config abas/gate/`envioDocumentos`~~ (resta só a **ADR** dos 2 pontos — papel, não tela) · ~~#5 procedência~~ (**9 chaves** no cockpit).
