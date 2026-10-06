@@ -50,7 +50,11 @@ quanto o custo mudou desde a última compra.
   por que o número muda sozinho
 - Ficha técnica impressa PT-07 em duas variantes: **com custo** (orçamento) e **via de produção**
   (bancada, sem nenhum valor de compra) — avulsa ou em lote
-- Aponta pro CRUD legado (nova receita · editar ingredientes · produzir) em vez de duplicá-lo
+- Aponta pro CRUD legado (nova receita · editar ingredientes · produzir) em vez de duplicá-lo. A
+  **Nova receita** abre uma janela da própria tela (`_components/NovaReceitaDialog.tsx`, desde
+  2026-10-06): busca o produto, mostra Categoria/Subcategoria do produto, avisa quando ele já tem
+  receita e entrega para o mesmo editor legado (`/add-ingredient`). A janela só LÊ — quem grava
+  continua sendo o editor (decisões [W] 2026-10-06, US-MANU-006)
 - PT-BR em todo label, placeholder e mensagem
 
 ## Non-Goals — Features (NÃO faz)
