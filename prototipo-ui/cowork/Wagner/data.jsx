@@ -68,14 +68,13 @@ const MENU = [
       { id: "venda-nova-rascunho", icon: "plus", label: "Adicionar rascunho" },
       { id: "venda-rascunhos",   icon: "quote",  label: "Lista de rascunhos" },
       { id: "venda-nova-cotacao", icon: "plus",  label: "Adicionar cotação" },
-      { id: "venda-cotacoes",    icon: "quote",  label: "Lista de compromissos" },
+      { id: "venda-cotacoes",    icon: "quote",  label: "Orçamentos" },
       { id: "venda-devolucoes",  icon: "list",   label: "lista de devolução" },
       { id: "venda-remessas",    icon: "truck",  label: "Remessas" },
       { id: "venda-descontos",   icon: "cash",   label: "Descontos" },
       { id: "venda-assinaturas", icon: "clock",  label: "Assinaturas" },
       { id: "venda-devolver",    icon: "list",   label: "Devolver venda" },
       { id: "venda-importar",    icon: "upload", label: "Importação de vendas" },
-      { id: "orcamentos",  icon: "quote", label: "Orçamentos" },
       { id: "catalogo-qr", icon: "grid",  label: "Catálogo QR" },
       { id: "woocommerce", icon: "plug",  label: "WooCommerce" },
       { id: "portalos",    icon: "globe", label: "Portal Consulta OS" },
@@ -306,7 +305,7 @@ const FOOTER_LINKS = [
 // null = tudo. Afordância de protótipo — não vai pro F3.
 const SIDEBAR_PAPEIS = {
   "wagner (admin)": null,
-  "larissa (balcão)": ["chat","inbox","dash-legacy","tarefas","clientes","produtos","orcamentos","crm","vendas","oficinaauto","os","brief"],
+  "larissa (balcão)": ["chat","inbox","dash-legacy","tarefas","clientes","produtos","venda-cotacoes","crm","vendas","oficinaauto","os","brief"],
   "eliana (financeiro)": ["chat","dash-legacy","clientes","venda-caixa","financeiro","cobranca","recurring","nfe","nfse","compras","relatorios","auditoria"],
   "técnico (produção)": ["chat","tarefas","os","repair","estoque","assets","ponto","kb"],
 };
@@ -315,7 +314,7 @@ const SIDEBAR_PAPEIS = {
 const MENU_SHORTCUTS = {
   chat: "I", inbox: "A", tarefas: "T", "dash-legacy": "D",
   clientes: "C", produtos: "P", crm: "R", vendas: "V",
-  orcamentos: "O", financeiro: "F", "venda-caixa": "X", estoque: "E",
+  "venda-cotacoes": "O", financeiro: "F", "venda-caixa": "X", estoque: "E",
 };
 const SHORTCUT_TO_ROUTE = Object.keys(MENU_SHORTCUTS).reduce((a, k) => (a[MENU_SHORTCUTS[k]] = k, a), {});
 
