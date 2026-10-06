@@ -563,5 +563,45 @@
     "route": "/repair/job-sheet",
     "anchor": "Gestão de OS de reparo por status, cliente, equipe e local.",
     "baseline": "it_Repair_JobSheet_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
+  },
+  {
+    "screen": "Manufacturing",
+    "source": "Manufacturing",
+    "component": "Manufacturing/Index",
+    "route": "/manufacturing/production",
+    "anchor": "Sem produções cadastradas",
+    "baseline": "it_Manufacturing_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
+  },
+  {
+    "screen": "Manufacturing/Recipes",
+    "source": "Manufacturing/Recipes",
+    "component": "Manufacturing/Recipes",
+    "route": "/manufacturing/recipe",
+    "anchor": "custo recalculado pelo preço atual dos ingredientes",
+    "baseline": "it_Manufacturing_Recipes_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
+  },
+  {
+    "screen": "Manufacturing/Insumos",
+    "source": "Manufacturing/Insumos",
+    "component": "Manufacturing/Insumos",
+    "route": "/manufacturing/insumos",
+    "anchor": "quem sobe de custo quando o preço de compra muda",
+    "baseline": "it_Manufacturing_Insumos_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
+  },
+  {
+    "screen": "Manufacturing/Report",
+    "source": "Manufacturing/Report",
+    "component": "Manufacturing/Report",
+    "route": "/manufacturing/report",
+    "anchor": "custo agrupado por produto",
+    "baseline": "it_Manufacturing_Report_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
+  },
+  {
+    "screen": "Manufacturing/Settings",
+    "source": "Manufacturing/Settings",
+    "component": "Manufacturing/Settings",
+    "route": "/manufacturing/settings",
+    "anchor": "Prefixo da referência",
+    "baseline": "it_Manufacturing_Settings_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
   }
 ]
