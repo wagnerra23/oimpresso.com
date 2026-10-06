@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, ReactNode } from 'react';
+import { useState, useEffect, ReactNode } from 'react';
 import { router } from '@inertiajs/react';
 import {
   ColumnDef,
@@ -9,6 +9,7 @@ import {
 import { ArrowUpDown, ChevronLeft, ChevronRight, Search, X } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
+import { Checkbox } from '@/Components/ui/checkbox';
 
 /**
  * DataTable reusável com TanStack Table v8 + server-side pagination
@@ -190,13 +191,18 @@ function Rolagem({ ativa, children }: { ativa: boolean; children: ReactNode }) {
 }
 
 /**
- * Caixinha nativa do DataGrid: 13px tingida. A célula dela tem 34px.
+ * Caixinha de seleção de linha: o `Checkbox` do DS (16px, canto arredondado), o MESMO dos filtros.
  *
- * A margem é a PADRÃO do navegador para checkbox (3px 3px 3px 4px), escrita à mão porque o reset
- * do Tailwind a zera. O protótipo não tem reset, e é essa margem que dá ao cabeçalho os 34px dele
- * (medido 2026-10-04: 34 no protótipo × 28 com margem zero).
+ * Até 2026-10-06 era a caixa NATIVA do navegador (13px tingida), copiada do `DataGrid` do protótipo.
+ * Era o único lugar do módulo com a caixa do navegador, e a margem padrão dela (3px 3px 3px 4px)
+ * subia o cabeçalho da tabela para 34px, contra os 27 das tabelas sem seleção. [M] 2026-10-06: "a
+ * decisão do navegador não tem que se sobrepor à do DS". O `DataGrid` do DS ficou registrado no Cowork
+ * para usar o próprio `Checkbox`.
+ *
+ * `-my-0.5` faz os 16px ocuparem a altura de uma linha de texto do cabeçalho (12px): assim a linha
+ * com a caixinha mede o mesmo que as outras.
  */
-const CLASSE_CAIXINHA = 'm-[3px_3px_3px_4px] size-[13px] cursor-pointer align-middle accent-[var(--color-primary)]';
+const CLASSE_CAIXINHA = '-my-0.5 align-middle';
 
 /** `grid`: número em fonte mono sai em 12px com −0,01em, como o `GridCell mono` do DataGrid. */
 const GRID_MONO = 'font-mono tabular-nums text-[12px] tracking-[-.01em]';
@@ -415,12 +421,6 @@ export default function DataTable<T>({
   const grid = density === 'grid';
   const nColunas = columns.length + (selection ? 1 : 0);
 
-  // O "marcar todas" pode estar parcial — e `indeterminate` só existe como propriedade do DOM,
-  // não como atributo HTML.
-  const caixinhaTodas = useRef<HTMLInputElement>(null);
-  useEffect(() => {
-    if (caixinhaTodas.current) caixinhaTodas.current.indeterminate = selection?.allState === 'some';
-  }, [selection?.allState]);
 
   // A geometria é lida das colunas UMA vez e vira `<colgroup>` — que é a forma canônica de
   // declarar largura em tabela HTML, e a única que o navegador respeita sob `table-layout:
@@ -544,12 +544,13 @@ export default function DataTable<T>({
               <tr key={group.id}>
                 {selection && (
                   <th scope="col" className={`${dens.th} w-[34px] text-center`}>
-                    <input
-                      ref={caixinhaTodas}
-                      type="checkbox"
+                    {/* "Marcar todas" parcial = estado `indeterminate` do `Checkbox` (tracinho). */}
+                    <Checkbox
                       className={CLASSE_CAIXINHA}
-                      checked={selection.allState === 'all'}
-                      onChange={(e) => selection.onToggleAll(e.target.checked)}
+                      checked={
+                        selection.allState === 'all' ? true : selection.allState === 'some' ? 'indeterminate' : false
+                      }
+                      onCheckedChange={(v) => selection.onToggleAll(v === true)}
                       aria-label={selection.allLabel ?? 'Selecionar todas'}
                     />
                   </th>
@@ -669,11 +670,10 @@ export default function DataTable<T>({
                         onClick={(e) => e.stopPropagation()}
                         onKeyDown={(e) => e.stopPropagation()}
                       >
-                        <input
-                          type="checkbox"
+                        <Checkbox
                           className={CLASSE_CAIXINHA}
                           checked={marcada}
-                          onChange={() => selection.onToggle(row.original)}
+                          onCheckedChange={() => selection.onToggle(row.original)}
                           aria-label={`Selecionar ${selection.rowLabel(row.original)}`}
                         />
                       </td>
