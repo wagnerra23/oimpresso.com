@@ -18,6 +18,7 @@ import { Card, CardContent } from '@/Components/ui/card';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import { Checkbox } from '@/Components/ui/checkbox';
+import { Label } from '@/Components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import { PageHeader } from '@/Components/PageHeader';
 import { Grid, Inline, Stack } from '@/Components/layout';
@@ -52,7 +53,7 @@ const item = (l: Linha): Item => ({
   ...l, qtdTxt: String(l.qtd ?? 1), loteTxt: l.lote ?? '', validadeTxt: l.validade ?? '', embalagem: '', grupo: '0',
 });
 
-export default function EtiquetasIndex({ linhas, grupos, modelos, negocio, usa_lote, usa_validade }: Props) {
+export default function ProdutoEtiquetasIndex({ linhas, grupos, modelos, negocio, usa_lote, usa_validade }: Props) {
   const [itens, setItens] = useState<Item[]>(() => linhas.map(item));
   const [busca, setBusca] = useState('');
   const [achados, setAchados] = useState<Achado[]>([]);
@@ -123,11 +124,11 @@ export default function EtiquetasIndex({ linhas, grupos, modelos, negocio, usa_l
               <h2 className="text-sm font-medium">Produtos para etiquetar</h2>
               <span className="text-xs text-muted-foreground">{folha.length} etiqueta(s) · {folhas} folha(s)</span>
             </Inline>
-            <label className="flex flex-col gap-1 text-sm">
-              <span className="font-medium">Buscar produto</span>
-              <Input value={busca} placeholder="Digite o nome do produto para imprimir etiquetas" onChange={(e) => void buscar(e.target.value)} />
+            <Stack gap={1} className="text-sm">
+              <Label htmlFor="etq-busca">Buscar produto</Label>
+              <Input id="etq-busca" value={busca} placeholder="Digite o nome do produto para imprimir etiquetas" onChange={(e) => void buscar(e.target.value)} />
               <span className="text-xs text-muted-foreground">Nome ou SKU — o produto entra na lista abaixo.</span>
-            </label>
+            </Stack>
             {achados.length > 0 && (
               <Inline gap={2} wrap>
                 {achados.map((a) => <Button key={a.id} size="sm" variant="outline" onClick={() => void adicionar(a)}>+ {a.text}</Button>)}
@@ -183,39 +184,39 @@ export default function EtiquetasIndex({ linhas, grupos, modelos, negocio, usa_l
             <Grid fit="sm" gap={3}>
               {visiveis.map((c) => (
                 <Stack key={c.id} gap={1}>
-                  <label className="flex items-center gap-2 text-sm">
-                    <Checkbox checked={campos[c.id].on} onCheckedChange={(v) => setCampos((s) => ({ ...s, [c.id]: { ...s[c.id], on: v === true } }))} />
-                    {c.l}
-                  </label>
-                  <label className="flex flex-col gap-1 text-xs">
-                    <span className="text-muted-foreground">Corpo (pt)</span>
-                    <Input value={campos[c.id].size} disabled={!campos[c.id].on} aria-label={`Corpo de ${c.l}`}
+                  <Inline gap={2} align="center" className="text-sm">
+                    <Checkbox id={`etq-${c.id}`} checked={campos[c.id].on} onCheckedChange={(v) => setCampos((s) => ({ ...s, [c.id]: { ...s[c.id], on: v === true } }))} />
+                    <Label htmlFor={`etq-${c.id}`}>{c.l}</Label>
+                  </Inline>
+                  <Stack gap={1} className="text-xs">
+                    <Label htmlFor={`etq-${c.id}-corpo`}>Corpo (pt)</Label>
+                    <Input id={`etq-${c.id}-corpo`} value={campos[c.id].size} disabled={!campos[c.id].on} aria-label={`Corpo de ${c.l}`}
                       onChange={(e) => setCampos((s) => ({ ...s, [c.id]: { ...s[c.id], size: e.target.value } }))} />
-                  </label>
+                  </Stack>
                 </Stack>
               ))}
             </Grid>
             <Grid fit="md" gap={3}>
-              <label className="flex flex-col gap-1 text-sm">
-                <span className="font-medium">Preço a imprimir</span>
+              <Stack gap={1} className="text-sm">
+                <Label htmlFor="etq-tipo">Preço a imprimir</Label>
                 <Select value={tipo} onValueChange={(v) => setTipo(v as Tipo)}>
-                  <SelectTrigger aria-label="Preço a imprimir"><SelectValue /></SelectTrigger>
+                  <SelectTrigger id="etq-tipo"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="inclusive">Com imposto</SelectItem>
                     <SelectItem value="exclusive">Sem imposto</SelectItem>
                   </SelectContent>
                 </Select>
                 <span className="text-xs text-muted-foreground">Como o preço sai na etiqueta do balcão.</span>
-              </label>
-              <label className="flex flex-col gap-1 text-sm">
-                <span className="font-medium">Modelo de etiqueta</span>
+              </Stack>
+              <Stack gap={1} className="text-sm">
+                <Label htmlFor="etq-modelo">Modelo de etiqueta</Label>
                 <Select value={modeloId} onValueChange={(v) => { setModeloId(v); setFolhaAtual(1); }}>
-                  <SelectTrigger aria-label="Modelo de etiqueta"><SelectValue /></SelectTrigger>
+                  <SelectTrigger id="etq-modelo"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     {modelos.map((m) => <SelectItem key={m.id} value={String(m.id)}>{m.nome}</SelectItem>)}
                   </SelectContent>
                 </Select>
-              </label>
+              </Stack>
             </Grid>
             <div><Button disabled={!folha.length || !M} onClick={imprimir}>Imprimir {folhas} folha(s)</Button></div>
           </Stack>
@@ -233,18 +234,18 @@ export default function EtiquetasIndex({ linhas, grupos, modelos, negocio, usa_l
               <p className="text-sm text-muted-foreground">Sem produtos na lista — nada a imprimir.</p>
             ) : (
               <>
-                <div className="grid gap-2" style={{ gridTemplateColumns: `repeat(${M?.colunas ?? 1}, minmax(0, 1fr))` }}>
+                <Grid gap={2} style={{ gridTemplateColumns: `repeat(${M?.colunas ?? 1}, minmax(0, 1fr))` }}>
                   {naFolha.map((it, k) => (
-                    <div key={`${it.variation_id}-${k}`} className="flex flex-col items-center gap-0.5 rounded border border-border bg-white p-2 text-center text-[11px] text-black">
+                    <Stack key={`${it.variation_id}-${k}`} gap={0} align="center" className="rounded border border-border bg-white p-2 text-center text-[11px] text-black">
                       {campos.business_name.on && <b className="text-[9px] uppercase tracking-wide">{negocio}</b>}
                       {campos.name.on && it.nome.length <= 46 && <span>{it.nome}</span>}
                       {campos.variations.on && it.variacao && <b>{it.variacao}</b>}
                       {campos.price.on && <span>{it.precos[it.grupo]?.[tipo] ?? 'sem preço no grupo'}</span>}
-                      <div aria-hidden="true" className="flex h-6 items-stretch gap-px">{Array.from({ length: 28 }, (_, b) => <i key={b} className="bg-black" style={{ width: (b * 7 + it.variation_id) % 3 === 0 ? 3 : 1 }} />)}</div>
+                      <Inline gap={0} align="stretch" aria-hidden="true" className="h-6">{Array.from({ length: 28 }, (_, b) => <i key={b} className="mr-px bg-black" style={{ width: (b * 7 + it.variation_id) % 3 === 0 ? 3 : 1 }} />)}</Inline>
                       <span className="font-mono">{it.sku}</span>
-                    </div>
+                    </Stack>
                   ))}
-                </div>
+                </Grid>
                 {folhas > 1 && (
                   <Inline gap={2}>
                     <Button size="sm" variant="outline" disabled={pagina <= 1} onClick={() => setFolhaAtual(pagina - 1)}>Folha anterior</Button>
@@ -261,4 +262,4 @@ export default function EtiquetasIndex({ linhas, grupos, modelos, negocio, usa_l
   );
 }
 
-EtiquetasIndex.layout = (page: ReactNode) => <AppShellV2>{page}</AppShellV2>;
+ProdutoEtiquetasIndex.layout = (page: ReactNode) => <AppShellV2>{page}</AppShellV2>;
