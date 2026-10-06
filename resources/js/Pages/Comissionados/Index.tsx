@@ -30,6 +30,8 @@ import {
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/Components/ui/dropdown-menu';
 import { PageHeader } from '@/Components/PageHeader';
 import EmptyState from '@/Components/shared/EmptyState';
+import DataTable from '@/Components/shared/DataTable';
+import type { ColumnDef } from '@tanstack/react-table';
 import { Inline, Stack } from '@/Components/layout';
 
 interface Agente {
@@ -128,6 +130,35 @@ function ComissionadosIndex({ agentes: agentesProp, pode }: Props) {
   };
   const muda = (k: keyof Edicao, v: string) => setEdicao((e) => (e ? { ...e, [k]: v } : e));
   const bloqueado = !!remover && remover.vendas > 0;
+  const colunas: ColumnDef<Agente, unknown>[] = [
+    {
+      id: 'comissionado', header: 'Comissionado',
+      cell: ({ row: { original: a } }) => (
+        <Inline gap={3}>
+          <Avatar aria-hidden className="size-8"><AvatarFallback className="text-xs font-semibold">{iniciais(a)}</AvatarFallback></Avatar>
+          <Stack gap={0}>
+            <span className="font-medium">{nomeDe(a)}</span>
+            <span className="text-xs text-muted-foreground">{a.email || '—'}</span>
+          </Stack>
+        </Inline>
+      ),
+    },
+    { id: 'contato', header: 'Contato', cell: ({ row: { original: a } }) => <span className="text-muted-foreground">{a.contato || '—'}</span> },
+    { id: 'comissao', header: 'Comissão', meta: { align: 'right', mono: true }, cell: ({ row: { original: a } }) => `${paraTexto(a.percentual)}%` },
+    { id: 'vendas', header: 'Vendas vinculadas', meta: { align: 'right', mono: true }, cell: ({ row: { original: a } }) => a.vendas },
+    {
+      id: 'acoes', header: '', meta: { align: 'right' },
+      cell: ({ row: { original: a } }) => pode.gerenciar && (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild><Button variant="ghost" size="sm" aria-label={`Ações de ${nomeDe(a)}`}><MoreHorizontal className="size-4" /></Button></DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onSelect={() => editar(a)}>Editar comissionado</DropdownMenuItem>
+            <DropdownMenuItem className="text-destructive" onSelect={() => setRemover(a)}>Remover dos comissionados</DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      ),
+    },
+  ];
 
   return (
     <div className="pb-8">
@@ -148,49 +179,14 @@ function ComissionadosIndex({ agentes: agentesProp, pode }: Props) {
         {aviso && <p role="status" className="text-sm text-muted-foreground">{aviso}</p>}
 
         <Deferred data="agentes" fallback={<p className="py-6 text-sm text-muted-foreground">Carregando comissionados…</p>}>
-        {lista.length > 0 ? (
-          <div className="overflow-x-auto">
-            <table data-contract="comissionados-table" className="w-full text-sm [&_td]:px-3 [&_th]:px-3 [&_td:first-child]:pl-0 [&_th:first-child]:pl-0 [&_td:last-child]:pr-0 [&_th:last-child]:pr-0">
-              <thead><tr className="border-b text-left text-xs text-muted-foreground">
-                <th className="py-2">Comissionado</th><th>Contato</th><th className="text-right">Comissão</th>
-                <th className="text-right">Vendas vinculadas</th><th />
-              </tr></thead>
-              <tbody>
-                {lista.map((a) => (
-                  <tr key={a.id} className="border-b">
-                    <td className="py-2">
-                      <Inline gap={3}>
-                        <Avatar aria-hidden className="size-8"><AvatarFallback className="text-xs font-semibold">{iniciais(a)}</AvatarFallback></Avatar>
-                        <Stack gap={0}>
-                          <span className="font-medium">{nomeDe(a)}</span>
-                          <span className="text-xs text-muted-foreground">{a.email || '—'}</span>
-                        </Stack>
-                      </Inline>
-                    </td>
-                    <td className="text-muted-foreground">{a.contato || '—'}</td>
-                    <td className="text-right tabular-nums">{paraTexto(a.percentual)}%</td>
-                    <td className="text-right tabular-nums">{a.vendas}</td>
-                    <td className="text-right">
-                      {pode.gerenciar && (
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild><Button variant="ghost" size="sm" aria-label={`Ações de ${nomeDe(a)}`}><MoreHorizontal className="size-4" /></Button></DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem onSelect={() => editar(a)}>Editar comissionado</DropdownMenuItem>
-                            <DropdownMenuItem className="text-destructive" onSelect={() => setRemover(a)}>Remover dos comissionados</DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+        {agentes.length > 0 ? (
+          <div data-contract="comissionados-table">
+            <DataTable columns={colunas} data={lista} caption="Comissionados do negócio" rowKey={(a) => a.id}
+              emptyMessage="Nenhum comissionado com esse nome. Tente outro termo na busca." />
           </div>
         ) : (
           <div data-contract="vazio">
-            {agentes.length === 0
-              ? <EmptyState title="Nenhum comissionado ainda" description="Cadastre quem recebe comissão sobre a venda." action={pode.gerenciar ? <Button onClick={novo}>Cadastrar o primeiro</Button> : undefined} />
-              : <EmptyState title="Nenhum comissionado com esse nome" description="Tente outro termo na busca." />}
+            <EmptyState title="Nenhum comissionado ainda" description="Cadastre quem recebe comissão sobre a venda." action={pode.gerenciar ? <Button onClick={novo}>Cadastrar o primeiro</Button> : undefined} />
           </div>
         )}
         </Deferred>
