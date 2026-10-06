@@ -66,16 +66,18 @@ final class Cnpj
      *
      * Antes: `preg_replace('/\D/', '', ...)` — arrancava as letras e um CNPJ
      * alfanumérico virava um número de 8 a 13 dígitos, recusado como "sem CPF/CNPJ".
-     * Agora: se o valor sem máscara já é um CPF (11 dígitos) ou tem a forma do CNPJ
-     * (12 alfanuméricos + 2 dígitos), sai como está; senão, cai no comportamento
-     * antigo (só dígitos), para não mudar nada no que já funcionava.
+     * Agora: valor com letra só sai com as letras quando é um CNPJ alfanumérico com
+     * DV válido; todo o resto cai no comportamento antigo (só dígitos), para não mudar
+     * nada no que já funcionava.
+     *
+     * Exigir o DV não é zelo: a forma sozinha não basta. `CPF 529.982.247-25` sem
+     * máscara vira `CPF52998224725` — 12 alfanuméricos + 2 dígitos, a forma exata do
+     * CNPJ novo — e iria para o XML como CNPJ (pego pelo R-NFE-033 no CI).
      */
     public static function documentoFiscal(string $valor): string
     {
-        $doc = self::normalizar($valor);
-
-        if (preg_match('/^[0-9]{11}$/', $doc) === 1 || preg_match(self::FORMATO, $doc) === 1) {
-            return $doc;
+        if (self::temLetra($valor) && self::valido($valor)) {
+            return self::normalizar($valor);
         }
 
         return (string) preg_replace('/\D/', '', $valor);

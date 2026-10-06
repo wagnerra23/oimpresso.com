@@ -151,7 +151,9 @@ it('R-NFE-033 · documento fiscal preserva as letras e não muda CPF nem CNPJ nu
         ->and(Cnpj::documentoFiscal(CNPJ_NUM_VALIDO))->toBe('11222333000181')
         ->and(Cnpj::documentoFiscal('529.982.247-25'))->toBe('52998224725') // pii-allowlist (CPF fictício de documentação)
         // fora de forma: comportamento antigo (só dígitos), para não mudar o que já funcionava
-        ->and(Cnpj::documentoFiscal('CPF 529.982.247-25'))->toBe('52998224725'); // pii-allowlist (CPF fictício)
+        ->and(Cnpj::documentoFiscal('CPF 529.982.247-25'))->toBe('52998224725') // pii-allowlist (CPF fictício)
+        // forma de CNPJ alfanumérico com DV errado não vira CNPJ no XML
+        ->and(Cnpj::documentoFiscal(CNPJ_ALFA_DV_ERRADO))->toBe('123450136');
 })->group('nfe', 'R-NFE-033');
 
 it('R-NFE-033 · XML leva o CNPJ alfanumérico do destinatário como está', function () {
