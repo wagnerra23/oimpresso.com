@@ -14,6 +14,7 @@ import AppShellV2 from '@/Layouts/AppShellV2';
 import { PageHeader } from '@/Components/PageHeader';
 import DataTable, { type PaginatorShape } from '@/Components/shared/DataTable';
 import EmptyState from '@/Components/shared/EmptyState';
+import { Inline } from '@/Components/layout';
 import { Badge } from '@/Components/ui/badge';
 import { Skeleton } from '@/Components/ui/skeleton';
 
@@ -68,10 +69,10 @@ const colunas: ColumnDef<LinhaLog>[] = [
     id: 'empresa',
     header: 'Empresa',
     cell: ({ row }) => (
-      <span className="inline-flex items-baseline gap-2">
+      <Inline align="baseline" gap={2}>
         <b>{row.original.empresa}</b>
         <small className="font-mono tabular-nums text-muted-foreground">#{row.original.empresa_id}</small>
-      </span>
+      </Inline>
     ),
   },
 ];
@@ -84,12 +85,11 @@ export default function Log({ logs }: Props) {
       <Head title="Suporte · log de acessos" />
 
       <div className="p-6 max-w-6xl mx-auto space-y-5">
-        <Link
-          href="/suporte/empresas"
-          className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
-        >
-          <ArrowLeft className="size-3.5" aria-hidden /> Suporte · empresas
-        </Link>
+        <Inline asChild gap={1} className="w-fit text-sm text-muted-foreground hover:text-foreground">
+          <Link href="/suporte/empresas">
+            <ArrowLeft className="size-3.5" aria-hidden /> Suporte · empresas
+          </Link>
+        </Inline>
 
         <div data-contract="cabecalho">
           <PageHeader
@@ -118,10 +118,12 @@ export default function Log({ logs }: Props) {
           </Deferred>
         </div>
 
-        <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+        <Inline asChild gap={1} className="text-xs text-muted-foreground">
+        <p>
           <Lock className="size-3" aria-hidden />
           Alterar uma linha daqui é incidente P0 (ADR 0084): a tabela é append-only. A tela nem oferece o botão.
         </p>
+        </Inline>
       </div>
     </AppShellV2>
   );

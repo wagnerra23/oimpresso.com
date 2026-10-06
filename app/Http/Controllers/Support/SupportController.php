@@ -115,15 +115,21 @@ class SupportController extends Controller
             ])
             ->paginate(50)
             ->withQueryString()
-            ->through(fn (SupportAccessLog $l): array => [
-                'id'         => (int) $l->id,
-                'quando'     => $l->created_at?->toIso8601String(),
-                'agente'     => (string) ($l->agente ?? '—'),
-                'alvo'       => $l->alvo !== null ? (string) $l->alvo : null,
-                'acao'       => (string) $l->action,
-                'empresa'    => (string) ($l->empresa ?? '—'),
-                'empresa_id' => (int) $l->business_id,
-            ]);
+            // agente/alvo/empresa vêm do select (joins), não são colunas do Model — por isso
+            // getAttribute(), e não acesso de propriedade.
+            ->through(function (SupportAccessLog $l): array {
+                $alvo = $l->getAttribute('alvo');
+
+                return [
+                    'id'         => (int) $l->id,
+                    'quando'     => $l->created_at?->toIso8601String(),
+                    'agente'     => (string) ($l->getAttribute('agente') ?? '—'),
+                    'alvo'       => $alvo !== null ? (string) $alvo : null,
+                    'acao'       => (string) $l->action,
+                    'empresa'    => (string) ($l->getAttribute('empresa') ?? '—'),
+                    'empresa_id' => (int) $l->business_id,
+                ];
+            });
     }
 
     /**
