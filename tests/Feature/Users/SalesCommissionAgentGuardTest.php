@@ -233,8 +233,9 @@ it('commission_agent.view LÊ a lista mas não desmarca ninguém', function () {
     $this->actingAs($leitor);
     session(['user.business_id' => TENANT_TESTE]);
 
-    // Header ajax de proposito: o index() so devolve JSON nesse ramo. Sem ele a rota
-    // renderizaria a blade e um erro de view viraria falha por motivo errado.
+    // Ate 2026-10-06 o index() so devolvia JSON com o header ajax; desde a thread
+    // sistema/playbook/03 ele responde a pagina Inertia com ou sem o header (o 200 aqui e
+    // o da pagina). O contrato da tela vive em ComissionadosContratoTest.
     $this->withHeaders(ajaxDeleteHeaders())->getJson('/sales-commission-agents')->assertOk();
 
     $this->withHeaders(ajaxDeleteHeaders())->deleteJson('/sales-commission-agents/'.$agente->id)->assertForbidden();
