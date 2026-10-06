@@ -16,6 +16,9 @@ Route::middleware('throttle:60,1', 'web', 'authh', 'SetSessionData', 'auth', 'la
     Route::get('/get-recipe-details', [Modules\Manufacturing\Http\Controllers\RecipeController::class, 'getRecipeDetails']);
     Route::get('/get-ingredient-row/{variation_id}', [Modules\Manufacturing\Http\Controllers\RecipeController::class, 'getIngredientRow']);
     Route::get('/add-ingredient', [Modules\Manufacturing\Http\Controllers\RecipeController::class, 'addIngredients']);
+    // Janela "Nova receita" da tela React (US-MANU-006) — busca de produto, só leitura.
+    Route::get('/nova-receita/produtos', [Modules\Manufacturing\Http\Controllers\RecipeController::class, 'produtosNovaReceita'])
+        ->name('manufacturing.nova-receita.produtos');
     Route::resource('/recipe', 'Modules\Manufacturing\Http\Controllers\RecipeController')->except('edit', 'update');
     Route::resource('/production', 'Modules\Manufacturing\Http\Controllers\ProductionController');
 
