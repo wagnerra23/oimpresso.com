@@ -116,7 +116,11 @@ it('UC-COM-01 · limpar o split (null) pelo PATCH grava o valor anterior', funct
     $this->assertSame($antes + 1, $logs->count(), 'Limpar o split deveria gerar 1 registro de auditoria.');
     $log = $logs->first();
     $this->assertIsArray($log->properties['old']['commission_split'] ?? null, 'O split apagado deveria ficar no antes.');
-    $this->assertNull($log->properties['attributes']['commission_split'] ?? 'ausente');
+    // `??` devolveria o lado direito também quando a chave existe com null — que é o
+    // caso esperado aqui. Presença e valor são conferidos separadamente.
+    $novos = $log->properties['attributes'] ?? [];
+    $this->assertArrayHasKey('commission_split', $novos, 'O depois deveria trazer commission_split (null).');
+    $this->assertNull($novos['commission_split']);
 });
 
 it('UC-COM-01 · trocar o commission_agent da venda grava antes → depois', function () {
