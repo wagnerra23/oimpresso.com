@@ -381,6 +381,75 @@ it('histórico do veículo: OS de OUTRO business apontando para o meu veículo n
     expect($ids)->not->toContain($alheia);
 });
 
+// ── Histórico: o que foi feito em cada OS (pedido [W] 2026-10-06, sessão App Onda D) ──
+// Contrato: cada OS do histórico traz `itens` [{tipo, descricao, quantidade}] na ordem da OS,
+// SEM valor por item (o total já vai em `valor`), no máximo 20, e `itens_total` com o total.
+
+function appOsItem(int $bizId, int $os, string $tipo, string $descricao, float $qtd = 1, ?string $excluido = null): void
+{
+    DB::table('oficina_service_order_items')->insert([
+        'business_id' => $bizId, 'service_order_id' => $os, 'tipo' => $tipo, 'descricao' => $descricao,
+        'quantidade' => $qtd, 'valor_unitario' => 10, 'valor_total' => 10 * $qtd,
+        'deleted_at' => $excluido, 'created_at' => now(), 'updated_at' => now(),
+    ]);
+}
+
+it('histórico do veículo: cada OS traz serviços e peças na ordem da OS, com tipo do ERP e sem valor por item; item excluído fica fora', function () {
+    $v = appOsVeiculoComPermissao($this);
+    $biz = (int) $this->biz->id;
+    $os = appOsDoVeiculo($biz, $v, $this->etapas['entregue'], 'mecanica', now()->subDay()->toDateTimeString());
+    $vazia = appOsDoVeiculo($biz, $v, $this->etapas['recepcao'], 'mecanica', now()->toDateTimeString());
+    appOsItem($biz, $os, 'mao_obra', 'Troca de pastilha');
+    appOsItem($biz, $os, 'peca', 'Pastilha dianteira', 2);
+    appOsItem($biz, $os, 'peca', 'Disco removido', 1, now()->toDateTimeString());
+    appOsItem($biz, $os, 'servico_terceiro', 'Retífica');
+
+    $lista = collect($this->getJson("/api/app/veiculos/{$v}/os")->assertOk()->json('itens'))->keyBy('os_id');
+
+    $feitos = $lista[$os]['itens'];
+    expect(array_column($feitos, 'descricao'))->toBe(['Troca de pastilha', 'Pastilha dianteira', 'Retífica']);
+    expect(array_column($feitos, 'tipo'))->toBe(['mao_obra', 'peca', 'servico_terceiro']);
+    expect(array_map(fn ($q) => (float) $q, array_column($feitos, 'quantidade')))->toBe([1.0, 2.0, 1.0]);
+    foreach ($feitos as $f) {
+        expect(array_keys($f))->toBe(['tipo', 'descricao', 'quantidade']);
+    }
+    expect($lista[$os]['itens_total'])->toBe(3);
+    // O total da OS continua em `valor` (soma sem o excluído): 10 + 20 + 10.
+    expect((float) $lista[$os]['valor'])->toBe(40.0);
+    // OS sem item: lista vazia e total 0.
+    expect($lista[$vazia]['itens'])->toBe([]);
+    expect($lista[$vazia]['itens_total'])->toBe(0);
+});
+
+it('histórico do veículo: item de OUTRO business apontando para a minha OS não aparece nem conta', function () {
+    $v = appOsVeiculoComPermissao($this);
+    $biz = (int) $this->biz->id;
+    $os = appOsDoVeiculo($biz, $v, $this->etapas['recepcao'], 'mecanica', now()->toDateTimeString());
+    appOsItem($biz, $os, 'peca', 'Peça minha');
+    appOsItem((int) $this->outroBiz->id, $os, 'peca', 'Peça alheia');
+
+    $item = collect($this->getJson("/api/app/veiculos/{$v}/os")->assertOk()->json('itens'))->firstWhere('os_id', $os);
+
+    expect(array_column($item['itens'], 'descricao'))->toBe(['Peça minha']);
+    expect($item['itens_total'])->toBe(1);
+});
+
+it('histórico do veículo: no máximo 20 itens por OS, os primeiros da OS, e itens_total com o total', function () {
+    $v = appOsVeiculoComPermissao($this);
+    $biz = (int) $this->biz->id;
+    $os = appOsDoVeiculo($biz, $v, $this->etapas['recepcao'], 'mecanica', now()->toDateTimeString());
+    for ($n = 1; $n <= 23; $n++) {
+        appOsItem($biz, $os, 'peca', 'Item ' . $n);
+    }
+
+    $item = collect($this->getJson("/api/app/veiculos/{$v}/os")->assertOk()->json('itens'))->firstWhere('os_id', $os);
+
+    expect($item['itens'])->toHaveCount(20);
+    expect($item['itens'][0]['descricao'])->toBe('Item 1');
+    expect($item['itens'][19]['descricao'])->toBe('Item 20');
+    expect($item['itens_total'])->toBe(23);
+});
+
 // ── Tela 03 — avançar etapa: GET /os/{id} traz `acoes`; POST /os/{id}/acoes/{chave} ─────────
 
 /** Ações da fixture (idempotente pela chave única stage_id+key). Devolve o id da ação. */

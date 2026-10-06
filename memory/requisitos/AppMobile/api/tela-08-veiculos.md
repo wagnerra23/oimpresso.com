@@ -134,6 +134,22 @@ Não há tabela de leituras de km. O histórico vem do `GET /api/app/veiculos/{i
 - a raiz ganha `"km_cadastro": int | null` (km do cadastro do veículo) e `"cadastrado_em": "AAAA-MM-DD" | null`.
 - Vale o mesmo limite de OS do histórico (as 200 mais recentes).
 
+## O que foi feito em cada OS do histórico — leitura (pedido [W] 2026-10-06)
+
+Também só campos a mais no `GET /api/app/veiculos/{id}/os` (quem já consome a rota não muda). Cada item
+ganha:
+
+```json
+"itens": [ { "tipo": "mao_obra", "descricao": "Troca de pastilha", "quantidade": 1.0 },
+           { "tipo": "peca", "descricao": "Pastilha dianteira", "quantidade": 2.0 } ],
+"itens_total": 2
+```
+
+- `tipo` ∈ `peca` · `mao_obra` · `servico_terceiro` — os mesmos itens do `GET /api/app/os/{id}`, na ordem da
+  OS, sem os excluídos. **Sem valor por item**: o total da OS segue em `valor`.
+- No máximo 20 por OS (os primeiros); `itens_total` = quantos a OS tem. OS sem item → `[]` e `0`.
+- Item de outra empresa nunca entra. Leitura só: nada de valor por item, estoque ou cobrança.
+
 ## Lembrete de revisão por km (decisão [W] 2026-10-06)
 
 Parte interna da US-AUTO-014: **só a oficina** é avisada, dentro do app, pelo **km real anotado** (o maior
