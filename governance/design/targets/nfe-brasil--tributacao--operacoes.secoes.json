@@ -1,0 +1,7 @@
+{
+  "_": "A1 [CL] 2026-10-06 — playbook Fiscal thread 12. Aba Operações da rota `fiscal-tributacao` (2º chip), alvo irmão de nfe-brasil--tributacao. O drawer da operação e o onboarding pelo certificado não são medidos (só existem após clique).",
+  "_mapa": "alvo:mapa --rota fiscal-tributacao --raiz .fx-page --quieto-ms 2000 --clicar '.fx-page > .fx-chips > [role=tab]:nth-child(2)', 2026-10-06: header.fx-h · nav.ds-tabbar · div.fx-chips · section.fx-card[comecar] · div.fx-table[operacoes] · p.fx-nota-rodape ×2.",
+  "abas": { "seletor": ".fx-page > .fx-chips" },
+  "comecar": { "seletor": ".fx-page > [data-contract=\"comecar\"]" },
+  "operacoes": { "seletor": ".fx-page > [data-contract=\"operacoes\"]" }
+}
