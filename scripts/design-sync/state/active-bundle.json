@@ -23,8 +23,8 @@
     },
     {
       "path": "app.jsx",
-      "bytes": 79308,
-      "sha256": "34dc4791a3e975796f9717b1ee2333fda9809e05609f06dbee2a237d5aefc736",
+      "bytes": 79342,
+      "sha256": "be5e545ce44c63222bc894d2516d77775c7f28f3781ad31d0c84e44b3ab347c6",
       "role": "cowork-source"
     },
     {
@@ -359,8 +359,8 @@
     },
     {
       "path": "comunicacao-visual-page.jsx",
-      "bytes": 17731,
-      "sha256": "872bbc1e8b95c09e94c964108ebec19ee915cdf2386eae88ea98b50ff1781798",
+      "bytes": 17735,
+      "sha256": "513321f5f2404c760dbe5d1ee127f7ea25e940beb9e94c712bed775a1905c061",
       "role": "cowork-source"
     },
     {
@@ -607,6 +607,18 @@
       "path": "cowork-inbox/ancora/playbook/07-cruzar-report-trio-contrato.md",
       "bytes": 9793,
       "sha256": "1c5753af9704445a7b81460d9c40f75e06e707dcc5dcadca62bfb6e7a1aa430a",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/app-lojas/playbook/_SESSAO-FRIA.md",
+      "bytes": 1458,
+      "sha256": "5cd182bf77bee001f8bc0657bb4c0e838f032af70b064364030f5123f43a3f82",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/app-lojas/playbook/00-INDICE.md",
+      "bytes": 1354,
+      "sha256": "4bb5b636a0999d478bdaccac8327488a3abf16c4db2380b95d66219488d6f1e4",
       "role": "cowork-source"
     },
     {
@@ -1906,6 +1918,12 @@
       "role": "cowork-source"
     },
     {
+      "path": "cowork-inbox/financeiro/playbook/_saida-11.md",
+      "bytes": 3391,
+      "sha256": "33634f1bd7749bde23ba36956de71f543f8973cc212c001e0b5714bb950fe8be",
+      "role": "cowork-source"
+    },
+    {
       "path": "cowork-inbox/financeiro/playbook/_SESSAO-FRIA.md",
       "bytes": 1963,
       "sha256": "15ae3ae134777e26a07204a53ec8a75fbf10332fa58f327dbb63382475211e3c",
@@ -2011,6 +2029,12 @@
       "path": "cowork-inbox/fiscal/playbook/_saida-03.md",
       "bytes": 5748,
       "sha256": "27caeca20fe6d02e46ac88e502a35135e1ea1c4c651d6881a8303eb62752a72a",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/fiscal/playbook/_saida-13.md",
+      "bytes": 8832,
+      "sha256": "fa79a9a661353a439c2ec3c12726f9054bdf3b31576f42fc1071e893fa13b372",
       "role": "cowork-source"
     },
     {
@@ -2836,6 +2860,42 @@
       "role": "cowork-source"
     },
     {
+      "path": "cowork-inbox/modulos-faltantes/playbook/_SESSAO-FRIA.md",
+      "bytes": 1801,
+      "sha256": "7bad9cc39a0f0504846209c6c6c822d2a708a57496a9e227b918055236b555d9",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/modulos-faltantes/playbook/00-INDICE.md",
+      "bytes": 4896,
+      "sha256": "f860842a081c7ff6f127bd92f05c3e0b07669b7f33481f9c3f15c7a8d6adb9e6",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/modulos-faltantes/playbook/01-contratos.md",
+      "bytes": 791,
+      "sha256": "19a11c1ef67685613748f6be9922899e7a652bf56280f6dc763bbee388b9a734",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/modulos-faltantes/playbook/02-suporte-log.md",
+      "bytes": 571,
+      "sha256": "ef6cee5c679a99ef51caf7751b9138cd7ac02958fcb1bc0db90939186f8feef4",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/modulos-faltantes/playbook/03-voz-do-cliente.md",
+      "bytes": 790,
+      "sha256": "4812fb655f5687c64ddf8806467178ff55c27ed1b23ad9ea89fb7cf2de98305b",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/modulos-faltantes/playbook/04-catalogo-qr.md",
+      "bytes": 589,
+      "sha256": "a7e1db45f6a657e7ba164d2454708833322c63541f06f784efa61d3049c5e937",
+      "role": "cowork-source"
+    },
+    {
       "path": "cowork-inbox/modulos-faltantes/suporte.contract.json",
       "bytes": 3169,
       "sha256": "375008452f5460f12b94983b940336bf57a1d7932b644364f7f12922846b14f2",
@@ -2875,6 +2935,42 @@
       "path": "cowork-inbox/modulos/PEDIDO-PARA-CODE.md",
       "bytes": 7205,
       "sha256": "0c3df5287c984f6164d43781fa85e3ffd2ef720f20dccd0a72195c9d79406c9a",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/modulos/playbook/_SESSAO-FRIA.md",
+      "bytes": 1861,
+      "sha256": "a24ea1f0917548ff08f5ce3d7912b0e9bf15f481962a458ec23855a917273474",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/modulos/playbook/00-INDICE.md",
+      "bytes": 4819,
+      "sha256": "27baa9fa01bb832c47471846b155c56876cd9cd2d0ace8265ad6dd759fa05ffb",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/modulos/playbook/01-install-falho-e-erro.md",
+      "bytes": 1210,
+      "sha256": "6be5b6def646ce7e3d773032f461118a324c1acddb40ba4ed512dbf6f215b561",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/modulos/playbook/02-install-em-fila.md",
+      "bytes": 563,
+      "sha256": "f1cae0b34e0174008242d6a6ee398051be950019c2a18b97005c6b4cd767ae20",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/modulos/playbook/04-remover-legado.md",
+      "bytes": 1153,
+      "sha256": "1bfbea666218cd16a4d24440b8dd19c2a139b9293d4dae7d1c3b88672fb42621",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/modulos/playbook/A1-alvo.md",
+      "bytes": 525,
+      "sha256": "6ce15ef5f2c5dd0e199aaa092d258c58216f97dc4c17bdf17540ccd9442ae452",
       "role": "cowork-source"
     },
     {
@@ -3631,6 +3727,12 @@
       "path": "cowork-inbox/PEDIDO-CL-onda11-precompilar-jsx.md",
       "bytes": 2536,
       "sha256": "c1b45bf75ecf23715892a71d04937de59906d81b5eade1580776c2361d04497a",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/PEDIDO-CL-ordem-pendencias-playbooks-2026-10-06.md",
+      "bytes": 3855,
+      "sha256": "cf874c613872abedd85ea073fc862c592571fe9c523ea63a4d758f81400c13b8",
       "role": "cowork-source"
     },
     {
@@ -5422,6 +5524,12 @@
       "role": "cowork-source"
     },
     {
+      "path": "cowork-inbox/tema-escuro/playbook/_saida-01.md",
+      "bytes": 5721,
+      "sha256": "481d61b9107233b96d954e6beee744ae44d6d257575bf4d31f7f7542c756e37a",
+      "role": "cowork-source"
+    },
+    {
       "path": "cowork-inbox/tema-escuro/playbook/_SESSAO-FRIA.md",
       "bytes": 545,
       "sha256": "b3a086fc2ce8899459396a33051d53d140489325498bed5092fa2666f6e58770",
@@ -5614,15 +5722,21 @@
       "role": "cowork-source"
     },
     {
+      "path": "cowork-inbox/venda-menu/playbook/_saida-Q-CC.md",
+      "bytes": 1308,
+      "sha256": "ababe8a2f847782eed3121070b69948cc1dd9bbba21322c06c103c467e464f0c",
+      "role": "cowork-source"
+    },
+    {
       "path": "cowork-inbox/venda-menu/playbook/_SESSAO-FRIA.md",
-      "bytes": 1336,
-      "sha256": "76f8237626842324b4bbeb9f53ca1ceb0b3fab5d06cbd59904be5d334fa1b614",
+      "bytes": 2060,
+      "sha256": "380b8bfbe631c6a809bb823884800f1c26ae52fb61c502ff1d72595ae08ff2ca",
       "role": "cowork-source"
     },
     {
       "path": "cowork-inbox/venda-menu/playbook/00-INDICE.md",
-      "bytes": 13210,
-      "sha256": "3b1769ec81fe2788e75c3964aec81b2d8234b448f7d2dee5a740a9acf6f0748b",
+      "bytes": 18598,
+      "sha256": "c326b7965822e8d05c1246c91ba362f04e54d6e9862b550aab223fd58b08181c",
       "role": "cowork-source"
     },
     {
@@ -5639,8 +5753,8 @@
     },
     {
       "path": "cowork-inbox/venda-menu/playbook/03-orcamentos.md",
-      "bytes": 3338,
-      "sha256": "0749e56659a0193c5eae9f0efd8fd9ea5d60b7ac6fb6cad6600c2d185b8527d7",
+      "bytes": 3968,
+      "sha256": "2ebeddb89c6ab58cbd9fa32d376c6947bc93ee6b552add48e5904d9f8520f2c4",
       "role": "cowork-source"
     },
     {
@@ -5741,8 +5855,8 @@
     },
     {
       "path": "data.jsx",
-      "bytes": 35881,
-      "sha256": "e4271a18dcd2c7a6b3d94f311e6beee2addc9ec58f0af9fe274cfcaf2bce7afb",
+      "bytes": 35815,
+      "sha256": "c70626ddd82a2fca87ac8219d536d34d5f3a6778e99a3819f4730cce029595c1",
       "role": "cowork-source"
     },
     {
@@ -7410,10 +7524,10 @@
   ],
   "missing": [],
   "mirrorScope": "tree",
-  "bundleId": "da09cfd9462ad5f186a7c05325fc8ee1b52ff4f9839ab70876d05d65eea40bb8",
-  "baseBundleId": "c8a922f9285b0e54d703146c33feb4bf08134e7ae92fa38d0839094d51429a04",
+  "bundleId": "9abbfbb01d5645ada6d0ff43347ba8784601d8d6df796e449264cfdc9276d8f6",
+  "baseBundleId": "da09cfd9462ad5f186a7c05325fc8ee1b52ff4f9839ab70876d05d65eea40bb8",
   "mode": "delta",
-  "generatedAt": "2026-10-06T17:04:33.939Z",
+  "generatedAt": "2026-10-06T17:46:16.021Z",
   "dsRequires": {
     "owner": "Wagner",
     "slug": "office-impresso-design-system-019dd02f-d2d0-7ba6-a57f-24b3ddd073ac",
@@ -7465,111 +7579,40 @@
     ]
   },
   "totals": {
-    "files": 1234,
-    "bytes": 12060027
+    "files": 1253,
+    "bytes": 12112229
   },
   "changes": {
     "added": [
-      "cowork-inbox/cliente/playbook/_saida-03.md",
-      "cowork-inbox/comissoes/playbook/_SESSAO-FRIA.md",
-      "cowork-inbox/comissoes/playbook/00-INDICE.md",
-      "cowork-inbox/comissoes/playbook/02-relatorio-comissao.md",
-      "cowork-inbox/comissoes/playbook/03-split-auditado.md",
-      "cowork-inbox/comissoes/playbook/A1-alvo.md",
-      "cowork-inbox/crm/playbook/_saida-07b.md",
-      "cowork-inbox/crm/playbook/_saida-07c.md",
-      "cowork-inbox/crm/playbook/_saida-07d.md",
-      "cowork-inbox/crm/playbook/_saida-09.md",
-      "cowork-inbox/ds-atomos/PEDIDO-M-checkbox-da-tabela-e-alturas-2026-10-06.md",
-      "cowork-inbox/essenciais/playbook/_DECISOES-W-2026-10-06.md",
-      "cowork-inbox/essenciais/playbook/_saida-01.md",
-      "cowork-inbox/essenciais/playbook/_saida-02.md",
-      "cowork-inbox/estoque/playbook/_saida-01.md",
-      "cowork-inbox/financeiro/playbook/11-unificado-xlink-boleto.md",
-      "cowork-inbox/financeiro/playbook/12-boletos-cancelar-aposentar.md",
-      "cowork-inbox/fiscal/playbook/_DECISOES-W-2026-10-06.md",
-      "cowork-inbox/fiscal/playbook/04-validacao-ibs-cbs.md",
-      "cowork-inbox/fiscal/playbook/05-regraform-ibs-cbs.md",
-      "cowork-inbox/fiscal/playbook/06-motor-st-fcp-difal.md",
-      "cowork-inbox/fiscal/playbook/07-operacao-vigencia.md",
-      "cowork-inbox/fiscal/playbook/08-simulador.md",
-      "cowork-inbox/fiscal/playbook/09-icms-uf.md",
-      "cowork-inbox/fiscal/playbook/10-ia-sugestoes.md",
-      "cowork-inbox/fiscal/playbook/11-adr-entrada-xml.md",
-      "cowork-inbox/fiscal/playbook/12-alvo-tributacao.md",
-      "cowork-inbox/fiscal/playbook/13-afericao-chamados.md",
-      "cowork-inbox/fiscal/playbook/14-saude-fiscal.md",
-      "cowork-inbox/fiscal/playbook/15-aceite-contador.md",
-      "cowork-inbox/fiscal/playbook/16-bloqueio-com-saida.md",
-      "cowork-inbox/fiscal/playbook/17-emissao-por-item.md",
-      "cowork-inbox/fiscal/playbook/18-destroy-regra-sem-permissao.md",
-      "cowork-inbox/fiscal/playbook/19-import-csv-tenant.md",
-      "cowork-inbox/fiscal/playbook/20-devolucao.md",
-      "cowork-inbox/fiscal/playbook/21-certificado-template-backend.md",
-      "cowork-inbox/fiscal/playbook/22-certificado-template-tela.md",
-      "cowork-inbox/fiscal/playbook/23-retencoes-nfse.md",
-      "cowork-inbox/fiscal/playbook/24-fator-r.md",
-      "cowork-inbox/fiscal/playbook/25-beneficio-cbenef.md",
-      "cowork-inbox/fiscal/playbook/26-filial-origem.md",
-      "cowork-inbox/fiscal/playbook/27-cnpj-alfanumerico.md",
-      "cowork-inbox/fiscal/playbook/28-fechamento-contador.md",
-      "cowork-inbox/fiscal/playbook/29-icms-iss-e-difal-por-uf.md",
-      "cowork-inbox/officeimpresso/playbook/_saida-09.md",
-      "cowork-inbox/placar/playbook/_saida-A-LOTE.md",
-      "cowork-inbox/produto/playbook/_saida-04.md",
-      "cowork-inbox/sistema/playbook/_DECISOES-W-2026-10-06.md",
-      "cowork-inbox/superadmin/playbook/_saida-03.md",
-      "cowork-inbox/superadmin/playbook/_saida-04.md",
-      "cowork-inbox/superadmin/playbook/_saida-A2.md",
-      "cowork-inbox/telas-soltas/playbook/_DECISOES-W-2026-10-06.md",
-      "cowork-inbox/telas-soltas/playbook/_saida-03.md",
-      "cowork-inbox/telas-soltas/playbook/_saida-A1.md",
-      "cowork-inbox/venda-menu/playbook/03-orcamentos.md",
-      "entregas-page.jsx",
-      "fiscal-tributacao.casos.md",
-      "fiscal-tributacao.jsx",
-      "fluxos-data.jsx",
-      "fluxos-modelos.casos.md",
-      "fluxos-page.css",
-      "fluxos-page.jsx",
-      "fluxos-processos.jsx",
-      "fsm-etapa.css",
-      "fsm-etapa.jsx",
-      "fsm-regras.css",
-      "fsm-regras.jsx"
+      "cowork-inbox/app-lojas/playbook/_SESSAO-FRIA.md",
+      "cowork-inbox/app-lojas/playbook/00-INDICE.md",
+      "cowork-inbox/financeiro/playbook/_saida-11.md",
+      "cowork-inbox/fiscal/playbook/_saida-13.md",
+      "cowork-inbox/modulos-faltantes/playbook/_SESSAO-FRIA.md",
+      "cowork-inbox/modulos-faltantes/playbook/00-INDICE.md",
+      "cowork-inbox/modulos-faltantes/playbook/01-contratos.md",
+      "cowork-inbox/modulos-faltantes/playbook/02-suporte-log.md",
+      "cowork-inbox/modulos-faltantes/playbook/03-voz-do-cliente.md",
+      "cowork-inbox/modulos-faltantes/playbook/04-catalogo-qr.md",
+      "cowork-inbox/modulos/playbook/_SESSAO-FRIA.md",
+      "cowork-inbox/modulos/playbook/00-INDICE.md",
+      "cowork-inbox/modulos/playbook/01-install-falho-e-erro.md",
+      "cowork-inbox/modulos/playbook/02-install-em-fila.md",
+      "cowork-inbox/modulos/playbook/04-remover-legado.md",
+      "cowork-inbox/modulos/playbook/A1-alvo.md",
+      "cowork-inbox/PEDIDO-CL-ordem-pendencias-playbooks-2026-10-06.md",
+      "cowork-inbox/tema-escuro/playbook/_saida-01.md",
+      "cowork-inbox/venda-menu/playbook/_saida-Q-CC.md"
     ],
     "modified": [
       "app.jsx",
-      "cobranca-recorrente-page.jsx",
-      "COLAR-NO-CODE-fiscal-notafiscal-ondas.md",
-      "compras-page.css",
-      "compras-page.jsx",
-      "cowork-inbox/essenciais/playbook/00-INDICE.md",
-      "cowork-inbox/financeiro/playbook/00-INDICE.md",
-      "cowork-inbox/fiscal/playbook/00-INDICE.md",
-      "cowork-inbox/sistema/playbook/00-INDICE.md",
-      "cowork-inbox/telas-soltas/playbook/00-INDICE.md",
+      "comunicacao-visual-page.jsx",
+      "cowork-inbox/venda-menu/playbook/_SESSAO-FRIA.md",
       "cowork-inbox/venda-menu/playbook/00-INDICE.md",
-      "data.jsx",
-      "estoque-contagem.jsx",
-      "fin-boletos.css",
-      "financeiro-page.jsx",
-      "fiscal-page.css",
-      "fiscal-page.jsx",
-      "github.md",
-      "inbox-page.jsx",
-      "manufacturing-page.jsx",
-      "manufacturing-recipe.jsx",
-      "oimpresso.com.html",
-      "os-page.jsx",
-      "pg-cobranca-page.jsx",
-      "ponto-telas.jsx",
-      "scripts/gerar-mapas-handoff.js",
-      "vendas-page.jsx"
+      "cowork-inbox/venda-menu/playbook/03-orcamentos.md",
+      "data.jsx"
     ],
-    "deleted": [
-      "boletos-page.jsx"
-    ],
-    "unchanged": 1140
+    "deleted": [],
+    "unchanged": 1228
   }
 }

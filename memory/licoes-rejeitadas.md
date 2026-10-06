@@ -3150,3 +3150,12 @@ Ocorrência da **LC-33**.
 - **Evidência:** `contrato-de-tela.test.mjs` 54 OK; mutação que devolve o texto antigo à mensagem derruba 2 asserts (`anuncia as rotas reais`, `NÃO promete corpo do PR`), restauração conferida por hash. Rota `--notes` exercida (exit 0) com controle negativo (notes sem o nome → exit 1).
 
 Ocorrência da **LC-15**.
+
+### 2026-10-06 — `test-lane-coverage --pr` reconhecia o passo do Pest pelo NOME: a lane do Financeiro saía "pulou" com o Pest executado e verde
+
+- **O que foi tentado:** confirmar que o teste tocado pelo [#8813](https://github.com/wagnerra23/oimpresso.com/pull/8813) rodou no head. O script respondeu `⛔ NAO-EXECUTADO · pulou`, enquanto o log da run 37510227915 mostrava o arquivo com 12 casos verdes. A hipótese levantada foi a de que o script lia o JUnit e tratava qualquer skip como "pulou".
+- **Por que caiu:** o eixo 3 não lê JUnit. Ele procura, nos jobs da run, um passo cujo nome case `Run Pest`/`Pest`/`vendor/bin/pest`. O passo do Financeiro se chama "Selecionar alvos (DIRETÓRIO − QUARENTENA) e rodar Pest", e não casa. Sem nenhum passo reconhecido, a função devolvia `pulou`, e "não achei o passo" virou acusação. Das 37 lanes com pest, só essa estava fora da convenção, mas era o suficiente para acusar todo PR do Financeiro.
+- **O limite (variante também proibida):** instrumento que procura um elemento por convenção de nome não lê "não achei" como "não aconteceu". O elemento sai da fonte que o define (aqui, o corpo do passo no YAML), e o caso "não achei" tem estado próprio, que sai exit 2. E antes de consertar pela hipótese de quem reportou, leia o predicado que decide o veredito: a hipótese do JUnit levaria a mexer num arquivo que o script nem abre.
+- **Evidência:** `--pr 8813` antigo `NAO-EXECUTADO` (rc 1) × novo `EXECUTOU` (rc 0); `--selftest` 50/50 com bite pelo CLI de fora (`--pr-fixture`): o mesmo passo `skipped` segue `NAO-EXECUTADO`; três mutantes mortos.
+
+Ocorrência da **LC-33**.
