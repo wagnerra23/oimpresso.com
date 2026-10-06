@@ -276,6 +276,7 @@ class OficinaController extends Controller
 
         $etapa = $this->etapaDetalhe($bizId, $os);
 
+        /** @var Collection<int, \stdClass> $itens */
         $itens = $this->itensDasOs($bizId, [$id])->get($id, collect());
 
         $soma = fn (string $tipo) => round((float) $itens->where('tipo', $tipo)->sum('valor_total'), 2);
@@ -917,6 +918,7 @@ class OficinaController extends Controller
                     $etapa = $o->order_type === 'mecanica' && $inicial !== null ? $inicial->name : null;
                 }
 
+                /** @var Collection<int, \stdClass> $itensOs */
                 $itensOs = $feitos->get((int) $o->id, collect());
 
                 return [
@@ -948,7 +950,7 @@ class OficinaController extends Controller
      * Fonte única do detalhe (GET /os/{id}) e do histórico do veículo. Tier 0: business_id explícito.
      *
      * @param  list<int>  $osIds
-     * @return Collection<int, Collection<int, object>>
+     * @return Collection<array-key, Collection<int, \stdClass>>
      */
     private function itensDasOs(int $bizId, array $osIds): Collection
     {
