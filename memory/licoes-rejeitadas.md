@@ -3132,3 +3132,12 @@ Ocorrência da **LC-19**.
 - **Defesa.** Nenhuma nova. A forma mecânica óbvia (acusar `markTestSkipped` guardado por existência de linha) reprovaria os skips legítimos de ambiente, e o FP não foi medido.
 
 Ocorrência da **LC-13**.
+
+### 2026-10-06 — `test-lane-coverage --pr` lia as lanes da árvore LOCAL: o teste que o próprio PR põe na lane saía SEM-LANE
+
+- **O que foi tentado:** confirmar, para a gestão da fila, se o teste tocado pelo #8752 rodou no head. O script respondeu `⛔ SEM-LANE` duas vezes — num worktree atrasado e no `main` fresco — e a sessão dona foi instruída a "pôr o teste na lane".
+- **Por que caiu:** os dois testes estavam no `essentials-pest.yml` do branch do PR desde o 1º commit. O modo `--pr` lê o resultado dos runs do GitHub (estado do head) mas lia a lista das lanes do disco local (estado de outra árvore). Mistura de duas fontes de estado diferentes num só veredito: todo PR que acrescenta o próprio teste à lane — o caminho que o script manda seguir — era acusado quando medido de fora do branch.
+- **O limite (variante também proibida):** instrumento que dá veredito sobre um PR não lê **configuração** (workflows, listas, baselines, allowlists) do `cwd` — lê do head do PR, a mesma árvore cujos runs ele está julgando. E, ao receber contestação de quem é dono do PR, a primeira hipótese é **o instrumento leu a árvore errada**, antes de "o autor errou". Controle de mutante vale só pelas linhas de veredito (`⛔`/`✓`); `grep -c` de uma palavra que também está no rodapé fixo mede o rodapé.
+- **Evidência:** controle no mesmo PR e árvore — antigo `SEM-LANE` × novo `NAO-EXECUTADO · pendente`; `--selftest` 44/44; PR sem teste (#8751) segue `rc=0`.
+
+Ocorrência da **LC-33**.
