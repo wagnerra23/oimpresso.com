@@ -93,8 +93,8 @@ last_run: "2026-10-06"
 - **Fonte:** §4.5 (a lista é de ORDENS, não de receitas) + sintoma catalogado no
   `RUNBOOK-producao.md §4`.
 - **Teste:** `Wave32ProducaoColunasTest.php`
-- **Regressão que defende:** trocar o `leftJoin` da contagem de ingredientes por `join`, o que
-  faria a ordem sem receita desaparecer silenciosamente da tela.
+- **Regressão que defende:** a contagem de ingredientes (ou o join do produto) filtrar a ordem
+  sem receita, fazendo-a desaparecer silenciosamente da tela.
 - **Status: 🧪**
 
 ---
