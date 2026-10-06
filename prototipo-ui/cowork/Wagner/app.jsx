@@ -527,7 +527,7 @@ function App() {
     document.addEventListener("oi:lazy-done", h);
     return () => {if (timer) clearTimeout(timer);document.removeEventListener("oi:lazy-tick", h);document.removeEventListener("oi:lazy-done", h);};
   }, []);
-  const ROUTE_301 = { boletos: "cobranca" };
+  const ROUTE_301 = { boletos: "cobranca", orcamentos: "venda-cotacoes" };
   const [route, setRoute] = useStateA(() => {
     // Paridade com Modules/Financeiro/Routes/web.php:173 — GET /boletos é 301 → /financeiro/cobranca
     // (tela aposentada 2026-05-19, ADR 0144 + 0170). Rota salva antiga cai na Cobrança.
@@ -818,7 +818,7 @@ function App() {
   if (route === "cli-extrato") content = <window.ClienteExtratoPage clientId={window.__CLI_EXTRATO_ID} />;else
   if (route === "cli-mapa") content = <window.ClienteMapaPage />;else
   if (route === "cli-grupos") content = <window.ClienteGruposPage />;else
-  if (route === "orcamentos") content = <window.OrcListPage />;else
+  if (route === "venda-cotacoes") content = <window.OrcListPage />;else
   if (route === "produtos") content = <window.ProdListPage typeFilter={prodType} onTypeFilter={setProdType} estado={tweaks.prodEstado} dense={tweaks.prodDensidade === "compacto"} papel={tweaks.prodPapel} />;else
   if (route.startsWith("prod-")) {
     const PROD_VIEW = { "prod-lista": "lista", "prod-novo": "form", "prod-estoque": "estoque", "prod-historico": "historico", "prod-precos": "precos", "prod-massa": "massa", "prod-analises": "analises", "prod-etiquetas": "etiquetas", "prod-atualizar-preco": "atualizar-preco", "prod-importar": "importar-produtos", "prod-importar-estoque": "importar-estoque", "prod-cadastros": "cadastros" };

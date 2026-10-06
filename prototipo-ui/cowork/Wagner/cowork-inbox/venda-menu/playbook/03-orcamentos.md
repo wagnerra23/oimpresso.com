@@ -35,6 +35,10 @@ absorve: pedido [W] 2026-10-06 "playbook de Orçamentos" — **não ganha playbo
 - **Aceite:** converter cria a venda com os mesmos itens, quantidades e preços, ligada à cotação; a cotação sai da lista como "convertida". Converter duas vezes → 409. Controle positivo: cotação não convertida segue editável.
 - **Teste:** `QuotationConvertTest` — `UC-QUO-04`.
 
-## Decisões [W]
+## Decisões — respondidas 2026-10-06 (delegadas ao [CC])
+- **D-ORC-1 → entra agora.** Reusa `SellPosController@convertToInvoice` (não reescrever a conversão). Pesquisar antes de codar: o que ela faz com a `sub_status` (sai de `quotation`?), se baixa estoque/gera título na hora (UC-QUO-03 controle positivo) e se `SaleFsmActionController` registra a transição a partir de `quote_sent` — se não registrar, a Q3 **liga** a transição lá, sem FSM nova. UC-QUO-04 vale como escrito (409 na 2ª conversão). Q2 agora depende da Q3.
+- **D-ORC-2 → `venda-cotacoes`.** Feito na Q-CC (`_saida-Q-CC.md`).
+
+## Decisões [W] (texto original)
 - **D-ORC-1** — Converter em venda entra agora ou espera o FSM `quote_accepted`? **Proposta [CC]:** espera o FSM (o charter já diz isso); Q1 e Q2 seguem sem ela.
 - **D-ORC-2** — No protótipo, qual rota fica: `orcamentos` ou `venda-cotacoes`? **Proposta [CC]:** `venda-cotacoes`, que é a que espelha a Page viva.

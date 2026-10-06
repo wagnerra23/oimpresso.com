@@ -134,7 +134,7 @@ function ComunicacaoVisualPage({ estado = "dados", papel = "balcao", dense = fal
 
   const acoes = (
     <div className="cvi-h-acts">
-      <Btn onClick={() => window.__selectRoute?.("orcamentos")}>Orçamentos</Btn>
+      <Btn onClick={() => window.__selectRoute?.("venda-cotacoes")}>Orçamentos</Btn>
       <Btn variant="primary" onClick={() => { setItens((s) => [...s, novoItem()]); zera(); }}><IcPlus /> Adicionar peça</Btn>
     </div>
   );
