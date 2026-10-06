@@ -33,6 +33,7 @@ interface Vehicle {
   renavam: string | null;
   engine: string | null;
   mileage_at_entry: number | null;
+  next_service_km: number | null;
   fuel_type: string | null;
   color: string | null;
   notes: string | null;
@@ -57,6 +58,7 @@ const FIELD_ORDER = [
   'fuel_type',
   'color',
   'mileage_at_entry',
+  'next_service_km',
   'notes',
 ] as const;
 
@@ -72,6 +74,7 @@ export default function VehiclesEdit({ vehicle, vehicleTypes }: Props) {
     renavam: vehicle.renavam ?? '',
     engine: vehicle.engine ?? '',
     mileage_at_entry: vehicle.mileage_at_entry?.toString() ?? '',
+    next_service_km: vehicle.next_service_km?.toString() ?? '',
     fuel_type: vehicle.fuel_type ?? '',
     color: vehicle.color ?? '',
     notes: vehicle.notes ?? '',
@@ -283,6 +286,20 @@ export default function VehiclesEdit({ vehicle, vehicleTypes }: Props) {
               />
               {errors.mileage_at_entry && (
                 <p className="text-sm text-destructive mt-1">{errors.mileage_at_entry}</p>
+              )}
+            </div>
+            <div>
+              <Label htmlFor="next_service_km">Próxima revisão (km)</Label>
+              <Input
+                id="next_service_km"
+                type="number"
+                value={data.next_service_km}
+                onChange={(e) => setData('next_service_km', e.target.value)}
+                min={0}
+                aria-invalid={!!errors.next_service_km}
+              />
+              {errors.next_service_km && (
+                <p className="text-sm text-destructive mt-1">{errors.next_service_km}</p>
               )}
             </div>
           </div>

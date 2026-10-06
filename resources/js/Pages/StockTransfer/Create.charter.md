@@ -24,8 +24,19 @@ mwart_pattern_reuse:
 
 ## Regras invariantes
 - R-XFER-001 (Tier 0 IRREVOGÁVEL)
-- R-XFER-004: origem ≠ destino (validado client + server)
+- R-XFER-004: origem ≠ destino — conferida **só no cliente**; `store()` não compara as duas filiais (medido 2026-10-06, ver casos §Backlog)
 - R-XFER-005: status=completed → estoque movido server-side
 
 ## UX crítica
-Bloqueio visual se origem == destino (forma + button disabled). Server-side garante anyway.
+Bloqueio visual se origem == destino (forma + button disabled). O servidor **não** repete essa checagem hoje — o bloqueio da tela é a única barreira.
+
+## Casos
+[Create.casos.md](Create.casos.md) — UC-TRCRT-01/02 (permissão, filiais do próprio business e os 3 status).
+
+## Permissões
+- Abrir e salvar: `purchase.create` (403 sem ela).
+- `edit_price` decide só o `readonly` do preço; o servidor não re-checa no save.
+
+## Estados
+- Status de entrada: `pending`, `in_transit`, `completed`. `completed` é gravado como `final` e move o estoque na hora.
+- `completed` tira saldo da origem e põe no destino, em transação. Mudança nesse caminho segue a REGRA MESTRE; merge do [W].

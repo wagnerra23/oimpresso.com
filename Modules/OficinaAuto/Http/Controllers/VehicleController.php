@@ -180,6 +180,7 @@ class VehicleController extends Controller
 
         // business_id é setado automaticamente pelo Model::creating hook (ADR 0093)
         $vehicle = Vehicle::create($request->validated());
+        $this->gravarProximaRevisao($vehicle, $request->validated());
 
         // ADR 0251 — quick-add da venda (QuickAddVehicleSheet) faz fetch direto (não
         // Inertia router) pra NÃO perder o draft da venda; espera JSON com o veículo
@@ -293,6 +294,7 @@ class VehicleController extends Controller
         $this->authorize('update', $vehicle);
 
         $vehicle->update($request->validated());
+        $this->gravarProximaRevisao($vehicle, $request->validated());
 
         return redirect('/oficina-auto/veiculos/' . $vehicle->id)
             ->with('status', ['success' => 1, 'msg' => 'Veículo atualizado.']);
@@ -320,6 +322,20 @@ class VehicleController extends Controller
     /**
      * Tipos de veículo suportados (alinhado ENUM da migration vehicles).
      */
+    /**
+     * Lembrete de revisão por km (decisão [W] 2026-10-06): `next_service_km` fica fora do $fillable de
+     * propósito — alterar o Vehicle acordaria a dívida grandfathered de escopo multi-tenant
+     * (MultiTenantScopeArchitectureTest). Gravado explicitamente, só quando o form manda o campo.
+     *
+     * @param  array<string, mixed>  $validados
+     */
+    private function gravarProximaRevisao(Vehicle $vehicle, array $validados): void
+    {
+        if (array_key_exists('next_service_km', $validados)) {
+            $vehicle->forceFill(['next_service_km' => $validados['next_service_km']])->save();
+        }
+    }
+
     public static function vehicleTypes(): array
     {
         // Fonte única no núcleo (o app das lojas lê de lá sem importar deste módulo).
