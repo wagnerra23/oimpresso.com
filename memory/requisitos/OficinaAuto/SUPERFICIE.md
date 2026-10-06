@@ -14,7 +14,7 @@ module: OficinaAuto
 >
 > **O que isto é:** o inventário completo das raízes `Modules/OficinaAuto/**` + `resources/js/Pages/OficinaAuto/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 177 arquivos em 18 papéis.
+**Total mapeado:** 179 arquivos em 18 papéis.
 
 ## Controllers — 9
 
@@ -60,8 +60,9 @@ module: OficinaAuto
 - [VehicleLookupService.php](../../../Modules/OficinaAuto/Services/VehicleLookupService.php)
 - [VehicleQueryService.php](../../../Modules/OficinaAuto/Services/VehicleQueryService.php)
 
-## Models / Entities — 4
+## Models / Entities — 5
 
+- [Agendamento.php](../../../Modules/OficinaAuto/Entities/Agendamento.php)
 - [OaInspectionItem.php](../../../Modules/OficinaAuto/Entities/OaInspectionItem.php)
 - [ServiceOrder.php](../../../Modules/OficinaAuto/Entities/ServiceOrder.php)
 - [ServiceOrderItem.php](../../../Modules/OficinaAuto/Entities/ServiceOrderItem.php)
@@ -92,7 +93,7 @@ module: OficinaAuto
 
 - [web.php](../../../Modules/OficinaAuto/Routes/web.php)
 
-## Migrations (schema) — 21
+## Migrations (schema) — 22
 
 - [2026_05_11_000010_create_vehicles_table.php](../../../Modules/OficinaAuto/Database/Migrations/2026_05_11_000010_create_vehicles_table.php)
 - [2026_05_11_000020_create_service_orders_table.php](../../../Modules/OficinaAuto/Database/Migrations/2026_05_11_000020_create_service_orders_table.php)
@@ -115,6 +116,7 @@ module: OficinaAuto
 - [2026_06_10_000001_repoint_orphan_service_orders_from_legacy_pipelines.php](../../../Modules/OficinaAuto/Database/Migrations/2026_06_10_000001_repoint_orphan_service_orders_from_legacy_pipelines.php)
 - [2026_06_10_000002_rename_cacamba_locacao_action_labels.php](../../../Modules/OficinaAuto/Database/Migrations/2026_06_10_000002_rename_cacamba_locacao_action_labels.php)
 - [2026_10_06_120000_add_next_service_km_to_vehicles.php](../../../Modules/OficinaAuto/Database/Migrations/2026_10_06_120000_add_next_service_km_to_vehicles.php)
+- [2026_10_06_180000_create_oficina_agendamentos_table.php](../../../Modules/OficinaAuto/Database/Migrations/2026_10_06_180000_create_oficina_agendamentos_table.php)
 
 ## Seeders — 4
 
