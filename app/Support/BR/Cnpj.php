@@ -70,9 +70,10 @@ final class Cnpj
      * DV válido; todo o resto cai no comportamento antigo (só dígitos), para não mudar
      * nada no que já funcionava.
      *
-     * Exigir o DV não é zelo: a forma sozinha não basta. `CPF 529.982.247-25` sem
-     * máscara vira `CPF52998224725` — 12 alfanuméricos + 2 dígitos, a forma exata do
-     * CNPJ novo — e iria para o XML como CNPJ (pego pelo R-NFE-033 no CI).
+     * Exigir o DV não é zelo: a forma sozinha não basta. Um CPF de 11 dígitos escrito
+     * com o prefixo "CPF" vira, sem máscara, 3 letras + 11 dígitos — 12 alfanuméricos +
+     * 2 dígitos, a forma exata do CNPJ novo — e iria para o XML como CNPJ (pego pelo
+     * R-NFE-033 no CI).
      */
     public static function documentoFiscal(string $valor): string
     {
