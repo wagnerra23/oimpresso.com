@@ -195,6 +195,26 @@ describe('Detalhe da ordem de produção — mesmas contas da tela antiga', func
     });
 });
 
+describe('UC-OP-08 — o "N ingredientes" da lista conta os consumidos, como o painel', function () {
+    it('UC-OP-08 a lista conta as linhas consumidas da ordem, não os ingredientes da receita', function () {
+        $user = mfgDetUsuario();
+        // A fixture grava 2 linhas consumidas e NÃO cria receita para o produto: contar pela
+        // receita daria 0; contar pelo consumo dá 2 — os dois caminhos não coincidem.
+        $ordem = mfgDetOrdem(MFG_EMP_BIZ, $user->id, 'percentage', 10);
+        $service = new ProductionService();
+
+        $linhas = collect($service->enrichProductionRows(
+            $service->listProductions(MFG_EMP_BIZ, [], 500),
+            MFG_EMP_BIZ
+        ))->keyBy('id');
+
+        // (a) à mão: a fixture tem 2 linhas na venda de produção.
+        expect($linhas[$ordem]['n_ingredientes'])->toBe(2);
+        // (b) o painel (detalheOrdem) mostra o mesmo número de linhas.
+        expect($linhas[$ordem]['n_ingredientes'])->toBe(count($service->detalheOrdem(MFG_EMP_BIZ, $ordem)['linhas']));
+    });
+});
+
 describe('UC-OP-09 — a quantidade é a que entrou no estoque, com as perdidas ao lado', function () {
     it('UC-OP-09 lista e painel mostram a quantidade líquida e as perdidas; a soma é a bruta da tela antiga', function () {
         $user = mfgDetUsuario();

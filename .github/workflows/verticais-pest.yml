@@ -74,6 +74,9 @@ on:
       - 'Modules/Crm/Tests/Feature/CrmLeadsContratoTest.php'
       # Thread Crm/06 — o form de lead é o Cliente/Create parametrizado.
       - 'resources/js/Pages/Cliente/Create.tsx'
+      # Thread Crm/09 — a edição de lead é o Cliente/Edit parametrizado.
+      - 'resources/js/Pages/Cliente/Edit.tsx'
+      - 'resources/js/Pages/Cliente/_form/DadosLeadSection.tsx'
       # Thread Crm/08 — a ficha Blade do lead (show) só abre `type = lead`.
       - 'Modules/Crm/Tests/Feature/CrmLeadShowEscopoTest.php'
       # Thread Crm/04 — o painel do CRM virou Inertia; o contrato dele roda aqui.
@@ -153,6 +156,9 @@ jobs:
               - 'Modules/Crm/Tests/Feature/CrmLeadsContratoTest.php'
               # Thread Crm/06 — o form de lead é o Cliente/Create parametrizado.
               - 'resources/js/Pages/Cliente/Create.tsx'
+              # Thread Crm/09 — a edição de lead é o Cliente/Edit parametrizado.
+              - 'resources/js/Pages/Cliente/Edit.tsx'
+              - 'resources/js/Pages/Cliente/_form/DadosLeadSection.tsx'
               # Thread Crm/08 — a ficha Blade do lead (show) só abre `type = lead`.
               - 'Modules/Crm/Tests/Feature/CrmLeadShowEscopoTest.php'
               # Thread Crm/04 — o painel do CRM virou Inertia; o contrato dele roda aqui.
