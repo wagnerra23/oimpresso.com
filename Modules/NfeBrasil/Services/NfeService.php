@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\NfeBrasil\Services;
 
 use App\Domain\Fsm\Exceptions\UnauthorizedActionException;
+use App\Support\BR\Cnpj;
 use App\Transaction;
 use App\Util\OtelHelper;
 use Closure;
@@ -106,7 +107,8 @@ class NfeService
             );
         }
 
-        $documentoDest = preg_replace('/\D/', '', (string) ($contact->tax_number ?? ''));
+        // Mantém as letras do CNPJ alfanumérico (IN RFB 2.229/2024); CPF e CNPJ numérico seguem iguais.
+        $documentoDest = Cnpj::documentoFiscal((string) ($contact->tax_number ?? ''));
         if (! in_array(strlen($documentoDest), [11, 14], true)) {
             throw new RuntimeException(
                 "Contact {$contact->id} sem CPF/CNPJ válido (tax_number)."
@@ -1493,7 +1495,8 @@ class NfeService
         //     (consumidor não identificado é válido pra venda <R$ [redacted Tier 0]k).
         //   - NFe (modelo 55) sem doc → erro fica claro upstream (NFe exige).
         $dest    = $dadosNfe['dest'];
-        $doc     = preg_replace('/\D/', '', (string) ($dest['cnpj'] ?? $dest['cpf'] ?? ''));
+        // CNPJ alfanumérico (IN RFB 2.229/2024) sai como está; antes as letras eram arrancadas.
+        $doc     = Cnpj::documentoFiscal((string) ($dest['cnpj'] ?? $dest['cpf'] ?? ''));
         $isNfce  = (int) $emissao->modelo === 65;
         $hasDoc  = strlen($doc) === 11 || strlen($doc) === 14;
 
