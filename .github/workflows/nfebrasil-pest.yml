@@ -27,6 +27,8 @@ on:
       - 'Modules/Fiscal/Tests/**'
       - 'Modules/NFSe/DTO/NfseEmissaoPayload.php'
       - 'tests/Feature/Calculo/CalculoTributarioTest.php'
+      - 'app/Support/BR/Cnpj.php'
+      - 'app/Rules/BR/CpfCnpj.php'
       - 'database/schema/mysql-schema.sql'
       - '.github/workflows/nfebrasil-pest.yml'
       - '.github/actions/pest-mysql-setup/**'
@@ -68,6 +70,8 @@ jobs:
               - 'Modules/Fiscal/Tests/**'
               - 'Modules/NFSe/DTO/NfseEmissaoPayload.php'
               - 'tests/Feature/Calculo/CalculoTributarioTest.php'
+              - 'app/Support/BR/Cnpj.php'
+              - 'app/Rules/BR/CpfCnpj.php'
               - 'database/schema/mysql-schema.sql'
               - '.github/workflows/nfebrasil-pest.yml'
               - '.github/actions/pest-mysql-setup/**'
@@ -260,6 +264,7 @@ jobs:
             Modules/NfeBrasil/Tests/Feature/EmitirNfceAoFinalizarVendaTest.php \
             Modules/NfeBrasil/Tests/Feature/ReformaSchemaModoTest.php \
             Modules/NfeBrasil/Tests/Feature/SerializacaoIbsCbsTest.php \
+            Modules/NfeBrasil/Tests/Feature/CnpjAlfanumericoTest.php \
             Modules/NfeBrasil/Tests/Feature/ConfigDefaultContratoTest.php \
             Modules/NfeBrasil/Tests/Feature/TributacaoIndexContratoTest.php \
             Modules/NfeBrasil/Tests/Feature/InutilizacaoAuthorizeRoleTest.php \
