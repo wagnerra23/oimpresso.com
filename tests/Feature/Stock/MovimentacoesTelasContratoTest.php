@@ -31,7 +31,9 @@ beforeEach(function () {
 
 function movtLogin(object $test, int $bizId, array $permissoes): void
 {
-    $user = User::factory()->create(['business_id' => $bizId]);
+    // user_type/allow_login explícitos: o default é do BANCO, não do model em memória — sem
+    // eles o CheckUserLogin aborta 403 antes do controller e os casos de 403 passam por vácuo.
+    $user = User::factory()->create(['business_id' => $bizId, 'user_type' => 'user', 'allow_login' => 1]);
     foreach ($permissoes as $p) {
         Permission::findOrCreate($p, 'web');
         $user->givePermissionTo($p);
