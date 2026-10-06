@@ -126,7 +126,17 @@ it('UC-NFTR-14 · leitura pelo certificado não grava', function () {
 
     expect($foto())->toEqual($antes);  // o caso: NENHUMA linha mudou
 
-    // Controle positivo cross-tenant: a leitura do vizinho devolve o CNPJ dele, não o meu.
+    // Isolamento: na MINHA sessão, pedir o business do vizinho não traz o certificado dele —
+    // o `ScopeByBusiness` do NfeCertificado soma `business_id = sessão` ao `where` do serviço
+    // (medido no CI do #8829: sem isto o resultado era null, não o CNPJ do vizinho).
+    $cruzado = app(EmpresaFiscalLookupService::class)->ler($this->outro);
+    expect($cruzado['campos']['cnpj']['valor'])->not->toBe(EFL_CNPJ_OUTRO);
+
+    // Controle positivo: na sessão DO VIZINHO, a mesma leitura traz o CNPJ dele — prova que o
+    // `not` acima veio do escopo, e não de o certificado do vizinho não existir.
+    $vizinho = $this->usuarioComPermissoes(['nfe.tributacao.manage'], \App\Business::find($this->outro));
+    $this->actingAs($vizinho);
+    session(['user.business_id' => $this->outro, 'business.id' => $this->outro]);
     $doVizinho = app(EmpresaFiscalLookupService::class)->ler($this->outro);
     expect($doVizinho['campos']['cnpj']['valor'])->toBe(EFL_CNPJ_OUTRO);
 });
