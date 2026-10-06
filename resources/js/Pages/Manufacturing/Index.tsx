@@ -41,7 +41,10 @@ interface Production {
   unidade: string;
   n_ingredientes: number;
   criado_por: string;
+  /** Líquida: o que entrou no estoque — o `store()` legado grava produzida − perdidas. */
   quantidade: number;
+  /** `mfg_wasted_units` — perdidas na produção, fora de `quantidade`. */
+  perdidas: number;
   /** `final_total / quantidade`, com guard de divisão por zero no Service. */
   custo_unitario: number;
 }
@@ -167,7 +170,20 @@ const COLUNAS: ColumnDef<Production, unknown>[] = [
     id: 'qtd',
     header: 'Qtd',
     meta: { align: 'right', mono: true },
-    cell: ({ row: { original: p } }) => `${formatQuantity(p.quantidade)}${p.unidade ? ` ${p.unidade}` : ''}`,
+    // A quantidade é a que ENTROU no estoque (líquida). Com perda, a 2ª linha diz quanto se
+    // perdeu, para não confundir com a "Quantidade" bruta da tela antiga (ordem 2021/0001:
+    // 1,00 em estoque + 1,00 perdida = 2,00 produzidas).
+    cell: ({ row: { original: p } }) => {
+      const qtd = `${formatQuantity(p.quantidade)}${p.unidade ? ` ${p.unidade}` : ''}`;
+      if (!(p.perdidas > 0)) return qtd;
+      const perdida = `${formatQuantity(p.perdidas)} perdida${p.perdidas === 1 ? '' : 's'}`;
+      return (
+        <span title={`${qtd} em estoque · ${perdida} · ${formatQuantity(p.quantidade + p.perdidas)} produzidas`}>
+          {qtd}
+          <small className="block text-[11px] text-[var(--text-dim)]">+{perdida}</small>
+        </span>
+      );
+    },
   },
   {
     id: 'total',

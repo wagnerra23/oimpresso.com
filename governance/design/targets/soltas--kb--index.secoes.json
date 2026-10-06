@@ -1,0 +1,16 @@
+{
+  "_": "A1 [CL] 2026-10-06 — playbook telas-soltas. Rota `kb` do espelho (app.jsx), âncora kb/Index → kb-page.jsx (ancora.mjs). Tema dark (default do espelho), viewport 1280x900.",
+  "_mapa": "alvo:mapa --rota kb --raiz '.main-body > *', 2026-10-06: header.kb-page-h · div.kb-stats · div.kb-mobile-tabs · div.kb-tri",
+  "header": {
+    "seletor": ".main-body > div > .kb-page-h"
+  },
+  "stats": {
+    "seletor": ".main-body > div > .kb-stats"
+  },
+  "abas_mobile": {
+    "seletor": ".main-body > div > .kb-mobile-tabs"
+  },
+  "tri": {
+    "seletor": ".main-body > div > .kb-tri"
+  }
+}

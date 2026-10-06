@@ -7,12 +7,10 @@
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Deferred, useForm } from '@inertiajs/react';
 import { type ReactNode, type FormEvent } from 'react';
-import { ChevronLeft, Target } from 'lucide-react';
-import { FormSection, FormGrid } from '@/Components/ui/form-section';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
+import { ChevronLeft } from 'lucide-react';
 import { Skeleton } from '@/Components/ui/skeleton';
-import { Field } from './_form/Field';
 import { ClienteForm } from './_form/ClienteForm';
+import { DadosLeadSection, type LeadOpcoes } from './_form/DadosLeadSection';
 import type { BrasilApiCnpjData } from './_form/DadosFiscaisBRSection';
 import type { ClienteFormShared, CustomerGroup } from './_form/cliente-form-types';
 import { unmaskDigits } from '@/Lib/format-br';
@@ -36,16 +34,7 @@ interface ClienteCreatePageProps {
     salvar: string;
   };
   /** Opções do formulário de lead (fonte, estágio de vida, atribuído a). Deferida. */
-  lead_opcoes?: {
-    fontes: Opcao[];
-    estagios: Opcao[];
-    usuarios: Opcao[];
-  };
-}
-
-interface Opcao {
-  value: string;
-  label: string;
+  lead_opcoes?: LeadOpcoes;
 }
 
 type ClienteCreateFormData = ClienteFormShared & {
@@ -54,9 +43,6 @@ type ClienteCreateFormData = ClienteFormShared & {
   crm_life_stage?: string;
   user_id?: string[];
 };
-
-// Sentinela do Radix Select (não aceita value=""), mapeado pra '' no estado.
-const NENHUM = '__none__';
 
 export default function ClienteCreate(props: ClienteCreatePageProps) {
   // `destino` só vem do LeadController::create(); a prop `lead_opcoes` é deferida e chega depois.
@@ -165,43 +151,14 @@ export default function ClienteCreate(props: ClienteCreatePageProps) {
 
       <div className="container mx-auto max-w-5xl px-8 py-5">
         {ehLead && (
-          <div className="mb-3 space-y-3">
-            {err.msg && (
-              <p role="alert" className="text-sm text-destructive">
-                {err.msg}
-              </p>
-            )}
-            <FormSection title="Dados do lead" icon={<Target />}>
-              <Deferred data="lead_opcoes" fallback={<Skeleton className="h-16 w-full" />}>
-                <FormGrid>
-                  <Field label="Fonte" error={err.crm_source}>
-                    <OpcaoSelect
-                      rotulo="Fonte"
-                      valor={data.crm_source ?? ''}
-                      opcoes={props.lead_opcoes?.fontes ?? []}
-                      onChange={(v) => setData('crm_source', v)}
-                    />
-                  </Field>
-                  <Field label="Estágio de vida" error={err.crm_life_stage}>
-                    <OpcaoSelect
-                      rotulo="Estágio de vida"
-                      valor={data.crm_life_stage ?? ''}
-                      opcoes={props.lead_opcoes?.estagios ?? []}
-                      onChange={(v) => setData('crm_life_stage', v)}
-                    />
-                  </Field>
-                  <Field label="Atribuído a" error={err.user_id} fullRow>
-                    <OpcaoSelect
-                      rotulo="Atribuído a"
-                      valor={data.user_id?.[0] ?? ''}
-                      opcoes={props.lead_opcoes?.usuarios ?? []}
-                      onChange={(v) => setData('user_id', v ? [v] : [])}
-                    />
-                  </Field>
-                </FormGrid>
-              </Deferred>
-            </FormSection>
-          </div>
+          <Deferred data="lead_opcoes" fallback={<Skeleton className="mb-3 h-24 w-full" />}>
+            <DadosLeadSection
+              valores={data}
+              opcoes={props.lead_opcoes}
+              erros={err}
+              onChange={(campo, valor) => setData(campo, valor as never)}
+            />
+          </Deferred>
         )}
         <ClienteForm
           data={data}
@@ -218,36 +175,6 @@ export default function ClienteCreate(props: ClienteCreatePageProps) {
         />
       </div>
     </div>
-  );
-}
-
-function OpcaoSelect({
-  rotulo,
-  valor,
-  opcoes,
-  onChange,
-}: {
-  rotulo: string;
-  valor: string;
-  opcoes: Opcao[];
-  onChange: (v: string) => void;
-}) {
-  return (
-    <Select value={valor || NENHUM} onValueChange={(v) => onChange(v === NENHUM ? '' : v)}>
-      <SelectTrigger className="cw-input" aria-label={rotulo}>
-        <SelectValue />
-      </SelectTrigger>
-      <SelectContent>
-        <SelectItem value={NENHUM}>— Nenhum —</SelectItem>
-        {opcoes
-          .filter((o) => Boolean(o.value))
-          .map((o) => (
-            <SelectItem key={o.value} value={o.value}>
-              {o.label}
-            </SelectItem>
-          ))}
-      </SelectContent>
-    </Select>
   );
 }
 
