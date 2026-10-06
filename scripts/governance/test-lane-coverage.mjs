@@ -724,7 +724,7 @@ if (args.includes('--pr')) {
   const n = args[args.indexOf('--pr') + 1];
   const gh = (a) => execFileSync('gh', a, { cwd: ROOT, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 });
   const jsonl = (txt) => txt.split(/\r?\n/).filter(Boolean).map((l) => JSON.parse(l));
-  let repo, head, tocados, runs;
+  let repo, head, tocados, runs, workflowsNoHead, listaNoHead;
   try {
     repo = gh(['repo', 'view', '--json', 'nameWithOwner', '--jq', '.nameWithOwner']).trim();
     head = gh(['pr', 'view', n, '--json', 'headRefOid', '--jq', '.headRefOid']).trim();
@@ -735,6 +735,21 @@ if (args.includes('--pr')) {
       '--jq', '.workflow_runs[]|{id,path,conclusion,status,created_at}|tojson']));
     runs = new Map();
     for (const r of todas.sort((a, b) => a.created_at.localeCompare(b.created_at))) runs.set(r.path, r);
+    // A lista de lanes e a allowlist curada são lidas NO HEAD DO PR, não na árvore
+    // local. O PR que acrescenta o teste à lane carrega essa alteração no próprio
+    // branch; lido da árvore local (main, ou um checkout atrasado), o teste aparecia
+    // como SEM-LANE — acusação por não-medição (LC-33, gestão da fila 2026-10-06, #8752).
+    execFileSync('git', ['fetch', '-q', 'origin', `pull/${n}/head`], { cwd: ROOT, stdio: 'ignore' });
+    const git = (a) => execFileSync('git', a, { cwd: ROOT, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 });
+    const wfNoHead = git(['ls-tree', '--name-only', head, '--', '.github/workflows/'])
+      .split(/\r?\n/).filter((f) => /\.ya?ml$/.test(f));
+    const lerNoHead = (path) => git(['cat-file', '-p', `${head}:${path}`]);
+    let listaTxt = '';
+    if (git(['ls-tree', '--name-only', head, '--', '.github/ci-sqlite-pest.list']).trim()) {
+      listaTxt = lerNoHead('.github/ci-sqlite-pest.list');
+    }
+    workflowsNoHead = wfNoHead.map((path) => ({ path, txt: lerNoHead(path) }));
+    listaNoHead = entradasDeLista(listaTxt);
   } catch (e) {
     console.log(`⚠️  não consegui medir o PR #${n} (${String(e.message).split('\n')[0]}) — ausência de MEDIÇÃO, não de risco.`);
     process.exit(2);
@@ -743,11 +758,9 @@ if (args.includes('--pr')) {
     console.log(`✓ PR #${n}: nenhum arquivo de teste tocado — este eixo não tem o que medir (veja --diff pra fonte sem teste).`);
     process.exit(0);
   }
-  const lista = entradasDaListaCurada();
-  const lanes = readdirSync(WF_DIR).filter((f) => /\.ya?ml$/.test(f)).map((f) => {
-    const txt = readFileSync(join(WF_DIR, f), 'utf8');
-    return /vendor\/bin\/pest|ci-sqlite-pest\.list/.test(txt) ? { path: `.github/workflows/${f}`, alvos: extrairAlvos(txt, lista) } : null;
-  }).filter(Boolean);
+  const lanes = workflowsNoHead.map(({ path, txt }) =>
+    /vendor\/bin\/pest|ci-sqlite-pest\.list/.test(txt) ? { path, alvos: extrairAlvos(txt, listaNoHead) } : null,
+  ).filter(Boolean);
   const runsPorPath = new Map();
   for (const l of lanes) {
     const r = runs.get(l.path);
