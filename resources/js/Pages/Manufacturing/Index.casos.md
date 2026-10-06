@@ -5,8 +5,12 @@ tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (
 por_que: comportamento é durável — o contrato de teste nasce junto com a tela, não depois.
 fonte: handoff "PROTÓTIPO OFICIAL - FABRICAÇÃO V1" §4.5 + §15.1 — os UC abaixo DERIVAM dele
 owner: wagner
-last_run: "2026-10-05"
+last_run: "2026-10-06"
 ---
+
+> ℹ️ **`last_run` 2026-10-05 → 2026-10-06 (G-6): só a data.** O `Index.tsx` ganhou data nova pelo merge
+> do `main` no branch do #8743 (conflito de empilhamento sobre o #8742), que trouxe o #8745, já validado
+> sob o `last_run` 2026-10-05. Nenhum UC mudou; a lane de Fabricação e o build do Vite passaram no head.
 
 > ℹ️ **`last_run` 2026-09-30 → 2026-10-05 (G-6): forma, não regra de negócio.** Os dados, os filtros e
 > os totais são os mesmos; o que muda de visível: a lista virou o `shared/DataTable` na anatomia `grid`
