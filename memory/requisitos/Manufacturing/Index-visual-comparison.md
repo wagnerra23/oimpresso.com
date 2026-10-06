@@ -211,6 +211,15 @@ local + período. Aqui `ProductionController@indexV2` chama `ProductionService::
 sem os filtros, e os números são de todas as ordens da empresa. Fechar muda o valor somado que aparece
 na tela, então segue a regra de valor (prova por 2 caminhos + antes→depois) e é PR próprio.
 
+**Medido em produção depois do #8707 (2026-10-05, 1440px, tema escuro, empresa 1):** as 4 linhas de
+apoio chegaram, mas a faixa **ainda pulava**: cada cartão das Ordens media **125px**, contra **105px** na
+Receitas. Causa: os 4 cartões tinham ícone de 36px no título (a linha do título ia de 17 para 36px), e o
+protótipo não desenha assim — os cartões de leitura não têm ícone (o `KpiCard` de leitura do DS não o
+desenha) e só "Finalizadas" é `variant="filter"`, com o ícone ao lado, igual à Receitas. Consertado no PR
+seguinte: mesma forma do protótipo e vão de 10px (o do `.mfg-kpis`). Na mesma medição, os filtros do
+#8715 conferem: datas 150×36 com canto 8px, Local 180×34 com canto 8px e texto 13px, e "Só finalizadas"
+na cor do `--text`.
+
 ## Cobertura desta tela hoje
 
 | camada | estado |
