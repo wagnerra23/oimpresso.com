@@ -86,7 +86,7 @@ interface AcoesOs
      * estoque, venda nem cobrança. Dados já validados pelo chamador (placa normalizada, tipo da lista,
      * dono do business). null se a oficina não está disponível (módulo ausente).
      *
-     * @param  array{plate: string, vehicle_type: string, secondary_plate: ?string, manufacture_year: ?int, model_year: ?int, color: ?string, mileage_at_entry: ?int, chassis: ?string, renavam: ?string, contact_id: ?int}  $dados
+     * @param  array{plate: string, vehicle_type: string, secondary_plate: ?string, manufacture_year: ?int, model_year: ?int, color: ?string, mileage_at_entry: ?int, chassis: ?string, renavam: ?string, contact_id: ?int, next_service_km?: ?int}  $dados
      */
     public function criarVeiculo(User $user, int $businessId, array $dados): ?int;
 
@@ -95,7 +95,7 @@ interface AcoesOs
      * cliente e km). Dados já validados pelo chamador; veículo já conferido como do business. false se a
      * oficina não está disponível (módulo ausente).
      *
-     * @param  array{plate: string, vehicle_type: string, secondary_plate: ?string, manufacture_year: ?int, model_year: ?int, color: ?string, mileage_at_entry: ?int, chassis: ?string, renavam: ?string, contact_id: ?int}  $dados
+     * @param  array{plate: string, vehicle_type: string, secondary_plate: ?string, manufacture_year: ?int, model_year: ?int, color: ?string, mileage_at_entry: ?int, chassis: ?string, renavam: ?string, contact_id: ?int, next_service_km?: ?int}  $dados
      */
     public function atualizarVeiculo(int $businessId, int $veiculoId, array $dados): bool;
 
