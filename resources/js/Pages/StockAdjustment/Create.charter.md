@@ -25,5 +25,17 @@ mwart_pattern_reuse:
 ## Regras invariantes
 - R-ADJ-001 (Tier 0)
 - R-ADJ-002: adjustment_type ∈ {normal, abnormal}
-- R-ADJ-003: total_amount_recovered ≤ final_total (validado client + server)
+- R-ADJ-003: total_amount_recovered ≤ final_total — conferida **só no cliente** (botão desabilitado); `store()` não valida (medido 2026-10-06, ver casos §Backlog)
 - R-ADJ-004: purchase.create obrigatória
+
+## Casos
+[Create.casos.md](Create.casos.md) — UC-AJCRT-01/02 (permissão e filiais do próprio business).
+
+## Permissões
+- Abrir e salvar: `purchase.create` (403 sem ela). Com o Superadmin instalado, exige assinatura ativa.
+- `view_purchase_price` e `edit_purchase_price` chegam como `permissions`; `edit_price` decide só o `readonly` do campo — o servidor não re-checa no save.
+
+## Estados
+- Formulário vazio com data/hora atual (`default_datetime`) e uma filial a escolher.
+- Valor recuperado maior que o total: botão Salvar desabilitado.
+- Salvar **baixa saldo** na filial (`decreaseProductQuantity`, em transação) e volta para `/stock-adjustments`. Mudança nesse caminho segue a REGRA MESTRE; merge do [W].
