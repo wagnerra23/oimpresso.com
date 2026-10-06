@@ -1,0 +1,218 @@
+{
+  "aguardou_sumir": null,
+  "ausentes": [],
+  "base": {
+    "assinatura": "OI WR Tributação Regras de imposto por NCM, UF e operação · Simples Nacional · origem SP SEFAZ-SP operacional Procedência ⌘ K Simular nota Notas fiscais NF-e · NFC-e 8 NFS-e 2 Eventos 5 Manifesto DF-e 3 Certificado Tributação SPED e livros Saúde fiscal 8 Operações 7 Exceções 9 Simulador Bateria de notas Contador Vínculo com produtos 2 Por estado Serviços · NFS-e Importação Devoluções Entradas Jana · sugestões 5 Pronto pra emitir · 2 de 5 Configurar pelo certificado Certificado lido CNPJ, UF, IE e situação vieram da SEFAZ-SP; CNAEs e Simples, da BrasilAPI. O regime foi confirmado por você. Template aplicado Simples Nacional — mesmo mecanismo dos templates L1 da produção; gerou 7 operações 3 Produtos com NCM 2 sem NCM bloqueiam a nota Resolver 4 Serviços com código municipal 1 sem código — a NFS-e seria rejeitada Resolver 5 Aceite do contador 2 operações sem aceite registrado Convidar contador Operação CFOP Destinatário Documentos Regra geral Exceções Situação Venda de mercadoria Saída · finalidade 1 · normal ?102 Contribuinte (com IE) NF-e CSOSN 102 7 Aceita M. Ribeiro (contador) · 02/10/2026 Venda a consumidor final Saída · finalidade 1 · normal ?102 Não contribuinte NF-e · NFC-e CSOSN 102 — Aceita M. Ribeiro (contador) · 02/10/2026 Venda de produção própria Saída · finalidade 1 · normal ?101 Contribuinte (com IE) NF-e CSOSN 101 · ICMS 1,86% — Aguarda aceite Remessa pra instalação Saída · finalidade 1 · normal ?949 Qualquer NF-e CSOSN 400 — Aguarda aceite Devolução de venda Entrada · finalidade 4 · devolução ?202 Quem devolveu NF-e CSOSN 900 1 Aceita M. Ribeiro (contador) · 02/10/2026 Compra por importação Entrada · finalidade 1 · normal 3102 Fornecedor exterior NF-e CSOSN 900 · ICMS 18% 1 Aceita M. Ribeiro (contador) · 02/10/2026 Prestação de serviço Saída · finalidade — — Tomador NFS-e por item LC 116 — Aceita M. Ribeiro (contador) · 02/10/2026 \"?\" no CFOP vira 5 dentro de SP , 6 pra outra UF e 7 na exportação — uma operação serve pros dois casos. Venda a contribuinte e a consumidor final são operações separadas porque o ICMS muda. Quem define CST, CFOP e alíquota é o contador; o sistema aplica e mostra de onde veio cada número. Alíquotas desta tela são exemplo.",
+    "roles": {
+      "celulas": null,
+      "chart": null,
+      "contratos": [
+        {
+          "classes": {
+            "dataBr": 0,
+            "dataIso": 0,
+            "snakeCru": 0
+          },
+          "exemplos": {},
+          "nome": "procedencia"
+        },
+        {
+          "classes": {
+            "dataBr": 0,
+            "dataIso": 0,
+            "snakeCru": 0
+          },
+          "exemplos": {},
+          "nome": "comecar"
+        },
+        {
+          "classes": {
+            "dataBr": 5,
+            "dataIso": 0,
+            "snakeCru": 0
+          },
+          "exemplos": {
+            "dataBr": [
+              "02/10/2026"
+            ]
+          },
+          "nome": "operacoes"
+        }
+      ],
+      "filterRows": null,
+      "kpi": {
+        "count": 0,
+        "items": [],
+        "overflowX": null,
+        "tag": null
+      },
+      "primary": null,
+      "shell": null,
+      "tabela": null,
+      "title": null
+    },
+    "saude": {
+      "folhasVazias": [],
+      "nFolhas": 76,
+      "tokensMortos": []
+    },
+    "theme": "dark",
+    "url": "http://127.0.0.1:5733/"
+  },
+  "clicar": ".fx-page > .fx-chips > [role=tab]:nth-child(2)",
+  "nos_totais": 609,
+  "quieto_ms": 2000,
+  "rota": "fiscal-tributacao",
+  "secoes": {
+    "abas": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "body",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "flex",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "6px",
+        "padding": "0px"
+      },
+      "filhos": 13,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "fx-page"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "main-body"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "main"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "app"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "div"
+        },
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "body"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "fx-chip",
+        "fx-chip",
+        "fx-chip",
+        "fx-chip",
+        "fx-chip",
+        "fx-chip",
+        "fx-chip",
+        "fx-chip",
+        "fx-chip",
+        "fx-chip",
+        "fx-chip",
+        "fx-chip",
+        "fx-chip"
+      ],
+      "rect": {
+        "h": 62,
+        "w": 1172
+      },
+      "seletor": ".fx-page > .fx-chips",
+      "truncado": false
+    },
+    "comecar": {
+      "contraste": {
+        "fundo": "oklch(0.3 0.008 240)",
+        "fundo_de": "proprio",
+        "razao": 11.42,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.027108,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.3 0.008 240)",
+        "borderRadius": "12px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "block",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "padding": "0px"
+      },
+      "filhos": 2,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.3 0.008 240)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "fx-card-h",
+        "trb-steps"
+      ],
+      "rect": {
+        "h": 229,
+        "w": 1172
+      },
+      "seletor": ".fx-page > [data-contract=\"comecar\"]",
+      "truncado": false
+    },
+    "operacoes": {
+      "contraste": {
+        "fundo": "oklch(0.3 0.008 240)",
+        "fundo_de": "proprio",
+        "razao": 11.42,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.027108,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.3 0.008 240)",
+        "borderRadius": "12px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "block",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "padding": "0px"
+      },
+      "filhos": 1,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.3 0.008 240)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "table"
+      ],
+      "rect": {
+        "h": 459,
+        "w": 1172
+      },
+      "seletor": ".fx-page > [data-contract=\"operacoes\"]",
+      "truncado": false
+    }
+  },
+  "tela": "nfe-brasil--tributacao--operacoes",
+  "url": "http://127.0.0.1:5733/"
+}

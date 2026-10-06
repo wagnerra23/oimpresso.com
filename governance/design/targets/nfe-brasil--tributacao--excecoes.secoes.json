@@ -1,0 +1,9 @@
+{
+  "_": "A1 [CL] 2026-10-06 — playbook Fiscal thread 12. Aba Exceções (id `regras`) da rota `fiscal-tributacao` (3º chip), alvo irmão de nfe-brasil--tributacao. O drawer da regra não é medido (só existe após clique na linha).",
+  "_mapa": "alvo:mapa --rota fiscal-tributacao --raiz .fx-page --quieto-ms 2000 --clicar '.fx-page > .fx-chips > [role=tab]:nth-child(3)', 2026-10-06: header.fx-h · nav.ds-tabbar · div.fx-chips · ol.trb-cascade[cascade] · div.fx-toolbar · div.fx-table[regras] · div.fx-decisao · p.fx-nota-rodape.",
+  "abas": { "seletor": ".fx-page > .fx-chips" },
+  "cascata": { "seletor": ".fx-page > [data-contract=\"cascade\"]" },
+  "toolbar": { "seletor": ".fx-page > .fx-toolbar" },
+  "regras": { "seletor": ".fx-page > [data-contract=\"regras\"]" },
+  "decisao": { "seletor": ".fx-page > .fx-decisao" }
+}
