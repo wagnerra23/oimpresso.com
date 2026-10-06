@@ -28,6 +28,9 @@ uses(Tests\TestCase::class);
  *               middleware de permissão. Hoje QUALQUER usuário autenticado do tenant apaga uma
  *               regra tributária. Contado no SDD §5.4.1: 3 das 5 mutações estão assim
  *               (`destroy`, `toggleAutoEmission`, `aplicarTemplate`).
+ *               ↳ 2026-10-06 (playbook Fiscal thread 18): `destroy` passou a receber
+ *               `DestroyRegraTributariaRequest` (mesmo `authorize()` do store/update). O texto
+ *               acima é o achado de 2026-07-28; `toggleAutoEmission`/`aplicarTemplate` seguem fora.
  *
  *   UC-NFIM-04  O import resolve o tenant DUAS vezes, em requests diferentes: `preview` guarda as
  *               linhas em `session('nfe_import_csv_linhas')` SEM carimbar o business, e `aplicar`
@@ -267,7 +270,7 @@ it('UC-NFRF-03 · edit de regra de outro business dá 404 e não vaza os valores
 });
 
 // ---------------------------------------------------------------------------------------
-// UC-NFRF-04 · Apagar regra exige a permissão fiscal  [T0] [V0] — ❌ FALHA ESPERADA
+// UC-NFRF-04 · Apagar regra exige a permissão fiscal  [T0] [V0] — gate no destroy desde a thread 18
 // ---------------------------------------------------------------------------------------
 it('UC-NFRF-04 · apagar regra sem nfe.tributacao.manage deve dar 403', function () {
     nfgtLogar(comPermissao: false);
@@ -283,6 +286,13 @@ it('UC-NFRF-04 · apagar regra sem nfe.tributacao.manage deve dar 403', function
     // que ela continue ATIVA (deleted_at nulo), não apenas presente na tabela.
     expect(DB::table('nfe_fiscal_rules')->where('id', $regra)->whereNull('deleted_at')->count())
         ->toBe(1, 'usuário sem nfe.tributacao.manage apagou uma regra tributária (SDD §5.4.1)');
+
+    // CONTROLE POSITIVO — com a permissão, a mesma rota apaga (soft delete). Sem isto o 403 acima
+    // poderia vir de rota, CSRF ou middleware, e o caso não provaria que é o gate da permissão.
+    nfgtLogar(comPermissao: true);
+
+    $this->delete("/nfe-brasil/tributacao/regras/{$regra}")->assertRedirect();
+    expect(DB::table('nfe_fiscal_rules')->where('id', $regra)->value('deleted_at'))->not->toBeNull();
 });
 
 // =======================================================================================
