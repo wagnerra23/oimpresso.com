@@ -123,3 +123,38 @@ Status: 🧪
 **Então** o lead é gravado no meu negócio sem atribuído, sem fonte e sem estágio.
 
 Status: 🧪
+
+---
+
+## UC-CRMLD-11 · "Editar" abre o Cliente/Edit em modo lead · `must` `[T0]`
+
+**Dado** um lead do meu negócio, um cliente do meu negócio e um lead de outro negócio
+**Quando** abro `/crm/leads/{id}/edit`
+**Então** para o lead recebo Inertia `Cliente/Edit` com tipo `lead`, o nome no primeiro campo,
+o atribuído atual, título "Editar lead" e destino `/crm/leads/{id}`; para o cliente e para o
+lead de fora, 404.
+
+Status: 🧪
+
+---
+
+## UC-CRMLD-12 · Salvar a edição grava o nome inteiro e só opções do meu negócio · `must` `[T0]`
+
+**Dado** o formulário de edição com nome em partes (nome + sobrenome), fonte e atribuído de
+outro negócio e estágio do meu
+**Quando** salvo
+**Então** o `name` vira as partes juntas, o tipo segue `lead`, o estágio é gravado, a fonte de
+fora não entra e o usuário de fora não é atribuído; volto para a ficha do lead.
+
+Status: 🧪
+
+---
+
+## UC-CRMLD-13 · Editar ou excluir pelo id não alcança cliente nem lead de fora · `must` `[T0]`
+
+**Dado** um lead de outro negócio e um cliente do meu
+**Quando** tento salvar o lead de fora, ou excluir qualquer um dos dois pela rota de leads
+**Então** salvar dá 404 e o nome não muda; excluir responde sem sucesso e os dois seguem lá.
+O meu próprio lead sai pela mesma rota.
+
+Status: 🧪

@@ -289,3 +289,70 @@ it('UC-CRMLD-10 · atribuído, fonte e estágio de outro negócio não entram no
     $this->assertNull($lead->crm_life_stage, 'estágio de outro business entrou no lead');
     $this->assertSame(0, DB::table('crm_lead_users')->where('contact_id', $lead->id)->count(), 'usuário de outro business foi atribuído');
 });
+
+it('UC-CRMLD-11 · "Editar" abre o Cliente/Edit em modo lead; cliente do mesmo negócio e lead de outro → 404 [T0]', function () {
+    $user = leadUsuario('lead_todos_test', ['crm.access_all_leads']);
+    $vizinho = leadUsuario('lead_vizinho_test', ['crm.access_all_leads'], LEAD_OUTRO);
+    $lead = leadContato(LEAD_BIZ, 'Lead editavel', $user);
+    $cliente = leadContato(LEAD_BIZ, 'Cliente nao lead', $user, 'customer');
+    $deFora = leadContato(LEAD_OUTRO, 'Lead de fora', $vizinho);
+
+    // âncora positiva: a rota chega ao controller e devolve a tela do lead pedido
+    $this->actingAs($user)->get(LEAD_ROTA.'/'.$lead.'/edit')
+        ->assertOk()
+        ->assertInertia(fn (AssertableInertia $p) => $p->component('Cliente/Edit', false)
+            ->where('contact.id', $lead)
+            ->where('contact.type', 'lead')
+            ->where('contact.first_name', 'Lead editavel '.LEAD_TAG)
+            ->where('contact.user_id', [(int) $user->id])
+            ->where('destino.titulo', 'Editar lead')
+            ->where('destino.url', fn ($url) => str_ends_with((string) $url, LEAD_ROTA.'/'.$lead)));
+
+    $this->actingAs($user)->get(LEAD_ROTA.'/'.$cliente.'/edit')->assertNotFound();
+    $this->actingAs($user)->get(LEAD_ROTA.'/'.$deFora.'/edit')->assertNotFound();
+});
+
+it('UC-CRMLD-12 · salvar a edição grava o nome inteiro, só aceita fonte/estágio/atribuído do meu negócio e volta para o lead [T0]', function () {
+    $user = leadUsuario('lead_todos_test', ['crm.access_all_leads']);
+    $vizinho = leadUsuario('lead_vizinho_test', ['crm.access_all_leads'], LEAD_OUTRO);
+    $lead = leadContato(LEAD_BIZ, 'Lead antigo', $user);
+    $fonteVizinha = leadCategoria(LEAD_OUTRO, 'source', 'Fonte vizinha', $vizinho);
+    $estagio = leadCategoria(LEAD_BIZ, 'life_stage', 'Qualificado', $user);
+
+    $this->actingAs($user)->put(LEAD_ROTA.'/'.$lead, [
+        // o payload do Cliente/Edit (inclui campos que o update do Crm ignora)
+        'type' => 'customer', 'contact_type_radio' => 'person',
+        'first_name' => 'Ana', 'middle_name' => '', 'last_name' => 'Souza '.LEAD_TAG,
+        'mobile' => '48999990000', 'cpf_cnpj' => '', 'tax_number' => '',
+        'crm_source' => (string) $fonteVizinha, 'crm_life_stage' => (string) $estagio,
+        'user_id' => [(string) $vizinho->id],
+    ], leadInertia())->assertRedirect(LEAD_ROTA.'/'.$lead);
+
+    $salvo = DB::table('contacts')->where('id', $lead)->first();
+    expect($salvo->name)->toBe('Ana Souza '.LEAD_TAG);
+    expect($salvo->type)->toBe('lead');
+    expect((int) $salvo->crm_life_stage)->toBe($estagio);
+    $this->assertNull($salvo->crm_source, 'fonte de outro business entrou no lead');
+    $this->assertSame(0, DB::table('crm_lead_users')->where('contact_id', $lead)->where('user_id', $vizinho->id)->count(), 'usuário de outro business foi atribuído');
+});
+
+it('UC-CRMLD-13 · editar ou excluir pelo id não alcança cliente nem lead de outro negócio [T0]', function () {
+    $user = leadUsuario('lead_todos_test', ['crm.access_all_leads']);
+    $vizinho = leadUsuario('lead_vizinho_test', ['crm.access_all_leads'], LEAD_OUTRO);
+    $deFora = leadContato(LEAD_OUTRO, 'Lead de fora', $vizinho);
+    $cliente = leadContato(LEAD_BIZ, 'Cliente nao lead', $user, 'customer');
+    $meuLead = leadContato(LEAD_BIZ, 'Lead descartavel', $user);
+
+    $this->actingAs($user)->put(LEAD_ROTA.'/'.$deFora, ['first_name' => 'Invadido '.LEAD_TAG], leadInertia())->assertNotFound();
+    expect(DB::table('contacts')->where('id', $deFora)->value('name'))->toBe('Lead de fora '.LEAD_TAG);
+
+    $ajax = ['X-Requested-With' => 'XMLHttpRequest'];
+    // âncora positiva: o próprio lead sai, então a rota de exclusão chega ao controller
+    $this->actingAs($user)->delete(LEAD_ROTA.'/'.$meuLead, [], $ajax)->assertOk()->assertJson(['success' => true]);
+    $this->assertSame(0, DB::table('contacts')->where('id', $meuLead)->whereNull('deleted_at')->count(), 'o próprio lead não foi excluído');
+
+    $this->actingAs($user)->delete(LEAD_ROTA.'/'.$cliente, [], $ajax)->assertJson(['success' => false]);
+    $this->actingAs($user)->delete(LEAD_ROTA.'/'.$deFora, [], $ajax)->assertJson(['success' => false]);
+    $this->assertSame(1, DB::table('contacts')->where('id', $cliente)->whereNull('deleted_at')->count(), 'excluiu um cliente pela rota de lead');
+    $this->assertSame(1, DB::table('contacts')->where('id', $deFora)->whereNull('deleted_at')->count(), 'excluiu lead de outro negócio');
+});
