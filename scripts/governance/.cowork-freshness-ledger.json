@@ -48277,5 +48277,22 @@
     },
     "origin": "medicao",
     "projetoCowork": "w"
+  },
+  {
+    "date": "2026-10-06T21:13:28.853Z",
+    "files": 284,
+    "sync": 1,
+    "stale": 0,
+    "liveAbsent": 0,
+    "unchecked": 283,
+    "staleList": [],
+    "verified": [
+      "cowork-inbox/produto/playbook/_saida-11.md"
+    ],
+    "verifiedHash": {
+      "cowork-inbox/produto/playbook/_saida-11.md": "fce1ef5eba0ce5be3f50b815a88c92cf78d431313d0f851097a3a598ee6f60b1"
+    },
+    "origin": "medicao",
+    "projetoCowork": "w"
   }
 ]
