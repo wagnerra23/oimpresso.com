@@ -275,7 +275,12 @@ textarea.mfg-inp{height:auto;padding:7px 9px;line-height:1.45;resize:vertical}
 .mfg-root .os-page-h-l p{
   margin: 2px 0 0;
   font-size: var(--fs-3);
-  max-width: 60ch; text-wrap: pretty;
+  /* Sem teto de 60ch. Com ele, o subtítulo da aba Receitas ("… · custo recalculado pelo preço
+     atual dos ingredientes") quebrava em 2 linhas e as outras abas ficavam com 1: o cabeçalho
+     crescia só ali e a barra de abas descia ao trocar de aba ([M] 2026-10-06, medido em produção).
+     O protótipo já tira o teto: `manufacturing-page.css` `.mfg-root>header p{max-width:none}`
+     (D-RET-01 do [W]: a frase aparece INTEIRA — quebra em vez de cortar, nunca reticências). */
+  max-width: none; text-wrap: pretty;
   color: var(--text-mute);
   font-variant-numeric: tabular-nums;
   line-height: 1.4;
