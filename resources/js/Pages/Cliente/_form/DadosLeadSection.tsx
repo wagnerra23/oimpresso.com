@@ -1,12 +1,12 @@
 // Seção "Dados do lead" (fonte · estágio de vida · atribuído a) — compartilhada pelo
 // Cliente/Create e pelo Cliente/Edit quando a tela vem do LeadController (threads Crm/06 e 09).
-// As opções chegam numa prop deferida `lead_opcoes`; o `useForm` é o da página.
+// As opções chegam numa prop deferida `lead_opcoes`: a PÁGINA embrulha esta seção em
+// `<Deferred data="lead_opcoes">` (o InertiaDeferredFrontendGuardTest lê o import na Page).
+// O `useForm` é o da página.
 
-import { Deferred } from '@inertiajs/react';
 import { Target } from 'lucide-react';
 import { FormSection, FormGrid } from '@/Components/ui/form-section';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
-import { Skeleton } from '@/Components/ui/skeleton';
 import { Field } from './Field';
 
 export interface Opcao {
@@ -48,34 +48,32 @@ export function DadosLeadSection({
         </p>
       )}
       <FormSection title="Dados do lead" icon={<Target />}>
-        <Deferred data="lead_opcoes" fallback={<Skeleton className="h-16 w-full" />}>
-          <FormGrid>
-            <Field label="Fonte" error={erros.crm_source}>
-              <OpcaoSelect
-                rotulo="Fonte"
-                valor={valores.crm_source ?? ''}
-                opcoes={opcoes?.fontes ?? []}
-                onChange={(v) => onChange('crm_source', v)}
-              />
-            </Field>
-            <Field label="Estágio de vida" error={erros.crm_life_stage}>
-              <OpcaoSelect
-                rotulo="Estágio de vida"
-                valor={valores.crm_life_stage ?? ''}
-                opcoes={opcoes?.estagios ?? []}
-                onChange={(v) => onChange('crm_life_stage', v)}
-              />
-            </Field>
-            <Field label="Atribuído a" error={erros.user_id} fullRow>
-              <OpcaoSelect
-                rotulo="Atribuído a"
-                valor={valores.user_id?.[0] ?? ''}
-                opcoes={opcoes?.usuarios ?? []}
-                onChange={(v) => onChange('user_id', v ? [v] : [])}
-              />
-            </Field>
-          </FormGrid>
-        </Deferred>
+        <FormGrid>
+          <Field label="Fonte" error={erros.crm_source}>
+            <OpcaoSelect
+              rotulo="Fonte"
+              valor={valores.crm_source ?? ''}
+              opcoes={opcoes?.fontes ?? []}
+              onChange={(v) => onChange('crm_source', v)}
+            />
+          </Field>
+          <Field label="Estágio de vida" error={erros.crm_life_stage}>
+            <OpcaoSelect
+              rotulo="Estágio de vida"
+              valor={valores.crm_life_stage ?? ''}
+              opcoes={opcoes?.estagios ?? []}
+              onChange={(v) => onChange('crm_life_stage', v)}
+            />
+          </Field>
+          <Field label="Atribuído a" error={erros.user_id} fullRow>
+            <OpcaoSelect
+              rotulo="Atribuído a"
+              valor={valores.user_id?.[0] ?? ''}
+              opcoes={opcoes?.usuarios ?? []}
+              onChange={(v) => onChange('user_id', v ? [v] : [])}
+            />
+          </Field>
+        </FormGrid>
       </FormSection>
     </div>
   );

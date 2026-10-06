@@ -5,9 +5,10 @@
 // `lead_opcoes`. Sem `destino` (o caso do Cliente) nada muda: grava em /contacts/{id}.
 
 import AppShellV2 from '@/Layouts/AppShellV2';
-import { useForm } from '@inertiajs/react';
+import { Deferred, useForm } from '@inertiajs/react';
 import { type ReactNode, type FormEvent } from 'react';
 import { ChevronLeft } from 'lucide-react';
+import { Skeleton } from '@/Components/ui/skeleton';
 import { ClienteForm } from './_form/ClienteForm';
 import { DadosLeadSection, type DadosLeadValores, type LeadOpcoes } from './_form/DadosLeadSection';
 import type { BrasilApiCnpjData } from './_form/DadosFiscaisBRSection';
@@ -168,12 +169,14 @@ export default function ClienteEdit(props: ClienteEditPageProps) {
 
       <div className="container mx-auto max-w-5xl px-8 py-5">
         {ehLead && (
-          <DadosLeadSection
-            valores={data}
-            opcoes={props.lead_opcoes}
-            erros={errors as Record<string, string | undefined>}
-            onChange={(campo, valor) => setData(campo, valor as never)}
-          />
+          <Deferred data="lead_opcoes" fallback={<Skeleton className="mb-3 h-24 w-full" />}>
+            <DadosLeadSection
+              valores={data}
+              opcoes={props.lead_opcoes}
+              erros={errors as Record<string, string | undefined>}
+              onChange={(campo, valor) => setData(campo, valor as never)}
+            />
+          </Deferred>
         )}
         <ClienteForm
           data={data}
