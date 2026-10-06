@@ -254,6 +254,23 @@ O custo da receita já acompanha o insumo, porque é recalculado na leitura. O *
 4. Composição em mais de um nível propaga até o produto final no CU-A? — **sim** ([W]).
 5. O CU-A recalcula na hora ou vira pendência? — **os dois casos existem** ([W]): há produto que recalcula **na hora** (no lançamento da compra ou na alteração do componente) e há produto em que o preço novo vira **pendência que alguém confirma**. Proposta, a confirmar com [W]: a política por produto passa a ter três valores — *atualiza na hora* · *atualiza com confirmação* · *mantém o preço* (CU-B). Na confirmação, a pendência aparece na receita, no mesmo lugar do aviso da pergunta 3.
 
+**Referência de mercado (pesquisa 2026-10-06 — evidência, não contrato):** nenhum ERP de comunicação visual documenta essas regras em público (Mubisys, Zênite, Calcgraf, Visua e Sisgraf: não documentado). O padrão documentado nos ERPs genéricos é que **o custo sobe sozinho e o preço novo é decisão de alguém**.
+
+| Pergunta | Mercado (fato documentado) | Legado WR Comercial | Premissa vale aqui? |
+|---|---|---|---|
+| 1 · Default | Tablet Cloud: reajuste por markup **desligado por padrão**, e a ajuda dele diz que não serve a quem tem preço impresso ([fonte](https://ajuda.tabletcloud.com.br/retaguarda/produtos/atualizacao-automatica-de-preco-de-venda-por-custo-markup)). Varredura anterior (8 BR + 9 globais): nenhum propaga custo→preço por default ([ANTI-REGRESSAO A-1](ANTI-REGRESSAO-cadastro-produto-legacy.md)) | `TEM_MARGEM_FIXA_CONTIBUICAO` default `S` no código, mas **83,8% `N`** numa base de oficina; **nunca medido em cliente de CV** | sim, para item de catálogo (vinil em rolo, tabela por m² da loja). Item sob encomenda já é precificado no orçamento, com o custo atual |
+| 2 · Tabelas | Alterdata: tabela como **fator sobre outra tabela**, recalcula sozinha quando a origem muda; também aceita valor fixo ([fonte](https://ajuda.alterdata.com.br/retaguarda/cadastro-geral-retaguarda/tabelas-de-precos-retaguarda)). Odoo: tabela pode ser fórmula sobre o custo ([fonte](https://www.odoo.com/documentation/18.0/applications/sales/sales/products_prices/prices/pricing.html)) | a mesma flag **por par produto×tabela** em `PRODUTO_TABELA_PRECO` (com valor, % desconto, % acréscimo), e cópia por tabela na nota de entrada | sim: tabela de vendedor impressa ou combinada com cliente pede política própria |
+| 3 · Aviso | Tablet Cloud: acima de um teto %, **alerta** em vez de aplicar. Avanço: "Preço de Venda Sugerido" a partir da nota de entrada. Aviso dentro da ficha técnica: não documentado | preço sugerido (`CALC_VVENDA_SUGERIDO`) guardado separado do praticado (`VALOR_VENDA`) | sim — e reforça a decisão de mostrar na receita |
+| 4 · Vários níveis | Odoo: recálculo pela BOM é **manual** por produto ([fonte](https://odoo.com/forum/help-1/automated-action-compute-price-from-bom-when-bom-is-changed-194756)). Business Central: "Roll Up Standard Cost" percorre todos os níveis, mas **só gera sugestão** até alguém aplicar ([fonte](https://learn.microsoft.com/en-us/previous-versions/dynamicsnav-2016/hh172114(v=nav.90))) | botão manual **"Atualizar Preços"** na composição (AR-PROD-161); a propagação automática está **comentada no código**, com a nota *"AQUI DEVE PERGUNTAR SE MANTEM O CALCULO"* | a decisão de [W] (propagar em todos os níveis) vai além do mercado; é segura para o **custo**, e o cuidado fica no **preço** |
+| 5 · Quando aplica | Linx: tela que altera custo, markup e preço **a partir da nota de entrada**. Nenhum sistema documenta "na hora × com confirmação" escolhido **por produto** | `PODE_ATUALIZAR_VALORES_VENDA` no produto **e por linha da nota de entrada** (quem lança a compra decide item a item) | sim; o legado é o que mais se aproxima dos dois casos de [W] |
+
+**Sugestões que saem da pesquisa (a decidir por [W], não incorporadas ao aceite):**
+- 1 · default *mantém o preço* para produto novo e migrado `NULL`; produtos `S` do legado migram como *atualiza*. Medir a flag numa base de cliente CV antes de cravar.
+- 2 · política **por tabela**, como no legado: tabela em % sobre o preço base acompanha o preço; tabela de valor fixo nunca muda sozinha e dispara o aviso da pergunta 3.
+- 3 · mostrar também o preço sugerido ao lado do praticado, e repetir o aviso na linha do item na tela de compra.
+- 4 · proteger contra ciclo na composição e registrar cada alteração de preço propagada.
+- 5 · opção por linha da compra para recusar o reajuste naquela nota (paridade `NF_ENTRADA_PRODUTOS`); teto % com alerta contra nota digitada errada.
+
 **Aceite (rascunho, a fechar após as respostas):**
 
 - [ ] Campo de política por produto, visível no cadastro, e importado do legado a partir de `TEM_MARGEM_FIXA_CONTIBUICAO`.
