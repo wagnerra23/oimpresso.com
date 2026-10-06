@@ -33,6 +33,10 @@ class Transaction extends Model
                 'location_id',
                 'transaction_date',
                 'payment_status',
+                // Quem recebe comissao e em que proporcao: trocar sem rastro tira
+                // comissao de vendedor sem saber quem mudou (playbook comissoes thread 03).
+                'commission_agent',
+                'commission_split',
             ])
             ->logOnlyDirty()
             ->dontSubmitEmptyLogs()

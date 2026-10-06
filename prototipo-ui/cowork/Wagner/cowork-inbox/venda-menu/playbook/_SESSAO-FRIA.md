@@ -22,3 +22,14 @@ Leia só isto, nesta ordem: 1) a saída do `placar` (se não for `proximo`, **pa
 | **05** | Importação → `ImportSales/{Index,Preview}` | CL | A2 · D2 · D3 |
 | **06** | Pedido de venda → `SalesOrder/Index` | CL | A2 |
 | **07** | Caixa: movimentos + conferência | CL | A2 · 00 |
+| **C0** | Cutover: chaves `mwart.vendas_*` + helper + teste | CL | — |
+| **C1** | Liga biz=1: Descontos, Importação, Pedido | CL | C0 |
+| **C2** | Liga biz=1: POS, Remessas, Devoluções | CL | C1 |
+| **C3** | Observação 7 dias biz=1 | W | C2 |
+| **C4** | Aviso ROTA LIVRE + liga todas | W | C3 |
+| **C5** | Observação 7 dias todas | W | C4 |
+| **C6** | Apaga Blade + fallback (1 PR/tela) | CL | C5 |
+| **Q1** | Quotations: `casos.md` + charter sai de draft | CL | — |
+| **Q2** | Quotations no cutover (`vendas_cotacoes`) | CL | C0 · Q3 |
+| **Q3** | Converter cotação em venda (reusa `convertToInvoice`) | CL | — |
+| **Q-CC** | Protótipo: uma rota só para cotações | CC | — (feito, `_saida-Q-CC.md`) |
