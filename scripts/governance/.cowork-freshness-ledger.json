@@ -48328,5 +48328,24 @@
     },
     "origin": "medicao",
     "projetoCowork": "w"
+  },
+  {
+    "date": "2026-10-06T22:19:18.618Z",
+    "files": 285,
+    "sync": 2,
+    "stale": 0,
+    "liveAbsent": 0,
+    "unchecked": 283,
+    "staleList": [],
+    "verified": [
+      "cowork-inbox/placar/playbook/_saida-ordem-2026-10-06.md",
+      "cowork-inbox/venda-menu/playbook/_saida-C0.md"
+    ],
+    "verifiedHash": {
+      "cowork-inbox/placar/playbook/_saida-ordem-2026-10-06.md": "10df5b12faa6fcb7395dbe29b5e9f5903269eb37a25ad5c647339ef3cb584fa5",
+      "cowork-inbox/venda-menu/playbook/_saida-C0.md": "3a9bf1ea9e6c7d705802ce03103e56bb1cea97a22311668ac93f226e99088d8c"
+    },
+    "origin": "medicao",
+    "projetoCowork": "w"
   }
 ]
