@@ -21,6 +21,9 @@ name: Acessos · Pest (MySQL)
 # Cobre hoje:
 #   - ContatosListaExigePermissaoTest — /contacts (React) só entrega a lista de clientes a quem
 #     tem customer.view|view_own (achado 2026-10-01: o caminho React não checava permissão).
+#   - SuporteLogContratoTest — Modo Suporte (ADR 0305): /suporte/log lê a trilha append-only,
+#     nunca mostra a operadora e barra não-agente. Entra por ARQUIVO, não por diretório: os
+#     outros 7 testes de tests/Feature/Support/ nunca rodaram em PR, e ligá-los é outro PR.
 #   - RoleTenantIsolationTest — Tier 0 (ADR 0093): /roles/{id} não alcança papel de outro
 #     negócio. Traz o controle POSITIVO junto, senão um filtro largo demais passaria no
 #     negativo e o teste diria "ninguém edita nada" chamando isso de sucesso.
@@ -67,6 +70,11 @@ on:
       - 'resources/views/role/**'
       - 'tests/Feature/Roles/**'
       - 'tests/Feature/Users/**'
+      - 'app/Http/Controllers/Support/**'
+      - 'app/Services/Support/**'
+      - 'app/Http/Middleware/EnsureSupportAccess.php'
+      - 'app/SupportAccessLog.php'
+      - 'tests/Feature/Support/SuporteLogContratoTest.php'
       - 'database/schema/mysql-schema.sql'
       - '.github/workflows/acessos-pest.yml'
       - '.github/actions/pest-mysql-setup/**'
@@ -124,6 +132,11 @@ jobs:
               - 'resources/views/role/**'
               - 'tests/Feature/Roles/**'
               - 'tests/Feature/Users/**'
+              - 'app/Http/Controllers/Support/**'
+              - 'app/Services/Support/**'
+              - 'app/Http/Middleware/EnsureSupportAccess.php'
+              - 'app/SupportAccessLog.php'
+              - 'tests/Feature/Support/SuporteLogContratoTest.php'
               - 'database/schema/mysql-schema.sql'
               - '.github/workflows/acessos-pest.yml'
               - '.github/actions/pest-mysql-setup/**'
@@ -163,7 +176,8 @@ jobs:
           mkdir -p test-results
           vendor/bin/pest --no-coverage --colors=always \
             --log-junit test-results/pest-acessos-junit.xml \
-            tests/Feature/Roles/ tests/Feature/Users/
+            tests/Feature/Roles/ tests/Feature/Users/ \
+            tests/Feature/Support/SuporteLogContratoTest.php
 
       # A régua honesta desta lane é `assertions`, NÃO "0 failed": skip sai exit 0
       # e 18 dos 22 pulam fora do MySQL. Se o sumário mostrar muitos casos com 0

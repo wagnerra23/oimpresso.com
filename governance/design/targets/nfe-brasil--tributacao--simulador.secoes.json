@@ -1,0 +1,6 @@
+{
+  "_": "A1 [CL] 2026-10-06 — playbook Fiscal thread 12. Aba Simulador da rota `fiscal-tributacao` (4º chip), alvo irmão de nfe-brasil--tributacao — insumo da thread 08 (D-SIM).",
+  "_mapa": "alvo:mapa --rota fiscal-tributacao --raiz .fx-page --quieto-ms 2000 --clicar '.fx-page > .fx-chips > [role=tab]:nth-child(4)', 2026-10-06: header.fx-h · nav.ds-tabbar · div.fx-chips · div.trb-sim[simulador] (3 filhos) · p.fx-nota-rodape.",
+  "abas": { "seletor": ".fx-page > .fx-chips" },
+  "simulador": { "seletor": ".fx-page > [data-contract=\"simulador\"]" }
+}

@@ -7,8 +7,8 @@ related_visual_comparison: memory/requisitos/Sells/quotations-visual-comparison.
 related_prototype: n/a (herda PT-01 Lista; segue o Padrão de Tela)
 owner: wagner
 status: draft
-status_detail: wave1-draft
-last_validated: "2026-05-15"
+status_detail: wave1-draft — trio fechado (casos + teste) em 2026-10-06; sai de draft depois do cutover Q2 (GET comum ainda entrega o Blade) e do conserto da lista na Q3
+last_validated: "2026-10-06"
 parent_module: Sells
 related_adrs: [104, 110, 143, 149, 93]
 tier: A
@@ -80,6 +80,8 @@ Listar cotações (status=draft + sub_status=quotation) — propostas formais en
 
 - [tests/Feature/Sells/Wave1QuotationsBaselineTest.php](../../../../tests/Feature/Sells/Wave1QuotationsBaselineTest.php) — 6 estruturais
 - [tests/Feature/Sells/Wave1QuotationsInertiaTest.php](../../../../tests/Feature/Sells/Wave1QuotationsInertiaTest.php) — Inertia + cross-tenant
+- [tests/Feature/Sells/SellsQuotationsContratoTest.php](../../../../tests/Feature/Sells/SellsQuotationsContratoTest.php) — contrato de runtime (UC-QUO-01, tenant 98 × 99)
+- Casos de uso: [Quotations.casos.md](Quotations.casos.md)
 
 ---
 

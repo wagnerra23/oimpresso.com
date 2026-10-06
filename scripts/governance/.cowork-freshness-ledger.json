@@ -1687,112 +1687,6 @@
     "origin": "medicao"
   },
   {
-    "date": "2026-09-08T11:47:11.090Z",
-    "kind": "live-only",
-    "liveOnly": 98,
-    "denom": 748,
-    "liveOnlyList": [
-      ".gitignore",
-      ".thumbnail",
-      "AssinaturaAtualizar.tsx",
-      "CONSTITUICAO-COWORK.md",
-      "DOSSIE-PROTOCOLO-COWORK.md",
-      "ProvaViva.tsx",
-      "_ds/office-impresso-design-system-019dd02f-d2d0-7ba6-a57f-24b3ddd073ac/_adherence.oxlintrc.json",
-      "_ds/office-impresso-design-system-019dd02f-d2d0-7ba6-a57f-24b3ddd073ac/_ds_manifest.json",
-      "_ds/office-impresso-design-system-019dd02f-d2d0-7ba6-a57f-24b3ddd073ac/styles.css",
-      "_tmp-split.json",
-      "cowork-inbox/_schema/playbook.schema.json",
-      "cowork-inbox/_scripts/placar-indice.mjs",
-      "cowork-inbox/acessos/repo/tests/Feature/Architecture/TimezoneGuardTest.php",
-      "cowork-inbox/acessos/repo/tests/Feature/Roles/RoleControllerTest.php",
-      "cowork-inbox/acessos/repo/tests/Feature/Users/SalesCommissionAgentTest.php",
-      "cowork-inbox/ancora-ds/ds-anchor-check.mjs",
-      "cowork-inbox/cms/CmsPainelAdminTest.php",
-      "cowork-inbox/compras/playbook/00-INDICE.md",
-      "cowork-inbox/compras/playbook/01-rede-e2e.md",
-      "cowork-inbox/compras/playbook/02-margem-sem-fonte.md",
-      "cowork-inbox/compras/playbook/03-fornecedores-bloqueada.md",
-      "cowork-inbox/compras/playbook/04-ghost-create-bloqueada.md",
-      "cowork-inbox/compras/playbook/05-grade-smoke-bloqueada.md",
-      "cowork-inbox/connector/ApiClientsPanelTest.php",
-      "cowork-inbox/fiscal/FiscalOndasF1Test.php",
-      "cowork-inbox/fiscal/playbook/00-INDICE.md",
-      "cowork-inbox/fiscal/playbook/01-rede-e2e.md",
-      "cowork-inbox/fiscal/playbook/02-paginacao.md",
-      "cowork-inbox/fiscal/playbook/03-afericao.md",
-      "cowork-inbox/fiscal/playbook/_saida-03.md",
-      "cowork-inbox/hrm/HrmLicencaTest.php",
-      "cowork-inbox/modulos/repo/app/Http/Controllers/ModuleManagementController.php",
-      "cowork-inbox/modulos/repo/app/Http/Middleware/AdminSidebarMenu.php",
-      "cowork-inbox/modulos/repo/app/Jobs/InstalarModuloJob.php",
-      "cowork-inbox/modulos/repo/app/Services/ModuleManagerService.php",
-      "cowork-inbox/modulos/repo/resources/js/Pages/Modules/Index.tsx",
-      "cowork-inbox/modulos/repo/routes/web.php",
-      "cowork-inbox/modulos/repo/tests/Feature/Modules/ModuleManagementTest.php",
-      "cowork-inbox/modulos/repo/tests/Unit/Services/ModuleErroFixtureTest.php",
-      "cowork-inbox/modulos/repo/tests/Unit/Services/ModuleManagerServiceTest.php",
-      "cowork-inbox/notificacoes/2026_08_19_000000_traduzir_notification_templates_pt_br.php",
-      "cowork-inbox/notificacoes/NotificationTemplateTest.php",
-      "cowork-inbox/patrimonio/playbook/00-INDICE.md",
-      "cowork-inbox/patrimonio/playbook/01-tenant-subquery-revoke.md",
-      "cowork-inbox/patrimonio/playbook/02-trava-de-saldo.md",
-      "cowork-inbox/patrimonio/playbook/03-guarda-asset-view.md",
-      "cowork-inbox/patrimonio/playbook/04-remedir-frente-0.md",
-      "cowork-inbox/patrimonio/playbook/05-retencao-lgpd.md",
-      "cowork-inbox/patrimonio/playbook/06-ui-bloqueada.md",
-      "cowork-inbox/ponte/ponte-handoff-lint.mjs",
-      "cowork-pele-paralela.mjs",
-      "handoff-ds-notas/ds-notas-gerar.mjs",
-      "handoff-ds-notas/ds-notas-uso.json",
-      "scraps/sketch-2026-09-01T13-56-47-z1f5q3.napkin",
-      "sync/bundle.manifest.json",
-      "sync/payload.part01.json",
-      "sync/payload.part02.json",
-      "sync/payload.part03.json",
-      "sync/payload.part04.json",
-      "sync/payload.part05.json",
-      "sync/payload.part06.json",
-      "sync/payload.part07.json",
-      "sync/payload.part08.json",
-      "sync/payload.part09.json",
-      "sync/payload.part10.json",
-      "sync/payload.part11.json",
-      "sync/payload.part12.json",
-      "sync/payload.part13.json",
-      "sync/payload.part14.json",
-      "sync/payload.part15.json",
-      "sync/payload.part16.json",
-      "sync/payload.part17.json",
-      "sync/payload.part18.json",
-      "sync/payload.part19.json",
-      "sync/payload.part20.json",
-      "sync/payload.part21.json",
-      "sync/payload.part22.json",
-      "sync/payload.part23.json",
-      "sync/payload.part24.json",
-      "sync/payload.part25.json",
-      "sync/payload.part26.json",
-      "sync/payload.part27.json",
-      "sync/payload.part28.json",
-      "sync/payload.part29.json",
-      "sync/payload.part30.json",
-      "sync/payload.part31.json",
-      "sync/payload.part32.json",
-      "sync/payload.part33.json",
-      "sync/payload.part34.json",
-      "sync/payload.part35.json",
-      "sync/payload.part36.json",
-      "sync/payload.part37.json",
-      "sync/payload.part38.json",
-      "sync/payload.part39.json",
-      "sync/payload.part40.json",
-      "sync/payload.part41.json",
-      "sync/payload.part42.json",
-      "sync/payload.part43.json"
-    ]
-  },
-  {
     "date": "2026-09-08T11:43:35.504Z",
     "files": 273,
     "sync": 271,
@@ -2347,6 +2241,112 @@
       "voz-do-cliente-page.jsx": "cc69e438ed3dda67401383654ddf2225cdbebbd1f31f1fc5b9e6ba4b38d8e2a1"
     },
     "origin": "bundle:f99cbe0b5c32a054"
+  },
+  {
+    "date": "2026-09-08T11:47:11.090Z",
+    "kind": "live-only",
+    "liveOnly": 98,
+    "denom": 748,
+    "liveOnlyList": [
+      ".gitignore",
+      ".thumbnail",
+      "AssinaturaAtualizar.tsx",
+      "CONSTITUICAO-COWORK.md",
+      "DOSSIE-PROTOCOLO-COWORK.md",
+      "ProvaViva.tsx",
+      "_ds/office-impresso-design-system-019dd02f-d2d0-7ba6-a57f-24b3ddd073ac/_adherence.oxlintrc.json",
+      "_ds/office-impresso-design-system-019dd02f-d2d0-7ba6-a57f-24b3ddd073ac/_ds_manifest.json",
+      "_ds/office-impresso-design-system-019dd02f-d2d0-7ba6-a57f-24b3ddd073ac/styles.css",
+      "_tmp-split.json",
+      "cowork-inbox/_schema/playbook.schema.json",
+      "cowork-inbox/_scripts/placar-indice.mjs",
+      "cowork-inbox/acessos/repo/tests/Feature/Architecture/TimezoneGuardTest.php",
+      "cowork-inbox/acessos/repo/tests/Feature/Roles/RoleControllerTest.php",
+      "cowork-inbox/acessos/repo/tests/Feature/Users/SalesCommissionAgentTest.php",
+      "cowork-inbox/ancora-ds/ds-anchor-check.mjs",
+      "cowork-inbox/cms/CmsPainelAdminTest.php",
+      "cowork-inbox/compras/playbook/00-INDICE.md",
+      "cowork-inbox/compras/playbook/01-rede-e2e.md",
+      "cowork-inbox/compras/playbook/02-margem-sem-fonte.md",
+      "cowork-inbox/compras/playbook/03-fornecedores-bloqueada.md",
+      "cowork-inbox/compras/playbook/04-ghost-create-bloqueada.md",
+      "cowork-inbox/compras/playbook/05-grade-smoke-bloqueada.md",
+      "cowork-inbox/connector/ApiClientsPanelTest.php",
+      "cowork-inbox/fiscal/FiscalOndasF1Test.php",
+      "cowork-inbox/fiscal/playbook/00-INDICE.md",
+      "cowork-inbox/fiscal/playbook/01-rede-e2e.md",
+      "cowork-inbox/fiscal/playbook/02-paginacao.md",
+      "cowork-inbox/fiscal/playbook/03-afericao.md",
+      "cowork-inbox/fiscal/playbook/_saida-03.md",
+      "cowork-inbox/hrm/HrmLicencaTest.php",
+      "cowork-inbox/modulos/repo/app/Http/Controllers/ModuleManagementController.php",
+      "cowork-inbox/modulos/repo/app/Http/Middleware/AdminSidebarMenu.php",
+      "cowork-inbox/modulos/repo/app/Jobs/InstalarModuloJob.php",
+      "cowork-inbox/modulos/repo/app/Services/ModuleManagerService.php",
+      "cowork-inbox/modulos/repo/resources/js/Pages/Modules/Index.tsx",
+      "cowork-inbox/modulos/repo/routes/web.php",
+      "cowork-inbox/modulos/repo/tests/Feature/Modules/ModuleManagementTest.php",
+      "cowork-inbox/modulos/repo/tests/Unit/Services/ModuleErroFixtureTest.php",
+      "cowork-inbox/modulos/repo/tests/Unit/Services/ModuleManagerServiceTest.php",
+      "cowork-inbox/notificacoes/2026_08_19_000000_traduzir_notification_templates_pt_br.php",
+      "cowork-inbox/notificacoes/NotificationTemplateTest.php",
+      "cowork-inbox/patrimonio/playbook/00-INDICE.md",
+      "cowork-inbox/patrimonio/playbook/01-tenant-subquery-revoke.md",
+      "cowork-inbox/patrimonio/playbook/02-trava-de-saldo.md",
+      "cowork-inbox/patrimonio/playbook/03-guarda-asset-view.md",
+      "cowork-inbox/patrimonio/playbook/04-remedir-frente-0.md",
+      "cowork-inbox/patrimonio/playbook/05-retencao-lgpd.md",
+      "cowork-inbox/patrimonio/playbook/06-ui-bloqueada.md",
+      "cowork-inbox/ponte/ponte-handoff-lint.mjs",
+      "cowork-pele-paralela.mjs",
+      "handoff-ds-notas/ds-notas-gerar.mjs",
+      "handoff-ds-notas/ds-notas-uso.json",
+      "scraps/sketch-2026-09-01T13-56-47-z1f5q3.napkin",
+      "sync/bundle.manifest.json",
+      "sync/payload.part01.json",
+      "sync/payload.part02.json",
+      "sync/payload.part03.json",
+      "sync/payload.part04.json",
+      "sync/payload.part05.json",
+      "sync/payload.part06.json",
+      "sync/payload.part07.json",
+      "sync/payload.part08.json",
+      "sync/payload.part09.json",
+      "sync/payload.part10.json",
+      "sync/payload.part11.json",
+      "sync/payload.part12.json",
+      "sync/payload.part13.json",
+      "sync/payload.part14.json",
+      "sync/payload.part15.json",
+      "sync/payload.part16.json",
+      "sync/payload.part17.json",
+      "sync/payload.part18.json",
+      "sync/payload.part19.json",
+      "sync/payload.part20.json",
+      "sync/payload.part21.json",
+      "sync/payload.part22.json",
+      "sync/payload.part23.json",
+      "sync/payload.part24.json",
+      "sync/payload.part25.json",
+      "sync/payload.part26.json",
+      "sync/payload.part27.json",
+      "sync/payload.part28.json",
+      "sync/payload.part29.json",
+      "sync/payload.part30.json",
+      "sync/payload.part31.json",
+      "sync/payload.part32.json",
+      "sync/payload.part33.json",
+      "sync/payload.part34.json",
+      "sync/payload.part35.json",
+      "sync/payload.part36.json",
+      "sync/payload.part37.json",
+      "sync/payload.part38.json",
+      "sync/payload.part39.json",
+      "sync/payload.part40.json",
+      "sync/payload.part41.json",
+      "sync/payload.part42.json",
+      "sync/payload.part43.json"
+    ]
   },
   {
     "date": "2026-09-08T12:57:04.576Z",
@@ -33738,19 +33738,6 @@
     "origin": "medicao"
   },
   {
-    "date": "2026-09-29T22:08:04.080Z",
-    "files": 273,
-    "sync": 0,
-    "stale": 0,
-    "liveAbsent": 0,
-    "unchecked": 273,
-    "staleList": [],
-    "verified": [],
-    "verifiedHash": {},
-    "origin": "medicao",
-    "projetoCowork": "w"
-  },
-  {
     "date": "2026-09-29T21:04:41.753Z",
     "files": 273,
     "sync": 4,
@@ -33771,6 +33758,19 @@
       "manufacturing-recipe.jsx": "3badd595cd94cc9a6e3fb976115384281fab5d89c7c315bb5170016ecd5da9a2"
     },
     "origin": "medicao"
+  },
+  {
+    "date": "2026-09-29T22:08:04.080Z",
+    "files": 273,
+    "sync": 0,
+    "stale": 0,
+    "liveAbsent": 0,
+    "unchecked": 273,
+    "staleList": [],
+    "verified": [],
+    "verifiedHash": {},
+    "origin": "medicao",
+    "projetoCowork": "w"
   },
   {
     "date": "2026-09-30T10:59:45.449Z",
@@ -36050,91 +36050,6 @@
     "projetoCowork": "w"
   },
   {
-    "date": "2026-10-02T16:37:56.926Z",
-    "files": 274,
-    "sync": 1,
-    "stale": 0,
-    "liveAbsent": 0,
-    "unchecked": 273,
-    "staleList": [],
-    "verified": [
-      "cowork-inbox/venda-menu/playbook/_DECISOES-W-2026-10-02b.md"
-    ],
-    "verifiedHash": {
-      "cowork-inbox/venda-menu/playbook/_DECISOES-W-2026-10-02b.md": "8990c5e56f5db86ac7ba316876d2efd038fe94e91bad816c999791b33009270b"
-    },
-    "origin": "medicao",
-    "projetoCowork": "w"
-  },
-  {
-    "date": "2026-10-02T16:41:37.375Z",
-    "files": 274,
-    "sync": 1,
-    "stale": 0,
-    "liveAbsent": 0,
-    "unchecked": 273,
-    "staleList": [],
-    "verified": [
-      "cowork-inbox/venda-menu/playbook/_saida-04.md"
-    ],
-    "verifiedHash": {
-      "cowork-inbox/venda-menu/playbook/_saida-04.md": "50e9e99eb1b4e352fe985beb3422a0d714c437b28ae8ec583d7c612bf9f578d4"
-    },
-    "origin": "medicao",
-    "projetoCowork": "w"
-  },
-  {
-    "date": "2026-10-02T15:00:12.088Z",
-    "files": 274,
-    "sync": 1,
-    "stale": 0,
-    "liveAbsent": 0,
-    "unchecked": 273,
-    "staleList": [],
-    "verified": [
-      "cowork-inbox/venda-menu/playbook/_saida-05.md"
-    ],
-    "verifiedHash": {
-      "cowork-inbox/venda-menu/playbook/_saida-05.md": "22686387974542190c64a44df43f992f09d623212df496bf2ed6801f2583b946"
-    },
-    "origin": "medicao",
-    "projetoCowork": "w"
-  },
-  {
-    "date": "2026-10-02T18:40:04.344Z",
-    "files": 274,
-    "sync": 1,
-    "stale": 0,
-    "liveAbsent": 0,
-    "unchecked": 273,
-    "staleList": [],
-    "verified": [
-      "cowork-inbox/venda-menu/playbook/_saida-03.md"
-    ],
-    "verifiedHash": {
-      "cowork-inbox/venda-menu/playbook/_saida-03.md": "a9cbf9c768b12090bed26f8c7229e03cbd7d0e73c42480f7d636c3273cb00ca6"
-    },
-    "origin": "medicao",
-    "projetoCowork": "w"
-  },
-  {
-    "date": "2026-10-02T18:42:29.123Z",
-    "files": 274,
-    "sync": 1,
-    "stale": 0,
-    "liveAbsent": 0,
-    "unchecked": 273,
-    "staleList": [],
-    "verified": [
-      "cowork-inbox/venda-menu/playbook/_saida-01.md"
-    ],
-    "verifiedHash": {
-      "cowork-inbox/venda-menu/playbook/_saida-01.md": "1949010e0560b01e6babd19d91518d7e7fd50ff6c513a855cbff9c5c3caf3047"
-    },
-    "origin": "medicao",
-    "projetoCowork": "w"
-  },
-  {
     "date": "2026-10-02T13:24:51.414Z",
     "files": 274,
     "sync": 2,
@@ -36188,23 +36103,6 @@
     "projetoCowork": "w"
   },
   {
-    "date": "2026-10-02T18:36:58.181Z",
-    "files": 274,
-    "sync": 1,
-    "stale": 0,
-    "liveAbsent": 0,
-    "unchecked": 273,
-    "staleList": [],
-    "verified": [
-      "cowork-inbox/repair/playbook/_saida-02.md"
-    ],
-    "verifiedHash": {
-      "cowork-inbox/repair/playbook/_saida-02.md": "51e9b0a7cd394769c9a11f5e9b00441290ff4751e023f6f01a34062fc292b5ef"
-    },
-    "origin": "medicao",
-    "projetoCowork": "w"
-  },
-  {
     "date": "2026-10-02T13:27:15.522Z",
     "files": 274,
     "sync": 1,
@@ -36217,6 +36115,57 @@
     ],
     "verifiedHash": {
       "cowork-inbox/repair/playbook/_saida-05.md": "cf80820686bec9821df91a1f47085d31b5f744a11f183edb4688895f6c68846e"
+    },
+    "origin": "medicao",
+    "projetoCowork": "w"
+  },
+  {
+    "date": "2026-10-02T15:00:12.088Z",
+    "files": 274,
+    "sync": 1,
+    "stale": 0,
+    "liveAbsent": 0,
+    "unchecked": 273,
+    "staleList": [],
+    "verified": [
+      "cowork-inbox/venda-menu/playbook/_saida-05.md"
+    ],
+    "verifiedHash": {
+      "cowork-inbox/venda-menu/playbook/_saida-05.md": "22686387974542190c64a44df43f992f09d623212df496bf2ed6801f2583b946"
+    },
+    "origin": "medicao",
+    "projetoCowork": "w"
+  },
+  {
+    "date": "2026-10-02T16:37:56.926Z",
+    "files": 274,
+    "sync": 1,
+    "stale": 0,
+    "liveAbsent": 0,
+    "unchecked": 273,
+    "staleList": [],
+    "verified": [
+      "cowork-inbox/venda-menu/playbook/_DECISOES-W-2026-10-02b.md"
+    ],
+    "verifiedHash": {
+      "cowork-inbox/venda-menu/playbook/_DECISOES-W-2026-10-02b.md": "8990c5e56f5db86ac7ba316876d2efd038fe94e91bad816c999791b33009270b"
+    },
+    "origin": "medicao",
+    "projetoCowork": "w"
+  },
+  {
+    "date": "2026-10-02T16:41:37.375Z",
+    "files": 274,
+    "sync": 1,
+    "stale": 0,
+    "liveAbsent": 0,
+    "unchecked": 273,
+    "staleList": [],
+    "verified": [
+      "cowork-inbox/venda-menu/playbook/_saida-04.md"
+    ],
+    "verifiedHash": {
+      "cowork-inbox/venda-menu/playbook/_saida-04.md": "50e9e99eb1b4e352fe985beb3422a0d714c437b28ae8ec583d7c612bf9f578d4"
     },
     "origin": "medicao",
     "projetoCowork": "w"
@@ -36236,6 +36185,57 @@
     "verifiedHash": {
       "cowork-inbox/repair/playbook/_saida-02.md": "51e9b0a7cd394769c9a11f5e9b00441290ff4751e023f6f01a34062fc292b5ef",
       "cowork-inbox/repair/playbook/_saida-05.md": "984e6cd656848f2af25dbafdbf20eacff80a7b7817b4f63283760433080e8a37"
+    },
+    "origin": "medicao",
+    "projetoCowork": "w"
+  },
+  {
+    "date": "2026-10-02T18:36:58.181Z",
+    "files": 274,
+    "sync": 1,
+    "stale": 0,
+    "liveAbsent": 0,
+    "unchecked": 273,
+    "staleList": [],
+    "verified": [
+      "cowork-inbox/repair/playbook/_saida-02.md"
+    ],
+    "verifiedHash": {
+      "cowork-inbox/repair/playbook/_saida-02.md": "51e9b0a7cd394769c9a11f5e9b00441290ff4751e023f6f01a34062fc292b5ef"
+    },
+    "origin": "medicao",
+    "projetoCowork": "w"
+  },
+  {
+    "date": "2026-10-02T18:40:04.344Z",
+    "files": 274,
+    "sync": 1,
+    "stale": 0,
+    "liveAbsent": 0,
+    "unchecked": 273,
+    "staleList": [],
+    "verified": [
+      "cowork-inbox/venda-menu/playbook/_saida-03.md"
+    ],
+    "verifiedHash": {
+      "cowork-inbox/venda-menu/playbook/_saida-03.md": "a9cbf9c768b12090bed26f8c7229e03cbd7d0e73c42480f7d636c3273cb00ca6"
+    },
+    "origin": "medicao",
+    "projetoCowork": "w"
+  },
+  {
+    "date": "2026-10-02T18:42:29.123Z",
+    "files": 274,
+    "sync": 1,
+    "stale": 0,
+    "liveAbsent": 0,
+    "unchecked": 273,
+    "staleList": [],
+    "verified": [
+      "cowork-inbox/venda-menu/playbook/_saida-01.md"
+    ],
+    "verifiedHash": {
+      "cowork-inbox/venda-menu/playbook/_saida-01.md": "1949010e0560b01e6babd19d91518d7e7fd50ff6c513a855cbff9c5c3caf3047"
     },
     "origin": "medicao",
     "projetoCowork": "w"
@@ -48260,5 +48260,39 @@
       "voz-do-cliente-page.jsx": "cc69e438ed3dda67401383654ddf2225cdbebbd1f31f1fc5b9e6ba4b38d8e2a1"
     },
     "origin": "bundle:9abbfbb01d5645ad"
+  },
+  {
+    "date": "2026-10-06T17:48:51.082Z",
+    "files": 284,
+    "sync": 1,
+    "stale": 0,
+    "liveAbsent": 0,
+    "unchecked": 283,
+    "staleList": [],
+    "verified": [
+      "cowork-inbox/telas-soltas/playbook/_saida-01.md"
+    ],
+    "verifiedHash": {
+      "cowork-inbox/telas-soltas/playbook/_saida-01.md": "4454142adc7710cfe12de00c978a1922d47ceec74f3cf949900906522377ab89"
+    },
+    "origin": "medicao",
+    "projetoCowork": "w"
+  },
+  {
+    "date": "2026-10-06T21:13:28.853Z",
+    "files": 284,
+    "sync": 1,
+    "stale": 0,
+    "liveAbsent": 0,
+    "unchecked": 283,
+    "staleList": [],
+    "verified": [
+      "cowork-inbox/produto/playbook/_saida-11.md"
+    ],
+    "verifiedHash": {
+      "cowork-inbox/produto/playbook/_saida-11.md": "fce1ef5eba0ce5be3f50b815a88c92cf78d431313d0f851097a3a598ee6f60b1"
+    },
+    "origin": "medicao",
+    "projetoCowork": "w"
   }
 ]

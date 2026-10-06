@@ -1,0 +1,193 @@
+{
+  "aguardou_sumir": null,
+  "ausentes": [],
+  "base": {
+    "assinatura": "OI WR Tributação Regras de imposto por NCM, UF e operação · Simples Nacional · origem SP SEFAZ-SP operacional Procedência ⌘ K Simular nota Notas fiscais NF-e · NFC-e 8 NFS-e 2 Eventos 5 Manifesto DF-e 3 Certificado Tributação SPED e livros Saúde fiscal 8 Operações 7 Exceções 9 Simulador Bateria de notas Contador Vínculo com produtos 2 Por estado Serviços · NFS-e Importação Devoluções Entradas Jana · sugestões 5 Cenário NF-e Emitente Matriz · São Paulo/SP Filial · Curitiba/PR Operação Venda de mercadoria Venda a consumidor final Venda de produção própria Remessa pra instalação Devolução de venda Prestação de serviço Produto Lona frontlight 440g (m²) Adesivo vinil brilho (m²) Placa ACM 3mm com impressão (sem NCM) Letreiro luminoso LED Banner personalizado com arte do cliente Tinta eco-solvente 1L Etiqueta adesiva Horizonte Papel couché 150g (resma) (sem NCM) Quantidade UF destino AC AL AP AM BA CE DF ES GO MA MT MS MG PA PB PR PE PI RJ RN RS RO RR SC SP SE TO EX · exterior Destinatário Contribuinte (com IE) Consumidor final / sem IE Regime Simples Nacional (atual) Lucro presumido (e se?) Importação tem cálculo próprio (câmbio da DI): aba Importação. Como a regra foi achada CFOP 6102 N 1 Produto sem exceção N 2 Exceção NCM 39219019 → RJ usada N 3 Exceção NCM 39219019 N 4 Regra geral · Venda de mercadoria Tributo Base Alíquota Valor Observação ICMS R$ 389,00 — R$ 0,00 CSOSN 102 — recolhido no DAS, sem destaque CBS / IBS R$ 389,00 — R$ 0,00 Simples não destaca em 2026 — previsto pra 2027 Total destacado R$ 389,00 R$ 0,00 Prévia: usa o mesmo motor da emissão, com o cadastro de agora. Se o cadastro do produto ou do cliente mudar, a nota muda junto. Não é garantia do valor que a SEFAZ vai validar. Quem define CST, CFOP e alíquota é o contador; o sistema aplica e mostra de onde veio cada número. Alíquotas desta tela são exemplo.",
+    "roles": {
+      "celulas": null,
+      "chart": null,
+      "contratos": [
+        {
+          "classes": {
+            "dataBr": 0,
+            "dataIso": 0,
+            "snakeCru": 0
+          },
+          "exemplos": {},
+          "nome": "procedencia"
+        },
+        {
+          "classes": {
+            "dataBr": 0,
+            "dataIso": 0,
+            "snakeCru": 0
+          },
+          "exemplos": {},
+          "nome": "simulador"
+        }
+      ],
+      "filterRows": null,
+      "kpi": {
+        "count": 0,
+        "items": [],
+        "overflowX": null,
+        "tag": null
+      },
+      "primary": null,
+      "shell": null,
+      "tabela": null,
+      "title": null
+    },
+    "saude": {
+      "folhasVazias": [],
+      "nFolhas": 76,
+      "tokensMortos": []
+    },
+    "theme": "dark",
+    "url": "http://127.0.0.1:5733/"
+  },
+  "clicar": ".fx-page > .fx-chips > [role=tab]:nth-child(4)",
+  "nos_totais": 594,
+  "quieto_ms": 2000,
+  "rota": "fiscal-tributacao",
+  "secoes": {
+    "abas": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "body",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "flex",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "6px",
+        "padding": "0px"
+      },
+      "filhos": 13,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "fx-page"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "main-body"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "main"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "app"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "div"
+        },
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "body"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "fx-chip",
+        "fx-chip",
+        "fx-chip",
+        "fx-chip",
+        "fx-chip",
+        "fx-chip",
+        "fx-chip",
+        "fx-chip",
+        "fx-chip",
+        "fx-chip",
+        "fx-chip",
+        "fx-chip",
+        "fx-chip"
+      ],
+      "rect": {
+        "h": 62,
+        "w": 1172
+      },
+      "seletor": ".fx-page > .fx-chips",
+      "truncado": false
+    },
+    "simulador": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "body",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "grid",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "14px",
+        "padding": "0px"
+      },
+      "filhos": 3,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "fx-page"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "main-body"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "main"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "app"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "div"
+        },
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "body"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "fx-card",
+        "fx-card",
+        "fx-table"
+      ],
+      "rect": {
+        "h": 727,
+        "w": 1172
+      },
+      "seletor": ".fx-page > [data-contract=\"simulador\"]",
+      "truncado": false
+    }
+  },
+  "tela": "nfe-brasil--tributacao--simulador",
+  "url": "http://127.0.0.1:5733/"
+}

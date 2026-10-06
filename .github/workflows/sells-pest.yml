@@ -290,6 +290,10 @@ jobs:
         # 2026-10-06 — + CommissionSplitAuditTest (UC-COM-01/02, playbook comissões thread 03):
         # trocar split/comissionado grava auditoria antes→depois; PATCH do split não alcança
         # venda nem usuário de outro business. NASCE SEM RUN: vermelho aqui é este arquivo.
+        # 2026-10-06 — + SellsQuotationsContratoTest (UC-QUO-01 de `Sells/Quotations.casos.md`,
+        # thread Q1 venda-menu): lista de cotações pelo endpoint de dados `/sells/draft-dt?is_quotation=1`
+        # — view_all × view_own, rascunho comum e venda final fora, tenant 98 × 99 — e o 403 da tela.
+        # 3/3 verde no CT 100 (19 assertions) antes do PR.
         env:
           DB_CONNECTION: mysql
           DB_HOST: 127.0.0.1
@@ -335,7 +339,8 @@ jobs:
             tests/Feature/Sells/ImportSalesContratoTest.php \
             tests/Feature/Sells/ImportSalesReverterContratoTest.php \
             tests/Feature/Sells/VendasMwartCutoverTest.php \
-            tests/Feature/Sells/CommissionSplitAuditTest.php
+            tests/Feature/Sells/CommissionSplitAuditTest.php \
+            tests/Feature/Sells/SellsQuotationsContratoTest.php
 
 
       # Passo 1 do plano da LC-13 (Gate:): a lane JA emitia JUnit e NINGUEM lia.

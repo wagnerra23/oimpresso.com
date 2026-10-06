@@ -48,9 +48,11 @@
 //   node scripts/governance/test-lane-coverage.mjs --pr 8669  # EIXO 3: o teste tocado EXECUTOU no head? (gh)
 //   node scripts/governance/test-lane-coverage.mjs --selftest # bite-test (boa/ruim)
 
-import { execFileSync } from 'node:child_process';
-import { existsSync, readFileSync, readdirSync } from 'node:fs';
+import { execFileSync, spawnSync } from 'node:child_process';
+import { existsSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 const ROOT = process.cwd();
 const WF_DIR = join(ROOT, '.github', 'workflows');
@@ -425,15 +427,39 @@ export function ehPassoPest(nome) {
 }
 
 /**
- * Situação de UMA lane no head: 'executou-passou' · 'executou-falhou' · 'pulou' · 'nao-rodou' · 'pendente'.
- * `run` = { conclusion, jobs: [{ steps: [{ name, conclusion }] }] } ou null.
+ * Nomes dos passos cujo corpo INVOCA `vendor/bin/pest`, lidos do YAML da lane.
+ * Por quê (2026-10-06, PR #8813): o passo do Financeiro se chama "Selecionar alvos
+ * (DIRETÓRIO − QUARENTENA) e rodar Pest". O regex de nome não o reconhecia, a lane
+ * ficava sem passo do Pest e saía "pulou" com o Pest executado e verde. Medido nas
+ * 37 lanes com pest: só essa. O nome vem do YAML, não da convenção de nome.
+ * Textual (sem dep de YAML, como o resto do script): fatia por `- name:`.
  */
-export function situacaoDaLane(run) {
+export function passosPestDoYaml(yamlText) {
+  const nomes = new Set();
+  for (const bloco of String(yamlText || '').split(/\r?\n(?=\s*- name:)/)) {
+    const m = bloco.match(/^\s*- name:\s*(.+)/);
+    if (m && /vendor\/bin\/pest/.test(bloco)) nomes.add(m[1].trim().replace(/^(["'])(.*)\1$/, '$2'));
+  }
+  return nomes;
+}
+
+/**
+ * Situação de UMA lane no head: 'executou-passou' · 'executou-falhou' · 'pulou' ·
+ * 'nao-rodou' · 'pendente' · 'nao-identificado'.
+ * `run` = { conclusion, jobs: [{ steps: [{ name, conclusion }] }] } ou null.
+ * `nomesPest` = passos que invocam o Pest segundo o YAML (passosPestDoYaml).
+ * 'pulou' exige ACHAR o passo do Pest e vê-lo skipped. Não achar passo nenhum é
+ * 'nao-identificado': ausência de medição, não acusação (LC-33).
+ */
+export function situacaoDaLane(run, nomesPest = new Set()) {
   if (!run) return 'nao-rodou';
   if (run.conclusion === 'pending') return 'pendente';
-  const passos = (run.jobs || []).flatMap((j) => (j.steps || []).filter((s) => ehPassoPest(s.name)));
+  const passos = (run.jobs || []).flatMap((j) => (j.steps || []).filter((s) => ehPassoPest(s.name) || nomesPest.has(s.name)));
   const executados = passos.filter((s) => s.conclusion && s.conclusion !== 'skipped');
-  if (executados.length === 0) return run.conclusion === 'failure' ? 'executou-falhou' : 'pulou';
+  if (executados.length === 0) {
+    if (run.conclusion === 'failure') return 'executou-falhou';
+    return passos.length === 0 ? 'nao-identificado' : 'pulou';
+  }
   return executados.some((s) => s.conclusion === 'failure') || run.conclusion === 'failure'
     ? 'executou-falhou'
     : 'executou-passou';
@@ -447,8 +473,10 @@ export function situacaoDaLane(run) {
 export function vereditoDoTeste(teste, lanes, runsPorPath) {
   const alcancam = lanes.filter((l) => estaCoberto(teste, l.alvos));
   if (alcancam.length === 0) return { teste, veredito: 'SEM-LANE', lanes: [] };
-  const sit = alcancam.map((l) => ({ path: l.path, situacao: situacaoDaLane(runsPorPath.get(l.path) || null) }));
-  let veredito = 'NAO-EXECUTADO';
+  const sit = alcancam.map((l) => ({ path: l.path, situacao: situacaoDaLane(runsPorPath.get(l.path) || null, l.nomesPest) }));
+  // Toda lane rodou sem passo do Pest identificável: não dá pra acusar nem absolver.
+  // Se ALGUMA lane mostra pulou/nao-rodou, a acusação dela vale (não se dilui).
+  let veredito = sit.every((s) => s.situacao === 'nao-identificado') ? 'NAO-MEDIDO' : 'NAO-EXECUTADO';
   if (sit.some((s) => s.situacao === 'executou-passou')) veredito = 'EXECUTOU';
   if (sit.some((s) => s.situacao === 'executou-falhou')) veredito = 'FALHOU';
   return { teste, veredito, lanes: sit };
@@ -692,6 +720,45 @@ function selftest() {
   ok('BITE: uma lane verde e outra vermelha ⇒ FALHOU (vermelho não se dilui)',
     vereditoDoTeste(T3, lanes3b, new Map([['v.yml', run('success')], ['w.yml', run('failure', 'failure')]])).veredito === 'FALHOU');
 
+  const runSemPassoPest = { conclusion: 'success', jobs: [{ steps: [{ name: 'Algo', conclusion: 'success' }] }] };
+  ok('BITE: uma lane PULOU e outra sem passo identificável ⇒ NAO-EXECUTADO (não-medi não dilui acusação medida)',
+    vereditoDoTeste(T3, lanes3b, new Map([['v.yml', run('skipped')], ['w.yml', runSemPassoPest]])).veredito === 'NAO-EXECUTADO');
+
+  // ── EIXO 3 pelo CLI de fora (subprocesso + --pr-fixture) ────────────────────
+  // Caso de origem (#8813): o passo do Pest se chama "…e rodar Pest", fora da
+  // convenção de nome. Antes, a lane saía "pulou" com o Pest executado e verde.
+  const yamlFx = [
+    'jobs:', '  t:', '    steps:',
+    '      - name: Setup Pest MySQL', '        run: echo setup',
+    '      - name: Selecionar alvos e rodar Pest', '        run: |', '          ./vendor/bin/pest Modules/S/Tests',
+  ].join('\n');
+  ok('passosPestDoYaml: acha o passo pelo corpo que invoca vendor/bin/pest',
+    passosPestDoYaml(yamlFx).has('Selecionar alvos e rodar Pest'));
+  ok('CONTROLE: passosPestDoYaml não pega "Setup Pest MySQL" (não invoca o Pest)',
+    !passosPestDoYaml(yamlFx).has('Setup Pest MySQL'));
+  const cli = (passos) => {
+    const dir = mkdtempSync(join(tmpdir(), 'tlc-fx-'));
+    try {
+      const f = join(dir, 'fx.json');
+      writeFileSync(f, JSON.stringify({
+        head: 'fixture', tocados: [T3], workflows: [{ path: 'v.yml', txt: yamlFx }],
+        runs: { 'v.yml': { conclusion: 'success', jobs: [{ steps: passos }] } },
+      }));
+      const r = spawnSync(process.execPath, [fileURLToPath(import.meta.url), '--pr', '0', '--pr-fixture', f], { encoding: 'utf8' });
+      return { rc: r.status, out: r.stdout || '' };
+    } finally { rmSync(dir, { recursive: true, force: true }); }
+  };
+  const setupOk = { name: 'Setup Pest MySQL', conclusion: 'success' };
+  const c1 = cli([setupOk, { name: 'Selecionar alvos e rodar Pest', conclusion: 'success' }]);
+  ok('LIBERA (CLI, caso #8813): passo do Pest fora da convenção, executado e verde ⇒ EXECUTOU · exit 0',
+    c1.rc === 0 && /✓ EXECUTOU/.test(c1.out));
+  const c2 = cli([setupOk, { name: 'Selecionar alvos e rodar Pest', conclusion: 'skipped' }]);
+  ok('BITE (CLI): o mesmo passo PULADO ⇒ NAO-EXECUTADO · exit 1 (verde da run não absolve)',
+    c2.rc === 1 && /NAO-EXECUTADO/.test(c2.out));
+  const c3 = cli([setupOk, { name: 'Passo que o YAML não conhece', conclusion: 'success' }]);
+  ok('NAO-MEDIDO (CLI): run sem passo do Pest identificável ⇒ exit 2, não acusação (LC-33)',
+    c3.rc === 2 && /NAO-MEDIDO/.test(c3.out) && !/NAO-EXECUTADO/.test(c3.out));
+
   const falhas = casos.filter((c) => !c.ok);
   for (const c of casos) console.log(`  ${c.ok ? '✓' : '✗'} ${c.nome}`);
   console.log(`\n  ${casos.length - falhas.length}/${casos.length} — ${falhas.length ? 'FALHOU' : 'a lógica morde (bite + controles negativos)'}`);
@@ -725,7 +792,15 @@ if (args.includes('--pr')) {
   const gh = (a) => execFileSync('gh', a, { cwd: ROOT, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 });
   const jsonl = (txt) => txt.split(/\r?\n/).filter(Boolean).map((l) => JSON.parse(l));
   let repo, head, tocados, runs, workflowsNoHead, listaNoHead;
-  try {
+  // --pr-fixture <json>: mesma avaliação, dados de arquivo em vez do gh. Existe pro
+  // --selftest exercitar ESTE caminho do CLI de fora (subprocesso), não um helper.
+  const iFx = args.indexOf('--pr-fixture');
+  const fx = iFx >= 0 ? JSON.parse(readFileSync(args[iFx + 1], 'utf8')) : null;
+  if (fx) {
+    ({ head, tocados } = fx);
+    workflowsNoHead = fx.workflows;
+    listaNoHead = entradasDeLista(fx.lista || '');
+  } else try {
     repo = gh(['repo', 'view', '--json', 'nameWithOwner', '--jq', '.nameWithOwner']).trim();
     head = gh(['pr', 'view', n, '--json', 'headRefOid', '--jq', '.headRefOid']).trim();
     tocados = jsonl(gh(['api', '--paginate', `repos/${repo}/pulls/${n}/files?per_page=100`,
@@ -759,10 +834,14 @@ if (args.includes('--pr')) {
     process.exit(0);
   }
   const lanes = workflowsNoHead.map(({ path, txt }) =>
-    /vendor\/bin\/pest|ci-sqlite-pest\.list/.test(txt) ? { path, alvos: extrairAlvos(txt, listaNoHead) } : null,
+    // Eixo 3 julga EXECUÇÃO: só conta workflow que invoca o Pest. Citar a lista
+    // curada num comentário (ciclo-completo.yml) não executa nada.
+    /vendor\/bin\/pest/.test(txt)
+      ? { path, alvos: extrairAlvos(txt, listaNoHead), nomesPest: passosPestDoYaml(txt) } : null,
   ).filter(Boolean);
   const runsPorPath = new Map();
-  for (const l of lanes) {
+  if (fx) for (const [p, r] of Object.entries(fx.runs || {})) runsPorPath.set(p, r);
+  else for (const l of lanes) {
     const r = runs.get(l.path);
     if (!r) continue;
     if (r.status !== 'completed') { runsPorPath.set(l.path, { conclusion: 'pending', jobs: [] }); continue; }
@@ -771,12 +850,18 @@ if (args.includes('--pr')) {
   }
   const vs = tocados.map((t) => vereditoDoTeste(t, lanes, runsPorPath));
   console.log(`\n=== EIXO 3 · PR #${n} · head ${head.slice(0, 9)} — o teste tocado EXECUTOU? ===\n`);
-  const icone = { EXECUTOU: '✓', FALHOU: '✗', 'NAO-EXECUTADO': '⛔', 'SEM-LANE': '⛔' };
+  const icone = { EXECUTOU: '✓', FALHOU: '✗', 'NAO-EXECUTADO': '⛔', 'SEM-LANE': '⛔', 'NAO-MEDIDO': '⚠️' };
   for (const v of vs) {
     console.log(`  ${icone[v.veredito]} ${v.veredito.padEnd(13)} ${v.teste}`);
     for (const l of v.lanes) console.log(`        ${l.situacao.padEnd(16)} ${l.path}`);
   }
-  const ruins = vs.filter((v) => v.veredito !== 'EXECUTOU');
+  const ruins = vs.filter((v) => v.veredito !== 'EXECUTOU' && v.veredito !== 'NAO-MEDIDO');
+  const naoMedidos = vs.filter((v) => v.veredito === 'NAO-MEDIDO');
+  if (naoMedidos.length && !ruins.length) {
+    console.log(`\n  ⚠️  ${naoMedidos.length} de ${vs.length} teste(s): a lane rodou, mas não achei o passo do Pest nos jobs`);
+    console.log('  (nem pelo nome, nem pelo YAML). Ausência de MEDIÇÃO, não de execução — confira o log da run.\n');
+    process.exit(2);
+  }
   if (ruins.length) {
     const naoRodou = [...new Set(ruins.flatMap((v) => v.lanes.filter((l) => l.situacao === 'nao-rodou' || l.situacao === 'pulou').map((l) => l.path)))];
     console.log(`\n  ${ruins.length} de ${vs.length} teste(s) tocado(s) SEM execução verde no head — o PR não está provado.`);

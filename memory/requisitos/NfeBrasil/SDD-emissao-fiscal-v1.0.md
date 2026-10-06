@@ -324,6 +324,10 @@ linhas da sessão, chama `aplicar($businessId, $linhas)`, `forget` da sessão, `
 > 2 e escritas no passo 3, e o `business_id` do passo 3 vem da sessão **naquele instante**. Um
 > usuário multi-business que troque de negócio entre o preview e o aplicar grava as regras do
 > tenant A dentro do tenant B — sem erro, sem aviso. É `CU-NFE-07` `[T0]`.
+>
+> **Fechado em 2026-10-06** (playbook Fiscal thread 19): o `@preview` carimba o business em
+> `nfe_import_csv_business_id`, e o `@aplicar` recusa e descarta o lote quando o carimbo falta ou
+> diverge do business corrente. O parágrafo acima segue como o retrato de antes.
 
 **F9 · Manifestação do destinatário (`GET /nfe-brasil/manifestacao`)** —
 `ManifestacaoController@index` (gate `nfe.manifestacao.view` **ou** `manage` **ou** `superadmin`)
@@ -362,6 +366,12 @@ Varredura contada em `Modules/NfeBrasil/Http/Controllers/TributacaoController.ph
 | `@destroy` | `Request` | ❌ **nenhum** | apaga (soft) uma regra NCM → o item cai para o Nível 4 e passa a sair com **outra** alíquota |
 | `@toggleAutoEmission` | `Request` | ❌ **nenhum** | **liga a emissão automática de documento fiscal** do tenant |
 | `@aplicarTemplate` | `Request` | ❌ **nenhum** | substitui regime + `tributacao_default` inteiros |
+
+> ↳ **2026-10-06 (playbook Fiscal thread 18):** `@destroy` passou a receber
+> `DestroyRegraTributariaRequest`, com o mesmo `authorize()` do store/update — `UC-NFRF-04` ficou
+> verde (recibo no [`RegraForm.casos.md`](../../../resources/js/Pages/NfeBrasil/Tributacao/RegraForm.casos.md)).
+> A tabela acima é a varredura de 2026-07-28 e fica como estava. `@toggleAutoEmission` e
+> `@aplicarTemplate` seguem sem gate.
 
 O rota-group é `['web','auth','SetSessionData','language','timezone','AdminSidebarMenu']` — **sem**
 middleware de permissão. E o docblock da classe **afirma o contrário**: *"Permissão:
@@ -580,8 +590,8 @@ gravado no preview, e o que é gravado no aplicar pertence ao business **de quem
 1. `[must]` o `preview` **não** escreve em `nfe_fiscal_rules` (só devolve amostras + erros)
 2. `[must]` `aplicar` sem preview anterior é recusado com erro de campo — não grava vazio
 3. `[must]` `aplicar` sem `nfe.tributacao.manage` → **403**
-4. `[T0]` 🔴 **falha esperada** — trocar o business entre o preview e o aplicar grava as linhas do
-   tenant A dentro do tenant B (§5.3 F8)
+4. `[T0]` trocar o business entre o preview e o aplicar **recusa** a aplicação — as linhas do
+   tenant A não entram no tenant B (§5.3 F8 · fechado em 2026-10-06; até essa data era falha esperada)
 5. `[must]` CSV sem as colunas obrigatórias é recusado inteiro, sem gravar linha parcial
 
 ### 6.3 Manifestação — o que o Fiscal não cobre
@@ -746,7 +756,7 @@ A trilha Gold (`US-NFE-042..048`) está 🔒 dormente.
 | # | Risco | Severidade | Estado |
 |---|---|---|---|
 | R1 | **3 de 5 mutações de tributação sem gate de permissão** — incluindo o toggle da auto-emissão (§5.4.1) | **alta** (fiscal ×150) | 🔴 teste failing-first nesta corrida |
-| R2 | **Import CSV resolve o tenant duas vezes** — troca de business entre preview e aplicar grava no lugar errado (§5.3 F8) | alta (`[V0]` `[T0]`) | 🔴 teste failing-first nesta corrida |
+| R2 | **Import CSV resolve o tenant duas vezes** — troca de business entre preview e aplicar grava no lugar errado (§5.3 F8) | alta (`[V0]` `[T0]`) | ✅ fechado em 2026-10-06 (playbook Fiscal thread 19) — recusa por carimbo do business |
 | R3 | **Tela de status só enxerga NFC-e 65** — NF-e 55 fica eternamente "aguardando" (§5.3 F3) | média (confiança) | ⬜ decisão [W] |
 | R4 | **Link "Baixar DANFE" aponta para rota inexistente** (§5.4.3) | média | ⬜ decisão [W] |
 | R5 | **"Detalhes" no Sells passa id de emissão onde a rota espera id de transaction** (§5.4.3) | média | ⬜ fora da área deste chip |
