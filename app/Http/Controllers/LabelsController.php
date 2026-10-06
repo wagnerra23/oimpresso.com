@@ -110,6 +110,9 @@ class LabelsController extends Controller
                         ->with(compact('products', 'index', 'price_groups'));
             }
         }
+
+        // Sem ajax ou sem produto: resposta vazia, como sempre foi (agora explícito).
+        return null;
     }
 
     /**
