@@ -5,7 +5,8 @@ irmaos: Edit.charter.md (lei)
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — abrir/salvar edição e o isolamento por tenant não mudam no refactor.
 owner: wagner
-last_run: "2026-07-08"
+last_run: "2026-10-06"
+last_run_nota: "2026-10-06 revalidado na thread Crm/09: o Edit.tsx ganhou o modo lead (só com `destino`); o caminho do cliente que estes UC descrevem não mudou. Lane cliente-pest no head do #8755 (run 37451275901): ClienteEditInertiaTest PASS, 267 passed · 1362 assertions. Status seguem 🧪 (manifesto não regravado)."
 ---
 
 # Casos de Uso & Aceite — Edição de cliente
