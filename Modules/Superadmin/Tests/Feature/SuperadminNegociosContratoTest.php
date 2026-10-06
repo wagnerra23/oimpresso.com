@@ -421,8 +421,10 @@ it('UC-SANEG-14 · adicionar assinatura grava no negocio com o preco do pacote; 
         expect($barrado->getStatusCode())->toBeIn([302, 403])
             ->and(DB::table('subscriptions')->where('business_id', BIZ_NEG)->count())->toBe($antes);
 
-        // Gravação: o valor vem do pacote, não da tela.
-        $this->actingAs($superadmin)->from('/superadmin/business?negocio='.BIZ_NEG)
+        // Gravação: o valor vem do pacote, não da tela. O grupo /superadmin não passa pelo
+        // SetSessionData; em produção `user.id` vem da sessão do login (created_id), e o teste a monta
+        // como o SuperadminPacotesContratoTest já faz.
+        $this->actingAs($superadmin)->withSession(['user.id' => $superadmin->id])->from('/superadmin/business?negocio='.BIZ_NEG)
             ->post('/superadmin/superadmin-subscription', [
                 'business_id' => BIZ_NEG, 'package_id' => $ativo->id, 'paid_via' => 'offline', 'payment_transaction_id' => 'UC-SANEG-14',
             ])->assertRedirect('/superadmin/business?negocio='.BIZ_NEG)->assertSessionHasNoErrors();
@@ -431,6 +433,7 @@ it('UC-SANEG-14 · adicionar assinatura grava no negocio com o preco do pacote; 
         expect($nova)->not->toBeNull()
             ->and((int) $nova->package_id)->toBe($ativo->id)
             ->and((float) $nova->package_price)->toBe((float) DB::table('packages')->where('id', $ativo->id)->value('price'))
+            ->and((int) $nova->created_id)->toBe($superadmin->id)
             ->and($nova->status)->toBe('approved')
             ->and($nova->start_date)->not->toBeNull()
             ->and(DB::table('subscriptions')->where('business_id', BIZ_NEG)->count())->toBe($antes + 1);
