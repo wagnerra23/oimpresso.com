@@ -38,6 +38,8 @@ on:
       - 'database/migrations/2026_10_02_190000_create_app_menu_preferencias_table.php'
       - 'app/Http/Controllers/Api/App/NotificacoesController.php'
       - 'app/Http/Controllers/Api/App/OficinaController.php'
+      - 'app/Http/Controllers/Api/App/AgendamentoController.php'
+      - 'Modules/OficinaAuto/Database/Migrations/2026_10_06_180000_create_oficina_agendamentos_table.php'
       - 'app/Http/Controllers/Api/App/VendaRapidaController.php'
       - 'app/Http/Controllers/Api/App/FinanceiroController.php'
       - 'app/Http/Controllers/Api/App/RelatoriosController.php'
@@ -149,6 +151,8 @@ jobs:
               - 'database/migrations/2026_10_02_190000_create_app_menu_preferencias_table.php'
               - 'app/Http/Controllers/Api/App/NotificacoesController.php'
               - 'app/Http/Controllers/Api/App/OficinaController.php'
+              - 'app/Http/Controllers/Api/App/AgendamentoController.php'
+              - 'Modules/OficinaAuto/Database/Migrations/2026_10_06_180000_create_oficina_agendamentos_table.php'
               - 'app/Http/Controllers/Api/App/VendaRapidaController.php'
               - 'app/Http/Controllers/Api/App/FinanceiroController.php'
               - 'app/Http/Controllers/Api/App/RelatoriosController.php'
@@ -293,6 +297,7 @@ jobs:
             tests/Feature/Sells/AppPerfilMenuApiContratoTest.php \
             tests/Feature/Sells/AppNotificacoesApiContratoTest.php \
             tests/Feature/Sells/AppOsApiContratoTest.php \
+            tests/Feature/Sells/AppOficinaAgendaApiContratoTest.php \
             tests/Feature/Sells/AppVendaRapidaProdutosApiContratoTest.php \
             tests/Feature/Sells/AppFinanceiroApiContratoTest.php \
             tests/Feature/Sells/AppFiscalApiContratoTest.php \

@@ -54,4 +54,9 @@ mostra "+ Nova OS" quando é `true`.
 - `201` → o mesmo JSON do `GET /api/app/os/{id}` (tela 03). `422 { erro:"validacao", campos }` (inclui
   veículo/cliente de outra empresa: "Veículo não encontrado.") · `403 sem_permissao` (sem permissão de ver
   ou de criar OS) · `503 sem_configuracao` (módulo da oficina indisponível).
+- `agendamento_id` (opcional): "Abrir OS" a partir da agenda de revisão
+  ([oficina-agenda.md](oficina-agenda.md)). Na mesma transação da OS, o agendamento vira `atendido` com
+  `os_id`. Tem de ser do business do token, estar `agendado` e ser do mesmo `vehicle_id`; senão
+  `422 campos.agendamento_id` ("Agendamento não encontrado." · "Este agendamento não está mais aberto." ·
+  "O agendamento é de outro veículo.") e nenhuma OS é criada.
 - Fica na web, por ora: nível de combustível, avarias na entrada, mecânico responsável e criar veículo junto.
