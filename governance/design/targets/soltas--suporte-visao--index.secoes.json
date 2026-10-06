@@ -1,0 +1,25 @@
+{
+  "_": "A1 [CL] 2026-10-06 — playbook telas-soltas. Rota `suporte-visao` do espelho (app.jsx), âncora Suporte/Visao → suporte-page.jsx (bundle_source, ancora.mjs), view=visao (app.jsx:913). Tema dark (default do espelho), viewport 1280x900.",
+  "_mapa": "alvo:mapa --rota suporte-visao --raiz '.main-body > *', 2026-10-06: div.sup-navrow · div.sup-faixa · div · div.sup-cards · h2.sup-h2 · div.sup-lista · p.sup-fine",
+  "navrow": {
+    "seletor": ".main-body > div > .sup-navrow"
+  },
+  "faixa": {
+    "seletor": ".main-body > div > .sup-faixa"
+  },
+  "bloco_3": {
+    "seletor": ".main-body > div > :nth-child(3)"
+  },
+  "cards": {
+    "seletor": ".main-body > div > .sup-cards"
+  },
+  "titulo_lista": {
+    "seletor": ".main-body > div > .sup-h2"
+  },
+  "lista": {
+    "seletor": ".main-body > div > .sup-lista"
+  },
+  "rodape": {
+    "seletor": ".main-body > div > .sup-fine"
+  }
+}

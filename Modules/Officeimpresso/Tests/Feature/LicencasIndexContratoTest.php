@@ -83,6 +83,55 @@ it('UC-OILIC-03 · com a flag ON responde Officeimpresso/Licencas/Index, lista a
             ->missing('licencas'));
 });
 
+/*
+| Cutover (thread Officeimpresso/09 — F5 do MWART, decisão [W] D6). Os dois testes acima trocam o
+| FeatureFlagService por um dublê; estes usam o serviço REAL, porque o que se quer provar é o estado
+| de produção: o GrowthBook do CT 100 não conhece esta flag (medido 2026-10-06: só `useV2SellsCreate`),
+| então quem decide lá é o `fallbackDefaults`. E a rota de fuga é uma regra no GrowthBook — sem deploy.
+*/
+
+it('UC-OILIC-03 · cutover: sem regra no GrowthBook, o serviço real serve a tela React', function () {
+    $biz = $this->seededTenant();
+    $this->actingAs(oiLicUser($this, $biz->id, 'officeimpresso.access'));
+
+    oiLicGrowthbook([]); // GrowthBook responde, mas não conhece a flag
+
+    try {
+        $this->get('/officeimpresso/licenca_computador')
+            ->assertOk()
+            ->assertInertia(fn (\Inertia\Testing\AssertableInertia $page) => $page
+                ->component('Officeimpresso/Licencas/Index'));
+        // Prova de que a decisão passou pelo GrowthBook falso, e não por um real nem pelo dublê.
+        \Illuminate\Support\Facades\Http::assertSent(fn ($req) => str_contains($req->url(), 'growthbook-oilic-'));
+    } finally {
+        oiLicGrowthbook(null);
+    }
+});
+
+it('UC-OILIC-02 · rota de fuga: regra false no GrowthBook para o negócio volta o Blade, sem deploy', function () {
+    $casa = $this->seededTenant();
+    $outro = $this->seededSupportClientTenant();
+    $this->actingAs(oiLicUser($this, $casa->id, 'officeimpresso.access'));
+
+    try {
+        // Desligada só para o OUTRO negócio: este segue na tela React (controle).
+        oiLicGrowthbook(['defaultValue' => true, 'rules' => [
+            ['condition' => ['business_id' => (int) $outro->id], 'force' => false],
+        ]]);
+        $this->get('/officeimpresso/licenca_computador')
+            ->assertInertia(fn (\Inertia\Testing\AssertableInertia $page) => $page
+                ->component('Officeimpresso/Licencas/Index'));
+
+        // Desligada para o negócio da sessão: volta o Blade.
+        oiLicGrowthbook(['defaultValue' => true, 'rules' => [
+            ['condition' => ['business_id' => (int) $casa->id], 'force' => false],
+        ]]);
+        expect($this->get('/officeimpresso/licenca_computador')->viewData('licencas'))->not->toBeNull();
+    } finally {
+        oiLicGrowthbook(null);
+    }
+});
+
 it('UC-OILIC-04 · quem tem só officeimpresso.access vê apenas as máquinas do negócio da sessão', function () {
     $casa = $this->seededTenant();
     $outro = $this->seededSupportClientTenant();
@@ -394,4 +443,50 @@ function oiLicFlag(bool $ligada): void
             return $this->ligada;
         }
     });
+}
+
+/**
+ * Põe o GrowthBook (falso, via Http::fake) no caminho do serviço REAL. `null` desfaz.
+ *
+ * Escreve nas TRÊS fontes que o `env()` do Laravel lê ($_SERVER antes de $_ENV antes de getenv):
+ * só `putenv` não basta onde o `.env` já traz GROWTHBOOK_* (no CT 100 traz — o teste batia no
+ * GrowthBook de verdade). O valor original é guardado e devolvido no `null`.
+ *
+ * @param  array<string, mixed>|null  $flag  definição da flag no GrowthBook; `[]` = GrowthBook sem ela
+ */
+function oiLicGrowthbook(?array $flag): void
+{
+    static $original = null;
+    $chaves = ['GROWTHBOOK_SDK_KEY', 'GROWTHBOOK_API_HOST'];
+    $original ??= array_map(fn ($c) => [$_SERVER[$c] ?? null, $_ENV[$c] ?? null, getenv($c)], array_combine($chaves, $chaves));
+
+    $grava = function (string $c, $server, $env, $put): void {
+        if ($server === null) { unset($_SERVER[$c]); } else { $_SERVER[$c] = $server; }
+        if ($env === null) { unset($_ENV[$c]); } else { $_ENV[$c] = $env; }
+        putenv($put === false || $put === null ? $c : "{$c}={$put}");
+    };
+
+    app()->forgetInstance(\App\Services\FeatureFlagService::class);
+    \Illuminate\Support\Facades\Cache::forget('growthbook.features');
+
+    if ($flag === null) {
+        foreach ($original as $c => [$server, $env, $put]) {
+            $grava($c, $server, $env, $put);
+        }
+        $original = null;
+
+        return;
+    }
+
+    // Host único por chamada: o Http::fake ACUMULA stubs e o primeiro que casa vence, então
+    // reusar o host faria a 2ª definição da flag nunca ser lida.
+    $host = 'growthbook-oilic-' . uniqid() . '.test.local';
+    $grava('GROWTHBOOK_SDK_KEY', 'sdk-oilic-fake', 'sdk-oilic-fake', 'sdk-oilic-fake');
+    $grava('GROWTHBOOK_API_HOST', 'https://' . $host, 'https://' . $host, 'https://' . $host);
+    \Illuminate\Support\Facades\Http::fake([
+        $host . '/*' => \Illuminate\Support\Facades\Http::response([
+            'status' => 200,
+            'features' => $flag === [] ? ['outraFlag' => ['defaultValue' => true]] : ['useV2OfficeimpressoLicencas' => $flag],
+        ], 200),
+    ]);
 }

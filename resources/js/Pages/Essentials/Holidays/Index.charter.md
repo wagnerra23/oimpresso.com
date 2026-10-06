@@ -13,6 +13,8 @@ charter_version: 1
 
 # Page Charter — /hrm/holiday (Feriados do business)
 
+> **Casos:** [`Index.casos.md`](Index.casos.md) — UC + aceite + teste que defende cada um.
+
 > Migração Blade T1 Wave D — `Modules/Essentials/Resources/views/holiday/index.blade.php` (DataTable jQuery + Bootstrap modal) → React/Inertia com tabela filtrável + Dialog inline. Visível a todos, editável apenas por admin.
 
 ---

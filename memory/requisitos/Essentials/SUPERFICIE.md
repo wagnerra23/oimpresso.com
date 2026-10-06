@@ -14,7 +14,7 @@ module: Essentials
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Essentials/**` + `resources/js/Pages/Essentials/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 300 arquivos em 17 papéis.
+**Total mapeado:** 304 arquivos em 17 papéis.
 
 ## Controllers — 19
 
@@ -274,21 +274,23 @@ module: Essentials
 - [Index.charter.md](../../../resources/js/Pages/Essentials/Todo/Index.charter.md)
 - [Show.charter.md](../../../resources/js/Pages/Essentials/Todo/Show.charter.md)
 
-## Casos (contrato UC) — 9
+## Casos (contrato UC) — 11
 
 - [Index.casos.md](../../../resources/js/Pages/Essentials/Documents/Index.casos.md)
+- [Index.casos.md](../../../resources/js/Pages/Essentials/Holidays/Index.casos.md)
 - [Index.casos.md](../../../resources/js/Pages/Essentials/Knowledge/Index.casos.md)
 - [Index.casos.md](../../../resources/js/Pages/Essentials/Licencas/Index.casos.md)
 - [Index.casos.md](../../../resources/js/Pages/Essentials/Messages/Index.casos.md)
 - [Metas.casos.md](../../../resources/js/Pages/Essentials/Metas.casos.md)
 - [Painel.casos.md](../../../resources/js/Pages/Essentials/Painel.casos.md)
 - [Index.casos.md](../../../resources/js/Pages/Essentials/Reminders/Index.casos.md)
+- [Index.casos.md](../../../resources/js/Pages/Essentials/Settings/Index.casos.md)
 - [Tipos.casos.md](../../../resources/js/Pages/Essentials/Tipos.casos.md)
 - [Index.casos.md](../../../resources/js/Pages/Essentials/Todo/Index.casos.md)
 
-## Testes (Pest) — 25
+## Testes (Pest) — 27
 
-- 25 em [Modules/Essentials/Tests/Feature/](../../../Modules/Essentials/Tests/Feature)
+- 27 em [Modules/Essentials/Tests/Feature/](../../../Modules/Essentials/Tests/Feature)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
 ## Demais arquivos (manifestos, docs, assets e misc) — 50

@@ -144,6 +144,12 @@ on:
       - 'memory/reference/prototipo-ui/ARQUITETURA.md'
       - 'memory/reference/prototipo-ui/FRESCOR-PRODUCAO-vs-PROTOTIPO.md'
       - 'memory/LICOES_CC.md'
+      # tema-escuro (playbook tema-escuro thread 01): a sonda, o teste dela, o baseline e o
+      # servidor do espelho que ela importa — mexer em qualquer um precisa disparar a lane.
+      - 'scripts/design/tema-escuro-probe.mjs'
+      - 'scripts/design/tema-escuro-probe.test.mjs'
+      - 'scripts/design/tema-escuro-baseline.json'
+      - 'scripts/design/design-diff-lote.mjs'
   workflow_dispatch:
 
 concurrency:
@@ -776,3 +782,47 @@ jobs:
             cat /tmp/secao-check.txt 2>/dev/null || echo '(sem saida — o passo anterior nem rodou)'
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
+
+  # ── tema-escuro (playbook tema-escuro · thread 01) ─────────────────────────────────────────
+  # Superfície CLARA no tema escuro em TODAS as rotas do espelho (Playwright). Predicado, cortes
+  # medidos, allowlist e exits estão no docblock de scripts/design/tema-escuro-probe.mjs — dono
+  # do número; aqui não se restateia (§5 2026-07-17). Forward-only: reprova só achado fora do
+  # baseline. Exit 2 = NÃO MEDI (ambiente), nunca verde. Sem continue-on-error: advisory = não
+  # bloqueia merge, nunca "não pode ficar vermelho" (§5 2026-07-09); se bloqueia, quem diz é
+  # governance/required-checks-baseline.json.
+  tema-escuro:
+    name: tema-escuro — superfície clara no escuro, todas as rotas do espelho (advisory)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # O render custa minutos: só roda se o PR toca o espelho ou a própria sonda. HEAD^1 é o
+      # 1º pai do merge ref (base viva), não o base.sha congelado (§5 2026-09-15).
+      - name: tocou o espelho ou a sonda?
+        id: alvo
+        run: |
+          set -euo pipefail
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then echo "roda=1" >> "$GITHUB_OUTPUT"; exit 0; fi
+          n=$(git diff --name-only HEAD^1 HEAD | grep -cE '^(prototipo-ui/cowork/Wagner/|prototipo-ui/design-system/|scripts/design/(tema-escuro-|design-diff-lote))' || true)
+          echo "arquivos no alvo: $n"
+          echo "roda=$([ "$n" -gt 0 ] && echo 1 || echo 0)" >> "$GITHUB_OUTPUT"
+
+      - name: tema-escuro bite-test (ruim=1 · boa=0 · sem espelho=2)
+        run: node scripts/design/tema-escuro-probe.test.mjs
+
+      - name: Playwright (dep + chromium)
+        if: steps.alvo.outputs.roda == '1'
+        run: |
+          npm install --no-save @playwright/test@^1.49.0
+          npx playwright install --with-deps chromium
+
+      - name: tema-escuro probe (todas as rotas vs baseline)
+        if: steps.alvo.outputs.roda == '1'
+        run: |
+          set -o pipefail
+          node scripts/design/tema-escuro-probe.mjs --json /tmp/tema-escuro.json | tee /tmp/tema-escuro.txt
