@@ -53,7 +53,7 @@ class StoreRecipeRequest extends FormRequest
             'ingredients_cost' => ['nullable', 'string'],
             'waste_percent' => ['nullable', 'string'],
             'extra_cost' => ['nullable', 'string'],
-            'production_cost_type' => ['nullable', 'string', 'in:fixed,percentage'],
+            'production_cost_type' => ['nullable', 'string', 'in:fixed,percentage,per_unit'],
             'instructions' => ['nullable', 'string'],
             'sub_unit_id' => ['nullable', 'integer'],
             'ingredient_groups' => ['nullable', 'array'],

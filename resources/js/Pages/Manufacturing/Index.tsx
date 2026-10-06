@@ -327,32 +327,30 @@ function Index({ productions = [], summary, business_locations = {}, filters = {
              antes→depois);
            · lá o rascunho entra "a preço de hoje" (ele recalcula); aqui é o `final_total` GRAVADO
              em cada ordem, nunca recalculado (US-MANU-004 + RUNBOOK-producao.md §1). */}
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4" data-contract="kpis">
+      {/* Forma do `MfgProducaoView` (medido em produção 2026-10-05, 1440px): os cartões de leitura
+          NÃO têm ícone (o KpiCard de leitura do DS não desenha ícone) e só "Finalizadas" é cartão-filtro,
+          com o ícone ao lado — como na aba Receitas. Com ícone no título dos 4, cada cartão media 125px
+          contra 105px da Receitas, e a faixa pulava ao trocar de aba. Vão de 10px, o do `.mfg-kpis`. */}
+      <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-4" data-contract="kpis">
+        <KpiCard label="Total" value={summary?.total_count ?? 0} description="ordens cadastradas" />
         <KpiCard
-          label="Total"
-          value={summary?.total_count ?? 0}
-          icon="layers"
-          description="ordens cadastradas"
-        />
-        <KpiCard
+          variant="filter"
           label="Finalizadas"
           value={summary?.final_count ?? 0}
-          icon="check-circle-2"
-          tone={filters.is_final ? 'success' : 'default'}
           description="estoque já movimentado"
-          onClick={() => applyFilter(filters, { is_final: filters.is_final ? null : true })}
+          icon="Check"
+          filterTone="emerald"
           selected={!!filters.is_final}
+          onClick={() => applyFilter(filters, { is_final: filters.is_final ? null : true })}
         />
         <KpiCard
           label="Pendentes"
           value={summary?.pending_count ?? 0}
-          icon="clock"
           description="rascunhos, sem movimentar estoque"
         />
         <KpiCard
           label="Valor total"
           value={formatCurrency(summary?.total_value ?? 0)}
-          icon="dollar-sign"
           description="todas as ordens cadastradas"
         />
       </div>
