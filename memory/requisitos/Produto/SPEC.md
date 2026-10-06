@@ -7,7 +7,7 @@ module: Produto
 status: ativo
 owner: wagner
 version: "1.0.0"
-last_updated: "2026-07-27"
+last_updated: "2026-10-06"
 ---
 
 # Especificação funcional — Produto (cadastro core / catálogo do ERP)
@@ -221,6 +221,49 @@ E há zeros gravados: a UI (React **e** Blade) pré-preenche célula sem preço 
 
 **Ficou de fora, e é de outra tela.** O `+N reservado` na coluna Disponível (§6 do handoff V3) precisa da **natureza do local** (venda / bloqueado / custódia) em `business_locations`. Felipe 2026-08-24: é decisão do fluxo de estoque, responsabilidade de outra tela — não entra aqui nem vira US do Produto.
 
+### US-PROD-030 · ⚠️Tier0 · Política de preço por produto: atualizar a cada custo novo OU manter o preço
+
+> owner: wagner · priority: p2 · status: todo · type: story · estimate: 16h · origin: pedido-wagner-2026-10-06
+
+**Implementado em:** _pendente_ — não iniciada: não existe coluna nem tela para essa escolha. `products` e `variations` não têm flag de política de preço, e `ProductUtil::updateProductFromPurchase` / `RecipeController::updateRecipeProductPrices` aplicam a mesma regra para todo produto.
+
+**Casos de uso ([W] 2026-10-06, textual):** *"tem produto que deve ser sempre atualizado o preço a cada compra, ou modificação do item da composição. e tem produto que existe tabela de preço dos vendedores e o cliente não quer mudar o valor toda hora então ele escolhe manter desatualizado."*
+
+- **CU-A · Atualiza sempre.** O preço de venda acompanha o custo: a cada **compra do próprio item** ou a cada **mudança de custo de um componente** da composição/receita, o preço é recalculado mantendo a margem.
+- **CU-B · Mantém o preço.** O produto tem tabela de preço dos vendedores, e o cliente não quer o valor mudando a toda hora. O preço fica parado de propósito mesmo com custo novo, e a margem é que varia.
+
+A escolha é **por produto**, não por empresa: os dois casos convivem no mesmo cadastro.
+
+**O que existe hoje (medido em `origin/main` 2026-10-06):**
+
+| Caminho | Chave | Comportamento |
+|---|---|---|
+| Compra (`ProductUtil::createOrUpdatePurchaseLines` → `updateProductFromPurchase`) | `business.enable_editing_product_from_purchase`, **por empresa** | grava custo e preço de venda do **item comprado** com o que foi digitado na tela de compra. Não toca as receitas que usam o item. |
+| Produção finalizada (`ProductionController.php:288`) | `manufacturing_settings.enable_updating_product_price`, **por empresa** | atualiza o **custo** do produto fabricado. |
+| Botão "Atualizar preço do produto" na lista de receitas (`RecipeController::updateRecipeProductPrices`) | manual | grava o custo da receita como custo do produto e **mantém o preço de venda** (margem flutua). |
+
+O custo da receita já acompanha o insumo, porque é recalculado na leitura. O **preço de venda** do produto composto nunca muda sozinho. Ou seja: o oimpresso implementa **só o CU-B**, e para todos os produtos.
+
+**Paridade com o legado (Delphi / Office Comercial):** o CU-A × CU-B é a flag `PRODUTO.TEM_MARGEM_FIXA_CONTIBUICAO` (`S` = mantém margem e sobe o preço · `N` = mantém o preço), com `PODE_ATUALIZAR_VALORES_VENDA` no produto e na linha da nota de entrada (`NF_ENTRADA_PRODUTOS`). Numa base real de oficina medida em 2026-07-15: **83,8% `N` · 8,2% `S` · 8,0% `NULL`** ([ANTI-REGRESSAO A-1](ANTI-REGRESSAO-cadastro-produto-legacy.md)). Migrar como está **quebra em silêncio** quem depende do `S`.
+
+**Perguntas abertas — decisão [W] antes de codar:**
+
+1. **Default** de produto novo e de produto migrado sem valor (`NULL`): CU-B? A base medida é majoritariamente `N`, e o CU-B é o comportamento de hoje.
+2. No CU-A, as **tabelas de preço dos vendedores** (`SellingPriceGroup` / `variation_group_prices`) também acompanham, ou só o preço base? (Pareia com US-PROD-022, multiplicador por tabela.)
+3. No CU-B, avisar que o produto está **desatualizado** (custo subiu, margem caiu de X para Y)? Onde: no produto, na compra ou na receita?
+4. Composição em mais de um nível: mudança no insumo de um semiacabado propaga até o produto final no CU-A?
+5. O CU-A recalcula **na hora** (compra lançada / componente alterado) ou vira pendência confirmada por alguém?
+
+**Aceite (rascunho, a fechar após as respostas):**
+
+- [ ] Campo de política por produto, visível no cadastro, e importado do legado a partir de `TEM_MARGEM_FIXA_CONTIBUICAO`.
+- [ ] CU-A: compra do item e mudança de custo de componente recalculam o preço mantendo a margem. CU-B: preço intocado nos dois gatilhos.
+- [ ] Teste de contrato dos dois modos nos dois gatilhos (compra × composição), no tenant de teste 98.
+- [ ] **REGRA MESTRE** ([proibicoes.md](../../proibicoes.md)): dupla confirmação do cálculo + tabela antes→depois dos produtos afetados + aprovação [W] antes de ligar em produção.
+- [ ] Multi-tenant Tier 0 ([ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md)): a propagação de componente para composto não atravessa `business_id`.
+
+**Relação com a Fabricação:** independe da correção da janela "Nova receita" (a proposta em análise é a cópia de receita **não** levar o preço de venda). Esta US é o recurso que falta para o preço do composto acompanhar o custo quando o produto pede isso.
+
 
 ## 4. Backlog fora do batch (sem sinal ainda — ADR 0105)
 
@@ -240,6 +283,7 @@ Viram US quando houver cliente/sinal ou drift de métrica:
 
 ## 6. Histórico
 
+- **2026-10-06** — US-PROD-030 registrada: política de preço por produto (atualiza a cada custo novo × mantém o preço), a partir dos dois casos de uso descritos por [W]. Estado atual e paridade com o legado medidos em `origin/main`; 5 perguntas abertas para [W] antes de codar. [W+C]
 - **2026-09-21** — **Reconciliação US-PROD-023 ↔ US-PROD-029 + decisão [W] sobre a navegação.** [W] textual: *"sim, entra na navegação — aplica as duas linhas e a reconciliação"*. **(a)** A 023 passa a ser **6 telas** e a 029 ganha `Create`/`Edit`: o critério é **qual writer a tela toca** — medido submit por submit, só 2 das 8 encostam no `store()`/`update()` compartilhado com a Larissa. **(b)** O `blocked_by: US-PROD-023` saiu da 029: ele contradizia o corpo dela, que declara mudar o desenho da 023 (fazer a 023 antes produziria o trabalho que a 029 descarta). **(c)** O `can:product.view` saiu do aceite da 023 — medição mostrou que o gate **já existe** no controller (`:139`, `view` OU `create`, com `UC-PUNI-06` + teste) e que o middleware seria **regressão**; o `TODO` do código **foi corrigido em vez de cumprido** ([#7583](https://github.com/wagnerra23/oimpresso.com/pull/7583), mergeado 2026-09-21). **(d)** Origem do trabalho: o chip do [#7522](https://github.com/wagnerra23/oimpresso.com/pull/7522) pedia decisão sobre o limbo das telas React, com o enquadramento *"são inalcançáveis"*. **Medido e corrigido:** são **não-linkadas**, não inalcançáveis — `/products/unificado` faz `Inertia::render` incondicional, e de lá `router.visit` alcança `Create`/`Edit` **com** header. Detalhe, recibos e a errata do que eu publiquei errado na [proposal 2026-09-21](../../decisions/proposals/2026-09-21-produto-8-telas-react-limbo-decisao-w.md). [CC]
 - **2026-08-24** — US-PROD-029 registrada: o cadastro de produto ganha rota paralela, decisão de Felipe, execução adiada para sessão própria. Origem: ao fechar as divergências §15 do pacote V3 na Consulta ([PR #6184](https://github.com/wagnerra23/oimpresso.com/pull/6184)), duas do handoff ficaram sem como ser feitas por falta de campo no cadastro. A investigação mediu que a separação Blade↔React é por header `X-Inertia` e que `store()`/`update()` são compartilhados com o caminho da Larissa — daí a rota paralela. O `+N reservado` foi declarado fora do módulo (fluxo de estoque). [M+C]
 - **2026-07-27** — Campo `**Implementado em:**` declarado nas 8 US que não o tinham (anchor coverage do módulo 11,1% → 100%). Estado verificado US a US contra o código em `b6b5fac`, não presumido — **8 `_pendente_`**, cada uma com a evidência da não-implementação na razão. Duas delas (US-020 e US-021) têm **código pré-existente entregue por fora da US** (os `casos.md`+testes das corridas `sdd-from-source`; o `movements` por `Inertia::defer` do PR #4658) — isso está **dito na razão**, não convertido em `_parcial_`: pela [ADR 0302](../../decisions/0302-fonte-unica-doneness-anchor-aposenta-status-spec.md), US com `status:` aberto e âncora `parcial` é conflito, e a US em si continua aberta. O 1º parágrafo do "Por quê" da US-021 estava superado pelo #4658 e foi corrigido no mesmo PR (regra de precedência — código provado > SPEC). [CC]
