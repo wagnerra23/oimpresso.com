@@ -1,16 +1,16 @@
 {
   "schema": "oimpresso-design-application-report/3",
-  "generatedAt": "2026-10-06T17:04:41.220Z",
+  "generatedAt": "2026-10-06T17:46:23.373Z",
   "bundle": {
-    "id": "da09cfd9462ad5f186a7c05325fc8ee1b52ff4f9839ab70876d05d65eea40bb8",
-    "baseId": "c8a922f9285b0e54d703146c33feb4bf08134e7ae92fa38d0839094d51429a04",
+    "id": "9abbfbb01d5645ada6d0ff43347ba8784601d8d6df796e449264cfdc9276d8f6",
+    "baseId": "da09cfd9462ad5f186a7c05325fc8ee1b52ff4f9839ab70876d05d65eea40bb8",
     "mode": "delta",
     "source": "cowork:oimpresso.com.html",
     "transportComplete": true
   },
   "summary": {
-    "transportChanges": 95,
-    "screens": 185,
+    "transportChanges": 25,
+    "screens": 184,
     "tested": 0,
     "smoked": 0,
     "smokedCi": 0,
@@ -19,12 +19,10 @@
     "lifecycle": {
       "anchored": 152,
       "compared": 13,
-      "review": 1,
       "to-create": 17,
       "blocked": 2
     },
     "pending": 165,
-    "review": 1,
     "to-create": 17,
     "blocked": 2
   },
@@ -32,666 +30,176 @@
     {
       "path": "app.jsx",
       "change": "modified",
-      "bytes": 79308,
-      "sha256": "34dc4791a3e975796f9717b1ee2333fda9809e05609f06dbee2a237d5aefc736",
+      "bytes": 79342,
+      "sha256": "be5e545ce44c63222bc894d2516d77775c7f28f3781ad31d0c84e44b3ab347c6",
       "role": "cowork-source"
     },
     {
-      "path": "boletos-page.jsx",
-      "change": "deleted",
-      "bytes": 59133,
-      "sha256": "c953ecaac64be8ba3ec94334c4c056fc9972351202ad8a78df66af1b706c3853",
-      "role": "cowork-source"
-    },
-    {
-      "path": "cobranca-recorrente-page.jsx",
+      "path": "comunicacao-visual-page.jsx",
       "change": "modified",
-      "bytes": 24760,
-      "sha256": "529bf135745dfbf89ed0e01674c57b9515a1109eee554e9cb16d373c2ebabf0f",
+      "bytes": 17735,
+      "sha256": "513321f5f2404c760dbe5d1ee127f7ea25e940beb9e94c712bed775a1905c061",
       "role": "cowork-source"
     },
     {
-      "path": "COLAR-NO-CODE-fiscal-notafiscal-ondas.md",
+      "path": "cowork-inbox/app-lojas/playbook/_SESSAO-FRIA.md",
+      "change": "added",
+      "bytes": 1458,
+      "sha256": "5cd182bf77bee001f8bc0657bb4c0e838f032af70b064364030f5123f43a3f82",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/app-lojas/playbook/00-INDICE.md",
+      "change": "added",
+      "bytes": 1354,
+      "sha256": "4bb5b636a0999d478bdaccac8327488a3abf16c4db2380b95d66219488d6f1e4",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/financeiro/playbook/_saida-11.md",
+      "change": "added",
+      "bytes": 3391,
+      "sha256": "33634f1bd7749bde23ba36956de71f543f8973cc212c001e0b5714bb950fe8be",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/fiscal/playbook/_saida-13.md",
+      "change": "added",
+      "bytes": 8832,
+      "sha256": "fa79a9a661353a439c2ec3c12726f9054bdf3b31576f42fc1071e893fa13b372",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/modulos-faltantes/playbook/_SESSAO-FRIA.md",
+      "change": "added",
+      "bytes": 1801,
+      "sha256": "7bad9cc39a0f0504846209c6c6c822d2a708a57496a9e227b918055236b555d9",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/modulos-faltantes/playbook/00-INDICE.md",
+      "change": "added",
+      "bytes": 4896,
+      "sha256": "f860842a081c7ff6f127bd92f05c3e0b07669b7f33481f9c3f15c7a8d6adb9e6",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/modulos-faltantes/playbook/01-contratos.md",
+      "change": "added",
+      "bytes": 791,
+      "sha256": "19a11c1ef67685613748f6be9922899e7a652bf56280f6dc763bbee388b9a734",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/modulos-faltantes/playbook/02-suporte-log.md",
+      "change": "added",
+      "bytes": 571,
+      "sha256": "ef6cee5c679a99ef51caf7751b9138cd7ac02958fcb1bc0db90939186f8feef4",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/modulos-faltantes/playbook/03-voz-do-cliente.md",
+      "change": "added",
+      "bytes": 790,
+      "sha256": "4812fb655f5687c64ddf8806467178ff55c27ed1b23ad9ea89fb7cf2de98305b",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/modulos-faltantes/playbook/04-catalogo-qr.md",
+      "change": "added",
+      "bytes": 589,
+      "sha256": "a7e1db45f6a657e7ba164d2454708833322c63541f06f784efa61d3049c5e937",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/modulos/playbook/_SESSAO-FRIA.md",
+      "change": "added",
+      "bytes": 1861,
+      "sha256": "a24ea1f0917548ff08f5ce3d7912b0e9bf15f481962a458ec23855a917273474",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/modulos/playbook/00-INDICE.md",
+      "change": "added",
+      "bytes": 4819,
+      "sha256": "27baa9fa01bb832c47471846b155c56876cd9cd2d0ace8265ad6dd759fa05ffb",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/modulos/playbook/01-install-falho-e-erro.md",
+      "change": "added",
+      "bytes": 1210,
+      "sha256": "6be5b6def646ce7e3d773032f461118a324c1acddb40ba4ed512dbf6f215b561",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/modulos/playbook/02-install-em-fila.md",
+      "change": "added",
+      "bytes": 563,
+      "sha256": "f1cae0b34e0174008242d6a6ee398051be950019c2a18b97005c6b4cd767ae20",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/modulos/playbook/04-remover-legado.md",
+      "change": "added",
+      "bytes": 1153,
+      "sha256": "1bfbea666218cd16a4d24440b8dd19c2a139b9293d4dae7d1c3b88672fb42621",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/modulos/playbook/A1-alvo.md",
+      "change": "added",
+      "bytes": 525,
+      "sha256": "6ce15ef5f2c5dd0e199aaa092d258c58216f97dc4c17bdf17540ccd9442ae452",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/PEDIDO-CL-ordem-pendencias-playbooks-2026-10-06.md",
+      "change": "added",
+      "bytes": 3855,
+      "sha256": "cf874c613872abedd85ea073fc862c592571fe9c523ea63a4d758f81400c13b8",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/tema-escuro/playbook/_saida-01.md",
+      "change": "added",
+      "bytes": 5721,
+      "sha256": "481d61b9107233b96d954e6beee744ae44d6d257575bf4d31f7f7542c756e37a",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/venda-menu/playbook/_saida-Q-CC.md",
+      "change": "added",
+      "bytes": 1308,
+      "sha256": "ababe8a2f847782eed3121070b69948cc1dd9bbba21322c06c103c467e464f0c",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/venda-menu/playbook/_SESSAO-FRIA.md",
       "change": "modified",
-      "bytes": 6217,
-      "sha256": "f6df30688152b2618c7995c06d159fa49d89c425e30ae551860df85f8e77fe9f",
-      "role": "cowork-source"
-    },
-    {
-      "path": "compras-page.css",
-      "change": "modified",
-      "bytes": 20339,
-      "sha256": "e1c27ec085a9efa475ce9e36c8e5a5f89ae6091b612c29f25da172921ef41fc9",
-      "role": "cowork-source"
-    },
-    {
-      "path": "compras-page.jsx",
-      "change": "modified",
-      "bytes": 47269,
-      "sha256": "42f035c8f55b01af3f920e106173a8224bce8321710af521c8e70cab2c63dcd0",
-      "role": "cowork-source"
-    },
-    {
-      "path": "cowork-inbox/cliente/playbook/_saida-03.md",
-      "change": "added",
-      "bytes": 2898,
-      "sha256": "37b13a242a228487cf5640d9090dc68e1f8215f429ce2f9ac84ef27bcd235f08",
-      "role": "cowork-source"
-    },
-    {
-      "path": "cowork-inbox/comissoes/playbook/_SESSAO-FRIA.md",
-      "change": "added",
-      "bytes": 238,
-      "sha256": "46f51c28d9f212573e3cfedc2a6880e90fa0ff6b182bd2dc9daa46f3a3618607",
-      "role": "cowork-source"
-    },
-    {
-      "path": "cowork-inbox/comissoes/playbook/00-INDICE.md",
-      "change": "added",
-      "bytes": 3671,
-      "sha256": "d6bd3c0792d159f70ce63855fef4e96c6ea8259036e78b7cdd292996430a8ab6",
-      "role": "cowork-source"
-    },
-    {
-      "path": "cowork-inbox/comissoes/playbook/02-relatorio-comissao.md",
-      "change": "added",
-      "bytes": 1705,
-      "sha256": "fa8ef48c269569ab26ae28f47eb006a0a499a5f2241d0a3d0d976b27edcb96d0",
-      "role": "cowork-source"
-    },
-    {
-      "path": "cowork-inbox/comissoes/playbook/03-split-auditado.md",
-      "change": "added",
-      "bytes": 2230,
-      "sha256": "ebafaf8c33666831e328bb0de0a7960a4a3f124610402b0f1ec38868db76b79d",
-      "role": "cowork-source"
-    },
-    {
-      "path": "cowork-inbox/comissoes/playbook/A1-alvo.md",
-      "change": "added",
-      "bytes": 349,
-      "sha256": "6dae3e210704a8e35a9a5926922ad040ca583fb8589b6663be5cb9eb741cdf3f",
-      "role": "cowork-source"
-    },
-    {
-      "path": "cowork-inbox/crm/playbook/_saida-07b.md",
-      "change": "added",
-      "bytes": 2441,
-      "sha256": "479068efda75c400e81469df50b4e706cb785495a76583752bb6dff1e2a7a56f",
-      "role": "cowork-source"
-    },
-    {
-      "path": "cowork-inbox/crm/playbook/_saida-07c.md",
-      "change": "added",
-      "bytes": 2408,
-      "sha256": "91edc38adbaf9d928c93e4e01bb667255f319cead7053d4849487525075b321a",
-      "role": "cowork-source"
-    },
-    {
-      "path": "cowork-inbox/crm/playbook/_saida-07d.md",
-      "change": "added",
-      "bytes": 1892,
-      "sha256": "5ac81240faf8262dd909ee058f22d5471a6484733f2713a479540e8753d29db9",
-      "role": "cowork-source"
-    },
-    {
-      "path": "cowork-inbox/crm/playbook/_saida-09.md",
-      "change": "added",
-      "bytes": 6203,
-      "sha256": "f0e72458bb7c6226827d5148e37c71d67f94f81c4cef69bdb58d52d9bbfab27f",
-      "role": "cowork-source"
-    },
-    {
-      "path": "cowork-inbox/ds-atomos/PEDIDO-M-checkbox-da-tabela-e-alturas-2026-10-06.md",
-      "change": "added",
-      "bytes": 3751,
-      "sha256": "7ba0bfb7136c0f30c653f31efae16b29ea6cc42b4b0fdf85326488a01d169d07",
-      "role": "cowork-source"
-    },
-    {
-      "path": "cowork-inbox/essenciais/playbook/_DECISOES-W-2026-10-06.md",
-      "change": "added",
-      "bytes": 402,
-      "sha256": "5807d946d9d2dfca78d075c88e1f8fdf73010366f585a35857d7fbf6c575018a",
-      "role": "cowork-source"
-    },
-    {
-      "path": "cowork-inbox/essenciais/playbook/_saida-01.md",
-      "change": "added",
-      "bytes": 3089,
-      "sha256": "a62b1f02778445f1ef89c355b8b273f48a18a8ea9c8d172a1261fe359181b6bb",
-      "role": "cowork-source"
-    },
-    {
-      "path": "cowork-inbox/essenciais/playbook/_saida-02.md",
-      "change": "added",
-      "bytes": 2027,
-      "sha256": "106e2dba86f2248ece29367a1c31d8a3450a1aed4e6876f1890b5a226bf21219",
-      "role": "cowork-source"
-    },
-    {
-      "path": "cowork-inbox/essenciais/playbook/00-INDICE.md",
-      "change": "modified",
-      "bytes": 6880,
-      "sha256": "bf95e91b2f0c3429e3161a6e462ad887674e46dbbe468b15729273202ed632a1",
-      "role": "cowork-source"
-    },
-    {
-      "path": "cowork-inbox/estoque/playbook/_saida-01.md",
-      "change": "added",
-      "bytes": 1639,
-      "sha256": "13d11f52ec8665940e5f15aa21c8794cea0ffd9be00ed9d30ad9095be4eab3b0",
-      "role": "cowork-source"
-    },
-    {
-      "path": "cowork-inbox/financeiro/playbook/00-INDICE.md",
-      "change": "modified",
-      "bytes": 14620,
-      "sha256": "2df77b3c781428032cbecaa00dcc44d023c610449feed6b1730e19423bab4280",
-      "role": "cowork-source"
-    },
-    {
-      "path": "cowork-inbox/financeiro/playbook/11-unificado-xlink-boleto.md",
-      "change": "added",
-      "bytes": 3980,
-      "sha256": "c447ab4d6d51114baf6b1fdc6afa99621b0909def3906c8012df12d8169bb778",
-      "role": "cowork-source"
-    },
-    {
-      "path": "cowork-inbox/financeiro/playbook/12-boletos-cancelar-aposentar.md",
-      "change": "added",
-      "bytes": 4127,
-      "sha256": "e2b69d9f9242ab677a2400d5ef45db47550401dd0df1cfef0f049e6ec6c57b19",
-      "role": "cowork-source"
-    },
-    {
-      "path": "cowork-inbox/fiscal/playbook/_DECISOES-W-2026-10-06.md",
-      "change": "added",
-      "bytes": 5584,
-      "sha256": "267bb30f620c6512281f747e8099bc3b968cdaef4b1a2c2c8873084b8f5a4a92",
-      "role": "cowork-source"
-    },
-    {
-      "path": "cowork-inbox/fiscal/playbook/00-INDICE.md",
-      "change": "modified",
-      "bytes": 38918,
-      "sha256": "b90b8a5ec471b18e874f9d42c84f160b31797861733bc18d38061df4c136e38e",
-      "role": "cowork-source"
-    },
-    {
-      "path": "cowork-inbox/fiscal/playbook/04-validacao-ibs-cbs.md",
-      "change": "added",
-      "bytes": 6897,
-      "sha256": "da8099cb26ab0f26cc2d7cc845a91f8aeb7c1eb8373694429d51a3da0f7a5d61",
-      "role": "cowork-source"
-    },
-    {
-      "path": "cowork-inbox/fiscal/playbook/05-regraform-ibs-cbs.md",
-      "change": "added",
-      "bytes": 2183,
-      "sha256": "9260c21a040a407c3c36027ae5bdda66be032c0a9ee573e610d0cc55675e803f",
-      "role": "cowork-source"
-    },
-    {
-      "path": "cowork-inbox/fiscal/playbook/06-motor-st-fcp-difal.md",
-      "change": "added",
-      "bytes": 4802,
-      "sha256": "55b6c2c30dc603ffe3bda9e0d0d09784e00add438b8173f53c7e347f15436da1",
-      "role": "cowork-source"
-    },
-    {
-      "path": "cowork-inbox/fiscal/playbook/07-operacao-vigencia.md",
-      "change": "added",
-      "bytes": 6391,
-      "sha256": "bf51dc86d02bb91f5ff14c995551091748cc81390a1671edb2010f2cef6b1002",
-      "role": "cowork-source"
-    },
-    {
-      "path": "cowork-inbox/fiscal/playbook/08-simulador.md",
-      "change": "added",
-      "bytes": 4621,
-      "sha256": "6a852d5144a85c5c064f00fdf94482e2e13ed708d13e4030a8ab9f53ad038d01",
-      "role": "cowork-source"
-    },
-    {
-      "path": "cowork-inbox/fiscal/playbook/09-icms-uf.md",
-      "change": "added",
-      "bytes": 2066,
-      "sha256": "61a6a9a4431166876a3c5e3390d9ab0651ba386f94b212ea29ad318a945a3166",
-      "role": "cowork-source"
-    },
-    {
-      "path": "cowork-inbox/fiscal/playbook/10-ia-sugestoes.md",
-      "change": "added",
-      "bytes": 6795,
-      "sha256": "9ecfb1f82aa6f54936601a0b0be3adf4aec0ae252d0ea3ec2e4ec214f244c854",
-      "role": "cowork-source"
-    },
-    {
-      "path": "cowork-inbox/fiscal/playbook/11-adr-entrada-xml.md",
-      "change": "added",
-      "bytes": 1474,
-      "sha256": "6d6594a8b819917c58b904c39f2667345b54d81fd8155b9665c0f635af82568f",
-      "role": "cowork-source"
-    },
-    {
-      "path": "cowork-inbox/fiscal/playbook/12-alvo-tributacao.md",
-      "change": "added",
-      "bytes": 1545,
-      "sha256": "8572049322a9f75c030ec69c13be6bd494e026f4870c263baddd44091cb7ab8b",
-      "role": "cowork-source"
-    },
-    {
-      "path": "cowork-inbox/fiscal/playbook/13-afericao-chamados.md",
-      "change": "added",
-      "bytes": 1178,
-      "sha256": "a724ce5b5c0d1a3e55b0eba5a28c24ea1554bee9b3e23ca66026172bed1b1185",
-      "role": "cowork-source"
-    },
-    {
-      "path": "cowork-inbox/fiscal/playbook/14-saude-fiscal.md",
-      "change": "added",
-      "bytes": 3883,
-      "sha256": "41b3a56e5d6c3c1f42799195992bd948858207d179b397ad475e7e31df090be5",
-      "role": "cowork-source"
-    },
-    {
-      "path": "cowork-inbox/fiscal/playbook/15-aceite-contador.md",
-      "change": "added",
-      "bytes": 8014,
-      "sha256": "3e1947fe05a815e2d04cf5a608709efa7e0db21314d8201d64a86a27a816fd16",
-      "role": "cowork-source"
-    },
-    {
-      "path": "cowork-inbox/fiscal/playbook/16-bloqueio-com-saida.md",
-      "change": "added",
-      "bytes": 3829,
-      "sha256": "3b8519d2ac0fec653e4c6aba7b27fefc6a1c3a27a3c9532ca99ec99bd04f8ea0",
-      "role": "cowork-source"
-    },
-    {
-      "path": "cowork-inbox/fiscal/playbook/17-emissao-por-item.md",
-      "change": "added",
-      "bytes": 7041,
-      "sha256": "c2504e75c0e23c1c5fb7d4db26a896e11007f6b79a4bfd0578ce1a50caba1975",
-      "role": "cowork-source"
-    },
-    {
-      "path": "cowork-inbox/fiscal/playbook/18-destroy-regra-sem-permissao.md",
-      "change": "added",
-      "bytes": 1506,
-      "sha256": "832d514edcba04c8b76e25601d33d479bed7d879b19bd6148ba55d04a1ab213b",
-      "role": "cowork-source"
-    },
-    {
-      "path": "cowork-inbox/fiscal/playbook/19-import-csv-tenant.md",
-      "change": "added",
-      "bytes": 1558,
-      "sha256": "8f5388fdf262199a65ceea98cc00b40016b9ec2e53724d949df3bb555e89892f",
-      "role": "cowork-source"
-    },
-    {
-      "path": "cowork-inbox/fiscal/playbook/20-devolucao.md",
-      "change": "added",
-      "bytes": 2502,
-      "sha256": "3ae9a2bcbf3f9558574dc8dcab8e5b1c05d2d66e4374a4406df7375debc7b5c0",
-      "role": "cowork-source"
-    },
-    {
-      "path": "cowork-inbox/fiscal/playbook/21-certificado-template-backend.md",
-      "change": "added",
-      "bytes": 7422,
-      "sha256": "8fe2debb1776a110d90690bcc7bdae84ab39f88df2f5f326099021f166b375ff",
-      "role": "cowork-source"
-    },
-    {
-      "path": "cowork-inbox/fiscal/playbook/22-certificado-template-tela.md",
-      "change": "added",
-      "bytes": 2189,
-      "sha256": "b43a81db55282eec587abd103a60e6ad62344ee75a36005e8f3c2dcb5f123872",
-      "role": "cowork-source"
-    },
-    {
-      "path": "cowork-inbox/fiscal/playbook/23-retencoes-nfse.md",
-      "change": "added",
-      "bytes": 2452,
-      "sha256": "fc91370a78382aebb6c08866d6386a77d12c893099bd41c9bfff606e70c7c6d8",
-      "role": "cowork-source"
-    },
-    {
-      "path": "cowork-inbox/fiscal/playbook/24-fator-r.md",
-      "change": "added",
-      "bytes": 1784,
-      "sha256": "e91c0d6ea9bba78f6ad6731344207bf6b454ec165ef0453c1fad2ab906bb3070",
-      "role": "cowork-source"
-    },
-    {
-      "path": "cowork-inbox/fiscal/playbook/25-beneficio-cbenef.md",
-      "change": "added",
-      "bytes": 1802,
-      "sha256": "7f212f934bbbb270f7a480e3dd71a34a6ad91e0ec869d64e42e3c1d1e49651e4",
-      "role": "cowork-source"
-    },
-    {
-      "path": "cowork-inbox/fiscal/playbook/26-filial-origem.md",
-      "change": "added",
-      "bytes": 2446,
-      "sha256": "76bcba61667782708c361e4ac295c5b7016cd2ea01a1d088218078e58139a485",
-      "role": "cowork-source"
-    },
-    {
-      "path": "cowork-inbox/fiscal/playbook/27-cnpj-alfanumerico.md",
-      "change": "added",
-      "bytes": 1766,
-      "sha256": "f0161a726fde99426bf2a18052e8ab1608efb315f884094f2c387c0bf9edf1de",
-      "role": "cowork-source"
-    },
-    {
-      "path": "cowork-inbox/fiscal/playbook/28-fechamento-contador.md",
-      "change": "added",
-      "bytes": 3335,
-      "sha256": "17c2c7303afb2234aaf1643e66fdfeee332a37c5f0b8ac81bb0f0f8ee637fbf3",
-      "role": "cowork-source"
-    },
-    {
-      "path": "cowork-inbox/fiscal/playbook/29-icms-iss-e-difal-por-uf.md",
-      "change": "added",
-      "bytes": 3238,
-      "sha256": "fcdd4d07c6ed5fead370742747e86338621a7b38e39615914b96a53d991452fc",
-      "role": "cowork-source"
-    },
-    {
-      "path": "cowork-inbox/officeimpresso/playbook/_saida-09.md",
-      "change": "added",
-      "bytes": 5782,
-      "sha256": "680b9c6992bef07bfece7c975ef6518441210399a076a49fa62f3175460c6e41",
-      "role": "cowork-source"
-    },
-    {
-      "path": "cowork-inbox/placar/playbook/_saida-A-LOTE.md",
-      "change": "added",
-      "bytes": 3159,
-      "sha256": "0eb9a7dd072836e3e0a7890150c7c017efa09a587b9ad34b670fdb36361bb5de",
-      "role": "cowork-source"
-    },
-    {
-      "path": "cowork-inbox/produto/playbook/_saida-04.md",
-      "change": "added",
-      "bytes": 3786,
-      "sha256": "5b333bfed167c1328ecb179e45ac8eed82e85bd24d3e86cfc802fdcb72b95b0d",
-      "role": "cowork-source"
-    },
-    {
-      "path": "cowork-inbox/sistema/playbook/_DECISOES-W-2026-10-06.md",
-      "change": "added",
-      "bytes": 567,
-      "sha256": "4f971b0912d8fd50c48edce2a7899518f79b06a1665699bcdca83f4aa81f7afe",
-      "role": "cowork-source"
-    },
-    {
-      "path": "cowork-inbox/sistema/playbook/00-INDICE.md",
-      "change": "modified",
-      "bytes": 9417,
-      "sha256": "f8648cc1922fa10d16fa2414ebfc33937200f935c61a600c2a65f40c6b390996",
-      "role": "cowork-source"
-    },
-    {
-      "path": "cowork-inbox/superadmin/playbook/_saida-03.md",
-      "change": "added",
-      "bytes": 4386,
-      "sha256": "60439a5e5c9fcb51e15983b3d0f4c40471b0190a21fa8c5e04d24a4cd474173f",
-      "role": "cowork-source"
-    },
-    {
-      "path": "cowork-inbox/superadmin/playbook/_saida-04.md",
-      "change": "added",
-      "bytes": 3355,
-      "sha256": "0299eee7761e2b844efd7356dc5707d5063c68385bb134fb27c547861f61b6a9",
-      "role": "cowork-source"
-    },
-    {
-      "path": "cowork-inbox/superadmin/playbook/_saida-A2.md",
-      "change": "added",
-      "bytes": 2659,
-      "sha256": "4d37ecfa06147ef82901c233c3222ac2a366c1e41fa52d32d37edbc19ab9698e",
-      "role": "cowork-source"
-    },
-    {
-      "path": "cowork-inbox/telas-soltas/playbook/_DECISOES-W-2026-10-06.md",
-      "change": "added",
-      "bytes": 473,
-      "sha256": "8099829cc3336872a77561a74c7c8b21969f638c9310970612539a14b3462001",
-      "role": "cowork-source"
-    },
-    {
-      "path": "cowork-inbox/telas-soltas/playbook/_saida-03.md",
-      "change": "added",
-      "bytes": 687,
-      "sha256": "af0cf8a9cd90690dc7396031fd7c2bc394df0b47a7d4b7e038500389c35e444d",
-      "role": "cowork-source"
-    },
-    {
-      "path": "cowork-inbox/telas-soltas/playbook/_saida-A1.md",
-      "change": "added",
-      "bytes": 5565,
-      "sha256": "366b519214b9846b96aaf9127af93c257c1f82528acf4c012791dba7e3f56270",
-      "role": "cowork-source"
-    },
-    {
-      "path": "cowork-inbox/telas-soltas/playbook/00-INDICE.md",
-      "change": "modified",
-      "bytes": 6628,
-      "sha256": "60900a32f32590fb2d9f893eb998a30b7db75916139b49839ce1ec7a23c6f933",
+      "bytes": 2060,
+      "sha256": "380b8bfbe631c6a809bb823884800f1c26ae52fb61c502ff1d72595ae08ff2ca",
       "role": "cowork-source"
     },
     {
       "path": "cowork-inbox/venda-menu/playbook/00-INDICE.md",
       "change": "modified",
-      "bytes": 13210,
-      "sha256": "3b1769ec81fe2788e75c3964aec81b2d8234b448f7d2dee5a740a9acf6f0748b",
+      "bytes": 18598,
+      "sha256": "c326b7965822e8d05c1246c91ba362f04e54d6e9862b550aab223fd58b08181c",
       "role": "cowork-source"
     },
     {
       "path": "cowork-inbox/venda-menu/playbook/03-orcamentos.md",
-      "change": "added",
-      "bytes": 3338,
-      "sha256": "0749e56659a0193c5eae9f0efd8fd9ea5d60b7ac6fb6cad6600c2d185b8527d7",
+      "change": "modified",
+      "bytes": 3968,
+      "sha256": "2ebeddb89c6ab58cbd9fa32d376c6947bc93ee6b552add48e5904d9f8520f2c4",
       "role": "cowork-source"
     },
     {
       "path": "data.jsx",
       "change": "modified",
-      "bytes": 35881,
-      "sha256": "e4271a18dcd2c7a6b3d94f311e6beee2addc9ec58f0af9fe274cfcaf2bce7afb",
-      "role": "cowork-source"
-    },
-    {
-      "path": "entregas-page.jsx",
-      "change": "added",
-      "bytes": 5074,
-      "sha256": "5580759d9783bf4ac4cc4f250f5573885e6a9bac80366e5f80eba2b4f6e71436",
-      "role": "cowork-source"
-    },
-    {
-      "path": "estoque-contagem.jsx",
-      "change": "modified",
-      "bytes": 15618,
-      "sha256": "e6d082d88ae538dd98ed091a8e52143860bd9be4702720d42615f846a10208d1",
-      "role": "cowork-source"
-    },
-    {
-      "path": "fin-boletos.css",
-      "change": "modified",
-      "bytes": 15324,
-      "sha256": "8228b2c32b7be9dbdec8172e2a5d1c038e693b052b28ee35787461f73d2148bb",
-      "role": "cowork-source"
-    },
-    {
-      "path": "financeiro-page.jsx",
-      "change": "modified",
-      "bytes": 131655,
-      "sha256": "a2abb7cbcbdcaba09fcbd83f2d70d45da0f0430765b6f25405bd076eb1944f08",
-      "role": "cowork-source"
-    },
-    {
-      "path": "fiscal-page.css",
-      "change": "modified",
-      "bytes": 30226,
-      "sha256": "0e5dc6a92b14a7d47e19fefbeb7cc21031311eaa42c42637a6982b8c09e6d63a",
-      "role": "cowork-source"
-    },
-    {
-      "path": "fiscal-page.jsx",
-      "change": "modified",
-      "bytes": 34255,
-      "sha256": "f0327e9469e8e69c8c038a2819c62395ed53b3e974a299bd6d8b97af3a0198aa",
-      "role": "cowork-source"
-    },
-    {
-      "path": "fiscal-tributacao.casos.md",
-      "change": "added",
-      "bytes": 13661,
-      "sha256": "00b1aa1c61224e40fe57d98743077636fec94a39848268a5364ea4795cf65ce3",
-      "role": "cowork-source"
-    },
-    {
-      "path": "fiscal-tributacao.jsx",
-      "change": "added",
-      "bytes": 94747,
-      "sha256": "077a3173bd2a8f4c015040e8ef63d9afa43b5fbe00ee48f6fa8014fc783551c8",
-      "role": "cowork-source"
-    },
-    {
-      "path": "fluxos-data.jsx",
-      "change": "added",
-      "bytes": 19994,
-      "sha256": "daa247e4cb36e22ae76a3d631b98764a1b79da8cc1ed9b98223168c75ad95cde",
-      "role": "cowork-source"
-    },
-    {
-      "path": "fluxos-modelos.casos.md",
-      "change": "added",
-      "bytes": 35255,
-      "sha256": "0cfcf74a0f1ff0b06f89a3fc7521cefd17b86f2a63b51f00e6ecc37f16cea47b",
-      "role": "cowork-source"
-    },
-    {
-      "path": "fluxos-page.css",
-      "change": "added",
-      "bytes": 14916,
-      "sha256": "3ce52d4b523adffa1cd4017213ec2eec2b19814a4f13d17c3e687534635bee22",
-      "role": "cowork-source"
-    },
-    {
-      "path": "fluxos-page.jsx",
-      "change": "added",
-      "bytes": 30528,
-      "sha256": "3ea1c77183bd9c1b97ba7e6fea2628398b52523a58856fb43f64448c94ff7d96",
-      "role": "cowork-source"
-    },
-    {
-      "path": "fluxos-processos.jsx",
-      "change": "added",
-      "bytes": 27181,
-      "sha256": "f9479cbac7fc2077e80a0b973127ff53827d22c91975eee5970f4f231a7708ee",
-      "role": "cowork-source"
-    },
-    {
-      "path": "fsm-etapa.css",
-      "change": "added",
-      "bytes": 5954,
-      "sha256": "dba71b23e751592fdb36c30dc76b1bbacc59b511e449cc01e804aacad1300b4f",
-      "role": "cowork-source"
-    },
-    {
-      "path": "fsm-etapa.jsx",
-      "change": "added",
-      "bytes": 10305,
-      "sha256": "76c3f36eb49079ff986e5059b1031ff8f3c54bc5d85293662b90dcd99935bee2",
-      "role": "cowork-source"
-    },
-    {
-      "path": "fsm-regras.css",
-      "change": "added",
-      "bytes": 4570,
-      "sha256": "a374edf0aa85e823b45ec6ac51fc4958110505f2976976e8945d7438a28c3219",
-      "role": "cowork-source"
-    },
-    {
-      "path": "fsm-regras.jsx",
-      "change": "added",
-      "bytes": 21358,
-      "sha256": "2258cfec990580cf4f1bd0dd6d6ae3094169203563d0c04b9ba4004bb13b4dcf",
-      "role": "cowork-source"
-    },
-    {
-      "path": "github.md",
-      "change": "modified",
-      "bytes": 144222,
-      "sha256": "2d026bbd85a9ceb8539fe94546d677eb62c5ff131f5ef879539ccfd846f596c0",
-      "role": "cowork-source"
-    },
-    {
-      "path": "inbox-page.jsx",
-      "change": "modified",
-      "bytes": 90043,
-      "sha256": "59c150340918498fcc33663392fbbbd8579d072c04d1c4573d230f33ec81d36d",
-      "role": "cowork-source"
-    },
-    {
-      "path": "manufacturing-page.jsx",
-      "change": "modified",
-      "bytes": 26699,
-      "sha256": "f0bd3695288efb597278823ec64f6cac9dc780df1bcb6ebd5393a8262b0b77af",
-      "role": "cowork-source"
-    },
-    {
-      "path": "manufacturing-recipe.jsx",
-      "change": "modified",
-      "bytes": 20067,
-      "sha256": "16682a90cd66d6bf6cfbb1c7791153bdd1e04fdb2c736a42b17a5ef749977283",
-      "role": "cowork-source"
-    },
-    {
-      "path": "oimpresso.com.html",
-      "change": "modified",
-      "bytes": 37299,
-      "sha256": "49db324e9d4eceac0c69d74f40046b5c5cb46c644efac5a6d391b4e81cf0581d",
-      "role": "cowork-source"
-    },
-    {
-      "path": "os-page.jsx",
-      "change": "modified",
-      "bytes": 46633,
-      "sha256": "d4b35a98bdd9572236a06f53d9633c9650a1a217b49f8715b5bf4f3cc893f30c",
-      "role": "cowork-source"
-    },
-    {
-      "path": "pg-cobranca-page.jsx",
-      "change": "modified",
-      "bytes": 58709,
-      "sha256": "736dd12b13e034843bbb217fd93abcdf9725d60ea12b656233cfca7ba9a051be",
-      "role": "cowork-source"
-    },
-    {
-      "path": "ponto-telas.jsx",
-      "change": "modified",
-      "bytes": 76863,
-      "sha256": "63eff8503a734c9a09fdfba3e3c09a0623d36e564d12c55d53a4540ade7ce19b",
-      "role": "cowork-source"
-    },
-    {
-      "path": "scripts/gerar-mapas-handoff.js",
-      "change": "modified",
-      "bytes": 7897,
-      "sha256": "56fe28357231f4348d1dbd1e6e37f63220783ad07b8412e9740c8d217d801a2e",
-      "role": "cowork-source"
-    },
-    {
-      "path": "vendas-page.jsx",
-      "change": "modified",
-      "bytes": 92299,
-      "sha256": "b1fcb84620f75ef585d96617f9fdfd47383ae4d6ea33ce3ddcbc552651e46ca0",
+      "bytes": 35815,
+      "sha256": "c70626ddd82a2fca87ac8219d536d34d5f3a6778e99a3819f4730cce029595c1",
       "role": "cowork-source"
     }
   ],
@@ -736,7 +244,7 @@
         "smokes": [],
         "targetSha256": "03c0b54b4397a125c3c4b65d9224721d06d368bca710b30fa61bcb67c97445a4",
         "proofChain": {
-          "bundleId": "da09cfd9462ad5f186a7c05325fc8ee1b52ff4f9839ab70876d05d65eea40bb8",
+          "bundleId": "9abbfbb01d5645ada6d0ff43347ba8784601d8d6df796e449264cfdc9276d8f6",
           "sourceSha256": "88eec8930cdc5c3f91b4a5598415f2233b678d41973437d3b5f22f83f252571e",
           "mapSha256": "b1d77a302fe01b5b460faaed4fa4e592cd94d30933aad9e68a79e98c50a6fd9e",
           "targetSha256": "03c0b54b4397a125c3c4b65d9224721d06d368bca710b30fa61bcb67c97445a4",
@@ -747,21 +255,6 @@
         }
       },
       "nextAction": "aplicar no alvo e registrar evidência durável"
-    },
-    {
-      "source": "boletos-page.jsx",
-      "bundleChange": "deleted",
-      "target": "—",
-      "module": null,
-      "mapping": "registro a-criar",
-      "comparison": "SOURCE-REMOVED",
-      "lifecycleState": "review",
-      "applicationState": "review",
-      "compared": false,
-      "tested": false,
-      "smoked": false,
-      "applicationEvidence": null,
-      "nextAction": "revisar o alvo React; remoção no Design nunca apaga produto automaticamente"
     },
     {
       "source": "catalogo-qr-page.jsx",
@@ -909,7 +402,7 @@
     },
     {
       "source": "cobranca-recorrente-page.jsx",
-      "bundleChange": "modified",
+      "bundleChange": "unchanged",
       "target": "resources/js/Pages/RecurringBilling/Configuracoes/Index.tsx",
       "module": "RecurringBilling",
       "mapping": "charter.component",
@@ -925,7 +418,7 @@
     },
     {
       "source": "cobranca-recorrente-page.jsx",
-      "bundleChange": "modified",
+      "bundleChange": "unchanged",
       "target": "resources/js/Pages/RecurringBilling/Faturas/Index.tsx",
       "module": "RecurringBilling",
       "mapping": "charter.component",
@@ -941,7 +434,7 @@
     },
     {
       "source": "cobranca-recorrente-page.jsx",
-      "bundleChange": "modified",
+      "bundleChange": "unchanged",
       "target": "resources/js/Pages/RecurringBilling/Index.tsx",
       "module": "RecurringBilling",
       "mapping": "charter.component",
@@ -957,7 +450,7 @@
     },
     {
       "source": "cobranca-recorrente-page.jsx",
-      "bundleChange": "modified",
+      "bundleChange": "unchanged",
       "target": "resources/js/Pages/RecurringBilling/Planos/Create.tsx",
       "module": "RecurringBilling",
       "mapping": "charter.component",
@@ -973,7 +466,7 @@
     },
     {
       "source": "cobranca-recorrente-page.jsx",
-      "bundleChange": "modified",
+      "bundleChange": "unchanged",
       "target": "resources/js/Pages/RecurringBilling/Planos/Index.tsx",
       "module": "RecurringBilling",
       "mapping": "charter.component",
@@ -1043,7 +536,7 @@
         "smokes": [],
         "targetSha256": "4903570e7c6a4c7699d19810113c0ee4722f2aaf1bbe6948ac9d0fdeff3a54ec",
         "proofChain": {
-          "bundleId": "da09cfd9462ad5f186a7c05325fc8ee1b52ff4f9839ab70876d05d65eea40bb8",
+          "bundleId": "9abbfbb01d5645ada6d0ff43347ba8784601d8d6df796e449264cfdc9276d8f6",
           "sourceSha256": "aecdc9181f31e44594879b185732d44431adb8c612bb2d2e676046af1933acf7",
           "mapSha256": "08a4bfe53e131f47b30596351b9b3f29f7a4ce5021ed5d6814bf574215b102b7",
           "targetSha256": "4903570e7c6a4c7699d19810113c0ee4722f2aaf1bbe6948ac9d0fdeff3a54ec",
@@ -1057,7 +550,7 @@
     },
     {
       "source": "compras-page.jsx",
-      "bundleChange": "modified",
+      "bundleChange": "unchanged",
       "target": "resources/js/Pages/Compras/Index.tsx",
       "module": "Compras",
       "mapping": "charter.component",
@@ -1073,7 +566,7 @@
     },
     {
       "source": "compras-page.jsx",
-      "bundleChange": "modified",
+      "bundleChange": "unchanged",
       "target": "resources/js/Pages/Purchase/Index.tsx",
       "module": "Purchase",
       "mapping": "charter.component",
@@ -1089,7 +582,7 @@
     },
     {
       "source": "compras-page.jsx",
-      "bundleChange": "modified",
+      "bundleChange": "unchanged",
       "target": "resources/js/Pages/Purchase/Show.tsx",
       "module": "Purchase",
       "mapping": "charter.component",
@@ -1105,7 +598,7 @@
     },
     {
       "source": "comunicacao-visual-page.jsx",
-      "bundleChange": "unchanged",
+      "bundleChange": "modified",
       "target": "resources/js/Pages/ComunicacaoVisual/Index.tsx",
       "module": "ComunicacaoVisual",
       "mapping": "charter.component",
@@ -1281,7 +774,7 @@
     },
     {
       "source": "entregas-page.jsx",
-      "bundleChange": "added",
+      "bundleChange": "unchanged",
       "target": "—",
       "module": null,
       "mapping": "nenhum",
@@ -1431,7 +924,7 @@
         "smokes": [],
         "targetSha256": "9af3e49d8ff479802dcb07e65dcb57f2f4dcc8a3cbe7834241d422f368f835e6",
         "proofChain": {
-          "bundleId": "da09cfd9462ad5f186a7c05325fc8ee1b52ff4f9839ab70876d05d65eea40bb8",
+          "bundleId": "9abbfbb01d5645ada6d0ff43347ba8784601d8d6df796e449264cfdc9276d8f6",
           "sourceSha256": "2fa322cf6e87671252516a022149e8effac1687e60a1fe97ce59a02a99015b53",
           "mapSha256": "de5906c74012c659829bf9ccde2f30b032a64b50048024212b566e637e125e4f",
           "targetSha256": "9af3e49d8ff479802dcb07e65dcb57f2f4dcc8a3cbe7834241d422f368f835e6",
@@ -1467,7 +960,7 @@
         "smokes": [],
         "targetSha256": "149749c96b02911817432ff94bdc5d472a03b41258ce5621d03e9149847369b2",
         "proofChain": {
-          "bundleId": "da09cfd9462ad5f186a7c05325fc8ee1b52ff4f9839ab70876d05d65eea40bb8",
+          "bundleId": "9abbfbb01d5645ada6d0ff43347ba8784601d8d6df796e449264cfdc9276d8f6",
           "sourceSha256": "2fa322cf6e87671252516a022149e8effac1687e60a1fe97ce59a02a99015b53",
           "mapSha256": "59b2a0d7d86a39aa1007f4daa64609d1959abb8a5aac023351340d76fc6d5ba3",
           "targetSha256": "149749c96b02911817432ff94bdc5d472a03b41258ce5621d03e9149847369b2",
@@ -1503,7 +996,7 @@
         "smokes": [],
         "targetSha256": "447bb513ca6ee23d5bd2d100843469d8d84d6342e0817b37ff52ee8c1c4c8102",
         "proofChain": {
-          "bundleId": "da09cfd9462ad5f186a7c05325fc8ee1b52ff4f9839ab70876d05d65eea40bb8",
+          "bundleId": "9abbfbb01d5645ada6d0ff43347ba8784601d8d6df796e449264cfdc9276d8f6",
           "sourceSha256": "2fa322cf6e87671252516a022149e8effac1687e60a1fe97ce59a02a99015b53",
           "mapSha256": "317fe5da3ab7f1d5a3fb00eb7f651ceca96381dc0ab341dd1a200bcdd6295a84",
           "targetSha256": "447bb513ca6ee23d5bd2d100843469d8d84d6342e0817b37ff52ee8c1c4c8102",
@@ -1539,7 +1032,7 @@
         "smokes": [],
         "targetSha256": "0c242d0570cd5df641c9a6a90c5fbdd7188f59fdcb0e7ab3b912d5a36f591cd9",
         "proofChain": {
-          "bundleId": "da09cfd9462ad5f186a7c05325fc8ee1b52ff4f9839ab70876d05d65eea40bb8",
+          "bundleId": "9abbfbb01d5645ada6d0ff43347ba8784601d8d6df796e449264cfdc9276d8f6",
           "sourceSha256": "2fa322cf6e87671252516a022149e8effac1687e60a1fe97ce59a02a99015b53",
           "mapSha256": "8d975ffa83ca7af9744c67f9dfd80cedc1a3c11678d0230ef21cdab72bc2f609",
           "targetSha256": "0c242d0570cd5df641c9a6a90c5fbdd7188f59fdcb0e7ab3b912d5a36f591cd9",
@@ -1553,7 +1046,7 @@
     },
     {
       "source": "financeiro-page.jsx",
-      "bundleChange": "modified",
+      "bundleChange": "unchanged",
       "target": "resources/js/Pages/Financeiro/Unificado/Index.tsx",
       "module": "Financeiro",
       "mapping": "charter.component",
@@ -1665,7 +1158,7 @@
     },
     {
       "source": "fiscal-page.jsx",
-      "bundleChange": "modified",
+      "bundleChange": "unchanged",
       "target": "resources/js/Pages/Fiscal/Cockpit.tsx",
       "module": "Fiscal",
       "mapping": "charter.component",
@@ -1681,7 +1174,7 @@
     },
     {
       "source": "fiscal-page.jsx",
-      "bundleChange": "modified",
+      "bundleChange": "unchanged",
       "target": "resources/js/Pages/Fiscal/Config.tsx",
       "module": "Fiscal",
       "mapping": "charter.component",
@@ -1697,7 +1190,7 @@
     },
     {
       "source": "fiscal-page.jsx",
-      "bundleChange": "modified",
+      "bundleChange": "unchanged",
       "target": "resources/js/Pages/Fiscal/Dfe.tsx",
       "module": "Fiscal",
       "mapping": "charter.component",
@@ -1713,7 +1206,7 @@
     },
     {
       "source": "fiscal-page.jsx",
-      "bundleChange": "modified",
+      "bundleChange": "unchanged",
       "target": "resources/js/Pages/Fiscal/Eventos.tsx",
       "module": "Fiscal",
       "mapping": "charter.component",
@@ -1729,7 +1222,7 @@
     },
     {
       "source": "fiscal-page.jsx",
-      "bundleChange": "modified",
+      "bundleChange": "unchanged",
       "target": "resources/js/Pages/Fiscal/Nfe.tsx",
       "module": "Fiscal",
       "mapping": "charter.component",
@@ -1745,7 +1238,7 @@
     },
     {
       "source": "fiscal-page.jsx",
-      "bundleChange": "modified",
+      "bundleChange": "unchanged",
       "target": "resources/js/Pages/Fiscal/Nfse.tsx",
       "module": "Fiscal",
       "mapping": "charter.component",
@@ -1761,7 +1254,7 @@
     },
     {
       "source": "fiscal-page.jsx",
-      "bundleChange": "modified",
+      "bundleChange": "unchanged",
       "target": "resources/js/Pages/Fiscal/Sped.tsx",
       "module": "Fiscal",
       "mapping": "charter.component",
@@ -1799,7 +1292,7 @@
         "smokes": [],
         "targetSha256": "a085d2b3781d1c4498c5297c07ac1f04de830dfb7434429aafb76f3c1e052a9c",
         "proofChain": {
-          "bundleId": "da09cfd9462ad5f186a7c05325fc8ee1b52ff4f9839ab70876d05d65eea40bb8",
+          "bundleId": "9abbfbb01d5645ada6d0ff43347ba8784601d8d6df796e449264cfdc9276d8f6",
           "sourceSha256": "ebf333e683e517ed446bcb3c91b58c7ca0589369411075fb2dcf2b8efc2c8f3f",
           "mapSha256": "73f4245d280fe49054b68ce2c71e049a44718b0ce15232866c4eb221e49589a2",
           "targetSha256": "a085d2b3781d1c4498c5297c07ac1f04de830dfb7434429aafb76f3c1e052a9c",
@@ -1835,7 +1328,7 @@
         "smokes": [],
         "targetSha256": "1688d63f44cd27de41bce967f2cad79f014ff4eb2696ec34ffad7de3fe5d1c06",
         "proofChain": {
-          "bundleId": "da09cfd9462ad5f186a7c05325fc8ee1b52ff4f9839ab70876d05d65eea40bb8",
+          "bundleId": "9abbfbb01d5645ada6d0ff43347ba8784601d8d6df796e449264cfdc9276d8f6",
           "sourceSha256": "ebf333e683e517ed446bcb3c91b58c7ca0589369411075fb2dcf2b8efc2c8f3f",
           "mapSha256": "e9176c1db97fa573a724406120a2ab44c8c082bd16a73413f697b4f686395f68",
           "targetSha256": "1688d63f44cd27de41bce967f2cad79f014ff4eb2696ec34ffad7de3fe5d1c06",
@@ -1871,7 +1364,7 @@
         "smokes": [],
         "targetSha256": "bc1143eb516431b4ff0cb90a92274d3bd1e8488a0355b6eb22aafbaf37ef57cc",
         "proofChain": {
-          "bundleId": "da09cfd9462ad5f186a7c05325fc8ee1b52ff4f9839ab70876d05d65eea40bb8",
+          "bundleId": "9abbfbb01d5645ada6d0ff43347ba8784601d8d6df796e449264cfdc9276d8f6",
           "sourceSha256": "ebf333e683e517ed446bcb3c91b58c7ca0589369411075fb2dcf2b8efc2c8f3f",
           "mapSha256": "2b863547b3c0dff421576b795c3ba26b4746565394b4eab8d2971480d20cf2ab",
           "targetSha256": "bc1143eb516431b4ff0cb90a92274d3bd1e8488a0355b6eb22aafbaf37ef57cc",
@@ -1907,7 +1400,7 @@
         "smokes": [],
         "targetSha256": "cdf935b0f387d76bc351fd800fab60aaa97fab949a3939d48a5eb2ebbaf5b1b6",
         "proofChain": {
-          "bundleId": "da09cfd9462ad5f186a7c05325fc8ee1b52ff4f9839ab70876d05d65eea40bb8",
+          "bundleId": "9abbfbb01d5645ada6d0ff43347ba8784601d8d6df796e449264cfdc9276d8f6",
           "sourceSha256": "ebf333e683e517ed446bcb3c91b58c7ca0589369411075fb2dcf2b8efc2c8f3f",
           "mapSha256": "4d070af807668a6dcfac0159cc26045ea311dffbc3840f009c9f6a92992ad203",
           "targetSha256": "cdf935b0f387d76bc351fd800fab60aaa97fab949a3939d48a5eb2ebbaf5b1b6",
@@ -1921,7 +1414,7 @@
     },
     {
       "source": "fluxos-page.jsx",
-      "bundleChange": "added",
+      "bundleChange": "unchanged",
       "target": "—",
       "module": null,
       "mapping": "nenhum",
@@ -2161,7 +1654,7 @@
     },
     {
       "source": "inbox-page.jsx",
-      "bundleChange": "modified",
+      "bundleChange": "unchanged",
       "target": "Modules/Whatsapp/Resources/js/Pages/Atendimento/CaixaUnificada/Index.tsx",
       "module": "Whatsapp",
       "mapping": "charter.component",
@@ -2177,7 +1670,7 @@
     },
     {
       "source": "inbox-page.jsx",
-      "bundleChange": "modified",
+      "bundleChange": "unchanged",
       "target": "Modules/Whatsapp/Resources/js/Pages/Atendimento/Channels/Index.tsx",
       "module": "Whatsapp",
       "mapping": "charter.component",
@@ -2193,7 +1686,7 @@
     },
     {
       "source": "inbox-page.jsx",
-      "bundleChange": "modified",
+      "bundleChange": "unchanged",
       "target": "Modules/Whatsapp/Resources/js/Pages/Atendimento/Macros/Index.tsx",
       "module": "Whatsapp",
       "mapping": "charter.component",
@@ -2343,7 +1836,7 @@
         "smokes": [],
         "targetSha256": "9e7ff864df754d7317672e30c6c0458ab02a4380a7a377218d4f8271d61f9f7f",
         "proofChain": {
-          "bundleId": "da09cfd9462ad5f186a7c05325fc8ee1b52ff4f9839ab70876d05d65eea40bb8",
+          "bundleId": "9abbfbb01d5645ada6d0ff43347ba8784601d8d6df796e449264cfdc9276d8f6",
           "sourceSha256": "797f931adabd430c54cb5939e6c917274e9536205bf8ec764b3f026997b18840",
           "mapSha256": "23b8046dbb61820011490d71993208f70f516774d0e628d8349dca006dc7d991",
           "targetSha256": "9e7ff864df754d7317672e30c6c0458ab02a4380a7a377218d4f8271d61f9f7f",
@@ -2379,7 +1872,7 @@
         "smokes": [],
         "targetSha256": "94cebcb2521b60766808e276a2da880a793d041f41d13acca107c02652a13c45",
         "proofChain": {
-          "bundleId": "da09cfd9462ad5f186a7c05325fc8ee1b52ff4f9839ab70876d05d65eea40bb8",
+          "bundleId": "9abbfbb01d5645ada6d0ff43347ba8784601d8d6df796e449264cfdc9276d8f6",
           "sourceSha256": "797f931adabd430c54cb5939e6c917274e9536205bf8ec764b3f026997b18840",
           "mapSha256": "513f741e7fd3e60dabeb762ffb9fc7108e518051d73dee5e884e2c53d3bc02c0",
           "targetSha256": "94cebcb2521b60766808e276a2da880a793d041f41d13acca107c02652a13c45",
@@ -2409,7 +1902,7 @@
     },
     {
       "source": "manufacturing-page.jsx",
-      "bundleChange": "modified",
+      "bundleChange": "unchanged",
       "target": "resources/js/Pages/Manufacturing/Index.tsx",
       "module": "Manufacturing",
       "mapping": "charter.component",
@@ -2425,7 +1918,7 @@
     },
     {
       "source": "manufacturing-page.jsx",
-      "bundleChange": "modified",
+      "bundleChange": "unchanged",
       "target": "resources/js/Pages/Manufacturing/Recipes.tsx",
       "module": "Manufacturing",
       "mapping": "charter.component",
@@ -2671,7 +2164,7 @@
         "smokes": [],
         "targetSha256": "7f4d1fc65575950191ff93e7b2f6b4b577df586d0c3c11dab385e7a0e9addb65",
         "proofChain": {
-          "bundleId": "da09cfd9462ad5f186a7c05325fc8ee1b52ff4f9839ab70876d05d65eea40bb8",
+          "bundleId": "9abbfbb01d5645ada6d0ff43347ba8784601d8d6df796e449264cfdc9276d8f6",
           "sourceSha256": "209d1ad413a189db0a6a58ab0a870b90eea4bc0a08f48c87bf08351a227ff519",
           "mapSha256": "6576dd387e0469292f336a509349234de841e3b1279aeb078865c1046d1747fc",
           "targetSha256": "7f4d1fc65575950191ff93e7b2f6b4b577df586d0c3c11dab385e7a0e9addb65",
@@ -2717,7 +2210,7 @@
     },
     {
       "source": "os-page.jsx",
-      "bundleChange": "modified",
+      "bundleChange": "unchanged",
       "target": "—",
       "module": null,
       "mapping": "registro a-criar",
@@ -2829,7 +2322,7 @@
     },
     {
       "source": "pg-cobranca-page.jsx",
-      "bundleChange": "modified",
+      "bundleChange": "unchanged",
       "target": "resources/js/Pages/Financeiro/Cobranca/Index.tsx",
       "module": "Financeiro",
       "mapping": "charter.component",
@@ -2973,7 +2466,7 @@
     },
     {
       "source": "ponto-telas.jsx",
-      "bundleChange": "modified",
+      "bundleChange": "unchanged",
       "target": "resources/js/Pages/Ponto/Aprovacoes/Index.tsx",
       "module": "Ponto",
       "mapping": "charter.component",
@@ -2989,7 +2482,7 @@
     },
     {
       "source": "ponto-telas.jsx",
-      "bundleChange": "modified",
+      "bundleChange": "unchanged",
       "target": "resources/js/Pages/Ponto/BancoHoras/Index.tsx",
       "module": "Ponto",
       "mapping": "charter.component",
@@ -3005,7 +2498,7 @@
     },
     {
       "source": "ponto-telas.jsx",
-      "bundleChange": "modified",
+      "bundleChange": "unchanged",
       "target": "resources/js/Pages/Ponto/BancoHoras/Show.tsx",
       "module": "Ponto",
       "mapping": "charter.component",
@@ -3021,7 +2514,7 @@
     },
     {
       "source": "ponto-telas.jsx",
-      "bundleChange": "modified",
+      "bundleChange": "unchanged",
       "target": "resources/js/Pages/Ponto/Colaboradores/Edit.tsx",
       "module": "Ponto",
       "mapping": "charter.component",
@@ -3037,7 +2530,7 @@
     },
     {
       "source": "ponto-telas.jsx",
-      "bundleChange": "modified",
+      "bundleChange": "unchanged",
       "target": "resources/js/Pages/Ponto/Colaboradores/Index.tsx",
       "module": "Ponto",
       "mapping": "charter.component",
@@ -3053,7 +2546,7 @@
     },
     {
       "source": "ponto-telas.jsx",
-      "bundleChange": "modified",
+      "bundleChange": "unchanged",
       "target": "resources/js/Pages/Ponto/Configuracoes/Index.tsx",
       "module": "Ponto",
       "mapping": "charter.component",
@@ -3069,7 +2562,7 @@
     },
     {
       "source": "ponto-telas.jsx",
-      "bundleChange": "modified",
+      "bundleChange": "unchanged",
       "target": "resources/js/Pages/Ponto/Configuracoes/Reps.tsx",
       "module": "Ponto",
       "mapping": "charter.component",
@@ -3085,7 +2578,7 @@
     },
     {
       "source": "ponto-telas.jsx",
-      "bundleChange": "modified",
+      "bundleChange": "unchanged",
       "target": "resources/js/Pages/Ponto/Escalas/Form.tsx",
       "module": "Ponto",
       "mapping": "charter.component",
@@ -3101,7 +2594,7 @@
     },
     {
       "source": "ponto-telas.jsx",
-      "bundleChange": "modified",
+      "bundleChange": "unchanged",
       "target": "resources/js/Pages/Ponto/Escalas/Index.tsx",
       "module": "Ponto",
       "mapping": "charter.component",
@@ -3117,7 +2610,7 @@
     },
     {
       "source": "ponto-telas.jsx",
-      "bundleChange": "modified",
+      "bundleChange": "unchanged",
       "target": "resources/js/Pages/Ponto/Importacoes/Create.tsx",
       "module": "Ponto",
       "mapping": "charter.component",
@@ -3133,7 +2626,7 @@
     },
     {
       "source": "ponto-telas.jsx",
-      "bundleChange": "modified",
+      "bundleChange": "unchanged",
       "target": "resources/js/Pages/Ponto/Importacoes/Index.tsx",
       "module": "Ponto",
       "mapping": "charter.component",
@@ -3149,7 +2642,7 @@
     },
     {
       "source": "ponto-telas.jsx",
-      "bundleChange": "modified",
+      "bundleChange": "unchanged",
       "target": "resources/js/Pages/Ponto/Importacoes/Show.tsx",
       "module": "Ponto",
       "mapping": "charter.component",
@@ -3165,7 +2658,7 @@
     },
     {
       "source": "ponto-telas.jsx",
-      "bundleChange": "modified",
+      "bundleChange": "unchanged",
       "target": "resources/js/Pages/Ponto/Intercorrencias/Create.tsx",
       "module": "Ponto",
       "mapping": "charter.component",
@@ -3181,7 +2674,7 @@
     },
     {
       "source": "ponto-telas.jsx",
-      "bundleChange": "modified",
+      "bundleChange": "unchanged",
       "target": "resources/js/Pages/Ponto/Intercorrencias/Edit.tsx",
       "module": "Ponto",
       "mapping": "charter.component",
@@ -3197,7 +2690,7 @@
     },
     {
       "source": "ponto-telas.jsx",
-      "bundleChange": "modified",
+      "bundleChange": "unchanged",
       "target": "resources/js/Pages/Ponto/Intercorrencias/Index.tsx",
       "module": "Ponto",
       "mapping": "charter.component",
@@ -3213,7 +2706,7 @@
     },
     {
       "source": "ponto-telas.jsx",
-      "bundleChange": "modified",
+      "bundleChange": "unchanged",
       "target": "resources/js/Pages/Ponto/Intercorrencias/Show.tsx",
       "module": "Ponto",
       "mapping": "charter.component",
@@ -3229,7 +2722,7 @@
     },
     {
       "source": "ponto-telas.jsx",
-      "bundleChange": "modified",
+      "bundleChange": "unchanged",
       "target": "resources/js/Pages/Ponto/Relatorios/Index.tsx",
       "module": "Ponto",
       "mapping": "charter.component",
@@ -3869,7 +3362,7 @@
     },
     {
       "source": "vendas-page.jsx",
-      "bundleChange": "modified",
+      "bundleChange": "unchanged",
       "target": "resources/js/Pages/Sells/Index.tsx",
       "module": "Sells",
       "mapping": "charter.component",
@@ -3937,8 +3430,8 @@
     },
     {
       "path": "app.jsx",
-      "bytes": 79308,
-      "sha256": "34dc4791a3e975796f9717b1ee2333fda9809e05609f06dbee2a237d5aefc736",
+      "bytes": 79342,
+      "sha256": "be5e545ce44c63222bc894d2516d77775c7f28f3781ad31d0c84e44b3ab347c6",
       "role": "cowork-source"
     },
     {
@@ -4273,8 +3766,8 @@
     },
     {
       "path": "comunicacao-visual-page.jsx",
-      "bytes": 17731,
-      "sha256": "872bbc1e8b95c09e94c964108ebec19ee915cdf2386eae88ea98b50ff1781798",
+      "bytes": 17735,
+      "sha256": "513321f5f2404c760dbe5d1ee127f7ea25e940beb9e94c712bed775a1905c061",
       "role": "cowork-source"
     },
     {
@@ -4521,6 +4014,18 @@
       "path": "cowork-inbox/ancora/playbook/07-cruzar-report-trio-contrato.md",
       "bytes": 9793,
       "sha256": "1c5753af9704445a7b81460d9c40f75e06e707dcc5dcadca62bfb6e7a1aa430a",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/app-lojas/playbook/_SESSAO-FRIA.md",
+      "bytes": 1458,
+      "sha256": "5cd182bf77bee001f8bc0657bb4c0e838f032af70b064364030f5123f43a3f82",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/app-lojas/playbook/00-INDICE.md",
+      "bytes": 1354,
+      "sha256": "4bb5b636a0999d478bdaccac8327488a3abf16c4db2380b95d66219488d6f1e4",
       "role": "cowork-source"
     },
     {
@@ -5820,6 +5325,12 @@
       "role": "cowork-source"
     },
     {
+      "path": "cowork-inbox/financeiro/playbook/_saida-11.md",
+      "bytes": 3391,
+      "sha256": "33634f1bd7749bde23ba36956de71f543f8973cc212c001e0b5714bb950fe8be",
+      "role": "cowork-source"
+    },
+    {
       "path": "cowork-inbox/financeiro/playbook/_SESSAO-FRIA.md",
       "bytes": 1963,
       "sha256": "15ae3ae134777e26a07204a53ec8a75fbf10332fa58f327dbb63382475211e3c",
@@ -5925,6 +5436,12 @@
       "path": "cowork-inbox/fiscal/playbook/_saida-03.md",
       "bytes": 5748,
       "sha256": "27caeca20fe6d02e46ac88e502a35135e1ea1c4c651d6881a8303eb62752a72a",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/fiscal/playbook/_saida-13.md",
+      "bytes": 8832,
+      "sha256": "fa79a9a661353a439c2ec3c12726f9054bdf3b31576f42fc1071e893fa13b372",
       "role": "cowork-source"
     },
     {
@@ -6750,6 +6267,42 @@
       "role": "cowork-source"
     },
     {
+      "path": "cowork-inbox/modulos-faltantes/playbook/_SESSAO-FRIA.md",
+      "bytes": 1801,
+      "sha256": "7bad9cc39a0f0504846209c6c6c822d2a708a57496a9e227b918055236b555d9",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/modulos-faltantes/playbook/00-INDICE.md",
+      "bytes": 4896,
+      "sha256": "f860842a081c7ff6f127bd92f05c3e0b07669b7f33481f9c3f15c7a8d6adb9e6",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/modulos-faltantes/playbook/01-contratos.md",
+      "bytes": 791,
+      "sha256": "19a11c1ef67685613748f6be9922899e7a652bf56280f6dc763bbee388b9a734",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/modulos-faltantes/playbook/02-suporte-log.md",
+      "bytes": 571,
+      "sha256": "ef6cee5c679a99ef51caf7751b9138cd7ac02958fcb1bc0db90939186f8feef4",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/modulos-faltantes/playbook/03-voz-do-cliente.md",
+      "bytes": 790,
+      "sha256": "4812fb655f5687c64ddf8806467178ff55c27ed1b23ad9ea89fb7cf2de98305b",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/modulos-faltantes/playbook/04-catalogo-qr.md",
+      "bytes": 589,
+      "sha256": "a7e1db45f6a657e7ba164d2454708833322c63541f06f784efa61d3049c5e937",
+      "role": "cowork-source"
+    },
+    {
       "path": "cowork-inbox/modulos-faltantes/suporte.contract.json",
       "bytes": 3169,
       "sha256": "375008452f5460f12b94983b940336bf57a1d7932b644364f7f12922846b14f2",
@@ -6789,6 +6342,42 @@
       "path": "cowork-inbox/modulos/PEDIDO-PARA-CODE.md",
       "bytes": 7205,
       "sha256": "0c3df5287c984f6164d43781fa85e3ffd2ef720f20dccd0a72195c9d79406c9a",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/modulos/playbook/_SESSAO-FRIA.md",
+      "bytes": 1861,
+      "sha256": "a24ea1f0917548ff08f5ce3d7912b0e9bf15f481962a458ec23855a917273474",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/modulos/playbook/00-INDICE.md",
+      "bytes": 4819,
+      "sha256": "27baa9fa01bb832c47471846b155c56876cd9cd2d0ace8265ad6dd759fa05ffb",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/modulos/playbook/01-install-falho-e-erro.md",
+      "bytes": 1210,
+      "sha256": "6be5b6def646ce7e3d773032f461118a324c1acddb40ba4ed512dbf6f215b561",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/modulos/playbook/02-install-em-fila.md",
+      "bytes": 563,
+      "sha256": "f1cae0b34e0174008242d6a6ee398051be950019c2a18b97005c6b4cd767ae20",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/modulos/playbook/04-remover-legado.md",
+      "bytes": 1153,
+      "sha256": "1bfbea666218cd16a4d24440b8dd19c2a139b9293d4dae7d1c3b88672fb42621",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/modulos/playbook/A1-alvo.md",
+      "bytes": 525,
+      "sha256": "6ce15ef5f2c5dd0e199aaa092d258c58216f97dc4c17bdf17540ccd9442ae452",
       "role": "cowork-source"
     },
     {
@@ -7545,6 +7134,12 @@
       "path": "cowork-inbox/PEDIDO-CL-onda11-precompilar-jsx.md",
       "bytes": 2536,
       "sha256": "c1b45bf75ecf23715892a71d04937de59906d81b5eade1580776c2361d04497a",
+      "role": "cowork-source"
+    },
+    {
+      "path": "cowork-inbox/PEDIDO-CL-ordem-pendencias-playbooks-2026-10-06.md",
+      "bytes": 3855,
+      "sha256": "cf874c613872abedd85ea073fc862c592571fe9c523ea63a4d758f81400c13b8",
       "role": "cowork-source"
     },
     {
@@ -9336,6 +8931,12 @@
       "role": "cowork-source"
     },
     {
+      "path": "cowork-inbox/tema-escuro/playbook/_saida-01.md",
+      "bytes": 5721,
+      "sha256": "481d61b9107233b96d954e6beee744ae44d6d257575bf4d31f7f7542c756e37a",
+      "role": "cowork-source"
+    },
+    {
       "path": "cowork-inbox/tema-escuro/playbook/_SESSAO-FRIA.md",
       "bytes": 545,
       "sha256": "b3a086fc2ce8899459396a33051d53d140489325498bed5092fa2666f6e58770",
@@ -9528,15 +9129,21 @@
       "role": "cowork-source"
     },
     {
+      "path": "cowork-inbox/venda-menu/playbook/_saida-Q-CC.md",
+      "bytes": 1308,
+      "sha256": "ababe8a2f847782eed3121070b69948cc1dd9bbba21322c06c103c467e464f0c",
+      "role": "cowork-source"
+    },
+    {
       "path": "cowork-inbox/venda-menu/playbook/_SESSAO-FRIA.md",
-      "bytes": 1336,
-      "sha256": "76f8237626842324b4bbeb9f53ca1ceb0b3fab5d06cbd59904be5d334fa1b614",
+      "bytes": 2060,
+      "sha256": "380b8bfbe631c6a809bb823884800f1c26ae52fb61c502ff1d72595ae08ff2ca",
       "role": "cowork-source"
     },
     {
       "path": "cowork-inbox/venda-menu/playbook/00-INDICE.md",
-      "bytes": 13210,
-      "sha256": "3b1769ec81fe2788e75c3964aec81b2d8234b448f7d2dee5a740a9acf6f0748b",
+      "bytes": 18598,
+      "sha256": "c326b7965822e8d05c1246c91ba362f04e54d6e9862b550aab223fd58b08181c",
       "role": "cowork-source"
     },
     {
@@ -9553,8 +9160,8 @@
     },
     {
       "path": "cowork-inbox/venda-menu/playbook/03-orcamentos.md",
-      "bytes": 3338,
-      "sha256": "0749e56659a0193c5eae9f0efd8fd9ea5d60b7ac6fb6cad6600c2d185b8527d7",
+      "bytes": 3968,
+      "sha256": "2ebeddb89c6ab58cbd9fa32d376c6947bc93ee6b552add48e5904d9f8520f2c4",
       "role": "cowork-source"
     },
     {
@@ -9655,8 +9262,8 @@
     },
     {
       "path": "data.jsx",
-      "bytes": 35881,
-      "sha256": "e4271a18dcd2c7a6b3d94f311e6beee2addc9ec58f0af9fe274cfcaf2bce7afb",
+      "bytes": 35815,
+      "sha256": "c70626ddd82a2fca87ac8219d536d34d5f3a6778e99a3819f4730cce029595c1",
       "role": "cowork-source"
     },
     {
