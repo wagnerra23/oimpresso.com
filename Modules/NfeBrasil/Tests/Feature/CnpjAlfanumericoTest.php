@@ -30,7 +30,7 @@ uses(Tests\TestCase::class);
 const CNPJ_ALFA_BIZ = 98;
 const CNPJ_ALFA_VALIDO = '12.ABC.345/01DE-35';
 const CNPJ_ALFA_DV_ERRADO = '12.ABC.345/01DE-36';
-const CNPJ_NUM_VALIDO = '11.222.333/0001-81';
+const CNPJ_NUM_VALIDO = '11.222.333/0001-81'; // pii-allowlist (CNPJ fictício de documentação)
 
 function cnpjAlfaValida(string $valor): \Illuminate\Validation\Validator
 {
@@ -141,7 +141,7 @@ it('R-NFE-033 · cadastro recusa DV errado com mensagem clara (o FormRequest dev
 
 it('R-NFE-033 · controle positivo: cadastro segue aceitando CNPJ numérico e recusando o inválido', function () {
     expect(cnpjAlfaValida(CNPJ_NUM_VALIDO)->fails())->toBeFalse()
-        ->and(cnpjAlfaValida('11.222.333/0001-82')->fails())->toBeTrue();
+        ->and(cnpjAlfaValida('11.222.333/0001-82')->fails())->toBeTrue(); // pii-allowlist (fictício, DV errado)
 })->group('nfe', 'R-NFE-033');
 
 // ── R-NFE-033 · XML ─────────────────────────────────────────────────────────
@@ -149,9 +149,9 @@ it('R-NFE-033 · controle positivo: cadastro segue aceitando CNPJ numérico e re
 it('R-NFE-033 · documento fiscal preserva as letras e não muda CPF nem CNPJ numérico', function () {
     expect(Cnpj::documentoFiscal(CNPJ_ALFA_VALIDO))->toBe('12ABC34501DE35')
         ->and(Cnpj::documentoFiscal(CNPJ_NUM_VALIDO))->toBe('11222333000181')
-        ->and(Cnpj::documentoFiscal('529.982.247-25'))->toBe('52998224725')
+        ->and(Cnpj::documentoFiscal('529.982.247-25'))->toBe('52998224725') // pii-allowlist (CPF fictício de documentação)
         // fora de forma: comportamento antigo (só dígitos), para não mudar o que já funcionava
-        ->and(Cnpj::documentoFiscal('CPF 529.982.247-25'))->toBe('52998224725');
+        ->and(Cnpj::documentoFiscal('CPF 529.982.247-25'))->toBe('52998224725'); // pii-allowlist (CPF fictício)
 })->group('nfe', 'R-NFE-033');
 
 it('R-NFE-033 · XML leva o CNPJ alfanumérico do destinatário como está', function () {
