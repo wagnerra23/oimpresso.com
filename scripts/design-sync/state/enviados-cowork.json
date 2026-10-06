@@ -16,6 +16,10 @@
     "cowork-inbox/fiscal/playbook/_saida-19.md": {
       "sha256": "e0355a8b7cefd262bd47fd930bfc2fdcb70606563cebb9e70489e0a13e888a45",
       "em": "2026-10-06T17:52:07.881Z"
+    },
+    "cowork-inbox/tema-escuro/playbook/_saida-01.md": {
+      "sha256": "481d61b9107233b96d954e6beee744ae44d6d257575bf4d31f7f7542c756e37a",
+      "em": "2026-10-06T17:41:54.909Z"
     }
   }
 }
