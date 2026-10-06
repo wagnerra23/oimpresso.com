@@ -220,6 +220,10 @@ seguinte: mesma forma do protótipo e vão de 10px (o do `.mfg-kpis`). Na mesma 
 #8715 conferem: datas 150×36 com canto 8px, Local 180×34 com canto 8px e texto 13px, e "Só finalizadas"
 na cor do `--text`.
 
+**Depois do deploy do #8745 (2026-10-06 01:48 UTC, mesma medição):** os 4 cartões medem **105px**, igual à
+Receitas; "Total", "Pendentes" e "Valor total" sem ícone; "Finalizadas" é o cartão-filtro com ícone, e o
+clique liga `?is_final=1` (marca o "Só finalizadas", lista de 2 para 1 ordem) e desliga de volta. Vão de 10px.
+
 ## Cobertura desta tela hoje
 
 | camada | estado |
