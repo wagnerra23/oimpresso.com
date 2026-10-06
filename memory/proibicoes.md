@@ -1868,6 +1868,10 @@ Ocorrência da **LC-08**.
 
 - **O limite (variante também proibida):** **(a)** caso que nasce com `markTestSkipped` por fixture ausente no CI não é contrato provado. Antes do merge, rode-o uma vez com a fixture presente e cite o run. O G-7 já impede marcar ✅ sem teste verde; o que fica aqui é rodar antes de mergear. **(b)** quem semeia uma fixture tem de contar os skips que ela destrava e ler o resultado de cada um no próprio PR, antes do merge. **(c)** o conserto de um caso que cai ao ser destravado vai no teste quando o código só roda dentro da requisição. Não mexa no controller para caber no teste.
 
+### 2026-10-06 — `test-lane-coverage --pr` lia as lanes da árvore LOCAL: o teste que o próprio PR põe na lane saía SEM-LANE
+
+- **O limite (variante também proibida):** instrumento que dá veredito sobre um PR não lê **configuração** (workflows, listas, baselines, allowlists) do `cwd` — lê do head do PR, a mesma árvore cujos runs ele está julgando. E, ao receber contestação de quem é dono do PR, a primeira hipótese é **o instrumento leu a árvore errada**, antes de "o autor errou". Controle de mutante vale só pelas linhas de veredito (`⛔`/`✓`); `grep -c` de uma palavra que também está no rodapé fixo mede o rodapé.
+
 ## Sempre fazer
 
 - ✅ **LIGUE A MÁQUINA — máquina é sempre melhor que fazer na mão** ([W] 2026-07-26, textual: *"isso ligue as maquinas, é sempre melhor que fazer na mão. isso é regra no sistema. deve ser"*). Ordem obrigatória, nesta sequência:
