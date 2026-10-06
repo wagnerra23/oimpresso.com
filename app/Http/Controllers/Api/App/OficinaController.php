@@ -48,6 +48,9 @@ class OficinaController extends Controller
     /** Teto do histórico do veículo (sem paginação no app): as mais recentes. */
     private const HISTORICO_MAX = 200;
 
+    /** Teto de itens por OS no histórico; o total vem em `itens_total`. */
+    private const HISTORICO_ITENS_MAX = 20;
+
     public function __construct(private ModuleUtil $moduleUtil)
     {
     }
@@ -273,12 +276,7 @@ class OficinaController extends Controller
 
         $etapa = $this->etapaDetalhe($bizId, $os);
 
-        $itens = DB::table('oficina_service_order_items')
-            ->where('business_id', $bizId)
-            ->where('service_order_id', $id)
-            ->whereNull('deleted_at')
-            ->orderBy('id')
-            ->get(['tipo', 'descricao', 'quantidade', 'valor_unitario', 'valor_total']);
+        $itens = $this->itensDasOs($bizId, [$id])->get($id, collect());
 
         $soma = fn (string $tipo) => round((float) $itens->where('tipo', $tipo)->sum('valor_total'), 2);
 
@@ -908,13 +906,18 @@ class OficinaController extends Controller
                     . ' AND i.deleted_at IS NULL) as valor'),
             ]);
 
+        // O que foi feito em cada OS (serviços e peças), numa consulta só para a página inteira.
+        $feitos = $this->itensDasOs($bizId, $linhas->pluck('id')->map(fn ($x) => (int) $x)->all());
+
         return response()->json([
-            'itens' => $linhas->map(function ($o) use ($rotulos, $inicial) {
+            'itens' => $linhas->map(function ($o) use ($rotulos, $inicial, $feitos) {
                 if ($o->current_stage_id !== null) {
                     $etapa = $rotulos[(int) $o->current_stage_id] ?? null;
                 } else {
                     $etapa = $o->order_type === 'mecanica' && $inicial !== null ? $inicial->name : null;
                 }
+
+                $itensOs = $feitos->get((int) $o->id, collect());
 
                 return [
                     'os_id' => (int) $o->id,
@@ -925,12 +928,41 @@ class OficinaController extends Controller
                     'valor' => $o->valor === null ? null : round((float) $o->valor, 2),
                     // Km na entrada desta OS (pedido [W] 2026-10-05, histórico de km); null se não foi anotado.
                     'km' => $o->mileage_at_service !== null ? (int) $o->mileage_at_service : null,
+                    // Serviços e peças da OS, na ordem dela, sem valor por item (pedido [W] 2026-10-06).
+                    'itens' => $itensOs->take(self::HISTORICO_ITENS_MAX)->map(fn ($i) => [
+                        'tipo' => $i->tipo,
+                        'descricao' => (string) $i->descricao,
+                        'quantidade' => (float) $i->quantidade,
+                    ])->values(),
+                    'itens_total' => $itensOs->count(),
                 ];
             })->values(),
             // Histórico de km: não há tabela de leituras; vale o km do cadastro + o km de entrada de cada OS.
             'km_cadastro' => $veiculo->mileage_at_entry !== null ? (int) $veiculo->mileage_at_entry : null,
             'cadastrado_em' => $veiculo->created_at !== null ? substr((string) $veiculo->created_at, 0, 10) : null,
         ]);
+    }
+
+    /**
+     * Itens (peças, mão de obra, serviço de terceiro) das OS, agrupados por OS e na ordem da OS.
+     * Fonte única do detalhe (GET /os/{id}) e do histórico do veículo. Tier 0: business_id explícito.
+     *
+     * @param  list<int>  $osIds
+     * @return Collection<int, Collection<int, object>>
+     */
+    private function itensDasOs(int $bizId, array $osIds): Collection
+    {
+        if ($osIds === []) {
+            return collect();
+        }
+
+        return DB::table('oficina_service_order_items')
+            ->where('business_id', $bizId)
+            ->whereIn('service_order_id', $osIds)
+            ->whereNull('deleted_at')
+            ->orderBy('id')
+            ->get(['service_order_id', 'tipo', 'descricao', 'quantidade', 'valor_unitario', 'valor_total'])
+            ->groupBy(fn ($i) => (int) $i->service_order_id);
     }
 
     /** Mesma regra da tela web de veículos: pacote da Oficina + `oficinaauto.vehicle.view`. */
