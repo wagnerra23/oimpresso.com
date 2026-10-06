@@ -149,7 +149,7 @@ beforeEach(function () {
     $this->cotacao = qconvCotacao($this->produto, $this->loc, $contato, 3.0, 1234.50);
     $this->outraCotacao = qconvCotacao($this->produto, $this->loc, $contato, 2.0, 99.90);
 
-    $this->usuario = qconvUsuario($this->bizId, ['sell.create', 'quotation.view_all']);
+    $this->usuario = qconvUsuario($this->bizId, ['sell.create', 'quotation.view_all', 'access_all_locations']);
     $this->actingAs($this->usuario)->withSession(qconvSessao($this->usuario));
 });
 
@@ -218,6 +218,8 @@ it('UC-QUO-04 o botão Converter segue a flag do Blade e a lista lê o endpoint 
         ->get($page['props']['urls']['datatable'])
         ->assertStatus(200)
         ->json();
+    // Sem access_all_locations o draft-dt filtra por local permitido e a lista sai vazia
+    // (permitted_locations) — por isso o usuário do fixture tem a permissão.
     $ids = array_map(fn ($r) => (int) $r['id'], $json['data']);
     expect($ids)->toContain($this->cotacao);
     expect($ids)->toContain($this->outraCotacao);
