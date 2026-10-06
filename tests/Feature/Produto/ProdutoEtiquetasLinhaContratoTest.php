@@ -46,7 +46,7 @@ function petqLinhas(object $test, User $user, int $productId): \Illuminate\Testi
     $test->actingAs($user);
     session([
         'user.business_id' => (int) $user->business_id, 'user.id' => $user->id,
-        'currency' => ['symbol' => 'R$', 'decimal_separator' => ',', 'thousand_separator' => '.'],
+        'currency' => ['symbol' => '$', 'decimal_separator' => ',', 'thousand_separator' => '.'],
         'business.currency_precision' => 2,
     ]);
 
@@ -98,15 +98,15 @@ it('UC-PETQ-02 · o preço da linha é o que a impressão sairia, por grupo e po
     expect($linhas[0]['variation_id'])->toBe($vid);
 
     // (a) Número à mão: venda 20 (fixture) · grupo 15,5 com imposto · 15,5 × 100 / 110 = 14,0909 sem.
-    expect($linhas[0]['precos']['0'])->toBe(['inclusive' => 'R$ 20,00', 'exclusive' => 'R$ 20,00']);
-    expect($linhas[0]['precos'][(string) $atacado])->toBe(['inclusive' => 'R$ 15,50', 'exclusive' => 'R$ 14,09']);
+    expect($linhas[0]['precos']['0'])->toBe(['inclusive' => '$ 20,00', 'exclusive' => '$ 20,00']);
+    expect($linhas[0]['precos'][(string) $atacado])->toBe(['inclusive' => '$ 15,50', 'exclusive' => '$ 14,09']);
 
     // (b) A mesma chamada que preview() faz no tipo "Sem imposto", formatada como preview_2 imprime.
     $g = app(ProductUtil::class)->getVariationGroupPrice($vid, $atacado, $taxa);
     expect($linhas[0]['precos'][(string) $atacado]['exclusive'])
-        ->toBe('R$ ' . number_format((float) $g['price_exc_tax'], 2, ',', '.'));
+        ->toBe('$ ' . number_format((float) $g['price_exc_tax'], 2, ',', '.'));
     expect($linhas[0]['precos'][(string) $atacado]['inclusive'])
-        ->toBe('R$ ' . number_format((float) $g['price_inc_tax'], 2, ',', '.'));
+        ->toBe('$ ' . number_format((float) $g['price_inc_tax'], 2, ',', '.'));
 });
 
 it('UC-PETQ-03 · grupo percentual sai como a impressão calcula; grupo sem preço vira null', function () {
@@ -122,7 +122,7 @@ it('UC-PETQ-03 · grupo percentual sai como a impressão calcula; grupo sem pre�
     $precos = petqLinhas($this, petqUsuario($this->biz->id), $p->productId)->assertOk()->json('linhas.0.precos');
 
     // calc_percentage(20, 10) = 2 — o que getVariationGroupPrice devolve para grupo percentual.
-    expect($precos[(string) $percentual]['inclusive'])->toBe('R$ 2,00');
+    expect($precos[(string) $percentual]['inclusive'])->toBe('$ 2,00');
     expect($precos[(string) $semPreco])->toBe(['inclusive' => null, 'exclusive' => null]);
 });
 

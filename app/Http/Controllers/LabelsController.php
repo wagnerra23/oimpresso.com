@@ -75,9 +75,9 @@ class LabelsController extends Controller
     }
 
     /**
-     * Returns the html for product row
+     * Returns the html for product row (JSON para a tela Inertia — playbook Produto thread 04)
      *
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\Response|\Illuminate\Http\JsonResponse|\Illuminate\Contracts\View\View|null
      */
     public function addProductRow(Request $request)
     {
