@@ -132,7 +132,7 @@ class ManageUserController extends Controller
                 'login' => (bool) $u->allow_login,
                 'ativo' => $u->status === 'active',
                 // "Caixa#98" → "Caixa", como o getUserRoleName() da Blade.
-                'funcao' => ($r = $u->roles->first()) ? explode('#', $r->name, 2)[0] : null,
+                'funcao' => ($r = $u->getRoleNames()->first()) ? explode('#', (string) $r, 2)[0] : null,
                 'voce' => (int) $u->id === $eu,
             ])
             ->values()
