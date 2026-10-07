@@ -12,7 +12,7 @@ lente: [construir]
 
 # 🗺️ PAINEL-SISTEMA — estado do oimpresso
 
-> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-10-06**. NÃO edite à mão — a próxima geração sobrescreve.
+> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-10-07**. NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/system-map.mjs`. Este é um **índice que aponta pros donos canônicos**, não uma cópia deles.
 > Views humanas (mapa 🗺️ / guia 🧭 em claude.ai) derivam DESTES dados.
 
@@ -72,7 +72,7 @@ lente: [construir]
 
 ## Programa SDD (governança)
 
-- Scorecard: **11/13** métricas medidas · floor full-suite = **245**.
+- Scorecard: **11/13** métricas medidas · floor full-suite = **250**.
 - Fonte viva: `governance/sdd-scorecard.json` (gerado por `sdd-scorecard.mjs`). Avaliação adversarial: `/sdd-avaliar`.
 - Roadmap dono: [`memory/requisitos/_Governanca/roadmap/_ROADMAP.md`](../requisitos/_Governanca/roadmap/_ROADMAP.md).
 
@@ -153,7 +153,7 @@ lente: [construir]
 
 ## Ideias avaliadas e ABANDONADAS (§5 — não re-propor)
 
-> Dono canônico: [`memory/proibicoes.md §5`](../proibicoes.md). 256 entradas.
+> Dono canônico: [`memory/proibicoes.md §5`](../proibicoes.md). 257 entradas.
 
 <!-- transcrito-de: memory/proibicoes.md §5 -->
 - ~~2026-06-05 — Roadmap/plano de evolução PARALELO a canon existente~~
@@ -412,6 +412,7 @@ lente: [construir]
 - ~~2026-10-05 — O skip por fixture ausente escondia um defeito do PRÓPRIO teste: destravado, o UC-SAMA-04 deixou o `main` vermelho~~
 - ~~2026-10-06 — `test-lane-coverage --pr` lia as lanes da árvore LOCAL: o teste que o próprio PR põe na lane saía SEM-LANE~~
 - ~~2026-10-06 — `--omission` mandava justificar "no PR/handoff", mas só lê as mensagens de commit da branch e o `--notes`~~
+- ~~2026-10-06 — `test-lane-coverage --pr` reconhecia o passo do Pest pelo NOME: a lane do Financeiro saía "pulou" com o Pest executado e verde~~
 <!-- /transcrito-de -->
 
 ## Tier 0 gaps (esperam decisão/desbloqueio)
@@ -422,7 +423,7 @@ lente: [construir]
 
 ## Rastro
 
-- **601** handoffs · **782** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
+- **605** handoffs · **782** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
 - Sessions recentes:
   - `2026-10-06-refutacao-gt-g5-lote-8746-r1`
   - `2026-10-05-refutacao-gt-g5-lote-8642-r1`
@@ -432,4 +433,4 @@ lente: [construir]
   - `2026-09-29-refutacao-gt-g5-lote-8195-r1`
 
 ---
-_Gerado por `scripts/governance/system-map.mjs` · 2026-10-06 · deriva das fontes canônicas, não as substitui._
+_Gerado por `scripts/governance/system-map.mjs` · 2026-10-07 · deriva das fontes canônicas, não as substitui._

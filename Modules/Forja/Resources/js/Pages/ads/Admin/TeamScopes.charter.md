@@ -17,6 +17,8 @@ charter_version: 1
 > **Status:** draft criado em 2026-07-11 no lote de cobertura de charters. Wagner aprova **Non-Goals + Anti-hooks** ANTES de virar `status: live`.
 >
 > Backend: `Modules/TeamMcp/Http/Controllers/Admin/TeamScopesController@index` (rota `ads.admin.teamscopes.index`; controller em TeamMcp, URL sob `/ads`). Wagner define quem pode tocar quais módulos — camada extra acima do PolicyEngine. Props via `Inertia::defer`.
+>
+> **Casos de uso:** [`TeamScopes.casos.md`](TeamScopes.casos.md) — UC-TSCOPE-01..03, defendidos por `Modules/Forja/Tests/Feature/TeamScopesContratoTest.php`.
 
 ---
 

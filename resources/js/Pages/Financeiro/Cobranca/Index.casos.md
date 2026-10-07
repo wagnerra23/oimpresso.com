@@ -5,8 +5,13 @@ irmaos: charter ao lado (lei)
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso.
 owner: wagner
-last_run: "2026-09-23"
+last_run: "2026-10-07"
 ---
+
+> ℹ️ **`last_run` 2026-09-23 → 2026-10-07 (G-6), e o que mudou NÃO foi comportamento.**
+> O playbook telas-soltas (thread 01) acrescenta 7 atributos `data-contract` (`cob-*`) nos blocos que já existiam, mais um `div` embrulhando o `FinanceiroSubNav` para a âncora `cob-nav` para o contrato
+> `governance/design/contracts/cobranca.contract.json`. Zero handler, zero dado, zero copy. Nenhum UC afirma âncora;
+> **nenhum UC foi reexecutado** — o bump é o trio reconciliado com a tela nesta data.
 
 > ℹ️ **`last_run` 2026-09-11 → 2026-09-23 (G-6) — FIN-5: o que mudou na tela foi só FORMA do cabeçalho e do funil.**
 > Em `Index.tsx`: título "Cobrança" sem o sufixo " · Boletos e PIX"; o subtítulo passa a ser o contexto do protótipo

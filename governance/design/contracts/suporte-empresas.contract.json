@@ -1,0 +1,11 @@
+{
+  "_nota": "Derivado do alvo governance/design/targets/soltas--suporte-empresas--index.alvo.json (thread A1 do playbook telas-soltas, rota `suporte` do protótipo = SuportePage view=empresas), não do .tsx. Os ids são os data-contract que o próprio protótipo já declara nessa vista (cabecalho · aviso-escopo · lista). `aviso-escopo` (a nota \"Somente leitura\" do protótipo) NÃO existe na tela e fica fora: o contrato não ancora região que a tela não renderiza. Copy só onde protótipo e tela coincidem. Ressalva 2 da A1: o charter de Suporte/Empresas declara n/a (herda PT-01); a fonte aqui é a vista empresas do suporte-page.jsx, que é o que o alvo mediu.",
+  "tela": "Suporte/Empresas",
+  "fonte": "prototipo-ui/cowork/Wagner/suporte-page.jsx",
+  "alvo": ["resources/js/Pages/Suporte/Empresas.tsx"],
+  "secoes": [
+    { "id": "cabecalho", "copy": ["Suporte · empresas", "Empresas-cliente que você pode atender — a empresa operadora não aparece.", "Buscar empresa…"] },
+    { "id": "lista", "copy": ["Nenhuma empresa-cliente acessível."] }
+  ],
+  "ordem": ["cabecalho", "lista"]
+}

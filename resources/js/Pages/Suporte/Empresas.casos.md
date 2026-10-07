@@ -5,8 +5,13 @@ irmaos: Empresas.charter.md (lei)
 tecnica: Caso de uso = narrativa + critério de aceite verificável (Dado/Quando/Então), provado por teste citando o id.
 por_que: o comportamento (operadora inalcançável, cliente listado, sem-capability bloqueado) é durável — não muda no refactor.
 owner: wagner
-last_run: "2026-06-23"
+last_run: "2026-10-07"
 ---
+
+> ℹ️ **`last_run` 2026-06-23 → 2026-10-07 (G-6), e o que mudou NÃO foi comportamento.**
+> O playbook telas-soltas (thread 01) acrescenta 2 atributos `data-contract` (`cabecalho` no `Inline` do topo, `lista` no contêiner da tabela) para o contrato
+> `governance/design/contracts/suporte-empresas.contract.json`. Zero handler, zero dado, zero copy. Nenhum UC afirma âncora;
+> **nenhum UC foi reexecutado** — o bump é o trio reconciliado com a tela nesta data.
 
 # Casos de Uso & Aceite — Suporte / Empresas
 

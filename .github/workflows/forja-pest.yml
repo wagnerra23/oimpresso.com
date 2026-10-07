@@ -178,6 +178,13 @@ jobs:
         # produção (só `projectmgmt_version`). Quando foi escrito, ele provava que a entry
         # "Forja" não chegava ao shell.menu; a decisão [W] de 2026-10-07 levou o conserto
         # ao main pelo #8949 (ModuleUtil aceita a row legada), antes deste teste entrar.
+        # 2026-10-07 — TeamScopesContratoTest (UC-TSCOPE-01..03, thread 02 do playbook
+        # Forja) entra FAILING-FIRST pelo mesmo desvio declarado acima. Usa
+        # DatabaseTransactions, sem RefreshDatabase.
+        # 2026-10-07 — RoadmapQuarterViewContratoTest (UC-RQV-01..03, Roadmap/Index.casos.md)
+        # entra pelo MESMO desvio FAILING-FIRST: Pest local é proibido, o 1º veredito é
+        # aqui. DatabaseTransactions + tenant 98 (ADR 0358) — nada persiste.
+        # 2026-10-07 — AdsAdminProjectsContratoTest (UC-ADPJ-01..04, ads/Admin/Projects.casos.md)
         # 2026-10-07 — AdsAdminProjectShowContratoTest (UC-ADPS-01..02, ads/Admin/ProjectShow.casos.md)
         # entra pelo MESMO desvio FAILING-FIRST: Pest local é proibido, o 1º veredito é
         # aqui. DatabaseTransactions + tenant 98 × 99 (ADR 0358) — nada persiste.
@@ -193,17 +200,21 @@ jobs:
           vendor/bin/pest --no-coverage --colors=always \
             --log-junit test-results/pest-forja-junit.xml \
             Modules/Forja/Tests/Feature/ForjaRoutesSmokeTest.php \
+            Modules/Forja/Tests/Feature/ToolsContratoTest.php \
             Modules/Forja/Tests/Feature/AprovacoesMesaTest.php \
+            Modules/Forja/Tests/Feature/AdsAdminProjectsContratoTest.php \
             Modules/Forja/Tests/Feature/TrabalhoListaTest.php \
             Modules/Forja/Tests/Feature/AdsAdminProjectShowContratoTest.php \
             Modules/Forja/Tests/Feature/PipelineParidadeTest.php \
+            Modules/Forja/Tests/Feature/Roadmap/RoadmapQuarterViewContratoTest.php \
             Modules/Forja/Tests/Feature/ForjaMcpHandoffsInlineTest.php \
             Modules/Forja/Tests/Feature/BriefAlertOpsInboxTest.php \
             Modules/Forja/Tests/Feature/ForjaBadgePendenciasTest.php \
             Modules/Forja/Tests/Feature/ForjaInstaladaChaveLegadaTest.php \
             Modules/Forja/Tests/Feature/SyncMemoryWebhookSoMemoryTest.php \
             Modules/Forja/Tests/Feature/ForjaTriagemContratoTest.php \
-            Modules/Forja/Tests/Feature/ForjaSidebarEntradaContratoTest.php
+            Modules/Forja/Tests/Feature/ForjaSidebarEntradaContratoTest.php \
+            Modules/Forja/Tests/Feature/TeamScopesContratoTest.php
 
 
       # Passo 1 do plano da LC-13 (Gate:): a lane JA emitia JUnit e NINGUEM lia.

@@ -31,18 +31,20 @@ export default function Index({ html, sumario, fonte, blob, atualizadoEm, buscaD
   return (
     <AppShellV2 title="Documentação" breadcrumbItems={[{ label: 'Documentação' }]}>
       <div className="doc-page">
-        <PageHeader
-          title="Documentação do sistema"
-          subtitle="A página é o documento renderizado a cada acesso — não uma cópia dele."
-          actions={
-            <Button asChild variant="outline" size="sm">
-              <a href={blob} target="_blank" rel="noopener noreferrer">Ver fonte no git</a>
-            </Button>
-          }
-          below={<LenteBar nav={nav} path="/documentacao" />}
-        />
+        <div data-contract="doc-cabecalho">
+          <PageHeader
+            title="Documentação do sistema"
+            subtitle="A página é o documento renderizado a cada acesso — não uma cópia dele."
+            actions={
+              <Button asChild variant="outline" size="sm">
+                <a href={blob} target="_blank" rel="noopener noreferrer">Ver fonte no git</a>
+              </Button>
+            }
+            below={<div data-contract="doc-lentebar"><LenteBar nav={nav} path="/documentacao" /></div>}
+          />
+        </div>
 
-        <div className="doc-wrap">
+        <div className="doc-wrap" data-contract="doc-corpo">
           <DocRail nav={nav} atual={atual} escopoProsa={escopo.prosa} buscaDisponivel={buscaDisponivel} />
 
           <main className="doc-main">
