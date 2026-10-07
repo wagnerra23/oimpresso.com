@@ -56,6 +56,10 @@ last_run: "2026-10-07"
 | UC-NFTR-18 | Sem regime escolhido ou sem NCM válido, a tela não avança e não aplica | must `[fiscal]` | UC-NFTR-14..17 · charter (confirmação explícita) | e2e `nfe-tributacao-onboarding.spec.ts` | 🧪 |
 | UC-NFTR-08 | O simulador devolve o mesmo cálculo da emissão e não grava nada | must `[fiscal]` | D-SIM · US-NFE-010 "Preview de cálculo" · `NfeService::montarItensNfe` | `TributacaoSimuladorTest` | 🧪 |
 | UC-NFTR-09 | Simular produto de outra empresa é 404, e sem permissão é 403 | must `[T0]` | ADR 0093 · `nfe.tributacao.manage` | `TributacaoSimuladorTest` | 🧪 |
+| UC-NFTR-10 | Sugestão da Jana nunca altera regra nem produto sozinha | must `[T0]` `[fiscal]` | D-IA · ADR 0141 · Fiscal/SPEC (rejeição é determinística) | `SugestaoFiscalTest` | 🧪 |
+| UC-NFTR-11 | A Jana só lê o produto da própria empresa, sem preço, cliente ou CNPJ | must `[T0]` | ADR 0093 · ADR 0141 | `ProdutoFiscalToolTest` | 🧪 |
+| UC-NFTR-12 | Aceitar ou descartar sugestão de outra empresa é 404 | must `[T0]` | ADR 0093 | `SugestaoFiscalTest` | 🧪 |
+| UC-NFTR-13 | Jana fora do ar não afeta emissão nem cadastro | must `[fiscal]` | D-IA (IA nunca é caminho crítico) | `SugestaoFiscalTest` | 🧪 |
 
 > **Recibo:** ver §Recibo de execução no rodapé — status é o **veredito** da corrida, não leitura de código.
 
@@ -297,9 +301,57 @@ last_run: "2026-10-07"
 - **Regressão que defende:** endpoint read-only vazando cadastro alheio.
 - **Status: 🧪** — veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
 
+## UC-NFTR-10 · Sugestão da Jana nunca altera regra nem produto sozinha · `must` `[T0]` `[fiscal]`
+
+- **Persona:** qualquer usuário com a Jana ligada.
+- **Aceite:** Dado sugestões geradas · Então `products` e `nfe_fiscal_rules` ficam intactos, e só viram
+  sugestão as que apontam para algo da empresa com tipo, risco e NCM válidos (a alíquota que a Jana
+  mandar junto é descartada — a IA nunca sugere alíquota). Aceitar **sem** `nfe.tributacao.manage` → 403;
+  risco alto sem `confirmou_leitura` → 422; aceitar certo → versão nova da regra pelo caminho normal +
+  `activity` com o autor. Controle positivo: descartar não muda o produto e também gera `activity`.
+- **Teste:** [`SugestaoFiscalTest`](../../../../../Modules/NfeBrasil/Tests/Feature/SugestaoFiscalTest.php) — `UC-NFTR-10 · sugestão nunca aplica sozinha`.
+- **Contrato:** D-IA ([W] 2026-10-06) · ADR 0141 · Fiscal/SPEC (rejeição é receita determinística por cStat).
+- **Regressão que defende:** IA mudando a tributação sem dono.
+- **Status: 🧪** — veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
+
+## UC-NFTR-11 · A Jana só lê o produto da própria empresa, sem preço, cliente ou CNPJ · `must` `[T0]`
+
+- **Persona:** —
+- **Aceite:** Dado a tool fiscal da Jana · Quando monta o contexto · Então só há id, nome, descrição,
+  unidade, categoria, NCM e regras do **business do construtor**; nenhum campo de preço, custo, cliente
+  ou CNPJ. Controle positivo: a tool da outra empresa vê o produto dela.
+- **Teste:** [`ProdutoFiscalToolTest`](../../../../../Modules/NfeBrasil/Tests/Feature/ProdutoFiscalToolTest.php)
+  — `UC-NFTR-11 · tool fiscal só lê o próprio tenant e sem PII`.
+- **Contrato:** ADR 0093 · ADR 0141 (`business_id` pelo construtor).
+- **Regressão que defende:** vazamento entre empresas via prompt.
+- **Status: 🧪** — veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
+
+## UC-NFTR-12 · Aceitar ou descartar sugestão de outra empresa é 404 · `must` `[T0]`
+
+- **Persona:** qualquer tenant.
+- **Aceite:** Dado sugestão da empresa A · Quando B aceita ou descarta · Então 404 e nada muda em A.
+  Controle positivo: A aceita a própria e o NCM do produto muda.
+- **Teste:** [`SugestaoFiscalTest`](../../../../../Modules/NfeBrasil/Tests/Feature/SugestaoFiscalTest.php) — `UC-NFTR-12 · sugestão isolada por tenant`.
+- **Contrato:** ADR 0093.
+- **Regressão que defende:** aceite cruzado mudando cadastro de outra empresa.
+- **Status: 🧪** — veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
+
+## UC-NFTR-13 · Jana fora do ar não afeta emissão nem cadastro · `must` `[fiscal]`
+
+- **Persona:** dia em que o provedor de IA cai.
+- **Aceite:** Dado a Jana indisponível · Quando peço sugestões · Então a resposta diz
+  "Sugestões indisponíveis agora." e nada é gravado; salvar regra e calcular imposto funcionam igual.
+  Controle positivo: com a Jana de volta, as sugestões reaparecem.
+- **Teste:** [`SugestaoFiscalTest`](../../../../../Modules/NfeBrasil/Tests/Feature/SugestaoFiscalTest.php) — `UC-NFTR-13 · IA indisponível não bloqueia fiscal`.
+- **Contrato:** D-IA (IA é sugestão, nunca caminho crítico).
+- **Regressão que defende:** emissão travada porque a IA não respondeu.
+- **Status: 🧪** — veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
+
 ## Backlog — sem UC até ganhar teste
 
 > Prosa honesta, sem gate. Vira UC quando ganhar teste que o cite (G-2).
+
+- `[BACKLOG]` **"Perguntar à Jana" responde com fonte e não altera nada** (playbook Fiscal thread 10, UC-NFTR-10b provisório). Não entrou no PR da 10: é chat livre, e a thread entregou só as sugestões estruturadas. Vira UC com o teste `JanaFiscalPerguntaTest`.
 
 - `[BACKLOG]` **`regras` e `templates` são deferidos; `config` é eager.** O charter promete
   `p95 first-paint < 1500ms` e o controller aplica `Inertia::defer` nas duas props caras (Wave 25 D3).

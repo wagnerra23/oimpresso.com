@@ -26,17 +26,17 @@
   ],
   "stats": {
     "modules": 35,
-    "nodes": 745,
-    "edges": 1036,
+    "nodes": 746,
+    "edges": 1037,
     "by_node_type": {
       "module": 39,
-      "table": 104,
+      "table": 105,
       "adr": 136,
       "component": 389,
       "api": 77
     },
     "by_edge_type": {
-      "ownsTable": 93,
+      "ownsTable": 94,
       "ownsLegacyView": 13,
       "consumesTable": 6,
       "providesApi": 81,
@@ -6004,6 +6004,17 @@
       "ownership_mode": "single"
     },
     {
+      "id": "table:nfe_sugestoes_fiscais",
+      "type": "table",
+      "name": "nfe_sugestoes_fiscais",
+      "owners": [
+        "NfeBrasil"
+      ],
+      "consumers": [],
+      "legacy_views": [],
+      "ownership_mode": "single"
+    },
+    {
       "id": "table:payment_gateway_credentials",
       "type": "table",
       "name": "payment_gateway_credentials",
@@ -10374,6 +10385,12 @@
     {
       "from": "module:NfeBrasil",
       "to": "table:nfe_sefaz_status",
+      "type": "ownsTable",
+      "source": "db_tables_owned"
+    },
+    {
+      "from": "module:NfeBrasil",
+      "to": "table:nfe_sugestoes_fiscais",
       "type": "ownsTable",
       "source": "db_tables_owned"
     },

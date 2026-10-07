@@ -10,6 +10,7 @@ use Modules\NfeBrasil\Http\Controllers\InstallController;
 use Modules\NfeBrasil\Http\Controllers\NfeBrasilController;
 use Modules\NfeBrasil\Http\Controllers\NfeInutilizacaoController;
 use Modules\NfeBrasil\Http\Controllers\NfeStatusController;
+use Modules\NfeBrasil\Http\Controllers\SugestaoFiscalController;
 use Modules\NfeBrasil\Http\Controllers\TributacaoController;
 
 /*
@@ -93,6 +94,14 @@ Route::middleware(['web', 'auth', 'SetSessionData', 'language', 'timezone', 'Adm
 
         // Simulador read-only (playbook Fiscal thread 08 · D-SIM) — chama a montagem da emissão.
         Route::get('simular', [TributacaoController::class, 'simular'])->name('simular');
+
+        // Sugestões da Jana (playbook Fiscal thread 10 · D-IA) — a Jana sugere, só uma pessoa aplica.
+        Route::get('sugestoes', [SugestaoFiscalController::class, 'index'])->name('sugestoes.index');
+        Route::post('sugestoes/gerar', [SugestaoFiscalController::class, 'gerar'])->name('sugestoes.gerar');
+        Route::post('sugestoes/{id}/aceitar', [SugestaoFiscalController::class, 'aceitar'])
+            ->whereNumber('id')->name('sugestoes.aceitar');
+        Route::post('sugestoes/{id}/descartar', [SugestaoFiscalController::class, 'descartar'])
+            ->whereNumber('id')->name('sugestoes.descartar');
 
         // Templates tributários L1 (US-NFE-TPL-001)
         Route::post('templates/{slug}/aplicar', [TributacaoController::class, 'aplicarTemplate'])
