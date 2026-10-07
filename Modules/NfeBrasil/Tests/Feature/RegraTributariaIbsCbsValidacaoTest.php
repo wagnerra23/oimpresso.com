@@ -270,7 +270,8 @@ it('UC-NFRF-08 · a edição reabre com os 5 campos de IBS/CBS gravados', functi
             $r = $page->toArray()['props']['regra'] ?? [];
             expect(array_key_exists('c_class_trib', $r))->toBeTrue();
             expect($r['c_class_trib'])->toBeNull();
-            expect($r['aliquota_ibs'])->toBe(0.0);
-            expect($r['aliquota_cbs'])->toBe(0.0);
+            // O JSON do Inertia devolve 0.0 como 0 — a comparação é numérica, não de tipo.
+            expect((float) $r['aliquota_ibs'])->toBe(0.0);
+            expect((float) $r['aliquota_cbs'])->toBe(0.0);
         });
 });
