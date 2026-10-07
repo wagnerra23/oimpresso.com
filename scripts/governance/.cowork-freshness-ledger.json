@@ -48666,6 +48666,39 @@
     "projetoCowork": "w"
   },
   {
+    "date": "2026-10-07T11:08:37.363Z",
+    "files": 284,
+    "sync": 9,
+    "stale": 0,
+    "liveAbsent": 0,
+    "unchecked": 275,
+    "staleList": [],
+    "verified": [
+      "cliente-drawer760.jsx",
+      "cliente-extrato.jsx",
+      "cliente-form.jsx",
+      "cliente-import.jsx",
+      "cliente-mapa.jsx",
+      "cliente-telas.css",
+      "clientes-page.css",
+      "clientes-page.jsx",
+      "cowork-inbox/cliente/playbook/_saida-00.md"
+    ],
+    "verifiedHash": {
+      "cliente-drawer760.jsx": "77ea534bd02059972eab3bae4b96753a84d7455ed4d39587a63569fbab59a7e9",
+      "cliente-extrato.jsx": "cb08960f4631b5a239546e8ca7cf91330d303f8ad2f23401c66c7c6f4ce4af18",
+      "cliente-form.jsx": "8a7d8d181ea8a7f0ac8ccf94ffbc2dd45b3d07f56e589d6123d3e198a9b194d6",
+      "cliente-import.jsx": "cf8e1d4e1b4cc9f856c87980aadb9167e371408c3a12532bb6cd0f104951e62b",
+      "cliente-mapa.jsx": "56ca7189fc5df30536acaee079c48992770b52657ce2d1e8a3efe5c7038af9a3",
+      "cliente-telas.css": "2dfb6172f0362931a4d8124d4ae27ea4356df85da9f088b44e50ae491141cfe1",
+      "clientes-page.css": "809cf7eb67c42677c4c1789d610bac21fc8d3185a9b34368836977fc38eaa944",
+      "clientes-page.jsx": "4138838d53d5b157276af81444dcbdab7441e21acd369b3fda081bbe9d24321a",
+      "cowork-inbox/cliente/playbook/_saida-00.md": "ecae54354927f5b234ab0220b4b57915e067f75ba69f3de1e662e2bd984a28c5"
+    },
+    "origin": "medicao",
+    "projetoCowork": "w"
+  },
+  {
     "date": "2026-10-07T11:10:26.355Z",
     "files": 284,
     "sync": 2,

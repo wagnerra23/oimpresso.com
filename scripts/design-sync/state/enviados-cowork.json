@@ -5,6 +5,38 @@
       "sha256": "2ff0a0dec580f0ca33bb20aeb90dd24fc6fb1a9004394126fa65cedf6894656a",
       "em": "2026-10-07T11:11:24.232Z"
     },
+    "cliente-drawer760.jsx": {
+      "sha256": "77ea534bd02059972eab3bae4b96753a84d7455ed4d39587a63569fbab59a7e9",
+      "em": "2026-10-07T11:08:37.402Z"
+    },
+    "cliente-extrato.jsx": {
+      "sha256": "cb08960f4631b5a239546e8ca7cf91330d303f8ad2f23401c66c7c6f4ce4af18",
+      "em": "2026-10-07T11:08:37.402Z"
+    },
+    "cliente-form.jsx": {
+      "sha256": "8a7d8d181ea8a7f0ac8ccf94ffbc2dd45b3d07f56e589d6123d3e198a9b194d6",
+      "em": "2026-10-07T11:08:37.402Z"
+    },
+    "cliente-import.jsx": {
+      "sha256": "cf8e1d4e1b4cc9f856c87980aadb9167e371408c3a12532bb6cd0f104951e62b",
+      "em": "2026-10-07T11:08:37.402Z"
+    },
+    "cliente-mapa.jsx": {
+      "sha256": "56ca7189fc5df30536acaee079c48992770b52657ce2d1e8a3efe5c7038af9a3",
+      "em": "2026-10-07T11:08:37.402Z"
+    },
+    "cliente-telas.css": {
+      "sha256": "2dfb6172f0362931a4d8124d4ae27ea4356df85da9f088b44e50ae491141cfe1",
+      "em": "2026-10-07T11:08:37.402Z"
+    },
+    "clientes-page.css": {
+      "sha256": "809cf7eb67c42677c4c1789d610bac21fc8d3185a9b34368836977fc38eaa944",
+      "em": "2026-10-07T11:08:37.402Z"
+    },
+    "clientes-page.jsx": {
+      "sha256": "4138838d53d5b157276af81444dcbdab7441e21acd369b3fda081bbe9d24321a",
+      "em": "2026-10-07T11:08:37.402Z"
+    },
     "cms-extras.jsx": {
       "sha256": "6d6ccfeb4d4c891891be6f1841e1c50931ee9f1ca9e92c86696840f895dce24b",
       "em": "2026-10-07T11:11:24.232Z"
@@ -40,6 +72,10 @@
     "cowork-inbox/atendimento/playbook/_saida-A1.md": {
       "sha256": "d8a39c2513554a142e58ff4a75683617ff1fd8d24086ea186f9aa2f1bf945720",
       "em": "2026-10-06T17:50:50.211Z"
+    },
+    "cowork-inbox/cliente/playbook/_saida-00.md": {
+      "sha256": "ecae54354927f5b234ab0220b4b57915e067f75ba69f3de1e662e2bd984a28c5",
+      "em": "2026-10-07T11:08:37.402Z"
     },
     "cowork-inbox/comissoes/playbook/_saida-01.md": {
       "sha256": "bc62e4f65b129f4b652021045e5be31687506d81d4df4f88f5a3ce5b9d19df4a",
