@@ -4,8 +4,13 @@ irmaos: Index.charter.md (lei) · memory/requisitos/Documentacao/ANTI-REGRESSAO-
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — o contrato de teste nasce junto com a tela, não depois.
 owner: wagner
-last_run: "2026-09-24"
+last_run: "2026-10-07"
 ---
+
+> ℹ️ **`last_run` 2026-09-24 → 2026-10-07 (G-6), e o que mudou NÃO foi comportamento.**
+> O playbook telas-soltas (thread 01) acrescenta 3 atributos `data-contract` (`doc-cabecalho` e `doc-lentebar` em `div` que embrulham o `PageHeader` e a `LenteBar`; `doc-corpo` no `doc-wrap`) para o contrato
+> `governance/design/contracts/documentacao.contract.json`. Zero handler, zero dado, zero copy. Nenhum UC afirma âncora;
+> **nenhum UC foi reexecutado** — o bump é o trio reconciliado com a tela nesta data.
 
 # Casos de Uso & Aceite — Documentacao/Index
 

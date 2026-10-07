@@ -1,0 +1,16 @@
+{
+  "_nota": "Derivado do alvo governance/design/targets/soltas--cobranca--index.alvo.json (thread A1 do playbook telas-soltas, rota `cobranca` do protótipo → PG_CobrancaPage), não do .tsx. Uma seção por seção do alvo (7), ids com prefixo cob- e nome de papel no lugar dos posicionais: bloco_3 → cob-funil (FunnelStrip), bloco_5 → cob-status (abas de status + busca), nav → cob-nav. Na tela a sub-nav fica DENTRO do cabeçalho; no protótipo é uma linha à parte — a âncora cob-nav marca o FinanceiroSubNav onde ele está. Copy só onde protótipo e tela dizem a mesma coisa; \"PIX Aut.\" × \"PIX Automático\" e o \"Exportar\" (removido da tela por não ter rota) ficam fora.",
+  "tela": "Financeiro/Cobranca/Index",
+  "fonte": "prototipo-ui/cowork/Wagner/pg-cobranca-page.jsx",
+  "alvo": ["resources/js/Pages/Financeiro/Cobranca/Index.tsx"],
+  "secoes": [
+    { "id": "cob-cabecalho", "copy": ["Cobrança", "Resumir mês", "Gateways", "Remessa/Retorno", "Nova cobrança"] },
+    { "id": "cob-nav", "copy": [] },
+    { "id": "cob-funil", "copy": [] },
+    { "id": "cob-kpis", "copy": ["Pago no mês", "Vencido", "Em aberto", "Próx. janela remessa"] },
+    { "id": "cob-status", "copy": ["Todos", "Pagas", "Vencidas", "Canceladas", "Erro", "cliente, doc, nosso nº, origem… (/ pra focar)"] },
+    { "id": "cob-filtros", "copy": ["Tipo", "Boleto", "Cartão", "Todos gateways", "Todas contas destino", "Origem", "Recorrente"] },
+    { "id": "cob-lista", "copy": ["Vencimento", "Pagador / Origem", "Tipo · Gateway", "Conta destino", "Nosso nº", "Valor", "Status"] }
+  ],
+  "ordem": ["cob-cabecalho", "cob-nav", "cob-funil", "cob-kpis", "cob-status", "cob-filtros", "cob-lista"]
+}
