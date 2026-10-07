@@ -36,8 +36,14 @@ last_run: "2026-10-07"
   `em_grupo`, o grupo com 9.25 e a composição "PIS" + "COFINS" · E não vejo a alheia.
 - **Status: 🧪**
 
+## UC-IMPOS-04 · O percentual do drawer chega igual ao banco · `[valor]`
+- **Persona:** quem cadastra "ICMS 18%" ou corrige "COFINS 7,60".
+- **Aceite:** Dado o texto que o drawer monta (pt-BR, sem separador de milhar: `"1,65"`, `"7,60"`, `"18,00"`, `"1234,50"`,
+  `"0,1250"`) · Quando cadastro · Então o banco guarda o mesmo número que o `num_uf` devolve para o texto (dois caminhos) ·
+  E editar só o nome, reenviando o percentual, não muda o número.
+- **Status: 🧪**
+
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
-- [BACKLOG] Cadastrar e editar alíquota no drawer, com o texto pt-BR que o `num_uf` lê (F3-2).
 - [BACKLOG] Editar grupos — depende do conserto do `GroupTaxController` (decisão [W]).
 
 ## Trilha do tempo
