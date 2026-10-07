@@ -1,0 +1,12 @@
+{
+  "_nota": "Derivado do alvo governance/design/targets/soltas--documentacao--index.alvo.json (thread A1 do playbook telas-soltas, rota `documentacao` do protótipo), não do .tsx. Uma seção por seção do alvo (3: header · lentebar · corpo), ids com prefixo doc-. Copy só onde protótipo e tela dizem a mesma coisa: \"Documentação\" (o protótipo diz só isso no h1; a tela diz \"Documentação do sistema\") e \"Ver fonte no git\". O alvo é o arquivo Index.tsx, não o diretório: Programa.tsx divide a pasta e já tem âncoras cabecalho/kpis de outra tela.",
+  "tela": "Documentacao/Index",
+  "fonte": "prototipo-ui/cowork/Wagner/documentacao-page.jsx",
+  "alvo": ["resources/js/Pages/Documentacao/Index.tsx"],
+  "secoes": [
+    { "id": "doc-cabecalho", "copy": ["Documentação", "Ver fonte no git"] },
+    { "id": "doc-lentebar", "copy": [] },
+    { "id": "doc-corpo", "copy": [] }
+  ],
+  "ordem": ["doc-cabecalho", "doc-lentebar", "doc-corpo"]
+}

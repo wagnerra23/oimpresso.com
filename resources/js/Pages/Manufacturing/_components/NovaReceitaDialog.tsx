@@ -131,6 +131,14 @@ export default function NovaReceitaDialog({ open, onOpenChange }: Props) {
   }, [query]);
 
   const temReceita = produto?.receita_id != null;
+  // Trocar produto recomeça a busca: o texto anterior ficava no campo e o que se digitava a seguir
+  // se juntava a ele ("Documenta" + "ca" = "Documentaca"), visto em produção em 2026-10-07.
+  const trocarProduto = () => {
+    setProduto(null);
+    setQuery('');
+    setOpcoes([]);
+    setCopiarDe(SEM_COPIA);
+  };
   const continuar = () => {
     if (!produto) return;
     // O editor é Blade (página inteira, com o layout dele) — navegação de verdade, não Inertia.
@@ -198,7 +206,7 @@ export default function NovaReceitaDialog({ open, onOpenChange }: Props) {
                   <span className="block truncate font-medium">{produto.nome}</span>
                   <span className="block truncate text-xs text-muted-foreground">{produto.sku}</span>
                 </span>
-                <Button variant="ghost" size="sm" onClick={() => setProduto(null)} aria-label="Trocar produto">
+                <Button variant="ghost" size="sm" onClick={trocarProduto} aria-label="Trocar produto">
                   <X aria-hidden="true" className="size-4" />
                 </Button>
               </Inline>
