@@ -24,6 +24,7 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/crm/playbook/
 | D2 | Lead reusa o form de Cliente? | 02 |
 | D3 | Portal do contato (cliente-facing) entra agora? | — |
 | D4 | Pages do Crm em `Modules/Crm/Resources/js/Pages` ou `resources/js/Pages/Crm` | 01 · 02 |
+| D5 ✅ | Registro em acompanhamento de colega por quem só vê os seus → **restringir; dono decide pelo papel** ([W] 07/10) | 10 |
 
 ## 3 · Threads
 
@@ -77,6 +78,16 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/crm/playbook/
       ],
       "resposta": "Modules/Crm/Resources/js/Pages",
       "fonte": "_DECISOES-W-2026-10-01.md"
+    },
+    {
+      "id": "D5",
+      "pergunta": "Registro (ScheduleLogController@store) em acompanhamento de colega por quem só tem crm.access_own_schedule: restringir?",
+      "respondida": true,
+      "destrava": [
+        "10"
+      ],
+      "resposta": "restringir: store respeita access_own_schedule (mesmo escopo da leitura); o dono decide pelo papel; sem config nova",
+      "fonte": "_DECISOES-W-2026-10-07.md"
     }
   ],
   "threads": [
@@ -299,10 +310,33 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/crm/playbook/
       ],
       "provas": [
         {
-          "tipo": "execucao",
-          "nota": "UCs de escrita verdes; os botões da toolbar deixam de levar a ?classico=1"
+          "tipo": "nao_contem",
+          "path": "${MPAGES}/Crm/Acompanhamentos/Index.tsx",
+          "padrao": "classico=1"
+        },
+        {
+          "tipo": "arquivo",
+          "path": "${MPAGES}/Crm/Acompanhamentos/_components/FormAntecipado.tsx"
+        },
+        {
+          "tipo": "arquivo",
+          "path": "${MPAGES}/Crm/Acompanhamentos/_components/FormRecorrente.tsx"
+        },
+        {
+          "tipo": "arquivo",
+          "path": "${MPAGES}/Crm/Acompanhamentos/_components/FormRegistro.tsx"
+        },
+        {
+          "tipo": "arquivo",
+          "path": "${MPAGES}/Crm/Acompanhamentos/_components/DrawerAcompanhamento.tsx"
+        },
+        {
+          "tipo": "contem",
+          "path": "${MOD}/Tests/Feature/CrmAcompanhamentosContratoTest.php",
+          "padrao": "UC-CRMACO-21"
         }
-      ]
+      ],
+      "nota_provas": "provas estruturais propostas no _saida-07e (avaliarProva OK + controle negativo); substituem a de execucao"
     },
     {
       "id": "08",
@@ -322,10 +356,25 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/crm/playbook/
       ],
       "provas": [
         {
-          "tipo": "execucao",
-          "nota": "show de um cliente (não lead) pelo id → 404; API de follow-up não dá 500 por coluna inexistente"
+          "tipo": "contem",
+          "path": "${MOD}/Http/Controllers/LeadController.php",
+          "padrao": "->where('type', 'lead')"
+        },
+        {
+          "tipo": "nao_contem",
+          "path": "${MOD}/Utils/CrmUtil.php",
+          "padrao": "'contacts.prefix'"
+        },
+        {
+          "tipo": "arquivo",
+          "path": "${MOD}/Tests/Feature/CrmLeadShowEscopoTest.php"
+        },
+        {
+          "tipo": "arquivo",
+          "path": "${MOD}/Tests/Feature/CrmLeadsListQueryTest.php"
         }
-      ]
+      ],
+      "nota_provas": "provas estruturais do _saida-08b; substituem a de execucao"
     },
     {
       "id": "09",
@@ -351,9 +400,36 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/crm/playbook/
           "padrao": "view('contact.edit')"
         }
       ]
+    },
+    {
+      "id": "10",
+      "titulo": "Registro de acompanhamento respeita access_own_schedule (D5)",
+      "dono": "CL",
+      "vaga": 2,
+      "prs": 1,
+      "arquivo": "10-registro-escopo.md",
+      "depende_decisoes": [
+        "D5"
+      ],
+      "prefixo": [
+        "${MOD}/Http/Controllers/ScheduleLogController.php",
+        "${MOD}/Tests/Feature/",
+        "${MPAGES}/Crm/Acompanhamentos/Index.casos.md"
+      ],
+      "nao_toca": [
+        "${MPAGES}/Crm/Acompanhamentos/_components/"
+      ],
+      "provas": [
+        {
+          "tipo": "contem",
+          "path": "${MOD}/Http/Controllers/ScheduleLogController.php",
+          "padrao": "access_own_schedule"
+        }
+      ],
+      "nota_provas": "teste: só-own registrando em acompanhamento de colega → 403; com all → 201; UC novo no casos.md"
     }
   ],
-  "revisado": "2026-10-01 — recibos e _DECISOES do main c12552f40e2a aplicados · 2026-10-01 reconferência @99e6fa3e08f0: threads novas 06,07,08 · 2026-10-05 revisão dos recibos @aacb74f4df18"
+  "revisado": "2026-10-01 — recibos e _DECISOES do main c12552f40e2a aplicados · 2026-10-01 reconferência @99e6fa3e08f0: threads novas 06,07,08 · 2026-10-05 revisão dos recibos @aacb74f4df18 · 2026-10-07 SINCRONIZAR @f97a0be9fa4d: provas 07/08 do _saida-07e/08b · D5 + thread 10"
 }
 ```
 

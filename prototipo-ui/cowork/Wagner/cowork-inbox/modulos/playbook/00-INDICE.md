@@ -23,19 +23,25 @@ base: wagnerra23/oimpresso.com@main 2fe69ddc0280 (lido 2026-10-06 17:08 UTC)
       "id": "D1",
       "texto": "versão exibida: system.<alias>_version (recomendado) — P4",
       "dono": "W",
-      "respondida": false
+      "respondida": true,
+      "resposta": "[W] 2026-10-07 \"o que recomenda?\" → recomendação [CC]: mostrar system.<alias>_version (o que de fato rodou na instalação); module.json só como dica quando divergir",
+      "quando": "2026-10-07"
     },
     {
       "id": "D4",
       "texto": "install em fila só se houver worker em produção",
       "dono": "W",
-      "respondida": false
+      "respondida": true,
+      "resposta": "[W] 2026-10-07 \"o que recomenda?\" → recomendação [CC]: não — instalação continua síncrona (Hostinger proíbe daemon/worker; job sem worker deixaria \"instalando\" pra sempre). Thread 02 cancelada.",
+      "quando": "2026-10-07"
     },
     {
       "id": "D5",
       "texto": "remover chaves órfãs do modules_statuses.json — P8",
       "dono": "W",
-      "respondida": false
+      "respondida": true,
+      "resposta": "[W] 2026-10-07 \"o que recomenda?\" → recomendação [CC]: sim — apagar chaves órfãs do modules_statuses.json (módulo que não existe no disco não pode aparecer como ativo)",
+      "quando": "2026-10-07"
     }
   ],
   "threads": [
@@ -46,7 +52,6 @@ base: wagnerra23/oimpresso.com@main 2fe69ddc0280 (lido 2026-10-06 17:08 UTC)
       "arquivo": "01-install-falho-e-erro.md",
       "prefixo": [
         "app/Services/ModuleManagerService.php",
-        "tests/Unit/Services/ModuleErroFixtureTest.php",
         "tests/Feature/Modules/"
       ],
       "nao_toca": [
@@ -55,13 +60,14 @@ base: wagnerra23/oimpresso.com@main 2fe69ddc0280 (lido 2026-10-06 17:08 UTC)
       ],
       "provas": [
         {
-          "tipo": "arquivo",
-          "path": "tests/Unit/Services/ModuleErroFixtureTest.php"
+          "tipo": "contem",
+          "path": ".github/ci-sqlite-pest.list",
+          "padrao": "tests/Feature/Modules/ModuleManagerServiceTest.php"
         },
         {
           "tipo": "contem",
           "path": "app/Services/ModuleManagerService.php",
-          "padrao": "setActive($name, false)"
+          "padrao": "setActive($name, $estadoAnterior)"
         }
       ]
     },
@@ -78,15 +84,11 @@ base: wagnerra23/oimpresso.com@main 2fe69ddc0280 (lido 2026-10-06 17:08 UTC)
       "nao_toca": [
         "resources/js/Pages/Modules/Index.charter.md"
       ],
-      "provas": [
-        {
-          "tipo": "arquivo",
-          "path": "app/Jobs/InstalarModuloJob.php"
-        }
-      ],
+      "provas": [],
       "depende_decisoes": [
         "D4"
-      ]
+      ],
+      "bloqueio": "cancelada — D4 = não (sem worker em produção). Não executar."
     },
     {
       "id": "04",
@@ -138,6 +140,7 @@ base: wagnerra23/oimpresso.com@main 2fe69ddc0280 (lido 2026-10-06 17:08 UTC)
         }
       ]
     }
-  ]
+  ],
+  "revisado": "2026-10-07 errata do Code aplicada (_ERRATA-*-2026-10-07.md) @8d231ac7a13f"
 }
 ```

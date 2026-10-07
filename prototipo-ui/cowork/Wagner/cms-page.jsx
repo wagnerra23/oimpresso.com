@@ -425,7 +425,7 @@ function Depoimentos({ rows, onOpen }) {
         return (
           <div key={d.id} className="cms-card" onClick={() => onOpen(d)}>
             <div className="cms-card-h">
-              <div className="cms-card-av" style={{ background: c.bg, color: c.fg }}>{initials(d.title)}</div>
+              <div className="cms-card-av" style={{ '--av-bg': c.bg, '--av-fg': c.fg }}>{initials(d.title)}</div>
               <div><b>{d.title}</b><small>{d.papel}</small></div>
             </div>
             <p className="cms-card-txt">{d.content.replace(/<[^>]+>/g, "")}</p>

@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 // @covers-us US-FISCAL-021 — a regra tributária grava os 5 campos de IBS/CBS (NT 2025.002).
-// Contrato da tela: resources/js/Pages/NfeBrasil/Tributacao/RegraForm.casos.md — UC-NFRF-05 · 06 · 07
+// Contrato da tela: resources/js/Pages/NfeBrasil/Tributacao/RegraForm.casos.md — UC-NFRF-05 · 06 · 07 · 08
 // Os casos derivam do contrato (US-FISCAL-021 + migration 2026_05_26_000001 + NT 2025.002 +
 // MotorTributarioService::aplicarRegra, que já lê os 5) — não do FormRequest (§5 2026-06-05).
 
@@ -91,10 +91,13 @@ function ibsvContar(): int
 /** A linha como está no banco, com os 5 campos normalizados pra comparar. */
 function ibsvLinha(string $ncm): array
 {
+    // Desde a thread 07 a regra editada tem versões: lê a vigente (sem `valida_ate`), a mais nova.
     $r = DB::table('nfe_fiscal_rules')
         ->where('business_id', ibsvBiz())
         ->where('ncm', $ncm)
         ->whereNull('deleted_at')
+        ->whereNull('valida_ate')
+        ->orderByDesc('id')
         ->first();
 
     expect($r)->not->toBeNull();
@@ -185,12 +188,18 @@ it('UC-NFRF-07 · update grava e preserva IBS/CBS', function () {
 
     expect(ibsvLinha('22021000'))->toBe(ibsvCampos());
 
+    // Thread 07 (R-NFE-019): a edição gerou versão nova — a próxima edição é na vigente.
+    $vigente = (int) DB::table('nfe_fiscal_rules')
+        ->where('business_id', ibsvBiz())->where('versao_origem_id', $id)->whereNull('valida_ate')->value('id');
+    expect($vigente)->toBeGreaterThan($id);
+
     // CONTROLE POSITIVO — editar só o ICMS (o formulário não manda os 5) não zera o que já foi gravado.
-    $this->put("/nfe-brasil/tributacao/regras/{$id}", ibsvPayload(['ncm' => '22021000', 'aliquota_icms' => 0.25]))
+    $this->put("/nfe-brasil/tributacao/regras/{$vigente}", ibsvPayload(['ncm' => '22021000', 'aliquota_icms' => 0.25]))
         ->assertSessionHasNoErrors()
         ->assertRedirect();
 
-    expect((float) DB::table('nfe_fiscal_rules')->where('id', $id)->value('aliquota_icms'))->toBe(0.25);
+    expect((float) DB::table('nfe_fiscal_rules')
+        ->where('versao_origem_id', $id)->whereNull('valida_ate')->value('aliquota_icms'))->toBe(0.25);
     expect(ibsvLinha('22021000'))->toBe(ibsvCampos());
 });
 
@@ -223,4 +232,55 @@ it('UC-NFRF-06 · formato inválido de IBS/CBS é recusado e não grava', functi
         ->assertRedirect();
 
     expect(ibsvLinha('84439100'))->toBe(ibsvCampos());
+});
+
+// ---------------------------------------------------------------------------------------
+// UC-NFRF-08 · Os campos de IBS/CBS aparecem e salvam pela tela  [fiscal]  (thread 05)
+// Lado do servidor: reabrir a edição traz os 5 valores do banco na prop `regra`. Sem isso a tela
+// abriria a seção "Reforma tributária" vazia e o "Atualizar" gravaria nulo por cima. O lado da
+// tela (o form envia os 5) é o e2e `e2e/nfe-tributacao-regra.spec.ts`.
+// ---------------------------------------------------------------------------------------
+it('UC-NFRF-08 · a edição reabre com os 5 campos de IBS/CBS gravados', function () {
+    ibsvLogar();
+
+    $this->post('/nfe-brasil/tributacao/regras', ibsvPayload(['ncm' => '39219019'] + ibsvCampos()))
+        ->assertSessionHasNoErrors()
+        ->assertRedirect();
+
+    $id = (int) DB::table('nfe_fiscal_rules')
+        ->where('business_id', ibsvBiz())->where('ncm', '39219019')->value('id');
+
+    $props = null;
+    $this->get("/nfe-brasil/tributacao/regras/{$id}/edit")
+        ->assertOk()
+        ->assertInertia(function ($page) use (&$props) {
+            $props = $page->toArray()['props']['regra'] ?? [];
+        });
+
+    $reabertos = array_intersect_key($props, ibsvCampos());
+    ksort($reabertos);
+    $esperado = ibsvLinha('39219019');
+    ksort($esperado);
+
+    expect($reabertos)->toBe($esperado);
+    expect($reabertos['c_class_trib'] ?? null)->toBe('000001');
+
+    // CONTROLE POSITIVO — uma regra sem IBS/CBS reabre com códigos nulos e alíquotas 0: a prop
+    // lê o banco, não devolve um valor fixo.
+    $this->post('/nfe-brasil/tributacao/regras', ibsvPayload(['ncm' => '48211000']))
+        ->assertSessionHasNoErrors();
+
+    $outro = (int) DB::table('nfe_fiscal_rules')
+        ->where('business_id', ibsvBiz())->where('ncm', '48211000')->value('id');
+
+    $this->get("/nfe-brasil/tributacao/regras/{$outro}/edit")
+        ->assertOk()
+        ->assertInertia(function ($page) {
+            $r = $page->toArray()['props']['regra'] ?? [];
+            expect(array_key_exists('c_class_trib', $r))->toBeTrue();
+            expect($r['c_class_trib'])->toBeNull();
+            // O JSON do Inertia devolve 0.0 como 0 — a comparação é numérica, não de tipo.
+            expect((float) $r['aliquota_ibs'])->toBe(0.0);
+            expect((float) $r['aliquota_cbs'])->toBe(0.0);
+        });
 });
