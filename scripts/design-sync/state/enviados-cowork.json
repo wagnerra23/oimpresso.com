@@ -161,13 +161,29 @@
       "sha256": "4584ce245fd51d3959e9d3b8b191f8708ec1f6d738ce28615c6c6a5a8494cb32",
       "em": "2026-10-06T17:56:36.099Z"
     },
+    "cowork-inbox/forja/playbook/_ERRATA-INDICE-2026-10-07.md": {
+      "sha256": "266e64611cf47262b5804fd5ee29f3adf22c699c0f5d998d91eb1b6f012f543f",
+      "em": "2026-10-07T17:02:23.744Z"
+    },
     "cowork-inbox/forja/playbook/_saida-02.md": {
       "sha256": "49fd2ef4c9ae4569463ef97fa50d59c22fa0486c45b826fb721338a395698edf",
       "em": "2026-10-07T16:19:23.381Z"
     },
+    "cowork-inbox/forja/playbook/_saida-03.md": {
+      "sha256": "f6374d8ce82a242f807553ad94ab3e8fbd3c1f90f9d2b88e38c3d63abce9926e",
+      "em": "2026-10-07T17:02:23.744Z"
+    },
     "cowork-inbox/forja/playbook/_saida-04.md": {
       "sha256": "6700ea4f6f8723c42def0bc23b4b9f69a00d26b24dd2aefba1b2b53c72179854",
       "em": "2026-10-07T16:19:23.381Z"
+    },
+    "cowork-inbox/forja/playbook/_saida-07.md": {
+      "sha256": "f405fe7280e5ce4c28f958018cda473952ed096514a808186530f5e5ee8fd40a",
+      "em": "2026-10-07T17:02:23.744Z"
+    },
+    "cowork-inbox/forja/playbook/_saida-A1b.md": {
+      "sha256": "aeb206760d0971a10f6b7e8ff1d27f355a8e26f9451058ad90f20e3eac235017",
+      "em": "2026-10-07T17:02:23.744Z"
     },
     "cowork-inbox/modulos-faltantes/playbook/_saida-01.md": {
       "sha256": "487719e77a6b00ec227437b0f694d1370ecbcf31f197535b271642acfac07828",
