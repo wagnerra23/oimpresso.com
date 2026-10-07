@@ -28,6 +28,9 @@ beforeEach(function () {
 
     $this->actingAs($this->user);
     session(['user.business_id' => $this->business->id, 'user.id' => $this->user->id, 'business.id' => $this->business->id]);
+    // A coluna de valor do DataTable da Blade formata com Util::num_f, que lê a moeda da sessão
+    // (o SetSessionData põe isso no login de verdade).
+    session(['currency' => ['symbol' => 'R$', 'thousand_separator' => '.', 'decimal_separator' => ',']]);
 });
 
 /**
