@@ -178,9 +178,9 @@ jobs:
           DB_PASSWORD: root
         run: |
           mkdir -p test-results
-          vendor/bin/pest --no-coverage --colors=always \
+          vendor/bin/pest --no-coverage --colors=always tests/Feature/Relatorios/ \
             --log-junit test-results/pest-acessos-junit.xml \
-            tests/Feature/Roles/ tests/Feature/Users/ tests/Feature/Relatorios/ \
+            tests/Feature/Roles/ tests/Feature/Users/ \
             tests/Feature/Support/SuporteLogContratoTest.php
 
       # A régua honesta desta lane é `assertions`, NÃO "0 failed": skip sai exit 0
