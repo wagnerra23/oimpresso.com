@@ -40,6 +40,23 @@ function cliAgora() {
   const t = window.FIN_TODAY;
   return t instanceof Date ? t.getTime() : Date.now();
 }
+// ── Medida reprodutível (thread 00 do playbook Cliente, 2026-10-07) ──
+// Os scripts lazy carregam todos no boot (oimpresso.com.html), então a rota lida aqui
+// é a rota com que a página ABRIU. Quando uma vista monta pela primeira vez na rota de
+// boot, ela pula o esqueleto de 520 ms: a medida espera o DOM parar duas leituras
+// seguidas (design-diff-lote.mjs::esperarEstavel, passo 200 ms) e, com o esqueleto,
+// podia fotografar as 6 linhas falsas. Navegar até a rota depois do boot segue igual,
+// com esqueleto. O storage NÃO é ignorado: as medidas abrem contexto novo e só gravam
+// `oimpresso.route` (design-diff-lote.mjs:704 · render-proto-baseline.mjs:430), e
+// ignorar o storage apagaria os favoritos de quem recarrega a página.
+const CLI_ROTA_BOOT = (() => { try { return localStorage.getItem("oimpresso.route"); } catch (e) { return null; } })();
+const cliBootConsumido = {};
+function cliAbriuNaRota(rota) {
+  if (CLI_ROTA_BOOT !== rota || cliBootConsumido[rota]) return false;
+  cliBootConsumido[rota] = true;
+  return true;
+}
+window.cliAbriuNaRota = cliAbriuNaRota;
 function daysSince(iso) {
   if (!iso || iso === "—") return null;
   const [y, m, d] = iso.split("-").map(Number);
@@ -134,6 +151,12 @@ function FilterDropdown({ label, value, options, onChange, multi }) {
       </button>
       {open && (
         <div className={"cli-fdrop-menu" + (options.length > 12 ? " cli-fdrop-menu-tall" : "")}>
+          {/* Produção (Index.tsx:1536-1552): "Limpar" no simples, "Limpar tudo" no múltiplo — só com algo marcado. */}
+          {isActive && (
+            <button className="cli-fdrop-limpar" onClick={() => { onChange(multi ? [] : "all"); if (!multi) setOpen(false); }}>
+              {multi ? "Limpar tudo" : "Limpar"}
+            </button>
+          )}
           {options.map((o) => {
             const on = multi ? sel.includes(o.id) : value === o.id;
             return (
@@ -359,6 +382,8 @@ function useSearchShortcut(ref) {
       if (e.key === "/" && document.activeElement?.tagName !== "INPUT") {
         e.preventDefault(); ref.current?.focus();
       }
+      // Esc "cancela o foco" da busca (produção: cheat-sheet Index.tsx:2585).
+      if (e.key === "Escape" && document.activeElement === ref.current) ref.current?.blur();
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
@@ -403,7 +428,7 @@ function CliListPage() {
   ];
 
   return (
-    <div className="os-page cli-page">
+    <div className="os-page cli-page" data-page="Cliente/Index">
       <header className="os-page-h">
         <div className="os-page-h-l">
           <h1>{def.title}</h1>
@@ -576,7 +601,7 @@ function CustomerView({ onResumo, papeisOutros = {} }) {
   const [fNovos, setFNovos] = useStateC(false);
   const [cursor, setCursor] = useStateC(-1);
   const [ajuda, setAjuda] = useStateC(false);
-  const [carregando, setCarregando] = useStateC(true);
+  const [carregando, setCarregando] = useStateC(() => !cliAbriuNaRota("clientes"));
   const [favs, toggleFav] = useFavorites("clientes");
   const [statusOv, setStatusOv] = useStatusCadastro("clientes");
   const [creditos, lancarCredito] = useCreditos("clientes");
@@ -589,7 +614,7 @@ function CustomerView({ onResumo, papeisOutros = {} }) {
   const [toast, setToast] = useStateC(null);
   const searchRef = useRefC(null);
   useSearchShortcut(searchRef);
-  useEffectC(() => { const t = setTimeout(() => setCarregando(false), 520); return () => clearTimeout(t); }, []);
+  useEffectC(() => { if (!carregando) return; const t = setTimeout(() => setCarregando(false), 520); return () => clearTimeout(t); }, []);
 
   const enriched = useMemoC(() => OS_CLIENTS.map((c) => {
     const stats = clientStats(c, OS_LIST);
@@ -621,7 +646,9 @@ function CustomerView({ onResumo, papeisOutros = {} }) {
 
   const kpis = useMemoC(() => ({
     total:       enriched.length,
-    ativos:      enriched.filter((e) => e.derived.status === "ativo").length,
+    // "Clientes ativos" = com OS aberta (produção: KpiStripClickable · kpis.com_os_aberta).
+    ativos:      enriched.filter((e) => e.stats.openCount > 0).length,
+    cadAtivos:   enriched.filter((e) => e.derived.status === "ativo").length,
     vips:        enriched.filter((e) => e.derived.isVip).length,
     comSaldo:    enriched.filter((e) => e.derived.saldo > 0).length,
     comCredito:  enriched.filter((e) => e.derived.credito > 0).length,
@@ -639,7 +666,11 @@ function CustomerView({ onResumo, papeisOutros = {} }) {
 
   const filtered = enriched.filter(({ c, stats, derived }) => {
     if (excluidos.has(c.id)) return false;
-    if (fStatus !== "all" && derived.status !== fStatus) return false;
+    // Status tem duas famílias: a da OS (produção, Index.tsx:1010-1012) e a do cadastro.
+    if (fStatus === "os-active" && stats.openCount === 0) return false;
+    if (fStatus === "os-late" && stats.lateCount === 0) return false;
+    if (fStatus === "os-idle" && stats.openCount > 0) return false;
+    if (fStatus !== "all" && !fStatus.startsWith("os-") && derived.status !== fStatus) return false;
     if (fTipo !== "all" && derived.tipo !== fTipo) return false;
     if (fUf !== "all" && derived.uf !== fUf) return false;
     if (fTagList.length > 0 && !fTagList.every((t) => derived.tags.includes(t))) return false;
@@ -683,7 +714,7 @@ function CustomerView({ onResumo, papeisOutros = {} }) {
 
   // KPI-filtro: clique aplica (substitutivo), 2º clique desliga.
   const kpiOn = {
-    ativos: fStatus === "ativo" && fSemCompra === "all",
+    ativos: fStatus === "os-active" && fSemCompra === "all",
     vips: fTagList.length === 1 && fTagList[0] === "vip",
     saldo: fSaldo === "negativo",
     sem90: fSemCompra === "90",
@@ -692,7 +723,7 @@ function CustomerView({ onResumo, papeisOutros = {} }) {
     const ligado = kpiOn[k];
     limpar();
     if (ligado) return;
-    if (k === "ativos") setFStatus("ativo");
+    if (k === "ativos") setFStatus("os-active");
     if (k === "vips") setFTagList(["vip"]);
     if (k === "saldo") setFSaldo("negativo");
     if (k === "sem90") { setFStatus("ativo"); setFSemCompra("90"); }
@@ -734,7 +765,7 @@ function CustomerView({ onResumo, papeisOutros = {} }) {
   return (
     <>
       <div className="cli-kpihero">
-        <KpiHero l="Clientes ativos" v={kpis.ativos} s={kpiOn.ativos ? "filtro ligado — clique pra desligar" : "cadastro ativo"} icon={I.users} tone="primary" onClick={kpiFiltro("ativos")} on={kpiOn.ativos}/>
+        <KpiHero l="Clientes ativos" v={kpis.ativos} s={kpiOn.ativos ? "filtro ligado — clique pra desligar" : "com OS aberta"} icon={I.users} tone="primary" onClick={kpiFiltro("ativos")} on={kpiOn.ativos}/>
         <KpiHero l="VIPs" v={kpis.vips} s={kpiOn.vips ? "filtro ligado" : "prioridade total"} icon={I.starFill} tone="amber" onClick={kpiFiltro("vips")} on={kpiOn.vips}/>
         <KpiHero l="Com saldo" v={kpis.comSaldo} aside={kpis.saldoTotal > 0 ? fmtBRLshort(kpis.saldoTotal) : null} s={kpiOn.saldo ? "filtro ligado" : "inadimplência"} icon={I.cash} tone="rose" onClick={kpiFiltro("saldo")} on={kpiOn.saldo}/>
         <KpiHero l="Sem compra 90d" v={kpis.sem90d} s={kpiOn.sem90 ? "filtro ligado" : "risco churn"} icon={I.clock} tone="emerald" onClick={kpiFiltro("sem90")} on={kpiOn.sem90}/>
@@ -748,7 +779,10 @@ function CustomerView({ onResumo, papeisOutros = {} }) {
         resultCount={filtered.length}>
         <FilterDropdown label="Status" value={fStatus} onChange={setFStatus} options={[
           { id:"all", label:"Todos" },
-          { id:"ativo", label:"Ativo", count: kpis.ativos },
+          { id:"os-active", label:"Ativo (com OS aberta)", count: kpis.ativos },
+          { id:"os-late", label:"Atrasado", count: enriched.filter((e) => e.stats.lateCount > 0).length },
+          { id:"os-idle", label:"Sem OS", count: enriched.filter((e) => e.stats.openCount === 0).length },
+          { id:"ativo", label:"Cadastro ativo", count: kpis.cadAtivos },
           { id:"inativo", label:"Inativo", count: enriched.filter((e) => e.derived.status === "inativo").length },
           { id:"bloqueado", label:"Bloqueado", count: enriched.filter((e) => e.derived.status === "bloqueado").length },
         ]}/>
@@ -764,7 +798,7 @@ function CustomerView({ onResumo, papeisOutros = {} }) {
         }/>
         <FilterDropdown label="Sem compra há" value={fSemCompra} onChange={setFSemCompra} options={[
           { id:"all", label:"Sem filtro" },
-          ...[15, 30, 90, 180, 365].map((d) => ({ id: String(d), label: `${d} dias`, count: enriched.filter((e) => (e.derived?.frescor?.dias || 0) >= d).length })),
+          ...[15, 30, 90, 180, 365].map((d) => ({ id: String(d), label: d === 180 ? "6 meses" : d === 365 ? "1 ano" : `${d} dias`, count: enriched.filter((e) => (e.derived?.frescor?.dias || 0) >= d).length })),
         ]}/>
         <FilterDropdown label="Grupo" value={fGrupo} onChange={setFGrupo} options={[
           { id:"all", label:"Todos" },
@@ -772,9 +806,9 @@ function CustomerView({ onResumo, papeisOutros = {} }) {
         ]}/>
         <FilterDropdown label="Saldo" value={fSaldo} onChange={setFSaldo} options={[
           { id:"all", label:"Todos" },
-          { id:"negativo", label:"Em aberto", count: kpis.comSaldo },
+          { id:"negativo", label:"Em débito", count: kpis.comSaldo },
           { id:"credito", label:"Com crédito a favor", count: kpis.comCredito },
-          { id:"zero", label:"Zerado" },
+          { id:"zero", label:"Sem saldo" },
         ]}/>
       </Toolbar>
 
@@ -935,6 +969,7 @@ function CustomerView({ onResumo, papeisOutros = {} }) {
               <div><dt><kbd>J</kbd> <kbd>K</kbd></dt><dd>descer e subir na lista</dd></div>
               <div><dt><kbd>↵</kbd></dt><dd>abrir o cliente marcado</dd></div>
               <div><dt><kbd>⌘K</kbd></dt><dd>busca global do sistema</dd></div>
+              <div><dt><kbd>Esc</kbd></dt><dd>fechar modal ou cancelar foco</dd></div>
               <div><dt><kbd>?</kbd></dt><dd>mostrar ou esconder esta lista</dd></div>
             </dl>
           </div>
@@ -1014,7 +1049,7 @@ function CliEnderecoSection({ client }) {
   return (
     <div className="cli-section">
       <div className="cli-section-title cli-addr-head">
-        Endereços
+        Endereços de entrega / comerciais
         {editing === null && (
           <button className="cli-addr-add" onClick={abrirNovo}>
             <I.plus size={12}/> Adicionar
@@ -1024,7 +1059,7 @@ function CliEnderecoSection({ client }) {
       <p className="cli-addr-help">Endereços estruturados além do principal. Marque qual é o de entrega — é o que vai na nota fiscal.</p>
 
       {addrs.length === 0 && editing === null && (
-        <div className="cli-addr-empty"><I.mapPin size={14}/> Nenhum endereço cadastrado. Adicione para usar na entrega de vendas.</div>
+        <div className="cli-addr-empty"><I.mapPin size={14}/> Nenhum endereço cadastrado ainda.</div>
       )}
 
       <div className="cli-addr-list">
@@ -1276,6 +1311,7 @@ function AtalhosModal({ onClose, comEnter }) {
           <div><dt><kbd>J</kbd> <kbd>K</kbd></dt><dd>descer e subir na lista</dd></div>
           {comEnter && <div><dt><kbd>↵</kbd></dt><dd>abrir o registro marcado</dd></div>}
           <div><dt><kbd>⌘K</kbd></dt><dd>busca global do sistema</dd></div>
+          <div><dt><kbd>Esc</kbd></dt><dd>fechar modal ou cancelar foco</dd></div>
           <div><dt><kbd>?</kbd></dt><dd>mostrar ou esconder esta lista</dd></div>
         </dl>
       </div>
@@ -2113,6 +2149,23 @@ function Toolbar({ searchRef, q, setQ, placeholder, filtersCount, onClear, resul
 }
 
 window.CliListPage = CliListPage;
+
+// ══════════ ROTAS cli-* ↔ Pages vivas (thread 00 do playbook Cliente, 2026-10-07) ══════════
+// O roteador do app.jsx (:814-820) já manda cada rota pra sua vista; esta tabela só diz
+// qual Page Inertia cada uma espelha e de que arquivo vem. `Cliente/Show` NÃO tem rota:
+// criar `cli-show` exige mexer no app.jsx, e o que só o Show tem foi pro recibo
+// (cowork-inbox/cliente/playbook/_saida-00.md) pra [W] decidir: rota própria × fundir no drawer.
+// Cada vista declara `data-page` na raiz — o design-diff-lote recusa medir quando não bate.
+const CLI_ROTAS = {
+  "clientes":    { page: "Cliente/Index",        arquivo: "clientes-page.jsx + cliente-drawer760.jsx", vista: "lista no papel Clientes, sem filtro" },
+  "cli-novo":    { page: "Cliente/Create",       arquivo: "cliente-form.jsx",    vista: "formulário em branco" },
+  "cli-editar":  { page: "Cliente/Edit",         arquivo: "cliente-form.jsx",    vista: "formulário do 1º cliente de OS_CLIENTS (ou window.__CLI_EDITAR_ID)" },
+  "cli-import":  { page: "Cliente/Import",       arquivo: "cliente-import.jsx",  vista: "os 2 passos, sem arquivo" },
+  "cli-extrato": { page: "Cliente/Ledger",       arquivo: "cliente-extrato.jsx", vista: "extrato do 1º cliente (ou window.__CLI_EXTRATO_ID), 3 meses até FIN_TODAY" },
+  "cli-mapa":    { page: "Cliente/Map",          arquivo: "cliente-mapa.jsx",    vista: "lista + mapa sem cliente escolhido" },
+  "cli-grupos":  { page: "Cliente/Grupos/Index", arquivo: "cliente-grupos.jsx",  vista: "thread 03 — fora desta thread" },
+};
+window.CliRotas = CLI_ROTAS;
 // Peças reusadas pelo drawer 760 (cliente-drawer760.jsx → window.ClienteDrawer760).
 window.CLI_SPG = CLI_SPG;
 Object.assign(window, { cliGruposLer, cliGruposGravar, cliGrupoNome });
