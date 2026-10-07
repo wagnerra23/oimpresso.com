@@ -2592,7 +2592,7 @@ class ReportController extends Controller
     /**
      * Shows sell payment report
      *
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Contracts\View\View|\Inertia\Response|\Illuminate\Http\JsonResponse
      */
     public function sellPaymentReport(Request $request)
     {

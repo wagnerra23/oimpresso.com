@@ -72,9 +72,15 @@ function rpvPage($teste, int $cliente, int $pagina = 1): array
 test('UC-RPV-01 valor — valores por pagamento (troco negativo) = JSON do DataTable da Blade = soma direta', function () {
     $cliente = rpvCenario($this->business->id, $this->user->id, 3, 1); // 10, 11 (troco), 12
 
-    // Caminho 1: o JSON que o DataTable da Blade pede (valor com sinal no data-orig-value).
+    // Caminho 1: o JSON que o DataTable da Blade pede (valor com sinal no data-orig-value), com as
+    // mesmas colunas e a mesma ordem que o report.js manda — sem elas o yajra quebra.
+    $colunas = [];
+    foreach (['', 'payment_ref_no', 'paid_on', 'amount', 'customer', 'customer_group', 'method', 'invoice_no', 'action'] as $i => $c) {
+        $colunas[$i] = ['data' => $c, 'name' => $c, 'searchable' => 'true', 'orderable' => 'true', 'search' => ['value' => '', 'regex' => 'false']];
+    }
     $dt = $this->withHeaders(['X-Requested-With' => 'XMLHttpRequest', 'Accept' => 'application/json'])
         ->get('/reports/sell-payment-report?'.http_build_query(['draw' => 1, 'start' => 0, 'length' => -1,
+            'columns' => $colunas, 'order' => [['column' => 2, 'dir' => 'desc']], 'search' => ['value' => '', 'regex' => 'false'],
             'supplier_id' => $cliente, 'start_date' => RPV_INICIO, 'end_date' => RPV_FIM]));
     $dt->assertOk();
     expect($dt->json('error'))->toBeNull();
