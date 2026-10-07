@@ -22,7 +22,7 @@ import { Input } from '@/Components/ui/input';
 import { Badge } from '@/Components/ui/badge';
 import { Avatar, AvatarFallback } from '@/Components/ui/avatar';
 import { Select, SelectContent, SelectTrigger, SelectValue } from '@/Components/ui/select';
-import SafeSelectItem from '@/Components/ui/SafeSelectItem';
+import { SafeSelectItem } from '@/Components/ui/SafeSelectItem';
 import { Sheet, SheetContent, SheetDescription, SheetTitle } from '@/Components/ui/sheet';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
@@ -35,7 +35,7 @@ import DataTable from '@/Components/shared/DataTable';
 import KpiGrid from '@/Components/shared/KpiGrid';
 import KpiCard from '@/Components/shared/KpiCard';
 import type { ColumnDef } from '@tanstack/react-table';
-import { Inline, Stack } from '@/Components/layout';
+import { Grid, Inline, Stack } from '@/Components/layout';
 
 interface Usuario {
   id: number; usuario: string | null; nome: string; email: string | null;
@@ -45,6 +45,7 @@ interface Pode { criar: boolean; ver: boolean; editar: boolean; excluir: boolean
 interface Props { usuarios?: Usuario[]; pode: Pode }
 
 const TODOS = 'todos';
+const parar = (e: { stopPropagation: () => void }) => e.stopPropagation();
 const iniciais = (u: Usuario) => u.nome.split(/\s+/).filter(Boolean).slice(-2).map((p) => p[0]).join('').toUpperCase() || '?';
 
 function xsrf(): string {
@@ -135,23 +136,26 @@ function UsuariosIndex({ usuarios: usuariosProp, pode }: Props) {
     { id: 'situacao', header: 'Situação', cell: ({ row: { original: u } }) => <Situacao u={u} /> },
     {
       id: 'acoes', header: '', meta: { align: 'right' },
+      // O menu não abre o drawer junto (UC-USR-01 do protótipo): a linha é clicável e responde a
+      // Enter/Espaço, e o React propaga clique e tecla do portal do menu até ela.
       cell: ({ row: { original: u } }) => (
-        // O menu não abre o drawer junto (UC-USR-01 do protótipo).
-        <div onClick={(e) => e.stopPropagation()}>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild><Button variant="ghost" size="sm" aria-label={`Ações de ${u.nome}`}><MoreHorizontal className="size-4" /></Button></DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onSelect={() => setDetalhe(u)}>Ver detalhes</DropdownMenuItem>
-              {pode.editar && <DropdownMenuItem asChild><a href={`/users/${u.id}/edit`}>Editar usuário</a></DropdownMenuItem>}
-              {podeExcluir(u) && (
-                <>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem className="text-destructive" onSelect={() => abrirExcluir(u)}>Excluir</DropdownMenuItem>
-                </>
-              )}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="sm" aria-label={`Ações de ${u.nome}`} onClick={parar} onKeyDown={parar}>
+              <MoreHorizontal className="size-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" onClick={parar} onKeyDown={parar}>
+            <DropdownMenuItem onSelect={() => setDetalhe(u)}>Ver detalhes</DropdownMenuItem>
+            {pode.editar && <DropdownMenuItem asChild><a href={`/users/${u.id}/edit`}>Editar usuário</a></DropdownMenuItem>}
+            {podeExcluir(u) && (
+              <>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem className="text-destructive" onSelect={() => abrirExcluir(u)}>Excluir</DropdownMenuItem>
+              </>
+            )}
+          </DropdownMenuContent>
+        </DropdownMenu>
       ),
     },
   ];
@@ -235,11 +239,11 @@ function UsuariosIndex({ usuarios: usuariosProp, pode }: Props) {
             <Stack gap={4} className="p-5 text-sm">
               <Stack gap={2}>
                 <h3 className="text-xs font-semibold uppercase text-muted-foreground">Acesso</h3>
-                <dl className="grid grid-cols-2 gap-3">
+                <Grid cols={2} gap={3} asChild><dl>
                   <div><dt className="text-xs text-muted-foreground">Função</dt><dd>{detalhe.funcao ?? '—'}</dd></div>
                   <div><dt className="text-xs text-muted-foreground">Situação</dt><dd><Situacao u={detalhe} /></dd></div>
                   <div><dt className="text-xs text-muted-foreground">Entra no sistema</dt><dd>{detalhe.login ? 'Sim' : 'Não'}</dd></div>
-                </dl>
+                </dl></Grid>
                 <Inline gap={2}><Button variant="outline" size="sm" asChild><Link href="/roles">Ver permissões das funções</Link></Button></Inline>
               </Stack>
               <Inline gap={2} justify="end" className="border-t pt-4">
