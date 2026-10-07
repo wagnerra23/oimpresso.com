@@ -1064,7 +1064,7 @@ class ReportController extends Controller
             $filters['end_date'] = \Carbon::now()->endOfMonth()->format('Y-m-d');
         }
 
-        $expenses = $this->transactionUtil->getExpenseReport($business_id, $filters);
+        $expenses = $this->transactionUtil->getExpenseReport($business_id, $filters, 'by_category', auth()->user()->permitted_locations($business_id));
 
         $values = [];
         $labels = [];
@@ -1289,7 +1289,7 @@ class ReportController extends Controller
 
             $filters = $request->only(['expense_for', 'location_id', 'start_date', 'end_date']);
 
-            $total_expense = $this->transactionUtil->getExpenseReport($business_id, $filters, 'total');
+            $total_expense = $this->transactionUtil->getExpenseReport($business_id, $filters, 'total', auth()->user()->permitted_locations($business_id));
 
             return $total_expense;
         }
