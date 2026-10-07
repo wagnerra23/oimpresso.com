@@ -29,6 +29,11 @@ beforeEach(function () {
     $this->business = $this->seededTenant();
     $this->user = $this->usuarioComPermissoes(['user.view', 'user.create', 'user.update', 'user.delete'], $this->business);
 
+    // Toda empresa real nasce com a função `Admin#<id>`, e o update() consulta User::role('Admin#<id>')
+    // ao trocar a função — sem ela o Spatie lança RoleDoesNotExist. O seed do CI não cria a função
+    // (o banco do CT 100 tem): o fixture faz o que o cadastro da empresa faz.
+    Role::firstOrCreate(['name' => 'Admin#'.$this->business->id, 'guard_name' => 'web'], ['business_id' => $this->business->id]);
+
     // O store() revoga location.* do papel escolhido: com a permissão inexistente o Spatie lança.
     Permission::findOrCreate('access_all_locations', 'web');
     foreach (DB::table('business_locations')->where('business_id', $this->business->id)->pluck('id') as $loc) {
