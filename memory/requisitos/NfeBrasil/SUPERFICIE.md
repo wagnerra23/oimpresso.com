@@ -14,9 +14,9 @@ module: NfeBrasil
 >
 > **O que isto é:** o inventário completo das raízes `Modules/NfeBrasil/**` + `resources/js/Pages/NfeBrasil/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 255 arquivos em 19 papéis.
+**Total mapeado:** 261 arquivos em 19 papéis.
 
-## Controllers — 15
+## Controllers — 16
 
 - [CertificadoController.php](../../../Modules/NfeBrasil/Http/Controllers/CertificadoController.php)
 - [ConfigDefaultController.php](../../../Modules/NfeBrasil/Http/Controllers/ConfigDefaultController.php)
@@ -31,6 +31,7 @@ module: NfeBrasil
 - [NfeInutilizacaoController.php](../../../Modules/NfeBrasil/Http/Controllers/NfeInutilizacaoController.php)
 - [NfeStatusController.php](../../../Modules/NfeBrasil/Http/Controllers/NfeStatusController.php)
 - [RevisaoContadorController.php](../../../Modules/NfeBrasil/Http/Controllers/RevisaoContadorController.php)
+- [RevisaoContadorLinkController.php](../../../Modules/NfeBrasil/Http/Controllers/RevisaoContadorLinkController.php)
 - [SugestaoFiscalController.php](../../../Modules/NfeBrasil/Http/Controllers/SugestaoFiscalController.php)
 - [TributacaoController.php](../../../Modules/NfeBrasil/Http/Controllers/TributacaoController.php)
 
@@ -73,10 +74,11 @@ module: NfeBrasil
 - [TributacaoTemplateService.php](../../../Modules/NfeBrasil/Services/Tributacao/TributacaoTemplateService.php)
 - [TributoCalculado.php](../../../Modules/NfeBrasil/Services/Tributacao/TributoCalculado.php)
 
-## Models / Entities — 17
+## Models / Entities — 18
 
 - [NfeBusinessConfig.php](../../../Modules/NfeBrasil/Models/NfeBusinessConfig.php)
 - [NfeCertificado.php](../../../Modules/NfeBrasil/Models/NfeCertificado.php)
+- [NfeContadorLink.php](../../../Modules/NfeBrasil/Models/NfeContadorLink.php)
 - [NfeDfeEvento.php](../../../Modules/NfeBrasil/Models/NfeDfeEvento.php)
 - [NfeDfeItem.php](../../../Modules/NfeBrasil/Models/NfeDfeItem.php)
 - [NfeDfeNsuState.php](../../../Modules/NfeBrasil/Models/NfeDfeNsuState.php)
@@ -131,7 +133,7 @@ module: NfeBrasil
 - [api.php](../../../Modules/NfeBrasil/Routes/api.php)
 - [web.php](../../../Modules/NfeBrasil/Routes/web.php)
 
-## Migrations (schema) — 25
+## Migrations (schema) — 26
 
 - [2026_05_06_002000_create_nfe_certificados_table.php](../../../Modules/NfeBrasil/Database/Migrations/2026_05_06_002000_create_nfe_certificados_table.php)
 - [2026_05_06_002001_create_nfe_emissoes_table.php](../../../Modules/NfeBrasil/Database/Migrations/2026_05_06_002001_create_nfe_emissoes_table.php)
@@ -158,6 +160,7 @@ module: NfeBrasil
 - [2026_10_07_000003_create_nfe_icms_uf_table.php](../../../Modules/NfeBrasil/Database/Migrations/2026_10_07_000003_create_nfe_icms_uf_table.php)
 - [2026_10_07_000004_create_nfe_sugestoes_fiscais_table.php](../../../Modules/NfeBrasil/Database/Migrations/2026_10_07_000004_create_nfe_sugestoes_fiscais_table.php)
 - [2026_10_07_000005_create_nfe_revisoes_contador_table.php](../../../Modules/NfeBrasil/Database/Migrations/2026_10_07_000005_create_nfe_revisoes_contador_table.php)
+- [2026_10_07_000006_create_nfe_contador_links_table.php](../../../Modules/NfeBrasil/Database/Migrations/2026_10_07_000006_create_nfe_contador_links_table.php)
 
 ## Seeders — 2
 
@@ -169,8 +172,9 @@ module: NfeBrasil
 - [config.php](../../../Modules/NfeBrasil/Config/config.php)
 - [retention.php](../../../Modules/NfeBrasil/Config/retention.php)
 
-## Views (Blade) — 4
+## Views (Blade) — 5
 
+- [revisao.blade.php](../../../Modules/NfeBrasil/Resources/views/contador/revisao.blade.php)
 - [index.blade.php](../../../Modules/NfeBrasil/Resources/views/index.blade.php)
 - [master.blade.php](../../../Modules/NfeBrasil/Resources/views/layouts/master.blade.php)
 - [danfe-html.blade.php](../../../Modules/NfeBrasil/Resources/views/mail/danfe-html.blade.php)
@@ -211,12 +215,12 @@ module: NfeBrasil
 - [Index.casos.md](../../../resources/js/Pages/NfeBrasil/Tributacao/Index.casos.md)
 - [RegraForm.casos.md](../../../resources/js/Pages/NfeBrasil/Tributacao/RegraForm.casos.md)
 
-## Testes (Pest) — 72
+## Testes (Pest) — 73
 
-- 72 em [Modules/NfeBrasil/Tests/Feature/](../../../Modules/NfeBrasil/Tests/Feature)
+- 73 em [Modules/NfeBrasil/Tests/Feature/](../../../Modules/NfeBrasil/Tests/Feature)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
-## Demais arquivos (manifestos, docs, assets e misc) — 39
+## Demais arquivos (manifestos, docs, assets e misc) — 40
 
 - [.gitkeep](../../../Modules/NfeBrasil/Config/.gitkeep)
 - [.gitkeep](../../../Modules/NfeBrasil/Console/.gitkeep)
@@ -233,6 +237,7 @@ module: NfeBrasil
 - [.gitkeep](../../../Modules/NfeBrasil/Http/Middleware/.gitkeep)
 - [.gitkeep](../../../Modules/NfeBrasil/Http/Requests/.gitkeep)
 - [DanfeNotaFiscalMail.php](../../../Modules/NfeBrasil/Mail/DanfeNotaFiscalMail.php)
+- [RevisaoContadorMail.php](../../../Modules/NfeBrasil/Mail/RevisaoContadorMail.php)
 - [.gitkeep](../../../Modules/NfeBrasil/Providers/.gitkeep)
 - [.gitkeep](../../../Modules/NfeBrasil/Resources/assets/.gitkeep)
 - [app.js](../../../Modules/NfeBrasil/Resources/assets/js/app.js)

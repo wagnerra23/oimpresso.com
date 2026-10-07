@@ -63,6 +63,8 @@ last_run: "2026-10-07"
 | UC-NFTR-19 | Aceite é por versão e exige permissão própria (o dono não aceita pelo contador) | must `[T0]` `[fiscal]` | D-CONTADOR · D-SUPORTE · `RevisaoContadorService::podeAceitar` | `AceiteContadorTest` | 🧪 |
 | UC-NFTR-20 | Pedir ajuste exige comentário e fica registrado | must `[fiscal]` | D-CONTADOR | `AceiteContadorTest` | 🧪 |
 | UC-NFTR-21 | Falta de aceite não bloqueia emissão | must `[fiscal]` | D-SUPORTE (bloqueio vira chamado) | `AceiteContadorTest` | 🧪 |
+| UC-NFTR-22 | Link de revisão só abre com o código do e-mail, expira e serve a um business | must `[T0]` | D-CONTADOR (caminho 1) · US-NFE-009 (14 dias) · ADR 0093 | `RevisaoContadorLinkTest` | 🧪 |
+| UC-NFTR-23 | A revisão pelo link mostra só regras fiscais, com de → para, e baixa o CSV do Import | must `[T0]` | D-CONTADOR · LGPD minimização · `ImportRegrasCsvService::COLUNAS_OBRIGATORIAS` | `RevisaoContadorLinkTest` | 🧪 |
 
 > **Recibo:** ver §Recibo de execução no rodapé — status é o **veredito** da corrida, não leitura de código.
 
@@ -385,6 +387,36 @@ last_run: "2026-10-07"
 - **Teste:** [`AceiteContadorTest`](../../../../../Modules/NfeBrasil/Tests/Feature/AceiteContadorTest.php) — `UC-NFTR-21 · sem aceite emite normal`.
 - **Contrato:** D-SUPORTE (bloqueio vira chamado).
 - **Regressão que defende:** um gate de aceite parando o balcão.
+- **Status: 🧪** — veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
+
+## UC-NFTR-22 · Link de revisão só abre com o código do e-mail, expira e serve a um business · `must` `[T0]`
+
+- **Persona:** contador sem conta — e quem recebeu o link encaminhado.
+- **Aceite:** Dado a empresa (`nfe.tributacao.manage`) envia o link · Então ele vai ao e-mail do contador,
+  assinado, válido por 14 dias e preso ao business. Quando abro · Então só a tela do código, e um código de
+  6 dígitos vai ao mesmo e-mail (15 min). Sem o código, o CSV e o aceite dão 403. Código errado 5× → link
+  bloqueado (403, nem o código certo abre). Assinatura alterada, business trocado na URL ou mais de 14 dias
+  → 403. O código serve uma vez: outra sessão com o mesmo código → recusado; código com mais de 15 min →
+  recusado. Liberado, a lista mostra só o business do link; revisão de outro business pelo link → 404, e a
+  sessão liberada para um link não serve para outro. Controle positivo: o aceite pelo link grava nome,
+  e-mail e CRC do contador do link, sem usuário.
+- **Teste:** [`RevisaoContadorLinkTest`](../../../../../Modules/NfeBrasil/Tests/Feature/RevisaoContadorLinkTest.php) — `UC-NFTR-22 · link assinado + código, 14 dias, um business`.
+- **Contrato:** D-CONTADOR caminho 1 · US-NFE-009 (link de 14 dias) · ADR 0093.
+- **Regressão que defende:** link encaminhado aceitando em nome do contador; link que abre outra empresa.
+- **Status: 🧪** — veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
+
+## UC-NFTR-23 · A revisão pelo link mostra só regras fiscais, com de → para, e baixa o CSV do Import · `must` `[T0]`
+
+- **Persona:** contador revisando pelo link.
+- **Aceite:** Dado versões pendentes · Então cada item mostra NCM/UF, o campo que mudou (de → para), autor,
+  data e origem. Toda consulta das rotas do link fica em regra fiscal, revisão, o próprio link e o nome do
+  autor e da empresa — nenhuma lê cliente, venda ou nota. "Baixar regras (CSV)" sai com as 10 colunas do
+  Import, só do business do link. Pedir ajuste sem comentário → 422; com comentário → "ajuste pedido".
+  Controle positivo: o CSV baixado passa pelo `parse` do Import sem erro.
+- **Teste:** [`RevisaoContadorLinkTest`](../../../../../Modules/NfeBrasil/Tests/Feature/RevisaoContadorLinkTest.php) — `UC-NFTR-23 · só regras fiscais, com de → para e CSV do Import`.
+- **Contrato:** D-CONTADOR (caminhos 1 e 3) · LGPD minimização · `ImportRegrasCsvService::COLUNAS_OBRIGATORIAS`.
+- **Regressão que defende:** página do contador vazando dado de negócio; planilha que não volta pelo Import.
+- **Fora daqui:** o cadastro do contador em `/fiscal/config` e o papel "Contador" são a thread 15c.
 - **Status: 🧪** — veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
 
 ## Backlog — sem UC até ganhar teste
