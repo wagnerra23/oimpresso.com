@@ -64,8 +64,8 @@ async function chamar(metodo: 'POST' | 'GET', url: string, corpo?: Record<string
     body: corpo ? new URLSearchParams(corpo) : undefined,
     headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest', 'X-XSRF-TOKEN': xsrf() },
   });
-  const corpo = await r.json().catch(() => null);
-  if (corpo && typeof corpo.success === 'boolean') return corpo;
+  const resposta = await r.json().catch(() => null);
+  if (resposta && typeof resposta.success === 'boolean') return resposta;
   return { success: false, msg: `Não foi possível concluir (HTTP ${r.status}).` };
 }
 
