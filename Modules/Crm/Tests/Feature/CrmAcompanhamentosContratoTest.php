@@ -484,3 +484,35 @@ it('UC-CRMACO-20 · o rodapé conta status e tipo sobre a consulta filtrada e o 
     expect($dele->json('registros'))->toBeNull();
     expect($dele->getContent())->not->toContain('Rodape vizinho');
 });
+
+// ── UC-CRMACO-21 · o antecipado envia notificação como a Blade ──
+
+it('UC-CRMACO-21 · o antecipado grava a notificação escolhida em cada acompanhamento, e sem ela vai desligada', function () {
+    $user = acoUsuario('aco_todos_test', ['crm.access_all_schedule']);
+    $a = acoContato(ACO_BIZ, $user);
+    $b = acoContato(ACO_BIZ, $user);
+
+    // Com notificação: SMS, 2 dias antes — valores diferentes dos padrões, para o assert discriminar.
+    $com = acoCorpoAntecipado('Notifica {customer_name}', [$a => ['user_id' => [$user->id]], $b => ['user_id' => [$user->id]]]);
+    $com = array_merge($com, ['allow_notification' => 1, 'notify_via' => ['sms' => 1, 'mail' => 0], 'notify_before' => 2, 'notify_type' => 'day']);
+    $this->actingAs($user)->post(ACO_ROTA, $com, ACO_AJAX)->assertOk()->assertJson(['success' => true]);
+
+    $linhas = DB::table('crm_schedules')->whereIn('contact_id', [$a, $b])->where('title', 'like', 'Notifica %')->get();
+    expect($linhas)->toHaveCount(2);
+    foreach ($linhas as $l) {
+        expect((int) $l->allow_notification)->toBe(1)
+            ->and(json_decode($l->notify_via, true))->toEqual(['sms' => 1, 'mail' => 0])
+            ->and((int) $l->notify_before)->toBe(2)
+            ->and($l->notify_type)->toBe('day')
+            ->and((int) $l->business_id)->toBe(ACO_BIZ);
+    }
+
+    // Sem notificação: o que o modal manda com a caixa desmarcada.
+    $sem = acoCorpoAntecipado('Silencio {customer_name}', [$a => ['user_id' => [$user->id]]]);
+    $sem['allow_notification'] = 0;
+    $this->actingAs($user)->post(ACO_ROTA, $sem, ACO_AJAX)->assertOk()->assertJson(['success' => true]);
+
+    $linha = DB::table('crm_schedules')->where('contact_id', $a)->where('title', 'like', 'Silencio %')->first();
+    $this->assertNotNull($linha, 'o antecipado sem notificação não foi gravado');
+    expect((int) $linha->allow_notification)->toBe(0);
+});
