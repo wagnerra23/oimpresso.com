@@ -237,6 +237,7 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 | Quando | Onde | Resultado |
 |---|---|---|
 | _pendente_ | lane `PHP / Pest (NfeBrasil · MySQL)` — **required, `enforce_admins`** | a preencher com o run id |
+| 2026-10-07 | CT 100 `oimpresso-staging`, worktree isolado `c565e22bb` (thread 05) · `RegraTributariaIbsCbsValidacaoTest` | **branch:** 4 passed · 54 assertions. **Mesmo teste com o `TributacaoController` do `main`:** UC-NFRF-08 1 failed (*"two arrays are identical"* — a prop `regra` não traz os 5). `TributacaoControllerTest` 7 passed. `TributacaoGatesContratoTest` 3 failed **iguais com o controller do `main`** (UC-NFRF-01/04 · UC-NFIM-03: o `Admin#1` do staging, abaixo). |
 | 2026-10-07 | CT 100 `oimpresso-staging`, worktree isolado do branch da thread 04 · `RegraTributariaIbsCbsValidacaoTest` | **branch:** 3 passed · 30 assertions. **Mesmo teste com o `UpsertRegraTributariaRequest` do `main`:** 3 failed (UC-NFRF-05/07: arrays diferentes — os 5 campos voltam nulos; UC-NFRF-06: *"Session is missing expected key [errors]"*). |
 | 2026-10-06 | CT 100 `oimpresso-staging`, worktree isolado do branch `0e263d01b` · `--filter="UC-NFRF\|UC-NFTR-04"` | **controller do `main`:** 4 passed · 1 failed (UC-NFRF-04: *"Expected 403 but received 302"*) · 30 assertions. **Branch:** 5 passed · 33 assertions. Só o UC-NFRF-04 muda de estado. |
 
