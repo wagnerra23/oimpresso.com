@@ -40,12 +40,28 @@ class MotorTributarioService
     /** @var array<int,NfeBusinessConfig|null> Memoization por business_id */
     private array $cacheConfigs = [];
 
+    /**
+     * @param float|null $aliquotaInternaDestino alíquota interna do ICMS na UF de destino
+     *        (decimal, 0.20 = 20%). Sem ela o motor NÃO calcula ST nem DIFAL — devolve 0,
+     *        como hoje (lei 4: não inventa número). A tabela por UF é a thread 09.
+     * @param bool|null $destinatarioContribuinte true = tem IE; false = consumidor final
+     *        não contribuinte; null = desconhecido → sem DIFAL.
+     */
     public function calcular(
         ProdutoFiscalContext $produto,
         int $businessId,
         string $ufOrigem,
         string $ufDestino,
+        ?float $aliquotaInternaDestino = null,
+        ?bool $destinatarioContribuinte = null,
     ): TributoCalculado {
+        $destino = [
+            'uf_origem'     => $ufOrigem,
+            'uf_destino'    => $ufDestino,
+            'interna'       => $aliquotaInternaDestino,
+            'contribuinte'  => $destinatarioContribuinte,
+        ];
+
         // D9 Wave 26 observabilidade — wrap calcular() em span com business_id (Tier 0).
         return OtelHelper::span('nfe.motor_tributario.calcular', [
             'business_id' => $businessId,
@@ -53,8 +69,8 @@ class MotorTributarioService
             'uf_origem'   => $ufOrigem,
             'uf_destino'  => $ufDestino,
             'has_override' => $produto->fiscal_rule_override_id !== null,
-        ], function () use ($produto, $businessId, $ufOrigem, $ufDestino): TributoCalculado {
-            return $this->calcularInterno($produto, $businessId, $ufOrigem, $ufDestino);
+        ], function () use ($produto, $businessId, $ufOrigem, $ufDestino, $destino): TributoCalculado {
+            return $this->calcularInterno($produto, $businessId, $ufOrigem, $ufDestino, $destino);
         });
     }
 
@@ -66,6 +82,7 @@ class MotorTributarioService
         int $businessId,
         string $ufOrigem,
         string $ufDestino,
+        array $destino = [],
     ): TributoCalculado {
         // Nível 1 — override por produto (curto-circuito)
         if ($produto->fiscal_rule_override_id !== null) {
@@ -74,7 +91,7 @@ class MotorTributarioService
                 ->first();
 
             if ($regra) {
-                return $this->aplicarRegra($regra, $produto, nivel: 1);
+                return $this->aplicarRegra($regra, $produto, nivel: 1, destino: $destino);
             }
             // Override inválido: cai pro cascade normal (defensivo)
         }
@@ -89,13 +106,13 @@ class MotorTributarioService
         // Nível 2 — regra exata
         $regra = $this->buscarRegra($businessId, $produto->ncm, $ufOrigem, $ufDestino);
         if ($regra) {
-            return $this->aplicarRegra($regra, $produto, nivel: 2);
+            return $this->aplicarRegra($regra, $produto, nivel: 2, destino: $destino);
         }
 
         // Nível 3 — regra padrão NCM (uf_destino NULL)
         $regra = $this->buscarRegra($businessId, $produto->ncm, $ufOrigem, null);
         if ($regra) {
-            return $this->aplicarRegra($regra, $produto, nivel: 3);
+            return $this->aplicarRegra($regra, $produto, nivel: 3, destino: $destino);
         }
 
         // Nível 4 — defaults business
@@ -147,7 +164,10 @@ class MotorTributarioService
         NfeFiscalRule $regra,
         ProdutoFiscalContext $produto,
         int $nivel,
+        array $destino = [],
     ): TributoCalculado {
+        $extra = $this->calcularStFcpDifal($regra, $produto, $destino);
+
         return new TributoCalculado(
             cfop:            $regra->cfop,
             csosn:           $regra->csosn,
@@ -173,7 +193,81 @@ class MotorTributarioService
             aliquota_cbs:    (float) $regra->aliquota_cbs,
             valor_ibs:       $this->fmt($produto->valor * (float) $regra->aliquota_ibs),
             valor_cbs:       $this->fmt($produto->valor * (float) $regra->aliquota_cbs),
+            base_st:         $extra['base_st'],
+            valor_st:        $extra['valor_st'],
+            valor_fcp:       $extra['valor_fcp'],
+            valor_difal:     $extra['valor_difal'],
         );
+    }
+
+    /**
+     * ICMS-ST pela MVA, FCP e DIFAL — thread 06 do playbook Fiscal (D-MOTOR [W] 2026-10-06).
+     *
+     * ICMS-ST (R-NFE-015) — LC 87/1996, art. 8º, II: a base da ST é "obtida pelo somatório
+     * das parcelas seguintes: a) o valor da operação ou prestação própria realizada pelo
+     * substituto tributário ou pelo substituído intermediário; b) o montante dos valores de
+     * seguro, de frete e de outros encargos cobrados ou transferíveis aos adquirentes ou
+     * tomadores de serviço; c) a margem de valor agregado, inclusive lucro, relativa às
+     * operações ou prestações subseqüentes". Art. 8º, § 5º: o imposto por substituição
+     * "corresponderá à diferença entre o valor resultante da aplicação da alíquota prevista
+     * para as operações ou prestações internas do Estado de destino sobre a respectiva base
+     * de cálculo e o valor do imposto devido pela operação ou prestação própria do substituto".
+     *   base_st  = (valor + IPI) × (1 + MVA)
+     *   valor_st = base_st × interna_destino − ICMS próprio      (nunca negativo)
+     * Frete/seguro já estão no `valor` (base rateada por item na thread 17).
+     *
+     * CSOSN 500 (R-NFE-016) — "ICMS cobrado anteriormente por substituição tributária
+     * (substituído) ou por antecipação": a ST já foi retida, o motor NÃO recalcula.
+     *
+     * FCP (R-NFE-015b) — ADCT art. 82, § 1º: "poderá ser criado adicional de até dois pontos
+     * percentuais na alíquota do Imposto sobre Circulação de Mercadorias e Serviços - ICMS".
+     *   valor_fcp = valor × fcp da regra (em DIFAL é o FCP da UF de destino).
+     *
+     * DIFAL (R-NFE-017) — CF art. 155, § 2º, VII (EC 87/2015): "nas operações e prestações que
+     * destinem bens e serviços a consumidor final, contribuinte ou não do imposto, localizado
+     * em outro Estado, adotar-se-á a alíquota interestadual e caberá ao Estado de localização
+     * do destinatário o imposto correspondente à diferença entre a alíquota interna do Estado
+     * destinatário e a alíquota interestadual"; inciso VIII, b: a responsabilidade é atribuída
+     * "ao remetente, quando o destinatário não for contribuinte do imposto".
+     *   valor_difal = valor × (interna_destino − alíquota ICMS da regra)
+     *   só quando destinatário NÃO contribuinte e UF destino ≠ UF origem.
+     * O DIFAL do Simples por UF (ADI 5.464) é a thread 29 — aqui ainda não há esse corte.
+     *
+     * Sem alíquota interna do destino o motor devolve ST e DIFAL = 0 (comportamento de antes):
+     * nunca inventa a interna. O erro explicável "interna não cadastrada" é R-NFE-021 (thread 09).
+     *
+     * @param array{uf_origem?:string,uf_destino?:string,interna?:float|null,contribuinte?:bool|null} $destino
+     * @return array{base_st:float,valor_st:float,valor_fcp:float,valor_difal:float}
+     */
+    private function calcularStFcpDifal(NfeFiscalRule $regra, ProdutoFiscalContext $produto, array $destino): array
+    {
+        $valor        = $produto->valor;
+        $interna      = isset($destino['interna']) ? (float) $destino['interna'] : null;
+        $icmsProprio  = $this->fmt($valor * (float) $regra->aliquota_icms);
+        $ipi          = $this->fmt($valor * (float) $regra->aliquota_ipi);
+        $mva          = (float) ($regra->mva ?? 0);
+        $fcp          = (float) ($regra->fcp ?? 0);
+
+        $baseSt = 0.0;
+        $valorSt = 0.0;
+        $stRetidaAntes = (string) $regra->csosn === '500';
+        if ($mva > 0 && $interna !== null && ! $stRetidaAntes) {
+            $baseSt  = $this->fmt(($valor + $ipi) * (1 + $mva));
+            $valorSt = max(0.0, $this->fmt($baseSt * $interna - $icmsProprio));
+        }
+
+        $valorDifal = 0.0;
+        $interestadual = ($destino['uf_origem'] ?? '') !== ($destino['uf_destino'] ?? '');
+        if ($interna !== null && ($destino['contribuinte'] ?? null) === false && $interestadual) {
+            $valorDifal = max(0.0, $this->fmt($valor * ($interna - (float) $regra->aliquota_icms)));
+        }
+
+        return [
+            'base_st'     => $baseSt,
+            'valor_st'    => $valorSt,
+            'valor_fcp'   => $fcp > 0 ? $this->fmt($valor * $fcp) : 0.0,
+            'valor_difal' => $valorDifal,
+        ];
     }
 
     /**

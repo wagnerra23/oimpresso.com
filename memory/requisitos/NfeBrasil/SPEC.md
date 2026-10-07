@@ -430,6 +430,60 @@ Então `nfe_consultas.cache_key` UNIQUE bloqueia a 2ª de processar de novo
 **Implementação:** Cache de consulta com TTL + UNIQUE em `consultas` por chave + tipo.
 **Testado em:** _lacuna — ConsultaIdempotenciaTest não existe; nenhum teste cobre `nfe_consultas.cache_key` UNIQUE bloqueando reprocessamento da 2ª resposta_.
 
+### R-NFE-015 · ICMS-ST calculado pela MVA
+
+```gherkin
+Dado regra com mva=0,40, IPI 0, ICMS próprio 12% e alíquota interna do destino 20% informada
+Quando o motor calcula um item de valor 1.000,00 (fixture)
+Então base_st = 1.000 × 1,40 = 1.400,00 e valor_st = 1.400 × 0,20 − 120,00 = 160,00
+E regra sem MVA, ou sem a interna informada, devolve valor_st = 0 e os demais campos como antes
+```
+
+**Contrato:** LC 87/1996, art. 8º, II e § 5º (citados literalmente no docblock do motor) · US-NFE-010 · US-FISCAL-020.
+**Implementação:** `Modules/NfeBrasil/Services/MotorTributarioService.php` (`calcularStFcpDifal`) · `Modules/NfeBrasil/Services/Tributacao/TributoCalculado.php` (`base_st`, `valor_st`).
+**Testado em:** `Modules/NfeBrasil/Tests/Feature/MotorTributarioServiceTest.php` (lane `nfebrasil-pest`).
+**Fora deste item:** a interna vem do caller; a tabela por UF é R-NFE-021 (thread 09) e a emissão ainda não a informa, então o XML não muda.
+
+### R-NFE-015b · FCP calculado quando a regra tem FCP
+
+```gherkin
+Dado regra com fcp=0,02
+Quando o motor calcula um item de valor 1.000,00 (fixture)
+Então valor_fcp = 20,00 (em DIFAL, é o FCP da UF de destino)
+E regra com fcp nulo dá valor_fcp = 0
+```
+
+**Contrato:** ADCT art. 82, § 1º · coluna `nfe_fiscal_rules.fcp`, até aqui gravada e ignorada.
+**Implementação:** `Modules/NfeBrasil/Services/MotorTributarioService.php` (`calcularStFcpDifal`).
+**Testado em:** `Modules/NfeBrasil/Tests/Feature/MotorTributarioServiceTest.php` (lane `nfebrasil-pest`).
+
+### R-NFE-016 · CSOSN 500 não recalcula ST
+
+```gherkin
+Dado regra com csosn=500 (ST cobrada anteriormente) e mva preenchida
+Quando o motor calcula com a interna do destino informada
+Então valor_st = 0
+E a mesma regra com csosn=201 calcula a ST
+```
+
+**Implementação:** `Modules/NfeBrasil/Services/MotorTributarioService.php` (`calcularStFcpDifal`).
+**Testado em:** `Modules/NfeBrasil/Tests/Feature/MotorTributarioServiceTest.php` (lane `nfebrasil-pest`).
+**Fora deste item:** CST 60 (regime normal, mesma situação) ainda não é tratado.
+
+### R-NFE-017 · DIFAL só para não contribuinte em outra UF
+
+```gherkin
+Dado destinatário sem IE em UF diferente da origem, ICMS da regra 12% e interna do destino 20%
+Quando o motor calcula um item de valor 1.000,00 (fixture)
+Então valor_difal = 1.000 × (0,20 − 0,12) = 80,00
+E destinatário com IE, ou na mesma UF, dá valor_difal = 0
+```
+
+**Contrato:** CF art. 155, § 2º, VII e VIII, b (EC 87/2015), citados no docblock do motor.
+**Implementação:** `Modules/NfeBrasil/Services/MotorTributarioService.php` (`calcularStFcpDifal`).
+**Testado em:** `Modules/NfeBrasil/Tests/Feature/MotorTributarioServiceTest.php` (lane `nfebrasil-pest`).
+**Fora deste item:** o corte do DIFAL do Simples por UF (ADI 5.464) é R-NFE-035 (thread 29).
+
 ### R-NFE-033 · Aceita CNPJ alfanumérico válido e recusa o inválido
 
 ```gherkin
