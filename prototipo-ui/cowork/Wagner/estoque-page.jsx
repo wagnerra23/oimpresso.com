@@ -183,13 +183,28 @@ function Toolbar({ colunas, cols, setCols, onExport, dense, setDense, info, acoe
   );
 }
 
-function usarCols(chave, colunas) {
+// `fixo` (rotas est-*): começa nas colunas padrão e não lê nem grava o localStorage — a medida
+// da rota não pode depender do que alguém escolheu em "Colunas" antes.
+function usarCols(chave, colunas, fixo) {
   const inicial = colunas.reduce((o, c) => (o[c.key] = c.off ? false : true, o), {});
   const [cols, setCols] = useState(() => {
+    if (fixo) return inicial;
     try { return { ...inicial, ...JSON.parse(localStorage.getItem(chave) || "{}") }; } catch (e) { return inicial; }
   });
-  useEffect(() => { try { localStorage.setItem(chave, JSON.stringify(cols)); } catch (e) {} }, [chave, cols]);
+  useEffect(() => { if (fixo) return; try { localStorage.setItem(chave, JSON.stringify(cols)); } catch (e) {} }, [chave, cols, fixo]);
   return [cols, setCols];
+}
+
+// Célula "Ações" — o vivo tem Ver/Excluir (ajustes) e Ver/Imprimir/Excluir (transferências) por linha.
+function AcoesLinha({ id, onVer, onImprimir, onExcluir }) {
+  const parar = (fn) => (e) => { e.stopPropagation(); fn(id); };
+  return (
+    <span>
+      <button className="est-mini" title="Ver" onClick={parar(onVer)}>Ver</button>
+      {onImprimir && <>{" "}<button className="est-mini" title="Imprimir" onClick={parar(onImprimir)}>Imprimir</button></>}
+      {onExcluir && <>{" "}<button className="est-mini" title="Excluir" onClick={parar(onExcluir)}>Excluir</button></>}
+    </span>
+  );
 }
 
 // ══════════════════════════ ABA · AJUSTES ══════════════════════════
@@ -200,16 +215,18 @@ const COLS_AJ = [
   { key: "tipo", label: "Tipo", width: 104, sortable: true, sortValue: (r) => r.raw.tipo },
   { key: "itens", label: "Itens", align: "right", width: 74, sortable: true, sortValue: (r) => r.raw.itens.length },
   { key: "total", label: "Valor ajustado", align: "right", mono: true, width: 140, sortable: true, preco: true, sortValue: (r) => window.EstData.totalItens(r.raw.itens) },
-  { key: "recup", label: "Recuperado", align: "right", mono: true, width: 126, sortable: true, preco: true, off: true, sortValue: (r) => r.raw.recuperado },
+  // Visível por padrão, como no vivo (StockAdjustment/Index tem a coluna sempre).
+  { key: "recup", label: "Recuperado", align: "right", mono: true, width: 126, sortable: true, preco: true, sortValue: (r) => r.raw.recuperado },
   { key: "motivo", label: "Motivo do ajuste", width: 300, resizable: true },
   { key: "por", label: "Lançado por", width: 120, sortable: true },
+  { key: "acoes", label: "Ações", width: 130 },
 ];
 
-function AbaAjustes({ papel, dense, setDense, dados, filtro, setFiltro, local, setLocal, periodo, setPeriodo, onAbrir, onNovo, onExcluir, aviso }) {
+function AbaAjustes({ papel, dense, setDense, dados, filtro, setFiltro, local, setLocal, periodo, setPeriodo, onAbrir, onNovo, onExcluir, aviso, fixo }) {
   const D = E();
   const { DataTablePro, TabBar, Button, StatusBadge, Pagination, EmptyState, BulkBar } = DS();
   const verPreco = D.can(papel, "preco");
-  const [cols, setCols] = usarCols("oimpresso.estoque.colsAj", COLS_AJ);
+  const [cols, setCols] = usarCols("oimpresso.estoque.colsAj", COLS_AJ, fixo);
   const [pag, setPag] = useState(1);
   const [sel, setSel] = useState([]);
   const [busca, setBusca] = useState("");
@@ -235,9 +252,10 @@ function AbaAjustes({ papel, dense, setDense, dados, filtro, setFiltro, local, s
       tipo: StatusBadge ? <StatusBadge label={D.TIPOS[a.tipo]} tone={a.tipo === "abnormal" ? "warning" : "neutral"} /> : D.TIPOS[a.tipo],
       itens: a.itens.length,
       total: D.fmt(D.totalItens(a.itens)),
-      recup: a.recuperado ? D.fmt(a.recuperado) : "—",
+      recup: D.fmt(a.recuperado),
       motivo: <span className="est-motivo" title={a.motivo}>{a.motivo}</span>,
       por: a.por,
+      acoes: <AcoesLinha id={a.id} onVer={onAbrir} onExcluir={D.can(papel, "excluir") ? onExcluir : null} />,
     },
   }));
   const somaAj = rows.reduce((s, a) => s + D.totalItens(a.itens), 0);
@@ -280,7 +298,11 @@ function AbaAjustes({ papel, dense, setDense, dados, filtro, setFiltro, local, s
           ? <DataTablePro columns={colunas} rows={linhas} height={alturaGrid(linhas.length, dense)}
               density={dense ? "compact" : "comfortable"} selectable onSelectionChange={setSel}
               onRowClick={(r) => onAbrir(r.id)} defaultSort={{ key: "data", dir: "desc" }} />
-          : EmptyState && <EmptyState variant="no-results" title="Nenhum ajuste com estes filtros" description="Troque tipo, local, período ou busca — ou lance um ajuste novo." />}
+          : EmptyState && (visiveis.length === 0
+            // Vazio sem nada lançado — o texto e o botão do vivo (StockAdjustment/Index).
+            ? <EmptyState variant="first" title="Nenhum ajuste de estoque registrado."
+                action={Button && D.can(papel, "criar") ? <Button variant="primary" size="sm" onClick={onNovo}>Registrar primeiro ajuste</Button> : undefined} />
+            : <EmptyState variant="no-results" title="Nenhum ajuste com estes filtros" description="Troque tipo, local, período ou busca — ou lance um ajuste novo." />)}
       </div>
       <div className="est-rodape">
         <div className="est-somas">
@@ -313,13 +335,14 @@ const COLS_TR = [
   { key: "frete", label: "Frete", align: "right", mono: true, width: 104, sortable: true, preco: true, sortValue: (r) => r.raw.frete },
   { key: "total", label: "Total", align: "right", mono: true, width: 126, sortable: true, preco: true, sortValue: (r) => window.EstData.totalItens(r.raw.itens) + r.raw.frete },
   { key: "obs", label: "Observação", width: 240, resizable: true, off: true },
+  { key: "acoes", label: "Ações", width: 190 },
 ];
 
-function AbaTransferencias({ papel, dense, setDense, filtro, setFiltro, local, setLocal, periodo, setPeriodo, dados, onAbrir, onNovo, onStatusLote, onImprimir, onExcluir, aviso }) {
+function AbaTransferencias({ papel, dense, setDense, filtro, setFiltro, local, setLocal, periodo, setPeriodo, dados, onAbrir, onNovo, onStatusLote, onImprimir, onExcluir, aviso, fixo }) {
   const D = E();
   const { DataTablePro, TabBar, Button, StatusBadge, Pagination, EmptyState, BulkBar } = DS();
   const verPreco = D.can(papel, "preco");
-  const [cols, setCols] = usarCols("oimpresso.estoque.colsTr", COLS_TR);
+  const [cols, setCols] = usarCols("oimpresso.estoque.colsTr", COLS_TR, fixo);
   const [pag, setPag] = useState(1);
   const [sel, setSel] = useState([]);
   const [busca, setBusca] = useState("");
@@ -350,6 +373,7 @@ function AbaTransferencias({ papel, dense, setDense, filtro, setFiltro, local, s
         frete: t.frete ? D.fmt(t.frete) : "—",
         total: D.fmt(D.totalItens(t.itens) + t.frete),
         obs: <span className="est-motivo" title={t.obs}>{t.obs || "—"}</span>,
+        acoes: <AcoesLinha id={t.id} onVer={onAbrir} onImprimir={onImprimir} onExcluir={D.can(papel, "excluir") ? onExcluir : null} />,
       },
     };
   });
@@ -392,7 +416,11 @@ function AbaTransferencias({ papel, dense, setDense, filtro, setFiltro, local, s
           ? <DataTablePro columns={colunas} rows={linhas} height={alturaGrid(linhas.length, dense)}
               density={dense ? "compact" : "comfortable"} selectable onSelectionChange={setSel}
               onRowClick={(r) => onAbrir(r.id)} defaultSort={{ key: "data", dir: "desc" }} />
-          : EmptyState && <EmptyState variant="no-results" title="Nenhuma transferência com estes filtros" description="Troque status, local, período ou busca — ou lance uma transferência nova." />}
+          : EmptyState && (visiveis.length === 0
+            // Vazio sem nada lançado — o texto e o botão do vivo (StockTransfer/Index).
+            ? <EmptyState variant="first" title="Nenhuma transferência registrada."
+                action={Button && D.can(papel, "criar") ? <Button variant="primary" size="sm" onClick={onNovo}>Registrar primeira transferência</Button> : undefined} />
+            : <EmptyState variant="no-results" title="Nenhuma transferência com estes filtros" description="Troque status, local, período ou busca — ou lance uma transferência nova." />)}
       </div>
       <div className="est-rodape">
         <div className="est-somas">
@@ -478,20 +506,41 @@ function AbaVencimentos({ papel, dense, onBaixar, aviso }) {
 }
 
 // ══════════════════════════ PÁGINA ══════════════════════════
-const ABAS = {
-  "estoque": "painel", "est-painel": "painel",
-  "est-ajustes": "ajustes", "est-ajuste-novo": "ajuste-novo",
-  "est-transferencias": "transferencias", "est-transferencia-nova": "transferencia-nova",
-  "est-vencimentos": "vencimentos",
-  "est-contagem": "contagem", "est-contagem-nova": "contagem-nova",
+// ══════════ ROTAS — uma vista `est-*` por Page viva (thread 00 do playbook Estoque, 2026-10-07) ══════════
+// Cada rota fixa a aba já no primeiro render (não espera o efeito trocar a aba guardada no
+// localStorage) e usa as colunas padrão — a A1 mede cada rota contra a sua Page e a medida tem que
+// ser reprodutível. `page` é a Page Inertia que a vista representa (resources/js/Pages/…); `null`
+// = vista que só o protótipo tem.
+const ROTAS = {
+  "estoque":                { page: null, aba: "painel" },
+  "est-painel":             { page: null, aba: "painel" },
+  "est-ajustes":            { page: "StockAdjustment/Index",  aba: "ajustes" },
+  "est-ajuste-novo":        { page: "StockAdjustment/Create", aba: "ajuste-novo" },
+  "est-transferencias":     { page: "StockTransfer/Index",    aba: "transferencias" },
+  "est-transferencia-nova": { page: "StockTransfer/Create",   aba: "transferencia-nova" },
+  "est-vencimentos":        { page: null, aba: "vencimentos" },
+  "est-contagem":           { page: null, aba: "contagem" },
+  "est-contagem-nova":      { page: null, aba: "contagem-nova" },
 };
+
+// Aba persistida como o MP.useAba, mas com a rota como valor inicial: o MP.useAba lê o
+// localStorage primeiro, e o primeiro render mostrava a aba guardada antes do efeito trocar.
+function usarAbaEst(chave, rota) {
+  const [aba, setAba] = useState(() => {
+    if (rota) return rota.aba;
+    try { return localStorage.getItem(chave) || "painel"; } catch (e) { return "painel"; }
+  });
+  useEffect(() => { try { localStorage.setItem(chave, aba); } catch (e) {} }, [chave, aba]);
+  return [aba, setAba];
+}
 
 function EstoquePage({ view, papel = "gestor", dense = false, lote = true }) {
   const D = E();
   const MP = window.ModuloPadrao || {};
   const F = FM();
   const C = CT();
-  const [aba, setAba] = (MP.useAba || (() => useState("painel")))("oimpresso.estoque.aba", "painel");
+  const rota = ROTAS[view] || null;
+  const [aba, setAba] = usarAbaEst("oimpresso.estoque.aba", rota);
   const [avisoNode, avisar] = (MP.useAviso || (() => [null, () => {}]))();
   const [denso, setDenso] = useState(dense);
   useEffect(() => { setDenso(dense); }, [dense]);
@@ -512,7 +561,7 @@ function EstoquePage({ view, papel = "gestor", dense = false, lote = true }) {
   const [excluir, setExcluir] = useState(null);
   const [hora, setHora] = useState("09:42");
 
-  useEffect(() => { const a = ABAS[view]; if (a) setAba(a); }, [view]);
+  useEffect(() => { if (rota) setAba(rota.aba); }, [view]);
   useEffect(() => {
     const ok = D.locaisDe(papel);
     if (localAj && ok.indexOf(localAj) < 0) setLocalAj("");
@@ -607,14 +656,14 @@ function EstoquePage({ view, papel = "gestor", dense = false, lote = true }) {
             filtro={filtroAj} setFiltro={setFiltroAj} local={localAj} setLocal={setLocalAj}
             periodo={periodo} setPeriodo={setPeriodo}
             onAbrir={setSelAj} onExcluir={pedirExclusao}
-            onNovo={() => { setPrefill(null); setAba("ajuste-novo"); }} aviso={avisar} />}
+            onNovo={() => { setPrefill(null); setAba("ajuste-novo"); }} aviso={avisar} fixo={!!rota} />}
 
         {aba === "transferencias" &&
           <AbaTransferencias papel={papel} dense={denso} setDense={setDenso} dados={transf}
             filtro={filtroTr} setFiltro={setFiltroTr} local={localTr} setLocal={setLocalTr}
             periodo={periodo} setPeriodo={setPeriodo}
             onAbrir={setSelTr} onNovo={() => { setEditar(null); setAba("transferencia-nova"); }}
-            onImprimir={setFolha} onExcluir={pedirExclusao} aviso={avisar}
+            onImprimir={setFolha} onExcluir={pedirExclusao} aviso={avisar} fixo={!!rota}
             onStatusLote={(ids, s) => { setTransf((v) => v.map((x) => ids.indexOf(x.id) >= 0 ? { ...x, status: s } : x)); avisar(ids.length + " transferências concluídas.", "ok"); }} />}
 
         {aba === "vencimentos" &&
@@ -656,7 +705,7 @@ function EstoquePage({ view, papel = "gestor", dense = false, lote = true }) {
 
         {aba === "transferencia-nova" && F.FormTransferencia &&
           <>
-            <h2 className="est-h1">{trfEditar ? "Editar " + trfEditar.id : "Nova transferência"}</h2>
+            <h2 className="est-h1">{trfEditar ? "Editar " + trfEditar.id : "Nova transferência de estoque"}</h2>
             <p className="est-sub">Transferência move saldo entre locais e conserva o total. {trfEditar ? "Status terminal não se edita mais." : "Só o status terminal libera a venda no destino."}</p>
             <F.FormTransferencia papel={papel} lote={lote} editar={trfEditar} aviso={avisar}
               onCancelar={() => { setEditar(null); setAba("transferencias"); }}
@@ -705,4 +754,5 @@ function EstoquePage({ view, papel = "gestor", dense = false, lote = true }) {
 }
 
 window.EstoquePage = EstoquePage;
+window.EstRotas = ROTAS;
 })();

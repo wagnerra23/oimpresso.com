@@ -38,6 +38,14 @@ class ManageUserController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
+        // Tela React (thread sistema/playbook/01, MWART). Vem ANTES do ajax(): o Inertia manda
+        // X-Inertia E X-Requested-With, e o ramo ajax devolveria o JSON da DataTable. Sem
+        // X-Inertia segue a Blade — o cutover F5 é humano, por empresa, pela chave
+        // `mwart.sistema_usuarios_index` (nasce desligada). AJAX sem X-Inertia segue na DataTable.
+        if (\App\Support\Mwart::telaReact('sistema_usuarios_index')) {
+            return $this->telaInertia();
+        }
+
         if (request()->ajax()) {
             $business_id = request()->session()->get('user.business_id');
             $user_id = request()->session()->get('user.id');
@@ -81,6 +89,54 @@ class ManageUserController extends Controller
         }
 
         return view('manage_user.index');
+    }
+
+    /**
+     * Props da tela `Usuarios/Index`. A lista vai em `Inertia::defer` (usuários + funções).
+     * Mesmo recorte da DataTable da Blade: negócio da sessão, `user_type = user`, sem os
+     * comissionados (eles têm tela própria). ADR 0093.
+     */
+    private function telaInertia()
+    {
+        $business_id = (int) request()->session()->get('user.business_id');
+        $eu = (int) auth()->id();
+        $user = auth()->user();
+
+        return \Inertia\Inertia::render('Usuarios/Index', [
+            'usuarios' => \Inertia\Inertia::defer(fn () => $this->usuariosDoNegocio($business_id, $eu)),
+            'pode' => [
+                'criar' => $user->can('user.create'),
+                'ver' => $user->can('user.view'),
+                'editar' => $user->can('user.update'),
+                'excluir' => $user->can('user.delete'),
+            ],
+        ]);
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    private function usuariosDoNegocio(int $business_id, int $eu): array
+    {
+        return User::where('business_id', $business_id)
+            ->user()
+            ->where('is_cmmsn_agnt', 0)
+            ->with('roles:id,name')
+            ->orderBy('first_name')
+            ->get(['id', 'username', 'surname', 'first_name', 'last_name', 'email', 'allow_login', 'status'])
+            ->map(fn (User $u) => [
+                'id' => (int) $u->id,
+                'usuario' => $u->username,
+                'nome' => trim(implode(' ', array_filter([$u->surname, $u->first_name, $u->last_name]))),
+                'email' => $u->email,
+                'login' => (bool) $u->allow_login,
+                'ativo' => $u->status === 'active',
+                // "Caixa#98" → "Caixa", como o getUserRoleName() da Blade.
+                'funcao' => ($r = $u->getRoleNames()->first()) ? explode('#', (string) $r, 2)[0] : null,
+                'voce' => (int) $u->id === $eu,
+            ])
+            ->values()
+            ->all();
     }
 
     /**
@@ -128,6 +184,10 @@ class ManageUserController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
+        $business_id = (int) request()->session()->get('user.business_id');
+        $this->recusarFuncaoDeFora($business_id, $request->input('role'));
+        $this->filtrarContatosDoNegocio($business_id, $request);
+
         try {
             if (! empty($request->input('dob'))) {
                 $request['dob'] = $this->moduleUtil->uf_date($request->input('dob'));
@@ -171,7 +231,7 @@ class ManageUserController extends Controller
 
         $user = User::where('business_id', $business_id)
                     ->with(['contactAccess'])
-                    ->find($id);
+                    ->findOrFail($id);
 
         //Get user view part from modules
         $view_partials = $this->moduleUtil->getModuleData('moduleViewPartials', ['view' => 'manage_user.show', 'user' => $user]);
@@ -244,6 +304,11 @@ class ManageUserController extends Controller
         if (! auth()->user()->can('user.update')) {
             abort(403, 'Unauthorized action.');
         }
+
+        $negocio = (int) request()->session()->get('user.business_id');
+        $editado = User::where('business_id', $negocio)->findOrFail($id);
+        $this->recusarFuncaoDeFora($negocio, $request->input('role'), $editado);
+        $this->filtrarContatosDoNegocio($negocio, $request);
 
         try {
             $user_data = $request->only(['surname', 'first_name', 'last_name', 'email', 'selected_contacts', 'marital_status',
@@ -417,6 +482,40 @@ class ManageUserController extends Controller
 
             return $output;
         }
+    }
+
+    /**
+     * Tier 0: a função escolhida tem de ser uma das que a tela oferece a quem está logado
+     * (`getRolesArray`: só do negócio da sessão, sem o Admin para quem não é admin).
+     * Manter a função atual do usuário editado continua permitido — é o caso de quem não é
+     * admin salvar um usuário Admin sem mexer na função.
+     * Recusa ANTES de gravar: o createUser() cria o usuário e só depois busca a função.
+     */
+    private function recusarFuncaoDeFora(int $business_id, $role_id, ?User $editado = null): void
+    {
+        $permitidas = array_map('intval', array_keys($this->getRolesArray($business_id)));
+        $atual = $editado ? (int) optional($editado->roles->first())->id : 0;
+
+        if (! in_array((int) $role_id, $permitidas, true) && ! ($atual && (int) $role_id === $atual)) {
+            abort(403, 'Unauthorized action.');
+        }
+    }
+
+    /**
+     * Tier 0: "contatos permitidos" só aceita contato do negócio da sessão; id de outra empresa sai
+     * do corpo antes do sync() do store/update.
+     */
+    private function filtrarContatosDoNegocio(int $business_id, Request $request): void
+    {
+        $ids = (array) $request->input('selected_contact_ids', []);
+        if (empty($ids)) {
+            return;
+        }
+
+        $request->merge(['selected_contact_ids' => \App\Contact::where('business_id', $business_id)
+            ->whereIn('id', $ids)
+            ->pluck('id')
+            ->all()]);
     }
 
     /**
