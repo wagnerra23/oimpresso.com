@@ -16,6 +16,7 @@ import { Switch } from '@/Components/ui/switch';
 import { toast } from 'sonner';
 import { useState } from 'react';
 import ConfigurarPeloCertificado from './_components/ConfigurarPeloCertificado';
+import { Inline } from '@/Components/layout';
 
 interface Regra {
   id: number;
@@ -164,10 +165,12 @@ function Index({ regras, config, templates }: Props) {
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-base flex items-center justify-between gap-2">
-                <span className="flex items-center gap-2">
-                  <Sparkles className="h-4 w-4 text-primary" />
-                  Configuração rápida por setor
-                </span>
+                <Inline asChild gap={2} align="center">
+                  <span>
+                    <Sparkles className="h-4 w-4 text-primary" />
+                    Configuração rápida por setor
+                  </span>
+                </Inline>
                 <Button size="sm" variant="outline" onClick={() => setOnboarding(true)}>
                   <ShieldCheck className="h-4 w-4 mr-1.5" />
                   Configurar pelo certificado
