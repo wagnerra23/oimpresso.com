@@ -166,8 +166,8 @@
       "target": 100,
       "source": "scripts/governance/knowledge-drift.mjs --json (BRIEFING.md presente por módulo)",
       "detail": {
-        "with_door": 78,
-        "modules": 78
+        "with_door": 80,
+        "modules": 80
       },
       "stream": "MEM"
     },
@@ -210,9 +210,9 @@
       "target": 0,
       "source": "memory/requisitos/*/BRIEFING.md frontmatter distilled_at vs UNIÃO(data-git do doc não-gerado mais novo, data-git do código do módulo) — determinístico, ADR 0291 D-D",
       "detail": {
-        "portas": 81,
+        "portas": 83,
         "carimbadas": 15,
-        "sem_carimbo": 66,
+        "sem_carimbo": 68,
         "stale": 9,
         "oldest_distilled_at": "2026-09-06",
         "datadas_por_codigo": 14
@@ -227,7 +227,7 @@
       "target": 1,
       "source": "scripts/governance/knowledge-drift.mjs --json .[].hops → mediana (mesma fórmula do relatório humano · ADR 0270 D-5)",
       "detail": {
-        "modules": 78,
+        "modules": 80,
         "hops_worst": 8
       },
       "stream": "MEM"

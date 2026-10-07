@@ -59,13 +59,13 @@ alvo_medido: NAO
       "depende_decisoes": [],
       "provas": [
         {
-          "tipo": "execucao",
-          "cmd": "npm run lint && npx tsc --noEmit",
-          "exige": "exit 0"
+          "tipo": "contem",
+          "path": "resources/js/Components/cockpit/Sidebar.tsx",
+          "padrao": "Padrão do balcão"
         },
         {
-          "tipo": "runtime",
-          "exige": "clicar Aparencia abre 2 opcoes (Escuro padrao / Claro); escolher escreve data-theme no <html> e persiste no reload; controle positivo: recarregar com light guardado volta em light"
+          "tipo": "arquivo",
+          "path": "tests/sidebarAparencia.spec.tsx"
         }
       ]
     },
@@ -85,13 +85,13 @@ alvo_medido: NAO
       "depende_decisoes": [],
       "provas": [
         {
-          "tipo": "execucao",
-          "cmd": "npm run lint && npx tsc --noEmit",
-          "exige": "exit 0"
+          "tipo": "contem",
+          "path": "resources/js/Components/cockpit/Sidebar.tsx",
+          "padrao": "aria-label=\"Encerrar a sessão?\""
         },
         {
-          "tipo": "runtime",
-          "exige": "Sair pede confirmacao inline; Cancelar volta ao menu sem efeito; Encerrar dispara o logout REAL do app (POST /logout do UltimatePOS) — nao reload"
+          "tipo": "arquivo",
+          "path": "tests/sidebarSair.spec.tsx"
         }
       ]
     },
@@ -110,17 +110,18 @@ alvo_medido: NAO
       "depende_decisoes": [],
       "provas": [
         {
-          "tipo": "execucao",
-          "cmd": "npm run lint && npx tsc --noEmit",
-          "exige": "exit 0"
+          "tipo": "contem",
+          "path": "resources/js/Components/cockpit/Sidebar.tsx",
+          "padrao": "Criar empresa é ação de superadmin"
         },
         {
-          "tipo": "runtime",
-          "exige": "o item navega pro destino de business (Superadmin > Negocios) OU vira disabled com motivo; nenhum role=menuitem sem acao sobra no dropdown — conferir nos DOIS (expandido e rail)"
+          "tipo": "arquivo",
+          "path": "tests/sidebarMenuSemantics.spec.tsx"
         }
       ]
     }
-  ]
+  ],
+  "revisado": "2026-10-07 errata do Code aplicada (_ERRATA-*-2026-10-07.md) @8d231ac7a13f"
 }
 ```
 

@@ -14,6 +14,25 @@ use Module;
 class ModuleUtil extends Util
 {
     /**
+     * Módulo RENOMEADO cuja row de instalação continua com o nome antigo.
+     *
+     * `isModuleInstalled()` procura `system.<nome>_version`. O rename ProjectMgmt→Forja
+     * (2026-07-30, ADR 0088) deixou o nWidart em `Forja`, mas o InstallController ainda grava
+     * `projectmgmt_version` (`moduleSystemKey()`, fachada legacy) e produção só tem essa row
+     * (medido 2026-10-07: `forja_version` ausente, `projectmgmt_version=0.1`). Sem esta entrada,
+     * `isModuleInstalled('Forja')` devolve false e o AdminSidebarMenu nunca chama o
+     * DataController da Forja — a entry some da sidebar (UC-FORJA-03).
+     *
+     * Lista EXPLÍCITA, de propósito: não deriva do `alias` do module.json porque o alias também
+     * difere do nome em OficinaAuto e ComunicacaoVisual, que tiveram chaves kebab em produção
+     * (handoff 2026-05-13) — derivar mudaria o "instalado" deles sem medição. Só leitura: nada é
+     * gravado no banco. A camada por empresa (`hasThePermissionInSubscription`) não muda.
+     */
+    private const CHAVES_INSTALACAO_LEGADAS = [
+        'Forja' => 'projectmgmt_version',
+    ];
+
+    /**
      * This function check if a module is installed or not.
      *
      * @param  string  $module_name (Exact module name, with first letter capital)
@@ -27,16 +46,21 @@ class ModuleUtil extends Util
             //Check if installed by checking the system table {module_name}_version
             // CI/fresh DB: tabela `system` pode nao existir antes do migrate.
             // Tratamos como "nao instalado" sem quebrar o boot.
+            $chaves = [strtolower($module_name).'_version'];
+            if (isset(self::CHAVES_INSTALACAO_LEGADAS[$module_name])) {
+                $chaves[] = self::CHAVES_INSTALACAO_LEGADAS[$module_name];
+            }
             try {
-                $module_version = System::getProperty(strtolower($module_name).'_version');
+                foreach ($chaves as $chave) {
+                    if (! empty(System::getProperty($chave))) {
+                        return true;
+                    }
+                }
             } catch (\Throwable $e) {
                 return false;
             }
-            if (empty($module_version)) {
-                return false;
-            } else {
-                return true;
-            }
+
+            return false;
         }
 
         return false;

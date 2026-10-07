@@ -86,3 +86,16 @@
 }
 
 [data-theme="dark"] .usr-role{ filter:brightness(1.35) saturate(0.9); }
+
+/* tema escuro (playbook tema-escuro 04 · 07/10): avatar e papel recebem a cor do JSX por
+   variável (--av-bg, --rl-bg e afins) — com style inline o CSS não conseguia escurecer. O filter de
+   brilho que existia acima clareava o fundo pastel em vez de escurecê-lo. */
+.usr-avatar{ background:var(--av-bg,var(--bg-2)); color:var(--av-fg,var(--text-dim)); }
+.usr-role{ background:var(--rl-bg,var(--bg-2)); color:var(--rl-fg,var(--text-dim)); border-color:var(--rl-bd,transparent); }
+[data-theme="dark"] .usr-avatar{ background:oklch(from var(--av-bg,var(--bg-2)) 0.32 calc(c * 1.6) h); color:oklch(from var(--av-fg,var(--text-dim)) 0.86 c h); }
+[data-theme="dark"] .usr-role{
+  filter:none;
+  background:oklch(from var(--rl-bg,var(--bg-2)) 0.30 calc(c * 1.6) h);
+  color:oklch(from var(--rl-fg,var(--text-dim)) 0.85 c h);
+  border-color:oklch(from var(--rl-bd,var(--border)) 0.42 c h);
+}

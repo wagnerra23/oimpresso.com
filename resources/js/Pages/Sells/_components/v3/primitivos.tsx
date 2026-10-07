@@ -297,12 +297,13 @@ export function MoneyInput({
 }
 
 /* ─── Plate · o bloco escuro do total ───────────────────────────────────────
-   Único bloco de peso visual da tela (handoff §5). Inverte por TOKEN
-   (foreground/background), então funciona nos dois temas: no claro fica escuro,
-   no escuro fica claro — e segue sendo o de maior contraste nos dois. */
+   Único bloco de peso visual da tela (handoff §5). No claro inverte por TOKEN
+   (foreground/background) e fica escuro. Até 2026-10-07 invertia também no escuro e
+   virava um bloco claro; desde a thread 03 do playbook tema-escuro, a classe
+   `vd3-plate` o tinta de accent no escuro (D1) — regra em resources/css/venda-v3.css. */
 export function Plate({ label, valor, carregando }: { label: string; valor: string; carregando?: boolean }) {
   return (
-    <div className="rounded-lg bg-foreground px-4 py-3.5 text-background">
+    <div className="vd3-plate rounded-lg bg-foreground px-4 py-3.5 text-background">
       <span className="mb-2 block text-[10.5px] font-semibold uppercase leading-none tracking-[.06em] opacity-[.72]">
         {label}
       </span>

@@ -2969,3 +2969,10 @@
 [data-theme="dark"] .kb-print-callout.bad{ background: var(--neg-soft); }
 [data-theme="dark"] .kb-print-tags{ border-top: 1px dashed oklch(0.40 0.050 90); }
 [data-theme="dark"] .kb-print-tags span{ background: oklch(0.275 0.050 90); color: oklch(0.84 0.010 80); }
+
+/* tema escuro (playbook tema-escuro 04 · 07/10). Botão ativo era invertido (fundo --text com
+   texto branco: ilegível no escuro) → tintado de accent, a regra da D1. A pílula de categoria
+   recebe o matiz do JSX por --kb-hue (antes era style inline com o oklch claro). */
+.kb-cat-pill { background: oklch(0.94 0.05 var(--kb-hue, 280)); color: oklch(0.36 0.10 var(--kb-hue, 280)); }
+[data-theme="dark"] .kb-cat-pill { background: oklch(0.30 0.07 var(--kb-hue, 280)); color: oklch(0.85 0.10 var(--kb-hue, 280)); }
+[data-theme="dark"] .kb-seg-btn.active { background: color-mix(in oklch, var(--accent) 14%, var(--surface)); color: var(--text); box-shadow: inset 0 0 0 1px color-mix(in oklch, var(--accent) 35%, transparent); }

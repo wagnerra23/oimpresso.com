@@ -34,6 +34,7 @@ Varredura manual: 194 rotas do menu, tema escuro, elemento visível com fundo L 
 |---|---|---|
 | D1 ✅ | Placa invertida no escuro → **tintada de accent** ([W] 05/10) | 03 |
 | D2 ✅ | Sonda **required** — bloqueia o PR ([W] 05/10) | 01 |
+| D3 ✅ | Baseline de produção → **catraca com as 19** (07/10) | 05 |
 
 ## 3 · Threads
 
@@ -69,6 +70,16 @@ Varredura manual: 194 rotas do menu, tema escuro, elemento visível com fundo L 
       ],
       "resposta": "required — a sonda bloqueia o PR desde o início",
       "fonte": "[W] 2026-10-05 no chat"
+    },
+    {
+      "id": "D3",
+      "pergunta": "Baseline de produção da sonda (19 Pages com superfície clara, _saida-02)",
+      "respondida": true,
+      "destrava": [
+        "05"
+      ],
+      "resposta": "baseline catraca: congela as 19; Page nova ou contagem que sobe falha; desce → baseline atualiza pra baixo; roda em PR que toca Pages/** ou css/**",
+      "fonte": "_DECISOES-W-2026-10-07.md (delegada ao [CC])"
     }
   ],
   "threads": [
@@ -161,7 +172,8 @@ Varredura manual: 194 rotas do menu, tema escuro, elemento visível com fundo L 
           "tipo": "execucao",
           "nota": "sonda da 02 verde nas Pages corrigidas; screenshot dark antes/depois"
         }
-      ]
+      ],
+      "nota_provas": "ordem (D3): 1) footer.fx-shell-foot do Fiscal (7 Pages) · 2) fin-filter-cb (PlanoContas+Unificado) · 3) Sells/CreateV3 placa (D1) · 4) resto, menor primeiro"
     },
     {
       "id": "04",
@@ -180,6 +192,37 @@ Varredura manual: 194 rotas do menu, tema escuro, elemento visível com fundo L 
       ],
       "provas": [],
       "nota_provas": "o Cowork aplica no build; o recibo cita o run da 01 antes e depois"
+    },
+    {
+      "id": "05",
+      "titulo": "Baseline catraca da sonda de produção (D3)",
+      "dono": "CL",
+      "vaga": 3,
+      "prs": 1,
+      "arquivo": "05-baseline.md",
+      "depende_threads": [
+        "02"
+      ],
+      "depende_decisoes": [
+        "D3"
+      ],
+      "prefixo": [
+        "${PROBE}",
+        "tests/Browser/TemaEscuro/",
+        ".github/workflows/visual-regression.yml"
+      ],
+      "nao_toca": [
+        "${PAGES}/",
+        "${CSS}/"
+      ],
+      "provas": [
+        {
+          "tipo": "contem",
+          "path": "${PROBE}",
+          "padrao": "baseline"
+        }
+      ],
+      "nota_provas": "recibo com run: PR de controle que adiciona 1 superfície clara numa Page fora da baseline → falha"
     }
   ]
 }

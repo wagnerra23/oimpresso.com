@@ -82,7 +82,7 @@ function ExtratoDrawer({ agente, ap, soFaturadas, onClose }) {
             <p>{REGRA_L[agente.regra]} · {pct(agente.pct)}{agente.regra === "faixa" ? ` até a meta, ${pct(agente.pct2)} acima` : ""}</p>
           </div>
           <div className="os-drawer-head-r">
-            <div className="usr-avatar" style={{ background:c.bg, color:c.fg }}>{initials(agente.nome)}</div>
+            <div className="usr-avatar" style={{ '--av-bg': c.bg, '--av-fg': c.fg }}>{initials(agente.nome)}</div>
             <button className="os-btn ghost" onClick={onClose}>Fechar</button>
           </div>
         </div>
@@ -224,7 +224,7 @@ function ComissoesPage() {
                   </td>
                   <td>
                     <div className="usr-id">
-                      <div className="usr-avatar" style={{ background:c.bg, color:c.fg }}>{initials(a.nome)}</div>
+                      <div className="usr-avatar" style={{ '--av-bg': c.bg, '--av-fg': c.fg }}>{initials(a.nome)}</div>
                       <div className="usr-id-meta">
                         <b>{a.nome}</b>
                         <small>{ap.linhas.length} {ap.linhas.length === 1 ? "venda" : "vendas"} · base {brl0(ap.base)}</small>

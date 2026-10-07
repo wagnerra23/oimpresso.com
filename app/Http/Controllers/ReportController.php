@@ -122,7 +122,7 @@ class ReportController extends Controller
     /**
      * Shows product report of a business
      *
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Contracts\View\View|\Inertia\Response|array<string, mixed>
      */
     public function getPurchaseSell(Request $request)
     {
@@ -131,6 +131,23 @@ class ReportController extends Controller
         }
 
         $business_id = $request->session()->get('user.business_id');
+
+        // Tela React (playbook sistema/07). Vem ANTES do ajax(): a visita Inertia manda
+        // X-Requested-With e cairia no JSON. Os totais vêm do MESMO JSON abaixo, que a Page
+        // busca sem `tela`; a tela não calcula nada. Sem `?tela=nova`, segue a Blade.
+        if ($request->query('tela') === 'nova') {
+            return Inertia::render('Relatorios/CompraVenda/Index', [
+                'locais' => collect(BusinessLocation::forDropdown($business_id, false))->map(fn ($nome, $id) => ['id' => (int) $id, 'nome' => (string) $nome])->values(),
+                'periodo' => [
+                    'inicio' => (string) $request->session()->get('financial_year.start', now()->startOfYear()->toDateString()),
+                    'fim' => (string) $request->session()->get('financial_year.end', now()->endOfYear()->toDateString()),
+                ],
+                'moeda' => [
+                    'simbolo' => (string) $request->session()->get('business.currency_symbol', 'R$'),
+                    'casas' => (int) $request->session()->get('business.currency_precision', 2),
+                ],
+            ]);
+        }
 
         //Return the details in ajax call
         if ($request->ajax()) {

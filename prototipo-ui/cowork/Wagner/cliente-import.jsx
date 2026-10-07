@@ -45,10 +45,10 @@ function ClienteImportPage() {
   };
 
   return (
-    <div className="os-page ci-page">
+    <div className="os-page ci-page" data-page="Cliente/Import">
       <header className="os-page-h">
         <div className="os-page-h-l">
-          <button className="ci-voltar" onClick={() => window.__go?.("clientes")}>← Clientes</button>
+          <button className="ci-voltar" onClick={() => window.__go?.("clientes")}>← Voltar para clientes</button>
           <h1>Importar clientes</h1>
           <p>Traga a base de uma planilha. O arquivo manda: o que estiver nele vira cadastro.</p>
         </div>
@@ -58,11 +58,12 @@ function ClienteImportPage() {
         <section className="ci-step">
           <div className="ci-step-n">1</div>
           <div className="ci-step-c">
-            <h2>Baixe o modelo</h2>
+            {/* Copy da produção: Import.tsx:161-167 e :178-181. */}
+            <h2>Passo 1 — Baixe o template</h2>
             <p>São 27 colunas fixas, na ordem que o sistema espera. Não dá pra renomear nem reordenar — preencha por cima do modelo, que já vem com os cabeçalhos certos.</p>
             <div className="ci-acoes">
               <button className="os-btn primary" onClick={() => setResultado({ tom: "ok", titulo: "Modelo baixado", txt: "modelo-clientes.xlsx — preencha e volte pro passo 2." })}>
-                Baixar modelo XLSX
+                Baixar template
               </button>
             </div>
           </div>
@@ -71,7 +72,8 @@ function ClienteImportPage() {
         <section className="ci-step">
           <div className="ci-step-n">2</div>
           <div className="ci-step-c">
-            <h2>Envie o arquivo preenchido</h2>
+            <h2>Passo 2 — Envie o arquivo</h2>
+            <p>Arquivos aceitos: .xlsx, .csv. Tamanho máximo: 10 MB.</p>
             <div className={"ci-drop" + (arquivo ? " tem" : "")}
               onDragOver={(e) => e.preventDefault()}
               onDrop={(e) => { e.preventDefault(); aceita(e.dataTransfer.files[0]); }}
@@ -81,14 +83,14 @@ function ClienteImportPage() {
               <input ref={inputRef} type="file" accept=".xlsx,.xls,.csv" hidden
                 onChange={(e) => aceita(e.target.files[0])}/>
               {arquivo
-                ? <><b>{arquivo.name}</b><span>{(arquivo.size / 1024).toFixed(0)} KB · clique pra trocar</span></>
-                : <><b>Arraste a planilha aqui</b><span>ou clique pra escolher · XLSX, XLS ou CSV</span></>}
+                ? <><b>{arquivo.name}</b><span>{(arquivo.size / 1024).toFixed(0)} KB · Clique pra escolher outro</span></>
+                : <><b>Clique ou arraste o arquivo aqui</b><span>.xlsx ou .csv até 10 MB</span></>}
             </div>
 
             {enviando && (
               <div className="ci-prog" role="progressbar" aria-valuenow={progresso} aria-valuemin={0} aria-valuemax={100}>
                 <i style={{ width: progresso + "%" }}/>
-                <span>Importando… {progresso}%</span>
+                <span>Enviando… {progresso}%</span>
               </div>
             )}
 
@@ -97,6 +99,7 @@ function ClienteImportPage() {
                 {enviando ? "Importando…" : "Importar"}
               </button>
               {arquivo && !enviando && <button className="os-btn ghost" onClick={() => setArquivo(null)}>Tirar o arquivo</button>}
+              <button className="os-btn ghost" onClick={() => window.__go?.("clientes")}>Cancelar</button>
             </div>
 
             <p className="ci-nota">

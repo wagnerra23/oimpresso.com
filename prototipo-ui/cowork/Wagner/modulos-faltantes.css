@@ -141,7 +141,9 @@
 .cqr-meta{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
 /* tabelas densas rolam na horizontal em vez de esmagar a coluna de texto */
 .vdc-lista,.sup-lista{overflow-x:auto}
-.vdc-lista table{min-width:940px}
+/* .os-page rola em Y e é flex coluna: sem isto a lista encolhe até sobrar só o cabeçalho */
+.vdc-page>*,.sup-page>*{flex-shrink:0}
+.vdc-lista table{min-width:1130px}
 .sup-lista table{min-width:820px}
 .sup-busca{max-width:250px}
 /* abaixo de 1100px a linha de grid empilha: cada célula carrega o próprio rótulo */
