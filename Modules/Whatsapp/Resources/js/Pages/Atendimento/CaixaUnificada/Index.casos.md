@@ -5,8 +5,14 @@ irmaos: Index.charter.md (lei)
 tecnica: Caso de uso = narrativa do atendente + critério de aceite verificável (Dado/Quando/Então)
 por_que: a tela concentra a conversa com o cliente de TODOS os canais — se o isolamento por business ou o ACL canal=fila falhar, um tenant lê a conversa do outro. É o comportamento durável que nenhum refactor pode perder.
 owner: wagner
-last_run: "2026-09-25"
+last_run: "2026-10-06"
 ---
+
+> ℹ️ **`last_run` 2026-09-25 → 2026-10-06 (G-6), e o que mudou NÃO foi comportamento.**
+> O [#8873](https://github.com/wagnerra23/oimpresso.com/pull/8873) (playbook atendimento, thread 05) só acrescenta **8 atributos
+> `data-contract`** (`atend-header` no `Index.tsx`; os outros 7 em `_components/`) para o contrato
+> `atendimento-caixa-unificada.contract.json`. Zero handler, zero prop, zero copy, zero classe. Revalidei os UCs contra o diff:
+> nenhum afirma atributo de âncora. **Nenhum UC foi reexecutado**; o bump é o trio reconciliado com a tela nesta data.
 
 > ⚠️ **`last_run` 2026-09-24 → 2026-09-25 (G-6) — e DESTA vez mudou comportamento.** Diferente dos bumps
 > abaixo, o [#7948](https://github.com/wagnerra23/oimpresso.com/pull/7948) altera o que a tela faz (relato [W] 2026-09-25):
