@@ -65,6 +65,9 @@ class TributacaoController extends Controller
     private function buildRegrasPayload(int $businessId): array
     {
         return NfeFiscalRule::where('business_id', $businessId)
+            // Thread 07: versões encerradas (valida_ate no passado) ficam de fora da lista — são
+            // o histórico que explica notas antigas, não regras a editar.
+            ->when(NfeFiscalRule::temVersionamento(), fn ($q) => $q->vigenteEm(now()->toDateString()))
             ->orderBy('ncm')
             ->orderBy('uf_origem')
             ->orderByRaw('uf_destino IS NULL DESC')
@@ -201,9 +204,7 @@ class TributacaoController extends Controller
     {
         $businessId = (int) $request->session()->get('business.id');
 
-        $regra = NfeFiscalRule::where('business_id', $businessId)
-            ->where('id', $id)
-            ->firstOrFail();
+        $regra = $this->regraEditavel($businessId, $id);
 
         return Inertia::render('NfeBrasil/Tributacao/RegraForm', [
             'regra' => [
@@ -229,11 +230,15 @@ class TributacaoController extends Controller
     {
         $businessId = (int) $request->session()->get('business.id');
 
-        $regra = NfeFiscalRule::where('business_id', $businessId)
-            ->where('id', $id)
-            ->firstOrFail();
+        $regra = $this->regraEditavel($businessId, $id);
 
-        $regra->update($request->validated());
+        // R-NFE-019 · editar gera versão nova; a antiga só ganha `valida_ate` e continua explicando
+        // as notas emitidas com ela. Sem a migração da thread 07 (schema de teste), edita no lugar.
+        if (NfeFiscalRule::temVersionamento()) {
+            $regra = $regra->novaVersao($request->validated());
+        } else {
+            $regra->update($request->validated());
+        }
 
         activity('nfe.tributacao')
             ->causedBy($request->user())
@@ -244,6 +249,21 @@ class TributacaoController extends Controller
         return redirect()
             ->route('nfe-brasil.tributacao.index')
             ->with('success', 'Regra tributária atualizada.');
+    }
+
+    /**
+     * A regra do tenant (404 se for de outro — ADR 0093) e ainda vigente. Versão encerrada é
+     * histórico: editá-la abriria uma segunda versão em paralelo com a atual.
+     */
+    private function regraEditavel(int $businessId, int $id): NfeFiscalRule
+    {
+        return NfeFiscalRule::where('business_id', $businessId)
+            ->where('id', $id)
+            ->when(
+                NfeFiscalRule::temVersionamento(),
+                fn ($q) => $q->where(fn ($w) => $w->whereNull('valida_ate')->orWhere('valida_ate', '>=', now()->toDateString())),
+            )
+            ->firstOrFail();
     }
 
     /** DELETE /nfe-brasil/tributacao/regras/{id} */

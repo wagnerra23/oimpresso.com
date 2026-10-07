@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 // @covers-us US-NFE-010 — motor tributário por NCM: cascade Níveis 1→4 (override→exata→padrão→default), CST/CSOSN, cache, isolamento multi-tenant.
 // @covers R-NFE-015 · R-NFE-015b · R-NFE-016 · R-NFE-017 — ICMS-ST pela MVA, FCP e DIFAL (thread 06 do playbook Fiscal).
+// @covers R-NFE-018 · R-NFE-019 · R-NFE-020b · R-NFE-020c — operação + vigência (thread 07 do playbook Fiscal).
 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
@@ -541,4 +542,189 @@ it('R-NFE-015b · FCP pela regra (controle: fcp nulo = 0)', function () {
     expect($comFcp->valor_fcp)->toBe(20.0)
         ->and($comFcp->valor_difal)->toBe(80.0)
         ->and($semFcp->valor_fcp)->toBe(0.0);
+});
+
+
+// ── thread 07 do playbook Fiscal: operação + vigência (R-NFE-018 · 019 · 020b · 020c) ──────────
+// MySQL-only (as colunas novas vêm da migração 2026_10_07_000001; o schema SQLite deste arquivo é
+// montado à mão e segue sem elas — ali o motor faz o de antes, e os casos acima provam isso).
+// Tenant fictício 98 (ADR 0358). Os valores esperados derivam do aceite do playbook, com conta à mão
+// no comentário de cada caso (regra mestre de valor: dois caminhos — a conta e o motor).
+
+function t07Biz(): int
+{
+    return test()->seededTenant()->id;
+}
+
+/** NCMs reservados a estes casos — nada de produção usa a faixa 7707xxxx. */
+const T07_NCMS = ['77070001', '77070002', '77070003', '77070004'];
+
+function t07Limpar(): void
+{
+    DB::statement('SET FOREIGN_KEY_CHECKS=0');
+    if (Schema::hasTable('nfe_fiscal_rule_tax_rate_links')) {
+        $ids = DB::table('nfe_fiscal_rules')->where('business_id', t07Biz())->whereIn('ncm', T07_NCMS)->pluck('id');
+        DB::table('nfe_fiscal_rule_tax_rate_links')->whereIn('fiscal_rule_id', $ids)->delete();
+    }
+    DB::table('nfe_fiscal_rules')->where('business_id', t07Biz())->whereIn('ncm', T07_NCMS)->delete();
+    DB::table('nfe_operacoes_fiscais')->where('business_id', t07Biz())->where('slug', 'like', 't07-%')->delete();
+    DB::statement('SET FOREIGN_KEY_CHECKS=1');
+}
+
+function t07Preparar(): void
+{
+    if (DB::connection()->getDriverName() === 'sqlite' || ! Schema::hasColumn('nfe_fiscal_rules', 'valida_de')) {
+        test()->markTestSkipped('MySQL-only: precisa da migração 2026_10_07_000001 (operação + vigência).');
+    }
+    NfeFiscalRule::esquecerVersionamento();
+    t07Limpar();
+}
+
+function t07Regra(array $props): NfeFiscalRule
+{
+    return NfeFiscalRule::create(array_merge([
+        'business_id'     => t07Biz(),
+        'ncm'             => '77070001',
+        'uf_origem'       => 'SP',
+        'uf_destino'      => null,
+        'cfop'            => '5102',
+        'csosn'           => '102',
+        'aliquota_icms'   => 0.0,
+        'aliquota_pis'    => 0.0,
+        'aliquota_cofins' => 0.0,
+        'aliquota_ipi'    => 0.0,
+    ], $props));
+}
+
+function t07Operacao(string $slug, array $props = []): int
+{
+    return (int) DB::table('nfe_operacoes_fiscais')->insertGetId(array_merge([
+        'business_id' => t07Biz(),
+        'slug'        => $slug,
+        'nome'        => $slug,
+        'finalidade'  => 1,
+        'cfop'        => null,
+        'regra_geral' => null,
+        'padrao'      => false,
+        'created_at'  => now(),
+        'updated_at'  => now(),
+    ], $props));
+}
+
+it('R-NFE-018 · versão vigente na data', function () {
+    t07Preparar();
+
+    // Versão A até 31/12/2026 com ICMS 12%; versão B a partir de 01/01/2027 com ICMS 18%.
+    t07Regra(['aliquota_icms' => 0.12, 'valida_ate' => '2026-12-31']);
+    t07Regra(['aliquota_icms' => 0.18, 'valida_de' => '2027-01-01']);
+
+    $motor = new MotorTributarioService();
+    $antes  = $motor->calcularComDestino(ctx('77070001', 1000.0), t07Biz(), 'SP', 'SP', dataEmissao: '2026-12-31');
+    $depois = $motor->calcularComDestino(ctx('77070001', 1000.0), t07Biz(), 'SP', 'SP', dataEmissao: '2027-01-01');
+
+    // Conta à mão: 1.000 × 0,12 = 120,00 · 1.000 × 0,18 = 180,00.
+    expect($antes->aliquota_icms)->toBe(0.12)
+        ->and($antes->valor_icms)->toBe(120.0)
+        ->and($depois->aliquota_icms)->toBe(0.18)
+        ->and($depois->valor_icms)->toBe(180.0);
+
+    // CONTROLE POSITIVO — regra sem vigência cadastrada vale em qualquer data, como antes.
+    t07Regra(['ncm' => '77070002', 'aliquota_icms' => 0.07]);
+    expect($motor->calcularComDestino(ctx('77070002', 1000.0), t07Biz(), 'SP', 'SP', dataEmissao: '2020-01-01')->valor_icms)
+        ->toBe(70.0)
+        ->and($motor->calcular(ctx('77070002', 1000.0), t07Biz(), 'SP', 'SP')->valor_icms)->toBe(70.0);
+
+    t07Limpar();
+});
+
+it('R-NFE-019 · editar gera versão, append-only', function () {
+    t07Preparar();
+
+    $antiga = t07Regra(['aliquota_icms' => 0.12]);
+    $fotoAntes = (array) DB::table('nfe_fiscal_rules')->where('id', $antiga->id)->first();
+
+    $nova = $antiga->fresh()->novaVersao(['aliquota_icms' => 0.18], '2026-10-07');
+
+    $fotoDepois = (array) DB::table('nfe_fiscal_rules')->where('id', $antiga->id)->first();
+
+    // A antiga só ganhou valida_ate = ontem; nenhuma outra coluna mudou.
+    expect($fotoDepois['valida_ate'])->toBe('2026-10-06');
+    $semVigencia = fn (array $l) => array_diff_key($l, ['valida_ate' => 1, 'updated_at' => 1]);
+    expect($semVigencia($fotoDepois))->toBe($semVigencia($fotoAntes));
+
+    expect($nova->id)->not->toBe($antiga->id)
+        ->and($nova->valida_de->format('Y-m-d'))->toBe('2026-10-07')
+        ->and((int) $nova->versao_origem_id)->toBe($antiga->id);
+
+    // A nota antiga, recalculada com a data dela, dá o mesmo valor; a de hoje usa a versão nova.
+    // Conta: 1.000 × 0,12 = 120,00 · 1.000 × 0,18 = 180,00.
+    $motor = new MotorTributarioService();
+    expect($motor->calcularComDestino(ctx('77070001', 1000.0), t07Biz(), 'SP', 'SP', dataEmissao: '2026-10-06')->valor_icms)
+        ->toBe(120.0)
+        ->and($motor->calcularComDestino(ctx('77070001', 1000.0), t07Biz(), 'SP', 'SP', dataEmissao: '2026-10-07')->valor_icms)
+        ->toBe(180.0);
+
+    // O override por produto apontava o id antigo e segue a cadeia até a versão vigente.
+    $porOverride = (new MotorTributarioService())
+        ->calcularComDestino(ctx('77070001', 1000.0, $antiga->id), t07Biz(), 'SP', 'SP', dataEmissao: '2026-10-07');
+    expect($porOverride->nivel_usado)->toBe(1)
+        ->and($porOverride->regra_id)->toBe($nova->id)
+        ->and($porOverride->valor_icms)->toBe(180.0);
+
+    t07Limpar();
+});
+
+it('R-NFE-020b · exceção restrita à operação', function () {
+    t07Preparar();
+
+    // Exceção de NCM da operação padrão (Venda): regra sem operacao_id, ICMS 12%.
+    t07Regra(['aliquota_icms' => 0.12]);
+    $devolucao = t07Operacao('t07-devolucao', [
+        'finalidade'  => 4,
+        'regra_geral' => json_encode(['cfop' => '1202', 'csosn' => '900', 'aliquota_icms' => 0.0]),
+    ]);
+
+    $motor = new MotorTributarioService();
+    $dev = $motor->calcularComDestino(ctx('77070001', 1000.0), t07Biz(), 'SP', 'SP', operacaoId: $devolucao);
+
+    // Devolução: a exceção de venda NÃO entra — cai na regra geral da devolução (Nível 4).
+    expect($dev->nivel_usado)->toBe(4)
+        ->and($dev->cfop)->toBe('1202')
+        ->and($dev->csosn)->toBe('900')
+        ->and($dev->valor_icms)->toBe(0.0);
+
+    // CONTROLE POSITIVO — na venda (padrão), a exceção é usada: 1.000 × 0,12 = 120,00.
+    $venda = $motor->calcular(ctx('77070001', 1000.0), t07Biz(), 'SP', 'SP');
+    expect($venda->nivel_usado)->toBe(3)
+        ->and($venda->valor_icms)->toBe(120.0);
+
+    // Operação sem regra geral não cai no default de venda: é erro de configuração.
+    $semGeral = t07Operacao('t07-sem-geral');
+    expect(fn () => (new MotorTributarioService())
+        ->calcularComDestino(ctx('77070003', 1000.0), t07Biz(), 'SP', 'SP', operacaoId: $semGeral))
+        ->toThrow(TributacaoNaoConfiguradaException::class);
+
+    t07Limpar();
+});
+
+it('R-NFE-020c · CFOP ? por destino', function () {
+    t07Preparar();
+
+    $geral = json_encode(['cfop' => '5102', 'csosn' => '102', 'aliquota_icms' => 0.0]);
+    $op = t07Operacao('t07-venda-uf', ['cfop' => '?102', 'regra_geral' => $geral]);
+
+    $motor = new MotorTributarioService();
+    $cfop = fn (string $ufDestino) => $motor
+        ->calcularComDestino(ctx('77070004', 100.0), t07Biz(), 'SP', $ufDestino, operacaoId: $op)->cfop;
+
+    expect($cfop('SP'))->toBe('5102')
+        ->and($cfop('RJ'))->toBe('6102')
+        ->and($cfop('EX'))->toBe('7102');
+
+    // CONTROLE POSITIVO — CFOP sem "?" não é alterado.
+    $importacao = t07Operacao('t07-importacao', ['cfop' => '3102', 'regra_geral' => $geral]);
+    expect($motor->calcularComDestino(ctx('77070004', 100.0), t07Biz(), 'SP', 'RJ', operacaoId: $importacao)->cfop)
+        ->toBe('3102');
+
+    t07Limpar();
 });
