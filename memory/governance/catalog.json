@@ -26,17 +26,17 @@
   ],
   "stats": {
     "modules": 35,
-    "nodes": 742,
-    "edges": 1030,
+    "nodes": 743,
+    "edges": 1031,
     "by_node_type": {
       "module": 39,
-      "table": 102,
+      "table": 103,
       "adr": 135,
       "component": 389,
       "api": 77
     },
     "by_edge_type": {
-      "ownsTable": 91,
+      "ownsTable": 92,
       "ownsLegacyView": 13,
       "consumesTable": 6,
       "providesApi": 81,
@@ -5964,6 +5964,17 @@
       "ownership_mode": "single"
     },
     {
+      "id": "table:nfe_operacoes_fiscais",
+      "type": "table",
+      "name": "nfe_operacoes_fiscais",
+      "owners": [
+        "NfeBrasil"
+      ],
+      "consumers": [],
+      "legacy_views": [],
+      "ownership_mode": "single"
+    },
+    {
       "id": "table:nfe_sefaz_status",
       "type": "table",
       "name": "nfe_sefaz_status",
@@ -10303,6 +10314,12 @@
     {
       "from": "module:NfeBrasil",
       "to": "table:nfe_inutilizacoes",
+      "type": "ownsTable",
+      "source": "db_tables_owned"
+    },
+    {
+      "from": "module:NfeBrasil",
+      "to": "table:nfe_operacoes_fiscais",
       "type": "ownsTable",
       "source": "db_tables_owned"
     },

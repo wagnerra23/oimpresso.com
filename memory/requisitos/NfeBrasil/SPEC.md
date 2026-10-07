@@ -484,6 +484,89 @@ E destinatário com IE, ou na mesma UF, dá valor_difal = 0
 **Testado em:** `Modules/NfeBrasil/Tests/Feature/MotorTributarioServiceTest.php` (lane `nfebrasil-pest`).
 **Fora deste item:** o corte do DIFAL do Simples por UF (ADI 5.464) é R-NFE-035 (thread 29).
 
+### R-NFE-018 · A nota usa a versão de regra vigente na data da emissão
+
+```gherkin
+Dado a versão A da regra (ICMS 12%) válida até 31/12/2026 e a versão B (ICMS 18%) a partir de 01/01/2027
+Quando o motor calcula um item de 1.000,00 com data 31/12/2026 e com data 01/01/2027
+Então usa A (ICMS 120,00) e B (ICMS 180,00), respectivamente
+E uma regra sem vigência cadastrada vale em qualquer data, como antes
+```
+
+**Contrato:** D-OPERACAO ([W] 2026-10-06) · ADR ARQ-0006.
+**Implementação:** `Modules/NfeBrasil/Services/MotorTributarioService.php` (`buscarRegra`, parâmetro `dataEmissao` de `calcularComDestino`) · `Modules/NfeBrasil/Models/NfeFiscalRule.php` (`scopeVigenteEm`) · migração `2026_10_07_000001`.
+**Testado em:** `Modules/NfeBrasil/Tests/Feature/MotorTributarioServiceTest.php` (lane `nfebrasil-pest`).
+**Fora deste item:** a emissão chama o motor com a data de hoje; o SPED (`Modules/Fiscal`) recalcula notas antigas sem passar a data delas — ver `_saida-07.md`.
+
+### R-NFE-019 · Editar regra cria versão nova; a antiga continua lendo igual
+
+```gherkin
+Dado uma regra de ICMS 12%
+Quando o contador a edita para 18% em 07/10/2026
+Então nasce uma versão nova válida de 07/10/2026, a antiga ganha valida_ate = 06/10/2026 e nenhuma outra coluna dela muda
+E recalcular com data 06/10/2026 dá 120,00 e com 07/10/2026 dá 180,00 (item de 1.000,00)
+E o override por produto que apontava a versão antiga passa a usar a vigente
+E o tax_rate vinculado passa para a versão nova (o cadastro de impostos não ganha linha repetida)
+```
+
+**Contrato:** ADR 0093 G8 (append-only) · D-OPERACAO · ADR ARQ-0005 (vínculo com `tax_rates`).
+**Implementação:** `Modules/NfeBrasil/Models/NfeFiscalRule.php` (`novaVersao`) · `Modules/NfeBrasil/Http/Controllers/TributacaoController.php` (`update`, `regraEditavel`) · `Modules/NfeBrasil/Services/MotorTributarioService.php` (Nível 1 segue a cadeia).
+**Testado em:** `Modules/NfeBrasil/Tests/Feature/MotorTributarioServiceTest.php` · `Modules/NfeBrasil/Tests/Feature/OperacaoFiscalTenantTest.php` (lane `nfebrasil-pest`).
+
+### R-NFE-020 · O padrão atual vira a regra geral da operação Venda sem perda
+
+```gherkin
+Dado uma empresa com tributacao_default (CFOP 5102, CSOSN 102, ICMS 1,86%, PIS 0,65%, COFINS 3%)
+Quando a migração roda (duas vezes)
+Então existe uma única operação "Venda" padrão, cuja regra geral é o tributacao_default da empresa
+E o motor devolve o mesmo resultado de antes, campo a campo (item de 1.000,00: ICMS 18,60 · PIS 6,50 · COFINS 30,00)
+```
+
+**Contrato:** D-OPERACAO · UC-NFCD-02.
+**Implementação:** migração `2026_10_07_000002_seed_operacao_venda_padrao` (regra geral NULL = usa o `tributacao_default`, que a tela ConfigDefault continua editando) · `Modules/NfeBrasil/Models/NfeOperacaoFiscal.php`.
+**Testado em:** `Modules/NfeBrasil/Tests/Feature/OperacaoFiscalTenantTest.php` (lane `nfebrasil-pest`).
+
+### R-NFE-020b · Exceção só vale para a operação dela
+
+```gherkin
+Dado uma exceção do NCM X na operação Venda (ICMS 12%) e a operação "Devolução" com regra geral CFOP 1202 / CSOSN 900
+Quando o motor calcula a Devolução para o NCM X
+Então usa a regra geral da Devolução (Nível 4), não a exceção de venda
+E na Venda a exceção é usada (ICMS 120,00 num item de 1.000,00)
+E uma operação sem regra geral recusa o cálculo, em vez de usar o padrão da venda
+```
+
+**Contrato:** D-OPERACAO.
+**Implementação:** `Modules/NfeBrasil/Services/MotorTributarioService.php` (`buscarRegra`, Nível 4 por operação).
+**Testado em:** `Modules/NfeBrasil/Tests/Feature/MotorTributarioServiceTest.php` (lane `nfebrasil-pest`).
+
+### R-NFE-020c · CFOP com "?" vira 5, 6 ou 7 pelo destino
+
+```gherkin
+Dado uma operação com CFOP ?102
+Quando o destino é a UF da empresa, outra UF, ou o exterior (EX)
+Então o CFOP é 5102, 6102 e 7102
+E um CFOP sem "?" (3102) não é alterado
+```
+
+**Contrato:** D-OPERACAO · padrão de mercado (Tiny/Olist).
+**Implementação:** `Modules/NfeBrasil/Models/NfeOperacaoFiscal.php` (`resolverCfop`) · `Modules/NfeBrasil/Services/MotorTributarioService.php`.
+**Testado em:** `Modules/NfeBrasil/Tests/Feature/MotorTributarioServiceTest.php` (lane `nfebrasil-pest`).
+**Fora deste item:** a emissão ainda não passa `EX` para o exterior.
+
+### R-NFE-020d · Operações e versões de regra não atravessam empresas
+
+```gherkin
+Dado uma operação e uma regra da empresa A
+Quando a empresa B calcula com a operação de A, lista operações, ou edita a regra de A
+Então o cálculo é recusado, a lista não traz a de A, e a edição dá 404 sem mudar a regra
+E a empresa A usa as próprias
+```
+
+**Contrato:** ADR 0093 · `HasBusinessScope`.
+**Implementação:** `Modules/NfeBrasil/Models/NfeOperacaoFiscal.php` · `Modules/NfeBrasil/Services/MotorTributarioService.php` (`resolverOperacao`) · migração `2026_10_07_000001` (FK para `business`).
+**Testado em:** `Modules/NfeBrasil/Tests/Feature/OperacaoFiscalTenantTest.php` (lane `nfebrasil-pest`).
+
 ### R-NFE-033 · Aceita CNPJ alfanumérico válido e recusa o inválido
 
 ```gherkin
