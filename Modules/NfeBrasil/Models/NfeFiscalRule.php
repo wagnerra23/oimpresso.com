@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Schema;
 use Modules\NfeBrasil\Events\FiscalRuleCreated;
 use Modules\NfeBrasil\Events\FiscalRuleDeleted;
 use Modules\NfeBrasil\Events\FiscalRuleUpdated;
+use Modules\NfeBrasil\Services\Tributacao\RevisaoContadorService;
 
 /**
  * Regra tributária por (business, ncm, uf_origem, uf_destino?).
@@ -124,6 +125,7 @@ class NfeFiscalRule extends Model
         $ontem = date('Y-m-d', strtotime($hoje . ' -1 day'));
 
         return DB::transaction(function () use ($dados, $hoje, $ontem): self {
+            $antes = $this->getAttributes();
             $nova = $this->replicate(['created_at', 'updated_at', 'deleted_at']);
             $nova->fill($dados);
             $nova->business_id      = $this->business_id;
@@ -143,6 +145,8 @@ class NfeFiscalRule extends Model
             }
 
             FiscalRuleUpdated::dispatch($nova);
+            // Thread 15a: a versão nova nasce pendente para o contador; a antiga mantém o aceite.
+            RevisaoContadorService::registrar($nova, $antes, (int) $this->id);
 
             return $nova;
         });
@@ -160,10 +164,15 @@ class NfeFiscalRule extends Model
 
         static::created(function (self $rule) {
             FiscalRuleCreated::dispatch($rule);
+            // Thread 15a: toda regra nova entra pendente na revisão do contador.
+            RevisaoContadorService::registrar($rule, null);
         });
 
         static::updated(function (self $rule) {
             FiscalRuleUpdated::dispatch($rule);
+            // Edição no lugar (import CSV, schema sem versionamento): revisão com o de → para.
+            // `getOriginal()` ainda tem os valores de antes no evento `updated`.
+            RevisaoContadorService::registrar($rule, $rule->getOriginal(), (int) $rule->id);
         });
 
         static::deleted(function (self $rule) {

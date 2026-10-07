@@ -51,7 +51,7 @@ dicionário trava o vocabulário VIVO e o guard acusa quem reintroduzir o antigo
 {
   "module": "FiscalFaturamento",
   "migrations_paths": ["Modules/NfeBrasil/Database/Migrations", "Modules/NFSe/Database/Migrations", "database/migrations"],
-  "tables_scope": ["nfe_business_configs", "nfe_dfe_eventos", "nfe_dfe_recebidos", "nfe_emissoes", "nfe_eventos", "nfe_inutilizacoes", "nfse_emissoes", "nfse_eventos_cancelamento", "nfse_provider_configs", "transaction_documents", "tax_rates", "invoice_schemes", "invoice_layouts"],
+  "tables_scope": ["nfe_business_configs", "nfe_dfe_eventos", "nfe_dfe_recebidos", "nfe_emissoes", "nfe_eventos", "nfe_inutilizacoes", "nfse_emissoes", "nfse_eventos_cancelamento", "nfse_provider_configs", "transaction_documents", "tax_rates", "invoice_schemes", "invoice_layouts", "nfe_revisoes_contador"],
   "code_paths": ["Modules/NfeBrasil/Http", "Modules/NfeBrasil/Services", "Modules/NFSe/Http", "Modules/NFSe/Services"],
   "enums": {
     "nfe_emissoes.modelo": ["55", "65", "67"],
@@ -70,7 +70,8 @@ dicionário trava o vocabulário VIVO e o guard acusa quem reintroduzir o antigo
     "tax_rates.calculation_type": ["fixed", "percentage"],
     "tax_rates.rounding_type": ["up", "down", "normal"],
     "invoice_schemes.scheme_type": ["blank", "year"],
-    "invoice_layouts.design": ["classic", "elegant"]
+    "invoice_layouts.design": ["classic", "elegant"],
+    "nfe_revisoes_contador.status": ["pendente", "aceita", "ajuste_pedido"]
   }
 }
 ```

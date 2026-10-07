@@ -76,13 +76,13 @@ beforeEach(function () {
         if (Schema::hasTable('nfe_fiscal_rules')) {
             DB::statement('SET FOREIGN_KEY_CHECKS=0');
             if (Schema::hasTable('nfe_fiscal_rule_tax_rate_links')) {
-                DB::table('nfe_fiscal_rule_tax_rate_links')->whereIn('business_id', [1, 4, 5, 99, 999])->delete();
+                DB::table('nfe_fiscal_rule_tax_rate_links')->whereIn('business_id', [1, 4, 5, 98, 99])->delete();
             }
-            DB::table('nfe_fiscal_rules')->whereIn('business_id', [1, 4, 5, 99, 999])->delete();
+            DB::table('nfe_fiscal_rules')->whereIn('business_id', [1, 4, 5, 98, 99])->delete();
             DB::statement('SET FOREIGN_KEY_CHECKS=1');
         }
         if (Schema::hasTable('nfe_business_configs')) {
-            DB::table('nfe_business_configs')->whereIn('business_id', [1, 4, 5, 99, 999])->delete();
+            DB::table('nfe_business_configs')->whereIn('business_id', [1, 4, 5, 98, 99])->delete();
         }
     }
 
@@ -101,13 +101,13 @@ afterEach(function () {
         if (Schema::hasTable('nfe_fiscal_rules')) {
             DB::statement('SET FOREIGN_KEY_CHECKS=0');
             if (Schema::hasTable('nfe_fiscal_rule_tax_rate_links')) {
-                DB::table('nfe_fiscal_rule_tax_rate_links')->whereIn('business_id', [1, 4, 5, 99, 999])->delete();
+                DB::table('nfe_fiscal_rule_tax_rate_links')->whereIn('business_id', [1, 4, 5, 98, 99])->delete();
             }
-            DB::table('nfe_fiscal_rules')->whereIn('business_id', [1, 4, 5, 99, 999])->delete();
+            DB::table('nfe_fiscal_rules')->whereIn('business_id', [1, 4, 5, 98, 99])->delete();
             DB::statement('SET FOREIGN_KEY_CHECKS=1');
         }
         if (Schema::hasTable('nfe_business_configs')) {
-            DB::table('nfe_business_configs')->whereIn('business_id', [1, 4, 5, 99, 999])->delete();
+            DB::table('nfe_business_configs')->whereIn('business_id', [1, 4, 5, 98, 99])->delete();
         }
     }
 });
@@ -284,7 +284,9 @@ it('Override invalido (id que nao existe) cai no cascade normal', function () {
 });
 
 it('Override de outro business é ignorado (multi-tenant)', function () {
-    $overrideOutroBiz = regra(['business_id' => 999, 'aliquota_icms' => 0.99]);
+    // Outra empresa = tenant fictício 98 (existe; ADR 0358). Era 999, que não existe — a FK da
+    // revisão do contador (thread 15a) não aceita revisão de empresa inexistente.
+    $overrideOutroBiz = regra(['business_id' => 98, 'aliquota_icms' => 0.99]);
     regra(['business_id' => 1, 'uf_destino' => null, 'aliquota_icms' => 0.10]);
     configBusiness(4);
 
@@ -293,7 +295,7 @@ it('Override de outro business é ignorado (multi-tenant)', function () {
         businessId: 1, ufOrigem: 'SP', ufDestino: 'SP',
     );
 
-    expect($tributo->nivel_usado)->toBe(3) // Não pegou override do biz 999
+    expect($tributo->nivel_usado)->toBe(3) // Não pegou override do biz 98
         ->and($tributo->aliquota_icms)->toBe(0.10);
 });
 
