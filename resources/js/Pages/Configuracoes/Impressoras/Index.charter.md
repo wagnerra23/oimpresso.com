@@ -31,7 +31,9 @@ Manter as impressoras de cupom do negócio — como cada caixa se conecta a uma 
 ## Goals
 
 - Lista das impressoras do negócio com conexão, perfil, caracteres por linha e endereço (IP:porta ou caminho).
+- Cadastrar e editar num drawer com os campos da Blade (IP e porta para rede, caminho para Windows/Linux).
 - Excluir com confirmação, pelo endpoint de sempre.
+- Abas de Configurações (D1, [W] 2026-10-06), derivadas do `shell.menu` — cada aba sob a própria permissão.
 
 ## Non-Goals
 
@@ -46,6 +48,7 @@ Manter as impressoras de cupom do negócio — como cada caixa se conecta a uma 
 | R2 | Com a flag desligada a rota devolve a Blade | `PrinterController::index` (`FLAG_V2`) |
 | R3 | Excluir só alcança impressora do negócio | `destroy()` |
 | R4 | Sem `access_printers`, 403 | todas as ações |
+| R5 | As abas vêm dos filhos do dropdown de configurações do menu; nenhuma lista própria | `_shared/ConfiguracoesSubNav.tsx` |
 
 ## Refs
 

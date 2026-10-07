@@ -312,6 +312,7 @@ jobs:
             Modules/NfeBrasil/Tests/Feature/TributacaoGatesContratoTest.php \
             Modules/NfeBrasil/Tests/Feature/RegraTributariaIbsCbsValidacaoTest.php \
             Modules/NfeBrasil/Tests/Feature/OperacaoFiscalTenantTest.php \
+            Modules/NfeBrasil/Tests/Feature/TributacaoSimuladorTest.php \
             Modules/NfeBrasil/Tests/Feature/IcmsUfTest.php
 
 

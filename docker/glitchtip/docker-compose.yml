@@ -1,0 +1,94 @@
+# GlitchTip self-host CT 100 — ADR 0429 · US-INFRA-003
+#
+# Log de falhas (erros + crashes) do app das lojas (oimpresso-app) e, depois, do ERP.
+# Compatível com os SDKs do Sentry (@sentry/capacitor, sentry-laravel): só muda o DSN.
+#
+# Por que aqui e não em SaaS: os relatórios de falha podem carregar tela, usuário e
+# contexto de negócio. Ficam no NOSSO servidor (CT 100), sem terceiro — [W] 2026-10-07:
+# "eu gosto de segurança e manter domínio sobre as informações".
+# Por que CT 100 e não Hostinger: são daemons (ADR 0062).
+#
+# Base: compose oficial https://glitchtip.com/assets/compose.sample.yml (v6, SERVER_ROLE
+# all_in_one = web + worker num container só). Versão FIXADA — atualizar por PR.
+#
+# Segredos NÃO vivem aqui: só ${VAR}, resolvidas pelo .env do servidor
+# (/opt/glitchtip/code/docker/glitchtip/.env, não versionado, chmod 600).
+
+x-environment: &default-environment
+  DATABASE_URL: postgres://glitchtip:${POSTGRES_PASSWORD:?}@postgres-glitchtip:5432/glitchtip
+  VALKEY_URL: redis://valkey-glitchtip:6379
+  SECRET_KEY: ${SECRET_KEY:?}
+  # Sem SMTP por ora: o time entra com usuário criado por comando (README). Convite por
+  # e-mail e "esqueci a senha" ficam desligados até configurar SMTP.
+  EMAIL_URL: ${EMAIL_URL:-consolemail://}
+  DEFAULT_FROM_EMAIL: ${DEFAULT_FROM_EMAIL:-nao-responda@oimpresso.com}
+  GLITCHTIP_DOMAIN: https://apm.oimpresso.com
+  ALLOWED_HOSTS: apm.oimpresso.com
+  # Fechado: ninguém se cadastra sozinho nem cria organização (domínio sobre a informação).
+  ENABLE_USER_REGISTRATION: "False"
+  ENABLE_ORGANIZATION_CREATION: "False"
+  ENABLE_ADMIN: "False"
+  ENABLE_OPENAPI: "False"
+  GLITCHTIP_ENABLE_MCP: "False"
+  GLITCHTIP_ENABLE_UPTIME: "False"
+  # Retenção: 90 dias e some (LGPD — minimização). Relatório de falha não é arquivo.
+  GLITCHTIP_RETENTION_DAYS: "90"
+
+services:
+  postgres-glitchtip:
+    image: postgres:18
+    container_name: postgres-glitchtip
+    restart: unless-stopped
+    networks:
+      - docker-host_default
+    environment:
+      POSTGRES_DB: glitchtip
+      POSTGRES_USER: glitchtip
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?}
+    volumes:
+      - /opt/glitchtip/data/postgres:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U glitchtip -d glitchtip"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  valkey-glitchtip:
+    image: valkey/valkey:9
+    container_name: valkey-glitchtip
+    restart: unless-stopped
+    networks:
+      - docker-host_default
+    healthcheck:
+      test: ["CMD", "valkey-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  glitchtip:
+    image: glitchtip/glitchtip:6.2.6
+    container_name: glitchtip
+    restart: unless-stopped
+    depends_on:
+      postgres-glitchtip: { condition: service_healthy }
+      valkey-glitchtip: { condition: service_healthy }
+    networks:
+      - docker-host_default
+    environment:
+      <<: *default-environment
+      SERVER_ROLE: all_in_one
+    volumes:
+      - /opt/glitchtip/data/uploads:/code/uploads
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=docker-host_default"
+      - "traefik.http.routers.glitchtip.rule=Host(`apm.oimpresso.com`)"
+      - "traefik.http.routers.glitchtip.entrypoints=websecure"
+      - "traefik.http.routers.glitchtip.tls=true"
+      - "traefik.http.routers.glitchtip.tls.certresolver=le"
+      - "traefik.http.routers.glitchtip.service=glitchtip"
+      - "traefik.http.services.glitchtip.loadbalancer.server.port=8000"
+
+networks:
+  docker-host_default:
+    external: true
