@@ -48699,6 +48699,25 @@
     "projetoCowork": "w"
   },
   {
+    "date": "2026-10-07T11:10:26.355Z",
+    "files": 284,
+    "sync": 2,
+    "stale": 0,
+    "liveAbsent": 0,
+    "unchecked": 282,
+    "staleList": [],
+    "verified": [
+      "cobranca-recorrente-page.jsx",
+      "cowork-inbox/recorrente/playbook/_saida-00.md"
+    ],
+    "verifiedHash": {
+      "cobranca-recorrente-page.jsx": "15466c314da611ebf5733a2063850cdeefde684eef26e10fc8c78dd464a80b5f",
+      "cowork-inbox/recorrente/playbook/_saida-00.md": "3c7bf8324062c2334b6e04dced98104d0ecbaf268e7fbdfac1aaa217cfba09b7"
+    },
+    "origin": "medicao",
+    "projetoCowork": "w"
+  },
+  {
     "date": "2026-10-07T11:11:24.195Z",
     "files": 284,
     "sync": 18,
