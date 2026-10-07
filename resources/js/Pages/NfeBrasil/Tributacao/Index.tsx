@@ -7,13 +7,15 @@ import { Deferred, Head, Link, router, usePage } from '@inertiajs/react';
 import { Skeleton } from '@/Components/ui/skeleton';
 import {
   CheckCircle2, ChevronRight, FilePlus2, FileSpreadsheet, Package, Pencil, Percent, Printer,
-  Settings, ShoppingBag, Sparkles, Trash2, Zap,
+  Settings, ShieldCheck, ShoppingBag, Sparkles, Trash2, Zap,
 } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
 import { Badge } from '@/Components/ui/badge';
 import { Switch } from '@/Components/ui/switch';
 import { toast } from 'sonner';
+import { useState } from 'react';
+import ConfigurarPeloCertificado from './_components/ConfigurarPeloCertificado';
 
 interface Regra {
   id: number;
@@ -91,6 +93,7 @@ function Index({ regras, config, templates }: Props) {
 
   // Guardas defensivas: props deferidas são undefined no first render.
   const rows = regras ?? [];
+  const [onboarding, setOnboarding] = useState(false);
 
   const aplicarTemplate = (tpl: Template) => {
     const aviso = config
@@ -160,9 +163,15 @@ function Index({ regras, config, templates }: Props) {
         {templates && templates.length > 0 && (
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-base flex items-center gap-2">
-                <Sparkles className="h-4 w-4 text-primary" />
-                Configuração rápida por setor
+              <CardTitle className="text-base flex items-center justify-between gap-2">
+                <span className="flex items-center gap-2">
+                  <Sparkles className="h-4 w-4 text-primary" />
+                  Configuração rápida por setor
+                </span>
+                <Button size="sm" variant="outline" onClick={() => setOnboarding(true)}>
+                  <ShieldCheck className="h-4 w-4 mr-1.5" />
+                  Configurar pelo certificado
+                </Button>
               </CardTitle>
               <p className="text-xs text-muted-foreground">
                 {config
@@ -209,6 +218,8 @@ function Index({ regras, config, templates }: Props) {
           </Card>
         )}
         </Deferred>
+
+        <ConfigurarPeloCertificado open={onboarding} onOpenChange={setOnboarding} temConfig={!!config} />
 
         {/* Config default (Nível 4) */}
         <Card className={!config ? 'border-destructive/50' : undefined}>
