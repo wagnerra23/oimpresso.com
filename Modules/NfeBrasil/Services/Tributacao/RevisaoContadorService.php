@@ -8,6 +8,7 @@ use App\User;
 use Closure;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\ValidationException;
+use Modules\NfeBrasil\Models\NfeContadorLink;
 use Modules\NfeBrasil\Models\NfeFiscalRule;
 use Modules\NfeBrasil\Models\NfeRevisaoContador;
 use Throwable;
@@ -134,6 +135,43 @@ class RevisaoContadorService
 
         activity('nfe.tributacao')->causedBy($user)->performedOn($r)
             ->withProperties(['business_id' => $r->business_id, 'regra_id' => $r->regra_id])
+            ->log('aceite.ajuste_pedido');
+
+        return $r;
+    }
+
+    /**
+     * Aceite pelo link de revisão (thread 15b): quem aceita é o contador do link — nome, e-mail e
+     * CRC vêm dele, não de um usuário. O controller do link já conferiu o código e o business.
+     */
+    public function aceitarPeloLink(NfeRevisaoContador $r, NfeContadorLink $link, ?string $ip): NfeRevisaoContador
+    {
+        $this->exigirPendente($r);
+
+        $r->forceFill([
+            'status'           => 'aceita',
+            'aceito_por_nome'  => $link->nome,
+            'aceito_por_email' => $link->email,
+            'aceito_por_crc'   => $link->crc,
+            'aceito_em'        => now(),
+            'aceito_ip'        => $ip,
+        ])->save();
+
+        activity('nfe.tributacao')->performedOn($r)
+            ->withProperties(['business_id' => $r->business_id, 'regra_id' => $r->regra_id, 'link_id' => $link->id])
+            ->log('aceite.registrado');
+
+        return $r;
+    }
+
+    public function pedirAjustePeloLink(NfeRevisaoContador $r, NfeContadorLink $link, string $comentario): NfeRevisaoContador
+    {
+        $this->exigirPendente($r);
+
+        $r->forceFill(['status' => 'ajuste_pedido', 'comentario' => $comentario])->save();
+
+        activity('nfe.tributacao')->performedOn($r)
+            ->withProperties(['business_id' => $r->business_id, 'regra_id' => $r->regra_id, 'link_id' => $link->id])
             ->log('aceite.ajuste_pedido');
 
         return $r;
