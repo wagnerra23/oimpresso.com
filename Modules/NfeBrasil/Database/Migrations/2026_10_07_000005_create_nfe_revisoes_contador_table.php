@@ -33,7 +33,8 @@ return new class extends Migration
             $table->string('origem', 20)->default('manual')->comment('manual · csv · jana · template');
             $table->unsignedInteger('autor_id')->nullable();
             $table->json('diff');
-            $table->string('status', 16)->default('pendente')->comment('pendente · aceita · ajuste_pedido');
+            // Enum declarado em memory/dominio/fiscal-faturamento.md (dominio:check, ADR 0264 G-4).
+            $table->enum('status', ['pendente', 'aceita', 'ajuste_pedido'])->default('pendente');
             $table->text('comentario')->nullable();
             $table->string('aceito_por_nome', 191)->nullable();
             $table->string('aceito_por_email', 191)->nullable();
