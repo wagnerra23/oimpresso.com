@@ -67,13 +67,13 @@ beforeEach(function () {
         if (Schema::hasTable('nfe_fiscal_rules')) {
             DB::statement('SET FOREIGN_KEY_CHECKS=0');
             if (Schema::hasTable('nfe_fiscal_rule_tax_rate_links')) {
-                DB::table('nfe_fiscal_rule_tax_rate_links')->whereIn('business_id', [1, 99, 999])->delete();
+                DB::table('nfe_fiscal_rule_tax_rate_links')->whereIn('business_id', [1, 98, 99])->delete();
             }
-            DB::table('nfe_fiscal_rules')->whereIn('business_id', [1, 99, 999])->delete();
+            DB::table('nfe_fiscal_rules')->whereIn('business_id', [1, 98, 99])->delete();
             DB::statement('SET FOREIGN_KEY_CHECKS=1');
         }
         if (Schema::hasTable('nfe_business_configs')) {
-            DB::table('nfe_business_configs')->whereIn('business_id', [1, 99, 999])->delete();
+            DB::table('nfe_business_configs')->whereIn('business_id', [1, 98, 99])->delete();
         }
     }
 
@@ -88,13 +88,13 @@ afterEach(function () {
         if (Schema::hasTable('nfe_fiscal_rules')) {
             DB::statement('SET FOREIGN_KEY_CHECKS=0');
             if (Schema::hasTable('nfe_fiscal_rule_tax_rate_links')) {
-                DB::table('nfe_fiscal_rule_tax_rate_links')->whereIn('business_id', [1, 99, 999])->delete();
+                DB::table('nfe_fiscal_rule_tax_rate_links')->whereIn('business_id', [1, 98, 99])->delete();
             }
-            DB::table('nfe_fiscal_rules')->whereIn('business_id', [1, 99, 999])->delete();
+            DB::table('nfe_fiscal_rules')->whereIn('business_id', [1, 98, 99])->delete();
             DB::statement('SET FOREIGN_KEY_CHECKS=1');
         }
         if (Schema::hasTable('nfe_business_configs')) {
-            DB::table('nfe_business_configs')->whereIn('business_id', [1, 99, 999])->delete();
+            DB::table('nfe_business_configs')->whereIn('business_id', [1, 98, 99])->delete();
         }
     }
 });
@@ -226,7 +226,9 @@ it('edit() renderiza form com regra carregada', function () {
 
 it('edit() de regra de outro business retorna 404 (multi-tenant)', function () {
     $regra = NfeFiscalRule::create([
-        'business_id' => 999, // business diferente
+        // Outra empresa = tenant fictício 98 (existe; ADR 0358). Era 999, que não existe — a FK
+        // da revisão do contador (thread 15a) não aceita revisão de empresa inexistente.
+        'business_id' => 98, // business diferente
         'ncm' => '49019900', 'uf_origem' => 'SP', 'uf_destino' => null,
         'cfop' => '5102', 'csosn' => '102',
         'aliquota_icms' => 0, 'aliquota_pis' => 0,
