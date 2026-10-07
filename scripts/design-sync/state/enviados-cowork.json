@@ -29,6 +29,10 @@
       "sha256": "37f4f1aa43092ab851ac7ea0d638e9ec67d06abf253a0c9f1a29b3115af321ad",
       "em": "2026-10-07T11:06:35.908Z"
     },
+    "cowork-inbox/estoque/playbook/_saida-00.md": {
+      "sha256": "3b485d1c3954e6134c2ca666d4fd7e4e545d38756e3d8925be79ca2b45c52efc",
+      "em": "2026-10-07T11:07:10.775Z"
+    },
     "cowork-inbox/financeiro/playbook/_saida-11.md": {
       "sha256": "33634f1bd7749bde23ba36956de71f543f8973cc212c001e0b5714bb950fe8be",
       "em": "2026-10-06T17:40:33.562Z"
@@ -140,6 +144,10 @@
     "essenciais-page.jsx": {
       "sha256": "a14028199ff280893023018cb491bec529c78e98547fc8ca5bc7fa6ff8b2e6fe",
       "em": "2026-10-07T11:06:35.908Z"
+    },
+    "estoque-page.jsx": {
+      "sha256": "48ac9307b574150c60cfe4553d67b3f6d819a11167b5c057f6e9e548fa9bf43a",
+      "em": "2026-10-07T11:07:10.775Z"
     },
     "produto-blade-forms.jsx": {
       "sha256": "7423e8410517d90d08b954d8a482b7b22ac8920d2e4e788c02927333b95d9769",
