@@ -31,7 +31,7 @@ import { PageHeader } from '@/Components/PageHeader';
 import EmptyState from '@/Components/shared/EmptyState';
 import DataTable from '@/Components/shared/DataTable';
 import type { ColumnDef } from '@tanstack/react-table';
-import { Inline, Stack } from '@/Components/layout';
+import { Grid, Inline, Stack } from '@/Components/layout';
 import ConfiguracoesSubNav from '@/Pages/Configuracoes/_shared/ConfiguracoesSubNav';
 
 export interface Etiqueta {
@@ -224,7 +224,7 @@ function CodigoBarrasIndex({ etiquetas: etiquetasProp }: Props) {
                 <Checkbox id="etq-continuo" checked={edicao.continuo} onCheckedChange={(v) => setEdicao((x) => (x ? { ...x, continuo: v === true } : x))} />
                 <label htmlFor="etq-continuo">Rolo contínuo (uma etiqueta por vez)</label>
               </Inline>
-              <div className="grid grid-cols-2 gap-3">
+              <Grid cols={2} gap={3}>
                 {visiveis.map((m) => (
                   <Stack key={m.k} gap={1}>
                     <label htmlFor={`etq-${m.k}`}>{m.rotulo} (pol) *</label>
@@ -241,7 +241,7 @@ function CodigoBarrasIndex({ etiquetas: etiquetasProp }: Props) {
                     <Input id="etq-folha" inputMode="numeric" value={edicao.por_folha} onChange={(e) => muda('por_folha', e.target.value.replace(/\D/g, ''))} />
                   </Stack>
                 )}
-              </div>
+              </Grid>
               {!edicao.id && (
                 <Inline gap={2}>
                   <Checkbox id="etq-padrao" checked={edicao.padrao} onCheckedChange={(v) => setEdicao((x) => (x ? { ...x, padrao: v === true } : x))} />
