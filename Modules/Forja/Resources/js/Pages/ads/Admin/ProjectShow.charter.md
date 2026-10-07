@@ -18,6 +18,8 @@ charter_version: 1
 > **Status:** draft criado em 2026-07-11 no lote de cobertura de charters. Wagner aprova **Non-Goals + Anti-hooks** ANTES de virar `status: live`.
 >
 > Backend: `Modules/Forja/Http/Controllers/Admin/ProjectsController@show` (rota `ads.admin.projects.show`, `whereNumber('id')`) + `@decompose` (POST). Detalhe do Project: KPIs estratégicos, parts decompostas, métricas de sucesso e decisões geradas.
+>
+> **Casos de uso:** [`ProjectShow.casos.md`](ProjectShow.casos.md) (UC-ADPS-01..02, teste `Modules/Forja/Tests/Feature/AdsAdminProjectShowContratoTest.php`).
 
 ---
 

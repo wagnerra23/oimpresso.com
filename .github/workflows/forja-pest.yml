@@ -161,6 +161,10 @@ jobs:
         # (está no schema baseline, com due_soon no enum) — montar tabela
         # sintética esconderia o próprio bug de schema que ele trava.
         # Não usa RefreshDatabase/migrate:fresh e apaga as linhas que cria.
+        #
+        # 2026-10-07 — AdsAdminProjectShowContratoTest (UC-ADPS-01..02, ads/Admin/ProjectShow.casos.md)
+        # entra pelo MESMO desvio FAILING-FIRST: Pest local é proibido, o 1º veredito é
+        # aqui. DatabaseTransactions + tenant 98 × 99 (ADR 0358) — nada persiste.
         env:
           DB_CONNECTION: mysql
           DB_HOST: 127.0.0.1
@@ -175,6 +179,7 @@ jobs:
             Modules/Forja/Tests/Feature/ForjaRoutesSmokeTest.php \
             Modules/Forja/Tests/Feature/AprovacoesMesaTest.php \
             Modules/Forja/Tests/Feature/TrabalhoListaTest.php \
+            Modules/Forja/Tests/Feature/AdsAdminProjectShowContratoTest.php \
             Modules/Forja/Tests/Feature/PipelineParidadeTest.php \
             Modules/Forja/Tests/Feature/ForjaMcpHandoffsInlineTest.php \
             Modules/Forja/Tests/Feature/BriefAlertOpsInboxTest.php \
