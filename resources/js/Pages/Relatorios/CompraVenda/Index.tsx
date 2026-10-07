@@ -7,7 +7,7 @@ import { PageHeader } from '@/Components/PageHeader';
 import { Input } from '@/Components/ui/input';
 import { Select, SelectContent, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import { SafeSelectItem } from '@/Components/ui/SafeSelectItem';
-import { Inline, Stack } from '@/Components/layout';
+import { Grid, Inline, Stack } from '@/Components/layout';
 import { formatDecimalPtBR } from '@/Lib/numberPtBR';
 
 type Opcao = { id: number; nome: string };
@@ -61,10 +61,10 @@ function CompraVendaIndex({ locais, periodo, moeda }: Props) {
       <h2 className="border-b bg-muted px-4 py-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">{titulo}</h2>
       <dl>
         {linhas.map(([rotulo, valor, id]) => (
-          <div key={id} className="flex items-baseline justify-between gap-3 border-b px-4 py-2 last:border-b-0">
+          <Inline key={id} align="baseline" justify="between" gap={3} className="border-b px-4 py-2 last:border-b-0">
             <dt className="text-sm text-muted-foreground">{rotulo}</dt>
             <dd className="font-mono tabular-nums" data-testid={id}>{dinheiro(valor)}</dd>
-          </div>
+          </Inline>
         ))}
       </dl>
     </section>
@@ -75,10 +75,10 @@ function CompraVendaIndex({ locais, periodo, moeda }: Props) {
     const n = Number(valor ?? 0);
     const tom = dados === null || n === 0 ? 'text-foreground' : n > 0 ? 'text-success' : 'text-destructive';
     return (
-      <div className="flex flex-col gap-0.5 rounded-lg border bg-muted px-4 py-3">
+      <Stack gap={1} className="rounded-lg border bg-muted px-4 py-3">
         <span className="text-xs uppercase tracking-wider text-muted-foreground">{rotulo}</span>
         <span className={`font-mono text-2xl font-semibold tabular-nums ${tom}`} data-testid={id}>{dinheiro(valor)}</span>
-      </div>
+      </Stack>
     );
   };
 
@@ -103,7 +103,7 @@ function CompraVendaIndex({ locais, periodo, moeda }: Props) {
         <div aria-live="polite" className="sr-only">{dados === null && !erro ? 'Carregando totais' : ''}</div>
         {erro && <p role="alert" className="text-sm text-destructive">{erro}</p>}
 
-        <div data-contract="resumo" className="grid grid-cols-1 gap-3 min-[1001px]:grid-cols-2">
+        <Grid data-contract="resumo" fit="md" gap={3}>
           {painel('Compras', [
             ['Total de compras', dados?.purchase.total_purchase_exc_tax, 'cv-compra-total'],
             ['Compras com imposto', dados?.purchase.total_purchase_inc_tax, 'cv-compra-imposto'],
@@ -116,12 +116,12 @@ function CompraVendaIndex({ locais, periodo, moeda }: Props) {
             ['Devoluções de venda com imposto', dados?.total_sell_return, 'cv-venda-devolucao'],
             ['A receber (vendas)', dados?.sell.invoice_due, 'cv-venda-areceber'],
           ])}
-        </div>
+        </Grid>
 
-        <div data-contract="fecho" className="grid grid-cols-1 gap-3 min-[1001px]:grid-cols-2">
+        <Grid data-contract="fecho" fit="md" gap={3}>
           {fecho('Diferença (vendas − devoluções) − (compras − devoluções)', dados?.difference.total, 'cv-diferenca')}
           {fecho('Diferença a receber − a pagar', dados?.difference.due, 'cv-diferenca-devida')}
-        </div>
+        </Grid>
       </Stack>
     </>
   );
