@@ -23,19 +23,25 @@ base: wagnerra23/oimpresso.com@main 2fe69ddc0280 (lido 2026-10-06 17:08 UTC)
       "id": "D1",
       "texto": "versão exibida: system.<alias>_version (recomendado) — P4",
       "dono": "W",
-      "respondida": false
+      "respondida": true,
+      "resposta": "[W] 2026-10-07 \"o que recomenda?\" → recomendação [CC]: mostrar system.<alias>_version (o que de fato rodou na instalação); module.json só como dica quando divergir",
+      "quando": "2026-10-07"
     },
     {
       "id": "D4",
       "texto": "install em fila só se houver worker em produção",
       "dono": "W",
-      "respondida": false
+      "respondida": true,
+      "resposta": "[W] 2026-10-07 \"o que recomenda?\" → recomendação [CC]: não — instalação continua síncrona (Hostinger proíbe daemon/worker; job sem worker deixaria \"instalando\" pra sempre). Thread 02 cancelada.",
+      "quando": "2026-10-07"
     },
     {
       "id": "D5",
       "texto": "remover chaves órfãs do modules_statuses.json — P8",
       "dono": "W",
-      "respondida": false
+      "respondida": true,
+      "resposta": "[W] 2026-10-07 \"o que recomenda?\" → recomendação [CC]: sim — apagar chaves órfãs do modules_statuses.json (módulo que não existe no disco não pode aparecer como ativo)",
+      "quando": "2026-10-07"
     }
   ],
   "threads": [
@@ -78,15 +84,11 @@ base: wagnerra23/oimpresso.com@main 2fe69ddc0280 (lido 2026-10-06 17:08 UTC)
       "nao_toca": [
         "resources/js/Pages/Modules/Index.charter.md"
       ],
-      "provas": [
-        {
-          "tipo": "arquivo",
-          "path": "app/Jobs/InstalarModuloJob.php"
-        }
-      ],
+      "provas": [],
       "depende_decisoes": [
         "D4"
-      ]
+      ],
+      "bloqueio": "cancelada — D4 = não (sem worker em produção). Não executar."
     },
     {
       "id": "04",

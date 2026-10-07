@@ -45,7 +45,7 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/superadmin/playbook/
       "destrava": [
         "06"
       ],
-      "resposta": "manter separado do Cms",
+      "resposta": "manter separado do Cms — _DECISOES-W-2026-10-01b.md",
       "fonte": "_DECISOES-W-2026-10-01b.md"
     },
     {

@@ -28,19 +28,32 @@ base: wagnerra23/oimpresso.com@main 2fe69ddc0280 (lido 2026-10-06 17:08 UTC)
       "id": "VEST-D1",
       "texto": "ligar hard-block de vestuario.etiqueta.*",
       "dono": "W",
-      "respondida": false
+      "respondida": true,
+      "resposta": "[W] 2026-10-07 \"o que recomenda?\" → recomendação [CC]: sim — bloquear de verdade (can: vestuario.etiqueta.*); hoje é permissão de enfeite. Rollout: 1 semana só logando o que SERIA bloqueado, depois liga",
+      "quando": "2026-10-07"
     },
     {
       "id": "VEST-D2",
       "texto": "prévia antes de imprimir: podar charter ou construir",
       "dono": "W",
-      "respondida": false
+      "respondida": true,
+      "resposta": "[W] 2026-10-07 \"o que recomenda?\" → recomendação [CC]: tirar a promessa do charter agora; prévia vira thread própria depois (não trava a migração da tela)",
+      "quando": "2026-10-07"
     },
     {
-      "id": "PERM",
-      "texto": "permissão que abre Voz do Cliente e Catálogo QR",
+      "id": "PERM-CQR",
+      "texto": "permissão que abre o Catálogo QR",
       "dono": "W",
-      "respondida": false
+      "respondida": true,
+      "resposta": "[W] 2026-10-07 \"o que recomenda?\" → recomendação [CC]: reusar a permissão de ver produtos (product.view) — catálogo é vitrine de produto, não precisa de permissão nova",
+      "quando": "2026-10-07"
+    },
+    {
+      "id": "PERM-VOZ",
+      "texto": "permissão que abre Voz do Cliente",
+      "dono": "W",
+      "respondida": true,
+      "resposta": "vozdocliente.triar — já é o que o SinalController checa (Modules/VozDoCliente/Routes/web.php, lido 2026-10-07); entra em produção por D1 de telas-soltas ([W] 07/10)"
     }
   ],
   "threads": [
@@ -118,7 +131,7 @@ base: wagnerra23/oimpresso.com@main 2fe69ddc0280 (lido 2026-10-06 17:08 UTC)
         }
       ],
       "depende_decisoes": [
-        "PERM"
+        "PERM-VOZ"
       ]
     },
     {
@@ -150,7 +163,7 @@ base: wagnerra23/oimpresso.com@main 2fe69ddc0280 (lido 2026-10-06 17:08 UTC)
         }
       ],
       "depende_decisoes": [
-        "PERM"
+        "PERM-CQR"
       ]
     }
   ]

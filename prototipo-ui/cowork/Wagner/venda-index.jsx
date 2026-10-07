@@ -22,6 +22,21 @@ const PILLS = [
   { id: "faturada", label: "Faturada" }, { id: "cancelada", label: "Cancelada" },
 ];
 const ETAPAS = ["Orçamento", "Aprovada", "Produção", "Acabamento", "Expedição", "Entregue"];
+// Visões salvas — verbatim do SAVED_VIEWS do vivo (Sells/Index.tsx, thread 00 venda-menu 2026-10-07).
+const VISOES_SALVAS = [
+  { id: "hoje", label: "Pendentes pgto.", f: (v) => v.total_paid < v.final_total },
+  { id: "pendentes", label: "Pendentes", f: (v) => v.total_paid < v.final_total && v.sla_kind !== "overdue" },
+  { id: "aguardando-faturamento", label: "Aguardando faturamento", f: (v) => v.total_paid < v.final_total && !v.fiscal_status },
+  { id: "atrasadas", label: "Atrasadas", f: (v) => v.sla_kind === "overdue" },
+  { id: "rejeitadas", label: "NF-e rejeitadas", f: (v) => v.fiscal_status === "rejeitada" },
+  { id: "faturadas", label: "Faturadas (mês)", f: (v) => v.fiscal_status === "autorizada" },
+  { id: "todas", label: "Todas", f: () => true },
+];
+// "Visões deste módulo" — menu do cabeçalho do vivo.
+const VISOES_MODULO = [
+  { l: "Lista de vendas", r: "venda-todas" }, { l: "Caixa do dia", r: "venda-caixa" },
+  { l: "Orçamentos", r: "venda-cotacoes" }, { l: "Rascunhos", r: "venda-rascunhos" }, { l: "Assinaturas", r: "venda-assinaturas" },
+];
 
 // Mock com o shape do SaleRow do vivo.
 const V = (id, inv, dia, hora, cli, itens, seller, abbr, origem, src, os, passo, fiscal, modelo, forma, parc, total, pago, sla, dias, loc, com, ret, placa) =>
@@ -92,6 +107,10 @@ function VendaTodasPage({ avisar: avisarFora }) {
   const [sel, setSel] = useState([]);
   const [fav, setFav] = useState([4821]);
   const [salva, setSalva] = useState(null);
+  const [visaoSalva, setVisaoSalva] = useState("todas");
+  const [viewsAberto, setViewsAberto] = useState(false);
+  const [visoesAberto, setVisoesAberto] = useState(false);
+  const [foco, setFoco] = useState("caixa");
   const [origemAberta, setOrigemAberta] = useState(false);
   const [ver, setVer] = useState(null);
   const [pagar, setPagar] = useState(null);
@@ -101,9 +120,10 @@ function VendaTodasPage({ avisar: avisarFora }) {
 
   const rows = useMemo(() => VENDAS.filter((v) =>
     (pill === "todas" || pillDe(v) === pill) &&
-    (!salva || (salva === "faturar" ? (v.total_paid < v.final_total && !v.fiscal_status) : v.source === salva)) &&
+    (!salva || (salva === "favoritas" ? fav.includes(v.id) : v.source === salva)) &&
+    (VISOES_SALVAS.find((x) => x.id === visaoSalva) || VISOES_SALVAS[6]).f(v) &&
     (!busca || (v.invoice_no + " " + v.cli + " " + (v.items_summary || "")).toLowerCase().includes(busca.toLowerCase()))
-  ), [pill, salva, busca]);
+  ), [pill, salva, busca, visaoSalva, fav]);
 
   // Venda cancelada não entra em número nenhum (canon append-only: fica na lista,
   // fora dos totais). Todos os KPIs derivam desta base.
@@ -116,9 +136,19 @@ function VendaTodasPage({ avisar: avisarFora }) {
     notas: VIVAS.filter((v) => v.fiscal_status === "autorizada").length,
   };
   const faixas = [
-    { l: "0–30 dias", v: VIVAS.filter((v) => v.sla_kind === "fresh" || v.sla_kind === "warning").reduce((a, v) => a + (v.final_total - v.total_paid), 0) },
-    { l: "vencido", v: VIVAS.filter((v) => v.sla_kind === "overdue").reduce((a, v) => a + (v.final_total - v.total_paid), 0) },
+    { l: "0–30d", v: VIVAS.filter((v) => v.sla_kind === "fresh" || v.sla_kind === "warning").reduce((a, v) => a + (v.final_total - v.total_paid), 0) },
+    { l: "31–60d", v: VIVAS.filter((v) => v.sla_kind === "overdue").reduce((a, v) => a + (v.final_total - v.total_paid), 0) },
   ];
+  // Mesmo recorte do vivo: SLA por contagem, delta vs ontem, pagos hoje, NF por estado, top vendedor, PIX.
+  const sla = { overdue: VIVAS.filter((v) => v.sla_kind === "overdue").length, warning: VIVAS.filter((v) => v.sla_kind === "warning").length, fresh: VIVAS.filter((v) => v.sla_kind === "fresh").length };
+  const ontem = VIVAS.filter((v) => v.dia === "21/08").reduce((a, v) => a + v.final_total, 0);
+  const delta = ontem > 0 ? Math.round(((kpis.faturado - ontem) / ontem) * 100) : null;
+  const pagosHoje = hoje.filter((v) => v.total_paid >= v.final_total);
+  const nf = { ok: VIVAS.filter((v) => v.fiscal_status === "autorizada").length, wait: VIVAS.filter((v) => v.fiscal_status === "pendente").length, bad: VIVAS.filter((v) => v.fiscal_status === "rejeitada").length };
+  const porVendedor = VIVAS.filter((v) => v.commission_agent_name).reduce((m, v) => ({ ...m, [v.commission_agent_name]: (m[v.commission_agent_name] || 0) + v.final_total }), {});
+  const top = Object.entries(porVendedor).sort((a, b) => b[1] - a[1])[0] || null;
+  const pix = hoje.filter((v) => v.payment_method_label === "Pix").reduce((a, v) => a + v.final_total, 0);
+  const plural = (n, um, varios) => n + " " + (n === 1 ? um : varios);
 
   useEffect(() => {
     const onKey = (e) => {
@@ -177,6 +207,7 @@ function VendaTodasPage({ avisar: avisarFora }) {
     }
   };
 
+  if (!Widget) return null; // PBUI chega por lazy-load; sem ele o 1º render quebrava
   return (
     <div className="pb-root vb-root vi-root" data-screen-label="Venda · Todas as vendas">
       {M.Header &&
@@ -185,19 +216,36 @@ function VendaTodasPage({ avisar: avisarFora }) {
           atualizadoAs={new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
           glyph={<Ic name="cash" />}
           acoes={<>
+            <window.CliSeg ariaLabel="Foco" value={foco} onChange={setFoco}
+              options={[{ key: "caixa", label: "Caixa" }, { key: "faturamento", label: "Faturamento" }, { key: "comissao", label: "Comissão" }]} />
+            <button className="os-btn" title="Imprimir resumo do caixa de hoje (vendas, formas de pagamento, total)" onClick={() => avisar("Resumo do caixa de hoje na impressora.", "ok")}><Ic name="print" size={13} /> Imprimir caixa</button>
+            <span style={{ position: "relative" }}>
+              <button className="os-btn" title="Outras visões deste módulo" onClick={() => setVisoesAberto((o) => !o)}>Visões ▾</button>
+              {visoesAberto &&
+                <div className="vi-origem" role="menu" aria-label="Visões deste módulo">
+                  {VISOES_MODULO.map((x) => <button key={x.r} role="menuitem" className={x.r === "venda-todas" ? "on" : ""} onClick={() => { setVisoesAberto(false); window.__selectRoute && window.__selectRoute(x.r); }}>{x.l}</button>)}
+                  <button role="menuitem" onClick={() => { setVisoesAberto(false); window.__selectRoute && window.__selectRoute("venda-pdv"); }}>Abrir PDV balcão <i>F2</i></button>
+                </div>}
+            </span>
             <button className="os-btn" onClick={() => window.__selectRoute && window.__selectRoute("venda-pos")}>Lista de POS</button>
-            <button className="os-btn primary" onClick={() => window.__selectRoute && window.__selectRoute("venda-nova")}><Ic name="plus" size={13} /> Nova venda</button>
+            <button className="os-btn primary" onClick={() => window.__selectRoute && window.__selectRoute("venda-nova")}><Ic name="plus" size={13} /> Nova venda <kbd>N</kbd></button>
           </>} />}
 
       <div className="pb-body">
-        <div className="vi-kpis">
-          <div className="vi-kpi hero"><span>Faturado hoje</span><b>{brl(kpis.faturado)}</b><em>{hoje.length} venda(s)</em></div>
-          <div className="vi-kpi"><span>Ticket médio</span><b>{brl(kpis.ticket)}</b><em>hoje</em></div>
+        <div className="vi-kpis" style={{ gridTemplateColumns: "repeat(5,minmax(0,1fr))" }}>
+          <div className="vi-kpi hero"><span>Faturado hoje</span><b>{brl(kpis.faturado)}</b>
+            <em>{delta == null ? "— · " : (delta >= 0 ? "↑ +" : "↓ ") + delta + "% vs ontem · "}{plural(hoje.length, "venda", "vendas")}</em></div>
+          <div className="vi-kpi"><span>Ticket médio</span><b>{brl(kpis.ticket)}</b><em>— vs semana passada</em></div>
           <div className="vi-kpi"><span>A receber</span><b>{brl(kpis.receber)}</b>
+            <em>{[sla.overdue ? "✕ " + plural(sla.overdue, "estourado", "estourados") : null, sla.warning ? "▲ " + sla.warning + " atrasando" : null, sla.fresh ? "● " + plural(sla.fresh, "fresco", "frescos") : null].filter(Boolean).join(" · ")}</em>
             <div className="vi-faixas">{faixas.map((f) => <span key={f.l}>{f.l} <i>{brl(f.v)}</i></span>)}</div>
             <em>cancelada não entra</em>
           </div>
-          <div className="vi-kpi"><span>Notas fiscais</span><b>{kpis.notas}</b><em>autorizadas</em></div>
+          {foco === "caixa" && <div className="vi-kpi"><span>Pagos hoje</span><b>{brl(pagosHoje.reduce((a, v) => a + v.total_paid, 0))}</b><em>{plural(pagosHoje.length, "pago", "pagos")} hoje</em></div>}
+          {foco === "faturamento" && <div className="vi-kpi"><span>Notas fiscais</span><b>{nf.ok}<small>/{VIVAS.length}</small></b><em>autorizadas · {nf.wait} processando · {nf.bad} rejeitadas</em></div>}
+          {foco === "comissao" && <div className="vi-kpi"><span>Top vendedor (mês)</span><b>{top ? top[0] : "—"}</b><em>{top ? brl(top[1]) + " no mês" : "sem commission_agent atribuído este mês"}</em></div>}
+          <div className="vi-kpi" title="PIX hoje · share % do faturamento do dia"><span>PIX hoje</span><b>{brl(pix)}</b>
+            <em>{kpis.faturado > 0 ? Math.round((pix / kpis.faturado) * 100) + "% do faturamento — imediato" : "sem faturamento hoje"}</em></div>
         </div>
 
         <Widget flush titulo={<><Ic name="list" size={13} /> Vendas</>} nota={rows.length + " de " + VENDAS.length}>
@@ -209,12 +257,17 @@ function VendaTodasPage({ avisar: avisarFora }) {
               options={VISOES.map((x) => ({ key: x.id, label: x.label, title: x.dica }))} />
             <div className="pb-busca">
               <Ic name="search" size={12} />
-              <input ref={buscaRef} value={busca} onChange={(e) => setBusca(e.target.value)} placeholder="Buscar venda, cliente ou item…" />
+              <input ref={buscaRef} value={busca} onChange={(e) => setBusca(e.target.value)} placeholder="Buscar venda, cliente, chave SEFAZ…" />
               <kbd>/</kbd>
             </div>
             <div className="sp" />
             <div className="vi-salvas">
-              <button className={salva === "faturar" ? "on" : ""} onClick={() => setSalva(salva === "faturar" ? null : "faturar")}>Aguardando faturamento</button>
+              <button className={visaoSalva !== "todas" ? "on" : ""} onClick={() => setViewsAberto((o) => !o)}>{(VISOES_SALVAS.find((x) => x.id === visaoSalva) || {}).label} ▾</button>
+              {viewsAberto &&
+                <div className="vi-origem" role="menu" aria-label="Visões salvas">
+                  {fav.length > 0 && <button className={salva === "favoritas" ? "on" : ""} onClick={() => { setSalva(salva === "favoritas" ? null : "favoritas"); setViewsAberto(false); }}>★ Favoritas (pessoais · atalho B)<i>{fav.length}</i></button>}
+                  {VISOES_SALVAS.map((x) => <button key={x.id} className={visaoSalva === x.id ? "on" : ""} onClick={() => { setVisaoSalva(x.id); setViewsAberto(false); }}>{x.label}<i>{VENDAS.filter(x.f).length}</i></button>)}
+                </div>}
               <button className={origemAberta ? "on" : ""} onClick={() => setOrigemAberta((o) => !o)}>Por origem ▾</button>
               {origemAberta &&
                 <div className="vi-origem">

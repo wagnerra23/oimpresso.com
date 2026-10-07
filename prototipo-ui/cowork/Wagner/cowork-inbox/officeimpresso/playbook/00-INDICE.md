@@ -62,7 +62,7 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/officeimpresso/playbook
       "destrava": [
         "05"
       ],
-      "resposta": "manter painel; delegação a todo funcionário do negócio 1; testar Delphi conectado",
+      "resposta": "manter painel; delegação a todo funcionário do negócio 1; testar Delphi conectado — _DECISOES-W-2026-10-01b.md",
       "fonte": "_DECISOES-W-2026-10-01b.md"
     },
     {
@@ -82,7 +82,7 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/officeimpresso/playbook
       "destrava": [
         "08"
       ],
-      "resposta": "ajustar pacotes antes do redirect do QR",
+      "resposta": "ajustar pacotes antes do redirect do QR — _DECISOES-W-2026-10-01b.md",
       "fonte": "_DECISOES-W-2026-10-01b.md"
     },
     {
@@ -92,7 +92,7 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/officeimpresso/playbook
       "destrava": [
         "03"
       ],
-      "resposta": "NÃO dropar senha/contra_senha",
+      "resposta": "NÃO dropar senha/contra_senha — _DECISOES-W-2026-10-01b.md",
       "fonte": "_DECISOES-W-2026-10-01b.md"
     },
     {
