@@ -1503,3 +1503,14 @@
   --bad:          oklch(0.72 0.16 25);
   --bad-soft:     oklch(0.26 0.07 25);
 }
+
+/* ── TEMA ESCURO · rodapé e pontos de tipo (playbook tema-escuro thread 03 PR-b · 2026-10-07) ──
+   Medido em produção no escuro: o rodapé sticky (cheat sheet) era rgba(255,255,255,.92) fixo
+   nas 7 telas do Fiscal, e os pontos NF-e/NFC-e eram pastéis fixos (o NFS-e já usava --ok-soft).
+   Sem cor crua nova: o rodapé herda --fx-surface; os pontos derivam o matiz do --accent. */
+.cockpit[data-theme="dark"] .fx-shell-foot,
+.dark .fx-shell-foot { background: color-mix(in oklch, var(--fx-surface) 92%, transparent); }
+.cockpit[data-theme="dark"] .fx-tipo-dot.t-nfe,
+.dark .fx-tipo-dot.t-nfe { background: oklch(from var(--accent) 0.30 0.07 240); color: oklch(from var(--accent) 0.85 0.10 240); }
+.cockpit[data-theme="dark"] .fx-tipo-dot.t-nfce,
+.dark .fx-tipo-dot.t-nfce { background: oklch(from var(--accent) 0.30 0.07 300); color: oklch(from var(--accent) 0.85 0.10 300); }
