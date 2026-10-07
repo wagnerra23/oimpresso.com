@@ -81,7 +81,7 @@ class NfeFiscalRule extends Model
      */
     public static function temVersionamento(): bool
     {
-        $conn = (new static())->getConnectionName() ?? config('database.default');
+        $conn = (new self())->getConnectionName() ?? config('database.default');
 
         return self::$versionamento[$conn] ??= Schema::connection($conn)->hasColumn('nfe_fiscal_rules', 'valida_de');
     }
