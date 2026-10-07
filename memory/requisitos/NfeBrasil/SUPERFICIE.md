@@ -14,7 +14,7 @@ module: NfeBrasil
 >
 > **O que isto é:** o inventário completo das raízes `Modules/NfeBrasil/**` + `resources/js/Pages/NfeBrasil/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 237 arquivos em 19 papéis.
+**Total mapeado:** 242 arquivos em 19 papéis.
 
 ## Controllers — 13
 
@@ -67,7 +67,7 @@ module: NfeBrasil
 - [TributacaoTemplateService.php](../../../Modules/NfeBrasil/Services/Tributacao/TributacaoTemplateService.php)
 - [TributoCalculado.php](../../../Modules/NfeBrasil/Services/Tributacao/TributoCalculado.php)
 
-## Models / Entities — 14
+## Models / Entities — 15
 
 - [NfeBusinessConfig.php](../../../Modules/NfeBrasil/Models/NfeBusinessConfig.php)
 - [NfeCertificado.php](../../../Modules/NfeBrasil/Models/NfeCertificado.php)
@@ -78,6 +78,7 @@ module: NfeBrasil
 - [NfeEmissao.php](../../../Modules/NfeBrasil/Models/NfeEmissao.php)
 - [NfeEvento.php](../../../Modules/NfeBrasil/Models/NfeEvento.php)
 - [NfeFiscalRule.php](../../../Modules/NfeBrasil/Models/NfeFiscalRule.php)
+- [NfeIcmsUf.php](../../../Modules/NfeBrasil/Models/NfeIcmsUf.php)
 - [NfeInutilizacao.php](../../../Modules/NfeBrasil/Models/NfeInutilizacao.php)
 - [NfeOperacaoFiscal.php](../../../Modules/NfeBrasil/Models/NfeOperacaoFiscal.php)
 - [NfeSefazStatus.php](../../../Modules/NfeBrasil/Models/NfeSefazStatus.php)
@@ -122,7 +123,7 @@ module: NfeBrasil
 - [api.php](../../../Modules/NfeBrasil/Routes/api.php)
 - [web.php](../../../Modules/NfeBrasil/Routes/web.php)
 
-## Migrations (schema) — 22
+## Migrations (schema) — 23
 
 - [2026_05_06_002000_create_nfe_certificados_table.php](../../../Modules/NfeBrasil/Database/Migrations/2026_05_06_002000_create_nfe_certificados_table.php)
 - [2026_05_06_002001_create_nfe_emissoes_table.php](../../../Modules/NfeBrasil/Database/Migrations/2026_05_06_002001_create_nfe_emissoes_table.php)
@@ -146,10 +147,12 @@ module: NfeBrasil
 - [2026_09_01_000002_create_nfe_sefaz_status_table.php](../../../Modules/NfeBrasil/Database/Migrations/2026_09_01_000002_create_nfe_sefaz_status_table.php)
 - [2026_10_07_000001_create_nfe_operacoes_fiscais_e_vigencia.php](../../../Modules/NfeBrasil/Database/Migrations/2026_10_07_000001_create_nfe_operacoes_fiscais_e_vigencia.php)
 - [2026_10_07_000002_seed_operacao_venda_padrao.php](../../../Modules/NfeBrasil/Database/Migrations/2026_10_07_000002_seed_operacao_venda_padrao.php)
+- [2026_10_07_000003_create_nfe_icms_uf_table.php](../../../Modules/NfeBrasil/Database/Migrations/2026_10_07_000003_create_nfe_icms_uf_table.php)
 
-## Seeders — 1
+## Seeders — 2
 
 - [NfeBrasilDatabaseSeeder.php](../../../Modules/NfeBrasil/Database/Seeders/NfeBrasilDatabaseSeeder.php)
+- [NfeIcmsUfSeeder.php](../../../Modules/NfeBrasil/Database/Seeders/NfeIcmsUfSeeder.php)
 
 ## Config — 2
 
@@ -198,12 +201,12 @@ module: NfeBrasil
 - [Index.casos.md](../../../resources/js/Pages/NfeBrasil/Tributacao/Index.casos.md)
 - [RegraForm.casos.md](../../../resources/js/Pages/NfeBrasil/Tributacao/RegraForm.casos.md)
 
-## Testes (Pest) — 68
+## Testes (Pest) — 69
 
-- 68 em [Modules/NfeBrasil/Tests/Feature/](../../../Modules/NfeBrasil/Tests/Feature)
+- 69 em [Modules/NfeBrasil/Tests/Feature/](../../../Modules/NfeBrasil/Tests/Feature)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
-## Demais arquivos (manifestos, docs, assets e misc) — 38
+## Demais arquivos (manifestos, docs, assets e misc) — 39
 
 - [.gitkeep](../../../Modules/NfeBrasil/Config/.gitkeep)
 - [.gitkeep](../../../Modules/NfeBrasil/Console/.gitkeep)
@@ -212,6 +215,7 @@ module: NfeBrasil
 - [.gitkeep](../../../Modules/NfeBrasil/Database/Seeders/.gitkeep)
 - [.gitkeep](../../../Modules/NfeBrasil/Database/factories/.gitkeep)
 - [.gitkeep](../../../Modules/NfeBrasil/Entities/.gitkeep)
+- [AliquotaInternaNaoCadastradaException.php](../../../Modules/NfeBrasil/Exceptions/AliquotaInternaNaoCadastradaException.php)
 - [ContingenciaException.php](../../../Modules/NfeBrasil/Exceptions/ContingenciaException.php)
 - [NcmObrigatorioException.php](../../../Modules/NfeBrasil/Exceptions/NcmObrigatorioException.php)
 - [TributacaoNaoConfiguradaException.php](../../../Modules/NfeBrasil/Exceptions/TributacaoNaoConfiguradaException.php)
