@@ -679,7 +679,7 @@ class ReportController extends Controller
             }
 
             if (! empty($request->input('location_id'))) {
-                $location_id = $request->input('location_id');
+                $location_id = (int) $request->input('location_id'); // vai cru no SQL abaixo: só inteiro
 
                 $query->where('vld.location_id', $location_id);
 
@@ -2350,7 +2350,7 @@ class ReportController extends Controller
             }
 
             if (! empty($request->input('location_id'))) {
-                $location_id = $request->input('location_id');
+                $location_id = (int) $request->input('location_id'); // vai cru no SQL abaixo: só inteiro
                 $query->where('t.location_id', $location_id)
                     //If filter by location then hide products not available in that location
                     ->ForLocation($location_id);
@@ -2474,7 +2474,7 @@ class ReportController extends Controller
 
         $business_id = $request->session()->get('user.business_id');
         if ($request->ajax()) {
-            $supplier_id = $request->get('supplier_id', null);
+            $supplier_id = (int) $request->get('supplier_id', 0); // vai cru no SQL: só inteiro
             $contact_filter1 = ! empty($supplier_id) ? "AND t.contact_id=$supplier_id" : '';
             $contact_filter2 = ! empty($supplier_id) ? "AND transactions.contact_id=$supplier_id" : '';
 
@@ -2598,7 +2598,7 @@ class ReportController extends Controller
 
         $payment_types = $this->transactionUtil->payment_types(null, true, $business_id);
         if ($request->ajax()) {
-            $customer_id = $request->get('supplier_id', null);
+            $customer_id = (int) $request->get('supplier_id', 0); // vai cru no SQL: só inteiro
             $contact_filter1 = ! empty($customer_id) ? "AND t.contact_id=$customer_id" : '';
             $contact_filter2 = ! empty($customer_id) ? "AND transactions.contact_id=$customer_id" : '';
 
@@ -2808,7 +2808,7 @@ class ReportController extends Controller
 
         $vld_str = '';
         if (! empty($location_id)) {
-            $vld_str = "AND vld.location_id=$location_id";
+            $vld_str = 'AND vld.location_id='.(int) $location_id; // id da request vai cru no SQL: só inteiro
         }
 
         if ($request->ajax()) {
@@ -2940,7 +2940,7 @@ class ReportController extends Controller
 
         $vld_str = '';
         if (! empty($location_id)) {
-            $vld_str = "AND vld.location_id=$location_id";
+            $vld_str = 'AND vld.location_id='.(int) $location_id; // id da request vai cru no SQL: só inteiro
         }
 
         if ($request->ajax()) {
