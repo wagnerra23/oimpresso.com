@@ -36,6 +36,11 @@ O sidebar tem dois modos: **`expanded` (260px)** e **`rail` (56px)**. Quem decid
 | Sem escolha manual · viewport **> 1280px** | `expanded` | `260px` |
 | **Com** escolha manual persistida (`oimpresso.sb.mode`) | o que o usuário escolheu | — |
 | Mobile (≤768px), drawer aberto | render forçado `expanded` | fora do grid |
+| Escolha manual `hidden` (`⌘⇧\`, desde 2026-09-11 · #7209) | `hidden` — a `<aside>` sai do DOM e a alça `SidebarReopenHandle` aparece | a coluna **sai** do grid |
+
+> **Errata 2026-10-07:** a frase "O sidebar tem dois modos" acima é de 2026-09-02. A thread 04
+> do playbook `sidebar` (#7209) portou o 3º modo. `hidden` só entra por escolha manual (o
+> auto-rail nunca o escolhe) e, como toda escolha manual, é gravado e vence em qualquer largura.
 
 A escolha manual (alça na borda direita, atalho `⌘\`) **vence em qualquer largura** e
 é a **única** coisa gravada em `oimpresso.sb.mode`. Sem escolha, o modo acompanha a
@@ -45,7 +50,10 @@ Sidebar é **PRETA (dark-fixo)** nos dois temas — [UI-0023](../../../memory/re
 
 ## Non-Goals
 
-- ❌ Um terceiro modo `hidden` (o protótipo tem `⌘⇧\` → `hidden`; produção **não** porta isso agora)
+- ~~❌ Um terceiro modo `hidden` (o protótipo tem `⌘⇧\` → `hidden`; produção **não** porta isso agora)~~
+  **Caducou em 2026-09-11:** o `hidden` foi portado pela thread 04 do playbook `sidebar`
+  (#7209 — `SidebarMode = 'expanded' | 'rail' | 'hidden'` em `Components/cockpit/shared.ts`).
+  Pela UI-0029 o modo é forma, e o protótipo o tem. Registrado pela `_saida-16` (2026-09-25).
 - ❌ Persistir o modo **automático** — só a escolha manual é gravada (ver Anti-hooks)
 - ❌ Mudar cor, tipografia ou densidade do sidebar (Fundações — só por ADR)
 - ❌ Breakpoint por módulo ou por tela: o limiar é do shell, um só

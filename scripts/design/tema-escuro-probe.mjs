@@ -27,9 +27,11 @@
  *   node scripts/design/tema-escuro-probe.mjs --write-baseline        # grava o estado atual
  *   node scripts/design/tema-escuro-probe.mjs --tema light --rota vendas   # controle positivo
  *   node scripts/design/tema-escuro-probe.mjs --de-json run.json [--baseline b.json]  # sem browser
+ *   node scripts/design/tema-escuro-probe.mjs --allowlist                  # JSON da ALLOWLIST (lido pelo Pest)
+ *   node scripts/design/tema-escuro-probe.mjs --producao <dir> [--json o]  # julga as Pages (thread 02)
  */
 
-import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -115,6 +117,60 @@ export function confrontar(resultados, baseline) {
   const novos = [...atuais].filter((k) => !base.has(k)).sort();
   const sumidos = [...base].filter((k) => medidas.has(k.split(' :: ')[0]) && !atuais.has(k)).sort();
   return { novos, sumidos };
+}
+
+/* ═══════════════════ PRODUÇÃO (thread 02 — Pages Inertia) ═══════════════════
+ * O render das Pages é do Pest Browser (`tests/Browser/TemaEscuro/TemaEscuroProducaoTest.php`):
+ * ele loga no tenant fictício do CI, liga `ui_theme=dark`, coleta TODO fundo não-transparente de
+ * `main.main-body` (já sem a ALLOWLIST, que ele lê de `--allowlist`) e grava 1 JSON por Page.
+ * O veredito de "claro" mora AQUI, numa função pura — o PHP não tem cópia do corte L/C/alfa.
+ *
+ * Registro: { screen, route, estado, escuro, fundos:[{seletor,bg,n}], sanidade? }
+ *   estado ≠ 'ok' ou escuro=false → a Page NÃO conta como medida (nunca vira "0 claros").
+ */
+export function julgarProducao(registros) {
+  const linhas = [];
+  let sanidadeVista = false;
+  let sanidadeOk = false;
+  for (const r of [...registros].sort((a, b) => String(a.screen).localeCompare(String(b.screen)))) {
+    if (Array.isArray(r.sanidade)) {
+      sanidadeVista = true;
+      if (claros(r.sanidade).some((c) => c.seletor === 'div.tema-escuro-sanidade')) sanidadeOk = true;
+    }
+    const medida = r.estado === 'ok' && r.escuro === true;
+    const achados = medida ? claros(r.fundos).sort((a, b) => b.n - a.n) : [];
+    const motivo = medida ? null : (r.estado !== 'ok' ? String(r.estado || 'sem-estado') : 'nao-escureceu');
+    linhas.push({ screen: r.screen, route: r.route, medida, motivo, claros: achados });
+  }
+  const semMedida = linhas.filter((l) => !l.medida);
+  return { linhas, medidas: linhas.length - semMedida.length, semMedida, sanidadeVista, sanidadeOk };
+}
+
+/** Lê o diretório de registros do Pest, imprime 1 linha por Page e devolve o exit code. */
+function producao(dir, jsonOut) {
+  if (!existsSync(dir)) {
+    console.error(`NÃO MEDI — diretório de registros ausente: ${dir} (o Pest Browser não rodou ou não gravou).`);
+    return 2;
+  }
+  const registros = readdirSync(dir).filter((f) => f.endsWith('.json'))
+    .map((f) => JSON.parse(readFileSync(join(dir, f), 'utf8')));
+  const j = julgarProducao(registros);
+  if (jsonOut) writeFileSync(jsonOut, JSON.stringify(j, null, 2) + '\n');
+  console.log(`tema-escuro (produção): ${j.linhas.length} Page(s) · ${j.medidas} medida(s) · ${j.semMedida.length} sem medida · ${j.linhas.filter((l) => l.claros.length).length} com superfície clara fora de papel`);
+  for (const l of j.linhas) {
+    if (!l.medida) { console.log(`  ⏱ ${l.screen} ${l.route} · NÃO MEDIDA (${l.motivo})`); continue; }
+    const top = l.claros.slice(0, 4).map((c) => `${c.seletor}×${c.n}`).join(' ');
+    console.log(`  ${l.claros.length ? '✗' : '✓'} ${l.screen} ${l.route} · ${l.claros.length} superfície(s) clara(s)${top ? ` · ${top}` : ''}`);
+  }
+  if (!j.sanidadeVista || !j.sanidadeOk) {
+    console.error('NÃO MEDI — sanidade ausente ou falhou: o fundo branco injetado não foi julgado claro. Exit 2.');
+    return 2;
+  }
+  if (j.medidas === 0 || j.semMedida.length >= MAX_TIMEOUTS) {
+    console.error(`NÃO MEDI — ${j.semMedida.length} Page(s) sem medida (limite ${MAX_TIMEOUTS}), ${j.medidas} medida(s). Exit 2.`);
+    return 2;
+  }
+  return 0;
 }
 
 /* ═════════════════════════════ RENDER ═════════════════════════════ */
@@ -270,6 +326,18 @@ function selftest() {
   );
   casos.push(['novo fora do baseline', novos.join(), 'a :: div.x']);
   casos.push(['some só de rota medida (timeout não some)', sumidos.join(), 'a :: div.velho']);
+  const prod = julgarProducao([
+    { screen: 'A', route: '/a', estado: 'ok', escuro: true, fundos: [{ seletor: 'div.kpi', bg: 'oklch(0.985 0 0)', n: 2 }, { seletor: 'div.ok', bg: 'oklch(0.2 0 0)', n: 9 }],
+      sanidade: [{ seletor: 'div.tema-escuro-sanidade', bg: 'rgb(255, 255, 255)', n: 1 }] },
+    { screen: 'B', route: '/b', estado: 'ok', escuro: false, fundos: [{ seletor: 'div.kpi', bg: 'rgb(255, 255, 255)', n: 1 }] },
+    { screen: 'C', route: '/c', estado: 'login', escuro: true, fundos: [] },
+  ]);
+  casos.push(['produção: claro conta só o claro', prod.linhas[0].claros.map((c) => c.seletor).join(), 'div.kpi']);
+  casos.push(['produção: tela que não escureceu NÃO vira medida', prod.linhas[1].motivo, 'nao-escureceu']);
+  casos.push(['produção: tela que caiu no login NÃO vira "0 claros"', [prod.linhas[2].medida, prod.linhas[2].motivo], [false, 'login']]);
+  casos.push(['produção: sanidade lida do registro', [prod.sanidadeVista, prod.sanidadeOk], [true, true]]);
+  const cega = julgarProducao([{ screen: 'A', route: '/a', estado: 'ok', escuro: true, fundos: [], sanidade: [{ seletor: 'div.tema-escuro-sanidade', bg: 'rgb(20, 20, 20)', n: 1 }] }]);
+  casos.push(['produção: sanidade escura = sonda cega', cega.sanidadeOk, false]);
   let falhou = 0;
   for (const [nome, obtido, esperado] of casos) {
     const ok = JSON.stringify(obtido) === JSON.stringify(esperado);
@@ -286,6 +354,8 @@ async function main() {
   const argv = process.argv.slice(2);
   const val = (n) => { const i = argv.indexOf(n); return i >= 0 ? argv[i + 1] : null; };
   if (argv.includes('--selftest')) return selftest();
+  if (argv.includes('--allowlist')) { console.log(JSON.stringify(ALLOWLIST)); return 0; }
+  if (val('--producao')) return producao(resolve(val('--producao')), val('--json'));
   const filtro = val('--rota') ? val('--rota').split(',') : null;
   const BASELINE = val('--baseline') ? resolve(val('--baseline')) : BASELINE_PADRAO;
   let resultados;

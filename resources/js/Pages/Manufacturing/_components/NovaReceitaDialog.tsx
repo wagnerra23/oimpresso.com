@@ -139,7 +139,10 @@ export default function NovaReceitaDialog({ open, onOpenChange }: Props) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[520px]" data-screen-label="Fabricação · Nova receita">
+      {/* `grid-cols-[minmax(0,1fr)]`: o `DialogContent` é grid, e a coluna implícita crescia até o
+          nome de produto mais comprido — medido em produção (2026-10-07): lista de 740px numa janela
+          de 520px, empurrando os botões pra fora. Com a coluna limitada, o nome corta com "…". */}
+      <DialogContent className="grid-cols-[minmax(0,1fr)] sm:max-w-[520px]" data-screen-label="Fabricação · Nova receita">
         <DialogHeader>
           <DialogTitle>Nova receita</DialogTitle>
           <DialogDescription>A receita pertence a um produto do catálogo.</DialogDescription>

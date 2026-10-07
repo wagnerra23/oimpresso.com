@@ -41,16 +41,17 @@ clientes e leads, com o responsável e o status. Termo na UI: "acompanhamentos",
   recorrente, editar) e o kebab do avulso ganha "Adicionar registro" — gravando por `store`/`update`
   do `ScheduleController` e `store` do `ScheduleLogController`, os mesmos da Blade.
   Guardas: UC-CRMACO-14..17.
+- Escrita (thread Crm/07, PR-c1..c3, mergeados em 2026-10-05): "Acompanhamento antecipado" abre o
+  modal aqui (grupos por `getFollowUpGroups` em JSON), com a notificação da Blade (PR-c4); o rodapé
+  conta status e tipo sobre a consulta filtrada; clicar na linha abre o drawer de detalhe com os
+  registros. Guardas: UC-CRMACO-18..21.
 
 ## Non-Goals (nesta fase)
 
-- ❌ Acompanhamento antecipado nesta fase: segue na tela Blade (`?classico=1`). Ele monta os grupos
-  de clientes/faturas por `getFollowUpGroups`, que devolve HTML; trazê-lo exige um formato JSON
-  daquela rota (PR-c da thread 07).
-- ❌ Ver os registros (log) de um acompanhamento: `ScheduleLogController@index` devolve HTML;
-  fica com o drawer de detalhe.
-- ❌ Contagem por status/tipo no rodapé, densidade e drawer de detalhe do protótipo — pendentes
-  registrados no `_saida-03`.
+- ❌ Densidade do protótipo e o "Prazo" (badge de SLA) do drawer: não há dado de prazo no
+  acompanhamento (`_saida-07d`).
+- _Até 2026-10-05 este bloco listava como fora de escopo o antecipado, os registros e o
+  rodapé/drawer; os três entraram pela thread 07 (PR-c1..c3)._
 
 ## Anti-hooks
 

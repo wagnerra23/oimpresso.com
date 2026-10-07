@@ -1,0 +1,300 @@
+{
+  "aguardou_sumir": null,
+  "ausentes": [],
+  "base": {
+    "assinatura": "OI WR Forja Cockpit do cowork loop — aprovações da equipe, backlog, pipeline de telas F0→F3.5, tarefas de todas as frentes, changelog e atores (humano vs agente). 8 Buscar Trabalho Aprovações 9 Trabalho Esteira Saúde MCP Histórico Changelog Integrador Novo issue Lista Quadro Gantt 25 mcp_tasks numa lista só — FORJA junto das demais frentes (agrupe por Frente ou busque) 25 Total 4 P0 abertas 8 Fazendo 2 Bloqueadas clique filtra a lista e o quadro Agrupar Onda Frente Fase Papel Prioridade Módulo Ordem rank execução densidade: normal favoritos Papéis ✦ Perguntar Papel todos [ W ] [ CC ] [ CD ] [ CL ] [ CA ] [ AN ] [ W2 ] Visões + salvar visão FA-1 · Completar §TEMPERO na fundação 1 ativa jun 11–16 carga 1M encerrar onda ✦ resumir FORJA-141 Infra Completar §TEMPERO (--sh/--ease/--t/--atmo) na fundação M PR #? ses 2026-06-11-financeiro-diff Financeiro sync 2 d Fazendo [ CL ] v1.1 · Protocolo v1.1 1 planejada jul carga 1G ✦ resumir FORJA-142 Tela Sells/Create — P0 do piloto ROTA LIVRE G ADR 0114 ses 2026-06-03-vendas Vendas @main F1 Design [ CC ] FA-2 · Snap 314 font-size ao ramp 4 planejada jun 16–20 carga 1G ✦ resumir T-1042 Task Completar §TEMPERO (--sh/--ease/--atmo) na fundação 6h Sistema Fazendo claude-code FORJA-140 Refino Snap 314 font-size hardcoded ao ramp --fs-1..9 G ADR 0253 Financeiro ⚠ inferido F3 Code [ CL ] T-1052 Task F2 — fila de box da Oficina (re-skin DS v6) 6h Oficina Revisão luiz T-1039 Task Snap 314 font-size hardcoded ao ramp --fs-1..9 8h Financeiro Bloqueada claude-code Q1 · G-3 E2E required 3 ativa jun 09–18 carga 1M encerrar onda ✦ resumir T-1055 Task Ghost do Roadmap (Gantt) não alimenta a topnav nova — tela vazia em produção 4h Forja Revisão felipe FORJA-139 Gate G-3 E2E Playwright → pull_request + required M ADR 0264 PR #run 27233429304 Sistema @main Fazendo [ CL ] T-1047 Task G-3 E2E Playwright → pull_request + required 5h Sistema Fazendo felipe Sem onda 14 FORJA-136 Tela Financeiro — pilar Fiscal (parado em 5,5) M ses 2026-06-09-reavaliacao Financeiro sync 7 d F1 Design [ CC ] FORJA-160 Épico Épico — Identidade única (roxo canon) GG 0 / 2 ADR 0235 Sistema sync 5 d F1 Design [ CC ] T-1050 Task NF-e rejeição 539: consultar situação antes do reenvio 3h Fiscal Revisão eliana T-1051 Task Drawer financeiro corta o valor no dark 2h Financeiro Fazendo maiara T-1053 Task Censo do módulo Fiscal antes do pilar (Regra 7) 3h Fiscal A fazer claude-cc FORJA-135 Infra Rename ds-v5 → ds-v6 no git (ADR 0244) P ADR 0244 Sistema ⚠ inferido A fazer [ CL ] FORJA-133 Bug Sync now: endereço cliente ↔ venda P ses 2026-06-12-vendas Vendas sync 4 d F1 Design [ CC ] T-1031 Task Jana: drill drawer — filtros J/K ⌘⇧H no Chat 4h Jana Concluído claude-code T-1044 Task ADR — token --origin-DEV (selo da Forja) 1h Sistema A fazer wagner T-1048 Task Rename ds-v5 → ds-v6 no git (ADR 0244) 1h Sistema A fazer claude-code T-1036 Task Busca semântica no KB (Meilisearch) 12h KB Backlog — T-1029 Task RecurringBilling re-skin DS v6 — UI-Judge 90 6h Cobrança Concluído claude-code FORJA-134 Infra Painel de saúde — frescor do censo de gates P Sistema ⚠ inferido Backlog [ CC ] T-1054 Task Painel de saúde — frescor do censo de gates 2h Sistema Backlog — 23 issues 4 P0 2 bloqueados 3 não-verificados ordem: automática navega · abre · atalhos",
+    "roles": {
+      "celulas": null,
+      "chart": null,
+      "contratos": [],
+      "filterRows": null,
+      "kpi": {
+        "count": 0,
+        "items": [],
+        "overflowX": null,
+        "tag": null
+      },
+      "primary": null,
+      "shell": null,
+      "tabela": null,
+      "title": null
+    },
+    "saude": {
+      "folhasVazias": [],
+      "nFolhas": 75,
+      "tokensMortos": []
+    },
+    "theme": "dark",
+    "url": "http://127.0.0.1:5561/"
+  },
+  "clicar": ".fj-viewtabs > .fj-navgroup:first-child > button:nth-of-type(2)",
+  "nos_totais": 1209,
+  "quieto_ms": 2000,
+  "rota": "projects",
+  "secoes": {
+    "filtros": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "proprio",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.26 0.006 240)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "flex",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "6px",
+        "padding": "8px 32px"
+      },
+      "filhos": 12,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "fj-groupby-lbl",
+        "fj-gb-btn",
+        "fj-gb-btn",
+        "fj-gb-btn",
+        "fj-gb-btn",
+        "fj-gb-btn",
+        "fj-gb-btn",
+        "fj-gb-btn",
+        "fj-gb-btn",
+        "fj-fb-sep",
+        "fj-groupby-lbl",
+        "fj-view-save"
+      ],
+      "rect": {
+        "h": 42,
+        "w": 1224
+      },
+      "seletor": ".main-body > .fj-page > .fj-filterbar2",
+      "truncado": false
+    },
+    "kpis": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "fj-page",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "flex",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "10px",
+        "padding": "10px 32px 0px"
+      },
+      "filhos": 5,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "fj-page"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "tf-kpi",
+        "tf-kpi",
+        "tf-kpi",
+        "tf-kpi",
+        "fj-kpirow-note"
+      ],
+      "rect": {
+        "h": 64,
+        "w": 1224
+      },
+      "seletor": ".main-body > .fj-page > .fj-kpirow",
+      "truncado": false
+    },
+    "lista": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "fj-page",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "block",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "padding": "6px 0px 4px"
+      },
+      "filhos": 5,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "fj-page"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "fj-group",
+        "fj-group",
+        "fj-group",
+        "fj-group",
+        "fj-group"
+      ],
+      "rect": {
+        "h": 442,
+        "w": 1224
+      },
+      "seletor": ".main-body > .fj-page > .fj-list",
+      "truncado": false
+    },
+    "toolbar": {
+      "contraste": {
+        "fundo": "oklch(0.23 0.006 240)",
+        "fundo_de": "proprio",
+        "razao": 14.16,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.012215,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.23 0.006 240)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "flex",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "14px",
+        "padding": "11px 32px"
+      },
+      "filhos": 4,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.23 0.006 240)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "fj-groupby",
+        "fj-ia-btn",
+        "fj-ia-btn",
+        "fj-search"
+      ],
+      "rect": {
+        "h": 100,
+        "w": 1224
+      },
+      "seletor": ".main-body > .fj-page > .fj-toolbar",
+      "truncado": false
+    },
+    "totais": {
+      "contraste": {
+        "fundo": "oklch(0.23 0.006 240)",
+        "fundo_de": "proprio",
+        "razao": 5.64,
+        "texto": "oklch(0.67 0.005 90)",
+        "y_fundo": 0.012215,
+        "y_texto": 0.300843
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.23 0.006 240)",
+        "borderRadius": "0px",
+        "color": "oklch(0.67 0.005 90)",
+        "display": "flex",
+        "fontSize": "12px",
+        "fontWeight": "400",
+        "gap": "20px",
+        "padding": "9px 32px"
+      },
+      "filhos": 6,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.23 0.006 240)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "span",
+        "span",
+        "span",
+        "fj-total-warn",
+        "fj-total-rank",
+        "fj-total-hint"
+      ],
+      "rect": {
+        "h": 39,
+        "w": 1224
+      },
+      "seletor": ".main-body > .fj-page > .fj-totalbar",
+      "truncado": false
+    },
+    "visao": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "fj-page",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "flex",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "10px",
+        "padding": "10px 32px 0px"
+      },
+      "filhos": 2,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "fj-page"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "div",
+        "fj-frente-note"
+      ],
+      "rect": {
+        "h": 42,
+        "w": 1224
+      },
+      "seletor": ".main-body > .fj-page > .fj-frentebar",
+      "truncado": false
+    }
+  },
+  "tela": "forja--trabalho--index",
+  "url": "http://127.0.0.1:5561/"
+}
