@@ -38,7 +38,7 @@ interface Props {
 }
 
 /** Rótulo em PT do tipo de conexão; o enum do banco é `network|windows|linux`. */
-export const CONEXAO: Record<Impressora['conexao'], string> = { network: 'Rede', windows: 'Windows', linux: 'Linux' };
+const CONEXAO: Record<Impressora['conexao'], string> = { network: 'Rede', windows: 'Windows', linux: 'Linux' };
 
 function xsrf(): string {
   return decodeURIComponent(document.cookie.match(/(?:^|;\s*)XSRF-TOKEN=([^;]+)/)?.[1] ?? '');
