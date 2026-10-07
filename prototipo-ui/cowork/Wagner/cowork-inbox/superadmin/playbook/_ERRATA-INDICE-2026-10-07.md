@@ -45,8 +45,9 @@ seguem `em curso` até o lado produção da A2 ser medido.
 do placar"). O json já traz a resposta nova, mas mantém a thread 06 com a prova `execucao` de
 redirecionar para o Cms, que contradiz a decisão. Detalhe em `_saida-06.md`.
 
-**Pedido:** no json, retirar a thread `06` (ou marcá-la descartada); na §2, D1 passar a mostrar a
-resposta ("manter separado do Cms").
+**Pedido:** no json, retirar o objeto da thread `06` de `threads` (o placar não tem estado
+"descartada") e, em `decisoes`, trocar o `"destrava": ["06"]` de D1 por `"destrava": []`; na §2,
+D1 passar a mostrar a resposta ("manter separado do Cms").
 
 ## A2 — continua pendente, e não é erro do índice
 
@@ -57,6 +58,15 @@ Igual ao `_saida-A2.md`, reconferido:
 - `superadmin-page.jsx`: 0 ocorrências de `ROTAS`; `governance/design/targets/roles/`: nenhum
   override do Superadmin — o lado protótipo depende do Cowork declarar a tabela tela → rota.
 
-## Depois do retorno
+## Medição da correção
 
-Com as duas correções, o placar esperado do Superadmin é `entregue 8 de 9 · em curso 1` (só A2).
+Apliquei as 3 mudanças acima (03 e 04 sem `depende_threads`; 06 fora de `threads`; D1 com
+`destrava: []`) numa cópia do playbook fora do espelho (`storage/framework/cache/`, gitignored) e
+rodei `node scripts/qa/placar.mjs --indice <cópia>/00-INDICE.md`:
+
+| índice | resultado |
+|---|---|
+| corrigido | `Superadmin: entregue 8 de 9 · próximo 0 · em curso 1` — 03 e 04 `[feito]`, só A2 em curso |
+| controle (índice atual, copiado do mesmo jeito) | `Superadmin: entregue 6 de 10 · próximo 0 · em curso 4` |
+
+O controle bate com o placar do repositório, então a cópia mede o mesmo que o original.
