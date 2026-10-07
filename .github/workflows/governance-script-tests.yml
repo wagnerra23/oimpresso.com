@@ -73,6 +73,9 @@ jobs:
       - name: 'BRL scan · contrato de execucao (bite: base invalida MORDE, range limpo LIBERA, vazio declara nao-medicao; mutante sem pipefail volta a ficar mudo)'
         if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/brl-scan-workflow.test.mjs
+      - name: 'paths-ignore das lanes advisory · fail-closed (bite: allowlist, ignore alargado, required, filtro que le inerte)'
+        if: always() && steps.setup.outcome == 'success'
+        run: node scripts/governance/advisory-paths-ignore.test.mjs
       - name: 'visual-regression · Lint L2 reprova no fim e a cadeia segue (bite: lint real morde · mutante sem continue-on-error volta a pular)'
         if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/visreg-l2-cadeia.test.mjs
