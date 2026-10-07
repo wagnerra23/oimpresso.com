@@ -51565,5 +51565,24 @@
     },
     "origin": "medicao",
     "projetoCowork": "w"
+  },
+  {
+    "date": "2026-10-07T21:14:27.519Z",
+    "files": 285,
+    "sync": 2,
+    "stale": 0,
+    "liveAbsent": 0,
+    "unchecked": 283,
+    "staleList": [],
+    "verified": [
+      "cowork-inbox/forja/playbook/_ERRATA-INDICE-2026-10-07b.md",
+      "cowork-inbox/forja/playbook/_saida-05.md"
+    ],
+    "verifiedHash": {
+      "cowork-inbox/forja/playbook/_ERRATA-INDICE-2026-10-07b.md": "e74beabe3f54e40ceeba83b4e3f9233bbdb19ed64916a499a3dbf556516084ce",
+      "cowork-inbox/forja/playbook/_saida-05.md": "52f5e31751308ded3e46712c7222a83710f7e9d7652d7adf682197e0bd2dc61e"
+    },
+    "origin": "medicao",
+    "projetoCowork": "w"
   }
 ]
