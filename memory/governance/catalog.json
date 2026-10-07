@@ -26,13 +26,13 @@
   ],
   "stats": {
     "modules": 35,
-    "nodes": 741,
-    "edges": 1029,
+    "nodes": 742,
+    "edges": 1030,
     "by_node_type": {
       "module": 39,
       "table": 102,
       "adr": 135,
-      "component": 388,
+      "component": 389,
       "api": 77
     },
     "by_edge_type": {
@@ -42,7 +42,7 @@
       "providesApi": 81,
       "charteredByAdr": 30,
       "governedByAdr": 78,
-      "hasComponent": 388,
+      "hasComponent": 389,
       "dependsOn": 117,
       "delegatesTo": 109,
       "migratesTo": 1,
@@ -3235,6 +3235,13 @@
       "module": "NfeBrasil",
       "name": "DataController",
       "desc": ""
+    },
+    {
+      "id": "component:NfeBrasil/EmpresaFiscalLookupController",
+      "type": "component",
+      "module": "NfeBrasil",
+      "name": "EmpresaFiscalLookupController",
+      "desc": "Configurar pelo certificado, leitura (playbook Fiscal thread 21, #8829)"
     },
     {
       "id": "component:NfeBrasil/ImportRegrasController",
@@ -10200,6 +10207,12 @@
     {
       "from": "module:NfeBrasil",
       "to": "component:NfeBrasil/DataController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:NfeBrasil",
+      "to": "component:NfeBrasil/EmpresaFiscalLookupController",
       "type": "hasComponent",
       "source": "contains"
     },

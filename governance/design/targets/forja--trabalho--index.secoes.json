@@ -1,0 +1,10 @@
+{
+  "_": "A1 [CL] 2026-10-07 — playbook forja. Rota `projects` do espelho (app.jsx:901 → window.ForjaPage, forja-page.jsx), view `trabalho` via --clicar na aba Trabalho; a sub-visão `lista` é o default de oimpresso.forja.trabvis em browser limpo (forja-page.jsx:41). Âncora do charter de Forja/Trabalho/Index. Tema dark, viewport 1280x900.",
+  "_mapa": "alvo:mapa --rota projects --raiz '.main-body > .fj-page' --clicar '.fj-viewtabs > .fj-navgroup:first-child > button:nth-of-type(2)' --quieto-ms 2000, 2026-10-07: div.os-page-h(2) · div.fj-frentebar(2) · div.fj-kpirow(5) · div.fj-toolbar(4) · div.fj-filterbar2(12) · div.fj-list(5) · div.fj-totalbar(6)",
+  "visao": { "seletor": ".main-body > .fj-page > .fj-frentebar" },
+  "kpis": { "seletor": ".main-body > .fj-page > .fj-kpirow" },
+  "toolbar": { "seletor": ".main-body > .fj-page > .fj-toolbar" },
+  "filtros": { "seletor": ".main-body > .fj-page > .fj-filterbar2" },
+  "lista": { "seletor": ".main-body > .fj-page > .fj-list" },
+  "totais": { "seletor": ".main-body > .fj-page > .fj-totalbar" }
+}
