@@ -24,6 +24,8 @@ charter_version: 1
 
 > Criado no PR **Forja PR-2** (re-skin DS v6, 2026-06-16). Persona: Wagner [W] (admin, `jana.cc.read.all`) + cada dev (vê só as próprias). Backend: `CcSessionsController` (Inertia::defer). Ref visual: [cc-sessions-visual-comparison.md](../../../../../../../memory/requisitos/TeamMcp/cc-sessions-visual-comparison.md).
 
+> **Contrato executável:** [`Index.casos.md`](Index.casos.md) (UC-CCS-01..07) · teste [`CcSessionsContratoTest.php`](../../../../../Tests/Feature/CcSessionsContratoTest.php).
+
 ## Mission
 
 KB read-only de **atividade do Claude Code do time** (sessões `mcp_cc_*`): feed cronológico de sessões + drawer de thread, na gramática Changelog Forja sob DS v6. Projeção fiel — **sem dado fantasma**. Operação primária: escanear quem rodou o quê, quanto custou, e abrir a thread sob demanda. Toda sessão é **agente (Claude Code)** em nome de um **humano (dev)** — marcado explicitamente.
