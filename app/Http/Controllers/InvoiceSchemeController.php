@@ -4,11 +4,23 @@ namespace App\Http\Controllers;
 
 use App\InvoiceLayout;
 use App\InvoiceScheme;
+use App\Services\FeatureFlagService;
 use Datatables;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Inertia\Inertia;
 
 class InvoiceSchemeController extends Controller
 {
+    /**
+     * Flag do caminho React (thread sistema/playbook/05, F3). Convenção `useV2<Modulo><Tela>`.
+     * Sem a chave no GrowthBook o FeatureFlagService cai no fallbackDefaults, que não a lista:
+     * default OFF, a Blade segue servindo. Ligar é toggle no GrowthBook (flag:set --biz=1), não deploy.
+     *
+     * @see memory/requisitos/Configuracoes/RUNBOOK-esquemas-fatura.md
+     */
+    private const FLAG_V2 = 'useV2ConfiguracoesEsquemasFatura';
+
     protected $number_types;
 
     public function __construct()
@@ -19,7 +31,7 @@ class InvoiceSchemeController extends Controller
     /**
      * Display a listing of the resource.
      *
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\JsonResponse|\Illuminate\View\View|\Inertia\Response
      */
     public function index()
     {
@@ -28,7 +40,9 @@ class InvoiceSchemeController extends Controller
         }
 
         $business_id = request()->session()->get('user.business_id');
-        if (request()->ajax()) {
+        // `! inertia()`: o Inertia v3 manda `X-Requested-With` em toda visita; sem esta perna o
+        // partial reload da prop adiada caía no JSON do DataTables (RUNBOOK-esquemas-fatura §10).
+        if (request()->ajax() && ! request()->inertia()) {
             $schemes = InvoiceScheme::where('business_id', $business_id)
                             ->select(['id', 'name', 'scheme_type', 'prefix', 'number_type', 'start_number', 'invoice_count', 'total_digits', 'is_default']);
 
@@ -69,12 +83,48 @@ class InvoiceSchemeController extends Controller
                 ->make(false);
         }
 
+        if (app(FeatureFlagService::class)->isOn(self::FLAG_V2, ['business_id' => $business_id])) {
+            return Inertia::render('Configuracoes/EsquemasFatura/Index', [
+                'fatura' => Inertia::defer(fn () => $this->faturaDoNegocio((int) $business_id)),
+                'tipos_numero' => $this->number_types,
+            ]);
+        }
+
         $invoice_layouts = InvoiceLayout::where('business_id', $business_id)
                                         ->with(['locations'])
                                         ->get();
 
         return view('invoice_scheme.index')
                     ->with(compact('invoice_layouts'));
+    }
+
+    /**
+     * Esquemas e layouts do negócio no shape da tela React. O prefixo exibido segue a DataTable (ano + separador no
+     * esquema anual); `invoice_count` é o contador que a venda incrementa, só leitura aqui.
+     */
+    private function faturaDoNegocio(int $business_id): array
+    {
+        $separador = config('constants.invoice_scheme_separator');
+        $locaisPorLayout = DB::table('business_locations')->where('business_id', $business_id)
+            ->orderBy('name')->get(['name', 'invoice_layout_id', 'sale_invoice_layout_id']);
+
+        return [
+            'esquemas' => InvoiceScheme::where('business_id', $business_id)->orderByDesc('is_default')->orderBy('name')->get()
+                ->map(fn (InvoiceScheme $e) => [
+                    'id' => $e->id, 'nome' => $e->name, 'padrao' => (bool) $e->is_default, 'tipo' => $e->scheme_type,
+                    'prefixo' => (string) $e->prefix,
+                    'prefixo_exibido' => $e->scheme_type == 'year' ? $e->prefix.date('Y').$separador : (string) $e->prefix,
+                    'tipo_numero' => $e->number_type, 'inicio' => $e->start_number, 'emitidas' => (int) $e->invoice_count,
+                    'digitos' => $e->total_digits,
+                ])->all(),
+            'layouts' => InvoiceLayout::where('business_id', $business_id)->orderBy('name')->get(['id', 'name', 'is_default'])
+                ->map(fn (InvoiceLayout $l) => [
+                    'id' => $l->id, 'nome' => $l->name, 'padrao' => (bool) $l->is_default,
+                    'locais' => $locaisPorLayout
+                        ->filter(fn ($loc) => (int) $loc->invoice_layout_id === $l->id || (int) $loc->sale_invoice_layout_id === $l->id)
+                        ->pluck('name')->values()->all(),
+                ])->all(),
+        ];
     }
 
     /**
