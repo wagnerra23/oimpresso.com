@@ -109,9 +109,17 @@
       "sha256": "6d167fa06068bc66b45b307922e08bb1f466dbf1999ee1faea16a74c5957f992",
       "em": "2026-10-06T22:07:29.160Z"
     },
+    "cowork-inbox/fiscal/playbook/_saida-05.md": {
+      "sha256": "925ff5a07d32230a0a2ffc1b479c23084dad42f68fd08f0069ab334c765a94af",
+      "em": "2026-10-07T16:19:23.381Z"
+    },
     "cowork-inbox/fiscal/playbook/_saida-06.md": {
       "sha256": "c03424e9d404b3351d2863308961df3db07259ec41f2de158b22c7ef0baa6a61",
       "em": "2026-10-07T10:54:05.818Z"
+    },
+    "cowork-inbox/fiscal/playbook/_saida-07.md": {
+      "sha256": "07feb35049b036b041590fd2ea6b00917248bb68359abf599a5d07f23930c185",
+      "em": "2026-10-07T16:19:23.381Z"
     },
     "cowork-inbox/fiscal/playbook/_saida-11.md": {
       "sha256": "efca8d1006955254c9f732d42286c10a61c7b8c25841f5627f01fa4dfe0ab554",
@@ -141,6 +149,10 @@
       "sha256": "c300c92a89302361c91009b823506eaa528737599e3daa3b85c20513e52cc978",
       "em": "2026-10-06T17:54:19.077Z"
     },
+    "cowork-inbox/fiscal/playbook/_saida-22.md": {
+      "sha256": "b201630022b5ffc27efc743406a4a5d19bfe9345fed2060e553210ae0eb096bd",
+      "em": "2026-10-07T16:19:23.381Z"
+    },
     "cowork-inbox/fiscal/playbook/_saida-24.md": {
       "sha256": "46af9aed686f175a8b97a6a7f34ab42eef17c1aef9d1f5ed425bca843a4a3a82",
       "em": "2026-10-06T23:50:18.831Z"
@@ -148,6 +160,14 @@
     "cowork-inbox/fiscal/playbook/_saida-27.md": {
       "sha256": "4584ce245fd51d3959e9d3b8b191f8708ec1f6d738ce28615c6c6a5a8494cb32",
       "em": "2026-10-06T17:56:36.099Z"
+    },
+    "cowork-inbox/forja/playbook/_saida-02.md": {
+      "sha256": "49fd2ef4c9ae4569463ef97fa50d59c22fa0486c45b826fb721338a395698edf",
+      "em": "2026-10-07T16:19:23.381Z"
+    },
+    "cowork-inbox/forja/playbook/_saida-04.md": {
+      "sha256": "6700ea4f6f8723c42def0bc23b4b9f69a00d26b24dd2aefba1b2b53c72179854",
+      "em": "2026-10-07T16:19:23.381Z"
     },
     "cowork-inbox/modulos-faltantes/playbook/_saida-01.md": {
       "sha256": "487719e77a6b00ec227437b0f694d1370ecbcf31f197535b271642acfac07828",
@@ -188,6 +208,10 @@
     "cowork-inbox/sistema/playbook/_saida-00.md": {
       "sha256": "8c2b544ff0e7a928d35e53b33f31fafefc310f8f717c75c9f051167f764ee41d",
       "em": "2026-10-07T10:54:05.818Z"
+    },
+    "cowork-inbox/sistema/playbook/_saida-01.md": {
+      "sha256": "706282e6d5bc053a285134dfc451cbce0e82ecc44ca4953777e654f82f5951a6",
+      "em": "2026-10-07T16:19:23.381Z"
     },
     "cowork-inbox/telas-soltas/playbook/_saida-01.md": {
       "sha256": "4454142adc7710cfe12de00c978a1922d47ceec74f3cf949900906522377ab89",
