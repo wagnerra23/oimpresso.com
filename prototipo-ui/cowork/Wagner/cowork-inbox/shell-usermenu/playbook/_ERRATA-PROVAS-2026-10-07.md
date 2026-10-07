@@ -57,11 +57,21 @@ novos) e por que o clique em produção não foi feito.
 
 ## 3 · Como foi conferido
 
-Cópia do índice com as provas acima, fora do repo versionado, rodada no próprio placar:
+Placar rodado no índice atual (antes) e numa cópia do índice com as provas acima, com os três
+`_saida` copiados ao lado dela, numa pasta ignorada pelo git (depois):
 
 ```
-node scripts/qa/placar.mjs --indice <cópia>
-  01 / 02 / 03: provas verdes (na cópia aparecem "sem recibo" só porque os _saida não estão ao lado dela)
+ANTES  node scripts/qa/placar.mjs --indice .../shell-usermenu/playbook/00-INDICE.md
+shell-usermenu: entregue 0 de 3 · próximo 0 · em curso 3 · pendente 0 · bloqueada 0
+  01 [em curso ] (indecidível) Aparencia ...
+  02 [em curso ] (indecidível) Sair ...
+  03 [em curso ] (indecidível) + Adicionar empresa ...
+
+DEPOIS node scripts/qa/placar.mjs --indice <cópia com as provas novas>
+shell-usermenu: entregue 3 de 3 · próximo 0 · em curso 0 · pendente 0 · bloqueada 0
+  01 [feito    ] Aparencia ...
+  02 [feito    ] Sair ...
+  03 [feito    ] + Adicionar empresa ...
 ```
 
 Controle negativo: trocando o padrão da 01 por um texto inexistente, a 01 passa a acusar
