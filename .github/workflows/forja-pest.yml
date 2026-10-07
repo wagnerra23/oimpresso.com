@@ -181,6 +181,9 @@ jobs:
         # 2026-10-07 — TeamScopesContratoTest (UC-TSCOPE-01..03, thread 02 do playbook
         # Forja) entra FAILING-FIRST pelo mesmo desvio declarado acima. Usa
         # DatabaseTransactions, sem RefreshDatabase.
+        # 2026-10-07 — RoadmapQuarterViewContratoTest (UC-RQV-01..03, Roadmap/Index.casos.md)
+        # entra pelo MESMO desvio FAILING-FIRST: Pest local é proibido, o 1º veredito é
+        # aqui. DatabaseTransactions + tenant 98 (ADR 0358) — nada persiste.
         env:
           DB_CONNECTION: mysql
           DB_HOST: 127.0.0.1
@@ -197,6 +200,7 @@ jobs:
             Modules/Forja/Tests/Feature/AprovacoesMesaTest.php \
             Modules/Forja/Tests/Feature/TrabalhoListaTest.php \
             Modules/Forja/Tests/Feature/PipelineParidadeTest.php \
+            Modules/Forja/Tests/Feature/Roadmap/RoadmapQuarterViewContratoTest.php \
             Modules/Forja/Tests/Feature/ForjaMcpHandoffsInlineTest.php \
             Modules/Forja/Tests/Feature/BriefAlertOpsInboxTest.php \
             Modules/Forja/Tests/Feature/ForjaBadgePendenciasTest.php \
