@@ -1042,7 +1042,7 @@ class ReportController extends Controller
     /**
      * Shows expense report of a business
      *
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Contracts\View\View|\Inertia\Response
      */
     public function getExpenseReport(Request $request)
     {
@@ -1064,7 +1064,45 @@ class ReportController extends Controller
             $filters['end_date'] = \Carbon::now()->endOfMonth()->format('Y-m-d');
         }
 
+        // Tela React (playbook sistema/07): período em ISO (o date_range da Blade vem no formato
+        // do negócio). Fora disso, os MESMOS filtros e a MESMA consulta que a Blade recebe.
+        $telaNova = $request->query('tela') === 'nova';
+        if ($telaNova) {
+            foreach (['start_date', 'end_date'] as $campo) {
+                $iso = (string) $request->query($campo, '');
+                if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $iso)) {
+                    $filters[$campo] = $iso;
+                }
+            }
+        }
+
         $expenses = $this->transactionUtil->getExpenseReport($business_id, $filters);
+
+        if ($telaNova) {
+            $linhas = collect($expenses)->map(fn ($e) => [
+                'categoria' => $e->category,
+                'total' => (float) $e->total_expense,
+            ])->values();
+
+            return Inertia::render('Relatorios/Despesas/Index', [
+                'linhas' => $linhas,
+                // Mesma soma que o tfoot da Blade faz sobre as linhas.
+                'total' => (float) $linhas->sum('total'),
+                'filtros' => [
+                    'location_id' => (string) ($filters['location_id'] ?? ''),
+                    'category' => (string) ($filters['category'] ?? ''),
+                    'start_date' => $filters['start_date'],
+                    'end_date' => $filters['end_date'],
+                ],
+                'locais' => collect(BusinessLocation::forDropdown($business_id, false))->map(fn ($nome, $id) => ['id' => (int) $id, 'nome' => (string) $nome])->values(),
+                'categorias' => ExpenseCategory::where('business_id', $business_id)->orderBy('name')->get(['id', 'name'])
+                    ->map(fn ($c) => ['id' => (int) $c->id, 'nome' => (string) $c->name])->values(),
+                'moeda' => [
+                    'simbolo' => (string) $request->session()->get('business.currency_symbol', 'R$'),
+                    'casas' => (int) $request->session()->get('business.currency_precision', 2),
+                ],
+            ]);
+        }
 
         $values = [];
         $labels = [];
