@@ -1,0 +1,18 @@
+{
+  "_nota": "Derivado do alvo governance/design/targets/atendimento--caixa-unificada--index.alvo.json (thread A1 do playbook atendimento, rota `inbox` do protótipo), não do .tsx. Uma seção por seção do alvo (8), ids com prefixo atend-. Copy só onde protótipo e tela dizem a mesma coisa: o título da coluna \"Conversas\" (inbox-page.jsx). O placeholder da busca diverge (protótipo \"Buscar nome, empresa, texto…\" × tela \"Buscar nome, número, texto…\") e fica fora: escolher é do dono. `atend-saude` só renderiza com canal degradado — a âncora é estática no fonte. Complementa caixa-unificada.contract.json (reconexão), não o substitui.",
+  "_nota_ordem": "O gate ordena as âncoras por arquivo e depois por posição, logo `ordem` só cobre seções cujos arquivos já saem na ordem visual: ConversationListV4 (lista à esquerda) antes de ConversationThreadV4 (thread ao centro). atend-header (Index.tsx), atend-saude (ChannelHealthBanner) e atend-composer (ComposerV4) ficam fora da ordem.",
+  "tela": "Atendimento/CaixaUnificada",
+  "fonte": "prototipo-ui/cowork/Wagner/inbox-page.jsx",
+  "alvo": ["Modules/Whatsapp/Resources/js/Pages/Atendimento/CaixaUnificada"],
+  "secoes": [
+    { "id": "atend-header", "copy": [] },
+    { "id": "atend-lista-cabecalho", "copy": ["Conversas"] },
+    { "id": "atend-busca", "copy": [] },
+    { "id": "atend-saude", "copy": [] },
+    { "id": "atend-lista", "copy": [] },
+    { "id": "atend-thread-cabecalho", "copy": [] },
+    { "id": "atend-mensagens", "copy": [] },
+    { "id": "atend-composer", "copy": [] }
+  ],
+  "ordem": ["atend-lista-cabecalho", "atend-busca", "atend-lista", "atend-thread-cabecalho", "atend-mensagens"]
+}

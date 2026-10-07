@@ -125,7 +125,7 @@ export default function ConversationThreadV4({
       role="region"
     >
       {/* Header */}
-      <header className="flex items-center gap-3 bg-card border-b px-4 py-2.5">
+      <header className="flex items-center gap-3 bg-card border-b px-4 py-2.5" data-contract="atend-thread-cabecalho">
         <div className="relative w-8 h-8 flex-shrink-0">
           <div
             className="w-8 h-8 rounded-full grid place-items-center text-white text-[10.5px] font-bold"
@@ -279,6 +279,7 @@ export default function ConversationThreadV4({
         ref={threadRef}
         className="flex-1 overflow-auto cw-scroll-thin p-4 flex flex-col gap-1"
         data-testid="caixa-unif-messages"
+        data-contract="atend-mensagens"
       >
         {messages.length === 0 ? (
           <div className="flex-1 grid place-items-center text-muted-foreground text-[13px]">
