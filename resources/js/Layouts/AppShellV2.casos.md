@@ -58,7 +58,9 @@ last_run: "2026-09-02"
 
 ## [BACKLOG] — prosa honesta, sem id (viram UC quando ganharem teste)
 
-- O protótipo tem um 3º modo `hidden` (`⌘⇧\`) que produção não porta. Se um dia portar, o
-  auto-rail precisa dizer o que faz quando a escolha gravada é `hidden` numa tela estreita.
+- O 3º modo `hidden` (`⌘⇧\`) foi portado em 2026-09-11 (#7209; até então este item dizia que
+  produção não o portava). Comportamento no código: é escolha manual, fica gravado em
+  `oimpresso.sb.mode` e o listener de largura não o sobrescreve. Falta teste que prove isso
+  numa tela estreita, e falta caso para o clique na alça de reabrir.
 - Mobile (≤768px): o drawer abre sempre expandido. Não há caso escrito para a transição
   1280 → 768 → 1280.

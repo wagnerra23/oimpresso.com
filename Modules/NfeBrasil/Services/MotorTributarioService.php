@@ -10,6 +10,7 @@ use Modules\NfeBrasil\Exceptions\NcmObrigatorioException;
 use Modules\NfeBrasil\Exceptions\TributacaoNaoConfiguradaException;
 use Modules\NfeBrasil\Models\NfeBusinessConfig;
 use Modules\NfeBrasil\Models\NfeFiscalRule;
+use Modules\NfeBrasil\Models\NfeOperacaoFiscal;
 use Modules\NfeBrasil\Services\Tributacao\ProdutoFiscalContext;
 use Modules\NfeBrasil\Services\Tributacao\TributoCalculado;
 
@@ -20,7 +21,13 @@ use Modules\NfeBrasil\Services\Tributacao\TributoCalculado;
  *   Nível 1 — override por produto (`fiscal_rule_override_id`)
  *   Nível 2 — regra exata (business + ncm + uf_origem + uf_destino)
  *   Nível 3 — regra padrão NCM (business + ncm + uf_origem, uf_destino NULL)
- *   Nível 4 — defaults business (nfe_business_configs.tributacao_default)
+ *   Nível 4 — regra geral da OPERAÇÃO; na padrão (Venda), o tributacao_default da empresa
+ *
+ * Operação + vigência (playbook Fiscal thread 07 · D-OPERACAO · R-NFE-018..020d):
+ *   - toda busca filtra a versão de regra VIGENTE na data da emissão (NULL nas pontas = sem limite);
+ *   - regra sem `operacao_id` é da operação padrão; exceção de outra operação não vale aqui;
+ *   - CFOP com "?" vira 5/6/7 pelo destino (`NfeOperacaoFiscal::resolverCfop`).
+ *   Sem a migração 2026_10_07_000001 (schema de teste SQLite montado à mão) o motor faz o de antes.
  *
  * Quem chama: NfeService::emitir() pra montar `dets[*].icms/pis/cofins/cfop`,
  * Listener `EmitirNFeAoReceberPagamento` (US-RB-044 fase 2 futura), API
@@ -39,6 +46,9 @@ class MotorTributarioService
 
     /** @var array<int,NfeBusinessConfig|null> Memoization por business_id */
     private array $cacheConfigs = [];
+
+    /** @var array<string,NfeOperacaoFiscal|null> Memoization por (business, operação) */
+    private array $cacheOperacoes = [];
 
     /**
      * Assinatura de 4 parâmetros PRESERVADA de propósito: há motores falsos em teste
@@ -62,6 +72,8 @@ class MotorTributarioService
      *        como hoje (lei 4: não inventa número). A tabela por UF é a thread 09.
      * @param bool|null $destinatarioContribuinte true = tem IE; false = consumidor final
      *        não contribuinte; null = desconhecido → sem DIFAL.
+     * @param int|null $operacaoId operação fiscal (`nfe_operacoes_fiscais`); null = a padrão (Venda).
+     * @param string|null $dataEmissao Y-m-d da emissão; escolhe a versão de regra vigente. Null = hoje.
      */
     public function calcularComDestino(
         ProdutoFiscalContext $produto,
@@ -70,6 +82,8 @@ class MotorTributarioService
         string $ufDestino,
         ?float $aliquotaInternaDestino = null,
         ?bool $destinatarioContribuinte = null,
+        ?int $operacaoId = null,
+        ?string $dataEmissao = null,
     ): TributoCalculado {
         $destino = [
             'uf_origem'     => $ufOrigem,
@@ -85,8 +99,17 @@ class MotorTributarioService
             'uf_origem'   => $ufOrigem,
             'uf_destino'  => $ufDestino,
             'has_override' => $produto->fiscal_rule_override_id !== null,
-        ], function () use ($produto, $businessId, $ufOrigem, $ufDestino, $destino): TributoCalculado {
-            return $this->calcularInterno($produto, $businessId, $ufOrigem, $ufDestino, $destino);
+        ], function () use ($produto, $businessId, $ufOrigem, $ufDestino, $destino, $operacaoId, $dataEmissao): TributoCalculado {
+            $tributo = $this->calcularInterno(
+                $produto, $businessId, $ufOrigem, $ufDestino, $destino, $operacaoId, $dataEmissao,
+            );
+
+            // R-NFE-020c — só age em CFOP com "?"; os de hoje (sem "?") voltam iguais.
+            $cfop = NfeOperacaoFiscal::resolverCfop($tributo->cfop, $ufOrigem, $ufDestino);
+
+            return $cfop === $tributo->cfop
+                ? $tributo
+                : new TributoCalculado(...array_merge(get_object_vars($tributo), ['cfop' => $cfop]));
         });
     }
 
@@ -99,12 +122,29 @@ class MotorTributarioService
         string $ufOrigem,
         string $ufDestino,
         array $destino = [],
+        ?int $operacaoId = null,
+        ?string $dataEmissao = null,
     ): TributoCalculado {
+        $versionado = NfeFiscalRule::temVersionamento();
+        $data       = $dataEmissao ?? now()->toDateString();
+        $operacao   = $versionado ? $this->resolverOperacao($businessId, $operacaoId) : null;
+
         // Nível 1 — override por produto (curto-circuito)
         if ($produto->fiscal_rule_override_id !== null) {
             $regra = NfeFiscalRule::where('business_id', $businessId)
                 ->where('id', $produto->fiscal_rule_override_id)
                 ->first();
+
+            // O override aponta um id; se aquela versão não vale na data, vale a versão da
+            // mesma cadeia que estiver vigente (R-NFE-019 — editar não quebra o override).
+            if ($regra && $versionado && ! $regra->estaVigenteEm($data)) {
+                $origem = (int) ($regra->versao_origem_id ?? $regra->id);
+                $regra  = NfeFiscalRule::where('business_id', $businessId)
+                    ->where(fn ($q) => $q->where('id', $origem)->orWhere('versao_origem_id', $origem))
+                    ->vigenteEm($data)
+                    ->orderByDesc('id')
+                    ->first();
+            }
 
             if ($regra) {
                 return $this->aplicarRegra($regra, $produto, nivel: 1, destino: $destino);
@@ -120,21 +160,38 @@ class MotorTributarioService
         }
 
         // Nível 2 — regra exata
-        $regra = $this->buscarRegra($businessId, $produto->ncm, $ufOrigem, $ufDestino);
+        $regra = $this->buscarRegra($businessId, $produto->ncm, $ufOrigem, $ufDestino, $operacao, $versionado ? $data : null);
         if ($regra) {
             return $this->aplicarRegra($regra, $produto, nivel: 2, destino: $destino);
         }
 
         // Nível 3 — regra padrão NCM (uf_destino NULL)
-        $regra = $this->buscarRegra($businessId, $produto->ncm, $ufOrigem, null);
+        $regra = $this->buscarRegra($businessId, $produto->ncm, $ufOrigem, null, $operacao, $versionado ? $data : null);
         if ($regra) {
             return $this->aplicarRegra($regra, $produto, nivel: 3, destino: $destino);
         }
 
-        // Nível 4 — defaults business
+        // Nível 4 — regra geral da operação. Fora da padrão, NÃO cai no default de venda: a
+        // operação sem regra geral é erro de configuração, não "use a da venda" (R-NFE-020b).
+        if ($operacao && ! $operacao->padrao) {
+            if (empty($operacao->regra_geral)) {
+                throw new TributacaoNaoConfiguradaException(
+                    'Operação fiscal "' . $operacao->nome . '" sem regra geral. Cadastre a regra '
+                    . 'geral da operação antes de emitir.'
+                );
+            }
+
+            return $this->aplicarDefaults($operacao->regra_geral, $produto, $operacao->cfop);
+        }
+
+        if ($operacao && ! empty($operacao->regra_geral)) {
+            return $this->aplicarDefaults($operacao->regra_geral, $produto, $operacao->cfop);
+        }
+
+        // Padrão sem regra geral própria = o tributacao_default da empresa (R-NFE-020).
         $config = $this->buscarConfig($businessId);
         if ($config && ! empty($config->tributacao_default)) {
-            return $this->aplicarDefaults($config->tributacao_default, $produto);
+            return $this->aplicarDefaults($config->tributacao_default, $produto, $operacao?->cfop);
         }
 
         throw new TributacaoNaoConfiguradaException(
@@ -143,13 +200,43 @@ class MotorTributarioService
         );
     }
 
+    /**
+     * A operação pedida, sempre do próprio business (R-NFE-020d). Sem id = a padrão; se a empresa
+     * ainda não tem a "Venda" cadastrada, null — e o motor se comporta como a padrão.
+     */
+    private function resolverOperacao(int $businessId, ?int $operacaoId): ?NfeOperacaoFiscal
+    {
+        $chave = $businessId . '|' . ($operacaoId ?? 'padrao');
+        if (array_key_exists($chave, $this->cacheOperacoes)) {
+            return $this->cacheOperacoes[$chave];
+        }
+
+        $q = NfeOperacaoFiscal::withoutGlobalScopes() // SUPERADMIN: motor roda em fila/console; o escopo é o where explícito abaixo
+            ->where('business_id', $businessId)
+            ->whereNull('deleted_at');
+        $operacao = $operacaoId !== null
+            ? $q->where('id', $operacaoId)->first()
+            : $q->where('padrao', true)->orderBy('id')->first();
+
+        if ($operacaoId !== null && $operacao === null) {
+            throw new TributacaoNaoConfiguradaException(
+                "Operação fiscal {$operacaoId} não existe no business {$businessId}."
+            );
+        }
+
+        return $this->cacheOperacoes[$chave] = $operacao;
+    }
+
     private function buscarRegra(
         int $businessId,
         string $ncm,
         string $ufOrigem,
         ?string $ufDestino,
+        ?NfeOperacaoFiscal $operacao = null,
+        ?string $data = null,
     ): ?NfeFiscalRule {
-        $cacheKey = "{$businessId}|{$ncm}|{$ufOrigem}|" . ($ufDestino ?? 'NULL');
+        $cacheKey = "{$businessId}|{$ncm}|{$ufOrigem}|" . ($ufDestino ?? 'NULL')
+            . '|' . ($operacao?->id ?? 'padrao') . '|' . ($data ?? '-');
 
         if (array_key_exists($cacheKey, $this->cacheRegras)) {
             return $this->cacheRegras[$cacheKey];
@@ -162,6 +249,22 @@ class MotorTributarioService
         $query = $ufDestino === null
             ? $query->whereNull('uf_destino')
             : $query->where('uf_destino', $ufDestino);
+
+        if ($data !== null) {
+            // Operação: a padrão enxerga as regras sem operação (todas as de antes da thread 07);
+            // as outras só as próprias. Vigência: só a versão válida na data.
+            if ($operacao !== null && ! $operacao->padrao) {
+                $query->where('operacao_id', $operacao->id);
+            } else {
+                $query->where(fn ($q) => $operacao === null
+                    ? $q->whereNull('operacao_id')
+                    : $q->whereNull('operacao_id')->orWhere('operacao_id', $operacao->id));
+            }
+
+            $query->vigenteEm($data)
+                ->orderByRaw('operacao_id IS NULL')
+                ->orderBy('id');
+        }
 
         return $this->cacheRegras[$cacheKey] = $query->first();
     }
@@ -289,9 +392,12 @@ class MotorTributarioService
     /**
      * @param array<string,mixed> $defaults
      */
-    private function aplicarDefaults(array $defaults, ProdutoFiscalContext $produto): TributoCalculado
+    private function aplicarDefaults(array $defaults, ProdutoFiscalContext $produto, ?string $cfopOperacao = null): TributoCalculado
     {
-        $cfop          = (string) ($defaults['cfop'] ?? '5102');
+        // A operação com CFOP próprio decide o CFOP da regra geral (o "?" é resolvido no fim).
+        $cfop          = $cfopOperacao !== null && $cfopOperacao !== ''
+            ? $cfopOperacao
+            : (string) ($defaults['cfop'] ?? '5102');
         $csosn         = isset($defaults['csosn']) ? (string) $defaults['csosn'] : null;
         $cst           = isset($defaults['cst']) ? (string) $defaults['cst'] : null;
         $aliqIcms      = (float) ($defaults['aliquota_icms'] ?? 0);

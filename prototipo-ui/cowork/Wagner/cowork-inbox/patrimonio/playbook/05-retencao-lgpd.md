@@ -12,6 +12,8 @@ depois: comando existe, testado, e continua enabled=false até [W] ligar
 ---
 # 05 · Retenção LGPD
 
+> **REABERTA por [W] em 2026-10-07** (descarte de 27/07 revogado). Depende da 05a (ADR sucessora + chaves do `retention.php` corrigidas). O `LgpdComplianceTest` atual é só presence-gate (medido no `_saida-04` §2b): os 4 testes desta ficha **substituem** essa função, não somam a ela.
+
 ## ÂNCORA
 ```
 arquivo  Modules/AssetManagement/Config/retention.php                              3.391 B  sha 6d4af578e839

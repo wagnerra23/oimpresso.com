@@ -51,7 +51,7 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/repair/playbook/
       "destrava": [
         "03"
       ],
-      "resposta": "é venda: tipo de venda igual à OS da OficinaAuto",
+      "resposta": "é venda: tipo de venda igual à OS da OficinaAuto — _DECISOES-W-2026-10-01b.md",
       "fonte": "_DECISOES-W-2026-10-01b.md"
     },
     {

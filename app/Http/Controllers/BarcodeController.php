@@ -175,7 +175,10 @@ class BarcodeController extends Controller
                 $input['paper_height'] = $request->input('paper_height');
             }
 
-            $barcode = Barcode::where('id', $id)->update($input);
+            // Tier 0: sem o negócio, o id alcançava a etiqueta de outro negócio e os modelos
+            // globais (business_id NULL) que o LabelsController oferece a todos.
+            $business_id = $request->session()->get('user.business_id');
+            Barcode::where('business_id', $business_id)->findOrFail($id)->update($input);
 
             $output = ['success' => 1,
                 'msg' => __('barcode.updated_success'),
@@ -205,7 +208,8 @@ class BarcodeController extends Controller
 
         if (request()->ajax()) {
             try {
-                $barcode = Barcode::find($id);
+                $business_id = request()->session()->get('user.business_id');
+                $barcode = Barcode::where('business_id', $business_id)->findOrFail($id);
                 if ($barcode->is_default != 1) {
                     $barcode->delete();
                     $output = ['success' => true,
@@ -244,12 +248,16 @@ class BarcodeController extends Controller
             try {
                 //get_default
                 $business_id = request()->session()->get('user.business_id');
+                // Achar antes de desmarcar: id de outro negócio falha aqui, sem tirar o padrão do próprio.
+                $barcode = Barcode::where('business_id', $business_id)->findOrFail($id);
                 $default = Barcode::where('business_id', $business_id)
                                 ->where('is_default', 1)
                                  ->update(['is_default' => 0]);
 
-                $barcode = Barcode::find($id);
-                $barcode->is_default = 1;
+                // refresh(): carregado antes do update acima, o model ainda diria is_default=1 e o
+                // save() não gravaria nada se ela já fosse a padrão.
+                $barcode->refresh();
+                $barcode->is_default = true;
                 $barcode->save();
 
                 $output = ['success' => true,

@@ -29,7 +29,7 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/telas-soltas/playbook/
 ## 2 · Decisões
 | id | pergunta | destrava |
 |---|---|---|
-| D1 | Planilhas, Voz do Cliente e Ordens de Serviço existem só no protótipo: entram em produção, ficam como exploração ou saem do menu?  → **sim** ([W] 06/10) | 03 |
+| D1 | Planilhas, Voz do Cliente e Ordens de Serviço: entram em produção, ficam como exploração ou saem do menu? → **entram em produção como no protótipo** ([W] 07/10, revoga 06/10) | 03 · 04 · 05 · 06 |
 
 ## 3 · Threads
 
@@ -44,12 +44,15 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/telas-soltas/playbook/
       "pergunta": "Planilhas, Voz do Cliente e Ordens de Serviço existem só no protótipo: entram em produção, ficam como exploração ou saem do menu?",
       "respondida": true,
       "destrava": [
-        "03"
+        "03",
+        "04",
+        "05",
+        "06"
       ],
-      "resposta": "sim — Planilhas, Voz do Cliente e OS ficam como exploração, com aviso na tela, até [W] decidir se entram em produção",
+      "resposta": "entram em produção como no protótipo — [W] 2026-10-07 (\"essa pode colocar sim\"), revoga \"ficam como exploração\" de 06/10",
       "quem": "[W]",
-      "quando": "2026-10-06",
-      "fonte": "_DECISOES-W-2026-10-06.md"
+      "quando": "2026-10-07",
+      "fonte": "_DECISOES-W-2026-10-07.md"
     }
   ],
   "threads": [
@@ -187,7 +190,7 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/telas-soltas/playbook/
     },
     {
       "id": "03",
-      "titulo": "Planilhas · Voz do Cliente · OS: aplicar a D1",
+      "titulo": "Planilhas · Voz do Cliente · OS: tirar o aviso de exploração e acertar o build",
       "dono": "CC",
       "vaga": 3,
       "arquivo": "03-so-prototipo.md",
@@ -201,8 +204,85 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/telas-soltas/playbook/
         "app/",
         "Modules/"
       ],
-      "provas": [],
+      "provas": [
+        {
+          "tipo": "nao_contem",
+          "path": "prototipo-ui/cowork/Wagner/app.jsx",
+          "padrao": "ExploracaoAviso"
+        }
+      ],
       "nota_provas": "conforme D1: roteiro novo, aviso de exploração na tela, ou item removido do menu"
+    },
+    {
+      "id": "04",
+      "titulo": "Planilhas em Inertia: /spreadsheet/sheets (Blade → trio), forma do protótipo",
+      "dono": "CL",
+      "vaga": 3,
+      "arquivo": "04-planilhas.md",
+      "depende_decisoes": [
+        "D1"
+      ],
+      "prefixo": [
+        "Modules/Spreadsheet/Http/Controllers/SpreadsheetController.php",
+        "resources/js/Pages/Spreadsheet/",
+        "governance/design/contracts/planilhas.contract.json"
+      ],
+      "nao_toca": [
+        "Modules/Spreadsheet/Database/",
+        "Modules/Spreadsheet/Config/retention.php"
+      ],
+      "provas": [
+        {
+          "tipo": "arquivo",
+          "path": "resources/js/Pages/Spreadsheet/Index.tsx"
+        },
+        {
+          "tipo": "arquivo",
+          "path": "resources/js/Pages/Spreadsheet/Index.charter.md"
+        },
+        {
+          "tipo": "arquivo",
+          "path": "resources/js/Pages/Spreadsheet/Index.casos.md"
+        }
+      ]
+    },
+    {
+      "id": "05",
+      "titulo": "Voz do Cliente em Inertia — executa a thread 03 de modulos-faltantes (não duplica)",
+      "dono": "CL",
+      "vaga": 3,
+      "arquivo": "05-voz.md",
+      "depende_decisoes": [
+        "D1"
+      ],
+      "prefixo": [
+        "Modules/VozDoCliente/"
+      ],
+      "nao_toca": [],
+      "provas": [
+        {
+          "tipo": "arquivo",
+          "path": "resources/js/Pages/VozDoCliente/Caixa.tsx"
+        }
+      ]
+    },
+    {
+      "id": "06",
+      "titulo": "OS da gráfica: PESQUISAR qual backend é o dono antes de qualquer Page",
+      "dono": "CL",
+      "vaga": 3,
+      "arquivo": "06-os-pesquisa.md",
+      "depende_decisoes": [
+        "D1"
+      ],
+      "prefixo": [],
+      "nao_toca": [
+        "app/",
+        "Modules/",
+        "resources/"
+      ],
+      "provas": [],
+      "nota_provas": "pesquisa: fecha pelo recibo, que TEM de citar arquivo:linha do dono escolhido e o motivo"
     }
   ]
 }

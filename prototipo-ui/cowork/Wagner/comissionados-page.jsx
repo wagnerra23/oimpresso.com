@@ -246,7 +246,7 @@ function ComissionadosPage() {
                 <tr key={a.id}>
                   <td>
                     <div className="usr-id">
-                      <div className="usr-avatar" style={{ background: c.bg, color: c.fg }}>{initials(a.nome)}</div>
+                      <div className="usr-avatar" style={{ '--av-bg': c.bg, '--av-fg': c.fg }}>{initials(a.nome)}</div>
                       <div className="usr-id-meta">
                         <b>{a.nome}{a.externo && <span className="usr-you">parceiro</span>}</b>
                         <small>{a.usuario ? "@" + a.usuario : a.email}</small>
