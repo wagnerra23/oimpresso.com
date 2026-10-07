@@ -49,7 +49,7 @@ Configurar **tributação default + regras NCM específicas** do business — ú
 
 > Anti-alucinação. Cada item vira Pest GUARD test.
 
-- ❌ Calculadora interativa de tributo (essa tela é configuração; cálculo real é em runtime de venda)
+- ❌ Calculadora interativa de tributo com cálculo próprio — **exceção D-SIM ([W] 2026-10-06):** um simulador **read-only** que chama a mesma montagem de item da emissão (`NfeService::montarItensNfe`), mostra o nível N1–N4 e traz o aviso literal de que é prévia, não garantia. Zero cálculo no front, zero escrita (UC-NFTR-08/09).
 - ❌ Importar regras de outro business (multi-tenant Tier 0)
 - ❌ Templates customizados pelo usuário final (curadoria centralizada via `TributacaoTemplateService`)
 - ❌ Histórico de mudanças inline na UI (audit log via `activity_log`, consulta separada)

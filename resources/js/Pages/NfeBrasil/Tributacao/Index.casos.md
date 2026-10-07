@@ -54,6 +54,8 @@ last_run: "2026-10-07"
 | UC-NFTR-16 | Fontes divergentes não são resolvidas sozinhas | must `[fiscal]` | ADR 0186 · D-SUPORTE | `EmpresaFiscalLookupTest` | 🧪 |
 | UC-NFTR-17 | Aplicar template exige NCM padrão válido, usa o NCM que a tela manda e registra quem aplicou | must `[fiscal]` | auditoria 2026-05 bug #3 · US-NFE-062 | `TributacaoTemplateAplicarTest` | 🧪 |
 | UC-NFTR-18 | Sem regime escolhido ou sem NCM válido, a tela não avança e não aplica | must `[fiscal]` | UC-NFTR-14..17 · charter (confirmação explícita) | e2e `nfe-tributacao-onboarding.spec.ts` | 🧪 |
+| UC-NFTR-08 | O simulador devolve o mesmo cálculo da emissão e não grava nada | must `[fiscal]` | D-SIM · US-NFE-010 "Preview de cálculo" · `NfeService::montarItensNfe` | `TributacaoSimuladorTest` | 🧪 |
+| UC-NFTR-09 | Simular produto de outra empresa é 404, e sem permissão é 403 | must `[T0]` | ADR 0093 · `nfe.tributacao.manage` | `TributacaoSimuladorTest` | 🧪 |
 
 > **Recibo:** ver §Recibo de execução no rodapé — status é o **veredito** da corrida, não leitura de código.
 
@@ -266,6 +268,34 @@ last_run: "2026-10-07"
   `prototipo-ui/cowork/Wagner/fiscal-tributacao.jsx` (D-ANCORA).
 - **Regressão que defende:** tela que "ajuda" pulando a decisão.
 - **Status: 🧪** — veredito da lane `e2e-gate.yml`.
+
+## UC-NFTR-08 · O simulador devolve o mesmo cálculo da emissão e não grava nada · `must` `[fiscal]`
+
+- **Persona:** Eliana conferindo um imposto antes de vender.
+- **Aceite:** Dado um produto com NCM, uma regra para ele e a UF de destino · Quando simulo
+  (`GET /nfe-brasil/tributacao/simular`) · Então CFOP, nível N1–N4 e valores são **idênticos** ao item que
+  a emissão monta para o mesmo contexto (`NfeService::montarItensNfe`, com a UF de origem que o próprio
+  `NfeService` resolve), batem com a conta à mão, e nenhuma tabela fiscal ganha ou perde linha.
+  Controle positivo: mudar a UF de destino para a da regra N2 muda o nível usado e o valor.
+- **Teste:** [`TributacaoSimuladorTest`](../../../../../Modules/NfeBrasil/Tests/Feature/TributacaoSimuladorTest.php)
+  — `UC-NFTR-08 · simulador = emissão e zero escrita`.
+- **Contrato:** D-SIM ([W] 2026-10-06) · US-NFE-010 "Preview de cálculo" · charter §Non-Goals (exceção D-SIM).
+- **Regressão que defende:** um simulador com cálculo próprio que diverge da nota.
+- **Fora daqui:** operação, destinatário e regime não entram — a emissão ainda não os passa ao motor;
+  mostrá-los faria a prévia divergir da nota.
+- **Status: 🧪** — veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
+
+## UC-NFTR-09 · Simular produto de outra empresa é 404, e sem permissão é 403 · `must` `[T0]`
+
+- **Persona:** qualquer tenant.
+- **Aceite:** Dado `product_id` de outra empresa · Quando simulo · Então 404 e nada do produto volta
+  (nem nome, nem NCM). Sem `nfe.tributacao.manage` · Então 403. Controle positivo: o produto da própria
+  empresa simula.
+- **Teste:** [`TributacaoSimuladorTest`](../../../../../Modules/NfeBrasil/Tests/Feature/TributacaoSimuladorTest.php)
+  — `UC-NFTR-09 · simulador isolado por tenant e por permissão`.
+- **Contrato:** ADR 0093 · `SimularTributacaoRequest::authorize`.
+- **Regressão que defende:** endpoint read-only vazando cadastro alheio.
+- **Status: 🧪** — veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
 
 ## Backlog — sem UC até ganhar teste
 
