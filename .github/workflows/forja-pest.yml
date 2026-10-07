@@ -209,6 +209,7 @@ jobs:
             Modules/Forja/Tests/Feature/AdsAdminProjectsContratoTest.php \
             Modules/Forja/Tests/Feature/TrabalhoListaTest.php \
             Modules/Forja/Tests/Feature/AdsAdminProjectShowContratoTest.php \
+            Modules/Forja/Tests/Feature/ProjectDecomposeTenantTest.php \
             Modules/Forja/Tests/Feature/PipelineParidadeTest.php \
             Modules/Forja/Tests/Feature/Roadmap/RoadmapQuarterViewContratoTest.php \
             Modules/Forja/Tests/Feature/ForjaMcpHandoffsInlineTest.php \

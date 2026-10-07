@@ -42,11 +42,17 @@ Status: 🧪 sem veredito
 - **Teste:** `AdsAdminProjectShowContratoTest.php` — `UC-ADPS-02 · project de outro business, inexistente …`
 - **Regressão que defende:** vazamento cross-tenant (ADR 0093). O charter: *"Não mostra project de outro business"*; a US-ADS-004: *"404 quando o id não existe"* + `whereNumber`.
 
+## UC-ADPS-03 · O decompose só age em project da minha empresa `[must]` `[T0]`
+Status: 🧪 sem veredito
+- **Persona:** usuário de outro business mandando `POST /ads/admin/projects/{id}/decompose` com o id de um project alheio.
+- **Aceite:** Dado um project meu e um do tenant adversário, os dois já com uma part · Quando decompõo o meu, a resposta é "já decomposto" (controle positivo: a requisição chega ao serviço) · Quando decompõo o do adversário · Então a resposta é "project não encontrado", e as parts e o `updated_at` dele não mudam.
+- **Teste:** `ProjectDecomposeTenantTest.php` — `UC-ADPS-03 · decompose no serviço …` e `UC-ADPS-03 · POST …/decompose de project de outra empresa …`
+- **Regressão que defende:** vazamento cross-tenant (ADR 0093). Até 2026-10-07 o `ProjectDecomposerService::decompose` lia `mcp_projects` só por `id`: medido no CT 100, como empresa 98 ele lia o project da 99 e as parts dele (`already_decomposed` em vez de `project_not_found`). Sem part gravada, seguiria para o agente de IA e gravaria parts no project alheio.
+
 ---
 
 ## Backlog de casos (sem id — entram quando tiverem teste e ≥2 fontes)
 
-- **[BACKLOG] `[T0]` O decompose não pode agir em project de outro business — e hoje age.** **Achado de leitura, com o caminho conferido no código:** `ProjectsController@decompose` não passa pelo `ProjectService` (que escopa por `business_id`); chama `ProjectDecomposerService::decompose($id)`, que lê `mcp_projects` só por `id` (`DB::table('mcp_projects')->where('id', $projectId)->first()`) e grava as parts nele. Um usuário logado de qualquer business que faça `POST /ads/admin/projects/{id}/decompose` com o id de um project alheio dispara o agente de IA e escreve parts no project do outro. **Não foi provado por teste** — o caminho feliz chama o agente (custo e rede) e não há fake dele no repo; registrar como UC com teste vermelho fica para quem consertar. Conserto é em `Modules/Forja/Http/` / `Services/`, fora do escopo desta thread. **Pergunta ao [W].**
 - **[BACKLOG] Project já decomposto não é decomposto de novo (botão some; o POST devolve erro sem chamar a IA)** — só o charter (Non-Goals + Anti-hooks).
 - **[BACKLOG] "Decompor com IA" só aparece com o project em `draft` e sem parts, com `confirm()` de custo** — só o charter; asserção de cliente.
 - **[BACKLOG] Decisões linkadas ao project** — o charter promete *"decisões linkadas ao project (linka pra `/ads/admin/decisoes/{id}`)"*, mas o `ProjectService::findDetail` devolve `decisions: []` sempre desde a ADR 0363 (a tabela de decisões do ADS foi dropada). Promessa do charter sem cumprimento: **não escolho o vencedor** — podar o charter ou religar a fonte é decisão do [W].
