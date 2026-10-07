@@ -87,6 +87,10 @@ beforeEach(function () {
         $this->markTestSkipped('Migrações da thread 15 não rodaram — rode as migrations do módulo.');
     }
     Mail::fake();
+    // O throttle das rotas públicas não é o que este arquivo prova, e o cache dele sobrevive entre
+    // testes (uma rodada inteira passa de 30 requisições/min). O limite de tentativas do código é outro
+    // mecanismo, e esse é provado aqui.
+    $this->withoutMiddleware(\Illuminate\Routing\Middleware\ThrottleRequests::class);
     Event::fake([FiscalRuleCreated::class, FiscalRuleUpdated::class, FiscalRuleDeleted::class]);
     NfeFiscalRule::esquecerVersionamento();
     RevisaoContadorService::esquecerTabela();
@@ -210,6 +214,8 @@ it('UC-NFTR-23 · só regras fiscais, com de → para e CSV do Import', function
     $this->postJson("/nfe-brasil/contador/link/{$link->id}/revisoes/{$rev->id}/ajuste", ['comentario' => 'ICMS 7% em SP.'])
         ->assertOk()->assertJsonPath('status', 'ajuste_pedido');
 
-    $permitidas = ['nfe_contador_links', 'nfe_revisoes_contador', 'nfe_fiscal_rules', 'users', 'business', 'activity_log'];
+    // information_schema = Schema::hasTable/hasColumn (metadado do banco, não dado de negócio).
+    $permitidas = ['nfe_contador_links', 'nfe_revisoes_contador', 'nfe_fiscal_rules', 'users', 'business', 'activity_log',
+        'information_schema'];
     expect(array_values(array_diff(array_keys($tabelas), $permitidas)))->toBe([]);
 });
