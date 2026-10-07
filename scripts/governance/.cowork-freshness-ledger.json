@@ -54428,5 +54428,22 @@
       "voz-do-cliente-page.jsx": "aa403c92fe1c70727c0ef2762de66c3108db1a518d3f83ccb75571cd9c2abf72"
     },
     "origin": "bundle:376813c2dd5d0f22"
+  },
+  {
+    "date": "2026-10-07T21:39:36.567Z",
+    "files": 284,
+    "sync": 1,
+    "stale": 0,
+    "liveAbsent": 0,
+    "unchecked": 283,
+    "staleList": [],
+    "verified": [
+      "cowork-inbox/fiscal/playbook/_saida-10.md"
+    ],
+    "verifiedHash": {
+      "cowork-inbox/fiscal/playbook/_saida-10.md": "45bd205df0c956909ea6bbe71bb65167150c21385a62f9944fe138c45ab90b0b"
+    },
+    "origin": "medicao",
+    "projetoCowork": "w"
   }
 ]
