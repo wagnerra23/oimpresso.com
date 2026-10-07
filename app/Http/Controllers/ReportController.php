@@ -1696,35 +1696,38 @@ class ReportController extends Controller
 
         $business_id = $request->session()->get('user.business_id');
 
+        // Tela React (playbook sistema/07). Vem ANTES do ajax(): a visita Inertia manda
+        // X-Requested-With. As linhas saem da MESMA consulta do DataTable da Blade.
+        if ($request->query('tela') === 'nova') {
+            $filtros = [
+                'customer_group_id' => (string) $request->query('customer_group_id', ''),
+                'location_id' => (string) $request->query('location_id', ''),
+                'start_date' => (string) $request->session()->get('financial_year.start', now()->startOfYear()->toDateString()),
+                'end_date' => (string) $request->session()->get('financial_year.end', now()->endOfYear()->toDateString()),
+            ];
+            foreach (['start_date', 'end_date'] as $campo) {
+                $iso = (string) $request->query($campo, '');
+                if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $iso)) {
+                    $filtros[$campo] = $iso;
+                }
+            }
+            $linhas = $this->consultaGrupoDeClientes($business_id, $filtros)->get()
+                ->map(fn ($r) => ['grupo' => $r->name, 'total' => (float) $r->total_sell])->values();
+
+            return Inertia::render('Relatorios/GruposClientes/Index', [
+                'linhas' => $linhas,
+                'filtros' => $filtros,
+                'grupos' => collect(CustomerGroup::forDropdown($business_id, false, true))->map(fn ($nome, $id) => ['id' => (int) $id, 'nome' => (string) $nome])->values(),
+                'locais' => collect(BusinessLocation::forDropdown($business_id, false))->map(fn ($nome, $id) => ['id' => (int) $id, 'nome' => (string) $nome])->values(),
+                'moeda' => [
+                    'simbolo' => (string) $request->session()->get('business.currency_symbol', 'R$'),
+                    'casas' => (int) $request->session()->get('business.currency_precision', 2),
+                ],
+            ]);
+        }
+
         if ($request->ajax()) {
-            $query = Transaction::leftjoin('customer_groups AS CG', 'transactions.customer_group_id', '=', 'CG.id')
-                        ->where('transactions.business_id', $business_id)
-                        ->where('transactions.type', 'sell')
-                        ->where('transactions.status', 'final')
-                        ->groupBy('transactions.customer_group_id')
-                        ->select(DB::raw('SUM(final_total) as total_sell'), 'CG.name');
-
-            $group_id = $request->get('customer_group_id', null);
-            if (! empty($group_id)) {
-                $query->where('transactions.customer_group_id', $group_id);
-            }
-
-            $permitted_locations = auth()->user()->permitted_locations();
-            if ($permitted_locations != 'all') {
-                $query->whereIn('transactions.location_id', $permitted_locations);
-            }
-
-            $location_id = $request->get('location_id', null);
-            if (! empty($location_id)) {
-                $query->where('transactions.location_id', $location_id);
-            }
-
-            $start_date = $request->get('start_date');
-            $end_date = $request->get('end_date');
-
-            if (! empty($start_date) && ! empty($end_date)) {
-                $query->whereBetween(DB::raw('date(transaction_date)'), [$start_date, $end_date]);
-            }
+            $query = $this->consultaGrupoDeClientes($business_id, $request->only(['customer_group_id', 'location_id', 'start_date', 'end_date']));
 
             return Datatables::of($query)
                 ->editColumn('total_sell', function ($row) {
@@ -1739,6 +1742,41 @@ class ReportController extends Controller
 
         return view('report.customer_group')
             ->with(compact('customer_group', 'business_locations'));
+    }
+
+    /**
+     * Vendas finais somadas por grupo de clientes — a consulta do relatório Grupos de clientes,
+     * usada pelo DataTable da Blade e pela tela nova (playbook sistema/07).
+     *
+     * @param  array<string, mixed>  $filtros  customer_group_id, location_id, start_date, end_date
+     */
+    private function consultaGrupoDeClientes(int $business_id, array $filtros): \Illuminate\Database\Eloquent\Builder
+    {
+        $query = Transaction::leftjoin('customer_groups AS CG', 'transactions.customer_group_id', '=', 'CG.id')
+                    ->where('transactions.business_id', $business_id)
+                    ->where('transactions.type', 'sell')
+                    ->where('transactions.status', 'final')
+                    ->groupBy('transactions.customer_group_id')
+                    ->select(DB::raw('SUM(final_total) as total_sell'), 'CG.name');
+
+        if (! empty($filtros['customer_group_id'])) {
+            $query->where('transactions.customer_group_id', $filtros['customer_group_id']);
+        }
+
+        $permitted_locations = auth()->user()->permitted_locations();
+        if ($permitted_locations != 'all') {
+            $query->whereIn('transactions.location_id', $permitted_locations);
+        }
+
+        if (! empty($filtros['location_id'])) {
+            $query->where('transactions.location_id', $filtros['location_id']);
+        }
+
+        if (! empty($filtros['start_date']) && ! empty($filtros['end_date'])) {
+            $query->whereBetween(DB::raw('date(transaction_date)'), [$filtros['start_date'], $filtros['end_date']]);
+        }
+
+        return $query;
     }
 
     /**
