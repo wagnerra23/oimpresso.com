@@ -173,7 +173,7 @@ Varredura manual: 194 rotas do menu, tema escuro, elemento visível com fundo L 
           "nota": "sonda da 02 verde nas Pages corrigidas; screenshot dark antes/depois"
         }
       ],
-      "nota_provas": "ordem (D3): 1) footer.fx-shell-foot do Fiscal (7 Pages) · 2) fin-filter-cb (PlanoContas+Unificado) · 3) Sells/CreateV3 placa (D1) · 4) resto, menor primeiro"
+      "nota_provas": "ordem (D3): 1) footer.fx-shell-foot do Fiscal (7 Pages) · 2) fin-filter-cb (PlanoContas+Unificado) · 3) Sells/CreateV3 placa (D1) · 4) resto, menor primeiro · + Sells/Index: linha selecionada branca com texto apagado no dark (print [W] 07/10, `table.os-table.vendas-table` da _saida-02) — corrigir junto"
     },
     {
       "id": "04",
@@ -224,7 +224,8 @@ Varredura manual: 194 rotas do menu, tema escuro, elemento visível com fundo L 
       ],
       "nota_provas": "recibo com run: PR de controle que adiciona 1 superfície clara numa Page fora da baseline → falha"
     }
-  ]
+  ],
+  "revisado": "2026-10-07 decisões [W] do formulário"
 }
 ```
 

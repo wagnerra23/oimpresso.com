@@ -433,9 +433,62 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/officeimpresso/playbook
           "padrao": "\"oi-log-timeline\""
         }
       ]
+    },
+    {
+      "dono": "CL",
+      "prs": 1,
+      "id": "10",
+      "titulo": "Clientes (ClientController@index) → Inertia",
+      "vaga": 3,
+      "arquivo": "10-clientes.md",
+      "prefixo": [
+        "Modules/Officeimpresso/Http/Controllers/ClientController.php",
+        "Modules/Officeimpresso/Resources/js/Pages/Officeimpresso/Clientes/",
+        "Modules/Officeimpresso/Tests/Feature/Clientes*"
+      ],
+      "nao_toca": [
+        "Modules/Officeimpresso/Http/Controllers/LicencaLogController.php"
+      ],
+      "provas": [
+        {
+          "tipo": "contem",
+          "path": "Modules/Officeimpresso/Http/Controllers/ClientController.php",
+          "padrao": "Inertia::render("
+        }
+      ]
+    },
+    {
+      "dono": "CL",
+      "prs": 1,
+      "id": "11",
+      "titulo": "Computadores + Empresas (LicencaComputadorController computadores/businessall) → Inertia",
+      "vaga": 3,
+      "arquivo": "11-computadores-empresas.md",
+      "prefixo": [
+        "Modules/Officeimpresso/Http/Controllers/LicencaComputadorController.php",
+        "Modules/Officeimpresso/Resources/js/Pages/Officeimpresso/Computadores/",
+        "Modules/Officeimpresso/Resources/js/Pages/Officeimpresso/Empresas/",
+        "Modules/Officeimpresso/Tests/Feature/Computadores*"
+      ],
+      "nao_toca": [
+        "Modules/Officeimpresso/Http/Controllers/ClientController.php"
+      ],
+      "provas": [
+        {
+          "tipo": "contem",
+          "path": "Modules/Officeimpresso/Http/Controllers/LicencaComputadorController.php",
+          "padrao": "Inertia::render('Officeimpresso/Computadores"
+        },
+        {
+          "tipo": "contem",
+          "path": "Modules/Officeimpresso/Http/Controllers/LicencaComputadorController.php",
+          "padrao": "Inertia::render('Officeimpresso/Empresas"
+        }
+      ],
+      "nota_provas": "nomes de Page propostos; se mudarem, o recibo corrige"
     }
   ],
-  "revisado": "2026-10-01 — recibos e _DECISOES do main c12552f40e2a aplicados · 2026-10-01 reconferência @99e6fa3e08f0: threads novas 09 · 2026-10-05 revisão dos recibos @aacb74f4df18"
+  "revisado": "2026-10-01 — recibos e _DECISOES do main c12552f40e2a aplicados · 2026-10-01 reconferência @99e6fa3e08f0: threads novas 09 · 2026-10-05 revisão dos recibos @aacb74f4df18 · 2026-10-07 SINCRONIZAR @348b1498bebe: telas Blade sem thread (levantamento da sidebar) · 2026-10-07 revisão: prefixos disjuntos + provas que decidem"
 }
 ```
 
