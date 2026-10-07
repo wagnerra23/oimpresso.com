@@ -263,7 +263,8 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/crm/playbook/
         "${MOD}/"
       ],
       "provas": [],
-      "nota_provas": "o Cowork reescreve este índice com as threads do lote 2 depois que o lote 1 provar o molde"
+      "nota_provas": "fatiada — ver A2 e 11..17",
+      "bloqueio": "fatiada em 2026-10-07: A2 + 11..17 (lote 2)"
     },
     {
       "id": "06",
@@ -413,7 +414,7 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/crm/playbook/
       ],
       "prefixo": [
         "${MOD}/Http/Controllers/ScheduleLogController.php",
-        "${MOD}/Tests/Feature/",
+        "${MOD}/Tests/Feature/CrmRegistroEscopo*",
         "${MPAGES}/Crm/Acompanhamentos/Index.casos.md"
       ],
       "nao_toca": [
@@ -427,9 +428,272 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/crm/playbook/
         }
       ],
       "nota_provas": "teste: só-own registrando em acompanhamento de colega → 403; com all → 201; UC novo no casos.md"
+    },
+    {
+      "dono": "CL",
+      "prs": 1,
+      "id": "A2",
+      "titulo": "ALVO lote 2: crm--campanhas · crm--chamadas · crm--relatorios · crm--propostas · crm--config · crm--logins · crm--pedidos",
+      "vaga": 2,
+      "arquivo": "A2-alvos-lote2.md",
+      "prefixo": [
+        "${ALVOS}/crm--campanhas--index.*",
+        "${ALVOS}/crm--chamadas--index.*",
+        "${ALVOS}/crm--relatorios--index.*",
+        "${ALVOS}/crm--propostas--index.*",
+        "${ALVOS}/crm--config--index.*",
+        "${ALVOS}/crm--logins--index.*",
+        "${ALVOS}/crm--pedidos--index.*"
+      ],
+      "nao_toca": [
+        "${MOD}/"
+      ],
+      "provas": [
+        {
+          "tipo": "json_com_chaves",
+          "path": "${ALVOS}/crm--campanhas--index.alvo.json",
+          "chaves": [
+            "secoes"
+          ]
+        },
+        {
+          "tipo": "json_com_chaves",
+          "path": "${ALVOS}/crm--chamadas--index.alvo.json",
+          "chaves": [
+            "secoes"
+          ]
+        },
+        {
+          "tipo": "json_com_chaves",
+          "path": "${ALVOS}/crm--relatorios--index.alvo.json",
+          "chaves": [
+            "secoes"
+          ]
+        },
+        {
+          "tipo": "json_com_chaves",
+          "path": "${ALVOS}/crm--propostas--index.alvo.json",
+          "chaves": [
+            "secoes"
+          ]
+        },
+        {
+          "tipo": "json_com_chaves",
+          "path": "${ALVOS}/crm--config--index.alvo.json",
+          "chaves": [
+            "secoes"
+          ]
+        },
+        {
+          "tipo": "json_com_chaves",
+          "path": "${ALVOS}/crm--logins--index.alvo.json",
+          "chaves": [
+            "secoes"
+          ]
+        },
+        {
+          "tipo": "json_com_chaves",
+          "path": "${ALVOS}/crm--pedidos--index.alvo.json",
+          "chaves": [
+            "secoes"
+          ]
+        }
+      ]
+    },
+    {
+      "dono": "CL",
+      "prs": 1,
+      "id": "11",
+      "titulo": "Campanhas (CampaignController) → Inertia",
+      "vaga": 3,
+      "arquivo": "11-campanhas.md",
+      "depende_threads": [
+        "A2"
+      ],
+      "prefixo": [
+        "${MOD}/Http/Controllers/CampaignController.php",
+        "${MPAGES}/Crm/Campanhas/",
+        "${MOD}/Tests/Feature/CrmCampanhas*"
+      ],
+      "nao_toca": [
+        "${MOD}/Http/Controllers/LeadController.php",
+        "${MOD}/Http/Controllers/ScheduleController.php"
+      ],
+      "provas": [
+        {
+          "tipo": "contem",
+          "path": "${MOD}/Http/Controllers/CampaignController.php",
+          "padrao": "Inertia::render("
+        }
+      ]
+    },
+    {
+      "dono": "CL",
+      "prs": 1,
+      "id": "12",
+      "titulo": "Registro de chamadas (CallLogController) → Inertia",
+      "vaga": 3,
+      "arquivo": "12-chamadas.md",
+      "depende_threads": [
+        "A2"
+      ],
+      "prefixo": [
+        "${MOD}/Http/Controllers/CallLogController.php",
+        "${MPAGES}/Crm/Chamadas/",
+        "${MOD}/Tests/Feature/CrmChamadas*"
+      ],
+      "nao_toca": [
+        "${MOD}/Http/Controllers/LeadController.php",
+        "${MOD}/Http/Controllers/ScheduleController.php"
+      ],
+      "provas": [
+        {
+          "tipo": "contem",
+          "path": "${MOD}/Http/Controllers/CallLogController.php",
+          "padrao": "Inertia::render("
+        }
+      ]
+    },
+    {
+      "dono": "CL",
+      "prs": 1,
+      "id": "13",
+      "titulo": "Relatórios do CRM (ReportController) → Inertia",
+      "vaga": 3,
+      "arquivo": "13-relatorios.md",
+      "depende_threads": [
+        "A2"
+      ],
+      "prefixo": [
+        "${MOD}/Http/Controllers/ReportController.php",
+        "${MPAGES}/Crm/Relatorios/",
+        "${MOD}/Tests/Feature/CrmRelatorios*"
+      ],
+      "nao_toca": [
+        "${MOD}/Http/Controllers/LeadController.php",
+        "${MOD}/Http/Controllers/ScheduleController.php"
+      ],
+      "provas": [
+        {
+          "tipo": "contem",
+          "path": "${MOD}/Http/Controllers/ReportController.php",
+          "padrao": "Inertia::render("
+        }
+      ]
+    },
+    {
+      "dono": "CL",
+      "prs": 1,
+      "id": "14",
+      "titulo": "Propostas + modelos (ProposalController) → Inertia",
+      "vaga": 3,
+      "arquivo": "14-propostas.md",
+      "depende_threads": [
+        "A2"
+      ],
+      "prefixo": [
+        "${MOD}/Http/Controllers/ProposalController.php",
+        "${MPAGES}/Crm/Propostas/",
+        "${MOD}/Tests/Feature/CrmPropostas*"
+      ],
+      "nao_toca": [
+        "${MOD}/Http/Controllers/LeadController.php",
+        "${MOD}/Http/Controllers/ScheduleController.php"
+      ],
+      "provas": [
+        {
+          "tipo": "contem",
+          "path": "${MOD}/Http/Controllers/ProposalController.php",
+          "padrao": "Inertia::render("
+        }
+      ]
+    },
+    {
+      "dono": "CL",
+      "prs": 1,
+      "id": "15",
+      "titulo": "Configurações do CRM (CrmSettingsController) → Inertia",
+      "vaga": 3,
+      "arquivo": "15-config.md",
+      "depende_threads": [
+        "A2"
+      ],
+      "prefixo": [
+        "${MOD}/Http/Controllers/CrmSettingsController.php",
+        "${MPAGES}/Crm/Configuracoes/",
+        "${MOD}/Tests/Feature/CrmConfiguracoes*"
+      ],
+      "nao_toca": [
+        "${MOD}/Http/Controllers/LeadController.php",
+        "${MOD}/Http/Controllers/ScheduleController.php"
+      ],
+      "provas": [
+        {
+          "tipo": "contem",
+          "path": "${MOD}/Http/Controllers/CrmSettingsController.php",
+          "padrao": "Inertia::render("
+        }
+      ]
+    },
+    {
+      "dono": "CL",
+      "prs": 1,
+      "id": "16",
+      "titulo": "Logins de contatos + comissões (portal, D3) (ContactLoginController) → Inertia",
+      "vaga": 3,
+      "arquivo": "16-logins.md",
+      "depende_threads": [
+        "A2"
+      ],
+      "depende_decisoes": [
+        "D3"
+      ],
+      "prefixo": [
+        "${MOD}/Http/Controllers/ContactLoginController.php",
+        "${MPAGES}/Crm/Logins/",
+        "${MOD}/Tests/Feature/CrmLogins*"
+      ],
+      "nao_toca": [
+        "${MOD}/Http/Controllers/LeadController.php",
+        "${MOD}/Http/Controllers/ScheduleController.php"
+      ],
+      "provas": [
+        {
+          "tipo": "contem",
+          "path": "${MOD}/Http/Controllers/ContactLoginController.php",
+          "padrao": "Inertia::render("
+        }
+      ]
+    },
+    {
+      "dono": "CL",
+      "prs": 1,
+      "id": "17",
+      "titulo": "Pedidos de clientes (OrderRequestController) → Inertia",
+      "vaga": 3,
+      "arquivo": "17-pedidos.md",
+      "depende_threads": [
+        "A2"
+      ],
+      "prefixo": [
+        "${MOD}/Http/Controllers/OrderRequestController.php",
+        "${MPAGES}/Crm/Pedidos/",
+        "${MOD}/Tests/Feature/CrmPedidos*"
+      ],
+      "nao_toca": [
+        "${MOD}/Http/Controllers/LeadController.php",
+        "${MOD}/Http/Controllers/ScheduleController.php"
+      ],
+      "provas": [
+        {
+          "tipo": "contem",
+          "path": "${MOD}/Http/Controllers/OrderRequestController.php",
+          "padrao": "Inertia::render("
+        }
+      ]
     }
   ],
-  "revisado": "2026-10-01 — recibos e _DECISOES do main c12552f40e2a aplicados · 2026-10-01 reconferência @99e6fa3e08f0: threads novas 06,07,08 · 2026-10-05 revisão dos recibos @aacb74f4df18 · 2026-10-07 SINCRONIZAR @f97a0be9fa4d: provas 07/08 do _saida-07e/08b · D5 + thread 10"
+  "revisado": "2026-10-01 — recibos e _DECISOES do main c12552f40e2a aplicados · 2026-10-01 reconferência @99e6fa3e08f0: threads novas 06,07,08 · 2026-10-05 revisão dos recibos @aacb74f4df18 · 2026-10-07 SINCRONIZAR @f97a0be9fa4d: provas 07/08 do _saida-07e/08b · D5 + thread 10 · 2026-10-07 SINCRONIZAR @348b1498bebe: telas Blade sem thread (levantamento da sidebar) · 2026-10-07 revisão: prefixos disjuntos + provas que decidem"
 }
 ```
 

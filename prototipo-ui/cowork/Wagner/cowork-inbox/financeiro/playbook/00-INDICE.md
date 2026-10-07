@@ -349,10 +349,75 @@ Produção à frente do protótipo: puxar o vivo, não refazer. **Exceção decl
         }
       ],
       "nota": "passo 1 mede antes; se >0 a thread fecha com _saida-12 PARADA e as provas nao se aplicam (vira bloqueio com motivo)"
+    },
+    {
+      "dono": "CL",
+      "prs": 1,
+      "id": "A3",
+      "titulo": "ALVO: fin-despesas · fin-categorias",
+      "vaga": 2,
+      "arquivo": "A3-alvos-despesas.md",
+      "prefixo": [
+        "governance/design/targets/financeiro--despesas*",
+        "governance/design/targets/financeiro--categorias-despesa*"
+      ],
+      "nao_toca": [
+        "app/",
+        "Modules/"
+      ],
+      "provas": [
+        {
+          "tipo": "json_com_chaves",
+          "path": "governance/design/targets/financeiro--despesas--index.alvo.json",
+          "chaves": [
+            "secoes"
+          ]
+        },
+        {
+          "tipo": "json_com_chaves",
+          "path": "governance/design/targets/financeiro--categorias-despesa--index.alvo.json",
+          "chaves": [
+            "secoes"
+          ]
+        }
+      ]
+    },
+    {
+      "dono": "CL",
+      "prs": 2,
+      "id": "13",
+      "titulo": "Despesas (ExpenseController index/create + ExpenseCategoryController) → Inertia",
+      "vaga": 3,
+      "arquivo": "13-despesas.md",
+      "depende_threads": [
+        "A3"
+      ],
+      "prefixo": [
+        "app/Http/Controllers/ExpenseController.php",
+        "app/Http/Controllers/ExpenseCategoryController.php",
+        "resources/js/Pages/Despesas/",
+        "tests/Feature/"
+      ],
+      "nao_toca": [
+        "Modules/Financeiro/"
+      ],
+      "provas": [
+        {
+          "tipo": "contem",
+          "path": "app/Http/Controllers/ExpenseController.php",
+          "padrao": "Inertia::render("
+        },
+        {
+          "tipo": "contem",
+          "path": "app/Http/Controllers/ExpenseCategoryController.php",
+          "padrao": "Inertia::render("
+        }
+      ]
     }
   ],
   "sha": "2c115a5ca250",
-  "gerado": "2026-09-25"
+  "gerado": "2026-09-25",
+  "revisado": "2026-10-07 SINCRONIZAR @348b1498bebe: telas Blade sem thread (levantamento da sidebar)"
 }
 ```
 

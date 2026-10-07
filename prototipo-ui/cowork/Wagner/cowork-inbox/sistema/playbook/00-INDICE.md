@@ -67,6 +67,26 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/sistema/playbook/
       "quem": "[W]",
       "quando": "2026-10-06",
       "fonte": "_DECISOES-W-2026-10-06.md"
+    },
+    {
+      "id": "D-USU-LIGAR",
+      "pergunta": "Ligar Usuários em React (chave sistema_usuarios_index)",
+      "respondida": true,
+      "destrava": [
+        "09"
+      ],
+      "resposta": "ligar para todas as empresas",
+      "fonte": "_DECISOES-W-2026-10-07.md"
+    },
+    {
+      "id": "D-USU-NOME",
+      "pergunta": "Guarda de exclusão: o que conta como venda/OS 'no nome' do usuário (D5 de 2026-08-19)",
+      "respondida": true,
+      "destrava": [
+        "10"
+      ],
+      "resposta": "os três: criou a venda/OS, vendedor da venda e comissionado",
+      "fonte": "_DECISOES-W-2026-10-07.md"
     }
   ],
   "threads": [
@@ -302,8 +322,78 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/sistema/playbook/
           "padrao": "Inertia::render('Relatorios/"
         }
       ]
+    },
+    {
+      "dono": "CL",
+      "prs": 2,
+      "id": "08",
+      "titulo": "Configurações da empresa (BusinessController@getBusinessSettings) → Inertia",
+      "vaga": 4,
+      "arquivo": "08-configuracoes-empresa.md",
+      "prefixo": [
+        "app/Http/Controllers/BusinessController.php",
+        "resources/js/Pages/Configuracoes/Empresa/",
+        "tests/Feature/"
+      ],
+      "nao_toca": [
+        "Modules/"
+      ],
+      "provas": [
+        {
+          "tipo": "arquivo",
+          "path": "resources/js/Pages/Configuracoes/Empresa/Index.tsx"
+        }
+      ],
+      "nota_provas": "o nome da pasta segue Configuracoes/Locais e Configuracoes/Impressoras; se o PR escolher outro, o recibo corrige a prova"
+    },
+    {
+      "id": "09",
+      "titulo": "Usuários: F5 — ligar a chave para todas as empresas",
+      "dono": "CL",
+      "vaga": 2,
+      "prs": 1,
+      "arquivo": "09-usuarios-ligar.md",
+      "depende_decisoes": [
+        "D-USU-LIGAR"
+      ],
+      "prefixo": [
+        "config/mwart.php",
+        "tests/Feature/Users/UsuariosCutoverTest.php"
+      ],
+      "nao_toca": [
+        "resources/js/Pages/Usuarios/"
+      ],
+      "provas": [],
+      "nota_provas": "#8943 (Page) confirmado no main: resources/js/Pages/Usuarios/Index.tsx existe @d452b4dc8db8. Recibo: estado da chave antes/depois + smoke de /users"
+    },
+    {
+      "id": "10",
+      "titulo": "Usuários: bloquear exclusão com venda/OS no nome (criador, vendedor ou comissionado)",
+      "dono": "CL",
+      "vaga": 2,
+      "prs": 1,
+      "arquivo": "10-usuarios-guarda-exclusao.md",
+      "depende_decisoes": [
+        "D-USU-NOME"
+      ],
+      "prefixo": [
+        "app/Http/Controllers/ManageUserController.php",
+        "tests/Feature/Users/UsuariosExclusaoVinculoTest.php",
+        "resources/js/Pages/Usuarios/Index.casos.md"
+      ],
+      "nao_toca": [
+        "resources/js/Pages/Usuarios/Index.tsx"
+      ],
+      "provas": [
+        {
+          "tipo": "arquivo",
+          "path": "tests/Feature/Users/UsuariosExclusaoVinculoTest.php"
+        }
+      ],
+      "nota_provas": "a palavra 'comissionado' já existe no casos.md (:32, :50) — não serve de prova"
     }
-  ]
+  ],
+  "revisado": "2026-10-07 SINCRONIZAR @348b1498bebe: telas Blade sem thread (levantamento da sidebar) · 2026-10-07 decisões [W] do formulário · 2026-10-07 revisão: prefixos disjuntos + provas que decidem"
 }
 ```
 

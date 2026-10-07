@@ -102,6 +102,18 @@ UCs sem teste (o `--screen` marca ÓRFÃO): `UC-FORJA-03 · 08 · 09 · 10` (Coc
       "resposta": "sem thread agora; ordem futura issue-drawer > cmdk > novo-issue; ia/rag por último",
       "quando": "2026-10-07",
       "fonte": "_DECISOES-W-2026-10-07.md (delegada ao [CC])"
+    },
+    {
+      "id": "D5",
+      "pergunta": "ProjectDecomposerService::decompose busca o project só pelo id (_saida-02 pergunta 1)",
+      "dono": "W",
+      "respondida": true,
+      "destrava": [
+        "09"
+      ],
+      "resposta": "só depois de confirmar com teste: teste primeiro; se vermelho, conserto no mesmo PR",
+      "quando": "2026-10-07",
+      "fonte": "_DECISOES-W-2026-10-07b.md"
     }
   ],
   "threads": [
@@ -312,15 +324,18 @@ UCs sem teste (o `--screen` marca ÓRFÃO): `UC-FORJA-03 · 08 · 09 · 10` (Coc
         "D3"
       ],
       "prefixo": [
-        "Modules/Forja/Resources/js/Pages/",
+        "Modules/Forja/Resources/js/Pages/Forja/Aprovacoes/",
+        "Modules/Forja/Resources/js/Pages/Forja/Trabalho/",
+        "Modules/Forja/Resources/js/Pages/team-mcp/Forja/",
         "resources/css/"
       ],
       "nao_toca": [
         "resources/css/tokens/",
-        "Modules/Forja/Http/"
+        "Modules/Forja/Http/",
+        "Modules/Forja/Resources/js/Pages/Forja/Roadmap/"
       ],
       "provas": [],
-      "nota_provas": "bateria A1–A12 (alvo de toque) nas 4 telas com âncora: 0 botões < 24×24; recibo com antes (81/118) e depois"
+      "nota_provas": "bateria A1–A12 (alvo de toque) nas 4 telas com âncora: 0 botões < 24×24; recibo com antes (81/118) e depois · Gantt fica fora (é da 05)"
     },
     {
       "id": "07",
@@ -341,10 +356,10 @@ UCs sem teste (o `--screen` marca ÓRFÃO): `UC-FORJA-03 · 08 · 09 · 10` (Coc
         {
           "tipo": "contem",
           "path": "scripts/design-sync/alvo.mjs",
-          "padrao": "--storage"
+          "padrao": "passosDeClique"
         }
       ],
-      "nota_provas": "teste com fixture de 2 cliques: o 2º seletor só existe depois do 1º → mede; com 1 clique só → NÃO MEDI rc=2 (controle negativo). O nome da flag sai do PR; se não for --storage, o recibo corrige a prova."
+      "nota_provas": "errata 2026-10-07: entregue como --clicar repetível (#8948)"
     },
     {
       "id": "A1b",
@@ -371,9 +386,57 @@ UCs sem teste (o `--screen` marca ÓRFÃO): `UC-FORJA-03 · 08 · 09 · 10` (Coc
           ]
         }
       ]
+    },
+    {
+      "id": "08",
+      "titulo": "Defeitos achados pelos scorecards da 04 (Tasks autor fixo · Team r.ok · CcSessions limpar · Scorecard vazio)",
+      "dono": "CL",
+      "vaga": 2,
+      "prs": 2,
+      "arquivo": "08-gaps-scorecard.md",
+      "prefixo": [
+        "Modules/Forja/Resources/js/Pages/team-mcp/Tasks/",
+        "Modules/Forja/Resources/js/Pages/team-mcp/Team/",
+        "Modules/Forja/Resources/js/Pages/team-mcp/CcSessions/",
+        "Modules/Forja/Resources/js/Pages/team-mcp/Scorecard/",
+        "Modules/Forja/Http/Controllers/TasksAdminController.php",
+        "Modules/Forja/Tests/Feature/ForjaGapsScorecard*"
+      ],
+      "nao_toca": [
+        "memory/governance/scorecards/"
+      ],
+      "provas": [
+        {
+          "tipo": "nao_contem",
+          "path": "Modules/Forja/Resources/js/Pages/team-mcp/Tasks/Index.tsx",
+          "padrao": "author: 'wagner'"
+        }
+      ],
+      "nota_provas": "PR-a (Tier 0): autor do evento vem do usuário logado no controller, não do body — teste: usuário B move tarefa → mcp_task_events.author = B. PR-b: Team checa r.ok (403/419/500 com mensagem própria) · CcSessions Limpar zera from/to · Scorecard com 0 checks mostra estado vazio e erro do defer sai de 'Carregando…'."
+    },
+    {
+      "id": "09",
+      "titulo": "Tier 0: decompose de project sem business_id — provar com teste, depois consertar",
+      "dono": "CL",
+      "vaga": 1,
+      "prs": 1,
+      "arquivo": "09-decompose-tenant.md",
+      "depende_decisoes": [
+        "D5"
+      ],
+      "prefixo": [
+        "Modules/Forja/Services/ProjectDecomposerService.php",
+        "Modules/Forja/Http/Controllers/",
+        "Modules/Forja/Tests/Feature/ForjaDecomposeTenant*"
+      ],
+      "nao_toca": [
+        "Modules/Forja/Resources/js/"
+      ],
+      "provas": [],
+      "nota_provas": "recibo com o teste vermelho no main (tenant 99 decompõe project do 98) e verde no branch; se sair verde no main, não há conserto e a thread fecha com o teste"
     }
   ],
-  "revisado": "2026-10-07 _saida-A1: Gantt → A1b + thread 07 (alvo.mjs clique em cadeia)"
+  "revisado": "2026-10-07 _saida-A1: Gantt → A1b + thread 07 (alvo.mjs clique em cadeia) · 2026-10-07 _saida-04 (main 822ccf022258): 04 entregue; achados → thread 08 · 2026-10-07 _ERRATA forja (07 → passosDeClique) @59f777d978da · 2026-10-07 decisões [W] do formulário"
 }
 ```
 
