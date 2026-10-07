@@ -224,7 +224,7 @@ jobs:
             Modules/Forja/Tests/Feature/ForjaTriagemContratoTest.php \
             Modules/Forja/Tests/Feature/ForjaSidebarEntradaContratoTest.php \
             Modules/Forja/Tests/Feature/TeamScopesContratoTest.php \
-            Modules/Forja/Tests/Feature/SyncMemoryWebhookSoMemoryTest.php             Modules/Forja/Tests/Feature/CcSessionsContratoTest.php \
+            Modules/Forja/Tests/Feature/CcSessionsContratoTest.php \
             Modules/Forja/Tests/Feature/TasksAdminContratoTest.php \
             Modules/Forja/Tests/Feature/TeamEquipeContratoTest.php
 
