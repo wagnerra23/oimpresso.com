@@ -40,13 +40,16 @@ async function buscar<T>(url: string, params: Record<string, string>): Promise<T
 /** '' = todos, como o select da Blade; o sentinela só existe porque o Radix não aceita value vazio. */
 function Filtro({ rotulo, todos, opcoes, valor, mudar }: { rotulo: string; todos: string; opcoes: Opcao[]; valor: string; mudar: (v: string) => void }) {
   return (
-    <Select value={valor || TODOS} onValueChange={v => mudar(v === TODOS ? '' : v)}>
-      <SelectTrigger className="w-60" aria-label={rotulo}><SelectValue /></SelectTrigger>
-      <SelectContent>
-        <SafeSelectItem value={TODOS}>{todos}</SafeSelectItem>
-        {opcoes.filter(o => o.id).map(o => <SafeSelectItem key={o.id} value={String(o.id)}>{o.nome}</SafeSelectItem>)}
-      </SelectContent>
-    </Select>
+    // Largura no wrapper: `.cw-input { width: 100% }` fica fora de @layer e vence o `w-*` no próprio controle.
+    <div className="w-60">
+      <Select value={valor || TODOS} onValueChange={v => mudar(v === TODOS ? '' : v)}>
+        <SelectTrigger aria-label={rotulo}><SelectValue /></SelectTrigger>
+        <SelectContent>
+          <SafeSelectItem value={TODOS}>{todos}</SafeSelectItem>
+          {opcoes.filter(o => o.id).map(o => <SafeSelectItem key={o.id} value={String(o.id)}>{o.nome}</SafeSelectItem>)}
+        </SelectContent>
+      </Select>
+    </div>
   );
 }
 
@@ -91,8 +94,8 @@ function SalesRepresentativeIndex({ vendedores, locais, periodo, base_comissao, 
         <Inline data-contract="filtros" wrap gap={2}>
           <Filtro rotulo="Vendedor" todos="Todos os usuários" opcoes={vendedores} valor={vendedor} mudar={setVendedor} />
           <Filtro rotulo="Local" todos="Todos os locais" opcoes={locais} valor={local} mudar={setLocal} />
-          <Input type="date" className="w-40" aria-label="Início" value={inicio} onChange={e => setInicio(e.target.value)} />
-          <Input type="date" className="w-40" aria-label="Fim" value={fim} onChange={e => setFim(e.target.value)} />
+          <div className="w-40"><Input type="date" aria-label="Início" value={inicio} onChange={e => setInicio(e.target.value)} /></div>
+          <div className="w-40"><Input type="date" aria-label="Fim" value={fim} onChange={e => setFim(e.target.value)} /></div>
         </Inline>
 
         {erro && <p role="alert" className="text-sm text-destructive">{erro}</p>}
