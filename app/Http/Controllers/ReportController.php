@@ -1686,7 +1686,7 @@ class ReportController extends Controller
     /**
      * Shows product stock expiry report
      *
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Contracts\View\View|\Inertia\Response|\Illuminate\Http\JsonResponse
      */
     public function getCustomerGroup(Request $request)
     {
@@ -1711,8 +1711,9 @@ class ReportController extends Controller
                     $filtros[$campo] = $iso;
                 }
             }
-            $linhas = $this->consultaGrupoDeClientes($business_id, $filtros)->get()
-                ->map(fn ($r) => ['grupo' => $r->name, 'total' => (float) $r->total_sell])->values();
+            // toBase(): linhas como stdClass (SUM + CG.name não são atributos de Transaction).
+            $linhas = $this->consultaGrupoDeClientes($business_id, $filtros)->toBase()->get()
+                ->map(fn (\stdClass $r): array => ['grupo' => $r->name ?? null, 'total' => (float) ($r->total_sell ?? 0)])->values();
 
             return Inertia::render('Relatorios/GruposClientes/Index', [
                 'linhas' => $linhas,
