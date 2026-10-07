@@ -73,6 +73,8 @@ related_us: [US-FISCAL-009]
 | UC-FCFG-05 | o card de envio de documentos LÊ o deploy, não demonstra | `[should]` | CU-FISC-16 | `ConfigControllerTest` | 🧪 |
 | UC-FCFG-06 | trocar ambiente / trocar certificado exige gate PRÓPRIO, no servidor | `[must]` `[T0]` | CU-FISC-13 | `GatesPermissaoFiscalTest` | 🧪 |
 | UC-FCFG-07 | a troca de ambiente exige destino digitado + motivo, e vira evento | `[must]` | CU-FISC-13 | `TrocaAmbienteCerimoniaTest` | 🧪 |
+| UC-FCFG-08 | o contador é cadastrado por empresa, com o gate da tela | `[must]` `[T0]` | D-CONTADOR · US-NFE-009 | `ContadorCadastroTest` | 🧪 |
+| UC-FCFG-09 | o papel "Contador" tem só tributação, aceite, cockpit fiscal e SPED | `[must]` `[T0]` | D-CONTADOR (caminho 2) | `ContadorCadastroTest` | 🧪 |
 
 ---
 
@@ -143,11 +145,9 @@ related_us: [US-FISCAL-009]
   mock pra tela viva e a contadora leria demonstração como configuração. O controle negativo do
   teste (inverter as chaves e reconferir) é o que separa *ler* de *afirmar* — sem ele, o teste
   passaria com o payload hardcoded.
-- **Ausência declarada, não preenchida:** a linha **Contador** do protótipo não tem campo
-  correspondente no schema (`nfe_business_configs` não tem coluna de e-mail de contador; a única
-  ocorrência no repo é uma linha **comentada** em `Modules/Connector/.../BusinessController.php`).
-  A tela diz *"não cadastrado — ainda não existe campo"* em vez de inventar endereço. Cadastrar
-  esse e-mail é backlog com decisão [W] (abaixo).
+- **Ausência declarada, não preenchida (até 2026-10-07):** a linha **Contador** do protótipo não
+  tinha campo no schema, e a tela dizia *"não cadastrado — ainda não existe campo"* em vez de
+  inventar endereço. Desde a thread 15c a linha é o cadastro real — contrato em `UC-FCFG-08`.
 - **Escopo dito em texto:** as duas chaves valem por **deploy**, não por empresa. O card afirma
   isso; um selo por-empresa aqui mentiria sobre o alcance da configuração.
 - **Teste:** `Modules/Fiscal/Tests/Feature/ConfigControllerTest.php` — `it('UC-FCFG-05 · o card de envio de documentos espelha as flags REAIS do deploy')`
@@ -213,13 +213,52 @@ caracteres**;
 
 ---
 
+## UC-FCFG-08 — O contador é cadastrado por empresa, com o gate da tela `[must]` `[T0]`
+
+**Dado** a empresa na aba *Certificado e regime*, card **Envio de documentos**
+**Quando** quem tem `fiscal.config.edit` salva nome, e-mail e CRC (opcional) do contador
+**Então** o cadastro fica na empresa da sessão (`nfe_contadores`, um por business) e a tela passa a mostrá-lo;
+**E** sem `fiscal.config.edit` → 403; e-mail inválido → erro no campo; nada gravado nos dois casos;
+**E** salvar de novo edita a mesma linha; CRC em branco vira "sem CRC";
+**E** a empresa vizinha não vê esse contador, e o cadastro dela não toca o desta.
+
+- **Regressão que defende:** contador de uma empresa aparecendo (ou sendo sobrescrito) em outra.
+- **Contrato:** D-CONTADOR (playbook Fiscal thread 15: *"a empresa cadastra o contador — nome, e-mail,
+  CRC — em `/fiscal/config` › Envio de documentos"*) · US-NFE-009.
+- **Fora daqui:** o envio automático de documentos ao contador (cópia de toda nota ou digest) segue
+  sem decisão; o cadastro só guarda quem ele é. O drawer "Enviar p/ contabilidade" do cockpit segue
+  mockado — é a thread 28.
+- **Teste:** `Modules/Fiscal/Tests/Feature/ContadorCadastroTest.php` — `UC-FCFG-08 · cadastro do contador por empresa, com o gate da tela`.
+- **Status:** 🧪 veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
+
+---
+
+## UC-FCFG-09 — O papel "Contador" tem só tributação, aceite, cockpit fiscal e SPED `[must]` `[T0]`
+
+**Dado** o contador cadastrado
+**Então** existe o papel `Contador#{business}` com **exatamente** `nfe.tributacao.manage`,
+`nfe.tributacao.aceitar`, `fiscal.access` e `fiscal.sped.export`, e só na empresa que cadastrou;
+**E** um usuário com esse papel aceita revisão e abre a lista de revisões, mas não vende, não vê
+cliente, não abre configurações da empresa nem `/fiscal/config` (403);
+**E** se o administrador já ajustou o papel, salvar o cadastro de novo **não** desfaz o ajuste.
+
+- **Regressão que defende:** papel de contador que carrega venda/financeiro, ou que reescreve o que
+  o administrador decidiu.
+- **Contrato:** D-CONTADOR caminho 2 (*"papel com `nfe.tributacao.manage` + `nfe.tributacao.aceitar`
+  + leitura do cockpit fiscal e do SPED. Sem vendas, financeiro, cadastro de cliente ou configuração
+  da empresa"*).
+- **Teste:** `Modules/Fiscal/Tests/Feature/ContadorCadastroTest.php` — `UC-FCFG-09 · papel Contador sem venda, financeiro, cliente ou configuração`.
+- **Status:** 🧪 veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
+
+---
+
 ## Backlog de casos (sem id — viram UC quando ganharem contrato + teste)
 
 - **[BACKLOG · ⬜ sem teste] A validade do certificado aparece com três tons de urgência** — vencido, perto de vencer (até 30 dias) e tranquilo. _O cálculo existe no Controller; sem teste dos limiares._
 - **[BACKLOG · ⬜ sem teste] O painel mostra regime, série, próximo número e tributação padrão** — leitura consolidada do que o NfeBrasil guarda. _Sem teste; note que esses dados são lidos por consulta direta à tabela, **fora** do escopo automático de business — o escopo é aplicado à mão a partir da sessão (SDD §5.2)._
 - **[BACKLOG · ⬜ sem teste · decisão [W]] A aba de séries mostra séries reais** — hoje ela é servida por **dado de demonstração** com uma filial inventada (`CU-FISC-16` do SDD §6.5 · §5.4.1). **Precisa de decisão [W].**
 - ~~**[BACKLOG · ⬜ sem contrato · decisão [W]] Trocar o ambiente SEFAZ e enviar certificado a partir desta tela**~~ → **ganhou contrato em 2026-09-04**: o charter foi reconciliado em 09-02 (a tela é editável) e o **gate** das duas ações virou `UC-FCFG-06`. A **cerimônia** da troca — destino digitado à mão + motivo de 15+ caracteres + evento de auditoria com o motivo — é a PR 3/3 do item A5, e ganha id próprio lá.
-- **[BACKLOG · ⬜ sem campo · decisão [W]] Cadastrar o e-mail do contador** — a linha existe no card
+- ~~**[BACKLOG · ⬜ sem campo · decisão [W]] Cadastrar o e-mail do contador**~~ → **ganhou contrato em 2026-10-07** (`UC-FCFG-08`): [W] decidiu na D-CONTADOR (2026-10-06) e a thread 15c criou a tabela `nfe_contadores` (tabela própria, não coluna). Segue aberto só o envio automático ao contador (cópia ou digest). Texto original: a linha existe no card
   (`UC-FCFG-05`) declarando a ausência. Dar valor a ela exige **coluna nova** em
   `nfe_business_configs` (migration em PR próprio, nunca junto de UI) e a decisão de se o envio ao
   contador é cópia automática de toda nota ou digest. _Sem contrato até [W] decidir._
