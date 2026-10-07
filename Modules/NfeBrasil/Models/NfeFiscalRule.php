@@ -22,6 +22,13 @@ use Modules\NfeBrasil\Events\FiscalRuleUpdated;
  *   Nível 3: regra padrão NCM — uf_destino IS NULL
  *
  * Multi-tenant: queries DEVEM escopear por business_id.
+ *
+ * Colunas da thread 07 (migração 2026_10_07_000001) — declaradas para a análise estática, que lê o
+ * schema sem elas:
+ * @property int|null $operacao_id
+ * @property \Illuminate\Support\Carbon|null $valida_de
+ * @property \Illuminate\Support\Carbon|null $valida_ate
+ * @property int|null $versao_origem_id
  */
 class NfeFiscalRule extends Model
 {
@@ -120,11 +127,11 @@ class NfeFiscalRule extends Model
             $nova = $this->replicate(['created_at', 'updated_at', 'deleted_at']);
             $nova->fill($dados);
             $nova->business_id      = $this->business_id;
-            $nova->valida_de        = $hoje;
-            $nova->valida_ate       = null;
+            $nova->setAttribute('valida_de', $hoje);
+            $nova->setAttribute('valida_ate', null);
             $nova->versao_origem_id = $this->versao_origem_id ?? $this->id;
 
-            $this->valida_ate = $ontem;
+            $this->setAttribute('valida_ate', $ontem);
             $this->saveQuietly();
             $nova->saveQuietly();
 

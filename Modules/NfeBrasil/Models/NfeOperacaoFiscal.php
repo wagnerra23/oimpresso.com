@@ -16,6 +16,16 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * `operacao_id` e usa o `tributacao_default` da empresa quando `regra_geral` é NULL.
  *
  * Multi-tenant: `HasBusinessScope` + o motor escopa por `business_id` explicitamente.
+ *
+ * @property int $id
+ * @property int $business_id
+ * @property string $slug
+ * @property string $nome
+ * @property int $finalidade
+ * @property string|null $cfop
+ * @property string|null $tipo_destinatario
+ * @property array<string,mixed>|null $regra_geral
+ * @property bool $padrao
  */
 class NfeOperacaoFiscal extends Model
 {
