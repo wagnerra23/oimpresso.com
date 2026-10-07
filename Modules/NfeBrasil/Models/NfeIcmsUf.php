@@ -61,7 +61,7 @@ class NfeIcmsUf extends Model
      */
     public static function aliquotaInterna(int $businessId, string $ufOrigem, string $ufDestino, ?string $data = null): float
     {
-        $linha = static::linhaVigente($businessId, $ufOrigem, $ufDestino, $data ?? now()->toDateString());
+        $linha = self::linhaVigente($businessId, $ufOrigem, $ufDestino, $data ?? now()->toDateString());
 
         if ($linha === null || $linha->aliquota_interna === null) {
             throw AliquotaInternaNaoCadastradaException::para(strtoupper($ufDestino));
@@ -73,7 +73,7 @@ class NfeIcmsUf extends Model
     /** Alíquota interestadual semeada (decimal), ou null se origem = destino ou não houver linha. */
     public static function aliquotaInterestadual(int $businessId, string $ufOrigem, string $ufDestino, ?string $data = null): ?float
     {
-        $linha = static::linhaVigente($businessId, $ufOrigem, $ufDestino, $data ?? now()->toDateString());
+        $linha = self::linhaVigente($businessId, $ufOrigem, $ufDestino, $data ?? now()->toDateString());
 
         return $linha?->aliquota_interestadual;
     }
