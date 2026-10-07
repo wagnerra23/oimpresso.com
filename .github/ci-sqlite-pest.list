@@ -365,6 +365,10 @@ Modules/Forja/Tests/Feature/McpActorsSeederTest.php
 Modules/Forja/Tests/Feature/MultiTenantTokenIsolationTest.php
 Modules/Forja/Tests/Feature/TokensListAndRevokeTest.php
 Modules/Forja/Tests/Feature/Wave23ScorecardRotateTest.php
+# Contrato da tela team-mcp/Tasks (playbook Forja thread 01, 2026-10-07). Aqui rodam so
+# as pernas de REGISTRO (rota, middleware, verbo) — sqlite-safe. As pernas de REQUEST
+# pulam aqui e dao veredito na lane MySQL forja-pest.yml.
+Modules/Forja/Tests/Feature/TasksAdminContratoTest.php
 # US-INFRA-043 acceptance #2 (flag de US nao atribuida no Daily Brief): exercita so os
 # nucleos PUROS formatar()/injetarEm() + kill-switch (early-return antes de consultar).
 # ZERO acesso a DB de proposito — mcp_tasks e compartilhada e no CT 100 os testes rodam

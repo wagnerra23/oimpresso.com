@@ -22,7 +22,9 @@ charter_version: 1
 
 # Page Charter — `/team-mcp/tasks` (DRAFT)
 
-> Criado no PR **Forja PR-1** (re-skin DS v6, 2026-06-16). Persona: Wagner [W] + time MCP (Felipe/Maiara/Eliana/Luiz), desktop, superadmin `jana.mcp.usage.all`. Backend: `Modules/TeamMcp/Http/Controllers/TasksAdminController.php` (Inertia::defer). Referência visual aprovada: [tasks-visual-comparison.md](../../../../../../../memory/requisitos/TeamMcp/tasks-visual-comparison.md).
+> Criado no PR **Forja PR-1** (re-skin DS v6, 2026-06-16). Persona: Wagner [W] + time MCP (Felipe/Maiara/Eliana/Luiz), desktop, superadmin `jana.mcp.usage.all`. Backend: `Modules/Forja/Http/Controllers/TasksAdminController.php` (Inertia::defer; veio de `Modules/TeamMcp` na deprecação de 2026-07-31). Referência visual aprovada: [tasks-visual-comparison.md](../../../../../../../memory/requisitos/TeamMcp/tasks-visual-comparison.md).
+
+> **Contrato executável:** [`Index.casos.md`](Index.casos.md) (UC-TSK-01..06) · teste [`TasksAdminContratoTest.php`](../../../../../Tests/Feature/TasksAdminContratoTest.php).
 
 ## Mission
 
