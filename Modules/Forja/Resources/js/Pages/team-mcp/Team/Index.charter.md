@@ -28,8 +28,10 @@ charter_version: 1
 
 > **Status:** draft criado em 2026-05-25 junto com o PR `feat(team-mcp): drill-down tokens individuais + revoke por token + audit IP/last-used` a partir da [FICHA CAPTERRA](../../../../../../../memory/requisitos/TeamMcp/CAPTERRA-DESIGN-FICHA.md). Wagner aprova **Non-Goals + Anti-hooks** ANTES de virar `status: live`.
 >
-> Backend: `Modules/TeamMcp/Http/Controllers/TeamController.php` (Inertia::defer dupla — team rows + stats_globais).
+> Backend: `Modules/Forja/Http/Controllers/TeamController.php` (veio de `Modules/TeamMcp` na deprecação de 2026-07-31; Inertia::defer dupla — team rows + stats_globais).
 > Persona ÚNICA: Wagner [W] @ biz=1 (superadmin com `jana.mcp.usage.all`). Felipe/Maiara/Eliana/Luiz NÃO usam a tela (consomem MCP, não geram).
+
+> **Contrato executável:** [`Index.casos.md`](Index.casos.md) (UC-EQP-01..06) · teste [`TeamEquipeContratoTest.php`](../../../../../Tests/Feature/TeamEquipeContratoTest.php).
 
 ---
 

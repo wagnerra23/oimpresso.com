@@ -5,16 +5,24 @@ declare(strict_types=1);
 namespace Modules\NfeBrasil\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
+use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
+use Modules\NfeBrasil\Exceptions\NcmObrigatorioException;
+use Modules\NfeBrasil\Exceptions\TributacaoNaoConfiguradaException;
 use Modules\NfeBrasil\Http\Requests\DestroyRegraTributariaRequest;
+use Modules\NfeBrasil\Http\Requests\SimularTributacaoRequest;
 use Modules\NfeBrasil\Http\Requests\UpsertRegraTributariaRequest;
 use Modules\NfeBrasil\Models\NfeBusinessConfig;
 use Modules\NfeBrasil\Models\NfeFiscalRule;
+use Modules\NfeBrasil\Services\MotorTributarioService;
+use Modules\NfeBrasil\Services\NfeService;
 use Modules\NfeBrasil\Services\Tributacao\TributacaoTemplateService;
+use RuntimeException;
 
 /**
  * US-NFE-010 fase 2 · UI tributação (configuração default + regras NCM).
@@ -48,6 +56,10 @@ class TributacaoController extends Controller
                 'tributacao_default'     => $config->tributacao_default,
                 'auto_emission_enabled'  => (bool) $config->auto_emission_enabled,
             ] : null,
+
+            // EAGER (1 linha): local padrão pro autocomplete de produto do simulador (thread 08).
+            'localPadrao' => DB::table('business_locations')
+                ->where('business_id', $businessId)->orderBy('id')->value('id'),
 
             // DEFERRED (pesado): query DB com map de N regras + scoped por tenant
             'regras'    => Inertia::defer(fn () => $this->buildRegrasPayload($businessId)),
@@ -279,6 +291,91 @@ class TributacaoController extends Controller
                 fn ($q) => $q->where(fn ($w) => $w->whereNull('valida_ate')->orWhere('valida_ate', '>=', now()->toDateString())),
             )
             ->firstOrFail();
+    }
+
+    /**
+     * GET /nfe-brasil/tributacao/simular — prévia read-only (playbook Fiscal thread 08 · D-SIM).
+     *
+     * NÃO calcula nada próprio: monta a mesma linha que a emissão monta para um item e chama
+     * `NfeService::montarItensNfe`, a função que a NF-e/NFC-e usa (UC-NFTR-08). Nada é gravado.
+     *
+     * Só os insumos que a emissão de hoje usa: produto (o NCM vem do cadastro), quantidade, valor
+     * e UF de destino. Operação, destinatário e regime não entram — a emissão ainda não os passa ao
+     * motor, e mostrá-los aqui faria a prévia divergir da nota.
+     *
+     * Tier 0: o produto é buscado com `business_id` da sessão — de outra empresa é 404 (UC-NFTR-09).
+     */
+    public function simular(SimularTributacaoRequest $request): JsonResponse
+    {
+        $businessId = (int) $request->session()->get('business.id');
+
+        $produto = DB::table('products')
+            ->where('business_id', $businessId)
+            ->where('id', (int) $request->validated('product_id'))
+            ->first(['id', 'name', 'sku', 'ncm']);
+        abort_if($produto === null, 404);
+
+        $business = DB::table('business')->where('id', $businessId)->first(['id', 'ncm_padrao']);
+        $config   = NfeBusinessConfig::where('business_id', $businessId)->first();
+
+        // Mesmas duas leituras de `NfeService::emitirParaTransaction` (NCM padrão) e
+        // `NfeService::resolverUF` (privado). A igualdade é travada por teste (UC-NFTR-08).
+        $ncmDefault = (string) ($config?->tributacao_default['ncm_default'] ?? $business?->ncm_padrao ?? '');
+        $estado     = DB::table('business_locations')->where('business_id', $businessId)->orderBy('id')->value('state') ?? '';
+        $ufOrigem   = preg_match('/^[A-Z]{2}$/', (string) $estado) ? (string) $estado : 'SP';
+        $ufDestino  = (string) $request->validated('uf_destino');
+
+        $qtd = (float) $request->validated('quantidade');
+        $vun = (float) $request->validated('valor_unitario');
+
+        try {
+            $r = app(NfeService::class)->montarItensNfe(
+                linhas: [[
+                    'sell_line_id'   => null,
+                    'product_id'     => (int) $produto->id,
+                    'cprod'          => (string) ($produto->sku ?: $produto->id),
+                    'xprod'          => (string) $produto->name,
+                    'ncm'            => (string) ($produto->ncm ?? ''),
+                    'unidade'        => 'UN',
+                    'quantidade'     => $qtd,
+                    'valor_unitario' => $vun,
+                ]],
+                valorNota:  round($qtd * $vun, 2),
+                frete:      0.0,
+                ncmDefault: $ncmDefault,
+                motor:      app(MotorTributarioService::class),
+                businessId: $businessId,
+                ufOrigem:   $ufOrigem,
+                ufDestino:  $ufDestino,
+            );
+        } catch (NcmObrigatorioException|TributacaoNaoConfiguradaException|RuntimeException $e) {
+            return response()->json(['bloqueio' => $e->getMessage()], 422);
+        }
+
+        $det = $r['dets'][0];
+        $base = (float) $det['ibscbs']['vbc'];
+
+        return response()->json([
+            'produto'         => ['id' => (int) $produto->id, 'nome' => (string) $produto->name],
+            'ncm'             => $det['ncm'],
+            'ncm_padrao_usado' => $r['metadata'] !== null,
+            'cfop'            => $det['cfop'],
+            'nivel'           => $det['nivel_tributacao'],
+            'uf_origem'       => $ufOrigem,
+            'uf_destino'      => $ufDestino,
+            'base'            => $base,
+            'tributos'        => [
+                ['tributo' => 'ICMS', 'aliquota' => $det['icms']['picms'], 'valor' => $det['icms']['vicms'], 'codigo' => $det['icms']['cst_csosn']],
+                ['tributo' => 'PIS', 'aliquota' => $det['pis']['ppis'], 'valor' => $det['pis']['vpis'], 'codigo' => $det['pis']['cst']],
+                ['tributo' => 'COFINS', 'aliquota' => $det['cofins']['pcofins'], 'valor' => $det['cofins']['vcofins'], 'codigo' => $det['cofins']['cst']],
+                ['tributo' => 'IBS', 'aliquota' => $det['ibscbs']['aliquota_ibs'], 'valor' => $det['ibscbs']['valor_ibs'], 'codigo' => $det['ibscbs']['cst']],
+                ['tributo' => 'CBS', 'aliquota' => $det['ibscbs']['aliquota_cbs'], 'valor' => $det['ibscbs']['valor_cbs'], 'codigo' => $det['ibscbs']['cst_cbs']],
+            ],
+            'total_destacado' => round(
+                $r['total']['v_icms'] + $r['total']['v_pis'] + $r['total']['v_cofins'] + $r['total']['v_ibs'] + $r['total']['v_cbs'],
+                2,
+            ),
+        ]);
     }
 
     /** DELETE /nfe-brasil/tributacao/regras/{id} */

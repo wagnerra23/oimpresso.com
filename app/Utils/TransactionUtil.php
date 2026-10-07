@@ -2936,11 +2936,13 @@ class TransactionUtil extends Util
                             ->whereIn('type', ['expense', 'expense_refund']);
         // ->where('payment_status', 'paid');
 
-
-        if(!empty($permitted_locations)){
-            if ($permitted_locations != 'all') {
-                $query->whereIn('transactions.location_id', $permitted_locations);
-            }
+        // $filters['permitted_locations'] = User::permitted_locations(): 'all' não filtra; uma lista
+        // filtra, e lista VAZIA (nenhum local) não devolve nada. Antes lia-se um $permitted_locations
+        // nunca definido e o filtro nunca rodava: quem só tinha um local via as despesas de todos.
+        // Ausente = sem filtro, para chamador que não é de usuário.
+        $permitted_locations = $filters['permitted_locations'] ?? null;
+        if (is_array($permitted_locations)) {
+            $query->whereIn('transactions.location_id', $permitted_locations);
         }
        
 

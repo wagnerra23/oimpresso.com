@@ -32,6 +32,8 @@ Manter as configurações de etiqueta (folha ou rolo) que a impressão de códig
 
 - Lista das configurações do negócio, com a padrão marcada, o tipo de papel e quantas etiquetas cabem na folha.
 - Tornar padrão e excluir pelos endpoints de sempre; a padrão não se exclui.
+- Cadastrar e editar num drawer com os campos da Blade (folha × rolo contínuo), em polegada.
+- Abas de Configurações (D1, [W] 2026-10-06), derivadas do `shell.menu`.
 
 ## Non-Goals
 

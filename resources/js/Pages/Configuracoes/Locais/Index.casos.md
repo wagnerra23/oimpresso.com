@@ -36,8 +36,20 @@ last_run: "2026-10-07"
   E o usuário restrito vê só o local liberado.
 - **Status: 🧪**
 
+## UC-LOCAL-04 · Editar pelo drawer não apaga o que o drawer não mexe · `[dado]`
+- **Por quê:** o `update()` grava `default_payment_accounts` e `featured_products` como `null` quando não vêm no corpo.
+- **Aceite:** Dado um local com formas de pagamento ligadas, dois produtos em destaque e CNPJ · Quando edito só o nome
+  pelo corpo que o drawer monta a partir de `dados` · Então o nome muda e CNPJ, formas e destaque continuam iguais.
+- **Status: 🧪**
+
+## UC-LOCAL-05 · Cadastrar pelo drawer grava no meu negócio, com todas as formas ligadas
+- **Aceite:** Dado o corpo do cadastro novo (todas as formas de pagamento ligadas, como o `create.blade.php`) · Quando
+  cadastro · Então o local é do meu negócio, com uma entrada por forma em `default_payment_accounts`, e a permissão
+  `location.<id>` existe.
+- **Status: 🧪**
+
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
-- [BACKLOG] Cadastrar e editar no drawer, com CNPJ/IE/IM, tabela de preço, fatura e formas de pagamento (F3-2).
+- [BACKLOG] Escolher os produtos em destaque no PDV pela tela nova (hoje voltam intactos; a escolha segue na Blade).
 - [BACKLOG] Quota de locais do pacote esgotada avisa antes de abrir o cadastro.
 
 ## Trilha do tempo

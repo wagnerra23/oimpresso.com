@@ -187,7 +187,9 @@ class InvoiceSchemeController extends Controller
 
             $input['start_number'] = ($input['number_type'] == 'aleatory') ? '' : $input['start_number'];
 
-            $invoice = InvoiceScheme::where('id', $id)->update($input);
+            // Tier 0: sem o negócio, o id alcançava o esquema de fatura de outro negócio (mesmo desenho do #8924).
+            $business_id = $request->session()->get('user.business_id');
+            InvoiceScheme::where('business_id', $business_id)->findOrFail($id)->update($input);
 
             $output = ['success' => true,
                 'msg' => __('invoice.updated_success'),
@@ -217,7 +219,8 @@ class InvoiceSchemeController extends Controller
 
         if (request()->ajax()) {
             try {
-                $invoice = InvoiceScheme::find($id);
+                $business_id = request()->session()->get('user.business_id');
+                $invoice = InvoiceScheme::where('business_id', $business_id)->findOrFail($id);
                 if ($invoice->is_default != 1) {
                     $invoice->delete();
                     $output = ['success' => true,
@@ -256,12 +259,15 @@ class InvoiceSchemeController extends Controller
             try {
                 //get_default
                 $business_id = request()->session()->get('user.business_id');
+                // Achar antes de desmarcar: id de outro negócio falha aqui, sem tirar o padrão do próprio.
+                $invoice = InvoiceScheme::where('business_id', $business_id)->findOrFail($id);
                 $default = InvoiceScheme::where('business_id', $business_id)
                                 ->where('is_default', 1)
                                  ->update(['is_default' => 0]);
 
-                $invoice = InvoiceScheme::find($id);
-                $invoice->is_default = 1;
+                // `true` (não 1): sobre o 1 carregado antes do update acima, o atributo fica sujo e o save()
+                // grava mesmo quando ele já era o padrão (caso "já é o padrão" no EsquemaFaturaTenantTest).
+                $invoice->is_default = true;
                 $invoice->save();
 
                 $output = ['success' => true,
