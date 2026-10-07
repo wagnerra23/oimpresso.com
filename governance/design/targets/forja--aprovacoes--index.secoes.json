@@ -1,0 +1,8 @@
+{
+  "_": "A1 [CL] 2026-10-07 — playbook forja. Rota `projects` do espelho (app.jsx:901 → window.ForjaPage, forja-page.jsx); a view default `hoje` (forja-page.jsx:9) monta window.ForjaAprovacoes (forja-aprova.jsx), que é a âncora do charter de Forja/Aprovacoes/Index. Tema dark (default do espelho), viewport 1280x900, browser limpo.",
+  "_mapa": "alvo:mapa --rota projects --raiz '.main-body > .fj-page > .ap-page' --quieto-ms 2000, 2026-10-07: div.ap-head(3) · div.ap-vivo(5) · div.ap-mesa(2) · section.fj-mcp-card.fj-hj-team(3)",
+  "cabecalho": { "seletor": ".main-body > .fj-page > .ap-page > .ap-head" },
+  "vivo": { "seletor": ".main-body > .fj-page > .ap-page > .ap-vivo" },
+  "mesa": { "seletor": ".main-body > .fj-page > .ap-page > .ap-mesa" },
+  "equipe": { "seletor": ".main-body > .fj-page > .ap-page > .fj-hj-team" }
+}

@@ -1,0 +1,9 @@
+{
+  "_": "A1 [CL] 2026-10-07 — playbook forja. Shell/header do hub Forja (team-mcp/Forja/Cockpit, âncora forja-page.jsx). Rota `projects` do espelho (app.jsx:901 → window.ForjaPage), view default `hoje`; o header é o mesmo em todas as views. Tema dark, viewport 1280x900, browser limpo.",
+  "_mapa": "alvo:mapa --rota projects --raiz '.main-body > *' --quieto-ms 2000, 2026-10-07: div.os-page-h(2) · div.ap-page(4); --raiz '.main-body > .fj-page > .os-page-h > .os-page-h-r': button.fj-bell(2) · button.fj-kbtn(2) · div.fj-viewtabs.grouped(3) · button.os-btn.primary(1)",
+  "header": { "seletor": ".main-body > .fj-page > .os-page-h" },
+  "titulo": { "seletor": ".main-body > .fj-page > .os-page-h > .os-page-h-l" },
+  "acoes": { "seletor": ".main-body > .fj-page > .os-page-h > .os-page-h-r" },
+  "abas": { "seletor": ".main-body > .fj-page > .os-page-h > .os-page-h-r > .fj-viewtabs" },
+  "novo": { "seletor": ".main-body > .fj-page > .os-page-h > .os-page-h-r > .os-btn.primary" }
+}

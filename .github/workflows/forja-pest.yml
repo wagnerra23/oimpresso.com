@@ -51,10 +51,16 @@ on:
       # 2026-09-16 no §5 proibe) nao dispara a lane e o gate fica mudo
       # justamente na mudanca que ele existe pra pegar.
       - 'app/Support/Privacy/**'
+      - 'app/Utils/ModuleUtil.php'  # isModuleInstalled('Forja') lê a row legada (ForjaInstaladaChaveLegadaTest)
       # O PipelineParidadeTest le a FONTE DE DESIGN. Sem este path, mudar o
       # prototipo em main nao dispara a lane e o gate fica mudo justamente
       # quando a fonte muda — que e o unico momento em que ele importa.
       - 'prototipo-ui/cowork/Wagner/**'
+      # UC-FORJA-03 (ForjaSidebarEntradaContratoTest): a entry "Forja" so nasce se o
+      # AdminSidebarMenu chamar o DataController, e quem decide isso e o
+      # ModuleUtil::isModuleInstalled. Sem estes paths, mexer no portao nao acorda o teste.
+      - 'app/Utils/ModuleUtil.php'
+      - 'app/Http/Middleware/AdminSidebarMenu.php'
       - 'database/schema/mysql-schema.sql'
       - '.github/workflows/forja-pest.yml'
       - '.github/actions/pest-mysql-setup/**'
@@ -93,6 +99,7 @@ jobs:
             tmcp:
               - 'Modules/Forja/**'
               - 'app/Support/Privacy/**'
+              - 'app/Utils/ModuleUtil.php'  # isModuleInstalled('Forja') lê a row legada (ForjaInstaladaChaveLegadaTest)
               # 2026-08-21 — a linha da fonte de design estava SÓ no `paths:` do push.
               # O comentário de lá diz "sem este path o gate fica mudo justamente quando
               # a fonte muda" — mas o bloco que decide o skip-as-pass no PR é ESTE.
@@ -100,6 +107,9 @@ jobs:
               # sem rodar o PipelineParidadeTest, que está no run-set da lane e lê essa
               # fonte. Mesmo defeito das lanes Jana e Estoque na mesma leva.
               - 'prototipo-ui/cowork/Wagner/**'
+              # UC-FORJA-03 — mesmo motivo do bloco `push:` acima.
+              - 'app/Utils/ModuleUtil.php'
+              - 'app/Http/Middleware/AdminSidebarMenu.php'
               - 'database/schema/mysql-schema.sql'
               - '.github/workflows/forja-pest.yml'
               - '.github/actions/pest-mysql-setup/**'
@@ -162,6 +172,12 @@ jobs:
         # sintética esconderia o próprio bug de schema que ele trava.
         # Não usa RefreshDatabase/migrate:fresh e apaga as linhas que cria.
         #
+        # 2026-10-07 (playbook Forja thread 03) — entram ForjaTriagemContratoTest
+        # (UC-FORJA-08/09/10) e ForjaSidebarEntradaContratoTest (UC-FORJA-03), pelo
+        # mesmo desvio FAILING-FIRST. O de sidebar monta o estado de instalação medido em
+        # produção (só `projectmgmt_version`). Quando foi escrito, ele provava que a entry
+        # "Forja" não chegava ao shell.menu; a decisão [W] de 2026-10-07 levou o conserto
+        # ao main pelo #8949 (ModuleUtil aceita a row legada), antes deste teste entrar.
         # 2026-10-07 — TasksAdminContratoTest.php (playbook Forja thread 01) entra pelo MESMO desvio
         # FAILING-FIRST: Pest local é proibido e o checkout do CT 100 está atrás do main
         # (sem o helper usuarioComPermissoes), então o 1º verde só acontece aqui.
@@ -184,7 +200,10 @@ jobs:
             Modules/Forja/Tests/Feature/ForjaMcpHandoffsInlineTest.php \
             Modules/Forja/Tests/Feature/BriefAlertOpsInboxTest.php \
             Modules/Forja/Tests/Feature/ForjaBadgePendenciasTest.php \
+            Modules/Forja/Tests/Feature/ForjaInstaladaChaveLegadaTest.php \
             Modules/Forja/Tests/Feature/SyncMemoryWebhookSoMemoryTest.php \
+            Modules/Forja/Tests/Feature/ForjaTriagemContratoTest.php \
+            Modules/Forja/Tests/Feature/ForjaSidebarEntradaContratoTest.php \
             Modules/Forja/Tests/Feature/TasksAdminContratoTest.php
 
 

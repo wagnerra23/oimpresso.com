@@ -146,12 +146,15 @@ function Filtros({ campos, f, setF, nota }) {
 }
 
 // Grade — DataTablePro do DS (header fixo, resize, ordenação, densidade).
-function Grade({ columns, rows, densa, altura = 420, selectable, onSelectionChange }) {
+// `vazio` = copy literal do estado vazio da Page viva ({ t, d }), quando a tela tem o seu.
+function Grade({ columns, rows, densa, altura = 420, selectable, onSelectionChange, vazio }) {
   const { DataTablePro, EmptyState } = DS();
   if (!rows.length) {
+    const t = vazio ? vazio.t : "Nada com esses filtros";
+    const d = vazio ? vazio.d : "Nenhum registro bate com o que está filtrado. Limpe um filtro ou amplie o período.";
     return EmptyState
-      ? <div style={{ padding: 24 }}><EmptyState variant="no-results" icon={<Ic name="search" size={18} />} title="Nada com esses filtros" description="Nenhum registro bate com o que está filtrado. Limpe um filtro ou amplie o período." /></div>
-      : <p className="pb-help" style={{ padding: 16 }}>Nada com esses filtros.</p>;
+      ? <div style={{ padding: 24 }}><EmptyState variant="no-results" icon={<Ic name="search" size={18} />} title={t} description={d} /></div>
+      : <p className="pb-help" style={{ padding: 16 }}>{t}</p>;
   }
   if (!DataTablePro) return <p className="pb-help" style={{ padding: 16 }}>A grade do DS não carregou.</p>;
   return <div className="pb-grid-pro"><DataTablePro columns={columns} rows={rows} height={altura} density={densa ? "compact" : "comfortable"} selectable={selectable} onSelectionChange={onSelectionChange} /></div>;
@@ -173,16 +176,23 @@ function Toolbar({ busca, setBusca, ph, densa, setDensa, children }) {
 }
 
 const Rodape = ({ children }) => <div className="pb-pag" data-contract="venda-rodape">{children}</div>;
+// KPIs das Pages vivas de lista (Drafts · Quotations · Subscriptions): mesmo card do Caixa do dia.
+const Kpis = ({ itens }) => (
+  <div className="vc-kpis" data-contract="venda-kpis">
+    {itens.map((k) => <div key={k.l} className="vc-kpi"><span>{k.l}</span><b className={k.ok ? "ok" : ""}>{k.v}</b>{k.s && <em>{k.s}</em>}</div>)}
+  </div>
+);
 
 // ─────────── 1. lista de POS (sale_pos/index.blade.php) ───────────
-function TelaPos({ avisar, densa, setDensa, onIr, perms }) {
+function TelaPos({ avisar, densa, setDensa, onIr, perms, editarInicial = null }) {
   const { Widget, Kebab } = UI();
   const [f, setF] = useState({});
   const [busca, setBusca] = useState("");
   const [ver, setVer] = useState(null);
   const [pagar, setPagar] = useState(null);
   const [recibo, setRecibo] = useState(null);
-  const [editar, setEditar] = useState(null);
+  // Rota fixa `venda-editar` (Sells/Edit) abre o editor numa venda fixa — medida reproduzível.
+  const [editar, setEditar] = useState(editarInicial);
   const rows = useMemo(() => POS.filter((s) =>
     (!f.loc || s.loc === f.loc) && (!f.cli || s.cli === f.cli) && (!f.pg || s.pg === f.pg) &&
     (!f.quem || s.quem === f.quem) && (!f.serv || s.serv === f.serv) && noPeriodo(f.periodo, DIAS[s.id] ?? 0) &&
@@ -233,6 +243,7 @@ function TelaPos({ avisar, densa, setDensa, onIr, perms }) {
     itens: s.itens, serv: s.serv, quem: s.quem, obs: s.obs || "—",
   }));
 
+  if (!Widget) return null; // PBUI (produto-blade.jsx) chega por lazy-load; sem ele o 1º render quebrava
   return (
     <>
       <Filtros nota="Mesmos filtros do índice de POS: local, cliente, status de pagamento, vendedor e tipo de serviço."
@@ -296,7 +307,7 @@ function TelaDraft({ tipo, avisar, densa, setDensa, onIr }) {
     (!busca || (s.ref + " " + s.cli).toLowerCase().includes(busca.toLowerCase())));
 
   const cols = [
-    { key: "data", label: "Data", width: 118, mono: true },
+    { key: "data", label: "Data", width: 140, mono: true },
     ...(cot ? [] : [{ key: "idade", label: "Idade", width: 104 }]),
     { key: "ref", label: cot ? "Nº cotação" : "Nº rascunho", width: 152, mono: true, sortable: true },
     { key: "cli", label: "Cliente", width: 210, sortable: true },
@@ -309,7 +320,7 @@ function TelaDraft({ tipo, avisar, densa, setDensa, onIr }) {
     const dias = diasDe(s.data);
     return {
       id: s.id, _s: s,
-      data: s.data.split(" ")[0],
+      data: s.data,
       idade: <span className={"vb-idade " + idadeTom(dias)}>{idadeLabel(dias)}</span>,
       ref: s.ref, cli: s.cli, loc: s.loc, itens: s.itens, total: fmtBRL(s.total),
       acao: cot
@@ -321,8 +332,14 @@ function TelaDraft({ tipo, avisar, densa, setDensa, onIr }) {
     };
   });
 
+  // Puxado do vivo (Drafts.tsx · Quotations.tsx): KPI único + estado vazio com e sem busca.
+  const vazio = busca
+    ? { t: cot ? "Nenhuma cotação encontrada" : "Nenhum rascunho encontrado", d: "Tente outro termo de busca." }
+    : { t: cot ? "Nenhuma cotação" : "Nenhum rascunho", d: cot ? "Crie uma cotação pra enviar formalmente pro cliente." : "Comece uma venda nova — pode salvar como rascunho a qualquer momento." };
+  if (!Widget) return null; // PBUI (produto-blade.jsx) chega por lazy-load; sem ele o 1º render quebrava
   return (
     <>
+      <Kpis itens={[{ l: cot ? "Total cotações" : "Total rascunhos", v: base.length }]} />
       <Filtros nota={"Filtros do blade: local, cliente, período e usuário."} f={f} setF={setF} campos={[
         { k: "loc", l: "Local do negócio", op: LOCAIS.map((l) => l.name) },
         { k: "cli", l: "Cliente", op: CLIENTES },
@@ -335,7 +352,7 @@ function TelaDraft({ tipo, avisar, densa, setDensa, onIr }) {
             <Ic name="plus" size={12} /> {cot ? "Nova cotação" : "Nova venda"}
           </button>
         </Toolbar>
-        <Grade columns={cols} rows={linhas} densa={densa} altura={360} />
+        <Grade columns={cols} rows={linhas} densa={densa} altura={360} vazio={vazio} />
         <Rodape>
           <span className="pb-help">{cot
             ? "Propostas formais — enviar pro cliente e converter em venda quando aprovado."
@@ -529,14 +546,19 @@ function TelaAssinaturas({ avisar, densa, setDensa, onIr, perms }) {
         {parada ? "Retomar" : "Pausar"}</button>,
     };
   });
+  if (!Widget) return null; // PBUI (produto-blade.jsx) chega por lazy-load; sem ele o 1º render quebrava
   return (
     <>
+      {/* Puxado do vivo (Subscriptions.tsx): KPIs Total · Ativas · Pausadas e a linha-guia do cabeçalho. */}
+      <Kpis itens={[{ l: "Total", v: ASSINATURAS.length }, { l: "Ativas", v: ativas, ok: true }, { l: "Pausadas", v: ASSINATURAS.length - ativas }]} />
+      <p className="pb-help">Cobranças recorrentes — start/stop e acompanhar próxima fatura.</p>
       {Alert && <Alert tone="info" title="Cobranças recorrentes">A assinatura repete a venda no intervalo escolhido até bater o número de repetições. Pausar não cancela: a assinatura fica parada até você retomar.</Alert>}
       <Widget flush titulo={<><Ic name="clock" size={13} /> Assinaturas</>} nota={ativas + " ativa(s) · " + (ASSINATURAS.length - ativas) + " pausada(s)"}>
         <Toolbar busca={busca} setBusca={setBusca} ph="Buscar por nº ou cliente…" densa={densa} setDensa={setDensa}>
           <button className="os-btn sm primary" onClick={() => onIr("nova", { status: "final" })}><Ic name="plus" size={12} /> Nova venda</button>
         </Toolbar>
-        <Grade columns={cols} rows={linhas} densa={densa} altura={300} />
+        <Grade columns={cols} rows={linhas} densa={densa} altura={300}
+          vazio={busca ? { t: "Nenhuma assinatura encontrada", d: "Tente outro termo de busca." } : { t: "Nenhuma assinatura ativa", d: "Configure venda recorrente ao criar uma venda nova." }} />
         <Rodape><span className="pb-help">A assinatura nasce marcando a venda como recorrente no formulário de venda — não existe cadastro avulso aqui, igual ao vivo.</span></Rodape>
       </Widget>
     </>
@@ -602,12 +624,31 @@ function TelaImportar({ avisar, onPreview }) {
 const TITULOS = {
   pdv: "POS", pos: "Lista de POS", nova: "Adicionar venda", rascunhos: "Lista de rascunhos", cotacoes: "Lista de compromissos",
   remessas: "Remessas", descontos: "Descontos", assinaturas: "Assinaturas", importar: "Importação de vendas", pedidos: "Pedido de venda",
-  caixa: "Caixa registradora", devolver: "Devolver venda",
+  caixa: "Caixa do dia", devolver: "Devolver venda",
+  ver: "Detalhe da venda", editar: "Editar venda", v3: "Nova venda (V3)",
 };
-const ROTA_DE = { pdv: "venda-pdv", pos: "venda-pos", nova: "venda-nova", rascunhos: "venda-rascunhos", cotacoes: "venda-cotacoes", remessas: "venda-remessas", descontos: "venda-descontos", assinaturas: "venda-assinaturas", importar: "venda-importar", pedidos: "venda-pedidos", caixa: "venda-caixa", devolver: "venda-devolver" };
+const ROTA_DE = { pdv: "venda-pdv", pos: "venda-pos", nova: "venda-nova", rascunhos: "venda-rascunhos", cotacoes: "venda-cotacoes", remessas: "venda-remessas", descontos: "venda-descontos", assinaturas: "venda-assinaturas", importar: "venda-importar", pedidos: "venda-pedidos", caixa: "venda-caixa", devolver: "venda-devolver", ver: "venda-ver", editar: "venda-editar", v3: "venda-v3" };
 // Telas que são AÇÃO, não visao própria: herdam o destaque da aba de onde saíram
 // (senão nenhuma aba casa e a barra fica sem nenhum item marcado).
-const ABA_DE = { pdv: "pos", nova: "pos", devolver: "pos" };
+const ABA_DE = { pdv: "pos", nova: "pos", devolver: "pos", ver: "pos", editar: "pos", v3: "pos" };
+
+// ══════════ ROTAS — uma rota venda-* por Page viva (thread 00 do playbook venda-menu, 2026-10-07) ══════════
+// Cada Page Inertia de Vendas tem um token fixo, sem depender de localStorage além da própria rota.
+// `view` = vista que ESTA página monta quando o app.jsx não tem o token na tabela dele
+// (venda-ver · venda-editar · venda-v3 caem no `route.startsWith("venda-")` com view "pos").
+// As linhas sem `view` são montadas por outro componente (anotado em `via`).
+const ROTAS = {
+  "venda-todas": { page: "Sells/Index", via: "app.jsx → window.VendaTodasPage (venda-index.jsx)" },
+  "venda-nova": { page: "Sells/Create", view: "nova", via: "VendaNova — hoje veste o create V3 (divergência listada no _saida-00)" },
+  "venda-v3": { page: "Sells/CreateV3", view: "v3" },
+  "venda-ver": { page: "Sells/Show", view: "ver" },
+  "venda-editar": { page: "Sells/Edit", view: "editar" },
+  "venda-rascunhos": { page: "Sells/Drafts", view: "rascunhos" },
+  "venda-cotacoes": { page: "Sells/Quotations", via: "app.jsx → window.OrcListPage (orc-page.jsx, D-ORC-2)" },
+  "venda-assinaturas": { page: "Sells/Subscriptions", view: "assinaturas" },
+  "venda-caixa": { page: "Sells/Caixa/Index", view: "caixa" },
+};
+const vistaDaRota = (view) => { const r = ROTAS[window.__route]; return (r && r.view) || view; };
 const SemPermissao = ({ o }) => {
   const { EmptyState } = DS();
   return EmptyState
@@ -617,7 +658,7 @@ const SemPermissao = ({ o }) => {
 
 function VendaBladePage({ view = "pos", dense = false, papel = "administrador", status = "final" }) {
   const M = MP();
-  const [tela, setTela] = useState(view);
+  const [tela, setTela] = useState(() => vistaDaRota(view));
   const [densa, setDensa] = useState(dense);
   const [preview, setPreview] = useState(null);
   const [hora, setHora] = useState(() => new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }));
@@ -626,7 +667,7 @@ function VendaBladePage({ view = "pos", dense = false, papel = "administrador", 
   // A venda-alvo da devolução vive FORA do React: trocar de rota remonta a página
   // (RouteErrorBoundary usa key={route}) e zeraria um estado local — mesmo padrão do __vendaNovaStatus.
   const [alvo, setAlvo] = useState(() => window.__vendaDevolverAlvo || null);
-  useEffect(() => { setTela(view); setPreview(null); }, [view]);
+  useEffect(() => { setTela(vistaDaRota(view)); setPreview(null); }, [view]);
   useEffect(() => { setDensa(dense); }, [dense]);
 
   // Ir pra outra tela do módulo — reflete na rota do shell (senão a sidebar mente).
@@ -642,6 +683,9 @@ function VendaBladePage({ view = "pos", dense = false, papel = "administrador", 
   const corpo =
     tela === "pdv" ? (window.VendaPos ? <window.VendaPos avisar={avisar} onSair={() => onIr("pos")} /> : null) :
     tela === "nova" ? (window.VendaNova ? <window.VendaNova status={window.__vendaNovaStatus || status} avisar={avisar} onVoltar={() => onIr("pos")} /> : null) :
+    tela === "v3" ? (window.VendaV3Create ? <window.VendaV3Create /> : null) :
+    tela === "ver" ? (window.VendaShow ? <window.VendaShow venda={POS[1]} avisar={avisar} perms={perms} onVoltar={() => onIr("pos")} /> : null) :
+    tela === "editar" ? <TelaPos avisar={avisar} densa={densa} setDensa={setDensa} onIr={onIr} perms={perms} editarInicial={POS[2]} /> :
     tela === "pos" ? <TelaPos avisar={avisar} densa={densa} setDensa={setDensa} onIr={onIr} perms={perms} /> :
     tela === "rascunhos" ? <TelaDraft tipo="rascunhos" avisar={avisar} densa={densa} setDensa={setDensa} onIr={onIr} /> :
     tela === "cotacoes" ? <TelaDraft tipo="cotacoes" avisar={avisar} densa={densa} setDensa={setDensa} onIr={onIr} /> :
@@ -681,4 +725,5 @@ function VendaBladePage({ view = "pos", dense = false, papel = "administrador", 
 }
 
 window.VendaBladePage = VendaBladePage;
+window.VendaRotas = ROTAS;
 })();

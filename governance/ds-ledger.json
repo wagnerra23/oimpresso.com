@@ -78,6 +78,17 @@
       }
     },
     {
+      "screen": "Comissionados",
+      "note": "1 arquivo(s)",
+      "cells": {
+        "tokens": "yes",
+        "primitivos": "yes",
+        "probe": "na",
+        "dark": "na",
+        "approved": "no"
+      }
+    },
+    {
       "screen": "ComunicacaoVisual",
       "note": "1 arquivo(s)",
       "cells": {
@@ -178,7 +189,7 @@
     },
     {
       "screen": "Manufacturing",
-      "note": "11 arquivo(s)",
+      "note": "12 arquivo(s)",
       "cells": {
         "tokens": "yes",
         "primitivos": "yes",
@@ -221,6 +232,17 @@
       }
     },
     {
+      "screen": "Relatorios",
+      "note": "1 arquivo(s)",
+      "cells": {
+        "tokens": "yes",
+        "primitivos": "yes",
+        "probe": "na",
+        "dark": "na",
+        "approved": "no"
+      }
+    },
+    {
       "screen": "Repair",
       "note": "14 arquivo(s)",
       "cells": {
@@ -229,6 +251,17 @@
         "probe": "na",
         "dark": "na",
         "approved": "yes"
+      }
+    },
+    {
+      "screen": "Report",
+      "note": "1 arquivo(s)",
+      "cells": {
+        "tokens": "yes",
+        "primitivos": "yes",
+        "probe": "na",
+        "dark": "na",
+        "approved": "no"
       }
     },
     {
@@ -277,7 +310,7 @@
     },
     {
       "screen": "Suporte",
-      "note": "2 arquivo(s)",
+      "note": "3 arquivo(s)",
       "cells": {
         "tokens": "yes",
         "primitivos": "yes",
@@ -288,6 +321,17 @@
     },
     {
       "screen": "User",
+      "note": "1 arquivo(s)",
+      "cells": {
+        "tokens": "yes",
+        "primitivos": "yes",
+        "probe": "na",
+        "dark": "na",
+        "approved": "no"
+      }
+    },
+    {
+      "screen": "Usuarios",
       "note": "1 arquivo(s)",
       "cells": {
         "tokens": "yes",
@@ -354,7 +398,7 @@
     },
     {
       "screen": "NfeBrasil",
-      "note": "9 arquivo(s)",
+      "note": "10 arquivo(s)",
       "cells": {
         "tokens": "no",
         "primitivos": "yes",
@@ -496,18 +540,18 @@
       }
     }
   ],
-  "progressPct": 47,
+  "progressPct": 51,
   "progressLabel": "adoção tokens + primitivos (censo Onda 0)",
   "measured": true,
-  "measuredAgainstSha": "02755c407",
-  "generatedAt": "2026-10-06T16:10:07.325Z",
+  "measuredAgainstSha": "69ae13c6d",
+  "generatedAt": "2026-10-07T16:49:32.340Z",
   "treeGuard": {
     "pass": true,
     "violations": 0
   },
   "counts": {
-    "screens": 45,
-    "done": 21,
+    "screens": 49,
+    "done": 25,
     "references": 0
   }
 }
