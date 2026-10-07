@@ -10,8 +10,10 @@ veredito: "entregue — 6 rotas cli-* + clientes renderizadas sem erro no espelh
 
 # _saída 00 · PUXAR o vivo de Cliente
 
-> A ficha dá esta thread ao [CC]. Quem executou foi o [CL], a pedido do agente-pai. Nada subiu
-> ao Cowork: escrever no Claude Design exige opt-in do dono (ADR 0315). Até a subida, o check
+> A ficha dá esta thread ao [CC]. Quem executou foi o [CL], a pedido do agente-pai. Este recibo
+> sobe ao Cowork pelo canal `cowork-inbox/` depois do merge (a isenção de opt-in da ADR 0412 só
+> vale para blob já igual ao `origin/main`). Os `.jsx`/`.css` não sobem daqui: escrever tela no
+> Claude Design exige opt-in do dono (ADR 0315). Até a subida, o check
 > `espelho — mexeu depois de verificar` acusa os arquivos tocados. Isso é esperado.
 
 ## Mapa rota ↔ Page
