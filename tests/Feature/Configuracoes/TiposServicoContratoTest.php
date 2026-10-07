@@ -1,7 +1,7 @@
 <?php
 
 declare(strict_types=1);
-// Cobre UC-TSERV-01, UC-TSERV-02, UC-TSERV-03 (Configuracoes/TiposServico/Index.casos.md).
+// Cobre UC-TSERV-01, UC-TSERV-02, UC-TSERV-03, UC-TSERV-04 (Configuracoes/TiposServico/Index.casos.md).
 
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\DB;
@@ -75,4 +75,38 @@ test('UC-TSERV-03 Tier 0 e valor — tipos do negócio com a taxa e a tabela por
     expect($porId[$meu]['tipo_taxa'])->toBe('percent');
     expect(count($porId[$meu]['precos_por_local']))->toBe(1);
     expect($porId[$meu]['precos_por_local'][0]['tabela'])->toStartWith('Atacado');
+});
+
+test('UC-TSERV-04 valor — o drawer cadastra com a taxa do texto e edita sem mover taxa nem tabela por local', function () {
+    config(['feature-flags.forced_on' => 'useV2ConfiguracoesTiposServico']);
+    $ajax = ['X-Requested-With' => 'XMLHttpRequest', 'Accept' => 'application/json'];
+    $local = DB::table('business_locations')->where('business_id', $this->business->id)->value('id');
+    expect($local)->not->toBeNull();
+    $atacado = DB::table('selling_price_groups')->insertGetId(['business_id' => $this->business->id, 'name' => 'Atacado '.uniqid(), 'is_active' => 1]);
+    $nome = 'Entrega '.uniqid();
+
+    // Cadastro: o salvar() do Index.tsx manda a taxa em texto pt-BR e o mapa local → tabela.
+    $r = $this->withHeaders($ajax)->post('/types-of-service', [
+        'name' => $nome, 'description' => '', 'packing_charge_type' => 'fixed', 'packing_charge' => '35,00',
+        'location_price_group' => [(string) $local => (string) $atacado],
+    ]);
+    expect($r->json('success'))->toBeTrue();
+    $id = (int) DB::table('types_of_services')->where('name', $nome)->value('id');
+    expect((float) DB::table('types_of_services')->where('id', $id)->value('packing_charge'))->toBe(35.0);
+    expect((float) (new \App\Utils\Util)->num_uf('35,00'))->toBe(35.0);
+
+    // Edição: o drawer parte da prop (paraTexto(taxa) + tabela_por_local) e só o nome muda.
+    $h = ['X-Inertia' => 'true', 'X-Inertia-Version' => $this->versaoInertia, 'X-Inertia-Partial-Component' => 'Configuracoes/TiposServico/Index', 'X-Inertia-Partial-Data' => 'tipos'];
+    $tipo = collect($this->withHeaders($h)->get('/types-of-service')->json('props.tipos'))->firstWhere('id', $id);
+    expect($tipo['tabela_por_local'])->toBe([(string) $local => (string) $atacado]);
+    $texto = number_format($tipo['taxa'], 2, ',', '');
+    $this->withHeaders($ajax)->put("/types-of-service/{$id}", [
+        'name' => $nome.' editado', 'description' => $tipo['descricao'], 'packing_charge_type' => $tipo['tipo_taxa'],
+        'packing_charge' => $texto, 'location_price_group' => $tipo['tabela_por_local'],
+    ])->assertOk();
+
+    $depois = DB::table('types_of_services')->where('id', $id)->first();
+    expect($depois->name)->toBe($nome.' editado');
+    expect((float) $depois->packing_charge)->toBe(35.0);
+    expect(json_decode($depois->location_price_group, true))->toBe([(string) $local => (string) $atacado]);
 });

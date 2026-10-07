@@ -36,8 +36,13 @@ last_run: "2026-10-07"
   `tipo_taxa` percent e só a minha tabela por local · E não vejo o tipo alheio nem a tabela alheia.
 - **Status: 🧪**
 
+## UC-TSERV-04 · O drawer grava a taxa do texto e edita sem mover taxa nem tabela · `[valor]`
+- **Aceite:** Dado o corpo do drawer com taxa `"35,00"` fixa e o meu local na tabela "Atacado" · Quando cadastro · Então
+  o banco guarda 35 (o mesmo que o `num_uf` devolve) · E, ao editar só o nome a partir da prop (`paraTexto(taxa)` +
+  `tabela_por_local`), a taxa segue 35 e a tabela por local segue a mesma.
+- **Status: 🧪**
+
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
-- [BACKLOG] Cadastrar e editar no drawer, com o texto pt-BR que o `num_uf` lê (F3-2).
 
 ## Trilha do tempo
 - 2026-10-07 · [CL] criado com a F3 da thread `sistema/playbook/05`.
