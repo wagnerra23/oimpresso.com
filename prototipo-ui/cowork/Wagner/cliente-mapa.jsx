@@ -43,12 +43,13 @@ function ClienteMapaPage() {
     (atual && atual.pos ? `&marker=${atual.pos[0]}%2C${atual.pos[1]}` : "");
 
   return (
-    <div className="os-page cm-page">
+    <div className="os-page cm-page" data-page="Cliente/Map">
       <header className="os-page-h">
         <div className="os-page-h-l">
-          <button className="ci-voltar" onClick={() => window.__go?.("clientes")}>← Clientes</button>
+          <button className="ci-voltar" onClick={() => window.__go?.("clientes")}>← Voltar para clientes</button>
           <h1>Mapa de clientes</h1>
-          <p><strong>{pontos.length - semPos}</strong> com endereço no mapa{semPos > 0 && <> · <strong className="cm-sem">{semPos} sem posição</strong></>}</p>
+          {/* Copy da produção (Map.tsx:90-92). */}
+          <p><strong>{pontos.length - semPos}</strong> cliente{pontos.length - semPos === 1 ? "" : "s"} com posição registrada de <strong>{pontos.length}</strong> total.</p>
         </div>
       </header>
 
@@ -85,7 +86,12 @@ function ClienteMapaPage() {
                     <b>{atual.c.name}</b>
                     <span>{atual.d.city} · {atual.d.uf}</span>
                     <span className="cm-coord tabular">{atual.pos[0].toFixed(5)}, {atual.pos[1].toFixed(5)}</span>
-                    <a href={`https://www.openstreetmap.org/?mlat=${atual.pos[0]}&mlon=${atual.pos[1]}#map=16/${atual.pos[0]}/${atual.pos[1]}`} target="_blank" rel="noreferrer">Abrir no mapa completo</a>
+                    {/* Rodapé da produção (Map.tsx:190-212): detalhe · mapa completo · celular. */}
+                    <span className="cm-acoes">
+                      <a href="#" onClick={(e) => { e.preventDefault(); window.__go?.("clientes"); }}>Ver detalhes →</a>
+                      <a href={`https://www.openstreetmap.org/?mlat=${atual.pos[0]}&mlon=${atual.pos[1]}#map=16/${atual.pos[0]}/${atual.pos[1]}`} target="_blank" rel="noreferrer">Abrir no mapa completo →</a>
+                      {atual.c.phone && <span className="cm-fone">• {atual.c.phone}</span>}
+                    </span>
                   </>
                 : <>
                     <b>{atual.c.name}</b>

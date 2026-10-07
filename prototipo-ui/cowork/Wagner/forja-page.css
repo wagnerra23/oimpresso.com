@@ -1121,3 +1121,11 @@ a.fj-ho-pr:hover{ color:var(--accent); }
 .fj-g-leg .lg-prog{ background:oklch(0.6 0.14 250 / .3); border:1px solid oklch(0.55 0.13 250 / .5); }
 .fj-g-leg .lg-atr{ background:oklch(0.58 0.18 25 / .15); border:1px solid oklch(0.55 0.18 25 / .7); }
 .fj-g-leg .lg-hoje{ width:2px; height:12px; border-radius:0; background:oklch(0.55 0.15 295 / .6); }
+
+/* tema escuro (playbook tema-escuro 04 · 07/10): avatar, nível e tipo do agente (--ah) e os
+   dois alertas eram claro-fixos. */
+[data-theme="dark"] .ap-av{ color:oklch(0.86 0.10 var(--ah)); background:oklch(0.32 0.07 var(--ah)); border-color:oklch(0.44 0.08 var(--ah)); }
+[data-theme="dark"] .ap-nivel{ color:oklch(0.85 0.10 var(--ah)); background:oklch(0.30 0.07 var(--ah)); }
+[data-theme="dark"] .ap-tipo{ color:oklch(0.85 0.10 var(--ah)); background:oklch(0.30 0.07 var(--ah)); border-color:oklch(0.42 0.07 var(--ah)); }
+[data-theme="dark"] .ap-handoff-alert{ color:oklch(0.85 0.14 25); background:oklch(0.30 0.07 25); border-color:oklch(0.44 0.08 25); }
+[data-theme="dark"] .fj-hj-team-alert{ color:oklch(0.85 0.14 25); background:oklch(0.30 0.07 25); border-color:oklch(0.44 0.08 25); }

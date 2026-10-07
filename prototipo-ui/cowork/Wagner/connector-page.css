@@ -106,3 +106,7 @@
 /* Segredo não exibível ([W] 2026-08-19) */
 .cnx-hash{ font-size:11px; color:var(--text-mute); letter-spacing:.06em; }
 .cnx-secret-nota{ font-size:10.5px; color:var(--text-mute); border:1px solid var(--border); border-radius:999px; padding:1px 8px; }
+
+/* tema escuro (playbook tema-escuro 04 · 07/10): selos de método HTTP eram claro-fixos. */
+[data-theme="dark"] .cnx-m.get{ color:oklch(0.85 0.10 240); border-color:oklch(0.42 0.07 240); background:oklch(0.30 0.07 240); }
+[data-theme="dark"] .cnx-m.post{ color:oklch(0.85 0.10 150); border-color:oklch(0.42 0.07 150); background:oklch(0.30 0.07 150); }

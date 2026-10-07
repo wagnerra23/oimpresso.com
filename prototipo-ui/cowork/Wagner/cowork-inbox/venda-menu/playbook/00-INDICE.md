@@ -87,7 +87,7 @@ O json citava `C0` (dependência da Q2) sem a thread existir — o placar saía 
       "destrava": [
         "04"
       ],
-      "resposta": "sim: discount.access separa ver × editar",
+      "resposta": "sim — ver × editar em permissões separadas — _DECISOES-W-2026-10-02.md",
       "fonte": "[CC] por delegação de [W] 2026-10-05 (\"o resto pode ser medido, escolha\")"
     },
     {
@@ -97,7 +97,7 @@ O json citava `C0` (dependência da Q2) sem a thread existir — o placar saía 
       "destrava": [
         "05"
       ],
-      "resposta": "sim: acima de 500 linhas vai pra fila, abaixo roda na hora",
+      "resposta": "sim, acima de um limite de linhas; abaixo importa na hora — _DECISOES-W-2026-10-02.md",
       "fonte": "[CC] por delegação de [W] 2026-10-05 (\"o resto pode ser medido, escolha\")"
     },
     {
@@ -107,7 +107,7 @@ O json citava `C0` (dependência da Q2) sem a thread existir — o placar saía 
       "destrava": [
         "05"
       ],
-      "resposta": "cancelar (mantém a trilha e o vínculo fiscal), nunca apagar de vez",
+      "resposta": "opção 2: reverter segue apagando, com retrato no log antes e tudo-ou-nada (venda impedida recusa o lote inteiro) — _DECISOES-W-2026-10-02b.md",
       "fonte": "[CC] por delegação de [W] 2026-10-05 (\"o resto pode ser medido, escolha\")"
     },
     {

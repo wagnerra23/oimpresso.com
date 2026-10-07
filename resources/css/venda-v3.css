@@ -86,3 +86,15 @@
 .venda-v3 [data-slot='select-trigger'].cw-input {
   min-height: 34.19px;
 }
+
+/* ── TEMA ESCURO · placa "Total da venda" (playbook tema-escuro thread 03 · 2026-10-07) ──
+   A `Plate` inverte por token (`bg-foreground text-background`): no claro é o bloco escuro
+   de maior peso; no escuro virava um bloco CLARO (fundo L 0,965, medido em produção).
+   Decisão D1 do playbook ([W] 2026-10-05): no escuro, superfície tintada de accent —
+   a mesma fórmula do protótipo. A borda de accent 35% é sombra interna para não mudar a
+   caixa (tamanho medido igual). Unlayered, então vence as utilitárias do Tailwind. */
+.cockpit[data-theme="dark"] .venda-v3 .vd3-plate {
+  background: color-mix(in oklch, var(--accent) 14%, var(--surface));
+  color: var(--text);
+  box-shadow: inset 0 0 0 1px color-mix(in oklch, var(--accent) 35%, transparent);
+}

@@ -18,7 +18,7 @@ mais nem a menos. Ids conferidos únicos no repo (`grep` de cabeçalho `## UC-�
 ## Entregue
 | UC | Destino | Onde |
 |---|---|---|
-| UC-FORJA-03 | teste novo, **vermelho de propósito** (achado abaixo) + redação reconciliada com a decisão [W] de 2026-09-08 (#7038) | `Modules/Forja/Tests/Feature/ForjaSidebarEntradaContratoTest.php` |
+| UC-FORJA-03 | teste novo; nasceu vermelho de propósito, e com o conserto do #8949 no main o veredito vem do CI deste PR (achado abaixo) + redação reconciliada com a decisão [W] de 2026-09-08 (#7038) | `Modules/Forja/Tests/Feature/ForjaSidebarEntradaContratoTest.php` |
 | UC-FORJA-08 | teste novo | `Modules/Forja/Tests/Feature/ForjaTriagemContratoTest.php` |
 | UC-FORJA-09 | 4 testes novos (dossiê · aprovar · rejeitar · fundir) | idem |
 | UC-FORJA-10 | 2 testes novos (dossiê não escreve · ações POST-only). A perna do `AlertDialog` é UI e segue manual | idem |
@@ -48,8 +48,9 @@ Virou item `[BACKLOG]` no casos.md.
 `6b0cd71f8f`, `php artisan tinker` só leitura: `projectmgmt_version=0.1`, sem `forja_version`;
 `isModuleInstalled("Forja") = false` (controle: `Jana = true`). O `DataController` da Forja nunca
 roda — nem a entry da #7038 nem o checkbox `brief.access` chegam. O teste do UC-FORJA-03 monta esse
-mesmo estado e fica vermelho. Correção = decisão [W]: ensinar o alias ao `isModuleInstalled` (o
-`ModuleManagerService::resolverVersao` já faz isso) ou gravar `forja_version`.
+mesmo estado e ficava vermelho. Correção = decisão [W]. **Desfecho (2026-10-07):** [W] escolheu aceitar o
+nome antigo sem gravar no banco; o #8949 fez o `isModuleInstalled` aceitar `projectmgmt_version` para a
+Forja e entrou no main antes deste PR.
 
 ## `--screen` depois (árvore deste PR)
 ```

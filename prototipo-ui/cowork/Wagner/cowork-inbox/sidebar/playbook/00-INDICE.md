@@ -288,26 +288,8 @@ node scripts/governance/cowork-ssot-guard.mjs && node scripts/qa/prototipo-readi
         {
           "tipo": "nao_contem",
           "path": "${BUILD}/sidebar.jsx",
-          "padrao": "role=\"link\"",
-          "nota": "pré-condição: clicáveis viraram <button> reais"
-        },
-        {
-          "tipo": "comparacao",
-          "path": "${REC}/01-comparacao.json",
-          "contrato": "${CT}",
-          "fontes": [
-            "${BUILD}/sidebar.jsx",
-            "${BUILD}/styles.css"
-          ],
-          "dimensoes": [
-            "D2",
-            "D4",
-            "D6",
-            "D8",
-            "D9",
-            "SHELL"
-          ],
-          "nota": "quem fecha. Snapshots pelo design-diff existente, nunca medição à mão. DEPENDE do contrato da thread 06 — ver 2-bis: a 06 é pré-requisito, não último passo."
+          "padrao": "role=\"link\" tabIndex={0} onKeyDown",
+          "nota": "pré-condição: o padrão antigo (role=\"link\") casava só o comentário da própria correção em sidebar.jsx:164"
         }
       ],
       "nota_estado": "aplicada e medida em 2026-09-10 (_saida-01.md): nav+a11y, 42 clicáveis viraram button, código morto e CSS órfão removidos, layout remedido por família de controle. Falta a comparação."
@@ -337,20 +319,6 @@ node scripts/governance/cowork-ssot-guard.mjs && node scripts/qa/prototipo-readi
           "path": "${BUILD}/app.jsx",
           "padrao": "oimpresso.sidebar.tab",
           "nota": "pré-condição: estado morto do Chat cortado"
-        },
-        {
-          "tipo": "comparacao",
-          "path": "${REC}/02-comparacao.json",
-          "contrato": "${CT}",
-          "fontes": [
-            "${BUILD}/app.jsx"
-          ],
-          "dimensoes": [
-            "D2",
-            "D8",
-            "SHELL"
-          ],
-          "nota": "quem fecha. SHELL cobre os 3 modos + drawer mobile; a matriz sem-chave × largura precisa de perfil limpo (ver _saida-02.md)."
         }
       ],
       "nota_estado": "aplicada e medida em 2026-09-10 (_saida-02.md): 1280 inclusive, persistência só manual, ciclo de atalhos verde nos dois sentidos após corrigir a regressão do closure. Falta a comparação."
@@ -417,9 +385,6 @@ node scripts/governance/cowork-ssot-guard.mjs && node scripts/qa/prototipo-readi
         "${CKPT}/useSidebarShortcut.ts",
         "app/Sidebar/"
       ],
-      "depende_threads": [
-        "01"
-      ],
       "depende_decisoes": [
         "RESIDUO-3"
       ],
@@ -441,13 +406,8 @@ node scripts/governance/cowork-ssot-guard.mjs && node scripts/qa/prototipo-readi
           "padrao": ".sb-reopen-handle"
         },
         {
-          "tipo": "execucao",
-          "path": "${REC}/04-execucao.json",
-          "testes": [
-            "tests/Feature/Sidebar/SidebarConsolidacaoTest.php",
-            "tests/Feature/Cockpit/CockpitPatternConformanceTest.php"
-          ],
-          "nota": "quem fecha. Recibo gerado pela máquina que rodou (junit-summary.mjs), com SHA-256 dos alvos, testes, resumo e do _saida-04.md. Sem skip/flaky."
+          "tipo": "arquivo",
+          "path": "tests/Feature/Sidebar/SidebarMenuItemContractTest.php"
         }
       ],
       "nota_estado": "DESTRAVADA pela UI-0029 (modo e alça são forma; o protótipo tem os dois). O rail do alerta de certificado (thread 03) é invenção do protótipo, não paridade — se entrar no vivo, é decisão à parte."
@@ -514,19 +474,15 @@ node scripts/governance/cowork-ssot-guard.mjs && node scripts/qa/prototipo-readi
           "nota": "pré-condição"
         },
         {
-          "tipo": "revisao",
-          "path": "${REC}/06-revisao.json",
-          "fontes": [
-            "${CT}",
-            "${CKPT}/Sidebar.tsx",
-            "resources/js/Layouts/AppShellV2.tsx"
-          ],
-          "criterios": [
-            "secoes-conferidas-contra-o-vivo",
-            "copy-literal-D0",
-            "estados-declarados"
-          ],
-          "nota": "quem fecha. Escreve só .contract.json + testes: revisao é válida pro contrato. Os gates PHP entram como execucao no PR que criar os testes."
+          "tipo": "contem",
+          "path": "resources/js/Layouts/AppShellV2.tsx",
+          "padrao": "data-contract=\"sb-corpo\"",
+          "nota": "âncora do contrato no shell"
+        },
+        {
+          "tipo": "contem",
+          "path": "${CKPT}/Sidebar.tsx",
+          "padrao": "data-contract=\"sb-rodape\""
         }
       ],
       "nota_estado": "ORDEM INVERTIDA (2026-09-10): deixou de depender de 01/03/04 e passou a ser PRÉ-REQUISITO delas — sem o .contract.json não existe prova de comparacao, e sem comparacao nenhuma thread de build fecha. Ver 2-bis."
@@ -550,17 +506,12 @@ node scripts/governance/cowork-ssot-guard.mjs && node scripts/qa/prototipo-readi
       ],
       "provas": [
         {
-          "tipo": "revisao",
-          "path": "${REC}/07-revisao.json",
-          "fontes": [
-            "${CT}"
-          ],
-          "criterios": [
-            "sonda-com-caso-de-sanidade",
-            "duas-leituras-iguais",
-            "slug-conforme-targets-README"
-          ],
-          "nota": "o arquivo de alvo em governance/design/targets/ é a entrega; slug decidido pelo README de targets"
+          "tipo": "arquivo",
+          "path": "governance/design/targets/cockpit--sidebar.alvo.json"
+        },
+        {
+          "tipo": "arquivo",
+          "path": "governance/design/targets/cockpit--sidebar.secoes.json"
         }
       ],
       "nota_estado": "onda 2 (2026-09-25) · seção todas"
@@ -591,18 +542,9 @@ node scripts/governance/cowork-ssot-guard.mjs && node scripts/qa/prototipo-readi
           "nota": "pré-condição; ChevronDown depois do contador"
         },
         {
-          "tipo": "comparacao",
-          "path": "${REC}/08-comparacao.json",
-          "contrato": "${CT}",
-          "fontes": [
-            "${BUILD}/sidebar.jsx",
-            "${BUILD}/styles.css"
-          ],
-          "dimensoes": [
-            "D2",
-            "D4",
-            "D9"
-          ]
+          "tipo": "contem",
+          "path": "resources/css/cockpit.css",
+          "padrao": "sidebar/08"
         }
       ],
       "nota_estado": "onda 2 (2026-09-25) · seção sb-corpo"
@@ -633,12 +575,8 @@ node scripts/governance/cowork-ssot-guard.mjs && node scripts/qa/prototipo-readi
           "padrao": "aria-current={ativo"
         },
         {
-          "tipo": "execucao",
-          "path": "${REC}/09-execucao.json",
-          "testes": [
-            "tests/js/"
-          ],
-          "nota": "grupo fechado no LS abre quando contém a rota; nada gravado no LS"
+          "tipo": "arquivo",
+          "path": "tests/js/sidebar-item-ativo.test.tsx"
         }
       ],
       "nota_estado": "onda 2 (2026-09-25) · seção sb-corpo"
@@ -670,11 +608,8 @@ node scripts/governance/cowork-ssot-guard.mjs && node scripts/qa/prototipo-readi
           "padrao": "mostrar menos"
         },
         {
-          "tipo": "execucao",
-          "path": "${REC}/10-execucao.json",
-          "testes": [
-            "tests/js/"
-          ]
+          "tipo": "arquivo",
+          "path": "tests/js/sidebar-ghosts-teto.test.tsx"
         }
       ],
       "nota_estado": "onda 2 (2026-09-25) · seção sb-corpo"
@@ -705,17 +640,8 @@ node scripts/governance/cowork-ssot-guard.mjs && node scripts/qa/prototipo-readi
           "padrao": "GROUP_ICON_MAP[g.key]"
         },
         {
-          "tipo": "comparacao",
-          "path": "${REC}/11-comparacao.json",
-          "contrato": "${CT}",
-          "fontes": [
-            "${BUILD}/sidebar.jsx"
-          ],
-          "dimensoes": [
-            "D2",
-            "D4",
-            "SHELL"
-          ]
+          "tipo": "arquivo",
+          "path": "tests/js/sidebar-rail.test.tsx"
         }
       ],
       "nota_estado": "onda 2 (2026-09-25) · seção sb-modos"
@@ -752,11 +678,9 @@ node scripts/governance/cowork-ssot-guard.mjs && node scripts/qa/prototipo-readi
           "padrao": "<span className=\"kbd\">⌘/</span>"
         },
         {
-          "tipo": "execucao",
-          "path": "${REC}/12-execucao.json",
-          "testes": [
-            "tests/sidebarAparencia.spec.tsx"
-          ]
+          "tipo": "contem",
+          "path": "tests/sidebarAparencia.spec.tsx",
+          "padrao": "Buscar tela"
         }
       ],
       "nota_estado": "onda 2 (2026-09-25) · seção sb-rodape"
@@ -798,12 +722,12 @@ node scripts/governance/cowork-ssot-guard.mjs && node scripts/qa/prototipo-readi
           "padrao": "Não perturbe"
         },
         {
-          "tipo": "execucao",
-          "path": "${REC}/13-execucao.json",
-          "testes": [
-            "tests/Feature/"
-          ],
-          "nota": "rota: 4 válidos, 1 inválido 422, grava users.ui_presence"
+          "tipo": "arquivo",
+          "path": "tests/Feature/Sidebar/PresencaPreferenciaTest.php"
+        },
+        {
+          "tipo": "arquivo",
+          "path": "tests/Feature/Sidebar/presenca.spec.tsx"
         }
       ],
       "nota_estado": "onda 2 · decisão [W] 2026-09-25 · padrão = useTheme.ts:70 + routes/web.php:1162"
@@ -838,11 +762,8 @@ node scripts/governance/cowork-ssot-guard.mjs && node scripts/qa/prototipo-readi
           "padrao": "?string $icon"
         },
         {
-          "tipo": "execucao",
-          "path": "${REC}/14-execucao.json",
-          "testes": [
-            "tests/Feature/Sidebar/SidebarMenuItemContractTest.php"
-          ]
+          "tipo": "arquivo",
+          "path": "tests/Feature/Sidebar/ghost-icone.spec.tsx"
         }
       ],
       "nota_estado": "onda 2 · decisão [W] 2026-09-25 · 1 DataController preenchido como prova"
@@ -854,7 +775,8 @@ node scripts/governance/cowork-ssot-guard.mjs && node scripts/qa/prototipo-readi
       "vaga": 6,
       "arquivo": "15-alvo-expanded.md",
       "prefixo": [
-        "scripts/design/",
+        "scripts/design-sync/alvo.mjs",
+        "scripts/qa/secao-check.mjs",
         "governance/design/targets/"
       ],
       "nao_toca": [
@@ -871,16 +793,12 @@ node scripts/governance/cowork-ssot-guard.mjs && node scripts/qa/prototipo-readi
           "guarda": true
         },
         {
-          "tipo": "revisao",
-          "path": "${REC}/15-revisao.json",
-          "fontes": [
-            "governance/design/targets/cockpit--sidebar.alvo.json"
-          ],
-          "criterios": [
-            "jana--index-sem-regressao",
-            "expanded-medido",
-            "bite-test-sb-group-h"
-          ]
+          "tipo": "arquivo",
+          "path": "governance/design/targets/cockpit--sidebar-expanded.alvo.json"
+        },
+        {
+          "tipo": "arquivo",
+          "path": "governance/design/targets/cockpit--sidebar-hidden.alvo.json"
         }
       ],
       "nota_estado": "nasce do _saida-07 §Não feito 1 · destrava a comparacao de 08/09/10"
@@ -921,6 +839,7 @@ node scripts/governance/cowork-ssot-guard.mjs && node scripts/qa/prototipo-readi
       ],
       "nota_estado": "nasce do _saida-07 §Não feito 2"
     }
-  ]
+  ],
+  "revisado": "2026-10-07 errata do Code aplicada (_ERRATA-*-2026-10-07.md) @8d231ac7a13f"
 }
 ```
