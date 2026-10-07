@@ -23,7 +23,9 @@ lifecycle: ativo
 | Impressoras | `/printers` | `PrinterController` | `access_printers` | `useV2ConfiguracoesImpressoras` | `RUNBOOK-impressoras.md` |
 | Código de barras | `/barcodes` | `BarcodeController` | `barcode_settings.access` | `useV2ConfiguracoesCodigoBarras` | `RUNBOOK-codigo-barras.md` |
 | Locais comerciais | `/business-location` | `BusinessLocationController` | `business_settings.access` | `useV2ConfiguracoesLocais` | `RUNBOOK-locais.md` |
+| Impostos | `/tax-rates` | `TaxRateController` | `tax_rate.view`/`.create`/`.update`/`.delete` | `useV2ConfiguracoesImpostos` | `RUNBOOK-impostos.md` |
+| Tipos de serviço | `/types-of-service` | `TypesOfServiceController` | `access_types_of_service` | `useV2ConfiguracoesTiposServico` | `RUNBOOK-tipos-servico.md` |
+| Esquemas de fatura | `/invoice-schemes` | `InvoiceSchemeController` | `invoice_settings.access` | `useV2ConfiguracoesEsquemasFatura` | `RUNBOOK-esquemas-fatura.md` |
 
 Cada aba passa por F1/F2 (RUNBOOK + paridade + Pest baseline) e F3 (Page atrás da flag, default desligada). O estado de
-cada uma é o dos PRs da thread, não desta tabela. As abas da thread 05 (Esquemas de fatura, Impostos, Tipos de serviço)
-entram aqui quando ela começar. Cutover de qualquer aba é decisão [W].
+cada uma é o dos PRs da thread, não desta tabela. As três últimas são da thread 05. Cutover de qualquer aba é decisão [W].
