@@ -2,9 +2,9 @@
 id: requisitos-fiscal-briefing
 module: Fiscal
 status: parcial
-updated_at: "2026-09-15"
-distilled_at: "2026-09-24"
-distilled_by: "manual [C] — redestilação PARCIAL (2026-09-24): o único evento no código do módulo desde a destilação de 2026-09-15 (`jana:distill-module-truth`) é o PR #7873, que só corrige o docblock do `NotasUnifiedService` (nome do trait de escopo da NFS-e + aviso de que os escopos só filtram com sessão) — sem mudança de comportamento, e o corpo deste BRIEFING não cita esse docblock. O corpo NÃO foi re-lido e segue o retrato de 2026-09-15. Gatilho: distiller_freshness do sdd-scorecard acusou a porta >7d atrás do código."
+updated_at: "2026-10-07"
+distilled_at: "2026-10-07"
+distilled_by: "manual [C] — redestilação PARCIAL (2026-10-07, PR #9018 · playbook Fiscal thread 15c): eventos no código do módulo desde 2026-09-24 = o #8413 (install/uninstall/update saem de GET; sem efeito em tela) e este PR (cadastro do contador + papel Contador em /fiscal/config). Só a Capacidade e a Última mudança foram revistas; o resto segue o retrato de 2026-09-15. Gatilho: distiller_freshness do sdd-scorecard acusou a porta >7d atrás do código."
 ---
 
 # BRIEFING — Fiscal (verdade destilada)
@@ -20,13 +20,14 @@ O módulo Fiscal atua como um cockpit unificado, consolidando nota fiscal eletr�
 - Controle de acesso e permissões granular para gerenciamento de certificado e ambiente.
 - Geração de SPED EFD-ICMS/IPI com prévias limitadas.
 - Ações de cancelamento e correção de notas monitoradas.
+- Cadastro do contador da empresa (nome, e-mail, CRC) em `/fiscal/config` › Envio de documentos, com o papel `Contador#{business}` (tributação, aceite, cockpit fiscal e SPED; sem venda nem financeiro) — UC-FCFG-08/09.
 
 ## Gaps
 - O gerador do SPED apresenta hardcodes que impedem a exportação completa (GAP-FISCAL-003); depende de correções em configurações e permissões.
 - O rollout para ROTA LIVRE (biz=4) está em pré-canary, aguardando testes manuais antes da promoção.
 
 ## Última mudança
-Em 2026-09-09, as 7 abas do cockpit voltaram aos rótulos e à ordem do protótipo; antes disso, em 2026-09-08, os 8 inventários de paridade do Fiscal + NfeBrasil foram vinculados e as 2 telas silenciosas fechadas, e em 2026-09-06 a lane MySQL passou a EXECUTAR os 3 testes da tela Dfe. Em 2026-09-04 tinham saído as melhorias da onda 10 do SPED — prévia do arquivo de referência, correções das ações de manifestação e ajuste das permissões de operação administrativa.
+Em 2026-10-07 (playbook Fiscal thread 15c, PR #9018), o card **Envio de documentos** de `/fiscal/config` deixou de declarar "ainda não existe campo": a empresa cadastra o contador (tabela `nfe_contadores`, do NfeBrasil) e salvar cria o papel "Contador". O drawer "Enviar p/ contabilidade" do cockpit segue mockado (thread 28). Em 2026-09-09, as 7 abas do cockpit voltaram aos rótulos e à ordem do protótipo; antes disso, em 2026-09-08, os 8 inventários de paridade do Fiscal + NfeBrasil foram vinculados e as 2 telas silenciosas fechadas, e em 2026-09-06 a lane MySQL passou a EXECUTAR os 3 testes da tela Dfe. Em 2026-09-04 tinham saído as melhorias da onda 10 do SPED — prévia do arquivo de referência, correções das ações de manifestação e ajuste das permissões de operação administrativa.
 
 ## Proveniência (destilado de)
 

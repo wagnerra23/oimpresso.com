@@ -2,6 +2,7 @@
 
 namespace Modules\Fiscal\Http\Controllers;
 
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\DB;
@@ -9,6 +10,7 @@ use Inertia\Inertia;
 use Inertia\Response;
 use Modules\NfeBrasil\Models\NfeBusinessConfig;
 use Modules\NfeBrasil\Models\NfeCertificado;
+use Modules\NfeBrasil\Services\Tributacao\ContadorService;
 
 /**
  * Cert/Cfg fiscal — UNIFICADO (sub-página 6 do design KB-9.75).
@@ -117,6 +119,8 @@ class ConfigController extends Controller
                 'nfeAtivo'  => (bool) config('nfebrasil.email_danfe_on_autorizada', true),
                 'nfceAtivo' => (bool) config('nfebrasil.email_danfe_nfce_on_autorizada', false),
             ],
+            // Contador da empresa (playbook Fiscal thread 15c). Null = não cadastrado.
+            'contador' => $this->contadorPayload($businessId),
             // Onda 2 I — séries fiscais (tab "Séries" do ModuleTopNav).
             // TODO[CL]: substituir por query real (business.numero_serie_nfe +
             // possíveis tabelas de séries auxiliares).
@@ -128,7 +132,39 @@ class ConfigController extends Controller
     }
 
     /**
+     * POST /fiscal/config/contador — cadastro do contador (playbook Fiscal thread 15c · D-CONTADOR).
+     * Mesmo gate da tela. Salvar também cria o papel `Contador#{business}`, se ainda não existir.
+     */
+    public function salvarContador(Request $request, ContadorService $service): RedirectResponse
+    {
+        if (! auth()->user()->can('superadmin') && ! auth()->user()->can('fiscal.config.edit')) {
+            abort(403, 'Sem permissão fiscal.config.edit');
+        }
+        $dados = $request->validate([
+            'nome'  => ['required', 'string', 'max:191'],
+            'email' => ['required', 'email', 'max:191'],
+            'crc'   => ['nullable', 'string', 'max:40'],
+        ]);
+
+        $service->salvar((int) $request->session()->get('business.id'), $dados, (int) auth()->id());
+
+        return back()->with('status', ['success' => 1, 'msg' => 'Contador salvo.']);
+    }
+
+    /** @return array{nome: string, email: string, crc: string|null, papel: string}|null */
+    private function contadorPayload(int $businessId): ?array
+    {
+        $c = app(ContadorService::class)->doBusiness($businessId);
+
+        return $c === null ? null : [
+            'nome' => $c->nome, 'email' => $c->email, 'crc' => $c->crc,
+            'papel' => ContadorService::nomePapel($businessId),
+        ];
+    }
+
+    /**
      * Mock séries fiscais. Onda 2 I — tab Séries do Config.
+
      *
      * @return array<int, array<string, mixed>>
      */

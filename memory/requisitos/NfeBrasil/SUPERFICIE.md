@@ -14,7 +14,7 @@ module: NfeBrasil
 >
 > **O que isto é:** o inventário completo das raízes `Modules/NfeBrasil/**` + `resources/js/Pages/NfeBrasil/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 261 arquivos em 19 papéis.
+**Total mapeado:** 264 arquivos em 19 papéis.
 
 ## Controllers — 16
 
@@ -49,7 +49,7 @@ module: NfeBrasil
 - [UpsertConfigDefaultRequest.php](../../../Modules/NfeBrasil/Http/Requests/UpsertConfigDefaultRequest.php)
 - [UpsertRegraTributariaRequest.php](../../../Modules/NfeBrasil/Http/Requests/UpsertRegraTributariaRequest.php)
 
-## Services — 22
+## Services — 23
 
 - [CertificadoService.php](../../../Modules/NfeBrasil/Services/CertificadoService.php)
 - [ResolveUfEmitente.php](../../../Modules/NfeBrasil/Services/Concerns/ResolveUfEmitente.php)
@@ -67,6 +67,7 @@ module: NfeBrasil
 - [AbrasfV204CancelDriver.php](../../../Modules/NfeBrasil/Services/NfseDrivers/AbrasfV204CancelDriver.php)
 - [SefazConsultaCadastroService.php](../../../Modules/NfeBrasil/Services/SefazConsultaCadastroService.php)
 - [SefazStatusRecorder.php](../../../Modules/NfeBrasil/Services/SefazStatusRecorder.php)
+- [ContadorService.php](../../../Modules/NfeBrasil/Services/Tributacao/ContadorService.php)
 - [ImportRegrasCsvService.php](../../../Modules/NfeBrasil/Services/Tributacao/ImportRegrasCsvService.php)
 - [ProdutoFiscalContext.php](../../../Modules/NfeBrasil/Services/Tributacao/ProdutoFiscalContext.php)
 - [RevisaoContadorService.php](../../../Modules/NfeBrasil/Services/Tributacao/RevisaoContadorService.php)
@@ -74,10 +75,11 @@ module: NfeBrasil
 - [TributacaoTemplateService.php](../../../Modules/NfeBrasil/Services/Tributacao/TributacaoTemplateService.php)
 - [TributoCalculado.php](../../../Modules/NfeBrasil/Services/Tributacao/TributoCalculado.php)
 
-## Models / Entities — 18
+## Models / Entities — 19
 
 - [NfeBusinessConfig.php](../../../Modules/NfeBrasil/Models/NfeBusinessConfig.php)
 - [NfeCertificado.php](../../../Modules/NfeBrasil/Models/NfeCertificado.php)
+- [NfeContador.php](../../../Modules/NfeBrasil/Models/NfeContador.php)
 - [NfeContadorLink.php](../../../Modules/NfeBrasil/Models/NfeContadorLink.php)
 - [NfeDfeEvento.php](../../../Modules/NfeBrasil/Models/NfeDfeEvento.php)
 - [NfeDfeItem.php](../../../Modules/NfeBrasil/Models/NfeDfeItem.php)
@@ -133,7 +135,7 @@ module: NfeBrasil
 - [api.php](../../../Modules/NfeBrasil/Routes/api.php)
 - [web.php](../../../Modules/NfeBrasil/Routes/web.php)
 
-## Migrations (schema) — 26
+## Migrations (schema) — 27
 
 - [2026_05_06_002000_create_nfe_certificados_table.php](../../../Modules/NfeBrasil/Database/Migrations/2026_05_06_002000_create_nfe_certificados_table.php)
 - [2026_05_06_002001_create_nfe_emissoes_table.php](../../../Modules/NfeBrasil/Database/Migrations/2026_05_06_002001_create_nfe_emissoes_table.php)
@@ -161,6 +163,7 @@ module: NfeBrasil
 - [2026_10_07_000004_create_nfe_sugestoes_fiscais_table.php](../../../Modules/NfeBrasil/Database/Migrations/2026_10_07_000004_create_nfe_sugestoes_fiscais_table.php)
 - [2026_10_07_000005_create_nfe_revisoes_contador_table.php](../../../Modules/NfeBrasil/Database/Migrations/2026_10_07_000005_create_nfe_revisoes_contador_table.php)
 - [2026_10_07_000006_create_nfe_contador_links_table.php](../../../Modules/NfeBrasil/Database/Migrations/2026_10_07_000006_create_nfe_contador_links_table.php)
+- [2026_10_07_000007_create_nfe_contadores_table.php](../../../Modules/NfeBrasil/Database/Migrations/2026_10_07_000007_create_nfe_contadores_table.php)
 
 ## Seeders — 2
 

@@ -26,17 +26,17 @@
   ],
   "stats": {
     "modules": 35,
-    "nodes": 748,
-    "edges": 1039,
+    "nodes": 749,
+    "edges": 1040,
     "by_node_type": {
       "module": 39,
-      "table": 107,
+      "table": 108,
       "adr": 136,
       "component": 389,
       "api": 77
     },
     "by_edge_type": {
-      "ownsTable": 96,
+      "ownsTable": 97,
       "ownsLegacyView": 13,
       "consumesTable": 6,
       "providesApi": 81,
@@ -5927,6 +5927,17 @@
       "ownership_mode": "single"
     },
     {
+      "id": "table:nfe_contadores",
+      "type": "table",
+      "name": "nfe_contadores",
+      "owners": [
+        "NfeBrasil"
+      ],
+      "consumers": [],
+      "legacy_views": [],
+      "ownership_mode": "single"
+    },
+    {
       "id": "table:nfe_emissoes",
       "type": "table",
       "name": "nfe_emissoes",
@@ -10365,6 +10376,12 @@
     {
       "from": "module:NfeBrasil",
       "to": "table:nfe_contador_links",
+      "type": "ownsTable",
+      "source": "db_tables_owned"
+    },
+    {
+      "from": "module:NfeBrasil",
+      "to": "table:nfe_contadores",
       "type": "ownsTable",
       "source": "db_tables_owned"
     },
