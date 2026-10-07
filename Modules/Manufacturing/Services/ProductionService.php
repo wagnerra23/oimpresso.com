@@ -226,14 +226,35 @@ class ProductionService
     }
 
     /**
-     * Totais agregados (contagem + valor + finalizadas) — usado no header da Index.
+     * Totais agregados (contagem + valor + finalizadas).
+     *
+     * Sem `$filters` conta TODAS as ordens da empresa — é o que alimenta o contador da barra de
+     * abas nas 5 telas do módulo, e ele não pode mudar conforme o filtro de uma delas.
+     *
+     * Com `$filters` (UC-OP-10, decisão [W] 2026-10-06) os 4 indicadores da aba Ordens seguem
+     * o local e o período, com as MESMAS regras de {@see listProductions()}: o período só vale
+     * com as duas datas. "Só finalizadas" NÃO entra — no protótipo os indicadores não o seguem,
+     * e com ele ligado "Pendentes" seria sempre zero.
+     *
+     * O valor é o `final_total` GRAVADO, como na lista (UC-OP-02): não é recalculado aqui.
+     *
+     * @param  array{location_id?: int|string|null, start_date?: string|null, end_date?: string|null}  $filters
      */
-    public function summary(int $businessId): array
+    public function summary(int $businessId, array $filters = []): array
     {
-        return OtelHelper::spanBiz('manufacturing.production.summary', function () use ($businessId) {
+        return OtelHelper::spanBiz('manufacturing.production.summary', function () use ($businessId, $filters) {
             $base = Transaction::query()
                 ->where('business_id', $businessId)
                 ->where('type', 'production_purchase');
+
+            if (! empty($filters['location_id'])) {
+                $base->where('location_id', $filters['location_id']);
+            }
+
+            if (! empty($filters['start_date']) && ! empty($filters['end_date'])) {
+                $base->whereDate('transaction_date', '>=', $filters['start_date'])
+                    ->whereDate('transaction_date', '<=', $filters['end_date']);
+            }
 
             return [
                 'total_count' => (clone $base)->count(),
@@ -243,6 +264,7 @@ class ProductionService
             ];
         }, [
             'module' => 'Manufacturing',
+            'has_location_filter' => ! empty($filters['location_id']),
         ]);
     }
 

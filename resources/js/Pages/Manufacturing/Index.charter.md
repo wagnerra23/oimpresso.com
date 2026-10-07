@@ -23,7 +23,10 @@ related_us: [US-MANU-004]
 Listar ordens de produção (production_purchase) do business ativo em UX Inertia/React, em coexistência com Blade legacy `/manufacturing/production` durante migração MWART.
 
 ## Goals
-- G1: PageHeader + summary cards (total / final / pendente / valor)
+- G1: PageHeader + summary cards (total / final / pendente / valor). **Desde 2026-10-07 (UC-OP-10,
+  decisão [W] 2026-10-06) os 4 cartões seguem o filtro de local e período** (prop `kpis`); o
+  contador da barra de abas segue com todas as ordens (prop `summary`). "Só finalizadas" não
+  recorta os cartões.
 - ~~G2: Tabela enxuta com 5 colunas (ref, data, local, total, status)~~ → **G2 (US-MANU-004,
   2026-09-04): 8 colunas do §4.5** — Data · Referência · Local · Produto (com
   `N ingredientes · quem lançou`) · Qtd · Custo total (sufixo `fix` na finalizada) ·
@@ -97,7 +100,8 @@ Três divergências de FORMA foram medidas contra o protótipo (`manufacturing-p
 Controller@indexV2  →  ProductionService::listProductions(biz, filters)   # + eager purchase_lines/location
                     →  ProductionService::enrichProductionRows(ordens, biz)  # produto · nº ingredientes ·
                     →  ProductionService::summary(biz)                       # quem lançou · qtd · custo unit.
-                    →  Inertia::render('Manufacturing/Index', {productions, summary})
+                    →  ProductionService::summary(biz, local+período)        # kpis (UC-OP-10)
+                    →  Inertia::render('Manufacturing/Index', {productions, summary, kpis})
 ```
 
 > **Custo (US-MANU-004):** as colunas de dinheiro mostram `transactions.final_total` — o valor
@@ -111,7 +115,7 @@ Controller@indexV2  →  ProductionService::listProductions(biz, filters)   # + 
 
 ## Próximos passos
 - ~~Wire-up filtros (location, date range) com Inertia partial reload~~ — **feito** (o
-  `applyFilter` faz partial reload com `only:[productions,summary,filters]`)
+  `applyFilter` faz partial reload com `only:[productions,summary,kpis,filters]` — `kpis` desde o UC-OP-10)
 - ~~Charter MWART completo com RUNBOOK~~ — **feito em 2026-09-04**:
   `memory/requisitos/Manufacturing/RUNBOOK-producao.md` (o nome citado antes,
   `RUNBOOK-production-index.md`, nunca existiu)

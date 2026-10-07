@@ -5,8 +5,12 @@ tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (
 por_que: comportamento é durável — o contrato de teste nasce junto com a tela, não depois.
 fonte: handoff "PROTÓTIPO OFICIAL - FABRICAÇÃO V1" §4.5 + §15.1 — os UC abaixo DERIVAM dele
 owner: wagner
-last_run: "2026-10-06"
+last_run: "2026-10-07"
 ---
+
+> ℹ️ **2026-10-07 — UC-OP-10 novo (regra de VALOR):** os 4 indicadores passam a seguir o filtro de
+> local e período (decisão [W] 2026-10-06). O contador da barra de abas não muda (todas as ordens).
+> UC-OP-06: o partial reload passa a pedir também `kpis` — o comportamento das datas não muda.
 
 > ℹ️ **2026-10-06 — UC-OP-08 novo (regra de exibição):** o "N ingredientes" da lista passa a contar
 > as linhas consumidas da ordem (as do painel), não os ingredientes da receita atual. UC-OP-04 reescrito
@@ -117,7 +121,7 @@ last_run: "2026-10-06"
 - **Persona:** Eliana (produção) — filtra o mês e quer ver a lista mudar, como já acontece com
   Local e "Só finalizadas".
 - **Aceite:** Dado a lista de ordens · Quando escolho De **e** Até (datas completas) · Então a
-  lista recarrega sozinha por partial reload (`only: productions, summary, filters`), sem clicar
+  lista recarrega sozinha por partial reload (`only: productions, summary, kpis, filters`), sem clicar
   em nada. Só uma das duas preenchida **não** aplica; apagar as duas volta a lista inteira;
   digitar o ano à mão (o campo emite `0002-…`, `0020-…` no meio) **não** dispara request.
   O botão "Aplicar intervalo de datas" não existe mais.
@@ -185,6 +189,28 @@ last_run: "2026-10-06"
 - **Regressão que defende:** mostrar a líquida sem dizer que é líquida, ou somar a perda no número
   principal e dividir o custo por unidade pelo que não entrou no estoque.
 - **Status: 🧪**
+
+---
+
+## UC-OP-10 · Os 4 indicadores seguem o filtro de local e período
+- **Persona:** Eliana (produção) — filtra a Filial em setembro e quer que Total, Finalizadas,
+  Pendentes e Valor total falem desse recorte, não da empresa inteira.
+- **Aceite:** Dado ordens em locais e datas diferentes · Quando escolho um local, um período (De
+  **e** Até) ou os dois · Então os 4 indicadores contam só as ordens do recorte, e o Valor total é a
+  soma do `final_total` GRAVADO delas — o mesmo que a lista soma com o mesmo filtro. Ordem de outra
+  empresa nunca entra. "Só finalizadas" **não** recorta os indicadores (Pendentes não zera), e uma
+  data só não recorta o período (mesma regra da lista). Sem filtro, os números são de todas as
+  ordens; o contador da barra de abas é sempre de todas. A descrição dos cartões diz de onde o
+  número vem ("no filtro de local e data" × "ordens cadastradas").
+- **Fonte:** decisão [W] 2026-10-06 no SPEC (US-MANU-004, #8848) + protótipo
+  `manufacturing-producao.jsx` (`MfgProducaoView`: os 4 números sobre local + período, sem
+  "Só finalizadas"). Regra mestre de valor: dois caminhos (conta à mão × soma da lista).
+- **Teste:** `Modules/Manufacturing/Tests/Feature/IndicadoresSeguemFiltroTest.php` (servidor, lane
+  MySQL) + `tests/js/manufacturing-index-datas.test.tsx` (os cartões leem `kpis`, lane jsdom;
+  mordida provada por mutação: cartões lendo `summary` → 1 failed).
+- **Regressão que defende:** cartões voltarem a somar a empresa inteira com o filtro ligado, ou o
+  contador da aba mudar conforme o filtro de uma tela só.
+- **Status: 🧪**
 ---
 
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
@@ -210,3 +236,5 @@ last_run: "2026-10-06"
 - 2026-09-25 · [C] UC-OP-06 (playbook Manufacturing thread 04, D-MFG-DATA): De/Até aplica ao
   escolher. `last_run` bumpado porque o `.tsx` mudou — os UC-OP-01..05 são de Service e não
   foram tocados; o UC-OP-06 roda em vitest (5 passed local, mordida provada por mutação).
+- 2026-10-07 · [M+C] UC-OP-10: os indicadores seguem local + período (decisão [W] 2026-10-06).
+  Valor total conferido por dois caminhos no teste; o antes→depois em produção vai ao [W] antes do merge.

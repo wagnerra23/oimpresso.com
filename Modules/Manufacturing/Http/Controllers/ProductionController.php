@@ -918,7 +918,16 @@ class ProductionController extends Controller
                 $productionService->listProductions($business_id, $filters),
                 $business_id
             ),
+            // Todas as ordens da empresa: alimenta o contador da barra de abas e o subtítulo, que
+            // as 5 telas do módulo mostram igual (as outras 4 não têm filtro de ordens).
             'summary' => $productionService->summary($business_id),
+            // UC-OP-10 (decisão [W] 2026-10-06): os 4 indicadores seguem local + período, como
+            // no protótipo. "Só finalizadas" fica de fora de propósito — ver ProductionService::summary().
+            'kpis' => $productionService->summary($business_id, [
+                'location_id' => $filters['location_id'],
+                'start_date' => $filters['start_date'],
+                'end_date' => $filters['end_date'],
+            ]),
             // Opções do filtro de local + estado dos filtros pra re-render (board uplift 50->70).
             // closure D-14: dropdown por business, não muda com filtro — pula no partial reload
             'business_locations' => fn () => BusinessLocation::forDropdown($business_id),
