@@ -1,0 +1,54 @@
+# Scorecard de tela — primeira medição (thread 04 do playbook Forja, 2026-10-07).
+# Método SCREEN-GRADE (memory/requisitos/_DesignSystem/SCREEN-GRADE-METODO.md), passos 0+1 do
+# agente screen-qa-specialist, no mesmo modo do team-mcp-forja-cockpit.yaml (#7758).
+# ⚠️ NOTA DE LEITURA DE CÓDIGO: .tsx + charter + drawer, SEM browser de prod, SEM E2E/axe/smoke.
+# Esta tela NÃO tem .casos.md (thread 01 do playbook). Nenhuma dimensão foi medida em runtime;
+# cada uma cita arquivo:linha (relativo a Modules/Forja/Resources/js/Pages/team-mcp/CcSessions/).
+# Persona peso uniforme (wagner = power user, personas-por-modulo.yml §Notas), nota = média das
+# 16 dims arredondada (1202/16 = 75,1).
+# Este YAML é o ponto de partida do ratchet: a nota não pode cair abaixo de baseline_anterior.
+screen: team-mcp/CcSessions/Index
+path: Modules/Forja/Resources/js/Pages/team-mcp/CcSessions/Index.tsx
+archetype: feed        # PT-07 Feed/Timeline + drawer de thread
+persona: wagner
+nota: 75
+nivel: "Advanced"
+baseline_anterior: 75   # ratchet — primeira medição, baseline = a própria nota
+peso_real: 1.0
+source: leitura-codigo-forja-thread04-2026-10-07
+graded_at: "2026-10-07"
+resumo: "Feed denso de sessões Claude Code com selo agente×humano, J/K/Enter//, debounce na busca e drawer 640px com 403/404/erro tratados. Perde em: seleção J/K só visual (foco não acompanha), filtros from/to existem no payload mas sem controle e o 'Limpar' não os zera, sem casos.md, rótulos da paginação injetados crus do paginator e texto 10px por toda a linha."
+dimensoes: { density: 80, discoverability: 76, speed_to_task: 80, error_recovery: 72, cognitive_load: 78, aesthetic_usability: 78, affordance: 76, brand_confidence: 72, mobile_fit: 72, a11y_wcag: 70, i18n_ptbr: 76, performance_perceived: 80, information_hierarchy: 78, microcopy: 76, internal_consistency: 72, preflight_conformance: 66 }
+evidencias:
+  density: "Index.tsx:268-295 linha com dev · selo CC · projeto · branch · data relativa · summary 2 linhas · msgs/tokens/custo/duração"
+  discoverability: "Index.tsx:219-221 dica de atalhos só em lg; busca cobre só o summary (Index.tsx:175), conteúdo é Non-Goal (Index.charter.md:43)"
+  speed_to_task: "Index.tsx:114-138 J/K/Enter/Esc e '/' foca a busca; Index.tsx:263 click abre o drawer"
+  error_recovery: "_components/SessionDrawer.tsx:115-122,182-186 403/404/erro com mensagem; Index.tsx:95 isLoading sem estado de falha do defer"
+  cognitive_load: "Index.tsx:165-170 4 KPIs + toolbar única"
+  aesthetic_usability: "Index.tsx:265 seleção bg-primary/10; Index.tsx:273-275 selo CC em tom primary"
+  affordance: "Index.tsx:259-264 linha role=button tabIndex=0 com Enter/Espaço; Index.tsx:267 dot de status só com title"
+  brand_confidence: "Index.charter.md:8 status draft; Index.tsx:236-240 empty state manda pro GitHub (link de dev dentro do produto)"
+  mobile_fit: "Index.tsx:278 branch some abaixo de sm; Index.tsx:178-212 filtros com largura fixa w-40/w-32/w-48 — não medido em viewport"
+  a11y_wcag: "Index.tsx:122-130 J/K muda só o estado selecionado, não move o foco; Index.tsx:273,276,287 text-[10px]; Index.tsx:226 skeleton sem aria-busy; Index.tsx:312 dangerouslySetInnerHTML no rótulo da paginação"
+  i18n_ptbr: "Index.tsx:175,176,285 'summary'; Index.tsx:326 breadcrumb 'CC Sessions' vs título 'Atividade CC' (Index.tsx:161); Index.tsx:312 rótulos vindos do paginator sem tradução garantida no front"
+  performance_perceived: "Index.tsx:225-228 skeleton 8 linhas; Index.tsx:107-112 debounce 350ms; _components/SessionDrawer.tsx:177-181 loader"
+  information_hierarchy: "KPIs → toolbar → contagem/paginação → feed (Index.tsx:165,173,250,253)"
+  microcopy: "Index.tsx:233-234 empty state explica o que falta (watcher Node); Index.tsx:285 '(sem summary)'"
+  internal_consistency: "Index.tsx:66-67 filtros from/to sem controle na UI; Index.tsx:153 hasFilters conta from/to mas Index.tsx:215 'Limpar' não os zera — botão fica visível sem efeito"
+  preflight_conformance: "charter tier A draft; SEM casos.md (trio incompleto); Select/Input de Components/ui; tokens semânticos"
+gaps:
+  - dim: "Internal-consistency"
+    best_of_class: "Linear filters: 'Limpar' zera todo filtro aplicado, inclusive o que veio pela URL"
+    fix: "Incluir from/to no patch do 'Limpar' (ou expor o intervalo de datas na toolbar)"
+    esforco: baixo
+    origin: thread04-forja-2026-10-07
+  - dim: "A11y-WCAG"
+    best_of_class: "Linear inbox: J/K move o foco real (roving tabindex + aria-selected)"
+    fix: "Mover o foco para a linha selecionada no J/K; texto do status ao lado do dot; rótulos da paginação sem innerHTML"
+    esforco: baixo
+    origin: thread04-forja-2026-10-07
+  - dim: "Pre-Flight-conformance"
+    best_of_class: "contrato UC + teste por tela"
+    fix: "Criar Index.casos.md derivado do charter (thread 01 do playbook Forja)"
+    esforco: medio
+    origin: thread04-forja-2026-10-07

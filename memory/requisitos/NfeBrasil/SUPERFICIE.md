@@ -14,7 +14,7 @@ module: NfeBrasil
 >
 > **O que isto é:** o inventário completo das raízes `Modules/NfeBrasil/**` + `resources/js/Pages/NfeBrasil/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 228 arquivos em 19 papéis.
+**Total mapeado:** 230 arquivos em 19 papéis.
 
 ## Controllers — 13
 
@@ -168,11 +168,12 @@ module: NfeBrasil
 - [Index.tsx](../../../resources/js/Pages/NfeBrasil/Tributacao/Index.tsx)
 - [RegraForm.tsx](../../../resources/js/Pages/NfeBrasil/Tributacao/RegraForm.tsx)
 
-## Componentes / apoio de tela — 3
+## Componentes / apoio de tela — 4
 
 - [LinkedFornecedor.tsx](../../../resources/js/Pages/NfeBrasil/Manifestacao/_components/LinkedFornecedor.tsx)
 - [LinkedHistorico.tsx](../../../resources/js/Pages/NfeBrasil/Manifestacao/_components/LinkedHistorico.tsx)
 - [LinkedItens.tsx](../../../resources/js/Pages/NfeBrasil/Manifestacao/_components/LinkedItens.tsx)
+- [ConfigurarPeloCertificado.tsx](../../../resources/js/Pages/NfeBrasil/Tributacao/_components/ConfigurarPeloCertificado.tsx)
 
 ## Charters (lei da tela) — 6
 
@@ -192,9 +193,9 @@ module: NfeBrasil
 - [Index.casos.md](../../../resources/js/Pages/NfeBrasil/Tributacao/Index.casos.md)
 - [RegraForm.casos.md](../../../resources/js/Pages/NfeBrasil/Tributacao/RegraForm.casos.md)
 
-## Testes (Pest) — 65
+## Testes (Pest) — 66
 
-- 65 em [Modules/NfeBrasil/Tests/Feature/](../../../Modules/NfeBrasil/Tests/Feature)
+- 66 em [Modules/NfeBrasil/Tests/Feature/](../../../Modules/NfeBrasil/Tests/Feature)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
 ## Demais arquivos (manifestos, docs, assets e misc) — 38

@@ -5,8 +5,12 @@ tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (
 por_que: comportamento é durável — o contrato de teste nasce junto com a tela, não depois.
 fonte: handoff "PROTÓTIPO OFICIAL - FABRICAÇÃO V1" §17 (R-01..R-24) — os UC abaixo DERIVAM dele
 owner: wagner
-last_run: "2026-10-06"
+last_run: "2026-10-07"
 ---
+
+> ℹ️ **`last_run` 2026-10-06 → 2026-10-07 (G-6): forma, não comportamento.** A lista de produtos da janela
+> "Nova receita" crescia até o nome mais comprido (medido em produção: 740px numa janela de 520px, botões
+> pra fora). A coluna da janela passou a caber nela e o nome corta com "…". Nenhum UC foi reexecutado.
 
 > ℹ️ **`last_run` 2026-10-02 → 2026-10-06 (G-6): a "Nova receita" virou janela da própria tela.**
 > O botão levava a `recipe/create`, que devolve só o miolo de um modal Bootstrap sem os scripts do layout —
