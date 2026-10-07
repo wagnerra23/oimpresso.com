@@ -14,7 +14,7 @@ module: Forja
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Forja/**` + `resources/js/Pages/Forja/**` + `resources/js/Pages/team-mcp/**` (namespaces Inertia `Forja`, `team-mcp`, declarados em `module-surface.mjs::PAGES_NS` porque diferem do nome do módulo `Forja` — confira com `--namespaces`), separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 301 arquivos em 15 papéis.
+**Total mapeado:** 305 arquivos em 15 papéis.
 
 ## Controllers — 19
 
@@ -252,21 +252,23 @@ module: Forja
 - [Index.charter.md](../../../Modules/Forja/Resources/js/Pages/team-mcp/Tasks/Index.charter.md)
 - [Index.charter.md](../../../Modules/Forja/Resources/js/Pages/team-mcp/Team/Index.charter.md)
 
-## Casos (contrato UC) — 9
+## Casos (contrato UC) — 11
 
 - [Index.casos.md](../../../Modules/Forja/Resources/js/Pages/Forja/Aprovacoes/Index.casos.md)
 - [Gantt.casos.md](../../../Modules/Forja/Resources/js/Pages/Forja/Roadmap/Gantt.casos.md)
 - [Index.casos.md](../../../Modules/Forja/Resources/js/Pages/Forja/Roadmap/Index.casos.md)
 - [Index.casos.md](../../../Modules/Forja/Resources/js/Pages/Forja/Trabalho/Index.casos.md)
+- [ProjectShow.casos.md](../../../Modules/Forja/Resources/js/Pages/ads/Admin/ProjectShow.casos.md)
 - [Projects.casos.md](../../../Modules/Forja/Resources/js/Pages/ads/Admin/Projects.casos.md)
 - [TeamScopes.casos.md](../../../Modules/Forja/Resources/js/Pages/ads/Admin/TeamScopes.casos.md)
 - [Tools.casos.md](../../../Modules/Forja/Resources/js/Pages/ads/Admin/Tools.casos.md)
+- [Index.casos.md](../../../Modules/Forja/Resources/js/Pages/team-mcp/CcSessions/Index.casos.md)
 - [Cockpit.casos.md](../../../Modules/Forja/Resources/js/Pages/team-mcp/Forja/Cockpit.casos.md)
 - [Index.casos.md](../../../Modules/Forja/Resources/js/Pages/team-mcp/Scorecard/Index.casos.md)
 
-## Testes (Pest) — 67
+## Testes (Pest) — 69
 
-- 64 em [Modules/Forja/Tests/Feature/](../../../Modules/Forja/Tests/Feature)
+- 66 em [Modules/Forja/Tests/Feature/](../../../Modules/Forja/Tests/Feature)
 - 2 em [Modules/Forja/Tests/Feature/Roadmap/](../../../Modules/Forja/Tests/Feature/Roadmap)
 - 1 em [Modules/Forja/Tests/Support/](../../../Modules/Forja/Tests/Support)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._

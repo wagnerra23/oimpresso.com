@@ -255,7 +255,7 @@ function RegraForm({ regra }: Props) {
               </p>
             </CardHeader>
             <CardContent className="space-y-4">
-              <Grid min="sm" gap={4}>
+              <Grid cols={3} gap={4}>
                 <FieldCodigo
                   id="c_class_trib" label="cClassTrib (6 dígitos)" digitos={6} placeholder="000001"
                   value={form.data.c_class_trib}
@@ -275,7 +275,7 @@ function RegraForm({ regra }: Props) {
                   error={form.errors.cst_cbs}
                 />
               </Grid>
-              <Grid min="sm" gap={4}>
+              <Grid cols={4} gap={4}>
                 <FieldDecimal
                   id="aliquota_ibs" label="IBS"
                   value={form.data.aliquota_ibs}

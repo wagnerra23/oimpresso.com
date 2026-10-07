@@ -3,15 +3,26 @@
 namespace App\Http\Controllers;
 
 use App\Barcode;
+use App\Services\FeatureFlagService;
 use Datatables;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 
 class BarcodeController extends Controller
 {
     /**
+     * Flag do caminho React (thread sistema/playbook/04, F3). Convenção `useV2<Modulo><Tela>`.
+     * Sem a chave no GrowthBook o FeatureFlagService cai no fallbackDefaults, que não a lista:
+     * default OFF, a Blade segue servindo. Ligar é toggle no GrowthBook (flag:set --biz=1), não deploy.
+     *
+     * @see memory/requisitos/Configuracoes/RUNBOOK-codigo-barras.md
+     */
+    private const FLAG_V2 = 'useV2ConfiguracoesCodigoBarras';
+
+    /**
      * Display a listing of the resource.
      *
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\JsonResponse|\Illuminate\View\View|\Inertia\Response
      */
     public function index()
     {
@@ -19,9 +30,11 @@ class BarcodeController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
-        if (request()->ajax()) {
-            $business_id = request()->session()->get('user.business_id');
+        $business_id = request()->session()->get('user.business_id');
 
+        // `! inertia()`: o Inertia v3 manda `X-Requested-With` em toda visita; sem esta perna o
+        // partial reload da prop adiada caía no JSON do DataTables (RUNBOOK-codigo-barras §10).
+        if (request()->ajax() && ! request()->inertia()) {
             $barcodes = Barcode::where('business_id', $business_id)
                         ->select(['name', 'description', 'id', 'is_default']);
 
@@ -51,7 +64,37 @@ class BarcodeController extends Controller
                 ->make(false);
         }
 
+        if (app(FeatureFlagService::class)->isOn(self::FLAG_V2, ['business_id' => $business_id])) {
+            return Inertia::render('Configuracoes/CodigoBarras/Index', [
+                'etiquetas' => Inertia::defer(fn () => $this->etiquetasDoNegocio((int) $business_id)),
+            ]);
+        }
+
         return view('barcode.index');
+    }
+
+    /**
+     * Configurações de etiqueta do negócio da sessão, no shape da tela React. Os modelos globais
+     * (business_id NULL) ficam fora, como na DataTable. Medidas em polegada, como o banco e a impressão.
+     */
+    private function etiquetasDoNegocio(int $business_id): array
+    {
+        $campos = ['width', 'height', 'paper_width', 'paper_height', 'top_margin', 'left_margin', 'row_distance', 'col_distance'];
+
+        return Barcode::where('business_id', $business_id)
+            ->orderByDesc('is_default')->orderBy('name')
+            ->get()
+            ->map(fn (Barcode $b) => [
+                'id' => $b->id,
+                'nome' => $b->name,
+                'descricao' => (string) $b->description,
+                'padrao' => (bool) $b->is_default,
+                'continuo' => (bool) $b->is_continuous,
+                'por_linha' => $b->stickers_in_one_row,
+                'por_folha' => $b->stickers_in_one_sheet,
+                'medidas' => collect($campos)->mapWithKeys(fn ($c) => [$c => $b->{$c} === null ? null : (float) $b->{$c}])->all(),
+            ])
+            ->all();
     }
 
     /**

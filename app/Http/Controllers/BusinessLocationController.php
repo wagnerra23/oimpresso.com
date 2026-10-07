@@ -7,14 +7,25 @@ use App\BusinessLocation;
 use App\InvoiceLayout;
 use App\InvoiceScheme;
 use App\SellingPriceGroup;
+use App\Services\FeatureFlagService;
 use App\Utils\ModuleUtil;
 use App\Utils\Util;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 use Spatie\Permission\Models\Permission;
 use Yajra\DataTables\Facades\DataTables;
 
 class BusinessLocationController extends Controller
 {
+    /**
+     * Flag do caminho React (thread sistema/playbook/04, F3). Convenção `useV2<Modulo><Tela>`.
+     * Sem a chave no GrowthBook o FeatureFlagService cai no fallbackDefaults, que não a lista:
+     * default OFF, a Blade segue servindo. Ligar é toggle no GrowthBook (flag:set --biz=1), não deploy.
+     *
+     * @see memory/requisitos/Configuracoes/RUNBOOK-locais.md
+     */
+    private const FLAG_V2 = 'useV2ConfiguracoesLocais';
+
     protected $moduleUtil;
 
     protected $commonUtil;
@@ -34,7 +45,7 @@ class BusinessLocationController extends Controller
     /**
      * Display a listing of the resource.
      *
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\JsonResponse|\Illuminate\View\View|\Inertia\Response
      */
     public function index()
     {
@@ -42,9 +53,11 @@ class BusinessLocationController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
-        if (request()->ajax()) {
-            $business_id = request()->session()->get('user.business_id');
+        $business_id = request()->session()->get('user.business_id');
 
+        // `! inertia()`: o Inertia v3 manda `X-Requested-With` em toda visita; sem esta perna o
+        // partial reload da prop adiada caía no JSON do DataTables (RUNBOOK-locais §10).
+        if (request()->ajax() && ! request()->inertia()) {
             $locations = BusinessLocation::where('business_locations.business_id', $business_id)
                 ->leftjoin(
                     'invoice_schemes as ic',
@@ -93,7 +106,42 @@ class BusinessLocationController extends Controller
                 ->make(false);
         }
 
+        if (app(FeatureFlagService::class)->isOn(self::FLAG_V2, ['business_id' => $business_id])) {
+            return Inertia::render('Configuracoes/Locais/Index', [
+                'locais' => Inertia::defer(fn () => $this->locaisDoNegocio((int) $business_id)),
+            ]);
+        }
+
         return view('business_location.index');
+    }
+
+    /**
+     * Locais do negócio da sessão no shape da tela React — mesmo recorte da DataTable, inclusive o
+     * `permitted_locations()` (sem `access_all_locations`, só os locais com permissão direta).
+     */
+    private function locaisDoNegocio(int $business_id): array
+    {
+        $query = BusinessLocation::where('business_locations.business_id', $business_id)
+            ->leftJoin('invoice_schemes as ic', 'business_locations.invoice_scheme_id', '=', 'ic.id')
+            ->leftJoin('invoice_layouts as il', 'business_locations.invoice_layout_id', '=', 'il.id')
+            ->leftJoin('invoice_layouts as sil', 'business_locations.sale_invoice_layout_id', '=', 'sil.id')
+            ->leftJoin('selling_price_groups as spg', 'business_locations.selling_price_group_id', '=', 'spg.id')
+            ->select(['business_locations.id', 'business_locations.name', 'business_locations.location_id', 'business_locations.city',
+                'business_locations.state', 'business_locations.cnpj', 'business_locations.is_active', 'spg.name as tabela',
+                'ic.name as esquema', 'il.name as layout_pdv', 'sil.name as layout_venda'])
+            ->orderByDesc('business_locations.is_active')->orderBy('business_locations.name');
+
+        $permitidos = auth()->user()->permitted_locations();
+        if ($permitidos != 'all') {
+            $query->whereIn('business_locations.id', $permitidos);
+        }
+
+        return $query->toBase()->get()->map(fn (object $l) => [
+            'id' => $l->id, 'nome' => $l->name, 'referencia' => (string) $l->location_id,
+            'cidade' => trim(implode(' / ', array_filter([$l->city, $l->state]))), 'cnpj' => (string) $l->cnpj,
+            'ativo' => (bool) $l->is_active, 'tabela' => $l->tabela, 'esquema' => $l->esquema,
+            'layout_pdv' => $l->layout_pdv, 'layout_venda' => $l->layout_venda,
+        ])->all();
     }
 
     /**
