@@ -32,3 +32,4 @@ last_run: "2026-10-07"
 ## Backlog
 - [BACKLOG] Filtro de subcategoria (na Blade carrega por AJAX a partir da categoria).
 - [BACKLOG] Gráfico de colunas, como a Blade e o protótipo.
+- [BACKLOG] Colunas "Categoria" e "Total vendido (R$)" do protótipo — exigem a consulta (`ProductUtil::getTrendingProducts`) devolver categoria e valor; hoje devolve só produto, SKU, unidade e quantidade.
