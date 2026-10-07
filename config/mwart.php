@@ -215,6 +215,13 @@ return [
         'business_ids' => $parseBizIds('MWART_VENDAS_SALES_ORDER_INDEX_BIZ'),
     ],
 
+    // ManageUserController@index → Usuarios/Index (thread sistema/playbook/01).
+    // Nasce desligada: o cutover F5 é decisão [W], por empresa.
+    'sistema_usuarios_index' => [
+        'enabled'      => env('MWART_SISTEMA_USUARIOS_INDEX', false),
+        'business_ids' => $parseBizIds('MWART_SISTEMA_USUARIOS_INDEX_BIZ'),
+    ],
+
     // produto_etiquetas: removida em 2026-10-06 (noite) — a tela nova virou padrão sem flag
     // (decisão [W] "etiquetas pode ativar sem tag"); `?classico=1` em /labels/show força a Blade.
 ];
