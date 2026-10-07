@@ -51548,5 +51548,22 @@
     },
     "origin": "medicao",
     "projetoCowork": "w"
+  },
+  {
+    "date": "2026-10-07T20:58:05.743Z",
+    "files": 284,
+    "sync": 1,
+    "stale": 0,
+    "liveAbsent": 0,
+    "unchecked": 283,
+    "staleList": [],
+    "verified": [
+      "cowork-inbox/fiscal/playbook/_saida-09.md"
+    ],
+    "verifiedHash": {
+      "cowork-inbox/fiscal/playbook/_saida-09.md": "658283ff52a2ae0c95d4c149c402fc4637d9d3d525e7ad31e86173049a10e257"
+    },
+    "origin": "medicao",
+    "projetoCowork": "w"
   }
 ]
