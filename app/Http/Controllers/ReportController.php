@@ -2470,7 +2470,7 @@ class ReportController extends Controller
     /**
      * Shows purchase payment report
      *
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Contracts\View\View|\Inertia\Response|\Illuminate\Http\JsonResponse
      */
     public function purchasePaymentReport(Request $request)
     {
@@ -2479,69 +2479,15 @@ class ReportController extends Controller
         }
 
         $business_id = $request->session()->get('user.business_id');
+
+        // Tela React (playbook sistema/07). Vem ANTES do ajax(): a visita Inertia manda
+        // X-Requested-With. As linhas saem da MESMA consulta do DataTable da Blade, paginadas no servidor.
+        if ($request->query('tela') === 'nova') {
+            return $this->telaPagamentosDeCompra($request, $business_id);
+        }
+
         if ($request->ajax()) {
-            $supplier_id = (int) $request->get('supplier_id', 0); // vai cru no SQL: só inteiro
-            $contact_filter1 = ! empty($supplier_id) ? "AND t.contact_id=$supplier_id" : '';
-            $contact_filter2 = ! empty($supplier_id) ? "AND transactions.contact_id=$supplier_id" : '';
-
-            $location_id = $request->get('location_id', null);
-
-            $parent_payment_query_part = empty($location_id) ? 'AND transaction_payments.parent_id IS NULL' : '';
-
-            $query = TransactionPayment::leftjoin('transactions as t', function ($join) use ($business_id) {
-                $join->on('transaction_payments.transaction_id', '=', 't.id')
-                    ->where('t.business_id', $business_id)
-                    ->whereIn('t.type', ['purchase', 'opening_balance']);
-            })
-                ->where('transaction_payments.business_id', $business_id)
-                ->where(function ($q) use ($business_id, $contact_filter1, $contact_filter2, $parent_payment_query_part) {
-                    $q->whereRaw("(transaction_payments.transaction_id IS NOT NULL AND t.type IN ('purchase', 'opening_balance')  $parent_payment_query_part $contact_filter1)")
-                        ->orWhereRaw("EXISTS(SELECT * FROM transaction_payments as tp JOIN transactions ON tp.transaction_id = transactions.id WHERE transactions.type IN ('purchase', 'opening_balance') AND transactions.business_id = $business_id AND tp.parent_id=transaction_payments.id $contact_filter2)");
-                })
-
-                ->select(
-                    DB::raw("IF(transaction_payments.transaction_id IS NULL, 
-                                (SELECT c.name FROM transactions as ts
-                                JOIN contacts as c ON ts.contact_id=c.id 
-                                WHERE ts.id=(
-                                        SELECT tps.transaction_id FROM transaction_payments as tps
-                                        WHERE tps.parent_id=transaction_payments.id LIMIT 1
-                                    )
-                                ),
-                                (SELECT CONCAT(COALESCE(c.supplier_business_name, ''), '<br>', c.name) FROM transactions as ts JOIN
-                                    contacts as c ON ts.contact_id=c.id
-                                    WHERE ts.id=t.id 
-                                )
-                            ) as supplier"),
-                    'transaction_payments.amount',
-                    'method',
-                    'paid_on',
-                    'transaction_payments.payment_ref_no',
-                    'transaction_payments.document',
-                    't.ref_no',
-                    't.id as transaction_id',
-                    'cheque_number',
-                    'card_transaction_number',
-                    'bank_account_number',
-                    'transaction_no',
-                    'transaction_payments.id as DT_RowId'
-                )
-                ->groupBy('transaction_payments.id');
-
-            $start_date = $request->get('start_date');
-            $end_date = $request->get('end_date');
-            if (! empty($start_date) && ! empty($end_date)) {
-                $query->whereBetween(DB::raw('date(paid_on)'), [$start_date, $end_date]);
-            }
-
-            $permitted_locations = auth()->user()->permitted_locations();
-            if ($permitted_locations != 'all') {
-                $query->whereIn('t.location_id', $permitted_locations);
-            }
-
-            if (! empty($location_id)) {
-                $query->where('t.location_id', $location_id);
-            }
+            $query = $this->consultaPagamentosDeCompra($business_id, $request->only(self::FILTROS_PAGAMENTOS_COMPRA));
 
             $payment_types = $this->transactionUtil->payment_types(null, true, $business_id);
 
@@ -2587,6 +2533,129 @@ class ReportController extends Controller
 
         return view('report.purchase_payment_report')
             ->with(compact('business_locations', 'suppliers'));
+    }
+
+    /** Filtros do relatório Pagamentos de compra — os mesmos nomes que o report.js manda. */
+    private const FILTROS_PAGAMENTOS_COMPRA = ['supplier_id', 'location_id', 'start_date', 'end_date'];
+
+    /**
+     * Pagamentos de compra — a consulta do relatório, usada pelo DataTable da Blade e pela tela nova
+     * (playbook sistema/07). Corpo movido sem mudança de regra do ramo ajax() de purchasePaymentReport.
+     *
+     * @param  array<string, mixed>  $filtros  FILTROS_PAGAMENTOS_COMPRA
+     */
+    private function consultaPagamentosDeCompra(int $business_id, array $filtros): \Illuminate\Database\Eloquent\Builder
+    {
+        $supplier_id = (int) ($filtros['supplier_id'] ?? 0); // vai cru no SQL: só inteiro
+        $contact_filter1 = ! empty($supplier_id) ? "AND t.contact_id=$supplier_id" : '';
+        $contact_filter2 = ! empty($supplier_id) ? "AND transactions.contact_id=$supplier_id" : '';
+
+        $location_id = ($filtros['location_id'] ?? null);
+
+        $parent_payment_query_part = empty($location_id) ? 'AND transaction_payments.parent_id IS NULL' : '';
+
+        $query = TransactionPayment::leftjoin('transactions as t', function ($join) use ($business_id) {
+            $join->on('transaction_payments.transaction_id', '=', 't.id')
+                ->where('t.business_id', $business_id)
+                ->whereIn('t.type', ['purchase', 'opening_balance']);
+        })
+            ->where('transaction_payments.business_id', $business_id)
+            ->where(function ($q) use ($business_id, $contact_filter1, $contact_filter2, $parent_payment_query_part) {
+                $q->whereRaw("(transaction_payments.transaction_id IS NOT NULL AND t.type IN ('purchase', 'opening_balance')  $parent_payment_query_part $contact_filter1)")
+                    ->orWhereRaw("EXISTS(SELECT * FROM transaction_payments as tp JOIN transactions ON tp.transaction_id = transactions.id WHERE transactions.type IN ('purchase', 'opening_balance') AND transactions.business_id = $business_id AND tp.parent_id=transaction_payments.id $contact_filter2)");
+            })
+
+            ->select(
+                DB::raw("IF(transaction_payments.transaction_id IS NULL, 
+                            (SELECT c.name FROM transactions as ts
+                            JOIN contacts as c ON ts.contact_id=c.id 
+                            WHERE ts.id=(
+                                    SELECT tps.transaction_id FROM transaction_payments as tps
+                                    WHERE tps.parent_id=transaction_payments.id LIMIT 1
+                                )
+                            ),
+                            (SELECT CONCAT(COALESCE(c.supplier_business_name, ''), '<br>', c.name) FROM transactions as ts JOIN
+                                contacts as c ON ts.contact_id=c.id
+                                WHERE ts.id=t.id 
+                            )
+                        ) as supplier"),
+                'transaction_payments.amount',
+                'method',
+                'paid_on',
+                'transaction_payments.payment_ref_no',
+                'transaction_payments.document',
+                't.ref_no',
+                't.id as transaction_id',
+                'cheque_number',
+                'card_transaction_number',
+                'bank_account_number',
+                'transaction_no',
+                'transaction_payments.id as DT_RowId'
+            )
+            ->groupBy('transaction_payments.id');
+
+        $start_date = ($filtros['start_date'] ?? null);
+        $end_date = ($filtros['end_date'] ?? null);
+        if (! empty($start_date) && ! empty($end_date)) {
+            $query->whereBetween(DB::raw('date(paid_on)'), [$start_date, $end_date]);
+        }
+
+        $permitted_locations = auth()->user()->permitted_locations();
+        if ($permitted_locations != 'all') {
+            $query->whereIn('t.location_id', $permitted_locations);
+        }
+
+        if (! empty($location_id)) {
+            $query->where('t.location_id', $location_id);
+        }
+
+        return $query;
+    }
+
+    /**
+     * Tela nova de Pagamentos de compra: as mesmas linhas da consulta acima, 25 por página, e o total
+     * da página como o tfoot da Blade (sum_table_col da página).
+     */
+    private function telaPagamentosDeCompra(Request $request, int $business_id): \Inertia\Response
+    {
+        $payment_types = $this->transactionUtil->payment_types(null, true, $business_id);
+        $filtros = array_filter($request->only(self::FILTROS_PAGAMENTOS_COMPRA), fn ($v) => $v !== null && $v !== '');
+        // Sem período = todos os pagamentos, como a Blade (o campo de data dela nasce vazio).
+        $filtros['start_date'] = $this->dataIsoOu((string) $request->query('start_date', ''), '');
+        $filtros['end_date'] = $this->dataIsoOu((string) $request->query('end_date', ''), '');
+
+        $pagina = $this->consultaPagamentosDeCompra($business_id, $filtros)
+            ->orderBy('paid_on', 'desc')->orderBy('transaction_payments.id', 'desc')
+            ->toBase()->paginate(25)->withQueryString();
+
+        $linhas = collect($pagina->items())->map(fn (\stdClass $r): array => [
+            'id' => (int) $r->DT_RowId,
+            'ref' => (string) ($r->payment_ref_no ?? ''),
+            'pago_em' => (string) $r->paid_on,
+            'valor' => (float) $r->amount,
+            'fornecedor' => trim(str_replace('<br>', ' · ', (string) ($r->supplier ?? '')), ' ·'),
+            'forma' => (string) ($payment_types[$r->method] ?? ''),
+            'compra' => $r->ref_no,
+        ])->values();
+
+        return Inertia::render('Relatorios/PagamentosCompra/Index', [
+            'linhas' => $linhas,
+            // Como o tfoot da Blade (sum_table_col da página): soma só das linhas desta página.
+            'total_pagina' => (float) $linhas->sum('valor'),
+            'paginacao' => ['atual' => $pagina->currentPage(), 'ultima' => $pagina->lastPage(), 'total' => $pagina->total()],
+            'filtros' => [
+                'supplier_id' => (string) ($filtros['supplier_id'] ?? ''),
+                'location_id' => (string) ($filtros['location_id'] ?? ''),
+                'start_date' => $filtros['start_date'],
+                'end_date' => $filtros['end_date'],
+            ],
+            'fornecedores' => collect(Contact::suppliersDropdown($business_id, false))->map(fn ($nome, $id) => ['id' => (int) $id, 'nome' => (string) $nome])->values(),
+            'locais' => collect(BusinessLocation::forDropdown($business_id))->map(fn ($nome, $id) => ['id' => (int) $id, 'nome' => (string) $nome])->values(),
+            'moeda' => [
+                'simbolo' => (string) $request->session()->get('business.currency_symbol', 'R$'),
+                'casas' => (int) $request->session()->get('business.currency_precision', 2),
+            ],
+        ]);
     }
 
     /**
