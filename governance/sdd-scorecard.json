@@ -254,10 +254,10 @@
       "target": "<2%",
       "source": "governance/sdd-verification-ledger.json .entries[veredito=aprovado] → max(error_rate_pct) (GT-G5 · P08)",
       "detail": {
-        "entries_aprovadas": 79,
+        "entries_aprovadas": 80,
         "max_error_rate_pct": 1.98,
-        "last_pr": 8746,
-        "last_lote": "gt-g5-lote-8746"
+        "last_pr": 8969,
+        "last_lote": "gt-g5-lote-8969"
       },
       "stream": "GT"
     }
