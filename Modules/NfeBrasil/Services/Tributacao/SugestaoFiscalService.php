@@ -102,7 +102,10 @@ class SugestaoFiscalService
                     array_merge($regra->only(self::CAMPOS_REGRA), $campos),
                     array_intersect_key($todas, array_flip(self::CAMPOS_REGRA)),
                 )->validate();
-                $nova = NfeFiscalRule::temVersionamento() ? $regra->novaVersao($dados) : tap($regra)->update($dados);
+                // Thread 15a: a versão nova entra na revisão do contador com origem "jana".
+                $nova = RevisaoContadorService::comOrigem('jana', fn () => NfeFiscalRule::temVersionamento()
+                    ? $regra->novaVersao($dados)
+                    : tap($regra)->update($dados));
                 $alterado = ['regra_id' => $nova->id, 'campos' => array_keys($campos)];
             }
             // natureza e inconsistencia: aceitar registra a decisão; não há escrita automática —

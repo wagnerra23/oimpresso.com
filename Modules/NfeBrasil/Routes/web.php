@@ -10,6 +10,7 @@ use Modules\NfeBrasil\Http\Controllers\InstallController;
 use Modules\NfeBrasil\Http\Controllers\NfeBrasilController;
 use Modules\NfeBrasil\Http\Controllers\NfeInutilizacaoController;
 use Modules\NfeBrasil\Http\Controllers\NfeStatusController;
+use Modules\NfeBrasil\Http\Controllers\RevisaoContadorController;
 use Modules\NfeBrasil\Http\Controllers\SugestaoFiscalController;
 use Modules\NfeBrasil\Http\Controllers\TributacaoController;
 
@@ -102,6 +103,13 @@ Route::middleware(['web', 'auth', 'SetSessionData', 'language', 'timezone', 'Adm
             ->whereNumber('id')->name('sugestoes.aceitar');
         Route::post('sugestoes/{id}/descartar', [SugestaoFiscalController::class, 'descartar'])
             ->whereNumber('id')->name('sugestoes.descartar');
+
+        // Revisão do contador (playbook Fiscal thread 15a) — permissão própria nfe.tributacao.aceitar.
+        Route::get('revisoes', [RevisaoContadorController::class, 'index'])->name('revisoes.index');
+        Route::post('revisoes/{id}/aceitar', [RevisaoContadorController::class, 'aceitar'])
+            ->whereNumber('id')->name('revisoes.aceitar');
+        Route::post('revisoes/{id}/ajuste', [RevisaoContadorController::class, 'ajuste'])
+            ->whereNumber('id')->name('revisoes.ajuste');
 
         // Templates tributários L1 (US-NFE-TPL-001)
         Route::post('templates/{slug}/aplicar', [TributacaoController::class, 'aplicarTemplate'])

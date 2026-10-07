@@ -60,6 +60,9 @@ last_run: "2026-10-07"
 | UC-NFTR-11 | A Jana só lê o produto da própria empresa, sem preço, cliente ou CNPJ | must `[T0]` | ADR 0093 · ADR 0141 | `ProdutoFiscalToolTest` | 🧪 |
 | UC-NFTR-12 | Aceitar ou descartar sugestão de outra empresa é 404 | must `[T0]` | ADR 0093 | `SugestaoFiscalTest` | 🧪 |
 | UC-NFTR-13 | Jana fora do ar não afeta emissão nem cadastro | must `[fiscal]` | D-IA (IA nunca é caminho crítico) | `SugestaoFiscalTest` | 🧪 |
+| UC-NFTR-19 | Aceite é por versão e exige permissão própria (o dono não aceita pelo contador) | must `[T0]` `[fiscal]` | D-CONTADOR · D-SUPORTE · `RevisaoContadorService::podeAceitar` | `AceiteContadorTest` | 🧪 |
+| UC-NFTR-20 | Pedir ajuste exige comentário e fica registrado | must `[fiscal]` | D-CONTADOR | `AceiteContadorTest` | 🧪 |
+| UC-NFTR-21 | Falta de aceite não bloqueia emissão | must `[fiscal]` | D-SUPORTE (bloqueio vira chamado) | `AceiteContadorTest` | 🧪 |
 
 > **Recibo:** ver §Recibo de execução no rodapé — status é o **veredito** da corrida, não leitura de código.
 
@@ -345,6 +348,43 @@ last_run: "2026-10-07"
 - **Teste:** [`SugestaoFiscalTest`](../../../../../Modules/NfeBrasil/Tests/Feature/SugestaoFiscalTest.php) — `UC-NFTR-13 · IA indisponível não bloqueia fiscal`.
 - **Contrato:** D-IA (IA é sugestão, nunca caminho crítico).
 - **Regressão que defende:** emissão travada porque a IA não respondeu.
+- **Status: 🧪** — veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
+
+## UC-NFTR-19 · Aceite é por versão e exige permissão própria · `must` `[T0]` `[fiscal]`
+
+- **Persona:** contador com usuário (o link sem conta é a thread 15b).
+- **Aceite:** Dado uma regra criada · Então nasce uma revisão `pendente` com o de → para, o autor e a
+  origem (manual · csv · jana). Quando o **dono da empresa** (papel `Admin#`) ou quem só tem
+  `nfe.tributacao.manage` aceita → 403. Com `nfe.tributacao.aceitar` → grava quem, e-mail, quando e IP,
+  e `activity("aceite.registrado")`. Quando a regra aceita é editada · Então a versão nova nasce pendente
+  com o de → para e a antiga mantém o aceite. Controle positivo: o lote do Import CSV entra com origem "csv".
+- **Teste:** [`AceiteContadorTest`](../../../../../Modules/NfeBrasil/Tests/Feature/AceiteContadorTest.php) — `UC-NFTR-19 · aceite por versão, permissão própria`.
+- **Contrato:** D-CONTADOR · D-SUPORTE. A permissão é checada direto no Spatie (`hasPermissionTo`): o
+  `Gate::before` libera o `Admin#` em qualquer `can()`.
+- **Regressão que defende:** dono "aceitando" pelo contador; aceite antigo valendo para regra que mudou.
+- **Status: 🧪** — veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
+
+## UC-NFTR-20 · Pedir ajuste exige comentário e fica registrado · `must` `[fiscal]`
+
+- **Persona:** contador que discorda.
+- **Aceite:** Dado item pendente · Quando peço ajuste sem comentário (ou só espaços) → 422. Com comentário →
+  "ajuste pedido", o texto aparece na lista da empresa e `activity("aceite.ajuste_pedido")`. Controle
+  positivo: depois da correção (versão nova), o item volta pendente.
+- **Teste:** [`AceiteContadorTest`](../../../../../Modules/NfeBrasil/Tests/Feature/AceiteContadorTest.php) — `UC-NFTR-20 · pedir ajuste com comentário`.
+- **Contrato:** D-CONTADOR.
+- **Regressão que defende:** discordância do contador que se perde no e-mail.
+- **Fora daqui:** mostrar o pedido na Saúde fiscal é a thread 14.
+- **Status: 🧪** — veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
+
+## UC-NFTR-21 · Falta de aceite não bloqueia emissão · `must` `[fiscal]`
+
+- **Persona:** Larissa vendendo com regra ainda não revisada.
+- **Aceite:** Dado regra vigente sem aceite · Então o motor calcula normalmente (item de 1.000,00 a 12% → ICMS
+  120,00) e a lista de revisões conta a regra em `sem_aceite`. Controle positivo: aceita, `sem_aceite` cai 1
+  e o cálculo segue igual.
+- **Teste:** [`AceiteContadorTest`](../../../../../Modules/NfeBrasil/Tests/Feature/AceiteContadorTest.php) — `UC-NFTR-21 · sem aceite emite normal`.
+- **Contrato:** D-SUPORTE (bloqueio vira chamado).
+- **Regressão que defende:** um gate de aceite parando o balcão.
 - **Status: 🧪** — veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
 
 ## Backlog — sem UC até ganhar teste

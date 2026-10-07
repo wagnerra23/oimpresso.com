@@ -25,6 +25,7 @@ db_tables_owned:
   - nfe_operacoes_fiscais
   - nfe_icms_uf
   - nfe_sugestoes_fiscais
+  - nfe_revisoes_contador
   - nfe_business_configs
   - nfe_fiscal_rule_tax_rate_links (bridge ADR ARQ-0005)
   - nfe_sefaz_status (saude do autorizador por UF — global por desenho da ADR TECH-0002; sem business_id)
