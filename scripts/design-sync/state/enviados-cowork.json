@@ -1,6 +1,34 @@
 {
   "_nota": "Arquivos que o Code subiu ao Cowork (DesignSync) e que o bundle ativo ainda não trouxe de volta. Escrito por pendentes-cowork.mjs; o receber-handoff limpa o que o retorno confirmar.",
   "enviados": {
+    "acessos-page.css": {
+      "sha256": "2ff0a0dec580f0ca33bb20aeb90dd24fc6fb1a9004394126fa65cedf6894656a",
+      "em": "2026-10-07T11:11:24.232Z"
+    },
+    "cms-extras.jsx": {
+      "sha256": "6d6ccfeb4d4c891891be6f1841e1c50931ee9f1ca9e92c86696840f895dce24b",
+      "em": "2026-10-07T11:11:24.232Z"
+    },
+    "cms-page.css": {
+      "sha256": "4ed8ac8551c08c3cb38876723ee4afcf243ce1641cfdee71021cba224d0f9f49",
+      "em": "2026-10-07T11:11:24.232Z"
+    },
+    "cms-page.jsx": {
+      "sha256": "d88a01db19f3ef1ea8b6852f730aaca808107cb719a412f673a65599d138b777",
+      "em": "2026-10-07T11:11:24.232Z"
+    },
+    "comissionados-page.jsx": {
+      "sha256": "58fcbac946f02ef174680250eeb8b5cb973795dac58ade5905385d8bd1e2921d",
+      "em": "2026-10-07T11:11:24.232Z"
+    },
+    "comissoes-page.jsx": {
+      "sha256": "2caa8af0b7d2a502e17921f6dea16870749fd5356e959b16fd1810342d772a7a",
+      "em": "2026-10-07T11:11:24.232Z"
+    },
+    "connector-page.css": {
+      "sha256": "04a0bca7495433d36086e2f2fd336672112ffd4bc4f9becbecdf9de3b587555d",
+      "em": "2026-10-07T11:11:24.232Z"
+    },
     "cowork-inbox/atendimento/playbook/_saida-05.md": {
       "sha256": "3c92170845b257d22947ea04ab1eeb9ac67162eefdea850ccb9ac298e5cef157",
       "em": "2026-10-07T00:46:17.668Z"
@@ -129,6 +157,10 @@
       "sha256": "481d61b9107233b96d954e6beee744ae44d6d257575bf4d31f7f7542c756e37a",
       "em": "2026-10-06T17:41:54.909Z"
     },
+    "cowork-inbox/tema-escuro/playbook/_saida-04.md": {
+      "sha256": "1108fcc501a0c2eaa7a0614ee191f963407967b2d1cb47a6386ab99d7807dc85",
+      "em": "2026-10-07T11:11:24.232Z"
+    },
     "cowork-inbox/venda-menu/playbook/_saida-00.md": {
       "sha256": "a1a86ee7e9cc1411ee10f9e66deb8bd31559f2c7c1481cbbd5120c0baa7a4290",
       "em": "2026-10-07T11:07:49.909Z"
@@ -153,6 +185,34 @@
       "sha256": "48ac9307b574150c60cfe4553d67b3f6d819a11167b5c057f6e9e548fa9bf43a",
       "em": "2026-10-07T11:07:10.775Z"
     },
+    "forja-page.css": {
+      "sha256": "ba956343467bee08298d075ccb7213ea70c8316e0a4c5c3996085f13cdf91cc9",
+      "em": "2026-10-07T11:11:24.232Z"
+    },
+    "funcoes-page.jsx": {
+      "sha256": "68dbe5cf41d57e116e54773ce36ce258cd197e83bd23c2356a397c84d431d8de",
+      "em": "2026-10-07T11:11:24.232Z"
+    },
+    "kb-page.css": {
+      "sha256": "489371d639fe633bd710ee143f02561e8e110c2fecc646f5f910826b5dea792f",
+      "em": "2026-10-07T11:11:24.232Z"
+    },
+    "kb-page.jsx": {
+      "sha256": "c2ed1f4b2516af3a9b74a5ac6be96b57b78200f196da6585c76c774451522658",
+      "em": "2026-10-07T11:11:24.232Z"
+    },
+    "mockup-pages.css": {
+      "sha256": "e0e5d6e6f785274714fece30fd9a1e4776504ea52bfef7bd2930fb08154bb657",
+      "em": "2026-10-07T11:11:24.232Z"
+    },
+    "modulos-page.css": {
+      "sha256": "ad135af40fc6632f603f0225358f6b380cd9450575896e2f01202679245a47cf",
+      "em": "2026-10-07T11:11:24.232Z"
+    },
+    "pg-styles.css": {
+      "sha256": "6c20c8e9be5b783354e87e4f10bb8f400e51f0049fb1f66f7a4a00bde0890f06",
+      "em": "2026-10-07T11:11:24.232Z"
+    },
     "produto-blade-forms.jsx": {
       "sha256": "7423e8410517d90d08b954d8a482b7b22ac8920d2e4e788c02927333b95d9769",
       "em": "2026-10-07T11:05:03.824Z"
@@ -168,6 +228,18 @@
     "produtos-page.jsx": {
       "sha256": "ad4b344800756f6ef89b9dbac8da6206da6c249fd5f9cffbfd0b202f5a9295d3",
       "em": "2026-10-07T11:05:03.824Z"
+    },
+    "styles.css": {
+      "sha256": "722992424f147b40534c6040197b736185b00be92203babb9ec68e1ea7acc186",
+      "em": "2026-10-07T11:11:24.232Z"
+    },
+    "usuarios-page.css": {
+      "sha256": "1ed3b0932b26a78363f31e7605a1a3fca241d61a3571eed619763ae58ddcd37e",
+      "em": "2026-10-07T11:11:24.232Z"
+    },
+    "usuarios-page.jsx": {
+      "sha256": "f5190cdf40dc8895bf78ea7348955fc371a89d7609b5d97f5f5b688e70b52bd2",
+      "em": "2026-10-07T11:11:24.232Z"
     },
     "venda-blade-caixa.jsx": {
       "sha256": "d618bc57332447515d5c4a94b168c83b30abbb5244d5db906e4a8af45ab8a759",
