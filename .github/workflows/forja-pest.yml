@@ -185,6 +185,7 @@ jobs:
         # entra pelo MESMO desvio FAILING-FIRST: Pest local é proibido, o 1º veredito é
         # aqui. DatabaseTransactions + tenant 98 (ADR 0358) — nada persiste.
         # 2026-10-07 — AdsAdminProjectsContratoTest (UC-ADPJ-01..04, ads/Admin/Projects.casos.md)
+        # 2026-10-07 — AdsAdminProjectShowContratoTest (UC-ADPS-01..02, ads/Admin/ProjectShow.casos.md)
         # entra pelo MESMO desvio FAILING-FIRST: Pest local é proibido, o 1º veredito é
         # aqui. DatabaseTransactions + tenant 98 × 99 (ADR 0358) — nada persiste.
         env:
@@ -203,6 +204,7 @@ jobs:
             Modules/Forja/Tests/Feature/AprovacoesMesaTest.php \
             Modules/Forja/Tests/Feature/AdsAdminProjectsContratoTest.php \
             Modules/Forja/Tests/Feature/TrabalhoListaTest.php \
+            Modules/Forja/Tests/Feature/AdsAdminProjectShowContratoTest.php \
             Modules/Forja/Tests/Feature/PipelineParidadeTest.php \
             Modules/Forja/Tests/Feature/Roadmap/RoadmapQuarterViewContratoTest.php \
             Modules/Forja/Tests/Feature/ForjaMcpHandoffsInlineTest.php \
