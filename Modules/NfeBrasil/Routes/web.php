@@ -91,6 +91,9 @@ Route::middleware(['web', 'auth', 'SetSessionData', 'language', 'timezone', 'Adm
         Route::get('empresa-fiscal', [EmpresaFiscalLookupController::class, 'show'])
             ->name('empresa-fiscal');
 
+        // Simulador read-only (playbook Fiscal thread 08 · D-SIM) — chama a montagem da emissão.
+        Route::get('simular', [TributacaoController::class, 'simular'])->name('simular');
+
         // Templates tributários L1 (US-NFE-TPL-001)
         Route::post('templates/{slug}/aplicar', [TributacaoController::class, 'aplicarTemplate'])
             ->where('slug', '[a-z0-9\-]+')
