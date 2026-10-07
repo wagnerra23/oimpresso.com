@@ -8,6 +8,7 @@ import { ArrowLeft, Save } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
 import { Input } from '@/Components/ui/input';
+import { Grid } from '@/Components/layout';
 import { Label } from '@/Components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import { toast } from 'sonner';
@@ -254,7 +255,7 @@ function RegraForm({ regra }: Props) {
               </p>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <Grid min="sm" gap={4}>
                 <FieldCodigo
                   id="c_class_trib" label="cClassTrib (6 dígitos)" digitos={6} placeholder="000001"
                   value={form.data.c_class_trib}
@@ -273,8 +274,8 @@ function RegraForm({ regra }: Props) {
                   onChange={(v) => form.setData('cst_cbs', v)}
                   error={form.errors.cst_cbs}
                 />
-              </div>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+              </Grid>
+              <Grid min="sm" gap={4}>
                 <FieldDecimal
                   id="aliquota_ibs" label="IBS"
                   value={form.data.aliquota_ibs}
@@ -289,7 +290,7 @@ function RegraForm({ regra }: Props) {
                   error={form.errors.aliquota_cbs}
                   optional
                 />
-              </div>
+              </Grid>
             </CardContent>
           </Card>
 

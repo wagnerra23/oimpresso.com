@@ -233,8 +233,8 @@ class TributacaoController extends Controller
                 'c_class_trib'    => $regra->c_class_trib,
                 'cst_ibs'         => $regra->cst_ibs,
                 'cst_cbs'         => $regra->cst_cbs,
-                'aliquota_ibs'    => $regra->aliquota_ibs !== null ? (float) $regra->aliquota_ibs : null,
-                'aliquota_cbs'    => $regra->aliquota_cbs !== null ? (float) $regra->aliquota_cbs : null,
+                'aliquota_ibs'    => (float) $regra->aliquota_ibs, // NOT NULL default 0
+                'aliquota_cbs'    => (float) $regra->aliquota_cbs, // NOT NULL default 0
             ],
         ]);
     }
