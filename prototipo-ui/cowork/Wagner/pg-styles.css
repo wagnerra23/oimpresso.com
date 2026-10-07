@@ -506,3 +506,13 @@
 [data-theme="dark"] .pg-shell-scope .bg-stone-100\/80{ background-color: oklch(0.275 0.050 80); }
 [data-theme="dark"] .pg-shell-scope .pg-ai-btn:hover{ background-color: oklch(0.275 0.050 295); color: oklch(0.84 0.180 295); }
 [data-theme="dark"] .pg-shell-scope .pg-ai-btn:focus-visible{ background-color: oklch(0.275 0.050 295); }
+
+/* ───────────────── tema escuro (playbook tema-escuro 04 · 07/10) ─────────────────
+ * stone-100/200/300 e o sky-50 do kind "cartão" eram claro-fixos: a sonda da 01
+ * acusou o contador da aba (cobranca) e o switch desligado (payment-gateways). */
+[data-theme="dark"] .pg-shell-scope .bg-stone-100,
+[data-theme="dark"] .pg-shell-scope .bg-stone-100\/80 { background-color: var(--bg-2); }
+[data-theme="dark"] .pg-shell-scope .bg-stone-200     { background-color: var(--border); }
+[data-theme="dark"] .pg-shell-scope .bg-stone-300     { background-color: oklch(0.40 0.01 80); }
+[data-theme="dark"] .pg-shell-scope .bg-sky-50        { background-color: oklch(0.30 0.07 240); }
+[data-theme="dark"] .pg-shell-scope .text-sky-700     { color: oklch(0.85 0.10 240); }
