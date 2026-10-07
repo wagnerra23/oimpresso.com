@@ -991,7 +991,7 @@ class ReportController extends Controller
     /**
      * Shows trending products
      *
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Contracts\View\View|\Inertia\Response
      */
     public function getTrendingProducts(Request $request)
     {
@@ -1011,7 +1011,46 @@ class ReportController extends Controller
             $filters['end_date'] = $this->transactionUtil->uf_date(trim($date_range_array[1]));
         }
 
+        // Tela React (playbook sistema/07): período em ISO (o date_range da Blade vem no formato do
+        // negócio); sem período = tudo, como na Blade. Fora isso, os MESMOS filtros e a MESMA consulta.
+        $telaNova = request()->query('tela') === 'nova';
+        if ($telaNova) {
+            foreach (['start_date', 'end_date'] as $campo) {
+                $iso = (string) request()->query($campo, '');
+                if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $iso)) {
+                    $filters[$campo] = $iso;
+                }
+            }
+        }
+
         $products = $this->productUtil->getTrendingProducts($business_id, $filters);
+
+        if ($telaNova) {
+            return Inertia::render('Relatorios/Tendencia/Index', [
+                // data_get: product/sku/unit/total_unit_sold vêm do SELECT, não são atributos do Model (Larastan).
+                'linhas' => collect($products)->map(fn ($p): array => [
+                    'produto' => (string) data_get($p, 'product'),
+                    'sku' => (string) data_get($p, 'sku'),
+                    'unidade' => (string) data_get($p, 'unit', ''),
+                    'vendido' => (float) data_get($p, 'total_unit_sold', 0),
+                ])->values(),
+                'filtros' => [
+                    'location_id' => (string) ($filters['location_id'] ?? ''),
+                    'category' => (string) ($filters['category'] ?? ''),
+                    'brand' => (string) ($filters['brand'] ?? ''),
+                    'unit' => (string) ($filters['unit'] ?? ''),
+                    'product_type' => (string) ($filters['product_type'] ?? ''),
+                    'limit' => (string) ($filters['limit'] ?? '5'),
+                    'start_date' => (string) ($filters['start_date'] ?? ''),
+                    'end_date' => (string) ($filters['end_date'] ?? ''),
+                ],
+                'locais' => collect(BusinessLocation::forDropdown($business_id, false))->map(fn ($nome, $id) => ['id' => (int) $id, 'nome' => (string) $nome])->values(),
+                'categorias' => collect(Category::forDropdown($business_id, 'product'))->map(fn ($nome, $id) => ['id' => (int) $id, 'nome' => (string) $nome])->values(),
+                'marcas' => collect(Brands::forDropdown($business_id))->map(fn ($nome, $id) => ['id' => (int) $id, 'nome' => (string) $nome])->values(),
+                'unidades' => Unit::where('business_id', $business_id)->pluck('short_name', 'id')
+                    ->map(fn ($nome, $id) => ['id' => (int) $id, 'nome' => (string) $nome])->values(),
+            ]);
+        }
 
         $values = [];
         $labels = [];
