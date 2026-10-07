@@ -65,7 +65,10 @@ interface FiltersState {
 
 interface Props {
   productions: Production[];
+  /** Todas as ordens da empresa — contador da barra de abas e subtítulo. */
   summary: Summary;
+  /** UC-OP-10: os mesmos 4 números, só das ordens no filtro de local + período. */
+  kpis?: Summary;
   /** id → nome. Pode não vir em versões antigas do payload. */
   business_locations?: Record<number, string>;
   filters?: FiltersState;
@@ -97,7 +100,7 @@ function applyFilter(current: FiltersState, patch: Partial<FiltersState>) {
   router.get(ROUTE, next, {
     preserveState: true,
     preserveScroll: true,
-    only: ['productions', 'summary', 'filters'],
+    only: ['productions', 'summary', 'kpis', 'filters'],
     replace: true,
   });
 }
@@ -199,7 +202,7 @@ const COLUNAS: ColumnDef<Production, unknown>[] = [
   },
 ];
 
-function Index({ productions = [], summary, business_locations = {}, filters = {}, recipes_count, ordem_detalhe }: Props) {
+function Index({ productions = [], summary, kpis, business_locations = {}, filters = {}, recipes_count, ordem_detalhe }: Props) {
   const [start, setStart] = useState<string>(filters.start_date ?? '');
   const [end, setEnd] = useState<string>(filters.end_date ?? '');
   // Painel da ordem (UC-OP-07): o cabeçalho abre na hora com o que a linha já sabe; o detalhe
@@ -233,6 +236,11 @@ function Index({ productions = [], summary, business_locations = {}, filters = {
   // §4.5 — soma dos `final_total` das ordens LISTADAS (o mesmo conjunto que a tabela mostra).
   const custoDoPeriodo = productions.reduce((s, p) => s + (p.final_total ?? 0), 0);
 
+  // UC-OP-10 — o que os indicadores recortam: local, e o período só com as duas datas (mesma
+  // regra do servidor). "Só finalizadas" não entra nos indicadores.
+  const recorteDosIndicadores = !!filters.location_id || (!!filters.start_date && !!filters.end_date);
+  const indicadores = kpis ?? summary;
+
   const hasActiveFilters =
     !!filters.location_id ||
     !!filters.start_date ||
@@ -246,7 +254,7 @@ function Index({ productions = [], summary, business_locations = {}, filters = {
     router.get(ROUTE, {}, {
       preserveState: true,
       preserveScroll: true,
-      only: ['productions', 'summary', 'filters'],
+      only: ['productions', 'summary', 'kpis', 'filters'],
       replace: true,
     });
   };
@@ -321,15 +329,16 @@ function Index({ productions = [], summary, business_locations = {}, filters = {
           da Receitas, e não o `compact`. Só "Finalizadas" filtra a lista (o MESMO filtro do
           checkbox "Só finalizadas").
 
-          Duas descrições diferem do protótipo PORQUE o dado difere, e copiar a frase poria uma
-          afirmação falsa na tela (o mesmo motivo que tira a 3ª parte do subtítulo):
-           · lá os 4 números são calculados sobre local + período ("no filtro de local e data",
-             "ordens do período"); aqui `ProductionService::summary($business_id)` não recebe os
-             filtros — os números são de TODAS as ordens. Fazer os indicadores seguirem o filtro
-             muda o valor somado na tela: é passo próprio, com a regra de valor (2 caminhos +
-             antes→depois);
-           · lá o rascunho entra "a preço de hoje" (ele recalcula); aqui é o `final_total` GRAVADO
-             em cada ordem, nunca recalculado (US-MANU-004 + RUNBOOK-producao.md §1). */}
+          Desde 2026-10-07 (UC-OP-10, decisão [W] 2026-10-06) os 4 números seguem local + período,
+          como no protótipo: vêm de `kpis`, não do `summary` (que segue com TODAS as ordens para o
+          contador da aba). Sem recorte, as descrições dizem "cadastradas"; com recorte, dizem que o
+          número é do filtro — como o protótipo faz no "Total". No "Valor total" o protótipo diz
+          "ordens do período", que fica falso quando o recorte é só o local; aqui usa a frase do Total.
+
+          Uma descrição segue diferente do protótipo PORQUE o dado difere: lá o rascunho entra "a
+          preço de hoje" (ele recalcula); aqui é o `final_total` GRAVADO em cada ordem, nunca
+          recalculado (US-MANU-004 + RUNBOOK-producao.md §1). Copiar a frase poria uma afirmação
+          falsa na tela (o mesmo motivo que tira a 3ª parte do subtítulo). */}
       {/* Forma do `MfgProducaoView` (medido em produção 2026-10-05, 1440px): os cartões de leitura
           NÃO têm ícone (o KpiCard de leitura do DS não desenha ícone) e só "Finalizadas" é cartão-filtro,
           com o ícone ao lado — como na aba Receitas. Com ícone no título dos 4, cada cartão media 125px
@@ -337,11 +346,15 @@ function Index({ productions = [], summary, business_locations = {}, filters = {
       {/* Recuo das irmãs: `.mfg-kpis` (14px 20px 4px), `.mfg-filters` (12px 20px) e
           `.mfg-tablewrap` (0 20px 24px), em `manufacturing-bundle.css`. */}
       <div className="grid grid-cols-1 gap-2.5 px-5 pb-1 pt-3.5 sm:grid-cols-2 lg:grid-cols-4" data-contract="kpis">
-        <KpiCard label="Total" value={summary?.total_count ?? 0} description="ordens cadastradas" />
+        <KpiCard
+          label="Total"
+          value={indicadores?.total_count ?? 0}
+          description={recorteDosIndicadores ? 'no filtro de local e data' : 'ordens cadastradas'}
+        />
         <KpiCard
           variant="filter"
           label="Finalizadas"
-          value={summary?.final_count ?? 0}
+          value={indicadores?.final_count ?? 0}
           description="estoque já movimentado"
           icon="Check"
           filterTone="emerald"
@@ -350,13 +363,13 @@ function Index({ productions = [], summary, business_locations = {}, filters = {
         />
         <KpiCard
           label="Pendentes"
-          value={summary?.pending_count ?? 0}
+          value={indicadores?.pending_count ?? 0}
           description="rascunhos, sem movimentar estoque"
         />
         <KpiCard
           label="Valor total"
-          value={formatCurrency(summary?.total_value ?? 0)}
-          description="todas as ordens cadastradas"
+          value={formatCurrency(indicadores?.total_value ?? 0)}
+          description={recorteDosIndicadores ? 'ordens no filtro de local e data' : 'todas as ordens cadastradas'}
         />
       </div>
 
