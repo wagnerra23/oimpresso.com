@@ -3,8 +3,8 @@
 declare(strict_types=1);
 // Regra: id que vem da request NUNCA entra cru em SQL (ReportController, 6 funções que montavam
 // "AND x.location_id=$location_id" / "AND t.contact_id=$supplier_id" em DB::raw/whereRaw).
-// Prova por sintaxe: o payload "1)" quebrava a consulta (500); com o id convertido em inteiro a
-// consulta roda (200). Tenant 98 (ADR 0358).
+// Prova por sintaxe: o payload "1)" quebrava a consulta (500, ou 200 com {"error"} no DataTables);
+// com o id convertido em inteiro a consulta roda. Tenant 98 (ADR 0358).
 
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\Schema;
@@ -36,4 +36,8 @@ test('Tier 0 — id da request não entra cru no SQL do relatório', function (s
         ->get($rota.'?'.http_build_query($params + ['draw' => 1, 'start' => 0, 'length' => 10]));
 
     expect($r->status())->toBe(200);
+    // O DataTables (yajra) engole a exceção e responde 200 com {"error": "..."} — status sozinho
+    // não prova nada. A prova é a consulta ter rodado: sem erro SQL no corpo nem na chave error.
+    expect((string) $r->getContent())->not->toContain('SQLSTATE');
+    expect($r->headers->get('Content-Type') !== null && str_contains((string) $r->headers->get('Content-Type'), 'json') ? $r->json('error') : null)->toBeNull();
 })->with('id cru no SQL');
