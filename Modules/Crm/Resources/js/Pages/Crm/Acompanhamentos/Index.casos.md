@@ -225,7 +225,7 @@ as faturas dele e o atribuído padrão — e **só com contatos do meu negócio*
 acompanhamento por linha, pelo mesmo `store`. A tela clássica segue recebendo o partial Blade.
 
 > Âncora: protótipo `crm-blade-forms.jsx` → AntecipadoForm. A notificação do formulário Blade
-> ficou fora deste modal (vai desligada) — registrado no `_saida-07c`.
+> ficou fora deste modal (vai desligada) — registrado no `_saida-07c`; entrou depois, no UC-CRMACO-21.
 
 Status: 🧪
 
@@ -241,5 +241,19 @@ acompanhamento), com **Log de acompanhamento** e **Marcar concluído** no rodap�
 > Âncora: protótipo `crm-blade.jsx` → TelaAcompanhamentos (Rodape + Drawer). Registros em
 > `GET /crm/follow-up-log?schedule_id=…&lista=1`; o modal Blade segue com o HTML. Pendente 2 do
 > `_saida-03`.
+
+Status: 🧪
+
+## UC-CRMACO-21 · O antecipado envia notificação como a Blade · `should`
+
+**Dado** o modal "Acompanhamento antecipado" com a lista "Quem vai receber" montada
+**Quando** marco **Enviar notificação**, escolho o canal (SMS, e-mail), quanto antes e a unidade, e salvo
+**Então** cada acompanhamento criado grava `allow_notification = 1` com o canal, o "antes" e a unidade
+escolhidos
+**E** sem marcar, grava com a notificação desligada.
+
+> Âncora: Blade `crm::schedule.create_advance_follow_up` (bloco "Enviar notificação": e-mail marcado,
+> 1 hora antes) e o `CrmUtil::addFollowUp`, que normaliza os mesmos campos dos outros modais.
+> Pendente 2 do `_saida-07c`.
 
 Status: 🧪
