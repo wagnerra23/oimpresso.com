@@ -109,7 +109,7 @@ related_adrs: ["0105-cliente-como-sinal-guiar-sem-mandar", "0106-recalibracao-ve
 
 ### US-INFRA-003 · APM full-stack — captura "lento aqui" automaticamente
 
-**Implementado em:** _parcial_ · `config/sentry.php` · `composer.json` · verificado@8af585a (2026-07-02) — só o SDK Laravel (sentry-laravel + config) landou; falta SDK JS Sentry-react em app.tsx (0 hits), source-maps no build, GlitchTip compose no CT 100 e o wire erro→client_signal (depende de US-INFRA-002, não construída)
+**Implementado em:** _parcial_ · `config/sentry.php` · `composer.json` · `docker/glitchtip/docker-compose.yml` · verificado@8af585a (2026-07-02) — só o SDK Laravel (sentry-laravel + config) landou; em 2026-10-07 o GlitchTip subiu no CT 100 em `apm.oimpresso.com` ([ADR 0429](../../decisions/0429-log-de-falhas-glitchtip-self-host-ct100.md)), primeiro para o app das lojas; falta DSN do ERP no Hostinger, SDK JS Sentry-react em app.tsx (0 hits), source-maps no build e o wire erro→client_signal (depende de US-INFRA-002, não construída)
 
 > owner: wagner · priority: p1 · estimate: 2h · status: done · type: story · origin: adr-0105
 > blocked_by: US-INFRA-001
@@ -117,9 +117,9 @@ related_adrs: ["0105-cliente-como-sinal-guiar-sem-mandar", "0106-recalibracao-ve
 **Contexto.** ADR 0105 §princípio 1 nota: "cliente sabe ONDE dói, raramente sabe POR QUÊ". OTEL gen_ai já trackea LLM. Falta APM completo capturando: erros JS no browser da Larissa, performance front-end (LCP/INP/CLS), traces Laravel (slow query, N+1), session replay opcional. Hoje vira "Larissa fala que travou" → impossível reproduzir.
 
 **Escopo:**
-- [ ] Avaliar GlitchTip OSS (Sentry-compat self-hosted) vs Sentry SaaS (~$26/mo team)
-- [ ] Subir GlitchTip no CT 100 via docker compose (Postgres + Redis já existem)
-- [ ] Traefik label `apm.oimpresso.com`
+- [x] Avaliar GlitchTip OSS (Sentry-compat self-hosted) vs Sentry SaaS (~$26/mo team)
+- [x] Subir GlitchTip no CT 100 via docker compose (Postgres + Redis já existem)
+- [x] Traefik label `apm.oimpresso.com`
 - [ ] SDK Laravel `sentry/sentry-laravel` (compat GlitchTip) — capture exceptions + slow query
 - [ ] SDK JS `@sentry/react` em `app.tsx` Inertia — capture JS errors + performance metrics
 - [ ] Source maps upload no `npm run build:inertia` (release tracking)
