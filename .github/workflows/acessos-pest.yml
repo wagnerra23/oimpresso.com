@@ -73,6 +73,7 @@ on:
       - 'resources/views/role/**'
       - 'tests/Feature/Roles/**'
       - 'tests/Feature/Users/**'
+      - 'tests/Feature/Relatorios/**'
       - 'app/Http/Controllers/Support/**'
       - 'app/Services/Support/**'
       - 'app/Http/Middleware/EnsureSupportAccess.php'
@@ -143,6 +144,7 @@ jobs:
               - 'resources/views/role/**'
               - 'tests/Feature/Roles/**'
               - 'tests/Feature/Users/**'
+              - 'tests/Feature/Relatorios/**'
               - 'app/Http/Controllers/Support/**'
               - 'app/Services/Support/**'
               - 'app/Http/Middleware/EnsureSupportAccess.php'
@@ -190,7 +192,7 @@ jobs:
           DB_PASSWORD: root
         run: |
           mkdir -p test-results
-          vendor/bin/pest --no-coverage --colors=always \
+          vendor/bin/pest --no-coverage --colors=always tests/Feature/Relatorios/ \
             --log-junit test-results/pest-acessos-junit.xml \
             tests/Feature/Roles/ tests/Feature/Users/ \
             tests/Feature/Support/SuporteLogContratoTest.php \
