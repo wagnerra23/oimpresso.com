@@ -76,6 +76,11 @@ on:
       - 'app/Http/Middleware/EnsureSupportAccess.php'
       - 'app/SupportAccessLog.php'
       - 'tests/Feature/Support/SuporteLogContratoTest.php'
+      - 'app/Http/Controllers/PrinterController.php'
+      - 'app/Http/Controllers/BarcodeController.php'
+      - 'app/Http/Controllers/BusinessLocationController.php'
+      - 'resources/views/printer/**'
+      - 'tests/Feature/Configuracoes/**'
       - 'database/schema/mysql-schema.sql'
       - '.github/workflows/acessos-pest.yml'
       - '.github/actions/pest-mysql-setup/**'
@@ -139,6 +144,11 @@ jobs:
               - 'app/Http/Middleware/EnsureSupportAccess.php'
               - 'app/SupportAccessLog.php'
               - 'tests/Feature/Support/SuporteLogContratoTest.php'
+              - 'app/Http/Controllers/PrinterController.php'
+              - 'app/Http/Controllers/BarcodeController.php'
+              - 'app/Http/Controllers/BusinessLocationController.php'
+              - 'resources/views/printer/**'
+              - 'tests/Feature/Configuracoes/**'
               - 'database/schema/mysql-schema.sql'
               - '.github/workflows/acessos-pest.yml'
               - '.github/actions/pest-mysql-setup/**'
@@ -179,7 +189,8 @@ jobs:
           vendor/bin/pest --no-coverage --colors=always \
             --log-junit test-results/pest-acessos-junit.xml \
             tests/Feature/Roles/ tests/Feature/Users/ \
-            tests/Feature/Support/SuporteLogContratoTest.php
+            tests/Feature/Support/SuporteLogContratoTest.php \
+            tests/Feature/Configuracoes/
 
       # A régua honesta desta lane é `assertions`, NÃO "0 failed": skip sai exit 0
       # e 18 dos 22 pulam fora do MySQL. Se o sumário mostrar muitos casos com 0

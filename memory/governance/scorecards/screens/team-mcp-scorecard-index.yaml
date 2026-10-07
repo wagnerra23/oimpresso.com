@@ -1,0 +1,59 @@
+# Scorecard de tela — primeira medição (thread 04 do playbook Forja, 2026-10-07).
+# Método SCREEN-GRADE (memory/requisitos/_DesignSystem/SCREEN-GRADE-METODO.md), passos 0+1 do
+# agente screen-qa-specialist, no mesmo modo do team-mcp-forja-cockpit.yaml (#7758).
+# ⚠️ NOTA DE LEITURA DE CÓDIGO: .tsx + charter + casos + controller, SEM browser de prod,
+# SEM E2E/axe/smoke. Nenhuma dimensão foi medida em runtime; cada uma cita arquivo:linha
+# (relativo a Modules/Forja/Resources/js/Pages/team-mcp/Scorecard/).
+# Persona peso uniforme (wagner = power user, personas-por-modulo.yml §Notas), nota = média das
+# 16 dims arredondada (1210/16 = 75,6).
+# Este YAML é o ponto de partida do ratchet: a nota não pode cair abaixo de baseline_anterior.
+screen: team-mcp/Scorecard/Index
+path: Modules/Forja/Resources/js/Pages/team-mcp/Scorecard/Index.tsx
+archetype: dashboard   # PT-04 — semáforo + Facts + Checks
+persona: wagner
+nota: 76
+nivel: "Advanced"
+baseline_anterior: 76   # ratchet — primeira medição, baseline = a própria nota
+peso_real: 1.0
+source: leitura-codigo-forja-thread04-2026-10-07
+graded_at: "2026-10-07"
+resumo: "Painel read-only Facts+Checks: semáforo no topo responde 'tá tudo verde?' em 1 olhar, KPIs via KpiGrid, checks com ícone+pill e tokens semânticos. Perde em: sem estado de erro quando o defer falha e lista vazia vira '0 de 0 checks falhando', duas PageHeader diferentes no mesmo hub, cabeçalho @memcofre com permissão caducada e copy em inglês (Facts/Checks/pattern)."
+dimensoes: { density: 78, discoverability: 74, speed_to_task: 82, error_recovery: 62, cognitive_load: 82, aesthetic_usability: 76, affordance: 72, brand_confidence: 72, mobile_fit: 74, a11y_wcag: 72, i18n_ptbr: 80, performance_perceived: 80, information_hierarchy: 82, microcopy: 78, internal_consistency: 72, preflight_conformance: 74 }
+evidencias:
+  density: "Index.tsx:111-116 4 KpiCards + Index.tsx:148-164 lista de checks numa coluna"
+  discoverability: "Index.tsx:168 atalho R só no rodapé; Index.tsx:80 entrada pela aba 'saude' do ForjaHub"
+  speed_to_task: "Index.tsx:92-107 semáforo geral antes de qualquer número"
+  error_recovery: "Index.tsx:58-61 isLoading só por undefined — falha do defer fica em 'Carregando…' para sempre; checks=[] cai no ramo ':105' e mostra '0 de 0 checks falhando'"
+  cognitive_load: "Index.tsx:110,142 separa Facts (sem juízo) de Checks (com juízo)"
+  aesthetic_usability: "Index.tsx:95-98 banner por tom semântico; Index.tsx:126-129 chips de tool"
+  affordance: "Index.tsx:85-87 'Atualizar' ghost; checks não clicáveis por Non-Goal (Index.charter.md:41)"
+  brand_confidence: "Index.charter.md:8 status draft; Index.tsx:6 'permissao: copiloto.mcp.usage.all' vs charter jana.mcp.usage.all (Index.charter.md:56)"
+  mobile_fit: "KpiGrid cols=4 colapsa 1→2→4 (resources/js/Components/shared/KpiGrid.tsx:51) — não medido em viewport"
+  a11y_wcag: "Index.tsx:93 role=status no semáforo; Index.tsx:152-153 aria-label nos ícones; Index.tsx:128,158 text-[10px]; Index.tsx:144 skeleton sem aria-busy"
+  i18n_ptbr: "Index.tsx:110,142,168 'Facts', 'Checks', 'pattern', 'Top tools' na copy; Index.tsx:54 data em pt-BR"
+  performance_perceived: "Index.tsx:143-146 skeleton nos checks; Index.tsx:112-115 KPIs com '—' durante o defer"
+  information_hierarchy: "semáforo → Facts → Checks → meta (Index.tsx:92,110,142,167)"
+  microcopy: "Index.tsx:110 'números, sem juízo'; Index.tsx:169 rodapé cita 'ADR 0093' ao usuário (jargão interno)"
+  internal_consistency: "Index.tsx:17 importa '@/Components/PageHeader' (prop subtitle/actions) enquanto CcSessions/Tasks/Team usam '@/Components/shared/PageHeader'; Index.tsx:6 permissão caducada"
+  preflight_conformance: "charter tier A + casos (Index.casos.md: UC-SC-01..08, nenhum ✅, UC-SC-02/06 sem teste citado); tokens 100% semânticos"
+gaps:
+  - dim: "Error-recovery"
+    best_of_class: "Vercel/Datadog status page: estado 'dados indisponíveis' distinto de 'tudo OK' e de 'falhando'"
+    fix: "Tratar checks=[] (estado vazio explícito) e falha do defer (onError do reload → banner neutro 'não consegui medir')"
+    esforco: baixo
+    origin: thread04-forja-2026-10-07
+  - dim: "Internal-consistency"
+    best_of_class: "Linear: um componente de header por app"
+    fix: "Trocar '@/Components/PageHeader' por '@/Components/shared/PageHeader' como as 3 irmãs do hub e corrigir o @memcofre (jana.mcp.usage.all)"
+    esforco: baixo
+    origin: thread04-forja-2026-10-07
+  - dim: "I18n-PT-BR"
+    best_of_class: "Stripe Dashboard pt-BR: copy 100% localizada, jargão só em tooltip"
+    fix: "'Fatos'/'Verificações' (ou manter o termo técnico com subtítulo PT) e tirar 'pattern'/'ADR 0093' da copy visível"
+    esforco: baixo
+    origin: thread04-forja-2026-10-07
+  - dim: "Pre-Flight-conformance"
+    best_of_class: "contrato provado por teste na lane"
+    fix: "Pôr ScorecardContratoTest numa lane (casos.md nota a ausência) e dar teste aos UC-SC-02/06"
+    esforco: medio
+    origin: thread04-forja-2026-10-07
