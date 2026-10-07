@@ -15,12 +15,14 @@ contains:
   - "ManifestacaoController — Manifestação do Destinatário (US-NFE-052, PR #317)"
   - "NfeInutilizacaoController — UI admin pra inutilizar faixa NFe via SEFAZ (US-SELL-030)"
   - "ContingenciaController — liga/desliga contingencia SEFAZ por tenant (US-NFE-006, ADR TECH-0002)"
+  - "EmpresaFiscalLookupController — Configurar pelo certificado, leitura (playbook Fiscal thread 21, #8829)"
 db_tables_owned:
   - nfe_certificados
   - nfe_emissoes
   - nfe_eventos
   - nfe_inutilizacoes
   - nfe_fiscal_rules
+  - nfe_operacoes_fiscais
   - nfe_business_configs
   - nfe_fiscal_rule_tax_rate_links (bridge ADR ARQ-0005)
   - nfe_sefaz_status (saude do autorizador por UF — global por desenho da ADR TECH-0002; sem business_id)

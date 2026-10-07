@@ -998,3 +998,15 @@
   outline-offset: 2px;
   border-radius: 4px 4px 0 0;
 }
+
+/* ── TEMA ESCURO · gatilho "problemas" (playbook tema-escuro thread 03 PR-b · 2026-10-07) ──
+   Medido em produção no escuro (Visão unificada): fundo oklch(.97 .04 60) fixo. Passa a
+   superfície tintada do --warn, sem cor crua nova. */
+.cockpit[data-theme="dark"] .fin-cowork .fin-curadoria .fin-trouble-trigger {
+  background: color-mix(in oklch, var(--warn) 16%, var(--surface));
+  border-color: color-mix(in oklch, var(--warn) 45%, transparent);
+  color: var(--warn);
+}
+.cockpit[data-theme="dark"] .fin-cowork .fin-curadoria .fin-trouble-trigger:hover {
+  background: color-mix(in oklch, var(--warn) 24%, var(--surface));
+}
