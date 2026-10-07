@@ -17,6 +17,8 @@ charter_version: 1
 > **Status:** draft criado em 2026-07-11 no lote de cobertura de charters. Wagner aprova **Non-Goals + Anti-hooks** ANTES de virar `status: live`.
 >
 > Backend: `Modules/TeamMcp/Http/Controllers/Admin/ToolsController@index` (rota `ads.admin.tools.index`; controller vive em TeamMcp, URL mantida sob `/ads`). Catálogo das tools que agentes podem invocar, com `Inertia::defer` nas 3 props caras.
+>
+> **Casos de uso:** [`Tools.casos.md`](Tools.casos.md) — UC-TOOLS-01..02, defendidos por `Modules/Forja/Tests/Feature/ToolsContratoTest.php`.
 
 ---
 
