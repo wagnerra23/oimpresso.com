@@ -109,6 +109,7 @@ class BusinessLocationController extends Controller
         if (app(FeatureFlagService::class)->isOn(self::FLAG_V2, ['business_id' => $business_id])) {
             return Inertia::render('Configuracoes/Locais/Index', [
                 'locais' => Inertia::defer(fn () => $this->locaisDoNegocio((int) $business_id)),
+                'opcoes' => Inertia::defer(fn () => $this->opcoesDoFormulario((int) $business_id), 'formulario'),
             ]);
         }
 
@@ -126,9 +127,10 @@ class BusinessLocationController extends Controller
             ->leftJoin('invoice_layouts as il', 'business_locations.invoice_layout_id', '=', 'il.id')
             ->leftJoin('invoice_layouts as sil', 'business_locations.sale_invoice_layout_id', '=', 'sil.id')
             ->leftJoin('selling_price_groups as spg', 'business_locations.selling_price_group_id', '=', 'spg.id')
-            ->select(['business_locations.id', 'business_locations.name', 'business_locations.location_id', 'business_locations.city',
-                'business_locations.state', 'business_locations.cnpj', 'business_locations.is_active', 'spg.name as tabela',
-                'ic.name as esquema', 'il.name as layout_pdv', 'sil.name as layout_venda'])
+            ->select(array_merge(
+                array_map(fn ($c) => 'business_locations.'.$c, array_merge(['id', 'is_active'], self::CAMPOS_FORMULARIO, ['default_payment_accounts', 'featured_products'])),
+                ['spg.name as tabela', 'ic.name as esquema', 'il.name as layout_pdv', 'sil.name as layout_venda']
+            ))
             ->orderByDesc('business_locations.is_active')->orderBy('business_locations.name');
 
         $permitidos = auth()->user()->permitted_locations();
@@ -141,7 +143,37 @@ class BusinessLocationController extends Controller
             'cidade' => trim(implode(' / ', array_filter([$l->city, $l->state]))), 'cnpj' => (string) $l->cnpj,
             'ativo' => (bool) $l->is_active, 'tabela' => $l->tabela, 'esquema' => $l->esquema,
             'layout_pdv' => $l->layout_pdv, 'layout_venda' => $l->layout_venda,
+            // O drawer devolve TUDO no update(): formas de pagamento e produtos em destaque ausentes do corpo
+            // viram null no banco (`! empty(...) ? json_encode : null`). Por isso vão crus, para voltar intactos.
+            'dados' => array_merge(
+                collect(self::CAMPOS_FORMULARIO)->mapWithKeys(fn ($c) => [$c => $l->{$c} === null ? '' : (string) $l->{$c}])->all(),
+                [
+                    'default_payment_accounts' => (object) (json_decode((string) $l->default_payment_accounts, true) ?: []),
+                    'featured_products' => array_values(array_map('strval', json_decode((string) $l->featured_products, true) ?: [])),
+                ]
+            ),
         ])->all();
+    }
+
+    /** Campos de texto/seleção do formulário da Blade (`business_location/{create,edit}`), na ordem dela. */
+    private const CAMPOS_FORMULARIO = ['name', 'cnpj', 'inscricao_estadual', 'inscricao_municipal', 'razao_social', 'nome_fantasia',
+        'location_id', 'landmark', 'city', 'zip_code', 'state', 'country', 'mobile', 'alternate_number', 'email', 'website',
+        'invoice_scheme_id', 'sale_invoice_scheme_id', 'invoice_layout_id', 'sale_invoice_layout_id', 'selling_price_group_id',
+        'custom_field1', 'custom_field2', 'custom_field3', 'custom_field4'];
+
+    /** Opções dos selects do drawer — as mesmas que o create()/edit() da Blade montam, do negócio da sessão. */
+    private function opcoesDoFormulario(int $business_id): array
+    {
+        $rotulos = json_decode((string) session('business.custom_labels'), true)['location'] ?? [];
+
+        return [
+            'esquemas' => InvoiceScheme::where('business_id', $business_id)->pluck('name', 'id'),
+            'layouts' => InvoiceLayout::where('business_id', $business_id)->pluck('name', 'id'),
+            'tabelas' => SellingPriceGroup::forDropdown($business_id),
+            'formas' => $this->commonUtil->payment_types(null, false, $business_id),
+            'contas' => $this->commonUtil->isModuleEnabled('account') ? Account::forDropdown($business_id, true, false) : [],
+            'rotulos' => collect([1, 2, 3, 4])->mapWithKeys(fn ($i) => ["custom_field{$i}" => $rotulos["custom_field_{$i}"] ?? __("lang_v1.location_custom_field{$i}")]),
+        ];
     }
 
     /**
