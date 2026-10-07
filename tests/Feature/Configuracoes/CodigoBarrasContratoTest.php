@@ -1,7 +1,7 @@
 <?php
 
 declare(strict_types=1);
-// Cobre UC-ETQ-01, UC-ETQ-02, UC-ETQ-03 (Configuracoes/CodigoBarras/Index.casos.md).
+// Cobre UC-ETQ-01, UC-ETQ-02, UC-ETQ-03, UC-ETQ-04 (Configuracoes/CodigoBarras/Index.casos.md).
 
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\DB;
@@ -70,4 +70,29 @@ test('UC-ETQ-03 Tier 0 — a lista adiada traz só as configurações do negóci
     expect($lista->first()['id'])->toBe($padrao);
     expect($lista->first()['padrao'])->toBeTrue();
     expect($lista->first()['medidas']['width'])->toBe(1.5);
+});
+
+test('UC-ETQ-04 cadastrar e editar pelo drawer gravam no negócio, em polegada', function () {
+    config(['feature-flags.forced_on' => 'useV2ConfiguracoesCodigoBarras']);
+    $inertia = ['X-Inertia' => 'true', 'X-Inertia-Version' => $this->versaoInertia, 'X-Requested-With' => 'XMLHttpRequest'];
+    $antiga = DB::table('barcodes')->insertGetId(['business_id' => $this->business->id, 'name' => 'Antiga', 'is_default' => 1, 'is_continuous' => 0]);
+    $nome = 'Drawer '.uniqid();
+    // Mesmo corpo que o Index.tsx monta em salvar().
+    $corpo = ['name' => $nome, 'description' => '', 'stickers_in_one_row' => '3', 'stickers_in_one_sheet' => '24',
+        'top_margin' => '0', 'left_margin' => '0', 'width' => '1.5', 'height' => '1', 'paper_width' => '8.5',
+        'paper_height' => '11', 'row_distance' => '0', 'col_distance' => '0'];
+
+    $this->withHeaders($inertia)->post('/barcodes', $corpo + ['is_default' => '1'])->assertRedirect('barcodes');
+    $linha = DB::table('barcodes')->where('name', $nome)->first();
+    expect($linha)->not->toBeNull();
+    expect((int) $linha->business_id)->toBe((int) $this->business->id);
+    expect((int) $linha->is_default)->toBe(1);
+    expect((float) $linha->width)->toBe(1.5);
+    expect((int) $linha->stickers_in_one_sheet)->toBe(24);
+    expect((int) DB::table('barcodes')->where('id', $antiga)->value('is_default'))->toBe(0);
+
+    $this->withHeaders($inertia)->put("/barcodes/{$linha->id}", ['is_continuous' => '1'] + $corpo)->assertRedirect('barcodes');
+    $editada = DB::table('barcodes')->where('id', $linha->id)->first();
+    expect((int) $editada->is_continuous)->toBe(1);
+    expect((int) $editada->stickers_in_one_sheet)->toBe(28);
 });
