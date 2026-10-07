@@ -5,7 +5,7 @@ irmaos: Index.charter.md (lei)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: esta tela liga a emissão automática de NFe e edita a cascade tributária — o comportamento é durável mesmo se o layout mudar.
 owner: wagner
-last_run: "2026-07-27"
+last_run: "2026-10-07"
 ---
 
 # Casos de Uso & Aceite — Tributação (regras NCM · templates · gate de emissão automática)
@@ -290,6 +290,7 @@ last_run: "2026-07-27"
 | Quando | Onde | Resultado |
 |---|---|---|
 | _pendente_ | lane `PHP / Pest (NfeBrasil · MySQL)` — UC-NFTR-01..05 | a preencher com o run id |
+| 2026-10-07 | CT 100 `oimpresso-staging`, worktree isolado do branch da thread 22 (`3055c7e57`, já com o `main`) · `TributacaoIndexContrato` + `TributacaoController` + `EmpresaFiscalLookup` + `TributacaoTemplateSugestao` + `TributacaoTemplateAplicar` | **19 passed · 135 assertions** — UC-NFTR-01..07 e 14..17 verdes. Revalidação que sustenta o `last_run` depois da mudança no `Index.tsx` (drawer da thread 22). UC-NFTR-18 é e2e: veredito da lane `e2e-gate.yml`. |
 | _pendente_ | lane `modules-pest` (sqlite) — UC-NFTR-06 | a preencher com o run id |
 
 > ⚠️ **Não foi possível pré-provar no CT 100.** O container `oimpresso-staging` **não tem as tabelas do
