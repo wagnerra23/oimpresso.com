@@ -127,7 +127,7 @@ function FormProduto({ produto, onSair, onIr, avisar }) {
         <Alert tone="danger" title={Object.keys(erros).length === 1 ? "Um campo precisa de ajuste" : Object.keys(erros).length + " campos precisam de ajuste"}>
           {Object.keys(erros).map((k) => erros[k]).join(" · ")}
         </Alert>}
-      <Widget titulo={<><Ic name="product" size={13} /> {edit ? "Editar produto" : "Novo produto"}</>} nota="dados do produto">
+      <Widget titulo={<><Ic name="product" size={13} /> {edit ? "Editar · " + produto.name : "Novo produto"}</>} nota={edit ? produto.sku || "dados do produto" : "dados do produto"}>
         <div className="pb-grid">
           <Fld label="Nome do produto" req erro={err("name")}><input value={f.name} onChange={(e) => set("name")(e.target.value)} onBlur={() => setTocado((t) => ({ ...t, name: 1 }))} placeholder="Nome do produto" aria-invalid={!!err("name")} /></Fld>
           <Fld label="SKU" dica="Em branco, o sistema gera. O leitor de código de barras escreve aqui." erro={err("sku")}>
@@ -221,13 +221,10 @@ function FormProduto({ produto, onSair, onIr, avisar }) {
         </table>
 
         <div className="pb-grid c4" style={{ marginTop: 14 }}>
-          <Fld label="Campo personalizado 1"><input value={f.cf1} onChange={(e) => set("cf1")(e.target.value)} /></Fld>
-          <Fld label="Campo personalizado 2"><input value={f.cf2} onChange={(e) => set("cf2")(e.target.value)} /></Fld>
-          <Fld label="Campo personalizado 3"><input value={f.cf3} onChange={(e) => set("cf3")(e.target.value)} /></Fld>
-          <Fld label="Campo personalizado 4"><input value={f.cf4} onChange={(e) => set("cf4")(e.target.value)} /></Fld>
-          <Fld label="Campo personalizado 5"><input value={f.cf5} onChange={(e) => set("cf5")(e.target.value)} /></Fld>
-          <Fld label="Campo personalizado 6"><input value={f.cf6} onChange={(e) => set("cf6")(e.target.value)} /></Fld>
-          <Fld label="Campo personalizado 7"><input value={f.cf7} onChange={(e) => set("cf7")(e.target.value)} /></Fld>
+          {/* D7 (2026-10-05): rótulo vem do cadastro do negócio (custom_field_1..7); sem rótulo = oculto. */}
+          {D().camposAtivos().map((n) => (
+            <Fld key={n} label={D().CAMPOS_PERSONALIZADOS[n]}><input value={f["cf" + n]} onChange={(e) => set("cf" + n)(e.target.value)} /></Fld>
+          ))}
           <Fld label="Tempo de preparo (minutos)"><input className="num" value={f.prep} onChange={(e) => set("prep")(e.target.value)} placeholder="0" /></Fld>
         </div>
       </Widget>
@@ -364,14 +361,14 @@ function FormProduto({ produto, onSair, onIr, avisar }) {
         <button className="os-btn" onClick={() => salvar("precos")}>Salvar e adicionar preços por grupo</button>
         <button className="os-btn" disabled={!f.stockOn} onClick={() => salvar("estoque")}>Salvar e adicionar estoque inicial</button>
         <button className="os-btn" onClick={() => salvar("outro")}>Salvar e adicionar outro</button>
-        <button className="os-btn primary" onClick={() => salvar("salvar")}>Salvar</button>
+        <button className="os-btn primary" onClick={() => salvar("salvar")}>{edit ? "Salvar alterações" : "Salvar"}</button>
       </div>
     </>
   );
 }
 
 // ─────────────────────────────── Histórico de estoque ───────────────────────────────
-function Historico({ produto, avisar }) {
+function Historico({ produto, avisar, onIr }) {
   const { PRODUCTS, LOCATIONS, fmtQty, stockHistory } = D();
   const { Widget, Fld, Sel } = U();
   const { PeriodBar, Progress } = DS();
@@ -395,11 +392,17 @@ function Historico({ produto, avisar }) {
   const va = p.variations.find((x) => x.sku === varSku) || p.variations[0];
   const entra = hist.filter((h) => h.change > 0).reduce((s, h) => s + h.change, 0);
   const sai = hist.filter((h) => h.change < 0).reduce((s, h) => s + h.change, 0);
+  // Puxado do vivo (StockHistory.tsx, thread 00): tipo Entrada/Saída/Ajuste + resumo do período.
+  const tipoDe = (h) => (/ajuste/i.test(h.type) ? "ajuste" : h.change > 0 ? "entrada" : "saida");
+  const TIPO = { entrada: ["Entrada", "var(--pos)"], saida: ["Saída", "var(--neg)"], ajuste: ["Ajuste", "var(--text-mute)"] };
+  const soma = (k) => hist.filter((h) => tipoDe(h) === k).reduce((s, h) => s + h.change, 0);
+  const resumo = { entrada: soma("entrada"), saida: soma("saida"), ajuste: soma("ajuste") };
 
   const linha = (label, val) => <tr><th style={{ textAlign: "left" }}>{label}</th><td className="r">{fmtQty(val)} {p.unit}</td></tr>;
   return (
     <>
-      <Widget titulo={<><Ic name="clock" size={13} /> Histórico de estoque</>} nota={p.name}>
+      <Widget titulo={<><Ic name="clock" size={13} /> Histórico de estoque</>} nota={p.name + " · " + p.sku + (p.unit ? " · " + p.unit : "")}>
+        {onIr && <button className="os-btn sm" style={{ marginBottom: 10 }} onClick={() => onIr("detalhe", p)}>← Voltar ao produto</button>}
         <div className="pb-grid">
           <Fld label="Produto"><Sel value={pid} onChange={(v) => { setPid(v); const np = PRODUCTS.find((x) => x.id === Number(v)); setVarSku(np.variations[0].sku); }} options={PRODUCTS.map((x) => ({ id: x.id, name: x.name + " — " + x.sku }))} /></Fld>
           <Fld label="Local do negócio"><Sel value={loc} onChange={setLoc} options={LOCATIONS} /></Fld>
@@ -413,6 +416,13 @@ function Historico({ produto, avisar }) {
         {!p.stockOn
           ? <p className="pb-help">Este produto não gerencia estoque — nada a mostrar. Ligue <b>Gerenciar estoque</b> no cadastro pra passar a ter histórico.</p>
           : <>
+            {hist.length > 0 &&
+              <div className="pb-kpis" style={{ marginBottom: 12 }}>
+                <div className="pb-kpi"><small>Entradas</small><b>{fmtQty(resumo.entrada)}</b></div>
+                <div className="pb-kpi neg"><small>Saídas</small><b>{fmtQty(resumo.saida)}</b></div>
+                <div className="pb-kpi"><small>Ajustes</small><b style={{ color: "var(--text-mute)" }}>{fmtQty(resumo.ajuste)}</b></div>
+                <div className="pb-kpi"><small>Saldo do período</small><b>{fmtQty(resumo.entrada + resumo.saida + resumo.ajuste)}</b></div>
+              </div>}
             <div className="pb-grid">
               <div>
                 <h4 style={{ margin: "0 0 6px", fontSize: 11, letterSpacing: ".06em", textTransform: "uppercase", color: "var(--text-mute)" }}>Quantidades que entraram</h4>
@@ -447,16 +457,22 @@ function Historico({ produto, avisar }) {
             </div>
 
             <table className="pb-tbl" style={{ marginTop: 14 }}>
-              <thead><tr><th>Tipo</th><th className="r">Variação da quantidade</th><th className="r">Nova quantidade</th><th>Data</th><th>Nº de referência</th><th>Cliente / fornecedor</th></tr></thead>
+              <thead><tr><th>Data</th><th>Tipo</th><th>Origem</th><th>Referência</th><th className="r">Quantidade</th><th className="r">Saldo</th><th>Cliente / fornecedor</th></tr></thead>
               <tbody>
                 {hist.length === 0 &&
-                  <tr><td colSpan={6} style={{ padding: 24, textAlign: "center", color: "var(--text-mute)" }}>Nenhum movimento entre {fmtDia(periodo.from)} e {fmtDia(periodo.to)}. Amplie o período acima.</td></tr>}
+                  <tr><td colSpan={7} style={{ padding: 24, textAlign: "center", color: "var(--text-mute)" }}>
+                    <b style={{ display: "block", color: "var(--text)" }}>Sem movimentação registrada</b>
+                    Não há entradas, saídas ou ajustes para a variação e o local selecionados. Amplie o período acima.
+                  </td></tr>}
                 {hist.map((h, i) => (
                   <tr key={i}>
+                    <td className="m">{h.date}</td>
+                    <td><span className="pb-pill" style={{ color: TIPO[tipoDe(h)][1] }}>{TIPO[tipoDe(h)][0]}</span></td>
                     <td>{h.type}</td>
+                    <td className="m">{h.ref}</td>
                     <td className="r" style={{ color: h.change > 0 ? "var(--pos)" : "var(--neg)", fontWeight: 600 }}>{h.change > 0 ? "+" : ""}{fmtQty(h.change)}</td>
                     <td className="r">{fmtQty(h.stock)}</td>
-                    <td className="m">{h.date}</td><td className="m">{h.ref}</td><td>{h.who}</td>
+                    <td>{h.who}</td>
                   </tr>
                 ))}
               </tbody>
@@ -477,24 +493,38 @@ function Precos({ produto, onSair, avisar }) {
     produto.variations.forEach((va) => { o[va.sku] = {}; PRICE_GROUPS.forEach((g, i) => { o[va.sku][g.id] = { price: (va.dsp * mult[i]).toFixed(2).replace(".", ","), type: "fixed" }; }); });
     return o;
   });
-  const upd = (sku, gid, k, val) => setTab((s) => ({ ...s, [sku]: { ...s[sku], [gid]: { ...s[sku][gid], [k]: val } } }));
+  // Puxado do vivo (SellingPrices.tsx, thread 00): "Tabelas de preço · {produto}", selo Não salvo/Salvo,
+  // colunas Variação · SKU · Preço padrão, tipo Fixo/%, ⌘S salva, estados vazios.
+  const [sujo, setSujo] = useState(false);
+  const [salvoAgora, setSalvoAgora] = useState(false);
+  const upd = (sku, gid, k, val) => { setSujo(true); setSalvoAgora(false); setTab((s) => ({ ...s, [sku]: { ...s[sku], [gid]: { ...s[sku][gid], [k]: val } } })); };
+  const salvarTabelas = () => { if (!sujo) return; setSujo(false); setSalvoAgora(true); avisar("Tabelas de preço salvas", "ok"); };
+  useEffect(() => {
+    const onKey = (e) => { if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "s") { e.preventDefault(); salvarTabelas(); } };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [sujo]);
+  const vazio = PRICE_GROUPS.length === 0 ? "Nenhum grupo de preço cadastrado. Cadastre primeiro em Inventário › Grupos de preço."
+    : produto.variations.length === 0 ? "Produto sem variações cadastradas. Cadastre variações antes." : null;
   return (
     <>
-      <Widget titulo={<><Ic name="cash" size={13} /> Preços por grupo de venda</>} nota={produto.name + " (" + produto.sku + ")"}>
-        <p className="pb-help" style={{ marginBottom: 10 }}>Valor <b>fixo</b> em reais ou <b>percentual</b> sobre o preço de venda padrão. Vazio ou zero = o grupo usa o preço padrão.</p>
+      <Widget titulo={<><Ic name="cash" size={13} /> Tabelas de preço · {produto.name}{sujo ? <span className="pb-pill" style={{ marginLeft: 8 }}>Não salvo</span> : salvoAgora ? <span className="pb-pill" style={{ marginLeft: 8 }}>Salvo</span> : null}</>} nota={produto.sku}>
+        {vazio ? <p className="pb-help" style={{ textAlign: "center", padding: 28 }}>{vazio}</p> : <>
         <table className="pb-tbl pb-precos">
           <thead>
             <tr>
-              {produto.type === "variable" && <th>Variação</th>}
-              <th className="r">Preço de venda padrão (com imposto)</th>
+              <th>Variação</th>
+              <th>SKU</th>
+              <th className="r">Preço padrão</th>
               {PRICE_GROUPS.map((g) => <th key={g.id} className="r">{g.name}</th>)}
             </tr>
           </thead>
           <tbody>
             {produto.variations.map((va) => (
               <tr key={va.sku}>
-                {produto.type === "variable" && <td>{va.name}<small>{va.sku}</small></td>}
-                <td className="r">{fmtBRL(incTax(va.dsp, produto.tax))}</td>
+                <td>{va.name}</td>
+                <td className="m">{va.sku}</td>
+                <td className="r">{fmtBRL(va.dsp)}<small>com imposto {fmtBRL(incTax(va.dsp, produto.tax))}</small></td>
                 {PRICE_GROUPS.map((g) => {
                   const cell = tab[va.sku][g.id];
                   return (
@@ -502,7 +532,7 @@ function Precos({ produto, onSair, avisar }) {
                       <input className="cell num" value={cell.price} onChange={(e) => upd(va.sku, g.id, "price", e.target.value)} />
                       <select className="cell" style={{ marginTop: 4 }} value={cell.type} onChange={(e) => upd(va.sku, g.id, "type", e.target.value)}>
                         <option value="fixed">Fixo</option>
-                        <option value="percentage">Percentual</option>
+                        <option value="percentage">%</option>
                       </select>
                     </td>
                   );
@@ -511,12 +541,14 @@ function Precos({ produto, onSair, avisar }) {
             ))}
           </tbody>
         </table>
+        <p className="pb-help" style={{ marginTop: 10 }}>Preço tipo <b>Fixo</b>: valor absoluto em R$. Tipo <b>%</b>: desconto/acréscimo sobre o preço padrão da variação. Vazio ou zero = o grupo usa o preço padrão. <kbd>⌘S</kbd> salva · setas/Enter navegam entre células.</p>
+        </>}
       </Widget>
       <div className="pb-formactions">
         <button className="os-btn ghost" onClick={onSair}>Cancelar</button>
         <button className="os-btn" disabled={!produto.stockOn} onClick={() => { avisar("Preços salvos — abrindo estoque inicial.", "ok"); onSair(); }}>Salvar e adicionar estoque inicial</button>
         <button className="os-btn" onClick={() => avisar("Preços salvos. Próximo produto.", "ok")}>Salvar e adicionar outro</button>
-        <button className="os-btn primary" onClick={() => { avisar("Preços por grupo salvos.", "ok"); onSair(); }}>Salvar</button>
+        <button className="os-btn primary" disabled={!sujo} onClick={salvarTabelas}>Salvar tabelas</button>
       </div>
     </>
   );
@@ -533,10 +565,18 @@ function Massa({ onSair, avisar }) {
   const num = (x) => parseFloat(String(x).replace(",", ".")) || 0;
   const setL = (id, k, val) => setLinhas((s) => s.map((l) => l.id === id ? { ...l, [k]: val } : l));
   const setV = (id, sku, k, val) => setLinhas((s) => s.map((l) => l.id !== id ? l : { ...l, variations: l.variations.map((va) => va.sku === sku ? { ...va, [k]: val } : va) }));
+  // Puxado do vivo (BulkEdit.tsx, thread 00): título com a contagem, aviso de impacto e
+  // confirmação em dois passos ("Atualizar N produtos" → "Confirmar (N)").
+  const [confirmando, setConfirmando] = useState(false);
+  const n = linhas.length;
+  const { Alert } = DS();
 
   return (
     <>
-      <Widget titulo={<><Ic name="pencil" size={13} /> Edição em massa</>} nota={linhas.length + " produtos"}>
+      {Alert && <Alert tone="warn" title={"Estas alterações afetam " + n + " " + (n === 1 ? "produto simultaneamente." : "produtos simultaneamente.")}>
+        Revise cada linha antes de confirmar. Não há desfazer automático — apenas re-edição manual.
+      </Alert>}
+      <Widget titulo={<><Ic name="pencil" size={13} /> Edição em massa · {n} {n === 1 ? "produto" : "produtos"}</>} nota={n + " produtos"}>
         <p className="pb-help" style={{ marginBottom: 10 }}>Categoria, subcategoria, marca, imposto e locais mudam por produto; preços por variação. Busque outro produto pra somar à lista.</p>
         <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 12 }}>
           <input placeholder="Buscar produto pra editar…" style={{ font: "inherit", fontSize: 12.5, height: 30, padding: "0 9px", border: "1px solid var(--border)", borderRadius: 6, background: "var(--surface)", color: "var(--text)", width: 320 }}
@@ -592,7 +632,10 @@ function Massa({ onSair, avisar }) {
       </Widget>
       <div className="pb-formactions">
         <button className="os-btn ghost" onClick={onSair}>Cancelar</button>
-        <button className="os-btn primary" onClick={() => { avisar(linhas.length + " produtos atualizados.", "ok"); onSair(); }}>Atualizar</button>
+        <button className={"os-btn primary" + (confirmando ? " danger" : "")} onClick={() => {
+          if (!confirmando) return setConfirmando(true);
+          avisar(n + " produtos atualizados.", "ok"); onSair();
+        }}>{confirmando ? "Confirmar (" + n + ")" : "Atualizar " + n + " produtos"}</button>
       </div>
     </>
   );

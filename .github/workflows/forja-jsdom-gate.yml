@@ -77,6 +77,9 @@ on:
       # Os specs e este workflow.
       - 'tests/forjaQuadroColunas.spec.tsx'
       - 'tests/js/forja-runbook.test.tsx'
+      # Sob teste — o semáforo da Saúde do MCP (UC-SC-02, thread 03 do playbook Forja).
+      - 'Modules/Forja/Resources/js/Pages/team-mcp/Scorecard/Index.tsx'
+      - 'tests/js/forja-scorecard-semaforo.test.tsx'
       - '.github/workflows/forja-jsdom-gate.yml'
   push:
     branches: [main]
@@ -88,6 +91,8 @@ on:
       - 'Modules/Forja/Resources/js/Pages/Forja/Trabalho/_components/ForjaRunbook.tsx'
       - 'tests/forjaQuadroColunas.spec.tsx'
       - 'tests/js/forja-runbook.test.tsx'
+      - 'Modules/Forja/Resources/js/Pages/team-mcp/Scorecard/Index.tsx'
+      - 'tests/js/forja-scorecard-semaforo.test.tsx'
 
 concurrency:
   group: forja-jsdom-gate-${{ github.ref }}
@@ -116,6 +121,7 @@ jobs:
           npx vitest run \
             tests/forjaQuadroColunas.spec.tsx \
             tests/js/forja-runbook.test.tsx \
+            tests/js/forja-scorecard-semaforo.test.tsx \
             --reporter=default \
             --reporter=junit \
             --outputFile=test-results/vitest-forja-jsdom-junit.xml

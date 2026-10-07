@@ -213,11 +213,11 @@ Você escreve SOMENTE no seu prefixo e no seu _saida-NN.md. Terminou: escreva o 
       "nao_toca": [
         "app/Providers/AuthServiceProvider.php"
       ],
-      "bloqueio": "D-GATE: passo 1 da ADR 0392, decisao [W] em aberto. Thread bloqueada nao ganha arquivo proprio.",
       "depende_decisoes": [
         "D-GATE"
       ],
-      "provas": []
+      "provas": [],
+      "nota_estado": "D-GATE respondida em 2026-09-29 (restringir); o bloqueio que ficou aqui era resíduo — limpo pelo [CC] 2026-10-07"
     },
     {
       "id": "06",

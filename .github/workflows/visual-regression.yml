@@ -1220,6 +1220,61 @@ jobs:
         continue-on-error: true
         run: ./vendor/bin/pest tests/Browser/Repair/ProducaoOficinaIndexTest.php
 
+      # ── TEMA ESCURO nas Pages de produção (playbook tema-escuro thread 02 · ADVISORY) ──
+      # A thread 01 mede superfície clara no ESPELHO do protótipo (design-memory-gate.yml).
+      # Esta mede o React: as telas de visreg-screens.json, logadas no biz=1 fictício com
+      # ui_theme=dark, e o veredito sai da MESMA sonda (`--producao`), que é a dona do corte
+      # L/C/alfa e da allowlist. 1 linha por Page no log e no resumo — insumo da thread 03.
+      #
+      # SÓ RODA quando o PR toca a sonda ou o teste: são ~74 visitas, e o job já fica perto do
+      # teto de 25 min (medido 07/10: runs de PR com UI levam 18-23 min de parede). Rodar em
+      # todo PR de UI empurraria os outros para o `cancelled`.
+      #
+      # ADVISORY no nascimento (ADR 0261/0275): não há baseline de produção (baseline nova é
+      # decisão [W]), então a sonda RELATA os achados e só sai ≠0 quando NÃO MEDIU (exit 2).
+      # O Pest reprova tela que não renderiza ou não escurece — isso é ambiente, não achado.
+      - name: Tema escuro · produção — o PR toca a sonda?
+        if: always() && steps.mode.outputs.ui == 'true' && github.event_name == 'pull_request' && steps.setup-ok.outcome == 'success'
+        id: tema-escuro-diff
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          set -euo pipefail
+          if [ "$(git rev-list --count --no-walk --merges HEAD)" = "1" ]; then BASE="$(git rev-parse HEAD^1)"; else BASE="$BASE_SHA"; fi
+          if git diff --name-only "$BASE" HEAD | grep -qE '^(scripts/design/tema-escuro-probe[.]mjs|tests/Browser/TemaEscuro/)'; then
+            echo "run=true" >> "$GITHUB_OUTPUT"; echo "toca a sonda/teste — mede"
+          else
+            echo "run=false" >> "$GITHUB_OUTPUT"; echo "não toca — pulado (não é verde: não mediu)"
+          fi
+
+      - name: Tema escuro · produção — Pages Inertia no escuro (ADVISORY)
+        if: always() && steps.tema-escuro-diff.outputs.run == 'true'
+        id: e2e-tema-escuro
+        continue-on-error: true
+        run: |
+          set -uo pipefail
+          ./vendor/bin/pest tests/Browser/TemaEscuro/TemaEscuroProducaoTest.php; pest_rc=$?
+          node scripts/design/tema-escuro-probe.mjs --producao storage/tema-escuro --json storage/tema-escuro-veredito.json | tee /tmp/tema-escuro-producao.txt; sonda_rc=${PIPESTATUS[0]}
+          {
+            echo "## Tema escuro — Pages de produção (pest_rc=$pest_rc · sonda_rc=$sonda_rc)"
+            echo ""
+            echo '```'
+            cat /tmp/tema-escuro-producao.txt
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+          [ "$sonda_rc" -eq 0 ] && [ "$pest_rc" -eq 0 ]
+
+      - name: Upload tema escuro · produção (registros + veredito)
+        if: always() && steps.tema-escuro-diff.outputs.run == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: tema-escuro-producao-${{ github.run_id }}
+          path: |
+            storage/tema-escuro/
+            storage/tema-escuro-veredito.json
+          if-no-files-found: warn
+          retention-days: 14
+
       # ── VEREDITO DOS ADVISORY DE BROWSER (visibilidade, NÃO enforcement) ─────────
       # NÃO lista o step de Purchase/Index · Etiquetas, e isso é deliberado: ele foi
       # promovido a ENFORCING em 2026-09-05 (flip [W]), logo NÃO tem `continue-on-error`
@@ -1259,6 +1314,7 @@ jobs:
           A_RECIPES: ${{ steps.e2e-recipes.outcome }}
           A_VISAO_GERAL: ${{ steps.e2e-visao-geral.outcome }}
           A_REPAIR_PRODUCAO: ${{ steps.e2e-repair-producao.outcome }}
+          A_TEMA_ESCURO: ${{ steps.e2e-tema-escuro.outcome }}
           A_PATR_ALOCACOES: ${{ steps.e2e-patrimonio-alocacoes.outcome }}
           A_PATR_CONFIGURACOES: ${{ steps.e2e-patrimonio-configuracoes.outcome }}
           A_PATR_MANUTENCOES: ${{ steps.e2e-patrimonio-manutencoes.outcome }}
@@ -1298,6 +1354,7 @@ jobs:
           registrar "E2E de render · Manufacturing/Recipes" "$A_RECIPES"
           registrar "E2E de render · Home/Visao geral" "$A_VISAO_GERAL"
           registrar "E2E de render · Repair/ProducaoOficina" "$A_REPAIR_PRODUCAO"
+          registrar "Tema escuro · produção (só quando o PR toca a sonda)" "$A_TEMA_ESCURO"
           registrar "E2E de render · Patrimonio/Alocacoes" "$A_PATR_ALOCACOES"
           registrar "E2E de render · Patrimonio/Configuracoes" "$A_PATR_CONFIGURACOES"
           registrar "E2E de render · Patrimonio/Manutencoes" "$A_PATR_MANUTENCOES"
