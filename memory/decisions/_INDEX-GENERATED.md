@@ -6,9 +6,9 @@
 
 ## Resumo
 - **433** arquivos · **418** números únicos · máx **0428**
-- **ADRs ATIVOS (lifecycle ativo): 388** ← resposta única a "quantos ADRs ativos"
-- Por status: aceito 379 · superseded 25 · proposto 16 · deprecated 11 · rascunho 1 · recusado 1
-- Por lifecycle: ativo 388 · substituido 25 · arquivado 20
+- **ADRs ATIVOS (lifecycle ativo): 386** ← resposta única a "quantos ADRs ativos"
+- Por status: aceito 379 · superseded 27 · proposto 14 · deprecated 11 · rascunho 1 · recusado 1
+- Por lifecycle: ativo 386 · substituido 27 · arquivado 20
 - Sem frontmatter (formato-tabela legado): 0
 
 ## Colisões de número (13) — auto-detectadas
@@ -26,9 +26,8 @@
 - **0246** ×2: 0246-sessao-2026-05-30-ds-harmonizacao · 0246-tipo-outros-default-migracoes-legacy
 - **0294** ×2: 0294-mcp-audit-log-hash-chain-tamper-evident · 0294-metodo-dual-track-shapeup-catraca
 
-## Integridade de supersessão (2 alertas)
-- ⚠️ 0428 supersedes 0423 → 0423 NÃO está marcada substituido/superseded ⚠️
-- ⚠️ 0428 supersedes 0424 → 0424 NÃO está marcada substituido/superseded ⚠️
+## Integridade de supersessão (0 alertas)
+_(íntegra)_
 
 ## Supersessão declarada em prosa sem o campo (0) — 🟡 EVENTO-prosa (ADR 0317, warn não-bloqueia)
 _(nenhuma)_
@@ -466,8 +465,8 @@ _(nenhuma)_
 | 0420 | aceito | ativo | decision | Ponto — o AEJ lê a apuração para horário contratual e ausências; dado legal ause |
 | 0421 | aceito | ativo | decision | Arquivos — aviso ao titular (LGPD Art. 18 VI): registro titular_avisado_at + açã |
 | 0422 | proposto | ativo | decision | Arquivos — aviso ao titular sai por e-mail e WhatsApp, com liga/desliga por negó |
-| 0423 | proposto | ativo | decision | Ponto — lembrete de bater ponto por push (FCM HTTP v1, token por usuário+busines |
-| 0424 | proposto | ativo | decision | Ponto — emenda à 0423: o app de telas próprias registra o aparelho pela API (Pas |
+| 0423 | superseded | substituido | decision | Ponto — lembrete de bater ponto por push (FCM HTTP v1, token por usuário+busines |
+| 0424 | superseded | substituido | decision | Ponto — emenda à 0423: o app de telas próprias registra o aparelho pela API (Pas |
 | 0425 | aceito | ativo | decision | Webhook sync-memory atualiza só memory/ — código de produção chega só pelo deplo |
 | 0426 | proposto | ativo | decision | A barra do app das lojas guarda a escolha do usuário no ERP, numa tabela própria |
 | 0427 | aceito | ativo | decision | Auto-merge de PR de thread de playbook verde — emenda da 0040 |
