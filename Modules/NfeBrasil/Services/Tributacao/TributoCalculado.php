@@ -49,5 +49,13 @@ final readonly class TributoCalculado
         public float   $aliquota_cbs = 0.0,
         public float   $valor_ibs = 0.0,
         public float   $valor_cbs = 0.0,
+        // ICMS-ST · FCP · DIFAL (thread 06 do playbook Fiscal — R-NFE-015/015b/016/017).
+        // Zero-default: quem não informa a alíquota interna do destino (hoje, nenhum
+        // caller) recebe 0 e o XML emitido não muda. Fórmulas e norma no docblock de
+        // MotorTributarioService::calcularStFcpDifal.
+        public float   $base_st = 0.0,
+        public float   $valor_st = 0.0,
+        public float   $valor_fcp = 0.0,
+        public float   $valor_difal = 0.0,
     ) {}
 }
