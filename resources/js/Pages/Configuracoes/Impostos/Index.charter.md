@@ -31,6 +31,7 @@ Manter as alíquotas que a venda aplica, e mostrar os grupos de imposto que as s
 ## Goals
 
 - Lista das alíquotas do negócio (percentual, "só em grupo", se compõe grupo) e dos grupos (percentual, composição).
+- Cadastrar e editar alíquota num drawer, mandando o percentual em texto pt-BR sem separador de milhar.
 - Excluir alíquota pelo endpoint de sempre; a que compõe grupo avisa antes, porque o `destroy()` recusa.
 - Aviso de configuração fiscal avançada quando o negócio tem NF-e Brasil configurada, como a Blade.
 - Abas de Configurações (D1, [W] 2026-10-06), derivadas do `shell.menu`.

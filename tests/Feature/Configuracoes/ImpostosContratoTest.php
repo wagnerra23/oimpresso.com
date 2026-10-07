@@ -1,7 +1,7 @@
 <?php
 
 declare(strict_types=1);
-// Cobre UC-IMPOS-01, UC-IMPOS-02, UC-IMPOS-03 (Configuracoes/Impostos/Index.casos.md).
+// Cobre UC-IMPOS-01, UC-IMPOS-02, UC-IMPOS-03, UC-IMPOS-04 (Configuracoes/Impostos/Index.casos.md).
 
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\DB;
@@ -81,4 +81,26 @@ test('UC-IMPOS-03 Tier 0 e valor — alíquotas e grupos do negócio, com o núm
     expect($aliquotas[$pis]['em_grupo'])->toBeTrue();
     expect($grupos[$grupo]['aliquota'])->toBe(9.25);
     expect(count($grupos[$grupo]['sub_impostos']))->toBe(2);
+});
+
+test('UC-IMPOS-04 valor — o texto que o drawer monta volta ao banco como o mesmo número (cadastro e edição)', function () {
+    $util = new \App\Utils\Util;
+    $ajax = ['X-Requested-With' => 'XMLHttpRequest', 'Accept' => 'application/json'];
+    $this->actingAs($this->usuarioComPermissoes(['tax_rate.view', 'tax_rate.create', 'tax_rate.update'], $this->business));
+    // O paraTexto() do Index.tsx: pt-BR, 2 a 4 casas, SEM separador de milhar (useGrouping: false).
+    $casos = ['1,65' => 1.65, '7,60' => 7.6, '18,00' => 18.0, '1234,50' => 1234.5, '0,1250' => 0.125];
+
+    foreach ($casos as $texto => $esperado) {
+        $nome = 'Drawer '.uniqid();
+        $r = $this->withHeaders($ajax)->post('/tax-rates', ['name' => $nome, 'amount' => $texto]);
+        expect($r->json('success'))->toBeTrue();
+        $id = (int) DB::table('tax_rates')->where('business_id', $this->business->id)->where('name', $nome)->value('id');
+        // Caminho 1: o endpoint gravou. Caminho 2: num_uf direto sobre o mesmo texto.
+        expect((float) DB::table('tax_rates')->where('id', $id)->value('amount'))->toBe($esperado);
+        expect((float) $util->num_uf($texto))->toBe($esperado);
+
+        // Editar sem mexer no percentual: a tela reenvia paraTexto(aliquota) e o número não pode andar.
+        $this->withHeaders($ajax)->put("/tax-rates/{$id}", ['name' => $nome.' editada', 'amount' => $texto])->assertOk();
+        expect((float) DB::table('tax_rates')->where('id', $id)->value('amount'))->toBe($esperado);
+    }
 });

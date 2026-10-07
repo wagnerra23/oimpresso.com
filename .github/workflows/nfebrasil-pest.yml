@@ -317,6 +317,7 @@ jobs:
             Modules/NfeBrasil/Tests/Feature/SugestaoFiscalTest.php \
             Modules/NfeBrasil/Tests/Feature/ProdutoFiscalToolTest.php \
             Modules/NfeBrasil/Tests/Feature/AceiteContadorTest.php \
+            Modules/NfeBrasil/Tests/Feature/RevisaoContadorLinkTest.php \
             Modules/Fiscal/Tests/Feature/ContadorCadastroTest.php
 
 
