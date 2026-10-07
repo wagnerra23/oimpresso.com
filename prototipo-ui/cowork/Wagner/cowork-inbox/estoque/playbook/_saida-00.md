@@ -10,8 +10,10 @@ veredito: "entregue — 4 rotas est-* ligadas às 4 Pages, publicadas em window.
 
 # _saída 00 · PUXAR o vivo de Estoque
 
-> A ficha dá esta thread ao [CC]. Quem executou foi o [CL], a pedido do agente-pai. Nada subiu ao
-> Cowork: escrever no Claude Design exige opt-in do dono (ADR 0315). Até a subida, o check
+> A ficha dá esta thread ao [CC]. Quem executou foi o [CL], a pedido do agente-pai. Este recibo
+> sobe ao Cowork pelo canal `cowork-inbox/` depois do merge (a isenção de opt-in da ADR 0412 só
+> vale para blob já igual ao `origin/main`). O `estoque-page.jsx` não sobe:
+> escrever tela no Claude Design exige opt-in do dono (ADR 0315). Até a subida dele, o check
 > `espelho — mexeu depois de verificar` acusa o `estoque-page.jsx`. Isso é esperado.
 
 ## Por que a rota não era reprodutível
