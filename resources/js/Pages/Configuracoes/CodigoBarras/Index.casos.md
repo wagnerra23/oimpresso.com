@@ -35,8 +35,13 @@ last_run: "2026-10-07"
   lista carrega (prop deferida `etiquetas`) · Então vejo só as minhas, a padrão em primeiro e marcada, com largura 1,5.
 - **Status: 🧪**
 
+## UC-ETQ-04 · Cadastrar e editar pelo drawer gravam no meu negócio, em polegada
+- **Aceite:** Dado o corpo que o drawer manda numa visita Inertia · Quando cadastro uma folha (largura 1,5", 24 por
+  folha) marcada como padrão · Então ela é gravada no meu negócio, como padrão, com 1,5 e 24, e a padrão anterior deixa
+  de ser · E editar para rolo contínuo grava `is_continuous` e 28 por folha, como o `update()` força.
+- **Status: 🧪**
+
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
-- [BACKLOG] Cadastrar e editar no drawer, folha × rolo contínuo (F3-2).
 - [BACKLOG] Medidas em mm, como o protótipo — depende de decisão [W].
 
 ## Trilha do tempo

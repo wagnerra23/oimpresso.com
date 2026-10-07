@@ -136,7 +136,9 @@ test('UC-RCV-02 Tier 0 — o negócio 99 não entra nos totais nem nos locais, e
 
     $alheio = $this->seededSupportClientTenant();
     expect($alheio->id)->not->toBe($this->business->id);
-    $donoAlheio = (int) DB::table('users')->where('business_id', $alheio->id)->value('id');
+    // Usuário PRÓPRIO do 99: o dono semeado só fica ligado ao 99 quando o helper cria a empresa;
+    // se o 99 já existia, a consulta voltava null → created_by=0 e a FK de contacts derrubava o insert.
+    $donoAlheio = \App\User::factory()->create(['business_id' => $alheio->id])->id;
     rcvCenario($alheio->id, $donoAlheio);
     $localAlheio = EstoqueFixture::locationId($alheio->id);
 

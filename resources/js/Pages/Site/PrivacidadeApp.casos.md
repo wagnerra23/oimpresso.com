@@ -22,6 +22,7 @@ last_run: "2026-10-01"
 | UC-PRVAPP-02 | Cobre o ERP além do ponto e aponta para a política do ponto | must | 🧪 |
 | UC-PRVAPP-03 | Não promete apagar marcação de ponto | must | 🧪 |
 | UC-PRVAPP-04 | Declara que não usa localização em segundo plano | must | 🧪 |
+| UC-PRVAPP-05 | Declara os registros de falhas (diagnóstico), sem dado pessoal, guardados 90 dias no servidor próprio | must | 🧪 |
 
 ## UC-PRVAPP-01 · Abre sem login, URL estável · `must`
 - **Persona:** revisor da loja de aplicativo, sem conta no oimpresso.
@@ -38,4 +39,9 @@ last_run: "2026-10-01"
 
 ## UC-PRVAPP-04 · Sem localização em segundo plano · `must`
 - **Aceite:** Dado a política publicada · Quando a leio · Então ela diz que o app não usa a localização em segundo plano (o Data Safety declara o mesmo).
+- **Status:** 🧪
+
+## UC-PRVAPP-05 · Declara os registros de falhas · `must`
+- **Fonte:** ADR 0429 (log de falhas no GlitchTip self-host do CT 100): a política declara o diagnóstico antes do 1º relatório; retenção de 90 dias.
+- **Aceite:** Dado a política publicada · Quando a leio · Então ela diz que o app envia registros de falhas (diagnóstico) sem nome, e-mail, senha nem conteúdo de tela, que ficam no servidor próprio do oimpresso e são apagados depois de 90 dias (o Data Safety declara "Diagnóstico → Registros de falhas").
 - **Status:** 🧪

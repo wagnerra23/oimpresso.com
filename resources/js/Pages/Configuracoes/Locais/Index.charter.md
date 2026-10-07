@@ -32,10 +32,13 @@ Manter os locais comerciais (filiais) do negócio — cada um com CNPJ, tabela d
 
 - Lista dos locais que o usuário pode ver, ativos primeiro, com referência, cidade, CNPJ, tabela de preço, esquema e layouts.
 - Ativar e desativar pelo endpoint de sempre.
+- Cadastrar e editar num drawer com os campos da Blade (identificação, fiscal, endereço, contato, fatura e preço, campos personalizados, formas de pagamento).
+- Abas de Configurações (D1, [W] 2026-10-06), derivadas do `shell.menu`.
 
 ## Non-Goals
 
 - ❌ Excluir local: o legado não tem (`destroy()` vazio); desativar é o caminho.
+- ❌ Mandar no `update()` um corpo sem `default_payment_accounts`/`featured_products`: o controller grava `null` e apaga a configuração do local. O drawer devolve os dois intactos.
 - ❌ Mostrar local que o usuário não pode acessar: sem `access_all_locations`, só os com permissão direta `location.<id>`.
 
 ## Regras

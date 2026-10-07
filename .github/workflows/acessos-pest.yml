@@ -43,6 +43,15 @@ on:
   pull_request:
     types: [opened, reopened, ready_for_review]
     branches: [main]
+    # paths-ignore FAIL-CLOSED: PR que toca SÓ memory/, prototipo-ui/ ou o estado do
+    # design-sync não sobe esta lane. O paths-filter interno já pularia tudo (veredito
+    # igual), só que ocupando runner. Qualquer outro arquivo no diff → roda como antes.
+    # Promover a required = APAGAR este bloco (o required-always-run reprova se ficar).
+    # Prova: scripts/governance/advisory-paths-ignore.test.mjs
+    paths-ignore:
+      - 'memory/**'
+      - 'prototipo-ui/**'
+      - 'scripts/design-sync/state/**'
   push:
     branches: [main]
     paths:
@@ -82,6 +91,9 @@ on:
       - 'app/Http/Controllers/PrinterController.php'
       - 'app/Http/Controllers/BarcodeController.php'
       - 'app/Http/Controllers/BusinessLocationController.php'
+      - 'app/Http/Controllers/InvoiceSchemeController.php'
+      - 'app/Http/Controllers/TaxRateController.php'
+      - 'app/Http/Controllers/TypesOfServiceController.php'
       - 'resources/views/printer/**'
       - 'tests/Feature/Configuracoes/**'
       - 'database/schema/mysql-schema.sql'
@@ -153,6 +165,9 @@ jobs:
               - 'app/Http/Controllers/PrinterController.php'
               - 'app/Http/Controllers/BarcodeController.php'
               - 'app/Http/Controllers/BusinessLocationController.php'
+              - 'app/Http/Controllers/InvoiceSchemeController.php'
+              - 'app/Http/Controllers/TaxRateController.php'
+              - 'app/Http/Controllers/TypesOfServiceController.php'
               - 'resources/views/printer/**'
               - 'tests/Feature/Configuracoes/**'
               - 'database/schema/mysql-schema.sql'

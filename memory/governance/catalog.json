@@ -26,12 +26,12 @@
   ],
   "stats": {
     "modules": 35,
-    "nodes": 744,
-    "edges": 1032,
+    "nodes": 745,
+    "edges": 1036,
     "by_node_type": {
       "module": 39,
       "table": 104,
-      "adr": 135,
+      "adr": 136,
       "component": 389,
       "api": 77
     },
@@ -46,9 +46,9 @@
       "dependsOn": 117,
       "delegatesTo": 109,
       "migratesTo": 1,
-      "supersedes": 24,
+      "supersedes": 26,
       "supersedesPartially": 63,
-      "supersededBy": 28
+      "supersededBy": 30
     },
     "dangling": 0
   },
@@ -997,6 +997,13 @@
       "type": "adr",
       "num": "0427",
       "slug": "0427-auto-merge-de-pr-de-thread-emenda-0040",
+      "exists": true
+    },
+    {
+      "id": "adr:0428",
+      "type": "adr",
+      "num": "0428",
+      "slug": "0428-app-das-lojas-avisos-sem-firebase-centrifugo",
       "exists": true
     },
     {
@@ -6682,6 +6689,18 @@
       "source": "supersedes_partially"
     },
     {
+      "from": "adr:0423",
+      "to": "adr:0428",
+      "type": "supersededBy",
+      "source": "superseded_by"
+    },
+    {
+      "from": "adr:0424",
+      "to": "adr:0428",
+      "type": "supersededBy",
+      "source": "superseded_by"
+    },
+    {
       "from": "adr:0424",
       "to": "adr:0423",
       "type": "supersedesPartially",
@@ -6698,6 +6717,18 @@
       "to": "adr:0040",
       "type": "supersedesPartially",
       "source": "supersedes_partially"
+    },
+    {
+      "from": "adr:0428",
+      "to": "adr:0423",
+      "type": "supersedes",
+      "source": "supersedes"
+    },
+    {
+      "from": "adr:0428",
+      "to": "adr:0424",
+      "type": "supersedes",
+      "source": "supersedes"
     },
     {
       "from": "module:Arquivos",

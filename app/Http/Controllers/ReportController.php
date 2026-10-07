@@ -1052,6 +1052,7 @@ class ReportController extends Controller
 
         $business_id = $request->session()->get('user.business_id');
         $filters = $request->only(['category', 'location_id']);
+        $filters['permitted_locations'] = auth()->user()->permitted_locations($business_id); // Tier 0: só locais do usuário
 
         $date_range = $request->input('date_range');
 
@@ -1288,6 +1289,7 @@ class ReportController extends Controller
             $business_id = $request->session()->get('user.business_id');
 
             $filters = $request->only(['expense_for', 'location_id', 'start_date', 'end_date']);
+            $filters['permitted_locations'] = auth()->user()->permitted_locations($business_id); // Tier 0: só locais do usuário
 
             $total_expense = $this->transactionUtil->getExpenseReport($business_id, $filters, 'total');
 
