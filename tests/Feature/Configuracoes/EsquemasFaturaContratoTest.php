@@ -1,7 +1,7 @@
 <?php
 
 declare(strict_types=1);
-// Cobre UC-ESQF-01, UC-ESQF-02, UC-ESQF-03 (Configuracoes/EsquemasFatura/Index.casos.md).
+// Cobre UC-ESQF-01, UC-ESQF-02, UC-ESQF-03, UC-ESQF-04 (Configuracoes/EsquemasFatura/Index.casos.md).
 
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\DB;
@@ -81,4 +81,36 @@ test('UC-ESQF-03 Tier 0 — esquemas e layouts do negócio, com o contador do ba
     expect($layouts->has($layoutMeu))->toBeTrue();
     expect($layouts->has($layoutAlheio))->toBeFalse();
     expect($layouts[$layoutMeu]['locais'])->toContain($local->name);
+});
+
+test('UC-ESQF-04 o drawer cadastra a numeração e edita o nome sem mexer em numeração nem contador', function () {
+    config(['feature-flags.forced_on' => 'useV2ConfiguracoesEsquemasFatura']);
+    $ajax = ['X-Requested-With' => 'XMLHttpRequest', 'Accept' => 'application/json'];
+    $nome = 'Oficina '.uniqid();
+
+    // Cadastro: o salvar() do Index.tsx manda o corpo do modal da Blade.
+    $r = $this->withHeaders($ajax)->post('/invoice-schemes', [
+        'name' => $nome, 'scheme_type' => 'year', 'prefix' => 'OS', 'number_type' => 'sequential',
+        'start_number' => '100', 'total_digits' => '6',
+    ]);
+    expect($r->json('success'))->toBeTrue();
+    $id = (int) DB::table('invoice_schemes')->where('name', $nome)->value('id');
+    DB::table('invoice_schemes')->where('id', $id)->update(['invoice_count' => 12]); // vendas já emitidas
+
+    // Edição: o drawer parte da prop e só o nome muda.
+    $h = ['X-Inertia' => 'true', 'X-Inertia-Version' => $this->versaoInertia, 'X-Inertia-Partial-Component' => 'Configuracoes/EsquemasFatura/Index', 'X-Inertia-Partial-Data' => 'fatura'];
+    $e = collect($this->withHeaders($h)->get('/invoice-schemes')->json('props.fatura.esquemas'))->firstWhere('id', $id);
+    $r = $this->withHeaders($ajax)->put("/invoice-schemes/{$id}", [
+        'name' => $nome.' editado', 'scheme_type' => $e['tipo'], 'prefix' => $e['prefixo'], 'number_type' => $e['tipo_numero'],
+        'start_number' => (string) $e['inicio'], 'total_digits' => (string) $e['digitos'],
+    ]);
+    expect($r->json('success'))->toBeTrue();
+
+    $depois = DB::table('invoice_schemes')->where('id', $id)->first();
+    expect($depois->name)->toBe($nome.' editado');
+    expect($depois->scheme_type)->toBe('year');
+    expect($depois->prefix)->toBe('OS');
+    expect((int) $depois->start_number)->toBe(100);
+    expect((int) $depois->total_digits)->toBe(6);
+    expect((int) $depois->invoice_count)->toBe(12);
 });

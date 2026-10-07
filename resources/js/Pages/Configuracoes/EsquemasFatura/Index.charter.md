@@ -33,6 +33,7 @@ Mostrar como as notas de cada local são numeradas e com que layout saem.
 - Lista dos esquemas do negócio: padrão marcado, prefixo (com o ano no anual), tipo de numeração, emitidas e o próximo
   número sequencial pela mesma conta do `TransactionUtil`.
 - Tornar padrão e excluir pelos endpoints de sempre; o padrão não se exclui.
+- Cadastrar e editar esquema num drawer com os campos do modal da Blade (formato, prefixo, numeração, início, dígitos).
 - Layouts do negócio com os locais que usam cada um, e link para o editor de layout da Blade.
 - Abas de Configurações (D1, [W] 2026-10-06), derivadas do `shell.menu`.
 

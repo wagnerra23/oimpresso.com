@@ -37,8 +37,14 @@ last_run: "2026-10-07"
   E não vejo o esquema nem o layout alheios.
 - **Status: 🧪**
 
+## UC-ESQF-04 · O drawer cadastra a numeração e edita o nome sem mexer nela
+- **Aceite:** Dado o corpo do drawer (anual, prefixo "OS", início 100, 6 dígitos) · Quando cadastro · Então o esquema é
+  gravado assim · E, com 12 notas já emitidas, editar só o nome a partir da prop mantém formato, prefixo, início, dígitos
+  e o contador de emitidas.
+- **Status: 🧪**
+
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
-- [BACKLOG] Cadastrar e editar esquema no drawer (F3-2).
+- [BACKLOG] Editor de layout de fatura na tela nova — é o `InvoiceLayoutController`, fora do prefixo da thread.
 
 ## Trilha do tempo
 - 2026-10-07 · [CL] criado com a F3 da thread `sistema/playbook/05`.
