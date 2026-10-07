@@ -44,6 +44,7 @@ linkando para `/nfe-brasil/tributacao`.
 4. Pílula temporal de vencimento (crit ≤7d, warn ≤60d)
 5. Link "Editar" → `/nfe-brasil/configuracao/certificado` (módulo emissor canon)
 6. Permissão `fiscal.config.edit`
+7. Cadastro do contador (nome, e-mail, CRC) no card Envio de documentos — `POST /fiscal/config/contador`, mesmo gate; salvar cria o papel `Contador#{business}` se faltar (playbook Fiscal thread 15c · D-CONTADOR · `UC-FCFG-08`/`09`)
 
 ## Non-Goals (PR #3 · reconciliado 2026-09-02)
 

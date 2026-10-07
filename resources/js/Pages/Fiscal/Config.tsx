@@ -95,6 +95,16 @@ interface ConfigProps {
    * default seguro de um gate é negar.
    */
   podeTrocarAmbiente?: boolean;
+  /** Contador da empresa (playbook Fiscal thread 15c). Null = não cadastrado. */
+  contador?: Contador | null;
+}
+
+/** Cadastro do contador — salvar também cria o papel `Contador#{business}`, se faltar. */
+interface Contador {
+  nome: string;
+  email: string;
+  crc: string | null;
+  papel: string;
 }
 
 /**
@@ -138,6 +148,7 @@ function formatCnpj(raw: string | null): string {
 
 export default function Config({
   activeTab, certificado, config, painel, seriesMock = [], envioDocumentos, podeTrocarAmbiente = false,
+  contador = null,
 }: ConfigProps) {
   // Aba ativa dirigida pela rota (?tab=) — barra canônica navega por href (DS Onda 3).
   const tab = activeTab ?? 'cert';
@@ -217,6 +228,21 @@ export default function Config({
   // campo opcional: o fisco pergunta por que a nota saiu com tpEmis != 1.
   const contingencia = config?.contingencia;
   const contingenciaForm = useForm<{ motivo: string }>({ motivo: '' });
+
+  // Cadastro do contador (thread 15c) → POST /fiscal/config/contador
+  const contadorForm = useForm<{ nome: string; email: string; crc: string }>({
+    nome: contador?.nome ?? '',
+    email: contador?.email ?? '',
+    crc: contador?.crc ?? '',
+  });
+  const salvarContador = (e: FormEvent) => {
+    e.preventDefault();
+    contadorForm.post('/fiscal/config/contador', {
+      preserveScroll: true,
+      onSuccess: () => toast.success('Contador salvo.'),
+      onError: () => toast.error('Não foi possível salvar. Confira nome e e-mail.'),
+    });
+  };
 
   const ativarContingencia = (e: FormEvent) => {
     e.preventDefault();
@@ -550,8 +576,8 @@ export default function Config({
             (fiscal-subpages.jsx §"Envio de documentos"). Read-only, como lá.
             PROCEDÊNCIA: as duas chaves abaixo são LEITURA REAL das flags que
             governam os listeners do DANFE. O protótipo serve `contador@example.com.br`
-            de mock; aqui NÃO existe campo pra isso no schema, então a linha declara
-            a ausência em vez de servir um substituto plausível. */}
+            de mock; até 2026-10-07 não havia campo e a linha declarava a ausência.
+            Desde a thread 15c a linha é o cadastro real (`nfe_contadores`). */}
         <section className="fx-cert-card" style={{ marginBottom: 14 }}>
           <h3>
             <Mail size={14} style={{ verticalAlign: 'text-bottom', marginRight: 6 }} />
@@ -561,9 +587,44 @@ export default function Config({
           <dl className="fx-kv" style={{ gridTemplateColumns: '220px 1fr' }}>
             <dt>Contador</dt>
             <dd>
-              <small style={{ color: 'var(--fx-text-mute)' }}>
-                não cadastrado — ainda não existe campo de e-mail do contador nesta configuração
-              </small>
+              <form onSubmit={salvarContador} style={{ display: 'grid', gap: 8, maxWidth: 420 }}>
+                <Input
+                  aria-label="Nome do contador"
+                  placeholder="Nome"
+                  value={contadorForm.data.nome}
+                  onChange={(e) => contadorForm.setData('nome', e.target.value)}
+                  required
+                />
+                <Input
+                  type="email"
+                  aria-label="E-mail do contador"
+                  placeholder="E-mail"
+                  value={contadorForm.data.email}
+                  onChange={(e) => contadorForm.setData('email', e.target.value)}
+                  required
+                />
+                <Input
+                  aria-label="CRC do contador"
+                  placeholder="CRC (opcional)"
+                  value={contadorForm.data.crc}
+                  onChange={(e) => contadorForm.setData('crc', e.target.value)}
+                />
+                {(contadorForm.errors.nome || contadorForm.errors.email || contadorForm.errors.crc) && (
+                  <small role="alert" style={{ color: 'var(--bad)' }}>
+                    {contadorForm.errors.nome || contadorForm.errors.email || contadorForm.errors.crc}
+                  </small>
+                )}
+                <div>
+                  <Button type="submit" size="sm" disabled={contadorForm.processing}>
+                    {contador ? 'Salvar contador' : 'Cadastrar contador'}
+                  </Button>
+                </div>
+                <small style={{ color: 'var(--fx-text-mute)' }}>
+                  {contador
+                    ? <>Quem quiser ter usuário recebe o papel <b>{contador.papel}</b>: tributação, aceite, cockpit fiscal e SPED, sem vendas nem financeiro.</>
+                    : 'Ainda não cadastrado. Ao salvar, o papel "Contador" passa a existir para dar a ele, se ele quiser ter usuário.'}
+                </small>
+              </form>
             </dd>
             <dt>Envio automático ao autorizar</dt>
             <dd>
