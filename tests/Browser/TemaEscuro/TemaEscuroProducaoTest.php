@@ -200,7 +200,10 @@ if ($temaEscuroTelas === []) {
                     }
                     $registro['fundos'] = $fundos;
                     if ($comSanidade) {
-                        $page->script('(() => { const m = document.querySelector("main.main-body"); const d = document.createElement("div"); d.className = "tema-escuro-sanidade"; d.style.cssText = "background:#fff;width:40px;height:20px"; m.prepend(d); })()');
+                        // `main.main-body` é flex em coluna com altura cheia: numa tela que enche o
+                        // main, o div sem `flex-shrink:0` encolhe a 0px e a sanidade falha (medido em
+                        // produção em 2026-10-07, /sells: altura 0 sem, 20 com). Falha segura, mas falsa.
+                        $page->script('(() => { const m = document.querySelector("main.main-body"); const d = document.createElement("div"); d.className = "tema-escuro-sanidade"; d.style.cssText = "background:#fff;width:40px;height:20px;flex-shrink:0"; m.prepend(d); })()');
                         $registro['sanidade'] = $page->script(temaEscuroColetorJs($allow)) ?: [];
                     }
                 }
