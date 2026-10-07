@@ -6,6 +6,7 @@ namespace Modules\NfeBrasil\Services\Tributacao;
 
 use App\User;
 use Closure;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\ValidationException;
 use Modules\NfeBrasil\Models\NfeFiscalRule;
@@ -35,6 +36,9 @@ class RevisaoContadorService
 
     private static ?bool $tabela = null;
 
+    /** @var array<int, bool> a empresa existe? (cache por processo) */
+    private static array $empresas = [];
+
     /** Executa `$fn` marcando a origem das versões que ela criar (csv · jana · template). */
     public static function comOrigem(string $origem, Closure $fn): mixed
     {
@@ -49,6 +53,7 @@ class RevisaoContadorService
     public static function esquecerTabela(): void
     {
         self::$tabela = null;
+        self::$empresas = [];
     }
 
     /**
@@ -60,6 +65,15 @@ class RevisaoContadorService
     {
         // Sem a migração 2026_10_07_000005 (schema de teste SQLite montado à mão) não há onde gravar.
         if (! (self::$tabela ??= Schema::hasTable('nfe_revisoes_contador'))) {
+            return;
+        }
+
+        // A revisão tem FK para `business` (ADR 0093); `nfe_fiscal_rules` não tem. Regra gravada
+        // para uma empresa que não existe (só acontece em teste — medido: biz 999 em
+        // MotorTributarioServiceTest e TributacaoControllerTest) não tem contador para revisar,
+        // e a FK derrubaria o save da regra. Pula, sem esconder erro de quem existe.
+        $biz = (int) $regra->business_id;
+        if (! (self::$empresas[$biz] ??= DB::table('business')->where('id', $biz)->exists())) {
             return;
         }
 
