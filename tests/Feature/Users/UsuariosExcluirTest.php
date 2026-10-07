@@ -8,8 +8,9 @@ use Illuminate\Support\Facades\Schema;
 /**
  * Thread sistema/playbook/01 — o pedido de excluir que a tela `Usuarios/Index` manda.
  *
- * A Page faz POST com `_method=DELETE` e `X-Requested-With` (o destroy() só responde a AJAX),
- * em vez do verbo DELETE da Blade. Este arquivo prova que esse corpo chega ao mesmo destroy().
+ * A Page manda o verbo DELETE com `X-Requested-With`, como o $.ajax da Blade (o destroy() só
+ * responde a AJAX). POST com `_method=DELETE` cai em 405 nesta rota (medido no CT 100,
+ * 2026-10-07) — por isso a tela não usa o override de método aqui.
  * Tenant de teste 98 x cliente fictício 99 (ADR 0358). Nunca biz=4.
  */
 
@@ -32,12 +33,12 @@ test('UC-USUA-04 Tier 0 — o pedido da tela exclui o usuário do negócio e nã
     $alheio = \App\User::factory()->create(['business_id' => $outro->id]);
     $h = ['X-Requested-With' => 'XMLHttpRequest', 'Accept' => 'application/json'];
 
-    $r = $this->withHeaders($h)->post("/users/{$meu->id}", ['_method' => 'DELETE']);
+    $r = $this->withHeaders($h)->delete("/users/{$meu->id}");
     $r->assertOk();
     expect($r->json('success'))->toBeTrue();
     expect(\App\User::withTrashed()->find($meu->id)->trashed())->toBeTrue();
 
-    $r = $this->withHeaders($h)->post("/users/{$alheio->id}", ['_method' => 'DELETE']);
+    $r = $this->withHeaders($h)->delete("/users/{$alheio->id}");
     expect($r->json('success'))->toBeFalse();
     expect(\App\User::withTrashed()->find($alheio->id)->trashed())->toBeFalse();
 });

@@ -40,8 +40,8 @@ last_run: "2026-10-07"
 - **Status: 🧪**
 
 ## UC-USUA-04 · Excluir pela tela usa o endpoint de sempre · `[T0]`
-- **Aceite:** Dado um usuário meu · Quando a tela manda o pedido de excluir (POST com `_method=DELETE` e
-  `X-Requested-With`) · Então ele é excluído (soft delete) e a resposta traz `success = true` · E o mesmo
+- **Aceite:** Dado um usuário meu · Quando a tela manda o pedido de excluir (verbo `DELETE` com
+  `X-Requested-With`, como a Blade) · Então ele é excluído (soft delete) e a resposta traz `success = true` · E o mesmo
   pedido para usuário de outro negócio devolve `success = false` sem excluir.
 - **Status: 🧪**
 

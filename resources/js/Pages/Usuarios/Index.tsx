@@ -51,13 +51,15 @@ function xsrf(): string {
   return decodeURIComponent(document.cookie.match(/(?:^|;\s*)XSRF-TOKEN=([^;]+)/)?.[1] ?? '');
 }
 
-/** Mesmo pedido que o botão de excluir da Blade: o destroy() só responde a AJAX. */
+/**
+ * Mesmo pedido que o botão de excluir da Blade: verbo DELETE de verdade + AJAX (o destroy() só
+ * responde a AJAX). POST com `_method=DELETE` cai em 405 nesta rota (medido no CT 100, 2026-10-07).
+ */
 async function excluirUsuario(id: number): Promise<{ success: boolean; msg?: string }> {
   const r = await fetch(`/users/${id}`, {
-    method: 'POST',
+    method: 'DELETE',
     credentials: 'same-origin',
     headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest', 'X-XSRF-TOKEN': xsrf() },
-    body: new URLSearchParams({ _method: 'DELETE' }),
   });
   const corpo = await r.json().catch(() => null);
   if (corpo && typeof corpo.success === 'boolean') return corpo;
