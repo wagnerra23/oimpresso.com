@@ -39,6 +39,9 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 | UC-NFRF-02 | A regra nasce no meu tenant, nunca no de quem a rota apontar | must `[T0]` `[V0]` | ADR 0093 · SDD `CU-NFE-11` · charter §Non-Goals | `TributacaoGatesContratoTest` | 🧪 |
 | UC-NFRF-03 | Abrir a edição de regra alheia é 404 — e não vaza a alíquota dela | must `[T0]` | ADR 0093 · SDD `CU-NFE-11` | `TributacaoGatesContratoTest` | 🧪 |
 | UC-NFRF-04 | Apagar regra exige a permissão fiscal | must `[T0]` `[V0]` | SDD `CU-NFE-06` · US-NFE-010 · SDD §5.4.1 | `TributacaoGatesContratoTest` | 🧪 |
+| UC-NFRF-05 | A regra grava e relê os 5 campos de IBS/CBS | must `[fiscal]` | US-FISCAL-021 · migration `2026_05_26_000001` · NT 2025.002 | `RegraTributariaIbsCbsValidacaoTest` | 🧪 |
+| UC-NFRF-07 | Editar a regra também grava IBS/CBS (não só criar) | must `[fiscal]` | US-FISCAL-021 · `TributacaoController::update` | `RegraTributariaIbsCbsValidacaoTest` | 🧪 |
+| UC-NFRF-06 | Formato de IBS/CBS inválido é recusado sem gravar | must `[fiscal]` | NT 2025.002 · padrão decimal das alíquotas (UC-NFCD-04) | `RegraTributariaIbsCbsValidacaoTest` | 🧪 |
 
 > **Recibo:** ver §Recibo de execução no rodapé. O UC-NFRF-04 nasceu `❌` (o achado de 2026-07-28)
 > e saiu dele em 2026-10-06, com o gate no `destroy` (playbook Fiscal thread 18).
@@ -144,6 +147,50 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 
 ---
 
+## UC-NFRF-05 · A regra grava e relê os 5 campos de IBS/CBS · `must` `[fiscal]`
+
+- **Persona:** o contador cadastrando a regra para 2027 (regime normal).
+- **Aceite:** Dado um usuário com `nfe.tributacao.manage` · Quando ele cria uma regra com
+  `c_class_trib=000001`, `cst_ibs=000`, `cst_cbs=000`, `aliquota_ibs=0.001`, `aliquota_cbs=0.009` ·
+  Então a linha em `nfe_fiscal_rules` tem os 5 valores, **lidos do banco**, não da resposta.
+  Controle positivo: uma regra **sem** os 5 continua sendo criada, com os códigos nulos e as
+  alíquotas no default `0` da migration.
+- **Teste:** [`RegraTributariaIbsCbsValidacaoTest`](../../../../../Modules/NfeBrasil/Tests/Feature/RegraTributariaIbsCbsValidacaoTest.php)
+  — `UC-NFRF-05 · regra grava e relê c_class_trib, cst_ibs, cst_cbs e alíquotas IBS/CBS`.
+- **Contrato:** US-FISCAL-021 · migration `2026_05_26_000001` · `MotorTributarioService::aplicarRegra`
+  (já lê os 5).
+- **Regressão que defende:** `store`/`update` gravam `$request->validated()` e o FormRequest não
+  declarava os 5 campos — eles sumiam em silêncio e o motor lia nulo.
+- **Status: 🧪** — o teste cita o UC; o veredito é da lane `PHP / Pest (NfeBrasil · MySQL)`. Vermelho→verde no §Recibo.
+
+## UC-NFRF-07 · Editar a regra também grava IBS/CBS (não só criar) · `must` `[fiscal]`
+
+- **Persona:** o contador corrigindo o cClassTrib de uma regra existente.
+- **Aceite:** Dado uma regra existente sem IBS/CBS · Quando edito preenchendo os 5 campos · Então o
+  `update` persiste os 5 (lidos do banco). Controle positivo: editar só a alíquota de ICMS, sem
+  mandar os 5 (é o que o formulário faz hoje), não zera o IBS/CBS já gravado.
+- **Teste:** [`RegraTributariaIbsCbsValidacaoTest`](../../../../../Modules/NfeBrasil/Tests/Feature/RegraTributariaIbsCbsValidacaoTest.php)
+  — `UC-NFRF-07 · update grava e preserva IBS/CBS`.
+- **Contrato:** `TributacaoController::update` (`$regra->update($request->validated())`).
+- **Regressão que defende:** o caminho de edição continuar descartando os campos.
+- **Status: 🧪** — o teste cita o UC; o veredito é da lane `PHP / Pest (NfeBrasil · MySQL)`. Vermelho→verde no §Recibo.
+
+## UC-NFRF-06 · Formato de IBS/CBS inválido é recusado sem gravar · `must` `[fiscal]`
+
+- **Persona:** qualquer usuário fiscal digitando errado.
+- **Aceite:** Dado `c_class_trib` com 5 dígitos, **ou** `aliquota_cbs=9`, **ou** `c_class_trib`
+  sem `cst_ibs` · Quando salva · Então erro de validação no campo e **nenhuma** linha nova.
+  Controle positivo: o mesmo payload corrigido grava.
+- **Teste:** [`RegraTributariaIbsCbsValidacaoTest`](../../../../../Modules/NfeBrasil/Tests/Feature/RegraTributariaIbsCbsValidacaoTest.php)
+  — `UC-NFRF-06 · formato inválido de IBS/CBS é recusado e não grava`.
+- **Contrato:** NT 2025.002 (cClassTrib 6 dígitos, CST 3) · padrão decimal das alíquotas (UC-NFCD-04).
+- **Regressão que defende:** alíquota digitada como inteiro ("9") vira 900% de CBS na nota.
+- **Fora daqui:** exigir IBS/CBS por regime ou data (CRT 3, Simples em 2027) é `D-OPERACAO`; os
+  campos no `RegraForm.tsx` são a thread 05.
+- **Status: 🧪** — o teste cita o UC; o veredito é da lane `PHP / Pest (NfeBrasil · MySQL)`. Vermelho→verde no §Recibo.
+
+---
+
 ## Backlog — sem UC até ganhar teste ou contrato
 
 - `[BACKLOG]` **Os GETs da tela são ungated.** `@create` e `@edit` renderizam sem checar permissão
@@ -168,6 +215,7 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 | Quando | Onde | Resultado |
 |---|---|---|
 | _pendente_ | lane `PHP / Pest (NfeBrasil · MySQL)` — **required, `enforce_admins`** | a preencher com o run id |
+| 2026-10-07 | CT 100 `oimpresso-staging`, worktree isolado do branch da thread 04 · `RegraTributariaIbsCbsValidacaoTest` | **branch:** 3 passed · 30 assertions. **Mesmo teste com o `UpsertRegraTributariaRequest` do `main`:** 3 failed (UC-NFRF-05/07: arrays diferentes — os 5 campos voltam nulos; UC-NFRF-06: *"Session is missing expected key [errors]"*). |
 | 2026-10-06 | CT 100 `oimpresso-staging`, worktree isolado do branch `0e263d01b` · `--filter="UC-NFRF\|UC-NFTR-04"` | **controller do `main`:** 4 passed · 1 failed (UC-NFRF-04: *"Expected 403 but received 302"*) · 30 assertions. **Branch:** 5 passed · 33 assertions. Só o UC-NFRF-04 muda de estado. |
 
 > ⚠️ **Este arquivo de teste NÃO foi adicionado à allowlist da lane** — e aqui a razão é dupla:
