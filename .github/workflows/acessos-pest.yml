@@ -71,6 +71,7 @@ on:
       - 'resources/views/role/**'
       - 'tests/Feature/Roles/**'
       - 'tests/Feature/Users/**'
+      - 'tests/Feature/Relatorios/**'
       - 'app/Http/Controllers/Support/**'
       - 'app/Services/Support/**'
       - 'app/Http/Middleware/EnsureSupportAccess.php'
@@ -134,6 +135,7 @@ jobs:
               - 'resources/views/role/**'
               - 'tests/Feature/Roles/**'
               - 'tests/Feature/Users/**'
+              - 'tests/Feature/Relatorios/**'
               - 'app/Http/Controllers/Support/**'
               - 'app/Services/Support/**'
               - 'app/Http/Middleware/EnsureSupportAccess.php'
@@ -178,7 +180,7 @@ jobs:
           mkdir -p test-results
           vendor/bin/pest --no-coverage --colors=always \
             --log-junit test-results/pest-acessos-junit.xml \
-            tests/Feature/Roles/ tests/Feature/Users/ \
+            tests/Feature/Roles/ tests/Feature/Users/ tests/Feature/Relatorios/ \
             tests/Feature/Support/SuporteLogContratoTest.php
 
       # A régua honesta desta lane é `assertions`, NÃO "0 failed": skip sai exit 0
