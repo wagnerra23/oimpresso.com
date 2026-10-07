@@ -16,13 +16,17 @@ const TODAS = [
   "brand.view", "brand.create", "brand.update", "brand.delete",
   "category.view", "category.create", "category.update", "category.delete",
   "barcode_settings.access",
+  // Puxado do vivo (thread 00, 2026-10-07): Produto/Index e Produto/Show escondem preço de
+  // compra sem `view_purchase_price` e preço de venda sem `access_default_selling_price` —
+  // a COLUNA some, não a célula (AR-PROD-015). `product.update` libera o "Editar" do detalhe.
+  "product.update", "view_purchase_price", "access_default_selling_price",
 ];
 
 // Papéis simulados do protótipo — combinações que o balcão realmente usa.
 const PAPEIS = {
   "administrador": { label: "Administrador", perms: TODAS },
   "gerente": { label: "Gerente de catálogo", perms: TODAS.filter((p) => !p.endsWith(".delete")) },
-  "balcao": { label: "Balcão (só ver)", perms: ["unit.view", "brand.view", "category.view"] },
+  "balcao": { label: "Balcão (só ver)", perms: ["unit.view", "brand.view", "category.view", "access_default_selling_price"] },
   "sem-acesso": { label: "Sem acesso ao cadastro", perms: [] },
 };
 
