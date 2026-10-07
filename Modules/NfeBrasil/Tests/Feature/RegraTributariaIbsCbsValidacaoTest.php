@@ -91,10 +91,13 @@ function ibsvContar(): int
 /** A linha como está no banco, com os 5 campos normalizados pra comparar. */
 function ibsvLinha(string $ncm): array
 {
+    // Desde a thread 07 a regra editada tem versões: lê a vigente (sem `valida_ate`), a mais nova.
     $r = DB::table('nfe_fiscal_rules')
         ->where('business_id', ibsvBiz())
         ->where('ncm', $ncm)
         ->whereNull('deleted_at')
+        ->whereNull('valida_ate')
+        ->orderByDesc('id')
         ->first();
 
     expect($r)->not->toBeNull();
@@ -185,12 +188,18 @@ it('UC-NFRF-07 · update grava e preserva IBS/CBS', function () {
 
     expect(ibsvLinha('22021000'))->toBe(ibsvCampos());
 
+    // Thread 07 (R-NFE-019): a edição gerou versão nova — a próxima edição é na vigente.
+    $vigente = (int) DB::table('nfe_fiscal_rules')
+        ->where('business_id', ibsvBiz())->where('versao_origem_id', $id)->whereNull('valida_ate')->value('id');
+    expect($vigente)->toBeGreaterThan($id);
+
     // CONTROLE POSITIVO — editar só o ICMS (o formulário não manda os 5) não zera o que já foi gravado.
-    $this->put("/nfe-brasil/tributacao/regras/{$id}", ibsvPayload(['ncm' => '22021000', 'aliquota_icms' => 0.25]))
+    $this->put("/nfe-brasil/tributacao/regras/{$vigente}", ibsvPayload(['ncm' => '22021000', 'aliquota_icms' => 0.25]))
         ->assertSessionHasNoErrors()
         ->assertRedirect();
 
-    expect((float) DB::table('nfe_fiscal_rules')->where('id', $id)->value('aliquota_icms'))->toBe(0.25);
+    expect((float) DB::table('nfe_fiscal_rules')
+        ->where('versao_origem_id', $id)->whereNull('valida_ate')->value('aliquota_icms'))->toBe(0.25);
     expect(ibsvLinha('22021000'))->toBe(ibsvCampos());
 });
 
