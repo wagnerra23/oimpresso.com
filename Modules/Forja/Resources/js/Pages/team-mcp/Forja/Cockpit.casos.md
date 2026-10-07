@@ -107,9 +107,13 @@ As **9** divergências são todas da MESMA família e **nenhuma muda o valor com
 **O que este PR NÃO afirma:** que a tela está "igual ao protótipo". Isso é o T7 do pacote e exige `design-diff --compare --check` nos dois renders, com prod deployada e autenticada — não rodado aqui. O que está medido é o CSS e a estrutura declarada; o par renderizado, não.
 
 ## UC-FORJA-03 — Entry "Forja" na sidebar
-Status: ⬜ (manual/visual)
-`DataController@modifyAdminMenu` injeta o dropdown "Forja" (ícone martelo, atalho `G F`), separado do hub Equipe; os ghosts espelham os itens do topnav acima.
-**Pronto quando:** "Forja" aparece na sidebar e leva ao cockpit; os ghosts batem 1:1 com `config/core_topnavs.php['Forja']['items']`.
+Status: ❌ (1 teste de `ForjaSidebarEntradaContratoTest` cita este UC e passa pelo caminho real — `AdminSidebarMenu` → `shell.menu`. Ele monta o estado de instalação **medido em produção** e espera a entry; o vermelho é o achado, abaixo. O ❌ vem da medição em produção, não de leitura; o veredito do teste chega pelo manifesto do CI.)
+A sidebar tem **uma** entry "Forja", **link único** do grupo **PLATAFORMA**, apontando `/forja` (a Triagem, landing do hub) — sem submenu, sem ghosts, sem atalho.
+**Pronto quando:** "Forja" aparece na sidebar, uma vez só, e leva ao cockpit.
+
+> **Reconciliado em 2026-10-07 (playbook Forja thread 03) — a redação anterior caducou.** Ela dizia *dropdown "Forja" (ícone martelo, atalho `G F`) e ghosts 1:1 com o topnav*. A decisão [W] de 2026-09-08 ([#7038](https://github.com/wagnerra23/oimpresso.com/pull/7038), textual: *"no sidebar pode colocar a Forja na PLATAFORMA, como está no protótipo"*) trocou isso por link único no grupo PLATAFORMA — fonte `prototipo-ui/cowork/Wagner/data.jsx`, entry `projects` label "Forja" — e tirou ghosts (o hub já publica as abas no topnav) e atalho (`G F` colide com o Financeiro). O UC era o perdedor da precedência e foi corrigido aqui, no mesmo PR do teste.
+>
+> **Achado — a entry não aparece em produção.** O `AdminSidebarMenu` só chama `modifyAdminMenu` de módulo **instalado** (`ModuleUtil::getModuleData` → `isModuleInstalled`), que procura `system.forja_version`. O `InstallController` da Forja grava `projectmgmt_version` (fachada legacy, ADR 0088) e nunca `forja_version`. Medido em produção em 2026-10-07, HEAD `6b0cd71f8f`, `php artisan tinker` só leitura: `system` tem `projectmgmt_version=0.1` e não tem `forja_version`; `isModuleInstalled("Forja") = false` (`Jana` = `true`, controle). Logo o `DataController` da Forja nunca roda no request: nem a entry da sidebar nem o checkbox `brief.access` do `user_permissions` chegam. A correção (ensinar o alias ao `isModuleInstalled`, como o `ModuleManagerService::resolverVersao` já faz, ou gravar `forja_version`) é decisão [W] — não foi feita neste PR.
 
 ## UC-FORJA-05 — Read-only (o shell não muta nada)
 Status: 🧪 (1 teste de `ForjaRoutesSmokeTest` cita este UC — cada uma das 8 rotas de aba é GET-only, lido do registro de rotas. Roda em qualquer driver, inclusive sqlite, ao contrário dos casos de request que só pulam. Escopo honesto: prova que **a aba** não escreve; as rotas POST dedicadas — lever/aprovar/rejeitar/fundir — existem por design e são cobertas pelo `UC-FORJA-09`/`UC-FORJA-10`.)
@@ -124,7 +128,7 @@ Status: 🧪 (as DUAS pernas cobertas desde [#4887](https://github.com/wagnerra2
 > **Errata 2026-07-27:** este bloco dizia `copiloto.mcp.usage.all`. O nome mudou pra `jana.mcp.usage.all` no [#4853](https://github.com/wagnerra23/oimpresso.com/pull/4853) (`632c5182e2`, "alinha o código ao `jana.*` que o banco já usa desde maio`") e a documentação ficou pra trás. Medido em 2026-07-27: `git grep -l "copiloto\.mcp\.usage\.all" -- '*.php'` = **0** (zero PHP vivo); o nome antigo sobrevive em 42 arquivos `.md`/`.tsx`, tratados fora deste PR.
 
 ## UC-FORJA-08 — Triagem lista as propostas FORJA fiéis ao protótipo
-Status: ⬜ (smoke pós-merge — depende do seeder rodar; sem DB no worktree)
+Status: 🧪 (1 teste de `ForjaTriagemContratoTest` cita este UC — roda o `ForjaDemoTicketsSeeder`, pede a prop deferida `tickets` + `triagemCount` por partial reload e exige as 3 propostas com tipo e selo [CC]; recusa 3 fixtures que o filtro tem de barrar (FORJA-142 já triada, task `done`, triagem de outro project); badge = tamanho da lista. Lane MySQL `forja-pest.yml`. O ✅ vem do manifesto, não se escreve à mão. A perna visual — cor do badge de tipo, botão roxo — segue manual.)
 `/forja` projeta `mcp_tasks` project=FORJA em estado de triagem (`McpTask::triage()`) via `Inertia::defer` (`tickets`). Após `db:seed --class=…ForjaDemoTicketsSeeder`: FORJA-152 (Tela·KB·[CC]), FORJA-151 (Bug·Financeiro·[CC]), FORJA-150 (Refino·Atendimento·[CC]).
 **Pronto quando:** as 3 linhas aparecem com ID mono · badge de tipo colorido (Tela=roxo·Bug=âmbar·Refino=azul) · título · tag de módulo · selo `[CC]` · botão roxo Analisar; aba mostra badge 3.
 
@@ -166,12 +170,12 @@ Status: ⬜ (smoke pós-merge — depende do seeder rodar; sem DB no worktree)
 > também `McpTask::triage()` e flipe a landing — decisão [W], não conserto de layout.
 
 ## UC-FORJA-09 — Analisar abre o dossiê lateral (Aprovar/Rejeitar/Fundir)
-Status: 🧪 (cobertura: endpoints `/forja/{id}/{dossier,aprovar,rejeitar,fundir}` espelham TriageController PR-5a; aguarda Pest verde)
+Status: 🧪 (4 testes de `ForjaTriagemContratoTest` citam este UC — dossiê com duplicata do módulo e atividade real (404 pra task inexistente); Aprovar recusa sem dono+prio (422, estado preservado) e, no mesmo caso, com eles leva `backlog → todo` com evento; Rejeitar → `cancelled`; Fundir recusa sem destino e em si mesma e, com destino, cancela e registra o destino. Lane MySQL `forja-pest.yml`. Até 2026-10-07 este Status dizia "cobertura" sem nenhum teste citar o UC.)
 Clicar **Analisar** (ou `Enter` na linha em foco) abre `ForjaDossier` → `GET /forja/{id}/dossier` (valor×esforço sugerido, risco Tier-0 heurístico, duplicatas, docs/sessões). Aprovar→backlog (status→todo, exige dono+prio), Rejeitar (→cancelled), Fundir (duplicata + evento) — cada um sob dialog de confirmação [W].
 **Pronto quando:** dossiê carrega dados reais e as 3 ações respondem (Pest cobrindo `aprovar`/`rejeitar`/`fundir` como no TriageController).
 
 ## UC-FORJA-10 — Triagem só muta sob confirmação [W]
-Status: ⬜ (manual)
+Status: 🧪 (2 testes de `ForjaTriagemContratoTest` citam este UC — abrir o dossiê não muda a task nem cria evento (com âncora positiva: a resposta é o dossiê DESTA task), e o dossiê é GET-only enquanto Aprovar/Rejeitar/Fundir são POST-only, lido do registro de rotas. **A perna do `AlertDialog` de confirmação é de UI e segue manual** — nenhum teste aqui a prova.)
 Listar e abrir o dossiê é read-only. Nenhuma escrita acontece sem o `AlertDialog` de confirmação (Aprovar/Rejeitar/Fundir). valor×esforço e risco Tier-0 são **sugestão derivada rotulada**, não dado medido.
 **Pronto quando:** não há mutação sem confirmação humana; nada inventado é apresentado como medido.
 
