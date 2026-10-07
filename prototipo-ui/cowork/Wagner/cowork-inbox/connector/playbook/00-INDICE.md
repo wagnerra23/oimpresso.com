@@ -238,8 +238,13 @@ Todas fechadas em 19/08. Resta só o portão [W2] (screenshot em produção) ant
       ],
       "provas": [
         {
-          "tipo": "execucao",
-          "nota": "UC-CONN-21 verde no recibo"
+          "tipo": "contem",
+          "path": "${MOD}/Http/Controllers/ClientController.php",
+          "padrao": "tokens_resto"
+        },
+        {
+          "tipo": "arquivo",
+          "path": "${MPAGES}/Api/_components/QuemUsa.tsx"
         }
       ],
       "nota_provas": "UC-CONN-21 verde, citado no recibo"
@@ -263,8 +268,9 @@ Todas fechadas em 19/08. Resta só o portão [W2] (screenshot em produção) ant
       ],
       "provas": [
         {
-          "tipo": "execucao",
-          "nota": "connector:health publica uma entrada por execução; caminho do json no recibo"
+          "tipo": "contem",
+          "path": "${MOD}/Console/Commands/ConnectorHealthCommand.php",
+          "padrao": "health-history.json"
         }
       ],
       "nota_provas": "caminho do json de histórico fixado no recibo"
@@ -288,8 +294,9 @@ Todas fechadas em 19/08. Resta só o portão [W2] (screenshot em produção) ant
       ],
       "provas": [
         {
-          "tipo": "execucao",
-          "nota": "aba Documentação no menu do Connector, UC no recibo"
+          "tipo": "contem",
+          "path": "${MOD}/Http/Controllers/DataController.php",
+          "padrao": "/connector/client?aba=docs"
         }
       ]
     },
@@ -311,13 +318,14 @@ Todas fechadas em 19/08. Resta só o portão [W2] (screenshot em produção) ant
       ],
       "provas": [
         {
-          "tipo": "execucao",
-          "nota": "UC-CONN-12 verde na lane MySQL, run citado no recibo"
+          "tipo": "contem",
+          "path": ".github/workflows/connector-pest.yml",
+          "padrao": "Modules/Connector/Tests/Feature/ApiClientsPanelTest.php"
         }
       ]
     }
   ],
-  "revisado": "2026-10-01 — recibos e _DECISOES do main c12552f40e2a aplicados · 2026-10-01 reconferência @99e6fa3e08f0: threads novas 09,10"
+  "revisado": "2026-10-01 — recibos e _DECISOES do main c12552f40e2a aplicados · 2026-10-01 reconferência @99e6fa3e08f0: threads novas 09,10 · 2026-10-07 errata do Code aplicada (_ERRATA-*-2026-10-07.md) @8d231ac7a13f"
 }
 ```
 

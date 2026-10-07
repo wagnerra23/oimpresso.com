@@ -42,10 +42,8 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/superadmin/playbook/
       "id": "D1",
       "pergunta": "superadmin::pages (CRUD de páginas) × Modules/Cms Admin/Content: fundir ou manter?",
       "respondida": true,
-      "destrava": [
-        "06"
-      ],
-      "resposta": "manter separado do Cms — _DECISOES-W-2026-10-01b.md",
+      "destrava": [],
+      "resposta": "manter separado do Cms",
       "fonte": "_DECISOES-W-2026-10-01b.md"
     },
     {
@@ -158,9 +156,6 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/superadmin/playbook/
       "vaga": 3,
       "prs": 1,
       "arquivo": "03-formularios.md",
-      "depende_threads": [
-        "A2"
-      ],
       "prefixo": [
         "${MOD}/Http/Controllers/PackagesController.php",
         "${MPAGES}/Pacotes/"
@@ -183,9 +178,6 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/superadmin/playbook/
       "vaga": 3,
       "prs": 1,
       "arquivo": "04-formularios.md",
-      "depende_threads": [
-        "A2"
-      ],
       "prefixo": [
         "${MOD}/Http/Controllers/SuperadminSubscriptionsController.php",
         "${MPAGES}/Assinaturas/"
@@ -229,30 +221,6 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/superadmin/playbook/
           "padrao": "Inertia::render("
         }
       ]
-    },
-    {
-      "id": "06",
-      "titulo": "Páginas (superadmin::pages)",
-      "dono": "CL",
-      "vaga": 4,
-      "prs": 1,
-      "arquivo": "06-paginas.md",
-      "depende_decisoes": [
-        "D1"
-      ],
-      "prefixo": [
-        "${MOD}/Http/Controllers/PageController.php"
-      ],
-      "nao_toca": [
-        "Modules/Cms/"
-      ],
-      "provas": [
-        {
-          "tipo": "execucao",
-          "nota": "superadmin::pages redireciona para Cms Admin/Content com paridade de campos medida no recibo"
-        }
-      ],
-      "nota_provas": "depende de D1"
     },
     {
       "id": "07",
@@ -301,7 +269,7 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/superadmin/playbook/
       ]
     }
   ],
-  "revisado": "2026-10-01 — recibos e _DECISOES do main c12552f40e2a aplicados · 2026-10-01 reconferência @99e6fa3e08f0: threads novas — · 2026-10-05 revisão dos recibos @aacb74f4df18"
+  "revisado": "2026-10-01 — recibos e _DECISOES do main c12552f40e2a aplicados · 2026-10-01 reconferência @99e6fa3e08f0: threads novas — · 2026-10-05 revisão dos recibos @aacb74f4df18 · 2026-10-07 errata do Code aplicada (_ERRATA-*-2026-10-07.md) @8d231ac7a13f"
 }
 ```
 

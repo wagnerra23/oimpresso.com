@@ -52,7 +52,6 @@ base: wagnerra23/oimpresso.com@main 2fe69ddc0280 (lido 2026-10-06 17:08 UTC)
       "arquivo": "01-install-falho-e-erro.md",
       "prefixo": [
         "app/Services/ModuleManagerService.php",
-        "tests/Unit/Services/ModuleErroFixtureTest.php",
         "tests/Feature/Modules/"
       ],
       "nao_toca": [
@@ -61,13 +60,14 @@ base: wagnerra23/oimpresso.com@main 2fe69ddc0280 (lido 2026-10-06 17:08 UTC)
       ],
       "provas": [
         {
-          "tipo": "arquivo",
-          "path": "tests/Unit/Services/ModuleErroFixtureTest.php"
+          "tipo": "contem",
+          "path": ".github/ci-sqlite-pest.list",
+          "padrao": "tests/Feature/Modules/ModuleManagerServiceTest.php"
         },
         {
           "tipo": "contem",
           "path": "app/Services/ModuleManagerService.php",
-          "padrao": "setActive($name, false)"
+          "padrao": "setActive($name, $estadoAnterior)"
         }
       ]
     },
@@ -140,6 +140,7 @@ base: wagnerra23/oimpresso.com@main 2fe69ddc0280 (lido 2026-10-06 17:08 UTC)
         }
       ]
     }
-  ]
+  ],
+  "revisado": "2026-10-07 errata do Code aplicada (_ERRATA-*-2026-10-07.md) @8d231ac7a13f"
 }
 ```

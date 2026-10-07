@@ -525,8 +525,23 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/produto/playbook/
       ],
       "provas": [
         {
-          "tipo": "execucao",
-          "nota": "um teste por chamada: SKU repetido em outro negócio não é encontrado nem gravado"
+          "tipo": "arquivo",
+          "path": "tests/Feature/Produto/SubSkuEscopoNegocioContratoTest.php"
+        },
+        {
+          "tipo": "contem",
+          "path": "app/Http/Controllers/ImportOpeningStockController.php",
+          "padrao": "->where('P.business_id', $business_id)"
+        },
+        {
+          "tipo": "contem",
+          "path": "app/Http/Controllers/PurchaseController.php",
+          "padrao": "->where('products.business_id', $business_id)"
+        },
+        {
+          "tipo": "contem",
+          "path": "app/Services/Sells/ImportSalesService.php",
+          "padrao": "->where('imp_produto.business_id', $business_id)"
         }
       ]
     },
@@ -584,7 +599,7 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/produto/playbook/
       ]
     }
   ],
-  "revisado": "2026-10-01 — recibos e _DECISOES do main c12552f40e2a aplicados · 2026-10-01 reconferência @99e6fa3e08f0: threads novas 09,10 · 2026-10-05 revisão dos recibos @aacb74f4df18"
+  "revisado": "2026-10-01 — recibos e _DECISOES do main c12552f40e2a aplicados · 2026-10-01 reconferência @99e6fa3e08f0: threads novas 09,10 · 2026-10-05 revisão dos recibos @aacb74f4df18 · 2026-10-07 errata do Code aplicada (_ERRATA-*-2026-10-07.md) @8d231ac7a13f"
 }
 ```
 

@@ -1,41 +1,4 @@
 {
   "_nota": "Arquivos que o Code subiu ao Cowork (DesignSync) e que o bundle ativo ainda não trouxe de volta. Escrito por pendentes-cowork.mjs; o receber-handoff limpa o que o retorno confirmar.",
-  "enviados": {
-    "cowork-inbox/connector/playbook/_ERRATA-INDICE-2026-10-07.md": {
-      "sha256": "fc229c9cc489cbe2fc61077b614b7201938db8490f5424e860d1fdb44a8af672",
-      "em": "2026-10-07T13:39:22.143Z"
-    },
-    "cowork-inbox/ds-atomos/playbook/_ERRATA-INDICE-2026-10-07.md": {
-      "sha256": "8c1d7d40d65a47d947c8cb80fef3622f47ecdbbd478a4559089af716d5589441",
-      "em": "2026-10-07T13:39:22.143Z"
-    },
-    "cowork-inbox/forja/playbook/_saida-A1.md": {
-      "sha256": "4c22e124ca9051b1d9969c638b4ada10ac0a9b6b8827062920553e6a0f864248",
-      "em": "2026-10-07T13:39:22.143Z"
-    },
-    "cowork-inbox/modulos/playbook/_ERRATA-INDICE-2026-10-07.md": {
-      "sha256": "ef7b91624576f8f9783c83834cb28a654d4dcc80034a6a350099d99e06dacc41",
-      "em": "2026-10-07T13:39:22.143Z"
-    },
-    "cowork-inbox/ponto/playbook/_saida-28.md": {
-      "sha256": "3df364c0bcbaed374452cd425fb2b350fa87053e9a211eecf991c646fb1dccb8",
-      "em": "2026-10-07T13:37:26.080Z"
-    },
-    "cowork-inbox/produto/playbook/_ERRATA-INDICE-2026-10-07.md": {
-      "sha256": "97147a8f0a969a0c71a364c8e483e5056d0a93e0fa612684a0c6ecc57c66ed8c",
-      "em": "2026-10-07T13:39:22.143Z"
-    },
-    "cowork-inbox/shell-usermenu/playbook/_ERRATA-PROVAS-2026-10-07.md": {
-      "sha256": "1d0f3f9cf5a6da19967a67bb3f00253ae91aadbfad5520612321ecfa24bb6e0b",
-      "em": "2026-10-07T13:39:22.143Z"
-    },
-    "cowork-inbox/sidebar/playbook/_ERRATA-INDICE-2026-10-07.md": {
-      "sha256": "c1f554732c98876f2049b76cb763602c4940a0cfb3865a1dfdd19454b664af78",
-      "em": "2026-10-07T13:39:22.143Z"
-    },
-    "cowork-inbox/superadmin/playbook/_ERRATA-INDICE-2026-10-07.md": {
-      "sha256": "4477487fe63307bc9f803f4bb656c7233dcdbc8bd76c57359cfb4a9e3ae48473",
-      "em": "2026-10-07T13:39:22.143Z"
-    }
-  }
+  "enviados": {}
 }
