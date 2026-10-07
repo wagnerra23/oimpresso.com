@@ -221,7 +221,12 @@ it('UC-NFRF-01 · criar e editar regra exigem nfe.tributacao.manage', function (
 
     $this->put("/nfe-brasil/tributacao/regras/{$existente}", nfgtPayload(['aliquota_icms' => 0.25]))
         ->assertRedirect();
-    expect((float) DB::table('nfe_fiscal_rules')->where('id', $existente)->value('aliquota_icms'))
+    // Desde a thread 07 (R-NFE-019) editar gera versão nova: a alíquota nova está na versão
+    // vigente da cadeia, e a antiga segue com 0.12 explicando as notas de antes.
+    expect((float) DB::table('nfe_fiscal_rules')
+        ->where(fn ($q) => $q->where('id', $existente)->orWhere('versao_origem_id', $existente))
+        ->whereNull('valida_ate')
+        ->value('aliquota_icms'))
         ->toBe(0.25);
 });
 

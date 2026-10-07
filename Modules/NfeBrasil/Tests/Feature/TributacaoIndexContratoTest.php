@@ -287,7 +287,11 @@ it('UC-NFTR-04 · update e destroy de regra de outro business dão 404 e não to
     // acima vieram do escopo, não de rota/permissão quebrada.
     $minha = nftrRegra(NFTR_BIZ, '49019900');
     $this->put("/nfe-brasil/tributacao/regras/{$minha}", $payload)->assertRedirect();
-    expect(DB::table('nfe_fiscal_rules')->where('id', $minha)->value('cfop'))->toBe('9999');
+    // Thread 07 (R-NFE-019): editar gera versão nova; o valor novo está na versão vigente.
+    expect(DB::table('nfe_fiscal_rules')
+        ->where(fn ($q) => $q->where('id', $minha)->orWhere('versao_origem_id', $minha))
+        ->whereNull('valida_ate')
+        ->value('cfop'))->toBe('9999');
 
     // `NfeFiscalRule` usa SoftDeletes: "removida" = `deleted_at` preenchido, a linha PERMANECE.
     // Afirmar `->exists() === false` seria medir a coisa errada e daria vermelho num
