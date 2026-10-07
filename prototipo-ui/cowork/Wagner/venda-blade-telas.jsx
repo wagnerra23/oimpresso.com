@@ -395,5 +395,84 @@ function VendaNova({ status = "final", onVoltar, avisar }) {
   );
 }
 
-Object.assign(window, { VendaDetalhe, VendaImportPreview, VendaPedidos, VendaNova, VENDA_LINHAS: linhasDe, VENDA_DOC_FISCAL: docFiscal });
+// ─────────── Detalhe da venda em PÁGINA (Sells/Show.tsx vivo · PT-03) ───────────
+// Thread 00 do playbook venda-menu: o vivo tem a ficha em página própria (/sells/{id}), além do
+// drawer da lista. Mesma venda, mesmas linhas (linhasDe) e o mesmo pagamento (pagamentosDe).
+// Rota fixa `venda-ver` (window.VendaRotas) monta esta página na venda POS-2026-0482.
+const IMPRIMIR = ["Recibo / fatura (P)", "Romaneio / packing slip", "Nota de entrega", "Recibo térmico (80mm)", "Orçamento A4"];
+function VendaShow({ venda, avisar, perms, onVoltar }) {
+  const { Widget } = UI();
+  const [menu, setMenu] = useState(false);
+  if (!venda || !Widget) return null;
+  const linhas = linhasDe(venda);
+  const pagos = pagamentosDe(venda);
+  const falta = Math.max(0, (venda.total || 0) - (venda.pago || 0));
+  const pode = (k) => !perms || perms.pode(k);
+  const stPg = { paid: "Pago", due: "Devido", partial: "Parcial", overdue: "Vencido" }[venda.pg] || venda.pg;
+  return (
+    <div className="vt-show" data-contract="venda-show">
+      <div className="vc-dia-topo">
+        <div>
+          <b>Venda #{venda.inv}</b>
+          <div className="pb-help mono">{venda.data} · {venda.loc}</div>
+        </div>
+        <div style={{ flex: 1 }} />
+        <div style={{ position: "relative" }}>
+          <button className="os-btn sm" onClick={() => setMenu((m) => !m)}><Ic name="print" size={12} /> Imprimir</button>
+          {menu &&
+            <div className="vi-origem" role="menu">
+              {IMPRIMIR.map((o) => <button key={o} role="menuitem" onClick={() => { setMenu(false); avisar(o + " de " + venda.inv + " gerado.", "ok"); }}>{o}</button>)}
+            </div>}
+        </div>
+        {pode("sell.update") && <button className="os-btn sm primary" onClick={() => window.__selectRoute && window.__selectRoute("venda-editar")}><Ic name="pencil" size={12} /> Editar</button>}
+        {pode("sell.delete") && <button className="os-btn sm" onClick={() => avisar("Venda excluída.", "warn")}><Ic name="x" size={12} /> Excluir</button>}
+      </div>
+      <div className="vc-kpis">
+        <div className="vc-kpi"><span>Total</span><b>{brl(venda.total)}</b></div>
+        <div className="vc-kpi"><span>Pago</span><b className="ok">{brl(venda.pago)}</b></div>
+        <div className="vc-kpi"><span>Falta</span><b>{brl(falta)}</b></div>
+        <div className="vc-kpi"><span>Status pgto</span><b>{stPg}</b></div>
+      </div>
+      <div className="vc-dia">
+        <div style={{ display: "grid", gap: 12 }}>
+          <Widget titulo={<><Ic name="user" size={13} /> Cliente</>}>
+            <p><b>{venda.cli}</b></p>
+            <p className="pb-help mono">{venda.tel}</p>
+          </Widget>
+          <Widget titulo={<><Ic name="list" size={13} /> Itens da venda</>} nota={linhas.length + " item(s)"}>
+            <table className="pb-tbl">
+              <thead><tr><th>Produto</th><th className="r">Qtd</th><th className="r">Unit</th><th className="r">Desc.</th><th className="r">Subtotal</th></tr></thead>
+              <tbody>{linhas.map((l, i) => (
+                <tr key={i}><td><b>{l.nome}</b><div className="pb-help mono">{l.sku}</div></td><td className="r mono">{l.qtd}</td><td className="r mono">{brl(l.preco)}</td><td className="r mono">{brl(0)}</td><td className="r mono">{brl(l.subtotal)}</td></tr>
+              ))}</tbody>
+            </table>
+          </Widget>
+          <Widget titulo={<><Ic name="cash" size={13} /> Pagamentos</>} nota={pagos.length + " lançamento(s)"}>
+            {pagos.length
+              ? <table className="pb-tbl"><tbody>{pagos.map((p) => <tr key={p.ref}><td>{p.metodo}<div className="pb-help mono">{p.data}</div></td><td className="r mono">{brl(p.valor)}</td></tr>)}</tbody></table>
+              : <p className="pb-help">Nenhum pagamento registrado</p>}
+          </Widget>
+          <Widget titulo={<><Ic name="truck" size={13} /> Frete</>}>
+            <p className="pb-help">{venda.serv === "Balcão" ? "Retirada no balcão." : "Entrega: " + venda.serv + "."}</p>
+          </Widget>
+          <Widget titulo={<><Ic name="clock" size={13} /> Histórico</>}>
+            <ul className="vt-hist">{historicoDe(venda).map((h, i) => <li key={i}><i /><div><b>{h.t}</b><em>{h.q} · {h.o}</em></div></li>)}</ul>
+          </Widget>
+        </div>
+        <div style={{ display: "grid", gap: 12 }}>
+          <Widget titulo="Todas as transições">
+            <div className="vt-fsm-etapas">{ETAPAS_FSM.map((e, i) => <span key={e} className={"vt-fsm-e" + (i === 0 ? " feita" : i === 1 ? " agora" : "")}><i>{i + 1}</i>{e}</span>)}</div>
+          </Widget>
+          <Widget titulo="Atalhos">
+            {pode("sell.update") && <div className="pb-help"><kbd>E</kbd> Editar</div>}
+            <div className="pb-help"><kbd>P</kbd> Imprimir</div>
+            <div className="pb-help"><kbd>Esc</kbd> Voltar{onVoltar && <> · <button className="os-btn sm ghost" onClick={onVoltar}>Voltar</button></>}</div>
+          </Widget>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+Object.assign(window, { VendaDetalhe, VendaShow, VendaImportPreview, VendaPedidos, VendaNova, VENDA_LINHAS: linhasDe, VENDA_DOC_FISCAL: docFiscal });
 })();

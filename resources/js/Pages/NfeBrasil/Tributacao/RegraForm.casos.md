@@ -5,7 +5,7 @@ irmaos: RegraForm.charter.md (lei) · SDD-emissao-fiscal-v1.0.md (§5.3 F7 · §
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: esta regra decide a alíquota que sai na nota — errar aqui é multa fiscal, não bug de tela.
 owner: wagner
-last_run: "2026-07-28"
+last_run: "2026-10-07"
 last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane PHP / Pest (NfeBrasil · MySQL)"
 ---
 
@@ -42,6 +42,7 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 | UC-NFRF-05 | A regra grava e relê os 5 campos de IBS/CBS | must `[fiscal]` | US-FISCAL-021 · migration `2026_05_26_000001` · NT 2025.002 | `RegraTributariaIbsCbsValidacaoTest` | 🧪 |
 | UC-NFRF-07 | Editar a regra também grava IBS/CBS (não só criar) | must `[fiscal]` | US-FISCAL-021 · `TributacaoController::update` | `RegraTributariaIbsCbsValidacaoTest` | 🧪 |
 | UC-NFRF-06 | Formato de IBS/CBS inválido é recusado sem gravar | must `[fiscal]` | NT 2025.002 · padrão decimal das alíquotas (UC-NFCD-04) | `RegraTributariaIbsCbsValidacaoTest` | 🧪 |
+| UC-NFRF-08 | Os campos de IBS/CBS aparecem e salvam pela tela | should `[fiscal]` | US-FISCAL-021 · charter §Goals (alíquota decimal) · UC-NFRF-05 | `RegraTributariaIbsCbsValidacaoTest` · e2e `nfe-tributacao-regra.spec.ts` | 🧪 |
 
 > **Recibo:** ver §Recibo de execução no rodapé. O UC-NFRF-04 nasceu `❌` (o achado de 2026-07-28)
 > e saiu dele em 2026-10-06, com o gate no `destroy` (playbook Fiscal thread 18).
@@ -168,7 +169,7 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 - **Persona:** o contador corrigindo o cClassTrib de uma regra existente.
 - **Aceite:** Dado uma regra existente sem IBS/CBS · Quando edito preenchendo os 5 campos · Então o
   `update` persiste os 5 (lidos do banco). Controle positivo: editar só a alíquota de ICMS, sem
-  mandar os 5 (é o que o formulário faz hoje), não zera o IBS/CBS já gravado.
+  mandar os 5 (era o que o formulário fazia até a thread 05 · UC-NFRF-08), não zera o IBS/CBS já gravado.
 - **Teste:** [`RegraTributariaIbsCbsValidacaoTest`](../../../../../Modules/NfeBrasil/Tests/Feature/RegraTributariaIbsCbsValidacaoTest.php)
   — `UC-NFRF-07 · update grava e preserva IBS/CBS`.
 - **Contrato:** `TributacaoController::update` (`$regra->update($request->validated())`).
@@ -186,8 +187,29 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 - **Contrato:** NT 2025.002 (cClassTrib 6 dígitos, CST 3) · padrão decimal das alíquotas (UC-NFCD-04).
 - **Regressão que defende:** alíquota digitada como inteiro ("9") vira 900% de CBS na nota.
 - **Fora daqui:** exigir IBS/CBS por regime ou data (CRT 3, Simples em 2027) é `D-OPERACAO`; os
-  campos no `RegraForm.tsx` são a thread 05.
+  campos no `RegraForm.tsx` são a thread 05 (UC-NFRF-08).
 - **Status: 🧪** — o teste cita o UC; o veredito é da lane `PHP / Pest (NfeBrasil · MySQL)`. Vermelho→verde no §Recibo.
+
+## UC-NFRF-08 · Os campos de IBS/CBS aparecem e salvam pela tela · `should` `[fiscal]`
+
+- **Persona:** o contador no navegador.
+- **Aceite:** Dado o formulário de regra · Quando preenche a seção "Reforma tributária" (cClassTrib,
+  CST IBS, CST CBS, IBS, CBS) e salva · Então o POST leva os 5 campos, e reabrir a edição mostra os
+  mesmos valores lidos do banco. Alíquota em **decimal** na tela e no banco (0.009 = 0,9%), como as
+  outras alíquotas do form — é o que o charter §Goals fixa. Controle positivo: trocar o regime
+  CSOSN → CST → CSOSN não apaga a seção da reforma; uma regra sem IBS/CBS reabre com códigos nulos
+  e alíquotas 0.
+- **Teste:** dois lados do defeito.
+  [`RegraTributariaIbsCbsValidacaoTest`](../../../../../Modules/NfeBrasil/Tests/Feature/RegraTributariaIbsCbsValidacaoTest.php)
+  — `UC-NFRF-08 · a edição reabre com os 5 campos de IBS/CBS gravados` (a prop `regra` do `edit()`);
+  e2e [`nfe-tributacao-regra.spec.ts`](../../../../../e2e/nfe-tributacao-regra.spec.ts)
+  — `UC-NFRF-08 · a seção Reforma tributária vai no corpo do POST` (o POST é interceptado e abortado,
+  não grava nada).
+- **Contrato:** US-FISCAL-021 · UC-NFRF-05 (o servidor aceita os 5) · charter §Goals.
+- **Regressão que defende:** o backend aceita e a tela nunca manda; ou a tela manda, a edição abre
+  vazia e o "Atualizar" grava nulo por cima.
+- **Status: 🧪** — os testes citam o UC; o veredito é das lanes `PHP / Pest (NfeBrasil · MySQL)` e
+  `e2e-gate`.
 
 ---
 
@@ -215,6 +237,8 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 | Quando | Onde | Resultado |
 |---|---|---|
 | _pendente_ | lane `PHP / Pest (NfeBrasil · MySQL)` — **required, `enforce_admins`** | a preencher com o run id |
+| 2026-10-07 | CT 100 `oimpresso-staging`, worktree isolado `c59f6107a` (thread 05, após `<Grid>` na seção Reforma e `edit()` sem guarda de nulo) · `RegraTributariaIbsCbsValidacaoTest` | **4 passed · 54 assertions** (UC-NFRF-05/06/07/08). PHPStan no `TributacaoController`: sem erros. |
+| 2026-10-07 | CT 100 `oimpresso-staging`, worktree isolado `c565e22bb` (thread 05) · `RegraTributariaIbsCbsValidacaoTest` | **branch:** 4 passed · 54 assertions. **Mesmo teste com o `TributacaoController` do `main`:** UC-NFRF-08 1 failed (*"two arrays are identical"* — a prop `regra` não traz os 5). `TributacaoControllerTest` 7 passed. `TributacaoGatesContratoTest` 3 failed **iguais com o controller do `main`** (UC-NFRF-01/04 · UC-NFIM-03: o `Admin#1` do staging, abaixo). |
 | 2026-10-07 | CT 100 `oimpresso-staging`, worktree isolado do branch da thread 04 · `RegraTributariaIbsCbsValidacaoTest` | **branch:** 3 passed · 30 assertions. **Mesmo teste com o `UpsertRegraTributariaRequest` do `main`:** 3 failed (UC-NFRF-05/07: arrays diferentes — os 5 campos voltam nulos; UC-NFRF-06: *"Session is missing expected key [errors]"*). |
 | 2026-10-06 | CT 100 `oimpresso-staging`, worktree isolado do branch `0e263d01b` · `--filter="UC-NFRF\|UC-NFTR-04"` | **controller do `main`:** 4 passed · 1 failed (UC-NFRF-04: *"Expected 403 but received 302"*) · 30 assertions. **Branch:** 5 passed · 33 assertions. Só o UC-NFRF-04 muda de estado. |
 

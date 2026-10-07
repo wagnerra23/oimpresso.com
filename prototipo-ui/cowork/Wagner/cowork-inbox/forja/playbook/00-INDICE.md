@@ -45,7 +45,10 @@ UCs sem teste (o `--screen` marca ÓRFÃO): `UC-FORJA-03 · 08 · 09 · 10` (Coc
 
 | id | pergunta | destrava |
 |---|---|---|
-| D1 | A âncora do Gantt é `forja-gantt.jsx` (como o contrato) ou `forja-page.jsx` (como o charter)? | 05 |
+| D1 ✅ | A âncora do Gantt é `forja-gantt.jsx` (como o contrato) ou `forja-page.jsx` (como o charter)? | 05 |
+| D2 ✅ | Corpo do Gantt → **mantém `@svar-ui/react-gantt` com tokens do DS** (07/10) | 05 |
+| D3 ✅ | Toque → **24×24 mínimo**, 44 só persona Técnico (07/10) | 06 |
+| D4 ✅ | 8 superfícies sem receptor → **sem thread agora** (07/10) | — |
 
 ## 3 · Threads
 
@@ -59,8 +62,46 @@ UCs sem teste (o `--screen` marca ÓRFÃO): `UC-FORJA-03 · 08 · 09 · 10` (Coc
       "id": "D1",
       "pergunta": "A âncora do Gantt é forja-gantt.jsx (contrato) ou forja-page.jsx (charter)?",
       "dono": "W",
-      "respondida": false,
-      "destrava": ["05"]
+      "respondida": true,
+      "destrava": [
+        "05"
+      ],
+      "resposta": "[W] 2026-10-07 \"o que recomenda?\" → recomendação [CC]: forja-page.jsx (o charter) — é o que o Cockpit vivo já usa; o contrato é corrigido para apontar pra ele",
+      "quando": "2026-10-07"
+    },
+    {
+      "id": "D2",
+      "pergunta": "Corpo do Gantt: .fj-g-* próprio ou @svar-ui/react-gantt?",
+      "dono": "W",
+      "respondida": true,
+      "destrava": [
+        "05"
+      ],
+      "resposta": "mantém @svar-ui/react-gantt vestido com tokens do DS; .fj-g-* é alvo de forma, não código a portar",
+      "quando": "2026-10-07",
+      "fonte": "_DECISOES-W-2026-10-07.md (delegada ao [CC])"
+    },
+    {
+      "id": "D3",
+      "pergunta": "Alvo de toque (81 de 118 botões < 24×24)",
+      "dono": "W",
+      "respondida": true,
+      "destrava": [
+        "06"
+      ],
+      "resposta": "24×24 mínimo (WCAG 2.2 2.5.8) crescendo a área clicável, não o glifo; 44 só persona Técnico",
+      "quando": "2026-10-07",
+      "fonte": "_DECISOES-W-2026-10-07.md (delegada ao [CC])"
+    },
+    {
+      "id": "D4",
+      "pergunta": "Receptor das 8 superfícies sem dono",
+      "dono": "W",
+      "respondida": true,
+      "destrava": [],
+      "resposta": "sem thread agora; ordem futura issue-drawer > cmdk > novo-issue; ia/rag por último",
+      "quando": "2026-10-07",
+      "fonte": "_DECISOES-W-2026-10-07.md (delegada ao [CC])"
     }
   ],
   "threads": [
@@ -70,14 +111,37 @@ UCs sem teste (o `--screen` marca ÓRFÃO): `UC-FORJA-03 · 08 · 09 · 10` (Coc
       "dono": "CL",
       "vaga": 1,
       "arquivo": "A1-alvos.md",
-      "prefixo": ["governance/design/targets/forja--*"],
-      "nao_toca": ["Modules/Forja/", "resources/js/Pages/"],
+      "prefixo": [
+        "governance/design/targets/forja--*"
+      ],
+      "nao_toca": [
+        "Modules/Forja/",
+        "resources/js/Pages/"
+      ],
       "provas": [
-        { "tipo": "json_com_chaves", "path": "governance/design/targets/forja--aprovacoes--index.alvo.json", "chaves": ["secoes"] },
-        { "tipo": "json_com_chaves", "path": "governance/design/targets/forja--trabalho--index.alvo.json", "chaves": ["secoes"] },
-        { "tipo": "json_com_chaves", "path": "governance/design/targets/forja--roadmap-gantt.alvo.json", "chaves": ["secoes"] },
-        { "tipo": "json_com_chaves", "path": "governance/design/targets/forja--cockpit.alvo.json", "chaves": ["secoes"] }
-      ]
+        {
+          "tipo": "json_com_chaves",
+          "path": "governance/design/targets/forja--aprovacoes--index.alvo.json",
+          "chaves": [
+            "secoes"
+          ]
+        },
+        {
+          "tipo": "json_com_chaves",
+          "path": "governance/design/targets/forja--trabalho--index.alvo.json",
+          "chaves": [
+            "secoes"
+          ]
+        },
+        {
+          "tipo": "json_com_chaves",
+          "path": "governance/design/targets/forja--cockpit.alvo.json",
+          "chaves": [
+            "secoes"
+          ]
+        }
+      ],
+      "nota_provas": "3 de 4 medidos (_saida-A1); o Gantt saiu para A1b, que depende da 07"
     },
     {
       "id": "01",
@@ -92,11 +156,23 @@ UCs sem teste (o `--screen` marca ÓRFÃO): `UC-FORJA-03 · 08 · 09 · 10` (Coc
         "Modules/Forja/Resources/js/Pages/team-mcp/Team/Index.casos.md",
         "Modules/Forja/Tests/Feature/"
       ],
-      "nao_toca": ["Modules/Forja/Resources/js/Pages/team-mcp/Forja/", "Modules/Forja/Http/"],
+      "nao_toca": [
+        "Modules/Forja/Resources/js/Pages/team-mcp/Forja/",
+        "Modules/Forja/Http/"
+      ],
       "provas": [
-        { "tipo": "arquivo", "path": "Modules/Forja/Resources/js/Pages/team-mcp/CcSessions/Index.casos.md" },
-        { "tipo": "arquivo", "path": "Modules/Forja/Resources/js/Pages/team-mcp/Tasks/Index.casos.md" },
-        { "tipo": "arquivo", "path": "Modules/Forja/Resources/js/Pages/team-mcp/Team/Index.casos.md" }
+        {
+          "tipo": "arquivo",
+          "path": "Modules/Forja/Resources/js/Pages/team-mcp/CcSessions/Index.casos.md"
+        },
+        {
+          "tipo": "arquivo",
+          "path": "Modules/Forja/Resources/js/Pages/team-mcp/Tasks/Index.casos.md"
+        },
+        {
+          "tipo": "arquivo",
+          "path": "Modules/Forja/Resources/js/Pages/team-mcp/Team/Index.casos.md"
+        }
       ]
     },
     {
@@ -111,13 +187,31 @@ UCs sem teste (o `--screen` marca ÓRFÃO): `UC-FORJA-03 · 08 · 09 · 10` (Coc
         "Modules/Forja/Resources/js/Pages/ads/Admin/",
         "Modules/Forja/Tests/Feature/"
       ],
-      "nao_toca": ["Modules/KB/", "Modules/Forja/Http/"],
+      "nao_toca": [
+        "Modules/KB/",
+        "Modules/Forja/Http/"
+      ],
       "provas": [
-        { "tipo": "arquivo", "path": "Modules/Forja/Resources/js/Pages/Forja/Roadmap/Index.casos.md" },
-        { "tipo": "arquivo", "path": "Modules/Forja/Resources/js/Pages/ads/Admin/Projects.casos.md" },
-        { "tipo": "arquivo", "path": "Modules/Forja/Resources/js/Pages/ads/Admin/ProjectShow.casos.md" },
-        { "tipo": "arquivo", "path": "Modules/Forja/Resources/js/Pages/ads/Admin/TeamScopes.casos.md" },
-        { "tipo": "arquivo", "path": "Modules/Forja/Resources/js/Pages/ads/Admin/Tools.casos.md" }
+        {
+          "tipo": "arquivo",
+          "path": "Modules/Forja/Resources/js/Pages/Forja/Roadmap/Index.casos.md"
+        },
+        {
+          "tipo": "arquivo",
+          "path": "Modules/Forja/Resources/js/Pages/ads/Admin/Projects.casos.md"
+        },
+        {
+          "tipo": "arquivo",
+          "path": "Modules/Forja/Resources/js/Pages/ads/Admin/ProjectShow.casos.md"
+        },
+        {
+          "tipo": "arquivo",
+          "path": "Modules/Forja/Resources/js/Pages/ads/Admin/TeamScopes.casos.md"
+        },
+        {
+          "tipo": "arquivo",
+          "path": "Modules/Forja/Resources/js/Pages/ads/Admin/Tools.casos.md"
+        }
       ]
     },
     {
@@ -126,8 +220,13 @@ UCs sem teste (o `--screen` marca ÓRFÃO): `UC-FORJA-03 · 08 · 09 · 10` (Coc
       "dono": "CL",
       "vaga": 2,
       "arquivo": "03-ucs-orfaos.md",
-      "prefixo": ["Modules/Forja/Tests/Feature/"],
-      "nao_toca": ["Modules/Forja/Resources/js/Pages/", "Modules/Forja/Http/"],
+      "prefixo": [
+        "Modules/Forja/Tests/Feature/"
+      ],
+      "nao_toca": [
+        "Modules/Forja/Resources/js/Pages/",
+        "Modules/Forja/Http/"
+      ],
       "provas": [],
       "nota_provas": "screen-coverage-map --screen team-mcp/Forja/Cockpit e team-mcp/Scorecard/Index sem nenhuma linha ÓRFÃO"
     },
@@ -137,14 +236,34 @@ UCs sem teste (o `--screen` marca ÓRFÃO): `UC-FORJA-03 · 08 · 09 · 10` (Coc
       "dono": "CL",
       "vaga": 2,
       "arquivo": "04-scorecards.md",
-      "prefixo": ["memory/governance/scorecards/screens/team-mcp-*", "memory/governance/scorecards/screens/forja-*"],
-      "nao_toca": ["Modules/Forja/"],
+      "prefixo": [
+        "memory/governance/scorecards/screens/team-mcp-*",
+        "memory/governance/scorecards/screens/forja-*"
+      ],
+      "nao_toca": [
+        "Modules/Forja/"
+      ],
       "provas": [
-        { "tipo": "arquivo", "path": "memory/governance/scorecards/screens/team-mcp-ccsessions-index.yaml" },
-        { "tipo": "arquivo", "path": "memory/governance/scorecards/screens/team-mcp-scorecard-index.yaml" },
-        { "tipo": "arquivo", "path": "memory/governance/scorecards/screens/team-mcp-tasks-index.yaml" },
-        { "tipo": "arquivo", "path": "memory/governance/scorecards/screens/team-mcp-team-index.yaml" },
-        { "tipo": "ausente", "path": "memory/governance/scorecards/screens/forja-triage-index.yaml" }
+        {
+          "tipo": "arquivo",
+          "path": "memory/governance/scorecards/screens/team-mcp-ccsessions-index.yaml"
+        },
+        {
+          "tipo": "arquivo",
+          "path": "memory/governance/scorecards/screens/team-mcp-scorecard-index.yaml"
+        },
+        {
+          "tipo": "arquivo",
+          "path": "memory/governance/scorecards/screens/team-mcp-tasks-index.yaml"
+        },
+        {
+          "tipo": "arquivo",
+          "path": "memory/governance/scorecards/screens/team-mcp-team-index.yaml"
+        },
+        {
+          "tipo": "ausente",
+          "path": "memory/governance/scorecards/screens/forja-triage-index.yaml"
+        }
       ]
     },
     {
@@ -153,9 +272,16 @@ UCs sem teste (o `--screen` marca ÓRFÃO): `UC-FORJA-03 · 08 · 09 · 10` (Coc
       "dono": "CL",
       "vaga": 3,
       "arquivo": "05-gantt-ancora.md",
-      "depende_decisoes": ["D1"],
-      "prefixo": ["Modules/Forja/Resources/js/Pages/Forja/Roadmap/Gantt.charter.md", "governance/design/contracts/forja-gantt.contract.json"],
-      "nao_toca": ["Modules/Forja/Resources/js/Pages/Forja/Roadmap/Gantt.tsx"],
+      "depende_decisoes": [
+        "D1"
+      ],
+      "prefixo": [
+        "Modules/Forja/Resources/js/Pages/Forja/Roadmap/Gantt.charter.md",
+        "governance/design/contracts/forja-gantt.contract.json"
+      ],
+      "nao_toca": [
+        "Modules/Forja/Resources/js/Pages/Forja/Roadmap/Gantt.tsx"
+      ],
       "provas": [],
       "nota_provas": "related_prototype do charter == fonte do contrato"
     },
@@ -165,12 +291,89 @@ UCs sem teste (o `--screen` marca ÓRFÃO): `UC-FORJA-03 · 08 · 09 · 10` (Coc
       "dono": "CL",
       "vaga": 1,
       "arquivo": "R1-export-forja.md",
-      "prefixo": ["prototipo-ui/cowork/Wagner/cowork-inbox/forja/playbook/_saida-R1.md"],
-      "nao_toca": ["Modules/", "resources/"],
+      "prefixo": [
+        "prototipo-ui/cowork/Wagner/cowork-inbox/forja/playbook/_saida-R1.md"
+      ],
+      "nao_toca": [
+        "Modules/",
+        "resources/"
+      ],
       "provas": [],
       "nota_provas": "_saida-R1.md com 1 linha por onda: entregue (PR) · parcial · não iniciada"
+    },
+    {
+      "id": "06",
+      "titulo": "Alvo de toque 24×24 nas telas da Forja (D3)",
+      "dono": "CL",
+      "vaga": 3,
+      "prs": 1,
+      "arquivo": "06-alvo-toque.md",
+      "depende_decisoes": [
+        "D3"
+      ],
+      "prefixo": [
+        "Modules/Forja/Resources/js/Pages/",
+        "resources/css/"
+      ],
+      "nao_toca": [
+        "resources/css/tokens/",
+        "Modules/Forja/Http/"
+      ],
+      "provas": [],
+      "nota_provas": "bateria A1–A12 (alvo de toque) nas 4 telas com âncora: 0 botões < 24×24; recibo com antes (81/118) e depois"
+    },
+    {
+      "id": "07",
+      "titulo": "Máquina: alvo.mjs aceita clique em cadeia (--clicar repetível) ou chave de localStorage arbitrária",
+      "dono": "CL",
+      "vaga": 2,
+      "prs": 1,
+      "arquivo": "07-alvo-clique-cadeia.md",
+      "prefixo": [
+        "scripts/design-sync/alvo.mjs",
+        "scripts/design-sync/alvo.test.mjs"
+      ],
+      "nao_toca": [
+        "governance/design/targets/",
+        "prototipo-ui/"
+      ],
+      "provas": [
+        {
+          "tipo": "contem",
+          "path": "scripts/design-sync/alvo.mjs",
+          "padrao": "--storage"
+        }
+      ],
+      "nota_provas": "teste com fixture de 2 cliques: o 2º seletor só existe depois do 1º → mede; com 1 clique só → NÃO MEDI rc=2 (controle negativo). O nome da flag sai do PR; se não for --storage, o recibo corrige a prova."
+    },
+    {
+      "id": "A1b",
+      "titulo": "ALVO forja--roadmap-gantt (o 4º da A1)",
+      "dono": "CL",
+      "vaga": 3,
+      "arquivo": "A1b-alvo-gantt.md",
+      "depende_threads": [
+        "07"
+      ],
+      "prefixo": [
+        "governance/design/targets/forja--roadmap-gantt.*"
+      ],
+      "nao_toca": [
+        "Modules/Forja/",
+        "resources/js/Pages/"
+      ],
+      "provas": [
+        {
+          "tipo": "json_com_chaves",
+          "path": "governance/design/targets/forja--roadmap-gantt.alvo.json",
+          "chaves": [
+            "secoes"
+          ]
+        }
+      ]
     }
-  ]
+  ],
+  "revisado": "2026-10-07 _saida-A1: Gantt → A1b + thread 07 (alvo.mjs clique em cadeia)"
 }
 ```
 

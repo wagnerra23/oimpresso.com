@@ -375,3 +375,8 @@
 [data-theme="dark"] .mockup-page .rp-fsm .step{ background: var(--surface); }
 [data-theme="dark"] .mockup-page .wa-thread .msgs{ background: oklch(0.16 0.012 145); }
 [data-theme="dark"] .mockup-page .log-row.alert{ background: oklch(0.30 0.06 25); }
+
+/* tema escuro (playbook tema-escuro 04 · 07/10): primário invertido (fundo --text, que no
+   escuro é quase branco) → tintado de accent (D1); o passo atual do rastreio vira accent. */
+[data-theme="dark"] .mockup-page .btn.primary{ background: color-mix(in oklch, var(--accent) 14%, var(--surface)); color: var(--text); border-color: color-mix(in oklch, var(--accent) 35%, var(--border)); }
+[data-theme="dark"] .mockup-page .pos-track .step.now .dot{ background: var(--accent); box-shadow: 0 0 0 3px color-mix(in oklch, var(--accent) 35%, transparent); }

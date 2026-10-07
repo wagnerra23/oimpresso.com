@@ -94,7 +94,7 @@ function UserDrawer({ u, onClose, onExcluir }) {
             <p>@{u.username} · {u.email}</p>
           </div>
           <div className="os-drawer-head-r">
-            <div className="usr-avatar" style={{ background:c.bg, color:c.fg }}>{initials(u.name)}</div>
+            <div className="usr-avatar" style={{ '--av-bg': c.bg, '--av-fg': c.fg }}>{initials(u.name)}</div>
             <button className="os-btn ghost" onClick={onClose}>Fechar</button>
           </div>
         </div>
@@ -103,7 +103,7 @@ function UserDrawer({ u, onClose, onExcluir }) {
           <div className="os-drawer-section">
             <h3>Acesso</h3>
             <div className="usr-dr-grid">
-              <div><small>Função</small><b><span className="usr-role" style={{ background:tone.bg, color:tone.fg, borderColor:tone.bd }}>{u.role}</span></b></div>
+              <div><small>Função</small><b><span className="usr-role" style={{ '--rl-bg': tone.bg, '--rl-fg': tone.fg, '--rl-bd': tone.bd }}>{u.role}</span></b></div>
               <div><small>Situação</small><b><span className={`usr-status ${u.status}`}><span className="usr-status-dot"></span>{u.status === "active" ? "Ativo" : "Inativo"}</span></b></div>
               <div><small>Último acesso</small><b>{u.last}</b></div>
               <div><small>No sistema desde</small><b>{u.criado}</b></div>
@@ -333,7 +333,7 @@ function UsuariosPage() {
                 <tr key={u.id} className="os-row" onClick={() => setDrawer(u)}>
                   <td>
                     <div className="usr-id">
-                      <div className="usr-avatar" style={{ background: c.bg, color: c.fg }}>{initials(u.name)}</div>
+                      <div className="usr-avatar" style={{ '--av-bg': c.bg, '--av-fg': c.fg }}>{initials(u.name)}</div>
                       <div className="usr-id-meta">
                         <b>{u.name}{u.you && <span className="usr-you">você</span>}</b>
                         <small>@{u.username}</small>
@@ -341,7 +341,7 @@ function UsuariosPage() {
                     </div>
                   </td>
                   <td>
-                    <span className="usr-role" style={{ background: tone.bg, color: tone.fg, borderColor: tone.bd }}>{u.role}</span>
+                    <span className="usr-role" style={{ '--rl-bg': tone.bg, '--rl-fg': tone.fg, '--rl-bd': tone.bd }}>{u.role}</span>
                   </td>
                   <td><span className="usr-email">{u.email}</span></td>
                   <td>

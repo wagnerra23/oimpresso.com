@@ -41,6 +41,8 @@
     "kb/Index.v2",
     "Manufacturing/Index",
     "Modules/Index",
+    "NfeBrasil/Tributacao/Index",
+    "NfeBrasil/Tributacao/RegraForm",
     "OficinaAuto/ServiceOrders/Create",
     "OficinaAuto/ServiceOrders/Edit",
     "Patrimonio/Alocacoes",
@@ -108,6 +110,16 @@
       "modulo": "core",
       "status": "1-ciclo",
       "prototipo": "prototipo-ui/cowork/Wagner/cliente-grupos.jsx",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
+      "tela": "Comissionados/Index",
+      "arquivo": "resources/js/Pages/Comissionados/Index.tsx",
+      "modulo": "core",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/Wagner/comissionados-page.jsx",
       "falta": [
         "scorecard"
       ]
@@ -283,6 +295,26 @@
       ]
     },
     {
+      "tela": "Relatorios/CompraVenda/Index",
+      "arquivo": "resources/js/Pages/Relatorios/CompraVenda/Index.tsx",
+      "modulo": "core",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/Wagner/relatorios-page.jsx",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
+      "tela": "Report/SalesRepresentative/Index",
+      "arquivo": "resources/js/Pages/Report/SalesRepresentative/Index.tsx",
+      "modulo": "core",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/Wagner/comissoes-page.jsx",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
       "tela": "SalesOrder/Index",
       "arquivo": "resources/js/Pages/SalesOrder/Index.tsx",
       "modulo": "core",
@@ -318,6 +350,26 @@
       "modulo": "core",
       "status": "1-ciclo",
       "prototipo": "prototipo-ui/cowork/Wagner/venda-blade.jsx — função TelaRemessas, rota venda-remessas (alvo medido em governance/design/targets/vendas--remessas--index.*)",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
+      "tela": "Suporte/Log",
+      "arquivo": "resources/js/Pages/Suporte/Log.tsx",
+      "modulo": "core",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/Wagner/suporte-page.jsx",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
+      "tela": "Usuarios/Index",
+      "arquivo": "resources/js/Pages/Usuarios/Index.tsx",
+      "modulo": "core",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/Wagner/usuarios-page.jsx",
       "falta": [
         "scorecard"
       ]
@@ -383,5 +435,5 @@
       ]
     }
   ],
-  "total": 119
+  "total": 126
 }

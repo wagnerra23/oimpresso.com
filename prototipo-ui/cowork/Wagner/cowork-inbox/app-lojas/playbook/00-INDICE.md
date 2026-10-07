@@ -18,7 +18,10 @@ base: wagnerra23/oimpresso.com@main 2fe69ddc0280 (lido 2026-10-06 17:08 UTC)
     {
       "id": "D-35",
       "texto": "Dashboard (tela 35) do app",
-      "dono": "W"
+      "dono": "W",
+      "respondida": true,
+      "resposta": "[W] 2026-10-07 \"o que recomenda?\" → recomendação [CC]: fica para depois da v1 — v1 do app é Ponto + o essencial da loja",
+      "quando": "2026-10-07"
     }
   ],
   "threads": [
