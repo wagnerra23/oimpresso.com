@@ -257,7 +257,7 @@ class BarcodeController extends Controller
                 // refresh(): carregado antes do update acima, o model ainda diria is_default=1 e o
                 // save() não gravaria nada se ela já fosse a padrão.
                 $barcode->refresh();
-                $barcode->is_default = 1;
+                $barcode->is_default = true;
                 $barcode->save();
 
                 $output = ['success' => true,
