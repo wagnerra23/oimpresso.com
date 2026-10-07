@@ -1,0 +1,60 @@
+# Scorecard de tela — primeira medição (thread 04 do playbook Forja, 2026-10-07).
+# Método SCREEN-GRADE (memory/requisitos/_DesignSystem/SCREEN-GRADE-METODO.md), passos 0+1 do
+# agente screen-qa-specialist, no mesmo modo do team-mcp-forja-cockpit.yaml (#7758).
+# ⚠️ NOTA DE LEITURA DE CÓDIGO: .tsx + charter + drawer + controller, SEM browser de prod,
+# SEM E2E/axe/smoke. Esta tela NÃO tem .casos.md (thread 01 do playbook). Nenhuma dimensão foi
+# medida em runtime; cada uma cita arquivo:linha (relativo a
+# Modules/Forja/Resources/js/Pages/team-mcp/Tasks/, salvo indicação).
+# Persona peso uniforme (wagner = power user, personas-por-modulo.yml §Notas), nota = média das
+# 16 dims arredondada (1196/16 = 74,75).
+# Este YAML é o ponto de partida do ratchet: a nota não pode cair abaixo de baseline_anterior.
+screen: team-mcp/Tasks/Index
+path: Modules/Forja/Resources/js/Pages/team-mcp/Tasks/Index.tsx
+archetype: kanban      # PT-05 — Backlog agrupável + Quadro
+persona: wagner
+nota: 75
+nivel: "Advanced"
+baseline_anterior: 75   # ratchet — primeira medição, baseline = a própria nota
+peso_real: 1.0
+source: leitura-codigo-forja-thread04-2026-10-07
+graded_at: "2026-10-07"
+resumo: "Backlog denso agrupável por 5 eixos + Quadro com drag otimista e rollback, J/K/Enter/X, seleção em lote e drawer por ?task=ID. Perde em: o PATCH de status manda author:'wagner' fixo (todo movimento do time é atribuído ao Wagner no mcp_task_events), quadro de 4 colunas fixas sem responsivo, drag sem alternativa de teclado por card, sem casos.md e copy mista (Tasks/Owner)."
+dimensoes: { density: 82, discoverability: 76, speed_to_task: 82, error_recovery: 72, cognitive_load: 74, aesthetic_usability: 78, affordance: 74, brand_confidence: 72, mobile_fit: 66, a11y_wcag: 72, i18n_ptbr: 78, performance_perceived: 78, information_hierarchy: 80, microcopy: 78, internal_consistency: 68, preflight_conformance: 66 }
+evidencias:
+  density: "Index.tsx:369 densidade compacta h-8/normal h-9; Index.tsx:583-609 linha com check · prioridade · id · título · módulo · selo · horas · status"
+  discoverability: "Index.tsx:408 'Agrupar por' só na aba Backlog; Index.tsx:485-490 dica de atalhos só em lg; Index.tsx:193-196 deep link ?task="
+  speed_to_task: "Index.tsx:311-340 J/K/Enter/X e '/'; Index.tsx:632-636 bulk; Index.tsx:510-513 drop chama PATCH"
+  error_recovery: "Index.tsx:225-241 rollback otimista + flash 403/rede; sem desfazer; _components/TaskDrawer.tsx:144-146 erros do drawer"
+  cognitive_load: "Index.tsx:377 total/horas/fazendo repetidos no PageHeader e de novo no KpiGrid (Index.tsx:399-404)"
+  aesthetic_usability: "Index.tsx:530-531 card com ring na seleção; Index.tsx:513 ring de drop"
+  affordance: "Index.tsx:522-532 card draggable sem atalho de teclado para mover; Index.tsx:413-421 botões de agrupamento sem aria-pressed; Index.tsx:476-483 toggle de densidade em <button> cru"
+  brand_confidence: "Index.charter.md:8 status draft; Index.tsx:223 author fixo 'wagner' (Modules/Forja/Http/Controllers/TasksAdminController.php:168 grava o que vier no body)"
+  mobile_fit: "Index.tsx:502 grid repeat(4) fixo no Quadro; Index.tsx:605-608 colunas escondidas abaixo de sm/md — não medido em viewport"
+  a11y_wcag: "Index.tsx:583-589 linha role=button tabIndex=0; Index.tsx:598 aria-label no checkbox; Index.tsx:507-508 coluna role=group aria-label; drag-and-drop sem equivalente acessível por card"
+  i18n_ptbr: "Index.tsx:376 título 'Tasks' vs breadcrumb 'Tarefas' (Index.tsx:644); Index.tsx:438 'Owner'; Index.tsx:489 'palette'; colunas do Quadro em PT (Index.tsx:101-106)"
+  performance_perceived: "Index.tsx:495-500 skeleton; Index.tsx:343-348 polling 10s recarrega kanban+backlog+kpis inteiros"
+  information_hierarchy: "PageHeader → KPIs → toolbar → conteúdo → totalbar (Index.tsx:374,399,407,494,619)"
+  microcopy: "Index.tsx:560 empty state ensina mcp:tasks:sync; Index.tsx:626-627 totalbar explica o drag"
+  internal_consistency: "Index.tsx:223 author:'wagner' para qualquer usuário com jana.mcp.usage.all (persona do charter inclui o time, Index.charter.md:25); Index.tsx:173 busca persiste em localStorage mas filtros de servidor não"
+  preflight_conformance: "charter tier A draft; SEM casos.md (trio incompleto); Select/Checkbox/Input de Components/ui; tokens semânticos"
+gaps:
+  - dim: "Internal-consistency"
+    best_of_class: "Linear/Jira: autor do evento = usuário autenticado, nunca campo do cliente"
+    fix: "Não mandar author do front; o controller usa auth()->user() (hoje TasksAdminController.php:168 aceita o body com default 'wagner')"
+    esforco: baixo
+    origin: thread04-forja-2026-10-07
+  - dim: "Mobile-fit"
+    best_of_class: "Linear board: colunas com largura mínima e scroll horizontal"
+    fix: "Trocar repeat(4) fixo por colunas min-w + overflow-x-auto no Quadro"
+    esforco: baixo
+    origin: thread04-forja-2026-10-07
+  - dim: "Affordance"
+    best_of_class: "Jira: mover card por menu/atalho além do drag"
+    fix: "Atalho por card (ex.: Shift+→/←) ou menu 'Mover para…'; aria-pressed no agrupamento"
+    esforco: medio
+    origin: thread04-forja-2026-10-07
+  - dim: "Pre-Flight-conformance"
+    best_of_class: "contrato UC + teste por tela"
+    fix: "Criar Index.casos.md derivado do charter (thread 01 do playbook Forja)"
+    esforco: medio
+    origin: thread04-forja-2026-10-07

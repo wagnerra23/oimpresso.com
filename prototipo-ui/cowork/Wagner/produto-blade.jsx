@@ -102,7 +102,15 @@ const stockHistory = (p) => {
   }).reverse();
 };
 
-const PBD = { ORIGENS, CFOPS, UNITS, CATEGORIES, SUBCATEGORIES, BRANDS, TAXES, LOCATIONS, BARCODE_TYPES, PRICE_GROUPS, WARRANTIES, TYPE_LABEL, PRODUCTS, fmtBRL, fmtQty, taxRate, incTax, priceSpan, stockHistory };
+// D7 (playbook Produto, 2026-10-05): os campos personalizados 1–7 NÃO têm rótulo fixo. O rótulo
+// vem do cadastro do negócio (configurações → custom_field_1..7); campo sem rótulo fica OCULTO.
+// Mock do negócio do protótipo: só 1 e 2 configurados. Vazio = não aparece em lugar nenhum.
+const CAMPOS_PERSONALIZADOS = { 1: "Fornecedor preferencial", 2: "Acabamento padrão", 3: "", 4: "", 5: "", 6: "", 7: "" };
+const camposAtivos = () => Object.keys(CAMPOS_PERSONALIZADOS).map(Number).filter((n) => CAMPOS_PERSONALIZADOS[n].trim());
+// Vendas dos últimos 30 dias, derivadas do mesmo histórico determinístico (base da "popularidade").
+const vendas30 = (p) => stockHistory(p).filter((h) => h.type === "Venda").reduce((s, h) => s + Math.abs(h.change), 0);
+
+const PBD = { ORIGENS, CFOPS, UNITS, CATEGORIES, SUBCATEGORIES, BRANDS, TAXES, LOCATIONS, BARCODE_TYPES, PRICE_GROUPS, WARRANTIES, TYPE_LABEL, PRODUCTS, CAMPOS_PERSONALIZADOS, camposAtivos, vendas30, fmtBRL, fmtQty, taxRate, incTax, priceSpan, stockHistory };
 window.PBD = PBD;
 
 // Ponte pro resto do ERP — navegar pro módulo vizinho levando o produto no contexto.
@@ -257,7 +265,7 @@ const PB_COLS = [
   { id: "imagem", l: "Imagem" }, { id: "locais", l: "Locais" }, { id: "compra", l: "Preço de compra un." },
   { id: "venda", l: "Preço de venda" }, { id: "estoque", l: "Estoque atual" }, { id: "tipo", l: "Tipo" },
   { id: "categoria", l: "Categoria" }, { id: "marca", l: "Marca" }, { id: "imposto", l: "Imposto" },
-  { id: "sku", l: "SKU" }, { id: "serie", l: "IMEI / série" }, { id: "cf1", l: "Campo personalizado 1" },
+  { id: "sku", l: "SKU" }, { id: "serie", l: "IMEI / série" }, ...(CAMPOS_PERSONALIZADOS[1] ? [{ id: "cf1", l: CAMPOS_PERSONALIZADOS[1] }] : []), // D7: rótulo do negócio; vazio = oculto
 ];
 const PB_COLS_PADRAO = { imagem: true, locais: true, compra: true, venda: true, estoque: true, tipo: true, categoria: true, marca: true, imposto: true, sku: true, serie: false, cf1: false };
 
@@ -316,7 +324,7 @@ function ListaProdutos({ rows, sel, setSel, onAcao, densa, cols, selSeq }) {
     { key: "imposto", label: "Imposto", col: "imposto", width: 110 },
     { key: "sku", label: "SKU", mono: true, sortable: true, col: "sku", width: 120, sortValue: (r) => r._p.sku },
     { key: "serie", label: "IMEI / série", col: "serie", width: 110 },
-    { key: "cf1", label: "Campo personalizado 1", col: "cf1", width: 170 },
+    ...(CAMPOS_PERSONALIZADOS[1] ? [{ key: "cf1", label: CAMPOS_PERSONALIZADOS[1], col: "cf1", width: 170 }] : []),
   ];
   const columns = TODAS.filter((c) => !c.col || cols[c.col]);
 
@@ -928,6 +936,129 @@ function TelaLista({ aba, setAba, onIr, avisar }) {
   );
 }
 
+// ─────────── Catálogo (Produto/Index.tsx — a Page React de /products) ───────────
+// Puxado do vivo (thread 00, 2026-10-07): 4 KPIs, busca + "Mostrar inativos", abas por categoria
+// com contagem, cards com preço e popularidade, estado vazio. O preço some sem
+// access_default_selling_price (AR-PROD-015) — a unidade fica, é dado de cadastro.
+function TelaCatalogo({ onIr, perms }) {
+  const [busca, setBusca] = useState("");
+  const [inativos, setInativos] = useState(false);
+  const [cat, setCat] = useState("todos");
+  const podePreco = perms.can("access_default_selling_price");
+  const pop = (p) => Math.min(100, vendas30(p));
+  const cats = CATEGORIES.map((c) => ({ id: c, n: PRODUCTS.filter((p) => p.cat === c).length })).filter((c) => c.n);
+  const linhas = PRODUCTS.filter((p) => (inativos || p.active) && (cat === "todos" || p.cat === cat)
+    && (!busca.trim() || (p.name + " " + p.sku).toLowerCase().includes(busca.trim().toLowerCase())));
+  return (
+    <>
+      <div className="pb-kpis" data-contract="kpis-totalizadores">
+        <div className="pb-kpi"><small>Total de produtos</small><b>{PRODUCTS.length}</b></div>
+        <div className="pb-kpi"><small>Ativos</small><b style={{ color: "var(--pos)" }}>{PRODUCTS.filter((p) => p.active).length}</b></div>
+        <div className="pb-kpi"><small>Categorias</small><b>{cats.length}</b></div>
+        <div className="pb-kpi"><small>Populares · 30d</small><b>{PRODUCTS.filter((p) => vendas30(p) >= 30).length}</b><div className="ln">≥30 vendas/mês</div></div>
+      </div>
+      <div className="pb-toolbar" data-contract="filtros-busca">
+        <div className="pb-busca"><Ic name="search" size={12} />
+          <input value={busca} onChange={(e) => setBusca(e.target.value)} placeholder="Buscar por nome ou SKU" aria-label="Buscar produto" /></div>
+        <label className="pb-chk"><input type="checkbox" checked={inativos} onChange={(e) => setInativos(e.target.checked)} /> Mostrar inativos</label>
+        <div className="sp" />
+      </div>
+      <window.CliTabs ariaLabel="Filtrar por categoria" pad={12} active={cat} onChange={setCat}
+        tabs={[{ key: "todos", label: "Todos", n: cats.reduce((s, c) => s + c.n, 0) }, ...cats.map((c) => ({ key: c.id, label: c.id, n: c.n }))]} />
+      {linhas.length === 0
+        ? <div style={{ padding: "48px 0", textAlign: "center" }} data-contract="tabela-cards">
+            <b style={{ display: "block", fontSize: 15 }}>Nenhum produto encontrado</b>
+            <span className="pb-help">Ajuste filtros ou cadastre o primeiro produto.</span>
+          </div>
+        : <div data-contract="tabela-cards" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(230px, 1fr))", gap: 12, marginTop: 12 }}>
+            {linhas.map((p) => (
+              <button key={p.id} onClick={() => onIr("detalhe", p)} style={{ textAlign: "left", font: "inherit", color: "var(--text)", padding: 14, borderRadius: 8, border: "1px solid var(--border)", background: "var(--surface)", opacity: p.active ? 1 : 0.7, cursor: "pointer" }}>
+                <span style={{ display: "flex", gap: 6, marginBottom: 4 }}>
+                  <span className="pb-pill">{p.cat}</span>{!p.active && <span className="pb-pill off">Inativo</span>}
+                </span>
+                <b style={{ display: "block", fontSize: 14 }}>{p.name}</b>
+                <span className="m" style={{ fontSize: 11.5, color: "var(--text-mute)" }}>{p.sku}</span>
+                <span style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginTop: 12 }}>
+                  <span>
+                    {podePreco && <><small className="pb-help" style={{ display: "block" }}>Preço</small><b>{fmtBRL(p.variations[0].dsp)}</b></>}
+                    <small className="pb-help" style={{ display: "block" }}>/ {p.unit}</small>
+                  </span>
+                  <span style={{ textAlign: "right" }}>
+                    <small className="pb-help" style={{ display: "block" }}>Popularidade</small>
+                    <span style={{ display: "block", width: 96, height: 6, borderRadius: 3, background: "var(--border)", overflow: "hidden", marginTop: 4 }}>
+                      <span style={{ display: "block", height: "100%", width: pop(p) + "%", background: pop(p) >= 70 ? "var(--pos)" : "var(--text-mute)" }} />
+                    </span>
+                    <small className="pb-help">{pop(p)}%</small>
+                  </span>
+                </span>
+              </button>
+            ))}
+          </div>}
+    </>
+  );
+}
+
+// ─────────── Detalhe (Produto/Show.tsx — /products/{id}) ───────────
+// Puxado do vivo (thread 00, 2026-10-07): abas Resumo · Variações · Estoque, ações Voltar /
+// Histórico estoque / Editar (Editar só com product.update). Colunas de preço somem sem permissão.
+function TelaDetalhe({ produto, onIr, perms }) {
+  const p = produto || PRODUCTS[0];
+  const [aba, setAba] = useState("resumo");
+  const custo = perms.can("view_purchase_price"), venda = perms.can("access_default_selling_price");
+  const dt = (l, v) => <div className="pb-dt"><span>{l}</span><b>{v || "—"}</b></div>;
+  const racks = LOCATIONS.map((l) => ({ l, r: (p.racks || {})[l.id] })).filter((x) => x.r);
+  return (
+    <>
+      <Widget titulo={p.name} nota={[p.sku, p.cat, p.unit].filter(Boolean).join(" · ")}>
+        <div className="pb-toolbar" style={{ padding: 0 }}>
+          <button className="os-btn sm" onClick={() => onIr("lista")}>← Voltar</button>
+          <button className="os-btn sm" onClick={() => onIr("historico", p)}><Ic name="clock" size={12} /> Histórico estoque</button>
+          {perms.can("product.update") && <button className="os-btn sm primary" onClick={() => onIr("editar", p)}><Ic name="pencil" size={12} /> Editar</button>}
+        </div>
+        <window.CliTabs ariaLabel="Detalhe do produto" pad={0} active={aba} onChange={setAba}
+          tabs={[{ key: "resumo", label: "Resumo" }, { key: "variacoes", label: "Variações" }, { key: "estoque", label: "Estoque" }]} />
+        {aba === "resumo" && <>
+          <h4 className="pb-help" style={{ textTransform: "uppercase", letterSpacing: ".06em", margin: "12px 0 6px" }}>Identificação</h4>
+          <div className="pb-grid">
+            {dt("Nome", p.name)}{dt("SKU", p.sku)}{dt("Tipo", TYPE_LABEL[p.type])}{dt("Unidade", p.unit)}
+            {dt("Categoria", p.cat)}{dt("Subcategoria", p.sub)}{dt("Marca", p.brand)}{dt("Estoque controlado?", p.stockOn ? "Sim" : "Não")}
+            {camposAtivos().map((n) => <React.Fragment key={n}>{dt(CAMPOS_PERSONALIZADOS[n], (p.cf || {})[n])}</React.Fragment>)}
+          </div>
+          {p.desc && <><h4 className="pb-help" style={{ textTransform: "uppercase", letterSpacing: ".06em", margin: "14px 0 6px" }}>Descrição</h4><p style={{ margin: 0, whiteSpace: "pre-wrap" }}>{p.desc}</p></>}
+        </>}
+        {aba === "variacoes" && (p.variations.length === 0
+          ? <p className="pb-help" style={{ textAlign: "center", padding: 20 }}>Produto sem variações cadastradas.</p>
+          : <table className="pb-tbl" style={{ marginTop: 10 }}>
+              <thead><tr><th>Variação</th><th>SKU</th>{custo && <th className="r">Preço compra</th>}{venda && <th className="r">Preço venda</th>}</tr></thead>
+              <tbody>{p.variations.map((va) => <tr key={va.sku}><td>{va.name}</td><td className="m">{va.sku}</td>{custo && <td className="r">{fmtBRL(va.dpp)}</td>}{venda && <td className="r"><b>{fmtBRL(va.dsp)}</b></td>}</tr>)}</tbody>
+            </table>)}
+        {aba === "estoque" && (racks.length === 0
+          ? <p className="pb-help" style={{ textAlign: "center", padding: 20 }}>Sem prateleira/localização cadastrada.</p>
+          : <table className="pb-tbl" style={{ marginTop: 10 }}>
+              <thead><tr><th>Local</th><th>Prateleira / Fileira / Posição</th><th className="r">Estoque atual</th></tr></thead>
+              <tbody>{racks.map(({ l, r }) => <tr key={l.id}><td>{l.name}</td><td className="m">{[r.rack, r.row, r.pos].filter(Boolean).join(" / ") || "—"}</td><td className="r">{p.stockOn ? fmtQty(p.stock) : "—"}</td></tr>)}</tbody>
+            </table>)}
+      </Widget>
+    </>
+  );
+}
+
+// Rota fixa por Page viva (thread 00, 2026-10-07): a rota escolhe a vista e o produto, sem
+// depender do localStorage da última tela. `page` = Page Inertia em resources/js/Pages/.
+// O app.jsx manda todo `prod-*` pra cá (rota desconhecida chega como view "lista"); a vista
+// sai desta tabela via window.__route. `produtos` é servido pelo produtos-page.jsx (registro).
+const ROTAS = {
+  "produtos":       { page: "Produto/Unificado/Index", tela: null /* window.ProdListPage */ },
+  "prod-index":     { page: "Produto/Index",           tela: "catalogo" },
+  "prod-lista":     { page: null /* /products sem X-Inertia = Blade product.index */, tela: "lista" },
+  "prod-novo":      { page: "Produto/Create",          tela: "form" },
+  "prod-editar":    { page: "Produto/Edit",            tela: "form", produto: 1 },
+  "prod-detalhe":   { page: "Produto/Show",            tela: "detalhe", produto: 1 },
+  "prod-precos":    { page: "Produto/SellingPrices",   tela: "precos", produto: 1 },
+  "prod-massa":     { page: "Produto/BulkEdit",        tela: "massa" },
+  "prod-historico": { page: "Produto/StockHistory",    tela: "historico", produto: 1 },
+};
+
 // ─────────── Página do módulo ───────────
 // ⌘K do módulo (DS Command): telas do Produto + ir direto num produto.
 function PaletaProduto({ aberta, onClose, onIr }) {
@@ -952,9 +1083,16 @@ function PaletaProduto({ aberta, onClose, onIr }) {
 
 function ProdutoBladePage({ view = "lista", estado = "dados", dense = false, papel = "administrador" }) {
   const M = MP();
-  const [tela, setTela] = useState(view === "estoque" ? "lista" : view);
+  // Rota fixa (ROTAS): ganha da `view` que o app.jsx deduziu — `prod-index`, `prod-editar` e
+  // `prod-detalhe` não estão no mapa do app.jsx e chegariam todas como "lista".
+  const rk = window.__route;
+  const rota = ROTAS[rk] && ROTAS[rk].tela ? ROTAS[rk] : null;
+  const telaDe = (r) => (r ? r.tela : view === "estoque" ? "lista" : view);
+  const alvoDe = (r) => (r ? (r.produto ? PRODUCTS.find((x) => x.id === r.produto) : r.tela === "form" ? null : PRODUCTS[0]) : view === "form" ? null : PRODUCTS[0]);
+  const interno = useRef(false);
+  const [tela, setTela] = useState(() => telaDe(rota));
   const [aba, setAba] = useState(view === "estoque" ? "estoque" : "lista");
-  const [alvo, setAlvo] = useState(view === "form" ? null : PRODUCTS[0]);
+  const [alvo, setAlvo] = useState(() => alvoDe(rota));
   const [hora, setHora] = useState(() => new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }));
   // Chegou de outro módulo? (OS/orçamento pedindo um produto — window.__PBCtx)
   const [entrada, setEntrada] = useState(() => { const c = window.__PBCtx; return c && c.origem && c.origem !== "produto" && Date.now() - c.em < 60000 ? c : null; });
@@ -969,7 +1107,11 @@ function ProdutoBladePage({ view = "lista", estado = "dados", dense = false, pap
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, []);
-  useEffect(() => { setTela(view === "estoque" ? "lista" : view); setAba(view === "estoque" ? "estoque" : "lista"); }, [view]);
+  useEffect(() => {
+    setAba(view === "estoque" ? "estoque" : "lista");
+    if (interno.current) { interno.current = false; return; } // navegação de dentro já escolheu tela e produto
+    setTela(telaDe(rota)); setAlvo(alvoDe(rota));
+  }, [view, rk]);
 
   const CROSS = {
     comprar:        { rota: "compras", acao: "novo-item",     msg: (p) => "Compras aberto com “" + p.name + "” no item novo." },
@@ -979,19 +1121,19 @@ function ProdutoBladePage({ view = "lista", estado = "dados", dense = false, pap
     "fiscal-modulo":{ rota: "fiscal",  acao: "produto",       msg: (p) => "Dados fiscais de “" + p.name + "” no módulo Fiscal." },
   };
   // Navegação interna reflete na rota do shell — senão a sidebar marca uma tela e o corpo mostra outra.
-  const ROTA_DE = { lista: "prod-lista", form: "prod-novo", historico: "prod-historico", precos: "prod-precos", massa: "prod-massa", analises: "prod-analises", etiquetas: "prod-etiquetas", "atualizar-preco": "prod-atualizar-preco", "importar-produtos": "prod-importar", "importar-estoque": "prod-importar-estoque", cadastros: "prod-cadastros" };
+  const ROTA_DE = { catalogo: "prod-index", detalhe: "prod-detalhe", lista: "prod-lista", form: "prod-novo", historico: "prod-historico", precos: "prod-precos", massa: "prod-massa", analises: "prod-analises", etiquetas: "prod-etiquetas", "atualizar-preco": "prod-atualizar-preco", "importar-produtos": "prod-importar", "importar-estoque": "prod-importar-estoque", cadastros: "prod-cadastros" };
   const onIr = (destino, p) => {
     const x = CROSS[destino];
     if (x) { avisar(x.msg(p || { name: "produto" }), "ok"); return irPara(x.rota, { produto: (p || {}).sku, nome: (p || {}).name, acao: x.acao }); }
     setAlvo(p || null);
     const t = destino === "editar" ? "form" : destino;
     setTela(t);
-    const rota = ROTA_DE[t];
-    if (rota && window.__route !== rota && window.__selectRoute) window.__selectRoute(rota);
+    const destinoRota = t === "form" && p ? "prod-editar" : ROTA_DE[t];
+    if (destinoRota && window.__route !== destinoRota && window.__selectRoute) { interno.current = true; window.__selectRoute(destinoRota); }
   };
   const F = window.ProdutoBladeForms || {};
   const A = window.ProdutoAcoes || {};
-  const TITULOS = { lista: "Produtos", form: "Produto — cadastro", historico: "Histórico de estoque", precos: "Preços por grupo de venda", massa: "Edição em massa", analises: "Análises do catálogo", etiquetas: "Imprimir etiquetas", "atualizar-preco": "Atualizar preço", "importar-produtos": "Importar produtos", "importar-estoque": "Importar estoque inicial", cadastros: "Cadastros de apoio" };
+  const TITULOS = { catalogo: "Catálogo", detalhe: "Detalhe", lista: "Produtos", form: "Produto — cadastro", historico: "Histórico de estoque", precos: "Tabelas de preço", massa: "Edição em massa", analises: "Análises do catálogo", etiquetas: "Imprimir etiquetas", "atualizar-preco": "Atualizar preço", "importar-produtos": "Importar produtos", "importar-estoque": "Importar estoque inicial", cadastros: "Cadastros de apoio" };
 
   return (
     <div className={"pb-root" + (dense ? " pb-dense" : "")} data-screen-label={"01 Produto · " + (TITULOS[tela] || tela)}>
@@ -1017,8 +1159,10 @@ function ProdutoBladePage({ view = "lista", estado = "dados", dense = false, pap
             <button className="icon-btn" aria-label="Dispensar" onClick={() => setEntrada(null)}>✕</button>
           </div>}
         {tela === "lista" && <TelaLista aba={aba} setAba={setAba} onIr={onIr} avisar={avisar} />}
+        {tela === "catalogo" && <TelaCatalogo onIr={onIr} perms={perms} />}
+        {tela === "detalhe" && <TelaDetalhe produto={alvo} onIr={onIr} perms={perms} />}
         {tela === "form" && (F.FormProduto ? <F.FormProduto produto={alvo} onSair={() => setTela("lista")} onIr={onIr} avisar={avisar} /> : null)}
-        {tela === "historico" && (F.Historico ? <F.Historico produto={alvo || PRODUCTS[0]} avisar={avisar} /> : null)}
+        {tela === "historico" && (F.Historico ? <F.Historico produto={alvo || PRODUCTS[0]} avisar={avisar} onIr={onIr} /> : null)}
         {tela === "precos" && (F.Precos ? <F.Precos produto={alvo || PRODUCTS[0]} onSair={() => setTela("lista")} avisar={avisar} /> : null)}
         {tela === "massa" && (F.Massa ? <F.Massa onSair={() => setTela("lista")} avisar={avisar} /> : null)}
         {tela === "analises" && (window.ProdutoAnalises ? <window.ProdutoAnalises onIr={onIr} avisar={avisar} /> : null)}
@@ -1035,5 +1179,6 @@ function ProdutoBladePage({ view = "lista", estado = "dados", dense = false, pap
 }
 
 window.ProdutoBladePage = ProdutoBladePage;
+window.ProdRotas = ROTAS;
 window.PBUI = { Widget, Fld, Sel, Modal, Kebab };
 })();
