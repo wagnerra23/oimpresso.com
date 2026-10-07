@@ -84,7 +84,11 @@ beforeEach(function () {
     config(['constants.administrator_usernames' => 'um_admin_que_nao_e_o_agente']);
 
     // Agente = usuário da operadora (ADR 0309: o time da operadora É o suporte).
-    $this->agente = User::factory()->create(['business_id' => $this->operadora->id]);
+    $this->agente = User::factory()->create([
+        'business_id' => $this->operadora->id,
+        // username único: o do Faker colide entre testes na mesma base (users_username_unique).
+        'username' => 'suplog_agente_'.uniqid(),
+    ]);
 });
 
 it('UC-SUP-08 · agente lê a trilha da empresa-cliente', function () {
@@ -118,7 +122,10 @@ it('UC-SUP-09 · negação contra a operadora fica fora do log', function () {
 it('UC-SUP-10 · não-agente recebe 403 no log', function () {
     // Usuário de CLIENTE sem concessão em support_agents — não pode ser da operadora
     // (pela ADR 0309 todo usuário dela já é agente, e o teste mentiria).
-    $naoAgente = User::factory()->create(['business_id' => $this->cliente->id]);
+    $naoAgente = User::factory()->create([
+        'business_id' => $this->cliente->id,
+        'username' => 'suplog_naoagente_'.uniqid(),
+    ]);
 
     $this->actingAs($naoAgente)->get('/suporte/log')->assertStatus(403);
 });
