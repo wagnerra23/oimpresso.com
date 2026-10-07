@@ -97,15 +97,8 @@ jobs:
         # Calculado AQUI (o runner já tem o checkout) pra não gastar round-trip SSH
         # dentro da janela de maintenance. md5sum é GNU coreutils nos dois lados
         # (runner ubuntu e Hostinger) e o arquivo é LF nos dois → hash comparável.
-        #
-        # Sufixo "-nodev" (2026-10-06): o alvo é o lock E o modo de instalação. O lado
-        # servidor reporta o modo REAL do vendor (vendor/composer/installed.json "dev").
-        # Sem o sufixo, o 1º deploy após a troca pra --no-dev teria o lock igual → pularia
-        # o install → vendor seguiria com require-dev e packages.php listando o provider
-        # do Scribe, enquanto o dump-autoload --no-dev tira essas classes do classmap =
-        # incidente do #2316 (Class "Knuckles\Scribe\ScribeServiceProvider" not found).
         run: |
-          H="$(md5sum composer.lock | cut -d' ' -f1)-nodev"
+          H=$(md5sum composer.lock | cut -d' ' -f1)
           echo "hash=$H" >> "$GITHUB_OUTPUT"
           echo "composer.lock alvo: $H"
 
@@ -356,13 +349,8 @@ jobs:
         # Se `vendor/autoload.php` não existir, emite SEM-VENDOR: nunca casa um md5,
         # então força o install. Falha de SSH deixa o hash vazio → também não casa →
         # também força o install. Os dois fail-safes vão pro lado caro, não pro errado.
-        #
-        # Sufixo de MODO (2026-10-06): "-nodev" só quando vendor/composer/installed.json
-        # declara "dev": false (vendor instalado com --no-dev). Qualquer outra coisa —
-        # vendor com require-dev, installed.json ausente/ilegível — vira "-dev", que não
-        # casa o alvo "-nodev" → força o install. Mesmo princípio: erra pro lado caro.
         run: |
-          H=$(/tmp/ssh_exec.sh "cd $RDIR && if [ -f vendor/autoload.php ]; then L=\$(md5sum composer.lock 2>/dev/null | cut -d' ' -f1); if grep -qE 'dev.: *false' vendor/composer/installed.json 2>/dev/null; then echo \$L-nodev; else echo \$L-dev; fi; else echo SEM-VENDOR; fi" | tr -d '\r\n')
+          H=$(/tmp/ssh_exec.sh "cd $RDIR && if [ -f vendor/autoload.php ]; then md5sum composer.lock 2>/dev/null | cut -d' ' -f1; else echo SEM-VENDOR; fi" | tr -d '\r\n')
           echo "hash=$H" >> "$GITHUB_OUTPUT"
           echo "composer.lock instalado: ${H:-<falha ao ler>}"
           echo "composer.lock alvo:      ${{ needs.build.outputs.composer_lock_hash }}"
@@ -513,18 +501,7 @@ jobs:
           echo "✅ fonte e bundle do mesmo commit"
 
       - name: Composer install (produção)
-        # --no-dev (2026-10-06): até aqui o install trazia o require-dev pra produção por causa do
-        #   "incidente Faker 2026-04-25" (tela branca Inertia "null.component"). Remedido nesta data:
-        #   0 de 64 seeders usam Faker/fake()/factory(), e 0 chamadas a ::factory( fora de testes —
-        #   o Faker só vive em database/factories, que o runtime não carrega. O próprio canon
-        #   atribui "null.component" a bundle Vite stale / composer install não rodado (ADR 0064,
-        #   RUNBOOK-criar-modulo), não ao Faker. Pacotes dev com uso em runtime, todos tolerantes à
-        #   ausência: OtelServiceProvider (class_exists), BoostToolAdapter (/ads/admin/tools,
-        #   catch Throwable), config/scribe.php (só ::class, não carrega classe).
-        #   Ganho colateral: laravel/boost (tools MCP de DatabaseQuery etc.) sai do vendor do
-        #   Hostinger — proibicoes.md §Ambiente (runtime MCP nunca no Hostinger).
-        #   O --ignore-platform-req=ext-opentelemetry fica: inofensivo, e o rollback (reverter
-        #   este PR) volta a instalar o require-dev, que precisa dele.
+        # NÃO usar --no-dev: Faker é usado em prod (incidente 2026-04-25, tela branca Inertia "null.component").
         # --ignore-platform-req=ext-opentelemetry: Hostinger shared NÃO tem ext-opentelemetry (PECL out/2025).
         #   OTel pacotes vivem em require-dev (ADR 0166) + OtelHelper fail-safe. Hostinger nunca emite spans.
         # set -o pipefail: sem ele o exit do pipeline `composer | tail` mascara falha do composer (deploy verde com
@@ -561,7 +538,7 @@ jobs:
           /tmp/ssh_exec.sh "
             set -o pipefail &&
             cd $RDIR &&
-            composer install --no-dev --optimize-autoloader --no-interaction --no-scripts --ignore-platform-req=ext-opentelemetry --ignore-platform-req=ext-sodium 2>&1 | tail -20 &&
+            composer install --optimize-autoloader --no-interaction --no-scripts --ignore-platform-req=ext-opentelemetry --ignore-platform-req=ext-sodium 2>&1 | tail -20 &&
             rm -f bootstrap/cache/packages.php bootstrap/cache/services.php
           "
 
@@ -572,7 +549,7 @@ jobs:
           /tmp/ssh_exec.sh "
             set -o pipefail &&
             cd $RDIR &&
-            composer dump-autoload -o --no-dev --no-interaction --no-scripts --ignore-platform-req=ext-opentelemetry --ignore-platform-req=ext-sodium 2>&1 | tail -10
+            composer dump-autoload -o --no-interaction --no-scripts --ignore-platform-req=ext-opentelemetry --ignore-platform-req=ext-sodium 2>&1 | tail -10
           "
 
       - name: Verifica classmap autoritativo (re-dump 1× se stale) — emenda ADR 0269 (incidente 2026-06-23)
@@ -601,7 +578,7 @@ jobs:
             cd $RDIR &&
             if php scripts/deploy/verify-classmap.php; then exit 0; fi;
             echo '=== classmap stale — re-dump 1x e re-verifica ===' &&
-            composer dump-autoload -o --no-dev --no-interaction --no-scripts --ignore-platform-req=ext-opentelemetry --ignore-platform-req=ext-sodium 2>&1 | tail -10;
+            composer dump-autoload -o --no-interaction --no-scripts --ignore-platform-req=ext-opentelemetry --ignore-platform-req=ext-sodium 2>&1 | tail -10;
             php scripts/deploy/verify-classmap.php
           "
 
@@ -934,7 +911,7 @@ jobs:
             # é quando servir o 503 NÃO pode depender de bootar o framework. Resultado antigo:
             # 500 pro cliente no pior cenário, com o site "em manutenção".
             /tmp/ssh_exec.sh "cd $RDIR && ( php artisan down --retry=60 --refresh=15 --render='errors::503' || php artisan down --retry=60 --refresh=15 ) 2>&1 || true; echo 'MANTIDO EM MAINTENANCE (503) — gate classmap/web falhou'"
-            echo "::error::Gate de classmap/web falhou — site mantido em MAINTENANCE (503). 'php artisan about' (CLI) não reproduz esse caso (middleware web). Recuperar: 'composer dump-autoload -o --no-dev --no-scripts --ignore-platform-req=ext-opentelemetry --ignore-platform-req=ext-sodium' + reset OPcache, OU re-deploy do main saudável. Ver Tail laravel.log abaixo."
+            echo "::error::Gate de classmap/web falhou — site mantido em MAINTENANCE (503). 'php artisan about' (CLI) não reproduz esse caso (middleware web). Recuperar: 'composer dump-autoload -o --no-scripts --ignore-platform-req=ext-opentelemetry --ignore-platform-req=ext-sodium' + reset OPcache, OU re-deploy do main saudável. Ver Tail laravel.log abaixo."
             exit 1
           fi
           if /tmp/ssh_exec.sh "cd $RDIR && php artisan about > /dev/null 2>&1"; then
@@ -947,7 +924,7 @@ jobs:
             # --render conseguir rodar e trocar a página boa por uma que exige bootar o framework
             # quebrado.
             /tmp/ssh_exec.sh "cd $RDIR && ( php artisan down --retry=60 --refresh=15 --render='errors::503' || php artisan down --retry=60 --refresh=15 ) 2>&1 || true; echo 'MANTIDO EM MAINTENANCE (503) — codigo nao boota'"
-            echo "::error::Codigo deployado NAO boota (php artisan about falhou). Site mantido em MAINTENANCE (503 gracioso) em vez de servir 500. Recuperar no prod: 'composer dump-autoload -o --no-dev --no-scripts --ignore-platform-req=ext-opentelemetry --ignore-platform-req=ext-sodium' + reset OPcache, OU re-deploy. Ver Tail laravel.log abaixo."
+            echo "::error::Codigo deployado NAO boota (php artisan about falhou). Site mantido em MAINTENANCE (503 gracioso) em vez de servir 500. Recuperar no prod: 'composer dump-autoload -o --no-scripts --ignore-platform-req=ext-opentelemetry --ignore-platform-req=ext-sodium' + reset OPcache, OU re-deploy. Ver Tail laravel.log abaixo."
             exit 1
           fi
 
