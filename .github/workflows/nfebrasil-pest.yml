@@ -311,7 +311,8 @@ jobs:
             Modules/Fiscal/Tests/Feature/AcoesDfeManifestacaoTest.php \
             Modules/NfeBrasil/Tests/Feature/TributacaoGatesContratoTest.php \
             Modules/NfeBrasil/Tests/Feature/RegraTributariaIbsCbsValidacaoTest.php \
-            Modules/NfeBrasil/Tests/Feature/OperacaoFiscalTenantTest.php
+            Modules/NfeBrasil/Tests/Feature/OperacaoFiscalTenantTest.php \
+            Modules/NfeBrasil/Tests/Feature/IcmsUfTest.php
 
 
       # Passo 1 do plano da LC-13 (Gate:): a lane JA emitia JUnit e NINGUEM lia.
