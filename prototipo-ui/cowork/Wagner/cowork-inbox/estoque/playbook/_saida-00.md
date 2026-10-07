@@ -102,9 +102,9 @@ Nada disso foi apagado.
 - **Baselines.** `render-proto-baseline.mjs --check` no `main` `836619f64d`, antes desta thread:
   12 drifts em 9 baselines (Compras, Financeiro conciliacao/dre/fluxo/impostos/unificado, KB,
   Sells, TeamMcp/forja-cockpit). Não é do `estoque-page.jsx`: com o jsx novo o número é o mesmo.
-  Regeneradas com `--gerar`, mesmas 4 células (1280/1440 × light/dark) e as rotas do #8568
-  (`fin-concil`, `fin-dre`, `fin-fluxo`, `fin-impostos`, `projects`). `--check` depois:
-  "9 baseline(s) íntegro(s)".
+  **Não regravadas aqui**, por decisão da fila de merges (2026-10-07): regravar baseline volta ao
+  [W] e vira um PR único depois que as threads 00 de PUXAR entrarem. O drift pré-existente e o
+  efeito deste jsx ficam para esse PR.
 - **`_STATUS-GENERATED`.** `requisitos-status.mjs <Mod> --check`: Estoque, Compras, Financeiro e
   KB em dia. Sells drifado já no `main` (a tela `Quotations` ganhou `casos.md` no #8844 e o status
   não foi regerado); regenerado com `--write`. TeamMcp não tem `_STATUS-GENERATED.md` no `main`;
