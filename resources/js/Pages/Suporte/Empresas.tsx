@@ -32,7 +32,7 @@ export default function Empresas({ empresas }: Props) {
       <Head title="Suporte · empresas" />
 
       <div className="p-6 max-w-5xl mx-auto space-y-5">
-        <Inline justify="between" align="start" gap={4} wrap>
+        <Inline justify="between" align="start" gap={4} wrap data-contract="cabecalho">
           <div>
             <h1 className="text-lg font-semibold text-[color:var(--text)]">Suporte · empresas</h1>
             <p className="mt-0.5 text-sm text-[color:var(--text-mute)]">
@@ -48,7 +48,7 @@ export default function Empresas({ empresas }: Props) {
           />
         </Inline>
 
-        <div className="overflow-hidden rounded-lg border border-[color:var(--border)]">
+        <div className="overflow-hidden rounded-lg border border-[color:var(--border)]" data-contract="lista">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-[color:var(--border)] text-left text-xs uppercase tracking-wide text-[color:var(--text-mute)]">
