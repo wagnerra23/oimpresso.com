@@ -26,17 +26,17 @@
   ],
   "stats": {
     "modules": 35,
-    "nodes": 744,
-    "edges": 1035,
+    "nodes": 745,
+    "edges": 1036,
     "by_node_type": {
       "module": 39,
-      "table": 103,
+      "table": 104,
       "adr": 136,
       "component": 389,
       "api": 77
     },
     "by_edge_type": {
-      "ownsTable": 92,
+      "ownsTable": 93,
       "ownsLegacyView": 13,
       "consumesTable": 6,
       "providesApi": 81,
@@ -5960,6 +5960,17 @@
       "ownership_mode": "single"
     },
     {
+      "id": "table:nfe_icms_uf",
+      "type": "table",
+      "name": "nfe_icms_uf",
+      "owners": [
+        "NfeBrasil"
+      ],
+      "consumers": [],
+      "legacy_views": [],
+      "ownership_mode": "single"
+    },
+    {
       "id": "table:nfe_inutilizacoes",
       "type": "table",
       "name": "nfe_inutilizacoes",
@@ -10339,6 +10350,12 @@
     {
       "from": "module:NfeBrasil",
       "to": "table:nfe_fiscal_rules",
+      "type": "ownsTable",
+      "source": "db_tables_owned"
+    },
+    {
+      "from": "module:NfeBrasil",
+      "to": "table:nfe_icms_uf",
       "type": "ownsTable",
       "source": "db_tables_owned"
     },

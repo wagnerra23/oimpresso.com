@@ -567,6 +567,22 @@ E a empresa A usa as próprias
 **Implementação:** `Modules/NfeBrasil/Models/NfeOperacaoFiscal.php` · `Modules/NfeBrasil/Services/MotorTributarioService.php` (`resolverOperacao`) · migração `2026_10_07_000001` (FK para `business`).
 **Testado em:** `Modules/NfeBrasil/Tests/Feature/OperacaoFiscalTenantTest.php` (lane `nfebrasil-pest`).
 
+### R-NFE-021 · UF sem alíquota interna cadastrada não inventa valor
+
+```gherkin
+Dado a tabela ICMS por UF da empresa semeada (interestaduais) e a interna de RJ vazia
+Quando alguém pede a alíquota interna de RJ
+Então recebe o erro "Alíquota interna de RJ não cadastrada", nunca 0 nem um palpite
+E com a interna preenchida pelo contador (20%) devolve 0,20
+E o seed traz 729 pares por empresa: 146 a 7% e 556 a 12%, conferidos contra a Resolução do Senado nº 22/1989, e 27 internos sem interestadual
+E rodar o seed de novo não insere nem altera nada (append-only)
+```
+
+**Contrato:** lei 4 do módulo · D-UF ([W] 2026-10-06) · Resolução do Senado Federal nº 22/1989, art. 1º e parágrafo único, II (citada literal no seeder).
+**Implementação:** migração `2026_10_07_000003_create_nfe_icms_uf_table` · `Modules/NfeBrasil/Models/NfeIcmsUf.php` (`aliquotaInterna`, `aliquotaInterestadual`) · `Modules/NfeBrasil/Database/Seeders/NfeIcmsUfSeeder.php` · `Modules/NfeBrasil/Exceptions/AliquotaInternaNaoCadastradaException.php`.
+**Testado em:** `Modules/NfeBrasil/Tests/Feature/IcmsUfTest.php` (lane `nfebrasil-pest`).
+**Fora deste item:** o motor ainda não lê a tabela (fallback é outra thread); os 4% da Resolução nº 13/2012 dependem da origem do produto importado; o seed não roda sozinho no deploy.
+
 ### R-NFE-033 · Aceita CNPJ alfanumérico válido e recusa o inválido
 
 ```gherkin
