@@ -7,13 +7,17 @@ import { Deferred, Head, Link, router, usePage } from '@inertiajs/react';
 import { Skeleton } from '@/Components/ui/skeleton';
 import {
   CheckCircle2, ChevronRight, FilePlus2, FileSpreadsheet, Package, Pencil, Percent, Printer,
-  Settings, ShoppingBag, Sparkles, Trash2, Zap,
+  Settings, ShieldCheck, ShoppingBag, Sparkles, Trash2, Zap,
 } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
 import { Badge } from '@/Components/ui/badge';
 import { Switch } from '@/Components/ui/switch';
 import { toast } from 'sonner';
+import { useState } from 'react';
+import ConfigurarPeloCertificado from './_components/ConfigurarPeloCertificado';
+import SimuladorNota from './_components/SimuladorNota';
+import { Inline } from '@/Components/layout';
 
 interface Regra {
   id: number;
@@ -56,6 +60,8 @@ interface Props {
   regras?: Regra[];
   config: ConfigDefault | null;
   templates?: Template[];
+  // Local padrão da empresa pro autocomplete do simulador (thread 08). Eager, 1 linha.
+  localPadrao?: number | null;
 }
 
 interface FlashProps {
@@ -84,13 +90,14 @@ function formatNcm(ncm: string): string {
   return `${ncm.slice(0, 4)}.${ncm.slice(4, 6)}.${ncm.slice(6)}`;
 }
 
-function Index({ regras, config, templates }: Props) {
+function Index({ regras, config, templates, localPadrao }: Props) {
   const { props } = usePage<FlashProps>();
   const success = props.flash?.success;
   const error = props.flash?.error;
 
   // Guardas defensivas: props deferidas são undefined no first render.
   const rows = regras ?? [];
+  const [onboarding, setOnboarding] = useState(false);
 
   const aplicarTemplate = (tpl: Template) => {
     const aviso = config
@@ -160,9 +167,17 @@ function Index({ regras, config, templates }: Props) {
         {templates && templates.length > 0 && (
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-base flex items-center gap-2">
-                <Sparkles className="h-4 w-4 text-primary" />
-                Configuração rápida por setor
+              <CardTitle className="text-base flex items-center justify-between gap-2">
+                <Inline asChild gap={2} align="center">
+                  <span>
+                    <Sparkles className="h-4 w-4 text-primary" />
+                    Configuração rápida por setor
+                  </span>
+                </Inline>
+                <Button size="sm" variant="outline" onClick={() => setOnboarding(true)}>
+                  <ShieldCheck className="h-4 w-4 mr-1.5" />
+                  Configurar pelo certificado
+                </Button>
               </CardTitle>
               <p className="text-xs text-muted-foreground">
                 {config
@@ -209,6 +224,8 @@ function Index({ regras, config, templates }: Props) {
           </Card>
         )}
         </Deferred>
+
+        <ConfigurarPeloCertificado open={onboarding} onOpenChange={setOnboarding} temConfig={!!config} />
 
         {/* Config default (Nível 4) */}
         <Card className={!config ? 'border-destructive/50' : undefined}>
@@ -281,6 +298,9 @@ function Index({ regras, config, templates }: Props) {
             </CardContent>
           </Card>
         )}
+
+        {/* Simulador read-only (thread 08 · D-SIM) — o cálculo é o da emissão, no backend. */}
+        <SimuladorNota localPadrao={localPadrao ?? null} />
 
         {/* Regras NCM (Níveis 2 e 3) */}
         <Deferred data="regras" fallback={<Skeleton className="h-64 w-full" />}>

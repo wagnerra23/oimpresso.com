@@ -5,10 +5,10 @@
 > Status/lifecycle normalizados no leitor (ADR 0257) — não altera os arquivos (append-only).
 
 ## Resumo
-- **432** arquivos · **417** números únicos · máx **0427**
-- **ADRs ATIVOS (lifecycle ativo): 387** ← resposta única a "quantos ADRs ativos"
-- Por status: aceito 379 · superseded 25 · proposto 15 · deprecated 11 · rascunho 1 · recusado 1
-- Por lifecycle: ativo 387 · substituido 25 · arquivado 20
+- **433** arquivos · **418** números únicos · máx **0429**
+- **ADRs ATIVOS (lifecycle ativo): 388** ← resposta única a "quantos ADRs ativos"
+- Por status: aceito 379 · superseded 25 · proposto 16 · deprecated 11 · rascunho 1 · recusado 1
+- Por lifecycle: ativo 388 · substituido 25 · arquivado 20
 - Sem frontmatter (formato-tabela legado): 0
 
 ## Colisões de número (13) — auto-detectadas
@@ -35,7 +35,7 @@ _(nenhuma)_
 ## Recusadas (1) — o NÃO consultável
 - **0290** v0 'Fidelity Lock' (screenshot pareado em CI) — RECUSADO: fidelidade visual não  · recusada 2026-06-18 — Inviável + tautológico + backdoor de prosa (3 motivos na Decisão). REABRE só se surgir um check de fidelidade HERMÉTICO 
 
-## Todas as ADRs (432)
+## Todas as ADRs (433)
 | Nº | Status | Lifecycle | Kind | Título |
 |---|---|---|---|---|
 | 0001 | aceito | ativo | decision | Estender UltimatePOS em vez de build próprio ou fork |
@@ -470,3 +470,4 @@ _(nenhuma)_
 | 0425 | aceito | ativo | decision | Webhook sync-memory atualiza só memory/ — código de produção chega só pelo deplo |
 | 0426 | proposto | ativo | decision | A barra do app das lojas guarda a escolha do usuário no ERP, numa tabela própria |
 | 0427 | aceito | ativo | decision | Auto-merge de PR de thread de playbook verde — emenda da 0040 |
+| 0429 | proposto | ativo | decision | Log de falhas do app e do ERP no GlitchTip self-host no CT 100 |

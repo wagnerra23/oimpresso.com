@@ -216,13 +216,13 @@ function CobrancaPage({ cobrancas, kpis, funil, accounts = [], gateways = [], fi
           FinanceiroSubNav mantido; o primary migrou pro canon <PageHeaderPrimary>
           (ADR 0190) — o shim FinanceiroPrimaryButton emitia `.os-btn primary`, cuja
           única regra no CSS servido é escopada `.sells-cowork` → nunca casava. */}
-      <div className="fin-curadoria vendas-aplus">
+      <div className="fin-curadoria vendas-aplus" data-contract="cob-cabecalho">
         {/* FIN-5: título e ações como no protótipo (pg-cobranca-page.jsx:148-160) — "Cobrança" sem
             sufixo; "Resumir mês", "Gateways" e "Remessa/Retorno" VISÍVEIS ao lado do primário, não mais
             escondidos no ⋯ da sub-nav. Mesmos handlers de antes. */}
         <PageHeader title="Cobrança" subtitle={breadcrumb}>
           <div className="flex-shrink-0 flex items-center gap-1.5 ml-auto">
-            <FinanceiroSubNav active="cobranca" hidePrimary />
+            <div data-contract="cob-nav"><FinanceiroSubNav active="cobranca" hidePrimary /></div>
             <Btn variant="outline" onClick={() => setAiOpen(true)} title="Resumir cobranças deste mês — IA">
               <span aria-hidden="true">✦</span>
               Resumir mês
@@ -241,14 +241,14 @@ function CobrancaPage({ cobrancas, kpis, funil, accounts = [], gateways = [], fi
       </div>
 
       {/* FUNIL */}
-      <div className="px-6 pt-5">
+      <div className="px-6 pt-5" data-contract="cob-funil">
         <Deferred data="funil" fallback={<div className="h-[100px] bg-white border border-stone-200 rounded-md pg-skel" />}>
           <FunnelStrip funil={funil ?? FUNIL_FALLBACK} mesAno={mesAno} />
         </Deferred>
       </div>
 
       {/* KPIs: 3 fixos + 1 contextual */}
-      <div className="px-6 pt-4 grid grid-cols-4 gap-3">
+      <div className="px-6 pt-4 grid grid-cols-4 gap-3" data-contract="cob-kpis">
         <Deferred data="kpis" fallback={<KpiSkeleton count={4} />}>
           <KpiCard tone="emerald" label="Pago no mês" value={brl(kpis.pago_mes.valor)}
             sub={`${kpis.pago_mes.qtd} liquidações${kpis.pago_mes.qtd > 0 ? ` · ticket ${brl(kpis.pago_mes.valor / kpis.pago_mes.qtd)}` : ''}`}
@@ -270,7 +270,7 @@ function CobrancaPage({ cobrancas, kpis, funil, accounts = [], gateways = [], fi
       </div>
 
       {/* FILTROS linha 1 */}
-      <div className="px-6 pt-4 pb-2 flex items-center gap-2 flex-wrap">
+      <div className="px-6 pt-4 pb-2 flex items-center gap-2 flex-wrap" data-contract="cob-status">
         <div className="inline-flex bg-stone-100/80 rounded-md p-0.5 border border-stone-200">
           {([
             { id: 'all',       label: 'Todos' },
@@ -309,7 +309,7 @@ function CobrancaPage({ cobrancas, kpis, funil, accounts = [], gateways = [], fi
       </div>
 
       {/* FILTROS linha 2 */}
-      <div className="px-6 pb-3 flex items-center gap-2 flex-wrap">
+      <div className="px-6 pb-3 flex items-center gap-2 flex-wrap" data-contract="cob-filtros">
         <div className="text-[10px] uppercase tracking-widest font-medium text-stone-400 mr-1">Tipo</div>
         <div className="inline-flex gap-1">
           {([
@@ -404,7 +404,7 @@ function CobrancaPage({ cobrancas, kpis, funil, accounts = [], gateways = [], fi
       </div>
 
       {/* TABELA */}
-      <div className="px-6 pb-6 flex-1 overflow-auto">
+      <div className="px-6 pb-6 flex-1 overflow-auto" data-contract="cob-lista">
         <Deferred data="cobrancas" fallback={<TableSkeleton />}>
           <div className="bg-white border border-stone-200 rounded-md overflow-hidden">
             <table className="w-full text-[12.5px] tabular-nums">

@@ -4015,3 +4015,29 @@
   --vd-green:      oklch(0.80 0.13 60);
   --vd-green-soft: oklch(0.27 0.06 60);
 }
+
+/* ── TEMA ESCURO (playbook tema-escuro thread 03 · 2026-10-07) ─────────────────
+   Medido em produção no escuro (sonda da thread 02 + leitura no runtime): KPI, tabela e
+   kbd tinham `#fff` fixo; a dica e a barra de lote eram invertidas (fundo `--text`, texto
+   0.97 — ilegível no escuro). Ancorado no `.cockpit[data-theme]` real: os blocos
+   `.sells-cowork [data-theme="dark"]` acima procuram o atributo DENTRO do wrapper e não casam.
+   KPI/tabela/kbd usam `:where()` para ficar em 0-2-0 e não vencer o herói verde
+   (`.vendas-aplus .vd-kpi-hero`, 0-3-0). Dica e barra seguem a forma do protótipo
+   (`prototipo-ui/cowork/Wagner/vendas.css`, bloco "Escuro: dicas e barra de lote"). */
+:where(.cockpit[data-theme="dark"]) .sells-cowork .os-kpi { background: var(--surface); }
+:where(.cockpit[data-theme="dark"]) .sells-cowork .os-table { background: var(--surface); }
+:where(.cockpit[data-theme="dark"]) .sells-cowork .kbd-hint { background: var(--surface); color: var(--text-dim); border-color: var(--border); }
+.cockpit[data-theme="dark"] .sells-cowork .vendas-aplus .vd-fb-tip { background: var(--raised, var(--surface)); color: var(--text); border: 1px solid var(--border); }
+.cockpit[data-theme="dark"] .sells-cowork .vendas-aplus .vd-fb-tip::after { border-top-color: var(--border); }
+.cockpit[data-theme="dark"] .sells-cowork .vendas-aplus .vd-bulk { background: var(--raised, var(--surface)); color: var(--text); border: 1px solid var(--border); }
+.cockpit[data-theme="dark"] .sells-cowork .vendas-aplus .vd-bulk-ct { background: var(--bg-2); }
+.cockpit[data-theme="dark"] .sells-cowork .vendas-aplus .vd-bulk-btn { color: var(--text); border-color: var(--border); }
+/* Estados de linha (2026-10-07, print do [W]): no escuro a linha ficava BRANCA no hover
+   (`.os-row:hover` = oklch(.98 .01 295) fixo) e clara quando focada por J/K ou clique
+   (`.row-focused` = oklch(.97 .025 155) fixo). A sonda da 02 não passa o mouse nem foca
+   linha, por isso não pegou. Hover na forma do protótipo (10% de accent sobre --bg-2); a linha
+   focada passa a usar o --vd-green-soft, que no escuro já é o verde escuro da linha
+   selecionada (medido: oklch(.27 .06 155)) — redefinir o token aqui o deixava acinzentado. */
+.cockpit[data-theme="dark"] .sells-cowork .os-row:hover { background: color-mix(in oklch, var(--accent) 10%, var(--bg-2)); }
+.cockpit[data-theme="dark"] .sells-cowork .vendas-aplus .vd-aplus-table .os-row.row-focused,
+.cockpit[data-theme="dark"] .sells-cowork .vendas-aplus .vd-aplus-table .os-row.row-focused td { background: var(--vd-green-soft); }

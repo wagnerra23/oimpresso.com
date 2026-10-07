@@ -41,7 +41,7 @@ O passo 0 pagando por si: um pedido morreu por falta de prova, e um vazamento Ti
 | 02 | **Trava de saldo na alocação** | ~9 KB | ~35 ln | 3 | 2 | 0 | **CABE** |
 | 03 | **Guarda `asset.view` no índice** | ~4 KB | ~8 ln | 2 | 2 | 0 | **CABE** |
 | 04 | **Remedir D1/D5 e os não-lidos** (frente 0) | ~25 KB | 0 | 0 | — | 0 | **CABE** (medição) |
-| 05 | **Retenção automática descartada** | — | 0 | 0 | — | 0 | **NÃO EXECUTAR** |
+| 05 | **Retenção LGPD — REABERTA por [W] 07/10** (anonimiza, nasce desligada) | 05a | 0 | 0 | — | 0 | depois da 05a |
 | **07** | **Painel** — cria o `_shared` da frente | ~6 KB | ~180 ln | 3 | 2 | 0 | **CABE** · 1ª da frente |
 | **08** | **Bens** — o CRUD principal | ~9 KB | ~250 ln | 2 | 2 | 0 | **CABE** · atrás da 07 |
 | **09** | **Alocações** — funde `allocation`+`revocation` | ~12 KB | ~280 ln | 3 | 3 | **1** | **CABE** se a fusão for só de tela |
@@ -162,6 +162,12 @@ Dívida sistêmica, fora deste playbook: grade do DS sem `th scope` — **4º m�
       ],
       "custo": "4 PRs de ~200-260 ln + 8 views Blade retiradas",
       "resposta": "migram para drawers React (PT-02, fonte patrimonio-forms.jsx), mesmo caminho do cadastro do #7832 — [W] 2026-09-24; ADR 0414. A opcao Blade deixou de existir: as views create/edit devolvem 200 com 0 bytes (Bens.charter.md)."
+    },
+    {
+      "id": "D-LGPD-REABRE",
+      "dono": "W",
+      "respondida": true,
+      "resposta": "[W] 2026-10-07: o descarte da 05 está errado — reabrir. Retenção ANONIMIZA campo pessoal, nunca apaga linha nem trilha de auditoria; nasce desligada (enabled=false). Ligar segue D-CANARY-LGPD."
     }
   ],
   "threads": [
@@ -257,8 +263,26 @@ Dívida sistêmica, fora deste playbook: grade do DS sem `th scope` — **4º m�
       "provas": []
     },
     {
+      "id": "05a",
+      "titulo": "ADR sucessora da lápide 27/07 + corrigir as 4 chaves mortas do retention.php",
+      "dono": "CL",
+      "arquivo": "05a-adr-e-chaves.md",
+      "depende_decisoes": [
+        "D-LGPD-REABRE"
+      ],
+      "prefixo": [
+        "memory/decisions/",
+        "Modules/AssetManagement/Config/retention.php"
+      ],
+      "nao_toca": [
+        "Modules/AssetManagement/Services/",
+        "resources/"
+      ],
+      "provas": []
+    },
+    {
       "id": "05",
-      "titulo": "Retencao automatica descartada",
+      "titulo": "Job de retenção LGPD (nasce desligado, anonimiza, nunca apaga)",
       "dono": "CL",
       "vaga": 2,
       "arquivo": "05-retencao-lgpd.md",
@@ -267,8 +291,19 @@ Dívida sistêmica, fora deste playbook: grade do DS sem `th scope` — **4º m�
         "Modules/AssetManagement/Services/",
         "Modules/AssetManagement/Http/"
       ],
-      "bloqueio": "Descartada em memory/proibicoes.md (2026-07-27), corroborada por _saida-04.md. Nao executar.",
-      "provas": []
+      "provas": [
+        {
+          "tipo": "contem",
+          "path": "Modules/AssetManagement/Tests/Feature/LgpdComplianceTest.php",
+          "padrao": "retention-purge"
+        }
+      ],
+      "depende_threads": [
+        "05a"
+      ],
+      "depende_decisoes": [
+        "D-LGPD-REABRE"
+      ]
     },
     {
       "id": "07",

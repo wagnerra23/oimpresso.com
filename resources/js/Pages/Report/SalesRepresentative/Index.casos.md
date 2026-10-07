@@ -5,7 +5,7 @@ irmaos: Index.charter.md (lei) · Index.tsx (tela)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: a tela mostra quanto o vendedor recebe; número diferente do relatório antigo ou comissão de outro negócio é incidente.
 owner: wagner
-last_run: "2026-10-06"
+last_run: "2026-10-07"
 ---
 
 # Casos de Uso & Aceite — Comissão por vendedor

@@ -184,7 +184,7 @@ function CdIdentificacao({ client, derived, tipo, setTipo, onAviso }) {
   const { f, set, blur, st } = useCdFields({
     razao: client.name, fantasia: client.name.split(" ")[0],
     doc: client.doc || "", ie: derived?.ie || "", im: "",
-    resp: client.contact || "", cargo: "" });
+    resp: client.contact || "", cargo: "", nascimento: "" });
   const [buscando, setBuscando] = useStateCD(false);
   const pj = tipo === "PJ";
   const validaDoc = (v) => {
@@ -229,10 +229,14 @@ function CdIdentificacao({ client, derived, tipo, setTipo, onAviso }) {
             <CdField label="Inscrição municipal" st={st.im}><CdInput value={f.im} onChange={set("im")} onBlur={blur("im")} placeholder="000000" /></CdField>
           </> :
 
-        <CdField label="RG" st={st.ie}><CdInput value={f.ie} onChange={set("ie")} onBlur={blur("ie")} placeholder="00.000.000-0" /></CdField>}
+        <>
+            <CdField label="RG" st={st.ie}><CdInput value={f.ie} onChange={set("ie")} onBlur={blur("ie")} placeholder="00.000.000-0" /></CdField>
+            {/* Só PF — produção IdentificacaoTab.tsx:828 (input date, autosave). */}
+            <CdField label="Data de nascimento" help="opcional" st={st.nascimento}><CdInput type="date" value={f.nascimento} onChange={set("nascimento")} onBlur={blur("nascimento")} /></CdField>
+          </>}
 
-        <CdField label="Responsável" st={st.resp}><CdInput value={f.resp} onChange={set("resp")} onBlur={blur("resp")} placeholder="Nome do responsável" /></CdField>
-        <CdField label="Cargo" st={st.cargo}><CdInput value={f.cargo} onChange={set("cargo")} onBlur={blur("cargo")} placeholder="Ex.: Diretor de marketing" /></CdField>
+        <CdField label="Contato principal" help="opcional" st={st.resp}><CdInput value={f.resp} onChange={set("resp")} onBlur={blur("resp")} placeholder="Nome do responsável" /></CdField>
+        <CdField label="Cargo do contato" help="opcional" st={st.cargo}><CdInput value={f.cargo} onChange={set("cargo")} onBlur={blur("cargo")} placeholder="Ex.: Diretor de marketing" /></CdField>
       </div>
       <p className="cd-nota">Cada campo salva sozinho ao sair do foco (autosave por PATCH) — e volta ao valor anterior se o backend recusar.</p>
     </div>);
@@ -242,7 +246,7 @@ function CdIdentificacao({ client, derived, tipo, setTipo, onAviso }) {
 // ── Aba 2 · Contato ──
 function CdContato({ client }) {
   const { f, set, blur, pick, st } = useCdFields({
-    tel: client.phone || "", tel2: "", whats: client.phone || "",
+    tel: client.phone || "", tel2: "", tel3: "", whats: client.phone || "",
     email: "", emailCom: "", emailCont: "", site: "", canal: "WhatsApp" });
   const validaEmail = (v) => !v || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v) ? null : "E-mail inválido.";
   const validaTel = (v) => {
@@ -252,15 +256,16 @@ function CdContato({ client }) {
   return (
     <div className="cd-tab">
       <div className="cd-grid">
-        <CdField label="Telefone" st={st.tel}><CdInput value={f.tel} onChange={set("tel")} onBlur={blur("tel", validaTel)} placeholder="(00) 0 0000-0000" /></CdField>
-        <CdField label="Telefone 2" st={st.tel2}><CdInput value={f.tel2} onChange={set("tel2")} onBlur={blur("tel2", validaTel)} placeholder="(00) 0 0000-0000" /></CdField>
+        <CdField label="Telefone principal" st={st.tel}><CdInput value={f.tel} onChange={set("tel")} onBlur={blur("tel", validaTel)} placeholder="(00) 0 0000-0000" /></CdField>
+        <CdField label="Telefone alternativo" help="opcional" st={st.tel2}><CdInput value={f.tel2} onChange={set("tel2")} onBlur={blur("tel2", validaTel)} placeholder="(00) 0 0000-0000" /></CdField>
+        <CdField label="Telefone 3" help="opcional · recados" st={st.tel3}><CdInput value={f.tel3} onChange={set("tel3")} onBlur={blur("tel3", validaTel)} placeholder="(00) 0 0000-0000" /></CdField>
         <CdField label="WhatsApp" st={st.whats} help="Usado pela régua de cobrança e pelo atendimento">
           <CdInput value={f.whats} onChange={set("whats")} onBlur={blur("whats", validaTel)} placeholder="(00) 0 0000-0000" />
         </CdField>
         <CdField label="Canal preferido" st={st.canal}><CdSelect value={f.canal} onChange={pick("canal")} options={CD_CANAIS} /></CdField>
         <CdField label="E-mail" st={st.email}><CdInput value={f.email} onChange={set("email")} onBlur={blur("email", validaEmail)} placeholder="contato@exemplo.com.br" /></CdField>
-        <CdField label="E-mail comercial" st={st.emailCom}><CdInput value={f.emailCom} onChange={set("emailCom")} onBlur={blur("emailCom", validaEmail)} placeholder="comercial@exemplo.com.br" /></CdField>
-        <CdField label="E-mail do contador" st={st.emailCont}><CdInput value={f.emailCont} onChange={set("emailCont")} onBlur={blur("emailCont", validaEmail)} placeholder="contador@exemplo.com.br" /></CdField>
+        <CdField label="E-mail comercial" help="opcional · vendedor" st={st.emailCom}><CdInput value={f.emailCom} onChange={set("emailCom")} onBlur={blur("emailCom", validaEmail)} placeholder="comercial@exemplo.com.br" /></CdField>
+        <CdField label="E-mail NF-e" help="opcional · contador" st={st.emailCont}><CdInput value={f.emailCont} onChange={set("emailCont")} onBlur={blur("emailCont", validaEmail)} placeholder="contador@exemplo.com.br" /></CdField>
         <CdField label="Site" st={st.site}><CdInput value={f.site} onChange={set("site")} onBlur={blur("site")} placeholder="exemplo.com.br" /></CdField>
       </div>
     </div>);
@@ -366,10 +371,10 @@ function CdClassificacao({ derived, onAviso }) {
         </div>
         <CdStatus st={st.tags} />
       </div>
-      <CdSwitch on={vip} onToggle={() => {const p = vip;setVip(!p);save("vip", !p, () => setVip(p));}} label="Cliente VIP" sub="Prioridade na fila de produção e no atendimento" />
+      <CdSwitch on={vip} onToggle={() => {const p = vip;setVip(!p);save("vip", !p, () => setVip(p));}} label="VIP" sub="Marcar como VIP · prioridade na agenda de produção" />
       <CdStatus st={st.vip} />
       <CdSwitch on={bloqueado} tone="danger" onToggle={() => {setBloqueado((v) => !v);onAviso?.(bloqueado ? "Bloqueio removido." : "Bloqueio impede nova venda e cobrança — fica no log de auditoria.", bloqueado ? "ok" : "warn");}}
-      label="Bloquear cobrança e venda" sub="Ninguém fatura nem cobra este cliente enquanto estiver ligado" />
+      label="Bloqueio comercial" sub="Bloquear cobrança/venda · Vendas e Financeiro impedem a venda e a cobrança enquanto estiver ligado" />
     </div>);
 
 }
@@ -741,7 +746,9 @@ function ClienteDrawer760({ client, stats, derived, osList, abaInicial, subInici
   const cadastrado = useMemoCD(() => {
     const d = client.createdAt ? new Date(client.createdAt) : null;
     if (!d || Number.isNaN(d.getTime())) return "há 3m";
-    const dias = Math.floor((Date.now() - d.getTime()) / 86400000);
+    // Relógio do protótipo (FIN_TODAY), não o do sistema — a medida tem de sair igual amanhã.
+    const hoje = window.FIN_TODAY instanceof Date ? window.FIN_TODAY.getTime() : Date.now();
+    const dias = Math.floor((hoje - d.getTime()) / 86400000);
     if (dias < 1) return "hoje";
     if (dias < 30) return "há " + dias + "d";
     const meses = Math.floor(dias / 30);
@@ -775,16 +782,17 @@ function ClienteDrawer760({ client, stats, derived, osList, abaInicial, subInici
           </div>
           <div className="cd-head-r">
             <button className="cd-btn ghost" onClick={() => window.print()}>Imprimir ficha</button>
-            <button className="cd-btn ghost" onClick={() => {onClose?.();window.__go?.("chat");}}>Falar com a Jana</button>
+            <button className="cd-btn primary" title="Abre a Jana com o contexto deste cliente" onClick={() => {onClose?.();window.__go?.("chat");}}>Falar com a Jana →</button>
             <button className="cd-x" onClick={onClose} aria-label="Fechar">{I.close ? <I.close size={16} /> : "✕"}</button>
           </div>
         </div>
 
         <div className="cd-chipsrow">
-          <button className={"cd-hchip" + (leitura === "placas" ? " on" : "")} onClick={() => setLeitura((v) => v === "placas" ? null : "placas")}>Veículos <span>2</span></button>
+          {/* Produção (Index.tsx:2030-2077): "N placas" só com o OficinaAuto ligado · "N anexos" · "IA". */}
+          <button className={"cd-hchip" + (leitura === "placas" ? " on" : "")} title="Ver veículos cadastrados pra este cliente" onClick={() => setLeitura((v) => v === "placas" ? null : "placas")}><span>2</span> placas</button>
           <button className={"cd-hchip" + (leitura === "risco" ? " on" : "")} onClick={() => setLeitura((v) => v === "risco" ? null : "risco")}>Risco</button>
-          <button className={"cd-hchip" + (leitura === "ia" ? " on" : "")} onClick={() => setLeitura((v) => v === "ia" ? null : "ia")}>Jana</button>
-          <button className="cd-hchip" onClick={() => {setLeitura(null);setTab("operacoes");setSub("documents");}}>Anexos <span>0</span></button>
+          <button className={"cd-hchip" + (leitura === "ia" ? " on" : "")} title="Cards de inteligência (perfil/risco)" onClick={() => setLeitura((v) => v === "ia" ? null : "ia")}>IA</button>
+          <button className="cd-hchip" title="Ver anexos do cliente (comprovantes, contratos, fotos)" onClick={() => {setLeitura(null);setTab("operacoes");setSub("documents");}}><span>0</span> anexos</button>
           <span className="cd-chipsrow-hint"><kbd>1</kbd>–<kbd>6</kbd> troca de aba</span>
         </div>
 

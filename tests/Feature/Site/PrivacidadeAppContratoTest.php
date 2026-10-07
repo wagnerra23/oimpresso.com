@@ -44,3 +44,11 @@ it('UC-PRVAPP-03 — diz que marcação de ponto não pode ser apagada', functio
 it('UC-PRVAPP-04 — declara que não usa localização em segundo plano', function () {
     $this->assertStringContainsString('não usa a localização em segundo plano', privAppTexto());
 });
+
+it('UC-PRVAPP-05 — declara os registros de falhas, sem dado pessoal, guardados 90 dias', function () {
+    $texto = privAppTexto();
+    $this->assertStringContainsString('Registros de falhas do app', $texto);
+    $this->assertStringContainsString('não leva seu nome, e-mail, senha nem o conteúdo', $texto);
+    $this->assertStringContainsString('servidor próprio do oimpresso', $texto);
+    $this->assertStringContainsString('apagados depois de 90 dias', $texto);
+});

@@ -62,6 +62,8 @@ on:
       - 'Modules/Crm/Services/BrLookupService.php'
       - 'app/Providers/AuthServiceProvider.php'
       - 'app/Http/Controllers/SalesCommissionAgentController.php'
+      - 'app/Http/Controllers/ManageUserController.php'
+      - 'resources/views/manage_user/**'
       - 'app/Http/Controllers/ReportController.php'
       - 'app/Http/Middleware/AdminSidebarMenu.php'
       - 'resources/views/sales_commission_agent/**'
@@ -71,11 +73,17 @@ on:
       - 'resources/views/role/**'
       - 'tests/Feature/Roles/**'
       - 'tests/Feature/Users/**'
+      - 'tests/Feature/Relatorios/**'
       - 'app/Http/Controllers/Support/**'
       - 'app/Services/Support/**'
       - 'app/Http/Middleware/EnsureSupportAccess.php'
       - 'app/SupportAccessLog.php'
       - 'tests/Feature/Support/SuporteLogContratoTest.php'
+      - 'app/Http/Controllers/PrinterController.php'
+      - 'app/Http/Controllers/BarcodeController.php'
+      - 'app/Http/Controllers/BusinessLocationController.php'
+      - 'resources/views/printer/**'
+      - 'tests/Feature/Configuracoes/**'
       - 'database/schema/mysql-schema.sql'
       - '.github/workflows/acessos-pest.yml'
       - '.github/actions/pest-mysql-setup/**'
@@ -125,6 +133,8 @@ jobs:
               - 'Modules/Crm/Services/BrLookupService.php'
               - 'app/Providers/AuthServiceProvider.php'
               - 'app/Http/Controllers/SalesCommissionAgentController.php'
+              - 'app/Http/Controllers/ManageUserController.php'
+              - 'resources/views/manage_user/**'
               - 'app/Http/Controllers/ReportController.php'
               - 'app/Http/Middleware/AdminSidebarMenu.php'
               - 'resources/views/sales_commission_agent/**'
@@ -134,11 +144,17 @@ jobs:
               - 'resources/views/role/**'
               - 'tests/Feature/Roles/**'
               - 'tests/Feature/Users/**'
+              - 'tests/Feature/Relatorios/**'
               - 'app/Http/Controllers/Support/**'
               - 'app/Services/Support/**'
               - 'app/Http/Middleware/EnsureSupportAccess.php'
               - 'app/SupportAccessLog.php'
               - 'tests/Feature/Support/SuporteLogContratoTest.php'
+              - 'app/Http/Controllers/PrinterController.php'
+              - 'app/Http/Controllers/BarcodeController.php'
+              - 'app/Http/Controllers/BusinessLocationController.php'
+              - 'resources/views/printer/**'
+              - 'tests/Feature/Configuracoes/**'
               - 'database/schema/mysql-schema.sql'
               - '.github/workflows/acessos-pest.yml'
               - '.github/actions/pest-mysql-setup/**'
@@ -176,10 +192,11 @@ jobs:
           DB_PASSWORD: root
         run: |
           mkdir -p test-results
-          vendor/bin/pest --no-coverage --colors=always \
+          vendor/bin/pest --no-coverage --colors=always tests/Feature/Relatorios/ \
             --log-junit test-results/pest-acessos-junit.xml \
             tests/Feature/Roles/ tests/Feature/Users/ \
-            tests/Feature/Support/SuporteLogContratoTest.php
+            tests/Feature/Support/SuporteLogContratoTest.php \
+            tests/Feature/Configuracoes/
 
       # A régua honesta desta lane é `assertions`, NÃO "0 failed": skip sai exit 0
       # e 18 dos 22 pulam fora do MySQL. Se o sumário mostrar muitos casos com 0

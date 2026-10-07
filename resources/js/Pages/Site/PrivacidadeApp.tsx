@@ -53,6 +53,12 @@ export default function SitePrivacidade() {
           veio o acesso e para enviar avisos do sistema.
         </li>
         <li><strong>Registros de acesso</strong>: endereço IP, data e hora de uso do sistema.</li>
+        <li>
+          <strong>Registros de falhas do app</strong> (diagnóstico): quando o app fecha ou dá erro, ele
+          envia um relatório técnico com o modelo do aparelho, a versão do Android ou do iOS, a versão
+          do app e onde o erro aconteceu. O relatório não leva seu nome, e-mail, senha nem o conteúdo
+          das telas, e fica no servidor próprio do oimpresso.
+        </li>
       </ul>
       <p>
         <strong>O app não usa a localização em segundo plano</strong> e o registro de ponto não coleta
@@ -79,7 +85,8 @@ export default function SitePrivacidade() {
       <p>
         Enquanto a empresa cliente usar o sistema e, depois disso, pelos prazos que a lei exige — por
         exemplo, documentos fiscais e registros de ponto. Marcações de ponto não podem ser apagadas nem
-        alteradas: a correção é feita por justificativa, registrada ao lado da original.
+        alteradas: a correção é feita por justificativa, registrada ao lado da original. Os registros
+        de falhas do app são apagados depois de 90 dias.
       </p>
 
       <h2>Seus direitos e exclusão de conta</h2>

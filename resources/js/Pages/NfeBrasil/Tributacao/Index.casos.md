@@ -5,7 +5,7 @@ irmaos: Index.charter.md (lei)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: esta tela liga a emissão automática de NFe e edita a cascade tributária — o comportamento é durável mesmo se o layout mudar.
 owner: wagner
-last_run: "2026-07-27"
+last_run: "2026-10-07"
 ---
 
 # Casos de Uso & Aceite — Tributação (regras NCM · templates · gate de emissão automática)
@@ -49,6 +49,13 @@ last_run: "2026-07-27"
 | UC-NFTR-04 | Update/destroy de regra de outro business → 404, e a regra alheia sobrevive | must `[T0]` | ADR 0093 · anti-hook | `TributacaoIndexContratoTest` | 🧪 |
 | UC-NFTR-05 | Listagem não traz regra de outro tenant (com auth real) | must `[T0]` | ADR 0093 · anti-hook | `TributacaoIndexContratoTest` | 🧪 |
 | UC-NFTR-06 | Regras ordenadas por NCM → UF origem → UF destino (NULL primeiro) | must | ARQ-0006 §Níveis 2/3 | `TributacaoControllerTest` | 🧪 |
+| UC-NFTR-14 | A leitura pelo certificado não grava configuração | must `[T0]` `[fiscal]` | charter (sem auto-aplicar) · ADR 0093 | `EmpresaFiscalLookupTest` | 🧪 |
+| UC-NFTR-15 | Template sugerido casa regime + UF + CNAE | must `[fiscal]` | US-NFE-TPL-001 | `TributacaoTemplateSugestaoTest` | 🧪 |
+| UC-NFTR-16 | Fontes divergentes não são resolvidas sozinhas | must `[fiscal]` | ADR 0186 · D-SUPORTE | `EmpresaFiscalLookupTest` | 🧪 |
+| UC-NFTR-17 | Aplicar template exige NCM padrão válido, usa o NCM que a tela manda e registra quem aplicou | must `[fiscal]` | auditoria 2026-05 bug #3 · US-NFE-062 | `TributacaoTemplateAplicarTest` | 🧪 |
+| UC-NFTR-18 | Sem regime escolhido ou sem NCM válido, a tela não avança e não aplica | must `[fiscal]` | UC-NFTR-14..17 · charter (confirmação explícita) | e2e `nfe-tributacao-onboarding.spec.ts` | 🧪 |
+| UC-NFTR-08 | O simulador devolve o mesmo cálculo da emissão e não grava nada | must `[fiscal]` | D-SIM · US-NFE-010 "Preview de cálculo" · `NfeService::montarItensNfe` | `TributacaoSimuladorTest` | 🧪 |
+| UC-NFTR-09 | Simular produto de outra empresa é 404, e sem permissão é 403 | must `[T0]` | ADR 0093 · `nfe.tributacao.manage` | `TributacaoSimuladorTest` | 🧪 |
 
 > **Recibo:** ver §Recibo de execução no rodapé — status é o **veredito** da corrida, não leitura de código.
 
@@ -209,6 +216,87 @@ last_run: "2026-07-27"
 
 ---
 
+## UC-NFTR-14 · A leitura pelo certificado não grava configuração · `must` `[T0]` `[fiscal]`
+
+- **Persona:** empresa nova que acabou de enviar o certificado.
+- **Aceite:** Dado um business com certificado válido · Quando chamo `GET /nfe-brasil/tributacao/empresa-fiscal` ·
+  Então recebo os campos com fonte e **nenhuma** linha muda em `nfe_business_configs`, `nfe_fiscal_rules` e
+  `business`. Controle positivo: a leitura de outro business não retorna dados deste, e vice-versa.
+- **Teste:** [`EmpresaFiscalLookupTest`](../../../../../Modules/NfeBrasil/Tests/Feature/EmpresaFiscalLookupTest.php) — `UC-NFTR-14 · leitura pelo certificado não grava`.
+- **Contrato:** charter (sem auto-aplicar template sem clique) · ADR 0093.
+- **Status: 🧪** — escrito no backend pela thread 21 (#8829); o UC entra aqui na thread 22.
+
+## UC-NFTR-15 · Template sugerido casa regime + UF + CNAE · `must` `[fiscal]`
+
+- **Persona:** gráfica no Simples em SP.
+- **Aceite:** Dado regime Simples, UF SP e CNAE 1813-0/01 · Quando peço sugestão · Então o 1º template casa os
+  três e cada um vem com os valores que aplicaria. Controle positivo: trocar o regime para presumido muda o 1º.
+- **Teste:** [`TributacaoTemplateSugestaoTest`](../../../../../Modules/NfeBrasil/Tests/Feature/TributacaoTemplateSugestaoTest.php) — `UC-NFTR-15 · sugestão por regime, UF e CNAE`.
+- **Contrato:** US-NFE-TPL-001.
+- **Status: 🧪**
+
+## UC-NFTR-16 · Fontes divergentes não são resolvidas sozinhas · `must` `[fiscal]`
+
+- **Persona:** empresa cuja BrasilAPI diz Simples e a SEFAZ diz outro regime.
+- **Aceite:** Dado fontes que discordam do regime · Quando leio · Então o campo volta `divergente` com as opções
+  e **sem** valor. Controle positivo: com as fontes concordando, o regime volta preenchido.
+- **Teste:** [`EmpresaFiscalLookupTest`](../../../../../Modules/NfeBrasil/Tests/Feature/EmpresaFiscalLookupTest.php) — `UC-NFTR-16 · divergência não é resolvida sozinha`.
+- **Contrato:** ADR 0186 (autoridade por campo) · D-SUPORTE.
+- **Status: 🧪**
+
+## UC-NFTR-17 · Aplicar template exige NCM padrão válido e registra quem aplicou · `must` `[fiscal]`
+
+- **Persona:** qualquer empresa aplicando template.
+- **Aceite:** Dado `ncm_default` vazio ou `00000000` · Quando aplico · Então 422 e a config não muda. Com NCM
+  válido · Então aplica, preserva as regras NCM (UC-NFTR-03) e grava `activity` `template.aplicado` com o autor.
+  O NCM que a tela manda no corpo é o que vale (antes da thread 22 a rota o ignorava). Controle positivo:
+  re-aplicar o mesmo template continua idempotente.
+- **Teste:** [`TributacaoTemplateAplicarTest`](../../../../../Modules/NfeBrasil/Tests/Feature/TributacaoTemplateAplicarTest.php) — `UC-NFTR-17 · aplicar exige NCM padrão e loga` e
+  `UC-NFTR-17 · a rota aplica o NCM padrão que a tela manda`.
+- **Contrato:** auditoria 2026-05 bug #3 · US-NFE-062.
+- **Status: 🧪**
+
+## UC-NFTR-18 · Sem regime escolhido ou sem NCM válido, a tela não avança e não aplica · `must` `[fiscal]`
+
+- **Persona:** Larissa configurando sozinha.
+- **Aceite:** Dado regime divergente não escolhido · Então "Continuar" fica desabilitado no passo 2 · Dado NCM
+  vazio, incompleto ou `00000000` · Então desabilitado no passo 3 · Quando completo · Então o passo 4 mostra
+  regime, template e NCM, e só ali existe "Aplicar template". Controle positivo: fechar o drawer não grava nada.
+- **Teste:** e2e [`nfe-tributacao-onboarding.spec.ts`](../../../../../e2e/nfe-tributacao-onboarding.spec.ts) — `UC-NFTR-18 · onboarding não avança sem regime e NCM`.
+  A leitura da empresa é mockada no spec (SEFAZ/BrasilAPI ficam com o UC-NFTR-14/16); o POST de aplicar só é contado.
+- **Contrato:** UC-NFTR-14..17 · charter (confirmação explícita) · alvo de forma `TrOnboarding` em
+  `prototipo-ui/cowork/Wagner/fiscal-tributacao.jsx` (D-ANCORA).
+- **Regressão que defende:** tela que "ajuda" pulando a decisão.
+- **Status: 🧪** — veredito da lane `e2e-gate.yml`.
+
+## UC-NFTR-08 · O simulador devolve o mesmo cálculo da emissão e não grava nada · `must` `[fiscal]`
+
+- **Persona:** Eliana conferindo um imposto antes de vender.
+- **Aceite:** Dado um produto com NCM, uma regra para ele e a UF de destino · Quando simulo
+  (`GET /nfe-brasil/tributacao/simular`) · Então CFOP, nível N1–N4 e valores são **idênticos** ao item que
+  a emissão monta para o mesmo contexto (`NfeService::montarItensNfe`, com a UF de origem que o próprio
+  `NfeService` resolve), batem com a conta à mão, e nenhuma tabela fiscal ganha ou perde linha.
+  Controle positivo: mudar a UF de destino para a da regra N2 muda o nível usado e o valor.
+- **Teste:** [`TributacaoSimuladorTest`](../../../../../Modules/NfeBrasil/Tests/Feature/TributacaoSimuladorTest.php)
+  — `UC-NFTR-08 · simulador = emissão e zero escrita`.
+- **Contrato:** D-SIM ([W] 2026-10-06) · US-NFE-010 "Preview de cálculo" · charter §Non-Goals (exceção D-SIM).
+- **Regressão que defende:** um simulador com cálculo próprio que diverge da nota.
+- **Fora daqui:** operação, destinatário e regime não entram — a emissão ainda não os passa ao motor;
+  mostrá-los faria a prévia divergir da nota.
+- **Status: 🧪** — veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
+
+## UC-NFTR-09 · Simular produto de outra empresa é 404, e sem permissão é 403 · `must` `[T0]`
+
+- **Persona:** qualquer tenant.
+- **Aceite:** Dado `product_id` de outra empresa · Quando simulo · Então 404 e nada do produto volta
+  (nem nome, nem NCM). Sem `nfe.tributacao.manage` · Então 403. Controle positivo: o produto da própria
+  empresa simula.
+- **Teste:** [`TributacaoSimuladorTest`](../../../../../Modules/NfeBrasil/Tests/Feature/TributacaoSimuladorTest.php)
+  — `UC-NFTR-09 · simulador isolado por tenant e por permissão`.
+- **Contrato:** ADR 0093 · `SimularTributacaoRequest::authorize`.
+- **Regressão que defende:** endpoint read-only vazando cadastro alheio.
+- **Status: 🧪** — veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
+
 ## Backlog — sem UC até ganhar teste
 
 > Prosa honesta, sem gate. Vira UC quando ganhar teste que o cite (G-2).
@@ -232,6 +320,7 @@ last_run: "2026-07-27"
 | Quando | Onde | Resultado |
 |---|---|---|
 | _pendente_ | lane `PHP / Pest (NfeBrasil · MySQL)` — UC-NFTR-01..05 | a preencher com o run id |
+| 2026-10-07 | CT 100 `oimpresso-staging`, worktree isolado do branch da thread 22 (`3055c7e57`, já com o `main`) · `TributacaoIndexContrato` + `TributacaoController` + `EmpresaFiscalLookup` + `TributacaoTemplateSugestao` + `TributacaoTemplateAplicar` | **19 passed · 135 assertions** — UC-NFTR-01..07 e 14..17 verdes. Revalidação que sustenta o `last_run` depois da mudança no `Index.tsx` (drawer da thread 22). UC-NFTR-18 é e2e: veredito da lane `e2e-gate.yml`. |
 | _pendente_ | lane `modules-pest` (sqlite) — UC-NFTR-06 | a preencher com o run id |
 
 > ⚠️ **Não foi possível pré-provar no CT 100.** O container `oimpresso-staging` **não tem as tabelas do

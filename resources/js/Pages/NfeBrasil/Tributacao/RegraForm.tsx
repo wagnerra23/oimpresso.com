@@ -8,6 +8,7 @@ import { ArrowLeft, Save } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
 import { Input } from '@/Components/ui/input';
+import { Grid } from '@/Components/layout';
 import { Label } from '@/Components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import { toast } from 'sonner';
@@ -26,6 +27,11 @@ interface Regra {
   aliquota_ipi: number;
   mva: number | null;
   fcp: number | null;
+  c_class_trib: string | null;
+  cst_ibs: string | null;
+  cst_cbs: string | null;
+  aliquota_ibs: number | null;
+  aliquota_cbs: number | null;
 }
 
 interface Props {
@@ -53,6 +59,13 @@ function RegraForm({ regra }: Props) {
     aliquota_ipi:    regra?.aliquota_ipi ?? 0,
     mva:             regra?.mva ?? null,
     fcp:             regra?.fcp ?? null,
+    // Reforma tributária (US-FISCAL-021 · UC-NFRF-08). Vazio sai como null pelo
+    // ConvertEmptyStringsToNull; as alíquotas têm default 0 na coluna.
+    c_class_trib:    regra?.c_class_trib ?? '',
+    cst_ibs:         regra?.cst_ibs ?? '',
+    cst_cbs:         regra?.cst_cbs ?? '',
+    aliquota_ibs:    regra?.aliquota_ibs ?? 0,
+    aliquota_cbs:    regra?.aliquota_cbs ?? 0,
   });
 
   const submit = (e: FormEvent) => {
@@ -234,6 +247,53 @@ function RegraForm({ regra }: Props) {
             </CardContent>
           </Card>
 
+          <Card className="mt-4">
+            <CardHeader>
+              <CardTitle className="text-base">Reforma tributária</CardTitle>
+              <p className="text-xs text-muted-foreground">
+                IBS e CBS. Os códigos andam juntos: com cClassTrib, informe também os dois CST.
+              </p>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <Grid cols={3} gap={4}>
+                <FieldCodigo
+                  id="c_class_trib" label="cClassTrib (6 dígitos)" digitos={6} placeholder="000001"
+                  value={form.data.c_class_trib}
+                  onChange={(v) => form.setData('c_class_trib', v)}
+                  error={form.errors.c_class_trib}
+                />
+                <FieldCodigo
+                  id="cst_ibs" label="CST IBS (3 dígitos)" digitos={3} placeholder="000"
+                  value={form.data.cst_ibs}
+                  onChange={(v) => form.setData('cst_ibs', v)}
+                  error={form.errors.cst_ibs}
+                />
+                <FieldCodigo
+                  id="cst_cbs" label="CST CBS (3 dígitos)" digitos={3} placeholder="000"
+                  value={form.data.cst_cbs}
+                  onChange={(v) => form.setData('cst_cbs', v)}
+                  error={form.errors.cst_cbs}
+                />
+              </Grid>
+              <Grid cols={4} gap={4}>
+                <FieldDecimal
+                  id="aliquota_ibs" label="IBS"
+                  value={form.data.aliquota_ibs}
+                  onChange={(v) => form.setData('aliquota_ibs', v)}
+                  error={form.errors.aliquota_ibs}
+                  optional
+                />
+                <FieldDecimal
+                  id="aliquota_cbs" label="CBS"
+                  value={form.data.aliquota_cbs}
+                  onChange={(v) => form.setData('aliquota_cbs', v)}
+                  error={form.errors.aliquota_cbs}
+                  optional
+                />
+              </Grid>
+            </CardContent>
+          </Card>
+
           <div className="flex justify-end gap-2 mt-4">
             <Button asChild type="button" variant="outline">
               <Link href="/nfe-brasil/tributacao">Cancelar</Link>
@@ -266,6 +326,27 @@ function FieldDecimal({
         max={1}
         value={value}
         onChange={(e) => onChange(parseFloat(e.target.value) || 0)}
+        className="font-mono"
+      />
+      {error && <p className="text-xs text-destructive">{error}</p>}
+    </div>
+  );
+}
+
+function FieldCodigo({
+  id, label, digitos, placeholder, value, onChange, error,
+}: {
+  id: string; label: string; digitos: number; placeholder: string; value: string;
+  onChange: (v: string) => void; error?: string;
+}) {
+  return (
+    <div className="space-y-1.5">
+      <Label htmlFor={id}>{label}</Label>
+      <Input
+        id={id}
+        value={value}
+        onChange={(e) => onChange(e.target.value.replace(/\D/g, '').slice(0, digitos))}
+        placeholder={placeholder}
         className="font-mono"
       />
       {error && <p className="text-xs text-destructive">{error}</p>}

@@ -3,10 +3,11 @@
 // débito/crédito/saldo acumulado · PDF, Excel e envio por e-mail.
 const { useState: useStateCE, useMemo: useMemoCE } = React;
 
+// Rótulos da produção (Ledger.tsx:162-164 · format_1/2/3).
 const CE_FORMATOS = [
-  { value: "padrao", label: "Padrão — uma linha por lançamento" },
-  { value: "resumido", label: "Resumido — só os totais por mês" },
-  { value: "detalhado", label: "Detalhado — com itens de cada documento" }];
+  { value: "padrao", label: "Padrão" },
+  { value: "resumido", label: "Resumido" },
+  { value: "detalhado", label: "Detalhado por linha" }];
 
 function ceBRL(v) { return (v || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" }); }
 function ceData(d) { return d.toLocaleDateString("pt-BR"); }
@@ -67,12 +68,13 @@ function ClienteExtratoPage({ clientId }) {
   const locais = ["Matriz", "Filial centro"];
 
   return (
-    <div className="os-page ce-page">
+    <div className="os-page ce-page" data-page="Cliente/Ledger">
       <header className="os-page-h">
         <div className="os-page-h-l">
-          <button className="ci-voltar" onClick={() => window.__go?.("clientes")}>← Clientes</button>
-          <h1>Extrato do cliente</h1>
-          <p><strong>{cliente.name}</strong> · <span className="ce-doc">{cliente.doc}</span></p>
+          {/* Produção (Ledger.tsx:108-115): volta pro detalhe; título carrega o nome; documento embaixo. */}
+          <button className="ci-voltar" onClick={() => window.__go?.("clientes")}>← Voltar para detalhe</button>
+          <h1>Extrato — {cliente.name}</h1>
+          <p><span className="ce-doc">{cliente.doc && cliente.doc !== "—" ? cliente.doc : "Documento não informado"}</span></p>
         </div>
         <div className="os-page-h-r">
           <button className="os-btn ghost" onClick={() => window.print()}>PDF</button>
@@ -82,15 +84,15 @@ function ClienteExtratoPage({ clientId }) {
       </header>
 
       <div className="ce-kpis">
-        <div className="ce-kpi"><small>Débitos no período</small><b className="ce-deb">{ceBRL(totalDeb)}</b><span>o que foi faturado</span></div>
-        <div className="ce-kpi"><small>Créditos no período</small><b className="ce-cred">{ceBRL(totalCred)}</b><span>o que o cliente pagou</span></div>
-        <div className="ce-kpi"><small>Saldo</small><b className={saldo > 0 ? "ce-deb" : "ce-cred"}>{ceBRL(Math.abs(saldo))}</b>
+        <div className="ce-kpi"><small>Total débitos</small><b className="ce-deb">{ceBRL(totalDeb)}</b><span>o que foi faturado</span></div>
+        <div className="ce-kpi"><small>Total créditos</small><b className="ce-cred">{ceBRL(totalCred)}</b><span>o que o cliente pagou</span></div>
+        <div className="ce-kpi"><small>Saldo atual</small><b className={saldo > 0 ? "ce-deb" : "ce-cred"}>{ceBRL(Math.abs(saldo))}</b>
           <span>{saldo > 0 ? "o cliente deve" : saldo < 0 ? "crédito a favor do cliente" : "conta zerada"}</span></div>
       </div>
 
       <div className="ce-filtros">
-        <label>De<input type="date" value={de} onChange={(e) => setDe(e.target.value)}/></label>
-        <label>Até<input type="date" value={ate} onChange={(e) => setAte(e.target.value)}/></label>
+        <label>Data inicial<input type="date" value={de} onChange={(e) => setDe(e.target.value)}/></label>
+        <label>Data final<input type="date" value={ate} onChange={(e) => setAte(e.target.value)}/></label>
         <label>Formato
           <select value={formato} onChange={(e) => setFormato(e.target.value)}>
             {CE_FORMATOS.map((f) => <option key={f.value} value={f.value}>{f.label}</option>)}
@@ -118,7 +120,7 @@ function ClienteExtratoPage({ clientId }) {
                   <td className="num">{ceBRL(m.debito - m.credito)}</td>
                 </tr>
               ))}
-              {porMes.length === 0 && <tr><td colSpan={4} className="os-empty">Nenhum lançamento no período escolhido.</td></tr>}
+              {porMes.length === 0 && <tr><td colSpan={4} className="os-empty">Nenhum lançamento no período selecionado.</td></tr>}
             </tbody>
           </table>
         ) : (
@@ -150,7 +152,7 @@ function ClienteExtratoPage({ clientId }) {
                   )}
                 </React.Fragment>
               ))}
-              {linhas.length === 0 && <tr><td colSpan={7} className="os-empty">Nenhum lançamento no período escolhido.</td></tr>}
+              {linhas.length === 0 && <tr><td colSpan={7} className="os-empty">Nenhum lançamento no período selecionado.</td></tr>}
             </tbody>
             {linhas.length > 0 && (
               <tfoot><tr>

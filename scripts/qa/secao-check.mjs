@@ -159,7 +159,8 @@ async function medirVia(alvo, url) {
   if (alvo.sb_mode) args.push('--sb-mode', alvo.sb_mode);
   // thread 07 do Financeiro: rota do protótipo + clique que abre o drawer também são proveniência
   if (alvo.rota) args.push('--rota', alvo.rota);
-  if (alvo.clicar) args.push('--clicar', alvo.clicar);
+  // A1 da Forja: `clicar` pode ser cadeia (array) — cada passo vira um `--clicar`, na mesma ordem
+  for (const c of [].concat(alvo.clicar || [])) args.push('--clicar', c);
 
   // spawn ASSÍNCRONO de propósito: no modo --servir-espelho o servidor roda NESTE processo, e
   // `spawnSync` travaria o event loop — o subprocesso pediria a página e ninguém responderia.

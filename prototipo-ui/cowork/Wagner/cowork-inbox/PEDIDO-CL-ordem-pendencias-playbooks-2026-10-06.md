@@ -6,6 +6,9 @@
 1. Importar o handoff do Cowork que leva este arquivo. Ele traz **índices novos** (`modulos`, `modulos-faltantes`, `app-lojas`) e o **`venda-menu` corrigido** (a thread fantasma `C0` agora existe, com C0–C6).
 2. `node scripts/qa/placar.mjs --todos` — tem de sair **sem NÃO MEDI** em nenhum módulo. Se algum sair, **pare** e devolva a linha no recibo: é dado da fonte (Cowork), não se corrige no espelho.
 
+## 0-bis · Regra nova ([W] 2026-10-07) — o design manda na forma
+Melhoria de tela que você fizer **volta primeiro ao Cowork** (recibo + `pendentes-cowork.mjs --plano`) antes da próxima onda dela. Não continue uma tela a partir de um build do Cowork que esteja atrás do que você entregou — pare e devolva.
+
 ## 1 · Recibos que faltam (barato, destrava o placar)
 Pegar **todas** as threads que o placar mostrar como `sem recibo` (provas verdes, sem `_saida`). Para cada uma, seguir a regra do `/onda`: achar o PR que entregou (`git log -S`), restaurar recibo apagado byte a byte, só na falta escrever retroativo citando o PR. **Desconfiar da prova** se o padrão já existia antes da data do índice.
 - Caso conhecido: **`venda-menu/C0`** — `VendasMwartCutoverTest.php`, `app/Support/Mwart.php` e as 6 chaves `vendas_*` já estão no `main`; falta `_saida-C0.md`.
@@ -22,8 +25,11 @@ Só threads que o placar der como `proximo`. Prioridade por onde o dinheiro pass
 3. **modulos-faltantes/01** — contratos de CV, Suporte e Vestuário em `governance/design/contracts/` (advisory primeiro). Depois **02** (Suporte Log).
 4. O que sobrar como `proximo` nos módulos parcialmente sincronizados (cliente, estoque, essenciais, crm, hrm, ds-atomos, atendimento, officeimpresso, produto, telas-soltas) — pela ordem que o placar listar.
 
-## 4 · Não executar (esperam o [W])
-Threads com decisão `respondida: false`: `modulos` D1/D4/D5 (inclui a 02, fila) · `modulos-faltantes` VEST-D1, VEST-D2, PERM (trava 03 Voz do Cliente e 04 Catálogo QR). Liste-as no corpo do PR de recibos para o [W] ver numa tela só.
+5. **telas-soltas** (D1 mudou em 07/10: entram em produção) — 04 Planilhas (Index primeiro) · 05 Voz (= modulos-faltantes/03, agora destravada por PERM-VOZ = `vozdocliente.triar`) · **06 OS: só pesquisa**, sem Page.
+6. **patrimonio** — 05a (ADR sucessora da lápide 27/07 + 4 chaves mortas do `retention.php`) → 05 (comando nasce desligado). Merge da ADR = [W].
+
+## 4 · Decisões — todas respondidas em 2026-10-07
+[W] pediu recomendação e o [CC] decidiu (registrado em cada índice como "recomendação [CC]"). Efeitos: `modulos/02` (fila) **cancelada** · `modulos` D1/D5 entram na 01/04 · `modulos-faltantes/04` Catálogo QR destravada (`product.view`) · VEST-D1 liga o bloqueio **depois de 1 semana só logando** · comissões ficam no legado e **a regra de cálculo não muda**. Se algo disso contrariar código que você já mediu, **pare e devolva no recibo** — não ajuste a decisão no espelho.
 
 > `venda-menu` D-ORC-1 e D-ORC-2 foram respondidas em 2026-10-06 (ver §6-ter do índice) — Q3 está liberada; Q-CC já tem recibo.
 
