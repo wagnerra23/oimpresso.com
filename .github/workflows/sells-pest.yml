@@ -282,6 +282,11 @@ jobs:
         # store(). Dupla prova da REGRA MESTRE: payload da Blade e da Page na mesma conta à mão
         # (total 2.222,10 · estoque +2 cada) + [T0] 98 × 99. NASCE SEM RUN.
         #
+        # 2026-10-06 — + QuotationConvertTest (UC-QUO-04, thread Q3 venda-menu): converter
+        # cotação em venda pelo MESMO SellPosController@convertToInvoice do Blade. Dupla prova
+        # (total 3.703,50 · estoque 10 → 7, conta à mão e recalculado das linhas) + 2ª
+        # conversão 409 sem baixar de novo + [T0] 98 × 99. NASCE SEM RUN.
+        #
         # 2026-10-06 — + CommissionSplitAuditTest (UC-COM-01/02, playbook comissões thread 03):
         # trocar split/comissionado grava auditoria antes→depois; PATCH do split não alcança
         # venda nem usuário de outro business. NASCE SEM RUN: vermelho aqui é este arquivo.
@@ -330,6 +335,7 @@ jobs:
             tests/Feature/Sells/SellReturnAddContratoTest.php \
             tests/Feature/Sells/DescontosContratoTest.php \
             tests/Feature/Sells/SellsPosIndexContratoTest.php \
+            tests/Feature/Sells/QuotationConvertTest.php \
             tests/Feature/Sells/ImportSalesContratoTest.php \
             tests/Feature/Sells/ImportSalesReverterContratoTest.php \
             tests/Feature/Sells/VendasMwartCutoverTest.php \
