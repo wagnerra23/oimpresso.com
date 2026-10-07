@@ -2,6 +2,7 @@
 // Âncora: protótipo `crm-blade-forms.jsx` → AntecipadoForm (base · "Quem vai receber" · conteúdo) e a
 // Blade crm::schedule.create_advance_follow_up (mesmos campos). Lê as faturas em GET /crm/get-invoices e
 // os grupos em GET /crm/get-followup-groups (JSON); grava em POST /crm/follow-ups com `follow_ups`.
+// Notificação (sms/e-mail, antes de quanto) com os campos e padrões da Blade — UC-CRMACO-21.
 
 import { useState } from 'react';
 import { toast } from 'sonner';
@@ -39,6 +40,8 @@ export default function FormAntecipado({ opcoes, onFechar, onSalvo }: { opcoes?:
   const [marcados, setMarcados] = useState<string[]>([]);
   const [grupos, setGrupos] = useState<(Grupo & { usuario: string })[] | null>(null);
   const [v, setV] = useState({ followup_category_id: '', title: '', description: '', status: 'scheduled', schedule_type: 'call', start_datetime: '', end_datetime: '' });
+  // Notificação: mesmos campos e padrões da Blade (desligada · e-mail marcado · 1 hora antes).
+  const [notif, setNotif] = useState({ allow_notification: false, notify_via: { sms: false, mail: true }, notify_before: '1', notify_type: 'hour' });
   const [erros, setErros] = useState<Record<string, string[]>>({});
   const [ocupado, setOcupado] = useState(false);
   const cat = categoria(por);
@@ -72,7 +75,10 @@ export default function FormAntecipado({ opcoes, onFechar, onSalvo }: { opcoes?:
     const follow_ups = Object.fromEntries(grupos.map((g) => [g.contact_id, { user_id: [g.usuario], ...(g.faturas.length ? { invoices: g.faturas.map((f) => f.id) } : {}) }]));
     setOcupado(true);
     try {
-      const r = await enviar('/crm/follow-ups', 'POST', { ...v, follow_up_by: cat, in_days: cat === 'orders' ? dias : null, follow_ups, allow_notification: 0 });
+      const notificacao = notif.allow_notification
+        ? { allow_notification: 1, notify_via: { sms: notif.notify_via.sms ? 1 : 0, mail: notif.notify_via.mail ? 1 : 0 }, notify_before: notif.notify_before, notify_type: notif.notify_type }
+        : { allow_notification: 0 };
+      const r = await enviar('/crm/follow-ups', 'POST', { ...v, follow_up_by: cat, in_days: cat === 'orders' ? dias : null, follow_ups, ...notificacao });
       if (r.status === 422) { setErros(r.json.errors ?? {}); return toast.error('Confira os campos destacados.'); }
       if (!r.ok || !r.json.success) return toast.error(r.json.msg || 'Não foi possível salvar.');
       toast.success(`${grupos.length} acompanhamento(s) criado(s).`);
@@ -158,6 +164,40 @@ export default function FormAntecipado({ opcoes, onFechar, onSalvo }: { opcoes?:
             {campo('Descrição', 'description', <Textarea id="ant-description" value={v.description} onChange={(e) => muda({ description: e.target.value })} />, 'col-span-3')}
             {campo('Tipo de acompanhamento *', 'schedule_type', sel('schedule_type', opcoes?.tipos))}
           </Grid>
+        )}
+        {grupos && (
+          <Stack gap={3} data-contract="crm-antecipado-notificacao">
+            <Inline gap={2} align="center" asChild>
+              <label className="text-sm" htmlFor="ant-allow_notification">
+                <Checkbox id="ant-allow_notification" checked={notif.allow_notification} onCheckedChange={(c) => setNotif({ ...notif, allow_notification: !!c })} />
+                Enviar notificação <span className="text-muted-foreground">— sai no tempo escolhido antes do início de cada acompanhamento.</span>
+              </label>
+            </Inline>
+            {notif.allow_notification ? (
+              <Grid cols={3} gap={3}>
+                <Stack gap={1}>
+                  <Label>Notificar via</Label>
+                  <Inline gap={4}>
+                    {(['sms', 'mail'] as const).map((k) => (
+                      <Inline key={k} gap={2} align="center" asChild>
+                        <label className="text-sm" htmlFor={`ant-via-${k}`}>
+                          <Checkbox id={`ant-via-${k}`} checked={notif.notify_via[k]} onCheckedChange={(c) => setNotif({ ...notif, notify_via: { ...notif.notify_via, [k]: !!c } })} />
+                          {k === 'sms' ? 'SMS' : 'E-mail'}
+                        </label>
+                      </Inline>
+                    ))}
+                  </Inline>
+                </Stack>
+                {campo('Notificar antes *', 'notify_before', <Input id="ant-notify_before" type="number" min={0} value={notif.notify_before} onChange={(e) => setNotif({ ...notif, notify_before: e.target.value })} />)}
+                {campo('Unidade', 'notify_type', (
+                  <Select value={notif.notify_type || undefined} onValueChange={(x) => setNotif({ ...notif, notify_type: x })}>
+                    <SelectTrigger id="ant-notify_type"><SelectValue placeholder="Selecione" /></SelectTrigger>
+                    <SelectContent>{(opcoes?.notificar ?? []).map((o) => <SafeSelectItem key={o.value} value={o.value}>{o.label}</SafeSelectItem>)}</SelectContent>
+                  </Select>
+                ))}
+              </Grid>
+            ) : null}
+          </Stack>
         )}
         <DialogFooter>
           <Button variant="outline" onClick={onFechar}>Fechar</Button>
