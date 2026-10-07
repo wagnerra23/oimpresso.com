@@ -149,7 +149,14 @@ class TributacaoController extends Controller
         $businessId = (int) $request->session()->get('business.id');
 
         try {
-            $resultado = app(TributacaoTemplateService::class)->aplicar($businessId, $slug);
+            // O NCM padrão escolhido no drawer "Configurar pelo certificado" (thread 22). Sem ele,
+            // o serviço cai no NCM que a empresa já tem — e o que a tela mostrou não seria o aplicado.
+            $ncm = $request->input('ncm_default');
+            $resultado = app(TributacaoTemplateService::class)->aplicar(
+                $businessId,
+                $slug,
+                is_string($ncm) && $ncm !== '' ? $ncm : null,
+            );
         } catch (InvalidArgumentException $e) {
             return back()->with('error', $e->getMessage());
         }
@@ -220,6 +227,14 @@ class TributacaoController extends Controller
                 'aliquota_ipi'    => (float) $regra->aliquota_ipi,
                 'mva'             => $regra->mva !== null ? (float) $regra->mva : null,
                 'fcp'             => $regra->fcp !== null ? (float) $regra->fcp : null,
+                // Reforma tributária (US-FISCAL-021 · thread 05). O form agora envia os 5 campos;
+                // sem eles na prop, a edição abriria a seção vazia e o "Atualizar" gravaria nulo
+                // por cima do que estava no banco (UC-NFRF-08).
+                'c_class_trib'    => $regra->c_class_trib,
+                'cst_ibs'         => $regra->cst_ibs,
+                'cst_cbs'         => $regra->cst_cbs,
+                'aliquota_ibs'    => (float) $regra->aliquota_ibs, // NOT NULL default 0
+                'aliquota_cbs'    => (float) $regra->aliquota_cbs, // NOT NULL default 0
             ],
         ]);
     }
