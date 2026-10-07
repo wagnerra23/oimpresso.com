@@ -27,7 +27,7 @@ import { PageHeader } from '@/Components/PageHeader';
 import EmptyState from '@/Components/shared/EmptyState';
 import DataTable from '@/Components/shared/DataTable';
 import type { ColumnDef } from '@tanstack/react-table';
-import { Inline, Stack } from '@/Components/layout';
+import { Grid, Inline, Stack } from '@/Components/layout';
 import ConfiguracoesSubNav from '@/Pages/Configuracoes/_shared/ConfiguracoesSubNav';
 
 export interface Local {
@@ -237,7 +237,7 @@ function LocaisIndex({ locais: locaisProp, opcoes }: Props) {
               {SECOES.map((sec) => (
                 <Stack key={sec.titulo} gap={2}>
                   <h3 className="m-0 text-xs font-semibold uppercase text-muted-foreground">{sec.titulo}</h3>
-                  <div className="grid grid-cols-2 gap-3">
+                  <Grid cols={2} gap={3}>
                     {sec.campos.map((c) => (
                       <Stack key={c.k} gap={1}>
                         <label htmlFor={`loc-${c.k}`}>{c.rotulo}{c.obrigatorio ? ' *' : ''}</label>
@@ -255,19 +255,19 @@ function LocaisIndex({ locais: locaisProp, opcoes }: Props) {
                         {c.ajuda && <span className="text-xs text-muted-foreground">{c.ajuda}</span>}
                       </Stack>
                     ))}
-                  </div>
+                  </Grid>
                 </Stack>
               ))}
               <Stack gap={2}>
                 <h3 className="m-0 text-xs font-semibold uppercase text-muted-foreground">Campos personalizados</h3>
-                <div className="grid grid-cols-2 gap-3">
+                <Grid cols={2} gap={3}>
                   {PERSONALIZADOS.map((k) => (
                     <Stack key={k} gap={1}>
                       <label htmlFor={`loc-${k}`}>{opcoes.rotulos[k] ?? k}</label>
                       <Input id={`loc-${k}`} value={valor(k)} onChange={(e) => muda(k, e.target.value)} />
                     </Stack>
                   ))}
-                </div>
+                </Grid>
               </Stack>
               <Stack gap={2}>
                 <h3 className="m-0 text-xs font-semibold uppercase text-muted-foreground">Formas de pagamento no PDV</h3>
