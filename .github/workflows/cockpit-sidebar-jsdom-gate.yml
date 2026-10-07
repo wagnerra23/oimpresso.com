@@ -39,7 +39,11 @@ name: "Cockpit Sidebar jsdom Gate — os 9 specs vitest que defendem a sidebar d
 #     tests/sidebarAparencia.spec.tsx tests/Feature/Sidebar/presenca.spec.tsx \
 #     tests/js/sidebar-atalho-render.test.tsx tests/js/sidebar-ghosts-teto.test.tsx \
 #     tests/js/sidebar-item-ativo.test.tsx tests/js/sidebar-plataforma-forja.test.tsx \
-#     tests/js/sidebar-rail.test.tsx
+#     tests/js/sidebar-rail.test.tsx tests/js/sidebar-ordem-grupo.test.tsx \
+#     tests/Feature/Sidebar/ghost-icone.spec.tsx
+#
+# 2026-10-07: `ghost-icone.spec.tsx` (thread 14 do playbook sidebar, #7964) nasceu fora
+# desta lista — a `_saida-14` cita "3/3 verdes" rodado à mão, e nenhum CI o executava.
 
 on:
   workflow_dispatch:
@@ -53,6 +57,7 @@ on:
       - 'tests/sidebarMenuSemantics.spec.tsx'
       - 'tests/sidebarAparencia.spec.tsx'
       - 'tests/Feature/Sidebar/presenca.spec.tsx'
+      - 'tests/Feature/Sidebar/ghost-icone.spec.tsx'
       - 'tests/js/sidebar-*.test.tsx'
       - 'tests/js/setup.ts'
       - '.github/workflows/cockpit-sidebar-jsdom-gate.yml'
@@ -64,6 +69,7 @@ on:
       - 'tests/sidebarMenuSemantics.spec.tsx'
       - 'tests/sidebarAparencia.spec.tsx'
       - 'tests/Feature/Sidebar/presenca.spec.tsx'
+      - 'tests/Feature/Sidebar/ghost-icone.spec.tsx'
       - 'tests/js/sidebar-*.test.tsx'
       - 'tests/js/setup.ts'
 
@@ -95,6 +101,7 @@ jobs:
             tests/sidebarMenuSemantics.spec.tsx \
             tests/sidebarAparencia.spec.tsx \
             tests/Feature/Sidebar/presenca.spec.tsx \
+            tests/Feature/Sidebar/ghost-icone.spec.tsx \
             tests/js/sidebar-atalho-render.test.tsx \
             tests/js/sidebar-ghosts-teto.test.tsx \
             tests/js/sidebar-item-ativo.test.tsx \

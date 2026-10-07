@@ -17,6 +17,10 @@
       "sha256": "bc62e4f65b129f4b652021045e5be31687506d81d4df4f88f5a3ce5b9d19df4a",
       "em": "2026-10-07T00:11:49.156Z"
     },
+    "cowork-inbox/comissoes/playbook/_saida-02.md": {
+      "sha256": "f52dcb54ead5f6004e452cadbccc6d7faab0042a22ebfb2420b601622c787702",
+      "em": "2026-10-07T10:54:05.818Z"
+    },
     "cowork-inbox/comissoes/playbook/_saida-03.md": {
       "sha256": "fe674244d49d035dfd13ac1c1c0dc96d95d63b7f76ef4b6b74b5476f4aefd3a5",
       "em": "2026-10-06T20:56:27.442Z"
@@ -32,6 +36,10 @@
     "cowork-inbox/financeiro/playbook/_saida-12.md": {
       "sha256": "6d167fa06068bc66b45b307922e08bb1f466dbf1999ee1faea16a74c5957f992",
       "em": "2026-10-06T22:07:29.160Z"
+    },
+    "cowork-inbox/fiscal/playbook/_saida-06.md": {
+      "sha256": "c03424e9d404b3351d2863308961df3db07259ec41f2de158b22c7ef0baa6a61",
+      "em": "2026-10-07T10:54:05.818Z"
     },
     "cowork-inbox/fiscal/playbook/_saida-11.md": {
       "sha256": "efca8d1006955254c9f732d42286c10a61c7b8c25841f5627f01fa4dfe0ab554",
@@ -101,9 +109,17 @@
       "sha256": "3c7bf8324062c2334b6e04dced98104d0ecbaf268e7fbdfac1aaa217cfba09b7",
       "em": "2026-10-07T11:10:26.392Z"
     },
+    "cowork-inbox/sistema/playbook/_saida-00.md": {
+      "sha256": "8c2b544ff0e7a928d35e53b33f31fafefc310f8f717c75c9f051167f764ee41d",
+      "em": "2026-10-07T10:54:05.818Z"
+    },
     "cowork-inbox/telas-soltas/playbook/_saida-01.md": {
       "sha256": "4454142adc7710cfe12de00c978a1922d47ceec74f3cf949900906522377ab89",
       "em": "2026-10-06T17:48:51.167Z"
+    },
+    "cowork-inbox/telas-soltas/playbook/_saida-02.md": {
+      "sha256": "54ec6113b824a629ded4f700842189ddffce7d8da53d94c6ebc30b9b54805c04",
+      "em": "2026-10-07T10:54:05.818Z"
     },
     "cowork-inbox/tema-escuro/playbook/_saida-01.md": {
       "sha256": "481d61b9107233b96d954e6beee744ae44d6d257575bf4d31f7f7542c756e37a",
