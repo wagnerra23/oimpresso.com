@@ -5,8 +5,14 @@ tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (
 por_que: comportamento é durável — o contrato de teste nasce junto com a tela, não depois.
 fonte: handoff "PROTÓTIPO OFICIAL - FABRICAÇÃO V1" §17 (R-01..R-24) — os UC abaixo DERIVAM dele
 owner: wagner
-last_run: "2026-10-02"
+last_run: "2026-10-06"
 ---
+
+> ℹ️ **`last_run` 2026-10-02 → 2026-10-06 (G-6): a "Nova receita" virou janela da própria tela.**
+> O botão levava a `recipe/create`, que devolve só o miolo de um modal Bootstrap sem os scripts do layout —
+> em produção a busca de produto não carregava. Agora abre a `NovaReceitaDialog` (decisões [W] de
+> 2026-10-06 no SPEC, US-MANU-006), que continua só LENDO e entrega para o mesmo editor legado. Nasceram
+> os UC-RECIPE-12 e 13; os UC anteriores não foram tocados nem reexecutados.
 
 > ℹ️ **`last_run` 2026-09-30 → 2026-10-02 (G-6): a lista passou a paginar no SERVIDOR.** A grade virou o
 > `shared/DataTable` na anatomia `grid` (o par React do `DataGrid` do DS) e busca, categoria, KPI-filtro,
@@ -185,6 +191,38 @@ last_run: "2026-10-02"
 
 ---
 
+## UC-RECIPE-12 · A janela "Nova receita" acha o produto e avisa se ele já tem receita
+- **Persona:** Eliana (produção) — vai cadastrar a ficha técnica de um produto novo e não lembra se
+  alguém já fez a dele.
+- **Aceite:** Dado um produto da empresa com categoria "Categoria da busca" / "Subcategoria da busca" e
+  receita, outro sem receita, e um produto de outra empresa com nome parecido · Quando busco pelo nome na
+  janela · Então aparecem os dois da empresa, cada um com a categoria e a subcategoria **do produto** e a
+  marca de quem já tem receita, e o da outra empresa não aparece. Escolhido o que já tem receita, a janela
+  avisa na hora e o botão passa a ser "Abrir receita existente".
+- **Fonte:** SPEC US-MANU-006, decisões [W] 2026-10-06 (a) e (c).
+- **Teste:** `NovaReceitaTest.php`
+- **Regressão que defende:** a busca voltar a depender do select2 do layout Blade (não carrega na tela
+  React), ou trazer produto de outra empresa.
+- **Status: 🧪**
+
+---
+
+## UC-RECIPE-13 · Copiar de outra receita leva a ficha, não o preço, e cria grupos próprios
+- **Persona:** Wagner — monta a receita de um banner novo a partir da do banner parecido.
+- **Aceite:** Dado uma receita com 5% de desperdício, custo extra de 12 **percentual**, instruções e um
+  ingrediente no grupo "Grupo da original" · Quando abro o editor copiando dela · Então ele vem com o
+  ingrediente, o desperdício, o custo extra **com o mesmo tipo** e as instruções · Quando salvo a cópia
+  com o grupo renomeado · Então a cópia ganha um grupo próprio com o novo nome, o grupo da original
+  continua "Grupo da original", e o preço de venda do produto de destino não muda. Editar a própria
+  receita continua renomeando o grupo dela no lugar.
+- **Fonte:** SPEC US-MANU-006, decisões [W] 2026-10-06 (b) e a "correção junto" dos grupos.
+- **Teste:** `NovaReceitaTest.php`
+- **Regressão que defende:** a cópia voltar a reaproveitar o `mfg_ingredient_group_id` da original
+  (renomear numa renomeava na outra), ou o custo extra ser copiado sem o tipo.
+- **Status: 🧪**
+
+---
+
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
 - **[BACKLOG]** `?legacy=1` responde **200 com a tela Blade** (não só "o ramo existe") e uma
@@ -250,3 +288,6 @@ decisão de quem escreveu o §4.2, não minha. Fica registrado em vez de silenci
   `Modules/Manufacturing/Tests/Feature/CutoverRotasCanonicasTest.php` (9 asserts). Nenhum UC
   acima mudou de comportamento; os asserts de ROTA de Wave30/31/33 foram reapontados pro
   canônico porque o `/v2/` agora responde `RedirectController`, não o controller da tela.
+- 2026-10-06 · [M+C] "Nova receita" (US-MANU-006, decisões [W] 2026-10-06): janela React no lugar do
+  modal Blade quebrado, busca `GET /manufacturing/nova-receita/produtos`, cópia com desperdício/custo
+  extra/instruções e grupos próprios. UC-RECIPE-12/13 + `NovaReceitaTest.php`.

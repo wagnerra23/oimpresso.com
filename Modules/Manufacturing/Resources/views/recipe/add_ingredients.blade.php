@@ -110,7 +110,7 @@
 					<div class="form-group">
 						{!! Form::label('waste_percent', __('manufacturing::lang.wastage').':') !!} @show_tooltip(__('manufacturing::lang.wastage_tooltip'))
 						<div class="input-group">
-							{!! Form::text('waste_percent',!empty($recipe->waste_percent) ? @num_format($recipe->waste_percent) : 0, ['class' => 'form-control input_number', 'placeholder' => __('manufacturing::lang.wastage') ]); !!}
+							{!! Form::text('waste_percent',!empty($campos_base->waste_percent) ? @num_format($campos_base->waste_percent) : 0, ['class' => 'form-control input_number', 'placeholder' => __('manufacturing::lang.wastage') ]); !!}
 							<span class="input-group-addon">
 								<i class="fa fa-percent"></i>
 							</span>
@@ -146,9 +146,9 @@
 					<div class="form-group">
 						{!! Form::label('extra_cost', __('manufacturing::lang.production_cost').':') !!} @show_tooltip(__('manufacturing::lang.production_cost_tooltip'))
 						<div class="input_inline">
-							{!! Form::text('extra_cost',!empty($recipe->extra_cost) ? @num_format($recipe->extra_cost) : 0, ['class' => 'form-control input_number', 'placeholder' => __('manufacturing::lang.extra_cost') ]); !!}
+							{!! Form::text('extra_cost',!empty($campos_base->extra_cost) ? @num_format($campos_base->extra_cost) : 0, ['class' => 'form-control input_number', 'placeholder' => __('manufacturing::lang.extra_cost') ]); !!}
 							<span>
-								{!! Form::select('production_cost_type',['fixed' => __('lang_v1.fixed'), 'percentage' => __('lang_v1.percentage'), 'per_unit' => __('manufacturing::lang.per_unit')], !empty($recipe->production_cost_type) ? $recipe->production_cost_type : 'fixed', ['class' => 'form-control', 'id' => 'production_cost_type']); !!}	
+								{!! Form::select('production_cost_type',['fixed' => __('lang_v1.fixed'), 'percentage' => __('lang_v1.percentage'), 'per_unit' => __('manufacturing::lang.per_unit')], !empty($campos_base->production_cost_type) ? $campos_base->production_cost_type : 'fixed', ['class' => 'form-control', 'id' => 'production_cost_type']); !!}	
 							</span>
 						</div>
 						<p><strong>
@@ -181,7 +181,7 @@
 					<div class="form-group">
 						{!! Form::label('instructions', __('manufacturing::lang.recipe_instructions').':') !!}
 
-						{!! Form::textarea('instructions',!empty($recipe) ? $recipe->instructions : null, ['class' => 'form-control', 'placeholder' => __('manufacturing::lang.recipe_instructions') ]); !!}
+						{!! Form::textarea('instructions',!empty($campos_base) ? $campos_base->instructions : null, ['class' => 'form-control', 'placeholder' => __('manufacturing::lang.recipe_instructions') ]); !!}
 					</div>
 				</div>
 			</div>

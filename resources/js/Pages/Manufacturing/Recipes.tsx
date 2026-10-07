@@ -33,6 +33,7 @@ import FichaPrint from './_components/FichaPrint';
 import { faixaMargem, fmt, num, rotuloCustoExtra } from './_lib/formato';
 import type { ContadoresProducao, Permissoes, Receita } from './_lib/tipos';
 import FabricacaoAbas from './_components/FabricacaoAbas';
+import NovaReceitaDialog from './_components/NovaReceitaDialog';
 import '../../../css/cowork-manufacturing-bundle.css';
 
 /** Filtros da URL — o servidor devolve o que entendeu, já normalizado. */
@@ -54,6 +55,8 @@ interface Props {
   ids_filtrados: number[];
   /** Só chega no reload parcial que a impressão pede (`Inertia::optional`). */
   fichas?: Receita[];
+  /** "Copiar de outra receita" da Nova receita — só no reload parcial que a janela pede ao abrir. */
+  receitas_copia?: { id: number; nome: string }[];
   permissions: Permissoes;
   producao: ContadoresProducao;
   settings: { enable_updating_product_price: boolean };
@@ -64,8 +67,11 @@ const ROTA = '/manufacturing/recipe';
 /** R-10 — faixa da margem → tom do `StatusBadge` (≥55 sucesso · ≥45 atenção · abaixo perigo). */
 const TOM_MARGEM = { ok: 'success', warn: 'warning', bad: 'danger' } as const;
 
-/** Rotas legadas que continuam donas do CRUD — a tela nova aponta, não reimplementa. */
-const ROTA_NOVA = '/manufacturing/recipe/create';
+/**
+ * Rotas legadas que continuam donas do CRUD — a tela nova aponta, não reimplementa.
+ * A "Nova receita" deixou de apontar para `recipe/create` (miolo de modal Blade sem os scripts do
+ * layout — a busca não carregava): abre a `NovaReceitaDialog`, que entrega para o mesmo editor.
+ */
 const ROTA_EDITAR_INGREDIENTES = '/manufacturing/add-ingredient?variation_id=';
 const ROTA_PRODUZIR = '/manufacturing/production/create';
 
@@ -154,6 +160,7 @@ export default function Recipes({
   const [sel, setSel] = useState<number[]>([]);
   const [openId, setOpenId] = useState<number | null>(null);
   const [imprimir, setImprimir] = useState<{ itens: Receita[]; semCusto: boolean } | null>(null);
+  const [novaAberta, setNovaAberta] = useState(false);
   const buscaRef = useRef<HTMLInputElement>(null);
 
   // R-04 — `/` foca a busca; `/` digitado DENTRO de campo continua sendo `/`.
@@ -232,10 +239,8 @@ export default function Recipes({
         </div>
         <div className="os-page-h-r">
           {permissions.criar && (
-            <Button asChild size="sm">
-              <a href={ROTA_NOVA}>
-                <Plus className="mr-1.5 h-3.5 w-3.5" /> Nova receita
-              </a>
+            <Button size="sm" onClick={() => setNovaAberta(true)}>
+              <Plus className="mr-1.5 h-3.5 w-3.5" /> Nova receita
             </Button>
           )}
         </div>
@@ -389,6 +394,8 @@ export default function Recipes({
           onDone={() => setImprimir(null)}
         />
       )}
+
+      {permissions.criar && <NovaReceitaDialog open={novaAberta} onOpenChange={setNovaAberta} />}
     </div>
   );
 }

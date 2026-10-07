@@ -122,6 +122,105 @@ class RecipeBomService
     }
 
     /**
+     * Busca de produto da janela "Nova receita" (US-MANU-006, decisões [W] 2026-10-06).
+     *
+     * Antes o botão abria `recipe/create`, que devolve só o miolo de um modal Bootstrap: a busca
+     * dependia do select2 + `/products/list` do layout Blade, que a tela React não carrega — em
+     * produção a busca não carregava. Aqui a janela pergunta direto, e a resposta já traz o que
+     * ela precisa mostrar:
+     *  - (a) Categoria e Subcategoria **do produto**, só para exibir — elas pertencem ao produto,
+     *    não à receita;
+     *  - (c) a receita que o produto já tem, para a janela avisar ANTES de a pessoa preencher.
+     *
+     * Mesmo filtro de produto do `ProductUtil::filterProduct` que o modal antigo usava: variação não
+     * apagada, tipo diferente de `modifier`, busca por nome, SKU e SKU da variação.
+     * Tier 0 ({@see ADR 0093}): `products.business_id` — produto e receita só da empresa da sessão.
+     *
+     * @param  string  $termo  texto digitado (vazio devolve lista vazia)
+     * @param  int  $businessId  Tier 0 — o business da sessão
+     * @return list<array{variation_id: int, product_id: int, nome: string, sku: string, categoria: ?string, subcategoria: ?string, receita_id: ?int}>
+     */
+    public function buscarProdutosParaReceita(string $termo, int $businessId, int $limite = 20): array
+    {
+        $termo = trim($termo);
+        if ($termo === '') {
+            return [];
+        }
+
+        $linhas = DB::table('variations as v')
+            ->join('products as p', 'p.id', '=', 'v.product_id')
+            ->join('product_variations as pv', 'pv.id', '=', 'v.product_variation_id')
+            ->leftJoin('categories as c', 'c.id', '=', 'p.category_id')
+            ->leftJoin('categories as sc', 'sc.id', '=', 'p.sub_category_id')
+            ->leftJoin('mfg_recipes as r', 'r.variation_id', '=', 'v.id')
+            ->where('p.business_id', $businessId)
+            ->where('p.type', '!=', 'modifier')
+            ->whereNull('v.deleted_at')
+            ->where(function ($q) use ($termo) {
+                $like = '%'.$termo.'%';
+                $q->where('p.name', 'like', $like)
+                    ->orWhere('p.sku', 'like', $like)
+                    ->orWhere('v.sub_sku', 'like', $like);
+            })
+            ->orderBy('p.name')
+            ->limit($limite)
+            ->get([
+                'v.id as variation_id', 'p.id as product_id', 'p.name as produto', 'p.type as tipo',
+                'pv.name as grupo_variacao', 'v.name as variacao', 'v.sub_sku',
+                'c.name as categoria', 'sc.name as subcategoria', 'r.id as receita_id',
+            ]);
+
+        return $linhas->map(fn ($l) => [
+            'variation_id' => (int) $l->variation_id,
+            'product_id'   => (int) $l->product_id,
+            // Mesmo rótulo do `MfgRecipe::forDropdown`: produto variável mostra a variação.
+            'nome'         => $l->tipo === 'variable' ? "{$l->produto} - {$l->grupo_variacao} - {$l->variacao}" : (string) $l->produto,
+            'sku'          => (string) $l->sub_sku,
+            'categoria'    => $l->categoria,
+            'subcategoria' => $l->subcategoria,
+            'receita_id'   => $l->receita_id !== null ? (int) $l->receita_id : null,
+        ])->values()->all();
+    }
+
+    /**
+     * O grupo de ingredientes que o `store()` pode RENOMEAR em nome desta receita — só se ele for
+     * DELA e de mais ninguém. Fora disso, `null`, e o `store()` cria um grupo novo.
+     *
+     * Por quê ([W] 2026-10-06, "correção junto" da Nova receita): a cópia de receita levava o
+     * `mfg_ingredient_group_id` da original no formulário, e o `store()` achava o grupo e o
+     * renomeava — renomear o grupo na cópia renomeava também na original. Receitas copiadas antes
+     * desta correção ainda compartilham grupo; a regra também as separa na primeira vez que uma
+     * delas é salva.
+     *
+     * "Desta receita" = alguma linha DESTA receita já está no grupo (receita sendo editada).
+     * "De mais ninguém" = nenhuma linha de OUTRA receita está nele.
+     * Tier 0 ({@see ADR 0093}): o id vem do POST — o grupo tem de ser da empresa da sessão.
+     *
+     * @param  int  $grupoId  `ingredients.*.mfg_ingredient_group_id` vindo do request
+     * @param  int  $recipeId  a receita que está sendo gravada
+     * @param  int  $businessId  Tier 0 — o business da sessão
+     */
+    public function grupoProprioDaReceita(int $grupoId, int $recipeId, int $businessId): ?int
+    {
+        $daEmpresa = DB::table('mfg_ingredient_groups')
+            ->where('id', $grupoId)
+            ->where('business_id', $businessId)
+            ->exists();
+        if (! $daEmpresa) {
+            return null;
+        }
+
+        $usos = DB::table('mfg_recipe_ingredients')
+            ->where('mfg_ingredient_group_id', $grupoId)
+            ->distinct()
+            ->pluck('mfg_recipe_id')
+            ->map(fn ($id) => (int) $id)
+            ->all();
+
+        return $usos === [$recipeId] ? $grupoId : null;
+    }
+
+    /**
      * Calcula custo total dinâmico de uma recipe — soma dos ingredientes × quantidade × multiplier
      * de sub-unidade + production cost (per_unit / percentage / fixed).
      *

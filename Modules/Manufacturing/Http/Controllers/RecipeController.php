@@ -6,6 +6,7 @@ use App\Utils\BusinessUtil;
 use App\Utils\ModuleUtil;
 use App\Utils\TransactionUtil;
 use App\Variation;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -218,6 +219,12 @@ class RecipeController extends Controller
 
                 return array_values(array_filter($todas, fn ($r) => in_array($r['id'], $ids, true)));
             }),
+            // "Copiar de outra receita" da janela Nova receita — só no reload parcial que a janela
+            // pede ao abrir (`only: ['receitas_copia']`). Mesma lista do modal antigo, já da empresa.
+            'receitas_copia' => Inertia::optional(fn () => MfgRecipe::forDropdown($business_id, false)
+                ->map(fn ($nome, $id) => ['id' => (int) $id, 'nome' => (string) $nome])
+                ->sortBy('nome', SORT_NATURAL | SORT_FLAG_CASE)
+                ->values()),
             'permissions' => [
                 'criar'  => auth()->user()->can('manufacturing.add_recipe'),
                 'editar' => auth()->user()->can('manufacturing.edit_recipe'),
@@ -361,10 +368,16 @@ class RecipeController extends Controller
                         $ig_name = $ingredient_groups[$value['ig_index']];
                         $ig_description = $ingredient_group_descriptions[$value['ig_index']];
 
+                        // Grupo que só ESTA receita usa → mantém e renomeia. Qualquer outro (o da
+                        // receita copiada, o compartilhado por cópias antigas, o de outra empresa)
+                        // → grupo novo. Antes, a cópia renomeava o grupo da original ([W] 2026-10-06).
+                        $grupo_proprio = empty($value['mfg_ingredient_group_id']) ? null
+                            : $this->recipeBomService->grupoProprioDaReceita((int) $value['mfg_ingredient_group_id'], (int) $recipe->id, (int) $business_id);
+
                         //Create ingredient group if not created already
                         if (! empty($created_ig_groups[$value['ig_index']])) {
                             $ingredient_group = $created_ig_groups[$value['ig_index']];
-                        } elseif (empty($value['mfg_ingredient_group_id'])) {
+                        } elseif ($grupo_proprio === null) {
                             $ingredient_group = MfgIngredientGroup::create(
                                 [
                                     'name' => $ig_name,
@@ -374,17 +387,12 @@ class RecipeController extends Controller
                             );
                         } else {
                             $ingredient_group = MfgIngredientGroup::where('business_id', $business_id)
-                                                                ->find($value['mfg_ingredient_group_id']);
+                                                                ->findOrFail($grupo_proprio);
                             if ($ingredient_group->name != $ig_name || $ingredient_group->description != $ig_description) {
                                 $ingredient_group->name = $ig_name;
                                 $ingredient_group->description = $ig_description;
                                 $ingredient_group->save();
                             }
-
-                            $ingredient_group = MfgIngredientGroup::firstOrNew(
-                                ['business_id' => $business_id, 'id' => $value['mfg_ingredient_group_id']],
-                                ['name' => $ig_name, 'description' => $ig_description]
-                            );
                         }
 
                         $created_ig_groups[$value['ig_index']] = $ingredient_group;
@@ -559,7 +567,14 @@ class RecipeController extends Controller
 
         $unit_html = ! empty($sub_units) ? $sub_units : $variation->unit_name;
 
-        return view('manufacturing::recipe.add_ingredients', compact('variation', 'ingredients', 'recipe', 'unit_html', 'currency_details', 'total_production_cost'));
+        // (b) da Nova receita ([W] 2026-10-06): a cópia leva ingredientes, quantidades, desperdício,
+        // custo extra (com o tipo dele — fixo/percentual/por unidade, sem o tipo o número muda de
+        // sentido) e instruções. NÃO leva o preço: `final_price` é o total que o editor recalcula,
+        // e o preço de venda do produto só muda pelo "Atualizar preço de venda" (US-PROD-030).
+        // Quantidade produzida e sub-unidade de saída também ficam de fora: são do produto novo.
+        $campos_base = $recipe ?? $copy_recipe;
+
+        return view('manufacturing::recipe.add_ingredients', compact('variation', 'ingredients', 'recipe', 'campos_base', 'unit_html', 'currency_details', 'total_production_cost'));
     }
 
     /**
@@ -750,11 +765,35 @@ class RecipeController extends Controller
      */
     public function isRecipeExist($variation_id)
     {
-        $exists = MfgRecipe::where('variation_id', $variation_id)
+        // Tier 0 (ADR 0093): antes respondia por qualquer variação, de qualquer empresa.
+        $business_id = (int) request()->session()->get('user.business_id');
+        $exists = MfgRecipe::query()
+                            ->forBusinessViaProductChain($business_id)
+                            ->where('mfg_recipes.variation_id', $variation_id)
                             ->exists();
 
         $output = $exists ? 1 : 0;
 
         return $output;
+    }
+
+    /**
+     * Busca de produto da janela "Nova receita" da tela React (US-MANU-006, decisões [W]
+     * 2026-10-06). JSON: produto, Categoria/Subcategoria do produto (só para exibir) e a receita
+     * que ele já tem, se tiver. A janela só LÊ; quem grava continua sendo o editor legado
+     * (`/add-ingredient` → `store()`), como o charter da tela manda.
+     */
+    public function produtosNovaReceita(): JsonResponse
+    {
+        $business_id = (int) request()->session()->get('user.business_id');
+        if (! (auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'manufacturing_module')) || ! auth()->user()->can('manufacturing.add_recipe')) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $termo = mb_substr(trim((string) request()->query('q', '')), 0, 80);
+
+        return response()->json([
+            'produtos' => $this->recipeBomService->buscarProdutosParaReceita($termo, $business_id),
+        ]);
     }
 }
