@@ -128,6 +128,10 @@ class ManageUserController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
+        $business_id = (int) request()->session()->get('user.business_id');
+        $this->recusarFuncaoDeFora($business_id, $request->input('role'));
+        $this->filtrarContatosDoNegocio($business_id, $request);
+
         try {
             if (! empty($request->input('dob'))) {
                 $request['dob'] = $this->moduleUtil->uf_date($request->input('dob'));
@@ -171,7 +175,7 @@ class ManageUserController extends Controller
 
         $user = User::where('business_id', $business_id)
                     ->with(['contactAccess'])
-                    ->find($id);
+                    ->findOrFail($id);
 
         //Get user view part from modules
         $view_partials = $this->moduleUtil->getModuleData('moduleViewPartials', ['view' => 'manage_user.show', 'user' => $user]);
@@ -244,6 +248,11 @@ class ManageUserController extends Controller
         if (! auth()->user()->can('user.update')) {
             abort(403, 'Unauthorized action.');
         }
+
+        $negocio = (int) request()->session()->get('user.business_id');
+        $editado = User::where('business_id', $negocio)->findOrFail($id);
+        $this->recusarFuncaoDeFora($negocio, $request->input('role'), $editado);
+        $this->filtrarContatosDoNegocio($negocio, $request);
 
         try {
             $user_data = $request->only(['surname', 'first_name', 'last_name', 'email', 'selected_contacts', 'marital_status',
@@ -417,6 +426,40 @@ class ManageUserController extends Controller
 
             return $output;
         }
+    }
+
+    /**
+     * Tier 0: a função escolhida tem de ser uma das que a tela oferece a quem está logado
+     * (`getRolesArray`: só do negócio da sessão, sem o Admin para quem não é admin).
+     * Manter a função atual do usuário editado continua permitido — é o caso de quem não é
+     * admin salvar um usuário Admin sem mexer na função.
+     * Recusa ANTES de gravar: o createUser() cria o usuário e só depois busca a função.
+     */
+    private function recusarFuncaoDeFora(int $business_id, $role_id, ?User $editado = null): void
+    {
+        $permitidas = array_map('intval', array_keys($this->getRolesArray($business_id)));
+        $atual = $editado ? (int) optional($editado->roles->first())->id : 0;
+
+        if (! in_array((int) $role_id, $permitidas, true) && ! ($atual && (int) $role_id === $atual)) {
+            abort(403, 'Unauthorized action.');
+        }
+    }
+
+    /**
+     * Tier 0: "contatos permitidos" só aceita contato do negócio da sessão; id de outra empresa sai
+     * do corpo antes do sync() do store/update.
+     */
+    private function filtrarContatosDoNegocio(int $business_id, Request $request): void
+    {
+        $ids = (array) $request->input('selected_contact_ids', []);
+        if (empty($ids)) {
+            return;
+        }
+
+        $request->merge(['selected_contact_ids' => \App\Contact::where('business_id', $business_id)
+            ->whereIn('id', $ids)
+            ->pluck('id')
+            ->all()]);
     }
 
     /**
