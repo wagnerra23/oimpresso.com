@@ -71,12 +71,16 @@
     {
       "id": "D-COM-1",
       "pergunta": "ADR 0151 (Modules/Comissao feature-wish) segue proposta: o playbook fica so no legado (commission_agent, cmmsn_percent, commission_split), sem Modules/Comissao?",
-      "respondida": false
+      "respondida": true,
+      "resposta": "[W] 2026-10-07 \"o que recomenda?\" → recomendação [CC]: só no legado (commission_agent / cmmsn_percent / commission_split), sem Modules/Comissao — a ADR 0151 segue proposta",
+      "quando": "2026-10-07"
     },
     {
       "id": "D-COM-2",
       "pergunta": "Relatorio: comissao sobre venda paga ou faturada? Ler a regra que o ReportController ja usa e manter; mudar exige ADR",
-      "respondida": false
+      "respondida": true,
+      "resposta": "[W] 2026-10-07 \"o que recomenda?\" → recomendação [CC]: manter a regra que o ReportController já usa hoje; mudar mexe em valor (regra mestre: dupla prova + antes→depois + ADR)",
+      "quando": "2026-10-07"
     }
   ]
 }
