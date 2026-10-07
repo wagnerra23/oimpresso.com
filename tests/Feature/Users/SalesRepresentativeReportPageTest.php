@@ -57,7 +57,7 @@ test('UC-COM-03 valor — a comissão do endpoint bate com a conta refeita, e mu
     $r->assertOk();
     // Caminho 1: endpoint. Caminho 2: 5 × (2 × 150) / 100, refeito aqui.
     expect((float) $r->json('total_sales_with_commission'))->toBe(300.0);
-    expect((float) $r->json('total_commission'))->toBe(5 * (2 * 150) / 100);
+    expect((float) $r->json('total_commission'))->toBe((float) (5 * (2 * 150) / 100)); // PHP: 1500/100 sai int 15
 
     // Controle positivo: outro vendedor, mesmo filtro, outro número.
     $r2 = $this->withHeaders($h)->get('/reports/sales-representative-total-commission?'.http_build_query($filtro + ['commission_agent' => $outro->id]));
