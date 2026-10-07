@@ -235,7 +235,7 @@ export default function ConversationListV4({
       aria-label="Lista de conversas"
     >
       {/* Header da coluna: título + count + Status (dropdown) + Filtros (popover) — Onda 2 */}
-      <Inline align="center" justify="between" className="border-b px-3 pt-2.5 pb-2">
+      <Inline align="center" justify="between" className="border-b px-3 pt-2.5 pb-2" data-contract="atend-lista-cabecalho">
         <Inline align="baseline" className="min-w-0">
           <b className="text-[13px] font-semibold text-foreground">Conversas</b>
           <span className="font-mono text-[11px] text-muted-foreground">{conversations.total}</span>
@@ -475,7 +475,7 @@ export default function ConversationListV4({
       </Inline>
 
       {/* Busca inline */}
-      <div className="relative border-b px-3.5 py-2">
+      <div className="relative border-b px-3.5 py-2" data-contract="atend-busca">
         <Search size={12} className="absolute left-5 top-1/2 -translate-y-1/2 text-muted-foreground" aria-hidden />
         <input
           type="text"
@@ -516,6 +516,7 @@ export default function ConversationListV4({
       ) : (
         <ul
           className="flex-1 overflow-auto cw-scroll-thin p-1.5 flex flex-col gap-0.5"
+          data-contract="atend-lista"
           role="listbox"
           aria-label="Conversas"
         >

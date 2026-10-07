@@ -22,7 +22,7 @@ related_adrs:
   - 0135-omnichannel-inbox-arquitetura
 related_charters: [resources/js/Pages/Atendimento/Inbox/Index.charter.md]
 tier: A
-charter_version: 22
+charter_version: 23
 permissao: whatsapp.access
 states: [default, dark]  # gate L2 — sync com tests/Browser/visreg-states.json (hotspot: 15 fixes visuais jun-jul/2026, 2º maior re-trabalho do mês)
 smoke: "2026-07-10 — render prod OK biz=1 (Chrome MCP, sessão WR2 Sistemas; https://oimpresso.com/atendimento/caixa-unificada: header 'Atendimento · 2 contas ativas · 2 filas · 475 abertas', lista 477 conversas reais, ChannelHealthBanner vivo 'WhatsApp — Jana está fora do ar + Reconectar canal' (US-WA-308), topnav Templates/Filas/Canais/Broadcast/Guia/+Nova conversa; 0 erro console pós-reload com tracking ativo)."
@@ -60,6 +60,8 @@ smoke: "2026-07-10 — render prod OK biz=1 (Chrome MCP, sessão WR2 Sistemas; h
 ## Contrato visual (catraca Contrato de Tela)
 
 Contrato declarado em `governance/design/contracts/caixa-unificada.contract.json` — âncoras `data-contract` + copy literal + ordem, checados pelo gate `contrato-de-tela.yml` (advisory na adoção · doc `memory/requisitos/_DesignSystem/RUNBOOK-contrato-de-tela.md`). Seções cobertas: `reconnect-cta`, `reconnect-modal`, `reconnect-qr`, `reconnect-meta`, `reconnect-ok`. Ao tocar essas seções, manter as âncoras + a copy literal (senão o gate acusa).
+
+Segundo contrato, desde 2026-10-06: `governance/design/contracts/atendimento-caixa-unificada.contract.json`, derivado do alvo `atendimento--caixa-unificada--index` (playbook atendimento, thread 05). Cobre a casca da tela, uma seção por seção do alvo: `atend-header`, `atend-lista-cabecalho`, `atend-busca`, `atend-saude`, `atend-lista`, `atend-thread-cabecalho`, `atend-mensagens`, `atend-composer`. As âncoras são só atributos `data-contract`, sem mudança de comportamento.
 
 ---
 

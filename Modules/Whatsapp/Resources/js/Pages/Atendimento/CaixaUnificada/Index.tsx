@@ -353,7 +353,7 @@ export default function CaixaUnificadaIndex({
       <Head title="Atendimento" />
 
       {/* Header da página */}
-      <div className="flex items-center justify-between gap-3 shrink-0 px-1">
+      <div className="flex items-center justify-between gap-3 shrink-0 px-1" data-contract="atend-header">
         {/* Sem ícone-caixa — canon Cowork `os-page-h-l` é só título + subtítulo. */}
         <div className="flex items-center gap-2 min-w-0 flex-wrap">
           <div className="min-w-0">

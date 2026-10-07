@@ -102,6 +102,7 @@ export default function ChannelHealthBanner({ channels, accounts = [], catalog =
       aria-live="polite"
       className={cn('mx-2.5 mb-0.5 mt-2.5 shrink-0 gap-1.5 rounded-lg border px-3 py-2.5', tone)}
       data-testid="caixa-unif-health-banner"
+      data-contract="atend-saude"
     >
       <Inline align="start" className="gap-2.5">
         <span className={cn('mt-px grid place-items-center h-6 w-6 shrink-0 rounded-md', iconWrap)}>

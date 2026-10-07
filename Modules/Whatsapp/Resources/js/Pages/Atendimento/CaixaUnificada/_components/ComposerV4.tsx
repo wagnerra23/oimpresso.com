@@ -460,6 +460,7 @@ export default function ComposerV4({
 
   return (
     <div
+      data-contract="atend-composer"
       role="group"
       aria-label="Área de resposta — solte arquivos aqui pra anexar"
       className={cn(
