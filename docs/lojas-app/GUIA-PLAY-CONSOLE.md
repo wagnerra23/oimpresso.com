@@ -1,5 +1,27 @@
 # Guia — Play Console, tela a tela (app "Oimpresso.com", `com.oimpresso.app`)
 
+> ## Estado no console em 2026-10-06 (lido no próprio console)
+>
+> - **O app certo é o `oimpresso`, ID `4972639962981895861`, pacote `com.oimpresso.app`**, criado em 2026-10-06.
+>   O app "Oimpresso.com" (ID `4976163601282243225`) estava preso ao pacote `com.Oimpresso.com` e recusou o AAB
+>   ("precisa ter o nome de pacote com.Oimpresso.com"). Na Play o pacote não muda, então ele ficou em rascunho, sem uso.
+>   Decisão do agente, delegada pelo [W] ("decida"): manter `com.oimpresso.app`, que é o que Capacitor, `build.gradle` e OAuth usam.
+> - **Teste interno:** versão `7 (1.0)` publicada (AAB do run 37527813712, `sem_push`). Ainda sem testadores.
+> - **Salvo no app novo:** Anúncios (não) · Apps governamentais (não) · Recursos financeiros (nenhum) · Saúde (nenhum) ·
+>   ID de publicidade (não usa) · Classificação de conteúdo: **Livre (L)**. "Conteúdo online" foi respondido **Sim**,
+>   porque o Assistente responde com IA. · Categoria **Empresa** · Página "Detalhes do app" com os textos D16, ícone, banner e 8 capturas.
+> - **Pendente:** Política de Privacidade, Detalhes do login (senhas: [W]), Público-alvo (só abre depois do login),
+>   Segurança dos dados (a tabela 8 abaixo é do escopo só-Ponto; o app atual também tem cadastro de pessoas e Assistente),
+>   e-mail de contato público, e a faixa de **teste fechado** com 12 testadores. A conta é **pessoal**, então valem os 14 dias.
+> - **Atualização do fim do dia (2026-10-06):** configuração completa. Salvos também: política de privacidade,
+>   contato público `wagner@oimpresso.com` + `https://oimpresso.com`, Detalhes do login (`gestor.demo`; a senha foi
+>   colada pelo [W]), Público-alvo 18+ e Segurança dos dados (10 tipos, coletados e não compartilhados).
+>   Teste fechado "Alpha": Brasil, versão 7 (1.0). **12 mudanças enviadas para revisão do Google** (até 7 dias).
+>   ⏳ Faltam os **12 testadores** na aba Testadores da faixa, e depois os 14 dias.
+>   ⚠️ `lgpd@oimpresso.com.br`, citado em `/privacidade`, **não recebe e-mail**: `oimpresso.com.br` tem MX nulo.
+> - O `oimpresso-app` virou **público** em 2026-10-06. A cota de Actions de repo privado tinha orçamento de 0 e travou o CI.
+>   Antes de abrir, o histórico (301 commits) foi varrido: nenhum segredo encontrado.
+
 > Decisões vigentes em [`DECISOES.md`](DECISOES.md): o app usa telas próprias no `oimpresso-app` (visual do protótipo Mobile),
 > não o ERP web nem `/m`. Lista de tarefas lida do Painel do console em 2026-10-01.
 > Quem clica e salva é o [W]: cada "Salvar" é declaração em nome da empresa.

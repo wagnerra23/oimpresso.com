@@ -5,9 +5,9 @@ namespace App\Http\Controllers;
 use App\Transaction;
 use App\User;
 use App\Utils\Util;
-use DataTables;
 use DB;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 
 /**
  * CRUD de agente comercial (comissionado).
@@ -39,9 +39,12 @@ class SalesCommissionAgentController extends Controller
     }
 
     /**
-     * Display a listing of the resource.
+     * Lista dos comissionados — Inertia `Comissionados/Index` (thread sistema/playbook/03).
      *
-     * @return \Illuminate\Http\Response
+     * A DataTable da Blade (`if (request()->ajax())`) saiu: o Inertia manda `X-Requested-With`
+     * em toda visita, entao aquele ramo engoliria a pagina e devolveria o JSON da tabela.
+     *
+     * @return \Inertia\Response
      */
     public function index()
     {
@@ -49,35 +52,52 @@ class SalesCommissionAgentController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
-        if (request()->ajax()) {
-            $business_id = request()->session()->get('user.business_id');
+        $business_id = (int) request()->session()->get('user.business_id');
 
-            $users = User::where('business_id', $business_id)
-                        ->where('is_cmmsn_agnt', 1)
-                        ->select(['id',
-                            DB::raw("CONCAT(COALESCE(surname, ''), ' ', COALESCE(first_name, ''), ' ', COALESCE(last_name, '')) as full_name"),
-                            'email', 'contact_no', 'address', 'cmmsn_percent', ]);
+        return Inertia::render('Comissionados/Index', [
+            // defer: conta as vendas vinculadas de cada agente (RUNBOOK-inertia-defer-pattern).
+            'agentes' => Inertia::defer(fn () => $this->agentesDoNegocio($business_id)),
+            'pode' => ['gerenciar' => auth()->user()->can('commission_agent.manage')],
+        ]);
+    }
 
-            return Datatables::of($users)
-                ->addColumn(
-                    'action',
-                    '@can("commission_agent.manage")
-                    <button type="button" data-href="{{action(\'App\Http\Controllers\SalesCommissionAgentController@edit\', [$id])}}" data-container=".commission_agent_modal" class="tw-dw-btn tw-dw-btn-xs tw-dw-btn-outline  btn-modal tw-dw-btn-primary"><i class="glyphicon glyphicon-edit"></i> @lang("messages.edit")</button>
-                        &nbsp;
-                        @endcan
-                        @can("commission_agent.manage")
-                        <button data-href="{{action(\'App\Http\Controllers\SalesCommissionAgentController@destroy\', [$id])}}" class="tw-dw-btn tw-dw-btn-outline tw-dw-btn-xs tw-dw-btn-error delete_commsn_agnt_button"><i class="glyphicon glyphicon-trash"></i> @lang("messages.delete")</button>
-                        @endcan'
-                )
-                ->filterColumn('full_name', function ($query, $keyword) {
-                    $query->whereRaw("CONCAT(COALESCE(surname, ''), ' ', COALESCE(first_name, ''), ' ', COALESCE(last_name, '')) like ?", ["%{$keyword}%"]);
-                })
-                ->removeColumn('id')
-                ->rawColumns(['action'])
-                ->make(true);
-        }
+    /**
+     * Comissionados do negocio da sessao, com quantas vendas apontam para cada um.
+     *
+     * `vendas` e a MESMA contagem que a guarda do destroy() usa (transactions.commission_agent,
+     * sem filtro de tipo): a tela avisa antes do clique o que o servidor recusaria depois.
+     * O percentual vai como numero; a tela formata em pt-BR e devolve TEXTO para o num_uf.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    private function agentesDoNegocio(int $businessId): array
+    {
+        $vendas = DB::table('transactions')
+            ->where('business_id', $businessId)
+            ->whereNotNull('commission_agent')
+            ->groupBy('commission_agent')
+            ->selectRaw('commission_agent, COUNT(*) as total')
+            ->pluck('total', 'commission_agent');
 
-        return view('sales_commission_agent.index');
+        return DB::table('users')
+            ->where('business_id', $businessId)
+            ->where('is_cmmsn_agnt', 1)
+            ->whereNull('deleted_at')
+            ->orderBy('first_name')
+            ->get(['id', 'surname', 'first_name', 'last_name', 'email', 'contact_no', 'address', 'cmmsn_percent'])
+            ->map(fn ($u) => [
+                'id' => (int) $u->id,
+                'prefixo' => (string) ($u->surname ?? ''),
+                'primeiro_nome' => (string) ($u->first_name ?? ''),
+                'sobrenome' => (string) ($u->last_name ?? ''),
+                'email' => (string) ($u->email ?? ''),
+                'contato' => (string) ($u->contact_no ?? ''),
+                'endereco' => (string) ($u->address ?? ''),
+                'percentual' => (float) $u->cmmsn_percent,
+                'vendas' => (int) ($vendas[$u->id] ?? 0),
+            ])
+            ->values()
+            ->all();
     }
 
     /**
@@ -229,7 +249,12 @@ class SalesCommissionAgentController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
-        $user = User::findOrFail($id);
+        // Tier 0: so comissionado do negocio da sessao. Ate 2026-10-06 era findOrFail($id) cru,
+        // e o formulario abria nome, e-mail e endereco de usuario de OUTRO negocio pelo id na URL.
+        $user = User::where('id', $id)
+            ->where('business_id', request()->session()->get('user.business_id'))
+            ->where('is_cmmsn_agnt', 1)
+            ->firstOrFail();
 
         return view('sales_commission_agent.edit')
                     ->with(compact('user'));

@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 use InvalidArgumentException;
+use Modules\NfeBrasil\Http\Requests\DestroyRegraTributariaRequest;
 use Modules\NfeBrasil\Http\Requests\UpsertRegraTributariaRequest;
 use Modules\NfeBrasil\Models\NfeBusinessConfig;
 use Modules\NfeBrasil\Models\NfeFiscalRule;
@@ -246,7 +247,7 @@ class TributacaoController extends Controller
     }
 
     /** DELETE /nfe-brasil/tributacao/regras/{id} */
-    public function destroy(Request $request, int $id): RedirectResponse
+    public function destroy(DestroyRegraTributariaRequest $request, int $id): RedirectResponse
     {
         $businessId = (int) $request->session()->get('business.id');
 

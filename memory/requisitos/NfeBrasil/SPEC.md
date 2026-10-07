@@ -430,6 +430,21 @@ Então `nfe_consultas.cache_key` UNIQUE bloqueia a 2ª de processar de novo
 **Implementação:** Cache de consulta com TTL + UNIQUE em `consultas` por chave + tipo.
 **Testado em:** _lacuna — ConsultaIdempotenciaTest não existe; nenhum teste cobre `nfe_consultas.cache_key` UNIQUE bloqueando reprocessamento da 2ª resposta_.
 
+### R-NFE-033 · Aceita CNPJ alfanumérico válido e recusa o inválido
+
+```gherkin
+Dado um CNPJ alfanumérico válido de destinatário (ex. fictício da Receita 12.ABC.345/01DE-35)
+Quando cadastro o cliente e monto a NF-e
+Então o cadastro aceita e o XML leva <CNPJ>12ABC34501DE35</CNPJ> no <dest>
+E com dígito verificador errado o cadastro recusa (422) dizendo que o CNPJ alfanumérico não confere
+E um CNPJ só numérico continua válido, com o mesmo DV de antes
+```
+
+**Contrato:** IN RFB nº 2.229/2024 — *"O CNPJ adotará o formato alfanumérico composto por quatorze posições, conforme disposto no Anexo XV, com previsão de implementação a partir de julho de 2026."*
+**Implementação:** `app/Support/BR/Cnpj.php` (DV módulo 11 com valor ASCII − 48) · `app/Rules/BR/CpfCnpj.php` (cadastro) · `Modules/NfeBrasil/Services/NfeService.php` (`emitirParaInvoice` e `buildXml` deixam de arrancar as letras do destinatário).
+**Testado em:** `Modules/NfeBrasil/Tests/Feature/CnpjAlfanumericoTest.php` (lane `nfebrasil-pest`).
+**Fora deste item:** emitente com CNPJ alfanumérico, chave de acesso, QR Code, máscara no front e o XSD do sped-nfe (que ainda declara `TCnpj` como `[0-9]{14}`) — ver `_saida-27.md` da thread 27 do playbook Fiscal.
+
 ## 4. Decisões pendentes
 
 - [ ] Lib base: `eduardokum/sped-nfe` (recomendado) vs alternativa? — provavelmente sped-nfe (já maduro, BR)
