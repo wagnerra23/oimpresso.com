@@ -1129,3 +1129,9 @@ a.fj-ho-pr:hover{ color:var(--accent); }
 [data-theme="dark"] .ap-tipo{ color:oklch(0.85 0.10 var(--ah)); background:oklch(0.30 0.07 var(--ah)); border-color:oklch(0.42 0.07 var(--ah)); }
 [data-theme="dark"] .ap-handoff-alert{ color:oklch(0.85 0.14 25); background:oklch(0.30 0.07 25); border-color:oklch(0.44 0.08 25); }
 [data-theme="dark"] .fj-hj-team-alert{ color:oklch(0.85 0.14 25); background:oklch(0.30 0.07 25); border-color:oklch(0.44 0.08 25); }
+
+/* Forja 06 · alvo de toque 24×24 (WCAG 2.2 · 2.5.8) — espelha o bloco do _saida-06 (main). O glifo não cresce; cresce a caixa. */
+.fj-pin, .fj-star{ width:24px; height:24px; }
+.fj-group-head > .fj-group-toggle{ min-height:24px; }
+.fj-search > input{ min-height:24px; padding:0; }
+.fj-toolbar > .fj-search{ padding-top:3.75px; padding-bottom:3.75px; }

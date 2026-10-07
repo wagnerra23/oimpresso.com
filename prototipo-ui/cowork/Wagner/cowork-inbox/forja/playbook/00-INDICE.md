@@ -66,7 +66,7 @@ UCs sem teste (o `--screen` marca ÓRFÃO): `UC-FORJA-03 · 08 · 09 · 10` (Coc
       "destrava": [
         "05"
       ],
-      "resposta": "[W] 2026-10-07 \"o que recomenda?\" → recomendação [CC]: forja-page.jsx (o charter) — é o que o Cockpit vivo já usa; o contrato é corrigido para apontar pra ele",
+      "resposta": "[W] 2026-10-07 \"o que recomenda?\" → recomendação [CC]: forja-page.jsx (o charter) — é o que o Cockpit vivo já usa; o contrato é corrigido para apontar pra ele · errata 07b: a âncora é forja-page.jsx; o contrato NÃO muda (a copy mora em forja-gantt.jsx, dentro da mesma âncora — trocar faria a anti-tautologia acusar 6/6)",
       "quando": "2026-10-07"
     },
     {
@@ -114,6 +114,112 @@ UCs sem teste (o `--screen` marca ÓRFÃO): `UC-FORJA-03 · 08 · 09 · 10` (Coc
       "resposta": "só depois de confirmar com teste: teste primeiro; se vermelho, conserto no mesmo PR",
       "quando": "2026-10-07",
       "fonte": "_DECISOES-W-2026-10-07b.md"
+    },
+    {
+      "id": "D6",
+      "pergunta": "TeamScopes: lista de devs junta com user_businesses (tabela inexistente)",
+      "dono": "W",
+      "respondida": true,
+      "destrava": [
+        "10"
+      ],
+      "resposta": "teste primeiro; se a lista vier vazia/errada, trocar a junção pela tabela real (pergunta pulada no formulário → [CC] decidiu pela recomendação)",
+      "quando": "2026-10-07",
+      "fonte": "_DECISOES-W-2026-10-07c.md"
+    },
+    {
+      "id": "D7",
+      "pergunta": "Ferramentas: grant/revoke/execute só com login; auditoria sem business_id; triggered_by='wagner'",
+      "dono": "W",
+      "respondida": true,
+      "destrava": [
+        "11"
+      ],
+      "resposta": "permissão própria + auditoria filtrada por empresa + autor = usuário logado",
+      "quando": "2026-10-07",
+      "fonte": "_DECISOES-W-2026-10-07c.md"
+    },
+    {
+      "id": "D8",
+      "pergunta": "Roadmap: épico cancelado aparece?",
+      "dono": "W",
+      "respondida": true,
+      "destrava": [
+        "12"
+      ],
+      "resposta": "esconder (pergunta pulada no formulário → [CC] decidiu pela recomendação)",
+      "quando": "2026-10-07",
+      "fonte": "_DECISOES-W-2026-10-07c.md"
+    },
+    {
+      "id": "D9",
+      "pergunta": "Roadmap: ordem das colunas por trimestre",
+      "dono": "W",
+      "respondida": true,
+      "destrava": [
+        "12"
+      ],
+      "resposta": "cronológica",
+      "quando": "2026-10-07",
+      "fonte": "_DECISOES-W-2026-10-07c.md"
+    },
+    {
+      "id": "D10",
+      "pergunta": "Projects: a tela só exige login",
+      "dono": "W",
+      "respondida": true,
+      "destrava": [
+        "13"
+      ],
+      "resposta": "exigir permissão do módulo Forja",
+      "quando": "2026-10-07",
+      "fonte": "_DECISOES-W-2026-10-07c.md"
+    },
+    {
+      "id": "D11",
+      "pergunta": "Projects: decisões ligadas ao projeto sempre vazias desde a ADR 0363",
+      "dono": "W",
+      "respondida": true,
+      "destrava": [
+        "13"
+      ],
+      "resposta": "tirar do charter",
+      "quando": "2026-10-07",
+      "fonte": "_DECISOES-W-2026-10-07c.md"
+    },
+    {
+      "id": "D12",
+      "pergunta": "Sessões CC: cc.read.team vê o time ou só as próprias?",
+      "dono": "W",
+      "respondida": true,
+      "destrava": [],
+      "resposta": "só as próprias (charter e código atuais) — a SPEC-cc-sessions é que se corrige",
+      "quando": "2026-10-07",
+      "fonte": "_DECISOES-W-2026-10-07d.md"
+    },
+    {
+      "id": "D13",
+      "pergunta": "Tarefas: transição proibida pelo FSM responde 404",
+      "dono": "W",
+      "respondida": true,
+      "destrava": [
+        "14"
+      ],
+      "resposta": "responder 422",
+      "quando": "2026-10-07",
+      "fonte": "_DECISOES-W-2026-10-07d.md"
+    },
+    {
+      "id": "D14",
+      "pergunta": "Equipe (Tier 0): token/DXT/cota não conferem o negócio do id da URL",
+      "dono": "W",
+      "respondida": true,
+      "destrava": [
+        "15"
+      ],
+      "resposta": "conferir o negócio em todas e apagar a rota legacy DELETE /team/token/{token}",
+      "quando": "2026-10-07",
+      "fonte": "_DECISOES-W-2026-10-07d.md"
     }
   ],
   "threads": [
@@ -294,8 +400,14 @@ UCs sem teste (o `--screen` marca ÓRFÃO): `UC-FORJA-03 · 08 · 09 · 10` (Coc
       "nao_toca": [
         "Modules/Forja/Resources/js/Pages/Forja/Roadmap/Gantt.tsx"
       ],
-      "provas": [],
-      "nota_provas": "related_prototype do charter == fonte do contrato"
+      "provas": [
+        {
+          "tipo": "contem",
+          "path": "governance/design/contracts/forja-gantt.contract.json",
+          "padrao": "mesma âncora"
+        }
+      ],
+      "nota_provas": "errata 07b: o contrato declara (_nota_fonte) que forja-gantt.jsx é o arquivo da copy DENTRO da âncora forja-page.jsx do charter"
     },
     {
       "id": "R1",
@@ -427,16 +539,195 @@ UCs sem teste (o `--screen` marca ÓRFÃO): `UC-FORJA-03 · 08 · 09 · 10` (Coc
       "prefixo": [
         "Modules/Forja/Services/ProjectDecomposerService.php",
         "Modules/Forja/Http/Controllers/",
-        "Modules/Forja/Tests/Feature/ForjaDecomposeTenant*"
+        "Modules/Forja/Tests/Feature/ForjaDecomposeTenantTest.php"
       ],
       "nao_toca": [
         "Modules/Forja/Resources/js/"
       ],
-      "provas": [],
+      "provas": [
+        {
+          "tipo": "arquivo",
+          "path": "Modules/Forja/Tests/Feature/ForjaDecomposeTenantTest.php"
+        }
+      ],
       "nota_provas": "recibo com o teste vermelho no main (tenant 99 decompõe project do 98) e verde no branch; se sair verde no main, não há conserto e a thread fecha com o teste"
+    },
+    {
+      "id": "10",
+      "titulo": "TeamScopes: provar a junção com user_businesses; se quebrada, trocar pela tabela real (D6)",
+      "dono": "CL",
+      "vaga": 4,
+      "prs": 1,
+      "arquivo": "10-teamscopes-juncao.md",
+      "depende_decisoes": [
+        "D6"
+      ],
+      "prefixo": [
+        "Modules/Forja/Resources/js/Pages/ads/Admin/TeamScopes.casos.md",
+        "Modules/Forja/Tests/Feature/ForjaTeamScopesDevsTest.php"
+      ],
+      "nao_toca": [
+        "Modules/Forja/Resources/js/Pages/ads/Admin/TeamScopes.tsx"
+      ],
+      "provas": [
+        {
+          "tipo": "arquivo",
+          "path": "Modules/Forja/Tests/Feature/ForjaTeamScopesDevsTest.php"
+        }
+      ],
+      "nota_provas": "recibo: teste com 2 devs do negócio — vermelho no main se a junção quebra; verde no branch. O controller entra no prefixo do PR depois de achado (ler antes)"
+    },
+    {
+      "id": "11",
+      "titulo": "Tier 0 · Ferramentas: permissão própria em grant/revoke/execute + auditoria por empresa + autor real (D7)",
+      "dono": "CL",
+      "vaga": 4,
+      "prs": 1,
+      "arquivo": "11-ferramentas-permissao.md",
+      "depende_decisoes": [
+        "D7"
+      ],
+      "prefixo": [
+        "Modules/Forja/Tests/Feature/ForjaToolsPermissao*",
+        "Modules/Forja/Resources/js/Pages/ads/Admin/Tools.casos.md"
+      ],
+      "nao_toca": [
+        "Modules/Forja/Resources/js/Pages/ads/Admin/Tools.tsx"
+      ],
+      "provas": [
+        {
+          "tipo": "arquivo",
+          "path": "Modules/Forja/Tests/Feature/ForjaToolsPermissaoTest.php"
+        }
+      ],
+      "nota_provas": "teste: usuário sem a permissão → 403 nas 3 rotas; auditoria do tenant 99 não aparece pro 98; triggered_by = usuário logado"
+    },
+    {
+      "id": "12",
+      "titulo": "Roadmap: esconder épico cancelado + colunas em ordem cronológica (D8 · D9)",
+      "dono": "CL",
+      "vaga": 4,
+      "prs": 1,
+      "arquivo": "12-roadmap-ordem.md",
+      "depende_decisoes": [
+        "D8",
+        "D9"
+      ],
+      "prefixo": [
+        "Modules/Forja/Resources/js/Pages/Forja/Roadmap/Index.tsx",
+        "Modules/Forja/Resources/js/Pages/Forja/Roadmap/Index.casos.md",
+        "Modules/Forja/Tests/Feature/ForjaRoadmap*"
+      ],
+      "nao_toca": [
+        "Modules/Forja/Resources/js/Pages/Forja/Roadmap/Gantt.tsx"
+      ],
+      "provas": [
+        {
+          "tipo": "contem",
+          "path": "Modules/Forja/Resources/js/Pages/Forja/Roadmap/Index.casos.md",
+          "padrao": "cronológica"
+        }
+      ]
+    },
+    {
+      "id": "13",
+      "titulo": "Projects: exigir permissão do módulo + tirar decisões do charter (D10 · D11)",
+      "dono": "CL",
+      "vaga": 4,
+      "prs": 1,
+      "arquivo": "13-projects-acesso.md",
+      "depende_decisoes": [
+        "D10",
+        "D11"
+      ],
+      "prefixo": [
+        "Modules/Forja/Resources/js/Pages/ads/Admin/Projects.charter.md",
+        "Modules/Forja/Resources/js/Pages/ads/Admin/ProjectShow.charter.md",
+        "Modules/Forja/Tests/Feature/ForjaProjectsAcesso*"
+      ],
+      "nao_toca": [
+        "Modules/Forja/Resources/js/Pages/ads/Admin/Projects.tsx"
+      ],
+      "provas": [
+        {
+          "tipo": "arquivo",
+          "path": "Modules/Forja/Tests/Feature/ForjaProjectsAcessoTest.php"
+        }
+      ],
+      "nota_provas": "teste: usuário logado sem permissão da Forja → 403 em /ads/admin/projects; charter sem a seção de decisões"
+    },
+    {
+      "id": "14",
+      "titulo": "Tarefas: transição proibida pelo FSM → 422 (D13)",
+      "dono": "CL",
+      "vaga": 4,
+      "prs": 1,
+      "arquivo": "14-tasks-fsm-422.md",
+      "depende_decisoes": [
+        "D13"
+      ],
+      "prefixo": [
+        "Modules/Forja/Http/Controllers/TasksAdminController.php",
+        "Modules/Forja/Resources/js/Pages/team-mcp/Tasks/Index.casos.md",
+        "Modules/Forja/Tests/Feature/TasksFsmTransicaoTest.php"
+      ],
+      "nao_toca": [
+        "Modules/Forja/Resources/js/Pages/team-mcp/Tasks/Index.tsx"
+      ],
+      "provas": [
+        {
+          "tipo": "arquivo",
+          "path": "Modules/Forja/Tests/Feature/TasksFsmTransicaoTest.php"
+        }
+      ]
+    },
+    {
+      "id": "15",
+      "titulo": "Tier 0 · Equipe: conferir negócio em token/DXT/cota + apagar rota legacy (D14)",
+      "dono": "CL",
+      "vaga": 4,
+      "prs": 1,
+      "arquivo": "15-team-tenant.md",
+      "depende_decisoes": [
+        "D14"
+      ],
+      "prefixo": [
+        "Modules/Forja/Http/routes.php",
+        "Modules/Forja/Http/Controllers/TeamController.php",
+        "Modules/Forja/Tests/Feature/TeamTenantTest.php"
+      ],
+      "nao_toca": [
+        "Modules/Forja/Resources/js/Pages/team-mcp/Team/Index.tsx"
+      ],
+      "provas": [
+        {
+          "tipo": "arquivo",
+          "path": "Modules/Forja/Tests/Feature/TeamTenantTest.php"
+        }
+      ],
+      "nota_provas": "teste tenant 98×99 em gerarToken, gerarDxt, atualizarQuota e DELETE token → 404; a rota legacy some do routes.php"
+    },
+    {
+      "id": "16",
+      "titulo": "SPEC-cc-sessions: alinhar ao charter (cc.read.team = só as próprias) (D12)",
+      "dono": "CL",
+      "vaga": 4,
+      "prs": 1,
+      "arquivo": "16-spec-ccsessions.md",
+      "depende_decisoes": [
+        "D12"
+      ],
+      "prefixo": [
+        "memory/requisitos/Jana/SPEC-cc-sessions.md"
+      ],
+      "nao_toca": [
+        "Modules/"
+      ],
+      "provas": [],
+      "nota_provas": "só texto; o recibo cita o trecho antes/depois"
     }
   ],
-  "revisado": "2026-10-07 _saida-A1: Gantt → A1b + thread 07 (alvo.mjs clique em cadeia) · 2026-10-07 _saida-04 (main 822ccf022258): 04 entregue; achados → thread 08 · 2026-10-07 _ERRATA forja (07 → passosDeClique) @59f777d978da · 2026-10-07 decisões [W] do formulário"
+  "revisado": "2026-10-07 _saida-A1: Gantt → A1b + thread 07 (alvo.mjs clique em cadeia) · 2026-10-07 _saida-04 (main 822ccf022258): 04 entregue; achados → thread 08 · 2026-10-07 _ERRATA forja (07 → passosDeClique) @59f777d978da · 2026-10-07 decisões [W] do formulário · 2026-10-07 decisões D6–D11 (formulário 4 perguntas) → threads 10–13 · 2026-10-07 refino: provas decidíveis · 2026-10-07 SINCRONIZAR @50e23057f1c2 · 2026-10-07 decisões [W] (formulário SINCRONIZAR 2)"
 }
 ```
 

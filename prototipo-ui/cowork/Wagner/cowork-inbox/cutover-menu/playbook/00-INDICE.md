@@ -179,9 +179,27 @@ Precedente do conserto por tela: `UnitController@index` — React salvo `?classi
         }
       ],
       "nota_provas": "o teste faz GET sem X-Inertia → resposta Inertia; ?classico=1 → Blade; AJAX → JSON. Não uso nao_contem do gate: a mesma condição aparece em métodos fora do escopo (ProductController 6×, SellController 6×, PurchaseController 3× @d452b4dc8db8)."
+    },
+    {
+      "id": "06",
+      "titulo": "Ler o estado das chaves MWART e FeatureFlag em produção (read-only)",
+      "dono": "CL",
+      "vaga": 1,
+      "prs": 0,
+      "arquivo": "06-estado-chaves.md",
+      "prefixo": [
+        "prototipo-ui/cowork/Wagner/cowork-inbox/cutover-menu/playbook/_saida-06.md"
+      ],
+      "nao_toca": [
+        "config/",
+        "app/",
+        "resources/"
+      ],
+      "provas": [],
+      "nota_provas": "recibo com a tabela chave → estado → empresas, lida no servidor"
     }
   ],
-  "revisado": "2026-10-07 decisões [W] do formulário · 2026-10-07 revisão: prefixos disjuntos + provas que decidem"
+  "revisado": "2026-10-07 decisões [W] do formulário · 2026-10-07 revisão: prefixos disjuntos + provas que decidem · 2026-10-07 refino: provas decidíveis"
 }
 ```
 
