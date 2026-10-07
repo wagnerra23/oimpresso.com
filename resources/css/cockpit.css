@@ -2341,10 +2341,10 @@
 .cockpit[data-theme="dark"] .sb-group-dot {
   background: oklch(0.68 0.13 var(--gh, 220));
 }
+/* Um valor só, nos dois temas: a sidebar é preta fixa (UI-0023) e o protótipo pinta o rótulo
+   com 0.72 0.09 sem olhar o tema. O ramo claro (0.46 0.10) dava 2,35–2,86:1 sobre --sb-bg,
+   medido 2026-10-07 num harness com este cockpit.css (sidebar/08, descoberta da _saida-08). */
 .cockpit .sb-group[style*="--gh"] .sb-group-h .sb-group-l {
-  color: oklch(0.46 0.10 var(--gh, 220));
-}
-.cockpit[data-theme="dark"] .sb-group[style*="--gh"] .sb-group-h .sb-group-l {
   color: oklch(0.72 0.09 var(--gh, 220));
 }
 
@@ -2494,10 +2494,7 @@
 }
 .cockpit .sb-rail-flyout-l {
   flex: 1 1 auto;
-  color: oklch(0.46 0.10 var(--gh, 220));
-}
-.cockpit[data-theme="dark"] .sb-rail-flyout-l {
-  color: oklch(0.78 0.08 var(--gh, 220));
+  color: oklch(0.72 0.09 var(--gh, 220)); /* = rótulo do grupo expandido; protótipo `groupColor` do flyout */
 }
 /* `var(--mono)` não existe — caía no fallback, em silêncio. O token é `--font-mono`. */
 .cockpit .sb-rail-flyout .sb-group-n {
