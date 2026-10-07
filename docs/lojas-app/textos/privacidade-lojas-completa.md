@@ -21,6 +21,7 @@
 | Localização precisa | ponto, só na batida | sim (para bater ponto) | funcionalidade; prevenção de fraude |
 | ID do aparelho (`device_uuid`) + token de push | ponto; notificações | sim | prevenção de fraude; funcionalidade |
 | Nome, e-mail, ID de usuário | login | sim | funcionalidade; gerenciamento de conta |
+| Registros de falhas (diagnóstico): modelo do aparelho, versão do sistema e do app, onde o erro aconteceu | qualquer tela, quando o app fecha ou dá erro | sim | análise de falhas — servidor próprio (GlitchTip no CT 100, ADR 0429), apagados após 90 dias |
 | Dados de clientes da empresa (nome, CPF/CNPJ, telefone, e-mail, endereço) | cadastro de clientes | não (o usuário digita) | funcionalidade |
 | Fotos | anexos de OS, escolhidas pelo usuário | não | funcionalidade |
 | Registros de ponto, justificativas, notas de serviço, tarefas | ponto; OS; tarefas | varia | funcionalidade |
@@ -39,6 +40,7 @@ oimpresso (operador) por conta da empresa cliente (controladora). Sem localizaç
    - Fotos e vídeos → **Fotos** — Opcional · Funcionalidade.
    - Atividade no app → **Outro conteúdo gerado pelo usuário** (justificativas, notas de OS, tarefas) — Opcional · Funcionalidade.
    - Identificadores do dispositivo ou outros → **ID do dispositivo** — Obrigatório · Prevenção de fraude; Funcionalidade (push).
+   - Informações e desempenho do app → **Registros de falhas** e **Outros dados de diagnóstico** — Obrigatório · Análise · não compartilhado (servidor próprio, ADR 0429; desde 2026-10-07).
    - Informações financeiras → ⚠️ decidir com a sessão LEGAL: vendas e pagamentos são da **empresa**, não do usuário; "Histórico de compras" da Google é do usuário. Recomendação: não marcar, e explicar na política de privacidade.
 4. **Permissões:** `ACCESS_FINE_LOCATION` (sim), `ACCESS_BACKGROUND_LOCATION` (**não**), `POST_NOTIFICATIONS` (sim), `RECORD_AUDIO` (**remover**), `CAMERA` (não usado).
 
