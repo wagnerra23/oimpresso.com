@@ -60,6 +60,11 @@
 //                                      o drawer do Financeiro (thread 07) só entra no DOM após clicar numa linha.
 //                                      Seletor que não casa → exit 2 (NÃO MEDI), nunca "seção ausente".
 //                                      Os dois vão pro JSON (`rota`/`clicar`) SÓ quando usados.
+//                                      REPETÍVEL: cada `--clicar` é um passo, na ordem dada, e cada passo
+//                                      espera estabilizar antes do próximo. Existe porque o Gantt da Forja
+//                                      só monta após 2 cliques (aba Trabalho → botão Gantt; thread A1).
+//                                      1 clique grava `clicar` como string (alvos antigos ficam byte-idênticos);
+//                                      2+ gravam array. O passo que não casa diz QUAL passo foi (exit 2).
 //   --selftest                         Partes puras (serialização estável · args). Sem browser.
 //   --selftest --browser               Bite-test real: 2 runs byte-idênticos + injeção muda.
 //
@@ -93,6 +98,10 @@ const DESIGN_DIFF = join(ROOT, 'scripts', 'design', 'design-diff.mjs');
 const argv = process.argv.slice(2);
 const flag = (n) => argv.includes(n);
 const val = (n, d = null) => { const i = argv.indexOf(n); return i >= 0 && argv[i + 1] && !argv[i + 1].startsWith('--') ? argv[i + 1] : d; };
+/** Todas as ocorrências de uma flag com valor, na ordem da linha de comando. */
+const vals = (n) => argv.flatMap((a, i) => (a === n && argv[i + 1] && !argv[i + 1].startsWith('--') ? [argv[i + 1]] : []));
+/** `clicar` aceita string (1 passo) ou array (cadeia); normaliza para array. */
+const passosDeClique = (clicar) => (clicar == null ? [] : Array.isArray(clicar) ? clicar : [clicar]);
 
 /* ── serialização ESTÁVEL — sem isto o aceite "2 runs byte-idênticos" não existe ────────── */
 export function estavel(v) {
@@ -342,11 +351,16 @@ async function abrirPagina(url, { viewport = null, sbMode = null, rota = null } 
 
 /** Clica no 1º elemento do seletor e re-estabiliza. Não casou = NÃO MEDI (nunca "seção ausente"). */
 async function clicarEEstabilizar(page, clicar, { quietoMs = 400 } = {}) {
-  if (!clicar) return null;
-  const el = await page.$(clicar);
-  if (!el) throw Object.assign(new Error(`--clicar: "${clicar}" não casou nenhum elemento — sem o clique a seção-alvo não existe`), { naoMedi: true });
-  await el.click();
-  return esperarEstavel(page, { quietoMs });
+  const passos = passosDeClique(clicar);
+  let nos = null;
+  for (const [i, sel] of passos.entries()) {
+    const el = await page.$(sel);
+    const qual = passos.length > 1 ? ` (passo ${i + 1} de ${passos.length})` : '';
+    if (!el) throw Object.assign(new Error(`--clicar${qual}: "${sel}" não casou nenhum elemento — sem o clique a seção-alvo não existe`), { naoMedi: true });
+    await el.click();
+    nos = await esperarEstavel(page, { quietoMs });
+  }
+  return nos;
 }
 
 /* ── modos ──────────────────────────────────────────────────────────────────────────────── */
@@ -367,7 +381,7 @@ async function medirAlvo({ url, tela, secoes, injetar, sumir = null, quietoMs = 
   const { browser, page } = await abrirPagina(url, { viewport, sbMode, rota });
   try {
     let nos = await esperarEstavel(page, { sumir, quietoMs });
-    if (clicar) nos = await clicarEEstabilizar(page, clicar, { quietoMs });
+    if (passosDeClique(clicar).length) nos = await clicarEEstabilizar(page, clicar, { quietoMs });
     if (injetar) {
       const mexeu = await page.evaluate((sel) => {
         const el = document.querySelector(sel);
@@ -393,7 +407,7 @@ async function medirAlvo({ url, tela, secoes, injetar, sumir = null, quietoMs = 
       ...(viewport ? { viewport: `${viewport.width}x${viewport.height}` } : {}),
       ...(sbMode ? { sb_mode: sbMode } : {}),
       ...(rota ? { rota } : {}),
-      ...(clicar ? { clicar } : {}),
+      ...(passosDeClique(clicar).length ? { clicar } : {}),
       base, secoes: medidoSecoes, ausentes: [],
     };
   } finally { await browser.close(); }
@@ -551,6 +565,20 @@ async function selftest(comBrowser) {
     try { await medirAlvo({ url: urlC, tela: 'fixture-clique', secoes, clicar: '.nao-existe' }); rcC = 'mediu'; }
     catch (e) { rcC = e.naoMedi ? 'naoMedi' : 'falhou'; }
     ok('--clicar em seletor que não casa → NÃO MEDI (exit 2)', rcC === 'naoMedi', `rc=${rcC}`);
+
+    // --clicar em CADEIA: a 2ª seção só existe depois de DOIS cliques, nessa ordem (Gantt da Forja, A1)
+    const fk = join(tmpdir(), `alvo-fixture-cadeia-${process.pid}.html`);
+    writeFileSync(fk, FIXTURE + `<button class="aba" onclick="const b=document.createElement('button');b.className='sub';b.onclick=()=>{const d=document.createElement('section');d.className='painel';d.innerHTML='<i></i><i></i><i></i>';document.body.appendChild(d)};document.body.appendChild(b)">aba</button>`);
+    const urlK = 'file://' + fk.split(String.fromCharCode(92)).join('/');
+    const um = await medirAlvo({ url: urlK, tela: 'fixture-cadeia', secoes: { painel: { seletor: '.painel' } }, clicar: '.aba' });
+    const dois = await medirAlvo({ url: urlK, tela: 'fixture-cadeia', secoes: { painel: { seletor: '.painel' } }, clicar: ['.aba', '.sub'] });
+    ok('--clicar em cadeia faz a seção existir (1 clique ausente · 2 cliques 3 filhos · array gravado)',
+      um.secoes.painel.ausente === true && dois.secoes.painel.filhos === 3 && JSON.stringify(dois.clicar) === '[".aba",".sub"]',
+      `um=${JSON.stringify(um.secoes.painel.ausente)} dois=${dois.secoes.painel.filhos} clicar=${JSON.stringify(dois.clicar)}`);
+    let rcK = null, msgK = '';
+    try { await medirAlvo({ url: urlK, tela: 'fixture-cadeia', secoes, clicar: ['.sub', '.aba'] }); rcK = 'mediu'; }
+    catch (e) { rcK = e.naoMedi ? 'naoMedi' : 'falhou'; msgK = e.message; }
+    ok('--clicar em cadeia fora de ordem → NÃO MEDI nomeando o passo 1', rcK === 'naoMedi' && msgK.includes('passo 1 de 2'), `rc=${rcK}`);
   }
 
   for (const c of checks) console.log(`${c.ok ? 'ok  ' : 'X   '}${c.nome}${c.detalhe ? ' — ' + c.detalhe : ''}`);
@@ -568,7 +596,8 @@ async function main() {
   if (val('--viewport') && !viewport) { console.error(`--viewport: esperado <largura>x<altura> (ex.: 1440x900), recebi "${val('--viewport')}"`); return 2; }
   const sbMode = val('--sb-mode') || null;
   const rota = val('--rota') || null;
-  const clicar = val('--clicar') || null;
+  const cliques = vals('--clicar');
+  const clicar = cliques.length === 0 ? null : cliques.length === 1 ? cliques[0] : cliques;
   if (sbMode && !SB_MODOS.includes(sbMode)) { console.error(`--sb-mode: esperado ${SB_MODOS.join('|')}, recebi "${sbMode}"`); return 2; }
 
   if (flag('--mapa')) {

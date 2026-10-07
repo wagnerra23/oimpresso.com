@@ -56,6 +56,11 @@ on:
       # prototipo em main nao dispara a lane e o gate fica mudo justamente
       # quando a fonte muda — que e o unico momento em que ele importa.
       - 'prototipo-ui/cowork/Wagner/**'
+      # UC-FORJA-03 (ForjaSidebarEntradaContratoTest): a entry "Forja" so nasce se o
+      # AdminSidebarMenu chamar o DataController, e quem decide isso e o
+      # ModuleUtil::isModuleInstalled. Sem estes paths, mexer no portao nao acorda o teste.
+      - 'app/Utils/ModuleUtil.php'
+      - 'app/Http/Middleware/AdminSidebarMenu.php'
       - 'database/schema/mysql-schema.sql'
       - '.github/workflows/forja-pest.yml'
       - '.github/actions/pest-mysql-setup/**'
@@ -102,6 +107,9 @@ jobs:
               # sem rodar o PipelineParidadeTest, que está no run-set da lane e lê essa
               # fonte. Mesmo defeito das lanes Jana e Estoque na mesma leva.
               - 'prototipo-ui/cowork/Wagner/**'
+              # UC-FORJA-03 — mesmo motivo do bloco `push:` acima.
+              - 'app/Utils/ModuleUtil.php'
+              - 'app/Http/Middleware/AdminSidebarMenu.php'
               - 'database/schema/mysql-schema.sql'
               - '.github/workflows/forja-pest.yml'
               - '.github/actions/pest-mysql-setup/**'
@@ -163,6 +171,13 @@ jobs:
         # (está no schema baseline, com due_soon no enum) — montar tabela
         # sintética esconderia o próprio bug de schema que ele trava.
         # Não usa RefreshDatabase/migrate:fresh e apaga as linhas que cria.
+        #
+        # 2026-10-07 (playbook Forja thread 03) — entram ForjaTriagemContratoTest
+        # (UC-FORJA-08/09/10) e ForjaSidebarEntradaContratoTest (UC-FORJA-03), pelo
+        # mesmo desvio FAILING-FIRST. O de sidebar monta o estado de instalação medido em
+        # produção (só `projectmgmt_version`). Quando foi escrito, ele provava que a entry
+        # "Forja" não chegava ao shell.menu; a decisão [W] de 2026-10-07 levou o conserto
+        # ao main pelo #8949 (ModuleUtil aceita a row legada), antes deste teste entrar.
         env:
           DB_CONNECTION: mysql
           DB_HOST: 127.0.0.1
@@ -182,7 +197,9 @@ jobs:
             Modules/Forja/Tests/Feature/BriefAlertOpsInboxTest.php \
             Modules/Forja/Tests/Feature/ForjaBadgePendenciasTest.php \
             Modules/Forja/Tests/Feature/ForjaInstaladaChaveLegadaTest.php \
-            Modules/Forja/Tests/Feature/SyncMemoryWebhookSoMemoryTest.php
+            Modules/Forja/Tests/Feature/SyncMemoryWebhookSoMemoryTest.php \
+            Modules/Forja/Tests/Feature/ForjaTriagemContratoTest.php \
+            Modules/Forja/Tests/Feature/ForjaSidebarEntradaContratoTest.php
 
 
       # Passo 1 do plano da LC-13 (Gate:): a lane JA emitia JUnit e NINGUEM lia.
