@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Barcode;
 use App\Product;
 use App\SellingPriceGroup;
-use App\Support\Mwart;
 use App\Utils\ProductUtil;
 use App\Utils\TransactionUtil;
 use Illuminate\Http\Request;
@@ -72,11 +71,12 @@ class LabelsController extends Controller
         $default = $barcode_settings->where('is_default', 1)->first();
         $barcode_settings = $barcode_settings->pluck('name', 'id');
 
-        // Playbook Produto · thread 04: a tela Produto/Etiquetas/Index fica atrás da flag MWART
-        // `produto_etiquetas` (por empresa, lista só na env — decisão [W] 2026-10-06: biz=1
-        // primeiro). Flag desligada ou empresa fora da lista: a Blade de sempre. `?classico=1`
-        // força a Blade. A folha impressa continua saindo de preview() nos dois casos.
-        if ($request->boolean('classico') || ! Mwart::telaReact('produto_etiquetas', (int) $business_id)) {
+        // Playbook Produto · thread 04: a tela Produto/Etiquetas/Index é a padrão para todas as
+        // empresas, sem flag (decisão [W] 2026-10-06, noite: "etiquetas pode ativar sem tag" —
+        // antes ficava atrás da flag MWART `produto_etiquetas`, biz=1 primeiro). `?classico=1`
+        // ainda força a Blade como saída de emergência. A folha impressa continua saindo de
+        // preview() nos dois casos.
+        if ($request->boolean('classico')) {
             return view('labels.show')
                 ->with(compact('products', 'barcode_settings', 'default', 'price_groups'));
         }
