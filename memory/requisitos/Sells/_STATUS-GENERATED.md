@@ -19,16 +19,15 @@ authority: generated
 | US no SPEC | 60 |
 | CU no SDD | 6 |
 | Telas (.tsx) | 11 |
-| Telas com `casos.md` | 8 |
-| UC declarados | 104 |
-| UC com teste que os cita | 103 |
+| Telas com `casos.md` | 9 |
+| UC declarados | 105 |
+| UC com teste que os cita | 104 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
 | Lacuna | O que falta escrever |
 |---|---|
 | Tela `Drafts` sem `casos.md` | o contrato da tela (trio incompleto) |
-| Tela `Quotations` sem `casos.md` | o contrato da tela (trio incompleto) |
 | Tela `Subscriptions` sem `casos.md` | o contrato da tela (trio incompleto) |
 | `CU-SELL-05` sem UC | caso de uso que o exercite — Editar linha em pt-BR sem inflar o decimal |
 | `CU-SELL-06` sem UC | caso de uso que o exercite — Venda a prazo (fiado) fecha com saldo devedor |
@@ -118,6 +117,7 @@ authority: generated
 | UC-POS-06 | Pos/Index | 🧪 stub (não executa) |
 | UC-POS-07 | Pos/Index | 🧪 stub (não executa) |
 | UC-POS-08 | Pos/Index | 🧪 stub (não executa) |
+| UC-QUO-01 | Quotations | 🧪 aguarda veredito da lane |
 | UC-REM-01 | Shipments/Index | 🧪 aguarda veredito da lane |
 | UC-REM-02 | Shipments/Index | 🧪 aguarda veredito da lane |
 | UC-REM-03 | Shipments/Index | 🧪 aguarda veredito da lane |

@@ -33,6 +33,7 @@ Permitir ao responsável fiscal cadastrar ou ajustar uma regra tributária por N
 - Seletor de regime (Simples=CSOSN / Normal=CST) que troca o campo exibido e limpa o campo não usado no submit (exclusividade).
 - UF origem obrigatória; UF destino com opção "Todas (Nível 3)" que envia vazio (cascade Nível 2 vs 3).
 - Alíquotas em decimal (0.18 = 18%) via `FieldDecimal` (number, step 0.0001, 0–1), MVA/FCP opcionais.
+- Seção "Reforma tributária": cClassTrib (6 dígitos), CST IBS e CST CBS (3 dígitos), alíquotas IBS/CBS em decimal via `FieldDecimal`; o `edit` devolve os 5 na prop `regra` (US-FISCAL-021 · UC-NFRF-08).
 - Toasts de sucesso/erro; erros de campo do FormRequest exibidos inline; cancelar/voltar pra `/nfe-brasil/tributacao`.
 
 ---

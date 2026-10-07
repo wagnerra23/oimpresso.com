@@ -56,7 +56,7 @@ function LeadDrawer({ d, onClose }) {
           <div className="os-drawer-section">
             <h3>Contato</h3>
             <div className="cms-lead-id">
-              <div className="cms-card-av" style={{ background: c.bg, color: c.fg }}>{initials(d.nome)}</div>
+              <div className="cms-card-av" style={{ '--av-bg': c.bg, '--av-fg': c.fg }}>{initials(d.nome)}</div>
               <div>
                 <b>{d.email}</b>
                 <small>{d.tel || "sem telefone informado"}</small>
@@ -135,7 +135,7 @@ function Leads() {
                 <tr key={d.id} className="os-row" onClick={() => setAberto(d)}>
                   <td>
                     <div className="cms-lead-id">
-                      <div className="cms-card-av sm" style={{ background: c.bg, color: c.fg }}>{initials(d.nome)}</div>
+                      <div className="cms-card-av sm" style={{ '--av-bg': c.bg, '--av-fg': c.fg }}>{initials(d.nome)}</div>
                       <div><b>{d.nome}</b><small>{d.email}</small></div>
                     </div>
                   </td>

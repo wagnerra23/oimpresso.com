@@ -16,7 +16,7 @@
      que apagou 10 arquivos do DS (as 4 fontes inclusive). [CL] 2026-09-17 armou a recusa do lote
      por ref literal; o freshness não perde nada (rowsDoBundle já tira `_ds/**` do denominador). -->
 <script>window.__OI_DS_BASE__=location.pathname.indexOf('/prototipo-ui/cowork/')>-1?'../../design-system/':'_ds/office-impresso-design-system-019dd02f-d2d0-7ba6-a57f-24b3ddd073ac/';document.write('<link rel="stylesheet" href="'+window.__OI_DS_BASE__+'colors_and_type.css"/>')</script>
-<link rel="stylesheet" href="styles.css?v=te1"/>
+<link rel="stylesheet" href="styles.css?v=te2os"/>
 <!-- DS VIVO · camada de DOMÍNIO (origins/stage/sla/canal/kpi/kind/vip) — companion do git (#4097),
      canon verbatim. Carrega DEPOIS do ds-v6 pra vencer os literais antigos; aposenta o ds-v6. -->
 <script>document.write('<link rel="stylesheet" href="'+window.__OI_DS_BASE__+'cockpit_domains.css"/>')</script>
@@ -89,7 +89,7 @@
 <link rel="stylesheet" href="essenciais-page.css?v=ess6" media="print" onload="this.media='all'"/>
 <link rel="stylesheet" href="configuracoes-page.css?v=cfg3" media="print" onload="this.media='all'"/>
 <link rel="stylesheet" href="patrimonio-page.css?v=ds12wt" media="print" onload="this.media='all'"/>
-<link rel="stylesheet" href="modulos-faltantes.css?v=mf11" media="print" onload="this.media='all'"/>
+<link rel="stylesheet" href="modulos-faltantes.css?v=mf13" media="print" onload="this.media='all'"/>
 <link rel="stylesheet" href="repair-page.css?v=rp3t" media="print" onload="this.media='all'"/>
 <link rel="stylesheet" href="repair-print.css?v=rp4" media="print" onload="this.media='all'"/>
 <!-- Camada transversal de otimização (ondas 1-7): sticky thead, tabular-nums, foco visível,
@@ -383,7 +383,7 @@
 <script type="text/oi-lazy" data-src="configuracoes-page.jsx?v=cfg5tp"></script>
 <!-- Telas que existiam no vivo e faltavam no Cowork: Comunicação Visual · Voz do Cliente · Suporte · Vestuário · Catálogo QR -->
 <script type="text/oi-lazy" data-src="comunicacao-visual-page.jsx?v=mf10"></script>
-<script type="text/oi-lazy" data-src="voz-do-cliente-page.jsx?v=mf4"></script>
+<script type="text/oi-lazy" data-src="voz-do-cliente-page.jsx?v=mf5"></script>
 <script type="text/oi-lazy" data-src="suporte-page.jsx?v=mf4"></script>
 <script type="text/oi-lazy" data-src="vestuario-page.jsx?v=mf10"></script>
 <script type="text/oi-lazy" data-src="catalogo-qr-page.jsx?v=mf4"></script>
@@ -391,7 +391,7 @@
 <script type="text/oi-lazy" data-src="arquivos-data.jsx?v=arq5"></script>
 <script type="text/oi-lazy" data-src="arquivos-page.jsx?v=arq5tup"></script>
 <script type="text/babel" src="command-palette.jsx?v=cmdk2"></script>
-<script type="text/babel" src="app.jsx?v=eb32-ent"></script>
+<script type="text/babel" src="app.jsx?v=eb33-ts"></script>
 <!-- QA: probe de conformância DS (gated ?qa=1 · invisível pro cliente) — camada 2 da matriz anti-regressão -->
 <!-- Carga diferida dos módulos: o shell (sidebar + rota inicial) pinta primeiro; os ~130
      arquivos de módulo entram em segundo plano, na mesma ordem, sem mudar 1 arquivo = 1 tela. -->
@@ -414,7 +414,7 @@ window.__oiLazyDone = false;
     var FAMILIAS = {
       chat: /jana|chat/, os: /os-page|fsm-stepper|data-os/, clientes: /cliente/, cli: /cliente/,
       financeiro: /financeiro|fin-/, fin: /financeiro|fin-/, cobranca: /cobranca/,
-      "payment": /^pg-/, sells: /^pg-/, vendas: /venda/, venda: /venda/, orcamentos: /orc-/,
+      "payment": /^pg-/, sells: /^pg-/, vendas: /venda/, venda: /venda/, orcamentos: /orc-/, "venda-cotacoes": /orc-|venda/,
       produtos: /produt/, prod: /produt/, manufacturing: /manufacturing/, mfg: /manufacturing/,
       fila: /producao/, acabamento: /producao/, expedicao: /producao/, compras: /compras/, cmp: /compras/,
       estoque: /estoque/, est: /estoque/, oficina: /oficina/, repair: /repair/, rep: /repair/,
@@ -423,7 +423,7 @@ window.__oiLazyDone = false;
       cfg: /configuracoes/, configuracoes: /configuracoes/, governance: /governance/, kb: /kb-/,
       site: /cms-/, cms: /cms-/, connector: /connector/, conn: /connector/, superadmin: /superadmin/,
       sa: /superadmin/, modulos: /modulos-/, tarefas: /tasks/, equipe: /equipe/, planilhas: /planilhas/,
-      arquivos: /arquivos-/, arq: /arquivos-/, cv: /comunicacao-visual/, voz: /voz-do-cliente/, suporte: /suporte-/, vestuario: /vestuario-/,
+      arquivos: /arquivos-/, arq: /arquivos-/, cv: /comunicacao-visual/, voz: /voz-do-cliente|acessos-ds/, suporte: /suporte-|acessos-ds/, vestuario: /vestuario-/,
       vest: /vestuario-/, "catalogo": /catalogo-qr/
     };
     var alvo = FAMILIAS[rota] || FAMILIAS[rota.split("-")[0]];

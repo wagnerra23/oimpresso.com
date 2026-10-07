@@ -28,7 +28,7 @@ Antes deste PR, `ScorecardController@index` renderizava `team-mcp/Scorecard/Inde
 **Pronto quando:** abrir `/team-mcp/scorecard` renderiza a tela (sem tela branca / 500).
 
 ## UC-SC-02 — Semáforo geral reflete os checks
-Status: ⬜ (manual/visual)
+Status: 🧪 (3 testes de render em `tests/js/forja-scorecard-semaforo.test.tsx` citam este UC — monta a tela em jsdom com 3/3 ok, 1 de 4 e 2 de 5 falhando e lê texto e token de cor do banner. Lane `forja-jsdom-gate.yml`. Verde local em 2026-10-07 (`vitest run`, 3 passed); o ✅ vem do manifesto do CI, não se escreve à mão.)
 Banner no topo: verde "Tudo verde — N/N checks OK" quando todos passam; amarelo "N de M falhando" caso contrário.
 **Pronto quando:** com todos os checks `ok=true`, o banner é verde com a contagem certa; com ≥1 `ok=false`, fica amarelo.
 
@@ -47,10 +47,13 @@ Status: 🧪 (1 teste de `ScorecardContratoTest` cita este UC — varre os Facts
 O builder só expõe pontos atuais (sem série). A tela NÃO renderiza sparkline fabricado — só Facts+Checks reais.
 **Pronto quando:** não há nenhum gráfico de série na tela; nenhum dado derivado é apresentado como medido.
 
-## UC-SC-06 — DS v6 (sem cor crua)
-Status: 🧪 (cobertura: eslint `ds/*` = 0 + conformance ratchet)
-Tokens semânticos (success/warning/destructive), `tabular-nums`, layout via `inline-flex`/`KpiGrid` — zero paleta crua, zero `rounded-xl+`.
-**Pronto quando:** `eslint resources/js/Pages/team-mcp/Scorecard/Index.tsx` = 0 `ds/*` e `conformance-gate` verde.
+**DS v6 (sem cor crua)** — tokens semânticos (success/warning/destructive), `tabular-nums`, layout via `inline-flex`/`KpiGrid`, zero paleta crua, zero `rounded-xl+`. O juiz é `eslint ds/*` (catraca `config/eslint-baseline.json`) + `conformance-gate`.
+
+> **Rebaixado de `UC-SC-06` em 2026-10-07 (playbook Forja thread 03).** Mesmo destino do gêmeo `UC-FORJA-06`, rebaixado em 2026-07-27 (#4879) e ratificado no [SDD do hub §6.5](../../../../../../../memory/requisitos/TeamMcp/SDD-tela-hub-team-mcp-v1.0.md): conformidade não é caso de uso, o critério de aceite é "gate X verde", e um teste que reafirmasse isso seria régua paralela (proibicoes.md §5, 2026-07-09). O SDD registrou a incoerência entre os gêmeos no §9.3 e a deixou "pra corrida que tratar o Scorecard" — é esta.
+>
+> **Medido antes de rebaixar:** `eslint` no `Index.tsx` em 2026-10-07 deu **0 violação de cor crua e 0 de `rounded-xl`**, e **1** `ds/*` de outro eixo — `ds/no-db-jargon-in-ui` na linha 168 (o aviso *"mcp_audit_log ausente / mcp_tokens ausente / Rodar migrations"*), já absorvido na catraca (`config/eslint-baseline.json`: `team-mcp/Scorecard/Index.tsx|no-restricted-syntax: 1`). A redação antiga dizia **"= 0 `ds/*`"** e estava falsa por causa dele. Fica como item de backlog abaixo, não como UC.
+
+- **[BACKLOG] Aviso de schema ausente em linguagem de negócio** — a linha 168 mostra nome de tabela cru (`mcp_audit_log`, `mcp_tokens`) ao superadmin. Trocar pela frase de negócio zera a única entrada desta tela na catraca `ds/*`. Copy é decisão de quem mexer na tela.
 
 ## UC-SC-07 — Read-only (a tela não muta nada)
 Status: 🧪 (1 teste de `ScorecardContratoTest` cita este UC — toda rota `team-mcp.scorecard.*` é GET-only, lido do registro de rotas. Roda em qualquer driver.)
