@@ -1217,7 +1217,7 @@ class ReportController extends Controller
     /**
      * Shows sales representative report
      *
-     * @return \Illuminate\View\View|\Inertia\Response
+     * @return \Illuminate\Contracts\View\View|\Inertia\Response
      */
     public function getSalesRepresentativeReport(Request $request)
     {
