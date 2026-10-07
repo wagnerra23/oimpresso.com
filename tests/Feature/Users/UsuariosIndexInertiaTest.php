@@ -58,8 +58,8 @@ test('UC-USUA-01 cutover — chave desligada: GET comum fica na Blade; com X-Ine
 
 test('UC-USUA-01 cutover — chave ligada só para esta empresa: GET comum vira React; para outra empresa, Blade', function () {
     config(['mwart.sistema_usuarios_index' => ['enabled' => true, 'business_ids' => [(int) $this->business->id]]]);
-    // `false`: não exigir o .tsx no disco — a Page chega no PR seguinte da thread (trio próprio).
-    $this->get('/users')->assertOk()->assertInertia(fn (AssertableInertia $p) => $p->component('Usuarios/Index', false));
+    // `true`: o componente tem de existir no disco (resources/js/Pages/Usuarios/Index.tsx).
+    $this->get('/users')->assertOk()->assertInertia(fn (AssertableInertia $p) => $p->component('Usuarios/Index', true));
 
     config(['mwart.sistema_usuarios_index' => ['enabled' => true, 'business_ids' => [(int) $this->business->id + 1000]]]);
     $this->get('/users')->assertOk()->assertSee('BLADE manage_user.index');
