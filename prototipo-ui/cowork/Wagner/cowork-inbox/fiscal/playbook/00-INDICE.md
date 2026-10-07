@@ -237,6 +237,16 @@ Terminou: escreva _saida-NN.md e pare.
       "id": "D-REJEITADA",
       "respondida": true,
       "resposta": "[W] 2026-10-06: ok, como proposto"
+    },
+    {
+      "id": "D-SEED-ICMS",
+      "pergunta": "Rodar em produção o seed das alíquotas interestaduais (NfeIcmsUfSeeder)",
+      "respondida": true,
+      "destrava": [
+        "30"
+      ],
+      "resposta": "rodar agora",
+      "fonte": "_DECISOES-W-2026-10-07b.md"
     }
   ],
   "threads": [
@@ -888,7 +898,28 @@ Terminou: escreva _saida-NN.md e pare.
         "15"
       ],
       "provas": []
+    },
+    {
+      "id": "30",
+      "titulo": "Rodar NfeIcmsUfSeeder em produção (D-SEED-ICMS)",
+      "dono": "CL",
+      "vaga": 2,
+      "prs": 0,
+      "arquivo": "30-seed-icms-producao.md",
+      "depende_decisoes": [
+        "D-SEED-ICMS"
+      ],
+      "prefixo": [
+        "prototipo-ui/cowork/Wagner/cowork-inbox/fiscal/playbook/_saida-30.md"
+      ],
+      "nao_toca": [
+        "Modules/",
+        "database/"
+      ],
+      "provas": [],
+      "nota_provas": "recibo com a contagem em produção depois: 146 pares a 7% · 556 a 12% · 27 internos vazios (os números do _saida-09)"
     }
-  ]
+  ],
+  "revisado": " · 2026-10-07 D-SEED-ICMS → thread 30"
 }
 ```
