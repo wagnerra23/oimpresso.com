@@ -176,8 +176,12 @@ em LOTE) · `resources/js/Components/shared/StatusBadge.tsx` (domínio `producao
 > do merge, mostrar a [W] um filtro com o Valor total **antes→depois** e conferir que ele bate com a
 > soma das ordens listadas (dois caminhos).
 
-- [ ] KPIs seguem o filtro de local e período (decisão [W] 2026-10-06) — teste que prove que ordem
-      fora do filtro não entra em nenhum dos 4, e que o Valor total = soma das linhas listadas
+- [x] KPIs seguem o filtro de local e período (decisão [W] 2026-10-06) — teste que prove que ordem
+      fora do filtro não entra em nenhum dos 4, e que o Valor total = soma das linhas listadas.
+      **Feito 2026-10-07 (UC-OP-10):** `ProductionService::summary($biz, $filters)` + prop `kpis` na
+      tela; `IndicadoresSeguemFiltroTest.php` confere por 2 caminhos (conta à mão × soma da lista).
+      O contador da barra de abas segue com todas as ordens. ⚠️ "= soma das linhas listadas" só vale
+      até 25 ordens: a lista para em 25 e os cartões contam todas as do recorte no banco.
 - [ ] Antes→depois do Valor total num filtro apresentado a [W] antes do merge (REGRA MESTRE)
 - [x] **Achado ao construir:** o `optional($p->location)->name` do map era **N+1 desde a Wave J**
       (uma query por linha). Corrigido com eager-load de `location`; UC-OP-03 trava a regressão.
