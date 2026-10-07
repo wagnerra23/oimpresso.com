@@ -2924,24 +2924,23 @@ class TransactionUtil extends Util
      * @param  int  $business_id
      * @param  array  $filters
      * @param  string  $type = by_category (by_category or total)
-     * @param  string|array<int, int>|null  $permitted_locations  'all', ids permitidos ou null (sem filtro)
      * @return Obj
      */
     public function getExpenseReport(
         $business_id,
         $filters = [],
-        $type = 'by_category',
-        $permitted_locations = null
+        $type = 'by_category'
     ) {
         $query = Transaction::leftjoin('expense_categories AS ec', 'transactions.expense_category_id', '=', 'ec.id')
                             ->where('transactions.business_id', $business_id)
                             ->whereIn('type', ['expense', 'expense_refund']);
         // ->where('payment_status', 'paid');
 
-        // Locais permitidos do usuário (User::permitted_locations): 'all' não filtra; uma lista filtra,
-        // e lista VAZIA (nenhum local) não devolve nada. Antes esta variável nunca era definida e o
-        // filtro nunca rodava: quem só tinha um local via as despesas de todos. null = sem filtro,
-        // para chamador que não é de usuário.
+        // $filters['permitted_locations'] = User::permitted_locations(): 'all' não filtra; uma lista
+        // filtra, e lista VAZIA (nenhum local) não devolve nada. Antes lia-se um $permitted_locations
+        // nunca definido e o filtro nunca rodava: quem só tinha um local via as despesas de todos.
+        // Ausente = sem filtro, para chamador que não é de usuário.
+        $permitted_locations = $filters['permitted_locations'] ?? null;
         if (is_array($permitted_locations)) {
             $query->whereIn('transactions.location_id', $permitted_locations);
         }
