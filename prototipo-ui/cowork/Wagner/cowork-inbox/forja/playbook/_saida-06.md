@@ -12,13 +12,16 @@ base_lida: wagnerra23/oimpresso.com@main (origin/main de 2026-10-07)
 Um bloco no fim de `resources/css/cowork-forja-bundle.css`. Nenhum `.tsx` mudou.
 
 ```css
-.fj-pin, .fj-star{ width:24px; height:24px; }      /* eram 22×22 */
-.fj-group-toggle{ min-height:24px; }                /* era 23,75 de altura */
-.fj-search input{ min-height:24px; padding:0; }     /* era 19,5 de altura */
-.fj-search{ padding-top:3.75px; padding-bottom:3.75px; }  /* a caixa segue com 33,5px */
+.fj-pin, .fj-star{ width:24px; height:24px; }                       /* eram 22×22 */
+.fj-group-head > .fj-group-toggle{ min-height:24px; }                /* era 23,75 de altura */
+.fj-search > input{ min-height:24px; padding:0; }                    /* era 19,5 de altura */
+.fj-toolbar > .fj-search{ padding-top:3.75px; padding-bottom:3.75px; }  /* a caixa segue com 33,5px */
 ```
 
-O glifo não cresce; cresce a caixa do botão. O bloco fica separado, no fim, porque acima é a cópia
+O glifo não cresce; cresce a caixa do botão. Os seletores são compostos, não os simples da cópia
+do protótipo, para não repetir seletor: a catraca `no-duplicate-selectors` do stylelint (required)
+acusou 13 → 16 na 1ª versão. Com os compostos, `node scripts/stylelint-baseline.mjs` dá delta 0, e
+no DOM de produção eles casam os mesmos elementos (9 de 9 toggles, 1 de 1 busca, input filho direto). O bloco fica separado, no fim, porque acima é a cópia
 do CSS do protótipo, e o protótipo (`forja-page.css`) ainda tem 22px. A mesma correção cabe no
 build do Cowork.
 
