@@ -48,6 +48,32 @@ const pctPorOrigem = (total) => {
   return Object.fromEntries(brutos.map((x) => [x.s, x.p]));
 };
 
+// Turno aberto (thread 07: Movimentos do caixa + Conferência física, vivos desde 2026-10-05).
+// Fecha com TURNOS[0]: vendas 4.586,90 = dinheiro 986,90 + cartão 2.210,00 + Pix 1.390,00;
+// despesas 85,00 e devoluções 120,00, todas em dinheiro.
+const TURNO_FORMAS = [
+  { key: "cash", label: "Dinheiro", vendas: 986.9, despesas: 85, devolucoes: 120 },
+  { key: "card", label: "Cartão", vendas: 2210, despesas: 0, devolucoes: 0 },
+  { key: "pix", label: "Pix", vendas: 1390, despesas: 0, devolucoes: 0 },
+];
+const TURNO_MOV = [
+  { id: 7, hora: "16:55", tipo: "Venda", forma: "Pix", inv: "POS-2026-0485", valor: 903.1 },
+  { id: 6, hora: "16:20", tipo: "Venda", forma: "Cartão", inv: "POS-2026-0484", valor: 2210 },
+  { id: 5, hora: "15:10", tipo: "Despesa", forma: "Dinheiro", inv: null, valor: 85, debito: true },
+  { id: 4, hora: "13:40", tipo: "Devolução", forma: "Dinheiro", inv: "POS-2026-0478", valor: 120, debito: true },
+  { id: 3, hora: "11:02", tipo: "Venda", forma: "Dinheiro", inv: "POS-2026-0483", valor: 98.5 },
+  { id: 2, hora: "10:34", tipo: "Venda", forma: "Dinheiro", inv: "POS-2026-0482", valor: 888.4 },
+  { id: 1, hora: "09:12", tipo: "Venda", forma: "Pix", inv: "POS-2026-0481", valor: 486.9 },
+];
+const centavos = (txt) => {
+  const t = String(txt || "").trim();
+  if (!t) return null;
+  const n = Number(t.split(".").join("").replace(",", "."));
+  return Number.isFinite(n) ? Math.round(n * 100) : null;
+};
+// Diferença exibida (vivo `textoDiferenca`): zero = bateu; positivo = sobra; negativo = falta.
+const textoDiferenca = (c) => c === null ? "—" : c === 0 ? "bateu certinho" : (c > 0 ? "sobra " : "falta ") + brl(Math.abs(c) / 100);
+
 function VendaCaixaDia({ avisar }) {
   const { Widget } = UI();
   const [data, setData] = useState(new Date().toISOString().slice(0, 10));
@@ -55,15 +81,32 @@ function VendaCaixaDia({ avisar }) {
   const countDia = FORMAS_DIA.reduce((a, f) => a + f.count, 0);
   const pct = pctPorOrigem(totalDia);
   const dinheiro = FORMAS_DIA.find((f) => f.key === "cash").total;
+  const turno = TURNOS[0];
+  const esperado = Math.round((turno.inicial + turno.dinheiro - turno.despesas - turno.devolucoes) * 100);
+  const [contado, setContado] = useState("");
+  const [cartoes, setCartoes] = useState("");
+  const [cheques, setCheques] = useState("");
+  const [nota, setNota] = useState("");
+  const [erro, setErro] = useState(null);
+  const cContado = centavos(contado);
+  const dif = cContado === null ? null : cContado - esperado;
+  const precisaNota = dif !== null && dif !== 0;
+  const fechar = () => {
+    if (cContado === null) return setErro("Informe o valor contado em dinheiro.");
+    if (precisaNota && !nota.trim()) return setErro("Há diferença: escreva a observação de fechamento.");
+    setErro(null);
+    avisar("Caixa fechado — " + textoDiferenca(dif) + ".", dif === 0 ? "ok" : "warn");
+  };
   if (!Widget) return null;
   return (
     <>
       <div className="vc-kpis">
-        <div className="vc-kpi hero"><span>Faturado no dia</span><b>{brl(totalDia)}</b><em>{countDia} venda(s)</em></div>
-        <div className="vc-kpi"><span>Vendas em dinheiro</span><b>{brl(dinheiro)}</b><em>compensação imediata</em></div>
-        <div className="vc-kpi"><span>Caixa</span><b className="ok">aberto</b><em>turno de Larissa Prado</em></div>
+        <div className="vc-kpi hero"><span>Faturado no dia</span><b>{brl(totalDia)}</b><em>{countDia} venda{countDia !== 1 ? "s" : ""}</em></div>
+        <div className="vc-kpi"><span>Vendas em dinheiro</span><b>{brl(dinheiro)}</b><em>cash · imediato</em></div>
+        <div className="vc-kpi"><span>Caixa</span><b className="ok">aberto</b><em>#{turno.id}</em></div>
         <div className="vc-kpi"><span>Origens hoje</span><b>{ORIGENS_DIA.length}</b><em>balcão · oficina · online</em></div>
       </div>
+      <p className="pb-help">Conferência por forma de pagamento, sangrias e fechamento</p>
       <div className="vc-dia">
         <Widget titulo={<><Ic name="cash" size={13} /> Por forma de pagamento</>} nota={data.split("-").reverse().join("/")}>
           <div className="vc-dia-topo">
@@ -78,7 +121,7 @@ function VendaCaixaDia({ avisar }) {
             <tfoot><tr><td colSpan={3}><b>Total bruto</b></td><td className="r mono"><b>{brl(totalDia)}</b></td></tr></tfoot>
           </table>
         </Widget>
-        <Widget titulo={<><Ic name="chart" size={13} /> Por origem</>} nota="balão · oficina · online">
+        <Widget titulo={<><Ic name="chart" size={13} /> Por origem</>} nota="balcão · oficina · online">
           {ORIGENS_DIA.map((g) => {
             const p = pct[g.source];
             return (
@@ -93,6 +136,34 @@ function VendaCaixaDia({ avisar }) {
               </div>
             );
           })}
+        </Widget>
+        {/* Puxado do vivo (Sells/Caixa/Index.tsx, thread 07): as duas seções que eram "Onda 6+1". */}
+        <Widget titulo={<><Ic name="list" size={13} /> Movimentos do caixa</>} nota="turno aberto · somente leitura">
+          <p className="pb-help">Turno #{turno.id} · aberto em {turno.aberto} · {turno.loc} · troco inicial {brl(turno.inicial)}</p>
+          <table className="pb-tbl" aria-label="Totais do turno por forma de pagamento">
+            <thead><tr><th>Forma</th><th className="r">Vendas</th><th className="r">Despesas</th><th className="r">Devoluções</th></tr></thead>
+            <tbody>{TURNO_FORMAS.map((f) => <tr key={f.key}><td>{f.label}</td><td className="r mono">{brl(f.vendas)}</td><td className="r mono">{brl(f.despesas)}</td><td className="r mono">{brl(f.devolucoes)}</td></tr>)}</tbody>
+            <tfoot><tr><td><b>Total do turno</b></td><td className="r mono"><b>{brl(turno.vendas)}</b></td><td className="r mono"><b>{brl(turno.despesas)}</b></td><td className="r mono"><b>{brl(turno.devolucoes)}</b></td></tr></tfoot>
+          </table>
+          <table className="pb-tbl" aria-label="Movimentos do turno" style={{ marginTop: 10 }}>
+            <thead><tr><th>Hora</th><th>Tipo</th><th>Forma</th><th>Venda</th><th className="r">Valor</th></tr></thead>
+            <tbody>{TURNO_MOV.map((m) => <tr key={m.id}><td className="pb-help mono">{m.hora}</td><td>{m.tipo}</td><td>{m.forma}</td><td className="mono">{m.inv || "—"}</td><td className="r mono">{m.debito ? "− " : ""}{brl(m.valor)}</td></tr>)}</tbody>
+          </table>
+        </Widget>
+        <Widget titulo={<><Ic name="cash" size={13} /> Conferência física</>} nota="contagem e fechamento do turno">
+          <table className="pb-tbl" aria-label="Conferência do dinheiro">
+            <tbody>
+              <tr><td>Esperado em dinheiro</td><td className="r mono"><b>{brl(esperado / 100)}</b></td></tr>
+              <tr><td><label htmlFor="vc-contado">Contado em dinheiro</label></td><td className="r"><input id="vc-contado" className="vc-date" inputMode="decimal" placeholder="0,00" value={contado} onChange={(e) => setContado(e.target.value)} /></td></tr>
+              <tr><td>Diferença</td><td className="r mono" aria-live="polite"><b>{textoDiferenca(dif)}</b></td></tr>
+              <tr><td><label htmlFor="vc-cartoes">Comprovantes de cartão</label></td><td className="r"><input id="vc-cartoes" className="vc-date" type="number" min={0} value={cartoes} onChange={(e) => setCartoes(e.target.value)} /></td></tr>
+              <tr><td><label htmlFor="vc-cheques">Cheques</label></td><td className="r"><input id="vc-cheques" className="vc-date" type="number" min={0} value={cheques} onChange={(e) => setCheques(e.target.value)} /></td></tr>
+            </tbody>
+          </table>
+          <label htmlFor="vc-nota" className="pb-help">Observação de fechamento{precisaNota ? " (obrigatória: há diferença)" : ""}</label>
+          <textarea id="vc-nota" className="vc-date" rows={2} style={{ width: "100%" }} value={nota} onChange={(e) => setNota(e.target.value)} />
+          {erro && <p className="pb-help" role="alert">{erro}</p>}
+          <button className="os-btn sm primary" onClick={fechar}><Ic name="check" size={12} /> Fechar caixa com esta contagem</button>
         </Widget>
       </div>
     </>
@@ -331,6 +402,13 @@ function VendaEditarModal({ venda, onClose, avisar }) {
         <button className="os-btn" onClick={onClose}>Cancelar</button>
         <button className="os-btn primary" disabled={travada} onClick={() => { avisar(venda.inv + " atualizada — novo total " + brl(total) + ".", "ok"); onClose(); }}>Salvar venda</button>
       </>}>
+      {/* Puxado do vivo (Edit.tsx): faixa Itens · Total venda · Pago · Status pgto. */}
+      <div className="vc-kpis">
+        <div className="vc-kpi"><span>Itens</span><b>{linhas.length}</b></div>
+        <div className="vc-kpi"><span>Total venda</span><b>{brl(total)}</b></div>
+        <div className="vc-kpi"><span>Pago</span><b>{brl(venda.pago)}</b></div>
+        <div className="vc-kpi"><span>Status pgto</span><b className={venda.pago >= total ? "ok" : ""}>{venda.pago >= total ? "Pago" : brl(total - (venda.pago || 0))}</b>{venda.pago < total && <em>falta receber</em>}</div>
+      </div>
       {travada && Alert &&
         <Alert tone="warn" title="Venda finalizada não se edita">Esta venda está {venda.pg === "paid" ? "quitada" : "faturada"}. O caminho é estorno ou cancelamento — alterar itens aqui bagunçaria estoque e fiscal.</Alert>}
       <div className="pb-grid c3">
@@ -340,7 +418,15 @@ function VendaEditarModal({ venda, onClose, avisar }) {
         <Fld label="Vendedor"><Sel value={f.quem} onChange={(v) => setF({ ...f, quem: v })} options={D().VENDEDORES || []} /></Fld>
         <Fld label="Tipo de serviço"><Sel value={f.serv} onChange={(v) => setF({ ...f, serv: v })} options={D().SERVICOS || []} /></Fld>
         <Fld label="Forma de pagamento"><Sel value={f.forma} onChange={(v) => setF({ ...f, forma: v })} options={D().FORMAS || []} /></Fld>
+        <Fld label="Status"><Sel value={f.status || "Final"} onChange={(v) => setF({ ...f, status: v })} options={["Final", "Rascunho", "Cotação", "Proforma"]} /></Fld>
       </div>
+      <div className="pb-help" style={{ marginTop: 10 }}><b>Desconto e observações</b></div>
+      <div className="pb-grid c3">
+        <Fld label="Tipo de desconto"><Sel value={f.descTipo || "Percentual (%)"} onChange={(v) => setF({ ...f, descTipo: v })} options={["Percentual (%)", "Valor fixo (R$)"]} /></Fld>
+        <Fld label="Valor desconto"><input className="num" value={f.descValor || ""} disabled={travada} onChange={(e) => setF({ ...f, descValor: e.target.value })} placeholder="0,00" /></Fld>
+      </div>
+      <div className="pb-help" style={{ marginTop: 10 }}><b>Produtos</b></div>
+      <div className="pb-busca"><Ic name="search" size={12} /><input style={{ width: "100%" }} disabled={travada} placeholder="Buscar produto por nome, SKU ou código de barras…" /></div>
       <table className="pb-tbl" style={{ marginTop: 12 }}>
         <thead><tr><th>Produto</th><th className="r">Qtd</th><th className="r">Preço unit.</th><th className="r">Desconto</th><th className="r">Subtotal</th><th /></tr></thead>
         <tbody>
@@ -358,7 +444,20 @@ function VendaEditarModal({ venda, onClose, avisar }) {
         <tfoot><tr><td colSpan={4}><b>Novo total</b></td><td className="r mono"><b>{brl(total)}</b></td><td /></tr></tfoot>
       </table>
       <div className="pb-grid c2" style={{ marginTop: 12 }}>
-        <Fld label="Observação da venda" span={2}><textarea value={f.obs || ""} disabled={travada} onChange={(e) => setF({ ...f, obs: e.target.value })} /></Fld>
+        <Fld label="Observações" span={2}><textarea value={f.obs || ""} disabled={travada} onChange={(e) => setF({ ...f, obs: e.target.value })} /></Fld>
+      </div>
+      <div className="pb-help" style={{ marginTop: 10 }}><b>Responsável, notas e anexos</b></div>
+      <div className="pb-grid c2">
+        <Fld label="Responsável / comissionado"><Sel value={f.resp || ""} onChange={(v) => setF({ ...f, resp: v })} options={D().VENDEDORES || []} vazio="— Sem responsável —" /></Fld>
+        <Fld label="Nota interna (equipe)"><input value={f.notaInt || ""} onChange={(e) => setF({ ...f, notaInt: e.target.value })} /></Fld>
+      </div>
+      <div className="pb-help" style={{ marginTop: 10 }}><b>Frete</b></div>
+      <div className="pb-grid c2">
+        <Fld label="Frete (R$)"><input className="num" value={f.frete || ""} onChange={(e) => setF({ ...f, frete: e.target.value })} placeholder="0,00" /></Fld>
+        <Fld label="Status frete"><Sel value={f.freteSt || ""} onChange={(v) => setF({ ...f, freteSt: v })} options={(D().ENVIO || []).map((x) => x.name)} vazio="— Selecione —" /></Fld>
+        <Fld label="Endereço entrega" span={2}><textarea value={f.end || ""} onChange={(e) => setF({ ...f, end: e.target.value })} placeholder="Endereço pra onde o produto será entregue." /></Fld>
+        <Fld label="Endereço de cobrança (se diferente de entrega)" span={2}><textarea value={f.endCob || ""} onChange={(e) => setF({ ...f, endCob: e.target.value })} placeholder="Deixe em branco se cobrança = entrega." /></Fld>
+        <Fld label="Detalhes frete" span={2}><input value={f.freteDet || ""} onChange={(e) => setF({ ...f, freteDet: e.target.value })} /></Fld>
       </div>
       <p className="pb-help" style={{ marginTop: 8 }}>Mudar item recalcula estoque na hora de salvar. Pagamento se ajusta pelo botão “Adicionar pagamento”, não aqui.</p>
     </Modal>

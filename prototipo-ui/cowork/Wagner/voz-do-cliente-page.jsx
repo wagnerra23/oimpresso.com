@@ -64,13 +64,13 @@ function VozDoClientePage({ estado = "dados", papel = "produto", dense = false }
   };
 
   const colunas = [
-    { key: "quando", label: "Quando", width: 190 },
-    { key: "quem", label: "Quem", width: 150 },
-    { key: "disse", label: "O que disse" },
-    { key: "onde", label: "Onde", width: 210 },
+    { key: "quando", label: "Quando", width: 160 },
+    { key: "quem", label: "Quem", width: 140 },
+    { key: "disse", label: "O que disse", width: 320 },
+    { key: "onde", label: "Onde", width: 180 },
     { key: "sev", label: "Grav.", width: 90 },
-    { key: "situacao", label: "Situação", width: 170 },
-    { key: "acao", label: "", width: 110, align: "right" },
+    { key: "situacao", label: "Situação", width: 150 },
+    { key: "acao", label: "Ação", width: 90, align: "right" },
   ];
   const linhas = filtrada.map((s) => ({
     id: s.id,

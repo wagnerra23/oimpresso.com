@@ -400,17 +400,6 @@ function PageHeaderNav({ route }) {
 }
 window.PageHeaderNav = PageHeaderNav;
 
-// Aviso de exploração — telas que só existem no protótipo (telas-soltas D1, [W] 2026-10-06):
-// ficam no menu, mas dizem que não estão em produção até [W] decidir.
-function ExploracaoAviso({ tela }) {
-  const { Alert } = window.OfficeImpressoPontoWR2DesignSystem_019dd0 || {};
-  const txt = tela + " ainda não existe em produção — é uma exploração do protótipo. Os dados são ilustrativos e nada aqui é gravado.";
-  return (
-    <div className="oi-explora" data-contract="exploracao" style={{ padding: "12px 24px 0" }}>
-      {Alert ? <Alert tone="info" title="Exploração">{txt}</Alert> : <p role="note">{txt}</p>}
-    </div>
-  );
-}
 
 // Teto canon: 5 ghosts visíveis, o resto vai pro ⋯ (Vendas tem 18, Financeiro 11).
 // A tela ativa é sempre promovida pra faixa visível — nunca escondida atrás do ⋯.
@@ -810,7 +799,7 @@ function App() {
   if (route === "notificacoes") content = <window.NotificacoesPage />;else
   if (route === "backup") content = <window.BackupPage destino={tweaks.bkpDestino} estado={tweaks.bkpEstado} permissao={tweaks.bkpPermissao} />;else
   if (route === "modulos") content = <window.ModulosPage />;else
-  if (route === "os") content = <><ExploracaoAviso tela="Ordens de Serviço" /><window.OsListPage /></>;else
+  if (route === "os") content = <window.OsListPage />;else
   if (route === "clientes") content = <window.CliListPage />;else
   if (route === "cli-import") content = <window.ClienteImportPage />;else
   if (route === "cli-novo") content = <window.ClienteFormPage modo="novo" />;else
@@ -879,8 +868,8 @@ function App() {
   if (route === "documentacao") content = <window.DocumentacaoPage />;else
   if (route === "fluxos") content = <window.FluxosPage />;else
   if (route === "entregas") content = <window.EntregasPage />;else
-  if (route === "planilhas") content = <><ExploracaoAviso tela="Planilhas" /><window.PlanilhasPage view="lista" /></>;else
-  if (route === "planilha-nova") content = <><ExploracaoAviso tela="Planilhas" /><window.PlanilhasPage view="nova" /></>;else
+  if (route === "planilhas") content = <window.PlanilhasPage view="lista" />;else
+  if (route === "planilha-nova") content = <window.PlanilhasPage view="nova" />;else
   if (route === "programa-doc") content = <window.ProgramaDocPage />;else
   if (route === "site") content = <window.CmsPage view="paginas" />;else
   if (route === "cms-blog") content = <window.CmsPage view="blog" />;else
@@ -929,7 +918,7 @@ function App() {
   if (route === "fiscal-sped") content = <window.FiscalPage view="sped" />;else
   if (route === "cv") content = <window.ComunicacaoVisualPage estado={tweaks.cvEstado} papel={tweaks.cvPapel} dense={tweaks.cvDensidade === "compacto"} toque={tweaks.cvToque} pcp={tweaks.cvPcp} salvar={tweaks.cvSalvar} />;else
   if (route === "arquivos" || (typeof route === "string" && route.indexOf("arq-") === 0)) content = <window.ArquivosPage view={{ "arquivos": "acervo", "arq-retencao": "retencao", "arq-cofre": "cofre", "arq-trilha": "trilha" }[route]} estado={tweaks.arqEstado} papel={tweaks.arqPapel} dense={tweaks.arqDensidade === "compacto"} toque={tweaks.arqToque} casa={tweaks.arqCasa} />;else
-  if (route === "voz") content = <><ExploracaoAviso tela="Voz do Cliente" /><window.VozDoClientePage estado={tweaks.vozEstado} papel={tweaks.vozPapel} dense={tweaks.vozDensidade === "compacto"} /></>;else
+  if (route === "voz") content = <window.VozDoClientePage estado={tweaks.vozEstado} papel={tweaks.vozPapel} dense={tweaks.vozDensidade === "compacto"} />;else
   if (route === "suporte") content = <window.SuportePage view="empresas" estado={tweaks.supEstado} papel={tweaks.supPapel} dense={tweaks.supDensidade === "compacto"} />;else
   if (route === "suporte-visao") content = <window.SuportePage view="visao" estado={tweaks.supEstado} papel={tweaks.supPapel} dense={tweaks.supDensidade === "compacto"} />;else
   if (route === "vestuario" || route === "vest-etiquetas") content = <window.VestuarioPage estado={tweaks.vstEstado} papel={tweaks.vstPapel} dense={tweaks.vstDensidade === "compacto"} toque={tweaks.vstToque} previa={tweaks.vstPrevia} hardBlock={tweaks.vstHardBlock} />;else

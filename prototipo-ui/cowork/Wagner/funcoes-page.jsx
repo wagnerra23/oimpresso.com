@@ -148,7 +148,7 @@ function Editor({ funcao, onClose }) {
           <p>{totalAtivas} de {CONTROLES} controles ativos · {GRUPOS_IDS.length} grupos · {LEGACY_N} permissões no banco</p>
         </div>
         <div className="fnc-ed-h-r">
-          <span className="usr-role" style={{ ...(() => { const t = tone(funcao.hue); return { background:t.bg, color:t.fg, borderColor:t.bd }; })() }}>
+          <span className="usr-role" style={{ ...(() => { const t = tone(funcao.hue); return { '--rl-bg':t.bg, '--rl-fg':t.fg, '--rl-bd':t.bd }; })() }}>
             {funcao.padrao ? "padrão" : "personalizada"}
           </span>
           <button className="os-btn ghost" onClick={onClose}>Cancelar</button>
@@ -305,7 +305,7 @@ function FuncoesPage() {
           return (
             <button key={f.id} className="fnc-card" onClick={() => setSel(f)}>
               <div className="fnc-card-h">
-                <span className="usr-role" style={{ background:t.bg, color:t.fg, borderColor:t.bd }}>{f.nome}</span>
+                <span className="usr-role" style={{ '--rl-bg': t.bg, '--rl-fg': t.fg, '--rl-bd': t.bd }}>{f.nome}</span>
                 {f.travada && (
                   <svg className="fnc-lock-i" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
                 )}

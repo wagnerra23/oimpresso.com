@@ -14,7 +14,7 @@ module: NfeBrasil
 >
 > **O que isto é:** o inventário completo das raízes `Modules/NfeBrasil/**` + `resources/js/Pages/NfeBrasil/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 230 arquivos em 19 papéis.
+**Total mapeado:** 234 arquivos em 19 papéis.
 
 ## Controllers — 13
 
@@ -66,7 +66,7 @@ module: NfeBrasil
 - [TributacaoTemplateService.php](../../../Modules/NfeBrasil/Services/Tributacao/TributacaoTemplateService.php)
 - [TributoCalculado.php](../../../Modules/NfeBrasil/Services/Tributacao/TributoCalculado.php)
 
-## Models / Entities — 13
+## Models / Entities — 14
 
 - [NfeBusinessConfig.php](../../../Modules/NfeBrasil/Models/NfeBusinessConfig.php)
 - [NfeCertificado.php](../../../Modules/NfeBrasil/Models/NfeCertificado.php)
@@ -78,6 +78,7 @@ module: NfeBrasil
 - [NfeEvento.php](../../../Modules/NfeBrasil/Models/NfeEvento.php)
 - [NfeFiscalRule.php](../../../Modules/NfeBrasil/Models/NfeFiscalRule.php)
 - [NfeInutilizacao.php](../../../Modules/NfeBrasil/Models/NfeInutilizacao.php)
+- [NfeOperacaoFiscal.php](../../../Modules/NfeBrasil/Models/NfeOperacaoFiscal.php)
 - [NfeSefazStatus.php](../../../Modules/NfeBrasil/Models/NfeSefazStatus.php)
 - [NfseEmissao.php](../../../Modules/NfeBrasil/Models/NfseEmissao.php)
 - [NfseEventoCancelamento.php](../../../Modules/NfeBrasil/Models/NfseEventoCancelamento.php)
@@ -120,7 +121,7 @@ module: NfeBrasil
 - [api.php](../../../Modules/NfeBrasil/Routes/api.php)
 - [web.php](../../../Modules/NfeBrasil/Routes/web.php)
 
-## Migrations (schema) — 20
+## Migrations (schema) — 22
 
 - [2026_05_06_002000_create_nfe_certificados_table.php](../../../Modules/NfeBrasil/Database/Migrations/2026_05_06_002000_create_nfe_certificados_table.php)
 - [2026_05_06_002001_create_nfe_emissoes_table.php](../../../Modules/NfeBrasil/Database/Migrations/2026_05_06_002001_create_nfe_emissoes_table.php)
@@ -142,6 +143,8 @@ module: NfeBrasil
 - [2026_09_01_000000_add_contingencia_to_nfe_business_configs.php](../../../Modules/NfeBrasil/Database/Migrations/2026_09_01_000000_add_contingencia_to_nfe_business_configs.php)
 - [2026_09_01_000001_add_contingencia_to_nfe_emissoes.php](../../../Modules/NfeBrasil/Database/Migrations/2026_09_01_000001_add_contingencia_to_nfe_emissoes.php)
 - [2026_09_01_000002_create_nfe_sefaz_status_table.php](../../../Modules/NfeBrasil/Database/Migrations/2026_09_01_000002_create_nfe_sefaz_status_table.php)
+- [2026_10_07_000001_create_nfe_operacoes_fiscais_e_vigencia.php](../../../Modules/NfeBrasil/Database/Migrations/2026_10_07_000001_create_nfe_operacoes_fiscais_e_vigencia.php)
+- [2026_10_07_000002_seed_operacao_venda_padrao.php](../../../Modules/NfeBrasil/Database/Migrations/2026_10_07_000002_seed_operacao_venda_padrao.php)
 
 ## Seeders — 1
 
@@ -193,9 +196,9 @@ module: NfeBrasil
 - [Index.casos.md](../../../resources/js/Pages/NfeBrasil/Tributacao/Index.casos.md)
 - [RegraForm.casos.md](../../../resources/js/Pages/NfeBrasil/Tributacao/RegraForm.casos.md)
 
-## Testes (Pest) — 66
+## Testes (Pest) — 67
 
-- 66 em [Modules/NfeBrasil/Tests/Feature/](../../../Modules/NfeBrasil/Tests/Feature)
+- 67 em [Modules/NfeBrasil/Tests/Feature/](../../../Modules/NfeBrasil/Tests/Feature)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
 ## Demais arquivos (manifestos, docs, assets e misc) — 38

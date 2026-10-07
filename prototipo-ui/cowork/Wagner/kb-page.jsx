@@ -950,7 +950,7 @@ FORMATO:
                     className={"kb-row" + (activeId === a.id ? " active" : "") + (a.pinned ? " pinned" : "") + (isOutdated ? " outdated" : "")}
                     onClick={() => { openArticle(a.id); setMobileView("reader"); }}>
                     <div className="kb-row-top">
-                      <span className="kb-cat-pill" style={{ background: `oklch(0.94 0.05 ${cm.hue})`, color: `oklch(0.36 0.10 ${cm.hue})` }}>
+                      <span className="kb-cat-pill" style={{ '--kb-hue': cm.hue }}>
                         {cm.label}
                       </span>
                       {nm && <span className="kb-level" style={{ color: `oklch(0.50 0.13 ${nm.hue})` }}>{nm.label}</span>}
@@ -1188,7 +1188,7 @@ function ArticleReader({ article, articles, prev, next, summary, summarizing,
     <article className="kb-article" data-screen-label="02 Leitor de artigo">
       <header className="kb-art-h">
         <div className="kb-art-eyebrow">
-          <span className="kb-cat-pill" style={{ background: `oklch(0.94 0.05 ${cm.hue})`, color: `oklch(0.36 0.10 ${cm.hue})` }}>
+          <span className="kb-cat-pill" style={{ '--kb-hue': cm.hue }}>
             {cm.label}
           </span>
           {nm && <span className="kb-level" style={{ color: `oklch(0.50 0.13 ${nm.hue})` }}>{nm.label}</span>}

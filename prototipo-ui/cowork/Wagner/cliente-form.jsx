@@ -54,16 +54,34 @@ const CfSel = ({ value, onChange, options, placeholder, ...p }) => (
     {options.map((o) => { const x = typeof o === "string" ? { value: o, label: o } : o; return <option key={x.value} value={x.value}>{x.label}</option>; })}
   </select>);
 
+// Cliente do modo editar — fixo pela rota (thread 00, 2026-10-07): window.__CLI_EDITAR_ID,
+// senão o 1º de OS_CLIENTS. Antes o "editar" abria em branco, igual ao "novo".
+function cfClienteEditar() {
+  const lista = (window.OS_DATA && window.OS_DATA.OS_CLIENTS) || [];
+  const id = window.__CLI_EDITAR_ID;
+  return lista.find((c) => String(c.id) === String(id)) || lista[0] || null;
+}
+
 function ClienteFormPage({ modo = "novo" }) {
-  const [f, setF] = useStateCF({
-    type: "customer", pessoa: "business",
-    first_name: "", last_name: "", tax_number: "",
-    cpf_cnpj: "", rg: "", nome_fantasia: "",
-    inscricao_estadual: "", inscricao_municipal: "", indicador_ie: "", regime: "", suframa: "",
-    contribuinte: false, consumidor_final: false,
-    email: "", mobile: "", landline: "", site: "",
-    cep: "", logradouro: "", numero: "", complemento: "", bairro: "", cidade: "", uf: "SP",
-    limite: "", prazo: "30", grupo: "", pgto: "boleto", mensagem_venda: "",
+  const [f, setF] = useStateCF(() => {
+    const base = {
+      type: "customer", pessoa: "business",
+      first_name: "", last_name: "", tax_number: "",
+      cpf_cnpj: "", rg: "", nome_fantasia: "",
+      inscricao_estadual: "", inscricao_municipal: "", indicador_ie: "", regime: "", suframa: "",
+      contribuinte: false, consumidor_final: false,
+      email: "", mobile: "", landline: "", site: "",
+      cep: "", logradouro: "", numero: "", complemento: "", bairro: "", cidade: "", uf: "SP", entrega: "",
+      saldo_inicial: "", limite: "", prazo: "30", grupo: "", pgto: "boleto", mensagem_venda: "",
+    };
+    const c = modo === "editar" ? cfClienteEditar() : null;
+    if (!c) return base;
+    const end = (c.addresses || []).find((a) => a.principal) || (c.addresses || [])[0] || {};
+    const doc = cfDigitos(c.doc || "");
+    return { ...base, pessoa: doc.length === 11 ? "person" : "business", first_name: c.name || "",
+      cpf_cnpj: cfMascaraDoc(doc), mobile: c.phone || "",
+      cep: end.cep || "", logradouro: end.logradouro || "", numero: end.numero || "", complemento: end.complemento || "",
+      bairro: end.bairro || "", cidade: end.cidade || "", uf: end.uf || "SP" };
   });
   const [tocado, setTocado] = useStateCF({});
   const [buscando, setBuscando] = useStateCF(false);
@@ -128,18 +146,20 @@ function ClienteFormPage({ modo = "novo" }) {
   };
 
   return (
-    <div className="os-page cf-page">
+    <div className="os-page cf-page" data-page={modo === "editar" ? "Cliente/Edit" : "Cliente/Create"}>
       <header className="os-page-h">
         <div className="os-page-h-l">
-          <button className="ci-voltar" onClick={() => window.__go?.("clientes")}>← Clientes</button>
-          <h1>{modo === "editar" ? "Editar cadastro" : "Novo contato"}</h1>
+          {/* Produção: Create "Voltar para clientes" · Edit "Voltar para detalhe" (Create.tsx:53 · Edit.tsx:80).
+              O detalhe (Show) não tem rota no protótipo — a volta cai na lista. */}
+          <button className="ci-voltar" onClick={() => window.__go?.("clientes")}>← {modo === "editar" ? "Voltar para detalhe" : "Voltar para clientes"}</button>
+          <h1>{modo === "editar" ? "Editar cliente" : "Novo cliente"}</h1>
           <p>O cadastro nasce aqui. Depois de criado, o ajuste do dia a dia acontece no painel lateral da lista.</p>
         </div>
         <div className="os-page-h-r">
           <button className="os-btn ghost" onClick={() => window.__go?.("clientes")}>Cancelar</button>
           <button className="os-btn primary" disabled={!podeSalvar}
             onClick={() => { setSalvo(true); setTimeout(() => window.__go?.("clientes"), 900); }}>
-            {salvo ? "Salvo" : "Salvar cadastro"}
+            {salvo ? "Salvo" : modo === "editar" ? "Salvar alterações" : "Salvar cliente"}
           </button>
         </div>
       </header>
@@ -236,18 +256,26 @@ function ClienteFormPage({ modo = "novo" }) {
             <CfCampo label="UF">
               <CfSel value={f.uf} onChange={set("uf")} options={["AC","AL","AP","AM","BA","CE","DF","ES","GO","MA","MT","MS","MG","PA","PB","PR","PE","PI","RJ","RN","RS","RO","RR","SC","SP","SE","TO"]}/>
             </CfCampo>
+            {/* Produção: _form/ClienteForm.tsx:207 (shipping_address, texto livre). */}
+            <CfCampo label="Endereço de entrega" largura="full">
+              <textarea className="cf-in cf-ta" rows={2} value={f.entrega} onChange={(e) => set("entrega")(cfVal(e))}
+                placeholder="Preencha se a entrega for em endereço diferente do cadastro acima."/>
+            </CfCampo>
           </CfSecao>
 
           {mostraFinanceiro && (
             <CfSecao titulo="Financeiro">
+              <CfCampo label="Saldo inicial" help="O que o cliente já devia antes de entrar no sistema">
+                <CfIn value={f.saldo_inicial} inputMode="decimal" onChange={set("saldo_inicial")} placeholder="0,00"/>
+              </CfCampo>
               <CfCampo label="Limite de crédito" help="Em reais · vazio = sem limite">
                 <CfIn value={f.limite} inputMode="numeric" onChange={(v) => set("limite")(cfDigitos(v))} placeholder="0"/>
               </CfCampo>
               <CfCampo label="Prazo padrão (dias)">
                 <CfIn value={f.prazo} inputMode="numeric" onChange={(v) => set("prazo")(cfDigitos(v))} placeholder="30"/>
               </CfCampo>
-              <CfCampo label="Grupo de cliente" help="Define a tabela de preço aplicada">
-                <CfSel value={f.grupo} onChange={set("grupo")} placeholder="Sem grupo (preço padrão)"
+              <CfCampo label="Grupo de clientes" help="Define a tabela de preço aplicada">
+                <CfSel value={f.grupo} onChange={set("grupo")} placeholder="— Nenhum —"
                   options={(window.cliGruposLer ? window.cliGruposLer() : []).map((g) => ({ value: g.id, label: g.nome }))}/>
               </CfCampo>
               <CfCampo label="Forma de pagamento preferida">
