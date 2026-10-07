@@ -9,13 +9,15 @@ use Illuminate\Support\Facades\Schema;
 use Tests\Support\EstoqueFixture;
 
 // Valor por três caminhos: JSON do DataTable da Blade × props da Page × soma direta em
-// cash_register_transactions, mais a conta à mão. Operador e janela (2099) próprios do teste,
+// cash_register_transactions, mais a conta à mão. Operador e janela (2031) próprios do teste —
+// NÃO 2099: cash_registers.created_at é TIMESTAMP, que no MySQL vai só até 2038 (2099 vira
+// 0000-00-00 e some do filtro; o MariaDB do CT 100 aceita, por isso lá passava),
 // filtrados por user_id como a Blade faz. Tenant 98 × 99 (ADR 0358).
 
 uses(DatabaseTransactions::class);
 
-const RCX_INICIO = '2099-10-01';
-const RCX_FIM = '2099-10-31';
+const RCX_INICIO = '2031-10-01';
+const RCX_FIM = '2031-10-31';
 
 beforeEach(function () {
     if (! Schema::hasColumn('transactions', 'essentials_duration')) {
@@ -33,13 +35,13 @@ beforeEach(function () {
     session(['currency' => ['symbol' => 'R$', 'thousand_separator' => '.', 'decimal_separator' => ',']]);
 });
 
-/** Um caixa do operador, aberto em 2099-10-02 às 10:$minuto, com os recebimentos dados. */
+/** Um caixa do operador, aberto em 2031-10-02 às 10:$minuto, com os recebimentos dados. */
 function rcxCaixa(int $businessId, int $operador, int $minuto, array $recebimentos): int
 {
     $caixa = DB::table('cash_registers')->insertGetId([
         'business_id' => $businessId, 'location_id' => EstoqueFixture::locationId($businessId), 'user_id' => $operador,
-        'status' => 'close', 'closed_at' => sprintf('2099-10-02 18:%02d:00', $minuto), 'total_card_slips' => 0, 'total_cheques' => 0,
-        'created_at' => sprintf('2099-10-02 10:%02d:00', $minuto), 'updated_at' => now(),
+        'status' => 'close', 'closed_at' => sprintf('2031-10-02 18:%02d:00', $minuto), 'total_card_slips' => 0, 'total_cheques' => 0,
+        'created_at' => sprintf('2031-10-02 10:%02d:00', $minuto), 'updated_at' => now(),
     ]);
     foreach ($recebimentos as [$forma, $valor, $tipo]) {
         DB::table('cash_register_transactions')->insert([
