@@ -22,11 +22,16 @@ name: Module surface (drift do índice de arquivos)
 
 on:
   pull_request:
+  # push em main roda o `--all --check` COMPLETO: é onde drift herdado (que o PR só avisa)
+  # fica vermelho — no commit de main, não no PR de quem não tocou o módulo.
+  push:
+    branches: [main]
   workflow_dispatch:
 
 concurrency:
   group: module-surface-${{ github.ref }}
-  cancel-in-progress: true
+  # em main não cancela: cada commit precisa do próprio veredito de drift.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions:
   contents: read
@@ -44,7 +49,7 @@ jobs:
           node-version: '20'
       - name: Testar classificadores, grafo, impacto e mapa
         run: |
-          node --test scripts/governance/module-surface.test.mjs scripts/governance/catalog-graph.test.mjs scripts/qa/page-path.test.mjs
+          node --test scripts/governance/module-surface.test.mjs scripts/governance/module-surface-escopo.test.mjs scripts/governance/catalog-graph.test.mjs scripts/qa/page-path.test.mjs
           node scripts/governance/documentation-loop.mjs --selftest
           node scripts/governance/system-map-ia.test.mjs
 
@@ -62,7 +67,33 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
+      # ESCOPO NO PR (2026-10-06): o SUPERFICIE.md é derivado e versionado, então com vários PRs
+      # do mesmo módulo em paralelo o merge de um deixa a base em drift — e o `--all --check`
+      # reprovava TODO PR aberto, inclusive quem nem tocava o módulo. Medido em 06/10: 21 jobs
+      # vermelhos deste step em 17 PRs; 7 jobs / 6 PRs (#8857 #8843 #8856 #8854 #8853 #8746)
+      # caíram SÓ por drift em módulo que o PR não tocava. Agora, no PR, drift em módulo NÃO
+      # tocado vira `::warning` e não reprova; módulo TOCADO (raiz dele, o próprio SUPERFICIE.md)
+      # segue fail-closed, e tocar o gerador põe TODOS no escopo. Sem diff calculável, sai 2.
+      # Base viva: num merge ref o 1º pai É o tip de main que o merge usou (idioma do job
+      # `activation` abaixo; §5 2026-09-15). Fora de PR (push em main, dispatch) o check é o
+      # completo de antes.
+      - name: Base viva do diff (merge ref → HEAD^1)
+        if: github.event_name == 'pull_request'
+        id: escopo
+        run: |
+          set -euo pipefail
+          if [ "$(git rev-list --count --no-walk --merges HEAD)" = "1" ]; then
+            sha="$(git rev-parse HEAD^1)"
+          else
+            sha="${{ github.event.pull_request.base.sha }}"
+          fi
+          echo "base do escopo = $sha"
+          echo "sha=$sha" >> "$GITHUB_OUTPUT"
+      - name: node scripts/governance/module-surface.mjs --all --check (escopo do PR)
+        if: github.event_name == 'pull_request'
+        run: node scripts/governance/module-surface.mjs --all --check "--escopo-ref=${{ steps.escopo.outputs.sha }}"
       - name: node scripts/governance/module-surface.mjs --all --check
+        if: github.event_name != 'pull_request'
         run: node scripts/governance/module-surface.mjs --all --check
       # O `catalog-graph.mjs --check` NÃO roda aqui: ele tem workflow PRÓPRIO
       # (catalog-graph.yml), cujo job "catalog.json == SCOPEs + Classes B" virou
@@ -145,6 +176,8 @@ jobs:
   # runtime, contrato, teste, catálogo, superfície e painel fecham juntos.
   activation:
     name: Módulo novo — contrato + projeções derivadas
+    # Só faz sentido com diff de PR (impacto base→head); em push de main não há base.
+    if: github.event_name != 'push'
     runs-on: ubuntu-latest
     timeout-minutes: 8
     steps:
