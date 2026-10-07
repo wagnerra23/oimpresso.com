@@ -1,0 +1,64 @@
+# Scorecard de tela — primeira medição (thread 04 do playbook Forja, 2026-10-07).
+# Método SCREEN-GRADE (memory/requisitos/_DesignSystem/SCREEN-GRADE-METODO.md), passos 0+1 do
+# agente screen-qa-specialist, no mesmo modo do team-mcp-forja-cockpit.yaml (#7758).
+# ⚠️ NOTA DE LEITURA DE CÓDIGO: .tsx + charter, SEM browser de prod, SEM E2E/axe/smoke.
+# Esta tela NÃO tem .casos.md (thread 01 do playbook). Nenhuma dimensão foi medida em runtime;
+# cada uma cita arquivo:linha (relativo a Modules/Forja/Resources/js/Pages/team-mcp/Team/).
+# Persona peso uniforme (wagner = power user, personas-por-modulo.yml §Notas), nota = média das
+# 16 dims arredondada (1150/16 = 71,9).
+# Este YAML é o ponto de partida do ratchet: a nota não pode cair abaixo de baseline_anterior.
+screen: team-mcp/Team/Index
+path: Modules/Forja/Resources/js/Pages/team-mcp/Team/Index.tsx
+archetype: config      # console superadmin de credenciais MCP (tabela + diálogos)
+persona: wagner
+nota: 72
+nivel: "Advanced"
+baseline_anterior: 72   # ratchet — primeira medição, baseline = a própria nota
+peso_real: 1.0
+source: leitura-codigo-forja-thread04-2026-10-07
+graded_at: "2026-10-07"
+resumo: "Console de tokens MCP com reveal-once, drill-down por token com status pill e IP/último uso, AlertDialog no lugar de confirm() e Deferred duplo com skeleton. Perde em: fetch lê r.json() sem checar r.ok (403/419/500 viram 'Erro de rede'), botão de quota só com ícone e sem aria-label, emoji nos badges, 'Gerar token' com variante destrutiva, contagens fixas '107 docs + 56 ADRs' no texto, tabela crua de 9 colunas e sem casos.md."
+dimensoes: { density: 76, discoverability: 72, speed_to_task: 76, error_recovery: 68, cognitive_load: 70, aesthetic_usability: 74, affordance: 70, brand_confidence: 74, mobile_fit: 66, a11y_wcag: 66, i18n_ptbr: 78, performance_perceived: 80, information_hierarchy: 74, microcopy: 76, internal_consistency: 66, preflight_conformance: 64 }
+evidencias:
+  density: "Index.tsx:331-341 tabela de 9 colunas por dev"
+  discoverability: "Index.tsx:352-364 drill-down de tokens escondido no contador 'N ativos'/'ver'; Index.tsx:374-379 'definir' quota dentro da célula"
+  speed_to_task: "Index.tsx:405-428 ações por linha (+ DXT, + Token, quota)"
+  error_recovery: "Index.tsx:190,199 / 599,607 / 629,639 / 756,765 r.json() sem checar r.ok — resposta HTML de erro cai no catch 'Erro de rede'; Index.tsx:655 estado de erro do drill-down"
+  cognitive_load: "Index.tsx:331-341 9 colunas + 3 botões por linha; Index.tsx:730-736 um formulário para dois períodos"
+  aesthetic_usability: "Index.tsx:114-133 status pill semântico; Index.tsx:268-276 skeleton dos KPIs"
+  affordance: "Index.tsx:422-428 botão só-ícone (Settings) sem aria-label; Index.tsx:406-413 '+ DXT' variant=default em toda linha (N primários); Index.tsx:546-547 AlertDialogAction destrutivo também para CRIAR token"
+  brand_confidence: "Index.tsx:446 reveal-once 'COPIE AGORA'; Team/Index.charter.md:8 status draft; Index.tsx:171 '107 docs de memória + 56 ADRs' fixo no texto"
+  mobile_fit: "Index.tsx:328 overflow-x-auto numa tabela de 9 colunas — não medido em viewport"
+  a11y_wcag: "Index.tsx:422-428 sem nome acessível; Index.tsx:136-137 emoji 🚫/⚠️ no rótulo do badge; Index.tsx:332-340 <th> sem scope; Index.tsx:654 'Carregando tokens…' sem role=status; Index.tsx:356 aria-label no contador (ok)"
+  i18n_ptbr: "Index.tsx:261 'Export CSV'; Index.tsx:338 'Top tools'; Index.tsx:798 'período {period}' mostra 'daily'/'monthly' cru; Index.tsx:91-101 relativo PT-BR"
+  performance_perceived: "Index.tsx:268-276 e 317-326 <Deferred> com fallback skeleton"
+  information_hierarchy: "Index.tsx:256 título 'Time' vs breadcrumb 'Equipe' (Index.tsx:833); KPIs → tabela"
+  microcopy: "Index.tsx:170-173,206-208,616-618 diálogos explicam o efeito e a irreversibilidade; Index.tsx:807 'Reset diário 00:00 BRT'"
+  internal_consistency: "Index.tsx:6 '@memcofre tests: TODO'; Index.tsx:737 QuotaForm abre com block=true ignorando o valor atual; Team/Index.charter.md lista G-DESIGN-07 (CSV em Dialog) como sprint seguinte e Index.tsx:482-504 já o implementa"
+  preflight_conformance: "charter tier A draft; SEM casos.md (trio incompleto); <table> crua em vez do componente de tabela do DS; Dialog/AlertDialog shadcn; tokens semânticos"
+gaps:
+  - dim: "Error-recovery"
+    best_of_class: "Stripe Dashboard: mensagem do erro real (permissão, sessão expirada) com ação"
+    fix: "Checar r.ok antes de r.json() nos 4 fetch e distinguir 403/419/5xx de falha de rede"
+    esforco: baixo
+    origin: thread04-forja-2026-10-07
+  - dim: "A11y-WCAG"
+    best_of_class: "GitHub tokens page: todo botão com nome acessível, status em texto"
+    fix: "aria-label no botão de quota; trocar emoji dos badges por ícone lucide + texto; scope nos <th>; role=status no carregamento"
+    esforco: baixo
+    origin: thread04-forja-2026-10-07
+  - dim: "Affordance"
+    best_of_class: "Vercel tokens: 1 ação primária por tela, destrutivo só para revogar"
+    fix: "'+ DXT' como outline/ghost e AlertDialog não-destrutivo para gerar; destrutivo só no Revogar"
+    esforco: baixo
+    origin: thread04-forja-2026-10-07
+  - dim: "Brand-confidence"
+    best_of_class: "metadado derivado da fonte, nunca número escrito à mão"
+    fix: "Tirar '107 docs + 56 ADRs' do texto do diálogo (ou derivar do backend)"
+    esforco: baixo
+    origin: thread04-forja-2026-10-07
+  - dim: "Pre-Flight-conformance"
+    best_of_class: "contrato UC + teste por tela"
+    fix: "Criar Index.casos.md derivado do charter (thread 01 do playbook Forja)"
+    esforco: medio
+    origin: thread04-forja-2026-10-07
