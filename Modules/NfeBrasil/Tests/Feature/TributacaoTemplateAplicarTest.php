@@ -107,3 +107,24 @@ it('UC-NFTR-17 · aplicar exige NCM padrão e loga', function () {
         ->and($outro['config']->tributacao_default['ncm_default'])->toBe('49111090');
     expect(tatAtividades($this->biz))->toBe(2);
 });
+
+// Playbook Fiscal thread 22: o drawer "Configurar pelo certificado" manda o NCM escolhido no
+// passo 3. A rota tem de aplicar ESSE — antes ela ignorava o corpo e caía no NCM da empresa.
+it('UC-NFTR-17 · a rota aplica o NCM padrão que a tela manda', function () {
+    // Sem NCM na empresa: se a rota ignorasse o corpo, isto daria 422 (caso (1) acima).
+    $this->actingAs($this->user)
+        ->post('/nfe-brasil/tributacao/templates/'.TAT_TEMPLATE.'/aplicar', ['ncm_default' => '49111090'])
+        ->assertRedirect()
+        ->assertSessionHasNoErrors();
+
+    $cfg = DB::table('nfe_business_configs')->where('business_id', $this->biz)->first();
+    expect(json_decode($cfg->tributacao_default, true)['ncm_default'])->toBe('49111090');
+
+    // Controle: com NCM já gravado, um NCM NOVO no corpo vence o antigo.
+    $this->actingAs($this->user)
+        ->post('/nfe-brasil/tributacao/templates/'.TAT_TEMPLATE.'/aplicar', ['ncm_default' => '48219000'])
+        ->assertRedirect();
+
+    $cfg = DB::table('nfe_business_configs')->where('business_id', $this->biz)->first();
+    expect(json_decode($cfg->tributacao_default, true)['ncm_default'])->toBe('48219000');
+});

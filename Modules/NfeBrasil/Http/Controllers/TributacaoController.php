@@ -149,7 +149,14 @@ class TributacaoController extends Controller
         $businessId = (int) $request->session()->get('business.id');
 
         try {
-            $resultado = app(TributacaoTemplateService::class)->aplicar($businessId, $slug);
+            // O NCM padrão escolhido no drawer "Configurar pelo certificado" (thread 22). Sem ele,
+            // o serviço cai no NCM que a empresa já tem — e o que a tela mostrou não seria o aplicado.
+            $ncm = $request->input('ncm_default');
+            $resultado = app(TributacaoTemplateService::class)->aplicar(
+                $businessId,
+                $slug,
+                is_string($ncm) && $ncm !== '' ? $ncm : null,
+            );
         } catch (InvalidArgumentException $e) {
             return back()->with('error', $e->getMessage());
         }
