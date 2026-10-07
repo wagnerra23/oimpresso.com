@@ -93,7 +93,10 @@ class ProjectsController extends Controller
 
     public function decompose(Request $request, int $id, ProjectDecomposerService $service): RedirectResponse
     {
-        $result = $service->decompose($id);
+        // Sem fallback pra empresa 1 (o makeService tem um, herdado): sem empresa na sessão o
+        // filtro casa nada e a resposta é project_not_found — Tier 0 fecha, não abre.
+        $businessId = (int) $request->session()->get('user.business_id');
+        $result = $service->decompose($id, $businessId);
 
         if ($result['success']) {
             // D7.b audit trail LGPD da decomposição

@@ -27,9 +27,19 @@ class ProjectDecomposerService
         private readonly DecisionLinksService $links,
     ) {}
 
-    public function decompose(int $projectId): array
+    /**
+     * Multi-tenant Tier 0 (ADR 0093): o project só é lido e escrito dentro da empresa
+     * `$businessId`. Project de outra empresa responde `project_not_found`, igual ao
+     * inexistente — mesmo contrato do `ProjectService::findDetail` (404 no `show`).
+     * Antes de 2026-10-07 a busca era só por `id`: o decompose lia e gravava parts no
+     * project de qualquer empresa (ProjectDecomposeTenantTest).
+     */
+    public function decompose(int $projectId, int $businessId): array
     {
-        $project = DB::table('mcp_projects')->where('id', $projectId)->first();
+        $project = DB::table('mcp_projects')
+            ->where('id', $projectId)
+            ->where('business_id', $businessId)
+            ->first();
         if (! $project) {
             return ['success' => false, 'error' => 'project_not_found', 'parts_created' => 0];
         }
@@ -102,7 +112,10 @@ class ProjectDecomposerService
             }
 
             // Atualiza project com viability + custo + prazo agregados
-            DB::table('mcp_projects')->where('id', $projectId)->update([
+            DB::table('mcp_projects')
+                ->where('id', $projectId)
+                ->where('business_id', $businessId)
+                ->update([
                 'metricas_sucesso'    => json_encode($plan['metricas_sucesso'] ?? []),
                 'viability_score'     => (int) ($plan['viability_overall'] ?? 50),
                 'custo_estimado_brl'  => (float) ($plan['custo_total_brl'] ?? 0),
