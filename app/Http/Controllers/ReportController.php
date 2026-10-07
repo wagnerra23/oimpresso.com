@@ -658,6 +658,12 @@ class ReportController extends Controller
      */
     public function getStockDetails(Request $request)
     {
+        // Não conferia permissão nenhuma: qualquer usuário logado lia estoque por variação. É o
+        // detalhe do relatório de estoque (report.js get_stock_details) — mesma permissão dele.
+        if (! auth()->user()->can('stock_report.view')) {
+            abort(403, 'Unauthorized action.');
+        }
+
         //Return the details in ajax call
         if ($request->ajax()) {
             $business_id = $request->session()->get('user.business_id');
