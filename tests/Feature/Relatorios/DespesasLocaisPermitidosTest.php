@@ -41,9 +41,14 @@ beforeEach(function () {
 });
 
 /** Entra como um usuário com as permissões dadas e devolve [total da categoria na Blade, total do relatório de comissão]. */
-function rdeLocVisto($teste, array $permissoes): array
+function rdeLocVisto($teste, array $permissoes, array $locais = []): array
 {
     $u = $teste->usuarioComPermissoes(array_merge(['expense_report.view', 'sales_representative.view'], $permissoes), $teste->business);
+    // Local é permissão DIRETA no usuário, como o Util::giveLocationPermissions grava — e é só
+    // $user->permissions que o User::permitted_locations lê (papel não conta).
+    foreach ($locais as $local) {
+        $u->givePermissionTo(\Spatie\Permission\Models\Permission::findOrCreate('location.'.$local, 'web'));
+    }
     $teste->actingAs($u);
     session(['user.business_id' => $teste->business->id, 'user.id' => $u->id, 'business.id' => $teste->business->id]);
 
@@ -63,7 +68,7 @@ function rdeLocVisto($teste, array $permissoes): array
 
 test('Tier 0 — despesa só dos locais permitidos, no relatório de Despesas e no de comissão', function () {
     // Só o local A: vê 100, não os 50 do B.
-    expect(rdeLocVisto($this, ['location.'.$this->localA]))->toEqual([100.0, 100.0]);
+    expect(rdeLocVisto($this, [], [$this->localA]))->toEqual([100.0, 100.0]);
 
     // Todos os locais: continua vendo os dois.
     expect(rdeLocVisto($this, ['access_all_locations']))->toEqual([150.0, 150.0]);
