@@ -51462,5 +51462,32 @@
       "voz-do-cliente-page.jsx": "aa403c92fe1c70727c0ef2762de66c3108db1a518d3f83ccb75571cd9c2abf72"
     },
     "origin": "bundle:3054ca4a67fc51fd"
+  },
+  {
+    "date": "2026-10-07T16:19:23.339Z",
+    "files": 289,
+    "sync": 6,
+    "stale": 0,
+    "liveAbsent": 0,
+    "unchecked": 283,
+    "staleList": [],
+    "verified": [
+      "cowork-inbox/fiscal/playbook/_saida-05.md",
+      "cowork-inbox/fiscal/playbook/_saida-07.md",
+      "cowork-inbox/fiscal/playbook/_saida-22.md",
+      "cowork-inbox/forja/playbook/_saida-02.md",
+      "cowork-inbox/forja/playbook/_saida-04.md",
+      "cowork-inbox/sistema/playbook/_saida-01.md"
+    ],
+    "verifiedHash": {
+      "cowork-inbox/fiscal/playbook/_saida-05.md": "925ff5a07d32230a0a2ffc1b479c23084dad42f68fd08f0069ab334c765a94af",
+      "cowork-inbox/fiscal/playbook/_saida-07.md": "07feb35049b036b041590fd2ea6b00917248bb68359abf599a5d07f23930c185",
+      "cowork-inbox/fiscal/playbook/_saida-22.md": "b201630022b5ffc27efc743406a4a5d19bfe9345fed2060e553210ae0eb096bd",
+      "cowork-inbox/forja/playbook/_saida-02.md": "49fd2ef4c9ae4569463ef97fa50d59c22fa0486c45b826fb721338a395698edf",
+      "cowork-inbox/forja/playbook/_saida-04.md": "6700ea4f6f8723c42def0bc23b4b9f69a00d26b24dd2aefba1b2b53c72179854",
+      "cowork-inbox/sistema/playbook/_saida-01.md": "706282e6d5bc053a285134dfc451cbce0e82ecc44ca4953777e654f82f5951a6"
+    },
+    "origin": "medicao",
+    "projetoCowork": "w"
   }
 ]
