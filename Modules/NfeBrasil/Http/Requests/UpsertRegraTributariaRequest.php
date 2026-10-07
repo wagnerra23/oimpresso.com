@@ -40,6 +40,16 @@ class UpsertRegraTributariaRequest extends FormRequest
 
             'mva' => ['nullable', 'numeric', 'min:0', 'max:5'],
             'fcp' => ['nullable', 'numeric', 'min:0', 'max:1'],
+
+            // Reforma Tributária — NT 2025.002 / US-FISCAL-021. As 5 colunas existem desde a
+            // migration 2026_05_26_000001 e o motor já as lê; sem declarar aqui, o `validated()`
+            // do store/update as descartava em silêncio. Só FORMATO: obrigatoriedade por regime
+            // é regra fiscal com data (D-OPERACAO), fora desta validação.
+            'c_class_trib' => ['nullable', 'string', 'size:6', 'regex:/^[0-9]{6}$/', 'required_with:cst_ibs,cst_cbs'],
+            'cst_ibs'      => ['nullable', 'string', 'size:3', 'regex:/^[0-9]{3}$/', 'required_with:c_class_trib'],
+            'cst_cbs'      => ['nullable', 'string', 'size:3', 'regex:/^[0-9]{3}$/', 'required_with:c_class_trib'],
+            'aliquota_ibs' => ['nullable', 'numeric', 'min:0', 'max:1'],
+            'aliquota_cbs' => ['nullable', 'numeric', 'min:0', 'max:1'],
         ];
     }
 
@@ -54,6 +64,17 @@ class UpsertRegraTributariaRequest extends FormRequest
             'aliquota_pis.max'       => 'Alíquota é decimal (0.0065 = 0,65%) — máximo 1.',
             'aliquota_cofins.max'    => 'Alíquota é decimal (0.03 = 3%) — máximo 1.',
             'aliquota_ipi.max'       => 'Alíquota é decimal — máximo 1.',
+            'c_class_trib.regex'     => 'cClassTrib deve ter exatamente 6 dígitos.',
+            'c_class_trib.size'      => 'cClassTrib deve ter exatamente 6 dígitos.',
+            'c_class_trib.required_with' => 'Informe o cClassTrib junto com o CST de IBS/CBS.',
+            'cst_ibs.regex'          => 'CST do IBS deve ter exatamente 3 dígitos.',
+            'cst_ibs.size'           => 'CST do IBS deve ter exatamente 3 dígitos.',
+            'cst_ibs.required_with'  => 'Informe o CST do IBS junto com o cClassTrib.',
+            'cst_cbs.regex'          => 'CST da CBS deve ter exatamente 3 dígitos.',
+            'cst_cbs.size'           => 'CST da CBS deve ter exatamente 3 dígitos.',
+            'cst_cbs.required_with'  => 'Informe o CST da CBS junto com o cClassTrib.',
+            'aliquota_ibs.max'       => 'Alíquota é decimal (0.001 = 0,1%) — máximo 1.',
+            'aliquota_cbs.max'       => 'Alíquota é decimal (0.009 = 0,9%) — máximo 1.',
         ];
     }
 
