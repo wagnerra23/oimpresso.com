@@ -89,15 +89,18 @@ function CompraVendaIndex({ locais, periodo, moeda }: Props) {
       </div>
       <Stack gap={4} className="px-6 pt-4">
         <Inline data-contract="filtros" wrap gap={2}>
-          <Select value={local || TODOS} onValueChange={v => setLocal(v === TODOS ? '' : v)}>
-            <SelectTrigger className="w-60" aria-label="Local"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SafeSelectItem value={TODOS}>Todos os locais</SafeSelectItem>
-              {locais.filter(o => o.id).map(o => <SafeSelectItem key={o.id} value={String(o.id)}>{o.nome}</SafeSelectItem>)}
-            </SelectContent>
-          </Select>
-          <Input type="date" className="w-40" aria-label="Início" value={inicio} onChange={e => setInicio(e.target.value)} />
-          <Input type="date" className="w-40" aria-label="Fim" value={fim} onChange={e => setFim(e.target.value)} />
+          {/* Largura no wrapper: `.cw-input { width: 100% }` fica fora de @layer e vence o `w-*` no próprio controle. */}
+          <div className="w-60">
+            <Select value={local || TODOS} onValueChange={v => setLocal(v === TODOS ? '' : v)}>
+              <SelectTrigger aria-label="Local"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SafeSelectItem value={TODOS}>Todos os locais</SafeSelectItem>
+                {locais.filter(o => o.id).map(o => <SafeSelectItem key={o.id} value={String(o.id)}>{o.nome}</SafeSelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="w-40"><Input type="date" aria-label="Início" value={inicio} onChange={e => setInicio(e.target.value)} /></div>
+          <div className="w-40"><Input type="date" aria-label="Fim" value={fim} onChange={e => setFim(e.target.value)} /></div>
         </Inline>
 
         <div aria-live="polite" className="sr-only">{dados === null && !erro ? 'Carregando totais' : ''}</div>
