@@ -41,13 +41,29 @@ class MotorTributarioService
     private array $cacheConfigs = [];
 
     /**
+     * Assinatura de 4 parâmetros PRESERVADA de propósito: há motores falsos em teste
+     * (`new class extends MotorTributarioService`) que sobrescrevem `calcular` com ela,
+     * e acrescentar parâmetro aqui — mesmo opcional — torna a sobrescrita incompatível
+     * (Fatal "Declaration ... must be compatible", que matou a lane nfebrasil-pest no #8874).
+     * ST e DIFAL entram por `calcularComDestino`.
+     */
+    public function calcular(
+        ProdutoFiscalContext $produto,
+        int $businessId,
+        string $ufOrigem,
+        string $ufDestino,
+    ): TributoCalculado {
+        return $this->calcularComDestino($produto, $businessId, $ufOrigem, $ufDestino);
+    }
+
+    /**
      * @param float|null $aliquotaInternaDestino alíquota interna do ICMS na UF de destino
      *        (decimal, 0.20 = 20%). Sem ela o motor NÃO calcula ST nem DIFAL — devolve 0,
      *        como hoje (lei 4: não inventa número). A tabela por UF é a thread 09.
      * @param bool|null $destinatarioContribuinte true = tem IE; false = consumidor final
      *        não contribuinte; null = desconhecido → sem DIFAL.
      */
-    public function calcular(
+    public function calcularComDestino(
         ProdutoFiscalContext $produto,
         int $businessId,
         string $ufOrigem,
