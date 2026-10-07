@@ -58,6 +58,78 @@ Igual ao `_saida-A2.md`, reconferido:
 - `superadmin-page.jsx`: 0 ocorrências de `ROTAS`; `governance/design/targets/roles/`: nenhum
   override do Superadmin — o lado protótipo depende do Cowork declarar a tabela tela → rota.
 
+## JSON depois das 3 mudanças
+
+Trechos do json corrigido, gerados por script a partir do índice atual (D1, threads 03 e 04, e a lista de ids sem a 06):
+
+```json
+{
+  "decisoes_D1": {
+    "id": "D1",
+    "pergunta": "superadmin::pages (CRUD de páginas) × Modules/Cms Admin/Content: fundir ou manter?",
+    "respondida": true,
+    "destrava": [],
+    "resposta": "manter separado do Cms",
+    "fonte": "_DECISOES-W-2026-10-01b.md"
+  },
+  "thread_03": {
+    "id": "03",
+    "titulo": "Pacotes: create/edit → drawer (Pacotes/Index)",
+    "dono": "CL",
+    "vaga": 3,
+    "prs": 1,
+    "arquivo": "03-formularios.md",
+    "prefixo": [
+      "${MOD}/Http/Controllers/PackagesController.php",
+      "${MPAGES}/Pacotes/"
+    ],
+    "nao_toca": [
+      "${CONTRATOS}/superadmin-pacotes.contract.json"
+    ],
+    "provas": [
+      {
+        "tipo": "nao_contem",
+        "path": "${MOD}/Http/Controllers/PackagesController.php",
+        "padrao": "view('superadmin::packages.edit')"
+      }
+    ]
+  },
+  "thread_04": {
+    "id": "04",
+    "titulo": "Assinaturas: add/edit/edit_date → drawer (Assinaturas/Index)",
+    "dono": "CL",
+    "vaga": 3,
+    "prs": 1,
+    "arquivo": "04-formularios.md",
+    "prefixo": [
+      "${MOD}/Http/Controllers/SuperadminSubscriptionsController.php",
+      "${MPAGES}/Assinaturas/"
+    ],
+    "nao_toca": [
+      "${CONTRATOS}/superadmin-assinaturas.contract.json"
+    ],
+    "provas": [
+      {
+        "tipo": "nao_contem",
+        "path": "${MOD}/Http/Controllers/SuperadminSubscriptionsController.php",
+        "padrao": "view('superadmin::superadmin_subscription.edit')"
+      }
+    ]
+  },
+  "threads_ids": [
+    "00",
+    "A1",
+    "01",
+    "02",
+    "03",
+    "04",
+    "05",
+    "07",
+    "A2"
+  ]
+}
+```
+
 ## Medição da correção
 
 Apliquei as 3 mudanças acima (03 e 04 sem `depende_threads`; 06 fora de `threads`; D1 com
