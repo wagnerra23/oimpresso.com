@@ -32,5 +32,13 @@ no `CrmUtil.php`) sai NÃO.
 ]
 ```
 
+## Medição
+- **Antes** (`node scripts/qa/placar.mjs --indice`, `main` de 2026-10-07):
+  `08 [em curso ] (indecidível) … prova "execucao" precisa do avaliador de recibo`.
+  O Crm aparece como `entregue 6 de 10 · em curso 2`.
+- **Depois** (não dá para rodar o placar com o índice trocado sem editar o espelho; medi prova a
+  prova com `avaliarProva` do `scripts/qa/placar-indice.mjs`): **4 de 4 OK**. Com o JSON acima no
+  índice, a 08 deixa de ser indecidível.
+
 ## Placar
 `08`: entregue. O `00-INDICE.md` não foi editado.
