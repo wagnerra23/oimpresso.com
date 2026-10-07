@@ -365,6 +365,10 @@ Modules/Forja/Tests/Feature/McpActorsSeederTest.php
 Modules/Forja/Tests/Feature/MultiTenantTokenIsolationTest.php
 Modules/Forja/Tests/Feature/TokensListAndRevokeTest.php
 Modules/Forja/Tests/Feature/Wave23ScorecardRotateTest.php
+# Contrato da tela team-mcp/Tasks (playbook Forja thread 01, 2026-10-07). Aqui rodam so
+# as pernas de REGISTRO (rota, middleware, verbo) — sqlite-safe. As pernas de REQUEST
+# pulam aqui e dao veredito na lane MySQL forja-pest.yml.
+Modules/Forja/Tests/Feature/TasksAdminContratoTest.php
 # Contratos das telas team-mcp sem trio (playbook Forja thread 01, 2026-10-07). Aqui rodam
 # só as pernas de REGISTRO (rota, middleware, verbo, escopo de query) — sqlite-safe por
 # construção. As pernas de REQUEST pulam aqui e dão veredito na lane MySQL forja-pest.yml.
