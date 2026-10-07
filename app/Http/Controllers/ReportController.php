@@ -29,6 +29,7 @@ use App\Variation;
 use Datatables;
 use DB;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 use Spatie\Activitylog\Models\Activity;
 
 class ReportController extends Controller
@@ -1216,7 +1217,7 @@ class ReportController extends Controller
     /**
      * Shows sales representative report
      *
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Contracts\View\View|\Inertia\Response
      */
     public function getSalesRepresentativeReport(Request $request)
     {
@@ -1231,6 +1232,25 @@ class ReportController extends Controller
 
         $business_details = $this->businessUtil->getDetails($business_id);
         $pos_settings = empty($business_details->pos_settings) ? $this->businessUtil->defaultPosSettings() : json_decode($business_details->pos_settings, true);
+
+        // Tela React do resumo (playbook comissoes/02). Convive com a Blade até as 4 abas de
+        // listagem serem portadas: a Blade segue o padrão da rota. Os totais vêm dos MESMOS
+        // endpoints JSON (getSalesRepresentativeTotal*); a tela não calcula nada.
+        if ($request->query('tela') === 'nova') {
+            return Inertia::render('Report/SalesRepresentative/Index', [
+                'vendedores' => collect($users)->map(fn ($nome, $id) => ['id' => (int) $id, 'nome' => trim((string) $nome)])->values(),
+                'locais' => collect(BusinessLocation::forDropdown($business_id, false))->map(fn ($nome, $id) => ['id' => (int) $id, 'nome' => (string) $nome])->values(),
+                'periodo' => [
+                    'inicio' => (string) $request->session()->get('financial_year.start', now()->startOfYear()->toDateString()),
+                    'fim' => (string) $request->session()->get('financial_year.end', now()->endOfYear()->toDateString()),
+                ],
+                'base_comissao' => ($pos_settings['cmmsn_calculation_type'] ?? '') === 'payment_received' ? 'payment_received' : 'invoice_value',
+                'moeda' => [
+                    'simbolo' => (string) $request->session()->get('business.currency_symbol', 'R$'),
+                    'casas' => (int) $request->session()->get('business.currency_precision', 2),
+                ],
+            ]);
+        }
 
         return view('report.sales_representative')
                 ->with(compact('users', 'business_locations', 'pos_settings'));
@@ -1331,7 +1351,10 @@ class ReportController extends Controller
 
             $commsn_calculation_type = empty($pos_settings['cmmsn_calculation_type']) || $pos_settings['cmmsn_calculation_type'] == 'invoice_value' ? 'invoice_value' : $pos_settings['cmmsn_calculation_type'];
 
-            $commission_percentage = User::find($commission_agent)->cmmsn_percent;
+            // Tier 0 (ADR 0093): User nao tem global scope de business — sem o where, um id de
+            // vendedor de outra empresa devolvia o cmmsn_percent dele. Fora do negocio = 404.
+            $commission_percentage = User::where('business_id', $business_id)
+                ->findOrFail($commission_agent)->cmmsn_percent;
 
             if ($commsn_calculation_type == 'payment_received') {
                 $payment_details = $this->transactionUtil->getTotalPaymentWithCommission($business_id, $start_date, $end_date, $location_id, $commission_agent);

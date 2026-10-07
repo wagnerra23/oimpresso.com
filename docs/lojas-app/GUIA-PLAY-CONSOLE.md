@@ -13,6 +13,12 @@
 > - **Pendente:** Política de Privacidade, Detalhes do login (senhas: [W]), Público-alvo (só abre depois do login),
 >   Segurança dos dados (a tabela 8 abaixo é do escopo só-Ponto; o app atual também tem cadastro de pessoas e Assistente),
 >   e-mail de contato público, e a faixa de **teste fechado** com 12 testadores. A conta é **pessoal**, então valem os 14 dias.
+> - **Atualização do fim do dia (2026-10-06):** configuração completa. Salvos também: política de privacidade,
+>   contato público `wagner@oimpresso.com` + `https://oimpresso.com`, Detalhes do login (`gestor.demo`; a senha foi
+>   colada pelo [W]), Público-alvo 18+ e Segurança dos dados (10 tipos, coletados e não compartilhados).
+>   Teste fechado "Alpha": Brasil, versão 7 (1.0). **12 mudanças enviadas para revisão do Google** (até 7 dias).
+>   ⏳ Faltam os **12 testadores** na aba Testadores da faixa, e depois os 14 dias.
+>   ⚠️ `lgpd@oimpresso.com.br`, citado em `/privacidade`, **não recebe e-mail**: `oimpresso.com.br` tem MX nulo.
 > - O `oimpresso-app` virou **público** em 2026-10-06. A cota de Actions de repo privado tinha orçamento de 0 e travou o CI.
 >   Antes de abrir, o histórico (301 commits) foi varrido: nenhum segredo encontrado.
 

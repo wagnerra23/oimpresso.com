@@ -77,7 +77,9 @@ function nftrConfig(int $businessId, string $regime = 'simples', bool $auto = fa
         'business_id'           => $businessId,
         'regime'                => $regime,
         'auto_emission_enabled' => $auto,
-        'tributacao_default'    => json_encode(['cfop' => '5102', 'csosn' => '102', 'aliquota_icms' => 0.18]),
+        // `ncm_default` válido: desde a thread 21 (UC-NFTR-17) aplicar template EXIGE NCM padrão
+        // e o lê daqui quando o POST não manda — sem ele o UC-NFTR-03 receberia o 422 do NCM.
+        'tributacao_default'    => json_encode(['cfop' => '5102', 'csosn' => '102', 'aliquota_icms' => 0.18, 'ncm_default' => '49111090']),
         'created_at'            => now(),
         'updated_at'            => now(),
     ]);

@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 // @covers-us US-NFE-010 — motor tributário por NCM: cascade Níveis 1→4 (override→exata→padrão→default), CST/CSOSN, cache, isolamento multi-tenant.
+// @covers R-NFE-015 · R-NFE-015b · R-NFE-016 · R-NFE-017 — ICMS-ST pela MVA, FCP e DIFAL (thread 06 do playbook Fiscal).
 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
@@ -442,4 +443,102 @@ it('IBS/CBS Nível 1 (override) carrega os campos da regra override', function (
         ->and($tributo->c_class_trib)->toBe('000009')
         ->and($tributo->valor_ibs)->toBe(0.1)   // 100 * 0.001
         ->and($tributo->valor_cbs)->toBe(0.9);  // 100 * 0.009
+});
+
+// ── ICMS-ST · FCP · DIFAL (thread 06 do playbook Fiscal) ──────────────────────
+// Alíquotas de teste: interestadual SP→RJ 12% (regra) e interna RJ 20% — números de
+// fixture, não de lei; o motor recebe a interna do caller (tabela por UF = thread 09).
+// Valores esperados calculados à mão em cada caso.
+
+it('R-NFE-015 · ICMS-ST pela MVA (base_st = (valor+IPI)×(1+MVA); st = base_st×interna − ICMS próprio)', function () {
+    regra(['uf_destino' => 'RJ', 'cfop' => '6401', 'csosn' => '201', 'aliquota_icms' => 0.12, 'mva' => 0.40]);
+    $motor = new MotorTributarioService;
+
+    $t = $motor->calcularComDestino(ctx('22021000', 1000.0), businessId: 1, ufOrigem: 'SP', ufDestino: 'RJ',
+        aliquotaInternaDestino: 0.20, destinatarioContribuinte: true);
+
+    // 1000 × 1,40 = 1400,00 · 1400 × 0,20 = 280,00 − ICMS próprio 120,00 = 160,00
+    expect($t->valor_icms)->toBe(120.0)
+        ->and($t->base_st)->toBe(1400.0)
+        ->and($t->valor_st)->toBe(160.0)
+        ->and($t->valor_difal)->toBe(0.0);   // contribuinte: sem DIFAL
+
+    // Com IPI 10%: (1000 + 100) × 1,40 = 1540,00 · 1540 × 0,20 = 308,00 − 120,00 = 188,00
+    regra(['ncm' => '22029900', 'uf_destino' => 'RJ', 'cfop' => '6401', 'csosn' => '201',
+        'aliquota_icms' => 0.12, 'aliquota_ipi' => 0.10, 'mva' => 0.40]);
+    $ipi = $motor->calcularComDestino(ctx('22029900', 1000.0), businessId: 1, ufOrigem: 'SP', ufDestino: 'RJ',
+        aliquotaInternaDestino: 0.20, destinatarioContribuinte: true);
+    expect($ipi->valor_ipi)->toBe(100.0)
+        ->and($ipi->base_st)->toBe(1540.0)
+        ->and($ipi->valor_st)->toBe(188.0);
+});
+
+it('R-NFE-015 · controle: regra sem MVA, ou sem interna informada, devolve ST 0 e o resto igual a hoje', function () {
+    regra(['uf_destino' => 'RJ', 'cfop' => '6102', 'csosn' => '201', 'aliquota_icms' => 0.12,
+        'aliquota_pis' => 0.0165, 'aliquota_cofins' => 0.076, 'mva' => null]);
+    $motor = new MotorTributarioService;
+
+    $semMva = $motor->calcularComDestino(ctx('22021000', 1000.0), businessId: 1, ufOrigem: 'SP', ufDestino: 'RJ',
+        aliquotaInternaDestino: 0.20, destinatarioContribuinte: true);
+    $chamadaAntiga = $motor->calcular(ctx('22021000', 1000.0), businessId: 1, ufOrigem: 'SP', ufDestino: 'RJ');
+
+    expect($semMva->base_st)->toBe(0.0)->and($semMva->valor_st)->toBe(0.0)
+        ->and($semMva->valor_icms)->toBe(120.0)
+        ->and($semMva->valor_pis)->toBe(16.5)
+        ->and($semMva->valor_cofins)->toBe(76.0)
+        ->and($chamadaAntiga)->toEqual($semMva);   // chamada sem os parâmetros novos = idêntica
+
+    // MVA preenchida mas a interna não veio: não inventa — ST 0.
+    regra(['ncm' => '22029900', 'uf_destino' => 'RJ', 'cfop' => '6401', 'csosn' => '201',
+        'aliquota_icms' => 0.12, 'mva' => 0.40]);
+    $semInterna = $motor->calcular(ctx('22029900', 1000.0), businessId: 1, ufOrigem: 'SP', ufDestino: 'RJ');
+    expect($semInterna->valor_st)->toBe(0.0)->and($semInterna->valor_icms)->toBe(120.0);
+});
+
+it('R-NFE-016 · CSOSN 500 não recalcula ST (controle: CSOSN 201 calcula)', function () {
+    regra(['uf_destino' => 'RJ', 'cfop' => '6405', 'csosn' => '500', 'aliquota_icms' => 0.12, 'mva' => 0.40]);
+    regra(['ncm' => '22029900', 'uf_destino' => 'RJ', 'cfop' => '6401', 'csosn' => '201', 'aliquota_icms' => 0.12, 'mva' => 0.40]);
+    $motor = new MotorTributarioService;
+
+    $retida = $motor->calcularComDestino(ctx('22021000', 1000.0), businessId: 1, ufOrigem: 'SP', ufDestino: 'RJ',
+        aliquotaInternaDestino: 0.20, destinatarioContribuinte: true);
+    $calcula = $motor->calcularComDestino(ctx('22029900', 1000.0), businessId: 1, ufOrigem: 'SP', ufDestino: 'RJ',
+        aliquotaInternaDestino: 0.20, destinatarioContribuinte: true);
+
+    expect($retida->valor_st)->toBe(0.0)->and($retida->base_st)->toBe(0.0)
+        ->and($calcula->valor_st)->toBe(160.0);
+});
+
+it('R-NFE-017 · DIFAL só não contribuinte interestadual (controle: com IE, ou mesma UF, = 0)', function () {
+    regra(['uf_destino' => 'RJ', 'cfop' => '6108', 'csosn' => '102', 'aliquota_icms' => 0.12]);
+    regra(['uf_origem' => 'RJ', 'uf_destino' => 'RJ', 'cfop' => '5102', 'csosn' => '102', 'aliquota_icms' => 0.12]);
+    $motor = new MotorTributarioService;
+
+    // 1000 × (0,20 − 0,12) = 80,00
+    $consumidor = $motor->calcularComDestino(ctx('22021000', 1000.0), businessId: 1, ufOrigem: 'SP', ufDestino: 'RJ',
+        aliquotaInternaDestino: 0.20, destinatarioContribuinte: false);
+    $comIe = $motor->calcularComDestino(ctx('22021000', 1000.0), businessId: 1, ufOrigem: 'SP', ufDestino: 'RJ',
+        aliquotaInternaDestino: 0.20, destinatarioContribuinte: true);
+    $mesmaUf = $motor->calcularComDestino(ctx('22021000', 1000.0), businessId: 1, ufOrigem: 'RJ', ufDestino: 'RJ',
+        aliquotaInternaDestino: 0.20, destinatarioContribuinte: false);
+
+    expect($consumidor->valor_difal)->toBe(80.0)
+        ->and($comIe->valor_difal)->toBe(0.0)
+        ->and($mesmaUf->valor_difal)->toBe(0.0);
+});
+
+it('R-NFE-015b · FCP pela regra (controle: fcp nulo = 0)', function () {
+    regra(['uf_destino' => 'RJ', 'cfop' => '6108', 'csosn' => '102', 'aliquota_icms' => 0.12, 'fcp' => 0.02]);
+    regra(['ncm' => '22029900', 'uf_destino' => 'RJ', 'cfop' => '6108', 'csosn' => '102', 'aliquota_icms' => 0.12, 'fcp' => null]);
+    $motor = new MotorTributarioService;
+
+    // 1000 × 0,02 = 20,00 — em DIFAL é o FCP da UF de destino, ao lado dos 80,00 de DIFAL
+    $comFcp = $motor->calcularComDestino(ctx('22021000', 1000.0), businessId: 1, ufOrigem: 'SP', ufDestino: 'RJ',
+        aliquotaInternaDestino: 0.20, destinatarioContribuinte: false);
+    $semFcp = $motor->calcularComDestino(ctx('22029900', 1000.0), businessId: 1, ufOrigem: 'SP', ufDestino: 'RJ',
+        aliquotaInternaDestino: 0.20, destinatarioContribuinte: false);
+
+    expect($comFcp->valor_fcp)->toBe(20.0)
+        ->and($comFcp->valor_difal)->toBe(80.0)
+        ->and($semFcp->valor_fcp)->toBe(0.0);
 });

@@ -26,6 +26,8 @@
  *   node scripts/governance/module-surface.mjs <Mod> --write    (grava memory/requisitos/<Mod>/SUPERFICIE.md)
  *   node scripts/governance/module-surface.mjs <Mod> --check    (CI: exit 1 se o gerado ≠ commitado = drift)
  *   node scripts/governance/module-surface.mjs --all [--write|--check]   (todos os Modules/*)
+ *   node scripts/governance/module-surface.mjs --all --check --escopo-ref=<ref>
+ *        (PR: reprova só drift em módulo TOCADO por <ref>...HEAD; drift herdado vira AVISO)
  *   node scripts/governance/module-surface.mjs --migracao       (fila Blade→Inertia; npm run migracao:report)
  *   node scripts/governance/module-surface.mjs --namespaces [--check]  (mapa módulo↔Pages DERIVADO dos renders)
  *
@@ -44,6 +46,9 @@ const ALL = args.includes('--all');
 const MIGRACAO = args.includes('--migracao');
 const NAMESPACES = args.includes('--namespaces');
 const POS = args.filter((a) => !a.startsWith('--'));
+// `--escopo-ref=<ref>` (forma com `=` de propósito: a forma separada faria o ref cair em POS).
+const ESCOPO_ARG = args.find((a) => a.startsWith('--escopo-ref'));
+const ESCOPO_REF = ESCOPO_ARG === undefined ? null : ESCOPO_ARG.slice('--escopo-ref='.length);
 const CONTEXTO_GERAL = '_Geral';
 const RAIZES_GERAIS = [
   'resources/js/Components',
@@ -414,6 +419,41 @@ function modulosAfetados(paths) {
     const raizes = [...r.dirs, ...r.prefixos, ...r.exatos];
     return lista.some((p) => raizes.some((raiz) => sobRaiz(p, raiz)));
   });
+}
+
+/**
+ * Arquivos cuja mudança altera a SUPERFICIE de TODOS os módulos (o próprio gerador e o
+ * classificador de tela que ele importa). PR que toca um deles responde por todos.
+ */
+const GERADOR_PATHS = ['scripts/governance/module-surface.mjs', 'scripts/qa/page-path.mjs'];
+
+/**
+ * Escopo do PR: quais módulos o diff pode ter feito drifar. Um módulo é TOCADO quando o diff
+ * passa por uma raiz dele (`modulosAfetados`, por prefixo — vale para arquivo apagado) ou pelo
+ * próprio `memory/requisitos/<Mod>/SUPERFICIE.md`. Tocar o gerador devolve `todos: true`.
+ * Nada mais entra no conteúdo gerado (`coletar` só anda nas raízes; `montar` só lê o script),
+ * então drift em módulo fora deste conjunto foi HERDADO da base, não introduzido pelo PR.
+ */
+function modulosTocados(paths) {
+  const lista = (Array.isArray(paths) ? paths : []).map((p) => String(p).split(BARRA_INVERTIDA).join('/'));
+  if (lista.some((p) => GERADOR_PATHS.includes(p))) return { todos: true, mods: new Set() };
+  const mods = new Set(modulosAfetados(lista));
+  for (const p of lista) {
+    const m = /^memory\/requisitos\/([^/]+)\/SUPERFICIE\.md$/.exec(p);
+    if (m) mods.add(m[1]);
+  }
+  return { todos: false, mods };
+}
+
+/** Paths mudados em `<ref>...HEAD` (renome vira apagado + criado). Falha = exceção, nunca vazio. */
+function caminhosDoPr(ref) {
+  const safeRoot = ROOT.split(BARRA_INVERTIDA).join('/');
+  const raw = execFileSync(
+    'git',
+    ['-c', `safe.directory=${safeRoot}`, 'diff', '--name-only', '--no-renames', '-z', `${ref}...HEAD`],
+    { cwd: ROOT, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'], maxBuffer: 64 * 1024 * 1024 },
+  );
+  return raw.split(String.fromCharCode(0)).filter(Boolean);
 }
 
 /** Coleta os arquivos do módulo (código + telas) e agrupa por papel. */
@@ -817,12 +857,38 @@ function main() {
     console.error('Uso: node scripts/governance/module-surface.mjs <Mod> [--write|--check]  |  --all [--write|--check]');
     process.exit(2);
   }
+  // Escopo de PR: fail-CLOSED em tudo que não for "drift em módulo que o PR não tocou".
+  let escopo = null;
+  if (ESCOPO_REF !== null) {
+    if (!ALL || MODE !== 'check' || !ESCOPO_REF) {
+      console.error('[module-surface] --escopo-ref=<ref> só vale com --all --check e ref não-vazio.');
+      process.exit(2);
+    }
+    try {
+      escopo = modulosTocados(caminhosDoPr(ESCOPO_REF));
+    } catch (error) {
+      // Sem diff não há escopo — e escopo vazio reprovaria NADA. Sai 2 (não-medi), nunca 0.
+      const detalhe = error instanceof Error ? error.message.split('\n')[0] : String(error);
+      console.error(`[module-surface] não foi possível calcular o diff ${ESCOPO_REF}...HEAD: ${detalhe}`);
+      process.exit(2);
+    }
+    const desc = escopo.todos ? 'TODOS (o PR toca o gerador)' : [...escopo.mods].sort().join(', ') || '(nenhum)';
+    console.log(`[module-surface] escopo do PR (${ESCOPO_REF}...HEAD): módulos tocados = ${desc}`);
+  }
   let driftCount = 0;
   const skipped = [];
+  const herdados = [];
   for (const mod of alvos) {
     const r = processar(mod);
-    if (r.drift) driftCount++;
+    if (r.drift) {
+      if (escopo && !escopo.todos && !escopo.mods.has(mod)) herdados.push(mod);
+      else driftCount++;
+    }
     if (r.skipped) skipped.push(mod);
+  }
+  if (herdados.length) {
+    const msg = `drift HERDADO da base em módulo(s) que este PR não toca: ${herdados.join(', ')} — não reprova o PR; quem conserta é um PR que regenere (node scripts/governance/module-surface.mjs <Mod> --write).`;
+    console.log(process.env.GITHUB_ACTIONS ? `::warning title=SUPERFICIE herdada::${msg}` : `[module-surface] AVISO: ${msg}`);
   }
   // §5 "no silent caps": o --all pode pular módulo não-required sem SUPERFICIE — mas NUNCA em silêncio.
   if (MODE === 'check' && skipped.length) {
@@ -848,5 +914,6 @@ export {
   pathsSobRaiz,
   raizesDoModulo,
   modulosAfetados,
+  modulosTocados,
   listarModulos,
 };
