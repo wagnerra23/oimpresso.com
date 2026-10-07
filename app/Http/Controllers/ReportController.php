@@ -1351,7 +1351,10 @@ class ReportController extends Controller
 
             $commsn_calculation_type = empty($pos_settings['cmmsn_calculation_type']) || $pos_settings['cmmsn_calculation_type'] == 'invoice_value' ? 'invoice_value' : $pos_settings['cmmsn_calculation_type'];
 
-            $commission_percentage = User::find($commission_agent)->cmmsn_percent;
+            // Tier 0 (ADR 0093): User nao tem global scope de business — sem o where, um id de
+            // vendedor de outra empresa devolvia o cmmsn_percent dele. Fora do negocio = 404.
+            $commission_percentage = User::where('business_id', $business_id)
+                ->findOrFail($commission_agent)->cmmsn_percent;
 
             if ($commsn_calculation_type == 'payment_received') {
                 $payment_details = $this->transactionUtil->getTotalPaymentWithCommission($business_id, $start_date, $end_date, $location_id, $commission_agent);
