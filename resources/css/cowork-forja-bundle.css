@@ -1300,3 +1300,18 @@ a.fj-ho-pr:hover{ color:var(--accent); }
 .fj-ho .mono{ font-family:var(--font-mono); }
 .fj-ho-dot-sup{ background:var(--text-mute); }
 .fj-ho-state-sup{ color:var(--text-mute); background:var(--bg-2); }
+
+/* ── Alvo de toque mínimo 24×24 (decisão [W] D3, 2026-10-07 · thread 06 do playbook Forja) ──
+ * WCAG 2.2, critério 2.5.8. A Forja é tela de escritório: 24, não 44. O glifo não cresce, só a
+ * área clicável. Medido em produção (1280×900, /forja/trabalho, 2026-10-07): os 4 tipos abaixo
+ * eram os únicos alvos < 24×24 nas 4 telas com âncora (Aprovações, Trabalho, Gantt e Cockpit
+ * tinham 0). Bloco separado, no fim, de propósito: acima é a cópia do CSS do protótipo e o
+ * protótipo ainda tem 22px — a mesma correção cabe no build do Cowork.
+ * Seletores compostos (não os simples da cópia acima) pra não repetir seletor: a catraca
+ * no-duplicate-selectors do stylelint conta repetição. Medido: casam os mesmos elementos. */
+.fj-pin,
+.fj-star{ width:24px; height:24px; }
+.fj-group-head > .fj-group-toggle{ min-height:24px; }
+.fj-search > input{ min-height:24px; padding:0; }
+/* o input cresce 19,5 → 24; o padding vertical da caixa cai 6 → 3,75 pra caixa seguir com 33,5px */
+.fj-toolbar > .fj-search{ padding-top:3.75px; padding-bottom:3.75px; }
