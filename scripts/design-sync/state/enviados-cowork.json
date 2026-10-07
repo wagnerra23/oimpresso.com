@@ -121,6 +121,10 @@
       "sha256": "10df5b12faa6fcb7395dbe29b5e9f5903269eb37a25ad5c647339ef3cb584fa5",
       "em": "2026-10-06T22:19:18.667Z"
     },
+    "cowork-inbox/produto/playbook/_saida-00.md": {
+      "sha256": "386516441d57dfa3d30e3136793f443c73f346c55703735cc46c0baa73eeade0",
+      "em": "2026-10-07T11:05:03.824Z"
+    },
     "cowork-inbox/produto/playbook/_saida-08.md": {
       "sha256": "8f5180798aaf550f401c51bd63a38f483b25a3567800d788320706fa46b5b601",
       "em": "2026-10-06T17:49:23.778Z"
@@ -188,6 +192,22 @@
     "pg-styles.css": {
       "sha256": "6c20c8e9be5b783354e87e4f10bb8f400e51f0049fb1f66f7a4a00bde0890f06",
       "em": "2026-10-07T11:11:24.232Z"
+    },
+    "produto-blade-forms.jsx": {
+      "sha256": "7423e8410517d90d08b954d8a482b7b22ac8920d2e4e788c02927333b95d9769",
+      "em": "2026-10-07T11:05:03.824Z"
+    },
+    "produto-blade.jsx": {
+      "sha256": "32b0cbdfdf224afb5e01e8fa9c4f37b49f6ac1843cc2607e494b7be382aa928e",
+      "em": "2026-10-07T11:05:03.824Z"
+    },
+    "produto-perms.jsx": {
+      "sha256": "bdeff05b1664472af375ecdf307b09970885c4c20061db942e5783479326a5ee",
+      "em": "2026-10-07T11:05:03.824Z"
+    },
+    "produtos-page.jsx": {
+      "sha256": "ad4b344800756f6ef89b9dbac8da6206da6c249fd5f9cffbfd0b202f5a9295d3",
+      "em": "2026-10-07T11:05:03.824Z"
     },
     "styles.css": {
       "sha256": "722992424f147b40534c6040197b736185b00be92203babb9ec68e1ea7acc186",
