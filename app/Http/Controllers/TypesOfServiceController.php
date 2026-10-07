@@ -81,6 +81,11 @@ class TypesOfServiceController extends Controller
         if (app(FeatureFlagService::class)->isOn(self::FLAG_V2, ['business_id' => $business_id])) {
             return Inertia::render('Configuracoes/TiposServico/Index', [
                 'tipos' => Inertia::defer(fn () => $this->tiposDoNegocio((int) $business_id)),
+                // Mesmas listas do create() da Blade: locais ativos e permitidos ao usuário, tabelas ativas (0 = preço padrão).
+                'opcoes' => Inertia::defer(fn () => [
+                    'locais' => BusinessLocation::forDropdown($business_id),
+                    'tabelas' => SellingPriceGroup::forDropdown($business_id),
+                ], 'formulario'),
             ]);
         }
 
@@ -104,6 +109,11 @@ class TypesOfServiceController extends Controller
                 'taxa' => (float) $t->packing_charge,
                 'tipo_taxa' => $t->packing_charge_type === 'percent' ? 'percent' : 'fixed',
                 'campos_personalizados' => (bool) $t->enable_custom_fields,
+                // Mapa cru local → tabela para o drawer devolver no update(); só chaves e valores do próprio negócio
+                // (0 = preço padrão, a opção que a Blade oferece).
+                'tabela_por_local' => (object) collect((array) $t->location_price_group)
+                    ->filter(fn ($tabela, $local) => isset($locais[$local]) && ((string) $tabela === '0' || isset($tabelas[$tabela])))
+                    ->map(fn ($tabela) => (string) $tabela)->all(),
                 'precos_por_local' => collect((array) $t->location_price_group)
                     ->filter(fn ($tabela, $local) => isset($locais[$local], $tabelas[$tabela]))
                     ->map(fn ($tabela, $local) => ['local' => $locais[$local], 'tabela' => $tabelas[$tabela]])

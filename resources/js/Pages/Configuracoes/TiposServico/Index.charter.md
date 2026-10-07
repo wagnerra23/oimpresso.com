@@ -31,6 +31,7 @@ Manter as formas de atender a venda (balcão, entrega, montagem…), cada uma co
 ## Goals
 
 - Lista dos tipos do negócio com a taxa (R$ ou %), a tabela de preço por local e se pede campos extras na venda.
+- Cadastrar e editar num drawer: taxa em texto pt-BR, tabela de preço por local com as mesmas listas do `create()` da Blade.
 - Excluir pelo endpoint de sempre.
 - Abas de Configurações (D1, [W] 2026-10-06), derivadas do `shell.menu`.
 
