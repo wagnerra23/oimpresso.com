@@ -215,12 +215,6 @@ return [
         'business_ids' => $parseBizIds('MWART_VENDAS_SALES_ORDER_INDEX_BIZ'),
     ],
 
-    // LabelsController@show → Produto/Etiquetas/Index (playbook Produto thread 04).
-    // Nasce DESLIGADA: sem a flag, /labels/show segue na Blade. Decisão [W] 2026-10-06:
-    // testar primeiro no biz=1 — em produção, MWART_PRODUTO_ETIQUETAS=true e
-    // MWART_PRODUTO_ETIQUETAS_BIZ=1. ⚠️ _BIZ VAZIO = TODAS as empresas.
-    'produto_etiquetas' => [
-        'enabled'      => env('MWART_PRODUTO_ETIQUETAS', false),
-        'business_ids' => $parseBizIds('MWART_PRODUTO_ETIQUETAS_BIZ'),
-    ],
+    // produto_etiquetas: removida em 2026-10-06 (noite) — a tela nova virou padrão sem flag
+    // (decisão [W] "etiquetas pode ativar sem tag"); `?classico=1` em /labels/show força a Blade.
 ];
