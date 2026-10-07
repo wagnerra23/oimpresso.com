@@ -3,9 +3,9 @@ slug: 0423-ponto-push-lembrete-fcm
 number: 423
 title: "Ponto — lembrete de bater ponto por push (FCM HTTP v1, token por usuário+business, scheduler existente, opt-out)"
 type: adr
-status: proposto
+status: superseded
 authority: canonical
-lifecycle: ativo
+lifecycle: substituido
 kind: decision
 decided_by: [W]
 decided_at: "2026-10-01"
@@ -13,7 +13,7 @@ module: pontowr2
 tags: [ponto, push, fcm, apns, capacitor, mobile, lembrete]
 supersedes: []
 supersedes_partially: []
-superseded_by: []
+superseded_by: ['0428-app-das-lojas-avisos-sem-firebase-centrifugo']
 related:
   - 0093-multi-tenant-isolation-tier-0
   - 0062-separacao-runtime-hostinger-ct100

@@ -3,9 +3,9 @@ slug: 0424-ponto-push-registro-pelo-app
 number: 424
 title: "Ponto — emenda à 0423: o app de telas próprias registra o aparelho pela API (Passport), não pela página web"
 type: adr
-status: proposto
+status: superseded
 authority: canonical
-lifecycle: ativo
+lifecycle: substituido
 kind: decision
 decided_by: [W]
 decided_at: "2026-10-01"
@@ -14,7 +14,7 @@ tags: [ponto, push, fcm, capacitor, mobile, lembrete, api]
 supersedes: []
 supersedes_partially:
   - 0423-ponto-push-lembrete-fcm
-superseded_by: []
+superseded_by: ['0428-app-das-lojas-avisos-sem-firebase-centrifugo']
 related:
   - 0423-ponto-push-lembrete-fcm
   - 0093-multi-tenant-isolation-tier-0
