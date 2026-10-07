@@ -48578,6 +48578,31 @@
     "projetoCowork": "w"
   },
   {
+    "date": "2026-10-07T11:05:03.764Z",
+    "files": 284,
+    "sync": 5,
+    "stale": 0,
+    "liveAbsent": 0,
+    "unchecked": 279,
+    "staleList": [],
+    "verified": [
+      "cowork-inbox/produto/playbook/_saida-00.md",
+      "produto-blade-forms.jsx",
+      "produto-blade.jsx",
+      "produto-perms.jsx",
+      "produtos-page.jsx"
+    ],
+    "verifiedHash": {
+      "cowork-inbox/produto/playbook/_saida-00.md": "386516441d57dfa3d30e3136793f443c73f346c55703735cc46c0baa73eeade0",
+      "produto-blade-forms.jsx": "7423e8410517d90d08b954d8a482b7b22ac8920d2e4e788c02927333b95d9769",
+      "produto-blade.jsx": "32b0cbdfdf224afb5e01e8fa9c4f37b49f6ac1843cc2607e494b7be382aa928e",
+      "produto-perms.jsx": "bdeff05b1664472af375ecdf307b09970885c4c20061db942e5783479326a5ee",
+      "produtos-page.jsx": "ad4b344800756f6ef89b9dbac8da6206da6c249fd5f9cffbfd0b202f5a9295d3"
+    },
+    "origin": "medicao",
+    "projetoCowork": "w"
+  },
+  {
     "date": "2026-10-07T11:06:35.876Z",
     "files": 284,
     "sync": 2,

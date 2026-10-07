@@ -249,7 +249,7 @@ function FiltroTrigger({ label, value, options, onChange }) {
 
 }
 
-function MenuAncorado({ label, icon, align = "end", children }) {
+function MenuAncorado({ label, icon, align = "end", ariaLabel, titulo, children }) {
   const [aberto, setAberto] = useStateP(false);
   const ref = useRefP(null);
   useEffectP(() => {
@@ -262,7 +262,7 @@ function MenuAncorado({ label, icon, align = "end", children }) {
   }, [aberto]);
   return (
     <div className="pd-menu" ref={ref}>
-      <button type="button" className="pd-menu-b" aria-label={label} aria-expanded={aberto} title={label}
+      <button type="button" className="pd-menu-b" aria-label={ariaLabel || label} aria-expanded={aberto} title={titulo || label}
       onClick={() => setAberto((v) => !v)}>
         {icon}{label && <span className="pd-menu-lbl">{label}</span>}
       </button>
@@ -287,7 +287,7 @@ function BulkBar({ total, foraDaPagina, onInativar, onLimpar }) {
 
 }
 
-function Paleta({ aberta, onClose, onAba, onKpi, onLimpar, onDensa, recentes, onAbrir, perm }) {
+function Paleta({ aberta, onClose, onAba, onKpi, onLimpar, onDensa, densa, recentes, onAbrir, perm }) {
   const [q, setQ] = useStateP("");
   const ref = useRefP(null);
   useEffectP(() => {if (aberta) {setQ("");setTimeout(() => ref.current?.focus(), 20);}}, [aberta]);
@@ -296,13 +296,13 @@ function Paleta({ aberta, onClose, onAba, onKpi, onLimpar, onDensa, recentes, on
   const recortes = [
   ["Abaixo do mínimo", () => onKpi("min")],
   ["Sem saldo", () => onKpi("zero")],
-  ...(perm.custo ? [[`Sem venda ${DIAS_PARADO}d`, () => onKpi("parado")]] : []),
+  ...(perm.custo ? [[`Sem venda há ${DIAS_PARADO} dias`, () => onKpi("parado")]] : []),
   ...(perm.custo && perm.preco ? [["Margem baixa", () => onKpi("margem")]] : []),
-  ["Limpar recorte", onLimpar]];
+  ["Limpar o recorte", onLimpar]];
 
   const acoes = [
   ["Novo produto", () => {}], ["Importar planilha", () => {}],
-  ["Exportar planilha", () => {}], ["Linhas confortáveis", onDensa]];
+  ["Exportar planilha", () => {}], [densa ? "Voltar às linhas confortáveis" : "Usar linhas compactas", onDensa]];
 
   const Grupo = ({ titulo, itens }) => {
     const vis = itens.filter(([l]) => casa(l));
@@ -320,7 +320,7 @@ function Paleta({ aberta, onClose, onAba, onKpi, onLimpar, onDensa, recentes, on
     <div className="pd-paleta-back" onClick={onClose}>
       <div className="pd-paleta" role="dialog" aria-modal="true" aria-label="Paleta de comandos" onClick={(e) => e.stopPropagation()}>
         <input ref={ref} value={q} onChange={(e) => setQ(e.target.value)}
-        placeholder="Ir para item recente, aba, recorte ou ação..." aria-label="Comando" />
+        placeholder="Ir para aba, recorte ou item recente…" aria-label="Comando" />
         <div className="pd-paleta-lista">
           <Grupo titulo="Recentes" itens={recentes.map((r) => [r.nome, () => onAbrir(r.id), String(r.codigo)])} />
           <Grupo titulo="Abas" itens={ABAS_CATALOGO.map(([k, l]) => [l, () => onAba(k)])} />
@@ -644,7 +644,7 @@ function ProdListPage({ typeFilter = "all", onTypeFilter, estado = "dados", dens
           <p><b>{contagens.todos.toLocaleString("pt-BR")}</b> cadastrados · ROTA LIVRE</p>
         </div>
         <div className="pd-head-r">
-          <MenuAncorado label="" icon={<I.more size={16} />}>
+          <MenuAncorado label="" ariaLabel="Mais ações" titulo="Apresentação e dados" icon={<I.more size={16} />}>
             {() => <>
               <div className="pd-menu-grupo">Apresentação</div>
               <button role="menuitem" onClick={() => setDensa((v) => !v)}>
@@ -771,8 +771,8 @@ function ProdListPage({ typeFilter = "all", onTypeFilter, estado = "dados", dens
                     <td colSpan={colunas.length}>
                       <div className="pd-vazio">
                         <I.search size={22} />
-                        <b>Nenhum produto neste recorte</b>
-                        <span>Ajuste a busca, troque a aba ou solte os filtros aplicados.</span>
+                        <b>Nenhum item neste recorte</b>
+                        <span>{temFiltro || kpi || busca ? "Tente limpar a busca, o filtro ou o cartão selecionado acima." : "Esta aba não tem itens cadastrados."}</span>
                         {(temFiltro || kpi || busca) && <button className="os-btn" onClick={limparFiltros}>Limpar</button>}
                       </div>
                     </td>
@@ -832,7 +832,7 @@ function ProdListPage({ typeFilter = "all", onTypeFilter, estado = "dados", dens
       <div className="pd-modal-back" onClick={() => setConfirmar(false)}>
           <div className="pd-modal" role="dialog" aria-modal="true" aria-label="Confirmar inativação" onClick={(e) => e.stopPropagation()}>
             <b>Inativar {sel.length} {sel.length === 1 ? "item" : "itens"}?</b>
-            <p>Eles saem da busca de venda e do balcão, mas continuam no histórico e podem ser reativados na aba Inativos.</p>
+            <p>{sel.length === 1 ? "O item deixa" : "Os itens deixam"} de aparecer em venda e em orçamento. O histórico e a consulta continuam disponíveis, e dá pra reativar depois pelo cadastro.</p>
             <div className="pd-modal-acoes">
               <button className="os-btn" onClick={() => setConfirmar(false)}>Cancelar</button>
               <button className="os-btn perigo" onClick={inativarSelecao}>Inativar</button>
@@ -843,7 +843,7 @@ function ProdListPage({ typeFilter = "all", onTypeFilter, estado = "dados", dens
 
       <Paleta aberta={paleta} onClose={() => setPaleta(false)} perm={perm}
       onAba={(k) => {setAba(k);setKpi("");}} onKpi={(k) => {setKpi(k);setPagina(1);}}
-      onLimpar={limparFiltros} onDensa={() => setDensa((v) => !v)}
+      onLimpar={limparFiltros} onDensa={() => setDensa((v) => !v)} densa={densa}
       recentes={recentes} onAbrir={abrirItem} />
 
       {abertoId && window.ProdutoDetalheDrawer &&

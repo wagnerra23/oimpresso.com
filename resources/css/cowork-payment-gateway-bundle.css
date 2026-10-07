@@ -255,3 +255,10 @@
 [data-theme="dark"] .pg-shell-scope .bg-stone-50 {
   background: var(--bg-2);
 }
+
+/* tema escuro (playbook tema-escuro thread 03 PR-b · 2026-10-07): stone-100/200/300 eram
+   claro-fixos — medido no contador da aba e no fundo das abas da Cobrança. Mesmo conserto
+   que o protótipo recebeu (pg-styles.css, thread 04). */
+[data-theme="dark"] .pg-shell-scope .bg-stone-100,
+[data-theme="dark"] .pg-shell-scope .bg-stone-100\/80 { background-color: var(--bg-2); }
+[data-theme="dark"] .pg-shell-scope .bg-stone-200 { background-color: var(--border); }
