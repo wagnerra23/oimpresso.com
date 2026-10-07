@@ -90,6 +90,10 @@ beforeEach(function () {
 });
 
 afterEach(function () {
+    // Casos da thread 07 (tenant 98): limpa também quando um deles cai no meio — o banco do
+    // CT 100 persiste entre runs. No-op em SQLite e sem a migração 2026_10_07_000001.
+    t07Limpar();
+
     if (DB::connection()->getDriverName() === 'sqlite') {
         Schema::dropIfExists('nfe_fiscal_rules');
         Schema::dropIfExists('nfe_business_configs');
@@ -561,6 +565,9 @@ const T07_NCMS = ['77070001', '77070002', '77070003', '77070004'];
 
 function t07Limpar(): void
 {
+    if (DB::connection()->getDriverName() === 'sqlite' || ! Schema::hasTable('nfe_operacoes_fiscais')) {
+        return;
+    }
     DB::statement('SET FOREIGN_KEY_CHECKS=0');
     if (Schema::hasTable('nfe_fiscal_rule_tax_rate_links')) {
         $ids = DB::table('nfe_fiscal_rules')->where('business_id', t07Biz())->whereIn('ncm', T07_NCMS)->pluck('id');
