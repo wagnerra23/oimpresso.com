@@ -45,7 +45,7 @@ class BusinessLocationController extends Controller
     /**
      * Display a listing of the resource.
      *
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\JsonResponse|\Illuminate\View\View|\Inertia\Response
      */
     public function index()
     {
@@ -136,7 +136,7 @@ class BusinessLocationController extends Controller
             $query->whereIn('business_locations.id', $permitidos);
         }
 
-        return $query->get()->map(fn ($l) => [
+        return $query->toBase()->get()->map(fn (object $l) => [
             'id' => $l->id, 'nome' => $l->name, 'referencia' => (string) $l->location_id,
             'cidade' => trim(implode(' / ', array_filter([$l->city, $l->state]))), 'cnpj' => (string) $l->cnpj,
             'ativo' => (bool) $l->is_active, 'tabela' => $l->tabela, 'esquema' => $l->esquema,
