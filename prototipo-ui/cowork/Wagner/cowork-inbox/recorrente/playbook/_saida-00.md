@@ -10,8 +10,9 @@ veredito: "entregue — 4 Index com vista própria (Assinaturas, Planos, Faturas
 
 # _saída 00 · PUXAR o vivo de Cobrança Recorrente
 
-> A ficha dá esta thread ao [CC]. Quem executou foi o [CL], a pedido do agente-pai. Nada subiu ao
-> Cowork: escrever no Claude Design exige opt-in do dono (ADR 0315). Até a subida, o check
+> A ficha dá esta thread ao [CC]. Quem executou foi o [CL], a pedido do agente-pai. A subida ao
+> Cowork não é feita por esta sessão: escrever tela no Claude Design exige opt-in do dono
+> (ADR 0315), e quem sobe é a fila de merges. Até a subida, o check
 > `espelho — mexeu depois de verificar` acusa o `cobranca-recorrente-page.jsx`. Isso é esperado.
 
 ## O que mudou na base da medida
