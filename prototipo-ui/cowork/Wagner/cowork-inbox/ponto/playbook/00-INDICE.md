@@ -161,7 +161,7 @@ Respondidas e riscadas: W1–W7 (ADR 0413 / 0383). Abertas:
       "id": "W2",
       "pergunta": "Permissão do fechamento: nova ou reusa ponto.configuracoes.manage?",
       "respondida": true,
-      "resposta": "ponto.fechar própria — ADR 0413"
+      "resposta": "ponto.fechar própria — D1 / ADR 0413 — _DECISOES-W-2026-09-24.md"
     },
     {
       "id": "W3",
@@ -173,7 +173,7 @@ Respondidas e riscadas: W1–W7 (ADR 0413 / 0383). Abertas:
       "id": "W4",
       "pergunta": "Reabrir competência fechada: com auditoria ou definitivo?",
       "respondida": true,
-      "resposta": "sem Reabrir na v1 — ADR 0413"
+      "resposta": "sem Reabrir na v1 — D1 / ADR 0413 — _DECISOES-W-2026-09-24.md"
     },
     {
       "id": "W5",
@@ -206,7 +206,7 @@ Respondidas e riscadas: W1–W7 (ADR 0413 / 0383). Abertas:
       "id": "W9",
       "pergunta": "Navegação: 13 abas de área × PontoSubNav 5+⋯ (ADR 0182)?",
       "respondida": true,
-      "resposta": "13 abas de área do protótipo, no lugar do PontoSubNav 5 + ⋯ — [W] 2026-09-28, ADR 0418 (_DECISOES-W-2026-09-28). Já aplicado no main: PontoSubNav.tsx maxVisible={ghosts.length} + scrollable. O decide-for-me de 29/09 NÃO a reabre."
+      "resposta": "13 abas do protótipo — ADR 0418 — _DECISOES-W-2026-09-28.md"
     },
     {
       "id": "W10",
@@ -224,7 +224,7 @@ Respondidas e riscadas: W1–W7 (ADR 0413 / 0383). Abertas:
       "destrava": [
         "forma §2-ter (31 PRs)"
       ],
-      "resposta": "servidor (LengthAwarePaginator, 20/pág) + forma do protótipo — [W] 2026-09-28, ADR 0418"
+      "resposta": "servidor + forma do protótipo — ADR 0418 — _DECISOES-W-2026-09-28.md"
     },
     {
       "id": "W14",

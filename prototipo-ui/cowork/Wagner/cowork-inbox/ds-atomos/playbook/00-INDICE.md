@@ -148,12 +148,14 @@ Comecei em `a0db7b0177b8` e as últimas leituras já vieram de `2b4a3ec3b48a`. O
           "padrao": "flush"
         },
         {
-          "tipo": "execucao",
-          "path": "${UI}/card.tsx",
-          "testes": [
-            "npm run test -- card"
-          ],
-          "nota": "Card sem as props novas renderiza markup identico ao de 733033864088 (guarda de default)"
+          "tipo": "contem",
+          "path": "tests/js/card-anatomia.test.tsx",
+          "padrao": "GUARDA de default"
+        },
+        {
+          "tipo": "contem",
+          "path": ".github/workflows/card-anatomia-gate.yml",
+          "padrao": "test:card-anatomia"
         }
       ]
     },
@@ -185,12 +187,9 @@ Comecei em `a0db7b0177b8` e as últimas leituras já vieram de `2b4a3ec3b48a`. O
           "guarda": true
         },
         {
-          "tipo": "execucao",
-          "path": "${SH}/KpiCard.tsx",
-          "testes": [
-            "npm run test -- KpiCard"
-          ],
-          "nota": "sem variant preserva os 5 tones; Backup e Financeiro/Unificado sem diff"
+          "tipo": "contem",
+          "path": "tests/js/kpicard-variant-filter.test.tsx",
+          "padrao": "guarda do default"
         }
       ]
     },
@@ -226,12 +225,9 @@ Comecei em `a0db7b0177b8` e as últimas leituras já vieram de `2b4a3ec3b48a`. O
           "guarda": true
         },
         {
-          "tipo": "execucao",
-          "path": "${SH}/Toolbar.tsx",
-          "testes": [
-            "npm run test -- Toolbar"
-          ],
-          "nota": "3 zonas left/center/right; PageFilters intacto"
+          "tipo": "contem",
+          "path": "tests/js/toolbar.test.tsx",
+          "padrao": "guarda: PageFilters segue intacto"
         }
       ]
     },
@@ -265,12 +261,9 @@ Comecei em `a0db7b0177b8` e as últimas leituras já vieram de `2b4a3ec3b48a`. O
           "path": "tests/js/datatable-density.test.tsx"
         },
         {
-          "tipo": "execucao",
-          "path": "${SH}/DataTable.tsx",
-          "testes": [
-            "npm run test -- datatable-density"
-          ],
-          "nota": "default byte-idêntico; dense com os números da §Alvo"
+          "tipo": "contem",
+          "path": "tests/js/datatable-density.test.tsx",
+          "padrao": "guarda — sem `density` nada muda"
         }
       ]
     },
@@ -309,14 +302,6 @@ Comecei em `a0db7b0177b8` e as últimas leituras já vieram de `2b4a3ec3b48a`. O
           "path": "tests/js/statusbadge-kinds.test.tsx"
         },
         {
-          "tipo": "execucao",
-          "path": "${SH}/StatusBadge.tsx",
-          "testes": [
-            "npm run test -- statusbadge-kinds"
-          ],
-          "nota": "13 chaves literais do DS; kinds antigos sem diff"
-        },
-        {
           "tipo": "contem",
           "path": "${SH}/StatusBadge.tsx",
           "padrao": "--sla-expired"
@@ -326,6 +311,11 @@ Comecei em `a0db7b0177b8` e as últimas leituras já vieram de `2b4a3ec3b48a`. O
           "path": "${SH}/StatusBadge.tsx",
           "padrao": "canal-email-bg",
           "guarda": true
+        },
+        {
+          "tipo": "contem",
+          "path": "tests/js/statusbadge-kinds.test.tsx",
+          "padrao": "guarda — kinds que já existiam não mudam"
         }
       ]
     },
@@ -369,6 +359,7 @@ Comecei em `a0db7b0177b8` e as últimas leituras já vieram de `2b4a3ec3b48a`. O
         }
       ]
     }
-  ]
+  ],
+  "revisado": "2026-10-07 errata do Code aplicada (_ERRATA-*-2026-10-07.md) @8d231ac7a13f"
 }
 ```
