@@ -2251,9 +2251,9 @@ class ReportController extends Controller
     }
 
     /**
-     * Shows product purchase report
+     * Shows product sell report
      *
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Contracts\View\View|\Inertia\Response|\Illuminate\Http\JsonResponse
      */
     public function getproductSellReport(Request $request)
     {
@@ -2267,98 +2267,16 @@ class ReportController extends Controller
         $product_custom_field1 = !empty($custom_labels['product']['custom_field_1']) ? $custom_labels['product']['custom_field_1'] : '';
         $product_custom_field2 = !empty($custom_labels['product']['custom_field_2']) ? $custom_labels['product']['custom_field_2'] : '';
 
+        // Tela React (playbook sistema/07). Vem ANTES do ajax(): a visita Inertia manda
+        // X-Requested-With. As linhas saem da MESMA consulta do DataTable da Blade, paginadas no servidor.
+        if ($request->query('tela') === 'nova') {
+            return $this->telaVendasPorProduto($request, $business_id);
+        }
+
         if ($request->ajax()) {
             $payment_types = $this->transactionUtil->payment_types(null, true, $business_id);
 
-            $variation_id = $request->get('variation_id', null);
-            $query = TransactionSellLine::join(
-                'transactions as t',
-                'transaction_sell_lines.transaction_id',
-                '=',
-                't.id'
-            )
-                ->join(
-                    'variations as v',
-                    'transaction_sell_lines.variation_id',
-                    '=',
-                    'v.id'
-                )
-                ->join('product_variations as pv', 'v.product_variation_id', '=', 'pv.id')
-                ->join('contacts as c', 't.contact_id', '=', 'c.id')
-                ->join('products as p', 'pv.product_id', '=', 'p.id')
-                ->leftjoin('tax_rates', 'transaction_sell_lines.tax_id', '=', 'tax_rates.id')
-                ->leftjoin('units as u', 'p.unit_id', '=', 'u.id')
-                ->where('t.business_id', $business_id)
-                ->where('t.type', 'sell')
-                ->where('t.status', 'final')
-                ->with('transaction.payment_lines')
-                ->select(
-                    'p.name as product_name',
-                    'p.type as product_type',
-                    'p.product_custom_field1 as product_custom_field1',
-                    'p.product_custom_field2 as product_custom_field2',
-                    'pv.name as product_variation',
-                    'v.name as variation_name',
-                    'v.sub_sku',
-                    'c.name as customer',
-                    'c.supplier_business_name',
-                    'c.contact_id',
-                    't.id as transaction_id',
-                    't.invoice_no',
-                    't.transaction_date as transaction_date',
-                    'transaction_sell_lines.unit_price_before_discount as unit_price',
-                    'transaction_sell_lines.unit_price_inc_tax as unit_sale_price',
-                    DB::raw('(transaction_sell_lines.quantity - transaction_sell_lines.quantity_returned) as sell_qty'),
-                    'transaction_sell_lines.line_discount_type as discount_type',
-                    'transaction_sell_lines.line_discount_amount as discount_amount',
-                    'transaction_sell_lines.item_tax',
-                    'tax_rates.name as tax',
-                    'u.short_name as unit',
-                    'transaction_sell_lines.parent_sell_line_id',
-                    DB::raw('((transaction_sell_lines.quantity - transaction_sell_lines.quantity_returned) * transaction_sell_lines.unit_price_inc_tax) as subtotal')
-                )
-                ->groupBy('transaction_sell_lines.id');
-
-            if (! empty($variation_id)) {
-                $query->where('transaction_sell_lines.variation_id', $variation_id);
-            }
-            $start_date = $request->get('start_date');
-            $end_date = $request->get('end_date');
-            if (! empty($start_date) && ! empty($end_date)) {
-                $query->where('t.transaction_date', '>=', $start_date)
-                    ->where('t.transaction_date', '<=', $end_date);
-            }
-
-            $permitted_locations = auth()->user()->permitted_locations();
-            if ($permitted_locations != 'all') {
-                $query->whereIn('t.location_id', $permitted_locations);
-            }
-
-            $location_id = $request->get('location_id', null);
-            if (! empty($location_id)) {
-                $query->where('t.location_id', $location_id);
-            }
-
-            $customer_id = $request->get('customer_id', null);
-            if (! empty($customer_id)) {
-                $query->where('t.contact_id', $customer_id);
-            }
-
-            $customer_group_id = $request->get('customer_group_id', null);
-            if (! empty($customer_group_id)) {
-                $query->leftjoin('customer_groups AS CG', 'c.customer_group_id', '=', 'CG.id')
-                ->where('CG.id', $customer_group_id);
-            }
-
-            $category_id = $request->get('category_id', null);
-            if (! empty($category_id)) {
-                $query->where('p.category_id', $category_id);
-            }
-
-            $brand_id = $request->get('brand_id', null);
-            if (! empty($brand_id)) {
-                $query->where('p.brand_id', $brand_id);
-            }
+            $query = $this->consultaVendasPorProduto($business_id, $request->only(self::FILTROS_VENDAS_PRODUTO));
 
             return Datatables::of($query)
                 ->editColumn('product_name', function ($row) {
@@ -2437,6 +2355,205 @@ class ReportController extends Controller
         return view('report.product_sell_report')
             ->with(compact('business_locations', 'customers', 'categories', 'brands',
                 'customer_group', 'product_custom_field1', 'product_custom_field2'));
+    }
+
+    /** Filtros do relatório Vendas por produto — os mesmos nomes que o report.js manda. */
+    private const FILTROS_VENDAS_PRODUTO = ['variation_id', 'start_date', 'end_date', 'location_id', 'customer_id', 'customer_group_id', 'category_id', 'brand_id'];
+
+    /**
+     * Vendas por produto — a consulta do relatório (uma linha por item de venda finalizada), usada pelo DataTable
+     * da Blade e pela tela nova (playbook sistema/07). Corpo movido sem mudança de regra do ramo ajax().
+     *
+     * @param  array<string, mixed>  $filtros  FILTROS_VENDAS_PRODUTO
+     */
+    private function consultaVendasPorProduto(int $business_id, array $filtros): \Illuminate\Database\Eloquent\Builder
+    {
+        $variation_id = ($filtros['variation_id'] ?? null);
+        $query = TransactionSellLine::join(
+            'transactions as t',
+            'transaction_sell_lines.transaction_id',
+            '=',
+            't.id'
+        )
+            ->join(
+                'variations as v',
+                'transaction_sell_lines.variation_id',
+                '=',
+                'v.id'
+            )
+            ->join('product_variations as pv', 'v.product_variation_id', '=', 'pv.id')
+            ->join('contacts as c', 't.contact_id', '=', 'c.id')
+            ->join('products as p', 'pv.product_id', '=', 'p.id')
+            ->leftjoin('tax_rates', 'transaction_sell_lines.tax_id', '=', 'tax_rates.id')
+            ->leftjoin('units as u', 'p.unit_id', '=', 'u.id')
+            ->where('t.business_id', $business_id)
+            ->where('t.type', 'sell')
+            ->where('t.status', 'final')
+            ->with('transaction.payment_lines')
+            ->select(
+                'p.name as product_name',
+                'p.type as product_type',
+                'p.product_custom_field1 as product_custom_field1',
+                'p.product_custom_field2 as product_custom_field2',
+                'pv.name as product_variation',
+                'v.name as variation_name',
+                'v.sub_sku',
+                'c.name as customer',
+                'c.supplier_business_name',
+                'c.contact_id',
+                't.id as transaction_id',
+                't.invoice_no',
+                't.transaction_date as transaction_date',
+                'transaction_sell_lines.unit_price_before_discount as unit_price',
+                'transaction_sell_lines.unit_price_inc_tax as unit_sale_price',
+                DB::raw('(transaction_sell_lines.quantity - transaction_sell_lines.quantity_returned) as sell_qty'),
+                'transaction_sell_lines.line_discount_type as discount_type',
+                'transaction_sell_lines.line_discount_amount as discount_amount',
+                'transaction_sell_lines.item_tax',
+                'tax_rates.name as tax',
+                'u.short_name as unit',
+                'transaction_sell_lines.parent_sell_line_id',
+                DB::raw('((transaction_sell_lines.quantity - transaction_sell_lines.quantity_returned) * transaction_sell_lines.unit_price_inc_tax) as subtotal')
+            )
+            ->groupBy('transaction_sell_lines.id');
+
+        if (! empty($variation_id)) {
+            $query->where('transaction_sell_lines.variation_id', $variation_id);
+        }
+        $start_date = ($filtros['start_date'] ?? null);
+        $end_date = ($filtros['end_date'] ?? null);
+        if (! empty($start_date) && ! empty($end_date)) {
+            $query->where('t.transaction_date', '>=', $start_date)
+                ->where('t.transaction_date', '<=', $end_date);
+        }
+
+        $permitted_locations = auth()->user()->permitted_locations();
+        if ($permitted_locations != 'all') {
+            $query->whereIn('t.location_id', $permitted_locations);
+        }
+
+        $location_id = ($filtros['location_id'] ?? null);
+        if (! empty($location_id)) {
+            $query->where('t.location_id', $location_id);
+        }
+
+        $customer_id = ($filtros['customer_id'] ?? null);
+        if (! empty($customer_id)) {
+            $query->where('t.contact_id', $customer_id);
+        }
+
+        $customer_group_id = ($filtros['customer_group_id'] ?? null);
+        if (! empty($customer_group_id)) {
+            $query->leftjoin('customer_groups AS CG', 'c.customer_group_id', '=', 'CG.id')
+            ->where('CG.id', $customer_group_id);
+        }
+
+        $category_id = ($filtros['category_id'] ?? null);
+        if (! empty($category_id)) {
+            $query->where('p.category_id', $category_id);
+        }
+
+        $brand_id = ($filtros['brand_id'] ?? null);
+        if (! empty($brand_id)) {
+            $query->where('p.brand_id', $brand_id);
+        }
+
+        return $query;
+    }
+
+    /**
+     * Tela nova de Vendas por produto: as mesmas linhas da consulta acima, 25 por página na ordem do DataTable
+     * da Blade (nº da venda, decrescente), e o rodapé da página como o da Blade: subtotal e quantidade só das
+     * linhas que não são filhas de combo; imposto (item_tax) somado por taxa em todas as linhas.
+     */
+    private function telaVendasPorProduto(Request $request, int $business_id): \Inertia\Response
+    {
+        $filtros = array_filter($request->only(self::FILTROS_VENDAS_PRODUTO), fn ($v) => $v !== null && $v !== '');
+        // Sem período = todas as vendas, como a Blade (o campo de data dela nasce vazio). Com período, o
+        // report.js manda "YYYY-MM-DD HH:mm" com o horário padrão dele: início 00:00, fim 23:59.
+        $inicio = $this->dataIsoOu((string) $request->query('start_date', ''), '');
+        $fim = $this->dataIsoOu((string) $request->query('end_date', ''), '');
+        $filtros['start_date'] = $inicio === '' ? '' : $inicio.' 00:00';
+        $filtros['end_date'] = $fim === '' ? '' : $fim.' 23:59';
+
+        $pagina = $this->consultaVendasPorProduto($business_id, $filtros)
+            ->orderBy('t.invoice_no', 'desc')->orderBy('transaction_sell_lines.id', 'desc')
+            ->toBase()->paginate(25)->withQueryString();
+
+        // Forma de pagamento como a coluna da Blade: uma forma = o nome dela; mais de uma = "pagamento múltiplo".
+        $tipos = $this->transactionUtil->payment_types(null, true, $business_id);
+        $formas = DB::table('transaction_payments')
+            ->whereIn('transaction_id', collect($pagina->items())->pluck('transaction_id')->unique()->all())
+            ->get(['transaction_id', 'method'])->groupBy('transaction_id')
+            ->map(fn ($p) => $p->pluck('method')->unique()->values());
+        $data = 'H:i';
+        if ($request->session()->get('business.time_format') != 24) {
+            $data = 'h:i A';
+        }
+        $data = (string) $request->session()->get('business.date_format', config('constants.default_date_format', 'd/m/Y')).' '.$data;
+
+        $linhas = collect($pagina->items())->map(function (\stdClass $r) use ($formas, $tipos, $data): array {
+            $metodos = $formas->get($r->transaction_id, collect());
+
+            return [
+                'produto' => $r->product_type == 'variable' ? $r->product_name.' - '.$r->product_variation.' - '.$r->variation_name : (string) $r->product_name,
+                'sku' => (string) $r->sub_sku,
+                'cliente' => trim((! empty($r->supplier_business_name) ? $r->supplier_business_name.', ' : '').$r->customer),
+                'contato' => (string) $r->contact_id,
+                'venda' => (string) $r->invoice_no,
+                // Mesma conta do @format_datetime da Blade.
+                'data' => \Carbon\Carbon::createFromTimestamp(strtotime((string) $r->transaction_date))->format($data),
+                'quantidade' => (float) $r->sell_qty,
+                'unidade' => (string) ($r->unit ?? ''),
+                'preco_unitario' => (float) $r->unit_price,
+                'desconto_tipo' => (string) ($r->discount_type ?? ''),
+                'desconto' => (float) $r->discount_amount,
+                'imposto' => (float) $r->item_tax,
+                'imposto_nome' => (string) ($r->tax ?? ''),
+                'preco_com_imposto' => (float) $r->unit_sale_price,
+                'subtotal' => (float) $r->subtotal,
+                'pagamento' => $metodos->count() > 1 ? (string) __('lang_v1.checkout_multi_pay') : (string) ($tipos[$metodos->first()] ?? ''),
+                // Linha filha de combo: aparece, mas fica fora do rodapé de quantidade e subtotal (como na Blade).
+                'combo_filho' => ! is_null($r->parent_sell_line_id),
+            ];
+        })->values();
+
+        $principais = $linhas->where('combo_filho', false);
+        $porUnidade = [];
+        foreach ($principais->groupBy('unidade') as $unidade => $doGrupo) {
+            $porUnidade[] = ['unidade' => (string) $unidade, 'quantidade' => (float) $doGrupo->sum('quantidade')];
+        }
+        $porImposto = [];
+        foreach ($linhas->where('imposto', '!=', 0)->groupBy('imposto_nome') as $nome => $doGrupo) {
+            $porImposto[] = ['imposto' => (string) $nome, 'valor' => (float) $doGrupo->sum('imposto')];
+        }
+
+        $opcoes = fn ($lista) => collect($lista)->map(fn ($nome, $id) => ['id' => (int) $id, 'nome' => (string) $nome])->values();
+
+        return Inertia::render('Relatorios/VendasProduto/Index', [
+            'linhas' => $linhas,
+            // Como o rodapé da Blade: só as linhas desta página.
+            'rodape' => ['subtotal' => (float) $principais->sum('subtotal'), 'por_unidade' => $porUnidade, 'por_imposto' => $porImposto],
+            'paginacao' => ['atual' => $pagina->currentPage(), 'ultima' => $pagina->lastPage(), 'total' => $pagina->total()],
+            'filtros' => [
+                'customer_id' => (string) ($filtros['customer_id'] ?? ''),
+                'customer_group_id' => (string) ($filtros['customer_group_id'] ?? ''),
+                'location_id' => (string) ($filtros['location_id'] ?? ''),
+                'category_id' => (string) ($filtros['category_id'] ?? ''),
+                'brand_id' => (string) ($filtros['brand_id'] ?? ''),
+                'start_date' => $inicio,
+                'end_date' => $fim,
+            ],
+            'clientes' => $opcoes(Contact::customersDropdown($business_id, false)),
+            'grupos' => $opcoes(CustomerGroup::forDropdown($business_id, false, true)),
+            'locais' => $opcoes(BusinessLocation::forDropdown($business_id)),
+            'categorias' => $opcoes(Category::forDropdown($business_id, 'product')),
+            'marcas' => $opcoes(Brands::forDropdown($business_id)),
+            'moeda' => [
+                'simbolo' => (string) $request->session()->get('business.currency_symbol', 'R$'),
+                'casas' => (int) $request->session()->get('business.currency_precision', 2),
+            ],
+        ]);
     }
 
     /**
