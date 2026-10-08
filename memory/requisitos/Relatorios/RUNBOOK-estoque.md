@@ -42,10 +42,11 @@ com `view_product_stock_value` — as mesmas regras da Blade. Nada de schema.
 
 - O resumo do topo da Blade (estoque final pela compra e pela venda, lucro potencial, margem — `/reports/get-stock-value`)
   e os filtros de subcategoria e "só fabricação" ficam para o PR seguinte.
-- **Achado (não corrigido, decisão da gerência):** o JSON do DataTable (`/reports/stock-report` ajax) devolve as colunas
-  de valor (pela compra, pela venda, lucro potencial) a qualquer usuário com `stock_report.view`; a Blade só as esconde
-  na tela (`@can('view_product_stock_value')`). A tela nova já respeita a permissão.
+- **Colunas de valor no JSON (corrigido em 2026-10-08):** o JSON do DataTable (`/reports/stock-report` ajax) devolvia as
+  colunas de valor (pela compra, pela venda, lucro potencial) a qualquer usuário com `stock_report.view`; a Blade só as
+  escondia na tela (`@can('view_product_stock_value')`). Agora vêm `null` sem `view_product_stock_value`; quem tem a
+  permissão recebe os mesmos números. Teste: UC-RES-05.
 
 ## 5. Falta para o cutover (F5 — decisão [W])
 
-O resumo e os filtros do §4, a decisão sobre o achado, aprovação do screenshot por [W], o smoke F4 e o aviso ao cliente.
+O resumo e os filtros do §4, aprovação do screenshot por [W], o smoke F4 e o aviso ao cliente.

@@ -1,7 +1,7 @@
 <?php
 
 declare(strict_types=1);
-// Cobre UC-RES-01, UC-RES-02, UC-RES-03, UC-RES-04 (resources/js/Pages/Relatorios/Estoque/Index.casos.md).
+// Cobre UC-RES-01, UC-RES-02, UC-RES-03, UC-RES-04, UC-RES-05 (resources/js/Pages/Relatorios/Estoque/Index.casos.md).
 
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\DB;
@@ -141,4 +141,32 @@ test('UC-RES-04 Tier 0 — estoque do negócio 99 não aparece; permissão da Bl
     resEntrar($this, []);
     $this->withHeaders($this->inertia)->get('/reports/stock-report?tela=nova')->assertForbidden();
     $this->withHeaders([])->get('/reports/stock-report')->assertForbidden();
+});
+
+test('UC-RES-05 Tier 0 — o JSON do DataTable só traz as colunas de valor com view_product_stock_value', function () {
+    $local = EstoqueFixture::locationId($this->business->id, '-RES-'.uniqid());
+    resProduto($this->business->id, $local, $this->user->id, 'RES-J-'.uniqid(), [7, 20, 7, 12, 0]);
+
+    $json = function () use ($local) {
+        $colunas = [];
+        foreach ([['sku', 'variations.sub_sku'], ['stock', 'stock'], ['stock_price', 'stock_price'], ['stock_value_by_sale_price', 'stock_value_by_sale_price'], ['potential_profit', 'potential_profit']] as $i => [$d, $n]) {
+            $colunas[$i] = ['data' => $d, 'name' => $n, 'searchable' => $d === 'sku' ? 'true' : 'false', 'orderable' => 'false', 'search' => ['value' => '', 'regex' => 'false']];
+        }
+        $r = $this->withHeaders(['X-Requested-With' => 'XMLHttpRequest', 'Accept' => 'application/json'])
+            ->get('/reports/stock-report?'.http_build_query(['draw' => 1, 'start' => 0, 'length' => -1, 'columns' => $colunas,
+                'order' => [['column' => 0, 'dir' => 'asc']], 'search' => ['value' => '', 'regex' => 'false'], 'location_id' => $local]));
+        $r->assertOk();
+        expect($r->json('error'))->toBeNull();
+        $l = $r->json('data.0');
+        $orig = fn ($v) => $v === null ? null : (float) (preg_match('/data-orig-value="([^"]*)"/', (string) $v, $m) ? $m[1] : 'NaN');
+
+        return [$orig($l['stock_price']), $orig($l['stock_value_by_sale_price']), $orig($l['potential_profit'])];
+    };
+
+    // Com a permissão: os mesmos números de antes (84 · 140 · 56).
+    expect($json())->toBe([84.0, 140.0, 56.0]);
+
+    // Sem a permissão: as três colunas vêm vazias, como a Blade já fazia na tela.
+    resEntrar($this, ['stock_report.view', 'access_all_locations']);
+    expect($json())->toBe([null, null, null]);
 });
