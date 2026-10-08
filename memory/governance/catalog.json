@@ -26,13 +26,13 @@
   ],
   "stats": {
     "modules": 35,
-    "nodes": 752,
-    "edges": 1047,
+    "nodes": 751,
+    "edges": 1046,
     "by_node_type": {
       "module": 39,
       "table": 108,
       "adr": 136,
-      "component": 392,
+      "component": 391,
       "api": 77
     },
     "by_edge_type": {
@@ -42,7 +42,7 @@
       "providesApi": 81,
       "charteredByAdr": 30,
       "governedByAdr": 78,
-      "hasComponent": 392,
+      "hasComponent": 391,
       "dependsOn": 119,
       "delegatesTo": 111,
       "migratesTo": 1,
@@ -2472,13 +2472,6 @@
       "module": "Financeiro",
       "name": "AssinaturaController",
       "desc": "FIN-004 atualizar cobrança recorrente (multi-tenant Tier 0, gateway delegado a AssinaturaCobrancaService)"
-    },
-    {
-      "id": "component:Financeiro/BoletoController",
-      "type": "component",
-      "module": "Financeiro",
-      "name": "BoletoController",
-      "desc": ""
     },
     {
       "id": "component:Financeiro/CaixaController",
@@ -8250,12 +8243,6 @@
     {
       "from": "module:Financeiro",
       "to": "component:Financeiro/AssinaturaController",
-      "type": "hasComponent",
-      "source": "contains"
-    },
-    {
-      "from": "module:Financeiro",
-      "to": "component:Financeiro/BoletoController",
       "type": "hasComponent",
       "source": "contains"
     },
