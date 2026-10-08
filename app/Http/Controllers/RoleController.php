@@ -3,11 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\SellingPriceGroup;
+use App\Services\FeatureFlagService;
 use App\User;
 use App\Utils\ModuleUtil;
 use App\Utils\PermissionCatalog;
 use DB;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 use Yajra\DataTables\Facades\DataTables;
@@ -18,6 +20,15 @@ class RoleController extends Controller
      * All Utils instance.
      */
     protected $moduleUtil;
+
+    /**
+     * Flag do caminho React (thread sistema/playbook/02, F3). Convenção `useV2<Area><Tela>`.
+     * Sem a chave no GrowthBook o FeatureFlagService cai no fallbackDefaults, que não a lista:
+     * default OFF, a Blade segue servindo. Ligar é toggle no GrowthBook (flag:set --biz=1), não deploy.
+     *
+     * @see memory/requisitos/User/RUNBOOK-funcoes.md
+     */
+    private const FLAG_V2 = 'useV2SistemaFuncoes';
 
     /**
      * Create a new controller instance.
@@ -32,7 +43,7 @@ class RoleController extends Controller
     /**
      * Display a listing of the resource.
      *
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\JsonResponse|\Illuminate\View\View|\Inertia\Response
      */
     public function index()
     {
@@ -40,8 +51,11 @@ class RoleController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
-        if (request()->ajax()) {
-            $business_id = request()->session()->get('user.business_id');
+        $business_id = request()->session()->get('user.business_id');
+
+        // `! inertia()`: o Inertia v3 manda `X-Requested-With` em toda visita; sem esta perna o
+        // partial reload da prop adiada caía no JSON do DataTables (RUNBOOK-funcoes §9).
+        if (request()->ajax() && ! request()->inertia()) {
 
             $roles = Role::where('business_id', $business_id)
                         ->select(['name', 'id', 'is_default', 'business_id']);
@@ -78,7 +92,51 @@ class RoleController extends Controller
                 ->make(false);
         }
 
+        if (app(FeatureFlagService::class)->isOn(self::FLAG_V2, ['business_id' => $business_id])) {
+            $user = auth()->user();
+
+            return Inertia::render('Funcoes/Index', [
+                'funcoes' => Inertia::defer(fn () => $this->funcoesDoNegocio((int) $business_id)),
+                'pode' => [
+                    'criar' => $user->can('roles.create'),
+                    'editar' => $user->can('roles.update'),
+                    'excluir' => $user->can('roles.delete'),
+                ],
+            ]);
+        }
+
         return view('role.index');
+    }
+
+    /**
+     * Papéis do negócio da sessão, no shape da tela React — mesmo nome e mesma regra de
+     * "padrão sem editar/excluir" do ramo DataTable acima. `usuarios` conta pela pivot do Spatie,
+     * restrita aos ids deste negócio (o Role não tem global scope).
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    private function funcoesDoNegocio(int $business_id): array
+    {
+        $papeis = Role::where('business_id', $business_id)->orderBy('name')->get(['id', 'name', 'is_default']);
+
+        $usuarios = DB::table('model_has_roles')
+            ->whereIn('role_id', $papeis->pluck('id'))
+            ->where('model_type', User::class)
+            ->groupBy('role_id')
+            ->selectRaw('role_id, COUNT(*) as total')
+            ->pluck('total', 'role_id');
+
+        return $papeis->map(function (Role $r) use ($business_id, $usuarios) {
+            $nome = str_replace('#'.$business_id, '', $r->name);
+
+            return [
+                'id' => $r->id,
+                'nome' => in_array($nome, ['Admin', 'Cashier']) ? __('lang_v1.'.$nome) : $nome,
+                'padrao' => (bool) $r->is_default,
+                'editavel' => ! $r->is_default || $r->name == 'Cashier#'.$business_id,
+                'usuarios' => (int) ($usuarios[$r->id] ?? 0),
+            ];
+        })->values()->all();
     }
 
     /**

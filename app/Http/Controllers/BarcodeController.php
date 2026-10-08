@@ -184,7 +184,8 @@ class BarcodeController extends Controller
         }
 
         $business_id = request()->session()->get('user.business_id');
-        $barcode = Barcode::where('business_id', $business_id)->find($id);
+        // Tier 0: com find() o id de outro negócio virava null e a Blade quebrava (500); agora 404.
+        $barcode = Barcode::where('business_id', $business_id)->findOrFail($id);
 
         return view('barcode.edit')
             ->with(compact('barcode'));

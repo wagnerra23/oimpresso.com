@@ -33,15 +33,33 @@ Status: 🧪 (1 teste cita este UC — com uma tool de cada natureza no catálog
 *Dado* o catálogo com tools de leitura e de escrita; *quando* a tela carrega as props deferidas (`tools_by_category`, `kpis`); *então* toda tool vem marcada como leitura ou escrita, e os KPIs somam leitura + escrita = total listado.
 **Pronto quando:** a tool de leitura vem `is_read_only = true`, a de escrita `false`, nenhuma tool vem sem a marca, e `read_only + write = total = nº de tools listadas`.
 
+## UC-TOOLS-03 — Executar tool exige permissão própria `[must]` `[T0]`
+Status: 🧪 (1 teste cita este UC — [`ForjaToolsPermissaoTest.php`](../../../../../Tests/Feature/ForjaToolsPermissaoTest.php), com controle positivo: a MESMA chamada passa e audita quando o usuário tem a permissão.)
+Fonte: decisão [W] **D7** (2026-10-07, thread 11 do playbook Forja — *"permissão própria"*).
+*Dado* um usuário logado **sem** `forja.tools.execute`; *quando* chama `POST /ads/admin/tools/{name}/execute`; *então* recebe 403 e nenhuma linha nasce em `mcp_tool_executions`.
+**Pronto quando:** sem a permissão → 403 e 0 linhas novas; com ela → 200 e 1 linha nova.
+
+## UC-TOOLS-04 — O audit da tela é da empresa da sessão `[must]` `[T0]`
+Status: 🧪 (1 teste cita este UC — com âncora positiva: a execução do 98 **aparece**; sem ela, "o 99 não aparece" passaria com lista vazia.)
+Fonte: D7 (*"auditoria filtrada por empresa"*) + [ADR 0093](../../../../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md).
+*Dado* execuções gravadas no business 98 e no 99; *quando* um usuário do 98 abre a tela; *então* `recent_executions` traz a do 98 e não a do 99, e `kpis.executions_7d` conta só o 98.
+**Pronto quando:** id da linha 98 presente, id da linha 99 ausente, KPI = contagem do 98 nos últimos 7 dias.
+
+## UC-TOOLS-05 — O autor da execução é o usuário logado `[must]`
+Status: 🧪 (1 teste cita este UC.)
+Fonte: D7 (*"autor = usuário logado"*) + charter (*"quem disparou"*).
+*Quando* um usuário com a permissão executa uma tool; *então* `triggered_by` é o `username` dele, nunca `'wagner'` fixo.
+**Pronto quando:** `triggered_by` = username do logado e `business_id` = o dele.
+
 ---
 
 ## [BACKLOG] — declarado no charter, ainda sem teste que o defenda
 
 Prosa honesta: nenhum item abaixo tem teste citando um UC. Vira UC quando ganhar teste — não antes ([`how-trabalhar.md`](../../../../../../../memory/how-trabalhar.md) §Pedido de tela/feature).
 
-- [BACKLOG] **`[T0]` Escopo do audit exibido** — o charter marca como *"[inferência pendente]"* e deixa nas §Pendências *"confirmar escopo multi-tenant do audit `mcp_tool_executions` (cross-business vs por business)"*. Hoje a lista de execuções recentes e o KPI `executions_7d` **não** filtram por `business_id` (a escrita grava o business; a leitura não o usa). Se a tela deve ser por business ou repo-wide é decisão [W] — e o [`ADS/SPEC.md`](../../../../../../../memory/requisitos/ADS/SPEC.md) US-ADS-001 já pede exatamente essa classificação para os `DB::table('mcp_*')` crus.
-- [BACKLOG] **Quem pode executar tool de escrita.** O charter diz *"exige aprovação Wagner, HiTL-2"* e a ADR 0053 Pilar 3 prevê perfis sem destrutivas (*"Luiz: read-only, sem destrutivas"*), mas a rota `POST /ads/admin/tools/{name}/execute` só exige `auth` — a aprovação existe apenas como `confirm()` no front. Se falta trava no servidor é decisão [W].
-- [BACKLOG] `triggered_by` do audit é a string fixa `'wagner'`, não o usuário que executou — o charter promete *"quem disparou"* no audit. Sem fonte que fixe o formato do campo, fica como pergunta.
+- ~~[BACKLOG] **`[T0]` Escopo do audit exibido**~~ → virou **UC-TOOLS-04** (D7, 2026-10-07: por empresa).
+- ~~[BACKLOG] **Quem pode executar tool de escrita.**~~ → virou **UC-TOOLS-03** (D7: permissão `forja.tools.execute`, vale para leitura e escrita).
+- ~~[BACKLOG] `triggered_by` fixo `'wagner'`~~ → virou **UC-TOOLS-05** (D7: username do logado).
 - [BACKLOG] Abrir a tela não executa nada (Anti-hook do charter) — sem teste que o exercite; contrato numa fonte só.
 - [BACKLOG] Tool de escrita pede `confirm()` antes do POST — comportamento só de front, sem E2E.
 - [BACKLOG] O audit mostra as últimas 20 execuções, sem paginação, e não tem rota de remoção (Non-Goals do charter) — sem teste que o cite.

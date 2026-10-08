@@ -7,6 +7,8 @@ use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Modules\Forja\Services\UserScopeService;
+use Spatie\Permission\Models\Permission;
+use Spatie\Permission\PermissionRegistrar;
 
 uses(Tests\TestCase::class, DatabaseTransactions::class);
 
@@ -50,12 +52,23 @@ beforeEach(function () {
 /** Usuário novo no tenant canônico de teste (98), apto a logar. */
 function tscopeUsuario(int $businessId, string $rotulo): User
 {
-    return User::factory()->create([
+    $user = User::factory()->create([
         'business_id' => $businessId,
         'username' => 'tscope_'.$rotulo.'_'.uniqid(),
         'user_type' => 'user',
         'allow_login' => 1,
     ]);
+    // D7 (thread 11): conceder/revogar exige permissão própria — só o operador a recebe;
+    // o 403 sem ela é provado no ForjaToolsPermissaoTest (UC-TSCOPE-04).
+    if ($rotulo === 'op') {
+        // Cache do Spatie pode guardar o id de uma permissão criada numa transação já
+        // revertida (FK 1452 em model_has_permissions) — limpa antes de resolver.
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
+        Permission::findOrCreate('forja.team_scopes.manage', 'web');
+        $user->givePermissionTo('forja.team_scopes.manage');
+    }
+
+    return $user;
 }
 
 /** POST numa rota de team-scopes autenticado como o operador, no tenant da sessão. */

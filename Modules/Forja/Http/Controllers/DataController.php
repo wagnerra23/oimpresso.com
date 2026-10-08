@@ -62,6 +62,19 @@ class DataController extends Controller
                 'label'   => 'Brief: acessar tool brief-fetch + admin',
                 'default' => false,
             ],
+            // [W] 2026-10-07 (D7, thread 11 do playbook Forja): as rotas de escrita de
+            // /ads/admin/{tools,team-scopes} deixam de exigir só login. Enforçadas no
+            // controller: ToolsController::execute e TeamScopesController::grant/revoke.
+            [
+                'value'   => 'forja.tools.execute',
+                'label'   => 'Forja: executar ferramentas MCP (Ferramentas → Try it)',
+                'default' => false,
+            ],
+            [
+                'value'   => 'forja.team_scopes.manage',
+                'label'   => 'Forja: conceder e revogar acesso de devs a módulos (Escopos)',
+                'default' => false,
+            ],
         ];
     }
 

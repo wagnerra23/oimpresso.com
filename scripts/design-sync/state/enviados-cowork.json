@@ -8,6 +8,10 @@
     "cowork-inbox/sistema/playbook/_saida-05.md": {
       "sha256": "385789405fbdb64d9c9c5c7e73cdc93ff2c8ddfe42fed64d2cc03000fddfdd6d",
       "em": "2026-10-07T23:17:54.179Z"
+    },
+    "venda-v3.jsx": {
+      "sha256": "84ba5293b74a0c7d5a0f21d5e55f1b461612c35b53ed4cc8fc57cccc84e7899a",
+      "em": "2026-10-08T15:56:45.719Z"
     }
   }
 }
