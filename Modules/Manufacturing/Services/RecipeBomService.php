@@ -183,6 +183,188 @@ class RecipeBomService
     }
 
     /**
+     * O que o editor de ingredientes (US-MANU-006, handoff Fabricação §5) precisa para abrir:
+     * o produto, os campos da receita e os grupos com os ingredientes já com custo de hoje,
+     * unidade e as sub-unidades que cada um aceita. Só LEITURA — quem grava é o `store()`.
+     *
+     * Mesmas regras do `addIngredients()` da janela Blade, que segue sendo a padrão:
+     *  - receita existente → edita a dela (linhas com `linha_id`, grupos com `id`);
+     *  - sem receita e com `$copiarDe` → traz a ficha da outra receita, sem `linha_id` nem `id` de
+     *    grupo (a cópia ganha grupos próprios — decisão [W] 2026-10-06), e sem preço.
+     * Sub-unidades: as mesmas do `getIngredientRow()` (`Util::getSubUnits` da unidade do produto).
+     *
+     * Tier 0 ({@see ADR 0093}): o produto passa por `variacaoDaEmpresa` (404 fora da empresa) e a
+     * receita a copiar por `receitaParaCopiar`.
+     *
+     * @return array<string, mixed>
+     */
+    public function editorDaReceita(int $variationId, int $businessId, ?int $copiarDe = null): array
+    {
+        $variation = $this->variacaoDaEmpresa($variationId, $businessId, ['product.unit', 'product_variation']);
+        // `getRelation` em vez da propriedade mágica: o Larastan não resolve as relações do
+        // `App\Variation` (sem tipo de retorno) — mesmo motivo de `presentRecipe`/`variacaoDaEmpresa`.
+        $produto = $variation->getRelation('product');
+        $util = app(\App\Utils\Util::class);
+
+        $with = [
+            'ingredients' => fn ($q) => $q->orderBy('sort_order'),
+            'ingredients.variation.product.unit', 'ingredients.sub_unit', 'ingredients.ingredient_group',
+        ];
+        $receita = $this->receitaDoProduto((int) $variation->id, $with);
+        $origem = $receita;
+        $copia = null;
+        if ($receita === null && $copiarDe !== null) {
+            $copia = $this->receitaParaCopiar($copiarDe, $businessId, $with);
+            $origem = $copia;
+        }
+
+        $grupos = [];
+        foreach ($origem ? $origem->getRelation('ingredients') : [] as $ingrediente) {
+            $insumo = $ingrediente->variation;
+            if (empty($insumo) || ! $insumo->relationLoaded('product') || empty($insumo->getRelation('product'))) {
+                continue;
+            }
+            $chave = $ingrediente->mfg_ingredient_group_id ?: 'sem-grupo';
+            $grupo = $ingrediente->ingredient_group;
+            $grupos[$chave] ??= [
+                'id'        => $copia === null && $grupo ? (int) $grupo->id : null,
+                'nome'      => $grupo->name ?? 'Sem grupo',
+                'descricao' => $grupo->description ?? '',
+                'itens'     => [],
+            ];
+            $grupos[$chave]['itens'][] = $this->itemDoEditor($insumo, $util, $businessId) + [
+                'linha_id'      => $copia === null ? (int) $ingrediente->id : null,
+                'quantidade'    => (float) $ingrediente->quantity,
+                'sub_unit_id'   => $ingrediente->sub_unit_id ? (int) $ingrediente->sub_unit_id : null,
+                'waste_percent' => (float) ($ingrediente->waste_percent ?? 0),
+            ];
+        }
+
+        $campos = $receita ?? $copia;
+
+        return [
+            'produto' => [
+                'variation_id' => (int) $variation->id,
+                'product_id'   => (int) $variation->product_id,
+                'nome'         => $this->nomeDaVariacao($variation),
+                'sku'          => (string) $variation->sub_sku,
+                'unidade'      => (string) optional($produto->unit)->short_name,
+                'sub_unidades' => $this->subUnidades($util, $businessId, (int) $produto->unit_id),
+            ],
+            'receita' => [
+                'id'                   => $receita ? (int) $receita->id : null,
+                'copiada_de'           => $copia ? (int) $copia->id : null,
+                'total_quantity'       => $campos ? (float) $campos->total_quantity : 1.0,
+                'waste_percent'        => $campos ? (float) ($campos->waste_percent ?? 0) : 0.0,
+                'extra_cost'           => $campos ? (float) ($campos->extra_cost ?? 0) : 0.0,
+                'production_cost_type' => $campos && $campos->production_cost_type ? $campos->production_cost_type : 'fixed',
+                'instructions'         => $campos ? (string) ($campos->instructions ?? '') : '',
+                // Sub-unidade de saída é do PRODUTO desta receita: não vem da cópia.
+                'sub_unit_id'          => $receita && $receita->sub_unit_id ? (int) $receita->sub_unit_id : null,
+            ],
+            'grupos' => array_values($grupos),
+            'grupos_da_empresa' => DB::table('mfg_ingredient_groups')->where('business_id', $businessId)
+                ->orderBy('name')->distinct()->pluck('name')->filter()->values()->all(),
+        ];
+    }
+
+    /**
+     * Busca de insumo do editor (`＋ Ingrediente em <grupo>`, handoff §5: no máximo 7 resultados).
+     * Mesmo filtro de produto da {@see buscarProdutosParaReceita}; cada resultado já vem com custo de
+     * hoje, unidade e sub-unidades, para a linha nascer pronta. Tier 0: `products.business_id`.
+     *
+     * @return list<array<string, mixed>>
+     */
+    public function buscarInsumos(string $termo, int $businessId, int $limite = 7): array
+    {
+        $ids = array_column($this->buscarProdutosParaReceita($termo, $businessId, $limite), 'variation_id');
+        if ($ids === []) {
+            return [];
+        }
+        $util = app(\App\Utils\Util::class);
+        $porId = $this->variacoesPorId($ids, ['product.unit', 'product_variation']);
+
+        $saida = [];
+        foreach ($ids as $id) {
+            if (isset($porId[$id])) {
+                $saida[] = $this->itemDoEditor($porId[$id], $util, $businessId);
+            }
+        }
+
+        return $saida;
+    }
+
+    /** A receita do produto, com o eager-load do chamador (mesma forma de `receitaParaCopiar`). */
+    private function receitaDoProduto(int $variationId, array $with): ?MfgRecipe
+    {
+        return MfgRecipe::with($with)->where('variation_id', $variationId)->first();
+    }
+
+    /**
+     * Variações por id, indexadas pelo id. Os ids já vêm filtrados pela empresa
+     * (`buscarProdutosParaReceita`).
+     *
+     * @param  list<int>  $ids
+     * @param  array<int|string, mixed>  $with
+     */
+    private function variacoesPorId(array $ids, array $with): Collection
+    {
+        return Variation::with($with)->whereIn('id', $ids)->get()->keyBy('id');
+    }
+
+    /** Mesmo rótulo do `MfgRecipe::forDropdown`: produto variável mostra a variação. */
+    private function nomeDaVariacao(Variation $variacao): string
+    {
+        $produto = $variacao->getRelation('product');
+        $grupo = $variacao->relationLoaded('product_variation') ? $variacao->getRelation('product_variation') : null;
+
+        return $produto->type === 'variable' && $grupo
+            ? "{$produto->name} - {$grupo->name} - {$variacao->name}"
+            : (string) $produto->name;
+    }
+
+    /** Os campos do insumo que uma linha do editor mostra e com que ela calcula. */
+    private function itemDoEditor(Variation $insumo, \App\Utils\Util $util, int $businessId): array
+    {
+        $produto = $insumo->getRelation('product');
+
+        return [
+            'variation_id'   => (int) $insumo->id,
+            'nome'           => $this->nomeDaVariacao($insumo),
+            'sku'            => (string) $insumo->sub_sku,
+            'custo_unitario' => (float) $insumo->dpp_inc_tax,
+            'unidade_base'   => (string) optional($produto->unit)->short_name,
+            'sub_unidades'   => $this->subUnidades($util, $businessId, (int) $produto->unit_id),
+        ];
+    }
+
+    /**
+     * Sub-unidades que a unidade aceita, como lista (o `getSubUnits` devolve mapa id → dados e
+     * inclui a própria unidade com multiplicador 1).
+     *
+     * @return list<array{id: int, nome: string, multiplicador: float}>
+     */
+    private function subUnidades(\App\Utils\Util $util, int $businessId, int $unitId): array
+    {
+        if ($unitId <= 0) {
+            return [];
+        }
+        try {
+            $mapa = $util->getSubUnits($businessId, $unitId);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            // Unidade fora da empresa (dado antigo): a linha fica só com a unidade base, em vez de
+            // derrubar o editor inteiro com 404.
+            return [];
+        }
+        $saida = [];
+        foreach ($mapa as $id => $dados) {
+            $saida[] = ['id' => (int) $id, 'nome' => (string) $dados['name'], 'multiplicador' => (float) ($dados['multiplier'] ?: 1)];
+        }
+
+        return $saida;
+    }
+
+    /**
      * O grupo de ingredientes que o `store()` pode RENOMEAR em nome desta receita — só se ele for
      * DELA e de mais ninguém. Fora disso, `null`, e o `store()` cria um grupo novo.
      *
