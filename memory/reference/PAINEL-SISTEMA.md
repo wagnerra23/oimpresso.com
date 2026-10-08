@@ -12,7 +12,7 @@ lente: [construir]
 
 # 🗺️ PAINEL-SISTEMA — estado do oimpresso
 
-> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-10-07**. NÃO edite à mão — a próxima geração sobrescreve.
+> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-10-08**. NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/system-map.mjs`. Este é um **índice que aponta pros donos canônicos**, não uma cópia deles.
 > Views humanas (mapa 🗺️ / guia 🧭 em claude.ai) derivam DESTES dados.
 
@@ -33,7 +33,7 @@ lente: [construir]
 | Crm | [BRIEFING](../requisitos/Crm/BRIEFING.md) | 2026-09-07 |
 | Essentials | [BRIEFING](../requisitos/Essentials/BRIEFING.md) | 2026-09-29 |
 | Financeiro | [BRIEFING](../requisitos/Financeiro/BRIEFING.md) | 2026-09-07 |
-| Fiscal | [BRIEFING](../requisitos/Fiscal/BRIEFING.md) | 2026-09-24 |
+| Fiscal | [BRIEFING](../requisitos/Fiscal/BRIEFING.md) | 2026-10-07 |
 | Forja | [BRIEFING](../requisitos/Forja/BRIEFING.md) | 2026-09-15 |
 | Governance | [BRIEFING](../requisitos/Governance/BRIEFING.md) | 2026-09-15 |
 | Jana | [BRIEFING](../requisitos/Jana/BRIEFING.md) | 2026-10-02 |
@@ -59,8 +59,8 @@ lente: [construir]
 
 > Contagem DERIVADA da árvore (contrato `implements`, não pasta). Isto conta **arquivo que implementa contrato** — não é nota, não é status e não prova que a peça roda. O que cada agente faz e se está ligado vive no BRIEFING do módulo e na config; aqui só existe o censo. Antes disto, estes números viviam à mão num diagrama e já tinham errado (`16 provedores` era 15).
 
-- **Agentes** (`implements Agent`, fora de `Tests/`): **19** — todos em `Ai/Agents/`, convenção íntegra.
-  - por módulo: Jana 14 · Crm 3 · Forja 1 · Whatsapp 1
+- **Agentes** (`implements Agent`, fora de `Tests/`): **20** — todos em `Ai/Agents/`, convenção íntegra.
+  - por módulo: Jana 15 · Crm 3 · Forja 1 · Whatsapp 1
 - **Tools MCP registradas** no `OimpressoMcpServer`: **44** — Jana 39 · Forja 5. Bate com os arquivos `*Tool.php` em `Modules/*/Mcp/Tools/`. _Registrada ≠ exposta_: a exposição é gated por `MCP_TOOLS_EXPOSED` (`config/mcp.php`), estado de runtime que a árvore não sabe.
 - **Provedores** declarados em `config/ai.php`: **15** · default = `openai` — anthropic, azure, bedrock, cohere, deepseek, eleven, gemini, groq, jina, mistral, ollama, openai, openrouter, voyageai, xai. _Declarado ≠ com chave_: a credencial mora no ambiente.
 - **Implementações de `MemoriaContrato`**: McpMemoriaDriver · MeilisearchDriver · NullMemoriaDriver · RetrievalTelemetryDecorator
@@ -147,8 +147,8 @@ lente: [construir]
 
 ## Decisões (ADRs)
 
-- **432** ADRs no total. Índice gerado: [`_INDEX-GENERATED.md`](../decisions/_INDEX-GENERATED.md) · lifecycle: [`_INDEX-LIFECYCLE.md`](../decisions/_INDEX-LIFECYCLE.md).
-- Por status: aceito: 379 · superseded: 25 · proposto: 15 · deprecated: 11 · rascunho: 1 · recusado: 1.
+- **434** ADRs no total. Índice gerado: [`_INDEX-GENERATED.md`](../decisions/_INDEX-GENERATED.md) · lifecycle: [`_INDEX-LIFECYCLE.md`](../decisions/_INDEX-LIFECYCLE.md).
+- Por status: aceito: 379 · superseded: 27 · proposto: 15 · deprecated: 11 · rascunho: 1 · recusado: 1.
 - **5** reversões de rota (ADR com `supersedes:`).
 
 ## Ideias avaliadas e ABANDONADAS (§5 — não re-propor)
@@ -423,14 +423,14 @@ lente: [construir]
 
 ## Rastro
 
-- **605** handoffs · **782** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
+- **607** handoffs · **783** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
 - Sessions recentes:
+  - `2026-10-07-refutacao-gt-g5-lote-8969-r1`
   - `2026-10-06-refutacao-gt-g5-lote-8746-r1`
   - `2026-10-05-refutacao-gt-g5-lote-8642-r1`
   - `2026-10-02-refutacao-gt-g5-lote-8612-r1`
   - `2026-10-02-refutacao-gt-g5-lote-8528-r1`
   - `2026-09-30-patrimonio-garantias-recortes-visreg`
-  - `2026-09-29-refutacao-gt-g5-lote-8195-r1`
 
 ---
-_Gerado por `scripts/governance/system-map.mjs` · 2026-10-07 · deriva das fontes canônicas, não as substitui._
+_Gerado por `scripts/governance/system-map.mjs` · 2026-10-08 · deriva das fontes canônicas, não as substitui._
