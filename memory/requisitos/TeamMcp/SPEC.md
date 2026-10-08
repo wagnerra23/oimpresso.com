@@ -63,10 +63,10 @@ Self-host equivalente ao Anthropic Team plan adaptado pra LGPD + custo + custom 
 - Cobertura: `SmokeRoutesTest.php` (smoke auth gate)
 
 ### US-TEAM-003 — Token MCP revoke (revogar token comprometido)
-**Implementado em:** `Modules/Forja/Http/Controllers/TeamController.php` · `Modules/Jana/Entities/Mcp/McpToken.php` · `Modules/Jana/Http/Middleware/McpAuthMiddleware.php` · verificado@8af585a (2026-07-02) — DELETE /team-mcp/team/token/{token} → revogarToken seta revoked_at inline + soft-delete (McpTokenIssuer::revoke NÃO religado à rota; caller de prod só RotateTokenCommand); token revogado rejeitado por McpToken::encontrarPorRaw (whereNull revoked_at) via McpAuthMiddleware
+**Implementado em:** `Modules/Forja/Http/Controllers/TeamController.php` · `Modules/Jana/Entities/Mcp/McpToken.php` · `Modules/Jana/Http/Middleware/McpAuthMiddleware.php` · verificado@8af585a (2026-07-02) — DELETE /team-mcp/team/{user}/token/{tokenId} → revokeToken confere usuário + business da sessão e chama McpToken::revogar (a rota legacy DELETE /team-mcp/team/token/{token} → revogarToken, sem scope, saiu em 2026-10-08 — decisão [W] D14; McpTokenIssuer::revoke NÃO religado à rota; caller de prod só RotateTokenCommand); token revogado rejeitado por McpToken::encontrarPorRaw (whereNull revoked_at) via McpAuthMiddleware
 **Testado em:** `Modules/Forja/Tests/Feature/TokensListAndRevokeTest.php` · `Modules/Forja/Tests/Feature/MultiTenantTokenIsolationTest.php`
 **Como** Wagner
-**Quero** revogar token via `DELETE /team-mcp/team/token/{token}`
+**Quero** revogar token via `DELETE /team-mcp/team/{user}/token/{tokenId}` (só usuário do meu business)
 **Pra** invalidar imediatamente acesso (dev desligado, IA descontinuada, credencial vazada).
 **Aceite:**
 - `mcp_tokens.revoked_at` set imediato
