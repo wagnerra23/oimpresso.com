@@ -1818,7 +1818,7 @@ class ReportController extends Controller
         }
 
         if (! empty(($filtros['location_id'] ?? null))) {
-            $location_id = ($filtros['location_id'] ?? null);
+            $location_id = $filtros['location_id'];
             $query->where('t.location_id', $location_id)
                     //If filter by location then hide products not available in that location
                     ->join('product_locations as pl', 'pl.product_id', '=', 'p.id')
@@ -1828,19 +1828,19 @@ class ReportController extends Controller
         }
 
         if (! empty(($filtros['category_id'] ?? null))) {
-            $query->where('p.category_id', ($filtros['category_id'] ?? null));
+            $query->where('p.category_id', $filtros['category_id']);
         }
         if (! empty(($filtros['sub_category_id'] ?? null))) {
-            $query->where('p.sub_category_id', ($filtros['sub_category_id'] ?? null));
+            $query->where('p.sub_category_id', $filtros['sub_category_id']);
         }
         if (! empty(($filtros['brand_id'] ?? null))) {
-            $query->where('p.brand_id', ($filtros['brand_id'] ?? null));
+            $query->where('p.brand_id', $filtros['brand_id']);
         }
         if (! empty(($filtros['unit_id'] ?? null))) {
-            $query->where('p.unit_id', ($filtros['unit_id'] ?? null));
+            $query->where('p.unit_id', $filtros['unit_id']);
         }
         if (! empty(($filtros['exp_date_filter'] ?? null))) {
-            $query->whereDate('exp_date', '<=', ($filtros['exp_date_filter'] ?? null));
+            $query->whereDate('exp_date', '<=', $filtros['exp_date_filter']);
         }
 
         $only_mfg_products = ($filtros['only_mfg_products'] ?? 0);
