@@ -1,0 +1,31 @@
+{
+  "_nota": "Contrato de tela GERADO por criar-tela.mjs junto com o PT-02 Form de Manufacturing/IngredientesEditor (2026-10-08) e ajustado na etapa 1 (RUNBOOK-ingredientes-editor.md §1): seção `cabecalho` (a trilha) acrescentada, `fonte` aponta pro protótipo. A COPY não foi preenchida: veja _pendente_w.",
+  "tela": "Manufacturing/IngredientesEditor",
+  "fonte": "prototipo-ui/cowork/Wagner/manufacturing-recipe.jsx",
+  "alvo": [
+    "resources/js/Pages/Manufacturing/IngredientesEditor.tsx"
+  ],
+  "secoes": [
+    {
+      "id": "cabecalho",
+      "copy": []
+    },
+    {
+      "id": "formulario",
+      "copy": []
+    },
+    {
+      "id": "acoes",
+      "copy": []
+    }
+  ],
+  "ordem": [
+    "cabecalho",
+    "formulario",
+    "acoes"
+  ],
+  "_pendente_w": [
+    "COPY DE CADA SEÇÃO — vazia: a copy literal é decisão [W] (how-trabalhar.md §Pedido de tela). Candidata, do protótipo: 'Receitas' (cabecalho) · 'Ingrediente', 'Quantidade', 'Unidade', 'Custo unit.', 'Subtotal' (formulario) · 'Salvar receita' (acoes, etapa 2).",
+    "ESTADOS — omitidos: a etapa 1 só tem o estado de leitura e o de ficha vazia. Declarar quando a edição (etapa 2) existir."
+  ]
+}

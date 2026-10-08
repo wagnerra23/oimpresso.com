@@ -17,16 +17,20 @@ class ToolsController extends Controller
         $this->middleware('auth');
     }
 
-    public function index(ToolRegistry $registry): Response
+    public function index(Request $request, ToolRegistry $registry): Response
     {
+        // D7 (thread 11): o audit é da empresa da sessão — a tela não mostra
+        // execuções de outro business (antes listava a tabela inteira).
+        $businessId = $this->businessIdDaSessao($request);
+
         // Wave 11 D6.a — Inertia::defer pra props caras: tools_by_category (iter
         // sobre registry inteiro + agrupamento), recent_executions (1 query DB),
         // kpis (3 counts registry + 1 count DB). Closures executam em background
         // após first paint — frontend mostra skeleton até resolverem.
         return Inertia::render('ads/Admin/Tools', [
             'tools_by_category' => Inertia::defer(fn () => $this->buildToolsByCategoryPayload($registry)),
-            'recent_executions' => Inertia::defer(fn () => $this->buildRecentExecutionsPayload()),
-            'kpis'              => Inertia::defer(fn () => $this->buildKpisPayload($registry)),
+            'recent_executions' => Inertia::defer(fn () => $this->buildRecentExecutionsPayload($businessId)),
+            'kpis'              => Inertia::defer(fn () => $this->buildKpisPayload($registry, $businessId)),
         ]);
     }
 
@@ -59,9 +63,10 @@ class ToolsController extends Controller
      *
      * @return array<int, array<string, mixed>>
      */
-    protected function buildRecentExecutionsPayload(): array
+    protected function buildRecentExecutionsPayload(int $businessId): array
     {
         return DB::table('mcp_tool_executions')
+            ->where('business_id', $businessId)
             ->orderByDesc('id')
             ->limit(20)
             ->get(['id', 'tool_name', 'is_read_only', 'ok', 'error', 'duration_ms', 'triggered_by', 'created_at'])
@@ -83,7 +88,7 @@ class ToolsController extends Controller
      *
      * @return array<string, int>
      */
-    protected function buildKpisPayload(ToolRegistry $registry): array
+    protected function buildKpisPayload(ToolRegistry $registry, int $businessId): array
     {
         $all = $registry->all();
         $categoriasCount = collect($all)->groupBy(fn ($t) => $t->category())->count();
@@ -94,6 +99,7 @@ class ToolsController extends Controller
             'write'         => count($registry->writeOnly()),
             'categories'    => $categoriasCount,
             'executions_7d' => DB::table('mcp_tool_executions')
+                ->where('business_id', $businessId)
                 ->where('created_at', '>=', now()->subDays(7))
                 ->count(),
         ];
@@ -107,6 +113,9 @@ class ToolsController extends Controller
      */
     public function execute(Request $request, string $name, ToolRegistry $registry): JsonResponse
     {
+        // D7 (thread 11): permissão própria — antes bastava estar logado.
+        abort_unless($request->user()->can('forja.tools.execute'), 403);
+
         $tool = $registry->get($name);
         if (! $tool) {
             return response()->json(['ok' => false, 'error' => 'tool_not_found'], 404);
@@ -115,7 +124,7 @@ class ToolsController extends Controller
         $input = $request->input('input', []);
         if (! is_array($input)) $input = [];
 
-        $businessId = (int) $request->session()->get('user.business_id', 1);
+        $businessId = $this->businessIdDaSessao($request);
         $startedAt = microtime(true);
 
         $result = $registry->execute($name, $input);
@@ -133,10 +142,17 @@ class ToolsController extends Controller
             'output'       => isset($result['output']) ? json_encode($result['output'], JSON_UNESCAPED_UNICODE) : null,
             'error'        => $result['error'] ?? null,
             'duration_ms'  => $durationMs,
-            'triggered_by' => 'wagner', // V2: detect via auth user
+            // D7: autor real (coluna varchar(50)), nunca 'wagner' fixo.
+            'triggered_by' => mb_substr((string) $request->user()->username, 0, 50),
             'created_at'   => now(),
         ]);
 
         return response()->json($result);
+    }
+
+    /** Business da sessão; sem sessão, o do próprio usuário — nunca um default fixo. */
+    private function businessIdDaSessao(Request $request): int
+    {
+        return (int) $request->session()->get('user.business_id', $request->user()->business_id);
     }
 }

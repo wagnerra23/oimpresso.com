@@ -197,6 +197,8 @@ jobs:
         # FAILING-FIRST: Pest local é proibido e o checkout do CT 100 está atrás do main
         # (sem o helper usuarioComPermissoes), então o 1º verde só acontece aqui.
         # DatabaseTransactions — sem RefreshDatabase.
+        # 2026-10-08 — ForjaToolsPermissaoTest.php (playbook Forja thread 11, D7) entra pelo
+        # MESMO desvio FAILING-FIRST. Tenant 98 × 99, DatabaseTransactions.
         # 2026-10-08 — TeamTenantTest.php (playbook Forja thread 15, decisão [W] D14): tenant
         # 98 × 99 em gerarToken/gerarDxt/atualizarQuota + rota legacy de revogar removida.
         # Vermelho→verde medido no CT 100 antes do PR. DatabaseTransactions.
@@ -231,6 +233,7 @@ jobs:
             Modules/Forja/Tests/Feature/CcSessionsContratoTest.php \
             Modules/Forja/Tests/Feature/TasksAdminContratoTest.php \
             Modules/Forja/Tests/Feature/TeamEquipeContratoTest.php \
+            Modules/Forja/Tests/Feature/ForjaToolsPermissaoTest.php \
             Modules/Forja/Tests/Feature/TeamTenantTest.php
 
 

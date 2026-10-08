@@ -136,7 +136,8 @@ test('baseline: editar altera o local do negócio e não alcança o de outro', f
     $this->withHeaders($this->ajax)->put("/business-location/{$meu}", $corpo)->assertOk();
     expect(DB::table('business_locations')->where('id', $meu)->value('name'))->toBe('Renomeado');
 
-    $this->withHeaders($this->ajax)->put("/business-location/{$alheio}", $corpo)->assertOk();
+    // Thread sistema 12: o id de outro negócio passou a dar 404 (antes respondia success: true sem gravar).
+    $this->withHeaders($this->ajax)->put("/business-location/{$alheio}", $corpo)->assertNotFound();
     expect(DB::table('business_locations')->where('id', $alheio)->value('name'))->toBe('Alheio intocado');
 });
 

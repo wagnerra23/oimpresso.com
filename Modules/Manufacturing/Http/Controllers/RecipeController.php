@@ -477,13 +477,21 @@ class RecipeController extends Controller
     }
 
     /**
-     * Shows recipe form.
+     * Shows recipe form. Com `?tela=nova`, o editor React (US-MANU-006).
      *
-     * @return Response
+     * @return Response|\Illuminate\Contracts\View\View|\Inertia\Response
      */
     public function addIngredients()
     {
         $business_id = request()->session()->get('user.business_id');
+
+        // Editor novo (React, US-MANU-006) atrás de `?tela=nova`; sem ele segue a Blade. Vem ANTES da
+        // barreira `add_recipe` de propósito: quem só tem `manufacturing.access_recipe` abre o editor
+        // em modo leitura (handoff §5 regra 3). Gravar continua exigindo `add_recipe` no `store()`.
+        if (request()->query('tela') === 'nova') {
+            return $this->telaEditor((int) $business_id);
+        }
+
         if (! (auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'manufacturing_module')) || ! auth()->user()->can('manufacturing.add_recipe')) {
             abort(403, 'Unauthorized action.');
         }
@@ -783,6 +791,50 @@ class RecipeController extends Controller
      * que ele já tem, se tiver. A janela só LÊ; quem grava continua sendo o editor legado
      * (`/add-ingredient` → `store()`), como o charter da tela manda.
      */
+    /**
+     * Editor de ingredientes React (US-MANU-006, handoff Fabricação §5). Só monta a tela: os dados
+     * saem de `RecipeBomService::editorDaReceita` e o salvar segue sendo o `store()`.
+     */
+    private function telaEditor(int $business_id): \Inertia\Response
+    {
+        if (! (auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'manufacturing_module')) || ! auth()->user()->can('manufacturing.access_recipe')) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $copiar = request()->query('copy_recipe_id');
+        $dados = $this->recipeBomService->editorDaReceita(
+            (int) request()->query('variation_id'),
+            $business_id,
+            ! empty($copiar) ? (int) $copiar : null
+        );
+        $settings = $this->mfgUtil->getSettings($business_id) ?: [];
+
+        // Sem `Inertia::defer` de propósito: estes props SÃO o formulário. O `useForm` da tela copia
+        // os props uma vez ao montar (handoff §5 regra 5 — a cópia); adiados, ele nasceria vazio.
+        return Inertia::render('Manufacturing/IngredientesEditor', $dados + [
+            // Regra 3: "editar" = poder GRAVAR, e quem grava é o `store()`, que exige `add_recipe`
+            // (o `edit_recipe` não tem rota que o alcance — R-MANU-004).
+            'perms' => ['editar' => auth()->user()->can('manufacturing.add_recipe')],
+            // Regra 2: a mesma configuração trava a quantidade aqui e na ordem de produção.
+            'travar_qtd' => ! empty($settings['disable_editing_ingredient_qty']),
+        ]);
+    }
+
+    /** Busca de insumo do editor React — até 7 resultados (handoff §5). */
+    public function insumosParaReceita(): JsonResponse
+    {
+        $business_id = (int) request()->session()->get('user.business_id');
+        if (! (auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'manufacturing_module')) || ! auth()->user()->can('manufacturing.add_recipe')) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $termo = mb_substr(trim((string) request()->query('q', '')), 0, 80);
+
+        return response()->json([
+            'insumos' => $this->recipeBomService->buscarInsumos($termo, $business_id),
+        ]);
+    }
+
     public function produtosNovaReceita(): JsonResponse
     {
         $business_id = (int) request()->session()->get('user.business_id');
