@@ -12,6 +12,7 @@ use Illuminate\Http\Response;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Modules\Manufacturing\Concerns\LogsWithPiiRedactor;
 use Modules\Manufacturing\Entities\MfgIngredientGroup;
@@ -319,23 +320,31 @@ class RecipeController extends Controller
 
             $input = $request->only(['variation_id', 'ingredients', 'total', 'instructions',
                 'ingredients_cost', 'waste_percent', 'total_quantity', 'extra_cost', 'production_cost_type', ]);
+            // `ingredients` é obrigatório desde o StoreRecipeRequest (§5 regra 1); o `if` fica pelo
+            // caminho que não passa pelo FormRequest.
             if (! empty($input['ingredients'])) {
-                $variation = $this->recipeBomService->variacaoDaEmpresa((int) $input['variation_id'], (int) $business_id);
+                $variation = $this->recipeBomService->variacaoDaEmpresa((int) $input['variation_id'], (int) $business_id, ['product']);
 
+                $sub_unit_saida = ! empty($request->input('sub_unit_id')) ? (int) $request->input('sub_unit_id') : null;
+                $this->exigirSubUnidadeDoProduto($sub_unit_saida, (int) $variation->product->unit_id, (int) $business_id, 'sub_unit_id');
+
+                // `final_price` e `ingredients_cost` NÃO vêm do POST (handoff §9): o servidor
+                // recalcula depois de gravar os ingredientes, logo abaixo. O 0 aqui só existe porque
+                // `final_price` é NOT NULL sem default.
                 $recipe = MfgRecipe::updateOrCreate(
                     [
                         'variation_id' => $input['variation_id'],
                     ],
                     [
                         'product_id' => $variation->product_id,
-                        'final_price' => $this->moduleUtil->num_uf($input['total']),
-                        'ingredients_cost' => $input['ingredients_cost'],
+                        'final_price' => 0,
+                        'ingredients_cost' => 0,
                         'waste_percent' => $this->moduleUtil->num_uf($input['waste_percent']),
                         'total_quantity' => $this->moduleUtil->num_uf($input['total_quantity']),
                         'extra_cost' => $this->moduleUtil->num_uf($input['extra_cost']),
                         'production_cost_type' => $input['production_cost_type'],
                         'instructions' => $input['instructions'],
-                        'sub_unit_id' => ! empty($request->input('sub_unit_id')) ? $request->input('sub_unit_id') : null,
+                        'sub_unit_id' => $sub_unit_saida,
                     ]
                 );
 
@@ -361,7 +370,11 @@ class RecipeController extends Controller
                     $ingredient->waste_percent = $this->moduleUtil->num_uf($value['waste_percent']);
                     $ingredient->sort_order = $this->moduleUtil->num_uf($value['sort_order']);
 
-                    $ingredient->sub_unit_id = ! empty($value['sub_unit_id']) && $value['sub_unit_id'] != $variation->product->unit_id ? $value['sub_unit_id'] : null;
+                    // §9: a sub-unidade tem de ser uma das que a tela oferece para ESTE insumo — o
+                    // `base_unit_multiplier` de outra unidade multiplicaria o custo por um número qualquer.
+                    $sub_unit_linha = ! empty($value['sub_unit_id']) ? (int) $value['sub_unit_id'] : null;
+                    $this->exigirSubUnidadeDoProduto($sub_unit_linha, (int) $variation->product->unit_id, (int) $business_id, "ingredients.{$key}.sub_unit_id");
+                    $ingredient->sub_unit_id = ! empty($sub_unit_linha) && $sub_unit_linha != $variation->product->unit_id ? $sub_unit_linha : null;
 
                     //Set ingredient group
                     if (isset($value['ig_index'])) {
@@ -402,19 +415,33 @@ class RecipeController extends Controller
 
                     $ingredients[] = $ingredient;
                 }
-                if (! empty($edited_ingredients)) {
-                    MfgRecipeIngredient::where('mfg_recipe_id', $recipe->id)
-                                                ->whereNotIn('id', $edited_ingredients)
-                                                ->delete();
-                }
+                // A receita passa a ter exatamente as linhas do formulário. Antes isto só rodava
+                // quando alguma linha antiga era mantida: trocar TODOS os ingredientes deixava os
+                // antigos gravados junto com os novos (e somando no custo).
+                MfgRecipeIngredient::where('mfg_recipe_id', $recipe->id)
+                                            ->whereNotIn('id', $edited_ingredients)
+                                            ->delete();
 
                 $recipe->ingredients()->saveMany($ingredients);
+
+                // Handoff §9: o custo gravado é o do servidor, com o preço de compra de hoje —
+                // a mesma conta de `RecipeBomService::calculateCost`, que a tela de Receitas usa.
+                $recipe->load(['ingredients.variation', 'ingredients.sub_unit']);
+                $recipe->ingredients_cost = $this->recipeBomService->custoDosIngredientes($recipe);
+                $recipe->final_price = $this->recipeBomService->calculateCost($recipe);
+                $recipe->save();
             }
             DB::commit();
 
             $output = ['success' => 1,
                 'msg' => __('lang_v1.added_success'),
             ];
+        } catch (ValidationException $e) {
+            // Sub-unidade recusada: volta ao formulário dizendo o porquê, sem gravar nada.
+            DB::rollBack();
+            session()->flash('status', ['success' => 0, 'msg' => collect($e->errors())->flatten()->first()]);
+
+            throw $e;
         } catch (\Exception $e) {
             DB::rollBack();
             $this->logSafeEmergency('recipe', $e); // D7.a Wave 17 LGPD
@@ -425,6 +452,25 @@ class RecipeController extends Controller
         }
 
         return redirect()->action([\Modules\Manufacturing\Http\Controllers\RecipeController::class, 'index'])->with('status', $output);
+    }
+
+    /**
+     * Sub-unidade aceita = uma das que a janela de ingredientes oferece para o produto
+     * (`getSubUnits` da unidade dele, o mesmo de `getIngredientRow`). Vazio é a unidade base.
+     *
+     * @throws ValidationException
+     */
+    private function exigirSubUnidadeDoProduto(?int $subUnitId, int $unitId, int $businessId, string $campo): void
+    {
+        if (empty($subUnitId) || $subUnitId === $unitId) {
+            return;
+        }
+
+        if (! array_key_exists($subUnitId, $this->moduleUtil->getSubUnits($businessId, $unitId))) {
+            throw ValidationException::withMessages([
+                $campo => 'A unidade escolhida não é uma sub-unidade deste produto.',
+            ]);
+        }
     }
 
     /**

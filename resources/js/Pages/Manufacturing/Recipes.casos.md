@@ -227,6 +227,57 @@ last_run: "2026-10-07"
 
 ---
 
+> Os UC-RECIPE-14 a 18 são do **salvar** (POST `/manufacturing/recipe`), que hoje ainda é chamado
+> pela janela de ingredientes Blade e será chamado pelo editor novo (US-MANU-006). Derivam do handoff
+> §5 regra 1 e §9. Um teste só cobre os cinco.
+
+## UC-RECIPE-14 · O custo gravado é o do servidor, não o que o navegador mandou
+- **Persona:** Wagner — confere o custo da ficha antes de fechar o preço.
+- **Aceite:** Dado um insumo de 4,00 com quantidade 3 e custo extra de 10% · Quando o salvar chega
+  dizendo "total 999.999,00" · Então a receita grava 12,00 de ingredientes e 13,20 de total (a conta
+  do servidor), e o `calculateCost` da tela de Receitas dá o mesmo 13,20.
+- **Fonte:** handoff §9 ("todo cálculo de custo recalculado no servidor antes de gravar").
+- **Teste:** `SalvarReceitaServidorTest.php`
+- **Regressão que defende:** voltar a gravar `final_price`/`ingredients_cost` vindos do POST.
+- **Status: 🧪**
+
+## UC-RECIPE-15 · Receita sem ingrediente não salva, e a tela diz por quê
+- **Persona:** Eliana (produção).
+- **Aceite:** Dado o formulário sem nenhuma linha · Quando salvo · Então nada é gravado e o aviso diz
+  "A receita precisa de pelo menos 1 ingrediente." (antes: nada gravado e aviso de sucesso).
+- **Fonte:** handoff §5 regra 1 e §9.
+- **Teste:** `SalvarReceitaServidorTest.php`
+- **Status: 🧪**
+
+## UC-RECIPE-16 · Quantidade zero ou negativa é recusada
+- **Persona:** Eliana (produção).
+- **Aceite:** Dado um ingrediente com quantidade `0`, `0,000` ou `-1` · Quando salvo · Então o salvar
+  é recusado nessa linha e nada é gravado.
+- **Fonte:** handoff §9 ("rejeitar quantidade ≤ 0").
+- **Teste:** `SalvarReceitaServidorTest.php`
+- **Status: 🧪**
+
+## UC-RECIPE-17 · Só vale sub-unidade do próprio insumo
+- **Persona:** Wagner.
+- **Aceite:** Dado um insumo de 4,00 com sub-unidade "caixa com 5" e outro produto com sub-unidade de
+  1000 · Quando salvo 0,5 na unidade do outro produto · Então é recusado · Quando salvo 0,5 caixa do
+  próprio insumo com 2,50 fixo · Então grava 10,00 de ingredientes e 12,50 de total.
+- **Fonte:** handoff §9 ("sub-unidade validada como sub-unidade daquele produto") e §7 ponto 4.
+- **Teste:** `SalvarReceitaServidorTest.php`
+- **Status: 🧪**
+
+## UC-RECIPE-18 · Trocar todos os ingredientes não deixa os antigos
+- **Persona:** Wagner — refaz a ficha de um produto do zero.
+- **Aceite:** Dado uma receita com o insumo A · Quando salvo de novo só com o insumo B · Então a receita
+  tem só B, a linha de A some, e o total é só o de B.
+- **Fonte:** handoff §5 regra 5 ("salvar devolve o objeto inteiro").
+- **Teste:** `SalvarReceitaServidorTest.php`
+- **Regressão que defende:** a exclusão das linhas removidas só rodar quando alguma linha antiga é
+  mantida (era assim até 2026-10-08).
+- **Status: 🧪**
+
+---
+
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
 - **[BACKLOG]** `?legacy=1` responde **200 com a tela Blade** (não só "o ramo existe") e uma

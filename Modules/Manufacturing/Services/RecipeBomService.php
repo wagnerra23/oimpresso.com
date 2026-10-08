@@ -232,6 +232,26 @@ class RecipeBomService
      */
     public function calculateCost(MfgRecipe $recipe): float
     {
+        $price = $this->custoDosIngredientes($recipe);
+
+        $productionCost = (float) ($recipe->extra_cost ?? 0);
+
+        if ($recipe->production_cost_type === 'percentage') {
+            $productionCost = ($price * (float) $recipe->extra_cost) / 100;
+        } elseif ($recipe->production_cost_type === 'per_unit') {
+            $productionCost = (float) $recipe->extra_cost * (float) $recipe->total_quantity;
+        }
+
+        return $price + $productionCost;
+    }
+
+    /**
+     * Só a soma dos ingredientes (sem o custo extra): Σ quantidade × `dpp_inc_tax` × multiplicador
+     * da sub-unidade. É o que `mfg_recipes.ingredients_cost` guarda — o "Custo dos ingredientes" da
+     * janela de ingredientes.
+     */
+    public function custoDosIngredientes(MfgRecipe $recipe): float
+    {
         $price = 0.0;
 
         foreach ($recipe->ingredients as $ingredient) {
@@ -251,15 +271,7 @@ class RecipeBomService
             $price += $ingredientTotal;
         }
 
-        $productionCost = (float) ($recipe->extra_cost ?? 0);
-
-        if ($recipe->production_cost_type === 'percentage') {
-            $productionCost = ($price * (float) $recipe->extra_cost) / 100;
-        } elseif ($recipe->production_cost_type === 'per_unit') {
-            $productionCost = (float) $recipe->extra_cost * (float) $recipe->total_quantity;
-        }
-
-        return $price + $productionCost;
+        return $price;
     }
 
     /**
