@@ -125,6 +125,66 @@
       ]
     },
     {
+      "tela": "Configuracoes/CodigoBarras/Index",
+      "arquivo": "resources/js/Pages/Configuracoes/CodigoBarras/Index.tsx",
+      "modulo": "core",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/Wagner/configuracoes-cadastros.jsx",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
+      "tela": "Configuracoes/EsquemasFatura/Index",
+      "arquivo": "resources/js/Pages/Configuracoes/EsquemasFatura/Index.tsx",
+      "modulo": "core",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/Wagner/configuracoes-cadastros.jsx",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
+      "tela": "Configuracoes/Impostos/Index",
+      "arquivo": "resources/js/Pages/Configuracoes/Impostos/Index.tsx",
+      "modulo": "core",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/Wagner/configuracoes-cadastros.jsx",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
+      "tela": "Configuracoes/Impressoras/Index",
+      "arquivo": "resources/js/Pages/Configuracoes/Impressoras/Index.tsx",
+      "modulo": "core",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/Wagner/configuracoes-cadastros.jsx",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
+      "tela": "Configuracoes/Locais/Index",
+      "arquivo": "resources/js/Pages/Configuracoes/Locais/Index.tsx",
+      "modulo": "core",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/Wagner/configuracoes-cadastros.jsx",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
+      "tela": "Configuracoes/TiposServico/Index",
+      "arquivo": "resources/js/Pages/Configuracoes/TiposServico/Index.tsx",
+      "modulo": "core",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/Wagner/configuracoes-cadastros.jsx",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
       "tela": "Discount/Index",
       "arquivo": "resources/js/Pages/Discount/Index.tsx",
       "modulo": "core",
@@ -295,8 +355,198 @@
       ]
     },
     {
+      "tela": "Relatorios/Caixa/Index",
+      "arquivo": "resources/js/Pages/Relatorios/Caixa/Index.tsx",
+      "modulo": "core",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/Wagner/relatorios-page.jsx",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
+      "tela": "Relatorios/ComprasProduto/Index",
+      "arquivo": "resources/js/Pages/Relatorios/ComprasProduto/Index.tsx",
+      "modulo": "core",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/Wagner/relatorios-page.jsx",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
       "tela": "Relatorios/CompraVenda/Index",
       "arquivo": "resources/js/Pages/Relatorios/CompraVenda/Index.tsx",
+      "modulo": "core",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/Wagner/relatorios-page.jsx",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
+      "tela": "Relatorios/Contatos/Index",
+      "arquivo": "resources/js/Pages/Relatorios/Contatos/Index.tsx",
+      "modulo": "core",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/Wagner/relatorios-page.jsx",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
+      "tela": "Relatorios/Despesas/Index",
+      "arquivo": "resources/js/Pages/Relatorios/Despesas/Index.tsx",
+      "modulo": "core",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/Wagner/relatorios-page.jsx",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
+      "tela": "Relatorios/Estoque/Index",
+      "arquivo": "resources/js/Pages/Relatorios/Estoque/Index.tsx",
+      "modulo": "core",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/Wagner/relatorios-page.jsx",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
+      "tela": "Relatorios/GruposClientes/Index",
+      "arquivo": "resources/js/Pages/Relatorios/GruposClientes/Index.tsx",
+      "modulo": "core",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/Wagner/relatorios-page.jsx",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
+      "tela": "Relatorios/Impostos/Index",
+      "arquivo": "resources/js/Pages/Relatorios/Impostos/Index.tsx",
+      "modulo": "core",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/Wagner/relatorios-page.jsx",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
+      "tela": "Relatorios/ItensPorAtendente/Index",
+      "arquivo": "resources/js/Pages/Relatorios/ItensPorAtendente/Index.tsx",
+      "modulo": "core",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/Wagner/relatorios-page.jsx",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
+      "tela": "Relatorios/Lotes/Index",
+      "arquivo": "resources/js/Pages/Relatorios/Lotes/Index.tsx",
+      "modulo": "core",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/Wagner/relatorios-page.jsx",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
+      "tela": "Relatorios/LucroAbas/Index",
+      "arquivo": "resources/js/Pages/Relatorios/LucroAbas/Index.tsx",
+      "modulo": "core",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/Wagner/relatorios-page.jsx",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
+      "tela": "Relatorios/LucroPrejuizo/Index",
+      "arquivo": "resources/js/Pages/Relatorios/LucroPrejuizo/Index.tsx",
+      "modulo": "core",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/Wagner/relatorios-page.jsx",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
+      "tela": "Relatorios/Mesas/Index",
+      "arquivo": "resources/js/Pages/Relatorios/Mesas/Index.tsx",
+      "modulo": "core",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/Wagner/relatorios-page.jsx",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
+      "tela": "Relatorios/PagamentosCompra/Index",
+      "arquivo": "resources/js/Pages/Relatorios/PagamentosCompra/Index.tsx",
+      "modulo": "core",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/Wagner/relatorios-page.jsx",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
+      "tela": "Relatorios/PagamentosVenda/Index",
+      "arquivo": "resources/js/Pages/Relatorios/PagamentosVenda/Index.tsx",
+      "modulo": "core",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/Wagner/relatorios-page.jsx",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
+      "tela": "Relatorios/Tendencia/Index",
+      "arquivo": "resources/js/Pages/Relatorios/Tendencia/Index.tsx",
+      "modulo": "core",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/Wagner/relatorios-page.jsx",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
+      "tela": "Relatorios/Validade/Index",
+      "arquivo": "resources/js/Pages/Relatorios/Validade/Index.tsx",
+      "modulo": "core",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/Wagner/relatorios-page.jsx",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
+      "tela": "Relatorios/VendasAgrupado/Index",
+      "arquivo": "resources/js/Pages/Relatorios/VendasAgrupado/Index.tsx",
+      "modulo": "core",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/Wagner/relatorios-page.jsx",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
+      "tela": "Relatorios/VendasComCompra/Index",
+      "arquivo": "resources/js/Pages/Relatorios/VendasComCompra/Index.tsx",
+      "modulo": "core",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/Wagner/relatorios-page.jsx",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
+      "tela": "Relatorios/VendasProduto/Index",
+      "arquivo": "resources/js/Pages/Relatorios/VendasProduto/Index.tsx",
       "modulo": "core",
       "status": "1-ciclo",
       "prototipo": "prototipo-ui/cowork/Wagner/relatorios-page.jsx",
@@ -435,5 +685,5 @@
       ]
     }
   ],
-  "total": 126
+  "total": 151
 }
