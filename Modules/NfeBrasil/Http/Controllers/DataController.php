@@ -93,6 +93,13 @@ class DataController extends Controller
                 'default' => false,
             ],
             [
+                // Thread 15a · D-CONTADOR: aceite do responsável técnico. Separada de propósito e
+                // fora do papel de administrador — o dono não aceita pelo contador.
+                'value'   => 'nfe.tributacao.aceitar',
+                'label'   => 'NF-e Brasil: aceitar regras tributárias (contador)',
+                'default' => false,
+            ],
+            [
                 'value'   => 'nfe.manifestacao.view',
                 'label'   => 'NF-e Brasil: ver NF-e recebidas (manifestação)',
                 'default' => false,

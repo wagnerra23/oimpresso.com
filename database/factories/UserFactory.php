@@ -35,7 +35,10 @@ class UserFactory extends Factory
             'surname' => 'Mr',
             'first_name' => $this->faker->firstName(),
             'last_name' => $this->faker->lastName(),
-            'username' => $this->faker->unique()->userName(),
+            // unique() só vale dentro do processo (e o provider do Laravel o zera a cada resolução do Faker);
+            // no banco persistente do CT 100 o userName() sorteado já pode existir e cair em users_username_unique.
+            // O sufixo aleatório tira a colisão contra linhas que já estão no banco.
+            'username' => $this->faker->unique()->userName().'_'.Str::lower(Str::random(8)),
             'email' => $this->faker->unique()->safeEmail(),
             'password' => $password ?: $password = Hash::make('secret'),
             'language' => 'en',

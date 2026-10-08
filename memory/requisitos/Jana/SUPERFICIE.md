@@ -14,7 +14,7 @@ module: Jana
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Jana/**` + `resources/js/Pages/Jana/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 577 arquivos em 19 papéis.
+**Total mapeado:** 579 arquivos em 19 papéis.
 
 ## Controllers — 11
 
@@ -383,7 +383,7 @@ module: Jana
 - 15 em [Modules/Jana/Tests/Unit/](../../../Modules/Jana/Tests/Unit)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
-## Demais arquivos (manifestos, docs, assets e misc) — 91
+## Demais arquivos (manifestos, docs, assets e misc) — 93
 
 - [BriefDiarioAgent.php](../../../Modules/Jana/Ai/Agents/BriefDiarioAgent.php)
 - [BriefingAgent.php](../../../Modules/Jana/Ai/Agents/BriefingAgent.php)
@@ -397,6 +397,7 @@ module: Jana
 - [ProximaPerguntaAgent.php](../../../Modules/Jana/Ai/Agents/ProximaPerguntaAgent.php)
 - [SaleInsightAgent.php](../../../Modules/Jana/Ai/Agents/SaleInsightAgent.php)
 - [SinteseSemanalAgent.php](../../../Modules/Jana/Ai/Agents/SinteseSemanalAgent.php)
+- [SugestaoFiscalAgent.php](../../../Modules/Jana/Ai/Agents/SugestaoFiscalAgent.php)
 - [SugestoesMetasAgent.php](../../../Modules/Jana/Ai/Agents/SugestoesMetasAgent.php)
 - [WeeklyDigestAgent.php](../../../Modules/Jana/Ai/Agents/WeeklyDigestAgent.php)
 - [PromptCacheConfig.php](../../../Modules/Jana/Ai/Cache/PromptCacheConfig.php)
@@ -405,6 +406,7 @@ module: Jana
 - [OportunidadesTool.php](../../../Modules/Jana/Ai/Tools/BriefDiario/OportunidadesTool.php)
 - [TicketsTopTool.php](../../../Modules/Jana/Ai/Tools/BriefDiario/TicketsTopTool.php)
 - [VendasPeriodoTool.php](../../../Modules/Jana/Ai/Tools/BriefDiario/VendasPeriodoTool.php)
+- [ProdutoFiscalTool.php](../../../Modules/Jana/Ai/Tools/Fiscal/ProdutoFiscalTool.php)
 - [UiDeterministicScorer.php](../../../Modules/Jana/Ai/UiDeterministicScorer.php)
 - [UiJudgeConsensus.php](../../../Modules/Jana/Ai/UiJudgeConsensus.php)
 - [AiAdapter.php](../../../Modules/Jana/Contracts/AiAdapter.php)

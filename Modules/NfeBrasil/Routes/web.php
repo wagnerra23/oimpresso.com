@@ -10,6 +10,9 @@ use Modules\NfeBrasil\Http\Controllers\InstallController;
 use Modules\NfeBrasil\Http\Controllers\NfeBrasilController;
 use Modules\NfeBrasil\Http\Controllers\NfeInutilizacaoController;
 use Modules\NfeBrasil\Http\Controllers\NfeStatusController;
+use Modules\NfeBrasil\Http\Controllers\RevisaoContadorController;
+use Modules\NfeBrasil\Http\Controllers\RevisaoContadorLinkController;
+use Modules\NfeBrasil\Http\Controllers\SugestaoFiscalController;
 use Modules\NfeBrasil\Http\Controllers\TributacaoController;
 
 /*
@@ -94,6 +97,23 @@ Route::middleware(['web', 'auth', 'SetSessionData', 'language', 'timezone', 'Adm
         // Simulador read-only (playbook Fiscal thread 08 · D-SIM) — chama a montagem da emissão.
         Route::get('simular', [TributacaoController::class, 'simular'])->name('simular');
 
+        // Sugestões da Jana (playbook Fiscal thread 10 · D-IA) — a Jana sugere, só uma pessoa aplica.
+        Route::get('sugestoes', [SugestaoFiscalController::class, 'index'])->name('sugestoes.index');
+        Route::post('sugestoes/gerar', [SugestaoFiscalController::class, 'gerar'])->name('sugestoes.gerar');
+        Route::post('sugestoes/{id}/aceitar', [SugestaoFiscalController::class, 'aceitar'])
+            ->whereNumber('id')->name('sugestoes.aceitar');
+        Route::post('sugestoes/{id}/descartar', [SugestaoFiscalController::class, 'descartar'])
+            ->whereNumber('id')->name('sugestoes.descartar');
+
+        // Revisão do contador (playbook Fiscal thread 15a) — permissão própria nfe.tributacao.aceitar.
+        Route::get('revisoes', [RevisaoContadorController::class, 'index'])->name('revisoes.index');
+        Route::post('revisoes/{id}/aceitar', [RevisaoContadorController::class, 'aceitar'])
+            ->whereNumber('id')->name('revisoes.aceitar');
+        Route::post('revisoes/{id}/ajuste', [RevisaoContadorController::class, 'ajuste'])
+            ->whereNumber('id')->name('revisoes.ajuste');
+        // Link de revisão para o contador sem conta (thread 15b) — quem envia é a empresa (manage).
+        Route::post('revisoes/link', [RevisaoContadorLinkController::class, 'enviar'])->name('revisoes.link');
+
         // Templates tributários L1 (US-NFE-TPL-001)
         Route::post('templates/{slug}/aplicar', [TributacaoController::class, 'aplicarTemplate'])
             ->where('slug', '[a-z0-9\-]+')
@@ -113,6 +133,25 @@ Route::middleware(['web', 'auth', 'SetSessionData', 'language', 'timezone', 'Adm
         Route::get('import', [ImportRegrasController::class, 'show'])->name('import.show');
         Route::post('import/preview', [ImportRegrasController::class, 'preview'])->name('import.preview');
         Route::post('import/aplicar', [ImportRegrasController::class, 'aplicar'])->name('import.aplicar');
+    });
+
+// Página pública do contador (playbook Fiscal thread 15b · D-CONTADOR caminho 1). SEM login: o
+// acesso é a URL assinada (14 dias, presa ao business) + o código de 6 dígitos do e-mail. As rotas
+// de ação não são assinadas — exigem a sessão que o código liberou (RevisaoContadorLinkController).
+Route::middleware(['web', 'throttle:30,1'])
+    ->prefix('nfe-brasil/contador')
+    ->name('nfe-brasil.contador.')
+    ->group(function () {
+        Route::get('revisao/{business}/{link}', [RevisaoContadorLinkController::class, 'show'])
+            ->whereNumber(['business', 'link'])->middleware('signed')->name('revisao');
+        Route::post('revisao/{business}/{link}', [RevisaoContadorLinkController::class, 'codigo'])
+            ->whereNumber(['business', 'link'])->middleware('signed')->name('codigo');
+        Route::get('link/{link}/regras.csv', [RevisaoContadorLinkController::class, 'csv'])
+            ->whereNumber('link')->name('csv');
+        Route::post('link/{link}/revisoes/{id}/aceitar', [RevisaoContadorLinkController::class, 'aceitar'])
+            ->whereNumber(['link', 'id'])->name('aceitar');
+        Route::post('link/{link}/revisoes/{id}/ajuste', [RevisaoContadorLinkController::class, 'ajuste'])
+            ->whereNumber(['link', 'id'])->name('ajuste');
     });
 
 // US-NFE-002 fase 2C — endpoint JSON polling-friendly pra status NFC-e pós-venda.

@@ -271,7 +271,126 @@ Thread `feito` = `_saida-NN.md` com os 5 itens **e** provas verdes lendo o `main
         "D-GRADE"
       ],
       "provas": []
+    },
+    {
+      "dono": "CL",
+      "prs": 1,
+      "id": "A2",
+      "titulo": "ALVO: cmp-pedidos · cmp-requisicoes · cmp-devolucoes",
+      "vaga": 2,
+      "arquivo": "A2-alvos-extras.md",
+      "prefixo": [
+        "governance/design/targets/compras--pedidos*",
+        "governance/design/targets/compras--requisicoes*",
+        "governance/design/targets/compras--devolucoes*"
+      ],
+      "nao_toca": [
+        "app/",
+        "resources/"
+      ],
+      "provas": [
+        {
+          "tipo": "json_com_chaves",
+          "path": "governance/design/targets/compras--pedidos--index.alvo.json",
+          "chaves": [
+            "secoes"
+          ]
+        },
+        {
+          "tipo": "json_com_chaves",
+          "path": "governance/design/targets/compras--requisicoes--index.alvo.json",
+          "chaves": [
+            "secoes"
+          ]
+        },
+        {
+          "tipo": "json_com_chaves",
+          "path": "governance/design/targets/compras--devolucoes--index.alvo.json",
+          "chaves": [
+            "secoes"
+          ]
+        }
+      ]
+    },
+    {
+      "dono": "CL",
+      "prs": 1,
+      "id": "06",
+      "titulo": "Pedidos de compra (PurchaseOrderController@index) → Inertia",
+      "vaga": 3,
+      "arquivo": "06-pedidos-compra.md",
+      "depende_threads": [
+        "A2"
+      ],
+      "prefixo": [
+        "app/Http/Controllers/PurchaseOrderController.php",
+        "resources/js/Pages/PurchaseOrder/",
+        "tests/Feature/PurchaseOrder/"
+      ],
+      "nao_toca": [
+        "app/Http/Controllers/PurchaseController.php"
+      ],
+      "provas": [
+        {
+          "tipo": "contem",
+          "path": "app/Http/Controllers/PurchaseOrderController.php",
+          "padrao": "Inertia::render("
+        }
+      ]
+    },
+    {
+      "dono": "CL",
+      "prs": 1,
+      "id": "07",
+      "titulo": "Requisições de compra (PurchaseRequisitionController@index) → Inertia",
+      "vaga": 3,
+      "arquivo": "07-requisicoes.md",
+      "depende_threads": [
+        "A2"
+      ],
+      "prefixo": [
+        "app/Http/Controllers/PurchaseRequisitionController.php",
+        "resources/js/Pages/PurchaseRequisition/",
+        "tests/Feature/PurchaseRequisition/"
+      ],
+      "nao_toca": [
+        "app/Http/Controllers/PurchaseController.php"
+      ],
+      "provas": [
+        {
+          "tipo": "contem",
+          "path": "app/Http/Controllers/PurchaseRequisitionController.php",
+          "padrao": "Inertia::render("
+        }
+      ]
+    },
+    {
+      "dono": "CL",
+      "prs": 1,
+      "id": "08",
+      "titulo": "Devoluções de compra (PurchaseReturnController@index) → Inertia",
+      "vaga": 3,
+      "arquivo": "08-devolucoes.md",
+      "depende_threads": [
+        "A2"
+      ],
+      "prefixo": [
+        "app/Http/Controllers/PurchaseReturnController.php",
+        "resources/js/Pages/PurchaseReturn/",
+        "tests/Feature/PurchaseReturn/"
+      ],
+      "nao_toca": [
+        "app/Http/Controllers/PurchaseController.php"
+      ],
+      "provas": [
+        {
+          "tipo": "contem",
+          "path": "app/Http/Controllers/PurchaseReturnController.php",
+          "padrao": "Inertia::render("
+        }
+      ]
     }
-  ]
+  ],
+  "revisado": "2026-10-07 SINCRONIZAR @348b1498bebe: telas Blade sem thread (levantamento da sidebar) · 2026-10-07 revisão: prefixos disjuntos + provas que decidem"
 }
 ```

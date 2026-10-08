@@ -4,13 +4,24 @@ namespace App\Http\Controllers;
 
 use App\BusinessLocation;
 use App\SellingPriceGroup;
+use App\Services\FeatureFlagService;
 use App\TypesOfService;
 use App\Utils\Util;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 use Yajra\DataTables\Facades\DataTables;
 
 class TypesOfServiceController extends Controller
 {
+    /**
+     * Flag do caminho React (thread sistema/playbook/05, F3). Convenção `useV2<Modulo><Tela>`.
+     * Sem a chave no GrowthBook o FeatureFlagService cai no fallbackDefaults, que não a lista:
+     * default OFF, a Blade segue servindo. Ligar é toggle no GrowthBook (flag:set --biz=1), não deploy.
+     *
+     * @see memory/requisitos/Configuracoes/RUNBOOK-tipos-servico.md
+     */
+    private const FLAG_V2 = 'useV2ConfiguracoesTiposServico';
+
     /**
      * All Utils instance.
      */
@@ -30,7 +41,7 @@ class TypesOfServiceController extends Controller
     /**
      * Display a listing of the resource.
      *
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\JsonResponse|\Illuminate\View\View|\Inertia\Response
      */
     public function index()
     {
@@ -38,9 +49,11 @@ class TypesOfServiceController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
-        if (request()->ajax()) {
-            $business_id = request()->session()->get('user.business_id');
+        $business_id = request()->session()->get('user.business_id');
 
+        // `! inertia()`: o Inertia v3 manda `X-Requested-With` em toda visita; sem esta perna o
+        // partial reload da prop adiada caía no JSON do DataTables (RUNBOOK-tipos-servico §10).
+        if (request()->ajax() && ! request()->inertia()) {
             $tax_rates = TypesOfService::where('business_id', $business_id)
                         ->select('*');
 
@@ -65,7 +78,47 @@ class TypesOfServiceController extends Controller
                 ->make(true);
         }
 
+        if (app(FeatureFlagService::class)->isOn(self::FLAG_V2, ['business_id' => $business_id])) {
+            return Inertia::render('Configuracoes/TiposServico/Index', [
+                'tipos' => Inertia::defer(fn () => $this->tiposDoNegocio((int) $business_id)),
+                // Mesmas listas do create() da Blade: locais ativos e permitidos ao usuário, tabelas ativas (0 = preço padrão).
+                'opcoes' => Inertia::defer(fn () => [
+                    'locais' => BusinessLocation::forDropdown($business_id),
+                    'tabelas' => SellingPriceGroup::forDropdown($business_id),
+                ], 'formulario'),
+            ]);
+        }
+
         return view('types_of_service.index');
+    }
+
+    /**
+     * Tipos de serviço do negócio no shape da tela React. A taxa vai como número do banco (a tela formata); a tabela
+     * de preço por local vai resolvida em nomes, e só com locais e tabelas do próprio negócio.
+     */
+    private function tiposDoNegocio(int $business_id): array
+    {
+        $locais = BusinessLocation::where('business_id', $business_id)->pluck('name', 'id');
+        $tabelas = SellingPriceGroup::where('business_id', $business_id)->pluck('name', 'id');
+
+        return TypesOfService::where('business_id', $business_id)->orderBy('name')->get()
+            ->map(fn (TypesOfService $t) => [
+                'id' => $t->id,
+                'nome' => $t->name,
+                'descricao' => (string) $t->description,
+                'taxa' => (float) $t->packing_charge,
+                'tipo_taxa' => $t->packing_charge_type === 'percent' ? 'percent' : 'fixed',
+                'campos_personalizados' => (bool) $t->enable_custom_fields,
+                // Mapa cru local → tabela para o drawer devolver no update(); só chaves e valores do próprio negócio
+                // (0 = preço padrão, a opção que a Blade oferece).
+                'tabela_por_local' => (object) collect((array) $t->location_price_group)
+                    ->filter(fn ($tabela, $local) => isset($locais[$local]) && ((string) $tabela === '0' || isset($tabelas[$tabela])))
+                    ->map(fn ($tabela) => (string) $tabela)->all(),
+                'precos_por_local' => collect((array) $t->location_price_group)
+                    ->filter(fn ($tabela, $local) => isset($locais[$local], $tabelas[$tabela]))
+                    ->map(fn ($tabela, $local) => ['local' => $locais[$local], 'tabela' => $tabelas[$tabela]])
+                    ->values()->all(),
+            ])->all();
     }
 
     /**

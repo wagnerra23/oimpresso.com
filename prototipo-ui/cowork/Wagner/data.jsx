@@ -208,6 +208,9 @@ const MENU = [
       { id: "cfg-servicos",      icon: "check",  label: "Tipos de serviço" },
       { id: "cfg-mesas",         icon: "grid",   label: "Mesas" },
       { id: "cfg-atendentes",    icon: "users",  label: "Atendentes" },
+      { id: "cfg-reservas",      icon: "calendar", label: "Reservas" },
+      { id: "cfg-cozinha",       icon: "list",   label: "Cozinha" },
+      { id: "cfg-pedidos-rest",  icon: "orders", label: "Pedidos do restaurante" },
       { id: "cfg-pacote",        icon: "refresh", label: "Assinatura de pacote" },
     ]},
     { id: "relatorios",  icon: "chart", label: "Relatórios", ghosts: [

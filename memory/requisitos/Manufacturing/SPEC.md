@@ -176,13 +176,22 @@ em LOTE) · `resources/js/Components/shared/StatusBadge.tsx` (domínio `producao
 > do merge, mostrar a [W] um filtro com o Valor total **antes→depois** e conferir que ele bate com a
 > soma das ordens listadas (dois caminhos).
 
-- [ ] KPIs seguem o filtro de local e período (decisão [W] 2026-10-06) — teste que prove que ordem
-      fora do filtro não entra em nenhum dos 4, e que o Valor total = soma das linhas listadas
-- [ ] Antes→depois do Valor total num filtro apresentado a [W] antes do merge (REGRA MESTRE)
+- [x] KPIs seguem o filtro de local e período (decisão [W] 2026-10-06) — teste que prove que ordem
+      fora do filtro não entra em nenhum dos 4, e que o Valor total = soma das linhas listadas.
+      **Feito 2026-10-07 (UC-OP-10):** `ProductionService::summary($biz, $filters)` + prop `kpis` na
+      tela; `IndicadoresSeguemFiltroTest.php` confere por 2 caminhos (conta à mão × soma da lista).
+      O contador da barra de abas segue com todas as ordens. ⚠️ "= soma das linhas listadas" só vale
+      até 25 ordens: a lista para em 25 e os cartões contam todas as do recorte no banco.
+- [x] Antes→depois do Valor total num filtro apresentado a [W] antes do merge (REGRA MESTRE) —
+      medido na empresa 1 por dois caminhos (lista da tela nova × tela antiga `?legacy=1`), aprovado
+      pelo [W] e mergeado no #8991 (2026-10-07). Os valores ficaram fora do git.
 - [x] **Achado ao construir:** o `optional($p->location)->name` do map era **N+1 desde a Wave J**
       (uma query por linha). Corrigido com eager-load de `location`; UC-OP-03 trava a regressão.
-- [ ] Pest verde na lane de CI — pendente
-- [ ] Smoke real em prod (`curl` + screenshot da tabela de 8 colunas) — pendente
+- [x] Pest verde na lane de CI — `PHP / Pest (Manufacturing · MySQL)` verde no #8991
+      (run 37681668353), com o `IndicadoresSeguemFiltroTest` (UC-OP-10).
+- [x] Smoke real em prod — 2026-10-08, empresa 1, logado: tabela de 8 colunas e os 4 cartões
+      medidos pelas props da tela (`kpis` × `summary`) com e sem filtro + screenshot. Os cartões
+      recortam por período, o contador da aba segue com todas as ordens.
 
 ### US-MANU-005 · Insumos — impacto reverso e simulador de preço
 
@@ -260,9 +269,12 @@ endereço canônico `/manufacturing/insumos` desde o **cutover de 2026-09-04** (
 > - **Correção junto:** a cópia hoje **compartilha os grupos** de ingredientes com a receita original
 >   (renomear numa renomeia na outra). A cópia passa a criar grupos próprios.
 
-- [ ] "Nova receita": busca de produto carregando (o defeito em produção) + (a)/(b)/(c) acima
-- [ ] Cópia de receita com grupos próprios — teste que renomeia o grupo da cópia e prova que o da
-      original não muda, e que o preço de venda do destino fica intocado
+- [x] "Nova receita": busca de produto carregando (o defeito em produção) + (a)/(b)/(c) acima —
+      #8853 (2026-10-07), com os ajustes #8914 (lista cabe na janela) e #8956 (trocar produto limpa
+      a busca). UC-RECIPE-12/13 em `NovaReceitaTest.php`.
+- [x] Cópia de receita com grupos próprios — teste que renomeia o grupo da cópia e prova que o da
+      original não muda, e que o preço de venda do destino fica intocado — #8853,
+      `NovaReceitaTest.php` (UC-RECIPE-13).
 
 ### US-MANU-007 · Formulário de ordem de produção
 

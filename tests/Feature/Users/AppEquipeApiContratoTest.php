@@ -27,7 +27,15 @@ const APP_EQ_OUTRO = 2;
 
 function appEqUsuario(array $permissoes, int $biz = APP_EQ_BIZ, array $extra = []): User
 {
-    $user = User::factory()->create(array_merge(['business_id' => $biz], $extra));
+    // username/email únicos por chamada: o faker->unique() do factory só garante unicidade
+    // dentro do processo, e colidiu com linha já existente no banco da lane
+    // ("Duplicate entry 'rroberts' for key users_username_unique", run 37698517721).
+    $sufixo = uniqid('', true);
+    $user = User::factory()->create(array_merge([
+        'business_id' => $biz,
+        'username' => 'appeq_' . str_replace('.', '', $sufixo),
+        'email' => 'appeq_' . str_replace('.', '', $sufixo) . '@exemplo.test',
+    ], $extra));
     $papel = Role::create(['name' => 'AppEq' . uniqid() . '#' . $biz, 'business_id' => $biz, 'guard_name' => 'web']);
     foreach ($permissoes as $p) {
         Permission::findOrCreate($p, 'web');

@@ -68,7 +68,8 @@ describe('UC-OP-06 · o intervalo De/Até aplica ao escolher, sem botão', () =>
     const [rota, params, opts] = get.mock.calls[0];
     expect(rota).toBe('/manufacturing/production');
     expect(params).toMatchObject({ start_date: '2026-09-01', end_date: '2026-09-30' });
-    expect(opts.only).toEqual(['productions', 'summary', 'filters']);
+    // `kpis` entra no reload desde o UC-OP-10: os indicadores seguem o período.
+    expect(opts.only).toEqual(['productions', 'summary', 'kpis', 'filters']);
   });
 
   it('UC-OP-06 digitar o ano à mão não dispara request no meio (0002 · 0020 · 0202)', () => {
@@ -94,5 +95,29 @@ describe('UC-OP-06 · o intervalo De/Até aplica ao escolher, sem botão', () =>
   it('UC-OP-06 não existe mais o botão "Aplicar intervalo de datas"', () => {
     render(<Index {...baseProps} filters={{}} />);
     expect(screen.queryByRole('button', { name: 'Aplicar intervalo de datas' })).toBeNull();
+  });
+});
+
+// UC-OP-10 · os 4 indicadores seguem local + período (decisão [W] 2026-10-06). O servidor manda
+// dois conjuntos: `summary` (todas as ordens — contador da aba) e `kpis` (só as do filtro). Este
+// bloco prova que os CARTÕES leem `kpis` e que a descrição diz de onde o número vem. O cálculo do
+// recorte é do servidor e se prova no Pest (`IndicadoresSeguemFiltroTest.php`, lane MySQL).
+describe('UC-OP-10 · os indicadores mostram os números do filtro', () => {
+  const todas = { total_count: 40, final_count: 30, pending_count: 10, total_value: 9999 };
+  const doFiltro = { total_count: 3, final_count: 2, pending_count: 1, total_value: 1234.5 };
+
+  it('UC-OP-10 com filtro de local, os cartões mostram o recorte e dizem que é do filtro', () => {
+    render(<Index {...baseProps} summary={todas} kpis={doFiltro} filters={{ location_id: 2 }} />);
+    expect(screen.getByText(/1\.234,50/)).toBeTruthy();
+    expect(screen.queryByText(/9\.999,00/)).toBeNull();
+    expect(screen.getByText('no filtro de local e data')).toBeTruthy();
+    expect(screen.getByText('ordens no filtro de local e data')).toBeTruthy();
+  });
+
+  it('UC-OP-10 só uma data preenchida não recorta: a descrição segue "cadastradas"', () => {
+    render(<Index {...baseProps} summary={todas} kpis={todas} filters={{ start_date: '2026-09-01' }} />);
+    expect(screen.getByText('ordens cadastradas')).toBeTruthy();
+    expect(screen.getByText('todas as ordens cadastradas')).toBeTruthy();
+    expect(screen.queryByText('no filtro de local e data')).toBeNull();
   });
 });

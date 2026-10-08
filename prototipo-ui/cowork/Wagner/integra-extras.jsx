@@ -358,6 +358,7 @@ function RestauranteExtrasPage({ view = "cfg-mesas" }) {
         secoes={[
           { t: "Mesa", c: <Def pares={[["Local do negócio", m.loc], ["Situação", a ? "ocupada" : "livre"], ["Atendente", a ? a.nome : "—"], ["Pedidos do atendente hoje", a ? String(a.pedidos) : "—"]]} /> },
           { t: "Descrição", c: <p className="cu-nota">{m.desc}</p> },
+          ...(window.RestauranteProximaReserva ? [{ t: "Próxima reserva", c: (() => { const r = window.RestauranteProximaReserva(m.nome); return r ? <Def pares={[["Cliente", r.cli], ["Início", r.ini], ["Fim", r.fim]]} /> : <p className="cu-nota">Nenhuma reserva em aberto para esta mesa.</p>; })() }] : []),
           { t: "Como a situação é apurada", c: <p className="cu-nota">A mesa não guarda um campo "ocupada": ela está ocupada enquanto existe atendente em atendimento neste local. Encerre o atendimento em Atendentes e ela fica livre aqui na hora.</p> },
         ]}
         acoes={<div className="cu-dr-acoes">
@@ -391,7 +392,7 @@ function RestauranteExtrasPage({ view = "cfg-mesas" }) {
           glyph={<Ic name="grid" />}
           acoes={<button className="os-btn primary" onClick={() => avisar(mesas ? "Nova mesa — nome e local obrigatórios." : "Atendente vem de Usuários, marcado como pessoal de atendimento.", "ok")}><Ic name="plus" size={13} /> Adicionar</button>} />}
       <div className="pb-body">
-        {window.CliTabs && <window.CliTabs ariaLabel="Restaurante" className="vb-nav" tabs={[{ key: "cfg-mesas", label: "Mesas" }, { key: "cfg-atendentes", label: "Atendentes" }]} active={mesas ? "cfg-mesas" : "cfg-atendentes"} onChange={ir} />}
+        {window.CliTabs && <window.CliTabs ariaLabel="Restaurante" className="vb-nav" tabs={window.RestauranteAbas || [{ key: "cfg-mesas", label: "Mesas" }, { key: "cfg-atendentes", label: "Atendentes" }]} active={mesas ? "cfg-mesas" : "cfg-atendentes"} onChange={ir} />}
         {Alert && <Alert tone="info" title="Fora do piloto de comunicação visual">Mesa e atendente pertencem ao módulo Restaurante do legado — a permissão é uma só (<span className="mono">access_tables</span>) e vale pra tela inteira. Ficam aqui para quem liga o módulo; o relatório de mesas segue declarado fora de escopo no catálogo de relatórios.</Alert>}
         {Grade &&
           <>
@@ -413,5 +414,5 @@ function RestauranteExtrasPage({ view = "cfg-mesas" }) {
   );
 }
 
-Object.assign(window, { WooCommercePage, RestauranteExtrasPage });
+Object.assign(window, { WooCommercePage, RestauranteExtrasPage, RestauranteDados: { MESAS, REST_STORE } });
 })();

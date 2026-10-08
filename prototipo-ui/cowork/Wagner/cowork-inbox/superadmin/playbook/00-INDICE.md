@@ -55,6 +55,16 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/superadmin/playbook/
       ],
       "resposta": "aqui no Superadmin",
       "fonte": "_DECISOES-W-2026-10-01.md"
+    },
+    {
+      "id": "D-PAG",
+      "pergunta": "Superadmin › Páginas: migrar para React?",
+      "respondida": true,
+      "destrava": [
+        "08"
+      ],
+      "resposta": "migrar para React (segue separado do Cms — D1)",
+      "fonte": "_DECISOES-W-2026-10-07.md"
     }
   ],
   "threads": [
@@ -267,9 +277,35 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/superadmin/playbook/
           "nota": "4 medidas, cada uma com o seu design.json (rota sa-* própria), 2× byte-idêntico"
         }
       ]
+    },
+    {
+      "id": "08",
+      "titulo": "Páginas (PageController) → Inertia",
+      "dono": "CL",
+      "vaga": 3,
+      "prs": 1,
+      "arquivo": "08-paginas-react.md",
+      "depende_decisoes": [
+        "D-PAG"
+      ],
+      "prefixo": [
+        "${MOD}/Http/Controllers/PageController.php",
+        "${MPAGES}/Paginas/",
+        "${MOD}/Tests/"
+      ],
+      "nao_toca": [
+        "Modules/Cms/"
+      ],
+      "provas": [
+        {
+          "tipo": "contem",
+          "path": "${MOD}/Http/Controllers/PageController.php",
+          "padrao": "Inertia::render("
+        }
+      ]
     }
   ],
-  "revisado": "2026-10-01 — recibos e _DECISOES do main c12552f40e2a aplicados · 2026-10-01 reconferência @99e6fa3e08f0: threads novas — · 2026-10-05 revisão dos recibos @aacb74f4df18 · 2026-10-07 errata do Code aplicada (_ERRATA-*-2026-10-07.md) @8d231ac7a13f"
+  "revisado": "2026-10-01 — recibos e _DECISOES do main c12552f40e2a aplicados · 2026-10-01 reconferência @99e6fa3e08f0: threads novas — · 2026-10-05 revisão dos recibos @aacb74f4df18 · 2026-10-07 errata do Code aplicada (_ERRATA-*-2026-10-07.md) @8d231ac7a13f · 2026-10-07 decisões [W] do formulário"
 }
 ```
 

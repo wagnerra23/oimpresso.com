@@ -62,6 +62,9 @@ Route::middleware(['web', 'auth', 'SetSessionData', 'language', 'timezone', 'Adm
 
         // Cert/Cfg fiscal (sub-página 6 — PR #3 Wave final).
         Route::get('/config', [ConfigController::class, 'index'])->name('config.index');
+        // Cadastro do contador (playbook Fiscal thread 15c) — mesmo gate da tela (fiscal.config.edit).
+        Route::post('/config/contador', [ConfigController::class, 'salvarContador'])
+            ->middleware('throttle:20,1')->name('config.contador');
 
         // SPED & Livros (sub-página 7 — PR #3 Wave final, placeholder).
         Route::get('/sped', [SpedController::class, 'index'])->name('sped.index');

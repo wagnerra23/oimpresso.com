@@ -67,6 +67,44 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/sistema/playbook/
       "quem": "[W]",
       "quando": "2026-10-06",
       "fonte": "_DECISOES-W-2026-10-06.md"
+    },
+    {
+      "id": "D-USU-LIGAR",
+      "pergunta": "Ligar Usuários em React (chave sistema_usuarios_index)",
+      "respondida": true,
+      "destrava": [
+        "09"
+      ],
+      "resposta": "ligar para todas as empresas",
+      "fonte": "_DECISOES-W-2026-10-07.md"
+    },
+    {
+      "id": "D-USU-NOME",
+      "pergunta": "Guarda de exclusão: o que conta como venda/OS 'no nome' do usuário (D5 de 2026-08-19)",
+      "respondida": true,
+      "destrava": [
+        "10"
+      ],
+      "resposta": "os três: criou a venda/OS, vendedor da venda e comissionado",
+      "fonte": "_DECISOES-W-2026-10-07.md"
+    },
+    {
+      "id": "D-CFG-LIGAR",
+      "pergunta": "Ligar Impressoras · Código de barras · Locais em React",
+      "respondida": true,
+      "destrava": [
+        "13"
+      ],
+      "resposta": "ligar para todas de uma vez",
+      "fonte": "_DECISOES-W-2026-10-07b.md"
+    },
+    {
+      "id": "D-ETQ-MM",
+      "pergunta": "Etiquetas em mm (protótipo) ou polegada (banco/impressão)",
+      "respondida": true,
+      "destrava": [],
+      "resposta": "manter polegada",
+      "fonte": "_DECISOES-W-2026-10-07b.md"
     }
   ],
   "threads": [
@@ -302,8 +340,154 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/sistema/playbook/
           "padrao": "Inertia::render('Relatorios/"
         }
       ]
+    },
+    {
+      "dono": "CL",
+      "prs": 2,
+      "id": "08",
+      "titulo": "Configurações da empresa (BusinessController@getBusinessSettings) → Inertia",
+      "vaga": 4,
+      "arquivo": "08-configuracoes-empresa.md",
+      "prefixo": [
+        "app/Http/Controllers/BusinessController.php",
+        "resources/js/Pages/Configuracoes/Empresa/",
+        "tests/Feature/"
+      ],
+      "nao_toca": [
+        "Modules/"
+      ],
+      "provas": [
+        {
+          "tipo": "arquivo",
+          "path": "resources/js/Pages/Configuracoes/Empresa/Index.tsx"
+        }
+      ],
+      "nota_provas": "o nome da pasta segue Configuracoes/Locais e Configuracoes/Impressoras; se o PR escolher outro, o recibo corrige a prova"
+    },
+    {
+      "id": "09",
+      "titulo": "Usuários: F5 — ligar a chave para todas as empresas",
+      "dono": "CL",
+      "vaga": 2,
+      "prs": 1,
+      "arquivo": "09-usuarios-ligar.md",
+      "depende_decisoes": [
+        "D-USU-LIGAR"
+      ],
+      "prefixo": [
+        "config/mwart.php",
+        "tests/Feature/Users/UsuariosCutoverTest.php"
+      ],
+      "nao_toca": [
+        "resources/js/Pages/Usuarios/"
+      ],
+      "provas": [
+        {
+          "tipo": "contem",
+          "path": "config/mwart.php",
+          "padrao": "env('MWART_SISTEMA_USUARIOS_INDEX', true)"
+        }
+      ],
+      "nota_provas": "a chave é env (config/mwart.php:220-222 @50e23057f1c2): o default vira true; o .env de produção pode sobrescrever — o recibo diz o valor lido no servidor (sem expor segredo) antes e depois"
+    },
+    {
+      "id": "10",
+      "titulo": "Usuários: bloquear exclusão com venda/OS no nome (criador, vendedor ou comissionado)",
+      "dono": "CL",
+      "vaga": 2,
+      "prs": 1,
+      "arquivo": "10-usuarios-guarda-exclusao.md",
+      "depende_decisoes": [
+        "D-USU-NOME"
+      ],
+      "prefixo": [
+        "app/Http/Controllers/ManageUserController.php",
+        "tests/Feature/Users/UsuariosExclusaoVinculoTest.php",
+        "resources/js/Pages/Usuarios/Index.casos.md"
+      ],
+      "nao_toca": [
+        "resources/js/Pages/Usuarios/Index.tsx"
+      ],
+      "provas": [
+        {
+          "tipo": "arquivo",
+          "path": "tests/Feature/Users/UsuariosExclusaoVinculoTest.php"
+        }
+      ],
+      "nota_provas": "a palavra 'comissionado' já existe no casos.md (:32, :50) — não serve de prova"
+    },
+    {
+      "id": "11",
+      "titulo": "Menu Configurações: incluir access_printers na condição do dropdown",
+      "dono": "CL",
+      "vaga": 2,
+      "prs": 1,
+      "arquivo": "11-menu-access-printers.md",
+      "prefixo": [
+        "app/Http/Middleware/AdminSidebarMenu.php",
+        "tests/Feature/Configuracoes/ImpressorasMenuTest.php"
+      ],
+      "nao_toca": [
+        "resources/js/Pages/Configuracoes/"
+      ],
+      "provas": [
+        {
+          "tipo": "arquivo",
+          "path": "tests/Feature/Configuracoes/ImpressorasMenuTest.php"
+        }
+      ],
+      "nota_provas": "_saida-04 §3.1: quem tem só access_printers não vê o grupo (UC-IMPR-05)"
+    },
+    {
+      "id": "12",
+      "titulo": "Tier 0: edit/update de Impressora, Código de barras e Local com id de outro negócio",
+      "dono": "CL",
+      "vaga": 2,
+      "prs": 1,
+      "arquivo": "12-tenant-edit-update.md",
+      "prefixo": [
+        "app/Http/Controllers/PrinterController.php",
+        "app/Http/Controllers/BarcodeController.php",
+        "app/Http/Controllers/BusinessLocationController.php",
+        "tests/Feature/Configuracoes/TenantEditUpdateTest.php"
+      ],
+      "nao_toca": [
+        "resources/js/Pages/Configuracoes/"
+      ],
+      "provas": [
+        {
+          "tipo": "arquivo",
+          "path": "tests/Feature/Configuracoes/TenantEditUpdateTest.php"
+        }
+      ],
+      "nota_provas": "_saida-04 §3.2-3: edit() com find() quebra a Blade; update() de Local responde success:true sem alterar — os dois devem dar 404"
+    },
+    {
+      "id": "13",
+      "titulo": "Configurações: ligar as 3 telas React para todas as empresas (D-CFG-LIGAR)",
+      "dono": "CL",
+      "vaga": 2,
+      "prs": 1,
+      "arquivo": "13-configuracoes-ligar.md",
+      "depende_decisoes": [
+        "D-CFG-LIGAR"
+      ],
+      "prefixo": [
+        "tests/Feature/Configuracoes/ConfiguracoesCutoverTest.php"
+      ],
+      "nao_toca": [
+        "resources/js/Pages/Configuracoes/"
+      ],
+      "provas": [
+        {
+          "tipo": "arquivo",
+          "path": "tests/Feature/Configuracoes/ConfiguracoesCutoverTest.php"
+        }
+      ],
+      "nota_provas": "flags FeatureFlagService (banco): useV2ConfiguracoesImpressoras · useV2ConfiguracoesCodigoBarras · useV2ConfiguracoesLocais — ligar global; recibo com o estado antes/depois e smoke das 3 telas; antes, conferir #8975/#8976 mergeados"
     }
-  ]
+  ],
+  "revisado": "2026-10-07 SINCRONIZAR @348b1498bebe: telas Blade sem thread (levantamento da sidebar) · 2026-10-07 decisões [W] do formulário · 2026-10-07 revisão: prefixos disjuntos + provas que decidem · 2026-10-07 refino: provas decidíveis · 2026-10-07 SINCRONIZAR @50e23057f1c2 · 2026-10-07 decisões [W] (formulário SINCRONIZAR 2)"
 }
 ```
 

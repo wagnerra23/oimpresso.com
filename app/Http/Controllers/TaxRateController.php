@@ -3,13 +3,26 @@
 namespace App\Http\Controllers;
 
 use App\GroupSubTax;
+use App\Services\FeatureFlagService;
 use App\TaxRate;
 use App\Utils\TaxUtil;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
+use Inertia\Inertia;
 use Yajra\DataTables\Facades\DataTables;
 
 class TaxRateController extends Controller
 {
+    /**
+     * Flag do caminho React (thread sistema/playbook/05, F3). Convenção `useV2<Modulo><Tela>`.
+     * Sem a chave no GrowthBook o FeatureFlagService cai no fallbackDefaults, que não a lista:
+     * default OFF, a Blade segue servindo. Ligar é toggle no GrowthBook (flag:set --biz=1), não deploy.
+     *
+     * @see memory/requisitos/Configuracoes/RUNBOOK-impostos.md
+     */
+    private const FLAG_V2 = 'useV2ConfiguracoesImpostos';
+
     /**
      * All Utils instance.
      */
@@ -29,7 +42,7 @@ class TaxRateController extends Controller
     /**
      * Display a listing of the resource.
      *
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\JsonResponse|\Illuminate\View\View|\Inertia\Response
      */
     public function index()
     {
@@ -37,9 +50,11 @@ class TaxRateController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
-        if (request()->ajax()) {
-            $business_id = request()->session()->get('user.business_id');
+        $business_id = request()->session()->get('user.business_id');
 
+        // `! inertia()`: o Inertia v3 manda `X-Requested-With` em toda visita; sem esta perna o
+        // partial reload da prop adiada caía no JSON do DataTables (RUNBOOK-impostos §10).
+        if (request()->ajax() && ! request()->inertia()) {
             $tax_rates = TaxRate::where('business_id', $business_id)
                         ->where('is_tax_group', '0')
                         ->select(['name', 'amount', 'id', 'for_tax_group']);
@@ -63,7 +78,49 @@ class TaxRateController extends Controller
                 ->make(false);
         }
 
+        if (app(FeatureFlagService::class)->isOn(self::FLAG_V2, ['business_id' => $business_id])) {
+            $user = auth()->user();
+
+            return Inertia::render('Configuracoes/Impostos/Index', [
+                'impostos' => Inertia::defer(fn () => $this->impostosDoNegocio((int) $business_id)),
+                'pode' => [
+                    'criar' => $user->can('tax_rate.create'),
+                    'editar' => $user->can('tax_rate.update'),
+                    'excluir' => $user->can('tax_rate.delete'),
+                ],
+                // Mesmo aviso da Blade (ADR ARQ-0005): com NF-e Brasil configurada, alíquota avulsa não é o caminho.
+                'nfe_ativo' => Schema::hasTable('nfe_business_configs')
+                    && DB::table('nfe_business_configs')->where('business_id', $business_id)->exists(),
+            ]);
+        }
+
         return view('tax_rate.index');
+    }
+
+    /**
+     * Alíquotas e grupos do negócio, no shape da tela React. A alíquota vai como número (a tela formata em pt-BR e
+     * devolve TEXTO pt-BR no store/update — o num_uf segue único parser). `em_grupo` antecipa a recusa do destroy().
+     */
+    private function impostosDoNegocio(int $business_id): array
+    {
+        $todos = TaxRate::where('business_id', $business_id)->orderBy('name')->get();
+        // Pivô lido direto (grupo → nomes dos sub-impostos), só entre linhas do próprio negócio.
+        $pivo = DB::table('group_sub_taxes as g')->join('tax_rates as t', 't.id', '=', 'g.tax_id')
+            ->whereIn('g.group_tax_id', $todos->pluck('id'))->where('t.business_id', $business_id)
+            ->orderBy('t.name')->get(['g.group_tax_id', 'g.tax_id', 't.name']);
+        $emGrupo = $pivo->pluck('tax_id')->unique()->flip();
+        $nomesPorGrupo = $pivo->groupBy('group_tax_id')->map(fn ($linhas) => $linhas->pluck('name')->all());
+
+        return [
+            'aliquotas' => $todos->where('is_tax_group', 0)->values()->map(fn (TaxRate $t) => [
+                'id' => $t->id, 'nome' => $t->name, 'aliquota' => (float) $t->amount,
+                'so_grupo' => (bool) $t->for_tax_group, 'em_grupo' => $emGrupo->has($t->id),
+            ])->all(),
+            'grupos' => $todos->where('is_tax_group', 1)->values()->map(fn (TaxRate $t) => [
+                'id' => $t->id, 'nome' => $t->name, 'aliquota' => (float) $t->amount,
+                'sub_impostos' => $nomesPorGrupo->get($t->id, []),
+            ])->all(),
+        ];
     }
 
     /**

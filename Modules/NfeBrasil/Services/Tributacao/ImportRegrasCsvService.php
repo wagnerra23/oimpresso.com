@@ -138,13 +138,17 @@ class ImportRegrasCsvService
                     })
                     ->first();
 
-                if ($existente) {
-                    $existente->update($linha);
-                    $atualizadas++;
-                } else {
-                    NfeFiscalRule::create(array_merge($linha, ['business_id' => $businessId]));
-                    $criadas++;
-                }
+                // Thread 15a: as versões que este lote cria/edita entram na revisão do contador
+                // com origem "csv".
+                RevisaoContadorService::comOrigem('csv', function () use ($existente, $linha, $businessId, &$criadas, &$atualizadas) {
+                    if ($existente) {
+                        $existente->update($linha);
+                        $atualizadas++;
+                    } else {
+                        NfeFiscalRule::create(array_merge($linha, ['business_id' => $businessId]));
+                        $criadas++;
+                    }
+                });
             } catch (\Throwable $e) {
                 $falhas++;
             }

@@ -845,6 +845,7 @@ function App() {
   if (typeof route === "string" && ["fin-receber", "fin-pagar", "fin-despesas", "fin-categorias", "fin-bancos", "fin-extrato"].indexOf(route) >= 0) content = <window.FinanceiroLegadoPage view={route} />;else
   if (route === "woocommerce") content = <window.WooCommercePage />;else
   if (route === "cfg-mesas" || route === "cfg-atendentes") content = <window.RestauranteExtrasPage view={route} />;else
+  if (route === "cfg-reservas" || route === "cfg-cozinha" || route === "cfg-pedidos-rest") content = <window.RestauranteOperacaoPage view={route} />;else
   if (route === "estoque" || (typeof route === "string" && route.indexOf("est-") === 0)) content = <window.EstoquePage view={route} papel={tweaks.estPapel} dense={tweaks.estDensidade === "compacto"} lote={tweaks.estLote} />;else
   if (route === "assets" || (typeof route === "string" && route.indexOf("pat-") === 0)) content = <window.PatrimonioPage view={route} dense={tweaks.patDensidade === "compacto"} estado={tweaks.patEstado} toque={tweaks.patToque} papel={tweaks.patPapel} />;else
   if (route === "repair" || (typeof route === "string" && route.indexOf("rep-") === 0)) content = <window.RepairPage view={route} dense={tweaks.repDensidade === "compacto"} estado={tweaks.repEstado} papel={tweaks.repPapel} />;else

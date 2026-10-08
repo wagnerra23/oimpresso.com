@@ -56,6 +56,15 @@ last_run: "2026-10-07"
 | UC-NFTR-18 | Sem regime escolhido ou sem NCM válido, a tela não avança e não aplica | must `[fiscal]` | UC-NFTR-14..17 · charter (confirmação explícita) | e2e `nfe-tributacao-onboarding.spec.ts` | 🧪 |
 | UC-NFTR-08 | O simulador devolve o mesmo cálculo da emissão e não grava nada | must `[fiscal]` | D-SIM · US-NFE-010 "Preview de cálculo" · `NfeService::montarItensNfe` | `TributacaoSimuladorTest` | 🧪 |
 | UC-NFTR-09 | Simular produto de outra empresa é 404, e sem permissão é 403 | must `[T0]` | ADR 0093 · `nfe.tributacao.manage` | `TributacaoSimuladorTest` | 🧪 |
+| UC-NFTR-10 | Sugestão da Jana nunca altera regra nem produto sozinha | must `[T0]` `[fiscal]` | D-IA · ADR 0141 · Fiscal/SPEC (rejeição é determinística) | `SugestaoFiscalTest` | 🧪 |
+| UC-NFTR-11 | A Jana só lê o produto da própria empresa, sem preço, cliente ou CNPJ | must `[T0]` | ADR 0093 · ADR 0141 | `ProdutoFiscalToolTest` | 🧪 |
+| UC-NFTR-12 | Aceitar ou descartar sugestão de outra empresa é 404 | must `[T0]` | ADR 0093 | `SugestaoFiscalTest` | 🧪 |
+| UC-NFTR-13 | Jana fora do ar não afeta emissão nem cadastro | must `[fiscal]` | D-IA (IA nunca é caminho crítico) | `SugestaoFiscalTest` | 🧪 |
+| UC-NFTR-19 | Aceite é por versão e exige permissão própria (o dono não aceita pelo contador) | must `[T0]` `[fiscal]` | D-CONTADOR · D-SUPORTE · `RevisaoContadorService::podeAceitar` | `AceiteContadorTest` | 🧪 |
+| UC-NFTR-20 | Pedir ajuste exige comentário e fica registrado | must `[fiscal]` | D-CONTADOR | `AceiteContadorTest` | 🧪 |
+| UC-NFTR-21 | Falta de aceite não bloqueia emissão | must `[fiscal]` | D-SUPORTE (bloqueio vira chamado) | `AceiteContadorTest` | 🧪 |
+| UC-NFTR-22 | Link de revisão só abre com o código do e-mail, expira e serve a um business | must `[T0]` | D-CONTADOR (caminho 1) · US-NFE-009 (14 dias) · ADR 0093 | `RevisaoContadorLinkTest` | 🧪 |
+| UC-NFTR-23 | A revisão pelo link mostra só regras fiscais, com de → para, e baixa o CSV do Import | must `[T0]` | D-CONTADOR · LGPD minimização · `ImportRegrasCsvService::COLUNAS_OBRIGATORIAS` | `RevisaoContadorLinkTest` | 🧪 |
 
 > **Recibo:** ver §Recibo de execução no rodapé — status é o **veredito** da corrida, não leitura de código.
 
@@ -297,9 +306,124 @@ last_run: "2026-10-07"
 - **Regressão que defende:** endpoint read-only vazando cadastro alheio.
 - **Status: 🧪** — veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
 
+## UC-NFTR-10 · Sugestão da Jana nunca altera regra nem produto sozinha · `must` `[T0]` `[fiscal]`
+
+- **Persona:** qualquer usuário com a Jana ligada.
+- **Aceite:** Dado sugestões geradas · Então `products` e `nfe_fiscal_rules` ficam intactos, e só viram
+  sugestão as que apontam para algo da empresa com tipo, risco e NCM válidos (a alíquota que a Jana
+  mandar junto é descartada — a IA nunca sugere alíquota). Aceitar **sem** `nfe.tributacao.manage` → 403;
+  risco alto sem `confirmou_leitura` → 422; aceitar certo → versão nova da regra pelo caminho normal +
+  `activity` com o autor. Controle positivo: descartar não muda o produto e também gera `activity`.
+- **Teste:** [`SugestaoFiscalTest`](../../../../../Modules/NfeBrasil/Tests/Feature/SugestaoFiscalTest.php) — `UC-NFTR-10 · sugestão nunca aplica sozinha`.
+- **Contrato:** D-IA ([W] 2026-10-06) · ADR 0141 · Fiscal/SPEC (rejeição é receita determinística por cStat).
+- **Regressão que defende:** IA mudando a tributação sem dono.
+- **Status: 🧪** — veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
+
+## UC-NFTR-11 · A Jana só lê o produto da própria empresa, sem preço, cliente ou CNPJ · `must` `[T0]`
+
+- **Persona:** —
+- **Aceite:** Dado a tool fiscal da Jana · Quando monta o contexto · Então só há id, nome, descrição,
+  unidade, categoria, NCM e regras do **business do construtor**; nenhum campo de preço, custo, cliente
+  ou CNPJ. Controle positivo: a tool da outra empresa vê o produto dela.
+- **Teste:** [`ProdutoFiscalToolTest`](../../../../../Modules/NfeBrasil/Tests/Feature/ProdutoFiscalToolTest.php)
+  — `UC-NFTR-11 · tool fiscal só lê o próprio tenant e sem PII`.
+- **Contrato:** ADR 0093 · ADR 0141 (`business_id` pelo construtor).
+- **Regressão que defende:** vazamento entre empresas via prompt.
+- **Status: 🧪** — veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
+
+## UC-NFTR-12 · Aceitar ou descartar sugestão de outra empresa é 404 · `must` `[T0]`
+
+- **Persona:** qualquer tenant.
+- **Aceite:** Dado sugestão da empresa A · Quando B aceita ou descarta · Então 404 e nada muda em A.
+  Controle positivo: A aceita a própria e o NCM do produto muda.
+- **Teste:** [`SugestaoFiscalTest`](../../../../../Modules/NfeBrasil/Tests/Feature/SugestaoFiscalTest.php) — `UC-NFTR-12 · sugestão isolada por tenant`.
+- **Contrato:** ADR 0093.
+- **Regressão que defende:** aceite cruzado mudando cadastro de outra empresa.
+- **Status: 🧪** — veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
+
+## UC-NFTR-13 · Jana fora do ar não afeta emissão nem cadastro · `must` `[fiscal]`
+
+- **Persona:** dia em que o provedor de IA cai.
+- **Aceite:** Dado a Jana indisponível · Quando peço sugestões · Então a resposta diz
+  "Sugestões indisponíveis agora." e nada é gravado; salvar regra e calcular imposto funcionam igual.
+  Controle positivo: com a Jana de volta, as sugestões reaparecem.
+- **Teste:** [`SugestaoFiscalTest`](../../../../../Modules/NfeBrasil/Tests/Feature/SugestaoFiscalTest.php) — `UC-NFTR-13 · IA indisponível não bloqueia fiscal`.
+- **Contrato:** D-IA (IA é sugestão, nunca caminho crítico).
+- **Regressão que defende:** emissão travada porque a IA não respondeu.
+- **Status: 🧪** — veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
+
+## UC-NFTR-19 · Aceite é por versão e exige permissão própria · `must` `[T0]` `[fiscal]`
+
+- **Persona:** contador com usuário (o link sem conta é a thread 15b).
+- **Aceite:** Dado uma regra criada · Então nasce uma revisão `pendente` com o de → para, o autor e a
+  origem (manual · csv · jana). Quando o **dono da empresa** (papel `Admin#`) ou quem só tem
+  `nfe.tributacao.manage` aceita → 403. Com `nfe.tributacao.aceitar` → grava quem, e-mail, quando e IP,
+  e `activity("aceite.registrado")`. Quando a regra aceita é editada · Então a versão nova nasce pendente
+  com o de → para e a antiga mantém o aceite. Controle positivo: o lote do Import CSV entra com origem "csv".
+- **Teste:** [`AceiteContadorTest`](../../../../../Modules/NfeBrasil/Tests/Feature/AceiteContadorTest.php) — `UC-NFTR-19 · aceite por versão, permissão própria`.
+- **Contrato:** D-CONTADOR · D-SUPORTE. A permissão é checada direto no Spatie (`hasPermissionTo`): o
+  `Gate::before` libera o `Admin#` em qualquer `can()`.
+- **Regressão que defende:** dono "aceitando" pelo contador; aceite antigo valendo para regra que mudou.
+- **Status: 🧪** — veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
+
+## UC-NFTR-20 · Pedir ajuste exige comentário e fica registrado · `must` `[fiscal]`
+
+- **Persona:** contador que discorda.
+- **Aceite:** Dado item pendente · Quando peço ajuste sem comentário (ou só espaços) → 422. Com comentário →
+  "ajuste pedido", o texto aparece na lista da empresa e `activity("aceite.ajuste_pedido")`. Controle
+  positivo: depois da correção (versão nova), o item volta pendente.
+- **Teste:** [`AceiteContadorTest`](../../../../../Modules/NfeBrasil/Tests/Feature/AceiteContadorTest.php) — `UC-NFTR-20 · pedir ajuste com comentário`.
+- **Contrato:** D-CONTADOR.
+- **Regressão que defende:** discordância do contador que se perde no e-mail.
+- **Fora daqui:** mostrar o pedido na Saúde fiscal é a thread 14.
+- **Status: 🧪** — veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
+
+## UC-NFTR-21 · Falta de aceite não bloqueia emissão · `must` `[fiscal]`
+
+- **Persona:** Larissa vendendo com regra ainda não revisada.
+- **Aceite:** Dado regra vigente sem aceite · Então o motor calcula normalmente (item de 1.000,00 a 12% → ICMS
+  120,00) e a lista de revisões conta a regra em `sem_aceite`. Controle positivo: aceita, `sem_aceite` cai 1
+  e o cálculo segue igual.
+- **Teste:** [`AceiteContadorTest`](../../../../../Modules/NfeBrasil/Tests/Feature/AceiteContadorTest.php) — `UC-NFTR-21 · sem aceite emite normal`.
+- **Contrato:** D-SUPORTE (bloqueio vira chamado).
+- **Regressão que defende:** um gate de aceite parando o balcão.
+- **Status: 🧪** — veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
+
+## UC-NFTR-22 · Link de revisão só abre com o código do e-mail, expira e serve a um business · `must` `[T0]`
+
+- **Persona:** contador sem conta — e quem recebeu o link encaminhado.
+- **Aceite:** Dado a empresa (`nfe.tributacao.manage`) envia o link · Então ele vai ao e-mail do contador,
+  assinado, válido por 14 dias e preso ao business. Quando abro · Então só a tela do código, e um código de
+  6 dígitos vai ao mesmo e-mail (15 min). Sem o código, o CSV e o aceite dão 403. Código errado 5× → link
+  bloqueado (403, nem o código certo abre). Assinatura alterada, business trocado na URL ou mais de 14 dias
+  → 403. O código serve uma vez: outra sessão com o mesmo código → recusado; código com mais de 15 min →
+  recusado. Liberado, a lista mostra só o business do link; revisão de outro business pelo link → 404, e a
+  sessão liberada para um link não serve para outro. Controle positivo: o aceite pelo link grava nome,
+  e-mail e CRC do contador do link, sem usuário.
+- **Teste:** [`RevisaoContadorLinkTest`](../../../../../Modules/NfeBrasil/Tests/Feature/RevisaoContadorLinkTest.php) — `UC-NFTR-22 · link assinado + código, 14 dias, um business`.
+- **Contrato:** D-CONTADOR caminho 1 · US-NFE-009 (link de 14 dias) · ADR 0093.
+- **Regressão que defende:** link encaminhado aceitando em nome do contador; link que abre outra empresa.
+- **Status: 🧪** — veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
+
+## UC-NFTR-23 · A revisão pelo link mostra só regras fiscais, com de → para, e baixa o CSV do Import · `must` `[T0]`
+
+- **Persona:** contador revisando pelo link.
+- **Aceite:** Dado versões pendentes · Então cada item mostra NCM/UF, o campo que mudou (de → para), autor,
+  data e origem. Toda consulta das rotas do link fica em regra fiscal, revisão, o próprio link e o nome do
+  autor e da empresa — nenhuma lê cliente, venda ou nota. "Baixar regras (CSV)" sai com as 10 colunas do
+  Import, só do business do link. Pedir ajuste sem comentário → 422; com comentário → "ajuste pedido".
+  Controle positivo: o CSV baixado passa pelo `parse` do Import sem erro.
+- **Teste:** [`RevisaoContadorLinkTest`](../../../../../Modules/NfeBrasil/Tests/Feature/RevisaoContadorLinkTest.php) — `UC-NFTR-23 · só regras fiscais, com de → para e CSV do Import`.
+- **Contrato:** D-CONTADOR (caminhos 1 e 3) · LGPD minimização · `ImportRegrasCsvService::COLUNAS_OBRIGATORIAS`.
+- **Regressão que defende:** página do contador vazando dado de negócio; planilha que não volta pelo Import.
+- **Fora daqui:** o cadastro do contador em `/fiscal/config` e o papel "Contador" são a thread 15c.
+- **Status: 🧪** — veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
+
 ## Backlog — sem UC até ganhar teste
 
 > Prosa honesta, sem gate. Vira UC quando ganhar teste que o cite (G-2).
+
+- `[BACKLOG]` **"Perguntar à Jana" responde com fonte e não altera nada** (playbook Fiscal thread 10, UC-NFTR-10b provisório). Não entrou no PR da 10: é chat livre, e a thread entregou só as sugestões estruturadas. Vira UC com o teste `JanaFiscalPerguntaTest`.
 
 - `[BACKLOG]` **`regras` e `templates` são deferidos; `config` é eager.** O charter promete
   `p95 first-paint < 1500ms` e o controller aplica `Inertia::defer` nas duas props caras (Wave 25 D3).
