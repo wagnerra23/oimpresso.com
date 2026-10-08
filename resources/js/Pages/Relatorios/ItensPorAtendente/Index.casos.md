@@ -35,6 +35,11 @@ last_run: "2026-10-08"
   nada · Dado usuário sem `sales_representative.view` · Então 403 na tela nova e na página da Blade.
 - **Status: 🧪**
 
+## UC-RIA-04 · Endpoint com permissão e só os locais permitidos · `must` `[T0]`
+- **Aceite:** Dado usuário sem `sales_representative.view` · Quando pede o JSON do DataTable · Então 403 · Dado itens no
+  local A e no local B · Quando um usuário que só pode ver o A pede o JSON ou abre a tela nova · Então vê só o item do A ·
+  Dado usuário sem local nenhum · Então não vê nada · Dado usuário com todos os locais · Então vê os dois, como antes.
+- **Status: 🧪**
+
 ## Backlog
 - [BACKLOG] Aba "pedidos por atendente" (vem do `SellController`, fora do `ReportController`).
-- [BACKLOG] Decidir permissão e locais permitidos no endpoint JSON (achado no RUNBOOK §4).

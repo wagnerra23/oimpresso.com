@@ -42,11 +42,11 @@ Permissão `sales_representative.view` — a da página da Blade (`getServiceSta
 
 - A outra aba ("pedidos por atendente") vem do `SellController::index` (`/sells`), fora do `ReportController` — não entra
   nesta thread.
-- **Achado (não corrigido, decisão da gerência):** o endpoint JSON `/reports/service-staff-line-orders` não confere
-  permissão nenhuma (a página que o usa exige `sales_representative.view`) e não filtra pelos locais permitidos do
-  usuário. Qualquer usuário logado do negócio lê os itens por atendente de todos os locais. O isolamento entre negócios
-  (`business_id`) está certo. A tela nova já exige a permissão da página.
+- **Permissão e locais permitidos no endpoint (corrigido em 2026-10-08):** o JSON `/reports/service-staff-line-orders`
+  não conferia permissão nenhuma e não filtrava pelos locais permitidos — qualquer usuário logado do negócio lia os itens
+  por atendente de todos os locais. Agora exige `sales_representative.view` (a da página) e aplica `permitted_locations`
+  na consulta (mesmo desenho do #8986: `'all'` = todos; lista vazia = nada). Teste: UC-RIA-04.
 
 ## 5. Falta para o cutover (F5 — decisão [W])
 
-A outra aba, a decisão sobre o achado do §4, aprovação do screenshot por [W], o smoke F4 e o aviso ao cliente.
+A outra aba, aprovação do screenshot por [W], o smoke F4 e o aviso ao cliente.
