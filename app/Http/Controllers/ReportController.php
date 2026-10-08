@@ -832,12 +832,18 @@ class ReportController extends Controller
     /**
      * Shows tax report of a business
      *
-     * @return \Illuminate\Http\Response
+     * @return \Inertia\Response|\Illuminate\Http\JsonResponse|null
      */
     public function getTaxDetails(Request $request)
     {
         if (! auth()->user()->can('tax_report.view')) {
             abort(403, 'Unauthorized action.');
+        }
+
+        // Tela React (playbook sistema/07). Vem ANTES do ajax(): a visita Inertia manda
+        // X-Requested-With. As linhas e o imposto por alíquota saem da MESMA consulta e da MESMA conta do DataTable.
+        if ($request->query('tela') === 'nova') {
+            return $this->telaImpostos($request, (int) $request->session()->get('user.business_id'));
         }
 
         if ($request->ajax()) {
@@ -847,151 +853,15 @@ class ReportController extends Controller
 
             $payment_types = $this->transactionUtil->payment_types(null, true, $business_id);
 
-            $sells = Transaction::leftJoin('tax_rates as tr', 'transactions.tax_id', '=', 'tr.id')
-                            ->leftJoin('contacts as c', 'transactions.contact_id', '=', 'c.id')
-                ->where('transactions.business_id', $business_id)
-                ->with(['payment_lines'])
-                ->select('c.name as contact_name',
-                        'c.supplier_business_name',
-                        'c.tax_number',
-                        'transactions.ref_no',
-                        'transactions.invoice_no',
-                        'transactions.transaction_date',
-                        'transactions.total_before_tax',
-                        'transactions.tax_id',
-                        'transactions.tax_amount',
-                        'transactions.id',
-                        'transactions.type',
-                        'transactions.discount_type',
-                        'transactions.discount_amount'
-                    );
-            if ($type == 'sell') {
-                $sells->where('transactions.type', 'sell')
-                    ->where('transactions.status', 'final')
-                    ->where(function ($query) {
-                        $query->whereHas('sell_lines', function ($q) {
-                            $q->whereNotNull('transaction_sell_lines.tax_id');
-                        })->orWhereNotNull('transactions.tax_id');
-                    })
-                    ->with(['sell_lines' => function ($q) {
-                        $q->whereNotNull('transaction_sell_lines.tax_id');
-                    }, 'sell_lines.line_tax']);
-            }
-            if ($type == 'purchase') {
-                $sells->where('transactions.type', 'purchase')
-                    ->where('transactions.status', 'received')
-                    ->where(function ($query) {
-                        $query->whereHas('purchase_lines', function ($q) {
-                            $q->whereNotNull('purchase_lines.tax_id');
-                        })->orWhereNotNull('transactions.tax_id');
-                    })
-                    ->with(['purchase_lines' => function ($q) {
-                        $q->whereNotNull('purchase_lines.tax_id');
-                    }, 'purchase_lines.line_tax']);
-            }
-
-            if ($type == 'expense') {
-                $sells->where('transactions.type', 'expense')
-                        ->whereNotNull('transactions.tax_id');
-            }
-
-            $permitted_locations = auth()->user()->permitted_locations();
-            if ($permitted_locations != 'all') {
-                $sells->whereIn('transactions.location_id', $permitted_locations);
-            }
-
-            if (request()->has('location_id')) {
-                $location_id = request()->get('location_id');
-                if (! empty($location_id)) {
-                    $sells->where('transactions.location_id', $location_id);
-                }
-            }
-
-            if (request()->has('contact_id')) {
-                $contact_id = request()->get('contact_id');
-                if (! empty($contact_id)) {
-                    $sells->where('transactions.contact_id', $contact_id);
-                }
-            }
-
-            if (! empty(request()->start_date) && ! empty(request()->end_date)) {
-                $start = request()->start_date;
-                $end = request()->end_date;
-                $sells->whereDate('transactions.transaction_date', '>=', $start)
-                                ->whereDate('transactions.transaction_date', '<=', $end);
-            }
+            $sells = $this->consultaImpostos($business_id, (string) $type, $request->only(['location_id', 'contact_id', 'start_date', 'end_date']));
             $datatable = Datatables::of($sells);
             $raw_cols = ['total_before_tax', 'discount_amount', 'contact_name', 'payment_methods'];
-            $group_taxes_array = TaxRate::groupTaxes($business_id);
-            $group_taxes = [];
-            foreach ($group_taxes_array as $group_tax) {
-                foreach ($group_tax['sub_taxes'] as $sub_tax) {
-                    $group_taxes[$group_tax->id]['sub_taxes'][$sub_tax->id] = $sub_tax;
-                }
-            }
+            $group_taxes = $this->gruposDeImposto($business_id);
             foreach ($taxes as $tax) {
                 $col = 'tax_'.$tax['id'];
                 $raw_cols[] = $col;
                 $datatable->addColumn($col, function ($row) use ($tax, $type, $col, $group_taxes) {
-                    $tax_amount = 0;
-                    if ($type == 'sell') {
-                        foreach ($row->sell_lines as $sell_line) {
-                            if ($sell_line->tax_id == $tax['id']) {
-                                $tax_amount += ($sell_line->item_tax * ($sell_line->quantity - $sell_line->quantity_returned));
-                            }
-
-                            //break group tax
-                            if ($sell_line->line_tax->is_tax_group == 1 && array_key_exists($tax['id'], $group_taxes[$sell_line->tax_id]['sub_taxes'])) {
-                                $group_tax_details = $this->transactionUtil->groupTaxDetails($sell_line->line_tax, $sell_line->item_tax);
-
-                                $sub_tax_share = 0;
-                                foreach ($group_tax_details as $sub_tax_details) {
-                                    if ($sub_tax_details['id'] == $tax['id']) {
-                                        $sub_tax_share = $sub_tax_details['calculated_tax'];
-                                    }
-                                }
-
-                                $tax_amount += ($sub_tax_share * ($sell_line->quantity - $sell_line->quantity_returned));
-                            }
-                        }
-                    } elseif ($type == 'purchase') {
-                        foreach ($row->purchase_lines as $purchase_line) {
-                            if ($purchase_line->tax_id == $tax['id']) {
-                                $tax_amount += ($purchase_line->item_tax * ($purchase_line->quantity - $purchase_line->quantity_returned));
-                            }
-
-                            //break group tax
-                            if ($purchase_line->line_tax->is_tax_group == 1 && array_key_exists($tax['id'], $group_taxes[$purchase_line->tax_id]['sub_taxes'])) {
-                                $group_tax_details = $this->transactionUtil->groupTaxDetails($purchase_line->line_tax, $purchase_line->item_tax);
-
-                                $sub_tax_share = 0;
-                                foreach ($group_tax_details as $sub_tax_details) {
-                                    if ($sub_tax_details['id'] == $tax['id']) {
-                                        $sub_tax_share = $sub_tax_details['calculated_tax'];
-                                    }
-                                }
-
-                                $tax_amount += ($sub_tax_share * ($purchase_line->quantity - $purchase_line->quantity_returned));
-                            }
-                        }
-                    }
-                    if ($row->tax_id == $tax['id']) {
-                        $tax_amount += $row->tax_amount;
-                    }
-
-                    //break group tax
-                    if (! empty($group_taxes[$row->tax_id]) && array_key_exists($tax['id'], $group_taxes[$row->tax_id]['sub_taxes'])) {
-                        $group_tax_details = $this->transactionUtil->groupTaxDetails($row->tax_id, $row->tax_amount);
-
-                        $sub_tax_share = 0;
-                        foreach ($group_tax_details as $sub_tax_details) {
-                            if ($sub_tax_details['id'] == $tax['id']) {
-                                $sub_tax_share = $sub_tax_details['calculated_tax'];
-                            }
-                        }
-
-                        $tax_amount += $sub_tax_share;
-                    }
+                    $tax_amount = $this->impostoPorAliquota($row, $tax, $type, $group_taxes);
 
                     if ($tax_amount > 0) {
                         return '<span class="display_currency '.$col.'" data-currency_symbol="true" data-orig-value="'.$tax_amount.'">'.$tax_amount.'</span>';
@@ -1041,6 +911,259 @@ class ReportController extends Controller
             return $datatable->rawColumns($raw_cols)
                             ->make(true);
         }
+
+        // Endpoint sem Blade própria (DataTables da página de impostos): fora do ajax sempre devolveu nada.
+        return null;
+    }
+
+    /**
+     * Relatório de impostos — a consulta de uma aba (tipo purchase = entrada, sell = saída, expense = despesa), usada
+     * pelo DataTable da Blade e pela tela nova (playbook sistema/07). Corpo movido sem mudança de regra.
+     *
+     * @param  array<string, mixed>  $filtros  location_id, contact_id, start_date, end_date
+     */
+    private function consultaImpostos(int $business_id, string $type, array $filtros): \Illuminate\Database\Eloquent\Builder
+    {
+        $sells = Transaction::leftJoin('tax_rates as tr', 'transactions.tax_id', '=', 'tr.id')
+                        ->leftJoin('contacts as c', 'transactions.contact_id', '=', 'c.id')
+            ->where('transactions.business_id', $business_id)
+            ->with(['payment_lines'])
+            ->select('c.name as contact_name',
+                    'c.supplier_business_name',
+                    'c.tax_number',
+                    'transactions.ref_no',
+                    'transactions.invoice_no',
+                    'transactions.transaction_date',
+                    'transactions.total_before_tax',
+                    'transactions.tax_id',
+                    'transactions.tax_amount',
+                    'transactions.id',
+                    'transactions.type',
+                    'transactions.discount_type',
+                    'transactions.discount_amount'
+                );
+        if ($type == 'sell') {
+            $sells->where('transactions.type', 'sell')
+                ->where('transactions.status', 'final')
+                ->where(function ($query) {
+                    $query->whereHas('sell_lines', function ($q) {
+                        $q->whereNotNull('transaction_sell_lines.tax_id');
+                    })->orWhereNotNull('transactions.tax_id');
+                })
+                ->with(['sell_lines' => function ($q) {
+                    $q->whereNotNull('transaction_sell_lines.tax_id');
+                }, 'sell_lines.line_tax']);
+        }
+        if ($type == 'purchase') {
+            $sells->where('transactions.type', 'purchase')
+                ->where('transactions.status', 'received')
+                ->where(function ($query) {
+                    $query->whereHas('purchase_lines', function ($q) {
+                        $q->whereNotNull('purchase_lines.tax_id');
+                    })->orWhereNotNull('transactions.tax_id');
+                })
+                ->with(['purchase_lines' => function ($q) {
+                    $q->whereNotNull('purchase_lines.tax_id');
+                }, 'purchase_lines.line_tax']);
+        }
+
+        if ($type == 'expense') {
+            $sells->where('transactions.type', 'expense')
+                    ->whereNotNull('transactions.tax_id');
+        }
+
+        $permitted_locations = auth()->user()->permitted_locations();
+        if ($permitted_locations != 'all') {
+            $sells->whereIn('transactions.location_id', $permitted_locations);
+        }
+
+        if (array_key_exists('location_id', $filtros)) {
+            $location_id = $filtros['location_id'];
+            if (! empty($location_id)) {
+                $sells->where('transactions.location_id', $location_id);
+            }
+        }
+
+        if (array_key_exists('contact_id', $filtros)) {
+            $contact_id = $filtros['contact_id'];
+            if (! empty($contact_id)) {
+                $sells->where('transactions.contact_id', $contact_id);
+            }
+        }
+
+        if (! empty($filtros['start_date'] ?? null) && ! empty($filtros['end_date'] ?? null)) {
+            $start = $filtros['start_date'];
+            $end = $filtros['end_date'];
+            $sells->whereDate('transactions.transaction_date', '>=', $start)
+                            ->whereDate('transactions.transaction_date', '<=', $end);
+        }
+
+        return $sells;
+    }
+
+    /**
+     * Impostos compostos do negócio, por id, com as alíquotas que os compõem (usado na quebra do imposto composto).
+     *
+     * @return array<int, array{sub_taxes: array<int, mixed>}>
+     */
+    private function gruposDeImposto(int $business_id): array
+    {
+        $group_taxes_array = TaxRate::groupTaxes($business_id);
+        $group_taxes = [];
+        foreach ($group_taxes_array as $group_tax) {
+            foreach ($group_tax['sub_taxes'] as $sub_tax) {
+                $group_taxes[$group_tax->id]['sub_taxes'][$sub_tax->id] = $sub_tax;
+            }
+        }
+
+        return $group_taxes;
+    }
+
+    /**
+     * Imposto de UMA alíquota numa transação do relatório de impostos — a conta que a coluna "tax_{id}" do DataTable
+     * fazia inline, movida sem mudança: imposto dos itens (por item, × quantidade líquida, com a quebra do imposto
+     * composto) + imposto da própria transação (com a mesma quebra).
+     *
+     * @param  array<string, mixed>  $tax
+     * @param  array<int, array{sub_taxes: array<int, mixed>}>  $group_taxes
+     */
+    private function impostoPorAliquota(\App\Transaction $row, array $tax, ?string $type, array $group_taxes): float
+    {
+        $tax_amount = 0;
+        if ($type == 'sell') {
+            foreach ($row->sell_lines as $sell_line) {
+                if ($sell_line->tax_id == $tax['id']) {
+                    $tax_amount += ($sell_line->item_tax * ($sell_line->quantity - $sell_line->quantity_returned));
+                }
+
+                //break group tax
+                if ($sell_line->line_tax->is_tax_group == 1 && array_key_exists($tax['id'], $group_taxes[$sell_line->tax_id]['sub_taxes'])) {
+                    $group_tax_details = $this->transactionUtil->groupTaxDetails($sell_line->line_tax, $sell_line->item_tax);
+
+                    $sub_tax_share = 0;
+                    foreach ($group_tax_details as $sub_tax_details) {
+                        if ($sub_tax_details['id'] == $tax['id']) {
+                            $sub_tax_share = $sub_tax_details['calculated_tax'];
+                        }
+                    }
+
+                    $tax_amount += ($sub_tax_share * ($sell_line->quantity - $sell_line->quantity_returned));
+                }
+            }
+        } elseif ($type == 'purchase') {
+            foreach ($row->purchase_lines as $purchase_line) {
+                if ($purchase_line->tax_id == $tax['id']) {
+                    $tax_amount += ($purchase_line->item_tax * ($purchase_line->quantity - $purchase_line->quantity_returned));
+                }
+
+                //break group tax
+                if ($purchase_line->line_tax->is_tax_group == 1 && array_key_exists($tax['id'], $group_taxes[$purchase_line->tax_id]['sub_taxes'])) {
+                    $group_tax_details = $this->transactionUtil->groupTaxDetails($purchase_line->line_tax, $purchase_line->item_tax);
+
+                    $sub_tax_share = 0;
+                    foreach ($group_tax_details as $sub_tax_details) {
+                        if ($sub_tax_details['id'] == $tax['id']) {
+                            $sub_tax_share = $sub_tax_details['calculated_tax'];
+                        }
+                    }
+
+                    $tax_amount += ($sub_tax_share * ($purchase_line->quantity - $purchase_line->quantity_returned));
+                }
+            }
+        }
+        if ($row->tax_id == $tax['id']) {
+            $tax_amount += $row->tax_amount;
+        }
+
+        //break group tax
+        if (! empty($group_taxes[$row->tax_id]) && array_key_exists($tax['id'], $group_taxes[$row->tax_id]['sub_taxes'])) {
+            $group_tax_details = $this->transactionUtil->groupTaxDetails($row->tax_id, $row->tax_amount);
+
+            $sub_tax_share = 0;
+            foreach ($group_tax_details as $sub_tax_details) {
+                if ($sub_tax_details['id'] == $tax['id']) {
+                    $sub_tax_share = $sub_tax_details['calculated_tax'];
+                }
+            }
+
+            $tax_amount += $sub_tax_share;
+        }
+
+        return (float) $tax_amount;
+    }
+
+    /**
+     * Tela nova do relatório de impostos, uma aba por vez (tipo purchase = entrada, sell = saída, expense = despesa):
+     * as mesmas linhas da consulta acima, 25 por página na ordem de cada DataTable da Blade (entrada e despesa por data
+     * crescente; saída por data decrescente), com o imposto de cada alíquota pela MESMA conta da coluna da Blade
+     * (impostoPorAliquota). Rodapé da página como o da Blade: total e cada alíquota somados. Período padrão = ano
+     * fiscal, como o daterangepicker da Blade.
+     */
+    private function telaImpostos(Request $request, int $business_id): \Inertia\Response
+    {
+        $tipo = in_array($request->query('tipo'), ['purchase', 'sell', 'expense'], true) ? (string) $request->query('tipo') : 'purchase';
+        $filtros = [
+            'location_id' => (string) $request->query('location_id', ''),
+            'contact_id' => (string) $request->query('contact_id', ''),
+            'start_date' => $this->dataIsoOu((string) $request->query('start_date', ''), (string) $request->session()->get('financial_year.start', now()->startOfYear()->toDateString())),
+            'end_date' => $this->dataIsoOu((string) $request->query('end_date', ''), (string) $request->session()->get('financial_year.end', now()->endOfYear()->toDateString())),
+        ];
+
+        $aliquotas = TaxRate::forBusiness($business_id);
+        $grupos = $this->gruposDeImposto($business_id);
+        $tiposDePagamento = $this->transactionUtil->payment_types(null, true, $business_id);
+
+        $pagina = $this->consultaImpostos($business_id, $tipo, $filtros)
+            ->orderBy('transactions.transaction_date', $tipo === 'sell' ? 'desc' : 'asc')
+            ->orderBy('transactions.id', $tipo === 'sell' ? 'desc' : 'asc')
+            ->paginate(25)->withQueryString();
+
+        $data = $request->session()->get('business.time_format') == 24 ? 'H:i' : 'h:i A';
+        $data = (string) $request->session()->get('business.date_format', config('constants.default_date_format', 'd/m/Y')).' '.$data;
+
+        $linhas = collect($pagina->items())->map(function (\App\Transaction $t) use ($aliquotas, $tipo, $grupos, $tiposDePagamento, $data): array {
+            $impostos = [];
+            foreach ($aliquotas as $aliquota) {
+                $impostos[(string) $aliquota['id']] = $this->impostoPorAliquota($t, $aliquota, $tipo, $grupos);
+            }
+            // Forma de pagamento como a coluna da Blade: uma forma = o nome dela; mais de uma = "pagamento múltiplo".
+            $metodos = $t->payment_lines->pluck('method')->unique()->values();
+            $empresa = (string) $t->getAttribute('supplier_business_name');
+
+            return [
+                // Mesma conta do @format_datetime da Blade.
+                'data' => \Carbon\Carbon::createFromTimestamp(strtotime((string) $t->transaction_date))->format($data),
+                'referencia' => (string) ($tipo === 'sell' ? $t->invoice_no : $t->ref_no),
+                'contato' => trim(($empresa !== '' ? $empresa.', ' : '').$t->getAttribute('contact_name')),
+                'documento' => (string) $t->getAttribute('tax_number'),
+                'total' => (float) $t->total_before_tax,
+                'pagamento' => $metodos->count() > 1 ? (string) __('lang_v1.checkout_multi_pay') : (string) ($tiposDePagamento[$metodos->first()] ?? ''),
+                'desconto' => (float) $t->discount_amount,
+                'desconto_tipo' => (string) ($t->discount_type ?? ''),
+                'impostos' => $impostos,
+            ];
+        })->values();
+
+        $rodapeImpostos = [];
+        foreach ($aliquotas as $aliquota) {
+            $rodapeImpostos[(string) $aliquota['id']] = (float) $linhas->sum(fn (array $l) => $l['impostos'][(string) $aliquota['id']]);
+        }
+
+        return Inertia::render('Relatorios/Impostos/Index', [
+            'tipo' => $tipo,
+            'aliquotas' => collect($aliquotas)->map(fn ($a) => ['id' => (string) $a['id'], 'nome' => (string) $a['name']])->values(),
+            'linhas' => $linhas,
+            // Como o rodapé da Blade: só as linhas desta página.
+            'rodape' => ['total' => (float) $linhas->sum('total'), 'impostos' => $rodapeImpostos],
+            'paginacao' => ['atual' => $pagina->currentPage(), 'ultima' => $pagina->lastPage(), 'total' => $pagina->total()],
+            'filtros' => $filtros,
+            'locais' => collect(BusinessLocation::forDropdown($business_id, true))->map(fn ($nome, $id) => ['id' => (int) $id, 'nome' => (string) $nome])->values(),
+            'contatos' => collect(Contact::contactDropdown($business_id, false, false))->map(fn ($nome, $id) => ['id' => (int) $id, 'nome' => (string) $nome])->values(),
+            'moeda' => [
+                'simbolo' => (string) $request->session()->get('business.currency_symbol', 'R$'),
+                'casas' => (int) $request->session()->get('business.currency_precision', 2),
+            ],
+        ]);
     }
 
     /**
