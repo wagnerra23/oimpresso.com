@@ -54,6 +54,16 @@ Status: 🧪 (1 teste cita este UC — revogar pela rota do drill-down grava `re
 Charter §Restrições Tier 0: *"Soft-delete em revoke … grava `revoked_at` + `revoked_by` … Nunca forceDelete"*; §Anti-hooks: *"NÃO faz forceDelete em `mcp_tokens`"*; §Métricas: token revogado aparece como *"Revogado"*; SPEC US-TEAM-003.
 **Pronto quando:** depois de revogar, a linha existe com `revoked_at` e `revoked_by`, e o histórico continua visível no drill-down.
 
+## UC-EQP-07 — Gerar token, gerar `.dxt` e mudar quota só alcançam usuário do próprio business `[T0]`
+Status: 🧪 (3 testes citam este UC em [`TeamTenantTest.php`](../../../../../Tests/Feature/TeamTenantTest.php) — tenant 98 × 99: `gerarToken`, `gerarDxt` e `atualizarQuota` com usuário do 99 dão 404 e não gravam token nem quota; com usuário do próprio business, gerar token dá 200 e a quota é gravada. Vermelho no `main` medido no CT 100 em 2026-10-08: 3× *"Expected 404 but received 200"*. Só na lane MySQL.)
+Decisão [W] D14 (2026-10-07, playbook Forja thread 15); charter §Non-Goals *"NÃO permite revogar token cross-tenant"* estendido às outras ações da tela; ADR 0093.
+**Pronto quando:** qualquer ação que recebe `userId` na URL responde 404 se o usuário não é do business da sessão, sem efeito colateral.
+
+## UC-EQP-08 — A rota legacy de revogar por `tokenId` não existe `[T0]`
+Status: 🧪 (1 teste cita este UC em [`TeamTenantTest.php`](../../../../../Tests/Feature/TeamTenantTest.php) — o nome `team-mcp.team.token.revogar` não está registrado e `DELETE /team-mcp/team/token/{id}` dá 404 com o token do business 99 seguindo sem `revoked_at`. Só na lane MySQL.)
+Decisão [W] D14 (2026-10-07); charter §Anti-hooks: *"NÃO permite revogar com tokenId vindo do user input sem confirmar `user_id` pertence ao business da sessão"*. Revogar é só pelo UC-EQP-04.
+**Pronto quando:** só existe a rota de revogação escopada por usuário e business.
+
 ## Backlog (sem id — vira UC quando ganhar teste que o cite)
 
 - [BACKLOG] **Status do token no drill-down** (Ativo · Expira em Nd · Expirado · Revogado) e **"Nunca usado"** para `last_used_at` nulo — charter §Goals + §Métricas. É derivação de front sobre campos que o backend já entrega; a prova natural é E2E.
@@ -62,6 +72,8 @@ Charter §Restrições Tier 0: *"Soft-delete em revoke … grava `revoked_at` + 
 - AlertDialog nas ações destrutivas e DS **não são UC**: o juiz é gate e a ratificação visual é [W] (mesma decisão do SDD §6.5).
 
 ## Achados `[T0]` registrados (decisão [W], não consertados aqui)
+
+> **Resolvido em 2026-10-08** (decisão [W] D14, thread 15 do playbook Forja): as 4 linhas abaixo viraram UC-EQP-07 e UC-EQP-08. A tabela fica como registro do que foi medido em 2026-10-07.
 
 O charter só exige o escopo por business em `listTokens` e `revokeToken`. As outras ações da tela recebem o `userId` (ou o `tokenId`) da URL **sem** conferir o business da sessão. Medido no `TeamController` deste `main`:
 

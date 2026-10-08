@@ -14,6 +14,7 @@ uses(Tests\TestCase::class, DatabaseTransactions::class);
 
 /**
  * Equipe (`/team-mcp/team`) · Tier 0 — o id da URL tem de ser do negócio da sessão.
+ * Cobre UC-EQP-07 e UC-EQP-08 de `Modules/Forja/Resources/js/Pages/team-mcp/Team/Index.casos.md`.
  *
  * Decisão [W] D14 (2026-10-07, playbook Forja thread 15): `gerarToken`, `gerarDxt` e
  * `atualizarQuota` conferem que o `userId` da URL é do negócio da sessão e respondem
@@ -47,7 +48,7 @@ beforeEach(function () {
     $this->alheio = User::factory()->create(['business_id' => $this->adversario->id]);
 });
 
-it('gerarToken: usuário de outro negócio dá 404 e nenhum token é emitido; do próprio negócio dá 200', function () {
+it('UC-EQP-07 · gerarToken: usuário de outro negócio dá 404 e nenhum token é emitido; do próprio negócio dá 200', function () {
     $this->actingAs($this->operador)
         ->postJson("/team-mcp/team/{$this->doTime->id}/token")
         ->assertStatus(200);
@@ -59,7 +60,7 @@ it('gerarToken: usuário de outro negócio dá 404 e nenhum token é emitido; do
     expect(McpToken::withTrashed()->where('user_id', $this->alheio->id)->count())->toBe(0);
 });
 
-it('gerarDxt: usuário de outro negócio dá 404 e nenhum token é emitido', function () {
+it('UC-EQP-07 · gerarDxt: usuário de outro negócio dá 404 e nenhum token é emitido', function () {
     $this->actingAs($this->operador)
         ->post("/team-mcp/team/{$this->alheio->id}/dxt")
         ->assertStatus(404);
@@ -67,7 +68,7 @@ it('gerarDxt: usuário de outro negócio dá 404 e nenhum token é emitido', fun
     expect(McpToken::withTrashed()->where('user_id', $this->alheio->id)->count())->toBe(0);
 });
 
-it('atualizarQuota: usuário de outro negócio dá 404 e nenhuma quota é gravada; do próprio negócio grava', function () {
+it('UC-EQP-07 · atualizarQuota: usuário de outro negócio dá 404 e nenhuma quota é gravada; do próprio negócio grava', function () {
     $payload = ['period' => 'daily', 'limit_brl' => 1, 'block_on_exceed' => true];
 
     $this->actingAs($this->operador)
@@ -81,7 +82,7 @@ it('atualizarQuota: usuário de outro negócio dá 404 e nenhuma quota é gravad
     expect(McpQuota::where('user_id', $this->alheio->id)->count())->toBe(0);
 });
 
-it('a rota legacy DELETE /team-mcp/team/token/{token} não existe e o token de outro negócio segue ativo', function () {
+it('UC-EQP-08 · a rota legacy DELETE /team-mcp/team/token/{token} não existe e o token de outro negócio segue ativo', function () {
     expect(Route::has('team-mcp.team.token.revogar'))->toBeFalse();
 
     [$token] = McpToken::gerar($this->alheio->id, 'T15-CT98-alheio');

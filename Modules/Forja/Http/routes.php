@@ -216,9 +216,8 @@ Route::group(
         // G-DESIGN-02: revoke individual scopa user (FICHA CAPTERRA 2026-05-25)
         Route::delete('/team/{user}/token/{tokenId}', 'TeamController@revokeToken')
             ->name('team-mcp.team.token.revoke');
-        // Legacy revoke (compat — kept while existing callers migrate)
-        Route::delete('/team/token/{token}',         'TeamController@revogarToken')
-            ->name('team-mcp.team.token.revogar');
+        // A rota legacy DELETE /team/token/{token} (revogava por tokenId sem conferir dono
+        // nem negócio) saiu em 2026-10-08 — decisão [W] D14. Revogar é só a de cima.
         Route::post('/team/{user}/quota',            'TeamController@atualizarQuota')
             ->name('team-mcp.team.quota.update');
         Route::get('/team/export.csv',               'TeamController@exportCsv')
