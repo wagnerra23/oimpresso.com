@@ -175,7 +175,8 @@ class PrinterController extends Controller
         }
 
         $business_id = request()->session()->get('user.business_id');
-        $printer = Printer::where('business_id', $business_id)->find($id);
+        // Tier 0: com find() o id de outro negócio virava null e a Blade quebrava (500); agora 404.
+        $printer = Printer::where('business_id', $business_id)->findOrFail($id);
 
         $capability_profiles = Printer::capability_profiles();
         $connection_types = Printer::connection_types();
