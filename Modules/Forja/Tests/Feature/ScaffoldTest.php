@@ -38,9 +38,11 @@ it('cenario 4: rota team-mcp.team.token.gerar existe', function () {
         ->toBeTrue('Rota team-mcp.team.token.gerar (TeamController@gerarToken) deveria existir');
 });
 
-it('cenario 5: rota team-mcp.team.token.revogar existe', function () {
+it('cenario 5: rota team-mcp.team.token.revoke existe (a legacy token.revogar saiu — D14 2026-10-08)', function () {
+    expect(\Route::has('team-mcp.team.token.revoke'))
+        ->toBeTrue('Rota team-mcp.team.token.revoke (TeamController@revokeToken) deveria existir');
     expect(\Route::has('team-mcp.team.token.revogar'))
-        ->toBeTrue('Rota team-mcp.team.token.revogar (TeamController@revogarToken) deveria existir');
+        ->toBeFalse('A rota legacy team-mcp.team.token.revogar revogava sem conferir o negócio e foi removida');
 });
 
 it('cenario 6: rota team-mcp.install.index existe', function () {

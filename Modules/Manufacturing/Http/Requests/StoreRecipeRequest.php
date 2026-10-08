@@ -3,6 +3,7 @@
 namespace Modules\Manufacturing\Http\Requests;
 
 use App\Utils\ModuleUtil;
+use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 
 /**
@@ -39,9 +40,22 @@ class StoreRecipeRequest extends FormRequest
     {
         return [
             'variation_id' => ['required', 'integer', 'exists:variations,id'],
-            'ingredients' => ['nullable', 'array'],
-            'ingredients.*.ingredient_id' => ['required_with:ingredients', 'integer'],
-            'ingredients.*.quantity' => ['required_with:ingredients', 'string'],
+            // Handoff Fabricação §5 regra 1 + §9: receita sem ingrediente não salva. Antes o `store()`
+            // pulava a gravação em silêncio e respondia "salvo com sucesso".
+            'ingredients' => ['required', 'array', 'min:1'],
+            'ingredients.*.ingredient_id' => ['required', 'integer'],
+            // §9: quantidade <= 0 é recusada. Chega no formato da empresa ("0,044"), por isso o
+            // `num_uf` — o mesmo que o `store()` usa para gravar.
+            'ingredients.*.quantity' => ['required', 'string', function (string $attribute, $value, $fail) {
+                // Array já cai na regra `string`; aqui só se mede o número. (Sem `is_string()`: o
+                // docblock de `Util::num_uf` diz `int`, embora todo o sistema passe o texto do formulário.)
+                if (is_array($value)) {
+                    return;
+                }
+                if (app(ModuleUtil::class)->num_uf($value) <= 0) {
+                    $fail('A quantidade de cada ingrediente precisa ser maior que zero.');
+                }
+            }],
             'ingredients.*.waste_percent' => ['nullable', 'string'],
             'ingredients.*.sort_order' => ['nullable', 'integer'],
             'ingredients.*.sub_unit_id' => ['nullable', 'integer'],
@@ -59,5 +73,24 @@ class StoreRecipeRequest extends FormRequest
             'ingredient_groups' => ['nullable', 'array'],
             'ingredient_group_description' => ['nullable', 'array'],
         ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'ingredients.required' => 'A receita precisa de pelo menos 1 ingrediente.',
+            'ingredients.min' => 'A receita precisa de pelo menos 1 ingrediente.',
+        ];
+    }
+
+    /**
+     * A janela de ingredientes ainda é Blade, e o layout dela não mostra `$errors` — só o aviso de
+     * `session('status')`. Sem isto a recusa voltava para o formulário sem dizer o porquê.
+     */
+    protected function failedValidation(Validator $validator): void
+    {
+        $this->session()->flash('status', ['success' => 0, 'msg' => $validator->errors()->first()]);
+
+        parent::failedValidation($validator);
     }
 }

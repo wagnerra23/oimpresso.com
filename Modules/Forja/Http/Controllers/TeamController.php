@@ -43,6 +43,18 @@ class TeamController extends Controller
         $this->middleware('can:jana.mcp.usage.all');
     }
 
+    /**
+     * Usuário do id da URL, só se for do negócio da sessão — 404 se não for
+     * (Tier 0, ADR 0093; decisão [W] D14 2026-10-07). Nem a existência de um
+     * usuário de outro negócio vaza.
+     */
+    protected function userDoNegocio(Request $request, int $userId): User
+    {
+        return User::where('id', $userId)
+            ->where('business_id', (int) $request->session()->get('user.business_id'))
+            ->firstOrFail();
+    }
+
     public function index(Request $request): Response
     {
         $businessId = (int) $request->session()->get('user.business_id');
@@ -122,7 +134,7 @@ class TeamController extends Controller
         // IssueActorTokenRequest valida 'note' (nullable|string|max:120) + trim.
         // Tier 0 segredo (ADR 0081): token raw devolvido APENAS no response, 1x,
         // jamais logado nem persistido em raw.
-        $user = User::findOrFail($userId);
+        $user = $this->userDoNegocio($request, $userId);
 
         // Wave 11 D9.a — OTel span pra token lifecycle (governança crítica MCP server).
         // Atributos NÃO incluem `raw` por design (Tier 0 segredo — ADR 0081).
@@ -149,7 +161,7 @@ class TeamController extends Controller
      */
     public function gerarDxt(Request $request, int $userId)
     {
-        $user = User::findOrFail($userId);
+        $user = $this->userDoNegocio($request, $userId);
 
         $nomeCurto = trim($user->first_name ?? $user->username ?? 'dev') ?: 'dev';
         $tokenName = 'DXT — ' . $nomeCurto . ' (gerado ' . now()->format('d/m/Y H:i') . ')';
@@ -324,27 +336,6 @@ JS;
     }
 
     /**
-     * Revoga token (soft-delete) — endpoint legacy (sem scope user).
-     */
-    public function revogarToken(int $tokenId)
-    {
-        // Wave 11 D9.a — OTel span pra revoke (audit crítico: invalidação imediata
-        // de credencial MCP, equivale a operação Tier 0 governança).
-        return OtelHelper::spanBiz('teammcp.token.revoke', function () use ($tokenId) {
-            $token = McpToken::findOrFail($tokenId);
-            // Audit LGPD (ADR 0081): grava revoked_at/revoked_by ANTES do soft-delete.
-            $token->update([
-                'expires_at' => now(),
-                'revoked_at' => now(),
-                'revoked_by' => auth()->id() ?? 0,
-            ]);
-            $token->delete(); // soft-delete (SoftDeletes) — a row sobrevive pro audit
-
-            return response()->json(['ok' => true]);
-        }, ['module' => 'TeamMcp', 'token_id' => $tokenId]);
-    }
-
-    /**
      * G-DESIGN-01 — Lista tokens individuais de 1 user (drill-down do contador
      * "N ativos" da tabela team principal). FICHA CAPTERRA 2026-05-25 §6 + ADR
      * 0057 §6 (drill-down esperado por governança Tier 0).
@@ -397,7 +388,7 @@ JS;
 
     /**
      * G-DESIGN-02 — Revoga UM token específico de UM user específico (drill-down
-     * action). FICHA CAPTERRA 2026-05-25. Difere do revogarToken legacy: força
+     * action). FICHA CAPTERRA 2026-05-25. Única rota de revogar (a legacy sem scope saiu em 2026-10-08, D14): força
      * scope explícito por user + business_id (multi-tenant Tier 0 ADR 0093).
      *
      * Audit (ADR 0057 §10): McpToken usa LogsActivity (Spatie) — revoked_at +
@@ -434,6 +425,8 @@ JS;
      */
     public function atualizarQuota(Request $request, int $userId)
     {
+        $userId = $this->userDoNegocio($request, $userId)->id;
+
         $request->validate([
             'period' => 'required|in:daily,monthly',
             'limit_brl' => 'required|numeric|min:0|max:9999.99',

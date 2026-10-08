@@ -136,7 +136,7 @@ it('UC-EQP-01 · o componente Inertia que o controller renderiza existe em disco
 it('UC-EQP-02 · toda rota team-mcp.team.* exige auth + can:jana.mcp.usage.all no registro', function () {
     $rotas = eqpRotas();
 
-    // index, token.gerar, dxt.gerar, tokens.index, token.revoke, token.revogar,
+    // index, token.gerar, dxt.gerar, tokens.index, token.revoke,
     // quota.update, export.csv. Bem menos que isso = alguém sumiu com rota da tela.
     expect($rotas->count())->toBeGreaterThanOrEqual(6);
 

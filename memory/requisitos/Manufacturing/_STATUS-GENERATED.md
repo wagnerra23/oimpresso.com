@@ -20,8 +20,8 @@ authority: generated
 | CU no SDD | 0 |
 | Telas (.tsx) | 6 |
 | Telas com `casos.md` | 6 |
-| UC declarados | 50 |
-| UC com teste que os cita | 47 |
+| UC declarados | 53 |
+| UC com teste que os cita | 52 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -91,8 +91,11 @@ _Nenhuma lacuna: toda tela tem caso **com UC**, todo CU é citado, e toda US **e
 | UC-RECIPE-11 | Recipes | 🧪 aguarda veredito da lane |
 | UC-RECIPE-12 | Recipes | 🧪 aguarda veredito da lane |
 | UC-RECIPE-13 | Recipes | 🧪 aguarda veredito da lane |
-| UC-RECIPE-14 | IngredientesEditor | 📝 sem_teste |
-| UC-RECIPE-15 | IngredientesEditor | 📝 sem_teste |
+| UC-RECIPE-14 | Recipes | 🧪 aguarda veredito da lane |
+| UC-RECIPE-15 | Recipes | 🧪 aguarda veredito da lane |
+| UC-RECIPE-16 | Recipes | 🧪 aguarda veredito da lane |
+| UC-RECIPE-17 | Recipes | 🧪 aguarda veredito da lane |
+| UC-RECIPE-18 | Recipes | 🧪 aguarda veredito da lane |
 | UC-REPORT-00 | Report | 🧪 aguarda veredito da lane |
 | UC-REPORT-01 | Report | 🧪 aguarda veredito da lane |
 | UC-REPORT-02 | Report | 🧪 aguarda veredito da lane |

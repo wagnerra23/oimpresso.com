@@ -14,7 +14,7 @@ last_run: "2026-10-08"
 > Regra G-2: UC declarado sem teste citando o id = órfão.
 >
 > Etapas 1 e 2 (RUNBOOK §1): abrir a ficha (UC-01..05) e salvar pela tela nova (UC-06, 07).
-> O salvar em si (UC-RECIPE-14..18) mora em `Recipes.casos.md`, porque o endpoint é o mesmo.
+> O salvar em si (casos 14 a 18 de RECIPE) mora em `Recipes.casos.md`, porque o endpoint é o mesmo. Os ids não são citados aqui de propósito: o gerador de status leria a menção como caso desta tela.
 
 ---
 
@@ -90,7 +90,7 @@ last_run: "2026-10-08"
 - **[BACKLOG]** Etapa 2, comportamento de tela (precisa de teste de navegador, a suíte do módulo só
   tem Pest de servidor): trocar a sub-unidade troca o multiplicador e o subtotal (regra 4); quantidade
   travada vira texto (regra 2); "Salvar receita" desabilitado e com o motivo escrito sem ingrediente
-  (regra 1); "Cancelar" sai sem gravar (regra 5). O servidor já recusa receita vazia (UC-RECIPE-15).
+  (regra 1); "Cancelar" sai sem gravar (regra 5). O servidor já recusa receita vazia (caso 15 de `Recipes.casos.md`).
 - **[BACKLOG]** O "Custo por <unidade>" do editor é o mesmo da lista de Receitas para a mesma receita.
   Precisa de teste de navegador (o número sai do `_lib/custo.ts`).
 

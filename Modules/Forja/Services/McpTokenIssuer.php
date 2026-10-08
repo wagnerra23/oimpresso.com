@@ -12,7 +12,7 @@ use Modules\Jana\Entities\Mcp\McpToken;
  * McpTokenIssuer — Wave 18 D4 SATURATION (2026-05-16).
  *
  * Extrai lógica de geração/revogação de tokens MCP antes embutida em
- * `TeamController::gerarToken()` e `TeamController::revogarToken()`.
+ * `TeamController::gerarToken()` e do antigo `TeamController::revogarToken()` (removido em 2026-10-08, D14).
  *
  * **Tier 0 Segredo IRREVOGÁVEL** ({@see ADR 0081}): token raw devolvido APENAS
  * uma vez no response, jamais logado nem persistido em raw. Hash sha256 gravado

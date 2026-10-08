@@ -12472,12 +12472,6 @@ parameters:
 			path: Modules/Forja/Http/Controllers/TeamController.php
 
 		-
-			message: '#^Método `Modules\\Forja\\Http\\Controllers\\TeamController\:\:revogarToken\(\)` faz Eloquent query \(1\) sem mencionar `business_id`/`businessId`/`BusinessScope` em nenhum lugar\. Tier 0 IRREVOGÁVEL \(ADR 0093\)\: toda query em Module Controller deve filtrar por tenant\. Use `\-\>where\(''business_id'', session\(''user\.business_id''\)\)` OR confirme `BusinessScope` global no Model \+ comentário explícito\. Ver T\-AP\-2 \+ T\-AP\-8 no LICOES_F3\.$#'
-			identifier: oimpresso.missingTenantScope
-			count: 1
-			path: Modules/Forja/Http/Controllers/TeamController.php
-
-		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$slug\.$#'
 			identifier: property.notFound
 			count: 1
