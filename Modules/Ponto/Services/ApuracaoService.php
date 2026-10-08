@@ -5,6 +5,7 @@ namespace Modules\Ponto\Services;
 use App\Util\OtelHelper;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+use Modules\Essentials\Entities\EssentialsHoliday;
 use Modules\Essentials\Entities\EssentialsLeave;
 use Modules\Ponto\Entities\ApuracaoDia;
 use Modules\Ponto\Entities\Colaborador;
@@ -57,13 +58,14 @@ class ApuracaoService
             $apuracao->escala_id   = $colaborador->escala_atual_id;
             $apuracao->estado      = ApuracaoDia::ESTADO_PENDENTE;
             $apuracao->divergencias = [];
+            $apuracao->feriado_id   = null;
 
             // Zerar campos calculáveis antes da reapuração
             foreach ([
                 'realizada_trabalhada_minutos', 'realizada_intrajornada_minutos',
                 'atraso_minutos', 'saida_antecipada_minutos', 'falta_minutos',
                 'he_diurna_minutos', 'he_noturna_minutos', 'adicional_noturno_minutos',
-                'dsr_repercussao_minutos',
+                'dsr_repercussao_minutos', 'he_feriado_minutos',
                 'interjornada_violacao_minutos', 'intrajornada_violacao_minutos',
                 'banco_horas_credito_minutos', 'banco_horas_debito_minutos',
                 'qtd_intercorrencias',
@@ -80,6 +82,10 @@ class ApuracaoService
             $self->aplicarRegraHoraExtra($apuracao, $colaborador, $data);
             $self->aplicarRegraAdicionalNoturno($apuracao, $colaborador, $data);
             $self->aplicarRegraDsr($apuracao, $colaborador, $data);
+            // Feriado do HRM (D5, issue #8200). Roda DEPOIS da tolerância (que seta a falta) e
+            // das regras de HE/DSR (cujo resultado ele reclassifica), e ANTES do banco de horas,
+            // que converteria falta em débito e HE em crédito. Ver FeriadoApuracaoContratoTest.
+            $self->aplicarFeriado($apuracao, $colaborador, $data);
             // Licença aprovada abona o dia — HRM-O6 PR-7 / Onda 2 do plano de integração.
             // POSIÇÃO MEDIDA, não escolhida: tem de vir DEPOIS de aplicarRegraTolerancia()
             // (que é quem SETA `falta_minutos = prevista_carga` quando qtd_marcacoes === 0,
@@ -486,6 +492,85 @@ class ApuracaoService
         $lista = is_array($a->divergencias) ? $a->divergencias : [];
         $lista[] = ['chave' => $chave, 'mensagem' => $mensagem];
         $a->divergencias = $lista;
+    }
+
+    /**
+     * Feriado cadastrado no HRM (D5 de [W] em 2026-09-29, emenda da ADR 0014 · issue #8200).
+     *
+     * O HRM é dono do cadastro (`essentials_holidays`, tela Essentials/Holidays); o Ponto só lê.
+     * Vale o feriado da empresa que não tem local (vale para todos) ou cujo local é o local de
+     * trabalho do usuário (`users.location_id`, a mesma coluna que a tela de feriados filtra).
+     * Colaborador sem usuário vinculado só pega feriado sem local.
+     *
+     * Num dia de feriado:
+     *  - não há jornada prevista, então não há falta, atraso nem saída antecipada — as divergências
+     *    `falta`/`atraso_acima_tolerancia` que a tolerância criou são falso-positivo e saem;
+     *  - o que foi trabalhado é HE de feriado, paga em dobro (Lei 605/49 Art. 9 + Súmula 146 TST):
+     *    vai para `he_feriado_minutos` e sai de `he_diurna`/`he_noturna` (que são HE de 50%) e da
+     *    repercussão de DSR (feriado não gera DSR sobre si mesmo);
+     *  - por isso também não vira crédito de banco de horas: `calcularBancoHoras()` só converte
+     *    HE de 50%. Trabalho em feriado é pago, não compensado;
+     *  - o adicional noturno fica como está: hora noturna em feriado continua noturna (Art. 73).
+     *  - trabalhou no feriado → divergência `trabalho_em_feriado`, para o RH conferir o pagamento.
+     *    Feriado sem trabalho não gera divergência: é um dia normal de folga.
+     *
+     * Tier 0 (ADR 0093): a query filtra por `business_id` do colaborador (e a Entity do dono tem
+     * `HasBusinessScope`). O `where` explícito é defesa em profundidade, igual a `aplicarLicencas`.
+     */
+    public function aplicarFeriado(ApuracaoDia $a, Colaborador $c, Carbon $data)
+    {
+        $localId = null;
+        if (! empty($c->user_id)) {
+            $localId = DB::table('users')
+                ->where('id', $c->user_id)
+                ->where('business_id', $c->business_id)
+                ->value('location_id');
+        }
+
+        $feriado = EssentialsHoliday::where('business_id', $c->business_id)
+            ->whereDate('start_date', '<=', $data->toDateString())
+            ->whereDate('end_date', '>=', $data->toDateString())
+            ->where(function ($q) use ($localId) {
+                $q->whereNull('location_id');
+                if (! empty($localId)) {
+                    $q->orWhere('location_id', (int) $localId);
+                }
+            })
+            ->orderBy('id')
+            ->first();
+
+        if ($feriado === null) {
+            return;
+        }
+
+        $a->feriado_id = (int) $feriado->id;
+
+        $a->divergencias = array_values(array_filter(
+            is_array($a->divergencias) ? $a->divergencias : [],
+            static function ($d) {
+                $chave = is_array($d) ? ($d['chave'] ?? null) : null;
+
+                return ! in_array($chave, ['falta', 'atraso_acima_tolerancia', 'he_acima_limite'], true);
+            }
+        ));
+
+        $a->falta_minutos            = 0;
+        $a->atraso_minutos           = 0;
+        $a->saida_antecipada_minutos = 0;
+
+        $a->he_feriado_minutos      = (int) $a->realizada_trabalhada_minutos;
+        $a->he_diurna_minutos       = 0;
+        $a->he_noturna_minutos      = 0;
+        $a->dsr_repercussao_minutos = 0;
+
+        if ($a->he_feriado_minutos > 0) {
+            $nome = $feriado->name ?: "#{$feriado->id}";
+            $this->addDivergencia(
+                $a,
+                'trabalho_em_feriado',
+                "Trabalho em feriado ({$nome}): {$a->he_feriado_minutos}min a pagar em dobro (Súmula 146 TST)."
+            );
+        }
     }
 
     /**

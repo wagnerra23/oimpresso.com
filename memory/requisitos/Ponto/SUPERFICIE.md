@@ -14,7 +14,7 @@ module: Ponto
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Ponto/**` + `resources/js/Pages/Ponto/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 262 arquivos em 18 papéis.
+**Total mapeado:** 264 arquivos em 18 papéis.
 
 ## Controllers — 18
 
@@ -109,7 +109,7 @@ module: Ponto
 
 - [PontoServiceProvider.php](../../../Modules/Ponto/Providers/PontoServiceProvider.php)
 
-## Migrations (schema) — 13
+## Migrations (schema) — 14
 
 - [2026_04_18_000001_create_ponto_colaborador_config_table.php](../../../Modules/Ponto/Database/Migrations/2026_04_18_000001_create_ponto_colaborador_config_table.php)
 - [2026_04_18_000002_create_ponto_reps_table.php](../../../Modules/Ponto/Database/Migrations/2026_04_18_000002_create_ponto_reps_table.php)
@@ -124,6 +124,7 @@ module: Ponto
 - [2026_09_30_000001_add_nsr_origem_to_ponto_marcacoes.php](../../../Modules/Ponto/Database/Migrations/2026_09_30_000001_add_nsr_origem_to_ponto_marcacoes.php)
 - [2026_10_01_000001_create_ponto_push_dispositivos_table.php](../../../Modules/Ponto/Database/Migrations/2026_10_01_000001_create_ponto_push_dispositivos_table.php)
 - [2026_10_01_000002_create_ponto_push_envios_table.php](../../../Modules/Ponto/Database/Migrations/2026_10_01_000002_create_ponto_push_envios_table.php)
+- [2026_10_08_000001_add_feriado_to_ponto_apuracao_dia.php](../../../Modules/Ponto/Database/Migrations/2026_10_08_000001_add_feriado_to_ponto_apuracao_dia.php)
 
 ## Seeders — 2
 
@@ -239,9 +240,9 @@ module: Ponto
 - [Index.casos.md](../../../resources/js/Pages/Ponto/Relatorios/Index.casos.md)
 - [Welcome.casos.md](../../../resources/js/Pages/Ponto/Welcome.casos.md)
 
-## Testes (Pest) — 71
+## Testes (Pest) — 72
 
-- 69 em [Modules/Ponto/Tests/Feature/](../../../Modules/Ponto/Tests/Feature)
+- 70 em [Modules/Ponto/Tests/Feature/](../../../Modules/Ponto/Tests/Feature)
 - 2 em [Modules/Ponto/Tests/Unit/](../../../Modules/Ponto/Tests/Unit)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
