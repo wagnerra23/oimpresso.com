@@ -4060,15 +4060,16 @@ class ReportController extends Controller
      */
     public function serviceStaffLineOrders()
     {
+        // A mesma permissão da página da Blade que mostra esta aba (getServiceStaffReport). O JSON não conferia
+        // permissão nenhuma: qualquer usuário logado do negócio o lia direto.
+        if (! auth()->user()->can('sales_representative.view')) {
+            abort(403, 'Unauthorized action.');
+        }
+
         $business_id = request()->session()->get('user.business_id');
 
-        // Tela React (playbook sistema/07): exige a permissão da página da Blade que mostra esta aba
-        // (getServiceStaffReport). O JSON abaixo segue como sempre foi — sem checagem própria (achado registrado).
+        // Tela React (playbook sistema/07).
         if (request()->query('tela') === 'nova') {
-            if (! auth()->user()->can('sales_representative.view')) {
-                abort(403, 'Unauthorized action.');
-            }
-
             return $this->telaItensPorAtendente(request(), $business_id);
         }
 
@@ -4125,7 +4126,7 @@ class ReportController extends Controller
 
     /**
      * Equipe de serviço, aba "itens por atendente" — a consulta (uma linha por item vendido com atendente), usada pelo
-     * DataTable da Blade e pela tela nova (playbook sistema/07). Corpo movido sem mudança de regra.
+     * DataTable da Blade e pela tela nova (playbook sistema/07). Só dos locais permitidos do usuário.
      *
      * @param  array<string, mixed>  $filtros  service_staff_id, location_id, start_date, end_date
      */
@@ -4147,6 +4148,13 @@ class ReportController extends Controller
                 ->where('t.type', 'sell')
                 ->where('t.status', 'final')
                 ->whereNotNull('transaction_sell_lines.res_service_staff_id');
+
+        // Só os locais que o usuário pode ver (Tier 0, mesmo desenho do #8986): 'all' = todos; lista vazia = nada
+        // (o whereIn vazio do Laravel vira "0 = 1").
+        $permitted_locations = auth()->user()->permitted_locations();
+        if ($permitted_locations != 'all') {
+            $query->whereIn('t.location_id', $permitted_locations);
+        }
 
         if (! empty(($filtros['service_staff_id'] ?? null))) {
             $query->where('transaction_sell_lines.res_service_staff_id', $filtros['service_staff_id']);
