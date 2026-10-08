@@ -41,8 +41,11 @@ last_run: "2026-10-08"
   `stock_report.view` · Então 403 na tela nova e na Blade.
 - **Status: 🧪**
 
+## UC-RES-05 · O JSON da Blade também esconde os valores sem a permissão · `must` `[T0]`
+- **Aceite:** Dado usuário com `view_product_stock_value` · Quando pede o JSON do DataTable · Então vêm valor pela compra,
+  pela venda e lucro potencial (84 · 140 · 56) · Dado usuário sem a permissão · Então as três colunas vêm vazias.
+- **Status: 🧪**
+
 ## Backlog
 - [BACKLOG] Resumo do topo (estoque final pela compra e pela venda, lucro potencial, margem) e filtros de subcategoria e
   "só fabricação", como a Blade.
-- [BACKLOG] Decidir se o JSON do DataTable deve esconder as colunas de valor sem `view_product_stock_value` (achado no
-  RUNBOOK §4).
