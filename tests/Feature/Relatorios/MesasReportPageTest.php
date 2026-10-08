@@ -1,7 +1,7 @@
 <?php
 
 declare(strict_types=1);
-// Cobre UC-RME-01, UC-RME-02, UC-RME-03 (resources/js/Pages/Relatorios/Mesas/Index.casos.md).
+// Cobre UC-RME-01, UC-RME-02, UC-RME-03, UC-RME-04 (resources/js/Pages/Relatorios/Mesas/Index.casos.md).
 
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\DB;
@@ -115,4 +115,41 @@ test('UC-RME-03 Tier 0 — venda do negócio 99 não aparece; permissão da Blad
     $this->actingAs($this->usuarioComPermissoes([], $this->business));
     $this->withHeaders($this->inertia)->get('/reports/table-report?tela=nova')->assertForbidden();
     $this->withHeaders([])->get('/reports/table-report')->assertForbidden();
+});
+
+test('UC-RME-04 Tier 0 — só as mesas dos locais que o usuário pode ver', function () {
+    $sufixo = uniqid();
+    $localA = EstoqueFixture::locationId($this->business->id, '-RME-A-'.$sufixo);
+    $localB = EstoqueFixture::locationId($this->business->id, '-RME-B-'.$sufixo);
+    rmeVenda($this->business->id, $localA, $this->user->id, rmeMesa($this->business->id, $localA, $this->user->id, 'Mesa do A '.$sufixo), 60);
+    rmeVenda($this->business->id, $localB, $this->user->id, rmeMesa($this->business->id, $localB, $this->user->id, 'Mesa do B '.$sufixo), 90);
+
+    /** Mesas deste teste que o usuário vê, sem escolher local, na tela nova e no JSON da Blade. */
+    $visto = function (array $locais) use ($sufixo): array {
+        $u = $this->usuarioComPermissoes(['purchase_n_sell_report.view'], $this->business);
+        // Local é permissão DIRETA no usuário — é só $user->permissions que o User::permitted_locations lê.
+        foreach ($locais as $local) {
+            $u->givePermissionTo(\Spatie\Permission\Models\Permission::findOrCreate('location.'.$local, 'web'));
+        }
+        $this->actingAs($u);
+        session(['user.business_id' => $this->business->id, 'user.id' => $u->id, 'business.id' => $this->business->id]);
+        $soDoTeste = fn (array $nomes) => array_values(array_filter($nomes, fn ($n) => str_ends_with((string) $n, $sufixo)));
+
+        $tela = $this->withHeaders($this->inertia)->get('/reports/table-report?'.http_build_query(['tela' => 'nova'] + $this->periodo));
+        $tela->assertOk();
+        $blade = $this->withHeaders(['X-Requested-With' => 'XMLHttpRequest', 'Accept' => 'application/json'])
+            ->get('/reports/table-report?'.http_build_query(['draw' => 1, 'start' => 0, 'length' => -1, 'columns' => [
+                ['data' => 'table', 'name' => 'res_tables.name', 'searchable' => 'true', 'orderable' => 'true', 'search' => ['value' => '', 'regex' => 'false']],
+                ['data' => 'total_sell', 'name' => 'total_sell', 'searchable' => 'false', 'orderable' => 'true', 'search' => ['value' => '', 'regex' => 'false']],
+            ], 'order' => [['column' => 0, 'dir' => 'asc']], 'search' => ['value' => '', 'regex' => 'false']] + $this->periodo));
+        $blade->assertOk();
+
+        return [$soDoTeste(array_column($tela->json('props.linhas'), 'mesa')), $soDoTeste(array_column($blade->json('data'), 'table'))];
+    };
+
+    // Só o local A: vê só a mesa do A, nas duas telas.
+    expect($visto([$localA]))->toBe([['Mesa do A '.$sufixo], ['Mesa do A '.$sufixo]]);
+
+    // Nenhum local: não vê mesa nenhuma.
+    expect($visto([]))->toBe([[], []]);
 });

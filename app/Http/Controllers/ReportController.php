@@ -3562,8 +3562,8 @@ class ReportController extends Controller
 
     /**
      * Relatório por mesa — a consulta (total vendido por mesa), usada pelo DataTable da Blade e pela tela nova
-     * (playbook sistema/07). Corpo movido sem mudança de regra do ramo ajax(). Como na Blade, não filtra pelos
-     * locais permitidos do usuário (só pelo local escolhido) — achado registrado, não corrigido aqui.
+     * (playbook sistema/07). Só os locais que o usuário pode ver (Tier 0, mesmo desenho do #8986): 'all' = todos;
+     * lista vazia = nada (o whereIn vazio do Laravel vira "0 = 1").
      *
      * @param  array<string, mixed>  $filtros  location_id, start_date, end_date
      */
@@ -3575,6 +3575,11 @@ class ReportController extends Controller
                     ->where('T.status', 'final')
                     ->groupBy('res_tables.id')
                     ->select(DB::raw('SUM(final_total) as total_sell'), 'res_tables.name as table');
+
+        $permitted_locations = auth()->user()->permitted_locations();
+        if ($permitted_locations != 'all') {
+            $query->whereIn('T.location_id', $permitted_locations);
+        }
 
         $location_id = ($filtros['location_id'] ?? null);
         if (! empty($location_id)) {

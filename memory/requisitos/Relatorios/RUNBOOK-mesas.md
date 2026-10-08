@@ -37,10 +37,11 @@ Permissão `purchase_n_sell_report.view` (a da Blade). Nada de schema.
 
 ## 4. Divergências declaradas e achados
 
-- **Achado (não corrigido):** a consulta não filtra pelos locais permitidos do usuário — só pelo local escolhido. Um
-  usuário restrito a um local vê o total de mesas de todos os locais do negócio. O isolamento entre negócios
-  (`business_id`) está certo. Preservado como a Blade; correção é decisão [W].
+- **Locais permitidos (corrigido em 2026-10-07):** a consulta da Blade não filtrava pelos locais permitidos do usuário, só
+  pelo local escolhido — quem era restrito a um local via as mesas de todos os locais do negócio. Agora `consultaMesas()`
+  aplica `permitted_locations` (mesmo desenho do #8986: `'all'` = todos; lista vazia = nada). Vale para a Blade e para a
+  tela nova, que usam a mesma consulta. Teste: UC-RME-04.
 
 ## 5. Falta para o cutover (F5 — decisão [W])
 
-Decisão sobre o achado do §4, aprovação do screenshot por [W], o smoke F4 e o aviso ao cliente.
+Aprovação do screenshot por [W], o smoke F4 e o aviso ao cliente.
