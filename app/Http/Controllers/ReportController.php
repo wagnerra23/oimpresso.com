@@ -587,6 +587,10 @@ class ReportController extends Controller
                 return view('product.partials.product_stock_details')->with(compact('product_stock_details'));
             }
 
+            // Colunas de valor só para quem pode ver o valor do estoque — a Blade já as escondia na tela
+            // (@can('view_product_stock_value')), mas o JSON as entregava a qualquer um com stock_report.view.
+            $ver_valor = auth()->user()->can('view_product_stock_value');
+
             $datatable = Datatables::of($products)
                 ->editColumn('stock', function ($row) {
                     if ($row->enable_stock) {
@@ -652,19 +656,31 @@ class ReportController extends Controller
 
                     return $html;
                 })
-                ->editColumn('stock_price', function ($row) {
+                ->editColumn('stock_price', function ($row) use ($ver_valor) {
+                    if (! $ver_valor) {
+                        return null;
+                    }
+
                     $html = '<span class="total_stock_price" data-orig-value="'
                         .$row->stock_price.'">'.
                         $this->transactionUtil->num_f($row->stock_price, true).'</span>';
 
                     return $html;
                 })
-                ->editColumn('stock_value_by_sale_price', function ($row) {
+                ->editColumn('stock_value_by_sale_price', function ($row) use ($ver_valor) {
+                    if (! $ver_valor) {
+                        return null;
+                    }
+
                     $stock_price = $this->valorDoEstoquePorVenda($row);
 
                     return  '<span class="stock_value_by_sale_price" data-orig-value="'.(float) $stock_price.'" > '.$this->transactionUtil->num_f($stock_price, true).'</span>';
                 })
-                ->addColumn('potential_profit', function ($row) {
+                ->addColumn('potential_profit', function ($row) use ($ver_valor) {
+                    if (! $ver_valor) {
+                        return null;
+                    }
+
                     $potential_profit = $this->lucroPotencialDoEstoque($row);
 
                     return  '<span class="potential_profit" data-orig-value="'.(float) $potential_profit.'" > '.$this->transactionUtil->num_f($potential_profit, true).'</span>';
