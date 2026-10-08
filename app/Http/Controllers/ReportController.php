@@ -1121,25 +1121,25 @@ class ReportController extends Controller
         $data = $request->session()->get('business.time_format') == 24 ? 'H:i' : 'h:i A';
         $data = (string) $request->session()->get('business.date_format', config('constants.default_date_format', 'd/m/Y')).' '.$data;
 
-        $linhas = collect($pagina->items())->map(function (object $t) use ($aliquotas, $tipo, $grupos, $tiposDePagamento, $data): array {
+        $linhas = collect($pagina->items())->map(function (\Illuminate\Database\Eloquent\Model $t) use ($aliquotas, $tipo, $grupos, $tiposDePagamento, $data): array {
             $impostos = [];
             foreach ($aliquotas as $aliquota) {
                 $impostos[(string) $aliquota['id']] = $this->impostoPorAliquota($t, $aliquota, $tipo, $grupos);
             }
             // Forma de pagamento como a coluna da Blade: uma forma = o nome dela; mais de uma = "pagamento múltiplo".
-            $metodos = $t->payment_lines->pluck('method')->unique()->values();
+            $metodos = collect($t->getRelation('payment_lines'))->pluck('method')->unique()->values();
             $empresa = (string) $t->getAttribute('supplier_business_name');
 
             return [
                 // Mesma conta do @format_datetime da Blade.
-                'data' => \Carbon\Carbon::createFromTimestamp(strtotime((string) $t->transaction_date))->format($data),
-                'referencia' => (string) ($tipo === 'sell' ? $t->invoice_no : $t->ref_no),
+                'data' => \Carbon\Carbon::createFromTimestamp(strtotime((string) $t->getAttribute('transaction_date')))->format($data),
+                'referencia' => (string) ($tipo === 'sell' ? $t->getAttribute('invoice_no') : $t->getAttribute('ref_no')),
                 'contato' => trim(($empresa !== '' ? $empresa.', ' : '').$t->getAttribute('contact_name')),
                 'documento' => (string) $t->getAttribute('tax_number'),
-                'total' => (float) $t->total_before_tax,
+                'total' => (float) $t->getAttribute('total_before_tax'),
                 'pagamento' => $metodos->count() > 1 ? (string) __('lang_v1.checkout_multi_pay') : (string) ($tiposDePagamento[$metodos->first()] ?? ''),
-                'desconto' => (float) $t->discount_amount,
-                'desconto_tipo' => (string) ($t->discount_type ?? ''),
+                'desconto' => (float) $t->getAttribute('discount_amount'),
+                'desconto_tipo' => (string) ($t->getAttribute('discount_type') ?? ''),
                 'impostos' => $impostos,
             ];
         })->values();
