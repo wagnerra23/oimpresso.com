@@ -118,6 +118,10 @@ const config: ExpoConfig = {
         android: {
           buildArchs: ["armeabi-v7a", "arm64-v8a"],
           minSdkVersion: 24,
+          // R8 no build de release: o Play Console acusava "Otimização DEX baixa"
+          // e 2% de ofuscação no pacote 8 (1.0), com 10,6 MB de DEX sem redução.
+          enableMinifyInReleaseBuilds: true,
+          enableShrinkResourcesInReleaseBuilds: true,
         },
       },
     ],
