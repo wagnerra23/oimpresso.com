@@ -156,13 +156,23 @@ class ReportController extends Controller
 
             $location_id = $request->get('location_id');
 
-            $purchase_details = $this->transactionUtil->getPurchaseTotals($business_id, $start_date, $end_date, $location_id);
+            // Só os locais que o usuário pode ver (Tier 0, mesmo desenho do #8986): 'all' = todos. Os três utils só
+            // filtram quando recebem a lista, e tratam lista VAZIA como "sem filtro" (!empty) — o que mostraria tudo
+            // a quem não tem local nenhum. [0] não casa local nenhum: lista vazia = nada (fail-closed).
+            $permitted_locations = auth()->user()->permitted_locations();
+            if ($permitted_locations !== 'all' && empty($permitted_locations)) {
+                $permitted_locations = [0];
+            }
+
+            $purchase_details = $this->transactionUtil->getPurchaseTotals($business_id, $start_date, $end_date, $location_id, null, $permitted_locations);
 
             $sell_details = $this->transactionUtil->getSellTotals(
                 $business_id,
                 $start_date,
                 $end_date,
-                $location_id
+                $location_id,
+                null,
+                $permitted_locations
             );
 
             $transaction_types = [
@@ -174,7 +184,9 @@ class ReportController extends Controller
                 $transaction_types,
                 $start_date,
                 $end_date,
-                $location_id
+                $location_id,
+                null,
+                $permitted_locations
             );
 
             $total_purchase_return_inc_tax = $transaction_totals['total_purchase_return_inc_tax'];
