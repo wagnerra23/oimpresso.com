@@ -21,6 +21,7 @@ type Linha = {
 };
 type Props = {
   tipo: Tipo;
+  resumo: { diferenca: number };
   aliquotas: { id: string; nome: string }[];
   linhas: Linha[];
   rodape: { total: number; impostos: Record<string, number> };
@@ -38,7 +39,7 @@ const ABAS: { valor: Tipo; nome: string; referencia: string; contato: string }[]
   { valor: 'expense', nome: 'Imposto de despesas', referencia: 'Ref.', contato: '' },
 ];
 
-function ImpostosIndex({ tipo, aliquotas, linhas, rodape, paginacao, filtros, locais, contatos, moeda }: Props) {
+function ImpostosIndex({ tipo, resumo, aliquotas, linhas, rodape, paginacao, filtros, locais, contatos, moeda }: Props) {
   const dinheiro = (v: number) => `${moeda.simbolo} ${formatDecimalPtBR(Number(v), moeda.casas)}`;
   const aba = ABAS.find(a => a.valor === tipo) ?? ABAS[0];
   const comContato = aba.contato !== '';
@@ -87,6 +88,12 @@ function ImpostosIndex({ tipo, aliquotas, linhas, rodape, paginacao, filtros, lo
           <div className="w-40"><Input type="date" aria-label="Início" value={filtros.start_date} onChange={e => navegar({ start_date: e.target.value })} /></div>
           <div className="w-40"><Input type="date" aria-label="Fim" value={filtros.end_date} onChange={e => navegar({ end_date: e.target.value })} /></div>
         </Inline>
+
+        {/* O topo da Blade: imposto de saída menos imposto de entrada (e despesas), calculado no servidor. */}
+        <div data-contract="resumo" className="rounded-lg border bg-card px-4 py-3">
+          <p className="text-sm text-muted-foreground">Imposto de saída menos imposto de entrada</p>
+          <p className="font-mono text-xl font-semibold tabular-nums" data-testid="rim-resumo-diferenca">{dinheiro(resumo.diferenca)}</p>
+        </div>
 
         <div data-contract="tabela" className="overflow-x-auto rounded-lg border bg-card">
           <table className="w-full text-sm">

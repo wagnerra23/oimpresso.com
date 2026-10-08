@@ -43,5 +43,11 @@ last_run: "2026-10-08"
   · Dado usuário sem `tax_report.view` · Então 403 na tela nova e na Blade.
 - **Status: 🧪**
 
+## UC-RIM-05 · Resumo "saída menos entrada" igual ao da Blade · `must` `[T0]` `[valor]`
+- **Aceite:** Dado uma compra com imposto 5 e um item com 2 de imposto (3 comprados, 1 devolvido), uma venda finalizada
+  com imposto 12 e um item com 1 de imposto (2 vendidos), uma venda em rascunho e uma despesa com imposto 3 · Quando abro
+  `/reports/tax-report?tela=nova` e peço o JSON do topo da Blade · Então a diferença é a mesma nos dois: 14 − 9 − 3 = 2.
+- **Status: 🧪**
+
 ## Backlog
-- [BACKLOG] Resumo do topo (diferença de imposto, com o imposto de saída dos módulos) e abas de módulos, como a Blade.
+- [BACKLOG] Abas que outros módulos injetam na página de impostos, como a Blade.

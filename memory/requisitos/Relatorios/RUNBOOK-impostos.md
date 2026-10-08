@@ -41,10 +41,10 @@ Permissão `tax_report.view` (a da Blade). Nada de schema.
 
 ## 4. Divergências declaradas
 
-- O resumo do topo da Blade (diferença de imposto, incluindo o imposto de saída que outros módulos somam) e as abas que
-  outros módulos injetam ficam para o PR seguinte.
+- O resumo do topo (diferença de imposto) entrou na parte 2: `diferencaDeImposto()`, chamado pelo JSON da Blade e pela
+  tela nova; `/reports/tax-report?tela=nova` abre a mesma tela. As abas que outros módulos injetam ficam para depois.
 - Abas viram um seletor na mesma tela (a Blade usa abas Bootstrap).
 
 ## 5. Falta para o cutover (F5 — decisão [W])
 
-O resumo e as abas de módulos (§4), aprovação do screenshot por [W], o smoke F4 e o aviso ao cliente.
+As abas de módulos (§4), aprovação do screenshot por [W], o smoke F4 e o aviso ao cliente.
