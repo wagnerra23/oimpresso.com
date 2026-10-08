@@ -26,6 +26,9 @@ beforeEach(function () {
 
     $this->actingAs($this->user);
     session(['user.business_id' => $this->business->id, 'user.id' => $this->user->id, 'business.id' => $this->business->id]);
+    // A validade (Blade e tela nova) passa por Util::format_date, que lê o formato de data da sessão
+    // (o SetSessionData põe isso no login de verdade).
+    session(['business.date_format' => 'd/m/Y', 'business.time_format' => 24]);
 });
 
 /**
