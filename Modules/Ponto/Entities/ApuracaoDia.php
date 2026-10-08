@@ -12,6 +12,12 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * Tabela `ponto_apuracao_dia` tem coluna `business_id`. Trait `HasBusinessScope`
  * aplica global scope automático. Apuração é recalculada (não é append-only) —
  * scope vale; estados PENDENTE→FECHADO seguem normalmente.
+ *
+ * Colunas que o dump `database/schema/mysql-schema.sql` (de onde o Larastan infere as
+ * demais) ainda não tem — nasceram em migration de módulo depois do dump:
+ *
+ * @property int|null $feriado_id          essentials_holidays.id que cobriu o dia (D5, #8200)
+ * @property int      $he_feriado_minutos  minutos trabalhados em feriado, a pagar em dobro
  */
 class ApuracaoDia extends Model
 {
