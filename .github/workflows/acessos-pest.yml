@@ -97,6 +97,7 @@ on:
       - 'resources/views/printer/**'
       - 'tests/Feature/Configuracoes/**'
       - 'database/schema/mysql-schema.sql'
+      - 'database/factories/UserFactory.php'
       - '.github/workflows/acessos-pest.yml'
       - '.github/actions/pest-mysql-setup/**'
 
@@ -171,6 +172,7 @@ jobs:
               - 'resources/views/printer/**'
               - 'tests/Feature/Configuracoes/**'
               - 'database/schema/mysql-schema.sql'
+              - 'database/factories/UserFactory.php'
               - '.github/workflows/acessos-pest.yml'
               - '.github/actions/pest-mysql-setup/**'
 
