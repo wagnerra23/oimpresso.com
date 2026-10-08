@@ -4605,6 +4605,7 @@ class ReportController extends Controller
      * (playbook sistema/07). Corpo movido sem mudança de getProfit (a aba "por dia" agrupa por cima desta consulta).
      *
      * @param  array<string, mixed>  $filtros  location_id, start_date, end_date
+     * @return \Illuminate\Database\Eloquent\Builder<\App\TransactionSellLine>
      */
     private function consultaLucro(int $business_id, string $by, array $filtros): \Illuminate\Database\Eloquent\Builder
     {
