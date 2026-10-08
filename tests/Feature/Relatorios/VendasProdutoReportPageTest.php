@@ -41,7 +41,6 @@ function rvpCliente(int $businessId, int $criador): int
 /** Uma venda do cliente com os itens [vendido, devolvido, preco_com_imposto, mae?]; devolve os ids das linhas. */
 function rvpVenda(int $businessId, int $criador, int $cliente, string $numero, array $itens, string $status = 'final'): array
 {
-    $produto = EstoqueFixture::singleProduct($businessId);
     $venda = DB::table('transactions')->insertGetId([
         'business_id' => $businessId, 'location_id' => EstoqueFixture::locationId($businessId), 'type' => 'sell',
         'status' => $status, 'payment_status' => 'paid', 'contact_id' => $cliente, 'transaction_date' => '2099-12-05 10:00:00',
@@ -54,6 +53,8 @@ function rvpVenda(int $businessId, int $criador, int $cliente, string $numero, a
     ]);
     $ids = [];
     foreach ($itens as [$vendido, $devolvido, $preco, $mae]) {
+        // Um produto por item: uk_tsl_dup_prevent não aceita o mesmo produto duas vezes na venda (o combo tem mãe e filha).
+        $produto = EstoqueFixture::singleProduct($businessId);
         $ids[] = DB::table('transaction_sell_lines')->insertGetId([
             'transaction_id' => $venda, 'product_id' => $produto->productId, 'variation_id' => $produto->variations[0]['variation_id'],
             'quantity' => $vendido, 'quantity_returned' => $devolvido, 'unit_price' => $preco, 'unit_price_inc_tax' => $preco,
