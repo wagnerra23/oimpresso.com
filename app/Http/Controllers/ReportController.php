@@ -1671,7 +1671,7 @@ class ReportController extends Controller
     /**
      * Shows product stock expiry report
      *
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Contracts\View\View|\Inertia\Response|\Illuminate\Http\JsonResponse
      */
     public function getStockExpiryReport(Request $request)
     {
@@ -1683,99 +1683,15 @@ class ReportController extends Controller
 
         //TODO:: Need to display reference number and edit expiry date button
 
+        // Tela React (playbook sistema/07). Vem ANTES do ajax(): a visita Inertia manda
+        // X-Requested-With. As linhas saem da MESMA consulta do DataTable da Blade, paginadas no servidor.
+        if ($request->query('tela') === 'nova') {
+            return $this->telaValidade($request, $business_id);
+        }
+
         //Return the details in ajax call
         if ($request->ajax()) {
-            $query = PurchaseLine::leftjoin(
-                'transactions as t',
-                'purchase_lines.transaction_id',
-                '=',
-                't.id'
-            )
-                            ->leftjoin(
-                                'products as p',
-                                'purchase_lines.product_id',
-                                '=',
-                                'p.id'
-                            )
-                            ->leftjoin(
-                                'variations as v',
-                                'purchase_lines.variation_id',
-                                '=',
-                                'v.id'
-                            )
-                            ->leftjoin(
-                                'product_variations as pv',
-                                'v.product_variation_id',
-                                '=',
-                                'pv.id'
-                            )
-                            ->leftjoin('business_locations as l', 't.location_id', '=', 'l.id')
-                            ->leftjoin('units as u', 'p.unit_id', '=', 'u.id')
-                            ->where('t.business_id', $business_id)
-                            //->whereNotNull('p.expiry_period')
-                            //->whereNotNull('p.expiry_period_type')
-                            //->whereNotNull('exp_date')
-                            ->where('p.enable_stock', 1);
-            // ->whereRaw('purchase_lines.quantity > purchase_lines.quantity_sold + quantity_adjusted + quantity_returned');
-
-            $permitted_locations = auth()->user()->permitted_locations();
-
-            if ($permitted_locations != 'all') {
-                $query->whereIn('t.location_id', $permitted_locations);
-            }
-
-            if (! empty($request->input('location_id'))) {
-                $location_id = $request->input('location_id');
-                $query->where('t.location_id', $location_id)
-                        //If filter by location then hide products not available in that location
-                        ->join('product_locations as pl', 'pl.product_id', '=', 'p.id')
-                        ->where(function ($q) use ($location_id) {
-                            $q->where('pl.location_id', $location_id);
-                        });
-            }
-
-            if (! empty($request->input('category_id'))) {
-                $query->where('p.category_id', $request->input('category_id'));
-            }
-            if (! empty($request->input('sub_category_id'))) {
-                $query->where('p.sub_category_id', $request->input('sub_category_id'));
-            }
-            if (! empty($request->input('brand_id'))) {
-                $query->where('p.brand_id', $request->input('brand_id'));
-            }
-            if (! empty($request->input('unit_id'))) {
-                $query->where('p.unit_id', $request->input('unit_id'));
-            }
-            if (! empty($request->input('exp_date_filter'))) {
-                $query->whereDate('exp_date', '<=', $request->input('exp_date_filter'));
-            }
-
-            $only_mfg_products = request()->get('only_mfg_products', 0);
-            if (! empty($only_mfg_products)) {
-                $query->where('t.type', 'production_purchase');
-            }
-
-            $report = $query->select(
-                'p.name as product',
-                'p.sku',
-                'p.type as product_type',
-                'v.name as variation',
-                'v.sub_sku',
-                'pv.name as product_variation',
-                'l.name as location',
-                'mfg_date',
-                'exp_date',
-                'u.short_name as unit',
-                DB::raw('SUM(COALESCE(quantity, 0) - COALESCE(quantity_sold, 0) - COALESCE(quantity_adjusted, 0) - COALESCE(quantity_returned, 0)) as stock_left'),
-                't.ref_no',
-                't.id as transaction_id',
-                'purchase_lines.id as purchase_line_id',
-                'purchase_lines.lot_number'
-            )
-            ->having('stock_left', '>', 0)
-            ->groupBy('purchase_lines.variation_id')
-            ->groupBy('purchase_lines.exp_date')
-            ->groupBy('purchase_lines.lot_number');
+            $report = $this->consultaValidade($business_id, $request->only(self::FILTROS_VALIDADE));
 
             return Datatables::of($report)
                 ->editColumn('product', function ($row) {
@@ -1849,6 +1765,177 @@ class ReportController extends Controller
 
         return view('report.stock_expiry_report')
                 ->with(compact('categories', 'brands', 'units', 'business_locations', 'view_stock_filter'));
+    }
+
+    /** Filtros do relatório Validade de estoque — os mesmos nomes que o report.js manda. */
+    private const FILTROS_VALIDADE = ['location_id', 'category_id', 'sub_category_id', 'brand_id', 'unit_id', 'exp_date_filter', 'only_mfg_products'];
+
+    /**
+     * Validade de estoque — a consulta do relatório (saldo por variação, validade e lote), usada pelo DataTable da
+     * Blade e pela tela nova (playbook sistema/07). Corpo movido sem mudança de regra do ramo ajax().
+     *
+     * @param  array<string, mixed>  $filtros  FILTROS_VALIDADE
+     */
+    private function consultaValidade(int $business_id, array $filtros): \Illuminate\Database\Eloquent\Builder
+    {
+        $query = PurchaseLine::leftjoin(
+            'transactions as t',
+            'purchase_lines.transaction_id',
+            '=',
+            't.id'
+        )
+                        ->leftjoin(
+                            'products as p',
+                            'purchase_lines.product_id',
+                            '=',
+                            'p.id'
+                        )
+                        ->leftjoin(
+                            'variations as v',
+                            'purchase_lines.variation_id',
+                            '=',
+                            'v.id'
+                        )
+                        ->leftjoin(
+                            'product_variations as pv',
+                            'v.product_variation_id',
+                            '=',
+                            'pv.id'
+                        )
+                        ->leftjoin('business_locations as l', 't.location_id', '=', 'l.id')
+                        ->leftjoin('units as u', 'p.unit_id', '=', 'u.id')
+                        ->where('t.business_id', $business_id)
+                        //->whereNotNull('p.expiry_period')
+                        //->whereNotNull('p.expiry_period_type')
+                        //->whereNotNull('exp_date')
+                        ->where('p.enable_stock', 1);
+        // ->whereRaw('purchase_lines.quantity > purchase_lines.quantity_sold + quantity_adjusted + quantity_returned');
+
+        $permitted_locations = auth()->user()->permitted_locations();
+
+        if ($permitted_locations != 'all') {
+            $query->whereIn('t.location_id', $permitted_locations);
+        }
+
+        if (! empty(($filtros['location_id'] ?? null))) {
+            $location_id = $filtros['location_id'];
+            $query->where('t.location_id', $location_id)
+                    //If filter by location then hide products not available in that location
+                    ->join('product_locations as pl', 'pl.product_id', '=', 'p.id')
+                    ->where(function ($q) use ($location_id) {
+                        $q->where('pl.location_id', $location_id);
+                    });
+        }
+
+        if (! empty(($filtros['category_id'] ?? null))) {
+            $query->where('p.category_id', $filtros['category_id']);
+        }
+        if (! empty(($filtros['sub_category_id'] ?? null))) {
+            $query->where('p.sub_category_id', $filtros['sub_category_id']);
+        }
+        if (! empty(($filtros['brand_id'] ?? null))) {
+            $query->where('p.brand_id', $filtros['brand_id']);
+        }
+        if (! empty(($filtros['unit_id'] ?? null))) {
+            $query->where('p.unit_id', $filtros['unit_id']);
+        }
+        if (! empty(($filtros['exp_date_filter'] ?? null))) {
+            $query->whereDate('exp_date', '<=', $filtros['exp_date_filter']);
+        }
+
+        $only_mfg_products = ($filtros['only_mfg_products'] ?? 0);
+        if (! empty($only_mfg_products)) {
+            $query->where('t.type', 'production_purchase');
+        }
+
+        $report = $query->select(
+            'p.name as product',
+            'p.sku',
+            'p.type as product_type',
+            'v.name as variation',
+            'v.sub_sku',
+            'pv.name as product_variation',
+            'l.name as location',
+            'mfg_date',
+            'exp_date',
+            'u.short_name as unit',
+            DB::raw('SUM(COALESCE(quantity, 0) - COALESCE(quantity_sold, 0) - COALESCE(quantity_adjusted, 0) - COALESCE(quantity_returned, 0)) as stock_left'),
+            't.ref_no',
+            't.id as transaction_id',
+            'purchase_lines.id as purchase_line_id',
+            'purchase_lines.lot_number'
+        )
+        ->having('stock_left', '>', 0)
+        ->groupBy('purchase_lines.variation_id')
+        ->groupBy('purchase_lines.exp_date')
+        ->groupBy('purchase_lines.lot_number');
+
+        return $report;
+    }
+
+    /**
+     * Tela nova de Validade de estoque: as mesmas linhas da consulta acima, 25 por página na ordem do DataTable da
+     * Blade (validade, crescente; desempate por variação e lote), e o rodapé da página como o da Blade (saldo somado
+     * por unidade). Só leitura: o DataTable da Blade também não mostra as ações (a coluna "edit" está comentada no
+     * report.js).
+     */
+    private function telaValidade(Request $request, int $business_id): \Inertia\Response
+    {
+        $filtros = array_filter($request->only(self::FILTROS_VALIDADE), fn ($v) => $v !== null && $v !== '');
+
+        $pagina = $this->consultaValidade($business_id, $filtros)
+            ->orderBy('exp_date', 'asc')->orderBy('purchase_lines.variation_id', 'asc')->orderBy('purchase_lines.lot_number', 'asc')
+            ->toBase()->paginate(25)->withQueryString();
+
+        $linhas = collect($pagina->items())->map(fn (\stdClass $r): array => [
+            // Como a coluna da Blade: "produto (sku)", com a variação quando é produto variável.
+            'produto' => $r->product_type == 'variable'
+                ? $r->product.' - '.$r->product_variation.' - '.$r->variation.' ('.$r->sub_sku.')'
+                : $r->product.' ('.$r->sku.')',
+            'sku' => (string) $r->sku,
+            'local' => (string) ($r->location ?? ''),
+            'saldo' => (float) $r->stock_left,
+            'unidade' => (string) ($r->unit ?? ''),
+            'lote' => (string) ($r->lot_number ?? ''),
+            'validade' => empty($r->exp_date) ? '' : (string) $this->productUtil->format_date($r->exp_date),
+            'fabricacao' => empty($r->mfg_date) ? '--' : (string) $this->productUtil->format_date($r->mfg_date),
+        ])->values();
+
+        $porUnidade = [];
+        foreach ($linhas->groupBy('unidade') as $unidade => $doGrupo) {
+            $porUnidade[] = ['unidade' => (string) $unidade, 'saldo' => (float) $doGrupo->sum('saldo')];
+        }
+
+        $opcoes = fn ($lista) => collect($lista)->map(fn ($nome, $id) => ['id' => (int) $id, 'nome' => (string) $nome])->values();
+        // As mesmas faixas do select "Ver estoque" da Blade (a data-limite é o valor).
+        $faixas = [
+            [\Carbon\Carbon::now()->subDay()->format('Y-m-d'), __('report.expired')],
+            [\Carbon\Carbon::now()->addWeek()->format('Y-m-d'), __('report.expiring_in_1_week')],
+            [\Carbon\Carbon::now()->addDays(15)->format('Y-m-d'), __('report.expiring_in_15_days')],
+            [\Carbon\Carbon::now()->addMonth()->format('Y-m-d'), __('report.expiring_in_1_month')],
+            [\Carbon\Carbon::now()->addMonths(3)->format('Y-m-d'), __('report.expiring_in_3_months')],
+            [\Carbon\Carbon::now()->addMonths(6)->format('Y-m-d'), __('report.expiring_in_6_months')],
+            [\Carbon\Carbon::now()->addYear()->format('Y-m-d'), __('report.expiring_in_1_year')],
+        ];
+
+        return Inertia::render('Relatorios/Validade/Index', [
+            'linhas' => $linhas,
+            // Como o rodapé da Blade: só as linhas desta página.
+            'rodape' => ['por_unidade' => $porUnidade],
+            'paginacao' => ['atual' => $pagina->currentPage(), 'ultima' => $pagina->lastPage(), 'total' => $pagina->total()],
+            'filtros' => [
+                'location_id' => (string) ($filtros['location_id'] ?? ''),
+                'category_id' => (string) ($filtros['category_id'] ?? ''),
+                'brand_id' => (string) ($filtros['brand_id'] ?? ''),
+                'unit_id' => (string) ($filtros['unit_id'] ?? ''),
+                'exp_date_filter' => (string) ($filtros['exp_date_filter'] ?? ''),
+            ],
+            'locais' => $opcoes(BusinessLocation::forDropdown($business_id, true)),
+            'categorias' => $opcoes(Category::forDropdown($business_id, 'product')),
+            'marcas' => $opcoes(Brands::forDropdown($business_id)),
+            'unidades' => $opcoes(Unit::where('business_id', $business_id)->pluck('short_name', 'id')),
+            'faixas' => collect($faixas)->map(fn ($f) => ['valor' => (string) $f[0], 'nome' => (string) $f[1]])->values(),
+        ]);
     }
 
     /**
