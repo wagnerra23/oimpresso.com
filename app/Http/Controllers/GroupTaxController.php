@@ -228,6 +228,8 @@ class GroupTaxController extends Controller
 
             return $output;
         }
+
+        return null;
     }
 
     /**
