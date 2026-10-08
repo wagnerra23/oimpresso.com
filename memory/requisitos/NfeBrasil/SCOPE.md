@@ -16,6 +16,9 @@ contains:
   - "NfeInutilizacaoController — UI admin pra inutilizar faixa NFe via SEFAZ (US-SELL-030)"
   - "ContingenciaController — liga/desliga contingencia SEFAZ por tenant (US-NFE-006, ADR TECH-0002)"
   - "EmpresaFiscalLookupController — Configurar pelo certificado, leitura (playbook Fiscal thread 21, #8829)"
+  - "SugestaoFiscalController — sugestões da Jana na tributação (playbook Fiscal thread 10, #8997)"
+  - "RevisaoContadorController — revisão do contador por versão de regra (playbook Fiscal thread 15a, #9003)"
+  - "RevisaoContadorLinkController — link de revisão do contador com código por e-mail (playbook Fiscal thread 15b, #9015)"
 db_tables_owned:
   - nfe_certificados
   - nfe_emissoes
