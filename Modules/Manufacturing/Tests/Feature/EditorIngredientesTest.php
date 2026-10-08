@@ -108,8 +108,8 @@ describe('Editor de ingredientes — abrir a ficha (US-MANU-006, etapa 1)', func
             ->where('produto.nome', 'Banner do editor')
             ->where('receita.id', $recipeId)
             ->where('receita.copiada_de', null)
-            ->where('receita.total_quantity', 2.0)
-            ->where('receita.waste_percent', 10.0)
+            ->where('receita.total_quantity', fn ($v) => (float) $v === 2.0)
+            ->where('receita.waste_percent', fn ($v) => (float) $v === 10.0)
             ->where('receita.extra_cost', 2.5)
             ->where('receita.production_cost_type', 'fixed')
             ->where('receita.instructions', 'instrução do editor')
@@ -119,7 +119,7 @@ describe('Editor de ingredientes — abrir a ficha (US-MANU-006, etapa 1)', func
             ->has('grupos.0.itens', 1)
             ->where('grupos.0.itens.0.linha_id', $linhaId)
             ->where('grupos.0.itens.0.variation_id', $insumo)
-            ->where('grupos.0.itens.0.custo_unitario', 4.0)
+            ->where('grupos.0.itens.0.custo_unitario', fn ($v) => (float) $v === 4.0)
             ->where('grupos.0.itens.0.quantidade', 0.5)
             ->where('grupos.0.itens.0.sub_unit_id', $caixa)
             ->where('perms.editar', true)
@@ -127,8 +127,8 @@ describe('Editor de ingredientes — abrir a ficha (US-MANU-006, etapa 1)', func
 
         // As sub-unidades do insumo: a própria unidade (×1) e a caixa (×5), com o multiplicador que o custo usa.
         $sub = collect(mfgEdAbrir($this, $user, $variacao)->viewData('page')['props']['grupos'][0]['itens'][0]['sub_unidades']);
-        expect($sub->firstWhere('id', $caixa)['multiplicador'])->toBe(5.0);
-        expect($sub->pluck('multiplicador')->sort()->values()->all())->toBe([1.0, 5.0]);
+        expect((float) $sub->firstWhere('id', $caixa)['multiplicador'])->toBe(5.0);
+        expect($sub->pluck('multiplicador')->map(fn ($m) => (float) $m)->sort()->values()->all())->toBe([1.0, 5.0]);
     });
 
     it('UC-INGRED-02: ficha de produto de outra empresa não abre, e a busca não traz insumo dela', function () {
@@ -145,7 +145,7 @@ describe('Editor de ingredientes — abrir a ficha (US-MANU-006, etapa 1)', func
         expect($nomes)->not->toContain('Lona alheia do editor');
         expect($nomes)->not->toContain('Banner alheio do editor');
         expect(collect($this->actingAs($user)->getJson('/manufacturing/editor-receita/insumos?q=do+editor')->json('insumos'))
-            ->firstWhere('variation_id', $proprio)['custo_unitario'])->toBe(4.0);
+            ->firstWhere('variation_id', $proprio)['custo_unitario'])->toEqual(4);
     });
 
     it('UC-INGRED-03: quem só consulta abre em leitura; sem consultar, 403; a busca exige poder gravar', function () {
