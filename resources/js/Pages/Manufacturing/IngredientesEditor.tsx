@@ -16,7 +16,7 @@
 // trilha) e "Preço de venda / Política de preço / Natureza fiscal" — o servidor não tem onde
 // gravar nenhum dos três, e `final_price` guarda o CUSTO do lote, não o preço de venda.
 import { useState, type ReactNode } from 'react';
-import { useForm } from '@inertiajs/react';
+import { router, useForm } from '@inertiajs/react';
 import { AlertTriangle, Plus, X } from 'lucide-react';
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { FormSection, FormGrid } from '@/Components/ui/form-section';
@@ -39,6 +39,7 @@ import {
   type TipoCustoExtra,
 } from './_lib/custo';
 import BuscaInsumo, { type InsumoEncontrado } from './_components/BuscaInsumo';
+import ExcluirReceitaDialog from './_components/ExcluirReceitaDialog';
 import '../../../css/cowork-manufacturing-bundle.css';
 
 interface Props {
@@ -82,6 +83,9 @@ export default function IngredientesEditor({ produto, receita, grupos, grupos_da
   const [buscandoEm, setBuscandoEm] = useState<number | null>(null);
   const [novoGrupo, setNovoGrupo] = useState(false);
   const [nomeGrupo, setNomeGrupo] = useState('');
+  const [excluindo, setExcluindo] = useState(false);
+  // Regra 6: o número da confirmação é o da ficha GRAVADA (o que de fato se apaga), não o da cópia em edição.
+  const nIngGravados = grupos.reduce((s, g) => s + g.itens.length, 0);
 
   const c = custosDaFicha(data.grupos, data);
   const nIng = data.grupos.reduce((s, g) => s + g.itens.length, 0);
@@ -343,6 +347,11 @@ export default function IngredientesEditor({ produto, receita, grupos, grupos_da
       </div>
 
       <div className="mfg-ed-f" data-contract="acoes">
+        {podeEditar && receita.id !== null && (
+          <Button type="button" variant="destructive" onClick={() => setExcluindo(true)}>
+            Excluir receita
+          </Button>
+        )}
         <span className="sp" />
         {podeEditar && (motivoBloqueio || errosServidor.length > 0) && (
           <Inline asChild gap={1} align="center">
@@ -361,6 +370,12 @@ export default function IngredientesEditor({ produto, receita, grupos, grupos_da
           </Button>
         )}
       </div>
+
+      <ExcluirReceitaDialog
+        receita={excluindo && receita.id !== null ? { id: receita.id, nome: produto.nome, nIngredientes: nIngGravados } : null}
+        onFechar={() => setExcluindo(false)}
+        onExcluida={() => router.visit(ROTA_RECEITAS)}
+      />
     </form>
   );
 }

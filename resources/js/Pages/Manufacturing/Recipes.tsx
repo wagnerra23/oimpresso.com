@@ -71,8 +71,10 @@ const TOM_MARGEM = { ok: 'success', warn: 'warning', bad: 'danger' } as const;
  * Rotas legadas que continuam donas do CRUD — a tela nova aponta, não reimplementa.
  * A "Nova receita" deixou de apontar para `recipe/create` (miolo de modal Blade sem os scripts do
  * layout — a busca não carregava): abre a `NovaReceitaDialog`, que entrega para o mesmo editor.
+ * "Editar ingredientes" abre o editor React (`&tela=nova`, US-MANU-006 etapa 3) — é nele que se
+ * exclui a receita (regra 6 do §5). Sem o parâmetro, o mesmo endereço segue servindo a janela Blade.
  */
-const ROTA_EDITAR_INGREDIENTES = '/manufacturing/add-ingredient?variation_id=';
+const editarIngredientes = (variationId: number) => `/manufacturing/add-ingredient?variation_id=${variationId}&tela=nova`;
 const ROTA_PRODUZIR = '/manufacturing/production/create';
 
 /**
@@ -524,7 +526,7 @@ function RecipeDrawer({
           )}
           {perms.editar && (
             <Button asChild variant="ghost" size="sm">
-              <a href={`${ROTA_EDITAR_INGREDIENTES}${r.variation_id}`}>
+              <a href={editarIngredientes(r.variation_id)}>
                 <Pencil className="mr-1.5 h-3.5 w-3.5" /> Editar ingredientes
               </a>
             </Button>

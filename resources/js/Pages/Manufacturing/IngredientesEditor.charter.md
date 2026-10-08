@@ -36,6 +36,9 @@ preço sem exportar para planilha (SPEC US-MANU-006).
 - "Custo ao vivo": ingredientes, custo extra e custo por unidade, com as fórmulas do §7
 - Quem só tem `manufacturing.access_recipe` vê a ficha em leitura, com aviso (regra 3)
 - Com `disable_editing_ingredient_qty` ligado, avisa que a quantidade está travada (regra 2)
+- Exclui a receita já gravada, sempre com confirmação que diz o que se perde: a ficha, os N
+  ingredientes, e que ordens já lançadas continuam com o custo registrado (regra 6). Só para quem
+  grava (`manufacturing.add_recipe`); o servidor só acha receita da própria empresa (caso 19 de `Recipes.casos.md`)
 - PT-BR em todo rótulo e mensagem
 
 ## Non-Goals — Features (NÃO faz)
