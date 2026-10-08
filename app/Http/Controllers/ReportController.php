@@ -202,7 +202,7 @@ class ReportController extends Controller
     /**
      * Shows report for Supplier
      *
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Contracts\View\View|\Inertia\Response|\Illuminate\Http\JsonResponse
      */
     public function getCustomerSuppliers(Request $request)
     {
@@ -212,58 +212,15 @@ class ReportController extends Controller
 
         $business_id = $request->session()->get('user.business_id');
 
+        // Tela React (playbook sistema/07). Vem ANTES do ajax(): a visita Inertia manda
+        // X-Requested-With. As linhas saem da MESMA consulta do DataTable da Blade, paginadas no servidor.
+        if ($request->query('tela') === 'nova') {
+            return $this->telaContatos($request, $business_id);
+        }
+
         //Return the details in ajax call
         if ($request->ajax()) {
-            $contacts = Contact::where('contacts.business_id', $business_id)
-                ->join('transactions AS t', 'contacts.id', '=', 't.contact_id')
-                ->active()
-                ->groupBy('contacts.id')
-                ->select(
-                    DB::raw("SUM(IF(t.type = 'purchase', final_total, 0)) as total_purchase"),
-                    DB::raw("SUM(IF(t.type = 'purchase_return', final_total, 0)) as total_purchase_return"),
-                    DB::raw("SUM(IF(t.type = 'sell' AND t.status = 'final', final_total, 0)) as total_invoice"),
-                    DB::raw("SUM(IF(t.type = 'purchase', (SELECT SUM(amount) FROM transaction_payments WHERE transaction_payments.transaction_id=t.id), 0)) as purchase_paid"),
-                    DB::raw("SUM(IF(t.type = 'sell' AND t.status = 'final', (SELECT SUM(IF(is_return = 1,-1*amount,amount)) FROM transaction_payments WHERE transaction_payments.transaction_id=t.id), 0)) as invoice_received"),
-                    DB::raw("SUM(IF(t.type = 'sell_return', (SELECT SUM(amount) FROM transaction_payments WHERE transaction_payments.transaction_id=t.id), 0)) as sell_return_paid"),
-                    DB::raw("SUM(IF(t.type = 'purchase_return', (SELECT SUM(amount) FROM transaction_payments WHERE transaction_payments.transaction_id=t.id), 0)) as purchase_return_received"),
-                    DB::raw("SUM(IF(t.type = 'sell_return', final_total, 0)) as total_sell_return"),
-                    DB::raw("SUM(IF(t.type = 'opening_balance', final_total, 0)) as opening_balance"),
-                    DB::raw("SUM(IF(t.type = 'opening_balance', (SELECT SUM(IF(is_return = 1,-1*amount,amount)) FROM transaction_payments WHERE transaction_payments.transaction_id=t.id), 0)) as opening_balance_paid"),
-                    DB::raw("SUM(IF(t.type = 'ledger_discount' AND sub_type='sell_discount', final_total, 0)) as total_ledger_discount_sell"),
-                    DB::raw("SUM(IF(t.type = 'ledger_discount' AND sub_type='purchase_discount', final_total, 0)) as total_ledger_discount_purchase"),
-                    'contacts.supplier_business_name',
-                    'contacts.name',
-                    'contacts.id',
-                    'contacts.type as contact_type'
-                );
-            $permitted_locations = auth()->user()->permitted_locations();
-
-            if ($permitted_locations != 'all') {
-                $contacts->whereIn('t.location_id', $permitted_locations);
-            }
-
-            if (! empty($request->input('customer_group_id'))) {
-                $contacts->where('contacts.customer_group_id', $request->input('customer_group_id'));
-            }
-
-            if (! empty($request->input('location_id'))) {
-                $contacts->where('t.location_id', $request->input('location_id'));
-            }
-
-            if (! empty($request->input('contact_id'))) {
-                $contacts->where('t.contact_id', $request->input('contact_id'));
-            }
-
-            if (! empty($request->input('contact_type'))) {
-                $contacts->whereIn('contacts.type', [$request->input('contact_type'), 'both']);
-            }
-
-            $start_date = $request->get('start_date');
-            $end_date = $request->get('end_date');
-            if (! empty($start_date) && ! empty($end_date)) {
-                $contacts->where('t.transaction_date', '>=', $start_date)
-                    ->where('t.transaction_date', '<=', $end_date);
-            }
+            $contacts = $this->consultaContatos($business_id, $request->only(self::FILTROS_CONTATOS));
 
             return Datatables::of($contacts)
                 ->editColumn('name', function ($row) {
@@ -294,15 +251,7 @@ class ReportController extends Controller
                 )
 
                 ->addColumn('due', function ($row) {
-                    $total_ledger_discount_purchase = $row->total_ledger_discount_purchase ?? 0;
-                    $total_ledger_discount_sell = $total_ledger_discount_sell ?? 0;
-                    $due = ($row->total_invoice - $row->invoice_received - $total_ledger_discount_sell) - ($row->total_purchase - $row->purchase_paid - $total_ledger_discount_purchase) - ($row->total_sell_return - $row->sell_return_paid) + ($row->total_purchase_return - $row->purchase_return_received);
-
-                    if ($row->contact_type == 'supplier') {
-                        $due -= $row->opening_balance - $row->opening_balance_paid;
-                    } else {
-                        $due += $row->opening_balance - $row->opening_balance_paid;
-                    }
+                    $due = $this->devidoDoContato($row);
 
                     $due_formatted = $this->transactionUtil->num_f($due, true);
 
@@ -339,6 +288,148 @@ class ReportController extends Controller
 
         return view('report.contact')
         ->with(compact('customer_group', 'types', 'business_locations', 'contact_dropdown'));
+    }
+
+    /** Filtros do relatório Clientes e fornecedores — os mesmos nomes que o report.js manda. */
+    private const FILTROS_CONTATOS = ['customer_group_id', 'contact_type', 'location_id', 'start_date', 'end_date', 'contact_id'];
+
+    /**
+     * Clientes e fornecedores — a consulta do relatório, usada pelo DataTable da Blade e pela tela nova
+     * (playbook sistema/07). Corpo movido sem mudança de regra do ramo ajax() de getCustomerSuppliers.
+     *
+     * @param  array<string, mixed>  $filtros  FILTROS_CONTATOS
+     */
+    private function consultaContatos(int $business_id, array $filtros): \Illuminate\Database\Eloquent\Builder
+    {
+        $contacts = Contact::where('contacts.business_id', $business_id)
+            ->join('transactions AS t', 'contacts.id', '=', 't.contact_id')
+            ->active()
+            ->groupBy('contacts.id')
+            ->select(
+                DB::raw("SUM(IF(t.type = 'purchase', final_total, 0)) as total_purchase"),
+                DB::raw("SUM(IF(t.type = 'purchase_return', final_total, 0)) as total_purchase_return"),
+                DB::raw("SUM(IF(t.type = 'sell' AND t.status = 'final', final_total, 0)) as total_invoice"),
+                DB::raw("SUM(IF(t.type = 'purchase', (SELECT SUM(amount) FROM transaction_payments WHERE transaction_payments.transaction_id=t.id), 0)) as purchase_paid"),
+                DB::raw("SUM(IF(t.type = 'sell' AND t.status = 'final', (SELECT SUM(IF(is_return = 1,-1*amount,amount)) FROM transaction_payments WHERE transaction_payments.transaction_id=t.id), 0)) as invoice_received"),
+                DB::raw("SUM(IF(t.type = 'sell_return', (SELECT SUM(amount) FROM transaction_payments WHERE transaction_payments.transaction_id=t.id), 0)) as sell_return_paid"),
+                DB::raw("SUM(IF(t.type = 'purchase_return', (SELECT SUM(amount) FROM transaction_payments WHERE transaction_payments.transaction_id=t.id), 0)) as purchase_return_received"),
+                DB::raw("SUM(IF(t.type = 'sell_return', final_total, 0)) as total_sell_return"),
+                DB::raw("SUM(IF(t.type = 'opening_balance', final_total, 0)) as opening_balance"),
+                DB::raw("SUM(IF(t.type = 'opening_balance', (SELECT SUM(IF(is_return = 1,-1*amount,amount)) FROM transaction_payments WHERE transaction_payments.transaction_id=t.id), 0)) as opening_balance_paid"),
+                DB::raw("SUM(IF(t.type = 'ledger_discount' AND sub_type='sell_discount', final_total, 0)) as total_ledger_discount_sell"),
+                DB::raw("SUM(IF(t.type = 'ledger_discount' AND sub_type='purchase_discount', final_total, 0)) as total_ledger_discount_purchase"),
+                'contacts.supplier_business_name',
+                'contacts.name',
+                'contacts.id',
+                'contacts.type as contact_type'
+            );
+        $permitted_locations = auth()->user()->permitted_locations();
+
+        if ($permitted_locations != 'all') {
+            $contacts->whereIn('t.location_id', $permitted_locations);
+        }
+
+        if (! empty($filtros['customer_group_id'] ?? null)) {
+            $contacts->where('contacts.customer_group_id', $filtros['customer_group_id']);
+        }
+
+        if (! empty($filtros['location_id'] ?? null)) {
+            $contacts->where('t.location_id', $filtros['location_id']);
+        }
+
+        if (! empty($filtros['contact_id'] ?? null)) {
+            $contacts->where('t.contact_id', $filtros['contact_id']);
+        }
+
+        if (! empty($filtros['contact_type'] ?? null)) {
+            $contacts->whereIn('contacts.type', [$filtros['contact_type'], 'both']);
+        }
+
+        $start_date = ($filtros['start_date'] ?? null);
+        $end_date = ($filtros['end_date'] ?? null);
+        if (! empty($start_date) && ! empty($end_date)) {
+            $contacts->where('t.transaction_date', '>=', $start_date)
+                ->where('t.transaction_date', '<=', $end_date);
+        }
+
+        return $contacts;
+    }
+
+    /**
+     * Devido de um contato — a conta da coluna "Total devido" do relatório, usada pela Blade e pela tela nova.
+     *
+     * ⚠️ Preserva o comportamento que está em produção: o desconto de razão de VENDA (total_ledger_discount_sell)
+     * NÃO entra, porque a conta original lia uma variável local inexistente em vez de $row (vem do UltimatePOS).
+     * Corrigir muda o devido de quem tem desconto de venda — é mudança de valor e decisão [W]. Quando decidir,
+     * a correção é só aqui, e vale para as duas telas.
+     */
+    private function devidoDoContato(object $row): float
+    {
+        $total_ledger_discount_purchase = $row->total_ledger_discount_purchase ?? 0;
+        $total_ledger_discount_sell = 0; // ver o aviso acima
+        $due = ($row->total_invoice - $row->invoice_received - $total_ledger_discount_sell) - ($row->total_purchase - $row->purchase_paid - $total_ledger_discount_purchase) - ($row->total_sell_return - $row->sell_return_paid) + ($row->total_purchase_return - $row->purchase_return_received);
+
+        if ($row->contact_type == 'supplier') {
+            $due -= $row->opening_balance - $row->opening_balance_paid;
+        } else {
+            $due += $row->opening_balance - $row->opening_balance_paid;
+        }
+
+        return (float) $due;
+    }
+
+    /**
+     * Tela nova de Clientes e fornecedores: as mesmas linhas da consulta acima, 25 por página, na ordem do
+     * DataTable da Blade (nome, crescente), com o rodapé por coluna somando só a página.
+     */
+    private function telaContatos(Request $request, int $business_id): \Inertia\Response
+    {
+        $filtros = array_filter($request->only(self::FILTROS_CONTATOS), fn ($v) => $v !== null && $v !== '');
+        // A Blade sempre manda o período do daterangepicker, que nasce no ano fiscal da sessão.
+        $filtros['start_date'] = $this->dataIsoOu((string) $request->query('start_date', ''), (string) $request->session()->get('financial_year.start', now()->startOfYear()->toDateString()));
+        $filtros['end_date'] = $this->dataIsoOu((string) $request->query('end_date', ''), (string) $request->session()->get('financial_year.end', now()->endOfYear()->toDateString()));
+
+        $pagina = $this->consultaContatos($business_id, $filtros)
+            ->orderBy('contacts.name', 'asc')->orderBy('contacts.id', 'asc')
+            ->toBase()->paginate(25)->withQueryString();
+
+        $linhas = collect($pagina->items())->map(fn (\stdClass $r): array => [
+            'id' => (int) $r->id,
+            'nome' => (string) $r->name.(! empty($r->supplier_business_name) ? ', '.$r->supplier_business_name : ''),
+            'compras' => (float) $r->total_purchase,
+            'devolucoes_compra' => (float) $r->total_purchase_return,
+            'vendas' => (float) $r->total_invoice,
+            'devolucoes_venda' => (float) $r->total_sell_return,
+            'saldo_inicial_devido' => (float) ($r->opening_balance - $r->opening_balance_paid),
+            'devido' => $this->devidoDoContato($r),
+        ])->values();
+
+        $colunas = ['compras', 'devolucoes_compra', 'vendas', 'devolucoes_venda', 'saldo_inicial_devido', 'devido'];
+        $rodape = [];
+        foreach ($colunas as $c) {
+            $rodape[$c] = (float) $linhas->sum($c);
+        }
+
+        return Inertia::render('Relatorios/Contatos/Index', [
+            'linhas' => $linhas,
+            'rodape' => $rodape,
+            'paginacao' => ['atual' => $pagina->currentPage(), 'ultima' => $pagina->lastPage(), 'total' => $pagina->total()],
+            'filtros' => [
+                'customer_group_id' => (string) ($filtros['customer_group_id'] ?? ''),
+                'contact_type' => in_array($filtros['contact_type'] ?? '', ['customer', 'supplier'], true) ? (string) $filtros['contact_type'] : '',
+                'location_id' => (string) ($filtros['location_id'] ?? ''),
+                'contact_id' => (string) ($filtros['contact_id'] ?? ''),
+                'start_date' => $filtros['start_date'],
+                'end_date' => $filtros['end_date'],
+            ],
+            'grupos' => collect(CustomerGroup::forDropdown($business_id, false, true))->map(fn ($nome, $id) => ['id' => (int) $id, 'nome' => (string) $nome])->values(),
+            'locais' => collect(BusinessLocation::forDropdown($business_id, false))->map(fn ($nome, $id) => ['id' => (int) $id, 'nome' => (string) $nome])->values(),
+            'contatos' => collect(Contact::contactDropdown($business_id, false, false))->map(fn ($nome, $id) => ['id' => (int) $id, 'nome' => (string) $nome])->values(),
+            'moeda' => [
+                'simbolo' => (string) $request->session()->get('business.currency_symbol', 'R$'),
+                'casas' => (int) $request->session()->get('business.currency_precision', 2),
+            ],
+        ]);
     }
 
     /**
