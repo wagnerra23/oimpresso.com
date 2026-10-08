@@ -1093,6 +1093,40 @@ class ReportController extends Controller
     }
 
     /**
+     * Resumo do relatório de impostos — "imposto de saída menos imposto de entrada" do topo da Blade: saída (vendas +
+     * o que os módulos somam) − entrada (compras) − despesas. Movido do ramo ajax() de getTaxReport sem mudança; o
+     * JSON da Blade e a tela nova chamam este método.
+     *
+     * @param  array<string, mixed>  $filtros  start_date, end_date, location_id, contact_id
+     */
+    private function diferencaDeImposto(int $business_id, array $filtros): float
+    {
+        $start_date = $filtros['start_date'] ?? null;
+        $end_date = $filtros['end_date'] ?? null;
+        $location_id = $filtros['location_id'] ?? null;
+        $contact_id = $filtros['contact_id'] ?? null;
+
+        $input_tax_details = $this->transactionUtil->getInputTax($business_id, $start_date, $end_date, $location_id, $contact_id);
+
+        $output_tax_details = $this->transactionUtil->getOutputTax($business_id, $start_date, $end_date, $location_id, $contact_id);
+
+        $expense_tax_details = $this->transactionUtil->getExpenseTax($business_id, $start_date, $end_date, $location_id, $contact_id);
+
+        $module_output_taxes = $this->moduleUtil->getModuleData('getModuleOutputTax', ['start_date' => $start_date, 'end_date' => $end_date]);
+
+        $total_module_output_tax = 0;
+        foreach ($module_output_taxes as $key => $module_output_tax) {
+            $total_module_output_tax += $module_output_tax;
+        }
+
+        $total_output_tax = $output_tax_details['total_tax'] + $total_module_output_tax;
+
+        $tax_diff = $total_output_tax - $input_tax_details['total_tax'] - $expense_tax_details['total_tax'];
+
+        return (float) $tax_diff;
+    }
+
+    /**
      * Tela nova do relatório de impostos, uma aba por vez (tipo purchase = entrada, sell = saída, expense = despesa):
      * as mesmas linhas da consulta acima, 25 por página na ordem de cada DataTable da Blade (entrada e despesa por data
      * crescente; saída por data decrescente), com o imposto de cada alíquota pela MESMA conta da coluna da Blade
@@ -1151,6 +1185,8 @@ class ReportController extends Controller
 
         return Inertia::render('Relatorios/Impostos/Index', [
             'tipo' => $tipo,
+            // O topo da Blade: imposto de saída menos imposto de entrada (e despesas), no mesmo período e filtros.
+            'resumo' => ['diferenca' => $this->diferencaDeImposto($business_id, $filtros)],
             'aliquotas' => collect($aliquotas)->map(fn ($a) => ['id' => (string) $a['id'], 'nome' => (string) $a['name']])->values(),
             'linhas' => $linhas,
             // Como o rodapé da Blade: só as linhas desta página.
@@ -1169,7 +1205,7 @@ class ReportController extends Controller
     /**
      * Shows tax report of a business
      *
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Contracts\View\View|\Inertia\Response|array<string, float>
      */
     public function getTaxReport(Request $request)
     {
@@ -1179,32 +1215,15 @@ class ReportController extends Controller
 
         $business_id = $request->session()->get('user.business_id');
 
+        // Tela React (playbook sistema/07): a mesma tela das abas (getTaxDetails), com o resumo do topo.
+        if ($request->query('tela') === 'nova') {
+            return $this->telaImpostos($request, (int) $business_id);
+        }
+
         //Return the details in ajax call
         if ($request->ajax()) {
-            $start_date = $request->get('start_date');
-            $end_date = $request->get('end_date');
-            $location_id = $request->get('location_id');
-            $contact_id = $request->get('contact_id');
-
-            $input_tax_details = $this->transactionUtil->getInputTax($business_id, $start_date, $end_date, $location_id, $contact_id);
-
-            $output_tax_details = $this->transactionUtil->getOutputTax($business_id, $start_date, $end_date, $location_id, $contact_id);
-
-            $expense_tax_details = $this->transactionUtil->getExpenseTax($business_id, $start_date, $end_date, $location_id, $contact_id);
-
-            $module_output_taxes = $this->moduleUtil->getModuleData('getModuleOutputTax', ['start_date' => $start_date, 'end_date' => $end_date]);
-
-            $total_module_output_tax = 0;
-            foreach ($module_output_taxes as $key => $module_output_tax) {
-                $total_module_output_tax += $module_output_tax;
-            }
-
-            $total_output_tax = $output_tax_details['total_tax'] + $total_module_output_tax;
-
-            $tax_diff = $total_output_tax - $input_tax_details['total_tax'] - $expense_tax_details['total_tax'];
-
             return [
-                'tax_diff' => $tax_diff,
+                'tax_diff' => $this->diferencaDeImposto((int) $business_id, $request->only(['start_date', 'end_date', 'location_id', 'contact_id'])),
             ];
         }
 

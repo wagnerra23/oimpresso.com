@@ -1,7 +1,7 @@
 <?php
 
 declare(strict_types=1);
-// Cobre UC-RIM-01, UC-RIM-02, UC-RIM-03, UC-RIM-04 (resources/js/Pages/Relatorios/Impostos/Index.casos.md).
+// Cobre UC-RIM-01, UC-RIM-02, UC-RIM-03, UC-RIM-04, UC-RIM-05 (resources/js/Pages/Relatorios/Impostos/Index.casos.md).
 
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\DB;
@@ -174,4 +174,27 @@ test('UC-RIM-04 Tier 0 — compra do negócio 99 não aparece; permissão da Bla
     $this->actingAs($this->usuarioComPermissoes([], $this->business));
     $this->withHeaders($this->inertia)->get('/reports/tax-details?tela=nova')->assertForbidden();
     $this->withHeaders([])->get('/reports/tax-report')->assertForbidden();
+});
+
+test('UC-RIM-05 valor — resumo "saída menos entrada" = JSON da Blade = conta à mão', function () {
+    $t10 = rimAliquota($this->business->id, $this->user->id, 'RIM 10%', 10);
+    $contato = rimContato($this->business->id, $this->user->id);
+    rimTransacao($this->business->id, $this->user->id, $contato, 'purchase', 'received', '2099-05-10 10:00:00', 100, $t10, 5, [[$t10, 2, 3, 1]]);
+    rimTransacao($this->business->id, $this->user->id, $contato, 'sell', 'final', '2099-05-11 10:00:00', 200, $t10, 12, [[$t10, 1, 2, 0]]);
+    rimTransacao($this->business->id, $this->user->id, $contato, 'sell', 'draft', '2099-05-12 10:00:00', 900, $t10, 100);
+    rimTransacao($this->business->id, $this->user->id, $contato, 'expense', 'final', '2099-05-13 10:00:00', 50, $t10, 3);
+    $filtros = ['contact_id' => $contato, 'location_id' => ''] + $this->periodo;
+
+    // Caminho 1: o JSON que o topo da Blade pede.
+    $blade = $this->withHeaders(['X-Requested-With' => 'XMLHttpRequest', 'Accept' => 'application/json'])->get('/reports/tax-report?'.http_build_query($filtros));
+    $blade->assertOk();
+
+    // Caminho 2: a tela nova, aberta pelo endereço da página da Blade.
+    $tela = $this->withHeaders($this->inertia)->get('/reports/tax-report?'.http_build_query(['tela' => 'nova'] + $filtros));
+    $tela->assertOk();
+    expect($tela->json('component'))->toBe('Relatorios/Impostos/Index');
+    expect((float) $tela->json('props.resumo.diferenca'))->toEqual((float) $blade->json('tax_diff'));
+
+    // Conta à mão: saída 12 + 1 × 2 = 14; entrada 5 + 2 × (3 − 1) = 9; despesa 3; 14 − 9 − 3 = 2. O rascunho fica fora.
+    expect((float) $tela->json('props.resumo.diferenca'))->toEqual(2.0);
 });
