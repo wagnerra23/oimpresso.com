@@ -276,6 +276,18 @@ last_run: "2026-10-07"
   mantida (era assim até 2026-10-08).
 - **Status: 🧪**
 
+## UC-RECIPE-19 · Excluir receita só apaga receita da minha empresa
+- **Persona:** Wagner — exclui uma ficha que não usa mais.
+- **Aceite:** Dado uma receita da minha empresa · Quando excluo (DELETE `/manufacturing/recipe/{id}`) ·
+  Então ela some junto com os ingredientes · Dado o id de uma receita de outra empresa, ou um id que
+  não existe · Quando excluo · Então a resposta é 404 e a receita continua no banco.
+- **Fonte:** handoff §9 ("`business_id` pela cadeia `mfg_recipes → variations → products` em toda
+  query") · ADR 0093.
+- **Teste:** `ExcluirReceitaEmpresaTest.php`
+- **Regressão que defende:** o `destroy` apagar pelo id sem conferir a empresa (era assim até
+  2026-10-08: vermelho na run 37839147800, 200 no lugar de 404).
+- **Status: 🧪**
+
 ---
 
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
@@ -346,3 +358,7 @@ decisão de quem escreveu o §4.2, não minha. Fica registrado em vez de silenci
 - 2026-10-06 · [M+C] "Nova receita" (US-MANU-006, decisões [W] 2026-10-06): janela React no lugar do
   modal Blade quebrado, busca `GET /manufacturing/nova-receita/produtos`, cópia com desperdício/custo
   extra/instruções e grupos próprios. UC-RECIPE-12/13 + `NovaReceitaTest.php`.
+- 2026-10-08 · [M+C] Excluir receita conferia só o id: apagava receita de outra empresa. O `destroy`
+  passou a achar a receita pela cadeia de empresa (404 fora dela). UC-RECIPE-19 +
+  `ExcluirReceitaEmpresaTest.php`. É o endpoint que o botão "Excluir receita" da tela nova vai usar
+  (US-MANU-006 etapa 3).

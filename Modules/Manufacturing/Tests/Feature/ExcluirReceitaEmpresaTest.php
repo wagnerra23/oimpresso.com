@@ -42,7 +42,7 @@ beforeEach(function () {
 });
 
 describe('Excluir receita — só do próprio business (Tier 0)', function () {
-    it('apaga a receita do próprio business e os ingredientes dela (âncora positiva)', function () {
+    it('UC-RECIPE-19 — apaga a receita do próprio business e os ingredientes dela (âncora positiva)', function () {
         $user = mfgEmpUsuario('mfg_excluir_receita_test');
         [$propria, , $linha] = mfgEmpReceita(MFG_EMP_BIZ, $user->id, 'Insumo excluir proprio');
 
@@ -54,7 +54,7 @@ describe('Excluir receita — só do próprio business (Tier 0)', function () {
         $this->assertDatabaseMissing('mfg_recipe_ingredients', ['id' => $linha]);
     });
 
-    it('recusa com 404 a receita de outra empresa, e ela continua no banco', function () {
+    it('UC-RECIPE-19 — recusa com 404 a receita de outra empresa, e ela continua no banco', function () {
         $user = mfgEmpUsuario('mfg_excluir_receita_test');
         [$alheia, , $linha] = mfgEmpReceita(MFG_EMP_OUTRO, $user->id, 'Insumo excluir alheio');
 
@@ -65,7 +65,7 @@ describe('Excluir receita — só do próprio business (Tier 0)', function () {
         $this->assertDatabaseHas('mfg_recipe_ingredients', ['id' => $linha]);
     });
 
-    it('recusa com 404 um id que não existe', function () {
+    it('UC-RECIPE-19 — recusa com 404 um id que não existe', function () {
         $user = mfgEmpUsuario('mfg_excluir_receita_test');
         $inexistente = (int) DB::table('mfg_recipes')->max('id') + 1000;
 
