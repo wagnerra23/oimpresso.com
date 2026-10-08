@@ -153,7 +153,7 @@ Decisões `respondida: false` em outros índices. Não li as threads delas; sem 
 
 | módulo | id | trava | texto |
 |---|---|---|---|
-| comissoes | D-COM-1 | — | ADR 0151 segue proposta: playbook só no legado, sem `Modules/Comissao`? |
+| comissoes | D-COM-1 | — | ADR 0151 segue proposta: playbook só no legado, sem um módulo `Comissao` próprio? |
 | comissoes | D-COM-2 | — | comissão sobre venda paga ou faturada |
 | modulos | D1 | — | versão exibida: `system.<alias>_version` |
 | modulos | D4 | 02 | install em fila só se houver worker em produção |
