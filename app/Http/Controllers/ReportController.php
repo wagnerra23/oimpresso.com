@@ -5146,6 +5146,14 @@ class ReportController extends Controller
      */
     public function getStockValue()
     {
+        // O resumo do topo do relatório de estoque é valor do estoque: a Blade só o mostra a quem tem stock_report.view E
+        // view_product_stock_value (stock_report.blade.php, bloco @can). O endpoint não conferia nenhuma das duas.
+        // Único chamador: get_stock_value() em public/js/report.js, só na página de estoque; sem handler global de erro,
+        // o 403 é silencioso para quem não tem a 2ª permissão (os campos nem existem na tela dele).
+        if (! auth()->user()->can('stock_report.view') || ! auth()->user()->can('view_product_stock_value')) {
+            abort(403, 'Unauthorized action.');
+        }
+
         $business_id = request()->session()->get('user.business_id');
         $end_date = \Carbon::now()->format('Y-m-d');
         $location_id = request()->input('location_id');
