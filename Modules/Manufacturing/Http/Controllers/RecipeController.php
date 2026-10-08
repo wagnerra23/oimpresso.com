@@ -477,9 +477,9 @@ class RecipeController extends Controller
     }
 
     /**
-     * Shows recipe form.
+     * Shows recipe form. Com `?tela=nova`, o editor React (US-MANU-006).
      *
-     * @return Response
+     * @return Response|\Illuminate\Contracts\View\View|\Inertia\Response
      */
     public function addIngredients()
     {

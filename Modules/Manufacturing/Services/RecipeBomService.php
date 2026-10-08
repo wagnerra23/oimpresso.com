@@ -201,13 +201,16 @@ class RecipeBomService
     public function editorDaReceita(int $variationId, int $businessId, ?int $copiarDe = null): array
     {
         $variation = $this->variacaoDaEmpresa($variationId, $businessId, ['product.unit', 'product_variation']);
+        // `getRelation` em vez da propriedade mágica: o Larastan não resolve as relações do
+        // `App\Variation` (sem tipo de retorno) — mesmo motivo de `presentRecipe`/`variacaoDaEmpresa`.
+        $produto = $variation->getRelation('product');
         $util = app(\App\Utils\Util::class);
 
         $with = [
             'ingredients' => fn ($q) => $q->orderBy('sort_order'),
             'ingredients.variation.product.unit', 'ingredients.sub_unit', 'ingredients.ingredient_group',
         ];
-        $receita = MfgRecipe::with($with)->where('variation_id', $variation->id)->first();
+        $receita = $this->receitaDoProduto((int) $variation->id, $with);
         $origem = $receita;
         $copia = null;
         if ($receita === null && $copiarDe !== null) {
@@ -218,7 +221,7 @@ class RecipeBomService
         $grupos = [];
         foreach ($origem ? $origem->getRelation('ingredients') : [] as $ingrediente) {
             $insumo = $ingrediente->variation;
-            if (empty($insumo) || empty($insumo->product)) {
+            if (empty($insumo) || ! $insumo->relationLoaded('product') || empty($insumo->getRelation('product'))) {
                 continue;
             }
             $chave = $ingrediente->mfg_ingredient_group_id ?: 'sem-grupo';
@@ -243,12 +246,10 @@ class RecipeBomService
             'produto' => [
                 'variation_id' => (int) $variation->id,
                 'product_id'   => (int) $variation->product_id,
-                'nome'         => $variation->product->type === 'variable'
-                    ? "{$variation->product->name} - {$variation->product_variation->name} - {$variation->name}"
-                    : (string) $variation->product->name,
+                'nome'         => $this->nomeDaVariacao($variation),
                 'sku'          => (string) $variation->sub_sku,
-                'unidade'      => (string) optional($variation->product->unit)->short_name,
-                'sub_unidades' => $this->subUnidades($util, $businessId, (int) $variation->product->unit_id),
+                'unidade'      => (string) optional($produto->unit)->short_name,
+                'sub_unidades' => $this->subUnidades($util, $businessId, (int) $produto->unit_id),
             ],
             'receita' => [
                 'id'                   => $receita ? (int) $receita->id : null,
@@ -281,7 +282,7 @@ class RecipeBomService
             return [];
         }
         $util = app(\App\Utils\Util::class);
-        $porId = Variation::with(['product.unit', 'product_variation'])->whereIn('id', $ids)->get()->keyBy('id');
+        $porId = $this->variacoesPorId($ids, ['product.unit', 'product_variation']);
 
         $saida = [];
         foreach ($ids as $id) {
@@ -293,16 +294,43 @@ class RecipeBomService
         return $saida;
     }
 
+    /** A receita do produto, com o eager-load do chamador (mesma forma de `receitaParaCopiar`). */
+    private function receitaDoProduto(int $variationId, array $with): ?MfgRecipe
+    {
+        return MfgRecipe::with($with)->where('variation_id', $variationId)->first();
+    }
+
+    /**
+     * Variações por id, indexadas pelo id. Os ids já vêm filtrados pela empresa
+     * (`buscarProdutosParaReceita`).
+     *
+     * @param  list<int>  $ids
+     * @param  array<int|string, mixed>  $with
+     */
+    private function variacoesPorId(array $ids, array $with): Collection
+    {
+        return Variation::with($with)->whereIn('id', $ids)->get()->keyBy('id');
+    }
+
+    /** Mesmo rótulo do `MfgRecipe::forDropdown`: produto variável mostra a variação. */
+    private function nomeDaVariacao(Variation $variacao): string
+    {
+        $produto = $variacao->getRelation('product');
+        $grupo = $variacao->relationLoaded('product_variation') ? $variacao->getRelation('product_variation') : null;
+
+        return $produto->type === 'variable' && $grupo
+            ? "{$produto->name} - {$grupo->name} - {$variacao->name}"
+            : (string) $produto->name;
+    }
+
     /** Os campos do insumo que uma linha do editor mostra e com que ela calcula. */
     private function itemDoEditor(Variation $insumo, \App\Utils\Util $util, int $businessId): array
     {
-        $produto = $insumo->product;
+        $produto = $insumo->getRelation('product');
 
         return [
             'variation_id'   => (int) $insumo->id,
-            'nome'           => $produto->type === 'variable' && $insumo->product_variation
-                ? "{$produto->name} - {$insumo->product_variation->name} - {$insumo->name}"
-                : (string) $produto->name,
+            'nome'           => $this->nomeDaVariacao($insumo),
             'sku'            => (string) $insumo->sub_sku,
             'custo_unitario' => (float) $insumo->dpp_inc_tax,
             'unidade_base'   => (string) optional($produto->unit)->short_name,
