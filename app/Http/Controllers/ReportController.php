@@ -61,10 +61,18 @@ class ReportController extends Controller
     public function getStockBySellingPrice(Request $request)
     {
         $business_id = $request->session()->get('user.business_id');
-        $start_date = $request->get('start_date');
-        $end_date = $request->get('end_date');
-        $location_id = $request->get('location_id');
 
+        return $this->estoquePorPrecoDeVenda((int) $business_id, (string) $request->get('start_date'), (string) $request->get('end_date'), $request->get('location_id'));
+    }
+
+    /**
+     * Estoque inicial e final pelo preço de venda (os dois valores que a página de lucro e prejuízo busca à parte).
+     * Movido de getStockBySellingPrice sem mudança; o JSON e a tela nova chamam este método.
+     *
+     * @return array{opening_stock_by_sp: mixed, closing_stock_by_sp: mixed}
+     */
+    private function estoquePorPrecoDeVenda(int $business_id, string $start_date, string $end_date, mixed $location_id): array
+    {
         $day_before_start_date = \Carbon::createFromFormat('Y-m-d', $start_date)->subDay()->format('Y-m-d');
 
         $permitted_locations = auth()->user()->permitted_locations();
@@ -82,7 +90,7 @@ class ReportController extends Controller
     /**
      * Shows profit\loss of a business
      *
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Contracts\View\View|\Inertia\Response|string
      */
     public function getProfitLoss(Request $request)
     {
@@ -92,23 +100,16 @@ class ReportController extends Controller
 
         $business_id = $request->session()->get('user.business_id');
 
+        // Tela React (playbook sistema/07). Vem ANTES do ajax(): a visita Inertia manda X-Requested-With. Os números
+        // saem da MESMA montagem do partial da Blade (dadosDeLucro) e do mesmo estoque pelo preço de venda.
+        if ($request->query('tela') === 'nova') {
+            return $this->telaLucro($request, (int) $business_id);
+        }
+
         //Return the details in ajax call
         if ($request->ajax()) {
-            $start_date = $request->get('start_date');
-            $end_date = $request->get('end_date');
-            $location_id = $request->get('location_id');
+            $data = $this->dadosDeLucro((int) $business_id, $request->only(['location_id', 'start_date', 'end_date', 'user_id']));
 
-            $fy = $this->businessUtil->getCurrentFinancialYear($business_id);
-
-            $location_id = ! empty(request()->input('location_id')) ? request()->input('location_id') : null;
-            $start_date = ! empty(request()->input('start_date')) ? request()->input('start_date') : $fy['start'];
-            $end_date = ! empty(request()->input('end_date')) ? request()->input('end_date') : $fy['end'];
-    
-            $user_id = request()->input('user_id') ?? null;
-
-            $permitted_locations = auth()->user()->permitted_locations();
-            $data = $this->transactionUtil->getProfitLossDetails($business_id, $location_id, $start_date, $end_date, $user_id, $permitted_locations);
-    
             // $data['closing_stock'] = $data['closing_stock'] - $data['total_sell_return'];
 
             return view('report.partials.profit_loss_details', compact('data'))->render();
@@ -117,6 +118,94 @@ class ReportController extends Controller
         $business_locations = BusinessLocation::forDropdown($business_id, true);
 
         return view('report.profit_loss', compact('business_locations'));
+    }
+
+    /**
+     * Lucro e prejuízo — os números do partial da Blade (profit_loss_details), montados por getProfitLossDetails com
+     * os mesmos padrões de antes: sem local = todos; sem período = ano fiscal atual. Movido do ramo ajax() sem mudança.
+     *
+     * @param  array<string, mixed>  $filtros  location_id, start_date, end_date, user_id
+     * @return array<string, mixed>
+     */
+    private function dadosDeLucro(int $business_id, array $filtros): array
+    {
+        $fy = $this->businessUtil->getCurrentFinancialYear($business_id);
+
+        $location_id = ! empty($filtros['location_id'] ?? null) ? $filtros['location_id'] : null;
+        $start_date = ! empty($filtros['start_date'] ?? null) ? $filtros['start_date'] : $fy['start'];
+        $end_date = ! empty($filtros['end_date'] ?? null) ? $filtros['end_date'] : $fy['end'];
+
+        $user_id = $filtros['user_id'] ?? null;
+
+        $permitted_locations = auth()->user()->permitted_locations();
+
+        return $this->transactionUtil->getProfitLossDetails($business_id, $location_id, $start_date, $end_date, $user_id, $permitted_locations);
+    }
+
+    /**
+     * Tela nova de lucro e prejuízo: os mesmos números do partial da Blade (dadosDeLucro) e o mesmo estoque pelo preço
+     * de venda (estoquePorPrecoDeVenda), com o CMV pela mesma fórmula da Blade (estoque inicial − compras + estoque
+     * final). Período padrão = ano fiscal atual, como a Blade.
+     */
+    private function telaLucro(Request $request, int $business_id): \Inertia\Response
+    {
+        $fy = $this->businessUtil->getCurrentFinancialYear($business_id);
+        $filtros = [
+            'location_id' => (string) $request->query('location_id', ''),
+            'start_date' => $this->dataIsoOu((string) $request->query('start_date', ''), (string) $fy['start']),
+            'end_date' => $this->dataIsoOu((string) $request->query('end_date', ''), (string) $fy['end']),
+        ];
+
+        $d = $this->dadosDeLucro($business_id, $filtros);
+        $sp = $this->estoquePorPrecoDeVenda($business_id, $filtros['start_date'], $filtros['end_date'], $filtros['location_id']);
+        $n = fn ($v) => (float) $v;
+        $modulos = fn ($lista) => collect($lista ?? [])->map(fn ($m) => ['rotulo' => (string) ($m['label'] ?? ''), 'valor' => (float) ($m['value'] ?? 0)])->values();
+
+        return Inertia::render('Relatorios/LucroPrejuizo/Index', [
+            'esquerda' => [
+                ['rotulo' => 'Estoque inicial (preço de compra)', 'valor' => $n($d['opening_stock'])],
+                ['rotulo' => 'Estoque inicial (preço de venda)', 'valor' => $n($sp['opening_stock_by_sp'])],
+                ['rotulo' => 'Total de compras (sem imposto e desconto)', 'valor' => $n($d['total_purchase'])],
+                ['rotulo' => 'Total de ajustes de estoque', 'valor' => $n($d['total_adjustment'])],
+                ['rotulo' => 'Total de despesas', 'valor' => $n($d['total_expense'])],
+                ['rotulo' => 'Frete das compras', 'valor' => $n($d['total_purchase_shipping_charge'])],
+                ['rotulo' => 'Despesas adicionais das compras', 'valor' => $n($d['total_purchase_additional_expense'])],
+                ['rotulo' => 'Frete de transferências', 'valor' => $n($d['total_transfer_shipping_charges'])],
+                ['rotulo' => 'Descontos nas vendas', 'valor' => $n($d['total_sell_discount'])],
+                ['rotulo' => 'Pontos de recompensa', 'valor' => $n($d['total_reward_amount'])],
+                ['rotulo' => 'Devoluções de venda', 'valor' => $n($d['total_sell_return'])],
+            ],
+            'esquerda_modulos' => $modulos($d['left_side_module_data'] ?? []),
+            'direita' => [
+                ['rotulo' => 'Estoque final (preço de compra)', 'valor' => $n($d['closing_stock'])],
+                ['rotulo' => 'Estoque final (preço de venda)', 'valor' => $n($sp['closing_stock_by_sp'])],
+                ['rotulo' => 'Total de vendas (sem imposto e desconto)', 'valor' => $n($d['total_sell'])],
+                ['rotulo' => 'Frete das vendas', 'valor' => $n($d['total_sell_shipping_charge'])],
+                ['rotulo' => 'Despesas adicionais das vendas', 'valor' => $n($d['total_sell_additional_expense'])],
+                ['rotulo' => 'Estoque recuperado', 'valor' => $n($d['total_recovered'])],
+                ['rotulo' => 'Devoluções de compra', 'valor' => $n($d['total_purchase_return'])],
+                ['rotulo' => 'Descontos nas compras', 'valor' => $n($d['total_purchase_discount'])],
+                ['rotulo' => 'Arredondamento das vendas', 'valor' => $n($d['total_sell_round_off'])],
+            ],
+            'direita_modulos' => $modulos($d['right_side_module_data'] ?? []),
+            // Como a Blade: o detalhe por subtipo de venda só aparece quando há mais de um.
+            'vendas_por_subtipo' => count($d['total_sell_by_subtype'] ?? []) > 1
+                ? collect($d['total_sell_by_subtype'])->map(fn ($v) => ['subtipo' => (string) ($v->sub_type ?? ''), 'valor' => (float) $v->total_before_tax])->values()
+                : [],
+            'resultado' => [
+                // Mesma fórmula do net_gross_profit_report_details.blade.php.
+                'cmv' => $n($d['opening_stock']) - $n($d['total_purchase']) + $n($d['closing_stock']),
+                'lucro_bruto' => $n($d['gross_profit']),
+                'lucro_bruto_extras' => collect($d['gross_profit_label'] ?? [])->map(fn ($v) => (string) $v)->values(),
+                'lucro_liquido' => $n($d['net_profit']),
+            ],
+            'filtros' => $filtros,
+            'locais' => collect(BusinessLocation::forDropdown($business_id, true))->map(fn ($nome, $id) => ['id' => (int) $id, 'nome' => (string) $nome])->values(),
+            'moeda' => [
+                'simbolo' => (string) $request->session()->get('business.currency_symbol', 'R$'),
+                'casas' => (int) $request->session()->get('business.currency_precision', 2),
+            ],
+        ]);
     }
 
     /**
