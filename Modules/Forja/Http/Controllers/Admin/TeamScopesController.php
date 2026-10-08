@@ -61,6 +61,9 @@ class TeamScopesController extends Controller
 
     public function grant(Request $request, UserScopeService $service): RedirectResponse
     {
+        // D7 (thread 11): permissão própria — antes bastava estar logado.
+        abort_unless($request->user()->can('forja.team_scopes.manage'), 403);
+
         $data = $request->validate([
             'user_id'           => 'required|integer|exists:users,id',
             'module'            => 'required|string|max:50',
@@ -79,7 +82,8 @@ class TeamScopesController extends Controller
             canWrite:        (bool) ($data['can_write'] ?? false),
             canExecuteTools: (bool) ($data['can_execute_tools'] ?? false),
             canCommit:       (bool) ($data['can_commit'] ?? false),
-            grantedBy:       'wagner',
+            // D7: autor real da concessão (coluna varchar(50)), nunca 'wagner' fixo.
+            grantedBy:       mb_substr((string) $request->user()->username, 0, 50),
             reason:          $data['reason'] ?? null,
             expiresAt:       $data['expires_at'] ?? null,
         );
@@ -89,6 +93,8 @@ class TeamScopesController extends Controller
 
     public function revoke(Request $request, UserScopeService $service): RedirectResponse
     {
+        abort_unless($request->user()->can('forja.team_scopes.manage'), 403);
+
         $data = $request->validate([
             'user_id' => 'required|integer',
             'module'  => 'required|string',
