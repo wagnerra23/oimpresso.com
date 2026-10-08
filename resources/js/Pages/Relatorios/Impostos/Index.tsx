@@ -41,7 +41,7 @@ const ABAS: [AbaImposto, ...AbaImposto[]] = [
   { valor: 'expense', nome: 'Imposto de despesas', referencia: 'Ref.', contato: '' },
 ];
 
-function ImpostosIndex({ tipo, resumo, aliquotas, linhas, rodape, paginacao, filtros, locais, contatos, moeda }: Props) {
+function RelatorioImpostosIndex({ tipo, resumo, aliquotas, linhas, rodape, paginacao, filtros, locais, contatos, moeda }: Props) {
   const dinheiro = (v: number) => `${moeda.simbolo} ${formatDecimalPtBR(Number(v), moeda.casas)}`;
   const aba = ABAS.find(a => a.valor === tipo) ?? ABAS[0];
   const comContato = aba.contato !== '';
@@ -146,6 +146,6 @@ function ImpostosIndex({ tipo, resumo, aliquotas, linhas, rodape, paginacao, fil
   );
 }
 
-ImpostosIndex.layout = (page: ReactNode) => <AppShellV2>{page}</AppShellV2>;
+RelatorioImpostosIndex.layout = (page: ReactNode) => <AppShellV2>{page}</AppShellV2>;
 
-export default ImpostosIndex;
+export default RelatorioImpostosIndex;
