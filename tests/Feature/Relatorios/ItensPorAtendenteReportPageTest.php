@@ -1,7 +1,7 @@
 <?php
 
 declare(strict_types=1);
-// Cobre UC-RIA-01, UC-RIA-02, UC-RIA-03 (resources/js/Pages/Relatorios/ItensPorAtendente/Index.casos.md).
+// Cobre UC-RIA-01, UC-RIA-02, UC-RIA-03, UC-RIA-04 (resources/js/Pages/Relatorios/ItensPorAtendente/Index.casos.md).
 
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\DB;
@@ -120,4 +120,58 @@ test('UC-RIA-03 Tier 0 — item do negócio 99 não aparece; permissão da pági
     $this->actingAs($this->usuarioComPermissoes([], $this->business));
     $this->withHeaders($this->inertia)->get('/reports/service-staff-line-orders?tela=nova')->assertForbidden();
     $this->withHeaders([])->get('/reports/service-staff-report')->assertForbidden();
+});
+
+test('UC-RIA-04 Tier 0 — endpoint com a permissão da página e só os locais permitidos', function () {
+    $sufixo = uniqid();
+    $localA = EstoqueFixture::locationId($this->business->id, '-RIA-A-'.$sufixo);
+    $localB = EstoqueFixture::locationId($this->business->id, '-RIA-B-'.$sufixo);
+    $atendente = \App\User::factory()->create(['business_id' => $this->business->id])->id;
+    foreach ([[$localA, 'RIA-A-'.$sufixo], [$localB, 'RIA-B-'.$sufixo]] as [$local, $numero]) {
+        $produto = EstoqueFixture::singleProduct($this->business->id);
+        $venda = DB::table('transactions')->insertGetId([
+            'business_id' => $this->business->id, 'location_id' => $local, 'type' => 'sell', 'status' => 'final', 'payment_status' => 'paid',
+            'transaction_date' => '2099-12-05 10:00:00', 'final_total' => 0, 'total_before_tax' => 0, 'created_by' => $this->user->id,
+            'essentials_duration' => 0, 'invoice_no' => $numero, 'created_at' => now(), 'updated_at' => now(),
+        ]);
+        DB::table('transaction_sell_lines')->insert([
+            'transaction_id' => $venda, 'product_id' => $produto->productId, 'variation_id' => $produto->variations[0]['variation_id'],
+            'quantity' => 1, 'unit_price_before_discount' => 10, 'unit_price' => 10, 'line_discount_amount' => 0, 'item_tax' => 0,
+            'unit_price_inc_tax' => 10, 'res_service_staff_id' => $atendente, 'created_at' => now(), 'updated_at' => now(),
+        ]);
+    }
+
+    /** Vendas deste teste que o usuário vê: [no JSON da Blade, na tela nova]; o JSON pode responder 403. */
+    $visto = function (array $permissoes, array $locais) use ($atendente): array {
+        $u = $this->usuarioComPermissoes($permissoes, $this->business);
+        // Local é permissão DIRETA no usuário — é só $user->permissions que o User::permitted_locations lê.
+        foreach ($locais as $local) {
+            $u->givePermissionTo(\Spatie\Permission\Models\Permission::findOrCreate('location.'.$local, 'web'));
+        }
+        $this->actingAs($u);
+        session(['user.business_id' => $this->business->id, 'user.id' => $u->id, 'business.id' => $this->business->id]);
+
+        $json = $this->withHeaders(['X-Requested-With' => 'XMLHttpRequest', 'Accept' => 'application/json'])
+            ->get('/reports/service-staff-line-orders?'.http_build_query(['draw' => 1, 'start' => 0, 'length' => -1,
+                'columns' => [['data' => 'invoice_no', 'name' => 't.invoice_no', 'searchable' => 'true', 'orderable' => 'true', 'search' => ['value' => '', 'regex' => 'false']]],
+                'order' => [['column' => 0, 'dir' => 'asc']], 'search' => ['value' => '', 'regex' => 'false'], 'service_staff_id' => $atendente] + $this->periodo));
+        if ($json->status() === 403) {
+            return ['403', null];
+        }
+        $json->assertOk();
+        $tela = $this->withHeaders($this->inertia)->get('/reports/service-staff-line-orders?'.http_build_query(['tela' => 'nova', 'service_staff_id' => $atendente] + $this->periodo));
+        $tela->assertOk();
+        $vendas = fn (array $nomes) => collect($nomes)->map(fn ($n) => substr((string) $n, 0, 5))->sort()->values()->all();
+
+        return [$vendas(array_column($json->json('data'), 'invoice_no')), $vendas(array_column($tela->json('props.linhas'), 'venda'))];
+    };
+
+    // Sem a permissão da página: 403 no JSON.
+    expect($visto([], []))->toBe(['403', null]);
+    // Todos os locais: os dois, como antes.
+    expect($visto(['sales_representative.view', 'access_all_locations'], []))->toBe([['RIA-A', 'RIA-B'], ['RIA-A', 'RIA-B']]);
+    // Só o local A: só o do A, nas duas telas.
+    expect($visto(['sales_representative.view'], [$localA]))->toBe([['RIA-A'], ['RIA-A']]);
+    // Nenhum local: nada.
+    expect($visto(['sales_representative.view'], []))->toBe([[], []]);
 });
