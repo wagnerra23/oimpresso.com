@@ -4062,59 +4062,17 @@ class ReportController extends Controller
     {
         $business_id = request()->session()->get('user.business_id');
 
-        $query = TransactionSellLine::leftJoin('transactions as t', 't.id', '=', 'transaction_sell_lines.transaction_id')
-                ->leftJoin('variations as v', 'transaction_sell_lines.variation_id', '=', 'v.id')
-                ->leftJoin('products as p', 'v.product_id', '=', 'p.id')
-                ->leftJoin('units as u', 'p.unit_id', '=', 'u.id')
-                ->leftJoin('product_variations as pv', 'v.product_variation_id', '=', 'pv.id')
-                ->leftJoin('users as ss', 'ss.id', '=', 'transaction_sell_lines.res_service_staff_id')
-                ->leftjoin(
-                    'business_locations AS bl',
-                    't.location_id',
-                    '=',
-                    'bl.id'
-                )
-                ->where('t.business_id', $business_id)
-                ->where('t.type', 'sell')
-                ->where('t.status', 'final')
-                ->whereNotNull('transaction_sell_lines.res_service_staff_id');
-
-        if (! empty(request()->service_staff_id)) {
-            $query->where('transaction_sell_lines.res_service_staff_id', request()->service_staff_id);
-        }
-
-        if (request()->has('location_id')) {
-            $location_id = request()->get('location_id');
-            if (! empty($location_id)) {
-                $query->where('t.location_id', $location_id);
+        // Tela React (playbook sistema/07): exige a permissão da página da Blade que mostra esta aba
+        // (getServiceStaffReport). O JSON abaixo segue como sempre foi — sem checagem própria (achado registrado).
+        if (request()->query('tela') === 'nova') {
+            if (! auth()->user()->can('sales_representative.view')) {
+                abort(403, 'Unauthorized action.');
             }
+
+            return $this->telaItensPorAtendente(request(), $business_id);
         }
 
-        if (! empty(request()->start_date) && ! empty(request()->end_date)) {
-            $start = request()->start_date;
-            $end = request()->end_date;
-            $query->whereDate('t.transaction_date', '>=', $start)
-                        ->whereDate('t.transaction_date', '<=', $end);
-        }
-
-        $query->select(
-            'p.name as product_name',
-            'p.type as product_type',
-            'v.name as variation_name',
-            'pv.name as product_variation_name',
-            'u.short_name as unit',
-            't.id as transaction_id',
-            'bl.name as business_location',
-            't.transaction_date',
-            't.invoice_no',
-            'transaction_sell_lines.quantity',
-            'transaction_sell_lines.unit_price_before_discount',
-            'transaction_sell_lines.line_discount_type',
-            'transaction_sell_lines.line_discount_amount',
-            'transaction_sell_lines.item_tax',
-            'transaction_sell_lines.unit_price_inc_tax',
-            DB::raw('CONCAT(COALESCE(ss.first_name, ""), COALESCE(ss.last_name, "")) as service_staff')
-        );
+        $query = $this->consultaItensPorAtendente($business_id, request()->only(['service_staff_id', 'location_id', 'start_date', 'end_date']));
 
         $datatable = Datatables::of($query)
             ->editColumn('product_name', function ($row) {
@@ -4163,6 +4121,138 @@ class ReportController extends Controller
                   ->make(true);
 
         return $datatable;
+    }
+
+    /**
+     * Equipe de serviço, aba "itens por atendente" — a consulta (uma linha por item vendido com atendente), usada pelo
+     * DataTable da Blade e pela tela nova (playbook sistema/07). Corpo movido sem mudança de regra.
+     *
+     * @param  array<string, mixed>  $filtros  service_staff_id, location_id, start_date, end_date
+     */
+    private function consultaItensPorAtendente(int $business_id, array $filtros): \Illuminate\Database\Eloquent\Builder
+    {
+        $query = TransactionSellLine::leftJoin('transactions as t', 't.id', '=', 'transaction_sell_lines.transaction_id')
+                ->leftJoin('variations as v', 'transaction_sell_lines.variation_id', '=', 'v.id')
+                ->leftJoin('products as p', 'v.product_id', '=', 'p.id')
+                ->leftJoin('units as u', 'p.unit_id', '=', 'u.id')
+                ->leftJoin('product_variations as pv', 'v.product_variation_id', '=', 'pv.id')
+                ->leftJoin('users as ss', 'ss.id', '=', 'transaction_sell_lines.res_service_staff_id')
+                ->leftjoin(
+                    'business_locations AS bl',
+                    't.location_id',
+                    '=',
+                    'bl.id'
+                )
+                ->where('t.business_id', $business_id)
+                ->where('t.type', 'sell')
+                ->where('t.status', 'final')
+                ->whereNotNull('transaction_sell_lines.res_service_staff_id');
+
+        if (! empty(($filtros['service_staff_id'] ?? null))) {
+            $query->where('transaction_sell_lines.res_service_staff_id', ($filtros['service_staff_id'] ?? null));
+        }
+
+        if (array_key_exists('location_id', $filtros)) {
+            $location_id = $filtros['location_id'];
+            if (! empty($location_id)) {
+                $query->where('t.location_id', $location_id);
+            }
+        }
+
+        if (! empty(($filtros['start_date'] ?? null)) && ! empty(($filtros['end_date'] ?? null))) {
+            $start = ($filtros['start_date'] ?? null);
+            $end = ($filtros['end_date'] ?? null);
+            $query->whereDate('t.transaction_date', '>=', $start)
+                        ->whereDate('t.transaction_date', '<=', $end);
+        }
+
+        $query->select(
+            'p.name as product_name',
+            'p.type as product_type',
+            'v.name as variation_name',
+            'pv.name as product_variation_name',
+            'u.short_name as unit',
+            't.id as transaction_id',
+            'bl.name as business_location',
+            't.transaction_date',
+            't.invoice_no',
+            'transaction_sell_lines.quantity',
+            'transaction_sell_lines.unit_price_before_discount',
+            'transaction_sell_lines.line_discount_type',
+            'transaction_sell_lines.line_discount_amount',
+            'transaction_sell_lines.item_tax',
+            'transaction_sell_lines.unit_price_inc_tax',
+            DB::raw('CONCAT(COALESCE(ss.first_name, ""), COALESCE(ss.last_name, "")) as service_staff')
+        );
+
+        return $query;
+    }
+
+    /**
+     * Tela nova da aba "itens por atendente": as mesmas linhas, 25 por página na ordem do DataTable da Blade (data da
+     * venda, decrescente). Desconto e total com a mesma conta das colunas da Blade (desconto percentual = preço antes
+     * do desconto × % ÷ 100; total = preço com imposto × quantidade). Rodapé da página como o da Blade.
+     */
+    private function telaItensPorAtendente(Request $request, int $business_id): \Inertia\Response
+    {
+        $filtros = [
+            'service_staff_id' => (string) $request->query('service_staff_id', ''),
+            'location_id' => (string) $request->query('location_id', ''),
+            // Período padrão = mês corrente, como o daterangepicker da Blade.
+            'start_date' => $this->dataIsoOu((string) $request->query('start_date', ''), now()->startOfMonth()->toDateString()),
+            'end_date' => $this->dataIsoOu((string) $request->query('end_date', ''), now()->endOfMonth()->toDateString()),
+        ];
+
+        $pagina = $this->consultaItensPorAtendente($business_id, $filtros)
+            ->orderBy('t.transaction_date', 'desc')->orderBy('transaction_sell_lines.id', 'desc')
+            ->toBase()->paginate(25)->withQueryString();
+
+        $linhas = collect($pagina->items())->map(function (\stdClass $r): array {
+            $desconto = ! empty($r->line_discount_amount) ? (float) $r->line_discount_amount : 0.0;
+            if (! empty($desconto) && $r->line_discount_type == 'percentage') {
+                $desconto = (float) $r->unit_price_before_discount * ($desconto / 100);
+            }
+
+            return [
+                'data' => (string) $this->productUtil->format_date($r->transaction_date),
+                'venda' => (string) $r->invoice_no,
+                'atendente' => (string) $r->service_staff,
+                'produto' => $r->product_type == 'variable' ? $r->product_name.' - '.$r->product_variation_name.' - '.$r->variation_name : (string) $r->product_name,
+                'quantidade' => (float) $r->quantity,
+                'unidade' => (string) ($r->unit ?? ''),
+                'preco' => (float) $r->unit_price_before_discount,
+                'desconto' => $desconto,
+                'imposto' => (float) $r->item_tax,
+                'preco_com_imposto' => (float) $r->unit_price_inc_tax,
+                'total' => (float) $r->unit_price_inc_tax * (float) $r->quantity,
+            ];
+        })->values();
+
+        $porUnidade = [];
+        foreach ($linhas->groupBy('unidade') as $unidade => $doGrupo) {
+            $porUnidade[] = ['unidade' => (string) $unidade, 'quantidade' => (float) $doGrupo->sum('quantidade')];
+        }
+
+        return Inertia::render('Relatorios/ItensPorAtendente/Index', [
+            'linhas' => $linhas,
+            // Como o rodapé da Blade: só as linhas desta página.
+            'rodape' => [
+                'por_unidade' => $porUnidade,
+                'preco' => (float) $linhas->sum('preco'),
+                'desconto' => (float) $linhas->sum('desconto'),
+                'imposto' => (float) $linhas->sum('imposto'),
+                'preco_com_imposto' => (float) $linhas->sum('preco_com_imposto'),
+                'total' => (float) $linhas->sum('total'),
+            ],
+            'paginacao' => ['atual' => $pagina->currentPage(), 'ultima' => $pagina->lastPage(), 'total' => $pagina->total()],
+            'filtros' => $filtros,
+            'atendentes' => collect($this->transactionUtil->serviceStaffDropdown($business_id))->map(fn ($nome, $id) => ['id' => (int) $id, 'nome' => (string) $nome])->values(),
+            'locais' => collect(BusinessLocation::forDropdown($business_id, true))->map(fn ($nome, $id) => ['id' => (int) $id, 'nome' => (string) $nome])->values(),
+            'moeda' => [
+                'simbolo' => (string) $request->session()->get('business.currency_symbol', 'R$'),
+                'casas' => (int) $request->session()->get('business.currency_precision', 2),
+            ],
+        ]);
     }
 
     /**
