@@ -26,7 +26,7 @@ class ApuracaoDia extends Model
         'realizada_trabalhada_minutos', 'realizada_intrajornada_minutos',
         'atraso_minutos', 'saida_antecipada_minutos', 'falta_minutos',
         'he_diurna_minutos', 'he_noturna_minutos', 'adicional_noturno_minutos',
-        'dsr_repercussao_minutos',
+        'dsr_repercussao_minutos', 'feriado_id', 'he_feriado_minutos',
         'interjornada_violacao_minutos', 'intrajornada_violacao_minutos',
         'banco_horas_credito_minutos', 'banco_horas_debito_minutos',
         'estado', 'qtd_intercorrencias', 'qtd_marcacoes',

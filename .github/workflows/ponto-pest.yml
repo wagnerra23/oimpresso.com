@@ -338,6 +338,8 @@ jobs:
         # conserto: 4 passed (8/4/3/3 assertions) junto de ImportacaoShow + Wave26 +
         # Observability = 41 passed · 158 assertions · 0 skipped. Transação revertida:
         # zero linha de REP/usuário/importação/marcação sobrando no tenant 98 (conferido).
+        # FeriadoApuracaoContratoTest (2026-10-08, issue #8200 · D5 da ADR 0014): o Ponto le o
+        # feriado do HRM. Tenant 98 x 99, limpeza por id coletado (sem RefreshDatabase).
         run: |
           mkdir -p test-results
           vendor/bin/pest --no-coverage --colors=always \
@@ -360,6 +362,7 @@ jobs:
             Modules/Ponto/Tests/Feature/RelatorioLegalContratoTest.php \
             Modules/Ponto/Tests/Feature/IntercorrenciaContratoTest.php \
             Modules/Ponto/Tests/Feature/LicencaAbonaDiaContratoTest.php \
+            Modules/Ponto/Tests/Feature/FeriadoApuracaoContratoTest.php \
             Modules/Ponto/Tests/Feature/ConformidadeContratoTest.php \
             Modules/Ponto/Tests/Feature/AbasContadoresContratoTest.php \
             Modules/Ponto/Tests/Feature/TraducaoModuleLabelContratoTest.php \
