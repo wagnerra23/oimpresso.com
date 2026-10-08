@@ -63,6 +63,16 @@ beforeEach(function () {
             $t->json('tributacao_default');
             $t->timestamps();
         });
+
+        // Desde o #8973 (simulador, thread 08) o index() lê o local padrão em `business_locations`
+        // (`localPadrao`). Sem a tabela no :memory:, os 4 casos do index() caíam com QueryException.
+        // Mínimo do que o controller lê: id, business_id, state.
+        Schema::dropIfExists('business_locations');
+        Schema::create('business_locations', function ($t) {
+            $t->id();
+            $t->unsignedInteger('business_id')->index();
+            $t->string('state')->nullable();
+        });
     } else {
         if (Schema::hasTable('nfe_fiscal_rules')) {
             DB::statement('SET FOREIGN_KEY_CHECKS=0');
@@ -84,6 +94,7 @@ afterEach(function () {
     if (DB::connection()->getDriverName() === 'sqlite') {
         Schema::dropIfExists('nfe_fiscal_rules');
         Schema::dropIfExists('nfe_business_configs');
+        Schema::dropIfExists('business_locations');
     } else {
         if (Schema::hasTable('nfe_fiscal_rules')) {
             DB::statement('SET FOREIGN_KEY_CHECKS=0');
