@@ -3496,7 +3496,7 @@ class ReportController extends Controller
     /**
      * Shows product sell report grouped by date
      *
-     * @return \Illuminate\Http\Response
+     * @return \Inertia\Response|\Illuminate\Http\JsonResponse|null
      */
     public function getproductSellGroupedReport(Request $request)
     {
@@ -3505,92 +3505,15 @@ class ReportController extends Controller
         }
 
         $business_id = $request->session()->get('user.business_id');
-        $location_id = $request->get('location_id', null);
 
-        $vld_str = '';
-        if (! empty($location_id)) {
-            $vld_str = 'AND vld.location_id='.(int) $location_id; // id da request vai cru no SQL: só inteiro
+        // Tela React (playbook sistema/07). Vem ANTES do ajax(): a visita Inertia manda
+        // X-Requested-With. As linhas saem da MESMA consulta do DataTable da Blade, paginadas no servidor.
+        if ($request->query('tela') === 'nova') {
+            return $this->telaVendasAgrupado($request, $business_id);
         }
 
         if ($request->ajax()) {
-            $variation_id = $request->get('variation_id', null);
-            $query = TransactionSellLine::join(
-                'transactions as t',
-                'transaction_sell_lines.transaction_id',
-                '=',
-                't.id'
-            )
-                ->join(
-                    'variations as v',
-                    'transaction_sell_lines.variation_id',
-                    '=',
-                    'v.id'
-                )
-                ->join('product_variations as pv', 'v.product_variation_id', '=', 'pv.id')
-                ->join('products as p', 'pv.product_id', '=', 'p.id')
-                ->leftjoin('units as u', 'p.unit_id', '=', 'u.id')
-                ->where('t.business_id', $business_id)
-                ->where('t.type', 'sell')
-                ->where('t.status', 'final')
-                ->select(
-                    'p.name as product_name',
-                    'p.enable_stock',
-                    'p.type as product_type',
-                    'pv.name as product_variation',
-                    'v.name as variation_name',
-                    'v.sub_sku',
-                    't.id as transaction_id',
-                    't.transaction_date as transaction_date',
-                    'transaction_sell_lines.parent_sell_line_id',
-                    DB::raw('DATE_FORMAT(t.transaction_date, "%Y-%m-%d") as formated_date'),
-                    DB::raw("(SELECT SUM(vld.qty_available) FROM variation_location_details as vld WHERE vld.variation_id=v.id $vld_str) as current_stock"),
-                    DB::raw('SUM(transaction_sell_lines.quantity - transaction_sell_lines.quantity_returned) as total_qty_sold'),
-                    'u.short_name as unit',
-                    DB::raw('SUM((transaction_sell_lines.quantity - transaction_sell_lines.quantity_returned) * transaction_sell_lines.unit_price_inc_tax) as subtotal')
-                )
-                ->groupBy('v.id')
-                ->groupBy('formated_date');
-
-            if (! empty($variation_id)) {
-                $query->where('transaction_sell_lines.variation_id', $variation_id);
-            }
-            $start_date = $request->get('start_date');
-            $end_date = $request->get('end_date');
-            if (! empty($start_date) && ! empty($end_date)) {
-                $query->where('t.transaction_date', '>=', $start_date)
-                    ->where('t.transaction_date', '<=', $end_date);
-            }
-
-            $permitted_locations = auth()->user()->permitted_locations();
-            if ($permitted_locations != 'all') {
-                $query->whereIn('t.location_id', $permitted_locations);
-            }
-
-            if (! empty($location_id)) {
-                $query->where('t.location_id', $location_id);
-            }
-
-            $customer_id = $request->get('customer_id', null);
-            if (! empty($customer_id)) {
-                $query->where('t.contact_id', $customer_id);
-            }
-
-            $customer_group_id = $request->get('customer_group_id', null);
-            if (! empty($customer_group_id)) {
-                $query->leftjoin('contacts AS c', 't.contact_id', '=', 'c.id')
-                    ->leftjoin('customer_groups AS CG', 'c.customer_group_id', '=', 'CG.id')
-                ->where('CG.id', $customer_group_id);
-            }
-
-            $category_id = $request->get('category_id', null);
-            if (! empty($category_id)) {
-                $query->where('p.category_id', $category_id);
-            }
-
-            $brand_id = $request->get('brand_id', null);
-            if (! empty($brand_id)) {
-                $query->where('p.brand_id', $brand_id);
-            }
+            $query = $this->consultaVendasAgrupado($business_id, $request->only(self::FILTROS_VENDAS_PRODUTO));
 
             return Datatables::of($query)
                 ->editColumn('product_name', function ($row) {
@@ -3622,6 +3545,168 @@ class ReportController extends Controller
                 ->rawColumns(['current_stock', 'subtotal', 'total_qty_sold'])
                 ->make(true);
         }
+
+        // Endpoint sem Blade própria (é o DataTable de uma aba de product_sell_report): fora do ajax sempre devolveu
+        // nada. O return explícito só declara isso — mesmo comportamento de antes.
+        return null;
+    }
+
+    /**
+     * Vendas por produto, aba "Agrupado" — a consulta (uma linha por variação por dia), usada pelo DataTable da Blade
+     * e pela tela nova (playbook sistema/07). Corpo movido sem mudança de regra do ramo ajax(), incluindo o filtro de
+     * local do estoque atual (que antes era montado no topo do método).
+     *
+     * @param  array<string, mixed>  $filtros  FILTROS_VENDAS_PRODUTO (a Blade manda os mesmos nos três DataTables)
+     */
+    private function consultaVendasAgrupado(int $business_id, array $filtros): \Illuminate\Database\Eloquent\Builder
+    {
+        $location_id = ($filtros['location_id'] ?? null);
+
+        $vld_str = '';
+        if (! empty($location_id)) {
+            $vld_str = 'AND vld.location_id='.(int) $location_id; // id da request vai cru no SQL: só inteiro
+        }
+
+        $variation_id = ($filtros['variation_id'] ?? null);
+        $query = TransactionSellLine::join(
+            'transactions as t',
+            'transaction_sell_lines.transaction_id',
+            '=',
+            't.id'
+        )
+            ->join(
+                'variations as v',
+                'transaction_sell_lines.variation_id',
+                '=',
+                'v.id'
+            )
+            ->join('product_variations as pv', 'v.product_variation_id', '=', 'pv.id')
+            ->join('products as p', 'pv.product_id', '=', 'p.id')
+            ->leftjoin('units as u', 'p.unit_id', '=', 'u.id')
+            ->where('t.business_id', $business_id)
+            ->where('t.type', 'sell')
+            ->where('t.status', 'final')
+            ->select(
+                'p.name as product_name',
+                'p.enable_stock',
+                'p.type as product_type',
+                'pv.name as product_variation',
+                'v.name as variation_name',
+                'v.sub_sku',
+                't.id as transaction_id',
+                't.transaction_date as transaction_date',
+                'transaction_sell_lines.parent_sell_line_id',
+                DB::raw('DATE_FORMAT(t.transaction_date, "%Y-%m-%d") as formated_date'),
+                DB::raw("(SELECT SUM(vld.qty_available) FROM variation_location_details as vld WHERE vld.variation_id=v.id $vld_str) as current_stock"),
+                DB::raw('SUM(transaction_sell_lines.quantity - transaction_sell_lines.quantity_returned) as total_qty_sold'),
+                'u.short_name as unit',
+                DB::raw('SUM((transaction_sell_lines.quantity - transaction_sell_lines.quantity_returned) * transaction_sell_lines.unit_price_inc_tax) as subtotal')
+            )
+            ->groupBy('v.id')
+            ->groupBy('formated_date');
+
+        if (! empty($variation_id)) {
+            $query->where('transaction_sell_lines.variation_id', $variation_id);
+        }
+        $start_date = ($filtros['start_date'] ?? null);
+        $end_date = ($filtros['end_date'] ?? null);
+        if (! empty($start_date) && ! empty($end_date)) {
+            $query->where('t.transaction_date', '>=', $start_date)
+                ->where('t.transaction_date', '<=', $end_date);
+        }
+
+        $permitted_locations = auth()->user()->permitted_locations();
+        if ($permitted_locations != 'all') {
+            $query->whereIn('t.location_id', $permitted_locations);
+        }
+
+        if (! empty($location_id)) {
+            $query->where('t.location_id', $location_id);
+        }
+
+        $customer_id = ($filtros['customer_id'] ?? null);
+        if (! empty($customer_id)) {
+            $query->where('t.contact_id', $customer_id);
+        }
+
+        $customer_group_id = ($filtros['customer_group_id'] ?? null);
+        if (! empty($customer_group_id)) {
+            $query->leftjoin('contacts AS c', 't.contact_id', '=', 'c.id')
+                ->leftjoin('customer_groups AS CG', 'c.customer_group_id', '=', 'CG.id')
+            ->where('CG.id', $customer_group_id);
+        }
+
+        $category_id = ($filtros['category_id'] ?? null);
+        if (! empty($category_id)) {
+            $query->where('p.category_id', $category_id);
+        }
+
+        $brand_id = ($filtros['brand_id'] ?? null);
+        if (! empty($brand_id)) {
+            $query->where('p.brand_id', $brand_id);
+        }
+
+        return $query;
+    }
+
+    /**
+     * Tela nova de Vendas por produto, aba "Agrupado": as mesmas linhas (variação × dia), 25 por página na ordem do
+     * DataTable da Blade (SKU, decrescente; desempate pelo dia, decrescente). O rodapé da página é o da Blade:
+     * quantidade somada por unidade em todas as linhas; subtotal só das linhas que a Blade marca (parent_sell_line_id
+     * nulo na linha agregada — a mesma regra do editColumn dela, preservada como está).
+     */
+    private function telaVendasAgrupado(Request $request, int $business_id): \Inertia\Response
+    {
+        $filtros = array_filter($request->only(self::FILTROS_VENDAS_PRODUTO), fn ($v) => $v !== null && $v !== '');
+        // Sem período = tudo, como a Blade. Com período, o report.js manda "YYYY-MM-DD HH:mm" com o horário padrão
+        // dele: início 00:00, fim 23:59.
+        $inicio = $this->dataIsoOu((string) $request->query('start_date', ''), '');
+        $fim = $this->dataIsoOu((string) $request->query('end_date', ''), '');
+        $filtros['start_date'] = $inicio === '' ? '' : $inicio.' 00:00';
+        $filtros['end_date'] = $fim === '' ? '' : $fim.' 23:59';
+
+        $pagina = $this->consultaVendasAgrupado($business_id, $filtros)
+            ->orderBy('v.sub_sku', 'desc')->orderBy('formated_date', 'desc')
+            ->toBase()->paginate(25)->withQueryString();
+
+        $linhas = collect($pagina->items())->map(fn (\stdClass $r): array => [
+            'produto' => $r->product_type == 'variable' ? $r->product_name.' - '.$r->product_variation.' - '.$r->variation_name : (string) $r->product_name,
+            'sku' => (string) $r->sub_sku,
+            // Mesma conta do @format_date da Blade.
+            'data' => \Carbon\Carbon::createFromTimestamp(strtotime((string) $r->formated_date))->format((string) $request->session()->get('business.date_format', config('constants.default_date_format', 'd/m/Y'))),
+            // Produto sem controle de estoque: a Blade deixa a célula vazia.
+            'estoque_atual' => $r->enable_stock ? (float) $r->current_stock : null,
+            'quantidade' => (float) $r->total_qty_sold,
+            'unidade' => (string) ($r->unit ?? ''),
+            'subtotal' => (float) $r->subtotal,
+            'no_rodape' => is_null($r->parent_sell_line_id),
+        ])->values();
+
+        $porUnidade = [];
+        foreach ($linhas->groupBy('unidade') as $unidade => $doGrupo) {
+            $porUnidade[] = ['unidade' => (string) $unidade, 'quantidade' => (float) $doGrupo->sum('quantidade')];
+        }
+
+        return Inertia::render('Relatorios/VendasAgrupado/Index', [
+            'linhas' => $linhas,
+            // Como o rodapé da Blade: só as linhas desta página.
+            'rodape' => ['subtotal' => (float) $linhas->where('no_rodape', true)->sum('subtotal'), 'por_unidade' => $porUnidade],
+            'paginacao' => ['atual' => $pagina->currentPage(), 'ultima' => $pagina->lastPage(), 'total' => $pagina->total()],
+            'filtros' => [
+                'customer_id' => (string) ($filtros['customer_id'] ?? ''),
+                'customer_group_id' => (string) ($filtros['customer_group_id'] ?? ''),
+                'location_id' => (string) ($filtros['location_id'] ?? ''),
+                'category_id' => (string) ($filtros['category_id'] ?? ''),
+                'brand_id' => (string) ($filtros['brand_id'] ?? ''),
+                'start_date' => $inicio,
+                'end_date' => $fim,
+            ],
+            ...$this->opcoesVendasPorProduto($business_id),
+            'moeda' => [
+                'simbolo' => (string) $request->session()->get('business.currency_symbol', 'R$'),
+                'casas' => (int) $request->session()->get('business.currency_precision', 2),
+            ],
+        ]);
     }
 
     /**
