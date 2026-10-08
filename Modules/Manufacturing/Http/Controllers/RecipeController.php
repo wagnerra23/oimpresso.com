@@ -794,9 +794,19 @@ class RecipeController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
+        // Tier 0 (ADR 0093): antes apagava pelo id de qualquer empresa. A receita só é achada pela
+        // cadeia variations → products da empresa da sessão; de outra empresa (ou inexistente) é
+        // 404. Os ingredientes saem junto pelo FK cascade. ExcluirReceitaEmpresaTest.
+        $recipe = MfgRecipe::query()
+                        ->forBusinessViaProductChain((int) $business_id)
+                        ->where('mfg_recipes.id', $id)
+                        ->first();
+        if ($recipe === null) {
+            abort(404);
+        }
+
         try {
-            $recipe = MfgRecipe::where('id', $id)
-                        ->delete();
+            $recipe->delete();
 
             $output = ['success' => 1,
                 'msg' => __('lang_v1.deleted_success'),
