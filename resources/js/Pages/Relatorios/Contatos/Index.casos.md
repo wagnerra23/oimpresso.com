@@ -20,8 +20,8 @@ last_run: "2026-10-07"
 ## UC-RCT-01 · Mesmas colunas e mesmo devido que a Blade · `must` `[T0]` `[valor]`
 - **Aceite:** Dado um cliente com venda final, pagamento parcial e devolução de venda no período · Quando abro a tela
   nova e peço o JSON do DataTable da Blade · Então vendas, devoluções e devido são os mesmos nos dois e batem com a
-  soma direta em `transactions`/`transaction_payments` · E o devido segue a conta que está em produção (o desconto de
-  razão de venda não entra — ver RUNBOOK §4).
+  soma direta em `transactions`/`transaction_payments` · E o desconto de razão de venda abate o devido (decisão [W]
+  2026-10-08 — ver RUNBOOK §4).
 - **Status: 🧪**
 
 ## UC-RCT-02 · Paginação por nome e rodapé da página · `must`
@@ -36,4 +36,3 @@ last_run: "2026-10-07"
 
 ## Backlog
 - [BACKLOG] Nome do contato como link para a ficha, como a Blade.
-- [BACKLOG] Decisão [W]: incluir o desconto de razão de venda no devido (corrige o número; precisa de antes→depois).
