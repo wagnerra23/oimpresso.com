@@ -33,7 +33,9 @@ type Props = {
 };
 
 const TODOS = 'todos';
-const ABAS: { valor: Tipo; nome: string; referencia: string; contato: string }[] = [
+type AbaImposto = { valor: Tipo; nome: string; referencia: string; contato: string };
+// Tupla não-vazia: ABAS[0] é sempre uma aba (o fallback do find não fica 'possivelmente undefined').
+const ABAS: [AbaImposto, ...AbaImposto[]] = [
   { valor: 'purchase', nome: 'Imposto de entrada (compras)', referencia: 'Ref.', contato: 'Fornecedor' },
   { valor: 'sell', nome: 'Imposto de saída (vendas)', referencia: 'Nº da venda', contato: 'Cliente' },
   { valor: 'expense', nome: 'Imposto de despesas', referencia: 'Ref.', contato: '' },
@@ -123,7 +125,7 @@ function ImpostosIndex({ tipo, resumo, aliquotas, linhas, rodape, paginacao, fil
                   <td className="px-3 py-2">{l.pagamento}</td>
                   {comContato ? <td className={num}>{desconto(l)}</td> : null}
                   {/* Como a Blade: célula vazia quando a alíquota não tem imposto na transação. */}
-                  {aliquotas.map(a => <td key={a.id} className={num}>{l.impostos[a.id] > 0 ? dinheiro(l.impostos[a.id]) : ''}</td>)}
+                  {aliquotas.map(a => <td key={a.id} className={num}>{(l.impostos[a.id] ?? 0) > 0 ? dinheiro(l.impostos[a.id] ?? 0) : ''}</td>)}
                 </tr>
               ))}
             </tbody>

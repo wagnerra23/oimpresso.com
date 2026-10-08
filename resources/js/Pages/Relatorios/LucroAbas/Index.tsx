@@ -26,7 +26,9 @@ type Props = {
 };
 
 const TODOS = 'todos';
-const ABAS: { valor: Aba; nome: string; coluna: string }[] = [
+type AbaLucro = { valor: Aba; nome: string; coluna: string };
+// Tupla não-vazia: ABAS[0] é sempre uma aba (o fallback do find não fica 'possivelmente undefined').
+const ABAS: [AbaLucro, ...AbaLucro[]] = [
   { valor: 'product', nome: 'Por produto', coluna: 'Produto' },
   { valor: 'category', nome: 'Por categoria', coluna: 'Categoria' },
   { valor: 'brand', nome: 'Por marca', coluna: 'Marca' },
