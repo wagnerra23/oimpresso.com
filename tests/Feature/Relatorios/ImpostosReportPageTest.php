@@ -118,6 +118,8 @@ test('UC-RIM-01 valor — imposto por alíquota = JSON do DataTable da Blade = c
         $page[$id] = (float) $props['linhas'][0]['impostos'][(string) $id];
     }
     expect($page)->toEqual($blade);
+    // A data sai pela mesma conta do @format_datetime da Blade (com o deslocamento de horário dela, ADR 0066).
+    expect($props['linhas'][0]['data'])->toBe(trim(strip_tags((string) $dt->json('data.0.transaction_date'))));
 
     // Conta à mão: 10% = 2 × (3 − 1) + 5 da compra = 9; composto = 4 × 1 = 4, quebrado em 5% = 4 × 5/20 = 1 e
     // 15% = 4 × 15/20 = 3.
@@ -148,7 +150,7 @@ test('UC-RIM-03 — 25 por página na ordem da aba entrada (data crescente); rod
     $p1 = rimPage($this, 'purchase', $contato, 1);
     expect($p1['linhas'])->toHaveCount(25);
     expect($p1['paginacao'])->toMatchArray(['atual' => 1, 'ultima' => 2, 'total' => 26]);
-    expect($p1['linhas'][0]['data'])->toBe('01/11/2099 10:00');
+    expect((float) $p1['linhas'][0]['total'])->toEqual(10.0); // a compra do dia 1, a mais antiga
     expect((float) $p1['rodape']['total'])->toEqual((float) array_sum(range(10, 34))); // sem o dia 26 (35), que cai na página 2
 
     $p2 = rimPage($this, 'purchase', $contato, 2);

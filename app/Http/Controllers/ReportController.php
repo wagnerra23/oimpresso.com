@@ -1027,7 +1027,7 @@ class ReportController extends Controller
      * @param  array<string, mixed>  $tax
      * @param  array<int, array{sub_taxes: array<int, mixed>}>  $group_taxes
      */
-    private function impostoPorAliquota(\App\Transaction $row, array $tax, ?string $type, array $group_taxes): float
+    private function impostoPorAliquota(object $row, array $tax, ?string $type, array $group_taxes): float
     {
         $tax_amount = 0;
         if ($type == 'sell') {
@@ -1121,7 +1121,7 @@ class ReportController extends Controller
         $data = $request->session()->get('business.time_format') == 24 ? 'H:i' : 'h:i A';
         $data = (string) $request->session()->get('business.date_format', config('constants.default_date_format', 'd/m/Y')).' '.$data;
 
-        $linhas = collect($pagina->items())->map(function (\App\Transaction $t) use ($aliquotas, $tipo, $grupos, $tiposDePagamento, $data): array {
+        $linhas = collect($pagina->items())->map(function (object $t) use ($aliquotas, $tipo, $grupos, $tiposDePagamento, $data): array {
             $impostos = [];
             foreach ($aliquotas as $aliquota) {
                 $impostos[(string) $aliquota['id']] = $this->impostoPorAliquota($t, $aliquota, $tipo, $grupos);
