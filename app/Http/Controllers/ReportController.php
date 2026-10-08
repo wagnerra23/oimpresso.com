@@ -2054,7 +2054,7 @@ class ReportController extends Controller
     /**
      * Shows product purchase report
      *
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Contracts\View\View|\Inertia\Response|\Illuminate\Http\JsonResponse
      */
     public function getproductPurchaseReport(Request $request)
     {
@@ -2063,72 +2063,15 @@ class ReportController extends Controller
         }
 
         $business_id = $request->session()->get('user.business_id');
+
+        // Tela React (playbook sistema/07). Vem ANTES do ajax(): a visita Inertia manda
+        // X-Requested-With. As linhas saem da MESMA consulta do DataTable da Blade, paginadas no servidor.
+        if ($request->query('tela') === 'nova') {
+            return $this->telaComprasPorProduto($request, $business_id);
+        }
+
         if ($request->ajax()) {
-            $variation_id = $request->get('variation_id', null);
-            $query = PurchaseLine::join(
-                'transactions as t',
-                'purchase_lines.transaction_id',
-                '=',
-                't.id'
-                    )
-                    ->join(
-                        'variations as v',
-                        'purchase_lines.variation_id',
-                        '=',
-                        'v.id'
-                    )
-                    ->join('product_variations as pv', 'v.product_variation_id', '=', 'pv.id')
-                    ->join('contacts as c', 't.contact_id', '=', 'c.id')
-                    ->join('products as p', 'pv.product_id', '=', 'p.id')
-                    ->leftjoin('units as u', 'p.unit_id', '=', 'u.id')
-                    ->where('t.business_id', $business_id)
-                    ->where('t.type', 'purchase')
-                    ->select(
-                        'p.name as product_name',
-                        'p.type as product_type',
-                        'pv.name as product_variation',
-                        'v.name as variation_name',
-                        'v.sub_sku',
-                        'c.name as supplier',
-                        'c.supplier_business_name',
-                        't.id as transaction_id',
-                        't.ref_no',
-                        't.transaction_date as transaction_date',
-                        'purchase_lines.purchase_price_inc_tax as unit_purchase_price',
-                        DB::raw('(purchase_lines.quantity - purchase_lines.quantity_returned) as purchase_qty'),
-                        'purchase_lines.quantity_adjusted',
-                        'u.short_name as unit',
-                        DB::raw('((purchase_lines.quantity - purchase_lines.quantity_returned - purchase_lines.quantity_adjusted) * purchase_lines.purchase_price_inc_tax) as subtotal')
-                    )
-                    ->groupBy('purchase_lines.id');
-            if (! empty($variation_id)) {
-                $query->where('purchase_lines.variation_id', $variation_id);
-            }
-            $start_date = $request->get('start_date');
-            $end_date = $request->get('end_date');
-            if (! empty($start_date) && ! empty($end_date)) {
-                $query->whereBetween(DB::raw('date(transaction_date)'), [$start_date, $end_date]);
-            }
-
-            $permitted_locations = auth()->user()->permitted_locations();
-            if ($permitted_locations != 'all') {
-                $query->whereIn('t.location_id', $permitted_locations);
-            }
-
-            $location_id = $request->get('location_id', null);
-            if (! empty($location_id)) {
-                $query->where('t.location_id', $location_id);
-            }
-
-            $supplier_id = $request->get('supplier_id', null);
-            if (! empty($supplier_id)) {
-                $query->where('t.contact_id', $supplier_id);
-            }
-
-            $brand_id = $request->get('brand_id', null);
-            if (! empty($brand_id)) {
-                $query->where('p.brand_id', $brand_id);
-            }
+            $query = $this->consultaComprasPorProduto($business_id, $request->only(self::FILTROS_COMPRAS_PRODUTO));
 
             return Datatables::of($query)
                 ->editColumn('product_name', function ($row) {
@@ -2169,6 +2112,142 @@ class ReportController extends Controller
 
         return view('report.product_purchase_report')
             ->with(compact('business_locations', 'suppliers', 'brands'));
+    }
+
+    /** Filtros do relatório Compras por produto — os mesmos nomes que o report.js manda. */
+    private const FILTROS_COMPRAS_PRODUTO = ['variation_id', 'start_date', 'end_date', 'location_id', 'supplier_id', 'brand_id'];
+
+    /**
+     * Compras por produto — a consulta do relatório (uma linha por item de compra), usada pelo DataTable da
+     * Blade e pela tela nova (playbook sistema/07). Corpo movido sem mudança de regra do ramo ajax().
+     *
+     * @param  array<string, mixed>  $filtros  FILTROS_COMPRAS_PRODUTO
+     */
+    private function consultaComprasPorProduto(int $business_id, array $filtros): \Illuminate\Database\Eloquent\Builder
+    {
+        $variation_id = ($filtros['variation_id'] ?? null);
+        $query = PurchaseLine::join(
+            'transactions as t',
+            'purchase_lines.transaction_id',
+            '=',
+            't.id'
+                )
+                ->join(
+                    'variations as v',
+                    'purchase_lines.variation_id',
+                    '=',
+                    'v.id'
+                )
+                ->join('product_variations as pv', 'v.product_variation_id', '=', 'pv.id')
+                ->join('contacts as c', 't.contact_id', '=', 'c.id')
+                ->join('products as p', 'pv.product_id', '=', 'p.id')
+                ->leftjoin('units as u', 'p.unit_id', '=', 'u.id')
+                ->where('t.business_id', $business_id)
+                ->where('t.type', 'purchase')
+                ->select(
+                    'p.name as product_name',
+                    'p.type as product_type',
+                    'pv.name as product_variation',
+                    'v.name as variation_name',
+                    'v.sub_sku',
+                    'c.name as supplier',
+                    'c.supplier_business_name',
+                    't.id as transaction_id',
+                    't.ref_no',
+                    't.transaction_date as transaction_date',
+                    'purchase_lines.purchase_price_inc_tax as unit_purchase_price',
+                    DB::raw('(purchase_lines.quantity - purchase_lines.quantity_returned) as purchase_qty'),
+                    'purchase_lines.quantity_adjusted',
+                    'u.short_name as unit',
+                    DB::raw('((purchase_lines.quantity - purchase_lines.quantity_returned - purchase_lines.quantity_adjusted) * purchase_lines.purchase_price_inc_tax) as subtotal')
+                )
+                ->groupBy('purchase_lines.id');
+        if (! empty($variation_id)) {
+            $query->where('purchase_lines.variation_id', $variation_id);
+        }
+        $start_date = ($filtros['start_date'] ?? null);
+        $end_date = ($filtros['end_date'] ?? null);
+        if (! empty($start_date) && ! empty($end_date)) {
+            $query->whereBetween(DB::raw('date(transaction_date)'), [$start_date, $end_date]);
+        }
+
+        $permitted_locations = auth()->user()->permitted_locations();
+        if ($permitted_locations != 'all') {
+            $query->whereIn('t.location_id', $permitted_locations);
+        }
+
+        $location_id = ($filtros['location_id'] ?? null);
+        if (! empty($location_id)) {
+            $query->where('t.location_id', $location_id);
+        }
+
+        $supplier_id = ($filtros['supplier_id'] ?? null);
+        if (! empty($supplier_id)) {
+            $query->where('t.contact_id', $supplier_id);
+        }
+
+        $brand_id = ($filtros['brand_id'] ?? null);
+        if (! empty($brand_id)) {
+            $query->where('p.brand_id', $brand_id);
+        }
+
+        return $query;
+    }
+
+    /**
+     * Tela nova de Compras por produto: as mesmas linhas da consulta acima, 25 por página na ordem do DataTable
+     * da Blade (ref. da compra, decrescente), e o rodapé da página como o da Blade (subtotal somado; quantidade
+     * comprada e ajustada por unidade).
+     */
+    private function telaComprasPorProduto(Request $request, int $business_id): \Inertia\Response
+    {
+        $filtros = array_filter($request->only(self::FILTROS_COMPRAS_PRODUTO), fn ($v) => $v !== null && $v !== '');
+        // Sem período = todas as compras, como a Blade (o campo de data dela nasce vazio).
+        $filtros['start_date'] = $this->dataIsoOu((string) $request->query('start_date', ''), '');
+        $filtros['end_date'] = $this->dataIsoOu((string) $request->query('end_date', ''), '');
+
+        $pagina = $this->consultaComprasPorProduto($business_id, $filtros)
+            ->orderBy('t.ref_no', 'desc')->orderBy('purchase_lines.id', 'desc')
+            ->toBase()->paginate(25)->withQueryString();
+
+        $linhas = collect($pagina->items())->map(fn (\stdClass $r): array => [
+            'produto' => $r->product_type == 'variable' ? $r->product_name.' - '.$r->product_variation.' - '.$r->variation_name : (string) $r->product_name,
+            'sku' => (string) $r->sub_sku,
+            'fornecedor' => trim((! empty($r->supplier_business_name) ? $r->supplier_business_name.', ' : '').$r->supplier),
+            'compra' => (string) $r->ref_no,
+            'data' => (string) $this->productUtil->format_date($r->transaction_date),
+            'quantidade' => (float) $r->purchase_qty,
+            'ajustado' => (float) $r->quantity_adjusted,
+            'preco_unitario' => (float) $r->unit_purchase_price,
+            'subtotal' => (float) $r->subtotal,
+            'unidade' => (string) ($r->unit ?? ''),
+        ])->values();
+
+        $porUnidade = [];
+        foreach ($linhas->groupBy('unidade') as $unidade => $doGrupo) {
+            $porUnidade[] = ['unidade' => (string) $unidade, 'quantidade' => (float) $doGrupo->sum('quantidade'), 'ajustado' => (float) $doGrupo->sum('ajustado')];
+        }
+
+        return Inertia::render('Relatorios/ComprasProduto/Index', [
+            'linhas' => $linhas,
+            // Como o rodapé da Blade: só as linhas desta página.
+            'rodape' => ['subtotal' => (float) $linhas->sum('subtotal'), 'por_unidade' => $porUnidade],
+            'paginacao' => ['atual' => $pagina->currentPage(), 'ultima' => $pagina->lastPage(), 'total' => $pagina->total()],
+            'filtros' => [
+                'supplier_id' => (string) ($filtros['supplier_id'] ?? ''),
+                'location_id' => (string) ($filtros['location_id'] ?? ''),
+                'brand_id' => (string) ($filtros['brand_id'] ?? ''),
+                'start_date' => $filtros['start_date'],
+                'end_date' => $filtros['end_date'],
+            ],
+            'fornecedores' => collect(Contact::suppliersDropdown($business_id, false))->map(fn ($nome, $id) => ['id' => (int) $id, 'nome' => (string) $nome])->values(),
+            'locais' => collect(BusinessLocation::forDropdown($business_id))->map(fn ($nome, $id) => ['id' => (int) $id, 'nome' => (string) $nome])->values(),
+            'marcas' => collect(Brands::forDropdown($business_id))->map(fn ($nome, $id) => ['id' => (int) $id, 'nome' => (string) $nome])->values(),
+            'moeda' => [
+                'simbolo' => (string) $request->session()->get('business.currency_symbol', 'R$'),
+                'casas' => (int) $request->session()->get('business.currency_precision', 2),
+            ],
+        ]);
     }
 
     /**
