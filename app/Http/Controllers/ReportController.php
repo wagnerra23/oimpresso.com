@@ -2507,7 +2507,7 @@ class ReportController extends Controller
     /**
      * Shows product lot report
      *
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Contracts\View\View|\Inertia\Response|\Illuminate\Http\JsonResponse
      */
     public function getLotReport(Request $request)
     {
@@ -2517,84 +2517,15 @@ class ReportController extends Controller
 
         $business_id = $request->session()->get('user.business_id');
 
+        // Tela React (playbook sistema/07). Vem ANTES do ajax(): a visita Inertia manda
+        // X-Requested-With. As linhas saem da MESMA consulta do DataTable da Blade, paginadas no servidor.
+        if ($request->query('tela') === 'nova') {
+            return $this->telaLotes($request, $business_id);
+        }
+
         //Return the details in ajax call
         if ($request->ajax()) {
-            $query = Product::where('products.business_id', $business_id)
-                    ->leftjoin('units', 'products.unit_id', '=', 'units.id')
-                    ->join('variations as v', 'products.id', '=', 'v.product_id')
-                    ->join('purchase_lines as pl', 'v.id', '=', 'pl.variation_id')
-                    ->leftjoin(
-                        'transaction_sell_lines_purchase_lines as tspl',
-                        'pl.id',
-                        '=',
-                        'tspl.purchase_line_id'
-                    )
-                    ->join('transactions as t', 'pl.transaction_id', '=', 't.id');
-
-            $permitted_locations = auth()->user()->permitted_locations();
-            $location_filter = 'WHERE ';
-
-            if ($permitted_locations != 'all') {
-                $query->whereIn('t.location_id', $permitted_locations);
-
-                $locations_imploded = implode(', ', $permitted_locations);
-                $location_filter = " LEFT JOIN transactions as t2 on pls.transaction_id=t2.id WHERE t2.location_id IN ($locations_imploded) AND ";
-            }
-
-            if (! empty($request->input('location_id'))) {
-                $location_id = (int) $request->input('location_id'); // vai cru no SQL abaixo: só inteiro
-                $query->where('t.location_id', $location_id)
-                    //If filter by location then hide products not available in that location
-                    ->ForLocation($location_id);
-
-                $location_filter = "LEFT JOIN transactions as t2 on pls.transaction_id=t2.id WHERE t2.location_id=$location_id AND ";
-            }
-
-            if (! empty($request->input('category_id'))) {
-                $query->where('products.category_id', $request->input('category_id'));
-            }
-
-            if (! empty($request->input('sub_category_id'))) {
-                $query->where('products.sub_category_id', $request->input('sub_category_id'));
-            }
-
-            if (! empty($request->input('brand_id'))) {
-                $query->where('products.brand_id', $request->input('brand_id'));
-            }
-
-            if (! empty($request->input('unit_id'))) {
-                $query->where('products.unit_id', $request->input('unit_id'));
-            }
-
-            $only_mfg_products = request()->get('only_mfg_products', 0);
-            if (! empty($only_mfg_products)) {
-                $query->where('t.type', 'production_purchase');
-            }
-
-            $products = $query->select(
-                'products.name as product',
-                'v.name as variation_name',
-                'sub_sku',
-                'pl.lot_number',
-                'pl.exp_date as exp_date',
-                DB::raw("( COALESCE((SELECT SUM(quantity - quantity_returned) from purchase_lines as pls $location_filter variation_id = v.id AND lot_number = pl.lot_number), 0) - 
-                    SUM(COALESCE((tspl.quantity - tspl.qty_returned), 0))) as stock"),
-                // DB::raw("(SELECT SUM(IF(transactions.type='sell', TSL.quantity, -1* TPL.quantity) ) FROM transactions
-                //         LEFT JOIN transaction_sell_lines AS TSL ON transactions.id=TSL.transaction_id
-
-                //         LEFT JOIN purchase_lines AS TPL ON transactions.id=TPL.transaction_id
-
-                //         WHERE transactions.status='final' AND transactions.type IN ('sell', 'sell_return') $location_filter
-                //         AND (TSL.product_id=products.id OR TPL.product_id=products.id)) as total_sold"),
-
-                DB::raw('COALESCE(SUM(IF(tspl.sell_line_id IS NULL, 0, (tspl.quantity - tspl.qty_returned)) ), 0) as total_sold'),
-                DB::raw('COALESCE(SUM(IF(tspl.stock_adjustment_line_id IS NULL, 0, tspl.quantity ) ), 0) as total_adjusted'),
-                'products.type',
-                'units.short_name as unit'
-            )
-            ->whereNotNull('pl.lot_number')
-            ->groupBy('v.id')
-            ->groupBy('pl.lot_number');
+            $products = $this->consultaLotes($business_id, $request->only(self::FILTROS_LOTES));
 
             return Datatables::of($products)
                 ->editColumn('stock', function ($row) {
@@ -2651,6 +2582,145 @@ class ReportController extends Controller
 
         return view('report.lot_report')
             ->with(compact('categories', 'brands', 'units', 'business_locations'));
+    }
+
+    /** Filtros do relatório de Lotes — os mesmos nomes que o report.js manda. */
+    private const FILTROS_LOTES = ['location_id', 'category_id', 'sub_category_id', 'brand_id', 'unit_id', 'only_mfg_products'];
+
+    /**
+     * Lotes — a consulta do relatório (estoque, vendido e ajustado por lote), usada pelo DataTable da Blade e
+     * pela tela nova (playbook sistema/07). Corpo movido sem mudança de regra do ramo ajax() de getLotReport.
+     *
+     * @param  array<string, mixed>  $filtros  FILTROS_LOTES
+     */
+    private function consultaLotes(int $business_id, array $filtros): \Illuminate\Database\Eloquent\Builder
+    {
+        $query = Product::where('products.business_id', $business_id)
+                ->leftjoin('units', 'products.unit_id', '=', 'units.id')
+                ->join('variations as v', 'products.id', '=', 'v.product_id')
+                ->join('purchase_lines as pl', 'v.id', '=', 'pl.variation_id')
+                ->leftjoin(
+                    'transaction_sell_lines_purchase_lines as tspl',
+                    'pl.id',
+                    '=',
+                    'tspl.purchase_line_id'
+                )
+                ->join('transactions as t', 'pl.transaction_id', '=', 't.id');
+
+        $permitted_locations = auth()->user()->permitted_locations();
+        $location_filter = 'WHERE ';
+
+        if ($permitted_locations != 'all') {
+            $query->whereIn('t.location_id', $permitted_locations);
+
+            $locations_imploded = implode(', ', $permitted_locations);
+            $location_filter = " LEFT JOIN transactions as t2 on pls.transaction_id=t2.id WHERE t2.location_id IN ($locations_imploded) AND ";
+        }
+
+        if (! empty($filtros['location_id'] ?? null)) {
+            $location_id = (int) $filtros['location_id']; // vai cru no SQL abaixo: só inteiro
+            $query->where('t.location_id', $location_id)
+                //If filter by location then hide products not available in that location
+                ->ForLocation($location_id);
+
+            $location_filter = "LEFT JOIN transactions as t2 on pls.transaction_id=t2.id WHERE t2.location_id=$location_id AND ";
+        }
+
+        if (! empty($filtros['category_id'] ?? null)) {
+            $query->where('products.category_id', $filtros['category_id']);
+        }
+
+        if (! empty($filtros['sub_category_id'] ?? null)) {
+            $query->where('products.sub_category_id', $filtros['sub_category_id']);
+        }
+
+        if (! empty($filtros['brand_id'] ?? null)) {
+            $query->where('products.brand_id', $filtros['brand_id']);
+        }
+
+        if (! empty($filtros['unit_id'] ?? null)) {
+            $query->where('products.unit_id', $filtros['unit_id']);
+        }
+
+        $only_mfg_products = ($filtros['only_mfg_products'] ?? 0);
+        if (! empty($only_mfg_products)) {
+            $query->where('t.type', 'production_purchase');
+        }
+
+        $products = $query->select(
+            'products.name as product',
+            'v.name as variation_name',
+            'sub_sku',
+            'pl.lot_number',
+            'pl.exp_date as exp_date',
+            DB::raw("( COALESCE((SELECT SUM(quantity - quantity_returned) from purchase_lines as pls $location_filter variation_id = v.id AND lot_number = pl.lot_number), 0) - 
+                SUM(COALESCE((tspl.quantity - tspl.qty_returned), 0))) as stock"),
+            // DB::raw("(SELECT SUM(IF(transactions.type='sell', TSL.quantity, -1* TPL.quantity) ) FROM transactions
+            //         LEFT JOIN transaction_sell_lines AS TSL ON transactions.id=TSL.transaction_id
+
+            //         LEFT JOIN purchase_lines AS TPL ON transactions.id=TPL.transaction_id
+
+            //         WHERE transactions.status='final' AND transactions.type IN ('sell', 'sell_return') $location_filter
+            //         AND (TSL.product_id=products.id OR TPL.product_id=products.id)) as total_sold"),
+
+            DB::raw('COALESCE(SUM(IF(tspl.sell_line_id IS NULL, 0, (tspl.quantity - tspl.qty_returned)) ), 0) as total_sold'),
+            DB::raw('COALESCE(SUM(IF(tspl.stock_adjustment_line_id IS NULL, 0, tspl.quantity ) ), 0) as total_adjusted'),
+            'products.type',
+            'units.short_name as unit'
+        )
+        ->whereNotNull('pl.lot_number')
+        ->groupBy('v.id')
+        ->groupBy('pl.lot_number');
+
+        return $products;
+    }
+
+    /**
+     * Tela nova de Lotes: as mesmas linhas da consulta acima, 25 por página na ordem do DataTable da Blade
+     * (SKU, crescente), e o rodapé por unidade somando só a página, como o __sum_stock da Blade.
+     */
+    private function telaLotes(Request $request, int $business_id): \Inertia\Response
+    {
+        $filtros = array_filter($request->only(self::FILTROS_LOTES), fn ($v) => $v !== null && $v !== '' && $v !== '0');
+
+        $pagina = $this->consultaLotes($business_id, $filtros)
+            ->orderBy('sub_sku', 'asc')->orderBy('pl.lot_number', 'asc')
+            ->toBase()->paginate(25)->withQueryString();
+
+        $linhas = collect($pagina->items())->map(fn (\stdClass $r): array => [
+            'sku' => (string) $r->sub_sku,
+            'produto' => $r->variation_name != 'DUMMY' ? $r->product.' ('.$r->variation_name.')' : (string) $r->product,
+            'lote' => (string) $r->lot_number,
+            'validade' => ! empty($r->exp_date) ? (string) $this->productUtil->format_date($r->exp_date) : '',
+            'vencido' => ! empty($r->exp_date) && \Carbon::now()->diffInDays(\Carbon::createFromFormat('Y-m-d', $r->exp_date), false) < 0,
+            'estoque' => (float) ($r->stock ?: 0),
+            'vendido' => (float) $r->total_sold,
+            'ajustado' => (float) $r->total_adjusted,
+            'unidade' => (string) ($r->unit ?? ''),
+        ])->values();
+
+        // Rodapé como o __sum_stock da Blade: cada quantidade somada por unidade, só nas linhas desta página.
+        $rodape = [];
+        foreach ($linhas->groupBy('unidade') as $unidade => $doGrupo) {
+            $rodape[] = ['unidade' => (string) $unidade, 'estoque' => (float) $doGrupo->sum('estoque'), 'vendido' => (float) $doGrupo->sum('vendido'), 'ajustado' => (float) $doGrupo->sum('ajustado')];
+        }
+
+        return Inertia::render('Relatorios/Lotes/Index', [
+            'linhas' => $linhas,
+            'rodape' => $rodape,
+            'paginacao' => ['atual' => $pagina->currentPage(), 'ultima' => $pagina->lastPage(), 'total' => $pagina->total()],
+            'filtros' => [
+                'location_id' => (string) ($filtros['location_id'] ?? ''),
+                'category_id' => (string) ($filtros['category_id'] ?? ''),
+                'brand_id' => (string) ($filtros['brand_id'] ?? ''),
+                'unit_id' => (string) ($filtros['unit_id'] ?? ''),
+            ],
+            'locais' => collect(BusinessLocation::forDropdown($business_id, false))->map(fn ($nome, $id) => ['id' => (int) $id, 'nome' => (string) $nome])->values(),
+            'categorias' => collect(Category::forDropdown($business_id, 'product'))->map(fn ($nome, $id) => ['id' => (int) $id, 'nome' => (string) $nome])->values(),
+            'marcas' => collect(Brands::forDropdown($business_id))->map(fn ($nome, $id) => ['id' => (int) $id, 'nome' => (string) $nome])->values(),
+            'unidades' => Unit::where('business_id', $business_id)->pluck('short_name', 'id')
+                ->map(fn ($nome, $id) => ['id' => (int) $id, 'nome' => (string) $nome])->values(),
+        ]);
     }
 
     /**
