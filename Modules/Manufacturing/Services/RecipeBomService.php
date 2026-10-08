@@ -230,6 +230,9 @@ class RecipeBomService
                 'id'        => $copia === null && $grupo ? (int) $grupo->id : null,
                 'nome'      => $grupo->name ?? 'Sem grupo',
                 'descricao' => $grupo->description ?? '',
+                // Linha sem grupo (o legado permite): o editor mostra no balde "Sem grupo", mas o
+                // salvar NÃO pode mandá-lo como grupo — o `store()` criaria um grupo real com esse nome.
+                'sem_grupo' => $chave === 'sem-grupo',
                 'itens'     => [],
             ];
             $grupos[$chave]['itens'][] = $this->itemDoEditor($insumo, $util, $businessId) + [
@@ -249,6 +252,7 @@ class RecipeBomService
                 'nome'         => $this->nomeDaVariacao($variation),
                 'sku'          => (string) $variation->sub_sku,
                 'unidade'      => (string) optional($produto->unit)->short_name,
+                'unidade_id'   => (int) $produto->unit_id,
                 'sub_unidades' => $this->subUnidades($util, $businessId, (int) $produto->unit_id),
             ],
             'receita' => [
@@ -334,6 +338,7 @@ class RecipeBomService
             'sku'            => (string) $insumo->sub_sku,
             'custo_unitario' => (float) $insumo->dpp_inc_tax,
             'unidade_base'   => (string) optional($produto->unit)->short_name,
+            'unidade_base_id' => (int) $produto->unit_id,
             'sub_unidades'   => $this->subUnidades($util, $businessId, (int) $produto->unit_id),
         ];
     }

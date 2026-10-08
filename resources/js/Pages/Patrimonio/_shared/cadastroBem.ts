@@ -52,16 +52,12 @@ const CASAS_VALOR = 2;
 const CASAS_QUANTIDADE = 2;
 
 /**
- * Número → string que `Util::num_uf` lê sem ambiguidade: vírgula decimal, sem milhar,
- * zeros à direita da parte decimal removidos (`2` → "2", `1.5` → "1,5", `1234.56` → "1234,56").
+ * Número → string que `Util::num_uf` lê sem ambiguidade. Promovido para `@/Lib/numberPtBR` em
+ * 2026-10-08 sem mudar uma linha (a Fabricação passou a usar o mesmo envio); reexportado aqui para
+ * os importadores do Patrimônio não mudarem.
  */
-export function paraNumUf(valor: number, casas: number): string {
-  if (!Number.isFinite(valor)) return '0';
-  const fixo = valor.toFixed(casas); // "1234.5600" — toFixed nunca põe separador de milhar
-  const [inteira = '0', decimal = ''] = fixo.split('.');
-  const dec = decimal.replace(/0+$/, '');
-  return dec ? `${inteira},${dec}` : inteira;
-}
+import { paraNumUf } from '@/Lib/numberPtBR';
+export { paraNumUf };
 
 /** ISO (`2026-09-10`) → formato do negócio (`d/m/Y` → `10/09/2026`). */
 export function paraFormatoDoNegocio(iso: string, formato: string): string {

@@ -25,8 +25,8 @@ owner: M
 | Etapa | O quê | Estado |
 |---|---|---|
 | 0 | Servidor do salvar: custo calculado no servidor, recusa receita vazia, quantidade ≤ 0 e sub-unidade alheia; trocar todos os ingredientes não deixa os antigos | PR #9051 |
-| 1 | Dados do editor (`RecipeBomService::editorDaReceita`) + busca de insumo (`buscarInsumos`, 7 resultados) + a tela em **modo leitura** | este PR |
-| 2 | Edição: quantidade, sub-unidade (troca o multiplicador junto, regra 4), grupos, busca de insumo e salvar no `store()`; regra 1 (≥1 ingrediente), regra 2 (quantidade travada vira texto), regra 5 (cópia; cancelar descarta) | a fazer |
+| 1 | Dados do editor (`RecipeBomService::editorDaReceita`) + busca de insumo (`buscarInsumos`, 7 resultados) + a tela em **modo leitura** | #9059 (mergeado) |
+| 2 | Edição: quantidade, sub-unidade (troca o multiplicador junto, regra 4), grupos, busca de insumo e salvar no `store()`; regra 1 (≥1 ingrediente), regra 2 (quantidade travada vira texto), regra 5 (cópia; cancelar descarta). Números vão por `paraNumUf` (@/Lib/numberPtBR, promovido do Patrimônio): vírgula decimal, sem milhar, com as casas exibidas no campo — nunca cru | este PR — mergear **depois** do #9051 |
 | 3 | Excluir receita com a confirmação da regra 6 · trocar o link "Editar ingredientes" da lista para a tela nova | a fazer |
 
 A janela Blade continua sendo a padrão até a etapa 3: sem `?tela=nova` nada muda para ninguém.
@@ -52,7 +52,8 @@ A janela Blade continua sendo a padrão até a etapa 3: sem `?tela=nova` nada mu
 | Arquivo | Papel |
 |---|---|
 | `resources/js/Pages/Manufacturing/IngredientesEditor.tsx` | a tela |
-| `resources/js/Pages/Manufacturing/_lib/custo.ts` | custo ao vivo — mesma conta do `calculateCost` |
+| `resources/js/Pages/Manufacturing/_lib/custo.ts` | custo ao vivo — mesma conta do `calculateCost` · `montarEnvio`/`paraNumUf`: o formato do salvar |
+| `resources/js/Pages/Manufacturing/_components/BuscaInsumo.tsx` | busca de insumo do "Ingrediente em <grupo>" |
 | `Modules/Manufacturing/Http/Controllers/RecipeController.php` | `addIngredients` (ramo `?tela=nova` → `telaEditor`) · `insumosParaReceita` |
 | `Modules/Manufacturing/Services/RecipeBomService.php` | `editorDaReceita` · `buscarInsumos` |
 | `Modules/Manufacturing/Tests/Feature/EditorIngredientesTest.php` | UC-INGRED-* |
@@ -64,6 +65,8 @@ A janela Blade continua sendo a padrão até a etapa 3: sem `?tela=nova` nada mu
 | 404 ao abrir | `variation_id` de outra empresa ou inexistente (`variacaoDaEmpresa`) |
 | Linha sem seletor de unidade | unidade do insumo fora da empresa (dado antigo): `subUnidades` devolve vazio em vez de derrubar a tela |
 | Custo ao vivo ≠ custo da lista de Receitas | `_lib/custo.ts` divergiu do `calculateCost` — as duas têm de ser a mesma conta |
+| Quantidade gravada ×1000 ou ÷1000 do digitado | o salvar mandou número cru em vez de `paraNumUf` (o `num_uf` leu o ponto como milhar). UC-INGRED-06 |
+| Apareceu um grupo chamado "Sem grupo" | linha sem grupo foi mandada com `ig_index` — o balde tem `sem_grupo: true` e não vai como grupo. UC-INGRED-07 |
 
 ## 6. Smoke prod (R1)
 
