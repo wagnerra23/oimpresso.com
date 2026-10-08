@@ -116,6 +116,7 @@ describe('Editor de ingredientes — abrir a ficha (US-MANU-006, etapa 1)', func
             ->has('grupos', 1)
             ->where('grupos.0.id', $grupoId)
             ->where('grupos.0.nome', 'Impressão')
+            ->where('grupos.0.sem_grupo', false)
             ->has('grupos.0.itens', 1)
             ->where('grupos.0.itens.0.linha_id', $linhaId)
             ->where('grupos.0.itens.0.variation_id', $insumo)
@@ -188,5 +189,82 @@ describe('Editor de ingredientes — abrir a ficha (US-MANU-006, etapa 1)', func
 
         $this->actingAs($user)->getJson('/manufacturing/editor-receita/insumos?q=lote+editor')
             ->assertOk()->assertJsonCount(7, 'insumos');
+    });
+});
+
+/**
+ * POST no formato que a tela gera (`_lib/custo.ts::montarEnvio`): todo número por `paraNumUf`
+ * (@/Lib/numberPtBR) — vírgula decimal, sem milhar, com as casas EXIBIDAS no campo (3 na quantidade da
+ * linha, 2 nos demais) e sem zeros à direita. Grupos por índice; linha sem grupo SEM `ig_index`.
+ * Os textos abaixo foram gerados pela função real, não escritos à mão.
+ */
+function mfgEdSalvar($test, User $user, array $corpo)
+{
+    return $test->actingAs($user)->post('/manufacturing/recipe', $corpo);
+}
+
+describe('Editor de ingredientes — salvar pela tela nova (US-MANU-006, etapa 2)', function () {
+    it('UC-INGRED-06: os números chegam como texto pt-BR e gravam o valor certo', function () {
+        $user = mfgEdUsuario('mfg_editor_grava', ['manufacturing.access_recipe', 'manufacturing.add_recipe']);
+        [$produto, $alvo] = mfgEmpProduto(MFG_EMP_BIZ, 'Banner salvo pelo editor', $user->id);
+        [, $insumo] = mfgEmpProduto(MFG_EMP_BIZ, 'Lona salva pelo editor', $user->id, 4.0);
+        [, $insumoGrande] = mfgEmpProduto(MFG_EMP_BIZ, 'Tinta salva pelo editor', $user->id, 1.0);
+
+        // Exatamente o que `paraNumUf` produz: 0.5 (3 casas) → "0,5"; 1234.56 (3 casas) → "1234,56".
+        mfgEdSalvar($this, $user, [
+            'variation_id' => $alvo,
+            'ingredients' => [
+                ['ingredient_id' => $insumo, 'quantity' => '0,5', 'waste_percent' => '0', 'sort_order' => 1, 'sub_unit_id' => null, 'ig_index' => 0, 'mfg_ingredient_group_id' => null, 'ingredient_line_id' => null],
+                ['ingredient_id' => $insumoGrande, 'quantity' => '1234,56', 'waste_percent' => '0', 'sort_order' => 2, 'sub_unit_id' => null, 'ig_index' => 0, 'mfg_ingredient_group_id' => null, 'ingredient_line_id' => null],
+            ],
+            'ingredient_groups' => [0 => 'Grupo do editor novo'],
+            'ingredient_group_description' => [0 => ''],
+            'total' => '1236,56', 'ingredients_cost' => '1236,56',
+            'total_quantity' => '2', 'waste_percent' => '10', 'extra_cost' => '2,5',
+            'production_cost_type' => 'fixed', 'instructions' => 'salvo pela tela nova', 'sub_unit_id' => null,
+        ])->assertSessionHasNoErrors()->assertRedirect();
+
+        $recipe = MfgRecipe::where('variation_id', $alvo)->first();
+        expect($recipe)->not->toBeNull();
+        expect((float) $recipe->total_quantity)->toBe(2.0);
+        expect((float) $recipe->waste_percent)->toBe(10.0);
+        expect((float) $recipe->extra_cost)->toBe(2.5);
+        $quantidades = MfgRecipeIngredient::where('mfg_recipe_id', $recipe->id)->orderBy('sort_order')->pluck('quantity')->map(fn ($q) => (float) $q)->all();
+        // Controle do vetor do incidente: "1234,56" não pode virar 123456 nem 1.23456.
+        expect($quantidades)->toBe([0.5, 1234.56]);
+        $grupo = MfgIngredientGroup::where('business_id', MFG_EMP_BIZ)->where('name', 'Grupo do editor novo')->count();
+        expect($grupo)->toBe(1);
+    });
+
+    it('UC-INGRED-07: linha sem grupo continua sem grupo — o balde "Sem grupo" não vira grupo de verdade', function () {
+        $user = mfgEdUsuario('mfg_editor_grava', ['manufacturing.access_recipe', 'manufacturing.add_recipe']);
+        [$produto, $alvo] = mfgEmpProduto(MFG_EMP_BIZ, 'Banner sem grupo do editor', $user->id);
+        [, $insumo] = mfgEmpProduto(MFG_EMP_BIZ, 'Lona sem grupo do editor', $user->id, 4.0);
+        $recipe = MfgRecipe::create([
+            'product_id' => $produto, 'variation_id' => $alvo, 'waste_percent' => 0, 'ingredients_cost' => 0,
+            'extra_cost' => 0, 'total_quantity' => 1, 'final_price' => 0,
+        ]);
+        $linha = MfgRecipeIngredient::create(['mfg_recipe_id' => $recipe->id, 'variation_id' => $insumo, 'quantity' => 2]);
+
+        // A tela marca o balde para o salvar não mandá-lo como grupo.
+        mfgEdAbrir($this, $user, $alvo)->assertOk()->assertInertia(fn (Assert $p) => $p
+            ->where('grupos.0.nome', 'Sem grupo')
+            ->where('grupos.0.sem_grupo', true)
+            ->where('grupos.0.itens.0.unidade_base_id', fn ($v) => (int) $v > 0)
+            ->etc());
+
+        $antes = MfgIngredientGroup::where('business_id', MFG_EMP_BIZ)->where('name', 'Sem grupo')->count();
+        mfgEdSalvar($this, $user, [
+            'variation_id' => $alvo,
+            'ingredients' => [['ingredient_id' => $insumo, 'quantity' => '3', 'waste_percent' => '0', 'sort_order' => 1, 'sub_unit_id' => null, 'ig_index' => null, 'mfg_ingredient_group_id' => null, 'ingredient_line_id' => $linha->id]],
+            'ingredient_groups' => [], 'ingredient_group_description' => [],
+            'total' => '12', 'ingredients_cost' => '12', 'total_quantity' => '1', 'waste_percent' => '0',
+            'extra_cost' => '0', 'production_cost_type' => 'fixed', 'instructions' => '', 'sub_unit_id' => null,
+        ])->assertSessionHasNoErrors()->assertRedirect();
+
+        $depois = MfgRecipeIngredient::find($linha->id);
+        expect((float) $depois->quantity)->toBe(3.0);
+        expect($depois->mfg_ingredient_group_id)->toBeNull();
+        expect(MfgIngredientGroup::where('business_id', MFG_EMP_BIZ)->where('name', 'Sem grupo')->count())->toBe($antes);
     });
 });

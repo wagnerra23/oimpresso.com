@@ -100,3 +100,22 @@ export function formatDecimalPtBR(value: number | null | undefined, precision: n
     maximumFractionDigits: precision,
   });
 }
+
+/**
+ * Número → string que `Util::num_uf` (servidor) lê sem ambiguidade: vírgula decimal, sem milhar,
+ * zeros à direita da parte decimal removidos (`2` → "2", `1.5` → "1,5", `1234.56` → "1234,56").
+ *
+ * `casas` = as casas EXIBIDAS no campo. O `NumericInputPtBR` arredonda só a exibição no blur e
+ * emite o número cru: se o envio usasse mais casas que a tela, o usuário veria "1,50" e o banco
+ * gravaria 1,4999. Mesma precisão nos dois lados: o que a tela mostra é o que o banco grava.
+ *
+ * Promovido de `Pages/Patrimonio/_shared/cadastroBem.ts` em 2026-10-08, sem mudar uma linha, quando
+ * a Fabricação (editor de ingredientes) passou a precisar do mesmo envio — regra-de-2.
+ */
+export function paraNumUf(valor: number, casas: number): string {
+  if (!Number.isFinite(valor)) return '0';
+  const fixo = valor.toFixed(casas); // "1234.5600" — toFixed nunca põe separador de milhar
+  const [inteira = '0', decimal = ''] = fixo.split('.');
+  const dec = decimal.replace(/0+$/, '');
+  return dec ? `${inteira},${dec}` : inteira;
+}
