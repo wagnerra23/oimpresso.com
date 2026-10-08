@@ -42,6 +42,8 @@ function rlsBusca($teste, array $permissoes, string $termo)
     $u = $teste->usuarioComPermissoes($permissoes, $teste->business);
     $teste->actingAs($u);
     session(['user.business_id' => $teste->business->id, 'user.id' => $u->id, 'business.id' => $teste->business->id]);
+    // A coluna de lucro da Blade formata com num_f, que lê a moeda que o SetSessionData põe na sessão no login.
+    session(['currency' => ['symbol' => 'R$', 'thousand_separator' => '.', 'decimal_separator' => ',']]);
 
     return $teste->withHeaders(['X-Requested-With' => 'XMLHttpRequest', 'Accept' => 'application/json'])
         ->get('/reports/get-profit/product?'.http_build_query([
