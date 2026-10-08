@@ -4056,7 +4056,7 @@ class ReportController extends Controller
     /**
      * Retrieves line orders/sales
      *
-     * @return obj
+     * @return \Inertia\Response|\Illuminate\Http\JsonResponse
      */
     public function serviceStaffLineOrders()
     {
@@ -4149,7 +4149,7 @@ class ReportController extends Controller
                 ->whereNotNull('transaction_sell_lines.res_service_staff_id');
 
         if (! empty(($filtros['service_staff_id'] ?? null))) {
-            $query->where('transaction_sell_lines.res_service_staff_id', ($filtros['service_staff_id'] ?? null));
+            $query->where('transaction_sell_lines.res_service_staff_id', $filtros['service_staff_id']);
         }
 
         if (array_key_exists('location_id', $filtros)) {
@@ -4160,8 +4160,8 @@ class ReportController extends Controller
         }
 
         if (! empty(($filtros['start_date'] ?? null)) && ! empty(($filtros['end_date'] ?? null))) {
-            $start = ($filtros['start_date'] ?? null);
-            $end = ($filtros['end_date'] ?? null);
+            $start = $filtros['start_date'];
+            $end = $filtros['end_date'];
             $query->whereDate('t.transaction_date', '>=', $start)
                         ->whereDate('t.transaction_date', '<=', $end);
         }
