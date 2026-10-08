@@ -4508,6 +4508,12 @@ class ReportController extends Controller
      */
     public function getProfit($by = null)
     {
+        // Só quem vê o relatório de lucro e prejuízo: as abas dessa página são o único consumidor. O endpoint não
+        // conferia permissão nenhuma.
+        if (! auth()->user()->can('profit_loss_report.view')) {
+            abort(403, 'Unauthorized action.');
+        }
+
         $business_id = request()->session()->get('user.business_id');
 
         $query = TransactionSellLine::join('transactions as sale', 'transaction_sell_lines.transaction_id', '=', 'sale.id')
@@ -4657,7 +4663,8 @@ class ReportController extends Controller
             $datatable->filterColumn(
                  'product',
                  function ($query, $keyword) {
-                     $query->whereRaw("IF(P.type='variable', CONCAT(P.name, ' - ', PV.name, ' - ', V.name, ' (', V.sub_sku, ')'), CONCAT(P.name, ' (', P.sku, ')')) LIKE '%{$keyword}%'");
+                     // Termo de busca por binding: antes ia cru na string do SQL (injeção).
+                     $query->whereRaw("IF(P.type='variable', CONCAT(P.name, ' - ', PV.name, ' - ', V.name, ' (', V.sub_sku, ')'), CONCAT(P.name, ' (', P.sku, ')')) LIKE ?", ["%{$keyword}%"]);
                  });
         }
         $raw_columns = ['gross_profit'];
