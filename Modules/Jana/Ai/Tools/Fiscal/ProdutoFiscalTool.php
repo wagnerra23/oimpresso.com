@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Schema;
 use Laravel\Ai\Contracts\Tool;
 use Laravel\Ai\Tools\Request;
 use Modules\Jana\Contracts\DeclaraPermissao;
+use Modules\NfeBrasil\Models\NfeFiscalRule;
 use Stringable;
 
 /**
@@ -64,10 +65,11 @@ class ProdutoFiscalTool implements Tool, DeclaraPermissao
         $produtos = $q->get(['p.id', 'p.name', 'p.product_description', 'p.ncm', 'u.short_name', 'c.name as categoria']);
 
         $ncms = $produtos->pluck('ncm')->filter()->unique()->values()->all();
-        $regras = $ncms === [] ? collect() : DB::table('nfe_fiscal_rules')
+        // Model do dono (NfeBrasil) em vez de DB::table: preserva o scope e o SoftDeletes dele.
+        // O where explícito mantém o mesmo resultado com sessão, sem sessão (agente) e superadmin.
+        $regras = $ncms === [] ? collect() : NfeFiscalRule::query()
             ->where('business_id', $this->businessId)
             ->whereIn('ncm', $ncms)
-            ->whereNull('deleted_at')
             ->when(Schema::hasColumn('nfe_fiscal_rules', 'valida_ate'), fn ($w) => $w->where(
                 fn ($v) => $v->whereNull('valida_ate')->orWhere('valida_ate', '>=', now()->toDateString())
             ))

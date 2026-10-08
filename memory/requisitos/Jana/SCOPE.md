@@ -56,6 +56,7 @@ not_contains:
   # que não existe mentia DUAS vezes (destino morto + nega o que o módulo contém).
   # Destino era o ADS até a remoção dele em 2026-07-31 (ADR 0363); a política foi pro Governance (#5128).
   - "Decision flow (Risk/Confidence/Policy Engine) → Modules/Governance (Services/PolicyEngine.php, #5128)"
+  - "Regras tributárias por NCM (nfe_fiscal_rules — a ProdutoFiscalTool só LÊ, via Model do dono, #8997) → Modules/NfeBrasil"
 trust_required: L2
 owner: wagner
 permission_prefix: jana.*

@@ -35,6 +35,7 @@ not_contains:
   - "Conhecimento canônico (ADRs, sessions) → Modules/KB"
   - "Tasks Jira-style → Modules/Forja"
   - "MCP server admin → Modules/Forja"
+  - "IA da sugestão de tributação (SugestaoFiscalAgent + ProdutoFiscalTool, playbook Fiscal thread 10, #8997) → Modules/Jana"
 trust_required: L3
 owner: wagner
 permission_prefix: nfebrasil.*
