@@ -26,13 +26,13 @@
   ],
   "stats": {
     "modules": 35,
-    "nodes": 749,
-    "edges": 1040,
+    "nodes": 752,
+    "edges": 1047,
     "by_node_type": {
       "module": 39,
       "table": 108,
       "adr": 136,
-      "component": 389,
+      "component": 392,
       "api": 77
     },
     "by_edge_type": {
@@ -42,9 +42,9 @@
       "providesApi": 81,
       "charteredByAdr": 30,
       "governedByAdr": 78,
-      "hasComponent": 389,
-      "dependsOn": 117,
-      "delegatesTo": 109,
+      "hasComponent": 392,
+      "dependsOn": 119,
+      "delegatesTo": 111,
       "migratesTo": 1,
       "supersedes": 26,
       "supersedesPartially": 63,
@@ -3298,6 +3298,27 @@
       "module": "NfeBrasil",
       "name": "NfeStatusController",
       "desc": "endpoint JSON polling + Page Inertia (US-NFE-002 fase 2C)"
+    },
+    {
+      "id": "component:NfeBrasil/RevisaoContadorController",
+      "type": "component",
+      "module": "NfeBrasil",
+      "name": "RevisaoContadorController",
+      "desc": "revisão do contador por versão de regra (playbook Fiscal thread 15a, #9003)"
+    },
+    {
+      "id": "component:NfeBrasil/RevisaoContadorLinkController",
+      "type": "component",
+      "module": "NfeBrasil",
+      "name": "RevisaoContadorLinkController",
+      "desc": "link de revisão do contador com código por e-mail (playbook Fiscal thread 15b, #9015)"
+    },
+    {
+      "id": "component:NfeBrasil/SugestaoFiscalController",
+      "type": "component",
+      "module": "NfeBrasil",
+      "name": "SugestaoFiscalController",
+      "desc": "sugestões da Jana na tributação (playbook Fiscal thread 10, #8997)"
     },
     {
       "id": "component:NfeBrasil/TributacaoController",
@@ -9454,6 +9475,13 @@
     },
     {
       "from": "module:Jana",
+      "to": "module:NfeBrasil",
+      "type": "delegatesTo",
+      "source": "not_contains",
+      "note": "Regras tributárias por NCM (nfe_fiscal_rules — a ProdutoFiscalTool só LÊ, via Model do dono, #8997)"
+    },
+    {
+      "from": "module:Jana",
       "to": "module:Forja",
       "type": "dependsOn",
       "source": "delegatesTo",
@@ -9506,6 +9534,13 @@
       "type": "dependsOn",
       "source": "delegatesTo",
       "note": "MemoriaController (browser KB)"
+    },
+    {
+      "from": "module:Jana",
+      "to": "module:NfeBrasil",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Regras tributárias por NCM (nfe_fiscal_rules — a ProdutoFiscalTool só LÊ, via Model do dono, #8997)"
     },
     {
       "from": "module:Jana",
@@ -10245,6 +10280,13 @@
     },
     {
       "from": "module:NfeBrasil",
+      "to": "module:Jana",
+      "type": "delegatesTo",
+      "source": "not_contains",
+      "note": "IA da sugestão de tributação (SugestaoFiscalAgent + ProdutoFiscalTool, playbook Fiscal thread 10, #8997)"
+    },
+    {
+      "from": "module:NfeBrasil",
       "to": "module:KB",
       "type": "delegatesTo",
       "source": "not_contains",
@@ -10263,6 +10305,13 @@
       "type": "dependsOn",
       "source": "delegatesTo",
       "note": "Tasks Jira-style"
+    },
+    {
+      "from": "module:NfeBrasil",
+      "to": "module:Jana",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "IA da sugestão de tributação (SugestaoFiscalAgent + ProdutoFiscalTool, playbook Fiscal thread 10, #8997)"
     },
     {
       "from": "module:NfeBrasil",
@@ -10352,6 +10401,24 @@
     {
       "from": "module:NfeBrasil",
       "to": "component:NfeBrasil/NfeStatusController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:NfeBrasil",
+      "to": "component:NfeBrasil/RevisaoContadorController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:NfeBrasil",
+      "to": "component:NfeBrasil/RevisaoContadorLinkController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:NfeBrasil",
+      "to": "component:NfeBrasil/SugestaoFiscalController",
       "type": "hasComponent",
       "source": "contains"
     },

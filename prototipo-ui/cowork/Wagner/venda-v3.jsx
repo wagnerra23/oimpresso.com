@@ -507,6 +507,29 @@ const parseBR = (s) => { if (typeof s === 'number') return s; const t = String(s
 /* o que o frontend PODE mandar: 2 casas, sem ambiguidade de locale */
 const submitSafe = (n) => Math.round((Number(n) + Number.EPSILON) * 100) / 100;
 
+/* QUANTIDADE — 2 casas, exceto quando 2 casas mentiriam (git · _components/v3/numeros.ts).
+   Dinheiro tem 2 casas sempre; medida não. Tira de 0,50 × 0,004 m dá 0,002 m², que em
+   2 casas vira "0,00" ao lado de um total cobrado — aritmética visivelmente falsa.
+   Expande até 4 SÓ quando o valor não é zero mas arredondaria pra zero. */
+const fmtQtd = (n) => { const v = Number(n); return (v !== 0 && Math.abs(v) < 0.005) ? num(v, 4) : fmtBR(v); };
+
+/* Busca sem acento e por dígito (git · _components/v3/cliente-consulta-dominio.ts):
+   o placeholder promete CNPJ e cidade, então `83169623` sem máscara e `itajai` sem
+   acento têm de achar. Continua `includes`, não fuzzy; termo vazio devolve tudo. */
+const semAcento = (s) => String(s || '').normalize('NFD').replace(/\p{M}/gu, '').toLowerCase();
+const soDigitos = (s) => String(s || '').replace(/\D/g, '');
+function filtrarClientes(lista, termo) {
+  const q = String(termo || '').trim();
+  if (!q) return lista;
+  const texto = semAcento(q);
+  const digitos = soDigitos(q);
+  return lista.filter((c) => {
+    if (semAcento(c.cod + ' ' + c.nome + ' ' + c.doc + ' ' + c.cidade + ' ' + (c.uf || '')).includes(texto)) return true;
+    /* só cai no eixo numérico quando o termo TEM dígito — senão ''.includes casaria tudo */
+    return digitos.length > 0 && soDigitos(c.cod + c.doc).includes(digitos);
+  });
+}
+
 const PAY = { paid: ['Pago', 'var(--pos)', 'color-mix(in oklch, var(--pos) 12%, var(--surface))'], partial: ['Parcial', 'var(--warn)', 'color-mix(in oklch, var(--warn) 12%, var(--surface))'], due: ['A receber', 'var(--neg)', 'color-mix(in oklch, var(--neg) 12%, var(--surface))'] };
 function PayPill({ p, atraso }) { const [l, c, s] = PAY[p] || PAY.due; return <Pill c={c} s={s}>{atraso && p !== 'paid' ? 'Vencido' : l}</Pill>; }
 
@@ -927,11 +950,20 @@ const VALIDA = {
 };
 /* CST 40/41/60 (isento, não tributado, ST anterior) com alíquota ≠ 0 é rejeição certa */
 const CST_SEM_ALIQ = ['40', '41', '60', '04'];
+/* O CST declara que NÃO há imposto a recolher? (git · _components/v3/item-fiscal-dominio.ts)
+   Predicado único: quem acusa a incoerência e quem zera o valor do imposto precisam
+   responder à mesma pergunta — duas cópias divergem no dia em que a lista crescer.
+   '102' (Simples) tem 3 dígitos e começa com '10': sem o guard viraria um CST de 2. */
+function cstNaoTributa(cst) {
+  const cod = String(cst == null ? '' : cst).trim().slice(0, 3).replace(/\D/g, '');
+  if (cod.length >= 3) return false;
+  return CST_SEM_ALIQ.includes(cod.slice(0, 2));
+}
 function erroCoerencia(cst, aliq) {
   const cod = String(cst || '').trim().slice(0, 3).replace(/\D/g, '');
   const a = parseBR(aliq);
-  if (CST_SEM_ALIQ.includes(cod.slice(0, 2)) && a > 0) return 'CST ' + cod.slice(0, 2) + ' não admite alíquota — zere ou troque o CST';
-  if (cod === '00' && a <= 0) return 'CST 00 é tributado integralmente — alíquota não pode ser zero';
+  if (cstNaoTributa(cst) && a > 0) return 'CST ' + cod.slice(0, 2) + ' não admite alíquota — zere ou troque o CST';
+  if (cod.length < 3 && cod.slice(0, 2) === '00' && a <= 0) return 'CST 00 é tributado integralmente — alíquota não pode ser zero';
   return null;
 }
 
@@ -976,7 +1008,12 @@ function ItemDetail({ linha, index, total, onClose, onSave, onNav, abaInicial = 
   const comTipoItem = dv(d, 'comTipo', ((window.SD.pessoas.find((p) => p.nome === d.func) || {}).tipo) || 'funcionario');
   const valorLinha = submitSafe(parseBR(d.qtd) * parseBR(d.preco) * (1 - parseBR(d.desc) / 100) * (1 + parseBR(dv(d, 'acr', '0')) / 100));
   const m2 = submitSafe(parseBR(dv(d, 'altura', '1,00')) * parseBR(dv(d, 'largura', '1,00')) * parseBR(dv(d, 'pecas', '1')));
-  const impostoDe = (i) => submitSafe(valorLinha * (parseBR(dv(d, 'aliq_' + i.k, fmtBR(i.aliq))) / 100));
+  /* ICMS com CST que não tributa vale zero — a mesma lista que acusa a incoerência
+     no campo (git · item-fiscal-dominio.ts:impostoDe). Sem isto a aba mostrava 18% de
+     ICMS numa linha marcada "40 — Isenta" e acusava o erro ao lado do número. */
+  const impostoDe = (i) => (i.k === 'icms' && cstNaoTributa(dv(d, 'cst_icms', CST_ICMS[0])))
+    ? 0
+    : submitSafe(valorLinha * (parseBR(dv(d, 'aliq_' + i.k, fmtBR(i.aliq))) / 100));
   const somaImpostos = submitSafe(IMPOSTOS.reduce((s, i) => s + impostoDe(i), 0));
 
   const ABAS = [
@@ -1369,17 +1406,42 @@ const CONTAS = ['1 — Caixa financeiro', '2 — Banco Itaú c/c', '3 — Banco 
 const LANC = ['A RECEBER', 'RECEBIDA'];
 
 const hoje0 = () => { const d = new Date(); d.setHours(0, 0, 0, 0); return d; };
-const dia0 = (v) => { const d = new Date(v); d.setHours(0, 0, 0, 0); return d; };
+/* Meia-noite LOCAL. A string `yyyy-mm-dd` é tratada à parte de propósito: a ES manda
+   parsear data-only como UTC, então new Date('2026-08-27') vira 26/08 21:00 em
+   America/Sao_Paulo e o setHours(0,0,0,0) grampeia no dia 26 — todo vencimento
+   aparecia um dia antes a oeste de Greenwich (git · _components/v3/parcelas-dominio.ts). */
+const dia0 = (v) => {
+  if (typeof v === 'string') {
+    const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(v);
+    if (m) return new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+  }
+  const d = new Date(v); d.setHours(0, 0, 0, 0); return d;
+};
 const vencida = (v) => dia0(v) < hoje0();
 const addDias = (base, dias) => { const d = new Date(base.getTime()); d.setDate(d.getDate() + dias); return d; };
-const dBR = (d) => d.toLocaleDateString('pt-BR');
+/* "Vence no mesmo dia de cada mês" — e é diferente de somar 30 dias. Dia 31 em mês de 30
+   (ou fevereiro) é grampeado no último dia do mês de destino: somar 30 daria 01/07 pra um
+   vencimento de 31/05, mudando competência e mês fechado do financeiro. */
+const mesmoDiaNoMes = (base, mesesAdiante) => {
+  const d = dia0(base);
+  const diaDesejado = d.getDate();
+  const alvo = new Date(d.getFullYear(), d.getMonth() + mesesAdiante, 1);
+  const ultimoDiaDoAlvo = new Date(alvo.getFullYear(), alvo.getMonth() + 1, 0).getDate();
+  alvo.setDate(Math.min(diaDesejado, ultimoDiaDoAlvo));
+  return dia0(alvo);
+};
+const dBR = (d) => dia0(d).toLocaleDateString('pt-BR');
+const MAX_PARCELAS = 48;
+const quantidadeSaneada = (entrada) => { const n = Math.round(parseBR(entrada)); if (!Number.isFinite(n) || n < 1) return 1; return Math.min(MAX_PARCELAS, n); };
 
-/* Divide `total` em n parcelas com centavo de ajuste na PRIMEIRA (evita soma ≠ total) */
+/* Divide `total` em n parcelas sem perder nem inventar centavo: a conta roda em centavos
+   inteiros e o resto vai para as PRIMEIRAS parcelas. soma(ratear(total,n)) === total. */
 function ratear(total, n) {
+  const partes = Math.max(1, Math.floor(n));
   const cent = Math.round(submitSafe(total) * 100);
-  const base = Math.floor(cent / n);
-  const resto = cent - base * n;
-  return Array.from({ length: n }, (_, i) => (base + (i < resto ? 1 : 0)) / 100);
+  const base = Math.floor(cent / partes);
+  const resto = cent - base * partes;
+  return Array.from({ length: partes }, (_, i) => (base + (i < resto ? 1 : 0)) / 100);
 }
 
 function ParcelasDrawer({ open, onClose, total, parcelas, setParcelas, docBase, onOpen }) {
@@ -1404,12 +1466,12 @@ function ParcelasDrawer({ open, onClose, total, parcelas, setParcelas, docBase, 
   };
 
   const gerar = () => {
-    const qtd = Math.max(1, Math.min(48, Math.round(parseBR(n)) || 1));
-    const passo = porMes ? 30 : (Math.round(parseBR(intervalo)) || 0);
+    const qtd = quantidadeSaneada(n);
+    const passo = Math.round(parseBR(intervalo)) || 0;
     const valores = ratear(total, qtd);
     setParcelas(valores.map((v, i) => ({
       k: Date.now() + i, num: i + 1, de: qtd, valor: fmtBR(v),
-      venc: addDias(dia0(primeiro), i * passo), pgto: null,
+      venc: porMes ? mesmoDiaNoMes(primeiro, i) : addDias(dia0(primeiro), i * passo), pgto: null,
       tipo: c.tipo, lanc: 'A RECEBER', plano: PLANOS[0], conta: caixa,
       doc: docBase + ' ' + (i + 1) + '/' + qtd, resp: '', hist: '',
     })));
@@ -1732,6 +1794,8 @@ function EntregaFiscal({ itens, cli, frete, setFrete, freteModo, setFreteModo, o
 }
 
 /* ── sells-lancamento.jsx ── */
+/* Piso da alçada do vendedor: preço abaixo de 85% da tabela exige liberação. */
+const PISO_DA_TABELA = 0.85;
 /* Lançamento do item — entre escolher o produto e ele entrar na venda.
    Medidas (peças × altura × largura × espessura) quando a unidade é dimensional,
    valor unitário sob permissão, e funcionário vinculado quando o item é serviço.
@@ -1778,19 +1842,27 @@ function LancarItem({ produto, onClose, onConfirm }) {
   if (!produto) return null;
 
   const nPecas = Math.max(parseBR(pecas), 0);
-  const areaUn = produto.un === 'm²' ? submitSafe(parseBR(altura) * parseBR(largura))
-    : produto.un === 'm³' ? submitSafe(parseBR(altura) * parseBR(largura) * parseBR(esp))
-    : produto.un === 'm' ? submitSafe(parseBR(largura)) : 1;
-  const qtd = dims ? submitSafe(nPecas * areaUn) : submitSafe(parseBR(qtdDireta));
+  /* ÁREA NÃO passa por submitSafe (git · _components/v3/calculo-item.ts): submitSafe é o
+     guard de DINHEIRO (2 casas), não de MEDIDA. Aplicado aqui zerava toda peça menor que
+     0,005 — placa de 0,50 × 0,10 × 0,02 m dá 0,001 m³, virava 0, e com quantidade 0 o botão
+     "Adicionar à venda" ficava desabilitado: o item não entrava na venda. */
+  const areaUn = produto.un === 'm²' ? parseBR(altura) * parseBR(largura)
+    : produto.un === 'm³' ? parseBR(altura) * parseBR(largura) * parseBR(esp)
+    : produto.un === 'm' ? parseBR(largura) : 1;
+  /* medida arredonda a 4 casas, não a 2 — cobre recorte fino e m³ sem propagar ruído de float */
+  const arredondarMedida = (x) => Math.round((x + Number.EPSILON) * 1e4) / 1e4;
+  const qtd = dims ? arredondarMedida(nPecas * areaUn) : arredondarMedida(parseBR(qtdDireta));
   const unitario = submitSafe(parseBR(preco) * (1 - parseBR(desc) / 100) * (1 + parseBR(acr) / 100));
   const total = submitSafe(qtd * unitario);
-  const abaixoDoPiso = parseBR(preco) < produto.preco * 0.85;
+  /* No limite EXATO cai como "abaixo": no empate o erro é pedir liberação a mais, nunca
+     deixar passar preço baixo demais (git · calculo-item.ts::PISO_DA_TABELA). */
+  const abaixoDoPiso = parseBR(preco) < produto.preco * PISO_DA_TABELA;
   const preenchidos = [obs, obsProd, local, impressao, prazoEquipe, prazoEtapa].filter((v) => v && v.trim()).length;
   const semEstoque = produto.estoque !== null && qtd > produto.estoque;
 
   const confirmar = () => onConfirm({
     k: Date.now(), sku: produto.sku, nome: produto.nome, un: produto.un,
-    qtd: fmtBR(qtd), preco: fmtBR(parseBR(preco)), desc: String(parseBR(desc)), acr: String(parseBR(acr)),
+    qtd: fmtQtd(qtd), preco: fmtBR(parseBR(preco)), desc: String(parseBR(desc)), acr: String(parseBR(acr)),
     pecas: fmtBR(nPecas), altura, largura, esp, func: servico ? func : null, obsItem: obs,
     obsProd, local, impressao, prazoEquipe, prazoEtapa,
   });
@@ -1834,7 +1906,7 @@ function LancarItem({ produto, onClose, onConfirm }) {
             </span>
             <span style={{ marginLeft: 'auto', display: 'flex', alignItems: 'baseline', gap: 8 }}>
               <Lbl>Quantidade faturada</Lbl>
-              <b style={{ font: '600 15px/1 var(--font-mono)' }}>{num(qtd, 2)} {produto.un}</b>
+              <b style={{ font: '600 15px/1 var(--font-mono)' }}>{fmtQtd(qtd)} {produto.un}</b>
             </span>
           </div>
         </div>}
@@ -1858,12 +1930,12 @@ function LancarItem({ produto, onClose, onConfirm }) {
           </Grid>
           <div style={{ marginTop: 12, display: 'flex', flexWrap: 'wrap', gap: 16, padding: 12, borderRadius: 12, background: 'var(--bg-2)', border: '1px solid var(--border)' }}>
             <div><Lbl>Unitário líquido</Lbl><b style={{ font: '600 15px/1 var(--font-mono)' }}>{brl(unitario)}</b></div>
-            <div><Lbl>Quantidade</Lbl><b style={{ font: '600 15px/1 var(--font-mono)' }}>{num(qtd, 2)} {produto.un}</b></div>
+            <div><Lbl>Quantidade</Lbl><b style={{ font: '600 15px/1 var(--font-mono)' }}>{fmtQtd(qtd)} {produto.un}</b></div>
             <div style={{ marginLeft: 'auto' }}><Lbl c="var(--accent)">Total do item</Lbl><b style={{ font: '600 17px/1 var(--font-mono)' }}>{brl(total)}</b></div>
           </div>
           {!podePreco && <div style={{ marginTop: 8 }}><Alert tone="info" title="Preço travado pelo perfil">O valor vem da tabela aplicada na venda. Pedir liberação ao supervisor para alterar.</Alert></div>}
           {podePreco && abaixoDoPiso && <div style={{ marginTop: 8 }}><Alert tone="warn" title="Abaixo do piso de preço">{brl(parseBR(preco))} está mais de 15% abaixo da tabela ({brl(produto.preco)}). Finalizar exige liberação de supervisor.</Alert></div>}
-          {semEstoque && <div style={{ marginTop: 8 }}><Alert tone="danger" title="Quantidade acima do estoque">Pedido de {num(qtd, 2)} {produto.un} com {num(produto.estoque, 2)} em estoque — vai gerar saldo negativo ou pedido de compra.</Alert></div>}
+          {semEstoque && <div style={{ marginTop: 8 }}><Alert tone="danger" title="Quantidade acima do estoque">Pedido de {fmtQtd(qtd)} {produto.un} com {num(produto.estoque, 2)} em estoque — vai gerar saldo negativo ou pedido de compra.</Alert></div>}
         </div>
 
         {servico && <div>
@@ -2171,33 +2243,54 @@ const COL_GRUPOS = [
 ];
 
 const colunasPadrao = () => COLUNAS.filter((c) => c.fixa || c.padrao).map((c) => c.k);
+const colDef = (k) => COLUNAS.find((c) => c.k === k);
+const COL_FIXAS = COLUNAS.filter((c) => c.fixa).map((c) => c.k);
+
+/* localStorage é entrada NÃO CONFIÁVEL (git · _components/v3/colunas-dominio.ts:sanearColunas).
+   Quatro defesas, uma por jeito real de o dado chegar podre:
+   não é array → padrão · chave que não existe mais → descartada · chave repetida →
+   mantém a primeira · coluna FIXA ausente → reinserida, porque a linha não existe sem ela. */
+function sanearColunas(entrada) {
+  if (!Array.isArray(entrada)) return colunasPadrao();
+  const vistas = new Set();
+  const validas = entrada.filter((k) => {
+    if (typeof k !== 'string' || vistas.has(k) || !colDef(k)) return false;
+    vistas.add(k);
+    return true;
+  });
+  if (!validas.length) return colunasPadrao();
+  return [...COL_FIXAS.filter((k) => !vistas.has(k)), ...validas];
+}
+
 const carregarColunas = () => {
   try {
-    const s = JSON.parse(localStorage.getItem(COL_LS) || 'null');
-    if (Array.isArray(s) && s.length) return s.filter((k) => COLUNAS.some((c) => c.k === k));
-  } catch (e) {}
-  return colunasPadrao();
+    const bruto = localStorage.getItem(COL_LS);
+    if (!bruto) return colunasPadrao();
+    return sanearColunas(JSON.parse(bruto));
+  } catch (e) { return colunasPadrao(); }
 };
 
 function ColunasModal({ open, onClose, ativas, setAtivas }) {
   const def = (k) => COLUNAS.find((c) => c.k === k);
   const ativa = ativas.map(def).filter(Boolean);
   const fora = COLUNAS.filter((c) => !ativas.includes(c.k));
-  const mover = (i, d) => {
-    const j = i + d;
-    if (j < 0 || j >= ativas.length) return;
+  /* Fixa não sai do lugar nem cede o lugar (git · colunas-dominio.ts:moverColuna):
+     produto/quant./valor/total ancoram a leitura da linha. */
+  const podeMover = (de, para) => de !== para && de >= 0 && de < ativas.length && para >= 0 && para < ativas.length
+    && !(def(ativas[de]) || {}).fixa && !(def(ativas[para]) || {}).fixa;
+  const reordenar = (de, para) => {
+    if (!podeMover(de, para)) return;
     const s = [...ativas];
-    s.splice(j, 0, s.splice(i, 1)[0]);
+    s.splice(para, 0, s.splice(de, 1)[0]);
     setAtivas(s);
   };
+  const mover = (i, d) => reordenar(i, i + d);
   const arrasta = React.useRef(null);
   const soltar = (i) => {
     const de = arrasta.current;
     arrasta.current = null;
-    if (de === null || de === i) return;
-    const s = [...ativas];
-    s.splice(i, 0, s.splice(de, 1)[0]);
-    setAtivas(s);
+    if (de === null) return;
+    reordenar(de, i);
   };
 
   return (
@@ -2214,14 +2307,14 @@ function ColunasModal({ open, onClose, ativas, setAtivas }) {
           <Lbl>No grid — de cima para baixo é a ordem das colunas</Lbl>
           <ol style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 4 }}>
             {ativa.map((c, i) => (
-              <li key={c.k} draggable onDragStart={() => { arrasta.current = i; }} onDragOver={(e) => e.preventDefault()} onDrop={() => soltar(i)}
-                style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '5px 8px', borderRadius: 8, background: 'var(--bg-2)', border: '1px solid var(--border)', cursor: 'grab' }}>
+              <li key={c.k} draggable={!c.fixa} onDragStart={() => { arrasta.current = i; }} onDragOver={(e) => e.preventDefault()} onDrop={() => soltar(i)}
+                style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '5px 8px', borderRadius: 8, background: 'var(--bg-2)', border: '1px solid var(--border)', cursor: c.fixa ? 'default' : 'grab' }}>
                 <span aria-hidden="true" style={{ color: 'var(--text-dim)', display: 'inline-flex' }}><Icon name="GripVertical" size={13} /></span>
                 <span style={{ width: 18, flex: 'none', font: '11px/1 var(--font-mono)', color: 'var(--text-dim)' }}>{i + 1}</span>
                 <span style={{ flex: 1, minWidth: 0, font: '12.5px/1.4 var(--font-sans)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.l}</span>
                 {c.fixa && <Pill>fixa</Pill>}
-                <button type="button" aria-label={'Subir ' + c.l} disabled={i === 0} onClick={() => mover(i, -1)} style={{ width: 24, height: 24, flex: 'none', borderRadius: 6, border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text-dim)', cursor: i === 0 ? 'default' : 'pointer', opacity: i === 0 ? .4 : 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}><Icon name="ChevronUp" size={13} /></button>
-                <button type="button" aria-label={'Descer ' + c.l} disabled={i === ativa.length - 1} onClick={() => mover(i, 1)} style={{ width: 24, height: 24, flex: 'none', borderRadius: 6, border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text-dim)', cursor: i === ativa.length - 1 ? 'default' : 'pointer', opacity: i === ativa.length - 1 ? .4 : 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}><Icon name="ChevronDown" size={13} /></button>
+                <button type="button" aria-label={'Subir ' + c.l} disabled={!podeMover(i, i - 1)} onClick={() => mover(i, -1)} style={{ width: 24, height: 24, flex: 'none', borderRadius: 6, border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text-dim)', cursor: podeMover(i, i - 1) ? 'pointer' : 'default', opacity: podeMover(i, i - 1) ? 1 : .4, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}><Icon name="ChevronUp" size={13} /></button>
+                <button type="button" aria-label={'Descer ' + c.l} disabled={!podeMover(i, i + 1)} onClick={() => mover(i, 1)} style={{ width: 24, height: 24, flex: 'none', borderRadius: 6, border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text-dim)', cursor: podeMover(i, i + 1) ? 'pointer' : 'default', opacity: podeMover(i, i + 1) ? 1 : .4, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}><Icon name="ChevronDown" size={13} /></button>
                 {!c.fixa && <button type="button" aria-label={'Tirar ' + c.l + ' do grid'} onClick={() => setAtivas(ativas.filter((x) => x !== c.k))} style={{ width: 24, height: 24, flex: 'none', borderRadius: 6, border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text-dim)', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}><Icon name="X" size={13} /></button>}
               </li>
             ))}
@@ -2790,7 +2883,7 @@ function Create({ onOpen, modo = 'create', registro }) {
         <div className="oi-scroll" style={{ overflowX: 'auto' }}>
           <DataTable
             columns={[{ key: 'c', label: 'Código', mono: true }, { key: 'n', label: 'Nome / razão social' }, { key: 'd', label: 'CNPJ / CPF', mono: true }, { key: 'i', label: 'ICMS' }, { key: 'l', label: 'Cidade / UF' }, { key: 'g', label: 'Grupo' }]}
-            rows={window.SD.clientes.filter((x) => (x.cod + x.nome + x.doc + x.cidade).toLowerCase().includes(buscaCli.toLowerCase())).map((x) => ({
+            rows={filtrarClientes(window.SD.clientes, buscaCli).map((x) => ({
               id: x.id, state: x.nome === cliente ? 'selected' : undefined,
               cells: { c: x.cod, n: { primary: x.nome, sub: x.tipo === 'pj' ? 'PJ · IE ' + x.ie : 'PF' }, d: x.doc,
                 i: x.contrib === 'sim' ? <Pill c="var(--pos)" s="color-mix(in oklch, var(--pos) 12%, var(--surface))">contribuinte</Pill> : x.contrib === 'isento' ? <Pill c="var(--warn)" s="color-mix(in oklch, var(--warn) 12%, var(--surface))">isento</Pill> : <Pill>não contrib.</Pill>,
