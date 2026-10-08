@@ -14,7 +14,7 @@ module: Manufacturing
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Manufacturing/**` + `resources/js/Pages/Manufacturing/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 151 arquivos em 17 papéis.
+**Total mapeado:** 156 arquivos em 17 papéis.
 
 ## Controllers — 6
 
@@ -108,9 +108,10 @@ module: Manufacturing
 - [show.blade.php](../../../Modules/Manufacturing/Resources/views/recipe/show.blade.php)
 - [index.blade.php](../../../Modules/Manufacturing/Resources/views/settings/index.blade.php)
 
-## Telas (Inertia/React) — 5
+## Telas (Inertia/React) — 6
 
 - [Index.tsx](../../../resources/js/Pages/Manufacturing/Index.tsx)
+- [IngredientesEditor.tsx](../../../resources/js/Pages/Manufacturing/IngredientesEditor.tsx)
 - [Insumos.tsx](../../../resources/js/Pages/Manufacturing/Insumos.tsx)
 - [Recipes.tsx](../../../resources/js/Pages/Manufacturing/Recipes.tsx)
 - [Report.tsx](../../../resources/js/Pages/Manufacturing/Report.tsx)
@@ -123,29 +124,31 @@ module: Manufacturing
 - [NovaReceitaDialog.tsx](../../../resources/js/Pages/Manufacturing/_components/NovaReceitaDialog.tsx)
 - [OrdemDrawer.tsx](../../../resources/js/Pages/Manufacturing/_components/OrdemDrawer.tsx)
 
-## Charters (lei da tela) — 5
+## Charters (lei da tela) — 6
 
 - [Index.charter.md](../../../resources/js/Pages/Manufacturing/Index.charter.md)
+- [IngredientesEditor.charter.md](../../../resources/js/Pages/Manufacturing/IngredientesEditor.charter.md)
 - [Insumos.charter.md](../../../resources/js/Pages/Manufacturing/Insumos.charter.md)
 - [Recipes.charter.md](../../../resources/js/Pages/Manufacturing/Recipes.charter.md)
 - [Report.charter.md](../../../resources/js/Pages/Manufacturing/Report.charter.md)
 - [Settings.charter.md](../../../resources/js/Pages/Manufacturing/Settings.charter.md)
 
-## Casos (contrato UC) — 5
+## Casos (contrato UC) — 6
 
 - [Index.casos.md](../../../resources/js/Pages/Manufacturing/Index.casos.md)
+- [IngredientesEditor.casos.md](../../../resources/js/Pages/Manufacturing/IngredientesEditor.casos.md)
 - [Insumos.casos.md](../../../resources/js/Pages/Manufacturing/Insumos.casos.md)
 - [Recipes.casos.md](../../../resources/js/Pages/Manufacturing/Recipes.casos.md)
 - [Report.casos.md](../../../resources/js/Pages/Manufacturing/Report.casos.md)
 - [Settings.casos.md](../../../resources/js/Pages/Manufacturing/Settings.casos.md)
 
-## Testes (Pest) — 32
+## Testes (Pest) — 33
 
-- 31 em [Modules/Manufacturing/Tests/Feature/](../../../Modules/Manufacturing/Tests/Feature)
+- 32 em [Modules/Manufacturing/Tests/Feature/](../../../Modules/Manufacturing/Tests/Feature)
 - 1 em [Modules/Manufacturing/Tests/Support/](../../../Modules/Manufacturing/Tests/Support)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
-## Demais arquivos (manifestos, docs, assets e misc) — 41
+## Demais arquivos (manifestos, docs, assets e misc) — 42
 
 - [AssertsBusinessChain.php](../../../Modules/Manufacturing/Concerns/AssertsBusinessChain.php)
 - [HasManufacturingProductChain.php](../../../Modules/Manufacturing/Concerns/HasManufacturingProductChain.php)
@@ -185,6 +188,7 @@ module: Manufacturing
 - [composer.json](../../../Modules/Manufacturing/composer.json)
 - [module.json](../../../Modules/Manufacturing/module.json)
 - [SCOPE.md](../../../memory/requisitos/Manufacturing/SCOPE.md)
+- [custo.ts](../../../resources/js/Pages/Manufacturing/_lib/custo.ts)
 - [filtros.ts](../../../resources/js/Pages/Manufacturing/_lib/filtros.ts)
 - [formato.ts](../../../resources/js/Pages/Manufacturing/_lib/formato.ts)
 - [tipos.ts](../../../resources/js/Pages/Manufacturing/_lib/tipos.ts)
