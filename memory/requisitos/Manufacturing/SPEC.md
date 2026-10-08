@@ -255,7 +255,12 @@ endereço canônico `/manufacturing/insumos` desde o **cutover de 2026-09-04** (
 - [ ] Excluir receita só com confirmação que diz o que se perde (ficha + N ingredientes) e que
       **ordens já lançadas continuam com o custo registrado**
 - [ ] Sem permissão de editar: campos desabilitados + aviso citando `manufacturing.access_recipe`
-- [ ] Servidor **recalcula** o custo antes de gravar (§9) — nunca confia no total do cliente
+- [x] Servidor **recalcula** o custo antes de gravar (§9) — nunca confia no total do cliente.
+      Junto, no mesmo salvar: recusa receita sem ingrediente (regra 1 no servidor), quantidade ≤ 0
+      e sub-unidade que não é do insumo; trocar todos os ingredientes não deixa os antigos —
+      #9051, UC-RECIPE-14..18 em `SalvarReceitaServidorTest.php` (lane `Manufacturing · Pest (MySQL)`
+      run 37799242847: 185 passed / 604 assertions, os 7 casos novos com ✓). A tela do editor
+      ainda é a Blade; as outras regras do §5 entram com ela.
 
 > 🟢 **Decisões [W] 2026-10-06 — janela "Nova receita"** (hoje o botão está quebrado em produção:
 > a busca de produto não carrega):
