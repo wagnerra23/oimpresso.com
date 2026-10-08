@@ -33,6 +33,10 @@ last_run: "2026-10-08"
   total de despesas · Dado usuário sem `profit_loss_report.view` · Então 403 na tela nova e na Blade.
 - **Status: 🧪**
 
+## UC-RLP-03 · Estoque pelo preço de venda só com a permissão do relatório de lucro · `must` `[T0]`
+- **Aceite:** Dado usuário com `profit_loss_report.view` · Quando pede `/reports/get-stock-by-sell-price` · Então 200 com
+  o estoque inicial e final · Dado usuário só com `stock_report.view`, ou sem nenhuma das duas · Então 403.
+- **Status: 🧪**
+
 ## Backlog
 - [BACKLOG] Abas de lucro por produto, categoria, marca, local, venda, data, cliente e dia, como a Blade.
-- [BACKLOG] Decidir permissão no endpoint de estoque pelo preço de venda (achado no RUNBOOK §4).

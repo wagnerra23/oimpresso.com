@@ -1,7 +1,7 @@
 <?php
 
 declare(strict_types=1);
-// Cobre UC-RLP-01, UC-RLP-02 (resources/js/Pages/Relatorios/LucroPrejuizo/Index.casos.md).
+// Cobre UC-RLP-01, UC-RLP-02, UC-RLP-03 (resources/js/Pages/Relatorios/LucroPrejuizo/Index.casos.md).
 
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\DB;
@@ -117,4 +117,22 @@ test('UC-RLP-02 Tier 0 — despesa do negócio 99 não entra; permissão da Blad
     $this->actingAs($this->usuarioComPermissoes([], $this->business));
     $this->withHeaders($this->inertia)->get('/reports/profit-loss?tela=nova')->assertForbidden();
     $this->withHeaders([])->get('/reports/profit-loss')->assertForbidden();
+});
+
+test('UC-RLP-03 Tier 0 — estoque pelo preço de venda só com a permissão do relatório de lucro', function () {
+    $pedir = function (array $permissoes) {
+        $this->actingAs($this->usuarioComPermissoes($permissoes, $this->business));
+
+        return $this->withHeaders(['X-Requested-With' => 'XMLHttpRequest', 'Accept' => 'application/json'])
+            ->get('/reports/get-stock-by-sell-price?'.http_build_query(['location_id' => ''] + $this->periodo));
+    };
+
+    // Só lucro: 200, com os dois valores.
+    $r = $pedir(['profit_loss_report.view', 'access_all_locations']);
+    $r->assertOk();
+    expect(array_keys($r->json()))->toBe(['opening_stock_by_sp', 'closing_stock_by_sp']);
+    // Só estoque: 403 (a página de estoque usa /reports/get-stock-value).
+    $pedir(['stock_report.view', 'access_all_locations'])->assertForbidden();
+    // Nenhuma das duas: 403.
+    $pedir([])->assertForbidden();
 });
