@@ -543,7 +543,7 @@ class ReportController extends Controller
     /**
      * Shows product stock report
      *
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Contracts\View\View|\Inertia\Response|\Illuminate\Http\JsonResponse|string
      */
     public function getStockReport(Request $request)
     {
@@ -567,13 +567,14 @@ class ReportController extends Controller
         } else {
             $show_manufacturing_data = 0;
         }
+        // Tela React (playbook sistema/07). Vem ANTES do ajax(): a visita Inertia manda X-Requested-With. As linhas
+        // saem do MESMO getProductStockDetails do DataTable, com os mesmos filtros (filtrosDoEstoque).
+        if ($request->query('tela') === 'nova') {
+            return $this->telaEstoque($request, (int) $business_id, (int) $show_manufacturing_data);
+        }
+
         if ($request->ajax()) {
-            $filters = request()->only(['location_id', 'category_id', 'sub_category_id', 'brand_id', 'unit_id', 'tax_id', 'type',
-                'only_mfg_products', 'active_state',  'not_for_selling', 'repair_model_id', 'product_id', 'active_state', ]);
-
-            $filters['not_for_selling'] = isset($filters['not_for_selling']) && $filters['not_for_selling'] == 'true' ? 1 : 0;
-
-            $filters['show_manufacturing_data'] = $show_manufacturing_data;
+            $filters = $this->filtrosDoEstoque(request()->all(), (int) $show_manufacturing_data);
 
             //Return the details in ajax call
             $for = request()->input('for') == 'view_product' ? 'view_product' : 'datatables';
@@ -659,17 +660,12 @@ class ReportController extends Controller
                     return $html;
                 })
                 ->editColumn('stock_value_by_sale_price', function ($row) {
-                    $stock = $row->stock ? $row->stock : 0;
-                    $unit_selling_price = (float) $row->group_price > 0 ? $row->group_price : $row->unit_price;
-                    $stock_price = $stock * $unit_selling_price;
+                    $stock_price = $this->valorDoEstoquePorVenda($row);
 
                     return  '<span class="stock_value_by_sale_price" data-orig-value="'.(float) $stock_price.'" > '.$this->transactionUtil->num_f($stock_price, true).'</span>';
                 })
                 ->addColumn('potential_profit', function ($row) {
-                    $stock = $row->stock ? $row->stock : 0;
-                    $unit_selling_price = (float) $row->group_price > 0 ? $row->group_price : $row->unit_price;
-                    $stock_price_by_sp = $stock * $unit_selling_price;
-                    $potential_profit = (float) $stock_price_by_sp - (float) $row->stock_price;
+                    $potential_profit = $this->lucroPotencialDoEstoque($row);
 
                     return  '<span class="potential_profit" data-orig-value="'.(float) $potential_profit.'" > '.$this->transactionUtil->num_f($potential_profit, true).'</span>';
                 })
@@ -710,6 +706,111 @@ class ReportController extends Controller
 
         return view('report.stock_report')
             ->with(compact('categories', 'brands', 'units', 'business_locations', 'show_manufacturing_data'));
+    }
+
+    /**
+     * Filtros do relatório de estoque — os mesmos que o ramo ajax() montava de request()->only(...), movidos sem
+     * mudança: "não à venda" vira 1/0 e entra a chave de fabricação.
+     *
+     * @param  array<string, mixed>  $entrada
+     * @return array<string, mixed>
+     */
+    private function filtrosDoEstoque(array $entrada, int $show_manufacturing_data): array
+    {
+        $filters = array_intersect_key($entrada, array_flip(['location_id', 'category_id', 'sub_category_id', 'brand_id', 'unit_id', 'tax_id', 'type',
+            'only_mfg_products', 'active_state',  'not_for_selling', 'repair_model_id', 'product_id', 'active_state', ]));
+
+        $filters['not_for_selling'] = isset($filters['not_for_selling']) && $filters['not_for_selling'] == 'true' ? 1 : 0;
+
+        $filters['show_manufacturing_data'] = $show_manufacturing_data;
+
+        return $filters;
+    }
+
+    /** Valor do estoque pelo preço de venda (preço do grupo, se houver; senão o preço de venda) — conta da coluna da Blade. */
+    private function valorDoEstoquePorVenda(object $row): float
+    {
+        $stock = $row->stock ? $row->stock : 0;
+        $unit_selling_price = (float) ($row->group_price ?? 0) > 0 ? $row->group_price : $row->unit_price;
+
+        return (float) ($stock * $unit_selling_price);
+    }
+
+    /** Lucro potencial do estoque = valor pelo preço de venda − valor pelo preço de compra — conta da coluna da Blade. */
+    private function lucroPotencialDoEstoque(object $row): float
+    {
+        return (float) $this->valorDoEstoquePorVenda($row) - (float) $row->stock_price;
+    }
+
+    /**
+     * Tela nova do relatório de estoque: as mesmas linhas de getProductStockDetails, 25 por página na ordem do DataTable
+     * da Blade (SKU, crescente), com as mesmas contas de valor e o rodapé da página. O preço de venda só aparece com
+     * access_default_selling_price e as colunas de valor só com view_product_stock_value, como na Blade.
+     */
+    private function telaEstoque(Request $request, int $business_id, int $show_manufacturing_data): \Inertia\Response
+    {
+        $filtros = array_filter([
+            'location_id' => (string) $request->query('location_id', ''),
+            'category_id' => (string) $request->query('category_id', ''),
+            'brand_id' => (string) $request->query('brand_id', ''),
+            'unit_id' => (string) $request->query('unit_id', ''),
+        ], fn ($v) => $v !== '');
+        $verPreco = auth()->user()->can('access_default_selling_price');
+        $verValor = auth()->user()->can('view_product_stock_value');
+
+        $pagina = $this->productUtil->getProductStockDetails($business_id, $this->filtrosDoEstoque($filtros, $show_manufacturing_data), 'datatables')
+            ->orderBy('variations.sub_sku', 'asc')->orderBy('vld.location_id', 'asc')
+            ->toBase()->paginate(25)->withQueryString();
+
+        $linhas = collect($pagina->items())->map(fn (\stdClass $r): array => [
+            'sku' => (string) $r->sku,
+            'produto' => (string) $r->product,
+            'variacao' => $r->type == 'variable' ? $r->product_variation.'-'.$r->variation_name : '',
+            'categoria' => (string) ($r->category_name ?? ''),
+            'local' => (string) ($r->location_name ?? ''),
+            'preco' => $verPreco ? (float) $r->unit_price : null,
+            // Produto sem controle de estoque: a Blade mostra "--".
+            'estoque' => $r->enable_stock ? (float) ($r->stock ? $r->stock : 0) : null,
+            'unidade' => (string) ($r->unit ?? ''),
+            'valor_compra' => $verValor ? (float) $r->stock_price : null,
+            'valor_venda' => $verValor ? $this->valorDoEstoquePorVenda($r) : null,
+            'lucro_potencial' => $verValor ? $this->lucroPotencialDoEstoque($r) : null,
+            'vendido' => (float) ($r->total_sold ?: 0),
+            'transferido' => (float) ($r->total_transfered ?: 0),
+            'ajustado' => (float) ($r->total_adjusted ?: 0),
+            // Como a linha vermelha da Blade: estoque no alerta ou abaixo.
+            'alerta' => (bool) ($r->enable_stock && $r->stock <= $r->alert_quantity),
+        ])->values();
+
+        $soma = fn (string $c) => (float) $linhas->sum(fn (array $l) => $l[$c] ?? 0);
+
+        return Inertia::render('Relatorios/Estoque/Index', [
+            'linhas' => $linhas,
+            // Como o rodapé da Blade: só as linhas desta página.
+            'rodape' => [
+                'estoque' => $soma('estoque'), 'vendido' => $soma('vendido'), 'transferido' => $soma('transferido'), 'ajustado' => $soma('ajustado'),
+                'valor_compra' => $verValor ? $soma('valor_compra') : null,
+                'valor_venda' => $verValor ? $soma('valor_venda') : null,
+                'lucro_potencial' => $verValor ? $soma('lucro_potencial') : null,
+            ],
+            'mostra_preco' => $verPreco,
+            'mostra_valor' => $verValor,
+            'paginacao' => ['atual' => $pagina->currentPage(), 'ultima' => $pagina->lastPage(), 'total' => $pagina->total()],
+            'filtros' => [
+                'location_id' => (string) ($filtros['location_id'] ?? ''),
+                'category_id' => (string) ($filtros['category_id'] ?? ''),
+                'brand_id' => (string) ($filtros['brand_id'] ?? ''),
+                'unit_id' => (string) ($filtros['unit_id'] ?? ''),
+            ],
+            'locais' => collect(BusinessLocation::forDropdown($business_id, true))->map(fn ($nome, $id) => ['id' => (int) $id, 'nome' => (string) $nome])->values(),
+            'categorias' => collect(Category::forDropdown($business_id, 'product'))->map(fn ($nome, $id) => ['id' => (int) $id, 'nome' => (string) $nome])->values(),
+            'marcas' => collect(Brands::forDropdown($business_id))->map(fn ($nome, $id) => ['id' => (int) $id, 'nome' => (string) $nome])->values(),
+            'unidades' => collect(Unit::where('business_id', $business_id)->pluck('short_name', 'id'))->map(fn ($nome, $id) => ['id' => (int) $id, 'nome' => (string) $nome])->values(),
+            'moeda' => [
+                'simbolo' => (string) $request->session()->get('business.currency_symbol', 'R$'),
+                'casas' => (int) $request->session()->get('business.currency_precision', 2),
+            ],
+        ]);
     }
 
     // // this function copy of above get route becouse of large size parameter 
