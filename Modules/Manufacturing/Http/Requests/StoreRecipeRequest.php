@@ -47,8 +47,12 @@ class StoreRecipeRequest extends FormRequest
             // §9: quantidade <= 0 é recusada. Chega no formato da empresa ("0,044"), por isso o
             // `num_uf` — o mesmo que o `store()` usa para gravar.
             'ingredients.*.quantity' => ['required', 'string', function (string $attribute, $value, $fail) {
-                // Não-texto já cai na regra `string`; aqui só se mede o número.
-                if (is_string($value) && app(ModuleUtil::class)->num_uf($value) <= 0) {
+                // Array já cai na regra `string`; aqui só se mede o número. (Sem `is_string()`: o
+                // docblock de `Util::num_uf` diz `int`, embora todo o sistema passe o texto do formulário.)
+                if (is_array($value)) {
+                    return;
+                }
+                if (app(ModuleUtil::class)->num_uf($value) <= 0) {
                     $fail('A quantidade de cada ingrediente precisa ser maior que zero.');
                 }
             }],
