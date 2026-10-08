@@ -43,6 +43,8 @@ function resProduto(int $businessId, int $local, int $criador, string $sku, arra
     $variacao = $p->variations[0]['variation_id'];
     DB::table('variations')->where('id', $variacao)->update(['sub_sku' => $sku, 'sell_price_inc_tax' => $venda]);
     EstoqueFixture::setStock($p, 0, $local, $estoque);
+    // Com filtro de local, o relatório só lista produto disponível no local (product_locations).
+    DB::table('product_locations')->insert(['product_id' => $p->productId, 'location_id' => $local]);
     $compra = DB::table('transactions')->insertGetId([
         'business_id' => $businessId, 'location_id' => $local, 'type' => 'purchase', 'status' => 'received', 'payment_status' => 'paid',
         'transaction_date' => '2099-01-01 10:00:00', 'final_total' => $comprado * $custo, 'total_before_tax' => $comprado * $custo,
