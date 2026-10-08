@@ -99,7 +99,7 @@ class GroupTaxController extends Controller
      * Store a newly created resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
+     * @return array<string, mixed>  JSON {success, msg} da modal Blade
      */
     public function store(Request $request)
     {
@@ -186,7 +186,7 @@ class GroupTaxController extends Controller
      *
      * @param  \Illuminate\Http\Request  $request
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return array<string, mixed>|null  JSON {success, msg}; null fora de AJAX
      */
     public function update(Request $request, $id)
     {
