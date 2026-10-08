@@ -466,15 +466,14 @@ class ReportController extends Controller
     /**
      * Devido de um contato — a conta da coluna "Total devido" do relatório, usada pela Blade e pela tela nova.
      *
-     * ⚠️ Preserva o comportamento que está em produção: o desconto de razão de VENDA (total_ledger_discount_sell)
-     * NÃO entra, porque a conta original lia uma variável local inexistente em vez de $row (vem do UltimatePOS).
-     * Corrigir muda o devido de quem tem desconto de venda — é mudança de valor e decisão [W]. Quando decidir,
-     * a correção é só aqui, e vale para as duas telas.
+     * O desconto de razão de VENDA (total_ledger_discount_sell) abate o devido, como o de compra. Até 2026-10-08 ele
+     * não entrava: a conta original (UltimatePOS) lia uma variável local inexistente em vez de $row. Corrigido por
+     * decisão [W] de 2026-10-08; vale para as duas telas.
      */
     private function devidoDoContato(object $row): float
     {
         $total_ledger_discount_purchase = $row->total_ledger_discount_purchase ?? 0;
-        $total_ledger_discount_sell = 0; // ver o aviso acima
+        $total_ledger_discount_sell = $row->total_ledger_discount_sell ?? 0;
         $due = ($row->total_invoice - $row->invoice_received - $total_ledger_discount_sell) - ($row->total_purchase - $row->purchase_paid - $total_ledger_discount_purchase) - ($row->total_sell_return - $row->sell_return_paid) + ($row->total_purchase_return - $row->purchase_return_received);
 
         if ($row->contact_type == 'supplier') {

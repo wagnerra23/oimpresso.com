@@ -96,17 +96,19 @@ test('UC-RCT-01 valor — vendas, devoluções e devido = JSON do DataTable da B
     expect((float) $linhaPage['devolucoes_venda'])->toEqual($orig('total_sell_return'));
     expect((float) $linhaPage['devido'])->toEqual($orig('due'));
 
-    // Caminho 3: soma direta (venda − recebido) − (devolução − devolvido), sem a consulta do controller.
+    // Caminho 3: soma direta (venda − recebido − desconto de venda) − (devolução − devolvido), sem a consulta do controller.
     $soma = fn (string $tipo) => (float) DB::table('transactions')->where('contact_id', $cliente)->where('type', $tipo)->sum('final_total');
     $pago = fn (string $tipo) => (float) DB::table('transaction_payments as tp')->join('transactions as t', 't.id', '=', 'tp.transaction_id')
         ->where('t.contact_id', $cliente)->where('t.type', $tipo)->sum('tp.amount');
-    $devidoDireto = ($soma('sell') - $pago('sell')) - ($soma('sell_return') - $pago('sell_return'));
+    $descontoVenda = (float) DB::table('transactions')->where('contact_id', $cliente)->where('type', 'ledger_discount')
+        ->where('sub_type', 'sell_discount')->sum('final_total');
+    $devidoDireto = ($soma('sell') - $pago('sell') - $descontoVenda) - ($soma('sell_return') - $pago('sell_return'));
     expect((float) $linhaPage['devido'])->toEqual($devidoDireto);
 
-    // Conta à mão: (500 − 200) − (50 − 50) = 300. O desconto de razão de venda de 20 NÃO entra — é a
-    // conta que está em produção (RUNBOOK §4, decisão [W]); se alguém "consertar" calado, isto cai.
-    expect((float) $linhaPage['devido'])->toEqual(300.0);
-    expect($orig('due'))->toEqual(300.0);
+    // Conta à mão: (500 − 200 − 20) − (50 − 50) = 280. O desconto de razão de venda de 20 abate o devido
+    // (decisão [W] 2026-10-08, RUNBOOK §4); antes ele era ignorado e o devido dava 300.
+    expect((float) $linhaPage['devido'])->toEqual(280.0);
+    expect($orig('due'))->toEqual(280.0);
 });
 
 test('UC-RCT-02 — 25 por página em ordem de nome; rodapé só da página', function () {

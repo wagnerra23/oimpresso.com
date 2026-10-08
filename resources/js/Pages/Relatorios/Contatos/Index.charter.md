@@ -35,8 +35,8 @@ Um extrato por contato no período: quanto comprou, devolveu, quanto vendemos pa
 ## Non-Goals
 
 - ❌ Calcular, somar ou arredondar valor na tela.
-- ❌ Corrigir por conta própria a conta do devido. Ela ignora o desconto de razão de venda (defeito herdado, em
-  produção); mudar isso muda o número exibido e é decisão [W]. Ver RUNBOOK §4.
+- ❌ Mudar a conta do devido sem decisão [W]: mexe no número exibido. A última mudança (o desconto de razão de
+  venda passou a abater o devido) foi decidida por [W] em 2026-10-08. Ver RUNBOOK §4.
 
 ## Regras
 

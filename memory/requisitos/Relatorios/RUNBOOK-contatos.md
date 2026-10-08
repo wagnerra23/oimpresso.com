@@ -37,12 +37,12 @@ Permissão `contacts_report.view` (a da Blade). Nada de schema.
    para `devidoDoContato()`, os dois usados pela Blade e pela tela nova. O ramo `tela=nova` vem antes do `ajax()`.
 4. **F4** — smoke em biz=1 com `?tela=nova`, comparando a 1ª página com a Blade.
 
-## 4. Achado de valor (decisão [W], não corrigido)
+## 4. Achado de valor (corrigido por decisão [W] em 2026-10-08)
 
-A conta do devido **ignora o desconto de razão de venda**: o código original lia uma variável local inexistente
-(`$total_ledger_discount_sell ?? 0`) em vez de `$row->total_ledger_discount_sell`. Está em produção. A migração
-**preserva** o comportamento (os dois números seguem iguais); corrigir muda o devido de quem tem desconto de venda e
-é decisão [W] com tabela antes→depois. A correção, quando decidida, é só em `devidoDoContato()`.
+A conta do devido **ignorava o desconto de razão de venda**: o código original lia uma variável local inexistente
+(`$total_ledger_discount_sell ?? 0`) em vez de `$row->total_ledger_discount_sell`. A migração preservou o
+comportamento; em 2026-10-08 [W] aprovou a correção, feita só em `devidoDoContato()` e valendo para as duas telas.
+Medição de produção na data: 0 transações `ledger_discount` em todos os negócios, logo nenhum número exibido mudou.
 
 ## 5. Divergências declaradas
 
@@ -51,4 +51,4 @@ A conta do devido **ignora o desconto de razão de venda**: o código original l
 
 ## 6. Falta para o cutover (F5 — decisão [W])
 
-O link do contato, a decisão sobre o desconto de venda, aprovação do screenshot por [W], o smoke F4 e o aviso ao cliente.
+O link do contato, aprovação do screenshot por [W], o smoke F4 e o aviso ao cliente.
