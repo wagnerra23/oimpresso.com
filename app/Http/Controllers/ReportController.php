@@ -60,6 +60,13 @@ class ReportController extends Controller
 
     public function getStockBySellingPrice(Request $request)
     {
+        // Só quem vê o relatório de lucro e prejuízo: é o único consumidor (updateStockBySellingPrice, chamado depois
+        // de /reports/profit-loss responder — página de lucro e modal "lucro de hoje"). O endpoint não conferia
+        // permissão nenhuma. A página de estoque usa outro endpoint (/reports/get-stock-value).
+        if (! auth()->user()->can('profit_loss_report.view')) {
+            abort(403, 'Unauthorized action.');
+        }
+
         $business_id = $request->session()->get('user.business_id');
 
         return $this->estoquePorPrecoDeVenda((int) $business_id, (string) $request->get('start_date'), (string) $request->get('end_date'), $request->get('location_id'));

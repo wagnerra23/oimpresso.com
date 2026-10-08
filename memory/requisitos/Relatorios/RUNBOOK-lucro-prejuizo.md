@@ -39,9 +39,11 @@ Permissão `profit_loss_report.view` (a da Blade). Nada de schema.
 
 - As abas "lucro por produto / categoria / marca / local / venda / data / cliente / dia" (`getProfit`) ficam para o PR
   seguinte.
-- **Achado (não corrigido, decisão da gerência):** `/reports/get-stock-by-sell-price` (estoque pelo preço de venda) não
-  confere permissão nenhuma — a página exige `profit_loss_report.view`. Filtra pelos locais permitidos e pelo negócio.
+- **Permissão em `/reports/get-stock-by-sell-price` (corrigido em 2026-10-08):** o endpoint do estoque pelo preço de
+  venda não conferia permissão nenhuma. Agora exige `profit_loss_report.view`. Único consumidor, medido por grep no repo
+  inteiro: `updateStockBySellingPrice()` (`public/js/app.js`), chamado só depois de `/reports/profit-loss` responder
+  (página de lucro e modal "lucro de hoje"). A página de estoque usa `/reports/get-stock-value`. Teste: UC-RLP-03.
 
 ## 5. Falta para o cutover (F5 — decisão [W])
 
-As abas de lucro (§4), decisão sobre o achado, aprovação do screenshot por [W], o smoke F4 e o aviso ao cliente.
+As abas de lucro (§4), aprovação do screenshot por [W], o smoke F4 e o aviso ao cliente.
