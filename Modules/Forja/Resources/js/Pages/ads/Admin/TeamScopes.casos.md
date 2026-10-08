@@ -39,6 +39,12 @@ Status: 🧪 (1 teste cita este UC — começa **concedendo** e confirmando que 
 *Dado* dev com escrita em `Compras`; *quando* [W] revoga (`POST /ads/admin/team-scopes/revoke`); *então* o servidor volta a negar a escrita.
 **Pronto quando:** liberado antes do revoke, negado depois, e a concessão some de `mcp_user_module_access`.
 
+## UC-TSCOPE-04 — Conceder e revogar exigem permissão própria; o autor da concessão é quem concedeu `[must]` `[T0]`
+Status: 🧪 (1 teste cita este UC — em [`ForjaToolsPermissaoTest.php`](../../../../../Tests/Feature/ForjaToolsPermissaoTest.php), com controle positivo: a MESMA concessão passa quando o operador tem a permissão.)
+Fonte: decisão [W] **D7** (2026-10-07, thread 11 do playbook Forja — *"permissão própria + autor = usuário logado"*).
+*Dado* um usuário do business **sem** `forja.team_scopes.manage`; *quando* chama `grant` ou `revoke`; *então* recebe 403 e `mcp_user_module_access` não muda. *Dado* um operador **com** a permissão; *quando* concede; *então* `granted_by` é o `username` dele, nunca `'wagner'`.
+**Pronto quando:** grant sem permissão → 403 e 0 linhas; grant com permissão → linha com `granted_by` = operador; revoke sem permissão → 403 e a linha continua lá.
+
 ---
 
 ## [BACKLOG] — declarado no charter, ainda sem teste que o defenda
@@ -47,7 +53,7 @@ Prosa honesta: nenhum item abaixo tem teste citando um UC. Vira UC quando ganhar
 
 - [BACKLOG] **`[T0]` A lista de devs é só do business da sessão** (Non-Goal + Anti-hook do charter; [ADR 0093](../../../../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md)). Tem contrato em 2 fontes, mas **não virou UC por um achado medido**: a prop `users` vem de `UserScopeService::listUsersWithAccess`, que faz `JOIN user_businesses` — e essa tabela **não existe** no schema baseline (`database/schema/mysql-schema.sql`: 0 ocorrências de `CREATE TABLE \`user_businesses\``) **nem no staging do CT 100** (`Schema::hasTable('user_businesses')` = `false`, medido 2026-10-07). **Hipótese, não veredito de teste:** a prop deferida lança `QueryException` e a sidebar de devs nunca carrega. Um teste deste caso nasceria vermelho numa lane compartilhada; consertar o serviço está fora do escopo deste PR e é decisão [W].
 - [BACKLOG] KPIs do topo (devs do business, quantos com acesso ativo, total de pares user × módulo) — dependem da mesma prop `users`, logo herdam o achado acima.
-- [BACKLOG] **Quem pode conceder.** O charter diz *"dar ao Wagner o controle"*, mas as 3 rotas `/ads/admin/team-scopes*` só exigem `auth` + a stack UltimatePOS — nenhuma permission. Se isso é aceitável ou se falta um `can:` é decisão [W]; não há fonte que fixe qual permission seria.
+- ~~[BACKLOG] **Quem pode conceder.**~~ → virou **UC-TSCOPE-04** (D7, 2026-10-07): permissão `forja.team_scopes.manage`.
 - [BACKLOG] `grant`/`revoke` validarem que o **user-alvo** é do business da sessão — pendência aberta no próprio charter (§Pendências). Hoje a validação é `exists:users,id`.
 - [BACKLOG] Revogar pede `confirm()` antes do POST — comportamento só de front, sem E2E.
 - [BACKLOG] Concessão com `expires_at` vencido volta a negar — o serviço honra, mas nenhum documento canônico fixa a expiração como contrato da tela.

@@ -8,6 +8,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Modules\Forja\Contracts\Tool;
 use Modules\Forja\Services\ToolRegistry;
+use Spatie\Permission\Models\Permission;
+use Spatie\Permission\PermissionRegistrar;
 
 uses(Tests\TestCase::class, DatabaseTransactions::class);
 
@@ -91,12 +93,20 @@ function toolsRegistryComFalsas(): ToolRegistry
 
 function toolsUsuario(int $businessId): User
 {
-    return User::factory()->create([
+    $user = User::factory()->create([
         'business_id' => $businessId,
         'username' => 'tools_contrato_'.uniqid(),
         'user_type' => 'user',
         'allow_login' => 1,
     ]);
+    // D7 (thread 11): executar exige permissão própria — 403 sem ela (ForjaToolsPermissaoTest).
+    // Cache do Spatie pode guardar o id de uma permissão criada numa transação já
+    // revertida (FK 1452 em model_has_permissions) — limpa antes de resolver.
+    app(PermissionRegistrar::class)->forgetCachedPermissions();
+    Permission::findOrCreate('forja.tools.execute', 'web');
+    $user->givePermissionTo('forja.tools.execute');
+
+    return $user;
 }
 
 function toolsSessao(User $user, int $businessId)
