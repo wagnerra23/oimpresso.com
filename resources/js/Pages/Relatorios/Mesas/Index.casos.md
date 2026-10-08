@@ -34,5 +34,8 @@ last_run: "2026-10-07"
   sem `purchase_n_sell_report.view` · Então 403 na tela nova e na Blade.
 - **Status: 🧪**
 
-## Backlog
-- [BACKLOG] Decidir se o relatório deve respeitar os locais permitidos do usuário (achado no RUNBOOK §4).
+## UC-RME-04 · Só os locais que o usuário pode ver · `must` `[T0]`
+- **Aceite:** Dado mesas com vendas no local A e no local B · Quando um usuário que só pode ver o local A abre a tela nova
+  ou pede o JSON da Blade sem escolher local · Então vê só a mesa do A · Dado usuário sem local nenhum · Então não vê
+  mesa nenhuma (mesmo desenho do #8986).
+- **Status: 🧪**
