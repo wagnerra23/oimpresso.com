@@ -4504,7 +4504,7 @@ class ReportController extends Controller
     /**
      * Lists profit by product, category, brand, location, invoice and date
      *
-     * @return string $by = null
+     * @return \Illuminate\Http\JsonResponse|\Illuminate\Contracts\View\View|\Inertia\Response
      */
     public function getProfit($by = null)
     {
@@ -4516,89 +4516,13 @@ class ReportController extends Controller
 
         $business_id = request()->session()->get('user.business_id');
 
-        $query = TransactionSellLine::join('transactions as sale', 'transaction_sell_lines.transaction_id', '=', 'sale.id')
-            ->leftjoin('transaction_sell_lines_purchase_lines as TSPL', 'transaction_sell_lines.id', '=', 'TSPL.sell_line_id')
-            ->leftjoin(
-                'purchase_lines as PL',
-                'TSPL.purchase_line_id',
-                '=',
-                'PL.id'
-            )
-            ->where('sale.type', 'sell')
-            ->where('sale.status', 'final')
-            ->join('products as P', 'transaction_sell_lines.product_id', '=', 'P.id')
-            ->where('sale.business_id', $business_id)
-            ->where('transaction_sell_lines.children_type', '!=', 'combo');
-        //If type combo: find childrens, sale price parent - get PP of childrens
-        $query->select(DB::raw('SUM(IF (TSPL.id IS NULL AND P.type="combo", ( 
-            SELECT Sum((tspl2.quantity - tspl2.qty_returned) * (tsl.unit_price_inc_tax - pl2.purchase_price_inc_tax)) AS total
-                FROM transaction_sell_lines AS tsl
-                    JOIN transaction_sell_lines_purchase_lines AS tspl2
-                ON tsl.id=tspl2.sell_line_id 
-                JOIN purchase_lines AS pl2 
-                ON tspl2.purchase_line_id = pl2.id 
-                WHERE tsl.parent_sell_line_id = transaction_sell_lines.id), IF(P.enable_stock=0,(transaction_sell_lines.quantity - transaction_sell_lines.quantity_returned) * transaction_sell_lines.unit_price_inc_tax,   
-                (TSPL.quantity - TSPL.qty_returned) * (transaction_sell_lines.unit_price_inc_tax - PL.purchase_price_inc_tax)) )) AS gross_profit')
-            );
-
-        $permitted_locations = auth()->user()->permitted_locations();
-        if ($permitted_locations != 'all') {
-            $query->whereIn('sale.location_id', $permitted_locations);
+        // Tela React (playbook sistema/07): as mesmas abas, com a mesma consulta (consultaLucro) e a mesma conta
+        // do lucro por linha (lucroDaLinha). A permissão acima vale para as duas.
+        if (request()->query('tela') === 'nova') {
+            return $this->telaLucroAbas(request(), (int) $business_id, (string) ($by ?: 'product'));
         }
 
-        if (! empty(request()->location_id)) {
-            $query->where('sale.location_id', request()->location_id);
-        }
-
-        if (! empty(request()->start_date) && ! empty(request()->end_date)) {
-            $start = request()->start_date;
-            $end = request()->end_date;
-            $query->whereDate('sale.transaction_date', '>=', $start)
-                        ->whereDate('sale.transaction_date', '<=', $end);
-        }
-
-        if ($by == 'product') {
-            $query->join('variations as V', 'transaction_sell_lines.variation_id', '=', 'V.id')
-                ->leftJoin('product_variations as PV', 'PV.id', '=', 'V.product_variation_id')
-                ->addSelect(DB::raw("IF(P.type='variable', CONCAT(P.name, ' - ', PV.name, ' - ', V.name, ' (', V.sub_sku, ')'), CONCAT(P.name, ' (', P.sku, ')')) as product"))
-                ->groupBy('V.id');
-        }
-
-        if ($by == 'category') {
-            $query->join('variations as V', 'transaction_sell_lines.variation_id', '=', 'V.id')
-                ->leftJoin('categories as C', 'C.id', '=', 'P.category_id')
-                ->addSelect('C.name as category')
-                ->groupBy('C.id');
-        }
-
-        if ($by == 'brand') {
-            $query->join('variations as V', 'transaction_sell_lines.variation_id', '=', 'V.id')
-                ->leftJoin('brands as B', 'B.id', '=', 'P.brand_id')
-                ->addSelect('B.name as brand')
-                ->groupBy('B.id');
-        }
-
-        if ($by == 'location') {
-            $query->join('business_locations as L', 'sale.location_id', '=', 'L.id')
-                ->addSelect('L.name as location')
-                ->groupBy('L.id');
-        }
-
-        if ($by == 'invoice') {
-            $query->addSelect(
-                'sale.invoice_no',
-                'sale.id as transaction_id',
-                'sale.discount_type',
-                'sale.discount_amount',
-                'sale.total_before_tax'
-            )
-                ->groupBy('sale.invoice_no');
-        }
-
-        if ($by == 'date') {
-            $query->addSelect('sale.transaction_date')
-                ->groupBy(DB::raw('DATE(sale.transaction_date)'));
-        }
+        $query = $this->consultaLucro((int) $business_id, (string) $by, request()->only(['location_id', 'start_date', 'end_date']));
 
         if ($by == 'day') {
             $results = $query->addSelect(DB::raw('DAYNAME(sale.transaction_date) as day'))
@@ -4614,22 +4538,11 @@ class ReportController extends Controller
             return view('report.partials.profit_by_day')->with(compact('profits', 'days'));
         }
 
-        if ($by == 'customer') {
-            $query->join('contacts as CU', 'sale.contact_id', '=', 'CU.id')
-            ->addSelect('CU.name as customer', 'CU.supplier_business_name')
-                ->groupBy('sale.contact_id');
-        }
-
         $datatable = Datatables::of($query);
 
         if (in_array($by, ['invoice'])) {
             $datatable->editColumn('gross_profit', function ($row) {
-                $discount = $row->discount_amount;
-                if ($row->discount_type == 'percentage') {
-                    $discount = ($row->discount_amount * $row->total_before_tax) / 100;
-                }
-
-                $profit = $row->gross_profit - $discount;
+                $profit = $this->lucroDaLinha($row, 'invoice');
                 $html = '<span class="gross-profit" data-orig-value="'.$profit.'" >'.$this->transactionUtil->num_f($profit, true).'</span>';
 
                 return $html;
@@ -4684,6 +4597,187 @@ class ReportController extends Controller
 
         return $datatable->rawColumns($raw_columns)
                   ->make(true);
+    }
+
+    /**
+     * Lucro por produto / categoria / marca / local / venda / data / cliente — a consulta das abas da página de lucro e
+     * prejuízo (lucro bruto por item, inclusive a conta do combo), usada pelo DataTable da Blade e pela tela nova
+     * (playbook sistema/07). Corpo movido sem mudança de getProfit (a aba "por dia" agrupa por cima desta consulta).
+     *
+     * @param  array<string, mixed>  $filtros  location_id, start_date, end_date
+     * @return \Illuminate\Database\Eloquent\Builder<\App\TransactionSellLine>
+     */
+    private function consultaLucro(int $business_id, string $by, array $filtros): \Illuminate\Database\Eloquent\Builder
+    {
+        $query = TransactionSellLine::join('transactions as sale', 'transaction_sell_lines.transaction_id', '=', 'sale.id')
+            ->leftjoin('transaction_sell_lines_purchase_lines as TSPL', 'transaction_sell_lines.id', '=', 'TSPL.sell_line_id')
+            ->leftjoin(
+                'purchase_lines as PL',
+                'TSPL.purchase_line_id',
+                '=',
+                'PL.id'
+            )
+            ->where('sale.type', 'sell')
+            ->where('sale.status', 'final')
+            ->join('products as P', 'transaction_sell_lines.product_id', '=', 'P.id')
+            ->where('sale.business_id', $business_id)
+            ->where('transaction_sell_lines.children_type', '!=', 'combo');
+        //If type combo: find childrens, sale price parent - get PP of childrens
+        $query->select(DB::raw('SUM(IF (TSPL.id IS NULL AND P.type="combo", ( 
+            SELECT Sum((tspl2.quantity - tspl2.qty_returned) * (tsl.unit_price_inc_tax - pl2.purchase_price_inc_tax)) AS total
+                FROM transaction_sell_lines AS tsl
+                    JOIN transaction_sell_lines_purchase_lines AS tspl2
+                ON tsl.id=tspl2.sell_line_id 
+                JOIN purchase_lines AS pl2 
+                ON tspl2.purchase_line_id = pl2.id 
+                WHERE tsl.parent_sell_line_id = transaction_sell_lines.id), IF(P.enable_stock=0,(transaction_sell_lines.quantity - transaction_sell_lines.quantity_returned) * transaction_sell_lines.unit_price_inc_tax,   
+                (TSPL.quantity - TSPL.qty_returned) * (transaction_sell_lines.unit_price_inc_tax - PL.purchase_price_inc_tax)) )) AS gross_profit')
+            );
+
+        $permitted_locations = auth()->user()->permitted_locations();
+        if ($permitted_locations != 'all') {
+            $query->whereIn('sale.location_id', $permitted_locations);
+        }
+
+        if (! empty($filtros['location_id'] ?? null)) {
+            $query->where('sale.location_id', $filtros['location_id']);
+        }
+
+        if (! empty($filtros['start_date'] ?? null) && ! empty($filtros['end_date'] ?? null)) {
+            $start = $filtros['start_date'];
+            $end = $filtros['end_date'];
+            $query->whereDate('sale.transaction_date', '>=', $start)
+                        ->whereDate('sale.transaction_date', '<=', $end);
+        }
+
+        if ($by == 'product') {
+            $query->join('variations as V', 'transaction_sell_lines.variation_id', '=', 'V.id')
+                ->leftJoin('product_variations as PV', 'PV.id', '=', 'V.product_variation_id')
+                ->addSelect(DB::raw("IF(P.type='variable', CONCAT(P.name, ' - ', PV.name, ' - ', V.name, ' (', V.sub_sku, ')'), CONCAT(P.name, ' (', P.sku, ')')) as product"))
+                ->groupBy('V.id');
+        }
+
+        if ($by == 'category') {
+            $query->join('variations as V', 'transaction_sell_lines.variation_id', '=', 'V.id')
+                ->leftJoin('categories as C', 'C.id', '=', 'P.category_id')
+                ->addSelect('C.name as category')
+                ->groupBy('C.id');
+        }
+
+        if ($by == 'brand') {
+            $query->join('variations as V', 'transaction_sell_lines.variation_id', '=', 'V.id')
+                ->leftJoin('brands as B', 'B.id', '=', 'P.brand_id')
+                ->addSelect('B.name as brand')
+                ->groupBy('B.id');
+        }
+
+        if ($by == 'location') {
+            $query->join('business_locations as L', 'sale.location_id', '=', 'L.id')
+                ->addSelect('L.name as location')
+                ->groupBy('L.id');
+        }
+
+        if ($by == 'invoice') {
+            $query->addSelect(
+                'sale.invoice_no',
+                'sale.id as transaction_id',
+                'sale.discount_type',
+                'sale.discount_amount',
+                'sale.total_before_tax'
+            )
+                ->groupBy('sale.invoice_no');
+        }
+
+        if ($by == 'date') {
+            $query->addSelect('sale.transaction_date')
+                ->groupBy(DB::raw('DATE(sale.transaction_date)'));
+        }
+
+        if ($by == 'customer') {
+            $query->join('contacts as CU', 'sale.contact_id', '=', 'CU.id')
+            ->addSelect('CU.name as customer', 'CU.supplier_business_name')
+                ->groupBy('sale.contact_id');
+        }
+
+        return $query;
+    }
+
+    /**
+     * Lucro de uma linha da aba: na aba "por venda" desconta o desconto da venda (percentual sobre o total sem
+     * imposto, ou fixo) — a conta que o editColumn do DataTable fazia, movida sem mudança.
+     */
+    private function lucroDaLinha(object $row, string $by): float
+    {
+        if ($by !== 'invoice') {
+            return (float) $row->gross_profit;
+        }
+
+        $discount = $row->discount_amount;
+        if ($row->discount_type == 'percentage') {
+            $discount = ($row->discount_amount * $row->total_before_tax) / 100;
+        }
+
+        return (float) ($row->gross_profit - $discount);
+    }
+
+    /**
+     * Tela nova das abas de lucro: a aba escolhida, 25 por página na ordem do DataTable da Blade (a coluna da aba,
+     * crescente), com o lucro de cada linha pela mesma conta (lucroDaLinha) e o rodapé somando a página. A aba "por
+     * dia" traz os sete dias, como o partial da Blade. Período padrão = ano fiscal atual.
+     */
+    private function telaLucroAbas(Request $request, int $business_id, string $by): \Inertia\Response
+    {
+        $abas = ['product', 'category', 'brand', 'location', 'invoice', 'date', 'customer', 'day'];
+        $by = in_array($by, $abas, true) ? $by : 'product';
+        $fy = $this->businessUtil->getCurrentFinancialYear($business_id);
+        $filtros = [
+            'location_id' => (string) $request->query('location_id', ''),
+            'start_date' => $this->dataIsoOu((string) $request->query('start_date', ''), (string) $fy['start']),
+            'end_date' => $this->dataIsoOu((string) $request->query('end_date', ''), (string) $fy['end']),
+        ];
+        $query = $this->consultaLucro($business_id, $by, $filtros);
+
+        if ($by === 'day') {
+            // Como a aba da Blade: os sete dias, com zero onde não houve venda.
+            $porDia = [];
+            foreach ($query->addSelect(DB::raw('DAYNAME(sale.transaction_date) as day'))->groupBy(DB::raw('DAYOFWEEK(sale.transaction_date)'))->toBase()->get() as $r) {
+                $porDia[strtolower((string) $r->day)] = (float) $r->gross_profit;
+            }
+            $linhas = collect(['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'])
+                ->map(fn (string $d) => ['rotulo' => (string) __('lang_v1.'.$d), 'lucro' => $porDia[$d] ?? 0.0])->values();
+            $paginacao = ['atual' => 1, 'ultima' => 1, 'total' => 7];
+        } else {
+            $ordem = ['product' => 'product', 'category' => 'C.name', 'brand' => 'B.name', 'location' => 'L.name',
+                'invoice' => 'sale.invoice_no', 'date' => 'sale.transaction_date', 'customer' => 'CU.name'][$by];
+            $pagina = $query->orderBy($ordem, 'asc')->toBase()->paginate(25)->withQueryString();
+            $linhas = collect($pagina->items())->map(fn (\stdClass $r): array => [
+                'rotulo' => match ($by) {
+                    'product' => (string) $r->product,
+                    'category' => (string) ($r->category ?? __('lang_v1.uncategorized')),
+                    'brand' => (string) ($r->brand ?? __('report.others')),
+                    'location' => (string) $r->location,
+                    'invoice' => (string) $r->invoice_no,
+                    'date' => (string) $this->productUtil->format_date($r->transaction_date),
+                    default => trim((! empty($r->supplier_business_name) ? $r->supplier_business_name.', ' : '').$r->customer),
+                },
+                'lucro' => $this->lucroDaLinha($r, $by),
+            ])->values();
+            $paginacao = ['atual' => $pagina->currentPage(), 'ultima' => $pagina->lastPage(), 'total' => $pagina->total()];
+        }
+
+        return Inertia::render('Relatorios/LucroAbas/Index', [
+            'aba' => $by,
+            'linhas' => $linhas,
+            // Como o rodapé da Blade: só as linhas desta página.
+            'rodape' => ['lucro' => (float) $linhas->sum('lucro')],
+            'paginacao' => $paginacao,
+            'filtros' => $filtros,
+            'locais' => collect(BusinessLocation::forDropdown($business_id, true))->map(fn ($nome, $id) => ['id' => (int) $id, 'nome' => (string) $nome])->values(),
+            'moeda' => [
+                'simbolo' => (string) $request->session()->get('business.currency_symbol', 'R$'),
+                'casas' => (int) $request->session()->get('business.currency_precision', 2),
+            ],
+        ]);
     }
 
     /**
