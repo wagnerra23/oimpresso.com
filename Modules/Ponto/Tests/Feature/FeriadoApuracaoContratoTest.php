@@ -30,7 +30,7 @@ const FER_MARCADOR = 'ISSUE8200-FERIADO';
 
 $GLOBALS['fer_ids_criados'] = [];
 
-function ferColaborador(int $bizId, ?int $userId): Colaborador
+function ferColaborador(int $bizId, int $userId): Colaborador
 {
     return Colaborador::forceCreate([
         'business_id'    => $bizId,
@@ -221,7 +221,10 @@ it('UC-FER-06: HE de feriado não vira crédito de banco de horas, e falta não 
 });
 
 it('UC-FER-07: colaborador sem user vinculado pega o feriado sem local', function () {
-    $colab = ferColaborador($this->tenant->id, null);
+    // `ponto_colaborador_config.user_id` é NOT NULL: o vínculo nulo só existe em memória
+    // (mesmo idioma do UC-LIC-10). O ramo `empty($c->user_id)` do serviço é defensivo.
+    $colab = ferColaborador($this->tenant->id, $this->user->id);
+    $colab->user_id = null;
     ferCriarFeriado($this->tenant->id, $this->dia, $this->dia);
 
     $a = ferApuracaoComFalta($colab, $this->dia);
