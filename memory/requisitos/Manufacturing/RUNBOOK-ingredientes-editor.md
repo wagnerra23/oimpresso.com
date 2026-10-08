@@ -27,9 +27,10 @@ owner: M
 | 0 | Servidor do salvar: custo calculado no servidor, recusa receita vazia, quantidade ≤ 0 e sub-unidade alheia; trocar todos os ingredientes não deixa os antigos | PR #9051 |
 | 1 | Dados do editor (`RecipeBomService::editorDaReceita`) + busca de insumo (`buscarInsumos`, 7 resultados) + a tela em **modo leitura** | #9059 (mergeado) |
 | 2 | Edição: quantidade, sub-unidade (troca o multiplicador junto, regra 4), grupos, busca de insumo e salvar no `store()`; regra 1 (≥1 ingrediente), regra 2 (quantidade travada vira texto), regra 5 (cópia; cancelar descarta). Números vão por `paraNumUf` (@/Lib/numberPtBR, promovido do Patrimônio): vírgula decimal, sem milhar, com as casas exibidas no campo — nunca cru | este PR — mergear **depois** do #9051 |
-| 3 | Excluir receita com a confirmação da regra 6 · trocar o link "Editar ingredientes" da lista para a tela nova | a fazer |
+| 3 | Excluir receita com a confirmação da regra 6 (no editor: o protótipo não põe o botão na gaveta, e o charter de Receitas proíbe escrita na lista) · trocar o link "Editar ingredientes" da lista para a tela nova. O servidor só apaga receita da própria empresa: #9071 (UC-RECIPE-19) | este PR — mergear **depois** do #9071 |
 
-A janela Blade continua sendo a padrão até a etapa 3: sem `?tela=nova` nada muda para ninguém.
+Até a etapa 3 a janela Blade era a padrão. Desde ela, o "Editar ingredientes" da lista abre a tela nova;
+o mesmo endereço sem `?tela=nova` continua servindo a janela Blade (e a lista antiga `?legacy=1` aponta para ela).
 
 ## 2. Quem abre e quem grava (regra 3)
 
@@ -54,6 +55,7 @@ A janela Blade continua sendo a padrão até a etapa 3: sem `?tela=nova` nada mu
 | `resources/js/Pages/Manufacturing/IngredientesEditor.tsx` | a tela |
 | `resources/js/Pages/Manufacturing/_lib/custo.ts` | custo ao vivo — mesma conta do `calculateCost` · `montarEnvio`/`paraNumUf`: o formato do salvar |
 | `resources/js/Pages/Manufacturing/_components/BuscaInsumo.tsx` | busca de insumo do "Ingrediente em <grupo>" |
+| `resources/js/Pages/Manufacturing/_components/ExcluirReceitaDialog.tsx` | confirmação da regra 6 · `DELETE /manufacturing/recipe/{id}` (`RecipeController::destroy`) |
 | `Modules/Manufacturing/Http/Controllers/RecipeController.php` | `addIngredients` (ramo `?tela=nova` → `telaEditor`) · `insumosParaReceita` |
 | `Modules/Manufacturing/Services/RecipeBomService.php` | `editorDaReceita` · `buscarInsumos` |
 | `Modules/Manufacturing/Tests/Feature/EditorIngredientesTest.php` | UC-INGRED-* |

@@ -5,8 +5,12 @@ tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (
 por_que: comportamento é durável — o contrato de teste nasce junto com a tela, não depois.
 fonte: handoff "PROTÓTIPO OFICIAL - FABRICAÇÃO V1" §17 (R-01..R-24) — os UC abaixo DERIVAM dele
 owner: wagner
-last_run: "2026-10-07"
+last_run: "2026-10-08"
 ---
+
+> ℹ️ **`last_run` 2026-10-07 → 2026-10-08 (G-6): só o destino de um link.** "Editar ingredientes" da
+> gaveta passou a abrir o editor React (`&tela=nova`, US-MANU-006 etapa 3). A lista continua sem escrever
+> nada (charter Non-Goal): excluir receita fica no editor. Nenhum UC reexecutado.
 
 > ℹ️ **`last_run` 2026-10-06 → 2026-10-07 (G-6): forma, não comportamento.** A lista de produtos da janela
 > "Nova receita" crescia até o nome mais comprido (medido em produção: 740px numa janela de 520px, botões

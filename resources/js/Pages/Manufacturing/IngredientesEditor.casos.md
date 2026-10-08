@@ -85,8 +85,12 @@ last_run: "2026-10-08"
 
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
-- **[BACKLOG]** Chego ao editor pelo "Editar ingredientes" da lista de Receitas, sem digitar URL —
-  entra na etapa 3, quando o link trocar para a tela nova (RUNBOOK §1).
+- **[BACKLOG]** Chego ao editor pelo "Editar ingredientes" da lista de Receitas, sem digitar URL.
+  Desde a etapa 3 (2026-10-08) o link leva `&tela=nova`; a prova é de navegador.
+- **[BACKLOG]** Etapa 3, "Excluir receita" (regra 6): o botão só aparece para receita gravada e para
+  quem grava; a confirmação diz o nome, os N ingredientes **gravados** (não os da cópia em edição) e
+  que ordens já lançadas continuam com o custo; confirmar volta para a lista. Precisa de teste de
+  navegador. O servidor (só apaga receita da própria empresa) é o caso 19 de `Recipes.casos.md`.
 - **[BACKLOG]** Etapa 2, comportamento de tela (precisa de teste de navegador, a suíte do módulo só
   tem Pest de servidor): trocar a sub-unidade troca o multiplicador e o subtotal (regra 4); quantidade
   travada vira texto (regra 2); "Salvar receita" desabilitado e com o motivo escrito sem ingrediente
@@ -96,3 +100,6 @@ last_run: "2026-10-08"
 
 ## Trilha do tempo
 - 2026-10-08 · carimbado por criar-tela.mjs e preenchido com os UC da etapa 1. Refs: UI-0013 · ADR 0264.
+- 2026-10-08 · [M+C] Etapa 3: botão "Excluir receita" com a confirmação da regra 6 e o link da lista
+  passando a abrir esta tela. Sem UC novo: o comportamento de tela vai para o backlog (navegador); o
+  servidor é o caso 19 de `Recipes.casos.md`.
