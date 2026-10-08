@@ -3515,7 +3515,7 @@ class ReportController extends Controller
     /**
      * Shows tables report
      *
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Contracts\View\View|\Inertia\Response|\Illuminate\Http\JsonResponse
      */
     public function getTableReport(Request $request)
     {
@@ -3525,25 +3525,14 @@ class ReportController extends Controller
 
         $business_id = $request->session()->get('user.business_id');
 
+        // Tela React (playbook sistema/07). Vem ANTES do ajax(): a visita Inertia manda
+        // X-Requested-With. As linhas saem da MESMA consulta do DataTable da Blade, paginadas no servidor.
+        if ($request->query('tela') === 'nova') {
+            return $this->telaMesas($request, $business_id);
+        }
+
         if ($request->ajax()) {
-            $query = ResTable::leftjoin('transactions AS T', 'T.res_table_id', '=', 'res_tables.id')
-                        ->where('T.business_id', $business_id)
-                        ->where('T.type', 'sell')
-                        ->where('T.status', 'final')
-                        ->groupBy('res_tables.id')
-                        ->select(DB::raw('SUM(final_total) as total_sell'), 'res_tables.name as table');
-
-            $location_id = $request->get('location_id', null);
-            if (! empty($location_id)) {
-                $query->where('T.location_id', $location_id);
-            }
-
-            $start_date = $request->get('start_date');
-            $end_date = $request->get('end_date');
-
-            if (! empty($start_date) && ! empty($end_date)) {
-                $query->whereBetween(DB::raw('date(transaction_date)'), [$start_date, $end_date]);
-            }
+            $query = $this->consultaMesas($business_id, $request->only(['location_id', 'start_date', 'end_date']));
 
             return Datatables::of($query)
                 ->editColumn('total_sell', function ($row) {
@@ -3557,6 +3546,68 @@ class ReportController extends Controller
 
         return view('report.table_report')
             ->with(compact('business_locations'));
+    }
+
+    /**
+     * Relatório por mesa — a consulta (total vendido por mesa), usada pelo DataTable da Blade e pela tela nova
+     * (playbook sistema/07). Corpo movido sem mudança de regra do ramo ajax(). Como na Blade, não filtra pelos
+     * locais permitidos do usuário (só pelo local escolhido) — achado registrado, não corrigido aqui.
+     *
+     * @param  array<string, mixed>  $filtros  location_id, start_date, end_date
+     */
+    private function consultaMesas(int $business_id, array $filtros): \Illuminate\Database\Eloquent\Builder
+    {
+        $query = ResTable::leftjoin('transactions AS T', 'T.res_table_id', '=', 'res_tables.id')
+                    ->where('T.business_id', $business_id)
+                    ->where('T.type', 'sell')
+                    ->where('T.status', 'final')
+                    ->groupBy('res_tables.id')
+                    ->select(DB::raw('SUM(final_total) as total_sell'), 'res_tables.name as table');
+
+        $location_id = ($filtros['location_id'] ?? null);
+        if (! empty($location_id)) {
+            $query->where('T.location_id', $location_id);
+        }
+
+        $start_date = ($filtros['start_date'] ?? null);
+        $end_date = ($filtros['end_date'] ?? null);
+
+        if (! empty($start_date) && ! empty($end_date)) {
+            $query->whereBetween(DB::raw('date(transaction_date)'), [$start_date, $end_date]);
+        }
+
+        return $query;
+    }
+
+    /**
+     * Tela nova do relatório por mesa: as mesmas linhas, 25 por página na ordem do DataTable da Blade (nome da mesa,
+     * crescente). Período padrão = mês corrente, como o daterangepicker da Blade. A Blade não tem rodapé.
+     */
+    private function telaMesas(Request $request, int $business_id): \Inertia\Response
+    {
+        $filtros = [
+            'location_id' => (string) $request->query('location_id', ''),
+            'start_date' => $this->dataIsoOu((string) $request->query('start_date', ''), now()->startOfMonth()->toDateString()),
+            'end_date' => $this->dataIsoOu((string) $request->query('end_date', ''), now()->endOfMonth()->toDateString()),
+        ];
+
+        $pagina = $this->consultaMesas($business_id, $filtros)
+            ->orderBy('res_tables.name', 'asc')->orderBy('res_tables.id', 'asc')
+            ->toBase()->paginate(25)->withQueryString();
+
+        return Inertia::render('Relatorios/Mesas/Index', [
+            'linhas' => collect($pagina->items())->map(fn (\stdClass $r): array => [
+                'mesa' => (string) $r->table,
+                'total' => (float) $r->total_sell,
+            ])->values(),
+            'paginacao' => ['atual' => $pagina->currentPage(), 'ultima' => $pagina->lastPage(), 'total' => $pagina->total()],
+            'filtros' => $filtros,
+            'locais' => collect(BusinessLocation::forDropdown($business_id, true))->map(fn ($nome, $id) => ['id' => (int) $id, 'nome' => (string) $nome])->values(),
+            'moeda' => [
+                'simbolo' => (string) $request->session()->get('business.currency_symbol', 'R$'),
+                'casas' => (int) $request->session()->get('business.currency_precision', 2),
+            ],
+        ]);
     }
 
     /**
