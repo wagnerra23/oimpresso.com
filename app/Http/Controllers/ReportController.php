@@ -2603,6 +2603,10 @@ class ReportController extends Controller
                 ->rawColumns(['invoice_no', 'purchase_quantity', 'ref_no', 'customer'])
                 ->make(true);
         }
+
+        // Este endpoint nunca teve Blade própria (é o DataTable de uma aba de product_sell_report): fora do ajax ele
+        // sempre devolveu nada. O return explícito só deixa isso declarado — mesmo comportamento de antes.
+        return null;
     }
 
     /**
