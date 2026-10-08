@@ -1223,7 +1223,7 @@ class ReportController extends Controller
     /**
      * Shows register report of a business
      *
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Contracts\View\View|\Inertia\Response|\Illuminate\Http\JsonResponse
      */
     public function getRegisterReport(Request $request)
     {
@@ -1231,6 +1231,12 @@ class ReportController extends Controller
             abort(403, 'Unauthorized action.');
         }
         $business_id = $request->session()->get('user.business_id');
+
+        // Tela React (playbook sistema/07). Vem ANTES do ajax(): a visita Inertia manda
+        // X-Requested-With. As linhas saem da MESMA consulta (TransactionUtil::registerReport).
+        if ($request->query('tela') === 'nova') {
+            return $this->telaCaixa($request, $business_id);
+        }
 
         //Return the details in ajax call
         if ($request->ajax()) {
@@ -1294,7 +1300,7 @@ class ReportController extends Controller
                     return $this->productUtil->format_date($row->created_at, true);
                 })
                 ->addColumn('total', function ($row) {
-                    $total = $row->total_card_payment + $row->total_cheque_payment + $row->total_cash_payment + $row->total_bank_transfer_payment + $row->total_other_payment + $row->total_advance_payment + $row->total_custom_pay_1 + $row->total_custom_pay_2 + $row->total_custom_pay_3 + $row->total_custom_pay_4 + $row->total_custom_pay_5 + $row->total_custom_pay_6 + $row->total_custom_pay_7;
+                    $total = $this->totalDoCaixa($row);
 
                     return '<span data-orig-value="'.$total.'" >'.$this->transactionUtil->num_f($total, true).'</span>';
                 })
@@ -1313,6 +1319,95 @@ class ReportController extends Controller
 
         return view('report.register_report')
                     ->with(compact('users', 'payment_types'));
+    }
+
+    /** Formas de pagamento do caixa, na ordem das colunas da Blade. */
+    private const FORMAS_DO_CAIXA = ['card', 'cheque', 'cash', 'bank_transfer', 'advance', 'custom_pay_1', 'custom_pay_2', 'custom_pay_3', 'custom_pay_4', 'custom_pay_5', 'custom_pay_6', 'custom_pay_7', 'other'];
+
+    /**
+     * Total de um caixa = soma das formas de pagamento. Usado pela coluna "Total" do DataTable da Blade
+     * e pela tela nova (playbook sistema/07): uma conta só, nos dois lugares.
+     */
+    private function totalDoCaixa(object $row): float
+    {
+        // Mesma ordem da soma que a coluna fazia inline (outros antes de adiantamento): em ponto
+        // flutuante a ordem pode mexer no último centavo.
+        $total = 0.0;
+        foreach (['card', 'cheque', 'cash', 'bank_transfer', 'other', 'advance', 'custom_pay_1', 'custom_pay_2', 'custom_pay_3', 'custom_pay_4', 'custom_pay_5', 'custom_pay_6', 'custom_pay_7'] as $forma) {
+            $total += (float) ($row->{'total_'.$forma.'_payment'} ?? $row->{'total_'.$forma} ?? 0);
+        }
+
+        return $total;
+    }
+
+    /**
+     * Tela nova do relatório de caixa: os mesmos caixas de registerReport, 25 por página na ordem do
+     * DataTable da Blade (abertura, crescente), datas pelo mesmo format_date e o rodapé por coluna
+     * somando só a página, como o footerCallback da Blade.
+     */
+    private function telaCaixa(Request $request, int $business_id): \Inertia\Response
+    {
+        $payment_types = $this->transactionUtil->payment_types(null, true, $business_id);
+        $inicio = $this->dataIsoOu((string) $request->query('start_date', ''), '');
+        $fim = $this->dataIsoOu((string) $request->query('end_date', ''), '');
+
+        // registerReport lê user_id e status direto da request (os mesmos nomes da Blade).
+        $pagina = $this->transactionUtil->registerReport($business_id, auth()->user()->permitted_locations(), $inicio, $fim, $request->query('user_id'))
+            ->orderBy('cash_registers.created_at', 'asc')->orderBy('cash_registers.id', 'asc')
+            ->toBase()->paginate(25)->withQueryString();
+
+        $linhas = collect($pagina->items())->map(function (\stdClass $r): array {
+            $valores = [];
+            foreach (self::FORMAS_DO_CAIXA as $forma) {
+                $valores[$forma] = (float) ($r->{'total_'.$forma.'_payment'} ?? $r->{'total_'.$forma} ?? 0);
+            }
+
+            return [
+                'id' => (int) $r->id,
+                'aberto_em' => (string) $this->productUtil->format_date($r->created_at, true),
+                'fechado_em' => $r->status == 'close' ? (string) $this->productUtil->format_date($r->closed_at, true) : '',
+                'local' => (string) ($r->location_name ?? ''),
+                'usuario' => trim(str_replace('<br>', ' · ', (string) ($r->user_name ?? '')), ' ·'),
+                'aberto' => $r->status != 'close',
+                'comprovantes_cartao' => (int) ($r->total_card_slips ?? 0),
+                'cheques' => (int) ($r->total_cheques ?? 0),
+                'valores' => $valores,
+                'total' => $this->totalDoCaixa($r),
+            ];
+        })->values();
+
+        // Rodapé como o footerCallback da Blade: cada coluna somada só nas linhas desta página.
+        $rodape = [];
+        foreach (self::FORMAS_DO_CAIXA as $forma) {
+            $rodape[$forma] = (float) $linhas->sum(fn ($l) => $l['valores'][$forma]);
+        }
+        $rodape['total'] = (float) $linhas->sum('total');
+
+        $rotulos = [
+            'card' => 'Cartão', 'cheque' => 'Cheque', 'cash' => 'Dinheiro', 'bank_transfer' => 'Transferência',
+            'advance' => 'Adiantamento', 'other' => 'Outros',
+        ];
+        foreach (['custom_pay_1', 'custom_pay_2', 'custom_pay_3', 'custom_pay_4', 'custom_pay_5', 'custom_pay_6', 'custom_pay_7'] as $c) {
+            $rotulos[$c] = (string) ($payment_types[$c] ?? $c);
+        }
+
+        return Inertia::render('Relatorios/Caixa/Index', [
+            'linhas' => $linhas,
+            'rodape' => $rodape,
+            'formas' => collect(self::FORMAS_DO_CAIXA)->map(fn ($f) => ['chave' => $f, 'rotulo' => $rotulos[$f]])->values(),
+            'paginacao' => ['atual' => $pagina->currentPage(), 'ultima' => $pagina->lastPage(), 'total' => $pagina->total()],
+            'filtros' => [
+                'user_id' => (string) $request->query('user_id', ''),
+                'status' => in_array($request->query('status'), ['open', 'close'], true) ? (string) $request->query('status') : '',
+                'start_date' => $inicio,
+                'end_date' => $fim,
+            ],
+            'usuarios' => collect(User::forDropdown($business_id, false))->map(fn ($nome, $id) => ['id' => (int) $id, 'nome' => (string) $nome])->values(),
+            'moeda' => [
+                'simbolo' => (string) $request->session()->get('business.currency_symbol', 'R$'),
+                'casas' => (int) $request->session()->get('business.currency_precision', 2),
+            ],
+        ]);
     }
 
     /**
