@@ -9,6 +9,7 @@ use DB;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Schema;
 use Spatie\Activitylog\Models\Activity;
 use Spatie\Permission\Models\Role;
 use Yajra\DataTables\Facades\DataTables;
@@ -464,6 +465,11 @@ class ManageUserController extends Controller
                 $user = User::where('business_id', $business_id)
                     ->findOrFail($id);
 
+                $motivo = $this->motivoVinculoQueImpedeExclusao((int) $business_id, (int) $user->id);
+                if ($motivo !== null) {
+                    return response()->json(['success' => false, 'msg' => $motivo], 422);
+                }
+
                 $this->moduleUtil->activityLog($user, 'deleted', null, ['name' => $user->user_full_name, 'id' => $user->id]);
 
                 $user->delete();
@@ -482,6 +488,50 @@ class ManageUserController extends Controller
 
             return $output;
         }
+    }
+
+    /**
+     * Thread sistema/playbook/10 — decisão [W] 2026-10-07 (D-USU-NOME): conta como venda/OS
+     * "no nome" do usuário quem CRIOU a venda ou a OS (`transactions.created_by`,
+     * `repair_job_sheets.created_by`), o VENDEDOR da venda (`transactions.res_waiter_id`) e o
+     * COMISSIONADO (`transactions.commission_agent`). Havendo qualquer um, a exclusão é recusada
+     * com o motivo em PT-BR. Tier 0: só conta registros do negócio da sessão.
+     * Devolve null quando não há vínculo.
+     */
+    private function motivoVinculoQueImpedeExclusao(int $business_id, int $user_id): ?string
+    {
+        $vendas = DB::table('transactions')
+            ->where('business_id', $business_id)
+            ->where('type', 'sell')
+            ->where(function ($q) use ($user_id) {
+                $q->where('created_by', $user_id)
+                    ->orWhere('res_waiter_id', $user_id)
+                    ->orWhere('commission_agent', $user_id);
+            })
+            ->count();
+
+        // A OS só existe com o módulo Repair instalado.
+        $os = Schema::hasTable('repair_job_sheets')
+            ? DB::table('repair_job_sheets')
+                ->where('business_id', $business_id)
+                ->where('created_by', $user_id)
+                ->count()
+            : 0;
+
+        if ($vendas === 0 && $os === 0) {
+            return null;
+        }
+
+        $partes = [];
+        if ($vendas > 0) {
+            $partes[] = $vendas === 1 ? '1 venda' : "{$vendas} vendas";
+        }
+        if ($os > 0) {
+            $partes[] = $os === 1 ? '1 OS' : "{$os} OS";
+        }
+
+        return 'Não é possível excluir: este usuário tem '.implode(' e ', $partes)
+            .' no nome (criador, vendedor ou comissionado). Desative o usuário em vez de excluir.';
     }
 
     /**
