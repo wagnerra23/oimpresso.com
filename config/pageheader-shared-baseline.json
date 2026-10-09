@@ -1,7 +1,7 @@
 {
   "_meta": {
-    "generated_at": "2026-10-05T18:36:29.599Z",
-    "count": 58,
+    "generated_at": "2026-10-09T11:28:28.968Z",
+    "count": 55,
     "adr": "0409 — divida transitoria, nao tolerancia",
     "note": "DIVIDA TRANSITORIA do PageHeader antigo (shared/PageHeader), nao selo de conformidade. Estar nesta lista ADIA a cura; nao perdoa: tocar a tela reprova o gate (ADR 0409). A lista so DESCE — o --write recusa crescimento. Meta: zero, e entao este arquivo e apagado."
   },
@@ -11,9 +11,6 @@
     "Modules/Forja/Resources/js/Pages/ads/Admin/TeamScopes.tsx",
     "Modules/Forja/Resources/js/Pages/ads/Admin/Tools.tsx",
     "Modules/Forja/Resources/js/Pages/Forja/Roadmap/Index.tsx",
-    "Modules/Forja/Resources/js/Pages/team-mcp/CcSessions/Index.tsx",
-    "Modules/Forja/Resources/js/Pages/team-mcp/Tasks/Index.tsx",
-    "Modules/Forja/Resources/js/Pages/team-mcp/Team/Index.tsx",
     "Modules/KB/Resources/js/Pages/ads/Admin/Graph.tsx",
     "Modules/PaymentGateway/Resources/js/Pages/Settings/PaymentGateways/CnabRetorno.tsx",
     "Modules/Superadmin/Resources/js/Pages/superadmin/Assinaturas/Index.tsx",

@@ -165,7 +165,12 @@ class TasksAdminController extends Controller
     public function updateStatus(Request $request, string $taskId): JsonResponse
     {
         $status = $request->input('status');
-        $author = $request->input('author', 'wagner');
+        // Autor da trilha = usuário LOGADO, nunca o body (Tier 0 — thread 08 / UC-TSK-07).
+        // Antes gravava `$request->input('author', 'wagner')`: a tela mandava 'wagner' fixo e
+        // todo movimento em mcp_task_events aparecia como do Wagner; qualquer um forjava o nome.
+        // `author` do body é IGNORADO de propósito. 60 = largura de mcp_task_events.author.
+        $user   = $request->user();
+        $author = mb_substr((string) ($user->username ?: 'user#'.$user->id), 0, 60);
 
         $validos = ['todo', 'doing', 'review', 'done', 'blocked', 'cancelled'];
         if (! in_array($status, $validos, true)) {

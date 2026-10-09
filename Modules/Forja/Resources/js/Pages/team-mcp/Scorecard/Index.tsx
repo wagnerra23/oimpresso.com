@@ -11,7 +11,7 @@
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { router } from '@inertiajs/react';
-import { useEffect, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { AlertCircle, AlertTriangle, CheckCircle2, RefreshCw } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
 import { PageHeader } from '@/Components/PageHeader';
@@ -59,6 +59,27 @@ function ScorecardIndex({ facts, checks, meta }: Props) {
   const checkList = checks ?? [];
   const okCount = checkList.filter((c) => c.ok).length;
   const allOk = checkList.length > 0 && okCount === checkList.length;
+  const semChecks = !isLoading && checkList.length === 0;
+
+  // Falha do defer (thread 08 PR-b · UC-SC-ERRO): sem isto, quando o request deferido
+  // morria (403/419/500/rede) facts/checks ficavam `undefined` e a tela mostrava
+  // "Carregando…" para sempre. Ouve os eventos de erro do Inertia SÓ enquanto carrega;
+  // o cast segue o app.tsx (o nome do evento varia entre versões — se não existir,
+  // o handler só não dispara). O prazo cobre o que nenhum evento avisa.
+  const [falhou, setFalhou] = useState(false);
+  useEffect(() => {
+    if (!isLoading) return;
+    const on = router.on as unknown as (nome: string, cb: () => void) => () => void;
+    const desliga = [on('httpException', () => setFalhou(true)), on('networkError', () => setFalhou(true))];
+    const prazo = window.setTimeout(() => setFalhou(true), 30000);
+    return () => { desliga.forEach((d) => d?.()); window.clearTimeout(prazo); };
+  }, [isLoading]);
+  const erroCarga = isLoading && falhou;
+
+  function recarregar() {
+    setFalhou(false);
+    router.reload({ only: ['facts', 'checks'] });
+  }
 
   // Atalho: R recarrega facts/checks
   useEffect(() => {
@@ -68,7 +89,7 @@ function ScorecardIndex({ facts, checks, meta }: Props) {
       if (e.ctrlKey || e.metaKey || e.altKey) return; // não sequestrar Ctrl/Cmd+R do browser
       if (!typing && (e.key === 'r' || e.key === 'R')) {
         e.preventDefault();
-        router.reload({ only: ['facts', 'checks'] });
+        recarregar();
       }
     }
     window.addEventListener('keydown', onKey);
@@ -82,7 +103,7 @@ function ScorecardIndex({ facts, checks, meta }: Props) {
         title="Saúde do MCP"
         subtitle={`Facts + Checks · janela ${meta.period_days}d · fonte ${meta.source}`}
         actions={
-          <Button variant="ghost" size="sm" className="h-8 text-xs" onClick={() => router.reload({ only: ['facts', 'checks'] })}>
+          <Button variant="ghost" size="sm" className="h-8 text-xs" onClick={recarregar}>
             <RefreshCw size={13} className="mr-1" /> Atualizar
           </Button>
         }
@@ -93,12 +114,18 @@ function ScorecardIndex({ facts, checks, meta }: Props) {
         role="status"
         data-testid="scorecard-semaphore"
         className={cn('mt-4 flex items-center gap-2 rounded-lg border px-4 py-3 text-sm',
-          isLoading ? 'border-border bg-muted/40 text-muted-foreground'
+          erroCarga ? 'border-destructive/30 bg-destructive-soft text-destructive-fg'
+            : isLoading || semChecks ? 'border-border bg-muted/40 text-muted-foreground'
             : allOk ? 'border-success/30 bg-success/10 text-success-fg'
               : 'border-warning/30 bg-warning-soft text-warning-fg')}
       >
-        {isLoading ? (
+        {erroCarga ? (
+          <><AlertCircle size={16} /> <span className="font-medium">Não foi possível carregar os checks.</span>
+            <Button variant="ghost" size="sm" className="ml-auto h-7 text-xs" onClick={recarregar}>Tentar de novo</Button></>
+        ) : isLoading ? (
           <span>Carregando checks…</span>
+        ) : semChecks ? (
+          <span>Nenhum check configurado.</span>
         ) : allOk ? (
           <><CheckCircle2 size={16} /> <span className="font-medium">Tudo verde — {okCount}/{checkList.length} checks OK</span></>
         ) : (
@@ -140,10 +167,14 @@ function ScorecardIndex({ facts, checks, meta }: Props) {
 
       {/* Checks (semáforo ok/fail) */}
       <h2 className="mt-6 text-sm font-semibold text-foreground">Checks <span className="font-normal text-muted-foreground">— saúde por dimensão</span></h2>
-      {isLoading ? (
+      {erroCarga ? null : isLoading ? (
         <div className="mt-2 space-y-2" data-testid="scorecard-skeleton">
           {Array.from({ length: 5 }).map((_, i) => <div key={i} className="h-12 animate-pulse rounded-md bg-muted/50" />)}
         </div>
+      ) : semChecks ? (
+        <p className="mt-2 rounded-lg border bg-card px-3 py-3 text-xs italic text-muted-foreground" data-testid="scorecard-checks-vazio">
+          Nenhum check configurado.
+        </p>
       ) : (
         <ul className="mt-2 overflow-hidden rounded-lg border bg-card" data-testid="scorecard-checks">
           {checkList.map((c, i) => (
