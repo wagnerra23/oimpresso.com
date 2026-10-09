@@ -8,12 +8,22 @@ use Illuminate\Routing\Controller;
 use Laravel\Passport\Passport;
 use Illuminate\Support\Str;
 use Yajra\DataTables\Facades\DataTables;
+use App\Services\FeatureFlagService;
 use App\Utils\Util;
 use Illuminate\Support\Facades\Artisan;
+use Inertia\Inertia;
 use Modules\Officeimpresso\Services\AcessoOperador;
 
 class ClientController extends Controller
 {
+    /**
+     * Flag da tela React desta lista (thread Officeimpresso/10). Mesmo desenho da
+     * `useV2OfficeimpressoLogs` (LicencaLogController): enquanto o GrowthBook não conhecer
+     * a chave o FeatureFlagService devolve `false` e a Blade continua servindo. Ligar em
+     * produção e apagar a Blade é o cutover do [W] (RUNBOOK-clientes §F5, ADR 0104).
+     */
+    private const FLAG_V2 = 'useV2OfficeimpressoClientes';
+
     public function __construct(Util $util) {
         $this->util = $util;
     }
@@ -51,7 +61,7 @@ class ClientController extends Controller
 
     /**
      * Display a listing of the resource.
-     * @return Response
+     * @return \Illuminate\Contracts\View\View|\Inertia\Response
      */
     public function index()
     {
@@ -60,6 +70,21 @@ class ClientController extends Controller
         $is_demo = (config('app.env') == 'demo');
 
         $business_id = request()->session()->get('user.business_id');
+
+        if (app(FeatureFlagService::class)->isOn(self::FLAG_V2, ['business_id' => $business_id])) {
+            // A credencial é flash da criação: lida AQUI, no request que a recebe — numa prop
+            // adiada ela chegaria num 2º request, com o flash já consumido. A lista vai adiada.
+            return Inertia::render('Officeimpresso/Clientes/Index', [
+                'is_demo'     => $is_demo,
+                'credencial'  => $is_demo ? null : session('officeimpresso_credencial'),
+                'permissions' => [
+                    'pode_excluir'   => auth()->user()->can('superadmin'),
+                    'pode_regenerar' => auth()->user()->can('superadmin'),
+                ],
+                'clientes' => Inertia::defer(fn () => $is_demo ? [] : $this->buildClientesPayload((int) $business_id)),
+            ]);
+        }
+
         // Thread 05 (2026-10-01): o segredo NAO sai do banco para a lista — a coluna nem
         // e selecionada (mesma regra do painel do Connector, #8350). O valor guardado nao
         // muda: o Delphi em campo continua autenticando. Ele aparece UMA vez, no flash da
@@ -80,6 +105,29 @@ class ClientController extends Controller
         $credencial = $is_demo ? null : session('officeimpresso_credencial');
 
         return view('officeimpresso::clients.index')->with(compact('clients', 'is_demo', 'credencial'));
+    }
+
+    /**
+     * DTO explícito da lista React: o `secret` nunca é selecionado (thread 05), e o negócio
+     * vem do dono do client (JOIN users) — o mesmo filtro da Blade.
+     *
+     * @return array<int, array{id: int, name: string, tipo: string}>
+     */
+    private function buildClientesPayload(int $business_id): array
+    {
+        return Passport::client()
+            ->join('users as u', 'oauth_clients.user_id', '=', 'u.id')
+            ->where('u.business_id', $business_id)
+            ->where('oauth_clients.password_client', 1)
+            ->orderBy('oauth_clients.id')
+            ->get(['oauth_clients.id', 'oauth_clients.name', 'oauth_clients.password_client', 'oauth_clients.personal_access_client'])
+            ->map(fn ($c) => [
+                'id'   => (int) $c->id,
+                'name' => (string) $c->name,
+                'tipo' => $c->password_client ? 'password' : ($c->personal_access_client ? 'personal' : 'authz_code'),
+            ])
+            ->values()
+            ->all();
     }
 
     /**
