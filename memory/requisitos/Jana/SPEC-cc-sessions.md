@@ -88,12 +88,12 @@ Permission `copiloto.cc.read.all` = ver todas; `cc.read.team` = **abre a tela e 
 - **Como** dev **quero** clicar pra expandir mensagem >300 chars **para** ler completa sem poluir thread.
 - **DoD extra:** "ver mais (X chars)" colapsável; blob fetch lazy.
 
-### Área Search cross-dev
+### Área Search nas sessões autorizadas
 
-#### US-COPI-CC-020 · Busca FULLTEXT em todas as mensagens
+#### US-COPI-CC-020 · Busca FULLTEXT nas mensagens acessíveis
 - **Rota:** `GET /copiloto/admin/cc-sessions/search?q=...&user=...&tool=...`
 - **Controller:** `Admin\CcSessionsController@search`
-- **Como** Felipe **quero** buscar "telescope crash" **para** ver como alguém resolveu antes.
+- **Como** Felipe **quero** buscar "telescope crash" nas minhas sessões **para** recuperar uma solução anterior; com `cc.read.all`, a busca também alcança as sessões dos demais devs.
 - **Mecanismo:** `MATCH(content_text) AGAINST(? IN NATURAL LANGUAGE MODE)` em `mcp_cc_messages` + filtros opcionais user/tool/date
 - **Result:** lista de hits (msg + session info + score), click vai pro contexto da session
 - **DoD extra:** highlight do termo nos snippets; respeita RBAC — sem `cc.read.all`, a busca só traz as próprias sessões (D12; `cc.read.team` não amplia).
