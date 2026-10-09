@@ -18,6 +18,8 @@ uses(Tests\TestCase::class, DatabaseTransactions::class);
  * UC-RQV-01 `[T0]` — quem não é do time não vê o roadmap (anônimo → login; sem permissão → 403).
  * UC-RQV-02        — os epics chegam agrupados por quarter; epic sem quarter cai em "Sem quarter".
  * UC-RQV-03        — o progresso do epic é done/total das tasks dele, em %.
+ * UC-RQV-04        — epic cancelado não aparece (D8 — [CC] 2026-10-07, pergunta pulada pelo [W]).
+ * UC-RQV-05        — colunas em ordem cronológica entre anos; "Sem quarter" por último (D9).
  *
  * Os UC derivam do `Index.charter.md` (Mission/Goals/Non-Goals), da US-TR-203
  * (memory/requisitos/TaskRegistry/SPEC.md) e da ADR 0367 D7 — nunca do `.tsx`.
@@ -197,4 +199,36 @@ it('UC-RQV-03 · o progresso do epic é done/total das tasks dele, em porcentage
     expect($epics['RQV-Q']['tasks']['total'])->toBe(2);
     expect($epics['RQV-Q']['tasks']['done'])->toBe(2);
     expect($epics['RQV-Q']['tasks']['percent'])->toBe(100);
+});
+
+it('UC-RQV-04 · epic cancelado não aparece no roadmap nem conta nos KPIs', function () {
+    [$projectId, $key] = rqvProjeto();
+    rqvEpic($projectId, 'RQV-V', 'Q1-2031', 'active');
+    rqvEpic($projectId, 'RQV-X', 'Q1-2031', 'cancelled');
+
+    $this->actingAs($this->usuarioComPermissoes(['jana.mcp.usage.all']));
+    $props = rqvPayload($this, $key);
+
+    $chaves = collect($props['quarters'] ?? [])->flatMap(fn ($q) => collect($q['epics'])->pluck('key'))->all();
+
+    // Controle positivo: o epic vivo do MESMO quarter chega — o sumiço do cancelado é filtro, não payload vazio.
+    expect($chaves)->toBe(['RQV-V']);
+    expect($props['kpis']['total_epics'] ?? null)->toBe(1);
+});
+
+it('UC-RQV-05 · as colunas vêm em ordem cronológica entre anos, e "Sem quarter" fica por último', function () {
+    [$projectId, $key] = rqvProjeto();
+    // Inseridos fora de ordem e nos dois formatos que existem no dado (Qn-AAAA e AAAA-Qn).
+    // Como texto, `Q1-2032` viria antes de `Q4-2031` — a ordem certa só sai lendo ano e trimestre.
+    rqvEpic($projectId, 'RQV-1', 'Q1-2032', 'planning');
+    rqvEpic($projectId, 'RQV-2', null, 'planning');
+    rqvEpic($projectId, 'RQV-3', 'Q4-2031', 'active');
+    rqvEpic($projectId, 'RQV-4', '2031-Q2', 'active');
+
+    $this->actingAs($this->usuarioComPermissoes(['jana.mcp.usage.all']));
+    $props = rqvPayload($this, $key);
+
+    $colunas = collect($props['quarters'] ?? [])->pluck('key')->all();
+
+    expect($colunas)->toBe(['2031-Q2', 'Q4-2031', 'Q1-2032', 'Sem quarter']);
 });
