@@ -218,7 +218,11 @@ it('UC-NOT-26 · nao deixa um negocio alterar o modelo de outro', function () {
 
     ($this->entrar)($this->admin)->post(rotaStore(), ['template_data' => [
         'new_sale' => camposDoModelo(['subject' => 'Invadido']),
-    ]]);
+    ]])->assertRedirect();
+
+    // Controle positivo: o POST gravou no próprio tenant, não passou só por retornar 403.
+    expect(NotificationTemplate::where('business_id', $this->business->id)
+        ->where('template_for', 'new_sale')->value('subject'))->toBe('Invadido');
 
     expect($antes->fresh()->subject)->toBe('Do outro negocio');
 });
@@ -236,11 +240,11 @@ it('UC-NOT-27 · ignora chave de modelo desconhecida no POST', function () {
         ->where('template_for', 'modelo_inventado')->exists())->toBeFalse();
 });
 
-it('UC-NOT-24 · recusa cc invalido no servidor', function () {
+it('UC-NOT-24 · recusa cc ou bcc invalido no servidor', function (string $campo) {
     ($this->entrar)($this->admin)->post(rotaStore(), ['template_data' => [
-        'new_sale' => camposDoModelo(['cc' => 'nao-e-email']),
-    ]])->assertSessionHasErrors('template_data.new_sale.cc');
-});
+        'new_sale' => camposDoModelo([$campo => 'nao-e-email']),
+    ]])->assertSessionHasErrors('template_data.new_sale.'.$campo);
+})->with(['cc', 'bcc']);
 
 it('UC-NOT-28 · semeia os modelos em portugues para negocio novo', function () {
     // Semeia num business descartável usando o MESMO caminho de produção do seed.
