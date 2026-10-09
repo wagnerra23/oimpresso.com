@@ -39,9 +39,11 @@ O teste trava esse estado (último caso). Para virar: o React do cadastro mandar
 DataTable; AJAX sem `X-Inertia` → JSON do DataTable; GET comum do novo → Blade. Pest local é
 proibido: o veredito é a lane.
 
-Afirmações que ficaram falsas, corrigidas com nota datada: `ProdutoIndexContratoTest.php`
-(cabeçalho) e `Produto/Index.casos.md` (escopo). Ficam com o texto de antes, por serem do
-cadastro ou datadas: `SPEC.md` US-PROD-029 e `SDD-tela-cadastro-produto-v1.0.md` F7.
+Afirmação que ficou falsa, corrigida com nota datada: cabeçalho do `ProdutoIndexContratoTest.php`.
+`Produto/Index.casos.md` diz o mesmo no § escopo e **não** foi tocado: a tela já está com o
+`last_run` vencido (G-6), e tocar o casos.md faria este PR dono dessa dívida. Fica para quem
+revalidar os casos da lista. Também ficam com o texto de antes, por serem do cadastro ou
+datados: `SPEC.md` US-PROD-029 e `SDD-tela-cadastro-produto-v1.0.md` F7.
 
 ## Para o [W] antes do merge (cutover)
 - Vale para todas as empresas, incluindo a ROTA LIVRE (D1 = por tela).
