@@ -31,6 +31,7 @@ on:
     branches: [main]
     paths:
       - 'tests/Feature/Sells/**'
+      - 'tests/Feature/CutoverMenu/VendasListasSemXInertiaTest.php'  # cutover-menu thread 02
       - 'app/Transaction.php'
       - 'app/Http/Controllers/SellCommissionSplitController.php'
       - 'app/Http/Controllers/SellController.php'
@@ -126,6 +127,7 @@ jobs:
           filters: |
             sells:
               - 'tests/Feature/Sells/**'
+              - 'tests/Feature/CutoverMenu/VendasListasSemXInertiaTest.php'
               - 'app/Transaction.php'
               - 'app/Http/Controllers/SellCommissionSplitController.php'
               - 'app/Http/Controllers/SellPosController.php'
@@ -294,6 +296,10 @@ jobs:
         # thread Q1 venda-menu): lista de cotações pelo endpoint de dados `/sells/draft-dt?is_quotation=1`
         # — view_all × view_own, rascunho comum e venda final fora, tenant 98 × 99 — e o 403 da tela.
         # 3/3 verde no CT 100 (19 assertions) antes do PR.
+        # 2026-10-09 — + CutoverMenu/VendasListasSemXInertiaTest (playbook cutover-menu thread 02):
+        # Rascunhos/Cotações/Assinaturas abrem React no GET comum, ?classico=1 segue Blade, a visita
+        # Inertia de Assinaturas não cai no JSON, e os endereços de dados/toggle que a Page lê existem.
+        # NASCE SEM RUN: vermelho aqui é este arquivo.
         env:
           DB_CONNECTION: mysql
           DB_HOST: 127.0.0.1
@@ -340,7 +346,8 @@ jobs:
             tests/Feature/Sells/ImportSalesReverterContratoTest.php \
             tests/Feature/Sells/VendasMwartCutoverTest.php \
             tests/Feature/Sells/CommissionSplitAuditTest.php \
-            tests/Feature/Sells/SellsQuotationsContratoTest.php
+            tests/Feature/Sells/SellsQuotationsContratoTest.php \
+            tests/Feature/CutoverMenu/VendasListasSemXInertiaTest.php
 
 
       # Passo 1 do plano da LC-13 (Gate:): a lane JA emitia JUnit e NINGUEM lia.
