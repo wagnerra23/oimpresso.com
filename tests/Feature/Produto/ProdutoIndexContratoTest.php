@@ -43,8 +43,9 @@ use Tests\Support\EstoqueFixture;
  *
  * ⛔ Escopo (escrito quando a lista React ainda só abria com o header `X-Inertia`, e a sidebar
  *    usa `<a href>` puro → caía no Blade): vermelho aqui era BLOQUEADOR DE MIGRAÇÃO (gate MWART
- *    F5, ADR 0104). Desde o cutover pelo menu · thread 01 (D1 [W] 2026-10-07) a lista React é o
- *    padrão de `/products` e o Blade só abre com `?classico=1` — vermelho aqui passa a ser tela viva.
+ *    F5, ADR 0104). De 2026-10-07 (cutover pelo menu · thread 01, #9094) a 2026-10-09 a lista
+ *    React foi o padrão de `/products` e o vermelho aqui foi tela viva. Em 2026-10-09 o menu voltou
+ *    ao Blade e a Page só abre com `X-Inertia` de novo: o vermelho volta a ser BLOQUEADOR DE MIGRAÇÃO.
  *
  * ⛔ Multi-tenant Tier 0 (ADR 0101): biz=1 canônico; cross-tenant contra o 2º business seedado.
  *    NUNCA biz=4 (ROTA LIVRE, cliente real).

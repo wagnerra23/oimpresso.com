@@ -70,11 +70,14 @@ class ProductController extends Controller
         $selling_price_group_count = SellingPriceGroup::countSellingPriceGroups($business_id);
         $is_woocommerce = $this->moduleUtil->isModuleInstalled('Woocommerce');
 
-        // Cutover pelo menu · thread 01 (D1 [W] 2026-10-07): React é o padrão, `?classico=1`
-        // mantém o Blade — molde `UnitController@index`. A decisão vem ANTES do ramo `ajax()`:
-        // o Inertia manda `X-Requested-With` junto do `X-Inertia`, e com o `ajax()` primeiro a
-        // visita Inertia (e o reload das props deferidas) recebia o JSON do DataTable (§5 2026-09-08).
-        $telaReact = ! request()->boolean('classico') && (! request()->ajax() || request()->header('X-Inertia'));
+        // O menu abre o Blade. Em 2026-10-07 o cutover pelo menu · thread 01 (#9094, D1 [W]) pôs a
+        // Page React como padrão; em 2026-10-09 voltou, porque a lista React corta em 200 produtos
+        // sem paginação, busca só no que carregou e não pelo SKU da variação (UC-PIDX-01/02/06 em
+        // `Produto/Index.casos.md`, teste em quarentena) — e havia empresa com milhares de produtos.
+        // Ela também não segue o desenho desta tela (protótipo `produto-blade.jsx`, vista `lista`).
+        // A Page React segue acessível com o header `X-Inertia`. A decisão continua ANTES do ramo
+        // `ajax()`: o Inertia manda `X-Requested-With` junto do `X-Inertia` (§5 2026-09-08).
+        $telaReact = (bool) request()->header('X-Inertia');
 
         if (! $telaReact && request()->ajax()) {
             //Filter by location
@@ -343,7 +346,7 @@ class ProductController extends Controller
         $is_admin = $this->productUtil->is_admin(auth()->user());
 
         // Wave 2 B4 Produto (Agent W2-C 2026-05-15) — branch dual Inertia MWART (ADR 0104).
-        // Page React com `X-Inertia` ou GET comum; Blade só com `?classico=1` (ver acima).
+        // Page React só com `X-Inertia`; o GET comum (o menu) abre o Blade (ver acima).
         // Tier 0 multi-tenant (ADR 0093): business_id passado explicitamente a cada builder.
         if ($telaReact) {
             // UC-PIDX-03 — o MESMO gate que o outro branch deste método aplica na Blade

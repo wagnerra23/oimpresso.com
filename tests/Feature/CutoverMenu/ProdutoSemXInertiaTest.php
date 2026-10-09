@@ -6,24 +6,27 @@ use App\User;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
-use Inertia\Testing\AssertableInertia;
 use Spatie\Permission\Models\Permission;
 
 /**
- * Cutover pelo menu · thread 01 — a lista de Produtos abre a Page React por padrão
- * (playbook `cutover-menu`, D1 [W] 2026-10-07: "por tela: React vira padrão, Blade só com
- * ?classico=1"). Molde: `UnitController@index`.
+ * Cutover pelo menu · thread 01 — rotas da lista de Produtos.
  *
- * O menu navega com carga cheia (`<a href>`, sem `X-Inertia`). Antes, `/products` só devolvia
- * a Page com o cabeçalho, então pelo menu caía sempre no Blade.
+ * Em 2026-10-07 (#9094, playbook `cutover-menu`, D1 [W] "por tela: React vira padrão") o GET
+ * comum passou a abrir a Page React. Em 2026-10-09 o menu VOLTOU ao Blade: a lista React corta
+ * em 200 produtos, busca só no que carregou e não pelo SKU da variação (UC-PIDX-01/02/06 de
+ * `Produto/Index.casos.md`, em quarentena) e não segue o protótipo desta tela
+ * (`produto-blade.jsx`, vista `lista`). Quando a lista React for refeita a partir dele, o 1º
+ * caso abaixo volta a exigir a Page.
+ *
+ * O menu navega com carga cheia (`<a href>`, sem `X-Inertia`).
  *
  * `/products/create` NÃO virou: a Page React não envia preço (`single_dpp`/`single_dsp`/
  * `profit_percent` — `Create.casos.md` §"preço") e a US-PROD-029 ([F] 2026-08-24) protege o
  * cadastro da Larissa. O último caso abaixo trava que o GET comum do novo segue no Blade.
  *
  * Os caminhos que importam:
- *   GET comum                 → Page React
- *   ?classico=1               → Blade
+ *   GET comum                 → Blade (o menu)
+ *   ?classico=1               → Blade (o link antigo continua valendo)
  *   AJAX sem X-Inertia        → JSON do DataTable (a lista Blade continua lendo daqui)
  *   visita Inertia real       → Page (X-Inertia **e** X-Requested-With — §5 2026-09-08)
  *   reload de props deferidas → Page com as props pedidas (antes caía no JSON do DataTable)
@@ -92,15 +95,17 @@ beforeEach(function () {
     $this->bizId = (int) $this->seededTenant()->id;
 });
 
-it('GET comum (como o menu navega) abre a Page React da lista', function () {
-    foreach (psxTelas() as $nome => [$rota, $componente, , $permissoes]) {
-        $resp = psxLogin($this, psxUsuario($this->bizId, $permissoes))->get($rota);
-        $resp->assertOk();
-        $resp->assertInertia(fn (AssertableInertia $p) => $p->component($componente, false));
+it('GET comum (como o menu navega) abre o Blade da lista', function () {
+    // Volta de 2026-10-09: a lista React corta em 200 e não segue o protótipo (ver cabeçalho).
+    foreach (psxTelas() as $nome => [$rota, , $blade, $permissoes]) {
+        psxLogin($this, psxUsuario($this->bizId, $permissoes))
+            ->get($rota)
+            ->assertOk()
+            ->assertViewIs($blade);
     }
 });
 
-it('?classico=1 mantém o Blade da lista', function () {
+it('?classico=1 continua abrindo o Blade da lista', function () {
     foreach (psxTelas() as $nome => [$rota, , $blade, $permissoes]) {
         psxLogin($this, psxUsuario($this->bizId, $permissoes))
             ->get($rota . '?classico=1')
