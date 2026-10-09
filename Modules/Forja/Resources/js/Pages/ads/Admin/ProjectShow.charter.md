@@ -17,21 +17,23 @@ charter_version: 1
 
 > **Status:** draft criado em 2026-07-11 no lote de cobertura de charters. Wagner aprova **Non-Goals + Anti-hooks** ANTES de virar `status: live`.
 >
-> Backend: `Modules/Forja/Http/Controllers/Admin/ProjectsController@show` (rota `ads.admin.projects.show`, `whereNumber('id')`) + `@decompose` (POST). Detalhe do Project: KPIs estratégicos, parts decompostas, métricas de sucesso e decisões geradas.
+> Backend: `Modules/Forja/Http/Controllers/Admin/ProjectsController@show` (rota `ads.admin.projects.show`, `whereNumber('id')`) + `@decompose` (POST). Detalhe do Project: KPIs estratégicos, parts decompostas e métricas de sucesso.
 >
-> **Casos de uso:** [`ProjectShow.casos.md`](ProjectShow.casos.md) (UC-ADPS-01..02, teste `Modules/Forja/Tests/Feature/AdsAdminProjectShowContratoTest.php`).
+> **Acesso:** login **e** a permissão do módulo Forja (`jana.mcp.usage.all`), nas 4 ações do controller — decisão [W] D10 (2026-10-07). Sem ela, 403.
+>
+> **Casos de uso:** [`ProjectShow.casos.md`](ProjectShow.casos.md) (UC-ADPS-01..05; testes `Modules/Forja/Tests/Feature/AdsAdminProjectShowContratoTest.php`, `ProjectDecomposeTenantTest.php` e `ForjaProjectsAcessoTest.php`).
 
 ---
 
 ## Mission
-Mostrar o Project por dentro: viability/custo/prazo, a decomposição em Parts (ordem, dependências, viability/risco, estimativas, arquivos previstos), as métricas de sucesso e as decisões geradas. Quando ainda em draft e sem parts, oferecer o disparo do Project Decomposer Agent (Claude Sonnet) pra gerar a decomposição estratégica. É a tela onde a estratégia vira plano executável.
+Mostrar o Project por dentro: viability/custo/prazo, a decomposição em Parts (ordem, dependências, viability/risco, estimativas, arquivos previstos) e as métricas de sucesso. Quando ainda em draft e sem parts, oferecer o disparo do Project Decomposer Agent (Claude Sonnet) pra gerar a decomposição estratégica. É a tela onde a estratégia vira plano executável.
 
 ---
 
 ## Goals — Features (faz)
 - KPIs: viability score (com tom por faixa), custo estimado, prazo estimado, contagem de parts (e concluídas).
 - Decomposição em `<ol>`: por part — código/ordem, nome, status, viability/risco, horas, valor, dependências, arquivos estimados (details).
-- Métricas de sucesso (quando houver) e decisões linkadas ao project (linka pra `/ads/admin/decisoes/{id}`).
+- Métricas de sucesso (quando houver).
 - Botão "Decompor com IA" (só quando draft e sem parts) → `POST /ads/admin/projects/{id}/decompose`, com `confirm()` avisando custo (~30s, ~5k tokens).
 - EmptyState quando ainda não decomposto.
 
@@ -39,7 +41,9 @@ Mostrar o Project por dentro: viability/custo/prazo, a decomposição em Parts (
 
 ## Non-Goals — Features (NÃO faz)
 - ❌ Não edita as parts nem o project manualmente aqui — decomposição vem do agente.
-- ❌ Não executa as parts/decisões — só exibe e linka.
+- ❌ Não executa as parts — só exibe.
+- ❌ Não lista decisões ligadas ao project. A fonte morreu com a ADR 0363 (a tabela de decisões do ADS foi dropada) e a seção saiu deste charter por decisão [W] D11 (2026-10-07).
+- ❌ Não abre para quem só está logado — exige a permissão do módulo Forja (D10).
 - ❌ Não re-decompõe automaticamente um project já decomposto — botão some quando há parts.
 - ❌ Não mostra project de outro business — scopado por `businessId` da sessão (Tier 0). [inferência confirmada no controller]
 
