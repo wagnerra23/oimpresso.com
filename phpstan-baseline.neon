@@ -17092,13 +17092,13 @@ parameters:
 			path: app/Http/Controllers/ManageUserController.php
 
 		-
-			message: '#^Method App\\Http\\Controllers\\ManageUserController\:\:destroy\(\) should return Illuminate\\Http\\Response but return statement is missing\.$#'
+			message: '#^Method App\\Http\\Controllers\\ManageUserController\:\:destroy\(\) should return Illuminate\\Http\\JsonResponse\|Illuminate\\Http\\Response but return statement is missing\.$#'
 			identifier: return.missing
 			count: 1
 			path: app/Http/Controllers/ManageUserController.php
 
 		-
-			message: '#^Method App\\Http\\Controllers\\ManageUserController\:\:destroy\(\) should return Illuminate\\Http\\Response but returns array\<string, array\|bool\|string\>\.$#'
+			message: '#^Method App\\Http\\Controllers\\ManageUserController\:\:destroy\(\) should return Illuminate\\Http\\JsonResponse\|Illuminate\\Http\\Response but returns array\<string, array\|bool\|string\>\.$#'
 			identifier: return.type
 			count: 1
 			path: app/Http/Controllers/ManageUserController.php
