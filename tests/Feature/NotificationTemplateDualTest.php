@@ -8,6 +8,8 @@ use App\Services\FeatureFlagService;
 use App\Utils\ModuleUtil;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Cache;
 
 uses(DatabaseTransactions::class);
 
@@ -84,4 +86,19 @@ test('UC-NOT-01 F2 nega Inertia sem send_notification antes de avaliar flag', fu
     $this->mock(FeatureFlagService::class, fn ($mock) => $mock->shouldNotReceive('isOn'));
     $this->actingAs($this->usuarioComPermissoes([], $this->business))
         ->withHeaders($this->inertiaHeaders)->get('/notification-templates')->assertForbidden();
+});
+
+
+test('F2 flag ausente fica OFF no serviço real para qualquer tenant', function () {
+    Cache::forget('growthbook.features');
+    Http::fake(['*' => Http::response(['features' => []])]);
+    config(['feature-flags.forced_on' => '']);
+    expect(app(FeatureFlagService::class)->isOn('useV2NotificationTemplates', ['business_id' => 98]))->toBeFalse();
+    expect(app(FeatureFlagService::class)->isOn('useV2NotificationTemplates', ['business_id' => 99]))->toBeFalse();
+    Cache::forget('growthbook.features');
+});
+
+test('F2 navegação sem X-Inertia preserva Blade antes da Page', function () {
+    $this->mock(FeatureFlagService::class, fn ($mock) => $mock->shouldNotReceive('isOn'));
+    $this->get('/notification-templates')->assertOk()->assertViewIs('notification_template.index');
 });

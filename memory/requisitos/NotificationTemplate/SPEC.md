@@ -13,9 +13,9 @@ Epic: Sistema/06, primeiro recorte (Modelos de notificação). Pedido [W] em 09/
 
 ### US-NOTIF-001 · Plano F1
 blocked_by: —
-**Implementado em:** _pendente_ (F1 aguardou publicação).
+**Implementado em:** `memory/requisitos/NotificationTemplate/RUNBOOK-modelos-notificacao.md`, `memory/requisitos/NotificationTemplate/modelos-notificacao-parity.md` (#9105 mergeado em 09/10).
 Plano preparado em `memory/requisitos/NotificationTemplate/RUNBOOK-modelos-notificacao.md` e `memory/requisitos/NotificationTemplate/modelos-notificacao-parity.md`.
-Plano documental preparado; F1 só fica publicada após merge desta entrega.
+F1 foi publicada pelo merge da #9105 em 09/10.
 
 ### US-NOTIF-002 · Baseline e ação dual F2
 blocked_by: US-NOTIF-001

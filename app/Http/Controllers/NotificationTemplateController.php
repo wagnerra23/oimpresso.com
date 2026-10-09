@@ -48,7 +48,7 @@ class NotificationTemplateController extends Controller
 
         $grupos = $this->__grupos();
 
-        if (app(FeatureFlagService::class)->isOn('useV2NotificationTemplates', ['business_id' => $business_id])) {
+        if (request()->header('X-Inertia') && app(FeatureFlagService::class)->isOn('useV2NotificationTemplates', ['business_id' => $business_id])) {
             return Inertia::render('NotificationTemplate/Index', [
                 'general_notifications' => Inertia::defer(fn () => $this->__getTemplateDetails($grupos['general'])),
                 'customer_notifications' => Inertia::defer(fn () => $this->__getTemplateDetails($grupos['customer'])),
