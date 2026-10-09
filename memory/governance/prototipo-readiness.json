@@ -225,6 +225,16 @@
       ]
     },
     {
+      "tela": "Funcoes/Index",
+      "arquivo": "resources/js/Pages/Funcoes/Index.tsx",
+      "modulo": "core",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/Wagner/funcoes-page.jsx",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
       "tela": "ImportSales/Index",
       "arquivo": "resources/js/Pages/ImportSales/Index.tsx",
       "modulo": "core",
@@ -240,6 +250,16 @@
       "modulo": "core",
       "status": "1-ciclo",
       "prototipo": "prototipo-ui/cowork/Wagner/venda-blade-telas.jsx",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
+      "tela": "Manufacturing/IngredientesEditor",
+      "arquivo": "resources/js/Pages/Manufacturing/IngredientesEditor.tsx",
+      "modulo": "core",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/Wagner/manufacturing-recipe.jsx",
       "falta": [
         "scorecard"
       ]
@@ -655,6 +675,16 @@
       ]
     },
     {
+      "tela": "Officeimpresso/Clientes/Index",
+      "arquivo": "Modules/Officeimpresso/Resources/js/Pages/Officeimpresso/Clientes/Index.tsx",
+      "modulo": "Officeimpresso",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/Wagner/officeimpresso-page.jsx",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
       "tela": "Officeimpresso/Licencas/Index",
       "arquivo": "Modules/Officeimpresso/Resources/js/Pages/Officeimpresso/Licencas/Index.tsx",
       "modulo": "Officeimpresso",
@@ -685,5 +715,5 @@
       ]
     }
   ],
-  "total": 151
+  "total": 154
 }

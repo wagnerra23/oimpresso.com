@@ -166,6 +166,17 @@
       }
     },
     {
+      "screen": "Funcoes",
+      "note": "1 arquivo(s)",
+      "cells": {
+        "tokens": "yes",
+        "primitivos": "yes",
+        "probe": "na",
+        "dark": "na",
+        "approved": "no"
+      }
+    },
+    {
       "screen": "governance",
       "note": "8 arquivo(s)",
       "cells": {
@@ -200,7 +211,7 @@
     },
     {
       "screen": "Manufacturing",
-      "note": "12 arquivo(s)",
+      "note": "16 arquivo(s)",
       "cells": {
         "tokens": "yes",
         "primitivos": "yes",
@@ -211,7 +222,7 @@
     },
     {
       "screen": "Officeimpresso",
-      "note": "5 arquivo(s)",
+      "note": "6 arquivo(s)",
       "cells": {
         "tokens": "yes",
         "primitivos": "yes",
@@ -475,7 +486,7 @@
     },
     {
       "screen": "Superadmin",
-      "note": "16 arquivo(s)",
+      "note": "17 arquivo(s)",
       "cells": {
         "tokens": "no",
         "primitivos": "no",
@@ -551,18 +562,18 @@
       }
     }
   ],
-  "progressPct": 52,
+  "progressPct": 53,
   "progressLabel": "adoção tokens + primitivos (censo Onda 0)",
   "measured": true,
-  "measuredAgainstSha": "914bacbd7",
-  "generatedAt": "2026-10-08T16:49:14.796Z",
+  "measuredAgainstSha": "407e77369",
+  "generatedAt": "2026-10-09T16:28:25.413Z",
   "treeGuard": {
     "pass": true,
     "violations": 0
   },
   "counts": {
-    "screens": 50,
-    "done": 26,
+    "screens": 51,
+    "done": 27,
     "references": 0
   }
 }
