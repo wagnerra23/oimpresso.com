@@ -66,6 +66,9 @@ test('UC-LOCAL-01 com a flag ligada, GET /business-location renderiza Inertia (n
 
 test('UC-LOCAL-02 com a flag desligada, GET /business-location segue na Blade', function () {
     config(['feature-flags.forced_on' => '']);
+    // OFF é override explícito, não o default global após D-CFG-LIGAR.
+    $this->mock(\App\Services\FeatureFlagService::class, fn ($mock) =>
+        $mock->shouldReceive('isOn')->with('useV2ConfiguracoesLocais', \Mockery::any())->andReturn(false));
 
     $this->get('/business-location')->assertOk()->assertViewIs('business_location.index');
 });
