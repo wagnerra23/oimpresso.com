@@ -16,9 +16,12 @@ Molde `UnitController@index`.
   `Purchase/Create`; `?classico=1` abre o Blade; `?v=2` (o opt-in antigo) continua abrindo o
   React; o DataTable do Blade (AJAX sem `X-Inertia`) segue com o JSON. O `index()` já decidia
   o Inertia antes do ramo AJAX (hot-fix pós-#601), então não havia o defeito da Thread 02.
-- **Consequência consertada junto:** o botão de exportar do `Compras/Index` (módulo Compras)
-  abria `/purchases` em outra aba pra usar os exports do DataTable do Blade. Com o React como
-  padrão, abriria a lista React sem exports. Passa a abrir `/purchases?classico=1`.
+- **Consequência NÃO consertada aqui:** o botão de exportar do `Compras/Index` (módulo Compras,
+  `Index.tsx:200`) abre `/purchases` em outra aba pra usar os exports do DataTable do Blade. Com
+  o React como padrão, ele abre a lista React, que não tem export. O conserto é uma linha
+  (`/purchases?classico=1`), mas a tela `Compras/Index` está com o `last_run` dos casos vencido
+  (G-6): tocar o `.tsx` faz este PR dono dessa dívida, e revalidar os casos pede rodar a suíte
+  dela. Fica para um PR da tela `Compras/Index`.
 
 ## Provas
 `tests/Feature/CutoverMenu/ComprasSemXInertiaTest.php` (5 casos, cita `UC-PURIDX-01` e
