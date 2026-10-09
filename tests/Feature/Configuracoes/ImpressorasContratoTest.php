@@ -123,10 +123,9 @@ test('UC-IMPR-05 as abas vêm do grupo do menu que contém /printers, sob a perm
         return imprHrefsDoGrupo($r->json('props.shell.menu') ?? []);
     };
 
-    // Com SÓ access_printers o dropdown inteiro some: a condição externa do grupo no AdminSidebarMenu
-    // não lista essa permissão (defeito legado, fora do prefixo da thread — registrado no _saida-04).
-    // A tela segue utilizável; o ConfiguracoesSubNav só não tem de onde tirar as abas.
-    expect($menu())->toBe([]);
+    // Com SÓ access_printers o grupo vem só com Impressoras. Até 2026-10-09 vinha [] (a condição externa
+    // do dropdown não listava a permissão — _saida-04 §3.1); conserto e prova em ImpressorasMenuTest (thread 11).
+    expect($menu())->toBe(['/printers']);
 
     $this->actingAs($this->usuarioComPermissoes(['access_printers', 'business_settings.access'], $this->business));
     $semEtiqueta = $menu();
