@@ -43,7 +43,14 @@ class CatalogueQrService
             return true;
         }
 
-        return (bool) $this->moduleUtil->hasThePermissionInSubscription($businessId, 'productcatalogue_module');
+        if (! $this->moduleUtil->hasThePermissionInSubscription($businessId, 'productcatalogue_module')) {
+            return false;
+        }
+
+        // Camada 3 (permissão do papel): decisão PERM-CQR, [W] 2026-10-07 — o catálogo é
+        // vitrine de produto, então quem não vê produto não gera o QR que publica preço.
+        // O dono do negócio passa pelo Gate::before (Admin#{business_id}).
+        return $user->can('product.view');
     }
 
     /**
@@ -61,5 +68,37 @@ class CatalogueQrService
         ], [
             'business_id' => $businessId,
         ]);
+    }
+
+    /**
+     * Props da Page Inertia `ProductCatalogue/CatalogueQr`.
+     *
+     * Locais vêm do mesmo `BusinessLocation::forDropdown` da Blade (só os locais do negócio da
+     * sessão e, dentro dele, os permitidos ao usuário). `link_base` é montado aqui, com o id do
+     * negócio da SESSÃO: a tela só acrescenta `/{location_id}` e nunca escolhe o negócio.
+     *
+     * @return array{locais: list<array{id:int,nome:string}>, negocio: array{nome:string,logo_url:?string}, link_base:string, qr_script:string}
+     */
+    public function buildPagePayload(int $businessId): array
+    {
+        $payload = $this->buildQrPayload($businessId);
+        $business = $payload['business'];
+
+        $locais = [];
+        foreach ($payload['business_locations'] as $id => $nome) {
+            $locais[] = ['id' => (int) $id, 'nome' => (string) $nome];
+        }
+
+        $logo = trim((string) ($business->logo ?? ''));
+
+        return [
+            'locais' => $locais,
+            'negocio' => [
+                'nome' => (string) $business->name,
+                'logo_url' => $logo !== '' ? asset('uploads/business_logos/'.$logo) : null,
+            ],
+            'link_base' => url('catalogue/'.$businessId),
+            'qr_script' => asset('modules/productcatalogue/plugins/easy.qrcode.min.js'),
+        ];
     }
 }
