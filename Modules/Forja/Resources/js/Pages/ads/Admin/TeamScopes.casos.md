@@ -45,14 +45,20 @@ Fonte: decisão [W] **D7** (2026-10-07, thread 11 do playbook Forja — *"permis
 *Dado* um usuário do business **sem** `forja.team_scopes.manage`; *quando* chama `grant` ou `revoke`; *então* recebe 403 e `mcp_user_module_access` não muda. *Dado* um operador **com** a permissão; *quando* concede; *então* `granted_by` é o `username` dele, nunca `'wagner'`.
 **Pronto quando:** grant sem permissão → 403 e 0 linhas; grant com permissão → linha com `granted_by` = operador; revoke sem permissão → 403 e a linha continua lá.
 
+## UC-TSCOPE-05 — A lista de devs traz os do business da sessão, e só eles `[must]` `[T0]`
+Status: 🧪 (2 testes citam este UC em [`ForjaTeamScopesDevsTest.php`](../../../../../Tests/Feature/ForjaTeamScopesDevsTest.php) — 2 devs do negócio entram, o vizinho do 99 não, com controle positivo do lado dele; dev com soft delete fica fora.)
+Fonte: Non-Goal + Anti-hook do charter (só o business da sessão) + [ADR 0093](../../../../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md) + decisão **D6** (2026-10-07, [CC] pela recomendação — pergunta pulada pelo [W]: *"teste primeiro"*).
+*Dado* 2 devs no business da sessão e 1 no vizinho; *quando* a tela pede a prop `users`; *então* vêm os 2 e não o vizinho.
+**Pronto quando:** o teste passa na lane. No `main` de 2026-10-09 ele nascia **vermelho**: o serviço fazia `JOIN user_businesses`, tabela que não existe — a thread Forja/10 trocou pelo vínculo real, `users.business_id`.
+
 ---
 
 ## [BACKLOG] — declarado no charter, ainda sem teste que o defenda
 
 Prosa honesta: nenhum item abaixo tem teste citando um UC. Vira UC quando ganhar teste — não antes ([`how-trabalhar.md`](../../../../../../../memory/how-trabalhar.md) §Pedido de tela/feature).
 
-- [BACKLOG] **`[T0]` A lista de devs é só do business da sessão** (Non-Goal + Anti-hook do charter; [ADR 0093](../../../../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md)). Tem contrato em 2 fontes, mas **não virou UC por um achado medido**: a prop `users` vem de `UserScopeService::listUsersWithAccess`, que faz `JOIN user_businesses` — e essa tabela **não existe** no schema baseline (`database/schema/mysql-schema.sql`: 0 ocorrências de `CREATE TABLE \`user_businesses\``) **nem no staging do CT 100** (`Schema::hasTable('user_businesses')` = `false`, medido 2026-10-07). **Hipótese, não veredito de teste:** a prop deferida lança `QueryException` e a sidebar de devs nunca carrega. Um teste deste caso nasceria vermelho numa lane compartilhada; consertar o serviço está fora do escopo deste PR e é decisão [W].
-- [BACKLOG] KPIs do topo (devs do business, quantos com acesso ativo, total de pares user × módulo) — dependem da mesma prop `users`, logo herdam o achado acima.
+- ~~[BACKLOG] **`[T0]` A lista de devs é só do business da sessão**~~ → virou **UC-TSCOPE-05** (thread Forja/10, 2026-10-09). O achado registrado aqui em 2026-10-07 — `JOIN user_businesses` com tabela inexistente — foi confirmado e consertado.
+- [BACKLOG] KPIs do topo (devs do business, quantos com acesso ativo, total de pares user × módulo) — a prop `users` voltou a carregar (UC-TSCOPE-05), mas os KPIs em si seguem sem teste.
 - ~~[BACKLOG] **Quem pode conceder.**~~ → virou **UC-TSCOPE-04** (D7, 2026-10-07): permissão `forja.team_scopes.manage`.
 - [BACKLOG] `grant`/`revoke` validarem que o **user-alvo** é do business da sessão — pendência aberta no próprio charter (§Pendências). Hoje a validação é `exists:users,id`.
 - [BACKLOG] Revogar pede `confirm()` antes do POST — comportamento só de front, sem E2E.
