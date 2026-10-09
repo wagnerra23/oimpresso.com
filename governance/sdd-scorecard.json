@@ -15,26 +15,26 @@
   "metrics": {
     "anchor_coverage": {
       "status": "measured",
-      "value": 86,
+      "value": 86.1,
       "unit": "%",
       "direction": "up",
       "target": 100,
       "source": "scripts/governance/anchor-lint.mjs --json .summary.anchor_coverage_pct (fonte única — ADR 0273 §2)",
       "detail": {
-        "coverage_pct": 86,
-        "specs_total": 53,
-        "us_total": 1053,
-        "anchor_coverage_pct": 86,
+        "coverage_pct": 86.1,
+        "specs_total": 54,
+        "us_total": 1059,
+        "anchor_coverage_pct": 86.1,
         "by_state": {
           "sem_campo": 146,
           "placeholder": 1,
-          "pendente": 437,
+          "pendente": 442,
           "parcial": 121,
-          "anchored_ok": 348,
+          "anchored_ok": 349,
           "anchored_dead": 0,
           "anchored_zombie": 0
         },
-        "fields_total": 913,
+        "fields_total": 919,
         "fields_placeholder": 1,
         "fields_grammar_ok": 821,
         "orphan_fields": 6,
@@ -166,8 +166,8 @@
       "target": 100,
       "source": "scripts/governance/knowledge-drift.mjs --json (BRIEFING.md presente por módulo)",
       "detail": {
-        "with_door": 81,
-        "modules": 81
+        "with_door": 82,
+        "modules": 82
       },
       "stream": "MEM"
     },
@@ -210,9 +210,9 @@
       "target": 0,
       "source": "memory/requisitos/*/BRIEFING.md frontmatter distilled_at vs UNIÃO(data-git do doc não-gerado mais novo, data-git do código do módulo) — determinístico, ADR 0291 D-D",
       "detail": {
-        "portas": 84,
+        "portas": 85,
         "carimbadas": 15,
-        "sem_carimbo": 69,
+        "sem_carimbo": 70,
         "stale": 9,
         "oldest_distilled_at": "2026-09-06",
         "datadas_por_codigo": 14
@@ -227,7 +227,7 @@
       "target": 1,
       "source": "scripts/governance/knowledge-drift.mjs --json .[].hops → mediana (mesma fórmula do relatório humano · ADR 0270 D-5)",
       "detail": {
-        "modules": 81,
+        "modules": 82,
         "hops_worst": 8
       },
       "stream": "MEM"
