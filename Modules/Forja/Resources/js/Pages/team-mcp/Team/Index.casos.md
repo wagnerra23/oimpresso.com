@@ -4,7 +4,7 @@ casos: Equipe · tokens MCP do time · /team-mcp/team
 irmaos: Index.charter.md (lei) · Index.tsx (tela)
 tecnica: Caso de uso = narrativa + critério de aceite verificável
 owner: wagner
-last_run: "2026-10-07"
+last_run: "2026-10-09"
 last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente das lanes PHP / Pest (Unit) e PHP / Pest (Forja · MySQL)"
 ---
 
@@ -63,6 +63,11 @@ Decisão [W] D14 (2026-10-07, playbook Forja thread 15); charter §Non-Goals *"N
 Status: 🧪 (1 teste cita este UC em [`TeamTenantTest.php`](../../../../../Tests/Feature/TeamTenantTest.php) — o nome `team-mcp.team.token.revogar` não está registrado e `DELETE /team-mcp/team/token/{id}` dá 404 com o token do business 99 seguindo sem `revoked_at`. Só na lane MySQL.)
 Decisão [W] D14 (2026-10-07); charter §Anti-hooks: *"NÃO permite revogar com tokenId vindo do user input sem confirmar `user_id` pertence ao business da sessão"*. Revogar é só pelo UC-EQP-04.
 **Pronto quando:** só existe a rota de revogação escopada por usuário e business.
+
+## UC-EQP-09 — Erro HTTP tem mensagem própria, não "Erro de rede"
+Status: 🧪 (2 testes citam este UC em [`ForjaGapsScorecardEstadosTest.php`](../../../../../Tests/Feature/ForjaGapsScorecardEstadosTest.php) — os 4 fetch JSON (gerar token, listar tokens, revogar, quota) passam por `jsonOuErro`, que olha `r.ok`; 403, 419 e 5xx têm mensagem própria; o `.dxt` usa a mesma tabela. Perna de **registro** (lê o `.tsx`, qualquer driver): prova que o mecanismo está na tela, não o render — a tela não tem E2E. Achado do scorecard da thread 04 (playbook Forja, thread 08 PR-b).)
+Antes, `r.json()` rodava sem olhar `r.ok`: um 403/419/500 voltava HTML, o parse falhava e o operador lia "Erro de rede", que manda conferir a internet em vez da permissão ou da sessão.
+**Pronto quando:** 403 diz "sem permissão", 419 diz "sessão expirada", 5xx diz "erro no servidor", e "Erro de rede" fica só para falha de rede.
 
 ## Backlog (sem id — vira UC quando ganhar teste que o cite)
 

@@ -66,3 +66,8 @@ Status: 🧪 (2 testes de `ScorecardContratoTest` citam este UC, em duas forças
 **Pronto quando:** usuário sem `jana.mcp.usage.all` recebe 403.
 
 > ⚠️ **Este arquivo de teste ainda não tem lane** (2026-07-28). `ScorecardContratoTest.php` **não está** em `.github/ci-sqlite-pest.list` nem no `forja-pest.yml` — as duas são allowlists explícitas, e o chip que escreveu estes testes é proibido de editar arquivo global. Enquanto a entrada não for consolidada pelo parent, estes UC são **"verde impossível"**: o teste existe e não roda. Linhas reportadas na devolutiva do chip.
+
+## UC-SC-09 — Sem checks, estado vazio; defer que falha vira erro
+Status: 🧪 (2 testes citam este UC em [`ForjaGapsScorecardEstadosTest.php`](../../../../../Tests/Feature/ForjaGapsScorecardEstadosTest.php) — com `checks = []` a tela mostra "Nenhum check configurado." em vez de "0 de 0 checks falhando"; se o request deferido falhar (evento de erro do Inertia ou 30s sem resposta), sai de "Carregando…" para "Não foi possível carregar os checks." com "Tentar de novo". Perna de **registro** (lê o `.tsx`, qualquer driver): prova que o mecanismo está na tela, não o render — a tela não tem E2E. Achado do scorecard da thread 04 (playbook Forja, thread 08 PR-b).)
+⚠️ O nome dos eventos (`httpException`, `networkError`) não foi conferido contra o `@inertiajs/core` instalado — o `app.tsx` usa o mesmo cast pelo mesmo motivo. O prazo de 30s cobre o caso em que nenhum evento chega.
+**Pronto quando:** 0 checks não parece falha, e um defer que morreu não deixa a tela carregando para sempre.

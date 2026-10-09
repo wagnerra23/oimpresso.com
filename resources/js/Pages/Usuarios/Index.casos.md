@@ -45,11 +45,24 @@ last_run: "2026-10-07"
   pedido para usuário de outro negócio devolve `success = false` sem excluir.
 - **Status: 🧪**
 
+## UC-USUA-05 · Não excluir quem tem venda/OS no nome · `[T0]`
+- **Fonte:** decisão [W] 2026-10-07 (D-USU-NOME, `sistema/playbook/_DECISOES-W-2026-10-07.md`): conta como
+  "no nome" quem criou a venda/OS, o vendedor da venda e o comissionado. Colunas do schema:
+  `transactions.created_by`, `transactions.res_waiter_id`, `transactions.commission_agent` (vendas, `type = sell`)
+  e `repair_job_sheets.created_by` (OS).
+- **Aceite:** Dado um usuário meu que criou uma venda, ou é o vendedor dela, ou o comissionado, ou criou uma
+  OS · Quando peço para excluí-lo · Então a resposta é 422 com `success = false` e o motivo em PT-BR com a
+  contagem ("1 venda", "2 vendas", "1 OS") · E ele não é excluído · E sem nenhum vínculo a exclusão acontece ·
+  E venda de outro negócio que cita o usuário não bloqueia (só conta o negócio da sessão).
+- **Teste:** [`UsuariosExclusaoVinculoTest.php`](../../../../tests/Feature/Users/UsuariosExclusaoVinculoTest.php), lane `acessos-pest.yml`.
+- **Status: 🧪**
+
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
-- [BACKLOG] Excluir quem tem venda/OS no nome fica bloqueado com a contagem e oferece desativar (D5, [W]
-  2026-08-19) — falta definir no backend o que conta como "no nome" (criador, vendedor, comissionado).
+- [BACKLOG] Na tela, trocar o botão de excluir pelo motivo e oferecer desativar quando houver venda/OS no
+  nome (D5, [W] 2026-08-19) — hoje a tela mostra o `msg` da recusa no aviso, depois do clique.
 - [BACKLOG] Convite por e-mail e link de redefinição de senha — sem fluxo no legado.
 - [BACKLOG] Cadastro e edição em drawer — hoje levam às telas Blade.
 
 ## Trilha do tempo
 - 2026-10-07 · [CL] criado com a thread `sistema/playbook/01`.
+- 2026-10-09 · [CL] UC-USUA-05 com a thread `sistema/playbook/10` (guarda de exclusão no `destroy()`).
