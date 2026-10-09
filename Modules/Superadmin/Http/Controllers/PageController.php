@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Str;
+use Inertia\Inertia;
 use Modules\Superadmin\Entities\SuperadminFrontendPage;
 use Modules\Superadmin\Support\RedactsPiiInLogs;
 
@@ -33,18 +34,54 @@ class PageController extends Controller
     /**
      * Display a listing of the resource.
      *
-     * @return Response
+     * @return \Illuminate\Contracts\View\View|\Inertia\Response
      */
-    public function index()
+    public function index(Request $request)
     {
         if (! auth()->user()->can('superadmin')) {
             abort(403, 'Unauthorized action.');
+        }
+
+        // Tela React (thread Superadmin/08) atrás da chave `?tela=nova`. Sem ela, segue a Blade:
+        // tornar a nova o padrão é cutover do [W] (MWART F5). RUNBOOK-paginas.md.
+        if ($request->query('tela') === 'nova') {
+            return Inertia::render('superadmin/Paginas/Index', [
+                'paginas' => Inertia::defer(fn () => $this->paginasPayload()),
+            ]);
         }
 
         $pages = SuperadminFrontendPage::orderBy('menu_order', 'asc')->get();
 
         return view('superadmin::pages.index')
             ->with(compact('pages'));
+    }
+
+    /**
+     * Payload da tela nova. Tabela global do site (sem business_id — ADR 0093 §exceções
+     * Superadmin). `resumo` vai sem tag: a lista não imprime o HTML da página.
+     */
+    private function paginasPayload(): array
+    {
+        return SuperadminFrontendPage::orderBy('menu_order', 'asc')->get()
+            ->map(fn ($p) => [
+                'id' => (int) $p->id,
+                'titulo' => (string) $p->title,
+                'slug' => (string) $p->slug,
+                'ordem' => (int) $p->menu_order,
+                'visivel' => (int) $p->is_shown === 1,
+                'resumo' => Str::limit(trim(preg_replace('/\s+/', ' ', strip_tags((string) $p->content))), 160),
+                'conteudo' => (string) $p->content,
+            ])->values()->all();
+    }
+
+    /** Resposta da tela nova: slug repetido vira erro de campo; sucesso volta pra `?tela=nova`. */
+    private function respostaInertia(array $output)
+    {
+        if (empty($output['success'])) {
+            return back()->withErrors(['slug' => $output['msg']]);
+        }
+
+        return redirect()->to(action([self::class, 'index']) . '?tela=nova');
     }
 
     /**
@@ -90,6 +127,10 @@ class PageController extends Controller
             $output = ['success' => 0,
                 'msg' => __('messages.something_went_wrong'),
             ];
+        }
+
+        if ($request->header('X-Inertia')) {
+            return $this->respostaInertia($output);
         }
 
         return redirect()
@@ -163,6 +204,10 @@ class PageController extends Controller
             ];
         }
 
+        if ($request->header('X-Inertia')) {
+            return $this->respostaInertia($output);
+        }
+
         return redirect()
             ->action([\Modules\Superadmin\Http\Controllers\PageController::class, 'index'])
             ->with('status', $output);
@@ -173,7 +218,7 @@ class PageController extends Controller
      *
      * @return Response
      */
-    public function destroy($id)
+    public function destroy(Request $request, $id)
     {
         if (! auth()->user()->can('superadmin')) {
             abort(403, 'Unauthorized action.');
@@ -191,6 +236,10 @@ class PageController extends Controller
             $output = ['success' => 0,
                 'msg' => __('messages.something_went_wrong'),
             ];
+        }
+
+        if ($request->header('X-Inertia')) {
+            return $this->respostaInertia($output);
         }
 
         return $output;
