@@ -202,6 +202,9 @@ jobs:
         # 2026-10-08 — TeamTenantTest.php (playbook Forja thread 15, decisão [W] D14): tenant
         # 98 × 99 em gerarToken/gerarDxt/atualizarQuota + rota legacy de revogar removida.
         # Vermelho→verde medido no CT 100 antes do PR. DatabaseTransactions.
+        # 2026-10-09 — TasksFsmTransicaoTest.php (playbook Forja thread 14, decisão [W] D13):
+        # transição proibida pelo FSM → 422. Entra FAILING-FIRST pelo mesmo desvio.
+        # Tenant 98, DatabaseTransactions.
         # 2026-10-09 — ForjaProjectsAcessoTest.php (playbook Forja thread 13, D10/D11): sem
         # jana.mcp.usage.all → 403 em /ads/admin/projects*. Entra pelo MESMO desvio
         # FAILING-FIRST. Tenant 98, DatabaseTransactions.
@@ -239,7 +242,8 @@ jobs:
             Modules/Forja/Tests/Feature/TeamEquipeContratoTest.php \
             Modules/Forja/Tests/Feature/ForjaToolsPermissaoTest.php \
             Modules/Forja/Tests/Feature/TeamTenantTest.php \
-            Modules/Forja/Tests/Feature/ForjaGapsScorecardTasksAutorTest.php
+            Modules/Forja/Tests/Feature/ForjaGapsScorecardTasksAutorTest.php \
+            Modules/Forja/Tests/Feature/TasksFsmTransicaoTest.php \
             Modules/Forja/Tests/Feature/ForjaProjectsAcessoTest.php
 
 
