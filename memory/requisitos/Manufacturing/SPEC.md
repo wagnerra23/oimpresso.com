@@ -297,8 +297,13 @@ de caminho explícito antes de ir a produção"*.
 **Paridade com a Blade:** [PARIDADE-ordem-producao-blade-vs-prototipo.md](PARIDADE-ordem-producao-blade-vs-prototipo.md)
 — 26 itens comparados (2026-10-09). 4 mudam custo ou estoque se a tela for construída igual ao
 protótipo (desperdício da ordem, custo extra fixo, custo gravado pelo navegador, bloqueio por
-estoque) e são decisões [W] **antes** de construir. Recomendações:
-[2026-10-09-ordem-de-producao-react-decisao-w.md](../../decisions/proposals/2026-10-09-ordem-de-producao-react-decisao-w.md). Tem também 2 hipóteses
+estoque) e são decisões [W] **antes** de construir.
+
+> 🔁 **Revisão do [W] (2026-10-09, no #9086):** Fabricação e Produção ficam em lugares diferentes.
+> A proposta em decisão recomenda **cancelar** esta US: a ordem nasce no módulo de Produção (a
+> criar) e a aba da Fabricação fica só para consulta —
+> [2026-10-09-fabricacao-vs-producao-decisao-w.md](../../decisions/proposals/2026-10-09-fabricacao-vs-producao-decisao-w.md).
+> Até o [W] decidir, a US segue travada. Tem também 2 hipóteses
 de segurança no servidor (H1 `store`, H2 `get-recipe-details`), ainda sem teste.
 
 **Definition of Done:**

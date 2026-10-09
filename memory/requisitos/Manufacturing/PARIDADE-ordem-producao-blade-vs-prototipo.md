@@ -27,6 +27,13 @@ observacao: "Base da US-MANU-007. Mede o que a tela nova ganha, perde e muda em 
 > fonte única desde a decisão [W] de 2026-09-25 (D-MFG-FONTE). O README do handoff do Felipe entra
 > só pelas regras escritas (§6, §7, §9), que o protótipo do Wagner implementa.
 >
+> 🔁 **REVISÃO DO [W] (2026-10-09, no #9086):** Fabricação e Produção ficam em lugares
+> diferentes. A ordem de produção **não** é uma tela a construir na Fabricação: ela nasce no módulo
+> de Produção, que ainda não existe, e a aba da Fabricação fica só para consulta. Esta grade segue
+> valendo como **inventário do que a tela Blade faz hoje** — o que o módulo de Produção não pode
+> perder. Onde ela diz "tela nova", leia "ordem do módulo de Produção". Proposta:
+> [`2026-10-09-fabricacao-vs-producao-decisao-w.md`](../../decisions/proposals/2026-10-09-fabricacao-vs-producao-decisao-w.md).
+>
 > ⚠️ **CORREÇÃO (2026-10-09, mesmo dia, antes do merge) — o item 12 estava errado.** A primeira
 > versão dizia que, na Blade, o consumo de cada ingrediente **já inclui** o desperdício, porque o
 > `getRecipeDetails` soma o % à quantidade. **Medido depois:** essa soma monta um array
@@ -138,4 +145,4 @@ O padrão de conserto já existe no módulo: o #9071 fez o mesmo para "excluir r
 **Gerado:** 2026-10-09 — leitura de `origin/main`; nenhuma afirmação de comportamento foi
 rodada em navegador ou em teste. [M+C]
 
-**Recomendações para decisão [W]:** [`2026-10-09-ordem-de-producao-react-decisao-w.md`](../../decisions/proposals/2026-10-09-ordem-de-producao-react-decisao-w.md).
+**Proposta para decisão [W]:** [`2026-10-09-fabricacao-vs-producao-decisao-w.md`](../../decisions/proposals/2026-10-09-fabricacao-vs-producao-decisao-w.md).
