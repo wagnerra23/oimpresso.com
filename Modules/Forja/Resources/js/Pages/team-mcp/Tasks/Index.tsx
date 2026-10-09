@@ -220,7 +220,8 @@ function TasksIndex({
     fetch(`/team-mcp/tasks/${taskId}/status`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf },
-      body: JSON.stringify({ status, author: 'wagner' }),
+      // Sem `author`: o servidor grava o usuário logado na trilha (thread 08, UC-TSK-07).
+      body: JSON.stringify({ status }),
     })
       .then((r) => {
         if (r.ok) {

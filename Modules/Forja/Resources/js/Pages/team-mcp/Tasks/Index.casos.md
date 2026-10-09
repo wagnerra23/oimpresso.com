@@ -52,6 +52,11 @@ Status: 🧪 (1 teste cita este UC — partial reload de `kanban` (é `Inertia::
 Charter §Goals: *"Aba Quadro: kanban todo/doing/review/done"*; visual-comparison §Matriz: *"Kanban todo/doing/review/done"*.
 **Pronto quando:** o Quadro agrupa só nessas 4 colunas e cada task cai na coluna do seu status.
 
+## UC-TSK-07 — O autor do movimento na trilha é o usuário logado `[T0]`
+Status: 🧪 (3 testes citam este UC em [`ForjaGapsScorecardTasksAutorTest.php`](../../../../../Tests/Feature/ForjaGapsScorecardTasksAutorTest.php) — **(a)** usuário B move a tarefa mandando no body o autor de outra pessoa, e o evento em `mcp_task_events` sai com autor B; **(b)** sem `author` no body, o evento não cai no default `wagner`; **(c)** a tela não manda mais `author` no PATCH. (a) e (b) só na lane MySQL.)
+Charter §Métricas: *"drag move status … registra `mcp_task_events`"* + §Goals *"Atividade (`mcp_task_events` real)"*; a trilha é append-only (triggers de imutabilidade) — autoria falsa não se conserta depois. Achado do scorecard da thread 04 (playbook Forja, thread 08): a tela mandava `author: 'wagner'` fixo e o controller gravava o body.
+**Pronto quando:** o autor do evento é sempre quem está logado, e `author` vindo do body é ignorado.
+
 ## Backlog (sem id — vira UC quando ganhar teste que o cite)
 
 - [BACKLOG] **Backlog agrupável por 5 dimensões, com grupos que persistem** — charter §Goals + §Métricas. É comportamento de front (`localStorage`); a prova natural é E2E, que esta tela não tem.
