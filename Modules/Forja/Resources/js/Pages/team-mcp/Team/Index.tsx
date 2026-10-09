@@ -30,7 +30,7 @@ import {
 import { Badge } from '@/Components/ui/badge';
 import { Checkbox } from '@/Components/ui/checkbox';
 import { BarChart3, ClipboardList, Package, Settings, Trash2 } from 'lucide-react';
-import PageHeader from '@/Components/shared/PageHeader';
+import { PageHeader } from '@/Components/PageHeader';
 import ForjaHub from '../Forja/_components/ForjaHub';
 import KpiGrid from '@/Components/shared/KpiGrid';
 import KpiCard from '@/Components/shared/KpiCard';
@@ -281,10 +281,9 @@ function TeamIndex(props: Props) {
       <ForjaHub active="equipe" />
 
       <PageHeader
-        icon="users"
         title="Time"
-        description={`Equivalente self-host Anthropic Team plan — modelo ${pricing_config.modelo_default}, câmbio R$ ${pricing_config.cambio_brl_usd.toFixed(2)}`}
-        action={
+        subtitle={`Equivalente self-host Anthropic Team plan — modelo ${pricing_config.modelo_default}, câmbio R$ ${pricing_config.cambio_brl_usd.toFixed(2)}`}
+        actions={
           <div className="flex gap-2">
             <Button variant="outline" size="sm" onClick={() => setCsvOpen(true)}>
               <BarChart3 className="h-3.5 w-3.5 mr-1" /> Export CSV
