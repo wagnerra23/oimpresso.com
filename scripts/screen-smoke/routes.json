@@ -3,7 +3,10 @@
   "base_url": "https://oimpresso.com",
   "viewports": [
     { "tag": "1440", "width": 1440, "height": 900 },
-    { "tag": "1280", "width": 1280, "height": 720 }
+    { "tag": "1280", "width": 1280, "height": 720 },
+    {"label":"configuracoes-locais","path":"/business-location","auth":true,"source":"resources/js/Pages/Configuracoes/Locais/Index.tsx"},
+    {"label":"configuracoes-impressoras","path":"/printers","auth":true,"source":"resources/js/Pages/Configuracoes/Impressoras/Index.tsx"},
+    {"label":"configuracoes-codigo-barras","path":"/barcodes","auth":true,"source":"resources/js/Pages/Configuracoes/CodigoBarras/Index.tsx"}
   ],
   "routes": [
     { "label": "login", "path": "/login", "auth": false, "nav_critical": true },
@@ -18,8 +21,6 @@
     { "label": "financeiro-dre", "path": "/financeiro/dre", "auth": true, "source": "resources/js/Pages/Financeiro/Dre/Index.tsx" },
     { "label": "financeiro-plano-contas", "path": "/financeiro/plano-contas", "auth": true, "source": "resources/js/Pages/Financeiro/PlanoContas/Index.tsx" },
     { "label": "financeiro-impostos", "path": "/financeiro/impostos", "auth": true, "source": "resources/js/Pages/Financeiro/Impostos/Index.tsx" },
-    { "label": "configuracoes-locais", "path": "/business-location", "auth": true, "source": "resources/js/Pages/Configuracoes/Locais/Index.tsx" },
-    { "label": "configuracoes-impressoras", "path": "/printers", "auth": true, "source": "resources/js/Pages/Configuracoes/Impressoras/Index.tsx" },
-    { "label": "configuracoes-codigo-barras", "path": "/barcodes", "auth": true, "source": "resources/js/Pages/Configuracoes/CodigoBarras/Index.tsx" }
+    { "label": "catalogo-qr", "path": "/product-catalogue/catalogue-qr", "auth": true, "source": "resources/js/Pages/ProductCatalogue/CatalogueQr.tsx" }
   ]
 }

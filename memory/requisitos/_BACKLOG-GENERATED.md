@@ -2,7 +2,7 @@
 # Backlog indexado (gerado)
 
 > Fonte: as US-* dos `memory/requisitos/<Mod>/SPEC.md` (canon, ADR 0070). US abertas (status ∉ done/cancelled).
-> **938 tarefas abertas** em **52 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
+> **944 tarefas abertas** em **53 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
 
 ## Índice por módulo
 
@@ -47,6 +47,7 @@
 | [`EvolutionAgent`](#evolutionagent) | 7 | 0 | 0 | 0 | 7 |
 | [`Manufacturing`](#manufacturing) | 7 | 0 | 0 | 0 | 7 |
 | [`TeamMcp`](#teammcp) | 7 | 0 | 0 | 0 | 7 |
+| [`NotificationTemplate`](#notificationtemplate) | 6 | 0 | 0 | 0 | 6 |
 | [`SRS`](#srs) | 6 | 0 | 0 | 0 | 6 |
 | [`Woocommerce`](#woocommerce) | 6 | 0 | 0 | 0 | 6 |
 | [`LaravelAI`](#laravelai) | 5 | 0 | 0 | 0 | 5 |
@@ -1221,6 +1222,18 @@
 - **US-TEAM-005** — Permission per tool/módulo (gates execução)
 - **US-TEAM-006** — IA pareada → audit trail no humano parent
 - **US-TEAM-007** — Audit log MCP append-only (Tier 0)
+
+## NotificationTemplate
+
+
+### todo
+
+- **US-NOTIF-001** — Plano F1
+- **US-NOTIF-002** — Baseline e ação dual F2
+- **US-NOTIF-003** — Seleção de modelos F3
+- **US-NOTIF-004** — Edição e prévia por canal F3
+- **US-NOTIF-005** — QA F4
+- **US-NOTIF-006** — Cutover F5
 
 ## SRS
 

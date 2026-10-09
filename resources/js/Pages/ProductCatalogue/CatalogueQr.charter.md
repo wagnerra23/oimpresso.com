@@ -9,14 +9,14 @@ last_validated: "2026-10-09"
 parent_module: ProductCatalogue
 related_adrs: [93, 104, 180, 358]
 tier: C
-charter_version: 1
+charter_version: 2
 related_runbook: memory/requisitos/ProductCatalogue/RUNBOOK-catalogue-qr.md
 related_us: [US-PCAT-003]
 ---
 
-# Page Charter — /product-catalogue/catalogue-qr (DRAFT)
+# Page Charter — /product-catalogue/catalogue-qr
 
-> **Status:** draft. Thread `modulos-faltantes/playbook/04`. Proposto pelo [CC] em
+> **Status:** draft, com Non-Goals, Anti-hooks e screenshot aprovados por [W] em 2026-10-09. Vira `live` com o smoke de produção (campo `smoke:` datado), que o gate `charter status:live precisa de sinal de prod` exige. Thread `modulos-faltantes/playbook/04`. Proposto pelo [CC] em
 > `cowork-inbox/modulos-faltantes/catalogo-qr.charter.md`; este é o charter ao lado do `.tsx`.
 > `GET /product-catalogue/catalogue-qr` responde Inertia; a Blade `catalogue/generate_qr.blade.php` fica no repo
 > até o cutover. Casos: [`CatalogueQr.casos.md`](./CatalogueQr.casos.md).
@@ -64,5 +64,6 @@ Assinatura com `productcatalogue_module` (como antes) **e** `product.view` no pa
 
 ## Pendências antes de `status: live`
 
-- [ ] [W] aprova Non-Goals + Anti-hooks e o screenshot.
+- [x] [W] aprova Non-Goals + Anti-hooks e o screenshot — [W] 2026-10-09, no chat da sessão: *"aprovado"*.
+- [ ] Smoke em produção (`smoke:` datado no frontmatter). Em 2026-10-09 o `screen-smoke-after-merge` saiu NÃO MEDIDO: a tela não tinha rota em `scripts/screen-smoke/routes.json`.
 - [ ] Confirmar se o PNG deve ganhar tamanho maior pra impressão A4 (hoje 256 px).
