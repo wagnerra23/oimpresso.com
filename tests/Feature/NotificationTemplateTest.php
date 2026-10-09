@@ -62,12 +62,19 @@ beforeEach(function () {
     }
 
     $this->business = $this->seededTenant();          // biz=98 fictício (ADR 0358)
-    $this->admin = User::where('business_id', $this->business->id)->firstOrFail();
+    // Não assumir que o primeiro usuário do seed tem papel de admin.
+    $this->admin = $this->usuarioComPermissoes(['send_notification'], $this->business);
+    $this->emailSettings = [
+        'mail_driver' => 'array', 'mail_host' => 'localhost', 'mail_port' => 1025,
+        'mail_username' => null, 'mail_password' => null, 'mail_encryption' => null,
+        'mail_from_address' => 'modelo@example.invalid', 'mail_from_name' => 'Teste',
+    ];
 
     $this->entrar = function (User $u) {
         return $this->actingAs($u)->withSession([
             'user.business_id' => $u->business_id,
             'business.id' => $u->business_id,
+            'business.email_settings' => $this->emailSettings,
         ]);
     };
 });
@@ -271,6 +278,7 @@ it('UC-NOT-30 · sanitiza script no corpo do e-mail ao montar a mensagem', funct
     $dados = [
         'subject' => 'assunto',
         'email_body' => '<p>ok</p><script>alert(1)</script>',
+        'email_settings' => $this->emailSettings,
     ];
 
     $mail = (new \App\Notifications\CustomerNotification($dados))->toMail(new \stdClass);
