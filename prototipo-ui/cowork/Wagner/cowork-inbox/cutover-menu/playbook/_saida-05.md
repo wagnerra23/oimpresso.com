@@ -16,7 +16,9 @@ Molde `UnitController@index`.
   `?classico=1` abre o Blade; `?tela=nova` continua abrindo o React. O fetch da Page
   (`X-Requested-With`, sem `X-Inertia`) e o AJAX do Blade seguem recebendo o JSON dos totais,
   que é a mesma fonte dos números nas duas telas. A condição já vinha antes do `ajax()`.
-- O charter dizia *"responde em `?tela=nova` (sem ele, Blade)"*; ganhou a atualização datada.
+- O charter diz *"responde em `?tela=nova` (sem ele, Blade)"*, que deixa de valer. **Não foi
+  tocado:** charter tocado precisa declarar `related_us` (lint `charter related_us join`), e esta
+  tela não tem US no SPEC. Fica para quem der US à tela.
 
 ## Não entregue: Representantes (`@getSalesRepresentativeReport`)
 Fica no Blade pelo menu. A Page `Report/SalesRepresentative/Index` só tem o **resumo**
