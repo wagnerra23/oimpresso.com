@@ -1,5 +1,7 @@
 # 08 — Handoff (índice)
 
+- [2026-10-09 15:54 BRT — **Sistema/13: cutover de Configurações**](handoffs/2026-10-09-1554-sistema13-cutover-configuracoes.md) (decisão D-CFG-LIGAR · nove testes no CT 100 · deploy e smoke pendentes)
+
 - [2026-10-09 15:09 BRT — **Sequência dos playbooks: Sistema/07 e próxima etapa /06**](handoffs/2026-10-09-1509-sequencia-playbooks-sistema.md) (recibo recuperado · sem código alterado · pacote F1 de notificações identificado)
 
 - [2026-10-09 07:59 BRT — **Retomada Claude: placar e revisão Forja/16**](handoffs/2026-10-09-0759-retomada-claude-placar-forja16.md) (placar atualizado 279/392 · recibo canônico preservado · três ajustes narrativos na SPEC · 22 recibos sem confirmação de envio ao Cowork)
