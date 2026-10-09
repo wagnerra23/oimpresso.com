@@ -74,6 +74,14 @@ on:
       - 'app/Http/Controllers/ManageUserController.php'
       - 'resources/views/manage_user/**'
       - 'app/Http/Controllers/ReportController.php'
+      - 'app/Http/Controllers/NotificationTemplateController.php'
+      - 'app/NotificationTemplate.php'
+      - 'app/Notifications/CustomerNotification.php'
+      - 'app/Notifications/SupplierNotification.php'
+      - 'app/Utils/NotificationUtil.php'
+      - 'app/Util/HtmlSanitizer.php'
+      - 'resources/views/notification_template/**'
+      - 'tests/Feature/NotificationTemplateTest.php'
       - 'app/Http/Middleware/AdminSidebarMenu.php'
       - 'resources/views/sales_commission_agent/**'
       - 'database/migrations/*_add_commission_agent_permissions.php'
@@ -151,6 +159,14 @@ jobs:
               - 'app/Http/Controllers/ManageUserController.php'
               - 'resources/views/manage_user/**'
               - 'app/Http/Controllers/ReportController.php'
+              - 'app/Http/Controllers/NotificationTemplateController.php'
+              - 'app/NotificationTemplate.php'
+              - 'app/Notifications/CustomerNotification.php'
+              - 'app/Notifications/SupplierNotification.php'
+              - 'app/Utils/NotificationUtil.php'
+              - 'app/Util/HtmlSanitizer.php'
+              - 'resources/views/notification_template/**'
+              - 'tests/Feature/NotificationTemplateTest.php'
               - 'app/Http/Middleware/AdminSidebarMenu.php'
               - 'resources/views/sales_commission_agent/**'
               - 'database/migrations/*_add_commission_agent_permissions.php'
@@ -216,6 +232,7 @@ jobs:
           vendor/bin/pest --no-coverage --colors=always tests/Feature/Relatorios/ \
             --log-junit test-results/pest-acessos-junit.xml \
             tests/Feature/Roles/ tests/Feature/Users/ \
+            tests/Feature/NotificationTemplateTest.php \
             tests/Feature/Support/SuporteLogContratoTest.php \
             tests/Feature/Configuracoes/ \
             tests/Feature/CutoverMenu/RelatoriosSemXInertiaTest.php
