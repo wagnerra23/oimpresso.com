@@ -25,7 +25,7 @@ use Spatie\Permission\Models\Permission;
  *   fetch da Page        → JSON dos totais (X-Requested-With, sem X-Inertia — é assim que a
  *                          Page busca os números, `Relatorios/CompraVenda/Index.tsx`)
  *
- * Representantes (`/reports/sales-representative`) ficou FORA: a Page só tem o resumo, e as 4
+ * Representantes (`/reports/sales-representative-report`) ficou FORA: a Page só tem o resumo, e as 4
  * abas de listagem só existem na Blade. O último caso trava que o GET comum segue no Blade.
  *
  * Tenant semeado do CI (ADR 0358). Nunca biz=4. Pest só no CI / CT 100 (proibicoes.md §Ambiente).
@@ -138,7 +138,7 @@ it('Representantes segue no Blade pelo menu (fora do cutover até as 4 abas sere
     // Trava a decisão desta thread: a Page `Report/SalesRepresentative/Index` só tem o resumo.
     // Virar padrão esconderia as abas de listagem de quem entra pelo menu.
     rsxLogin($this, rsxUsuario($this->bizId, ['sales_representative.view', 'access_all_locations']))
-        ->get('/reports/sales-representative')
+        ->get('/reports/sales-representative-report')
         ->assertOk()
         ->assertViewIs('report.sales_representative');
 });
