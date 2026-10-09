@@ -1,6 +1,6 @@
 ---
 date: "2026-10-09"
-time: "15:20 BRT"
+time: "15:09 BRT"
 slug: sequencia-playbooks-sistema
 tldr: "Sistema/07 recebeu recibo da entrega existente; próxima implementação escolhida: Sistema/06, começando por Modelos de notificação."
 ---
