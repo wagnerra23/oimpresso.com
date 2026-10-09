@@ -17,6 +17,9 @@
     { "label": "financeiro-conciliacao", "path": "/financeiro/conciliacao", "auth": true, "source": "resources/js/Pages/Financeiro/Conciliacao/Index.tsx" },
     { "label": "financeiro-dre", "path": "/financeiro/dre", "auth": true, "source": "resources/js/Pages/Financeiro/Dre/Index.tsx" },
     { "label": "financeiro-plano-contas", "path": "/financeiro/plano-contas", "auth": true, "source": "resources/js/Pages/Financeiro/PlanoContas/Index.tsx" },
-    { "label": "financeiro-impostos", "path": "/financeiro/impostos", "auth": true, "source": "resources/js/Pages/Financeiro/Impostos/Index.tsx" }
+    { "label": "financeiro-impostos", "path": "/financeiro/impostos", "auth": true, "source": "resources/js/Pages/Financeiro/Impostos/Index.tsx" },
+    { "label": "configuracoes-locais", "path": "/business-location", "auth": true, "source": "resources/js/Pages/Configuracoes/Locais/Index.tsx" },
+    { "label": "configuracoes-impressoras", "path": "/printers", "auth": true, "source": "resources/js/Pages/Configuracoes/Impressoras/Index.tsx" },
+    { "label": "configuracoes-codigo-barras", "path": "/barcodes", "auth": true, "source": "resources/js/Pages/Configuracoes/CodigoBarras/Index.tsx" }
   ]
 }
