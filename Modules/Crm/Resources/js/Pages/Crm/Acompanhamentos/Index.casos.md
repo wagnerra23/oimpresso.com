@@ -257,3 +257,30 @@ escolhidos
 > Pendente 2 do `_saida-07c`.
 
 Status: 🧪
+
+## UC-CRMACO-22 · Registro segue o escopo de quem vê só os próprios · `must`
+
+**Dado** um vendedor que só pode ver os próprios acompanhamentos (`crm.access_own_schedule`)
+**Quando** tenta adicionar, editar ou excluir registro em acompanhamento de um colega do mesmo negócio
+**Então** recebe 403 e nada é gravado nem muda
+**E** no acompanhamento dele mesmo (atribuído ou criado por ele) o registro grava
+**E** quem pode ver todos (`crm.access_all_schedule`) registra no acompanhamento do colega.
+
+> Âncora: decisão **D5** ([W] 2026-10-07, `prototipo-ui/cowork/Wagner/cowork-inbox/crm/playbook/_DECISOES-W-2026-10-07.md`:
+> *"restringir: store respeita access_own_schedule (mesmo escopo da leitura); o dono decide pelo papel; sem config nova"*).
+> O recorte é o da leitura de um acompanhamento em `ScheduleController@edit` (atribuído **ou** criado por mim).
+> Achado do `_saida-07` (pendente 3). Teste: `Modules/Crm/Tests/Feature/CrmRegistroEscopoTest.php`.
+
+Status: 🧪
+
+## UC-CRMACO-23 · Editar ou excluir registro de outro negócio dá 404 · `must` `[T0]`
+
+**Dado** um registro num acompanhamento de outro negócio
+**Quando** tento editá-lo (mesmo sem trocar o status) ou excluí-lo
+**Então** recebo 404 e o registro não muda.
+
+> Âncora: ADR 0093 (isolamento por `business_id`) + UC-CRMACO-17, que já cobria o adicionar. Antes da
+> thread Crm/10, o `update` só conferia o negócio quando vinha `status`, e o `destroy` nunca conferia.
+> Teste: `Modules/Crm/Tests/Feature/CrmRegistroEscopoTest.php`.
+
+Status: 🧪

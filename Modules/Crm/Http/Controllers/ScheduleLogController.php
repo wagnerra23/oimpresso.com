@@ -53,6 +53,9 @@ class ScheduleLogController extends Controller
         $modal_content = $request->get('modal_content') == 'false' ? false : true;
 
         if (request()->ajax()) {
+            // Negócio (404) e escopo de quem lê (403) antes do try: o catch genérico engoliria o 403.
+            $this->acompanhamentoNoEscopo($business_id, $schedule_id);
+
             try {
                 $schedule = Schedule::with(['invoices', 'invoices.payment_lines'])
                         ->where('business_id', $business_id)
@@ -137,8 +140,7 @@ class ScheduleLogController extends Controller
         }
 
         $id = request()->get('schedule_id');
-        $schedule = Schedule::where('business_id', $business_id)
-                        ->findOrFail($id);
+        $schedule = $this->acompanhamentoNoEscopo($business_id, $id);
         $customers = Contact::customersDropdown($business_id, false);
         $statuses = Schedule::statusDropdown();
 
@@ -159,15 +161,16 @@ class ScheduleLogController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
+        // D5 ([W] 2026-10-07, thread Crm/10): registrar segue o escopo da leitura. Fora do try:
+        // o catch genérico abaixo transformaria o 403 em `success: false` com HTTP 200.
+        $schedule = $this->acompanhamentoNoEscopo($business_id, $request->get('schedule_id'));
+
         try {
             $input = $request->only('log_type', 'subject', 'description');
             // Aceita o ISO do modal Inertia (thread Crm/07, PR-b) e o formato da empresa da Blade.
             $input['start_datetime'] = $this->commonUtil->uf_datetime_input($request->input('start_datetime'));
             $input['end_datetime'] = $this->commonUtil->uf_datetime_input($request->input('end_datetime'));
             $input['created_by'] = $request->user()->id;
-
-            $schedule = Schedule::where('business_id', $business_id)
-                        ->findOrFail($request->get('schedule_id'));
 
             //update schedule status
             if (! empty($request->input('status'))) {
@@ -211,6 +214,7 @@ class ScheduleLogController extends Controller
         }
 
         $schedule_id = request()->get('schedule_id');
+        $this->acompanhamentoNoEscopo($business_id, $schedule_id);
 
         $schedule_log = ScheduleLog::with('schedule')
                         ->where('schedule_id', $schedule_id)
@@ -235,8 +239,7 @@ class ScheduleLogController extends Controller
 
         $schedule_id = request()->get('schedule_id');
 
-        $schedule = Schedule::where('business_id', $business_id)
-                        ->findOrFail($schedule_id);
+        $schedule = $this->acompanhamentoNoEscopo($business_id, $schedule_id);
 
         $schedule_log = ScheduleLog::where('schedule_id', $schedule_id)
                             ->findOrFail($id);
@@ -262,20 +265,21 @@ class ScheduleLogController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
+        // Antes, o acompanhamento só era conferido quando vinha `status`: sem ele, o registro de
+        // outro negócio era alterado [T0]. Agora negócio (404) e escopo (403) vêm primeiro, fora do try.
+        $schedule_id = $request->get('schedule_id');
+        $schedule = $this->acompanhamentoNoEscopo($business_id, $schedule_id);
+
         try {
             $input = $request->only('log_type', 'subject', 'description');
             $input['start_datetime'] = $this->commonUtil->uf_date($request->input('start_datetime'), true);
             $input['end_datetime'] = $this->commonUtil->uf_date($request->input('end_datetime'), true);
 
-            $schedule_id = $request->get('schedule_id');
             $schedule_log = ScheduleLog::where('schedule_id', $schedule_id)
                             ->findOrFail($id);
 
             //update schedule status
             if (! empty($request->input('status'))) {
-                $schedule = Schedule::where('business_id', $business_id)
-                        ->findOrFail($schedule_id);
-
                 $schedule->status = $request->input('status');
                 $schedule->save();
             }
@@ -316,8 +320,11 @@ class ScheduleLogController extends Controller
         }
 
         if (request()->ajax()) {
+            // Excluir não conferia o negócio do acompanhamento [T0]: negócio (404) e escopo (403) primeiro.
+            $schedule_id = request()->get('schedule_id');
+            $this->acompanhamentoNoEscopo($business_id, $schedule_id);
+
             try {
-                $schedule_id = request()->get('schedule_id');
                 $schedule_log = ScheduleLog::where('schedule_id', $schedule_id)
                                     ->findOrFail($id);
 
@@ -342,5 +349,32 @@ class ScheduleLogController extends Controller
 
             return $output;
         }
+    }
+
+    /**
+     * O acompanhamento no negócio da sessão E no escopo de quem pede (D5, [W] 2026-10-07 —
+     * thread Crm/10): o mesmo recorte da leitura de um acompanhamento em
+     * `ScheduleController@edit/show` — com só `crm.access_own_schedule`, vale o que me foi
+     * atribuído ou o que eu criei. Fora do negócio: 404 (findOrFail). No negócio, fora do
+     * escopo: 403. Sem chave de configuração: o dono decide pelo papel.
+     */
+    private function acompanhamentoNoEscopo(int $business_id, $schedule_id): Schedule
+    {
+        $schedule = Schedule::where('business_id', $business_id)->findOrFail($schedule_id);
+
+        $user = auth()->user();
+        if ($user->can('superadmin') || $user->can('crm.access_all_schedule')) {
+            return $schedule;
+        }
+
+        $meu = $user->can('crm.access_own_schedule')
+            && ((int) $schedule->created_by === (int) $user->id
+                || $schedule->users()->where('user_id', $user->id)->exists());
+
+        if (! $meu) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        return $schedule;
     }
 }
