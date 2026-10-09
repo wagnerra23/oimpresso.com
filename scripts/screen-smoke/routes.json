@@ -17,6 +17,7 @@
     { "label": "financeiro-conciliacao", "path": "/financeiro/conciliacao", "auth": true, "source": "resources/js/Pages/Financeiro/Conciliacao/Index.tsx" },
     { "label": "financeiro-dre", "path": "/financeiro/dre", "auth": true, "source": "resources/js/Pages/Financeiro/Dre/Index.tsx" },
     { "label": "financeiro-plano-contas", "path": "/financeiro/plano-contas", "auth": true, "source": "resources/js/Pages/Financeiro/PlanoContas/Index.tsx" },
-    { "label": "financeiro-impostos", "path": "/financeiro/impostos", "auth": true, "source": "resources/js/Pages/Financeiro/Impostos/Index.tsx" }
+    { "label": "financeiro-impostos", "path": "/financeiro/impostos", "auth": true, "source": "resources/js/Pages/Financeiro/Impostos/Index.tsx" },
+    { "label": "catalogo-qr", "path": "/product-catalogue/catalogue-qr", "auth": true, "source": "resources/js/Pages/ProductCatalogue/CatalogueQr.tsx" }
   ]
 }
