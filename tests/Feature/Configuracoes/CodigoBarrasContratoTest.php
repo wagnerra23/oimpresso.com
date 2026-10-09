@@ -42,6 +42,9 @@ test('UC-ETQ-01 com a flag ligada, GET /barcodes renderiza Inertia (não a DataT
 
 test('UC-ETQ-02 com a flag desligada, GET /barcodes segue na Blade', function () {
     config(['feature-flags.forced_on' => '']);
+    // OFF é override explícito, não o default global após D-CFG-LIGAR.
+    $this->mock(\App\Services\FeatureFlagService::class, fn ($mock) =>
+        $mock->shouldReceive('isOn')->with('useV2ConfiguracoesCodigoBarras', \Mockery::any())->andReturn(false));
 
     $this->get('/barcodes')->assertOk()->assertViewIs('barcode.index');
 });
