@@ -4,7 +4,7 @@ casos: Sessões CC · feed + thread · /team-mcp/cc-sessions
 irmaos: Index.charter.md (lei) · Index.tsx (tela)
 tecnica: Caso de uso = narrativa + critério de aceite verificável
 owner: wagner
-last_run: "2026-10-07"
+last_run: "2026-10-09"
 last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente das lanes PHP / Pest (Unit) e PHP / Pest (Forja · MySQL)"
 ---
 
@@ -56,6 +56,11 @@ Charter §Anti-hooks: *"NÃO escreve nada (tela 100% read-only)"*; Non-Goal: *"E
 Status: 🧪 (1 teste cita este UC — partial reload de `sessions` (é `Inertia::defer`), `per_page=25`, e a sessão mais recente vem antes da antiga. Só na lane MySQL.)
 Charter §Goals: *"Feed cronológico"* + *"Paginator 25/pg"*; visual-comparison §Matriz: *"Paginator 25/pg + links"*; SPEC US-COPI-CC-001: *"paginação 25/page"*.
 **Pronto quando:** o feed vem em páginas de 25, do mais recente para o mais antigo.
+
+## UC-CCS-08 — "Limpar" zera todos os filtros, inclusive o período
+Status: 🧪 (1 teste cita este UC em [`ForjaGapsScorecardEstadosTest.php`](../../../../../Tests/Feature/ForjaGapsScorecardEstadosTest.php) — o `applyFilter` do botão manda `from` e `to` vazios junto com os outros. Perna de **registro** (lê o `.tsx`, qualquer driver): prova que o mecanismo está na tela, não o render — a tela não tem E2E. Achado do scorecard da thread 04 (playbook Forja, thread 08 PR-b).)
+O `hasFilters` conta `from`/`to`; sem zerá-los, o filtro de período ficava ativo depois de "Limpar".
+**Pronto quando:** depois de "Limpar" nenhum filtro segue aplicado.
 
 ## Backlog (sem id — vira UC quando ganhar teste que o cite)
 
