@@ -83,6 +83,7 @@ on:
       - 'tests/Feature/Roles/**'
       - 'tests/Feature/Users/**'
       - 'tests/Feature/Relatorios/**'
+      - 'tests/Feature/CutoverMenu/RelatoriosSemXInertiaTest.php'
       - 'app/Http/Controllers/Support/**'
       - 'app/Services/Support/**'
       - 'app/Http/Middleware/EnsureSupportAccess.php'
@@ -159,6 +160,7 @@ jobs:
               - 'tests/Feature/Roles/**'
               - 'tests/Feature/Users/**'
               - 'tests/Feature/Relatorios/**'
+              - 'tests/Feature/CutoverMenu/RelatoriosSemXInertiaTest.php'
               - 'app/Http/Controllers/Support/**'
               - 'app/Services/Support/**'
               - 'app/Http/Middleware/EnsureSupportAccess.php'
@@ -215,7 +217,8 @@ jobs:
             --log-junit test-results/pest-acessos-junit.xml \
             tests/Feature/Roles/ tests/Feature/Users/ \
             tests/Feature/Support/SuporteLogContratoTest.php \
-            tests/Feature/Configuracoes/
+            tests/Feature/Configuracoes/ \
+            tests/Feature/CutoverMenu/RelatoriosSemXInertiaTest.php
 
       # A régua honesta desta lane é `assertions`, NÃO "0 failed": skip sai exit 0
       # e 18 dos 22 pulam fora do MySQL. Se o sumário mostrar muitos casos com 0
