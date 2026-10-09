@@ -46,6 +46,11 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 > **bloqueador de migração**: define quando a lista React pode ser ligada (MWART F5,
 > [ADR 0104](../../../../memory/decisions/0104-processo-mwart-canonico-unico-caminho.md) · US-PROD-023).
 >
+> **Atualização (cutover pelo menu · thread 01, D1 [W] 2026-10-07):** o parágrafo acima descreve o
+> estado até então. A partir desse cutover a lista React é o padrão de `/products` (GET comum, como
+> o menu navega) e o Blade só abre com `?classico=1` — prova em
+> `tests/Feature/CutoverMenu/ProdutoSemXInertiaTest.php`. Os casos daqui passam a valer pra tela viva.
+>
 > **Status:** ✅ passa · 🧪 teste cita o UC e passa · ⬜ não verificado (stub/sem veredito) ·
 > 🔶 backlog (achado a verificar / decisão [W]) · ❌ quebrou.
 
