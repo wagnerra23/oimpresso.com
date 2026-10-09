@@ -120,6 +120,8 @@ on:
       # Junto vão os arquivos SOB TESTE das 4 telas (§5 2026-08-02: sem eles no trigger,
       # mexer na tela não dispara o teste dela — gate mudo com cara de cobertura).
       - 'tests/Feature/Stock/**'
+      # Cutover pelo menu · thread 04 — o teste das 4 telas mora em CutoverMenu/.
+      - 'tests/Feature/CutoverMenu/EstoqueSemXInertiaTest.php'
       - 'app/Http/Controllers/StockAdjustmentController.php'
       - 'app/Http/Controllers/StockTransferController.php'
       - 'resources/js/Pages/StockAdjustment/**'
@@ -207,6 +209,8 @@ jobs:
               # Mesma dupla do bloco `paths:` do trigger, e pela mesma razão: entram JUNTO,
               # nunca depois (é o 4º eixo da divergência que os comentários acima catalogam).
               - 'tests/Feature/Stock/**'
+              # Cutover pelo menu · thread 04 — o teste das 4 telas mora em CutoverMenu/.
+              - 'tests/Feature/CutoverMenu/EstoqueSemXInertiaTest.php'
               - 'app/Http/Controllers/StockAdjustmentController.php'
               - 'app/Http/Controllers/StockTransferController.php'
               - 'resources/js/Pages/StockAdjustment/**'
@@ -314,6 +318,8 @@ jobs:
 
           find tests/Feature/Estoque tests/Feature/Produto tests/Feature/Stock -name '*Test.php' | sort > /tmp/all.txt
           comm -23 /tmp/all.txt /tmp/quar.txt > /tmp/run.txt
+          # + o teste do cutover de Transferências/Ajustes (thread 04 do playbook cutover-menu), fora da árvore.
+          echo 'tests/Feature/CutoverMenu/EstoqueSemXInertiaTest.php' >> /tmp/run.txt
 
           # Visibilidade obrigatória: quarentena silenciosa vira cobertura fingida.
           echo "Árvore: $(wc -l < /tmp/all.txt) · quarentena: $(wc -l < /tmp/quar.txt) · RODANDO: $(wc -l < /tmp/run.txt)"
