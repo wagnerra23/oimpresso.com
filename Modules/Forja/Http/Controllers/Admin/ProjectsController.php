@@ -32,6 +32,10 @@ class ProjectsController extends Controller
     public function __construct()
     {
         $this->middleware('auth');
+        // [W] 2026-10-07 (D10, thread 13 do playbook Forja): a tela exige a permissão do
+        // módulo Forja, não só login — mesma de Aprovações/Trabalho/Roadmap/Team. Vale para
+        // as 4 ações (index, show, store, decompose). Prova: ForjaProjectsAcessoTest.
+        $this->middleware('can:jana.mcp.usage.all');
     }
 
     public function index(Request $request): Response

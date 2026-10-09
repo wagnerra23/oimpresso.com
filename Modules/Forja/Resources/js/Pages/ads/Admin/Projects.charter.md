@@ -19,12 +19,14 @@ charter_version: 1
 >
 > Backend: `Modules/Forja/Http/Controllers/Admin/ProjectsController@index` (rota `ads.admin.projects.index`; controller em Modules/Forja (ex-ProjectMgmt), URL sob `/ads`). Lista os Projects estratégicos (`mcp_projects`) e cria novos; multi-tenant Tier 0 via `businessId` resolvido da sessão.
 >
-> **Casos de uso:** [`Projects.casos.md`](Projects.casos.md) (UC-ADPJ-01..04, teste `Modules/Forja/Tests/Feature/AdsAdminProjectsContratoTest.php`).
+> **Acesso:** login **e** a permissão do módulo Forja (`jana.mcp.usage.all`) — decisão [W] D10 (2026-10-07). Sem ela, 403.
+>
+> **Casos de uso:** [`Projects.casos.md`](Projects.casos.md) (UC-ADPJ-01..05; testes `Modules/Forja/Tests/Feature/AdsAdminProjectsContratoTest.php` e `ForjaProjectsAcessoTest.php`).
 
 ---
 
 ## Mission
-Ser o portfólio dos Projects — unidade estratégica que agrupa decisões + ADRs + decomposição. O admin vê o estado de cada project (status, viability, custo, prazo, progresso das parts) e cria um novo informando nome + objetivo macro, que depois é decomposto pelo Project Decomposer Agent (no detalhe). É a entrada da esteira de decomposição estratégica do ADS/Forja.
+Ser o portfólio dos Projects — unidade estratégica que agrupa a decomposição em parts. O admin vê o estado de cada project (status, viability, custo, prazo, progresso das parts) e cria um novo informando nome + objetivo macro, que depois é decomposto pelo Project Decomposer Agent (no detalhe). É a entrada da esteira de decomposição estratégica do ADS/Forja.
 
 ---
 
@@ -41,6 +43,7 @@ Ser o portfólio dos Projects — unidade estratégica que agrupa decisões + AD
 - ❌ Não edita/mata project pela lista — só cria e navega.
 - ❌ Não pagina/filtra server-side — carrega a lista do business inteira.
 - ❌ Não mostra projects de outro business — scopado por `businessId` da sessão (Tier 0). [inferência confirmada no controller]
+- ❌ Não abre para quem só está logado — exige a permissão do módulo Forja (D10).
 
 ---
 
