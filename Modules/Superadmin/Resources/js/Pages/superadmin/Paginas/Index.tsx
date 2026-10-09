@@ -138,9 +138,10 @@ function Gaveta({ alvo, onFechar }: { alvo: Pagina | 'nova'; onFechar: () => voi
           <Campo id="pg-ordem" rotulo="Ordem no menu">
             <Input id="pg-ordem" inputMode="numeric" className="tabular-nums" value={form.data.menu_order} onChange={(e) => form.setData('menu_order', e.target.value)} />
           </Campo>
-          <label className="flex items-center gap-2 text-sm">
-            <Switch checked={form.data.is_shown} onCheckedChange={(v) => form.setData('is_shown', v)} /> Visível no site
-          </label>
+          <div className="flex items-center gap-2">
+            <Switch id="pg-visivel" checked={form.data.is_shown} onCheckedChange={(v) => form.setData('is_shown', v)} />
+            <Label htmlFor="pg-visivel" className="text-sm font-normal">Visível no site</Label>
+          </div>
           <Campo id="pg-conteudo" rotulo="Conteúdo (HTML)">
             <Textarea id="pg-conteudo" rows={12} value={form.data.content} onChange={(e) => form.setData('content', e.target.value)} />
           </Campo>
