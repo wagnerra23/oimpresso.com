@@ -4,7 +4,7 @@ casos: Tarefas MCP · Backlog + Quadro + drawer · /team-mcp/tasks
 irmaos: Index.charter.md (lei) · Index.tsx (tela)
 tecnica: Caso de uso = narrativa + critério de aceite verificável
 owner: wagner
-last_run: "2026-10-07"
+last_run: "2026-10-09"
 last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente das lanes PHP / Pest (Unit) e PHP / Pest (Forja · MySQL)"
 ---
 
@@ -51,6 +51,11 @@ Charter §Anti-hooks: *"NÃO escreve nada além de `PATCH` status (bulk = N× PA
 Status: 🧪 (1 teste cita este UC — partial reload de `kanban` (é `Inertia::defer`) filtrado pelo módulo das fixtures: só aparecem essas 4 chaves, `todo` e `review` trazem as fixtures certas (controle contra quadro vazio), e a task `blocked` não aparece. Só na lane MySQL.)
 Charter §Goals: *"Aba Quadro: kanban todo/doing/review/done"*; visual-comparison §Matriz: *"Kanban todo/doing/review/done"*.
 **Pronto quando:** o Quadro agrupa só nessas 4 colunas e cada task cai na coluna do seu status.
+
+## UC-TSK-07 — O autor do movimento na trilha é o usuário logado `[T0]`
+Status: 🧪 (3 testes citam este UC em [`ForjaGapsScorecardTasksAutorTest.php`](../../../../../Tests/Feature/ForjaGapsScorecardTasksAutorTest.php) — **(a)** usuário B move a tarefa mandando no body o autor de outra pessoa, e o evento em `mcp_task_events` sai com autor B; **(b)** sem `author` no body, o evento não cai no default `wagner`; **(c)** a tela não manda mais `author` no PATCH. (a) e (b) só na lane MySQL.)
+Charter §Métricas: *"drag move status … registra `mcp_task_events`"* + §Goals *"Atividade (`mcp_task_events` real)"*; a trilha é append-only (triggers de imutabilidade) — autoria falsa não se conserta depois. Achado do scorecard da thread 04 (playbook Forja, thread 08): a tela mandava `author: 'wagner'` fixo e o controller gravava o body.
+**Pronto quando:** o autor do evento é sempre quem está logado, e `author` vindo do body é ignorado.
 
 ## Backlog (sem id — vira UC quando ganhar teste que o cite)
 

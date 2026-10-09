@@ -25,7 +25,7 @@ import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import { SafeSelectItem } from '@/Components/ui/SafeSelectItem';
-import PageHeader from '@/Components/shared/PageHeader';
+import { PageHeader } from '@/Components/PageHeader';
 import KpiGrid from '@/Components/shared/KpiGrid';
 import KpiCard from '@/Components/shared/KpiCard';
 import BulkActionBar from '@/Components/shared/BulkActionBar';
@@ -220,7 +220,8 @@ function TasksIndex({
     fetch(`/team-mcp/tasks/${taskId}/status`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf },
-      body: JSON.stringify({ status, author: 'wagner' }),
+      // Sem `author`: o servidor grava o usuário logado na trilha (thread 08, UC-TSK-07).
+      body: JSON.stringify({ status }),
     })
       .then((r) => {
         if (r.ok) {
@@ -372,10 +373,9 @@ function TasksIndex({
     <>
       <ForjaHub active="tarefas" />
       <PageHeader
-        icon="layout-kanban"
         title="Tasks"
-        description={`${isLoading ? '—' : k.total} tasks · ${isLoading ? '—' : k.total_h.toFixed(0)}h estimadas · ${isLoading ? '—' : k.doing} fazendo`}
-        action={
+        subtitle={`${isLoading ? '—' : k.total} tasks · ${isLoading ? '—' : k.total_h.toFixed(0)}h estimadas · ${isLoading ? '—' : k.doing} fazendo`}
+        actions={
           <SubNav
             variant="segmented"
             value={tab}

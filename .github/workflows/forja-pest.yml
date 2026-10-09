@@ -239,6 +239,7 @@ jobs:
             Modules/Forja/Tests/Feature/TeamEquipeContratoTest.php \
             Modules/Forja/Tests/Feature/ForjaToolsPermissaoTest.php \
             Modules/Forja/Tests/Feature/TeamTenantTest.php \
+            Modules/Forja/Tests/Feature/ForjaGapsScorecardTasksAutorTest.php
             Modules/Forja/Tests/Feature/ForjaProjectsAcessoTest.php
 
 
