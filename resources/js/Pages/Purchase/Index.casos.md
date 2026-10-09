@@ -148,6 +148,10 @@ daí — o caminho é converter, um UC por vez, não ligar tudo de uma vez.
   · Então renderiza a Page `Purchase/Index` via Inertia. E, como **controle negativo**, um GET normal
   sem header **continua** caindo na view Blade legacy, e o request AJAX continua devolvendo o JSON
   Datatables.
+- **Atualização (cutover pelo menu · thread 03, D1 [W] 2026-10-07):** o aceite acima descreve o
+  estado até então. Desde esse cutover o GET comum (como o menu navega) abre a Page React; o Blade
+  só abre com `?classico=1`; `?v=2` e o AJAX do DataTable seguem como estavam. Prova de comportamento:
+  [`ComprasSemXInertiaTest`](../../../../tests/Feature/CutoverMenu/ComprasSemXInertiaTest.php).
 - **Teste:** [`IndexPageTest`](../../../../tests/Feature/Purchase/IndexPageTest.php) — *"Controller
   index() tem dual path"* · *"Controller PRESERVA path Blade legacy"* · *"Controller PRESERVA path
   AJAX DataTables legacy (Yajra)"*.
