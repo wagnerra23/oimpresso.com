@@ -133,9 +133,11 @@ class UserScopeService
 
     public function listUsersWithAccess(int $businessId): array
     {
+        // Thread Forja/10 (D6): a junção era com `user_businesses`, tabela que não existe no
+        // schema (nem no baseline nem no staging) — a prop `users` lançava QueryException e a
+        // lista de devs nunca carregava. O vínculo real do UltimatePOS é `users.business_id`.
         return DB::table('users')
-            ->join('user_businesses', 'users.id', '=', 'user_businesses.user_id')
-            ->where('user_businesses.business_id', $businessId)
+            ->where('users.business_id', $businessId)
             ->where('users.deleted_at', null)
             ->select('users.id', 'users.username', 'users.first_name', 'users.surname', 'users.email')
             ->orderBy('users.first_name')
