@@ -1,5 +1,7 @@
 # 08 — Handoff (índice)
 
+- [2026-10-09 16:29 BRT — **Sequência: merges e flags em produção**](handoffs/2026-10-09-1629-sequencia-threads-producao.md) (seis PRs mergeadas · três flags ON nas 93 empresas · smoke visual e DesignSync pendentes)
+
 - [2026-10-09 15:54 BRT — **Sistema/13: cutover de Configurações**](handoffs/2026-10-09-1554-sistema13-cutover-configuracoes.md) (decisão D-CFG-LIGAR · nove testes no CT 100 · deploy e smoke pendentes)
 
 - [2026-10-09 15:09 BRT — **Sequência dos playbooks: Sistema/07 e próxima etapa /06**](handoffs/2026-10-09-1509-sequencia-playbooks-sistema.md) (recibo recuperado · sem código alterado · pacote F1 de notificações identificado)
