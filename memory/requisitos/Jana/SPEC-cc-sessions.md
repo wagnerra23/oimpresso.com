@@ -36,11 +36,13 @@ Schema `mcp_cc_*` já existe (3 tabelas, migrations rodadas em prod 29-abr). Too
 | Persona | Acesso | Caso de uso |
 |---|---|---|
 | **Wagner** (owner/governança) | `copiloto.cc.read.all` + admin | Audita time, calcula custo per-dev, descobre quem tá produzindo o quê |
-| **Felipe / Maiara** (devs sêniores) | `copiloto.cc.read.team` | Busca cross-dev: "como Wagner fez X mês passado" |
-| **Luiz** (junior) | `copiloto.cc.read.self` + `cc.read.team` | Aprende com sessões dos outros antes de pedir ajuda |
+| **Felipe / Maiara** (devs sêniores) | `copiloto.cc.read.team` | Abre a tela e busca nas **próprias** sessões (D12) |
+| **Luiz** (junior) | `copiloto.cc.read.self` + `cc.read.team` | Abre a tela e busca nas **próprias** sessões (D12) |
 | **Eliana** (financeiro) | `copiloto.cc.read.self` | Vê próprio uso, sem cross-dev |
 
-Permission `copiloto.cc.read.all` = ver todas; `cc.read.team` = ver team mas não admin; `cc.read.self` = só próprias.
+Permission `copiloto.cc.read.all` = ver todas; `cc.read.team` = **abre a tela e vê só as próprias sessões** (como o charter e o `CcSessionsController`, que sem `read.all` filtra `s.user_id = eu`); `cc.read.self` = só próprias.
+
+> **D12 ([W] 2026-10-07, playbook Forja thread 16):** *"só as próprias sessões"*. Até esta data a SPEC dizia que `cc.read.team` via as sessões do time (busca cross-dev "como Wagner fez X"); o código e o charter nunca fizeram isso. A busca cross-dev fica só com `cc.read.all`.
 
 ---
 
@@ -94,7 +96,7 @@ Permission `copiloto.cc.read.all` = ver todas; `cc.read.team` = ver team mas nã
 - **Como** Felipe **quero** buscar "telescope crash" **para** ver como alguém resolveu antes.
 - **Mecanismo:** `MATCH(content_text) AGAINST(? IN NATURAL LANGUAGE MODE)` em `mcp_cc_messages` + filtros opcionais user/tool/date
 - **Result:** lista de hits (msg + session info + score), click vai pro contexto da session
-- **DoD extra:** highlight do termo nos snippets; respeita RBAC (junior não vê outras sessões a menos que tenha `cc.read.team`).
+- **DoD extra:** highlight do termo nos snippets; respeita RBAC — sem `cc.read.all`, a busca só traz as próprias sessões (D12; `cc.read.team` não amplia).
 
 #### US-COPI-CC-021 · Cmd+K command palette
 - **Como** dev **quero** Ctrl+K e digitar query rápida **para** achar contexto sem sair do que estou fazendo.
@@ -194,7 +196,7 @@ Permission `copiloto.cc.read.all` = ver todas; `cc.read.team` = ver team mas nã
 
 ```php
 'copiloto.cc.read.self'   // ver SUAS sessões (default todos com jana.mcp.use)
-'copiloto.cc.read.team'   // ver sessões do time (Felipe, Maiara)
+'copiloto.cc.read.team'   // abre a tela; vê só as PRÓPRIAS sessões (D12, [W] 2026-10-07)
 'copiloto.cc.read.all'    // tudo (Wagner, superadmin)
 'copiloto.cc.curate'      // marcar useful/noise/duplicate (Wagner only)
 ```
