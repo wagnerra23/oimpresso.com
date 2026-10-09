@@ -4,7 +4,7 @@ casos: Equipe · tokens MCP do time · /team-mcp/team
 irmaos: Index.charter.md (lei) · Index.tsx (tela)
 tecnica: Caso de uso = narrativa + critério de aceite verificável
 owner: wagner
-last_run: "2026-10-07"
+last_run: "2026-10-09"
 last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente das lanes PHP / Pest (Unit) e PHP / Pest (Forja · MySQL)"
 ---
 
