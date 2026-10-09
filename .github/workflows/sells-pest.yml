@@ -32,6 +32,8 @@ on:
     paths:
       - 'tests/Feature/Sells/**'
       - 'tests/Feature/CutoverMenu/VendasListasSemXInertiaTest.php'  # cutover-menu thread 02
+      - 'Modules/ProductCatalogue/Http/Controllers/ProductCatalogueController.php'  # modulos-faltantes 04
+      - 'Modules/ProductCatalogue/Services/CatalogueQrService.php'
       - 'app/Transaction.php'
       - 'app/Http/Controllers/SellCommissionSplitController.php'
       - 'app/Http/Controllers/SellController.php'
@@ -128,6 +130,8 @@ jobs:
             sells:
               - 'tests/Feature/Sells/**'
               - 'tests/Feature/CutoverMenu/VendasListasSemXInertiaTest.php'
+              - 'Modules/ProductCatalogue/Http/Controllers/ProductCatalogueController.php'
+              - 'Modules/ProductCatalogue/Services/CatalogueQrService.php'
               - 'app/Transaction.php'
               - 'app/Http/Controllers/SellCommissionSplitController.php'
               - 'app/Http/Controllers/SellPosController.php'
@@ -347,6 +351,7 @@ jobs:
             tests/Feature/Sells/VendasMwartCutoverTest.php \
             tests/Feature/Sells/CommissionSplitAuditTest.php \
             tests/Feature/Sells/SellsQuotationsContratoTest.php \
+            tests/Feature/Sells/CatalogueQrContratoTest.php \
             tests/Feature/CutoverMenu/VendasListasSemXInertiaTest.php
 
 
