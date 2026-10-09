@@ -44,8 +44,8 @@ Controller entrega general_notifications, customer_notifications e supplier_noti
 
 ## 9. DoD checklist
 - [x] F1: plano e mapa de paridade escritos a partir do contrato e legado.
-- [ ] F2: baseline executado no CT 100, com recibo e todo explicitados.
-- [ ] F2: dual + flag OFF + testes de permissão, payload e tenant.
+- [x] F2: baseline publicado na #9107; CT 100 mediu 20 passes/52 assertions e dois todo.
+- [x] F2: dual implementado e testado no CT 100; publicação e CI ficaram pendentes nesta entrega.
 - [ ] F3: Page, charter e casos vinculados, com UCs testados.
 - [ ] F4: visual, acessibilidade, round-trip e QA de isolamento.
 - [ ] F5: decisão de ativação, canary e monitoramento conforme ADR 0104.
@@ -60,3 +60,6 @@ Controller entrega general_notifications, customer_notifications e supplier_noti
 
 ## 11. ADR de origem
 [ADR 0104](../../decisions/0104-processo-mwart-canonico-unico-caminho.md), [ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md) e [ADR 0062](../../decisions/0062-separacao-runtime-hostinger-ct100.md). Fonte de domínio: pacote aprovado em prototipo-ui/cowork/Wagner/cowork-inbox/notificacoes.
+
+## Prova F2 registrada em 09/10
+A flag useV2NotificationTemplates reutilizou FeatureFlagService e os comandos flag:get/set já existentes; não foi criado toggle em pos_settings. O default ausente permaneceu OFF e o ramo React exigiu X-Inertia. Foram preservados o gate send_notification, __grupos e __getTemplateDetails. Baseline + dual inicial: 25 passes/78 assertions, dois todo. Dual final no commit 04fd4aadd0: sete passes/31 assertions, seed 1791572282. A Page ainda não existia; nenhuma flag foi ativada, nenhum envio real executado. UC-NOT-18/25 continuaram sem prova.

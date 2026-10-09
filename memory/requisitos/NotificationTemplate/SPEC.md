@@ -19,8 +19,8 @@ F1 foi publicada pelo merge da #9105 em 09/10.
 
 ### US-NOTIF-002 · Baseline e ação dual F2
 blocked_by: US-NOTIF-001
-**Implementado em:** _pendente_.
-Executar NotificationTemplateTest no CT 100, preservando os dois todo e acrescentando cobertura para bcc e modelos de módulos. Depois flag OFF e resposta Blade/Inertia com gates de permissão e isolamento. Não declarar done por presença de arquivo.
+**Implementado em:** `app/Http/Controllers/NotificationTemplateController.php`, `tests/Feature/NotificationTemplateDualTest.php` e `tests/Feature/NotificationTemplateTest.php`.
+Baseline publicado pela #9107. Em 09/10, CT 100: baseline + primeiro dual tiveram 25 passes/78 assertions e dois todo; o dual final teve sete passes/31 assertions (commit 04fd4aadd0). X-Inertia e flag useV2NotificationTemplates habilitam três grupos adiados; flag ausente ficou OFF no serviço real. Permissão e tenant foram provados. CI e publicação do dual ainda pendentes nesta entrega; F3/F4/F5 não foram concluídas.
 
 ### US-NOTIF-003 · Seleção de modelos F3
 blocked_by: US-NOTIF-002
