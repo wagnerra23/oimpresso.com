@@ -8,6 +8,14 @@ pii: false
 
 # Estado da arte — onde mora a COMPOSIÇÃO e onde mora a PRODUÇÃO
 
+## TL;DR
+
+- **O mercado separa as duas coisas:** composição é cadastro (não olha estoque, sem desperdício); a ordem de produção reserva, baixa e registra o desperdício real (Odoo, Katana, Omie, Bling, Calcgraf, com fonte).
+- **Ninguém impede a ordem de existir por falta de material:** o que se bloqueia é iniciar ou concluir ("aguardando material").
+- **Comunicação visual:** o preço sai do orçamento (área × material × acabamento + aproveitamento da bobina); a perda planejada fica no preço e o desperdício real na produção.
+- **No oimpresso:** a composição está em 3 tabelas que não se conversam (`mfg_recipes`, `product_bom`, combo); o FSM das vendas baixa estoque pelo `product_bom`, nunca pela receita da Fabricação.
+- Mubisys e Zênite publicam pouco: o que não tem fonte está marcado "não confirmado".
+
 > Pedido do [W]: confirmar com o mercado a separação que ele já decidiu.
 > **Composição** (ficha técnica / BOM): monta o produto mesmo com item em falta. Não olha estoque e não tem desperdício.
 > **Produção** (OP / PCP): não produz sem material, e é ali que o desperdício existe.
