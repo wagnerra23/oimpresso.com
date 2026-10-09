@@ -190,7 +190,9 @@ class TasksAdminController extends Controller
         $de = (string) $task->status;
         // Mesmo status é no-op (o TaskCrudService pula campo igual) — não é transição.
         if ($de !== $status && ! McpTask::canTransition($de, $status)) {
-            $permitidas = McpTask::TRANSITIONS[$de] ?? [];
+            // collect()->get(): status fora do mapa (legado) devolve [] sem warning; o `??`
+            // direto no array constante o Larastan acusa como sempre definido.
+            $permitidas = collect(McpTask::TRANSITIONS)->get($de, []);
 
             return response()->json([
                 'error' => "Transição não permitida: de {$de} para {$status}. "
