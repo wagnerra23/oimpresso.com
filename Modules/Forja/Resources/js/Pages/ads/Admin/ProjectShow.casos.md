@@ -49,10 +49,24 @@ Status: 🧪 sem veredito
 - **Teste:** `ProjectDecomposeTenantTest.php` — `UC-ADPS-03 · decompose no serviço …` e `UC-ADPS-03 · POST …/decompose de project de outra empresa …`
 - **Regressão que defende:** vazamento cross-tenant (ADR 0093). Até 2026-10-07 o `ProjectDecomposerService::decompose` lia `mcp_projects` só por `id`: medido no CT 100, como empresa 98 ele lia o project da 99 e as parts dele (`already_decomposed` em vez de `project_not_found`). Sem part gravada, seguiria para o agente de IA e gravaria parts no project alheio.
 
+## UC-ADPS-04 · Logado sem a permissão da Forja, o detalhe e o decompose dão 403 `[must]` `[T0]`
+Status: 🧪 sem veredito
+- **Persona:** usuário logado da empresa que não recebeu a permissão do módulo Forja.
+- **Aceite:** Dado um project meu com uma part · Quando um usuário **com** `jana.mcp.usage.all` abre o detalhe · Então 200 (controle positivo) · Quando um usuário **sem** ela abre o detalhe ou manda o decompose · Então **403** nos dois, a part continua sendo uma e o `updated_at` do project não muda.
+- **Teste:** `Modules/Forja/Tests/Feature/ForjaProjectsAcessoTest.php` — `UC-ADPS-04 · logado sem a permissão da Forja …`
+- **Regressão que defende:** decisão [W] D10 (2026-10-07, thread 13 do playbook Forja). O decompose chama IA paga: só login não basta.
+
+## UC-ADPS-05 · O charter não promete decisões ligadas ao project `[should]`
+Status: 🧪 sem veredito
+- **Persona:** quem lê o charter para saber o que a tela entrega.
+- **Aceite:** Dado o `ProjectShow.charter.md` · Então ele não cita `/ads/admin/decisoes` nem promete decisões geradas/linkadas.
+- **Teste:** `ForjaProjectsAcessoTest.php` — `UC-ADPS-05 · o charter do detalhe não promete decisões …`
+- **Regressão que defende:** decisão [W] D11 (2026-10-07): a fonte morreu com a ADR 0363 e a seção sai do charter. Sem o teste, a promessa volta sem ninguém notar.
+
 ---
 
 ## Backlog de casos (sem id — entram quando tiverem teste e ≥2 fontes)
 
 - **[BACKLOG] Project já decomposto não é decomposto de novo (botão some; o POST devolve erro sem chamar a IA)** — só o charter (Non-Goals + Anti-hooks).
 - **[BACKLOG] "Decompor com IA" só aparece com o project em `draft` e sem parts, com `confirm()` de custo** — só o charter; asserção de cliente.
-- **[BACKLOG] Decisões linkadas ao project** — o charter promete *"decisões linkadas ao project (linka pra `/ads/admin/decisoes/{id}`)"*, mas o `ProjectService::findDetail` devolve `decisions: []` sempre desde a ADR 0363 (a tabela de decisões do ADS foi dropada). Promessa do charter sem cumprimento: **não escolho o vencedor** — podar o charter ou religar a fonte é decisão do [W].
+- ~~**[BACKLOG] Decisões linkadas ao project**~~ — o charter prometia *"decisões linkadas ao project"*, sempre vazias desde a ADR 0363. O [W] decidiu em 2026-10-07 (D11): sai do charter. Virou **UC-ADPS-05**. O `ProjectShow.tsx` ainda tem o bloco, que nunca renderiza (`decisions` chega vazio); tirá-lo fica para a próxima mexida na tela.
