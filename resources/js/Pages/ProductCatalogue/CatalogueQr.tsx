@@ -25,7 +25,7 @@ import { Select, SelectContent, SelectTrigger, SelectValue } from '@/Components/
 import { SafeSelectItem } from '@/Components/ui/SafeSelectItem';
 import { PageHeader } from '@/Components/PageHeader';
 import EmptyState from '@/Components/shared/EmptyState';
-import { Stack } from '@/Components/layout';
+import { Grid, Inline, Stack } from '@/Components/layout';
 
 interface Local { id: number; nome: string }
 interface Props {
@@ -154,7 +154,7 @@ function CatalogueQr({ locais, negocio, link_base, qr_script }: Props) {
   return (
     <>
       {cabecalho}
-      <div className="grid gap-6 px-6 pt-4 pb-8 lg:grid-cols-2">
+      <Grid fit="lg" gap={6} className="px-6 pt-4 pb-8">
         <section data-contract="formulario" className="rounded-lg border bg-card p-5">
           <h2 className="mb-4 text-sm font-semibold">Como o QR vai sair</h2>
           <Stack gap={4}>
@@ -173,14 +173,14 @@ function CatalogueQr({ locais, negocio, link_base, qr_script }: Props) {
 
             <Stack gap={1}>
               <Label>Cor do QR code</Label>
-              <div className="flex items-center gap-2">
+              <Inline gap={2}>
                 {CORES.map((c) => (
                   <button key={c} type="button" aria-label={`Cor ${c}`} aria-pressed={cor === c}
                     onClick={() => mudou(setCor)(c)}
                     className={`size-7 rounded-full border-2 ${cor === c ? 'border-ring' : 'border-transparent'}`}
                     style={{ background: c }} />
                 ))}
-              </div>
+              </Inline>
               <p className="text-xs text-muted-foreground">Contraste é leitura: cor clara em fundo branco o celular não lê.</p>
             </Stack>
 
@@ -193,7 +193,7 @@ function CatalogueQr({ locais, negocio, link_base, qr_script }: Props) {
               <Input id="cqr-subtitulo" value={subtitulo} onChange={(e) => mudou(setSubtitulo)(e.target.value)} />
             </Stack>
 
-            <div className="flex items-start gap-3">
+            <Inline gap={3} align="start">
               <Switch id="cqr-logo" checked={logo && temLogo} disabled={!temLogo} onCheckedChange={mudou(setLogo)} />
               <div>
                 <Label htmlFor="cqr-logo">Mostrar o logo do negócio no QR code</Label>
@@ -201,12 +201,12 @@ function CatalogueQr({ locais, negocio, link_base, qr_script }: Props) {
                   {temLogo ? 'O logo entra no meio do QR.' : 'Sem logo cadastrado no negócio: o QR sai limpo.'}
                 </p>
               </div>
-            </div>
+            </Inline>
 
-            <div className="flex items-center gap-3">
+            <Inline gap={3}>
               <Button disabled={!local} onClick={gerar}><QrCode className="size-4" /> Gerar QR code</Button>
               {!local && <span className="text-sm text-muted-foreground">Escolha o local comercial primeiro.</span>}
-            </div>
+            </Inline>
           </Stack>
 
           <div data-contract="instrucoes" className="mt-6 border-t pt-4 text-sm">
@@ -225,20 +225,20 @@ function CatalogueQr({ locais, negocio, link_base, qr_script }: Props) {
             <EmptyState icon="qr-code" title="Nenhum QR gerado ainda."
               description="Escolha o local, ajuste título e cor, e clique em gerar — o QR aparece aqui pronto pra baixar e colar no balcão." />
           )}
-          <div ref={alvo} className={gerado ? 'flex justify-center' : 'hidden'} />
+          <Inline ref={alvo} justify="center" className={gerado ? undefined : 'hidden'} />
           {gerado && (
             <Stack gap={4} className="mt-4">
-              <code className="flex items-center gap-2 break-all text-xs text-muted-foreground">
+              <Inline gap={2} asChild><code className="break-all text-xs text-muted-foreground">
                 <Link2 className="size-3.5 shrink-0" /> {gerado.link}
-              </code>
-              <div className="flex flex-wrap gap-2">
+              </code></Inline>
+              <Inline gap={2} wrap>
                 <Button onClick={baixar}><Download className="size-4" /> Baixar imagem</Button>
                 <Button variant="outline" onClick={copiar}>{copiado ? 'Link copiado' : 'Copiar link'}</Button>
-              </div>
-              <div className="flex flex-wrap gap-2">
+              </Inline>
+              <Inline gap={2} wrap>
                 <Badge variant="secondary">{gerado.local}</Badge>
                 <Badge variant="outline">256 × 256 px · PNG</Badge>
-              </div>
+              </Inline>
               <Alert>
                 <AlertTitle>O catálogo é público</AlertTitle>
                 <AlertDescription>
@@ -248,7 +248,7 @@ function CatalogueQr({ locais, negocio, link_base, qr_script }: Props) {
             </Stack>
           )}
         </section>
-      </div>
+      </Grid>
     </>
   );
 }
