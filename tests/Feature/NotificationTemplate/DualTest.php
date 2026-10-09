@@ -67,7 +67,7 @@ test('UC-NOT-26 F2 partial reload traz os campos apenas do próprio tenant', fun
     expect($r->json('props.customer_notifications'))->not->toHaveKey('new_booking');
 });
 
-test('UC-NOT-02 F2 conserva os modelos injetados pelos módulos', function () {
+test('UC-NOT-23 F2 conserva os modelos injetados pelos módulos', function () {
     notifDualFlag(true);
     $this->partialMock(ModuleUtil::class, function ($mock) {
         $mock->shouldReceive('getModuleData')->with('notification_list', ['notification_for' => 'customer'])

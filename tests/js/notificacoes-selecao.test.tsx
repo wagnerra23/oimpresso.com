@@ -55,3 +55,21 @@ it('UC-NOT-14 extrato recusa SMS/WhatsApp e Editar abre o formulário existente'
   expect((screen.getByRole('button', { name: 'WhatsApp' }) as HTMLButtonElement).disabled).toBe(true);
   expect(screen.getByRole('link', { name: 'Editar modelos' }).getAttribute('href')).toBe('/notification-templates?legacy=1');
 });
+
+it('UC-NOT-15 mostra o aviso de logo ao selecionar modelo de fornecedor', () => {
+  render(<Page {...props} />);
+  expect(screen.queryByText('O logo da empresa é exibido somente nos e-mails.')).toBeNull();
+  fireEvent.click(screen.getByRole('button', { name: 'Pagamento do módulo' }));
+  expect(screen.getByText('O logo da empresa é exibido somente nos e-mails.')).toBeTruthy();
+});
+
+// Backlog explícito: estes critérios do pacote F1 não foram implementados neste recorte.
+// it.todo registra ausência de prova; nenhum deles executa nem conta como passe.
+it.todo('UC-NOT-06 descartar alterações do editor React e zerar contador');
+it.todo('UC-NOT-07 restaurar padrão sem gravar até Salvar');
+it.todo('UC-NOT-08 inserir tag na posição do cursor do assunto');
+it.todo('UC-NOT-09 inserir tag no editor Visual e atualizar prévia');
+it.todo('UC-NOT-11 expandir dez campos personalizados inseríveis');
+it.todo('UC-NOT-12 indicar dois segmentos para SMS de 200 caracteres GSM-7');
+it.todo('UC-NOT-13 indicar limite UCS-2 para SMS com acento');
+it.todo('UC-NOT-21 alternar Visual e HTML preservando markup editável');
