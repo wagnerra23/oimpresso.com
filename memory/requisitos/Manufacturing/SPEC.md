@@ -246,15 +246,23 @@ endereço canônico `/manufacturing/insumos` desde o **cutover de 2026-09-04** (
 `RecipeController@addIngredients/@store/@update/getIngredientRow`.
 **Custo: alto** — é a maior UI da família (tela dentro da tela) e **escreve a receita**.
 
-**Implementado em:** _pendente_
+**Implementado em:** `resources/js/Pages/Manufacturing/IngredientesEditor.tsx` · `resources/js/Pages/Manufacturing/_lib/custo.ts` · `resources/js/Pages/Manufacturing/_components/BuscaInsumo.tsx` · `resources/js/Pages/Manufacturing/_components/ExcluirReceitaDialog.tsx` · `Modules/Manufacturing/Http/Controllers/RecipeController.php` · `Modules/Manufacturing/Services/RecipeBomService.php` · verificado@ff67c83 (2026-10-09) — etapas 1-3 (#9059 · #9068 · #9072); o editor abre em `/manufacturing/add-ingredient?variation_id=N&tela=nova`, e sem `tela=nova` o endereço segue servindo a janela Blade
+
+**Testado em:** `Modules/Manufacturing/Tests/Feature/EditorIngredientesTest.php` (servidor, UC-INGRED-01..07, lane `Manufacturing · Pest (MySQL)`) · `tests/js/manufacturing-ingredientes-editor.test.tsx` (tela, UC-INGRED-08..13, lane `manufacturing-jsdom-gate`)
 
 **Definition of Done:**
-- [ ] As 6 regras `[FECHADA]` do §5, incluindo: salvar exige ≥1 ingrediente ·
-      `disable_editing_ingredient_qty` vira texto **nos dois lugares** · trocar sub-unidade troca o
-      multiplicador junto · o editor trabalha numa **cópia** e cancelar descarta
-- [ ] Excluir receita só com confirmação que diz o que se perde (ficha + N ingredientes) e que
-      **ordens já lançadas continuam com o custo registrado**
-- [ ] Sem permissão de editar: campos desabilitados + aviso citando `manufacturing.access_recipe`
+- [x] As 6 regras `[FECHADA]` do §5 **no editor**: salvar exige ≥1 ingrediente (UC-INGRED-08) ·
+      `disable_editing_ingredient_qty` vira texto (UC-INGRED-09) · trocar sub-unidade troca o
+      multiplicador junto (UC-INGRED-11) · o editor trabalha numa **cópia** e cancelar descarta
+      (UC-INGRED-12) — vitest/jsdom no componente real, 19/19 verde local em 2026-10-09, mordida
+      provada por 8 mutações. O veredito que conta é o da lane no PR.
+- [ ] Regra 2 no **segundo lugar** (formulário de ordem de produção): a tela da ordem ainda é Blade,
+      que deixa o campo `readonly` em vez de virar texto — entra com a US-MANU-007.
+- [x] Excluir receita só com confirmação que diz o que se perde (ficha + N ingredientes **gravados**)
+      e que **ordens já lançadas continuam com o custo registrado** — UC-INGRED-13 (tela) + caso 19
+      de `Recipes.casos.md` (servidor só apaga receita da própria empresa, #9071).
+- [x] Sem permissão de editar: campos desabilitados + aviso citando `manufacturing.access_recipe` —
+      UC-INGRED-10 (tela) + UC-INGRED-03 (servidor recusa a gravação e a busca de insumo).
 - [x] Servidor **recalcula** o custo antes de gravar (§9) — nunca confia no total do cliente.
       Junto, no mesmo salvar: recusa receita sem ingrediente (regra 1 no servidor), quantidade ≤ 0
       e sub-unidade que não é do insumo; trocar todos os ingredientes não deixa os antigos —
