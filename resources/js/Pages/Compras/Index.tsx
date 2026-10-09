@@ -197,7 +197,8 @@ function ComprasIndex({ filters, selected_id, permissions, kpis, rows, summary, 
     // Bridge mode — Blade legacy DataTables tem exports nativos via buttons plugin.
     // PR seguinte substitui por endpoints Compras nativos respeitando filtros.
     // _format ignorado: Blade legacy mostra todos os 4 botões na mesma tela.
-    window.open('/purchases', '_blank', 'noopener,noreferrer');
+    // `?classico=1`: desde o cutover pelo menu (thread 03) `/purchases` abre o React, sem exports.
+    window.open('/purchases?classico=1', '_blank', 'noopener,noreferrer');
   };
 
   const openDrawer = (compraId: number, tab: 'resumo' | 'pagamentos' = 'resumo') => {

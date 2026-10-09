@@ -116,6 +116,10 @@ decisão do dono, com chip aberto.
   · Então renderiza a Page `Purchase/Create`. E, como **controle negativo**, o GET normal continua
   devolvendo a view Blade legacy, com o gate `purchase.create`, o escopo por `business_id` da sessão
   e o `isSubscribed` **preservados**.
+- **Atualização (cutover pelo menu · thread 03, D1 [W] 2026-10-07):** o aceite acima descreve o
+  estado até então. Desde esse cutover o GET comum abre a Page React e o Blade só abre com
+  `?classico=1` (`?v=2` segue valendo). O `store()` continua compartilhado pelos dois. Prova de
+  comportamento: [`ComprasSemXInertiaTest`](../../../../tests/Feature/CutoverMenu/ComprasSemXInertiaTest.php).
 - **Teste:** [`Wave2CreateInertiaTest`](../../../../tests/Feature/Purchase/Wave2CreateInertiaTest.php)
   — *"Controller create() tem dual path"* · *"Controller PRESERVA path Blade legacy (dual safe)"*;
   [`Wave2CreateBaselineTest`](../../../../tests/Feature/Purchase/Wave2CreateBaselineTest.php) —

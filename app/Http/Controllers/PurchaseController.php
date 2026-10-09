@@ -71,7 +71,10 @@ class PurchaseController extends Controller
         // Sem este check upstream, o `request()->ajax()` abaixo capturava o request
         // Inertia e retornava JSON Datatables → "All Inertia requests must receive a
         // valid Inertia response" + filtros quebravam a tela em prod.
-        if (request()->header('X-Inertia') || request()->query('v') === '2') {
+        // Cutover pelo menu · thread 03 (D1 [W] 2026-10-07): React é o padrão, `?classico=1`
+        // mantém o Blade — molde `UnitController@index`. O AJAX sem `X-Inertia` (DataTable do
+        // Blade) segue no ramo de baixo. `?v=2` continua abrindo o React (opt-in antigo).
+        if (request()->query('v') === '2' || (! request()->boolean('classico') && (! request()->ajax() || request()->header('X-Inertia')))) {
             // D-14 (2026-07-06): dropdowns viraram closures dentro de indexInertia()
             // — no partial reload (only: rows/filters) nem rodam a query.
             return $this->indexInertia($business_id);
@@ -232,7 +235,7 @@ class PurchaseController extends Controller
         $suppliers = Contact::suppliersDropdown($business_id, false);
         $orderStatuses = $this->productUtil->orderStatuses();
 
-        // Blade legacy fallback (request sem X-Inertia, sem ?v=2 e não AJAX).
+        // Blade legacy: só com `?classico=1` (cutover pelo menu · thread 03).
         // Inertia path tratado upstream antes do AJAX check (HOT-FIX MWART).
         return view('purchase.index')
             ->with(compact('business_locations', 'suppliers', 'orderStatuses'));
@@ -399,8 +402,9 @@ class PurchaseController extends Controller
 
         $common_settings = ! empty(session('business.common_settings')) ? session('business.common_settings') : [];
 
-        // MWART Wave2 B5 — dual path opt-in Inertia via ?v=2 (ADR 0104, 0149).
-        if (request()->header('X-Inertia') || request()->query('v') === '2') {
+        // MWART Wave2 B5 — dual path Inertia (ADR 0104, 0149). Cutover pelo menu · thread 03
+        // (D1 [W] 2026-10-07): React por padrão, Blade só com `?classico=1`; `?v=2` segue valendo.
+        if (request()->query('v') === '2' || (! request()->boolean('classico') && (! request()->ajax() || request()->header('X-Inertia')))) {
             return $this->createInertia(
                 $business_id,
                 $business_locations,
