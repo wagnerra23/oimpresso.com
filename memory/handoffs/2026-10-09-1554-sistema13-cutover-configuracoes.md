@@ -11,3 +11,6 @@ D-CFG-LIGAR já autorizou todas as empresas em 07/10. SDK/admin do GrowthBook es
 
 ## Prova e próximo passo
 Commit 6202dc2263: 103 passes da suíte ampliada, três falhas por autoload antigo; após regeneração, nove testes de cutover passaram, 42 assertions. CI com banco fresco ainda deve passar. Após merge/deploy: medir as três flags efetivas, smoke read-only das três rotas e gerar _saida-13; não declarar a thread concluída antes disso.
+
+## Estado MCP no momento do fechamento
+whats-active havia informado ingest sem heartbeat fresco; my-work não tinha task ativa. Foi usado worktree próprio e nenhuma task foi fechada.
