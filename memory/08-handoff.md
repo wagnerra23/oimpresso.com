@@ -1,5 +1,7 @@
 # 08 — Handoff (índice)
 
+- [2026-10-09 15:20 BRT — **Sequência dos playbooks: Sistema/07 e próxima etapa /06**](handoffs/2026-10-09-1520-sequencia-playbooks-sistema.md) (recibo recuperado · sem código alterado · pacote F1 de notificações identificado)
+
 - [2026-10-09 07:59 BRT — **Retomada Claude: placar e revisão Forja/16**](handoffs/2026-10-09-0759-retomada-claude-placar-forja16.md) (placar atualizado 279/392 · recibo canônico preservado · três ajustes narrativos na SPEC · 22 recibos sem confirmação de envio ao Cowork)
 
 - [2026-10-08 16:05 BRT — **Gestão da fila e dos tickets 08/10 (tarde)**](handoffs/2026-10-08-1605-gestao-fila-e-tickets-08-out-tarde.md) (#9059 #9060 #9051 #9066 mergeados · Ponto lê feriado do HRM (#8200) · 6 issues antigas fechadas com recibo · #8201 parado: D3 com duas versões no canon, pergunta ao [W] no ticket)
