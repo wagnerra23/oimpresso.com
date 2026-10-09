@@ -536,7 +536,7 @@ lifecycle: ativo
 
 | Script | Invocador | Escreve? | Evidência | Documento | Descrição (cabeçalho) |
 |---|---|---|---|---|---|
-| `alvo.mjs` | agente, ci, npm, script | 🔴 disco | — | `memory/LICOES_CODE.md` +3 | PR-A1 do protocolo de export: o ALVO de uma seção vira MEDIDA executável. |
+| `alvo.mjs` | agente, ci, npm, script | 🔴 disco | — | `memory/governance/shipped/CYCLE-08.md` +3 | PR-A1 do protocolo de export: o ALVO de uma seção vira MEDIDA executável. |
 | `aplicar-payload.mjs` | agente, script | 🔴 disco | test | `memory/decisions/0406-o-que-ultimo-importado-decide-emenda-0404.md` +23 | consome bundle Design v2 (ou payload legado) sem transcrição. |
 | `bundle-contract.mjs` | script | 🟢 só lê | — | `memory/decisions/0398-espelho-cowork-recebe-a-arvore-da-conta.md` +6 | Contrato v2 do transporte Design → git. |
 | `bundle-transaction.mjs` | script | 🔴 disco | test | `memory/decisions/0406-o-que-ultimo-importado-decide-emenda-0404.md` +2 | Aplicação transacional de um bundle Design v2. |
