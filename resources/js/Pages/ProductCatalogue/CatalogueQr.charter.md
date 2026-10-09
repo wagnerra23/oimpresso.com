@@ -11,6 +11,7 @@ related_adrs: [93, 104, 180, 358]
 tier: C
 charter_version: 1
 related_runbook: memory/requisitos/ProductCatalogue/RUNBOOK-catalogue-qr.md
+related_us: [US-PCAT-003]
 ---
 
 # Page Charter — /product-catalogue/catalogue-qr (DRAFT)
