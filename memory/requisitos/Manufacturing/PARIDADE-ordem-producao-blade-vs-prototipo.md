@@ -27,6 +27,15 @@ observacao: "Base da US-MANU-007. Mede o que a tela nova ganha, perde e muda em 
 > fonte única desde a decisão [W] de 2026-09-25 (D-MFG-FONTE). O README do handoff do Felipe entra
 > só pelas regras escritas (§6, §7, §9), que o protótipo do Wagner implementa.
 >
+> ⚠️ **CORREÇÃO (2026-10-09, mesmo dia, antes do merge) — o item 12 estava errado.** A primeira
+> versão dizia que, na Blade, o consumo de cada ingrediente **já inclui** o desperdício, porque o
+> `getRecipeDetails` soma o % à quantidade. **Medido depois:** essa soma monta um array
+> (`$ingredients_array`) que **ninguém usa** — não entra no `compact()` da view nem no JSON. A tela
+> usa `ManufacturingUtil::getIngredientDetails`, que traz a quantidade **sem** desperdício; o % e a
+> "quantidade final" são só informação. Consumo, baixa de estoque e custo são iguais nos dois
+> lados. O item 12 passa de ⚠️ para ➖, e as divergências de valor/estoque caem de 5 para **4**.
+> Eu tinha lido a linha que soma sem seguir para onde o resultado ia.
+>
 > **O que este documento NÃO é:** ele não autoriza construir a tela. A US-MANU-007 continua
 > travada pela decisão [W] sobre o caminho rascunho→finalizada (SPEC). As divergências de
 > valor e estoque abaixo (marcadas ⚠️) também são decisões do [W]. Cada uma precisa de prova
@@ -38,8 +47,8 @@ observacao: "Base da US-MANU-007. Mede o que a tela nova ganha, perde e muda em 
 |---|---:|
 | Iguais nos dois lados | 5 |
 | O protótipo acrescenta (➕) | 6 |
-| O protótipo perde (➖) — a Blade faz e a tela nova deixaria de fazer | 10 |
-| ⚠️ **Mudam número de custo ou de estoque** | **5** |
+| O protótipo perde (➖) — a Blade faz e a tela nova deixaria de fazer | 11 |
+| ⚠️ **Mudam número de custo ou de estoque** | **4** |
 | 🔒 Hipóteses de segurança no servidor (sem teste ainda) | 2 |
 
 Legenda: **=** igual · **➕** protótipo acrescenta · **➖** protótipo perde · **⚠️** muda valor ou
@@ -67,7 +76,7 @@ estoque · **🔒** segurança.
 | 9 | Consumo proporcional à quantidade | sim: linha = quantidade da receita × quantidade da ordem ÷ quantidade da receita | sim (`fator = qtd ÷ r.qtd`) | = | — |
 | 10 | Editar o consumo de uma linha | sim, salvo `disable_editing_ingredient_qty` (vira somente leitura) | sim, salvo `travarQtd` (vira texto) | = | — |
 | 11 | Trocar receita ou quantidade zera os ajustes | trocar a quantidade recalcula todas as linhas; trocar a receita recarrega a tabela | regra 1: `consumo: null` | = | — |
-| 12 | Desperdício **por ingrediente** | coluna "% desperdício" editável; o consumo **já inclui** o desperdício (`getRecipeDetails` soma o % à quantidade) e mostra a "quantidade final" | **não existe** — o protótipo não modela desperdício por ingrediente (`consumoOP` usa `i.q × fator`) | ⚠️ | Decisão [W]. Se a empresa cadastrou desperdício no ingrediente, a tela nova mostra **consumo e custo menores** que a Blade para a mesma ordem. Medir quantas receitas têm `waste_percent > 0` nos ingredientes antes de decidir. |
+| 12 | Desperdício **por ingrediente** | coluna "% desperdício" editável e "quantidade final" (consumo − %), **só informativas**: consumo, baixa de estoque e custo usam a quantidade da receita × fator (`getIngredientDetails`); o % é gravado na linha (`mfg_waste_percent`) | **não existe** (`consumoOP` usa `i.q × fator` — o mesmo consumo da Blade) | ➖ | Manter a coluna como informação. Não muda número nenhum (ver a correção no topo). |
 | 13 | Sub-unidade por ingrediente | escolhível na linha (troca o multiplicador junto) | fixa | ➖ | Manter a escolha (o editor de ingredientes React já faz isso — regra 4). |
 | 14 | Custo unitário e estoque na linha | não aparecem; o estoque só surge como mensagem de erro | colunas "Custo unit." e "Estoque", linha tingida quando falta | ➕ | Bom ganho. |
 | 15 | Estoque insuficiente | **bloqueia o envio no navegador** quando a empresa não permite vender sem estoque (`allow_overselling` desligado — `data-rule-max-value` na linha). O servidor não confere: `decreaseProductQuantity` só decrementa | **avisa e não bloqueia, sempre** (regra 2 `[FECHADA]`), com o botão "Abrir Compras" | ⚠️ | Decisão [W]. A regra 2 ignora uma configuração que a empresa já escolheu. Sugestão: seguir `allow_overselling` — e conferir também no servidor, que hoje deixa passar qualquer POST. |
@@ -94,7 +103,7 @@ estoque · **🔒** segurança.
 | 26 | Excluir | só rascunho (`destroy` filtra `mfg_is_final = 0`) | não tem | ➖ | Manter "excluir rascunho". |
 
 > Contagem do §0, conferível linha a linha: **=** itens 4, 9, 10, 11, 22 · **➕** 6, 14, 20, 21, 23, 24 ·
-> **➖** 1, 2, 3, 5, 7, 8, 13, 16, 25, 26 · **⚠️** 12, 15, 17, 18, 19 — 26 itens.
+> **➖** 1, 2, 3, 5, 7, 8, 12, 13, 16, 25, 26 · **⚠️** 15, 17, 18, 19 — 26 itens.
 
 ## 5. 🔒 Hipóteses de segurança no servidor — **não provadas**
 
@@ -114,10 +123,10 @@ O padrão de conserto já existe no módulo: o #9071 fez o mesmo para "excluir r
    decisão de FSM e protege a Blade de hoje.
 2. **Servidor calcula o custo da ordem** (item 17) e recusa quantidade ≤ 0 (item 24) — padrão
    #9051. Também vale para a Blade de hoje.
-3. **[W] decide as três contas** (itens 12, 18 e 19) **e o bloqueio por estoque** (item 15)
+3. **[W] decide as duas contas** (itens 18 e 19) **e o bloqueio por estoque** (item 15)
    **antes** de alguém construir a tela. Construir igual ao protótipo muda número de custo e
    de estoque sem ninguém ter escolhido isso.
-4. **Não perder** hora, sub-unidade, lote/validade, anexo, desperdício por ingrediente e o
+4. **Não perder** hora, sub-unidade, lote/validade, anexo, a coluna de desperdício por ingrediente e o
    bloqueio de editar finalizada (itens 2, 5, 7, 8, 12, 13, 25). O protótipo não mostra, mas
    quem usa a Blade usa.
 5. **Trazer os ganhos do protótipo**: custo unitário e estoque na linha (14), dois números da
@@ -128,3 +137,5 @@ O padrão de conserto já existe no módulo: o #9071 fez o mesmo para "excluir r
 ---
 **Gerado:** 2026-10-09 — leitura de `origin/main`; nenhuma afirmação de comportamento foi
 rodada em navegador ou em teste. [M+C]
+
+**Recomendações para decisão [W]:** [`2026-10-09-ordem-de-producao-react-decisao-w.md`](../../decisions/proposals/2026-10-09-ordem-de-producao-react-decisao-w.md).
