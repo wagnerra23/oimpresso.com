@@ -21,6 +21,8 @@ related_runbook: memory/requisitos/Relatorios/RUNBOOK-compra-venda.md
 # Page Charter — /reports/purchase-sell (DRAFT)
 
 > Draft · thread `sistema/playbook/07` · responde em `?tela=nova` (sem ele, Blade) · casos: [`Index.casos.md`](./Index.casos.md).
+>
+> **Atualização (cutover pelo menu · thread 05, D1 [W] 2026-10-07):** o "sem ele, Blade" acima vale até então. Desde esse cutover o GET comum de `/reports/purchase-sell` abre esta Page; o Blade só com `?classico=1`; `?tela=nova` segue valendo. Prova: `tests/Feature/CutoverMenu/RelatoriosSemXInertiaTest.php`.
 
 ## Mission
 
