@@ -202,6 +202,9 @@ jobs:
         # 2026-10-08 — TeamTenantTest.php (playbook Forja thread 15, decisão [W] D14): tenant
         # 98 × 99 em gerarToken/gerarDxt/atualizarQuota + rota legacy de revogar removida.
         # Vermelho→verde medido no CT 100 antes do PR. DatabaseTransactions.
+        # 2026-10-09 — TasksFsmTransicaoTest.php (playbook Forja thread 14, decisão [W] D13):
+        # transição proibida pelo FSM → 422. Entra FAILING-FIRST pelo mesmo desvio.
+        # Tenant 98, DatabaseTransactions.
         env:
           DB_CONNECTION: mysql
           DB_HOST: 127.0.0.1
@@ -234,7 +237,8 @@ jobs:
             Modules/Forja/Tests/Feature/TasksAdminContratoTest.php \
             Modules/Forja/Tests/Feature/TeamEquipeContratoTest.php \
             Modules/Forja/Tests/Feature/ForjaToolsPermissaoTest.php \
-            Modules/Forja/Tests/Feature/TeamTenantTest.php
+            Modules/Forja/Tests/Feature/TeamTenantTest.php \
+            Modules/Forja/Tests/Feature/TasksFsmTransicaoTest.php
 
 
       # Passo 1 do plano da LC-13 (Gate:): a lane JA emitia JUnit e NINGUEM lia.

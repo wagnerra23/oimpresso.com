@@ -52,6 +52,11 @@ Status: 🧪 (1 teste cita este UC — partial reload de `kanban` (é `Inertia::
 Charter §Goals: *"Aba Quadro: kanban todo/doing/review/done"*; visual-comparison §Matriz: *"Kanban todo/doing/review/done"*.
 **Pronto quando:** o Quadro agrupa só nessas 4 colunas e cada task cai na coluna do seu status.
 
+## UC-TSK-07 — Transição proibida pelo FSM responde 422 com o motivo
+Status: 🧪 (3 testes citam este UC em [`TasksFsmTransicaoTest.php`](../../../../../Tests/Feature/TasksFsmTransicaoTest.php) — `todo → done` responde 422 com o motivo em PT-BR, a task segue `todo` e nenhum evento nasce; task inexistente segue 404; controle `review → done` segue 200. Só na lane MySQL.)
+Decisão [W] **D13** (2026-10-07, playbook Forja thread 14): *"responder 422"*. O FSM é `McpTask::TRANSITIONS` (ADR 0070).
+**Pronto quando:** a transição que o FSM proíbe é recusada com 422, a resposta diz de onde para onde e para onde dá para mover, nada é gravado, e 404 fica só para task que não existe.
+
 ## Backlog (sem id — vira UC quando ganhar teste que o cite)
 
 - [BACKLOG] **Backlog agrupável por 5 dimensões, com grupos que persistem** — charter §Goals + §Métricas. É comportamento de front (`localStorage`); a prova natural é E2E, que esta tela não tem.
@@ -59,6 +64,7 @@ Charter §Goals: *"Aba Quadro: kanban todo/doing/review/done"*; visual-compariso
 - [BACKLOG] **Filtros server-side module/owner/sprint e KPIs** — charter §Goals + visual-comparison §Matriz. Contrato em duas fontes, sem teste neste PR.
 - Atalhos (J/K/Enter/X), drawer 560px e DS v6 **não são UC**: o juiz é gate e a ratificação visual é [W] (mesma decisão do SDD §6.5).
 
-## Achado registrado (decisão [W], não consertado aqui)
+## Achado registrado — resolvido em 2026-10-09
 
-- **Transição proibida pelo FSM responde 404, não 422.** `updateStatus` só valida se o status é um dos 6. Uma transição que o FSM de `mcp_tasks` proíbe (ex.: `todo → done`) estoura `RuntimeException` no `TaskCrudService`, e o controller devolve **404**, com a mensagem de transição ilegal. Para quem arrasta no Quadro, isso aparece como "task não encontrada". Nenhuma fonte canônica diz qual código esta tela deve devolver nesse caso, então isto não virou UC. Se for 422, é uma mudança de uma linha no controller, e este casos ganha o UC no mesmo PR.
+- **Transição proibida pelo FSM respondia 404, não 422.** Registrado aqui em 2026-10-07 como decisão [W] pendente; [W] decidiu **422** (D13) e virou o UC-TSK-07 acima. O controller agora devolve 404 só quando a task não existe.
+- ⚠️ **Resíduo declarado:** a tela (`Index.tsx`) ainda mostra *"Falha ao atualizar status."* para qualquer resposta que não seja 403 — ela não lê o `error` do corpo. O `.tsx` estava em `nao_toca` da thread 14; mostrar o motivo na tela fica para outra thread.

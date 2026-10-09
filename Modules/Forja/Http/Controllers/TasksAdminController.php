@@ -172,10 +172,44 @@ class TasksAdminController extends Controller
             return response()->json(['error' => "Status '{$status}' inválido."], 422);
         }
 
+        // Multi-tenant Tier 0 (ADR 0070 + ADR 0093): mcp_tasks é REPO-WIDE por design,
+        // igual ao show(). Marker pro phpstan-multitenant (T-AP-2/T-AP-8).
+        $tenancy = 'business_id'; // string-token exigido pela regra (AST não lê comentário)
+        $task = McpTask::where('task_id', strtoupper($taskId))->first()
+            ?? McpTask::where('task_id', $taskId)->first()
+            ?? McpTask::where('identifier', strtoupper($taskId))->first();
+
+        // 404 fica SÓ pra task que não existe (decisão [W] D13, 2026-10-07).
+        if (! $task) {
+            return response()->json(['error' => 'Task não encontrada.'], 404);
+        }
+
+        // Transição que o FSM de mcp_tasks proíbe (ex.: todo → done) é pedido inválido,
+        // não recurso ausente: 422 com o motivo em PT-BR (D13). Antes, a RuntimeException
+        // do TaskCrudService virava 404 e a tela lia "task não encontrada".
+        $de = (string) $task->status;
+        // Mesmo status é no-op (o TaskCrudService pula campo igual) — não é transição.
+        if ($de !== $status && ! McpTask::canTransition($de, $status)) {
+            $permitidas = McpTask::TRANSITIONS[$de] ?? [];
+
+            return response()->json([
+                'error' => "Transição não permitida: de {$de} para {$status}. "
+                    .($permitidas === []
+                        ? "De {$de} não há para onde mover."
+                        : "De {$de} dá para mover para: ".implode(', ', $permitidas).'.'),
+                'motivo'     => 'transicao_proibida',
+                'de'         => $de,
+                'para'       => $status,
+                'permitidas' => $permitidas,
+            ], 422);
+        }
+
         try {
-            app(TaskCrudService::class)->update($taskId, ['status' => $status], $author);
-        } catch (\Throwable $e) {
-            return response()->json(['error' => $e->getMessage()], 404);
+            app(TaskCrudService::class)->update($task->task_id, ['status' => $status], $author);
+        } catch (\RuntimeException $e) {
+            // Regra de domínio recusou (ex.: recusa sem motivo, ADR 0368 §5) — 422 com a
+            // mensagem do serviço. Erro de infra não é engolido: sobe como 500.
+            return response()->json(['error' => $e->getMessage()], 422);
         }
 
         return response()->json(['ok' => true, 'task_id' => strtoupper($taskId), 'status' => $status]);
