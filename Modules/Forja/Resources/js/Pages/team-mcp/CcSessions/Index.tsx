@@ -212,7 +212,7 @@ function CcSessionsIndex({ sessions, filters, kpis, devs, projects, permissions 
           </div>
         )}
         {hasFilters && (
-          <Button variant="ghost" className="h-8 text-xs" onClick={() => { setSearch(''); applyFilter({ q: '', user_id: null, status: '', project_path: '' }); }}>
+          <Button variant="ghost" className="h-8 text-xs" onClick={() => { setSearch(''); applyFilter({ q: '', user_id: null, from: '', to: '', status: '', project_path: '' }); }}>
             Limpar
           </Button>
         )}

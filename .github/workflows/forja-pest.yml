@@ -214,6 +214,7 @@ jobs:
           vendor/bin/pest --no-coverage --colors=always \
             --log-junit test-results/pest-forja-junit.xml \
             Modules/Forja/Tests/Feature/ForjaRoutesSmokeTest.php \
+            Modules/Forja/Tests/Feature/ForjaGapsScorecardEstadosTest.php \
             Modules/Forja/Tests/Feature/ToolsContratoTest.php \
             Modules/Forja/Tests/Feature/AprovacoesMesaTest.php \
             Modules/Forja/Tests/Feature/AdsAdminProjectsContratoTest.php \

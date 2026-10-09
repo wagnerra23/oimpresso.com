@@ -57,6 +57,11 @@ Status: 🧪 (1 teste cita este UC — partial reload de `sessions` (é `Inertia
 Charter §Goals: *"Feed cronológico"* + *"Paginator 25/pg"*; visual-comparison §Matriz: *"Paginator 25/pg + links"*; SPEC US-COPI-CC-001: *"paginação 25/page"*.
 **Pronto quando:** o feed vem em páginas de 25, do mais recente para o mais antigo.
 
+## UC-CCS-08 — "Limpar" zera todos os filtros, inclusive o período
+Status: 🧪 (1 teste cita este UC em [`ForjaGapsScorecardEstadosTest.php`](../../../../../Tests/Feature/ForjaGapsScorecardEstadosTest.php) — o `applyFilter` do botão manda `from` e `to` vazios junto com os outros. Perna de **registro** (lê o `.tsx`, qualquer driver): prova que o mecanismo está na tela, não o render — a tela não tem E2E. Achado do scorecard da thread 04 (playbook Forja, thread 08 PR-b).)
+O `hasFilters` conta `from`/`to`; sem zerá-los, o filtro de período ficava ativo depois de "Limpar".
+**Pronto quando:** depois de "Limpar" nenhum filtro segue aplicado.
+
 ## Backlog (sem id — vira UC quando ganhar teste que o cite)
 
 - [BACKLOG] **KPIs respeitam o mesmo recorte do feed** — sem `read.all`, sessões/custo/devs/top tools contam só as próprias. Contrato em 2 fontes (charter §Goals KPIs + SPEC US-COPI-CC-002), mas este PR não o cobre por teste; promover a UC sem teste criaria órfão no G-2.

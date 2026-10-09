@@ -139,6 +139,35 @@ function quotaBadge(pct: number, block: boolean): { className: string; label: st
   return { className: 'bg-success/15 text-success-fg', label: pct + '%' };
 }
 
+// ── Resposta HTTP dos 4 fetch da tela (thread 08 PR-b · UC-TEAM-ERRO) ──────────
+// Antes, `r.json()` rodava sem olhar `r.ok`: 403/419/500 voltavam HTML, o parse
+// falhava e o operador lia "Erro de rede" — que manda conferir a internet, não a
+// permissão nem a sessão. Agora cada status tem mensagem própria, e "Erro de rede"
+// fica só para o que é rede de verdade (o fetch nem chegou ao servidor).
+class ErroHttp extends Error {}
+
+function mensagemHttp(status: number, doServidor?: string): string {
+  if (status === 403) return 'Sem permissão para esta ação.';
+  if (status === 419) return 'Sessão expirada — recarregue a página.';
+  if (status >= 500) return 'Erro no servidor — tente de novo em instantes.';
+  return doServidor ?? `Erro ${status}`;
+}
+
+async function jsonOuErro(r: Response): ReturnType<Response['json']> {
+  if (r.ok) return r.json();
+  let doServidor: string | undefined;
+  try {
+    doServidor = (await r.json())?.message;
+  } catch {
+    // corpo não-JSON (página de erro HTML) — a mensagem sai do status
+  }
+  throw new ErroHttp(mensagemHttp(r.status, doServidor));
+}
+
+function msgFalha(e: unknown, deRede: string): string {
+  return e instanceof ErroHttp ? e.message : deRede;
+}
+
 function TeamIndex(props: Props) {
   // W27 D6: defaults sentinela enquanto props deferred resolvem
   const team = props.team ?? [];
@@ -187,7 +216,7 @@ function TeamIndex(props: Props) {
       },
       body: JSON.stringify({ note: `Gerado em ${new Date().toLocaleDateString('pt-BR')}` }),
     })
-      .then(r => r.json())
+      .then(jsonOuErro)
       .then(data => {
         if (data.ok) {
           setTokenGerado({ user: member.nome, raw: data.token_raw });
@@ -196,7 +225,7 @@ function TeamIndex(props: Props) {
           toast.error(data.message ?? 'Erro ao gerar token');
         }
       })
-      .catch(() => toast.error('Erro de rede'));
+      .catch((e) => toast.error(msgFalha(e, 'Erro de rede')));
   }
 
   function gerarDxt(member: TeamMember) {
@@ -220,7 +249,7 @@ function TeamIndex(props: Props) {
           'X-Requested-With': 'XMLHttpRequest',
         },
       });
-      if (!res.ok) { toast.error('Erro ao gerar .dxt'); return; }
+      if (!res.ok) { toast.error(`Erro ao gerar .dxt: ${mensagemHttp(res.status)}`); return; }
       const blob = await res.blob();
       const cd = res.headers.get('Content-Disposition') ?? '';
       const m = /filename="([^"]+)"/.exec(cd);
@@ -596,7 +625,7 @@ function TokensListDialog({
     fetch(`/team-mcp/team/${user.id}/tokens`, {
       headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
     })
-      .then((r) => r.json())
+      .then(jsonOuErro)
       .then((data) => {
         if (data.ok) {
           setTokens(data.tokens as TokenRow[]);
@@ -604,7 +633,7 @@ function TokensListDialog({
           setError(data.message ?? 'Erro ao carregar tokens');
         }
       })
-      .catch(() => setError('Erro de rede ao carregar tokens'))
+      .catch((e) => setError(msgFalha(e, 'Erro de rede ao carregar tokens')))
       .finally(() => setLoading(false));
   }, [user.id]);
 
@@ -626,7 +655,7 @@ function TokensListDialog({
             Accept: 'application/json',
           },
         })
-          .then((r) => r.json())
+          .then(jsonOuErro)
           .then((data) => {
             if (data.ok) {
               toast.success('Token revogado');
@@ -636,7 +665,7 @@ function TokensListDialog({
               toast.error(data.message ?? 'Erro ao revogar');
             }
           })
-          .catch(() => toast.error('Erro de rede ao revogar'));
+          .catch((e) => toast.error(msgFalha(e, 'Erro de rede ao revogar')));
       },
     });
   }
@@ -753,7 +782,7 @@ function QuotaForm({ user, onClose }: { user: TeamMember; onClose: () => void })
         block_on_exceed: block,
       }),
     })
-      .then(r => r.json())
+      .then(jsonOuErro)
       .then(data => {
         if (data.ok) {
           toast.success('Quota atualizada');
@@ -762,7 +791,7 @@ function QuotaForm({ user, onClose }: { user: TeamMember; onClose: () => void })
           toast.error(data.message ?? 'Erro');
         }
       })
-      .catch(() => toast.error('Erro de rede'))
+      .catch((e) => toast.error(msgFalha(e, 'Erro de rede')))
       .finally(() => setSaving(false));
   }
 
