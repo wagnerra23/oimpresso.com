@@ -3,12 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\NotificationTemplate;
+use App\Services\FeatureFlagService;
 use App\Notifications\CustomerNotification;
 use App\Utils\ModuleUtil;
 use App\Utils\NotificationUtil;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Validation\Rule;
+use Inertia\Inertia;
 
 class NotificationTemplateController extends Controller
 {
@@ -34,7 +36,7 @@ class NotificationTemplateController extends Controller
     /**
      * Display a listing of the resource.
      *
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Contracts\View\View|\Inertia\Response
      */
     public function index()
     {
@@ -45,6 +47,14 @@ class NotificationTemplateController extends Controller
         $business_id = request()->session()->get('user.business_id');
 
         $grupos = $this->__grupos();
+
+        if (app(FeatureFlagService::class)->isOn('useV2NotificationTemplates', ['business_id' => $business_id])) {
+            return Inertia::render('NotificationTemplate/Index', [
+                'general_notifications' => Inertia::defer(fn () => $this->__getTemplateDetails($grupos['general'])),
+                'customer_notifications' => Inertia::defer(fn () => $this->__getTemplateDetails($grupos['customer'])),
+                'supplier_notifications' => Inertia::defer(fn () => $this->__getTemplateDetails($grupos['supplier'])),
+            ]);
+        }
 
         $general_notifications = $this->__getTemplateDetails($grupos['general']);
         $customer_notifications = $this->__getTemplateDetails($grupos['customer']);
