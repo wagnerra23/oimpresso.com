@@ -27,7 +27,7 @@ Baseline publicado pela #9107. Em 09/10, CT 100: baseline + primeiro dual tivera
 ### US-NOTIF-003 · Seleção de modelos F3
 blocked_by: US-NOTIF-002
 **Implementado em:** _pendente_.
-Page NotificationTemplate/Index no rail/painel do protótipo aprovado, mantendo grupos dinâmicos, rotas e nomes legíveis. Importar charter e casos com .tsx irmão e provas vinculadas.
+Page NotificationTemplate/Index no rail/painel do protótipo aprovado, mantendo grupos dinâmicos, rotas e nomes legíveis. Primeiro recorte de seleção/consulta e trio foi preparado em `resources/js/Pages/NotificationTemplate/Index.tsx`; cinco testes de interação passaram em `tests/js/notificacoes-selecao.test.tsx`. Critérios completos do editor e QA ficaram pendentes; não foi declarada a US inteira implementada.
 
 ### US-NOTIF-004 · Edição e prévia por canal F3
 blocked_by: US-NOTIF-003
