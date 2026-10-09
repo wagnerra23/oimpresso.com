@@ -294,6 +294,12 @@ de caminho explícito antes de ir a produção"*.
 
 **Implementado em:** _pendente_ — ver o pré-requisito de FSM abaixo
 
+**Paridade com a Blade:** [PARIDADE-ordem-producao-blade-vs-prototipo.md](PARIDADE-ordem-producao-blade-vs-prototipo.md)
+— 26 itens comparados (2026-10-09). 5 mudam custo ou estoque se a tela for construída igual ao
+protótipo (desperdício por ingrediente, desperdício da ordem, custo extra fixo, custo gravado pelo
+navegador, bloqueio por estoque) e são decisões [W] **antes** de construir. Tem também 2 hipóteses
+de segurança no servidor (H1 `store`, H2 `get-recipe-details`), ainda sem teste.
+
 **Definition of Done:**
 - [ ] As 6 regras `[FECHADA]` do §6, incluindo: trocar receita/quantidade **zera os overrides** ·
       estoque insuficiente **avisa e não bloqueia** · rascunho **não** movimenta estoque ·
