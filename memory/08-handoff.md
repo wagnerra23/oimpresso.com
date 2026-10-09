@@ -8,6 +8,7 @@
 
 - [2026-10-09 15:27 BRT — **Cutover/06: flags lidas em produção**](handoffs/2026-10-09-1527-cutover06-flags-producao.md) (leitura sem escrita · Configurações desligadas · Sistema/13 segue com ativação e smoke)
 - [2026-10-09 15:11 BRT — **Sistema/06: F1 de Modelos de notificação**](handoffs/2026-10-09-1511-sistema06-notificacoes-f1.md) (RUNBOOK + paridade + seis etapas · baseline CT 100 pendente)
+- [2026-10-09 15:58 BRT — **Notificações: F2 dual testado**](handoffs/2026-10-09-1558-notificacoes-f2-dual.md) (sete testes · flag OFF · Page e cutover pendentes)
 - [2026-10-09 15:22 BRT — **Notificações: fixtures do baseline e lane MySQL**](handoffs/2026-10-09-1522-notificacoes-baseline-fixtures.md) (CT 100: 20 passes · 52 assertions · dois todo · ação dual pendente)
 - [2026-10-08 16:05 BRT — **Gestão da fila e dos tickets 08/10 (tarde)**](handoffs/2026-10-08-1605-gestao-fila-e-tickets-08-out-tarde.md) (#9059 #9060 #9051 #9066 mergeados · Ponto lê feriado do HRM (#8200) · 6 issues antigas fechadas com recibo · #8201 parado: D3 com duas versões no canon, pergunta ao [W] no ticket)
 - [2026-10-08 03:40 BRT — **Gestão da fila de merges noite 07/10**](handoffs/2026-10-08-0340-gestao-fila-merges-noite-07-out.md) (41 PRs #9002–#9042 · Fiscal 15 e Sistema 05 completas · 17 relatórios Sistema 07 · 2 SQLi + 5 endpoints de permissão fechados · parada [W] cota 97% · na fila #9043/#9044 · pendente [W]: Total devido, /design-sync #9000, thread 06, GroupTax)

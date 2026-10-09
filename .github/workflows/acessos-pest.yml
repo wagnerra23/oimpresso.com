@@ -82,6 +82,7 @@ on:
       - 'app/Util/HtmlSanitizer.php'
       - 'resources/views/notification_template/**'
       - 'tests/Feature/NotificationTemplateTest.php'
+      - 'tests/Feature/NotificationTemplate/**'
       - 'app/Http/Middleware/AdminSidebarMenu.php'
       - 'resources/views/sales_commission_agent/**'
       - 'database/migrations/*_add_commission_agent_permissions.php'
@@ -169,6 +170,7 @@ jobs:
               - 'app/Util/HtmlSanitizer.php'
               - 'resources/views/notification_template/**'
               - 'tests/Feature/NotificationTemplateTest.php'
+              - 'tests/Feature/NotificationTemplate/**'
               - 'app/Http/Middleware/AdminSidebarMenu.php'
               - 'resources/views/sales_commission_agent/**'
               - 'database/migrations/*_add_commission_agent_permissions.php'
@@ -237,6 +239,7 @@ jobs:
             --log-junit test-results/pest-acessos-junit.xml \
             tests/Feature/Roles/ tests/Feature/Users/ \
             tests/Feature/NotificationTemplateTest.php \
+            tests/Feature/NotificationTemplate/DualTest.php \
             tests/Feature/Support/SuporteLogContratoTest.php \
             tests/Feature/Configuracoes/ \
             tests/Feature/CutoverMenu/RelatoriosSemXInertiaTest.php
