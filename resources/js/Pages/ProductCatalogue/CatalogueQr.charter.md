@@ -4,19 +4,19 @@ page: /product-catalogue/catalogue-qr
 component: resources/js/Pages/ProductCatalogue/CatalogueQr.tsx
 related_prototype: prototipo-ui/cowork/Wagner/catalogo-qr-page.jsx
 owner: wagner
-status: draft
+status: live
 last_validated: "2026-10-09"
 parent_module: ProductCatalogue
 related_adrs: [93, 104, 180, 358]
 tier: C
-charter_version: 1
+charter_version: 2
 related_runbook: memory/requisitos/ProductCatalogue/RUNBOOK-catalogue-qr.md
 related_us: [US-PCAT-003]
 ---
 
-# Page Charter — /product-catalogue/catalogue-qr (DRAFT)
+# Page Charter — /product-catalogue/catalogue-qr
 
-> **Status:** draft. Thread `modulos-faltantes/playbook/04`. Proposto pelo [CC] em
+> **Status:** live desde 2026-10-09 (aprovação [W] no chat da sessão). Thread `modulos-faltantes/playbook/04`. Proposto pelo [CC] em
 > `cowork-inbox/modulos-faltantes/catalogo-qr.charter.md`; este é o charter ao lado do `.tsx`.
 > `GET /product-catalogue/catalogue-qr` responde Inertia; a Blade `catalogue/generate_qr.blade.php` fica no repo
 > até o cutover. Casos: [`CatalogueQr.casos.md`](./CatalogueQr.casos.md).
@@ -62,7 +62,7 @@ Assinatura com `productcatalogue_module` (como antes) **e** `product.view` no pa
 - Cabe em 1280px; duas colunas (forma × resultado) e uma coluna abaixo de 1024px.
 - Contraste do QR é leitura: a tela avisa que cor clara em fundo branco o celular não lê.
 
-## Pendências antes de `status: live`
+## Pendências
 
-- [ ] [W] aprova Non-Goals + Anti-hooks e o screenshot.
+- [x] [W] aprova Non-Goals + Anti-hooks e o screenshot — [W] 2026-10-09, no chat da sessão: *"aprovado"*.
 - [ ] Confirmar se o PNG deve ganhar tamanho maior pra impressão A4 (hoje 256 px).
