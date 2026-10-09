@@ -14,6 +14,7 @@ import { useState, type FormEvent, type ReactNode } from 'react';
 import { PageHeader } from '@/Components/PageHeader';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
+import { Label } from '@/Components/ui/label';
 import { Skeleton } from '@/Components/ui/skeleton';
 import EmptyState from '@/Components/shared/EmptyState';
 
@@ -61,11 +62,11 @@ function ClientesIndex({ is_demo, credencial, permissions, clientes }: Props) {
             {credencial && <Credencial credencial={credencial} />}
             {novo && (
               <form onSubmit={criar} className="flex flex-wrap items-end gap-2 rounded-md border p-3" data-contract="nova">
-                <label className="flex min-w-64 flex-1 flex-col gap-1 text-sm">
-                  Nome do cliente
-                  <Input value={form.data.name} onChange={(e) => form.setData('name', e.target.value)} required
-                    placeholder="Ex: Desktop Loja 1" aria-label="Nome do cliente" />
-                </label>
+                <div className="flex min-w-64 flex-1 flex-col gap-1 text-sm">
+                  <Label htmlFor="oi-cliente-nome">Nome do cliente</Label>
+                  <Input id="oi-cliente-nome" value={form.data.name} onChange={(e) => form.setData('name', e.target.value)} required
+                    placeholder="Ex: Desktop Loja 1" />
+                </div>
                 <Button type="submit" size="sm" disabled={form.processing}>Criar</Button>
                 <Button type="button" variant="ghost" size="sm" onClick={() => setNovo(false)}>Cancelar</Button>
               </form>
