@@ -43,7 +43,11 @@ beforeEach(function () {
     $this->adversario = $this->seededSupportClientTenant();
 
     session()->flush(); // SetSessionData reconstrói a sessão a partir do usuário autenticado
-    $this->actingAs($this->usuarioComPermissoes([], $this->tenant));
+    // D10 (thread 13 do playbook Forja): a tela exige a permissão do módulo, não só login.
+    // Limpa o cache do Spatie antes: se outro teste criou a permissão numa transação já
+    // revertida, o id cacheado não existe e o syncPermissions cai em FK 1452.
+    app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
+    $this->actingAs($this->usuarioComPermissoes(['jana.mcp.usage.all'], $this->tenant));
 });
 
 function adpsProject(int $bizId, string $nome): int

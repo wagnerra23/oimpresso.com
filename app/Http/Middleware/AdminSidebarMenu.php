@@ -877,6 +877,10 @@ class AdminSidebarMenu
                 auth()->user()->can('invoice_settings.access') ||
                 auth()->user()->can('tax_rate.view') ||
                 auth()->user()->can('tax_rate.create') ||
+                // sistema/playbook/11 — o filho "Impressoras" (abaixo) é gateado por `access_printers`,
+                // mas a condição do grupo não listava a permissão: quem só tinha ela não via o grupo
+                // nem as abas do ConfiguracoesSubNav (que derivam deste dropdown). Limite do UC-IMPR-05.
+                auth()->user()->can('access_printers') ||
                 // US-GOV-059 classe D: drift de namespace. O modulo Superadmin declara
                 // `superadmin.access_package_subscriptions` (DataController) e gateia o
                 // SubscriptionController com esse nome; o sidebar do core ficou com o

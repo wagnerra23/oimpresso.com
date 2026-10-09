@@ -11,7 +11,7 @@ use Modules\Jana\Entities\Mcp\McpTask;
 uses(Tests\TestCase::class, DatabaseTransactions::class);
 
 /**
- * Tarefas · transição proibida pelo FSM responde 422 (UC-TSK-07).
+ * Tarefas · transição proibida pelo FSM responde 422 (UC-TSK-08).
  *
  * Contrato: decisão [W] D13 (2026-10-07, playbook Forja thread 14) — "responder 422" —
  * registrada em `Modules/Forja/Resources/js/Pages/team-mcp/Tasks/Index.casos.md`.
@@ -72,7 +72,7 @@ function tskFsmTask(string $sufixo, string $status): McpTask
     return $t;
 }
 
-it('UC-TSK-07 · transição proibida pelo FSM (todo → done) responde 422 com o motivo em PT-BR e nada muda', function () {
+it('UC-TSK-08 · transição proibida pelo FSM (todo → done) responde 422 com o motivo em PT-BR e nada muda', function () {
     $user = tskFsmUsuario();
     $task = tskFsmTask('PULO', 'todo');
 
@@ -98,7 +98,7 @@ it('UC-TSK-07 · transição proibida pelo FSM (todo → done) responde 422 com 
     expect(DB::table('mcp_task_events')->where('task_id', $task->task_id)->count())->toBe($eventosAntes);
 });
 
-it('UC-TSK-07 · task que não existe continua respondendo 404', function () {
+it('UC-TSK-08 · task que não existe continua respondendo 404', function () {
     $user = tskFsmUsuario();
 
     $this->actingAs($user)
@@ -107,7 +107,7 @@ it('UC-TSK-07 · task que não existe continua respondendo 404', function () {
         ->assertJsonPath('error', 'Task não encontrada.');
 });
 
-it('UC-TSK-07 · controle: transição permitida (review → done) segue 200 e grava', function () {
+it('UC-TSK-08 · controle: transição permitida (review → done) segue 200 e grava', function () {
     $user = tskFsmUsuario();
     $task = tskFsmTask('OK', 'review');
 

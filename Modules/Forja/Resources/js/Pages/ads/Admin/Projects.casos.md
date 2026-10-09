@@ -58,11 +58,18 @@ Status: 🧪 sem veredito
 - **Teste:** `AdsAdminProjectsContratoTest.php` — `UC-ADPJ-04 · os KPIs contam só os projects do meu business …`
 - **Regressão que defende:** KPI calculado sobre a tabela inteira (vazamento por agregado, que a lista sozinha não flagra).
 
+## UC-ADPJ-05 · Logado sem a permissão da Forja, a lista e a criação dão 403 `[must]` `[T0]`
+Status: 🧪 sem veredito
+- **Persona:** usuário logado da empresa que não recebeu a permissão do módulo Forja.
+- **Aceite:** Dado um usuário com a permissão `jana.mcp.usage.all` · Quando abre `/ads/admin/projects` · Então 200 (controle positivo). Dado um usuário **sem** ela · Quando abre a lista ou envia o form "Novo Project" · Então **403** nos dois, e nenhum project é gravado.
+- **Teste:** `Modules/Forja/Tests/Feature/ForjaProjectsAcessoTest.php` — `UC-ADPJ-05 · logado sem a permissão da Forja …`
+- **Regressão que defende:** decisão [W] D10 (2026-10-07, thread 13 do playbook Forja): *"exigir permissão do módulo Forja"*. Até então a rota só exigia login.
+
 ---
 
 ## Backlog de casos (sem id — entram quando tiverem teste e ≥2 fontes)
 
 - **[BACKLOG] Lista vazia mostra EmptyState** — só o charter; asserção de cliente.
 - **[BACKLOG] Criar registra audit LGPD (`EVENT_PROJECT_CREATED`, objetivo redacted)** — só o charter (Automation hooks).
-- **[BACKLOG] A tela não tem gate de permissão além do login** — a rota só exige `auth` (`Modules/Forja/Http/routes.php`, grupo `/ads`), e nem o charter nem a US-ADS-003 pedem permissão. Qualquer usuário logado de qualquer business abre a tela e cria project **no próprio** business. É intencional? **Pergunta ao [W]**; nenhum UC afirma isso.
+- ~~**[BACKLOG] A tela não tem gate de permissão além do login**~~ — respondido pelo [W] em 2026-10-07 (D10): exige a permissão do módulo Forja. Virou **UC-ADPJ-05**.
 - **[BACKLOG] Código do project gerado por contagem global** — `ProjectService::generateCodigo` usa `count(mcp_projects)+1` (todos os businesses) sobre uma coluna `UNIQUE`; **hipótese de leitura, não medida**: se algum project for apagado no mês, o próximo código pode colidir e a criação falhar. Sem fonte canônica que defina o formato do código — não vira UC.
