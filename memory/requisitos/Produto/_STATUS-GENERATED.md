@@ -16,12 +16,12 @@ authority: generated
 
 | Elo | Quantidade |
 |---|---:|
-| US no SPEC | 10 |
+| US no SPEC | 11 |
 | CU no SDD | 14 |
 | Telas (.tsx) | 12 |
 | Telas com `casos.md` | 16 |
 | UC declarados | 143 |
-| UC com teste que os cita | 123 |
+| UC com teste que os cita | 126 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -48,6 +48,7 @@ authority: generated
 | US-PROD-026 | `todo` | Fornecedores/cotação por produto (melhor preço no drawer) |
 | US-PROD-027 | `todo` | [V0] Travar o acidente do 0-row: preço zero em tabela é inerte só por sorte do P |
 | US-PROD-029 | `todo` | Cadastro de produto em ROTA PARALELA (o `ProductController` da Larissa não é toc |
+| US-PROD-030 | `todo` | ⚠️Tier0 · Política de preço por produto: atualizar a cada custo novo OU manter o |
 
 ## UC por status
 
@@ -66,9 +67,9 @@ authority: generated
 | UC-CAD-12 | Cadastros/Index | 📝 sem_teste |
 | UC-CAD-13 | Cadastros/Index | 📝 sem_teste |
 | UC-CAD-14 | Cadastros/Index | 📝 sem_teste |
-| UC-ETQ-01 | Etiquetas/Index | 📝 sem_teste |
-| UC-ETQ-02 | Etiquetas/Index | 📝 sem_teste |
-| UC-ETQ-03 | Etiquetas/Index | 📝 sem_teste |
+| UC-ETQ-01 | Etiquetas/Index | 🧪 aguarda veredito da lane |
+| UC-ETQ-02 | Etiquetas/Index | 🧪 aguarda veredito da lane |
+| UC-ETQ-03 | Etiquetas/Index | 🧪 aguarda veredito da lane |
 | UC-ETQ-05 | Etiquetas/Index | 📝 sem_teste |
 | UC-IMP-01 | Importacao/Index | 🧪 aguarda veredito da lane |
 | UC-IMP-03 | Importacao/Index | 🧪 aguarda veredito da lane |

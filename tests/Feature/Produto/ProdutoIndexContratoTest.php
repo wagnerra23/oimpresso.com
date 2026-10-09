@@ -41,9 +41,10 @@ use Tests\Support\EstoqueFixture;
  *    ele vem porque vem tudo. Todo filtro é provado pelo par (o que casa VEM + o que não casa
  *    FICA DE FORA), e toda prop deferida tem pré-condição de que CHEGOU.
  *
- * ⛔ Escopo honesto: as telas React do Produto ainda NÃO são alcançáveis em prod (a sidebar usa
- *    `<a href>` puro, sem header `X-Inertia` → cai no Blade). Vermelho aqui é BLOQUEADOR DE
- *    MIGRAÇÃO (gate MWART F5, ADR 0104), não incidente de produção.
+ * ⛔ Escopo (escrito quando a lista React ainda só abria com o header `X-Inertia`, e a sidebar
+ *    usa `<a href>` puro → caía no Blade): vermelho aqui era BLOQUEADOR DE MIGRAÇÃO (gate MWART
+ *    F5, ADR 0104). Desde o cutover pelo menu · thread 01 (D1 [W] 2026-10-07) a lista React é o
+ *    padrão de `/products` e o Blade só abre com `?classico=1` — vermelho aqui passa a ser tela viva.
  *
  * ⛔ Multi-tenant Tier 0 (ADR 0101): biz=1 canônico; cross-tenant contra o 2º business seedado.
  *    NUNCA biz=4 (ROTA LIVRE, cliente real).

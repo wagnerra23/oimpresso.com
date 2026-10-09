@@ -70,7 +70,13 @@ class ProductController extends Controller
         $selling_price_group_count = SellingPriceGroup::countSellingPriceGroups($business_id);
         $is_woocommerce = $this->moduleUtil->isModuleInstalled('Woocommerce');
 
-        if (request()->ajax()) {
+        // Cutover pelo menu · thread 01 (D1 [W] 2026-10-07): React é o padrão, `?classico=1`
+        // mantém o Blade — molde `UnitController@index`. A decisão vem ANTES do ramo `ajax()`:
+        // o Inertia manda `X-Requested-With` junto do `X-Inertia`, e com o `ajax()` primeiro a
+        // visita Inertia (e o reload das props deferidas) recebia o JSON do DataTable (§5 2026-09-08).
+        $telaReact = ! request()->boolean('classico') && (! request()->ajax() || request()->header('X-Inertia'));
+
+        if (! $telaReact && request()->ajax()) {
             //Filter by location
             $location_id = request()->get('location_id', null);
             $permitted_locations = auth()->user()->permitted_locations();
@@ -336,10 +342,10 @@ class ProductController extends Controller
 
         $is_admin = $this->productUtil->is_admin(auth()->user());
 
-        // Wave 2 B4 Produto (Agent W2-C 2026-05-15) — branch dual Inertia MWART (ADR 0104)
-        // Coexistência opt-in: header X-Inertia presente → Page React; ausente → Blade legacy.
+        // Wave 2 B4 Produto (Agent W2-C 2026-05-15) — branch dual Inertia MWART (ADR 0104).
+        // Page React com `X-Inertia` ou GET comum; Blade só com `?classico=1` (ver acima).
         // Tier 0 multi-tenant (ADR 0093): business_id passado explicitamente a cada builder.
-        if (request()->header('X-Inertia')) {
+        if ($telaReact) {
             // UC-PIDX-03 — o MESMO gate que o outro branch deste método aplica na Blade
             // (`product/index.blade.php:287,294`): preço de compra e de venda não viajam pra
             // quem não tem o direito de vê-los. Resolvido AQUI (uma vez) e passado ao builder,
