@@ -98,7 +98,14 @@ test('F2 flag ausente fica OFF no serviço real para qualquer tenant', function 
     Cache::forget('growthbook.features');
 });
 
-test('F2 navegação sem X-Inertia preserva Blade antes da Page', function () {
+test('F3 opção legacy preserva o editor Blade mesmo com a flag ON', function () {
     $this->mock(FeatureFlagService::class, fn ($mock) => $mock->shouldNotReceive('isOn'));
-    $this->get('/notification-templates')->assertOk()->assertViewIs('notification_template.index');
+    $this->get('/notification-templates?legacy=1')->assertOk()->assertViewIs('notification_template.index');
+});
+
+
+test('F3 flag ON permite abrir a Page por navegação HTML', function () {
+    notifDualFlag(true);
+    $this->get('/notification-templates')->assertOk()
+        ->assertInertia(fn (\Inertia\Testing\AssertableInertia $page) => $page->component('NotificationTemplate/Index'));
 });

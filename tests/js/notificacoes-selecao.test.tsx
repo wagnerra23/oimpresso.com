@@ -53,5 +53,5 @@ it('UC-NOT-14 extrato recusa SMS/WhatsApp e Editar abre o formulário existente'
   render(<Page {...props} />);
   expect((screen.getByRole('button', { name: 'SMS' }) as HTMLButtonElement).disabled).toBe(true);
   expect((screen.getByRole('button', { name: 'WhatsApp' }) as HTMLButtonElement).disabled).toBe(true);
-  expect(screen.getByRole('link', { name: 'Editar modelos' }).getAttribute('href')).toBe('/notification-templates');
+  expect(screen.getByRole('link', { name: 'Editar modelos' }).getAttribute('href')).toBe('/notification-templates?legacy=1');
 });

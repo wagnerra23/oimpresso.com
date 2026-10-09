@@ -57,7 +57,7 @@ export default function NotificationTemplateIndex(props: Props) {
   const body = model ? channel === 'email' ? model.email_body : channel === 'sms' ? model.sms_body : model.whatsapp_text : '';
   return <Stack gap={0}>
     <PageHeader title="Modelos de notificação" subtitle="Mensagens para clientes e fornecedores"
-      actions={<Button asChild><a href="/notification-templates">Editar modelos</a></Button>} />
+      actions={<Button asChild><a href="/notification-templates?legacy=1">Editar modelos</a></Button>} />
     <Deferred data={['general_notifications', 'customer_notifications', 'supplier_notifications']}
       fallback={<Box p={6} role="status" aria-busy="true">Carregando modelos de notificação…</Box>}>
       <Grid cols={1} gap={0} className="lg:grid-cols-[236px_minmax(0,1fr)]">
