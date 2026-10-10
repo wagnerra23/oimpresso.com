@@ -241,7 +241,7 @@ class ProductController extends Controller
         $is_admin = $this->productUtil->is_admin(auth()->user());
 
         // Wave 2 B4 Produto (Agent W2-C 2026-05-15) — branch dual Inertia MWART (ADR 0104).
-        // Page React só com `X-Inertia`; o GET comum (o menu) abre o Blade (ver acima).
+        // Page React no GET comum (o menu) e na visita Inertia; `?classico=1` abre o Blade (ver acima).
         // Tier 0 multi-tenant (ADR 0093): business_id passado explicitamente a cada builder.
         if ($telaReact) {
             // UC-PIDX-03 — o MESMO gate que o outro branch deste método aplica na Blade
@@ -258,6 +258,8 @@ class ProductController extends Controller
             return Inertia::render('Produto/Index', [
                 'filtros' => $filtrosLista,
                 'lista' => Inertia::defer(fn () => $this->buildProdutoListaPaginada($business_id, $filtrosLista, $podeVerCusto, $podeVerPreco, $is_woocommerce)),
+                // Grupo próprio: os indicadores não seguram a lista (e vice-versa).
+                'kpis' => Inertia::defer(fn () => $this->buildProdutoListaKpis($business_id, $is_woocommerce, request()->header('X-Produto-Recalcular') === '1'), 'kpis'),
                 'opcoes' => $this->buildProdutoListaOpcoes($categories, $brands, $units, $taxes, $business_locations, $pos_module_data),
                 'contexto' => [
                     'empresa' => (string) (request()->session()->get('business.name') ?? ''),
@@ -513,6 +515,84 @@ class ProductController extends Controller
                 }
             });
         }
+    }
+
+    /**
+     * Indicadores do topo da lista (protótipo `produto-blade.jsx`, vista `lista`, `kpi`) sobre o
+     * catálogo INTEIRO — como no protótipo, não seguem os filtros da tela.
+     *   · contagens: a MESMA consulta da lista (`consultaListaProdutos`) sem filtro — o total é o
+     *     mesmo que a lista mostra sem filtro; "abaixo do alerta" é a regra da linha
+     *     (`abaixo_do_alerta` em `buildProdutoListaPaginada`): estoque gerenciado, alerta definido e
+     *     estoque ≤ alerta;
+     *   · valor: ver `valorDoEstoquePeloCusto`. Só para quem pode ver o relatório E o valor do
+     *     estoque (`stock_report.view` + `view_product_stock_value`, o gate do `getStockValue`).
+     */
+    protected function buildProdutoListaKpis(int $business_id, bool $is_woocommerce, bool $recalcular): array
+    {
+        $contagem = DB::query()
+            ->fromSub($this->consultaListaProdutos($business_id, [], $is_woocommerce)->toBase(), 'l')
+            ->selectRaw('COUNT(*) as total')
+            ->selectRaw("SUM(l.type = 'variable') as variaveis")
+            ->selectRaw("SUM(l.type = 'combo') as composicoes")
+            ->selectRaw('SUM(l.is_inactive = 1) as inativos')
+            ->selectRaw('SUM(l.enable_stock = 1 AND l.alert_quantity IS NOT NULL AND COALESCE(l.current_stock, 0) <= l.alert_quantity) as abaixo_do_alerta')
+            ->first();
+
+        $podeVerValor = auth()->user()->can('stock_report.view') && auth()->user()->can('view_product_stock_value');
+        $valor = $podeVerValor ? $this->valorDoEstoquePeloCusto($business_id, $recalcular) : null;
+
+        return [
+            'total' => (int) ($contagem->total ?? 0),
+            'variaveis' => (int) ($contagem->variaveis ?? 0),
+            'composicoes' => (int) ($contagem->composicoes ?? 0),
+            'abaixo_do_alerta' => (int) ($contagem->abaixo_do_alerta ?? 0),
+            'inativos' => (int) ($contagem->inativos ?? 0),
+            'valor_custo' => $valor === null ? null : $valor['valor'],
+            'valor_calculado_em' => $valor === null ? null : $valor['em'],
+        ];
+    }
+
+    /**
+     * "Valor em estoque (custo)" = o total da coluna `stock_price` ("valor pelo preço de compra")
+     * do relatório de estoque (`ProductUtil::getProductStockDetails`), todas as linhas e sem
+     * filtros — o mesmo número que a aba "Relatório de estoque" soma. Decisão [F] 2026-10-10
+     * (opção "B"; a opção "A" seria o `getOpeningClosingStock` do topo de Relatórios → Estoque,
+     * que conta outro conjunto de compras e dá ~0,1% de diferença).
+     *
+     * A expressão NÃO é reescrita: usa-se a própria coluna `stock_price` da consulta do relatório,
+     * só sem as outras subconsultas (vendido/transferido/ajustado), e soma-se no banco. Prova em
+     * produção (biz 1, 2026-10-10): igual à soma linha a linha da consulta completa, diferença 0.
+     * Cache de 10 minutos por empresa + locais permitidos (a consulta do relatório já filtra pelos
+     * locais do usuário): numa empresa com ~12 mil linhas a conta é cara. O botão "Atualizado"
+     * da tela manda `X-Produto-Recalcular: 1` e refaz a conta.
+     */
+    protected function valorDoEstoquePeloCusto(int $business_id, bool $recalcular): array
+    {
+        $chave = 'produto:lista:valor-estoque-custo:biz:' . $business_id
+            . ':loc:' . md5((string) json_encode(auth()->user()->permitted_locations()));
+        if ($recalcular) {
+            \Illuminate\Support\Facades\Cache::forget($chave);
+        }
+
+        return \Illuminate\Support\Facades\Cache::remember($chave, now()->addMinutes(10), function () use ($business_id) {
+            $base = $this->productUtil
+                ->getProductStockDetails($business_id, ['not_for_selling' => 0, 'show_manufacturing_data' => 0], 'datatables')
+                ->toBase();
+            $gramatica = DB::getQueryGrammar();
+            $coluna = collect($base->columns)->first(function ($c) use ($gramatica) {
+                return $c instanceof \Illuminate\Database\Query\Expression
+                    && preg_match('/\bas stock_price\s*$/', (string) $c->getValue($gramatica)) === 1;
+            });
+            if ($coluna === null) {
+                throw new \LogicException('A coluna stock_price saiu do relatório de estoque (ProductUtil::getProductStockDetails).');
+            }
+            $base->columns = [$coluna];
+
+            return [
+                'valor' => (float) DB::query()->fromSub($base, 'e')->sum('e.stock_price'),
+                'em' => now()->toIso8601String(),
+            ];
+        });
     }
 
     /**

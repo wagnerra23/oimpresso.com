@@ -58,6 +58,18 @@ export interface FiltrosLista {
   page: number;
 }
 
+/** Indicadores do topo (ProductController::buildProdutoListaKpis) — catálogo inteiro, sem filtro. */
+export interface KpisLista {
+  total: number;
+  variaveis: number;
+  composicoes: number;
+  abaixo_do_alerta: number;
+  inativos: number;
+  /** null = sem permissão de ver valor do estoque (não é zero). */
+  valor_custo: number | null;
+  valor_calculado_em: string | null;
+}
+
 export interface Opcao {
   id: string;
   nome: string;
