@@ -52,16 +52,18 @@ import {
   DialogTitle,
 } from '@/Components/ui/dialog';
 import AcoesProduto, { type AcaoProduto } from './_components/lista/AcoesProduto';
-import FiltrosListaProdutos, { chipsDosFiltros } from './_components/lista/FiltrosLista';
-import MenuColunas, { colunasPadrao } from './_components/lista/MenuColunas';
+import FiltrosListaProdutos from './_components/lista/FiltrosLista';
+import MenuColunas from './_components/lista/MenuColunas';
 import {
   CHAVE_COLUNAS,
   CHAVE_DENSIDADE,
   TIPO_ROTULO,
+  chipsDosFiltros,
   colunasOpcionais,
   estoqueTexto,
   faixaDePreco,
   subLinhaProduto,
+  visibilidadePadrao,
   type ContextoLista,
   type FiltrosLista,
   type LinhaProduto,
@@ -168,7 +170,7 @@ const hhmm = () => new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', min
 function ProdutoIndex({ filtros, lista, opcoes, contexto, permissions }: ProdutoIndexPageProps) {
   const opcionais = useMemo(() => colunasOpcionais(contexto.rotulos_campos), [contexto.rotulos_campos]);
   const [visiveis, setVisiveis] = useState<Record<string, boolean>>(() => ({
-    ...colunasPadrao(opcionais),
+    ...visibilidadePadrao(opcionais),
     ...lerLocal<Record<string, boolean>>(CHAVE_COLUNAS, {}),
   }));
   const [densa, setDensa] = useState<boolean>(() => lerLocal<boolean>(CHAVE_DENSIDADE, false));
@@ -442,7 +444,7 @@ function ProdutoIndex({ filtros, lista, opcoes, contexto, permissions }: Produto
 
   const contextoLinha = [
     contexto.empresa,
-    locaisReais.length === 1 ? locaisReais[0].nome : `${locaisReais.length} locais`,
+    locaisReais.length === 1 ? locaisReais[0]?.nome : `${locaisReais.length} locais`,
     lista ? `${total} ${total === 1 ? 'produto' : 'produtos'}` : null,
     `${contexto.grupos_de_preco} ${contexto.grupos_de_preco === 1 ? 'grupo de preço' : 'grupos de preço'}`,
     contexto.papel ? `papel: ${contexto.papel}` : null,
@@ -603,7 +605,7 @@ function ProdutoIndex({ filtros, lista, opcoes, contexto, permissions }: Produto
                 ordenar
               </span>
               <div className="sp" />
-              <label>
+              <div className="flex items-center gap-[5px]">
                 Mostrar
                 <Select value={String(filtros.per_page)} onValueChange={(v) => ir({ per_page: Number(v) })}>
                   <SelectTrigger className="h-6 w-[88px]" aria-label="Produtos por página">
@@ -618,7 +620,7 @@ function ProdutoIndex({ filtros, lista, opcoes, contexto, permissions }: Produto
                   </SelectContent>
                 </Select>
                 por página
-              </label>
+              </div>
             </div>
           </section>
 
@@ -737,13 +739,16 @@ function ProdutoIndex({ filtros, lista, opcoes, contexto, permissions }: Produto
           </DialogHeader>
           <div className="flex flex-col gap-2">
             {locaisReais.map((l) => (
-              <label key={l.id} className="pb-chk">
+              <div key={l.id} className="pb-chk">
                 <Checkbox
+                  id={`local-${l.id}`}
                   checked={locaisEscolhidos.includes(l.id)}
                   onCheckedChange={(v) => setLocaisEscolhidos((s) => (v === true ? [...s, l.id] : s.filter((x) => x !== l.id)))}
                 />
-                <b>{l.nome}</b>
-              </label>
+                <label htmlFor={`local-${l.id}`}>
+                  <b>{l.nome}</b>
+                </label>
+              </div>
             ))}
           </div>
           <DialogFooter>

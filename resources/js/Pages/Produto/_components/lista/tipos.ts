@@ -157,3 +157,40 @@ export function colunasOpcionais(rotulos: Record<string, string | null>): Coluna
   }
   return base;
 }
+
+/** Opções fixas dos filtros (as da lista Blade). */
+export const TIPOS_PRODUTO: Opcao[] = [
+  { id: 'single', nome: 'Único' },
+  { id: 'variable', nome: 'Variável' },
+  { id: 'combo', nome: 'Composição' },
+];
+export const SITUACOES: Opcao[] = [
+  { id: 'active', nome: 'Ativo' },
+  { id: 'inactive', nome: 'Inativo' },
+];
+
+/** Colunas que nascem ligadas (PB_COLS_PADRAO do protótipo). */
+export function visibilidadePadrao(colunas: ColunaOpcional[]): Record<string, boolean> {
+  return Object.fromEntries(colunas.map((c) => [c.id, c.padrao]));
+}
+
+/** Chips "Filtrando por" — nada de filtro invisível (protótipo: `chips`). */
+export function chipsDosFiltros(
+  f: FiltrosLista,
+  o: OpcoesLista,
+): Array<{ chave: keyof FiltrosLista; rotulo: string }> {
+  const nome = (lista: Opcao[] | null, id: string | null) => (lista ?? []).find((x) => x.id === id)?.nome ?? id ?? '';
+  const out: Array<{ chave: keyof FiltrosLista; rotulo: string }> = [];
+  if (f.type) out.push({ chave: 'type', rotulo: `Tipo: ${nome(TIPOS_PRODUTO, f.type)}` });
+  if (f.category_id) out.push({ chave: 'category_id', rotulo: `Categoria: ${nome(o.categorias, f.category_id)}` });
+  if (f.unit_id) out.push({ chave: 'unit_id', rotulo: `Unidade: ${nome(o.unidades, f.unit_id)}` });
+  if (f.tax_id) out.push({ chave: 'tax_id', rotulo: `Imposto: ${nome(o.impostos, f.tax_id)}` });
+  if (f.brand_id) out.push({ chave: 'brand_id', rotulo: `Marca: ${nome(o.marcas, f.brand_id)}` });
+  if (f.location_id) out.push({ chave: 'location_id', rotulo: `Local: ${nome(o.locais, f.location_id)}` });
+  if (f.active_state) out.push({ chave: 'active_state', rotulo: `Situação: ${nome(SITUACOES, f.active_state)}` });
+  if (f.repair_model_id) out.push({ chave: 'repair_model_id', rotulo: `Modelo: ${nome(o.modelos_dispositivo, f.repair_model_id)}` });
+  if (f.not_for_selling) out.push({ chave: 'not_for_selling', rotulo: 'Não para venda' });
+  if (f.woocommerce_enabled) out.push({ chave: 'woocommerce_enabled', rotulo: 'WooCommerce habilitado' });
+  if (f.q) out.push({ chave: 'q', rotulo: `Busca: ${f.q}` });
+  return out;
+}

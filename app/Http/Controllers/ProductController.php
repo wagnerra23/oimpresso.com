@@ -264,7 +264,7 @@ class ProductController extends Controller
                     'rotulos_campos' => $this->rotulosCamposProduto(),
                     // Papel do usuário, como a linha de contexto do protótipo ("papel: Administrador").
                     // O nome do role no UltimatePOS carrega o sufixo `#<business_id>` — sai da tela.
-                    'papel' => ($papel = auth()->user()->roles->first()?->name) ? preg_replace('/#\d+$/', '', (string) $papel) : null,
+                    'papel' => ($papel = auth()->user()->roles->pluck('name')->first()) ? preg_replace('/#\d+$/', '', (string) $papel) : null,
                 ],
                 'permissions' => [
                     'create' => auth()->user()->can('product.create'),

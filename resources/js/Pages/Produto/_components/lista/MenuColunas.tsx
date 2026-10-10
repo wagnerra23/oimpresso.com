@@ -12,16 +12,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/Components/ui/dropdown-menu';
-import type { ColunaOpcional } from './tipos';
+import { visibilidadePadrao, type ColunaOpcional } from './tipos';
 
 interface Props {
   colunas: ColunaOpcional[];
   visiveis: Record<string, boolean>;
   aoMudar: (visiveis: Record<string, boolean>) => void;
-}
-
-export function colunasPadrao(colunas: ColunaOpcional[]): Record<string, boolean> {
-  return Object.fromEntries(colunas.map((c) => [c.id, c.padrao]));
 }
 
 export default function MenuColunas({ colunas, visiveis, aoMudar }: Props) {
@@ -46,7 +42,7 @@ export default function MenuColunas({ colunas, visiveis, aoMudar }: Props) {
           </DropdownMenuCheckboxItem>
         ))}
         <DropdownMenuSeparator />
-        <DropdownMenuItem onSelect={() => aoMudar(colunasPadrao(colunas))}>Voltar ao padrão</DropdownMenuItem>
+        <DropdownMenuItem onSelect={() => aoMudar(visibilidadePadrao(colunas))}>Voltar ao padrão</DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );

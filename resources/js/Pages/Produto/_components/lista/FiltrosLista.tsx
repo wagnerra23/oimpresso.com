@@ -8,20 +8,10 @@ import { Search } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import { Checkbox } from '@/Components/ui/checkbox';
 import { Button } from '@/Components/ui/button';
-import type { FiltrosLista, Opcao, OpcoesLista } from './tipos';
+import { SITUACOES, TIPOS_PRODUTO, type FiltrosLista, type Opcao, type OpcoesLista } from './tipos';
 
 // O Radix Select não aceita `value=""` (lápide §5 2026-06-29): "Todos" usa uma sentinela.
 const TODOS = '__todos__';
-
-const TIPOS: Opcao[] = [
-  { id: 'single', nome: 'Único' },
-  { id: 'variable', nome: 'Variável' },
-  { id: 'combo', nome: 'Composição' },
-];
-const SITUACOES: Opcao[] = [
-  { id: 'active', nome: 'Ativo' },
-  { id: 'inactive', nome: 'Inativo' },
-];
 
 type ChaveSelect = 'type' | 'category_id' | 'unit_id' | 'tax_id' | 'brand_id' | 'location_id' | 'active_state' | 'repair_model_id';
 
@@ -47,8 +37,10 @@ function Campo({
 }) {
   // Opção sem id viraria `value=""` e derrubaria o Select (lápide §5 2026-06-29).
   const validas = opcoes.filter((o) => o.id !== '');
+  // `div`, não `label`: o Select do Radix é um botão, não um controle nativo — o nome acessível
+  // vem do `aria-label` do gatilho.
   return (
-    <label className="pb-fld">
+    <div className="pb-fld">
       <span>{rotulo}</span>
       <Select value={valor ?? TODOS} onValueChange={(v) => aoMudar(v === TODOS ? null : v)}>
         <SelectTrigger aria-label={rotulo}>
@@ -63,7 +55,7 @@ function Campo({
           ))}
         </SelectContent>
       </Select>
-    </label>
+    </div>
   );
 }
 
@@ -87,7 +79,7 @@ export default function FiltrosListaProdutos({ filtros, opcoes, woocommerce, apl
         </div>
         {aberto && (
           <div className="pb-grid c4">
-            <Campo rotulo="Tipo de produto" valor={filtros.type} opcoes={TIPOS} vazio="Todos" aoMudar={campo('type')} />
+            <Campo rotulo="Tipo de produto" valor={filtros.type} opcoes={TIPOS_PRODUTO} vazio="Todos" aoMudar={campo('type')} />
             <Campo rotulo="Categoria" valor={filtros.category_id} opcoes={opcoes.categorias} vazio="Todas" aoMudar={campo('category_id')} />
             <Campo rotulo="Unidade" valor={filtros.unit_id} opcoes={opcoes.unidades} vazio="Todas" aoMudar={campo('unit_id')} />
             <Campo rotulo="Imposto" valor={filtros.tax_id} opcoes={opcoes.impostos} vazio="Todos" aoMudar={campo('tax_id')} />
@@ -104,23 +96,29 @@ export default function FiltrosListaProdutos({ filtros, opcoes, woocommerce, apl
               />
             )}
             <div className="pb-fld" style={{ justifyContent: 'flex-end' }}>
-              <label className="pb-chk">
+              <div className="pb-chk">
                 <Checkbox
+                  id="filtro-nao-para-venda"
                   checked={filtros.not_for_selling}
                   onCheckedChange={(v) => aplicar({ not_for_selling: v === true })}
                 />
-                <b>Não para venda</b>
-              </label>
+                <label htmlFor="filtro-nao-para-venda">
+                  <b>Não para venda</b>
+                </label>
+              </div>
             </div>
             {woocommerce && (
               <div className="pb-fld" style={{ justifyContent: 'flex-end' }}>
-                <label className="pb-chk">
+                <div className="pb-chk">
                   <Checkbox
+                    id="filtro-woocommerce"
                     checked={filtros.woocommerce_enabled}
                     onCheckedChange={(v) => aplicar({ woocommerce_enabled: v === true })}
                   />
-                  <b>WooCommerce habilitado</b>
-                </label>
+                  <label htmlFor="filtro-woocommerce">
+                    <b>WooCommerce habilitado</b>
+                  </label>
+                </div>
               </div>
             )}
           </div>
@@ -128,25 +126,4 @@ export default function FiltrosListaProdutos({ filtros, opcoes, woocommerce, apl
       </div>
     </section>
   );
-}
-
-/** Chips "Filtrando por" — nada de filtro invisível (protótipo: `chips`). */
-export function chipsDosFiltros(
-  f: FiltrosLista,
-  o: OpcoesLista,
-): Array<{ chave: keyof FiltrosLista; rotulo: string }> {
-  const nome = (lista: Opcao[] | null, id: string | null) => (lista ?? []).find((x) => x.id === id)?.nome ?? id ?? '';
-  const out: Array<{ chave: keyof FiltrosLista; rotulo: string }> = [];
-  if (f.type) out.push({ chave: 'type', rotulo: `Tipo: ${nome(TIPOS, f.type)}` });
-  if (f.category_id) out.push({ chave: 'category_id', rotulo: `Categoria: ${nome(o.categorias, f.category_id)}` });
-  if (f.unit_id) out.push({ chave: 'unit_id', rotulo: `Unidade: ${nome(o.unidades, f.unit_id)}` });
-  if (f.tax_id) out.push({ chave: 'tax_id', rotulo: `Imposto: ${nome(o.impostos, f.tax_id)}` });
-  if (f.brand_id) out.push({ chave: 'brand_id', rotulo: `Marca: ${nome(o.marcas, f.brand_id)}` });
-  if (f.location_id) out.push({ chave: 'location_id', rotulo: `Local: ${nome(o.locais, f.location_id)}` });
-  if (f.active_state) out.push({ chave: 'active_state', rotulo: `Situação: ${nome(SITUACOES, f.active_state)}` });
-  if (f.repair_model_id) out.push({ chave: 'repair_model_id', rotulo: `Modelo: ${nome(o.modelos_dispositivo, f.repair_model_id)}` });
-  if (f.not_for_selling) out.push({ chave: 'not_for_selling', rotulo: 'Não para venda' });
-  if (f.woocommerce_enabled) out.push({ chave: 'woocommerce_enabled', rotulo: 'WooCommerce habilitado' });
-  if (f.q) out.push({ chave: 'q', rotulo: `Busca: ${f.q}` });
-  return out;
 }

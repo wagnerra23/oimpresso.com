@@ -70,16 +70,23 @@ export default function AcoesProduto({ linha, permissoes, gruposDePreco, aoEscol
   ].filter(Boolean);
   const grupos = [grupo1, grupo2, grupo3].filter((g) => g.length > 0);
 
+  // A linha da tabela é clicável (abre o produto) e os eventos do React atravessam o portal do
+  // menu: gatilho e conteúdo param a propagação, senão escolher um item também abriria a linha.
+  const parar = (e: { stopPropagation: () => void }) => e.stopPropagation();
   return (
-    // A célula da tabela é clicável (abre o produto): o menu não pode deixar o clique subir.
-    <span onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="outline" size="sm" aria-label={`Ações do produto ${linha.nome}`}>
+          <Button
+            variant="outline"
+            size="sm"
+            aria-label={`Ações do produto ${linha.nome}`}
+            onClick={parar}
+            onKeyDown={parar}
+          >
             Ações <ChevronDown size={12} aria-hidden />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="start" className="min-w-[236px]">
+        <DropdownMenuContent align="start" className="min-w-[236px]" onClick={parar} onKeyDown={parar}>
           {grupos.map((g, i) => (
             <Fragment key={i}>
               {i > 0 && <DropdownMenuSeparator />}
@@ -88,6 +95,5 @@ export default function AcoesProduto({ linha, permissoes, gruposDePreco, aoEscol
           ))}
         </DropdownMenuContent>
       </DropdownMenu>
-    </span>
   );
 }
