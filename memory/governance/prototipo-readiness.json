@@ -305,6 +305,16 @@
       ]
     },
     {
+      "tela": "NotificationTemplate/Index",
+      "arquivo": "resources/js/Pages/NotificationTemplate/Index.tsx",
+      "modulo": "core",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/Wagner/notificacoes-page.jsx",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
       "tela": "Ponto/Conformidade",
       "arquivo": "resources/js/Pages/Ponto/Conformidade.tsx",
       "modulo": "core",
@@ -330,6 +340,16 @@
       "modulo": "core",
       "status": "1-ciclo",
       "prototipo": "prototipo-ui/cowork/Wagner/ponto-mobile.jsx",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
+      "tela": "ProductCatalogue/CatalogueQr",
+      "arquivo": "resources/js/Pages/ProductCatalogue/CatalogueQr.tsx",
+      "modulo": "core",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/Wagner/catalogo-qr-page.jsx",
       "falta": [
         "scorecard"
       ]
@@ -715,5 +735,5 @@
       ]
     }
   ],
-  "total": 154
+  "total": 156
 }
