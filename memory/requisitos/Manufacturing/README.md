@@ -35,5 +35,6 @@ scale:
 
 - **[ARCHITECTURE.md](ARCHITECTURE.md)** — camadas, modelos, áreas funcionais
 - **[SPEC.md](SPEC.md)** — user stories e regras Gherkin
+- **[PARIDADE-ordem-producao-blade-vs-prototipo.md](PARIDADE-ordem-producao-blade-vs-prototipo.md)** — ordem de produção: o que a tela nova ganha, perde e muda em relação à Blade
 - **[CHANGELOG.md](CHANGELOG.md)** — histórico de mudanças
 - **[adr/](adr/)** — decisões arquiteturais numeradas
