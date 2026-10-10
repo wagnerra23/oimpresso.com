@@ -68,13 +68,15 @@ function plcLogin(object $test, User $user): object
 function plcLista(object $test, array $query = []): array
 {
     $url = '/products' . ($query ? '?' . http_build_query($query) : '');
-    $resp = $test->withHeaders([
+    // Cabeçalhos POR REQUISIÇÃO (2º argumento do get), nunca `withHeaders()`: ele grava no
+    // caso de teste e o `X-Inertia` vazaria para a chamada seguinte à lista Blade.
+    $resp = $test->get($url, [
         'X-Inertia' => 'true',
         'X-Inertia-Version' => plcVersao(),
         'X-Inertia-Partial-Component' => 'Produto/Index',
         'X-Inertia-Partial-Data' => 'lista',
         'X-Requested-With' => 'XMLHttpRequest',
-    ])->get($url);
+    ]);
     $resp->assertOk();
     $page = json_decode($resp->getContent(), true);
     expect($page['component'] ?? null)->toBe('Produto/Index');
@@ -87,10 +89,10 @@ function plcLista(object $test, array $query = []): array
 function plcIdsBlade(object $test, array $filtros): array
 {
     $query = array_merge(['draw' => 1, 'start' => 0, 'length' => -1], $filtros);
-    $resp = $test->withHeaders([
+    $resp = $test->get('/products?' . http_build_query($query), [
         'X-Requested-With' => 'XMLHttpRequest',
         'Accept' => 'application/json',
-    ])->get('/products?' . http_build_query($query));
+    ]);
     $resp->assertOk();
     $json = json_decode($resp->getContent(), true);
     expect($json)->toHaveKey('data');
