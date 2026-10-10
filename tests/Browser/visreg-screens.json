@@ -1,5 +1,13 @@
 [
   {
+    "screen": "NotificationTemplate",
+    "source": "NotificationTemplate",
+    "component": "NotificationTemplate/Index",
+    "route": "/notification-templates",
+    "anchor": "Modelos de notificação",
+    "baseline": "it_NotificationTemplate_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
+  },
+  {
     "screen": "Financeiro/Unificado",
     "source": "Financeiro/Unificado",
     "a11y": true,

@@ -67,7 +67,7 @@ test('UC-NOT-26 F2 partial reload traz os campos apenas do próprio tenant', fun
     expect($r->json('props.customer_notifications'))->not->toHaveKey('new_booking');
 });
 
-test('UC-NOT-02 F2 conserva os modelos injetados pelos módulos', function () {
+test('UC-NOT-23 F2 conserva os modelos injetados pelos módulos', function () {
     notifDualFlag(true);
     $this->partialMock(ModuleUtil::class, function ($mock) {
         $mock->shouldReceive('getModuleData')->with('notification_list', ['notification_for' => 'customer'])
@@ -98,7 +98,14 @@ test('F2 flag ausente fica OFF no serviço real para qualquer tenant', function 
     Cache::forget('growthbook.features');
 });
 
-test('F2 navegação sem X-Inertia preserva Blade antes da Page', function () {
+test('F3 opção legacy preserva o editor Blade mesmo com a flag ON', function () {
     $this->mock(FeatureFlagService::class, fn ($mock) => $mock->shouldNotReceive('isOn'));
-    $this->get('/notification-templates')->assertOk()->assertViewIs('notification_template.index');
+    $this->get('/notification-templates?legacy=1')->assertOk()->assertViewIs('notification_template.index');
+});
+
+
+test('F3 flag ON permite abrir a Page por navegação HTML', function () {
+    notifDualFlag(true);
+    $this->get('/notification-templates')->assertOk()
+        ->assertInertia(fn (\Inertia\Testing\AssertableInertia $page) => $page->component('NotificationTemplate/Index'));
 });
