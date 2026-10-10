@@ -70,14 +70,16 @@ class ProductController extends Controller
         $selling_price_group_count = SellingPriceGroup::countSellingPriceGroups($business_id);
         $is_woocommerce = $this->moduleUtil->isModuleInstalled('Woocommerce');
 
-        // O menu abre o Blade. Em 2026-10-07 o cutover pelo menu · thread 01 (#9094, D1 [W]) pôs a
-        // Page React como padrão; em 2026-10-09 voltou, porque a lista React corta em 200 produtos
-        // sem paginação, busca só no que carregou e não pelo SKU da variação (UC-PIDX-01/02/06 em
-        // `Produto/Index.casos.md`, teste em quarentena) — e havia empresa com milhares de produtos.
-        // Ela também não segue o desenho desta tela (protótipo `produto-blade.jsx`, vista `lista`).
-        // A Page React segue acessível com o header `X-Inertia`. A decisão continua ANTES do ramo
-        // `ajax()`: o Inertia manda `X-Requested-With` junto do `X-Inertia` (§5 2026-09-08).
-        $telaReact = (bool) request()->header('X-Inertia');
+        // O menu abre a Page React; `?classico=1` mantém o Blade (molde `UnitController@index`).
+        // Histórico: em 2026-10-07 o cutover pelo menu · thread 01 (#9094, D1 [W]) ligou a Page de
+        // cards; em 2026-10-09 voltou ao Blade (#9117) porque ela cortava em 200 produtos, buscava só
+        // no que carregou e não seguia o protótipo. Em 2026-10-10 a lista foi refeita no desenho do
+        // protótipo (`produto-blade.jsx`, vista `lista`) sobre a MESMA consulta e busca da lista
+        // Blade, paginada no servidor (#9119/#9124), e o menu volta a abri-la ([F], autorizado [W]).
+        // A decisão vem ANTES do ramo `ajax()`: o Inertia manda `X-Requested-With` junto do
+        // `X-Inertia`, e com o `ajax()` primeiro a visita Inertia recebia o JSON do DataTable
+        // (§5 2026-09-08).
+        $telaReact = ! request()->boolean('classico') && (! request()->ajax() || request()->header('X-Inertia'));
 
         if (! $telaReact && request()->ajax()) {
             $products = $this->consultaListaProdutos($business_id, [
@@ -486,8 +488,10 @@ class ProductController extends Controller
      *   · cada PALAVRA precisa aparecer em alguma coluna (`multi_term`); maiúscula = minúscula;
      *   · colunas pesquisáveis: nome, SKU do produto, SKU da variação (`filterColumn('products.sku')`),
      *     tipo (valor interno), categoria, marca e campos personalizados 1-7;
-     *   · NÃO entram: locais, imposto, unidade, preços e estoque (no Blade são `searchable: false`
-     *     ou coluna calculada).
+     *   · NÃO entram: imagem, locais, imposto, unidade, preços e estoque. Medido no DataTable vivo
+     *     em 2026-10-10: `products.image` é `searchable: false`, e `product_locations` aparece como
+     *     pesquisável mas é coluna montada — buscar o nome do local não filtra (os acertos vêm da
+     *     marca de mesmo nome).
      * Porcentagem e sublinhado digitados viram literais (no Blade eram curinga).
      */
     protected function aplicarBuscaListaProdutos($query, string $busca): void

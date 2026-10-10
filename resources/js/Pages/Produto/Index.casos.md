@@ -46,8 +46,8 @@ last_run_ci: "run 38087431948 (lane Estoque · MySQL, commit 59fe58ae, com o arq
 > **bloqueador de migração**: define quando a lista React pode ser ligada (MWART F5,
 > [ADR 0104](../../../../memory/decisions/0104-processo-mwart-canonico-unico-caminho.md) · US-PROD-023).
 > _(2026-10-10: a lista React foi refeita no desenho do protótipo sobre a consulta da lista Blade
-> — #9119 e #9124 — e segue fora do menu até a etapa de ligá-lo, depois da medição contra o
-> protótipo. Continua sendo bloqueador de migração, agora com os 6 casos esperados verdes.)_
+> — #9119 e #9124 — e o menu volta a abri-la no PR do cutover; `?classico=1` mantém o Blade.
+> A partir daí estes 6 casos defendem a tela viva da ROTA LIVRE.)_
 >
 > **Status:** ✅ passa · 🧪 teste cita o UC e passa · ⬜ não verificado (stub/sem veredito) ·
 > 🔶 backlog (achado a verificar / decisão [W]) · ❌ quebrou.

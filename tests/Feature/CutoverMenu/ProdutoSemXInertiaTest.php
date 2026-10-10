@@ -6,17 +6,17 @@ use App\User;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Inertia\Testing\AssertableInertia;
 use Spatie\Permission\Models\Permission;
 
 /**
  * Cutover pelo menu · thread 01 — rotas da lista de Produtos.
  *
  * Em 2026-10-07 (#9094, playbook `cutover-menu`, D1 [W] "por tela: React vira padrão") o GET
- * comum passou a abrir a Page React. Em 2026-10-09 o menu VOLTOU ao Blade: a lista React corta
- * em 200 produtos, busca só no que carregou e não pelo SKU da variação (UC-PIDX-01/02/06 de
- * `Produto/Index.casos.md`, em quarentena) e não segue o protótipo desta tela
- * (`produto-blade.jsx`, vista `lista`). Quando a lista React for refeita a partir dele, o 1º
- * caso abaixo volta a exigir a Page.
+ * comum passou a abrir a Page React de cards. Em 2026-10-09 o menu VOLTOU ao Blade (#9117): ela
+ * cortava em 200 produtos, buscava só no que carregou e não seguia o protótipo desta tela
+ * (`produto-blade.jsx`, vista `lista`). Em 2026-10-10 a lista foi refeita a partir dele, sobre a
+ * consulta da lista Blade (#9119/#9124), e o 1º caso abaixo volta a exigir a Page.
  *
  * O menu navega com carga cheia (`<a href>`, sem `X-Inertia`).
  *
@@ -25,8 +25,8 @@ use Spatie\Permission\Models\Permission;
  * cadastro da Larissa. O último caso abaixo trava que o GET comum do novo segue no Blade.
  *
  * Os caminhos que importam:
- *   GET comum                 → Blade (o menu)
- *   ?classico=1               → Blade (o link antigo continua valendo)
+ *   GET comum                 → Page React (o menu)
+ *   ?classico=1               → Blade (saída de emergência, o link antigo continua valendo)
  *   AJAX sem X-Inertia        → JSON do DataTable (a lista Blade continua lendo daqui)
  *   visita Inertia real       → Page (X-Inertia **e** X-Requested-With — §5 2026-09-08)
  *   reload de props deferidas → Page com as props pedidas (antes caía no JSON do DataTable)
@@ -95,17 +95,15 @@ beforeEach(function () {
     $this->bizId = (int) $this->seededTenant()->id;
 });
 
-it('GET comum (como o menu navega) abre o Blade da lista', function () {
-    // Volta de 2026-10-09: a lista React corta em 200 e não segue o protótipo (ver cabeçalho).
-    foreach (psxTelas() as $nome => [$rota, , $blade, $permissoes]) {
-        psxLogin($this, psxUsuario($this->bizId, $permissoes))
-            ->get($rota)
-            ->assertOk()
-            ->assertViewIs($blade);
+it('GET comum (como o menu navega) abre a Page React da lista', function () {
+    foreach (psxTelas() as $nome => [$rota, $componente, , $permissoes]) {
+        $resp = psxLogin($this, psxUsuario($this->bizId, $permissoes))->get($rota);
+        $resp->assertOk();
+        $resp->assertInertia(fn (AssertableInertia $p) => $p->component($componente, false));
     }
 });
 
-it('?classico=1 continua abrindo o Blade da lista', function () {
+it('?classico=1 mantém o Blade da lista', function () {
     foreach (psxTelas() as $nome => [$rota, , $blade, $permissoes]) {
         psxLogin($this, psxUsuario($this->bizId, $permissoes))
             ->get($rota . '?classico=1')
