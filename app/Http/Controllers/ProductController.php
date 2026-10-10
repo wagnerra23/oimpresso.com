@@ -262,15 +262,10 @@ class ProductController extends Controller
                     'grupos_de_preco' => (int) $selling_price_group_count,
                     'woocommerce' => (bool) $is_woocommerce,
                     'rotulos_campos' => $this->rotulosCamposProduto(),
+                    // Papel do usuário, como a linha de contexto do protótipo ("papel: Administrador").
+                    // O nome do role no UltimatePOS carrega o sufixo `#<business_id>` — sai da tela.
+                    'papel' => ($papel = auth()->user()->roles->pluck('name')->first()) ? preg_replace('/#\d+$/', '', (string) $papel) : null,
                 ],
-                'filters' => [
-                    'busca' => (string) request()->input('busca', ''),
-                    'categoria' => (string) request()->input('categoria', 'todos'),
-                    'mostrarInativos' => (bool) request()->input('mostrarInativos', false),
-                ],
-                'kpis' => Inertia::defer(fn () => $this->buildProdutoIndexKpis($business_id)),
-                'rows' => Inertia::defer(fn () => $this->buildProdutoIndexRows($business_id, $podeVerCusto, $podeVerPreco)),
-                'categorias' => Inertia::defer(fn () => $this->buildProdutoIndexCategorias($business_id)),
                 'permissions' => [
                     'create' => auth()->user()->can('product.create'),
                     'update' => auth()->user()->can('product.update'),
@@ -526,7 +521,8 @@ class ProductController extends Controller
     {
         $query = $this->consultaListaProdutos($business_id, $f, $is_woocommerce)
             ->with('product_locations')
-            ->withCount('variations');
+            ->withCount('variations')
+            ->addSelect('units.short_name as unidade_curta', 'products.enable_sr_no');
         $this->aplicarBuscaListaProdutos($query, $f['q']);
 
         $ordenaveis = [
@@ -570,6 +566,7 @@ class ProductController extends Controller
                 'categoria' => $row->category,
                 'subcategoria' => $row->sub_category,
                 'unidade' => $row->unit,
+                'unidade_curta' => $row->unidade_curta,
                 'marca' => $row->brand,
                 'imposto' => $row->tax,
                 'imagem' => $row->image_url,
@@ -579,6 +576,7 @@ class ProductController extends Controller
                 'abaixo_do_alerta' => $estoque !== null && $alerta !== null && $estoque <= $alerta,
                 'inativo' => (bool) $row->is_inactive,
                 'nao_para_venda' => (bool) $row->not_for_selling,
+                'serie' => (bool) $row->enable_sr_no,
                 'locais' => $row->product_locations->pluck('name')->values()->all(),
                 'variacoes' => (int) $row->variations_count,
                 'campos' => [
@@ -658,150 +656,6 @@ class ProductController extends Controller
         }
 
         return $out;
-    }
-
-    /**
-     * Build KPI strip for Produto/Index Inertia page.
-     * Wave 2 B4 Produto (Agent W2-C 2026-05-15) · Tier 0 multi-tenant (ADR 0093).
-     */
-    protected function buildProdutoIndexKpis(int $businessId): array
-    {
-        $total = Product::where('business_id', $businessId)
-            ->where('type', '!=', 'modifier')
-            ->count();
-
-        $ativos = Product::where('business_id', $businessId)
-            ->where('type', '!=', 'modifier')
-            ->where(function ($q) {
-                $q->whereNull('is_inactive')->orWhere('is_inactive', 0);
-            })
-            ->count();
-
-        $categorias = Category::where('business_id', $businessId)
-            ->where('category_type', 'product')
-            ->count();
-
-        // Populares: produtos com >= 30 vendas em 30d (TransactionSellLine)
-        // Mantém simples — query agregada deferred é OK.
-        $populares = 0;
-        try {
-            $populares = TransactionSellLine::query()
-                ->join('transactions as t', 't.id', '=', 'transaction_sell_lines.transaction_id')
-                ->join('variations as v', 'v.id', '=', 'transaction_sell_lines.variation_id')
-                ->join('products as p', 'p.id', '=', 'v.product_id')
-                ->where('p.business_id', $businessId)
-                ->where('t.transaction_date', '>=', now()->subDays(30))
-                ->groupBy('p.id')
-                ->havingRaw('SUM(transaction_sell_lines.quantity) >= 30')
-                ->count('p.id');
-        } catch (\Throwable $e) {
-            $populares = 0;
-        }
-
-        return [
-            'total' => (int) $total,
-            'ativos' => (int) $ativos,
-            'categorias' => (int) $categorias,
-            'populares' => (int) $populares,
-        ];
-    }
-
-    /**
-     * Build rows for Produto/Index Inertia page.
-     *
-     * UC-PIDX-03 (`resources/js/Pages/Produto/Index.casos.md`) — a regra é AUSÊNCIA, não campo
-     * vazio: `AR-PROD-015` diz que custo e margem SOMEM da tela pra quem não tem o direito
-     * (`liedtCusto.Visible := GetPodeVerCustos`), e a Blade desta mesma lista envolve as duas
-     * colunas em `@can` (`product/index.blade.php:287,294`). Por isso a chave NÃO é emitida —
-     * mandar `0`/`null` afirmaria um valor que o usuário não pode ver, e o teste de contrato
-     * varre o payload por VALOR (renomear a chave não o faz passar).
-     */
-    protected function buildProdutoIndexRows(int $businessId, bool $podeVerCusto = false, bool $podeVerPreco = false): array
-    {
-        $rows = Product::where('business_id', $businessId)
-            ->where('type', '!=', 'modifier')
-            ->with(['category', 'unit'])
-            ->leftJoin('variations as v', 'v.product_id', '=', 'products.id')
-            ->whereNull('v.deleted_at')
-            ->select(
-                'products.id',
-                'products.name',
-                'products.sku',
-                'products.type',
-                'products.category_id',
-                'products.unit_id',
-                'products.is_inactive',
-                'products.enable_stock',
-                'products.updated_at',
-                DB::raw('MIN(v.sell_price_inc_tax) as min_price'),
-                DB::raw('MIN(v.dpp_inc_tax) as min_cost'),
-            )
-            ->groupBy('products.id')
-            ->orderBy('products.name')
-            ->limit(200)
-            ->get();
-
-        return $rows->map(function ($p) use ($podeVerCusto, $podeVerPreco) {
-            $price = (float) ($p->min_price ?? 0);
-            $cost = (float) ($p->min_cost ?? 0);
-
-            $linha = [
-                'id' => (int) $p->id,
-                'sku' => (string) ($p->sku ?? ''),
-                'name' => (string) $p->name,
-                'categoryId' => $p->category_id ? (int) $p->category_id : null,
-                'categoryLabel' => $p->category?->name,
-                'unit' => $p->unit?->actual_name,
-                'stockQty' => null,
-                'stockKind' => $p->enable_stock ? 'estoque' : 'sob_demanda',
-                'popularity' => 0, // popularity computation deferred a Wave 3
-                'active' => empty($p->is_inactive),
-                'updatedAt' => $p->updated_at?->toIso8601String(),
-            ];
-
-            // A chave só existe se o usuário puder ver o valor (mesmo desenho do
-            // `ProdutoUnificadoController::produtos`, `:682-694`).
-            if ($podeVerPreco) {
-                $linha['price'] = $price;
-            }
-            if ($podeVerCusto) {
-                $linha['cost'] = $cost;
-            }
-            // `margin` deriva dos DOIS. Entregá-la sabendo um deles entrega o outro por
-            // dedução — é o mesmo vazamento com uma conta no meio.
-            if ($podeVerCusto && $podeVerPreco) {
-                $linha['margin'] = $price > 0 ? round((($price - $cost) / $price) * 100) : 0;
-            }
-
-            return $linha;
-        })->all();
-    }
-
-    /**
-     * Build categoria tabs for Produto/Index.
-     */
-    protected function buildProdutoIndexCategorias(int $businessId): array
-    {
-        // `categories.` explícito: o leftJoin abaixo traz `products`, que TAMBÉM tem
-        // `business_id` — sem qualificar, o MySQL responde
-        // "Column 'business_id' in where clause is ambiguous" (SQLSTATE 23000) e a tela dá 500.
-        // Não estourava porque a lista React é inalcançável hoje (sidebar usa <a href> puro →
-        // cai no Blade); ligá-la sem isto seria 500 na hora. Exposto por UC-PIDX-01/02/03/06.
-        $cats = Category::where('categories.business_id', $businessId)
-            ->where('categories.category_type', 'product')
-            ->select('categories.id', 'categories.name')
-            ->leftJoin('products', 'products.category_id', '=', 'categories.id')
-            ->groupBy('categories.id', 'categories.name')
-            ->selectRaw('COUNT(products.id) as count')
-            ->orderBy('categories.name')
-            ->get();
-
-        return $cats->map(fn ($c) => [
-            'id' => (int) $c->id,
-            'slug' => str()->slug($c->name),
-            'label' => (string) $c->name,
-            'count' => (int) $c->count,
-        ])->all();
     }
 
     /**

@@ -5,8 +5,8 @@ irmaos: Index.charter.md (lei)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: a lista é a PORTA do catálogo — se ela esconde produto, esconde preço a quem não devia, ou mistura tenant, todo o resto do ERP herda o erro.
 owner: wagner
-last_run: "2026-09-06"
-last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane Estoque · MySQL"
+last_run: "2026-10-10"
+last_run_ci: "run 38087431948 (lane Estoque · MySQL, commit 59fe58ae, com o arquivo fora da quarentena naquele commit): os 6 UC-PIDX passaram. A saída da quarentena da lane vai em PR próprio (o arquivo .github é CODEOWNERS [W])"
 ---
 
 # Casos de Uso & Aceite — Lista do catálogo (`/products`)
@@ -45,6 +45,9 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 > Blade (confirmado por [F] em 2026-07-24, `Edit.casos.md` §Trilha). O que está aqui é
 > **bloqueador de migração**: define quando a lista React pode ser ligada (MWART F5,
 > [ADR 0104](../../../../memory/decisions/0104-processo-mwart-canonico-unico-caminho.md) · US-PROD-023).
+> _(2026-10-10: a lista React foi refeita no desenho do protótipo sobre a consulta da lista Blade
+> — #9119 e #9124 — e segue fora do menu até a etapa de ligá-lo, depois da medição contra o
+> protótipo. Continua sendo bloqueador de migração, agora com os 6 casos esperados verdes.)_
 >
 > **Status:** ✅ passa · 🧪 teste cita o UC e passa · ⬜ não verificado (stub/sem veredito) ·
 > 🔶 backlog (achado a verificar / decisão [W]) · ❌ quebrou.
@@ -53,12 +56,23 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 
 | UC | Caso de uso | Prio | Âncora | Teste | Status |
 |----|-------------|------|--------|-------|--------|
-| UC-PIDX-01 | Todo produto do catálogo é alcançável na lista (sem corte silencioso) | must | Blade DataTables server-side + `AR-PROD-022/023` | `ProdutoIndexContratoTest` (Pest) | ⬜ failing-first — vermelho esperado |
-| UC-PIDX-02 | Busca é resolvida no servidor e acha por SKU de variação (`sub_sku`) | must | Blade `filterColumn('products.sku')` + `CU-PROD-02` | `ProdutoIndexContratoTest` (Pest) | ⬜ failing-first — vermelho esperado |
-| UC-PIDX-03 | Preço e custo na lista respeitam a permissão de vê-los | must | Blade `@can` ×2 (`resources/views/product/index.blade.php:287 (verificado@5d5cac0),294`) + `AR-PROD-015` | `ProdutoIndexContratoTest` (Pest) | 🧪 corrigido 2026-09-18 |
-| UC-PIDX-04 | Lista, KPIs e contadores só enxergam o business atual | must `[T0]` | `CU-PROD-10` + ADR 0093 + charter §Anti-hooks | `ProdutoIndexContratoTest` (Pest) | ⬜ guard — verde esperado |
+| UC-PIDX-01 | Todo produto do catálogo é alcançável na lista (sem corte silencioso) | must | Blade DataTables server-side + `AR-PROD-022/023` | `ProdutoIndexContratoTest` (Pest) | ⬜ reescrito 2026-10-10 — verde esperado |
+| UC-PIDX-02 | Busca é resolvida no servidor e acha por SKU de variação (`sub_sku`) | must | Blade `filterColumn('products.sku')` + `CU-PROD-02` | `ProdutoIndexContratoTest` (Pest) | ⬜ reescrito 2026-10-10 — verde esperado |
+| UC-PIDX-03 | Preço e custo na lista respeitam a permissão de vê-los | must | Blade `@can` ×2 (`resources/views/product/index.blade.php:287 (verificado@5d5cac0),294`) + `AR-PROD-015` | `ProdutoIndexContratoTest` (Pest) | ⬜ reescrito 2026-10-10 (era 🧪 corrigido 2026-09-18) |
+| UC-PIDX-04 | Lista e total só enxergam o business atual | must `[T0]` | `CU-PROD-10` + ADR 0093 + charter §Anti-hooks | `ProdutoIndexContratoTest` (Pest) | ⬜ guard — verde esperado |
 | UC-PIDX-05 | Abrir a lista não escreve no banco (GET é leitura pura) | must | charter §Anti-hooks + `AR-PROD-064` | `ProdutoIndexContratoTest` (Pest) | ⬜ guard — verde esperado |
-| UC-PIDX-06 | "Mostrar inativos" é resolvido no servidor | should | `AR-PROD-003/022` + Blade `active_state` (`:173-179`) | `ProdutoIndexContratoTest` (Pest) | ⬜ failing-first — vermelho esperado |
+| UC-PIDX-06 | Filtro de inativos (Situação) é resolvido no servidor | should | `AR-PROD-003/022` + Blade `active_state` | `ProdutoIndexContratoTest` (Pest) | ⬜ reescrito 2026-10-10 — verde esperado |
+
+> 🔄 **Revalidação G-6 — 2026-10-10 (#9124, lista no desenho do protótipo).** Os 6 contratos
+> **continuam os mesmos**: derivam do SDD, da lista Blade e do Delphi, não da tela de cards. O que
+> mudou foi a tela e a forma de perguntar ao servidor (prop `lista` = paginador; filtros pelos nomes
+> do DataTable: `q`, `active_state`, `per_page`). O `ProdutoIndexContratoTest` foi **reescrito** para
+> isso; **run 38087431948 (lane Estoque · MySQL, commit 59fe58ae, com o arquivo fora da quarentena naquele commit): os 6 UC-PIDX passaram**. O arquivo continua listado na quarentena da lane até um PR próprio
+> tirá-lo de lá (`.github/` exige aprovação do [W] por CODEOWNERS). A consulta é provada também pelo
+> `ProdutoListaConsultaTest` (#9119: paridade com o DataTable do Blade filtro a filtro). As notas
+> **"Regressão que defende"** abaixo descrevem a tela de cards (`buildProdutoIndexRows`, `limit(200)`,
+> busca e inativos ignorados) — ficam como o registro do achado que a tela nova fecha. Status
+> voltam a ⬜ até a lane publicar o veredito do arquivo reescrito.
 
 > ⚠️ **Nenhum status aqui é "✅".** Os 6 UCs nasceram agora e **não rodei** — testes são CT 100/CI
 > ([ADR 0062](../../../../memory/decisions/0062-separacao-runtime-hostinger-ct100.md)).
@@ -84,7 +98,7 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
   - **Delphi `AR-PROD-022/023`** — *"Consultar — abre busca/listagem de produtos"* e *"o cadastro vira inativo e **some da lista, mas fica acessível por filtro**"*: no legado a lista é o caminho garantido pra chegar em **qualquer** produto; o que tira algo da vista é **filtro declarado**, nunca um corte invisível.
 - **Regressão que defende:** `buildProdutoIndexRows` (`:425-448`) fecha com `->orderBy('products.name')->limit(200)` e **não há paginação em lugar nenhum** — nem prop, nem `<Deferred>` incremental, nem link. Varredura contada em `Index.tsx`: **0** ocorrências de `page`/`paginate`/`next`. O KPI "Total de produtos" (`buildProdutoIndexKpis:382-385`) conta o catálogo **inteiro**. Resultado: com 1.000 produtos, a tela anuncia 1.000 e entrega 200 — os 800 que sobram são os do fim do alfabeto, e **nada na tela diz que foram cortados**. O `EmptyState` ("Ajuste filtros ou cadastre o primeiro produto") reforça a leitura errada.
 - **Nota de denominador:** os três builders usam recortes **diferentes** — `kpis.total` exclui `type='modifier'` e conta tudo; `rows` exclui `modifier` e corta em 200; `categorias` (`:477-494`) conta **todos** os produtos da categoria (inclusive `modifier` e inativos). Os números da mesma tela não fecham entre si. O UC trava o eixo principal (alcance); a divergência de contadores está no §Backlog.
-- **Status: ⬜** — failing-first; **vermelho esperado**. Só a lane decide.
+- **Status: ⬜** — reescrito 2026-10-10 para a lista no desenho do protótipo (prop `lista`, a MESMA consulta da lista Blade, paginada e buscada no servidor — #9119/#9124); verde esperado. Só a lane decide.
 
 ---
 
@@ -98,7 +112,7 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
   - **`AR-PROD-023`** (Delphi) — *"Consultar — abre busca/listagem"*.
 - **Regressão que defende:** o `filters.busca` chega ao controller (`:345`) e é **devolvido à página sem ser usado em query nenhuma** — `buildProdutoIndexRows` não recebe o termo (`:350` passa só `$business_id`). A filtragem acontece **no cliente** (`Index.tsx:126-131 (verificado@d4afe95)`), sobre `r.name` e `r.sku` do **produto-pai**, dentro do recorte de 200 do UC-PIDX-01. Varredura contada: `sub_sku` aparece **0 vezes** em `Index.tsx` e **0 vezes** nos 3 builders. Logo, buscar pela etiqueta da variação **não acha nada**, e buscar por nome só acha entre os 200 primeiros.
 - **Por que o teste precisa do assert negativo:** como o servidor **ignora** o termo, um teste que só pergunte *"o produto buscado veio?"* passaria **por acidente** (ele vem porque vem tudo). O caso assere também que quem **não** casa fica de fora — sem isso o teste mediria não-execução (`proibicoes.md` §5, 2026-07-24).
-- **Status: ⬜** — failing-first; **vermelho esperado**.
+- **Status: ⬜** — reescrito 2026-10-10 para a lista no desenho do protótipo (prop `lista`, a MESMA consulta da lista Blade, paginada e buscada no servidor — #9119/#9124); verde esperado. Só a lane decide.
 
 ---
 
@@ -112,7 +126,8 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
   - **Precedente do módulo** — `UC-PSHOW-01` (mesma família, na ficha) já está em failing-first; este é o mesmo furo na porta de entrada, onde o dado sai em **lote**.
 - **Regressão que defende:** `buildProdutoIndexRows` (`:450-471`) monta **`price`**, **`cost`** e **`margin`** para **toda** linha, sem consultar permissão alguma. As únicas permissões que o branch Inertia lê são `create`/`update`/`delete`/`opening_stock` (`:352-357`) — varredura contada de `view_purchase_price|access_default_selling_price` em `ProductController.php`: **0**. O card renderiza `fmtBRL(row.price)` (`Index.tsx:403 (verificado@d4afe95)`) sem gate; `cost` e `margin` não são renderizados mas **viajam no JSON das props** — visíveis no HTML da página. Ligar a lista React hoje **derruba um gate de custo que o Blade e o Delphi têm**, e em escala (todo o catálogo de uma vez, não um produto por vez).
 - **Não é `[V0]`:** não altera cálculo de valor — gateia **exibição**. A REGRA MESTRE (dupla-confirmação + antes→depois) não se aplica; marcar `[V0]` aqui inflaria o ritual sem proteger nada.
-- **Status: 🧪** — **corrigido em 2026-09-18**, junto com o irmão `UC-PSHOW-01` (mesmo furo, mesma
+- **Status: ⬜** — reescrito 2026-10-10 para a lista no desenho do protótipo (prop `lista`, a MESMA consulta da lista Blade, paginada e buscada no servidor — #9119/#9124); verde esperado. Só a lane decide. A lista nova só emite `compra_*`/`venda_*` com a permissão.
+  _(Antes:)_ 🧪 **corrigido em 2026-09-18**, junto com o irmão `UC-PSHOW-01` (mesmo furo, mesma
   família). `index()` resolve as duas permissões uma vez e passa ao builder; `buildProdutoIndexRows`
   só emite `price` com `access_default_selling_price`, `cost` com `view_purchase_price`, e `margin`
   **só com os dois** — ela deriva de ambos, então entregá-la sabendo um entrega o outro por dedução.
@@ -120,7 +135,7 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
   afirmaria que há um valor escondido); a unidade fica, porque é dado de cadastro.
   **Veredito medido** (CT 100, 2026-09-18): `UC-PIDX-03 ✓`. Nos dois contratos juntos,
   `3 failed, 7 passed (67 assertions)` — antes do fix eram `5 failed / 5 passed`.
-- ⚠️ **O arquivo CONTINUA em quarentena de lane, e isso é honesto:** os outros 3 casos
+- ⚠️ _(2026-09-18, histórico — em 2026-10-10 o teste reescrito passou inteiro na lane, run 38087431948; a saída da quarentena vai em PR próprio:)_ **O arquivo CONTINUA em quarentena de lane, e isso é honesto:** os outros 3 casos
   (`UC-PIDX-01` corte de 200 sem paginação · `UC-PIDX-02` busca · `UC-PIDX-06` filtro de inativos)
   seguem vermelhos. São a **outra metade** — alcance e filtragem server-side —, não têm relação com
   permissão, e sair da lista exigiria fechá-los também.
@@ -157,7 +172,7 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
   - **Delphi `AR-PROD-022`** — *"o cadastro vira inativo e some da lista, mas fica acessível por filtro de excluídos/inativos"*; **`AR-PROD-003`** — *"produto inativo não some do cadastro, só do fluxo de venda"*.
   - **Charter** §Goals — *"Toggle 'Mostrar inativos' (default: oculto)"*.
 - **Regressão que defende:** `filters.mostrarInativos` é lido (`:347`) e **devolvido sem uso**; `buildProdutoIndexRows` não filtra por `is_inactive` — manda ativos e inativos sempre. O ocultamento acontece no cliente (`Index.tsx:120-122 (verificado@d4afe95)`), **depois** do corte de 200: um catálogo com muitos inativos gasta as 200 vagas com linhas que a tela vai esconder, e produtos ativos legítimos somem da vista (composição com UC-PIDX-01). Pelo mesmo caminho, o badge do Blade para `not_for_selling` (`:263-264`) não tem par no React — §Backlog.
-- **Status: ⬜** — failing-first; **vermelho esperado**.
+- **Status: ⬜** — reescrito 2026-10-10 para a lista no desenho do protótipo (prop `lista`, a MESMA consulta da lista Blade, paginada e buscada no servidor — #9119/#9124); verde esperado. Só a lane decide.
 
 ---
 
@@ -262,4 +277,5 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 - Gate: `scripts/casos-coverage-guard.mjs` (G-1/G-2/G-5/G-6/G-7 — [ADR 0264](../../../../memory/decisions/0264-governanca-executavel-trio-dominio-e2e.md))
 
 ## Trilha do tempo
+- 2026-10-10 · [F+C] **revalidação G-6** para a lista no desenho do protótipo (charter v3, #9118; dados #9119; tela #9124). Os 6 UCs ficam; o teste foi reescrito para a prop `lista` e passou inteiro na lane (run 38087431948); a saída da quarentena vai em PR próprio, por CODEOWNERS do `.github/`; status voltam a ⬜ até a lane rodar. A tabela de paridade e o backlog abaixo descrevem a tela de cards: o saldo, a imagem, os locais, as colunas, os 7 filtros, a seleção em massa, o selo "não para venda" e a ordenação por coluna **entram na tela nova**; a aba Relatório de estoque e os indicadores entram nas etapas seguintes.
 - 2026-07-26 · [CC] nascido pelo agent `sdd-from-source` ([ADR 0351](../../../../memory/decisions/0351-sdd-from-source.md)) — 3ª tela do módulo (depois de `Edit` e `Show`), trio fechado (charter existia + casos novo + `ProdutoIndexContratoTest` failing-first). Triangulação incomum: aqui a Blade legada **é o outro branch do mesmo método** `index()`, então a paridade é comparação interna do controller. **Achado principal:** a lista React entrega `price`/`cost`/`margin` de todo o catálogo sem consultar permissão, enquanto a **própria lista Blade** gateia as duas colunas com `@can` (UC-PIDX-03) — é o `UC-PSHOW-01` de novo, agora em lote. **Achado de alcance:** `limit(200)` sem paginação, com KPI anunciando o total — perda silenciosa (UC-PIDX-01). **Achado de arquitetura:** `App\Product` **não tem global scope** (`addGlobalScope` = 0 ocorrências); o isolamento do módulo inteiro é `where` manual repetido (UC-PIDX-04). **Governança:** o §Pest GUARD prometia 10 testes e o arquivo não existe; 3 refs factuais do charter estavam podres e foram corrigidas. Nenhum UC declarado ✅ — a lane `Estoque · MySQL` publica o veredito.

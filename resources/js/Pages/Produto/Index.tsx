@@ -1,469 +1,814 @@
-// Wave 2 B4 Produto · F3 FRONTEND — Pages/Produto/Index.tsx
-// Migração MWART (ADR 0104) — Blade product.index → Inertia/React Cowork blueprint
-// Pattern reuse blueprint: prototipo-ui/cowork/Wagner/legado/produto-cockpit/ (ADR 0149)
-// Refs: RUNBOOK-produto-index.md · Index.charter.md · produto-index-visual-comparison.md
-// Agent W2-C paralelo · 2026-05-15
+// Produto/Index — lista de produtos (/products) no desenho do protótipo.
 //
-// Tier 0 IRREVOGÁVEL:
-//   - business_id global scope no controller (não no client)
-//   - PT-BR em texto UI
-//   - Inertia::defer() em props caras (KPIs, rows, categorias)
-//   - sem any TypeScript
-//   - sem session-Storage (usar localStorage com prefixo oimpresso.produto.)
+// Âncora: prototipo-ui/cowork/Felipe/produto-blade.jsx, vista `lista` (TelaLista) — charter v3
+// (Index.charter.md). NÃO é a `TelaCatalogo` de cards do mesmo arquivo.
+// Dados: ProductController::buildProdutoListaPaginada — a MESMA consulta da lista Blade
+// (`consultaListaProdutos`), paginada e buscada no servidor. Nada de corte em 200.
+// CSS: resources/css/cowork-produto-bundle.css (cópia na íntegra do protótipo).
+//
+// Componentes pelo registro (governance/design/component-registry.json):
+// DataTablePro → shared/DataTable (grid) · Kebab → ui/dropdown-menu · BulkBar →
+// shared/BulkActionBar · Modal → ui/dialog / ui/alert-dialog · FilterChip → shared/PageFilters.
+//
+// Destinos (Editar, Novo produto, Duplicar, Histórico, Preços, Rótulos, Edição em massa) abrem
+// com navegação de página INTEIRA, como na lista Blade: o cadastro da ROTA LIVRE segue no Blade
+// (US-PROD-029) e esta tela não muda isso.
+//
+// Tier 0: business_id no servidor; PT-BR; localStorage com prefixo oimpresso.produto.*.
 
-import AppShellV2 from '@/Layouts/AppShellV2';
-import { Deferred, Head, Link, router } from '@inertiajs/react';
-import { useMemo, useState } from 'react';
+import '../../../css/cowork-produto-bundle.css';
+import { Deferred, Head, router } from '@inertiajs/react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
-import { Plus, Upload, Search, Package } from 'lucide-react';
-import { Input } from '@/Components/ui/input';
+import type { ColumnDef } from '@tanstack/react-table';
+import { FileSpreadsheet, Package, Plus, RefreshCw, Search } from 'lucide-react';
+import { toast } from 'sonner';
+import AppShellV2 from '@/Layouts/AppShellV2';
+import { PageHeader } from '@/Components/PageHeader';
+import DataTable, { type EstadoDaLinha } from '@/Components/shared/DataTable';
+import BulkActionBar from '@/Components/shared/BulkActionBar';
+import { FilterChip } from '@/Components/shared/PageFilters';
 import { Button } from '@/Components/ui/button';
+import { Checkbox } from '@/Components/ui/checkbox';
+import { Segmented } from '@/Components/ui/segmented';
+import { Skeleton } from '@/Components/ui/skeleton';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/Components/ui/alert-dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/Components/ui/dialog';
+import AcoesProduto, { type AcaoProduto } from './_components/lista/AcoesProduto';
+import FiltrosListaProdutos from './_components/lista/FiltrosLista';
+import MenuColunas from './_components/lista/MenuColunas';
+import {
+  CHAVE_COLUNAS,
+  CHAVE_DENSIDADE,
+  TIPO_ROTULO,
+  chipsDosFiltros,
+  colunasOpcionais,
+  estoqueTexto,
+  faixaDePreco,
+  subLinhaProduto,
+  visibilidadePadrao,
+  type ContextoLista,
+  type FiltrosLista,
+  type LinhaProduto,
+  type ListaPaginada,
+  type OpcoesLista,
+  type PermissoesLista,
+} from './_components/lista/tipos';
 
-const STORAGE_KEY_INACTIVE = 'oimpresso.produto.index.showInactive';
-const STORAGE_KEY_ACTIVE_TAB = 'oimpresso.produto.index.activeTab';
-
-interface ProdutoIndexPermissions {
-  create: boolean;
-  update: boolean;
-  delete: boolean;
-  opening_stock: boolean;
-  // UC-PIDX-03 — opcionais porque o payload pode chegar de uma versão do servidor que ainda
-  // não as emite. Todo consumo aplica `?? false` (fail-closed): ausência nunca vira permissão.
-  view_purchase_price?: boolean;
-  access_default_selling_price?: boolean;
+interface ProdutoIndexPageProps {
+  filtros: FiltrosLista;
+  lista?: ListaPaginada;
+  opcoes: OpcoesLista;
+  contexto: ContextoLista;
+  permissions: PermissoesLista;
 }
 
-interface ProdutoIndexKpis {
-  total: number;
-  ativos: number;
-  categorias: number;
-  populares: number;
-}
+/** Opções de linhas por página — as MESMAS da lista Blade (`common.js` aLengthMenu). */
+const POR_PAGINA = [25, 50, 100, 200, 500, 1000, -1];
 
-interface ProdutoCategoria {
-  id: number;
-  slug: string;
-  label: string;
-  count: number;
-}
+const csrf = () => document.head.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content ?? '';
 
-interface ProdutoRow {
-  id: number;
-  sku: string;
-  name: string;
-  categoryId: number | null;
-  categoryLabel: string | null;
-  unit: string | null;
-  // UC-PIDX-03 — a chave só chega pra quem pode ver o valor (`AR-PROD-015`: o campo SOME, não
-  // vem vazio). `undefined` aqui significa "sem direito", e a célula não é renderizada.
-  price?: number;
-  cost?: number;
-  margin?: number;
-  stockQty: number | null;
-  stockKind: 'estoque' | 'sob_demanda' | 'servico';
-  popularity: number;
-  active: boolean;
-  updatedAt: string | null;
-}
-
-export interface ProdutoIndexPageProps {
-  filters: {
-    busca: string;
-    categoria: string;
-    mostrarInativos: boolean;
-  };
-  kpis?: ProdutoIndexKpis;
-  rows?: ProdutoRow[];
-  categorias?: ProdutoCategoria[];
-  permissions: ProdutoIndexPermissions;
-}
-
-const fmtBRL = (n: number): string =>
-  n.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-
-function ProdutoIndex(props: ProdutoIndexPageProps) {
-  const { filters, permissions } = props;
-
-  const [busca, setBusca] = useState(filters.busca ?? '');
-  const [activeTab, setActiveTab] = useState<string>(() => {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY_ACTIVE_TAB);
-      return raw ?? filters.categoria ?? 'todos';
-    } catch {
-      return filters.categoria ?? 'todos';
-    }
+/** Endpoints JSON da lista Blade ({success, msg}) — mesmo padrão de fetch do módulo. */
+async function chamar(url: string, metodo: 'GET' | 'POST' | 'DELETE', corpo?: Record<string, unknown>): Promise<string> {
+  const r = await fetch(url, {
+    method: metodo,
+    headers: {
+      Accept: 'application/json',
+      'Content-Type': 'application/json',
+      'X-Requested-With': 'XMLHttpRequest',
+      'X-CSRF-TOKEN': csrf(),
+    },
+    body: corpo ? JSON.stringify(corpo) : undefined,
   });
-  const [mostrarInativos, setMostrarInativos] = useState<boolean>(() => {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY_INACTIVE);
-      return raw === '1';
-    } catch {
-      return filters.mostrarInativos ?? false;
-    }
-  });
+  const j = (await r.json().catch(() => null)) as { success?: boolean | number; msg?: string } | null;
+  if (!r.ok || !j || !j.success) throw new Error(j?.msg || 'Não foi possível concluir a ação.');
+  return j.msg ?? 'Feito.';
+}
 
-  const handleToggleInactive = (next: boolean) => {
-    setMostrarInativos(next);
+/** POST de formulário de página inteira — como os formulários da lista Blade. */
+function enviarFormulario(url: string, campos: Record<string, string>) {
+  const form = document.createElement('form');
+  form.method = 'POST';
+  form.action = url;
+  const todos: Record<string, string> = { _token: csrf(), ...campos };
+  for (const [k, v] of Object.entries(todos)) {
+    const input = document.createElement('input');
+    input.type = 'hidden';
+    input.name = k;
+    input.value = v;
+    form.appendChild(input);
+  }
+  document.body.appendChild(form);
+  form.submit();
+}
+
+const irPara = (url: string) => window.location.assign(url);
+
+function lerLocal<T>(chave: string, padrao: T): T {
+  try {
+    const v = localStorage.getItem(chave);
+    return v === null ? padrao : (JSON.parse(v) as T);
+  } catch {
+    return padrao;
+  }
+}
+
+function gravarLocal(chave: string, valor: unknown) {
+  try {
+    localStorage.setItem(chave, JSON.stringify(valor));
+  } catch {
+    // navegador sem storage: a escolha vale só nesta visita
+  }
+}
+
+/** Parâmetros da URL: só o que difere do vazio. */
+function paraUrl(f: FiltrosLista): Record<string, string | number> {
+  const out: Record<string, string | number> = {};
+  const texto: Array<keyof FiltrosLista> = ['type', 'category_id', 'brand_id', 'unit_id', 'tax_id', 'location_id', 'active_state', 'repair_model_id'];
+  for (const k of texto) {
+    const v = f[k];
+    if (typeof v === 'string' && v !== '') out[k] = v;
+  }
+  if (f.not_for_selling) out.not_for_selling = 1;
+  if (f.woocommerce_enabled) out.woocommerce_enabled = 1;
+  if (f.q) out.q = f.q;
+  if (f.sort && f.sort !== 'produto') out.sort = f.sort;
+  if (f.dir === 'desc') out.dir = 'desc';
+  out.per_page = f.per_page;
+  if (f.page > 1) out.page = f.page;
+  return out;
+}
+
+interface Confirmacao {
+  titulo: string;
+  corpo: string;
+  aviso?: string;
+  cta: string;
+  perigo: boolean;
+  executar: () => Promise<void> | void;
+}
+
+const hhmm = () => new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+
+function ProdutoIndex({ filtros, lista, opcoes, contexto, permissions }: ProdutoIndexPageProps) {
+  const opcionais = useMemo(() => colunasOpcionais(contexto.rotulos_campos), [contexto.rotulos_campos]);
+  const [visiveis, setVisiveis] = useState<Record<string, boolean>>(() => ({
+    ...visibilidadePadrao(opcionais),
+    ...lerLocal<Record<string, boolean>>(CHAVE_COLUNAS, {}),
+  }));
+  const [densa, setDensa] = useState<boolean>(() => lerLocal<boolean>(CHAVE_DENSIDADE, false));
+  const [busca, setBusca] = useState(filtros.q);
+  const [selecionados, setSelecionados] = useState<number[]>([]);
+  const [confirmar, setConfirmar] = useState<Confirmacao | null>(null);
+  const [localModal, setLocalModal] = useState<'add' | 'remove' | null>(null);
+  const [locaisEscolhidos, setLocaisEscolhidos] = useState<string[]>([]);
+  const [wooModal, setWooModal] = useState(false);
+  const [hora, setHora] = useState(hhmm);
+  const buscaRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => gravarLocal(CHAVE_COLUNAS, visiveis), [visiveis]);
+  useEffect(() => gravarLocal(CHAVE_DENSIDADE, densa), [densa]);
+
+  const pode = (p: keyof PermissoesLista) => permissions[p] === true;
+  const linhas = lista?.data ?? [];
+
+  const ir = (patch: Partial<FiltrosLista>) => {
+    setSelecionados([]);
+    const proximo: FiltrosLista = { ...filtros, page: 1, ...patch };
+    router.get('/products', paraUrl(proximo), { preserveState: true, preserveScroll: true, replace: true });
+  };
+
+  // Busca no servidor (a mesma regra da lista Blade), com espera de 300ms entre teclas.
+  useEffect(() => {
+    if (busca === filtros.q) return;
+    const t = setTimeout(() => ir({ q: busca.trim() }), 300);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [busca]);
+
+  // Atalhos do protótipo: "/" foca a busca · "n" abre o cadastro.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const ativo = document.activeElement as HTMLElement | null;
+      const tag = (ativo?.tagName ?? '').toUpperCase();
+      if (['INPUT', 'TEXTAREA', 'SELECT'].includes(tag) || ativo?.isContentEditable) return;
+      if (e.key === '/') {
+        e.preventDefault();
+        buscaRef.current?.focus();
+      }
+      if ((e.key === 'n' || e.key === 'N') && permissions.create === true && !e.ctrlKey && !e.metaKey && !e.altKey) {
+        e.preventDefault();
+        irPara('/products/create');
+      }
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [permissions.create]);
+
+  const recarregar = () => {
+    setSelecionados([]);
+    router.reload({ only: ['lista'] });
+    setHora(hhmm());
+  };
+
+  const executarJson = async (url: string, metodo: 'GET' | 'POST' | 'DELETE', corpo?: Record<string, unknown>) => {
     try {
-      localStorage.setItem(STORAGE_KEY_INACTIVE, next ? '1' : '0');
-    } catch {
-      // localStorage indisponível — ignora silenciosamente
+      toast.success(await chamar(url, metodo, corpo));
+      recarregar();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Não foi possível concluir a ação.');
     }
   };
 
-  const handleSelectTab = (tab: string) => {
-    setActiveTab(tab);
-    try {
-      localStorage.setItem(STORAGE_KEY_ACTIVE_TAB, tab);
-    } catch {
-      // ignora
+  const aoEscolher = (acao: AcaoProduto, l: LinhaProduto): void => {
+    switch (acao) {
+      case 'ver':
+        irPara(`/products/${l.id}`);
+        return;
+      case 'editar':
+        irPara(`/products/${l.id}/edit`);
+        return;
+      case 'historico':
+        irPara(`/products/stock-history/${l.id}`);
+        return;
+      case 'duplicar':
+        irPara(`/products/create?d=${l.id}`);
+        return;
+      case 'rotulos':
+        irPara(`/labels/show?product_id=${l.id}`);
+        return;
+      case 'precos':
+        irPara(`/products/add-selling-prices/${l.id}`);
+        return;
+      case 'anexo':
+        if (l.anexo) window.open(l.anexo.url, '_blank', 'noopener');
+        return;
+      case 'estoque_inicial':
+        // O modal de estoque inicial chega na etapa 4; até lá o menu não oferece o item.
+        return;
+      case 'ativar':
+        void executarJson(`/products/activate/${l.id}`, 'GET');
+        return;
+      case 'desativar':
+        setConfirmar({
+          titulo: 'Desativar produto',
+          corpo: `“${l.nome}” sai da busca do PDV e dos orçamentos novos. O histórico, o estoque e as vendas antigas ficam intactos.`,
+          cta: 'Desativar',
+          perigo: true,
+          executar: () => executarJson('/products/mass-deactivate', 'POST', { selected_products: String(l.id) }),
+        });
+        return;
+      case 'excluir':
+        setConfirmar({
+          titulo: 'Excluir produto',
+          corpo: `Excluir “${l.nome}” (${l.sku}) apaga o cadastro, as variações e os preços por grupo.`,
+          aviso:
+            l.controla_estoque && (l.estoque ?? 0) > 0
+              ? 'Este produto tem estoque — o servidor pode recusar a exclusão. Desative em vez de excluir.'
+              : 'Esta ação não tem volta.',
+          cta: 'Excluir',
+          perigo: true,
+          executar: () => executarJson(`/products/${l.id}`, 'DELETE'),
+        });
+        return;
     }
   };
 
-  const filterRows = (rows: ProdutoRow[] | undefined): ProdutoRow[] => {
-    if (!rows) return [];
-    let out = rows;
-    if (!mostrarInativos) {
-      out = out.filter((r) => r.active);
+  // ── Colunas: as do protótipo (TODAS em produto-blade.jsx), com as larguras do protótipo ──
+  const colunas = useMemo<ColumnDef<LinhaProduto, unknown>[]>(() => {
+    const v = (id: string) => visiveis[id] === true;
+    const out: ColumnDef<LinhaProduto, unknown>[] = [
+      {
+        id: 'acao',
+        header: 'Ação',
+        enableSorting: false,
+        meta: { width: 96 },
+        cell: ({ row }) => (
+          <AcoesProduto linha={row.original} permissoes={permissions} gruposDePreco={contexto.grupos_de_preco} aoEscolher={aoEscolher} />
+        ),
+      },
+    ];
+    if (v('imagem')) {
+      out.push({
+        id: 'imagem',
+        header: 'Imagem',
+        enableSorting: false,
+        meta: { width: 74 },
+        cell: ({ row }) =>
+          row.original.imagem ? (
+            <img src={row.original.imagem} alt="" className="pb-thumb object-cover" loading="lazy" />
+          ) : (
+            <div className="pb-thumb" aria-hidden>
+              IMG
+            </div>
+          ),
+      });
     }
-    if (activeTab !== 'todos') {
-      out = out.filter((r) => String(r.categoryId ?? '') === activeTab);
+    out.push({
+      id: 'produto',
+      header: 'Produto',
+      enableSorting: true,
+      meta: { width: 300 },
+      cell: ({ row }) => (
+        <div className="min-w-0">
+          <div className="truncate font-semibold text-[var(--text)]">{row.original.nome}</div>
+          {!densa && <div className="truncate text-[11px] text-[var(--text-mute)]">{subLinhaProduto(row.original)}</div>}
+        </div>
+      ),
+    });
+    if (v('locais')) {
+      out.push({
+        id: 'locais',
+        header: 'Locais',
+        enableSorting: false,
+        meta: { width: 150 },
+        cell: ({ row }) => row.original.locais.join(', ') || '—',
+      });
     }
-    if (busca.trim()) {
-      const q = busca.trim().toLowerCase();
-      out = out.filter(
-        (r) => r.name.toLowerCase().includes(q) || r.sku.toLowerCase().includes(q),
-      );
+    if (v('compra') && permissions.view_purchase_price === true) {
+      out.push({
+        id: 'compra',
+        header: 'Preço de compra un.',
+        enableSorting: true,
+        meta: { width: 150, align: 'right', mono: true },
+        cell: ({ row }) => faixaDePreco(row.original.tipo, row.original.compra_min, row.original.compra_max),
+      });
+    }
+    if (v('venda') && permissions.access_default_selling_price === true) {
+      out.push({
+        id: 'venda',
+        header: 'Preço de venda',
+        enableSorting: true,
+        meta: { width: 150, align: 'right', mono: true },
+        cell: ({ row }) => faixaDePreco(row.original.tipo, row.original.venda_min, row.original.venda_max),
+      });
+    }
+    if (v('estoque')) {
+      out.push({
+        id: 'estoque',
+        header: 'Estoque atual',
+        enableSorting: true,
+        meta: { width: 130, align: 'right' },
+        cell: ({ row }) => (
+          <span className={'pb-stock' + (!row.original.controla_estoque ? ' na' : row.original.abaixo_do_alerta ? ' low' : '')}>
+            {estoqueTexto(row.original)}
+          </span>
+        ),
+      });
+    }
+    if (v('tipo')) {
+      out.push({
+        id: 'tipo',
+        header: 'Tipo',
+        enableSorting: true,
+        meta: { width: 110 },
+        cell: ({ row }) => <span className={`pb-pill ${row.original.tipo}`}>{TIPO_ROTULO[row.original.tipo] ?? row.original.tipo}</span>,
+      });
+    }
+    if (v('categoria')) {
+      out.push({
+        id: 'categoria',
+        header: 'Categoria',
+        enableSorting: true,
+        meta: { width: 160 },
+        cell: ({ row }) => (
+          <div className="min-w-0">
+            <div className="truncate font-semibold">{row.original.categoria ?? '—'}</div>
+            {!densa && row.original.subcategoria && (
+              <div className="truncate text-[11px] text-[var(--text-mute)]">{row.original.subcategoria}</div>
+            )}
+          </div>
+        ),
+      });
+    }
+    if (v('marca')) {
+      out.push({ id: 'marca', header: 'Marca', enableSorting: true, meta: { width: 120 }, cell: ({ row }) => row.original.marca ?? '—' });
+    }
+    if (v('imposto')) {
+      out.push({ id: 'imposto', header: 'Imposto', enableSorting: false, meta: { width: 110 }, cell: ({ row }) => row.original.imposto ?? '—' });
+    }
+    if (v('sku')) {
+      out.push({ id: 'sku', header: 'SKU', enableSorting: true, meta: { width: 120, mono: true }, cell: ({ row }) => row.original.sku || '—' });
+    }
+    if (v('serie')) {
+      out.push({
+        id: 'serie',
+        header: 'IMEI / série',
+        enableSorting: false,
+        meta: { width: 110 },
+        cell: ({ row }) => (row.original.serie ? 'Sim' : '—'),
+      });
+    }
+    for (let i = 1; i <= 7; i++) {
+      const rotulo = contexto.rotulos_campos[String(i)];
+      if (rotulo && v(`cf${i}`)) {
+        out.push({
+          id: `cf${i}`,
+          header: rotulo,
+          enableSorting: false,
+          meta: { width: 170 },
+          cell: ({ row }) => row.original.campos[String(i)] || '—',
+        });
+      }
     }
     return out;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [visiveis, densa, permissions, contexto]);
+
+  const estadoDaLinha = (l: LinhaProduto): EstadoDaLinha | undefined =>
+    l.inativo ? 'archived' : l.abaixo_do_alerta ? 'urgent' : undefined;
+
+  const idsDaPagina = linhas.map((l) => l.id);
+  const marcadasNaPagina = idsDaPagina.filter((id) => selecionados.includes(id)).length;
+  const chips = chipsDosFiltros(filtros, opcoes);
+  const total = lista?.total ?? 0;
+  const ids = selecionados.join(',');
+  const locaisReais = opcoes.locais.filter((l) => l.id !== 'none');
+
+  const contextoLinha = [
+    contexto.empresa,
+    locaisReais.length === 1 ? locaisReais[0]?.nome : `${locaisReais.length} locais`,
+    lista ? `${total} ${total === 1 ? 'produto' : 'produtos'}` : null,
+    `${contexto.grupos_de_preco} ${contexto.grupos_de_preco === 1 ? 'grupo de preço' : 'grupos de preço'}`,
+    contexto.papel ? `papel: ${contexto.papel}` : null,
+  ]
+    .filter(Boolean)
+    .join(' · ');
+
+  const limparTudo = () => {
+    setBusca('');
+    ir({
+      type: null,
+      category_id: null,
+      brand_id: null,
+      unit_id: null,
+      tax_id: null,
+      location_id: null,
+      active_state: null,
+      repair_model_id: null,
+      not_for_selling: false,
+      woocommerce_enabled: false,
+      q: '',
+    });
   };
 
   return (
     <>
-      <Head title="Produtos · Catálogo" />
-
-      <div className="min-h-screen bg-stone-50 text-stone-900">
-        {/* Header sticky */}
-        <header className="sticky top-0 z-30 bg-white/85 backdrop-blur border-b border-stone-200" data-contract="header">
-          <div className="px-6 pt-4 pb-3 flex items-center justify-between">
-            <div>
-              <div className="flex items-center gap-1.5 text-[12px] text-stone-500">
-                <span>Inventário</span>
-                <span className="text-stone-400">›</span>
-                <span className="text-stone-900 font-medium">Produtos</span>
-              </div>
-              <h1 className="mt-1 text-[24px] font-semibold tracking-tight">Produtos</h1>
-            </div>
-            <div className="flex items-center gap-2">
-              <Button variant="outline" asChild>
-                <a href="/import-products" rel="noopener noreferrer">
-                  <Upload className="w-4 h-4 mr-1.5" />
-                  Importar
-                </a>
+      <Head title="Produtos" />
+      <div className="pb-root" data-screen-label="Produto · Catálogo">
+        <PageHeader
+          leading={<Package size={18} aria-hidden />}
+          title="Produtos"
+          suffix=" · Catálogo"
+          subtitle={<span className="font-mono text-[11px] tracking-[.02em]">{contextoLinha}</span>}
+          actions={
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                onClick={recarregar}
+                className="inline-flex items-center gap-1.5 text-[11.5px] text-[var(--text-dim)] hover:text-[var(--text)]"
+                title="Atualizar a lista"
+              >
+                <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-[var(--pos)]" /> Atualizado {hora}
+                <RefreshCw size={11} aria-hidden />
+              </button>
+              <Button variant="outline" size="sm" onClick={() => irPara('/products/download-excel')}>
+                <FileSpreadsheet size={13} aria-hidden /> Baixar Excel
               </Button>
-              {permissions.create && (
-                <Button asChild>
-                  <Link href="/products/create">
-                    <Plus className="w-4 h-4 mr-1.5" />
-                    Novo produto
-                  </Link>
+              {pode('create') && (
+                <Button size="sm" onClick={() => irPara('/products/create')}>
+                  <Plus size={13} aria-hidden /> Novo produto
                 </Button>
               )}
             </div>
-          </div>
-        </header>
+          }
+        />
 
-        <div className="pb-16">
-          {/* KPI strip */}
-          <section className="mx-6 mt-4 rounded-md bg-white border border-stone-200 shadow-sm" data-contract="kpis-totalizadores">
-            <Deferred data="kpis" fallback={<KpisSkeleton />}>
-              <KpisStrip kpis={props.kpis ?? { total: 0, ativos: 0, categorias: 0, populares: 0 }} />
-            </Deferred>
-          </section>
+        <div className="pb-body">
+          <FiltrosListaProdutos filtros={filtros} opcoes={opcoes} woocommerce={contexto.woocommerce} aplicar={ir} />
 
-          {/* Filtros + tabs categoria */}
-          <section className="mx-6 mt-4 flex items-center justify-between gap-3 flex-wrap" data-contract="filtros-busca">
-            <div className="flex items-center gap-2">
-              <div className="relative">
-                <Search className="absolute left-2.5 top-2.5 w-4 h-4 text-stone-500" />
-                <Input
-                  type="search"
+          <section className="pb-widget" data-contract="produto-lista" aria-label="Todos os produtos">
+            <h3>
+              <Package size={13} aria-hidden /> Todos os produtos{' '}
+              {lista && (
+                <span className="n">
+                  {linhas.length} de {total}
+                </span>
+              )}
+            </h3>
+
+            <div className="pb-toolbar" data-contract="produto-toolbar">
+              <div className="pb-busca">
+                <Search size={12} aria-hidden />
+                <input
+                  ref={buscaRef}
                   value={busca}
                   onChange={(e) => setBusca(e.target.value)}
-                  placeholder="Buscar por nome ou SKU"
-                  className="pl-8 w-72"
-                  aria-label="Buscar produto"
+                  placeholder="Buscar nome ou SKU…"
+                  aria-label="Buscar produtos por nome, SKU ou código"
                 />
+                <kbd>/</kbd>
               </div>
-              <label className="flex items-center gap-2 text-[12.5px] text-stone-700">
-                <input
-                  type="checkbox"
-                  checked={mostrarInativos}
-                  onChange={(e) => handleToggleInactive(e.target.checked)}
-                  className="rounded border-stone-300"
-                />
-                Mostrar inativos
-              </label>
+              <div className="sp" />
+              <Segmented
+                value={densa ? 'compacto' : 'confortavel'}
+                onValueChange={(v) => setDensa(v === 'compacto')}
+                options={[
+                  { value: 'confortavel', label: 'Confortável' },
+                  { value: 'compacto', label: 'Compacto' },
+                ]}
+              />
+              <MenuColunas colunas={opcionais} visiveis={visiveis} aoMudar={setVisiveis} />
             </div>
 
-            <Deferred data="categorias" fallback={<TabsSkeleton />}>
-              <CategoriaTabs
-                categorias={props.categorias ?? []}
-                activeTab={activeTab}
-                onSelect={handleSelectTab}
-              />
-            </Deferred>
+            {chips.length > 0 && (
+              <div className="pb-chips" data-contract="produto-chips">
+                <span className="pb-chips-l">Filtrando por</span>
+                {chips.map((c) => (
+                  <FilterChip
+                    key={c.chave}
+                    label={c.rotulo}
+                    onRemove={() => {
+                      if (c.chave === 'q') setBusca('');
+                      const vazio = c.chave === 'not_for_selling' || c.chave === 'woocommerce_enabled' ? false : c.chave === 'q' ? '' : null;
+                      ir({ [c.chave]: vazio } as Partial<FiltrosLista>);
+                    }}
+                  />
+                ))}
+                <button type="button" className="pb-chip limpar" onClick={limparTudo}>
+                  Limpar tudo
+                </button>
+              </div>
+            )}
+
+            <div data-contract="produto-tabela">
+              <Deferred
+                data="lista"
+                fallback={
+                  <div className="space-y-2 px-4 py-3" aria-busy="true">
+                    {Array.from({ length: 8 }).map((_, i) => (
+                      <Skeleton key={i} className="h-7 w-full" />
+                    ))}
+                  </div>
+                }
+              >
+                <DataTable<LinhaProduto>
+                  caption="Produtos do catálogo"
+                  columns={colunas}
+                  data={linhas}
+                  pagination={lista}
+                  endpoint="/products"
+                  filters={paraUrl(filtros)}
+                  showSearch={false}
+                  density="grid"
+                  tableWrapperClassName="pb-grid-pro"
+                  totalLabel="produtos"
+                  rowKey={(l) => l.id}
+                  rowState={estadoDaLinha}
+                  onRowClick={pode('view') ? (l) => aoEscolher('ver', l) : undefined}
+                  emptyMessage="Nenhum produto com esses filtros. Remova um filtro pelos chips acima — ou cadastre o produto que está faltando."
+                  selection={{
+                    isSelected: (l) => selecionados.includes(l.id),
+                    onToggle: (l) => setSelecionados((s) => (s.includes(l.id) ? s.filter((x) => x !== l.id) : [...s, l.id])),
+                    allState: marcadasNaPagina === 0 ? 'none' : marcadasNaPagina === idsDaPagina.length ? 'all' : 'some',
+                    onToggleAll: (marcar) =>
+                      setSelecionados((s) =>
+                        marcar ? Array.from(new Set([...s, ...idsDaPagina])) : s.filter((x) => !idsDaPagina.includes(x)),
+                      ),
+                    rowLabel: (l) => l.nome,
+                    allLabel: 'Selecionar todos desta página',
+                  }}
+                />
+              </Deferred>
+            </div>
+
+            <div className="pb-pag" data-contract="produto-rodape-lista">
+              <span>
+                {lista ? `${total} ${total === 1 ? 'produto' : 'produtos'} na lista` : 'Carregando produtos…'} · clique no cabeçalho pra
+                ordenar
+              </span>
+              <div className="sp" />
+              <div className="flex items-center gap-[5px]">
+                Mostrar
+                <Select value={String(filtros.per_page)} onValueChange={(v) => ir({ per_page: Number(v) })}>
+                  <SelectTrigger className="h-6 w-[88px]" aria-label="Produtos por página">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {POR_PAGINA.map((n) => (
+                      <SelectItem key={n} value={String(n)}>
+                        {n === -1 ? 'Todos' : n}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                por página
+              </div>
+            </div>
           </section>
 
-          {/* Lista cards */}
-          <section className="mx-6 mt-4" data-contract="tabela-cards">
-            <Deferred data="rows" fallback={<RowsSkeleton />}>
-              <ProdutoCards rows={filterRows(props.rows)} permissions={permissions} />
-            </Deferred>
-          </section>
+          {selecionados.length > 0 && (
+            <BulkActionBar selectedCount={selecionados.length} onClear={() => setSelecionados([])} label="produto(s) selecionado(s)">
+              {pode('update') && (
+                <Button variant="outline" size="sm" onClick={() => enviarFormulario('/products/bulk-edit', { selected_products: ids })}>
+                  Edição em massa
+                </Button>
+              )}
+              {pode('update') && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setLocaisEscolhidos([]);
+                    setLocalModal('add');
+                  }}
+                >
+                  Adicionar ao local
+                </Button>
+              )}
+              {pode('update') && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setLocaisEscolhidos([]);
+                    setLocalModal('remove');
+                  }}
+                >
+                  Remover do local
+                </Button>
+              )}
+              {contexto.woocommerce && (
+                <Button variant="outline" size="sm" onClick={() => setWooModal(true)}>
+                  WooCommerce Sync
+                </Button>
+              )}
+              {pode('update') && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() =>
+                    setConfirmar({
+                      titulo: 'Desativar selecionados',
+                      corpo: `${selecionados.length} produto(s) saem da venda e do orçamento novo, mantendo histórico e estoque.`,
+                      cta: `Desativar ${selecionados.length}`,
+                      perigo: true,
+                      executar: () => executarJson('/products/mass-deactivate', 'POST', { selected_products: ids }),
+                    })
+                  }
+                >
+                  Desativar selecionados
+                </Button>
+              )}
+              {pode('delete') && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="text-destructive"
+                  onClick={() =>
+                    setConfirmar({
+                      titulo: 'Excluir selecionados',
+                      corpo: `Vai apagar ${selecionados.length} cadastro(s), com variações e preços por grupo.`,
+                      aviso: 'Produtos com movimento de estoque são recusados pelo servidor.',
+                      cta: `Excluir ${selecionados.length}`,
+                      perigo: true,
+                      executar: () => enviarFormulario('/products/mass-delete', { selected_rows: ids }),
+                    })
+                  }
+                >
+                  Excluir selecionados
+                </Button>
+              )}
+            </BulkActionBar>
+          )}
         </div>
       </div>
+
+      <AlertDialog open={confirmar !== null} onOpenChange={(o) => !o && setConfirmar(null)}>
+        {confirmar && (
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>{confirmar.titulo}</AlertDialogTitle>
+              <AlertDialogDescription>{confirmar.corpo}</AlertDialogDescription>
+            </AlertDialogHeader>
+            {confirmar.aviso && <p className="text-[12px] text-[var(--warn)]">{confirmar.aviso}</p>}
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+              <AlertDialogAction
+                className={confirmar.perigo ? 'bg-destructive text-white hover:bg-destructive/90' : undefined}
+                onClick={() => {
+                  const c = confirmar;
+                  setConfirmar(null);
+                  void c.executar();
+                }}
+              >
+                {confirmar.cta}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        )}
+      </AlertDialog>
+
+      <Dialog open={localModal !== null} onOpenChange={(o) => !o && setLocalModal(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{localModal === 'add' ? 'Adicionar ao local' : 'Remover do local'}</DialogTitle>
+            <DialogDescription>
+              {selecionados.length} produto(s) selecionado(s).{' '}
+              {localModal === 'add'
+                ? 'O local passa a vender e estocar estes produtos.'
+                : 'Os produtos deixam de aparecer no local — o estoque já lançado não é apagado.'}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col gap-2">
+            {locaisReais.map((l) => (
+              <div key={l.id} className="pb-chk">
+                <Checkbox
+                  id={`local-${l.id}`}
+                  checked={locaisEscolhidos.includes(l.id)}
+                  onCheckedChange={(v) => setLocaisEscolhidos((s) => (v === true ? [...s, l.id] : s.filter((x) => x !== l.id)))}
+                />
+                <label htmlFor={`local-${l.id}`}>
+                  <b>{l.nome}</b>
+                </label>
+              </div>
+            ))}
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setLocalModal(null)}>
+              Cancelar
+            </Button>
+            <Button
+              disabled={locaisEscolhidos.length === 0}
+              onClick={() => {
+                const tipo = localModal;
+                setLocalModal(null);
+                void executarJson('/products/bulk-update-location', 'POST', {
+                  products: ids,
+                  product_location: locaisEscolhidos,
+                  update_type: tipo,
+                });
+              }}
+            >
+              Atualizar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={wooModal} onOpenChange={setWooModal}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>WooCommerce Sync</DialogTitle>
+            <DialogDescription>{selecionados.length} produto(s) selecionado(s).</DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setWooModal(false);
+                void executarJson('/products/toggle-woocommerce-sync', 'POST', { woocommerce_products_sync: ids, woocommerce_disable_sync: 1 });
+              }}
+            >
+              Desligar sincronização
+            </Button>
+            <Button
+              onClick={() => {
+                setWooModal(false);
+                void executarJson('/products/toggle-woocommerce-sync', 'POST', { woocommerce_products_sync: ids, woocommerce_disable_sync: 0 });
+              }}
+            >
+              Ligar sincronização
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
 
+// Layout persistente (padrão do repo e da tela anterior): o shell não remonta a cada filtro.
 ProdutoIndex.layout = (page: ReactNode) => (
-  <AppShellV2
-    title="Produtos — Catálogo"
-    breadcrumbItems={[{ label: 'Inventário', href: '/products' }, { label: 'Produtos' }]}
-  >
+  <AppShellV2 title="Produtos — Catálogo" breadcrumbItems={[{ label: 'Produtos', href: '/products' }, { label: 'Catálogo' }]}>
     {page}
   </AppShellV2>
 );
 
 export default ProdutoIndex;
-
-/* ─── Subcomponentes ────────────────────────────────────────────────── */
-
-function KpisStrip({ kpis }: { kpis: ProdutoIndexKpis }) {
-  return (
-    <div className="grid grid-cols-4 divide-x divide-stone-200">
-      <Kpi label="Total de produtos" value={kpis.total} emphasize />
-      <Kpi label="Ativos" value={kpis.ativos} tone="pos" />
-      <Kpi label="Categorias" value={kpis.categorias} />
-      <Kpi label="Populares · 30d" value={kpis.populares} sub="≥30 vendas/mês" />
-    </div>
-  );
-}
-
-function Kpi({
-  label,
-  value,
-  sub,
-  tone = 'default',
-  emphasize = false,
-}: {
-  label: string;
-  value: string | number;
-  sub?: string;
-  tone?: 'default' | 'pos' | 'neg';
-  emphasize?: boolean;
-}) {
-  const toneClass =
-    tone === 'pos' ? 'text-emerald-700' : tone === 'neg' ? 'text-rose-700' : 'text-stone-900';
-  return (
-    <div className={`px-5 py-4 ${emphasize ? 'bg-stone-900 text-stone-50' : 'bg-white'}`}>
-      <div
-        className={`text-[10px] uppercase tracking-widest font-medium ${
-          emphasize ? 'text-stone-400' : 'text-stone-500'
-        }`}
-      >
-        {label}
-      </div>
-      <div
-        className={`mt-1 text-[28px] leading-none font-semibold tracking-tight tabular-nums ${
-          emphasize ? 'text-stone-50' : toneClass
-        }`}
-      >
-        {value}
-      </div>
-      {sub && (
-        <div className={`mt-2 text-[11.5px] ${emphasize ? 'text-stone-400' : 'text-stone-500'}`}>
-          {sub}
-        </div>
-      )}
-    </div>
-  );
-}
-
-function KpisSkeleton() {
-  return (
-    <div className="grid grid-cols-4 divide-x divide-stone-200">
-      {[0, 1, 2, 3].map((i) => (
-        <div key={i} className="px-5 py-4">
-          <div className="h-3 w-24 bg-stone-200 rounded animate-pulse" />
-          <div className="mt-2 h-7 w-16 bg-stone-200 rounded animate-pulse" />
-        </div>
-      ))}
-    </div>
-  );
-}
-
-function CategoriaTabs({
-  categorias,
-  activeTab,
-  onSelect,
-}: {
-  categorias: ProdutoCategoria[];
-  activeTab: string;
-  onSelect: (tab: string) => void;
-}) {
-  const total = categorias.reduce((acc, c) => acc + c.count, 0);
-  return (
-    <nav className="flex items-center gap-1 text-[12.5px]" aria-label="Filtrar por categoria">
-      <button
-        type="button"
-        onClick={() => onSelect('todos')}
-        className={`h-7 px-3 rounded-md transition-colors duration-150 ${
-          activeTab === 'todos'
-            ? 'bg-stone-900 text-stone-50 font-medium'
-            : 'text-stone-600 hover:bg-stone-100'
-        }`}
-      >
-        Todos <span className="text-[11px] opacity-70">· {total}</span>
-      </button>
-      {categorias.map((c) => (
-        <button
-          key={c.id}
-          type="button"
-          onClick={() => onSelect(String(c.id))}
-          className={`h-7 px-3 rounded-md transition-colors duration-150 ${
-            activeTab === String(c.id)
-              ? 'bg-stone-900 text-stone-50 font-medium'
-              : 'text-stone-600 hover:bg-stone-100'
-          }`}
-        >
-          {c.label} <span className="text-[11px] opacity-70">· {c.count}</span>
-        </button>
-      ))}
-    </nav>
-  );
-}
-
-function TabsSkeleton() {
-  return (
-    <div className="flex items-center gap-1">
-      {[0, 1, 2, 3].map((i) => (
-        <div key={i} className="h-7 w-24 bg-stone-200 rounded-md animate-pulse" />
-      ))}
-    </div>
-  );
-}
-
-function ProdutoCards({
-  rows,
-  permissions,
-}: {
-  rows: ProdutoRow[];
-  permissions: ProdutoIndexPermissions;
-}) {
-  if (rows.length === 0) {
-    return <EmptyState />;
-  }
-  return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-      {rows.map((r) => (
-        <ProdutoCard key={r.id} row={r} canUpdate={permissions.update} />
-      ))}
-    </div>
-  );
-}
-
-function ProdutoCard({ row, canUpdate }: { row: ProdutoRow; canUpdate: boolean }) {
-  const baseClass = row.active
-    ? 'bg-white border-stone-200 hover:border-stone-400'
-    : 'bg-stone-100 border-stone-200 opacity-70';
-
-  const content = (
-    <article
-      className={`p-4 rounded-md border ${baseClass} transition-colors duration-150 cursor-pointer`}
-    >
-      <div className="flex items-start justify-between gap-2">
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2 mb-1">
-            {row.categoryLabel && (
-              <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] uppercase tracking-wider bg-stone-200 text-stone-700">
-                {row.categoryLabel}
-              </span>
-            )}
-            {!row.active && (
-              <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] uppercase tracking-wider bg-destructive-soft text-destructive-fg">
-                Inativo
-              </span>
-            )}
-          </div>
-          <h3 className="text-[14px] font-medium text-stone-900 truncate">{row.name}</h3>
-          <div className="mt-1 font-mono text-[11.5px] text-stone-500">{row.sku}</div>
-        </div>
-        <Package className="w-4 h-4 text-stone-400 shrink-0" />
-      </div>
-
-      <div className="mt-3 flex items-end justify-between">
-        <div>
-          {/* UC-PIDX-03 — sem `access_default_selling_price` o servidor não manda `price`, e o
-              bloco inteiro SOME (AR-PROD-015). O rótulo "Preço" sobre um traço afirmaria que
-              existe um valor escondido; a unidade continua, porque é dado de cadastro. */}
-          {row.price !== undefined && (
-            <>
-              <div className="text-[10.5px] uppercase tracking-widest text-stone-500">Preço</div>
-              <div className="text-[16px] font-semibold tabular-nums">{fmtBRL(row.price)}</div>
-            </>
-          )}
-          {row.unit && <div className="text-[11px] text-stone-500">/ {row.unit}</div>}
-        </div>
-        <div className="text-right">
-          <div className="text-[10.5px] uppercase tracking-widest text-stone-500">Popularidade</div>
-          <div className="mt-1 h-1.5 w-24 bg-stone-200 rounded-full overflow-hidden">
-            <div
-              className={`h-full rounded-full ${
-                row.popularity >= 70 ? 'bg-emerald-500' : 'bg-stone-400'
-              }`}
-              style={{ width: `${Math.min(100, row.popularity)}%` }}
-            />
-          </div>
-          <div className="text-[10.5px] text-stone-500 mt-0.5">{row.popularity}%</div>
-        </div>
-      </div>
-    </article>
-  );
-
-  if (canUpdate) {
-    return <Link href={`/products/${row.id}`}>{content}</Link>;
-  }
-  return content;
-}
-
-function RowsSkeleton() {
-  return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-      {[0, 1, 2, 3, 4, 5, 6, 7].map((i) => (
-        <div key={i} className="p-4 rounded-md border border-stone-200 bg-white">
-          <div className="h-3 w-16 bg-stone-200 rounded animate-pulse mb-2" />
-          <div className="h-4 w-3/4 bg-stone-200 rounded animate-pulse" />
-          <div className="mt-2 h-3 w-1/2 bg-stone-200 rounded animate-pulse" />
-          <div className="mt-4 flex justify-between">
-            <div className="h-6 w-20 bg-stone-200 rounded animate-pulse" />
-            <div className="h-6 w-24 bg-stone-200 rounded animate-pulse" />
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-function EmptyState() {
-  return (
-    <div className="py-16 text-center">
-      <Package className="w-10 h-10 mx-auto text-stone-400" />
-      <h3 className="mt-3 text-[16px] font-medium text-stone-700">Nenhum produto encontrado</h3>
-      <p className="mt-1 text-[13px] text-stone-500">
-        Ajuste filtros ou cadastre o primeiro produto.
-      </p>
-    </div>
-  );
-}

@@ -137,7 +137,7 @@ it('o reload das props deferidas da lista devolve as props pedidas, não o DataT
         'X-Inertia' => 'true',
         'X-Inertia-Version' => psxVersao(),
         'X-Inertia-Partial-Component' => 'Produto/Index',
-        'X-Inertia-Partial-Data' => 'kpis,rows,categorias',
+        'X-Inertia-Partial-Data' => 'lista',
         'X-Requested-With' => 'XMLHttpRequest',
     ])->get('/products');
 
@@ -145,7 +145,10 @@ it('o reload das props deferidas da lista devolve as props pedidas, não o DataT
     $page = json_decode($resp->getContent(), true);
     expect($page)->toBeArray();
     expect($page['component'] ?? null)->toBe('Produto/Index');
-    expect($page['props'] ?? [])->toHaveKeys(['kpis', 'rows', 'categorias']);
+    // Desde a etapa 2 da lista no desenho do protótipo a única prop deferida é `lista`
+    // (paginador do servidor) — `kpis`/`rows`/`categorias` eram da tela de cards e saíram.
+    expect($page['props'] ?? [])->toHaveKey('lista');
+    expect($page['props']['lista'])->toHaveKeys(['data', 'total', 'current_page', 'last_page', 'links']);
     // O DataTable responde `{draw, recordsTotal, data}`; a Page nunca tem `recordsTotal`.
     expect($page)->not->toHaveKey('recordsTotal');
 });

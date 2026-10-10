@@ -1091,9 +1091,12 @@ async function selftest() {
   const fComp = fonteDoCharter({ component: 'financeiro-page.jsx (window.X)' });
   t('BITE: fallback tautológico por `component` NÃO ressuscita (âncora ≠ a própria tela)',
     fComp.source === null && fComp.via === null);
-  // BITE REAL contra a árvore: o charter que o defeito escondia resolve pelo bundle.
-  const fmProduto = frontmatter(await read(join(REPO_DEFAULT, 'resources/js/Pages/Produto/Index.charter.md')));
-  t('BITE real: Produto/Index declara n/a + bundle — e o --list agora vê o bundle',
+  // BITE REAL contra a árvore: um charter que declara n/a + bundle resolve pelo bundle.
+  // Era o Produto/Index; o charter v3 dele (#9118, 2026-10-10) passou a declarar o protótipo
+  // de verdade (Felipe/produto-blade.jsx), então o caso real migrou para o Produto/Unificado,
+  // que segue n/a + bundle `produtos-page.jsx` (medido 2026-10-10: 11 charters reais nesse formato).
+  const fmProduto = frontmatter(await read(join(REPO_DEFAULT, 'resources/js/Pages/Produto/Unificado/Index.charter.md')));
+  t('BITE real: Produto/Unificado declara n/a + bundle — e o --list vê o bundle',
     ehDeclaracaoNa(fmProduto.related_prototype) === true && fonteDoCharter(fmProduto).source === 'produtos-page.jsx');
   t('audit-financeiro.png é ÂNCORA ILEGÍTIMA', ehAncoraIlegitima('audit-financeiro.png') === true);
   t('Tribunal-x.png é ilegítima', ehAncoraIlegitima('Tribunal-x.png') === true);
