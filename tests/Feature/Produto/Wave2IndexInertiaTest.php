@@ -103,7 +103,9 @@ it('Charter declara mwart_pattern_reuse (ADR 0149)', function () {
     $charter = file_get_contents(repo_path('resources/js/Pages/Produto/Index.charter.md'));
     expect($charter)->toContain('mwart_pattern_reuse:');
     expect($charter)->toContain('blueprint_cowork:');
-    expect($charter)->toContain('produto-cockpit');
+    // Charter v3 (#9118, 2026-10-10): o blueprint é a vista lista do protótipo do [F], não o
+    // cockpit de cards de antes.
+    expect($charter)->toContain('prototipo-ui/cowork/Felipe/produto-blade.jsx');
 });
 
 it('RUNBOOK existe (MWART F1 requisito)', function () {
