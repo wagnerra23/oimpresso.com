@@ -2,8 +2,7 @@
 id: resources-js-pages-produto-index-charter
 page: /products
 component: resources/js/Pages/Produto/Index.tsx
-related_prototype: n/a (herda PT-01 Lista; segue o Padrão de Tela)
-bundle_source: produtos-page.jsx  # 2026-09-09 [C]: ⚠️ PENDURADO NA TELA ERRADA, mantido de proposito. `produtos-page.jsx:1-2` declara "Consulta de Produtos (/products/unificado) — Porte do main: Pages/Produto/Unificado/Index.tsx" — retrata o UNIFICADO, nao esta (/products). NAO remover o campo: `ancora.mjs:266-278` so cai na heuristica startsWith(dir) quando o campo falta, e ela reancora esta tela no MESMO mockup, so que em silencio (medido 2026-09-09). Resolver exige decisao [W]. O charter do Unificado ganhou o campo correto. Esta tela citava `prototipo-ui/cowork/Wagner/legado/produto-cockpit/`, diretorio que NAO existe mais.
+related_prototype: "prototipo-ui/cowork/Felipe/produto-blade.jsx (vista lista — TelaLista)"
 owner: wagner
 status: live
 last_validated: "2026-07-12"
@@ -15,7 +14,7 @@ related_visual_comparison: memory/requisitos/Produto/_telas/produto-index-visual
 tier: A
 charter_version: 2
 mwart_pattern_reuse:
-  blueprint_cowork: "prototipo-ui/cowork/Wagner/produtos-page.jsx"
+  blueprint_cowork: "prototipo-ui/cowork/Felipe/produto-blade.jsx"
   blueprint_screenshot_approval: "SYNC_LOG (pendente — Wave 2 B4 Produto 2026-05-15)"
   derived_screens: [Create, Show, Edit, SellingPrices, BulkEdit, StockHistory]
   divergence_from_blueprint: "none — Index é o blueprint canon B4 Produto"
@@ -175,7 +174,8 @@ it('uses localStorage prefix oimpresso.produto.* if any state persisted')
 
 ## Refs
 
-- Material visual: [`prototipo-ui/cowork/Wagner/produtos-page.jsx`](../../../../prototipo-ui/cowork/Wagner/produtos-page.jsx) — o mesmo que o frontmatter declara em `bundle_source`
+- Material visual: [`prototipo-ui/cowork/Felipe/produto-blade.jsx`](../../../../prototipo-ui/cowork/Felipe/produto-blade.jsx), vista `lista` (`TelaLista`): o mesmo que o frontmatter declara em `related_prototype`
+  _(até 2026-10-09 o frontmatter declarava `related_prototype: n/a` + `bundle_source: produtos-page.jsx`, com o aviso "PENDURADO NA TELA ERRADA" de 2026-09-09: `produtos-page.jsx` é o protótipo de `/products/unificado`. Corrigido em 2026-10-09 [F+C]. A âncora é a vista `lista` (`TelaLista`), não a `TelaCatalogo` de cards do mesmo arquivo. A cópia `cowork/Felipe/` é a do projeto Cowork do [F] (`2e7d3640`), conferida byte a byte por `get_file` nesta data. A cópia `cowork/Wagner/produto-blade.jsx` difere: a `TelaLista` dela usa os blocos antigos, e o mapa de rotas dela liga `Produto/Index` à vista `catalogo`.)_
   _(a linha anterior apontava `ui_kits/cowork-2026-05-09/prod-page.jsx`; caminho **inexistente** — `ls` → No such file. Corrigido 2026-07-26.)_
 - Contrato de casos: [`Index.casos.md`](Index.casos.md) — `UC-PIDX-01..06` (`CU-PROD-15` do SDD)
 - Canon visual: [ADR ui/0012](../../../../memory/requisitos/_DesignSystem/adr/ui/0012-zip-cowork-2026-05-09-canon-visual.md)
