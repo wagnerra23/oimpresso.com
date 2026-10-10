@@ -168,7 +168,7 @@ it('a lista nova traz os mesmos produtos que a lista antiga, filtro a filtro', f
 
     foreach ($casos as [$blade, $nova, $esperado]) {
         $idsBlade = plcIdsBlade($this, $blade);
-        $idsNova = plcIdsReact(plcLista($this, array_merge($nova, ['por_pagina' => -1])));
+        $idsNova = plcIdsReact(plcLista($this, array_merge($nova, ['per_page' => -1])));
 
         // Pré-condição anti-vácuo: o produto do cenário está nas duas — comparar duas
         // listas vazias provaria nada.
@@ -185,9 +185,9 @@ it('a busca acha pelo nome em qualquer ordem e exige todas as palavras', functio
 
     plcLogin($this, plcUsuario($biz, ['product.view', 'access_all_locations']));
 
-    expect(plcIdsReact(plcLista($this, ['busca' => $marcador])))->toBe([$p->productId]);
-    expect(plcIdsReact(plcLista($this, ['busca' => "azul {$marcador}"])))->toBe([$p->productId]);
-    expect(plcIdsReact(plcLista($this, ['busca' => "{$marcador} vermelho"])))->toBe([]);
+    expect(plcIdsReact(plcLista($this, ['q' => $marcador])))->toBe([$p->productId]);
+    expect(plcIdsReact(plcLista($this, ['q' => "azul {$marcador}"])))->toBe([$p->productId]);
+    expect(plcIdsReact(plcLista($this, ['q' => "{$marcador} vermelho"])))->toBe([]);
 });
 
 it('a busca acha pelo SKU da variação, pela categoria, pela marca e pelo campo personalizado', function () {
@@ -210,10 +210,10 @@ it('a busca acha pelo SKU da variação, pela categoria, pela marca e pelo campo
 
     plcLogin($this, plcUsuario($biz, ['product.view', 'access_all_locations']));
 
-    expect(plcIdsReact(plcLista($this, ['busca' => "VARSKU{$sufixo}"])))->toBe([$variavel->productId]);
-    expect(plcIdsReact(plcLista($this, ['busca' => "CATBUSCA{$sufixo}"])))->toBe([$comCategoria->productId]);
-    expect(plcIdsReact(plcLista($this, ['busca' => "MARCABUSCA{$sufixo}"])))->toBe([$comMarca->productId]);
-    expect(plcIdsReact(plcLista($this, ['busca' => "CAMPO{$sufixo}"])))->toBe([$comCampo->productId]);
+    expect(plcIdsReact(plcLista($this, ['q' => "VARSKU{$sufixo}"])))->toBe([$variavel->productId]);
+    expect(plcIdsReact(plcLista($this, ['q' => "CATBUSCA{$sufixo}"])))->toBe([$comCategoria->productId]);
+    expect(plcIdsReact(plcLista($this, ['q' => "MARCABUSCA{$sufixo}"])))->toBe([$comMarca->productId]);
+    expect(plcIdsReact(plcLista($this, ['q' => "CAMPO{$sufixo}"])))->toBe([$comCampo->productId]);
 });
 
 it('a lista pagina no servidor e não corta o catálogo', function () {
@@ -230,19 +230,19 @@ it('a lista pagina no servidor e não corta o catálogo', function () {
 
     plcLogin($this, plcUsuario($biz, ['product.view', 'access_all_locations']));
 
-    $p1 = plcLista($this, ['busca' => $marcador, 'por_pagina' => 25]);
+    $p1 = plcLista($this, ['q' => $marcador, 'per_page' => 25]);
     expect($p1['total'])->toBe(30);
-    expect($p1['ultima_pagina'])->toBe(2);
+    expect($p1['last_page'])->toBe(2);
     expect(count($p1['data']))->toBe(25);
 
-    $p2 = plcLista($this, ['busca' => $marcador, 'por_pagina' => 25, 'pagina' => 2]);
+    $p2 = plcLista($this, ['q' => $marcador, 'per_page' => 25, 'page' => 2]);
     expect(count($p2['data']))->toBe(5);
     expect(array_values(array_unique(array_merge(plcIdsReact($p1), plcIdsReact($p2)))))->toEqual($ids);
 
     // Tamanho fora das opções do DataTable (25/50/100/200/500/1000/todas) cai no padrão.
-    expect(plcLista($this, ['busca' => $marcador, 'por_pagina' => 37])['por_pagina'])->toBe(25);
+    expect(plcLista($this, ['q' => $marcador, 'per_page' => 37])['per_page'])->toBe(25);
     // "Todas" traz o catálogo inteiro numa página.
-    expect(count(plcLista($this, ['busca' => $marcador, 'por_pagina' => -1])['data']))->toBe(30);
+    expect(count(plcLista($this, ['q' => $marcador, 'per_page' => -1])['data']))->toBe(30);
 });
 
 it('preço de compra e de venda só viajam para quem pode vê-los', function () {
@@ -252,12 +252,12 @@ it('preço de compra e de venda só viajam para quem pode vê-los', function () 
     DB::table('products')->where('id', $p->productId)->update(['name' => $marcador]);
 
     plcLogin($this, plcUsuario($biz, ['product.view', 'access_all_locations']));
-    $sem = plcLista($this, ['busca' => $marcador])['data'][0];
+    $sem = plcLista($this, ['q' => $marcador])['data'][0];
     expect($sem)->not->toHaveKey('compra_min');
     expect($sem)->not->toHaveKey('venda_min');
 
     plcLogin($this, plcUsuario($biz, ['product.view', 'access_all_locations', 'view_purchase_price', 'access_default_selling_price']));
-    $com = plcLista($this, ['busca' => $marcador])['data'][0];
+    $com = plcLista($this, ['q' => $marcador])['data'][0];
     // EstoqueFixture grava dpp_inc_tax = 10 e sell_price_inc_tax = 20 na variação.
     expect($com['compra_min'])->toEqual(10.0);
     expect($com['venda_min'])->toEqual(20.0);
@@ -278,7 +278,7 @@ it('a lista só mostra produtos da própria empresa', function () {
 
     plcLogin($this, plcUsuario($biz, ['product.view', 'access_all_locations']));
 
-    expect(plcIdsReact(plcLista($this, ['busca' => $marcador])))->toBe([$meu->productId]);
+    expect(plcIdsReact(plcLista($this, ['q' => $marcador])))->toBe([$meu->productId]);
 });
 
 it('o estoque é a soma das variações e marca quem está abaixo do alerta', function () {
@@ -294,7 +294,7 @@ it('o estoque é a soma das variações e marca quem está abaixo do alerta', fu
     DB::table('products')->where('id', $semControle->productId)->update(['name' => $marcador . ' B']);
 
     plcLogin($this, plcUsuario($biz, ['product.view', 'access_all_locations']));
-    $linhas = collect(plcLista($this, ['busca' => $marcador])['data'])->keyBy('id');
+    $linhas = collect(plcLista($this, ['q' => $marcador])['data'])->keyBy('id');
 
     expect($linhas[$variavel->productId]['estoque'])->toEqual(7.0);
     expect($linhas[$variavel->productId]['abaixo_do_alerta'])->toBeTrue();

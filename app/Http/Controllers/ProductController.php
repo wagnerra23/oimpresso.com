@@ -438,9 +438,10 @@ class ProductController extends Controller
     /**
      * Filtros da lista React. Mesmos nomes que o DataTable do Blade manda pra `consultaListaProdutos`
      * (`type`, `category_id`, `brand_id`, `unit_id`, `tax_id`, `location_id`, `active_state`,
-     * `not_for_selling`, `woocommerce_enabled`, `repair_model_id`), mais busca, ordenação e paginação.
+     * `not_for_selling`, `woocommerce_enabled`, `repair_model_id`), mais busca (`q`), ordenação
+     * (`sort`/`dir`) e paginação (`page`/`per_page`) — os nomes que o `shared/DataTable` usa.
      *
-     * `por_pagina` aceita as MESMAS opções do DataTable (`public/js/common.js` aLengthMenu:
+     * `per_page` aceita as MESMAS opções do DataTable (`public/js/common.js` aLengthMenu:
      * 25/50/100/200/500/1000/todas = -1) e o padrão é o MESMO do Blade: a configuração da empresa
      * `common_settings.default_datatable_page_entries`, 25 se vazia
      * (`layouts/partials/javascripts.blade.php`).
@@ -453,7 +454,7 @@ class ProductController extends Controller
         if (! in_array($padrao, $opcoesPorPagina, true)) {
             $padrao = 25;
         }
-        $porPagina = request()->has('por_pagina') ? (int) request()->input('por_pagina') : $padrao;
+        $porPagina = request()->has('per_page') ? (int) request()->input('per_page') : $padrao;
         if (! in_array($porPagina, $opcoesPorPagina, true)) {
             $porPagina = $padrao;
         }
@@ -476,11 +477,11 @@ class ProductController extends Controller
             'not_for_selling' => request()->boolean('not_for_selling'),
             'woocommerce_enabled' => request()->boolean('woocommerce_enabled'),
             'repair_model_id' => $texto('repair_model_id'),
-            'busca' => trim((string) request()->input('busca', '')),
-            'ordem' => (string) request()->input('ordem', 'produto'),
-            'direcao' => request()->input('direcao') === 'desc' ? 'desc' : 'asc',
-            'por_pagina' => $porPagina,
-            'pagina' => max(1, (int) request()->input('pagina', 1)),
+            'q' => trim((string) request()->input('q', '')),
+            'sort' => (string) request()->input('sort', 'produto'),
+            'dir' => request()->input('dir') === 'desc' ? 'desc' : 'asc',
+            'per_page' => $porPagina,
+            'page' => max(1, (int) request()->input('page', 1)),
         ];
     }
 
@@ -516,7 +517,8 @@ class ProductController extends Controller
     }
 
     /**
-     * Página da lista React: `consultaListaProdutos` + busca + ordenação + paginação no servidor.
+     * Página da lista React: `consultaListaProdutos` + busca + ordenação + paginação no servidor,
+     * no formato do paginador do Laravel.
      * Preço de compra/venda só viaja para quem pode vê-los (mesmo gate do Blade e do UC-PIDX-03):
      * sem a permissão a CHAVE não existe na linha, e a coluna também não ordena.
      */
@@ -525,7 +527,7 @@ class ProductController extends Controller
         $query = $this->consultaListaProdutos($business_id, $f, $is_woocommerce)
             ->with('product_locations')
             ->withCount('variations');
-        $this->aplicarBuscaListaProdutos($query, $f['busca']);
+        $this->aplicarBuscaListaProdutos($query, $f['q']);
 
         $ordenaveis = [
             'produto' => 'products.name',
@@ -542,19 +544,19 @@ class ProductController extends Controller
         if ($podeVerPreco) {
             $ordenaveis['venda'] = 'max_price';
         }
-        $coluna = $ordenaveis[$f['ordem']] ?? 'products.name';
-        $query->orderBy($coluna, $f['direcao']);
+        $coluna = $ordenaveis[$f['sort']] ?? 'products.name';
+        $query->orderBy($coluna, $f['dir']);
         if ($coluna !== 'products.name') {
             $query->orderBy('products.name');
         }
         $query->orderBy('products.id');
 
-        $porPagina = $f['por_pagina'] === -1
+        $porPagina = $f['per_page'] === -1
             ? max(1, (clone $query)->toBase()->getCountForPagination())
-            : $f['por_pagina'];
-        $pagina = $query->paginate($porPagina, ['*'], 'pagina', $f['pagina']);
+            : $f['per_page'];
+        $pagina = $query->paginate($porPagina, ['*'], 'page', $f['page'])->withQueryString();
 
-        $linhas = collect($pagina->items())->map(function ($row) use ($podeVerCusto, $podeVerPreco, $is_woocommerce) {
+        $pagina->through(function ($row) use ($podeVerCusto, $podeVerPreco, $is_woocommerce) {
             $controla = (bool) $row->enable_stock;
             $estoque = $controla ? (float) ($row->current_stock ?? 0) : null;
             $alerta = $row->alert_quantity === null ? null : (float) $row->alert_quantity;
@@ -600,17 +602,12 @@ class ProductController extends Controller
             }
 
             return $linha;
-        })->all();
+        });
 
-        return [
-            'data' => $linhas,
-            'total' => $pagina->total(),
-            'pagina' => $pagina->currentPage(),
-            'ultima_pagina' => $pagina->lastPage(),
-            'por_pagina' => $f['por_pagina'],
-            'de' => $pagina->firstItem(),
-            'ate' => $pagina->lastItem(),
-        ];
+        // Formato do paginador do Laravel (data, total, current_page, last_page, from, to, links)
+        // — o `PaginatorShape` que o `shared/DataTable` consome. `per_page` devolve o que foi
+        // pedido (-1 = todas), não o tamanho interno usado pra trazer tudo numa página.
+        return array_merge($pagina->toArray(), ['per_page' => $f['per_page']]);
     }
 
     /**
