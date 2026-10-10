@@ -80,125 +80,18 @@ class ProductController extends Controller
         $telaReact = (bool) request()->header('X-Inertia');
 
         if (! $telaReact && request()->ajax()) {
-            //Filter by location
-            $location_id = request()->get('location_id', null);
-            $permitted_locations = auth()->user()->permitted_locations();
-
-            $query = Product::with(['media'])
-                ->leftJoin('brands', 'products.brand_id', '=', 'brands.id')
-                ->join('units', 'products.unit_id', '=', 'units.id')
-                ->leftJoin('categories as c1', 'products.category_id', '=', 'c1.id')
-                ->leftJoin('categories as c2', 'products.sub_category_id', '=', 'c2.id')
-                ->leftJoin('tax_rates', 'products.tax', '=', 'tax_rates.id')
-                ->join('variations as v', 'v.product_id', '=', 'products.id')
-                ->leftJoin('variation_location_details as vld', function ($join) use ($permitted_locations) {
-                    $join->on('vld.variation_id', '=', 'v.id');
-                    if ($permitted_locations != 'all') {
-                        $join->whereIn('vld.location_id', $permitted_locations);
-                    }
-                })
-                ->whereNull('v.deleted_at')
-                ->where('products.business_id', $business_id)
-                ->where('products.type', '!=', 'modifier');
-
-            if (! empty($location_id) && $location_id != 'none') {
-                if ($permitted_locations == 'all' || in_array($location_id, $permitted_locations)) {
-                    $query->whereHas('product_locations', function ($query) use ($location_id) {
-                        $query->where('product_locations.location_id', '=', $location_id);
-                    });
-                }
-            } elseif ($location_id == 'none') {
-                $query->doesntHave('product_locations');
-            } else {
-                if ($permitted_locations != 'all') {
-                    $query->whereHas('product_locations', function ($query) use ($permitted_locations) {
-                        $query->whereIn('product_locations.location_id', $permitted_locations);
-                    });
-                } else {
-                    $query->with('product_locations');
-                }
-            }
-
-            $products = $query->select(
-                'products.id',
-                'products.name as product',
-                'products.type',
-                'c1.name as category',
-                'c2.name as sub_category',
-                'units.actual_name as unit',
-                'brands.name as brand',
-                'tax_rates.name as tax',
-                'products.sku',
-                'products.image',
-                'products.enable_stock',
-                'products.is_inactive',
-                'products.not_for_selling',
-                'products.product_custom_field1', 'products.product_custom_field2', 'products.product_custom_field3', 'products.product_custom_field4', 'products.product_custom_field5', 'products.product_custom_field6',
-                'products.product_custom_field7', 'products.product_custom_field8', 'products.product_custom_field9',
-                'products.product_custom_field10', 'products.product_custom_field11', 'products.product_custom_field12',
-                'products.product_custom_field13', 'products.product_custom_field14', 'products.product_custom_field15',
-                'products.product_custom_field16', 'products.product_custom_field17', 'products.product_custom_field18', 
-                'products.product_custom_field19', 'products.product_custom_field20',
-                'products.alert_quantity',
-                DB::raw('SUM(vld.qty_available) as current_stock'),
-                DB::raw('MAX(v.sell_price_inc_tax) as max_price'),
-                DB::raw('MIN(v.sell_price_inc_tax) as min_price'),
-                DB::raw('MAX(v.dpp_inc_tax) as max_purchase_price'),
-                DB::raw('MIN(v.dpp_inc_tax) as min_purchase_price')
-                );
-
-            //if woocomerce enabled add field to query
-            if ($is_woocommerce) {
-                $products->addSelect('woocommerce_disable_sync');
-            }
-
-            $products->groupBy('products.id');
-
-            $type = request()->get('type', null);
-            if (! empty($type)) {
-                $products->where('products.type', $type);
-            }
-
-            $category_id = request()->get('category_id', null);
-            if (! empty($category_id)) {
-                $products->where('products.category_id', $category_id);
-            }
-
-            $brand_id = request()->get('brand_id', null);
-            if (! empty($brand_id)) {
-                $products->where('products.brand_id', $brand_id);
-            }
-
-            $unit_id = request()->get('unit_id', null);
-            if (! empty($unit_id)) {
-                $products->where('products.unit_id', $unit_id);
-            }
-
-            $tax_id = request()->get('tax_id', null);
-            if (! empty($tax_id)) {
-                $products->where('products.tax', $tax_id);
-            }
-
-            $active_state = request()->get('active_state', null);
-            if ($active_state == 'active') {
-                $products->Active();
-            }
-            if ($active_state == 'inactive') {
-                $products->Inactive();
-            }
-            $not_for_selling = request()->get('not_for_selling', null);
-            if ($not_for_selling == 'true') {
-                $products->ProductNotForSales();
-            }
-
-            $woocommerce_enabled = request()->get('woocommerce_enabled', 0);
-            if ($woocommerce_enabled == 1) {
-                $products->where('products.woocommerce_disable_sync', 0);
-            }
-
-            if (! empty(request()->get('repair_model_id'))) {
-                $products->where('products.repair_model_id', request()->get('repair_model_id'));
-            }
+            $products = $this->consultaListaProdutos($business_id, [
+                'location_id' => request()->get('location_id', null),
+                'type' => request()->get('type', null),
+                'category_id' => request()->get('category_id', null),
+                'brand_id' => request()->get('brand_id', null),
+                'unit_id' => request()->get('unit_id', null),
+                'tax_id' => request()->get('tax_id', null),
+                'active_state' => request()->get('active_state', null),
+                'not_for_selling' => request()->get('not_for_selling', null) == 'true',
+                'woocommerce_enabled' => request()->get('woocommerce_enabled', 0) == 1,
+                'repair_model_id' => request()->get('repair_model_id'),
+            ], $is_woocommerce);
 
             return Datatables::of($products)
                 ->addColumn(
@@ -356,7 +249,20 @@ class ProductController extends Controller
             $podeVerCusto = (bool) auth()->user()->can('view_purchase_price');
             $podeVerPreco = (bool) auth()->user()->can('access_default_selling_price');
 
+            // Lista no desenho do protótipo (`produto-blade.jsx`, vista `lista`): a MESMA consulta
+            // do DataTable do Blade (`consultaListaProdutos`), paginada no servidor.
+            $filtrosLista = $this->filtrosListaProdutos();
+
             return Inertia::render('Produto/Index', [
+                'filtros' => $filtrosLista,
+                'lista' => Inertia::defer(fn () => $this->buildProdutoListaPaginada($business_id, $filtrosLista, $podeVerCusto, $podeVerPreco, $is_woocommerce)),
+                'opcoes' => $this->buildProdutoListaOpcoes($categories, $brands, $units, $taxes, $business_locations, $pos_module_data),
+                'contexto' => [
+                    'empresa' => (string) (request()->session()->get('business.name') ?? ''),
+                    'grupos_de_preco' => (int) $selling_price_group_count,
+                    'woocommerce' => (bool) $is_woocommerce,
+                    'rotulos_campos' => $this->rotulosCamposProduto(),
+                ],
                 'filters' => [
                     'busca' => (string) request()->input('busca', ''),
                     'categoria' => (string) request()->input('categoria', 'todos'),
@@ -370,6 +276,8 @@ class ProductController extends Controller
                     'update' => auth()->user()->can('product.update'),
                     'delete' => auth()->user()->can('product.delete'),
                     'opening_stock' => auth()->user()->can('product.opening_stock'),
+                    'view' => auth()->user()->can('product.view'),
+                    'stock_report' => auth()->user()->can('stock_report.view'),
                     // EAGER (não defer): são 2 booleanos já resolvidos — o `.tsx` aplica default
                     // fail-closed, então ausência da prop nunca vira permissão.
                     'view_purchase_price' => $podeVerCusto,
@@ -391,6 +299,365 @@ class ProductController extends Controller
                 'is_woocommerce',
                 'is_admin'
             ));
+    }
+
+    /**
+     * Consulta base da lista de produtos (`/products`) — a MESMA para o DataTable da lista
+     * Blade e para a Page React `Produto/Index`. Extraída do ramo AJAX de `index()` sem mudar
+     * nada: joins, locais permitidos do usuário, filtros e agregados (estoque somado nos locais
+     * permitidos, preço de compra/venda mínimo e máximo das variações). Assim as duas telas
+     * listam exatamente os mesmos produtos para os mesmos filtros.
+     *
+     * `$f` traz os filtros já normalizados: `not_for_selling` e `woocommerce_enabled` são
+     * booleanos (o Blade manda `'true'` e `1`; a conversão fica em quem chama).
+     * Tier 0 multi-tenant (ADR 0093): `business_id` explícito.
+     */
+    protected function consultaListaProdutos(int $business_id, array $f, bool $is_woocommerce)
+    {
+        $permitted_locations = auth()->user()->permitted_locations();
+        //Filter by location
+        $location_id = $f['location_id'] ?? null;
+
+        $query = Product::with(['media'])
+            ->leftJoin('brands', 'products.brand_id', '=', 'brands.id')
+            ->join('units', 'products.unit_id', '=', 'units.id')
+            ->leftJoin('categories as c1', 'products.category_id', '=', 'c1.id')
+            ->leftJoin('categories as c2', 'products.sub_category_id', '=', 'c2.id')
+            ->leftJoin('tax_rates', 'products.tax', '=', 'tax_rates.id')
+            ->join('variations as v', 'v.product_id', '=', 'products.id')
+            ->leftJoin('variation_location_details as vld', function ($join) use ($permitted_locations) {
+                $join->on('vld.variation_id', '=', 'v.id');
+                if ($permitted_locations != 'all') {
+                    $join->whereIn('vld.location_id', $permitted_locations);
+                }
+            })
+            ->whereNull('v.deleted_at')
+            ->where('products.business_id', $business_id)
+            ->where('products.type', '!=', 'modifier');
+
+        if (! empty($location_id) && $location_id != 'none') {
+            if ($permitted_locations == 'all' || in_array($location_id, $permitted_locations)) {
+                $query->whereHas('product_locations', function ($query) use ($location_id) {
+                    $query->where('product_locations.location_id', '=', $location_id);
+                });
+            }
+        } elseif ($location_id == 'none') {
+            $query->doesntHave('product_locations');
+        } else {
+            if ($permitted_locations != 'all') {
+                $query->whereHas('product_locations', function ($query) use ($permitted_locations) {
+                    $query->whereIn('product_locations.location_id', $permitted_locations);
+                });
+            } else {
+                $query->with('product_locations');
+            }
+        }
+
+        $products = $query->select(
+            'products.id',
+            'products.name as product',
+            'products.type',
+            'c1.name as category',
+            'c2.name as sub_category',
+            'units.actual_name as unit',
+            'brands.name as brand',
+            'tax_rates.name as tax',
+            'products.sku',
+            'products.image',
+            'products.enable_stock',
+            'products.is_inactive',
+            'products.not_for_selling',
+            'products.product_custom_field1', 'products.product_custom_field2', 'products.product_custom_field3', 'products.product_custom_field4', 'products.product_custom_field5', 'products.product_custom_field6',
+            'products.product_custom_field7', 'products.product_custom_field8', 'products.product_custom_field9',
+            'products.product_custom_field10', 'products.product_custom_field11', 'products.product_custom_field12',
+            'products.product_custom_field13', 'products.product_custom_field14', 'products.product_custom_field15',
+            'products.product_custom_field16', 'products.product_custom_field17', 'products.product_custom_field18', 
+            'products.product_custom_field19', 'products.product_custom_field20',
+            'products.alert_quantity',
+            DB::raw('SUM(vld.qty_available) as current_stock'),
+            DB::raw('MAX(v.sell_price_inc_tax) as max_price'),
+            DB::raw('MIN(v.sell_price_inc_tax) as min_price'),
+            DB::raw('MAX(v.dpp_inc_tax) as max_purchase_price'),
+            DB::raw('MIN(v.dpp_inc_tax) as min_purchase_price')
+            );
+
+        //if woocomerce enabled add field to query
+        if ($is_woocommerce) {
+            $products->addSelect('woocommerce_disable_sync');
+        }
+
+        $products->groupBy('products.id');
+
+        $type = $f['type'] ?? null;
+        if (! empty($type)) {
+            $products->where('products.type', $type);
+        }
+
+        $category_id = $f['category_id'] ?? null;
+        if (! empty($category_id)) {
+            $products->where('products.category_id', $category_id);
+        }
+
+        $brand_id = $f['brand_id'] ?? null;
+        if (! empty($brand_id)) {
+            $products->where('products.brand_id', $brand_id);
+        }
+
+        $unit_id = $f['unit_id'] ?? null;
+        if (! empty($unit_id)) {
+            $products->where('products.unit_id', $unit_id);
+        }
+
+        $tax_id = $f['tax_id'] ?? null;
+        if (! empty($tax_id)) {
+            $products->where('products.tax', $tax_id);
+        }
+
+        $active_state = $f['active_state'] ?? null;
+        if ($active_state == 'active') {
+            $products->Active();
+        }
+        if ($active_state == 'inactive') {
+            $products->Inactive();
+        }
+        if (! empty($f['not_for_selling'])) {
+            $products->ProductNotForSales();
+        }
+
+        if (! empty($f['woocommerce_enabled'])) {
+            $products->where('products.woocommerce_disable_sync', 0);
+        }
+
+        if (! empty($f['repair_model_id'])) {
+            $products->where('products.repair_model_id', $f['repair_model_id']);
+        }
+
+        return $products;
+    }
+
+    /**
+     * Filtros da lista React. Mesmos nomes que o DataTable do Blade manda pra `consultaListaProdutos`
+     * (`type`, `category_id`, `brand_id`, `unit_id`, `tax_id`, `location_id`, `active_state`,
+     * `not_for_selling`, `woocommerce_enabled`, `repair_model_id`), mais busca (`q`), ordenação
+     * (`sort`/`dir`) e paginação (`page`/`per_page`) — os nomes que o `shared/DataTable` usa.
+     *
+     * `per_page` aceita as MESMAS opções do DataTable (`public/js/common.js` aLengthMenu:
+     * 25/50/100/200/500/1000/todas = -1) e o padrão é o MESMO do Blade: a configuração da empresa
+     * `common_settings.default_datatable_page_entries`, 25 se vazia
+     * (`layouts/partials/javascripts.blade.php`).
+     */
+    protected function filtrosListaProdutos(): array
+    {
+        $opcoesPorPagina = [25, 50, 100, 200, 500, 1000, -1];
+        $common = request()->session()->get('business.common_settings') ?: [];
+        $padrao = ! empty($common['default_datatable_page_entries']) ? (int) $common['default_datatable_page_entries'] : 25;
+        if (! in_array($padrao, $opcoesPorPagina, true)) {
+            $padrao = 25;
+        }
+        $porPagina = request()->has('per_page') ? (int) request()->input('per_page') : $padrao;
+        if (! in_array($porPagina, $opcoesPorPagina, true)) {
+            $porPagina = $padrao;
+        }
+
+        $texto = function (string $k) {
+            $v = request()->input($k);
+
+            return ($v === null || $v === '') ? null : (string) $v;
+        };
+        $estado = request()->input('active_state');
+
+        return [
+            'type' => $texto('type'),
+            'category_id' => $texto('category_id'),
+            'brand_id' => $texto('brand_id'),
+            'unit_id' => $texto('unit_id'),
+            'tax_id' => $texto('tax_id'),
+            'location_id' => $texto('location_id'),
+            'active_state' => in_array($estado, ['active', 'inactive'], true) ? $estado : null,
+            'not_for_selling' => request()->boolean('not_for_selling'),
+            'woocommerce_enabled' => request()->boolean('woocommerce_enabled'),
+            'repair_model_id' => $texto('repair_model_id'),
+            'q' => trim((string) request()->input('q', '')),
+            'sort' => (string) request()->input('sort', 'produto'),
+            'dir' => request()->input('dir') === 'desc' ? 'desc' : 'asc',
+            'per_page' => $porPagina,
+            'page' => max(1, (int) request()->input('page', 1)),
+        ];
+    }
+
+    /**
+     * Busca da lista React com a MESMA regra da busca do DataTable do Blade (medida em produção
+     * 2026-10-10 e lida em `config/datatables.php` + `product/index.blade.php`):
+     *   · cada PALAVRA precisa aparecer em alguma coluna (`multi_term`); maiúscula = minúscula;
+     *   · colunas pesquisáveis: nome, SKU do produto, SKU da variação (`filterColumn('products.sku')`),
+     *     tipo (valor interno), categoria, marca e campos personalizados 1-7;
+     *   · NÃO entram: locais, imposto, unidade, preços e estoque (no Blade são `searchable: false`
+     *     ou coluna calculada).
+     * Porcentagem e sublinhado digitados viram literais (no Blade eram curinga).
+     */
+    protected function aplicarBuscaListaProdutos($query, string $busca): void
+    {
+        $termos = preg_split('/\s+/u', $busca, -1, PREG_SPLIT_NO_EMPTY) ?: [];
+        foreach ($termos as $termo) {
+            $like = '%' . addcslashes($termo, chr(92) . '%_') . '%';
+            $query->where(function ($q) use ($like) {
+                $q->where('products.name', 'like', $like)
+                    ->orWhere('products.sku', 'like', $like)
+                    ->orWhereHas('variations', function ($v) use ($like) {
+                        $v->where('sub_sku', 'like', $like);
+                    })
+                    ->orWhere('products.type', 'like', $like)
+                    ->orWhere('c1.name', 'like', $like)
+                    ->orWhere('brands.name', 'like', $like);
+                for ($i = 1; $i <= 7; $i++) {
+                    $q->orWhere('products.product_custom_field' . $i, 'like', $like);
+                }
+            });
+        }
+    }
+
+    /**
+     * Página da lista React: `consultaListaProdutos` + busca + ordenação + paginação no servidor,
+     * no formato do paginador do Laravel.
+     * Preço de compra/venda só viaja para quem pode vê-los (mesmo gate do Blade e do UC-PIDX-03):
+     * sem a permissão a CHAVE não existe na linha, e a coluna também não ordena.
+     */
+    protected function buildProdutoListaPaginada(int $business_id, array $f, bool $podeVerCusto, bool $podeVerPreco, bool $is_woocommerce): array
+    {
+        $query = $this->consultaListaProdutos($business_id, $f, $is_woocommerce)
+            ->with('product_locations')
+            ->withCount('variations');
+        $this->aplicarBuscaListaProdutos($query, $f['q']);
+
+        $ordenaveis = [
+            'produto' => 'products.name',
+            'estoque' => 'current_stock',
+            'tipo' => 'products.type',
+            'categoria' => 'c1.name',
+            'marca' => 'brands.name',
+            'imposto' => 'tax_rates.name',
+            'sku' => 'products.sku',
+        ];
+        if ($podeVerCusto) {
+            $ordenaveis['compra'] = 'max_purchase_price';
+        }
+        if ($podeVerPreco) {
+            $ordenaveis['venda'] = 'max_price';
+        }
+        $coluna = $ordenaveis[$f['sort']] ?? 'products.name';
+        $query->orderBy($coluna, $f['dir']);
+        if ($coluna !== 'products.name') {
+            $query->orderBy('products.name');
+        }
+        $query->orderBy('products.id');
+
+        $porPagina = $f['per_page'] === -1
+            ? max(1, (clone $query)->toBase()->getCountForPagination())
+            : $f['per_page'];
+        $pagina = $query->paginate($porPagina, ['*'], 'page', $f['page'])->withQueryString();
+
+        $pagina->through(function ($row) use ($podeVerCusto, $podeVerPreco, $is_woocommerce) {
+            $controla = (bool) $row->enable_stock;
+            $estoque = $controla ? (float) ($row->current_stock ?? 0) : null;
+            $alerta = $row->alert_quantity === null ? null : (float) $row->alert_quantity;
+            $anexo = $row->media->first();
+
+            $linha = [
+                'id' => (int) $row->id,
+                'nome' => (string) $row->product,
+                'sku' => (string) ($row->sku ?? ''),
+                'tipo' => (string) $row->type,
+                'categoria' => $row->category,
+                'subcategoria' => $row->sub_category,
+                'unidade' => $row->unit,
+                'marca' => $row->brand,
+                'imposto' => $row->tax,
+                'imagem' => $row->image_url,
+                'controla_estoque' => $controla,
+                'estoque' => $estoque,
+                'alerta' => $alerta,
+                'abaixo_do_alerta' => $estoque !== null && $alerta !== null && $estoque <= $alerta,
+                'inativo' => (bool) $row->is_inactive,
+                'nao_para_venda' => (bool) $row->not_for_selling,
+                'locais' => $row->product_locations->pluck('name')->values()->all(),
+                'variacoes' => (int) $row->variations_count,
+                'campos' => [
+                    1 => $row->product_custom_field1, 2 => $row->product_custom_field2,
+                    3 => $row->product_custom_field3, 4 => $row->product_custom_field4,
+                    5 => $row->product_custom_field5, 6 => $row->product_custom_field6,
+                    7 => $row->product_custom_field7,
+                ],
+                'anexo' => $anexo ? ['url' => $anexo->display_url, 'nome' => $anexo->display_name] : null,
+            ];
+            if ($is_woocommerce) {
+                $linha['woocommerce_sync'] = ! $row->woocommerce_disable_sync;
+            }
+            if ($podeVerCusto) {
+                $linha['compra_min'] = (float) $row->min_purchase_price;
+                $linha['compra_max'] = (float) $row->max_purchase_price;
+            }
+            if ($podeVerPreco) {
+                $linha['venda_min'] = (float) $row->min_price;
+                $linha['venda_max'] = (float) $row->max_price;
+            }
+
+            return $linha;
+        });
+
+        // Formato do paginador do Laravel (data, total, current_page, last_page, from, to, links)
+        // — o `PaginatorShape` que o `shared/DataTable` consome. `per_page` devolve o que foi
+        // pedido (-1 = todas), não o tamanho interno usado pra trazer tudo numa página.
+        return array_merge($pagina->toArray(), ['per_page' => $f['per_page']]);
+    }
+
+    /**
+     * Opções dos filtros — as MESMAS listas que o `index()` já monta para o Blade (categorias,
+     * marcas, unidades, impostos, locais com "Nenhum") e o filtro de módulo "Modelo do
+     * dispositivo", que só existe quando a assistência técnica está ligada na empresa
+     * (`Repair\DataController::get_filters_for_list_product_screen`).
+     */
+    protected function buildProdutoListaOpcoes($categories, $brands, $units, $taxes, $business_locations, $pos_module_data): array
+    {
+        $lista = function ($fonte) {
+            $out = [];
+            foreach (collect($fonte)->all() as $id => $nome) {
+                $out[] = ['id' => (string) $id, 'nome' => (string) $nome];
+            }
+
+            return $out;
+        };
+
+        $modelos = null;
+        foreach ((array) $pos_module_data as $dado) {
+            if (is_array($dado) && isset($dado['view_data']['device_models'])) {
+                $modelos = $lista($dado['view_data']['device_models']);
+            }
+        }
+
+        return [
+            'categorias' => $lista($categories),
+            'marcas' => $lista($brands),
+            'unidades' => $lista($units),
+            'impostos' => $lista($taxes),
+            'locais' => $lista($business_locations),
+            'modelos_dispositivo' => $modelos,
+        ];
+    }
+
+    /**
+     * Rótulos dos campos personalizados de produto definidos pela empresa
+     * (Configurações → rótulos). No Blade a coluna só aparece quando o rótulo existe.
+     */
+    protected function rotulosCamposProduto(): array
+    {
+        $rotulos = json_decode((string) request()->session()->get('business.custom_labels'), true);
+        $produto = is_array($rotulos) && isset($rotulos['product']) && is_array($rotulos['product']) ? $rotulos['product'] : [];
+        $out = [];
+        for ($i = 1; $i <= 7; $i++) {
+            $out[$i] = ! empty($produto['custom_field_' . $i]) ? (string) $produto['custom_field_' . $i] : null;
+        }
+
+        return $out;
     }
 
     /**
