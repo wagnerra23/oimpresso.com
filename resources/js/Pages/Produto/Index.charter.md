@@ -20,7 +20,18 @@ mwart_pattern_reuse:
   divergence_from_blueprint: "none — Index é o blueprint canon B4 Produto"
 ---
 
-# Page Charter — /products (DRAFT — Wave 2 B4 Produto pattern reuse)
+# Page Charter — /products (lista de produtos no desenho do protótipo)
+
+> **v3 · 2026-10-10 · [F+C], autorizado por [W] (WhatsApp, repassado pelo [F]: "corrigir a tela").**
+> A tela de `/products` é a vista **`lista`** (`TelaLista`) de `prototipo-ui/cowork/Felipe/produto-blade.jsx`
+> — a tradução 1:1 do `index.blade.php` no visual Cockpit — **com tudo o que a lista Blade já faz**
+> (decisão do [F] 2026-10-09: "não podemos perder funções que existem em produção nem descartar as
+> boas funções do protótipo"). As versões v1/v2 abaixo descreviam um catálogo de **cards** ("lite"),
+> que foi o desenho errado: subiu pelo menu em 2026-10-09 (#9094), a ROTA LIVRE reclamou (não achava
+> produto pelo código, não via estoque, faltavam filtros) e o menu voltou ao Blade (#9117).
+> Mission, Goals, Non-Goals, UX e Anti-hooks foram reescritos para a v3; o texto v2 fica só no Histórico.
+>
+> _(v2, histórico — superado pela v3:)_
 
 > **Status:** draft v2 atualizado 2026-05-15 (Wave 2 B4 Produto Agent W2-C). Blueprint visual definido: `prototipo-ui/cowork/Wagner/produtos-page.jsx` (cockpit-page.jsx + Produtos Cockpit.html + visual-source.html). Pattern serve de blueprint pras 6 telas derivadas (Create/Show/Edit/SellingPrices/BulkEdit/StockHistory) — ADR 0149.
 >
@@ -32,66 +43,81 @@ mwart_pattern_reuse:
 
 ## Mission
 
-Catálogo simples de produtos em grid view com tabs de categoria, busca e cards visuais — variante "lite" do `/products/unificado` pra usuários que querem visão rápida sem complexidade de BOM/tabelas/histórico.
+Lista completa do catálogo para o balcão e o cadastro: achar qualquer produto (por nome, código,
+código da variação, categoria, marca ou campo personalizado), ver preço, estoque e situação, filtrar
+como na lista Blade e agir sobre um ou vários produtos — no desenho do protótipo, sem perder nenhuma
+função da lista Blade que roda hoje em produção.
 
 ---
 
 ## Goals — Features (faz)
 
-- AppShellV2 + topnav inline com breadcrumb
-- `<PageHeader>` shared: h1 "Produtos" + subtitle + botões "Importar" + "Novo produto" (rotas Blade legacy)
-- 4 KPI cards: Total / Ativos / Categorias / Populares (popularity ≥ 70)
-- Tabs de categoria com counter (Todos / impressos / comvis / embalagens / brindes / adesivos)
-- Toggle "Mostrar inativos" (default: oculto)
-- Search bar (busca em nome + SKU)
-- Grid view de cards (NÃO tabela — diferença chave vs `/products/unificado`):
-  - Card: categoria badge + nome + SKU mono + preço/unidade + lead time + barra de popularidade
-  - Card inativo: classe `inactive` + badge "inativo"
-- Click card abre drawer (mesma DetailSheet do `/products/unificado`)
-- Multi-tenant: `App\Product` filtrado por `business_id` — ⚠️ por `where` **explícito** em cada builder, **não** por global scope (medido 2026-07-26: `addGlobalScope` = 0 em `app/Product.php`)
-- Permission gate: `product.view` **ou** `product.create` (`ProductController@index:66-68`)
-  _(a linha anterior citava `product.view_own`; varredura contada em `app/`+`Modules/`+`routes/`+`resources/` (excl. charters): **0** ocorrências — a permissão não existe no projeto.)_
+- AppShellV2 + `<PageHeader>`: "Produtos · Catálogo", linha de contexto (empresa · local · nº de
+  produtos · grupos de preço · papel), "Atualizado HH:MM" (recarrega), **Baixar Excel**
+  (`/products/download-excel`) e **Novo produto** (`/products/create`, Blade).
+- 4 indicadores (protótipo): produtos cadastrados (variáveis · composições), abaixo do alerta,
+  **valor em estoque pelo custo** (o MESMO total do Relatório de estoque — regra mestre de valor:
+  prova dupla antes de subir) e inativos.
+- Filtros (recolhíveis): tipo, categoria, unidade, imposto, marca, local do negócio, situação,
+  "Não para venda"; e os de módulo, só para quem tem o módulo: "Modelo do dispositivo"
+  (assistência técnica) e "WooCommerce habilitado". Chips "Filtrando por" + "Limpar tudo".
+- Abas: **Todos os produtos** (com contagem) e **Relatório de estoque** (as colunas da lista Blade,
+  com totais), esta só com `stock_report.view`.
+- Barra: busca (atalho `/`) com a **mesma regra da lista Blade**, no servidor e no catálogo inteiro
+  (cada palavra em nome, SKU, SKU da variação, tipo, categoria, marca ou campo personalizado);
+  Confortável/Compacto; **Colunas** (lembradas no navegador); **Cadastro rápido**.
+- Tabela (`shared/DataTable`, densidade `grid`): Ação, Imagem, Produto (+ 2ª linha: estoque
+  gerenciado · não para venda · inativo · N variações), Locais, Preço de compra, Preço de venda,
+  Estoque atual (vermelho abaixo do alerta), Tipo, Categoria (+ subcategoria), Marca, Imposto, SKU;
+  opcionais IMEI/série e os campos personalizados que a empresa rotulou. Linha inativa apagada, linha
+  abaixo do alerta com faixa vermelha. Ordenação e **paginação no servidor**, com as opções da lista
+  Blade (25 a 1000 e todas) e o mesmo padrão (configuração da empresa).
+- Menu **Ações** por produto — união do protótipo com a lista Blade, com as MESMAS permissões:
+  Ver, Editar, Estoque inicial, Histórico de estoque, Duplicar, Gerar código de barras, Preços por
+  grupo, Baixar anexo, Ativar/Desativar, Excluir; e Comprar, Transferir, Usar em OS (só com
+  assistência técnica) e Dados fiscais, conforme a etapa que as entrega.
+- Seleção em massa: Edição em massa, Adicionar/Remover do local, Etiquetas, Desativar, Excluir e
+  WooCommerce Sync (só com o módulo).
+- Painel de detalhe (Sheet) com Dados · Variações/Composição · Estoque · Fiscal · Prateleira.
+- Destinos abrem com navegação de página inteira, como na lista Blade (o cadastro da ROTA LIVRE
+  segue no Blade — US-PROD-029).
+- Multi-tenant: `business_id` explícito em toda consulta (não há global scope em `App\Product`).
+- Permission gate: `product.view` **ou** `product.create` (`ProductController@index`, 403).
 
 ---
 
 ## Non-Goals — Features (NÃO faz)
 
-> ⚠️ Anti-alucinação. Wagner aprova.
+> ⚠️ Anti-alucinação. v3 autorizada por [W] em 2026-10-10 (via [F]).
 
-- ❌ Sub-views (Insumos/BOM/Tabelas/Histórico) — vai pra `/products/unificado`
-- ❌ View toggle table/grid (sempre grid; tabela vai em `/products/unificado`)
-- ❌ Densidade compact/comfortable/spacious — sempre comfortable
-- ❌ CRUD inline (criar/editar via rotas Blade dedicadas)
-- ❌ Bulk actions
-- ❌ Stock management
-- ❌ Importar CSV inline (botão linka pra rota Blade)
-- ❌ Filtros avançados (price range, brand, supplier) — backlog
-- ❌ Edição de preço inline no card
-- ❌ Categoria tree (apenas tabs flat 1 nível)
+- ❌ Corte silencioso do catálogo (lista limitada a N sem paginação)
+- ❌ Busca ou filtro resolvidos só no navegador sobre uma página do catálogo
+- ❌ Função a menos que a lista Blade (`product.index`) — o que ela faz, esta faz
+- ❌ Cadastro/edição do produto dentro da lista (abre `create`/`edit`, Blade — US-PROD-029)
+- ❌ Edição de preço inline na tabela
+- ❌ Sub-views de BOM/Insumos/Tabelas (ficam em `/products/unificado`)
+- ❌ Árvore de categorias (filtro é a lista plana da categoria, como no Blade)
 
 ---
 
 ## UX Targets
 
-- p95 first-paint < 1000ms (grid 50 cards)
+- Catálogo inteiro alcançável (ROTA LIVRE: milhares de produtos) — paginação e busca no servidor
+- Busca acha pelo código da variação e pelo código escrito no nome
 - 0 erros JS console
-- Cabe em 1280px sem scroll horizontal (Larissa)
-- Cards responsivos: 4 col / 3 col / 2 col / 1 col por breakpoint
-- Drawer abre < 300ms
-- Tabs categoria switching < 100ms (filter client-side)
-- Tipografia canon: h1 22-24px, card title 14px, SKU mono 11px, price `tabular-nums`
-- Cores semânticas: emerald (ativo+popular), stone (ativo neutro), rose (inativo)
+- Cabe em 1280px sem scroll horizontal **da página** (a tabela rola dentro dela, cabeçalho fixo)
+- Mesmas fontes e tons do protótipo (bundle `cowork-produto-bundle.css`), medido com
+  `design-diff.mjs` contra o protótipo, mesmo tema e largura
 
 ---
 
 ## UX Anti-patterns
 
-- ❌ Tabela ao invés de cards (canon dessa Page = grid only)
-- ❌ Modal pra detalhe (canon = Sheet)
-- ❌ Cor crua `bg-(green|red)-N`
-- ❌ Card sem barra de popularidade (perde feedback visual)
-- ❌ Card inativo idêntico a ativo (perda de hierarquia)
-- ❌ `sessionStorage`
+- ❌ Cards no lugar da tabela (era o desenho errado — v2)
+- ❌ Estoque vazio quando o produto controla estoque
+- ❌ Preço ou custo enviado a quem não pode vê-los (gate no servidor, UC-PIDX-03)
+- ❌ Botão de ação sem efeito para quem não tem a permissão
+- ❌ Cor crua `bg-(green|red)-N`; `sessionStorage`
 
 ---
 
@@ -114,16 +140,17 @@ Catálogo simples de produtos em grid view com tabs de categoria, busca e cards 
 
 ## Automation Anti-hooks
 
-> ⚠️ Wagner aprova.
+> ⚠️ v3 autorizada por [W] em 2026-10-10 (via [F]).
 
-- ❌ Não dispara emails
-- ❌ Não dispara SMS
-- ❌ Não escreve no banco (read-only)
-- ❌ Não roda jobs
-- ❌ Não chama Brain B
+- ❌ Não dispara emails nem SMS
+- ❌ Não roda jobs; não chama Brain B
 - ❌ Não acessa produto de outro `business_id`
-- ❌ Não dispara `MfgRecipe` recompute (Insumos não está nesta Page)
-- ❌ Não persiste imagem upload
+- ❌ Não cria endpoint de escrita novo nesta Page: as escritas são **só** as que a lista Blade já faz,
+  pelos MESMOS endpoints e permissões (ativar, desativar, excluir, mudar local, estoque inicial,
+  WooCommerce Sync)
+- ❌ Não altera preço nem estoque pela tabela (estoque inicial só pelo fluxo existente de
+  `OpeningStockController`)
+- ❌ Não dispara `MfgRecipe` recompute; não persiste upload de imagem
 
 ---
 
@@ -150,15 +177,15 @@ Catálogo simples de produtos em grid view com tabs de categoria, busca e cards 
 // ⚠️ ARQUIVO INEXISTENTE — lista de INTENÇÃO do [W], mantida como tal.
 // tests/Feature/Produto/IndexCharterTest.php
 
-it('renders under 1000ms p95 with 50 products in grid')
+it('reaches the whole catalog with server-side pagination (no silent cut)')
 it('does not emit emails on render')
 it('does not dispatch jobs')
 it('does not mutate state on GET')
 it('isolates products by business_id')
 it('returns 404 for cross-tenant product access')
 it('renders at 1280px without horizontal scroll')
-it('renders cards in 4-col grid at desktop')
-it('does NOT show table view (grid only)')
+it('finds a product by variation SKU and by a code written in the name')
+it('lists the same products as the Blade list for the same filters')
 it('uses localStorage prefix oimpresso.produto.* if any state persisted')
 ```
 
@@ -191,6 +218,7 @@ it('uses localStorage prefix oimpresso.produto.* if any state persisted')
 
 | Data | Autor | Mudança |
 |---|---|---|
+| 2026-10-10 | [F+C] | **v3 — tela certa.** Âncora = vista `lista` de `produto-blade.jsx` (cópia `cowork/Felipe/`). Mission, Goals, Non-Goals, UX e Anti-hooks reescritos para a lista do protótipo + paridade total com a lista Blade, autorizado por [W] via WhatsApp (repassado pelo [F]). Os Non-Goals da v2 (sem tabela, sem densidade, sem ações em massa, sem filtros avançados, read-only) eram do catálogo de cards, o desenho errado. `Index.casos.md` reconcilia na etapa do contrato. |
 | 2026-05-09 | [CL] | Charter draft criado em batch. Path `Pages/Produto/Index.tsx` (flat). **Decisão pendente Wagner:** mantém Page simples + Page unificada (`Produto/Unificado/`) como duas opções, OU consolida em uma só? Material `prod-page.jsx` é mais "balcão rápido", `produto-app.jsx` é "admin completo". **Aprovação pendente** em Non-Goals + Anti-hooks pra `status: live`. |
 
 | 2026-07-26 | [CC] | **Reconciliação factual** (agent `sdd-from-source`, [ADR 0351](../../../../memory/decisions/0351-sdd-from-source.md) Fase 2.6) — corrigidos 5 FATOS verificáveis, com a evidência ao lado de cada um: rota `/produto`→`/products` · `sheet-data` inexistente · `product.view_own` inexistente · "global scope" inexistente (`addGlobalScope`=0) · material visual em caminho podre. §Pest GUARD anotado (o `IndexCharterTest.php` nunca existiu; a defesa real agora é `ProdutoIndexContratoTest`). **Nada de intenção foi tocado** — Goals/Non-Goals/Anti-hooks seguem do [W]. Trio fechado com [`Index.casos.md`](Index.casos.md). |
