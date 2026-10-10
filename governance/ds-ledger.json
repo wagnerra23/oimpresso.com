@@ -221,6 +221,17 @@
       }
     },
     {
+      "screen": "NotificationTemplate",
+      "note": "1 arquivo(s)",
+      "cells": {
+        "tokens": "yes",
+        "primitivos": "yes",
+        "probe": "na",
+        "dark": "na",
+        "approved": "no"
+      }
+    },
+    {
       "screen": "Officeimpresso",
       "note": "6 arquivo(s)",
       "cells": {
@@ -234,6 +245,17 @@
     {
       "screen": "Patrimonio",
       "note": "13 arquivo(s)",
+      "cells": {
+        "tokens": "yes",
+        "primitivos": "yes",
+        "probe": "na",
+        "dark": "na",
+        "approved": "no"
+      }
+    },
+    {
+      "screen": "ProductCatalogue",
+      "note": "1 arquivo(s)",
       "cells": {
         "tokens": "yes",
         "primitivos": "yes",
@@ -562,18 +584,18 @@
       }
     }
   ],
-  "progressPct": 53,
+  "progressPct": 55,
   "progressLabel": "adoção tokens + primitivos (censo Onda 0)",
   "measured": true,
-  "measuredAgainstSha": "407e77369",
-  "generatedAt": "2026-10-09T16:28:25.413Z",
+  "measuredAgainstSha": "e8fb350f6",
+  "generatedAt": "2026-10-10T15:32:13.170Z",
   "treeGuard": {
     "pass": true,
     "violations": 0
   },
   "counts": {
-    "screens": 51,
-    "done": 27,
+    "screens": 53,
+    "done": 29,
     "references": 0
   }
 }
