@@ -6,7 +6,7 @@ tecnica: Caso de uso = narrativa do operador + critério de aceite verificável 
 por_que: a lista é a PORTA do catálogo — se ela esconde produto, esconde preço a quem não devia, ou mistura tenant, todo o resto do ERP herda o erro.
 owner: wagner
 last_run: "2026-10-10"
-last_run_ci: "6 UC reescritos 2026-10-10 para a lista paginada (#9124); teste fora da quarentena, veredito da lane Estoque · MySQL"
+last_run_ci: "run 38087431948 (lane Estoque · MySQL, commit 59fe58ae, com o arquivo fora da quarentena naquele commit): os 6 UC-PIDX passaram. A saída da quarentena da lane vai em PR próprio (o arquivo .github é CODEOWNERS [W])"
 ---
 
 # Casos de Uso & Aceite — Lista do catálogo (`/products`)
@@ -67,7 +67,8 @@ last_run_ci: "6 UC reescritos 2026-10-10 para a lista paginada (#9124); teste fo
 > **continuam os mesmos**: derivam do SDD, da lista Blade e do Delphi, não da tela de cards. O que
 > mudou foi a tela e a forma de perguntar ao servidor (prop `lista` = paginador; filtros pelos nomes
 > do DataTable: `q`, `active_state`, `per_page`). O `ProdutoIndexContratoTest` foi **reescrito** para
-> isso e **saiu da quarentena** da lane `Estoque · MySQL`; a consulta é provada também pelo
+> isso; **run 38087431948 (lane Estoque · MySQL, commit 59fe58ae, com o arquivo fora da quarentena naquele commit): os 6 UC-PIDX passaram**. O arquivo continua listado na quarentena da lane até um PR próprio
+> tirá-lo de lá (`.github/` exige aprovação do [W] por CODEOWNERS). A consulta é provada também pelo
 > `ProdutoListaConsultaTest` (#9119: paridade com o DataTable do Blade filtro a filtro). As notas
 > **"Regressão que defende"** abaixo descrevem a tela de cards (`buildProdutoIndexRows`, `limit(200)`,
 > busca e inativos ignorados) — ficam como o registro do achado que a tela nova fecha. Status
@@ -134,7 +135,7 @@ last_run_ci: "6 UC reescritos 2026-10-10 para a lista paginada (#9124); teste fo
   afirmaria que há um valor escondido); a unidade fica, porque é dado de cadastro.
   **Veredito medido** (CT 100, 2026-09-18): `UC-PIDX-03 ✓`. Nos dois contratos juntos,
   `3 failed, 7 passed (67 assertions)` — antes do fix eram `5 failed / 5 passed`.
-- ⚠️ _(2026-09-18, histórico — o arquivo **saiu** da quarentena em 2026-10-10:)_ **O arquivo CONTINUA em quarentena de lane, e isso é honesto:** os outros 3 casos
+- ⚠️ _(2026-09-18, histórico — em 2026-10-10 o teste reescrito passou inteiro na lane, run 38087431948; a saída da quarentena vai em PR próprio:)_ **O arquivo CONTINUA em quarentena de lane, e isso é honesto:** os outros 3 casos
   (`UC-PIDX-01` corte de 200 sem paginação · `UC-PIDX-02` busca · `UC-PIDX-06` filtro de inativos)
   seguem vermelhos. São a **outra metade** — alcance e filtragem server-side —, não têm relação com
   permissão, e sair da lista exigiria fechá-los também.
@@ -276,5 +277,5 @@ last_run_ci: "6 UC reescritos 2026-10-10 para a lista paginada (#9124); teste fo
 - Gate: `scripts/casos-coverage-guard.mjs` (G-1/G-2/G-5/G-6/G-7 — [ADR 0264](../../../../memory/decisions/0264-governanca-executavel-trio-dominio-e2e.md))
 
 ## Trilha do tempo
-- 2026-10-10 · [F+C] **revalidação G-6** para a lista no desenho do protótipo (charter v3, #9118; dados #9119; tela #9124). Os 6 UCs ficam; o teste foi reescrito para a prop `lista` e saiu da quarentena; status voltam a ⬜ até a lane rodar. A tabela de paridade e o backlog abaixo descrevem a tela de cards: o saldo, a imagem, os locais, as colunas, os 7 filtros, a seleção em massa, o selo "não para venda" e a ordenação por coluna **entram na tela nova**; a aba Relatório de estoque e os indicadores entram nas etapas seguintes.
+- 2026-10-10 · [F+C] **revalidação G-6** para a lista no desenho do protótipo (charter v3, #9118; dados #9119; tela #9124). Os 6 UCs ficam; o teste foi reescrito para a prop `lista` e passou inteiro na lane (run 38087431948); a saída da quarentena vai em PR próprio, por CODEOWNERS do `.github/`; status voltam a ⬜ até a lane rodar. A tabela de paridade e o backlog abaixo descrevem a tela de cards: o saldo, a imagem, os locais, as colunas, os 7 filtros, a seleção em massa, o selo "não para venda" e a ordenação por coluna **entram na tela nova**; a aba Relatório de estoque e os indicadores entram nas etapas seguintes.
 - 2026-07-26 · [CC] nascido pelo agent `sdd-from-source` ([ADR 0351](../../../../memory/decisions/0351-sdd-from-source.md)) — 3ª tela do módulo (depois de `Edit` e `Show`), trio fechado (charter existia + casos novo + `ProdutoIndexContratoTest` failing-first). Triangulação incomum: aqui a Blade legada **é o outro branch do mesmo método** `index()`, então a paridade é comparação interna do controller. **Achado principal:** a lista React entrega `price`/`cost`/`margin` de todo o catálogo sem consultar permissão, enquanto a **própria lista Blade** gateia as duas colunas com `@can` (UC-PIDX-03) — é o `UC-PSHOW-01` de novo, agora em lote. **Achado de alcance:** `limit(200)` sem paginação, com KPI anunciando o total — perda silenciosa (UC-PIDX-01). **Achado de arquitetura:** `App\Product` **não tem global scope** (`addGlobalScope` = 0 ocorrências); o isolamento do módulo inteiro é `where` manual repetido (UC-PIDX-04). **Governança:** o §Pest GUARD prometia 10 testes e o arquivo não existe; 3 refs factuais do charter estavam podres e foram corrigidas. Nenhum UC declarado ✅ — a lane `Estoque · MySQL` publica o veredito.
