@@ -51,9 +51,8 @@ export default function AcoesProduto({ linha, permissoes, gruposDePreco, aoEscol
   );
 
   const grupo1 = [
-    // "Ver" volta com o painel de detalhe do protótipo (`DetalheDrawer`). Até lá ele não aparece: o
-    // destino antigo (`/products/{id}`) é só o pedaço da janela de prateleiras, não uma página (medido
-    // em produção 2026-10-10).
+    // "Ver" abre o painel de detalhe do protótipo (`DetalheDrawer`) — o conteúdo da janela "Ver" da Blade.
+    pode('view') && item('ver', 'Ver'),
     pode('update') && item('editar', 'Editar'),
     // Como na lista Blade: só para produto com estoque gerenciado e com `product.opening_stock`. Abre a
     // página do `OpeningStockController@add` (a mesma que o cadastro abre em "salvar e estoque inicial").

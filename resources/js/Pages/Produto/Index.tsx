@@ -55,6 +55,7 @@ import {
 import AcoesProduto, { type AcaoProduto } from './_components/lista/AcoesProduto';
 import FiltrosListaProdutos from './_components/lista/FiltrosLista';
 import IndicadoresLista from './_components/lista/IndicadoresLista';
+import PainelDetalheProduto from './_components/lista/PainelDetalhe';
 import RelatorioEstoqueAba from './_components/lista/RelatorioEstoqueAba';
 import MenuColunas from './_components/lista/MenuColunas';
 import {
@@ -70,6 +71,7 @@ import {
   type ContextoLista,
   type FiltrosLista,
   type KpisLista,
+  type DetalheProdutoDados,
   type RelatorioEstoqueLista,
   type LinhaProduto,
   type ListaPaginada,
@@ -83,6 +85,8 @@ interface ProdutoIndexPageProps {
   kpis?: KpisLista;
   /** Só com `stock_report.view`; `undefined` enquanto a aba não foi aberta. */
   estoque?: RelatorioEstoqueLista | null;
+  /** Painel de detalhe (`?ver={id}`); `undefined` enquanto não foi aberto, `null` se o produto não é da empresa. */
+  detalhe?: DetalheProdutoDados | null;
   opcoes: OpcoesLista;
   contexto: ContextoLista;
   permissions: PermissoesLista;
@@ -179,7 +183,7 @@ interface Confirmacao {
 
 const hhmm = () => new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
 
-function ProdutoIndex({ filtros, lista, kpis, estoque, opcoes, contexto, permissions }: ProdutoIndexPageProps) {
+function ProdutoIndex({ filtros, lista, kpis, estoque, detalhe, opcoes, contexto, permissions }: ProdutoIndexPageProps) {
   const opcionais = useMemo(() => colunasOpcionais(contexto.rotulos_campos), [contexto.rotulos_campos]);
   const [visiveis, setVisiveis] = useState<Record<string, boolean>>(() => ({
     ...visibilidadePadrao(opcionais),
@@ -193,6 +197,19 @@ function ProdutoIndex({ filtros, lista, kpis, estoque, opcoes, contexto, permiss
   const [locaisEscolhidos, setLocaisEscolhidos] = useState<string[]>([]);
   const [wooModal, setWooModal] = useState(false);
   const [hora, setHora] = useState(hhmm);
+  // Painel de detalhe: o produto aberto (a URL `?ver={id}` abre direto, e serve de link).
+  const [verId, setVerId] = useState<number | null>(() => {
+    const v = Number(new URLSearchParams(window.location.search).get('ver'));
+    return v > 0 ? v : null;
+  });
+  const abrirDetalhe = (id: number) => {
+    setVerId(id);
+    router.reload({ only: ['detalhe'], data: { ver: id } });
+  };
+  const fecharDetalhe = () => {
+    setVerId(null);
+    router.get('/products', paraUrl(filtros), { preserveState: true, preserveScroll: true, replace: true, only: ['filtros'] });
+  };
   const buscaRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => gravarLocal(CHAVE_COLUNAS, visiveis), [visiveis]);
@@ -256,7 +273,7 @@ function ProdutoIndex({ filtros, lista, kpis, estoque, opcoes, contexto, permiss
   const aoEscolher = (acao: AcaoProduto, l: LinhaProduto): void => {
     switch (acao) {
       case 'ver':
-        // Volta com o painel de detalhe; `/products/{id}` não é uma página (só o pedaço das prateleiras).
+        abrirDetalhe(l.id);
         return;
       case 'editar':
         irPara(`/products/${l.id}/edit`);
@@ -649,6 +666,7 @@ function ProdutoIndex({ filtros, lista, kpis, estoque, opcoes, contexto, permiss
                   totalLabel="produtos"
                   rowKey={(l) => l.id}
                   rowState={estadoDaLinha}
+                  onRowClick={pode('view') ? (l) => abrirDetalhe(l.id) : undefined}
                   emptyMessage="Nenhum produto com esses filtros. Remova um filtro pelos chips acima — ou cadastre o produto que está faltando."
                   selection={{
                     isSelected: (l) => selecionados.includes(l.id),
@@ -868,6 +886,15 @@ function ProdutoIndex({ filtros, lista, kpis, estoque, opcoes, contexto, permiss
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <PainelDetalheProduto
+        aberto={verId !== null}
+        detalhe={detalhe && detalhe.id === verId ? detalhe : undefined}
+        aoFechar={fecharDetalhe}
+        podeEditar={pode('update')}
+        podePrecos={pode('create') && contexto.grupos_de_preco > 0}
+        irPara={irPara}
+      />
     </>
   );
 }
