@@ -17,7 +17,7 @@ use Tests\Support\EstoqueFixture;
  *
  * Contrato: charter F1 de Etiquetas (`prototipo-ui/cowork/Wagner/cowork-inbox/produto-telas-novas/
  * Etiquetas.charter.md`) — R2 "o preço impresso é o do grupo de preço da linha" e R3 "Com imposto /
- * Sem imposto". UCs em resources/js/Pages/Produto/Etiquetas/Index.casos.md (UC-PETQ-01..05).
+ * Sem imposto". UCs em resources/js/Pages/Produto/Etiquetas/Index.casos.md (UC-PETQ-01..06).
  *
  * ⛔ Regra mestre de valor: a impressão (preview()) NÃO muda. Esta rota só REAPRESENTA o preço que a
  *    impressão sairia. Dupla prova em UC-PETQ-02: (a) número fixado à mão a partir do cadastro e
@@ -181,4 +181,30 @@ it('UC-PETQ-05 · a Blade segue recebendo o HTML da linha', function () {
     $this->withHeaders(['X-Requested-With' => 'XMLHttpRequest'])
         ->get('/labels/add-product-row?product_id=' . $p->productId . '&row_count=0')
         ->assertOk()->assertViewIs('labels.partials.show_table_rows');
+});
+
+it('UC-PETQ-06 · vários produtos da seleção da lista entram de uma vez; o de outra empresa não', function () {
+    $a = EstoqueFixture::singleProduct($this->biz->id);
+    $b = EstoqueFixture::variableProduct($this->biz->id, 2);
+    $alheio = EstoqueFixture::singleProduct($this->vizinho->id);
+    $user = petqUsuario($this->biz->id);
+    $this->actingAs($user);
+    session(['user.business_id' => (int) $this->biz->id, 'user.id' => $user->id]);
+
+    $ids = implode(',', [$b->productId, $a->productId, $alheio->productId, $a->productId]);
+    $this->get('/labels/show?product_ids=' . $ids)->assertOk()
+        ->assertInertia(fn (AssertableInertia $page) => $page->component('Produto/Etiquetas/Index', false)
+            ->where('linhas', function ($l) use ($a, $b) {
+                $variacoes = collect($l)->pluck('variation_id')->map(fn ($v) => (int) $v)->all();
+                $doB = array_map(fn ($v) => (int) $v['variation_id'], $b->variations);
+                // Ordem entre produtos = a pedida (b, depois a); dentro do produto, o conjunto basta.
+                $primeiros = array_slice($variacoes, 0, count($doB));
+                sort($primeiros);
+                sort($doB);
+
+                return count($variacoes) === count($doB) + 1
+                    && $primeiros === $doB
+                    && end($variacoes) === $a->variationId()
+                    && collect($l)->every(fn ($x) => (int) $x['qtd'] === 1);
+            }));
 });
