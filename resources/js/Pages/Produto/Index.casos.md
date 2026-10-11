@@ -64,6 +64,7 @@ last_run_ci: "run 38087431948 (lane Estoque · MySQL, commit 59fe58ae, com o arq
 | UC-PIDX-06 | Filtro de inativos (Situação) é resolvido no servidor | should | `AR-PROD-003/022` + Blade `active_state` | `ProdutoIndexContratoTest` (Pest) | ⬜ reescrito 2026-10-10 — verde esperado |
 | UC-PIDX-07 | Os 4 indicadores contam o catálogo inteiro; o valor é o total do relatório de estoque | must | charter v3 §Goals + decisão [F] 2026-10-10 (opção B) + Blade `stock_report.view`/`view_product_stock_value` | `ProdutoListaKpisTest` (Pest) | ⬜ nasce neste PR — verde esperado |
 | UC-PIDX-08 | A aba "Relatório de estoque" mostra as linhas de Relatórios → Estoque com os filtros da tela e totaliza TODAS as linhas | must | charter v3 §Goals + Blade `#product_stock_report` (`@can('stock_report.view')`) | `ProdutoListaEstoqueAbaTest` (Pest) | ⬜ nasce neste PR — verde esperado |
+| UC-PIDX-09 | O painel de detalhe mostra o conteúdo da janela "Ver" da Blade, com os mesmos gates, e só do produto da empresa | must `[T0]` | charter v3 §Goals + Blade `ProductController::view` + ADR 0093 | `ProdutoDetalheTest` (Pest) | ⬜ nasce neste PR — verde esperado |
 
 > 🔄 **Revalidação G-6 — 2026-10-10 (#9124, lista no desenho do protótipo).** Os 6 contratos
 > **continuam os mesmos**: derivam do SDD, da lista Blade e do Delphi, não da tela de cards. O que
@@ -203,6 +204,20 @@ last_run_ci: "run 38087431948 (lane Estoque · MySQL, commit 59fe58ae, com o arq
   - **Contas** — as de `ProductUtil::linhaDoRelatorioEstoque` (movidas do `ReportController` no #9128, sem mudança), as mesmas da tela de Relatórios → Estoque.
 - **Status: ⬜** — nasce neste PR; verde esperado. Só a lane decide.
 
+
+---
+
+## UC-PIDX-09 · O painel de detalhe mostra o conteúdo da janela "Ver" da Blade, com os mesmos gates · `must` `[T0]`
+- **Persona:** Larissa clica num produto da lista e quer ver tudo dele — dados, variações e preços, estoque por local, dados fiscais, prateleira — sem sair do catálogo.
+- **Aceite:** Dado um produto da empresa · Quando abro o painel (`?ver={id}`) · Então os preços de compra só vêm com `view_purchase_price`, os de venda só com `access_default_selling_price` e o % de lucro só com as duas (sem a permissão a chave não existe — ausência, não zero); o estoque por local só vem com `stock_report.view` e é o mesmo de Relatórios → Estoque; e um produto de outra empresa não abre (`null`).
+- **Teste:** [`ProdutoDetalheTest`](../../../../tests/Feature/Produto/ProdutoDetalheTest.php) — `UC-PIDX-09`.
+- **Contrato:**
+  - **Charter v3** §Goals — painel de detalhe do protótipo (`DetalheDrawer`: Dados, Variações/Composição, Estoque, Fiscal, Prateleira).
+  - **Blade** — `ProductController::view` + `product/view-modal.blade.php` (e `single_/variable_/combo_product_details`): os gates `@can('view_purchase_price')` e `@can('access_default_selling_price')`, preço por grupo só dos grupos permitidos, estoque por local carregado de `/reports/stock-report` (pede `stock_report.view`).
+  - **ADR 0093** — `Product::where('business_id', …)`: produto de outra empresa não abre.
+- **Divergência deliberada, mais restrita que a Blade:** o total da composição pelo custo só vem com `view_purchase_price` (a Blade mostrava a coluna a todos). E "origem da mercadoria" (protótipo) não vem: o campo não existe no banco.
+- **Status: ⬜** — nasce neste PR; verde esperado. Só a lane decide.
+
 ---
 
 ## Achados de governança (o trio prometia o que não tinha)
@@ -306,6 +321,7 @@ last_run_ci: "run 38087431948 (lane Estoque · MySQL, commit 59fe58ae, com o arq
 - Gate: `scripts/casos-coverage-guard.mjs` (G-1/G-2/G-5/G-6/G-7 — [ADR 0264](../../../../memory/decisions/0264-governanca-executavel-trio-dominio-e2e.md))
 
 ## Trilha do tempo
+- 2026-10-10 · [F+C] **UC-PIDX-09** (painel de detalhe): os dados do painel no servidor, com o conteúdo e os gates da janela "Ver" da Blade; a tela do painel vem no PR seguinte.
 - 2026-10-10 · [F+C] menu da linha: sai "Ver" e o clique na linha (o destino `/products/{id}` não é página — é o pedaço das prateleiras; medido em produção) até o painel de detalhe do protótipo; entra "Adicionar ou editar estoque inicial" (como na lista Blade: estoque gerenciado + `product.opening_stock`, página do `OpeningStockController@add`). Nenhum UC muda.
 - 2026-10-10 · [F+C] **UC-PIDX-08** (aba "Relatório de estoque"): linhas de Relatórios → Estoque com os filtros da tela, rodapé com o total de todas as linhas; sem filtro, o valor pelo custo é o indicador do UC-PIDX-07.
 - 2026-10-10 · [F+C] **UC-PIDX-07** (os 4 indicadores do protótipo): contagens sobre a consulta da lista; valor = total do relatório de estoque (decisão [F], opção B), com prova dupla no `ProdutoListaKpisTest`.

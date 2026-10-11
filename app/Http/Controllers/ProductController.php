@@ -265,6 +265,11 @@ class ProductController extends Controller
                         ? Inertia::defer(fn () => $this->buildRelatorioEstoqueDaLista($business_id, $filtrosLista, (int) $show_manufacturing_data, request()->header('X-Produto-Recalcular') === '1'), 'estoque')
                         : Inertia::optional(fn () => $this->buildRelatorioEstoqueDaLista($business_id, $filtrosLista, (int) $show_manufacturing_data, request()->header('X-Produto-Recalcular') === '1')))
                     : null,
+                // Painel de detalhe do produto (`?ver={id}`): aberto pela URL chega deferido; fechado, só vem
+                // se a tela pedir (partial reload com `ver`). Sem `product.view` não há painel.
+                'detalhe' => auth()->user()->can('product.view') && (int) request()->input('ver', 0) > 0
+                    ? Inertia::defer(fn () => $this->buildProdutoDetalhe($business_id, (int) request()->input('ver')), 'detalhe')
+                    : Inertia::optional(fn () => null),
                 // Grupo próprio: os indicadores não seguram a lista (e vice-versa).
                 'kpis' => Inertia::defer(fn () => $this->buildProdutoListaKpis($business_id, $is_woocommerce, request()->header('X-Produto-Recalcular') === '1'), 'kpis'),
                 'opcoes' => $this->buildProdutoListaOpcoes($categories, $brands, $units, $taxes, $business_locations, $pos_module_data),
@@ -525,6 +530,166 @@ class ProductController extends Controller
                 }
             });
         }
+    }
+
+    /**
+     * Painel de detalhe do produto (protótipo `produto-blade.jsx`, `DetalheDrawer`) com o conteúdo da
+     * janela "Ver" da lista Blade (`ProductController::view` + `product/view-modal.blade.php`) e os
+     * MESMOS gates dela:
+     *   · preço de compra só com `view_purchase_price`; preço de venda só com
+     *     `access_default_selling_price`; % de lucro só com as duas;
+     *   · preço por grupo só dos grupos que o usuário pode ver (`selling_price_group.{id}`);
+     *   · estoque por local só com `stock_report.view` (a Blade o carregava de `/reports/stock-report`,
+     *     que pede isso) — linhas de `getProductStockDetails` + `linhaDoRelatorioEstoque`, as de
+     *     Relatórios → Estoque; valores só com `view_product_stock_value`.
+     * Divergência DELIBERADA, mais restrita: o total da composição pelo custo só vai com
+     * `view_purchase_price` (a Blade mostrava a coluna a todos). A conta é a da Blade, sem mudança.
+     * Dados fiscais: as colunas do próprio produto; "origem da mercadoria" não existe no banco e não vem.
+     * Produto de outra empresa ⇒ null (Tier 0, ADR 0093).
+     *
+     * @return array<string, mixed>|null
+     */
+    protected function buildProdutoDetalhe(int $business_id, int $id): ?array
+    {
+        $produto = Product::where('business_id', $business_id)
+            ->with(['brand', 'unit', 'category', 'sub_category', 'product_tax', 'variations', 'variations.product_variation', 'variations.group_prices', 'product_locations', 'warranty'])
+            ->find($id);
+        if ($produto === null) {
+            return null;
+        }
+
+        $u = auth()->user();
+        $verCusto = (bool) $u->can('view_purchase_price');
+        $verPreco = (bool) $u->can('access_default_selling_price');
+        $grupos = SellingPriceGroup::where('business_id', $business_id)->active()->pluck('name', 'id')
+            ->filter(fn ($nome, $gid) => $u->can('selling_price_group.' . $gid));
+
+        // Variações: os campos de `single_product_details` / `variable_product_details`. Sem a permissão
+        // a CHAVE não existe — ausência não é zero.
+        $variacoes = $produto->variations->map(function ($v) use ($produto, $verCusto, $verPreco, $grupos) {
+            $porGrupo = $v->group_prices->keyBy('price_group_id');
+            $linha = [
+                'nome' => $produto->type === 'variable'
+                    ? trim(($v->product_variation->name ?? '') . ' - ' . $v->name, ' -')
+                    : (string) $v->name,
+                'sku' => (string) $v->sub_sku,
+            ];
+            if ($verCusto) {
+                $linha['compra_exc'] = (float) $v->default_purchase_price;
+                $linha['compra_inc'] = (float) $v->dpp_inc_tax;
+            }
+            if ($verPreco) {
+                if ($verCusto) {
+                    $linha['lucro_percentual'] = (float) $v->profit_percent;
+                }
+                $linha['venda_exc'] = (float) $v->default_sell_price;
+                $linha['venda_inc'] = (float) $v->sell_price_inc_tax;
+            }
+            $linha['grupos'] = $grupos->map(fn ($nome, $gid) => [
+                'grupo' => (string) $nome,
+                'preco' => isset($porGrupo[$gid]) ? (float) $porGrupo[$gid]->calculated_price : null,
+            ])->values();
+
+            return $linha;
+        })->values();
+
+        // Composição: `combo_product_details`. O total pelo custo é a conta da Blade
+        // (custo × quantidade × multiplicador da unidade), só com `view_purchase_price`.
+        $composicao = [];
+        if ($produto->type === 'combo' && $produto->variations->first() !== null) {
+            foreach ($this->productUtil->__getComboProductDetails($produto->variations[0]->combo_variations ?? [], $business_id) as $c) {
+                $var = $c['variation'];
+                if ($var === null) {
+                    continue;
+                }
+                $item = [
+                    'nome' => $var->product->name . ($var->product->type === 'variable' ? ' - ' . $var->name : ''),
+                    'sku' => (string) $var->sub_sku,
+                    'quantidade' => (float) $c['quantity'],
+                    'unidade' => (string) ($c['unit_name'] ?? ''),
+                ];
+                if ($verCusto) {
+                    $item['compra_exc'] = (float) $var->default_purchase_price;
+                    $item['total_exc'] = (float) ($var->default_purchase_price * $c['quantity'] * $c['multiplier']);
+                }
+                $composicao[] = $item;
+            }
+        }
+
+        $estoque = null;
+        if ($produto->enable_stock && $u->can('stock_report.view')) {
+            $verValor = (bool) $u->can('view_product_stock_value');
+            $estoque = collect(
+                $this->productUtil
+                    ->getProductStockDetails($business_id, $this->productUtil->filtrosDoEstoque(['product_id' => $id], 0), 'datatables')
+                    ->orderBy('variations.sub_sku', 'asc')->orderBy('vld.location_id', 'asc')
+                    ->toBase()->get()
+            )->map(fn (\stdClass $r): array => $this->productUtil->linhaDoRelatorioEstoque($r, $verPreco, $verValor))->values();
+        }
+
+        $rotulos = json_decode((string) request()->session()->get('business.custom_labels'), true);
+        $rotulos = is_array($rotulos) && isset($rotulos['product']) && is_array($rotulos['product']) ? $rotulos['product'] : [];
+        $campos = [];
+        for ($i = 1; $i <= 20; $i++) {
+            $valor = $produto->{'product_custom_field' . $i};
+            if ($valor !== null && $valor !== '') {
+                $campos[] = ['rotulo' => (string) ($rotulos['custom_field_' . $i] ?? ''), 'valor' => (string) $valor];
+            }
+        }
+
+        return [
+            'id' => (int) $produto->id,
+            'nome' => (string) $produto->name,
+            'sku' => (string) $produto->sku,
+            'tipo' => (string) $produto->type,
+            'inativo' => (bool) $produto->is_inactive,
+            'imagem' => $produto->image_url,
+            'dados' => [
+                'codigo_de_barras' => (string) ($produto->barcode_type ?? ''),
+                'unidade' => (string) ($produto->unit->actual_name ?? ''),
+                'unidade_curta' => (string) ($produto->unit->short_name ?? ''),
+                'marca' => (string) ($produto->brand->name ?? ''),
+                'categoria' => (string) ($produto->category->name ?? ''),
+                'subcategoria' => (string) ($produto->sub_category->name ?? ''),
+                'imposto' => (string) ($produto->product_tax->name ?? ''),
+                'tipo_imposto' => (string) ($produto->tax_type ?? ''),
+                'peso' => (string) ($produto->weight ?? ''),
+                'controla_estoque' => (bool) $produto->enable_stock,
+                'alerta' => $produto->enable_stock && $produto->alert_quantity !== null ? (float) $produto->alert_quantity : null,
+                'validade' => ! empty($produto->expiry_period) && ! empty($produto->expiry_period_type)
+                    ? ['periodo' => (float) $produto->expiry_period, 'tipo' => (string) $produto->expiry_period_type]
+                    : null,
+                'locais' => $produto->product_locations->pluck('name')->values(),
+                'nao_para_venda' => (bool) $produto->not_for_selling,
+                'garantia' => $produto->warranty ? (string) $produto->warranty->display_name : null,
+                'tempo_preparo' => $produto->preparation_time_in_minutes !== null ? (int) $produto->preparation_time_in_minutes : null,
+                'descricao' => trim(strip_tags((string) ($produto->product_description ?? ''))),
+                'campos' => $campos,
+            ],
+            'variacoes' => $variacoes,
+            'composicao' => $composicao,
+            'estoque' => $estoque,
+            'fiscal' => [
+                'ncm' => (string) ($produto->ncm ?? ''),
+                'cest' => (string) ($produto->cest ?? ''),
+                'cfop_interno' => (string) ($produto->cfop_interno ?? ''),
+                'cfop_externo' => (string) ($produto->cfop_externo ?? ''),
+                'cst_csosn' => (string) ($produto->cst_csosn ?? ''),
+                'cst_pis' => (string) ($produto->cst_pis ?? ''),
+                'cst_cofins' => (string) ($produto->cst_cofins ?? ''),
+                'cst_ipi' => (string) ($produto->cst_ipi ?? ''),
+            ],
+            'prateleiras' => [
+                'colunas' => [
+                    'prateleira' => (bool) request()->session()->get('business.enable_racks'),
+                    'fileira' => (bool) request()->session()->get('business.enable_row'),
+                    'posicao' => (bool) request()->session()->get('business.enable_position'),
+                ],
+                'linhas' => collect($this->productUtil->getRackDetails($business_id, $id, true))->map(fn ($r) => [
+                    'local' => (string) $r->name, 'prateleira' => (string) ($r->rack ?? ''), 'fileira' => (string) ($r->row ?? ''), 'posicao' => (string) ($r->position ?? ''),
+                ])->values(),
+            ],
+        ];
     }
 
     /**
