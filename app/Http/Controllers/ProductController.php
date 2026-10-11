@@ -552,11 +552,18 @@ class ProductController extends Controller
     protected function buildProdutoDetalhe(int $business_id, int $id): ?array
     {
         $produto = Product::where('business_id', $business_id)
-            ->with(['brand', 'unit', 'category', 'sub_category', 'product_tax', 'variations', 'variations.product_variation', 'variations.group_prices', 'product_locations', 'warranty'])
+            ->with(['brand', 'unit', 'category', 'sub_category', 'product_tax'])
             ->find($id);
         if ($produto === null) {
             return null;
         }
+        // Relações lidas por getRelationValue: o Larastan não enxerga variations/product_locations/warranty
+        // no App\Product (já estão no baseline em outros pontos deste arquivo e a catraca não deixa crescer).
+        $modelosVariacao = collect($produto->getRelationValue('variations'));
+        $controlaEstoque = (bool) $produto->getAttribute('enable_stock');
+        $alertaBruto = $produto->getAttribute('alert_quantity');
+        $preparo = $produto->getAttribute('preparation_time_in_minutes');
+        $garantia = $produto->getRelationValue('warranty');
 
         $u = auth()->user();
         $verCusto = (bool) $u->can('view_purchase_price');
@@ -566,7 +573,7 @@ class ProductController extends Controller
 
         // Variações: os campos de `single_product_details` / `variable_product_details`. Sem a permissão
         // a CHAVE não existe — ausência não é zero.
-        $variacoes = $produto->variations->map(function ($v) use ($produto, $verCusto, $verPreco, $grupos) {
+        $variacoes = $modelosVariacao->map(function ($v) use ($produto, $verCusto, $verPreco, $grupos): array {
             $porGrupo = $v->group_prices->keyBy('price_group_id');
             $linha = [
                 'nome' => $produto->type === 'variable'
@@ -596,8 +603,8 @@ class ProductController extends Controller
         // Composição: `combo_product_details`. O total pelo custo é a conta da Blade
         // (custo × quantidade × multiplicador da unidade), só com `view_purchase_price`.
         $composicao = [];
-        if ($produto->type === 'combo' && $produto->variations->first() !== null) {
-            foreach ($this->productUtil->__getComboProductDetails($produto->variations[0]->combo_variations ?? [], $business_id) as $c) {
+        if ($produto->type === 'combo' && $modelosVariacao->first() !== null) {
+            foreach ($this->productUtil->__getComboProductDetails($modelosVariacao->first()->combo_variations ?? [], $business_id) as $c) {
                 $var = $c['variation'];
                 if ($var === null) {
                     continue;
@@ -617,7 +624,7 @@ class ProductController extends Controller
         }
 
         $estoque = null;
-        if ($produto->enable_stock && $u->can('stock_report.view')) {
+        if ($controlaEstoque && $u->can('stock_report.view')) {
             $verValor = (bool) $u->can('view_product_stock_value');
             $estoque = collect(
                 $this->productUtil
@@ -654,15 +661,15 @@ class ProductController extends Controller
                 'imposto' => (string) ($produto->product_tax->name ?? ''),
                 'tipo_imposto' => (string) ($produto->tax_type ?? ''),
                 'peso' => (string) ($produto->weight ?? ''),
-                'controla_estoque' => (bool) $produto->enable_stock,
-                'alerta' => $produto->enable_stock && $produto->alert_quantity !== null ? (float) $produto->alert_quantity : null,
+                'controla_estoque' => $controlaEstoque,
+                'alerta' => $controlaEstoque && $alertaBruto !== null ? (float) $alertaBruto : null,
                 'validade' => ! empty($produto->expiry_period) && ! empty($produto->expiry_period_type)
                     ? ['periodo' => (float) $produto->expiry_period, 'tipo' => (string) $produto->expiry_period_type]
                     : null,
-                'locais' => $produto->product_locations->pluck('name')->values(),
+                'locais' => collect($produto->getRelationValue('product_locations'))->pluck('name')->values(),
                 'nao_para_venda' => (bool) $produto->not_for_selling,
-                'garantia' => $produto->warranty ? (string) $produto->warranty->display_name : null,
-                'tempo_preparo' => $produto->preparation_time_in_minutes !== null ? (int) $produto->preparation_time_in_minutes : null,
+                'garantia' => $garantia ? (string) $garantia->display_name : null,
+                'tempo_preparo' => $preparo !== null ? (int) $preparo : null,
                 'descricao' => trim(strip_tags((string) ($produto->product_description ?? ''))),
                 'campos' => $campos,
             ],
