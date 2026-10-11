@@ -19,6 +19,33 @@ blueprint_cowork: prototipo-ui/prototipos/produto-cockpit/ _(removido em 2026-05
 
 # Comparativo visual — Lista de produtos (`/products`)
 
+> ## ⚠️ 2026-10-11 — a tela foi refeita; a âncora agora é `prototipo-ui/cowork/Felipe/produto-blade.jsx` (vista `lista`)
+>
+> O texto abaixo desta seção descreve a v2 de **cards** (âncora `produto-cockpit`, removida em
+> 2026-05-20) e fica como histórico. A lista atual segue o charter v3 (#9118): dados #9119, tela
+> #9124, menu ligado #9125, indicadores #9127, aba de estoque #9129, painel de detalhe #9131/#9132.
+>
+> **Medição 2026-10-11** — `scripts/design/design-diff.mjs`, a MESMA sonda nos dois lados, tema
+> escuro, 1593px: produção `https://oimpresso.com/products` (biz 1) × espelho
+> `cowork/Felipe/oimpresso.com.html` rota `prod-lista`. Papéis: KPI = filhos de `produto-kpis`,
+> título = `h1`, filtros = `.pb-fld` de `produto-filtros`, linha = 1ª de `produto-tabela`.
+>
+> | Medida | Produção | Protótipo | Veredito |
+> |---|---|---|---|
+> | KPI: quantidade, alinhamento, cor, valor 22px | iguais | iguais | IGUAL |
+> | Cor do botão principal | igual | igual | IGUAL |
+> | Preço de compra / de venda | mono 12px | normal 13px | **corrigido** (sem mono) |
+> | Botão "Ações" da linha | 14px | 12px | **corrigido** (12px) |
+> | Título | 22px / 600 | 19px / 700 | mantido — decisão [W] D-PH-0923 (h1 600 em todas as telas, `PageHeader`) |
+> | Linhas da área de filtros | 3 | 2 | não é defeito — a empresa medida tem 2 filtros de módulo (Modelo do dispositivo, WooCommerce) que também existem na lista Blade |
+> | Coluna Imagem | imagem padrão | marcador "IMG" | não é defeito — dado (a produção sempre devolve uma imagem) |
+> | Coluna Categoria | 1 linha | 2 linhas | não é defeito — a 1ª linha medida não tem categoria; a subcategoria aparece quando existe |
+> | Larguras declaradas (`<col>`), checkbox como botão | sim | não | produção à frente, não é defeito |
+>
+> Não medido nesta rodada: toolbar, abas, rodapé e o painel de detalhe (a sonda cobre KPI, título,
+> botão principal, filtros e linha da tabela). Saúde do instrumento: na produção os tokens de cor
+> ficam no contêiner da tela, não na raiz (`tokensMortos` da sonda); as cores medidas batem.
+
 > **Tipo de tela:** list cockpit list+detail (drawer pattern)
 > **Persona:** Larissa (ROTA LIVRE biz=4), 1280px
 > **Refs:**

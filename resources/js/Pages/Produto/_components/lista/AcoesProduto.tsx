@@ -81,6 +81,8 @@ export default function AcoesProduto({ linha, permissoes, gruposDePreco, aoEscol
           <Button
             variant="outline"
             size="sm"
+            // 12px como o `Kebab` do protótipo (medido com design-diff em 2026-10-11; o `sm` dava 14px).
+            className="text-[12px]"
             aria-label={`Ações do produto ${linha.nome}`}
             onClick={parar}
             onKeyDown={parar}
