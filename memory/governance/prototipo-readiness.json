@@ -72,6 +72,7 @@
     "Ponto/Relatorios/Index",
     "Produto/Create",
     "Produto/Edit",
+    "Produto/Index",
     "Purchase/Create",
     "Purchase/Index",
     "Purchase/Show",
@@ -735,5 +736,5 @@
       ]
     }
   ],
-  "total": 156
+  "total": 157
 }
