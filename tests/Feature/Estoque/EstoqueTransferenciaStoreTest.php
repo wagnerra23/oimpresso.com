@@ -160,6 +160,10 @@ it('UC-TRCRT-03 · o MESMO cenário salvo no formato da Blade dá o mesmo saldo 
 
 it('UC-TRCRT-03 · preço com 3 casas e preço de milhar chegam sem inflar (vírgula decimal, sem ponto)', function () {
     [$origem, $destino, $produto] = ($this->cenario)();
+    // Dois produtos: `transaction_sell_lines.uk_tsl_dup_prevent` não aceita a mesma variação
+    // duas vezes na mesma transferência (medido na lane em 2026-10-11).
+    $outro = EstoqueFixture::singleProduct($this->biz);
+    EstoqueFixture::setStock($outro, 0, $origem, 10.0);
 
     // `paraNumUf` (o envio da tela): 12.125 -> "12,125" e 1500 -> "1500". Com ponto ("12.125") o
     // num_uf leria milhar e gravaria 12125 — o incidente de 2026-06-05.
@@ -169,7 +173,7 @@ it('UC-TRCRT-03 · preço com 3 casas e preço de milhar chegam sem inflar (vír
         'additional_notes' => '', 'shipping_charges' => '0', 'final_total' => 1512.125,
         'products' => [
             ($this->item)($produto, '1', '12,125'),
-            ($this->item)($produto, '1', '1500'),
+            ($this->item)($outro, '1', '1500'),
         ],
     ]);
     ($this->exigirSucesso)($resposta);
