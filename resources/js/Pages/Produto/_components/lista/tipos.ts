@@ -200,6 +200,7 @@ export interface PermissoesLista {
   opening_stock: boolean;
   view?: boolean;
   stock_report?: boolean;
+  etiquetas?: boolean;
   view_purchase_price?: boolean;
   access_default_selling_price?: boolean;
 }

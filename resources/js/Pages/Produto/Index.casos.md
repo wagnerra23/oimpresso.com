@@ -65,6 +65,7 @@ last_run_ci: "run 38087431948 (lane Estoque · MySQL, commit 59fe58ae, com o arq
 | UC-PIDX-07 | Os 4 indicadores contam o catálogo inteiro; o valor é o total do relatório de estoque | must | charter v3 §Goals + decisão [F] 2026-10-10 (opção B) + Blade `stock_report.view`/`view_product_stock_value` | `ProdutoListaKpisTest` (Pest) | ⬜ nasce neste PR — verde esperado |
 | UC-PIDX-08 | A aba "Relatório de estoque" mostra as linhas de Relatórios → Estoque com os filtros da tela e totaliza TODAS as linhas | must | charter v3 §Goals + Blade `#product_stock_report` (`@can('stock_report.view')`) | `ProdutoListaEstoqueAbaTest` (Pest) | ⬜ nasce neste PR — verde esperado |
 | UC-PIDX-09 | O painel de detalhe mostra o conteúdo da janela "Ver" da Blade, com os mesmos gates, e só do produto da empresa | must `[T0]` | charter v3 §Goals + Blade `ProductController::view` + ADR 0093 | `ProdutoDetalheTest` (Pest) | ⬜ nasce neste PR — verde esperado |
+| UC-PIDX-10 | "Exportar filtrados" traz as mesmas linhas da lista, em CSV, com preço só para quem pode ver | should | charter v3 §Goals + protótipo (rodapé, `exportarCsv`) + gate de preço da lista (UC-PIDX-03) | `ProdutoListaExportarTest` (Pest) | ⬜ nasce neste PR — verde esperado |
 
 > 🔄 **Revalidação G-6 — 2026-10-10 (#9124, lista no desenho do protótipo).** Os 6 contratos
 > **continuam os mesmos**: derivam do SDD, da lista Blade e do Delphi, não da tela de cards. O que
@@ -218,6 +219,19 @@ last_run_ci: "run 38087431948 (lane Estoque · MySQL, commit 59fe58ae, com o arq
 - **Divergência deliberada, mais restrita que a Blade:** o total da composição pelo custo só vem com `view_purchase_price` (a Blade mostrava a coluna a todos). E "origem da mercadoria" (protótipo) não vem: o campo não existe no banco.
 - **Status: ⬜** — nasce neste PR; verde esperado. Só a lane decide.
 
+
+---
+
+## UC-PIDX-10 · "Exportar filtrados" traz as mesmas linhas da lista, em CSV · `should`
+- **Persona:** Larissa filtra o catálogo (uma marca, os inativos, uma busca) e quer a lista numa planilha para conferir ou mandar para alguém.
+- **Aceite:** Dado um filtro ou uma busca na tela · Quando clico em "Exportar filtrados" · Então baixo um CSV (`;`, vírgula decimal, UTF-8 — abre certo no Excel) com as MESMAS linhas que a lista mostra para esse filtro, todas as páginas; as colunas de preço de compra e de venda só existem para quem tem a permissão de vê-las; produto de outra empresa não entra.
+- **Teste:** [`ProdutoListaExportarTest`](../../../../tests/Feature/Produto/ProdutoListaExportarTest.php) — `UC-PIDX-10`.
+- **Contrato:**
+  - **Protótipo** — rodapé da vista `lista`: "Exportar filtrados" (`exportarCsv(ordenados)`).
+  - **Lista** — as linhas saem de `buildProdutoListaPaginada` (a mesma consulta, filtros, busca e ordem da tela); o gate de preço é o do UC-PIDX-03 (sem permissão a coluna não existe).
+  - A "Baixar Excel" do cabeçalho segue sendo a exportação completa da Blade (`/products/download-excel`).
+- **Status: ⬜** — nasce neste PR; verde esperado. Só a lane decide.
+
 ---
 
 ## Achados de governança (o trio prometia o que não tinha)
@@ -321,6 +335,7 @@ last_run_ci: "run 38087431948 (lane Estoque · MySQL, commit 59fe58ae, com o arq
 - Gate: `scripts/casos-coverage-guard.mjs` (G-1/G-2/G-5/G-6/G-7 — [ADR 0264](../../../../memory/decisions/0264-governanca-executavel-trio-dominio-e2e.md))
 
 ## Trilha do tempo
+- 2026-10-10 · [F+C] **UC-PIDX-10** ("Exportar filtrados" em CSV) e o botão "Etiquetas" na barra de seleção (abre a tela de etiquetas com os produtos selecionados — UC-PETQ-06).
 - 2026-10-10 · [F+C] **UC-PIDX-09** (painel de detalhe): os dados do painel no servidor, com o conteúdo e os gates da janela "Ver" da Blade; a tela do painel vem no PR seguinte.
 - 2026-10-10 · [F+C] menu da linha: sai "Ver" e o clique na linha (o destino `/products/{id}` não é página — é o pedaço das prateleiras; medido em produção) até o painel de detalhe do protótipo; entra "Adicionar ou editar estoque inicial" (como na lista Blade: estoque gerenciado + `product.opening_stock`, página do `OpeningStockController@add`). Nenhum UC muda.
 - 2026-10-10 · [F+C] **UC-PIDX-08** (aba "Relatório de estoque"): linhas de Relatórios → Estoque com os filtros da tela, rodapé com o total de todas as linhas; sem filtro, o valor pelo custo é o indicador do UC-PIDX-07.
