@@ -551,15 +551,21 @@ class ProductController extends Controller
      */
     protected function buildProdutoDetalhe(int $business_id, int $id): ?array
     {
-        $produto = Product::where('business_id', $business_id)
-            ->with(['brand', 'unit', 'category', 'sub_category', 'product_tax'])
-            ->find($id);
+        $produto = Product::where('business_id', $business_id)->find($id);
         if ($produto === null) {
             return null;
         }
         // Relações lidas por getRelationValue: o Larastan não enxerga variations/product_locations/warranty
         // no App\Product (já estão no baseline em outros pontos deste arquivo e a catraca não deixa crescer).
         $modelosVariacao = collect($produto->getRelationValue('variations'));
+        // `type` também por getAttribute: o Larastan deduz o enum da migration original, sem 'combo'
+        // (que entrou depois), e conclui que `=== 'combo'` é sempre falso — o banco tem as 4 opções.
+        $tipo = (string) $produto->getAttribute('type');
+        $marca = $produto->getRelationValue('brand');
+        $unidade = $produto->getRelationValue('unit');
+        $categoria = $produto->getRelationValue('category');
+        $subcategoria = $produto->getRelationValue('sub_category');
+        $imposto = $produto->getRelationValue('product_tax');
         $controlaEstoque = (bool) $produto->getAttribute('enable_stock');
         $alertaBruto = $produto->getAttribute('alert_quantity');
         $preparo = $produto->getAttribute('preparation_time_in_minutes');
@@ -573,10 +579,11 @@ class ProductController extends Controller
 
         // Variações: os campos de `single_product_details` / `variable_product_details`. Sem a permissão
         // a CHAVE não existe — ausência não é zero.
-        $variacoes = $modelosVariacao->map(function ($v) use ($produto, $verCusto, $verPreco, $grupos): array {
+        $variacoes = [];
+        foreach ($modelosVariacao as $v) {
             $porGrupo = $v->group_prices->keyBy('price_group_id');
             $linha = [
-                'nome' => $produto->type === 'variable'
+                'nome' => $tipo === 'variable'
                     ? trim(($v->product_variation->name ?? '') . ' - ' . $v->name, ' -')
                     : (string) $v->name,
                 'sku' => (string) $v->sub_sku,
@@ -597,13 +604,13 @@ class ProductController extends Controller
                 'preco' => isset($porGrupo[$gid]) ? (float) $porGrupo[$gid]->calculated_price : null,
             ])->values();
 
-            return $linha;
-        })->values();
+            $variacoes[] = $linha;
+        }
 
         // Composição: `combo_product_details`. O total pelo custo é a conta da Blade
         // (custo × quantidade × multiplicador da unidade), só com `view_purchase_price`.
         $composicao = [];
-        if ($produto->type === 'combo' && $modelosVariacao->first() !== null) {
+        if ($tipo === 'combo' && $modelosVariacao->first() !== null) {
             foreach ($this->productUtil->__getComboProductDetails($modelosVariacao->first()->combo_variations ?? [], $business_id) as $c) {
                 $var = $c['variation'];
                 if ($var === null) {
@@ -648,17 +655,17 @@ class ProductController extends Controller
             'id' => (int) $produto->id,
             'nome' => (string) $produto->name,
             'sku' => (string) $produto->sku,
-            'tipo' => (string) $produto->type,
+            'tipo' => $tipo,
             'inativo' => (bool) $produto->is_inactive,
             'imagem' => $produto->image_url,
             'dados' => [
                 'codigo_de_barras' => (string) ($produto->barcode_type ?? ''),
-                'unidade' => (string) ($produto->unit->actual_name ?? ''),
-                'unidade_curta' => (string) ($produto->unit->short_name ?? ''),
-                'marca' => (string) ($produto->brand->name ?? ''),
-                'categoria' => (string) ($produto->category->name ?? ''),
-                'subcategoria' => (string) ($produto->sub_category->name ?? ''),
-                'imposto' => (string) ($produto->product_tax->name ?? ''),
+                'unidade' => (string) ($unidade->actual_name ?? ''),
+                'unidade_curta' => (string) ($unidade->short_name ?? ''),
+                'marca' => (string) ($marca->name ?? ''),
+                'categoria' => (string) ($categoria->name ?? ''),
+                'subcategoria' => (string) ($subcategoria->name ?? ''),
+                'imposto' => (string) ($imposto->name ?? ''),
                 'tipo_imposto' => (string) ($produto->tax_type ?? ''),
                 'peso' => (string) ($produto->weight ?? ''),
                 'controla_estoque' => $controlaEstoque,
