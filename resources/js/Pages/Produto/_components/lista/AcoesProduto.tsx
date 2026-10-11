@@ -51,10 +51,13 @@ export default function AcoesProduto({ linha, permissoes, gruposDePreco, aoEscol
   );
 
   const grupo1 = [
-    pode('view') && item('ver', 'Ver'),
+    // "Ver" volta com o painel de detalhe do protótipo (`DetalheDrawer`). Até lá ele não aparece: o
+    // destino antigo (`/products/{id}`) é só o pedaço da janela de prateleiras, não uma página (medido
+    // em produção 2026-10-10).
     pode('update') && item('editar', 'Editar'),
-    // "Adicionar ou editar estoque inicial" (Blade: `enable_stock` + `product.opening_stock`) entra com o
-    // modal da etapa 4 — o fluxo é o modal do `OpeningStockController`, que não há como abrir daqui ainda.
+    // Como na lista Blade: só para produto com estoque gerenciado e com `product.opening_stock`. Abre a
+    // página do `OpeningStockController@add` (a mesma que o cadastro abre em "salvar e estoque inicial").
+    linha.controla_estoque && pode('opening_stock') && item('estoque_inicial', 'Adicionar ou editar estoque inicial'),
     pode('view') && item('historico', 'Histórico de estoque do produto'),
   ].filter(Boolean);
   const grupo2 = [
