@@ -19,6 +19,7 @@ declare(strict_types=1);
 
 const ST_CR_INERTIA_PATH = 'resources/js/Pages/StockTransfer/Create.tsx';
 const ST_CR_CHARTER_PATH = 'resources/js/Pages/StockTransfer/Create.charter.md';
+const ST_CR_ITENS_PATH = 'resources/js/Pages/StockTransfer/_components/ItensDaTransferencia.tsx';
 const ST_CR_CONTROLLER_PATH = 'app/Http/Controllers/StockTransferController.php';
 const ST_CR_RUNBOOK_PATH = 'memory/requisitos/Estoque/_telas/RUNBOOK-stock-transfer-create.md';
 const ST_CR_VISUAL_PATH = 'memory/requisitos/Estoque/_telas/stock-transfer-create-visual-comparison.md';
@@ -49,13 +50,18 @@ it('Charter + Runbook + Visual existem (ADR 0149 + 0114)', function () {
 it('Page importa AppShellV2 + PageHeader (canon V2)', function () {
     $source = readSTCreateInertia();
     expect($source)->toContain('@/Layouts/AppShellV2');
-    expect($source)->toContain('@/Components/shared/PageHeader');
+    // Header canon desde 2026-10-11 (ADR 0409: tocar a tela exige a cura). O shared é o antigo.
+    expect($source)->toContain("from '@/Components/PageHeader'");
+    expect($source)->not->toContain('@/Components/shared/PageHeader');
     expect($source)->toMatch('/StockTransferCreate\\.layout\\s*=/');
 });
 
-it('Page declara TransferLineDraft + Permissions interfaces', function () {
+it('Page declara Permissions + props, e a linha é a do componente de itens (produto real)', function () {
     $source = readSTCreateInertia();
-    expect($source)->toContain('interface TransferLineDraft');
+    // 2026-10-11: a linha deixou de ser texto livre (`TransferLineDraft`, sem product_id). O tipo
+    // mora no componente dos itens, que busca o produto e o saldo da filial de origem.
+    expect($source)->toContain("from './_components/ItensDaTransferencia'");
+    expect(file_get_contents(base_path(ST_CR_ITENS_PATH)))->toContain('export interface LinhaTransferencia');
     expect($source)->toContain('interface Permissions');
     expect($source)->toContain('interface StockTransferCreatePageProps');
 });
@@ -64,7 +70,7 @@ it('Page valida R-XFER-004 (origem ≠ destino) client-side', function () {
     $source = readSTCreateInertia();
     expect($source)->toContain('origemDestinoIguais');
     expect($source)->toContain('AlertCircle');
-    expect($source)->toContain('disabled={form.processing || origemDestinoIguais}');
+    expect($source)->toContain('disabled={form.processing || origemDestinoIguais || itensInvalidos}');
 });
 
 it('Page filtra destino removendo origem selecionada (UX prevent)', function () {

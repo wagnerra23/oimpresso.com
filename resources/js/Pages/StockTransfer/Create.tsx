@@ -5,11 +5,12 @@
 //   rules: R-XFER-001 (Tier 0), R-XFER-004 (origem ≠ destino), R-XFER-005 (completed move estoque)
 //   adrs: 0104, 0093, 0114, 0149
 //
-// Runbook: memory/requisitos/Inventory/RUNBOOK-stock-transfer-create.md
+// Runbook: memory/requisitos/Estoque/_telas/RUNBOOK-stock-transfer-create.md
 // Charter: ./Create.charter.md
 
 import AppShellV2 from '@/Layouts/AppShellV2';
-import PageHeader from '@/Components/shared/PageHeader';
+import { PageHeader } from '@/Components/PageHeader';
+import { Icon } from '@/Components/Icon';
 import { router, useForm } from '@inertiajs/react';
 import { useMemo, useState, type ReactNode } from 'react';
 import { Button } from '@/Components/ui/button';
@@ -17,23 +18,14 @@ import { Card, CardContent, CardHeader } from '@/Components/ui/card';
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
 import { Textarea } from '@/Components/ui/textarea';
-import { Plus, Trash2, Search, Truck, ArrowLeft, Save, ArrowRight, AlertCircle } from 'lucide-react';
+import { ArrowLeft, Save, ArrowRight, AlertCircle } from 'lucide-react';
+import { paraNumUf } from '@/Lib/numberPtBR';
+import ItensDaTransferencia, { linhaInvalida, paraEnvio, type LinhaTransferencia } from './_components/ItensDaTransferencia';
 
 // ---------- Tipos ----------
 
 interface OptionMap {
   [id: number]: string;
-}
-
-interface TransferLineDraft {
-  product_name: string;
-  product_id: number | null;
-  variation_id: number | null;
-  unit_id: number | null;
-  unit_name: string;
-  quantity: number;
-  unit_price: number;
-  enable_stock: 1 | 0;
 }
 
 interface Permissions {
@@ -61,8 +53,9 @@ function StockTransferCreate({
   default_datetime,
   permissions,
 }: StockTransferCreatePageProps) {
-  const [busca, setBusca] = useState('');
-  const [linhas, setLinhas] = useState<TransferLineDraft[]>([]);
+  // Cada linha é um produto real do cadastro (produto + variação + saldo da origem) — antes era
+  // um texto livre sem `product_id`, e o salvar não tinha o que movimentar.
+  const [linhas, setLinhas] = useState<LinhaTransferencia[]>([]);
 
   const form = useForm({
     transaction_date: default_datetime,
@@ -73,7 +66,7 @@ function StockTransferCreate({
     additional_notes: '',
     shipping_charges: 0,
     final_total: 0,
-    products: linhas,
+    products: [] as Record<string, string | number>[],
   });
 
   const subtotal = useMemo(
@@ -83,32 +76,8 @@ function StockTransferCreate({
 
   const totalFinal = subtotal + (form.data.shipping_charges || 0);
 
-  const adicionarLinha = () => {
-    setLinhas((prev) => [
-      ...prev,
-      {
-        product_name: busca || '',
-        product_id: null,
-        variation_id: null,
-        unit_id: null,
-        unit_name: 'un',
-        quantity: 1,
-        unit_price: 0,
-        enable_stock: 1,
-      },
-    ]);
-    setBusca('');
-  };
-
-  const removerLinha = (idx: number) => setLinhas((prev) => prev.filter((_, i) => i !== idx));
-
-  const atualizarLinha = <K extends keyof TransferLineDraft>(
-    idx: number,
-    campo: K,
-    valor: TransferLineDraft[K]
-  ) => {
-    setLinhas((prev) => prev.map((l, i) => (i !== idx ? l : { ...l, [campo]: valor })));
-  };
+  // Como na Blade: sem item, ou com quantidade acima do saldo da origem, não salva.
+  const itensInvalidos = linhas.length === 0 || linhas.some(linhaInvalida);
 
   // R-XFER-004: origem ≠ destino — bloqueia submit
   const origemDestinoIguais =
@@ -116,11 +85,14 @@ function StockTransferCreate({
 
   const enviar = (e: React.FormEvent) => {
     e.preventDefault();
-    if (origemDestinoIguais) return;
+    if (origemDestinoIguais || itensInvalidos) return;
+    // Números em `paraNumUf` (vírgula decimal, sem milhar): é o que o `num_uf` do servidor lê sem
+    // ambiguidade. `final_total` vai como número, igual ao campo oculto da Blade.
     form.transform((dados) => ({
       ...dados,
-      products: linhas,
-      final_total: totalFinal,
+      products: linhas.map(paraEnvio),
+      shipping_charges: paraNumUf(Number(dados.shipping_charges) || 0, 2),
+      final_total: Number(totalFinal.toFixed(4)),
     }));
     form.post('/stock-transfers', {
       forceFormData: true,
@@ -133,15 +105,15 @@ function StockTransferCreate({
   return (
     <form onSubmit={enviar}>
       <PageHeader
-        icon="truck"
+        leading={<Icon name="truck" size={18} className="mr-2 inline-block align-[-2px] text-primary" />}
         title="Nova transferência de estoque"
-        description="Origem → Destino dentro da mesma empresa (multi-tenant Tier 0)."
-        action={
+        subtitle="Passa mercadoria de uma filial para outra da mesma empresa."
+        actions={
           <div className="flex gap-2">
             <Button type="button" variant="outline" size="sm" onClick={() => router.visit('/stock-transfers')}>
               <ArrowLeft className="h-4 w-4 mr-1" /> Cancelar
             </Button>
-            <Button type="submit" size="sm" disabled={form.processing || origemDestinoIguais}>
+            <Button type="submit" size="sm" disabled={form.processing || origemDestinoIguais || itensInvalidos}>
               <Save className="h-4 w-4 mr-1" /> {form.processing ? 'Salvando…' : 'Salvar transferência'}
             </Button>
           </div>
@@ -199,7 +171,10 @@ function StockTransferCreate({
                 <select
                   className="mt-1 w-full h-9 px-2 rounded-md border border-stone-200 text-[13px]"
                   value={form.data.location_id}
-                  onChange={(e) => form.setData('location_id', e.target.value)}
+                  onChange={(e) => {
+                    form.setData('location_id', e.target.value);
+                    setLinhas([]);
+                  }}
                   required
                 >
                   <option value="">Selecione filial origem…</option>
@@ -245,87 +220,14 @@ function StockTransferCreate({
           <span className="text-[11px] text-stone-500">{linhas.length} {linhas.length === 1 ? 'item' : 'itens'}</span>
         </CardHeader>
         <CardContent className="px-4 pb-4">
-          <div className="flex gap-2 items-center mb-3">
-            <div className="relative flex-1">
-              <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-stone-400" />
-              <Input
-                placeholder="Buscar produto…"
-                className="pl-7 h-9 text-[13px]"
-                value={busca}
-                onChange={(e) => setBusca(e.target.value)}
-                onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); adicionarLinha(); } }}
-              />
-            </div>
-            <Button type="button" size="sm" variant="outline" onClick={adicionarLinha}>
-              <Plus className="h-4 w-4 mr-1" /> Adicionar item
-            </Button>
-          </div>
-
-          {linhas.length === 0 ? (
-            <div className="py-10 text-center">
-              <Truck className="h-10 w-10 mx-auto text-stone-300 mb-2" />
-              <p className="text-stone-500 text-sm">Nenhum item adicionado.</p>
-            </div>
-          ) : (
-            <table className="w-full border-collapse">
-              <thead>
-                <tr className="text-[10px] uppercase tracking-widest text-stone-500 border-b border-stone-200 bg-stone-50/40">
-                  <th className="px-2 py-2 text-left font-medium">Produto</th>
-                  <th className="px-2 py-2 text-right font-medium w-20">Qtd</th>
-                  {permissions.view_purchase_price && (
-                    <th className="px-2 py-2 text-right font-medium w-24">Custo unit.</th>
-                  )}
-                  {permissions.view_purchase_price && (
-                    <th className="px-2 py-2 text-right font-medium w-24">Subtotal</th>
-                  )}
-                  <th className="px-2 py-2 w-10 text-right font-medium"></th>
-                </tr>
-              </thead>
-              <tbody>
-                {linhas.map((linha, idx) => (
-                  <tr key={idx} className="h-11 text-[13px] border-b border-stone-100">
-                    <td className="px-2">
-                      <Input
-                        className="h-8 text-[12.5px]"
-                        value={linha.product_name}
-                        onChange={(e) => atualizarLinha(idx, 'product_name', e.target.value)}
-                      />
-                    </td>
-                    <td className="px-2 text-right">
-                      <Input
-                        type="number"
-                        step="0.01"
-                        className="h-8 text-[12.5px] text-right tabular-nums"
-                        value={linha.quantity}
-                        onChange={(e) => atualizarLinha(idx, 'quantity', Number(e.target.value))}
-                      />
-                    </td>
-                    {permissions.view_purchase_price && (
-                      <td className="px-2 text-right">
-                        <Input
-                          type="number"
-                          step="0.01"
-                          className="h-8 text-[12.5px] text-right tabular-nums"
-                          value={linha.unit_price}
-                          onChange={(e) => atualizarLinha(idx, 'unit_price', Number(e.target.value))}
-                        />
-                      </td>
-                    )}
-                    {permissions.view_purchase_price && (
-                      <td className="px-2 text-right tabular-nums">
-                        {brl(linha.quantity * linha.unit_price)}
-                      </td>
-                    )}
-                    <td className="px-2 text-right">
-                      <Button type="button" size="sm" variant="ghost" className="h-7 w-7 p-0 text-destructive" onClick={() => removerLinha(idx)} title="Remover">
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </Button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
+          <ItensDaTransferencia
+            origemId={form.data.location_id}
+            linhas={linhas}
+            aoMudar={setLinhas}
+            verCusto={permissions.view_purchase_price}
+            editarPreco={permissions.edit_price}
+            desabilitado={form.processing}
+          />
         </CardContent>
       </Card>
 

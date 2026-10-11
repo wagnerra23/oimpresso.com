@@ -27,6 +27,13 @@ mwart_pattern_reuse:
 - R-XFER-004: origem ≠ destino — conferida **só no cliente**; `store()` não compara as duas filiais (medido 2026-10-06, ver casos §Backlog)
 - R-XFER-005: status=completed → estoque movido server-side
 
+## Itens (2026-10-11)
+- Cada linha é um **produto do cadastro** (produto + variação), escolhido na busca. A busca só abre com a filial de origem e usa `/products/list` com o local de origem — a mesma rota da Blade.
+- Produto sem controle de estoque não aparece; sem saldo na origem aparece desabilitado.
+- A linha vem de `GET /stock-transfers/produto-linha` (os dados do `get_product_row` da Blade): saldo no local, unidade, subunidades, lotes e último custo de compra.
+- A quantidade não passa do saldo da origem (ou do lote). Trocar a origem zera os itens. Sem item não salva.
+- Envio: os campos da linha da Blade, com números em `paraNumUf` (vírgula decimal, sem milhar).
+
 ## UX crítica
 Bloqueio visual se origem == destino (forma + button disabled). O servidor **não** repete essa checagem hoje — o bloqueio da tela é a única barreira.
 
