@@ -62,6 +62,7 @@ last_run_ci: "run 38087431948 (lane Estoque · MySQL, commit 59fe58ae, com o arq
 | UC-PIDX-04 | Lista e total só enxergam o business atual | must `[T0]` | `CU-PROD-10` + ADR 0093 + charter §Anti-hooks | `ProdutoIndexContratoTest` (Pest) | ⬜ guard — verde esperado |
 | UC-PIDX-05 | Abrir a lista não escreve no banco (GET é leitura pura) | must | charter §Anti-hooks + `AR-PROD-064` | `ProdutoIndexContratoTest` (Pest) | ⬜ guard — verde esperado |
 | UC-PIDX-06 | Filtro de inativos (Situação) é resolvido no servidor | should | `AR-PROD-003/022` + Blade `active_state` | `ProdutoIndexContratoTest` (Pest) | ⬜ reescrito 2026-10-10 — verde esperado |
+| UC-PIDX-07 | Os 4 indicadores contam o catálogo inteiro; o valor é o total do relatório de estoque | must | charter v3 §Goals + decisão [F] 2026-10-10 (opção B) + Blade `stock_report.view`/`view_product_stock_value` | `ProdutoListaKpisTest` (Pest) | ⬜ nasce neste PR — verde esperado |
 
 > 🔄 **Revalidação G-6 — 2026-10-10 (#9124, lista no desenho do protótipo).** Os 6 contratos
 > **continuam os mesmos**: derivam do SDD, da lista Blade e do Delphi, não da tela de cards. O que
@@ -174,6 +175,20 @@ last_run_ci: "run 38087431948 (lane Estoque · MySQL, commit 59fe58ae, com o arq
 - **Regressão que defende:** `filters.mostrarInativos` é lido (`:347`) e **devolvido sem uso**; `buildProdutoIndexRows` não filtra por `is_inactive` — manda ativos e inativos sempre. O ocultamento acontece no cliente (`Index.tsx:120-122 (verificado@d4afe95)`), **depois** do corte de 200: um catálogo com muitos inativos gasta as 200 vagas com linhas que a tela vai esconder, e produtos ativos legítimos somem da vista (composição com UC-PIDX-01). Pelo mesmo caminho, o badge do Blade para `not_for_selling` (`:263-264`) não tem par no React — §Backlog.
 - **Status: ⬜** — reescrito 2026-10-10 para a lista no desenho do protótipo (prop `lista`, a MESMA consulta da lista Blade, paginada e buscada no servidor — #9119/#9124); verde esperado. Só a lane decide.
 
+
+---
+
+## UC-PIDX-07 · Os 4 indicadores contam o catálogo inteiro; o valor é o total do relatório de estoque · `must`
+- **Persona:** Larissa abre o catálogo e quer, num olhar, quantos produtos tem, quantos estão abaixo do alerta, quantos inativos e quanto dinheiro está parado no estoque — e poder conferir esse dinheiro na aba "Relatório de estoque".
+- **Aceite:** Dado o catálogo da empresa · Quando abro `/products` · Então "Produtos cadastrados", "Abaixo do alerta" e "Inativos" são as contagens das MESMAS linhas que a lista mostra sem filtro (abaixo do alerta = estoque gerenciado, alerta definido e estoque ≤ alerta, a regra da linha); e "Valor em estoque (custo)" é o total da coluna "valor pelo preço de compra" do relatório de estoque, todas as linhas e sem filtro — e quando entra uma compra recebida de N unidades a C, ele sobe exatamente N × C depois do "Atualizado". Sem `stock_report.view` + `view_product_stock_value` o valor não vem (ausência, não zero).
+- **Teste:** [`ProdutoListaKpisTest`](../../../../tests/Feature/Produto/ProdutoListaKpisTest.php) — `UC-PIDX-07`.
+- **Contrato:**
+  - **Charter v3** §Goals — *"4 indicadores (protótipo): produtos cadastrados (variáveis · composições), abaixo do alerta, valor em estoque pelo custo (o MESMO total do Relatório de estoque — regra mestre de valor: prova dupla antes de subir) e inativos"*.
+  - **Decisão [F] 2026-10-10** — opção **B**: o total da aba "Relatório de estoque" (soma das linhas), não o "estoque de fechamento" do topo de Relatórios → Estoque (`getOpeningClosingStock`, outro conjunto de compras, ~0,1% de diferença medida em produção na biz 1).
+  - **Blade** — as colunas de valor do relatório só com `view_product_stock_value`; o resumo de valor só com `stock_report.view` + `view_product_stock_value` (`ReportController::getStockValue`).
+- **Prova dupla do valor (regra mestre):** (1) igual à soma linha a linha do JSON do DataTable do relatório (o código da lista Blade); (2) a variação com uma compra conhecida é a conta à mão. Em produção (biz 1, 2026-10-10) a soma no banco só da coluna `stock_price` deu diferença 0 contra a soma linha a linha da consulta completa.
+- **Status: ⬜** — nasce neste PR; verde esperado. Só a lane decide.
+
 ---
 
 ## Achados de governança (o trio prometia o que não tinha)
@@ -277,5 +292,6 @@ last_run_ci: "run 38087431948 (lane Estoque · MySQL, commit 59fe58ae, com o arq
 - Gate: `scripts/casos-coverage-guard.mjs` (G-1/G-2/G-5/G-6/G-7 — [ADR 0264](../../../../memory/decisions/0264-governanca-executavel-trio-dominio-e2e.md))
 
 ## Trilha do tempo
+- 2026-10-10 · [F+C] **UC-PIDX-07** (os 4 indicadores do protótipo): contagens sobre a consulta da lista; valor = total do relatório de estoque (decisão [F], opção B), com prova dupla no `ProdutoListaKpisTest`.
 - 2026-10-10 · [F+C] **revalidação G-6** para a lista no desenho do protótipo (charter v3, #9118; dados #9119; tela #9124). Os 6 UCs ficam; o teste foi reescrito para a prop `lista` e passou inteiro na lane (run 38087431948); a saída da quarentena vai em PR próprio, por CODEOWNERS do `.github/`; status voltam a ⬜ até a lane rodar. A tabela de paridade e o backlog abaixo descrevem a tela de cards: o saldo, a imagem, os locais, as colunas, os 7 filtros, a seleção em massa, o selo "não para venda" e a ordenação por coluna **entram na tela nova**; a aba Relatório de estoque e os indicadores entram nas etapas seguintes.
 - 2026-07-26 · [CC] nascido pelo agent `sdd-from-source` ([ADR 0351](../../../../memory/decisions/0351-sdd-from-source.md)) — 3ª tela do módulo (depois de `Edit` e `Show`), trio fechado (charter existia + casos novo + `ProdutoIndexContratoTest` failing-first). Triangulação incomum: aqui a Blade legada **é o outro branch do mesmo método** `index()`, então a paridade é comparação interna do controller. **Achado principal:** a lista React entrega `price`/`cost`/`margin` de todo o catálogo sem consultar permissão, enquanto a **própria lista Blade** gateia as duas colunas com `@can` (UC-PIDX-03) — é o `UC-PSHOW-01` de novo, agora em lote. **Achado de alcance:** `limit(200)` sem paginação, com KPI anunciando o total — perda silenciosa (UC-PIDX-01). **Achado de arquitetura:** `App\Product` **não tem global scope** (`addGlobalScope` = 0 ocorrências); o isolamento do módulo inteiro é `where` manual repetido (UC-PIDX-04). **Governança:** o §Pest GUARD prometia 10 testes e o arquivo não existe; 3 refs factuais do charter estavam podres e foram corrigidas. Nenhum UC declarado ✅ — a lane `Estoque · MySQL` publica o veredito.

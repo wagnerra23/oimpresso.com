@@ -53,6 +53,7 @@ import {
 } from '@/Components/ui/dialog';
 import AcoesProduto, { type AcaoProduto } from './_components/lista/AcoesProduto';
 import FiltrosListaProdutos from './_components/lista/FiltrosLista';
+import IndicadoresLista from './_components/lista/IndicadoresLista';
 import MenuColunas from './_components/lista/MenuColunas';
 import {
   CHAVE_COLUNAS,
@@ -66,6 +67,7 @@ import {
   visibilidadePadrao,
   type ContextoLista,
   type FiltrosLista,
+  type KpisLista,
   type LinhaProduto,
   type ListaPaginada,
   type OpcoesLista,
@@ -75,6 +77,7 @@ import {
 interface ProdutoIndexPageProps {
   filtros: FiltrosLista;
   lista?: ListaPaginada;
+  kpis?: KpisLista;
   opcoes: OpcoesLista;
   contexto: ContextoLista;
   permissions: PermissoesLista;
@@ -167,7 +170,7 @@ interface Confirmacao {
 
 const hhmm = () => new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
 
-function ProdutoIndex({ filtros, lista, opcoes, contexto, permissions }: ProdutoIndexPageProps) {
+function ProdutoIndex({ filtros, lista, kpis, opcoes, contexto, permissions }: ProdutoIndexPageProps) {
   const opcionais = useMemo(() => colunasOpcionais(contexto.rotulos_campos), [contexto.rotulos_campos]);
   const [visiveis, setVisiveis] = useState<Record<string, boolean>>(() => ({
     ...visibilidadePadrao(opcionais),
@@ -224,7 +227,8 @@ function ProdutoIndex({ filtros, lista, opcoes, contexto, permissions }: Produto
 
   const recarregar = () => {
     setSelecionados([]);
-    router.reload({ only: ['lista'] });
+    // Refaz também o valor do estoque, que fica guardado por 10 min no servidor.
+    router.reload({ only: ['lista', 'kpis'], headers: { 'X-Produto-Recalcular': '1' } });
     setHora(hhmm());
   };
 
@@ -502,6 +506,17 @@ function ProdutoIndex({ filtros, lista, opcoes, contexto, permissions }: Produto
         />
 
         <div className="pb-body">
+          <div className="pb-kpis" data-contract="produto-kpis">
+            <Deferred
+              data="kpis"
+              fallback={[0, 1, 2, 3].map((i) => (
+                <Skeleton key={i} className="h-[92px] rounded-xl" />
+              ))}
+            >
+              {kpis ? <IndicadoresLista kpis={kpis} /> : null}
+            </Deferred>
+          </div>
+
           <FiltrosListaProdutos filtros={filtros} opcoes={opcoes} woocommerce={contexto.woocommerce} aplicar={ir} />
 
           <section className="pb-widget" data-contract="produto-lista" aria-label="Todos os produtos">
