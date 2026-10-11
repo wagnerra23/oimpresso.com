@@ -380,7 +380,8 @@ function ProdutoIndex({ filtros, lista, kpis, estoque, detalhe, opcoes, contexto
         id: 'compra',
         header: 'Preço de compra un.',
         enableSorting: true,
-        meta: { width: 150, align: 'right', mono: true },
+        // Sem mono: no protótipo o preço é texto normal de 13px (medido com design-diff em 2026-10-11).
+        meta: { width: 150, align: 'right' },
         cell: ({ row }) => faixaDePreco(row.original.tipo, row.original.compra_min, row.original.compra_max),
       });
     }
@@ -389,7 +390,7 @@ function ProdutoIndex({ filtros, lista, kpis, estoque, detalhe, opcoes, contexto
         id: 'venda',
         header: 'Preço de venda',
         enableSorting: true,
-        meta: { width: 150, align: 'right', mono: true },
+        meta: { width: 150, align: 'right' },
         cell: ({ row }) => faixaDePreco(row.original.tipo, row.original.venda_min, row.original.venda_max),
       });
     }
