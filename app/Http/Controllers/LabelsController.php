@@ -46,6 +46,10 @@ class LabelsController extends Controller
         $business_id = $request->session()->get('user.business_id');
         $purchase_id = $request->get('purchase_id', false);
         $product_id = $request->get('product_id', false);
+        // Etiquetas em massa da lista de produtos (protótipo `produto-blade.jsx`, barra da seleção):
+        // `product_ids=1,2,3`. Até 500 ids, sem repetir, na ordem pedida.
+        $product_ids = collect(explode(',', (string) $request->get('product_ids', '')))
+            ->map(fn ($v) => (int) trim($v))->filter(fn ($v) => $v > 0)->unique()->take(500)->values();
 
         //Get products for the business
         $products = [];
@@ -54,11 +58,15 @@ class LabelsController extends Controller
             $products = $this->transactionUtil->getPurchaseProducts($business_id, $purchase_id);
         } elseif ($product_id) {
             $products = $this->productUtil->getDetailsFromProduct($business_id, $product_id);
+        } elseif ($product_ids->isNotEmpty()) {
+            // O MESMO getDetailsFromProduct de um produto só, um por id. Ele filtra pela empresa
+            // (`products.business_id`): id de outra empresa não vem (ADR 0093).
+            $products = $product_ids->flatMap(fn (int $id) => $this->productUtil->getDetailsFromProduct($business_id, $id))->values();
         }
 
         //get price groups
         $price_groups = [];
-        if (! empty($purchase_id) || ! empty($product_id)) {
+        if (! empty($purchase_id) || ! empty($product_id) || $product_ids->isNotEmpty()) {
             $price_groups = SellingPriceGroup::where('business_id', $business_id)
                                     ->active()
                                     ->pluck('name', 'id');
