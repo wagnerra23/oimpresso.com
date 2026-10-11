@@ -2390,4 +2390,72 @@ class ProductUtil extends Util
     }
 
   
+
+    // ── Relatório de estoque: filtros, contas de valor e linha da tela (movidos do ReportController
+    //    em 2026-10-10, sem mudança de conta, para a aba "Relatório de estoque" da lista de
+    //    produtos usar as MESMAS que Relatórios → Estoque) ──
+
+    /**
+     * Filtros do relatório de estoque — os mesmos que o ramo ajax() montava de request()->only(...), movidos sem
+     * mudança: "não à venda" vira 1/0 e entra a chave de fabricação.
+     *
+     * @param  array<string, mixed>  $entrada
+     * @return array<string, mixed>
+     */
+    public function filtrosDoEstoque(array $entrada, int $show_manufacturing_data): array
+    {
+        $filters = array_intersect_key($entrada, array_flip(['location_id', 'category_id', 'sub_category_id', 'brand_id', 'unit_id', 'tax_id', 'type',
+            'only_mfg_products', 'active_state',  'not_for_selling', 'repair_model_id', 'product_id', 'active_state', ]));
+
+        $filters['not_for_selling'] = isset($filters['not_for_selling']) && $filters['not_for_selling'] == 'true' ? 1 : 0;
+
+        $filters['show_manufacturing_data'] = $show_manufacturing_data;
+
+        return $filters;
+    }
+
+    /** Valor do estoque pelo preço de venda (preço do grupo, se houver; senão o preço de venda) — conta da coluna da Blade. */
+    public function valorDoEstoquePorVenda(object $row): float
+    {
+        $stock = $row->stock ? $row->stock : 0;
+        $unit_selling_price = (float) ($row->group_price ?? 0) > 0 ? $row->group_price : $row->unit_price;
+
+        return (float) ($stock * $unit_selling_price);
+    }
+
+    /** Lucro potencial do estoque = valor pelo preço de venda − valor pelo preço de compra — conta da coluna da Blade. */
+    public function lucroPotencialDoEstoque(object $row): float
+    {
+        return (float) $this->valorDoEstoquePorVenda($row) - (float) $row->stock_price;
+    }
+
+    /**
+     * Uma linha da tela de estoque (`Relatorios/Estoque/Index` e a aba "Relatório de estoque" de
+     * `Produto/Index`) a partir de uma linha de `getProductStockDetails`. Preço só com
+     * `access_default_selling_price` e valores só com `view_product_stock_value`, como na Blade.
+     *
+     * @return array<string, mixed>
+     */
+    public function linhaDoRelatorioEstoque(\stdClass $r, bool $verPreco, bool $verValor): array
+    {
+        return [
+            'sku' => (string) $r->sku,
+            'produto' => (string) $r->product,
+            'variacao' => $r->type == 'variable' ? $r->product_variation.'-'.$r->variation_name : '',
+            'categoria' => (string) ($r->category_name ?? ''),
+            'local' => (string) ($r->location_name ?? ''),
+            'preco' => $verPreco ? (float) $r->unit_price : null,
+            // Produto sem controle de estoque: a Blade mostra "--".
+            'estoque' => $r->enable_stock ? (float) ($r->stock ? $r->stock : 0) : null,
+            'unidade' => (string) ($r->unit ?? ''),
+            'valor_compra' => $verValor ? (float) $r->stock_price : null,
+            'valor_venda' => $verValor ? $this->valorDoEstoquePorVenda($r) : null,
+            'lucro_potencial' => $verValor ? $this->lucroPotencialDoEstoque($r) : null,
+            'vendido' => (float) ($r->total_sold ?: 0),
+            'transferido' => (float) ($r->total_transfered ?: 0),
+            'ajustado' => (float) ($r->total_adjusted ?: 0),
+            // Como a linha vermelha da Blade: estoque no alerta ou abaixo.
+            'alerta' => (bool) ($r->enable_stock && $r->stock <= $r->alert_quantity),
+        ];
+    }
 }
