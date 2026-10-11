@@ -21,7 +21,7 @@ import { Deferred, Head, router } from '@inertiajs/react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import type { ColumnDef } from '@tanstack/react-table';
-import { FileSpreadsheet, Package, Plus, RefreshCw, Search } from 'lucide-react';
+import { Download, FileSpreadsheet, Package, Plus, RefreshCw, Search, Tag } from 'lucide-react';
 import { toast } from 'sonner';
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { PageHeader } from '@/Components/PageHeader';
@@ -689,6 +689,14 @@ function ProdutoIndex({ filtros, lista, kpis, estoque, detalhe, opcoes, contexto
                 ordenar
               </span>
               <div className="sp" />
+              {/* Exportar filtrados (protótipo): as MESMAS linhas da lista, todas as páginas, em CSV. */}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => irPara(`/products?${new URLSearchParams({ ...Object.fromEntries(Object.entries(paraUrl(filtros)).map(([k, v]) => [k, String(v)])), exportar: 'csv' }).toString()}`)}
+              >
+                <Download size={12} aria-hidden /> Exportar filtrados
+              </Button>
               <div className="flex items-center gap-[5px]">
                 Mostrar
                 <Select value={String(filtros.per_page)} onValueChange={(v) => ir({ per_page: Number(v) })}>
@@ -739,6 +747,11 @@ function ProdutoIndex({ filtros, lista, kpis, estoque, detalhe, opcoes, contexto
                   }}
                 >
                   Remover do local
+                </Button>
+              )}
+              {pode('etiquetas') && (
+                <Button variant="outline" size="sm" onClick={() => irPara(`/labels/show?product_ids=${selecionados.join(',')}`)}>
+                  <Tag size={12} aria-hidden /> Etiquetas
                 </Button>
               )}
               {contexto.woocommerce && (

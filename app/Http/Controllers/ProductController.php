@@ -255,6 +255,11 @@ class ProductController extends Controller
             // do DataTable do Blade (`consultaListaProdutos`), paginada no servidor.
             $filtrosLista = $this->filtrosListaProdutos();
 
+            // "Exportar filtrados" (rodapé da lista): download, não página.
+            if (request()->input('exportar') === 'csv') {
+                return $this->exportarListaCsv($business_id, $filtrosLista, $podeVerCusto, $podeVerPreco, $is_woocommerce);
+            }
+
             return Inertia::render('Produto/Index', [
                 'filtros' => $filtrosLista,
                 'lista' => Inertia::defer(fn () => $this->buildProdutoListaPaginada($business_id, $filtrosLista, $podeVerCusto, $podeVerPreco, $is_woocommerce)),
@@ -289,6 +294,8 @@ class ProductController extends Controller
                     'opening_stock' => auth()->user()->can('product.opening_stock'),
                     'view' => auth()->user()->can('product.view'),
                     'stock_report' => auth()->user()->can('stock_report.view'),
+                    // "Etiquetas" da barra de seleção abre a tela de etiquetas, que pede esta permissão.
+                    'etiquetas' => auth()->user()->can('print_labels.access'),
                     // EAGER (não defer): são 2 booleanos já resolvidos — o `.tsx` aplica default
                     // fail-closed, então ausência da prop nunca vira permissão.
                     'view_purchase_price' => $podeVerCusto,
@@ -871,6 +878,71 @@ class ProductController extends Controller
                 'em' => now()->toIso8601String(),
             ];
         });
+    }
+
+    /**
+     * "Exportar filtrados" da lista (protótipo `produto-blade.jsx`, rodapé, `exportarCsv`): as MESMAS
+     * linhas da lista — `buildProdutoListaPaginada` com os filtros, a busca e a ordem da tela, todas
+     * as páginas — em CSV para o Excel brasileiro (`;`, vírgula decimal, UTF-8 com BOM). Preço de
+     * compra e de venda só com a permissão: sem ela a COLUNA não existe, como na lista. Nenhuma conta
+     * nova — sai o que a linha da lista já traz.
+     *
+     * @param  array<string, mixed>  $f  `filtrosListaProdutos()`
+     */
+    protected function exportarListaCsv(int $business_id, array $f, bool $podeVerCusto, bool $podeVerPreco, bool $is_woocommerce): \Illuminate\Http\Response
+    {
+        $linhas = $this->buildProdutoListaPaginada($business_id, array_merge($f, ['per_page' => -1, 'page' => 1]), $podeVerCusto, $podeVerPreco, $is_woocommerce)['data'];
+        $rotulos = array_filter($this->rotulosCamposProduto());
+        $tipos = ['single' => 'Único', 'variable' => 'Variável', 'combo' => 'Composição'];
+        $dinheiro = fn ($v) => $v === null ? '' : number_format((float) $v, 2, ',', '');
+        $quantidade = fn ($v) => $v === null ? '' : rtrim(rtrim(number_format((float) $v, 4, ',', ''), '0'), ',');
+
+        $cabecalho = ['Produto', 'SKU', 'Tipo', 'Categoria', 'Subcategoria', 'Marca', 'Unidade', 'Imposto', 'Locais',
+            'Estoque atual', 'Quantidade de alerta', 'Situação', 'Não para venda'];
+        if ($podeVerCusto) {
+            array_push($cabecalho, 'Preço de compra (mín.)', 'Preço de compra (máx.)');
+        }
+        if ($podeVerPreco) {
+            array_push($cabecalho, 'Preço de venda (mín.)', 'Preço de venda (máx.)');
+        }
+        foreach ($rotulos as $rotulo) {
+            $cabecalho[] = (string) $rotulo;
+        }
+
+        // Montado em memória (e não em stream): `index()` declara Illuminate\Http\Response.
+        $saida = fopen('php://temp', 'r+');
+        if ($saida === false) {
+            abort(500, 'Não foi possível montar o arquivo.');
+        }
+        fwrite($saida, "\xEF\xBB\xBF");
+        fputcsv($saida, $cabecalho, ';', '"', '');
+        foreach ($linhas as $l) {
+            $linha = [
+                (string) $l['nome'], (string) $l['sku'], $tipos[$l['tipo']] ?? (string) $l['tipo'],
+                (string) ($l['categoria'] ?? ''), (string) ($l['subcategoria'] ?? ''), (string) ($l['marca'] ?? ''),
+                (string) ($l['unidade'] ?? ''), (string) ($l['imposto'] ?? ''), implode(', ', $l['locais']),
+                $l['controla_estoque'] ? $quantidade($l['estoque']) : '', $quantidade($l['alerta']),
+                $l['inativo'] ? 'Inativo' : 'Ativo', $l['nao_para_venda'] ? 'Sim' : 'Não',
+            ];
+            if ($podeVerCusto) {
+                array_push($linha, $dinheiro($l['compra_min'] ?? null), $dinheiro($l['compra_max'] ?? null));
+            }
+            if ($podeVerPreco) {
+                array_push($linha, $dinheiro($l['venda_min'] ?? null), $dinheiro($l['venda_max'] ?? null));
+            }
+            foreach (array_keys($rotulos) as $i) {
+                $linha[] = (string) ($l['campos'][$i] ?? '');
+            }
+            fputcsv($saida, $linha, ';', '"', '');
+        }
+        rewind($saida);
+        $conteudo = (string) stream_get_contents($saida);
+        fclose($saida);
+
+        return response($conteudo, 200, [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="produtos-' . now()->format('Y-m-d-His') . '.csv"',
+        ]);
     }
 
     /**
