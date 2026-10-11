@@ -40,7 +40,7 @@ function pexCsv($teste, array $query): array
     $r = $teste->get('/products?' . http_build_query(array_merge($query, ['exportar' => 'csv'])));
     $r->assertOk();
     expect((string) $r->headers->get('content-type'))->toContain('text/csv');
-    $corpo = $r->streamedContent();
+    $corpo = (string) $r->getContent();
     expect(substr($corpo, 0, 3))->toBe("\xEF\xBB\xBF");
 
     $linhas = array_values(array_filter(preg_split('/\r?\n/', substr($corpo, 3)), fn ($l) => $l !== ''));

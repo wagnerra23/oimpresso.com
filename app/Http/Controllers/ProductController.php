@@ -889,7 +889,7 @@ class ProductController extends Controller
      *
      * @param  array<string, mixed>  $f  `filtrosListaProdutos()`
      */
-    protected function exportarListaCsv(int $business_id, array $f, bool $podeVerCusto, bool $podeVerPreco, bool $is_woocommerce): \Symfony\Component\HttpFoundation\StreamedResponse
+    protected function exportarListaCsv(int $business_id, array $f, bool $podeVerCusto, bool $podeVerPreco, bool $is_woocommerce): \Illuminate\Http\Response
     {
         $linhas = $this->buildProdutoListaPaginada($business_id, array_merge($f, ['per_page' => -1, 'page' => 1]), $podeVerCusto, $podeVerPreco, $is_woocommerce)['data'];
         $rotulos = array_filter($this->rotulosCamposProduto());
@@ -909,31 +909,40 @@ class ProductController extends Controller
             $cabecalho[] = (string) $rotulo;
         }
 
-        return response()->streamDownload(function () use ($linhas, $rotulos, $tipos, $dinheiro, $quantidade, $cabecalho, $podeVerCusto, $podeVerPreco) {
-            $saida = fopen('php://output', 'w');
-            fwrite($saida, "\xEF\xBB\xBF");
-            fputcsv($saida, $cabecalho, ';', '"', '');
-            foreach ($linhas as $l) {
-                $linha = [
-                    (string) $l['nome'], (string) $l['sku'], $tipos[$l['tipo']] ?? (string) $l['tipo'],
-                    (string) ($l['categoria'] ?? ''), (string) ($l['subcategoria'] ?? ''), (string) ($l['marca'] ?? ''),
-                    (string) ($l['unidade'] ?? ''), (string) ($l['imposto'] ?? ''), implode(', ', $l['locais']),
-                    $l['controla_estoque'] ? $quantidade($l['estoque']) : '', $quantidade($l['alerta']),
-                    $l['inativo'] ? 'Inativo' : 'Ativo', $l['nao_para_venda'] ? 'Sim' : 'Não',
-                ];
-                if ($podeVerCusto) {
-                    array_push($linha, $dinheiro($l['compra_min'] ?? null), $dinheiro($l['compra_max'] ?? null));
-                }
-                if ($podeVerPreco) {
-                    array_push($linha, $dinheiro($l['venda_min'] ?? null), $dinheiro($l['venda_max'] ?? null));
-                }
-                foreach (array_keys($rotulos) as $i) {
-                    $linha[] = (string) ($l['campos'][$i] ?? '');
-                }
-                fputcsv($saida, $linha, ';', '"', '');
+        // Montado em memória (e não em stream): `index()` declara Illuminate\Http\Response.
+        $saida = fopen('php://temp', 'r+');
+        if ($saida === false) {
+            abort(500, 'Não foi possível montar o arquivo.');
+        }
+        fwrite($saida, "\xEF\xBB\xBF");
+        fputcsv($saida, $cabecalho, ';', '"', '');
+        foreach ($linhas as $l) {
+            $linha = [
+                (string) $l['nome'], (string) $l['sku'], $tipos[$l['tipo']] ?? (string) $l['tipo'],
+                (string) ($l['categoria'] ?? ''), (string) ($l['subcategoria'] ?? ''), (string) ($l['marca'] ?? ''),
+                (string) ($l['unidade'] ?? ''), (string) ($l['imposto'] ?? ''), implode(', ', $l['locais']),
+                $l['controla_estoque'] ? $quantidade($l['estoque']) : '', $quantidade($l['alerta']),
+                $l['inativo'] ? 'Inativo' : 'Ativo', $l['nao_para_venda'] ? 'Sim' : 'Não',
+            ];
+            if ($podeVerCusto) {
+                array_push($linha, $dinheiro($l['compra_min'] ?? null), $dinheiro($l['compra_max'] ?? null));
             }
-            fclose($saida);
-        }, 'produtos-' . now()->format('Y-m-d-His') . '.csv', ['Content-Type' => 'text/csv; charset=UTF-8']);
+            if ($podeVerPreco) {
+                array_push($linha, $dinheiro($l['venda_min'] ?? null), $dinheiro($l['venda_max'] ?? null));
+            }
+            foreach (array_keys($rotulos) as $i) {
+                $linha[] = (string) ($l['campos'][$i] ?? '');
+            }
+            fputcsv($saida, $linha, ';', '"', '');
+        }
+        rewind($saida);
+        $conteudo = (string) stream_get_contents($saida);
+        fclose($saida);
+
+        return response($conteudo, 200, [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="produtos-' . now()->format('Y-m-d-His') . '.csv"',
+        ]);
     }
 
     /**
