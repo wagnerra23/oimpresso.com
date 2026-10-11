@@ -7,6 +7,7 @@ import { Pencil, Printer } from 'lucide-react';
 import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from '@/Components/ui/sheet';
 import { Button } from '@/Components/ui/button';
 import { Skeleton } from '@/Components/ui/skeleton';
+import { Grid, Inline } from '@/Components/layout';
 import PageHeaderTabs from '@/Components/shared/PageHeaderTabs';
 import { brl, qtdComUnidade } from '../../Unificado/_components/catalogo';
 import { TIPO_ROTULO, type DetalheProdutoDados } from './tipos';
@@ -34,7 +35,7 @@ interface Props {
   irPara: (url: string) => void;
 }
 
-export default function DetalheProduto({ aberto, detalhe: d, aoFechar, podeEditar, podePrecos, irPara }: Props) {
+export default function PainelDetalheProduto({ aberto, detalhe: d, aoFechar, podeEditar, podePrecos, irPara }: Props) {
   const [aba, setAba] = useState<Aba>('dados');
   const combo = d?.tipo === 'combo';
   const custo = (d?.variacoes ?? []).some((v) => v.compra_exc !== undefined);
@@ -59,7 +60,7 @@ export default function DetalheProduto({ aberto, detalhe: d, aoFechar, podeEdita
     <Sheet open={aberto} onOpenChange={(v) => !v && aoFechar()}>
       {/* `pb-root` de novo: o conteúdo vai para um portal fora da tela e perderia o escopo do bundle
           (lápide §5 2026-07-10 — re-aplicar o wrapper no conteúdo do portal). */}
-      <SheetContent side="right" className="pb-root flex w-[820px] max-w-[95vw] flex-col gap-0 p-0 sm:max-w-[820px]">
+      <SheetContent side="right" className="pb-root w-[820px] max-w-[95vw] gap-0 p-0 sm:max-w-[820px]">
         {!d ? (
           <div className="space-y-3 p-6" aria-busy="true">
             <SheetTitle className="sr-only">Carregando produto</SheetTitle>
@@ -70,11 +71,11 @@ export default function DetalheProduto({ aberto, detalhe: d, aoFechar, podeEdita
         ) : (
           <>
             <SheetHeader className="border-b border-[var(--border)] px-5 py-4">
-              <div className="flex flex-wrap items-center gap-2">
+              <Inline wrap gap={2}>
                 <span className="m font-mono text-[11.5px] text-[var(--text-mute)]">{d.sku}</span>
                 <span className={`pb-pill ${d.tipo}`}>{TIPO_ROTULO[d.tipo] ?? d.tipo}</span>
                 {d.inativo && <span className="pb-pill off">Inativo</span>}
-              </div>
+              </Inline>
               <SheetTitle className="text-[17px]">{d.nome}</SheetTitle>
               <SheetDescription>
                 {[d.dados.categoria, d.dados.subcategoria, d.dados.marca, d.dados.unidade && `unidade ${d.dados.unidade_curta || d.dados.unidade}`]
@@ -94,7 +95,7 @@ export default function DetalheProduto({ aberto, detalhe: d, aoFechar, podeEdita
 
             <div className="flex-1 overflow-y-auto px-5 py-4" data-contract="produto-detalhe">
               {abaAtiva === 'dados' && (
-                <div className="grid gap-4" style={{ gridTemplateColumns: d.imagem ? '1fr 168px' : '1fr' }}>
+                <Grid gap={4} className={d.imagem ? 'grid-cols-[1fr_168px]' : undefined}>
                   <div className="pb-drawer-grid">
                     <Dt rotulo="SKU" valor={d.sku} />
                     <Dt rotulo="Tipo de código de barras" valor={d.dados.codigo_de_barras} />
@@ -132,7 +133,7 @@ export default function DetalheProduto({ aberto, detalhe: d, aoFechar, podeEdita
                       {d.dados.descricao}
                     </p>
                   )}
-                </div>
+                </Grid>
               )}
 
               {abaAtiva === 'variacoes' && (

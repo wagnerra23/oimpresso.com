@@ -123,10 +123,10 @@ tabelas_dominio: ["products", "variations", "product_variations", "variation_loc
 - [PopoverAncorado.tsx](../../../resources/js/Pages/Produto/Unificado/_components/PopoverAncorado.tsx)
 - [SubTelas.tsx](../../../resources/js/Pages/Produto/Unificado/_components/SubTelas.tsx)
 - [AcoesProduto.tsx](../../../resources/js/Pages/Produto/_components/lista/AcoesProduto.tsx)
-- [DetalheProduto.tsx](../../../resources/js/Pages/Produto/_components/lista/DetalheProduto.tsx)
 - [FiltrosLista.tsx](../../../resources/js/Pages/Produto/_components/lista/FiltrosLista.tsx)
 - [IndicadoresLista.tsx](../../../resources/js/Pages/Produto/_components/lista/IndicadoresLista.tsx)
 - [MenuColunas.tsx](../../../resources/js/Pages/Produto/_components/lista/MenuColunas.tsx)
+- [PainelDetalhe.tsx](../../../resources/js/Pages/Produto/_components/lista/PainelDetalhe.tsx)
 - [RelatorioEstoqueAba.tsx](../../../resources/js/Pages/Produto/_components/lista/RelatorioEstoqueAba.tsx)
 
 ## Charters (lei da tela) — 12

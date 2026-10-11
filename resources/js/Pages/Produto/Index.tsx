@@ -55,7 +55,7 @@ import {
 import AcoesProduto, { type AcaoProduto } from './_components/lista/AcoesProduto';
 import FiltrosListaProdutos from './_components/lista/FiltrosLista';
 import IndicadoresLista from './_components/lista/IndicadoresLista';
-import DetalheProduto from './_components/lista/DetalheProduto';
+import PainelDetalheProduto from './_components/lista/PainelDetalhe';
 import RelatorioEstoqueAba from './_components/lista/RelatorioEstoqueAba';
 import MenuColunas from './_components/lista/MenuColunas';
 import {
@@ -887,7 +887,7 @@ function ProdutoIndex({ filtros, lista, kpis, estoque, detalhe, opcoes, contexto
         </DialogContent>
       </Dialog>
 
-      <DetalheProduto
+      <PainelDetalheProduto
         aberto={verId !== null}
         detalhe={detalhe && detalhe.id === verId ? detalhe : undefined}
         aoFechar={fecharDetalhe}
