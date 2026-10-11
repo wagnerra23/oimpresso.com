@@ -473,7 +473,39 @@ class PurchaseController extends Controller
                 'view_purchase_price' => $user->can('view_purchase_price'),
             ],
             'common_settings' => $common_settings,
+            // "Comprar" da lista de produtos (/products) abre esta tela com o produto já na compra.
+            'produto_inicial' => $this->produtoInicialDaCompra($business_id),
         ]);
+    }
+
+    /**
+     * Produto pedido em `?produto={id}` (botão "Comprar" da lista de produtos), para a tela
+     * adicionar a primeira linha como se a pessoa o tivesse escolhido na busca.
+     *
+     * A regra de quem pode entrar é a MESMA da busca de produtos desta tela (`getProducts`):
+     * do negócio da sessão, ativo e com controle de estoque. Fora disso devolve null e a tela
+     * abre vazia, como sem o parâmetro. Tier 0 (ADR 0093): o id vem da URL, o negócio da sessão.
+     *
+     * @return array{product_id: int, label: string}|null
+     */
+    private function produtoInicialDaCompra(int $business_id): ?array
+    {
+        $id = (int) request()->query('produto', 0);
+        if ($id <= 0) {
+            return null;
+        }
+
+        $produto = Product::where('business_id', $business_id)
+            ->active()
+            ->where('enable_stock', 1)
+            ->where('id', $id)
+            ->first(['id', 'name']);
+
+        if (! $produto) {
+            return null;
+        }
+
+        return ['product_id' => (int) $produto->getAttribute('id'), 'label' => (string) $produto->getAttribute('name')];
     }
 
     /**

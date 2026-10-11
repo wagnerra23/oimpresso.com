@@ -2,9 +2,12 @@
 // componente do registro (`ui/dropdown-menu`). União das ações do protótipo com as da lista
 // Blade (`ProductController@index`, coluna `action`), com as MESMAS permissões do Blade.
 //
-// Fora por enquanto, de propósito: "Comprar este produto" e "Transferir entre locais" (as telas
-// de destino não recebem o produto — decisão pendente do [F]), "Usar em uma OS" (só com o
-// módulo de assistência técnica) e "Dados fiscais" (aba do painel de detalhe, etapa 4).
+// "Comprar este produto" abre a nova compra com o produto já na compra (UC-PURCRE-09). Só aparece
+// para produto ativo e com controle de estoque: é a regra da busca da tela de compra, e fora dela a
+// compra abriria vazia.
+//
+// Fora por enquanto: "Transferir entre locais" e "Usar em uma OS" (a tela de destino ainda não
+// recebe o produto) e "Dados fiscais" (já é uma aba do painel de detalhe).
 
 import { Fragment } from 'react';
 import { ChevronDown } from 'lucide-react';
@@ -26,6 +29,7 @@ export type AcaoProduto =
   | 'duplicar'
   | 'rotulos'
   | 'precos'
+  | 'comprar'
   | 'anexo'
   | 'ativar'
   | 'desativar'
@@ -65,12 +69,15 @@ export default function AcoesProduto({ linha, permissoes, gruposDePreco, aoEscol
     pode('create') && gruposDePreco > 0 && item('precos', 'Adicionar ou editar preços por grupo'),
     linha.anexo && item('anexo', 'Baixar anexo do produto'),
   ].filter(Boolean);
+  const grupoCompra = [
+    pode('comprar') && linha.controla_estoque && !linha.inativo && item('comprar', 'Comprar este produto'),
+  ].filter(Boolean);
   const grupo3 = [
     // Ativar e desativar exigem `product.update` no servidor (`activate`/`massDeactivate`).
     pode('update') && (linha.inativo ? item('ativar', 'Ativar') : item('desativar', 'Desativar')),
     pode('delete') && item('excluir', 'Excluir', true),
   ].filter(Boolean);
-  const grupos = [grupo1, grupo2, grupo3].filter((g) => g.length > 0);
+  const grupos = [grupo1, grupo2, grupoCompra, grupo3].filter((g) => g.length > 0);
 
   // A linha da tabela é clicável (abre o produto) e os eventos do React atravessam o portal do
   // menu: gatilho e conteúdo param a propagação, senão escolher um item também abriria a linha.

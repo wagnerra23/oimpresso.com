@@ -232,6 +232,15 @@ last_run_ci: "run 38087431948 (lane Estoque · MySQL, commit 59fe58ae, com o arq
   - A "Baixar Excel" do cabeçalho segue sendo a exportação completa da Blade (`/products/download-excel`).
 - **Status: ⬜** — nasce neste PR; verde esperado. Só a lane decide.
 
+## UC-PIDX-11 · "Comprar" abre a nova compra com o produto · `should`
+- **Persona:** Larissa vê na lista que um produto está acabando e quer repor sem ter de procurá-lo de novo na compra.
+- **Aceite:** Dado um produto ativo e com controle de estoque, e a permissão de criar compra · Quando escolho "Comprar este produto" no menu da linha, ou "Comprar" no painel de detalhe · Então abre a nova compra já com esse produto (UC-PURCRE-09). Sem a permissão, ou com produto inativo ou sem controle de estoque, a ação não aparece.
+- **Teste:** [`ProdutoDetalheTest`](../../../../tests/Feature/Produto/ProdutoDetalheTest.php) — `UC-PIDX-11` (a permissão); o que a compra faz com o produto é o UC-PURCRE-09, em [`PurchaseGradeMatrixTest`](../../../../tests/Feature/Purchase/PurchaseGradeMatrixTest.php).
+- **Contrato:**
+  - **Protótipo** — `acoesDe` ("Comprar este produto") e rodapé do `DetalheDrawer` ("Comprar"); pedido [F] 2026-10-11 *"abre preenchido com o produto"*.
+  - **Compra** — produto inativo ou sem controle de estoque não aparece na busca da compra (`getProducts`); por isso a ação some nesses casos, em vez de abrir uma compra vazia.
+- **Status: ⬜** — nasce neste PR; verde esperado. Só a lane decide.
+
 ---
 
 ## Achados de governança (o trio prometia o que não tinha)

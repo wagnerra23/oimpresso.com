@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Services\Purchase\GradeLayoutBuilder;
 use App\User;
+use Inertia\Testing\AssertableInertia;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Spatie\Permission\Models\Permission;
@@ -30,6 +31,7 @@ use Spatie\Permission\Models\Role;
  *   @covers-uc UC-PURCRE-02  endpoint da grade recusa produto de outro tenant
  *   @covers-uc UC-PURCRE-03  store() recusa variation_id forjado (anti payload cross-tenant)
  *   @covers-uc UC-PURCRE-04  a grade nunca abre vazia — degrada 2D -> 1 eixo -> single
+ *   @covers-uc UC-PURCRE-09  "Comprar" da lista de produtos abre a compra com o produto (so o do proprio negocio)
  *
  * COBERTURA POR BLOCO (medida 2026-09-04, atualizada 2026-09-05):
  *   - 6 casos do parser (GradeLayoutBuilder, logica pura): COMPORTAMENTO REAL, EXECUTAM.
@@ -355,5 +357,48 @@ describe('Tier 0 cross-tenant (MySQL real)', function () {
             422,
             'O gate de ownership recusou uma variação do PRÓPRIO negócio — o 422 do teste acima não prova scope.'
         );
+    });
+    // ── UC-PURCRE-09 — "Comprar" da lista de produtos ───────────────────────
+
+    it('UC-PURCRE-09 · ?produto= de um produto do próprio negócio entra como produto_inicial', function () {
+        $produto = gmProduto((int) $this->gmBizProprio->id, (int) $this->gmUser->id, 'Camiseta comprar');
+        $this->gmProdutos[] = $produto;
+        gmVariacao($produto, 'P/Preto');
+        DB::table('products')->where('id', $produto)->update(['enable_stock' => 1]);
+
+        $this->actingAs($this->gmUser)
+            ->get('/purchases/create?produto=' . $produto)
+            ->assertOk()
+            ->assertInertia(fn (AssertableInertia $p) => $p
+                ->component('Purchase/Create', false)
+                ->where('produto_inicial', ['product_id' => $produto, 'label' => 'Camiseta comprar']));
+    });
+
+    it('UC-PURCRE-09 · cross-tenant — ?produto= de produto do biz=99 não entra na compra do biz=98', function () {
+        $produtoVitima = gmProduto((int) $this->gmBizVitima->id, (int) $this->gmUserVitima->id, 'Camiseta vítima');
+        $this->gmProdutos[] = $produtoVitima;
+        gmVariacao($produtoVitima, 'P/Preto');
+        DB::table('products')->where('id', $produtoVitima)->update(['enable_stock' => 1]);
+
+        $this->actingAs($this->gmUser)
+            ->get('/purchases/create?produto=' . $produtoVitima)
+            ->assertOk()
+            ->assertInertia(fn (AssertableInertia $p) => $p
+                ->component('Purchase/Create', false)
+                ->where('produto_inicial', null));
+    });
+
+    it('UC-PURCRE-09 · produto sem controle de estoque segue a regra da busca da compra e não entra', function () {
+        $produto = gmProduto((int) $this->gmBizProprio->id, (int) $this->gmUser->id, 'Serviço sem estoque');
+        $this->gmProdutos[] = $produto;
+        gmVariacao($produto, 'Único');
+        DB::table('products')->where('id', $produto)->update(['enable_stock' => 0]);
+
+        $this->actingAs($this->gmUser)
+            ->get('/purchases/create?produto=' . $produto)
+            ->assertOk()
+            ->assertInertia(fn (AssertableInertia $p) => $p
+                ->component('Purchase/Create', false)
+                ->where('produto_inicial', null));
     });
 });

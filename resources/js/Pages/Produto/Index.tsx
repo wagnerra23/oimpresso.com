@@ -293,6 +293,9 @@ function ProdutoIndex({ filtros, lista, kpis, estoque, detalhe, opcoes, contexto
       case 'anexo':
         if (l.anexo) window.open(l.anexo.url, '_blank', 'noopener');
         return;
+      case 'comprar':
+        irPara(`/purchases/create?produto=${l.id}`);
+        return;
       case 'estoque_inicial':
         irPara(`/opening-stock/add/${l.id}`);
         return;
@@ -907,6 +910,7 @@ function ProdutoIndex({ filtros, lista, kpis, estoque, detalhe, opcoes, contexto
         aoFechar={fecharDetalhe}
         podeEditar={pode('update')}
         podePrecos={pode('create') && contexto.grupos_de_preco > 0}
+        podeComprar={pode('comprar')}
         irPara={irPara}
       />
     </>
