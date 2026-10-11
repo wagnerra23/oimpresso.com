@@ -256,7 +256,7 @@ function ProdutoIndex({ filtros, lista, kpis, estoque, opcoes, contexto, permiss
   const aoEscolher = (acao: AcaoProduto, l: LinhaProduto): void => {
     switch (acao) {
       case 'ver':
-        irPara(`/products/${l.id}`);
+        // Volta com o painel de detalhe; `/products/{id}` não é uma página (só o pedaço das prateleiras).
         return;
       case 'editar':
         irPara(`/products/${l.id}/edit`);
@@ -277,7 +277,7 @@ function ProdutoIndex({ filtros, lista, kpis, estoque, opcoes, contexto, permiss
         if (l.anexo) window.open(l.anexo.url, '_blank', 'noopener');
         return;
       case 'estoque_inicial':
-        // O modal de estoque inicial chega na etapa 4; até lá o menu não oferece o item.
+        irPara(`/opening-stock/add/${l.id}`);
         return;
       case 'ativar':
         void executarJson(`/products/activate/${l.id}`, 'GET');
@@ -649,7 +649,6 @@ function ProdutoIndex({ filtros, lista, kpis, estoque, opcoes, contexto, permiss
                   totalLabel="produtos"
                   rowKey={(l) => l.id}
                   rowState={estadoDaLinha}
-                  onRowClick={pode('view') ? (l) => aoEscolher('ver', l) : undefined}
                   emptyMessage="Nenhum produto com esses filtros. Remova um filtro pelos chips acima — ou cadastre o produto que está faltando."
                   selection={{
                     isSelected: (l) => selecionados.includes(l.id),
