@@ -56,6 +56,8 @@ export interface FiltrosLista {
   dir: 'asc' | 'desc';
   per_page: number;
   page: number;
+  aba: 'lista' | 'estoque';
+  estoque_pagina: number;
 }
 
 /** Indicadores do topo (ProductController::buildProdutoListaKpis) — catálogo inteiro, sem filtro. */
@@ -68,6 +70,48 @@ export interface KpisLista {
   /** null = sem permissão de ver valor do estoque (não é zero). */
   valor_custo: number | null;
   valor_calculado_em: string | null;
+}
+
+/** Uma linha da aba "Relatório de estoque" (ProductUtil::linhaDoRelatorioEstoque). */
+export interface LinhaRelatorioEstoque {
+  sku: string;
+  produto: string;
+  variacao: string;
+  categoria: string;
+  local: string;
+  /** null = sem `access_default_selling_price`. */
+  preco: number | null;
+  /** null = produto sem controle de estoque (a Blade mostra "--"). */
+  estoque: number | null;
+  unidade: string;
+  /** null = sem `view_product_stock_value`. */
+  valor_compra: number | null;
+  valor_venda: number | null;
+  lucro_potencial: number | null;
+  vendido: number;
+  transferido: number;
+  ajustado: number;
+  alerta: boolean;
+}
+
+/** Aba "Relatório de estoque" (ProductController::buildRelatorioEstoqueDaLista). */
+export interface RelatorioEstoqueLista {
+  linhas: LinhaRelatorioEstoque[];
+  /** Totais de TODAS as linhas com os filtros da tela (não só da página). */
+  totais: {
+    linhas: number;
+    estoque: number;
+    vendido: number;
+    transferido: number;
+    ajustado: number;
+    valor_compra: number | null;
+    valor_venda: number | null;
+    lucro_potencial: number | null;
+    em: string | null;
+  };
+  mostra_preco: boolean;
+  mostra_valor: boolean;
+  paginacao: { atual: number; ultima: number; total: number };
 }
 
 export interface Opcao {

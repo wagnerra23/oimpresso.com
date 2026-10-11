@@ -258,6 +258,13 @@ class ProductController extends Controller
             return Inertia::render('Produto/Index', [
                 'filtros' => $filtrosLista,
                 'lista' => Inertia::defer(fn () => $this->buildProdutoListaPaginada($business_id, $filtrosLista, $podeVerCusto, $podeVerPreco, $is_woocommerce)),
+                // Aba "Relatório de estoque": só com `stock_report.view` (a aba Blade era `@can`). Aberta pela URL
+                // (`aba=estoque`) chega deferida; fechada, só vem se a tela pedir (partial reload).
+                'estoque' => auth()->user()->can('stock_report.view')
+                    ? ($filtrosLista['aba'] === 'estoque'
+                        ? Inertia::defer(fn () => $this->buildRelatorioEstoqueDaLista($business_id, $filtrosLista, (int) $show_manufacturing_data, request()->header('X-Produto-Recalcular') === '1'), 'estoque')
+                        : Inertia::optional(fn () => $this->buildRelatorioEstoqueDaLista($business_id, $filtrosLista, (int) $show_manufacturing_data, request()->header('X-Produto-Recalcular') === '1')))
+                    : null,
                 // Grupo próprio: os indicadores não seguram a lista (e vice-versa).
                 'kpis' => Inertia::defer(fn () => $this->buildProdutoListaKpis($business_id, $is_woocommerce, request()->header('X-Produto-Recalcular') === '1'), 'kpis'),
                 'opcoes' => $this->buildProdutoListaOpcoes($categories, $brands, $units, $taxes, $business_locations, $pos_module_data),
@@ -476,6 +483,9 @@ class ProductController extends Controller
             'not_for_selling' => request()->boolean('not_for_selling'),
             'woocommerce_enabled' => request()->boolean('woocommerce_enabled'),
             'repair_model_id' => $texto('repair_model_id'),
+            // Aba ativa (protótipo: "Todos os produtos" | "Relatório de estoque") e a página da aba de estoque.
+            'aba' => request()->input('aba') === 'estoque' ? 'estoque' : 'lista',
+            'estoque_pagina' => max(1, (int) request()->input('estoque_pagina', 1)),
             'q' => trim((string) request()->input('q', '')),
             'sort' => (string) request()->input('sort', 'produto'),
             'dir' => request()->input('dir') === 'desc' ? 'desc' : 'asc',
@@ -515,6 +525,95 @@ class ProductController extends Controller
                 }
             });
         }
+    }
+
+    /**
+     * Aba "Relatório de estoque" da lista (protótipo `produto-blade.jsx`, vista `lista`,
+     * `RelatorioEstoque`; a aba `#product_stock_report` da lista Blade). As linhas são as de
+     * Relatórios → Estoque — `ProductUtil::getProductStockDetails` + `linhaDoRelatorioEstoque` —
+     * com os filtros que a aba Blade mandava (`product/index.blade.php`, `stock_report_table`):
+     * local, categoria, marca, unidade, tipo, situação, "não para venda" e modelo. 25 por página,
+     * na ordem SKU e local (a da tela de estoque). A busca da lista não entra: a aba Blade também
+     * não a usava.
+     *
+     * @param  array<string, mixed>  $f  `filtrosListaProdutos()`
+     * @return array<string, mixed>
+     */
+    protected function buildRelatorioEstoqueDaLista(int $business_id, array $f, int $mfg, bool $recalcular): array
+    {
+        $entrada = array_filter([
+            'location_id' => $f['location_id'],
+            'category_id' => $f['category_id'],
+            'brand_id' => $f['brand_id'],
+            'unit_id' => $f['unit_id'],
+            'type' => $f['type'],
+            'active_state' => $f['active_state'],
+            'repair_model_id' => $f['repair_model_id'],
+            // `filtrosDoEstoque` espera a string 'true', como o DataTable mandava.
+            'not_for_selling' => $f['not_for_selling'] ? 'true' : null,
+        ], fn ($v) => $v !== null && $v !== '');
+        $filtros = $this->productUtil->filtrosDoEstoque($entrada, $mfg);
+        $verPreco = (bool) auth()->user()->can('access_default_selling_price');
+        $verValor = (bool) auth()->user()->can('view_product_stock_value');
+
+        $pagina = $this->productUtil->getProductStockDetails($business_id, $filtros, 'datatables')
+            ->orderBy('variations.sub_sku', 'asc')->orderBy('vld.location_id', 'asc')
+            ->toBase()->paginate(25, ['*'], 'estoque_pagina', $f['estoque_pagina']);
+
+        return [
+            'linhas' => collect($pagina->items())
+                ->map(fn (\stdClass $r): array => $this->productUtil->linhaDoRelatorioEstoque($r, $verPreco, $verValor))
+                ->values(),
+            'totais' => $this->totaisDoRelatorioEstoque($business_id, $filtros, $verValor, $recalcular),
+            'mostra_preco' => $verPreco,
+            'mostra_valor' => $verValor,
+            'paginacao' => ['atual' => $pagina->currentPage(), 'ultima' => $pagina->lastPage(), 'total' => $pagina->total()],
+        ];
+    }
+
+    /**
+     * Rodapé da aba: totais de TODAS as linhas do relatório com os filtros da tela (protótipo:
+     * "Totais (todas as N linhas)"; a Blade somava só a página). Soma, linha a linha, o que
+     * `linhaDoRelatorioEstoque` devolve — as MESMAS contas da tela de estoque, nenhuma nova. Sem
+     * filtro, o "valor pelo custo" daqui é o indicador "Valor em estoque (custo)" do topo
+     * (`valorDoEstoquePeloCusto`, decisão [F] 2026-10-10, opção B). Cache de 10 min por empresa,
+     * locais permitidos, filtros e permissão de valor; o "Atualizado" refaz a conta.
+     *
+     * @param  array<string, mixed>  $filtros
+     * @return array<string, mixed>
+     */
+    protected function totaisDoRelatorioEstoque(int $business_id, array $filtros, bool $verValor, bool $recalcular): array
+    {
+        $chave = 'produto:lista:estoque-totais:biz:' . $business_id
+            . ':loc:' . md5((string) json_encode(auth()->user()->permitted_locations()))
+            . ':f:' . md5((string) json_encode($filtros)) . ':v:' . (int) $verValor;
+        if ($recalcular) {
+            \Illuminate\Support\Facades\Cache::forget($chave);
+        }
+
+        return \Illuminate\Support\Facades\Cache::remember($chave, now()->addMinutes(10), function () use ($business_id, $filtros, $verValor) {
+            $t = [
+                'linhas' => 0, 'estoque' => 0.0, 'vendido' => 0.0, 'transferido' => 0.0, 'ajustado' => 0.0,
+                'valor_compra' => $verValor ? 0.0 : null,
+                'valor_venda' => $verValor ? 0.0 : null,
+                'lucro_potencial' => $verValor ? 0.0 : null,
+            ];
+            foreach ($this->productUtil->getProductStockDetails($business_id, $filtros, 'datatables')->toBase()->cursor() as $r) {
+                $l = $this->productUtil->linhaDoRelatorioEstoque($r, false, $verValor);
+                $t['linhas']++;
+                foreach (['estoque', 'vendido', 'transferido', 'ajustado'] as $c) {
+                    $t[$c] += (float) ($l[$c] ?? 0);
+                }
+                if ($verValor) {
+                    foreach (['valor_compra', 'valor_venda', 'lucro_potencial'] as $c) {
+                        $t[$c] += (float) ($l[$c] ?? 0);
+                    }
+                }
+            }
+            $t['em'] = now()->toIso8601String();
+
+            return $t;
+        });
     }
 
     /**

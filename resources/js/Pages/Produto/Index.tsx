@@ -25,6 +25,7 @@ import { FileSpreadsheet, Package, Plus, RefreshCw, Search } from 'lucide-react'
 import { toast } from 'sonner';
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { PageHeader } from '@/Components/PageHeader';
+import PageHeaderTabs from '@/Components/shared/PageHeaderTabs';
 import DataTable, { type EstadoDaLinha } from '@/Components/shared/DataTable';
 import BulkActionBar from '@/Components/shared/BulkActionBar';
 import { FilterChip } from '@/Components/shared/PageFilters';
@@ -54,6 +55,7 @@ import {
 import AcoesProduto, { type AcaoProduto } from './_components/lista/AcoesProduto';
 import FiltrosListaProdutos from './_components/lista/FiltrosLista';
 import IndicadoresLista from './_components/lista/IndicadoresLista';
+import RelatorioEstoqueAba from './_components/lista/RelatorioEstoqueAba';
 import MenuColunas from './_components/lista/MenuColunas';
 import {
   CHAVE_COLUNAS,
@@ -68,6 +70,7 @@ import {
   type ContextoLista,
   type FiltrosLista,
   type KpisLista,
+  type RelatorioEstoqueLista,
   type LinhaProduto,
   type ListaPaginada,
   type OpcoesLista,
@@ -78,6 +81,8 @@ interface ProdutoIndexPageProps {
   filtros: FiltrosLista;
   lista?: ListaPaginada;
   kpis?: KpisLista;
+  /** Só com `stock_report.view`; `undefined` enquanto a aba não foi aberta. */
+  estoque?: RelatorioEstoqueLista | null;
   opcoes: OpcoesLista;
   contexto: ContextoLista;
   permissions: PermissoesLista;
@@ -156,6 +161,10 @@ function paraUrl(f: FiltrosLista): Record<string, string | number> {
   if (f.dir === 'desc') out.dir = 'desc';
   out.per_page = f.per_page;
   if (f.page > 1) out.page = f.page;
+  if (f.aba === 'estoque') {
+    out.aba = 'estoque';
+    if (f.estoque_pagina > 1) out.estoque_pagina = f.estoque_pagina;
+  }
   return out;
 }
 
@@ -170,7 +179,7 @@ interface Confirmacao {
 
 const hhmm = () => new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
 
-function ProdutoIndex({ filtros, lista, kpis, opcoes, contexto, permissions }: ProdutoIndexPageProps) {
+function ProdutoIndex({ filtros, lista, kpis, estoque, opcoes, contexto, permissions }: ProdutoIndexPageProps) {
   const opcionais = useMemo(() => colunasOpcionais(contexto.rotulos_campos), [contexto.rotulos_campos]);
   const [visiveis, setVisiveis] = useState<Record<string, boolean>>(() => ({
     ...visibilidadePadrao(opcionais),
@@ -194,7 +203,7 @@ function ProdutoIndex({ filtros, lista, kpis, opcoes, contexto, permissions }: P
 
   const ir = (patch: Partial<FiltrosLista>) => {
     setSelecionados([]);
-    const proximo: FiltrosLista = { ...filtros, page: 1, ...patch };
+    const proximo: FiltrosLista = { ...filtros, page: 1, estoque_pagina: 1, ...patch };
     router.get('/products', paraUrl(proximo), { preserveState: true, preserveScroll: true, replace: true });
   };
 
@@ -228,7 +237,10 @@ function ProdutoIndex({ filtros, lista, kpis, opcoes, contexto, permissions }: P
   const recarregar = () => {
     setSelecionados([]);
     // Refaz também o valor do estoque, que fica guardado por 10 min no servidor.
-    router.reload({ only: ['lista', 'kpis'], headers: { 'X-Produto-Recalcular': '1' } });
+    router.reload({
+      only: filtros.aba === 'estoque' ? ['lista', 'kpis', 'estoque'] : ['lista', 'kpis'],
+      headers: { 'X-Produto-Recalcular': '1' },
+    });
     setHora(hhmm());
   };
 
@@ -519,16 +531,40 @@ function ProdutoIndex({ filtros, lista, kpis, opcoes, contexto, permissions }: P
 
           <FiltrosListaProdutos filtros={filtros} opcoes={opcoes} woocommerce={contexto.woocommerce} aplicar={ir} />
 
-          <section className="pb-widget" data-contract="produto-lista" aria-label="Todos os produtos">
+          <section
+            className="pb-widget"
+            data-contract="produto-lista"
+            aria-label={filtros.aba === 'estoque' ? 'Relatório de estoque' : 'Todos os produtos'}
+          >
             <h3>
-              <Package size={13} aria-hidden /> Todos os produtos{' '}
-              {lista && (
+              <Package size={13} aria-hidden /> {filtros.aba === 'estoque' ? 'Relatório de estoque' : 'Todos os produtos'}{' '}
+              {filtros.aba === 'lista' && lista && (
                 <span className="n">
                   {linhas.length} de {total}
                 </span>
               )}
             </h3>
 
+            {permissions.stock_report === true && (
+              <div data-contract="produto-abas" className="px-3">
+                <PageHeaderTabs
+                  density="compact"
+                  activeGhostKey={filtros.aba}
+                  onGhostChange={(k) => ir({ aba: k === 'estoque' ? 'estoque' : 'lista' })}
+                  ghosts={[
+                    {
+                      key: 'lista',
+                      label: 'Todos os produtos',
+                      href: '/products',
+                      ...(lista ? { badge: total } : {}),
+                    },
+                    { key: 'estoque', label: 'Relatório de estoque', href: '/products?aba=estoque' },
+                  ]}
+                />
+              </div>
+            )}
+
+            {filtros.aba === 'lista' && (
             <div className="pb-toolbar" data-contract="produto-toolbar">
               <div className="pb-busca">
                 <Search size={12} aria-hidden />
@@ -552,6 +588,7 @@ function ProdutoIndex({ filtros, lista, kpis, opcoes, contexto, permissions }: P
               />
               <MenuColunas colunas={opcionais} visiveis={visiveis} aoMudar={setVisiveis} />
             </div>
+            )}
 
             {chips.length > 0 && (
               <div className="pb-chips" data-contract="produto-chips">
@@ -573,6 +610,21 @@ function ProdutoIndex({ filtros, lista, kpis, opcoes, contexto, permissions }: P
               </div>
             )}
 
+            {filtros.aba === 'estoque' ? (
+              <Deferred
+                data="estoque"
+                fallback={
+                  <div className="space-y-2 px-4 py-3" aria-busy="true">
+                    {Array.from({ length: 8 }).map((_, i) => (
+                      <Skeleton key={i} className="h-7 w-full" />
+                    ))}
+                  </div>
+                }
+              >
+                {estoque ? <RelatorioEstoqueAba dados={estoque} irParaPagina={(p) => ir({ estoque_pagina: p })} /> : <></>}
+              </Deferred>
+            ) : (
+            <>
             <div data-contract="produto-tabela">
               <Deferred
                 data="lista"
@@ -637,6 +689,8 @@ function ProdutoIndex({ filtros, lista, kpis, opcoes, contexto, permissions }: P
                 por página
               </div>
             </div>
+            </>
+            )}
           </section>
 
           {selecionados.length > 0 && (
