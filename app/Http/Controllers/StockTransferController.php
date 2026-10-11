@@ -329,6 +329,82 @@ class StockTransferController extends Controller
         ]);
     }
 
+    /**
+     * Dados de UMA linha de transferência para a tela React (`StockTransfer/Create`), em JSON.
+     *
+     * São os MESMOS dados que a Blade recebe em `StockAdjustmentController::getProductRow`
+     * (`type=stock_transfer`), pelas mesmas chamadas — `getDetailsFromVariation` (saldo no local
+     * de origem + último custo de compra), `getSubUnits` e os lotes. Só muda o formato: lá vem
+     * um `<tr>` pronto, aqui vêm os campos. Nada é gravado.
+     *
+     * Tier 0 (ADR 0093): o local tem de ser do negócio da sessão, e `getDetailsFromVariation`
+     * resolve a variação com `p.business_id` — variação de outro negócio (ou sem saldo no
+     * local) cai no `firstOrFail` e devolve 404.
+     */
+    public function linhaDoProduto(Request $request)
+    {
+        if (! auth()->user()->can('purchase.create')) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $business_id = (int) $request->session()->get('user.business_id');
+        $variation_id = (int) $request->query('variation_id');
+        $location_id = (int) $request->query('location_id');
+
+        BusinessLocation::where('business_id', $business_id)->where('id', $location_id)->firstOrFail();
+
+        $product = $this->productUtil->getDetailsFromVariation($variation_id, $business_id, $location_id);
+        $product_id = (int) $product->getAttribute('product_id');
+        $unit_id = (int) $product->getAttribute('unit_id');
+
+        $sub_unidades = [];
+        foreach ($this->productUtil->getSubUnits($business_id, $unit_id, false, $product_id) as $id => $sub) {
+            $sub_unidades[] = [
+                'id' => (int) $id,
+                'nome' => (string) $sub['name'],
+                'multiplicador' => (float) $sub['multiplier'],
+                'permite_decimal' => (bool) $sub['allow_decimal'],
+            ];
+        }
+
+        $usa_lote = (int) $request->session()->get('business.enable_lot_number') === 1;
+        $usa_validade = (int) $request->session()->get('business.enable_product_expiry') === 1;
+        $lotes = [];
+        if ($usa_lote || $usa_validade) {
+            // O docblock legado de getLotNumbersFromVariation diz "@return bool"; ela devolve a coleção.
+            /** @var iterable<PurchaseLine> $lotesDoLocal */
+            $lotesDoLocal = $this->transactionUtil->getLotNumbersFromVariation($variation_id, $business_id, $location_id, true);
+            foreach ($lotesDoLocal as $lote) {
+                $numero = $lote->getAttribute('lot_number');
+                $validade = $lote->getAttribute('exp_date');
+                $lotes[] = [
+                    'purchase_line_id' => (int) $lote->getAttribute('purchase_line_id'),
+                    'lot_number' => $numero !== null ? (string) $numero : null,
+                    'exp_date' => $validade !== null ? (string) $validade : null,
+                    'qty_available' => (float) $lote->getAttribute('qty_available'),
+                ];
+            }
+        }
+
+        return response()->json([
+            'product_id' => $product_id,
+            'variation_id' => (int) $product->getAttribute('variation_id'),
+            'nome' => (string) $product->getAttribute('product_name'),
+            'sub_sku' => (string) $product->getAttribute('sub_sku'),
+            'enable_stock' => (int) $product->getAttribute('enable_stock'),
+            'qty_available' => (float) $product->getAttribute('qty_available'),
+            'unidade' => (string) $product->getAttribute('unit'),
+            'unit_id' => $unit_id,
+            'permite_decimal' => (int) $product->getAttribute('unit_allow_decimal') === 1,
+            // Mesmo valor que a Blade põe no campo de preço da linha (`last_purchased_price`).
+            'custo' => (float) $product->getAttribute('last_purchased_price'),
+            'sub_unidades' => $sub_unidades,
+            'usa_lote' => $usa_lote,
+            'usa_validade' => $usa_validade,
+            'lotes' => $lotes,
+        ]);
+    }
+
     private function stockTransferStatuses()
     {
         return [
@@ -369,7 +445,10 @@ class StockTransferController extends Controller
             $input_data['type'] = 'sell_transfer';
             $input_data['business_id'] = $business_id;
             $input_data['created_by'] = $user_id;
-            $input_data['transaction_date'] = $this->productUtil->uf_date($input_data['transaction_date'], true);
+            // A tela React manda a data em ISO (o que o <input type="datetime-local"> produz); a
+            // Blade manda no formato da empresa. `uf_datetime_input` aceita os dois e, fora do ISO,
+            // cai no mesmo `uf_date()` de antes. Não mexe em valor nem em estoque.
+            $input_data['transaction_date'] = $this->productUtil->uf_datetime_input($input_data['transaction_date']);
             $input_data['shipping_charges'] = $this->productUtil->num_uf($input_data['shipping_charges']);
             $input_data['payment_status'] = 'paid';
             $input_data['status'] = $status == 'completed' ? 'final' : $status;
