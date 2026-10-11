@@ -3,7 +3,7 @@
 // gates da Blade: chave de preço ausente = sem permissão (nunca zero).
 
 import { useState } from 'react';
-import { Pencil, Printer } from 'lucide-react';
+import { Archive, Pencil, Printer } from 'lucide-react';
 import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from '@/Components/ui/sheet';
 import { Button } from '@/Components/ui/button';
 import { Skeleton } from '@/Components/ui/skeleton';
@@ -32,10 +32,12 @@ interface Props {
   aoFechar: () => void;
   podeEditar: boolean;
   podePrecos: boolean;
+  /** `purchase.create` — o "Comprar" abre a nova compra com este produto. */
+  podeComprar: boolean;
   irPara: (url: string) => void;
 }
 
-export default function PainelDetalheProduto({ aberto, detalhe: d, aoFechar, podeEditar, podePrecos, irPara }: Props) {
+export default function PainelDetalheProduto({ aberto, detalhe: d, aoFechar, podeEditar, podePrecos, podeComprar, irPara }: Props) {
   const [aba, setAba] = useState<Aba>('dados');
   const combo = d?.tipo === 'combo';
   const custo = (d?.variacoes ?? []).some((v) => v.compra_exc !== undefined);
@@ -306,6 +308,11 @@ export default function PainelDetalheProduto({ aberto, detalhe: d, aoFechar, pod
               {podeEditar && (
                 <Button size="sm" onClick={() => irPara(`/products/${d.id}/edit`)}>
                   <Pencil size={13} aria-hidden /> Editar produto
+                </Button>
+              )}
+              {podeComprar && d.dados.controla_estoque && !d.inativo && (
+                <Button variant="outline" size="sm" onClick={() => irPara(`/purchases/create?produto=${d.id}`)}>
+                  <Archive size={13} aria-hidden /> Comprar
                 </Button>
               )}
               {podePrecos && (

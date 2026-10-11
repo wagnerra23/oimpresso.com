@@ -1,7 +1,7 @@
 <?php
 
 declare(strict_types=1);
-// Cobre UC-PIDX-09 (resources/js/Pages/Produto/Index.casos.md) — G-2 rastreabilidade caso↔teste.
+// Cobre UC-PIDX-09 e UC-PIDX-11 (resources/js/Pages/Produto/Index.casos.md) — G-2 rastreabilidade caso↔teste.
 
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\DB;
@@ -138,4 +138,18 @@ it('UC-PIDX-09 · aberto pela URL (?ver=) o painel chega como prop deferida da p
     $r->assertOk();
     expect($r->json('component'))->toBe('Produto/Index');
     expect(collect($r->json('deferredProps'))->flatten()->all())->toContain('detalhe');
+});
+
+it('UC-PIDX-11 · "Comprar" segue a permissão de criar compra (purchase.create)', function () {
+    pdtEntrar($this, ['product.view', 'access_all_locations', 'purchase.create']);
+    $com = $this->get('/products', $this->inertia);
+    $com->assertOk();
+    expect($com->json('props.permissions.comprar'))->toBeTrue();
+
+    pdtEntrar($this, ['product.view', 'access_all_locations']);
+    $sem = $this->get('/products', $this->inertia);
+    $sem->assertOk();
+    // Anti-vácuo: as permissões vieram — o false é do gate, não de prop faltando.
+    expect($sem->json('props.permissions'))->toHaveKey('view');
+    expect($sem->json('props.permissions.comprar'))->toBeFalse();
 });

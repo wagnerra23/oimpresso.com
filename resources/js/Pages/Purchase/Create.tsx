@@ -14,7 +14,7 @@
 import AppShellV2 from '@/Layouts/AppShellV2';
 import PageHeader from '@/Components/shared/PageHeader';
 import { router, useForm } from '@inertiajs/react';
-import { useMemo, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { Button } from '@/Components/ui/button';
 import { Card, CardContent, CardHeader } from '@/Components/ui/card';
 import { Input } from '@/Components/ui/input';
@@ -83,6 +83,8 @@ export interface PurchaseCreatePageProps {
   default_datetime: string;
   permissions: Permissions;
   common_settings: Record<string, unknown>;
+  /** "Comprar" da lista de produtos: o produto que já entra como primeira linha (`?produto={id}`). */
+  produto_inicial?: PickedProduct | null;
 }
 
 // Layout da grade vindo de GET /purchases/grade-matrix (US-COM-005).
@@ -112,6 +114,7 @@ function PurchaseCreate({
   currency,
   permissions,
   default_datetime,
+  produto_inicial = null,
 }: PurchaseCreatePageProps) {
   const [busca, setBusca] = useState('');
   const [linhas, setLinhas] = useState<PurchaseLineDraft[]>([]);
@@ -273,6 +276,13 @@ function PurchaseCreate({
       setGradeLoading(false);
     }
   };
+
+  // "Comprar" da lista de produtos: entra pelo MESMO caminho da busca (escolherProduto), então
+  // o custo e a grade vêm do grade-matrix como se a pessoa tivesse escolhido o produto.
+  useEffect(() => {
+    if (produto_inicial) void escolherProduto(produto_inicial);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- só na abertura da tela
+  }, []);
 
   const totalGrade = gradeCells.reduce((s, c) => s + c.qty, 0);
 
