@@ -114,6 +114,63 @@ export interface RelatorioEstoqueLista {
   paginacao: { atual: number; ultima: number; total: number };
 }
 
+/** Painel de detalhe (ProductController::buildProdutoDetalhe). Chave de preço ausente = sem permissão. */
+export interface DetalheProdutoDados {
+  id: number;
+  nome: string;
+  sku: string;
+  tipo: TipoProduto;
+  inativo: boolean;
+  imagem: string | null;
+  dados: {
+    codigo_de_barras: string;
+    unidade: string;
+    unidade_curta: string;
+    marca: string;
+    categoria: string;
+    subcategoria: string;
+    imposto: string;
+    tipo_imposto: string;
+    peso: string;
+    controla_estoque: boolean;
+    alerta: number | null;
+    validade: { periodo: number; tipo: string } | null;
+    locais: string[];
+    nao_para_venda: boolean;
+    garantia: string | null;
+    tempo_preparo: number | null;
+    descricao: string;
+    campos: Array<{ rotulo: string; valor: string }>;
+  };
+  variacoes: Array<{
+    nome: string;
+    sku: string;
+    compra_exc?: number;
+    compra_inc?: number;
+    lucro_percentual?: number;
+    venda_exc?: number;
+    venda_inc?: number;
+    grupos: Array<{ grupo: string; preco: number | null }>;
+  }>;
+  composicao: Array<{ nome: string; sku: string; quantidade: number; unidade: string; compra_exc?: number; total_exc?: number }>;
+  /** null = sem `stock_report.view` ou produto sem controle de estoque. */
+  estoque: LinhaRelatorioEstoque[] | null;
+  fiscal: {
+    ncm: string;
+    cest: string;
+    cfop_interno: string;
+    cfop_externo: string;
+    cst_csosn: string;
+    cst_pis: string;
+    cst_cofins: string;
+    cst_ipi: string;
+  };
+  prateleiras: {
+    colunas: { prateleira: boolean; fileira: boolean; posicao: boolean };
+    linhas: Array<{ local: string; prateleira: string; fileira: string; posicao: string }>;
+  };
+}
+
 export interface Opcao {
   id: string;
   nome: string;
