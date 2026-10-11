@@ -12,7 +12,8 @@
 // US-COM-005: modo grade tam×cor pra produto variável (combobox → GradeMatrixInput → linhas).
 
 import AppShellV2 from '@/Layouts/AppShellV2';
-import PageHeader from '@/Components/shared/PageHeader';
+import { PageHeader } from '@/Components/PageHeader';
+import { Icon } from '@/Components/Icon';
 import { router, useForm } from '@inertiajs/react';
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { Button } from '@/Components/ui/button';
@@ -318,11 +319,13 @@ function PurchaseCreate({
 
   return (
     <form onSubmit={enviar}>
+      {/* Header canon (@/Components/PageHeader, ADR 0189/0190 · ADR 0409): migrado ao tocar a tela
+          para o "Comprar" da lista de produtos. Mesmo mapeamento do Repair (#8531). */}
       <PageHeader
-        icon="shopping-cart"
+        leading={<Icon name="shopping-cart" size={18} className="mr-2 inline-block align-[-2px] text-primary" />}
         title="Nova compra"
-        description="Registrar entrada de mercadoria — fornecedor, itens, totais."
-        action={
+        subtitle="Registrar entrada de mercadoria — fornecedor, itens, totais."
+        actions={
           <div className="flex gap-2">
             <Button type="button" variant="outline" size="sm" onClick={() => router.visit('/purchases')}>
               <ArrowLeft className="h-4 w-4 mr-1" /> Cancelar

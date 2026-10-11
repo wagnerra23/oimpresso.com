@@ -66,7 +66,9 @@ it('Visual comparison existe (gate visual ADR 0114)', function () {
 it('Page importa AppShellV2 + PageHeader (canon V2)', function () {
     $source = readCreateInertia();
     expect($source)->toContain('@/Layouts/AppShellV2');
-    expect($source)->toContain('@/Components/shared/PageHeader');
+    // Header canon desde 2026-10-11 (ADR 0409: tocar a tela exige a cura). O shared é o antigo.
+    expect($source)->toContain("from '@/Components/PageHeader'");
+    expect($source)->not->toContain('@/Components/shared/PageHeader');
     expect($source)->toMatch('/PurchaseCreate\\.layout\\s*=/');
 });
 
