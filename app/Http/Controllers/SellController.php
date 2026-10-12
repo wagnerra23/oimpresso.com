@@ -3332,7 +3332,9 @@ class SellController extends Controller
         // `X-Inertia`, então a Page React só abria por fora do menu. Agora ela é o padrão — molde
         // `UnitController@index`. O Inertia manda `X-Requested-With` junto do `X-Inertia`, então
         // `ajax()` sozinho não separa a visita do fetch (§5 2026-09-08). `?classico=1` mantém o Blade.
-        if (! request()->boolean('classico') && (! request()->ajax() || request()->header('X-Inertia'))) {
+        // Q2 venda-menu: a regra mora em App\Support\Mwart (chave `vendas_cotacoes`, default ligada
+        // para todas) — o `.env` pode desligar por empresa sem deploy.
+        if (! request()->boolean('classico') && \App\Support\Mwart::telaReact('vendas_cotacoes', (int) $business_id)) {
             $quoteBase = Transaction::where('business_id', $business_id)
                 ->where('type', 'sell')
                 ->where('status', 'draft')

@@ -215,6 +215,16 @@ return [
         'business_ids' => $parseBizIds('MWART_VENDAS_SALES_ORDER_INDEX_BIZ'),
     ],
 
+    // SellController@getQuotations → Sells/Quotations (thread venda-menu/playbook/Q2).
+    // EXCEÇÃO ao "nascem desligadas" do bloco acima: esta chave chegou DEPOIS de a tela já abrir
+    // em React no GET comum para todas as empresas (Cutover pelo menu, thread 02, D1 [W]
+    // 2026-10-07). Nascer `false` desligaria a tela; o default `true` preserva o estado e dá o
+    // interruptor por empresa. `?classico=1` continua abrindo o Blade.
+    'vendas_cotacoes' => [
+        'enabled'      => env('MWART_VENDAS_COTACOES', true),
+        'business_ids' => $parseBizIds('MWART_VENDAS_COTACOES_BIZ'),
+    ],
+
     // ManageUserController@index → Usuarios/Index (thread sistema/playbook/01).
     // Nasceu desligada (thread 01). Em 2026-10-07 [W] decidiu ligar para todas as empresas
     // (D-USU-LIGAR, thread sistema/playbook/09): o default passou a `true`. Um `.env` que fixe
