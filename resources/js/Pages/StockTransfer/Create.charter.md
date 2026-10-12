@@ -33,6 +33,7 @@ mwart_pattern_reuse:
 - A linha vem de `GET /stock-transfers/produto-linha` (os dados do `get_product_row` da Blade): saldo no local, unidade, subunidades, lotes e último custo de compra.
 - A quantidade não passa do saldo da origem (ou do lote). Trocar a origem zera os itens. Sem item não salva.
 - Envio: os campos da linha da Blade, com números em `paraNumUf` (vírgula decimal, sem milhar).
+- Componente: `@/Components/shared/ItensMovimentacaoEstoque` (o mesmo do ajuste de estoque).
 
 ## UX crítica
 Bloqueio visual se origem == destino (forma + button disabled). O servidor **não** repete essa checagem hoje — o bloqueio da tela é a única barreira.

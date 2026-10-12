@@ -19,7 +19,7 @@ declare(strict_types=1);
 
 const ST_CR_INERTIA_PATH = 'resources/js/Pages/StockTransfer/Create.tsx';
 const ST_CR_CHARTER_PATH = 'resources/js/Pages/StockTransfer/Create.charter.md';
-const ST_CR_ITENS_PATH = 'resources/js/Pages/StockTransfer/_components/ItensDaTransferencia.tsx';
+const ST_CR_ITENS_PATH = 'resources/js/Components/shared/ItensMovimentacaoEstoque.tsx';
 const ST_CR_CONTROLLER_PATH = 'app/Http/Controllers/StockTransferController.php';
 const ST_CR_RUNBOOK_PATH = 'memory/requisitos/Estoque/_telas/RUNBOOK-stock-transfer-create.md';
 const ST_CR_VISUAL_PATH = 'memory/requisitos/Estoque/_telas/stock-transfer-create-visual-comparison.md';
@@ -60,8 +60,8 @@ it('Page declara Permissions + props, e a linha é a do componente de itens (pro
     $source = readSTCreateInertia();
     // 2026-10-11: a linha deixou de ser texto livre (`TransferLineDraft`, sem product_id). O tipo
     // mora no componente dos itens, que busca o produto e o saldo da filial de origem.
-    expect($source)->toContain("from './_components/ItensDaTransferencia'");
-    expect(file_get_contents(base_path(ST_CR_ITENS_PATH)))->toContain('export interface LinhaTransferencia');
+    expect($source)->toContain("from '@/Components/shared/ItensMovimentacaoEstoque'");
+    expect(file_get_contents(base_path(ST_CR_ITENS_PATH)))->toContain('export interface LinhaDeEstoque');
     expect($source)->toContain('interface Permissions');
     expect($source)->toContain('interface StockTransferCreatePageProps');
 });

@@ -49,10 +49,10 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 ## UC-TRCRT-06 · Os itens são produtos do cadastro, escolhidos na busca da filial de origem `[must]`
 - **Persona:** quem cuida do estoque, montando a transferência.
 - **Aceite:** Dado a filial de origem escolhida · Quando busco um produto · Então a busca procura no saldo **daquela filial**: produto sem controle de estoque não aparece e produto sem saldo aparece desabilitado. Ao escolher, a linha entra com o saldo do local, a unidade e o último custo de compra; o mesmo produto não entra duas vezes; a quantidade não passa do saldo (nem do lote), na unidade escolhida; e o que vai no salvar são os campos da linha da Blade, com vírgula decimal e sem milhar. Sem a filial de origem a busca fica fechada.
-- **Teste:** [`transferencia-itens.test.tsx`](../../../../tests/js/transferencia-itens.test.tsx) (Vitest, componente real; só o `fetch` é simulado) — `UC-TRCRT-06`.
+- **Teste:** [`estoque-itens.test.tsx`](../../../../tests/js/estoque-itens.test.tsx) (Vitest, componente real; só o `fetch` é simulado) — `UC-TRCRT-06`.
 - **Contrato:** a tela Blade (`public/js/stock_transfer.js` + `stock_transfer/partials/product_table_row.blade.php`) e a chave única `transaction_sell_lines.uk_tsl_dup_prevent` (uma variação por transferência).
 - **Regressão que defende:** a linha voltar a ser texto livre sem `product_id` (como era até 2026-10-11), ou o envio voltar a sair com ponto decimal.
-- **Status: 🧪** — rodado à mão em 2026-10-11 (10 de 10, com 3 mutações que reprovam); **nenhuma lane de CI roda este arquivo ainda** (cada lane Vitest lista os próprios specs, e `.github/` é do [W]).
+- **Status: 🧪** — rodado à mão em 2026-10-11 (12 de 12; 3 mutações do código reprovam); **nenhuma lane de CI roda este arquivo ainda** (cada lane Vitest lista os próprios specs, e `.github/` é do [W]).
 
 ## Backlog
 - [BACKLOG] R-XFER-004 (origem ≠ destino) só é conferida no cliente (botão desabilitado). `store()` não compara `location_id` com `transfer_location_id`, nem confere se as duas filiais são do business da sessão. Grava quantidade: decisão [W].

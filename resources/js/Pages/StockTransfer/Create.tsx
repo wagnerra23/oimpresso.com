@@ -20,7 +20,7 @@ import { Label } from '@/Components/ui/label';
 import { Textarea } from '@/Components/ui/textarea';
 import { ArrowLeft, Save, ArrowRight, AlertCircle } from 'lucide-react';
 import { paraNumUf } from '@/Lib/numberPtBR';
-import ItensDaTransferencia, { linhaInvalida, paraEnvio, type LinhaTransferencia } from './_components/ItensDaTransferencia';
+import ItensMovimentacaoEstoque, { linhaInvalida, linhaParaTransferencia, type LinhaDeEstoque } from '@/Components/shared/ItensMovimentacaoEstoque';
 
 // ---------- Tipos ----------
 
@@ -55,7 +55,7 @@ function StockTransferCreate({
 }: StockTransferCreatePageProps) {
   // Cada linha é um produto real do cadastro (produto + variação + saldo da origem) — antes era
   // um texto livre sem `product_id`, e o salvar não tinha o que movimentar.
-  const [linhas, setLinhas] = useState<LinhaTransferencia[]>([]);
+  const [linhas, setLinhas] = useState<LinhaDeEstoque[]>([]);
 
   const form = useForm({
     transaction_date: default_datetime,
@@ -90,7 +90,7 @@ function StockTransferCreate({
     // ambiguidade. `final_total` vai como número, igual ao campo oculto da Blade.
     form.transform((dados) => ({
       ...dados,
-      products: linhas.map(paraEnvio),
+      products: linhas.map(linhaParaTransferencia),
       shipping_charges: paraNumUf(Number(dados.shipping_charges) || 0, 2),
       final_total: Number(totalFinal.toFixed(4)),
     }));
@@ -220,8 +220,9 @@ function StockTransferCreate({
           <span className="text-[11px] text-stone-500">{linhas.length} {linhas.length === 1 ? 'item' : 'itens'}</span>
         </CardHeader>
         <CardContent className="px-4 pb-4">
-          <ItensDaTransferencia
+          <ItensMovimentacaoEstoque
             origemId={form.data.location_id}
+            rotuloSemLocal="Escolha a filial de origem primeiro"
             linhas={linhas}
             aoMudar={setLinhas}
             verCusto={permissions.view_purchase_price}

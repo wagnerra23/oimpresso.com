@@ -1,4 +1,4 @@
-// Nova transferência de estoque — os itens (busca de produto + linha + o que vai no salvar).
+// Transferência e ajuste de estoque — os itens (busca de produto + linha + o que vai no salvar).
 //
 // ── POR QUE EXISTE ───────────────────────────────────────────────────────────
 // Até 2026-10-11 a tela React montava a linha como texto livre, sem `product_id`: o salvar não
@@ -19,24 +19,28 @@
 // (`tests/Feature/Estoque/EstoqueTransferenciaStoreTest.php`, lane Estoque · MySQL).
 //
 // ── A MORDIDA (provada por mutação em 2026-10-11, restauro conferido por hash) ──
-//   M1. lista quem não controla estoque      → 1 failed | 9 passed
-//   M2. preço sem `paraNumUf` (`String(n)`)  → 2 failed | 8 passed
-//   M3. aceita o produto repetido            → 1 failed | 9 passed
+//   M1. lista quem não controla estoque      → 1 failed | 11 passed
+//   M2. preço sem `paraNumUf` (`String(n)`)  → 2 failed | 10 passed
+//   M3. aceita o produto repetido            → 1 failed | 11 passed
+//   M4. ajuste adota a 1ª subunidade         → 1 failed | 11 passed
+//   M5. ajuste barra o produto repetido      → 1 failed | 11 passed
 //
 // ⚠️ Nenhuma lane de CI roda este arquivo ainda (cada lane Vitest lista os próprios specs).
-// Cobre UC-TRCRT-06 (resources/js/Pages/StockTransfer/Create.casos.md).
+// Cobre UC-TRCRT-06 (resources/js/Pages/StockTransfer/Create.casos.md) e UC-AJCRT-05
+// (resources/js/Pages/StockAdjustment/Create.casos.md).
 //
-// Comando: npx vitest run tests/js/transferencia-itens.test.tsx
+// Comando: npx vitest run tests/js/estoque-itens.test.tsx
 
 import { describe, it, expect, afterEach, vi } from 'vitest';
 import { render, screen, cleanup, fireEvent, waitFor } from '@testing-library/react';
 import { useState } from 'react';
-import ItensDaTransferencia, {
+import ItensMovimentacaoEstoque, {
   linhaInvalida,
+  linhaParaAjuste,
+  linhaParaTransferencia as paraEnvio,
   maximoDaLinha,
-  paraEnvio,
-  type LinhaTransferencia,
-} from '@/Pages/StockTransfer/_components/ItensDaTransferencia';
+  type LinhaDeEstoque as LinhaTransferencia,
+} from '@/Components/shared/ItensMovimentacaoEstoque';
 
 const dadosDaLinha = {
   product_id: 7,
@@ -82,17 +86,26 @@ function simularServidor(busca: unknown[], linhaDoProduto: unknown = dadosDaLinh
   return pedidos;
 }
 
-function Tela({ origemId = '5' }: { origemId?: string }) {
+function Tela({ origemId = '5', ...opcoes }: { origemId?: string; comSubUnidade?: boolean; umaLinhaPorProduto?: boolean }) {
   const [linhas, setLinhas] = useState<LinhaTransferencia[]>([]);
   return (
     <>
-      <ItensDaTransferencia origemId={origemId} linhas={linhas} aoMudar={setLinhas} verCusto editarPreco />
+      <ItensMovimentacaoEstoque
+        origemId={origemId}
+        linhas={linhas}
+        aoMudar={setLinhas}
+        verCusto
+        editarPreco
+        rotuloSemLocal="Escolha a filial de origem primeiro"
+        {...opcoes}
+      />
       <output data-testid="envio">{JSON.stringify(linhas.map(paraEnvio))}</output>
+      <output data-testid="envio-ajuste">{JSON.stringify(linhas.map(linhaParaAjuste))}</output>
     </>
   );
 }
 
-const campoDeBusca = () => screen.getByLabelText('Buscar produto para transferir') as HTMLInputElement;
+const campoDeBusca = () => screen.getByLabelText('Buscar produto') as HTMLInputElement;
 const digitar = (texto: string) => fireEvent.change(campoDeBusca(), { target: { value: texto } });
 
 afterEach(() => {
@@ -155,7 +168,7 @@ describe('UC-TRCRT-06 · busca de produto', () => {
     await screen.findByText('Camiseta básica');
 
     digitar('CAM-001');
-    await screen.findByText('Este produto já está na transferência. Ajuste a quantidade na linha dele.');
+    await screen.findByText('Este produto já está na lista. Ajuste a quantidade na linha dele.');
     expect(JSON.parse(screen.getByTestId('envio').textContent ?? '[]')).toHaveLength(1);
   });
 });
@@ -217,5 +230,49 @@ describe('UC-TRCRT-06 · limite da quantidade', () => {
     });
     expect(maximoDaLinha(comLote)).toBe(4);
     expect(linhaInvalida(comLote)).toBe(true);
+  });
+});
+
+describe('UC-AJCRT-05 · ajuste de estoque (sem subunidade, pode repetir o produto)', () => {
+  const resultado = [
+    { product_id: 7, name: 'Camiseta básica', type: 'single', enable_stock: 1, variation_id: 70, variation: 'DUMMY', qty_available: '10.0000', sub_sku: 'CAM-001' },
+  ];
+
+  it('a linha do ajuste não leva subunidade nem multiplicador', async () => {
+    // A caixa vem PRIMEIRO de propósito: se o ajuste adotasse a primeira subunidade, o custo sairia
+    // ×12 (8,3333 × 12 = 100) e o limite ÷12. É o caso que distingue "ignora subunidade" de "usa a 1ª".
+    simularServidor(resultado, {
+      ...dadosDaLinha,
+      sub_unidades: [
+        { id: 4, nome: 'Cx', multiplicador: 12, permite_decimal: false },
+        { id: 3, nome: 'Un', multiplicador: 1, permite_decimal: false },
+      ],
+    });
+    render(<Tela comSubUnidade={false} umaLinhaPorProduto={false} />);
+    digitar('CAM-001');
+    await screen.findByText('Camiseta básica');
+
+    // Sem seletor de unidade: o ajuste da Blade é sempre na unidade do produto.
+    expect(screen.queryByLabelText('Unidade de Camiseta básica')).toBeNull();
+    // Custo na unidade do produto (8,33), não o da caixa (100).
+    await waitFor(() =>
+      expect(JSON.parse(screen.getByTestId('envio-ajuste').textContent ?? '[]')).toEqual([
+        { product_id: 7, variation_id: 70, enable_stock: 1, quantity: '1', unit_price: '8,33' },
+      ]),
+    );
+    expect(linhaParaAjuste(linha())).toEqual({ product_id: 7, variation_id: 70, enable_stock: 1, quantity: '3', unit_price: '12,5' });
+    expect(linhaParaAjuste(linha({ lot_no_line_id: 44 })).lot_no_line_id).toBe(44);
+    // O limite é o saldo na unidade do produto, mesmo que o produto tenha subunidades.
+    expect(maximoDaLinha(linha({ sub_unit_id: null, sub_unidades: [{ id: 4, nome: 'Cx', multiplicador: 12, permite_decimal: false }] }))).toBe(10);
+  });
+
+  it('o mesmo produto pode entrar em mais de uma linha (lotes diferentes)', async () => {
+    simularServidor(resultado);
+    render(<Tela comSubUnidade={false} umaLinhaPorProduto={false} />);
+    digitar('CAM-001');
+    await waitFor(() => expect(screen.getAllByText('Camiseta básica')).toHaveLength(1));
+    digitar('CAM-001');
+    await waitFor(() => expect(screen.getAllByText('Camiseta básica')).toHaveLength(2));
+    expect(screen.queryByText(/já está na lista/)).toBeNull();
   });
 });

@@ -1,21 +1,29 @@
-// Itens da transferência — busca de produto + linhas, com as MESMAS regras da tela Blade
-// (`public/js/stock_transfer.js` + `stock_transfer/partials/product_table_row.blade.php`):
+// Itens de uma movimentação de estoque (transferência e ajuste) — busca de produto + linhas, com as
+// MESMAS regras das telas Blade (`public/js/stock_transfer.js`, `stock_adjustment.js` e os
+// `partials/product_table_row.blade.php` das duas):
 //
-//   - a busca só abre com a filial de origem escolhida, e procura em `/products/list` (a mesma
-//     rota da Blade) com o local de origem;
-//   - produto sem controle de estoque não aparece; produto sem saldo na origem aparece
+//   - a busca só abre com a filial escolhida, e procura em `/products/list` (a mesma rota da
+//     Blade) com o local;
+//   - produto sem controle de estoque não aparece; produto sem saldo no local aparece
 //     desabilitado ("sem estoque");
 //   - ao escolher, a linha vem de `/stock-transfers/produto-linha` (os dados do `get_product_row`
-//     da Blade): saldo no local, unidade, subunidades, lotes e o último custo de compra;
+//     que a Blade usa nas duas telas): saldo no local, unidade, subunidades, lotes e o último
+//     custo de compra;
 //   - a quantidade não passa do saldo do local (ou do lote), na unidade escolhida.
-//   - o mesmo produto não entra duas vezes (o banco tem chave única por transferência + variação).
 //
-// O que a tela manda ao salvar está em `paraEnvio`: os mesmos campos da linha da Blade, com os
-// números em `paraNumUf` (vírgula decimal, sem milhar) — é o formato que o `num_uf` do servidor
-// lê sem ambiguidade (REGRA MESTRE de valor/estoque, memory/proibicoes.md).
+// O que muda entre as duas telas vem por prop: a transferência escolhe subunidade e aceita uma
+// linha por produto (o banco tem chave única por transferência + variação); o ajuste não tem
+// subunidade e aceita o mesmo produto em mais de uma linha (lotes diferentes).
+//
+// O que cada tela manda ao salvar está em `linhaParaTransferencia` e `linhaParaAjuste`: os campos
+// da linha da Blade, com os números em `paraNumUf` (vírgula decimal, sem milhar) — é o formato que
+// o `num_uf` do servidor lê sem ambiguidade (REGRA MESTRE de valor/estoque, memory/proibicoes.md).
+//
+// Mora em `Components/shared` porque duas telas consomem (regra-de-2): StockTransfer/Create e
+// StockAdjustment/Create.
 
 import { useEffect, useRef, useState } from 'react';
-import { Loader2, Trash2, Truck } from 'lucide-react';
+import { Loader2, Package, Trash2 } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
 import { Command, CommandEmpty, CommandInput, CommandItem, CommandList } from '@/Components/ui/command';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
@@ -55,7 +63,7 @@ interface DadosDaLinha {
   lotes: Lote[];
 }
 
-export interface LinhaTransferencia extends DadosDaLinha {
+export interface LinhaDeEstoque extends DadosDaLinha {
   chave: string;
   sub_unit_id: number | null;
   lot_no_line_id: number | null;
@@ -78,25 +86,25 @@ interface ResultadoBusca {
 const CASAS_PRECO = 2;
 const arredondar = (n: number, casas: number) => Number(n.toFixed(casas));
 
-const subUnidadeDe = (l: LinhaTransferencia) => l.sub_unidades.find((s) => s.id === l.sub_unit_id) ?? null;
-export const multiplicadorDe = (l: LinhaTransferencia) => subUnidadeDe(l)?.multiplicador ?? 1;
-const permiteDecimal = (l: LinhaTransferencia) => subUnidadeDe(l)?.permite_decimal ?? l.permite_decimal;
-export const casasDaQuantidade = (l: LinhaTransferencia) => (permiteDecimal(l) ? 2 : 0);
+const subUnidadeDe = (l: LinhaDeEstoque) => l.sub_unidades.find((s) => s.id === l.sub_unit_id) ?? null;
+export const multiplicadorDe = (l: LinhaDeEstoque) => subUnidadeDe(l)?.multiplicador ?? 1;
+const permiteDecimal = (l: LinhaDeEstoque) => subUnidadeDe(l)?.permite_decimal ?? l.permite_decimal;
+export const casasDaQuantidade = (l: LinhaDeEstoque) => (permiteDecimal(l) ? 2 : 0);
 
 /** Quanto dá para transferir desta linha, na unidade escolhida (saldo do lote, se houver lote). */
-export function maximoDaLinha(l: LinhaTransferencia): number | null {
+export function maximoDaLinha(l: LinhaDeEstoque): number | null {
   if (l.enable_stock !== 1) return null;
   const lote = l.lotes.find((x) => x.purchase_line_id === l.lot_no_line_id);
   return (lote ? lote.qty_available : l.qty_available) / multiplicadorDe(l);
 }
 
-export const linhaInvalida = (l: LinhaTransferencia): boolean => {
+export const linhaInvalida = (l: LinhaDeEstoque): boolean => {
   const max = maximoDaLinha(l);
   return !(l.quantity > 0) || (max !== null && l.quantity > max + 1e-9);
 };
 
 /** A linha como o `store()` da transferência lê — os campos do `<tr>` da Blade. */
-export function paraEnvio(l: LinhaTransferencia): Record<string, string | number> {
+export function linhaParaTransferencia(l: LinhaDeEstoque): Record<string, string | number> {
   const envio: Record<string, string | number> = {
     product_id: l.product_id,
     variation_id: l.variation_id,
@@ -111,10 +119,23 @@ export function paraEnvio(l: LinhaTransferencia): Record<string, string | number
   return envio;
 }
 
+/** A linha como o `store()` do ajuste lê: sem subunidade, quantidade na unidade do produto. */
+export function linhaParaAjuste(l: LinhaDeEstoque): Record<string, string | number> {
+  const envio: Record<string, string | number> = {
+    product_id: l.product_id,
+    variation_id: l.variation_id,
+    enable_stock: l.enable_stock,
+    quantity: paraNumUf(l.quantity, casasDaQuantidade(l)),
+    unit_price: paraNumUf(l.unit_price, CASAS_PRECO),
+  };
+  if (l.lot_no_line_id !== null) envio.lot_no_line_id = l.lot_no_line_id;
+  return envio;
+}
+
 const rotuloDoResultado = (r: ResultadoBusca) =>
   `${r.name}${r.type === 'variable' ? `-${r.variation}` : ''} (${r.sub_sku})`;
 
-const rotuloDoLote = (lote: Lote, l: LinhaTransferencia) => {
+const rotuloDoLote = (lote: Lote, l: LinhaDeEstoque) => {
   const partes: string[] = [];
   if (l.usa_lote && lote.lot_number) partes.push(lote.lot_number);
   if (l.usa_validade && lote.exp_date) {
@@ -130,16 +151,32 @@ const brl = (v: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', c
 const cabecalhos = { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' };
 
 interface Props {
-  /** Filial de origem — sem ela a busca fica fechada (o saldo é por local). */
+  /** Filial de onde o estoque sai — sem ela a busca fica fechada (o saldo é por local). */
   origemId: string;
-  linhas: LinhaTransferencia[];
-  aoMudar: (linhas: LinhaTransferencia[]) => void;
+  linhas: LinhaDeEstoque[];
+  aoMudar: (linhas: LinhaDeEstoque[]) => void;
   verCusto: boolean;
   editarPreco: boolean;
   desabilitado?: boolean;
+  /** Texto do campo de busca enquanto a filial não foi escolhida. */
+  rotuloSemLocal?: string;
+  /** Transferência: escolhe a subunidade (caixa, dúzia…). O ajuste da Blade não tem. */
+  comSubUnidade?: boolean;
+  /** Transferência: o banco só aceita uma linha por produto. O ajuste aceita repetir (lotes). */
+  umaLinhaPorProduto?: boolean;
 }
 
-export default function ItensDaTransferencia({ origemId, linhas, aoMudar, verCusto, editarPreco, desabilitado = false }: Props) {
+export default function ItensMovimentacaoEstoque({
+  origemId,
+  linhas,
+  aoMudar,
+  verCusto,
+  editarPreco,
+  desabilitado = false,
+  rotuloSemLocal = 'Escolha a filial primeiro',
+  comSubUnidade = true,
+  umaLinhaPorProduto = true,
+}: Props) {
   const [busca, setBusca] = useState('');
   const [resultados, setResultados] = useState<ResultadoBusca[]>([]);
   const [aberto, setAberto] = useState(false);
@@ -154,10 +191,10 @@ export default function ItensDaTransferencia({ origemId, linhas, aoMudar, verCus
     setResultados([]);
     setAberto(false);
     setErro(null);
-    // O banco não aceita a mesma variação duas vezes na mesma transferência
+    // Na transferência o banco não aceita a mesma variação duas vezes
     // (`transaction_sell_lines.uk_tsl_dup_prevent`): em vez de falhar ao salvar, avisa aqui.
-    if (linhasRef.current.some((l) => l.variation_id === variationId)) {
-      setErro('Este produto já está na transferência. Ajuste a quantidade na linha dele.');
+    if (umaLinhaPorProduto && linhasRef.current.some((l) => l.variation_id === variationId)) {
+      setErro('Este produto já está na lista. Ajuste a quantidade na linha dele.');
       return;
     }
     setCarregando(true);
@@ -165,11 +202,11 @@ export default function ItensDaTransferencia({ origemId, linhas, aoMudar, verCus
       const params = new URLSearchParams({ variation_id: String(variationId), location_id: origemId });
       const res = await fetch(`/stock-transfers/produto-linha?${params.toString()}`, { headers: cabecalhos, credentials: 'same-origin' });
       if (!res.ok) {
-        setErro('Não foi possível carregar este produto na filial de origem.');
+        setErro('Não foi possível carregar este produto nesta filial.');
         return;
       }
       const d = (await res.json()) as DadosDaLinha;
-      const sub = d.sub_unidades[0] ?? null;
+      const sub = comSubUnidade ? (d.sub_unidades[0] ?? null) : null;
       const multiplicador = sub?.multiplicador ?? 1;
       aoMudar([
         ...linhasRef.current,
@@ -236,10 +273,10 @@ export default function ItensDaTransferencia({ origemId, linhas, aoMudar, verCus
     return () => document.removeEventListener('mousedown', fora);
   }, []);
 
-  const mudar = (chave: string, parte: Partial<LinhaTransferencia>) =>
+  const mudar = (chave: string, parte: Partial<LinhaDeEstoque>) =>
     aoMudar(linhas.map((l) => (l.chave === chave ? { ...l, ...parte } : l)));
 
-  const trocarUnidade = (l: LinhaTransferencia, id: number) => {
+  const trocarUnidade = (l: LinhaDeEstoque, id: number) => {
     const sub = l.sub_unidades.find((s) => s.id === id);
     if (!sub) return;
     // Como na Blade: trocar a unidade recalcula o preço pela unidade base × o multiplicador.
@@ -258,9 +295,9 @@ export default function ItensDaTransferencia({ origemId, linhas, aoMudar, verCus
               onKeyDown={(e) => {
                 if (e.key === 'Escape') setAberto(false);
               }}
-              placeholder={origemId ? 'Buscar produto por nome ou código…' : 'Escolha a filial de origem primeiro'}
+              placeholder={origemId ? 'Buscar produto por nome ou código…' : rotuloSemLocal}
               disabled={desabilitado || !origemId}
-              aria-label="Buscar produto para transferir"
+              aria-label="Buscar produto"
               className="pr-8 text-[13px]"
             />
             {carregando && <Loader2 className="absolute right-2 top-1/2 size-3.5 -translate-y-1/2 animate-spin text-muted-foreground" />}
@@ -296,11 +333,11 @@ export default function ItensDaTransferencia({ origemId, linhas, aoMudar, verCus
 
       {linhas.length === 0 ? (
         <div className="py-10 text-center">
-          <Truck className="mx-auto mb-2 h-10 w-10 text-muted-foreground/40" aria-hidden />
+          <Package className="mx-auto mb-2 h-10 w-10 text-muted-foreground/40" aria-hidden />
           <p className="text-sm text-muted-foreground">Nenhum item adicionado.</p>
         </div>
       ) : (
-        <table className="w-full border-collapse" data-contract="transferencia-itens">
+        <table className="w-full border-collapse" data-contract="estoque-itens">
           <thead>
             <tr className="border-b border-border text-[10px] uppercase tracking-widest text-muted-foreground">
               <th className="px-2 py-2 text-left font-medium">Produto</th>
@@ -356,7 +393,7 @@ export default function ItensDaTransferencia({ origemId, linhas, aoMudar, verCus
                         aria-invalid={acima || !(l.quantity > 0)}
                         className="h-8 w-20 text-right text-[12.5px] tabular-nums"
                       />
-                      {l.sub_unidades.length > 1 ? (
+                      {comSubUnidade && l.sub_unidades.length > 1 ? (
                         <Select value={String(l.sub_unit_id ?? '')} onValueChange={(v) => trocarUnidade(l, Number(v))}>
                           <SelectTrigger aria-label={`Unidade de ${l.nome}`} className="h-8 w-20 text-[12.5px]">
                             <SelectValue />
