@@ -47,13 +47,21 @@ function SheetContent({
   children,
   side = "right",
   showCloseButton = true,
+  container,
   ...props
 }: React.ComponentProps<typeof SheetPrimitive.Content> & {
   side?: "top" | "right" | "bottom" | "left"
   showCloseButton?: boolean
+  /**
+   * Onde o portal monta. Sem ele, no <body> (padrão do Radix), como sempre foi.
+   * Os tokens e a fonte do Design System vivem no `.cockpit`; um painel cujo conteúdo
+   * consome `var(--text)`, `var(--border)` etc. passa o `.cockpit` aqui para recebê-los,
+   * em vez de redefinir token num CSS à parte (ADR UI-0013 · foundation-guard).
+   */
+  container?: HTMLElement | null
 }) {
   return (
-    <SheetPortal>
+    <SheetPortal container={container ?? undefined}>
       <SheetOverlay />
       <SheetPrimitive.Content
         data-slot="sheet-content"
