@@ -233,7 +233,7 @@
     },
     {
       "screen": "Officeimpresso",
-      "note": "6 arquivo(s)",
+      "note": "7 arquivo(s)",
       "cells": {
         "tokens": "yes",
         "primitivos": "yes",
@@ -587,8 +587,8 @@
   "progressPct": 55,
   "progressLabel": "adoção tokens + primitivos (censo Onda 0)",
   "measured": true,
-  "measuredAgainstSha": "001881d2b",
-  "generatedAt": "2026-10-11T15:54:29.432Z",
+  "measuredAgainstSha": "618666f3a",
+  "generatedAt": "2026-10-12T19:14:19.034Z",
   "treeGuard": {
     "pass": true,
     "violations": 0
