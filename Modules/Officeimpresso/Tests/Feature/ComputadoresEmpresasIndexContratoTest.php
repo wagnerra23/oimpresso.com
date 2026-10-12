@@ -19,6 +19,8 @@ uses(Tests\TestCase::class);
  * dois como licenciados e devolve o valor original no afterEach: no CT 100 o banco persiste.
  * Asserções só sobre as empresas e máquinas que ESTE teste toca. MySQL-only.
  *
+ * @covers-us US-OI-014
+ * @covers-us US-OI-015
  * @see Modules\Officeimpresso\Http\Controllers\LicencaComputadorController::businessall
  */
 
