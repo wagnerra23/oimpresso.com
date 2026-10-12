@@ -4,10 +4,12 @@
 // Em 2026-10-11 o painel foi medido contra o `DetalheDrawer` do protótipo
 // (prototipo-ui/cowork/Felipe/produto-blade.jsx) e ajustado: faixa do topo com o fechar, títulos de
 // seção, caixa da imagem mesmo sem foto, "Padrão" no lugar do nome interno DUMMY e rodapé na ordem
-// do protótipo. Cores, fonte e medidas são CSS (`produto-painel.css`) e NÃO se provam em jsdom —
-// essas foram medidas no navegador de produção (ver produto-index-visual-comparison.md).
+// do protótipo. Cores, fonte e medidas NÃO se provam em jsdom — foram medidas no navegador de
+// produção (ver produto-index-visual-comparison.md). O que dá para provar aqui é o MECANISMO que
+// as entrega: o painel monta dentro do `.cockpit`, que é onde os tokens do Design System vivem.
 //
 // ── O QUE MEDE (componente REAL) ─────────────────────────────────────────────
+//   - com um `.cockpit` na página o painel monta DENTRO dele; sem, no <body> (como antes);
 //   - o botão "Fechar painel" existe e fecha;
 //   - sem foto aparece "Sem imagem"; com foto, a imagem;
 //   - produto único mostra a variação como "Padrão", nunca "DUMMY";
@@ -19,7 +21,7 @@
 // Comando: npx vitest run tests/js/produto-painel-detalhe.test.tsx
 
 import { describe, it, expect, afterEach, vi } from 'vitest';
-import { render, screen, cleanup, fireEvent, within } from '@testing-library/react';
+import { render, screen, cleanup, fireEvent, waitFor, within } from '@testing-library/react';
 import PainelDetalheProduto from '@/Pages/Produto/_components/lista/PainelDetalhe';
 import type { DetalheProdutoDados } from '@/Pages/Produto/_components/lista/tipos';
 
@@ -75,7 +77,29 @@ function abrir(d: DetalheProdutoDados, opcoes: { podeComprar?: boolean } = {}) {
   return { aoFechar, irPara, painel: within(screen.getByRole('dialog')) };
 }
 
-afterEach(cleanup);
+afterEach(() => {
+  cleanup();
+  document.querySelectorAll('.cockpit').forEach((e) => e.remove());
+});
+
+describe('UC-PIDX-09 · o painel recebe os tokens do Design System', () => {
+  it('com um `.cockpit` na página, o painel monta dentro dele', async () => {
+    const cockpit = document.createElement('div');
+    cockpit.className = 'cockpit';
+    document.body.appendChild(cockpit);
+
+    abrir(detalhe());
+
+    await waitFor(() => expect(cockpit.querySelector('[role="dialog"]')).not.toBeNull());
+    expect(within(cockpit).getByText('Camiseta básica')).toBeTruthy();
+  });
+
+  it('sem `.cockpit`, monta no <body> como o Sheet sempre fez (não quebra fora do shell)', () => {
+    abrir(detalhe());
+    expect(screen.getByRole('dialog').closest('.cockpit')).toBeNull();
+    expect(document.body.contains(screen.getByRole('dialog'))).toBe(true);
+  });
+});
 
 describe('UC-PIDX-09 · moldura do painel', () => {
   it('tem o botão "Fechar painel", e ele fecha', () => {

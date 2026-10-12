@@ -54,8 +54,14 @@ blueprint_cowork: prototipo-ui/prototipos/produto-cockpit/ _(removido em 2026-05
 > **Causa da maioria das diferenças (medida, não deduzida):** o `<Sheet>` abre num portal no `<body>`,
 > fora do `.cockpit`. Dentro do painel `--text`, `--text-mute`, `--border`, `--accent`, `--surface` e
 > `--font-sans` vinham **vazios** (`getComputedStyle(...).getPropertyValue`), enquanto na lista, dentro do
-> `.cockpit`, todos resolvem. Conserto: `resources/css/produto-painel.css` repõe os tokens no painel
-> (padrão do Financeiro, `fin-cowork.css` Onda 22b), com o par escuro.
+> `.cockpit`, todos resolvem. Conserto: o painel passa a montar **dentro do `.cockpit`** (prop
+> `container` do `Sheet`), e os tokens da fundação chegam sozinhos — nenhum é redefinido.
+>
+> A 1ª tentativa foi um CSS à parte repondo os tokens no painel (o padrão legado do Financeiro,
+> `fin-cowork.css` Onda 22b). O `foundation-guard` reprovou, com razão: token só se define na
+> fundação (ADR UI-0013). Medido em produção antes de trocar: movendo o painel aberto para dentro
+> do `.cockpit`, a posição e o tamanho ficam idênticos (773, 0, 820×863), a fonte vira IBM Plex,
+> `--text`/`--border` resolvem, e o fundo escurecido segue cobrindo o menu lateral.
 >
 > | Medida | Produção antes | Protótipo | Depois do conserto |
 > |---|---|---|---|
@@ -77,10 +83,12 @@ blueprint_cowork: prototipo-ui/prototipos/produto-cockpit/ _(removido em 2026-05
 > | Variação de produto único | "DUMMY" | "Padrão" | "Padrão" |
 > | Largura, grade de 3 colunas, vãos, tamanho dos campos, ordem das abas | iguais | iguais | IGUAL |
 >
-> **As colunas "Depois" de cor, fonte, faixa das abas e rodapé foram medidas** injetando o CSS novo na
-> página de produção (só no navegador da medição) e relendo os valores computados; a estrutura do
-> cabeçalho, os títulos, "Sem imagem" e "Padrão" estão no teste de componente
-> `tests/js/produto-painel-detalhe.test.tsx`. Falta a releitura em produção depois do deploy.
+> **As colunas "Depois" de fonte, cor do texto, rótulo, selo, borda do rodapé e aba ativa foram
+> medidas** em produção com o painel movido para dentro do `.cockpit` (só no navegador da medição).
+> As medidas da moldura (faixa do topo, fechar, subtítulo, faixa das abas, rodapé à direita) são
+> classes novas na tela e **só se confirmam depois do deploy**. O mecanismo (montar dentro do
+> `.cockpit`), os títulos, "Sem imagem" e "Padrão" estão no teste de componente
+> `tests/js/produto-painel-detalhe.test.tsx`.
 >
 > **Ficam diferentes do protótipo, de propósito ou por dado:**
 > - Texto das abas: a aba ativa usa a cor de texto do `PageHeaderTabs` (`oklch(0.965 0.004 240)`), que é o
