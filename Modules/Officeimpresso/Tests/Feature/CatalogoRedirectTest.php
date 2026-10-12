@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
+use Inertia\Testing\AssertableInertia;
 use Modules\Officeimpresso\Http\Controllers\OfficeimpressoController;
 use Spatie\Permission\Models\Permission;
 
@@ -96,7 +97,11 @@ it('catálogo 5 · o destino do redirect abre (200) com o dropdown de locais', f
         ->get('/officeimpresso/catalogue-qr');
 
     $response->assertOk();
-    expect($response->getContent())->toContain('name="location_id"');
+    // Desde o #9103 (modulos-faltantes/04) o destino é a tela React `ProductCatalogue/CatalogueQr`:
+    // o dropdown de locais vem na prop `locais`, não mais num <select name="location_id"> da Blade.
+    $response->assertInertia(fn (AssertableInertia $page) => $page
+        ->component('ProductCatalogue/CatalogueQr')
+        ->has('locais'));
 
     $user->revokePermissionTo('superadmin');
     $user->forceDelete();

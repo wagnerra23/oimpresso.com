@@ -158,6 +158,7 @@ jobs:
             Modules/Officeimpresso/Tests/Feature/AlinharPacotesCatalogoCommandTest.php \
             Modules/Officeimpresso/Tests/Feature/ClientesSegredoUmaVezTest.php \
             Modules/Officeimpresso/Tests/Feature/ClientesIndexContratoTest.php \
+            Modules/Officeimpresso/Tests/Feature/ComputadoresEmpresasIndexContratoTest.php \
             Modules/Officeimpresso/Tests/Feature/OauthClientIdTest.php \
             tests/Feature/Connector/SalvarEquipamentoTenantGuardTest.php
 

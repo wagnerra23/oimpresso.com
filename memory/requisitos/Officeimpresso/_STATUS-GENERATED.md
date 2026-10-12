@@ -18,10 +18,10 @@ authority: generated
 |---|---:|
 | US no SPEC | 17 |
 | CU no SDD | 0 |
-| Telas (.tsx) | 4 |
-| Telas com `casos.md` | 4 |
-| UC declarados | 44 |
-| UC com teste que os cita | 43 |
+| Telas (.tsx) | 5 |
+| Telas com `casos.md` | 5 |
+| UC declarados | 51 |
+| UC com teste que os cita | 50 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -58,6 +58,13 @@ _Nenhuma lacuna: toda tela tem caso **com UC**, todo CU é citado, e toda US **e
 
 | UC | Tela | Status |
 |---|---|---|
+| UC-EMPS-01 | Empresas/Index | 🧪 aguarda veredito da lane |
+| UC-EMPS-02 | Empresas/Index | 🧪 aguarda veredito da lane |
+| UC-EMPS-04 | Empresas/Index | 🧪 aguarda veredito da lane |
+| UC-EMPS-05 | Empresas/Index | 🧪 aguarda veredito da lane |
+| UC-EMPS-10 | Empresas/Index | 🧪 aguarda veredito da lane |
+| UC-EMPS-11 | Empresas/Index | 🧪 aguarda veredito da lane |
+| UC-EMPS-12 | Empresas/Index | 🧪 aguarda veredito da lane |
 | UC-LOGS-01 | Logs/Index | 🧪 aguarda veredito da lane |
 | UC-LOGS-02 | Logs/Index | 🧪 aguarda veredito da lane |
 | UC-LOGS-03 | Logs/Index | 🧪 aguarda veredito da lane |
