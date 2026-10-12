@@ -42,7 +42,7 @@ class ManageUserController extends Controller
         // Tela React (thread sistema/playbook/01, MWART). Vem ANTES do ajax(): o Inertia manda
         // X-Inertia E X-Requested-With, e o ramo ajax devolveria o JSON da DataTable. Sem
         // X-Inertia segue a Blade — o cutover F5 é humano, por empresa, pela chave
-        // `mwart.sistema_usuarios_index` (nasce desligada). AJAX sem X-Inertia segue na DataTable.
+        // `mwart.sistema_usuarios_index` (ligada por padrão desde a thread 09, D-USU-LIGAR). AJAX sem X-Inertia segue na DataTable.
         if (\App\Support\Mwart::telaReact('sistema_usuarios_index')) {
             return $this->telaInertia();
         }
