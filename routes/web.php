@@ -1008,6 +1008,8 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
     //Stock Transfer
     Route::get('stock-transfers/print/{id}', [StockTransferController::class, 'printInvoice']);
     Route::post('stock-transfers/update-status/{id}', [StockTransferController::class, 'updateStatus']);
+    // Antes do resource: senão `stock-transfers/{id}` (show) captura a rota.
+    Route::get('stock-transfers/produto-linha', [StockTransferController::class, 'linhaDoProduto']);
     Route::resource('stock-transfers', StockTransferController::class);
 
     Route::get('/opening-stock/add/{product_id}', [OpeningStockController::class, 'add']);
