@@ -27,6 +27,6 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 - **Status: ⬜**
 
 ## Backlog
-- [BACKLOG] O filtro de filial/período não volta a página: `index()` testa `request()->ajax()` antes de `X-Inertia`, e o Inertia 3.6.1 manda `X-Requested-With` em toda visita XHR — o `router.get(..., { only: ['rows','filters'] })` recebe o JSON do DataTables. Achado por leitura em 2026-10-06; conserto é só de leitura, fora desta thread.
+- [BACKLOG] O filtro de filial/período não volta a página: `index()` testa `request()->ajax()` antes de `X-Inertia`, e o Inertia 3.6.1 manda `X-Requested-With` em toda visita XHR — o `router.get(..., { only: ['rows','filters'] })` recebe o JSON do DataTables. Achado por leitura em 2026-10-06; conserto é só de leitura, fora desta thread. **Consertado em 2026-10-09** no cutover pelo menu · thread 04: a decisão React/Blade passou pra antes do ramo `ajax()`; a visita Inertia com `X-Requested-With` recebe a Page (`tests/Feature/CutoverMenu/EstoqueSemXInertiaTest.php`). Vira UC quando um caso citar o filtro.
 - [BACKLOG] `[T0]` `destroy()` busca o ajuste por `id` + `type`, sem `business_id`: quem tem `purchase.delete` num business exclui ajuste de outro e devolve a quantidade ao estoque dele (`updateProductQuantity`). Achado por leitura em 2026-10-06; grava quantidade, decisão [W].
 - [BACKLOG] A lista corta em 200 linhas (`limit(200)`) sem paginação nem aviso.

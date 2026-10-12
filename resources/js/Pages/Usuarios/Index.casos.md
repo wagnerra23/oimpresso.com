@@ -25,7 +25,8 @@ last_run: "2026-10-07"
 - **Aceite:** Dado a chave `mwart.sistema_usuarios_index` desligada · Quando abro `/users` pela URL · Então
   vejo a Blade · E com `X-Inertia` vejo `Usuarios/Index` · E com a chave ligada só para a minha empresa a URL
   já abre a tela React, enquanto outra empresa continua na Blade · E o AJAX sem `X-Inertia` segue
-  devolvendo o JSON da DataTable.
+  devolvendo o JSON da DataTable · E, sem a env no servidor, a chave vem ligada para todas as empresas
+  (F5, D-USU-LIGAR — thread `sistema/playbook/09`).
 - **Status: 🧪**
 
 ## UC-USUA-02 · A lista é do meu negócio · `[T0]`

@@ -13,7 +13,7 @@ status: draft
 related_us: [US-COM-002, US-COM-005]
 status_note: "F3 implementado + modo grade tam×cor (US-COM-005, aguarda smoke/canary Wagner)"
 charter_version: 2
-last_validated: "2026-09-11"
+last_validated: "2026-10-11"
 adr_refs: [0104, 0093, 0114, 0149, 0105]
 mwart_pattern_reuse:
   blueprint_cowork: prototipo-ui/cowork/Wagner/compras-page.jsx
@@ -52,7 +52,7 @@ Maiara/Felipe escritório (compras pequenas/médias ~5-30 itens). **+ Larissa @ 
 
 ## Dependências
 - AppShellV2 layout persistent.
-- PageHeader shared.
+- PageHeader canon (`@/Components/PageHeader`) — migrado do shared em 2026-10-11 (ADR 0409).
 - `useForm` Inertia.
 - Card/Input/Button/Select primitives.
 

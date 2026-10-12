@@ -72,6 +72,7 @@
     "Ponto/Relatorios/Index",
     "Produto/Create",
     "Produto/Edit",
+    "Produto/Index",
     "Purchase/Create",
     "Purchase/Index",
     "Purchase/Show",
@@ -225,6 +226,16 @@
       ]
     },
     {
+      "tela": "Funcoes/Index",
+      "arquivo": "resources/js/Pages/Funcoes/Index.tsx",
+      "modulo": "core",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/Wagner/funcoes-page.jsx",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
       "tela": "ImportSales/Index",
       "arquivo": "resources/js/Pages/ImportSales/Index.tsx",
       "modulo": "core",
@@ -240,6 +251,16 @@
       "modulo": "core",
       "status": "1-ciclo",
       "prototipo": "prototipo-ui/cowork/Wagner/venda-blade-telas.jsx",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
+      "tela": "Manufacturing/IngredientesEditor",
+      "arquivo": "resources/js/Pages/Manufacturing/IngredientesEditor.tsx",
+      "modulo": "core",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/Wagner/manufacturing-recipe.jsx",
       "falta": [
         "scorecard"
       ]
@@ -285,6 +306,16 @@
       ]
     },
     {
+      "tela": "NotificationTemplate/Index",
+      "arquivo": "resources/js/Pages/NotificationTemplate/Index.tsx",
+      "modulo": "core",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/Wagner/notificacoes-page.jsx",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
       "tela": "Ponto/Conformidade",
       "arquivo": "resources/js/Pages/Ponto/Conformidade.tsx",
       "modulo": "core",
@@ -310,6 +341,16 @@
       "modulo": "core",
       "status": "1-ciclo",
       "prototipo": "prototipo-ui/cowork/Wagner/ponto-mobile.jsx",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
+      "tela": "ProductCatalogue/CatalogueQr",
+      "arquivo": "resources/js/Pages/ProductCatalogue/CatalogueQr.tsx",
+      "modulo": "core",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/Wagner/catalogo-qr-page.jsx",
       "falta": [
         "scorecard"
       ]
@@ -655,6 +696,26 @@
       ]
     },
     {
+      "tela": "Officeimpresso/Clientes/Index",
+      "arquivo": "Modules/Officeimpresso/Resources/js/Pages/Officeimpresso/Clientes/Index.tsx",
+      "modulo": "Officeimpresso",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/Wagner/officeimpresso-page.jsx",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
+      "tela": "Officeimpresso/Empresas/Index",
+      "arquivo": "Modules/Officeimpresso/Resources/js/Pages/Officeimpresso/Empresas/Index.tsx",
+      "modulo": "Officeimpresso",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/Wagner/officeimpresso-page.jsx",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
       "tela": "Officeimpresso/Licencas/Index",
       "arquivo": "Modules/Officeimpresso/Resources/js/Pages/Officeimpresso/Licencas/Index.tsx",
       "modulo": "Officeimpresso",
@@ -685,5 +746,5 @@
       ]
     }
   ],
-  "total": 151
+  "total": 158
 }

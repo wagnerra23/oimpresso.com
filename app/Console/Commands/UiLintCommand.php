@@ -528,7 +528,10 @@ class UiLintCommand extends Command
                 'detail' => 'PT-01 Slot 1 ausente · Index.tsx tem que importar PageHeader (Components/shared)',
             ];
         }
-        if (! $hasDataTable) {
+        // F1 de NotificationTemplate aprovou configuração com rail e painel, não PT-01.
+        // O PageHeader segue obrigatório; a exceção não libera outras listas.
+        $isNotificationConfig = $normalized === 'resources/js/Pages/NotificationTemplate/Index.tsx';
+        if (! $hasDataTable && ! $isNotificationConfig) {
             $out[] = [
                 'rule' => 'R4',
                 'file' => $relPath,

@@ -55,6 +55,22 @@ Status: 🧪 sem veredito
 - **Teste:** `RoadmapQuarterViewContratoTest.php` — `UC-RQV-03 · o progresso do epic é done/total …`
 - **Regressão que defende:** progresso calculado sem o vínculo epic→task (os dois epics dariam o mesmo número). Os valores diferem de propósito para o teste poder reprovar isso.
 
+## UC-RQV-04 · Epic cancelado não aparece `[must]`
+Status: 🧪 sem veredito
+- **Persona:** [W] lendo o que está planejado, ativo e concluído (charter, Mission).
+- **Aceite:** Dado um quarter com 1 epic `active` e 1 `cancelled` · Quando a tela carrega · Então só o ativo aparece, e o KPI de total conta 1.
+- **Fonte:** decisão **D8** (2026-10-07, pergunta pulada pelo [W] no formulário — o [CC] decidiu pela recomendação *"esconder"*; `prototipo-ui/cowork/Wagner/cowork-inbox/forja/playbook/_DECISOES-W-2026-10-07c.md`) + Mission do charter. Resolve o `[BACKLOG]` que perguntava se o cancelado aparecia.
+- **Teste:** `RoadmapQuarterViewContratoTest.php` — `UC-RQV-04 · epic cancelado não aparece …`
+- **Regressão que defende:** alguém incluir `cancelled` no filtro do controller e o roadmap passar a mostrar iniciativa morta como plano.
+
+## UC-RQV-05 · Colunas em ordem cronológica entre anos `[must]`
+Status: 🧪 sem veredito
+- **Persona:** [W] lendo a linha do tempo da esquerda pra direita (US-TR-203: *"visão temporal"*).
+- **Aceite:** Dado epics em `Q1-2032`, `Q4-2031`, `2031-Q2` e um sem quarter · Quando a tela carrega · Então as colunas vêm `2031-Q2`, `Q4-2031`, `Q1-2032`, `Sem quarter` — ordem cronológica, com os dois formatos que existem no dado (`Qn-AAAA` do schema e `AAAA-Qn` do `epics-update`).
+- **Fonte:** decisão **D9** ([W] 2026-10-07: *"cronológica"*) + US-TR-203. Resolve o `[BACKLOG]` da ordem entre anos.
+- **Teste:** `RoadmapQuarterViewContratoTest.php` — `UC-RQV-05 · as colunas vêm em ordem cronológica …`
+- **Regressão que defende:** voltar ao `ksort` (ordem de texto), que põe `Q1-2032` antes de `Q4-2031`.
+
 ---
 
 ## Backlog de casos (sem id — entram quando tiverem teste e ≥2 fontes)
@@ -62,5 +78,3 @@ Status: 🧪 sem veredito
 - **[BACKLOG] KPIs de cabeçalho (total, ativos, em planning, concluídos)** — só o charter (Goals) os descreve; nenhuma outra fonte canônica.
 - **[BACKLOG] Projeto sem epic mostra estado vazio apontando `epics-create` via MCP** — só o charter. É asserção de cliente (texto renderizado).
 - **[BACKLOG] A tela é só leitura (nenhuma escrita em GET; mover quarter é `epics-update` via MCP)** — charter (Non-Goals + Anti-hooks). Fonte única.
-- **[BACKLOG] Epic `cancelled` aparece ou não?** — o charter (Goals) lista o ícone de *cancelado* no card, mas a Mission fala só de *"planejado, ativo e concluído"*, e o controller filtra `planning/active/done`. Divergência de intenção: **pergunta ao [W]**, não UC.
-- **[BACKLOG] Ordem das colunas entre anos** — a US-TR-203 diz *"visão temporal"*, e o controller ordena as chaves como texto (`ksort`): no formato `Q1-2027`/`Q2-2026` o texto põe `Q1-2027` antes de `Q2-2026`. Nenhum UC afirma ordem até [W] dizer se a ordem cronológica é contrato (os UC acima usam um ano só e não asserem posição).

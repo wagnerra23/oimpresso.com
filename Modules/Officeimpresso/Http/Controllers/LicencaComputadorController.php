@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use App\Http\Controllers\Controller;
+use App\Services\FeatureFlagService;
 use Modules\Officeimpresso\Entities\Licenca_Computador;
 use Modules\Officeimpresso\Entities\LicencaLog;
 use App\Support\Privacy\PiiRedactor;
@@ -25,6 +26,9 @@ use Modules\Superadmin\Entities\Package;
  */
 class LicencaComputadorController extends Controller
 {
+    /** Tela React de `businessall` (RUNBOOK-empresas). Default OFF: a Blade segue até o cutover. */
+    private const FLAG_EMPRESAS = 'useV2OfficeimpressoEmpresas';
+
     public function __construct(private LicencaService $licencaService)
     {
     }
@@ -309,9 +313,84 @@ class LicencaComputadorController extends Controller
     {
         $this->authorizeAccess();
 
+        $business_id = (int) request()->session()->get('user.business_id');
+
+        // Só a flag decide o caminho (RUNBOOK-empresas §F2 item 4): o 1º carregamento do Inertia é
+        // um GET de HTML comum, sem `X-Inertia`.
+        if (app(FeatureFlagService::class)->isOn(self::FLAG_EMPRESAS, ['business_id' => $business_id])) {
+            return Inertia::render('Officeimpresso/Empresas/Index', [
+                'empresas' => Inertia::defer(fn () => $this->buildEmpresasPayload()),
+                'kpis'     => Inertia::defer(fn () => $this->buildEmpresasKpis()),
+            ]);
+        }
+
         $business = $this->licencaService->listarEmpresasComDesktop();
 
         return view('officeimpresso::licenca_computador.businessall', compact('business'));
+    }
+
+    /**
+     * Lista de empresas licenciadas em DTO — nunca o model `Business`, que carrega o cadastro
+     * inteiro do ERP e iria serializado no `data-page` do HTML (empresas-parity item 28).
+     *
+     * Global por design (empresas-parity item 27): é a lista de clientes da operadora, e o
+     * `authorizeAccess()` só deixa entrar usuário da empresa operadora (`AcessoOperador`).
+     *
+     * Colunas (decisão [W] 2026-10-12, D1 do empresas-parity): `versao_obrigatoria` e o último
+     * acesso entram; máquinas e banco ficam para a ficha. O último acesso é o MAIOR
+     * `licenca_computador.dt_ultimo_acesso` da empresa: `business.dt_ultimo_acesso` não tem
+     * escritor (a API grava na máquina — Connector `LicencaComputadorController` e
+     * `OImpressoRegistroController`), então lê-lo daria sempre vazio.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    private function buildEmpresasPayload(): array
+    {
+        $acesso = DB::table('licenca_computador')
+            ->select('business_id', DB::raw('MAX(dt_ultimo_acesso) as ultimo_acesso'))
+            ->groupBy('business_id');
+
+        return DB::table('business as b')
+            // SUPERADMIN: lista global por design — a guarda é o authorizeAccess() (operadora).
+            ->leftJoinSub($acesso, 'a', 'a.business_id', '=', 'b.id')
+            ->where('b.is_officeimpresso', true)
+            ->orderByDesc('b.id')
+            ->get([
+                'b.id', 'b.name', 'b.razao_social', 'b.cnpj', 'b.versao_disponivel',
+                'b.versao_obrigatoria', 'b.officeimpresso_bloqueado', 'a.ultimo_acesso',
+            ])
+            ->map(fn ($b) => [
+                'id'                 => (int) $b->id,
+                'name'               => $b->name,
+                'razao_social'       => $b->razao_social,
+                'cnpj'               => $b->cnpj,
+                'versao_disponivel'  => $b->versao_disponivel,
+                'versao_obrigatoria' => $b->versao_obrigatoria,
+                // Data zero do MySQL (`0000-00-00 …`) é "sem acesso": o Carbon a leria como -0001-11-30.
+                'ultimo_acesso'      => $b->ultimo_acesso && ! str_starts_with((string) $b->ultimo_acesso, '0000')
+                    ? Carbon::parse($b->ultimo_acesso)->toIso8601String() : null,
+                'bloqueado'          => (bool) $b->officeimpresso_bloqueado,
+            ])
+            ->values()
+            ->all();
+    }
+
+    /**
+     * KPIs da lista — antes calculados no Blade com `collect()` (empresas-parity D5).
+     *
+     * @return array{total: int, ativas: int, bloqueadas: int}
+     */
+    private function buildEmpresasKpis(): array
+    {
+        $linha = DB::table('business')
+            ->where('is_officeimpresso', true)
+            ->selectRaw('COUNT(*) as total, COALESCE(SUM(CASE WHEN officeimpresso_bloqueado = 1 THEN 1 ELSE 0 END), 0) as bloqueadas')
+            ->first();
+
+        $total = (int) $linha->total;
+        $bloqueadas = (int) $linha->bloqueadas;
+
+        return ['total' => $total, 'ativas' => $total - $bloqueadas, 'bloqueadas' => $bloqueadas];
     }
 
     /**

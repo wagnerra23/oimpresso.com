@@ -74,6 +74,15 @@ on:
       - 'app/Http/Controllers/ManageUserController.php'
       - 'resources/views/manage_user/**'
       - 'app/Http/Controllers/ReportController.php'
+      - 'app/Http/Controllers/NotificationTemplateController.php'
+      - 'app/NotificationTemplate.php'
+      - 'app/Notifications/CustomerNotification.php'
+      - 'app/Notifications/SupplierNotification.php'
+      - 'app/Utils/NotificationUtil.php'
+      - 'app/Util/HtmlSanitizer.php'
+      - 'resources/views/notification_template/**'
+      - 'tests/Feature/NotificationTemplateTest.php'
+      - 'tests/Feature/NotificationTemplate/**'
       - 'app/Http/Middleware/AdminSidebarMenu.php'
       - 'resources/views/sales_commission_agent/**'
       - 'database/migrations/*_add_commission_agent_permissions.php'
@@ -83,6 +92,7 @@ on:
       - 'tests/Feature/Roles/**'
       - 'tests/Feature/Users/**'
       - 'tests/Feature/Relatorios/**'
+      - 'tests/Feature/CutoverMenu/RelatoriosSemXInertiaTest.php'
       - 'app/Http/Controllers/Support/**'
       - 'app/Services/Support/**'
       - 'app/Http/Middleware/EnsureSupportAccess.php'
@@ -91,6 +101,8 @@ on:
       - 'app/Http/Controllers/PrinterController.php'
       - 'app/Http/Controllers/BarcodeController.php'
       - 'app/Http/Controllers/BusinessLocationController.php'
+      - 'app/Services/FeatureFlagService.php'
+      - 'config/feature-flags.php'
       - 'app/Http/Controllers/InvoiceSchemeController.php'
       - 'app/Http/Controllers/TaxRateController.php'
       - 'app/Http/Controllers/GroupTaxController.php'
@@ -150,6 +162,15 @@ jobs:
               - 'app/Http/Controllers/ManageUserController.php'
               - 'resources/views/manage_user/**'
               - 'app/Http/Controllers/ReportController.php'
+              - 'app/Http/Controllers/NotificationTemplateController.php'
+              - 'app/NotificationTemplate.php'
+              - 'app/Notifications/CustomerNotification.php'
+              - 'app/Notifications/SupplierNotification.php'
+              - 'app/Utils/NotificationUtil.php'
+              - 'app/Util/HtmlSanitizer.php'
+              - 'resources/views/notification_template/**'
+              - 'tests/Feature/NotificationTemplateTest.php'
+              - 'tests/Feature/NotificationTemplate/**'
               - 'app/Http/Middleware/AdminSidebarMenu.php'
               - 'resources/views/sales_commission_agent/**'
               - 'database/migrations/*_add_commission_agent_permissions.php'
@@ -159,6 +180,7 @@ jobs:
               - 'tests/Feature/Roles/**'
               - 'tests/Feature/Users/**'
               - 'tests/Feature/Relatorios/**'
+              - 'tests/Feature/CutoverMenu/RelatoriosSemXInertiaTest.php'
               - 'app/Http/Controllers/Support/**'
               - 'app/Services/Support/**'
               - 'app/Http/Middleware/EnsureSupportAccess.php'
@@ -167,6 +189,8 @@ jobs:
               - 'app/Http/Controllers/PrinterController.php'
               - 'app/Http/Controllers/BarcodeController.php'
               - 'app/Http/Controllers/BusinessLocationController.php'
+              - 'app/Services/FeatureFlagService.php'
+              - 'config/feature-flags.php'
               - 'app/Http/Controllers/InvoiceSchemeController.php'
               - 'app/Http/Controllers/TaxRateController.php'
               - 'app/Http/Controllers/GroupTaxController.php'
@@ -214,8 +238,11 @@ jobs:
           vendor/bin/pest --no-coverage --colors=always tests/Feature/Relatorios/ \
             --log-junit test-results/pest-acessos-junit.xml \
             tests/Feature/Roles/ tests/Feature/Users/ \
+            tests/Feature/NotificationTemplateTest.php \
+            tests/Feature/NotificationTemplate/DualTest.php \
             tests/Feature/Support/SuporteLogContratoTest.php \
-            tests/Feature/Configuracoes/
+            tests/Feature/Configuracoes/ \
+            tests/Feature/CutoverMenu/RelatoriosSemXInertiaTest.php
 
       # A régua honesta desta lane é `assertions`, NÃO "0 failed": skip sai exit 0
       # e 18 dos 22 pulam fora do MySQL. Se o sumário mostrar muitos casos com 0

@@ -14,13 +14,13 @@
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Produto/Index.tsx",
-        "linhas": "141-168",
-        "ancora": true
+        "linhas": "TODO",
+        "ancora": false
       },
       "status": "pendente-mapeamento",
       "acao": "Decidir. Subtítulo de contagem — §Veredito adotar #1 (Parte 1, P, derivar dos rows já carregados). ⚠️ \"disponíveis/esgotados\" só se estoque já vier nos rows (Parte 1 Esforço/risco).",
       "_acionavel": true,
-      "_nota_ancora": "2026-09-06: âncora declarada = data-contract=\"<id da parte>\" no elemento raiz da região (atributo inerte, zero CSS/JS consome — grep [data-contract em resources/css só acha .arq-page [data-contract=abas|cabecalho]); linhas = range REAL do elemento ancorado, medido no dia (abertura→fechamento). Raiz = `<header sticky>` (crumbs + h1 + Importar/Novo produto)."
+      "_nota_ancora": "2026-10-10 [F+C]: âncora RETIRADA (ancora: false consciente). A tela de cards que este map descrevia saiu de /products (#9124): o charter v3 (#9118) ancora a tela em prototipo-ui/cowork/Felipe/produto-blade.jsx (vista lista), não em Wagner/produtos-page.jsx. Repontar para os data-contract da tela nova (produto-filtros/-toolbar/-tabela) parearia regiões de OUTRO protótipo — por isso não ancora. Map da âncora nova: pendente. Nota anterior: 2026-09-06: âncora declarada = data-contract=\"<id da parte>\" no elemento raiz da região (atributo inerte, zero CSS/JS consome — grep [data-contract em resources/css só acha .arq-page [data-contract=abas|cabecalho]); linhas = range REAL do elemento ancorado, medido no dia (abertura→fechamento). Raiz = `<header sticky>` (crumbs + h1 + Importar/Novo produto)."
     },
     {
       "id": "kpis-totalizadores",
@@ -30,13 +30,13 @@
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Produto/Index.tsx",
-        "linhas": "172-176",
-        "ancora": true
+        "linhas": "TODO",
+        "ancora": false
       },
       "status": "pendente-mapeamento",
       "acao": "Nada — §Veredito \"NÃO adotar sem ADR/SPEC + backend + dupla-confirmação (⚠️ Tier 0 valor/estoque)\": Parte 2, esforço G, quantidade × preço × custo (REGRA MESTRE de proibicoes.md).",
       "_acionavel": false,
-      "_nota_ancora": "2026-09-06: âncora declarada = data-contract=\"<id da parte>\" no elemento raiz da região (atributo inerte, zero CSS/JS consome — grep [data-contract em resources/css só acha .arq-page [data-contract=abas|cabecalho]); linhas = range REAL do elemento ancorado, medido no dia (abertura→fechamento). Raiz = `<section>` que monta `<Deferred data=\"kpis\"><KpisStrip/>` (o atributo fica na section, que é DOM; Deferred não é)."
+      "_nota_ancora": "2026-10-10 [F+C]: âncora RETIRADA (ancora: false consciente). A tela de cards que este map descrevia saiu de /products (#9124): o charter v3 (#9118) ancora a tela em prototipo-ui/cowork/Felipe/produto-blade.jsx (vista lista), não em Wagner/produtos-page.jsx. Repontar para os data-contract da tela nova (produto-filtros/-toolbar/-tabela) parearia regiões de OUTRO protótipo — por isso não ancora. Map da âncora nova: pendente. Nota anterior: 2026-09-06: âncora declarada = data-contract=\"<id da parte>\" no elemento raiz da região (atributo inerte, zero CSS/JS consome — grep [data-contract em resources/css só acha .arq-page [data-contract=abas|cabecalho]); linhas = range REAL do elemento ancorado, medido no dia (abertura→fechamento). Raiz = `<section>` que monta `<Deferred data=\"kpis\"><KpisStrip/>` (o atributo fica na section, que é DOM; Deferred não é)."
     },
     {
       "id": "filtros-busca",
@@ -46,13 +46,13 @@
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Produto/Index.tsx",
-        "linhas": "179-210",
-        "ancora": true
+        "linhas": "TODO",
+        "ancora": false
       },
       "status": "pendente-mapeamento",
       "acao": "Decidir. Só (a) filtro por tipo + (f) Limpar filtros — §Veredito adotar #2 (Parte 3, M) — e (c) sort + (d) toggle — adotar #3. (b) Stockbar toca estoque (threshold = regra de negócio _pendente_). (e) busca por marca/OEM: Parte 3 diz \"P se campos existirem, _pendente_ confirmar schema\" — confirmado no código: `products.brand_id` existe (`database/schema/mysql-schema.sql:7577`, dentro de `CREATE TABLE products`), campo OEM não existe (0 ocorrências no schema) → marca é P; OEM fica `_pendente_` de schema.",
       "_acionavel": true,
-      "_nota_ancora": "2026-09-06: âncora declarada = data-contract=\"<id da parte>\" no elemento raiz da região (atributo inerte, zero CSS/JS consome — grep [data-contract em resources/css só acha .arq-page [data-contract=abas|cabecalho]); linhas = range REAL do elemento ancorado, medido no dia (abertura→fechamento). Raiz = `<section>` busca + \"Mostrar inativos\" + CategoriaTabs."
+      "_nota_ancora": "2026-10-10 [F+C]: âncora RETIRADA (ancora: false consciente). A tela de cards que este map descrevia saiu de /products (#9124): o charter v3 (#9118) ancora a tela em prototipo-ui/cowork/Felipe/produto-blade.jsx (vista lista), não em Wagner/produtos-page.jsx. Repontar para os data-contract da tela nova (produto-filtros/-toolbar/-tabela) parearia regiões de OUTRO protótipo — por isso não ancora. Map da âncora nova: pendente. Nota anterior: 2026-09-06: âncora declarada = data-contract=\"<id da parte>\" no elemento raiz da região (atributo inerte, zero CSS/JS consome — grep [data-contract em resources/css só acha .arq-page [data-contract=abas|cabecalho]); linhas = range REAL do elemento ancorado, medido no dia (abertura→fechamento). Raiz = `<section>` busca + \"Mostrar inativos\" + CategoriaTabs."
     },
     {
       "id": "tabela-cards",
@@ -62,13 +62,13 @@
       },
       "vivo": {
         "arquivo": "resources/js/Pages/Produto/Index.tsx",
-        "linhas": "213-217",
-        "ancora": true
+        "linhas": "TODO",
+        "ancora": false
       },
       "status": "pendente-mapeamento",
       "acao": "Decidir. Só (a) lista densa ordenável + toggle — §Veredito adotar #3 (Parte 3+4, M; popularidade/preço/nome). (c) custo/margem/fornecedor, (d) estoque por linha e (b)/(f) dependentes de variante/estoque: NÃO adotar sem ADR/SPEC + backend + dupla-confirmação (Tier 0 — Parte 4 Esforço/risco: `ProdutoRow` já tem `cost`/`margin`/`stockQty`; o que o backend não expõe é fornecedores/variantes/BOM, _pendente_).",
       "_acionavel": true,
-      "_nota_ancora": "2026-09-06: âncora declarada = data-contract=\"<id da parte>\" no elemento raiz da região (atributo inerte, zero CSS/JS consome — grep [data-contract em resources/css só acha .arq-page [data-contract=abas|cabecalho]); linhas = range REAL do elemento ancorado, medido no dia (abertura→fechamento). Raiz = `<section>` que monta `<Deferred data=\"rows\"><ProdutoCards/>`."
+      "_nota_ancora": "2026-10-10 [F+C]: âncora RETIRADA (ancora: false consciente). A tela de cards que este map descrevia saiu de /products (#9124): o charter v3 (#9118) ancora a tela em prototipo-ui/cowork/Felipe/produto-blade.jsx (vista lista), não em Wagner/produtos-page.jsx. Repontar para os data-contract da tela nova (produto-filtros/-toolbar/-tabela) parearia regiões de OUTRO protótipo — por isso não ancora. Map da âncora nova: pendente. Nota anterior: 2026-09-06: âncora declarada = data-contract=\"<id da parte>\" no elemento raiz da região (atributo inerte, zero CSS/JS consome — grep [data-contract em resources/css só acha .arq-page [data-contract=abas|cabecalho]); linhas = range REAL do elemento ancorado, medido no dia (abertura→fechamento). Raiz = `<section>` que monta `<Deferred data=\"rows\"><ProdutoCards/>`."
     },
     {
       "id": "acoes-por-linha",

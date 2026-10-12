@@ -12,9 +12,10 @@
 // US-COM-005: modo grade tam×cor pra produto variável (combobox → GradeMatrixInput → linhas).
 
 import AppShellV2 from '@/Layouts/AppShellV2';
-import PageHeader from '@/Components/shared/PageHeader';
+import { PageHeader } from '@/Components/PageHeader';
+import { Icon } from '@/Components/Icon';
 import { router, useForm } from '@inertiajs/react';
-import { useMemo, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { Button } from '@/Components/ui/button';
 import { Card, CardContent, CardHeader } from '@/Components/ui/card';
 import { Input } from '@/Components/ui/input';
@@ -83,6 +84,8 @@ export interface PurchaseCreatePageProps {
   default_datetime: string;
   permissions: Permissions;
   common_settings: Record<string, unknown>;
+  /** "Comprar" da lista de produtos: o produto que já entra como primeira linha (`?produto={id}`). */
+  produto_inicial?: PickedProduct | null;
 }
 
 // Layout da grade vindo de GET /purchases/grade-matrix (US-COM-005).
@@ -112,6 +115,7 @@ function PurchaseCreate({
   currency,
   permissions,
   default_datetime,
+  produto_inicial = null,
 }: PurchaseCreatePageProps) {
   const [busca, setBusca] = useState('');
   const [linhas, setLinhas] = useState<PurchaseLineDraft[]>([]);
@@ -274,6 +278,13 @@ function PurchaseCreate({
     }
   };
 
+  // "Comprar" da lista de produtos: entra pelo MESMO caminho da busca (escolherProduto), então
+  // o custo e a grade vêm do grade-matrix como se a pessoa tivesse escolhido o produto.
+  useEffect(() => {
+    if (produto_inicial) void escolherProduto(produto_inicial);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- só na abertura da tela
+  }, []);
+
   const totalGrade = gradeCells.reduce((s, c) => s + c.qty, 0);
 
   const adicionarGradeACompra = () => {
@@ -308,11 +319,13 @@ function PurchaseCreate({
 
   return (
     <form onSubmit={enviar}>
+      {/* Header canon (@/Components/PageHeader, ADR 0189/0190 · ADR 0409): migrado ao tocar a tela
+          para o "Comprar" da lista de produtos. Mesmo mapeamento do Repair (#8531). */}
       <PageHeader
-        icon="shopping-cart"
+        leading={<Icon name="shopping-cart" size={18} className="mr-2 inline-block align-[-2px] text-primary" />}
         title="Nova compra"
-        description="Registrar entrada de mercadoria — fornecedor, itens, totais."
-        action={
+        subtitle="Registrar entrada de mercadoria — fornecedor, itens, totais."
+        actions={
           <div className="flex gap-2">
             <Button type="button" variant="outline" size="sm" onClick={() => router.visit('/purchases')}>
               <ArrowLeft className="h-4 w-4 mr-1" /> Cancelar

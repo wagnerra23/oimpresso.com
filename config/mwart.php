@@ -216,9 +216,11 @@ return [
     ],
 
     // ManageUserController@index → Usuarios/Index (thread sistema/playbook/01).
-    // Nasce desligada: o cutover F5 é decisão [W], por empresa.
+    // Nasceu desligada (thread 01). Em 2026-10-07 [W] decidiu ligar para todas as empresas
+    // (D-USU-LIGAR, thread sistema/playbook/09): o default passou a `true`. Um `.env` que fixe
+    // `MWART_SISTEMA_USUARIOS_INDEX=false` ainda desliga — o recibo da 09 diz o valor lido no servidor.
     'sistema_usuarios_index' => [
-        'enabled'      => env('MWART_SISTEMA_USUARIOS_INDEX', false),
+        'enabled'      => env('MWART_SISTEMA_USUARIOS_INDEX', true),
         'business_ids' => $parseBizIds('MWART_SISTEMA_USUARIOS_INDEX_BIZ'),
     ],
 

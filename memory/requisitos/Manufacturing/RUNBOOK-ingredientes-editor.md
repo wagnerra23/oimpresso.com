@@ -26,8 +26,9 @@ owner: M
 |---|---|---|
 | 0 | Servidor do salvar: custo calculado no servidor, recusa receita vazia, quantidade ≤ 0 e sub-unidade alheia; trocar todos os ingredientes não deixa os antigos | PR #9051 |
 | 1 | Dados do editor (`RecipeBomService::editorDaReceita`) + busca de insumo (`buscarInsumos`, 7 resultados) + a tela em **modo leitura** | #9059 (mergeado) |
-| 2 | Edição: quantidade, sub-unidade (troca o multiplicador junto, regra 4), grupos, busca de insumo e salvar no `store()`; regra 1 (≥1 ingrediente), regra 2 (quantidade travada vira texto), regra 5 (cópia; cancelar descarta). Números vão por `paraNumUf` (@/Lib/numberPtBR, promovido do Patrimônio): vírgula decimal, sem milhar, com as casas exibidas no campo — nunca cru | este PR — mergear **depois** do #9051 |
-| 3 | Excluir receita com a confirmação da regra 6 (no editor: o protótipo não põe o botão na gaveta, e o charter de Receitas proíbe escrita na lista) · trocar o link "Editar ingredientes" da lista para a tela nova. O servidor só apaga receita da própria empresa: #9071 (UC-RECIPE-19) | este PR — mergear **depois** do #9071 |
+| 2 | Edição: quantidade, sub-unidade (troca o multiplicador junto, regra 4), grupos, busca de insumo e salvar no `store()`; regra 1 (≥1 ingrediente), regra 2 (quantidade travada vira texto), regra 5 (cópia; cancelar descarta). Números vão por `paraNumUf` (@/Lib/numberPtBR, promovido do Patrimônio): vírgula decimal, sem milhar, com as casas exibidas no campo — nunca cru | #9068 (mergeado) |
+| 3 | Excluir receita com a confirmação da regra 6 (no editor: o protótipo não põe o botão na gaveta, e o charter de Receitas proíbe escrita na lista) · trocar o link "Editar ingredientes" da lista para a tela nova. O servidor só apaga receita da própria empresa: #9071 (UC-RECIPE-19) | #9072 (mergeado) |
+| 4 | Prova de TELA das 6 regras do §5 (UC-INGRED-08..13): `tests/js/manufacturing-ingredientes-editor.test.tsx`, vitest/jsdom no componente real, na lane `manufacturing-jsdom-gate`. Cada bloco tem controle positivo; 8 mutações provaram a mordida. Fecha o registro da US-MANU-006 no SPEC | este PR |
 
 Até a etapa 3 a janela Blade era a padrão. Desde ela, o "Editar ingredientes" da lista abre a tela nova;
 o mesmo endereço sem `?tela=nova` continua servindo a janela Blade (e a lista antiga `?legacy=1` aponta para ela).

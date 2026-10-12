@@ -82,8 +82,21 @@ Status: 🧪
 
 ---
 
+## UC-PETQ-06 · Vários produtos vindos da seleção da lista de produtos · `should`
+
+Origem: UC-ETQ-02 do F1 (era backlog) e a barra da seleção do protótipo da lista (`produto-blade.jsx`, "Etiquetas").
+
+**Dado** dois produtos da empresa e um de outra empresa selecionados na lista
+**Quando** a lista abre `/labels/show?product_ids=a,b,c`
+**Então** a tela já vem com uma linha por variação dos produtos da empresa, na ordem pedida e com 1 etiqueta cada; o produto de outra empresa não entra (o mesmo `getDetailsFromProduct` de um produto só, que filtra pela empresa).
+
+Teste: [`ProdutoEtiquetasContratoTest`](../../../../tests/Feature/Produto/ProdutoEtiquetasContratoTest.php) — `UC-PETQ-06`.
+
+Status: ⬜ nasce neste PR — verde esperado.
+
+---
+
 ## Backlog (sem teste ainda)
 
 - [BACKLOG] Paginar a prévia por folha real e o botão dizer quantas folhas (UC-ETQ-01/07/09 do F1) — comportamento só do navegador.
 - [BACKLOG] Desligar uma informação desabilita o corpo dela e a tira da prévia (UC-ETQ-05 do F1).
-- [BACKLOG] Vários produtos vindos da seleção do índice (UC-ETQ-02 do F1): a tela aceita só `product_id` ou `purchase_id` hoje.

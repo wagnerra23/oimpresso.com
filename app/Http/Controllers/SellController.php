@@ -3272,8 +3272,11 @@ class SellController extends Controller
 
         $sales_representative = User::forDropdown($business_id, false, false, true);
 
-        // Wave 1 W1-A — branch dual MWART. KPI agregado leve eager + customers deferred.
-        if (request()->header('X-Inertia')) {
+        // Cutover pelo menu · thread 02 (D1 [W] 2026-10-07): o menu navega com carga cheia, sem
+        // `X-Inertia`, então a Page React só abria por fora do menu. Agora ela é o padrão — molde
+        // `UnitController@index`. O Inertia manda `X-Requested-With` junto do `X-Inertia`, então
+        // `ajax()` sozinho não separa a visita do fetch (§5 2026-09-08). `?classico=1` mantém o Blade.
+        if (! request()->boolean('classico') && (! request()->ajax() || request()->header('X-Inertia'))) {
             $draftCount = Transaction::where('business_id', $business_id)
                 ->where('type', 'sell')
                 ->where('status', 'draft')
@@ -3295,7 +3298,9 @@ class SellController extends Controller
                     'view_own' => auth()->user()->can('draft.view_own'),
                 ],
                 'urls' => [
-                    'datatable' => '/sells/drafts',  // mesmo endpoint AJAX
+                    // O mesmo endpoint do DataTable do Blade (`sale_pos/draft.blade.php`). Antes apontava
+                    // pra `/sells/drafts`, que devolve HTML: a lista React saía sempre vazia.
+                    'datatable' => '/sells/draft-dt?is_quotation=0',
                     'back' => '/sells',
                 ],
             ]);
@@ -3323,8 +3328,11 @@ class SellController extends Controller
 
         $sales_representative = User::forDropdown($business_id, false, false, true);
 
-        // Wave 1 W1-A — branch dual MWART. KPIs cotação leves eager.
-        if (request()->header('X-Inertia')) {
+        // Cutover pelo menu · thread 02 (D1 [W] 2026-10-07): o menu navega com carga cheia, sem
+        // `X-Inertia`, então a Page React só abria por fora do menu. Agora ela é o padrão — molde
+        // `UnitController@index`. O Inertia manda `X-Requested-With` junto do `X-Inertia`, então
+        // `ajax()` sozinho não separa a visita do fetch (§5 2026-09-08). `?classico=1` mantém o Blade.
+        if (! request()->boolean('classico') && (! request()->ajax() || request()->header('X-Inertia'))) {
             $quoteBase = Transaction::where('business_id', $business_id)
                 ->where('type', 'sell')
                 ->where('status', 'draft')

@@ -4,6 +4,7 @@ namespace Modules\ProductCatalogue\Http\Controllers;
 
 use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
+use Inertia\Inertia;
 use Modules\ProductCatalogue\Services\CatalogueQrService;
 use Modules\ProductCatalogue\Services\CatalogueService;
 
@@ -63,6 +64,8 @@ class ProductCatalogueController extends Controller
 
     /**
      * GET /product-catalogue/catalogue-qr — tela admin pra gerar QR codes do catálogo.
+     *
+     * @return \Inertia\Response
      */
     public function generateQr()
     {
@@ -72,8 +75,9 @@ class ProductCatalogueController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
-        $payload = $this->qrService->buildQrPayload($businessId);
-
-        return view('productcatalogue::catalogue.generate_qr')->with($payload);
+        // Inertia desde a thread modulos-faltantes/04 (Catálogo QR). A Blade
+        // catalogue/generate_qr.blade.php fica no repo até o cutover; a vitrine pública
+        // (index/show acima) segue Blade e não muda.
+        return Inertia::render('ProductCatalogue/CatalogueQr', $this->qrService->buildPagePayload($businessId));
     }
 }

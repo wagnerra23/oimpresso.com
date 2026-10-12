@@ -46,6 +46,7 @@ on:
     branches: [main]
     paths:
       - 'tests/Feature/Purchase/**'
+      - 'tests/Feature/CutoverMenu/ComprasSemXInertiaTest.php'
       - 'app/Http/Controllers/PurchaseController.php'
       # Sob teste em PurchaseIndexTenantContratoTest (UC-PURIDX-02): é `getListPurchases`
       # que carrega os DOIS escopos de business da lista. Sem este gatilho, mexer nele não
@@ -92,6 +93,7 @@ jobs:
           filters: |
             purchase:
               - 'tests/Feature/Purchase/**'
+              - 'tests/Feature/CutoverMenu/ComprasSemXInertiaTest.php'
               - 'app/Http/Controllers/PurchaseController.php'
               - 'app/Utils/TransactionUtil.php'
               - 'app/Utils/Util.php'
@@ -204,7 +206,8 @@ jobs:
             tests/Feature/Purchase/Wave2CreateInertiaTest.php \
             tests/Feature/Purchase/IndexPageTest.php \
             tests/Feature/Purchase/ShowPageTest.php \
-            tests/Feature/Purchase/PurchaseDataIsoTest.php
+            tests/Feature/Purchase/PurchaseDataIsoTest.php \
+            tests/Feature/CutoverMenu/ComprasSemXInertiaTest.php
 
       # A lane emite JUnit e o sumário conta `assertions` por arquivo — o corpus do LC-13.
       # Aqui só REPORTA (if: always()).

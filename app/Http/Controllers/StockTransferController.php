@@ -75,6 +75,15 @@ class StockTransferController extends Controller
 
         $statuses = $this->stockTransferStatuses();
 
+        // Cutover pelo menu · thread 04 (D1 [W] 2026-10-07): React é o padrão, `?classico=1`
+        // mantém o Blade — molde `UnitController@index`; `?v=2` segue abrindo o React. A decisão
+        // vem ANTES do ramo `ajax()`: o Inertia manda `X-Requested-With` junto do `X-Inertia`, e
+        // com o `ajax()` primeiro o filtro da Page (`router.get`) recebia o JSON do DataTable
+        // (§5 2026-09-08). O DataTable do Blade (AJAX sem `X-Inertia`) segue no ramo de baixo.
+        if (request()->query('v') === '2' || (! request()->boolean('classico') && (! request()->ajax() || request()->header('X-Inertia')))) {
+            return $this->indexInertia($statuses);
+        }
+
         if (request()->ajax()) {
             $business_id = request()->session()->get('user.business_id');
             $edit_days = request()->session()->get('business.transaction_edit_days');
@@ -167,11 +176,7 @@ class StockTransferController extends Controller
                 ->make(true);
         }
 
-        // MWART Wave2 B5 — dual path opt-in Inertia via ?v=2 (ADR 0104).
-        if (request()->header('X-Inertia') || request()->query('v') === '2') {
-            return $this->indexInertia($statuses);
-        }
-
+        // Blade legacy: só com `?classico=1` (cutover pelo menu · thread 04, ver o topo).
         return view('stock_transfer.index')->with(compact('statuses'));
     }
 
@@ -290,8 +295,9 @@ class StockTransferController extends Controller
 
         $statuses = $this->stockTransferStatuses();
 
-        // MWART Wave2 B5 — dual path opt-in Inertia (ADR 0104).
-        if (request()->header('X-Inertia') || request()->query('v') === '2') {
+        // MWART Wave2 B5 — dual path Inertia (ADR 0104). Cutover pelo menu · thread 04: React
+        // por padrão, Blade só com `?classico=1`; `?v=2` segue valendo.
+        if (request()->query('v') === '2' || (! request()->boolean('classico') && (! request()->ajax() || request()->header('X-Inertia')))) {
             return $this->createInertia($business_id, $business_locations, $statuses);
         }
 

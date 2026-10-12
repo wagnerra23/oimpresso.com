@@ -27,6 +27,6 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 - **Status: ⬜**
 
 ## Backlog
-- [BACKLOG] O filtro não volta a página: mesmo defeito de ordem `ajax()` × `X-Inertia` do `index()` de ajustes (ver `StockAdjustment/Index.casos.md`).
+- [BACKLOG] O filtro não volta a página: mesmo defeito de ordem `ajax()` × `X-Inertia` do `index()` de ajustes (ver `StockAdjustment/Index.casos.md`). **Consertado em 2026-10-09** no cutover pelo menu · thread 04: a decisão React/Blade passou pra antes do ramo `ajax()`; a visita Inertia com `X-Requested-With` recebe a Page (`tests/Feature/CutoverMenu/EstoqueSemXInertiaTest.php`). Vira UC quando um caso citar o filtro.
 - [BACKLOG] `destroy()` busca a transferência só por `id` + `type`, sem `business_id` (mesmo achado do `destroy()` de ajuste). Grava quantidade: decisão [W].
 - [BACKLOG] A lista corta em 200 linhas (`limit(200)`) sem paginação nem aviso.

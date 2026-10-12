@@ -43,6 +43,11 @@ class FeatureFlagService
      */
     private array $fallbackDefaults = [
         'useV2SellsCreate' => true,
+        // D-CFG-LIGAR ([W] 2026-10-07, Sistema/13): as três telas para todas as empresas.
+        // Hostinger sem SDK usa estes defaults; flag conhecida OFF no GrowthBook continua vencendo.
+        'useV2ConfiguracoesLocais' => true,
+        'useV2ConfiguracoesImpressoras' => true,
+        'useV2ConfiguracoesCodigoBarras' => true,
         // useV2OfficeimpressoLicencas saiu em 2026-10-06: cutover da lista de Licencas, sem flag
         // nem Blade (RUNBOOK-licencas §F5).
     ];

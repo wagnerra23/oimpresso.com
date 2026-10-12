@@ -5,8 +5,8 @@ irmaos: Index.charter.md (lei)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: a lista é a PORTA do catálogo — se ela esconde produto, esconde preço a quem não devia, ou mistura tenant, todo o resto do ERP herda o erro.
 owner: wagner
-last_run: "2026-09-06"
-last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane Estoque · MySQL"
+last_run: "2026-10-12"
+last_run_ci: "run 38087431948 (lane Estoque · MySQL, commit 59fe58ae, com o arquivo fora da quarentena naquele commit): os 6 UC-PIDX passaram. A saída da quarentena da lane vai em PR próprio (o arquivo .github é CODEOWNERS [W])"
 ---
 
 # Casos de Uso & Aceite — Lista do catálogo (`/products`)
@@ -45,6 +45,9 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 > Blade (confirmado por [F] em 2026-07-24, `Edit.casos.md` §Trilha). O que está aqui é
 > **bloqueador de migração**: define quando a lista React pode ser ligada (MWART F5,
 > [ADR 0104](../../../../memory/decisions/0104-processo-mwart-canonico-unico-caminho.md) · US-PROD-023).
+> _(2026-10-10: a lista React foi refeita no desenho do protótipo sobre a consulta da lista Blade
+> — #9119 e #9124 — e o menu volta a abri-la no PR do cutover; `?classico=1` mantém o Blade.
+> A partir daí estes 6 casos defendem a tela viva da ROTA LIVRE.)_
 >
 > **Status:** ✅ passa · 🧪 teste cita o UC e passa · ⬜ não verificado (stub/sem veredito) ·
 > 🔶 backlog (achado a verificar / decisão [W]) · ❌ quebrou.
@@ -53,12 +56,29 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 
 | UC | Caso de uso | Prio | Âncora | Teste | Status |
 |----|-------------|------|--------|-------|--------|
-| UC-PIDX-01 | Todo produto do catálogo é alcançável na lista (sem corte silencioso) | must | Blade DataTables server-side + `AR-PROD-022/023` | `ProdutoIndexContratoTest` (Pest) | ⬜ failing-first — vermelho esperado |
-| UC-PIDX-02 | Busca é resolvida no servidor e acha por SKU de variação (`sub_sku`) | must | Blade `filterColumn('products.sku')` + `CU-PROD-02` | `ProdutoIndexContratoTest` (Pest) | ⬜ failing-first — vermelho esperado |
-| UC-PIDX-03 | Preço e custo na lista respeitam a permissão de vê-los | must | Blade `@can` ×2 (`resources/views/product/index.blade.php:287 (verificado@5d5cac0),294`) + `AR-PROD-015` | `ProdutoIndexContratoTest` (Pest) | 🧪 corrigido 2026-09-18 |
-| UC-PIDX-04 | Lista, KPIs e contadores só enxergam o business atual | must `[T0]` | `CU-PROD-10` + ADR 0093 + charter §Anti-hooks | `ProdutoIndexContratoTest` (Pest) | ⬜ guard — verde esperado |
+| UC-PIDX-01 | Todo produto do catálogo é alcançável na lista (sem corte silencioso) | must | Blade DataTables server-side + `AR-PROD-022/023` | `ProdutoIndexContratoTest` (Pest) | ⬜ reescrito 2026-10-10 — verde esperado |
+| UC-PIDX-02 | Busca é resolvida no servidor e acha por SKU de variação (`sub_sku`) | must | Blade `filterColumn('products.sku')` + `CU-PROD-02` | `ProdutoIndexContratoTest` (Pest) | ⬜ reescrito 2026-10-10 — verde esperado |
+| UC-PIDX-03 | Preço e custo na lista respeitam a permissão de vê-los | must | Blade `@can` ×2 (`resources/views/product/index.blade.php:287 (verificado@5d5cac0),294`) + `AR-PROD-015` | `ProdutoIndexContratoTest` (Pest) | ⬜ reescrito 2026-10-10 (era 🧪 corrigido 2026-09-18) |
+| UC-PIDX-04 | Lista e total só enxergam o business atual | must `[T0]` | `CU-PROD-10` + ADR 0093 + charter §Anti-hooks | `ProdutoIndexContratoTest` (Pest) | ⬜ guard — verde esperado |
 | UC-PIDX-05 | Abrir a lista não escreve no banco (GET é leitura pura) | must | charter §Anti-hooks + `AR-PROD-064` | `ProdutoIndexContratoTest` (Pest) | ⬜ guard — verde esperado |
-| UC-PIDX-06 | "Mostrar inativos" é resolvido no servidor | should | `AR-PROD-003/022` + Blade `active_state` (`:173-179`) | `ProdutoIndexContratoTest` (Pest) | ⬜ failing-first — vermelho esperado |
+| UC-PIDX-06 | Filtro de inativos (Situação) é resolvido no servidor | should | `AR-PROD-003/022` + Blade `active_state` | `ProdutoIndexContratoTest` (Pest) | ⬜ reescrito 2026-10-10 — verde esperado |
+| UC-PIDX-07 | Os 4 indicadores contam o catálogo inteiro; o valor é o total do relatório de estoque | must | charter v3 §Goals + decisão [F] 2026-10-10 (opção B) + Blade `stock_report.view`/`view_product_stock_value` | `ProdutoListaKpisTest` (Pest) | ⬜ nasce neste PR — verde esperado |
+| UC-PIDX-08 | A aba "Relatório de estoque" mostra as linhas de Relatórios → Estoque com os filtros da tela e totaliza TODAS as linhas | must | charter v3 §Goals + Blade `#product_stock_report` (`@can('stock_report.view')`) | `ProdutoListaEstoqueAbaTest` (Pest) | ⬜ nasce neste PR — verde esperado |
+| UC-PIDX-09 | O painel de detalhe mostra o conteúdo da janela "Ver" da Blade, com os mesmos gates, e só do produto da empresa | must `[T0]` | charter v3 §Goals + Blade `ProductController::view` + ADR 0093 | `ProdutoDetalheTest` (Pest) | ⬜ nasce neste PR — verde esperado |
+| UC-PIDX-10 | "Exportar filtrados" traz as mesmas linhas da lista, em CSV, com preço só para quem pode ver | should | charter v3 §Goals + protótipo (rodapé, `exportarCsv`) + gate de preço da lista (UC-PIDX-03) | `ProdutoListaExportarTest` (Pest) | ⬜ nasce neste PR — verde esperado |
+| UC-PIDX-11 | "Comprar" abre a nova compra com o produto | should | protótipo (`acoesDe`, rodapé do `DetalheDrawer`) + pedido [F] 2026-10-11 | `ProdutoDetalheTest` (Pest) | ⬜ verde esperado |
+| UC-PIDX-12 | Os 3 indicadores da aba Estoque do painel são a soma das linhas do relatório de estoque do produto | must | protótipo (`DetalheDrawer`, aba Estoque) + contas de `linhaDoRelatorioEstoque` + Blade `view_product_stock_value` | `ProdutoDetalheTest` (Pest) | ⬜ nasce neste PR — verde esperado |
+
+> 🔄 **Revalidação G-6 — 2026-10-10 (#9124, lista no desenho do protótipo).** Os 6 contratos
+> **continuam os mesmos**: derivam do SDD, da lista Blade e do Delphi, não da tela de cards. O que
+> mudou foi a tela e a forma de perguntar ao servidor (prop `lista` = paginador; filtros pelos nomes
+> do DataTable: `q`, `active_state`, `per_page`). O `ProdutoIndexContratoTest` foi **reescrito** para
+> isso; **run 38087431948 (lane Estoque · MySQL, commit 59fe58ae, com o arquivo fora da quarentena naquele commit): os 6 UC-PIDX passaram**. O arquivo continua listado na quarentena da lane até um PR próprio
+> tirá-lo de lá (`.github/` exige aprovação do [W] por CODEOWNERS). A consulta é provada também pelo
+> `ProdutoListaConsultaTest` (#9119: paridade com o DataTable do Blade filtro a filtro). As notas
+> **"Regressão que defende"** abaixo descrevem a tela de cards (`buildProdutoIndexRows`, `limit(200)`,
+> busca e inativos ignorados) — ficam como o registro do achado que a tela nova fecha. Status
+> voltam a ⬜ até a lane publicar o veredito do arquivo reescrito.
 
 > ⚠️ **Nenhum status aqui é "✅".** Os 6 UCs nasceram agora e **não rodei** — testes são CT 100/CI
 > ([ADR 0062](../../../../memory/decisions/0062-separacao-runtime-hostinger-ct100.md)).
@@ -84,7 +104,7 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
   - **Delphi `AR-PROD-022/023`** — *"Consultar — abre busca/listagem de produtos"* e *"o cadastro vira inativo e **some da lista, mas fica acessível por filtro**"*: no legado a lista é o caminho garantido pra chegar em **qualquer** produto; o que tira algo da vista é **filtro declarado**, nunca um corte invisível.
 - **Regressão que defende:** `buildProdutoIndexRows` (`:425-448`) fecha com `->orderBy('products.name')->limit(200)` e **não há paginação em lugar nenhum** — nem prop, nem `<Deferred>` incremental, nem link. Varredura contada em `Index.tsx`: **0** ocorrências de `page`/`paginate`/`next`. O KPI "Total de produtos" (`buildProdutoIndexKpis:382-385`) conta o catálogo **inteiro**. Resultado: com 1.000 produtos, a tela anuncia 1.000 e entrega 200 — os 800 que sobram são os do fim do alfabeto, e **nada na tela diz que foram cortados**. O `EmptyState` ("Ajuste filtros ou cadastre o primeiro produto") reforça a leitura errada.
 - **Nota de denominador:** os três builders usam recortes **diferentes** — `kpis.total` exclui `type='modifier'` e conta tudo; `rows` exclui `modifier` e corta em 200; `categorias` (`:477-494`) conta **todos** os produtos da categoria (inclusive `modifier` e inativos). Os números da mesma tela não fecham entre si. O UC trava o eixo principal (alcance); a divergência de contadores está no §Backlog.
-- **Status: ⬜** — failing-first; **vermelho esperado**. Só a lane decide.
+- **Status: ⬜** — reescrito 2026-10-10 para a lista no desenho do protótipo (prop `lista`, a MESMA consulta da lista Blade, paginada e buscada no servidor — #9119/#9124); verde esperado. Só a lane decide.
 
 ---
 
@@ -98,7 +118,7 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
   - **`AR-PROD-023`** (Delphi) — *"Consultar — abre busca/listagem"*.
 - **Regressão que defende:** o `filters.busca` chega ao controller (`:345`) e é **devolvido à página sem ser usado em query nenhuma** — `buildProdutoIndexRows` não recebe o termo (`:350` passa só `$business_id`). A filtragem acontece **no cliente** (`Index.tsx:126-131 (verificado@d4afe95)`), sobre `r.name` e `r.sku` do **produto-pai**, dentro do recorte de 200 do UC-PIDX-01. Varredura contada: `sub_sku` aparece **0 vezes** em `Index.tsx` e **0 vezes** nos 3 builders. Logo, buscar pela etiqueta da variação **não acha nada**, e buscar por nome só acha entre os 200 primeiros.
 - **Por que o teste precisa do assert negativo:** como o servidor **ignora** o termo, um teste que só pergunte *"o produto buscado veio?"* passaria **por acidente** (ele vem porque vem tudo). O caso assere também que quem **não** casa fica de fora — sem isso o teste mediria não-execução (`proibicoes.md` §5, 2026-07-24).
-- **Status: ⬜** — failing-first; **vermelho esperado**.
+- **Status: ⬜** — reescrito 2026-10-10 para a lista no desenho do protótipo (prop `lista`, a MESMA consulta da lista Blade, paginada e buscada no servidor — #9119/#9124); verde esperado. Só a lane decide.
 
 ---
 
@@ -112,7 +132,8 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
   - **Precedente do módulo** — `UC-PSHOW-01` (mesma família, na ficha) já está em failing-first; este é o mesmo furo na porta de entrada, onde o dado sai em **lote**.
 - **Regressão que defende:** `buildProdutoIndexRows` (`:450-471`) monta **`price`**, **`cost`** e **`margin`** para **toda** linha, sem consultar permissão alguma. As únicas permissões que o branch Inertia lê são `create`/`update`/`delete`/`opening_stock` (`:352-357`) — varredura contada de `view_purchase_price|access_default_selling_price` em `ProductController.php`: **0**. O card renderiza `fmtBRL(row.price)` (`Index.tsx:403 (verificado@d4afe95)`) sem gate; `cost` e `margin` não são renderizados mas **viajam no JSON das props** — visíveis no HTML da página. Ligar a lista React hoje **derruba um gate de custo que o Blade e o Delphi têm**, e em escala (todo o catálogo de uma vez, não um produto por vez).
 - **Não é `[V0]`:** não altera cálculo de valor — gateia **exibição**. A REGRA MESTRE (dupla-confirmação + antes→depois) não se aplica; marcar `[V0]` aqui inflaria o ritual sem proteger nada.
-- **Status: 🧪** — **corrigido em 2026-09-18**, junto com o irmão `UC-PSHOW-01` (mesmo furo, mesma
+- **Status: ⬜** — reescrito 2026-10-10 para a lista no desenho do protótipo (prop `lista`, a MESMA consulta da lista Blade, paginada e buscada no servidor — #9119/#9124); verde esperado. Só a lane decide. A lista nova só emite `compra_*`/`venda_*` com a permissão.
+  _(Antes:)_ 🧪 **corrigido em 2026-09-18**, junto com o irmão `UC-PSHOW-01` (mesmo furo, mesma
   família). `index()` resolve as duas permissões uma vez e passa ao builder; `buildProdutoIndexRows`
   só emite `price` com `access_default_selling_price`, `cost` com `view_purchase_price`, e `margin`
   **só com os dois** — ela deriva de ambos, então entregá-la sabendo um entrega o outro por dedução.
@@ -120,7 +141,7 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
   afirmaria que há um valor escondido); a unidade fica, porque é dado de cadastro.
   **Veredito medido** (CT 100, 2026-09-18): `UC-PIDX-03 ✓`. Nos dois contratos juntos,
   `3 failed, 7 passed (67 assertions)` — antes do fix eram `5 failed / 5 passed`.
-- ⚠️ **O arquivo CONTINUA em quarentena de lane, e isso é honesto:** os outros 3 casos
+- ⚠️ _(2026-09-18, histórico — em 2026-10-10 o teste reescrito passou inteiro na lane, run 38087431948; a saída da quarentena vai em PR próprio:)_ **O arquivo CONTINUA em quarentena de lane, e isso é honesto:** os outros 3 casos
   (`UC-PIDX-01` corte de 200 sem paginação · `UC-PIDX-02` busca · `UC-PIDX-06` filtro de inativos)
   seguem vermelhos. São a **outra metade** — alcance e filtragem server-side —, não têm relação com
   permissão, e sair da lista exigiria fechá-los também.
@@ -157,7 +178,81 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
   - **Delphi `AR-PROD-022`** — *"o cadastro vira inativo e some da lista, mas fica acessível por filtro de excluídos/inativos"*; **`AR-PROD-003`** — *"produto inativo não some do cadastro, só do fluxo de venda"*.
   - **Charter** §Goals — *"Toggle 'Mostrar inativos' (default: oculto)"*.
 - **Regressão que defende:** `filters.mostrarInativos` é lido (`:347`) e **devolvido sem uso**; `buildProdutoIndexRows` não filtra por `is_inactive` — manda ativos e inativos sempre. O ocultamento acontece no cliente (`Index.tsx:120-122 (verificado@d4afe95)`), **depois** do corte de 200: um catálogo com muitos inativos gasta as 200 vagas com linhas que a tela vai esconder, e produtos ativos legítimos somem da vista (composição com UC-PIDX-01). Pelo mesmo caminho, o badge do Blade para `not_for_selling` (`:263-264`) não tem par no React — §Backlog.
-- **Status: ⬜** — failing-first; **vermelho esperado**.
+- **Status: ⬜** — reescrito 2026-10-10 para a lista no desenho do protótipo (prop `lista`, a MESMA consulta da lista Blade, paginada e buscada no servidor — #9119/#9124); verde esperado. Só a lane decide.
+
+
+---
+
+## UC-PIDX-07 · Os 4 indicadores contam o catálogo inteiro; o valor é o total do relatório de estoque · `must`
+- **Persona:** Larissa abre o catálogo e quer, num olhar, quantos produtos tem, quantos estão abaixo do alerta, quantos inativos e quanto dinheiro está parado no estoque — e poder conferir esse dinheiro na aba "Relatório de estoque".
+- **Aceite:** Dado o catálogo da empresa · Quando abro `/products` · Então "Produtos cadastrados", "Abaixo do alerta" e "Inativos" são as contagens das MESMAS linhas que a lista mostra sem filtro (abaixo do alerta = estoque gerenciado, alerta definido e estoque ≤ alerta, a regra da linha); e "Valor em estoque (custo)" é o total da coluna "valor pelo preço de compra" do relatório de estoque, todas as linhas e sem filtro — e quando entra uma compra recebida de N unidades a C, ele sobe exatamente N × C depois do "Atualizado". Sem `stock_report.view` + `view_product_stock_value` o valor não vem (ausência, não zero).
+- **Teste:** [`ProdutoListaKpisTest`](../../../../tests/Feature/Produto/ProdutoListaKpisTest.php) — `UC-PIDX-07`.
+- **Contrato:**
+  - **Charter v3** §Goals — *"4 indicadores (protótipo): produtos cadastrados (variáveis · composições), abaixo do alerta, valor em estoque pelo custo (o MESMO total do Relatório de estoque — regra mestre de valor: prova dupla antes de subir) e inativos"*.
+  - **Decisão [F] 2026-10-10** — opção **B**: o total da aba "Relatório de estoque" (soma das linhas), não o "estoque de fechamento" do topo de Relatórios → Estoque (`getOpeningClosingStock`, outro conjunto de compras, ~0,1% de diferença medida em produção na biz 1).
+  - **Blade** — as colunas de valor do relatório só com `view_product_stock_value`; o resumo de valor só com `stock_report.view` + `view_product_stock_value` (`ReportController::getStockValue`).
+- **Prova dupla do valor (regra mestre):** (1) igual à soma linha a linha do JSON do DataTable do relatório (o código da lista Blade); (2) a variação com uma compra conhecida é a conta à mão. Em produção (biz 1, 2026-10-10) a soma no banco só da coluna `stock_price` deu diferença 0 contra a soma linha a linha da consulta completa.
+- **Status: ⬜** — nasce neste PR; verde esperado. Só a lane decide.
+
+
+---
+
+## UC-PIDX-08 · A aba "Relatório de estoque" mostra as linhas de Relatórios → Estoque e totaliza todas · `must`
+- **Persona:** Larissa filtra o catálogo (um local, uma categoria) e quer ver, sem sair da tela, quanto tem de cada item em cada local e quanto isso vale — e conferir o "Valor em estoque (custo)" do topo.
+- **Aceite:** Dado um filtro na tela · Quando abro a aba "Relatório de estoque" · Então as linhas são as MESMAS que Relatórios → Estoque mostra para esse filtro (25 por página, SKU e local); o rodapé traz os totais de **todas** as linhas (não só da página), iguais à soma linha a linha do relatório; sem filtro, o "valor pelo custo" do rodapé é o indicador "Valor em estoque (custo)" (UC-PIDX-07). Sem `stock_report.view` a aba não aparece e a prop não vem.
+- **Teste:** [`ProdutoListaEstoqueAbaTest`](../../../../tests/Feature/Produto/ProdutoListaEstoqueAbaTest.php) — `UC-PIDX-08`.
+- **Contrato:**
+  - **Charter v3** §Goals — *"Abas: Todos os produtos (com contagem) e Relatório de estoque (as colunas da lista Blade, com totais), esta só com `stock_report.view`"*.
+  - **Blade** — a aba `#product_stock_report` (`product/index.blade.php`, `@can('stock_report.view')`) pede `/reports/stock-report` com os filtros da lista (local, categoria, marca, unidade, tipo, situação, "não para venda", modelo). O rodapé dela somava só a página; o protótipo (`RelatorioEstoque`) soma todas — e é esse total que o indicador do topo mostra (decisão [F] 2026-10-10, opção B).
+  - **Contas** — as de `ProductUtil::linhaDoRelatorioEstoque` (movidas do `ReportController` no #9128, sem mudança), as mesmas da tela de Relatórios → Estoque.
+- **Status: ⬜** — nasce neste PR; verde esperado. Só a lane decide.
+
+
+---
+
+## UC-PIDX-09 · O painel de detalhe mostra o conteúdo da janela "Ver" da Blade, com os mesmos gates · `must` `[T0]`
+- **Persona:** Larissa clica num produto da lista e quer ver tudo dele — dados, variações e preços, estoque por local, dados fiscais, prateleira — sem sair do catálogo.
+- **Aceite:** Dado um produto da empresa · Quando abro o painel (`?ver={id}`) · Então os preços de compra só vêm com `view_purchase_price`, os de venda só com `access_default_selling_price` e o % de lucro só com as duas (sem a permissão a chave não existe — ausência, não zero); o estoque por local só vem com `stock_report.view` e é o mesmo de Relatórios → Estoque; e um produto de outra empresa não abre (`null`).
+- **Teste:** [`ProdutoDetalheTest`](../../../../tests/Feature/Produto/ProdutoDetalheTest.php) — `UC-PIDX-09`.
+- **Contrato:**
+  - **Charter v3** §Goals — painel de detalhe do protótipo (`DetalheDrawer`: Dados, Variações/Composição, Estoque, Fiscal, Prateleira).
+  - **Blade** — `ProductController::view` + `product/view-modal.blade.php` (e `single_/variable_/combo_product_details`): os gates `@can('view_purchase_price')` e `@can('access_default_selling_price')`, preço por grupo só dos grupos permitidos, estoque por local carregado de `/reports/stock-report` (pede `stock_report.view`).
+  - **ADR 0093** — `Product::where('business_id', …)`: produto de outra empresa não abre.
+- **Divergência deliberada, mais restrita que a Blade:** o total da composição pelo custo só vem com `view_purchase_price` (a Blade mostrava a coluna a todos). E "origem da mercadoria" (protótipo) não vem: o campo não existe no banco.
+- **Status: ⬜** — nasce neste PR; verde esperado. Só a lane decide.
+
+
+---
+
+## UC-PIDX-10 · "Exportar filtrados" traz as mesmas linhas da lista, em CSV · `should`
+- **Persona:** Larissa filtra o catálogo (uma marca, os inativos, uma busca) e quer a lista numa planilha para conferir ou mandar para alguém.
+- **Aceite:** Dado um filtro ou uma busca na tela · Quando clico em "Exportar filtrados" · Então baixo um CSV (`;`, vírgula decimal, UTF-8 — abre certo no Excel) com as MESMAS linhas que a lista mostra para esse filtro, todas as páginas; as colunas de preço de compra e de venda só existem para quem tem a permissão de vê-las; produto de outra empresa não entra.
+- **Teste:** [`ProdutoListaExportarTest`](../../../../tests/Feature/Produto/ProdutoListaExportarTest.php) — `UC-PIDX-10`.
+- **Contrato:**
+  - **Protótipo** — rodapé da vista `lista`: "Exportar filtrados" (`exportarCsv(ordenados)`).
+  - **Lista** — as linhas saem de `buildProdutoListaPaginada` (a mesma consulta, filtros, busca e ordem da tela); o gate de preço é o do UC-PIDX-03 (sem permissão a coluna não existe).
+  - A "Baixar Excel" do cabeçalho segue sendo a exportação completa da Blade (`/products/download-excel`).
+- **Status: ⬜** — nasce neste PR; verde esperado. Só a lane decide.
+
+## UC-PIDX-11 · "Comprar" abre a nova compra com o produto · `should`
+- **Persona:** Larissa vê na lista que um produto está acabando e quer repor sem ter de procurá-lo de novo na compra.
+- **Aceite:** Dado um produto ativo e com controle de estoque, e a permissão de criar compra · Quando escolho "Comprar este produto" no menu da linha, ou "Comprar" no painel de detalhe · Então abre a nova compra já com esse produto (UC-PURCRE-09). Sem a permissão, ou com produto inativo ou sem controle de estoque, a ação não aparece.
+- **Teste:** [`ProdutoDetalheTest`](../../../../tests/Feature/Produto/ProdutoDetalheTest.php) — `UC-PIDX-11` (a permissão); o que a compra faz com o produto é o UC-PURCRE-09, em [`PurchaseGradeMatrixTest`](../../../../tests/Feature/Purchase/PurchaseGradeMatrixTest.php).
+- **Contrato:**
+  - **Protótipo** — `acoesDe` ("Comprar este produto") e rodapé do `DetalheDrawer` ("Comprar"); pedido [F] 2026-10-11 *"abre preenchido com o produto"*.
+  - **Compra** — produto inativo ou sem controle de estoque não aparece na busca da compra (`getProducts`); por isso a ação some nesses casos, em vez de abrir uma compra vazia.
+- **Status: ⬜** — nasce neste PR; verde esperado. Só a lane decide.
+
+## UC-PIDX-12 · Os 3 indicadores da aba Estoque do painel somam o relatório de estoque do produto · `must`
+- **Persona:** Larissa abre o painel de um produto e quer ver de relance quanto tem dele, quanto isso vale pelo que pagou e por quanto venderia — sem ir a Relatórios → Estoque e somar local por local.
+- **Aceite:** Dado um produto com controle de estoque e um usuário com `stock_report.view` · Quando abro a aba Estoque do painel · Então "Estoque atual", "Valor pelo custo" e "Valor pela venda" (com o lucro potencial na legenda) são a **soma das linhas** que a própria aba lista — as de Relatórios → Estoque para esse produto. Sem `view_product_stock_value` os valores não vêm (aparece "—", nunca zero); sem `stock_report.view` nem a aba nem os indicadores vêm.
+- **Teste:** [`ProdutoDetalheTest`](../../../../tests/Feature/Produto/ProdutoDetalheTest.php) — `UC-PIDX-12`: cenário de dois locais (7 un. a 12 e 3 un. a 30, venda a 20) conferido por dois caminhos — a conta à mão (10 · 174 · 200 · 26) e a soma, linha a linha, do JSON do DataTable de Relatórios → Estoque (o código da Blade).
+- **Contrato:**
+  - **Protótipo** — `DetalheDrawer`, aba Estoque: três placas (estoque atual · valor pelo custo · valor pela venda, com lucro potencial).
+  - **Contas** — nenhuma nova: `ProductUtil::linhaDoRelatorioEstoque` por linha e `ProductUtil::somaDasLinhasDoEstoque` para somar — a MESMA função do rodapé da aba "Relatório de estoque" (UC-PIDX-08).
+  - **Blade** — valores do estoque só com `view_product_stock_value` (colunas do relatório de estoque).
+- **Divergência deliberada do protótipo:** a legenda do custo diz "pelo preço pago nas compras" (o protótipo diz "preço de compra padrão"). O campo do relatório é o que resta de cada compra recebida × o preço pago nela, não estoque × preço de compra do cadastro — é a mesma legenda do indicador do topo da lista (UC-PIDX-07).
+- **Status: ⬜** — nasce neste PR; verde esperado. Só a lane decide.
 
 ---
 
@@ -262,4 +357,11 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 - Gate: `scripts/casos-coverage-guard.mjs` (G-1/G-2/G-5/G-6/G-7 — [ADR 0264](../../../../memory/decisions/0264-governanca-executavel-trio-dominio-e2e.md))
 
 ## Trilha do tempo
+- 2026-10-12 · [F+C] **UC-PIDX-12** (os 3 indicadores da aba Estoque do painel): soma das linhas do relatório de estoque do produto, pela mesma função do rodapé da aba "Relatório de estoque"; prova dupla no `ProdutoDetalheTest`.
+- 2026-10-10 · [F+C] **UC-PIDX-10** ("Exportar filtrados" em CSV) e o botão "Etiquetas" na barra de seleção (abre a tela de etiquetas com os produtos selecionados — UC-PETQ-06).
+- 2026-10-10 · [F+C] **UC-PIDX-09** (painel de detalhe): os dados do painel no servidor, com o conteúdo e os gates da janela "Ver" da Blade; a tela do painel vem no PR seguinte.
+- 2026-10-10 · [F+C] menu da linha: sai "Ver" e o clique na linha (o destino `/products/{id}` não é página — é o pedaço das prateleiras; medido em produção) até o painel de detalhe do protótipo; entra "Adicionar ou editar estoque inicial" (como na lista Blade: estoque gerenciado + `product.opening_stock`, página do `OpeningStockController@add`). Nenhum UC muda.
+- 2026-10-10 · [F+C] **UC-PIDX-08** (aba "Relatório de estoque"): linhas de Relatórios → Estoque com os filtros da tela, rodapé com o total de todas as linhas; sem filtro, o valor pelo custo é o indicador do UC-PIDX-07.
+- 2026-10-10 · [F+C] **UC-PIDX-07** (os 4 indicadores do protótipo): contagens sobre a consulta da lista; valor = total do relatório de estoque (decisão [F], opção B), com prova dupla no `ProdutoListaKpisTest`.
+- 2026-10-10 · [F+C] **revalidação G-6** para a lista no desenho do protótipo (charter v3, #9118; dados #9119; tela #9124). Os 6 UCs ficam; o teste foi reescrito para a prop `lista` e passou inteiro na lane (run 38087431948); a saída da quarentena vai em PR próprio, por CODEOWNERS do `.github/`; status voltam a ⬜ até a lane rodar. A tabela de paridade e o backlog abaixo descrevem a tela de cards: o saldo, a imagem, os locais, as colunas, os 7 filtros, a seleção em massa, o selo "não para venda" e a ordenação por coluna **entram na tela nova**; a aba Relatório de estoque e os indicadores entram nas etapas seguintes.
 - 2026-07-26 · [CC] nascido pelo agent `sdd-from-source` ([ADR 0351](../../../../memory/decisions/0351-sdd-from-source.md)) — 3ª tela do módulo (depois de `Edit` e `Show`), trio fechado (charter existia + casos novo + `ProdutoIndexContratoTest` failing-first). Triangulação incomum: aqui a Blade legada **é o outro branch do mesmo método** `index()`, então a paridade é comparação interna do controller. **Achado principal:** a lista React entrega `price`/`cost`/`margin` de todo o catálogo sem consultar permissão, enquanto a **própria lista Blade** gateia as duas colunas com `@can` (UC-PIDX-03) — é o `UC-PSHOW-01` de novo, agora em lote. **Achado de alcance:** `limit(200)` sem paginação, com KPI anunciando o total — perda silenciosa (UC-PIDX-01). **Achado de arquitetura:** `App\Product` **não tem global scope** (`addGlobalScope` = 0 ocorrências); o isolamento do módulo inteiro é `where` manual repetido (UC-PIDX-04). **Governança:** o §Pest GUARD prometia 10 testes e o arquivo não existe; 3 refs factuais do charter estavam podres e foram corrigidas. Nenhum UC declarado ✅ — a lane `Estoque · MySQL` publica o veredito.

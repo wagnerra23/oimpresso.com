@@ -442,6 +442,8 @@ jobs:
           # MWART_CLIENTE_INDEX=true: sem o flag, /cliente cai no Blade legacy e dá 500
           # (provado por screenshot do artifact #2320) → fica fora do gate. Com o flag,
           # renderiza a Page Inertia canônica de Clientes — que é o que o gate deve proteger.
+          # Notificações: ativa somente na fixture sintética de CI, sem alterar produção.
+          FEATURE_FLAGS_FORCED_ON=useV2NotificationTemplates
           MWART_CLIENTE_INDEX=true
           # MWART_BACKUP_INDEX=true: mesmo motivo do de cima — sem o flag, /backup serve o
           # Blade legado e a baseline nasceria da tela VELHA, que e pior que nao ter baseline.

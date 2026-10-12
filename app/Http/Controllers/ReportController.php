@@ -230,8 +230,10 @@ class ReportController extends Controller
 
         // Tela React (playbook sistema/07). Vem ANTES do ajax(): a visita Inertia manda
         // X-Requested-With e cairia no JSON. Os totais vêm do MESMO JSON abaixo, que a Page
-        // busca sem `tela`; a tela não calcula nada. Sem `?tela=nova`, segue a Blade.
-        if ($request->query('tela') === 'nova') {
+        // busca com `fetch` (X-Requested-With, sem X-Inertia), então ele segue no ramo ajax().
+        // Cutover pelo menu · thread 05 (D1 [W] 2026-10-07): React é o padrão, Blade só com
+        // `?classico=1` (molde `UnitController@index`); `?tela=nova` segue abrindo o React.
+        if ($request->query('tela') === 'nova' || (! $request->boolean('classico') && (! $request->ajax() || $request->header('X-Inertia')))) {
             return Inertia::render('Relatorios/CompraVenda/Index', [
                 'locais' => collect(BusinessLocation::forDropdown($business_id, false))->map(fn ($nome, $id) => ['id' => (int) $id, 'nome' => (string) $nome])->values(),
                 'periodo' => [
@@ -573,7 +575,7 @@ class ReportController extends Controller
         }
 
         if ($request->ajax()) {
-            $filters = $this->filtrosDoEstoque(request()->all(), (int) $show_manufacturing_data);
+            $filters = $this->productUtil->filtrosDoEstoque(request()->all(), (int) $show_manufacturing_data);
 
             //Return the details in ajax call
             $for = request()->input('for') == 'view_product' ? 'view_product' : 'datatables';
@@ -671,7 +673,7 @@ class ReportController extends Controller
                         return null;
                     }
 
-                    $stock_price = $this->valorDoEstoquePorVenda($row);
+                    $stock_price = $this->productUtil->valorDoEstoquePorVenda($row);
 
                     return  '<span class="stock_value_by_sale_price" data-orig-value="'.(float) $stock_price.'" > '.$this->transactionUtil->num_f($stock_price, true).'</span>';
                 })
@@ -680,7 +682,7 @@ class ReportController extends Controller
                         return null;
                     }
 
-                    $potential_profit = $this->lucroPotencialDoEstoque($row);
+                    $potential_profit = $this->productUtil->lucroPotencialDoEstoque($row);
 
                     return  '<span class="potential_profit" data-orig-value="'.(float) $potential_profit.'" > '.$this->transactionUtil->num_f($potential_profit, true).'</span>';
                 })
@@ -724,40 +726,6 @@ class ReportController extends Controller
     }
 
     /**
-     * Filtros do relatório de estoque — os mesmos que o ramo ajax() montava de request()->only(...), movidos sem
-     * mudança: "não à venda" vira 1/0 e entra a chave de fabricação.
-     *
-     * @param  array<string, mixed>  $entrada
-     * @return array<string, mixed>
-     */
-    private function filtrosDoEstoque(array $entrada, int $show_manufacturing_data): array
-    {
-        $filters = array_intersect_key($entrada, array_flip(['location_id', 'category_id', 'sub_category_id', 'brand_id', 'unit_id', 'tax_id', 'type',
-            'only_mfg_products', 'active_state',  'not_for_selling', 'repair_model_id', 'product_id', 'active_state', ]));
-
-        $filters['not_for_selling'] = isset($filters['not_for_selling']) && $filters['not_for_selling'] == 'true' ? 1 : 0;
-
-        $filters['show_manufacturing_data'] = $show_manufacturing_data;
-
-        return $filters;
-    }
-
-    /** Valor do estoque pelo preço de venda (preço do grupo, se houver; senão o preço de venda) — conta da coluna da Blade. */
-    private function valorDoEstoquePorVenda(object $row): float
-    {
-        $stock = $row->stock ? $row->stock : 0;
-        $unit_selling_price = (float) ($row->group_price ?? 0) > 0 ? $row->group_price : $row->unit_price;
-
-        return (float) ($stock * $unit_selling_price);
-    }
-
-    /** Lucro potencial do estoque = valor pelo preço de venda − valor pelo preço de compra — conta da coluna da Blade. */
-    private function lucroPotencialDoEstoque(object $row): float
-    {
-        return (float) $this->valorDoEstoquePorVenda($row) - (float) $row->stock_price;
-    }
-
-    /**
      * Tela nova do relatório de estoque: as mesmas linhas de getProductStockDetails, 25 por página na ordem do DataTable
      * da Blade (SKU, crescente), com as mesmas contas de valor e o rodapé da página. O preço de venda só aparece com
      * access_default_selling_price e as colunas de valor só com view_product_stock_value, como na Blade.
@@ -773,29 +741,13 @@ class ReportController extends Controller
         $verPreco = auth()->user()->can('access_default_selling_price');
         $verValor = auth()->user()->can('view_product_stock_value');
 
-        $pagina = $this->productUtil->getProductStockDetails($business_id, $this->filtrosDoEstoque($filtros, $show_manufacturing_data), 'datatables')
+        $pagina = $this->productUtil->getProductStockDetails($business_id, $this->productUtil->filtrosDoEstoque($filtros, $show_manufacturing_data), 'datatables')
             ->orderBy('variations.sub_sku', 'asc')->orderBy('vld.location_id', 'asc')
             ->toBase()->paginate(25)->withQueryString();
 
-        $linhas = collect($pagina->items())->map(fn (\stdClass $r): array => [
-            'sku' => (string) $r->sku,
-            'produto' => (string) $r->product,
-            'variacao' => $r->type == 'variable' ? $r->product_variation.'-'.$r->variation_name : '',
-            'categoria' => (string) ($r->category_name ?? ''),
-            'local' => (string) ($r->location_name ?? ''),
-            'preco' => $verPreco ? (float) $r->unit_price : null,
-            // Produto sem controle de estoque: a Blade mostra "--".
-            'estoque' => $r->enable_stock ? (float) ($r->stock ? $r->stock : 0) : null,
-            'unidade' => (string) ($r->unit ?? ''),
-            'valor_compra' => $verValor ? (float) $r->stock_price : null,
-            'valor_venda' => $verValor ? $this->valorDoEstoquePorVenda($r) : null,
-            'lucro_potencial' => $verValor ? $this->lucroPotencialDoEstoque($r) : null,
-            'vendido' => (float) ($r->total_sold ?: 0),
-            'transferido' => (float) ($r->total_transfered ?: 0),
-            'ajustado' => (float) ($r->total_adjusted ?: 0),
-            // Como a linha vermelha da Blade: estoque no alerta ou abaixo.
-            'alerta' => (bool) ($r->enable_stock && $r->stock <= $r->alert_quantity),
-        ])->values();
+        $linhas = collect($pagina->items())
+            ->map(fn (\stdClass $r): array => $this->productUtil->linhaDoRelatorioEstoque($r, $verPreco, $verValor))
+            ->values();
 
         $soma = fn (string $c) => (float) $linhas->sum(fn (array $l) => $l[$c] ?? 0);
 
@@ -1887,7 +1839,11 @@ class ReportController extends Controller
         $pos_settings = empty($business_details->pos_settings) ? $this->businessUtil->defaultPosSettings() : json_decode($business_details->pos_settings, true);
 
         // Tela React do resumo (playbook comissoes/02). Convive com a Blade até as 4 abas de
-        // listagem serem portadas: a Blade segue o padrão da rota. Os totais vêm dos MESMOS
+        // listagem serem portadas: a Blade segue o padrão da rota.
+        // Cutover pelo menu · thread 05 (2026-10-09): esta tela FICOU FORA do React-por-padrão.
+        // A Page só tem o resumo; as 4 abas de listagem (vendas, com comissão, despesas,
+        // pagamentos com comissão) só existem na Blade. Virar padrão as esconderia de quem
+        // entra pelo menu. Muda quando as abas forem portadas. Os totais vêm dos MESMOS
         // endpoints JSON (getSalesRepresentativeTotal*); a tela não calcula nada.
         if ($request->query('tela') === 'nova') {
             return Inertia::render('Report/SalesRepresentative/Index', [

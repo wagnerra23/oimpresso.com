@@ -16,6 +16,18 @@
 #   C1, C2, C3, C6 seguem válidos (C6: NULLIF é expressão de coluna, sem valor interpolado).
 #   source_blob_sha atualizado por isso — não é revalidação das outras 36 funções.
 #
+# Rejulgamento parcial 2026-10-10 [F+C] (PR #9128): o arquivo GANHOU 4 funções no fim, movidas do
+#   ReportController sem mudança de conta (filtrosDoEstoque, valorDoEstoquePorVenda,
+#   lucroPotencialDoEstoque, linhaDoRelatorioEstoque). As linhas 1-2392 seguem byte-idênticas (`cmp`);
+#   só o `}` que fecha a classe desceu. Nenhuma função julgada mudou — source_blob_sha atualizado por
+#   isso. As 4 novas NÃO foram julgadas aqui (não é revalidação nem extensão do parecer).
+#
+# Rejulgamento parcial 2026-10-12 [F+C] (PR #9147): o arquivo GANHOU 1 função no fim —
+#   somaDasLinhasDoEstoque, o laço de soma que estava em ProductController::totaisDoRelatorioEstoque,
+#   movido sem mudança de conta. As linhas 1-2460 seguem byte-idênticas (`cmp`); só o `}` que fecha a
+#   classe desceu. Nenhuma função julgada mudou — source_blob_sha atualizado por isso. A nova NÃO foi
+#   julgada aqui (não é revalidação nem extensão do parecer).
+#
 # validation_status: pareceres-ancorados-nao-validados — os vereditos são PARECER ancorado em
 #   evidência+intenção externa, NÃO achados provados. O INSTRUMENTO (juiz) foi calibrado em fixture
 #   sintética não-circular (método §5 rodada 3, κ=1,0), mas isso NÃO re-valida estes vereditos sobre a
@@ -25,7 +37,7 @@ file: app/Utils/ProductUtil.php
 module: Produto
 rubric: memory/requisitos/_Governanca/FUNCAO-SCORECARD-METODO.md
 rubric_version: "1.1"
-source_blob_sha: "0dbb8e1596bea95b32042491692c41013b292ec5"
+source_blob_sha: "3889cb512946fedcc8cdd843b7083fa0b3c0730d"
 judged_at: "2026-07-21"
 judge: "claude-opus-4-8"
 source: full-sweep-2026-07-21

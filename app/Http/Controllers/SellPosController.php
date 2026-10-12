@@ -2559,7 +2559,13 @@ class SellPosController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
-        if (request()->ajax()) {
+        // Cutover pelo menu · thread 02 (D1 [W] 2026-10-07): React é o padrão, `?classico=1`
+        // mantém o Blade — molde `UnitController@index`. A decisão vem ANTES do ramo `ajax()`:
+        // o Inertia manda `X-Requested-With` junto do `X-Inertia`, e com o `ajax()` primeiro a
+        // visita Inertia recebia o JSON do DataTable (§5 2026-09-08).
+        $telaReact = ! request()->boolean('classico') && (! request()->ajax() || request()->header('X-Inertia'));
+
+        if (! $telaReact && request()->ajax()) {
             $business_id = request()->session()->get('user.business_id');
 
             $sells = Transaction::leftJoin('contacts', 'transactions.contact_id', '=', 'contacts.id')
@@ -2702,8 +2708,8 @@ class SellPosController extends Controller
             return $datatable;
         }
 
-        // Wave 1 W1-A — branch dual MWART. Inertia se header X-Inertia presente.
-        if (request()->header('X-Inertia')) {
+        // Wave 1 W1-A — Page React; com `request()->header('X-Inertia')` ou GET comum (ver acima).
+        if ($telaReact) {
             $business_id = request()->session()->get('user.business_id');
 
             $recurringBase = Transaction::where('business_id', $business_id)
@@ -2728,7 +2734,9 @@ class SellPosController extends Controller
                 ],
                 'urls' => [
                     'datatable' => '/sells/subscriptions?ajax=1',
-                    'toggle' => '/sells/recurring-toggle',
+                    // Rota real: `GET /toggle-subscription/{id}` (routes/web.php). Apontava pra
+                    // `/sells/recurring-toggle`, que não existe: o botão parar/retomar dava 404 calado.
+                    'toggle' => '/toggle-subscription',
                     'back' => '/sells',
                 ],
             ]);

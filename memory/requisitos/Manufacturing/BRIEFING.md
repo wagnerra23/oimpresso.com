@@ -2,8 +2,8 @@
 id: requisitos-manufacturing-briefing
 module: Manufacturing
 status: parcial
-status_nota: "Migração Inertia com CUTOVER concluído em 2026-09-04 — as 5 telas servem nos endereços canônicos (/manufacturing/recipe, /production, /report, /settings, /insumos), com ?legacy=1 devolvendo o Blade no mesmo endereço e /v2/* como 301. Faltam US-MANU-006 (editor de ingredientes) e US-MANU-007 (formulário de ordem, travada por decisão FSM). Sem pilot dedicado; provê custeio/BOM."
-updated_at: "2026-09-03"
+status_nota: "Migração Inertia com CUTOVER concluído em 2026-09-04 — as 5 telas servem nos endereços canônicos (/manufacturing/recipe, /production, /report, /settings, /insumos), com ?legacy=1 devolvendo o Blade no mesmo endereço e /v2/* como 301. O editor de ingredientes (US-MANU-006) entrou em 2026-10-08 atrás de ?tela=nova, com as 6 regras de tela provadas em vitest. Falta a US-MANU-007 (formulário de ordem, travada por decisão FSM). Sem pilot dedicado; provê custeio/BOM."
+updated_at: "2026-10-09"
 owner: W
 related_adrs:
   - 0011-alinhamento-padrao-jana
@@ -65,7 +65,8 @@ A versão anterior afirmava "Frontend Inertia/React ❌ pendente" e "Charter pá
 | **Configurações do módulo (Inertia)** | 🟢 **novo (Wave 31, US-MANU-003)** — código escrito, Pest na lane de CI | `Pages/Manufacturing/Settings.tsx` + `SettingsController@indexV2` (o `@store` legado é reusado SEM alteração) |
 | **Ordens de produção — 8 colunas do §4.5** | 🟢 **emenda (Wave 32, US-MANU-004)** — Produto/Qtd/Custo unit. + sufixo `fix` + rodapé; corrigiu N+1 do `location` que existia desde a Wave J | `Pages/Manufacturing/Index.tsx` + `ProductionService::enrichProductionRows` + `StatusBadge` domínio `producao` |
 | **Insumos — impacto reverso + simulador de preço** | 🟢 **novo (Wave 33, US-MANU-005)** — traz o backend que o §18.3 declarava faltar (`usosDoInsumo`); simulação RECALCULA pela fórmula real, não pelo atalho aditivo do protótipo | `Pages/Manufacturing/Insumos.tsx` + `RecipeController@insumos` + `RecipeBomService::{usosDoInsumo,listInsumosComUso}` |
-| Charter páginas Inertia | 🟡 5 em draft (não `live`) | `Index` · `Recipes` · `Report` · `Settings` · `Insumos` |
+| **Editor de ingredientes (Inertia)** | 🟢 **entregue em 3 etapas (US-MANU-006)** — #9059 leitura · #9068 edição · #9072 excluir e link da lista. Abre em `/manufacturing/add-ingredient?variation_id=N&tela=nova`; sem `tela=nova` o endereço segue servindo a janela Blade. Servidor recalcula o custo e recusa receita vazia (#9051); só apaga receita da própria empresa (#9071). As 6 regras de tela do handoff §5 têm teste vitest/jsdom (UC-INGRED-08..13, lane `manufacturing-jsdom-gate`) | `Pages/Manufacturing/IngredientesEditor.tsx` + `RecipeController@addIngredients` (ramo `tela=nova`) + `RecipeBomService::{editorDaReceita,buscarInsumos}` |
+| Charter páginas Inertia | 🟡 6 em draft (não `live`) | `Index` · `Recipes` · `Report` · `Settings` · `Insumos` · `IngredientesEditor` |
 
 ## Gaps catalogados
 
@@ -73,7 +74,7 @@ A versão anterior afirmava "Frontend Inertia/React ❌ pendente" e "Charter pá
 - **Wave 30 (US-MANU-002, Relatório) sem verificação real ainda** — código completo (backend + frontend + charter + casos + Pest), `php -l`/`tsc` limpos, mas **Pest não rodou no CT 100** e **smoke prod não foi feito**. Não declarar "pronto" até isso fechar — proibicoes.md §"Claim sem evidência".
 - ~~**Cobertura Spatie permissions** — `R-MANU-001..005` no SPEC ainda com `_lacuna_`~~ — **fechado em 2026-09-03**: `Modules/Manufacturing/Tests/Feature/PermissionsTest.php` criado (R-MANU-002/003/005 por HTTP real; R-MANU-001 já estava em `MultiTenantIsolationTest`, linha do SPEC só desatualizada). **Achado durante o fix:** R-MANU-004 (`manufacturing.edit_recipe`) protege uma rota que não existe — `UpdateRecipeRequest` não está wired a nenhum PUT/PATCH (`Route::resource(...)->except('edit','update')`). Fica registrado no SPEC, não escondido.
 - ~~**US-MANU** — SPEC sem user stories escritas~~ — **fechado em 2026-09-02**: `US-MANU-001` foi escrita a partir do handoff "PROTÓTIPO OFICIAL - FABRICAÇÃO V1" (§2 + §17), com DoD e `**Testado em:**` ancorados.
-- **MWART parcial** — migraram a lista de produções (Wave J), a **consulta** de receitas (Wave 29), o **relatório do período** (Wave 30) e as **configurações** (Wave 31). Seguem Blade: create/edit/destroy da receita, o editor de ingredientes e o formulário de ordem — nessa ordem de custo crescente (decisão [M] 2026-09-02). **US-MANU-007 (formulário de ordem) está TRAVADA** aguardando decisão [W] sobre o caminho rascunho→finalizada (é Tier 0 de ESTOQUE — ver SPEC).
+- **MWART parcial** — migraram a lista de produções (Wave J), a **consulta** de receitas (Wave 29), o **relatório do período** (Wave 30) e as **configurações** (Wave 31). O editor de ingredientes migrou em 2026-10-08 (etapas 1-3, ver tabela acima). Segue Blade o formulário de ordem — última da ordem de custo crescente (decisão [M] 2026-09-02). **US-MANU-007 (formulário de ordem) está TRAVADA** aguardando decisão [W] sobre o caminho rascunho→finalizada (é Tier 0 de ESTOQUE — ver SPEC).
 - ~~**Aba Insumos não existe** — §18.3: `usosDoInsumo` é cálculo novo sem backend~~ — **fechado em 2026-09-04** (Wave 33): o método existe, com JOIN de tenant e teste. A lista de insumos é DERIVADA dos ingredientes (o app não tem flag de matéria-prima) — ver `RUNBOOK-insumos.md §2`.
 - **Atualizar preço de venda em massa não implementado** — §18.1 proíbe o `custo × 2` do protótipo, e a regra de markup real não foi decidida. É Tier 0 de valor.
 - **E2E de `Recipes.tsx` deixado pendente por decisão explícita ([F] 2026-09-03)** — `Recipes.casos.md` tem 8 itens no "Backlog de casos" (comportamento de navegador: busca/atalho `/`, KPI-filtro, ordenação, seleção, cor da margem, drawer, ficha sem valor). `e2e/manufacturing-recipes.spec.ts` já rascunha 4 deles como `test.fixme` — não rodam porque falta fixture Playwright autenticada (sessão + business com receitas semeadas) pro módulo Manufacturing; os outros 4 nem chegaram a ser esboçados. Não quebra gate nenhum hoje (backlog declarado ≠ UC órfão), mas fica sem cobertura de regressão de navegador. **Retomar quando alguém for mexer na tela de novo, ou se pedirem explicitamente.**
@@ -98,7 +99,9 @@ A versão anterior afirmava "Frontend Inertia/React ❌ pendente" e "Charter pá
 **?/100 (stale)** — última medição registrada **48/100** em 2026-05-16 (Wave Massive). O código evoluiu depois (Wave J v2 list + Wave 14/17/26/27 observ./dashboard/LGPD), então o 48 já não reflete o estado. **Não reavaliável**: a rubrica `module-grade` foi APOSENTADA em 2026-09-15 ([ADR 0399](../../decisions/0399-aposentar-rubrica-module-grade-gate-e-baseline.md)) — **não existe mais nota de módulo, nem comando que a calcule**. O 48/100 fica como último valor conhecido, datado. Anti-fabricação segue valendo — nenhum número novo foi inventado no lugar.
 
 ---
-**Atualizado:** 2026-09-02 — a consulta de receitas entra em `/manufacturing/recipe` (Wave 29,
+**Atualizado:** 2026-10-09 — o editor de ingredientes (US-MANU-006) entra na tabela de capacidades e sai da lista do que segue em Blade; as 6 regras de tela do §5 ganham teste vitest (UC-INGRED-08..13). [M+C]
+
+**Antes:** 2026-09-02 — a consulta de receitas entra em `/manufacturing/recipe` (Wave 29,
 porte do handoff "PROTÓTIPO OFICIAL - FABRICAÇÃO V1"). O dono vivo da nota do módulo é o
 `Module Grades Gate`, que a publica no corpo de cada PR — este briefing aponta pra ele em vez
 de repetir o número, que apodreceria aqui. [CC]

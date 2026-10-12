@@ -57,7 +57,8 @@ it('Page NÃO usa sessionStorage (GOTCHAS — usar localStorage com prefixo oimp
 });
 
 it('Page usa localStorage com prefixo oimpresso.produto.', function () {
-    $source = readProdutoIndex();
+    // As chaves moram nos tipos da lista (importados pela Page) desde 2026-10-10.
+    $source = readProdutoIndex() . file_get_contents(repo_path('resources/js/Pages/Produto/_components/lista/tipos.ts'));
     expect($source)->toContain("'oimpresso.produto.");
 });
 
@@ -73,12 +74,14 @@ it('Page NÃO contém `: any` em type annotations (TypeScript estrito)', functio
     expect($source)->not->toMatch('/:\s*any\b/');
 });
 
-it('Page tem KPI strip 4 cards (Total · Ativos · Categorias · Populares)', function () {
+// 2026-10-10 — a Page é a lista do protótipo (produto-blade.jsx, vista `lista`), não mais o
+// catálogo de cards: os 4 KPIs de cards (Total · Ativos · Categorias · Populares) saíram.
+it('Page tem as colunas da lista do protótipo', function () {
     $source = readProdutoIndex();
-    expect($source)->toContain('Total');
-    expect($source)->toContain('Ativos');
-    expect($source)->toContain('Categorias');
-    expect($source)->toContain('Populares');
+    expect($source)->toContain("header: 'Produto'");
+    expect($source)->toContain("header: 'Estoque atual'");
+    expect($source)->toContain("header: 'Preço de venda'");
+    expect($source)->toContain("header: 'Categoria'");
 });
 
 it('Page tem search bar com aria-label', function () {
@@ -87,8 +90,9 @@ it('Page tem search bar com aria-label', function () {
     expect($source)->toContain('aria-label');
 });
 
-it('Page tem toggle "Mostrar inativos"', function () {
-    expect(readProdutoIndex())->toContain('Mostrar inativos');
+// O toggle "Mostrar inativos" era da tela de cards; a lista filtra pela "Situação", como o Blade.
+it('Filtros têm "Situação" (ativo/inativo), como a lista Blade', function () {
+    expect(file_get_contents(repo_path('resources/js/Pages/Produto/_components/lista/FiltrosLista.tsx')))->toContain('Situação');
 });
 
 it('Charter ao lado existe (MWART F1 requisito)', function () {
@@ -99,7 +103,9 @@ it('Charter declara mwart_pattern_reuse (ADR 0149)', function () {
     $charter = file_get_contents(repo_path('resources/js/Pages/Produto/Index.charter.md'));
     expect($charter)->toContain('mwart_pattern_reuse:');
     expect($charter)->toContain('blueprint_cowork:');
-    expect($charter)->toContain('produto-cockpit');
+    // Charter v3 (#9118, 2026-10-10): o blueprint é a vista lista do protótipo do [F], não o
+    // cockpit de cards de antes.
+    expect($charter)->toContain('prototipo-ui/cowork/Felipe/produto-blade.jsx');
 });
 
 it('RUNBOOK existe (MWART F1 requisito)', function () {

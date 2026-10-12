@@ -128,10 +128,13 @@ it('Controller importa Inertia\\Inertia (STEP 3)', function () {
     expect($source)->toMatch('/use Inertia\\\\Inertia;/');
 });
 
-it('Controller index() tem dual path (Blade fallback + Inertia atrás de flag)', function () {
+it('Controller index() tem dual path (React por padrão, Blade só com ?classico=1)', function () {
     $source = readPurchaseController();
-    // Branch detection: header X-Inertia OU query v=2
-    expect($source)->toMatch("/header\\('X-Inertia'\\)\\s*\\|\\|\\s*request\\(\\)->query\\('v'\\)\\s*===\\s*'2'/");
+    // Até 2026-10-09 o React ficava atrás de flag (header X-Inertia OU ?v=2). Desde o cutover
+    // pelo menu · thread 03 (D1 [W] 2026-10-07) o React é o padrão e o Blade só abre com
+    // `?classico=1`; `?v=2` segue abrindo o React. O comportamento é provado em
+    // tests/Feature/CutoverMenu/ComprasSemXInertiaTest.php — aqui só a forma da condição.
+    expect($source)->toContain("request()->query('v') === '2' || (! request()->boolean('classico') && (! request()->ajax() || request()->header('X-Inertia')))");
     // Método helper privado
     expect($source)->toContain('private function indexInertia');
     // Inertia::render

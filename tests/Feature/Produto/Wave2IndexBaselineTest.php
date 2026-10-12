@@ -57,17 +57,18 @@ it('ProductController index() usa business_id global scope (Tier 0 ADR 0093)', f
     expect($source)->not->toContain('auth()->user()->business_id');
 });
 
+// 2026-10-10 — a lista no desenho do protótipo trocou os 3 builders da tela de cards
+// (`buildProdutoIndexKpis/Rows/Categorias`) pela MESMA consulta da lista Blade. O comportamento
+// (isolamento, paridade com o Blade, busca, paginação) é provado em ProdutoListaConsultaTest;
+// estas duas checagens de texto só travam que a consulta recebe o business_id explícito.
 it('Builders Produto/Index Inertia passam business_id explícito (Tier 0)', function () {
     $source = file_get_contents(repo_path('app/Http/Controllers/ProductController.php'));
-    expect($source)->toContain('buildProdutoIndexKpis');
-    expect($source)->toContain('buildProdutoIndexRows');
-    expect($source)->toContain('buildProdutoIndexCategorias');
-    // Cada builder recebe businessId int — sem reliance em session() dentro de closure deferred
-    expect($source)->toContain('protected function buildProdutoIndexKpis(int $businessId): array');
+    expect($source)->toContain('protected function consultaListaProdutos(int $business_id, array $f, bool $is_woocommerce)');
+    expect($source)->toContain('protected function buildProdutoListaPaginada(int $business_id, array $f,');
 });
 
 it('Builders Produto/Index escopam queries por business_id', function () {
     $source = file_get_contents(repo_path('app/Http/Controllers/ProductController.php'));
-    // Cada builder DEVE filtrar por business_id (Tier 0 IRREVOGÁVEL)
-    expect($source)->toContain("where('business_id', \$businessId)");
+    // A consulta DEVE filtrar por business_id (Tier 0 IRREVOGÁVEL)
+    expect($source)->toContain("->where('products.business_id', \$business_id)");
 });

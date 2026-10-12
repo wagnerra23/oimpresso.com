@@ -24,6 +24,8 @@ uses(Tests\TestCase::class, DatabaseTransactions::class);
  *
  * Tenant 98 (fictício, ADR 0358) e 99 como a "outra empresa". NUNCA biz=4. Transação desfeita no fim.
  * ⚠️ SKIP em SQLite: leia assertions, não "0 failed" (LC-13).
+ *
+ * @covers-us US-MANU-006
  */
 require_once __DIR__.'/../Support/receita-empresa-fixtures.php';
 

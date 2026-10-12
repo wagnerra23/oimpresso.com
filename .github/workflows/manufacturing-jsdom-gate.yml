@@ -1,4 +1,4 @@
-name: "Manufacturing jsdom Gate — filtro De/Até das Ordens de produção (UC-OP-06)"
+name: "Manufacturing jsdom Gate — specs jsdom do módulo (UC-OP-06 · UC-INGRED-08..13)"
 
 # POR QUE ESTA LANE EXISTE
 #
@@ -18,8 +18,21 @@ name: "Manufacturing jsdom Gate — filtro De/Até das Ordens de produção (UC-
 # Enforcement (classe/terminal) mora no `scripts/governance/gates-registry.json`; o que
 # bloqueia merge mora no `governance/required-checks-baseline.json` (LC-10).
 #
+# A lane é a CASA dos specs jsdom do módulo (molde da forja-jsdom-gate). Entrou em 2026-10-09
+# `tests/js/manufacturing-ingredientes-editor.test.tsx` — as 6 regras de TELA do editor de
+# ingredientes (handoff §5, UC-INGRED-08..13), que estavam no backlog do casos.md por falta de
+# teste de navegador. Bite-test antes do merge (mutação + restore conferido por hash), controle
+# sem mutação 17/17 verde:
+#   regra 1 · motivo "sem ingrediente" desligado       → 2 failed
+#   regra 2 · trava de quantidade ignorada             → 1 failed
+#   regra 3 · campo editável sem permissão             → 1 failed
+#   regra 4 · multiplicador da sub-unidade = 1         → 2 failed
+#   regra 5 · gravar ao editar a quantidade            → 1 failed
+#   regra 5 · alterar a ficha recebida (não a cópia)   → 3 failed
+#   regra 6 · confirmação conta a cópia, não o gravado → 1 failed
+#
 # Comando local (vitest não é Pest; roda fora do CT 100 sem violar a ADR 0062):
-#   npx vitest run tests/js/manufacturing-index-datas.test.tsx
+#   npx vitest run tests/js/manufacturing-index-datas.test.tsx tests/js/manufacturing-ingredientes-editor.test.tsx
 
 on:
   workflow_dispatch:
@@ -28,12 +41,20 @@ on:
     paths:
       - 'resources/js/Pages/Manufacturing/Index.tsx'
       - 'tests/js/manufacturing-index-datas.test.tsx'
+      - 'resources/js/Pages/Manufacturing/IngredientesEditor.tsx'
+      - 'resources/js/Pages/Manufacturing/_lib/custo.ts'
+      - 'resources/js/Pages/Manufacturing/_components/ExcluirReceitaDialog.tsx'
+      - 'tests/js/manufacturing-ingredientes-editor.test.tsx'
       - '.github/workflows/manufacturing-jsdom-gate.yml'
   push:
     branches: [main]
     paths:
       - 'resources/js/Pages/Manufacturing/Index.tsx'
       - 'tests/js/manufacturing-index-datas.test.tsx'
+      - 'resources/js/Pages/Manufacturing/IngredientesEditor.tsx'
+      - 'resources/js/Pages/Manufacturing/_lib/custo.ts'
+      - 'resources/js/Pages/Manufacturing/_components/ExcluirReceitaDialog.tsx'
+      - 'tests/js/manufacturing-ingredientes-editor.test.tsx'
 
 concurrency:
   group: manufacturing-jsdom-gate-${{ github.ref }}
@@ -44,7 +65,7 @@ permissions:
 
 jobs:
   manufacturing-jsdom:
-    name: Manufacturing · filtro De/Até aplica ao escolher (vitest/jsdom)
+    name: Manufacturing · specs jsdom (vitest)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -54,10 +75,11 @@ jobs:
       - name: Install deps
         run: npm ci
 
-      - name: UC-OP-06 — De/Até aplica ao escolher (vitest/jsdom)
+      - name: UC-OP-06 · UC-OP-10 · UC-INGRED-08..13 (vitest/jsdom)
         run: |
           npx vitest run \
             tests/js/manufacturing-index-datas.test.tsx \
+            tests/js/manufacturing-ingredientes-editor.test.tsx \
             --reporter=default \
             --reporter=junit \
             --outputFile=test-results/vitest-manufacturing-jsdom-junit.xml
