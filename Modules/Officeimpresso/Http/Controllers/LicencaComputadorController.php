@@ -366,7 +366,9 @@ class LicencaComputadorController extends Controller
                 'cnpj'               => $b->cnpj,
                 'versao_disponivel'  => $b->versao_disponivel,
                 'versao_obrigatoria' => $b->versao_obrigatoria,
-                'ultimo_acesso'      => $b->ultimo_acesso ? Carbon::parse($b->ultimo_acesso)->toIso8601String() : null,
+                // Data zero do MySQL (`0000-00-00 …`) é "sem acesso": o Carbon a leria como -0001-11-30.
+                'ultimo_acesso'      => $b->ultimo_acesso && ! str_starts_with((string) $b->ultimo_acesso, '0000')
+                    ? Carbon::parse($b->ultimo_acesso)->toIso8601String() : null,
                 'bloqueado'          => (bool) $b->officeimpresso_bloqueado,
             ])
             ->values()

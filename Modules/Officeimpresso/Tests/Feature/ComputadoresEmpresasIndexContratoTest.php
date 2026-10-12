@@ -111,16 +111,17 @@ it('UC-EMPS-04 · versão obrigatória vem do cadastro e o último acesso é o d
     oiEmpFlag(true);
     $biz = (int) $this->oiEmpCliente->id;
     oiEmpMarca($this, $biz, ['is_officeimpresso' => 1, 'versao_obrigatoria' => '6.7.12']);
-    // 2099: no CT 100 o banco persiste — a máquina mais recente tem de ser a deste teste.
-    oiEmpMaquina($this, $biz, '2099-01-10 08:00:00');
-    oiEmpMaquina($this, $biz, '2099-03-05 14:30:00');
+    // 2037: no CT 100 o banco persiste, então a máquina mais recente tem de ser a deste teste; e a
+    // coluna é TIMESTAMP (teto em 2038) — 2099 virava a data zero e o teste media o lixo, não o MAX.
+    oiEmpMaquina($this, $biz, '2037-01-10 08:00:00');
+    oiEmpMaquina($this, $biz, '2037-03-05 14:30:00');
     oiEmpMaquina($this, $biz, null);
     $this->actingAs(oiEmpUser($this));
 
     $linha = collect(oiEmpParcial($this, 'empresas')->json('props.empresas'))->firstWhere('id', $biz);
 
     expect($linha['versao_obrigatoria'])->toBe('6.7.12');
-    expect(substr((string) $linha['ultimo_acesso'], 0, 16))->toBe('2099-03-05T14:30');
+    expect(substr((string) $linha['ultimo_acesso'], 0, 16))->toBe('2037-03-05T14:30');
 });
 
 it('UC-EMPS-05 · o status sai do bloqueio da empresa: bloqueada e liberada', function () {
