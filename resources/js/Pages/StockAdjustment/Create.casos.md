@@ -4,7 +4,7 @@ irmaos: Create.charter.md (lei) · Create.tsx
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: o ajuste baixa saldo; o formulário não pode oferecer filial de outra empresa nem abrir para quem não pode lançar.
 owner: wagner
-last_run: "2026-10-06"
+last_run: "2026-10-11"
 last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane PHP / Pest (Estoque · MySQL)"
 ---
 
@@ -25,6 +25,20 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 - **Aceite:** Dado filiais no business 98 e no 99 · Quando abro o formulário pelo browser · Então `business_locations` traz a minha filial e não a do 99.
 - **Teste:** `MovimentacoesTelasContratoTest` — `UC-AJCRT-02 [T0] o formulário de ajuste só oferece filiais do próprio business`.
 - **Regressão que defende:** baixa de saldo em filial alheia escolhida na tela (INV-6).
+- **Status: ⬜**
+
+## UC-AJCRT-03 · O ajuste baixa do local a quantidade ajustada, nos dois formatos de envio `[V0]` `[must]`
+- **Persona:** quem cuida do estoque e dá baixa de perda, quebra ou correção de contagem.
+- **Aceite:** Dado um produto com 10 no local · Quando salvo um ajuste de 3 unidades · Então o local fica com 7. O resultado é o mesmo quando o envio vem no formato da tela React (data ISO, vírgula decimal sem milhar) e no formato da Blade (data e números no formato da empresa). Preço com 3 casas (`12,125`), preço de milhar (`1500`) e valor recuperado (`1234,5`) são gravados sem inflar.
+- **Teste:** [`EstoqueAjusteStoreTest`](../../../../tests/Feature/Estoque/EstoqueAjusteStoreTest.php) — os 3 casos `UC-AJCRT-03`.
+- **Contrato:** DOC-RAIZ-ESTOQUE §3 (`stock_adjustment`: SAI do local pela quantidade ajustada).
+- **Regressão que defende:** a tela React mandava a data em ISO e o `store()` só lia o formato da empresa; e número com ponto decimal é lido como milhar pelo `num_uf` (incidente de 2026-06-05).
+- **Status: ⬜** — nasce neste PR; verde esperado. Só a lane decide.
+
+## UC-AJCRT-04 · O ajuste baixa só o local escolhido `[must]`
+- **Aceite:** Dado o mesmo produto com saldo em dois locais · Quando ajusto 2 unidades num deles · Então só aquele local baixa; o outro não muda.
+- **Teste:** `EstoqueAjusteStoreTest` — `UC-AJCRT-04`.
+- **Contrato:** DOC-RAIZ-ESTOQUE §2 (o saldo é por variação × local).
 - **Status: ⬜**
 
 ## Backlog
