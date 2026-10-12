@@ -1,21 +1,35 @@
 // Painel de detalhe do produto — `DetalheDrawer` do protótipo (produto-blade.jsx) com o conteúdo da
 // janela "Ver" da lista Blade. Os dados chegam prontos de ProductController::buildProdutoDetalhe, com os
 // gates da Blade: chave de preço ausente = sem permissão (nunca zero).
+//
+// O painel abre num portal fora do `.cockpit`, então as cores e a fonte do design não chegam
+// sozinhas: `produto-painel.css` repõe os tokens e traz as medidas da moldura do protótipo.
 
 import { useState } from 'react';
-import { Archive, Pencil, Printer } from 'lucide-react';
-import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from '@/Components/ui/sheet';
+import { Archive, Pencil, Printer, X } from 'lucide-react';
+import { Sheet, SheetClose, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from '@/Components/ui/sheet';
 import { Button } from '@/Components/ui/button';
 import { Skeleton } from '@/Components/ui/skeleton';
 import { Grid, Inline } from '@/Components/layout';
 import PageHeaderTabs from '@/Components/shared/PageHeaderTabs';
 import { brl, qtdComUnidade } from '../../Unificado/_components/catalogo';
 import { TIPO_ROTULO, type DetalheProdutoDados } from './tipos';
+import '../../../../../css/produto-painel.css';
 
 type Aba = 'dados' | 'variacoes' | 'composicao' | 'estoque' | 'fiscal' | 'prateleira';
 
 const qtd = (n: number) => n.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
 const dinheiro = (n: number | undefined | null) => (n === undefined || n === null ? '—' : brl(n));
+// Produto único tem uma variação interna chamada DUMMY; o protótipo a mostra como "Padrão".
+const nomeDaVariacao = (n: string | null | undefined) => (!n || n === 'DUMMY' ? 'Padrão' : n);
+
+function Fechar() {
+  return (
+    <SheetClose className="pb-painel-fechar" aria-label="Fechar painel">
+      <X size={16} aria-hidden />
+    </SheetClose>
+  );
+}
 
 function Dt({ rotulo, valor }: { rotulo: string; valor: string | null | undefined }) {
   return (
@@ -62,23 +76,31 @@ export default function PainelDetalheProduto({ aberto, detalhe: d, aoFechar, pod
     <Sheet open={aberto} onOpenChange={(v) => !v && aoFechar()}>
       {/* `pb-root` de novo: o conteúdo vai para um portal fora da tela e perderia o escopo do bundle
           (lápide §5 2026-07-10 — re-aplicar o wrapper no conteúdo do portal). */}
-      <SheetContent side="right" className="pb-root w-[820px] max-w-[95vw] gap-0 p-0 sm:max-w-[820px]">
+      <SheetContent side="right" showCloseButton={false} className="pb-root w-[820px] max-w-[95vw] gap-0 p-0 sm:max-w-[820px]">
         {!d ? (
-          <div className="space-y-3 p-6" aria-busy="true">
+          <div aria-busy="true">
+            <div className="pb-painel-topo">
+              <Fechar />
+            </div>
             <SheetTitle className="sr-only">Carregando produto</SheetTitle>
-            <Skeleton className="h-6 w-2/3" />
-            <Skeleton className="h-4 w-1/2" />
-            <Skeleton className="h-40 w-full" />
+            <div className="space-y-3 px-5 pb-6">
+              <Skeleton className="h-6 w-2/3" />
+              <Skeleton className="h-4 w-1/2" />
+              <Skeleton className="h-40 w-full" />
+            </div>
           </div>
         ) : (
           <>
-            <SheetHeader className="border-b border-[var(--border)] px-5 py-4">
+            <div className="pb-painel-topo">
               <Inline wrap gap={2}>
-                <span className="m font-mono text-[11.5px] text-[var(--text-mute)]">{d.sku}</span>
+                <span className="pb-painel-sku">{d.sku}</span>
                 <span className={`pb-pill ${d.tipo}`}>{TIPO_ROTULO[d.tipo] ?? d.tipo}</span>
                 {d.inativo && <span className="pb-pill off">Inativo</span>}
               </Inline>
-              <SheetTitle className="text-[17px]">{d.nome}</SheetTitle>
+              <Fechar />
+            </div>
+            <SheetHeader className="pb-painel-titulo">
+              <SheetTitle>{d.nome}</SheetTitle>
               <SheetDescription>
                 {[d.dados.categoria, d.dados.subcategoria, d.dados.marca, d.dados.unidade && `unidade ${d.dados.unidade_curta || d.dados.unidade}`]
                   .filter(Boolean)
@@ -86,7 +108,7 @@ export default function PainelDetalheProduto({ aberto, detalhe: d, aoFechar, pod
               </SheetDescription>
             </SheetHeader>
 
-            <div className="px-3">
+            <div className="pb-painel-abas">
               <PageHeaderTabs
                 density="compact"
                 activeGhostKey={abaAtiva}
@@ -97,7 +119,7 @@ export default function PainelDetalheProduto({ aberto, detalhe: d, aoFechar, pod
 
             <div className="flex-1 overflow-y-auto px-5 py-4" data-contract="produto-detalhe">
               {abaAtiva === 'dados' && (
-                <Grid gap={4} className={d.imagem ? 'grid-cols-[1fr_168px]' : undefined}>
+                <Grid gap={4} className="grid-cols-[1fr_168px]">
                   <div className="pb-drawer-grid">
                     <Dt rotulo="SKU" valor={d.sku} />
                     <Dt rotulo="Tipo de código de barras" valor={d.dados.codigo_de_barras} />
@@ -129,7 +151,11 @@ export default function PainelDetalheProduto({ aberto, detalhe: d, aoFechar, pod
                       <Dt key={i} rotulo={c.rotulo || 'Campo personalizado'} valor={c.valor} />
                     ))}
                   </div>
-                  {d.imagem && <img src={d.imagem} alt={`Imagem de ${d.nome}`} className="h-[168px] w-[168px] rounded-lg object-cover" />}
+                  {d.imagem ? (
+                    <img src={d.imagem} alt={"Imagem de " + d.nome} className="pb-painel-foto" />
+                  ) : (
+                    <div className="pb-img">Sem imagem</div>
+                  )}
                   {d.dados.descricao && (
                     <p className="text-[12.5px] leading-relaxed text-[var(--text-dim)]" style={{ gridColumn: '1 / -1' }}>
                       {d.dados.descricao}
@@ -139,7 +165,8 @@ export default function PainelDetalheProduto({ aberto, detalhe: d, aoFechar, pod
               )}
 
               {abaAtiva === 'variacoes' && (
-                <div className="space-y-4">
+                <div>
+                  <h3 className="pb-painel-h">Variações</h3>
                   <table className="pb-tbl">
                     <caption className="sr-only">Variações e preços</caption>
                     <thead>
@@ -156,7 +183,7 @@ export default function PainelDetalheProduto({ aberto, detalhe: d, aoFechar, pod
                     <tbody>
                       {d.variacoes.map((v) => (
                         <tr key={v.sku}>
-                          <td>{v.nome || '—'}</td>
+                          <td>{nomeDaVariacao(v.nome)}</td>
                           <td className="m">{v.sku}</td>
                           {custo && <td className="r">{dinheiro(v.compra_exc)}</td>}
                           {custo && <td className="r">{dinheiro(v.compra_inc)}</td>}
@@ -167,12 +194,13 @@ export default function PainelDetalheProduto({ aberto, detalhe: d, aoFechar, pod
                       ))}
                     </tbody>
                   </table>
+                  {grupos.length > 0 && <h3 className="pb-painel-h">Preços por grupo</h3>}
                   {grupos.length > 0 && (
                     <table className="pb-tbl">
                       <caption className="sr-only">Preços por grupo</caption>
                       <thead>
                         <tr>
-                          <th>Preço por grupo</th>
+                          <th>Variação</th>
                           {grupos.map((g) => (
                             <th key={g.grupo} className="r">
                               {g.grupo}
@@ -183,7 +211,7 @@ export default function PainelDetalheProduto({ aberto, detalhe: d, aoFechar, pod
                       <tbody>
                         {d.variacoes.map((v) => (
                           <tr key={v.sku}>
-                            <td>{v.nome || v.sku}</td>
+                            <td>{nomeDaVariacao(v.nome)}</td>
                             {v.grupos.map((g) => (
                               <td key={g.grupo} className="r">
                                 {dinheiro(g.preco)}
@@ -198,6 +226,7 @@ export default function PainelDetalheProduto({ aberto, detalhe: d, aoFechar, pod
                 </div>
               )}
 
+              {abaAtiva === 'composicao' && <h3 className="pb-painel-h">Composição</h3>}
               {abaAtiva === 'composicao' && (
                 <table className="pb-tbl">
                   <caption className="sr-only">Composição</caption>
@@ -228,6 +257,7 @@ export default function PainelDetalheProduto({ aberto, detalhe: d, aoFechar, pod
 
               {abaAtiva === 'estoque' && d.estoque !== null && (
                 <div className="space-y-3">
+                  <h3 className="pb-painel-h">Detalhes de estoque</h3>
                   <table className="pb-tbl">
                     <caption className="sr-only">Estoque por local</caption>
                     <thead>
@@ -262,6 +292,7 @@ export default function PainelDetalheProduto({ aberto, detalhe: d, aoFechar, pod
                 </div>
               )}
 
+              {abaAtiva === 'fiscal' && <h3 className="pb-painel-h">Dados fiscais</h3>}
               {abaAtiva === 'fiscal' && (
                 <div className="pb-drawer-grid">
                   <Dt rotulo="NCM" valor={d.fiscal.ncm && d.fiscal.ncm !== '0' ? d.fiscal.ncm : ''} />
@@ -276,6 +307,7 @@ export default function PainelDetalheProduto({ aberto, detalhe: d, aoFechar, pod
                 </div>
               )}
 
+              {abaAtiva === 'prateleira' && <h3 className="pb-painel-h">Detalhes de prateleira</h3>}
               {abaAtiva === 'prateleira' &&
                 (d.prateleiras.linhas.length === 0 ? (
                   <p className="pb-help">Nenhuma prateleira cadastrada para este produto.</p>
@@ -304,7 +336,7 @@ export default function PainelDetalheProduto({ aberto, detalhe: d, aoFechar, pod
                 ))}
             </div>
 
-            <SheetFooter className="flex-row flex-wrap gap-2 border-t border-[var(--border)] px-5 py-3">
+            <SheetFooter className="pb-painel-rodape">
               {podeEditar && (
                 <Button size="sm" onClick={() => irPara(`/products/${d.id}/edit`)}>
                   <Pencil size={13} aria-hidden /> Editar produto
@@ -323,7 +355,6 @@ export default function PainelDetalheProduto({ aberto, detalhe: d, aoFechar, pod
               <Button variant="outline" size="sm" onClick={() => window.print()}>
                 <Printer size={13} aria-hidden /> Imprimir
               </Button>
-              <div className="flex-1" />
               <Button variant="ghost" size="sm" onClick={aoFechar}>
                 Fechar
               </Button>

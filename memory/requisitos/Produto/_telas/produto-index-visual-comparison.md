@@ -42,9 +42,58 @@ blueprint_cowork: prototipo-ui/prototipos/produto-cockpit/ _(removido em 2026-05
 > | Coluna Categoria | 1 linha | 2 linhas | não é defeito — a 1ª linha medida não tem categoria; a subcategoria aparece quando existe |
 > | Larguras declaradas (`<col>`), checkbox como botão | sim | não | produção à frente, não é defeito |
 >
-> Não medido nesta rodada: toolbar, abas, rodapé e o painel de detalhe (a sonda cobre KPI, título,
-> botão principal, filtros e linha da tabela). Saúde do instrumento: na produção os tokens de cor
-> ficam no contêiner da tela, não na raiz (`tokensMortos` da sonda); as cores medidas batem.
+> Não medido nesta rodada: toolbar, abas e rodapé da lista (a sonda cobre KPI, título, filtros e a
+> 1ª linha da tabela). O painel de detalhe foi medido em 2026-10-11 (noite, horário de Brasília) — seção abaixo.
+>
+> ### Painel de detalhe — medido em 2026-10-11 (mesma sonda nos dois lados, tema escuro, 1593px)
+>
+> Produção `https://oimpresso.com/products?ver=1817` (biz 1) × espelho `cowork/Felipe/oimpresso.com.html`
+> rota `prod-lista`, `DetalheDrawer`. A sonda lê caixa, tipografia e cor **computadas** de cada papel
+> (raiz, selos, título, subtítulo, fechar, abas, corpo, campos, imagem, rodapé) — nunca classe.
+>
+> **Causa da maioria das diferenças (medida, não deduzida):** o `<Sheet>` abre num portal no `<body>`,
+> fora do `.cockpit`. Dentro do painel `--text`, `--text-mute`, `--border`, `--accent`, `--surface` e
+> `--font-sans` vinham **vazios** (`getComputedStyle(...).getPropertyValue`), enquanto na lista, dentro do
+> `.cockpit`, todos resolvem. Conserto: `resources/css/produto-painel.css` repõe os tokens no painel
+> (padrão do Financeiro, `fin-cowork.css` Onda 22b), com o par escuro.
+>
+> | Medida | Produção antes | Protótipo | Depois do conserto |
+> |---|---|---|---|
+> | Fonte | `ui-sans-serif` | IBM Plex Sans | IBM Plex Sans |
+> | Cor do texto | `oklch(0.965 0.004 240)` | `oklch(0.94 0.005 90)` | igual ao protótipo |
+> | Rótulo dos campos | cor cheia do texto | `oklch(0.67 0.005 90)` | igual ao protótipo |
+> | Selo do tipo | sem fundo, sem cor | fundo `oklch(0.33 0.09 295)`, texto `oklch(0.7 0.15 295)` | igual ao protótipo |
+> | Fundo do painel | `oklch(0.26 0.006 240)` | `oklch(0.30 0.008 240)` | igual ao protótipo |
+> | Borda acima do rodapé | cor do texto (branca) | `oklch(0.34 0.008 240)` | igual ao protótipo |
+> | Linha das tabelas | sem borda | 1px `oklch(0.31 0.008 240)` | igual ao protótipo |
+> | Aba ativa | traço na cor do texto, sem fundo | traço `oklch(0.7 0.15 295)`, fundo `oklch(0.33 0.09 295 / 0.5)` | igual ao protótipo |
+> | Faixa das abas | sem fundo, sem linha | fundo `oklch(0.26 0.006 240)`, linha 1px | igual ao protótipo |
+> | Cabeçalho | um bloco de 110 | faixa de selos + fechar (57) e bloco do título (76) | estrutura do protótipo |
+> | Subtítulo | 14px | 12,5px | 12,5px |
+> | Fechar | 44×44, cor cheia | 28×28, raio 6, esmaecido | 28×28, raio 6, esmaecido |
+> | Rodapé | botões à esquerda, 32 de altura, 14px | à direita, 30 de altura, 12,5px | à direita, 30, 12,5px |
+> | Títulos de seção nas abas | não havia (só `caption` oculto) | 11px / 700, maiúsculas, esmaecido | iguais ao protótipo |
+> | Caixa da imagem sem foto | não aparecia | moldura 168 com texto | moldura 168 com "Sem imagem" |
+> | Variação de produto único | "DUMMY" | "Padrão" | "Padrão" |
+> | Largura, grade de 3 colunas, vãos, tamanho dos campos, ordem das abas | iguais | iguais | IGUAL |
+>
+> **As colunas "Depois" de cor, fonte, faixa das abas e rodapé foram medidas** injetando o CSS novo na
+> página de produção (só no navegador da medição) e relendo os valores computados; a estrutura do
+> cabeçalho, os títulos, "Sem imagem" e "Padrão" estão no teste de componente
+> `tests/js/produto-painel-detalhe.test.tsx`. Falta a releitura em produção depois do deploy.
+>
+> **Ficam diferentes do protótipo, de propósito ou por dado:**
+> - Texto das abas: a aba ativa usa a cor de texto do `PageHeaderTabs` (`oklch(0.965 0.004 240)`), que é o
+>   componente das abas do app inteiro; mudar ali muda todas as telas. Não é decisão desta tela.
+> - Texto do botão principal: escuro em produção, branco no protótipo — é o `Button` do Design System.
+> - Texto da caixa sem foto: "Sem imagem" (o protótipo traz a dica de envio "1:1, até 5 MB", que num
+>   painel só de leitura afirmaria algo que a tela não faz).
+> - Aba Fiscal: a produção mostra as colunas fiscais reais do cadastro (CFOP dentro/fora, CST…); o
+>   protótipo tem um conjunto menor e um botão "Abrir no módulo Fiscal".
+> - Aba Estoque: o protótipo tem 3 indicadores (estoque atual, valor pelo custo, valor pela venda) e
+>   um botão "Transferir" por linha. **Ainda não feitos**: os indicadores somam valores (vêm com dupla
+>   conferência) e o "Transferir" vira a requisição de transferência combinada com [F] em 2026-10-11.
+> - "Gerar OP" no rodapé de composição: depende do módulo de produção.
 
 > **Tipo de tela:** list cockpit list+detail (drawer pattern)
 > **Persona:** Larissa (ROTA LIVRE biz=4), 1280px
