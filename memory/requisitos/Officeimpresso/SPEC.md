@@ -173,9 +173,10 @@ Bridge legacy entre o ERP Delphi histórico **WR Comercial / WR Sistemas (Office
 
 ### US-OI-011 — F2: baseline, payload seguro e flag da `Empresa/Show`
 **Como** dono do módulo, **quero** o comportamento de hoje travado em teste e o payload extraído ANTES de mexer, **pra** que a migração não perca regra nem publique credencial.
-**Implementado em:** _pendente_
+**Implementado em:** _parcial_ · `Modules/Officeimpresso/Http/Controllers/LicencaComputadorController.php` · `Modules/Officeimpresso/Tests/Feature/ComputadoresEmpresaShowContratoTest.php` — flag `useV2OfficeimpressoEmpresa` OFF; falta o veredito do CI
+**Testado em:** `Modules/Officeimpresso/Tests/Feature/ComputadoresEmpresaShowContratoTest.php`
 **Aceite:**
-- `blocked_by`: **decisão [W] sobre o escopo do `viewLicencas`** (D1 do `empresa-parity.md`) — ela precede a F2 porque define o que a fixture assere
+- ~~`blocked_by`: decisão [W] sobre o escopo do `viewLicencas`~~ — respondida por [W] em 2026-10-12 (D1 do `empresa-parity.md`: manter e nomear)
 - Pest baseline no CT 100, tenant 98 ([ADR 0358](../../decisions/0358-doutrina-de-teste-tenant-98-supersede-0101.md)): 403 sem permissão e 200 com `access` (já cobertos), os dois no-leak de escrita (já cobertos), a ficha abrindo **sem** `package` e **sem** `active` (os dois blocos são condicionais), e o escopo das **duas** rotas
 - `buildEmpresaPayload()` (10 campos) + `buildComputadoresPayload()` (9 campos) devolvendo DTO. **Nunca os models** — `Licenca_Computador` não tem `$hidden` e o `$fillable` lista `senha`, `contra_senha`, `serial` e `token`; `Business` é um model gordo do ERP inteiro
 - Flag `useV2OfficeimpressoEmpresa` default OFF, valendo para as **duas** rotas — ligar só uma faz o suporte trocar de shell ao clicar "Ver computadores desta empresa" no `businessall`
@@ -184,7 +185,8 @@ Bridge legacy entre o ERP Delphi histórico **WR Comercial / WR Sistemas (Office
 
 ### US-OI-012 — F3: tela `Empresa/Show` (ficha + computadores) em PT-03
 **Como** suporte, **quero** a ficha da empresa licenciada no shell React, **pra** bloquear cliente, ajustar versão obrigatória e chegar no log sem sair do cockpit.
-**Implementado em:** _pendente_
+**Implementado em:** _parcial_ · `Modules/Officeimpresso/Resources/js/Pages/Officeimpresso/Empresa/Show.tsx` — só leitura; as ações (editar, bloquear empresa e máquina) seguem na Blade
+**Testado em:** `Modules/Officeimpresso/Tests/Feature/ComputadoresEmpresaShowContratoTest.php`
 **Aceite:**
 - `blocked_by`: US-OI-011
 - PT-03 (header-identidade, resumo, seções, ações contextuais); `StatusBadge kind="empresa"` **novo** e distinto do `kind="licenca"` — o sujeito aqui é a empresa, não a máquina

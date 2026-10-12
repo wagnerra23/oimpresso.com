@@ -109,7 +109,7 @@ related_adrs:
 
 | # | O que muda | Por quê | Risco |
 |---|---|---|---|
-| **D1** | **Escopo do `viewLicencas` — decisão [W] PENDENTE, e precede a F2** | As duas rotas têm a mesma guarda (`authorizeAccess()`) e escopos diferentes: `computadores()` usa a sessão, `viewLicencas($id)` aceita qualquer id **sem filtrar**. Efeito no código de hoje: quem tem `officeimpresso.access` abre a ficha de qualquer empresa trocando o id da URL. Pode ser **intencional** (a WR2 é fornecedora dos clientes, e as telas de `Logs/` têm cross-empresa deliberado) — mas lá existe um `podeVerTodasEmpresas()` explícito e **aqui não há guarda nomeando a escolha** | **Não decidir sozinho.** As opções: (a) manter e nomear a intenção numa guarda explícita; (b) escopar a quem tem permissão de ver todas. A escolha define o que a fixture do item 44 assere |
+| **D1** | **Escopo do `viewLicencas` — decidida por [W] em 2026-10-12: (a) manter e nomear a regra** (texto original da pendência abaixo) | As duas rotas têm a mesma guarda (`authorizeAccess()`) e escopos diferentes: `computadores()` usa a sessão, `viewLicencas($id)` aceita qualquer id **sem filtrar**. Efeito no código de hoje: quem tem `officeimpresso.access` abre a ficha de qualquer empresa trocando o id da URL. Pode ser **intencional** (a WR2 é fornecedora dos clientes, e as telas de `Logs/` têm cross-empresa deliberado) — mas lá existe um `podeVerTodasEmpresas()` explícito e **aqui não há guarda nomeando a escolha** | **Não decidir sozinho.** As opções: (a) manter e nomear a intenção numa guarda explícita; (b) escopar a quem tem permissão de ver todas. A escolha define o que a fixture do item 44 assere |
 | D2 | `toggle-block` e `business.bloqueado` saem de **GET** pra **POST**, com confirmação | São `Route::get` que **mudam estado** — e o bloqueio da empresa derruba **todos** os desktops do cliente de uma vez. Prefetch, crawler ou `<img src>` disparam | Durante o dual-run as duas rotas coexistem; as GET só saem no F5 |
 | D3 | O `businessupdate` passa a validar `caminho_banco_servidor` | Hoje valida `caminho_banco` — nome que o formulário **não manda** — enquanto salva `caminho_banco_servidor`. Como a regra é `nullable`, nada quebra; a validação simplesmente não protege o campo que de fato é salvo | Baixo, e o sentido é o certo: passa a validar o dado real |
 | D4 | A tabela de computadores **ganha** busca, ordenação e paginação via `<DataTable>` | Hoje não tem nenhuma das três (item 37). É **capacidade nova**, declarada de propósito em vez de acontecer por acaso ao usar o componente do DS | Nenhum — client-side, como nas telas irmãs |
@@ -140,6 +140,9 @@ related_adrs:
   da lane `officeimpresso-pest`. **Faltam 18** — são a US-OI-013 (F4).
 - **Decisão [W] bloqueante:** D1 (escopo do `viewLicencas`) — precisa vir **antes da F2**, porque
   define o que a fixture do item 44 assere.
+- **D1 respondida (2026-10-12, [W]):** a operadora vê a ficha de qualquer empresa; a regra fica
+  nomeada no `viewLicencas()` e o id inexistente responde 404 na tela React. Achado na F3: o item 14
+  ("valor absoluto") é semântica do Carbon 2 — no Carbon 3 do projeto a Blade mostra os dias com sinal.
 
 ---
 
