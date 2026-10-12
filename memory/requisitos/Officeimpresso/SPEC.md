@@ -212,9 +212,9 @@ Bridge legacy entre o ERP Delphi histórico **WR Comercial / WR Sistemas (Office
 
 ### US-OI-014 — F2: baseline, payload seguro e flag da `Empresas/Index`
 **Como** dono do módulo, **quero** o comportamento de hoje travado em teste e o payload extraído ANTES de mexer, **pra** que a migração não perca regra nem publique cadastro.
-**Implementado em:** _pendente_
+**Implementado em:** _parcial_ · `Modules/Officeimpresso/Http/Controllers/LicencaComputadorController.php` · `Modules/Officeimpresso/Tests/Feature/ComputadoresEmpresasIndexContratoTest.php` — flag `useV2OfficeimpressoEmpresas` OFF; falta o veredito do CI
 **Aceite:**
-- `blocked_by`: **decisão [W] sobre as 4 colunas mortas** (D1 do `empresas-parity.md`) — precede a F2 porque define o payload e o número de colunas, e o número de colunas decide se a tela cabe a 1280
+- ~~`blocked_by`: decisão [W] sobre as 4 colunas mortas~~ — respondida por [W] em 2026-10-12 (D1 do `empresas-parity.md`)
 - Pest baseline no CT 100, tenant 98 ([ADR 0358](../../decisions/0358-doutrina-de-teste-tenant-98-supersede-0101.md)): 403 sem permissão e 200 com `access` (já cobertos), **empresa sem `is_officeimpresso` não aparece** (a fixture que trava a regra da tela), e os 3 KPIs
 - `buildEmpresasPayload()` devolvendo DTO. **Nunca o model `Business`** — ele carrega o cadastro inteiro do ERP, e como esta lista é **global**, mandar o model cru publicaria o cadastro completo de todas as empresas no `data-page` do HTML
 - Flag `useV2OfficeimpressoEmpresas` default OFF; **só a flag decide** o dual; o `Inertia::render` viaja com a tela (US-OI-015)
@@ -222,7 +222,7 @@ Bridge legacy entre o ERP Delphi histórico **WR Comercial / WR Sistemas (Office
 
 ### US-OI-015 — F3: tela `Empresas/Index` (Empresas Licenciadas) em PT-01
 **Como** suporte, **quero** a lista de empresas licenciadas no shell React, **pra** chegar na ficha e no log de qualquer cliente sem sair do cockpit.
-**Implementado em:** _pendente_
+**Implementado em:** _parcial_ · `Modules/Officeimpresso/Resources/js/Pages/Officeimpresso/Empresas/Index.tsx` — sem os filtros e o drawer do protótipo; smoke 1280/1440 pendente
 **Aceite:**
 - `blocked_by`: US-OI-014
 - PT-01 (Header, Toolbar, Table, EmptyState); `StatusBadge kind="empresa"` — o **mesmo** `kind` da tela #4

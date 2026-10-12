@@ -439,7 +439,7 @@ lifecycle: ativo
 | `ds-report.mjs` | ci, npm, script | 🔴 disco | — | `memory/decisions/0240-task-ledger-git-native-cowork-code.md` +13 | scripts/ds-report.mjs — placar de adoção do Design System (ds/* por regra × módulo) |
 | `dsih-gate.mjs` | ci, script | 🔴 disco | — | `memory/decisions/0283-handoff-loop-zero-paste.md` | porque NENHUM gate mordia CONTEUDO em .tsx (so canal: lint/build/conformance). |
 | `eslint-baseline.mjs` | ci, npm, script | 🔴 disco | selftest | `memory/decisions/0254-design-identity-grade-deterministico.md` +17 | scripts/eslint-baseline.mjs — Onda 1.2 (ADR 0209) |
-| `foundation-guard.mjs` | ci, npm, script | 🔴 disco | — | `memory/decisions/0255-contrato-view-deterministico-charter-design-spec.md` +17 | Determinístico, sem browser, sem dependência. Roda em CI (exit≠0 = bloqueia merge) E local. |
+| `foundation-guard.mjs` | ci, npm, script | 🔴 disco | — | `memory/decisions/0255-contrato-view-deterministico-charter-design-spec.md` +18 | Determinístico, sem browser, sem dependência. Roda em CI (exit≠0 = bloqueia merge) E local. |
 | `generate-dxt.js` | script | 🔴 disco | — | `memory/08-handoff.md` | Gera arquivo .dxt (Claude Desktop Extension) para membros do time oimpresso. |
 | `handoff-integrity-guard.mjs` | ci, npm, script | 🔴 disco | test | `memory/requisitos/Governance/SPEC.md` +8 | scripts/handoff-integrity-guard.mjs — catraca de Integridade do Handoff (PROCESSO_MEMORIA_CC.md §16 · IT8). |
 | `layout-primitives-guard.mjs` | ci, npm, script | 🔴 disco | selftest | `memory/decisions/0417-aposenta-tela-piloto-0253.md` +17 | scripts/layout-primitives-guard.mjs — enforcement da ADR 0253 (primitivos de layout) |
@@ -512,7 +512,7 @@ lifecycle: ativo
 | `ancora.mjs` | agente, ci, script | 🟢 só lê | bite-log | `memory/decisions/0326-trava-ancora-compare-fingerprint.md` +168 | a ÂNCORA de uma tela é COMPUTADA do charter, nunca escolhida no olho. |
 | `consumir-map.mjs` | ci, script | 🔴 disco | — | `memory/requisitos/Financeiro/RUNBOOK-paridade-ondas.md` +19 | o CONSUMO do <tela>.map.json na FASE 4 (sessão limpa de aplicação). |
 | `design-diff-lote.mjs` | ci, script | 🔴 disco | — | `memory/decisions/0401-resolucao-ds-bound-no-servidor-de-preview.md` +27 | DRIVER que transforma "ancorada" em "comparada por SONDA", em lote. |
-| `design-diff.mjs` | agente, ci, script | 🔴 disco | — | `memory/decisions/0408-medicao-de-paridade-agendada-advisory-emenda-0290.md` +52 | comparador DETERMINÍSTICO design(Cowork vivo) × produção, por MEDIÇÃO. |
+| `design-diff.mjs` | agente, ci, script | 🔴 disco | — | `memory/decisions/0408-medicao-de-paridade-agendada-advisory-emenda-0290.md` +53 | comparador DETERMINÍSTICO design(Cowork vivo) × produção, por MEDIÇÃO. |
 | `design-lock.mjs` | ci, script | 🔴 disco | — | `memory/requisitos/_DesignSystem/PROTOCOLO-COMPARACAO-RUNTIME.md` +3 | a FONTE de uma comparação é DECLARADA e PROVADA, nunca resolvida por sorte. |
 | `detectar-telas.mjs` | agente, ci, npm, script | 🟢 só lê | selftest + test | `memory/decisions/0325-import-prototipo-designsync-pull-direto.md` +24 | Fase 0 + 0.5 do protocolo aplicar-prototipo, como MECANISMO. |
 | `ds-guard.mjs` | ci, script | 🟢 só lê | test | `memory/decisions/0293-governanca-decisao-design-responsavel-registro-veredito.md` +37 | DS-GUARD (defesa tipo-forte) · PROCESSO_MEMORIA_CC.md §8 |

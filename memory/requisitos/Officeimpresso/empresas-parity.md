@@ -87,7 +87,7 @@ related_adrs:
 
 | # | O que muda | Por quê | Risco |
 |---|---|---|---|
-| **D1** | **As 4 colunas mortas (11, 12, 13, 14) — decisão [W] PENDENTE, precede a F2** | `versao_minima`, `quantidade_maquinas`, `caminho_banco` e `ultimo_acesso` **não existem** em `business` nem como accessor. Medido: as três primeiras aparecem **1 vez cada no repo inteiro — neste Blade**; `business.caminho_banco` dá **0** no `mysql-schema.sql` (a coluna com esse nome é de `licenca_computador`, outra tabela). As 4 células renderizam `—` para toda empresa, desde sempre. Os equivalentes reais existem na mesma tabela: `versao_obrigatoria`, `officeimpresso_numerodemaquinas`, `caminho_banco_servidor`, `dt_ultimo_acesso` | **Opções:** (a) não portar as 4 — a tela fica com 7 colunas, cabe a 1280, e nada se perde porque nada era mostrado; (b) portar apontando pros campos reais — **capacidade nova**, provavelmente o que sempre se quis. *Recomendação:* (b) para `dt_ultimo_acesso` e `versao_obrigatoria` (os dois que o suporte usa pra decidir atualização de cliente), (a) para os outros dois, que já têm dono melhor na ficha da tela #4 |
+| **D1** | **As 4 colunas mortas (11, 12, 13, 14) — decidida por [W] em 2026-10-12: (b) para 11 e 14, (a) para 12 e 13** (texto original da pendência abaixo) | `versao_minima`, `quantidade_maquinas`, `caminho_banco` e `ultimo_acesso` **não existem** em `business` nem como accessor. Medido: as três primeiras aparecem **1 vez cada no repo inteiro — neste Blade**; `business.caminho_banco` dá **0** no `mysql-schema.sql` (a coluna com esse nome é de `licenca_computador`, outra tabela). As 4 células renderizam `—` para toda empresa, desde sempre. Os equivalentes reais existem na mesma tabela: `versao_obrigatoria`, `officeimpresso_numerodemaquinas`, `caminho_banco_servidor`, `dt_ultimo_acesso` | **Opções:** (a) não portar as 4 — a tela fica com 7 colunas, cabe a 1280, e nada se perde porque nada era mostrado; (b) portar apontando pros campos reais — **capacidade nova**, provavelmente o que sempre se quis. *Recomendação:* (b) para `dt_ultimo_acesso` e `versao_obrigatoria` (os dois que o suporte usa pra decidir atualização de cliente), (a) para os outros dois, que já têm dono melhor na ficha da tela #4 |
 | D2 | DataTables/jQuery sai; `<DataTable>` do DS assume busca, ordenação e paginação | Camada 1 da Constituição UI v2 | Nenhum — os três já eram client-side |
 | D3 | Os dois botões de ação ganham `aria-label` | Hoje são **ícone sem rótulo**, e o único texto é o `title` do `<a>` — invisível pra leitor de tela. Correção de acessibilidade | Nenhum |
 | D4 | `StatusBadge kind="empresa"` — o **mesmo** `kind` da tela #4 | O sujeito é a empresa (`officeimpresso_bloqueado`), não a máquina. Reusar o `kind="licenca"` faria dois domínios compartilharem rótulo | Nenhum — se a #4 ainda não mergeou, esta tela cria o `kind` e a #4 reusa |
@@ -113,6 +113,9 @@ related_adrs:
   `officeimpresso-pest`. **Faltam 9** — são a US-OI-016 (F4).
 - **Decisão [W] bloqueante:** D1 (as 4 colunas mortas) — precisa vir **antes da F2**, porque define
   o payload e o número de colunas, e o número de colunas é o que decide se a tela cabe a 1280.
+- **D1 respondida (2026-10-12, [W]):** versão obrigatória (`versao_obrigatoria`) e último acesso entram;
+  máquinas e banco ficam para a ficha. Achado na implementação: `business.dt_ultimo_acesso` não tem escritor
+  (a API grava na máquina), então o último acesso da lista é o `MAX(licenca_computador.dt_ultimo_acesso)` da empresa.
 
 ---
 
