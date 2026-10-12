@@ -20,7 +20,6 @@ import '../../../css/cowork-produto-bundle.css';
 import { Deferred, Head, router } from '@inertiajs/react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
-import type { ColumnDef } from '@tanstack/react-table';
 import { Download, FileSpreadsheet, Package, Plus, RefreshCw, Search, Tag } from 'lucide-react';
 import { toast } from 'sonner';
 import AppShellV2 from '@/Layouts/AppShellV2';
@@ -52,7 +51,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/Components/ui/dialog';
-import AcoesProduto, { type AcaoProduto } from './_components/lista/AcoesProduto';
+import type { AcaoProduto } from './_components/lista/AcoesProduto';
+import { colunasDaLista, filtrosParaATabela } from './_components/lista/colunas';
 import FiltrosListaProdutos from './_components/lista/FiltrosLista';
 import IndicadoresLista from './_components/lista/IndicadoresLista';
 import PainelDetalheProduto from './_components/lista/PainelDetalhe';
@@ -61,12 +61,8 @@ import MenuColunas from './_components/lista/MenuColunas';
 import {
   CHAVE_COLUNAS,
   CHAVE_DENSIDADE,
-  TIPO_ROTULO,
   chipsDosFiltros,
   colunasOpcionais,
-  estoqueTexto,
-  faixaDePreco,
-  subLinhaProduto,
   visibilidadePadrao,
   type ContextoLista,
   type FiltrosLista,
@@ -327,147 +323,12 @@ function ProdutoIndex({ filtros, lista, kpis, estoque, detalhe, opcoes, contexto
     }
   };
 
-  // ── Colunas: as do protótipo (TODAS em produto-blade.jsx), com as larguras do protótipo ──
-  const colunas = useMemo<ColumnDef<LinhaProduto, unknown>[]>(() => {
-    const v = (id: string) => visiveis[id] === true;
-    const out: ColumnDef<LinhaProduto, unknown>[] = [
-      {
-        id: 'acao',
-        header: 'Ação',
-        enableSorting: false,
-        meta: { width: 96 },
-        cell: ({ row }) => (
-          <AcoesProduto linha={row.original} permissoes={permissions} gruposDePreco={contexto.grupos_de_preco} aoEscolher={aoEscolher} />
-        ),
-      },
-    ];
-    if (v('imagem')) {
-      out.push({
-        id: 'imagem',
-        header: 'Imagem',
-        enableSorting: false,
-        meta: { width: 74 },
-        cell: ({ row }) =>
-          row.original.imagem ? (
-            <img src={row.original.imagem} alt="" className="pb-thumb object-cover" loading="lazy" />
-          ) : (
-            <div className="pb-thumb" aria-hidden>
-              IMG
-            </div>
-          ),
-      });
-    }
-    out.push({
-      id: 'produto',
-      header: 'Produto',
-      enableSorting: true,
-      meta: { width: 300 },
-      cell: ({ row }) => (
-        <div className="min-w-0">
-          <div className="truncate font-semibold text-[var(--text)]">{row.original.nome}</div>
-          {!densa && <div className="truncate text-[11px] text-[var(--text-mute)]">{subLinhaProduto(row.original)}</div>}
-        </div>
-      ),
-    });
-    if (v('locais')) {
-      out.push({
-        id: 'locais',
-        header: 'Locais',
-        enableSorting: false,
-        meta: { width: 150 },
-        cell: ({ row }) => row.original.locais.join(', ') || '—',
-      });
-    }
-    if (v('compra') && permissions.view_purchase_price === true) {
-      out.push({
-        id: 'compra',
-        header: 'Preço de compra un.',
-        enableSorting: true,
-        // Sem mono: no protótipo o preço é texto normal de 13px (medido com design-diff em 2026-10-11).
-        meta: { width: 150, align: 'right' },
-        cell: ({ row }) => faixaDePreco(row.original.tipo, row.original.compra_min, row.original.compra_max),
-      });
-    }
-    if (v('venda') && permissions.access_default_selling_price === true) {
-      out.push({
-        id: 'venda',
-        header: 'Preço de venda',
-        enableSorting: true,
-        meta: { width: 150, align: 'right' },
-        cell: ({ row }) => faixaDePreco(row.original.tipo, row.original.venda_min, row.original.venda_max),
-      });
-    }
-    if (v('estoque')) {
-      out.push({
-        id: 'estoque',
-        header: 'Estoque atual',
-        enableSorting: true,
-        meta: { width: 130, align: 'right' },
-        cell: ({ row }) => (
-          <span className={'pb-stock' + (!row.original.controla_estoque ? ' na' : row.original.abaixo_do_alerta ? ' low' : '')}>
-            {estoqueTexto(row.original)}
-          </span>
-        ),
-      });
-    }
-    if (v('tipo')) {
-      out.push({
-        id: 'tipo',
-        header: 'Tipo',
-        enableSorting: true,
-        meta: { width: 110 },
-        cell: ({ row }) => <span className={`pb-pill ${row.original.tipo}`}>{TIPO_ROTULO[row.original.tipo] ?? row.original.tipo}</span>,
-      });
-    }
-    if (v('categoria')) {
-      out.push({
-        id: 'categoria',
-        header: 'Categoria',
-        enableSorting: true,
-        meta: { width: 160 },
-        cell: ({ row }) => (
-          <div className="min-w-0">
-            <div className="truncate font-semibold">{row.original.categoria ?? '—'}</div>
-            {!densa && row.original.subcategoria && (
-              <div className="truncate text-[11px] text-[var(--text-mute)]">{row.original.subcategoria}</div>
-            )}
-          </div>
-        ),
-      });
-    }
-    if (v('marca')) {
-      out.push({ id: 'marca', header: 'Marca', enableSorting: true, meta: { width: 120 }, cell: ({ row }) => row.original.marca ?? '—' });
-    }
-    if (v('imposto')) {
-      out.push({ id: 'imposto', header: 'Imposto', enableSorting: false, meta: { width: 110 }, cell: ({ row }) => row.original.imposto ?? '—' });
-    }
-    if (v('sku')) {
-      out.push({ id: 'sku', header: 'SKU', enableSorting: true, meta: { width: 120, mono: true }, cell: ({ row }) => row.original.sku || '—' });
-    }
-    if (v('serie')) {
-      out.push({
-        id: 'serie',
-        header: 'IMEI / série',
-        enableSorting: false,
-        meta: { width: 110 },
-        cell: ({ row }) => (row.original.serie ? 'Sim' : '—'),
-      });
-    }
-    for (let i = 1; i <= 7; i++) {
-      const rotulo = contexto.rotulos_campos[String(i)];
-      if (rotulo && v(`cf${i}`)) {
-        out.push({
-          id: `cf${i}`,
-          header: rotulo,
-          enableSorting: false,
-          meta: { width: 170 },
-          cell: ({ row }) => row.original.campos[String(i)] || '—',
-        });
-      }
-    }
-    return out;
+  // ── Colunas: as do protótipo, definidas em _components/lista/colunas.tsx ──
+  const colunas = useMemo(
+    () => colunasDaLista({ visiveis, densa, permissions, contexto, aoEscolher }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [visiveis, densa, permissions, contexto]);
+    [visiveis, densa, permissions, contexto],
+  );
 
   const estadoDaLinha = (l: LinhaProduto): EstadoDaLinha | undefined =>
     l.inativo ? 'archived' : l.abaixo_do_alerta ? 'urgent' : undefined;
@@ -663,7 +524,7 @@ function ProdutoIndex({ filtros, lista, kpis, estoque, detalhe, opcoes, contexto
                   data={linhas}
                   pagination={lista}
                   endpoint="/products"
-                  filters={paraUrl(filtros)}
+                  filters={filtrosParaATabela(paraUrl(filtros), filtros)}
                   showSearch={false}
                   density="grid"
                   tableWrapperClassName="pb-grid-pro"
