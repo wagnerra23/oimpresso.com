@@ -48,6 +48,40 @@ function TituloDaSecao({ children }: { children: ReactNode }) {
 
 const TOPO = 'pt-[14px] pr-[18px] pb-[15px] pl-[19px]';
 
+/**
+ * Os 3 indicadores da aba Estoque do protótipo (`.pb-kpi`, 3 colunas). Nada é calculado aqui: os
+ * totais chegam somados do servidor (`estoque_totais`, a soma das linhas da tabela logo abaixo, pela
+ * mesma função do rodapé do relatório de estoque). Valor null = sem permissão de ver valores do
+ * estoque — aparece "—", nunca zero. A legenda do custo diz o que o campo é (preço pago nas
+ * compras); o protótipo dizia "preço de compra padrão", que não é a conta do relatório.
+ */
+function IndicadoresDoEstoque({ d }: { d: DetalheProdutoDados }) {
+  const t = d.estoque_totais;
+  if (!t) return null;
+  const unidade = d.dados.unidade_curta || d.dados.unidade;
+  const legendaDoEstoque = [unidade, d.dados.alerta === null ? '' : `alerta em ${qtd(d.dados.alerta)}`].filter(Boolean).join(' · ');
+  const semPermissao = 'sem permissão para ver valores do estoque';
+  return (
+    <Grid cols={3} className="gap-[10px]" data-contract="produto-detalhe-estoque-indicadores">
+      <div className="pb-kpi">
+        <small>Estoque atual</small>
+        <b>{qtd(t.estoque)}</b>
+        <div className="ln">{legendaDoEstoque || '—'}</div>
+      </div>
+      <div className="pb-kpi">
+        <small>Valor pelo custo</small>
+        <b>{dinheiro(t.valor_compra)}</b>
+        <div className="ln">{t.valor_compra === null ? semPermissao : 'pelo preço pago nas compras'}</div>
+      </div>
+      <div className="pb-kpi">
+        <small>Valor pela venda</small>
+        <b>{dinheiro(t.valor_venda)}</b>
+        <div className="ln">{t.lucro_potencial === null ? semPermissao : `lucro potencial ${brl(t.lucro_potencial)}`}</div>
+      </div>
+    </Grid>
+  );
+}
+
 function Dt({ rotulo, valor }: { rotulo: string; valor: string | null | undefined }) {
   return (
     <div className="pb-dt">
@@ -291,6 +325,7 @@ export default function PainelDetalheProduto({ aberto, detalhe: d, aoFechar, pod
               {abaAtiva === 'estoque' && d.estoque !== null && (
                 <div className="space-y-3">
                   <TituloDaSecao>Detalhes de estoque</TituloDaSecao>
+                  <IndicadoresDoEstoque d={d} />
                   <table className="pb-tbl">
                     <caption className="sr-only">Estoque por local</caption>
                     <thead>

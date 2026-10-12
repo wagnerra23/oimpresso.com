@@ -1,7 +1,7 @@
 <?php
 
 declare(strict_types=1);
-// Cobre UC-PIDX-09 e UC-PIDX-11 (resources/js/Pages/Produto/Index.casos.md) — G-2 rastreabilidade caso↔teste.
+// Cobre UC-PIDX-09, UC-PIDX-11 e UC-PIDX-12 (resources/js/Pages/Produto/Index.casos.md) — G-2 rastreabilidade caso↔teste.
 
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\DB;
@@ -152,4 +152,102 @@ it('UC-PIDX-11 · "Comprar" segue a permissão de criar compra (purchase.create)
     // Anti-vácuo: as permissões vieram — o false é do gate, não de prop faltando.
     expect($sem->json('props.permissions'))->toHaveKey('view');
     expect($sem->json('props.permissions.comprar'))->toBeFalse();
+});
+
+/** Compra recebida do produto num local — é dela que sai o "valor pelo custo" do relatório de estoque. */
+function pdtCompraRecebida(int $businessId, object $p, int $local, int $criador, float $qtd, float $custo): void
+{
+    $compra = DB::table('transactions')->insertGetId([
+        'business_id' => $businessId, 'location_id' => $local, 'type' => 'purchase', 'status' => 'received', 'payment_status' => 'paid',
+        'transaction_date' => '2099-01-01 10:00:00', 'final_total' => $qtd * $custo, 'total_before_tax' => $qtd * $custo,
+        'created_by' => $criador, 'essentials_duration' => 0, 'ref_no' => 'PDT-' . uniqid(), 'created_at' => now(), 'updated_at' => now(),
+    ]);
+    DB::table('purchase_lines')->insert([
+        'transaction_id' => $compra, 'product_id' => $p->productId, 'variation_id' => $p->variations[0]['variation_id'], 'quantity' => $qtd,
+        'purchase_price' => $custo, 'purchase_price_inc_tax' => $custo, 'item_tax' => 0, 'created_at' => now(), 'updated_at' => now(),
+    ]);
+}
+
+/** Produto com estoque e compra em DOIS locais: A = 7 un. a 12; B = 3 un. a 30; preço de venda 20. */
+function pdtProdutoEmDoisLocais($teste): object
+{
+    $p = EstoqueFixture::singleProduct($teste->business->id);
+    DB::table('variations')->where('id', $p->variations[0]['variation_id'])->update(['sell_price_inc_tax' => 20]);
+    foreach ([['A', 7, 12], ['B', 3, 30]] as [$nome, $qtd, $custo]) {
+        $local = EstoqueFixture::locationId($teste->business->id, '-PDT-' . $nome . '-' . uniqid());
+        DB::table('product_locations')->insert(['product_id' => $p->productId, 'location_id' => $local]);
+        EstoqueFixture::setStock($p, 0, $local, $qtd);
+        pdtCompraRecebida($teste->business->id, $p, $local, $teste->user->id, $qtd, $custo);
+    }
+
+    return $p;
+}
+
+/** Soma, linha a linha, do JSON do DataTable de Relatórios → Estoque para o produto (o código da Blade). */
+function pdtSomaDataTable($teste, int $productId): array
+{
+    $colunas = [];
+    foreach ([['sku', 'variations.sub_sku'], ['stock', 'stock'], ['stock_price', 'stock_price'], ['stock_value_by_sale_price', 'stock_value_by_sale_price'], ['potential_profit', 'potential_profit']] as $i => [$d, $n]) {
+        $colunas[$i] = ['data' => $d, 'name' => $n, 'searchable' => 'false', 'orderable' => 'false', 'search' => ['value' => '', 'regex' => 'false']];
+    }
+    $dt = $teste->get('/reports/stock-report?' . http_build_query(['draw' => 1, 'start' => 0, 'length' => -1, 'columns' => $colunas,
+        'order' => [['column' => 0, 'dir' => 'asc']], 'search' => ['value' => '', 'regex' => 'false'], 'product_id' => $productId]),
+        ['X-Requested-With' => 'XMLHttpRequest', 'Accept' => 'application/json']);
+    $dt->assertOk();
+    expect($dt->json('error'))->toBeNull();
+    $orig = fn ($v) => (float) (preg_match('/data-orig-value="([^"]*)"/', (string) $v, $m) ? $m[1] : 0);
+    $soma = ['linhas' => 0, 'estoque' => 0.0, 'valor_compra' => 0.0, 'valor_venda' => 0.0, 'lucro_potencial' => 0.0];
+    foreach ($dt->json('data') as $l) {
+        $soma['linhas']++;
+        $soma['estoque'] += $orig($l['stock'] ?? '');
+        $soma['valor_compra'] += $orig($l['stock_price'] ?? '');
+        $soma['valor_venda'] += $orig($l['stock_value_by_sale_price'] ?? '');
+        $soma['lucro_potencial'] += $orig($l['potential_profit'] ?? '');
+    }
+
+    return $soma;
+}
+
+it('UC-PIDX-12 · os indicadores da aba Estoque são a soma das linhas do relatório de estoque do produto', function () {
+    pdtEntrar($this, ['product.view', 'access_all_locations', 'stock_report.view', 'view_product_stock_value', 'access_default_selling_price']);
+    $p = pdtProdutoEmDoisLocais($this);
+
+    $d = pdtDetalhe($this, $p->productId);
+    $t = $d['estoque_totais'];
+
+    // Anti-vácuo: os dois locais do cenário viraram duas linhas — somar lista vazia provaria nada.
+    expect($d['estoque'])->toHaveCount(2);
+    expect($t['linhas'])->toBe(2);
+    // Caminho 1 — conta à mão: estoque 7 + 3; custo 7×12 + 3×30; venda (7 + 3)×20; lucro = venda − custo.
+    expect(abs($t['estoque'] - 10))->toBeLessThan(0.005);
+    expect(abs($t['valor_compra'] - 174))->toBeLessThan(0.005);
+    expect(abs($t['valor_venda'] - 200))->toBeLessThan(0.005);
+    expect(abs($t['lucro_potencial'] - 26))->toBeLessThan(0.005);
+    // Caminho 2 — o código da Blade (DataTable de Relatórios → Estoque), somado linha a linha.
+    $dt = pdtSomaDataTable($this, $p->productId);
+    expect($dt['linhas'])->toBe(2);
+    foreach (['estoque', 'valor_compra', 'valor_venda', 'lucro_potencial'] as $c) {
+        expect(abs($t[$c] - $dt[$c]))->toBeLessThan(0.005);
+    }
+    // E cada indicador é a soma das linhas que o próprio painel lista logo abaixo.
+    foreach (['estoque', 'valor_compra', 'valor_venda', 'lucro_potencial'] as $c) {
+        expect(abs($t[$c] - collect($d['estoque'])->sum($c)))->toBeLessThan(0.005);
+    }
+});
+
+it('UC-PIDX-12 · sem view_product_stock_value os valores vêm null (não zero); sem stock_report.view os indicadores não vêm', function () {
+    pdtEntrar($this, ['product.view', 'access_all_locations', 'stock_report.view']);
+    $p = pdtProdutoEmDoisLocais($this);
+
+    $t = pdtDetalhe($this, $p->productId)['estoque_totais'];
+    // Anti-vácuo: o total veio e a quantidade está certa — o null é do gate, não de total faltando.
+    expect(abs($t['estoque'] - 10))->toBeLessThan(0.005);
+    expect($t['valor_compra'])->toBeNull();
+    expect($t['valor_venda'])->toBeNull();
+    expect($t['lucro_potencial'])->toBeNull();
+
+    pdtEntrar($this, ['product.view', 'access_all_locations']);
+    $d = pdtDetalhe($this, $p->productId);
+    expect($d)->toHaveKey('estoque_totais');
+    expect($d['estoque_totais'])->toBeNull();
 });

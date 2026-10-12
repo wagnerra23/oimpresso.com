@@ -551,6 +551,8 @@ class ProductController extends Controller
      *   · estoque por local só com `stock_report.view` (a Blade o carregava de `/reports/stock-report`,
      *     que pede isso) — linhas de `getProductStockDetails` + `linhaDoRelatorioEstoque`, as de
      *     Relatórios → Estoque; valores só com `view_product_stock_value`.
+     *   · indicadores da aba Estoque (`estoque_totais`): a soma dessas linhas por
+     *     `ProductUtil::somaDasLinhasDoEstoque`, a mesma do rodapé do relatório — nenhuma conta nova.
      * Divergência DELIBERADA, mais restrita: o total da composição pelo custo só vai com
      * `view_purchase_price` (a Blade mostrava a coluna a todos). A conta é a da Blade, sem mudança.
      * Dados fiscais: as colunas do próprio produto; "origem da mercadoria" não existe no banco e não vem.
@@ -640,6 +642,9 @@ class ProductController extends Controller
         }
 
         $estoque = null;
+        // Indicadores da aba Estoque (protótipo: estoque atual · valor pelo custo · valor pela venda):
+        // a soma das linhas acima, pela mesma função do rodapé do relatório de estoque.
+        $estoqueTotais = null;
         if ($controlaEstoque && $u->can('stock_report.view')) {
             $verValor = (bool) $u->can('view_product_stock_value');
             $estoque = collect(
@@ -648,6 +653,7 @@ class ProductController extends Controller
                     ->orderBy('variations.sub_sku', 'asc')->orderBy('vld.location_id', 'asc')
                     ->toBase()->get()
             )->map(fn (\stdClass $r): array => $this->productUtil->linhaDoRelatorioEstoque($r, $verPreco, $verValor))->values();
+            $estoqueTotais = $this->productUtil->somaDasLinhasDoEstoque($estoque, $verValor);
         }
 
         $rotulos = json_decode((string) request()->session()->get('business.custom_labels'), true);
@@ -692,6 +698,7 @@ class ProductController extends Controller
             'variacoes' => $variacoes,
             'composicao' => $composicao,
             'estoque' => $estoque,
+            'estoque_totais' => $estoqueTotais,
             'fiscal' => [
                 'ncm' => (string) ($produto->ncm ?? ''),
                 'cest' => (string) ($produto->cest ?? ''),
@@ -780,24 +787,12 @@ class ProductController extends Controller
         }
 
         return \Illuminate\Support\Facades\Cache::remember($chave, now()->addMinutes(10), function () use ($business_id, $filtros, $verValor) {
-            $t = [
-                'linhas' => 0, 'estoque' => 0.0, 'vendido' => 0.0, 'transferido' => 0.0, 'ajustado' => 0.0,
-                'valor_compra' => $verValor ? 0.0 : null,
-                'valor_venda' => $verValor ? 0.0 : null,
-                'lucro_potencial' => $verValor ? 0.0 : null,
-            ];
-            foreach ($this->productUtil->getProductStockDetails($business_id, $filtros, 'datatables')->toBase()->cursor() as $r) {
-                $l = $this->productUtil->linhaDoRelatorioEstoque($r, false, $verValor);
-                $t['linhas']++;
-                foreach (['estoque', 'vendido', 'transferido', 'ajustado'] as $c) {
-                    $t[$c] += (float) ($l[$c] ?? 0);
-                }
-                if ($verValor) {
-                    foreach (['valor_compra', 'valor_venda', 'lucro_potencial'] as $c) {
-                        $t[$c] += (float) ($l[$c] ?? 0);
-                    }
-                }
-            }
+            // A soma mora em `ProductUtil::somaDasLinhasDoEstoque` (a mesma dos indicadores do painel de detalhe).
+            $t = $this->productUtil->somaDasLinhasDoEstoque(
+                $this->productUtil->getProductStockDetails($business_id, $filtros, 'datatables')->toBase()->cursor()
+                    ->map(fn (\stdClass $r): array => $this->productUtil->linhaDoRelatorioEstoque($r, false, $verValor)),
+                $verValor
+            );
             $t['em'] = now()->toIso8601String();
 
             return $t;

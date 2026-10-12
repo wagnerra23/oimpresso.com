@@ -155,6 +155,11 @@ export interface DetalheProdutoDados {
   composicao: Array<{ nome: string; sku: string; quantidade: number; unidade: string; compra_exc?: number; total_exc?: number }>;
   /** null = sem `stock_report.view` ou produto sem controle de estoque. */
   estoque: LinhaRelatorioEstoque[] | null;
+  /**
+   * Soma das linhas de `estoque` (ProductUtil::somaDasLinhasDoEstoque, a mesma do rodapé do relatório).
+   * null junto com `estoque`. Os três valores são null sem `view_product_stock_value` (não é zero).
+   */
+  estoque_totais: Omit<RelatorioEstoqueLista['totais'], 'em'> | null;
   fiscal: {
     ncm: string;
     cest: string;
