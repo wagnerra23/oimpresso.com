@@ -706,6 +706,16 @@
       ]
     },
     {
+      "tela": "Officeimpresso/Empresas/Index",
+      "arquivo": "Modules/Officeimpresso/Resources/js/Pages/Officeimpresso/Empresas/Index.tsx",
+      "modulo": "Officeimpresso",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/Wagner/officeimpresso-page.jsx",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
       "tela": "Officeimpresso/Licencas/Index",
       "arquivo": "Modules/Officeimpresso/Resources/js/Pages/Officeimpresso/Licencas/Index.tsx",
       "modulo": "Officeimpresso",
@@ -736,5 +746,5 @@
       ]
     }
   ],
-  "total": 157
+  "total": 158
 }
