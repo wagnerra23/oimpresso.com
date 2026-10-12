@@ -76,8 +76,11 @@ it('Page NÃO contém `: any` em type annotations (TypeScript estrito)', functio
 
 // 2026-10-10 — a Page é a lista do protótipo (produto-blade.jsx, vista `lista`), não mais o
 // catálogo de cards: os 4 KPIs de cards (Total · Ativos · Categorias · Populares) saíram.
+// 2026-10-12 — a definição das colunas saiu da Page para `_components/lista/colunas.tsx`
+// (UC-PIDX-13: testada ali com a tabela de verdade). A Page só chama `colunasDaLista(`.
 it('Page tem as colunas da lista do protótipo', function () {
-    $source = readProdutoIndex();
+    expect(readProdutoIndex())->toContain('colunasDaLista(');
+    $source = file_get_contents(repo_path('resources/js/Pages/Produto/_components/lista/colunas.tsx'));
     expect($source)->toContain("header: 'Produto'");
     expect($source)->toContain("header: 'Estoque atual'");
     expect($source)->toContain("header: 'Preço de venda'");
