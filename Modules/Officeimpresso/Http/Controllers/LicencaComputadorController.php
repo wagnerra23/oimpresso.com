@@ -437,6 +437,8 @@ class LicencaComputadorController extends Controller
      */
     private function buildFichaAssinatura(int $empresaId): array
     {
+        // O docblock legado de active_subscription() devolve um tipo inexistente; o real é first().
+        /** @var Subscription|null $active */
         $active = Subscription::active_subscription($empresaId);
         $package = $active ? Package::find($active->package_id) : null;
 
