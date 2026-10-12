@@ -1,0 +1,223 @@
+{
+  "url": "http://127.0.0.1:43113/oimpresso.com.html",
+  "saude": {
+    "folhasVazias": [],
+    "tokensMortos": [],
+    "nFolhas": 76
+  },
+  "theme": "dark",
+  "assinatura": "OI WR OFFICEIMPRESSO · 3 locais · 6 ajustes · 5 transferências Estoque Gestor (Wagner) Atualizado 09:42 Novo ajuste Contar Nova transferência Painel Ajustes 6 Transferências 2 Vencimentos 4 Contagem 1 Todas 5 Pendente 1 Em trânsito 1 Concluída 1 Finalizada 2 Período Dia Semana Mês De dd/mm/aaaa Até dd/mm/aaaa ⌕ Pendente e em trânsito só reservam. Concluída e finalizada movem o saldo (R-XFER-005). Compacto CSV Excel Imprimir Colunas Todos os locais Matriz Loja Centro Depósito Nova transferência Transferência ↕ Data ↓ Origem → destino ↕ Status ↕ Mexeu no saldo? Itens ↕ Frete ↕ Total ↕ Ações TRF-0088 TR2026/0088 08/05/2026 Depósito → Matriz PROD-200 · PROD-022 Em trânsito só reserva 2 R$ 180,00 R$ 3.590,00 Ver Imprimir Excluir TRF-0087 TR2026/0087 07/05/2026 Matriz → Loja Centro PROD-022 · INS-014 Finalizada moveu 2 — R$ 608,00 Ver Imprimir Excluir TRF-0086 TR2026/0086 06/05/2026 Depósito → Loja Centro PROD-310 Pendente só reserva 1 R$ 120,00 R$ 1.053,60 Ver Imprimir Excluir TRF-0085 TR2026/0085 05/05/2026 Depósito → Matriz INS-022 · PROD-201 Concluída moveu 2 R$ 180,00 R$ 4.764,00 Ver Imprimir Excluir TRF-0084 TR2026/0084 02/05/2026 Matriz → Depósito PROD-200 Finalizada moveu 1 — R$ 337,50 Ver Imprimir Excluir Transferências 5 Total transferido R$ 10.353,10 Ainda sem mover saldo R$ 4.643,60 Anterior 1 Próximo 1 – 5 de 5",
+  "roles": {
+    "kpi": {
+      "count": 0,
+      "tag": null,
+      "overflowX": null,
+      "items": []
+    },
+    "title": {
+      "fontPx": 22,
+      "weight": "600",
+      "color": "oklch(0.94 0.005 90)"
+    },
+    "primary": null,
+    "filterRows": null,
+    "contratos": [],
+    "celulas": [
+      {
+        "col": 0,
+        "tag": null,
+        "align": "center",
+        "larguraPct": 2.7,
+        "mono": false,
+        "corPropria": false,
+        "fontPx": 13,
+        "weight": "400",
+        "blocos": 0,
+        "pill": null
+      },
+      {
+        "col": 1,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 12.5,
+        "mono": false,
+        "corPropria": true,
+        "fontPx": 13,
+        "weight": "600",
+        "blocos": 2,
+        "pill": null
+      },
+      {
+        "col": 2,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 7.8,
+        "mono": true,
+        "corPropria": false,
+        "fontPx": 12,
+        "weight": "400",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 3,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 17.2,
+        "mono": false,
+        "corPropria": true,
+        "fontPx": 13,
+        "weight": "600",
+        "blocos": 2,
+        "pill": null
+      },
+      {
+        "col": 4,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 10.2,
+        "mono": false,
+        "corPropria": true,
+        "fontPx": 12,
+        "weight": "500",
+        "blocos": 1,
+        "pill": {
+          "radius": "9999px",
+          "borda": true,
+          "bg": "oklch(0.74 0.13 75)",
+          "dot": false
+        }
+      },
+      {
+        "col": 5,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 11,
+        "mono": false,
+        "corPropria": true,
+        "fontPx": 11,
+        "weight": "400",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 6,
+        "tag": null,
+        "align": "right",
+        "larguraPct": 5.8,
+        "mono": false,
+        "corPropria": false,
+        "fontPx": 13,
+        "weight": "400",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 7,
+        "tag": null,
+        "align": "right",
+        "larguraPct": 8.1,
+        "mono": true,
+        "corPropria": false,
+        "fontPx": 12,
+        "weight": "400",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 8,
+        "tag": null,
+        "align": "right",
+        "larguraPct": 9.9,
+        "mono": true,
+        "corPropria": false,
+        "fontPx": 12,
+        "weight": "400",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 9,
+        "tag": "BUTTON",
+        "align": "left",
+        "larguraPct": 14.9,
+        "mono": false,
+        "corPropria": false,
+        "fontPx": 12,
+        "weight": "400",
+        "blocos": 3,
+        "pill": null
+      }
+    ],
+    "tabela": {
+      "tableLayout": "fixed",
+      "colunasDeclaradas": 0,
+      "linhas": 5,
+      "linhasComEstado": 1
+    },
+    "shell": {
+      "papeis": {
+        "atalhoTopo": {
+          "seletor": ".sb-menu > .sb-item",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "itemGrupo": {
+          "seletor": ".sb-group .sb-item, .sb-group-body .sb-item",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "grupoHeader": {
+          "seletor": ".sb-group-h",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "containerMenu": {
+          "seletor": ".sb-menu",
+          "n": 1,
+          "css": {
+            "height": "525px",
+            "minHeight": "0px",
+            "padding": "4px 0px",
+            "margin": "0px",
+            "gap": "2px",
+            "display": "flex",
+            "alignItems": "center",
+            "fontFamily": "IBM Plex Sans,ui-sans-serif,system-ui,sans-serif",
+            "fontSize": "13.5px",
+            "fontWeight": "400",
+            "lineHeight": "19.575px",
+            "letterSpacing": "normal",
+            "textTransform": "none",
+            "color": "oklch(0.8 0.008 295)",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "borderRadius": "0px",
+            "borderWidth": "0px",
+            "borderColor": "oklch(0.8 0.008 295)",
+            "opacity": "1",
+            "width": "55px",
+            "boxShadow": "none",
+            "textDecorationLine": "none"
+          },
+          "caixa": {
+            "w": 55,
+            "h": 525
+          },
+          "icone": {
+            "w": 18,
+            "h": 18,
+            "strokeWidth": "1.6px"
+          }
+        }
+      },
+      "atalhos": []
+    },
+    "chart": null
+  }
+}

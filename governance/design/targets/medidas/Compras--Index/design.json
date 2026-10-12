@@ -1,0 +1,233 @@
+{
+  "url": "http://127.0.0.1:53594/oimpresso.com.html",
+  "theme": "dark",
+  "assinatura": "OI WR OFFICEIMPRESSO · matriz · 7 notas em mai/26 Compras Suprimentos Atualizado 09:42 ⌕ Importar XML Nova compra Painel Pedidos 7 Fornecedores 4 Resumo de hoje · 08/05, 09:42 Sete compras em mai/26, R$ 32.771,70 em volume. O que pesa hoje é o a pagar : R$ 14.221,30 em 3 notas, o primeiro vencendo em 20/05 . Uma carga em trânsito e uma nota recebida ontem ainda sem conferência — enquanto ela não fecha, o custo médio do estoque está desatualizado. Comece pela conferência da NF-e 4521: ela destrava custo, margem e o pagamento de 30 dias. Conferir NF-e 4521 A pagar Em trânsito Rascunhos A PAGAR R$ 14.221,30 3 compras · 1º venc. 20/05 EM TRÂNSITO 1 R$ 5.620,80 a caminho VOLUME DO MÊS R$ 32.771,70 +12,4% vs. abr/26 A CONFERIR 1 recebido sem conferência ANÁLISES DO MÓDULO clique num card pra ver de onde vem o número Concentração por fornecedor volume do mês · 4 fornecedores 43% num só Lonas & Vinis 43% Importadora Têxtil 38% Tintas Coral 16% Papel & Cia Atacado 4% Dependência alta de Lonas & Vinis — vale segunda cotação antes do próximo pedido. Onde as compras estão paradas pipeline de 7 compras Rascunho 1 Pedido 1 · 12,4k Em trânsito 1 · 5,6k Recebido 1 · 8,4k Conferido 1 · 1,2k Pago 2 · 5,1k Antes de pagar: R$ 14.040,80 ainda esperam entrega ou conferência. Próximos vencimentos o que sai do caixa primeiro 20/05 · Papel & Cia Atacado R$ 1.180,50 03/06 · Lonas & Vinis R$ 4.620,80 06/06 · Lonas & Vinis R$ 8.420,00 soma dos vencidos e a vencer R$ 14.221,30 Prazo contado da emissão da NF-e, não do recebimento. O QUE FAZER PRIMEIRO Conferir a NF-e 4521 recebida ontem COMP-2847 · 5 itens · R$ 8.420,00 — sem conferência o estoque fica errado. Abrir compra Um rascunho parado desde 04/05 Fechar ou descartar — rascunho não reserva estoque nem preço. Ver rascunhos Compra de vestuário ainda sem grade tam×cor Hoje a matriz é digitada item a item — a grade entra pelo Purchase/Create (gap conhecido). Ver pedidos",
+  "roles": {
+    "kpi": {
+      "count": 4,
+      "tag": "DIV",
+      "overflowX": false,
+      "items": [
+        {
+          "label": "A pagarR$ 14.2",
+          "textAlign": "start",
+          "alignItems": "normal",
+          "textColor": "oklch(0.94 0.005 90)",
+          "smallAlign": "start",
+          "valueFontPx": 18
+        },
+        {
+          "label": "Em trânsito1ag",
+          "textAlign": "start",
+          "alignItems": "normal",
+          "textColor": "oklch(0.94 0.005 90)",
+          "smallAlign": "start",
+          "valueFontPx": 18
+        },
+        {
+          "label": "Volume do mêsR",
+          "textAlign": "start",
+          "alignItems": "normal",
+          "textColor": "oklch(0.94 0.005 90)",
+          "smallAlign": "start",
+          "valueFontPx": 18
+        },
+        {
+          "label": "Fornecedores a",
+          "textAlign": "start",
+          "alignItems": "normal",
+          "textColor": "oklch(0.94 0.005 90)",
+          "smallAlign": "start",
+          "valueFontPx": 18
+        }
+      ]
+    },
+    "title": {
+      "fontPx": 22,
+      "weight": "600",
+      "color": "oklch(0.94 0.005 90)"
+    },
+    "primary": null,
+    "filterRows": 1,
+    "contratos": [],
+    "celulas": [
+      {
+        "col": 0,
+        "tag": "BUTTON",
+        "align": "left",
+        "larguraPct": null,
+        "mono": false,
+        "corPropria": false,
+        "fontPx": 11,
+        "weight": "400",
+        "blocos": 2,
+        "pill": null
+      },
+      {
+        "col": 1,
+        "tag": null,
+        "align": "left",
+        "larguraPct": null,
+        "mono": true,
+        "corPropria": true,
+        "fontPx": 13,
+        "weight": "600",
+        "blocos": 2,
+        "pill": null
+      },
+      {
+        "col": 2,
+        "tag": null,
+        "align": "left",
+        "larguraPct": null,
+        "mono": false,
+        "corPropria": true,
+        "fontPx": 13,
+        "weight": "600",
+        "blocos": 2,
+        "pill": null
+      },
+      {
+        "col": 3,
+        "tag": null,
+        "align": "left",
+        "larguraPct": null,
+        "mono": true,
+        "corPropria": false,
+        "fontPx": 12,
+        "weight": "400",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 4,
+        "tag": null,
+        "align": "left",
+        "larguraPct": null,
+        "mono": false,
+        "corPropria": true,
+        "fontPx": 11,
+        "weight": "600",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 5,
+        "tag": null,
+        "align": "right",
+        "larguraPct": null,
+        "mono": true,
+        "corPropria": false,
+        "fontPx": 13,
+        "weight": "400",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 6,
+        "tag": null,
+        "align": "right",
+        "larguraPct": null,
+        "mono": true,
+        "corPropria": false,
+        "fontPx": 13,
+        "weight": "600",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 7,
+        "tag": null,
+        "align": "right",
+        "larguraPct": null,
+        "mono": true,
+        "corPropria": true,
+        "fontPx": 13,
+        "weight": "600",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 8,
+        "tag": null,
+        "align": "left",
+        "larguraPct": null,
+        "mono": true,
+        "corPropria": true,
+        "fontPx": 11,
+        "weight": "400",
+        "blocos": 1,
+        "pill": null
+      }
+    ],
+    "tabela": {
+      "tableLayout": "auto",
+      "colunasDeclaradas": 0,
+      "linhas": 7,
+      "linhasComEstado": 0
+    },
+    "shell": {
+      "papeis": {
+        "atalhoTopo": {
+          "seletor": ".sb-menu > .sb-item",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "itemGrupo": {
+          "seletor": ".sb-group .sb-item, .sb-group-body .sb-item",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "grupoHeader": {
+          "seletor": ".sb-group-h",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "containerMenu": {
+          "seletor": ".sb-menu",
+          "n": 1,
+          "css": {
+            "height": "525px",
+            "minHeight": "0px",
+            "padding": "4px 0px",
+            "margin": "0px",
+            "gap": "2px",
+            "display": "flex",
+            "alignItems": "center",
+            "fontFamily": "IBM Plex Sans,ui-sans-serif,system-ui,sans-serif",
+            "fontSize": "13.5px",
+            "fontWeight": "400",
+            "lineHeight": "19.575px",
+            "letterSpacing": "normal",
+            "textTransform": "none",
+            "color": "oklch(0.8 0.008 295)",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "borderRadius": "0px",
+            "borderWidth": "0px",
+            "borderColor": "oklch(0.8 0.008 295)",
+            "opacity": "1",
+            "width": "55px",
+            "boxShadow": "none",
+            "textDecorationLine": "none"
+          },
+          "caixa": {
+            "w": 55,
+            "h": 525
+          },
+          "icone": {
+            "w": 18,
+            "h": 18,
+            "strokeWidth": "1.6px"
+          }
+        }
+      },
+      "atalhos": []
+    }
+  }
+}

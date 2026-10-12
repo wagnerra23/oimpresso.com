@@ -1,0 +1,32 @@
+{
+  "id": "Modules/Index",
+  "module": "Modules",
+  "source": "modulos-page.jsx",
+  "target": "resources/js/Pages/Modules/Index.tsx",
+  "token": "modulos",
+  "lado": "ambos",
+  "frescor": "sem veredito novo (última 2026-10-07)",
+  "contrato": "governance/design/contracts/modulos.contract.json",
+  "compare": {
+    "rc": 2,
+    "veredito": "NÃO MEDI",
+    "motivo": "⛔ NÃO MEDI — identidade da view não provada: um dos lados nao casou NENHUMA copy do contrato Nenhuma copy pinada do contrato apareceu no render, ou a sonda é anterior ao D0. Isto NÃO é divergência de fidelidade: é sinal ",
+    "bugs": null,
+    "shell": null,
+    "sameTheme": null,
+    "porDim": {},
+    "rows": null
+  },
+  "veredito": null,
+  "motivo": "",
+  "medido": true,
+  "designSha": "1633e1ec44d0046c9958f0ec138d6015141b5358d890a6df36419e22453b8adc",
+  "prodSha": "c2de59a4556e232cdf9b49b93d78e52d173e47c97b20fe23991c3bd712f4c6a2",
+  "meta": {
+    "urlFinal": "https://staging.oimpresso.com/modulos",
+    "componenteInertia": null
+  },
+  "medidoEm": "2026-10-12T07:51:50.207Z",
+  "baseUrl": "https://staging.oimpresso.com",
+  "bundle": "0ee2464e450d6b8b8c82a0fb3840ac5760c339ed7dac978249089dab43f8fc2f"
+}

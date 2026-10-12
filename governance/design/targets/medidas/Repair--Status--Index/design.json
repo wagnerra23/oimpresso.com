@@ -1,0 +1,92 @@
+{
+  "url": "http://127.0.0.1:43113/oimpresso.com.html",
+  "saude": {
+    "folhasVazias": [],
+    "tokensMortos": [],
+    "nFolhas": 76
+  },
+  "theme": "dark",
+  "assinatura": "OI WR REPAIR · Matriz + 1 filial · 14 folhas · 11 pendentes Assistência técnica administrador Atualizado 09:42 ⌕ Buscar Adicionar folha Painel Produção 11 Folhas de OS 14 Reparos 14 Status 9 Modelos 6 Portal do cliente Configurações Status do reparo Cada status carrega cor, ordem, marcação de conclusão e os modelos de SMS/e-mail disparados ao cliente. A ordem alimenta o kanban. Recebido no balcão ordem 1 · coluna recepcao · 2 folha(s) pendente SMS: “ Olá :cliente, recebemos seu equipamento na OS :os. Avisamos a cada etapa. ” Editar Em diagnóstico ordem 2 · coluna diagnostico · 2 folha(s) pendente SMS: “ OS :os em diagnóstico. Assim que houver laudo, mandamos o orçamento. ” Editar Orçamento enviado ordem 3 · coluna diagnostico · 2 folha(s) pendente SMS: “ OS :os com orçamento de :valor. Responda aprovando pra liberar o serviço. ” Editar Aguardando peça ordem 4 · coluna aguardando-pecas · 2 folha(s) pendente SMS: “ OS :os aguardando peça. Avisamos quando chegar. ” Editar Em reparo ordem 5 · coluna em-execucao · 2 folha(s) pendente SMS: “ OS :os em reparo pelo técnico :tecnico. ” Editar Em teste final ordem 6 · coluna em-execucao · 1 folha(s) pendente SMS: “ OS :os em teste final antes da entrega. ” Editar Pronto p/ retirada ordem 7 · coluna pronto · 1 folha(s) marcado como concluído SMS: “ OS :os pronta pra retirada. Estamos das 8h às 18h. ” Editar Entregue ordem 8 · coluna pronto · 1 folha(s) marcado como concluído SMS: “ OS :os entregue. Garantia de 90 dias no serviço. ” Editar Sem reparo (devolvido) ordem 9 · coluna pronto · 1 folha(s) marcado como concluído SMS: “ OS :os devolvida sem reparo. O laudo segue no seu e-mail. ” Editar Excluir status não é reversível para as folhas No legado o status é FK das folhas — apagar um status usado deixa folha órfã. Antes de excluir, migre as folhas. Hoje 9 de 9 status estão em uso. Adicionar status Permissão: access_job_sheet_status",
+  "roles": {
+    "kpi": {
+      "count": 0,
+      "tag": null,
+      "overflowX": null,
+      "items": []
+    },
+    "title": {
+      "fontPx": 22,
+      "weight": "600",
+      "color": "oklch(0.94 0.005 90)"
+    },
+    "primary": null,
+    "filterRows": null,
+    "contratos": [],
+    "celulas": null,
+    "tabela": null,
+    "shell": {
+      "papeis": {
+        "atalhoTopo": {
+          "seletor": ".sb-menu > .sb-item",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "itemGrupo": {
+          "seletor": ".sb-group .sb-item, .sb-group-body .sb-item",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "grupoHeader": {
+          "seletor": ".sb-group-h",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "containerMenu": {
+          "seletor": ".sb-menu",
+          "n": 1,
+          "css": {
+            "height": "525px",
+            "minHeight": "0px",
+            "padding": "4px 0px",
+            "margin": "0px",
+            "gap": "2px",
+            "display": "flex",
+            "alignItems": "center",
+            "fontFamily": "IBM Plex Sans,ui-sans-serif,system-ui,sans-serif",
+            "fontSize": "13.5px",
+            "fontWeight": "400",
+            "lineHeight": "19.575px",
+            "letterSpacing": "normal",
+            "textTransform": "none",
+            "color": "oklch(0.8 0.008 295)",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "borderRadius": "0px",
+            "borderWidth": "0px",
+            "borderColor": "oklch(0.8 0.008 295)",
+            "opacity": "1",
+            "width": "55px",
+            "boxShadow": "none",
+            "textDecorationLine": "none"
+          },
+          "caixa": {
+            "w": 55,
+            "h": 525
+          },
+          "icone": {
+            "w": 18,
+            "h": 18,
+            "strokeWidth": "1.6px"
+          }
+        }
+      },
+      "atalhos": []
+    },
+    "chart": null
+  }
+}

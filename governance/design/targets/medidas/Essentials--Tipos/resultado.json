@@ -1,0 +1,27 @@
+{
+  "id": "Essentials/Tipos",
+  "source": "hrm-page.jsx",
+  "target": "resources/js/Pages/Essentials/Tipos.tsx",
+  "token": "hrm",
+  "frescor": "verificado 2026-09-17",
+  "contrato": "governance/design/contracts/essentials-tipos.contract.json",
+  "compare": {
+    "rc": 2,
+    "veredito": "NÃO MEDI",
+    "motivo": "⛔ NÃO MEDI — identidade da view não provada: um dos lados nao casou NENHUMA copy do contrato Nenhuma copy pinada do contrato apareceu no render, ou a sonda é anterior ao D0. Isto NÃO é divergência de fidelidade: é sinal ",
+    "bugs": null,
+    "shell": null,
+    "sameTheme": null,
+    "porDim": {},
+    "rows": null
+  },
+  "veredito": null,
+  "motivo": "",
+  "meta": {
+    "urlFinal": "https://staging.oimpresso.com/hrm/leave-type",
+    "componenteInertia": null
+  },
+  "medidoEm": "2026-09-18T12:36:29.719Z",
+  "baseUrl": "https://staging.oimpresso.com",
+  "bundle": "6788f6796a6da4d7bcf4153ba2c9fc03404c839e6b6a71896b8d3ca7e27196f3"
+}

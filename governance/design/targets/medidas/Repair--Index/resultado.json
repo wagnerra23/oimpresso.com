@@ -1,0 +1,32 @@
+{
+  "id": "Repair/Index",
+  "module": "Repair",
+  "source": "repair-page.jsx",
+  "target": "resources/js/Pages/Repair/Index.tsx",
+  "token": "rep-reparos",
+  "lado": "ambos",
+  "frescor": "sem veredito novo (última 2026-10-07)",
+  "contrato": "governance/design/contracts/repair-index.contract.json",
+  "compare": {
+    "rc": 2,
+    "veredito": "NÃO MEDI",
+    "motivo": "⛔ NÃO MEDI — identidade da view não provada: um dos lados nao casou NENHUMA copy do contrato Nenhuma copy pinada do contrato apareceu no render, ou a sonda é anterior ao D0. Isto NÃO é divergência de fidelidade: é sinal ",
+    "bugs": null,
+    "shell": null,
+    "sameTheme": null,
+    "porDim": {},
+    "rows": null
+  },
+  "veredito": null,
+  "motivo": "",
+  "medido": true,
+  "designSha": "1d7794666473feb05662f219fc1dd5c17a765f710a72a8b8da7bf8c1d5751b5c",
+  "prodSha": "d88c18d671ed0dc748ee4bc66a8b7bf6ec68171bf2bb5e9eaa011d92d24329ee",
+  "meta": {
+    "urlFinal": "https://staging.oimpresso.com/repair/repair",
+    "componenteInertia": null
+  },
+  "medidoEm": "2026-10-12T07:51:50.207Z",
+  "baseUrl": "https://staging.oimpresso.com",
+  "bundle": "0ee2464e450d6b8b8c82a0fb3840ac5760c339ed7dac978249089dab43f8fc2f"
+}

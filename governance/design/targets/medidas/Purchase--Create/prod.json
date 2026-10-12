@@ -1,0 +1,90 @@
+{
+  "url": "https://staging.oimpresso.com/purchases/create",
+  "theme": "light",
+  "assinatura": "CI Biz Visão geral Gerenciamento de usuários Contatos Produtos Vendas Relatórios Configurações Suporte Jana Sidebar Menu Collapse Sidebar Calendário Adicionar a fazer Application Tour Calculator Reparar Today's Profit 09/18/2026 Notifications CI Signed in as CI Perfil Desconectar Adicionar compra Fornecedor:* Selecionar Selecionar Endereço: Número de referência: Data de compra:* Status de compra:* Selecionar Recebido pendente Solicitado Selecionar Localização da empresa:* Selecionar Selecionar Taxa de câmbio:* A moeda de compra está definida para Leke Prazo de pagamento: Selecionar Meses Dias Anexar documento: 0% Remover Cancel Procurar.. Tamanho máximo do arquivo: 5MB Arquivo permitido: .pdf, .csv, .zip, .doc, .docx, .jpeg, .jpg, .png Importar produtos Adicionar novo produto # Nome do produto Quantidade de compra Custo unitário (antes de desconto) Porcentagen de Desconto Custo unitário (antes dos impostos) Subtotal (antes de impostos) Imposto sobre produtos Custo líquido Linha total Profit Margin % Preço unitário de venda (Imposto incluído) Total de artigos: 0.00 Total antes de impostos: 0.00 Valor total líquido: 0.00 tipo de desconto: nenhum fixo Porcentagem nenhum Valor do desconto: Desconto: (-) 0.00 Imposto sobre compras: nenhum nenhum Imposto sobre compras: (+) 0.00 Notas adicionais Detalhes de envio: (+) Custos adicionais de envio: Adicionar despesas adicionais Compra total: Lek 0.00 Adicionar pagamento Saldo adiantado: 0 Valor:* Pago em:* Método de pagamento:* Adiantamento Dinheiro Cartão Check Transferência bancária Outro Pagamento personalizado 1 Pagamento personalizado 2 Pagamento personalizado 3 Pagamento personalizado 4 Pagamento personalizado 5 Pagamento personalizado 6 Pagamento personalizado 7 Número do cartão Nome do titular do cartão Número de transação do cartão Tipo de cartão Credit Card Debit Card Visa MasterCard Mês ano código de segurança Check No. Número da conta bancária Transaction No. Transaction No. Transaction No. Transaction No. Transaction No. Transaction No. Transaction No. Nota de pagamento: Data do pagamento: 0.00 Salvar × Adicionar um novo contato Tipo de contato:* Selecionar Fornecedores Clientes Ambos (fornecedor e cliente) Individual Empresa ID do contato: Deixe vazio para gerar automaticamente Grupo de clientes: nenhum Mobile:* Número de contato alternativo: Linha fixa: Email: Origem: Selecionar Estágio de vida: Selecionar Atribuído a:* Atribuído a: Mais informações Número do imposto: saldo inicial: Prazo de pagamento: Selecionar Meses Dias limite de crédito: Manter em branco sem limite Endereço Linha 1: Endereço linha 2: Cidade: Estado: País: CEP: Campo personalizado 1: Campo personalizado 2: Campo personalizado 3: Campo personalizado 4: Campo personalizado 5: Campo personalizado 6: Campo personalizado 7: Campo personalizado 8: Campo personalizado 9: Campo personalizado 10: Endereço de entrega Salvar Fechar × Importar produtos Arquivo para importar: Drop files here to upload Baixar arquivo de modelo Instruções: Siga as instruções cuidadosamente antes de importar o arquivo. As colunas do arquivo CSV devem estar na seguinte ordem Número da coluna Nome da coluna Instrução 1 SKU (Obrigatório) 2 Quantidade de compra (Obrigatório) 3 Custo unitário (antes de desconto) (Opcional) 4 Porcentagen de Desconto (Opcional) 5 Imposto sobre produtos (Opcional) 6 Número do lote (Opcional) Apenas se o número de lote estiver habilitado. Você pode habilitar o número de lote em 7 Data de fabricação (Opcional) Apenas se a validade do produto estiver habilitada. Você pode habilitar a validade do produto em Formato: aaaa-mm-dd; Ex: 2021-11-25 8 data de expiração (Opcional) Apenas se a validade do produto estiver habilitada. Você pode habilitar a validade do produto em Formato: aaaa-mm-dd; Ex: 2021-11-25 Importar Fechar - V6.4 | Copyright © 2026 All rights reserved. × Benefício de hoje Fechar × Entrada Saída Endereço de IP: 177.74.67.30 Relógio na nota: Nota do relógio: Enviar Fechar Usamos cookies pra entender como você usa o oimpresso e melhorar a experiência. Dados sensíveis (CPF, email, telefone) não são capturados . Só essenciais Aceitar tudo Tour da Aplicação Vamos passar pelo aplicativo em 7 passos rápidos ... « Anterior Próximo » Tour final",
+  "roles": {
+    "kpi": {
+      "count": 0,
+      "tag": null,
+      "overflowX": null,
+      "items": []
+    },
+    "title": {
+      "fontPx": 32,
+      "weight": "700",
+      "color": "rgb(0, 0, 0)"
+    },
+    "primary": {
+      "bg": "rgba(0, 0, 0, 0)",
+      "color": "rgb(0, 0, 0)",
+      "border": "rgb(0, 0, 0)"
+    },
+    "filterRows": null,
+    "contratos": [],
+    "celulas": [
+      {
+        "col": 0,
+        "tag": null,
+        "align": "center",
+        "larguraPct": 83.9,
+        "mono": false,
+        "corPropria": false,
+        "fontPx": 16,
+        "weight": "700",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 1,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 15.1,
+        "mono": false,
+        "corPropria": false,
+        "fontPx": 16,
+        "weight": "700",
+        "blocos": 1,
+        "pill": null
+      }
+    ],
+    "tabela": {
+      "tableLayout": "auto",
+      "colunasDeclaradas": 0,
+      "linhas": 3,
+      "linhasComEstado": 0
+    },
+    "shell": {
+      "papeis": {
+        "atalhoTopo": {
+          "seletor": ".sb-shortcuts .sb-shortcut",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "itemGrupo": {
+          "seletor": ".sb-item",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "grupoHeader": {
+          "seletor": ".sb-group-h",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "containerMenu": {
+          "seletor": ".sb-menu-grouped",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        }
+      },
+      "atalhos": []
+    }
+  }
+}

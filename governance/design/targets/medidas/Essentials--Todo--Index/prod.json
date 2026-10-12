@@ -1,0 +1,158 @@
+{
+  "url": "https://staging.oimpresso.com/essentials/todo",
+  "theme": "auto",
+  "assinatura": "Usamos cookies pra entender como você usa o oimpresso e melhorar a experiência. Dados sensíveis (CPF, email, telefone) não são capturados . Personalizar Só essenciais Aceitar tudo CI C Tarefas (To-Do) Organize e acompanhe tarefas atribuídas a você ou à equipe. Nova tarefa Filtros Todos os status Todas as prioridades Todos os usuários De Até Código Tarefa Status Prioridade Início Fim Atribuído a Ações XJT-4225850c42 WaveJ-CrossTenant-pk-wagner criada há 1 semana Novo Médio 2026-09-08 11:19 — — Ver XJT-8fcbd1b179 WaveJ-CrossTenant-bulk-1 criada há 1 semana Novo Médio 2026-09-08 11:19 — — Ver XJT-633b3cbe76 WaveJ-CrossTenant-bulk-2 criada há 1 semana Novo Médio 2026-09-08 11:19 — — Ver XJT-b5c81f5760 WaveJ-CrossTenant-bulk-3 criada há 1 semana Novo Médio 2026-09-08 11:19 — — Ver XJT-f70e902146 WaveJ-CrossTenant-count-todo criada há 1 semana Novo Médio 2026-09-08 11:19 — — Ver XJT-4225850c42 WaveJ-CrossTenant-pk-wagner criada há 1 semana Novo Médio 2026-09-08 10:05 — — Ver XJT-8fcbd1b179 WaveJ-CrossTenant-bulk-1 criada há 1 semana Novo Médio 2026-09-08 10:05 — — Ver XJT-633b3cbe76 WaveJ-CrossTenant-bulk-2 criada há 1 semana Novo Médio 2026-09-08 10:05 — — Ver XJT-b5c81f5760 WaveJ-CrossTenant-bulk-3 criada há 1 semana Novo Médio 2026-09-08 10:05 — — Ver XJT-f70e902146 WaveJ-CrossTenant-count-todo criada há 1 semana Novo Médio 2026-09-08 10:05 — — Ver TEST-e8ef0bf5a3 Tarefa Edit Isolamento criada há 1 semana Novo Médio 2026-09-04 23:43 — — Ver TEST-ccdd4ab8aa Tarefa Delete Isolamento criada há 1 semana Novo Médio 2026-09-04 23:43 — — Ver TEST-66bba9f4d6 Tarefa Complete Isolamento criada há 1 semana Em progresso Médio 2026-09-04 23:43 — — Ver TEST-53bcbff0ba Tarefa Wagner Visivel criada há 1 semana Novo Médio 2026-09-04 23:43 — — Ver TEST-0854c045c2 Tarefa Show Isolamento criada há 1 semana Novo Médio 2026-09-04 23:43 — — Ver TEST-33431cf228 Tarefa Wagner Isolamento criada há 1 semana Novo Médio 2026-09-04 23:43 — — Ver XJT-4225850c42 WaveJ-CrossTenant-pk-wagner criada há 1 semana Novo Médio 2026-09-04 23:43 — — Ver XJT-f70e902146 WaveJ-CrossTenant-count-todo criada há 1 semana Novo Médio 2026-09-04 23:43 — — Ver XJT-8fcbd1b179 WaveJ-CrossTenant-bulk-1 criada há 1 semana Novo Médio 2026-09-04 23:43 — — Ver XJT-633b3cbe76 WaveJ-CrossTenant-bulk-2 criada há 1 semana Novo Médio 2026-09-04 23:43 — — Ver XJT-b5c81f5760 WaveJ-CrossTenant-bulk-3 criada há 1 semana Novo Médio 2026-09-04 23:43 — — Ver Buscar Cmd+K — busque tasks, epics, cycles ou projects",
+  "roles": {
+    "kpi": {
+      "count": 0,
+      "tag": null,
+      "overflowX": null,
+      "items": []
+    },
+    "title": {
+      "fontPx": 24,
+      "weight": "600",
+      "color": "oklch(0.22 0.01 80)"
+    },
+    "primary": null,
+    "filterRows": null,
+    "contratos": [],
+    "celulas": [
+      {
+        "col": 0,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 13.6,
+        "mono": true,
+        "corPropria": false,
+        "fontPx": 12,
+        "weight": "400",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 1,
+        "tag": "A",
+        "align": "left",
+        "larguraPct": 23.5,
+        "mono": false,
+        "corPropria": true,
+        "fontPx": 14,
+        "weight": "500",
+        "blocos": 2,
+        "pill": null
+      },
+      {
+        "col": 2,
+        "tag": "BUTTON",
+        "align": "left",
+        "larguraPct": 10.8,
+        "mono": false,
+        "corPropria": true,
+        "fontPx": 10,
+        "weight": "500",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 3,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 8.5,
+        "mono": false,
+        "corPropria": true,
+        "fontPx": 10,
+        "weight": "500",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 4,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 13.1,
+        "mono": false,
+        "corPropria": false,
+        "fontPx": 12,
+        "weight": "400",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 5,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 4.6,
+        "mono": false,
+        "corPropria": false,
+        "fontPx": 12,
+        "weight": "400",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 6,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 8.7,
+        "mono": false,
+        "corPropria": true,
+        "fontPx": 12,
+        "weight": "400",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 7,
+        "tag": "A",
+        "align": "right",
+        "larguraPct": 17.2,
+        "mono": false,
+        "corPropria": false,
+        "fontPx": 12,
+        "weight": "500",
+        "blocos": 1,
+        "pill": null
+      }
+    ],
+    "tabela": {
+      "tableLayout": "auto",
+      "colunasDeclaradas": 0,
+      "linhas": 21,
+      "linhasComEstado": 0
+    },
+    "shell": {
+      "papeis": {
+        "atalhoTopo": {
+          "seletor": ".sb-shortcuts .sb-shortcut",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "itemGrupo": {
+          "seletor": ".sb-item",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "grupoHeader": {
+          "seletor": ".sb-group-h",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "containerMenu": {
+          "seletor": ".sb-menu-grouped",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        }
+      },
+      "atalhos": []
+    }
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "id": "Repair/JobSheet/Index",
+  "module": "Repair",
+  "source": "repair-page.jsx",
+  "target": "resources/js/Pages/Repair/JobSheet/Index.tsx",
+  "token": "rep-folhas",
+  "lado": "ambos",
+  "frescor": "sem veredito novo (última 2026-10-07)",
+  "contrato": "governance/design/contracts/repair-jobsheet-index.contract.json",
+  "compare": {
+    "rc": 2,
+    "veredito": "NÃO MEDI",
+    "motivo": "⛔ NÃO MEDI — identidade da view não provada: assimetria estrutural: 1 x 4 copies — um lado so casou copy de shell Nenhuma copy pinada do contrato apareceu no render, ou a sonda é anterior ao D0. Isto NÃO é divergência de",
+    "bugs": null,
+    "shell": null,
+    "sameTheme": null,
+    "porDim": {},
+    "rows": null
+  },
+  "veredito": null,
+  "motivo": "",
+  "medido": true,
+  "designSha": "9726f06454568bfdd220669f85ec0af54cb613567dac2f466611367ca9779cee",
+  "prodSha": "a7f685c8152dfcaa5ef96cd4bc48aec0f0e405bcc89cc0f262228a4f22a6f680",
+  "meta": {
+    "urlFinal": "https://staging.oimpresso.com/repair/job-sheet",
+    "componenteInertia": null
+  },
+  "medidoEm": "2026-10-12T07:51:50.208Z",
+  "baseUrl": "https://staging.oimpresso.com",
+  "bundle": "0ee2464e450d6b8b8c82a0fb3840ac5760c339ed7dac978249089dab43f8fc2f"
+}

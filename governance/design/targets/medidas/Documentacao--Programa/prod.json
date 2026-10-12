@@ -1,0 +1,69 @@
+{
+  "url": "https://staging.oimpresso.com/documentacao/programa",
+  "saude": {
+    "folhasVazias": [],
+    "tokensMortos": [
+      "--pos",
+      "--neg",
+      "--warn",
+      "--text-dim",
+      "--sunken",
+      "--border"
+    ],
+    "nFolhas": 2
+  },
+  "theme": "light",
+  "assinatura": "oimpresso · documentação Tudo Operar Construir ← voltar ao sistema Comece aqui Domínio 5 Venda Título Nota fiscal Estágio (máquina de estados) Ordem de Serviço Fluxos 4 Venda, do balcão à nota Cancelamento Deploy Design, do Cowork à tela Técnico 2 Arquitetura e módulos Painel do sistema Governança 2 Como uma decisão vira lei O programa de documentação (Trilha D) Programa de documentação · Trilha D Não é escrever documentação — é manter um sistema que mede, traduz, publica, opera, detecta drift e aprende. ← Documentação Ver plano no git Ciclo Ondas Caminhos Pronto & batimento O ciclo completo Onda atual D0 fundação Ondas 1 / 11 D0 em execução Estações do ciclo 11 fecha em aprender → medir de novo Task MCP US-INFRA-048 o estado vivo é dela, não desta tela 01 Descobrir a máquina, o hook, o MCP, o módulo ou o fluxo que entra nesta volta. 02 Medir o estado real abrir fonte/configuração, executar inventário/probe e guardar o ID estável. 03 Classificar e localizar o dono qual camada, e qual arquivo já responde por ela. 04 Priorizar o gap criticidade × impacto. Achado adjacente vira task nova, nunca desvio da etapa em curso. 05 Documentar no dono existente corrigir o arquivo que já responde pelo assunto; nunca criar resumo paralelo. 06 Validar tecnicamente fonte, links, diagrama, dependências, tenant, PII e ausência de segredo. 07 Validar operacionalmente executar o runbook no ambiente correto e atualizar `last_validated` somente quando o resultado real bateu. 08 Publicar provar pelo `documentation-loop` que o ID sumiu (alteração de data não fecha), abrir PR de uma intenção, [W] ratifica pelo merge, e a rota humana atualiza no deploy ou no `quick-sync`. 09 Operar e observar o documento em uso, com health-check e vital-signs por trás. 10 Incidente ou drift a realidade discorda do que está escrito. 11 Aprender e corrigir runbook, lição ou decisão — **e voltar à estação 2.** O ciclo **não termina em publicar**: a estação 11 devolve o aprendizado à medição, e a volta seguinte começa sabendo mais. É isso que separa o programa de uma campanha de escrita. estação 11 → estação 02 · o aprendizado reentra na medição; publicar não encerra Dono deste texto: — a tela renderiza o plano, não é cópia commitada. Em que onda a trilha está e o que fechou é estado vivo das tasks MCP ( ), nunca desta página.",
+  "roles": {
+    "kpi": {
+      "count": 0,
+      "tag": null,
+      "overflowX": null,
+      "items": []
+    },
+    "title": {
+      "fontPx": 22,
+      "weight": "700",
+      "color": "oklch(0.22 0.01 80)"
+    },
+    "primary": null,
+    "filterRows": null,
+    "contratos": [],
+    "celulas": null,
+    "tabela": null,
+    "shell": {
+      "papeis": {
+        "atalhoTopo": {
+          "seletor": ".sb-shortcuts .sb-shortcut",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "itemGrupo": {
+          "seletor": ".sb-item",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "grupoHeader": {
+          "seletor": ".sb-group-h",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "containerMenu": {
+          "seletor": ".sb-menu-grouped",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        }
+      },
+      "atalhos": []
+    },
+    "chart": null
+  }
+}

@@ -1,0 +1,235 @@
+{
+  "url": "http://127.0.0.1:43113/oimpresso.com.html",
+  "saude": {
+    "folhasVazias": [],
+    "tokensMortos": [],
+    "nFolhas": 76
+  },
+  "theme": "dark",
+  "assinatura": "OI WR OFFICEIMPRESSO · 3 locais · 6 ajustes · 5 transferências Estoque Gestor (Wagner) Atualizado 09:42 Novo ajuste Contar Nova transferência Painel Ajustes 6 Transferências 2 Vencimentos 4 Contagem 1 Todos 6 Normal 3 Anormal 3 Período Dia Semana Mês De dd/mm/aaaa Até dd/mm/aaaa ⌕ Trilho vermelho = ajuste anormal. Excluir devolve o saldo (UC-EST-05). Compacto CSV Excel Imprimir Colunas Todos os locais Matriz Loja Centro Depósito Novo ajuste Ajuste ↕ Data ↓ Local ↕ Tipo ↕ Itens ↕ Valor ajustado ↕ Recuperado ↕ Motivo do ajuste Lançado por ↕ Ações AJ-0142 AJ2026/0142 08/05/2026 Matriz Anormal 2 R$ 404,40 R$ 0,00 Lona riscada na descarga — 3 bobinas inutilizadas. Wagner Ver Excluir AJ-0141 AJ2026/0141 07/05/2026 Loja Centro Normal 1 R$ 104,40 R$ 0,00 Recontagem do balcão — sobra de vinil não lançada. Larissa Ver Excluir AJ-0140 AJ2026/0140 06/05/2026 Depósito Anormal 1 R$ 1.080,00 R$ 180,00 Tinta vencida — 2 galões descartados, embalagem devolvida ao fornecedor. Bruna Ver Excluir AJ-0139 AJ2026/0139 05/05/2026 Matriz Normal 2 R$ 356,10 R$ 0,00 Perda de corte no plotter — refile do mês. Wagner Ver Excluir AJ-0138 AJ2026/0138 04/05/2026 Matriz Anormal 1 R$ 233,40 R$ 0,00 Placa ACM amassada no transporte interno. Bruna Ver Excluir AJ-0137 AJ2026/0137 30/04/2026 Depósito Normal 1 R$ 102,00 R$ 0,00 Fechamento de abril — ajuste de contagem cíclica. Wagner Ver Excluir Ajustes 6 Valor ajustado R$ 2.280,30 Recuperado R$ 180,00 Perda líquida R$ 2.100,30 Anterior 1 Próximo 1 – 6 de 6",
+  "roles": {
+    "kpi": {
+      "count": 0,
+      "tag": null,
+      "overflowX": null,
+      "items": []
+    },
+    "title": {
+      "fontPx": 22,
+      "weight": "600",
+      "color": "oklch(0.94 0.005 90)"
+    },
+    "primary": null,
+    "filterRows": null,
+    "contratos": [],
+    "celulas": [
+      {
+        "col": 0,
+        "tag": null,
+        "align": "center",
+        "larguraPct": 2.4,
+        "mono": false,
+        "corPropria": false,
+        "fontPx": 13,
+        "weight": "400",
+        "blocos": 0,
+        "pill": null
+      },
+      {
+        "col": 1,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 10.7,
+        "mono": false,
+        "corPropria": true,
+        "fontPx": 13,
+        "weight": "600",
+        "blocos": 2,
+        "pill": null
+      },
+      {
+        "col": 2,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 7.1,
+        "mono": true,
+        "corPropria": false,
+        "fontPx": 12,
+        "weight": "400",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 3,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 9.2,
+        "mono": false,
+        "corPropria": false,
+        "fontPx": 13,
+        "weight": "400",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 4,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 7.4,
+        "mono": false,
+        "corPropria": true,
+        "fontPx": 12,
+        "weight": "500",
+        "blocos": 1,
+        "pill": {
+          "radius": "9999px",
+          "borda": true,
+          "bg": "oklch(0.74 0.13 75)",
+          "dot": false
+        }
+      },
+      {
+        "col": 5,
+        "tag": null,
+        "align": "right",
+        "larguraPct": 5.3,
+        "mono": false,
+        "corPropria": false,
+        "fontPx": 13,
+        "weight": "400",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 6,
+        "tag": null,
+        "align": "right",
+        "larguraPct": 9.9,
+        "mono": true,
+        "corPropria": false,
+        "fontPx": 12,
+        "weight": "400",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 7,
+        "tag": null,
+        "align": "right",
+        "larguraPct": 8.9,
+        "mono": true,
+        "corPropria": false,
+        "fontPx": 12,
+        "weight": "400",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 8,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 21.3,
+        "mono": false,
+        "corPropria": true,
+        "fontPx": 12,
+        "weight": "400",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 9,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 8.5,
+        "mono": false,
+        "corPropria": false,
+        "fontPx": 13,
+        "weight": "400",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 10,
+        "tag": "BUTTON",
+        "align": "left",
+        "larguraPct": 9.2,
+        "mono": false,
+        "corPropria": false,
+        "fontPx": 12,
+        "weight": "400",
+        "blocos": 2,
+        "pill": null
+      }
+    ],
+    "tabela": {
+      "tableLayout": "fixed",
+      "colunasDeclaradas": 0,
+      "linhas": 6,
+      "linhasComEstado": 3
+    },
+    "shell": {
+      "papeis": {
+        "atalhoTopo": {
+          "seletor": ".sb-menu > .sb-item",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "itemGrupo": {
+          "seletor": ".sb-group .sb-item, .sb-group-body .sb-item",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "grupoHeader": {
+          "seletor": ".sb-group-h",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "containerMenu": {
+          "seletor": ".sb-menu",
+          "n": 1,
+          "css": {
+            "height": "525px",
+            "minHeight": "0px",
+            "padding": "4px 0px",
+            "margin": "0px",
+            "gap": "2px",
+            "display": "flex",
+            "alignItems": "center",
+            "fontFamily": "IBM Plex Sans,ui-sans-serif,system-ui,sans-serif",
+            "fontSize": "13.5px",
+            "fontWeight": "400",
+            "lineHeight": "19.575px",
+            "letterSpacing": "normal",
+            "textTransform": "none",
+            "color": "oklch(0.8 0.008 295)",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "borderRadius": "0px",
+            "borderWidth": "0px",
+            "borderColor": "oklch(0.8 0.008 295)",
+            "opacity": "1",
+            "width": "55px",
+            "boxShadow": "none",
+            "textDecorationLine": "none"
+          },
+          "caixa": {
+            "w": 55,
+            "h": 525
+          },
+          "icone": {
+            "w": 18,
+            "h": 18,
+            "strokeWidth": "1.6px"
+          }
+        }
+      },
+      "atalhos": []
+    },
+    "chart": null
+  }
+}

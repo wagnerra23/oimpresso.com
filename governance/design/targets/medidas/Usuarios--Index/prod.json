@@ -1,0 +1,144 @@
+{
+  "url": "https://staging.oimpresso.com/users",
+  "saude": {
+    "folhasVazias": [
+      "app.css",
+      "vendor.css",
+      "app.css"
+    ],
+    "tokensMortos": [
+      "--accent",
+      "--pos",
+      "--neg",
+      "--warn",
+      "--text-dim",
+      "--sunken",
+      "--border"
+    ],
+    "nFolhas": 16
+  },
+  "theme": "light",
+  "assinatura": "CI Biz Visão geral Gerenciamento de usuários Usuários Papéis Agentes comerciais Contatos Produtos Reparar Vendas Relatórios Configurações Suporte Jana Sidebar Menu Collapse Sidebar Calendário Adicionar a fazer Application Tour Calculator Reparar Today's Profit 10/12/2026 Notifications CI Signed in as CI Perfil Desconectar Usuários Gerenciar usuários Todos os usuários Adicionar Mostrar 25 50 100 200 500 1,000 Todos entradas Exportar para CSV Exportar para Excel Imprimir Visibilidade da coluna Exportar para PDF Username Nome Papel Email Ação aabernathy_bljqjktq Mr Darion Olson OperadorDel6ac7d39cd4872 norwood.watsica@example.net Editar Ver Excluir abauch Mr Joana Weber CatTeste6ab570e7218b9 fshields@example.org Editar Ver Excluir adaline85 Mr Evie Aufderhar OperadorDel6ac6389a9686d shanon.cummerata@example.org Editar Ver Excluir alford.heidenreich_bthcueid Mr Owen Champlin OperadorDel6ac7d24d5508b dickens.jude@example.com Editar Ver Excluir amy.beier Mr Okey Mohr OperadorDel6ab560f2d0b1d gusikowski.preston@example.net Editar Ver Excluir andre.weber Mr Jerad Predovic CatTeste6ac638b2627a0 chelsey.olson@example.org Editar Ver Excluir anita.hahn Mr Derrick Frami AutoTeste6ab56a3ca1c88 trace.rolfson@example.org Editar Ver Excluir aoconnell Mr Bradly Barton AutoTeste6ab562aec76f4 szieme@example.net Editar Ver Excluir bashirian.alena Mr Kariane Hansen CatTeste6ac63978ac910 crath@example.com Editar Ver Excluir bednar.elouise Mr Jerod Hermann ydaugherty@example.net Editar Ver Excluir beier.jevon Mr Cameron Maggio OperadorDel6ac63b2870b09 gorczany.rosalia@example.com Editar Ver Excluir blangworth_1austgoq Mr Lonzo Powlowski AutoTeste6ac7d37ed1106 dubuque.loy@example.com Editar Ver Excluir braden14 Mr Cloyd Bashirian AutoTeste6ac63aa6d719b nella78@example.com Editar Ver Excluir breanne.murphy Mr Arely Shanahan OperadorDel6ac63ace80d9e zharvey@example.net Editar Ver Excluir bridget90 Mr Beryl Bogisich CatTeste6ac639b8c4c1c raina.jerde@example.net Editar Ver Excluir bud.metz Mr Audie Fahey CatTeste6ac63b119fdba xrippin@example.com Editar Ver Excluir buddy90_uv5pnjuy Mr Maximillian Kris AutoTeste6ac7d1f2e9444 alphonso.fisher@example.org Editar Ver Excluir casper63 Mr Gracie Dickinson EmUso6ab560f2bd5ff martin64@example.com Editar Ver Excluir cassie75 Mr Breana Maggio OperadorDel6ac63acf51b07 jessika.schuster@example.net Editar Ver Excluir cesar57 Mr Hector Bradtke morgan53@example.com Editar Ver Excluir chadd68 Mr Earlene Hamill CatTeste6ab5617c13a83 morgan95@example.org Editar Ver Excluir ci_admin CI Admin Editar Ver Excluir cking Mr Rebecca Hand arjun94@example.com Editar Ver Excluir claudia.stracke Mr Eleanore Doyle OperadorDel6ab56a7a0430e allen56@example.net Editar Ver Excluir clyde.stamm Mr Liana Robel CatTeste6ac639ba5b65f ahamill@example.net Editar Ver Excluir Mostrando 1 a 25 de 283 entradas Anterior 1 2 3 4 5 … 12 Próximo - V6.4 | Copyright © 2026 All rights reserved. × Benefício de hoje Fechar × Entrada Saída Endereço de IP: 177.74.67.30 Relógio na nota: Nota do relógio: Enviar Fechar Usamos cookies pra entender como você usa o oimpresso e melhorar a experiência. Dados sensíveis (CPF, email, telefone) não são capturados . Só essenciais Aceitar tudo Tour da Aplicação Vamos passar pelo aplicativo em 7 passos rápidos ... « Anterior Próximo » Tour final",
+  "roles": {
+    "kpi": {
+      "count": 0,
+      "tag": null,
+      "overflowX": null,
+      "items": []
+    },
+    "title": {
+      "fontPx": 32,
+      "weight": "700",
+      "color": "rgb(0, 0, 0)"
+    },
+    "primary": {
+      "bg": "rgb(239, 239, 239)",
+      "color": "rgb(0, 0, 0)",
+      "border": "rgb(0, 0, 0)"
+    },
+    "filterRows": null,
+    "contratos": [],
+    "celulas": [
+      {
+        "col": 0,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 20.8,
+        "mono": false,
+        "corPropria": false,
+        "fontPx": 16,
+        "weight": "400",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 1,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 15.1,
+        "mono": false,
+        "corPropria": false,
+        "fontPx": 16,
+        "weight": "400",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 2,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 21.4,
+        "mono": false,
+        "corPropria": false,
+        "fontPx": 16,
+        "weight": "400",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 3,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 25,
+        "mono": false,
+        "corPropria": false,
+        "fontPx": 16,
+        "weight": "400",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 4,
+        "tag": "A",
+        "align": "left",
+        "larguraPct": 16.9,
+        "mono": false,
+        "corPropria": true,
+        "fontPx": 16,
+        "weight": "400",
+        "blocos": 3,
+        "pill": null
+      }
+    ],
+    "tabela": {
+      "tableLayout": "auto",
+      "colunasDeclaradas": 0,
+      "linhas": 25,
+      "linhasComEstado": 0
+    },
+    "shell": {
+      "papeis": {
+        "atalhoTopo": {
+          "seletor": ".sb-shortcuts .sb-shortcut",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "itemGrupo": {
+          "seletor": ".sb-item",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "grupoHeader": {
+          "seletor": ".sb-group-h",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "containerMenu": {
+          "seletor": ".sb-menu-grouped",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        }
+      },
+      "atalhos": []
+    },
+    "chart": null
+  }
+}

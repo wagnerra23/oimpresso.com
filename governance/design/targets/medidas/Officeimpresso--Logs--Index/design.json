@@ -1,0 +1,219 @@
+{
+  "url": "http://127.0.0.1:43113/oimpresso.com.html",
+  "saude": {
+    "folhasVazias": [],
+    "tokensMortos": [],
+    "nFolhas": 76
+  },
+  "theme": "dark",
+  "assinatura": "OI WR Log de acesso 13 eventos · append-only · nada é editado, nada é apagado Exportar Ver licenças Empresas Licenças Clientes OAuth Importar do Firebird Log de acesso Chamadas de API 4 guardado sem prazo Logins com sucesso 2 guardado sem prazo Logins recusados 2 empresa ou licença travada Ações de admin 3 evidência contratual · CC Art. 206 Purga desligada por decisão — nada é apagado O log de licença é evidência contratual e fiscal: [W] decidiu que a purga automática não liga . As janelas declaradas no module.json (1 / 2 / 7 anos) e no Config/retention.php (1825 dias, anonymize ) ficam como declaração de finalidade pra auditoria LGPD Art. 16 — não como gatilho de deleção. enabled=false permanente; a divergência entre as duas fontes deixa de ser risco porque nenhuma delas apaga nada. Período Dia Semana Mês De dd/mm/aaaa Até dd/mm/aaaa Origem Evento Empresa 13 de 13 Quando Evento Origem Empresa · máquina Rota Latência Detalhe 19/08/2026 10:34:12 api_call middleware ROTA LIVRE Comunicação Visual biz # 4 · BALCAO-01 GET /api/officeimpresso/produtos 180 ms 142 produtos · variações incluídas 19/08/2026 10:33:58 login_success Passport listener ROTA LIVRE Comunicação Visual biz # 4 · BALCAO-01 POST /oauth/token 310 ms password grant · access_token emitido (1 ano) 19/08/2026 10:19:04 api_call middleware ROTA LIVRE — Zona Leste biz # 58 · ZL-CAIXA GET /api/officeimpresso/clientes 224 ms delta desde 18/08 · 31 registros 19/08/2026 09:58:41 error_log middleware Martinho Oficina biz # 164 · OFICINA-BOX GET /api/officeimpresso/vendas 8120 ms timeout no Firebird · versão 6.5.02 abaixo da obrigatória 19/08/2026 09:41:20 admin_action UI superadmin Print Ideal biz # 158 · — businessupdate/158 96 ms bloqueio da empresa · motivo: assinatura vencida há 15 dias 19/08/2026 09:40:52 admin_action UI superadmin Print Ideal biz # 158 · PI-NOTEBOOK licenca_computador/4112/toggle-block 74 ms licença marcada excedente — limite de 2 máquinas estourado 19/08/2026 09:12:07 login_error Passport listener Print Ideal biz # 158 · PI-CAIXA POST /oauth/token 142 ms empresa bloqueada (officeimpresso_bloqueado=1) 19/08/2026 08:55:33 login_error Passport listener Print Ideal biz # 158 · PI-PRODUCAO POST /oauth/token 138 ms empresa bloqueada (officeimpresso_bloqueado=1) 19/08/2026 08:31:19 api_call middleware WR2 Comunicação Visual biz # 1 · WR2-DEV01 GET /api/officeimpresso/versao 64 ms handshake de versão · 6.7.14 em dia 18/08/2026 19:02:44 api_call Delphi · audit Grupo Sinaliza biz # 149 · SINALIZA-CX1 POST /api/officeimpresso/audit 210 ms contexto rico do Delphi (hostname + serial) 18/08/2026 18:44:10 login_success Passport listener Sinaliza — Canoas biz # 151 · CANOAS-CX1 POST /oauth/token 288 ms password grant · filial herda config da matriz 149 18/08/2026 11:20:02 error_log middleware Copiadora Central biz # 142 · CC-BALCAO GET /api/officeimpresso/produtos 5440 ms Windows 7 · TLS 1.0 recusado pelo servidor 12/08/2026 15:08:31 admin_action UI superadmin ROTA LIVRE Comunicação Visual biz # 4 · ROTA-ANTIGO licenca_computador/3660 88 ms licença revogada · máquina desativada na troca de servidor",
+  "roles": {
+    "kpi": {
+      "count": 4,
+      "tag": "DIV",
+      "overflowX": false,
+      "items": [
+        {
+          "label": "Chamadas de AP",
+          "textAlign": "start",
+          "alignItems": "normal",
+          "textColor": "oklch(0.94 0.005 90)",
+          "smallAlign": null,
+          "valueFontPx": 22
+        },
+        {
+          "label": "Logins com suc",
+          "textAlign": "start",
+          "alignItems": "normal",
+          "textColor": "oklch(0.94 0.005 90)",
+          "smallAlign": null,
+          "valueFontPx": 22
+        },
+        {
+          "label": "Logins recusad",
+          "textAlign": "start",
+          "alignItems": "normal",
+          "textColor": "oklch(0.94 0.005 90)",
+          "smallAlign": null,
+          "valueFontPx": 22
+        },
+        {
+          "label": "Ações de admin",
+          "textAlign": "start",
+          "alignItems": "normal",
+          "textColor": "oklch(0.94 0.005 90)",
+          "smallAlign": null,
+          "valueFontPx": 22
+        }
+      ]
+    },
+    "title": {
+      "fontPx": 22,
+      "weight": "600",
+      "color": "oklch(0.94 0.005 90)"
+    },
+    "primary": {
+      "bg": "oklch(0.7 0.15 295)",
+      "color": "rgb(255, 255, 255)",
+      "border": "oklch(0.7 0.15 295)"
+    },
+    "filterRows": null,
+    "contratos": [],
+    "celulas": [
+      {
+        "col": 0,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 14.3,
+        "mono": true,
+        "corPropria": true,
+        "fontPx": 12,
+        "weight": "400",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 1,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 14.3,
+        "mono": true,
+        "corPropria": true,
+        "fontPx": 12,
+        "weight": "500",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 2,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 14.3,
+        "mono": true,
+        "corPropria": true,
+        "fontPx": 12,
+        "weight": "400",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 3,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 14.3,
+        "mono": true,
+        "corPropria": true,
+        "fontPx": 13,
+        "weight": "500",
+        "blocos": 2,
+        "pill": null
+      },
+      {
+        "col": 4,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 14.3,
+        "mono": true,
+        "corPropria": true,
+        "fontPx": 12,
+        "weight": "400",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 5,
+        "tag": null,
+        "align": "right",
+        "larguraPct": 14.3,
+        "mono": true,
+        "corPropria": true,
+        "fontPx": 13,
+        "weight": "500",
+        "blocos": 1,
+        "pill": null
+      },
+      {
+        "col": 6,
+        "tag": null,
+        "align": "left",
+        "larguraPct": 14.3,
+        "mono": false,
+        "corPropria": false,
+        "fontPx": 13,
+        "weight": "400",
+        "blocos": 1,
+        "pill": null
+      }
+    ],
+    "tabela": {
+      "tableLayout": "fixed",
+      "colunasDeclaradas": 0,
+      "linhas": 13,
+      "linhasComEstado": 0
+    },
+    "shell": {
+      "papeis": {
+        "atalhoTopo": {
+          "seletor": ".sb-menu > .sb-item",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "itemGrupo": {
+          "seletor": ".sb-group .sb-item, .sb-group-body .sb-item",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "grupoHeader": {
+          "seletor": ".sb-group-h",
+          "n": 0,
+          "css": null,
+          "caixa": null,
+          "icone": null
+        },
+        "containerMenu": {
+          "seletor": ".sb-menu",
+          "n": 1,
+          "css": {
+            "height": "525px",
+            "minHeight": "0px",
+            "padding": "4px 0px",
+            "margin": "0px",
+            "gap": "2px",
+            "display": "flex",
+            "alignItems": "center",
+            "fontFamily": "IBM Plex Sans,ui-sans-serif,system-ui,sans-serif",
+            "fontSize": "13.5px",
+            "fontWeight": "400",
+            "lineHeight": "19.575px",
+            "letterSpacing": "normal",
+            "textTransform": "none",
+            "color": "oklch(0.8 0.008 295)",
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "borderRadius": "0px",
+            "borderWidth": "0px",
+            "borderColor": "oklch(0.8 0.008 295)",
+            "opacity": "1",
+            "width": "55px",
+            "boxShadow": "none",
+            "textDecorationLine": "none"
+          },
+          "caixa": {
+            "w": 55,
+            "h": 525
+          },
+          "icone": {
+            "w": 18,
+            "h": 18,
+            "strokeWidth": "1.6px"
+          }
+        }
+      },
+      "atalhos": []
+    },
+    "chart": null
+  }
+}
