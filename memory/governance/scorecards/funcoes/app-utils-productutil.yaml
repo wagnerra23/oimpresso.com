@@ -22,6 +22,12 @@
 #   só o `}` que fecha a classe desceu. Nenhuma função julgada mudou — source_blob_sha atualizado por
 #   isso. As 4 novas NÃO foram julgadas aqui (não é revalidação nem extensão do parecer).
 #
+# Rejulgamento parcial 2026-10-12 [F+C] (PR #9147): o arquivo GANHOU 1 função no fim —
+#   somaDasLinhasDoEstoque, o laço de soma que estava em ProductController::totaisDoRelatorioEstoque,
+#   movido sem mudança de conta. As linhas 1-2460 seguem byte-idênticas (`cmp`); só o `}` que fecha a
+#   classe desceu. Nenhuma função julgada mudou — source_blob_sha atualizado por isso. A nova NÃO foi
+#   julgada aqui (não é revalidação nem extensão do parecer).
+#
 # validation_status: pareceres-ancorados-nao-validados — os vereditos são PARECER ancorado em
 #   evidência+intenção externa, NÃO achados provados. O INSTRUMENTO (juiz) foi calibrado em fixture
 #   sintética não-circular (método §5 rodada 3, κ=1,0), mas isso NÃO re-valida estes vereditos sobre a
@@ -31,7 +37,7 @@ file: app/Utils/ProductUtil.php
 module: Produto
 rubric: memory/requisitos/_Governanca/FUNCAO-SCORECARD-METODO.md
 rubric_version: "1.1"
-source_blob_sha: "b0f50e17d0f5c303ffe9e2771f7e901a61f7f9f9"
+source_blob_sha: "3889cb512946fedcc8cdd843b7083fa0b3c0730d"
 judged_at: "2026-07-21"
 judge: "claude-opus-4-8"
 source: full-sweep-2026-07-21

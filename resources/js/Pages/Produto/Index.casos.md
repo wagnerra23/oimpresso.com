@@ -5,7 +5,7 @@ irmaos: Index.charter.md (lei)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: a lista é a PORTA do catálogo — se ela esconde produto, esconde preço a quem não devia, ou mistura tenant, todo o resto do ERP herda o erro.
 owner: wagner
-last_run: "2026-10-11"
+last_run: "2026-10-12"
 last_run_ci: "run 38087431948 (lane Estoque · MySQL, commit 59fe58ae, com o arquivo fora da quarentena naquele commit): os 6 UC-PIDX passaram. A saída da quarentena da lane vai em PR próprio (o arquivo .github é CODEOWNERS [W])"
 ---
 
@@ -66,6 +66,8 @@ last_run_ci: "run 38087431948 (lane Estoque · MySQL, commit 59fe58ae, com o arq
 | UC-PIDX-08 | A aba "Relatório de estoque" mostra as linhas de Relatórios → Estoque com os filtros da tela e totaliza TODAS as linhas | must | charter v3 §Goals + Blade `#product_stock_report` (`@can('stock_report.view')`) | `ProdutoListaEstoqueAbaTest` (Pest) | ⬜ nasce neste PR — verde esperado |
 | UC-PIDX-09 | O painel de detalhe mostra o conteúdo da janela "Ver" da Blade, com os mesmos gates, e só do produto da empresa | must `[T0]` | charter v3 §Goals + Blade `ProductController::view` + ADR 0093 | `ProdutoDetalheTest` (Pest) | ⬜ nasce neste PR — verde esperado |
 | UC-PIDX-10 | "Exportar filtrados" traz as mesmas linhas da lista, em CSV, com preço só para quem pode ver | should | charter v3 §Goals + protótipo (rodapé, `exportarCsv`) + gate de preço da lista (UC-PIDX-03) | `ProdutoListaExportarTest` (Pest) | ⬜ nasce neste PR — verde esperado |
+| UC-PIDX-11 | "Comprar" abre a nova compra com o produto | should | protótipo (`acoesDe`, rodapé do `DetalheDrawer`) + pedido [F] 2026-10-11 | `ProdutoDetalheTest` (Pest) | ⬜ verde esperado |
+| UC-PIDX-12 | Os 3 indicadores da aba Estoque do painel são a soma das linhas do relatório de estoque do produto | must | protótipo (`DetalheDrawer`, aba Estoque) + contas de `linhaDoRelatorioEstoque` + Blade `view_product_stock_value` | `ProdutoDetalheTest` (Pest) | ⬜ nasce neste PR — verde esperado |
 
 > 🔄 **Revalidação G-6 — 2026-10-10 (#9124, lista no desenho do protótipo).** Os 6 contratos
 > **continuam os mesmos**: derivam do SDD, da lista Blade e do Delphi, não da tela de cards. O que
@@ -241,6 +243,17 @@ last_run_ci: "run 38087431948 (lane Estoque · MySQL, commit 59fe58ae, com o arq
   - **Compra** — produto inativo ou sem controle de estoque não aparece na busca da compra (`getProducts`); por isso a ação some nesses casos, em vez de abrir uma compra vazia.
 - **Status: ⬜** — nasce neste PR; verde esperado. Só a lane decide.
 
+## UC-PIDX-12 · Os 3 indicadores da aba Estoque do painel somam o relatório de estoque do produto · `must`
+- **Persona:** Larissa abre o painel de um produto e quer ver de relance quanto tem dele, quanto isso vale pelo que pagou e por quanto venderia — sem ir a Relatórios → Estoque e somar local por local.
+- **Aceite:** Dado um produto com controle de estoque e um usuário com `stock_report.view` · Quando abro a aba Estoque do painel · Então "Estoque atual", "Valor pelo custo" e "Valor pela venda" (com o lucro potencial na legenda) são a **soma das linhas** que a própria aba lista — as de Relatórios → Estoque para esse produto. Sem `view_product_stock_value` os valores não vêm (aparece "—", nunca zero); sem `stock_report.view` nem a aba nem os indicadores vêm.
+- **Teste:** [`ProdutoDetalheTest`](../../../../tests/Feature/Produto/ProdutoDetalheTest.php) — `UC-PIDX-12`: cenário de dois locais (7 un. a 12 e 3 un. a 30, venda a 20) conferido por dois caminhos — a conta à mão (10 · 174 · 200 · 26) e a soma, linha a linha, do JSON do DataTable de Relatórios → Estoque (o código da Blade).
+- **Contrato:**
+  - **Protótipo** — `DetalheDrawer`, aba Estoque: três placas (estoque atual · valor pelo custo · valor pela venda, com lucro potencial).
+  - **Contas** — nenhuma nova: `ProductUtil::linhaDoRelatorioEstoque` por linha e `ProductUtil::somaDasLinhasDoEstoque` para somar — a MESMA função do rodapé da aba "Relatório de estoque" (UC-PIDX-08).
+  - **Blade** — valores do estoque só com `view_product_stock_value` (colunas do relatório de estoque).
+- **Divergência deliberada do protótipo:** a legenda do custo diz "pelo preço pago nas compras" (o protótipo diz "preço de compra padrão"). O campo do relatório é o que resta de cada compra recebida × o preço pago nela, não estoque × preço de compra do cadastro — é a mesma legenda do indicador do topo da lista (UC-PIDX-07).
+- **Status: ⬜** — nasce neste PR; verde esperado. Só a lane decide.
+
 ---
 
 ## Achados de governança (o trio prometia o que não tinha)
@@ -344,6 +357,7 @@ last_run_ci: "run 38087431948 (lane Estoque · MySQL, commit 59fe58ae, com o arq
 - Gate: `scripts/casos-coverage-guard.mjs` (G-1/G-2/G-5/G-6/G-7 — [ADR 0264](../../../../memory/decisions/0264-governanca-executavel-trio-dominio-e2e.md))
 
 ## Trilha do tempo
+- 2026-10-12 · [F+C] **UC-PIDX-12** (os 3 indicadores da aba Estoque do painel): soma das linhas do relatório de estoque do produto, pela mesma função do rodapé da aba "Relatório de estoque"; prova dupla no `ProdutoDetalheTest`.
 - 2026-10-10 · [F+C] **UC-PIDX-10** ("Exportar filtrados" em CSV) e o botão "Etiquetas" na barra de seleção (abre a tela de etiquetas com os produtos selecionados — UC-PETQ-06).
 - 2026-10-10 · [F+C] **UC-PIDX-09** (painel de detalhe): os dados do painel no servidor, com o conteúdo e os gates da janela "Ver" da Blade; a tela do painel vem no PR seguinte.
 - 2026-10-10 · [F+C] menu da linha: sai "Ver" e o clique na linha (o destino `/products/{id}` não é página — é o pedaço das prateleiras; medido em produção) até o painel de detalhe do protótipo; entra "Adicionar ou editar estoque inicial" (como na lista Blade: estoque gerenciado + `product.opening_stock`, página do `OpeningStockController@add`). Nenhum UC muda.

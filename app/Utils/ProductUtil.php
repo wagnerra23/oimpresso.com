@@ -2458,4 +2458,37 @@ class ProductUtil extends Util
             'alerta' => (bool) ($r->enable_stock && $r->stock <= $r->alert_quantity),
         ];
     }
+
+    /**
+     * Soma, linha a linha, o que `linhaDoRelatorioEstoque` devolve — nenhuma conta nova. É a soma do
+     * rodapé da aba "Relatório de estoque" e dos indicadores da aba Estoque do painel de detalhe
+     * (`ProductController::totaisDoRelatorioEstoque` e `buildProdutoDetalhe`): um lugar só, para as
+     * duas telas não divergirem. Sem `view_product_stock_value` os três valores vêm null — sem
+     * permissão não é zero.
+     *
+     * @param  iterable<array<string, mixed>>  $linhas
+     * @return array<string, float|int|null>  linhas, estoque, vendido, transferido, ajustado, valor_compra, valor_venda, lucro_potencial
+     */
+    public function somaDasLinhasDoEstoque(iterable $linhas, bool $verValor): array
+    {
+        $t = [
+            'linhas' => 0, 'estoque' => 0.0, 'vendido' => 0.0, 'transferido' => 0.0, 'ajustado' => 0.0,
+            'valor_compra' => $verValor ? 0.0 : null,
+            'valor_venda' => $verValor ? 0.0 : null,
+            'lucro_potencial' => $verValor ? 0.0 : null,
+        ];
+        foreach ($linhas as $l) {
+            $t['linhas']++;
+            foreach (['estoque', 'vendido', 'transferido', 'ajustado'] as $c) {
+                $t[$c] += (float) ($l[$c] ?? 0);
+            }
+            if ($verValor) {
+                foreach (['valor_compra', 'valor_venda', 'lucro_potencial'] as $c) {
+                    $t[$c] += (float) ($l[$c] ?? 0);
+                }
+            }
+        }
+
+        return $t;
+    }
 }

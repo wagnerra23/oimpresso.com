@@ -99,8 +99,10 @@ blueprint_cowork: prototipo-ui/prototipos/produto-cockpit/ _(removido em 2026-05
 > - Aba Fiscal: a produção mostra as colunas fiscais reais do cadastro (CFOP dentro/fora, CST…); o
 >   protótipo tem um conjunto menor e um botão "Abrir no módulo Fiscal".
 > - Aba Estoque: o protótipo tem 3 indicadores (estoque atual, valor pelo custo, valor pela venda) e
->   um botão "Transferir" por linha. **Ainda não feitos**: os indicadores somam valores (vêm com dupla
->   conferência) e o "Transferir" vira a requisição de transferência combinada com [F] em 2026-10-11.
+>   um botão "Transferir" por linha. Os **indicadores entraram em 2026-10-12** (UC-PIDX-12): a soma das
+>   linhas do relatório de estoque do produto, feita no servidor. A legenda do custo é "pelo preço pago
+>   nas compras" (o protótipo diz "preço de compra padrão", que não é a conta do relatório). O
+>   "Transferir" segue **não feito**: vira a requisição de transferência combinada com [F] em 2026-10-11.
 > - "Gerar OP" no rodapé de composição: depende do módulo de produção.
 
 > **Tipo de tela:** list cockpit list+detail (drawer pattern)
