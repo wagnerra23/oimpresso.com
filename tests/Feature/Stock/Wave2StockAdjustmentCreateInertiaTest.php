@@ -48,13 +48,18 @@ it('Charter + Runbook + Visual existem (ADR 0149 + 0114)', function () {
 it('Page importa AppShellV2 + PageHeader', function () {
     $source = readSACreateInertia();
     expect($source)->toContain('@/Layouts/AppShellV2');
-    expect($source)->toContain('@/Components/shared/PageHeader');
+    // Header canon desde 2026-10-11 (ADR 0409: tocar a tela exige a cura). O shared é o antigo.
+    expect($source)->toContain("from '@/Components/PageHeader'");
+    expect($source)->not->toContain('@/Components/shared/PageHeader');
     expect($source)->toMatch('/StockAdjustmentCreate\\.layout\\s*=/');
 });
 
 it('Page declara AdjustmentLineDraft + AdjustmentType + Permissions interfaces', function () {
     $source = readSACreateInertia();
-    expect($source)->toContain('interface AdjustmentLineDraft');
+    // 2026-10-11: a linha deixou de ser texto livre (`AdjustmentLineDraft`, sem product_id). O tipo
+    // mora no componente de itens, que busca o produto e o saldo da filial.
+    expect($source)->toContain("from '@/Components/shared/ItensMovimentacaoEstoque'");
+    expect($source)->toContain('linhaParaAjuste');
     expect($source)->toContain('type AdjustmentType');
     expect($source)->toContain('interface Permissions');
     expect($source)->toContain('interface StockAdjustmentCreatePageProps');
@@ -64,7 +69,7 @@ it('Page valida R-ADJ-003 (recovered <= total) client-side', function () {
     $source = readSACreateInertia();
     expect($source)->toContain('recuperadoExcede');
     expect($source)->toContain('AlertCircle');
-    expect($source)->toContain('disabled={form.processing || recuperadoExcede}');
+    expect($source)->toContain('disabled={form.processing || recuperadoExcede || itensInvalidos}');
 });
 
 it('Page destaca o tipo abnormal por ramificação, com token semântico (não cor crua)', function () {

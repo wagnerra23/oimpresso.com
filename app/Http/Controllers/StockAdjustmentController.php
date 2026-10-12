@@ -316,7 +316,10 @@ class StockAdjustmentController extends Controller
             $input_data['type'] = 'stock_adjustment';
             $input_data['business_id'] = $business_id;
             $input_data['created_by'] = $user_id;
-            $input_data['transaction_date'] = $this->productUtil->uf_date($input_data['transaction_date'], true);
+            // A tela React manda a data em ISO (o que o <input type="datetime-local"> produz); a
+            // Blade manda no formato da empresa. `uf_datetime_input` aceita os dois e, fora do ISO,
+            // cai no mesmo `uf_date()` de antes. Não mexe em valor nem em estoque.
+            $input_data['transaction_date'] = $this->productUtil->uf_datetime_input($input_data['transaction_date']);
             $input_data['total_amount_recovered'] = $this->productUtil->num_uf($input_data['total_amount_recovered']);
 
             //Update reference count

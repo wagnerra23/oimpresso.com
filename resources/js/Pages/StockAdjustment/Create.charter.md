@@ -28,6 +28,15 @@ mwart_pattern_reuse:
 - R-ADJ-003: total_amount_recovered ≤ final_total — conferida **só no cliente** (botão desabilitado); `store()` não valida (medido 2026-10-06, ver casos §Backlog)
 - R-ADJ-004: purchase.create obrigatória
 
+## Itens (2026-10-11)
+- Cada linha é um **produto do cadastro** (produto + variação), escolhido na busca. A busca só abre com a filial escolhida e usa `/products/list` com o local — a mesma rota da Blade.
+- Produto sem controle de estoque não aparece; sem saldo na filial aparece desabilitado.
+- A linha vem de `GET /stock-transfers/produto-linha` (os dados do `get_product_row`, que a Blade também compartilha entre ajuste e transferência): saldo no local, unidade, lotes e último custo de compra.
+- Sem subunidade (o ajuste da Blade é na unidade do produto). O mesmo produto pode entrar em mais de uma linha (lotes diferentes).
+- A quantidade não passa do saldo da filial (ou do lote). Trocar a filial zera os itens. Sem item não salva.
+- Envio: os campos da linha da Blade, com números em `paraNumUf` (vírgula decimal, sem milhar).
+- Componente: `@/Components/shared/ItensMovimentacaoEstoque` (o mesmo da transferência).
+
 ## Casos
 [Create.casos.md](Create.casos.md) — UC-AJCRT-01/02 (permissão e filiais do próprio business).
 
