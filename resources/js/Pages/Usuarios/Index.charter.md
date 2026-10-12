@@ -22,7 +22,9 @@ related_runbook: memory/requisitos/User/RUNBOOK-usuarios.md
 
 > **Status:** draft. Thread `sistema/playbook/01`. `GET /users` (`ManageUserController::index`) responde
 > Inertia **só** com `X-Inertia` ou com a chave `mwart.sistema_usuarios_index` ligada para a empresa —
-> ela nasce desligada e ligar é a F5, decisão [W]. A Blade `manage_user/*` segue como padrão.
+> ela nasceu desligada; em 2026-10-07 [W] decidiu ligar para todas (D-USU-LIGAR) e a thread
+> `sistema/playbook/09` trocou o default da chave para `true`. A Blade `manage_user/*` fica como volta
+> (`.env` com `MWART_SISTEMA_USUARIOS_INDEX=false`).
 > Vira `live` com a aprovação do screenshot por [W]. Casos: [`Index.casos.md`](./Index.casos.md).
 
 ## Mission

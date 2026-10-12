@@ -9,7 +9,7 @@ use Spatie\Permission\Models\Role;
 
 /**
  * Thread sistema/playbook/01 — F3 de /users: o ramo React atrás da chave
- * `mwart.sistema_usuarios_index` (nasce desligada; ligar é a F5, decisão [W]).
+ * `mwart.sistema_usuarios_index` (nasceu desligada; a thread 09 ligou o default — D-USU-LIGAR).
  *
  * Prova QUAL ramo o index() escolhe e o que a lista deferida traz. A Blade é trocada por stub
  * de uma linha: o layout AdminLTE não está sob teste aqui. Headers Inertia como o cliente manda
@@ -63,6 +63,19 @@ test('UC-USUA-01 cutover — chave ligada só para esta empresa: GET comum vira 
 
     config(['mwart.sistema_usuarios_index' => ['enabled' => true, 'business_ids' => [(int) $this->business->id + 1000]]]);
     $this->get('/users')->assertOk()->assertSee('BLADE manage_user.index');
+});
+
+test('UC-USUA-01 cutover F5 — sem env, a chave vem LIGADA para todas as empresas (D-USU-LIGAR)', function () {
+    // Precondição: o ambiente de teste não fixa a env; senão o default nem é exercitado.
+    expect(env('MWART_SISTEMA_USUARIOS_INDEX'))->toBeNull();
+    expect(env('MWART_SISTEMA_USUARIOS_INDEX_BIZ'))->toBeNull();
+
+    $padrao = require base_path('config/mwart.php');
+    expect($padrao['sistema_usuarios_index'])->toBe(['enabled' => true, 'business_ids' => []]);
+
+    // E com o default aplicado, GET comum (URL direta, menu) já abre a tela React.
+    config(['mwart.sistema_usuarios_index' => $padrao['sistema_usuarios_index']]);
+    $this->get('/users')->assertOk()->assertInertia(fn (AssertableInertia $p) => $p->component('Usuarios/Index', true));
 });
 
 test('UC-USUA-01 cutover — AJAX sem X-Inertia segue na DataTable mesmo com a chave ligada', function () {
