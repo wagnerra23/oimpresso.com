@@ -81,6 +81,10 @@
       "sha256": "7100b198373c965dd83ab334915001b223d6db5e7144fc7e58b5bbab555f7d61",
       "em": "2026-10-09T17:43:35.125Z"
     },
+    "cowork-inbox/officeimpresso/playbook/_saida-11.md": {
+      "sha256": "19f6a1797f4d0ecc1d602a5df5e865381efd9997625a448216c7c959c2544b85",
+      "em": "2026-10-13T10:58:59.363Z"
+    },
     "cowork-inbox/sistema/playbook/_saida-02.md": {
       "sha256": "c6e55c676cfc7594abe76a1001a480feba2a86984996597c3be64c7477badee7",
       "em": "2026-10-09T17:43:35.125Z"
@@ -88,6 +92,10 @@
     "cowork-inbox/sistema/playbook/_saida-05.md": {
       "sha256": "385789405fbdb64d9c9c5c7e73cdc93ff2c8ddfe42fed64d2cc03000fddfdd6d",
       "em": "2026-10-07T23:17:54.179Z"
+    },
+    "cowork-inbox/sistema/playbook/_saida-06.md": {
+      "sha256": "022ebe3e8c78c5312b05dc5cae08565ea5b54ae0a9f943e892c7cf7b4ae32530",
+      "em": "2026-10-13T11:13:26.289Z"
     },
     "cowork-inbox/sistema/playbook/_saida-07.md": {
       "sha256": "28b49f7c115ce8ad14a6ac0a933d1fdda25a6d8d50bcf9e74bd3fb1a3b2bfa33",

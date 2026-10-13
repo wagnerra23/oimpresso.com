@@ -72,7 +72,7 @@
  *      node scripts/governance/cron-watchdog.mjs --selftest (núcleo puro morde e libera)
  * Refs: ADR 0317 §2 (auto-canário) · 0256 (sentinela). Molde: memory-health.yml job cron-liveness.
  */
-import { readdirSync, readFileSync, mkdtempSync, rmSync } from 'node:fs';
+import { readdirSync, readFileSync, mkdtempSync, rmSync, mkdirSync, writeFileSync } from 'node:fs';
 import { execSync, spawnSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -641,6 +641,35 @@ export function dataInterna(txt) {
 }
 
 /**
+ * Modelo de frescor DECLARADO pelo próprio artefato (2026-10-13). Caso (c) da mensagem
+ * do eixo: há artefato cuja data interna NÃO mede frescor, porque ele só muda num
+ * EVENTO (colisão nova de ADR, arquivo novo importando Modules/), não por cadência.
+ * Medido no dia: `dependency-direction-baseline.json` teve 2 commits em 2026-10-02
+ * (allowlist revisada) e seguiu com `generated_at: 2026-08-12`; o `adr-alias-map.json`
+ * batia 13/13 com o oráculo dele (`adr-index-generate`) e mesmo assim saía 🔴 62d. A
+ * idade dos dois media "nenhum evento em 62d", que é boa notícia, não obra parada.
+ *
+ * A saída NÃO é silêncio: o artefato declara, em JSON, `_frescor` com
+ *   { "modelo": "por-evento", "oraculo": "<comando que prova o frescor sem data>",
+ *     "razao": "<por que a data não mede frescor aqui>" }
+ * e passa a ser LISTADO (📌) no relatório em vez de medido por idade. Declaração
+ * incompleta é dita e NÃO isenta — o artefato segue medido. Só JSON: YAML de estado
+ * aqui é curadoria (scorecards), exatamente o caso (b) que deve continuar alarmando.
+ * Retorna { valido, oraculo, razao, erro } ou null quando não há declaração.
+ */
+export function frescorDeclarado(txt) {
+  let doc;
+  try { doc = JSON.parse(txt); } catch { return null; }
+  const f = doc && typeof doc === 'object' ? doc._frescor : undefined;
+  if (f === undefined) return null;
+  if (!f || typeof f !== 'object') return { valido: false, erro: "'_frescor' tem que ser objeto" };
+  if (f.modelo !== 'por-evento') return { valido: false, erro: `'_frescor.modelo' desconhecido (${JSON.stringify(f.modelo)}) — só 'por-evento' existe` };
+  if (typeof f.oraculo !== 'string' || f.oraculo.trim().length < RAZAO_MINIMA_CHARS) return { valido: false, erro: "'_frescor.oraculo' ausente — sem comando que prove o frescor, a declaração é só silêncio" };
+  if (typeof f.razao !== 'string' || f.razao.trim().length < RAZAO_MINIMA_CHARS) return { valido: false, erro: "'_frescor.razao' ausente ou curta demais" };
+  return { valido: true, oraculo: f.oraculo.trim(), razao: f.razao.trim(), erro: null };
+}
+
+/**
  * NÚCLEO PURO (testável, sem I/O): recebe [{arquivo, data}] e devolve os parados.
  * `nowMs` injetado — determinístico no selftest, real na execução.
  */
@@ -657,10 +686,16 @@ export function paradosEntre(entradas, nowMs, limiteDias) {
 function checarEntrega(nowMs) {
   const { arquivos, erro } = arquivosDeEstado();
   const entradas = [];
+  const porEvento = [];
+  const declaracoesInvalidas = [];
   for (const arquivo of arquivos) {
     let txt;
     try { txt = readFileSync(join(ROOT, arquivo), 'utf8'); } catch { continue; }
-    entradas.push({ arquivo, data: dataInterna(txt) });
+    const data = dataInterna(txt);
+    const fr = data ? frescorDeclarado(txt) : null;
+    if (fr && fr.valido) { porEvento.push({ arquivo, data, oraculo: fr.oraculo, razao: fr.razao }); continue; }
+    if (fr) declaracoesInvalidas.push({ arquivo, erro: fr.erro });
+    entradas.push({ arquivo, data });
   }
   const datados = entradas.filter((e) => e.data);
   return {
@@ -671,9 +706,12 @@ function checarEntrega(nowMs) {
     // "não medi" de "nada parado" agora TEM como — antes os dois eram `parados: []`.
     cego: Boolean(erro),
     erro_enumeracao: erro,
-    total_estado: entradas.length,
-    total_datados: datados.length,
+    total_estado: entradas.length + porEvento.length,
+    total_datados: datados.length + porEvento.length,
     parados: paradosEntre(datados, nowMs, ENTREGA_LIMITE_DIAS),
+    // Aditivos no shape do --json (ver `cego` acima): declarados fora da medida de idade.
+    por_evento: porEvento,
+    declaracoes_invalidas: declaracoesInvalidas,
   };
 }
 
@@ -685,9 +723,11 @@ function reportarEntrega(r) {
     return 1;
   }
   console.log(`\n📦 entrega — ${r.total_datados} artefato(s) de estado com data interna (de ${r.total_estado}) · limite ${r.limite_dias}d · ${r.parados.length} 🔴 parado(s)`);
+  for (const e of r.por_evento) console.log(`📌 ${e.arquivo} — frescor POR EVENTO (data interna ${e.data} não mede frescor) · oráculo: ${e.oraculo}`);
+  for (const d of r.declaracoes_invalidas) console.error(`⚠️ ${d.arquivo} — declaração '_frescor' inválida, segue medido por idade: ${d.erro}`);
   for (const p of r.parados) console.error(`🔴 ${p.arquivo} — parado há ${p.dias}d (última data interna: ${p.data})`);
   if (!r.parados.length) { console.log(`✓ nenhum artefato de estado além do limite.`); return 0; }
-  console.error(`\n✗ ${r.parados.length} artefato(s) de estado parado(s) além do limite. Este eixo mede IDADE, não autoria — ele não sabe se o artefato tem escritor automático. Ao investigar, o achado cai num dos 3 casos: (a) cron que rodava e parou de ENTREGAR → conserta a entrega; (b) artefato CURADO À MÃO cuja revisão envelheceu → re-cura, ou aposenta quem o consome; (c) mecanismo inteiro parado → aposenta com lápide. Como distinguir: varra os escritores do path (quem faz write nele) — sem escritor, não é (a). Precedente 2026-07-26 (os 5 scorecards do Governance v4): varredura contada achou ZERO escritores — os crons de 06:05/07:00 apenas LEEM —, então NÃO era (a). [W] decidiu (b): revisar os 5 (#4822). Conferir "quem escreve neste path" é o passo que separa os 3 casos.`);
+  console.error(`\n✗ ${r.parados.length} artefato(s) de estado parado(s) além do limite. Este eixo mede IDADE, não autoria — ele não sabe se o artefato tem escritor automático. Ao investigar, o achado cai num dos 3 casos: (a) cron que rodava e parou de ENTREGAR → conserta a entrega; (b) artefato CURADO À MÃO cuja revisão envelheceu → re-cura, ou aposenta quem o consome; (c) mecanismo inteiro parado → aposenta com lápide; ou a data interna NÃO mede frescor (artefato que só muda por EVENTO) → declare no próprio JSON '_frescor': {modelo:'por-evento', oraculo, razao} e ele sai da medida de idade, listado como 📌. Como distinguir: varra os escritores do path (quem faz write nele) — sem escritor, não é (a). Precedente 2026-07-26 (os 5 scorecards do Governance v4): varredura contada achou ZERO escritores — os crons de 06:05/07:00 apenas LEEM —, então NÃO era (a). [W] decidiu (b): revisar os 5 (#4822). Conferir "quem escreve neste path" é o passo que separa os 3 casos.`);
   return 1;
 }
 
@@ -748,6 +788,15 @@ if (EH_MAIN && ARGS.has('--selftest')) {
   ok(dataInterna('"ultima_data": "2026-07-11"') === '2026-07-11',
     'dataInterna: reconhece ultima_data (route-hits.json → 2 gates required)');
 
+  // ── frescor declarado por evento (2026-10-13) ────────────────────────────────
+  const decl = (o) => JSON.stringify({ generated_at: '2026-01-01', _frescor: { modelo: 'por-evento', oraculo: 'node x.mjs --check', razao: 'só muda quando colide um ADR novo', ...o } });
+  ok(frescorDeclarado(decl({}))?.valido === true, 'LIBERA: _frescor completo é válido');
+  ok(frescorDeclarado(decl({ oraculo: '' }))?.valido === false, 'MORDE: _frescor sem oráculo NÃO isenta (silêncio sem prova)');
+  ok(frescorDeclarado(decl({ razao: 'ok' }))?.valido === false, 'MORDE: _frescor com razão curta NÃO isenta');
+  ok(frescorDeclarado(decl({ modelo: 'nunca-alarma' }))?.valido === false, 'MORDE: modelo desconhecido NÃO isenta');
+  ok(frescorDeclarado('{"generated_at":"2026-01-01"}') === null, 'sem _frescor → null (medido por idade, como antes)');
+  ok(frescorDeclarado('generated_at: 2026-01-01') === null, 'YAML não declara frescor (curadoria segue alarmando)');
+
   const ordem = paradosEntre([{ arquivo: 'novo', data: '2026-05-20' }, { arquivo: 'velho', data: '2026-01-01' }], NOW, 60);
   ok(ordem[0].arquivo === 'velho', 'ordena do mais parado pro menos');
 
@@ -775,6 +824,32 @@ if (EH_MAIN && ARGS.has('--selftest')) {
   // controle positivo, senão "morde sempre" passaria por "morde certo".
   ok(checarEntrega(Date.now()).cego === false,
     'LIBERA: dentro do checkout, cego=false (a enumeração de fato mediu)');
+
+  // PIPELINE (não helper): num repo git descartável, um JSON de estado com _frescor
+  // válido sai de `parados` e entra em `por_evento` pelo CLI --json; o mesmo arquivo
+  // com o oráculo apagado volta a ser acusado. Mutação no caminho enumerar→ler→
+  // classificar que o relatório usa, não num satélite (§5 2026-07-30).
+  {
+    const tmp = mkdtempSync(join(tmpdir(), 'cw-frescor-'));
+    const g = (...a) => spawnSync('git', a, { cwd: tmp, encoding: 'utf8' });
+    g('init', '-q');
+    mkdirSync(join(tmp, 'governance'), { recursive: true });
+    const alvo = join(tmp, 'governance', 'x.json');
+    const roda = () => {
+      const r = spawnSync(process.execPath, [fileURLToPath(import.meta.url), '--json'], { cwd: tmp, encoding: 'utf8' });
+      try { return JSON.parse(r.stdout); } catch { return {}; }
+    };
+    writeFileSync(alvo, decl({}));
+    g('add', '.');
+    const a = roda();
+    ok(a.cego === false && a.parados?.length === 0 && a.por_evento?.[0]?.arquivo === 'governance/x.json',
+      'PIPELINE LIBERA: _frescor válido → por_evento, não parado');
+    writeFileSync(alvo, decl({ oraculo: '' }));
+    const b = roda();
+    ok(b.parados?.[0]?.arquivo === 'governance/x.json' && b.declaracoes_invalidas?.length === 1,
+      'PIPELINE MORDE: oráculo apagado → volta a parado + declaração inválida dita');
+    rmSync(tmp, { recursive: true, force: true });
+  }
 
   // ── EIXO 1: "não consegui perguntar" ≠ "nunca rodou" (defeito medido 2026-07-29) ──
   // Sem `gh` no host, os 8 workflows saíam como 🟡 bootstrap e o relatório terminava em

@@ -5,7 +5,7 @@ irmaos: Index.charter.md (lei) · Index.tsx (tela)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: função de outro negócio na lista, ou contagem de usuários alheia, expõe quem acessa o ERP de outra empresa.
 owner: wagner
-last_run: "2026-10-08"
+last_run: "2026-10-13"
 ---
 
 # Casos de Uso & Aceite — Funções e permissões
@@ -40,8 +40,29 @@ last_run: "2026-10-08"
   comum `editavel: true`.
 - **Status: 🧪**
 
-## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
-- [BACKLOG] Editor de permissões em React (F3-2).
+## UC-FUNC-05 · O drawer oferece o mesmo formulário da Blade
+- **Persona:** quem administra o que cada usuário pode fazer.
+- **Aceite:** Dado uma função minha com permissões · Quando abro "Editar permissões" (partial reload da prop `editor`
+  com `?funcao=<id>`) · Então recebo os blocos e controles que a Blade `role/edit` renderiza para o meu negócio, com o
+  rótulo da Blade, o nome sem `#negócio`, as caixas e os escopos (rádio) que a função já tem marcados.
+- **Status: 🧪**
+
+## UC-FUNC-06 · Função de outro negócio não abre no drawer · `[T0]`
+- **Aceite:** Dado uma função de outro negócio · Quando peço o editor dela · Então 404, sem o nome dela na resposta;
+  a minha abre.
+- **Status: 🧪**
+
+## UC-FUNC-07 · Salvar sem mexer não muda nada
+- **Aceite:** Dado uma função com caixas e escopos marcados · Quando salvo pelo drawer sem alterar nada (mesmo corpo
+  que o `<form>` da Blade mandaria: `permissions[]`, `spg_permissions[]`, `radio_option[]`, `is_service_staff`) ·
+  Então as permissões da função continuam as mesmas; desmarcar uma revoga só aquela.
+- **Status: 🧪**
+
+## UC-FUNC-08 · Nova função e função padrão
+- **Aceite:** Dado `roles.create` · Quando abro "Nova função" · Então o editor vem sem id e sem nome, com os mesmos
+  controles. Sem `roles.create`, 403. Função padrão (fora `Cashier`) não abre no editor: 403.
+- **Status: 🧪**
 
 ## Trilha do tempo
 - 2026-10-08 · [CL] criado com a F3-1 da thread `sistema/playbook/02`.
+- 2026-10-13 · [CL] UC-FUNC-05..08 com a F3-2 (drawer de cadastrar/editar).

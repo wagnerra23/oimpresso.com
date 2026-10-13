@@ -1,11 +1,12 @@
 <?php
 
 declare(strict_types=1);
-// Cobre UC-FUNC-01, UC-FUNC-02, UC-FUNC-03, UC-FUNC-04 (Funcoes/Index.casos.md).
+// Cobre UC-FUNC-01, UC-FUNC-02, UC-FUNC-03, UC-FUNC-04, UC-FUNC-05, UC-FUNC-06, UC-FUNC-07, UC-FUNC-08 (Funcoes/Index.casos.md).
 
 use App\User;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\Schema;
+use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
 /**
@@ -99,4 +100,129 @@ test('UC-FUNC-04 função padrão vem sem editar/excluir; a comum vem editável'
     expect($porId[$padrao->id]['padrao'])->toBeTrue();
     expect($porId[$padrao->id]['editavel'])->toBeFalse();
     expect($porId[$comum->id]['editavel'])->toBeTrue();
+});
+
+// ── F3-2: drawer de cadastrar/editar ────────────────────────────────────────────────────────
+
+function funcEditor($teste, string $funcao): \Illuminate\Testing\TestResponse
+{
+    return $teste->withHeaders([
+        'X-Inertia' => 'true',
+        'X-Inertia-Version' => $teste->versaoInertia,
+        'X-Inertia-Partial-Component' => 'Funcoes/Index',
+        'X-Inertia-Partial-Data' => 'editor',
+    ])->get('/roles?funcao='.$funcao);
+}
+
+/** @return \Illuminate\Support\Collection<int, array<string, mixed>> */
+function funcItens(array $editor): \Illuminate\Support\Collection
+{
+    return collect($editor['grupos'])->flatMap(fn ($g) => $g['itens']);
+}
+
+/** O corpo que o drawer manda (_components/funcao-form.ts::corpoDoFormulario): o que o <form> da Blade mandaria. */
+function funcCorpoDoDrawer(array $editor): array
+{
+    $corpo = ['name' => $editor['nome'], 'permissions' => [], 'spg_permissions' => [], 'radio_option' => []];
+    foreach (funcItens($editor)->where('marcado', true) as $i) {
+        if ($i['campo'] === 'permissions[]') {
+            $corpo['permissions'][] = $i['valor'];
+        } elseif ($i['campo'] === 'spg_permissions[]') {
+            $corpo['spg_permissions'][] = $i['valor'];
+        } elseif ($i['campo'] === 'is_service_staff') {
+            $corpo['is_service_staff'] = 1;
+        } elseif (preg_match('/^radio_option\[(.+)\]$/', $i['campo'], $m) === 1) {
+            $corpo['radio_option'][$m[1]] = $i['valor'];
+        }
+    }
+
+    return $corpo;
+}
+
+function funcComPermissoes(Role $papel, array $nomes): Role
+{
+    foreach ($nomes as $n) {
+        Permission::findOrCreate($n, 'web');
+    }
+    $papel->givePermissionTo($nomes);
+
+    return $papel->fresh('permissions');
+}
+
+test('UC-FUNC-05 o editor traz os controles da Blade em blocos, com o nome sem #negócio e o que a função já tem marcado', function () {
+    funcLigarFlag();
+    $papel = funcComPermissoes(funcPapel('Caixa'.uniqid(), $this->business->id), ['customer.update', 'supplier.view_own']);
+
+    $r = funcEditor($this, (string) $papel->id);
+    $r->assertOk();
+    $editor = $r->json('props.editor');
+
+    expect($editor['id'])->toBe($papel->id);
+    expect($editor['nome'])->toBe(str_replace('#'.$this->business->id, '', $papel->name));
+    expect(count($editor['grupos']))->toBeGreaterThan(10);
+
+    $itens = funcItens($editor)->keyBy(fn ($i) => $i['campo'].'|'.$i['valor']);
+    expect($itens['permissions[]|customer.update']['marcado'])->toBeTrue();
+    expect($itens['permissions[]|customer.delete']['marcado'])->toBeFalse();
+    expect($itens['radio_option[supplier_view]|supplier.view_own']['tipo'])->toBe('radio');
+    expect($itens['radio_option[supplier_view]|supplier.view_own']['marcado'])->toBeTrue();
+    expect($itens['radio_option[supplier_view]|supplier.view']['marcado'])->toBeFalse();
+    // Rótulo vem do <label> da Blade, não do nome técnico.
+    expect($itens['permissions[]|customer.update']['rotulo'])->not->toBe('customer.update');
+    expect($itens['permissions[]|customer.update']['rotulo'])->not->toBe('');
+});
+
+test('UC-FUNC-06 Tier 0 — função de outro negócio não abre no editor (404) e nada dela vaza', function () {
+    funcLigarFlag();
+    $outro = $this->seededSupportClientTenant();
+    $alheia = funcPapel('Segredo'.uniqid(), $outro->id);
+
+    $r = funcEditor($this, (string) $alheia->id);
+
+    $r->assertNotFound();
+    expect($r->getContent())->not->toContain(str_replace('#'.$outro->id, '', $alheia->name));
+
+    // Contraprova positiva: a minha abre.
+    $minha = funcPapel('Minha'.uniqid(), $this->business->id);
+    funcEditor($this, (string) $minha->id)->assertOk();
+});
+
+test('UC-FUNC-07 salvar pelo drawer sem mexer em nada não muda as permissões da função', function () {
+    funcLigarFlag();
+    $antes = ['customer.update', 'customer.view_own', 'sell.view', 'customer_with_no_sell_one_month'];
+    $papel = funcComPermissoes(funcPapel('Estavel'.uniqid(), $this->business->id), $antes);
+
+    $editor = funcEditor($this, (string) $papel->id)->json('props.editor');
+    $this->put("/roles/{$papel->id}", funcCorpoDoDrawer($editor))->assertRedirect('/roles');
+
+    $papel->refresh();
+    expect($papel->permissions->pluck('name')->sort()->values()->all())->toBe(collect($antes)->sort()->values()->all());
+    expect($papel->name)->toBe($editor['nome'].'#'.$this->business->id);
+
+    // E a mudança vai: desmarcar uma no corpo revoga só ela.
+    $corpo = funcCorpoDoDrawer($editor);
+    $corpo['permissions'] = array_values(array_diff($corpo['permissions'], ['sell.view']));
+    $this->put("/roles/{$papel->id}", $corpo)->assertRedirect('/roles');
+    expect($papel->fresh('permissions')->permissions->pluck('name')->all())->not->toContain('sell.view');
+    expect($papel->fresh('permissions')->permissions->pluck('name')->all())->toContain('customer.update');
+});
+
+test('UC-FUNC-08 nova função abre vazia com roles.create; sem ela, 403; função padrão não abre', function () {
+    funcLigarFlag();
+
+    // O usuário do beforeEach tem roles.view + roles.update, sem roles.create.
+    funcEditor($this, 'nova')->assertForbidden();
+
+    $padrao = funcPapel('Padrao'.uniqid(), $this->business->id, ['is_default' => 1]);
+    funcEditor($this, (string) $padrao->id)->assertForbidden();
+
+    $criador = $this->usuarioComPermissoes(['roles.view', 'roles.create'], $this->business);
+    $this->actingAs($criador);
+    session(['user.business_id' => $this->business->id, 'user.id' => $criador->id, 'business.id' => $this->business->id]);
+
+    $r = funcEditor($this, 'nova');
+    $r->assertOk();
+    expect($r->json('props.editor.id'))->toBeNull();
+    expect($r->json('props.editor.nome'))->toBe('');
+    expect(funcItens($r->json('props.editor'))->where('valor', 'customer.update')->count())->toBe(1);
 });

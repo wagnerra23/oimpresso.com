@@ -14,8 +14,9 @@ last_run: "2026-10-12"
 > do [RUNBOOK-empresa.md](../../../../../../../memory/requisitos/Officeimpresso/RUNBOOK-empresa.md) e da
 > decisão D1 de [W] em 2026-10-12 (a operadora vê a ficha de qualquer empresa, com a regra nomeada no
 > código) — **não do `Show.tsx`**.
-> Teste: `Modules/Officeimpresso/Tests/Feature/ComputadoresEmpresaShowContratoTest.php`
-> (lane `officeimpresso-pest`, MySQL, tenant 98 × 99).
+> Testes: `Modules/Officeimpresso/Tests/Feature/ComputadoresEmpresaShowContratoTest.php` (leitura) e
+> `ComputadoresEmpresaAcoesContratoTest.php` (ações da empresa) — lane `officeimpresso-pest`, MySQL,
+> tenant 98 × 99.
 > Status: 🧪 escrito e na allowlist, veredito ainda não emitido.
 
 ## UC-EMP-01 · Flag decide a tela; `?legacy=1` volta à Blade · `must`
@@ -23,7 +24,7 @@ last_run: "2026-10-12"
 **Dado** a flag `useV2OfficeimpressoEmpresa` desligada **Quando** o suporte abre qualquer das duas rotas
 **Então** recebe a Blade `licenca_computador.computadores` **E** com a flag ligada recebe
 `Officeimpresso/Empresa/Show`, com `computadores` e `assinatura` adiadas **E** com `?legacy=1` volta à
-Blade, onde ficam as ações até o PR delas.
+Blade, onde fica o bloqueio de máquina até o PR dele.
 
 Status: 🧪
 
@@ -63,7 +64,40 @@ bloqueado` **E** o serial não aparece em lugar nenhum da resposta.
 
 Status: 🧪
 
+## UC-EMP-08 · Editar a configuração do desktop · `must`
+
+**Dado** um usuário da operadora com `officeimpresso.empresa.gerenciar` **Quando** salva caminho do banco,
+versão obrigatória e versão disponível no modal "Editar" **Então** os três ficam gravados na empresa da URL
+**E** um caminho com mais de 255 caracteres volta como erro no campo `caminho_banco_servidor`, sem gravar
+nada (empresa-parity D3: a regra antiga validava `caminho_banco`, que o formulário não manda).
+
+Status: 🧪
+
+## UC-EMP-09 · Bloquear e liberar a empresa inteira · `must`
+
+**Dado** a empresa liberada **Quando** o suporte confirma "Bloquear empresa" **Então** ela fica bloqueada
+**E** um segundo pedido de bloquear (duplo clique, outra aba) volta erro e **não** a libera **E** "Liberar
+empresa" a libera.
+
+Status: 🧪
+
+## UC-EMP-22 · A ficha diz o que o usuário pode fazer · `must`
+
+**Dado** um usuário só com `officeimpresso.access` **Quando** abre a ficha **Então** `permissions.empresa`
+é falso e a tela não mostra "Editar" nem o bloqueio da empresa **E** com `officeimpresso.empresa.gerenciar`
+é verdadeiro. O botão escondido não é a guarda: o controller recusa do mesmo jeito.
+
+Status: 🧪
+
+## UC-EMP-23 · Usuário de empresa cliente não mexe em outra empresa · `must` `[T0]`
+
+**Dado** um usuário de empresa CLIENTE que recebeu `officeimpresso.empresa.gerenciar` **Quando** tenta
+editar ou bloquear outra empresa **Então** recebe 403 nas duas ações **E** nenhuma coluna da empresa
+alvo muda (`AcessoOperador`: a permissão só vale na operadora).
+
+Status: 🧪
+
 ## Fora do teste por ora
 
 - [BACKLOG] Bloco de pacote e assinatura só quando existem; limite 0 = "Ilimitado" (parity 11–14).
-- [BACKLOG] Ações: editar configuração, bloquear a empresa e bloquear máquina (parity 16–21, 34) — PR das ações.
+- [BACKLOG] Bloquear máquina na ficha (parity 34) — PR próprio; hoje fica na Blade (`?legacy=1`).
