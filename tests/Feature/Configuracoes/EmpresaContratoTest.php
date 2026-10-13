@@ -124,7 +124,7 @@ test('UC-EMP-04 devolver o corpo sem mexer não muda nada; trocar o nome só tro
         'redeem_amount_per_unit_rp' => 0.25, 'min_order_total_for_redeem' => 2500,
         'enable_brand' => 1, 'enable_category' => 0, 'enable_racks' => 1, 'enable_tooltip' => 1, 'enable_product_expiry' => 0,
         'stock_expiry_alert_days' => 45, 'on_product_expiry' => 'keep_selling', 'stop_selling_before' => null, 'expiry_type' => 'add_expiry',
-        'tax_label_1' => 'CNPJ', 'tax_number_1' => '00.000.000/0001-98', 'sku_prefix' => 'EMP98', 'enable_inline_tax' => 1, 'enable_sub_units' => 0, 'purchase_in_diff_currency' => 0, 'date_format' => 'd/m/Y',
+        'tax_label_1' => 'Inscrição', 'tax_number_1' => 'NUM-FISCAL-98', 'sku_prefix' => 'EMP98', 'enable_inline_tax' => 1, 'enable_sub_units' => 0, 'purchase_in_diff_currency' => 0, 'date_format' => 'd/m/Y',
         // Completo como a Blade sempre manda: o salvar preenche com os padrões as chaves que faltam.
         'pos_settings' => json_encode(array_merge(app(\App\Utils\BusinessUtil::class)->defaultPosSettings(), ['disable_draft' => '1'])),
         'common_settings' => json_encode(['is_enabled_export' => '1', 'default_datatable_page_entries' => '50', 'default_credit_limit' => '1.500,00', 'enable_product_warranty' => '1']),
