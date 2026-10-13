@@ -1,0 +1,66 @@
+{
+  "_nota": "Derivado do alvo governance/design/targets/cliente--index.alvo.json (thread A1 do playbook cliente, rota `clientes` do protótipo), não do .tsx. Seções do alvo → âncoras que a Page JÁ tinha (nenhuma Page editada): cabecalho → `header-identidade`; abas → `perspectivas-fornecedor-funcionario-representante`; kpis → `kpis` (em _components/KpiStripClickable.tsx); toolbar → `filtros-busca`; tabela → `tabela-linhas`. Fora: `linha` (a linha da tabela não tem âncora própria; a tabela a cobre, e o design-diff da thread 02 mede a linha nos dois lados) e `paginacao` (a Page tem o rodapé `Pagination`, sem âncora, com só 'Por página' em comum; ancorar exige o RUNBOOK da tela, que a 02 — que já edita Cliente/Index — vai precisar). `kpis` fica fora de `ordem`: o gate ordena as âncoras por arquivo e o KpiStripClickable é o 2º arquivo do alvo, então a posição real (entre abas e toolbar) não é verificável por ele. Copy só onde protótipo e tela dizem a mesma coisa, conferida por máquina na base.assinatura do alvo e no código (sem comentário). 'Novo cliente' ficou fora: a Page monta o botão por 'Novo ' + singular, e o literal só existe em comentário.",
+  "tela": "Cliente/Index",
+  "fonte": "prototipo-ui/cowork/Wagner/clientes-page.jsx",
+  "alvo": [
+    "resources/js/Pages/Cliente/Index.tsx",
+    "resources/js/Pages/Cliente/_components/KpiStripClickable.tsx"
+  ],
+  "secoes": [
+    {
+      "id": "header-identidade",
+      "copy": [
+        "cadastrados"
+      ]
+    },
+    {
+      "id": "perspectivas-fornecedor-funcionario-representante",
+      "copy": [
+        "Todos",
+        "Clientes",
+        "Fornecedores",
+        "Funcionários",
+        "Representantes",
+        "Outros"
+      ]
+    },
+    {
+      "id": "kpis",
+      "copy": [
+        "Clientes ativos",
+        "com OS aberta",
+        "VIPs",
+        "Com saldo",
+        "inadimplência",
+        "Sem compra 90d",
+        "Novos este mês"
+      ]
+    },
+    {
+      "id": "filtros-busca",
+      "copy": [
+        "Status",
+        "Tipo",
+        "Tags",
+        "Sem compra há",
+        "Saldo"
+      ]
+    },
+    {
+      "id": "tabela-linhas",
+      "copy": [
+        "Cliente",
+        "Documento",
+        "Cidade/UF",
+        "Frescor",
+        "VIP"
+      ]
+    }
+  ],
+  "ordem": [
+    "header-identidade",
+    "perspectivas-fornecedor-funcionario-representante",
+    "filtros-busca",
+    "tabela-linhas"
+  ]
+}
