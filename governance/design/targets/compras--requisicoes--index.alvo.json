@@ -1,0 +1,363 @@
+{
+  "aguardou_sumir": null,
+  "ausentes": [],
+  "base": {
+    "assinatura": "OI WR OFFICEIMPRESSO · matriz · 3 pedidos em aberto · 1 requisições sem pedido Compras Requisições de compra Atualizado 09:32 Compras recebidas Pedidos de compra Requisições de compra Devoluções de compra Sem pedido ainda 1 requisição ordenada esperando o comprador Parcialmente pedidas 1 parte das linhas já virou pedido Itens requisitados 11 itens somando as requisições ainda abertas Requisições de compra 3 de 3 A requisição é o pedido interno de reposição: o vivo sugere os itens cujo estoque caiu ao nível de alerta no local escolhido. Confortável Compacto Adicionar Ação Data Nº de referência ↕ Local Status Necessário até ↕ Adicionado por Pedido gerado Ações 21/08/2026 RQ-2026-0042 Matriz Ordenado 28/08/2026 Larissa Prado — Ações 19/08/2026 RQ-2026-0041 Matriz Parcial 26/08/2026 Marcos Vinícius PO-2026-0114 Ações 12/08/2026 RQ-2026-0039 Filial Centro Concluído 18/08/2026 Wagner Ramos PO-2026-0111 Quem escolhe fornecedor é o comprador: a requisição vira pedido pelo lado do pedido, e o status dela é reapurado a partir das linhas atendidas.",
+    "roles": {
+      "celulas": null,
+      "chart": null,
+      "contratos": [],
+      "filterRows": null,
+      "kpi": {
+        "count": 0,
+        "items": [],
+        "overflowX": null,
+        "tag": null
+      },
+      "primary": null,
+      "shell": null,
+      "tabela": null,
+      "title": null
+    },
+    "saude": {
+      "folhasVazias": [],
+      "nFolhas": 76,
+      "tokensMortos": []
+    },
+    "theme": "dark",
+    "url": "http://127.0.0.1:5562/"
+  },
+  "nos_totais": 567,
+  "quieto_ms": 2000,
+  "rota": "cmp-requisicoes",
+  "secoes": {
+    "abas": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "proprio",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.26 0.006 240)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "flex",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "0px",
+        "padding": "0px"
+      },
+      "filhos": 3,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "button",
+        "button",
+        "button"
+      ],
+      "rect": {
+        "h": 36,
+        "w": 1176
+      },
+      "seletor": ".main-body > .pb-root > .pb-body > nav.ds-tabbar",
+      "truncado": false
+    },
+    "cabecalho": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "proprio",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.26 0.006 240)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "flex",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "10px 12px",
+        "padding": "14px 0px"
+      },
+      "filhos": 2,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "div",
+        "div"
+      ],
+      "rect": {
+        "h": 80,
+        "w": 1176
+      },
+      "seletor": ".main-body > .pb-root > .cli-ph > header",
+      "truncado": false
+    },
+    "kpis": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "body",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "grid",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "10px",
+        "padding": "0px"
+      },
+      "filhos": 3,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "pb-body"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "pb-root"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "main-body"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "main"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "app"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "div"
+        },
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "body"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "cu-kpi",
+        "cu-kpi",
+        "cu-kpi"
+      ],
+      "rect": {
+        "h": 84,
+        "w": 1176
+      },
+      "seletor": ".main-body > .pb-root > .pb-body > .cu-kpis",
+      "truncado": false
+    },
+    "nota": {
+      "contraste": {
+        "fundo": "oklch(0.3 0.008 240)",
+        "fundo_de": "pb-widget",
+        "razao": 4.55,
+        "texto": "oklch(0.67 0.005 90)",
+        "y_fundo": 0.027108,
+        "y_texto": 0.300843
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.67 0.005 90)",
+        "display": "block",
+        "fontSize": "12px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "padding": "0px 12px 8px"
+      },
+      "filhos": 0,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "pb-widget-b"
+        },
+        {
+          "bg": "oklch(0.3 0.008 240)",
+          "de": "pb-widget"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [],
+      "rect": {
+        "h": 25,
+        "w": 1174
+      },
+      "seletor": ".main-body > .pb-root > .pb-body > section.pb-widget > .pb-widget-b > p.cu-nota",
+      "truncado": false
+    },
+    "rodape": {
+      "contraste": {
+        "fundo": "oklch(0.3 0.008 240)",
+        "fundo_de": "pb-widget",
+        "razao": 5.49,
+        "texto": "oklch(0.72 0.005 90)",
+        "y_fundo": 0.027108,
+        "y_texto": 0.373341
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.72 0.005 90)",
+        "display": "flex",
+        "fontSize": "11.5px",
+        "fontWeight": "400",
+        "gap": "10px",
+        "padding": "9px 12px"
+      },
+      "filhos": 1,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "pb-widget-b"
+        },
+        {
+          "bg": "oklch(0.3 0.008 240)",
+          "de": "pb-widget"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "pb-help"
+      ],
+      "rect": {
+        "h": 34,
+        "w": 1174
+      },
+      "seletor": ".main-body > .pb-root > .pb-body > section.pb-widget > .pb-widget-b > .pb-pag",
+      "truncado": false
+    },
+    "tabela": {
+      "contraste": {
+        "fundo": "oklch(0.3 0.008 240)",
+        "fundo_de": "pb-widget",
+        "razao": 11.42,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.027108,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "block",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "padding": "0px"
+      },
+      "filhos": 1,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "pb-widget-b"
+        },
+        {
+          "bg": "oklch(0.3 0.008 240)",
+          "de": "pb-widget"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "div"
+      ],
+      "rect": {
+        "h": 163,
+        "w": 1174
+      },
+      "seletor": ".main-body > .pb-root > .pb-body > section.pb-widget > .pb-widget-b > .pb-grid-pro",
+      "truncado": false
+    },
+    "toolbar": {
+      "contraste": {
+        "fundo": "oklch(0.3 0.008 240)",
+        "fundo_de": "pb-widget",
+        "razao": 11.42,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.027108,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "flex",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "8px",
+        "padding": "8px 12px"
+      },
+      "filhos": 5,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "pb-widget-b"
+        },
+        {
+          "bg": "oklch(0.3 0.008 240)",
+          "de": "pb-widget"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "pb-busca",
+        "cu-kbd",
+        "sp",
+        "div",
+        "os-btn"
+      ],
+      "rect": {
+        "h": 53,
+        "w": 1174
+      },
+      "seletor": ".main-body > .pb-root > .pb-body > section.pb-widget > .pb-widget-b > .pb-toolbar",
+      "truncado": false
+    }
+  },
+  "tela": "compras--requisicoes--index",
+  "url": "http://127.0.0.1:5562/"
+}
