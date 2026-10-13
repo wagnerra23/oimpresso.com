@@ -179,8 +179,17 @@ it('UC-DESPES-05 · excluir pela tela apaga a minha despesa e não alcança a de
 function dicEntrarCom($test, array $permissoes): void
 {
     $test->user = $test->usuarioComPermissoes($permissoes, $test->business);
+    session()->flush(); // o SetSessionData monta a sessão do novo usuário (ver beforeEach)
     $test->actingAs($test->user);
-    session(['user.business_id' => $test->business->id, 'user.id' => $test->user->id, 'business.id' => $test->business->id]);
+}
+
+/**
+ * Formato de data da empresa 98, gravado na LINHA (dentro da transação do teste): o SetSessionData
+ * carrega `business` dela a cada requisição, então escrever na sessão seria sobrescrito.
+ */
+function dicFormatoData($test, string $formato, int $hora): void
+{
+    DB::table('business')->where('id', $test->business->id)->update(['date_format' => $formato, 'time_format' => $hora]);
 }
 
 /** O store passa por isSubscribed() quando o Superadmin está instalado. */
@@ -199,7 +208,7 @@ function dicAssinatura($test): void
 it('UC-DESPES-06 · nova despesa: o total que a tela manda grava 1234.56, e as duas listas leem 1234.56', function () {
     dicEntrarCom($this, ['all_expense.access', 'access_all_locations', 'expense.add']);
     dicAssinatura($this);
-    session(['business.date_format' => 'd/m/Y', 'business.time_format' => 24]);
+    dicFormatoData($this, 'd/m/Y', 24);
     $ref = 'DIC6'.uniqid();
 
     // A mesma chamada da NovaDespesaSheet: POST ajax, total com 2 casas e vírgula decimal, data ISO com 'T'.
@@ -234,7 +243,7 @@ dataset('formatos_da_blade', [
 it('UC-DESPES-07 · a data da Blade grava o que o uf_date original grava, e a da tela nova grava o mesmo minuto', function (string $formato, int $hora, string $daBlade) {
     dicEntrarCom($this, ['all_expense.access', 'access_all_locations', 'expense.add']);
     dicAssinatura($this);
-    session(['business.date_format' => $formato, 'business.time_format' => $hora]);
+    dicFormatoData($this, $formato, $hora);
     $ajax = ['X-Requested-With' => 'XMLHttpRequest', 'Accept' => 'application/json'];
     $tag = 'DIC7'.uniqid();
 
@@ -245,6 +254,7 @@ it('UC-DESPES-07 · a data da Blade grava o que o uf_date original grava, e a da
 
     // Oráculo = o código antigo: o mesmo uf_date que o createExpense chama (o TransactionUtil não mudou).
     // Ao minuto: sem `!` no formato, o Carbon::createFromFormat pega os segundos do relógio, antes e depois.
+    session(['business.date_format' => $formato, 'business.time_format' => $hora]); // o uf_date do oráculo (processo do teste) lê da sessão
     $oraculo = substr((string) app(\App\Utils\TransactionUtil::class)->uf_date($daBlade, true), 0, 16);
     $blade = substr((string) DB::table('transactions')->where('ref_no', "$tag-blade")->value('transaction_date'), 0, 16);
     $tela = substr((string) DB::table('transactions')->where('ref_no', "$tag-tela")->value('transaction_date'), 0, 16);
