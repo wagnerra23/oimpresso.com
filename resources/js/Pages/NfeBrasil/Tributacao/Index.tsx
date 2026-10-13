@@ -17,6 +17,7 @@ import { toast } from 'sonner';
 import { useState } from 'react';
 import ConfigurarPeloCertificado from './_components/ConfigurarPeloCertificado';
 import SimuladorNota from './_components/SimuladorNota';
+import SaudeFiscal, { type SaudePayload } from './_components/SaudeFiscal';
 import { Inline } from '@/Components/layout';
 
 interface Regra {
@@ -62,6 +63,8 @@ interface Props {
   templates?: Template[];
   // Local padrão da empresa pro autocomplete do simulador (thread 08). Eager, 1 linha.
   localPadrao?: number | null;
+  // Saúde fiscal (thread 14) — deferida.
+  saude?: SaudePayload;
 }
 
 interface FlashProps {
@@ -90,7 +93,7 @@ function formatNcm(ncm: string): string {
   return `${ncm.slice(0, 4)}.${ncm.slice(4, 6)}.${ncm.slice(6)}`;
 }
 
-function Index({ regras, config, templates, localPadrao }: Props) {
+function Index({ regras, config, templates, localPadrao, saude }: Props) {
   const { props } = usePage<FlashProps>();
   const success = props.flash?.success;
   const error = props.flash?.error;
@@ -161,6 +164,11 @@ function Index({ regras, config, templates, localPadrao }: Props) {
             <p className="text-sm">{error}</p>
           </div>
         )}
+
+        {/* Saúde fiscal — o que vira rejeição antes da SEFAZ (thread 14 · UC-NFTR-24/25) */}
+        <Deferred data="saude" fallback={<Skeleton className="h-24 w-full" />}>
+          {saude ? <SaudeFiscal saude={saude} /> : <></>}
+        </Deferred>
 
         {/* Templates L1 — atalho de configuração rápida (US-NFE-TPL-001) */}
         <Deferred data="templates" fallback={<Skeleton className="h-40 w-full" />}>
