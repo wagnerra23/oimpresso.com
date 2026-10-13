@@ -243,7 +243,11 @@ class CampaignController extends Controller
 
         $campaign = $query->findOrFail($id);
 
-        $notifiable_users = CrmContact::find($campaign->contact_ids);
+        // Só contatos do negócio da sessão: `Contact` não tem escopo global e campanha antiga pode
+        // guardar id de outro negócio (achado A1, thread Crm/11 — ADR 0093).
+        $notifiable_users = CrmContact::where('business_id', $business_id)
+            ->whereIn('id', (array) $campaign->contact_ids)
+            ->get();
 
         return view('crm::campaign.show')
             ->with(compact('campaign', 'notifiable_users'));
@@ -306,6 +310,9 @@ class CampaignController extends Controller
         if (! (auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'crm_module')) || ! ($can_access_all_campaigns || $can_access_own_campaigns)) {
             abort(403, 'Unauthorized action.');
         }
+
+        // Mesma regra do StoreCampaignRequest: destinatário só do negócio da sessão (A1).
+        $request->validate(StoreCampaignRequest::regrasDeContato((int) $business_id));
 
         try {
             $base = $request->only('name', 'campaign_type', 'subject', 'email_body', 'sms_body');
@@ -446,7 +453,10 @@ class CampaignController extends Controller
                 $contact_ids = $transactions->pluck('contact_id')->toArray();
             }
 
-            $notifiable_users = CrmContact::find($contact_ids);
+            // Envio só para contato do próprio negócio (achado A1, thread Crm/11 — ADR 0093).
+            $notifiable_users = CrmContact::where('business_id', $business_id)
+                ->whereIn('id', (array) $contact_ids)
+                ->get();
 
             if (! empty($notifiable_users) && $campaign->campaign_type == 'sms') {
                 $notification_data['sms_settings'] = request()->session()->get('business.sms_settings');
