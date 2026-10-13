@@ -61,6 +61,7 @@ on:
       - 'app/User.php'
       - 'resources/js/Pages/Purchase/**'
       - 'resources/js/Pages/PurchaseOrder/**'
+      - 'resources/js/Pages/PurchaseRequisition/**'
       - 'database/schema/mysql-schema.sql'
       - '.github/workflows/purchase-pest.yml'
       - '.github/actions/pest-mysql-setup/**'
@@ -107,6 +108,7 @@ jobs:
               - 'app/User.php'
               - 'resources/js/Pages/Purchase/**'
               - 'resources/js/Pages/PurchaseOrder/**'
+              - 'resources/js/Pages/PurchaseRequisition/**'
               - 'database/schema/mysql-schema.sql'
               - '.github/workflows/purchase-pest.yml'
               - '.github/actions/pest-mysql-setup/**'
@@ -218,6 +220,7 @@ jobs:
             tests/Feature/Purchase/PedidosCompraBaselineTest.php \
             tests/Feature/Purchase/PedidosCompraContratoTest.php \
             tests/Feature/Purchase/RequisicoesCompraBaselineTest.php \
+            tests/Feature/Purchase/RequisicoesCompraContratoTest.php \
             tests/Feature/CutoverMenu/ComprasSemXInertiaTest.php
 
       # A lane emite JUnit e o sumário conta `assertions` por arquivo — o corpus do LC-13.
