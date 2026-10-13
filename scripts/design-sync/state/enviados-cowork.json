@@ -1,6 +1,10 @@
 {
   "_nota": "Arquivos que o Code subiu ao Cowork (DesignSync) e que o bundle ativo ainda não trouxe de volta. Escrito por pendentes-cowork.mjs; o receber-handoff limpa o que o retorno confirmar.",
   "enviados": {
+    "cowork-inbox/compras/playbook/00-INDICE.md": {
+      "sha256": "513d39e480a988886afbb741c7b35cadc4ac7bfa3d75082910d28a1a0a3e89d9",
+      "em": "2026-10-13T12:14:05.834Z"
+    },
     "cowork-inbox/crm/playbook/_saida-10.md": {
       "sha256": "3f70842a403c82816ca43b602eb782eef96fa68775e4f55e1c5fd97fa3a8936a",
       "em": "2026-10-09T17:43:35.125Z"
@@ -29,9 +33,21 @@
       "sha256": "20d621725a67feeebca4b30fe9d752dd3af2f55a407b72c5c28f3c598583f86e",
       "em": "2026-10-13T10:26:40.295Z"
     },
+    "cowork-inbox/estoque/playbook/_saida-A1.md": {
+      "sha256": "71eae3564dc50e5d43cb982b7541c5c600bbe10f7d5b6c2ed164a8022f451e72",
+      "em": "2026-10-13T12:14:05.834Z"
+    },
     "cowork-inbox/fiscal/playbook/_saida-15.md": {
       "sha256": "c1b0c3815dd3f68ccbb96bc5a27abfe9a8a31a098861f5b6a96e0f39c98007bf",
       "em": "2026-10-07T23:35:13.575Z"
+    },
+    "cowork-inbox/fiscal/playbook/_saida-30.md": {
+      "sha256": "9b589d464d566d9899fdc940e98da689f9b3b2fe0f415666135944d34afad036",
+      "em": "2026-10-13T12:14:05.834Z"
+    },
+    "cowork-inbox/fiscal/playbook/00-INDICE.md": {
+      "sha256": "22dec8a8bce48434c21582abad8e5dd6fa9020ad016d034ae554595088c853f5",
+      "em": "2026-10-13T12:14:05.834Z"
     },
     "cowork-inbox/forja/playbook/_saida-08.md": {
       "sha256": "4c903d157b0cb56d93871a2aa690c34c7e5834d8e9677237b272f3599e5aa1f2",
@@ -77,6 +93,14 @@
       "sha256": "a07df15d41e4af5ad2339d38011e16be4fd9becc3159a8cad6ea60136366a996",
       "em": "2026-10-09T18:16:54.477Z"
     },
+    "cowork-inbox/modulos-faltantes/playbook/_saida-04b.md": {
+      "sha256": "72071e52c5f64dcafa2088c36ee489522dcc391ed866d1cc662318a44ebbb487",
+      "em": "2026-10-13T12:14:05.834Z"
+    },
+    "cowork-inbox/notificacoes/playbook/00-INDICE.md": {
+      "sha256": "98d2ccd5b265761e0c42b142ebaae3ab5943e425b76dfe9065d082242007f903",
+      "em": "2026-10-13T12:14:05.834Z"
+    },
     "cowork-inbox/officeimpresso/playbook/_saida-10.md": {
       "sha256": "7100b198373c965dd83ab334915001b223d6db5e7144fc7e58b5bbab555f7d61",
       "em": "2026-10-09T17:43:35.125Z"
@@ -85,9 +109,17 @@
       "sha256": "19f6a1797f4d0ecc1d602a5df5e865381efd9997625a448216c7c959c2544b85",
       "em": "2026-10-13T10:58:59.363Z"
     },
+    "cowork-inbox/officeimpresso/playbook/00-INDICE.md": {
+      "sha256": "27dc17c519c2a4655386f86c3674d1b7e460c670851dd5396b13c0b2c78141cd",
+      "em": "2026-10-13T12:14:05.834Z"
+    },
     "cowork-inbox/sistema/playbook/_saida-02.md": {
       "sha256": "c6e55c676cfc7594abe76a1001a480feba2a86984996597c3be64c7477badee7",
       "em": "2026-10-09T17:43:35.125Z"
+    },
+    "cowork-inbox/sistema/playbook/_saida-02b.md": {
+      "sha256": "0ff41ef2338bb8b876dfcf727e3f4d6494d0bd2dbcee24e4d30bbf382be4277c",
+      "em": "2026-10-13T12:14:05.834Z"
     },
     "cowork-inbox/sistema/playbook/_saida-05.md": {
       "sha256": "385789405fbdb64d9c9c5c7e73cdc93ff2c8ddfe42fed64d2cc03000fddfdd6d",

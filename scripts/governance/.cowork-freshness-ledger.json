@@ -57440,5 +57440,36 @@
     },
     "origin": "medicao",
     "projetoCowork": "w"
+  },
+  {
+    "date": "2026-10-13T12:14:05.765Z",
+    "files": 292,
+    "sync": 8,
+    "stale": 0,
+    "liveAbsent": 0,
+    "unchecked": 284,
+    "staleList": [],
+    "verified": [
+      "cowork-inbox/compras/playbook/00-INDICE.md",
+      "cowork-inbox/estoque/playbook/_saida-A1.md",
+      "cowork-inbox/fiscal/playbook/_saida-30.md",
+      "cowork-inbox/fiscal/playbook/00-INDICE.md",
+      "cowork-inbox/modulos-faltantes/playbook/_saida-04b.md",
+      "cowork-inbox/notificacoes/playbook/00-INDICE.md",
+      "cowork-inbox/officeimpresso/playbook/00-INDICE.md",
+      "cowork-inbox/sistema/playbook/_saida-02b.md"
+    ],
+    "verifiedHash": {
+      "cowork-inbox/compras/playbook/00-INDICE.md": "513d39e480a988886afbb741c7b35cadc4ac7bfa3d75082910d28a1a0a3e89d9",
+      "cowork-inbox/estoque/playbook/_saida-A1.md": "71eae3564dc50e5d43cb982b7541c5c600bbe10f7d5b6c2ed164a8022f451e72",
+      "cowork-inbox/fiscal/playbook/_saida-30.md": "9b589d464d566d9899fdc940e98da689f9b3b2fe0f415666135944d34afad036",
+      "cowork-inbox/fiscal/playbook/00-INDICE.md": "22dec8a8bce48434c21582abad8e5dd6fa9020ad016d034ae554595088c853f5",
+      "cowork-inbox/modulos-faltantes/playbook/_saida-04b.md": "72071e52c5f64dcafa2088c36ee489522dcc391ed866d1cc662318a44ebbb487",
+      "cowork-inbox/notificacoes/playbook/00-INDICE.md": "98d2ccd5b265761e0c42b142ebaae3ab5943e425b76dfe9065d082242007f903",
+      "cowork-inbox/officeimpresso/playbook/00-INDICE.md": "27dc17c519c2a4655386f86c3674d1b7e460c670851dd5396b13c0b2c78141cd",
+      "cowork-inbox/sistema/playbook/_saida-02b.md": "0ff41ef2338bb8b876dfcf727e3f4d6494d0bd2dbcee24e4d30bbf382be4277c"
+    },
+    "origin": "medicao",
+    "projetoCowork": "w"
   }
 ]
