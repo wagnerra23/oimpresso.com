@@ -1,7 +1,7 @@
 ---
 module: Mwart
 version: "1.0"
-last_updated: "2026-06-13"
+last_updated: "2026-10-13"
 owner: wagner
 na_justified:
   D5: "Mwart é meta-processo de governança (enforcement do caminho canônico Blade→Inertia — ADR 0104) — NÃO é módulo de features cliente-facing. Não há biz=4 ROTA LIVRE consumindo features Mwart; consumidores são `Modules/*` que migram para Inertia. D5 cliente real não aplica por design."
@@ -289,6 +289,85 @@ A onda que torna a rota verdadeira. **Adversário [CX] — o permanente:** red-t
 - [ ] smoke `/_smoke-probe` + visual-regression (US-GOV-013) atravessam todas as rotas sem cair em layout legado
 - [ ] **contador de routes Blade vivos = 0** → a rota PAROU. Antes disso, nenhuma onda anterior pode ser chamada de "concluída"
 
+### US-MWART-014 · Onda 6a — Despesas: baseline de contrato do index (F2)
+
+> owner: — · priority: p2 · estimate: 2h · status: todo · type: subtask · origin: playbook-financeiro-13
+> blocked_by: US-MWART-009
+
+**Implementado em:** _pendente_ — nenhum teste de contrato cobre o ramo ajax() de ExpenseController@index
+
+Fatia "despesas" da US-MWART-009. Plano em [`Financeiro/RUNBOOK-despesas.md`](../Financeiro/RUNBOOK-despesas.md), paridade em [`Financeiro/despesas-parity.md`](../Financeiro/despesas-parity.md).
+
+**Aceite:**
+- [ ] Pest no tenant fictício 98 × 99 cobre os itens 1–7 da paridade (escopo business, locais permitidos, view_own_expense, tipos expense/expense_refund, sinal do estorno, devido).
+- [ ] Rodado sem mudar o controller; vermelho se o escopo multi-tenant sumir.
+
+### US-MWART-015 · Onda 6a — Despesas: ação dupla Blade/Inertia (F2)
+
+> owner: — · priority: p2 · estimate: 2h · status: todo · type: subtask · origin: playbook-financeiro-13
+> blocked_by: US-MWART-014
+
+**Implementado em:** _pendente_ — ExpenseController@index só devolve view('expense.index') fora do ajax()
+
+Fatia "despesas" da US-MWART-009. Plano em [`Financeiro/RUNBOOK-despesas.md`](../Financeiro/RUNBOOK-despesas.md), paridade em [`Financeiro/despesas-parity.md`](../Financeiro/despesas-parity.md).
+
+**Aceite:**
+- [ ] Fora do `ajax()`: `?classico=1` devolve a Blade; sem ele, `Inertia::render('Financeiro/Despesas/Index')`.
+- [ ] O ramo `ajax()` não muda (o relatório de despesas por representante usa o mesmo JSON).
+
+### US-MWART-016 · Onda 6a — Despesas: lista React (F3)
+
+> owner: — · priority: p2 · estimate: 4h · status: todo · type: subtask · origin: playbook-financeiro-13
+> blocked_by: US-MWART-015
+
+**Implementado em:** _pendente_ — resources/js/Pages/Financeiro/Despesas/Index.tsx não existe
+
+Fatia "despesas" da US-MWART-009. Plano em [`Financeiro/RUNBOOK-despesas.md`](../Financeiro/RUNBOOK-despesas.md), paridade em [`Financeiro/despesas-parity.md`](../Financeiro/despesas-parity.md).
+
+**Aceite:**
+- [ ] Trio `.tsx` + `.charter.md` + `.casos.md`; filtros e colunas dos itens 8–15 da paridade.
+- [ ] Rodapé conforme a decisão [W] D-DESP-TOTAL (item 17).
+- [ ] `secao-check` contra `financeiro--despesas--index.alvo.json`.
+
+### US-MWART-017 · Onda 6a — Despesas: drawer e ações (F3)
+
+> owner: — · priority: p2 · estimate: 3h · status: todo · type: subtask · origin: playbook-financeiro-13
+> blocked_by: US-MWART-016
+
+**Implementado em:** _pendente_ — não há drawer de despesa em React
+
+Fatia "despesas" da US-MWART-009. Plano em [`Financeiro/RUNBOOK-despesas.md`](../Financeiro/RUNBOOK-despesas.md), paridade em [`Financeiro/despesas-parity.md`](../Financeiro/despesas-parity.md).
+
+**Aceite:**
+- [ ] Drawer 760 com os dados de `show()`; Editar, Documento, Excluir e Pagamento com os mesmos gates.
+- [ ] Excluir chama o `destroy` existente (itens 20–21 da paridade).
+
+### US-MWART-018 · Onda 6a — Despesas: nova despesa e categorias (F3)
+
+> owner: — · priority: p2 · estimate: 4h · status: todo · type: subtask · origin: playbook-financeiro-13
+> blocked_by: US-MWART-017
+
+**Implementado em:** _pendente_ — resources/js/Pages/Financeiro/CategoriasDespesa/Index.tsx não existe; create segue modal Blade
+
+Fatia "despesas" da US-MWART-009. Plano em [`Financeiro/RUNBOOK-despesas.md`](../Financeiro/RUNBOOK-despesas.md), paridade em [`Financeiro/despesas-parity.md`](../Financeiro/despesas-parity.md).
+
+**Aceite:**
+- [ ] Nova despesa em sheet chamando o `store` existente.
+- [ ] `CategoriasDespesa/Index` (pai/sub, código) com trio e `secao-check` contra `financeiro--categorias-despesa--index.alvo.json`.
+
+### US-MWART-019 · Onda 6a — Despesas: QA e paridade alta (F4)
+
+> owner: — · priority: p2 · estimate: 3h · status: todo · type: subtask · origin: playbook-financeiro-13
+> blocked_by: US-MWART-018
+
+**Implementado em:** _pendente_ — sem teste de comportamento para os itens alta 17, 20 e 21 da paridade
+
+Fatia "despesas" da US-MWART-009. Plano em [`Financeiro/RUNBOOK-despesas.md`](../Financeiro/RUNBOOK-despesas.md), paridade em [`Financeiro/despesas-parity.md`](../Financeiro/despesas-parity.md).
+
+**Aceite:**
+- [ ] Teste de comportamento para os itens 17, 20 e 21.
+- [ ] Smoke biz=1 com screenshot; nunca biz=4.
+
 ---
 
-**Última atualização:** 2026-06-13 — adicionadas US-MWART-004…013 (ondas de migração do backbone Blade · roadmap 2026-06-13). Histórico meta-processo: 2026-05-08.
+**Última atualização:** 2026-10-13 — adicionadas US-MWART-014…019 (fatia Despesas da US-MWART-009, playbook financeiro/13). Antes: 2026-06-13 — adicionadas US-MWART-004…013 (ondas de migração do backbone Blade · roadmap 2026-06-13). Histórico meta-processo: 2026-05-08.
