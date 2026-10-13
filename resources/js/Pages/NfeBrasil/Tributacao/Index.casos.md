@@ -65,6 +65,8 @@ last_run: "2026-10-07"
 | UC-NFTR-21 | Falta de aceite não bloqueia emissão | must `[fiscal]` | D-SUPORTE (bloqueio vira chamado) | `AceiteContadorTest` | 🧪 |
 | UC-NFTR-22 | Link de revisão só abre com o código do e-mail, expira e serve a um business | must `[T0]` | D-CONTADOR (caminho 1) · US-NFE-009 (14 dias) · ADR 0093 | `RevisaoContadorLinkTest` | 🧪 |
 | UC-NFTR-23 | A revisão pelo link mostra só regras fiscais, com de → para, e baixa o CSV do Import | must `[T0]` | D-CONTADOR · LGPD minimização · `ImportRegrasCsvService::COLUNAS_OBRIGATORIAS` | `RevisaoContadorLinkTest` | 🧪 |
+| UC-NFTR-24 | A saúde fiscal lista o que vai virar rejeição e o item some ao corrigir | must `[fiscal]` | D-SUPORTE · US-NFE-010 "Filtro Suspeitas" · auditoria 2026-05 bug #3 | `SaudeFiscalTest` | 🧪 |
+| UC-NFTR-25 | "Pronto pra emitir" = nenhuma pendência bloqueante | should `[fiscal]` | D-SUPORTE · UC-TRB-16 | `SaudeFiscalTest` | 🧪 |
 
 > **Recibo:** ver §Recibo de execução no rodapé — status é o **veredito** da corrida, não leitura de código.
 
@@ -417,6 +419,34 @@ last_run: "2026-10-07"
 - **Contrato:** D-CONTADOR (caminhos 1 e 3) · LGPD minimização · `ImportRegrasCsvService::COLUNAS_OBRIGATORIAS`.
 - **Regressão que defende:** página do contador vazando dado de negócio; planilha que não volta pelo Import.
 - **Fora daqui:** o cadastro do contador em `/fiscal/config` e o papel "Contador" são a thread 15c.
+- **Status: 🧪** — veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
+
+## UC-NFTR-24 · A saúde fiscal lista o que vai virar rejeição e o item some ao corrigir · `must` `[fiscal]`
+
+- **Persona:** Larissa / Eliana abrindo a Tributação.
+- **Aceite:** Para cada tipo — NCM padrão da empresa ausente ou `00000000` (bloqueante) · certificado
+  ausente ou vencido (bloqueante) · certificado a ≤ 30 dias (aviso, com os dias) · produto ativo sem NCM
+  válido · produto que já saiu em nota com o NCM padrão (`metadata.itens_ncm_padrao`) e continua sem NCM ·
+  regra sem cClassTrib com a Reforma ligada · versão de regra sem aceite do contador: Dado a fixture que
+  provoca · Então aparece com a rota que resolve · Quando corrijo · Então some. Nada de outro business
+  aparece, e avaliar não escreve. Controle positivo: NCM padrão válido e certificado longe de vencer não
+  geram item.
+- **Teste:** [`SaudeFiscalTest`](../../../../../Modules/NfeBrasil/Tests/Feature/SaudeFiscalTest.php) — `UC-NFTR-24 · pendência aparece e some ao corrigir`.
+- **Contrato:** D-SUPORTE · US-NFE-010 "Filtro Suspeitas" · auditoria 2026-05 bug #3 · `SaudeFiscalService`.
+- **Regressão que defende:** o usuário só descobre o problema na rejeição da SEFAZ.
+- **Fora daqui (thread 14, PR-b):** o card no topo da Index. Cliente e emitente sem código IBGE, serviço
+  sem código municipal e rejeição cadastral recente ainda não entram.
+- **Status: 🧪** — veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
+
+## UC-NFTR-25 · "Pronto pra emitir" = nenhuma pendência bloqueante · `should` `[fiscal]`
+
+- **Persona:** empresa nova configurando.
+- **Aceite:** Dado NCM padrão inválido e certificado vencido · Então "não pronto" com 2 bloqueantes ·
+  Quando resolvo as duas · Então "pronto". Pendência só de aviso não bloqueia. Controle positivo: empresa
+  configurada (NCM válido + certificado) nasce pronta mesmo com produto sem NCM.
+- **Teste:** [`SaudeFiscalTest`](../../../../../Modules/NfeBrasil/Tests/Feature/SaudeFiscalTest.php) — `UC-NFTR-25 · pronto pra emitir`.
+- **Contrato:** UC-TRB-16 · D-SUPORTE · templates L1 (US-NFE-TPL-001).
+- **Regressão que defende:** a primeira nota ser o teste da configuração.
 - **Status: 🧪** — veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
 
 ## Backlog — sem UC até ganhar teste
