@@ -116,6 +116,10 @@ on:
       - 'app/Http/Controllers/GroupTaxController.php'
       - 'app/Http/Controllers/TypesOfServiceController.php'
       - 'app/Http/Controllers/AccountController.php'
+      - 'app/Http/Controllers/Restaurant/TableController.php'
+      - 'app/Utils/RestaurantUtil.php'
+      - 'resources/js/Pages/Restaurante/**'
+      - 'tests/Feature/Restaurante/**'
       - 'resources/views/printer/**'
       - 'tests/Feature/Configuracoes/**'
       - 'database/schema/mysql-schema.sql'
@@ -210,6 +214,10 @@ jobs:
               - 'app/Http/Controllers/GroupTaxController.php'
               - 'app/Http/Controllers/TypesOfServiceController.php'
               - 'app/Http/Controllers/AccountController.php'
+              - 'app/Http/Controllers/Restaurant/TableController.php'
+              - 'app/Utils/RestaurantUtil.php'
+              - 'resources/js/Pages/Restaurante/**'
+              - 'tests/Feature/Restaurante/**'
               - 'resources/views/printer/**'
               - 'tests/Feature/Configuracoes/**'
               - 'database/schema/mysql-schema.sql'
@@ -258,6 +266,7 @@ jobs:
             tests/Feature/Support/SuporteLogContratoTest.php \
             tests/Feature/VozDoCliente/CaixaContratoTest.php \
             tests/Feature/Configuracoes/ \
+            tests/Feature/Restaurante/ \
             tests/Feature/CutoverMenu/RelatoriosSemXInertiaTest.php
 
       # A régua honesta desta lane é `assertions`, NÃO "0 failed": skip sai exit 0
