@@ -107,7 +107,7 @@ function ModificadoresIndex({ conjuntos, pode_gerenciar }: Props) {
           <Info className="size-4" />
           <AlertTitle>Permissão emprestada do catálogo</AlertTitle>
           <AlertDescription>
-            O conjunto é ligado a produtos e, no PDV, vira opção com preço próprio somada na linha da venda. Não existe
+            O conjunto é ligado a produtos e, no PDV, aparece como opção do item na venda. Não existe
             permissão própria de modificador: quem vê ou cadastra produto vê esta lista.
           </AlertDescription>
         </Alert>
