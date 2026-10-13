@@ -57654,5 +57654,22 @@
     },
     "origin": "medicao",
     "projetoCowork": "w"
+  },
+  {
+    "date": "2026-10-13T16:00:04.134Z",
+    "files": 285,
+    "sync": 1,
+    "stale": 0,
+    "liveAbsent": 0,
+    "unchecked": 284,
+    "staleList": [],
+    "verified": [
+      "cowork-inbox/fiscal/playbook/_saida-23d.md"
+    ],
+    "verifiedHash": {
+      "cowork-inbox/fiscal/playbook/_saida-23d.md": "237f2f1173a89be6acf7aab27fadcc33d14b9578e8e75aa9fe6681e90104f657"
+    },
+    "origin": "medicao",
+    "projetoCowork": "w"
   }
 ]
