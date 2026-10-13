@@ -41,14 +41,9 @@ function camposDoModelo(array $sobrepor = []): array
     ], $sobrepor);
 }
 
-/**
- * Índice na Blade. Desde o cutover [W] 2026-10-13 a flag useV2NotificationTemplates vem ligada
- * (fallbackDefaults) e o GET comum responde a Page React; os UCs deste arquivo medem o `viewData`
- * da Blade, então pedem `?legacy=1`. O lado React é coberto em NotificationTemplate/DualTest.
- */
 function rotaIndice(): string
 {
-    return action([\App\Http\Controllers\NotificationTemplateController::class, 'index']).'?legacy=1';
+    return action([\App\Http\Controllers\NotificationTemplateController::class, 'index']);
 }
 
 function rotaStore(): string
