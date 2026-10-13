@@ -230,6 +230,13 @@ it('aplicar() atualiza existentes pela chave (NCM + UF origem + UF destino)', fu
 });
 
 it('aplicar() multi-tenant: import biz=1 não afeta biz=99', function () {
+    // No MySQL, criar a regra grava a revisão do contador (FK nfe_revisoes_contador →
+    // business). O biz=99 só existia se outro teste o tivesse criado antes: com a ordem
+    // da lista mudada (thread 23, 2026-10-13) este caso rodou primeiro e caiu no FK.
+    if (DB::connection()->getDriverName() !== 'sqlite') {
+        $this->seededSupportClientTenant();
+    }
+
     NfeFiscalRule::create([
         'business_id'     => 99,
         'ncm'             => '49019900',

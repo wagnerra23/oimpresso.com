@@ -238,3 +238,9 @@ expect(plain(BRL(1234.5))).toBe("R$ 1.234,50");
 expect(BRLcompact(1200)).toBe("R$ 1,2k");
 expect(BRLcompact(1_300_000)).toBe("R$ 1,3M");
 expect(plain(BRLcompact(950))).toBe("R$ 950,00");
+# ── NfeBrasil · retenções na NFS-e (2026-10-13, thread 23 do playbook Fiscal) ──
+# Os "R$ 10,00" abaixo são o LIMITE LEGAL de dispensa da Lei 10.833/2003, art. 31
+# § 3º — texto de lei citado literal no docblock e repetido no aviso ao usuário.
+# Não é valor de cliente. Substrings longas de propósito: só casam essas duas frases.
+R$ 10,00 (dez reais), exceto na hipótese de Documento de Arrecadação
+dispensada: valor até R$ 10,00 (Lei 10.833/2003, art. 31 § 3º)

@@ -57471,5 +57471,51 @@
     },
     "origin": "medicao",
     "projetoCowork": "w"
+  },
+  {
+    "date": "2026-10-13T12:44:01.736Z",
+    "files": 291,
+    "sync": 7,
+    "stale": 0,
+    "liveAbsent": 0,
+    "unchecked": 284,
+    "staleList": [],
+    "verified": [
+      "cowork-inbox/estoque/playbook/_saida-02.md",
+      "cowork-inbox/fiscal/playbook/_DECISOES-W-2026-10-13.md",
+      "cowork-inbox/hrm/playbook/_DECISOES-W-2026-10-13.md",
+      "cowork-inbox/notificacoes/playbook/_saida-01.md",
+      "cowork-inbox/officeimpresso/playbook/_saida-11b.md",
+      "cowork-inbox/recorrente/playbook/_saida-A1.md",
+      "cowork-inbox/sistema/playbook/_saida-08b.md"
+    ],
+    "verifiedHash": {
+      "cowork-inbox/estoque/playbook/_saida-02.md": "8bc6545952116f7999412c1b136bba0a470aeea21af6d1c0037099415ced807d",
+      "cowork-inbox/fiscal/playbook/_DECISOES-W-2026-10-13.md": "765e74b7c33421fbd03bd8f816357be4fbc52172d1d2a0bf6bf8201c1f96a75b",
+      "cowork-inbox/hrm/playbook/_DECISOES-W-2026-10-13.md": "9ca28a81127f7cdfc9d6f6f644bb5374e3dd64837b3e51cfe85cb099fd36ff09",
+      "cowork-inbox/notificacoes/playbook/_saida-01.md": "87cf59400087baa7f256bf083bb513120bacb2373e7af1d8b5d828460f2c5fa1",
+      "cowork-inbox/officeimpresso/playbook/_saida-11b.md": "f0f32ae61dbdb44eb76d26e61688e4f05f239b4865c94fd0ff78b70be926b918",
+      "cowork-inbox/recorrente/playbook/_saida-A1.md": "5ed7543159746dd388262fd391ffb126ba1e3dcade627f091015e6101eb344cb",
+      "cowork-inbox/sistema/playbook/_saida-08b.md": "9cdddefeeb024967ac6217868c7f2b3d20a9351dd43040b350255ad00ec8ed6a"
+    },
+    "origin": "medicao",
+    "projetoCowork": "w"
+  },
+  {
+    "date": "2026-10-13T13:23:23.424Z",
+    "files": 285,
+    "sync": 1,
+    "stale": 0,
+    "liveAbsent": 0,
+    "unchecked": 284,
+    "staleList": [],
+    "verified": [
+      "cowork-inbox/fiscal/playbook/_saida-23.md"
+    ],
+    "verifiedHash": {
+      "cowork-inbox/fiscal/playbook/_saida-23.md": "2cab95acc860900089db7691b3c716bb8aa35227264c304555b64da1a4b32169"
+    },
+    "origin": "medicao",
+    "projetoCowork": "w"
   }
 ]

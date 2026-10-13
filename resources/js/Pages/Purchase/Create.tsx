@@ -431,25 +431,25 @@ function PurchaseCreate({
         </CardHeader>
         <CardContent className="px-4 pb-4">
           {/* Modo grade tam×cor (US-COM-005) — produto variável → matriz → linhas */}
-          <div className="mb-3 rounded-lg border border-stone-200 bg-stone-50/40 p-3">
+          <div className="mb-3 rounded-lg border border-border bg-muted/40 p-3">
             <div className="flex items-center gap-2 mb-2">
-              <LayoutGrid className="h-3.5 w-3.5 text-stone-500" />
-              <span className="text-[11px] uppercase tracking-widest text-stone-500 font-medium flex-1">
+              <LayoutGrid className="h-3.5 w-3.5 text-muted-foreground" />
+              <span className="text-[11px] uppercase tracking-widest text-muted-foreground font-medium flex-1">
                 Adicionar por grade (tam × cor)
               </span>
             </div>
             {!grade ? (
               <>
                 <GradeProductCombobox locationId={locationId} onPick={escolherProduto} disabled={form.processing} />
-                {gradeLoading && <p className="text-[12px] text-stone-500 mt-2">Carregando grade…</p>}
+                {gradeLoading && <p className="text-[12px] text-muted-foreground mt-2">Carregando grade…</p>}
                 <FieldError className="mt-2">{gradeErro}</FieldError>
               </>
             ) : (
               <div className="space-y-2">
                 <div className="flex items-center gap-3 flex-wrap">
-                  <div className="text-[13px] font-medium text-stone-700">{grade.product_name}</div>
+                  <div className="text-[13px] font-medium text-foreground">{grade.product_name}</div>
                   <div className="flex items-center gap-1.5">
-                    <Label className="text-[11px] text-stone-500">Custo unit. (R$)</Label>
+                    <Label className="text-[11px] text-muted-foreground">Custo unit. (R$)</Label>
                     <Input
                       type="number"
                       step="0.01"
