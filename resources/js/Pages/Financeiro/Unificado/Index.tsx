@@ -1087,7 +1087,6 @@ function LinhaTabela({ row, dens, selected, onSelect, onBaixar, conferido, comme
   const isIn = row.kind === 'receivable';
   // Refino premium DirIcon ([W] 2026-06-29) — cor base da direção (pos verde / neg rose)
   // pra borda + sombra translúcidas via color-mix (mesma assinatura dos chips de filtro).
-  const dirBase = isIn ? 'oklch(0.40 0.13 145)' : 'oklch(0.50 0.18 25)';
   const settled = row.status === 'recebido' || row.status === 'pago';
   // FinPillFrescor (✕/✓ compact) REMOVIDO da linha 2026-06-29 ([W] "remova") —
   // redundante com o StatusPill (Atrasado/Pago) + o label "em atraso/há Nd" da
@@ -1118,18 +1117,22 @@ function LinhaTabela({ row, dens, selected, onSelect, onBaixar, conferido, comme
         {/* Onda 8b Cowork canon: direction arrow com bg pill semântico.
             Receivable = ↘ entrada (emerald), Payable = ↗ saída (rose).
             Settled tem opacidade reduzida (cor "tomada"). */}
+        {/* Tema escuro (tema-escuro 03, 2026-10-13): fundo e cor saíram do `style` inline — lá o
+            `dark:` não alcança e a pílula ficava clara no escuro (sonda: oklch 0.94). No claro as
+            classes carregam os MESMOS valores de antes; no escuro, os tokens success/destructive
+            -soft/-fg (dark-aware). Fio e sombra derivam de `currentColor`, que no claro é a cor
+            de texto de antes — mesmo resultado. */}
         <span
-          className="inline-grid place-items-center rounded"
+          className={`inline-grid place-items-center rounded ${isIn
+            ? (settled ? 'bg-[oklch(0.94_0.04_145_/_0.6)] dark:bg-success-soft/60' : 'bg-[oklch(0.94_0.06_145)] dark:bg-success-soft')
+            : (settled ? 'bg-[oklch(0.95_0.03_25_/_0.6)] dark:bg-destructive-soft/60' : 'bg-[oklch(0.95_0.04_25)] dark:bg-destructive-soft')
+          } ${isIn ? 'text-[oklch(0.40_0.13_145)] dark:text-success-fg' : 'text-[oklch(0.50_0.18_25)] dark:text-destructive-fg'}`}
           style={{
             width: 22,
             height: 22,
-            background: isIn
-              ? (settled ? 'oklch(0.94 0.04 145 / 0.6)' : 'oklch(0.94 0.06 145)')
-              : (settled ? 'oklch(0.95 0.03 25 / 0.6)' : 'oklch(0.95 0.04 25)'),
-            color: dirBase,
             // Refino premium ([W] 2026-06-29) — fio translúcido 22% + sombra 28% color-mix.
-            border: `1px solid color-mix(in oklch, ${dirBase} 22%, transparent)`,
-            boxShadow: `0 1px 3px -1px color-mix(in oklch, ${dirBase} 28%, transparent)`,
+            border: '1px solid color-mix(in oklch, currentColor 22%, transparent)',
+            boxShadow: '0 1px 3px -1px color-mix(in oklch, currentColor 28%, transparent)',
             fontSize: 14,
             fontWeight: 700,
           }}
