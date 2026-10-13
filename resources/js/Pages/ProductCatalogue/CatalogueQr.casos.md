@@ -47,6 +47,12 @@ last_run: "2026-10-09"
   assinatura, 403 mesmo com `product.view`.
 - **Status: 🧪**
 
+## UC-CQR-11 · A tela React só abre com a chave ligada
+- **Aceite:** Dada a chave `mwart.product_catalogue_qr` desligada (padrão) · Quando abro a tela · Então recebo a Blade
+  `catalogue/generate_qr`, não Inertia · E com a chave ligada só para outro negócio, também a Blade · E com o meu
+  negócio na lista (ou lista vazia), a tela React.
+- **Status: 🧪**
+
 ## Sem teste ainda (comportamento só no navegador — entra com o E2E)
 
 - [BACKLOG] Gerar sem local fica bloqueado, com "Escolha o local comercial primeiro." (a Blade dava `alert()`).

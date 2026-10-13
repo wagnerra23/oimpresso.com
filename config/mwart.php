@@ -215,6 +215,16 @@ return [
         'business_ids' => $parseBizIds('MWART_VENDAS_SALES_ORDER_INDEX_BIZ'),
     ],
 
+    // SellController@getQuotations → Sells/Quotations (thread venda-menu/playbook/Q2).
+    // EXCEÇÃO ao "nascem desligadas" do bloco acima: esta chave chegou DEPOIS de a tela já abrir
+    // em React no GET comum para todas as empresas (Cutover pelo menu, thread 02, D1 [W]
+    // 2026-10-07). Nascer `false` desligaria a tela; o default `true` preserva o estado e dá o
+    // interruptor por empresa. `?classico=1` continua abrindo o Blade.
+    'vendas_cotacoes' => [
+        'enabled'      => env('MWART_VENDAS_COTACOES', true),
+        'business_ids' => $parseBizIds('MWART_VENDAS_COTACOES_BIZ'),
+    ],
+
     // ManageUserController@index → Usuarios/Index (thread sistema/playbook/01).
     // Nasceu desligada (thread 01). Em 2026-10-07 [W] decidiu ligar para todas as empresas
     // (D-USU-LIGAR, thread sistema/playbook/09): o default passou a `true`. Um `.env` que fixe
@@ -222,6 +232,15 @@ return [
     'sistema_usuarios_index' => [
         'enabled'      => env('MWART_SISTEMA_USUARIOS_INDEX', true),
         'business_ids' => $parseBizIds('MWART_SISTEMA_USUARIOS_INDEX_BIZ'),
+    ],
+
+    // ProductCatalogueController@generateQr → ProductCatalogue/CatalogueQr (thread
+    // modulos-faltantes/playbook/04). A tela entrou ligada no #9103; a chave veio depois, a pedido
+    // de [W], para que ligar em produção seja o cutover dele. Nasce DESLIGADA: segue a Blade
+    // catalogue/generate_qr até [W] ligar.
+    'product_catalogue_qr' => [
+        'enabled'      => env('MWART_PRODUCT_CATALOGUE_QR', false),
+        'business_ids' => $parseBizIds('MWART_PRODUCT_CATALOGUE_QR_BIZ'),
     ],
 
     // produto_etiquetas: removida em 2026-10-06 (noite) — a tela nova virou padrão sem flag

@@ -7,7 +7,7 @@ related_visual_comparison: memory/requisitos/Sells/quotations-visual-comparison.
 related_prototype: n/a (herda PT-01 Lista; segue o Padrão de Tela)
 owner: wagner
 status: draft
-status_detail: wave1-draft — trio fechado (casos + teste) em 2026-10-06; sai de draft depois do cutover Q2 (GET comum ainda entrega o Blade) e do conserto da lista na Q3
+status_detail: wave1-draft — trio fechado (casos + teste) em 2026-10-06. Em 2026-10-06 o GET comum ainda entregava o Blade; desde o Cutover pelo menu (thread 02, D1 [W] 2026-10-07) entrega a Page React, e a Q2 (2026-10-12) pôs a regra na chave `mwart.vendas_cotacoes` (default ligada). Q3 entregue. A saída de draft é decisão [W]
 last_validated: "2026-10-06"
 parent_module: Sells
 related_adrs: [104, 110, 143, 149, 93]
@@ -71,7 +71,8 @@ Listar cotações (status=draft + sub_status=quotation) — propostas formais en
 | Método | Rota | Retorna |
 |---|---|---|
 | GET | `/sells/quotations` (X-Inertia) | Inertia render Sells/Quotations |
-| GET | `/sells/quotations` (sem X-Inertia) | Blade `sale_pos.quotations` |
+| GET | `/sells/quotations` (sem X-Inertia) | Inertia render Sells/Quotations quando `mwart.vendas_cotacoes` está ligada para a empresa (default: todas); senão Blade `sale_pos.quotations` |
+| GET | `/sells/quotations?classico=1` | Blade `sale_pos.quotations` |
 | GET | `/sells/quotations?is_quotation=1` (AJAX) | DataTables JSON |
 
 ---
