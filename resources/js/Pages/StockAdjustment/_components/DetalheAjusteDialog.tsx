@@ -4,6 +4,7 @@
 import { useEffect, useState } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/Components/ui/dialog';
 import { Skeleton } from '@/Components/ui/skeleton';
+import { Inline } from '@/Components/layout';
 
 interface Linha {
   produto: string | null;
@@ -107,8 +108,8 @@ export default function DetalheAjusteDialog({ id, onClose }: { id: number | null
 
             {detalhe.pode_ver_preco && (
               <dl className="ml-auto w-64 space-y-1 tabular-nums">
-                <div className="flex justify-between font-semibold"><dt>Total</dt><dd>{brl(detalhe.final_total)}</dd></div>
-                <div className="flex justify-between"><dt>Valor recuperado</dt><dd>{brl(detalhe.total_amount_recovered)}</dd></div>
+                <Inline justify="between" className="font-semibold"><dt>Total</dt><dd>{brl(detalhe.final_total)}</dd></Inline>
+                <Inline justify="between"><dt>Valor recuperado</dt><dd>{brl(detalhe.total_amount_recovered)}</dd></Inline>
               </dl>
             )}
 

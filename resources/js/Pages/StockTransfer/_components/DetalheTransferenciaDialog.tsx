@@ -4,6 +4,7 @@
 import { useEffect, useState } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/Components/ui/dialog';
 import { Skeleton } from '@/Components/ui/skeleton';
+import { Grid, Inline } from '@/Components/layout';
 
 interface Linha {
   produto: string | null;
@@ -72,7 +73,7 @@ export default function DetalheTransferenciaDialog({ id, onClose }: { id: number
         {!erro && !detalhe && <Skeleton className="h-40 w-full" />}
         {detalhe && (
           <div className="space-y-4 text-[13px]">
-            <div className="grid grid-cols-2 gap-3">
+            <Grid cols={2} gap={3}>
               <div>
                 <div className="text-muted-foreground text-[12px]">Origem</div>
                 <div className="font-medium">{detalhe.origem ?? '—'}</div>
@@ -81,7 +82,7 @@ export default function DetalheTransferenciaDialog({ id, onClose }: { id: number
                 <div className="text-muted-foreground text-[12px]">Destino</div>
                 <div className="font-medium">{detalhe.destino ?? '—'}</div>
               </div>
-            </div>
+            </Grid>
 
             <div className="max-h-[50vh] overflow-auto border rounded-md">
               <table className="w-full">
@@ -122,9 +123,9 @@ export default function DetalheTransferenciaDialog({ id, onClose }: { id: number
 
             {detalhe.pode_ver_preco && (
               <dl className="ml-auto w-64 space-y-1 tabular-nums">
-                <div className="flex justify-between"><dt>Total dos produtos</dt><dd>{brl(detalhe.total_linhas)}</dd></div>
-                <div className="flex justify-between"><dt>Frete</dt><dd>{brl(detalhe.shipping_charges)}</dd></div>
-                <div className="flex justify-between font-semibold"><dt>Total</dt><dd>{brl(detalhe.final_total)}</dd></div>
+                <Inline justify="between"><dt>Total dos produtos</dt><dd>{brl(detalhe.total_linhas)}</dd></Inline>
+                <Inline justify="between"><dt>Frete</dt><dd>{brl(detalhe.shipping_charges)}</dd></Inline>
+                <Inline justify="between" className="font-semibold"><dt>Total</dt><dd>{brl(detalhe.final_total)}</dd></Inline>
               </dl>
             )}
 
