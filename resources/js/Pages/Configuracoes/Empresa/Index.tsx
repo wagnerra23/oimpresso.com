@@ -1,7 +1,7 @@
 // @memcofre
 //   tela: /business/settings
 //   module: Configuracoes
-//   stories: thread sistema/playbook/08 (F3-1: Negócio · F3-2: Impostos, Produtos, Contatos · F3-3a: Vendas, Pagamento · F3-3b: Venda no PDV · F3-3c: Compras · F3-4: Painel, Sistema, Prefixos)
+//   stories: thread sistema/playbook/08 (F3-1: Negócio · F3-2: Impostos, Produtos, Contatos · F3-3a: Vendas, Pagamento · F3-3b: Venda no PDV · F3-3c: Compras · F3-4: Painel, Sistema, Prefixos · F3-5a: E-mail, SMS)
 //   permissao: business_settings.access
 //
 // Configuração da empresa. Atrás da flag `useV2ConfiguracoesEmpresa` (BusinessController::FLAG_EMPRESA_V2);
@@ -30,8 +30,8 @@ import ConfiguracoesSubNav from '@/Pages/Configuracoes/_shared/ConfiguracoesSubN
 type Valor = string | number | boolean | null | Valor[] | { [k: string]: Valor };
 type Corpo = Record<string, Valor>;
 type Lista = Record<string, string>;
-interface Opcoes { temas: Lista; moedas: Lista; fusos: Lista; meses: Lista; metodos: Lista; formatos_data: Lista; unidades: Lista; impostos: Lista; comissao: Lista; pagamentos: Lista }
-interface Props { corpo: Corpo; logo: string | null; segredos_gravados: string[]; opcoes?: Opcoes }
+interface Opcoes { drivers_email: Lista; temas: Lista; moedas: Lista; fusos: Lista; meses: Lista; metodos: Lista; formatos_data: Lista; unidades: Lista; impostos: Lista; comissao: Lista; pagamentos: Lista }
+interface Props { corpo: Corpo; logo: string | null; segredos_gravados: string[]; email_superadmin: boolean; opcoes?: Opcoes }
 
 /** Abas na ordem e nos grupos do protótipo. As de PRONTAS estão na tela nova; as outras abrem na Blade. */
 const ABAS: { g: string; itens: { id: string; label: string }[] }[] = [
@@ -53,6 +53,8 @@ const PRONTAS: Record<string, string> = {
   painel: 'O que o painel inicial avisa.',
   sistema: 'Aparência e comportamento das tabelas.',
   prefixos: 'Letras que vêm antes do número de cada documento.',
+  email: 'Servidor que envia os e-mails do negócio.',
+  sms: 'Serviço que envia os SMS do negócio.',
 };
 
 const PRECISOES: Lista = { 0: '0', 1: '1', 2: '2', 3: '3', 4: '4' };
@@ -71,6 +73,8 @@ const PREFIXOS: [string, string][] = [['purchase', 'Compra'], ['purchase_return'
   ['stock_adjustment', 'Ajuste de estoque'], ['sell_return', 'Devolução de venda'], ['expense', 'Despesa'], ['contacts', 'Contatos'],
   ['purchase_payment', 'Pagamento de compra'], ['sell_payment', 'Pagamento de venda'], ['expense_payment', 'Pagamento de despesa'],
   ['business_location', 'Local'], ['username', 'Usuário'], ['subscription', 'Assinatura'], ['draft', 'Rascunho'], ['sales_order', 'Pedido de venda']];
+const SMS_SERVICO: Lista = { nexmo: 'Nexmo', twilio: 'Twilio', other: 'Outro (requisição própria)' };
+const SMS_METODO: Lista = { get: 'GET', post: 'POST' };
 const CEDULAS_EM: Lista = { pos_screen: 'Só no PDV', all_screens: 'Em todas as telas' };
 const ATALHOS: [string, string][] = [['express_checkout', 'Finalizar rápido'], ['pay_n_ckeckout', 'Pagar e finalizar'], ['draft', 'Rascunho'],
   ['cancel', 'Cancelar'], ['recent_product_quantity', 'Quantidade do último produto'], ['weighing_scale', 'Balança'],
@@ -90,7 +94,7 @@ const indices = (n: number): Lista => Object.fromEntries(Array.from({ length: n 
 const BALANCA: [string, string, number, string][] = [['product_sku_length', 'Dígitos do SKU', 9, '4'],
   ['qty_length', 'Dígitos inteiros da quantidade', 5, '3'], ['qty_length_decimal', 'Dígitos decimais da quantidade', 4, '2']];
 
-function EmpresaIndex({ corpo: inicial, logo, segredos_gravados, opcoes }: Props) {
+function EmpresaIndex({ corpo: inicial, logo, segredos_gravados, email_superadmin, opcoes }: Props) {
   const [corpo, setCorpo] = useState<Corpo>(inicial);
   const [aba, setAba] = useState('negocio');
   const [arquivo, setArquivo] = useState<File | null>(null);
@@ -124,7 +128,7 @@ function EmpresaIndex({ corpo: inicial, logo, segredos_gravados, opcoes }: Props
   };
 
   const rotulado = (id: string, rotulo: string, controle: ReactNode, ajuda?: string) => (
-    <Stack gap={1}>
+    <Stack key={id} gap={1}>
       <label htmlFor={id}>{rotulo}</label>
       {controle}
       {ajuda && <span className="text-xs text-muted-foreground">{ajuda}</span>}
@@ -181,6 +185,34 @@ function EmpresaIndex({ corpo: inicial, logo, segredos_gravados, opcoes }: Props
   const prefixos = (corpo.ref_no_prefixes && !Array.isArray(corpo.ref_no_prefixes) ? corpo.ref_no_prefixes : {}) as Record<string, Valor>;
   const mudaPrefixo = (k: string, v: string) =>
     muda('ref_no_prefixes', { ...Object.fromEntries(PREFIXOS.map(([c]) => [c, prefixos[c] ?? ''])), [k]: v });
+  // E-mail e SMS: objetos gravados inteiros. Campo comum guarda '' (como a Blade); segredo só viaja se digitado.
+  const objeto = (campo: string) => (corpo[campo] && !Array.isArray(corpo[campo]) ? corpo[campo] : {}) as Record<string, Valor>;
+  const mudaObj = (campo: string, k: string, v: string, eSegredo = false) => {
+    const { [k]: _fora, ...resto } = objeto(campo);
+    muda(campo, eSegredo && v === '' ? resto : { ...resto, [k]: v });
+  };
+  const campoObj = (campo: string, k: string, rotulo: string, tipo = 'text') => {
+    const o = objeto(campo);
+    return rotulado(`emp-${campo}-${k}`, rotulo,
+      <Input id={`emp-${campo}-${k}`} type={tipo} value={o[k] == null ? '' : String(o[k])} onChange={(e) => mudaObj(campo, k, e.target.value)} />);
+  };
+  const segredoObj = (campo: string, prefixo: string, k: string, rotulo: string) => {
+    const o = objeto(campo);
+    return rotulado(`emp-${campo}-${k}`, rotulo, (
+      <Input id={`emp-${campo}-${k}`} type="password" autoComplete="off" value={o[k] == null ? '' : String(o[k])}
+        onChange={(e) => mudaObj(campo, k, e.target.value, true)}
+        placeholder={segredos_gravados.includes(`${prefixo}.${k}`) ? 'Gravado — digite para trocar' : 'Não informado'} />
+    ));
+  };
+  const escolhaObj = (campo: string, k: string, rotulo: string, lista: Lista | undefined, padrao: string) =>
+    rotulado(`emp-${campo}-${k}`, rotulo, (
+      <Select value={objeto(campo)[k] == null ? padrao : String(objeto(campo)[k])} onValueChange={(v) => mudaObj(campo, k, v)} disabled={!lista}>
+        <SelectTrigger id={`emp-${campo}-${k}`}><SelectValue /></SelectTrigger>
+        <SelectContent>{Object.entries(lista ?? {}).map(([v, l]) => <SelectItem key={v} value={v}>{l}</SelectItem>)}</SelectContent>
+      </Select>
+    ));
+  const servicoSms = objeto('sms_settings').sms_service == null ? 'other' : String(objeto('sms_settings').sms_service);
+  const usaSuperadmin = !!objeto('email_settings').use_superadmin_settings;
   const metodosCedula = Array.isArray(pos.enable_cash_denomination_for_payment_methods) ? (pos.enable_cash_denomination_for_payment_methods as string[]) : [];
   const titulo = (t: string) => <h3 className="m-0 text-xs font-semibold uppercase text-muted-foreground">{t}</h3>;
   const rotuloAba = ABAS.flatMap((g) => g.itens).find((i) => i.id === aba)?.label;
@@ -420,6 +452,71 @@ function EmpresaIndex({ corpo: inicial, logo, segredos_gravados, opcoes }: Props
                   {PREFIXOS.map(([k, l]) => rotulado(`emp-prefixo-${k}`, l,
                     <Input id={`emp-prefixo-${k}`} value={prefixos[k] == null ? '' : String(prefixos[k])} onChange={(e) => mudaPrefixo(k, e.target.value)} />))}
                 </Grid>
+              )}
+
+              {aba === 'email' && (
+                <>
+                  {email_superadmin && liga('emp-email-superadmin', 'Usar o servidor de e-mail do sistema', usaSuperadmin,
+                    (v) => mudaObj('email_settings', 'use_superadmin_settings', v ? '1' : '', true))}
+                  {!usaSuperadmin && (
+                    <Grid cols={2} gap={3}>
+                      {escolhaObj('email_settings', 'mail_driver', 'Driver', opcoes?.drivers_email, 'smtp')}
+                      {campoObj('email_settings', 'mail_host', 'Servidor')}
+                      {campoObj('email_settings', 'mail_port', 'Porta')}
+                      {campoObj('email_settings', 'mail_encryption', 'Criptografia (tls/ssl)')}
+                      {campoObj('email_settings', 'mail_username', 'Usuário')}
+                      {segredoObj('email_settings', 'email', 'mail_password', 'Senha')}
+                      {campoObj('email_settings', 'mail_from_address', 'E-mail do remetente', 'email')}
+                      {campoObj('email_settings', 'mail_from_name', 'Nome do remetente')}
+                    </Grid>
+                  )}
+                  <p className="m-0 text-xs text-muted-foreground">Senha em branco mantém a gravada. Para apagá-la ou enviar um e-mail de teste, use a tela antiga.</p>
+                </>
+              )}
+
+              {aba === 'sms' && (
+                <>
+                  <Grid cols={2} gap={3}>{escolhaObj('sms_settings', 'sms_service', 'Serviço', SMS_SERVICO, 'other')}</Grid>
+                  {servicoSms === 'nexmo' && (
+                    <Grid cols={2} gap={3}>
+                      {campoObj('sms_settings', 'nexmo_key', 'Chave')}
+                      {segredoObj('sms_settings', 'sms', 'nexmo_secret', 'Segredo')}
+                      {campoObj('sms_settings', 'nexmo_from', 'Remetente')}
+                    </Grid>
+                  )}
+                  {servicoSms === 'twilio' && (
+                    <Grid cols={2} gap={3}>
+                      {campoObj('sms_settings', 'twilio_sid', 'Conta (SID)')}
+                      {segredoObj('sms_settings', 'sms', 'twilio_token', 'Token')}
+                      {campoObj('sms_settings', 'twilio_from', 'Remetente')}
+                    </Grid>
+                  )}
+                  {servicoSms === 'other' && (
+                    <>
+                      <Grid cols={2} gap={3}>
+                        {campoObj('sms_settings', 'url', 'URL')}
+                        {escolhaObj('sms_settings', 'request_method', 'Método', SMS_METODO, 'post')}
+                        {campoObj('sms_settings', 'send_to_param_name', 'Parâmetro do destinatário')}
+                        {campoObj('sms_settings', 'msg_param_name', 'Parâmetro da mensagem')}
+                      </Grid>
+                      <Stack gap={2}>
+                        {titulo('Cabeçalhos')}
+                        <Grid cols={2} gap={3}>
+                          {[1, 2, 3].flatMap((i) => [campoObj('sms_settings', `header_${i}`, `Cabeçalho ${i}`),
+                            segredoObj('sms_settings', 'sms', `header_val_${i}`, `Valor do cabeçalho ${i}`)])}
+                        </Grid>
+                      </Stack>
+                      <Stack gap={2}>
+                        {titulo('Parâmetros')}
+                        <Grid cols={2} gap={3}>
+                          {Array.from({ length: 10 }, (_, j) => j + 1).flatMap((i) => [campoObj('sms_settings', `param_${i}`, `Parâmetro ${i}`),
+                            segredoObj('sms_settings', 'sms', `param_val_${i}`, `Valor do parâmetro ${i}`)])}
+                        </Grid>
+                      </Stack>
+                    </>
+                  )}
+                  <p className="m-0 text-xs text-muted-foreground">Valores de cabeçalho e parâmetro podem carregar o token da API e não vêm para esta tela: em branco mantém o gravado. Para apagar ou testar o envio, use a tela antiga.</p>
+                </>
               )}
 
               {aba === 'pagto' && (

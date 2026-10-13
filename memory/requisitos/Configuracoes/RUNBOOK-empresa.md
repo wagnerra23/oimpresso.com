@@ -57,7 +57,8 @@ Trilho vira seletor abaixo de 768px. `data-contract`: `page-header`, `abas`, `ab
 - [x] F3-3b: Venda no PDV + balança (UC-EMP-09)
 - [x] F3-3c: Compras (UC-EMP-10) — grupo Operação completo
 - [x] F3-4: Sistema — Painel, Sistema, Prefixos (UC-EMP-11)
-- [ ] F3-5: Integrações (E-mail, SMS, Pontos de fidelidade, Módulos, Rótulos)
+- [x] F3-5a: E-mail e SMS (UC-EMP-12)
+- [ ] F3-5b: Pontos de fidelidade + Módulos · F3-5c: Rótulos personalizados
 - [ ] Smoke biz=1 (F4) · cutover (F5, decisão [W])
 
 ## 10. Pegadinhas
@@ -77,6 +78,10 @@ Trilho vira seletor abaixo de 768px. `data-contract`: `page-header`, `abas`, `ab
 - **Segredo de pagamento em `pos_settings` (2026-10-13):** `stripe_secret_key` e `razor_pay_key_secret` moram em
   `pos_settings`, que o salvar sobrescreve inteiro. O corpo não as leva e o `postBusinessSettings` mantém o gravado quando
   a chave **não vem** (a Blade sempre manda as duas, então limpar por ela continua igual). UC-EMP-07.
+- **Segredos de e-mail e SMS (F3-5a, 2026-10-13):** mesma regra para `mail_password`, `nexmo_secret`, `twilio_token` e os
+  valores de cabeçalho/parâmetro do SMS próprio (`header_val_*`, `param_val_*`, onde costuma ir o token da API). A Blade
+  sempre manda todos (os `@if` de `settings_sms` só escondem por classe). Testar envio continua pela tela antiga, porque o
+  teste usa a senha do formulário. UC-EMP-12.
 - Precisão de moeda/quantidade e margem padrão mexem em VALOR mostrado e sugerido: qualquer mudança no tratamento
   desses campos cai na regra mestre de cálculo (`proibicoes.md`).
 - O logo sobe por `business_logo` (multipart): o salvar da Page precisa ser `forceFormData`.

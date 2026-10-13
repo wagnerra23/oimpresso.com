@@ -341,12 +341,17 @@ class BusinessController extends Controller
                 'corpo' => $this->corpoDoSalvar($business),
                 'logo' => $business->logo ? asset('uploads/business_logos/'.$business->logo) : null,
                 // Só QUAIS segredos estão gravados, nunca o valor: a tela mostra "gravada" e aceita digitar outro.
-                'segredos_gravados' => array_values(array_filter(self::SEGREDOS_POS, fn ($k) => ! empty($pos_settings[$k]))),
+                'segredos_gravados' => array_merge(
+                    array_values(array_filter(self::SEGREDOS_POS, fn ($k) => ! empty($pos_settings[$k]))),
+                    array_map(fn ($k) => 'email.'.$k, array_filter(self::SEGREDOS_EMAIL, fn ($k) => ! empty(((array) $business->email_settings)[$k] ?? null))),
+                    array_map(fn ($k) => 'sms.'.$k, array_values(array_filter(self::SEGREDOS_SMS, fn ($k) => ! empty(((array) $business->sms_settings)[$k] ?? null)))),
+                ),
+                'email_superadmin' => ! empty($allow_superadmin_email_settings),
                 'opcoes' => \Inertia\Inertia::defer(fn () => [
                     'moedas' => $currencies, 'fusos' => $timezone_list, 'meses' => $months,
                     'metodos' => $accounting_methods, 'formatos_data' => $date_formats, 'unidades' => $units_dropdown,
                     'impostos' => $tax_rates, 'comissao' => $commission_agent_dropdown, 'pagamentos' => $payment_types,
-                    'temas' => $theme_colors,
+                    'temas' => $theme_colors, 'drivers_email' => $mail_drivers,
                 ]),
             ]);
         }
@@ -362,6 +367,16 @@ class BusinessController extends Controller
 
     /** Chaves de `pos_settings` que são segredo: não vão para a tela React, e o salvar mantém o gravado quando faltam. */
     private const SEGREDOS_POS = ['stripe_secret_key', 'razor_pay_key_secret'];
+
+    /**
+     * Segredos de e-mail e SMS (F3-5a). Cabeçalho e parâmetro do SMS personalizado entram porque costumam levar o token
+     * da API (ex.: `Authorization: Bearer …`). Mesma regra de SEGREDOS_POS: fora das props; ausente no envio = manter.
+     */
+    private const SEGREDOS_EMAIL = ['mail_password'];
+
+    private const SEGREDOS_SMS = ['nexmo_secret', 'twilio_token', 'header_val_1', 'header_val_2', 'header_val_3',
+        'param_val_1', 'param_val_2', 'param_val_3', 'param_val_4', 'param_val_5', 'param_val_6', 'param_val_7', 'param_val_8',
+        'param_val_9', 'param_val_10'];
 
     /**
      * O corpo que a tela React devolve INTEIRO ao postBusinessSettings, no formato que ele lê.
@@ -410,6 +425,9 @@ class BusinessController extends Controller
             'weighing_scale_setting' => $json($b->weighing_scale_setting),
             // Sistema (F3-4). Os dois estão no only(): prefixo vazio some do FormData e fica como está.
             'theme_color' => $b->theme_color, 'ref_no_prefixes' => $json($b->ref_no_prefixes),
+            // E-mail e SMS (F3-5a): sem os segredos. Vazio some do FormData e o only() deixa como está.
+            'email_settings' => array_diff_key($json($b->email_settings), array_flip(self::SEGREDOS_EMAIL)),
+            'sms_settings' => array_diff_key($json($b->sms_settings), array_flip(self::SEGREDOS_SMS)),
             'common_settings' => $json($b->common_settings), 'enabled_modules' => array_values($json($b->enabled_modules)),
             // Objeto vazio some do FormData e o salvar lê `custom_labels` sem checar: sem a chave, cai no catch.
             'custom_labels' => $json($b->custom_labels) ?: ['payments' => ['custom_pay_1' => '']],
@@ -528,6 +546,19 @@ class BusinessController extends Controller
             foreach (self::SEGREDOS_POS as $segredo) {
                 if (! array_key_exists($segredo, (array) $pos_settings) && array_key_exists($segredo, $gravado)) {
                     $pos_settings[$segredo] = $gravado[$segredo];
+                }
+            }
+            // E-mail e SMS: o only() grava o objeto que chegar inteiro. A Blade sempre manda todos os campos (os @if só
+            // escondem por classe); a tela React não manda os segredos. Ausente = manter o gravado.
+            foreach (['email_settings' => self::SEGREDOS_EMAIL, 'sms_settings' => self::SEGREDOS_SMS] as $campo => $chaves) {
+                if (! isset($business_details[$campo]) || ! is_array($business_details[$campo])) {
+                    continue;
+                }
+                $gravadoCampo = (array) ($business->{$campo} ?? []);
+                foreach ($chaves as $segredo) {
+                    if (! array_key_exists($segredo, $business_details[$campo]) && array_key_exists($segredo, $gravadoCampo)) {
+                        $business_details[$campo][$segredo] = $gravadoCampo[$segredo];
+                    }
                 }
             }
             $default_pos_settings = $this->businessUtil->defaultPosSettings();
