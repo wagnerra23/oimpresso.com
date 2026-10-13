@@ -44,8 +44,11 @@ beforeEach(function () {
         'city' => 'Tubarão', 'zip_code' => '88700000', 'invoice_scheme_id' => $esq, 'invoice_layout_id' => $lay, 'is_active' => 1,
     ]);
     $this->user = $this->usuarioComPermissoes(['all_expense.access', 'access_all_locations'], $this->business);
+    // Sessão VAZIA de propósito: o SetSessionData só monta a sessão (user, business, currency, ano fiscal)
+    // quando ela não tem `user`; gravar `user.*` à mão deixava `currency` nula e o DataTable quebrava com
+    // 500 no `num_f` (run 38456214086, #9267). Assim a sessão é a de uma requisição real.
+    session()->flush();
     $this->actingAs($this->user);
-    session(['user.business_id' => $this->business->id, 'user.id' => $this->user->id, 'business.id' => $this->business->id]);
     config(['feature-flags.forced_on' => DIC_FLAG]);
 });
 
