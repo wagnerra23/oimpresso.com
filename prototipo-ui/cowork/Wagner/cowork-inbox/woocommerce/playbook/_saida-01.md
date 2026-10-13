@@ -5,7 +5,7 @@ dono: "[CL]"
 data: 2026-10-13
 tipo: recibo
 entregue_em: "PR desta thread (claude/woocommerce-01-painel)"
-base_lida: wagnerra23/oimpresso.com@main 94c005aec5
+base_lida: wagnerra23/oimpresso.com@main 20d2140ddb
 ---
 # _saida-01
 
