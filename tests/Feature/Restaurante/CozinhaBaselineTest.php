@@ -35,13 +35,14 @@ function cozinhaBaselineEntrar($teste, \App\User $user): void
 /** Pedido de cozinha (venda final) com uma linha por situação dada; devolve o id da venda. */
 function cozinhaBaselinePedido(int $businessId, int $local, int $criador, array $situacoesDasLinhas, int $cozinha = 1): int
 {
-    $produto = EstoqueFixture::singleProduct($businessId);
     $id = (int) DB::table('transactions')->insertGetId([
         'business_id' => $businessId, 'location_id' => $local, 'type' => 'sell', 'status' => 'final', 'payment_status' => 'due',
         'is_kitchen_order' => $cozinha, 'transaction_date' => now(), 'final_total' => 10, 'total_before_tax' => 10,
         'created_by' => $criador, 'essentials_duration' => 0, 'invoice_no' => 'COZ-'.uniqid(), 'created_at' => now(), 'updated_at' => now(),
     ]);
     foreach ($situacoesDasLinhas as $situacao) {
+        // Um produto por linha: uk_tsl_dup_prevent proíbe venda+produto+variação repetidos.
+        $produto = EstoqueFixture::singleProduct($businessId);
         DB::table('transaction_sell_lines')->insert([
             'transaction_id' => $id, 'product_id' => $produto->productId, 'variation_id' => $produto->variationId(),
             'quantity' => 1, 'unit_price' => 10, 'unit_price_inc_tax' => 10, 'item_tax' => 0,
