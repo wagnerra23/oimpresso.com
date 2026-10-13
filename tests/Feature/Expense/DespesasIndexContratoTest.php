@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Schema;
  * UC-DESPES-02 `[V0]` — total e devido do payload Inertia = `data-orig-value` do DataTable (dois caminhos).
  * UC-DESPES-03        — sem período, abre no ano fiscal.
  * UC-DESPES-04        — flag desligada, ou `?classico=1`, servem a Blade.
+ * UC-DESPES-05 `[T0]` — excluir pela tela apaga a minha despesa e não alcança a de outro negócio.
  *
  * Trio: resources/js/Pages/Financeiro/Despesas/{Index.charter.md,Index.casos.md}
  * Tier 0 (ADR 0093 + ADR 0358): tenant 98 x business 2; a despesa alheia usa o MEU local, então só o
@@ -151,4 +152,21 @@ it('UC-DESPES-04 · flag desligada ou ?classico=1 servem a Blade', function () {
         $mock->shouldReceive('isOn')->andReturn(false)); // todas as flags desligadas, inclusive a desta tela
 
     $this->get('/expenses')->assertOk()->assertViewIs('expense.index');
+});
+
+it('UC-DESPES-05 · excluir pela tela apaga a minha despesa e não alcança a de outro negócio', function () {
+    $this->user = $this->usuarioComPermissoes(['all_expense.access', 'access_all_locations', 'expense.delete'], $this->business);
+    $this->actingAs($this->user);
+    session(['user.business_id' => $this->business->id, 'user.id' => $this->user->id, 'business.id' => $this->business->id]);
+    $tag = 'DIC5'.uniqid();
+    $minha = dicDespesa($this, $this->business->id, "$tag-minha");
+    $alheia = dicDespesa($this, DIC_BIZ_ALHEIO, "$tag-alheia");
+    $ajax = ['X-Requested-With' => 'XMLHttpRequest', 'Accept' => 'application/json'];
+
+    // A mesma chamada que a Page faz (fetch DELETE com X-Requested-With).
+    $this->withHeaders($ajax)->delete("/expenses/{$minha}")->assertOk()->assertJsonPath('success', true);
+    $this->withHeaders($ajax)->delete("/expenses/{$alheia}");
+
+    expect(DB::table('transactions')->where('id', $minha)->exists())->toBeFalse(); // controle positivo
+    expect(DB::table('transactions')->where('id', $alheia)->exists())->toBeTrue();  // Tier 0
 });
