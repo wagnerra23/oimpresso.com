@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-// @covers-us US-NOTIF-002 — F2, sem ativação da Page em produção.
+// @covers-us US-NOTIF-002 — F2 dual; cutover (flag default ON) em 2026-10-13.
 use App\NotificationTemplate;
 use App\Services\FeatureFlagService;
 use App\Utils\ModuleUtil;
@@ -89,13 +89,31 @@ test('UC-NOT-01 F2 nega Inertia sem send_notification antes de avaliar flag', fu
 });
 
 
-test('F2 flag ausente fica OFF no serviço real para qualquer tenant', function () {
+test('cutover: flag ausente no GrowthBook fica ON para qualquer tenant', function () {
     Cache::forget('growthbook.features');
     Http::fake(['*' => Http::response(['features' => []])]);
     config(['feature-flags.forced_on' => '']);
-    expect(app(FeatureFlagService::class)->isOn('useV2NotificationTemplates', ['business_id' => 98]))->toBeFalse();
-    expect(app(FeatureFlagService::class)->isOn('useV2NotificationTemplates', ['business_id' => 99]))->toBeFalse();
+    expect(app(FeatureFlagService::class)->isOn('useV2NotificationTemplates', ['business_id' => 98]))->toBeTrue();
+    expect(app(FeatureFlagService::class)->isOn('useV2NotificationTemplates', ['business_id' => 99]))->toBeTrue();
     Cache::forget('growthbook.features');
+});
+
+test('cutover conserva rollback explícito do GrowthBook para o Blade', function () {
+    $envAnterior = [getenv('GROWTHBOOK_SDK_KEY'), getenv('GROWTHBOOK_API_HOST')];
+    putenv('GROWTHBOOK_SDK_KEY=sdk-test-fake');
+    putenv('GROWTHBOOK_API_HOST=https://growthbook-notif.test.invalid');
+    Cache::forget('growthbook.features');
+    config(['feature-flags.forced_on' => '']);
+    Http::fake(['*' => Http::response(['features' => ['useV2NotificationTemplates' => ['defaultValue' => false]]])]);
+    try {
+        expect(app(FeatureFlagService::class)->isOn('useV2NotificationTemplates', ['business_id' => $this->business->id]))->toBeFalse();
+        $this->get('/notification-templates')->assertOk()->assertViewIs('notification_template.index');
+    } finally {
+        foreach (['GROWTHBOOK_SDK_KEY', 'GROWTHBOOK_API_HOST'] as $i => $key) {
+            putenv($envAnterior[$i] === false ? $key : $key.'='.$envAnterior[$i]);
+        }
+        Cache::forget('growthbook.features');
+    }
 });
 
 test('F3 opção legacy preserva o editor Blade mesmo com a flag ON', function () {

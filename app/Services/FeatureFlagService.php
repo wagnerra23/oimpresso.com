@@ -48,6 +48,10 @@ class FeatureFlagService
         'useV2ConfiguracoesLocais' => true,
         'useV2ConfiguracoesImpressoras' => true,
         'useV2ConfiguracoesCodigoBarras' => true,
+        // Ligada por [W] em 2026-10-13 após #9115 (seleção) e #9159 (editor): Modelos de
+        // notificação em React para todas as empresas; editor clássico segue em ?legacy=1.
+        // Rollback = flag OFF no GrowthBook (vence este default) ou remover esta linha.
+        'useV2NotificationTemplates' => true,
         // useV2OfficeimpressoLicencas saiu em 2026-10-06: cutover da lista de Licencas, sem flag
         // nem Blade (RUNBOOK-licencas §F5).
     ];
