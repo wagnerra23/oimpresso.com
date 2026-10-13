@@ -23,7 +23,7 @@ use Spatie\Permission\Models\Role;
 
 class SpreadsheetController extends Controller
 {
-    /** Tela React da lista (`Spreadsheet/Index`, RUNBOOK-spreadsheet-index). Default OFF. */
+    /** Tela React da lista (`Spreadsheet/Index`, RUNBOOK-spreadsheet-index). Ligada para todas no cutover [W] 2026-10-13; `?legacy=1` abre a Blade. */
     private const FLAG_INDEX = 'useV2SpreadsheetIndex';
 
     /**

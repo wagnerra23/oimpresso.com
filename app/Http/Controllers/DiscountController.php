@@ -48,7 +48,7 @@ class DiscountController extends Controller
         // Tela React (thread 04 de Vendas, MWART). Vem ANTES do ajax(): o Inertia manda
         // X-Inertia E X-Requested-With, e o ramo ajax devolveria o JSON do DataTable.
         // Sem X-Inertia segue o Blade como fallback — o cutover F5 é humano, por empresa,
-        // pela flag `mwart.vendas_discount_index` (nasce desligada). AJAX sem X-Inertia
+        // pela flag `mwart.vendas_discount_index` (nasceu desligada; ligada para biz=1 no C1, cutover [W] 2026-10-13). AJAX sem X-Inertia
         // segue no DataTable abaixo mesmo com a flag ligada.
         if (\App\Support\Mwart::telaReact('vendas_discount_index')) {
             return $this->telaInertia();

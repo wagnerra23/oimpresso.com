@@ -76,7 +76,7 @@ class ProductCatalogueController extends Controller
         }
 
         // Dual-render atrás de config('mwart.product_catalogue_qr') (thread modulos-faltantes/04).
-        // Desligada (padrão) segue a Blade; ligar em produção é o cutover de [W]. A vitrine
+        // Ligada por padrão desde o cutover [W] 2026-10-13; desligada (env) segue a Blade. A vitrine
         // pública (index/show acima) segue Blade e não muda.
         if ($this->telaReactLigada($businessId)) {
             return Inertia::render('ProductCatalogue/CatalogueQr', $this->qrService->buildPagePayload($businessId));

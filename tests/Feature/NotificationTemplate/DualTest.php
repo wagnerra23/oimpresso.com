@@ -89,12 +89,15 @@ test('UC-NOT-01 F2 nega Inertia sem send_notification antes de avaliar flag', fu
 });
 
 
-test('F2 flag ausente fica OFF no serviço real para qualquer tenant', function () {
+// Cutover [W] 2026-10-13 ("pode ligar tudo"): a flag entrou em FeatureFlagService::$fallbackDefaults
+// com `true`. Sem a chave no GrowthBook (o caso do Hostinger, sem SDK) a tela React vale para
+// qualquer tenant. O lado Blade segue provado pelo mock OFF (UC-NOT-02) e pelo ?legacy=1 (F3).
+test('F2 flag ausente no GrowthBook fica LIGADA no serviço real para qualquer tenant', function () {
     Cache::forget('growthbook.features');
     Http::fake(['*' => Http::response(['features' => []])]);
     config(['feature-flags.forced_on' => '']);
-    expect(app(FeatureFlagService::class)->isOn('useV2NotificationTemplates', ['business_id' => 98]))->toBeFalse();
-    expect(app(FeatureFlagService::class)->isOn('useV2NotificationTemplates', ['business_id' => 99]))->toBeFalse();
+    expect(app(FeatureFlagService::class)->isOn('useV2NotificationTemplates', ['business_id' => 98]))->toBeTrue();
+    expect(app(FeatureFlagService::class)->isOn('useV2NotificationTemplates', ['business_id' => 99]))->toBeTrue();
     Cache::forget('growthbook.features');
 });
 

@@ -68,7 +68,16 @@ test('UC-FUNC-01 com a flag ligada, GET /roles renderiza Inertia (não a DataTab
 });
 
 test('UC-FUNC-02 com a flag desligada, GET /roles segue na Blade', function () {
+    // Desde o cutover [W] 2026-10-13 a flag vem LIGADA pelo fallbackDefaults; zerar o
+    // `feature-flags.forced_on` não a desliga mais. O lado Blade é medido com a flag OFF explícita.
     config(['feature-flags.forced_on' => '']);
+    app()->instance(\App\Services\FeatureFlagService::class, new class extends \App\Services\FeatureFlagService
+    {
+        public function isOn(string $flag, array $attrs = []): bool
+        {
+            return $flag === 'useV2SistemaFuncoes' ? false : parent::isOn($flag, $attrs);
+        }
+    });
 
     $this->get('/roles')->assertOk()->assertViewIs('role.index');
 });

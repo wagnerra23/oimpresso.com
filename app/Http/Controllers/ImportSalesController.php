@@ -44,7 +44,7 @@ class ImportSalesController extends Controller
 
         // Branch dual MWART (thread 05 · golden Sells/Drafts): o Blade segue como fallback
         // até o cutover F5, que é humano — por empresa, pela flag `mwart.vendas_import_sales`
-        // (nasce desligada; a mesma chave vale para a prévia abaixo).
+        // (nasceu desligada; ligada para biz=1 no C1, cutover [W] 2026-10-13; a mesma chave vale para a prévia abaixo).
         if (\App\Support\Mwart::telaReact('vendas_import_sales', (int) $business_id)) {
             return Inertia::render('ImportSales/Index', [
                 'campos' => collect($this->importSalesService->campos((int) $business_id))

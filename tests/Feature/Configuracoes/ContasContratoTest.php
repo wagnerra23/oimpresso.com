@@ -72,10 +72,24 @@ test('UC-CONTA-01 com a flag ligada, GET /account/account renderiza Inertia (nã
     expect($r->json('component'))->toBe('Configuracoes/Contas/Index');
 });
 
+function contaFlagDesligada(): void
+{
+    // Desde o cutover [W] 2026-10-13 a flag vem LIGADA pelo fallbackDefaults; zerar o
+    // `feature-flags.forced_on` não a desliga mais. O lado Blade é medido com a flag OFF explícita.
+    app()->instance(\App\Services\FeatureFlagService::class, new class extends \App\Services\FeatureFlagService
+    {
+        public function isOn(string $flag, array $attrs = []): bool
+        {
+            return $flag === 'useV2ConfiguracoesContas' ? false : parent::isOn($flag, $attrs);
+        }
+    });
+}
+
 test('UC-CONTA-02 com a flag desligada, ou com ?legacy=1, GET /account/account segue na Blade', function () {
-    config(['feature-flags.forced_on' => '']);
+    contaFlagDesligada();
     $this->get('/account/account')->assertOk()->assertViewIs('account.index');
 
+    app()->forgetInstance(\App\Services\FeatureFlagService::class);
     config(['feature-flags.forced_on' => 'useV2ConfiguracoesContas']);
     $this->get('/account/account?legacy=1')->assertOk()->assertViewIs('account.index');
 });

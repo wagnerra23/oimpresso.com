@@ -48,6 +48,16 @@ class FeatureFlagService
         'useV2ConfiguracoesLocais' => true,
         'useV2ConfiguracoesImpressoras' => true,
         'useV2ConfiguracoesCodigoBarras' => true,
+        // D-CUTOVER-1310 ([W] 2026-10-13, "pode ligar tudo"): telas React prontas atrás de flag
+        // passam a valer para todas as empresas. Mesma regra do D-CFG-LIGAR: flag conhecida OFF
+        // no GrowthBook continua vencendo.
+        'useV2OfficeimpressoEmpresas' => true,
+        'useV2OfficeimpressoEmpresa' => true,
+        'useV2ConfiguracoesContas' => true,
+        'useV2SistemaFuncoes' => true,
+        'useV2VozDoClienteCaixa' => true,
+        'useV2SpreadsheetIndex' => true,
+        'useV2NotificationTemplates' => true,
         // useV2OfficeimpressoLicencas saiu em 2026-10-06: cutover da lista de Licencas, sem flag
         // nem Blade (RUNBOOK-licencas §F5).
     ];
