@@ -85,3 +85,9 @@ last_run: "2026-10-13"
   outras colunas ficam iguais · E quando digito "5.25" · Então grava 5,25 · E quando desligo "comprar em outra moeda" ·
   Então a moeda fica vazia e a taxa volta a 1, como na Blade.
 - **Status: 🧪**
+
+## UC-EMP-11 · Painel, Sistema e Prefixos voltam iguais · `[dado]`
+- **Por quê:** `ref_no_prefixes` é gravado inteiro pelo objeto que chega; um prefixo editado não pode apagar os outros.
+- **Aceite:** Dado tema, alerta de validade, linhas por tabela e dois prefixos gravados · Quando devolvo o corpo sem mexer ·
+  Então nada muda · E quando troco o prefixo de compra · Então ele grava e o de devolução de venda continua.
+- **Status: 🧪**
