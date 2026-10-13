@@ -1,0 +1,25 @@
+{
+  "_": "A1 [CL] 2026-10-13 — playbook produto. Rota `produtos` do espelho (app.jsx:811 → window.ProdListPage, produtos-page.jsx), porte reverso do Produto/Unificado/Index (/products/unificado) segundo a _saida-00 e o bundle_source do charter. Tema dark (default do espelho), viewport 1280x900, browser limpo. Medida a lista real: 25 linhas pd-tr no mapa, não o esqueleto.",
+  "_mapa": "alvo:mapa --rota produtos --quieto-ms 2000, 2026-10-13: raiz '.main-body' → div.pd-page(4); raiz '.main-body > .pd-page' → div.pd-head(3) · div.pd-kpis(4) · div.pd-fbar(10) · div.pd-grid-card(2); raiz '.main-body > .pd-page > .pd-head' → div.pd-head-l(2) · div.pd-head-r(2) · nav.ds-tabbar.pd-abas(6); raiz '.main-body > .pd-page > .pd-grid-card' → div.pd-scroll(1) · div.pd-rodape(3)",
+  "titulo": {
+    "seletor": ".main-body > .pd-page > .pd-head > .pd-head-l"
+  },
+  "acoes": {
+    "seletor": ".main-body > .pd-page > .pd-head > .pd-head-r"
+  },
+  "abas": {
+    "seletor": ".main-body > .pd-page > .pd-head > nav.ds-tabbar"
+  },
+  "kpis": {
+    "seletor": ".main-body > .pd-page > .pd-kpis"
+  },
+  "filtros": {
+    "seletor": ".main-body > .pd-page > .pd-fbar"
+  },
+  "tabela": {
+    "seletor": ".main-body > .pd-page > .pd-grid-card > .pd-scroll"
+  },
+  "rodape": {
+    "seletor": ".main-body > .pd-page > .pd-grid-card > .pd-rodape"
+  }
+}

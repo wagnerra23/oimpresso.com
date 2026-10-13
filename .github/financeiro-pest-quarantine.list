@@ -99,7 +99,6 @@ Modules/Financeiro/Tests/Feature/CoworkBundleIntegralTest.php  # 9 failed, 6 pas
 Modules/Financeiro/Tests/Feature/DrawerCoworkV2Test.php  # 12 skipped (0 assertions)
 Modules/Financeiro/Tests/Feature/Onda5CuradoriaR1Test.php  # 12 skipped (0 assertions)
 Modules/Financeiro/Tests/Feature/Onda6IaR2Test.php  # 3 failed, 6 passed (38 assertions)
-Modules/Financeiro/Tests/Feature/Onda7OutputR3Test.php  # 2 failed, 7 passed (56 assertions)
 Modules/Financeiro/Tests/Feature/Onda7cTranscriptFavsTest.php  # 2 failed, 16 passed (55 assertions)
 Modules/Financeiro/Tests/Feature/Onda8CoworkRewriteTest.php  # 3 failed, 6 passed (41 assertions)
 Modules/Financeiro/Tests/Feature/Onda8bChipsDirectionTest.php  # 4 failed, 5 passed (25 assertions)
