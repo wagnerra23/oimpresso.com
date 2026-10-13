@@ -129,6 +129,11 @@ test('UC-MESA-04 pedidos de hoje contam só vendas finalizadas com mesa do meu n
 
     expect(mesasContratoProps($this)['pedidos_hoje'])->toBe($antes + 2);
 
-    $r = $this->withHeaders(['X-Inertia' => 'true', 'X-Inertia-Version' => $this->versaoInertia])->get('/modules/tables');
+    // Mesmos cabeçalhos do browser (UC-MESA-01): o Inertia manda X-Requested-With junto do X-Inertia.
+    $r = $this->withHeaders([
+        'X-Inertia' => 'true', 'X-Inertia-Version' => $this->versaoInertia, 'X-Requested-With' => 'XMLHttpRequest',
+    ])->get('/modules/tables');
+    $r->assertOk();
+    expect($r->json('component'))->toBe('Restaurante/Mesas/Index');
     expect($r->json('props.pode_gerenciar'))->toBeFalse();
 });
