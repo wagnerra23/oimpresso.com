@@ -137,15 +137,13 @@ export default function EtiquetasIndex({ config }: Props) {
     <>
       <Head title="Etiquetas — Vestuário" />
 
-      <div data-contract="cabecalho">
       <PageHeader
         title="Etiquetas TAG vestuário"
         subtitle="ZPL Argox/Zebra + PDF · US-VEST-020"
       />
-      </div>
 
       <div className="space-y-4 p-4">
-        <Card data-contract="config">
+        <Card>
           <CardHeader>
             <CardTitle className="text-sm font-medium text-muted-foreground">
               Configuração atual (vestuario_settings)
@@ -165,7 +163,7 @@ export default function EtiquetasIndex({ config }: Props) {
           </CardContent>
         </Card>
 
-        <Card data-contract="lote">
+        <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>Lote ({items.length} item{items.length === 1 ? '' : 's'})</CardTitle>
             <div className="flex items-center gap-2">
