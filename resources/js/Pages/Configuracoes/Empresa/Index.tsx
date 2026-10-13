@@ -1,7 +1,7 @@
 // @memcofre
 //   tela: /business/settings
 //   module: Configuracoes
-//   stories: thread sistema/playbook/08 (F3-1: Negócio · F3-2: Impostos, Produtos, Contatos)
+//   stories: thread sistema/playbook/08 (F3-1: Negócio · F3-2: Impostos, Produtos, Contatos · F3-3a: Vendas, Pagamento)
 //   permissao: business_settings.access
 //
 // Configuração da empresa. Atrás da flag `useV2ConfiguracoesEmpresa` (BusinessController::FLAG_EMPRESA_V2);
@@ -30,8 +30,8 @@ import ConfiguracoesSubNav from '@/Pages/Configuracoes/_shared/ConfiguracoesSubN
 type Valor = string | number | boolean | null | Valor[] | { [k: string]: Valor };
 type Corpo = Record<string, Valor>;
 type Lista = Record<string, string>;
-interface Opcoes { moedas: Lista; fusos: Lista; meses: Lista; metodos: Lista; formatos_data: Lista; unidades: Lista }
-interface Props { corpo: Corpo; logo: string | null; opcoes?: Opcoes }
+interface Opcoes { moedas: Lista; fusos: Lista; meses: Lista; metodos: Lista; formatos_data: Lista; unidades: Lista; impostos: Lista; comissao: Lista; pagamentos: Lista }
+interface Props { corpo: Corpo; logo: string | null; segredos_gravados: string[]; opcoes?: Opcoes }
 
 /** Abas na ordem e nos grupos do protótipo. As de PRONTAS estão na tela nova; as outras abrem na Blade. */
 const ABAS: { g: string; itens: { id: string; label: string }[] }[] = [
@@ -46,6 +46,8 @@ const PRONTAS: Record<string, string> = {
   imposto: 'Dois números fiscais aparecem no cabeçalho de todo documento.',
   produto: 'Como o sistema gera código, trata validade e o que o cadastro de produto mostra.',
   contato: 'Vale para cliente novo que não tem limite próprio.',
+  venda: 'Padrões de desconto, imposto e comissão de toda venda.',
+  pagto: 'Contagem de cédulas no recebimento em dinheiro.',
 };
 
 const PRECISOES: Lista = { 0: '0', 1: '1', 2: '2', 3: '3', 4: '4' };
@@ -54,8 +56,13 @@ const HORA: Lista = { 24: '24 horas', 12: '12 horas' };
 const VALIDADE: Lista = { add_expiry: 'Informar a validade', add_manufacturing: 'Informar a fabricação (validade calculada)' };
 const AO_VENCER: Lista = { keep_selling: 'Manter vendendo', stop_selling: 'Parar de vender' };
 const NENHUM = '__nenhum__';
+const PRECO_IMPOSTO: Lista = { includes: 'Inclui o imposto', excludes: 'Sem o imposto (calculado sobre o preço)' };
+const ADICAO: Lista = { 0: 'Adiciona linha nova', 1: 'Aumenta a quantidade' };
+const ARREDONDA: Lista = { 1: 'Para o inteiro mais próximo', '0.05': 'Para 0,05', '0.1': 'Para 0,10', '0.5': 'Para 0,50' };
+const CALC_COMISSAO: Lista = { invoice_value: 'Sobre o valor da fatura', payment_received: 'Sobre o pagamento recebido' };
+const CEDULAS_EM: Lista = { pos_screen: 'Só no PDV', all_screens: 'Em todas as telas' };
 
-function EmpresaIndex({ corpo: inicial, logo, opcoes }: Props) {
+function EmpresaIndex({ corpo: inicial, logo, segredos_gravados, opcoes }: Props) {
   const [corpo, setCorpo] = useState<Corpo>(inicial);
   const [aba, setAba] = useState('negocio');
   const [arquivo, setArquivo] = useState<File | null>(null);
@@ -70,6 +77,14 @@ function EmpresaIndex({ corpo: inicial, logo, opcoes }: Props) {
     const { [k]: _fora, ...resto } = comum;
     muda('common_settings', v === null || v === '' ? resto : { ...resto, [k]: v });
   };
+
+  // `pos_settings`: igual à Blade, desmarcar ou esvaziar REMOVE a chave (o salvar substitui o objeto inteiro).
+  const pos = (corpo.pos_settings && !Array.isArray(corpo.pos_settings) ? corpo.pos_settings : {}) as Record<string, Valor>;
+  const mudaPos = (k: string, v: Valor) => {
+    const { [k]: _fora, ...resto } = pos;
+    muda('pos_settings', v === null || v === '' || (Array.isArray(v) && v.length === 0) ? resto : { ...resto, [k]: v });
+  };
+  const textoPos = (k: string) => (pos[k] === null || pos[k] === undefined ? '' : String(pos[k]));
 
   const salvar = () => {
     setSalvando(true);
@@ -107,6 +122,26 @@ function EmpresaIndex({ corpo: inicial, logo, opcoes }: Props) {
   );
   const ligaCampo = (k: string, rotulo: string, ajuda?: string) => liga(`emp-${k}`, rotulo, !!corpo[k], (v) => muda(k, v), ajuda);
   const ligaComum = (k: string, rotulo: string, ajuda?: string) => liga(`emp-cs-${k}`, rotulo, !!comum[k], (v) => mudaComum(k, v ? '1' : null), ajuda);
+  const ligaPos = (k: string, rotulo: string, ajuda?: string) => liga(`emp-pos-${k}`, rotulo, !!pos[k], (v) => mudaPos(k, v ? '1' : null), ajuda);
+  const campoPos = (k: string, rotulo: string, ajuda?: string) =>
+    rotulado(`emp-pos-${k}`, rotulo, <Input id={`emp-pos-${k}`} value={textoPos(k)} onChange={(e) => mudaPos(k, e.target.value)} />, ajuda);
+  const escolhaPos = (k: string, rotulo: string, lista: Lista, vazio?: string) =>
+    rotulado(`emp-pos-${k}`, rotulo, (
+      <Select value={textoPos(k) || (vazio ? NENHUM : '')} onValueChange={(v) => mudaPos(k, v === NENHUM ? null : v)}>
+        <SelectTrigger id={`emp-pos-${k}`}><SelectValue placeholder="Escolha…" /></SelectTrigger>
+        <SelectContent>
+          {vazio && <SelectItem value={NENHUM}>{vazio}</SelectItem>}
+          {Object.entries(lista).map(([v, l]) => <SelectItem key={v} value={v}>{l}</SelectItem>)}
+        </SelectContent>
+      </Select>
+    ));
+  // Segredo: a tela não recebe o valor. Em branco = mantém o gravado (a chave nem viaja); digitar troca.
+  const segredo = (k: string, rotulo: string) =>
+    rotulado(`emp-pos-${k}`, rotulo, (
+      <Input id={`emp-pos-${k}`} type="password" autoComplete="off" value={textoPos(k)} onChange={(e) => mudaPos(k, e.target.value)}
+        placeholder={segredos_gravados.includes(k) ? 'Gravada — digite para trocar' : 'Não informada'} />
+    ), 'Para apagar uma chave gravada, use a tela antiga.');
+  const metodosCedula = Array.isArray(pos.enable_cash_denomination_for_payment_methods) ? (pos.enable_cash_denomination_for_payment_methods as string[]) : [];
   const titulo = (t: string) => <h3 className="m-0 text-xs font-semibold uppercase text-muted-foreground">{t}</h3>;
   const rotuloAba = ABAS.flatMap((g) => g.itens).find((i) => i.id === aba)?.label;
 
@@ -221,6 +256,58 @@ function EmpresaIndex({ corpo: inicial, logo, opcoes }: Props) {
                     {ligaComum('enable_product_warranty', 'Garantia')}
                     {ligaComum('is_product_image_required', 'Imagem obrigatória')}
                   </Stack>
+                </>
+              )}
+
+              {aba === 'venda' && (
+                <>
+                  <Grid cols={2} gap={3}>
+                    {campo('default_sales_discount', 'Desconto padrão (%)')}
+                    {escolha('default_sales_tax', 'Imposto padrão da venda', opcoes?.impostos, 'Nenhum')}
+                    {escolha('sell_price_tax', 'Preço de venda', PRECO_IMPOSTO)}
+                    {escolha('item_addition_method', 'Ao repetir um item', ADICAO)}
+                    {escolhaPos('amount_rounding_method', 'Arredondamento do total', ARREDONDA, 'Não arredondar')}
+                  </Grid>
+                  <Stack gap={2}>
+                    {ligaPos('enable_msp', 'Preço de venda é o mínimo', 'não deixa vender abaixo dele.')}
+                    {ligaPos('allow_overselling', 'Permitir vender sem estoque')}
+                    {ligaPos('bloquear_venda_preco_zero_app', 'Bloquear venda com preço zero no app')}
+                    {ligaPos('enable_sales_order', 'Pedido de venda')}
+                    {ligaPos('is_pay_term_required', 'Prazo de pagamento obrigatório')}
+                  </Stack>
+                  <Stack gap={2}>
+                    {titulo('Comissão')}
+                    <Grid cols={2} gap={3}>
+                      {escolha('sales_cmsn_agnt', 'Quem recebe comissão', opcoes?.comissao, 'Desativado')}
+                      {escolhaPos('cmmsn_calculation_type', 'Calcular sobre', CALC_COMISSAO)}
+                    </Grid>
+                    {ligaPos('is_commission_agent_required', 'Comissionado obrigatório na venda')}
+                  </Stack>
+                  <Stack gap={2}>
+                    {titulo('Link de pagamento')}
+                    {ligaPos('enable_payment_link', 'Enviar link de pagamento')}
+                    <Grid cols={2} gap={3}>
+                      {campoPos('razor_pay_key_id', 'Razorpay · Key ID')}
+                      {segredo('razor_pay_key_secret', 'Razorpay · Key Secret')}
+                      {campoPos('stripe_public_key', 'Stripe · chave pública')}
+                      {segredo('stripe_secret_key', 'Stripe · chave secreta')}
+                    </Grid>
+                  </Stack>
+                </>
+              )}
+
+              {aba === 'pagto' && (
+                <>
+                  <Grid cols={2} gap={3}>
+                    {campoPos('cash_denominations', 'Cédulas e moedas', 'Separadas por vírgula, ex.: 200,100,50,20,10,5,2.')}
+                    {escolhaPos('enable_cash_denomination_on', 'Contar cédulas', CEDULAS_EM)}
+                  </Grid>
+                  <Stack gap={2}>
+                    {titulo('Formas de pagamento com contagem')}
+                    {Object.entries(opcoes?.pagamentos ?? {}).map(([k, l]) => liga(`emp-cedula-${k}`, l, metodosCedula.includes(k),
+                      (v) => mudaPos('enable_cash_denomination_for_payment_methods', v ? [...metodosCedula, k] : metodosCedula.filter((x) => x !== k))))}
+                  </Stack>
+                  {ligaPos('cash_denomination_strict_check', 'Conferência estrita', 'o total contado tem de bater com o recebido.')}
                 </>
               )}
 

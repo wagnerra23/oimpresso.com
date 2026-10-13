@@ -340,9 +340,12 @@ class BusinessController extends Controller
             return \Inertia\Inertia::render('Configuracoes/Empresa/Index', [
                 'corpo' => $this->corpoDoSalvar($business),
                 'logo' => $business->logo ? asset('uploads/business_logos/'.$business->logo) : null,
+                // Só QUAIS segredos estão gravados, nunca o valor: a tela mostra "gravada" e aceita digitar outro.
+                'segredos_gravados' => array_values(array_filter(self::SEGREDOS_POS, fn ($k) => ! empty($pos_settings[$k]))),
                 'opcoes' => \Inertia\Inertia::defer(fn () => [
                     'moedas' => $currencies, 'fusos' => $timezone_list, 'meses' => $months,
                     'metodos' => $accounting_methods, 'formatos_data' => $date_formats, 'unidades' => $units_dropdown,
+                    'impostos' => $tax_rates, 'comissao' => $commission_agent_dropdown, 'pagamentos' => $payment_types,
                 ]),
             ]);
         }
@@ -387,6 +390,9 @@ class BusinessController extends Controller
             'code_label_1' => $b->code_label_1, 'code_1' => $b->code_1, 'code_label_2' => $b->code_label_2, 'code_2' => $b->code_2,
             // Impostos · Produtos (F3-2). Estão no only() sem pós-processamento: vão para a Page poder editá-los.
             'tax_label_1' => $b->tax_label_1, 'tax_number_1' => $b->tax_number_1, 'tax_label_2' => $b->tax_label_2, 'tax_number_2' => $b->tax_number_2,
+            // Vendas (F3-3a).
+            'default_sales_tax' => $b->default_sales_tax, 'sell_price_tax' => $b->sell_price_tax,
+            'item_addition_method' => $b->item_addition_method, 'sales_cmsn_agnt' => $b->sales_cmsn_agnt,
             'sku_prefix' => $b->sku_prefix, 'default_unit' => $b->default_unit, 'expiry_type' => $b->expiry_type, 'stop_selling_before' => $b->stop_selling_before,
             // uf_date() lê no formato do negócio que está na sessão — o mesmo que formata aqui.
             'start_date' => $b->start_date ? Carbon::parse($b->start_date)->format(session('business.date_format', $b->date_format ?: 'd/m/Y')) : '',
