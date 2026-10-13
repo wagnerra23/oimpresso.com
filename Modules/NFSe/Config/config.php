@@ -26,9 +26,18 @@ return [
      * Ref: https://www.gov.br/nfse (documentação técnica)
      */
     'endpoints' => [
-        'homologacao' => 'https://sefin.producaorestrita.nfse.gov.br',
-        'producao'    => 'https://sefin.nfse.gov.br',
+        // Base da API do Emissor Público Nacional; o adapter acrescenta /nfse (R-NFSE-005).
+        'homologacao' => 'https://sefin.producaorestrita.nfse.gov.br/SefinNacional',
+        'producao'    => 'https://sefin.nfse.gov.br/SefinNacional',
     ],
+
+    /**
+     * Algoritmo da assinatura XMLDSig da DPS: 'sha256' (padrão) ou 'sha1'. O XSD
+     * oficial não restringe; se a 1ª emissão em homologação mostrar que a Sefin só
+     * aceita SHA-1, troque o valor aqui (R-NFSE-005). Sem env(): o Larastan proíbe
+     * env() fora de config/ e a ADR 0409 não deixa crescer o baseline.
+     */
+    'assinatura_algoritmo' => 'sha256',
 
     /**
      * Código IBGE do município padrão (Tubarão-SC = 4218707)

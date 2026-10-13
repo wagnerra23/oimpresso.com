@@ -4,7 +4,7 @@ casos: Essentials · Arquivos e Memos · /essentials/document
 irmaos: Index.charter.md (lei) · Index.tsx (tela)
 tecnica: Caso de uso = narrativa + critério de aceite verificável (Dado/Quando/Então)
 owner: wagner
-last_run: "2026-09-23"
+last_run: "2026-10-13"
 ---
 
 # Casos de uso — /essentials/document · Arquivos e Memos
@@ -23,6 +23,10 @@ last_run: "2026-09-23"
 > 2026-09-23, após o #7763). Pest local é proibido ([ADR 0062](../../../../../memory/decisions/0062-separacao-runtime-hostinger-ct100.md)).
 
 ---
+
+> ℹ️ **2026-10-13 — o que mudou na tela NÃO foi comportamento.** O playbook essenciais (thread 03) acrescenta 1 atributo
+> `data-contract` (`cabecalho` no `<header>` da Page (h1, subtítulo, Adicionar)) para o contrato `governance/design/contracts/essenciais-documentos.contract.json` e `essenciais-memorandos.contract.json`. Zero handler, zero dado, zero copy.
+> Nenhum UC afirma âncora; revalidação por leitura, nenhum UC foi reexecutado.
 
 ## UC-EDOC-01 · A lista de memos mostra o meu e o compartilhado comigo, e mais nada `[must]` `[T0]`
 Status: 🧪 sem veredito

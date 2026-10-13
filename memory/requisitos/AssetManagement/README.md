@@ -44,18 +44,19 @@ Cadastro + alocação + manutenção de **bens / ativos físicos** (impressoras 
 
 ## Multi-tenant Tier 0 IRREVOGÁVEL (ADR 0093)
 
-- **`am_assets`**, **`am_asset_transactions`**, **`am_maintenance_logs`** têm `business_id` direto + HasBusinessScope global scope
-- **`am_warranties`** scope via parent Asset (chain JOIN — não tem business_id próprio)
+- **`assets`**, **`asset_transactions`**, **`asset_maintenances`** têm `business_id` direto + HasBusinessScope global scope
+- **`asset_warranties`** scope via parent Asset (chain JOIN — não tem business_id próprio)
+- Os nomes acima são os do schema (`database/schema/mysql-schema.sql`). Até 2026-10-13 este README dizia `am_*`, prefixo que nenhuma migration cria.
 - Job assíncrono SEMPRE recebe `$businessId` no constructor — Service NUNCA chama `session()`
 
 ## D7 — Retenção LGPD + Audit (Wave 23/25)
 
-- `Config/retention.php` declara 4 categorias com bases legais:
-  - `am_assets`: 3650d / 10 anos (fiscal CC Art. 206)
-  - `am_asset_transactions`: 1825d / 5 anos (CTN Art. 195)
-  - `am_maintenance_logs`: 1825d / 5 anos
-  - `am_warranties`: 2555d / 7 anos
-- Estratégia: `anonymize` (preserva audit trail, mascara PII)
+- `Config/retention.php` declara 3 tabelas com campo pessoal ([ADR 0430](../../decisions/0430-retencao-lgpd-patrimonio-anonimiza-campo-pessoal.md), 2026-10-13):
+  - `assets`: 3650d / 10 anos (fiscal CC Art. 206)
+  - `asset_transactions`: 1825d / 5 anos (CTN Art. 195)
+  - `asset_maintenances`: 1825d / 5 anos
+  - `asset_warranties` saiu: não tem coluna que aponte para pessoa
+- Estratégia: `anonymize` — some o vínculo pessoal, a linha fica e `activity_log` nunca é tocado. Nasce desligada (`ASSETMANAGEMENT_RETENTION_ENABLED=false`); ligar é decisão [W] (D-CANARY-LGPD). O executor é a thread 05 do playbook `patrimonio`.
 - Entities têm `LogsActivity` (Spatie Activitylog) — mudanças críticas auditadas em `activity_log`
 
 ## D9 — Observabilidade OtelHelper canônico

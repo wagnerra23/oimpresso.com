@@ -1,0 +1,31 @@
+{
+  "_nota": "Derivado do alvo governance/design/targets/essenciais--documentos--index.alvo.json (thread A1 do playbook essenciais, rota `ess-documentos` do protótipo), não do .tsx. cabecalho e abas do alvo são a casca do módulo no protótipo (cabeçalho 'Essenciais' + abas Tarefas/Documentos/…): a Page viva não tem essa casca, cada tela é uma rota com o próprio h1. Copy só onde protótipo e tela dizem a mesma coisa: cada string foi conferida por máquina na base.assinatura do alvo e no código da Page. titulo e subtitulo do alvo (o card) são o <header> da Page, âncora `cabecalho` (h1 + subtítulo + Adicionar); tabela = âncora `tabela` que a Page já tinha. A Page atende Documentos e Memorandos pela mesma âncora; o copy de cada aba vai no contrato dela. Fora por divergirem (decisão [W], _saida-00): o ícone de compartilhar da linha.",
+  "tela": "Essentials/Documents/Index (aba Documentos)",
+  "fonte": "prototipo-ui/cowork/Wagner/essenciais-page.jsx",
+  "alvo": [
+    "resources/js/Pages/Essentials/Documents/Index.tsx"
+  ],
+  "secoes": [
+    {
+      "id": "cabecalho",
+      "copy": [
+        "Todos os documentos",
+        "Arquivos compartilhados com a equipe.",
+        "Adicionar"
+      ]
+    },
+    {
+      "id": "tabela",
+      "copy": [
+        "Nome",
+        "Descrição",
+        "Data do upload",
+        "Ações"
+      ]
+    }
+  ],
+  "ordem": [
+    "cabecalho",
+    "tabela"
+  ]
+}

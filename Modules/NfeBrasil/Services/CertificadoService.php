@@ -160,17 +160,7 @@ class CertificadoService
             ->first();
 
         if ($cert) {
-            $diskPath = sprintf('%d/cert/%s.pfx.enc', $businessId, $cert->uuid);
-            if (! Storage::disk('nfe_certs')->exists($diskPath)) {
-                throw new RuntimeException("Arquivo do certificado ausente em disco: {$diskPath}");
-            }
-
-            return [
-                'pfx_binary' => Crypt::decrypt(Storage::disk('nfe_certs')->get($diskPath)),
-                'senha'      => Crypt::decryptString($cert->encrypted_password),
-                'valido_ate' => $cert->valido_ate,
-                'source'     => 'nfe_brasil',
-            ];
+            return $this->carregarCertificado($cert);
         }
 
         // Fallback ADR 0090 — lê do legado business.certificado durante coexistência
@@ -186,6 +176,34 @@ class CertificadoService
         throw new RuntimeException(
             "Business {$businessId} não tem certificado A1 ativo (nem em nfe_certificados nem em business.certificado legado)."
         );
+    }
+
+    /**
+     * Decripta UM certificado já resolvido: o .pfx do disco (`{biz}/cert/{uuid}.pfx.enc`)
+     * e a senha de `encrypted_password`. É a mesma leitura do `carregarParaSefaz`, exposta
+     * para quem já tem o certificado em mãos — a NFS-e usa o `cert_id` da sua config, que
+     * não é necessariamente o ativo do business. O caminho no disco usa o `business_id`
+     * DO PRÓPRIO certificado (ADR 0093).
+     *
+     * Substitui `pfxDecriptado()`/`senhaDecriptada()`, removidos do modelo do NFSe na
+     * unificação do schema (4e772bcb46, 2026-05-07) sem que o chamador fosse migrado.
+     *
+     * @return array{pfx_binary: string, senha: string, valido_ate: \DateTimeInterface, source: string}
+     * @throws RuntimeException Quando o arquivo do certificado não está no disco
+     */
+    public function carregarCertificado(NfeCertificado $cert): array
+    {
+        $diskPath = sprintf('%d/cert/%s.pfx.enc', $cert->business_id, $cert->uuid);
+        if (! Storage::disk('nfe_certs')->exists($diskPath)) {
+            throw new RuntimeException("Arquivo do certificado ausente em disco: {$diskPath}");
+        }
+
+        return [
+            'pfx_binary' => Crypt::decrypt(Storage::disk('nfe_certs')->get($diskPath)),
+            'senha'      => Crypt::decryptString($cert->encrypted_password),
+            'valido_ate' => $cert->valido_ate,
+            'source'     => 'nfe_brasil',
+        ];
     }
 
     /**
