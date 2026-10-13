@@ -52,6 +52,7 @@ import {
   DialogTitle,
 } from '@/Components/ui/dialog';
 import type { AcaoProduto } from './_components/lista/AcoesProduto';
+import CadastroRapidoProduto from './_components/lista/CadastroRapido';
 import { colunasDaLista, filtrosParaATabela } from './_components/lista/colunas';
 import FiltrosListaProdutos from './_components/lista/FiltrosLista';
 import IndicadoresLista from './_components/lista/IndicadoresLista';
@@ -192,6 +193,7 @@ function ProdutoIndex({ filtros, lista, kpis, estoque, detalhe, opcoes, contexto
   const [localModal, setLocalModal] = useState<'add' | 'remove' | null>(null);
   const [locaisEscolhidos, setLocaisEscolhidos] = useState<string[]>([]);
   const [wooModal, setWooModal] = useState(false);
+  const [rapido, setRapido] = useState(false);
   const [hora, setHora] = useState(hhmm);
   // Painel de detalhe: o produto aberto (a URL `?ver={id}` abre direto, e serve de link).
   const [verId, setVerId] = useState<number | null>(() => {
@@ -469,6 +471,11 @@ function ProdutoIndex({ filtros, lista, kpis, estoque, detalhe, opcoes, contexto
                 ]}
               />
               <MenuColunas colunas={opcionais} visiveis={visiveis} aoMudar={setVisiveis} />
+              {permissions.create === true && (
+                <Button variant="outline" size="sm" onClick={() => setRapido(true)}>
+                  <Plus size={12} aria-hidden /> Cadastro rápido
+                </Button>
+              )}
             </div>
             )}
 
@@ -764,6 +771,20 @@ function ProdutoIndex({ filtros, lista, kpis, estoque, detalhe, opcoes, contexto
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {permissions.create === true && (
+        <CadastroRapidoProduto
+          aberto={rapido}
+          aoFechar={() => setRapido(false)}
+          unidades={opcoes.unidades}
+          categorias={opcoes.categorias}
+          locais={locaisReais}
+          aoCriar={(msg) => {
+            toast.success(msg);
+            recarregar();
+          }}
+        />
+      )}
 
       <PainelDetalheProduto
         aberto={verId !== null}

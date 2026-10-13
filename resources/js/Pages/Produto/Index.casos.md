@@ -69,6 +69,7 @@ last_run_ci: "run 38087431948 (lane Estoque · MySQL, commit 59fe58ae, com o arq
 | UC-PIDX-11 | "Comprar" abre a nova compra com o produto | should | protótipo (`acoesDe`, rodapé do `DetalheDrawer`) + pedido [F] 2026-10-11 | `ProdutoDetalheTest` (Pest) | ⬜ verde esperado |
 | UC-PIDX-12 | Os 3 indicadores da aba Estoque do painel são a soma das linhas do relatório de estoque do produto | must | protótipo (`DetalheDrawer`, aba Estoque) + contas de `linhaDoRelatorioEstoque` + Blade `view_product_stock_value` | `ProdutoDetalheTest` (Pest) | ⬜ nasce neste PR — verde esperado |
 | UC-PIDX-13 | Clicar no cabeçalho de uma coluna ordena a lista no servidor, nas duas direções; por preço só para quem pode ver o preço | should | protótipo (`ListaProdutos`, colunas `sortable`) + `$ordenaveis` de `buildProdutoListaPaginada` + gate de preço (UC-PIDX-03) | `ProdutoListaOrdenacaoTest` (Pest) + `produto-lista-ordenacao.test.tsx` (Vitest) | ⬜ nasce neste PR — verde esperado |
+| UC-PIDX-14 | "Cadastro rápido" cria o produto com os preços que o formulário Blade gravaria, só na empresa e nos locais permitidos | must `[V0]` `[T0]` | charter v3 §Goals ("Cadastro rápido") + protótipo (`ModalCadastroRapido`) + Blade `quick_add_product` / `saveQuickProduct` + REGRA MESTRE valor | `ProdutoListaCadastroRapidoTest` (Pest) + `produto-cadastro-rapido.test.tsx` (Vitest) | ⬜ nasce neste PR — verde esperado |
 
 > 🔄 **Revalidação G-6 — 2026-10-10 (#9124, lista no desenho do protótipo).** Os 6 contratos
 > **continuam os mesmos**: derivam do SDD, da lista Blade e do Delphi, não da tela de cards. O que
@@ -265,6 +266,22 @@ last_run_ci: "run 38087431948 (lane Estoque · MySQL, commit 59fe58ae, com o arq
 - **Achado que originou o caso (medido em produção, 2026-10-12):** o rodapé prometia a ordenação, mas o cabeçalho era texto puro e o clique não fazia nada. As 8 colunas declaravam `enableSorting: true` sem `accessorFn` (a tabela só desenha o botão com ele), e a tela não informava à tabela a ordem atual (sem isso o segundo clique não inverte). Typecheck, build e CI estavam verdes.
 - **Status: ⬜** — nasce neste PR; verde esperado. Só a lane decide (a parte Vitest não roda em lane nenhuma).
 
+## UC-PIDX-14 · "Cadastro rápido" cria o produto com os preços que o formulário Blade gravaria · `must` `[V0]` `[T0]`
+- **Persona:** Larissa está com o cliente na frente e o produto ainda não existe no catálogo. Quer cadastrar o mínimo — nome, unidade e os dois preços — e completar o resto depois.
+- **Aceite:** Dada a permissão de criar produto · Quando preencho a janela "Cadastro rápido" (nome, SKU opcional, unidade, categoria opcional, preço de compra e de venda sem imposto, "Gerenciar estoque" marcado) e salvo · Então o produto nasce na minha empresa, do tipo simples, sem imposto, com o SKU gerado se eu deixei em branco, e a variação guarda: preço de compra e de venda como digitei, os dois "com imposto" iguais a eles, e a margem `(venda − compra) ÷ compra × 100` (custo zero dá margem zero). Empresa com um local permitido: vai para ele sem perguntar; com mais de um: escolho ao menos um, e só entra local permitido da empresa. Preço fora do formato com vírgula decimal é recusado antes de virar número. Campo que a janela não tem (estoque inicial, imposto, "não para venda") não chega à gravação, mesmo se enviado.
+- **Teste:** [`ProdutoListaCadastroRapidoTest`](../../../../tests/Feature/Produto/ProdutoListaCadastroRapidoTest.php) — `UC-PIDX-14` (o que é gravado) e [`produto-cadastro-rapido.test.tsx`](../../../../tests/js/produto-cadastro-rapido.test.tsx) (o que a janela manda).
+- **Prova de valor por dois caminhos** (REGRA MESTRE): compra 10 e venda 15 → conta à mão (10 · 10 · 50% · 15 · 15) **e** o mesmo produto criado pelo formulário Blade (`saveQuickProduct`) com o que o JS dele preenche — as duas variações saem iguais. Com 1234,56 e 2000: os quatro preços saem idênticos aos do Blade; a margem sai 62,0010 aqui e 62,00 lá.
+- **Contrato:**
+  - **Charter v3** §Goals — a barra da lista traz "Cadastro rápido".
+  - **Protótipo** — `ModalCadastroRapido` (6 campos); "Gerenciar estoque" marcado e o campo de locais com 2+ locais são decisão [F] 2026-10-12.
+  - **Blade** — `quick_add_product.blade.php` + `single_product_form_part` (padrões: `single`, `C128`, `exclusive`, estoque gerenciado; local único pré-escolhido) e `saveQuickProduct`, que é quem grava: o endpoint novo só monta o pedido e entrega a ele.
+  - **Margem** — `Util::get_percent`, a conta do `__get_rate` do Blade.
+- **Divergências deliberadas do formulário Blade:**
+  - a margem vai com 4 casas (o Blade arredondava na tela, 2 casas) — a coluna guarda 4, e margem com 2 casas não reconstitui o preço (lição do charter de Preços por grupo);
+  - com mais de um local, escolher ao menos um é obrigatório (no Blade o campo podia ficar vazio e o produto não aparecia em local nenhum) — decisão [F];
+  - preço só com vírgula decimal e sem milhar; "12.125" é recusado em vez de adivinhado.
+- **Status: ⬜** — nasce neste PR; verde esperado. Só a lane decide (a parte Vitest não roda em lane nenhuma).
+
 ---
 
 ## Achados de governança (o trio prometia o que não tinha)
@@ -367,6 +384,7 @@ last_run_ci: "run 38087431948 (lane Estoque · MySQL, commit 59fe58ae, com o arq
 - Gate: `scripts/casos-coverage-guard.mjs` (G-1/G-2/G-5/G-6/G-7 — [ADR 0264](../../../../memory/decisions/0264-governanca-executavel-trio-dominio-e2e.md))
 
 ## Trilha do tempo
+- 2026-10-12 · [F+C] **UC-PIDX-14** ("Cadastro rápido" na barra da lista): a janela manda os dois preços digitados e o servidor monta o pedido do formulário Blade e entrega ao `saveQuickProduct`; prova de valor por dois caminhos no `ProdutoListaCadastroRapidoTest`.
 - 2026-10-12 · [F+C] **UC-PIDX-13** (ordenar pelo cabeçalho): a tela prometia e não fazia — as colunas ganharam o `accessorFn` que faltava e a tabela passou a receber a ordem atual; teste de servidor e de tela.
 - 2026-10-12 · [F+C] **UC-PIDX-12** (os 3 indicadores da aba Estoque do painel): soma das linhas do relatório de estoque do produto, pela mesma função do rodapé da aba "Relatório de estoque"; prova dupla no `ProdutoDetalheTest`.
 - 2026-10-10 · [F+C] **UC-PIDX-10** ("Exportar filtrados" em CSV) e o botão "Etiquetas" na barra de seleção (abre a tela de etiquetas com os produtos selecionados — UC-PETQ-06).

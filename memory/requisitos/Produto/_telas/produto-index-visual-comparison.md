@@ -59,7 +59,7 @@ blueprint_cowork: prototipo-ui/prototipos/produto-cockpit/ _(removido em 2026-05
 > | Coluna "Campo personalizado" | aparece quando a empresa deu nome ao campo (até 7) | não é defeito — dado |
 > | Ordenar clicando no cabeçalho | cabeçalho era texto puro; o clique não fazia nada | **defeito — corrigido** (UC-PIDX-13) |
 > | Arrastar a borda da coluna para redimensionar | não existe (larguras fixas) | FALTA |
-> | Botão "Cadastro rápido" | não existe | FALTA |
+> | Botão "Cadastro rápido" | não existia em 2026-10-12; **entrou em 2026-10-12** (UC-PIDX-14), com "Gerenciar estoque" e locais (2+) a mais que o protótipo, por decisão [F] | feito |
 > | Menu da linha: 13 ações | 10 presentes | faltam "Transferir entre locais" (vira requisição de transferência) e "Dados fiscais"; "Usar em uma OS" saiu por decisão [F] 2026-10-11 |
 > | Estoque inicial em janela | abre a página de estoque inicial | DIFERENTE |
 > | Barra de seleção (6 ações + limpar), com confirmação | presente (+ WooCommerce Sync) | IGUAL |

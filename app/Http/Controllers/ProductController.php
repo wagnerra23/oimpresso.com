@@ -2551,6 +2551,117 @@ class ProductController extends Controller
     }
 
     /**
+     * Cadastro rápido da lista de produtos (protótipo `produto-blade.jsx`, `ModalCadastroRapido`):
+     * nome, SKU, unidade, categoria, preço de compra e de venda sem imposto — mais "Gerenciar
+     * estoque" e os locais, por decisão [F] de 2026-10-12.
+     *
+     * NÃO grava nada por conta própria: monta o MESMO pedido que o formulário Blade
+     * (`quick_add_product.blade.php`) mandaria e entrega ao `saveQuickProduct`, que é quem grava.
+     * O que a tela Blade preenchia sozinha, este método preenche igual:
+     *   · tipo `single`, código de barras `C128`, imposto de venda `exclusive`, sem imposto
+     *     aplicável — os padrões do formulário Blade;
+     *   · sem imposto, o preço com imposto é o próprio preço (o `__add_percent(preço, 0)` do Blade);
+     *   · a margem é `Util::get_percent(compra, venda)` — a conta do `__get_rate` do Blade, com
+     *     custo zero dando margem zero. Vai com 4 casas, que é o que a coluna guarda.
+     * Locais: empresa com um local permitido vai para ele (o `$default_location` do Blade); com
+     * mais de um, quem cadastra escolhe e ao menos um é obrigatório.
+     *
+     * Preços chegam como texto com vírgula decimal e SEM separador de milhar ("1234,56") — a tela
+     * manda assim (`paraNumUf`). Qualquer outro formato é recusado antes de virar número: é o que
+     * impede "12.125" de ser lido como doze mil.
+     *
+     * Só os campos desta janela seguem adiante: o pedido é trocado por uma lista fechada, para
+     * ninguém enfiar por aqui `opening_stock`, `tax` ou outro campo que o `saveQuickProduct` lê.
+     */
+    public function cadastroRapido(Request $request)
+    {
+        if (! auth()->user()->can('product.create')) {
+            abort(403, 'Unauthorized action.');
+        }
+        $business_id = (int) $request->session()->get('user.business_id');
+
+        $preco = ['required', 'string', 'regex:/^\d{1,13}(,\d{1,4})?$/'];
+        $dados = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'sku' => ['nullable', 'string', 'max:255'],
+            'unit_id' => ['required', 'integer'],
+            'category_id' => ['nullable', 'integer'],
+            'compra' => $preco,
+            'venda' => $preco,
+            'enable_stock' => ['required', 'boolean'],
+            'product_locations' => ['nullable', 'array'],
+            'product_locations.*' => ['integer'],
+        ], [
+            'name.required' => 'Informe o nome do produto.',
+            'unit_id.required' => 'Escolha a unidade.',
+            'compra.required' => 'Informe o preço de compra.',
+            'venda.required' => 'Informe o preço de venda.',
+            'compra.regex' => 'Preço de compra inválido.',
+            'venda.regex' => 'Preço de venda inválido.',
+        ]);
+
+        $sku = trim((string) ($dados['sku'] ?? ''));
+        if ($sku !== '') {
+            // A mesma checagem de `checkProductSku`, que o formulário Blade fazia antes de enviar.
+            $emUso = Product::where('business_id', $business_id)->where('sku', $sku)->exists()
+                || Variation::where('sub_sku', $sku)
+                    ->join('products', 'variations.product_id', '=', 'products.id')
+                    ->where('products.business_id', $business_id)
+                    ->exists();
+            if ($emUso) {
+                throw \Illuminate\Validation\ValidationException::withMessages(['sku' => 'Este SKU já está em uso.']);
+            }
+        }
+
+        $permitidos = collect(BusinessLocation::forDropdown($business_id))->keys()->map(fn ($id): int => (int) $id)->values();
+        if ($permitidos->count() === 1) {
+            $locais = $permitidos->all();
+        } else {
+            $locais = collect($dados['product_locations'] ?? [])->map(fn ($id): int => (int) $id)->unique()
+                ->filter(fn (int $id): bool => $permitidos->contains($id))->values()->all();
+            if ($permitidos->count() > 1 && $locais === []) {
+                throw \Illuminate\Validation\ValidationException::withMessages(['product_locations' => 'Escolha ao menos um local do negócio.']);
+            }
+        }
+
+        $compra = (float) $this->productUtil->num_uf($dados['compra']);
+        $venda = (float) $this->productUtil->num_uf($dados['venda']);
+        $margem = (float) $this->productUtil->get_percent($compra, $venda);
+        // Vírgula decimal e sem milhar: o `num_uf` do `createSingleProductVariation` lê sem ambiguidade.
+        $texto = fn (float $n): string => number_format($n, 4, ',', '');
+
+        $request->query->replace([]);
+        $request->replace([
+            'name' => $dados['name'],
+            'sku' => $sku,
+            'unit_id' => (int) $dados['unit_id'],
+            'category_id' => $dados['category_id'] ?? null,
+            'type' => 'single',
+            'barcode_type' => 'C128',
+            'tax_type' => 'exclusive',
+            'enable_stock' => $dados['enable_stock'] ? 1 : 0,
+            'single_dpp' => $texto($compra),
+            'single_dpp_inc_tax' => $texto($compra),
+            'profit_percent' => $texto($margem),
+            'single_dsp' => $texto($venda),
+            'single_dsp_inc_tax' => $texto($venda),
+            'product_locations' => $locais,
+        ]);
+
+        $saida = $this->saveQuickProduct($request);
+        if (empty($saida['success'])) {
+            return response()->json(['success' => false, 'msg' => (string) ($saida['msg'] ?? __('messages.something_went_wrong'))], 500);
+        }
+        $produto = $saida['product'];
+
+        return response()->json([
+            'success' => true,
+            'msg' => 'Produto criado pelo cadastro rápido.',
+            'produto' => ['id' => (int) $produto->id, 'nome' => (string) $produto->name, 'sku' => (string) $produto->sku],
+        ]);
+    }
+
+    /**
      * Display the specified resource.
      *
      * @param  \App\Product  $product
