@@ -13,11 +13,23 @@ use Modules\Crm\Entities\Proposal;
 use Modules\Crm\Entities\ProposalTemplate;
 use Modules\Crm\Http\Requests\StoreProposalRequest;
 use Modules\Crm\Notifications\SendProposalNotification;
+use App\Services\FeatureFlagService;
 use App\Support\Privacy\PiiRedactor;
+use Carbon\Carbon;
+use Inertia\Inertia;
 use Yajra\DataTables\Facades\DataTables;
 
 class ProposalController extends Controller
 {
+    /**
+     * Flag do caminho React (thread crm/playbook/14, F3). Convenção `useV2<Modulo><Tela>`.
+     * Sem a chave no GrowthBook o FeatureFlagService cai no fallbackDefaults, que não a lista:
+     * default OFF, a Blade segue servindo. Ligar é toggle no GrowthBook (flag:set), não deploy.
+     *
+     * @see memory/requisitos/Crm/RUNBOOK-propostas.md
+     */
+    private const FLAG_V2 = 'useV2CrmPropostas';
+
     /**
      * All Utils instance.
      */
@@ -37,7 +49,7 @@ class ProposalController extends Controller
     /**
      * Display a listing of the resource.
      *
-     * @return Response
+     * @return \Illuminate\Http\JsonResponse|\Illuminate\Contracts\View\View|\Inertia\Response
      */
     public function index(Request $request)
     {
@@ -48,16 +60,10 @@ class ProposalController extends Controller
 
         $is_admin = $this->moduleUtil->is_admin(auth()->user(), $business_id);
 
-        if ($request->ajax()) {
-            $proposal = Proposal::join('contacts', 'crm_proposals.contact_id', '=', 'contacts.id')
-                            ->join('users', 'crm_proposals.sent_by', '=', 'users.id')
-                            ->where('crm_proposals.business_id', $business_id)
-                            ->select('contacts.name', 'crm_proposals.subject', 'crm_proposals.created_at',
-                                'crm_proposals.id', DB::raw("CONCAT(COALESCE(users.surname, ''), ' ', COALESCE(users.first_name, ''), ' ', COALESCE(users.last_name, '')) as sent_by_full_name"));
-
-            if (! $is_admin) {
-                $proposal->where('crm_proposals.sent_by', auth()->user()->id);
-            }
+        // O Inertia manda `X-Requested-With` junto do `X-Inertia`: `ajax()` sozinho mandaria a
+        // visita da tela nova pro DataTables (§5 2026-09-08).
+        if ($request->ajax() && ! $request->header('X-Inertia')) {
+            $proposal = $this->propostasQuery((int) $business_id, $is_admin);
 
             return Datatables::of($proposal)
                 ->addColumn(
@@ -83,6 +89,11 @@ class ProposalController extends Controller
         $proposal_template = ProposalTemplate::with(['media'])
                             ->where('business_id', $business_id)
                             ->first();
+
+        // `?classico=1` mantém a Blade alcançável com a flag ligada (thread 14, F3).
+        if (! $request->boolean('classico') && app(FeatureFlagService::class)->isOn(self::FLAG_V2, ['business_id' => $business_id])) {
+            return $this->propostasInertia((int) $business_id, $is_admin, ! empty($proposal_template));
+        }
 
         return view('crm::proposal.index')
             ->with(compact('proposal_template'));
@@ -225,5 +236,97 @@ class ProposalController extends Controller
     public function destroy($id)
     {
         //
+    }
+
+    /**
+     * Propostas que o usuário pode ver: `business_id` da sessão + "só as que enviei" para quem
+     * não é `Admin#` — a MESMA consulta da DataTable da Blade e da tela React (thread 14, F3).
+     */
+    private function propostasQuery(int $business_id, bool $is_admin)
+    {
+        $proposal = Proposal::join('contacts', 'crm_proposals.contact_id', '=', 'contacts.id')
+                        ->join('users', 'crm_proposals.sent_by', '=', 'users.id')
+                        ->where('crm_proposals.business_id', $business_id)
+                        ->select('contacts.name', 'crm_proposals.subject', 'crm_proposals.created_at',
+                            'crm_proposals.id', DB::raw("CONCAT(COALESCE(users.surname, ''), ' ', COALESCE(users.first_name, ''), ' ', COALESCE(users.last_name, '')) as sent_by_full_name"));
+
+        if (! $is_admin) {
+            $proposal->where('crm_proposals.sent_by', auth()->user()->id);
+        }
+
+        return $proposal;
+    }
+
+    /**
+     * Lista de propostas em Inertia. A lista e o drawer (`?proposta=ID`) saem da MESMA consulta,
+     * então o detalhe herda o escopo da lista — diferente do `show()` da Blade, que não filtra
+     * por quem enviou (RUNBOOK-propostas §10).
+     *
+     * @return \Inertia\Response
+     */
+    private function propostasInertia(int $business_id, bool $is_admin, bool $tem_modelo)
+    {
+        $busca = trim((string) request()->input('q', ''));
+        $base = $this->propostasQuery($business_id, $is_admin)->withCount('media');
+        if ($busca !== '') {
+            $base->where(function ($w) use ($busca) {
+                $w->where('contacts.name', 'like', "%{$busca}%")
+                    ->orWhere('crm_proposals.subject', 'like', "%{$busca}%")
+                    ->orWhereRaw("CONCAT(COALESCE(users.surname, ''), ' ', COALESCE(users.first_name, ''), ' ', COALESCE(users.last_name, '')) like ?", ["%{$busca}%"]);
+            });
+        }
+
+        $data = fn ($d) => empty($d) ? null : Carbon::parse($d)->format('d/m/Y H:i');
+        $linha = fn ($p) => [
+            'id' => $p->id,
+            'contato' => $p->name,
+            'assunto' => $p->subject,
+            'enviado_por' => trim((string) $p->sent_by_full_name),
+            'data' => $data($p->created_at),
+            'anexos' => (int) $p->media_count,
+        ];
+
+        $propostaId = (int) request()->input('proposta');
+
+        return Inertia::render('Crm/Propostas/Index', [
+            'filtros' => request()->only(['q']),
+            'pode_enviar' => $tem_modelo && auth()->user()->can('crm.access_proposal'),
+            'propostas' => Inertia::defer(fn () => (clone $base)
+                ->orderByDesc('crm_proposals.created_at')
+                ->paginate(25)
+                ->withQueryString()
+                ->through($linha)),
+            // Drawer: a consulta da lista filtrada pelo id. Proposta de outro negócio, ou de
+            // colega para quem não é Admin#, dá `null` — o drawer não abre.
+            'proposta' => fn () => $propostaId > 0
+                ? $this->detalheProposta($this->propostasQuery($business_id, $is_admin)
+                    ->addSelect('crm_proposals.body', 'crm_proposals.cc', 'crm_proposals.bcc')
+                    ->with('media')
+                    ->where('crm_proposals.id', $propostaId)
+                    ->first(), $linha)
+                : null,
+        ]);
+    }
+
+    /**
+     * Detalhe do drawer. O corpo vem do editor do modelo como HTML; a tela recebe só o texto
+     * (fim de bloco vira quebra de linha) — o drawer não injeta HTML cru, ao contrário do
+     * `{!! !!}` da Blade.
+     */
+    private function detalheProposta($p, callable $linha): ?array
+    {
+        if (! $p) {
+            return null;
+        }
+        $p->media_count = $p->media->count();
+        $html = preg_replace('#<\s*(br|/p|/div|/li|/h[1-6])[^>]*>#i', PHP_EOL, (string) $p->body);
+        $texto = html_entity_decode(strip_tags((string) $html), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+
+        return $linha($p) + [
+            'cc' => $p->cc,
+            'bcc' => $p->bcc,
+            'corpo' => trim($texto),
+            'arquivos' => $p->media->map(fn ($m) => ['nome' => $m->display_name, 'url' => $m->display_url])->values()->all(),
+        ];
     }
 }
