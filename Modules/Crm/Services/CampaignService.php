@@ -141,7 +141,7 @@ class CampaignService
                     ->whereIn('id', (array) $contactIds)
                     ->get();
 
-                if (! empty($notifiableUsers) && $campaign->campaign_type === 'sms') {
+                if ($notifiableUsers->isNotEmpty() && $campaign->campaign_type === 'sms') {
                     $notificationData = [
                         'sms_settings' => request()->session()->get('business.sms_settings'),
                     ];
@@ -155,7 +155,7 @@ class CampaignService
 
                         $this->notificationUtil->sendSms($notificationData);
                     }
-                } elseif (! empty($notifiableUsers) && $campaign->campaign_type === 'email') {
+                } elseif ($notifiableUsers->isNotEmpty() && $campaign->campaign_type === 'email') {
                     Notification::send($notifiableUsers, new SendCampaignNotification($campaign, $business));
                 }
 

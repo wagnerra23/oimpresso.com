@@ -458,7 +458,7 @@ class CampaignController extends Controller
                 ->whereIn('id', (array) $contact_ids)
                 ->get();
 
-            if (! empty($notifiable_users) && $campaign->campaign_type == 'sms') {
+            if ($notifiable_users->isNotEmpty() && $campaign->campaign_type == 'sms') {
                 $notification_data['sms_settings'] = request()->session()->get('business.sms_settings');
                 foreach ($notifiable_users as $user) {
                     $notification_data['mobile_number'] = $user->mobile;
@@ -466,7 +466,7 @@ class CampaignController extends Controller
 
                     $this->notificationUtil->sendSms($notification_data);
                 }
-            } elseif (! empty($notifiable_users) && $campaign->campaign_type == 'email') {
+            } elseif ($notifiable_users->isNotEmpty() && $campaign->campaign_type == 'email') {
                 Notification::send($notifiable_users, new SendCampaignNotification($campaign, $business));
             }
 
