@@ -21,7 +21,7 @@ import DataTable, { type PaginatorShape } from '@/Components/shared/DataTable';
 import EmptyState from '@/Components/shared/EmptyState';
 import KpiCard from '@/Components/shared/KpiCard';
 import KpiGrid from '@/Components/shared/KpiGrid';
-import { Inline } from '@/Components/layout';
+import { Inline, Stack } from '@/Components/layout';
 import { Badge } from '@/Components/ui/badge';
 import { Button } from '@/Components/ui/button';
 import { Skeleton } from '@/Components/ui/skeleton';
@@ -97,10 +97,10 @@ export default function Caixa({ filtro, limiar_alta, contagem, sinais }: Props) 
       header: 'Quando',
       meta: { width: 160 },
       cell: ({ row }) => (
-        <span className="flex flex-col">
+        <Stack gap={0}>
           <b className="font-mono tabular-nums">{fmtQuando(row.original.quando)}</b>
           <small className="text-muted-foreground">{idade(row.original.quando)}</small>
-        </span>
+        </Stack>
       ),
     },
     {
