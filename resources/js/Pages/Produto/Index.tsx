@@ -190,6 +190,9 @@ function ProdutoIndex({ filtros, lista, kpis, estoque, detalhe, opcoes, contexto
   const [densa, setDensa] = useState<boolean>(() => lerLocal<boolean>(CHAVE_DENSIDADE, false));
   const [busca, setBusca] = useState(filtros.q);
   const [selecionados, setSelecionados] = useState<number[]>([]);
+  // Larguras que o usuário arrastou. Moram AQUI, e não na tabela, porque a tabela vive dentro de
+  // `<Deferred data="lista">` e é desmontada a cada ordenação, troca de página ou filtro.
+  const [largurasArrastadas, setLargurasArrastadas] = useState<Record<string, number>>({});
   const [confirmar, setConfirmar] = useState<Confirmacao | null>(null);
   const [localModal, setLocalModal] = useState<'add' | 'remove' | null>(null);
   const [locaisEscolhidos, setLocaisEscolhidos] = useState<string[]>([]);
@@ -538,6 +541,10 @@ function ProdutoIndex({ filtros, lista, kpis, estoque, detalhe, opcoes, contexto
                   showSearch={false}
                   density="grid"
                   resizable
+                  columnWidths={largurasArrastadas}
+                  onColumnResize={(id, largura) =>
+                    setLargurasArrastadas((m) => (m[id] === largura ? m : { ...m, [id]: largura }))
+                  }
                   tableWrapperClassName="pb-grid-pro"
                   totalLabel="produtos"
                   rowKey={(l) => l.id}
