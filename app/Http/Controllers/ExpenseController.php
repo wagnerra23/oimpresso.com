@@ -50,7 +50,9 @@ class ExpenseController extends Controller
     /**
      * Display a listing of the resource.
      *
-     * @return \Illuminate\Http\Response
+     * DataTable (AJAX) → JsonResponse · Blade → View · tela React atrás da flag → Inertia\Response.
+     *
+     * @return \Illuminate\Http\JsonResponse|\Illuminate\View\View|\Inertia\Response
      */
     public function index()
     {
@@ -236,7 +238,7 @@ class ExpenseController extends Controller
 
             return [
                 'id' => $r->id,
-                'data' => $this->transactionUtil->format_date($r->transaction_date, true),
+                'data' => app(TransactionUtil::class)->format_date($r->transaction_date, true),
                 'ref' => $r->ref_no,
                 'estorno' => $r->type == 'expense_refund',
                 'recorrente' => ! empty($r->is_recurring),
