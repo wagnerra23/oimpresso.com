@@ -232,7 +232,9 @@ export function invocacoesGh(cmd) {
 /** O campo AMBÍGUO (só significa algo junto do estado) aparece nesta invocação? */
 const P7_AMBIGUO = /--json[^|;&]{0,140}?\b(mergeStateStatus|mergeable|rebaseable)\b|\bmergeable_state\b/;
 /** O antídoto, na MESMA invocação — e nenhum deles custa rede a mais. */
-const P7_ESTADO = /--json[^|;&]{0,160}?\b(state|merged|closed)\b|--state[= ]|\.state\b|\.merged\b/;
+// (d) chave ABREVIADA de objeto jq — `{state,merged,…}` é `{state: .state, …}`. Ancorada em
+// `{`/`,` antes e `,`/`}`/`:` depois, para `mergeable_state` (o próprio derivado) NÃO isentar.
+const P7_ESTADO = /--json[^|;&]{0,160}?\b(state|merged|closed)\b|--state[= ]|\.state\b|\.merged\b|[{,]\s*(?:state|merged)\s*[,}:]/;
 
 /** Há invocação que pede campo ambíguo SEM pedir o estado junto? */
 export function pedeDerivadoSemEstado(cmd) {
@@ -359,7 +361,9 @@ export const PADROES = [
     // Isenta 3 formas, todas de graça e todas medidas no corpus:
     //   (a) `state`/`merged`/`closed` no MESMO `--json`;
     //   (b) `--state open|closed|merged` (o filtro já garante o estado);
-    //   (c) `.state`/`.merged` lido no `--jq`.
+    //   (c) `.state`/`.merged` lido no `--jq`;
+    //   (d) `{state,…}` — chave abreviada de objeto jq (2026-10-13: a forma do `gh api`
+    //       mordia pedindo o estado; `mergeable_state` sozinho segue mordendo).
     // A análise é por INVOCAÇÃO (ver `invocacoesGh`): sem isso, `gh pr checks N | wc -l;
     // gh pr view N --json mergeStateStatus` cruzava flag de uma com campo de outra.
     // A 2ª abstenção nasceu do hook mordendo o PRÓPRIO comando que o testava: o padrão
@@ -888,6 +892,12 @@ const FIXTURES = [
   // derivado NÃO-ambíguo não entra: `headRefOid` vale o mesmo em PR aberto ou fechado.
   ['gh pr view 7 --json headRefOid --jq .headRefOid', false],
   ['gh pr checks 7 | grep fail', false],
+  // (d) chave abreviada de objeto jq — os 2 casos de 2026-10-13 que mordiam PEDINDO o estado.
+  ["gh pr view 9152 --json state,mergeStateStatus,headRefOid 2>/dev/null || gh api repos/o/r/pulls/9152 --jq '{state,merged,mergeable,mergeable_state,head:.head.sha[0:10]}'", false],
+  ["gh api repos/o/r/pulls/9152 --jq '{state,merged,draft,mergeable,mergeable_state,head:.head.sha[0:10]}'", false],
+  // …e os controles: o derivado SOZINHO segue mordendo (`mergeable_state` não é `state`).
+  ["gh api repos/o/r/pulls/9152 --jq '{mergeable,mergeable_state}'", true],
+  ['gh api repos/o/r/pulls/9152 --jq .mergeable_state', true],
   // ── FP ESTRUTURAL DO P4 (medido 2026-09-15: era 100% dos disparos) ─────────
   // Todos estes USAM a barra-pipe de propósito e FUNCIONAM. A fixture original
   // não tinha nenhum, então o selftest ficava verde enquanto o gate acusava
