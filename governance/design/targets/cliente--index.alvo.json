@@ -1,0 +1,335 @@
+{
+  "aguardou_sumir": null,
+  "ausentes": [],
+  "base": {
+    "assinatura": "OI WR Clientes 15 cadastrados · 13 ativos · 3 com saldo Novo cliente Todos 39 Clientes 15 Fornecedores 7 Funcionários 7 Representantes 3 Outros 7 Clientes ativos 13 com OS aberta VIPs 5 prioridade total Com saldo 3 R$ 387,20 inadimplência Sem compra 90d 1 risco churn Novos este mês 2 desde dia 1 Faturamento R$ 23,2k hoje · +12% vs ontem pra focar · global Status Tipo UF Tags Sem compra há Grupo Saldo 15 clientes encontrados Cliente ↑ Tipo Documento Cidade/UF Frescor ↕ Saldo ↕ OS ↕ Tags Última OS AP Academia Pulse VIP +55 11 98901-2233 PJ 45.678.901/0001-45 São Paulo SP recente · há 2sem — 1 vip #4804 AC Acme Comércio Ltda Inativo +55 11 98712-3344 PJ 12.345.678/0001-90 São Paulo SP recente · há 1sem R$ 145,20 R$ 120,00 a favor 2 parceiro evento #4821 AC Auto Center Júnior +55 11 96789-0011 PJ 23.456.789/0001-23 Santo André SP fresc · há 4sem — 1 — #4806 AP Auto Posto Vale +55 11 92345-6677 PJ 89.012.345/0001-67 São Bernardo do Campo SP distante · há 2m R$ 510,00 a favor 1 corporativo atacado #4814 BF Buffet Família Bloqueado +55 11 97890-1122 PJ 34.567.890/0001-34 São Paulo SP recente · há 1sem R$ 79,20 1 — #4805 CV Clínica Vida VIP +55 11 95544-1010 PJ 56.789.012/0001-34 São Paulo SP recente · há 2sem — 2 vip #4817 EA Escola Aurora +55 11 91234-5566 PJ 78.901.234/0001-56 São Paulo SP frio · há 7m — 1 — #4815 IN Imobiliária Norte VIP +55 11 95678-9900 PJ 12.345.678/0001-12 São Paulo SP fresc · há 4sem — 1 vip #4809 LB Loja Bombom +55 11 99012-3344 PJ 56.789.012/0001-56 São Paulo SP fresc · há 3sem — 1 — #4802 MU Mercado União VIP +55 11 99812-7700 PJ 67.890.123/0001-45 Guarulhos SP recente · há 2sem — 2 vip #4816 PE Padaria Estrela Novo +55 11 98712-3344 PJ 34.567.890/0001-12 São Paulo SP recente · há 2sem — 2 atacado varejo #4819 PS Pet Shop Amigo VIP Novo +55 11 94567-8899 PJ 01.234.567/0001-89 Diadema SP recente · há 2sem — 1 vip #4810 PB Posto BR Centro +55 11 97654-2200 PJ 45.678.901/0001-23 Osasco SP fresc · há 4sem — 1 — #4818 RT Restaurante Tomate +55 11 93456-7788 PF 90.123.456/0001-78 São Paulo SP fresc · há 3sem R$ 510,00 a favor 1 corporativo atacado #4812 TE TechPro Equipamentos +55 11 99812-4400 PJ 23.456.789/0001-01 São Paulo SP recente · há 1sem R$ 162,80 1 — #4820 atalhos Mostrando 1 – 15 de 15 Por página 25 50 100 « ‹ 1 / 1 › »",
+    "roles": {
+      "celulas": null,
+      "chart": null,
+      "contratos": [],
+      "filterRows": null,
+      "kpi": {
+        "count": 0,
+        "items": [],
+        "overflowX": null,
+        "tag": null
+      },
+      "primary": null,
+      "shell": null,
+      "tabela": null,
+      "title": null
+    },
+    "saude": {
+      "folhasVazias": [],
+      "nFolhas": 76,
+      "tokensMortos": []
+    },
+    "theme": "dark",
+    "url": "http://127.0.0.1:5561/"
+  },
+  "nos_totais": 1312,
+  "quieto_ms": 2000,
+  "rota": "clientes",
+  "secoes": {
+    "abas": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "proprio",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.26 0.006 240)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "flex",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "0px",
+        "padding": "0px 24px"
+      },
+      "filhos": 6,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "button",
+        "button",
+        "button",
+        "button",
+        "button",
+        "button"
+      ],
+      "rect": {
+        "h": 36,
+        "w": 1224
+      },
+      "seletor": ".main-body > .cli-page > nav.ds-tabbar",
+      "truncado": false
+    },
+    "cabecalho": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "os-page",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "flex",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "16px",
+        "padding": "12px 24px"
+      },
+      "filhos": 2,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "os-page"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "os-page-h-l",
+        "os-page-h-r"
+      ],
+      "rect": {
+        "h": 70,
+        "w": 1224
+      },
+      "seletor": ".main-body > .cli-page > header.os-page-h",
+      "truncado": false
+    },
+    "kpis": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "proprio",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.26 0.006 240)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "grid",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "12px",
+        "padding": "16px 24px"
+      },
+      "filhos": 6,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "cli-kpihero-card",
+        "cli-kpihero-card",
+        "cli-kpihero-card",
+        "cli-kpihero-card",
+        "cli-kpihero-card",
+        "cli-kpihero-card"
+      ],
+      "rect": {
+        "h": 202,
+        "w": 1224
+      },
+      "seletor": ".main-body > .cli-page > .cli-kpihero",
+      "truncado": false
+    },
+    "linha": {
+      "contraste": {
+        "fundo": "oklch(0.3 0.008 240)",
+        "fundo_de": "os-table",
+        "razao": 11.42,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.027108,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "table-row",
+        "fontSize": "12.5px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "padding": "0px"
+      },
+      "filhos": 11,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "tbody"
+        },
+        {
+          "bg": "oklch(0.3 0.008 240)",
+          "de": "os-table"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "cli-td-cli",
+        "td",
+        "td",
+        "cli-td-city",
+        "td",
+        "num",
+        "num",
+        "cli-td-tags",
+        "td",
+        "cli-td-fav",
+        "cli-td-kebab"
+      ],
+      "rect": {
+        "h": 59,
+        "w": 1175
+      },
+      "seletor": ".main-body > .cli-page > .os-table-wrap > table > tbody > tr.cli-row:first-child",
+      "truncado": false
+    },
+    "paginacao": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "os-page",
+        "razao": 6.26,
+        "texto": "oklch(0.72 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.373341
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.72 0.005 90)",
+        "display": "flex",
+        "fontSize": "11.5px",
+        "fontWeight": "400",
+        "gap": "14px",
+        "padding": "0px 24px 20px"
+      },
+      "filhos": 2,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "os-page"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "cli-pag-l",
+        "cli-pag-r"
+      ],
+      "rect": {
+        "h": 46,
+        "w": 1224
+      },
+      "seletor": ".main-body > .cli-page > .cli-pag",
+      "truncado": false
+    },
+    "tabela": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "proprio",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.26 0.006 240)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "block",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "padding": "14px 24px 20px"
+      },
+      "filhos": 1,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "os-table"
+      ],
+      "rect": {
+        "h": 429,
+        "w": 1224
+      },
+      "seletor": ".main-body > .cli-page > .os-table-wrap",
+      "truncado": false
+    },
+    "toolbar": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "proprio",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.26 0.006 240)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "flex",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "10px",
+        "padding": "14px 24px 12px"
+      },
+      "filhos": 2,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "cli-toolbar-search-v2",
+        "cli-fdrop-row"
+      ],
+      "rect": {
+        "h": 105,
+        "w": 1224
+      },
+      "seletor": ".main-body > .cli-page > .cli-toolbar-v2",
+      "truncado": false
+    }
+  },
+  "tela": "cliente--index",
+  "url": "http://127.0.0.1:5561/"
+}

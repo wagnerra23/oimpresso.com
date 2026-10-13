@@ -1,0 +1,20 @@
+{
+  "_nota": "Derivado do alvo governance/design/targets/essenciais--conhecimento--index.alvo.json (thread A1 do playbook essenciais, rota `ess-kb` do protótipo), não do .tsx. cabecalho e abas do alvo são a casca do módulo no protótipo (cabeçalho 'Essenciais' + abas Tarefas/Documentos/…): a Page viva não tem essa casca, cada tela é uma rota com o próprio h1. Copy só onde protótipo e tela dizem a mesma coisa: cada string foi conferida por máquina na base.assinatura do alvo e no código da Page. toolbar do alvo = âncora `busca` (já existia); navegacao (a árvore) = a grade de livros → seções, âncora `navegacao`. artigo do alvo não tem contraparte na Index: a leitura é a rota Show (pela D1, painel lateral). Fonte = essenciais-extras.jsx: a rota ess-kb renderiza X.BaseConhecimento de lá (essenciais-page.jsx só põe o painel por cima). Sem copy: não há texto comum NA MESMA SEÇÃO — o protótipo fala em 'categoria' e a tela em livro → seção → artigo (divergência da _saida-00, decisão [W]), e 'Adicionar seção' existe nos dois mas em seções diferentes (no protótipo é ação do artigo aberto; na tela, do card do livro), apontado pelo --anti-tautologia.",
+  "tela": "Essentials/Knowledge/Index",
+  "fonte": "prototipo-ui/cowork/Wagner/essenciais-extras.jsx",
+  "alvo": [
+    "resources/js/Pages/Essentials/Knowledge/Index.tsx"
+  ],
+  "secoes": [
+    {
+      "id": "busca"
+    },
+    {
+      "id": "navegacao"
+    }
+  ],
+  "ordem": [
+    "busca",
+    "navegacao"
+  ]
+}
