@@ -177,8 +177,9 @@ class AssetManagementHealthCommand extends Command
     }
 
     /**
-     * Wave 25 D9.c — Verifica se Config/retention.php está presente e mapeia 4 entidades
-     * canônicas (am_assets, am_asset_transactions, am_maintenance_logs, am_warranties).
+     * Wave 25 D9.c — Verifica se Config/retention.php está presente e mapeia as tabelas com
+     * campo pessoal, pelo nome real (assets, asset_transactions, asset_maintenances — ADR 0430).
+     * Até 2026-10-13 esperava `am_*`, prefixo que nenhuma migration cria.
      * Sem retention.php declarado, módulo viola D7.c rubrica governance v3.
      */
     private function checkRetentionConfigPresent(): array
@@ -196,7 +197,7 @@ class AssetManagementHealthCommand extends Command
 
         $config = require $configPath;
 
-        $entitiesEsperadas = ['am_assets', 'am_asset_transactions', 'am_maintenance_logs', 'am_warranties'];
+        $entitiesEsperadas = ['assets', 'asset_transactions', 'asset_maintenances'];
         $entitiesDeclaradas = array_keys($config['entities'] ?? []);
         $faltantes = array_diff($entitiesEsperadas, $entitiesDeclaradas);
 
