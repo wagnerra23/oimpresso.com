@@ -38,6 +38,8 @@ class StoreNfseRequest extends FormRequest
             'valor_servicos'  => ['required', 'numeric', 'min:0.01'],
             'aliquota_iss'    => ['required', 'numeric', 'min:0', 'max:1'],
             'iss_retido'      => ['boolean'],
+            // R-NFSE-003: quem emite declara que o serviço é do art. 30 da Lei 10.833/2003.
+            'retencao_federal_sujeito' => ['boolean'],
             'transaction_id'  => ['nullable', 'integer'],
         ];
     }

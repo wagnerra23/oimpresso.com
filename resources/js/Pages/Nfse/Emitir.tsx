@@ -6,7 +6,7 @@
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Head, router, useForm } from '@inertiajs/react';
-import { AlertCircle, ArrowLeft, Send, ShoppingCart, User, Calendar, DollarSign } from 'lucide-react';
+import { AlertCircle, ArrowLeft, FilePlus, Send, ShoppingCart, User, Calendar, DollarSign } from 'lucide-react';
 
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
@@ -14,7 +14,8 @@ import { Label } from '@/Components/ui/label';
 import { Textarea } from '@/Components/ui/textarea';
 import { Switch } from '@/Components/ui/switch';
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
-import PageHeader from '@/Components/shared/PageHeader';
+import { PageHeader } from '@/Components/PageHeader';
+import { Inline } from '@/Components/layout';
 
 interface Config {
   lc116_codigo_default: string | null;
@@ -59,6 +60,7 @@ export default function NfseEmitir({ config, venda, flash }: Props) {
     valor_servicos: venda ? String(venda.final_total) : '',
     aliquota_iss:   config?.aliquota_iss != null ? String(config.aliquota_iss) : '0.05',
     iss_retido:     false as boolean,
+    retencao_federal_sujeito: false as boolean,
     transaction_id: venda?.transaction_id ?? null as number | null,
   });
 
@@ -91,10 +93,10 @@ export default function NfseEmitir({ config, venda, flash }: Props) {
         )}
 
         <PageHeader
-          icon="file-plus"
+          leading={<FilePlus size={18} aria-hidden="true" />}
           title="Emitir NFSe"
-          description={`Ambiente: ${config?.ambiente === 'producao' ? 'Produção' : 'Homologação (testes)'}`}
-          action={
+          subtitle={`Ambiente: ${config?.ambiente === 'producao' ? 'Produção' : 'Homologação (testes)'}`}
+          actions={
             <Button variant="outline" size="sm" onClick={() => router.visit('/nfse')}>
               <ArrowLeft size={14} className="mr-1" />
               Voltar
@@ -295,6 +297,23 @@ export default function NfseEmitir({ config, venda, flash }: Props) {
                     ISS retido na fonte pelo tomador
                   </Label>
                 </div>
+
+                <Inline gap={3} align="start">
+                  <Switch
+                    id="retencao_federal_sujeito"
+                    checked={data.retencao_federal_sujeito}
+                    onCheckedChange={(v) => setData('retencao_federal_sujeito', v)}
+                    className="mt-0.5"
+                  />
+                  <div>
+                    <Label htmlFor="retencao_federal_sujeito" className="text-sm cursor-pointer">
+                      Serviço sujeito à retenção de PIS/COFINS/CSLL (Lei 10.833/2003, art. 30)
+                    </Label>
+                    <p className="text-xs text-[color:var(--text-mute)] mt-0.5">
+                      A retenção é calculada no envio, pelo regime tributário da empresa. Só vale para tomador com CNPJ.
+                    </p>
+                  </div>
+                </Inline>
 
                 {/* Resumo financeiro */}
                 {valorNum > 0 && (

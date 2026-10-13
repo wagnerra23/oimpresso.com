@@ -4,8 +4,8 @@ module: NFSe
 status: piloto
 status_nota: "homologação SN-NFSe federal + cutover fiscal por-business habilitado (biz=164 Martinho — #2147); cert A1 pendente Wagner"
 piloto: oimpresso biz=1 (Wagner, Tubarão-SC) homologação + biz=164 (Martinho OficinaAuto) cutover por-business
-last_review: 2026-08-01
-updated_at: "2026-08-01"
+last_review: 2026-10-13
+updated_at: "2026-10-13"
 owner: E
 parent_adr: ARQ-0001
 related_adrs:
@@ -71,6 +71,7 @@ Emissão de Nota Fiscal de Serviço eletrônica (NFSe) via **SN-NFSe federal** (
 - **Cert A1**: storage encriptado, delegado ao `CertificadoService` do NfeBrasil (schema unificado migration 2026_05_07_210000). Import via `php artisan nfse:importar-cert --pfx=<arquivo.pfx> --senha=<senha> --business=<id>` (`ImportarCertificadoCommand`)
 - **Health check**: `php artisan nfse:health` — 6 sinais (tabelas, providers ativos, **cert vencendo ≤30d**, rejeitadas 24h) — `NfseHealthCommand`, Wave 23 D6
 - **Cancelamento**: motivo obrigatório, bloqueia dupla cancelação (`NfseJaCanceladaException`), span OTel `nfse.cancelar` (Wave 28, #2678), log canal nfse
+- **Retenção federal PIS/COFINS/CSLL** (2026-10-13, R-NFSE-003): marcação "serviço sujeito à retenção (art. 30)" na tela Emitir, desligada por padrão; o cálculo é do `RetencoesNfseService` do NfeBrasil (regime do tenant), grava em `nfse_emissoes.valor_ret_*` e leva o grupo `tribFed` à DPS (NT 007). ⚠️ Achado no mesmo dia, não corrigido: `montarPayload` chama `pfxDecriptado()`/`senhaDecriptada()`, que não existem em `NfeCertificado` — empresa com certificado configurado quebra ao montar a nota.
 - **Observabilidade**: spans OTel `nfse.emissao` + `nfse.cancelar` com atributo `businessId` (correlação prod cross-tenant)
 
 ## 4. Diferenciais únicos (não-replicáveis BSPs)
@@ -146,7 +147,7 @@ Emissão de Nota Fiscal de Serviço eletrônica (NFSe) via **SN-NFSe federal** (
 
 ## 13. Último update
 
-**Atualizado:** 2026-08-01 BRT — catch-up 76d (#5153): cutover fiscal por-business biz=164 Martinho, nota de module-grade vira ponteiro. _(Revisão anterior: 2026-05-16, Wave 18 saturation — D1 NfseCertificado cross-tenant Pest.)_
+**Atualizado:** 2026-10-13 BRT — revisão restrita à retenção federal na emissão (R-NFSE-003) e ao achado do certificado (§3). _(Antes: 2026-08-01 BRT — catch-up 76d (#5153): cutover fiscal por-business biz=164 Martinho, nota de module-grade vira ponteiro; e 2026-05-16, Wave 18 saturation — D1 NfseCertificado cross-tenant Pest.)_
 
 > **Carimbo único — não duplicar.** Este rodapé é a data que o `briefing-code-staleness` lê
 > (junto de `updated_at`/`distilled_at`/`reviewed_at`, pegando a MAIOR). O frontmatter
