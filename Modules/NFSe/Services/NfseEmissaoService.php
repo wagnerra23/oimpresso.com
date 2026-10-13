@@ -18,6 +18,7 @@ use Modules\NFSe\Jobs\EmitirNfseJob;
 use Modules\NFSe\Models\NfseEmissao;
 use Modules\NFSe\Models\NfseProviderConfig;
 use Modules\NfeBrasil\Services\RetencoesNfseService;
+use Modules\NfeBrasil\Services\Nfse\ListaServicoNacional;
 use Modules\NfeBrasil\Models\NfeCertificado;
 use Modules\NfeBrasil\Services\CertificadoService;
 
@@ -117,7 +118,22 @@ class NfseEmissaoService
             regimePrestador: Schema::hasTable('nfe_business_configs')
                 ? DB::table('nfe_business_configs')->where('business_id', $businessId)->value('regime')
                 : null,
+            cTribNac: $this->resolverCTribNac((string) $data['lc116_codigo'], $data['ctrib_nac'] ?? null),
         );
+    }
+
+    /**
+     * R-NFSE-006 — cTribNac pela tabela nacional. Resolve quando dá (escolha válida ou
+     * subitem de desdobro único); senão devolve o que veio e o SnNfseAdapter falha na
+     * emissão com a mensagem das opções — nunca um desdobro chutado.
+     */
+    private function resolverCTribNac(string $lc116, ?string $escolhido): ?string
+    {
+        try {
+            return app(ListaServicoNacional::class)->resolver($lc116, $escolhido);
+        } catch (\InvalidArgumentException) {
+            return $escolhido ?: null;
+        }
     }
 
     /**
@@ -169,6 +185,7 @@ class NfseEmissaoService
             'tomador_nome'    => $payload->tomadorNome,
             'tomador_email'   => $payload->tomadorEmail,
             'lc116_codigo'    => $payload->lc116Codigo,
+            'ctrib_nac'       => $payload->cTribNac,
             'cnae'            => $config->cnae,
             'descricao'       => $payload->descricao,
             'valor_servicos'  => $payload->valorServicos,

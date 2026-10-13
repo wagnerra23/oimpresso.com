@@ -678,7 +678,24 @@ E sem regime, sem CNPJ do prestador ou com nDPS fora do leiaute a emissão falha
 **Contrato:** esquemas XSD oficiais v1.01 (`nfse-esquemas_xsd-v1-01-20260209`, gov.br/nfse, baixados em 2026-10-13) · Manual dos Contribuintes — API do Emissor Público Nacional (v1.2) · NT SE/CGNFS-e nº 007.
 **Implementação:** `Modules/NfeBrasil/Services/Nfse/DpsXml.php` (serializar, assinar, empacotar) · `Modules/NFSe/Adapters/SnNfseAdapter.php` (`buildDps`, `emitir`) · `Modules/NFSe/DTO/NfseEmissaoPayload.php` (`serieDps`, `regimePrestador`, `comNumeroDps`) · `Modules/NFSe/Services/NfseEmissaoService.php` (nDPS = id da emissão) · `Modules/NFSe/Config/config.php` (`/SefinNacional`, `assinatura_algoritmo`) · XSDs em `Modules/NfeBrasil/Resources/schemas/nfse/v1.01/`.
 **Testado em:** `Modules/NfeBrasil/Tests/Feature/NfseDpsXmlTest.php` (lane `nfebrasil-pest`).
-**Fora deste item:** nenhuma DPS foi enviada à Sefin de verdade (falta certificado A1 em homologação); o algoritmo da assinatura (SHA-256, configurável) e o desdobro "01" do cTribNac só se confirmam no 1º envio; pAliq omitido (município do Sistema Nacional parametriza); consultar() e cancelar() deste adapter seguem no formato antigo.
+**Fora deste item:** nenhuma DPS foi enviada à Sefin de verdade (falta certificado A1 em homologação); o algoritmo da assinatura (SHA-256, configurável) só se confirma no 1º envio; o desdobro do cTribNac passou a vir da tabela nacional (R-NFSE-006); pAliq omitido (município do Sistema Nacional parametriza); consultar() e cancelar() deste adapter seguem no formato antigo.
+
+### R-NFSE-006 · cTribNac vem da tabela nacional; com vários desdobros, quem emite escolhe
+
+```gherkin
+Dado a lista de serviços nacional do Anexo B v1.01 (338 códigos, 201 subitens, 62 com mais de um desdobro)
+Quando emito uma NFS-e do item 1.05 (um desdobro só)
+Então o cTribNac é 010501 sem ninguém escolher
+E no item 7.10 (071001 vias e logradouros · 071002 imóveis, chaminés, piscinas) a tela pede o desdobro
+E sem escolha, ou com código de outro item, o formulário recusa e a emissão falha dizendo as opções
+E item fora da lista nacional é recusado no formulário
+E o cTribNac usado fica gravado na nfse_emissoes
+```
+
+**Contrato:** Anexo B oficial do Sistema Nacional NFS-e (`anexo_b-nbs2-lista_servico_nacional-snnfse-v1-01-20260122.xlsx`, aba `LISTA.SERV.NAC.`, sha256 `e74b0be8…1b1a`) · XSD v1.01 `TCCServ/cTribNac` (item 2 + subitem 2 + desdobro 2).
+**Implementação:** `scripts/fiscal/lista-servico-nacional.py` (gera) · `Modules/NfeBrasil/Resources/data/nfse/lista-servico-nacional-v1.01.json` · `Modules/NfeBrasil/Services/Nfse/ListaServicoNacional.php` · `Modules/NFSe/Adapters/SnNfseAdapter.php` · `Modules/NFSe/Http/Requests/StoreNfseRequest.php` · `Modules/NFSe/Services/NfseEmissaoService.php` · migração `2026_10_13_000002_add_ctrib_nac_to_nfse_emissoes` · `resources/js/Pages/Nfse/Emitir.tsx` (seletor).
+**Testado em:** `Modules/NfeBrasil/Tests/Feature/ListaServicoNacionalTest.php` (lane `nfebrasil-pest`).
+**Fora deste item:** o código NBS (`cNBS`, opcional na DPS) não é enviado; notas anteriores têm `ctrib_nac` nulo.
 
 ## 4. Decisões pendentes
 

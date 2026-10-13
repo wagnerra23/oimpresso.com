@@ -33,6 +33,7 @@ function nfsdDados(array $extra = []): array
         'tomador_cnpj'   => NFSD_CNPJ_TOMADOR,
         'descricao'      => 'Manutenção predial — teste R-NFSE-003',
         'lc116_codigo'   => '7.10',
+        'ctrib_nac'      => '071002', // R-NFSE-006: 7.10 tem 2 desdobros; manutenção de imóveis
         'valor_servicos' => '1500.00',
         'aliquota_iss'   => '0.05',
     ], $extra);

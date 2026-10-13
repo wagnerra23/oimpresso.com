@@ -38,7 +38,7 @@ function dpsxPayload(array $extra = []): NfseEmissaoPayload
     return new NfseEmissaoPayload(...array_merge([
         'businessId' => 99, 'rpsNumero' => '123', 'competencia' => Carbon::create(2026, 10, 1),
         'tomadorNome' => 'Tomador Teste', 'tomadorCnpj' => '11.222.333/0001-81', 'tomadorCpf' => null,
-        'tomadorEmail' => 'tomador@example.com', 'descricao' => 'Manutenção predial', 'lc116Codigo' => '7.10',
+        'tomadorEmail' => 'tomador@example.com', 'descricao' => 'Manutenção predial', 'lc116Codigo' => '7.10', 'cTribNac' => '071002',
         'valorServicos' => 1500.0, 'aliquotaIss' => 0.05, 'certPfxBase64' => base64_encode(dpsxPfx()),
         'certSenha' => 'senha-teste', 'ambiente' => 'homologacao', 'municipioIbge' => '4218707',
         'prestadorCnpj' => '11222333000181', 'prestadorIm' => '12345', 'regimePrestador' => 'lucro_presumido',
@@ -90,7 +90,7 @@ it('R-NFSE-005 a DPS assinada é válida nos XSDs oficiais v1.01 e a assinatura 
 ]);
 
 it('R-NFSE-005 controle negativo: o validador reprova uma DPS quebrada', function () {
-    $ruim = str_replace('<cTribNac>071001</cTribNac>', '<cTribNac>07100</cTribNac>', dpsxAssinada());
+    $ruim = str_replace('<cTribNac>071002</cTribNac>', '<cTribNac>07100</cTribNac>', dpsxAssinada());
 
     expect(dpsxErrosXsd($ruim))->not->toBe([]);
 });
@@ -109,7 +109,7 @@ it('R-NFSE-005 regime → opSimpNac, LC 116 → cTribNac, ISS retido → tpRetIS
     expect($a->buildDps(dpsxPayload())['infDPS']['prest']['regTrib']['opSimpNac'])->toBe('1');
     expect($a->buildDps(dpsxPayload(['regimePrestador' => 'simples']))['infDPS']['prest']['regTrib']['opSimpNac'])->toBe('3');
     expect($a->buildDps(dpsxPayload(['regimePrestador' => 'mei']))['infDPS']['prest']['regTrib']['opSimpNac'])->toBe('2');
-    expect($a->buildDps(dpsxPayload(['lc116Codigo' => '1.05']))['infDPS']['serv']['cServ']['cTribNac'])->toBe('010501');
+    expect($a->buildDps(dpsxPayload(['lc116Codigo' => '1.05', 'cTribNac' => null]))['infDPS']['serv']['cServ']['cTribNac'])->toBe('010501');
     expect($a->buildDps(dpsxPayload(['issRetido' => true]))['infDPS']['valores']['trib']['tribMun']['tpRetISSQN'])->toBe('2');
     expect($a->buildDps(dpsxPayload())['infDPS']['valores']['trib']['tribMun']['tpRetISSQN'])->toBe('1');
 });

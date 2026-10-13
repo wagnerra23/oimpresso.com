@@ -17,7 +17,7 @@ class NfseEmissao extends Model
     protected $fillable = [
         'business_id', 'numero', 'serie', 'rps_numero', 'competencia',
         'tomador_cnpj', 'tomador_cpf', 'tomador_nome', 'tomador_email', 'tomador_municipio_ibge',
-        'lc116_codigo', 'cnae', 'descricao',
+        'lc116_codigo', 'ctrib_nac', 'cnae', 'descricao',
         'valor_servicos', 'valor_deducoes', 'valor_base_calculo',
         'aliquota_iss', 'valor_iss', 'iss_retido',
         'retencao_federal_sujeito', 'valor_ret_pis', 'valor_ret_cofins', 'valor_ret_csll',

@@ -15,6 +15,7 @@ use Modules\NFSe\Exceptions\ProviderTimeoutException;
 use Modules\NFSe\Exceptions\RpsDuplicadoException;
 use Modules\NFSe\Exceptions\TomadorInvalidoException;
 use Modules\NfeBrasil\Services\Nfse\DpsXml;
+use Modules\NfeBrasil\Services\Nfse\ListaServicoNacional;
 use NFePHP\Common\Certificate;
 
 /**
@@ -194,7 +195,7 @@ class SnNfseAdapter implements NfseProviderInterface
                 'serv' => [
                     'locPrest' => ['cLocPrestacao' => $payload->municipioIbge],
                     'cServ'    => [
-                        'cTribNac'  => $this->cTribNac($payload->lc116Codigo),
+                        'cTribNac'  => $this->cTribNac($payload),
                         'xDescServ' => $payload->descricao,
                     ],
                 ],
@@ -240,17 +241,18 @@ class SnNfseAdapter implements NfseProviderInterface
     }
 
     /**
-     * Item LC 116 ("7.10") → cTribNac de 6 dígitos: item (2) + subitem (2) + desdobro
-     * nacional (2). O desdobro "01" é o primeiro de cada subitem; subitem com mais de um
-     * desdobro precisa da tabela nacional — ver _saida-23c.
+     * cTribNac pela tabela nacional (R-NFSE-006, Anexo B oficial): item + subitem do
+     * LC 116 + desdobro. Subitem com um desdobro resolve sozinho; com vários, vale o
+     * escolhido na nota — sem escolha, a emissão falha dizendo as opções. Até o
+     * R-NFSE-006 o desdobro era "01" fixo, errado em 62 dos 201 subitens.
      */
-    private function cTribNac(string $lc116): string
+    private function cTribNac(NfseEmissaoPayload $payload): string
     {
-        if (! preg_match('/^(\d{1,2})\.(\d{1,2})$/', trim($lc116), $m)) {
-            throw new CodigoServicoInvalidoException($lc116);
+        try {
+            return app(ListaServicoNacional::class)->resolver($payload->lc116Codigo, $payload->cTribNac);
+        } catch (\InvalidArgumentException $e) {
+            throw new NfseException($e->getMessage(), 'CTRIBNAC');
         }
-
-        return str_pad($m[1], 2, '0', STR_PAD_LEFT) . str_pad($m[2], 2, '0', STR_PAD_LEFT) . '01';
     }
 
     private function dec(float $valor): string

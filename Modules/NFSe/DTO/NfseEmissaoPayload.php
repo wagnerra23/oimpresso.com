@@ -36,6 +36,9 @@ final class NfseEmissaoPayload
         // prestador (`nfe_business_configs.regime`), que vira `regTrib/opSimpNac`.
         public readonly string  $serieDps = '1',
         public readonly ?string $regimePrestador = null,
+        // R-NFSE-006 — código de tributação nacional (item + subitem + desdobro, 6 dígitos).
+        // Null = o subitem tem um desdobro só e a tabela resolve.
+        public readonly ?string $cTribNac = null,
     ) {}
 
     /**

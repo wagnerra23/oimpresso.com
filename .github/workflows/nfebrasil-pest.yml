@@ -30,6 +30,7 @@ on:
       - 'Modules/NFSe/Adapters/SnNfseAdapter.php'
       - 'Modules/NFSe/Models/NfseEmissao.php'
       - 'Modules/NFSe/Config/config.php'
+      - 'Modules/NFSe/Http/**'
       - 'tests/Feature/Calculo/CalculoTributarioTest.php'
       - 'app/Support/BR/Cnpj.php'
       - 'app/Rules/BR/CpfCnpj.php'
@@ -77,6 +78,7 @@ jobs:
               - 'Modules/NFSe/Adapters/SnNfseAdapter.php'
               - 'Modules/NFSe/Models/NfseEmissao.php'
               - 'Modules/NFSe/Config/config.php'
+              - 'Modules/NFSe/Http/**'
               - 'tests/Feature/Calculo/CalculoTributarioTest.php'
               - 'app/Support/BR/Cnpj.php'
               - 'app/Rules/BR/CpfCnpj.php'
@@ -325,6 +327,7 @@ jobs:
             Modules/NfeBrasil/Tests/Feature/NfseRetencoesTest.php \
             Modules/NfeBrasil/Tests/Feature/NfseRetencoesDpsTest.php \
             Modules/NfeBrasil/Tests/Feature/NfseDpsXmlTest.php \
+            Modules/NfeBrasil/Tests/Feature/ListaServicoNacionalTest.php \
             Modules/NfeBrasil/Tests/Feature/SugestaoFiscalTest.php \
             Modules/NfeBrasil/Tests/Feature/ProdutoFiscalToolTest.php \
             Modules/NfeBrasil/Tests/Feature/AceiteContadorTest.php \
