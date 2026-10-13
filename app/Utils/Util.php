@@ -106,7 +106,10 @@ class Util
     /**
      * This function formats a number and returns them in specified format
      *
-     * @param  int  $input_number
+     * Aceita valor com centavos: é o formatador de dinheiro do projeto (`number_format` com `currency_precision`).
+     * O `int` que esta linha declarava fazia todo chamador com float/decimal cair no PHPStan (thread compras/08).
+     *
+     * @param  int|float|string  $input_number
      * @param  bool  $add_symbol = false
      * @param  array  $business_details = null
      * @param  bool  $is_quantity = false; If number represents quantity

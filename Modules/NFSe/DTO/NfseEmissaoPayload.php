@@ -26,7 +26,35 @@ final class NfseEmissaoPayload
         public readonly ?string $prestadorCnpj = null,
         public readonly ?string $prestadorIm = null,
         public readonly ?int    $transactionId = null,
+        // R-NFSE-003 — retenções federais (Lei 10.833/2003 arts. 30–32), em centavos,
+        // calculadas pelo RetencoesNfseService do NfeBrasil na montagem do payload.
+        public readonly bool    $retencaoFederalSujeito = false,
+        public readonly int     $retPisCentavos = 0,
+        public readonly int     $retCofinsCentavos = 0,
+        public readonly int     $retCsllCentavos = 0,
+        // R-NFSE-005 — DPS em XML: série numérica (TSSerieDPS, até 5 dígitos) e regime do
+        // prestador (`nfe_business_configs.regime`), que vira `regTrib/opSimpNac`.
+        public readonly string  $serieDps = '1',
+        public readonly ?string $regimePrestador = null,
+        // R-NFSE-006 — código de tributação nacional (item + subitem + desdobro, 6 dígitos).
+        // Null = o subitem tem um desdobro só e a tabela resolve.
+        public readonly ?string $cTribNac = null,
     ) {}
+
+    /**
+     * Mesma nota com o número da DPS definitivo. O número sai do id da `nfse_emissoes`
+     * (único, sequencial, sem zero à esquerda — TSNumDPS `[1-9][0-9]{0,14}`), que só
+     * existe depois de gravar a emissão.
+     */
+    public function comNumeroDps(string $numero): self
+    {
+        return new self(...array_merge(get_object_vars($this), ['rpsNumero' => $numero]));
+    }
+
+    public function retencaoFederalCentavos(): int
+    {
+        return $this->retPisCentavos + $this->retCofinsCentavos + $this->retCsllCentavos;
+    }
 
     public function valorIss(): float
     {
@@ -44,6 +72,8 @@ final class NfseEmissaoPayload
             $this->valorServicos,
             $this->descricao,
             $this->competencia->format('Y-m'),
+            // Só entra quando marcado: nota sem a marcação mantém a chave de antes.
+            ...($this->retencaoFederalSujeito ? ['ret-fed'] : []),
         ]));
     }
 }

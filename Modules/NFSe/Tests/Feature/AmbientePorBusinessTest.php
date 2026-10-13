@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Http;
 use Modules\NFSe\Adapters\SnNfseAdapter;
 use Modules\NFSe\DTO\NfseEmissaoPayload;
 use Modules\NFSe\Services\NfseEmissaoService;
+use Modules\NfeBrasil\Services\Nfse\DpsXml;
 
 uses(Tests\TestCase::class);
 
@@ -29,6 +30,19 @@ uses(Tests\TestCase::class);
  * @see memory/decisions/0093-multi-tenant-isolation-tier-0.md
  */
 
+/** PFX autoassinado: a DPS agora é assinada de verdade (R-NFSE-005), PFX falso não serve. */
+function ambPfx(): string
+{
+    static $pfx = null;
+    if ($pfx === null) {
+        $key = openssl_pkey_new(['private_key_bits' => 2048, 'private_key_type' => OPENSSL_KEYTYPE_RSA]);
+        $x509 = openssl_csr_sign(openssl_csr_new(['commonName' => 'TESTE'], $key, ['digest_alg' => 'sha256']), null, $key, 365, ['digest_alg' => 'sha256']);
+        openssl_pkcs12_export($x509, $pfx, $key, 'senha');
+    }
+
+    return $pfx;
+}
+
 function makeNfsePayload(string $ambiente): NfseEmissaoPayload
 {
     return new NfseEmissaoPayload(
@@ -44,14 +58,16 @@ function makeNfsePayload(string $ambiente): NfseEmissaoPayload
         valorServicos: 10.00,
         aliquotaIss: 0.05,
         issRetido: false,
-        certPfxBase64: base64_encode('fake-pfx'),
+        certPfxBase64: base64_encode(ambPfx()),
         certSenha: 'senha',
         ambiente: $ambiente,
+        prestadorCnpj: '11222333000181',
+        regimePrestador: 'lucro_presumido',
     );
 }
 
 it('emissao usa PRODUCAO do payload (por-business) mesmo com bind global homologacao', function () {
-    Http::fake(['*' => Http::response(['nfseId' => '1', 'protocolo' => 'P1'], 200)]);
+    Http::fake(['*' => Http::response(['chaveAcesso' => 'P1'], 201)]);
 
     // Adapter bindado no GLOBAL homologacao (como o container faz hoje)...
     $adapter = new SnNfseAdapter('homologacao');
@@ -60,12 +76,12 @@ it('emissao usa PRODUCAO do payload (por-business) mesmo com bind global homolog
 
     Http::assertSent(function ($request) {
         return str_starts_with($request->url(), 'https://sefin.nfse.gov.br')
-            && (int) data_get($request->data(), 'infDps.tpAmb') === 1;
+            && str_contains(DpsXml::desempacotar((string) $request['dpsXmlGZipB64']), '<tpAmb>1</tpAmb>');
     });
 });
 
 it('emissao usa HOMOLOGACAO do payload mesmo com bind global producao (anti-vazamento)', function () {
-    Http::fake(['*' => Http::response(['nfseId' => '1', 'protocolo' => 'P1'], 200)]);
+    Http::fake(['*' => Http::response(['chaveAcesso' => 'P1'], 201)]);
 
     // Mesmo que alguém deixe o bind global em producao, um tenant em homolog
     // NÃO pode emitir nota real por arraste.
@@ -74,7 +90,7 @@ it('emissao usa HOMOLOGACAO do payload mesmo com bind global producao (anti-vaza
 
     Http::assertSent(function ($request) {
         return str_starts_with($request->url(), 'https://sefin.producaorestrita.nfse.gov.br')
-            && (int) data_get($request->data(), 'infDps.tpAmb') === 2;
+            && str_contains(DpsXml::desempacotar((string) $request['dpsXmlGZipB64']), '<tpAmb>2</tpAmb>');
     });
 });
 
