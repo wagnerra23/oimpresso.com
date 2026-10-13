@@ -169,8 +169,8 @@ it('UC-DESPES-05 · excluir pela tela apaga a minha despesa e não alcança a de
     $ajax = ['X-Requested-With' => 'XMLHttpRequest', 'Accept' => 'application/json'];
 
     // A mesma chamada que a Page faz (fetch DELETE com X-Requested-With).
-    $this->withHeaders($ajax)->delete("/expenses/{$minha}")->assertOk()->assertJsonPath('success', true);
-    $this->withHeaders($ajax)->delete("/expenses/{$alheia}");
+    $this->delete("/expenses/{$minha}", [], $ajax)->assertOk()->assertJsonPath('success', true);
+    $this->delete("/expenses/{$alheia}", [], $ajax);
 
     expect(DB::table('transactions')->where('id', $minha)->exists())->toBeFalse(); // controle positivo
     expect(DB::table('transactions')->where('id', $alheia)->exists())->toBeTrue();  // Tier 0
