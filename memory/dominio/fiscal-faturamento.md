@@ -44,6 +44,9 @@ authorized/rejected/cancelled`) — dois módulos, dois vocabulários, a MESMA t
 model `NfseEmissao`). O estado cronológico atual (last-write-wins) é o do **NfeBrasil** —
 declarado abaixo. Consolidar os módulos (deprecar um) é decisão [W] pendente; até lá este
 dicionário trava o vocabulário VIVO e o guard acusa quem reintroduzir o antigo.
+**Decidido [W] 2026-10-13:** consolidar no **NfeBrasil**; o `Modules/NFSe` será deprecado
+(plano de deprecação pendente; até ele entrar, os dois módulos seguem no repo e este
+dicionário continua travando o vocabulário vivo).
 
 ## Enums canônicos (machine-checked por `dominio:check`)
 
