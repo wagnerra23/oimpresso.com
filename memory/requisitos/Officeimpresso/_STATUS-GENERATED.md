@@ -20,8 +20,8 @@ authority: generated
 | CU no SDD | 0 |
 | Telas (.tsx) | 6 |
 | Telas com `casos.md` | 6 |
-| UC declarados | 57 |
-| UC com teste que os cita | 56 |
+| UC declarados | 63 |
+| UC com teste que os cita | 62 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -60,10 +60,16 @@ _Nenhuma lacuna: toda tela tem caso **com UC**, todo CU é citado, e toda US **e
 |---|---|---|
 | UC-EMP-01 | Empresa/Show | 🧪 aguarda veredito da lane |
 | UC-EMP-04 | Empresa/Show | 🧪 aguarda veredito da lane |
+| UC-EMP-08 | Empresa/Show | 🧪 aguarda veredito da lane |
+| UC-EMP-09 | Empresa/Show | 🧪 aguarda veredito da lane |
 | UC-EMP-15 | Empresa/Show | 🧪 aguarda veredito da lane |
+| UC-EMP-16 | Empresa/Show | 🧪 aguarda veredito da lane |
 | UC-EMP-19 | Empresa/Show | 🧪 aguarda veredito da lane |
 | UC-EMP-20 | Empresa/Show | 🧪 aguarda veredito da lane |
 | UC-EMP-21 | Empresa/Show | 🧪 aguarda veredito da lane |
+| UC-EMP-22 | Empresa/Show | 🧪 aguarda veredito da lane |
+| UC-EMP-23 | Empresa/Show | 🧪 aguarda veredito da lane |
+| UC-EMP-24 | Empresa/Show | 🧪 aguarda veredito da lane |
 | UC-EMPS-01 | Empresas/Index | 🧪 aguarda veredito da lane |
 | UC-EMPS-02 | Empresas/Index | 🧪 aguarda veredito da lane |
 | UC-EMPS-04 | Empresas/Index | 🧪 aguarda veredito da lane |

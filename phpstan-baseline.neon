@@ -7810,18 +7810,6 @@ parameters:
 			path: Modules/NFSe/Services/NfseEmissaoService.php
 
 		-
-			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:pfxDecriptado\(\)\.$#'
-			identifier: method.notFound
-			count: 2
-			path: Modules/NFSe/Services/NfseEmissaoService.php
-
-		-
-			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:senhaDecriptada\(\)\.$#'
-			identifier: method.notFound
-			count: 1
-			path: Modules/NFSe/Services/NfseEmissaoService.php
-
-		-
 			message: '#^Parameter \#3 \$extras of static method App\\Util\\OtelHelper\:\:spanBiz\(\) expects array\<string, mixed\>, int given\.$#'
 			identifier: argument.type
 			count: 1
@@ -25138,7 +25126,7 @@ parameters:
 			path: app/Utils/ProductUtil.php
 
 		-
-			message: '#^Parameter \#1 \$input_number of method App\\Utils\\Util\:\:num_f\(\) expects int, App\\Utils\\decimal given\.$#'
+			message: '#^Parameter \#1 \$input_number of method App\\Utils\\Util\:\:num_f\(\) expects float\|int\|string, App\\Utils\\decimal given\.$#'
 			identifier: argument.type
 			count: 2
 			path: app/Utils/ProductUtil.php

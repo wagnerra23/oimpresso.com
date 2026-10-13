@@ -8,15 +8,36 @@ use App\Category;
 use App\PurchaseLine;
 use App\TaxRate;
 use App\Transaction;
+use App\Services\FeatureFlagService;
 use App\Utils\TransactionUtil;
 use App\Utils\Util;
 use App\VariationLocationDetails;
 use DB;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 use Yajra\DataTables\Facades\DataTables;
 
 class PurchaseRequisitionController extends Controller
 {
+    /**
+     * Flag da tela React (thread compras/playbook/07, F3). Convenção `useV2<Modulo><Tela>`. Sem a chave no GrowthBook
+     * o FeatureFlagService cai no fallbackDefaults, que não a lista: default OFF, a Blade segue servindo.
+     *
+     * @see memory/requisitos/Compras/_telas/RUNBOOK-purchase-requisition-index.md
+     */
+    private const FLAG_V2 = 'useV2ComprasRequisicoes';
+
+    /** Teto de linhas da tela React; acima disso ela avisa e manda para a tela clássica, que pagina no servidor. */
+    private const LIMITE_TELA = 1000;
+
+    /**
+     * Status da requisição (ordered · partial · completed), montados no construtor. Declarada para a tela React
+     * (thread compras/playbook/07) e para o PHPStan, que acusava acesso a propriedade dinâmica.
+     *
+     * @var array<string, array{label: string, class: string}>
+     */
+    protected $purchaseRequisitionStatuses = [];
+
     protected $commonUtil;
 
     protected $transactionUtil;
@@ -51,7 +72,9 @@ class PurchaseRequisitionController extends Controller
     /**
      * Display a listing of the resource.
      *
-     * @return \Illuminate\Http\Response
+     * DataTable (AJAX) → JsonResponse · Blade → View · tela React atrás da flag → Inertia\Response.
+     *
+     * @return \Illuminate\Http\JsonResponse|\Illuminate\View\View|\Inertia\Response
      */
     public function index()
     {
@@ -61,61 +84,9 @@ class PurchaseRequisitionController extends Controller
 
         $business_id = request()->session()->get('user.business_id');
 
-        if (request()->ajax()) {
-            $purchase_requisitions = Transaction::join(
-                        'business_locations AS BS',
-                        'transactions.location_id',
-                        '=',
-                        'BS.id'
-                    )
-                    ->join('users as u', 'transactions.created_by', '=', 'u.id')
-                    ->where('transactions.business_id', $business_id)
-                    ->where('transactions.type', 'purchase_requisition')
-                    ->select(
-                        'transactions.id',
-                        'transactions.delivery_date',
-                        'transactions.ref_no',
-                        'transactions.status',
-                        'BS.name as location_name',
-                        'transactions.transaction_date',
-                        DB::raw("CONCAT(COALESCE(u.surname, ''),' ',COALESCE(u.first_name, ''),' ',COALESCE(u.last_name,'')) as added_by")
-                    )
-                    ->groupBy('transactions.id');
-
-            $permitted_locations = auth()->user()->permitted_locations();
-            if ($permitted_locations != 'all') {
-                $purchase_requisitions->whereIn('transactions.location_id', $permitted_locations);
-            }
-
-            if (! empty(request()->location_id)) {
-                $purchase_requisitions->where('transactions.location_id', request()->location_id);
-            }
-
-            if (! empty(request()->status)) {
-                $purchase_requisitions->where('transactions.status', request()->status);
-            }
-
-            if (! empty(request()->start_date) && ! empty(request()->end_date)) {
-                $start = request()->start_date;
-                $end = request()->end_date;
-                $purchase_requisitions->whereDate('transactions.transaction_date', '>=', $start)
-                            ->whereDate('transactions.transaction_date', '<=', $end);
-            }
-
-            if (! empty(request()->required_by_start) && ! empty(request()->required_by_end)) {
-                $start = request()->required_by_start;
-                $end = request()->required_by_end;
-                $purchase_requisitions->whereDate('transactions.delivery_date', '>=', $start)
-                            ->whereDate('transactions.delivery_date', '<=', $end);
-            }
-
-            if (! auth()->user()->can('purchase_requisition.view_all') && auth()->user()->can('purchase_requisition.view_own')) {
-                $purchase_requisitions->where('transactions.created_by', request()->session()->get('user.id'));
-            }
-
-            if (! empty(request()->from_dashboard)) {
-                $purchase_requisitions->where('transactions.status', '!=', 'completed');
-            }
+        // `! inertia()`: o Inertia v3 manda `X-Requested-With` em toda visita; sem esta perna o ramo DataTable engoliria a tela React.
+        if (request()->ajax() && ! request()->inertia()) {
+            $purchase_requisitions = $this->consultaRequisicoes((int) $business_id, request());
 
             return Datatables::of($purchase_requisitions)
                 ->addColumn('action', function ($row) {
@@ -158,6 +129,22 @@ class PurchaseRequisitionController extends Controller
                 ->make(true);
         }
 
+        // Tela React (thread compras/playbook/07, F3) atrás da flag, por negócio. `?legacy=1` mantém a Blade
+        // alcançável com a flag ligada: ver e excluir seguem no modal dela.
+        if (! request()->boolean('legacy') && app(FeatureFlagService::class)->isOn(self::FLAG_V2, ['business_id' => $business_id])) {
+            return Inertia::render('PurchaseRequisition/Index', [
+                'filtros' => [
+                    'location_id' => request()->input('location_id') ?: null,
+                    'status' => request()->input('status') ?: null,
+                ],
+                'permissoes' => [
+                    'criar' => auth()->user()->can('purchase_requisition.create'),
+                ],
+                'requisicoes' => Inertia::defer(fn () => $this->requisicoesDaTela((int) $business_id, request())),
+                'opcoes' => Inertia::defer(fn () => $this->opcoesFiltroRequisicoes((int) $business_id)),
+            ]);
+        }
+
         $business_locations = BusinessLocation::forDropdown($business_id);
 
         $purchaseRequisitionStatuses = [];
@@ -166,6 +153,134 @@ class PurchaseRequisitionController extends Controller
         }
 
         return view('purchase_requisition.index')->with(compact('business_locations', 'purchaseRequisitionStatuses'));
+    }
+
+    /**
+     * Requisições de compra do negócio — o MESMO SQL para a DataTable da Blade e para a tela React (thread
+     * compras/playbook/07). Movido do index() sem reescrever: escopo por negócio, tipo, locais permitidos,
+     * "ver as próprias" e os filtros da Blade. Travado por RequisicoesCompraBaselineTest.
+     */
+    private function consultaRequisicoes(int $business_id, Request $request)
+    {
+        $purchase_requisitions = Transaction::join(
+                    'business_locations AS BS',
+                    'transactions.location_id',
+                    '=',
+                    'BS.id'
+                )
+                ->join('users as u', 'transactions.created_by', '=', 'u.id')
+                ->where('transactions.business_id', $business_id)
+                ->where('transactions.type', 'purchase_requisition')
+                ->select(
+                    'transactions.id',
+                    'transactions.delivery_date',
+                    'transactions.ref_no',
+                    'transactions.status',
+                    'BS.name as location_name',
+                    'transactions.transaction_date',
+                    DB::raw("CONCAT(COALESCE(u.surname, ''),' ',COALESCE(u.first_name, ''),' ',COALESCE(u.last_name,'')) as added_by")
+                )
+                ->groupBy('transactions.id');
+
+        $permitted_locations = auth()->user()->permitted_locations();
+        if ($permitted_locations != 'all') {
+            $purchase_requisitions->whereIn('transactions.location_id', $permitted_locations);
+        }
+
+        if (! empty($request->location_id)) {
+            $purchase_requisitions->where('transactions.location_id', $request->location_id);
+        }
+
+        if (! empty($request->status)) {
+            $purchase_requisitions->where('transactions.status', $request->status);
+        }
+
+        if (! empty($request->start_date) && ! empty($request->end_date)) {
+            $start = $request->start_date;
+            $end = $request->end_date;
+            $purchase_requisitions->whereDate('transactions.transaction_date', '>=', $start)
+                        ->whereDate('transactions.transaction_date', '<=', $end);
+        }
+
+        if (! empty($request->required_by_start) && ! empty($request->required_by_end)) {
+            $start = $request->required_by_start;
+            $end = $request->required_by_end;
+            $purchase_requisitions->whereDate('transactions.delivery_date', '>=', $start)
+                        ->whereDate('transactions.delivery_date', '<=', $end);
+        }
+
+        if (! auth()->user()->can('purchase_requisition.view_all') && auth()->user()->can('purchase_requisition.view_own')) {
+            $purchase_requisitions->where('transactions.created_by', $request->session()->get('user.id'));
+        }
+
+        if (! empty($request->from_dashboard)) {
+            $purchase_requisitions->where('transactions.status', '!=', 'completed');
+        }
+
+        return $purchase_requisitions;
+    }
+
+    /**
+     * Requisições no shape da tela React. Data e "necessário até" saem formatadas pela MESMA expressão da diretiva
+     * `@format_datetime` que as colunas da Blade usam — a tela não formata data.
+     */
+    private function requisicoesDaTela(int $business_id, Request $request): array
+    {
+        $statuses = $this->purchaseRequisitionStatuses;
+        $linhas = $this->consultaRequisicoes($business_id, $request)
+            ->orderBy('transactions.transaction_date', 'desc')
+            ->limit(self::LIMITE_TELA + 1)
+            ->get();
+        $truncado = $linhas->count() > self::LIMITE_TELA;
+        $linhas = $linhas->take(self::LIMITE_TELA);
+
+        $requisicoes = $linhas->map(fn ($row) => [
+            'id' => (int) $row->id,
+            'data' => $this->formatarDataComoBlade($row->transaction_date),
+            'ref' => $row->ref_no,
+            'local' => $row->location_name,
+            'status' => $row->status,
+            'status_rotulo' => $statuses[$row->status]['label'] ?? $row->status,
+            'necessario_ate' => $this->formatarDataComoBlade($row->delivery_date),
+            'adicionado_por' => trim(preg_replace('/\s+/', ' ', (string) $row->added_by)),
+        ])->values();
+
+        return [
+            'linhas' => $requisicoes->all(),
+            'truncado' => $truncado,
+            'kpis' => [
+                'sem_pedido' => $requisicoes->where('status', 'ordered')->count(),
+                'parciais' => $requisicoes->where('status', 'partial')->count(),
+            ],
+        ];
+    }
+
+    /** Opções dos filtros — as mesmas listas que a Blade monta para os selects. */
+    private function opcoesFiltroRequisicoes(int $business_id): array
+    {
+        $status = [];
+        foreach ($this->purchaseRequisitionStatuses as $key => $value) {
+            $status[$key] = $value['label'];
+        }
+
+        return [
+            'locais' => BusinessLocation::forDropdown($business_id),
+            'status' => $status,
+        ];
+    }
+
+    /**
+     * Mesma expressão da diretiva `@format_datetime` (AppServiceProvider), com o shift de fuso preservado de
+     * propósito (ADR 0066). Vazio sai nulo, como o `@if(!empty(...))` da coluna da Blade.
+     */
+    private function formatarDataComoBlade($data): ?string
+    {
+        if (empty($data)) {
+            return null;
+        }
+        $hora = session('business.time_format') == 24 ? 'H:i' : 'h:i A';
+
+        return \Carbon::createFromTimestamp(strtotime($data))->format(session('business.date_format', config('constants.default_date_format', 'd/m/Y')).' '.$hora);
     }
 
     /**

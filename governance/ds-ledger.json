@@ -101,7 +101,7 @@
     },
     {
       "screen": "Configuracoes",
-      "note": "7 arquivo(s)",
+      "note": "9 arquivo(s)",
       "cells": {
         "tokens": "yes",
         "primitivos": "yes",
@@ -167,7 +167,7 @@
     },
     {
       "screen": "Funcoes",
-      "note": "1 arquivo(s)",
+      "note": "3 arquivo(s)",
       "cells": {
         "tokens": "yes",
         "primitivos": "yes",
@@ -222,7 +222,7 @@
     },
     {
       "screen": "NotificationTemplate",
-      "note": "1 arquivo(s)",
+      "note": "2 arquivo(s)",
       "cells": {
         "tokens": "yes",
         "primitivos": "yes",
@@ -233,7 +233,7 @@
     },
     {
       "screen": "Officeimpresso",
-      "note": "7 arquivo(s)",
+      "note": "8 arquivo(s)",
       "cells": {
         "tokens": "yes",
         "primitivos": "yes",
@@ -255,6 +255,39 @@
     },
     {
       "screen": "ProductCatalogue",
+      "note": "1 arquivo(s)",
+      "cells": {
+        "tokens": "yes",
+        "primitivos": "yes",
+        "probe": "na",
+        "dark": "na",
+        "approved": "no"
+      }
+    },
+    {
+      "screen": "PurchaseOrder",
+      "note": "1 arquivo(s)",
+      "cells": {
+        "tokens": "yes",
+        "primitivos": "yes",
+        "probe": "na",
+        "dark": "na",
+        "approved": "no"
+      }
+    },
+    {
+      "screen": "PurchaseRequisition",
+      "note": "1 arquivo(s)",
+      "cells": {
+        "tokens": "yes",
+        "primitivos": "yes",
+        "probe": "na",
+        "dark": "na",
+        "approved": "no"
+      }
+    },
+    {
+      "screen": "PurchaseReturn",
       "note": "1 arquivo(s)",
       "cells": {
         "tokens": "yes",
@@ -353,6 +386,17 @@
       }
     },
     {
+      "screen": "Spreadsheet",
+      "note": "1 arquivo(s)",
+      "cells": {
+        "tokens": "yes",
+        "primitivos": "yes",
+        "probe": "na",
+        "dark": "na",
+        "approved": "no"
+      }
+    },
+    {
       "screen": "Suporte",
       "note": "3 arquivo(s)",
       "cells": {
@@ -387,6 +431,17 @@
     },
     {
       "screen": "Vestuario",
+      "note": "1 arquivo(s)",
+      "cells": {
+        "tokens": "yes",
+        "primitivos": "yes",
+        "probe": "na",
+        "dark": "na",
+        "approved": "no"
+      }
+    },
+    {
+      "screen": "VozDoCliente",
       "note": "1 arquivo(s)",
       "cells": {
         "tokens": "yes",
@@ -486,7 +541,7 @@
     },
     {
       "screen": "Produto",
-      "note": "32 arquivo(s)",
+      "note": "37 arquivo(s)",
       "cells": {
         "tokens": "no",
         "primitivos": "no",
@@ -563,7 +618,7 @@
     },
     {
       "screen": "StockAdjustment",
-      "note": "2 arquivo(s)",
+      "note": "3 arquivo(s)",
       "cells": {
         "tokens": "no",
         "primitivos": "no",
@@ -574,7 +629,7 @@
     },
     {
       "screen": "StockTransfer",
-      "note": "2 arquivo(s)",
+      "note": "3 arquivo(s)",
       "cells": {
         "tokens": "no",
         "primitivos": "no",
@@ -584,18 +639,18 @@
       }
     }
   ],
-  "progressPct": 55,
+  "progressPct": 59,
   "progressLabel": "adoção tokens + primitivos (censo Onda 0)",
   "measured": true,
-  "measuredAgainstSha": "618666f3a",
-  "generatedAt": "2026-10-12T19:14:19.034Z",
+  "measuredAgainstSha": "e1fb5ff7a",
+  "generatedAt": "2026-10-13T17:04:33.813Z",
   "treeGuard": {
     "pass": true,
     "violations": 0
   },
   "counts": {
-    "screens": 53,
-    "done": 29,
+    "screens": 58,
+    "done": 34,
     "references": 0
   }
 }

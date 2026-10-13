@@ -1880,6 +1880,10 @@ Ocorrência da **LC-08**.
 
 - **O limite (variante também proibida):** instrumento que procura um elemento por convenção de nome não lê "não achei" como "não aconteceu". O elemento sai da fonte que o define (aqui, o corpo do passo no YAML), e o caso "não achei" tem estado próprio, que sai exit 2. E antes de consertar pela hipótese de quem reportou, leia o predicado que decide o veredito: a hipótese do JUnit levaria a mexer num arquivo que o script nem abre.
 
+### 2026-10-13 — EMENDA da lápide 2026-07-27 (`jana:retention-purge`): no Patrimônio a retenção foi REABERTA pelo [W], como anonimização de campo pessoal
+
+- **O limite (variante também proibida):** é emenda da lápide de 2026-07-27, mesma família: no Patrimônio (`Modules/AssetManagement`), retenção é **anonimizar o vínculo pessoal mantendo a linha**: `activity_log` e `asset_transactions` nunca perdem linha, o executor roda por empresa e nasce com `ASSETMANAGEMENT_RETENTION_ENABLED=false`. Ligar é D-CANARY-LGPD, do [W]. **Não estender esta reabertura à Jana** (`jana:retention-purge`, item #6 do loop): a decisão de 07/10 fala da 05 do Patrimônio, e a Jana segue sob a lápide-mãe até decisão [W] própria.
+
 ## Sempre fazer
 
 - ✅ **LIGUE A MÁQUINA — máquina é sempre melhor que fazer na mão** ([W] 2026-07-26, textual: *"isso ligue as maquinas, é sempre melhor que fazer na mão. isso é regra no sistema. deve ser"*). Ordem obrigatória, nesta sequência:
