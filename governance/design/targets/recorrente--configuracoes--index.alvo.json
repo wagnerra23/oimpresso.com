@@ -1,0 +1,286 @@
+{
+  "aguardou_sumir": null,
+  "ausentes": [],
+  "base": {
+    "assinatura": "OI WR Configurações · cobrança recorrente Gateways de pagamento, régua de dunning, NFe automática e webhooks por gateway. Financeiro Cobrança Assinaturas Fluxo de caixa Conciliação DRE / Relatórios Plano de contas Impostos e obrigações ⋯ Gateways de boleto/pix Credenciais ativas e sandbox cadastradas nesta empresa. I Banco Inter PJ Inter · Produção ativo A Asaas sandbox Asaas · Sandbox ativo Adicionar gateway Régua de dunning (cobrança) Cronograma de retentativas quando uma fatura falha no pagamento. Régua padrão quando o pagamento falha. Cada retentativa gera boleto novo e avisa o cliente por e-mail e WhatsApp. Depois da 3ª, a assinatura exige ação manual. 1ª retentativa + 3 d Falha leve — provavelmente saldo insuficiente ou instabilidade do banco. 2ª retentativa + 7 d Cobrança insistente — reenvia boleto novo por e-mail e WhatsApp. 3ª retentativa (final) + 15 d Falha definitiva — a assinatura passa para “falhou” e pede ação manual no detalhe da assinatura. NFe-de-boleto-pago automática Emissão fiscal disparada automaticamente ao receber pagamento. Desativada Em breve Quando uma fatura é paga (aviso do Asaas ou do Banco Inter), o sistema emite a nota fiscal automaticamente. Vale para planos com emissão NFe ou NFS-e. Webhooks Endereços pra colar no painel do banco ou gateway. POST Asaas docs Webhook unificado (pagamento, assinatura, transferência) Copiar Autenticação: Header X-Webhook-Token configurado no Asaas (Conta → Integrações → Webhooks). POST Banco Inter PJ docs Webhook PIX recebido Copiar Autenticação: Header X-Inter-Webhook-Secret, conferido com o segredo da credencial Inter ativa.",
+    "roles": {
+      "celulas": null,
+      "chart": null,
+      "contratos": [],
+      "filterRows": null,
+      "kpi": {
+        "count": 0,
+        "items": [],
+        "overflowX": null,
+        "tag": null
+      },
+      "primary": null,
+      "shell": null,
+      "tabela": null,
+      "title": null
+    },
+    "saude": {
+      "folhasVazias": [],
+      "nFolhas": 75,
+      "tokensMortos": []
+    },
+    "theme": "dark",
+    "url": "http://127.0.0.1:5562/"
+  },
+  "nos_totais": 554,
+  "quieto_ms": 2000,
+  "rota": "rb-config",
+  "secoes": {
+    "cabecalho": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "cr-root",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "block",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "padding": "12px 24px"
+      },
+      "filhos": 1,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "cr-root"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "cr-hero-top"
+      ],
+      "rect": {
+        "h": 71,
+        "w": 1224
+      },
+      "seletor": ".main-body > .cr-root > .cr-hero",
+      "truncado": false
+    },
+    "dunning": {
+      "contraste": {
+        "fundo": "oklch(0.3 0.008 240)",
+        "fundo_de": "proprio",
+        "razao": 11.42,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.027108,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.3 0.008 240)",
+        "borderRadius": "9px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "block",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "padding": "16px"
+      },
+      "filhos": 4,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.3 0.008 240)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "h2",
+        "div",
+        "p",
+        "div"
+      ],
+      "rect": {
+        "h": 354,
+        "w": 580
+      },
+      "seletor": ".main-body > .cr-root > .cr-body > div > section:nth-of-type(2)",
+      "truncado": false
+    },
+    "gateways": {
+      "contraste": {
+        "fundo": "oklch(0.3 0.008 240)",
+        "fundo_de": "proprio",
+        "razao": 11.42,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.027108,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.3 0.008 240)",
+        "borderRadius": "9px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "block",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "padding": "16px"
+      },
+      "filhos": 4,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.3 0.008 240)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "h2",
+        "div",
+        "div",
+        "cr-act"
+      ],
+      "rect": {
+        "h": 354,
+        "w": 580
+      },
+      "seletor": ".main-body > .cr-root > .cr-body > div > section:nth-of-type(1)",
+      "truncado": false
+    },
+    "nfe": {
+      "contraste": {
+        "fundo": "oklch(0.3 0.008 240)",
+        "fundo_de": "proprio",
+        "razao": 11.42,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.027108,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.3 0.008 240)",
+        "borderRadius": "9px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "block",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "padding": "16px"
+      },
+      "filhos": 4,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.3 0.008 240)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "h2",
+        "div",
+        "div",
+        "p"
+      ],
+      "rect": {
+        "h": 349,
+        "w": 580
+      },
+      "seletor": ".main-body > .cr-root > .cr-body > div > section:nth-of-type(3)",
+      "truncado": false
+    },
+    "subnav": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "cr-root",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "flex",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "2px",
+        "padding": "0px"
+      },
+      "filhos": 9,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "cr-root"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "topbar-tab",
+        "topbar-tab",
+        "topbar-tab",
+        "topbar-tab",
+        "topbar-tab",
+        "topbar-tab",
+        "topbar-tab",
+        "topbar-tab",
+        "ph-nav-more"
+      ],
+      "rect": {
+        "h": 36,
+        "w": 1176
+      },
+      "seletor": ".main-body > .cr-root > nav.ph-nav",
+      "truncado": false
+    },
+    "webhooks": {
+      "contraste": {
+        "fundo": "oklch(0.3 0.008 240)",
+        "fundo_de": "proprio",
+        "razao": 11.42,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.027108,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.3 0.008 240)",
+        "borderRadius": "9px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "block",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "padding": "16px"
+      },
+      "filhos": 3,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.3 0.008 240)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "h2",
+        "div",
+        "div"
+      ],
+      "rect": {
+        "h": 349,
+        "w": 580
+      },
+      "seletor": ".main-body > .cr-root > .cr-body > div > section:nth-of-type(4)",
+      "truncado": false
+    }
+  },
+  "tela": "recorrente--configuracoes--index",
+  "url": "http://127.0.0.1:5562/"
+}

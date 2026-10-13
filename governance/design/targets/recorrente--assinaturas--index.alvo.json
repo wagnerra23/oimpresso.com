@@ -1,0 +1,244 @@
+{
+  "aguardou_sumir": null,
+  "ausentes": [],
+  "base": {
+    "assinatura": "OI WR Cobrança recorrente 8 ATIVAS · MRR R$ 3.810,00 · CHURN 11% Nova assinatura MRR · receita recorrente R$ 3.810,00 8 assinaturas ativas · ticket médio R$ 476,25 Churn este mês 1 cancelamento taxa 11% Próxima cobrança amanhã R$ 450,00 · 1 cobrança Retentado falhos 3 requer ação · R$ 1.810,00 a recuperar Filtrar por Próxima cobrança Início Todo o período 9 assinaturas Dia Semana Mês Ano Tudo Personalizado Mostrar só favoritos 2 Status Todas 9 Em dia 4 Retentando 2 Falharam 1 Pausadas 1 Canceladas 1 Próxima cobrança Qualquer data Hoje Amanhã Esta semana Próx. 30 dias Personalizado Por plano Sinalização Mensal R$ 450,00 · 3 ativas Adesivos Frota Mensal R$ 680,00 · 2 ativas Impressão Trimestral R$ 1.200,00 · 2 ativas Manutenção Fachada Anual R$ 3.600,00 · 1 ativa MRR filtrado R$ 3.810,00 8 ativ. de 8 9 de 9 PP Padaria Pão Quente Sinalização Mensal · mensal · desde há 2a · próx. 10 jun em dia Pix · R$ 450,00 AP Auto Posto Trevo Adesivos Frota Mensal · mensal · desde há 1a · próx. 5 jun retentando 1 /3 Boleto · R$ 680,00 RS Restaurante Sabor Caseiro Impressão Trimestral · trimestral · desde há 2a · próx. 20 jul em dia Cartão · R$ 1.200,00 AC Academia CorpoForte Sinalização Mensal · mensal · desde há 1a · próx. 28 mai falhou 3 × Boleto · R$ 450,00 CV Clínica Vida Manutenção Fachada Anual · anual · desde há 2a · próx. 1 mar em dia Pix · R$ 3.600,00 MU Mercado União Adesivos Frota Mensal · mensal · desde há 2a · próx. 3 jun retentando 2 /3 Boleto · R$ 680,00 ES Escola Saber Impressão Trimestral · trimestral · desde há 2a pausada FB Farmácia Bem-Estar Sinalização Mensal · mensal · desde há 1a · próx. 2 jun em dia Pix · R$ 450,00 LB Loja Bella Moda Sinalização Mensal · mensal · desde há 2a cancelada",
+    "roles": {
+      "celulas": null,
+      "chart": null,
+      "contratos": [],
+      "filterRows": null,
+      "kpi": {
+        "count": 0,
+        "items": [],
+        "overflowX": null,
+        "tag": null
+      },
+      "primary": null,
+      "shell": null,
+      "tabela": null,
+      "title": null
+    },
+    "saude": {
+      "folhasVazias": [],
+      "nFolhas": 75,
+      "tokensMortos": []
+    },
+    "theme": "dark",
+    "url": "http://127.0.0.1:5562/"
+  },
+  "nos_totais": 635,
+  "quieto_ms": 2000,
+  "rota": "rb-assinaturas",
+  "secoes": {
+    "cabecalho": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "cr-root",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "block",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "padding": "12px 24px"
+      },
+      "filhos": 1,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "cr-root"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "cr-hero-top"
+      ],
+      "rect": {
+        "h": 69,
+        "w": 1224
+      },
+      "seletor": ".main-body > .cr-root > .cr-hero",
+      "truncado": false
+    },
+    "filtros": {
+      "contraste": {
+        "fundo": "oklch(0.3 0.008 240)",
+        "fundo_de": "proprio",
+        "razao": 11.42,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.027108,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.3 0.008 240)",
+        "borderRadius": "9px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "flex",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "14px",
+        "padding": "12px 14px"
+      },
+      "filhos": 5,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.3 0.008 240)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "button",
+        "div",
+        "div",
+        "div",
+        "div"
+      ],
+      "rect": {
+        "h": 711,
+        "w": 196
+      },
+      "seletor": ".main-body > .cr-root > .cr-body > div:nth-child(3) > aside.cr-card",
+      "truncado": false
+    },
+    "kpis": {
+      "contraste": {
+        "fundo": "oklch(0.3 0.008 240)",
+        "fundo_de": "proprio",
+        "razao": 11.42,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.027108,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.3 0.008 240)",
+        "borderRadius": "10px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "grid",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "padding": "0px"
+      },
+      "filhos": 4,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.3 0.008 240)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "cr-stat",
+        "cr-stat",
+        "cr-stat",
+        "cr-stat"
+      ],
+      "rect": {
+        "h": 90,
+        "w": 1176
+      },
+      "seletor": ".main-body > .cr-root > .cr-body > .cr-stats",
+      "truncado": false
+    },
+    "lista": {
+      "contraste": {
+        "fundo": "oklch(0.3 0.008 240)",
+        "fundo_de": "proprio",
+        "razao": 11.42,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.027108,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.3 0.008 240)",
+        "borderRadius": "10px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "block",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "padding": "0px"
+      },
+      "filhos": 10,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.3 0.008 240)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "cr-list-head",
+        "cr-row",
+        "cr-row",
+        "cr-row",
+        "cr-row",
+        "cr-row",
+        "cr-row",
+        "cr-row",
+        "cr-row",
+        "cr-row"
+      ],
+      "rect": {
+        "h": 614,
+        "w": 956
+      },
+      "seletor": ".main-body > .cr-root > .cr-body > div:nth-child(3) > .cr-list-wrap",
+      "truncado": false
+    },
+    "periodo": {
+      "contraste": {
+        "fundo": "oklch(0.3 0.008 240)",
+        "fundo_de": "proprio",
+        "razao": 11.42,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.027108,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.3 0.008 240)",
+        "borderRadius": "12px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "flex",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "10px 16px",
+        "padding": "8px 12px"
+      },
+      "filhos": 3,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.3 0.008 240)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "fin-pb-field",
+        "fin-pb-nav",
+        "fin-pb-presets"
+      ],
+      "rect": {
+        "h": 54,
+        "w": 1176
+      },
+      "seletor": ".main-body > .cr-root > .cr-body > .fin-periodbar",
+      "truncado": false
+    }
+  },
+  "tela": "recorrente--assinaturas--index",
+  "url": "http://127.0.0.1:5562/"
+}
