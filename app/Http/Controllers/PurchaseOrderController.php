@@ -14,14 +14,27 @@ use App\User;
 use App\Utils\BusinessUtil;
 use App\Utils\ModuleUtil;
 use App\Utils\ProductUtil;
+use App\Services\FeatureFlagService;
 use App\Utils\TransactionUtil;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Inertia\Inertia;
 use Spatie\Activitylog\Models\Activity;
 use Yajra\DataTables\Facades\DataTables;
 
 class PurchaseOrderController extends Controller
 {
+    /**
+     * Flag da tela React (thread compras/playbook/06, F3). Convenção `useV2<Modulo><Tela>`. Sem a chave no GrowthBook
+     * o FeatureFlagService cai no fallbackDefaults, que não a lista: default OFF, a Blade segue servindo.
+     *
+     * @see memory/requisitos/Compras/_telas/RUNBOOK-purchase-order-index.md
+     */
+    private const FLAG_V2 = 'useV2ComprasPedidos';
+
+    /** Teto de linhas da tela React; acima disso ela avisa e manda para a tela clássica, que pagina no servidor. */
+    private const LIMITE_TELA = 1000;
+
     /**
      * All Utils instance.
      */
@@ -30,6 +43,14 @@ class PurchaseOrderController extends Controller
     protected $transactionUtil;
 
     protected $moduleUtil;
+
+    /**
+     * Status do pedido (ordered · partial · completed), montados no construtor. Declarada para a tela React
+     * (thread compras/playbook/06) e para o PHPStan, que acusava acesso a propriedade dinâmica.
+     *
+     * @var array<string, array{label: string, class: string}>
+     */
+    protected $purchaseOrderStatuses = [];
 
     /**
      * Constructor
@@ -71,7 +92,9 @@ class PurchaseOrderController extends Controller
     /**
      * Display a listing of the resource.
      *
-     * @return \Illuminate\Http\Response
+     * DataTable (AJAX) → JsonResponse · Blade → View · tela React atrás da flag → Inertia\Response.
+     *
+     * @return \Illuminate\Http\JsonResponse|\Illuminate\View\View|\Inertia\Response
      */
     public function index()
     {
@@ -82,71 +105,9 @@ class PurchaseOrderController extends Controller
         $is_admin = $this->businessUtil->is_admin(auth()->user());
         $shipping_statuses = $this->transactionUtil->shipping_statuses();
         $business_id = request()->session()->get('user.business_id');
-        if (request()->ajax()) {
-            $purchase_orders = Transaction::leftJoin('contacts', 'transactions.contact_id', '=', 'contacts.id')
-                    ->join(
-                        'business_locations AS BS',
-                        'transactions.location_id',
-                        '=',
-                        'BS.id'
-                    )
-                    ->leftJoin('purchase_lines as pl', 'transactions.id', '=', 'pl.transaction_id')
-                    ->leftJoin('users as u', 'transactions.created_by', '=', 'u.id')
-                    ->where('transactions.business_id', $business_id)
-                    ->where('transactions.type', 'purchase_order')
-                    ->select(
-                        'transactions.id',
-                        'transactions.document',
-                        'transactions.transaction_date',
-                        'transactions.ref_no',
-                        'transactions.status',
-                        'contacts.name',
-                        'contacts.supplier_business_name',
-                        'transactions.final_total',
-                        'BS.name as location_name',
-                        'transactions.pay_term_number',
-                        'transactions.pay_term_type',
-                        'transactions.shipping_status',
-                        DB::raw("CONCAT(COALESCE(u.surname, ''),' ',COALESCE(u.first_name, ''),' ',COALESCE(u.last_name,'')) as added_by"),
-                        DB::raw('SUM(pl.quantity - pl.po_quantity_purchased) as po_qty_remaining')
-                    )
-                    ->groupBy('transactions.id');
-
-            $permitted_locations = auth()->user()->permitted_locations();
-            if ($permitted_locations != 'all') {
-                $purchase_orders->whereIn('transactions.location_id', $permitted_locations);
-            }
-
-            if (! empty(request()->supplier_id)) {
-                $purchase_orders->where('contacts.id', request()->supplier_id);
-            }
-            if (! empty(request()->location_id)) {
-                $purchase_orders->where('transactions.location_id', request()->location_id);
-            }
-
-            if (! empty(request()->status)) {
-                $purchase_orders->where('transactions.status', request()->status);
-            }
-
-            if (! empty(request()->from_dashboard)) {
-                $purchase_orders->where('transactions.status', '!=', 'completed')
-                    ->orHavingRaw('po_qty_remaining > 0');
-            }
-
-            if (! empty(request()->start_date) && ! empty(request()->end_date)) {
-                $start = request()->start_date;
-                $end = request()->end_date;
-                $purchase_orders->whereDate('transactions.transaction_date', '>=', $start)
-                            ->whereDate('transactions.transaction_date', '<=', $end);
-            }
-
-            if (! auth()->user()->can('purchase_order.view_all') && auth()->user()->can('purchase_order.view_own')) {
-                $purchase_orders->where('transactions.created_by', request()->session()->get('user.id'));
-            }
-
-            if (! empty(request()->input('shipping_status'))) {
-                $purchase_orders->where('transactions.shipping_status', request()->input('shipping_status'));
-            }
+        // `! inertia()`: o Inertia v3 manda `X-Requested-With` em toda visita; sem esta perna o ramo DataTable engoliria a tela React.
+        if (request()->ajax() && ! request()->inertia()) {
+            $purchase_orders = $this->consultaPedidos((int) $business_id, request());
 
             return Datatables::of($purchase_orders)
                 ->addColumn('action', function ($row) use ($is_admin) {
@@ -228,6 +189,25 @@ class PurchaseOrderController extends Controller
                 ->make(true);
         }
 
+        // Tela React (thread compras/playbook/06, F3) atrás da flag, por negócio. `?legacy=1` mantém a Blade
+        // alcançável com a flag ligada: status inline, envio, excluir e notificação seguem nos modais dela.
+        if (! request()->boolean('legacy') && app(FeatureFlagService::class)->isOn(self::FLAG_V2, ['business_id' => $business_id])) {
+            return Inertia::render('PurchaseOrder/Index', [
+                'filtros' => [
+                    'location_id' => request()->input('location_id') ?: null,
+                    'supplier_id' => request()->input('supplier_id') ?: null,
+                    'status' => request()->input('status') ?: null,
+                    'shipping_status' => request()->input('shipping_status') ?: null,
+                ],
+                'permissoes' => [
+                    'criar' => auth()->user()->can('purchase_order.create'),
+                    'editar' => auth()->user()->can('purchase_order.update'),
+                ],
+                'pedidos' => Inertia::defer(fn () => $this->pedidosDaTela((int) $business_id, request())),
+                'opcoes' => Inertia::defer(fn () => $this->opcoesFiltroPedidos((int) $business_id)),
+            ]);
+        }
+
         $business_locations = BusinessLocation::forDropdown($business_id);
         $suppliers = Contact::suppliersDropdown($business_id, false);
         $purchaseOrderStatuses = [];
@@ -236,6 +216,159 @@ class PurchaseOrderController extends Controller
         }
 
         return view('purchase_order.index')->with(compact('business_locations', 'suppliers', 'purchaseOrderStatuses', 'shipping_statuses'));
+    }
+
+    /**
+     * Pedidos de compra do negócio com a quantidade restante — o MESMO SQL para a DataTable da Blade e para a tela
+     * React (thread compras/playbook/06). Movido do index() sem reescrever: escopo por negócio, tipo, locais
+     * permitidos, "ver os próprios" e os filtros da Blade. Travado por PedidosCompraBaselineTest.
+     */
+    private function consultaPedidos(int $business_id, Request $request)
+    {
+        $purchase_orders = Transaction::leftJoin('contacts', 'transactions.contact_id', '=', 'contacts.id')
+                ->join(
+                    'business_locations AS BS',
+                    'transactions.location_id',
+                    '=',
+                    'BS.id'
+                )
+                ->leftJoin('purchase_lines as pl', 'transactions.id', '=', 'pl.transaction_id')
+                ->leftJoin('users as u', 'transactions.created_by', '=', 'u.id')
+                ->where('transactions.business_id', $business_id)
+                ->where('transactions.type', 'purchase_order')
+                ->select(
+                    'transactions.id',
+                    'transactions.document',
+                    'transactions.transaction_date',
+                    'transactions.ref_no',
+                    'transactions.status',
+                    'contacts.name',
+                    'contacts.supplier_business_name',
+                    'transactions.final_total',
+                    'BS.name as location_name',
+                    'transactions.pay_term_number',
+                    'transactions.pay_term_type',
+                    'transactions.shipping_status',
+                    DB::raw("CONCAT(COALESCE(u.surname, ''),' ',COALESCE(u.first_name, ''),' ',COALESCE(u.last_name,'')) as added_by"),
+                    DB::raw('SUM(pl.quantity - pl.po_quantity_purchased) as po_qty_remaining')
+                )
+                ->groupBy('transactions.id');
+
+        $permitted_locations = auth()->user()->permitted_locations();
+        if ($permitted_locations != 'all') {
+            $purchase_orders->whereIn('transactions.location_id', $permitted_locations);
+        }
+
+        if (! empty($request->supplier_id)) {
+            $purchase_orders->where('contacts.id', $request->supplier_id);
+        }
+        if (! empty($request->location_id)) {
+            $purchase_orders->where('transactions.location_id', $request->location_id);
+        }
+
+        if (! empty($request->status)) {
+            $purchase_orders->where('transactions.status', $request->status);
+        }
+
+        if (! empty($request->from_dashboard)) {
+            $purchase_orders->where('transactions.status', '!=', 'completed')
+                ->orHavingRaw('po_qty_remaining > 0');
+        }
+
+        if (! empty($request->start_date) && ! empty($request->end_date)) {
+            $start = $request->start_date;
+            $end = $request->end_date;
+            $purchase_orders->whereDate('transactions.transaction_date', '>=', $start)
+                        ->whereDate('transactions.transaction_date', '<=', $end);
+        }
+
+        if (! auth()->user()->can('purchase_order.view_all') && auth()->user()->can('purchase_order.view_own')) {
+            $purchase_orders->where('transactions.created_by', $request->session()->get('user.id'));
+        }
+
+        if (! empty($request->input('shipping_status'))) {
+            $purchase_orders->where('transactions.shipping_status', $request->input('shipping_status'));
+        }
+
+        return $purchase_orders;
+    }
+
+    /**
+     * Pedidos no shape da tela React. Data e quantidade restante saem formatadas pelas MESMAS fórmulas das diretivas
+     * `@format_datetime` e `@format_quantity` que a coluna da Blade usa — a tela não formata número.
+     * A quantidade restante é quantidade (não valor nem movimento de estoque).
+     */
+    private function pedidosDaTela(int $business_id, Request $request): array
+    {
+        $statuses = $this->purchaseOrderStatuses;
+        $envios = $this->transactionUtil->shipping_statuses();
+        $linhas = $this->consultaPedidos($business_id, $request)
+            ->orderBy('transactions.transaction_date', 'desc')
+            ->limit(self::LIMITE_TELA + 1)
+            ->get();
+        $truncado = $linhas->count() > self::LIMITE_TELA;
+        $linhas = $linhas->take(self::LIMITE_TELA);
+
+        $pedidos = $linhas->map(fn ($row) => [
+            'id' => (int) $row->id,
+            'data' => $this->formatarDataComoBlade($row->transaction_date),
+            'ref' => $row->ref_no,
+            'local' => $row->location_name,
+            'fornecedor' => $row->name,
+            'fornecedor_fantasia' => $row->supplier_business_name ?: null,
+            'status' => $row->status,
+            'status_rotulo' => $statuses[$row->status]['label'] ?? $row->status,
+            'restante' => (float) $row->po_qty_remaining,
+            'restante_texto' => $this->formatarQuantidadeComoBlade((float) $row->po_qty_remaining),
+            'envio' => $row->shipping_status ?: null,
+            'envio_rotulo' => ! empty($row->shipping_status) ? ($envios[$row->shipping_status] ?? $row->shipping_status) : null,
+            'adicionado_por' => trim(preg_replace('/\s+/', ' ', (string) $row->added_by)),
+        ])->values();
+
+        $restanteTotal = (float) $pedidos->sum('restante');
+
+        return [
+            'linhas' => $pedidos->all(),
+            'truncado' => $truncado,
+            'kpis' => [
+                'em_aberto' => $pedidos->where('status', '!=', 'completed')->count(),
+                'restante_total' => $restanteTotal,
+                'restante_total_texto' => $this->formatarQuantidadeComoBlade($restanteTotal),
+            ],
+        ];
+    }
+
+    /** Opções dos filtros — as mesmas listas que a Blade monta para os selects. */
+    private function opcoesFiltroPedidos(int $business_id): array
+    {
+        $status = [];
+        foreach ($this->purchaseOrderStatuses as $key => $value) {
+            $status[$key] = $value['label'];
+        }
+
+        return [
+            'locais' => BusinessLocation::forDropdown($business_id),
+            'fornecedores' => Contact::suppliersDropdown($business_id, false),
+            'status' => $status,
+            'envios' => $this->transactionUtil->shipping_statuses(),
+        ];
+    }
+
+    /** Mesma expressão da diretiva `@format_quantity` (AppServiceProvider). */
+    private function formatarQuantidadeComoBlade(float $quantidade): string
+    {
+        return number_format($quantidade, (int) session('business.quantity_precision', 2), session('currency')['decimal_separator'], session('currency')['thousand_separator']);
+    }
+
+    /** Mesma expressão da diretiva `@format_datetime` (AppServiceProvider). */
+    private function formatarDataComoBlade($data): ?string
+    {
+        if (empty($data)) {
+            return null;
+        }
+        $hora = session('business.time_format') == 24 ? 'H:i' : 'h:i A';
+
+        return \Carbon::createFromTimestamp(strtotime($data))->format(session('business.date_format', config('constants.default_date_format', 'd/m/Y')).' '.$hora);
     }
 
     /**
