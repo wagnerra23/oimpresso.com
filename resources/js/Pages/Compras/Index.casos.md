@@ -5,8 +5,8 @@ irmaos: Index.charter.md (lei) · Index.tsx (código)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: o comportamento é durável — o escopo de quem-vê-o-quê e o contrato de filtro não mudam quando o cockpit ganhar abas novas.
 owner: wagner
-last_run: "2026-09-05"
-last_run_ci: "Revalidado em 2026-09-05 pela lane PHP / Pest (Compras · MySQL) — run 33941351234, 125 assertions, 0 skipped, no MESMO commit que instrumentou o .tsx com as ancoras data-contract. Bump exigido pelo G-6 (a tela mudou depois do last_run anterior); a mudanca foi aditiva de atributo, mas o gate mede data-git e nao semantica, e isso e o desenho certo. Historico: UC-CMP-06/07 reconciliados em 2026-08-11 ([W]: pague a divida, e deixe requerido)."
+last_run: "2026-10-13"
+last_run_ci: "Revalidado em 2026-10-13 pela lane PHP / Pest (Compras · MySQL) — run 38328490401, 47 passed, 134 assertions, 0 skipped, no commit 0d8350c91 que mudou o endereço do Exportar (UC-CMP-11, 5 assertions). Bump exigido pelo G-6 (a tela mudou). Historico: em 2026-09-05 o run 33941351234 (125 assertions) revalidou as ancoras data-contract; UC-CMP-06/07 reconciliados em 2026-08-11."
 ---
 
 # Casos de Uso & Aceite — Cockpit de Compras (`/compras`)
@@ -46,6 +46,7 @@ last_run_ci: "Revalidado em 2026-09-05 pela lane PHP / Pest (Compras · MySQL) �
 | UC-CMP-08 | Cockpit respeita as localizações permitidas | must `[reg]` | `CU-COM-05` item 1 | `ComprasContratoFiltrosTest` | 🧪 **vermelho esperado** |
 | UC-CMP-09 | Entrada da compra grava valor e move estoque | must `[V0]` | `CU-COM-08` itens 1-3 | `PurchaseCalculoValorEstoqueE2ETest` | 🧪 (roda só no **nightly**, não no PR) |
 | UC-CMP-10 | Itens conta as linhas e NF-e lê a **chave fiscal de entrada** | must | protótipo `compras-page.jsx:501,508` + charter §Goals | `ComprasContratoFiltrosTest` | 🧪 veredito na lane |
+| UC-CMP-11 | O botão Exportar abre a tela que exporta | must `[reg]` | SDD §0.2 + F6 · `CU-COM-07` item 4 | `ComprasExportarContratoTest` | 🧪 veredito na lane |
 
 > 🧪 **Nenhum status aqui é afirmação de verde.** Este PR não executou teste algum (CT 100/CI —
 > [ADR 0062](../../../../memory/decisions/0062-separacao-runtime-hostinger-ct100.md)). "Vermelho
@@ -269,6 +270,24 @@ last_run_ci: "Revalidado em 2026-09-05 pela lane PHP / Pest (Compras · MySQL) �
 
 ---
 
+## UC-CMP-11 · O botão Exportar abre a tela que exporta · `must` `[reg]`
+
+- **Persona:** operador de compras que filtra o cockpit e quer a lista em CSV/Excel/PDF ou impressa.
+- **Aceite:** Dado um usuário com `purchase.view` · Quando clica em qualquer um dos 4 botões de
+  exportação do cockpit · Então a nova aba abre a **Blade** da lista de compras (`purchase.index`),
+  que tem os botões de exportação do DataTables — não a Page React `Purchase/Index`, que não exporta.
+- **Teste:** [`ComprasExportarContratoTest`](../../../../Modules/Compras/Tests/Feature/ComprasExportarContratoTest.php) —
+  *"UC-CMP-11 · o endereço do Exportar abre a Blade da lista de compras, que exporta"*. Lê o endereço
+  que o `Index.tsx` passa ao `window.open` e faz a mesma navegação da nova aba (GET sem `X-Inertia`).
+- **Contrato:** SDD §0.2 e fluxo F6 (a Blade é o destino da exportação do cockpit) · `CU-COM-07` item 4
+  (bridges Blade-only por `window.open`).
+- **Regressão que defende:** o cutover pelo menu (#9095, D1 [W] 2026-10-07) fez GET comum em
+  `/purchases` abrir a Page React. O botão abria `/purchases` sem `?classico=1` e passou a cair numa
+  tela sem exportação. O conserto (2026-10-13) foi o endereço `/purchases?classico=1`.
+- **Status: 🧪** — verde na lane `PHP / Pest (Compras · MySQL)` em 2026-10-13 (run 38328490401: 1 passed, 5 assertions, 0 skipped). Fica 🧪 até o manifesto de resultados do G-7 trazer o veredito.
+
+---
+
 ## Por que `CU-COM-06` e `CU-COM-09` do SDD ficaram **sem UC**
 
 Não é esquecimento — é o critério de parada ([ADR 0351](../../../../memory/decisions/0351-sdd-from-source.md) Fase 2.2):
@@ -308,6 +327,7 @@ Não é esquecimento — é o critério de parada ([ADR 0351](../../../../memory
   `transactions.status` mapeia pra eles. É o sintoma da FSM não-persistida: **US-COM-014**. SDD §5.4.5 · D7.
 - `[BACKLOG]` Os 4 botões de export (CSV/Excel/PDF/Imprimir) chamam o mesmo handler, que ignora o
   formato e **não propaga o filtro corrente** — exporta a lista inteira da Blade. SDD §5.4.6 · D8.
+  (Que a Blade continue sendo o destino é o UC-CMP-11; o filtro e o formato seguem no backlog.)
 - `[BACKLOG]` A Blade oferece 5 filtros de servidor (local · fornecedor · status · status de pagamento ·
   período); o cockpit oferece 2 (`q`, `stage`). Some sem Non-Goal ⇒ candidato a regressão de paridade,
   mas o charter chama filtro server-side de "Wave 7" — **decisão de escopo, precisa de [W]**. SDD D9.
