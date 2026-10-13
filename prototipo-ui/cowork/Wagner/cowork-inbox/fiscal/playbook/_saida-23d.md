@@ -52,6 +52,10 @@ Teste: `ListaServicoNacionalTest` (R-NFSE-006, UC-NFSEM-05) na lane `nfebrasil-p
 - **Envio real à Sefin** segue dependendo do certificado A1 em homologação (_saida-23c).
 - **Tela não renderizada por mim:** worktree sem `node_modules`; o print é do protocolo pós-merge.
 
+## Errata do _saida-23c
+
+O `_saida-23c` diz que o algoritmo da assinatura troca por `NFSE_ASSINATURA_ALGORITMO=sha1`. **Essa variável não existe mais:** o Larastan proíbe `env()` fora de `config/`, e a 5ª chamada no config do módulo reprovou o ratchet do PHPStan no #9221. Pela ADR 0409 o baseline não cresce. O valor agora fica fixo em `nfse.assinatura_algoritmo` (`Modules/NFSe/Config/config.php`), e é ali que se troca para `sha1` se a Sefin recusar a assinatura. O `_saida-23c` ficou sem a correção para não reprovar o check do espelho antes de uma nova subida.
+
 ## 4 · Pedido literal pro [CL]/[W]
 
 ```

@@ -678,7 +678,7 @@ E sem regime, sem CNPJ do prestador ou com nDPS fora do leiaute a emissão falha
 **Contrato:** esquemas XSD oficiais v1.01 (`nfse-esquemas_xsd-v1-01-20260209`, gov.br/nfse, baixados em 2026-10-13) · Manual dos Contribuintes — API do Emissor Público Nacional (v1.2) · NT SE/CGNFS-e nº 007.
 **Implementação:** `Modules/NfeBrasil/Services/Nfse/DpsXml.php` (serializar, assinar, empacotar) · `Modules/NFSe/Adapters/SnNfseAdapter.php` (`buildDps`, `emitir`) · `Modules/NFSe/DTO/NfseEmissaoPayload.php` (`serieDps`, `regimePrestador`, `comNumeroDps`) · `Modules/NFSe/Services/NfseEmissaoService.php` (nDPS = id da emissão) · `Modules/NFSe/Config/config.php` (`/SefinNacional`, `assinatura_algoritmo`) · XSDs em `Modules/NfeBrasil/Resources/schemas/nfse/v1.01/`.
 **Testado em:** `Modules/NfeBrasil/Tests/Feature/NfseDpsXmlTest.php` (lane `nfebrasil-pest`).
-**Fora deste item:** nenhuma DPS foi enviada à Sefin de verdade (falta certificado A1 em homologação); o algoritmo da assinatura (SHA-256, configurável) só se confirma no 1º envio; o desdobro do cTribNac passou a vir da tabela nacional (R-NFSE-006); pAliq omitido (município do Sistema Nacional parametriza); consultar() e cancelar() deste adapter seguem no formato antigo.
+**Fora deste item:** nenhuma DPS foi enviada à Sefin de verdade (falta certificado A1 em homologação); o algoritmo da assinatura (SHA-256, em `nfse.assinatura_algoritmo` no config do módulo — sem variável de ambiente) só se confirma no 1º envio; o desdobro do cTribNac passou a vir da tabela nacional (R-NFSE-006); pAliq omitido (município do Sistema Nacional parametriza); consultar() e cancelar() deste adapter seguem no formato antigo.
 
 ### R-NFSE-006 · cTribNac vem da tabela nacional; com vários desdobros, quem emite escolhe
 
