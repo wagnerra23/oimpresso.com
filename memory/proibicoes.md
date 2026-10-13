@@ -1882,7 +1882,7 @@ Ocorrência da **LC-08**.
 
 ### 2026-10-13 — EMENDA da lápide 2026-07-27 (`jana:retention-purge`): no Patrimônio a retenção foi REABERTA pelo [W], como anonimização de campo pessoal
 
-- **O limite (variante também proibida):** no Patrimônio (`Modules/AssetManagement`), retenção é **anonimizar o vínculo pessoal mantendo a linha**: `activity_log` e `asset_transactions` nunca perdem linha, o executor roda por empresa e nasce com `ASSETMANAGEMENT_RETENTION_ENABLED=false`. Ligar é D-CANARY-LGPD, do [W]. **Não estender esta reabertura à Jana** (`jana:retention-purge`, item #6 do loop): a decisão de 07/10 fala da 05 do Patrimônio, e a Jana segue sob a lápide-mãe até decisão [W] própria.
+- **O limite (variante também proibida):** é emenda da lápide de 2026-07-27, mesma família: no Patrimônio (`Modules/AssetManagement`), retenção é **anonimizar o vínculo pessoal mantendo a linha**: `activity_log` e `asset_transactions` nunca perdem linha, o executor roda por empresa e nasce com `ASSETMANAGEMENT_RETENTION_ENABLED=false`. Ligar é D-CANARY-LGPD, do [W]. **Não estender esta reabertura à Jana** (`jana:retention-purge`, item #6 do loop): a decisão de 07/10 fala da 05 do Patrimônio, e a Jana segue sob a lápide-mãe até decisão [W] própria.
 
 ## Sempre fazer
 
