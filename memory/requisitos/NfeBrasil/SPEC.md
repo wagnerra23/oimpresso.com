@@ -598,6 +598,21 @@ E um CNPJ só numérico continua válido, com o mesmo DV de antes
 **Testado em:** `Modules/NfeBrasil/Tests/Feature/CnpjAlfanumericoTest.php` (lane `nfebrasil-pest`).
 **Fora deste item:** emitente com CNPJ alfanumérico, chave de acesso, QR Code, máscara no front e o XSD do sped-nfe (que ainda declara `TCnpj` como `[0-9]{14}`) — ver `_saida-27.md` da thread 27 do playbook Fiscal.
 
+### R-NFSE-004 · A NFS-e lê o certificado da config pelo CertificadoService
+
+```gherkin
+Dado uma empresa com config de NFS-e apontando um certificado A1 (cert_id)
+Quando monto o payload da NFS-e
+Então o PFX vem do disco ({business}/cert/{uuid}.pfx.enc), decriptado, em base64 uma única vez
+E a senha vem de encrypted_password, decriptada
+E empresa sem config monta sem certificado e não lê o de outra
+E arquivo ausente no disco falha com "Arquivo do certificado ausente em disco", nunca em silêncio
+```
+
+**Contrato:** schema único de certificado do NfeBrasil (4e772bcb46, 2026-05-07), que removeu `pfxDecriptado()`/`senhaDecriptada()` do modelo do NFSe sem migrar o chamador — desde então toda emissão com certificado configurado quebrava ao montar a nota.
+**Implementação:** `Modules/NfeBrasil/Services/CertificadoService.php` (`carregarCertificado`, também usado por `carregarParaSefaz`) · `Modules/NFSe/Services/NfseEmissaoService.php` (`montarPayload`).
+**Testado em:** `Modules/NfeBrasil/Tests/Feature/NfseCertificadoPayloadTest.php` (lane `nfebrasil-pest`).
+
 ### R-NFSE-001 · Retém 4,65% de tomador PJ no regime normal; dispensa no limite do art. 31 § 3º
 
 ```gherkin
