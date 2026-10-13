@@ -58,7 +58,8 @@ Trilho vira seletor abaixo de 768px. `data-contract`: `page-header`, `abas`, `ab
 - [x] F3-3c: Compras (UC-EMP-10) — grupo Operação completo
 - [x] F3-4: Sistema — Painel, Sistema, Prefixos (UC-EMP-11)
 - [x] F3-5a: E-mail e SMS (UC-EMP-12)
-- [ ] F3-5b: Pontos de fidelidade + Módulos · F3-5c: Rótulos personalizados
+- [x] F3-5b: Pontos de fidelidade + Módulos (UC-EMP-13)
+- [ ] F3-5c: Rótulos personalizados
 - [ ] Smoke biz=1 (F4) · cutover (F5, decisão [W])
 
 ## 10. Pegadinhas
@@ -82,6 +83,9 @@ Trilho vira seletor abaixo de 768px. `data-contract`: `page-header`, `abas`, `ab
   valores de cabeçalho/parâmetro do SMS próprio (`header_val_*`, `param_val_*`, onde costuma ir o token da API). A Blade
   sempre manda todos (os `@if` de `settings_sms` só escondem por classe). Testar envio continua pela tela antiga, porque o
   teste usa a senha do formulário. UC-EMP-12.
+- **Valor por ponto 0 divide por zero (achado 2026-10-13, não corrigido).** `TransactionUtil.php:4694` faz
+  `floor($total / $amount_for_unit_rp)`. O salvar troca vazio por 1, mas aceita 0 — na Blade (`"0,00"`) e na tela nova.
+  Barrar 0 muda valor aceito: decisão [W].
 - Precisão de moeda/quantidade e margem padrão mexem em VALOR mostrado e sugerido: qualquer mudança no tratamento
   desses campos cai na regra mestre de cálculo (`proibicoes.md`).
 - O logo sobe por `business_logo` (multipart): o salvar da Page precisa ser `forceFormData`.

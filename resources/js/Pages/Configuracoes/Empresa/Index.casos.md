@@ -100,3 +100,12 @@ last_run: "2026-10-13"
   Então nenhum aparece na resposta e `segredos_gravados` diz quais existem · E salvar sem mexer mantém todos · E trocar o
   servidor e digitar outra senha muda só esses dois · E um envio com a senha vazia, como a Blade faz, ainda limpa.
 - **Status: 🧪**
+
+## UC-EMP-13 · Pontos de fidelidade e Módulos voltam iguais · `[valor]` `[dado]`
+- **Por quê:** quatro campos de pontos passam por `num_uf` e decidem quantos pontos a venda rende
+  (`floor(total / valor_por_ponto)`, `TransactionUtil.php:4694`) e quanto vale o resgate; `enabled_modules` é gravado
+  pela lista que chega.
+- **Aceite:** Dado pontos ligados com os dez campos preenchidos e dois módulos · Quando devolvo o corpo sem mexer · Então
+  nada muda · E quando digito "2,5" no valor da venda para 1 ponto, troco o nome e troco um módulo · Então grava 2,5, o
+  nome novo e a lista nova · E os outros valores de pontos ficam iguais.
+- **Status: 🧪**
