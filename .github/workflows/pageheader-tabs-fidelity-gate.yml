@@ -20,12 +20,14 @@ on:
     paths:
       - 'resources/js/Components/shared/PageHeaderTabs.tsx'
       - 'tests/pageHeaderTabsFidelity.spec.tsx'
+      - 'tests/pageHeaderTabsKeyboard.spec.tsx'
       - '.github/workflows/pageheader-tabs-fidelity-gate.yml'
   push:
     branches: [main]
     paths:
       - 'resources/js/Components/shared/PageHeaderTabs.tsx'
       - 'tests/pageHeaderTabsFidelity.spec.tsx'
+      - 'tests/pageHeaderTabsKeyboard.spec.tsx'
 
 concurrency:
   group: pht-fidelity-gate-${{ github.ref }}
@@ -46,4 +48,5 @@ jobs:
       - name: Install deps
         run: npm ci
       - name: fidelidade PageHeaderTabs (vitest)
-        run: npx vitest run tests/pageHeaderTabsFidelity.spec.tsx
+        # + teclado (←/→/Home/End) e axe do tablist — thread 03 do playbook PageHeader.
+        run: npx vitest run tests/pageHeaderTabsFidelity.spec.tsx tests/pageHeaderTabsKeyboard.spec.tsx
