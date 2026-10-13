@@ -58,6 +58,7 @@ on:
       # `permitted_locations()` mora aqui e é o mecanismo do UC-PURIDX-03.
       - 'app/User.php'
       - 'resources/js/Pages/Purchase/**'
+      - 'resources/js/Pages/PurchaseOrder/**'
       - 'database/schema/mysql-schema.sql'
       - '.github/workflows/purchase-pest.yml'
       - '.github/actions/pest-mysql-setup/**'
@@ -102,6 +103,7 @@ jobs:
               - 'app/Utils/Util.php'
               - 'app/User.php'
               - 'resources/js/Pages/Purchase/**'
+              - 'resources/js/Pages/PurchaseOrder/**'
               - 'database/schema/mysql-schema.sql'
               - '.github/workflows/purchase-pest.yml'
               - '.github/actions/pest-mysql-setup/**'
@@ -211,6 +213,7 @@ jobs:
             tests/Feature/Purchase/ShowPageTest.php \
             tests/Feature/Purchase/PurchaseDataIsoTest.php \
             tests/Feature/Purchase/PedidosCompraBaselineTest.php \
+            tests/Feature/Purchase/PedidosCompraContratoTest.php \
             tests/Feature/CutoverMenu/ComprasSemXInertiaTest.php
 
       # A lane emite JUnit e o sumário conta `assertions` por arquivo — o corpus do LC-13.
