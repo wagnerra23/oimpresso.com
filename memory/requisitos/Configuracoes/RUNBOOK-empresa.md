@@ -59,7 +59,7 @@ Trilho vira seletor abaixo de 768px. `data-contract`: `page-header`, `abas`, `ab
 - [x] F3-4: Sistema — Painel, Sistema, Prefixos (UC-EMP-11)
 - [x] F3-5a: E-mail e SMS (UC-EMP-12)
 - [x] F3-5b: Pontos de fidelidade + Módulos (UC-EMP-13)
-- [ ] F3-5c: Rótulos personalizados
+- [x] F3-5c: Rótulos personalizados (UC-EMP-14) — **as 16 abas estão na tela nova**
 - [ ] Smoke biz=1 (F4) · cutover (F5, decisão [W])
 
 ## 10. Pegadinhas

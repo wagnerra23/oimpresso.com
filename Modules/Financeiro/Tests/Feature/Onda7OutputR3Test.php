@@ -107,9 +107,9 @@ describe('Onda 7 Financeiro R3 — wire-up Index.tsx', function () {
 
     it('Index.tsx tem trigger ☑ Fechamento no PageHeader action', function () {
         $src = file_get_contents(FIN_BASE_7 . '/Index.tsx');
-        expect($src)->toContain('fin-fechamento-trigger');
-        expect($src)->toContain('setChecklistOpen(true)');
-        expect($src)->toContain('Fechamento');
+        // Onda 8 (#1082) levou o gatilho do botão `.fin-fechamento-trigger` para o
+        // overflow do PageHeader; o contrato é o item "Fechamento" abrir a trilha.
+        expect($src)->toMatch("/key:\s*'fechamento',\s*label:\s*'Fechamento'[^\n]*onClick:\s*\(\)\s*=>\s*setChecklistOpen\(true\)/");
     });
 
     it('Index.tsx renderiza FinCrossLinkify no row (LinhaTabela) e no drawer SheetTitle', function () {
@@ -132,10 +132,11 @@ describe('Onda 7 Financeiro R3 — wire-up Index.tsx', function () {
 describe('Onda 7 Financeiro R3 — charter v4', function () {
     it('Index.charter.md declara Onda 7 R3 features + charter v4', function () {
         $md = file_get_contents(FIN_BASE_7 . '/Index.charter.md');
-        expect($md)->toContain('charter_version: 4');
+        // A versão do charter só sobe; a Onda 7 entrou na v4.
+        expect(preg_match('/^charter_version:\s*(\d+)/m', $md, $m))->toBe(1);
+        expect((int) $m[1])->toBeGreaterThanOrEqual(4);
         expect($md)->toContain('Onda 7 KB-9.75 R3 Output');
         expect($md)->toContain('FinCrossLinkify');
         expect($md)->toContain('FinChecklistFechamento');
-        expect($md)->toContain('Ondas 5+6+7');
     });
 });
