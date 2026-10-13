@@ -1,7 +1,7 @@
 <?php
 
 declare(strict_types=1);
-// Cobre UC-EMP-01, UC-EMP-02, UC-EMP-03, UC-EMP-04, UC-EMP-05, UC-EMP-06, UC-EMP-07 (Configuracoes/Empresa/Index.casos.md).
+// Cobre UC-EMP-01, UC-EMP-02, UC-EMP-03, UC-EMP-04, UC-EMP-05, UC-EMP-06, UC-EMP-07, UC-EMP-08 (Configuracoes/Empresa/Index.casos.md).
 
 use App\Business;
 use App\Http\Controllers\BusinessController;
@@ -150,10 +150,11 @@ test('UC-EMP-05 número do corpo é lido pelo num_uf exatamente como está grava
 
     // 25000 e 1.5 com precisão 0 são os casos em que o @num_format da Blade não volta igual.
     foreach ([0, 0.25, 1, 1.5, 25.5, 99.99, 1234.5, 2500, 25000, 123456.7891] as $valor) {
-        $b = new Business(['default_profit_percent' => $valor, 'amount_for_unit_rp' => $valor, 'currency_precision' => 0]);
+        $b = new Business(['default_profit_percent' => $valor, 'default_sales_discount' => $valor, 'amount_for_unit_rp' => $valor, 'currency_precision' => 0]);
         $corpo = $corpoDoSalvar->invoke($controller, $b);
 
         expect($util->num_uf($corpo['default_profit_percent']))->toEqual((float) $valor);
+        expect($util->num_uf($corpo['default_sales_discount']))->toEqual((float) $valor);
         expect($util->num_uf($corpo['amount_for_unit_rp']))->toEqual((float) $valor);
         expect($corpo['amount_for_unit_rp'])->not->toBe('0', 'empty("0") faria o salvar gravar 1 nos pontos');
     }
@@ -209,4 +210,42 @@ test('UC-EMP-07 chave secreta de pagamento não vai para a tela e o salvar da te
     $gravado = json_decode((string) DB::table('business')->where('id', $this->business->id)->value('pos_settings'), true);
     expect($gravado['stripe_secret_key'] ?? null)->toBeNull();
     expect($gravado['razor_pay_key_secret'])->toBe('rz_segredo_98');
+});
+
+test('UC-EMP-08 editar Vendas e Pagamento grava só o que mudou e desmarcar remove a chave de pos_settings', function () {
+    $pos = array_merge(app(BusinessUtil::class)->defaultPosSettings(), [
+        'allow_overselling' => '1', 'stripe_secret_key' => 'sk_segredo_98', 'cash_denominations' => '100,50',
+    ]);
+    DB::table('business')->where('id', $this->business->id)->update([
+        'pos_settings' => json_encode($pos), 'date_format' => 'd/m/Y', 'default_sales_discount' => 0,
+        'on_product_expiry' => 'keep_selling', 'stop_selling_before' => null, 'sell_price_tax' => 'includes',
+    ]);
+
+    $r = $this->withHeaders(['X-Inertia' => 'true', 'X-Inertia-Version' => $this->versaoInertia, 'X-Requested-With' => 'XMLHttpRequest'])
+        ->get('/business/settings');
+    // A tela sabe QUE a chave existe, sem receber o valor.
+    expect($r->json('props.segredos_gravados'))->toBe(['stripe_secret_key']);
+    $corpo = $r->json('props.corpo');
+    $antes = empLinha($this->business->id);
+    $mudou = ['pos_settings' => 1, 'default_sales_discount' => 1];
+
+    $corpo['default_sales_discount'] = '7,5';
+    $corpo['sell_price_tax'] = 'excludes';
+    unset($corpo['pos_settings']['allow_overselling']);
+    $corpo['pos_settings']['enable_msp'] = '1';
+    $corpo['pos_settings']['amount_rounding_method'] = '0.05';
+    $corpo['pos_settings']['enable_cash_denomination_for_payment_methods'] = ['cash', 'card'];
+
+    $this->post('/business/update', empFormData($corpo))->assertSessionHas('status.success', 1);
+
+    $depois = empLinha($this->business->id);
+    expect((float) DB::table('business')->where('id', $this->business->id)->value('default_sales_discount'))->toBe(7.5);
+    expect(DB::table('business')->where('id', $this->business->id)->value('sell_price_tax'))->toBe('excludes');
+    expect($depois['pos_settings'])->not->toHaveKey('allow_overselling');
+    expect($depois['pos_settings']['enable_msp'])->toBe('1');
+    expect($depois['pos_settings']['amount_rounding_method'])->toBe('0.05');
+    expect($depois['pos_settings']['enable_cash_denomination_for_payment_methods'])->toBe(['cash', 'card']);
+    expect($depois['pos_settings']['cash_denominations'])->toBe('100,50');
+    expect($depois['pos_settings']['stripe_secret_key'])->toBe('sk_segredo_98');
+    expect(array_diff_key($depois, $mudou))->toEqual(array_diff_key($antes, $mudou));
 });

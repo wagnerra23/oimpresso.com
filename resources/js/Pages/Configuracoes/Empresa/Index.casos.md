@@ -59,3 +59,12 @@ last_run: "2026-10-13"
 - **Aceite:** Dado as duas chaves gravadas · Quando a tela carrega · Então nenhuma aparece na resposta (a chave pública
   aparece) · E salvar pela tela mantém as duas · E um envio com a chave vazia, como a Blade faz, ainda limpa.
 - **Status: 🧪**
+
+## UC-EMP-08 · Editar Vendas e Pagamento grava só o que mudou · `[dado]` `[valor]`
+- **Por quê:** os checkboxes de Vendas e Pagamento vivem em `pos_settings`; na Blade, desmarcar remove a chave.
+- **Aceite:** Dado `allow_overselling` ligado, uma chave Stripe secreta e cédulas gravadas · Quando a tela carrega · Então
+  ela sabe que a chave secreta existe (`segredos_gravados`) sem receber o valor · E quando ponho desconto padrão "7,5",
+  preço sem imposto, desligo vender sem estoque, ligo preço mínimo, arredondamento 0,05 e contagem em dinheiro e cartão ·
+  Então o desconto grava 7,5 · E `allow_overselling` some de `pos_settings` · E cédulas e a chave secreta ficam iguais ·
+  E as outras colunas não mudam.
+- **Status: 🧪**
