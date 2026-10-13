@@ -3,19 +3,27 @@
   "enviados": {
     "cowork-inbox/acessos/playbook/_saida-01.md": {
       "sha256": "589ae9db6305dd244bf7182175ff693860b07fe6df3e7321a8d885a30620c088",
-      "em": "2026-10-13T13:47:33.435Z"
+      "em": "2026-10-13T13:55:31.044Z"
     },
     "cowork-inbox/acessos/playbook/00-INDICE.md": {
       "sha256": "be667fcaafa2c8e92e59fcce5a4cde83a181f327de460b207dcd56431f0c0955",
-      "em": "2026-10-13T13:47:33.435Z"
+      "em": "2026-10-13T13:55:31.044Z"
     },
     "cowork-inbox/compras/playbook/_saida-05.md": {
       "sha256": "a8cf2fb616b2241ea4882a4857b8b0684b49e01754b69c3809901844f996233a",
-      "em": "2026-10-13T13:47:33.435Z"
+      "em": "2026-10-13T13:55:31.044Z"
+    },
+    "cowork-inbox/compras/playbook/_saida-06.md": {
+      "sha256": "37d5d9d24817bcc316ac64f4e758a119226167687588658f20056be0e8b12ea3",
+      "em": "2026-10-13T13:55:56.522Z"
+    },
+    "cowork-inbox/compras/playbook/_saida-A2.md": {
+      "sha256": "c859904c35bf1925e1fbb85a995daafba313edf650e3c129cd88f93cd61dbebd",
+      "em": "2026-10-13T13:43:02.202Z"
     },
     "cowork-inbox/compras/playbook/00-INDICE.md": {
       "sha256": "20bd1350db0e0d85faf29ec71cfcab05d63272ad2462b641235ed3d3acb25b7a",
-      "em": "2026-10-13T13:47:33.435Z"
+      "em": "2026-10-13T13:55:31.044Z"
     },
     "cowork-inbox/crm/playbook/_saida-10.md": {
       "sha256": "3f70842a403c82816ca43b602eb782eef96fa68775e4f55e1c5fd97fa3a8936a",
@@ -183,7 +191,11 @@
     },
     "cowork-inbox/sistema/playbook/_saida-08d.md": {
       "sha256": "5b9d98eafdedee64d2a2393e856b3c34f759e609d9d9ef93bb2b7f5abac3433d",
-      "em": "2026-10-13T13:47:33.435Z"
+      "em": "2026-10-13T13:55:31.044Z"
+    },
+    "cowork-inbox/sistema/playbook/_saida-09.md": {
+      "sha256": "80b1d30b5f7f6108f85fb62bda82126433c3c5a0885ebdee5b2e5120467c7681",
+      "em": "2026-10-13T13:43:02.202Z"
     },
     "cowork-inbox/sistema/playbook/_saida-10.md": {
       "sha256": "ec8402e0df5129ba1629b311234a9f944f80d3230ef9447ea8e086bf86cb7524",
@@ -196,6 +208,10 @@
     "cowork-inbox/sistema/playbook/_saida-12.md": {
       "sha256": "507049b6faf0544364b634014a238ca240f6f57b95e924a6062770746f432e90",
       "em": "2026-10-09T17:43:35.125Z"
+    },
+    "cowork-inbox/sistema/playbook/_saida-13.md": {
+      "sha256": "439f05c5fedfedab250e69c800170e65b1c660bdedf14ce5655eea17dd0a7e54",
+      "em": "2026-10-13T13:43:02.202Z"
     },
     "cowork-inbox/superadmin/playbook/_saida-08.md": {
       "sha256": "c94c76ab80a3e6721161b9622bc736a6298cebef15e0b8332f26baac7dea53dd",
