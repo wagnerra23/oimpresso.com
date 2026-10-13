@@ -1,0 +1,25 @@
+{
+  "_": "A1 [CL] 2026-10-13 — playbook cliente. Rota `clientes` do espelho (window.CliRotas, clientes-page.jsx); mapa rota↔Page da _saida-00: `clientes` = `Cliente/Index`, lista no papel Clientes, sem filtro. Rota de boot: a lista pula o esqueleto (fix da _saida-00). Tema dark (default do espelho), viewport 1280x900, browser limpo. `linha` = 1ª tbody > tr.cli-row: é a `tableRow` que a ficha pede (o __DD_ROLES é do design-diff, não do alvo.mjs — mesmo caso da _saida-A2).",
+  "_mapa": "alvo:mapa --rota clientes --quieto-ms 2000, 2026-10-13: raiz '.main-body > .cli-page' → header.os-page-h(2) · nav.ds-tabbar(6) · div.cli-kpihero(6) · div.cli-toolbar-v2(2) · div.os-table-wrap(1) · div.cli-pag(2); raiz '... > .os-table-wrap > table' → thead(1) · tbody(15); tbody → tr.cli-row(11) ×15",
+  "cabecalho": {
+    "seletor": ".main-body > .cli-page > header.os-page-h"
+  },
+  "abas": {
+    "seletor": ".main-body > .cli-page > nav.ds-tabbar"
+  },
+  "kpis": {
+    "seletor": ".main-body > .cli-page > .cli-kpihero"
+  },
+  "toolbar": {
+    "seletor": ".main-body > .cli-page > .cli-toolbar-v2"
+  },
+  "tabela": {
+    "seletor": ".main-body > .cli-page > .os-table-wrap"
+  },
+  "linha": {
+    "seletor": ".main-body > .cli-page > .os-table-wrap > table > tbody > tr.cli-row:first-child"
+  },
+  "paginacao": {
+    "seletor": ".main-body > .cli-page > .cli-pag"
+  }
+}
