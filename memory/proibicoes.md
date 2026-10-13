@@ -1884,6 +1884,10 @@ Ocorrência da **LC-08**.
 
 - **O limite (variante também proibida):** é emenda da lápide de 2026-07-27, mesma família: no Patrimônio (`Modules/AssetManagement`), retenção é **anonimizar o vínculo pessoal mantendo a linha**: `activity_log` e `asset_transactions` nunca perdem linha, o executor roda por empresa e nasce com `ASSETMANAGEMENT_RETENTION_ENABLED=false`. Ligar é D-CANARY-LGPD, do [W]. **Não estender esta reabertura à Jana** (`jana:retention-purge`, item #6 do loop): a decisão de 07/10 fala da 05 do Patrimônio, e a Jana segue sob a lápide-mãe até decisão [W] própria.
 
+### 2026-10-13 — EMENDA da emenda acima (retenção no Patrimônio): a reabertura foi REVOGADA por [W] no mesmo dia, e a ADR 0430 foi recusada
+
+- **O limite (variante também proibida):** não re-propor retenção, anonimização ou purge por TTL no Patrimônio (`Modules/AssetManagement`), nem o comando `assetmanagement:retention-purge`, sob qualquer nome. Vale a lápide-mãe de 2026-07-27: num ERP o dado tem dever de guarda e o controle é por permissão de acesso. A thread 05 do playbook `patrimonio` volta a ser não executável; corrigir o índice dela é pedido ao Cowork, não edição no espelho. Fica fora desta revogação a troca das chaves `am_*` pelos nomes reais das tabelas no `retention.php`: é fato de schema, não decisão de retenção.
+
 ## Sempre fazer
 
 - ✅ **LIGUE A MÁQUINA — máquina é sempre melhor que fazer na mão** ([W] 2026-07-26, textual: *"isso ligue as maquinas, é sempre melhor que fazer na mão. isso é regra no sistema. deve ser"*). Ordem obrigatória, nesta sequência:
