@@ -87,7 +87,7 @@ function SituacaoCelula({ sinal }: { sinal: Sinal }) {
   return <Badge variant="neutral">Fechado</Badge>;
 }
 
-export default function Caixa({ filtro, limiar_alta, contagem, sinais }: Props) {
+export default function VozDoClienteCaixa({ filtro, limiar_alta, contagem, sinais }: Props) {
   const linhas = sinais?.data ?? [];
   const contadorDe = (id: Situacao | null) => (id === null ? contagem.total : contagem[id]);
 
