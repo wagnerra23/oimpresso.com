@@ -1,0 +1,244 @@
+{
+  "aguardou_sumir": null,
+  "ausentes": [],
+  "base": {
+    "assinatura": "OI WR Essenciais 6 tarefa s em aberto · 1 atrasada · 5 documentos · 9 lembretes no calendário Administrador Gestor de equipe Colaborador Com dados Primeira vez Demonstração Essentials · /essentials HRM Tarefas 6 Documentos 5 Memorandos 4 Lembretes 9 Mensagens 3 Base de conhecimento Configurações Adicionar categoria Balcão e atendimento Receber arte do cliente Checklist do arquivo Quando cobrar tratamento De-acordo do cliente Produção Administrativo Receber arte do cliente Só entra em produção arquivo fechado em PDF/X-4 ou AI com fontes convertidas. JPG de WhatsApp não vale: peça o original ou lance o tratamento de arte no orçamento. O que aceitar PDF/X-4 com sangria e marcas AI ou EPS com fontes convertidas em curva Imagem em alta no tamanho final (mínimo 72 dpi a 1:1) O que devolver pro cliente Print de tela, foto de arte impressa e JPG de WhatsApp voltam com pedido do arquivo original — ou entram como tratamento de arte cobrado por hora. Checklist do arquivo Sangria de 2 cm em lona · resolução mínima de 72 dpi no tamanho final · cor em CMYK com o … Quando cobrar tratamento Arquivo em baixa, vetor sem fonte, arte montada em Word ou Canva sem exportação. Cobrança … Editar Adicionar seção Excluir",
+    "roles": {
+      "celulas": null,
+      "chart": null,
+      "contratos": [],
+      "filterRows": null,
+      "kpi": {
+        "count": 0,
+        "items": [],
+        "overflowX": null,
+        "tag": null
+      },
+      "primary": null,
+      "shell": null,
+      "tabela": null,
+      "title": null
+    },
+    "saude": {
+      "folhasVazias": [],
+      "nFolhas": 76,
+      "tokensMortos": []
+    },
+    "theme": "dark",
+    "url": "http://127.0.0.1:5561/"
+  },
+  "nos_totais": 488,
+  "quieto_ms": 2000,
+  "rota": "ess-kb",
+  "secoes": {
+    "abas": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "proprio",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.26 0.006 240)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "flex",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "0px",
+        "padding": "0px"
+      },
+      "filhos": 7,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "button",
+        "button",
+        "button",
+        "button",
+        "button",
+        "button",
+        "button"
+      ],
+      "rect": {
+        "h": 38,
+        "w": 1176
+      },
+      "seletor": ".main-body > .ess-page > nav.ds-tabbar",
+      "truncado": false
+    },
+    "artigo": {
+      "contraste": {
+        "fundo": "oklch(0.3 0.008 240)",
+        "fundo_de": "proprio",
+        "razao": 11.42,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.027108,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.3 0.008 240)",
+        "borderRadius": "12px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "block",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "padding": "18px"
+      },
+      "filhos": 5,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.3 0.008 240)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "h2",
+        "ess-texto",
+        "ess-kb-rico",
+        "ess-kb-filhos",
+        "ess-kb-acoes"
+      ],
+      "rect": {
+        "h": 430,
+        "w": 968
+      },
+      "seletor": ".main-body > .ess-page > .hrm-body > .ess-kb > article.ess-kb-doc",
+      "truncado": false
+    },
+    "cabecalho": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "proprio",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.26 0.006 240)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "flex",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "12px",
+        "padding": "14px 0px"
+      },
+      "filhos": 2,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "div",
+        "div"
+      ],
+      "rect": {
+        "h": 80,
+        "w": 1176
+      },
+      "seletor": ".main-body > .ess-page > .oi-ph > header",
+      "truncado": false
+    },
+    "navegacao": {
+      "contraste": {
+        "fundo": "oklch(0.3 0.008 240)",
+        "fundo_de": "proprio",
+        "razao": 11.42,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.027108,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.3 0.008 240)",
+        "borderRadius": "12px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "flex",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "2px",
+        "padding": "8px"
+      },
+      "filhos": 3,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.3 0.008 240)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "ess-kb-cat",
+        "ess-kb-cat",
+        "ess-kb-cat"
+      ],
+      "rect": {
+        "h": 229,
+        "w": 240
+      },
+      "seletor": ".main-body > .ess-page > .hrm-body > .ess-kb > aside.ess-kb-nav",
+      "truncado": false
+    },
+    "toolbar": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "os-page",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "flex",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "10px",
+        "padding": "0px"
+      },
+      "filhos": 2,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "hrm-body"
+        },
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "os-page"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "usr-search",
+        "os-btn"
+      ],
+      "rect": {
+        "h": 36,
+        "w": 1200
+      },
+      "seletor": ".main-body > .ess-page > .hrm-body > .hrm-toolbar",
+      "truncado": false
+    }
+  },
+  "tela": "essenciais--conhecimento--index",
+  "url": "http://127.0.0.1:5561/"
+}

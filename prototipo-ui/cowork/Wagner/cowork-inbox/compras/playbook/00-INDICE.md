@@ -266,7 +266,7 @@ Thread `feito` = `_saida-NN.md` com os 5 itens **e** provas verdes lendo o `main
       "nao_toca": [
         "resources/js/Pages/Purchase/_components/GradeMatrixInput.tsx"
       ],
-      "bloqueio": "D-GRADE: status_note do charter v2 diz 'aguarda smoke/canary Wagner'. Gate humano [W2] — nenhum arquivo destrava.",
+      "bloqueio_resolvido": "2026-10-13: [W] aprovou o screenshot da grade (_saida-05). Era: D-GRADE: status_note do charter v2 diz 'aguarda smoke/canary Wagner'. Gate humano [W2] — nenhum arquivo destrava.",
       "depende_decisoes": [
         "D-GRADE"
       ],
