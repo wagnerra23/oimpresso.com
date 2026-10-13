@@ -66,8 +66,14 @@ beforeEach(function () {
 });
 
 afterEach(function () {
-    DB::table('nfse_provider_configs')->where('id', $this->configId ?? 0)->delete();
-    DB::table('nfe_certificados')->where('id', $this->certId ?? 0)->delete();
+    // Roda mesmo quando o beforeEach pulou o teste (lane SQLite sem as tabelas): sem guarda,
+    // a limpeza vira QueryException e o skip legítimo sai como falha.
+    if (Schema::hasTable('nfse_provider_configs')) {
+        DB::table('nfse_provider_configs')->where('id', $this->configId ?? 0)->delete();
+    }
+    if (Schema::hasTable('nfe_certificados')) {
+        DB::table('nfe_certificados')->where('id', $this->certId ?? 0)->delete();
+    }
 });
 
 it('R-NFSE-004 montarPayload lê o certificado da config: PFX binário em base64 uma vez e a senha decriptada', function () {
