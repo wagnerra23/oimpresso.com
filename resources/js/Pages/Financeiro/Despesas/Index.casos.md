@@ -41,14 +41,26 @@ last_run: "2026-10-13"
 - **Regressão que defende:** paridade item 20 — a tela nova não reimplementa a exclusão, chama o `destroy` existente.
 - **Status: 🧪**
 
+## UC-DESPES-06 `[V0]` · Nova despesa grava o total que digitei, e as duas listas mostram o mesmo número
+- **Aceite:** Dado que digito 1.234,56 na Nova despesa · Quando cadastro · Então a tela envia "1234,56", o banco grava 1234.56, e a lista nova e a antiga mostram 1234.56.
+- **Teste:** `DespesasIndexContratoTest` (servidor + duas leituras) e `tests/js/despesas-total-envio.test.ts` (o que a tela envia; nunca ponto, que o `num_uf` leria como milhar).
+- **Status: 🧪**
+
+## UC-DESPES-07 · A data da Nova despesa e a da Blade gravam o mesmo instante
+- **Aceite:** Dado 05/03/2026 14:30 · Quando cadastro pela tela nova (ISO) e pela Blade (formato da empresa) · Então as duas gravam 2026-03-05 14:30:00.
+- **Regressão que defende:** a troca de `uf_date` por `uf_datetime_input` no `createExpense`.
+- **Status: 🧪**
+
 ---
 
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
 - **[BACKLOG]** Chego à tela pelo menu: o dropdown core "Despesas" fica escondido com o Financeiro habilitado (decisão [W] 2026-05-20), e a sub-navegação do Financeiro ainda não tem a aba. O caminho de entrada é decisão antes de ligar a flag.
 - **[BACKLOG]** Pagamento (adicionar e ver) direto na tela nova. Hoje o drawer manda para a tela clássica: as rotas de pagamento só devolvem fragmento de modal da Blade, e escrever valor aqui é decisão [W] (regra mestre de VALOR).
-- **[BACKLOG]** Nova despesa — US-MWART-018.
+- **[BACKLOG]** Nova despesa: documento anexo, recorrência e linha de pagamento seguem na tela clássica.
+- **[BACKLOG]** Categorias de despesa em React — resto da US-MWART-018.
 
 ## Trilha do tempo
 - 2026-10-13 · [CL] carimbado por criar-tela.mjs e preenchido na US-MWART-015/016 (thread financeiro/13).
 - 2026-10-13 · [CL] US-MWART-017: drawer 760 com os dados da linha + Editar, Documento, Excluir; UC-DESPES-05.
+- 2026-10-13 · [CL] US-MWART-018 (parte 1): Nova despesa; UC-DESPES-06/07.

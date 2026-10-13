@@ -25,11 +25,12 @@ import {
 } from '@/Components/ui/alert-dialog';
 import { Input } from '@/Components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
-import { PageHeader } from '@/Components/PageHeader';
+import { PageHeader, PageHeaderPrimary } from '@/Components/PageHeader';
 import DataTable, { type PaginatorShape } from '@/Components/shared/DataTable';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Inline, Stack } from '@/Components/layout';
 import FinanceiroSubNav from '@/Pages/Financeiro/_shared/FinanceiroSubNav';
+import NovaDespesaSheet, { type OpcoesNova } from './_components/NovaDespesaSheet';
 
 export interface Despesa {
   id: number; data: string; ref: string; estorno: boolean; recorrente: boolean; gerada_de: string | null;
@@ -38,7 +39,7 @@ export interface Despesa {
   criado_por: string; documento: string | null;
 }
 type Lista = Record<string, string>;
-interface Opcoes { locais: Lista; usuarios: Lista; contatos: Lista; categorias: Lista; subcategorias: Lista }
+type Opcoes = OpcoesNova;
 type Filtros = Record<'location_id' | 'expense_for' | 'contact_id' | 'expense_category_id' | 'expense_sub_category_id' | 'payment_status' | 'start_date' | 'end_date', string>;
 interface Props { filtros: Filtros; opcoes?: Opcoes; despesas?: PaginatorShape<Despesa>; pode: { add: boolean; edit: boolean; delete: boolean } }
 
@@ -125,6 +126,7 @@ function DespesasIndex({ filtros, opcoes, despesas, pode }: Props) {
   const [aberta, setAberta] = useState<Despesa | null>(null);
   const [confirmar, setConfirmar] = useState(false);
   const [aviso, setAviso] = useState('');
+  const [nova, setNova] = useState(false);
 
   async function excluir() {
     if (!aberta) return;
@@ -150,7 +152,10 @@ function DespesasIndex({ filtros, opcoes, despesas, pode }: Props) {
     <div className="fin-curadoria">
       <div data-contract="cabecalho">
         <PageHeader title="Despesas" subtitle={<>Lançamentos de despesa e estorno, com o que falta pagar</>}>
-          <div className="ml-auto flex flex-shrink-0 items-center gap-1.5"><FinanceiroSubNav active="despesas" hidePrimary /></div>
+          <div className="ml-auto flex flex-shrink-0 items-center gap-1.5">
+            <FinanceiroSubNav active="despesas" hidePrimary />
+            {pode.add && opcoes && <PageHeaderPrimary label="Nova despesa" onClick={() => setNova(true)} />}
+          </div>
         </PageHeader>
       </div>
 
@@ -225,6 +230,11 @@ function DespesasIndex({ filtros, opcoes, despesas, pode }: Props) {
           )}
         </SheetContent>
       </Sheet>
+
+      {opcoes && (
+        <NovaDespesaSheet aberta={nova} fechar={() => setNova(false)} opcoes={opcoes}
+          gravou={(msg) => { setNova(false); setAviso(msg); router.reload({ only: ['despesas'] }); }} />
+      )}
 
       <AlertDialog open={confirmar} onOpenChange={setConfirmar}>
         <AlertDialogContent data-contract="confirm-excluir">

@@ -5842,7 +5842,9 @@ class TransactionUtil extends Util
                 $transaction_data['final_total']
             ) : $transaction_data['final_total'];
         if ($request->has('transaction_date')) {
-            $transaction_data['transaction_date'] = $format_data ? $this->uf_date($transaction_data['transaction_date'], true) : $transaction_data['transaction_date'];
+            // uf_datetime_input aceita o formato da empresa (o que a Blade manda) e o ISO do
+            // <input type="datetime-local"> da tela Financeiro/Despesas (US-MWART-018). Só a data muda.
+            $transaction_data['transaction_date'] = $format_data ? $this->uf_datetime_input($transaction_data['transaction_date']) : $transaction_data['transaction_date'];
         } else {
             $transaction_data['transaction_date'] = \Carbon::now();
         }

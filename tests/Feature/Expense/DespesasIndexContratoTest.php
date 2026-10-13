@@ -14,6 +14,8 @@ use Illuminate\Support\Facades\Schema;
  * UC-DESPES-03        — sem período, abre no ano fiscal.
  * UC-DESPES-04        — flag desligada, ou `?classico=1`, servem a Blade.
  * UC-DESPES-05 `[T0]` — excluir pela tela apaga a minha despesa e não alcança a de outro negócio.
+ * UC-DESPES-06 `[V0]` — nova despesa: o total que a tela manda ("1234,56") grava 1234.56, conferido por 2 leituras.
+ * UC-DESPES-07        — nova despesa: data ISO da tela e data no formato da empresa (Blade) gravam o mesmo instante.
  *
  * Trio: resources/js/Pages/Financeiro/Despesas/{Index.charter.md,Index.casos.md}
  * Tier 0 (ADR 0093 + ADR 0358): tenant 98 x business 2; a despesa alheia usa o MEU local, então só o
@@ -169,4 +171,66 @@ it('UC-DESPES-05 · excluir pela tela apaga a minha despesa e não alcança a de
 
     expect(DB::table('transactions')->where('id', $minha)->exists())->toBeFalse(); // controle positivo
     expect(DB::table('transactions')->where('id', $alheia)->exists())->toBeTrue();  // Tier 0
+});
+
+function dicEntrarCom($test, array $permissoes): void
+{
+    $test->user = $test->usuarioComPermissoes($permissoes, $test->business);
+    $test->actingAs($test->user);
+    session(['user.business_id' => $test->business->id, 'user.id' => $test->user->id, 'business.id' => $test->business->id]);
+}
+
+/** O store passa por isSubscribed() quando o Superadmin está instalado. */
+function dicAssinatura($test): void
+{
+    if (app(\App\Utils\ModuleUtil::class)->isSuperadminInstalled() && Schema::hasTable('subscriptions')) {
+        DB::table('subscriptions')->insert([
+            'business_id' => $test->business->id, 'package_id' => 0, 'package_price' => 0,
+            'start_date' => now()->subDay()->toDateString(), 'end_date' => now()->addDay()->toDateString(),
+            'package_details' => json_encode([]), 'created_id' => $test->user->id,
+            'status' => 'approved', 'created_at' => now(), 'updated_at' => now(),
+        ]);
+    }
+}
+
+it('UC-DESPES-06 · nova despesa: o total que a tela manda grava 1234.56, e as duas listas leem 1234.56', function () {
+    dicEntrarCom($this, ['all_expense.access', 'access_all_locations', 'expense.add']);
+    dicAssinatura($this);
+    $ref = 'DIC6'.uniqid();
+
+    // A mesma chamada da NovaDespesaSheet: POST ajax, total com 2 casas e vírgula decimal, data ISO.
+    $this->withHeaders(['X-Requested-With' => 'XMLHttpRequest', 'Accept' => 'application/json'])
+        ->post('/expenses', ['ref_no' => $ref, 'location_id' => $this->local, 'final_total' => '1234,56', 'transaction_date' => '2026-03-05 14:30'])
+        ->assertOk()->assertJsonPath('success', 1);
+
+    $linha = DB::table('transactions')->where('ref_no', $ref)->first();
+    expect($linha)->not->toBeNull();
+    expect((int) $linha->business_id)->toBe((int) $this->business->id);
+    expect((float) $linha->final_total)->toBe(1234.56);
+
+    // Leitura 1: payload da tela nova. Leitura 2: JSON do DataTable da Blade.
+    $nova = dicLinhas($this, $ref);
+    $antiga = collect($this->withHeaders(['X-Requested-With' => 'XMLHttpRequest', 'Accept' => 'application/json'])
+        ->get('/expenses?length=-1')->assertOk()->json('data'))
+        ->first(fn ($l) => str_starts_with((string) $l['ref_no'], $ref));
+    preg_match('/data-orig-value="([^"]+)"/', (string) ($antiga['final_total'] ?? ''), $m);
+
+    expect($nova[$ref]['total'])->toEqual(1234.56);
+    expect((float) ($m[1] ?? 'NaN'))->toEqual(1234.56);
+});
+
+it('UC-DESPES-07 · nova despesa: data ISO da tela e data no formato da empresa gravam o mesmo instante', function () {
+    dicEntrarCom($this, ['all_expense.access', 'access_all_locations', 'expense.add']);
+    dicAssinatura($this);
+    session(['business.date_format' => 'd/m/Y', 'business.time_format' => 24]);
+    $ajax = ['X-Requested-With' => 'XMLHttpRequest', 'Accept' => 'application/json'];
+    $tag = 'DIC7'.uniqid();
+
+    $this->withHeaders($ajax)->post('/expenses', ['ref_no' => "$tag-iso", 'location_id' => $this->local, 'final_total' => '10', 'transaction_date' => '2026-03-05 14:30'])
+        ->assertOk()->assertJsonPath('success', 1);
+    $this->withHeaders($ajax)->post('/expenses', ['ref_no' => "$tag-blade", 'location_id' => $this->local, 'final_total' => '10', 'transaction_date' => '05/03/2026 14:30'])
+        ->assertOk()->assertJsonPath('success', 1);
+
+    expect((string) DB::table('transactions')->where('ref_no', "$tag-iso")->value('transaction_date'))->toBe('2026-03-05 14:30:00');
+    expect((string) DB::table('transactions')->where('ref_no', "$tag-blade")->value('transaction_date'))->toBe('2026-03-05 14:30:00');
 });

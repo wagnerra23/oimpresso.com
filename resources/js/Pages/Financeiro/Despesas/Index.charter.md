@@ -32,6 +32,8 @@ Ver as despesas e os estornos do período, com quanto falta pagar, filtrando com
 - Filtros da Blade: local, despesa para, contato, categoria, subcategoria, status de pagamento e período (padrão = ano fiscal).
 - Colunas da Blade, estorno com selo e valores negativos, selos de recorrência.
 - Rodapé com total, devido e contagem por status **da página visível**, igual à Blade.
+- Drawer da despesa com Editar, Documento e Excluir (mesmo `destroy`); pagamento na tela clássica.
+- Nova despesa pelo mesmo `store`: total enviado com 2 casas e vírgula decimal; data ISO.
 - PT-BR em todo label/placeholder/mensagem.
 
 ## Non-Goals — Features (NÃO faz)

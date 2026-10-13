@@ -216,6 +216,9 @@ class ExpenseController extends Controller
             'contatos' => Contact::contactDropdown($business_id, false, false),
             'categorias' => ExpenseCategory::where('business_id', $business_id)->whereNull('parent_id')->pluck('name', 'id'),
             'subcategorias' => ExpenseCategory::where('business_id', $business_id)->whereNotNull('parent_id')->pluck('name', 'id'),
+            // Nova despesa (US-MWART-018): a Blade filtra a subcategoria pela categoria via AJAX; aqui vai o mapa.
+            'subcategoria_pai' => ExpenseCategory::where('business_id', $business_id)->whereNotNull('parent_id')->pluck('parent_id', 'id'),
+            'impostos' => TaxRate::forBusinessDropdown($business_id, true, true)['tax_rates'],
         ];
     }
 
