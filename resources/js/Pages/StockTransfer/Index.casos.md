@@ -4,7 +4,7 @@ irmaos: Index.charter.md (lei) · Index.tsx
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: a lista mostra o que saiu de uma filial e entrou em outra; empresa misturada ou filtro quebrado escondem mercadoria em trânsito.
 owner: wagner
-last_run: "2026-10-06"
+last_run: "2026-10-13"
 last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane PHP / Pest (Estoque · MySQL)"
 ---
 

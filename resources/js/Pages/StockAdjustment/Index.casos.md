@@ -4,7 +4,7 @@ irmaos: Index.charter.md (lei) · Index.tsx
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: a lista é onde se confere perda e quebra; se ela mistura empresa ou não filtra, o inventário é conferido errado.
 owner: wagner
-last_run: "2026-10-06"
+last_run: "2026-10-13"
 last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane PHP / Pest (Estoque · MySQL)"
 ---
 
