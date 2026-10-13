@@ -141,3 +141,23 @@ test('UC-NOT-07 partial reload de padroes traz o texto de fábrica por modelo, s
     expect($r->json('props.padroes.new_sale'))->toHaveKeys(['subject', 'email_body', 'sms_body', 'whatsapp_text']);
     expect(NotificationTemplate::where('business_id', $this->business->id)->count())->toBe($antes);
 });
+
+test('UC-NOT-09 previa devolve o HTML limpo pelo mesmo HtmlSanitizer do envio, sem gravar', function () {
+    $antes = NotificationTemplate::where('business_id', $this->business->id)->count();
+    $html = '<p>Olá <strong>Maria</strong></p><script>alert(1)</script><img src=x onerror="alert(2)">';
+    $r = $this->postJson('/notification-templates/previa', ['html' => $html])->assertOk();
+    expect($r->json('html'))->toBe(\App\Util\HtmlSanitizer::clean($html));
+    expect($r->json('html'))->toContain('<strong>Maria</strong>');
+    expect($r->json('html'))->not->toContain('<script');
+    expect($r->json('html'))->not->toContain('onerror');
+    expect(NotificationTemplate::where('business_id', $this->business->id)->count())->toBe($antes);
+});
+
+test('UC-NOT-01 previa nega sem send_notification', function () {
+    $this->actingAs($this->usuarioComPermissoes([], $this->business))
+        ->postJson('/notification-templates/previa', ['html' => '<p>x</p>'])->assertForbidden();
+});
+
+test('UC-NOT-09 previa recusa corpo que não é texto', function () {
+    $this->postJson('/notification-templates/previa', ['html' => ['nao', 'texto']])->assertUnprocessable();
+});

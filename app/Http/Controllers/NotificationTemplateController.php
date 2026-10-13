@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\NotificationTemplate;
+use App\Util\HtmlSanitizer;
 use App\Services\FeatureFlagService;
 use App\Notifications\CustomerNotification;
 use App\Utils\ModuleUtil;
@@ -231,6 +232,21 @@ class NotificationTemplateController extends Controller
      * transformaria a rota num relay aberto autenticado. O throttle vive na rota
      * (`throttle:6,1`), não aqui, para valer também no 429 antes de tocar o controller.
      */
+    /**
+     * Prévia do corpo do e-mail limpa pelo mesmo HtmlSanitizer que o CustomerNotification e o
+     * SupplierNotification aplicam no envio. A tela mostra o que o destinatário receberia.
+     */
+    public function previa(Request $request)
+    {
+        if (! auth()->user()->can('send_notification')) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $validado = $request->validate(['html' => 'present|nullable|string|max:100000']);
+
+        return response()->json(['html' => HtmlSanitizer::clean($validado['html'] ?? '')]);
+    }
+
     public function test(Request $request)
     {
         if (! auth()->user()->can('send_notification')) {

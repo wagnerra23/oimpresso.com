@@ -83,7 +83,7 @@ Status: Inserção no cursor do assunto medida em vitest; navegador pendente.
 Dado o cursor no meio do assunto, quando clico o chip `{invoice_number}`, então a tag entra naquela posição e o cursor fica depois dela.
 
 ## UC-NOT-09 — Inserir tag no corpo · —
-Status: Chip no editor Visual entra no HTML e a prévia mostra o valor de exemplo, medidos em vitest; navegador pendente.
+Status: Chip no editor Visual entra no HTML e a prévia mostra o valor de exemplo, medidos em vitest. A prévia exibe só o HTML devolvido pelo `HtmlSanitizer` (`POST /notification-templates/previa`, DualTest) e, se o servidor falhar, mostra aviso em vez do HTML cru; navegador pendente.
 Dado o editor Visual focado, quando clico um chip, então a tag entra no HTML do corpo e a prévia passa a mostrar o valor de exemplo correspondente.
 
 ## UC-NOT-10 — Tag desconhecida · R7 · T12
