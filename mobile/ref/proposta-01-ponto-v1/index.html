@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>App das lojas — Ponto na v1 (proposta 01)</title>
+<link rel="stylesheet" href="../../../prototipo-ui/design-system/colors_and_type.css">
+<style>
+  /* Proposta da thread 01 (app-lojas). So tokens do DS; nenhuma cor crua.
+     O tema segue o celular (D14): data-theme vem de prefers-color-scheme. */
+  body { margin: 0; }
+  .doc { min-height: 100vh; padding: 40px 32px 64px; background: var(--bg-2); color: var(--text); font-family: var(--font-sans); }
+  .doc h1 { font-size: 22px; font-weight: 600; margin: 0 0 6px; }
+  .doc .lede { color: var(--text-dim); font-size: 14px; line-height: 1.5; max-width: 860px; margin: 0 0 28px; }
+  .grid { display: flex; flex-wrap: wrap; gap: 32px; align-items: flex-start; }
+  .col { display: flex; flex-direction: column; gap: 10px; width: 360px; }
+  .cap { font-size: 13px; font-weight: 600; }
+  .cap small { display: block; font-weight: 400; color: var(--text-mute); font-family: var(--font-mono); font-size: 11px; margin-top: 2px; }
+  .note { font-size: 12.5px; color: var(--text-dim); line-height: 1.45; }
+
+  /* ---- shell do app: sem moldura de aparelho, com safe-area real (item d) ---- */
+  .oi-app { position: relative; height: 720px; display: flex; flex-direction: column; background: var(--bg); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+  .oi-app .top { padding: calc(12px + env(safe-area-inset-top)) 16px 10px; border-bottom: 1px solid var(--border); background: var(--surface); }
+  .oi-app .top .t { font-size: 17px; font-weight: 600; }
+  .oi-app .top .s { font-size: 12px; color: var(--text-mute); }
+  .oi-app .body { flex: 1; overflow: auto; padding: 14px 16px; display: flex; flex-direction: column; gap: 12px; }
+  .tabbar { display: flex; border-top: 1px solid var(--border); background: var(--surface); padding: 6px 4px calc(6px + env(safe-area-inset-bottom)); }
+  .tab { flex: 1; min-height: 48px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; color: var(--text-mute); font-size: 11px; }
+  .tab svg { width: 22px; height: 22px; }
+  .tab .pill { padding: 3px 14px; border-radius: 999px; display: flex; }
+  .tab.on { color: var(--accent); font-weight: 600; }
+  .tab.on .pill { background: var(--accent-soft); }
+
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 12px; }
+  .row { display: flex; align-items: center; gap: 10px; min-height: 48px; }
+  .row + .row { border-top: 1px solid var(--border); }
+  .av { width: 32px; height: 32px; border-radius: 999px; background: var(--accent-soft); color: var(--accent); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; flex: none; }
+  .who { flex: 1; min-width: 0; }
+  .who .n { font-size: 14px; font-weight: 500; }
+  .who .f { font-size: 12px; color: var(--text-mute); }
+  .st { font-size: 12px; text-align: right; }
+  .st .h { font-family: var(--font-mono); font-size: 11.5px; color: var(--text-mute); display: block; }
+  .dot { display: inline-block; width: 8px; height: 8px; border-radius: 999px; margin-right: 6px; vertical-align: middle; }
+  .pos { background: var(--pos); } .warn { background: var(--warn); } .neg { background: var(--neg); } .mute { background: var(--text-mute); }
+  .kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+  .kpi { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 8px; }
+  .kpi b { display: block; font-size: 18px; } .kpi span { font-size: 11px; color: var(--text-mute); }
+  .seg { display: flex; gap: 6px; }
+  .seg span { padding: 6px 10px; border-radius: 999px; font-size: 12px; border: 1px solid var(--border); color: var(--text-dim); }
+  .seg span.on { background: var(--accent-soft); color: var(--accent); border-color: transparent; }
+  .eyebrow { font-size: 10.5px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text-mute); }
+  .clock { font-family: var(--font-mono); font-size: 40px; font-weight: 600; text-align: center; }
+  .btn { min-height: 48px; border-radius: 10px; background: var(--accent); color: var(--accent-fg); display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 15px; }
+  .legal { font-size: 11.5px; color: var(--text-mute); line-height: 1.4; }
+  pre { margin: 0; font-family: var(--font-mono); font-size: 11.5px; line-height: 1.5; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 12px; white-space: pre-wrap; color: var(--text-dim); }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-home" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11 12 4l9 7"/><path d="M5 10v10h14V10"/></symbol>
+    <symbol id="i-inbox" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 13h5l2 3h4l2-3h5"/><path d="M5 5h14l2 8v6H3v-6z"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+    <symbol id="i-file" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4"/></symbol>
+    <symbol id="i-grid" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="7" height="7"/><rect x="13" y="4" width="7" height="7"/><rect x="4" y="13" width="7" height="7"/><rect x="13" y="13" width="7" height="7"/></symbol>
+    <symbol id="i-user" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4-6 8-6s7 2 8 6"/></symbol>
+  </defs>
+</svg>
+
+<main class="cockpit doc" id="root">
+  <h1>App das lojas · Ponto na navegação da v1</h1>
+  <p class="lede">Proposta da thread 01 (<code>cowork-inbox/app-lojas/playbook</code>) para o projeto Design "Mobile app structure review". As telas 36 Bater ponto, 37 Meu espelho e 38 Justificar já existem lá e não mudam. Esta folha cobre só o que faltava: (a) Ponto na barra de baixo, (b) perfil Colaborador abrindo no ponto (D6), (c) "Pessoas · quem está trabalhando agora" e (d) margens reais do aparelho. Escopo: todas as 40 telas entram no app (D16); Dashboard (35) e Fila do gestor (39) continuam em Mais. Nenhuma tela aqui edita ou apaga marcação.</p>
+
+  <div class="grid">
+
+    <!-- (a) barra da v1 -->
+    <div class="col">
+      <div class="cap">(a) Barra de baixo da v1 — perfil padrão da loja<small>MODS ganha a chave `ponto` → s36</small></div>
+      <div class="oi-app">
+        <div class="top"><div class="t">Início</div><div class="s">Loja Centro · terça, 29/09</div></div>
+        <div class="body">
+          <div class="card"><div class="eyebrow">Seu ponto hoje</div>
+            <div class="row"><div class="who"><div class="n">Entrada 07:02</div><div class="f">Próxima: saída para almoço</div></div><div class="st"><span class="dot pos"></span>Trabalhando</div></div>
+          </div>
+          <div class="note">O resto do Início é o da tela 01, sem mudança. O cartão acima leva à 36.</div>
+        </div>
+        <nav class="tabbar" aria-label="Navegação principal">
+          <div class="tab on"><span class="pill"><svg><use href="#i-home"/></svg></span>Início</div>
+          <div class="tab"><span class="pill"><svg><use href="#i-inbox"/></svg></span>Tarefas</div>
+          <div class="tab"><span class="pill"><svg><use href="#i-clock"/></svg></span>Ponto</div>
+          <div class="tab"><span class="pill"><svg><use href="#i-file"/></svg></span>Pedidos</div>
+          <div class="tab"><span class="pill"><svg><use href="#i-grid"/></svg></span>Mais</div>
+        </nav>
+      </div>
+      <p class="note">5 itens (limite Material). Início e Mais seguem fixos; os 3 do meio são o perfil. Produção, Pessoas (40), Dashboard (35), Validar ponto (39) e os demais ficam em Mais, como hoje. O perfil "Meu menu" (tela 30) passa a oferecer Ponto como módulo da barra.</p>
+    </div>
+
+    <!-- (b) perfil Colaborador -->
+    <div class="col">
+      <div class="cap">(b) Perfil Colaborador — abre direto na 36<small>D6 · conta de revisão `revisor.ponto`</small></div>
+      <div class="oi-app">
+        <div class="top"><div class="t">Ponto</div><div class="s">Marcos Teixeira · matrícula 0021</div>
+          <div class="seg" style="margin-top:8px"><span class="on">Bater ponto</span><span>Meu espelho</span><span>Justificar</span></div></div>
+        <div class="body">
+          <div class="clock">12:01:37</div>
+          <div class="card"><div class="row"><span class="dot pos"></span><div class="who"><div class="n">Localização confirmada</div><div class="f">Loja Centro · precisão ±18 m</div></div></div></div>
+          <div class="btn">Bater ponto — Saída almoço</div>
+          <div class="legal">Marcação imutável: correção só por justificativa, que o gestor aprova. Sem selfie nem biometria.</div>
+        </div>
+        <nav class="tabbar" aria-label="Navegação principal">
+          <div class="tab on"><span class="pill"><svg><use href="#i-clock"/></svg></span>Ponto</div>
+          <div class="tab"><span class="pill"><svg><use href="#i-inbox"/></svg></span>Tarefas</div>
+          <div class="tab"><span class="pill"><svg><use href="#i-user"/></svg></span>Conta</div>
+        </nav>
+      </div>
+      <p class="note">Quem só tem o ponto não vê módulos do ERP: a barra tem Ponto, Tarefas (justificativas pendentes, D11) e Conta (tela 00: lembrete, privacidade, sair). Não há Início nem Mais para esse perfil. Quem tem o ERP cai no perfil da loja (a). O corpo da 36 é o que já existe; aqui só o ponto de entrada e a barra mudam.</p>
+    </div>
+
+    <!-- (c) Pessoas: quem esta trabalhando agora -->
+    <div class="col">
+      <div class="cap">(c) 40 · Quem está trabalhando — Pessoas da v1<small>src/telas/Equipe.tsx · leitura do ponto do dia</small></div>
+      <div class="oi-app">
+        <div class="top"><div class="t">Quem está trabalhando</div><div class="s">Hoje · atualizado 12:02</div>
+          <div class="seg" style="margin-top:8px"><span class="on">Todos</span><span>Trabalhando</span><span>Sem marcação</span></div></div>
+        <div class="body">
+          <div class="kpis">
+            <div class="kpi"><b>3</b><span>trabalhando</span></div>
+            <div class="kpi"><b>1</b><span>no almoço</span></div>
+            <div class="kpi"><b>1</b><span>saiu</span></div>
+            <div class="kpi"><b>1</b><span>sem marcação</span></div>
+          </div>
+          <div class="card" style="padding:0 12px">
+            <div class="row"><div class="av">JM</div><div class="who"><div class="n">Jefferson Moraes</div><div class="f">Mecânico · Box 2</div></div><div class="st"><span class="dot pos"></span>Trabalhando<span class="h">desde 07:58</span></div></div>
+            <div class="row"><div class="av">AS</div><div class="who"><div class="n">André Silva</div><div class="f">Impressor</div></div><div class="st"><span class="dot pos"></span>Trabalhando<span class="h">desde 08:03</span></div></div>
+            <div class="row"><div class="av">MT</div><div class="who"><div class="n">Marcos Teixeira</div><div class="f">Instalador</div></div><div class="st"><span class="dot warn"></span>Fora da área<span class="h">desde 07:02 · a revisar</span></div></div>
+            <div class="row"><div class="av">CM</div><div class="who"><div class="n">Carla Menezes</div><div class="f">Administrativo</div></div><div class="st"><span class="dot mute"></span>No almoço<span class="h">desde 12:01</span></div></div>
+            <div class="row"><div class="av">BC</div><div class="who"><div class="n">Bruno Cruz</div><div class="f">Mecânico · Box 1</div></div><div class="st"><span class="dot mute"></span>Saiu<span class="h">às 11:30</span></div></div>
+            <div class="row"><div class="av">JL</div><div class="who"><div class="n">Joana Lima</div><div class="f">Vendas</div></div><div class="st"><span class="dot neg"></span>Sem marcação</div></div>
+          </div>
+          <div class="legal">Estado derivado da última marcação do dia. Só leitura: daqui não se marca, edita nem anula ponto. "Fora da área" leva à 39 para quem pode validar.</div>
+        </div>
+        <nav class="tabbar" aria-label="Navegação principal">
+          <div class="tab"><span class="pill"><svg><use href="#i-home"/></svg></span>Início</div>
+          <div class="tab"><span class="pill"><svg><use href="#i-inbox"/></svg></span>Tarefas</div>
+          <div class="tab"><span class="pill"><svg><use href="#i-clock"/></svg></span>Ponto</div>
+          <div class="tab"><span class="pill"><svg><use href="#i-file"/></svg></span>Pedidos</div>
+          <div class="tab on"><span class="pill"><svg><use href="#i-grid"/></svg></span>Mais</div>
+        </nav>
+      </div>
+      <p class="note">Tela nova (a 17 é clientes e fornecedores; a 26 Equipe mostra carga de OS). Mostra estado e hora, nunca endereço nem mapa: o local fica só no comprovante de cada um e na fila do gestor. Tocar numa pessoa abre as marcações dela no dia, só leitura, com NSR. Quem vê esta tela segue a permissão do ERP de ver o ponto da equipe; sem ela, a entrada não aparece em Mais.</p>
+    </div>
+
+    <!-- (d) safe-area -->
+    <div class="col">
+      <div class="cap">(d) Margens reais do aparelho<small>substitui o padding fixo de moldura</small></div>
+<pre>&lt;meta name="viewport"
+  content="width=device-width, initial-scale=1, viewport-fit=cover"&gt;
+
+/* sai */
+.oi-app[data-platform="android"] { padding: 40px 0 24px; }
+
+/* entra */
+.oi-app .top {
+  padding-top: calc(12px + env(safe-area-inset-top));
+}
+.tabbar {
+  padding-bottom: calc(6px + env(safe-area-inset-bottom));
+}
+.oi-app { padding-left: env(safe-area-inset-left);
+          padding-right: env(safe-area-inset-right); }</pre>
+      <p class="note">Medido pela sessão do app no emulador Android 16: o padding fixo escondia a barra de abas atrás da barra de gestos. Com <code>viewport-fit=cover</code> o Android e o iOS informam as margens reais; fora do aparelho o <code>env()</code> vale 0 e o desenho fica igual. Esta folha já usa as duas regras.</p>
+    </div>
+
+  </div>
+</main>
+<script>
+  // D14: segue o tema do celular.
+  (function () {
+    var m = window.matchMedia('(prefers-color-scheme: dark)');
+    var set = function () { document.getElementById('root').setAttribute('data-theme', m.matches ? 'dark' : 'light'); };
+    set(); if (m.addEventListener) m.addEventListener('change', set);
+  })();
+</script>
+</body>
+</html>
