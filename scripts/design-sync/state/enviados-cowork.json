@@ -240,6 +240,18 @@
     "venda-v3.jsx": {
       "sha256": "84ba5293b74a0c7d5a0f21d5e55f1b461612c35b53ed4cc8fc57cccc84e7899a",
       "em": "2026-10-08T15:56:45.719Z"
+    },
+    "cowork-inbox/forja/playbook/_ERRATA-INDICE-2026-10-13.md": {
+      "sha256": "bde06813a43275a01506fa7e51f0401801b36f7543bd748e5e1cfe43db73be63",
+      "em": "2026-10-13T14:44:59.712Z"
+    },
+    "cowork-inbox/manufacturing/playbook/_ERRATA-INDICE-2026-10-13.md": {
+      "sha256": "9f3216bac7ff54dcabafca4f92cae3df839c7c0e1064448cbf8e2f9fef44c2b3",
+      "em": "2026-10-13T14:44:59.712Z"
+    },
+    "cowork-inbox/patrimonio/playbook/_ERRATA-INDICE-2026-10-13.md": {
+      "sha256": "4432d8771b364cfe0b02bf3030183bc25cb68e36bbc8bb02752beca555b2cd6c",
+      "em": "2026-10-13T14:44:59.712Z"
     }
   }
 }
