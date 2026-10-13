@@ -400,10 +400,9 @@ class OpeningStockController extends Controller
     /** Produto desta empresa com controle de estoque, com as relações que a janela usa — ou null. */
     private function produtoDoEstoqueInicial(int $business_id, int $product_id): ?Product
     {
-        $product = Product::where('business_id', $business_id)
-            ->where('id', $product_id)
-            ->with(['variations', 'variations.product_variation', 'unit', 'product_locations', 'second_unit'])
-            ->first();
+        // Sem `with()`: as relações são lidas adiante por `getRelationValue` (um produto só). O Larastan
+        // não enxerga `variations` no App\Product e a catraca não deixa o baseline crescer.
+        $product = Product::where('business_id', $business_id)->where('id', $product_id)->first();
 
         return $product !== null && (int) $product->getAttribute('enable_stock') === 1 ? $product : null;
     }
@@ -438,7 +437,6 @@ class OpeningStockController extends Controller
         $transacoes = Transaction::where('business_id', $business_id)
             ->where('opening_stock_product_id', $product_id)
             ->where('type', 'opening_stock')
-            ->with(['purchase_lines'])
             ->get();
 
         $linhas = [];
@@ -634,6 +632,9 @@ class OpeningStockController extends Controller
         $request->query->replace([]);
         $request->replace(['product_id' => (int) $product->id, 'stocks' => $stocks]);
 
+        // O docblock legado do `save()` diz `Response`; de fato ele devolve o array do resultado
+        // (pedido ajax) ou um redirecionamento (falha).
+        /** @var array<string, mixed>|\Illuminate\Http\RedirectResponse $saida */
         $saida = $this->save($request);
         if (is_array($saida) && ! empty($saida['success'])) {
             return response()->json(['success' => true, 'msg' => 'Estoque inicial lançado.']);
