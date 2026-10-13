@@ -152,6 +152,10 @@ describe('a nota grava o que foi retido', function () {
     }
 
     afterEach(function () {
+        // Roda mesmo quando o beforeEach pulou o teste (lane SQLite sem as tabelas).
+        if (! Schema::hasTable('nfse_emissoes')) {
+            return;
+        }
         DB::table('nfse_emissoes')->where('business_id', NFSD_BIZ_OUTRO)
             ->where('descricao', 'like', '%R-NFSE-003%')->delete();
         DB::table('nfse_provider_configs')->where('id', $this->configId ?? 0)->delete();
