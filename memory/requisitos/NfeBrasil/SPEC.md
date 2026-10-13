@@ -598,6 +598,37 @@ E um CNPJ só numérico continua válido, com o mesmo DV de antes
 **Testado em:** `Modules/NfeBrasil/Tests/Feature/CnpjAlfanumericoTest.php` (lane `nfebrasil-pest`).
 **Fora deste item:** emitente com CNPJ alfanumérico, chave de acesso, QR Code, máscara no front e o XSD do sped-nfe (que ainda declara `TCnpj` como `[0-9]{14}`) — ver `_saida-27.md` da thread 27 do playbook Fiscal.
 
+### R-NFSE-001 · Retém 4,65% de tomador PJ no regime normal; dispensa no limite do art. 31 § 3º
+
+```gherkin
+Dado serviço de 1.500 reais pra tomador PJ, prestador em lucro presumido ou real
+Quando calculo as retenções federais da NFS-e
+Então PIS 9,75 + COFINS 45,00 + CSLL 15,00 = 69,75 reais (bateria C21)
+E com serviço de 150 reais os 4,65% dão 6,98 reais ≤ 10 reais → dispensado, com aviso
+E 10,00 reais exatos dispensa; 10,01 reais retém
+E tomador PF não retém; serviço fora da lista do art. 30 não retém
+```
+
+**Contrato:** Lei 10.833/2003, arts. 30, 31 e 31 § 3º (citados literal no docblock). NFS-e consolidada no NfeBrasil por D-NFSE-CONSOLIDA ([W] 2026-10-13).
+**Implementação:** `Modules/NfeBrasil/Services/RetencoesNfseService.php` (`calcular`, `calcularParaBusiness`).
+**Testado em:** `Modules/NfeBrasil/Tests/Feature/NfseRetencoesTest.php` (lane `nfebrasil-pest`).
+**Fora deste item:** a emissão viva da NFS-e (`Modules/NFSe`) ainda não chama o cálculo; IRRF; INSS 11%; exceção do DARF via Siafi; art. 30 § 2º (regime do tomador) — ver `_saida-23.md` da thread 23 do playbook Fiscal.
+
+### R-NFSE-002 · Prestador no Simples não retém PIS/COFINS/CSLL
+
+```gherkin
+Dado prestador optante pelo Simples (regime simples ou mei em nfe_business_configs)
+Quando calculo a NFS-e pra tomador PJ
+Então nenhuma retenção federal e o aviso "Confirme com o contador" (bateria C22)
+E mudando o regime para lucro presumido/real a retenção aparece
+E sem regime configurado não há palpite: nenhuma retenção e aviso de configuração
+E o regime lido é o do próprio tenant (98 Simples não herda o normal do 99)
+```
+
+**Contrato:** Lei 10.833/2003, art. 32, III · regime em `nfe_business_configs.regime`.
+**Implementação:** `Modules/NfeBrasil/Services/RetencoesNfseService.php`.
+**Testado em:** `Modules/NfeBrasil/Tests/Feature/NfseRetencoesTest.php` (lane `nfebrasil-pest`).
+
 ## 4. Decisões pendentes
 
 - [ ] Lib base: `eduardokum/sped-nfe` (recomendado) vs alternativa? — provavelmente sped-nfe (já maduro, BR)

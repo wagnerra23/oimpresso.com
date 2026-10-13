@@ -314,6 +314,7 @@ jobs:
             Modules/NfeBrasil/Tests/Feature/OperacaoFiscalTenantTest.php \
             Modules/NfeBrasil/Tests/Feature/TributacaoSimuladorTest.php \
             Modules/NfeBrasil/Tests/Feature/IcmsUfTest.php \
+            Modules/NfeBrasil/Tests/Feature/NfseRetencoesTest.php \
             Modules/NfeBrasil/Tests/Feature/SugestaoFiscalTest.php \
             Modules/NfeBrasil/Tests/Feature/ProdutoFiscalToolTest.php \
             Modules/NfeBrasil/Tests/Feature/AceiteContadorTest.php \
