@@ -37,7 +37,7 @@ function dpsxPayload(array $extra = []): NfseEmissaoPayload
 {
     return new NfseEmissaoPayload(...array_merge([
         'businessId' => 99, 'rpsNumero' => '123', 'competencia' => Carbon::create(2026, 10, 1),
-        'tomadorNome' => 'Tomador Teste', 'tomadorCnpj' => '11.222.333/0001-81', 'tomadorCpf' => null,
+        'tomadorNome' => 'Tomador Teste', 'tomadorCnpj' => '11.222.333/0001-81', 'tomadorCpf' => null, // pii-allowlist (CNPJ sintético de fixture; testa a remoção da máscara)
         'tomadorEmail' => 'tomador@example.com', 'descricao' => 'Manutenção predial', 'lc116Codigo' => '7.10',
         'valorServicos' => 1500.0, 'aliquotaIss' => 0.05, 'certPfxBase64' => base64_encode(dpsxPfx()),
         'certSenha' => 'senha-teste', 'ambiente' => 'homologacao', 'municipioIbge' => '4218707',
@@ -85,7 +85,7 @@ it('R-NFSE-005 a DPS assinada é válida nos XSDs oficiais v1.01 e a assinatura 
 })->with([
     'presumido, tomador CNPJ' => [[]],
     'retenção federal (R-NFSE-003)' => [['retencaoFederalSujeito' => true, 'retPisCentavos' => 975, 'retCofinsCentavos' => 4500, 'retCsllCentavos' => 1500]],
-    'Simples, tomador CPF, ISS retido' => [['regimePrestador' => 'simples', 'tomadorCnpj' => null, 'tomadorCpf' => '529.982.247-25', 'issRetido' => true, 'prestadorIm' => null]],
+    'Simples, tomador CPF, ISS retido' => [['regimePrestador' => 'simples', 'tomadorCnpj' => null, 'tomadorCpf' => '123.456.789-09', 'issRetido' => true, 'prestadorIm' => null]], // pii-allowlist (CPF sintético de teste)
     'tomador sem documento' => [['tomadorCnpj' => null, 'tomadorCpf' => null, 'tomadorEmail' => null]],
 ]);
 
