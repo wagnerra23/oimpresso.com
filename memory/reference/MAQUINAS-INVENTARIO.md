@@ -169,7 +169,7 @@ lifecycle: ativo
 | `sells-v3-dominio-gate.yml` | pr+push+manual | (só sessão/handoff · 1) | Sells V3 Domínio — parcelas · fiscal · comissão · colunas (vitest · JUnit → manifesto G-7) |
 | `shipped-log-cron.yml` | cron+manual | `memory/licoes-rejeitadas.md` +6 | Shipped log cron (auto-PR + auto-merge · regenera registro de entrega do cycle · porta de saída ADR 0294) |
 | `shipped-log-gate.yml` | pr+cron+manual | `memory/proibicoes.md` +5 | Shipped log gate (advisory · freshness do registro de entrega via --check · porta de saída ADR 0294) |
-| `spreadsheet-pest.yml` | pr+push+manual | `memory/requisitos/Spreadsheet/RUNBOOK-spreadsheet-index.md` | Spreadsheet · Pest (MySQL) |
+| `spreadsheet-pest.yml` | pr+push+manual | `memory/requisitos/Spreadsheet/RUNBOOK-spreadsheet-index.md` +1 | Spreadsheet · Pest (MySQL) |
 | `status-badge-fidelity-gate.yml` | pr+push+manual | (só sessão/handoff · 2) | StatusBadge Fidelity — pílula de status fiel ao protótipo (rounded-full · token -soft/-fg dark-aware) |
 | `stylelint-gate.yml` | pr+push+manual | `memory/requisitos/Infra/SPEC.md` +5 | Stylelint CSS anti-drift (G5 · ADR 0209) |
 | `system-map.yml` | pr+cron+manual | `memory/requisitos/Jana/ARCHITECTURE.md` +23 | system-map (automação) — regenera memory/reference/PAINEL-SISTEMA.md, memory/requisitos/Jana/ARCHITECTURE.md e ONBOARDING-AGENTE-GERADO.md das fontes canônicas. Painel de… |
