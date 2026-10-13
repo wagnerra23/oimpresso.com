@@ -1,0 +1,38 @@
+{
+  "_nota": "Derivado do alvo governance/design/targets/estoque--transferencias--index.alvo.json (thread A1 do playbook estoque, rota `est-transferencias` do protótipo), não do .tsx. Seções que existem na Page: cabecalho · toolbar · tabela, ids com prefixo est-tr-. abas · subabas · periodo · rodape do alvo não têm contraparte na Page: ela é uma tela só (sem as abas do EstoquePage nem as sub-abas de status), o período vive dentro do card de filtros e não há rodapé de totais/paginação (o vivo lista até 200 linhas sem paginar). O card de filtros é sticky: não ganhou div em volta, para não mudar o comportamento. Copy só onde protótipo e tela dizem a mesma coisa: 'Nova transferência'; a legenda dos estados (info da toolbar no protótipo; abaixo do card na Page); e os cabeçalhos de coluna iguais. Fora por divergirem (decisão [W], _saida-00): 'Todas as filiais' × 'Todos os locais', 'Sim'/'Não' × 'moveu'/'só reserva', status 'Finalizada', coluna 'Transferência' × 'Ref. Nº', 'Origem → destino' × 'Origem → Destino', coluna Itens, paginação.",
+  "tela": "StockTransfer/Index",
+  "fonte": "prototipo-ui/cowork/Wagner/estoque-page.jsx",
+  "alvo": [
+    "resources/js/Pages/StockTransfer/Index.tsx"
+  ],
+  "secoes": [
+    {
+      "id": "est-tr-cabecalho",
+      "copy": [
+        "Nova transferência"
+      ]
+    },
+    {
+      "id": "est-tr-toolbar",
+      "copy": [
+        "Pendente e em trânsito só reservam. Concluída e finalizada movem o saldo (R-XFER-005)."
+      ]
+    },
+    {
+      "id": "est-tr-tabela",
+      "copy": [
+        "Data",
+        "Status",
+        "Mexeu no saldo?",
+        "Frete",
+        "Total",
+        "Ações"
+      ]
+    }
+  ],
+  "ordem": [
+    "est-tr-cabecalho",
+    "est-tr-toolbar",
+    "est-tr-tabela"
+  ]
+}

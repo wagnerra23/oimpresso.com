@@ -151,18 +151,20 @@ function StockTransferIndex({ rows, filters, business_locations, statuses, permi
     <>
       {/* Header canon (@/Components/PageHeader, ADR 0189/0190 · ADR 0409): migrado ao tocar a tela
           para o "Ver" abrir o detalhe. Mesmo mapeamento do Repair (#8531). */}
-      <PageHeader
-        leading={<Icon name="truck" size={18} className="mr-2 inline-block align-[-2px] text-primary" />}
-        title="Transferências de estoque"
-        subtitle={`${rowsFiltradas.length} ${rowsFiltradas.length === 1 ? 'transferência' : 'transferências'}`}
-        actions={permissions.create && (
-          <Button size="sm" onClick={() => router.visit('/stock-transfers/create')}>
-            <Plus className="h-4 w-4 mr-1" /> Nova transferência
-          </Button>
-        )}
-      />
+      <div data-contract="est-tr-cabecalho">
+        <PageHeader
+          leading={<Icon name="truck" size={18} className="mr-2 inline-block align-[-2px] text-primary" />}
+          title="Transferências de estoque"
+          subtitle={`${rowsFiltradas.length} ${rowsFiltradas.length === 1 ? 'transferência' : 'transferências'}`}
+          actions={permissions.create && (
+            <Button size="sm" onClick={() => router.visit('/stock-transfers/create')}>
+              <Plus className="h-4 w-4 mr-1" /> Nova transferência
+            </Button>
+          )}
+        />
+      </div>
 
-      <Card className="mt-4 sticky top-14 z-10">
+      <Card className="mt-4 sticky top-14 z-10" data-contract="est-tr-toolbar">
         <CardContent className="p-3 flex flex-wrap items-center gap-2">
           <select
             className="h-8 px-2 rounded-md border border-stone-200 text-[12.5px]"
@@ -213,7 +215,7 @@ function StockTransferIndex({ rows, filters, business_locations, statuses, permi
         Pendente e em trânsito só reservam. Concluída e finalizada movem o saldo (R-XFER-005).
       </p>
 
-      <Card className="mt-3">
+      <Card className="mt-3" data-contract="est-tr-tabela">
         <CardContent className="p-0">
           <table className="w-full border-collapse">
             <thead>

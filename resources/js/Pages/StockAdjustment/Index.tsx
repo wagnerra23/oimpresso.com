@@ -119,18 +119,20 @@ function StockAdjustmentIndex({ rows, filters, business_locations, permissions }
     <>
       {/* Header canon (@/Components/PageHeader, ADR 0189/0190 · ADR 0409): migrado ao tocar a tela
           para o "Ver" abrir o detalhe. Mesmo mapeamento do Repair (#8531). */}
-      <PageHeader
-        leading={<Icon name="package" size={18} className="mr-2 inline-block align-[-2px] text-primary" />}
-        title="Ajustes de estoque"
-        subtitle={`${rowsFiltradas.length} ${rowsFiltradas.length === 1 ? 'ajuste' : 'ajustes'}`}
-        actions={permissions.create && (
-          <Button size="sm" onClick={() => router.visit('/stock-adjustments/create')}>
-            <Plus className="h-4 w-4 mr-1" /> Novo ajuste
-          </Button>
-        )}
-      />
+      <div data-contract="est-aj-cabecalho">
+        <PageHeader
+          leading={<Icon name="package" size={18} className="mr-2 inline-block align-[-2px] text-primary" />}
+          title="Ajustes de estoque"
+          subtitle={`${rowsFiltradas.length} ${rowsFiltradas.length === 1 ? 'ajuste' : 'ajustes'}`}
+          actions={permissions.create && (
+            <Button size="sm" onClick={() => router.visit('/stock-adjustments/create')}>
+              <Plus className="h-4 w-4 mr-1" /> Novo ajuste
+            </Button>
+          )}
+        />
+      </div>
 
-      <Card className="mt-4 sticky top-14 z-10">
+      <Card className="mt-4 sticky top-14 z-10" data-contract="est-aj-toolbar">
         <CardContent className="p-3 flex flex-wrap items-center gap-2">
           <select
             className="h-8 px-2 rounded-md border border-stone-200 text-[12.5px]"
@@ -171,7 +173,7 @@ function StockAdjustmentIndex({ rows, filters, business_locations, permissions }
         Trilho vermelho = ajuste anormal. Excluir devolve o saldo (UC-EST-05).
       </p>
 
-      <Card className="mt-3">
+      <Card className="mt-3" data-contract="est-aj-tabela">
         <CardContent className="p-0">
           <table className="w-full border-collapse">
             <thead>
