@@ -343,7 +343,7 @@ class BusinessController extends Controller
                 // Só QUAIS segredos estão gravados, nunca o valor: a tela mostra "gravada" e aceita digitar outro.
                 'segredos_gravados' => array_merge(
                     array_values(array_filter(self::SEGREDOS_POS, fn ($k) => ! empty($pos_settings[$k]))),
-                    array_map(fn ($k) => 'email.'.$k, array_values(array_filter(self::SEGREDOS_EMAIL, fn ($k) => ! empty(((array) $business->email_settings)[$k] ?? null)))),
+                    array_map(fn ($k) => 'email.'.$k, array_filter(self::SEGREDOS_EMAIL, fn ($k) => ! empty(((array) $business->email_settings)[$k] ?? null))),
                     array_map(fn ($k) => 'sms.'.$k, array_values(array_filter(self::SEGREDOS_SMS, fn ($k) => ! empty(((array) $business->sms_settings)[$k] ?? null)))),
                 ),
                 'email_superadmin' => ! empty($allow_superadmin_email_settings),
