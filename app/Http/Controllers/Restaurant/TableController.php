@@ -86,7 +86,10 @@ class TableController extends Controller
      */
     private function mesasDoNegocio(int $business_id): array
     {
-        $abertos = app(RestaurantUtil::class)->getAllOrders($business_id)
+        // getAllOrders() declara `@return obj`; o que volta é a Collection de Transaction do ->get().
+        /** @var \Illuminate\Database\Eloquent\Collection<int, Transaction> $pedidos */
+        $pedidos = app(RestaurantUtil::class)->getAllOrders($business_id);
+        $abertos = $pedidos
             ->whereNotNull('res_table_id')
             ->groupBy('res_table_id');
 
@@ -106,7 +109,7 @@ class TableController extends Controller
                 return [
                     'id' => $m->id,
                     'nome' => $m->name,
-                    'local' => $m->local,
+                    'local' => $m->getAttribute('local'), // alias do JOIN com business_locations
                     'descricao' => $m->description,
                     'ocupada' => $pedidos !== null,
                     'pedidos_abertos' => $pedidos ? $pedidos->count() : 0,
