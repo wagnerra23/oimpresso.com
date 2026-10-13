@@ -1,7 +1,7 @@
 // @memcofre
 //   tela: /business/settings
 //   module: Configuracoes
-//   stories: thread sistema/playbook/08 (F3-1: Negócio · F3-2: Impostos, Produtos, Contatos · F3-3a: Vendas, Pagamento)
+//   stories: thread sistema/playbook/08 (F3-1: Negócio · F3-2: Impostos, Produtos, Contatos · F3-3a: Vendas, Pagamento · F3-3b: Venda no PDV)
 //   permissao: business_settings.access
 //
 // Configuração da empresa. Atrás da flag `useV2ConfiguracoesEmpresa` (BusinessController::FLAG_EMPRESA_V2);
@@ -48,6 +48,7 @@ const PRONTAS: Record<string, string> = {
   contato: 'Vale para cliente novo que não tem limite próprio.',
   venda: 'Padrões de desconto, imposto e comissão de toda venda.',
   pagto: 'Contagem de cédulas no recebimento em dinheiro.',
+  pdv: 'O que o caixa mostra, atalhos de teclado e a balança de código de barras.',
 };
 
 const PRECISOES: Lista = { 0: '0', 1: '1', 2: '2', 3: '3', 4: '4' };
@@ -61,6 +62,23 @@ const ADICAO: Lista = { 0: 'Adiciona linha nova', 1: 'Aumenta a quantidade' };
 const ARREDONDA: Lista = { 1: 'Para o inteiro mais próximo', '0.05': 'Para 0,05', '0.1': 'Para 0,10', '0.5': 'Para 0,50' };
 const CALC_COMISSAO: Lista = { invoice_value: 'Sobre o valor da fatura', payment_received: 'Sobre o pagamento recebido' };
 const CEDULAS_EM: Lista = { pos_screen: 'Só no PDV', all_screens: 'Em todas as telas' };
+const ATALHOS: [string, string][] = [['express_checkout', 'Finalizar rápido'], ['pay_n_ckeckout', 'Pagar e finalizar'], ['draft', 'Rascunho'],
+  ['cancel', 'Cancelar'], ['recent_product_quantity', 'Quantidade do último produto'], ['weighing_scale', 'Balança'],
+  ['edit_discount', 'Editar desconto'], ['edit_order_tax', 'Editar imposto do pedido'], ['add_payment_row', 'Nova linha de pagamento'],
+  ['finalize_payment', 'Concluir pagamento'], ['add_new_product', 'Novo produto']];
+const PDV_LIGA: [string, string][] = [['disable_pay_checkout', 'Esconder "Pagar e finalizar"'], ['disable_draft', 'Esconder rascunho'],
+  ['disable_express_checkout', 'Esconder finalizar rápido'], ['hide_product_suggestion', 'Esconder sugestão de produtos'],
+  ['hide_recent_trans', 'Esconder vendas recentes'], ['disable_discount', 'Esconder desconto'], ['disable_order_tax', 'Esconder imposto do pedido'],
+  ['is_pos_subtotal_editable', 'Subtotal editável'], ['disable_suspend', 'Esconder suspender venda'], ['enable_transaction_date', 'Data da venda editável'],
+  ['inline_service_staff', 'Atendente por item'], ['is_service_staff_required', 'Atendente obrigatório'],
+  ['disable_credit_sale_button', 'Esconder venda a prazo'], ['enable_weighing_scale', 'Balança de código de barras'],
+  ['show_invoice_scheme', 'Mostrar esquema de fatura'], ['show_invoice_layout', 'Mostrar layout de fatura'],
+  ['print_on_suspend', 'Imprimir ao suspender'], ['show_pricing_on_product_sugesstion', 'Preço na sugestão de produtos']];
+// Balança: a Blade usa a LISTA [1..n] no Form::select, então o valor gravado é o ÍNDICE (0-based) e o rótulo é índice+1.
+// O SellPosController lê `product_sku_length + 1`. Os seletores daqui gravam o índice, igual.
+const indices = (n: number): Lista => Object.fromEntries(Array.from({ length: n }, (_, i) => [String(i), String(i + 1)]));
+const BALANCA: [string, string, number, string][] = [['product_sku_length', 'Dígitos do SKU', 9, '4'],
+  ['qty_length', 'Dígitos inteiros da quantidade', 5, '3'], ['qty_length_decimal', 'Dígitos decimais da quantidade', 4, '2']];
 
 function EmpresaIndex({ corpo: inicial, logo, segredos_gravados, opcoes }: Props) {
   const [corpo, setCorpo] = useState<Corpo>(inicial);
@@ -141,6 +159,14 @@ function EmpresaIndex({ corpo: inicial, logo, segredos_gravados, opcoes }: Props
       <Input id={`emp-pos-${k}`} type="password" autoComplete="off" value={textoPos(k)} onChange={(e) => mudaPos(k, e.target.value)}
         placeholder={segredos_gravados.includes(k) ? 'Gravada — digite para trocar' : 'Não informada'} />
     ), 'Para apagar uma chave gravada, use a tela antiga.');
+  // Atalhos (`keyboard_shortcuts.pos`) e balança (`weighing_scale_setting`): objetos à parte, gravados inteiros.
+  const atalhos = ((corpo.shortcuts as Record<string, Record<string, Valor>> | null)?.pos ?? {}) as Record<string, Valor>;
+  const mudaAtalho = (k: string, v: string) => muda('shortcuts', { ...((corpo.shortcuts as Record<string, Valor>) || {}), pos: { ...atalhos, [k]: v } });
+  const balanca = (corpo.weighing_scale_setting && !Array.isArray(corpo.weighing_scale_setting) ? corpo.weighing_scale_setting : {}) as Record<string, Valor>;
+  // Como a Blade: ao mexer, o objeto vai completo, com os padrões dela nos campos que faltam.
+  const mudaBalanca = (k: string, v: string) => muda('weighing_scale_setting', {
+    label_prefix: balanca.label_prefix ?? '', ...Object.fromEntries(BALANCA.map(([c, , , p]) => [c, balanca[c] ?? p])), [k]: v });
+  const valorBalanca = (k: string, padrao: string) => (balanca[k] === null || balanca[k] === undefined ? padrao : String(balanca[k]));
   const metodosCedula = Array.isArray(pos.enable_cash_denomination_for_payment_methods) ? (pos.enable_cash_denomination_for_payment_methods as string[]) : [];
   const titulo = (t: string) => <h3 className="m-0 text-xs font-semibold uppercase text-muted-foreground">{t}</h3>;
   const rotuloAba = ABAS.flatMap((g) => g.itens).find((i) => i.id === aba)?.label;
@@ -291,6 +317,37 @@ function EmpresaIndex({ corpo: inicial, logo, segredos_gravados, opcoes }: Props
                       {segredo('razor_pay_key_secret', 'Razorpay · Key Secret')}
                       {campoPos('stripe_public_key', 'Stripe · chave pública')}
                       {segredo('stripe_secret_key', 'Stripe · chave secreta')}
+                    </Grid>
+                  </Stack>
+                </>
+              )}
+
+              {aba === 'pdv' && (
+                <>
+                  <Stack gap={2}>
+                    {titulo('O que o caixa mostra')}
+                    {PDV_LIGA.map(([k, l]) => ligaPos(k, l))}
+                  </Stack>
+                  <Stack gap={2}>
+                    {titulo('Atalhos de teclado')}
+                    <span className="text-xs text-muted-foreground">Ex.: ctrl+shift+b, ctrl+h. Em branco = sem atalho.</span>
+                    <Grid cols={2} gap={3}>
+                      {ATALHOS.map(([k, l]) => rotulado(`emp-atalho-${k}`, l,
+                        <Input id={`emp-atalho-${k}`} value={atalhos[k] == null ? '' : String(atalhos[k])} onChange={(e) => mudaAtalho(k, e.target.value)} />))}
+                    </Grid>
+                  </Stack>
+                  <Stack gap={2}>
+                    {titulo('Balança de código de barras')}
+                    <Grid cols={2} gap={3}>
+                      {rotulado('emp-balanca-label_prefix', 'Prefixo da etiqueta',
+                        <Input id="emp-balanca-label_prefix" value={balanca.label_prefix == null ? '' : String(balanca.label_prefix)}
+                          onChange={(e) => mudaBalanca('label_prefix', e.target.value)} />, 'Em branco se a balança não usa prefixo.')}
+                      {BALANCA.map(([k, l, n, p]) => rotulado(`emp-balanca-${k}`, l, (
+                        <Select value={valorBalanca(k, p)} onValueChange={(v) => mudaBalanca(k, v)}>
+                          <SelectTrigger id={`emp-balanca-${k}`}><SelectValue /></SelectTrigger>
+                          <SelectContent>{Object.entries(indices(n)).map(([v, r]) => <SelectItem key={v} value={v}>{r}</SelectItem>)}</SelectContent>
+                        </Select>
+                      )))}
                     </Grid>
                   </Stack>
                 </>
