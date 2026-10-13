@@ -65,7 +65,7 @@ function vmcStubsBlade(): void
 {
     $dir = sys_get_temp_dir().'/vmc-blade-stubs';
     $views = ['sale_pos.index', 'sell.shipments', 'sell_return.index', 'discount.index',
-        'import_sales.index', 'import_sales.preview', 'sales_order.index'];
+        'import_sales.index', 'import_sales.preview', 'sales_order.index', 'sale_pos.quotations'];
     foreach ($views as $view) {
         $arquivo = $dir.'/'.str_replace('.', '/', $view).'.blade.php';
         if (! is_dir(dirname($arquivo))) {
@@ -196,4 +196,53 @@ it('prévia da importação: flag desligada no Blade, ligada na Page React, X-In
     $pagina = json_decode($inertia->getContent(), true);
     expect($pagina['component'] ?? null)->toBe('ImportSales/Preview');
     @unlink(public_path('uploads/temp/'.$pagina['props']['arquivo']));
+});
+
+// ── Q2 · Cotações (`vendas_cotacoes`) ─────────────────────────────────────────────────────
+// Diferente das 6 acima, esta chave NASCE LIGADA: a tela já abria em React no GET comum para
+// todas as empresas desde o Cutover pelo menu (thread 02, D1 [W] 2026-10-07). A chave só dá
+// o interruptor por empresa; `?classico=1` segue no Blade (VendasListasSemXInertiaTest).
+
+function vmcCotacoesPermissao(User $user): void
+{
+    Permission::findOrCreate('quotation.view_all', 'web');
+    $user->givePermissionTo('quotation.view_all');
+    app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
+}
+
+it('Q2 sem env a chave vendas_cotacoes vem LIGADA para todas e o GET comum abre a Page React', function () {
+    // Precondição: o ambiente de teste não fixa a env; senão o default nem é exercitado.
+    expect(env('MWART_VENDAS_COTACOES'))->toBeNull();
+    expect(env('MWART_VENDAS_COTACOES_BIZ'))->toBeNull();
+
+    $padrao = require base_path('config/mwart.php');
+    expect($padrao['vendas_cotacoes'])->toBe(['enabled' => true, 'business_ids' => []]);
+
+    vmcCotacoesPermissao($this->user);
+    config(['mwart.vendas_cotacoes' => $padrao['vendas_cotacoes']]);
+    $this->get('/sells/quotations')->assertOk()
+        ->assertInertia(fn (AssertableInertia $p) => $p->component('Sells/Quotations', false));
+});
+
+it('Q2 chave desligada: o GET comum de cotações volta ao Blade', function () {
+    vmcCotacoesPermissao($this->user);
+    vmcFlag('vendas_cotacoes', false, []);
+
+    $this->get('/sells/quotations')->assertOk()->assertViewIs('sale_pos.quotations');
+});
+
+it('Q2 chave ligada só para outra empresa: esta fica no Blade', function () {
+    vmcCotacoesPermissao($this->user);
+    vmcFlag('vendas_cotacoes', true, [$this->outraEmpresa]);
+
+    $this->get('/sells/quotations')->assertOk()->assertViewIs('sale_pos.quotations');
+});
+
+it('Q2 com X-Inertia a cotação é React mesmo com a chave desligada', function () {
+    vmcCotacoesPermissao($this->user);
+    vmcFlag('vendas_cotacoes', false, []);
+
+    $res = $this->withHeaders(vmcInertiaHeaders())->get('/sells/quotations');
+    $res->assertOk();
+    expect(json_decode($res->getContent(), true)['component'] ?? null)->toBe('Sells/Quotations');
 });
