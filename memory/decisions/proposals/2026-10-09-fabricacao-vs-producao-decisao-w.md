@@ -1,7 +1,7 @@
 ---
 title: "Fabricação × Produção — onde se monta a composição e onde se produz (resposta à revisão do [W] no #9086)"
 status: aceito
-decidido: "2026-10-13 — [W] no chat: \"aprovado\""
+decidido: "2026-10-13 — [W] no chat: \"aprovado\"; escolhas: D1 sim · D2 product_bom · D3 a D6 recomendado"
 date: "2026-10-09"
 owners: [W]
 proposed_by: Claude Code (sessão da Fabricação, a pedido de [M])
@@ -153,6 +153,8 @@ então o conserto passa pela REGRA MESTRE.
 | **D6** | Como o cliente monta a composição **sem precisar saber a fórmula** | **A regra de consumo mora no insumo e vem da unidade dele**, trocável na linha: material em **m²** consome pela área da peça · **metro linear** pelo perímetro · **unidade** N por peça · **folha/chapa** pelo aproveitamento. Mais **duas regras com taxa**, que cobrem quase todo o "PERSONALIZADA": **"por área × taxa"** (2,5 ml de tinta por m²) e **"a cada N cm de perímetro"** (ilhós). **Sem editor de fórmula** — os dados mostram 4 fórmulas de verdade em 1.041 linhas. Junto: **prévia com uma medida de exemplo** ("1,00 × 2,00 m consome 2 m² de lona, 6 m de bainha, 12 ilhós") e **modelos prontos de produto de CV** para copiar e ajustar |
 
 Responder no PR basta, por exemplo: *"D1 sim · D2 product_bom · D3 a D6 recomendado"*.
+
+> **Respondido por [W] em 2026-10-13 (chat da gerência da fila):** *"D1 sim · D2 product_bom · D3 a D6 recomendado"*. Logo: **D1** separa Fabricação (cadastro) de Produção (módulo novo); **D2** a fonte única da composição é **`product_bom`** (a `mfg_recipes` passa a ler dela, e o editor da Fabricação passa a gravar nela); **D3–D6** seguem a recomendação da coluna acima.
 
 ## 4. O que acontece depois das respostas
 
