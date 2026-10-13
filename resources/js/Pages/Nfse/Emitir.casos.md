@@ -5,8 +5,8 @@ irmaos: Emitir.charter.md (lei) · Emitir.tsx (código)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 owner: wagner
 related_us: [US-NFSE-009, US-NFSE-006]
-last_run: "2026-09-30"
-last_run_ci: "0 UC executado — casos nascem neste PR; veredito pendente da lane PHP / Pest (Unit)"
+last_run: "2026-10-13"
+last_run_ci: "2026-10-13 — UC-NFSEM-04 verde na lane PHP / Pest (NfeBrasil · MySQL), run 38414970371 (NfseRetencoesDpsTest); UC-NFSEM-01..03 na lane PHP / Pest (Unit), NfseTelasContratoTest"
 ---
 
 # Casos de Uso & Aceite — Emitir NFS-e (`/nfse/emitir`)
