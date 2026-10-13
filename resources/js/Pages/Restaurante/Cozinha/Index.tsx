@@ -150,12 +150,13 @@ function CozinhaIndex({ pedidos }: Props) {
                         <span className={espera(p) >= ATRASO_MIN ? 'text-sm text-warning-fg' : 'text-sm text-muted-foreground'}>há {espera(p)} min</span>
                         <Badge variant={s?.tom ?? 'info'} className="ml-auto">{s?.rotulo ?? p.situacao}</Badge>
                       </Inline>
-                      <dl className="mt-2 grid grid-cols-[auto_1fr] gap-x-3 gap-y-0.5 text-sm">
-                        <dt className="text-muted-foreground">Feito às</dt><dd>{feitoAs(p.feito_em)}</dd>
-                        <dt className="text-muted-foreground">Cliente</dt><dd>{p.cliente ?? '—'}</dd>
-                        <dt className="text-muted-foreground">Mesa</dt><dd>{p.mesa ?? '—'}</dd>
-                        <dt className="text-muted-foreground">Local</dt><dd>{p.local ?? '—'}</dd>
-                      </dl>
+                      <Stack asChild gap={0} className="mt-2 text-sm">
+                        <dl>
+                          {([['Feito às', feitoAs(p.feito_em)], ['Cliente', p.cliente], ['Mesa', p.mesa], ['Local', p.local]] as const).map(([rotulo, valor]) => (
+                            <Inline key={rotulo} gap={3}><dt className="w-16 shrink-0 text-muted-foreground">{rotulo}</dt><dd>{valor ?? '—'}</dd></Inline>
+                          ))}
+                        </dl>
+                      </Stack>
                       <ul className="mt-2 space-y-0.5 text-sm">
                         {falta.map((i) => <li key={i.id}><span className="font-mono">{i.quantidade} ×</span> {i.nome ?? '—'}</li>)}
                         {prontos > 0 && <li className="text-muted-foreground">+ {prontos} já preparado(s)</li>}
