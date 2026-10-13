@@ -41,7 +41,10 @@ Itens `alta` estão travados no `tests/Feature/Roles/FuncoesBaselineTest.php`.
 | Permissão fora do catálogo é descartada (e logada) | idem | alta |
 | Nome repetido no negócio não cria outro papel | idem | alta |
 | `update` preserva permissão que o formulário não oferece | idem | alta (coberto por `RoleAdminOnlyScopeGuardTest`) |
-| 153 controles do núcleo + permissões de módulo, em blocos por assunto | F3-1 leva à Blade; editor React na F3-2 | — |
+| 153 controles do núcleo + permissões de módulo, em blocos por assunto | drawer com os controles lidos da Blade renderizada (mesmas condições, rótulos e marcados) | alta (`FuncoesContratoTest` UC-FUNC-05/07) |
+| "Selecionar todos" por bloco (marca caixas) | "Marcar todas" por bloco (só caixas) | média |
+| — | filtro de permissões por texto no drawer | nova |
+| `edit()` de função de outro negócio quebra (500) | editor responde 404 | correção visível (UC-FUNC-06) |
 
 ## 3. Exclusão (`destroy`)
 
