@@ -1,0 +1,22 @@
+{
+  "_": "A1 [CL] 2026-10-13 — playbook recorrente. Rota `rb-config` do espelho (app.jsx:917-921 → window.CobrancaRecorrentePage, cobranca-recorrente-page.jsx); mapa rota↔Page da _saida-00: `rb-config` = `RecurringBilling/Configuracoes/Index`. HOJE fixo (2026-06-01 12:00) no jsx, então datas relativas não mudam com o relógio. Tema dark (default do espelho), viewport 1280x900, browser limpo.",
+  "_mapa": "alvo:mapa --rota rb-config --quieto-ms 2000, 2026-10-13 (B = '.main-body > .cr-root'): raiz B → div.cr-hero(1) · nav.ph-nav.ph-nav--fin(9) · div.cr-body(1); cr-body > div → section.cr-card(4) · section.cr-card(4) · section.cr-card(4) · section.cr-card(3)",
+  "cabecalho": {
+    "seletor": ".main-body > .cr-root > .cr-hero"
+  },
+  "subnav": {
+    "seletor": ".main-body > .cr-root > nav.ph-nav"
+  },
+  "gateways": {
+    "seletor": ".main-body > .cr-root > .cr-body > div > section:nth-of-type(1)"
+  },
+  "dunning": {
+    "seletor": ".main-body > .cr-root > .cr-body > div > section:nth-of-type(2)"
+  },
+  "nfe": {
+    "seletor": ".main-body > .cr-root > .cr-body > div > section:nth-of-type(3)"
+  },
+  "webhooks": {
+    "seletor": ".main-body > .cr-root > .cr-body > div > section:nth-of-type(4)"
+  }
+}
