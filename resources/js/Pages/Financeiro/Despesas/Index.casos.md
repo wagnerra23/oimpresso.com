@@ -46,9 +46,9 @@ last_run: "2026-10-13"
 - **Teste:** `DespesasIndexContratoTest` (servidor + duas leituras) e `tests/js/despesas-total-envio.test.ts` (o que a tela envia; nunca ponto, que o `num_uf` leria como milhar).
 - **Status: 🧪**
 
-## UC-DESPES-07 · A data da Nova despesa e a da Blade gravam o mesmo instante
-- **Aceite:** Dado 05/03/2026 14:30 · Quando cadastro pela tela nova (ISO) e pela Blade (formato da empresa) · Então as duas gravam 2026-03-05 14:30:00.
-- **Regressão que defende:** a troca de `uf_date` por `uf_datetime_input` no `createExpense`.
+## UC-DESPES-07 · A data da Blade grava o mesmo de antes, e a da tela nova grava o mesmo minuto
+- **Aceite:** Dado uma empresa com `d/m/Y` (24h e 12h), `Y-m-d` ou `m/d/Y` · Quando a Blade envia a data no formato dela · Então grava o que o `uf_date` original grava. E quando a tela nova envia `2026-03-05T14:30` · Então grava 2026-03-05 14:30.
+- **Regressão que defende:** só a tela nova muda de caminho. O `store` converte o ISO com 'T' (que a Blade nunca envia) para o formato da empresa, e o `TransactionUtil` fica intacto.
 - **Status: 🧪**
 
 ---

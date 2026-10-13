@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\Schema;
  * UC-DESPES-04        — flag desligada, ou `?classico=1`, servem a Blade.
  * UC-DESPES-05 `[T0]` — excluir pela tela apaga a minha despesa e não alcança a de outro negócio.
  * UC-DESPES-06 `[V0]` — nova despesa: o total que a tela manda ("1234,56") grava 1234.56, conferido por 2 leituras.
- * UC-DESPES-07        — nova despesa: data ISO da tela e data no formato da empresa (Blade) gravam o mesmo instante.
+ * UC-DESPES-07        — data da Blade (4 formatos de empresa) grava o que o uf_date original grava; a da tela nova, o mesmo minuto.
  *
  * Trio: resources/js/Pages/Financeiro/Despesas/{Index.charter.md,Index.casos.md}
  * Tier 0 (ADR 0093 + ADR 0358): tenant 98 x business 2; a despesa alheia usa o MEU local, então só o
@@ -196,11 +196,12 @@ function dicAssinatura($test): void
 it('UC-DESPES-06 · nova despesa: o total que a tela manda grava 1234.56, e as duas listas leem 1234.56', function () {
     dicEntrarCom($this, ['all_expense.access', 'access_all_locations', 'expense.add']);
     dicAssinatura($this);
+    session(['business.date_format' => 'd/m/Y', 'business.time_format' => 24]);
     $ref = 'DIC6'.uniqid();
 
-    // A mesma chamada da NovaDespesaSheet: POST ajax, total com 2 casas e vírgula decimal, data ISO.
+    // A mesma chamada da NovaDespesaSheet: POST ajax, total com 2 casas e vírgula decimal, data ISO com 'T'.
     $this->withHeaders(['X-Requested-With' => 'XMLHttpRequest', 'Accept' => 'application/json'])
-        ->post('/expenses', ['ref_no' => $ref, 'location_id' => $this->local, 'final_total' => '1234,56', 'transaction_date' => '2026-03-05 14:30'])
+        ->post('/expenses', ['ref_no' => $ref, 'location_id' => $this->local, 'final_total' => '1234,56', 'transaction_date' => '2026-03-05T14:30'])
         ->assertOk()->assertJsonPath('success', 1);
 
     $linha = DB::table('transactions')->where('ref_no', $ref)->first();
@@ -219,18 +220,33 @@ it('UC-DESPES-06 · nova despesa: o total que a tela manda grava 1234.56, e as d
     expect((float) ($m[1] ?? 'NaN'))->toEqual(1234.56);
 });
 
-it('UC-DESPES-07 · nova despesa: data ISO da tela e data no formato da empresa gravam o mesmo instante', function () {
+// Formatos de empresa e o que a Blade de hoje envia neles (o campo é `@format_datetime('now')`: data+hora).
+dataset('formatos_da_blade', [
+    'd/m/Y 24h' => ['d/m/Y', 24, '05/03/2026 14:30'],
+    'd/m/Y 12h' => ['d/m/Y', 12, '05/03/2026 02:30 PM'],
+    'Y-m-d 24h' => ['Y-m-d', 24, '2026-03-05 14:30'],
+    'm/d/Y 24h' => ['m/d/Y', 24, '03/05/2026 14:30'],
+]);
+
+it('UC-DESPES-07 · a data da Blade grava o que o uf_date original grava, e a da tela nova grava o mesmo minuto', function (string $formato, int $hora, string $daBlade) {
     dicEntrarCom($this, ['all_expense.access', 'access_all_locations', 'expense.add']);
     dicAssinatura($this);
-    session(['business.date_format' => 'd/m/Y', 'business.time_format' => 24]);
+    session(['business.date_format' => $formato, 'business.time_format' => $hora]);
     $ajax = ['X-Requested-With' => 'XMLHttpRequest', 'Accept' => 'application/json'];
     $tag = 'DIC7'.uniqid();
 
-    $this->withHeaders($ajax)->post('/expenses', ['ref_no' => "$tag-iso", 'location_id' => $this->local, 'final_total' => '10', 'transaction_date' => '2026-03-05 14:30'])
+    $this->withHeaders($ajax)->post('/expenses', ['ref_no' => "$tag-blade", 'location_id' => $this->local, 'final_total' => '10', 'transaction_date' => $daBlade])
         ->assertOk()->assertJsonPath('success', 1);
-    $this->withHeaders($ajax)->post('/expenses', ['ref_no' => "$tag-blade", 'location_id' => $this->local, 'final_total' => '10', 'transaction_date' => '05/03/2026 14:30'])
+    $this->withHeaders($ajax)->post('/expenses', ['ref_no' => "$tag-tela", 'location_id' => $this->local, 'final_total' => '10', 'transaction_date' => '2026-03-05T14:30'])
         ->assertOk()->assertJsonPath('success', 1);
 
-    expect((string) DB::table('transactions')->where('ref_no', "$tag-iso")->value('transaction_date'))->toBe('2026-03-05 14:30:00');
-    expect((string) DB::table('transactions')->where('ref_no', "$tag-blade")->value('transaction_date'))->toBe('2026-03-05 14:30:00');
-});
+    // Oráculo = o código antigo: o mesmo uf_date que o createExpense chama (o TransactionUtil não mudou).
+    // Ao minuto: sem `!` no formato, o Carbon::createFromFormat pega os segundos do relógio, antes e depois.
+    $oraculo = substr((string) app(\App\Utils\TransactionUtil::class)->uf_date($daBlade, true), 0, 16);
+    $blade = substr((string) DB::table('transactions')->where('ref_no', "$tag-blade")->value('transaction_date'), 0, 16);
+    $tela = substr((string) DB::table('transactions')->where('ref_no', "$tag-tela")->value('transaction_date'), 0, 16);
+
+    expect($oraculo)->toBe('2026-03-05 14:30'); // controle: o oráculo lê o formato
+    expect($blade)->toBe($oraculo);              // a Blade grava o que gravava
+    expect($tela)->toBe('2026-03-05 14:30');     // a tela nova grava o mesmo minuto
+})->with('formatos_da_blade');

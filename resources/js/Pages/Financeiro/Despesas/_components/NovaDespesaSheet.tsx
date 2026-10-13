@@ -2,7 +2,7 @@
 //
 // VALOR (regra mestre): o total sai com 2 casas e vírgula decimal ("1234,56"), nunca um float cru: o
 // `num_uf` lê "." como milhar quando vêm 3+ dígitos depois dele (incidente 2026-06-05). A data sai em ISO
-// (`datetime-local`), que o `uf_datetime_input` do `createExpense` aceita.
+// (`datetime-local`, com 'T'); o `store` a converte para o formato da empresa antes do `createExpense`.
 //
 // Fora daqui, na tela clássica: documento anexo, recorrência e a linha de pagamento (escrever pagamento
 // na tela nova é decisão [W]).
@@ -75,7 +75,7 @@ export default function NovaDespesaSheet({ aberta, fechar, opcoes, gravou }: {
   async function salvar() {
     setSalvando(true);
     setErro('');
-    const corpo = new URLSearchParams({ ...f, transaction_date: data.replace('T', ' '), final_total: totalParaEnvio(total) });
+    const corpo = new URLSearchParams({ ...f, transaction_date: data, final_total: totalParaEnvio(total) });
     if (estorno) corpo.append('is_refund', '1');
     try {
       const r = await fetch('/expenses', {
