@@ -1890,7 +1890,7 @@ Ocorrência da **LC-08**.
 
 ### 2026-10-13 — EMENDA da emenda acima (retenção no Patrimônio): a reabertura foi REVOGADA por [W] no mesmo dia, e a ADR 0430 foi recusada
 
-- **O limite (variante também proibida):** não re-propor retenção, anonimização ou purge por TTL no Patrimônio (`Modules/AssetManagement`), nem o comando `assetmanagement:retention-purge`, sob qualquer nome. Vale a lápide-mãe de 2026-07-27: num ERP o dado tem dever de guarda e o controle é por permissão de acesso. A thread 05 do playbook `patrimonio` volta a ser não executável; corrigir o índice dela é pedido ao Cowork, não edição no espelho. Fica fora desta revogação a troca das chaves `am_*` pelos nomes reais das tabelas no `retention.php`: é fato de schema, não decisão de retenção.
+- **O limite (variante também proibida):** é emenda da lápide de 2026-07-27, mesma família: não re-propor retenção, anonimização ou purge por TTL no Patrimônio (`Modules/AssetManagement`), nem o comando `assetmanagement:retention-purge`, sob qualquer nome. Vale a lápide-mãe de 2026-07-27: num ERP o dado tem dever de guarda e o controle é por permissão de acesso. A thread 05 do playbook `patrimonio` volta a ser não executável; corrigir o índice dela é pedido ao Cowork, não edição no espelho. Fica fora desta revogação a troca das chaves `am_*` pelos nomes reais das tabelas no `retention.php`: é fato de schema, não decisão de retenção.
 
 ## Sempre fazer
 
