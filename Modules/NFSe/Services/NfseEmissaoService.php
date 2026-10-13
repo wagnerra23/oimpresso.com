@@ -4,7 +4,6 @@ namespace Modules\NFSe\Services;
 
 use App\Util\OtelHelper;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
 use App\Support\Privacy\PiiRedactor;
@@ -19,6 +18,8 @@ use Modules\NFSe\Models\NfseEmissao;
 use Modules\NFSe\Models\NfseProviderConfig;
 use Modules\NfeBrasil\Services\RetencoesNfseService;
 use Modules\NfeBrasil\Models\NfeCertificado;
+use Modules\NfeBrasil\Models\NfeBusinessConfig;
+use App\Scopes\ScopeByBusiness;
 use Modules\NfeBrasil\Services\CertificadoService;
 
 class NfseEmissaoService
@@ -113,9 +114,14 @@ class NfseEmissaoService
             retCsllCentavos: $ret['csll'],
             // R-NFSE-005: série da DPS é numérica (TSSerieDPS); o legado 'RPS' vira '1'.
             serieDps: ctype_digit((string) $config?->serie_default) ? (string) $config->serie_default : '1',
-            // Regime do PRÓPRIO tenant (ADR 0093) → regTrib/opSimpNac na DPS.
+            // Regime do PRÓPRIO tenant (ADR 0093) → regTrib/opSimpNac na DPS. Lido pelo Model do
+            // dono da tabela (NfeBrasil), não por DB::table — a catraca de acoplamento proíbe
+            // query crua em tabela de outro módulo.
+            // SUPERADMIN: business_id explícito do parâmetro (montarPayload roda também fora de
+            // request); o escopo de sessão não acrescenta nada além do where abaixo.
             regimePrestador: Schema::hasTable('nfe_business_configs')
-                ? DB::table('nfe_business_configs')->where('business_id', $businessId)->value('regime')
+                ? NfeBusinessConfig::withoutGlobalScope(ScopeByBusiness::class)
+                    ->where('business_id', $businessId)->value('regime')
                 : null,
         );
     }
