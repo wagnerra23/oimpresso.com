@@ -270,7 +270,7 @@ class NotificationTemplateController extends Controller
 
         $dados['email_settings'] = request()->session()->get('business.email_settings');
         $dados['sms_settings'] = request()->session()->get('business.sms_settings');
-        $dados['subject'] = '[teste] '.($dados['subject'] ?? '');
+        $dados['subject'] = '[teste] '.$dados['subject'];
 
         if ($validado['canal'] === 'email') {
             Notification::route('mail', [$destino])->notify(new CustomerNotification($dados));
