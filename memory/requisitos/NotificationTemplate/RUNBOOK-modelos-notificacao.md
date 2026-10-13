@@ -66,3 +66,6 @@ A flag useV2NotificationTemplates reutilizou FeatureFlagService e os comandos fl
 
 ## Prova F3 do editor registrada em 13/10
 Editor de texto/HTML entregue atrás da mesma flag, ainda OFF. Vitest local: dez passes no editor e seis na seleção (três todo); duas mutações derrubaram os testes de cursor e de zeragem dos automáticos e o arquivo voltou ao hash original. tsc, eslint, layout:check, a11y:check, reuse:gate, components:check, pageheader:guard e lint:baseline:check sem regressão. Não houve mudança de controller nem de rota. Pest não foi re-executado no CT 100 nesta sessão (sem acesso), e navegador/pixels não foram medidos. A baseline visual da tela vai divergir porque o painel virou formulário; pela ADR 0409 ela não foi regenerada.
+
+## Ativação pedida em 13/10
+[W] mandou ligar a tela depois do merge das #9115 (seleção) e #9159 (editor). O default de useV2NotificationTemplates passou a ON em FeatureFlagService, no mesmo mecanismo do D-CFG-LIGAR das Configurações. O editor clássico continua em ?legacy=1. Rollback: flag OFF no GrowthBook, que vence o default, ou reverter a linha. O teste "flag ausente fica OFF" foi substituído por "flag ausente fica ON" e ganhou o par de rollback explícito. Pest não rodou nesta sessão (sem acesso ao CT 100); a prova fica com a lane do PR e o smoke em produção, ainda pendente.
