@@ -335,7 +335,73 @@ class BusinessController extends Controller
 
         $payment_types = $this->moduleUtil->payment_types(null, false, $business_id);
 
+        // `?classico=1` mantém a Blade alcançável com a flag ligada: abas que a Page ainda não desenhou abrem lá.
+        if (! request()->boolean('classico') && app(\App\Services\FeatureFlagService::class)->isOn(self::FLAG_EMPRESA_V2, ['business_id' => $business_id])) {
+            return \Inertia\Inertia::render('Configuracoes/Empresa/Index', [
+                'corpo' => $this->corpoDoSalvar($business),
+                'logo' => $business->logo ? asset('uploads/business_logos/'.$business->logo) : null,
+                'opcoes' => \Inertia\Inertia::defer(fn () => [
+                    'moedas' => $currencies, 'fusos' => $timezone_list, 'meses' => $months,
+                    'metodos' => $accounting_methods, 'formatos_data' => $date_formats,
+                ]),
+            ]);
+        }
+
         return view('business.settings', compact('business', 'currencies', 'tax_rates', 'timezone_list', 'months', 'accounting_methods', 'commission_agent_dropdown', 'units_dropdown', 'date_formats', 'shortcuts', 'pos_settings', 'modules', 'theme_colors', 'email_settings', 'sms_settings', 'mail_drivers', 'allow_superadmin_email_settings', 'custom_labels', 'common_settings', 'weighing_scale_setting', 'payment_types'));
+    }
+
+    /**
+     * Flag do caminho React de /business/settings (thread sistema/playbook/08, F3). Fora do fallbackDefaults
+     * do FeatureFlagService: nasce DESLIGADA, a Blade segue servindo. Ligar é decisão [W] (RUNBOOK-empresa).
+     */
+    private const FLAG_EMPRESA_V2 = 'useV2ConfiguracoesEmpresa';
+
+    /**
+     * O corpo que a tela React devolve INTEIRO ao postBusinessSettings, no formato que ele lê.
+     *
+     * O salvar é substituição total (EmpresaBaselineTest): checkbox, `common_settings`, `enabled_modules`,
+     * atalhos, `pos_settings` e os números com `num_uf` são sobrescritos quando faltam. Por isso todos vêm
+     * daqui, com o valor gravado, e a Page só troca os campos da aba que desenha.
+     *
+     * Fora de propósito: `email_settings` e `sms_settings` (senha e segredo não vão para o HTML). O
+     * `$request->only()` do salvar omite chave ausente, então eles ficam como estão. Idem os demais campos
+     * do `only()` sem pós-processamento (prefixos, rótulos de imposto, balança…).
+     *
+     * Números que passam por `num_uf` vão como `1234,5000`: vírgula decimal e sem milhar é lido igual em
+     * qualquer moeda. O `@num_format` da Blade usa o separador da moeda e a precisão do negócio, e por
+     * isso arredonda a margem quando a precisão é 0 e lê "25.000" como 25000 em moeda de ponto decimal.
+     */
+    private function corpoDoSalvar(Business $b): array
+    {
+        // Sempre com uma casa: "0" seria `empty()` no salvar, que troca por 1 os campos de pontos.
+        $numero = fn ($v) => $v === null ? '' : preg_replace('/0{1,3}$/', '', number_format((float) $v, 4, ',', ''));
+        $json = fn ($v) => is_array($v) ? $v : (json_decode((string) $v, true) ?: []);
+        $corpo = [
+            'name' => $b->name, 'currency_id' => $b->currency_id, 'currency_symbol_placement' => $b->currency_symbol_placement,
+            'time_zone' => $b->time_zone, 'fy_start_month' => $b->fy_start_month, 'accounting_method' => $b->accounting_method,
+            'transaction_edit_days' => $b->transaction_edit_days, 'date_format' => $b->date_format, 'time_format' => $b->time_format,
+            'currency_precision' => $b->currency_precision, 'quantity_precision' => $b->quantity_precision,
+            'code_label_1' => $b->code_label_1, 'code_1' => $b->code_1, 'code_label_2' => $b->code_label_2, 'code_2' => $b->code_2,
+            // uf_date() lê no formato do negócio que está na sessão — o mesmo que formata aqui.
+            'start_date' => $b->start_date ? Carbon::parse($b->start_date)->format(session('business.date_format', $b->date_format ?: 'd/m/Y')) : '',
+            'default_profit_percent' => $numero($b->default_profit_percent), 'default_sales_discount' => $numero($b->default_sales_discount),
+            'amount_for_unit_rp' => $numero($b->amount_for_unit_rp), 'min_order_total_for_rp' => $numero($b->min_order_total_for_rp),
+            'redeem_amount_per_unit_rp' => $numero($b->redeem_amount_per_unit_rp), 'min_order_total_for_redeem' => $numero($b->min_order_total_for_redeem),
+            'on_product_expiry' => (string) $b->on_product_expiry, 'stock_expiry_alert_days' => $b->stock_expiry_alert_days,
+            'enable_rp' => (bool) $b->enable_rp, 'enable_tooltip' => (bool) $b->enable_tooltip,
+            'enable_product_expiry' => (bool) $b->enable_product_expiry, 'purchase_in_diff_currency' => (bool) $b->purchase_in_diff_currency,
+            'purchase_currency_id' => $b->purchase_currency_id, 'p_exchange_rate' => (string) $b->p_exchange_rate,
+            'shortcuts' => $json($b->keyboard_shortcuts), 'pos_settings' => $json($b->pos_settings),
+            'common_settings' => $json($b->common_settings), 'enabled_modules' => array_values($json($b->enabled_modules)),
+            // Objeto vazio some do FormData e o salvar lê `custom_labels` sem checar: sem a chave, cai no catch.
+            'custom_labels' => $json($b->custom_labels) ?: ['payments' => ['custom_pay_1' => '']],
+        ];
+        foreach (['enable_editing_product_from_purchase', 'enable_inline_tax', 'enable_brand', 'enable_category', 'enable_sub_category',
+            'enable_price_tax', 'enable_purchase_status', 'enable_lot_number', 'enable_racks', 'enable_row', 'enable_position', 'enable_sub_units'] as $c) {
+            $corpo[$c] = (bool) $b->{$c};
+        }
+
+        return $corpo;
     }
 
     /**

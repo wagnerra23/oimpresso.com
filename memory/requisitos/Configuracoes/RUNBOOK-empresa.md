@@ -51,7 +51,8 @@ Trilho vira seletor abaixo de 768px. `data-contract`: `page-header`, `abas`, `ab
 ## 9. DoD checklist
 
 - [x] RUNBOOK + paridade · [x] Pest baseline (tenant 98 × 99)
-- [ ] Ramo Inertia atrás da flag + Page + charter + casos (F3)
+- [x] F3-1: ramo Inertia atrás da flag + Page (aba Negócio) + charter + casos + `EmpresaContratoTest`
+- [ ] F3-2…: abas Impostos/Produtos/Contatos, depois Operação, Sistema, Integrações
 - [ ] Smoke biz=1 (F4) · cutover (F5, decisão [W])
 
 ## 10. Pegadinhas
@@ -65,6 +66,9 @@ Trilho vira seletor abaixo de 768px. `data-contract`: `page-header`, `abas`, `ab
 - `email_settings` e `sms_settings` guardam senha e segredo (SMTP, Nexmo/Twilio). Props do Inertia ficam no HTML da
   página: a F3 não pode mandar esses segredos em claro — mandar vazio e o salvar preservar quando vier vazio exige
   mudar o controller, decisão a registrar no PR da aba Integrações.
+  **Atualização 2026-10-13 (F3-1):** não exige. O `$request->only()` do salvar omite chave ausente, então o corpo da
+  Page simplesmente não leva `email_settings`/`sms_settings` e eles ficam como estão (UC-EMP-01/04). A aba Integrações
+  só precisa mandá-los quando o usuário editar ali.
 - Precisão de moeda/quantidade e margem padrão mexem em VALOR mostrado e sugerido: qualquer mudança no tratamento
   desses campos cai na regra mestre de cálculo (`proibicoes.md`).
 - O logo sobe por `business_logo` (multipart): o salvar da Page precisa ser `forceFormData`.
