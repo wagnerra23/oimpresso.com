@@ -1,0 +1,44 @@
+{
+  "_nota": "Derivado do alvo governance/design/targets/soltas--perfil--index.alvo.json (thread A1 do playbook telas-soltas), não do .tsx. Âncoras postas nesta thread (só o atributo data-contract; RUNBOOK da tela criado para o hook). Copy só onde protótipo, base.assinatura do alvo e código da Page (sem comentário) dizem literalmente o mesmo, conferida por máquina na faixa de cada seção. Alvo = rota `perfil` (não `prefs`, ressalva 1 do A1). `header` fica num <div> em volta do PageHeader canônico, que não repassa atributos ao DOM. `tabs` fica fora de `ordem`: o <nav> é declarado no código antes do header (entra pelo slot `subnav`), e o gate ordena pela posição no arquivo; no DOM ele renderiza dentro do header. Título 'Meu perfil' fica fora: não está no protótipo.",
+  "tela": "User/Perfil",
+  "fonte": "prototipo-ui/cowork/Wagner/perfil-page.jsx",
+  "alvo": [
+    "resources/js/Pages/User/Perfil.tsx"
+  ],
+  "secoes": [
+    {
+      "id": "header",
+      "copy": [
+        "Salvar alterações"
+      ]
+    },
+    {
+      "id": "tabs",
+      "copy": [
+        "Conta",
+        "Mais informações",
+        "Dados bancários",
+        "Segurança"
+      ]
+    },
+    {
+      "id": "corpo",
+      "copy": [
+        "Editar perfil",
+        "Nome de exibição e dados de acesso",
+        "Prefixo",
+        "Primeiro nome",
+        "Sobrenome",
+        "E-mail",
+        "Idioma",
+        "Foto de perfil",
+        "Escolher imagem",
+        "JPG ou PNG · tamanho máximo 5 MB"
+      ]
+    }
+  ],
+  "ordem": [
+    "header",
+    "corpo"
+  ]
+}

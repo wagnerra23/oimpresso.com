@@ -541,13 +541,15 @@ function KbIndex(props: Props) {
 
   return (
     <>
+      <div data-contract="header">
       <PageHeader
         icon="book-open"
         title="KB — Knowledge Base"
         description={`${num(kpis.total)} docs servidos via mcp.oimpresso.com — ADRs, sessions, references e specs sincronizados de memory/* via webhook GitHub.`}
       />
+      </div>
 
-      <KpiGrid cols={4} className="mt-6">
+      <KpiGrid cols={4} className="mt-6" data-contract="stats">
         <KpiCard
           icon="files"
           tone="info"
@@ -649,7 +651,7 @@ function KbIndex(props: Props) {
         </CardContent>
       </Card>
 
-      <div className="mt-4" style={{ height: '78vh' }}>
+      <div className="mt-4" style={{ height: '78vh' }} data-contract="tri">
         {!previewOpen ? (
           <div className="h-full">{ListPanel}</div>
         ) : (
