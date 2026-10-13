@@ -1,0 +1,13 @@
+{
+  "_nota": "Derivado do alvo crm--pedidos--index (thread Crm/A2, #9255) e do protótipo que ele mede (rota crm-pedidos → Pedidos()), não do .tsx. Seções e ordem = as do .secoes.json; copy = a do protótipo. Fora: 'Adicionar solicitação de pedido' (ação do portal, não da equipe) — ver Index.charter.md.",
+  "tela": "Crm/Pedidos/Index",
+  "fonte": "prototipo-ui/cowork/Wagner/crm-blade-telas.jsx",
+  "alvo": ["Modules/Crm/Resources/js/Pages/Crm/Pedidos/Index.tsx"],
+  "secoes": [
+    { "id": "crm-filtros", "copy": ["Filtros", "Local do negócio", "Status", "Intervalo de datas"] },
+    { "id": "crm-pedidos", "copy": ["Pedido de ordem", "Data", "Nº do pedido", "Contato", "Local", "Quantidade restante", "Total", "Nada com esses filtros"], "estados": ["lista", "vazio", "sem_permissao"] },
+    { "id": "crm-toolbar", "copy": ["Buscar por nº ou contato"] },
+    { "id": "crm-rodape", "copy": ["Total dos pedidos filtrados"] }
+  ],
+  "ordem": ["crm-filtros", "crm-pedidos", "crm-toolbar", "crm-rodape"]
+}
