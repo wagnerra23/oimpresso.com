@@ -3,7 +3,7 @@
 <!-- ds:worklist:start (auto · npm run ds:report -- --write) -->
 ## Status da fila — placar de execução (auto)
 
-> Gerado por `npm run ds:report -- --write` · 2026-10-12 19:14 UTC · **total `ds/*` = 1206** · fila 2/10 ✅.
+> Gerado por `npm run ds:report -- --write` · 2026-10-13 17:04 UTC · **total `ds/*` = 1181** · fila 2/10 ✅.
 > Derivado do `ds/*` real por módulo: **✅ = 0 (concluído)** · **☐ = pendente**. `[CC]` lê isto (Sync now) pra saber o que `[CL]` JÁ executou e o que falta — sem regerar o já-feito.
 
 | # | Módulo (fila) | `ds/*` | Status |
@@ -12,7 +12,7 @@
 | 2 | RecurringBilling | 42 | ☐ pendente |
 | 3 | OficinaAuto | 11 | ☐ pendente |
 | 4 | Repair | 52 | ☐ pendente |
-| 5 | Purchase | 134 | ☐ pendente |
+| 5 | Purchase | 109 | ☐ pendente |
 | 6 | Admin | 0 | ✅ concluído |
 | 7 | Whatsapp | 94 | ☐ pendente |
 | 8 | Settings | 0 | ✅ concluído |
