@@ -68,7 +68,7 @@ const DriftAlerts: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = 
         description="Constituição Art. 7 — controllers fora do SCOPE.md.contains[] declarado. Mesma lógica do bin/check-scope.php em runtime. Drift detection cron (Enforcement #5) também persiste em mcp_alertas."
       />
 
-      <KpiGrid cols={4}>
+      <KpiGrid cols={4} data-contract="drift-kpis">
         <KpiCard
           icon="alert-triangle"
           tone={kpis.total_drift > 0 ? 'warning' : 'success'}
@@ -159,7 +159,7 @@ const DriftAlerts: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = 
 
       {/* Módulos sem SCOPE.md */}
       {modules_without_scope.length > 0 && (
-        <Card>
+        <Card data-contract="drift-sem-scope">
           <CardHeader className="flex-row items-center justify-between gap-2 space-y-0">
             <CardTitle className="text-lg">Módulos sem SCOPE.md</CardTitle>
             <Badge variant="secondary">{modules_without_scope.length}</Badge>

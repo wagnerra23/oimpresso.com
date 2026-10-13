@@ -105,7 +105,7 @@ const Audit: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({
       </KpiGrid>
 
       {/* Filtros */}
-      <Card>
+      <Card data-contract="auditoria-filtros">
         <CardContent className="p-4">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
             <div>
@@ -198,7 +198,7 @@ const Audit: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full text-sm">
+              <table className="w-full text-sm" data-contract="auditoria-tabela">
                 <thead className="bg-zinc-50 dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-700">
                   <tr>
                     <th className="px-3 py-2 text-left font-medium">Quando</th>
