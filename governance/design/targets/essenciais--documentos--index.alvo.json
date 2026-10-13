@@ -1,0 +1,235 @@
+{
+  "aguardou_sumir": null,
+  "ausentes": [],
+  "base": {
+    "assinatura": "OI WR Essenciais 6 tarefa s em aberto · 1 atrasada · 5 documentos · 9 lembretes no calendário Administrador Gestor de equipe Colaborador Com dados Primeira vez Demonstração Essentials · /essentials HRM Tarefas 6 Documentos 5 Memorandos 4 Lembretes 9 Mensagens 3 Base de conhecimento Configurações Todos os documentos Adicionar Arquivos compartilhados com a equipe. Nome Descrição Data do upload Ações contrato-social-2026.pdf PDF · 1,8 MB · Compartilhado por Wagner Oliveira Contrato social consolidado com a última alteração de quadro societário. 12/08/2026 10:22 Baixar tabela-precos-cv-ago2026.xlsx XLSX · 212 KB · Compartilhado por Wagner Oliveira Tabela de preços de comunicação visual vigente — m² por material e acabamento. 05/08/2026 08:40 Baixar manual-hp-latex-315.pdf PDF · 6,4 MB · Compartilhado por Tiago Mendes Manual do fabricante — calibração, limpeza de cabeças e códigos de erro. 28/07/2026 14:05 Baixar apolice-frota-2026.pdf PDF · 920 KB · Compartilhado por Eliana Pereira Apólice da caminhonete de instalação. Vence em 03/2027. 19/07/2026 16:50 Baixar perfil-icc-lona440.icc ICC · 1,1 MB · Compartilhado por Camila Bezerra Perfil de cor da lona 440 g no Latex — usar sempre este na prova. 11/07/2026 09:18 Baixar",
+    "roles": {
+      "celulas": null,
+      "chart": null,
+      "contratos": [],
+      "filterRows": null,
+      "kpi": {
+        "count": 0,
+        "items": [],
+        "overflowX": null,
+        "tag": null
+      },
+      "primary": null,
+      "shell": null,
+      "tabela": null,
+      "title": null
+    },
+    "saude": {
+      "folhasVazias": [],
+      "nFolhas": 77,
+      "tokensMortos": []
+    },
+    "theme": "dark",
+    "url": "http://127.0.0.1:5561/"
+  },
+  "nos_totais": 526,
+  "quieto_ms": 2000,
+  "rota": "ess-documentos",
+  "secoes": {
+    "abas": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "proprio",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.26 0.006 240)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "flex",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "0px",
+        "padding": "0px"
+      },
+      "filhos": 7,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "button",
+        "button",
+        "button",
+        "button",
+        "button",
+        "button",
+        "button"
+      ],
+      "rect": {
+        "h": 38,
+        "w": 1176
+      },
+      "seletor": ".main-body > .ess-page > nav.ds-tabbar",
+      "truncado": false
+    },
+    "cabecalho": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "proprio",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.26 0.006 240)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "flex",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "12px",
+        "padding": "14px 0px"
+      },
+      "filhos": 2,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "div",
+        "div"
+      ],
+      "rect": {
+        "h": 80,
+        "w": 1176
+      },
+      "seletor": ".main-body > .ess-page > .oi-ph > header",
+      "truncado": false
+    },
+    "subtitulo": {
+      "contraste": {
+        "fundo": "oklch(0.3 0.008 240)",
+        "fundo_de": "hrm-card",
+        "razao": 4.55,
+        "texto": "oklch(0.67 0.005 90)",
+        "y_fundo": 0.027108,
+        "y_texto": 0.300843
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.67 0.005 90)",
+        "display": "block",
+        "fontSize": "11.5px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "padding": "0px"
+      },
+      "filhos": 0,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "oklch(0.3 0.008 240)",
+          "de": "hrm-card"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [],
+      "rect": {
+        "h": 17,
+        "w": 1146
+      },
+      "seletor": ".main-body > .ess-page > .hrm-body > section.hrm-card > p.hrm-card-sub",
+      "truncado": false
+    },
+    "tabela": {
+      "contraste": {
+        "fundo": "oklch(0.3 0.008 240)",
+        "fundo_de": "proprio",
+        "razao": 11.42,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.027108,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.3 0.008 240)",
+        "borderRadius": "12px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "block",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "padding": "0px"
+      },
+      "filhos": 1,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.3 0.008 240)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "div"
+      ],
+      "rect": {
+        "h": 294,
+        "w": 1098
+      },
+      "seletor": ".main-body > .ess-page > .hrm-body > section.hrm-card > .hrm-tabela",
+      "truncado": false
+    },
+    "titulo": {
+      "contraste": {
+        "fundo": "oklch(0.3 0.008 240)",
+        "fundo_de": "hrm-card",
+        "razao": 11.42,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.027108,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "block",
+        "fontSize": "12.5px",
+        "fontWeight": "600",
+        "gap": "normal",
+        "padding": "0px"
+      },
+      "filhos": 1,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "oklch(0.3 0.008 240)",
+          "de": "hrm-card"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "hrm-card-acao"
+      ],
+      "rect": {
+        "h": 15,
+        "w": 1146
+      },
+      "seletor": ".main-body > .ess-page > .hrm-body > section.hrm-card > h3",
+      "truncado": false
+    }
+  },
+  "tela": "essenciais--documentos--index",
+  "url": "http://127.0.0.1:5561/"
+}
