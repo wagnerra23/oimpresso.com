@@ -1,7 +1,7 @@
 // @memcofre
 //   tela: /business/settings
 //   module: Configuracoes
-//   stories: thread sistema/playbook/08 (F3-1: Negócio · F3-2: Impostos, Produtos, Contatos · F3-3a: Vendas, Pagamento · F3-3b: Venda no PDV)
+//   stories: thread sistema/playbook/08 (F3-1: Negócio · F3-2: Impostos, Produtos, Contatos · F3-3a: Vendas, Pagamento · F3-3b: Venda no PDV · F3-3c: Compras)
 //   permissao: business_settings.access
 //
 // Configuração da empresa. Atrás da flag `useV2ConfiguracoesEmpresa` (BusinessController::FLAG_EMPRESA_V2);
@@ -49,6 +49,7 @@ const PRONTAS: Record<string, string> = {
   venda: 'Padrões de desconto, imposto e comissão de toda venda.',
   pagto: 'Contagem de cédulas no recebimento em dinheiro.',
   pdv: 'O que o caixa mostra, atalhos de teclado e a balança de código de barras.',
+  compra: 'Como a compra entra: status, lote, pedido e moeda do fornecedor.',
 };
 
 const PRECISOES: Lista = { 0: '0', 1: '1', 2: '2', 3: '3', 4: '4' };
@@ -349,6 +350,32 @@ function EmpresaIndex({ corpo: inicial, logo, segredos_gravados, opcoes }: Props
                         </Select>
                       )))}
                     </Grid>
+                  </Stack>
+                </>
+              )}
+
+              {aba === 'compra' && (
+                <>
+                  <Stack gap={2}>
+                    {ligaCampo('enable_purchase_status', 'Status da compra', 'recebida, pendente ou pedida.')}
+                    {ligaCampo('enable_lot_number', 'Número de lote')}
+                    {ligaCampo('enable_editing_product_from_purchase', 'Atualizar preço do produto pela compra')}
+                    {ligaComum('enable_purchase_order', 'Pedido de compra')}
+                    {ligaComum('enable_purchase_requisition', 'Requisição de compra')}
+                  </Stack>
+                  <Stack gap={2}>
+                    {titulo('Moeda do fornecedor')}
+                    {ligaCampo('purchase_in_diff_currency', 'Comprar em outra moeda')}
+                    {!!corpo.purchase_in_diff_currency && (
+                      <Grid cols={2} gap={3}>
+                        {escolha('purchase_currency_id', 'Moeda da compra', opcoes?.moedas)}
+                        {/* type=number como na Blade: o salvar grava a taxa crua (sem num_uf), então ela tem de chegar com ponto decimal. */}
+                        {campo('p_exchange_rate', 'Taxa de câmbio', { tipo: 'number', ajuda: 'Quantas unidades da sua moeda vale 1 da moeda da compra.' })}
+                      </Grid>
+                    )}
+                    {!corpo.purchase_in_diff_currency && (
+                      <span className="text-xs text-muted-foreground">Desligado, o salvar grava moeda vazia e taxa 1.</span>
+                    )}
                   </Stack>
                 </>
               )}

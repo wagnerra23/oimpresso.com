@@ -1,7 +1,7 @@
 <?php
 
 declare(strict_types=1);
-// Cobre UC-EMP-01, UC-EMP-02, UC-EMP-03, UC-EMP-04, UC-EMP-05, UC-EMP-06, UC-EMP-07, UC-EMP-08, UC-EMP-09 (Configuracoes/Empresa/Index.casos.md).
+// Cobre UC-EMP-01, UC-EMP-02, UC-EMP-03, UC-EMP-04, UC-EMP-05, UC-EMP-06, UC-EMP-07, UC-EMP-08, UC-EMP-09, UC-EMP-10 (Configuracoes/Empresa/Index.casos.md).
 
 use App\Business;
 use App\Http\Controllers\BusinessController;
@@ -290,6 +290,42 @@ test('UC-EMP-09 PDV: balança e atalhos voltam iguais; desmarcar opção com pad
     // disable_draft tem padrão 0: desmarcar na Blade também remove a chave e o salvar repõe 0.
     expect((string) $linha['pos_settings']['disable_draft'])->toBe('0');
     expect($linha['pos_settings']['enable_weighing_scale'])->toBe('1');
+});
+
+test('UC-EMP-10 Compras: taxa de câmbio volta igual, grava o digitado e desligar zera moeda e taxa como a Blade', function () {
+    $moeda = (int) DB::table('business')->where('id', $this->business->id)->value('currency_id');
+    DB::table('business')->where('id', $this->business->id)->update([
+        'date_format' => 'd/m/Y', 'on_product_expiry' => 'keep_selling', 'stop_selling_before' => null,
+        'purchase_in_diff_currency' => 1, 'purchase_currency_id' => $moeda, 'p_exchange_rate' => 5.125,
+        'enable_lot_number' => 1, 'common_settings' => json_encode(['enable_purchase_order' => '1']),
+        // Colunas que o salvar normaliza quando vêm nulas, como a Blade (ver UC-EMP-04 controle). Fixas aqui porque o
+        // passo 1 compara a linha inteira.
+        'default_sales_discount' => 0, 'pos_settings' => json_encode(app(BusinessUtil::class)->defaultPosSettings()),
+        'custom_labels' => json_encode(['payments' => ['custom_pay_1' => 'Pix']]),
+    ]);
+    $taxa = fn () => (float) DB::table('business')->where('id', $this->business->id)->value('p_exchange_rate');
+
+    // 1) Sem editar: taxa, moeda e as opções ficam iguais.
+    $antes = empLinha($this->business->id);
+    $this->post('/business/update', empFormData(empCorpo($this)))->assertSessionHas('status.success', 1);
+    expect($taxa())->toBe(5.125);
+    expect((int) DB::table('business')->where('id', $this->business->id)->value('purchase_currency_id'))->toBe($moeda);
+    expect(empLinha($this->business->id))->toEqual($antes);
+
+    // 2) Editar: o campo é type=number, então chega com ponto decimal e o salvar grava cru.
+    $corpo = empCorpo($this);
+    $corpo['p_exchange_rate'] = '5.25';
+    $corpo['common_settings']['enable_purchase_requisition'] = '1';
+    $this->post('/business/update', empFormData($corpo))->assertSessionHas('status.success', 1);
+    expect($taxa())->toBe(5.25);
+    expect(empLinha($this->business->id)['common_settings'])->toEqual(['enable_purchase_order' => '1', 'enable_purchase_requisition' => '1']);
+
+    // 3) Desligar outra moeda: como na Blade, moeda vazia e taxa 1.
+    $corpo = empCorpo($this);
+    $corpo['purchase_in_diff_currency'] = false;
+    $this->post('/business/update', empFormData($corpo))->assertSessionHas('status.success', 1);
+    expect($taxa())->toBe(1.0);
+    expect(DB::table('business')->where('id', $this->business->id)->value('purchase_currency_id'))->toBeNull();
 });
 
 test('UC-EMP-04 controle: a Blade também grava desconto padrão nulo como 0 ao salvar', function () {
