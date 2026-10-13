@@ -658,7 +658,44 @@ E prestador no Simples, valor dispensado ou tomador sem CNPJ não retêm nem lev
 **Contrato:** Lei 10.833/2003 arts. 30–32 · NT SE/CGNFS-e nº 007 (grupo `tribFed`, lida em 2026-10-13) · decisão [W] 2026-10-13 ("Marcação na nota").
 **Implementação:** `Modules/NFSe/Services/NfseEmissaoService.php` (`montarPayload`, `emitir`) · `Modules/NFSe/DTO/NfseEmissaoPayload.php` · `Modules/NFSe/Adapters/SnNfseAdapter.php` (`buildDps`) · migração `Modules/NfeBrasil/Database/Migrations/2026_10_13_000001_add_retencoes_federais_to_nfse_emissoes.php` · `resources/js/Pages/Nfse/Emitir.tsx` (marcação).
 **Testado em:** `Modules/NfeBrasil/Tests/Feature/NfseRetencoesDpsTest.php` (lane `nfebrasil-pest`).
-**Fora deste item:** a DPS ainda vai como JSON, e a API Sefin espera XML assinado — o envio real depende desse adapter; o CST 01 do grupo `piscofins` é suposição a confirmar com o contador; IRRF e INSS; título no Financeiro com o valor líquido.
+**Fora deste item:** o envio em XML assinado é o R-NFSE-005; o CST 01 do grupo `piscofins` é suposição a confirmar com o contador; IRRF e INSS; título no Financeiro com o valor líquido.
+
+### R-NFSE-005 · A DPS vai em XML assinado, válido nos XSDs oficiais, gzip+base64 em POST /nfse
+
+```gherkin
+Dado uma NFS-e com prestador (CNPJ e regime configurados), tomador e certificado A1
+Quando o adapter emite
+Então a DPS sai em XML no namespace http://www.sped.fazenda.gov.br/nfse, versao 1.01
+E o XML é válido contra os XSDs oficiais v1.01 versionados no repositório
+E o infDPS é assinado (XMLDSig, referência pelo Id) e a assinatura confere
+E o Id tem 45 posições: município (7) + tipo de inscrição (1) + CNPJ (14) + série (5) + nDPS (15)
+E o corpo do POST /nfse é {"dpsXmlGZipB64": <DPS assinada em GZip + Base64>}, com mTLS do mesmo certificado
+E o retorno grava a chaveAcesso como protocolo e o nNFSe como número
+E erro da Sefin (erros[{Codigo, Descricao}]) vira NfseException com o código
+E sem regime, sem CNPJ do prestador ou com nDPS fora do leiaute a emissão falha visível
+```
+
+**Contrato:** esquemas XSD oficiais v1.01 (`nfse-esquemas_xsd-v1-01-20260209`, gov.br/nfse, baixados em 2026-10-13) · Manual dos Contribuintes — API do Emissor Público Nacional (v1.2) · NT SE/CGNFS-e nº 007.
+**Implementação:** `Modules/NfeBrasil/Services/Nfse/DpsXml.php` (serializar, assinar, empacotar) · `Modules/NFSe/Adapters/SnNfseAdapter.php` (`buildDps`, `emitir`) · `Modules/NFSe/DTO/NfseEmissaoPayload.php` (`serieDps`, `regimePrestador`, `comNumeroDps`) · `Modules/NFSe/Services/NfseEmissaoService.php` (nDPS = id da emissão) · `Modules/NFSe/Config/config.php` (`/SefinNacional`, `assinatura_algoritmo`) · XSDs em `Modules/NfeBrasil/Resources/schemas/nfse/v1.01/`.
+**Testado em:** `Modules/NfeBrasil/Tests/Feature/NfseDpsXmlTest.php` (lane `nfebrasil-pest`).
+**Fora deste item:** nenhuma DPS foi enviada à Sefin de verdade (falta certificado A1 em homologação); o algoritmo da assinatura (SHA-256, em `nfse.assinatura_algoritmo` no config do módulo — sem variável de ambiente) só se confirma no 1º envio; o desdobro do cTribNac passou a vir da tabela nacional (R-NFSE-006); pAliq omitido (município do Sistema Nacional parametriza); consultar() e cancelar() deste adapter seguem no formato antigo.
+
+### R-NFSE-006 · cTribNac vem da tabela nacional; com vários desdobros, quem emite escolhe
+
+```gherkin
+Dado a lista de serviços nacional do Anexo B v1.01 (338 códigos, 201 subitens, 62 com mais de um desdobro)
+Quando emito uma NFS-e do item 1.05 (um desdobro só)
+Então o cTribNac é 010501 sem ninguém escolher
+E no item 7.10 (071001 vias e logradouros · 071002 imóveis, chaminés, piscinas) a tela pede o desdobro
+E sem escolha, ou com código de outro item, o formulário recusa e a emissão falha dizendo as opções
+E item fora da lista nacional é recusado no formulário
+E o cTribNac usado fica gravado na nfse_emissoes
+```
+
+**Contrato:** Anexo B oficial do Sistema Nacional NFS-e (`anexo_b-nbs2-lista_servico_nacional-snnfse-v1-01-20260122.xlsx`, aba `LISTA.SERV.NAC.`, sha256 `e74b0be8…1b1a`) · XSD v1.01 `TCCServ/cTribNac` (item 2 + subitem 2 + desdobro 2).
+**Implementação:** `scripts/fiscal/lista-servico-nacional.py` (gera) · `Modules/NfeBrasil/Resources/data/nfse/lista-servico-nacional-v1.01.json` · `Modules/NfeBrasil/Services/Nfse/ListaServicoNacional.php` · `Modules/NFSe/Adapters/SnNfseAdapter.php` · `Modules/NFSe/Http/Requests/StoreNfseRequest.php` · `Modules/NFSe/Services/NfseEmissaoService.php` · migração `2026_10_13_000002_add_ctrib_nac_to_nfse_emissoes` · `resources/js/Pages/Nfse/Emitir.tsx` (seletor).
+**Testado em:** `Modules/NfeBrasil/Tests/Feature/ListaServicoNacionalTest.php` (lane `nfebrasil-pest`).
+**Fora deste item:** o código NBS (`cNBS`, opcional na DPS) não é enviado; notas anteriores têm `ctrib_nac` nulo.
 
 ## 4. Decisões pendentes
 

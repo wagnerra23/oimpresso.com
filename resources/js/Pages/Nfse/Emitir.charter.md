@@ -31,6 +31,7 @@ Formulário de emissão de uma NFS-e: o operador informa competência, tomador (
 
 - Formulário `useForm` (Inertia) com campos: competência, tomador (nome/CNPJ/CPF/e-mail), descrição, código LC 116, valor dos serviços, alíquota ISS, `iss_retido`
 - Marcação "Serviço sujeito à retenção de PIS/COFINS/CSLL (Lei 10.833/2003, art. 30)", desligada por padrão; quem emite decide (decisão [W] 2026-10-13, R-NFSE-003)
+- Seletor "Desdobro nacional do serviço" quando o item LC 116 tem mais de um código na lista nacional (Anexo B oficial, R-NFSE-006); com um só, nada a escolher
 - Cálculo local em tempo real de ISS (`valor × alíquota`) e valor líquido (líquido = valor − ISS quando retido)
 - Pré-preenchimento a partir de uma venda (`venda` prop, via `?transaction_id=`) — contato, total e descrição default
 - Defaults do provider (`config`): código LC 116, alíquota, ambiente (produção/homologação)
