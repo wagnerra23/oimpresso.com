@@ -258,12 +258,15 @@ class NotificationTemplateController extends Controller
 
         // Sem transação de referência, as tags ficam literais — é o que se quer num teste:
         // o operador vê onde cada tag cai, não um valor inventado que não existe no negócio.
-        $dados = $this->notificationUtil->replaceTags($business_id, [
+        // Por isso o replaceTags NÃO é chamado aqui: ele lê `$transaction->contact` e
+        // `$transaction->type` sem guarda, e com `null` dava 500 ("Attempt to read property
+        // contact on null") em todo modelo com {contact_name} — o caso padrão do new_sale.
+        $dados = [
             'email_body' => $modelo['email_body'] ?? '',
             'sms_body' => $modelo['sms_body'] ?? '',
             'subject' => $modelo['subject'] ?? '',
             'whatsapp_text' => $modelo['whatsapp_text'] ?? '',
-        ], null);
+        ];
 
         $dados['email_settings'] = request()->session()->get('business.email_settings');
         $dados['sms_settings'] = request()->session()->get('business.sms_settings');
