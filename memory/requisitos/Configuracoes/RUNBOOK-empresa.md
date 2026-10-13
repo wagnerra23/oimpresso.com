@@ -52,7 +52,8 @@ Trilho vira seletor abaixo de 768px. `data-contract`: `page-header`, `abas`, `ab
 
 - [x] RUNBOOK + paridade · [x] Pest baseline (tenant 98 × 99)
 - [x] F3-1: ramo Inertia atrás da flag + Page (aba Negócio) + charter + casos + `EmpresaContratoTest`
-- [ ] F3-2…: abas Impostos/Produtos/Contatos, depois Operação, Sistema, Integrações
+- [x] F3-2: abas Impostos, Produtos e Contatos (UC-EMP-06)
+- [ ] F3-3…: Operação, depois Sistema, depois Integrações
 - [ ] Smoke biz=1 (F4) · cutover (F5, decisão [W])
 
 ## 10. Pegadinhas
