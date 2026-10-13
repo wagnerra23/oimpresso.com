@@ -129,7 +129,9 @@ test('UC-MESA-04 pedidos de hoje contam só vendas finalizadas com mesa do meu n
 
     expect(mesasContratoProps($this)['pedidos_hoje'])->toBe($antes + 2);
 
-    // Mesmos cabeçalhos do browser (UC-MESA-01): o Inertia manda X-Requested-With junto do X-Inertia.
+    // `withHeaders()` persiste no teste: sem o flush, o pedido parcial anterior (só `mesas,pedidos_hoje`) continuaria
+    // valendo e a prop eager `pode_gerenciar` ficaria fora da resposta.
+    $this->flushHeaders();
     $r = $this->withHeaders([
         'X-Inertia' => 'true', 'X-Inertia-Version' => $this->versaoInertia, 'X-Requested-With' => 'XMLHttpRequest',
     ])->get('/modules/tables');
