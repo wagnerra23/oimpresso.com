@@ -65,7 +65,7 @@ class ProductCatalogueController extends Controller
     /**
      * GET /product-catalogue/catalogue-qr — tela admin pra gerar QR codes do catálogo.
      *
-     * @return \Inertia\Response
+     * @return \Inertia\Response|\Illuminate\View\View
      */
     public function generateQr()
     {
@@ -75,9 +75,24 @@ class ProductCatalogueController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
-        // Inertia desde a thread modulos-faltantes/04 (Catálogo QR). A Blade
-        // catalogue/generate_qr.blade.php fica no repo até o cutover; a vitrine pública
-        // (index/show acima) segue Blade e não muda.
-        return Inertia::render('ProductCatalogue/CatalogueQr', $this->qrService->buildPagePayload($businessId));
+        // Dual-render atrás de config('mwart.product_catalogue_qr') (thread modulos-faltantes/04).
+        // Desligada (padrão) segue a Blade; ligar em produção é o cutover de [W]. A vitrine
+        // pública (index/show acima) segue Blade e não muda.
+        if ($this->telaReactLigada($businessId)) {
+            return Inertia::render('ProductCatalogue/CatalogueQr', $this->qrService->buildPagePayload($businessId));
+        }
+
+        return view('productcatalogue::catalogue.generate_qr')->with($this->qrService->buildQrPayload($businessId));
+    }
+
+    private function telaReactLigada(int $businessId): bool
+    {
+        if (! config('mwart.product_catalogue_qr.enabled')) {
+            return false;
+        }
+
+        $permitidos = (array) config('mwart.product_catalogue_qr.business_ids', []);
+
+        return $permitidos === [] || in_array($businessId, $permitidos, true);
     }
 }

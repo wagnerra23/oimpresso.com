@@ -160,6 +160,7 @@ jobs:
             Modules/Officeimpresso/Tests/Feature/ClientesIndexContratoTest.php \
             Modules/Officeimpresso/Tests/Feature/ComputadoresEmpresasIndexContratoTest.php \
             Modules/Officeimpresso/Tests/Feature/ComputadoresEmpresaShowContratoTest.php \
+            Modules/Officeimpresso/Tests/Feature/ComputadoresEmpresaAcoesContratoTest.php \
             Modules/Officeimpresso/Tests/Feature/OauthClientIdTest.php \
             tests/Feature/Connector/SalvarEquipamentoTenantGuardTest.php
 

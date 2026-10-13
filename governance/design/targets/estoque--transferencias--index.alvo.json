@@ -1,0 +1,340 @@
+{
+  "aguardou_sumir": null,
+  "ausentes": [],
+  "base": {
+    "assinatura": "OI WR OFFICEIMPRESSO · 3 locais · 6 ajustes · 5 transferências Estoque Gestor (Wagner) Atualizado 09:42 Novo ajuste Contar Nova transferência Painel Ajustes 6 Transferências 2 Vencimentos 4 Contagem 1 Todas 5 Pendente 1 Em trânsito 1 Concluída 1 Finalizada 2 Período Dia Semana Mês De dd/mm/aaaa Até dd/mm/aaaa ⌕ Pendente e em trânsito só reservam. Concluída e finalizada movem o saldo (R-XFER-005). Compacto CSV Excel Imprimir Colunas Todos os locais Matriz Loja Centro Depósito Nova transferência Transferência ↕ Data ↓ Origem → destino ↕ Status ↕ Mexeu no saldo? Itens ↕ Frete ↕ Total ↕ Ações TRF-0088 TR2026/0088 08/05/2026 Depósito → Matriz PROD-200 · PROD-022 Em trânsito só reserva 2 R$ 180,00 R$ 3.590,00 Ver Imprimir Excluir TRF-0087 TR2026/0087 07/05/2026 Matriz → Loja Centro PROD-022 · INS-014 Finalizada moveu 2 — R$ 608,00 Ver Imprimir Excluir TRF-0086 TR2026/0086 06/05/2026 Depósito → Loja Centro PROD-310 Pendente só reserva 1 R$ 120,00 R$ 1.053,60 Ver Imprimir Excluir TRF-0085 TR2026/0085 05/05/2026 Depósito → Matriz INS-022 · PROD-201 Concluída moveu 2 R$ 180,00 R$ 4.764,00 Ver Imprimir Excluir TRF-0084 TR2026/0084 02/05/2026 Matriz → Depósito PROD-200 Finalizada moveu 1 — R$ 337,50 Ver Imprimir Excluir Transferências 5 Total transferido R$ 10.353,10 Ainda sem mover saldo R$ 4.643,60 Anterior 1 Próximo 1 – 5 de 5",
+    "roles": {
+      "celulas": null,
+      "chart": null,
+      "contratos": [],
+      "filterRows": null,
+      "kpi": {
+        "count": 0,
+        "items": [],
+        "overflowX": null,
+        "tag": null
+      },
+      "primary": null,
+      "shell": null,
+      "tabela": null,
+      "title": null
+    },
+    "saude": {
+      "folhasVazias": [],
+      "nFolhas": 76,
+      "tokensMortos": []
+    },
+    "theme": "dark",
+    "url": "http://127.0.0.1:5561/"
+  },
+  "nos_totais": 730,
+  "quieto_ms": 2000,
+  "rota": "est-transferencias",
+  "secoes": {
+    "abas": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "proprio",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.26 0.006 240)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "flex",
+        "fontSize": "13px",
+        "fontWeight": "400",
+        "gap": "0px",
+        "padding": "0px 24px"
+      },
+      "filhos": 5,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "button",
+        "button",
+        "button",
+        "button",
+        "button"
+      ],
+      "rect": {
+        "h": 36,
+        "w": 1176
+      },
+      "seletor": ".main-body > .est-root > nav.ds-tabbar",
+      "truncado": false
+    },
+    "cabecalho": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "proprio",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.26 0.006 240)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "flex",
+        "fontSize": "13px",
+        "fontWeight": "400",
+        "gap": "10px 12px",
+        "padding": "14px 0px"
+      },
+      "filhos": 2,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "div",
+        "div"
+      ],
+      "rect": {
+        "h": 80,
+        "w": 1128
+      },
+      "seletor": ".main-body > .est-root > .cli-ph > header",
+      "truncado": false
+    },
+    "periodo": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "jc-page",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "block",
+        "fontSize": "13px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "padding": "8px 0px 2px"
+      },
+      "filhos": 1,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "mp-body"
+        },
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "jc-page"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "div"
+      ],
+      "rect": {
+        "h": 68,
+        "w": 1128
+      },
+      "seletor": ".main-body > .est-root > .mp-body > .est-periodo",
+      "truncado": false
+    },
+    "rodape": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "jc-page",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "flex",
+        "fontSize": "13px",
+        "fontWeight": "400",
+        "gap": "16px",
+        "padding": "12px 0px"
+      },
+      "filhos": 3,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "mp-body"
+        },
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "jc-page"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "est-somas",
+        "est-sp",
+        "nav"
+      ],
+      "rect": {
+        "h": 62,
+        "w": 1128
+      },
+      "seletor": ".main-body > .est-root > .mp-body > .est-rodape",
+      "truncado": false
+    },
+    "subabas": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "proprio",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.26 0.006 240)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "flex",
+        "fontSize": "13px",
+        "fontWeight": "400",
+        "gap": "0px",
+        "padding": "0px"
+      },
+      "filhos": 5,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "button",
+        "button",
+        "button",
+        "button",
+        "button"
+      ],
+      "rect": {
+        "h": 36,
+        "w": 1128
+      },
+      "seletor": ".main-body > .est-root > .mp-body > nav.ds-tabbar",
+      "truncado": false
+    },
+    "tabela": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "proprio",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.26 0.006 240)",
+        "borderRadius": "8px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "block",
+        "fontSize": "13px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "padding": "0px"
+      },
+      "filhos": 1,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "div"
+      ],
+      "rect": {
+        "h": 307,
+        "w": 1128
+      },
+      "seletor": ".main-body > .est-root > .mp-body > .est-tbl",
+      "truncado": false
+    },
+    "toolbar": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "jc-page",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "flex",
+        "fontSize": "13px",
+        "fontWeight": "400",
+        "gap": "8px",
+        "padding": "10px 0px"
+      },
+      "filhos": 10,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "mp-body"
+        },
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "jc-page"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "est-busca-inline",
+        "est-tb-info",
+        "est-sp",
+        "button",
+        "button",
+        "button",
+        "button",
+        "est-colsel",
+        "est-sel-filtro",
+        "button"
+      ],
+      "rect": {
+        "h": 89,
+        "w": 1128
+      },
+      "seletor": ".main-body > .est-root > .mp-body > .est-toolbar",
+      "truncado": false
+    }
+  },
+  "tela": "estoque--transferencias--index",
+  "url": "http://127.0.0.1:5561/"
+}

@@ -234,6 +234,15 @@ return [
         'business_ids' => $parseBizIds('MWART_SISTEMA_USUARIOS_INDEX_BIZ'),
     ],
 
+    // ProductCatalogueController@generateQr → ProductCatalogue/CatalogueQr (thread
+    // modulos-faltantes/playbook/04). A tela entrou ligada no #9103; a chave veio depois, a pedido
+    // de [W], para que ligar em produção seja o cutover dele. Nasce DESLIGADA: segue a Blade
+    // catalogue/generate_qr até [W] ligar.
+    'product_catalogue_qr' => [
+        'enabled'      => env('MWART_PRODUCT_CATALOGUE_QR', false),
+        'business_ids' => $parseBizIds('MWART_PRODUCT_CATALOGUE_QR_BIZ'),
+    ],
+
     // produto_etiquetas: removida em 2026-10-06 (noite) — a tela nova virou padrão sem flag
     // (decisão [W] "etiquetas pode ativar sem tag"); `?classico=1` em /labels/show força a Blade.
 ];
