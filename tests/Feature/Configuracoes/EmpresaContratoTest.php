@@ -215,3 +215,26 @@ test('UC-EMP-07 chave secreta de pagamento não vai para a tela e o salvar da te
     expect($gravado['stripe_secret_key'] ?? null)->toBeNull();
     expect($gravado['razor_pay_key_secret'])->toBe('rz_segredo_98');
 });
+
+test('UC-EMP-04 controle: a Blade também grava desconto padrão nulo como 0 ao salvar', function () {
+    // Prova pedida para o conserto do fixture do UC-EMP-06: null → 0 não é coisa da tela nova.
+    // settings_sales.blade.php:10 renderiza @num_format(null) = "0,00"; BusinessController:455 grava num_uf("0,00") = 0.
+    DB::table('business')->where('id', $this->business->id)->update(['default_sales_discount' => null, 'date_format' => 'd/m/Y']);
+
+    $blade = $this->get('/business/settings?classico=1');
+    $blade->assertOk()->assertViewIs('business.settings');
+    expect($blade->getContent())->toMatch('/name="default_sales_discount"[^>]*value="0,00"|value="0,00"[^>]*name="default_sales_discount"/');
+
+    $this->post('/business/update', empCorpoBlade($this->business, ['default_sales_discount' => '0,00']))->assertSessionHas('status.success', 1);
+    expect((float) DB::table('business')->where('id', $this->business->id)->value('default_sales_discount'))->toBe(0.0);
+});
+
+/** Corpo mínimo no formato da Blade (mesmas chaves obrigatórias do empresaCorpo do baseline). */
+function empCorpoBlade($b, array $campos = []): array
+{
+    return array_merge([
+        'name' => $b->name, 'currency_id' => $b->currency_id, 'time_zone' => $b->time_zone ?: 'America/Sao_Paulo',
+        'fy_start_month' => $b->fy_start_month ?: 1, 'accounting_method' => $b->accounting_method ?: 'fifo',
+        'date_format' => 'd/m/Y', 'time_format' => $b->time_format ?: '24', 'on_product_expiry' => 'keep_selling', 'custom_labels' => [],
+    ], $campos);
+}
