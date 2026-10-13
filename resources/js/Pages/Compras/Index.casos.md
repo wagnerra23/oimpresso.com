@@ -5,8 +5,8 @@ irmaos: Index.charter.md (lei) · Index.tsx (código)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: o comportamento é durável — o escopo de quem-vê-o-quê e o contrato de filtro não mudam quando o cockpit ganhar abas novas.
 owner: wagner
-last_run: "2026-09-05"
-last_run_ci: "Revalidado em 2026-09-05 pela lane PHP / Pest (Compras · MySQL) — run 33941351234, 125 assertions, 0 skipped, no MESMO commit que instrumentou o .tsx com as ancoras data-contract. Bump exigido pelo G-6 (a tela mudou depois do last_run anterior); a mudanca foi aditiva de atributo, mas o gate mede data-git e nao semantica, e isso e o desenho certo. Historico: UC-CMP-06/07 reconciliados em 2026-08-11 ([W]: pague a divida, e deixe requerido)."
+last_run: "2026-10-13"
+last_run_ci: "Revalidado em 2026-10-13 pela lane PHP / Pest (Compras · MySQL) — run 38328490401, 47 passed, 134 assertions, 0 skipped, no commit 0d8350c91 que mudou o endereço do Exportar (UC-CMP-11, 5 assertions). Bump exigido pelo G-6 (a tela mudou). Historico: em 2026-09-05 o run 33941351234 (125 assertions) revalidou as ancoras data-contract; UC-CMP-06/07 reconciliados em 2026-08-11."
 ---
 
 # Casos de Uso & Aceite — Cockpit de Compras (`/compras`)
@@ -284,7 +284,7 @@ last_run_ci: "Revalidado em 2026-09-05 pela lane PHP / Pest (Compras · MySQL) �
 - **Regressão que defende:** o cutover pelo menu (#9095, D1 [W] 2026-10-07) fez GET comum em
   `/purchases` abrir a Page React. O botão abria `/purchases` sem `?classico=1` e passou a cair numa
   tela sem exportação. O conserto (2026-10-13) foi o endereço `/purchases?classico=1`.
-- **Status: 🧪** — veredito da lane `PHP / Pest (Compras · MySQL)`.
+- **Status: 🧪** — verde na lane `PHP / Pest (Compras · MySQL)` em 2026-10-13 (run 38328490401: 1 passed, 5 assertions, 0 skipped). Fica 🧪 até o manifesto de resultados do G-7 trazer o veredito.
 
 ---
 
