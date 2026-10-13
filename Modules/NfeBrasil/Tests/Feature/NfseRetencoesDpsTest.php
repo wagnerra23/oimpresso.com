@@ -38,6 +38,15 @@ function nfsdDados(array $extra = []): array
     ], $extra);
 }
 
+/**
+ * Estrutura da DPS do payload. Sem config de provider no teste, o payload vem sem CNPJ do
+ * prestador — que a DPS exige (R-NFSE-005); o helper o acrescenta.
+ */
+function nfsdDps(NfseEmissaoPayload $p): array
+{
+    return (new SnNfseAdapter())->buildDps(new NfseEmissaoPayload(...array_merge(get_object_vars($p), ['prestadorCnpj' => '11222333000181'])));
+}
+
 function nfsdService(): NfseEmissaoService
 {
     return new NfseEmissaoService(new SnNfseAdapter());
@@ -79,26 +88,26 @@ it('UC-NFSEM-04 marcado, presumido, tomador CNPJ: 1.500 reais retém 975 + 4500 
 
 it('UC-NFSEM-04 a DPS leva os três somados em vRetCSLL, tpRetPisCofins 3, e não usa vPis/vCofins (NT 007)', function () {
     $p = nfsdService()->montarPayload(nfsdDados(['retencao_federal_sujeito' => true]), NFSD_BIZ_OUTRO);
-    $dps = (new SnNfseAdapter())->buildDps($p);
-    $fed = $dps['infDps']['valores']['trib']['tribFed'] ?? null;
+    $dps = nfsdDps($p);
+    $fed = $dps['infDPS']['valores']['trib']['tribFed'] ?? null;
 
     expect($fed)->not->toBeNull();
-    expect($fed['vRetCSLL'])->toBe(69.75);
-    expect($fed['piscofins']['tpRetPisCofins'])->toBe(3);
+    expect($fed['vRetCSLL'])->toBe('69.75');
+    expect($fed['piscofins']['tpRetPisCofins'])->toBe('3');
     expect($fed['piscofins']['CST'])->toBe('01');
     expect($fed['piscofins'])->not->toHaveKey('vPis');
     expect($fed['piscofins'])->not->toHaveKey('vCofins');
     // o ISS segue intacto ao lado
-    expect($dps['infDps']['valores']['trib']['tribMun']['tribISSQN'])->toBe(1);
+    expect($dps['infDPS']['valores']['trib']['tribMun']['tribISSQN'])->toBe('1');
 });
 
 it('UC-NFSEM-04 desmarcado: sem retenção, sem grupo federal, e a chave de idempotência é a de antes', function () {
     $p = nfsdService()->montarPayload(nfsdDados(), NFSD_BIZ_OUTRO);
-    $dps = (new SnNfseAdapter())->buildDps($p);
+    $dps = nfsdDps($p);
 
     expect($p->retencaoFederalSujeito)->toBeFalse();
     expect($p->retencaoFederalCentavos())->toBe(0);
-    expect($dps['infDps']['valores']['trib'])->not->toHaveKey('tribFed');
+    expect($dps['infDPS']['valores']['trib']['tribFed'])->toBeNull();
 
     $chaveAntiga = hash('sha256', implode('|', [NFSD_BIZ_OUTRO, NFSD_CNPJ_TOMADOR, 1500.0, $p->descricao, '2026-10']));
     expect($p->idempotencyKey())->toBe($chaveAntiga);
@@ -109,10 +118,10 @@ it('UC-NFSEM-04 desmarcado: sem retenção, sem grupo federal, e a chave de idem
 
 it('UC-NFSEM-04 Simples (98) não herda o presumido do 99: marcado, nada retido e sem grupo', function () {
     $p = nfsdService()->montarPayload(nfsdDados(['retencao_federal_sujeito' => true]), NFSD_BIZ);
-    $dps = (new SnNfseAdapter())->buildDps($p);
+    $dps = nfsdDps($p);
 
     expect($p->retencaoFederalCentavos())->toBe(0);
-    expect($dps['infDps']['valores']['trib'])->not->toHaveKey('tribFed');
+    expect($dps['infDPS']['valores']['trib']['tribFed'])->toBeNull();
 });
 
 it('UC-NFSEM-04 dispensa do art. 31 § 3º (150 reais) e tomador sem CNPJ não retêm', function () {
@@ -123,7 +132,7 @@ it('UC-NFSEM-04 dispensa do art. 31 § 3º (150 reais) e tomador sem CNPJ não r
         'retencao_federal_sujeito' => true, 'tomador_cnpj' => null, 'tomador_cpf' => '52998224725',
     ]), NFSD_BIZ_OUTRO);
     expect($pf->retencaoFederalCentavos())->toBe(0);
-    expect((new SnNfseAdapter())->buildDps($pf)['infDps']['valores']['trib'])->not->toHaveKey('tribFed');
+    expect(nfsdDps($pf)['infDPS']['valores']['trib']['tribFed'])->toBeNull();
 });
 
 describe('a nota grava o que foi retido', function () {

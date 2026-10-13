@@ -4,7 +4,9 @@ namespace Modules\NFSe\Services;
 
 use App\Util\OtelHelper;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
 use App\Support\Privacy\PiiRedactor;
 use Modules\NFSe\Contracts\NfseProviderInterface;
 use Modules\NFSe\DTO\NfseEmissaoPayload;
@@ -109,6 +111,12 @@ class NfseEmissaoService
             retPisCentavos: $ret['pis'],
             retCofinsCentavos: $ret['cofins'],
             retCsllCentavos: $ret['csll'],
+            // R-NFSE-005: série da DPS é numérica (TSSerieDPS); o legado 'RPS' vira '1'.
+            serieDps: ctype_digit((string) $config?->serie_default) ? (string) $config->serie_default : '1',
+            // Regime do PRÓPRIO tenant (ADR 0093) → regTrib/opSimpNac na DPS.
+            regimePrestador: Schema::hasTable('nfe_business_configs')
+                ? DB::table('nfe_business_configs')->where('business_id', $businessId)->value('regime')
+                : null,
         );
     }
 
@@ -153,7 +161,7 @@ class NfseEmissaoService
 
         $emissao = NfseEmissao::create([
             'business_id'     => $payload->businessId,
-            'serie'           => $config->serie_default,
+            'serie'           => $payload->serieDps,
             'rps_numero'      => $payload->rpsNumero,
             'competencia'     => $payload->competencia,
             'tomador_cnpj'    => $payload->tomadorCnpj,
@@ -175,6 +183,11 @@ class NfseEmissaoService
             'idempotency_key' => $payload->idempotencyKey(),
             'transaction_id'  => $payload->transactionId,
         ]);
+
+        // R-NFSE-005: nDPS = id da emissão (único, sequencial, cabe nos 15 dígitos do
+        // leiaute). O número provisório YmdHis+contador tinha 18 dígitos e não é único.
+        $payload = $payload->comNumeroDps((string) $emissao->id);
+        $emissao->update(['rps_numero' => $payload->rpsNumero]);
 
         $tentativa = 0;
         $ultimoErro = null;

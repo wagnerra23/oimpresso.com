@@ -658,7 +658,27 @@ E prestador no Simples, valor dispensado ou tomador sem CNPJ não retêm nem lev
 **Contrato:** Lei 10.833/2003 arts. 30–32 · NT SE/CGNFS-e nº 007 (grupo `tribFed`, lida em 2026-10-13) · decisão [W] 2026-10-13 ("Marcação na nota").
 **Implementação:** `Modules/NFSe/Services/NfseEmissaoService.php` (`montarPayload`, `emitir`) · `Modules/NFSe/DTO/NfseEmissaoPayload.php` · `Modules/NFSe/Adapters/SnNfseAdapter.php` (`buildDps`) · migração `Modules/NfeBrasil/Database/Migrations/2026_10_13_000001_add_retencoes_federais_to_nfse_emissoes.php` · `resources/js/Pages/Nfse/Emitir.tsx` (marcação).
 **Testado em:** `Modules/NfeBrasil/Tests/Feature/NfseRetencoesDpsTest.php` (lane `nfebrasil-pest`).
-**Fora deste item:** a DPS ainda vai como JSON, e a API Sefin espera XML assinado — o envio real depende desse adapter; o CST 01 do grupo `piscofins` é suposição a confirmar com o contador; IRRF e INSS; título no Financeiro com o valor líquido.
+**Fora deste item:** o envio em XML assinado é o R-NFSE-005; o CST 01 do grupo `piscofins` é suposição a confirmar com o contador; IRRF e INSS; título no Financeiro com o valor líquido.
+
+### R-NFSE-005 · A DPS vai em XML assinado, válido nos XSDs oficiais, gzip+base64 em POST /nfse
+
+```gherkin
+Dado uma NFS-e com prestador (CNPJ e regime configurados), tomador e certificado A1
+Quando o adapter emite
+Então a DPS sai em XML no namespace http://www.sped.fazenda.gov.br/nfse, versao 1.01
+E o XML é válido contra os XSDs oficiais v1.01 versionados no repositório
+E o infDPS é assinado (XMLDSig, referência pelo Id) e a assinatura confere
+E o Id tem 45 posições: município (7) + tipo de inscrição (1) + CNPJ (14) + série (5) + nDPS (15)
+E o corpo do POST /nfse é {"dpsXmlGZipB64": <DPS assinada em GZip + Base64>}, com mTLS do mesmo certificado
+E o retorno grava a chaveAcesso como protocolo e o nNFSe como número
+E erro da Sefin (erros[{Codigo, Descricao}]) vira NfseException com o código
+E sem regime, sem CNPJ do prestador ou com nDPS fora do leiaute a emissão falha visível
+```
+
+**Contrato:** esquemas XSD oficiais v1.01 (`nfse-esquemas_xsd-v1-01-20260209`, gov.br/nfse, baixados em 2026-10-13) · Manual dos Contribuintes — API do Emissor Público Nacional (v1.2) · NT SE/CGNFS-e nº 007.
+**Implementação:** `Modules/NfeBrasil/Services/Nfse/DpsXml.php` (serializar, assinar, empacotar) · `Modules/NFSe/Adapters/SnNfseAdapter.php` (`buildDps`, `emitir`) · `Modules/NFSe/DTO/NfseEmissaoPayload.php` (`serieDps`, `regimePrestador`, `comNumeroDps`) · `Modules/NFSe/Services/NfseEmissaoService.php` (nDPS = id da emissão) · `Modules/NFSe/Config/config.php` (`/SefinNacional`, `assinatura_algoritmo`) · XSDs em `Modules/NfeBrasil/Resources/schemas/nfse/v1.01/`.
+**Testado em:** `Modules/NfeBrasil/Tests/Feature/NfseDpsXmlTest.php` (lane `nfebrasil-pest`).
+**Fora deste item:** nenhuma DPS foi enviada à Sefin de verdade (falta certificado A1 em homologação); o algoritmo da assinatura (SHA-256, configurável) e o desdobro "01" do cTribNac só se confirmam no 1º envio; pAliq omitido (município do Sistema Nacional parametriza); consultar() e cancelar() deste adapter seguem no formato antigo.
 
 ## 4. Decisões pendentes
 

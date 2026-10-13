@@ -32,7 +32,21 @@ final class NfseEmissaoPayload
         public readonly int     $retPisCentavos = 0,
         public readonly int     $retCofinsCentavos = 0,
         public readonly int     $retCsllCentavos = 0,
+        // R-NFSE-005 — DPS em XML: série numérica (TSSerieDPS, até 5 dígitos) e regime do
+        // prestador (`nfe_business_configs.regime`), que vira `regTrib/opSimpNac`.
+        public readonly string  $serieDps = '1',
+        public readonly ?string $regimePrestador = null,
     ) {}
+
+    /**
+     * Mesma nota com o número da DPS definitivo. O número sai do id da `nfse_emissoes`
+     * (único, sequencial, sem zero à esquerda — TSNumDPS `[1-9][0-9]{0,14}`), que só
+     * existe depois de gravar a emissão.
+     */
+    public function comNumeroDps(string $numero): self
+    {
+        return new self(...array_merge(get_object_vars($this), ['rpsNumero' => $numero]));
+    }
 
     public function retencaoFederalCentavos(): int
     {

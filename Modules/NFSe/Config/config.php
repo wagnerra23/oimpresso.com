@@ -26,9 +26,17 @@ return [
      * Ref: https://www.gov.br/nfse (documentação técnica)
      */
     'endpoints' => [
-        'homologacao' => 'https://sefin.producaorestrita.nfse.gov.br',
-        'producao'    => 'https://sefin.nfse.gov.br',
+        // Base da API do Emissor Público Nacional; o adapter acrescenta /nfse (R-NFSE-005).
+        'homologacao' => 'https://sefin.producaorestrita.nfse.gov.br/SefinNacional',
+        'producao'    => 'https://sefin.nfse.gov.br/SefinNacional',
     ],
+
+    /**
+     * Algoritmo da assinatura XMLDSig da DPS: 'sha256' (padrão) ou 'sha1'. O XSD
+     * oficial não restringe; fica configurável até a 1ª emissão em homologação
+     * confirmar qual a Sefin aceita (R-NFSE-005).
+     */
+    'assinatura_algoritmo' => env('NFSE_ASSINATURA_ALGORITMO', 'sha256'),
 
     /**
      * Código IBGE do município padrão (Tubarão-SC = 4218707)
