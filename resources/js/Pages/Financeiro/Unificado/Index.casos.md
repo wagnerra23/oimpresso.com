@@ -5,7 +5,7 @@ irmaos: Index.charter.md (lei)
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso E material de treino.
 owner: wagner
-last_run: "2026-09-25"
+last_run: "2026-10-13"
 last_run_ci: "0 UC executado — UC-FUNI-01..04 nascem neste PR; veredito pendente da lane PHP / Pest (Financeiro · MySQL)"
 sdd: memory/requisitos/Financeiro/SDD-tela-financeiro-v1.0.md
 ---
@@ -178,3 +178,9 @@ sdd: memory/requisitos/Financeiro/SDD-tela-financeiro-v1.0.md
   Index.tsx: `.fin-ai-panel` ganha a classe `fin-curadoria` (pra fin-ia.css alcançar o portal) e o glifo ✦ da aba IA vira
   o ícone `Sparkles`. Nenhum UC cobre a aba IA nem o ícone; UC-F01..05 e UC-FUNI-01..04 são de fluxo/backend e seguem
   intocados (nenhum handler, prop ou texto de ação mudou).
+- 2026-10-13 · [CL] revalidado (bump `last_run`): thread 11 do playbook financeiro — o vínculo `#BL-N` (linkify do
+  título e chip "Boleto #N" da lente Vínculos, `Index.tsx:803` + `FinCrossLinkify.tsx:32`) passa a levar a
+  `/financeiro/cobranca` em vez de `/financeiro/boletos/N`, que não tem rota. Só o destino do clique muda.
+  Varredura dos UCs deste arquivo por `BL-`, vínculo, linkify, xlink, cobranca e boleto: nenhum UC cobre o
+  vínculo (o único casamento é o nome de região "ocr-boleto", que é outra coisa). UC-F01..05 e UC-FUNI-01..04
+  seguem intocados. O destino fica fixado por `Onda7OutputR3Test.php:47-48`.

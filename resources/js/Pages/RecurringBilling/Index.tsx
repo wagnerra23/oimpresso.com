@@ -508,7 +508,7 @@ export default function RecurringBillingIndex(props: PageProps) {
 
       <div className="min-h-screen bg-muted p-4 md:p-6">
         {/* ── HEADER ── */}
-        <header className="mb-4">
+        <header className="mb-4" data-contract="cabecalho">
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div>
               <h1 className="text-2xl font-semibold tracking-tight text-foreground">Cobrança recorrente</h1>
@@ -572,7 +572,7 @@ export default function RecurringBillingIndex(props: PageProps) {
         {/* ── 4 KPI CARDS ── */}
         <Deferred data="kpis" fallback={<KpiSkeleton />}>
           {kpis && (
-            <div className="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <div data-contract="kpis" className="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
               <KpiCard
                 label="MRR · receita recorrente"
                 value={BRL(kpis.mrr)}
@@ -616,7 +616,7 @@ export default function RecurringBillingIndex(props: PageProps) {
         {tab === 'assinaturas' && (
           <div className="grid grid-cols-1 gap-3 lg:grid-cols-[220px_1fr_340px]">
             {/* COL 1 · FILTROS */}
-            <aside className="rounded-lg bg-card p-3 shadow-sm ring-1 ring-border">
+            <aside data-contract="filtros" className="rounded-lg bg-card p-3 shadow-sm ring-1 ring-border">
               <button
                 type="button"
                 onClick={() => setOnlyPinned((p) => !p)}
@@ -745,7 +745,7 @@ export default function RecurringBillingIndex(props: PageProps) {
             </aside>
 
             {/* COL 2 · LISTA */}
-            <section className="overflow-hidden rounded-lg bg-card shadow-sm ring-1 ring-border">
+            <section data-contract="lista" className="overflow-hidden rounded-lg bg-card shadow-sm ring-1 ring-border">
               <div className="flex items-center gap-2 border-b border-border p-2.5">
                 <div className="relative flex-1">
                   <Search size={14} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
