@@ -207,15 +207,17 @@ class WoocommerceController extends Controller
         }
         $pagina = $query->orderBy('name')->paginate(50, ['id', 'name', 'sku', 'woocommerce_product_id', 'woocommerce_disable_sync', 'updated_at']);
 
-        $itens = collect($pagina->items())->map(function ($p) use ($ultima) {
+        // As colunas woocommerce_* vêm da migration do módulo: lidas por getAttribute (o Larastan não as conhece).
+        $itens = collect($pagina->items())->map(function (Product $p) use ($ultima): array {
+            $idNaLoja = $p->getAttribute('woocommerce_product_id');
             $situacao = match (true) {
-                (bool) $p->woocommerce_disable_sync => 'fora_da_fila',
-                empty($p->woocommerce_product_id) => 'pendente',
+                (bool) $p->getAttribute('woocommerce_disable_sync') => 'fora_da_fila',
+                empty($idNaLoja) => 'pendente',
                 ! empty($ultima) && $p->updated_at?->gt($ultima) => 'alterado',
                 default => 'sincronizado',
             };
 
-            return ['id' => $p->id, 'nome' => $p->name, 'sku' => $p->sku, 'id_na_loja' => $p->woocommerce_product_id, 'situacao' => $situacao];
+            return ['id' => $p->id, 'nome' => $p->name, 'sku' => $p->sku, 'id_na_loja' => $idNaLoja, 'situacao' => $situacao];
         })->values()->all();
 
         return ['itens' => $itens, 'pagina' => $pagina->currentPage(), 'ultima_pagina' => $pagina->lastPage(), 'total' => $pagina->total()];
