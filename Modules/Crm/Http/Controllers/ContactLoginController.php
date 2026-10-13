@@ -349,7 +349,8 @@ class ContactLoginController extends Controller
         $query = User::query()
             ->where('users.business_id', $business_id)
             ->whereHas('contact', fn ($q) => $q->where('business_id', $business_id))
-            ->with(['contact' => fn ($q) => $q->select('id', 'name', 'prefix', 'first_name', 'last_name')])
+            // `contacts` só tem `name` neste schema: `prefix/first_name/last_name` não existem (medido no CI).
+            ->with(['contact' => fn ($q) => $q->select('id', 'name')])
             ->select('id', 'username', 'email', 'crm_contact_id', 'surname', 'first_name', 'last_name', 'crm_department', 'crm_designation')
             ->orderBy('username');
 
@@ -363,12 +364,9 @@ class ContactLoginController extends Controller
         }
 
         return $query->paginate(25)->withQueryString()->through(function (User $u) {
-            $c = $u->contact;
-            $pessoa = trim(implode(' ', array_filter([$c?->prefix, $c?->first_name, $c?->last_name])));
-
             return [
                 'id' => $u->id,
-                'contato' => $pessoa !== '' ? $pessoa : (string) ($c?->name ?? ''),
+                'contato' => (string) ($u->contact?->name ?? ''),
                 'usuario' => (string) ($u->username ?? ''),
                 'nome' => trim(implode(' ', array_filter([$u->surname, $u->first_name, $u->last_name]))),
                 'email' => (string) ($u->email ?? ''),
