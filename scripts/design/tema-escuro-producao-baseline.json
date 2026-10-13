@@ -23,9 +23,6 @@
     },
     "Manufacturing/Settings": {
       "span.pointer-events-none.block": 2
-    },
-    "StockTransfer/Create": {
-      "span.inline-flex.h-5": 2
     }
   }
 }
