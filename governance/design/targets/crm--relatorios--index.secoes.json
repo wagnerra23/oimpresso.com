@@ -1,0 +1,22 @@
+{
+  "_": "A2 [CL] 2026-10-13 — playbook crm. Protótipo: rota `crm-relatorios` do espelho (app.jsx CRM_VIEW → CrmBladePage view=relatorios → crm-blade-telas.jsx).",
+  "_mapa": "alvo:mapa --rota crm-relatorios --raiz .cb-root e --raiz '.cb-root > .pb-body' (e '… > section:nth-child(N) > .pb-widget-b') contra o espelho servido por servirEstatico, 2026-10-13: .pb-body = nav.cb-nav · section[crm-filtros] · section[crm-rel-usuario] (pb-grid-pro) · section[crm-rel-contato] (pb-grid-pro) · section[crm-rel-conversao] (table.pb-tbl).",
+  "header": {
+    "seletor": ".cb-root > .cli-ph"
+  },
+  "nav": {
+    "seletor": ".cb-root > .pb-body > .cb-nav"
+  },
+  "filtros": {
+    "seletor": "[data-contract=\"crm-filtros\"]"
+  },
+  "por_usuario": {
+    "seletor": "[data-contract=\"crm-rel-usuario\"]"
+  },
+  "por_contato": {
+    "seletor": "[data-contract=\"crm-rel-contato\"]"
+  },
+  "conversao": {
+    "seletor": "[data-contract=\"crm-rel-conversao\"]"
+  }
+}
