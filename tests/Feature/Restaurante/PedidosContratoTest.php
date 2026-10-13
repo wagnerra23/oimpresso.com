@@ -30,7 +30,10 @@ beforeEach(function () {
 function pedidosContratoEntrar($teste, \App\User $user): void
 {
     $teste->actingAs($user);
-    session(['user.business_id' => $teste->business->id, 'user.id' => $user->id, 'business.id' => $teste->business->id]);
+    session(['user.business_id' => $teste->business->id, 'user.id' => $user->id, 'business.id' => $teste->business->id,
+        // A Blade restaurant.* (layouts.restaurant:39) lê session('currency'); sem ela, 500.
+        'currency' => ['id' => 1, 'code' => 'BRL', 'symbol' => 'R$', 'thousand_separator' => '.', 'decimal_separator' => ','],
+    ]);
 }
 
 /** Usuário cujo (único) papel é de atendente — `RestaurantUtil::is_service_staff` olha o primeiro papel. */
