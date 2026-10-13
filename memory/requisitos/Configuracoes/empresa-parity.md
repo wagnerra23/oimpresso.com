@@ -32,9 +32,9 @@ related_adrs:
 | 2 | Lê e grava só o negócio da sessão | ✅ F3-1 (UC-EMP-03) | `user.business_id` | **alta** | `EmpresaBaselineTest` |
 | 3 | Salvar manda o formulário inteiro (substituição total) | ✅ F3-1 (UC-EMP-04/05) | `postBusinessSettings` | **alta** | `EmpresaBaselineTest` |
 | 4 | Negócio: nome, início, moeda, posição do símbolo, fuso, mês fiscal, método contábil, formatos de data/hora, dias de edição, margem padrão, precisões, códigos 1/2, logo, exportação | ✅ F3-1 | `settings_business` | **alta** | UC da F3 |
-| 5 | Impostos: rótulos e números 1/2, imposto em linha | ⬜ F3 | `settings_tax` | média | UC da F3 |
-| 6 | Produtos: prefixo SKU, unidade padrão, marca/categoria/subcategoria, validade, prateleiras, subunidades, garantia, 2ª unidade, imagem obrigatória | ⬜ F3 | `settings_product` | **alta** | UC da F3 |
-| 7 | Contatos: limite de crédito padrão | ⬜ F3 | `settings_contact` | média | UC da F3 |
+| 5 | Impostos: rótulos e números 1/2, imposto em linha | ✅ F3-2 | `settings_tax` | média | UC da F3 |
+| 6 | Produtos: prefixo SKU, unidade padrão, marca/categoria/subcategoria, validade, prateleiras, subunidades, garantia, 2ª unidade, imagem obrigatória | ✅ F3-2 (UC-EMP-06) | `settings_product` | **alta** | UC da F3 |
+| 7 | Contatos: limite de crédito padrão | ✅ F3-2 (UC-EMP-06) | `settings_contact` | média | UC da F3 |
 | 8 | Vendas: desconto e imposto padrão, adição de item, comissionado, `pos_settings` de venda | ⬜ F3 | `settings_sales` | **alta** | UC da F3 |
 | 9 | PDV: chaves `pos_settings[disable_*]`, balança, atalhos de teclado | ⬜ F3 | `settings_pos` · `settings_weighing_scale` | média | UC da F3 |
 | 10 | Compras: status, lote, edição de produto, moeda de compra + câmbio, pedido/requisição | ⬜ F3 | `settings_purchase` | média | UC da F3 |

@@ -342,7 +342,7 @@ class BusinessController extends Controller
                 'logo' => $business->logo ? asset('uploads/business_logos/'.$business->logo) : null,
                 'opcoes' => \Inertia\Inertia::defer(fn () => [
                     'moedas' => $currencies, 'fusos' => $timezone_list, 'meses' => $months,
-                    'metodos' => $accounting_methods, 'formatos_data' => $date_formats,
+                    'metodos' => $accounting_methods, 'formatos_data' => $date_formats, 'unidades' => $units_dropdown,
                 ]),
             ]);
         }
@@ -385,6 +385,9 @@ class BusinessController extends Controller
             'transaction_edit_days' => $b->transaction_edit_days, 'date_format' => $b->date_format, 'time_format' => $b->time_format,
             'currency_precision' => $b->currency_precision, 'quantity_precision' => $b->quantity_precision,
             'code_label_1' => $b->code_label_1, 'code_1' => $b->code_1, 'code_label_2' => $b->code_label_2, 'code_2' => $b->code_2,
+            // Impostos · Produtos (F3-2). Estão no only() sem pós-processamento: vão para a Page poder editá-los.
+            'tax_label_1' => $b->tax_label_1, 'tax_number_1' => $b->tax_number_1, 'tax_label_2' => $b->tax_label_2, 'tax_number_2' => $b->tax_number_2,
+            'sku_prefix' => $b->sku_prefix, 'default_unit' => $b->default_unit, 'expiry_type' => $b->expiry_type, 'stop_selling_before' => $b->stop_selling_before,
             // uf_date() lê no formato do negócio que está na sessão — o mesmo que formata aqui.
             'start_date' => $b->start_date ? Carbon::parse($b->start_date)->format(session('business.date_format', $b->date_format ?: 'd/m/Y')) : '',
             'default_profit_percent' => $numero($b->default_profit_percent), 'default_sales_discount' => $numero($b->default_sales_discount),
