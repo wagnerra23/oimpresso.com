@@ -206,6 +206,17 @@ export default function FooIndex({ conversations, stats, tab, businessId }: Prop
 | Toggle filter | `['conversations', 'within24h']` | `conversations` | stats, channels, tags | within24h |
 | Polling fallback 5s | depends — preserva pattern existente | — | — | — |
 
+### 5.1 Os filhos do `<Deferred>` são desmontados em visita não-parcial
+
+Medido em produção em 2026-10-13, na lista de produtos (`@inertiajs/react` 3.0.3):
+
+| Visita | O que acontece com o que está dentro do `<Deferred>` |
+|---|---|
+| não-parcial (`router.get`/`router.visit` sem `only`/`except`), mesmo com `preserveState: true` | a prop some, o fallback entra, e os filhos são **montados de novo** — o `useState` deles zera |
+| parcial (`router.reload({ only: [...] })`) | os filhos **continuam montados** |
+
+`preserveState` guarda o estado do componente da **página**, não o dos filhos do `<Deferred>`. Estado que o usuário espera ver depois de ordenar, paginar ou filtrar (largura de coluna, linha expandida, aba interna) mora na página e desce por props. Teste disso tem de desmontar e montar de novo o componente; `rerender` não reproduz. Caso de origem: lápide de 2026-10-13 em [`licoes-rejeitadas.md`](../../licoes-rejeitadas.md).
+
 ## 6. Anti-hooks (PROIBIDO)
 
 - ❌ **NÃO** marcar `thread`/`messages` (ou equivalentes que são alvo principal de `selectXxx` partial reload) como defer — quebra a finalidade do partial reload
