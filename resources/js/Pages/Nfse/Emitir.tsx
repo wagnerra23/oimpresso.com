@@ -49,7 +49,7 @@ interface Props {
 /** "07.10" e "7.10" viram "7.10", a chave da tabela de desdobros. */
 function chaveLc116(v: string): string {
   const m = v.trim().match(/^(\d{1,2})\.(\d{1,2})$/);
-  return m ? `${Number(m[1])}.${m[2].padStart(2, '0')}` : '';
+  return m ? `${Number(m[1])}.${(m[2] ?? '').padStart(2, '0')}` : '';
 }
 
 const brl = (v: number) =>

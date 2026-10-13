@@ -922,7 +922,9 @@
         "minTableWidth",
         "tableWrapperClassName",
         "density",
-        "resizable"
+        "resizable",
+        "columnWidths",
+        "onColumnResize"
       ],
       "variant_map": {
         "base": "@tanstack/react-table (DataTable.tsx:8)",
@@ -956,7 +958,9 @@
         "minTableWidth",
         "tableWrapperClassName",
         "density",
-        "resizable"
+        "resizable",
+        "columnWidths",
+        "onColumnResize"
       ],
       "variant_map": {
         "densidade": "EXISTE — prop density (ds-atomos thread 04, #8045)",

@@ -10,6 +10,7 @@
 // Comando: npx vitest run tests/js/produto-lista-redimensionar.test.tsx
 
 import { describe, it, expect, afterEach, beforeEach, vi } from 'vitest';
+import { useState } from 'react';
 import { render, screen, cleanup, fireEvent } from '@testing-library/react';
 import { router } from '@inertiajs/react';
 import DataTable, { type PaginatorShape } from '@/Components/shared/DataTable';
@@ -44,8 +45,15 @@ const PADRAO = ['Ação', 'Imagem', 'Produto', 'Locais', 'Preço de compra un.',
 const COM_ALCA = ['Produto', 'Locais', 'Preço de compra un.', 'Preço de venda', 'Estoque atual', 'Tipo', 'Categoria', 'Marca', 'Imposto'];
 const SEM_ALCA = ['Ação', 'Imagem', 'SKU'];
 
-function Lista({ visiveis }: { visiveis: Record<string, boolean> }) {
+/**
+ * A lista como a tela a monta (`Produto/Index.tsx`): a largura arrastada é guardada do lado de
+ * FORA da tabela, e a tabela some enquanto a lista recarrega — é o que o `<Deferred data="lista">`
+ * faz a cada ordenação, troca de página ou filtro. `carregando` reproduz esse intervalo.
+ */
+function Lista({ visiveis, carregando = false }: { visiveis: Record<string, boolean>; carregando?: boolean }) {
   const colunas = colunasDaLista({ visiveis, densa: false, permissions: TUDO, contexto: CONTEXTO, aoEscolher: () => undefined });
+  const [largurasArrastadas, setLargurasArrastadas] = useState<Record<string, number>>({});
+  if (carregando) return <p>Carregando produtos…</p>;
   return (
     <DataTable<LinhaProduto>
       caption="Produtos do catálogo"
@@ -57,6 +65,8 @@ function Lista({ visiveis }: { visiveis: Record<string, boolean> }) {
       showSearch={false}
       density="grid"
       resizable
+      columnWidths={largurasArrastadas}
+      onColumnResize={(id, largura) => setLargurasArrastadas((m) => (m[id] === largura ? m : { ...m, [id]: largura }))}
       rowKey={(l) => l.id}
     />
   );
@@ -132,6 +142,22 @@ describe('UC-PIDX-16 · arrastar a borda da coluna', () => {
 
     expect(cabecalhos().map(rotulo)).toEqual(PADRAO.filter((r) => r !== 'Imagem'));
     expect(larguras()).toEqual(['96px', '350px', '150px', '150px', '150px', '130px', '110px', '160px', '120px', '110px', '120px']);
+  });
+
+  // Medido em produção em 2026-10-13: na primeira versão a largura morava na tabela, e ordenar
+  // por "Estoque atual" devolvia Produto de 348 para 300 — a tabela é desmontada enquanto a
+  // lista recarrega. Este caso reproduz o intervalo sem tabela.
+  it('ordenar, trocar de página ou filtrar (a tabela some e volta) não desfaz a largura arrastada', () => {
+    const padrao = visibilidadePadrao(colunasOpcionais({}));
+    const { rerender } = render(<Lista visiveis={padrao} />);
+    arrastar('Produto', 300, 784, 834);
+    arrastar('Locais', 150, 984, 784);
+
+    rerender(<Lista visiveis={padrao} carregando />);
+    expect(document.querySelector('table')).toBeNull();
+    rerender(<Lista visiveis={padrao} />);
+
+    expect(larguras()).toEqual(['96px', '74px', '350px', '48px', '150px', '150px', '130px', '110px', '160px', '120px', '110px', '120px']);
   });
 
   it('com SKU desligado, a última passa a ser Imposto e é ela que fica sem alça', () => {
