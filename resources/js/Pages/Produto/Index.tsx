@@ -69,6 +69,7 @@ import {
   type ContextoLista,
   type FiltrosLista,
   type KpisLista,
+  type AbaDoDetalhe,
   type DetalheProdutoDados,
   type RelatorioEstoqueLista,
   type LinhaProduto,
@@ -206,7 +207,11 @@ function ProdutoIndex({ filtros, lista, kpis, estoque, detalhe, opcoes, contexto
     const v = Number(new URLSearchParams(window.location.search).get('ver'));
     return v > 0 ? v : null;
   });
-  const abrirDetalhe = (id: number) => {
+  // Aba em que o painel abre. Mora aqui porque o painel fica montado entre uma abertura e outra:
+  // guardada nele, a aba da vez anterior valeria para o próximo produto.
+  const [abaDoPainel, setAbaDoPainel] = useState<AbaDoDetalhe>('dados');
+  const abrirDetalhe = (id: number, aba: AbaDoDetalhe = 'dados') => {
+    setAbaDoPainel(aba);
     setVerId(id);
     router.reload({ only: ['detalhe'], data: { ver: id } });
   };
@@ -278,6 +283,9 @@ function ProdutoIndex({ filtros, lista, kpis, estoque, detalhe, opcoes, contexto
     switch (acao) {
       case 'ver':
         abrirDetalhe(l.id);
+        return;
+      case 'fiscal':
+        abrirDetalhe(l.id, 'fiscal');
         return;
       case 'editar':
         irPara(`/products/${l.id}/edit`);
@@ -812,6 +820,8 @@ function ProdutoIndex({ filtros, lista, kpis, estoque, detalhe, opcoes, contexto
       <PainelDetalheProduto
         aberto={verId !== null}
         detalhe={detalhe && detalhe.id === verId ? detalhe : undefined}
+        aba={abaDoPainel}
+        aoMudarAba={setAbaDoPainel}
         aoFechar={fecharDetalhe}
         podeEditar={pode('update')}
         podePrecos={pode('create') && contexto.grupos_de_preco > 0}
