@@ -1,10 +1,23 @@
 ---
 id: requisitos-spreadsheet-briefing
+module: Spreadsheet
+status: parcial
+status_nota: "legado UltimatePOS; lista em React atras de flag OFF desde 2026-10-13 (telas-soltas/04); editor segue Blade"
+updated_at: "2026-10-13"
 ---
 
 # BRIEFING — Modules/Spreadsheet
 
 > **Estado:** 🟡 legado UltimatePOS, pouco uso, manutenção bug-fix only | **Atualizado:** 2026-08-01 (só data + nota de sweep; capacidades inalteradas desde Wave 26) | **Owner:** sem owner ativo
+
+### 2026-10-13 — lista em React atrás de flag (thread telas-soltas/04)
+
+D1 [W] 2026-10-07 tirou o módulo do "bug-fix only": Planilhas entra em produção na forma do
+protótipo. `/spreadsheet/sheets` ganhou a tela `Spreadsheet/Index` (árvore de pastas, busca,
+contagem de compartilhamento) atrás de `useV2SpreadsheetIndex`, **desligada**; a Blade segue
+servindo. A consulta da lista agora agrupa os ramos de compartilhamento dentro do `business_id`
+(Tier 0). Editor e ações de escrita seguem na Blade. Lane nova `spreadsheet-pest` (MySQL).
+Pendências no recibo `prototipo-ui/cowork/Wagner/cowork-inbox/telas-soltas/playbook/_saida-04.md`.
 
 ### Refresh 2026-08-01 — capacidades inalteradas desde 2026-05-17
 

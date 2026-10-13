@@ -17,10 +17,15 @@ use Modules\Spreadsheet\Http\Requests\UpdateSpreadsheetRequest;
 use Modules\Spreadsheet\Notifications\SpreadsheetShared;
 use Modules\Spreadsheet\Services\SpreadsheetService;
 use Notification;
+use App\Services\FeatureFlagService;
+use Inertia\Inertia;
 use Spatie\Permission\Models\Role;
 
 class SpreadsheetController extends Controller
 {
+    /** Tela React da lista (`Spreadsheet/Index`, RUNBOOK-spreadsheet-index). Default OFF. */
+    private const FLAG_INDEX = 'useV2SpreadsheetIndex';
+
     /**
      * All Utils instance.
      */
@@ -48,7 +53,7 @@ class SpreadsheetController extends Controller
     /**
      * Display a listing of the resource.
      *
-     * @return Response
+     * @return \Illuminate\View\View|\Inertia\Response
      */
     public function index()
     {
@@ -58,40 +63,17 @@ class SpreadsheetController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
-        $user_id = request()->session()->get('user.id');
-        $role_id = User::find($user_id)->roles()->first()->id;
-
-        $module_data = $this->moduleUtil->getModuleData('getAssignedTaskForUser', $user_id);
-        $todo_ids = $module_data['Essentials'];
-
-        $query = Spreadsheet::with(['createdBy', 'shares'])
-                    ->where('business_id', $business_id)
-                    ->leftJoin('sheet_spreadsheet_shares as SSS', 'sheet_spreadsheets.id', '=', 'SSS.sheet_spreadsheet_id');
-
-        if (! auth()->user()->can('superadmin')) {
-            $query->where('created_by', auth()->user()->id)
-                    ->orWhere(function ($query) use ($role_id) {
-                        $query->where('SSS.shared_id', '=', $role_id)
-                            ->where('SSS.shared_with', '=', 'role');
-                    })
-                    ->orwhere(function ($query) use ($user_id) {
-                        $query->where('SSS.shared_id', '=', $user_id)
-                            ->where('SSS.shared_with', '=', 'user');
-                    });
-
-            if (! empty($todo_ids)) {
-                $query->orwhere(function ($query) use ($todo_ids) {
-                    $query->whereIn('SSS.shared_id', $todo_ids)
-                            ->where('SSS.shared_with', '=', 'todo');
-                });
-            }
+        if ($this->usaIndexReact($business_id)) {
+            return Inertia::render('Spreadsheet/Index', [
+                'podeCriar' => auth()->user()->can('superadmin') || auth()->user()->can('create.spreadsheet'),
+                'planilhas' => Inertia::defer(fn () => $this->buildPlanilhasPayload($business_id)),
+                'pastas'    => Inertia::defer(fn () => $this->buildPastasPayload($business_id)),
+            ]);
         }
 
-        $spreadsheets = $query->select('sheet_spreadsheets.id', 'name', 'sheet_spreadsheets.updated_at',
-                            'created_by', 'folder_id')
-                        ->orderByDesc('sheet_spreadsheets.updated_at')
-                        ->groupBy('sheet_spreadsheets.id')
-                        ->get();
+        $user_id = request()->session()->get('user.id');
+        $module_data = $this->moduleUtil->getModuleData('getAssignedTaskForUser', $user_id);
+        $spreadsheets = $this->planilhasVisiveis($business_id);
 
         $todos = [];
         if (! empty($module_data['Essentials'])) {
@@ -571,5 +553,82 @@ class SpreadsheetController extends Controller
                 ->action([\Modules\Spreadsheet\Http\Controllers\SpreadsheetController::class, 'index'])
                 ->with('status', $output);
         }
+    }
+
+    /**
+     * Flag ligada e sem `?legacy=1`. A flag decide no 1º GET de HTML (sem `X-Inertia`); o
+     * `legacy=1` é a volta à Blade para as ações que ainda não estão na tela React.
+     */
+    private function usaIndexReact(int $business_id): bool
+    {
+        return ! request()->boolean('legacy')
+            && app(FeatureFlagService::class)->isOn(self::FLAG_INDEX, ['business_id' => $business_id]);
+    }
+
+    /**
+     * Planilhas que o usuário da sessão vê no business: as que criou e as compartilhadas com ele
+     * (usuário, função ou tarefa). Superadmin vê todas do business.
+     *
+     * Tier 0 (ADR 0093): o filtro de compartilhamento fica DENTRO de um grupo. A versão anterior
+     * encadeava `orWhere` sem agrupar, e os ramos de compartilhamento escapavam do
+     * `business_id`.
+     */
+    private function planilhasVisiveis(int $business_id)
+    {
+        $user_id = (int) request()->session()->get('user.id');
+        $role_id = User::find($user_id)?->roles()->first()?->id;
+        $todo_ids = $this->moduleUtil->getModuleData('getAssignedTaskForUser', $user_id)['Essentials'] ?? [];
+
+        $query = Spreadsheet::with(['createdBy', 'shares'])
+            ->where('sheet_spreadsheets.business_id', $business_id)
+            ->leftJoin('sheet_spreadsheet_shares as SSS', 'sheet_spreadsheets.id', '=', 'SSS.sheet_spreadsheet_id');
+
+        if (! auth()->user()->can('superadmin')) {
+            $query->where(function ($q) use ($user_id, $role_id, $todo_ids) {
+                $q->where('sheet_spreadsheets.created_by', $user_id)
+                    ->orWhere(fn ($q) => $q->where('SSS.shared_id', $user_id)->where('SSS.shared_with', 'user'));
+                if ($role_id !== null) {
+                    $q->orWhere(fn ($q) => $q->where('SSS.shared_id', $role_id)->where('SSS.shared_with', 'role'));
+                }
+                if (! empty($todo_ids)) {
+                    $q->orWhere(fn ($q) => $q->whereIn('SSS.shared_id', $todo_ids)->where('SSS.shared_with', 'todo'));
+                }
+            });
+        }
+
+        return $query->select('sheet_spreadsheets.id', 'name', 'sheet_spreadsheets.updated_at', 'created_by', 'folder_id')
+            ->orderByDesc('sheet_spreadsheets.updated_at')
+            ->groupBy('sheet_spreadsheets.id')
+            ->get();
+    }
+
+    /** DTO da linha — sem `sheet_data`; compartilhamento como contagem, como a linha mostra. */
+    private function buildPlanilhasPayload(int $business_id): array
+    {
+        $eu = (int) auth()->user()->id;
+
+        return $this->planilhasVisiveis($business_id)->map(function ($s) use ($eu) {
+            $conta = fn (string $tipo) => $s->shares->where('shared_with', $tipo)->count();
+
+            return [
+                'id'            => (int) $s->id,
+                'nome'          => (string) $s->name,
+                'pasta_id'      => $s->folder_id !== null ? (int) $s->folder_id : null,
+                'atualizada_em' => optional($s->updated_at)->toIso8601String(),
+                'criada_por'    => $s->createdBy?->user_full_name,
+                'minha'         => (int) $s->created_by === $eu,
+                'compartilhada' => ['usuarios' => $conta('user'), 'funcoes' => $conta('role'), 'tarefas' => $conta('todo')],
+            ];
+        })->values()->all();
+    }
+
+    private function buildPastasPayload(int $business_id): array
+    {
+        return Category::where('business_id', $business_id)
+            ->where('category_type', 'spreadsheet')
+            ->orderBy('name', 'asc')
+            ->get(['id', 'name'])
+            ->map(fn ($c) => ['id' => (int) $c->id, 'nome' => (string) $c->name])
+            ->all();
     }
 }

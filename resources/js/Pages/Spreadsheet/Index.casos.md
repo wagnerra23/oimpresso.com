@@ -1,0 +1,58 @@
+---
+id: pages-spreadsheet-index-casos
+casos: Planilhas · /spreadsheet/sheets
+irmaos: Index.charter.md (lei) · Index.tsx (código)
+tecnica: Caso de uso = narrativa do usuário + critério de aceite verificável (Dado/Quando/Então)
+por_que: a lista junta planilhas criadas e recebidas por compartilhamento; o compartilhamento cruza usuário, função e tarefa, então o escopo de tenant é Tier 0.
+owner: wagner
+last_run: "2026-10-13"
+---
+
+# Casos de Uso & Aceite — Planilhas (lista e pastas)
+
+> Derivados da [SPEC](../../../../memory/requisitos/Spreadsheet/SPEC.md) US-SHEET-002, do
+> comportamento da Blade `sheet/index.blade.php` (o que cada pessoa vê, "Sem pasta", ações só para
+> quem criou), do [RUNBOOK](../../../../memory/requisitos/Spreadsheet/RUNBOOK-spreadsheet-index.md) e
+> da decisão D1 de [W] em 2026-10-07 — **não do `Index.tsx`**.
+> Teste: `Modules/Spreadsheet/Tests/Feature/SpreadsheetIndexContratoTest.php`
+> (lane `spreadsheet-pest`, MySQL, tenant 98 × 99).
+> Status: 🧪 escrito e na lane, veredito ainda não emitido.
+
+## UC-PLAN-01 · Flag decide a tela; `?legacy=1` volta à Blade · `must`
+
+**Dado** a flag `useV2SpreadsheetIndex` desligada **Quando** a pessoa abre `/spreadsheet/sheets`
+**Então** recebe a Blade `spreadsheet::sheet.index` **E** com a flag ligada recebe `Spreadsheet/Index`
+com `planilhas` e `pastas` adiadas **E** com `?legacy=1` volta à Blade.
+
+Status: 🧪
+
+## UC-PLAN-02 · [T0] Planilha de outro business não aparece, nem compartilhada · `must`
+
+**Dado** uma planilha do business 99 com compartilhamento apontando para o usuário do business 98
+**Quando** esse usuário abre a lista **Então** ela não aparece.
+
+Status: 🧪
+
+## UC-PLAN-03 · Vejo as minhas e as recebidas, não as alheias · `must`
+
+**Dado** no mesmo business uma planilha minha, uma de colega compartilhada comigo e uma de colega
+não compartilhada **Quando** abro a lista **Então** vejo as duas primeiras, com `minha` certo em cada
+uma, **E** não vejo a terceira.
+
+Status: 🧪
+
+## UC-PLAN-04 · Linha sem conteúdo da planilha, com contagem de compartilhamento · `must`
+
+**Dado** uma planilha minha compartilhada com um usuário e uma função **Quando** a lista carrega
+**Então** a linha traz `compartilhada.usuarios = 1` e `compartilhada.funcoes = 1` **E** não traz
+`sheet_data`.
+
+Status: 🧪
+
+## UC-PLAN-05 · Pastas do business e "Sem pasta"; leitura sem `create.spreadsheet` · `must`
+
+**Dado** pastas de planilha do business 98 e do 99 **Quando** abro a lista **Então** recebo só as do
+98, em ordem alfabética, **E** planilha sem pasta chega com `pasta_id` nulo **E** sem
+`create.spreadsheet` a tela recebe `podeCriar = false`.
+
+Status: 🧪

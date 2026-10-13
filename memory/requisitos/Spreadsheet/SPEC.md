@@ -34,6 +34,7 @@ related_adrs: [0093-multi-tenant-isolation-tier-0, 0094-constituicao-v2-7-camada
 
 ### US-SHEET-002 — Listar e editar planilhas do business
 **Implementado em:** `Modules/Spreadsheet/Http/Controllers/SpreadsheetController.php` · `Modules/Spreadsheet/Resources/views/sheet/index.blade.php` · `Modules/Spreadsheet/Resources/views/sheet/show.blade.php` · verificado@8af585a (2026-07-02) — index/show/update
+**Implementado em:** `resources/js/Pages/Spreadsheet/Index.tsx` · `Modules/Spreadsheet/Tests/Feature/SpreadsheetIndexContratoTest.php` · verificado (2026-10-13) — lista em React atrás da flag `useV2SpreadsheetIndex` (default OFF, thread telas-soltas/04); editor segue na Blade
 **Como** usuário, **quero** ver lista de planilhas do meu business e abrir uma pra editar inline, **pra** trabalhar nos dados.
 - Controller: `SpreadsheetController::index|show|update`
 - Tela: `sheet/index.blade.php` (DataTable), `sheet/show.blade.php` (editor inline)

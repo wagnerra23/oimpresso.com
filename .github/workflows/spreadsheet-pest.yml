@@ -1,0 +1,133 @@
+name: Spreadsheet · Pest (MySQL)
+
+# Lane de PLANILHAS: a tela /spreadsheet/sheets (dual-render Blade↔Inertia atrás da flag
+# useV2SpreadsheetIndex, thread telas-soltas/04) e o isolamento Tier 0 da lista.
+#
+# POR QUE existe: medido em 2026-10-13 com `node scripts/governance/test-lane-coverage.mjs --json`
+# — os 9 arquivos de Modules/Spreadsheet/Tests/Feature eram órfãos (nenhuma lane de PR os
+# rodava), inclusive o MultiTenantIsolationTest. Registro no phpunit.xml não é execução
+# (§5 2026-08-02) e skip sai exit 0 (LC-13).
+#
+# Roda os DOIS arquivos que esta thread precisa verdes — o contrato novo e o
+# MultiTenantIsolationTest — e não a pasta inteira: os outros 7 nunca rodaram em MySQL e
+# trazê-los junto é decisão de outra onda, não efeito colateral desta.
+#
+# Estrutura copiada de dashboard-pest.yml / officeimpresso-pest.yml (mesmo setup MySQL,
+# mesmo skip-as-pass, mesmo --check-assertions).
+
+on:
+  workflow_dispatch: {}
+  # pull_request SEM paths (always-run) + skip-as-pass interno via dorny/paths-filter.
+  # ⚠️ `types` SEM `synchronize` (padrão advisory desde o #6622): para reexecutar no mesmo
+  # PR use o workflow_dispatch. Quem promover a required reinsere `synchronize` antes do flip.
+  pull_request:
+    types: [opened, reopened, ready_for_review]
+    branches: [main]
+    # paths-ignore FAIL-CLOSED. Promover a required = APAGAR este bloco.
+    # Prova: scripts/governance/advisory-paths-ignore.test.mjs
+    paths-ignore:
+      - 'memory/**'
+      - 'prototipo-ui/**'
+      - 'scripts/design-sync/state/**'
+  push:
+    branches: [main]
+    paths:
+      - 'Modules/Spreadsheet/**'
+      - 'resources/js/Pages/Spreadsheet/**'
+      - 'app/Services/FeatureFlagService.php'
+      - 'database/schema/mysql-schema.sql'
+      - '.github/workflows/spreadsheet-pest.yml'
+      - '.github/actions/pest-mysql-setup/**'
+
+concurrency:
+  group: spreadsheet-pest-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  pest:
+    name: PHP / Pest (Spreadsheet · MySQL)
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: oimpresso_test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping --silent"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Detectar mudanças de planilhas (skip-as-pass)
+        id: changes
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            spreadsheet:
+              - 'Modules/Spreadsheet/**'
+              - 'resources/js/Pages/Spreadsheet/**'
+              - 'app/Services/FeatureFlagService.php'
+              - 'database/schema/mysql-schema.sql'
+              - '.github/workflows/spreadsheet-pest.yml'
+              - '.github/actions/pest-mysql-setup/**'
+
+      - name: Skip-as-pass (nada de planilhas mudou)
+        if: steps.changes.outputs.spreadsheet == 'false'
+        run: echo "✅ Sem mudanças em planilhas — skip-as-pass."
+
+      - name: Setup Pest MySQL (PHP + deps + .env + migrate + seed mínimo multi-tenant)
+        if: steps.changes.outputs.spreadsheet == 'true'
+        uses: ./.github/actions/pest-mysql-setup
+
+      - name: Stub Vite manifest (root view sem build do front)
+        if: steps.changes.outputs.spreadsheet == 'true'
+        run: |
+          mkdir -p public/build-inertia
+          cat > public/build-inertia/manifest.json <<'EOF'
+          {
+            "resources/css/inertia.css": { "file": "assets/inertia.css", "src": "resources/css/inertia.css", "isEntry": true },
+            "resources/js/app.tsx": { "file": "assets/app.js", "src": "resources/js/app.tsx", "isEntry": true }
+          }
+          EOF
+
+      - name: Run Pest (Spreadsheet · MySQL)
+        if: steps.changes.outputs.spreadsheet == 'true'
+        env:
+          DB_CONNECTION: mysql
+          DB_HOST: 127.0.0.1
+          DB_PORT: "3306"
+          DB_DATABASE: oimpresso_test
+          DB_USERNAME: root
+          DB_PASSWORD: root
+        run: |
+          mkdir -p test-results
+          vendor/bin/pest --no-coverage --colors=always \
+            --log-junit test-results/pest-spreadsheet-junit.xml \
+            Modules/Spreadsheet/Tests/Feature/SpreadsheetIndexContratoTest.php \
+            Modules/Spreadsheet/Tests/Feature/MultiTenantIsolationTest.php
+
+      - name: Sumário JUnit por arquivo (assertions — corpus p/ LC-13)
+        if: always()
+        run: node scripts/tests/junit-summary.mjs test-results/pest-spreadsheet-junit.xml --out test-results/pest-spreadsheet-junit-summary.json || true
+
+      # Mesma condição do Pest (nunca always()): sem o XML, armar aqui avermelharia todo PR
+      # que não toca planilhas. MORDE quando a lane rodou e não provou nada (LC-13).
+      - name: Suite provou algo? (--check-assertions · LC-13)
+        if: steps.changes.outputs.spreadsheet == 'true'
+        run: node scripts/tests/junit-summary.mjs test-results/pest-spreadsheet-junit.xml --check-assertions
+
+      - name: Upload sumário JUnit (pest-spreadsheet-junit-summary)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pest-spreadsheet-junit-summary
+          path: test-results/pest-spreadsheet-junit-summary.json
+          retention-days: 14
+          if-no-files-found: ignore
