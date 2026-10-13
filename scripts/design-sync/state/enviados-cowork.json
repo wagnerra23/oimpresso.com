@@ -1,13 +1,29 @@
 {
   "_nota": "Arquivos que o Code subiu ao Cowork (DesignSync) e que o bundle ativo ainda não trouxe de volta. Escrito por pendentes-cowork.mjs; o receber-handoff limpa o que o retorno confirmar.",
   "enviados": {
+    "cowork-inbox/acessos/playbook/_saida-01.md": {
+      "sha256": "589ae9db6305dd244bf7182175ff693860b07fe6df3e7321a8d885a30620c088",
+      "em": "2026-10-13T13:55:31.044Z"
+    },
+    "cowork-inbox/acessos/playbook/00-INDICE.md": {
+      "sha256": "be667fcaafa2c8e92e59fcce5a4cde83a181f327de460b207dcd56431f0c0955",
+      "em": "2026-10-13T13:55:31.044Z"
+    },
+    "cowork-inbox/compras/playbook/_saida-05.md": {
+      "sha256": "a8cf2fb616b2241ea4882a4857b8b0684b49e01754b69c3809901844f996233a",
+      "em": "2026-10-13T13:55:31.044Z"
+    },
+    "cowork-inbox/compras/playbook/_saida-06.md": {
+      "sha256": "37d5d9d24817bcc316ac64f4e758a119226167687588658f20056be0e8b12ea3",
+      "em": "2026-10-13T13:55:56.522Z"
+    },
     "cowork-inbox/compras/playbook/_saida-A2.md": {
       "sha256": "c859904c35bf1925e1fbb85a995daafba313edf650e3c129cd88f93cd61dbebd",
       "em": "2026-10-13T13:43:02.202Z"
     },
     "cowork-inbox/compras/playbook/00-INDICE.md": {
-      "sha256": "513d39e480a988886afbb741c7b35cadc4ac7bfa3d75082910d28a1a0a3e89d9",
-      "em": "2026-10-13T12:14:05.834Z"
+      "sha256": "20bd1350db0e0d85faf29ec71cfcab05d63272ad2462b641235ed3d3acb25b7a",
+      "em": "2026-10-13T13:55:31.044Z"
     },
     "cowork-inbox/crm/playbook/_saida-10.md": {
       "sha256": "3f70842a403c82816ca43b602eb782eef96fa68775e4f55e1c5fd97fa3a8936a",
@@ -176,6 +192,10 @@
     "cowork-inbox/sistema/playbook/_saida-08b.md": {
       "sha256": "9cdddefeeb024967ac6217868c7f2b3d20a9351dd43040b350255ad00ec8ed6a",
       "em": "2026-10-13T12:44:01.800Z"
+    },
+    "cowork-inbox/sistema/playbook/_saida-08d.md": {
+      "sha256": "5b9d98eafdedee64d2a2393e856b3c34f759e609d9d9ef93bb2b7f5abac3433d",
+      "em": "2026-10-13T13:55:31.044Z"
     },
     "cowork-inbox/sistema/playbook/_saida-09.md": {
       "sha256": "80b1d30b5f7f6108f85fb62bda82126433c3c5a0885ebdee5b2e5120467c7681",

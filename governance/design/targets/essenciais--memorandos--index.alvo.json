@@ -1,0 +1,235 @@
+{
+  "aguardou_sumir": null,
+  "ausentes": [],
+  "base": {
+    "assinatura": "OI WR Essenciais 6 tarefa s em aberto · 1 atrasada · 5 documentos · 9 lembretes no calendário Administrador Gestor de equipe Colaborador Com dados Primeira vez Demonstração Essentials · /essentials HRM Tarefas 6 Documentos 5 Memorandos 4 Lembretes 9 Mensagens 3 Base de conhecimento Configurações Todas as notas Adicionar Avisos e memorandos internos em texto. Título Descrição Data de criação Ações Ponto: intercorrência só até o dia 5 Compartilhado por Eliana Pereira Pedido de ajuste de marcação do mês anterior entra até o dia 5. Depois disso o espelho já foi fechado e o ajuste vira acerto na folha seguinte. 17/08/2026 09:00 Ver Entrega de arte pelo cliente — formato aceito Compartilhado por Camila Bezerra Só aceitar arquivo fechado em PDF/X-4 ou AI com fontes convertidas. JPG de WhatsApp não entra em produção: pedir o arquivo original ou cobrar tratamento. 14/08/2026 11:30 Ver Feriado de 07/09 — plantão de instalação Compartilhado por Wagner Oliveira Oficina e balcão fechados. Instalação com plantão das 8h às 12h para a obra do shopping. Quem estiver de plantão folga no dia 08. 10/08/2026 15:45 Ver Uso da caminhonete Compartilhado por Wagner Oliveira Reservar no calendário de Lembretes antes de sair. Quem tirar devolve com o tanque acima da metade e o vale no financeiro no mesmo dia. 02/08/2026 08:10 Ver",
+    "roles": {
+      "celulas": null,
+      "chart": null,
+      "contratos": [],
+      "filterRows": null,
+      "kpi": {
+        "count": 0,
+        "items": [],
+        "overflowX": null,
+        "tag": null
+      },
+      "primary": null,
+      "shell": null,
+      "tabela": null,
+      "title": null
+    },
+    "saude": {
+      "folhasVazias": [],
+      "nFolhas": 77,
+      "tokensMortos": []
+    },
+    "theme": "dark",
+    "url": "http://127.0.0.1:5561/"
+  },
+  "nos_totais": 515,
+  "quieto_ms": 2000,
+  "rota": "ess-memorandos",
+  "secoes": {
+    "abas": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "proprio",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.26 0.006 240)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "flex",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "0px",
+        "padding": "0px"
+      },
+      "filhos": 7,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "button",
+        "button",
+        "button",
+        "button",
+        "button",
+        "button",
+        "button"
+      ],
+      "rect": {
+        "h": 38,
+        "w": 1176
+      },
+      "seletor": ".main-body > .ess-page > nav.ds-tabbar",
+      "truncado": false
+    },
+    "cabecalho": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "proprio",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.26 0.006 240)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "flex",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "12px",
+        "padding": "14px 0px"
+      },
+      "filhos": 2,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "div",
+        "div"
+      ],
+      "rect": {
+        "h": 80,
+        "w": 1176
+      },
+      "seletor": ".main-body > .ess-page > .oi-ph > header",
+      "truncado": false
+    },
+    "subtitulo": {
+      "contraste": {
+        "fundo": "oklch(0.3 0.008 240)",
+        "fundo_de": "hrm-card",
+        "razao": 4.55,
+        "texto": "oklch(0.67 0.005 90)",
+        "y_fundo": 0.027108,
+        "y_texto": 0.300843
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.67 0.005 90)",
+        "display": "block",
+        "fontSize": "11.5px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "padding": "0px"
+      },
+      "filhos": 0,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "oklch(0.3 0.008 240)",
+          "de": "hrm-card"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [],
+      "rect": {
+        "h": 17,
+        "w": 1146
+      },
+      "seletor": ".main-body > .ess-page > .hrm-body > section.hrm-card > p.hrm-card-sub",
+      "truncado": false
+    },
+    "tabela": {
+      "contraste": {
+        "fundo": "oklch(0.3 0.008 240)",
+        "fundo_de": "proprio",
+        "razao": 11.42,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.027108,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.3 0.008 240)",
+        "borderRadius": "12px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "block",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "padding": "0px"
+      },
+      "filhos": 1,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.3 0.008 240)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "div"
+      ],
+      "rect": {
+        "h": 241,
+        "w": 1098
+      },
+      "seletor": ".main-body > .ess-page > .hrm-body > section.hrm-card > .hrm-tabela",
+      "truncado": false
+    },
+    "titulo": {
+      "contraste": {
+        "fundo": "oklch(0.3 0.008 240)",
+        "fundo_de": "hrm-card",
+        "razao": 11.42,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.027108,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "block",
+        "fontSize": "12.5px",
+        "fontWeight": "600",
+        "gap": "normal",
+        "padding": "0px"
+      },
+      "filhos": 1,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "oklch(0.3 0.008 240)",
+          "de": "hrm-card"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "hrm-card-acao"
+      ],
+      "rect": {
+        "h": 15,
+        "w": 1146
+      },
+      "seletor": ".main-body > .ess-page > .hrm-body > section.hrm-card > h3",
+      "truncado": false
+    }
+  },
+  "tela": "essenciais--memorandos--index",
+  "url": "http://127.0.0.1:5561/"
+}
