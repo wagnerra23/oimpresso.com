@@ -70,6 +70,9 @@ Trilho vira seletor abaixo de 768px. `data-contract`: `page-header`, `abas`, `ab
   **Atualização 2026-10-13 (F3-1):** não exige. O `$request->only()` do salvar omite chave ausente, então o corpo da
   Page simplesmente não leva `email_settings`/`sms_settings` e eles ficam como estão (UC-EMP-01/04). A aba Integrações
   só precisa mandá-los quando o usuário editar ali.
+- **Segredo de pagamento em `pos_settings` (2026-10-13):** `stripe_secret_key` e `razor_pay_key_secret` moram em
+  `pos_settings`, que o salvar sobrescreve inteiro. O corpo não as leva e o `postBusinessSettings` mantém o gravado quando
+  a chave **não vem** (a Blade sempre manda as duas, então limpar por ela continua igual). UC-EMP-07.
 - Precisão de moeda/quantidade e margem padrão mexem em VALOR mostrado e sugerido: qualquer mudança no tratamento
   desses campos cai na regra mestre de cálculo (`proibicoes.md`).
 - O logo sobe por `business_logo` (multipart): o salvar da Page precisa ser `forceFormData`.

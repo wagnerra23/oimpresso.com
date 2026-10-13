@@ -52,3 +52,10 @@ last_run: "2026-10-13"
   ponho limite de crédito padrão "2.000,50" e garantia · Então só esses mudam · E o limite fica gravado como foi digitado
   (como na Blade: o cadastro de contato o lê como sugestão) · E e-mail, margem e pontos ficam iguais.
 - **Status: 🧪**
+
+## UC-EMP-07 · Chave secreta de pagamento não vai para a tela · `[T0]`
+- **Por quê:** `pos_settings` guarda `stripe_secret_key` e `razor_pay_key_secret`, e props do Inertia ficam no HTML.
+  O salvar sobrescreve `pos_settings` inteiro, então tirar as chaves do corpo as apagaria.
+- **Aceite:** Dado as duas chaves gravadas · Quando a tela carrega · Então nenhuma aparece na resposta (a chave pública
+  aparece) · E salvar pela tela mantém as duas · E um envio com a chave vazia, como a Blade faz, ainda limpa.
+- **Status: 🧪**
