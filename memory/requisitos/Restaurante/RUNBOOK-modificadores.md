@@ -59,7 +59,7 @@ carregando (prop deferida), vazio, busca sem resultado. Atalho `/` foca a busca.
 
 ## 10. Pegadinhas e divergências do protótipo
 
-- **Preço na lista.** O protótipo mostra cada modificador com o preço ("Bastão (R$ 12,00)"). A Blade mostra só os
+- **Preço na lista.** O protótipo mostra o preço ao lado de cada modificador. A Blade mostra só os
   nomes. Exibir preço é valor (regra mestre): fica fora até dupla prova e decisão [W]; a tela mostra os nomes.
 - **Produtos ligados de outro negócio.** O pivô `res_product_modifier_sets` não tem `business_id`. A Blade lista o
   que o pivô tiver; a tela nova só lista produtos do mesmo negócio (Tier 0).

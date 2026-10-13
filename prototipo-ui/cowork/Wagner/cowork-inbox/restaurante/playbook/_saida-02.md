@@ -34,7 +34,7 @@ Os testes rodam na lane `acessos-pest.yml`, que já executa `tests/Feature/Resta
 dispara com o `ModifierSetsController`. Não rodei Pest local (regra: CT 100 ou CI).
 
 ## Divergências do protótipo (no charter)
-- **Preço do modificador.** O protótipo mostra "Bastão (R$ 12,00)". A Blade mostra só os nomes; exibir preço é valor
+- **Preço do modificador.** O protótipo mostra o preço ao lado de cada modificador. A Blade mostra só os nomes; exibir preço é valor
   (regra mestre): fica fora até dupla prova e decisão [W].
 - **Produto ligado de outro negócio.** O pivô `res_product_modifier_sets` não tem `business_id`; a Blade lista o que o
   pivô tiver, a tela nova filtra pelo negócio (Tier 0).
