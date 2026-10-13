@@ -106,7 +106,9 @@ class SinalController extends Controller
                 ->paginate(30)->withQueryString()
                 ->through(fn (Sinal $s) => [
                     'id' => $s->id,
-                    'quando' => $s->created_at?->toIso8601String(),
+                    // getAttribute() e não ->created_at: o docblock de Sinal não declara a coluna, e
+                    // mexer no Model acorda a dívida grandfathered do MultiTenantScopeArchitectureTest.
+                    'quando' => $s->getAttribute('created_at')?->toIso8601String(),
                     'autor' => $s->autor_nome,
                     'texto' => $s->texto,
                     'onde' => $s->url_vista,

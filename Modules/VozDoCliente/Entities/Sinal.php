@@ -21,8 +21,6 @@ use Illuminate\Database\Eloquent\Model;
  * @property string|null $triado_para_us
  * @property int|null    $triado_por
  * @property string      $hash_origem
- * @property \Illuminate\Support\Carbon|null $created_at
- * @property \Illuminate\Support\Carbon|null $triado_em
  *
  * Tier 0 ({@see ADR 0093}): global scope de `business_id` obrigatório. O scope
  * segue o padrão canônico ({@see Modules\Arquivos\Entities\Arquivo}) — quando
