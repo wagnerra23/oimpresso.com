@@ -6,7 +6,8 @@
 //   adrs: 0104, 0093, 0114, 0149
 
 import AppShellV2 from '@/Layouts/AppShellV2';
-import PageHeader from '@/Components/shared/PageHeader';
+import { PageHeader } from '@/Components/PageHeader';
+import { Icon } from '@/Components/Icon';
 import { router } from '@inertiajs/react';
 import { useMemo, useState, type ReactNode } from 'react';
 import { Button } from '@/Components/ui/button';
@@ -116,11 +117,13 @@ function StockAdjustmentIndex({ rows, filters, business_locations, permissions }
 
   return (
     <>
+      {/* Header canon (@/Components/PageHeader, ADR 0189/0190 · ADR 0409): migrado ao tocar a tela
+          para o "Ver" abrir o detalhe. Mesmo mapeamento do Repair (#8531). */}
       <PageHeader
-        icon="package"
+        leading={<Icon name="package" size={18} className="mr-2 inline-block align-[-2px] text-primary" />}
         title="Ajustes de estoque"
-        description={`${rowsFiltradas.length} ${rowsFiltradas.length === 1 ? 'ajuste' : 'ajustes'}`}
-        action={permissions.create && (
+        subtitle={`${rowsFiltradas.length} ${rowsFiltradas.length === 1 ? 'ajuste' : 'ajustes'}`}
+        actions={permissions.create && (
           <Button size="sm" onClick={() => router.visit('/stock-adjustments/create')}>
             <Plus className="h-4 w-4 mr-1" /> Novo ajuste
           </Button>
