@@ -32,6 +32,9 @@ beforeEach(function () {
     $this->user = $this->usuarioComPermissoes(['business_settings.access'], $this->business);
     $this->actingAs($this->user);
     session(['user.business_id' => $this->business->id, 'user.id' => $this->user->id, 'business.id' => $this->business->id]);
+    // Com `user` já na sessão o SetSessionData não roda, e o @num_format da Blade lê session('currency')
+    // (500 "array offset on null" no settings_business:29). Mesma linha do ImpostosBaselineTest.
+    session(['currency' => ['id' => 1, 'code' => 'BRL', 'symbol' => 'R$', 'thousand_separator' => '.', 'decimal_separator' => ',']]);
 });
 
 /** Corpo mínimo que o postBusinessSettings aceita sem cair no catch (chaves que ele lê sem `?? `). */
