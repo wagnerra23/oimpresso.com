@@ -16,9 +16,9 @@ import { Skeleton } from '@/Components/ui/skeleton';
 import { Grid, Inline } from '@/Components/layout';
 import PageHeaderTabs from '@/Components/shared/PageHeaderTabs';
 import { brl, qtdComUnidade } from '../../Unificado/_components/catalogo';
-import { TIPO_ROTULO, type DetalheProdutoDados } from './tipos';
+import { TIPO_ROTULO, type AbaDoDetalhe, type DetalheProdutoDados } from './tipos';
 
-type Aba = 'dados' | 'variacoes' | 'composicao' | 'estoque' | 'fiscal' | 'prateleira';
+type Aba = AbaDoDetalhe;
 
 const qtd = (n: number) => n.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
 const dinheiro = (n: number | undefined | null) => (n === undefined || n === null ? '—' : brl(n));
@@ -94,6 +94,12 @@ function Dt({ rotulo, valor }: { rotulo: string; valor: string | null | undefine
 interface Props {
   aberto: boolean;
   detalhe: DetalheProdutoDados | null | undefined;
+  /**
+   * Aba ativa — quem abre o painel é o dono dela. "Ver" abre em Dados, "Dados fiscais" abre em
+   * Fiscal, e cada abertura recomeça na aba pedida (o painel fica montado entre uma e outra).
+   */
+  aba: AbaDoDetalhe;
+  aoMudarAba: (aba: AbaDoDetalhe) => void;
   aoFechar: () => void;
   podeEditar: boolean;
   podePrecos: boolean;
@@ -102,8 +108,7 @@ interface Props {
   irPara: (url: string) => void;
 }
 
-export default function PainelDetalheProduto({ aberto, detalhe: d, aoFechar, podeEditar, podePrecos, podeComprar, irPara }: Props) {
-  const [aba, setAba] = useState<Aba>('dados');
+export default function PainelDetalheProduto({ aberto, detalhe: d, aba, aoMudarAba, aoFechar, podeEditar, podePrecos, podeComprar, irPara }: Props) {
   // O `.cockpit` é o contêiner que entrega os tokens e a fonte do Design System.
   const [cockpit, setCockpit] = useState<HTMLElement | null>(null);
   useEffect(() => setCockpit(document.querySelector<HTMLElement>('.cockpit')), []);
@@ -171,7 +176,7 @@ export default function PainelDetalheProduto({ aberto, detalhe: d, aoFechar, pod
               <PageHeaderTabs
                 density="compact"
                 activeGhostKey={abaAtiva}
-                onGhostChange={(k) => setAba(k as Aba)}
+                onGhostChange={(k) => aoMudarAba(k as Aba)}
                 ghosts={abas}
               />
             </div>

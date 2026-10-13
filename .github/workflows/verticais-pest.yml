@@ -100,6 +100,9 @@ on:
       - 'Modules/Crm/Http/Controllers/ClienteIaController.php'
       - 'app/Services/Pessoas/PessoaVendas.php'
       - 'Modules/Crm/Tests/Feature/ClienteStatsTicketMedioTest.php'
+      # Thread Crm/15 — Configurações do CRM: baseline da Blade (F2) antes da tela React.
+      - 'Modules/Crm/Http/Controllers/CrmSettingsController.php'
+      - 'Modules/Crm/Tests/Feature/CrmConfiguracoes*'
       # Thread Crm/14 — Propostas: baseline da Blade (F2) antes da tela React.
       - 'Modules/Crm/Http/Controllers/ProposalController.php'
       - 'Modules/Crm/Tests/Feature/CrmPropostas*'
@@ -185,6 +188,9 @@ jobs:
               - 'Modules/Crm/Http/Controllers/ClienteIaController.php'
               - 'app/Services/Pessoas/PessoaVendas.php'
               - 'Modules/Crm/Tests/Feature/ClienteStatsTicketMedioTest.php'
+              # Thread Crm/15 — Configurações do CRM: baseline da Blade (F2) antes da tela React.
+              - 'Modules/Crm/Http/Controllers/CrmSettingsController.php'
+              - 'Modules/Crm/Tests/Feature/CrmConfiguracoes*'
               # Thread Crm/14 — Propostas: baseline da Blade (F2) antes da tela React.
               - 'Modules/Crm/Http/Controllers/ProposalController.php'
               - 'Modules/Crm/Tests/Feature/CrmPropostas*'
@@ -406,6 +412,7 @@ jobs:
             Modules/Crm/Tests/Feature/CrmPainelContratoTest.php \
             Modules/Crm/Tests/Feature/CrmLeadsListQueryTest.php \
             Modules/Crm/Tests/Feature/ClienteStatsTicketMedioTest.php \
+            Modules/Crm/Tests/Feature/CrmConfiguracoesBaselineTest.php \
             Modules/Crm/Tests/Feature/CrmPropostasBaselineTest.php \
             Modules/Crm/Tests/Feature/CrmPropostasContratoTest.php
 
