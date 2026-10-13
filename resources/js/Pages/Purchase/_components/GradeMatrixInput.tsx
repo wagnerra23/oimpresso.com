@@ -81,9 +81,9 @@ export default function GradeMatrixInput({
   // (não-técnica) — troca pra linguagem só-tamanho. 2d (nome composto "P/Preto") mantém cor.
   const isSingleAxis = cols.length === 1 && String(cols[0]?.id) === 'qtd';
 
-  // Classe do <kbd> da barra de atalhos extraída 1× (evita repetir o literal de cor
-  // border-stone-200 por tecla — ui:lint R1 conta cada ocorrência).
-  const kbdCls = 'rounded border border-stone-200 bg-white px-1 font-mono text-[10px]';
+  // Classe do <kbd> da barra de atalhos extraída 1× (evita repetir as classes
+  // de cor por tecla — ui:lint R1 conta cada ocorrência).
+  const kbdCls = 'rounded border border-border bg-card px-1 font-mono text-[10px]';
 
   // Atalhos por modo: single-axis navega só em tamanho (sem coluna cor).
   const shortcuts: Array<[string, string]> = isSingleAxis
@@ -259,44 +259,44 @@ export default function GradeMatrixInput({
   // Empty state — produto single sem variações
   if (rows.length === 0 || cols.length === 0) {
     return (
-      <div className="rounded-md border border-stone-200 bg-white p-4 text-sm text-stone-600">
+      <div className="rounded-md border border-border bg-card p-4 text-sm text-muted-foreground">
         Este produto não tem variações configuradas. Use a quantidade simples no formulário acima.
       </div>
     );
   }
 
   return (
-    <div className="rounded-lg border border-stone-200 bg-white shadow-sm overflow-hidden">
+    <div className="rounded-lg border border-border bg-card shadow-sm overflow-hidden">
       <div className="overflow-x-auto">
         <table className="min-w-full border-collapse text-sm">
-          <thead className="sticky top-0 bg-stone-50">
+          <thead className="sticky top-0 bg-muted">
             <tr>
-              <th className="border-b border-stone-200 px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-stone-500">
+              <th className="border-b border-border px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                 {isSingleAxis ? 'Tamanho' : 'Tam / Cor'}
               </th>
               {cols.map((c, ci) => (
                 <th
                   key={c.id}
-                  className="border-b border-stone-200 px-3 py-2 text-center text-xs font-semibold uppercase tracking-wide text-stone-700"
+                  className="border-b border-border px-3 py-2 text-center text-xs font-semibold uppercase tracking-wide text-foreground"
                   data-col-id={c.id}
                 >
                   {c.label}
-                  <div className="mt-0.5 font-mono text-[10px] text-stone-400">
+                  <div className="mt-0.5 font-mono text-[10px] text-muted-foreground">
                     Σ {totals.colTotals[ci]}
                   </div>
                 </th>
               ))}
-              <th className="border-b border-stone-200 px-3 py-2 text-right text-xs font-semibold uppercase tracking-wide text-stone-700">
+              <th className="border-b border-border px-3 py-2 text-right text-xs font-semibold uppercase tracking-wide text-foreground">
                 Total linha
               </th>
             </tr>
           </thead>
           <tbody>
             {rows.map((r, ri) => (
-              <tr key={r.id} className="hover:bg-stone-50/60">
+              <tr key={r.id} className="hover:bg-muted/60">
                 <th
                   scope="row"
-                  className="border-b border-stone-100 bg-stone-50/50 px-3 py-1.5 text-left text-sm font-medium text-stone-700"
+                  className="border-b border-border/60 bg-muted/50 px-3 py-1.5 text-left text-sm font-medium text-foreground"
                   data-row-id={r.id}
                 >
                   {r.label}
@@ -306,7 +306,7 @@ export default function GradeMatrixInput({
                   return (
                     <td
                       key={c.id}
-                      className="border-b border-stone-100 px-1.5 py-1 text-center"
+                      className="border-b border-border/60 px-1.5 py-1 text-center"
                     >
                       <input
                         ref={(el) => {
@@ -325,8 +325,8 @@ export default function GradeMatrixInput({
                         onFocus={(e) => e.target.select()}
                         className={`w-16 rounded-md border px-2 py-1 text-center font-mono text-sm tabular-nums focus:outline-none focus:ring-2 focus:ring-primary-500 ${
                           hasVariation
-                            ? 'border-stone-200 bg-white text-stone-900'
-                            : 'border-stone-100 bg-stone-50 text-stone-300 cursor-not-allowed'
+                            ? 'border-border bg-card text-foreground'
+                            : 'border-border/60 bg-muted text-muted-foreground/50 cursor-not-allowed'
                         }`}
                         aria-label={
                           isSingleAxis
@@ -344,29 +344,29 @@ export default function GradeMatrixInput({
                     </td>
                   );
                 })}
-                <td className="border-b border-stone-100 px-3 py-1.5 text-right font-mono text-sm font-semibold tabular-nums text-stone-700">
+                <td className="border-b border-border/60 px-3 py-1.5 text-right font-mono text-sm font-semibold tabular-nums text-foreground">
                   {totals.rowTotals[ri]}
                 </td>
               </tr>
             ))}
           </tbody>
-          <tfoot className="bg-stone-50">
+          <tfoot className="bg-muted">
             <tr>
-              <th className="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-stone-500">
+              <th className="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                 Total
               </th>
               {cols.map((c, ci) => (
                 <td
                   key={c.id}
-                  className="px-3 py-2 text-center font-mono text-sm font-semibold tabular-nums text-stone-700"
+                  className="px-3 py-2 text-center font-mono text-sm font-semibold tabular-nums text-foreground"
                 >
                   {totals.colTotals[ci]}
                 </td>
               ))}
-              <td className="px-3 py-2 text-right font-mono text-base font-bold tabular-nums text-stone-900">
+              <td className="px-3 py-2 text-right font-mono text-base font-bold tabular-nums text-foreground">
                 {totals.grand}
                 {unitCost > 0 && (
-                  <div className="mt-0.5 text-xs font-normal text-stone-500">
+                  <div className="mt-0.5 text-xs font-normal text-muted-foreground">
                     {(totals.grand * unitCost).toLocaleString('pt-BR', {
                       style: 'currency',
                       currency: 'BRL',
@@ -379,7 +379,7 @@ export default function GradeMatrixInput({
         </table>
       </div>
 
-      <div className="border-t border-stone-100 bg-stone-50/50 px-3 py-1.5 text-[11px] text-stone-500">
+      <div className="border-t border-border/60 bg-muted/50 px-3 py-1.5 text-[11px] text-muted-foreground">
         Atalhos:{' '}
         {shortcuts.map(([key, label], idx) => (
           <span key={key}>
