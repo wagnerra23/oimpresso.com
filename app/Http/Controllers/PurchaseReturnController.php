@@ -6,15 +6,28 @@ use App\AccountTransaction;
 use App\BusinessLocation;
 use App\PurchaseLine;
 use App\Transaction;
+use App\Services\FeatureFlagService;
 use App\Utils\ProductUtil;
 use App\Utils\TransactionUtil;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Inertia\Inertia;
 use Spatie\Activitylog\Models\Activity;
 use Yajra\DataTables\Facades\DataTables;
 
 class PurchaseReturnController extends Controller
 {
+    /**
+     * Flag da tela React (thread compras/playbook/08, F3). Convenção `useV2<Modulo><Tela>`. Sem a chave no GrowthBook
+     * o FeatureFlagService cai no fallbackDefaults, que não a lista: default OFF, a Blade segue servindo.
+     *
+     * @see memory/requisitos/Compras/_telas/RUNBOOK-purchase-return-index.md
+     */
+    private const FLAG_V2 = 'useV2ComprasDevolucoes';
+
+    /** Teto de linhas da tela React; acima disso ela avisa e manda para a tela clássica, que pagina no servidor. */
+    private const LIMITE_TELA = 1000;
+
     /**
      * All Utils instance.
      */
@@ -37,7 +50,9 @@ class PurchaseReturnController extends Controller
     /**
      * Display a listing of the resource.
      *
-     * @return \Illuminate\Http\Response
+     * DataTable (AJAX) → JsonResponse · Blade → View · tela React atrás da flag → Inertia\Response.
+     *
+     * @return \Illuminate\Http\JsonResponse|\Illuminate\View\View|\Inertia\Response
      */
     public function index()
     {
@@ -47,63 +62,9 @@ class PurchaseReturnController extends Controller
 
         $business_id = request()->session()->get('user.business_id');
 
-        if (request()->ajax()) {
-            $purchases_returns = Transaction::leftJoin('contacts', 'transactions.contact_id', '=', 'contacts.id')
-                    ->join(
-                        'business_locations AS BS',
-                        'transactions.location_id',
-                        '=',
-                        'BS.id'
-                    )
-                    ->leftJoin(
-                        'transactions AS T',
-                        'transactions.return_parent_id',
-                        '=',
-                        'T.id'
-                    )
-                    ->leftJoin(
-                        'transaction_payments AS TP',
-                        'transactions.id',
-                        '=',
-                        'TP.transaction_id'
-                    )
-                    ->where('transactions.business_id', $business_id)
-                    ->where('transactions.type', 'purchase_return')
-                    ->select(
-                        'transactions.id',
-                        'transactions.transaction_date',
-                        'transactions.ref_no',
-                        'contacts.name',
-                        'contacts.supplier_business_name',
-                        'transactions.status',
-                        'transactions.payment_status',
-                        'transactions.final_total',
-                        'transactions.return_parent_id',
-                        'BS.name as location_name',
-                        'T.ref_no as parent_purchase',
-                        DB::raw('SUM(TP.amount) as amount_paid')
-                    )
-                    ->groupBy('transactions.id');
-
-            $permitted_locations = auth()->user()->permitted_locations();
-            if ($permitted_locations != 'all') {
-                $purchases_returns->whereIn('transactions.location_id', $permitted_locations);
-            }
-
-            if (! empty(request()->location_id)) {
-                $purchases_returns->where('transactions.location_id', request()->location_id);
-            }
-
-            if (! empty(request()->supplier_id)) {
-                $supplier_id = request()->supplier_id;
-                $purchases_returns->where('contacts.id', $supplier_id);
-            }
-            if (! empty(request()->start_date) && ! empty(request()->end_date)) {
-                $start = request()->start_date;
-                $end = request()->end_date;
-                $purchases_returns->whereDate('transactions.transaction_date', '>=', $start)
-                            ->whereDate('transactions.transaction_date', '<=', $end);
-            }
+        // `! inertia()`: o Inertia v3 manda `X-Requested-With` em toda visita; sem esta perna o ramo DataTable engoliria a tela React.
+        if (request()->ajax() && ! request()->inertia()) {
+            $purchases_returns = $this->consultaDevolucoes((int) $business_id, request());
 
             return Datatables::of($purchases_returns)
                 ->addColumn('action', function ($row) {
@@ -182,9 +143,143 @@ class PurchaseReturnController extends Controller
                 ->make(true);
         }
 
+        // Tela React (thread compras/playbook/08, F3) atrás da flag, por negócio. `?legacy=1` mantém a Blade
+        // alcançável com a flag ligada: editar, pagar, ver pagamentos e excluir seguem nela.
+        if (! request()->boolean('legacy') && app(FeatureFlagService::class)->isOn(self::FLAG_V2, ['business_id' => $business_id])) {
+            return Inertia::render('PurchaseReturn/Index', [
+                'filtros' => [
+                    'location_id' => request()->input('location_id') ?: null,
+                ],
+                'devolucoes' => Inertia::defer(fn () => $this->devolucoesDaTela((int) $business_id, request())),
+                'opcoes' => Inertia::defer(fn () => ['locais' => BusinessLocation::forDropdown((int) $business_id)]),
+            ]);
+        }
+
         $business_locations = BusinessLocation::forDropdown($business_id);
 
         return view('purchase_return.index')->with(compact('business_locations'));
+    }
+
+    /**
+     * Devoluções de compra do negócio com o pago (SUM dos pagamentos) — o MESMO SQL para a DataTable da Blade e para
+     * a tela React (thread compras/playbook/08). Movido do index() sem reescrever: escopo por negócio, tipo, locais
+     * permitidos e os filtros da Blade. Travado por DevolucoesCompraBaselineTest.
+     */
+    private function consultaDevolucoes(int $business_id, Request $request)
+    {
+        $purchases_returns = Transaction::leftJoin('contacts', 'transactions.contact_id', '=', 'contacts.id')
+                ->join(
+                    'business_locations AS BS',
+                    'transactions.location_id',
+                    '=',
+                    'BS.id'
+                )
+                ->leftJoin(
+                    'transactions AS T',
+                    'transactions.return_parent_id',
+                    '=',
+                    'T.id'
+                )
+                ->leftJoin(
+                    'transaction_payments AS TP',
+                    'transactions.id',
+                    '=',
+                    'TP.transaction_id'
+                )
+                ->where('transactions.business_id', $business_id)
+                ->where('transactions.type', 'purchase_return')
+                ->select(
+                    'transactions.id',
+                    'transactions.transaction_date',
+                    'transactions.ref_no',
+                    'contacts.name',
+                    'contacts.supplier_business_name',
+                    'transactions.status',
+                    'transactions.payment_status',
+                    'transactions.final_total',
+                    'transactions.return_parent_id',
+                    'BS.name as location_name',
+                    'T.ref_no as parent_purchase',
+                    DB::raw('SUM(TP.amount) as amount_paid')
+                )
+                ->groupBy('transactions.id');
+
+        $permitted_locations = auth()->user()->permitted_locations();
+        if ($permitted_locations != 'all') {
+            $purchases_returns->whereIn('transactions.location_id', $permitted_locations);
+        }
+
+        if (! empty($request->location_id)) {
+            $purchases_returns->where('transactions.location_id', $request->location_id);
+        }
+
+        if (! empty($request->supplier_id)) {
+            $supplier_id = $request->supplier_id;
+            $purchases_returns->where('contacts.id', $supplier_id);
+        }
+        if (! empty($request->start_date) && ! empty($request->end_date)) {
+            $start = $request->start_date;
+            $end = $request->end_date;
+            $purchases_returns->whereDate('transactions.transaction_date', '>=', $start)
+                        ->whereDate('transactions.transaction_date', '<=', $end);
+        }
+
+        return $purchases_returns;
+    }
+
+    /**
+     * Devoluções no shape da tela React. É VALOR (regra mestre): o devido é a MESMA conta da coluna `payment_due` da
+     * DataTable (`final_total − amount_paid`, pago nulo vale zero), e total e devido vão como número (ordenar) e como
+     * texto já formatado pelo `num_f` (mostrar). A tela não calcula, não formata e não soma valor.
+     */
+    private function devolucoesDaTela(int $business_id, Request $request): array
+    {
+        $util = app(\App\Utils\Util::class);
+        $linhas = $this->consultaDevolucoes($business_id, $request)
+            ->orderBy('transactions.transaction_date', 'desc')
+            ->limit(self::LIMITE_TELA + 1)
+            ->get();
+        $truncado = $linhas->count() > self::LIMITE_TELA;
+        $linhas = $linhas->take(self::LIMITE_TELA);
+
+        $devolucoes = $linhas->map(function ($row) use ($util) {
+            $devido = $row->final_total - $row->amount_paid;
+
+            return [
+                'id' => (int) $row->id,
+                'data' => $this->formatarDataComoBlade($row->transaction_date),
+                'ref' => $row->ref_no,
+                'compra_origem' => $row->parent_purchase ?: null,
+                'local' => $row->location_name,
+                'fornecedor' => trim(($row->name ?? '').' '.($row->supplier_business_name ?? '')),
+                'pagamento' => $row->payment_status,
+                'pagamento_rotulo' => $row->payment_status === 'paid' ? __('lang_v1.received') : __('lang_v1.'.$row->payment_status),
+                'total' => (float) $row->final_total,
+                'total_texto' => $util->num_f((float) $row->final_total, true),
+                'devido' => (float) $devido,
+                'devido_texto' => $util->num_f((float) $devido, true),
+            ];
+        })->values();
+
+        return [
+            'linhas' => $devolucoes->all(),
+            'truncado' => $truncado,
+            // Contagem por status de pagamento: é contagem, não soma de valor (as somas do rodapé são decisão [W]).
+            'por_pagamento' => $devolucoes->groupBy('pagamento')->map(fn ($g) => [
+                'rotulo' => $g->first()['pagamento_rotulo'], 'quantidade' => $g->count(),
+            ])->values()->all(),
+        ];
+    }
+
+    /** Mesma expressão da diretiva `@format_datetime` (AppServiceProvider), com o shift de fuso da ADR 0066. */
+    private function formatarDataComoBlade($data): ?string
+    {
+        if (empty($data)) {
+            return null;
+        }
+        $hora = session('business.time_format') == 24 ? 'H:i' : 'h:i A';
+
+        return \Carbon::createFromTimestamp(strtotime($data))->format(session('business.date_format', config('constants.default_date_format', 'd/m/Y')).' '.$hora);
     }
 
     /**
