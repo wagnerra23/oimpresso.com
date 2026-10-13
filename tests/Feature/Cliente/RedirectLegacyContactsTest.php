@@ -40,6 +40,19 @@ function rlcFlagIndex(array $bizIds): void
     config(['mwart.cliente_index.enabled' => true, 'mwart.cliente_index.business_ids' => $bizIds]);
 }
 
+/**
+ * Destino do redirect como [path, query]. A query sai normalizada (o getQueryString() do Symfony
+ * ordena os parâmetros), então o contrato é o CONJUNTO de parâmetros, não a ordem do texto.
+ */
+function rlcDestino($response): array
+{
+    $location = (string) $response->headers->get('Location');
+    parse_str((string) parse_url($location, PHP_URL_QUERY), $query);
+    ksort($query);
+
+    return [parse_url($location, PHP_URL_PATH), $query];
+}
+
 test('lista de clientes: /contacts?type=customer vai para /cliente?type=customer (302)', function () {
     rlcFlagIndex([(int) $this->business->id]);
 
@@ -55,7 +68,7 @@ test('fornecedores (D3): /contacts?type=supplier vai para /cliente?type=supplier
     $r = $this->get('/contacts?type=supplier&q=abc');
 
     $r->assertStatus(302);
-    $r->assertRedirect('/cliente?type=supplier&q=abc');
+    expect(rlcDestino($r))->toBe(['/cliente', ['q' => 'abc', 'type' => 'supplier']]);
 });
 
 test('o destino responde: /cliente?type=customer abre o Cliente/Index em Inertia (sem laço)', function () {
@@ -105,7 +118,9 @@ test('AJAX legado (sem X-Inertia) em /contacts não é redirecionado', function 
     $r = $this->withHeaders(['X-Requested-With' => 'XMLHttpRequest', 'Accept' => 'application/json'])->get('/contacts?type=customer');
 
     expect($r->isRedirect())->toBeFalse();
-    // Controle: a mesma URL como navegação de página redireciona.
+    // Controle: a mesma URL como navegação de página redireciona. O withHeaders() vale para todas as
+    // requisições seguintes do teste — sem o flushHeaders() o controle sairia como AJAX também.
+    $this->flushHeaders();
     $this->get('/contacts?type=customer')->assertRedirect('/cliente?type=customer');
 });
 
