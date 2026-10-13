@@ -230,16 +230,18 @@ export default function Index({ bizName = 'oimpresso', materiais = [], podeCriar
       <Head title="Comunicação Visual — Orçamento por m²" />
 
       {/* Header canon (ADR 0189/0190): traz o próprio padding, por isso fica FORA do bloco p-6. */}
+      <div data-contract="cabecalho">
       <PageHeader
         leading={<Printer className="h-5 w-5 text-primary" aria-hidden="true" />}
         title="Comunicação Visual"
         subtitle={`Orçamento por m² pra ${bizName} — banner, lona, adesivo, fachada. Calcule na hora, sem abrir o Excel.`}
       />
+      </div>
 
       <div className="space-y-6 p-6">
 
         {/* Calculadora — o valor real da tela */}
-        <Card>
+        <Card data-contract="calculadora">
           <CardHeader className="flex flex-row items-center justify-between gap-2">
             <CardTitle className="flex items-center gap-2">
               <Calculator className="h-4 w-4 text-primary" />
@@ -410,7 +412,7 @@ export default function Index({ bizName = 'oimpresso', materiais = [], podeCriar
             })}
 
             {/* Ajustes gerais */}
-            <div className="grid grid-cols-1 gap-3 pt-1 sm:grid-cols-2">
+            <div data-contract="ajustes" className="grid grid-cols-1 gap-3 pt-1 sm:grid-cols-2">
               <div>
                 <Label htmlFor="extras" className="text-xs">
                   Acabamento / instalação / entrega (R$)
@@ -456,7 +458,7 @@ export default function Index({ bizName = 'oimpresso', materiais = [], podeCriar
             )}
 
             {/* Total + ação */}
-            <div className="flex flex-col gap-3 border-t border-border pt-4 sm:flex-row sm:items-end sm:justify-between">
+            <div data-contract="total" className="flex flex-col gap-3 border-t border-border pt-4 sm:flex-row sm:items-end sm:justify-between">
               <div className="space-y-1">
                 <div className="flex items-baseline gap-2 text-sm text-muted-foreground">
                   <span>Subtotal</span>
@@ -515,7 +517,7 @@ export default function Index({ bizName = 'oimpresso', materiais = [], podeCriar
         </Card>
 
         {/* Áreas que chegam em breve — honesto, sem jargão técnico */}
-        <Card>
+        <Card data-contract="em-breve">
           <CardHeader>
             <CardTitle className="text-sm font-medium text-muted-foreground">
               Em breve nesta tela

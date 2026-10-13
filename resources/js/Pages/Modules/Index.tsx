@@ -245,7 +245,7 @@ export default function ModulesIndex({ modules }: Props) {
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
               placeholder="Buscar por nome, alias, descrição ou área…"
-              className="pl-9 pr-9 h-9"
+              className="cw-input-icon-left cw-input-icon-right h-9"
               aria-label="Buscar módulo"
             />
             {searchInput && (

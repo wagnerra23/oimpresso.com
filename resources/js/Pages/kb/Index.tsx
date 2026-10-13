@@ -32,7 +32,8 @@ import {
 } from '@/Components/ui/alert-dialog';
 import { Label } from '@/Components/ui/label';
 import { ScrollArea } from '@/Components/ui/scroll-area';
-import PageHeader from '@/Components/shared/PageHeader';
+import { PageHeader } from '@/Components/PageHeader';
+import { Icon } from '@/Components/Icon';
 import KpiGrid from '@/Components/shared/KpiGrid';
 import KpiCard from '@/Components/shared/KpiCard';
 import { fmtRelative } from '@/Lib/datetime-br';
@@ -541,13 +542,18 @@ function KbIndex(props: Props) {
 
   return (
     <>
-      <PageHeader
-        icon="book-open"
-        title="KB — Knowledge Base"
-        description={`${num(kpis.total)} docs servidos via mcp.oimpresso.com — ADRs, sessions, references e specs sincronizados de memory/* via webhook GitHub.`}
-      />
+      {/* Header canon (@/Components/PageHeader, ADR 0189/0190 · ADR 0409): migrado ao tocar a tela
+          para pôr as âncoras do contrato de tela. Mesmo mapeamento do Repair (#8531) e do Estoque (#9158).
+          O canon não repassa atributo ao DOM, por isso a âncora `header` fica no <div> em volta. */}
+      <div data-contract="header">
+        <PageHeader
+          leading={<Icon name="book-open" size={18} className="mr-2 inline-block align-[-2px] text-primary" />}
+          title="KB — Knowledge Base"
+          subtitle={`${num(kpis.total)} docs servidos via mcp.oimpresso.com — ADRs, sessions, references e specs sincronizados de memory/* via webhook GitHub.`}
+        />
+      </div>
 
-      <KpiGrid cols={4} className="mt-6">
+      <KpiGrid cols={4} className="mt-6" data-contract="stats">
         <KpiCard
           icon="files"
           tone="info"
@@ -649,7 +655,7 @@ function KbIndex(props: Props) {
         </CardContent>
       </Card>
 
-      <div className="mt-4" style={{ height: '78vh' }}>
+      <div className="mt-4" style={{ height: '78vh' }} data-contract="tri">
         {!previewOpen ? (
           <div className="h-full">{ListPanel}</div>
         ) : (
