@@ -442,7 +442,7 @@ export default function FaturasIndex(props: PageProps) {
 
       <div className="min-h-screen bg-muted p-4 md:p-6">
         {/* ── HEADER ── */}
-        <header className="mb-4">
+        <header className="mb-4" data-contract="cabecalho">
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div>
               <h1 className="text-2xl font-semibold tracking-tight text-foreground">
@@ -478,7 +478,7 @@ export default function FaturasIndex(props: PageProps) {
         {/* ── 4 KPI CARDS ── */}
         <Deferred data="kpis" fallback={<KpiSkeleton />}>
           {kpis && (
-            <div className="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <div data-contract="kpis" className="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
               <KpiCard
                 label="Pago este mês"
                 value={BRL(kpis.total_pago_mes)}
@@ -519,7 +519,7 @@ export default function FaturasIndex(props: PageProps) {
         </Deferred>
 
         {/* ── FILTER BAR ── */}
-        <div className="mb-4 rounded-lg bg-card p-3 shadow-sm ring-1 ring-border">
+        <div data-contract="filtros" className="mb-4 rounded-lg bg-card p-3 shadow-sm ring-1 ring-border">
           <div className="flex flex-wrap items-center gap-2">
             {/* Status pills */}
             <div className="flex items-center gap-1 rounded-lg bg-muted p-1">
@@ -607,7 +607,7 @@ export default function FaturasIndex(props: PageProps) {
         </div>
 
         {/* ── TABELA ── */}
-        <div className="overflow-hidden rounded-lg bg-card shadow-sm ring-1 ring-border">
+        <div data-contract="lista" className="overflow-hidden rounded-lg bg-card shadow-sm ring-1 ring-border">
           <Deferred data="invoices" fallback={<TableSkeleton />}>
             {rows.length === 0 ? (
               <div className="flex flex-col items-center justify-center p-12 text-center">
