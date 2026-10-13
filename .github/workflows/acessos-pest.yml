@@ -62,6 +62,10 @@ on:
       # mexer na FSM não dispararia o teste dela — gate mudo com cara de
       # cobertura (a pegadinha que o sells-pest.yml documenta no próprio paths:).
       - 'app/Http/Controllers/RoleController.php'
+      - 'app/Http/Controllers/Restaurant/**'
+      - 'app/Utils/RestaurantUtil.php'
+      - 'resources/js/Pages/Restaurante/**'
+      - 'tests/Feature/Restaurante/**'
       - 'app/Http/Controllers/ContactController.php'
       - 'app/Services/Pessoas/**'
       - 'app/Http/Controllers/Api/App/PessoasController.php'
@@ -108,6 +112,9 @@ on:
       - 'app/Http/Controllers/PrinterController.php'
       - 'app/Http/Controllers/BarcodeController.php'
       - 'app/Http/Controllers/BusinessLocationController.php'
+      - 'Modules/Woocommerce/Http/Controllers/WoocommerceController.php'
+      - 'Modules/Woocommerce/Resources/js/Pages/Woocommerce/Painel/**'
+      - 'Modules/Woocommerce/Tests/Feature/Painel*'
       - 'app/Http/Controllers/BusinessController.php'
       - 'app/Services/FeatureFlagService.php'
       - 'config/feature-flags.php'
@@ -116,6 +123,10 @@ on:
       - 'app/Http/Controllers/GroupTaxController.php'
       - 'app/Http/Controllers/TypesOfServiceController.php'
       - 'app/Http/Controllers/AccountController.php'
+      - 'app/Http/Controllers/Restaurant/TableController.php'
+      - 'app/Utils/RestaurantUtil.php'
+      - 'resources/js/Pages/Restaurante/**'
+      - 'tests/Feature/Restaurante/**'
       - 'resources/views/printer/**'
       - 'tests/Feature/Configuracoes/**'
       - 'database/schema/mysql-schema.sql'
@@ -156,6 +167,10 @@ jobs:
           filters: |
             acessos:
               - 'app/Http/Controllers/RoleController.php'
+              - 'app/Http/Controllers/Restaurant/**'
+              - 'app/Utils/RestaurantUtil.php'
+              - 'resources/js/Pages/Restaurante/**'
+              - 'tests/Feature/Restaurante/**'
               - 'app/Http/Controllers/ContactController.php'
               - 'app/Services/Pessoas/**'
               - 'app/Http/Controllers/Api/App/PessoasController.php'
@@ -202,6 +217,9 @@ jobs:
               - 'app/Http/Controllers/PrinterController.php'
               - 'app/Http/Controllers/BarcodeController.php'
               - 'app/Http/Controllers/BusinessLocationController.php'
+              - 'Modules/Woocommerce/Http/Controllers/WoocommerceController.php'
+              - 'Modules/Woocommerce/Resources/js/Pages/Woocommerce/Painel/**'
+              - 'Modules/Woocommerce/Tests/Feature/Painel*'
               - 'app/Http/Controllers/BusinessController.php'
               - 'app/Services/FeatureFlagService.php'
               - 'config/feature-flags.php'
@@ -210,6 +228,10 @@ jobs:
               - 'app/Http/Controllers/GroupTaxController.php'
               - 'app/Http/Controllers/TypesOfServiceController.php'
               - 'app/Http/Controllers/AccountController.php'
+              - 'app/Http/Controllers/Restaurant/TableController.php'
+              - 'app/Utils/RestaurantUtil.php'
+              - 'resources/js/Pages/Restaurante/**'
+              - 'tests/Feature/Restaurante/**'
               - 'resources/views/printer/**'
               - 'tests/Feature/Configuracoes/**'
               - 'database/schema/mysql-schema.sql'
@@ -256,8 +278,11 @@ jobs:
             tests/Feature/NotificationTemplateTest.php \
             tests/Feature/NotificationTemplate/DualTest.php \
             tests/Feature/Support/SuporteLogContratoTest.php \
+            Modules/Woocommerce/Tests/Feature/PainelBaselineTest.php \
+            Modules/Woocommerce/Tests/Feature/PainelContratoTest.php \
             tests/Feature/VozDoCliente/CaixaContratoTest.php \
             tests/Feature/Configuracoes/ \
+            tests/Feature/Restaurante/ \
             tests/Feature/CutoverMenu/RelatoriosSemXInertiaTest.php
 
       # A régua honesta desta lane é `assertions`, NÃO "0 failed": skip sai exit 0
