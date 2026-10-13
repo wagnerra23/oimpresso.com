@@ -53,7 +53,7 @@ class SpreadsheetController extends Controller
     /**
      * Display a listing of the resource.
      *
-     * @return Response
+     * @return \Illuminate\View\View|\Inertia\Response
      */
     public function index()
     {
