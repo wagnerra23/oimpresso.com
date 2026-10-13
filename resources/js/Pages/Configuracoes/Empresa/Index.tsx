@@ -94,7 +94,7 @@ function EmpresaIndex({ corpo: inicial, logo, opcoes }: Props) {
           actions={<Button data-contract="salvar" disabled={!sujo || salvando} onClick={salvar}>{salvando ? 'Salvando…' : 'Salvar'}</Button>} />
       </div>
 
-      <div className="grid gap-6 px-6 pt-4 md:grid-cols-[13rem_1fr]">
+      <Grid gap={6} className="px-6 pt-4 md:grid-cols-[13rem_1fr]">
         <nav data-contract="abas" aria-label="Abas da configuração">
           <Stack gap={3}>
             {ABAS.map((g) => (
@@ -160,7 +160,7 @@ function EmpresaIndex({ corpo: inicial, logo, opcoes }: Props) {
             </Stack>
           </Deferred>
         </section>
-      </div>
+      </Grid>
     </div>
   );
 }

@@ -270,7 +270,7 @@ class BusinessController extends Controller
     /**
      * Shows business settings form
      *
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\View\View|\Inertia\Response
      */
     public function getBusinessSettings()
     {
