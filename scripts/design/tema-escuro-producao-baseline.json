@@ -18,9 +18,6 @@
     "Financeiro/Unificado": {
       "span.inline-grid.place-items-center": 1
     },
-    "Governance/Dashboard": {
-      "span.inline-flex.w-fit": 1
-    },
     "Manufacturing/Settings": {
       "span.pointer-events-none.block": 2
     }
