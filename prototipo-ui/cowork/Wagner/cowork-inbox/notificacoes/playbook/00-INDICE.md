@@ -16,7 +16,7 @@ base: wagnerra23/oimpresso.com@main ebe1fc8be7e4 (lido 2026-09-23 17:33 UTC)
   "gerado": "2026-09-23",
   "decisoes": [],
   "variaveis": {
-    "PAGE": null
+    "PAGE": "resources/js/Pages/NotificationTemplate/Index.tsx"
   },
   "threads": [
     {

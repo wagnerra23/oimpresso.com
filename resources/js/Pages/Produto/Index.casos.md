@@ -5,7 +5,7 @@ irmaos: Index.charter.md (lei)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: a lista é a PORTA do catálogo — se ela esconde produto, esconde preço a quem não devia, ou mistura tenant, todo o resto do ERP herda o erro.
 owner: wagner
-last_run: "2026-10-12"
+last_run: "2026-10-13"
 last_run_ci: "run 38087431948 (lane Estoque · MySQL, commit 59fe58ae, com o arquivo fora da quarentena naquele commit): os 6 UC-PIDX passaram. A saída da quarentena da lane vai em PR próprio (o arquivo .github é CODEOWNERS [W])"
 ---
 
@@ -70,6 +70,7 @@ last_run_ci: "run 38087431948 (lane Estoque · MySQL, commit 59fe58ae, com o arq
 | UC-PIDX-12 | Os 3 indicadores da aba Estoque do painel são a soma das linhas do relatório de estoque do produto | must | protótipo (`DetalheDrawer`, aba Estoque) + contas de `linhaDoRelatorioEstoque` + Blade `view_product_stock_value` | `ProdutoDetalheTest` (Pest) | ⬜ nasce neste PR — verde esperado |
 | UC-PIDX-13 | Clicar no cabeçalho de uma coluna ordena a lista no servidor, nas duas direções; por preço só para quem pode ver o preço | should | protótipo (`ListaProdutos`, colunas `sortable`) + `$ordenaveis` de `buildProdutoListaPaginada` + gate de preço (UC-PIDX-03) | `ProdutoListaOrdenacaoTest` (Pest) + `produto-lista-ordenacao.test.tsx` (Vitest) | ⬜ nasce neste PR — verde esperado |
 | UC-PIDX-14 | "Cadastro rápido" cria o produto com os preços que o formulário Blade gravaria, só na empresa e nos locais permitidos | must `[V0]` `[T0]` | charter v3 §Goals ("Cadastro rápido") + protótipo (`ModalCadastroRapido`) + Blade `quick_add_product` / `saveQuickProduct` + REGRA MESTRE valor | `ProdutoListaCadastroRapidoTest` (Pest) + `produto-cadastro-rapido.test.tsx` (Vitest) | ⬜ nasce neste PR — verde esperado |
+| UC-PIDX-15 | "Adicionar ou editar estoque inicial" abre em janela e lança o mesmo saldo, linhas e transações que o formulário Blade | must `[V0]` `[T0]` | protótipo (`ModalEstoqueInicial`) + Blade `opening_stock/form-part` / `OpeningStockController@save` + `CU-PROD-04` + REGRA MESTRE estoque | `EstoqueInicialJanelaTest` (Pest) + `produto-estoque-inicial.test.tsx` (Vitest) | ⬜ nasce neste PR — verde esperado |
 
 > 🔄 **Revalidação G-6 — 2026-10-10 (#9124, lista no desenho do protótipo).** Os 6 contratos
 > **continuam os mesmos**: derivam do SDD, da lista Blade e do Delphi, não da tela de cards. O que
@@ -282,6 +283,24 @@ last_run_ci: "run 38087431948 (lane Estoque · MySQL, commit 59fe58ae, com o arq
   - preço só com vírgula decimal e sem milhar; "12.125" é recusado em vez de adivinhado.
 - **Status: ⬜** — nasce neste PR; verde esperado. Só a lane decide (a parte Vitest não roda em lane nenhuma).
 
+## UC-PIDX-15 · Estoque inicial em janela, com o mesmo saldo que o formulário Blade · `must` `[V0]` `[T0]`
+- **Persona:** Larissa acabou de cadastrar um produto e quer informar quanto já tem dele em cada loja, sem sair da lista.
+- **Aceite:** Dado um produto da empresa com controle de estoque e a permissão de estoque inicial · Quando escolho "Adicionar ou editar estoque inicial" no menu da linha · Então abre uma janela com uma linha por local em que o produto está disponível (e que eu posso acessar) e por variação, trazendo as linhas já lançadas; posso mudar quantidade e custo, informar validade, lote, data e observação, e acrescentar mais uma linha no mesmo local. Ao salvar, o saldo por local, as linhas de compra e as transações ficam **iguais** aos que o formulário Blade deixaria para os mesmos dados. Local que o pedido não cita não é tocado. Número só com vírgula decimal. Linha, variação ou local que não são deste produto e desta empresa são recusados, e nada é gravado.
+- **Teste:** [`EstoqueInicialJanelaTest`](../../../../tests/Feature/Produto/EstoqueInicialJanelaTest.php) — `UC-PIDX-15` (o que é gravado, comparado com um produto gêmeo lançado pelo caminho Blade) e [`produto-estoque-inicial.test.tsx`](../../../../tests/js/produto-estoque-inicial.test.tsx) (o que a janela manda).
+- **Prova de estoque por dois caminhos** (REGRA MESTRE): 10 un. a 5 num local e 2,5 un. a 12,125 no outro → conta à mão (saldos 10 e 2,5; totais 50 e 30,3125) **e** o gêmeo lançado por `POST /opening-stock/save` — saldo, linhas e transações comparados por local. O mesmo para aumentar (10 → 14), diminuir (14 → 4) e acrescentar uma segunda linha (10 + 3 = 13).
+- **Contrato:**
+  - **Protótipo** — `ModalEstoqueInicial` (por local: quantidade, custo sem imposto, validade, lote, subtotal).
+  - **Blade** — `opening_stock/form-part.blade.php`: a janela mantém TUDO o que a tela tem (linha por variação, várias linhas por variação, data, observação, segunda unidade) e `OpeningStockController@save` continua sendo o único que grava; `salvarDaJanela` só confere e monta o pedido.
+  - **Canon** — `CU-PROD-04` e os UC-PINIC-01..04 de [estoque-inicial.casos.md](../../../../memory/requisitos/Produto/_telas/estoque-inicial.casos.md), que seguem valendo para o caminho Blade.
+- **O que a janela confere a mais que o formulário Blade (antes de gravar, sem mudar a conta):**
+  - o `save()` apaga, em cada local enviado, a linha de estoque inicial que não vier no pedido, e desconta o saldo; a janela sempre reenvia todas, e o servidor recusa pedido que não traga todas as linhas existentes dos locais citados (alguém lançou uma linha depois que a janela abriu);
+  - linha existente tem de ser estoque inicial deste produto, nesta empresa, naquele local e variação;
+  - número só com vírgula decimal e sem milhar — "1.500" e "12.125" são recusados, não adivinhados;
+  - a data vai e volta sem deslocamento: salvar sem mexer na data não a altera (na tela Blade a data exibida passa pelo `format_date`, com o deslocamento histórico de 3 horas);
+  - com validade ou lote desligados na empresa, a linha existente mantém o que já tinha (o formulário Blade, sem o campo, apagava).
+- **Achado do caminho antigo, NÃO resolvido aqui (hipótese por leitura, ainda sem medição):** ao zerar uma linha existente, o `save()` não chama `updateProductQuantity` (`if ($qty_remaining != 0)`), então o saldo do local não desceria. A janela herda o que o Blade faz — o teste afirma só a igualdade entre os dois caminhos nesse caso. Decisão de conserto é do [W]/[F].
+- **Status: ⬜** — nasce neste PR; verde esperado. Só a lane decide (a parte Vitest não roda em lane nenhuma).
+
 ---
 
 ## Achados de governança (o trio prometia o que não tinha)
@@ -384,6 +403,7 @@ last_run_ci: "run 38087431948 (lane Estoque · MySQL, commit 59fe58ae, com o arq
 - Gate: `scripts/casos-coverage-guard.mjs` (G-1/G-2/G-5/G-6/G-7 — [ADR 0264](../../../../memory/decisions/0264-governanca-executavel-trio-dominio-e2e.md))
 
 ## Trilha do tempo
+- 2026-10-13 · [F+C] **UC-PIDX-15** (estoque inicial em janela): o menu da linha abre a janela em vez da página Blade; `OpeningStockController::salvarDaJanela` confere o pedido e entrega ao `save()`; prova de estoque com produto gêmeo no `EstoqueInicialJanelaTest`.
 - 2026-10-12 · [F+C] **UC-PIDX-14** ("Cadastro rápido" na barra da lista): a janela manda os dois preços digitados e o servidor monta o pedido do formulário Blade e entrega ao `saveQuickProduct`; prova de valor por dois caminhos no `ProdutoListaCadastroRapidoTest`.
 - 2026-10-12 · [F+C] **UC-PIDX-13** (ordenar pelo cabeçalho): a tela prometia e não fazia — as colunas ganharam o `accessorFn` que faltava e a tabela passou a receber a ordem atual; teste de servidor e de tela.
 - 2026-10-12 · [F+C] **UC-PIDX-12** (os 3 indicadores da aba Estoque do painel): soma das linhas do relatório de estoque do produto, pela mesma função do rodapé da aba "Relatório de estoque"; prova dupla no `ProdutoDetalheTest`.

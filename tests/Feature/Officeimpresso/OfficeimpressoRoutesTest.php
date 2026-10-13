@@ -33,7 +33,9 @@ beforeEach(function () {
 });
 
 it('computadores renderiza com status 200', function () {
-    $r = $this->get('/officeimpresso/computadores');
+    // Cutover [W] 2026-10-13: useV2OfficeimpressoEmpresa vem ligada; `?legacy=1` mantém este
+    // smoke na Blade, que é o que o assertSee abaixo mede.
+    $r = $this->get('/officeimpresso/computadores?legacy=1');
     expect($r->getStatusCode())->toBe(200);
     $r->assertSee('Licen', false); // substring "Licenças"
 });

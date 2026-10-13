@@ -61,7 +61,7 @@ blueprint_cowork: prototipo-ui/prototipos/produto-cockpit/ _(removido em 2026-05
 > | Arrastar a borda da coluna para redimensionar | não existe (larguras fixas) | FALTA |
 > | Botão "Cadastro rápido" | não existia em 2026-10-12; **entrou em 2026-10-12** (UC-PIDX-14), com "Gerenciar estoque" e locais (2+) a mais que o protótipo, por decisão [F] | feito |
 > | Menu da linha: 13 ações | 10 presentes | faltam "Transferir entre locais" (vira requisição de transferência) e "Dados fiscais"; "Usar em uma OS" saiu por decisão [F] 2026-10-11 |
-> | Estoque inicial em janela | abre a página de estoque inicial | DIFERENTE |
+> | Estoque inicial em janela | abria a página de estoque inicial em 2026-10-12; **virou janela em 2026-10-13** (UC-PIDX-15), com tudo o que a tela Blade tem (variações, várias linhas, data, observação, segunda unidade) | feito |
 > | Barra de seleção (6 ações + limpar), com confirmação | presente (+ WooCommerce Sync) | IGUAL |
 > | Lista vazia, destaque de inativo e de estoque baixo, "Exportar filtrados" | presentes | IGUAL |
 > | `Ctrl+K` com as telas do módulo e ir a um produto | `Ctrl+K` abre a busca geral de tarefas | FALTA |

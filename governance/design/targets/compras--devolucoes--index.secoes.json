@@ -1,0 +1,25 @@
+{
+  "_": "A2 [CL] 2026-10-13 — playbook compras. Rota `cmp-devolucoes` do espelho (app.jsx:844 → window.ComprasExtrasPage view=cmp-devolucoes, compras-extras.jsx), tela \"Devoluções de compra\". Mesmo molde dos alvos da A1 do Estoque: espelho servido por servirEstatico, tema dark (default do espelho), viewport 1280x900, browser limpo.",
+  "_mapa": "alvo:mapa --quieto-ms 2000, 2026-10-13: raiz '.main-body > .pb-root' → div.cli-ph(2: p · header) · div.pb-body · div(painel, vazio); '.pb-body' → nav.ds-tabbar.vb-nav(3) · div(Alert info, sem classe: span · div) · div.cu-kpis(3) · section.pb-widget(2); '.pb-widget-b' → div.pb-toolbar(4) · div.pb-grid-pro.cu-grid(1) · div.pb-pag(1). O Alert é pego como 'nav + div' porque não tem classe.",
+  "cabecalho": {
+    "seletor": ".main-body > .pb-root > .cli-ph > header"
+  },
+  "abas": {
+    "seletor": ".main-body > .pb-root > .pb-body > nav.ds-tabbar"
+  },
+  "aviso": {
+    "seletor": ".main-body > .pb-root > .pb-body > nav.ds-tabbar + div"
+  },
+  "kpis": {
+    "seletor": ".main-body > .pb-root > .pb-body > .cu-kpis"
+  },
+  "toolbar": {
+    "seletor": ".main-body > .pb-root > .pb-body > section.pb-widget > .pb-widget-b > .pb-toolbar"
+  },
+  "tabela": {
+    "seletor": ".main-body > .pb-root > .pb-body > section.pb-widget > .pb-widget-b > .pb-grid-pro"
+  },
+  "rodape": {
+    "seletor": ".main-body > .pb-root > .pb-body > section.pb-widget > .pb-widget-b > .pb-pag"
+  }
+}

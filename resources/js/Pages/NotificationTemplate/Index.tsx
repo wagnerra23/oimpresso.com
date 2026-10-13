@@ -1,4 +1,4 @@
-// @memcofre: NotificationTemplate/Index · US-NOTIF-003 seleção + US-NOTIF-004 editor · flag OFF.
+// @memcofre: NotificationTemplate/Index · US-NOTIF-003 seleção + US-NOTIF-004 editor · flag useV2NotificationTemplates (default ON desde 2026-10-13).
 // Fonte: prototipo-ui/cowork/Wagner/notificacoes-page.jsx e .css.
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Deferred, router } from '@inertiajs/react';

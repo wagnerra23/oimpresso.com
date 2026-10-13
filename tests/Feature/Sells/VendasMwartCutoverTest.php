@@ -198,6 +198,35 @@ it('prévia da importação: flag desligada no Blade, ligada na Page React, X-In
     @unlink(public_path('uploads/temp/'.$pagina['props']['arquivo']));
 });
 
+// ── C1 · Descontos, Importação e Pedido de venda ligados só para biz=1 ─────────────────────
+// Cutover [W] 2026-10-13 ("pode ligar tudo"), thread C1 do venda-menu/playbook/02: sem env, as
+// três chaves vêm LIGADAS com a lista de empresas = [1]. As outras três (C2) seguem desligadas.
+
+it('C1 sem env as chaves de Descontos, Importação e Pedido vêm ligadas só para biz=1', function () {
+    $c1 = ['vendas_discount_index', 'vendas_import_sales', 'vendas_sales_order_index'];
+    $c2 = ['vendas_pos_index', 'vendas_shipments_index', 'vendas_sell_return_index'];
+
+    // Precondição: o ambiente de teste não fixa a env; senão o default nem é exercitado.
+    foreach (array_merge($c1, $c2) as $chave) {
+        $env = 'MWART_'.strtoupper($chave);
+        expect(env($env))->toBeNull();
+        expect(env($env.'_BIZ'))->toBeNull();
+    }
+
+    $padrao = require base_path('config/mwart.php');
+    foreach ($c1 as $chave) {
+        expect($padrao[$chave])->toBe(['enabled' => true, 'business_ids' => [1]]);
+    }
+    foreach ($c2 as $chave) {
+        expect($padrao[$chave])->toBe(['enabled' => false, 'business_ids' => []]);
+    }
+
+    // Com o default, uma empresa que não é a 1 continua no Blade.
+    expect($this->bizId)->not->toBe(1);
+    config(['mwart.vendas_discount_index' => $padrao['vendas_discount_index']]);
+    $this->get('/discount')->assertOk()->assertViewIs('discount.index');
+});
+
 // ── Q2 · Cotações (`vendas_cotacoes`) ─────────────────────────────────────────────────────
 // Diferente das 6 acima, esta chave NASCE LIGADA: a tela já abria em React no GET comum para
 // todas as empresas desde o Cutover pelo menu (thread 02, D1 [W] 2026-10-07). A chave só dá

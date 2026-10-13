@@ -1,0 +1,25 @@
+{
+  "_": "A2 [CL] 2026-10-13 — playbook compras. Rota `cmp-requisicoes` do espelho (app.jsx:844 → window.ComprasExtrasPage view=cmp-requisicoes, compras-extras.jsx), tela \"Requisições de compra\". Mesmo molde dos alvos da A1 do Estoque: espelho servido por servirEstatico, tema dark (default do espelho), viewport 1280x900, browser limpo.",
+  "_mapa": "alvo:mapa --quieto-ms 2000, 2026-10-13: raiz '.main-body > .pb-root' → div.cli-ph(2: p · header) · div.pb-body · div(painel, vazio); '.pb-body' → nav.ds-tabbar.vb-nav(3) · div.cu-kpis(3) · section.pb-widget(2); '.pb-widget-b' → p.cu-nota · div.pb-toolbar(5) · div.pb-grid-pro.cu-grid(1) · div.pb-pag(1)",
+  "cabecalho": {
+    "seletor": ".main-body > .pb-root > .cli-ph > header"
+  },
+  "abas": {
+    "seletor": ".main-body > .pb-root > .pb-body > nav.ds-tabbar"
+  },
+  "kpis": {
+    "seletor": ".main-body > .pb-root > .pb-body > .cu-kpis"
+  },
+  "nota": {
+    "seletor": ".main-body > .pb-root > .pb-body > section.pb-widget > .pb-widget-b > p.cu-nota"
+  },
+  "toolbar": {
+    "seletor": ".main-body > .pb-root > .pb-body > section.pb-widget > .pb-widget-b > .pb-toolbar"
+  },
+  "tabela": {
+    "seletor": ".main-body > .pb-root > .pb-body > section.pb-widget > .pb-widget-b > .pb-grid-pro"
+  },
+  "rodape": {
+    "seletor": ".main-body > .pb-root > .pb-body > section.pb-widget > .pb-widget-b > .pb-pag"
+  }
+}

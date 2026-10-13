@@ -1,0 +1,244 @@
+{
+  "aguardou_sumir": null,
+  "ausentes": [],
+  "base": {
+    "assinatura": "OI WR Planos · cobrança recorrente 5 PLANOS · 4 ATIVOS · MRR potencial R$ 3.810,00 Novo plano Financeiro Cobrança Assinaturas Fluxo de caixa Conciliação DRE / Relatórios Plano de contas Impostos e obrigações ⋯ Ticket médio · MRR potencial R$ 476,25 MRR total R$ 3.810,00 Total planos 5 1 inativo Total ativos 4 disponíveis pra novas assinaturas Plano top vendido Sinalização Mensal 3 assin. · R$ 450,00 Distribuição por ciclo Mensal 2 Trimestral 1 Semestral 1 Anual 1 Customizado 0 Buscar Plano Ciclo Valor Assinaturas Fiscal Status Ações Sinalização Mensal sinalizacao-mensal Placas e banners trocados todo mês mensal R$ 450,00 3 NFS-e ativo Editar Excluir Adesivos Frota Mensal adesivos-frota-mensal Reposição de adesivos de frota mensal R$ 680,00 2 NFe ativo Editar Excluir Impressão Trimestral impressao-trimestral Lote de impressos a cada 3 meses trimestral R$ 1.200,00 2 NFe ativo Editar Excluir Manutenção Fachada Anual manutencao-fachada-anual Revisão anual de fachada e letreiro anual R$ 3.600,00 1 NFS-e ativo Editar Excluir Banner Promocional Semestral banner-promocional-semestral Campanha de vitrine a cada 6 meses semestral R$ 900,00 0 Não emite inativo Editar Excluir 5 planos no total Página 1 de 1",
+    "roles": {
+      "celulas": null,
+      "chart": null,
+      "contratos": [],
+      "filterRows": null,
+      "kpi": {
+        "count": 0,
+        "items": [],
+        "overflowX": null,
+        "tag": null
+      },
+      "primary": null,
+      "shell": null,
+      "tabela": null,
+      "title": null
+    },
+    "saude": {
+      "folhasVazias": [],
+      "nFolhas": 75,
+      "tokensMortos": []
+    },
+    "theme": "dark",
+    "url": "http://127.0.0.1:5562/"
+  },
+  "nos_totais": 624,
+  "quieto_ms": 2000,
+  "rota": "rb-planos",
+  "secoes": {
+    "cabecalho": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "cr-root",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "block",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "padding": "12px 24px"
+      },
+      "filhos": 1,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "cr-root"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "cr-hero-top"
+      ],
+      "rect": {
+        "h": 69,
+        "w": 1224
+      },
+      "seletor": ".main-body > .cr-root > .cr-hero",
+      "truncado": false
+    },
+    "ciclos": {
+      "contraste": {
+        "fundo": "oklch(0.3 0.008 240)",
+        "fundo_de": "proprio",
+        "razao": 11.42,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.027108,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.3 0.008 240)",
+        "borderRadius": "9px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "block",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "padding": "12px 14px"
+      },
+      "filhos": 2,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.3 0.008 240)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "cr-blk-label",
+        "div"
+      ],
+      "rect": {
+        "h": 104,
+        "w": 1176
+      },
+      "seletor": ".main-body > .cr-root > .cr-body > .cr-card",
+      "truncado": false
+    },
+    "kpis": {
+      "contraste": {
+        "fundo": "oklch(0.3 0.008 240)",
+        "fundo_de": "proprio",
+        "razao": 11.42,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.027108,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.3 0.008 240)",
+        "borderRadius": "10px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "grid",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "padding": "0px"
+      },
+      "filhos": 4,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.3 0.008 240)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "cr-stat",
+        "cr-stat",
+        "cr-stat",
+        "cr-stat"
+      ],
+      "rect": {
+        "h": 90,
+        "w": 1176
+      },
+      "seletor": ".main-body > .cr-root > .cr-body > .cr-stats",
+      "truncado": false
+    },
+    "lista": {
+      "contraste": {
+        "fundo": "oklch(0.3 0.008 240)",
+        "fundo_de": "proprio",
+        "razao": 11.42,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.027108,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.3 0.008 240)",
+        "borderRadius": "10px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "block",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "padding": "0px"
+      },
+      "filhos": 3,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.3 0.008 240)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "cr-list-head",
+        "table",
+        "div"
+      ],
+      "rect": {
+        "h": 488,
+        "w": 1176
+      },
+      "seletor": ".main-body > .cr-root > .cr-body > .cr-list-wrap",
+      "truncado": false
+    },
+    "subnav": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "cr-root",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "flex",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "2px",
+        "padding": "0px"
+      },
+      "filhos": 9,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "cr-root"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "topbar-tab",
+        "topbar-tab",
+        "topbar-tab",
+        "topbar-tab",
+        "topbar-tab",
+        "topbar-tab",
+        "topbar-tab",
+        "topbar-tab",
+        "ph-nav-more"
+      ],
+      "rect": {
+        "h": 36,
+        "w": 1176
+      },
+      "seletor": ".main-body > .cr-root > nav.ph-nav",
+      "truncado": false
+    }
+  },
+  "tela": "recorrente--planos--index",
+  "url": "http://127.0.0.1:5562/"
+}

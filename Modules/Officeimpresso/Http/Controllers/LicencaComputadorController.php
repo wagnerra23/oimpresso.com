@@ -26,10 +26,10 @@ use Modules\Superadmin\Entities\Package;
  */
 class LicencaComputadorController extends Controller
 {
-    /** Tela React de `businessall` (RUNBOOK-empresas). Default OFF: a Blade segue até o cutover. */
+    /** Tela React de `businessall` (RUNBOOK-empresas). Nasceu OFF; ligada para todas no cutover [W] 2026-10-13 (fallbackDefaults). */
     private const FLAG_EMPRESAS = 'useV2OfficeimpressoEmpresas';
 
-    /** Tela React da ficha (`computadores` e `viewLicencas`, RUNBOOK-empresa). Default OFF. */
+    /** Tela React da ficha (`computadores` e `viewLicencas`, RUNBOOK-empresa). Ligada para todas no cutover [W] 2026-10-13; `?legacy=1` abre a Blade. */
     private const FLAG_EMPRESA = 'useV2OfficeimpressoEmpresa';
 
     public function __construct(private LicencaService $licencaService)

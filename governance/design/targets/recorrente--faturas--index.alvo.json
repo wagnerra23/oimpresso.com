@@ -1,0 +1,244 @@
+{
+  "aguardou_sumir": null,
+  "ausentes": [],
+  "base": {
+    "assinatura": "OI WR Faturas · cobrança recorrente 11 FATURAS · ATRASADAS 3 Financeiro Cobrança Assinaturas Fluxo de caixa Conciliação DRE / Relatórios Plano de contas Impostos e obrigações ⋯ Pago este mês R$ 450,00 faturas liquidadas no mês corrente Pendente R$ 2.470,00 abertas com vencimento futuro Atrasado R$ 1.810,00 3 faturas vencidas Total de faturas 11 histórico completo Todas 11 Pagas 4 Pendentes 3 Atrasadas 3 Canceladas 1 Todos gateways Inter C6 Asaas Qualquer período Mês atual Próximo mês Apenas atrasadas 11 / 11 Número Cliente Plano Valor Vencimento Status Gateway Ações FAT-2026-0512 Padaria Pão Quente 12.448.770/0001-22 Sinalização Mensal R$ 450,00 10/05/2026 — paga Inter — FAT-2026-0518 Auto Posto Trevo 08.911.332/0001-09 Adesivos Frota Mensal R$ 680,00 05/05/2026 há 27d atrasada Inter Cancelar FAT-2026-0521 Academia CorpoForte 33.671.904/0001-50 Sinalização Mensal R$ 450,00 28/05/2026 há 4d atrasada Asaas Cancelar FAT-2026-0524 Mercado União 55.118.022/0001-31 Adesivos Frota Mensal R$ 680,00 03/05/2026 há 29d atrasada C6 Cancelar FAT-2026-0527 Farmácia Bem-Estar 71.992.150/0001-66 Sinalização Mensal R$ 450,00 22/05/2026 — paga Asaas — FAT-2026-0530 Restaurante Sabor Caseiro 21.005.118/0001-77 Impressão Trimestral R$ 1.200,00 20/04/2026 — paga Inter — FAT-2026-0601 Farmácia Bem-Estar 71.992.150/0001-66 Sinalização Mensal R$ 450,00 01/06/2026 — paga Asaas — FAT-2026-0602 Padaria Pão Quente 12.448.770/0001-22 Sinalização Mensal R$ 450,00 10/06/2026 em 9d pendente Inter Cancelar FAT-2026-0603 Clínica Vida 45.220.661/0001-18 avulsa R$ 820,00 15/06/2026 em 14d pendente Inter Cancelar FAT-2026-0604 Restaurante Sabor Caseiro 21.005.118/0001-77 Impressão Trimestral R$ 1.200,00 20/07/2026 em 49d pendente C6 Cancelar FAT-2026-0490 Loja Bella Moda 82.004.773/0001-90 Sinalização Mensal R$ 450,00 10/04/2026 — cancelada Asaas —",
+    "roles": {
+      "celulas": null,
+      "chart": null,
+      "contratos": [],
+      "filterRows": null,
+      "kpi": {
+        "count": 0,
+        "items": [],
+        "overflowX": null,
+        "tag": null
+      },
+      "primary": null,
+      "shell": null,
+      "tabela": null,
+      "title": null
+    },
+    "saude": {
+      "folhasVazias": [],
+      "nFolhas": 75,
+      "tokensMortos": []
+    },
+    "theme": "dark",
+    "url": "http://127.0.0.1:5562/"
+  },
+  "nos_totais": 703,
+  "quieto_ms": 2000,
+  "rota": "rb-faturas",
+  "secoes": {
+    "cabecalho": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "cr-root",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "block",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "padding": "12px 24px"
+      },
+      "filhos": 1,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "cr-root"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "cr-hero-top"
+      ],
+      "rect": {
+        "h": 69,
+        "w": 1224
+      },
+      "seletor": ".main-body > .cr-root > .cr-hero",
+      "truncado": false
+    },
+    "filtros": {
+      "contraste": {
+        "fundo": "oklch(0.3 0.008 240)",
+        "fundo_de": "proprio",
+        "razao": 11.42,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.027108,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.3 0.008 240)",
+        "borderRadius": "9px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "flex",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "8px",
+        "padding": "12px 14px"
+      },
+      "filhos": 3,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.3 0.008 240)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "div",
+        "select",
+        "select"
+      ],
+      "rect": {
+        "h": 58,
+        "w": 1176
+      },
+      "seletor": ".main-body > .cr-root > .cr-body > .cr-card",
+      "truncado": false
+    },
+    "kpis": {
+      "contraste": {
+        "fundo": "oklch(0.3 0.008 240)",
+        "fundo_de": "proprio",
+        "razao": 11.42,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.027108,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.3 0.008 240)",
+        "borderRadius": "10px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "grid",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "padding": "0px"
+      },
+      "filhos": 4,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.3 0.008 240)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "cr-stat",
+        "cr-stat",
+        "cr-stat",
+        "cr-stat"
+      ],
+      "rect": {
+        "h": 90,
+        "w": 1176
+      },
+      "seletor": ".main-body > .cr-root > .cr-body > .cr-stats",
+      "truncado": false
+    },
+    "lista": {
+      "contraste": {
+        "fundo": "oklch(0.3 0.008 240)",
+        "fundo_de": "proprio",
+        "razao": 11.42,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.027108,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.3 0.008 240)",
+        "borderRadius": "10px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "block",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "padding": "0px"
+      },
+      "filhos": 2,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.3 0.008 240)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "cr-list-head",
+        "table"
+      ],
+      "rect": {
+        "h": 705,
+        "w": 1176
+      },
+      "seletor": ".main-body > .cr-root > .cr-body > .cr-list-wrap",
+      "truncado": false
+    },
+    "subnav": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "cr-root",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "flex",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "2px",
+        "padding": "0px"
+      },
+      "filhos": 9,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "cr-root"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "topbar-tab",
+        "topbar-tab",
+        "topbar-tab",
+        "topbar-tab",
+        "topbar-tab",
+        "topbar-tab",
+        "topbar-tab",
+        "topbar-tab",
+        "ph-nav-more"
+      ],
+      "rect": {
+        "h": 36,
+        "w": 1176
+      },
+      "seletor": ".main-body > .cr-root > nav.ph-nav",
+      "truncado": false
+    }
+  },
+  "tela": "recorrente--faturas--index",
+  "url": "http://127.0.0.1:5562/"
+}

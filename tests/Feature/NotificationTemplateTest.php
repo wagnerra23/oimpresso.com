@@ -41,9 +41,12 @@ function camposDoModelo(array $sobrepor = []): array
     ], $sobrepor);
 }
 
+// O índice padrão virou Inertia no cutover de 2026-10-13 (flag default ON). Este arquivo
+// fixa o contrato do editor clássico em Blade, que segue servido por ?legacy=1; o contrato
+// da Page React mora em tests/Feature/NotificationTemplate/DualTest.php.
 function rotaIndice(): string
 {
-    return action([\App\Http\Controllers\NotificationTemplateController::class, 'index']);
+    return action([\App\Http\Controllers\NotificationTemplateController::class, 'index'], ['legacy' => 1]);
 }
 
 function rotaStore(): string

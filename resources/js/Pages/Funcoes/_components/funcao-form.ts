@@ -17,8 +17,8 @@ export function corpoDoFormulario(nome: string, itens: ItemDoEditor[], marcados:
     else if (i.campo === 'spg_permissions[]') spg.push(i.valor);
     else if (i.campo === 'is_service_staff') garcom = true;
     else {
-      const g = /^radio_option\[(.+)\]$/.exec(i.campo);
-      if (g) radio[g[1]] = i.valor;
+      const grupo = /^radio_option\[(.+)\]$/.exec(i.campo)?.[1];
+      if (grupo) radio[grupo] = i.valor;
     }
   }
   return { name: nome.trim(), permissions, spg_permissions: spg, radio_option: radio, ...(garcom ? { is_service_staff: 1 } : {}) };

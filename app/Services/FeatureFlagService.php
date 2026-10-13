@@ -48,8 +48,22 @@ class FeatureFlagService
         'useV2ConfiguracoesLocais' => true,
         'useV2ConfiguracoesImpressoras' => true,
         'useV2ConfiguracoesCodigoBarras' => true,
+        // Ligada por [W] em 2026-10-13 após #9115 (seleção) e #9159 (editor): Modelos de
+        // notificação em React para todas as empresas; editor clássico segue em ?legacy=1.
+        // Rollback = flag OFF no GrowthBook (vence este default) ou remover esta linha.
+        'useV2NotificationTemplates' => true,
         // useV2OfficeimpressoLicencas saiu em 2026-10-06: cutover da lista de Licencas, sem flag
         // nem Blade (RUNBOOK-licencas §F5).
+        // D-CUTOVER-1310 ([W] 2026-10-13, "pode ligar tudo"): telas React prontas atrás de flag
+        // passam a valer para todas as empresas. Mesma regra do D-CFG-LIGAR: flag conhecida OFF
+        // no GrowthBook continua vencendo. useV2NotificationTemplates, da mesma decisão, é ligada
+        // pelo #9175 (com charter, RUNBOOK e teste de rollback), não por este bloco.
+        'useV2OfficeimpressoEmpresas' => true,
+        'useV2OfficeimpressoEmpresa' => true,
+        'useV2ConfiguracoesContas' => true,
+        'useV2SistemaFuncoes' => true,
+        'useV2VozDoClienteCaixa' => true,
+        'useV2SpreadsheetIndex' => true,
     ];
 
     public function isOn(string $flag, array $attrs = []): bool

@@ -235,7 +235,7 @@ Thread `feito` = `_saida-NN.md` com os 5 itens **e** provas verdes lendo o `main
       "nao_toca": [
         "resources/js/Pages/Compras/Index.tsx"
       ],
-      "bloqueio": "D-FORN: fornecedor e contacts type=supplier e nao existe Pages/Fornecedor*. Sem rota declarada por [W], overlay sem receptor nao vira Page.",
+      "bloqueio_resolvido": "2026-10-13: D-FORN respondida 2026-09-29 e entregue (#7918, _saida-03). Era: D-FORN: fornecedor e contacts type=supplier e nao existe Pages/Fornecedor*. Sem rota declarada por [W], overlay sem receptor nao vira Page.",
       "depende_decisoes": [
         "D-FORN"
       ],
@@ -251,7 +251,7 @@ Thread `feito` = `_saida-NN.md` com os 5 itens **e** provas verdes lendo o `main
         "resources/js/Pages/Purchase/Create.tsx",
         "resources/js/Pages/Purchase/Create.charter.md"
       ],
-      "bloqueio": "D-GHOST: SCOPE Wave 3 (TODO /compras/create) x Non-Goal C1 do charter do Purchase/Create. Ghost apontando pra rota que o canon proibe = link morto ou tela proibida; nenhum PR antes da resposta.",
+      "bloqueio_resolvido": "2026-10-13: D-GHOST respondida 2026-09-29 e entregue (#1525, #7915, _saida-04). Era: D-GHOST: SCOPE Wave 3 (TODO /compras/create) x Non-Goal C1 do charter do Purchase/Create. Ghost apontando pra rota que o canon proibe = link morto ou tela proibida; nenhum PR antes da resposta.",
       "depende_decisoes": [
         "D-GHOST"
       ],

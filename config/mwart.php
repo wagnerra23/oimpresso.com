@@ -25,10 +25,10 @@
  * Helper inline pra parsear lista de business_ids da env.
  * Vazia = todos liberados.
  */
-$parseBizIds = static function (string $envVar): array {
+$parseBizIds = static function (string $envVar, string $default = ''): array {
     return array_values(array_filter(array_map(
         'intval',
-        explode(',', (string) env($envVar, ''))
+        explode(',', (string) env($envVar, $default))
     )));
 };
 
@@ -196,23 +196,28 @@ return [
         'business_ids' => $parseBizIds('MWART_VENDAS_SELL_RETURN_INDEX_BIZ'),
     ],
 
+    // C1 do cutover (venda-menu/playbook/02, thread C1): Descontos, Importação e Pedido de venda
+    // LIGADAS só para biz=1 — decisão [W] 2026-10-13 ("pode ligar tudo"). O default do _BIZ é '1';
+    // C4 (todas as empresas) segue esperando o aviso do [W] à ROTA LIVRE. Um `.env` com
+    // MWART_<TELA>=false ainda desliga; MWART_<TELA>_BIZ sobrescreve a lista.
+
     // DiscountController@index → Discount/Index
     'vendas_discount_index' => [
-        'enabled'      => env('MWART_VENDAS_DISCOUNT_INDEX', false),
-        'business_ids' => $parseBizIds('MWART_VENDAS_DISCOUNT_INDEX_BIZ'),
+        'enabled'      => env('MWART_VENDAS_DISCOUNT_INDEX', true),
+        'business_ids' => $parseBizIds('MWART_VENDAS_DISCOUNT_INDEX_BIZ', '1'),
     ],
 
     // ImportSalesController@index → ImportSales/Index e @preview → ImportSales/Preview
     // (uma chave só: a prévia é o passo 2 da mesma tela).
     'vendas_import_sales' => [
-        'enabled'      => env('MWART_VENDAS_IMPORT_SALES', false),
-        'business_ids' => $parseBizIds('MWART_VENDAS_IMPORT_SALES_BIZ'),
+        'enabled'      => env('MWART_VENDAS_IMPORT_SALES', true),
+        'business_ids' => $parseBizIds('MWART_VENDAS_IMPORT_SALES_BIZ', '1'),
     ],
 
     // SalesOrderController@index → SalesOrder/Index
     'vendas_sales_order_index' => [
-        'enabled'      => env('MWART_VENDAS_SALES_ORDER_INDEX', false),
-        'business_ids' => $parseBizIds('MWART_VENDAS_SALES_ORDER_INDEX_BIZ'),
+        'enabled'      => env('MWART_VENDAS_SALES_ORDER_INDEX', true),
+        'business_ids' => $parseBizIds('MWART_VENDAS_SALES_ORDER_INDEX_BIZ', '1'),
     ],
 
     // SellController@getQuotations → Sells/Quotations (thread venda-menu/playbook/Q2).
@@ -236,10 +241,11 @@ return [
 
     // ProductCatalogueController@generateQr → ProductCatalogue/CatalogueQr (thread
     // modulos-faltantes/playbook/04). A tela entrou ligada no #9103; a chave veio depois, a pedido
-    // de [W], para que ligar em produção seja o cutover dele. Nasce DESLIGADA: segue a Blade
-    // catalogue/generate_qr até [W] ligar.
+    // de [W], para que ligar em produção seja o cutover dele. Nasceu DESLIGADA; em 2026-10-13 [W]
+    // decidiu ligar para todas as empresas ("pode ligar tudo"): o default passou a `true`. Um `.env`
+    // com MWART_PRODUCT_CATALOGUE_QR=false ainda desliga e volta à Blade catalogue/generate_qr.
     'product_catalogue_qr' => [
-        'enabled'      => env('MWART_PRODUCT_CATALOGUE_QR', false),
+        'enabled'      => env('MWART_PRODUCT_CATALOGUE_QR', true),
         'business_ids' => $parseBizIds('MWART_PRODUCT_CATALOGUE_QR_BIZ'),
     ],
 
