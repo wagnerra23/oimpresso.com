@@ -2,189 +2,142 @@
 
 declare(strict_types=1);
 
-namespace Tests\Feature\Cliente;
-
-use App\Business;
-use App\Contact;
-use App\User;
-use Tests\TestCase;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 /**
- * Wagner 2026-05-21 Fase 2 deprecação legacy Cliente — middleware espelha
- * RedirectLegacyFinanceiro. Cobre 5 cenários canary INDEX+SHOW.
+ * Thread cliente/04 — aposentar o dual-render da LISTA: GET /contacts?type=X → /cliente?type=X.
  *
- * Refs:
- * - app/Http/Middleware/RedirectLegacyContacts.php
- * - app/Http/Kernel.php linha 49 (registro)
- * - routes/web.php (rotas canon /cliente + /cliente/{id})
- * - config/mwart.php (flags cliente_index + cliente_show)
+ * O dono do redirecionamento é o middleware App\Http\Middleware\RedirectLegacyContacts, que ficou
+ * dormente (comentado no Kernel) desde o #1289 e foi ligado aqui pelas decisões D1/D3 do [W]:
+ * a lista inteira vai para /cliente, inclusive fornecedores (?type=supplier). O redirect do SHOW
+ * ficou DESLIGADO por decisão [W] 2026-10-13 (só a lista nesta thread).
+ *
+ * Esta versão substitui a antiga, que estava em quarentena: os casos "não é 301" passavam sem
+ * medir nada (um 403 ou um 409 também "não é 301"). Aqui cada caso afirma o status e o destino, e
+ * cada "não redireciona" vem junto do controle que redireciona.
+ *
+ * Tenant de teste 98 (ADR 0358). Prefixo `rlc` nas funções (escopo global do Pest).
  */
-class RedirectLegacyContactsTest extends TestCase
+
+uses(DatabaseTransactions::class);
+
+beforeEach(function () {
+    if (! Schema::hasTable('contacts') || DB::connection()->getDriverName() === 'sqlite') {
+        $this->markTestSkipped('Schema UltimatePOS + Spatie exigem MySQL (ADR 0358).');
+    }
+
+    $this->business = $this->seededTenant();
+    $this->user = $this->usuarioComPermissoes(['customer.view', 'supplier.view', 'customer.create'], $this->business);
+    $this->actingAs($this->user);
+    session(['user.business_id' => $this->business->id, 'business.id' => $this->business->id, 'user.id' => $this->user->id]);
+    $this->versaoInertia = app(\App\Http\Middleware\HandleInertiaRequests::class)->version(request());
+});
+
+function rlcFlagIndex(array $bizIds): void
 {
-    private function actingAsBiz1User(): User
-    {
-        // Fica no business 1 porque os casos de canário configuram `business_ids => [1]`.
-        // Usuário NOVO com leitura e criação de contato: desde o #8442/#8443 (2026-10-01)
-        // /contacts exige customer.view antes de redirecionar, e o usuário do seed do CI
-        // não tem papel nenhum — sem isto os casos "não é 301" passavam por um 403.
-        $business = Business::find(1);
-        if (! $business) {
-            $this->markTestSkipped('biz=1 não existe no DB de teste.');
-        }
-        $user = $this->usuarioComPermissoes(['customer.view', 'supplier.view', 'customer.create'], $business);
-
-        session(['user.business_id' => 1]);
-        $this->actingAs($user);
-
-        return $user;
-    }
-
-    #[\PHPUnit\Framework\Attributes\Test]
-    public function index_flag_off_segue_legacy_sem_redirect(): void
-    {
-        config(['mwart.cliente_index.enabled' => false]);
-
-        $this->actingAsBiz1User();
-
-        $response = $this->get('/contacts?type=customer');
-
-        // Não 301 — segue pro controller legacy.
-        $this->assertNotEquals(301, $response->getStatusCode());
-    }
-
-    #[\PHPUnit\Framework\Attributes\Test]
-    public function index_flag_on_business_match_redireciona_301_pra_cliente(): void
-    {
-        config([
-            'mwart.cliente_index.enabled' => true,
-            'mwart.cliente_index.business_ids' => [1],
-        ]);
-
-        $this->actingAsBiz1User();
-
-        $response = $this->get('/contacts?type=customer');
-
-        $response->assertRedirect('/cliente');
-        $this->assertEquals(301, $response->getStatusCode());
-    }
-
-    #[\PHPUnit\Framework\Attributes\Test]
-    public function index_flag_on_business_fora_canary_nao_redireciona(): void
-    {
-        config([
-            'mwart.cliente_index.enabled' => true,
-            'mwart.cliente_index.business_ids' => [999], // biz fora do canary
-        ]);
-
-        $this->actingAsBiz1User();
-
-        $response = $this->get('/contacts?type=customer');
-
-        $this->assertNotEquals(301, $response->getStatusCode());
-    }
-
-    #[\PHPUnit\Framework\Attributes\Test]
-    public function index_supplier_nao_redireciona_mesmo_com_flag_on(): void
-    {
-        config([
-            'mwart.cliente_index.enabled' => true,
-            'mwart.cliente_index.business_ids' => [],
-        ]);
-
-        $this->actingAsBiz1User();
-
-        $response = $this->get('/contacts?type=supplier');
-
-        // /contacts?type=supplier NUNCA redireciona — só customer.
-        $this->assertNotEquals(301, $response->getStatusCode());
-    }
-
-    #[\PHPUnit\Framework\Attributes\Test]
-    public function post_para_contacts_nunca_redireciona_apenas_get(): void
-    {
-        config([
-            'mwart.cliente_index.enabled' => true,
-            'mwart.cliente_index.business_ids' => [],
-        ]);
-
-        $this->actingAsBiz1User();
-
-        $response = $this->post('/contacts', ['type' => 'customer']);
-
-        // POST/PUT/DELETE passam direto pro core legacy.
-        $this->assertNotEquals(301, $response->getStatusCode());
-    }
-
-    #[\PHPUnit\Framework\Attributes\Test]
-    public function show_flag_on_customer_redireciona_para_cliente_id(): void
-    {
-        config([
-            'mwart.cliente_show.enabled' => true,
-            'mwart.cliente_show.business_ids' => [1],
-        ]);
-
-        $this->actingAsBiz1User();
-
-        $customer = Contact::where('business_id', 1)
-            ->whereIn('type', ['customer', 'both'])
-            ->first();
-
-        if (! $customer) {
-            $this->markTestSkipped('Sem customer em biz=1 — seed antes.');
-        }
-
-        $response = $this->get("/contacts/{$customer->id}");
-
-        $response->assertRedirect("/cliente/{$customer->id}");
-        $this->assertEquals(301, $response->getStatusCode());
-    }
-
-    #[\PHPUnit\Framework\Attributes\Test]
-    public function show_flag_on_supplier_nao_redireciona(): void
-    {
-        config([
-            'mwart.cliente_show.enabled' => true,
-            'mwart.cliente_show.business_ids' => [],
-        ]);
-
-        $this->actingAsBiz1User();
-
-        $supplier = Contact::where('business_id', 1)
-            ->where('type', 'supplier')
-            ->first();
-
-        if (! $supplier) {
-            $this->markTestSkipped('Sem supplier em biz=1 — seed antes.');
-        }
-
-        $response = $this->get("/contacts/{$supplier->id}");
-
-        // Supplier NÃO redireciona pra /cliente — tela canon é só customer.
-        $this->assertNotEquals(301, $response->getStatusCode());
-    }
-
-    #[\PHPUnit\Framework\Attributes\Test]
-    public function show_cross_tenant_contact_nao_redireciona(): void
-    {
-        config([
-            'mwart.cliente_show.enabled' => true,
-            'mwart.cliente_show.business_ids' => [],
-        ]);
-
-        $this->actingAsBiz1User();
-
-        // Contact de outro business (Tier 0 isolation).
-        $crossTenantContact = Contact::where('business_id', '!=', 1)
-            ->whereIn('type', ['customer', 'both'])
-            ->first();
-
-        if (! $crossTenantContact) {
-            $this->markTestSkipped('Sem customer cross-tenant pra testar.');
-        }
-
-        $response = $this->get("/contacts/{$crossTenantContact->id}");
-
-        // Lookup do middleware NÃO encontra (scoped por business_id) → segue legacy.
-        $this->assertNotEquals(301, $response->getStatusCode());
-    }
+    config(['mwart.cliente_index.enabled' => true, 'mwart.cliente_index.business_ids' => $bizIds]);
 }
+
+test('lista de clientes: /contacts?type=customer vai para /cliente?type=customer (302)', function () {
+    rlcFlagIndex([(int) $this->business->id]);
+
+    $r = $this->get('/contacts?type=customer');
+
+    $r->assertStatus(302);
+    $r->assertRedirect('/cliente?type=customer');
+});
+
+test('fornecedores (D3): /contacts?type=supplier vai para /cliente?type=supplier, com o resto da query', function () {
+    rlcFlagIndex([]);
+
+    $r = $this->get('/contacts?type=supplier&q=abc');
+
+    $r->assertStatus(302);
+    $r->assertRedirect('/cliente?type=supplier&q=abc');
+});
+
+test('o destino responde: /cliente?type=customer abre o Cliente/Index em Inertia (sem laço)', function () {
+    rlcFlagIndex([]);
+
+    $r = $this->withHeaders(['X-Inertia' => 'true', 'X-Inertia-Version' => $this->versaoInertia, 'X-Requested-With' => 'XMLHttpRequest'])
+        ->get('/cliente?type=customer');
+
+    $r->assertOk();
+    expect($r->json('component'))->toBe('Cliente/Index');
+    expect($r->json('props.activeType'))->toBe('customer');
+});
+
+test('flag desligada: /contacts?type=customer segue na casca Blade, sem redirecionar', function () {
+    config(['mwart.cliente_index.enabled' => false]);
+
+    $r = $this->get('/contacts?type=customer');
+
+    $r->assertOk();
+    expect($r->isRedirect())->toBeFalse();
+});
+
+test('empresa fora da lista da flag: /contacts?type=customer não redireciona', function () {
+    rlcFlagIndex([999999]);
+
+    $r = $this->get('/contacts?type=customer');
+
+    $r->assertOk();
+    expect($r->isRedirect())->toBeFalse();
+});
+
+test('partial reload do Inertia em /contacts não troca de URL no meio da página', function () {
+    rlcFlagIndex([]);
+
+    $r = $this->withHeaders([
+        'X-Inertia' => 'true', 'X-Inertia-Version' => $this->versaoInertia, 'X-Requested-With' => 'XMLHttpRequest',
+        'X-Inertia-Partial-Component' => 'Cliente/Index', 'X-Inertia-Partial-Data' => 'customers',
+    ])->get('/contacts?type=customer');
+
+    $r->assertOk();
+    expect($r->json('component'))->toBe('Cliente/Index');
+});
+
+test('AJAX legado (sem X-Inertia) em /contacts não é redirecionado', function () {
+    rlcFlagIndex([]);
+
+    $r = $this->withHeaders(['X-Requested-With' => 'XMLHttpRequest', 'Accept' => 'application/json'])->get('/contacts?type=customer');
+
+    expect($r->isRedirect())->toBeFalse();
+    // Controle: a mesma URL como navegação de página redireciona.
+    $this->get('/contacts?type=customer')->assertRedirect('/cliente?type=customer');
+});
+
+test('tipo inválido ou ausente: o middleware não redireciona', function () {
+    rlcFlagIndex([]);
+
+    foreach (['/contacts', '/contacts?type=xpto'] as $url) {
+        $location = (string) $this->get($url)->headers->get('Location');
+        expect($location)->not->toContain('/cliente');
+    }
+});
+
+test('POST /contacts nunca é redirecionado para /cliente', function () {
+    rlcFlagIndex([]);
+
+    $location = (string) $this->post('/contacts', ['type' => 'customer'])->headers->get('Location');
+
+    expect($location)->not->toContain('/cliente?type=');
+});
+
+test('SHOW desligado (decisão [W] 2026-10-13): /contacts/{id} de cliente não vai para /cliente/{id}', function () {
+    config([
+        'mwart.cliente_index.enabled' => false,
+        'mwart.cliente_show.enabled' => true, 'mwart.cliente_show.business_ids' => [],
+    ]);
+    // Cliente REAL do próprio negócio: é o caso que o middleware redirecionaria com o SHOW ligado.
+    $id = DB::table('contacts')->insertGetId([
+        'business_id' => $this->business->id, 'type' => 'customer', 'name' => 'Cliente RLC '.uniqid(),
+        'mobile' => '0', 'created_by' => $this->user->id, 'created_at' => now(), 'updated_at' => now(),
+    ]);
+
+    $location = (string) $this->get("/contacts/{$id}")->headers->get('Location');
+
+    expect($location)->not->toEndWith("/cliente/{$id}");
+});
