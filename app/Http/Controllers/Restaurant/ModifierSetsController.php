@@ -127,19 +127,34 @@ class ModifierSetsController extends Controller
      */
     private function conjuntosDoNegocio(int $business_id): array
     {
-        return Product::where('business_id', $business_id)
+        $conjuntos = Product::where('business_id', $business_id)
             ->where('type', 'modifier')
-            ->with([
-                'variations:id,product_id,name',
-                'modifier_products' => fn ($q) => $q->where('products.business_id', $business_id)->select('products.id', 'products.name'),
-            ])
             ->orderBy('name')
-            ->get(['id', 'name'])
-            ->map(fn ($c) => [
+            ->get(['id', 'name']);
+        $ids = $conjuntos->pluck('id')->all();
+
+        // Consultas diretas no lugar do eager-load das relações `variations`/`modifier_products`: mesmo resultado, e
+        // o Larastan não resolve essas relações do Product.
+        $modificadores = DB::table('variations')
+            ->whereIn('product_id', $ids)
+            ->whereNull('deleted_at')
+            ->orderBy('id')
+            ->get(['product_id', 'name'])
+            ->groupBy('product_id');
+        $produtos = DB::table('res_product_modifier_sets as pms')
+            ->join('products as p', 'p.id', '=', 'pms.product_id')
+            ->whereIn('pms.modifier_set_id', $ids)
+            ->where('p.business_id', $business_id)
+            ->orderBy('p.name')
+            ->get(['pms.modifier_set_id', 'p.name'])
+            ->groupBy('modifier_set_id');
+
+        return $conjuntos
+            ->map(fn (Product $c) => [
                 'id' => $c->id,
                 'nome' => $c->name,
-                'modificadores' => $c->variations->pluck('name')->values()->all(),
-                'produtos' => $c->modifier_products->pluck('name')->values()->all(),
+                'modificadores' => collect($modificadores->get($c->id, []))->pluck('name')->values()->all(),
+                'produtos' => collect($produtos->get($c->id, []))->pluck('name')->values()->all(),
             ])
             ->values()
             ->all();
