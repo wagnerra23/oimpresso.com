@@ -1,0 +1,19 @@
+{
+  "_": "A1 [CL] 2026-10-13 — playbook essenciais. Rota `ess-kb` do espelho (window.EssRotas, essenciais-page.jsx); mapa rota↔Page da _saida-00: `ess-kb` = `Essentials/Knowledge/Index (aba Base de conhecimento)`. Tema dark (default do espelho), viewport 1280x900, browser limpo. Fora: div.hrm-toast-host (contêiner vazio de toast).",
+  "_mapa": "alvo:mapa --rota ess-kb --quieto-ms 2000, 2026-10-13: raiz '.main-body > .ess-page' → div.oi-ph(1) · nav.ds-tabbar.hrm-tabs(7) · div.hrm-body(2); raiz '.main-body > .ess-page > .hrm-body' → div.hrm-toolbar(2) · div.ess-kb(2); raiz '... > .ess-kb' → aside.ess-kb-nav(3) · article.ess-kb-doc(5)",
+  "cabecalho": {
+    "seletor": ".main-body > .ess-page > .oi-ph > header"
+  },
+  "abas": {
+    "seletor": ".main-body > .ess-page > nav.ds-tabbar"
+  },
+  "toolbar": {
+    "seletor": ".main-body > .ess-page > .hrm-body > .hrm-toolbar"
+  },
+  "navegacao": {
+    "seletor": ".main-body > .ess-page > .hrm-body > .ess-kb > aside.ess-kb-nav"
+  },
+  "artigo": {
+    "seletor": ".main-body > .ess-page > .hrm-body > .ess-kb > article.ess-kb-doc"
+  }
+}
