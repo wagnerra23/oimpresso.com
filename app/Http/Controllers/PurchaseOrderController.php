@@ -45,6 +45,14 @@ class PurchaseOrderController extends Controller
     protected $moduleUtil;
 
     /**
+     * Status do pedido (ordered · partial · completed), montados no construtor. Declarada para a tela React
+     * (thread compras/playbook/06) e para o PHPStan, que acusava acesso a propriedade dinâmica.
+     *
+     * @var array<string, array{label: string, class: string}>
+     */
+    protected $purchaseOrderStatuses = [];
+
+    /**
      * Constructor
      *
      * @param  ProductUtils  $product
@@ -84,7 +92,9 @@ class PurchaseOrderController extends Controller
     /**
      * Display a listing of the resource.
      *
-     * @return \Illuminate\Http\Response
+     * DataTable (AJAX) → JsonResponse · Blade → View · tela React atrás da flag → Inertia\Response.
+     *
+     * @return \Illuminate\Http\JsonResponse|\Illuminate\View\View|\Inertia\Response
      */
     public function index()
     {
