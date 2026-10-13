@@ -26,6 +26,11 @@ on:
       - 'resources/js/Pages/NfeBrasil/**'
       - 'Modules/Fiscal/Tests/**'
       - 'Modules/NFSe/DTO/NfseEmissaoPayload.php'
+      - 'Modules/NFSe/Services/NfseEmissaoService.php'
+      - 'Modules/NFSe/Adapters/SnNfseAdapter.php'
+      - 'Modules/NFSe/Models/NfseEmissao.php'
+      - 'Modules/NFSe/Config/config.php'
+      - 'Modules/NFSe/Http/**'
       - 'tests/Feature/Calculo/CalculoTributarioTest.php'
       - 'app/Support/BR/Cnpj.php'
       - 'app/Rules/BR/CpfCnpj.php'
@@ -69,6 +74,11 @@ jobs:
               - 'resources/js/Pages/NfeBrasil/**'
               - 'Modules/Fiscal/Tests/**'
               - 'Modules/NFSe/DTO/NfseEmissaoPayload.php'
+              - 'Modules/NFSe/Services/NfseEmissaoService.php'
+              - 'Modules/NFSe/Adapters/SnNfseAdapter.php'
+              - 'Modules/NFSe/Models/NfseEmissao.php'
+              - 'Modules/NFSe/Config/config.php'
+              - 'Modules/NFSe/Http/**'
               - 'tests/Feature/Calculo/CalculoTributarioTest.php'
               - 'app/Support/BR/Cnpj.php'
               - 'app/Rules/BR/CpfCnpj.php'
@@ -315,9 +325,13 @@ jobs:
             Modules/NfeBrasil/Tests/Feature/TributacaoSimuladorTest.php \
             Modules/NfeBrasil/Tests/Feature/IcmsUfTest.php \
             Modules/NfeBrasil/Tests/Feature/NfseRetencoesTest.php \
+            Modules/NfeBrasil/Tests/Feature/NfseRetencoesDpsTest.php \
+            Modules/NfeBrasil/Tests/Feature/NfseDpsXmlTest.php \
+            Modules/NfeBrasil/Tests/Feature/ListaServicoNacionalTest.php \
             Modules/NfeBrasil/Tests/Feature/SugestaoFiscalTest.php \
             Modules/NfeBrasil/Tests/Feature/ProdutoFiscalToolTest.php \
             Modules/NfeBrasil/Tests/Feature/AceiteContadorTest.php \
+            Modules/NfeBrasil/Tests/Feature/NfseCertificadoPayloadTest.php \
             Modules/NfeBrasil/Tests/Feature/RevisaoContadorLinkTest.php \
             Modules/Fiscal/Tests/Feature/ContadorCadastroTest.php
 

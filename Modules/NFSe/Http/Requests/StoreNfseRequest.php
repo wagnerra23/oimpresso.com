@@ -38,7 +38,36 @@ class StoreNfseRequest extends FormRequest
             'valor_servicos'  => ['required', 'numeric', 'min:0.01'],
             'aliquota_iss'    => ['required', 'numeric', 'min:0', 'max:1'],
             'iss_retido'      => ['boolean'],
+            // R-NFSE-003: quem emite declara que o serviço é do art. 30 da Lei 10.833/2003.
+            'retencao_federal_sujeito' => ['boolean'],
             'transaction_id'  => ['nullable', 'integer'],
+            // R-NFSE-006: desdobro nacional escolhido quando o subitem tem mais de um.
+            'ctrib_nac'       => ['nullable', 'digits:6'],
         ];
+    }
+
+    /**
+     * R-NFSE-006 — o código LC 116 tem de estar na lista de serviços nacional e, se o
+     * subitem tem mais de um desdobro, a escolha é obrigatória e precisa ser dele.
+     */
+    public function withValidator(\Illuminate\Validation\Validator $validator): void
+    {
+        $validator->after(function (\Illuminate\Validation\Validator $v) {
+            if ($v->errors()->hasAny(['lc116_codigo', 'ctrib_nac'])) {
+                return;
+            }
+            $lista = app(\Modules\NfeBrasil\Services\Nfse\ListaServicoNacional::class);
+            $lc116 = (string) $this->input('lc116_codigo');
+            if ($lista->desdobros($lc116) === []) {
+                $v->errors()->add('lc116_codigo', "Código LC 116 {$lc116} não está na lista de serviços nacional.");
+
+                return;
+            }
+            try {
+                $lista->resolver($lc116, $this->input('ctrib_nac'));
+            } catch (\InvalidArgumentException $e) {
+                $v->errors()->add('ctrib_nac', $e->getMessage());
+            }
+        });
     }
 }
