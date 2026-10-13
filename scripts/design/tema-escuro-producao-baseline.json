@@ -1,22 +1,5 @@
 {
   "gerado": "2026-10-13",
   "nota": "só desce — Page ou seletor que sai do run sai daqui no mesmo PR; nunca suba à mão",
-  "pages": {
-    "Compras": {
-      "div": 2,
-      "select": 1
-    },
-    "Financeiro/Dre": {
-      "div": 1
-    },
-    "Financeiro/Fluxo": {
-      "div": 1
-    },
-    "Financeiro/PlanoContas": {
-      "div.flex.min-w-0": 4
-    },
-    "Financeiro/Unificado": {
-      "span.inline-grid.place-items-center": 1
-    }
-  }
+  "pages": {}
 }
