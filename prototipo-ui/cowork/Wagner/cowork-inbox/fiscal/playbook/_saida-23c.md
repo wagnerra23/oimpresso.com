@@ -20,7 +20,7 @@ decisao: "[W] 2026-10-13 no chat: 'faça o adapter da NFS-e em XML assinado'"
 | `Modules/NfeBrasil/Services/Nfse/DpsXml.php` | serializa a estrutura (ordem do XSD) em XML no namespace `http://www.sped.fazenda.gov.br/nfse`; assina com `NFePHP\Common\Signer` (já vinha com o `sped-nfe`); empacota/desempacota GZip+Base64. |
 | `Modules/NFSe/Adapters/SnNfseAdapter.php` | `buildDps` no leiaute v1.01 (Id de 45 posições, `regTrib/opSimpNac` pelo regime, `cTribNac` pelo LC 116, `tpRetISSQN`, `tribFed` do R-NFSE-003, `indTotTrib` 0); `emitir` assina, envia `dpsXmlGZipB64` com mTLS em PEM e lê `chaveAcesso` + `nNFSe`; erros `erros[{Codigo, Descricao}]`. |
 | `Modules/NFSe/DTO` · `Services` · `Config` | série numérica, regime do prestador, nDPS = id da `nfse_emissoes` (o provisório tinha 18 dígitos e não era único); endpoints com `/SefinNacional`; algoritmo de assinatura configurável. |
-| `Modules/NfeBrasil/Resources/schemas/nfse/v1.01/` | os 4 XSDs oficiais que a DPS usa, sem alteração, com README de fonte e sha256. |
+| `Modules/NfeBrasil/Resources/schemas/nfse/v1.01/` | os 4 XSDs oficiais que a DPS usa; só o fim de linha mudou (CRLF → LF, o repositório exige LF), com README de fonte e sha256 dos dois formatos. |
 | `Modules/NfeBrasil/Tests/Feature/NfseDpsXmlTest.php` | R-NFSE-005: XSD em 4 cenários + controle negativo, assinatura, Id, mapeamentos, falhas visíveis, `comNumeroDps`, envio fingido nos dois ambientes, retorno e erro E0714. |
 
 ## 2 · Prova (CT 100, PHP 8.4, certificado autoassinado)
@@ -36,7 +36,7 @@ envio fingido (homologação)        URL .../SefinNacional/nfse · tpAmb 2 · DP
 erro fingido                       NfseException E0714 "Arquivo enviado com erro na assinatura"
 ```
 
-**Defeito do XSD oficial:** o `TSSerieDPS` usa `^0{0,4}\d{1,5}$`; em XML Schema `^` e `$` são caracteres literais, e nenhuma série passa no libxml. O teste valida numa cópia temporária com só esse padrão corrigido; os arquivos versionados ficam como o governo publicou.
+**Defeito do XSD oficial:** o `TSSerieDPS` usa `^0{0,4}\d{1,5}$`; em XML Schema `^` e `$` são caracteres literais, e nenhuma série passa no libxml. O teste valida numa cópia temporária com só esse padrão corrigido; fora o fim de linha, os arquivos versionados ficam como o governo publicou.
 
 ## 3 · Não feito, e por quê
 
