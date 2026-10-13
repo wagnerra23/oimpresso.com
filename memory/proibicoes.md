@@ -1884,6 +1884,10 @@ Ocorrência da **LC-08**.
 
 - **O limite (variante também proibida):** é emenda da lápide de 2026-07-27, mesma família: no Patrimônio (`Modules/AssetManagement`), retenção é **anonimizar o vínculo pessoal mantendo a linha**: `activity_log` e `asset_transactions` nunca perdem linha, o executor roda por empresa e nasce com `ASSETMANAGEMENT_RETENTION_ENABLED=false`. Ligar é D-CANARY-LGPD, do [W]. **Não estender esta reabertura à Jana** (`jana:retention-purge`, item #6 do loop): a decisão de 07/10 fala da 05 do Patrimônio, e a Jana segue sob a lápide-mãe até decisão [W] própria.
 
+### 2026-10-13 — Estado guardado num componente que o `<Deferred>` desmonta: a largura arrastada da coluna sumia ao ordenar, e os testes com `rerender` não viam
+
+- **O limite (variante também proibida):** estado que precisa sobreviver a uma visita Inertia não-parcial (sem `only`/`except`/`reset`) não mora em componente renderizado dentro de `<Deferred>`: mora no dono que fica montado, e o componente recebe valor e aviso por props (medido com `@inertiajs/react` 3.0.3). E teste de "sobrevive a X" reproduz o que X faz com a árvore — se X desmonta, o teste desmonta e monta de novo; `rerender` só prova que o componente aguenta props novas. Mesma família da §5 2026-08-28 (correção inerte no runtime) e do corolário da 2026-09-08 (a sonda tem de falar a língua do cliente).
+
 ## Sempre fazer
 
 - ✅ **LIGUE A MÁQUINA — máquina é sempre melhor que fazer na mão** ([W] 2026-07-26, textual: *"isso ligue as maquinas, é sempre melhor que fazer na mão. isso é regra no sistema. deve ser"*). Ordem obrigatória, nesta sequência:
