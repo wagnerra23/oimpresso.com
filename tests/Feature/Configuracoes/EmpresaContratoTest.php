@@ -166,11 +166,16 @@ test('UC-EMP-06 editar as abas Impostos, Produtos e Contatos grava só o que mud
         'on_product_expiry' => 'keep_selling', 'stop_selling_before' => null,
         'common_settings' => json_encode(['is_enabled_export' => '1']),
         'email_settings' => json_encode(['mail_password' => 'segredo-emp-98']),
+        // O salvar normaliza estas três quando vêm nulas (desconto vira 0, pos_settings ganha os padrões, rótulos ganham a
+        // chave mínima) — a Blade faz o mesmo. Fixas aqui para a comparação da linha inteira medir só o que a tela editou.
+        'default_sales_discount' => 0, 'pos_settings' => json_encode(app(BusinessUtil::class)->defaultPosSettings()),
+        'custom_labels' => json_encode(['payments' => ['custom_pay_1' => 'Pix']]),
     ]);
     $antes = empLinha($this->business->id);
     $corpo = empCorpo($this);
 
-    $corpo['tax_label_1'] = 'Inscrição 98';
+    // tax_label_1 é varchar(10): valor maior seria cortado pelo banco.
+    $corpo['tax_label_1'] = 'Insc 98';
     $corpo['sku_prefix'] = 'NOVO98';
     $corpo['enable_racks'] = true;
     $corpo['enable_brand'] = false;
@@ -180,7 +185,7 @@ test('UC-EMP-06 editar as abas Impostos, Produtos e Contatos grava só o que mud
     $this->post('/business/update', empFormData($corpo))->assertSessionHas('status.success', 1);
 
     expect(empLinha($this->business->id))->toEqual(array_merge($antes, [
-        'tax_label_1' => 'Inscrição 98', 'sku_prefix' => 'NOVO98', 'enable_racks' => 1.0, 'enable_brand' => 0.0,
+        'tax_label_1' => 'Insc 98', 'sku_prefix' => 'NOVO98', 'enable_racks' => 1.0, 'enable_brand' => 0.0,
         'common_settings' => ['is_enabled_export' => '1', 'default_credit_limit' => '2.000,50', 'enable_product_warranty' => '1'],
     ]));
 });
@@ -210,3 +215,26 @@ test('UC-EMP-07 chave secreta de pagamento não vai para a tela e o salvar da te
     expect($gravado['stripe_secret_key'] ?? null)->toBeNull();
     expect($gravado['razor_pay_key_secret'])->toBe('rz_segredo_98');
 });
+
+test('UC-EMP-04 controle: a Blade também grava desconto padrão nulo como 0 ao salvar', function () {
+    // Prova pedida para o conserto do fixture do UC-EMP-06: null → 0 não é coisa da tela nova.
+    // settings_sales.blade.php:10 renderiza @num_format(null) = "0,00"; BusinessController:455 grava num_uf("0,00") = 0.
+    DB::table('business')->where('id', $this->business->id)->update(['default_sales_discount' => null, 'date_format' => 'd/m/Y']);
+
+    $blade = $this->get('/business/settings?classico=1');
+    $blade->assertOk()->assertViewIs('business.settings');
+    expect($blade->getContent())->toMatch('/name="default_sales_discount"[^>]*value="0,00"|value="0,00"[^>]*name="default_sales_discount"/');
+
+    $this->post('/business/update', empCorpoBlade($this->business, ['default_sales_discount' => '0,00']))->assertSessionHas('status.success', 1);
+    expect((float) DB::table('business')->where('id', $this->business->id)->value('default_sales_discount'))->toBe(0.0);
+});
+
+/** Corpo mínimo no formato da Blade (mesmas chaves obrigatórias do empresaCorpo do baseline). */
+function empCorpoBlade($b, array $campos = []): array
+{
+    return array_merge([
+        'name' => $b->name, 'currency_id' => $b->currency_id, 'time_zone' => $b->time_zone ?: 'America/Sao_Paulo',
+        'fy_start_month' => $b->fy_start_month ?: 1, 'accounting_method' => $b->accounting_method ?: 'fifo',
+        'date_format' => 'd/m/Y', 'time_format' => $b->time_format ?: '24', 'on_product_expiry' => 'keep_selling', 'custom_labels' => [],
+    ], $campos);
+}
