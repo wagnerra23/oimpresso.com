@@ -31,6 +31,11 @@ beforeEach(function () {
         $this->markTestSkipped('Coluna transactions.crm_is_order_request ausente — migrations do Crm não rodaram.');
     }
 
+    // O core só aplica `crm_is_order_request` com o Crm INSTALADO (`system.crm_version`, como em
+    // produção). O banco do CI nasce sem a chave: sem isto o /sells devolve todo pedido de venda
+    // (medido no run 38477681096). DatabaseTransactions desfaz no fim.
+    DB::table('system')->updateOrInsert(['key' => 'crm_version'], ['value' => '1.0']);
+
     $this->business = $this->seededTenant();
     $this->local = EstoqueFixture::locationId($this->business->id, '-PED17-'.uniqid());
 });
