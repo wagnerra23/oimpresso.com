@@ -1,4 +1,9 @@
 {
+  "_frescor": {
+    "modelo": "por-evento",
+    "oraculo": "node scripts/governance/adr-index-generate.mjs | sed -n '/Colisões de número/,/^$/p' — números e slugs batem 1:1 com 'collisions'",
+    "razao": "O mapa só muda quando um número de ADR colide (entrada nova no mesmo PR, append-only). 'generated_at' é a data da última re-cura, não do frescor: em 2026-10-13 o oráculo listava as mesmas 13 colisões e o mapa saía 62d 'parado'. Frescor aqui = bater com o oráculo."
+  },
   "_meta": {
     "adr": "0274-referencia-adr-por-slug-alias-map-13-colisoes",
     "rule": "Referência canônica a ADR é o SLUG completo (NNNN-titulo). Número cru (ex.: 'ADR 0178') só é não-ambíguo quando o número NÃO consta em 'collisions' abaixo. Doc/ADR novo citando número colidido SEM slug = violação (gate em fase 2, nasce ADVISORY).",
