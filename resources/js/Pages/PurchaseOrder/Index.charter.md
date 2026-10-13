@@ -3,6 +3,7 @@ id: resources-js-pages-purchaseorder-index-charter
 page: /purchase-order
 component: resources/js/Pages/PurchaseOrder/Index.tsx
 related_prototype: prototipo-ui/cowork/Wagner/compras-extras.jsx
+related_us: [US-MWART-008]
 owner: wagner
 status: draft
 last_validated: "2026-10-13"
