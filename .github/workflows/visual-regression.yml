@@ -1571,7 +1571,7 @@ jobs:
   # MEDIDA com superfície clara fora da baseline e contagem que sobe; contagem que desce só
   # avisa, e o PR baixa a baseline com `--write-baseline-producao`. Decisões D2 e D3 de 07/10.
   #
-  # Roda em PR que toca Pages, CSS, a sonda, o teste ou a baseline. Fora disso, skip-as-pass
+  # Roda em PR que toca Pages ou CSS (do núcleo e de Modules/*/Resources), a sonda, o teste ou a baseline. Fora disso, skip-as-pass
   # (pulado não é verde de medição: não mediu). A preparação do Laravel e a semente são as
   # do job principal, pelo mesmo script.
   tema-escuro-producao:
@@ -1606,7 +1606,7 @@ jobs:
           set -euo pipefail
           # merge ref: o que o PR muda é HEAD^1..HEAD (mesmo motivo do "Classificar impacto").
           if [ "$(git rev-list --count --no-walk --merges HEAD)" = "1" ]; then BASE="$(git rev-parse HEAD^1)"; else BASE="$BASE_SHA"; git fetch --no-tags --depth=100 origin "$BASE"; fi
-          alvo='^(resources/js/Pages/|resources/css/|scripts/design/tema-escuro-|tests/Browser/TemaEscuro/|scripts/tests/visreg-ci-setup[.]sh)'
+          alvo='^((Modules/[^/]+/)?[Rr]esources/(js/Pages|css)/|scripts/design/tema-escuro-|tests/Browser/TemaEscuro/|scripts/tests/visreg-ci-setup[.]sh)'
           if git diff --name-only "$BASE" HEAD | grep -qE "$alvo"; then
             echo "run=true" >> "$GITHUB_OUTPUT"; echo "toca — mede"
           else

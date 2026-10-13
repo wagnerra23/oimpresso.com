@@ -6,10 +6,6 @@
       "div": 2,
       "select": 1
     },
-    "Financeiro/Cobranca": {
-      "div.inline-flex.bg-stone-100\\/80": 1,
-      "span.text-\\[10px\\].tabular-nums": 1
-    },
     "Financeiro/Dre": {
       "div": 1
     },
@@ -17,36 +13,10 @@
       "div": 1
     },
     "Financeiro/PlanoContas": {
-      "button.fin-filter-cb": 6,
-      "button.fin-filter-cb.on": 1,
-      "div.flex.min-w-0": 4,
-      "span.fin-filter-cb-box": 6
+      "div.flex.min-w-0": 4
     },
     "Financeiro/Unificado": {
-      "button.fin-filter-cb.on": 4,
-      "button.fin-trouble-trigger": 1,
       "span.inline-grid.place-items-center": 1
-    },
-    "Fiscal/Cockpit": {
-      "footer.fx-shell-foot": 1
-    },
-    "Fiscal/Config": {
-      "footer.fx-shell-foot": 1
-    },
-    "Fiscal/Dfe": {
-      "footer.fx-shell-foot": 1
-    },
-    "Fiscal/Eventos": {
-      "footer.fx-shell-foot": 1
-    },
-    "Fiscal/Nfe": {
-      "footer.fx-shell-foot": 1
-    },
-    "Fiscal/Nfse": {
-      "footer.fx-shell-foot": 1
-    },
-    "Fiscal/Sped": {
-      "footer.fx-shell-foot": 1
     },
     "Governance/Dashboard": {
       "span.inline-flex.w-fit": 1
@@ -56,14 +26,6 @@
     },
     "Oficina/OS": {
       "span.text-xs.px-1\\.5": 6
-    },
-    "Sells/CreateV3": {
-      "div.rounded-lg.bg-foreground": 1
-    },
-    "Sells/Index": {
-      "div.os-kpi": 4,
-      "kbd.kbd-hint": 1,
-      "table.os-table.vendas-table": 1
     },
     "StockTransfer/Create": {
       "span.inline-flex.h-5": 2
