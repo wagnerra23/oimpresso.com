@@ -1,0 +1,48 @@
+{
+  "_nota": "Derivado do alvo governance/design/targets/essenciais--tarefas--index.alvo.json (thread A1 do playbook essenciais, rota `ess-tarefas` do protótipo), não do .tsx. cabecalho e abas do alvo são a casca do módulo no protótipo (cabeçalho 'Essenciais' + abas Tarefas/Documentos/…): a Page viva não tem essa casca, cada tela é uma rota com o próprio h1. Copy só onde protótipo e tela dizem a mesma coisa: cada string foi conferida por máquina na base.assinatura do alvo e no código da Page. toolbar = âncora `toolbar`; filtros = âncora `filtros-periodo`; tabela = âncora `tabela`. As três já existiam na Page, com comentário apontando o protótipo.",
+  "tela": "Essentials/Todo/Index",
+  "fonte": "prototipo-ui/cowork/Wagner/essenciais-page.jsx",
+  "alvo": [
+    "resources/js/Pages/Essentials/Todo/Index.tsx"
+  ],
+  "secoes": [
+    {
+      "id": "toolbar",
+      "copy": [
+        "Atribuído a: todos",
+        "Prioridade: todas",
+        "Situação: todas"
+      ]
+    },
+    {
+      "id": "filtros-periodo",
+      "copy": [
+        "Período de início",
+        "Mais recentes",
+        "Prazo mais próximo",
+        "Maior esforço"
+      ]
+    },
+    {
+      "id": "tabela",
+      "copy": [
+        "Criado em",
+        "ID da tarefa",
+        "Tarefa",
+        "Situação",
+        "Prioridade",
+        "Início",
+        "Fim",
+        "Horas est.",
+        "Atribuído por",
+        "Atribuído a",
+        "Ações"
+      ]
+    }
+  ],
+  "ordem": [
+    "toolbar",
+    "filtros-periodo",
+    "tabela"
+  ]
+}

@@ -6,7 +6,7 @@
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Head, router, useForm } from '@inertiajs/react';
-import { AlertCircle, ArrowLeft, Send, ShoppingCart, User, Calendar, DollarSign } from 'lucide-react';
+import { AlertCircle, ArrowLeft, FilePlus, Send, ShoppingCart, User, Calendar, DollarSign } from 'lucide-react';
 
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
@@ -14,7 +14,10 @@ import { Label } from '@/Components/ui/label';
 import { Textarea } from '@/Components/ui/textarea';
 import { Switch } from '@/Components/ui/switch';
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
-import PageHeader from '@/Components/shared/PageHeader';
+import { PageHeader } from '@/Components/PageHeader';
+import { Inline } from '@/Components/layout';
+import { Select, SelectContent, SelectTrigger, SelectValue } from '@/Components/ui/select';
+import { SafeSelectItem } from '@/Components/ui/SafeSelectItem';
 
 interface Config {
   lc116_codigo_default: string | null;
@@ -39,12 +42,20 @@ interface Props {
   config: Config | null;
   venda?: Venda | null;
   flash?: { success: boolean; msg: string } | null;
+  /** R-NFSE-006: subitens LC 116 ("7.10") com mais de um desdobro nacional — Anexo B oficial. */
+  desdobrosNacionais?: Record<string, { codigo: string; descricao: string }[]>;
+}
+
+/** "07.10" e "7.10" viram "7.10", a chave da tabela de desdobros. */
+function chaveLc116(v: string): string {
+  const m = v.trim().match(/^(\d{1,2})\.(\d{1,2})$/);
+  return m ? `${Number(m[1])}.${m[2].padStart(2, '0')}` : '';
 }
 
 const brl = (v: number) =>
   new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v);
 
-export default function NfseEmitir({ config, venda, flash }: Props) {
+export default function NfseEmitir({ config, venda, flash, desdobrosNacionais }: Props) {
   const today = new Date();
   const mesAtual = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
 
@@ -59,8 +70,12 @@ export default function NfseEmitir({ config, venda, flash }: Props) {
     valor_servicos: venda ? String(venda.final_total) : '',
     aliquota_iss:   config?.aliquota_iss != null ? String(config.aliquota_iss) : '0.05',
     iss_retido:     false as boolean,
+    retencao_federal_sujeito: false as boolean,
+    ctrib_nac:      '',
     transaction_id: venda?.transaction_id ?? null as number | null,
   });
+
+  const opcoesDesdobro = desdobrosNacionais?.[chaveLc116(data.lc116_codigo)] ?? [];
 
   const valorNum  = parseFloat(data.valor_servicos) || 0;
   const aliqNum   = parseFloat(data.aliquota_iss)   || 0;
@@ -91,10 +106,10 @@ export default function NfseEmitir({ config, venda, flash }: Props) {
         )}
 
         <PageHeader
-          icon="file-plus"
+          leading={<FilePlus size={18} aria-hidden="true" />}
           title="Emitir NFSe"
-          description={`Ambiente: ${config?.ambiente === 'producao' ? 'Produção' : 'Homologação (testes)'}`}
-          action={
+          subtitle={`Ambiente: ${config?.ambiente === 'producao' ? 'Produção' : 'Homologação (testes)'}`}
+          actions={
             <Button variant="outline" size="sm" onClick={() => router.visit('/nfse')}>
               <ArrowLeft size={14} className="mr-1" />
               Voltar
@@ -228,7 +243,10 @@ export default function NfseEmitir({ config, venda, flash }: Props) {
                   <Label className="text-xs">Código LC 116/2003 *</Label>
                   <Input
                     value={data.lc116_codigo}
-                    onChange={(e) => setData('lc116_codigo', e.target.value)}
+                    onChange={(e) => {
+                      setData('lc116_codigo', e.target.value);
+                      setData('ctrib_nac', '');
+                    }}
                     placeholder="1.05"
                     maxLength={5}
                     className="mt-1 max-w-xs"
@@ -239,6 +257,28 @@ export default function NfseEmitir({ config, venda, flash }: Props) {
                   </p>
                   {errors.lc116_codigo && <p className="text-xs text-destructive mt-1">{errors.lc116_codigo}</p>}
                 </div>
+
+                {opcoesDesdobro.length > 0 && (
+                  <div>
+                    <Label htmlFor="ctrib_nac" className="text-xs">Desdobro nacional do serviço *</Label>
+                    <Select value={data.ctrib_nac} onValueChange={(v) => setData('ctrib_nac', v)}>
+                      <SelectTrigger id="ctrib_nac" className="mt-1" aria-label="Desdobro nacional do serviço">
+                        <SelectValue placeholder="Escolha qual destes serviços foi prestado" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {opcoesDesdobro.map((o) => (
+                          <SafeSelectItem key={o.codigo} value={o.codigo}>
+                            {o.codigo} · {o.descricao}
+                          </SafeSelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-[color:var(--text-mute)] mt-0.5">
+                      Este item da LC 116 tem {opcoesDesdobro.length} códigos na lista de serviços nacional.
+                    </p>
+                    {errors.ctrib_nac && <p className="text-xs text-destructive mt-1">{errors.ctrib_nac}</p>}
+                  </div>
+                )}
               </CardContent>
             </Card>
 
@@ -295,6 +335,23 @@ export default function NfseEmitir({ config, venda, flash }: Props) {
                     ISS retido na fonte pelo tomador
                   </Label>
                 </div>
+
+                <Inline gap={3} align="start">
+                  <Switch
+                    id="retencao_federal_sujeito"
+                    checked={data.retencao_federal_sujeito}
+                    onCheckedChange={(v) => setData('retencao_federal_sujeito', v)}
+                    className="mt-0.5"
+                  />
+                  <div>
+                    <Label htmlFor="retencao_federal_sujeito" className="text-sm cursor-pointer">
+                      Serviço sujeito à retenção de PIS/COFINS/CSLL (Lei 10.833/2003, art. 30)
+                    </Label>
+                    <p className="text-xs text-[color:var(--text-mute)] mt-0.5">
+                      A retenção é calculada no envio, pelo regime tributário da empresa. Só vale para tomador com CNPJ.
+                    </p>
+                  </div>
+                </Inline>
 
                 {/* Resumo financeiro */}
                 {valorNum > 0 && (

@@ -136,6 +136,26 @@
       ]
     },
     {
+      "tela": "Configuracoes/Contas/Index",
+      "arquivo": "resources/js/Pages/Configuracoes/Contas/Index.tsx",
+      "modulo": "core",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/Wagner/financeiro-legado.jsx",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
+      "tela": "Configuracoes/Empresa/Index",
+      "arquivo": "resources/js/Pages/Configuracoes/Empresa/Index.tsx",
+      "modulo": "core",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/Wagner/configuracoes-page.jsx",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
       "tela": "Configuracoes/EsquemasFatura/Index",
       "arquivo": "resources/js/Pages/Configuracoes/EsquemasFatura/Index.tsx",
       "modulo": "core",
@@ -396,6 +416,36 @@
       ]
     },
     {
+      "tela": "PurchaseOrder/Index",
+      "arquivo": "resources/js/Pages/PurchaseOrder/Index.tsx",
+      "modulo": "core",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/Wagner/compras-extras.jsx",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
+      "tela": "PurchaseRequisition/Index",
+      "arquivo": "resources/js/Pages/PurchaseRequisition/Index.tsx",
+      "modulo": "core",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/Wagner/compras-extras.jsx",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
+      "tela": "PurchaseReturn/Index",
+      "arquivo": "resources/js/Pages/PurchaseReturn/Index.tsx",
+      "modulo": "core",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/Wagner/compras-extras.jsx",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
       "tela": "Relatorios/Caixa/Index",
       "arquivo": "resources/js/Pages/Relatorios/Caixa/Index.tsx",
       "modulo": "core",
@@ -646,6 +696,16 @@
       ]
     },
     {
+      "tela": "Spreadsheet/Index",
+      "arquivo": "resources/js/Pages/Spreadsheet/Index.tsx",
+      "modulo": "core",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/Wagner/planilhas-page.jsx",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
       "tela": "Suporte/Log",
       "arquivo": "resources/js/Pages/Suporte/Log.tsx",
       "modulo": "core",
@@ -661,6 +721,16 @@
       "modulo": "core",
       "status": "1-ciclo",
       "prototipo": "prototipo-ui/cowork/Wagner/usuarios-page.jsx",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
+      "tela": "VozDoCliente/Caixa",
+      "arquivo": "resources/js/Pages/VozDoCliente/Caixa.tsx",
+      "modulo": "core",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/Wagner/voz-do-cliente-page.jsx",
       "falta": [
         "scorecard"
       ]
@@ -698,6 +768,16 @@
     {
       "tela": "Officeimpresso/Clientes/Index",
       "arquivo": "Modules/Officeimpresso/Resources/js/Pages/Officeimpresso/Clientes/Index.tsx",
+      "modulo": "Officeimpresso",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/Wagner/officeimpresso-page.jsx",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
+      "tela": "Officeimpresso/Empresa/Show",
+      "arquivo": "Modules/Officeimpresso/Resources/js/Pages/Officeimpresso/Empresa/Show.tsx",
       "modulo": "Officeimpresso",
       "status": "1-ciclo",
       "prototipo": "prototipo-ui/cowork/Wagner/officeimpresso-page.jsx",
@@ -746,5 +826,5 @@
       ]
     }
   ],
-  "total": 158
+  "total": 166
 }

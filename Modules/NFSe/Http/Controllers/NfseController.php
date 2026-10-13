@@ -14,6 +14,7 @@ use Modules\NFSe\Http\Requests\StoreNfseRequest;
 use Modules\NFSe\Models\NfseEmissao;
 use Modules\NFSe\Models\NfseProviderConfig;
 use Modules\NFSe\Services\NfseEmissaoService;
+use Modules\NfeBrasil\Services\Nfse\ListaServicoNacional;
 
 /**
  * Rotas operacionais NFSe — US-NFSE-006/008/009.
@@ -111,6 +112,9 @@ class NfseController extends Controller
             ] : null,
             'venda'    => $venda,
             'flash'    => session('status'),
+            // R-NFSE-006: subitens LC 116 com mais de um desdobro nacional (Anexo B). Arquivo
+            // estático versionado, sem consulta ao banco — prop leve, não precisa de defer.
+            'desdobrosNacionais' => app(ListaServicoNacional::class)->subitensComVariosDesdobros(),
         ]);
     }
 

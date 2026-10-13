@@ -14,7 +14,7 @@ module: NfeBrasil
 >
 > **O que isto é:** o inventário completo das raízes `Modules/NfeBrasil/**` + `resources/js/Pages/NfeBrasil/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 266 arquivos em 19 papéis.
+**Total mapeado:** 280 arquivos em 19 papéis.
 
 ## Controllers — 16
 
@@ -49,7 +49,7 @@ module: NfeBrasil
 - [UpsertConfigDefaultRequest.php](../../../Modules/NfeBrasil/Http/Requests/UpsertConfigDefaultRequest.php)
 - [UpsertRegraTributariaRequest.php](../../../Modules/NfeBrasil/Http/Requests/UpsertRegraTributariaRequest.php)
 
-## Services — 24
+## Services — 26
 
 - [CertificadoService.php](../../../Modules/NfeBrasil/Services/CertificadoService.php)
 - [ResolveUfEmitente.php](../../../Modules/NfeBrasil/Services/Concerns/ResolveUfEmitente.php)
@@ -63,6 +63,8 @@ module: NfeBrasil
 - [NfeCartaCorrecaoService.php](../../../Modules/NfeBrasil/Services/NfeCartaCorrecaoService.php)
 - [NfeInutilizacaoService.php](../../../Modules/NfeBrasil/Services/NfeInutilizacaoService.php)
 - [NfeService.php](../../../Modules/NfeBrasil/Services/NfeService.php)
+- [DpsXml.php](../../../Modules/NfeBrasil/Services/Nfse/DpsXml.php)
+- [ListaServicoNacional.php](../../../Modules/NfeBrasil/Services/Nfse/ListaServicoNacional.php)
 - [NfseCancelService.php](../../../Modules/NfeBrasil/Services/NfseCancelService.php)
 - [AbrasfV204CancelDriver.php](../../../Modules/NfeBrasil/Services/NfseDrivers/AbrasfV204CancelDriver.php)
 - [RetencoesNfseService.php](../../../Modules/NfeBrasil/Services/RetencoesNfseService.php)
@@ -136,7 +138,7 @@ module: NfeBrasil
 - [api.php](../../../Modules/NfeBrasil/Routes/api.php)
 - [web.php](../../../Modules/NfeBrasil/Routes/web.php)
 
-## Migrations (schema) — 27
+## Migrations (schema) — 29
 
 - [2026_05_06_002000_create_nfe_certificados_table.php](../../../Modules/NfeBrasil/Database/Migrations/2026_05_06_002000_create_nfe_certificados_table.php)
 - [2026_05_06_002001_create_nfe_emissoes_table.php](../../../Modules/NfeBrasil/Database/Migrations/2026_05_06_002001_create_nfe_emissoes_table.php)
@@ -165,6 +167,8 @@ module: NfeBrasil
 - [2026_10_07_000005_create_nfe_revisoes_contador_table.php](../../../Modules/NfeBrasil/Database/Migrations/2026_10_07_000005_create_nfe_revisoes_contador_table.php)
 - [2026_10_07_000006_create_nfe_contador_links_table.php](../../../Modules/NfeBrasil/Database/Migrations/2026_10_07_000006_create_nfe_contador_links_table.php)
 - [2026_10_07_000007_create_nfe_contadores_table.php](../../../Modules/NfeBrasil/Database/Migrations/2026_10_07_000007_create_nfe_contadores_table.php)
+- [2026_10_13_000001_add_retencoes_federais_to_nfse_emissoes.php](../../../Modules/NfeBrasil/Database/Migrations/2026_10_13_000001_add_retencoes_federais_to_nfse_emissoes.php)
+- [2026_10_13_000002_add_ctrib_nac_to_nfse_emissoes.php](../../../Modules/NfeBrasil/Database/Migrations/2026_10_13_000002_add_ctrib_nac_to_nfse_emissoes.php)
 
 ## Seeders — 2
 
@@ -219,12 +223,12 @@ module: NfeBrasil
 - [Index.casos.md](../../../resources/js/Pages/NfeBrasil/Tributacao/Index.casos.md)
 - [RegraForm.casos.md](../../../resources/js/Pages/NfeBrasil/Tributacao/RegraForm.casos.md)
 
-## Testes (Pest) — 74
+## Testes (Pest) — 78
 
-- 74 em [Modules/NfeBrasil/Tests/Feature/](../../../Modules/NfeBrasil/Tests/Feature)
+- 78 em [Modules/NfeBrasil/Tests/Feature/](../../../Modules/NfeBrasil/Tests/Feature)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
-## Demais arquivos (manifestos, docs, assets e misc) — 40
+## Demais arquivos (manifestos, docs, assets e misc) — 46
 
 - [.gitkeep](../../../Modules/NfeBrasil/Config/.gitkeep)
 - [.gitkeep](../../../Modules/NfeBrasil/Console/.gitkeep)
@@ -246,8 +250,14 @@ module: NfeBrasil
 - [.gitkeep](../../../Modules/NfeBrasil/Resources/assets/.gitkeep)
 - [app.js](../../../Modules/NfeBrasil/Resources/assets/js/app.js)
 - [app.scss](../../../Modules/NfeBrasil/Resources/assets/sass/app.scss)
+- [lista-servico-nacional-v1.01.json](../../../Modules/NfeBrasil/Resources/data/nfse/lista-servico-nacional-v1.01.json)
 - [.gitkeep](../../../Modules/NfeBrasil/Resources/lang/.gitkeep)
 - [nfebrasil.php](../../../Modules/NfeBrasil/Resources/lang/pt-BR/nfebrasil.php)
+- [DPS_v1.01.xsd](../../../Modules/NfeBrasil/Resources/schemas/nfse/v1.01/DPS_v1.01.xsd)
+- [README.md](../../../Modules/NfeBrasil/Resources/schemas/nfse/v1.01/README.md)
+- [tiposComplexos_v1.01.xsd](../../../Modules/NfeBrasil/Resources/schemas/nfse/v1.01/tiposComplexos_v1.01.xsd)
+- [tiposSimples_v1.01.xsd](../../../Modules/NfeBrasil/Resources/schemas/nfse/v1.01/tiposSimples_v1.01.xsd)
+- [xmldsig-core-schema.xsd](../../../Modules/NfeBrasil/Resources/schemas/nfse/v1.01/xmldsig-core-schema.xsd)
 - [comercio-atacado-simples-sp.php](../../../Modules/NfeBrasil/Resources/templates/comercio-atacado-simples-sp.php)
 - [comercio-varejo-presumido-sp.php](../../../Modules/NfeBrasil/Resources/templates/comercio-varejo-presumido-sp.php)
 - [comercio-varejo-real-sp.php](../../../Modules/NfeBrasil/Resources/templates/comercio-varejo-real-sp.php)

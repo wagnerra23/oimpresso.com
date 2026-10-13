@@ -5,8 +5,8 @@ irmaos: Emitir.charter.md (lei) · Emitir.tsx (código)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 owner: wagner
 related_us: [US-NFSE-009, US-NFSE-006]
-last_run: "2026-09-30"
-last_run_ci: "0 UC executado — casos nascem neste PR; veredito pendente da lane PHP / Pest (Unit)"
+last_run: "2026-10-13"
+last_run_ci: "2026-10-13 — UC-NFSEM-04 verde na lane PHP / Pest (NfeBrasil · MySQL), run 38414970371 (NfseRetencoesDpsTest); UC-NFSEM-01..03 na lane PHP / Pest (Unit), NfseTelasContratoTest; UC-NFSEM-05 nasce no PR do R-NFSE-006, veredito pendente da lane NfeBrasil MySQL (ListaServicoNacionalTest)"
 ---
 
 # Casos de Uso & Aceite — Emitir NFS-e (`/nfse/emitir`)
@@ -38,6 +38,8 @@ Nunca biz=4.
 | UC-NFSEM-01 | Emissão exige competência, tomador, descrição, LC 116, valor e alíquota | must | charter Goals (campos do formulário) · US-NFSE-009 | `NfseTelasContratoTest` | 🧪 |
 | UC-NFSEM-02 | Alíquota de ISS é fração 0..1 e o valor dos serviços é positivo | must `[V0]` | charter Goals (alíquota ISS, valor) · `StoreNfseRequest` (*"NÃO relaxar — compliance fiscal"*) | `NfseTelasContratoTest` | 🧪 |
 | UC-NFSEM-03 | Só quem tem `nfse.emit` envia a emissão | must `[T0]` | charter (*"Gate `nfse.emit`"*) · US-NFSE-006 | `NfseTelasContratoTest` | 🧪 |
+| UC-NFSEM-04 | Marcar "serviço sujeito à retenção" retém PIS/COFINS/CSLL na DPS; desmarcado não muda nada | must `[V0]` `[T0]` | charter Goals (marcação art. 30, decisão [W] 2026-10-13) · R-NFSE-003 | `NfseRetencoesDpsTest` | 🧪 |
+| UC-NFSEM-05 | Item LC 116 com vários desdobros nacionais exige escolher o desdobro; com um só, resolve sozinho | must | charter Goals (desdobro nacional) · R-NFSE-006 · Anexo B oficial | `ListaServicoNacionalTest` | 🧪 |
 
 ## UC-NFSEM-01 · Emissão exige os dados fiscais mínimos · `must`
 
@@ -63,6 +65,28 @@ Nunca biz=4.
 - **Aceite:** Dado um request sem usuário, ou com usuário que só tem `nfse.view` · Então o envio é
   recusado; com `nfse.emit` · Então é aceito. A rota `nfse.store` passa por `auth`.
 - **Teste:** `NfseTelasContratoTest` — *"UC-NFSEM-03 · so quem tem a permissao nfse.emit…"*.
+- **Status: 🧪**
+
+## UC-NFSEM-04 · Retenção federal marcada vai para a DPS e para a nota · `must` `[V0]` `[T0]`
+
+- **Aceite:** Dado prestador em lucro presumido, tomador com CNPJ e a marcação ligada · Quando
+  monto o payload de um serviço de 1.500 reais · Então a nota grava PIS 9,75, COFINS 45,00 e
+  CSLL 15,00, e a DPS leva `tribFed.piscofins.tpRetPisCofins = 3` e `vRetCSLL = 69,75` (soma,
+  NT SE/CGNFS-e nº 007). Desmarcado · Então nenhum grupo federal e a chave de idempotência é a
+  de antes. Prestador no Simples ou valor dispensado · Então nada retido e nenhum grupo. O regime
+  lido é o do próprio tenant (98 Simples × 99 presumido).
+- **Contrato:** Lei 10.833/2003 arts. 30–32 · NT SE/CGNFS-e nº 007 · R-NFSE-003.
+- **Teste:** `NfseRetencoesDpsTest` (lane `nfebrasil-pest`).
+- **Status: 🧪**
+
+## UC-NFSEM-05 · Desdobro nacional do serviço · `must`
+
+- **Aceite:** Dado o item 7.10 (dois desdobros na lista nacional) · Então a tela mostra o seletor
+  "Desdobro nacional do serviço" com 071001 e 071002, e enviar sem escolher é recusado no campo
+  `ctrib_nac`. Dado o item 1.05 (um desdobro) · Então nada a escolher e a DPS leva 010501. Item
+  fora da lista (99.99) · Então recusado no campo `lc116_codigo`.
+- **Contrato:** Anexo B v1.01 (aba LISTA.SERV.NAC.) · R-NFSE-006.
+- **Teste:** `ListaServicoNacionalTest` (lane `nfebrasil-pest`).
 - **Status: 🧪**
 
 ## Fora do contrato por enquanto
