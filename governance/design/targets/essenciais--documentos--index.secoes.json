@@ -1,0 +1,19 @@
+{
+  "_": "A1 [CL] 2026-10-13 — playbook essenciais. Rota `ess-documentos` do espelho (window.EssRotas, essenciais-page.jsx); mapa rota↔Page da _saida-00: `ess-documentos` = `Essentials/Documents/Index (aba Documentos)`. Tema dark (default do espelho), viewport 1280x900, browser limpo. Fora: div.hrm-toast-host (contêiner vazio de toast).",
+  "_mapa": "alvo:mapa --rota ess-documentos --quieto-ms 2000, 2026-10-13: raiz '.main-body > .ess-page' → div.oi-ph(1) · nav.ds-tabbar.hrm-tabs(7) · div.hrm-body(2); raiz '... > .hrm-body > section.hrm-card' → h3(1) · p.hrm-card-sub(0) · div.hrm-tabela(1)",
+  "cabecalho": {
+    "seletor": ".main-body > .ess-page > .oi-ph > header"
+  },
+  "abas": {
+    "seletor": ".main-body > .ess-page > nav.ds-tabbar"
+  },
+  "titulo": {
+    "seletor": ".main-body > .ess-page > .hrm-body > section.hrm-card > h3"
+  },
+  "subtitulo": {
+    "seletor": ".main-body > .ess-page > .hrm-body > section.hrm-card > p.hrm-card-sub"
+  },
+  "tabela": {
+    "seletor": ".main-body > .ess-page > .hrm-body > section.hrm-card > .hrm-tabela"
+  }
+}
