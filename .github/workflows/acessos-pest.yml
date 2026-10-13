@@ -108,6 +108,9 @@ on:
       - 'app/Http/Controllers/PrinterController.php'
       - 'app/Http/Controllers/BarcodeController.php'
       - 'app/Http/Controllers/BusinessLocationController.php'
+      - 'Modules/Woocommerce/Http/Controllers/WoocommerceController.php'
+      - 'Modules/Woocommerce/Resources/js/Pages/Woocommerce/Painel/**'
+      - 'Modules/Woocommerce/Tests/Feature/Painel*'
       - 'app/Http/Controllers/BusinessController.php'
       - 'app/Services/FeatureFlagService.php'
       - 'config/feature-flags.php'
@@ -202,6 +205,9 @@ jobs:
               - 'app/Http/Controllers/PrinterController.php'
               - 'app/Http/Controllers/BarcodeController.php'
               - 'app/Http/Controllers/BusinessLocationController.php'
+              - 'Modules/Woocommerce/Http/Controllers/WoocommerceController.php'
+              - 'Modules/Woocommerce/Resources/js/Pages/Woocommerce/Painel/**'
+              - 'Modules/Woocommerce/Tests/Feature/Painel*'
               - 'app/Http/Controllers/BusinessController.php'
               - 'app/Services/FeatureFlagService.php'
               - 'config/feature-flags.php'
@@ -256,6 +262,8 @@ jobs:
             tests/Feature/NotificationTemplateTest.php \
             tests/Feature/NotificationTemplate/DualTest.php \
             tests/Feature/Support/SuporteLogContratoTest.php \
+            Modules/Woocommerce/Tests/Feature/PainelBaselineTest.php \
+            Modules/Woocommerce/Tests/Feature/PainelContratoTest.php \
             tests/Feature/VozDoCliente/CaixaContratoTest.php \
             tests/Feature/Configuracoes/ \
             tests/Feature/CutoverMenu/RelatoriosSemXInertiaTest.php
