@@ -129,6 +129,9 @@ test('UC-PEDC-03 Tier 0 — meus pedidos, com a mesma quantidade restante da Bla
     // Caminho 1: à mão. (10 − 3) + (5 − 0) = 12.
     expect((float) $linhas[$meu]['restante'])->toBe(12.0);
     // Caminho 2: o texto é o mesmo da coluna da DataTable da Blade para o mesmo pedido.
+    // `withHeaders` persiste entre requisições do mesmo teste: sem limpar, esta chamada sairia com o
+    // `X-Inertia` da anterior e cairia na tela React, não na DataTable (run 38404610982).
+    $this->flushHeaders();
     $blade = $this->withHeaders(['X-Requested-With' => 'XMLHttpRequest', 'Accept' => 'application/json'])->get('/purchase-order');
     $coluna = collect($blade->json('data'))->first(fn ($l) => strip_tags((string) $l['ref_no']) === $meu);
     expect($coluna)->not->toBeNull();
