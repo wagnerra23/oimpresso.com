@@ -80,6 +80,8 @@ A armadilha da Blade homônima ([ADR 0351](../../decisions/0351-sdd-from-source.
 
 O cockpit `/compras` **manda o operador pro ramo 3 de propósito**: os 4 botões de export do `Toolbar` chamam `openExportBlade()`, que faz `window.open('/purchases', ...)` (`Compras/Index.tsx` — busca: `grep -n "openExportBlade" resources/js/Pages/Compras/Index.tsx`). `window.open` é navegação nova: **sem header `X-Inertia`, sem `?v=2`** → cai na Blade. Logo a Blade **não é fóssil**: é o destino de CSV/Excel/PDF/Imprimir do cockpit hoje.
 
+> **Atualização 2026-10-13:** o cutover pelo menu (#9095, D1 [W] 2026-10-07) mudou o ramo 3 — GET comum em `/purchases` passou a abrir a Page React, e a Blade só sai com `?classico=1`. O parágrafo acima vale para o código até essa data. Desde 2026-10-13 o `openExportBlade` abre `/purchases?classico=1` (contrato UC-CMP-11).
+
 **A Blade de referência deste SDD é `resources/views/purchase/index.blade.php` + `purchase_table.blade.php`**, com o menu de Ações vindo do `addColumn('action')` do ramo 2. As demais (`create`/`edit`/`show`) pertencem ao trilho `/purchases` e só entram aqui quando o cockpit delega.
 
 ### 0.3 O que o benchmark expôs — ponteiro, não cópia
@@ -244,7 +246,7 @@ GET /compras/{id}/detalhe
 
 **F6 · Exportar (bridge Blade)** <!-- derivado: re-rodável do fonte -->
 
-CSV / Excel / PDF / Imprimir chamam o **mesmo** `openExportBlade`, que ignora o formato e abre `/purchases` em nova aba — os 4 botões levam ao mesmo lugar, onde o DataTables da Blade tem os exports nativos. **O filtro corrente do cockpit não viaja** (§5.4.4).
+CSV / Excel / PDF / Imprimir chamam o **mesmo** `openExportBlade`, que ignora o formato e abre `/purchases?classico=1` em nova aba (até 2026-10-13, `/purchases` sem o parâmetro — ver a atualização em §0.2) — os 4 botões levam ao mesmo lugar, onde o DataTables da Blade tem os exports nativos. **O filtro corrente do cockpit não viaja** (§5.4.4).
 
 ### 5.4 Onde os dois mundos ainda não se conversam
 
