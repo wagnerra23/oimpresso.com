@@ -129,6 +129,13 @@ test('UC-MESA-04 pedidos de hoje contam só vendas finalizadas com mesa do meu n
 
     expect(mesasContratoProps($this)['pedidos_hoje'])->toBe($antes + 2);
 
-    $r = $this->withHeaders(['X-Inertia' => 'true', 'X-Inertia-Version' => $this->versaoInertia])->get('/modules/tables');
+    // `withHeaders()` persiste no teste: sem o flush, o pedido parcial anterior (só `mesas,pedidos_hoje`) continuaria
+    // valendo e a prop eager `pode_gerenciar` ficaria fora da resposta.
+    $this->flushHeaders();
+    $r = $this->withHeaders([
+        'X-Inertia' => 'true', 'X-Inertia-Version' => $this->versaoInertia, 'X-Requested-With' => 'XMLHttpRequest',
+    ])->get('/modules/tables');
+    $r->assertOk();
+    expect($r->json('component'))->toBe('Restaurante/Mesas/Index');
     expect($r->json('props.pode_gerenciar'))->toBeFalse();
 });
