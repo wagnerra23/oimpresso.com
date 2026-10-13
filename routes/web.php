@@ -1056,6 +1056,11 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
     Route::post('notification-templates/test', [NotificationTemplateController::class, 'test'])
         ->middleware('throttle:6,1')
         ->name('notification-templates.test');
+    // UC-NOT-09 — prévia do e-mail passa pelo MESMO HtmlSanitizer do envio. Não grava nada;
+    // o throttle cobre a digitação (o front espera o usuário parar antes de pedir).
+    Route::post('notification-templates/previa', [NotificationTemplateController::class, 'previa'])
+        ->middleware('throttle:120,1')
+        ->name('notification-templates.previa');
     Route::resource('notification-templates', NotificationTemplateController::class)->only(['index', 'store']);
     Route::get('notification/get-template/{transaction_id}/{template_for}', [NotificationController::class, 'getTemplate']);
     Route::post('notification/send', [NotificationController::class, 'send']);

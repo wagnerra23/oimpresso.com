@@ -1,7 +1,7 @@
 // @covers-us US-NOTIF-004
 import React from 'react';
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
-import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 const post = vi.fn();
 vi.mock('@/Layouts/AppShellV2', () => ({ default: ({ children }: any) => <>{children}</> }));
 vi.mock('@inertiajs/react', () => ({ Deferred: ({ children }: any) => <>{children}</>, router: { post: (...a: any[]) => post(...a) } }));
@@ -18,10 +18,17 @@ const props: Props = {
   supplier_notifications: {},
   padroes: { new_sale: { subject: 'Obrigado — {business_name}', email_body: '<p>Fábrica</p>', sms_body: 'F sms', whatsapp_text: 'F wa' } },
 };
-beforeEach(() => post.mockReset());
+// O servidor (HtmlSanitizer) é simulado: devolve o HTML sem <script> e marcado, para provar que o
+// iframe mostra a resposta do servidor e nunca o HTML cru do editor.
+const limpo = (html: string) => `<!--limpo-->${html.replace(/<script[\s\S]*?<\/script>/g, '')}`;
+const servidor = async (_url: string, init: { body: string }) =>
+  ({ ok: true, json: async () => ({ html: limpo(JSON.parse(init.body).html) }) });
+const fetchMock = vi.fn(servidor);
+// mockReset + implementação de novo: o teste de falha troca a implementação e ela não pode vazar.
+beforeEach(() => { post.mockReset(); fetchMock.mockReset(); fetchMock.mockImplementation(servidor); vi.stubGlobal('fetch', fetchMock); });
 afterEach(cleanup);
 const editorVisual = () => (screen.getByTitle('Editor visual do corpo do e-mail') as HTMLIFrameElement).contentDocument!.body;
-const previa = () => screen.getByTitle('Prévia do e-mail') as HTMLIFrameElement;
+const previa = async () => (await screen.findByTitle('Prévia do e-mail')) as HTMLIFrameElement;
 const modo = (nome: 'Visual' | 'HTML') => screen.getByRole('button', { name: nome });
 
 it('UC-NOT-21 Visual mostra o markup salvo e HTML devolve o mesmo markup, editável nos dois sentidos', () => {
@@ -46,14 +53,33 @@ it('UC-NOT-03 trocar de modelo volta o corpo para o modo Visual', () => {
   expect(screen.queryByLabelText('Corpo do e-mail (HTML)')).toBeNull();
 });
 
-it('UC-NOT-09 chip no editor Visual entra no HTML do corpo e a prévia mostra o valor de exemplo', () => {
+it('UC-NOT-09 chip no editor Visual entra no HTML do corpo e a prévia mostra o valor de exemplo', async () => {
   render(<Page {...props} />);
   fireEvent.focus(editorVisual());
   fireEvent.click(screen.getByRole('button', { name: '{invoice_number}' }));
   expect(editorVisual().innerHTML).toContain('{invoice_number}');
-  expect(previa().getAttribute('srcdoc')).toContain('VD-0001');
-  expect(previa().getAttribute('srcdoc')).not.toContain('{invoice_number}');
+  await waitFor(() => expect(fetchMock.mock.calls.at(-1)?.[1].body).toContain('VD-0001'));
+  await waitFor(async () => expect((await previa()).getAttribute('srcdoc')).toContain('VD-0001'));
+  expect((await previa()).getAttribute('srcdoc')).not.toContain('{invoice_number}');
   expect(screen.getByText('1 modelo alterado')).toBeTruthy();
+});
+
+it('UC-NOT-09 a prévia mostra o HTML que o servidor limpou, nunca o HTML cru do editor', async () => {
+  render(<Page {...props} />);
+  editorVisual().innerHTML = '<p>ok</p><script>alert(1)</script>';
+  fireEvent.input(editorVisual());
+  await waitFor(() => expect(fetchMock.mock.calls.at(-1)?.[1].body).toContain('<script>'));
+  const [url, init] = fetchMock.mock.calls.at(-1)!;
+  expect(url).toBe('/notification-templates/previa');
+  expect((init as unknown as { method: string }).method).toBe('POST');
+  await waitFor(async () => expect((await previa()).getAttribute('srcdoc')).toBe('<!--limpo--><p>ok</p>'));
+});
+
+it('UC-NOT-09 falha do servidor mostra aviso em vez de renderizar o HTML cru', async () => {
+  fetchMock.mockImplementation(async () => ({ ok: false, json: async () => ({}) }) as never);
+  render(<Page {...props} />);
+  expect(await screen.findByText('Não foi possível gerar a prévia. Tente de novo.')).toBeTruthy();
+  expect(screen.queryByTitle('Prévia do e-mail')).toBeNull();
 });
 
 it('UC-NOT-07 restaurar padrão volta ao texto de fábrica, conta como alteração e não grava', () => {
@@ -72,9 +98,9 @@ it('UC-NOT-07 modelo sem texto de fábrica deixa Restaurar padrão desabilitado'
   expect((screen.getByRole('button', { name: 'Restaurar padrão desta' }) as HTMLButtonElement).disabled).toBe(true);
 });
 
-it('prévia e editor Visual rodam em iframe sandbox sem permissão de script', () => {
+it('prévia e editor Visual rodam em iframe sandbox sem permissão de script', async () => {
   render(<Page {...props} />);
-  expect(previa().getAttribute('sandbox')).toBe('');
+  expect((await previa()).getAttribute('sandbox')).toBe('');
   const sandbox = (screen.getByTitle('Editor visual do corpo do e-mail') as HTMLIFrameElement).getAttribute('sandbox') ?? '';
   expect(sandbox.split(/\s+/)).not.toContain('allow-scripts');
   fireEvent.click(screen.getByRole('button', { name: 'SMS' }));
