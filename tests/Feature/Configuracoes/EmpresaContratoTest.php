@@ -1,7 +1,7 @@
 <?php
 
 declare(strict_types=1);
-// Cobre UC-EMP-01, UC-EMP-02, UC-EMP-03, UC-EMP-04, UC-EMP-05, UC-EMP-06, UC-EMP-07, UC-EMP-08, UC-EMP-09, UC-EMP-10 (Configuracoes/Empresa/Index.casos.md).
+// Cobre UC-EMP-01, UC-EMP-02, UC-EMP-03, UC-EMP-04, UC-EMP-05, UC-EMP-06, UC-EMP-07, UC-EMP-08, UC-EMP-09, UC-EMP-10, UC-EMP-11 (Configuracoes/Empresa/Index.casos.md).
 
 use App\Business;
 use App\Http\Controllers\BusinessController;
@@ -314,4 +314,33 @@ test('UC-EMP-10 Compras: taxa de câmbio volta igual, grava o digitado e desliga
     $this->post('/business/update', empFormData($corpo))->assertSessionHas('status.success', 1);
     expect($taxa())->toBe(1.0);
     expect(DB::table('business')->where('id', $this->business->id)->value('purchase_currency_id'))->toBeNull();
+});
+
+test('UC-EMP-11 Sistema e Prefixos: voltam iguais; trocar um prefixo não apaga os outros', function () {
+    DB::table('business')->where('id', $this->business->id)->update([
+        'date_format' => 'd/m/Y', 'on_product_expiry' => 'keep_selling', 'stop_selling_before' => null,
+        'theme_color' => 'purple', 'stock_expiry_alert_days' => 45, 'enable_tooltip' => 1,
+        'ref_no_prefixes' => json_encode(['purchase' => 'CP', 'sell_return' => 'DV']),
+        'common_settings' => json_encode(['default_datatable_page_entries' => '50']),
+    ]);
+    $prefixos = fn () => json_decode((string) DB::table('business')->where('id', $this->business->id)->value('ref_no_prefixes'), true);
+    $antes = empLinha($this->business->id);
+
+    $this->post('/business/update', empFormData(empCorpo($this)))->assertSessionHas('status.success', 1);
+    expect(empLinha($this->business->id))->toEqual($antes);
+    expect(DB::table('business')->where('id', $this->business->id)->value('theme_color'))->toBe('purple');
+    expect($prefixos())->toEqual(['purchase' => 'CP', 'sell_return' => 'DV']);
+
+    // A tela manda o objeto completo ao editar, como a Blade (17 chaves, vazio onde não há).
+    $corpo = empCorpo($this);
+    $completo = array_fill_keys(['purchase', 'purchase_return', 'purchase_requisition', 'purchase_order', 'stock_transfer',
+        'stock_adjustment', 'sell_return', 'expense', 'contacts', 'purchase_payment', 'sell_payment', 'expense_payment',
+        'business_location', 'username', 'subscription', 'draft', 'sales_order'], '');
+    $corpo['ref_no_prefixes'] = array_merge($completo, $corpo['ref_no_prefixes'], ['purchase' => 'COMP']);
+    $this->post('/business/update', empFormData($corpo))->assertSessionHas('status.success', 1);
+
+    $gravado = $prefixos();
+    expect($gravado['purchase'])->toBe('COMP');
+    expect($gravado['sell_return'])->toBe('DV');
+    expect(empLinha($this->business->id)['common_settings'])->toEqual(['default_datatable_page_entries' => '50']);
 });

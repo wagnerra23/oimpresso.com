@@ -56,7 +56,8 @@ Trilho vira seletor abaixo de 768px. `data-contract`: `page-header`, `abas`, `ab
 - [x] F3-3a: Vendas e Pagamento (UC-EMP-08)
 - [x] F3-3b: Venda no PDV + balança (UC-EMP-09)
 - [x] F3-3c: Compras (UC-EMP-10) — grupo Operação completo
-- [ ] F3-4: Sistema (Painel, Sistema, Prefixos) · F3-5: Integrações
+- [x] F3-4: Sistema — Painel, Sistema, Prefixos (UC-EMP-11)
+- [ ] F3-5: Integrações (E-mail, SMS, Pontos de fidelidade, Módulos, Rótulos)
 - [ ] Smoke biz=1 (F4) · cutover (F5, decisão [W])
 
 ## 10. Pegadinhas
