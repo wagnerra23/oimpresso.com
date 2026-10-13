@@ -45,7 +45,9 @@ function nfsdDados(array $extra = []): array
  */
 function nfsdDps(NfseEmissaoPayload $p): array
 {
-    return (new SnNfseAdapter())->buildDps(new NfseEmissaoPayload(...array_merge(get_object_vars($p), ['prestadorCnpj' => '11222333000181'])));
+    // nDPS: o emitir() troca o número provisório (18 dígitos) pelo id da emissão antes do
+    // adapter; aqui o buildDps é chamado direto, então o teste faz a mesma troca.
+    return (new SnNfseAdapter())->buildDps(new NfseEmissaoPayload(...array_merge(get_object_vars($p), ['prestadorCnpj' => '11222333000181', 'rpsNumero' => '1'])));
 }
 
 function nfsdService(): NfseEmissaoService
