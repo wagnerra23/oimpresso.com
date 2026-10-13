@@ -80,10 +80,13 @@ declare module '@tanstack/react-table' {
  * Sem alça na última coluna nem na coluna que declara `resizable: false`.
  *
  * ONDE A LARGURA FICA GUARDADA. Por padrão, na própria tabela — e morre com ela. Tabela dentro
- * de `<Deferred>` é DESMONTADA a cada navegação (o fallback entra no lugar enquanto a prop
- * recarrega), então ordenar, paginar e filtrar zeravam a largura. Medido em produção em
- * 2026-10-13, na lista de produtos: depois de ordenar, o nó `<table>` era outro e Produto
- * voltava de 348 para 300, enquanto o rodapé da página (fora do `<Deferred>`) era o mesmo nó.
+ * de `<Deferred>` é DESMONTADA em toda visita NÃO-PARCIAL (sem `only`/`except`): a prop some,
+ * o fallback entra no lugar, e a tabela é montada de novo quando a prop chega. `preserveState`
+ * guarda o estado da página, não o dos filhos do `<Deferred>`. Ordenar e paginar por esta
+ * tabela são visitas não-parciais. Medido em produção em 2026-10-13, na lista de produtos
+ * (`@inertiajs/react` 3.0.3): depois de ordenar, o nó `<table>` era outro e Produto voltava de
+ * 348 para 300, enquanto o rodapé da página (fora do `<Deferred>`) era o mesmo nó. Recarga
+ * parcial (`router.reload({ only })`) NÃO desmonta — medido no mesmo dia, mesmo nó `<table>`.
  * Quem está nessa situação guarda a largura do lado de fora: `columnWidths` + `onColumnResize`.
  *
  * Uma diferença de propósito: no protótipo a alça é deslocada 3px pra fora da coluna, e o
