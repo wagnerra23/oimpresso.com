@@ -530,8 +530,13 @@ class UiLintCommand extends Command
         }
         // F1 de NotificationTemplate aprovou configuração com rail e painel, não PT-01.
         // O PageHeader segue obrigatório; a exceção não libera outras listas.
-        $isNotificationConfig = $normalized === 'resources/js/Pages/NotificationTemplate/Index.tsx';
-        if (! $hasDataTable && ! $isNotificationConfig) {
+        // Spreadsheet/Index (telas-soltas/04, D1 [W] 2026-10-07): o prototipo planilhas-page.jsx e
+        // uma ARVORE de pastas recolhivel, nao tabela; o charter declara a variante.
+        $semTabelaPorDesenho = in_array($normalized, [
+            'resources/js/Pages/NotificationTemplate/Index.tsx',
+            'resources/js/Pages/Spreadsheet/Index.tsx',
+        ], true);
+        if (! $hasDataTable && ! $semTabelaPorDesenho) {
             $out[] = [
                 'rule' => 'R4',
                 'file' => $relPath,

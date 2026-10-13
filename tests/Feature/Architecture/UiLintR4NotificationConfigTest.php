@@ -24,3 +24,10 @@ it('continua exigindo tabela nas listas comuns', function () {
     $hits = notificationConfigR4('resources/js/Pages/Clientes/Index.tsx', '<PageHeader />');
     expect(array_column($hits, 'match'))->toBe(['no <DataTable>']);
 });
+
+it('aceita a árvore de pastas de Planilhas com PageHeader e sem tabela (telas-soltas/04)', function () {
+    expect(notificationConfigR4('resources/js/Pages/Spreadsheet/Index.tsx', '<PageHeader />'))
+        ->toBeEmpty();
+    $hits = notificationConfigR4('resources/js/Pages/Spreadsheet/Index.tsx', '<div />');
+    expect(array_column($hits, 'match'))->toBe(['no <PageHeader>']);
+});
