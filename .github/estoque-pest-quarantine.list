@@ -78,7 +78,11 @@
 #     Cada linha diz QUAL contrato falha — a lista é o inventário da dívida.
 # ─────────────────────────────────────────────────────────────────────────────
 
-tests/Feature/Produto/ProdutoIndexContratoTest.php         # UC-PIDX-01/02/06: corte silencioso em 200 sem paginação + busca e filtro de inativos não resolvidos no servidor (o UC-PIDX-03, custo/preço, CAIU em 2026-09-18 — ver abaixo)
+# SAIU 2026-10-10:
+#   ProdutoIndexContratoTest — UC-PIDX-01/02/06 CORRIGIDOS pela lista nova de /products (#9119 dados ·
+#     #9124 tela): a Page usa a MESMA consulta da lista Blade, paginada e buscada no servidor, e o
+#     filtro de inativos é o `active_state` do servidor. O teste foi reescrito para a prop `lista`
+#     (paginador) — os 6 contratos são os mesmos. Veredito: a lane Estoque · MySQL do #9124.
 # SAIU 2026-09-18:
 #   ProdutoShowContratoTest — UC-PSHOW-01 CORRIGIDO. O branch Inertia de `ProductController@show`
 #     passou a consultar `view_purchase_price`/`access_default_selling_price` e a NÃO EMITIR a chave
