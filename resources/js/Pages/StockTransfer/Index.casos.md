@@ -8,6 +8,11 @@ last_run: "2026-10-13"
 last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane PHP / Pest (Estoque · MySQL)"
 ---
 
+> ℹ️ **2026-10-13 — o que mudou na tela NÃO foi comportamento.** O playbook estoque (thread 02) acrescenta 3 atributos
+> `data-contract` (`est-tr-cabecalho` num div em volta do `PageHeader`, `est-tr-toolbar` no card de filtros, `est-tr-tabela` no card
+> da tabela) para o contrato `governance/design/contracts/estoque-transferencias.contract.json`. Zero handler, zero dado, zero copy.
+> Nenhum UC afirma âncora; nenhum UC foi reexecutado.
+
 # Casos de Uso & Aceite — Transferências de estoque (lista)
 
 > **Fonte:** [DOC-RAIZ-ESTOQUE](../../../../memory/requisitos/Estoque/DOC-RAIZ-ESTOQUE.md) §3/§6/§7 + RUNBOOK da tela (`memory/requisitos/Estoque/_telas/`); o controller só confirma. Nada aqui deriva do `.tsx`.

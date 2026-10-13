@@ -1,0 +1,39 @@
+{
+  "_nota": "Derivado do alvo governance/design/targets/estoque--ajustes--index.alvo.json (thread A1 do playbook estoque, rota `est-ajustes` do protótipo), não do .tsx. Seções que existem na Page: cabecalho · toolbar · tabela, ids com prefixo est-aj-. abas · subabas · periodo · rodape do alvo não têm contraparte na Page: ela é uma tela só (sem as abas do EstoquePage nem as sub-abas de status), o período vive dentro do card de filtros e não há rodapé de totais/paginação (o vivo lista até 200 linhas sem paginar). O card de filtros é sticky: não ganhou div em volta, para não mudar o comportamento. Copy só onde protótipo e tela dizem a mesma coisa: 'Novo ajuste'; a legenda do trilho (no protótipo ela é o info da toolbar; na Page fica logo abaixo do card); e os cabeçalhos de coluna iguais. Fora por divergirem (decisão [W], _saida-00): 'Todas as filiais' × 'Todos os locais', coluna 'Ajuste' × 'Ref. Nº', 'Local' × 'Filial', coluna Itens, paginação.",
+  "tela": "StockAdjustment/Index",
+  "fonte": "prototipo-ui/cowork/Wagner/estoque-page.jsx",
+  "alvo": [
+    "resources/js/Pages/StockAdjustment/Index.tsx"
+  ],
+  "secoes": [
+    {
+      "id": "est-aj-cabecalho",
+      "copy": [
+        "Novo ajuste"
+      ]
+    },
+    {
+      "id": "est-aj-toolbar",
+      "copy": [
+        "Trilho vermelho = ajuste anormal. Excluir devolve o saldo (UC-EST-05)."
+      ]
+    },
+    {
+      "id": "est-aj-tabela",
+      "copy": [
+        "Data",
+        "Tipo",
+        "Valor ajustado",
+        "Recuperado",
+        "Motivo do ajuste",
+        "Lançado por",
+        "Ações"
+      ]
+    }
+  ],
+  "ordem": [
+    "est-aj-cabecalho",
+    "est-aj-toolbar",
+    "est-aj-tabela"
+  ]
+}
