@@ -191,7 +191,9 @@ function dicEntrarCom($test, array $permissoes): void
  */
 function dicFormatoData($test, string $formato, int $hora): void
 {
-    DB::table('business')->where('id', $test->business->id)->update(['date_format' => $formato, 'time_format' => $hora]);
+    // time_format é enum('12','24'): gravar o INTEIRO 12 vira índice de enum (inválido → vazio) e o
+    // uf_date caía no H:i — o "02:30 PM" sobrava como Trailing data (run 38460621944). Vai como string.
+    DB::table('business')->where('id', $test->business->id)->update(['date_format' => $formato, 'time_format' => (string) $hora]);
 }
 
 /** O store passa por isSubscribed() quando o Superadmin está instalado. */
@@ -214,8 +216,8 @@ it('UC-DESPES-06 · nova despesa: o total que a tela manda grava 1234.56, e as d
     $ref = 'DIC6'.uniqid();
 
     // A mesma chamada da NovaDespesaSheet: POST ajax, total com 2 casas e vírgula decimal, data ISO com 'T'.
-    $this->withHeaders(['X-Requested-With' => 'XMLHttpRequest', 'Accept' => 'application/json'])
-        ->post('/expenses', ['ref_no' => $ref, 'location_id' => $this->local, 'final_total' => '1234,56', 'transaction_date' => '2026-03-05T14:30'])
+    $this->post('/expenses', ['ref_no' => $ref, 'location_id' => $this->local, 'final_total' => '1234,56', 'transaction_date' => '2026-03-05T14:30'],
+        ['X-Requested-With' => 'XMLHttpRequest', 'Accept' => 'application/json'])
         ->assertOk()->assertJsonPath('success', 1);
 
     $linha = DB::table('transactions')->where('ref_no', $ref)->first();
@@ -225,8 +227,8 @@ it('UC-DESPES-06 · nova despesa: o total que a tela manda grava 1234.56, e as d
 
     // Leitura 1: payload da tela nova. Leitura 2: JSON do DataTable da Blade.
     $nova = dicLinhas($this, $ref);
-    $antiga = collect($this->withHeaders(['X-Requested-With' => 'XMLHttpRequest', 'Accept' => 'application/json'])
-        ->get('/expenses?length=-1')->assertOk()->json('data'))
+    $antiga = collect($this->get('/expenses?length=-1', ['X-Requested-With' => 'XMLHttpRequest', 'Accept' => 'application/json'])
+        ->assertOk()->json('data'))
         ->first(fn ($l) => str_starts_with((string) $l['ref_no'], $ref));
     preg_match('/data-orig-value="([^"]+)"/', (string) ($antiga['final_total'] ?? ''), $m);
 
@@ -249,9 +251,9 @@ it('UC-DESPES-07 · a data da Blade grava o que o uf_date original grava, e a da
     $ajax = ['X-Requested-With' => 'XMLHttpRequest', 'Accept' => 'application/json'];
     $tag = 'DIC7'.uniqid();
 
-    $this->withHeaders($ajax)->post('/expenses', ['ref_no' => "$tag-blade", 'location_id' => $this->local, 'final_total' => '10', 'transaction_date' => $daBlade])
+    $this->post('/expenses', ['ref_no' => "$tag-blade", 'location_id' => $this->local, 'final_total' => '10', 'transaction_date' => $daBlade], $ajax)
         ->assertOk()->assertJsonPath('success', 1);
-    $this->withHeaders($ajax)->post('/expenses', ['ref_no' => "$tag-tela", 'location_id' => $this->local, 'final_total' => '10', 'transaction_date' => '2026-03-05T14:30'])
+    $this->post('/expenses', ['ref_no' => "$tag-tela", 'location_id' => $this->local, 'final_total' => '10', 'transaction_date' => '2026-03-05T14:30'], $ajax)
         ->assertOk()->assertJsonPath('success', 1);
 
     // Oráculo = o código antigo: o mesmo uf_date que o createExpense chama (o TransactionUtil não mudou).
