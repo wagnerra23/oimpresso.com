@@ -40,11 +40,11 @@ ações da empresa entram como modal ("Editar", Dialog — parity D6) e confirma
 - Tabela das máquinas da empresa com status e link de log; "Ver log da empresa"; "Ver pacote".
 - "Editar" (caminho do banco, versão obrigatória, versão disponível) e "Bloquear/Liberar empresa", só para
   quem tem `officeimpresso.empresa.gerenciar` na operadora.
+- "Bloquear/Liberar" por máquina, com motivo obrigatório, só para quem tem `officeimpresso.licencas.gerenciar`
+  na operadora — o mesmo POST e as mesmas regras do drawer da lista de licenças.
 
 ## Non-Goals (NÃO faz)
 
-- ❌ Nesta entrega: bloquear máquina — fica na Blade (`?legacy=1`, link "Abrir na tela antiga") até o PR
-  dele.
 - ❌ Editar `officeimpresso_numerodemaquinas`: a Blade não tem o input; seria capacidade nova.
 - ❌ Filtrar o id da URL pela sessão — decisão D1 de [W] em 2026-10-12: a operadora vê qualquer empresa.
 
@@ -85,4 +85,4 @@ Officeimpresso/Empresa/Show (Inertia)
 `Modules/Officeimpresso/Tests/Feature/ComputadoresEmpresaShowContratoTest.php` (lane
 `officeimpresso-pest`, MySQL, tenant 98 × 99) — UC-EMP-01, 04, 15, 19, 20, 21.
 `Modules/Officeimpresso/Tests/Feature/ComputadoresEmpresaAcoesContratoTest.php` (mesma lane) — UC-EMP-08,
-09, 22, 23.
+09, 16, 22, 23, 24.
