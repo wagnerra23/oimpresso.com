@@ -1,0 +1,19 @@
+{
+  "_": "A1 [CL] 2026-10-13 — playbook essenciais. Rota `ess-lembretes` do espelho (window.EssRotas, essenciais-page.jsx); mapa rota↔Page da _saida-00: `ess-lembretes` = `Essentials/Reminders/Index (aba Lembretes, calendário)`. Tema dark (default do espelho), viewport 1280x900, browser limpo. Fora: div.hrm-toast-host (contêiner vazio de toast).",
+  "_mapa": "alvo:mapa --rota ess-lembretes --quieto-ms 2000, 2026-10-13: raiz '.main-body > .ess-page' → div.oi-ph(1) · nav.ds-tabbar.hrm-tabs(7) · div.hrm-body(2); raiz '.main-body > .ess-page > .hrm-body' → div.hrm-toolbar(5) · div.ess-cal(2) · div.ess-legenda(4) · div.hrm-toast-host(0); raiz '... > .ess-cal' → div.ess-cal-h(7) · div.ess-cal-g(37)",
+  "cabecalho": {
+    "seletor": ".main-body > .ess-page > .oi-ph > header"
+  },
+  "abas": {
+    "seletor": ".main-body > .ess-page > nav.ds-tabbar"
+  },
+  "toolbar": {
+    "seletor": ".main-body > .ess-page > .hrm-body > .hrm-toolbar"
+  },
+  "calendario": {
+    "seletor": ".main-body > .ess-page > .hrm-body > .ess-cal"
+  },
+  "legenda": {
+    "seletor": ".main-body > .ess-page > .hrm-body > .ess-legenda"
+  }
+}
