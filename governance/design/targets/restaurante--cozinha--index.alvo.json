@@ -1,0 +1,254 @@
+{
+  "aguardou_sumir": null,
+  "ausentes": [],
+  "base": {
+    "assinatura": "OI WR OFFICEIMPRESSO · matriz · 3 pedidos hoje Restaurante Cozinha Atualizado 16:14 Atualizar Mesas Atendentes Reservas Cozinha Pedidos Na fila 1 pedidos com item por preparar Itens por preparar 2 somando as quantidades Esperando há 15 min ou mais 1 o mais antigo fica primeiro A fila da cozinha é o que falta preparar O pedido mais antigo vem primeiro. Ele sai daqui quando todos os itens estão preparados — o atendente passa a ver em Pedidos. Pedidos na cozinha 1 pedido(s) # 0S00142 há 15 min recebido Feito às 07/10 11:55 Cliente Cliente padrão Mesa Mesa 01 Local Matriz 1 × Água sem gás 1 × Bolo de cenoura Marcar como preparado Detalhes",
+    "roles": {
+      "celulas": null,
+      "chart": null,
+      "contratos": [],
+      "filterRows": null,
+      "kpi": {
+        "count": 0,
+        "items": [],
+        "overflowX": null,
+        "tag": null
+      },
+      "primary": null,
+      "shell": null,
+      "tabela": null,
+      "title": null
+    },
+    "saude": {
+      "folhasVazias": [],
+      "nFolhas": 76,
+      "tokensMortos": []
+    },
+    "theme": "dark",
+    "url": "http://127.0.0.1:5581/"
+  },
+  "nos_totais": 497,
+  "quieto_ms": 2000,
+  "rota": "cfg-cozinha",
+  "secoes": {
+    "abas": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "proprio",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.26 0.006 240)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "flex",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "0px",
+        "padding": "0px"
+      },
+      "filhos": 5,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "button",
+        "button",
+        "button",
+        "button",
+        "button"
+      ],
+      "rect": {
+        "h": 36,
+        "w": 1176
+      },
+      "seletor": ".main-body > .pb-root > .pb-body > nav.ds-tabbar",
+      "truncado": false
+    },
+    "barra": {
+      "contraste": {
+        "motivo": "nenhum ancestral com fundo opaco (último: oklab(0.7 0.0633927 -0.135946 / 0.06), alfa 0.06)"
+      },
+      "estilo": {
+        "backgroundColor": "oklab(0.7 0.0633927 -0.135946 / 0.06)",
+        "borderRadius": "8px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "flex",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "11px",
+        "padding": "12px 14px"
+      },
+      "filhos": 2,
+      "fundoCadeia": [
+        {
+          "bg": "oklab(0.7 0.0633927 -0.135946 / 0.06)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "span",
+        "div"
+      ],
+      "rect": {
+        "h": 64,
+        "w": 1176
+      },
+      "seletor": ".main-body > .pb-root > .pb-body > div:nth-child(3)",
+      "truncado": false
+    },
+    "cabecalho": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "proprio",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.26 0.006 240)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "flex",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "10px 12px",
+        "padding": "14px 0px"
+      },
+      "filhos": 2,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "div",
+        "div"
+      ],
+      "rect": {
+        "h": 80,
+        "w": 1176
+      },
+      "seletor": ".main-body > .pb-root > .cli-ph > header",
+      "truncado": false
+    },
+    "kpis": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "body",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "grid",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "10px",
+        "padding": "0px"
+      },
+      "filhos": 3,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "pb-body"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "pb-root"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "main-body"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "main"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "app"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "div"
+        },
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "body"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "cu-kpi",
+        "cu-kpi",
+        "cu-kpi"
+      ],
+      "rect": {
+        "h": 84,
+        "w": 1176
+      },
+      "seletor": ".main-body > .pb-root > .pb-body > .cu-kpis",
+      "truncado": false
+    },
+    "pedidos": {
+      "contraste": {
+        "fundo": "oklch(0.3 0.008 240)",
+        "fundo_de": "proprio",
+        "razao": 11.42,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.027108,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.3 0.008 240)",
+        "borderRadius": "12px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "block",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "padding": "0px"
+      },
+      "filhos": 2,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.3 0.008 240)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "h3",
+        "pb-widget-b"
+      ],
+      "rect": {
+        "h": 314,
+        "w": 1176
+      },
+      "seletor": ".main-body > .pb-root > .pb-body > section.pb-widget",
+      "truncado": false
+    }
+  },
+  "tela": "restaurante--cozinha--index",
+  "url": "http://127.0.0.1:5581/"
+}
