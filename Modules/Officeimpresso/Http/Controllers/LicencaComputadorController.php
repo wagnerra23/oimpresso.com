@@ -29,6 +29,9 @@ class LicencaComputadorController extends Controller
     /** Tela React de `businessall` (RUNBOOK-empresas). Default OFF: a Blade segue até o cutover. */
     private const FLAG_EMPRESAS = 'useV2OfficeimpressoEmpresas';
 
+    /** Tela React da ficha (`computadores` e `viewLicencas`, RUNBOOK-empresa). Default OFF. */
+    private const FLAG_EMPRESA = 'useV2OfficeimpressoEmpresa';
+
     public function __construct(private LicencaService $licencaService)
     {
     }
@@ -281,6 +284,10 @@ class LicencaComputadorController extends Controller
 
         $business_id = request()->session()->get('user.business_id');
 
+        if ($this->fichaReact((int) $business_id)) {
+            return $this->renderFicha((int) $business_id);
+        }
+
         $active = Subscription::active_subscription($business_id);
         $package = $active ? Package::find($active->package_id) : null;
 
@@ -296,6 +303,15 @@ class LicencaComputadorController extends Controller
     public function viewLicencas($id)
     {
         $this->authorizeAccess();
+
+        // Decisão D1 [W] 2026-10-12 (empresa-parity): a ficha de QUALQUER empresa é visível a quem
+        // passa no authorizeAccess(), que já exige usuário da empresa operadora (AcessoOperador).
+        // É o trabalho do suporte da WR2 — o id da URL não é filtrado pela sessão de propósito.
+        if ($this->fichaReact((int) request()->session()->get('user.business_id'))) {
+            abort_unless(DB::table('business')->where('id', (int) $id)->exists(), 404);
+
+            return $this->renderFicha((int) $id);
+        }
 
         $active = Subscription::active_subscription($id);
         $package = $active ? Package::find($active->package_id) : null;
@@ -327,6 +343,111 @@ class LicencaComputadorController extends Controller
         $business = $this->licencaService->listarEmpresasComDesktop();
 
         return view('officeimpresso::licenca_computador.businessall', compact('business'));
+    }
+
+    /**
+     * Flag ligada e sem `?legacy=1`. O `legacy=1` é a volta à Blade enquanto as ações da ficha
+     * (editar, bloquear empresa, bloquear máquina) ainda não estão na tela React — o link
+     * "Abrir na tela antiga" da Page usa este parâmetro.
+     */
+    private function fichaReact(int $businessIdSessao): bool
+    {
+        return ! request()->boolean('legacy')
+            && app(FeatureFlagService::class)->isOn(self::FLAG_EMPRESA, ['business_id' => $businessIdSessao]);
+    }
+
+    /**
+     * Ficha da empresa em React (`Officeimpresso/Empresa/Show`). Só leitura nesta entrega:
+     * editar a configuração e os bloqueios seguem na Blade até o PR das ações.
+     */
+    private function renderFicha(int $empresaId)
+    {
+        return Inertia::render('Officeimpresso/Empresa/Show', [
+            'empresa'      => $this->buildFichaEmpresa($empresaId),
+            'computadores' => Inertia::defer(fn () => $this->buildFichaComputadores($empresaId)),
+            'assinatura'   => Inertia::defer(fn () => $this->buildFichaAssinatura($empresaId)),
+        ]);
+    }
+
+    /**
+     * Ficha em DTO — nunca o model `Business`, que carrega o cadastro inteiro do ERP.
+     * O último acesso é o da máquina mais recente: `business.dt_ultimo_acesso` não tem escritor
+     * (mesma decisão da lista, empresas-parity D1).
+     *
+     * @return array<string, mixed>
+     */
+    private function buildFichaEmpresa(int $empresaId): array
+    {
+        $b = DB::table('business')->where('id', $empresaId)->first([
+            'id', 'name', 'razao_social', 'rua', 'telefone', 'versao_obrigatoria',
+            'versao_disponivel', 'caminho_banco_servidor', 'officeimpresso_bloqueado',
+        ]);
+        $acesso = DB::table('licenca_computador')->where('business_id', $empresaId)->max('dt_ultimo_acesso');
+
+        return [
+            'id'                     => (int) $b->id,
+            'name'                   => $b->name,
+            'razao_social'           => $b->razao_social,
+            'rua'                    => $b->rua,
+            'telefone'               => $b->telefone,
+            'versao_obrigatoria'     => $b->versao_obrigatoria,
+            'versao_disponivel'      => $b->versao_disponivel,
+            'caminho_banco_servidor' => $b->caminho_banco_servidor,
+            'ultimo_acesso'          => $acesso && ! str_starts_with((string) $acesso, '0000') ? Carbon::parse($acesso)->toIso8601String() : null,
+            'bloqueado'              => (bool) $b->officeimpresso_bloqueado,
+            'pacote_url'             => action('\Modules\Superadmin\Http\Controllers\SubscriptionController@index', [$empresaId]),
+        ];
+    }
+
+    /**
+     * Máquinas da empresa em DTO explícito: `Licenca_Computador` não tem `$hidden` e guarda
+     * `senha`, `contra_senha`, `serial` e `token` (empresa-parity item 45). Ordem do Blade: a do banco.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    private function buildFichaComputadores(int $empresaId): array
+    {
+        return DB::table('licenca_computador')
+            ->where('business_id', $empresaId)
+            ->orderBy('id')
+            ->get(['id', 'dt_cadastro', 'user_win', 'pasta_instalacao', 'versao_exe', 'ip_interno', 'caminho_banco', 'dt_ultimo_acesso', 'bloqueado'])
+            ->map(fn ($l) => [
+                'id'               => (int) $l->id,
+                'dt_cadastro'      => $l->dt_cadastro,
+                'user_win'         => $l->user_win,
+                'pasta_instalacao' => $l->pasta_instalacao,
+                'versao_exe'       => $l->versao_exe,
+                'ip_interno'       => $l->ip_interno,
+                'caminho_banco'    => $l->caminho_banco,
+                'dt_ultimo_acesso' => $l->dt_ultimo_acesso,
+                'bloqueado'        => (bool) $l->bloqueado,
+            ])
+            ->values()
+            ->all();
+    }
+
+    /**
+     * Pacote e assinatura — os blocos que o Blade só mostra se existirem (empresa-parity 11-14).
+     * O vencimento passa pela mesma conta do `@format_date` (formato da sessão). Os dias restantes
+     * repetem a conta do Blade, `Carbon::today()->diffInDays($end)`: no Carbon 3 ela tem SINAL
+     * (vencida há 10 dias dá -10). O empresa-parity item 14 dizia "valor absoluto" — era a semântica
+     * do Carbon 2; porta-se o que a Blade mostra hoje.
+     *
+     * @return array{limite_maquinas: int|null, fim: string|null, dias_restantes: int|null}
+     */
+    private function buildFichaAssinatura(int $empresaId): array
+    {
+        // O docblock legado de active_subscription() devolve um tipo inexistente; o real é first().
+        /** @var Subscription|null $active */
+        $active = Subscription::active_subscription($empresaId);
+        $package = $active ? Package::find($active->package_id) : null;
+
+        return [
+            'limite_maquinas' => $package ? (int) $package->officeimpresso_limitemaquinas : null,
+            'fim'             => $active ? \Carbon::createFromTimestamp(strtotime($active->end_date))
+                ->format(session('business.date_format', config('constants.default_date_format', 'd/m/Y'))) : null,
+            'dias_restantes'  => $active ? (int) round(\Carbon::today()->diffInDays($active->end_date)) : null,
+        ];
     }
 
     /**
