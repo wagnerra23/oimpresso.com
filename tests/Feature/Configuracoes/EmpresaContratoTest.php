@@ -1,7 +1,7 @@
 <?php
 
 declare(strict_types=1);
-// Cobre UC-EMP-01, UC-EMP-02, UC-EMP-03, UC-EMP-04, UC-EMP-05, UC-EMP-06, UC-EMP-07, UC-EMP-08 (Configuracoes/Empresa/Index.casos.md).
+// Cobre UC-EMP-01, UC-EMP-02, UC-EMP-03, UC-EMP-04, UC-EMP-05, UC-EMP-06, UC-EMP-07, UC-EMP-08, UC-EMP-09 (Configuracoes/Empresa/Index.casos.md).
 
 use App\Business;
 use App\Http\Controllers\BusinessController;
@@ -248,4 +248,38 @@ test('UC-EMP-08 editar Vendas e Pagamento grava só o que mudou e desmarcar remo
     expect($depois['pos_settings']['cash_denominations'])->toBe('100,50');
     expect($depois['pos_settings']['stripe_secret_key'])->toBe('sk_segredo_98');
     expect(array_diff_key($depois, $mudou))->toEqual(array_diff_key($antes, $mudou));
+});
+
+test('UC-EMP-09 PDV: balança e atalhos voltam iguais; desmarcar opção com padrão volta 0; a balança grava o índice', function () {
+    $balanca = ['label_prefix' => '21', 'product_sku_length' => '4', 'qty_length' => '2', 'qty_length_decimal' => '2'];
+    DB::table('business')->where('id', $this->business->id)->update([
+        'date_format' => 'd/m/Y', 'on_product_expiry' => 'keep_selling', 'stop_selling_before' => null,
+        'weighing_scale_setting' => json_encode($balanca),
+        'keyboard_shortcuts' => json_encode(['pos' => ['express_checkout' => 'shift+e', 'draft' => 'shift+d']]),
+        'pos_settings' => json_encode(array_merge(app(BusinessUtil::class)->defaultPosSettings(), ['disable_draft' => '1', 'enable_weighing_scale' => '1'])),
+    ]);
+    $antes = empLinha($this->business->id);
+
+    // 1) Devolver o corpo sem mexer: balança e atalhos idênticos.
+    $corpo = empCorpo($this);
+    $this->post('/business/update', empFormData($corpo))->assertSessionHas('status.success', 1);
+    $depois = empLinha($this->business->id);
+    expect(json_decode((string) DB::table('business')->where('id', $this->business->id)->value('weighing_scale_setting'), true))->toEqual($balanca);
+    expect($depois['keyboard_shortcuts'])->toEqual($antes['keyboard_shortcuts']);
+    expect($depois['pos_settings'])->toEqual($antes['pos_settings']);
+
+    // 2) Editar: o seletor "6 dígitos de SKU" grava o índice 5 (o SellPosController lê índice + 1).
+    $corpo = empCorpo($this);
+    $corpo['weighing_scale_setting']['product_sku_length'] = '5';
+    $corpo['shortcuts']['pos']['draft'] = 'ctrl+d';
+    unset($corpo['pos_settings']['disable_draft']);
+    $this->post('/business/update', empFormData($corpo))->assertSessionHas('status.success', 1);
+
+    $gravada = json_decode((string) DB::table('business')->where('id', $this->business->id)->value('weighing_scale_setting'), true);
+    expect($gravada)->toEqual(array_merge($balanca, ['product_sku_length' => '5']));
+    $linha = empLinha($this->business->id);
+    expect($linha['keyboard_shortcuts']['pos'])->toEqual(['express_checkout' => 'shift+e', 'draft' => 'ctrl+d']);
+    // disable_draft tem padrão 0: desmarcar na Blade também remove a chave e o salvar repõe 0.
+    expect((string) $linha['pos_settings']['disable_draft'])->toBe('0');
+    expect($linha['pos_settings']['enable_weighing_scale'])->toBe('1');
 });

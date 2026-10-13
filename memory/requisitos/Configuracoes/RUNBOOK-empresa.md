@@ -54,7 +54,8 @@ Trilho vira seletor abaixo de 768px. `data-contract`: `page-header`, `abas`, `ab
 - [x] F3-1: ramo Inertia atrás da flag + Page (aba Negócio) + charter + casos + `EmpresaContratoTest`
 - [x] F3-2: abas Impostos, Produtos e Contatos (UC-EMP-06)
 - [x] F3-3a: Vendas e Pagamento (UC-EMP-08)
-- [ ] F3-3b: Venda no PDV + balança · F3-3c: Compras · depois Sistema e Integrações
+- [x] F3-3b: Venda no PDV + balança (UC-EMP-09)
+- [ ] F3-3c: Compras · depois Sistema e Integrações
 - [ ] Smoke biz=1 (F4) · cutover (F5, decisão [W])
 
 ## 10. Pegadinhas
@@ -78,6 +79,9 @@ Trilho vira seletor abaixo de 768px. `data-contract`: `page-header`, `abas`, `ab
   desses campos cai na regra mestre de cálculo (`proibicoes.md`).
 - O logo sobe por `business_logo` (multipart): o salvar da Page precisa ser `forceFormData`.
 - O redirect é sempre `/business/settings` com `status` na sessão.
+- **Balança grava o índice, não o número de dígitos (2026-10-13).** `settings_weighing_scale` usa `Form::select(..., [1..n])`,
+  cuja chave é o índice 0-based; o `SellPosController::__parseWeighingBarcode` lê `índice + 1`. Seletor que gravar o rótulo
+  muda a quantidade de toda venda por balança. UC-EMP-09.
 
 ## 11. ADR de origem
 
