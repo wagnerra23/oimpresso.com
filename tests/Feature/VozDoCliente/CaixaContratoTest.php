@@ -39,10 +39,13 @@ function vozEntrar($teste, array $permissoes): void
     session(['user.business_id' => $teste->business->id, 'user.id' => $user->id, 'business.id' => $teste->business->id]);
 }
 
-function vozFlag($teste, bool $ligada): void
+function vozFlag(bool $ligada): void
 {
-    $teste->mock(FeatureFlagService::class, fn ($m) => $m->shouldReceive('isOn')
-        ->with('useV2VozDoClienteCaixa', Mockery::any())->andReturn($ligada));
+    // `mock()` do TestCase é protegido — de função global, o binding é feito à mão. O controller
+    // resolve o serviço por app() a cada requisição, então o mock vale para a próxima chamada.
+    $flag = Mockery::mock(FeatureFlagService::class);
+    $flag->shouldReceive('isOn')->with('useV2VozDoClienteCaixa', Mockery::any())->andReturn($ligada);
+    app()->instance(FeatureFlagService::class, $flag);
 }
 
 function vozSinal(int $biz, string $texto, string $status, int $horasAtras, ?string $autor = 'Fulano', ?int $sev = null): void
@@ -82,7 +85,7 @@ function vozCenario(int $biz): void
 
 test('UC-VOZ-01 flag ligada renderiza Inertia VozDoCliente/Caixa com contagem e lista adiada', function () {
     vozEntrar($this, ['vozdocliente.triar']);
-    vozFlag($this, true);
+    vozFlag(true);
     vozCenario($this->business->id);
 
     $r = vozAbrir($this)->assertOk();
@@ -96,7 +99,7 @@ test('UC-VOZ-01 flag ligada renderiza Inertia VozDoCliente/Caixa com contagem e 
 test('UC-VOZ-02 flag desligada (padrão) ou ?legacy=1 mantém a Blade', function () {
     vozEntrar($this, ['vozdocliente.triar']);
 
-    vozFlag($this, false);
+    vozFlag(false);
     $this->get('/voz-do-cliente')->assertOk()->assertViewIs('vozdocliente::caixa');
 
     $this->mock(FeatureFlagService::class, fn ($m) => $m->shouldNotReceive('isOn'));
@@ -105,7 +108,7 @@ test('UC-VOZ-02 flag desligada (padrão) ou ?legacy=1 mantém a Blade', function
 
 test('UC-VOZ-03 ?situacao=pending traz só pendentes e situação desconhecida volta todos', function () {
     vozEntrar($this, ['vozdocliente.triar']);
-    vozFlag($this, true);
+    vozFlag(true);
     vozCenario($this->business->id);
 
     $r = vozLista($this, '?situacao=pending')->assertOk();
@@ -120,7 +123,7 @@ test('UC-VOZ-03 ?situacao=pending traz só pendentes e situação desconhecida v
 
 test('UC-VOZ-04 pendente antes de triado antes de fechado, mais novo primeiro dentro da situação', function () {
     vozEntrar($this, ['vozdocliente.triar']);
-    vozFlag($this, true);
+    vozFlag(true);
     vozCenario($this->business->id);
 
     $textos = collect(vozLista($this)->assertOk()->json('props.sinais.data'))->pluck('texto')->all();
@@ -130,7 +133,7 @@ test('UC-VOZ-04 pendente antes de triado antes de fechado, mais novo primeiro de
 
 test('UC-VOZ-07 relato anônimo chega com autor nulo', function () {
     vozEntrar($this, ['vozdocliente.triar']);
-    vozFlag($this, true);
+    vozFlag(true);
     vozSinal($this->business->id, 'sem autor', 'pending', 1, null);
 
     $item = vozLista($this)->assertOk()->json('props.sinais.data.0');
@@ -151,7 +154,7 @@ test('UC-VOZ-12 sem vozdocliente.triar dá 403 antes de consultar a flag', funct
 
 test('UC-VOZ-13 contagem e lista trazem só o negócio da sessão', function () {
     vozEntrar($this, ['vozdocliente.triar']);
-    vozFlag($this, true);
+    vozFlag(true);
     $outro = $this->seededSupportClientTenant();
     vozSinal($this->business->id, 'relato meu', 'pending', 1);
     vozSinal($outro->id, 'relato alheio', 'pending', 1);
