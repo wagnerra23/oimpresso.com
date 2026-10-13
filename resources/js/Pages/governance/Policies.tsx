@@ -97,7 +97,7 @@ const Policies: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({ 
         description="mcp_governance_rules — runtime gates enforçados pelo ActionGate (Constituição Art. 8). Toggle ativa/desativa rule. Edição inline + create vão pra próxima iteração."
       />
 
-      <KpiGrid cols={4} data-contract="politicas-kpis">
+      <KpiGrid cols={4}>
         <KpiCard icon="layers" tone="info"     label="Rules total"     value={kpis.total.toString()} />
         <KpiCard icon="check"  tone="success"  label="Ativas"           value={kpis.enabled.toString()} />
         <KpiCard icon="zap"    tone="info"     label="Triggered total" value={kpis.triggered.toString()} description="Soma de hits desde criação" />
@@ -111,7 +111,7 @@ const Policies: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({ 
         Quando a tabela existir, este bloco sai junto.
       */}
       {rules_by_category.length > 0 && (
-        <Alert data-contract="politicas-aviso-historico">
+        <Alert>
           <TriangleAlert className="h-4 w-4 text-warning" />
           <AlertTitle>Alternar não deixa rastro</AlertTitle>
           <AlertDescription>

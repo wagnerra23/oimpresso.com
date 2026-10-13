@@ -62,3 +62,7 @@ corpo da página no arquivo, e o verificador lê a ordem pela posição no arqui
 e `saude-ecossistema` trocadas de lugar rc=1 (ordem divergente).
 
 Typecheck não rodou localmente (worktree sem `node_modules`); fica com o CI.
+
+## Recorte do gerente da fila (2026-10-13)
+
+O required "PageHeader · ratchet" reprovou: Policies, Audit e DriftAlerts ainda usam o PageHeader antigo e tocá-las obriga a migrar o header no mesmo PR (ADR 0409). O PR ficou só com o Dashboard (4 seções: mcp-secao, mcp-periodo, kpis-constituicao, saude-ecossistema). As 6 seções das outras três telas (politicas-kpis, politicas-aviso-historico, auditoria-filtros, auditoria-tabela, drift-kpis, drift-sem-scope) voltam quando cada tela migrar o header — migração visual, aprovação [W] por tela.
