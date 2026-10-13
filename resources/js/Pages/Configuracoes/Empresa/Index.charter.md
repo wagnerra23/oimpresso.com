@@ -36,7 +36,8 @@ salvar da Blade grava.
 - ❌ Mandar só os campos da aba: o salvar zera o que falta (`EmpresaBaselineTest`).
 - ❌ Levar senha ou segredo de e-mail/SMS para as props: o corpo não os traz e o salvar os preserva.
 - ❌ Formatar número com o separador da moeda: o corpo usa `1234,5`, que o `num_uf` lê igual em qualquer moeda.
-- ❌ Mudar `postBusinessSettings`.
+- ❌ Levar `stripe_secret_key`/`razor_pay_key_secret` para as props: ficam fora do corpo (UC-EMP-07).
+- ❌ Mudar `postBusinessSettings` além de preservar essas duas chaves quando o envio não as traz (a Blade sempre traz).
 
 ## Regras
 
