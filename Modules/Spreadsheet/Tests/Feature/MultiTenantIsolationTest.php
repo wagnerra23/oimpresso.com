@@ -108,8 +108,9 @@ it('SpreadsheetShare herda tenant via FK sheet_spreadsheet_id', function () {
     ]);
 
     // Filtrar shares cujo pai pertence ao biz=99 — não aparece
-    $resultadoBiz99 = SpreadsheetShare::whereHas('sheet_spreadsheet_id', function () {
-    })->whereIn('sheet_spreadsheet_id', function ($q) {
+    // (2026-10-13) havia aqui um whereHas('sheet_spreadsheet_id') - relacao inexistente que fazia
+    // o caso estourar BadMethodCall na 1a vez que rodou em lane; o filtro que mede e o whereIn.
+    $resultadoBiz99 = SpreadsheetShare::whereIn('sheet_spreadsheet_id', function ($q) {
         $q->select('id')->from('sheet_spreadsheets')->where('business_id', BIZ_FICTICIO_SPS);
     })->where('id', $share->id)->get();
 

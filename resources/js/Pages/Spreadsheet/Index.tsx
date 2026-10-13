@@ -8,6 +8,7 @@ import { Badge } from '@/Components/ui/badge'
 import { Button } from '@/Components/ui/button'
 import { Input } from '@/Components/ui/input'
 import { Skeleton } from '@/Components/ui/skeleton'
+import { Inline } from '@/Components/layout'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -66,7 +67,7 @@ function Linha({ s }: { s: Planilha }) {
   const soCriador = s.minha ? undefined : 'Só quem criou a planilha'
 
   return (
-    <li className="flex items-center gap-3 border-t px-3 py-2" data-testid="planilha">
+    <Inline asChild gap={3}><li className="border-t px-3 py-2" data-testid="planilha">
       <FileSpreadsheet className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
       <a href={abrir(s.id)} className="min-w-0 flex-1">
         <span className="block truncate font-medium">{s.nome}</span>
@@ -103,7 +104,7 @@ function Linha({ s }: { s: Planilha }) {
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
-    </li>
+    </li></Inline>
   )
 }
 
@@ -130,7 +131,7 @@ function Arvore({ planilhas, pastas, podeCriar }: { planilhas: Planilha[]; pasta
 
   return (
     <>
-      <div className="mb-3 flex flex-wrap items-center gap-2">
+      <Inline wrap className="mb-3">
         <div className="relative min-w-64 flex-1">
           <Search className="absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
           <Input
@@ -143,7 +144,7 @@ function Arvore({ planilhas, pastas, podeCriar }: { planilhas: Planilha[]; pasta
         </div>
         <Button variant="outline" size="sm" onClick={() => setAbertas(new Set(grupos.map((g) => g.id)))}>Expandir tudo</Button>
         <Button variant="outline" size="sm" onClick={() => setAbertas(new Set())}>Recolher tudo</Button>
-      </div>
+      </Inline>
 
       <div className="rounded-md border" data-contract="arvore">
         {q && visiveis === 0 ? (
@@ -158,19 +159,19 @@ function Arvore({ planilhas, pastas, podeCriar }: { planilhas: Planilha[]; pasta
             const open = abertas.has(g.id) || (!!q && g.itens.length > 0)
             return (
               <section key={g.id} className="border-t first:border-t-0">
-                <div className="flex items-center gap-2 px-2 py-1.5">
-                  <button type="button" className="flex flex-1 items-center gap-2 text-left" aria-expanded={open} onClick={() => toggle(g.id)}>
+                <Inline className="px-2 py-1.5">
+                  <Inline asChild className="flex-1 text-left"><button type="button" aria-expanded={open} onClick={() => toggle(g.id)}>
                     <ChevronRight className={`size-3.5 transition-transform ${open ? 'rotate-90' : ''}`} aria-hidden="true" />
                     <Folder className="size-4 text-muted-foreground" aria-hidden="true" />
                     <b>{g.nome}</b>
                     <span className="text-xs text-muted-foreground">{g.itens.length}</span>
-                  </button>
+                  </button></Inline>
                   {podeCriar && (
                     <Button asChild variant="ghost" size="sm">
                       <a href={criar(g.id || undefined)}>Criar aqui</a>
                     </Button>
                   )}
-                </div>
+                </Inline>
                 {open && (
                   <ul>
                     {g.itens.length === 0 ? (
