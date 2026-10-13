@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-// @covers-us R-NFSE-006 — cTribNac pela tabela nacional (Anexo B oficial): item + subitem LC 116 + desdobro; escolha obrigatória quando há vários.
+// @covers-us R-NFSE-006 · UC-NFSEM-05 — cTribNac pela tabela nacional (Anexo B oficial): item + subitem LC 116 + desdobro; escolha obrigatória quando há vários.
 
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Validator;
@@ -46,7 +46,7 @@ it('R-NFSE-006 subitem de desdobro único resolve sozinho', function () {
     expect($this->lista->resolver('01.05'))->toBe('010501');
 });
 
-it('R-NFSE-006 subitem com vários desdobros exige escolha, e a escolha precisa ser dele', function () {
+it('R-NFSE-006 UC-NFSEM-05 subitem com vários desdobros exige escolha, e a escolha precisa ser dele', function () {
     expect($this->lista->desdobros('7.10'))->toHaveKeys(['071001', '071002']);
     expect($this->lista->resolver('7.10', '071002'))->toBe('071002');
 
@@ -55,7 +55,7 @@ it('R-NFSE-006 subitem com vários desdobros exige escolha, e a escolha precisa 
     expect(fn () => $this->lista->resolver('99.99'))->toThrow(InvalidArgumentException::class, 'não está na lista');
 });
 
-it('R-NFSE-006 a tela recebe os subitens com vários desdobros no formato "7.10"', function () {
+it('R-NFSE-006 UC-NFSEM-05 a tela recebe os subitens com vários desdobros no formato "7.10"', function () {
     $grupos = $this->lista->subitensComVariosDesdobros();
 
     expect($grupos)->toHaveKey('7.10');
@@ -82,7 +82,7 @@ it('R-NFSE-006 a DPS leva o desdobro escolhido e falha visível sem escolha', fu
     }
 });
 
-it('R-NFSE-006 o formulário recusa item fora da lista e desdobro faltando ou de outro item', function () {
+it('R-NFSE-006 UC-NFSEM-05 o formulário recusa item fora da lista e desdobro faltando ou de outro item', function () {
     $erros = function (array $dados) {
         $base = [
             'competencia' => '2026-10', 'tomador_nome' => 'T', 'descricao' => 'd',
