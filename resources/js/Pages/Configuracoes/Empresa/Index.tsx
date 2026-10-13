@@ -1,7 +1,7 @@
 // @memcofre
 //   tela: /business/settings
 //   module: Configuracoes
-//   stories: thread sistema/playbook/08 (F3-1: Negócio · F3-2: Impostos, Produtos, Contatos · F3-3a: Vendas, Pagamento · F3-3b: Venda no PDV · F3-3c: Compras · F3-4: Painel, Sistema, Prefixos · F3-5a: E-mail, SMS · F3-5b: Pontos de fidelidade, Módulos)
+//   stories: thread sistema/playbook/08 (F3-1: Negócio · F3-2: Impostos, Produtos, Contatos · F3-3a: Vendas, Pagamento · F3-3b: Venda no PDV · F3-3c: Compras · F3-4: Painel, Sistema, Prefixos · F3-5a: E-mail, SMS · F3-5b: Pontos de fidelidade, Módulos · F3-5c: Rótulos)
 //   permissao: business_settings.access
 //
 // Configuração da empresa. Atrás da flag `useV2ConfiguracoesEmpresa` (BusinessController::FLAG_EMPRESA_V2);
@@ -21,6 +21,7 @@ import { Deferred, router } from '@inertiajs/react';
 import { useState, type ReactNode } from 'react';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
+import { Textarea } from '@/Components/ui/textarea';
 import { Checkbox } from '@/Components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import { PageHeader } from '@/Components/PageHeader';
@@ -57,6 +58,7 @@ const PRONTAS: Record<string, string> = {
   sms: 'Serviço que envia os SMS do negócio.',
   fidelidade: 'Quanto a venda rende em pontos e quanto o ponto vale no resgate.',
   modulos: 'O que aparece no menu e nas telas para este negócio.',
+  rotulos: 'Nomes dos campos extras de cada cadastro. Campo sem nome não aparece na tela.',
 };
 
 const PRECISOES: Lista = { 0: '0', 1: '1', 2: '2', 3: '3', 4: '4' };
@@ -75,6 +77,20 @@ const PREFIXOS: [string, string][] = [['purchase', 'Compra'], ['purchase_return'
   ['stock_adjustment', 'Ajuste de estoque'], ['sell_return', 'Devolução de venda'], ['expense', 'Despesa'], ['contacts', 'Contatos'],
   ['purchase_payment', 'Pagamento de compra'], ['sell_payment', 'Pagamento de venda'], ['expense_payment', 'Pagamento de despesa'],
   ['business_location', 'Local'], ['username', 'Usuário'], ['subscription', 'Assinatura'], ['draft', 'Rascunho'], ['sales_order', 'Pedido de venda']];
+// Rótulos (`custom_labels`): [grupo, título, quantos, prefixo da chave, chaves de flag por campo].
+const ROTULOS: [string, string, number, string, [string, string][]][] = [
+  ['payments', 'Formas de pagamento personalizadas', 7, 'custom_pay_', []],
+  ['contact', 'Campos do contato', 10, 'custom_field_', []],
+  ['product', 'Campos do produto', 20, 'custom_field_', []],
+  ['location', 'Campos do local comercial', 4, 'custom_field_', []],
+  ['user', 'Campos do usuário', 4, 'custom_field_', []],
+  ['purchase', 'Campos da compra', 4, 'custom_field_', [['required', 'obrigatório']]],
+  ['purchase_shipping', 'Campos do frete da compra', 5, 'custom_field_', [['required', 'obrigatório']]],
+  ['sell', 'Campos da venda', 4, 'custom_field_', [['required', 'obrigatório']]],
+  ['shipping', 'Campos do frete da venda', 5, 'custom_field_', [['required', 'obrigatório'], ['contact_default', 'puxar do contato']]],
+  ['types_of_service', 'Campos do tipo de serviço', 6, 'custom_field_', []],
+];
+const TIPO_CAMPO: Lista = { text: 'Texto', date: 'Data', dropdown: 'Lista' };
 const VALIDADE_PONTOS: Lista = { month: 'Meses', year: 'Anos' };
 const SMS_SERVICO: Lista = { nexmo: 'Nexmo', twilio: 'Twilio', other: 'Outro (requisição própria)' };
 const SMS_METODO: Lista = { get: 'GET', post: 'POST' };
@@ -216,6 +232,17 @@ function EmpresaIndex({ corpo: inicial, logo, segredos_gravados, email_superadmi
     ));
   const servicoSms = objeto('sms_settings').sms_service == null ? 'other' : String(objeto('sms_settings').sms_service);
   const usaSuperadmin = !!objeto('email_settings').use_superadmin_settings;
+  // Rótulos: objeto gravado inteiro. Texto vazio guarda '' (como a Blade); flag desmarcada some, como checkbox da Blade.
+  const [todosProduto, setTodosProduto] = useState(false);
+  const rotulos = (corpo.custom_labels && !Array.isArray(corpo.custom_labels) ? corpo.custom_labels : {}) as Record<string, Record<string, Valor>>;
+  const grupoRotulo = (g: string) => (rotulos[g] && !Array.isArray(rotulos[g]) ? rotulos[g] : {}) as Record<string, Valor>;
+  const mudaRotulo = (g: string, k: string, v: Valor) => {
+    const { [k]: _fora, ...resto } = grupoRotulo(g);
+    muda('custom_labels', { ...rotulos, [g]: v === null ? resto : { ...resto, [k]: v } });
+  };
+  // product_cf_details: { "<n>": { type, dropdown_options } } — tipo de cada campo de produto.
+  const detalhe = (i: number) => ((grupoRotulo('product_cf_details')[String(i)] ?? {}) as Record<string, Valor>);
+  const mudaDetalhe = (i: number, k: string, v: string) => mudaRotulo('product_cf_details', String(i), { ...detalhe(i), [k]: v });
   const modulos = Array.isArray(corpo.enabled_modules) ? (corpo.enabled_modules as string[]) : [];
   const metodosCedula = Array.isArray(pos.enable_cash_denomination_for_payment_methods) ? (pos.enable_cash_denomination_for_payment_methods as string[]) : [];
   const titulo = (t: string) => <h3 className="m-0 text-xs font-semibold uppercase text-muted-foreground">{t}</h3>;
@@ -520,6 +547,51 @@ function EmpresaIndex({ corpo: inicial, logo, segredos_gravados, email_superadmi
                     </>
                   )}
                   <p className="m-0 text-xs text-muted-foreground">Valores de cabeçalho e parâmetro podem carregar o token da API e não vêm para esta tela: em branco mantém o gravado. Para apagar ou testar o envio, use a tela antiga.</p>
+                </>
+              )}
+
+              {aba === 'rotulos' && (
+                <>
+                  {ROTULOS.map(([g, t, n, prefixo, flags]) => (
+                    <Stack key={g} gap={2}>
+                      <Inline gap={2}>
+                        {titulo(t)}
+                        {g === 'product' && (
+                          <Button variant="ghost" size="sm" onClick={() => setTodosProduto((v) => !v)}>{todosProduto ? 'Mostrar 4' : `Mostrar os ${n}`}</Button>
+                        )}
+                      </Inline>
+                      <Grid cols={2} gap={3}>
+                        {Array.from({ length: g === 'product' && !todosProduto ? 4 : n }, (_, j) => j + 1).map((i) => {
+                          const k = `${prefixo}${i}`;
+                          const valor = grupoRotulo(g)[k];
+                          return (
+                            <Stack key={k} gap={1}>
+                              {rotulado(`emp-rot-${g}-${i}`, `${g === 'payments' ? 'Forma' : 'Campo'} ${i}`,
+                                <Input id={`emp-rot-${g}-${i}`} value={valor == null ? '' : String(valor)} onChange={(e) => mudaRotulo(g, k, e.target.value)} />)}
+                              {flags.map(([f, l]) => liga(`emp-rot-${g}-${f}-${i}`, l, !!grupoRotulo(g)[`is_custom_field_${i}_${f}`],
+                                (v) => mudaRotulo(g, `is_custom_field_${i}_${f}`, v ? '1' : null)))}
+                              {g === 'product' && (
+                                <Inline gap={2}>
+                                  <Select value={detalhe(i).type ? String(detalhe(i).type) : NENHUM} onValueChange={(v) => mudaDetalhe(i, 'type', v === NENHUM ? '' : v)}>
+                                    <SelectTrigger aria-label={`Tipo do campo ${i}`} className="w-32"><SelectValue /></SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value={NENHUM}>Tipo</SelectItem>
+                                      {Object.entries(TIPO_CAMPO).map(([v, l]) => <SelectItem key={v} value={v}>{l}</SelectItem>)}
+                                    </SelectContent>
+                                  </Select>
+                                  {detalhe(i).type === 'dropdown' && (
+                                    <Textarea aria-label={`Opções do campo ${i}`} rows={2} placeholder="Uma opção por linha"
+                                      value={detalhe(i).dropdown_options == null ? '' : String(detalhe(i).dropdown_options)}
+                                      onChange={(e) => mudaDetalhe(i, 'dropdown_options', e.target.value)} />
+                                  )}
+                                </Inline>
+                              )}
+                            </Stack>
+                          );
+                        })}
+                      </Grid>
+                    </Stack>
+                  ))}
                 </>
               )}
 

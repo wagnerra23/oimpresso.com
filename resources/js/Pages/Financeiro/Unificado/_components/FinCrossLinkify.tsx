@@ -7,7 +7,7 @@
 //
 // Detecta no texto:
 //   #V-NNNN   → /sells/NNNN              (Venda)
-//   #BL-NNNN  → /financeiro/boletos/NNNN (Boleto · placeholder)
+//   #BL-NNNN  → /financeiro/cobranca     (Boletos aposentado 2026-05-19, ADR 0144)
 //   #PC-NNNN  → /compras/NNNN            (Pedido de Compra · placeholder)
 //   #OS-NNNN  → /repair/job/NNNN         (Ordem de Serviço)
 //   #R-NNNN   → /financeiro/contas-receber/NNNN (Recebível legacy)
@@ -29,7 +29,7 @@ interface RefMatch {
 
 const PATTERNS: Array<{ kind: CrossKind; re: RegExp; href: (n: string) => string }> = [
   { kind: 'venda', re: /#V-(\d{1,8})/g, href: (n) => `/sells/${n}` },
-  { kind: 'boleto', re: /#BL-(\d{1,8})/g, href: (n) => `/financeiro/boletos/${n}` },
+  { kind: 'boleto', re: /#BL-(\d{1,8})/g, href: (_n: string) => '/financeiro/cobranca' },
   { kind: 'compra', re: /#PC-(\d{1,8})/g, href: (n) => `/compras/${n}` },
   { kind: 'os', re: /#OS-(\d{1,8})/g, href: (n) => `/repair/job/${n}` },
   { kind: 'receber', re: /#R-(\d{1,8})/g, href: (n) => `/financeiro/contas-receber/${n}` },

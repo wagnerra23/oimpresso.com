@@ -1,0 +1,187 @@
+{
+  "aguardou_sumir": null,
+  "ausentes": [],
+  "base": {
+    "assinatura": "OI WR OFFICEIMPRESSO · loja.oimpresso.com.br · 2 de 5 produtos sincronizados WooCommerce Sincronização da loja Atualizado 16:19 Só novos Sincronizar todos Produtos Pedidos Log de sincronização Configuração Chaves ficam no servidor A consumer key e o secret do WooCommerce não aparecem nesta tela — quem configura é o administrador, e a tela só mostra se a conexão responde. Configuração Endereço da loja * Local do estoque enviado * Matriz Filial Centro Sincronização automática Desligada A cada hora A cada 6 horas Uma vez por dia Testar conexão Outras seções da tela viva de configurações: mapa de impostos (taxa do ERP ↔ taxa do WooCommerce), campos do produto que sobem na criação e na atualização, equivalência entre status do pedido da loja e status da venda, webhooks de pedido (criado, atualizado, excluído, restaurado) e redefinir produtos/categorias sincronizados.",
+    "roles": {
+      "celulas": null,
+      "chart": null,
+      "contratos": [],
+      "filterRows": null,
+      "kpi": {
+        "count": 0,
+        "items": [],
+        "overflowX": null,
+        "tag": null
+      },
+      "primary": null,
+      "shell": null,
+      "tabela": null,
+      "title": null
+    },
+    "saude": {
+      "folhasVazias": [],
+      "nFolhas": 76,
+      "tokensMortos": []
+    },
+    "theme": "dark",
+    "url": "http://127.0.0.1:5581/"
+  },
+  "clicar": ".main-body > .pb-root > .pb-body > nav.ds-tabbar > button:nth-child(4)",
+  "nos_totais": 479,
+  "quieto_ms": 2000,
+  "rota": "woocommerce",
+  "secoes": {
+    "abas": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "proprio",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.26 0.006 240)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "flex",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "0px",
+        "padding": "0px"
+      },
+      "filhos": 4,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "button",
+        "button",
+        "button",
+        "button"
+      ],
+      "rect": {
+        "h": 36,
+        "w": 1176
+      },
+      "seletor": ".main-body > .pb-root > .pb-body > nav.ds-tabbar",
+      "truncado": false
+    },
+    "barra": {
+      "contraste": {
+        "motivo": "nenhum ancestral com fundo opaco (último: oklab(0.82 0.041411 0.154548 / 0.06), alfa 0.06)"
+      },
+      "estilo": {
+        "backgroundColor": "oklab(0.82 0.041411 0.154548 / 0.06)",
+        "borderRadius": "8px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "flex",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "11px",
+        "padding": "12px 14px"
+      },
+      "filhos": 2,
+      "fundoCadeia": [
+        {
+          "bg": "oklab(0.82 0.041411 0.154548 / 0.06)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "span",
+        "div"
+      ],
+      "rect": {
+        "h": 64,
+        "w": 1176
+      },
+      "seletor": ".main-body > .pb-root > .pb-body > div:nth-child(2)",
+      "truncado": false
+    },
+    "cabecalho": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "proprio",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.26 0.006 240)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "flex",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "10px 12px",
+        "padding": "14px 0px"
+      },
+      "filhos": 2,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "div",
+        "div"
+      ],
+      "rect": {
+        "h": 80,
+        "w": 1176
+      },
+      "seletor": ".main-body > .pb-root > .cli-ph > header",
+      "truncado": false
+    },
+    "formulario": {
+      "contraste": {
+        "fundo": "oklch(0.3 0.008 240)",
+        "fundo_de": "proprio",
+        "razao": 11.42,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.027108,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.3 0.008 240)",
+        "borderRadius": "12px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "block",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "padding": "0px"
+      },
+      "filhos": 2,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.3 0.008 240)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "h3",
+        "pb-widget-b"
+      ],
+      "rect": {
+        "h": 215,
+        "w": 1176
+      },
+      "seletor": ".main-body > .pb-root > .pb-body > section.pb-widget",
+      "truncado": false
+    }
+  },
+  "tela": "woocommerce--api--index",
+  "url": "http://127.0.0.1:5581/"
+}

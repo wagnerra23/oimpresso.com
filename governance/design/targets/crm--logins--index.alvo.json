@@ -1,0 +1,308 @@
+{
+  "aguardou_sumir": null,
+  "ausentes": [],
+  "base": {
+    "assinatura": "OI WR OFFICEIMPRESSO · matriz · 10 leads · 12 acompanhamentos · 4 propostas · papel: Administrador CRM Login de contatos Atualizado 16:09 Administrador Comercial (Larissa) Financeiro (Eliana) Portal do contato Adicionar lead Painel Leads Acompanhamentos Campanhas Login de contatos Comissões Registro de chamadas Relatórios Modelo de proposta Propostas Marketplace B2B Pedido de ordem Fontes e estágios Configurações Filtros Contato — o filtro do blade. Recolher Contato Todos Rota Livre Transportes Martinho Oficina Prefeitura de Jaú Agência Norte Login de todos os contatos 4 de 4 Confortável Compacto Adicionar Ação Contato ↕ Nome de usuário Nome E-mail Departamento Designação Ações Rota Livre Transportes rotalivre Daniela Prado daniela@rotalivre.com.br Compras Analista Ações Martinho Oficina martinho Martinho Alves martinho@oficinamartinho.com.br Diretoria Proprietário Ações Prefeitura de Jaú pmj.compras Regina Toledo compras@jau.sp.gov.br Licitações Pregoeira Ações Agência Norte agnorte Paulo Serra paulo@agencianorte.com.br Atendimento Diretor de arte",
+    "roles": {
+      "celulas": null,
+      "chart": null,
+      "contratos": [
+        {
+          "classes": {
+            "dataBr": 0,
+            "dataIso": 0,
+            "snakeCru": 0
+          },
+          "exemplos": {},
+          "nome": "crm-filtros"
+        },
+        {
+          "classes": {
+            "dataBr": 0,
+            "dataIso": 0,
+            "snakeCru": 0
+          },
+          "exemplos": {},
+          "nome": "crm-logins"
+        },
+        {
+          "classes": {
+            "dataBr": 0,
+            "dataIso": 0,
+            "snakeCru": 0
+          },
+          "exemplos": {},
+          "nome": "crm-toolbar"
+        }
+      ],
+      "filterRows": null,
+      "kpi": {
+        "count": 0,
+        "items": [],
+        "overflowX": null,
+        "tag": null
+      },
+      "primary": null,
+      "shell": null,
+      "tabela": null,
+      "title": null
+    },
+    "saude": {
+      "folhasVazias": [],
+      "nFolhas": 76,
+      "tokensMortos": []
+    },
+    "theme": "dark",
+    "url": "http://127.0.0.1:5571/"
+  },
+  "nos_totais": 577,
+  "quieto_ms": 2000,
+  "rota": "crm-logins",
+  "secoes": {
+    "filtros": {
+      "contraste": {
+        "fundo": "oklch(0.3 0.008 240)",
+        "fundo_de": "proprio",
+        "razao": 11.42,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.027108,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.3 0.008 240)",
+        "borderRadius": "12px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "block",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "padding": "0px"
+      },
+      "filhos": 2,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.3 0.008 240)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "h3",
+        "pb-widget-b"
+      ],
+      "rect": {
+        "h": 156,
+        "w": 1176
+      },
+      "seletor": "[data-contract=\"crm-filtros\"]",
+      "truncado": false
+    },
+    "grade": {
+      "contraste": {
+        "fundo": "oklch(0.3 0.008 240)",
+        "fundo_de": "pb-widget",
+        "razao": 11.42,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.027108,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "block",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "padding": "0px"
+      },
+      "filhos": 1,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "pb-widget-b"
+        },
+        {
+          "bg": "oklch(0.3 0.008 240)",
+          "de": "pb-widget"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "div"
+      ],
+      "rect": {
+        "h": 208,
+        "w": 1174
+      },
+      "seletor": "[data-contract=\"crm-logins\"] .pb-grid-pro",
+      "truncado": false
+    },
+    "header": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "body",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "block",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "padding": "20px 24px 0px"
+      },
+      "filhos": 2,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "pb-root"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "main-body"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "main"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "app"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "div"
+        },
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "body"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "p",
+        "header"
+      ],
+      "rect": {
+        "h": 103,
+        "w": 1224
+      },
+      "seletor": ".cb-root > .cli-ph",
+      "truncado": false
+    },
+    "nav": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "proprio",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.26 0.006 240)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "flex",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "0px",
+        "padding": "0px"
+      },
+      "filhos": 14,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "button",
+        "button",
+        "button",
+        "button",
+        "button",
+        "button",
+        "button",
+        "button",
+        "button",
+        "button",
+        "button",
+        "button",
+        "button",
+        "button"
+      ],
+      "rect": {
+        "h": 36,
+        "w": 1176
+      },
+      "seletor": ".cb-root > .pb-body > .cb-nav",
+      "truncado": true
+    },
+    "toolbar": {
+      "contraste": {
+        "fundo": "oklch(0.3 0.008 240)",
+        "fundo_de": "pb-widget",
+        "razao": 11.42,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.027108,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "flex",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "8px",
+        "padding": "8px 12px"
+      },
+      "filhos": 4,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "pb-widget-b"
+        },
+        {
+          "bg": "oklch(0.3 0.008 240)",
+          "de": "pb-widget"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "pb-busca",
+        "sp",
+        "div",
+        "os-btn"
+      ],
+      "rect": {
+        "h": 53,
+        "w": 1174
+      },
+      "seletor": "[data-contract=\"crm-logins\"] [data-contract=\"crm-toolbar\"]",
+      "truncado": false
+    }
+  },
+  "tela": "crm--logins--index",
+  "url": "http://127.0.0.1:5571/"
+}

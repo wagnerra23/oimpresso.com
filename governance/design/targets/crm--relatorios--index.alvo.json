@@ -1,0 +1,338 @@
+{
+  "aguardou_sumir": null,
+  "ausentes": [],
+  "base": {
+    "assinatura": "OI WR OFFICEIMPRESSO · matriz · 10 leads · 12 acompanhamentos · 4 propostas · papel: Administrador CRM Relatórios Atualizado 16:08 Administrador Comercial (Larissa) Financeiro (Eliana) Portal do contato Adicionar lead Painel Leads Acompanhamentos Campanhas Login de contatos Comissões Registro de chamadas Relatórios Modelo de proposta Propostas Marketplace B2B Pedido de ordem Fontes e estágios Configurações Filtros Intervalo de datas e categoria — os filtros dos relatórios do módulo. Recolher Intervalo de datas Todos Últimos 7 dias Últimos 30 dias Este mês Categoria de acompanhamento Todos Prospecção Orçamento Pós-venda Cobrança Instalação Acompanhamentos por usuário Usuário Agendado Aberto Concluído Cancelado Outros Acompanhamentos totais Larissa Prado 3 1 4 0 0 8 Wagner Ramos 2 1 3 1 0 7 Eliana Souza 1 0 2 0 1 4 Marcos Vinícius 2 1 2 1 0 6 Acompanhamentos por contatos Contato Agendado Aberto Concluído Cancelado Outros Acompanhamentos totais Padaria Estrela 2 1 1 0 0 4 Clínica Vida Plena 1 0 2 0 1 4 João Reis 0 1 0 1 0 2 Acme Comércio Ltda 1 0 3 0 0 4 TechPro Equipamentos 2 1 1 0 0 4 Construtora Vértice 0 1 0 1 0 2 Leads convertidos em cliente clique numa linha para ver quem foi Convertido por Total Larissa Prado 3 Wagner Ramos 2 Marcos Vinícius 1",
+    "roles": {
+      "celulas": null,
+      "chart": null,
+      "contratos": [
+        {
+          "classes": {
+            "dataBr": 0,
+            "dataIso": 0,
+            "snakeCru": 0
+          },
+          "exemplos": {},
+          "nome": "crm-filtros"
+        },
+        {
+          "classes": {
+            "dataBr": 0,
+            "dataIso": 0,
+            "snakeCru": 0
+          },
+          "exemplos": {},
+          "nome": "crm-rel-usuario"
+        },
+        {
+          "classes": {
+            "dataBr": 0,
+            "dataIso": 0,
+            "snakeCru": 0
+          },
+          "exemplos": {},
+          "nome": "crm-rel-contato"
+        },
+        {
+          "classes": {
+            "dataBr": 0,
+            "dataIso": 0,
+            "snakeCru": 0
+          },
+          "exemplos": {},
+          "nome": "crm-rel-conversao"
+        }
+      ],
+      "filterRows": null,
+      "kpi": {
+        "count": 0,
+        "items": [],
+        "overflowX": null,
+        "tag": null
+      },
+      "primary": null,
+      "shell": null,
+      "tabela": null,
+      "title": null
+    },
+    "saude": {
+      "folhasVazias": [],
+      "nFolhas": 76,
+      "tokensMortos": []
+    },
+    "theme": "dark",
+    "url": "http://127.0.0.1:5571/"
+  },
+  "nos_totais": 709,
+  "quieto_ms": 2000,
+  "rota": "crm-relatorios",
+  "secoes": {
+    "conversao": {
+      "contraste": {
+        "fundo": "oklch(0.3 0.008 240)",
+        "fundo_de": "proprio",
+        "razao": 11.42,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.027108,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.3 0.008 240)",
+        "borderRadius": "12px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "block",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "padding": "0px"
+      },
+      "filhos": 2,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.3 0.008 240)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "h3",
+        "pb-widget-b"
+      ],
+      "rect": {
+        "h": 199,
+        "w": 1176
+      },
+      "seletor": "[data-contract=\"crm-rel-conversao\"]",
+      "truncado": false
+    },
+    "filtros": {
+      "contraste": {
+        "fundo": "oklch(0.3 0.008 240)",
+        "fundo_de": "proprio",
+        "razao": 11.42,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.027108,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.3 0.008 240)",
+        "borderRadius": "12px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "block",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "padding": "0px"
+      },
+      "filhos": 2,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.3 0.008 240)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "h3",
+        "pb-widget-b"
+      ],
+      "rect": {
+        "h": 156,
+        "w": 1176
+      },
+      "seletor": "[data-contract=\"crm-filtros\"]",
+      "truncado": false
+    },
+    "header": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "body",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "block",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "padding": "20px 24px 0px"
+      },
+      "filhos": 2,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "pb-root"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "main-body"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "main"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "app"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "div"
+        },
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "body"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "p",
+        "header"
+      ],
+      "rect": {
+        "h": 103,
+        "w": 1224
+      },
+      "seletor": ".cb-root > .cli-ph",
+      "truncado": false
+    },
+    "nav": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "proprio",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.26 0.006 240)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "flex",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "0px",
+        "padding": "0px"
+      },
+      "filhos": 14,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "button",
+        "button",
+        "button",
+        "button",
+        "button",
+        "button",
+        "button",
+        "button",
+        "button",
+        "button",
+        "button",
+        "button",
+        "button",
+        "button"
+      ],
+      "rect": {
+        "h": 36,
+        "w": 1176
+      },
+      "seletor": ".cb-root > .pb-body > .cb-nav",
+      "truncado": true
+    },
+    "por_contato": {
+      "contraste": {
+        "fundo": "oklch(0.3 0.008 240)",
+        "fundo_de": "proprio",
+        "razao": 11.42,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.027108,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.3 0.008 240)",
+        "borderRadius": "12px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "block",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "padding": "0px"
+      },
+      "filhos": 2,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.3 0.008 240)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "h3",
+        "pb-widget-b"
+      ],
+      "rect": {
+        "h": 293,
+        "w": 1176
+      },
+      "seletor": "[data-contract=\"crm-rel-contato\"]",
+      "truncado": false
+    },
+    "por_usuario": {
+      "contraste": {
+        "fundo": "oklch(0.3 0.008 240)",
+        "fundo_de": "proprio",
+        "razao": 11.42,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.027108,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.3 0.008 240)",
+        "borderRadius": "12px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "block",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "padding": "0px"
+      },
+      "filhos": 2,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.3 0.008 240)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "h3",
+        "pb-widget-b"
+      ],
+      "rect": {
+        "h": 218,
+        "w": 1176
+      },
+      "seletor": "[data-contract=\"crm-rel-usuario\"]",
+      "truncado": false
+    }
+  },
+  "tela": "crm--relatorios--index",
+  "url": "http://127.0.0.1:5571/"
+}
