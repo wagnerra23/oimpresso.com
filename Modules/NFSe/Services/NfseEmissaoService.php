@@ -16,6 +16,8 @@ use Modules\NFSe\Jobs\EmitirNfseJob;
 use Modules\NFSe\Models\NfseEmissao;
 use Modules\NFSe\Models\NfseProviderConfig;
 use Modules\NfeBrasil\Services\RetencoesNfseService;
+use Modules\NfeBrasil\Models\NfeCertificado;
+use Modules\NfeBrasil\Services\CertificadoService;
 
 class NfseEmissaoService
 {
@@ -54,10 +56,17 @@ class NfseEmissaoService
             ->with('certificado')
             ->first();
 
-        $certPfxBase64 = $config?->certificado?->pfxDecriptado()
-            ? base64_encode($config->certificado->pfxDecriptado())
-            : null;
-        $certSenha = $config?->certificado?->senhaDecriptada();
+        // Cert do `cert_id` da config, decriptado pelo dono do schema (NfeBrasil). O PFX
+        // vai binário → base64 uma vez; o SnNfseAdapter decodifica uma vez. Antes daqui o
+        // código chamava pfxDecriptado()/senhaDecriptada(), removidos em 4e772bcb46.
+        $certPfxBase64 = null;
+        $certSenha = null;
+        $certificado = $config?->certificado;
+        if ($certificado instanceof NfeCertificado) {
+            $cert = app(CertificadoService::class)->carregarCertificado($certificado);
+            $certPfxBase64 = base64_encode($cert['pfx_binary']);
+            $certSenha = $cert['senha'];
+        }
 
         // R-NFSE-003 — retenções federais. Só calcula quando quem emite marcou o serviço
         // como do art. 30 (decisão [W] 2026-10-13); sem a marcação, a nota fica como antes.
