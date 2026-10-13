@@ -1,5 +1,7 @@
 # 08 — Handoff (índice)
 
+- [2026-10-13 18:57 BRT — **Gestão da fila de merges (13/10 · 2)**](handoffs/2026-10-13-1857-gestao-fila-merges-13-out-2.md) (44 PRs · Compras 9/9 · Essenciais 5/5 · NFS-e 23 no main · redirect /contacts → /cliente com smoke · main verde na lane Acessos · em voo: #9246, #9247, #9219, #9223 e 4 sessões de chip)
+
 - [2026-10-13 11:00 BRT — **Gestão da fila de merges (13/10)**](handoffs/2026-10-13-1100-gestao-fila-merges-13-out.md) (cerca de 40 PRs · cutover "ligar tudo" com smoke em produção · seed ICMS em produção · decisões [W] registradas · em voo: #9203, baseline sells-index dark e Compras 05/Acessos 01 aguardando /design-sync)
 
 - [2026-10-09 17:11 BRT — **Notificações F3: seleção e primeira baseline**](handoffs/2026-10-09-1711-notificacoes-f3-baseline.md) (CT100 e React passaram · #9115 em validação · flag OFF · editor/QA pendentes)
