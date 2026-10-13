@@ -2,6 +2,7 @@ import { Link } from '@inertiajs/react';
 import { Badge } from '@/Components/ui/badge';
 import { Button } from '@/Components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
+import { Inline } from '@/Components/layout';
 
 // Saúde fiscal — playbook Fiscal thread 14 (UC-NFTR-24/25). Forma: aba "Saúde fiscal" do
 // protótipo `fiscal-tributacao.jsx` (card data-contract="saude-fiscal"). O que bloqueia vem do
@@ -43,13 +44,15 @@ export default function SaudeFiscal({ saude }: { saude: SaudePayload }) {
   return (
     <Card data-contract="saude-fiscal" aria-label="Pendências que viram rejeição">
       <CardHeader className="pb-3">
-        <CardTitle className="text-base flex flex-wrap items-center justify-between gap-2">
-          <span>Vai virar rejeição se ninguém mexer · {itens.length}</span>
-          {pronto ? (
-            <Badge variant="success">Pronto pra emitir</Badge>
-          ) : (
-            <Badge variant="danger">Não pronto · {bloqueantes} bloqueante(s)</Badge>
-          )}
+        <CardTitle className="text-base">
+          <Inline wrap justify="between" gap={2}>
+            <span>Vai virar rejeição se ninguém mexer · {itens.length}</span>
+            {pronto ? (
+              <Badge variant="success">Pronto pra emitir</Badge>
+            ) : (
+              <Badge variant="danger">Não pronto · {bloqueantes} bloqueante(s)</Badge>
+            )}
+          </Inline>
         </CardTitle>
         <p className="text-xs text-muted-foreground font-mono">checado ao abrir a tela</p>
       </CardHeader>
@@ -62,7 +65,8 @@ export default function SaudeFiscal({ saude }: { saude: SaudePayload }) {
         ) : (
           <ul className="divide-y divide-border">
             {itens.map((p) => (
-              <li key={p.tipo} data-sev={p.bloqueante ? 'bad' : 'warn'} className="flex items-start gap-3 py-3">
+              <Inline asChild key={p.tipo} align="start" gap={3} wrap={false}>
+              <li data-sev={p.bloqueante ? 'bad' : 'warn'} className="py-3">
                 <span
                   aria-hidden="true"
                   className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${p.bloqueante ? 'bg-destructive' : 'bg-warning'}`}
@@ -80,6 +84,7 @@ export default function SaudeFiscal({ saude }: { saude: SaudePayload }) {
                   </Button>
                 )}
               </li>
+              </Inline>
             ))}
           </ul>
         )}
