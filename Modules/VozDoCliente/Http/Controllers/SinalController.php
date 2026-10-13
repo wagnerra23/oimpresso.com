@@ -28,8 +28,8 @@ class SinalController extends Controller
      *
      * Dual (thread modulos-faltantes/playbook/03, RUNBOOK-caixa): com a flag
      * `useV2VozDoClienteCaixa` ligada para o negócio responde a Page
-     * `VozDoCliente/Caixa`; desligada (padrão — a flag NÃO está nos fallbacks do
-     * FeatureFlagService) ou com `?legacy=1`, segue a Blade de sempre.
+     * `VozDoCliente/Caixa`; desligada no GrowthBook ou com `?legacy=1`, segue a Blade de
+     * sempre. Desde o cutover [W] 2026-10-13 a flag está nos fallbacks do FeatureFlagService com `true`.
      *
      * A permissão é checada ANTES da flag: quem não pode ver não consulta flag.
      */

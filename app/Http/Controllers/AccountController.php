@@ -21,8 +21,9 @@ class AccountController extends Controller
 {
     /**
      * Flag do caminho React (thread sistema/playbook/06, F3). Convenção `useV2<Modulo><Tela>`.
-     * Sem a chave no GrowthBook o FeatureFlagService cai no fallbackDefaults, que não a lista:
-     * default OFF, a Blade segue servindo. Ligar é toggle no GrowthBook (flag:set --biz=1), não deploy.
+     * Sem a chave no GrowthBook o FeatureFlagService cai no fallbackDefaults, que a lista com `true`
+     * desde o cutover [W] 2026-10-13: a tela React vale para todas as empresas. Desligar uma empresa
+     * é flag OFF no GrowthBook (flag:set), não deploy.
      *
      * @see memory/requisitos/Configuracoes/RUNBOOK-contas.md
      */

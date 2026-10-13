@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Schema;
 
 /**
  * Thread modulos-faltantes/playbook/03 — /voz-do-cliente em Inertia, atrás da flag
- * useV2VozDoClienteCaixa (OFF por padrão).
+ * useV2VozDoClienteCaixa (ligada por padrão desde o cutover [W] 2026-10-13; os UCs fixam o valor por mock).
  *
  * Mora em tests/Feature e roda na lane acessos-pest.yml (MySQL): o teste autentica, monta
  * papel Spatie e bate na rota HTTP com sessão de negócio — na lista sqlite pularia. O teste
@@ -96,7 +96,7 @@ test('UC-VOZ-01 flag ligada renderiza Inertia VozDoCliente/Caixa com contagem e 
     expect($r->json('props'))->not->toHaveKey('sinais');
 });
 
-test('UC-VOZ-02 flag desligada (padrão) ou ?legacy=1 mantém a Blade', function () {
+test('UC-VOZ-02 flag desligada ou ?legacy=1 mantém a Blade', function () {
     vozEntrar($this, ['vozdocliente.triar']);
 
     vozFlag(false);
