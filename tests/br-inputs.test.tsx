@@ -11,8 +11,8 @@
 // Validação client é UX-only — backend Rule\BR\CpfCnpj continua a verdade (ADR 0093).
 
 import { describe, it, expect, afterEach } from 'vitest';
-import { render, cleanup, fireEvent, screen } from '@testing-library/react';
-import { useState } from 'react';
+import { render, cleanup, fireEvent, screen, act } from '@testing-library/react';
+import { createRef, useState } from 'react';
 import axe from 'axe-core';
 
 import { DocumentInput } from '@/Components/ui/document-input';
@@ -48,12 +48,12 @@ function PhoneHarness() {
   );
 }
 
-function NumericHarness() {
-  const [n, setN] = useState(0);
+function NumericHarness({ inicial = 0, precision }: { inicial?: number; precision?: number }) {
+  const [n, setN] = useState(inicial);
   return (
     <div>
       <Label htmlFor="num">Valor</Label>
-      <NumericInputPtBR id="num" value={n} onChange={setN} />
+      <NumericInputPtBR id="num" value={n} onChange={setN} precision={precision} />
       <output data-testid="number">{n}</output>
     </div>
   );
@@ -156,6 +156,129 @@ describe('NumericInputPtBR (promovido de Sells — contrato do bug R$ Larissa)',
     fireEvent.blur(input);
     expect(input.value).toBe('25,00');
     expect(screen.getByTestId('number').textContent).toBe('25');
+  });
+});
+
+// Selecionar tudo ao entrar no campo — medido em produção em 2026-10-13 (janela de estoque
+// inicial): clicar num campo com "10,00" e digitar "4" dava "410", porque a seleção feita no foco
+// era desfeita quando o texto trocava de "10,00" para "10". O jsdom reproduz a mesma perda: ao
+// receber um `value` novo, o cursor vai para o fim e a seleção some.
+//
+// O foco aqui é o REAL (`input.focus()`), não `fireEvent.focus`: o componente confere
+// `document.activeElement`, e `fireEvent.focus` não move o foco do documento.
+describe('NumericInputPtBR — entrar no campo seleciona tudo (digitar troca o valor, não soma)', () => {
+  const selecao = (el: HTMLInputElement) => [el.selectionStart, el.selectionEnd];
+  const campo = () => screen.getByLabelText('Valor') as HTMLInputElement;
+
+  it('entrar pelo teclado (Tab) num campo com valor seleciona o valor inteiro', () => {
+    render(<NumericHarness inicial={10} />);
+    const input = campo();
+    expect(input.value).toBe('10,00');
+
+    act(() => input.focus());
+
+    expect(input.value).toBe('10');
+    expect(selecao(input)).toEqual([0, 2]);
+  });
+
+  it('clicar num campo com valor seleciona o valor inteiro, mesmo com o cursor posto pelo clique', () => {
+    render(<NumericHarness inicial={10} />);
+    const input = campo();
+
+    // A ordem medida no navegador: mousedown → focus → (cursor no ponto do clique) → mouseup.
+    fireEvent.mouseDown(input);
+    act(() => input.focus());
+    input.setSelectionRange(0, 0);
+    fireEvent.mouseUp(input);
+
+    expect(input.value).toBe('10');
+    expect(selecao(input)).toEqual([0, 2]);
+  });
+
+  it('segundo clique, com o campo já focado, NÃO reseleciona — dá para pôr o cursor num dígito', () => {
+    render(<NumericHarness inicial={1234.5} />);
+    const input = campo();
+    fireEvent.mouseDown(input);
+    act(() => input.focus());
+    fireEvent.mouseUp(input);
+    expect(selecao(input)).toEqual([0, input.value.length]);
+
+    fireEvent.mouseDown(input);
+    input.setSelectionRange(2, 2);
+    fireEvent.mouseUp(input);
+
+    expect(selecao(input)).toEqual([2, 2]);
+  });
+
+  it('valor com mais casas: o texto de edição inteiro fica selecionado', () => {
+    render(<NumericHarness inicial={12.125} precision={4} />);
+    const input = campo();
+    expect(input.value).toBe('12,1250');
+
+    act(() => input.focus());
+
+    expect(input.value).toBe('12,125');
+    expect(selecao(input)).toEqual([0, 6]);
+  });
+
+  it('quando o texto não muda ao focar (sem casas decimais), a seleção também cobre tudo', () => {
+    render(<NumericHarness inicial={5} precision={0} />);
+    const input = campo();
+    expect(input.value).toBe('5');
+
+    act(() => input.focus());
+
+    expect(input.value).toBe('5');
+    expect(selecao(input)).toEqual([0, 1]);
+  });
+
+  it('valor zero continua abrindo vazio para digitar', () => {
+    render(<NumericHarness />);
+    const input = campo();
+    expect(input.value).toBe('0,00');
+
+    act(() => input.focus());
+
+    expect(input.value).toBe('');
+  });
+
+  it('depois de digitar, a seleção não volta sozinha (o cursor fica onde a digitação deixou)', () => {
+    render(<NumericHarness inicial={10} />);
+    const input = campo();
+    act(() => input.focus());
+
+    fireEvent.change(input, { target: { value: '45' } });
+    input.setSelectionRange(2, 2);
+    fireEvent.change(input, { target: { value: '456' } });
+
+    expect(input.value).toBe('456');
+    expect(selecao(input)).toEqual([3, 3]);
+    expect(screen.getByTestId('number').textContent).toBe('456');
+  });
+
+  it('quem usa o campo continua recebendo a ref e os próprios eventos de mouse', () => {
+    const ref = createRef<HTMLInputElement>();
+    const vistos: string[] = [];
+    render(
+      <div>
+        <Label htmlFor="num">Valor</Label>
+        <NumericInputPtBR
+          id="num"
+          ref={ref}
+          value={7}
+          onChange={() => {}}
+          onMouseDown={() => vistos.push('down')}
+          onMouseUp={() => vistos.push('up')}
+        />
+      </div>,
+    );
+    const input = campo();
+    expect(ref.current).toBe(input);
+
+    fireEvent.mouseDown(input);
+    fireEvent.mouseUp(input);
+
+    expect(vistos).toEqual(['down', 'up']);
   });
 });
 

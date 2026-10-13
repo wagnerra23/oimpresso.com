@@ -10,7 +10,7 @@ last_run: "2026-10-13"
 
 # Casos de Uso & Aceite — Configuração da empresa
 
-> Thread `sistema/playbook/08`, F3-1. Derivados do `BusinessController` e da Blade `business/settings`
+> Thread `sistema/playbook/08`, F3-1 (Negócio) e F3-2 (Impostos · Produtos · Contatos). Derivados do `BusinessController` e da Blade `business/settings`
 > (RUNBOOK-empresa, `empresa-parity.md`) — não do `Index.tsx`.
 > Teste: [`tests/Feature/Configuracoes/EmpresaContratoTest.php`](../../../../../tests/Feature/Configuracoes/EmpresaContratoTest.php),
 > lane `acessos-pest.yml` (MySQL). A Blade está travada em `EmpresaBaselineTest`.
@@ -44,6 +44,13 @@ last_run: "2026-10-13"
 ## UC-EMP-05 · Número do corpo volta igual pelo `num_uf` · `[valor]`
 - **Aceite:** Dado os valores 0 · 0,25 · 1 · 1,5 · 25,5 · 99,99 · 1234,5 · 2500 · 25000 · 123456,7891 com precisão de moeda 0 ·
   Quando o corpo os formata · Então `num_uf` devolve o mesmo número · E zero nunca sai como `"0"` (o salvar trocaria por 1).
+- **Status: 🧪**
+
+## UC-EMP-06 · Editar Impostos, Produtos e Contatos grava só o que mudou · `[dado]`
+- **Por quê:** as três abas mexem em campos soltos e em chaves de `common_settings`; desmarcar não pode apagar as vizinhas.
+- **Aceite:** Dado o corpo da tela · Quando troco o nome do imposto 1, o prefixo do SKU, ligo prateleira, desligo marca e
+  ponho limite de crédito padrão "2.000,50" e garantia · Então só esses mudam · E o limite fica gravado como foi digitado
+  (como na Blade: o cadastro de contato o lê como sugestão) · E e-mail, margem e pontos ficam iguais.
 - **Status: 🧪**
 
 ## UC-EMP-07 · Chave secreta de pagamento não vai para a tela · `[T0]`
