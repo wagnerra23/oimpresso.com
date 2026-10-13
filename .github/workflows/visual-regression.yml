@@ -409,83 +409,7 @@ jobs:
         # copiloto_metas, FK INT×BIGINT nfse etc) que quebrava o setup. Só migrations
         # NOVAS (pós-staging) rodam por cima. `continue-on-error` REMOVIDO — agora o
         # migrate tem que passar de verdade (gate real). Regenerar schema: RUNBOOK US-GOV-013.
-        run: |
-          mkdir -p storage/framework/{cache,views,sessions,testing} bootstrap/cache
-          cat > .env <<'EOF'
-          APP_NAME=oimpresso-visreg
-          APP_KEY=
-          APP_ENV=testing
-          APP_DEBUG=true
-          APP_URL=http://localhost
-          LOG_CHANNEL=stderr
-          DB_CONNECTION=mysql
-          DB_HOST=127.0.0.1
-          DB_PORT=3306
-          DB_DATABASE=oimpresso_test
-          DB_USERNAME=root
-          DB_PASSWORD=root
-          CACHE_DRIVER=array
-          QUEUE_CONNECTION=sync
-          SESSION_DRIVER=file
-          MAIL_MAILER=array
-          BCRYPT_ROUNDS=4
-          # ADMINISTRATOR_USERNAMES=visreg_admin: a rota /superadmin NAO e gateada por
-          # permissao Spatie — `App\Http\Middleware\Superadmin` compara o USERNAME com
-          # esta lista. O admin que o PixelBaselineTest autentica e o `visreg_admin` do
-          # VisregTenantSeeder; sem o nome aqui, /superadmin da 403 e a baseline nunca
-          # nasce (medido 2026-08-19: 19 telas passaram, so a do Superadmin caiu no
-          # assertOk). Mesmo espirito do MWART_CLIENTE_INDEX logo abaixo: flag de
-          # ambiente pra tela poder ENTRAR no gate, nao pra mudar o que ela mostra.
-          ADMINISTRATOR_USERNAMES=visreg_admin
-          TELESCOPE_ENABLED=false
-          VIEW_COMPILED_PATH=storage/framework/views
-          # MWART_CLIENTE_INDEX=true: sem o flag, /cliente cai no Blade legacy e dá 500
-          # (provado por screenshot do artifact #2320) → fica fora do gate. Com o flag,
-          # renderiza a Page Inertia canônica de Clientes — que é o que o gate deve proteger.
-          # Notificações: ativa somente na fixture sintética de CI, sem alterar produção.
-          FEATURE_FLAGS_FORCED_ON=useV2NotificationTemplates
-          MWART_CLIENTE_INDEX=true
-          # MWART_BACKUP_INDEX=true: mesmo motivo do de cima — sem o flag, /backup serve o
-          # Blade legado e a baseline nasceria da tela VELHA, que e pior que nao ter baseline.
-          # Flag de ambiente pra tela poder ENTRAR no gate, nao pra mudar o que ela mostra.
-          MWART_BACKUP_INDEX=true
-          # MWART_CLIENTE_IMPORT=true: mesma razão do INDEX acima, medida em 2026-08-18 —
-          # config/mwart.php traz `'enabled' => env('MWART_CLIENTE_IMPORT', false)`, e o
-          # ContactController:2803 só renderiza a Page Inertia sob esse flag. Sem ele
-          # /contacts/import cai no Blade e o assertInertia(component) do PixelBaselineTest
-          # reprova — a tela ficaria fora do gate por configuração, não por decisão.
-          # Escopo: ambiente do runner do visreg. Não toca produção.
-          MWART_CLIENTE_IMPORT=true
-          # MWART_CLIENTE_MAP=true: mesma razão do IMPORT acima, medida em 2026-08-26 —
-          # `config/mwart.php` traz `'enabled' => env('MWART_CLIENTE_MAP', false)` e o
-          # `ContactController::contactMap()` (routes/web.php:359 → /contacts/map) só
-          # renderiza a Page Inertia sob esse flag. Sem ele o assertInertia do
-          # PixelBaselineTest:199 reprova com "Not a valid Inertia response" — a resposta
-          # é 200, mas é o Blade `contact.contact_map`. Provado no dispatch 32981167404.
-          # Escopo: ambiente do runner do visreg. Não toca produção.
-          MWART_CLIENTE_MAP=true
-          # MWART_REPAIR_INDEX / MWART_REPAIR_JOB_SHEET_INDEX=true: mesma razão dos de cima,
-          # medida em 2026-10-02 — RepairController::index e JobSheetController::index só
-          # renderizam a Page Inertia sob mwartEnabled(...) (config/mwart.php, default false).
-          # Sem os flags, /repair/repair e /repair/job-sheet servem o Blade e o
-          # assertInertia(component) do PixelBaselineTest reprova. Entram no gate por decisão
-          # [W] 2026-10-02 ("gera as fotos de Repair e JobSheet").
-          # Escopo: ambiente do runner do visreg. Não toca produção.
-          MWART_REPAIR_INDEX=true
-          MWART_REPAIR_JOB_SHEET_INDEX=true
-          # VISREG_FREEZE_CLOCK: congela `new Date()`/`Date.now()` DO NAVEGADOR no mesmo
-          # instante que as suítes passam pro Carbon::setTestNow (PixelBaselineTest:78 e
-          # irmãs). Sem isso, tela que renderiza "agora" no browser (JanaAreaHeader.tsx:80,
-          # JanaCockpit.tsx:356 e :107) fazia a baseline drifar POR MINUTO — o setTestNow
-          # só congelava o relógio do PHP. Injetado por layouts/inertia.blade.php, guardado
-          # por config/visreg.php + isProduction. Aspas: o valor tem espaço.
-          VISREG_FREEZE_CLOCK="2026-06-11 12:00:00"
-          EOF
-          php artisan key:generate --force
-          php artisan package:discover --ansi
-          php artisan migrate --force
-          echo "=== schema-squash check: tabelas criadas ==="
-          php artisan tinker --execute="echo count(DB::select('show tables')).' tabelas';"
+        run: bash scripts/tests/visreg-ci-setup.sh laravel
 
       - name: Seed demo tenant (business + admin + role Admin#1)
         if: steps.mode.outputs.ui == 'true'
@@ -498,74 +422,7 @@ jobs:
         # MINIMAL (business 1 + location + admin id=1 + role spatie Admin#1), idempotente e
         # alinhado ao schema. Sem `|| echo` que mascarava: agora o seed é GATE REAL — se
         # quebrar, o job falha. Vide database/seeders/VisregTenantSeeder.php.
-        run: |
-          php artisan db:seed --force
-          php artisan db:seed --class=Database\\Seeders\\VisregTenantSeeder --force
-          # Título determinístico semeado ANTES do servidor Browser subir. Os fluxos
-          # Financeiro precisam de linha aberta para drawer, baixa e lote.
-          php artisan db:seed --class=Database\\Seeders\\VisregFinanceiroFlowSeeder --force
-          # TENANT-B SENTINELA (gate L3 Tier 0 — Tier0RenderIsolationTest): business 99 +
-          # admin id=99 + dado com token ZZLEAK99 nos campos visíveis. Sem este segundo
-          # tenant é IMPOSSÍVEL provar não-vazamento no render (o VisregTenantSeeder é
-          # mono-tenant). GATE REAL — se quebrar, o job falha. Vide VisregTenantBLeakSeeder.php.
-          php artisan db:seed --class=Database\\Seeders\\VisregTenantBLeakSeeder --force
-          # TENANT-VAZIO (gate L2 estado `empty`): business 98 + admin id=98, scaffold-only
-          # (zero dado de dominio) → as telas-lista renderizam o empty-state REAL e estavel.
-          # GATE REAL — se quebrar, o job falha. Vide VisregEmptyTenantSeeder.php.
-          php artisan db:seed --class=Database\\Seeders\\VisregEmptyTenantSeeder --force
-          # PIPELINE FSM DA OFICINA (gate L2 estados `default`/`dark` do oficina-os): o Quadro de
-          # OS é data-driven pelas etapas do processo `oficina_mecanica_os` — sem ele a tela cai
-          # no EmptyProcessState ("Quadro ainda não configurado"), ou seja, o FSM é PRÉ-CONDIÇÃO
-          # DE RENDER. Até 2026-07-16 nenhum seeder daqui semeava Oficina: o que fazia o kanban
-          # aparecer era VAZAMENTO do ConformanceProbesTest (que chama OficinaAutoFsmSeeder pra si
-          # e cujo afterEach nunca limpa o processo). Como aquele step é pulado no workflow_dispatch
-          # (`if: github.event_name != 'workflow_dispatch'`), o modo UPDATE gerava baseline com a
-          # tela não-configurada e o modo VERIFY a rejeitava (diff 6.7793% > τ_alto 2%, idêntico
-          # nos runs 29512533782/29514784095). Este seeder ESTABELECE a pré-condição nos DOIS
-          # modos em vez de herdar o vazamento. Zero-delta no verify: é o MESMO seeder canônico
-          # que já rodava de carona. Só biz=1 — o biz=98 fica sem FSM de propósito (estado
-          # `empty`). GATE REAL — se quebrar, o job falha. Vide VisregOficinaFsmSeeder.php.
-          php artisan db:seed --class=Database\\Seeders\\VisregOficinaFsmSeeder --force
-          # DADO do Quadro (estado `default` do oficina-os). O seeder ACIMA dá a pré-condição (as
-          # 6 etapas); este dá as OS. Sem ele o `default` fotografava o kanban com 0 OS e KPIs
-          # zerados — medido 2026-07-16 decodificando as .snap commitadas —, enquanto o docblock
-          # do IsolatedStatesBaselineTest promete que `default` é "o estado SEEDADO de cada tela".
-          # Quadro vazio => `default` ≡ `empty` a menos da flag process_seeded, e a única coisa
-          # que podia se mover entre 2 renders era ela (kanban vazio ⇄ "não configurado") — a
-          # faixa de ~10% que vinha sendo lida como flakiness. O DADO É A SONDA: com 6 cards,
-          # perder a pré-condição vira diff >> τ_alto e o gate GRITA, em vez de trocar um vazio
-          # por outro. Só biz=1 (ADR 0101); biz=98 segue sem OS (estado `empty`).
-          php artisan db:seed --class=Database\\Seeders\\VisregOficinaBoardSeeder --force
-          # PRÉ-CONDIÇÃO DA TELA Jana/Chat (/ia/conversa). Sem ela, `ChatController::index`
-          # CRIA a conversa no primeiro acesso e a mensagem nasce com `created_at` = instante
-          # REAL do render. E a hora da bolha vem do DADO, não do relógio congelado:
-          # `Chat.tsx:131` faz `new Date(m.created_at)` — COM argumento, caso que o shim
-          # VISREG_FREEZE_CLOCK deixa real DE PROPÓSITO (resources/visreg/freeze-clock.js:29).
-          # Resultado sem este seeder: baseline que drifa A CADA MINUTO. Mesma família do
-          # `oficina-os` acima — a tela depende de um dado que nenhum seeder estabelecia, e
-          # regravar a foto trataria o sintoma. GATE REAL — se quebrar, o job falha.
-          php artisan db:seed --class=Database\\Seeders\\VisregJanaChatSeeder --force
-          php artisan db:seed --class=Database\\Seeders\\VisregPontoSeeder --force
-          echo "=== seed check ==="
-          php artisan tinker --execute="echo 'business='.\App\Business::count().' users='.\App\User::count().' roles='.\Spatie\Permission\Models\Role::count().' fin_titulos='.DB::table('fin_titulos')->where('business_id', 1)->count();"
-          # PROVA da pré-condição do oficina-os (a sonda que o defeito 2 não tinha): conta os
-          # stages do processo da Oficina no biz=1. Espera-se > 0 nos DOIS modos — se um dispatch
-          # voltar a imprimir 0, a baseline de `dark`/`default` nasceria errada OUTRA VEZ.
-          php artisan tinker --execute="echo 'oficina_stages_biz1='.DB::table('sale_process_stages')->join('sale_processes','sale_processes.id','=','sale_process_stages.process_id')->where('sale_processes.business_id',1)->where('sale_processes.key','oficina_mecanica_os')->count();"
-          # Contagem das OS do fixture do Quadro. Espera-se 6 (1 por coluna) nos DOIS modos. Se
-          # voltar 0, o `default` regrediu pro quadro vazio — e aí a baseline não deve ser
-          # regravada, tem que se achar quem comeu o dado. ⚠️ Esta sonda mede o SEED, não o
-          # RENDER: quem prova o render é a própria baseline (6 cards). A lição do defeito 2 foi
-          # essa — sonda no momento errado não flagra tela degradada.
-          php artisan tinker --execute="echo 'oficina_os_fixture_biz1='.DB::table('service_orders')->where('business_id',1)->where('notes','like','VISREG-BOARD%')->count();"
-          # PROVA da pré-condição do Jana/Chat. Duas contagens, porque uma só mentiria:
-          #   jana_conversas_ativas_biz1= deve ser 1 — se for 0, o controller vai CRIAR a
-          #     conversa no render e a hora da bolha vira o relógio real;
-          #   jana_msg_fora_do_instante= deve ser 0 — conta mensagem cujo `created_at` NÃO é
-          #     o instante congelado. Qualquer valor > 0 significa que alguém (o controller,
-          #     um teste anterior) escreveu com o relógio vivo, e a baseline vai drifar. Não
-          #     regrave a baseline nesse caso: ache quem escreveu.
-          php artisan tinker --execute="echo 'jana_conversas_ativas_biz1='.DB::table('jana_conversas')->where('business_id',1)->where('status','ativa')->count().' jana_msg_fora_do_instante='.DB::table('jana_mensagens')->join('jana_conversas','jana_conversas.id','=','jana_mensagens.conversa_id')->where('jana_conversas.business_id',1)->whereDate('jana_mensagens.created_at','!=','2026-06-11')->count();"
+        run: bash scripts/tests/visreg-ci-setup.sh seed
 
       - name: Build Inertia bundles
         if: steps.mode.outputs.ui == 'true'
@@ -1222,61 +1079,6 @@ jobs:
         continue-on-error: true
         run: ./vendor/bin/pest tests/Browser/Repair/ProducaoOficinaIndexTest.php
 
-      # ── TEMA ESCURO nas Pages de produção (playbook tema-escuro thread 02 · ADVISORY) ──
-      # A thread 01 mede superfície clara no ESPELHO do protótipo (design-memory-gate.yml).
-      # Esta mede o React: as telas de visreg-screens.json, logadas no biz=1 fictício com
-      # ui_theme=dark, e o veredito sai da MESMA sonda (`--producao`), que é a dona do corte
-      # L/C/alfa e da allowlist. 1 linha por Page no log e no resumo — insumo da thread 03.
-      #
-      # SÓ RODA quando o PR toca a sonda ou o teste: são ~74 visitas, e o job já fica perto do
-      # teto de 25 min (medido 07/10: runs de PR com UI levam 18-23 min de parede). Rodar em
-      # todo PR de UI empurraria os outros para o `cancelled`.
-      #
-      # ADVISORY no nascimento (ADR 0261/0275): não há baseline de produção (baseline nova é
-      # decisão [W]), então a sonda RELATA os achados e só sai ≠0 quando NÃO MEDIU (exit 2).
-      # O Pest reprova tela que não renderiza ou não escurece — isso é ambiente, não achado.
-      - name: Tema escuro · produção — o PR toca a sonda?
-        if: always() && steps.mode.outputs.ui == 'true' && github.event_name == 'pull_request' && steps.setup-ok.outcome == 'success'
-        id: tema-escuro-diff
-        env:
-          BASE_SHA: ${{ github.event.pull_request.base.sha }}
-        run: |
-          set -euo pipefail
-          if [ "$(git rev-list --count --no-walk --merges HEAD)" = "1" ]; then BASE="$(git rev-parse HEAD^1)"; else BASE="$BASE_SHA"; fi
-          if git diff --name-only "$BASE" HEAD | grep -qE '^(scripts/design/tema-escuro-probe[.]mjs|tests/Browser/TemaEscuro/)'; then
-            echo "run=true" >> "$GITHUB_OUTPUT"; echo "toca a sonda/teste — mede"
-          else
-            echo "run=false" >> "$GITHUB_OUTPUT"; echo "não toca — pulado (não é verde: não mediu)"
-          fi
-
-      - name: Tema escuro · produção — Pages Inertia no escuro (ADVISORY)
-        if: always() && steps.tema-escuro-diff.outputs.run == 'true'
-        id: e2e-tema-escuro
-        continue-on-error: true
-        run: |
-          set -uo pipefail
-          ./vendor/bin/pest tests/Browser/TemaEscuro/TemaEscuroProducaoTest.php; pest_rc=$?
-          node scripts/design/tema-escuro-probe.mjs --producao storage/tema-escuro --json storage/tema-escuro-veredito.json | tee /tmp/tema-escuro-producao.txt; sonda_rc=${PIPESTATUS[0]}
-          {
-            echo "## Tema escuro — Pages de produção (pest_rc=$pest_rc · sonda_rc=$sonda_rc)"
-            echo ""
-            echo '```'
-            cat /tmp/tema-escuro-producao.txt
-            echo '```'
-          } >> "$GITHUB_STEP_SUMMARY"
-          [ "$sonda_rc" -eq 0 ] && [ "$pest_rc" -eq 0 ]
-
-      - name: Upload tema escuro · produção (registros + veredito)
-        if: always() && steps.tema-escuro-diff.outputs.run == 'true'
-        uses: actions/upload-artifact@v4
-        with:
-          name: tema-escuro-producao-${{ github.run_id }}
-          path: |
-            storage/tema-escuro/
-            storage/tema-escuro-veredito.json
-          if-no-files-found: warn
-          retention-days: 14
-
       # ── VEREDITO DOS ADVISORY DE BROWSER (visibilidade, NÃO enforcement) ─────────
       # NÃO lista o step de Purchase/Index · Etiquetas, e isso é deliberado: ele foi
       # promovido a ENFORCING em 2026-09-05 (flip [W]), logo NÃO tem `continue-on-error`
@@ -1316,7 +1118,6 @@ jobs:
           A_RECIPES: ${{ steps.e2e-recipes.outcome }}
           A_VISAO_GERAL: ${{ steps.e2e-visao-geral.outcome }}
           A_REPAIR_PRODUCAO: ${{ steps.e2e-repair-producao.outcome }}
-          A_TEMA_ESCURO: ${{ steps.e2e-tema-escuro.outcome }}
           A_PATR_ALOCACOES: ${{ steps.e2e-patrimonio-alocacoes.outcome }}
           A_PATR_CONFIGURACOES: ${{ steps.e2e-patrimonio-configuracoes.outcome }}
           A_PATR_MANUTENCOES: ${{ steps.e2e-patrimonio-manutencoes.outcome }}
@@ -1356,7 +1157,6 @@ jobs:
           registrar "E2E de render · Manufacturing/Recipes" "$A_RECIPES"
           registrar "E2E de render · Home/Visao geral" "$A_VISAO_GERAL"
           registrar "E2E de render · Repair/ProducaoOficina" "$A_REPAIR_PRODUCAO"
-          registrar "Tema escuro · produção (só quando o PR toca a sonda)" "$A_TEMA_ESCURO"
           registrar "E2E de render · Patrimonio/Alocacoes" "$A_PATR_ALOCACOES"
           registrar "E2E de render · Patrimonio/Configuracoes" "$A_PATR_CONFIGURACOES"
           registrar "E2E de render · Patrimonio/Manutencoes" "$A_PATR_MANUTENCOES"
@@ -1759,3 +1559,156 @@ jobs:
               repo: context.repo.repo,
               body,
             });
+  # ── TEMA ESCURO nas Pages de produção (playbook tema-escuro · threads 02 e 05) ──────────
+  # Job PRÓPRIO, não step do `visual-regression`: medido 2026-10-13 nos 60 runs de PR mais
+  # recentes, os jobs pesados verdes levaram 1048-1316s contra o teto de 1500s, e a sonda
+  # custa ~225s (run 37608542269). Somada ao job, 3 dos 13 verdes passariam do teto. O
+  # 05-baseline.md manda job próprio nesse caso, sem cortar universo.
+  #
+  # Mede as telas de visreg-screens.json logadas no biz=1 fictício com ui_theme=dark; o
+  # veredito sai da sonda (`--producao`), dona do corte L/C/alfa e da allowlist. A catraca
+  # (`--catraca`) compara com scripts/design/tema-escuro-producao-baseline.json: reprova Page
+  # MEDIDA com superfície clara fora da baseline e contagem que sobe; contagem que desce só
+  # avisa, e o PR baixa a baseline com `--write-baseline-producao`. Decisões D2 e D3 de 07/10.
+  #
+  # Roda em PR que toca Pages, CSS, a sonda, o teste ou a baseline. Fora disso, skip-as-pass
+  # (pulado não é verde de medição: não mediu). A preparação do Laravel e a semente são as
+  # do job principal, pelo mesmo script.
+  tema-escuro-producao:
+    name: tema-escuro · Pages de produção vs baseline
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: oimpresso_test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping --silent"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+          fetch-depth: 100
+
+      - name: O PR toca Pages, CSS ou a sonda?
+        id: toca
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          set -euo pipefail
+          # merge ref: o que o PR muda é HEAD^1..HEAD (mesmo motivo do "Classificar impacto").
+          if [ "$(git rev-list --count --no-walk --merges HEAD)" = "1" ]; then BASE="$(git rev-parse HEAD^1)"; else BASE="$BASE_SHA"; git fetch --no-tags --depth=100 origin "$BASE"; fi
+          alvo='^(resources/js/Pages/|resources/css/|scripts/design/tema-escuro-|tests/Browser/TemaEscuro/|scripts/tests/visreg-ci-setup[.]sh)'
+          if git diff --name-only "$BASE" HEAD | grep -qE "$alvo"; then
+            echo "run=true" >> "$GITHUB_OUTPUT"; echo "toca — mede"
+          else
+            echo "run=false" >> "$GITHUB_OUTPUT"; echo "não toca Pages/CSS/sonda — skip-as-pass (não mediu)"
+          fi
+
+      - name: Setup PHP
+        if: steps.toca.outputs.run == 'true'
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          # SEM `opentelemetry`: a auto-instrumentação opentelemetry-auto-laravel
+          # (QueryWatcher) acessa contexto OTel não-inicializado DENTRO do fiber do
+          # servidor do Pest Browser → ErrorException fatal em toda query DB das telas
+          # autenticadas (Fase B). O gate visual não precisa de telemetria.
+          extensions: mbstring, dom, fileinfo, pdo_mysql, gd
+          coverage: none
+
+      - name: Wait for MySQL ready
+        if: steps.toca.outputs.run == 'true'
+        run: |
+          for i in {1..30}; do
+            if mysqladmin ping -h127.0.0.1 -uroot -proot --silent; then
+              echo "MySQL ready"
+              break
+            fi
+            echo "Waiting MySQL... $i"
+            sleep 2
+          done
+
+      - name: Setup Node
+        if: steps.toca.outputs.run == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.17.0
+
+      - name: Cache Composer
+        if: steps.toca.outputs.run == 'true'
+        uses: actions/cache@v4
+        with:
+          path: vendor
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+
+      - name: Install Composer dependencies
+        if: steps.toca.outputs.run == 'true'
+        # --ignore-platform-req=ext-opentelemetry: o pacote opentelemetry-auto-laravel
+        # exige a ext no platform check, mas removemos a ext de propósito (ver Setup PHP).
+        # O pacote degrada gracioso sem a ext (hooks não registram).
+        run: composer install --no-progress --no-interaction --prefer-dist --no-scripts --ignore-platform-req=ext-opentelemetry
+
+      - name: Install NPM dependencies
+        if: steps.toca.outputs.run == 'true'
+        run: npm ci
+
+
+      - name: Install Playwright (só chromium)
+        if: steps.toca.outputs.run == 'true'
+        timeout-minutes: 8
+        run: npx playwright install --with-deps chromium
+
+      - name: Setup Laravel
+        if: steps.toca.outputs.run == 'true'
+        run: bash scripts/tests/visreg-ci-setup.sh laravel
+
+      - name: Seed demo tenant
+        if: steps.toca.outputs.run == 'true'
+        run: bash scripts/tests/visreg-ci-setup.sh seed
+
+      - name: Build Inertia bundles
+        if: steps.toca.outputs.run == 'true'
+        run: npm run build:inertia
+
+      - name: Sonda + teste da sonda (partes puras e CLI de fora)
+        if: steps.toca.outputs.run == 'true'
+        run: |
+          node scripts/design/tema-escuro-probe.mjs --selftest
+          node scripts/design/tema-escuro-probe.test.mjs
+
+      # Este step decide o job: pest_rc≠0 é tela que não renderizou ou não escureceu (ambiente);
+      # sonda_rc=2 é NÃO MEDI; sonda_rc=1 é superfície clara acima da baseline. Nenhum é verde.
+      - name: Tema escuro · Pages de produção vs baseline
+        if: steps.toca.outputs.run == 'true'
+        run: |
+          set -uo pipefail
+          ./vendor/bin/pest tests/Browser/TemaEscuro/TemaEscuroProducaoTest.php; pest_rc=$?
+          node scripts/design/tema-escuro-probe.mjs --producao storage/tema-escuro --catraca --json storage/tema-escuro-veredito.json | tee /tmp/tema-escuro-producao.txt; sonda_rc=${PIPESTATUS[0]}
+          {
+            echo "## Tema escuro — Pages de produção vs baseline (pest_rc=$pest_rc · sonda_rc=$sonda_rc)"
+            echo ""
+            echo '```'
+            cat /tmp/tema-escuro-producao.txt
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+          [ "$sonda_rc" -eq 0 ] && [ "$pest_rc" -eq 0 ]
+
+      - name: Upload tema escuro · produção (registros + veredito)
+        if: always() && steps.toca.outputs.run == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: tema-escuro-producao-${{ github.run_id }}
+          path: |
+            storage/tema-escuro/
+            storage/tema-escuro-veredito.json
+          if-no-files-found: warn
+          retention-days: 14
