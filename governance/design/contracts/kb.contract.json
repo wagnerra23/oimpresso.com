@@ -1,0 +1,27 @@
+{
+  "_nota": "Derivado do alvo governance/design/targets/soltas--kb--index.alvo.json (thread A1 do playbook telas-soltas), não do .tsx. Âncoras postas nesta thread (só o atributo data-contract; RUNBOOK da tela criado para o hook). Copy só onde protótipo, base.assinatura do alvo e código da Page (sem comentário) dizem literalmente o mesmo, conferida por máquina na faixa de cada seção. Fora: `abas_mobile` (a Page não tem as abas móveis do protótipo). Sem copy: nenhuma string da tela aparece literalmente no protótipo e no alvo (medido também no #8934); o contrato trava âncoras e ordem. `header` fica num <div> em volta do PageHeader de Components/shared, que não repassa atributos ao DOM; `stats` vai no KpiGrid, que declara e repassa `data-contract`.",
+  "tela": "kb/Index",
+  "fonte": "prototipo-ui/cowork/Wagner/kb-page.jsx",
+  "alvo": [
+    "resources/js/Pages/kb/Index.tsx"
+  ],
+  "secoes": [
+    {
+      "id": "header",
+      "copy": []
+    },
+    {
+      "id": "stats",
+      "copy": []
+    },
+    {
+      "id": "tri",
+      "copy": []
+    }
+  ],
+  "ordem": [
+    "header",
+    "stats",
+    "tri"
+  ]
+}

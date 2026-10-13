@@ -1,7 +1,5 @@
 {
   "gerado": "2026-10-06",
   "nota": "só encolhe — entrada que some do run sai daqui no mesmo PR",
-  "achados": [
-    "cmp-grade :: span.gmi-swatch"
-  ]
+  "achados": []
 }

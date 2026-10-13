@@ -2,7 +2,7 @@
 # Backlog indexado (gerado)
 
 > Fonte: as US-* dos `memory/requisitos/<Mod>/SPEC.md` (canon, ADR 0070). US abertas (status ∉ done/cancelled).
-> **944 tarefas abertas** em **53 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
+> **950 tarefas abertas** em **53 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
 
 ## Índice por módulo
 
@@ -25,6 +25,7 @@
 | [`Connector`](#connector) | 20 | 0 | 0 | 0 | 19 |
 | [`Pcp`](#pcp) | 20 | 0 | 0 | 0 | 20 |
 | [`Forja`](#forja) | 19 | 0 | 1 | 0 | 7 |
+| [`Mwart`](#mwart) | 19 | 0 | 0 | 0 | 19 |
 | [`Vestuario`](#vestuario) | 19 | 0 | 0 | 0 | 19 |
 | [`Compras`](#compras) | 18 | 0 | 0 | 0 | 17 |
 | [`ComunicacaoVisual`](#comunicacaovisual) | 18 | 0 | 0 | 0 | 18 |
@@ -34,7 +35,6 @@
 | [`Essentials`](#essentials) | 15 | 0 | 0 | 0 | 15 |
 | [`Ponto`](#ponto) | 15 | 0 | 0 | 0 | 15 |
 | [`Comissao`](#comissao) | 14 | 0 | 0 | 0 | 14 |
-| [`Mwart`](#mwart) | 13 | 0 | 0 | 0 | 13 |
 | [`PaymentGateway`](#paymentgateway) | 13 | 0 | 0 | 0 | 13 |
 | [`NFSe`](#nfse) | 12 | 0 | 0 | 0 | 12 |
 | [`PontoWr2`](#pontowr2) | 12 | 0 | 0 | 0 | 12 |
@@ -807,6 +807,31 @@
 - **US-FORJA-008** — Requisitos da Forja no formato atual — **oportunístico** _(`p1` · @[W])_
 - **US-FORJA-007** — WIP por pessoa vs máximo declarado _(`p2` · @[W])_
 
+## Mwart
+
+
+### todo
+
+- **US-MWART-001** — Camada 2+3 enforcement — Hook + CI workflow _(`p0` · @wagner)_
+- **US-MWART-002** — Backfill — audit das 78 telas Inertia já existentes _(`p1` · @wagner)_
+- **US-MWART-004** — Onda 1 — migrar Vendas, PDV & Caixa e desligar Blade _(`p1`)_
+- **US-MWART-003** — Métricas de adoção do processo _(`p2` · @wagner)_
+- **US-MWART-005** — Onda 2 — migrar Clientes & contatos e desligar /contacts _(`p2`)_
+- **US-MWART-006** — Onda 3 — migrar Produtos & catálogo e desligar Blade _(`p2`)_
+- **US-MWART-007** — Onda 4 — migrar Estoque & inventário e desligar Blade _(`p2`)_
+- **US-MWART-008** — Onda 5 — migrar Compras & suprimentos e desligar Blade _(`p2`)_
+- **US-MWART-009** — Onda 6 — migrar Contábil & tesouraria (camada Account) e desligar Blade _(`p2`)_
+- **US-MWART-011** — Onda 8 — migrar Relatórios (a represa) e desligar Blade _(`p2`)_
+- **US-MWART-013** — Onda 10 — gate de zero-Blade (prova de honestidade [CX]) _(`p2`)_
+- **US-MWART-014** — Onda 6a — Despesas: baseline de contrato do index (F2) _(`p2`)_
+- **US-MWART-015** — Onda 6a — Despesas: ação dupla Blade/Inertia (F2) _(`p2`)_
+- **US-MWART-016** — Onda 6a — Despesas: lista React (F3) _(`p2`)_
+- **US-MWART-017** — Onda 6a — Despesas: drawer e ações (F3) _(`p2`)_
+- **US-MWART-018** — Onda 6a — Despesas: nova despesa e categorias (F3) _(`p2`)_
+- **US-MWART-019** — Onda 6a — Despesas: QA e paridade alta (F4) _(`p2`)_
+- **US-MWART-010** — Onda 7 — migrar Configurações, admin & documentos e desligar Blade _(`p3`)_
+- **US-MWART-012** — Onda 9 — migrar Acesso & onboarding e remover /login/old _(`p3`)_
+
 ## Vestuario
 
 
@@ -1010,25 +1035,6 @@
 - **US-COMM-012** — Aprovação workflow + audit trail (manager review) — **P1**
 - **US-COMM-013** — Mobile self-service vendedor — **P2**
 - **US-COMM-014** — Migração legacy `users.cmmsn_percent` + `transactions.commission_agent` — **P3**
-
-## Mwart
-
-
-### todo
-
-- **US-MWART-001** — Camada 2+3 enforcement — Hook + CI workflow _(`p0` · @wagner)_
-- **US-MWART-002** — Backfill — audit das 78 telas Inertia já existentes _(`p1` · @wagner)_
-- **US-MWART-004** — Onda 1 — migrar Vendas, PDV & Caixa e desligar Blade _(`p1`)_
-- **US-MWART-003** — Métricas de adoção do processo _(`p2` · @wagner)_
-- **US-MWART-005** — Onda 2 — migrar Clientes & contatos e desligar /contacts _(`p2`)_
-- **US-MWART-006** — Onda 3 — migrar Produtos & catálogo e desligar Blade _(`p2`)_
-- **US-MWART-007** — Onda 4 — migrar Estoque & inventário e desligar Blade _(`p2`)_
-- **US-MWART-008** — Onda 5 — migrar Compras & suprimentos e desligar Blade _(`p2`)_
-- **US-MWART-009** — Onda 6 — migrar Contábil & tesouraria (camada Account) e desligar Blade _(`p2`)_
-- **US-MWART-011** — Onda 8 — migrar Relatórios (a represa) e desligar Blade _(`p2`)_
-- **US-MWART-013** — Onda 10 — gate de zero-Blade (prova de honestidade [CX]) _(`p2`)_
-- **US-MWART-010** — Onda 7 — migrar Configurações, admin & documentos e desligar Blade _(`p3`)_
-- **US-MWART-012** — Onda 9 — migrar Acesso & onboarding e remover /login/old _(`p3`)_
 
 ## PaymentGateway
 
