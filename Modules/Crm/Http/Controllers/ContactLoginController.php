@@ -4,11 +4,13 @@ namespace Modules\Crm\Http\Controllers;
 
 use App\BusinessLocation;
 use App\Http\Controllers\Controller;
+use App\Services\FeatureFlagService;
 use App\User;
 use App\Utils\ModuleUtil;
 use DB;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Inertia\Inertia;
 use Modules\Crm\Entities\CrmContact;
 use Modules\Crm\Entities\CrmContactPersonCommission;
 use Modules\Crm\Utils\CrmUtil;
@@ -17,6 +19,15 @@ use Yajra\DataTables\Facades\DataTables;
 
 class ContactLoginController extends Controller
 {
+    /**
+     * Flag do caminho React (thread crm/playbook/16, F3). Convenção `useV2<Modulo><Tela>`.
+     * Sem a chave no GrowthBook o FeatureFlagService cai no fallbackDefaults, que não a lista:
+     * default OFF, a Blade segue servindo. Ligar é toggle (flag:set --biz=1), não deploy.
+     *
+     * @see memory/requisitos/Crm/RUNBOOK-logins.md
+     */
+    private const FLAG_V2 = 'useV2CrmLogins';
+
     /**
      * All Utils instance.
      */
@@ -306,11 +317,65 @@ class ContactLoginController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
-        $business_id = request()->session()->get('user.business_id');
+        $business_id = (int) request()->session()->get('user.business_id');
+
+        // `?classico=1` mantém a Blade alcançável com a flag ligada: adicionar, editar e excluir seguem nos modais dela.
+        if (! request()->boolean('classico') && app(FeatureFlagService::class)->isOn(self::FLAG_V2, ['business_id' => $business_id])) {
+            $filtros = array_filter(request()->only('contact_id', 'q'), fn ($v) => $v !== null && $v !== '');
+
+            return Inertia::render('Crm/Logins/Index', [
+                'filtros' => $filtros,
+                'opcoes' => Inertia::defer(fn () => [
+                    'contatos' => collect(CrmContact::contactsDropdownForLogin($business_id, true))
+                        ->map(fn ($label, $id) => ['value' => (string) $id, 'label' => (string) $label])->values(),
+                ]),
+                'logins' => Inertia::defer(fn () => $this->loginsDoNegocio($business_id, $filtros)),
+            ]);
+        }
+
         $contacts = CrmContact::contactsDropdownForLogin($business_id, true);
 
         return view('crm::contact_login.all_contacts_login')
             ->with(compact('contacts'));
+    }
+
+    /**
+     * Logins de contato do negócio — mesma regra do `index()` ajax (usuário do negócio com contato
+     * vinculado), mais o contato preso ao mesmo negócio. NUNCA seleciona `password`/`remember_token`:
+     * a lista vai inteira para as props.
+     */
+    private function loginsDoNegocio(int $business_id, array $filtros)
+    {
+        $query = User::query()
+            ->where('users.business_id', $business_id)
+            ->whereHas('contact', fn ($q) => $q->where('business_id', $business_id))
+            ->with(['contact' => fn ($q) => $q->select('id', 'name', 'prefix', 'first_name', 'last_name')])
+            ->select('id', 'username', 'email', 'crm_contact_id', 'surname', 'first_name', 'last_name', 'crm_department', 'crm_designation')
+            ->orderBy('username');
+
+        if (! empty($filtros['contact_id'])) {
+            $query->where('crm_contact_id', (int) $filtros['contact_id']);
+        }
+        if (! empty($filtros['q'])) {
+            $termo = '%'.$filtros['q'].'%';
+            $query->where(fn ($q) => $q->where('username', 'like', $termo)
+                ->orWhereRaw("CONCAT_WS(' ', surname, first_name, last_name) like ?", [$termo]));
+        }
+
+        return $query->paginate(25)->withQueryString()->through(function (User $u) {
+            $c = $u->contact;
+            $pessoa = trim(implode(' ', array_filter([$c?->prefix, $c?->first_name, $c?->last_name])));
+
+            return [
+                'id' => $u->id,
+                'contato' => $pessoa !== '' ? $pessoa : (string) ($c?->name ?? ''),
+                'usuario' => (string) ($u->username ?? ''),
+                'nome' => trim(implode(' ', array_filter([$u->surname, $u->first_name, $u->last_name]))),
+                'email' => (string) ($u->email ?? ''),
+                'departamento' => $u->crm_department,
+                'designacao' => $u->crm_designation,
+            ];
+        });
     }
 
     /**
