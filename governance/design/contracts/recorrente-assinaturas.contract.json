@@ -1,0 +1,54 @@
+{
+  "_nota": "Derivado do alvo governance/design/targets/recorrente--assinaturas--index.alvo.json (thread A1 do playbook recorrente, rota `rb-assinaturas` do protótipo), não do .tsx. Seções do alvo → âncoras postas nesta thread (só o atributo data-contract; RUNBOOK-recurring-billing-index.md criado para o hook). Copy só onde protótipo e Page dizem literalmente o mesmo, conferida por máquina na base.assinatura do alvo e no código da Page sem comentário. Fora: `periodo` (a Page não tem a barra fin-periodbar; o filtro 'Próxima cobrança' vive na coluna de filtros). `lista` sem copy: o texto da lista é dado das assinaturas, e o vazio 'Nada por aqui.' não está no protótipo.",
+  "tela": "RecurringBilling/Index",
+  "fonte": "prototipo-ui/cowork/Wagner/cobranca-recorrente-page.jsx",
+  "alvo": [
+    "resources/js/Pages/RecurringBilling/Index.tsx"
+  ],
+  "secoes": [
+    {
+      "id": "cabecalho",
+      "copy": [
+        "Cobrança recorrente",
+        "Nova assinatura"
+      ]
+    },
+    {
+      "id": "kpis",
+      "copy": [
+        "MRR · receita recorrente",
+        "Churn este mês",
+        "Próxima cobrança",
+        "Retentado falhos",
+        "requer ação"
+      ]
+    },
+    {
+      "id": "filtros",
+      "copy": [
+        "Mostrar só favoritos",
+        "Status",
+        "Esta semana",
+        "Próx. 30 dias",
+        "Personalizado",
+        "Todas",
+        "Em dia",
+        "Retentando",
+        "Falharam",
+        "Pausadas",
+        "Canceladas",
+        "MRR filtrado"
+      ]
+    },
+    {
+      "id": "lista",
+      "copy": []
+    }
+  ],
+  "ordem": [
+    "cabecalho",
+    "kpis",
+    "filtros",
+    "lista"
+  ]
+}
