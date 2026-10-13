@@ -12,20 +12,27 @@ export interface StageTone {
 }
 
 // token `color` do SaleProcessStage → classes (etapas do oficina_mecanica_os)
+//
+// PAR `dark:` NO `badge` (2026-10-13, playbook tema-escuro thread 03) — o mesmo defeito que
+// `emphasisClass` e `kpiTone` abaixo já corrigiram: `bg-<hue>-100` é claro e não tem par
+// automático. A sonda de produção (run 38459929893) acusou no escuro o contador da coluna
+// (`span.text-xs.px-1.5`, oklch(0.968 0.007 247.9) = slate-100) 6 vezes no /oficina-auto/
+// ordens-servico. O par é o dos KPIs: fundo `950/40`, texto `300`. O `badge` também pinta a
+// marca da Grade (Board.tsx), que ganha o mesmo par. O LIGHT fica intacto.
 const TONE_BY_COLOR: Record<string, StageTone> = {
-  gray:    { dot: 'bg-slate-400',   topBorder: 'border-t-slate-400',   badge: 'bg-slate-100 text-slate-600' },
-  blue:    { dot: 'bg-blue-400',    topBorder: 'border-t-blue-400',    badge: 'bg-blue-100 text-blue-700' },
-  amber:   { dot: 'bg-amber-400',   topBorder: 'border-t-amber-400',   badge: 'bg-amber-100 text-amber-800' },
-  violet:  { dot: 'bg-violet-400',  topBorder: 'border-t-violet-400',  badge: 'bg-violet-100 text-violet-700' },
-  indigo:  { dot: 'bg-indigo-400',  topBorder: 'border-t-indigo-400',  badge: 'bg-indigo-100 text-indigo-700' },
-  emerald: { dot: 'bg-emerald-400', topBorder: 'border-t-emerald-400', badge: 'bg-emerald-100 text-emerald-700' },
-  green:   { dot: 'bg-green-400',   topBorder: 'border-t-green-400',   badge: 'bg-green-100 text-green-700' },
-  cyan:    { dot: 'bg-cyan-400',    topBorder: 'border-t-cyan-400',    badge: 'bg-cyan-100 text-cyan-700' },
-  rose:    { dot: 'bg-rose-400',    topBorder: 'border-t-rose-400',    badge: 'bg-rose-100 text-rose-800' },
-  orange:  { dot: 'bg-orange-400',  topBorder: 'border-t-orange-400',  badge: 'bg-orange-100 text-orange-700' },
+  gray:    { dot: 'bg-slate-400',   topBorder: 'border-t-slate-400',   badge: 'bg-slate-100 dark:bg-slate-950/40 text-slate-600 dark:text-slate-300' },
+  blue:    { dot: 'bg-blue-400',    topBorder: 'border-t-blue-400',    badge: 'bg-blue-100 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300' },
+  amber:   { dot: 'bg-amber-400',   topBorder: 'border-t-amber-400',   badge: 'bg-amber-100 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300' },
+  violet:  { dot: 'bg-violet-400',  topBorder: 'border-t-violet-400',  badge: 'bg-violet-100 dark:bg-violet-950/40 text-violet-700 dark:text-violet-300' },
+  indigo:  { dot: 'bg-indigo-400',  topBorder: 'border-t-indigo-400',  badge: 'bg-indigo-100 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300' },
+  emerald: { dot: 'bg-emerald-400', topBorder: 'border-t-emerald-400', badge: 'bg-emerald-100 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300' },
+  green:   { dot: 'bg-green-400',   topBorder: 'border-t-green-400',   badge: 'bg-green-100 dark:bg-green-950/40 text-green-700 dark:text-green-300' },
+  cyan:    { dot: 'bg-cyan-400',    topBorder: 'border-t-cyan-400',    badge: 'bg-cyan-100 dark:bg-cyan-950/40 text-cyan-700 dark:text-cyan-300' },
+  rose:    { dot: 'bg-rose-400',    topBorder: 'border-t-rose-400',    badge: 'bg-rose-100 dark:bg-rose-950/40 text-rose-800 dark:text-rose-300' },
+  orange:  { dot: 'bg-orange-400',  topBorder: 'border-t-orange-400',  badge: 'bg-orange-100 dark:bg-orange-950/40 text-orange-700 dark:text-orange-300' },
 };
 
-const FALLBACK_TONE: StageTone = { dot: 'bg-slate-400', topBorder: 'border-t-slate-400', badge: 'bg-slate-100 text-slate-600' };
+const FALLBACK_TONE: StageTone = { dot: 'bg-slate-400', topBorder: 'border-t-slate-400', badge: 'bg-slate-100 dark:bg-slate-950/40 text-slate-600 dark:text-slate-300' };
 
 export function toneForColor(color: string | null | undefined): StageTone {
   return (color ? TONE_BY_COLOR[color] : undefined) ?? FALLBACK_TONE;
