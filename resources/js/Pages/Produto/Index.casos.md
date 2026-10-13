@@ -312,6 +312,7 @@ last_run_ci: "run 38087431948 (lane Estoque · MySQL, commit 59fe58ae, com o arq
 - **O que NÃO faz, como no protótipo:** não lembra a largura entre visitas (o menu "Colunas" lembra quais colunas aparecem; a largura, não); não tem atalho de teclado nem toque — é só mouse; não tem duplo clique para ajustar ao conteúdo.
 - **Diferença deliberada do protótipo:** lá a alça é deslocada 3px para fora da coluna e o cabeçalho vizinho cobre essa parte — sobram 4px úteis (medido com `elementFromPoint`). Aqui os 7px ficam inteiros dentro da coluna, para a borda ser mais fácil de pegar.
 - **Onde mora:** `resizable` é opção nova do `shared/DataTable`, desligada por padrão — as outras telas que usam a tabela não mudam.
+- **Defeito da primeira versão, medido em produção (2026-10-13, logo depois do deploy do #9233):** a largura era guardada dentro da tabela, e a tabela mora dentro de `<Deferred data="lista">`, que a desmonta enquanto a lista recarrega. Ordenar por "Estoque atual" devolveu Produto de 348 para 300 (o nó `<table>` era outro; o rodapé da página, fora do `<Deferred>`, era o mesmo). O aceite acima — "ordenar, trocar de página e filtrar não a desfazem" — estava escrito e era falso. Os testes daquela versão usavam `rerender`, que mantém a tabela montada, e por isso não viam. Conserto: a largura passa a morar na página (`columnWidths` + `onColumnResize`), e o caso `ordenar, trocar de página ou filtrar (a tabela some e volta)…` reproduz o intervalo sem tabela.
 - **Status: ⬜** — nasce neste PR; verde esperado. Dos três arquivos de teste, só o caso do `a11y-primitives` roda em lane.
 
 ---
@@ -416,6 +417,7 @@ last_run_ci: "run 38087431948 (lane Estoque · MySQL, commit 59fe58ae, com o arq
 - Gate: `scripts/casos-coverage-guard.mjs` (G-1/G-2/G-5/G-6/G-7 — [ADR 0264](../../../../memory/decisions/0264-governanca-executavel-trio-dominio-e2e.md))
 
 ## Trilha do tempo
+- 2026-10-13 · [F+C] **UC-PIDX-16, conserto:** a largura arrastada sumia ao ordenar/paginar/filtrar (tabela dentro de `<Deferred>` é desmontada); passou a ser guardada pela página. Achado no arrasto real em produção, depois do deploy.
 - 2026-10-13 · [F+C] **UC-PIDX-16** (redimensionar coluna): `shared/DataTable` ganha a opção `resizable` (desligada por padrão) e a lista de produtos a liga; Ação e Imagem ficam fixas, como no protótipo. Rodapé passa a dizer "arraste a borda pra redimensionar".
 - 2026-10-13 · [F+C] **UC-PIDX-15** (estoque inicial em janela): o menu da linha abre a janela em vez da página Blade; `OpeningStockController::salvarDaJanela` confere o pedido e entrega ao `save()`; prova de estoque com produto gêmeo no `EstoqueInicialJanelaTest`.
 - 2026-10-12 · [F+C] **UC-PIDX-14** ("Cadastro rápido" na barra da lista): a janela manda os dois preços digitados e o servidor monta o pedido do formulário Blade e entrega ao `saveQuickProduct`; prova de valor por dois caminhos no `ProdutoListaCadastroRapidoTest`.

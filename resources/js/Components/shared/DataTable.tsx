@@ -77,8 +77,14 @@ declare module '@tanstack/react-table' {
  * Números do protótipo (`prototipo-ui/design-system/components/DataGrid/DataGrid.jsx`, medido com
  * arrasto real em 2026-10-13 na lista de produtos): alça de 7px na borda direita do cabeçalho,
  * piso de 48px, largura nova = largura RENDERIZADA no início do arrasto + deslocamento do mouse.
- * Sem alça na última coluna nem na coluna que declara `resizable: false`. A largura vive só
- * enquanto a tabela está montada — ordenar e trocar de página não a perdem, recarregar perde.
+ * Sem alça na última coluna nem na coluna que declara `resizable: false`.
+ *
+ * ONDE A LARGURA FICA GUARDADA. Por padrão, na própria tabela — e morre com ela. Tabela dentro
+ * de `<Deferred>` é DESMONTADA a cada navegação (o fallback entra no lugar enquanto a prop
+ * recarrega), então ordenar, paginar e filtrar zeravam a largura. Medido em produção em
+ * 2026-10-13, na lista de produtos: depois de ordenar, o nó `<table>` era outro e Produto
+ * voltava de 348 para 300, enquanto o rodapé da página (fora do `<Deferred>`) era o mesmo nó.
+ * Quem está nessa situação guarda a largura do lado de fora: `columnWidths` + `onColumnResize`.
  *
  * Uma diferença de propósito: no protótipo a alça é deslocada 3px pra fora da coluna, e o
  * cabeçalho vizinho (que pinta por cima) cobre essa parte — sobram 4px úteis, medidos com
@@ -353,6 +359,14 @@ interface Props<T> {
    * Omitido = sem alça, markup de sempre.
    */
   resizable?: boolean;
+  /**
+   * Larguras arrastadas, por id de coluna, guardadas por QUEM USA a tabela. Passe junto de
+   * `onColumnResize` quando a tabela é desmontada entre navegações (ex.: dentro de `<Deferred>`)
+   * e a largura precisa sobreviver. Omitido = a tabela guarda sozinha, e perde ao desmontar.
+   */
+  columnWidths?: Record<string, number>;
+  /** Chamado a cada passo do arrasto, com o id da coluna e a largura nova (já com o piso). */
+  onColumnResize?: (columnId: string, largura: number) => void;
   /** Caixinha por linha + "marcar todas" no cabeçalho — ver `SelecaoDaTabela`. */
   selection?: SelecaoDaTabela<T>;
   /**
@@ -449,11 +463,15 @@ export default function DataTable<T>({
   rowClickable,
   totalLabel = 'itens',
   resizable = false,
+  columnWidths,
+  onColumnResize,
 }: Props<T>) {
   const [searchTerm, setSearchTerm] = useState(initialSearch);
   // Larguras que o usuário arrastou, por id de coluna. Por id e não por posição: ligar ou
   // desligar uma coluna no meio não pode jogar a largura de uma na vizinha.
-  const [arrastadas, setArrastadas] = useState<Record<string, number>>({});
+  const [arrastadasAqui, setArrastadasAqui] = useState<Record<string, number>>({});
+  // Quem passa `columnWidths` é o dono da largura; a tabela só desenha e avisa.
+  const arrastadas = columnWidths ?? arrastadasAqui;
   const soltarArrasto = useRef<(() => void) | null>(null);
   // Tabela desmontada no meio de um arrasto não deixa listener no documento.
   useEffect(() => () => soltarArrasto.current?.(), []);
@@ -504,7 +522,8 @@ export default function DataTable<T>({
     const larguraInicial = th.getBoundingClientRect().width;
     const mover = (ev: MouseEvent) => {
       const nova = larguraArrastada(larguraInicial, xInicial, ev.clientX);
-      setArrastadas((m) => (m[columnId] === nova ? m : { ...m, [columnId]: nova }));
+      if (onColumnResize) onColumnResize(columnId, nova);
+      else setArrastadasAqui((m) => (m[columnId] === nova ? m : { ...m, [columnId]: nova }));
     };
     const soltar = () => {
       document.removeEventListener('mousemove', mover);

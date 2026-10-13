@@ -14,6 +14,7 @@
  * Comando: npx vitest run tests/js/datatable-redimensionar.test.tsx
  */
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
+import { useState } from 'react';
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { router } from '@inertiajs/react';
 import type { ColumnDef } from '@tanstack/react-table';
@@ -238,6 +239,77 @@ describe('DataTable resizable', () => {
     expect(tipos).toContain('mousemove');
     expect(tipos).toContain('mouseup');
     remover.mockRestore();
+  });
+
+  // ── Quem guarda a largura ────────────────────────────────────────────────────────────────
+  // Medido em produção em 2026-10-13 (lista de produtos): a tabela mora dentro de `<Deferred>`,
+  // que a DESMONTA a cada ordenação/página/filtro. A largura guardada na tabela morria junto —
+  // Produto voltava de 348 para 300. Os casos de `rerender` acima não pegam isso: no `rerender`
+  // a tabela continua montada.
+  it('guardada na tabela (padrão): desmontar e montar de novo PERDE a largura', () => {
+    function Tela() {
+      const [montada, setMontada] = useState(true);
+      return (
+        <div>
+          <button type="button" onClick={() => setMontada((m) => !m)}>alternar</button>
+          {montada ? <Tabela resizable /> : <p>carregando…</p>}
+        </div>
+      );
+    }
+    render(<Tela />);
+    renderizaCom('Nome', 300);
+    arrastar('Nome', 784, 834);
+    expect(larguras()[1]).toBe('350px');
+
+    fireEvent.click(screen.getByRole('button', { name: 'alternar' }));
+    expect(document.querySelector('table')).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: 'alternar' }));
+
+    expect(larguras()[1]).toBe('300px');
+  });
+
+  it('guardada por quem usa (columnWidths + onColumnResize): sobrevive à tabela ser desmontada e montada de novo', () => {
+    function Tela() {
+      const [montada, setMontada] = useState(true);
+      const [guardadas, setGuardadas] = useState<Record<string, number>>({});
+      return (
+        <div>
+          <button type="button" onClick={() => setMontada((m) => !m)}>alternar</button>
+          {montada ? (
+            <Tabela resizable columnWidths={guardadas} onColumnResize={(id: string, w: number) => setGuardadas((m) => ({ ...m, [id]: w }))} />
+          ) : (
+            <p>carregando…</p>
+          )}
+        </div>
+      );
+    }
+    render(<Tela />);
+    renderizaCom('Nome', 300);
+    arrastar('Nome', 784, 834);
+    expect(larguras()).toEqual(['96px', '350px', '150px', '120px']);
+
+    fireEvent.click(screen.getByRole('button', { name: 'alternar' }));
+    expect(document.querySelector('table')).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: 'alternar' }));
+
+    expect(larguras()).toEqual(['96px', '350px', '150px', '120px']);
+    expect(pisoDaTabela()).toBe('716px');
+  });
+
+  it('com dono de fora, a tabela só avisa: id da coluna + largura nova, a cada passo, já com o piso', () => {
+    const aoRedimensionar = vi.fn();
+    render(<Tabela resizable columnWidths={{ local: 200 }} onColumnResize={aoRedimensionar} />);
+    // A largura vem do dono, não da declarada (150).
+    expect(larguras()).toEqual(['96px', '300px', '200px', '120px']);
+    renderizaCom('Local', 200);
+
+    arrastar('Local', 500, 520, false);
+    fireEvent.mouseMove(document, { clientX: 100 });
+    fireEvent.mouseUp(document);
+
+    expect(aoRedimensionar.mock.calls).toEqual([['local', 220], ['local', 48]]);
+    // O dono não atualizou nada: a tabela não muda sozinha.
+    expect(larguras()).toEqual(['96px', '300px', '200px', '120px']);
   });
 
   it('fora do grid o cabeçalho com alça vira âncora dela (relative); sem alça, não', () => {
