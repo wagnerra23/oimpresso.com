@@ -3159,3 +3159,10 @@ Ocorrência da **LC-15**.
 - **Evidência:** `--pr 8813` antigo `NAO-EXECUTADO` (rc 1) × novo `EXECUTOU` (rc 0); `--selftest` 50/50 com bite pelo CLI de fora (`--pr-fixture`): o mesmo passo `skipped` segue `NAO-EXECUTADO`; três mutantes mortos.
 
 Ocorrência da **LC-33**.
+
+### 2026-10-13 — EMENDA da lápide 2026-07-27 (`jana:retention-purge`): no Patrimônio a retenção foi REABERTA pelo [W], como anonimização de campo pessoal
+
+> **Não reverte a lápide-mãe — RECORTA** (append-only). Ela segue valendo para a Jana e para o item #6 do loop IA-OS. O que muda é o alcance do limite dela, que dizia *"em qualquer entidade do ERP"* e por isso barrava a thread 05 do playbook `patrimonio`.
+- **O que mudou:** decisão [W] de 2026-10-07 no Cowork (D-LGPD-REABRE, índice do playbook `patrimonio`), textual: *"o descarte da 05 está errado — reabrir. Retenção ANONIMIZA campo pessoal, nunca apaga linha nem trilha de auditoria; nasce desligada (enabled=false). Ligar segue D-CANARY-LGPD."* Registrada na [ADR 0430](decisions/0430-retencao-lgpd-patrimonio-anonimiza-campo-pessoal.md).
+- **O limite (variante também proibida):** no Patrimônio (`Modules/AssetManagement`), retenção é **anonimizar o vínculo pessoal mantendo a linha**: `activity_log` e `asset_transactions` nunca perdem linha, o executor roda por empresa e nasce com `ASSETMANAGEMENT_RETENTION_ENABLED=false`. Ligar é D-CANARY-LGPD, do [W]. **Não estender esta reabertura à Jana** (`jana:retention-purge`, item #6 do loop): a decisão de 07/10 fala da 05 do Patrimônio, e a Jana segue sob a lápide-mãe até decisão [W] própria.
+- **Evidência:** índice do playbook `patrimonio` (decisão D-LGPD-REABRE, `respondida: true`) · ficha `05a-adr-e-chaves.md` · as 4 chaves `am_*` do `retention.php` medidas sem tabela no `_saida-04.md` §2b, corrigidas no mesmo PR desta emenda.
