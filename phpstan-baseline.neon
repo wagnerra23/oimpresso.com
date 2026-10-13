@@ -25126,7 +25126,7 @@ parameters:
 			path: app/Utils/ProductUtil.php
 
 		-
-			message: '#^Parameter \#1 \$input_number of method App\\Utils\\Util\:\:num_f\(\) expects int, App\\Utils\\decimal given\.$#'
+			message: '#^Parameter \#1 \$input_number of method App\\Utils\\Util\:\:num_f\(\) expects float\|int\|string, App\\Utils\\decimal given\.$#'
 			identifier: argument.type
 			count: 2
 			path: app/Utils/ProductUtil.php
