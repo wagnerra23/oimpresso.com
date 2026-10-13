@@ -137,7 +137,7 @@ function PedidosIndex({ e_atendente, atendente_escolhido, atendentes, itens, ped
               {(itens ?? []).length > 0 ? (
                 <ul className="divide-y rounded-lg border bg-card">
                   {(itens ?? []).map((i) => (
-                    <li key={i.id} className="flex flex-wrap items-center gap-x-3 gap-y-1 px-4 py-2 text-sm">
+                    <Inline asChild key={i.id} wrap gap={3} className="px-4 py-2 text-sm"><li>
                       <span className="font-medium">{i.mesa ?? '—'}</span>
                       <span className="text-muted-foreground">{i.cliente ?? '—'}</span>
                       <span className="font-mono"># {i.nota}</span>
@@ -149,7 +149,7 @@ function PedidosIndex({ e_atendente, atendente_escolhido, atendentes, itens, ped
                         onClick={() => setConfirmar({ tipo: 'item', id: i.id, nota: i.nota })}>
                         <Check className="size-4" /> Marcar como servido
                       </Button>
-                    </li>
+                    </li></Inline>
                   ))}
                 </ul>
               ) : (
@@ -169,12 +169,13 @@ function PedidosIndex({ e_atendente, atendente_escolhido, atendentes, itens, ped
                       <span className="font-mono font-semibold"># {p.nota}</span>
                       <span className="ml-auto">{selo(p.situacao)}</span>
                     </Inline>
-                    <dl className="mt-2 grid grid-cols-[auto_1fr] gap-x-3 gap-y-0.5 text-sm">
-                      <dt className="text-muted-foreground">Feito às</dt><dd>{feitoAs(p.feito_em)}</dd>
-                      <dt className="text-muted-foreground">Cliente</dt><dd>{p.cliente ?? '—'}</dd>
-                      <dt className="text-muted-foreground">Mesa</dt><dd>{p.mesa ?? '—'}</dd>
-                      <dt className="text-muted-foreground">Local</dt><dd>{p.local ?? '—'}</dd>
-                    </dl>
+                    <Stack asChild gap={0} className="mt-2 text-sm">
+                      <dl>
+                        {([['Feito às', feitoAs(p.feito_em)], ['Cliente', p.cliente], ['Mesa', p.mesa], ['Local', p.local]] as const).map(([rotulo, valor]) => (
+                          <Inline key={rotulo} gap={3}><dt className="w-16 shrink-0 text-muted-foreground">{rotulo}</dt><dd>{valor ?? '—'}</dd></Inline>
+                        ))}
+                      </dl>
+                    </Stack>
                     <ul className="mt-2 space-y-0.5 text-sm">
                       {p.itens.map((i) => <li key={i.id}><span className="font-mono">{i.quantidade} ×</span> {i.nome ?? '—'}</li>)}
                     </ul>
