@@ -30,12 +30,13 @@ Formulário de emissão de uma NFS-e: o operador informa competência, tomador (
 ## Goals — Features (faz)
 
 - Formulário `useForm` (Inertia) com campos: competência, tomador (nome/CNPJ/CPF/e-mail), descrição, código LC 116, valor dos serviços, alíquota ISS, `iss_retido`
+- Marcação "Serviço sujeito à retenção de PIS/COFINS/CSLL (Lei 10.833/2003, art. 30)", desligada por padrão; quem emite decide (decisão [W] 2026-10-13, R-NFSE-003)
 - Cálculo local em tempo real de ISS (`valor × alíquota`) e valor líquido (líquido = valor − ISS quando retido)
 - Pré-preenchimento a partir de uma venda (`venda` prop, via `?transaction_id=`) — contato, total e descrição default
 - Defaults do provider (`config`): código LC 116, alíquota, ambiente (produção/homologação)
 - Alerta quando o módulo não está configurado (`semConfig`) ou o certificado está inválido/expirado (`certAlerta`)
 - Submit `POST /nfse/emitir` → redireciona pra listagem com flash de "enviada para processamento"
-- Erros de validação server-side por campo (`errors`), AppShellV2 + PageHeader shared
+- Erros de validação server-side por campo (`errors`), AppShellV2 + PageHeader canon (`@/Components/PageHeader`, migrado em 2026-10-13 — ADR 0409: tocar a tela exigiu a cura)
 
 ---
 
@@ -44,7 +45,7 @@ Formulário de emissão de uma NFS-e: o operador informa competência, tomador (
 - ❌ NÃO emite de forma síncrona — dispara job assíncrono (`despacharEmissaoAsync`); status vem depois na listagem
 - ❌ NÃO configura certificado / provider / município (isso é setup do módulo, não desta tela)
 - ❌ NÃO edita nota já emitida (NFS-e autorizada é imutável)
-- ❌ NÃO calcula tributos além de ISS (sem IR/PIS/COFINS retidos nesta tela)
+- ❌ NÃO calcula na tela tributos além de ISS: a retenção de PIS/COFINS/CSLL é marcada aqui e calculada no envio pelo backend (regime da empresa). IRRF e INSS seguem fora. *(Revisado em 2026-10-13 por decisão [W]: "Marcação na nota". Antes dizia "sem IR/PIS/COFINS retidos nesta tela".)*
 - ❌ NÃO permite emitir sem certificado válido / módulo configurado (bloqueia com alerta)
 - ❌ NÃO cria/edita o cadastro do tomador (usa o que veio da venda ou digitado; não persiste contato)
 

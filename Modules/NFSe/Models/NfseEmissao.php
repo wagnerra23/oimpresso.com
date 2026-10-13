@@ -20,6 +20,7 @@ class NfseEmissao extends Model
         'lc116_codigo', 'cnae', 'descricao',
         'valor_servicos', 'valor_deducoes', 'valor_base_calculo',
         'aliquota_iss', 'valor_iss', 'iss_retido',
+        'retencao_federal_sujeito', 'valor_ret_pis', 'valor_ret_cofins', 'valor_ret_csll',
         'status', 'provider_protocolo', 'provider_codigo_verificacao',
         'pdf_url', 'xml_envio', 'xml_retorno', 'erro_mensagem',
         'idempotency_key', 'recurring_invoice_id', 'transaction_id',
@@ -33,6 +34,10 @@ class NfseEmissao extends Model
         'aliquota_iss'   => 'decimal:4',
         'valor_iss'      => 'decimal:2',
         'iss_retido'     => 'boolean',
+        'retencao_federal_sujeito' => 'boolean',
+        'valor_ret_pis'    => 'decimal:2',
+        'valor_ret_cofins' => 'decimal:2',
+        'valor_ret_csll'   => 'decimal:2',
     ];
 
     public function isEmitida(): bool  { return $this->status === 'emitida'; }

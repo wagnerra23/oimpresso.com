@@ -15,6 +15,7 @@ use Modules\NFSe\Exceptions\RpsDuplicadoException;
 use Modules\NFSe\Jobs\EmitirNfseJob;
 use Modules\NFSe\Models\NfseEmissao;
 use Modules\NFSe\Models\NfseProviderConfig;
+use Modules\NfeBrasil\Services\RetencoesNfseService;
 use Modules\NfeBrasil\Models\NfeCertificado;
 use Modules\NfeBrasil\Services\CertificadoService;
 
@@ -67,6 +68,19 @@ class NfseEmissaoService
             $certSenha = $cert['senha'];
         }
 
+        // R-NFSE-003 — retenções federais. Só calcula quando quem emite marcou o serviço
+        // como do art. 30 (decisão [W] 2026-10-13); sem a marcação, a nota fica como antes.
+        // Regime do prestador lido da config fiscal DO PRÓPRIO tenant (ADR 0093).
+        $sujeito = (bool) ($data['retencao_federal_sujeito'] ?? false);
+        $ret = ['pis' => 0, 'cofins' => 0, 'csll' => 0];
+        if ($sujeito) {
+            $ret = app(RetencoesNfseService::class)->calcularParaBusiness(
+                $businessId,
+                (int) round(((float) $data['valor_servicos']) * 100),
+                ! empty($data['tomador_cnpj']),
+            );
+        }
+
         return new NfseEmissaoPayload(
             businessId: $businessId,
             rpsNumero: $rpsNumero,
@@ -91,6 +105,10 @@ class NfseEmissaoService
             prestadorCnpj: $config?->prestador_cnpj,
             prestadorIm: $config?->prestador_im,
             transactionId: !empty($data['transaction_id']) ? (int) $data['transaction_id'] : null,
+            retencaoFederalSujeito: $sujeito,
+            retPisCentavos: $ret['pis'],
+            retCofinsCentavos: $ret['cofins'],
+            retCsllCentavos: $ret['csll'],
         );
     }
 
@@ -149,6 +167,10 @@ class NfseEmissaoService
             'aliquota_iss'    => $payload->aliquotaIss,
             'valor_iss'       => $payload->valorIss(),
             'iss_retido'      => $payload->issRetido,
+            'retencao_federal_sujeito' => $payload->retencaoFederalSujeito,
+            'valor_ret_pis'    => $payload->retPisCentavos / 100,
+            'valor_ret_cofins' => $payload->retCofinsCentavos / 100,
+            'valor_ret_csll'   => $payload->retCsllCentavos / 100,
             'status'          => 'processando',
             'idempotency_key' => $payload->idempotencyKey(),
             'transaction_id'  => $payload->transactionId,
