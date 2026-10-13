@@ -11,6 +11,14 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 
 # Casos de Uso & Aceite — Estoque inicial (fluxo sem tela React)
 
+> **2026-10-13 — o fluxo ganhou uma janela React.** A lista de produtos (`Produto/Index`) passou a abrir
+> o estoque inicial em janela (`_components/lista/EstoqueInicial.tsx`), que lê
+> `GET /opening-stock/dados/{produto}` e salva por `POST /opening-stock/salvar-da-janela`. Esse
+> endpoint só confere o pedido e entrega ao `OpeningStockController@save` — os UC-PINIC-01..04
+> abaixo seguem sendo o contrato de quem grava. O caso da janela é o **UC-PIDX-15**, em
+> [`Index.casos.md`](../../../../resources/js/Pages/Produto/Index.casos.md). O título acima e as
+> frases "sem tela React" deste arquivo descrevem o estado de 2026-07-27.
+
 > **Âncora:** `CU-PROD-04` (estoque inicial + localização + alerta + validade/lote) e
 > `CU-PROD-10` `[T0]` (multi-tenant) do
 > [SDD §6.1](../SDD-tela-cadastro-produto-v1.0.md), cruzados com o **contrato de paridade
@@ -183,6 +191,12 @@ Ou seja: **reprovação aqui é visível e não bloqueia merge.**
 > ⚠️ Este diretório **não** é varrido pelo `casos-coverage-guard` (que vê só `Pages/**`), então
 > o G-2 não pune um órfão aqui — o critério de parada é disciplina, não gate.
 
+- **[BACKLOG] Zerar uma linha existente pode não descontar o saldo (hipótese por leitura, 2026-10-13).**
+  No `save()`, a linha existente só chama `updateProductQuantity` dentro de `if ($qty_remaining != 0)`.
+  Com quantidade nova zero (e nada usado), a linha de compra passa a 0 e o saldo do local ficaria
+  como estava. Não medido ainda — falta um teste que zere e leia o saldo. Vale para a tela Blade e
+  para a janela nova, que entrega o pedido ao mesmo `save()`. Remédio é decisão [W]/[F].
+  Re-ler: `grep -n "qty_remaining != 0" app/Http/Controllers/OpeningStockController.php`.
 - **[BACKLOG] Dois writers de estoque inicial parseiam a VALIDADE de formas diferentes.** Medido
   (2026-07-27): `OpeningStockController@save` usa `$this->productUtil->uf_date($pl['exp_date'])`,
   que lê `session('business.date_format')`; `ProductUtil::addSingleProductOpeningStock` usa

@@ -1016,6 +1016,9 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
 
     Route::get('/opening-stock/add/{product_id}', [OpeningStockController::class, 'add']);
     Route::post('/opening-stock/save', [OpeningStockController::class, 'save']);
+    // Estoque inicial em janela, na lista de produtos (React): lê os dados e entrega o pedido ao save().
+    Route::get('/opening-stock/dados/{product_id}', [OpeningStockController::class, 'dadosDaJanela']);
+    Route::post('/opening-stock/salvar-da-janela', [OpeningStockController::class, 'salvarDaJanela']);
 
     //Customer Groups
     Route::resource('customer-group', CustomerGroupController::class);

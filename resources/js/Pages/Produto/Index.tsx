@@ -53,6 +53,7 @@ import {
 } from '@/Components/ui/dialog';
 import type { AcaoProduto } from './_components/lista/AcoesProduto';
 import CadastroRapidoProduto from './_components/lista/CadastroRapido';
+import EstoqueInicialProduto from './_components/lista/EstoqueInicial';
 import { colunasDaLista, filtrosParaATabela } from './_components/lista/colunas';
 import FiltrosListaProdutos from './_components/lista/FiltrosLista';
 import IndicadoresLista from './_components/lista/IndicadoresLista';
@@ -194,6 +195,7 @@ function ProdutoIndex({ filtros, lista, kpis, estoque, detalhe, opcoes, contexto
   const [locaisEscolhidos, setLocaisEscolhidos] = useState<string[]>([]);
   const [wooModal, setWooModal] = useState(false);
   const [rapido, setRapido] = useState(false);
+  const [inicial, setInicial] = useState<{ id: number; nome: string } | null>(null);
   const [hora, setHora] = useState(hhmm);
   // Painel de detalhe: o produto aberto (a URL `?ver={id}` abre direto, e serve de link).
   const [verId, setVerId] = useState<number | null>(() => {
@@ -295,7 +297,8 @@ function ProdutoIndex({ filtros, lista, kpis, estoque, detalhe, opcoes, contexto
         irPara(`/purchases/create?produto=${l.id}`);
         return;
       case 'estoque_inicial':
-        irPara(`/opening-stock/add/${l.id}`);
+        // Abre em janela, sem sair da lista (protótipo: ModalEstoqueInicial).
+        setInicial({ id: l.id, nome: l.nome });
         return;
       case 'ativar':
         void executarJson(`/products/activate/${l.id}`, 'GET');
@@ -780,6 +783,17 @@ function ProdutoIndex({ filtros, lista, kpis, estoque, detalhe, opcoes, contexto
           categorias={opcoes.categorias}
           locais={locaisReais}
           aoCriar={(msg) => {
+            toast.success(msg);
+            recarregar();
+          }}
+        />
+      )}
+
+      {permissions.opening_stock === true && (
+        <EstoqueInicialProduto
+          produto={inicial}
+          aoFechar={() => setInicial(null)}
+          aoSalvar={(msg) => {
             toast.success(msg);
             recarregar();
           }}
