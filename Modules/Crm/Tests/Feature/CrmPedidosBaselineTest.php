@@ -56,8 +56,9 @@ function pedbPedido(int $biz, int $local, int $criador, string $marca, int $pedi
 /** O que a Blade pede ao DataTables do core, serializado para casar o número do pedido. */
 function pedbAjax($teste, $user): string
 {
+    // Sem session() manual: o SetSessionData só monta `currency`/`business` quando não acha `user`
+    // na sessão — preenchê-la aqui deixava `session('currency')` nulo e o num_f do /sells quebrava.
     $teste->actingAs($user);
-    session(['user.business_id' => (int) $user->business_id, 'user.id' => $user->id]);
     $r = $teste->get('/sells?sale_type=sales_order&crm_is_order_request=1', ['X-Requested-With' => 'XMLHttpRequest']);
     $r->assertOk();
 
