@@ -48,10 +48,10 @@ class Kernel extends HttpKernel
             // /expenses /account/* e 301 pra telas Financeiro canônicas.
             // Early return rápido em path desconhecido (99% dos requests).
             \App\Http\Middleware\RedirectLegacyFinanceiro::class,
-            // Wagner 2026-05-21 Fase 2 deprecação legacy Cliente — DESABILITADO
-            // INICIALMENTE. Middleware existe em app/Http/Middleware/RedirectLegacyContacts.php
-            // mas NÃO entra no pipeline até Wagner aprovar canary. Pra ativar, descomente:
-            // \App\Http\Middleware\RedirectLegacyContacts::class,
+            // Wagner 2026-05-21 Fase 2 deprecação legacy Cliente. Ficou comentado até 2026-10-13;
+            // ligado pela thread cliente/04 (D1/D3 [W]) para aposentar o dual-render da lista
+            // /contacts → /cliente. Só a lista: o ramo do Show foi retirado do middleware.
+            \App\Http\Middleware\RedirectLegacyContacts::class,
             \App\Http\Middleware\HandleInertiaRequests::class,
             // Gate L2 (estados isolados do VRT): le a flag `_visreg_state` (gravada pela
             // rota env-guarded /_visreg-state) e forca dark/loading EM MEMORIA. No-op em
