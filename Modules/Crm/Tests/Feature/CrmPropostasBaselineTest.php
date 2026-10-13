@@ -147,9 +147,12 @@ it('BASE-PROP-03 · o detalhe abre a proposta do negócio e não abre a do vizin
         ->assertViewIs('crm::proposal.show')
         ->assertSee('Detalhe meu '.PRB_TAG, false);
 
-    // Hoje a Blade cai em erro com o registro nulo; o que se trava é o conteúdo não sair.
-    $this->actingAs($admin)->get(PRB_ROTA.'/'.$dele, PRB_AJAX)
-        ->assertDontSee('Detalhe vizinho '.PRB_TAG, false);
+    // Hoje a Blade cai em 500 com o registro nulo. O que se trava é ela não devolver 200 com o
+    // conteúdo do vizinho — `assertDontSee` cru não serve: a página de erro de debug lista as
+    // queries do processo, incluindo o insert do próprio teste (medido no run 38464360568).
+    $resposta = $this->actingAs($admin)->get(PRB_ROTA.'/'.$dele, PRB_AJAX);
+    $vazou = $resposta->isOk() && str_contains((string) $resposta->getContent(), 'Detalhe vizinho '.PRB_TAG);
+    $this->assertFalse($vazou, 'o detalhe abriu proposta de outro business');
 });
 
 it('BASE-PROP-04 · a Blade mostra Enviar só com modelo cadastrado e crm.access_proposal', function () {
