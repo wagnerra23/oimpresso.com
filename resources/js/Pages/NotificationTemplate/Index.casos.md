@@ -1,13 +1,15 @@
 ---
 owner: wagner
-last_run: "2026-10-09"
+last_run: "2026-10-13"
 ---
 
 # Modelos de notificação — casos de uso
 
 Prova do recorte: `tests/js/notificacoes-selecao.test.tsx` teve cinco passes em 09/10. UC-NOT-03 teve somente troca do modelo/canal medida; modo Visual ficou pendente. Demais critérios de edição/preview/envio não foram promovidos. Backend: NotificationTemplateTest (20 passes, dois todo) e NotificationTemplate/DualTest (sete passes). Navegador/pixels ficaram não medidos.
 
-> Casos importados do pacote aprovado de 19/08, preservando critérios completos. Recorte F3 de seleção; editor, prévia e envio React [BACKLOG].
+Editor F3 (13/10): `tests/js/notificacoes-editor.test.tsx` teve dez passes em vitest local; duas mutações (cursor e zeragem dos automáticos) derrubaram os testes correspondentes. Medem o POST montado pelo React, não a gravação no banco — a gravação segue provada pelo NotificationTemplateTest.
+
+> Casos importados do pacote aprovado de 19/08, preservando critérios completos. Seleção e editor em texto/HTML entregues; modo Visual, prévia e restaurar padrão [BACKLOG].
 > Formato Dado/Quando/Então com critério de aceite. Rastreabilidade: R = regra do charter, T = teste em `NotificationTemplateTest.php`.
 
 ## Permissão e carga
@@ -49,15 +51,15 @@ Dado um modelo com os 3 canais vazios, quando olho o rail, então há o selo `va
 ## Edição e gravação
 
 ## UC-NOT-04 — Editar e salvar · R1 · T3
-Status: Pendente no recorte F3; critérios integrais preservados abaixo, sem declarar prova do editor/envio.
+Status: Editor React monta o POST do modelo alterado (vitest); gravação/recarga medidas no backend; smoke de navegador pendente.
 Dado que altero o assunto, quando salvo, então a linha do modelo é gravada e ao recarregar o novo assunto aparece.
 
 ## UC-NOT-05 — Salvar em lote · R1 · T6
-Status: Pendente no recorte F3; critérios integrais preservados abaixo, sem declarar prova do editor/envio.
+Status: Contador e POST único com três modelos medidos em vitest; navegador pendente.
 Dado que alterei 3 modelos, quando o header mostra "3 modelos alterados" e clico Salvar, então um único POST grava os 3.
 
 ## UC-NOT-06 — Descartar · —
-Status: Pendente no recorte F3; critérios integrais preservados abaixo, sem declarar prova do editor/envio.
+Status: Descartar e contador zerado medidos em vitest; a lista suspensa do protótipo virou botão direto no cabeçalho.
 Dado alterações não salvas, quando escolho "Descartar alterações" na lista do contador, então todos os campos voltam ao último estado salvo e o contador zera.
 
 ## UC-NOT-07 — Restaurar padrão · —
@@ -69,13 +71,13 @@ Status: Pendente no recorte F3; critérios integrais preservados abaixo, sem dec
 Dado o corpo em modo Visual com negrito e lista, quando alterno para HTML, então vejo o markup correspondente e editável; ao voltar para Visual o conteúdo é o mesmo.
 
 ## UC-NOT-24 — CC inválido · R8 · T-P3
-Status: Pendente no recorte F3; critérios integrais preservados abaixo, sem declarar prova do editor/envio.
+Status: Erro do servidor em CC/BCC é exibido no campo pelo onError; validação provada no backend; render do erro sem teste React.
 Dado `cc = "não-é-email"`, quando salvo, então o campo acusa erro de validação no servidor e o modelo não é gravado com endereço inválido.
 
 ## Tags
 
 ## UC-NOT-08 — Inserir tag no meio do texto · —
-Status: Pendente no recorte F3; critérios integrais preservados abaixo, sem declarar prova do editor/envio.
+Status: Inserção no cursor do assunto medida em vitest; navegador pendente.
 Dado o cursor no meio do assunto, quando clico o chip `{invoice_number}`, então a tag entra naquela posição e o cursor fica depois dela.
 
 ## UC-NOT-09 — Inserir tag no corpo · —
@@ -83,21 +85,21 @@ Status: Pendente no recorte F3; critérios integrais preservados abaixo, sem dec
 Dado o editor Visual focado, quando clico um chip, então a tag entra no HTML do corpo e a prévia passa a mostrar o valor de exemplo correspondente.
 
 ## UC-NOT-10 — Tag desconhecida · R7 · T12
-Status: Pendente no recorte F3; critérios integrais preservados abaixo, sem declarar prova do editor/envio.
+Status: Aviso de tag desconhecida sem bloquear Salvar medido em vitest; aviso aparece ao digitar, não só ao perder o foco.
 Dado que digitei `{foo_bar}` no corpo, quando o campo perde o foco, então aparece "tag não reconhecida: {foo_bar}" em âmbar — e salvar continua permitido.
 
 ## UC-NOT-11 — Campos personalizados · —
-Status: Pendente no recorte F3; critérios integrais preservados abaixo, sem declarar prova do editor/envio.
+Status: Dez personalizados recolhidos e expandidos medidos em vitest.
 Dado o grupo Contato colapsado, quando clico "+ 10 personalizados", então os 10 chips `{contact_custom_field_1..10}` aparecem e são inseríveis.
 
 ## Canais
 
 ## UC-NOT-12 — SMS em 2 segmentos · R11
-Status: Pendente no recorte F3; critérios integrais preservados abaixo, sem declarar prova do editor/envio.
+Status: Dois segmentos para 200 caracteres medidos em vitest.
 Dado um texto de 200 caracteres sem acento, quando olho o rodapé, então leio "2 SMS · 160 por segmento".
 
 ## UC-NOT-13 — SMS com acento · R11 · T14
-Status: Pendente no recorte F3; critérios integrais preservados abaixo, sem declarar prova do editor/envio.
+Status: Limite 70 com acento medido em vitest.
 Dado um texto com acento, quando olho o rodapé, então o limite mostrado é 70 por segmento e a UI diz que é por causa do acento.
 
 ## UC-NOT-15 — Aviso do logo · R6
@@ -105,17 +107,17 @@ Status: Aviso medido em React; pixels/contraste pendentes.
 Dado um modelo do grupo Fornecedor, quando abro, então vejo a faixa avisando que `{business_logo}` só é impresso no e-mail.
 
 ## UC-NOT-22 — Teste de envio · D3 · P6
-Status: Pendente no recorte F3; critérios integrais preservados abaixo, sem declarar prova do editor/envio.
+Status: Botão usa a rota existente com canal e-mail e só a versão gravada (vitest); throttle provado só no backend; mensagem de destino depende do flash global, navegador pendente.
 Dado o canal E-mail, quando clico "Enviar teste pra mim", então a confirmação diz o destino (o e-mail do usuário logado) e uma segunda tentativa imediata é barrada pelo throttle.
 
 ## Envio automático
 
 ## UC-NOT-16 — Ligar automático · R4 · T5
-Status: Pendente no recorte F3; critérios integrais preservados abaixo, sem declarar prova do editor/envio.
+Status: Ligar e-mail automático no new_sale e enviar auto_send=1 medidos em vitest; selo no rail após salvar depende do reload, navegador pendente.
 Dado "Nova venda", quando ligo o e-mail automático e salvo, então o rail mostra o selo `auto` e `auto_send=1` é gravado.
 
 ## UC-NOT-17 — Desligar os três · R2 · T5
-Status: Pendente no recorte F3; critérios integrais preservados abaixo, sem declarar prova do editor/envio.
+Status: Três automáticos desligados saem 0 no POST (vitest); backend já grava ausente=0.
 Dado "Lembrete de pagamento" com os 3 canais automáticos ligados, quando desligo todos e salvo, então as 3 colunas gravam `0` (checkbox ausente = 0, nunca "manteve o anterior").
 
 ## UC-NOT-25 — Lembrete só com automático ligado · R10 · T11

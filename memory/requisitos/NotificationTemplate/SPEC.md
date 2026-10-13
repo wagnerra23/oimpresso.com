@@ -33,6 +33,7 @@ Page NotificationTemplate/Index no rail/painel do protótipo aprovado, mantendo 
 blocked_by: US-NOTIF-003
 **Implementado em:** _pendente_.
 Salvar em lote, canais e automáticos conforme o contrato; preservar tags e sanitizar prévia. Reusar a rota de teste de envio existente. Não ampliar destinatários ou canais.
+Recorte de 13/10: editor de texto/HTML por canal, salvar em lote só dos alterados, descartar, tags no cursor, aviso de tag desconhecida, segmentos de SMS, automáticos de new_sale e payment_reminder e teste de envio pela rota existente (só e-mail, versão gravada), em `resources/js/Pages/NotificationTemplate/Index.tsx` e `_components/editor-modelo.ts`. Modo Visual, prévia sanitizada e restaurar padrão continuam pendentes; por isso a US segue sem âncora.
 
 ### US-NOTIF-005 · QA F4
 blocked_by: US-NOTIF-004

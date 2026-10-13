@@ -63,3 +63,6 @@ Controller entrega general_notifications, customer_notifications e supplier_noti
 
 ## Prova F2 registrada em 09/10
 A flag useV2NotificationTemplates reutilizou FeatureFlagService e os comandos flag:get/set já existentes; não foi criado toggle em pos_settings. O default ausente permaneceu OFF e o ramo React exigiu X-Inertia. Foram preservados o gate send_notification, __grupos e __getTemplateDetails. Baseline + dual inicial: 25 passes/78 assertions, dois todo. Dual final no commit 04fd4aadd0: sete passes/31 assertions, seed 1791572282. A Page ainda não existia; nenhuma flag foi ativada, nenhum envio real executado. UC-NOT-18/25 continuaram sem prova.
+
+## Prova F3 do editor registrada em 13/10
+Editor de texto/HTML entregue atrás da mesma flag, ainda OFF. Vitest local: dez passes no editor e seis na seleção (três todo); duas mutações derrubaram os testes de cursor e de zeragem dos automáticos e o arquivo voltou ao hash original. tsc, eslint, layout:check, a11y:check, reuse:gate, components:check, pageheader:guard e lint:baseline:check sem regressão. Não houve mudança de controller nem de rota. Pest não foi re-executado no CT 100 nesta sessão (sem acesso), e navegador/pixels não foram medidos. A baseline visual da tela vai divergir porque o painel virou formulário; pela ADR 0409 ela não foi regenerada.
