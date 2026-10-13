@@ -33,10 +33,11 @@ return [
 
     /**
      * Algoritmo da assinatura XMLDSig da DPS: 'sha256' (padrão) ou 'sha1'. O XSD
-     * oficial não restringe; fica configurável até a 1ª emissão em homologação
-     * confirmar qual a Sefin aceita (R-NFSE-005).
+     * oficial não restringe; se a 1ª emissão em homologação mostrar que a Sefin só
+     * aceita SHA-1, troque o valor aqui (R-NFSE-005). Sem env(): o Larastan proíbe
+     * env() fora de config/ e a ADR 0409 não deixa crescer o baseline.
      */
-    'assinatura_algoritmo' => env('NFSE_ASSINATURA_ALGORITMO', 'sha256'),
+    'assinatura_algoritmo' => 'sha256',
 
     /**
      * Código IBGE do município padrão (Tubarão-SC = 4218707)
