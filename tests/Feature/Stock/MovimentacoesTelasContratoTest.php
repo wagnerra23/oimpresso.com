@@ -133,3 +133,39 @@ it('UC-TRCRT-02 [T0] origem e destino só oferecem filiais do próprio business,
     expect($ids)->not->toContain($this->locOutro);
     expect(array_keys((array) $props['statuses']))->toBe(['pending', 'in_transit', 'completed']);
 });
+
+// "Ver" das listas React: o botão fazia `router.visit('/stock-{x}/{id}')` e o `show()` devolvia o
+// fragmento de modal Blade, que não é resposta Inertia. Agora o diálogo pede JSON ao mesmo `show()`.
+
+it('UC-TRIDX-03 [T0] o Ver da lista de transferências devolve o detalhe em JSON, só do próprio business', function () {
+    $meu = movtTransacao($this->biz, 'sell_transfer', $this->locBiz);
+    movtTransacao($this->biz, 'purchase_transfer', EstoqueFixture::locationId($this->biz, '-MOVT2'), $meu['id']);
+    $alheio = movtTransacao($this->outro, 'sell_transfer', $this->locOutro);
+    movtTransacao($this->outro, 'purchase_transfer', EstoqueFixture::locationId($this->outro, '-MOVT2'), $alheio['id']);
+    movtLogin($this, $this->biz, ['purchase.view', 'access_all_locations']);
+
+    $r = $this->getJson("/stock-transfers/{$meu['id']}");
+
+    $r->assertStatus(200);
+    expect($r->json('ref_no'))->toBe($meu['ref']); // anti-vácuo: é a transferência pedida
+    expect($r->json('linhas'))->toBeArray();
+    expect($r->json('pode_ver_preco'))->toBeFalse();
+    expect($r->json('final_total'))->toBeNull(); // sem view_purchase_price, igual à coluna da lista
+
+    $this->getJson("/stock-transfers/{$alheio['id']}")->assertStatus(404);
+});
+
+it('UC-AJIDX-03 [T0] o Ver da lista de ajustes devolve o detalhe em JSON, só do próprio business', function () {
+    $meu = movtTransacao($this->biz, 'stock_adjustment', $this->locBiz);
+    $alheio = movtTransacao($this->outro, 'stock_adjustment', $this->locOutro);
+    movtLogin($this, $this->biz, ['purchase.view', 'view_purchase_price', 'access_all_locations']);
+
+    $r = $this->getJson("/stock-adjustments/{$meu['id']}");
+
+    $r->assertStatus(200);
+    expect($r->json('ref_no'))->toBe($meu['ref']);
+    expect($r->json('pode_ver_preco'))->toBeTrue();
+    expect($r->json('final_total'))->toEqual(0); // com a permissão o valor vem (fixture grava 0)
+
+    $this->getJson("/stock-adjustments/{$alheio['id']}")->assertStatus(404);
+});

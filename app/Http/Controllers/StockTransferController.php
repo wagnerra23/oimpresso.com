@@ -632,6 +632,11 @@ class StockTransferController extends Controller
                             )
                             ->first();
 
+        // Sem isto, id inexistente ou de outro business caía em 500 (->sell_lines em null).
+        if (empty($sell_transfer)) {
+            abort(404);
+        }
+
         foreach ($sell_transfer->sell_lines as $key => $value) {
             if (! empty($value->sub_unit_id)) {
                 $formated_sell_line = $this->transactionUtil->recalculateSellLineTotals($business_id, $value);
@@ -661,8 +666,54 @@ class StockTransferController extends Controller
            ->latest()
            ->get();
 
+        // O "Ver" da lista React pede JSON e abre o detalhe num diálogo. A visita Inertia
+        // (`router.visit`) recebia este fragmento de modal Blade, que não é resposta Inertia.
+        // O DataTable do Blade carrega o fragmento por AJAX HTML e segue no `view()` abaixo.
+        if (request()->wantsJson() && ! request()->header('X-Inertia')) {
+            return response()->json($this->detalheJson($sell_transfer, $location_details, $statuses, $lot_n_exp_enabled));
+        }
+
         return view('stock_transfer.show')
                 ->with(compact('sell_transfer', 'location_details', 'lot_n_exp_enabled', 'statuses', 'activities'));
+    }
+
+    /**
+     * Os mesmos dados do modal `stock_transfer/show.blade.php`, para o diálogo da lista React.
+     * Só leitura. Valores só com `view_purchase_price`, como as colunas da lista.
+     */
+    private function detalheJson($sell_transfer, array $location_details, array $statuses, bool $lot_n_exp_enabled): array
+    {
+        $pode_ver_preco = auth()->user()->can('view_purchase_price');
+
+        $linhas = $sell_transfer->sell_lines->map(function ($l) use ($pode_ver_preco, $lot_n_exp_enabled) {
+            $variavel = optional($l->product)->type == 'variable';
+
+            return [
+                'produto' => optional($l->product)->name,
+                'variacao' => $variavel ? trim(optional(optional($l->variations)->product_variation)->name . ' - ' . optional($l->variations)->name, ' -') : null,
+                'sku' => optional($l->variations)->sub_sku,
+                'lote' => $lot_n_exp_enabled ? optional($l->lot_details)->lot_number : null,
+                'validade' => $lot_n_exp_enabled ? optional($l->lot_details)->exp_date : null,
+                'quantidade' => (float) $l->quantity,
+                'unidade' => optional($l->sub_unit)->short_name ?? optional(optional($l->product)->unit)->short_name,
+                'subtotal' => $pode_ver_preco ? (float) $l->unit_price_inc_tax * (float) $l->quantity : null,
+            ];
+        })->values();
+
+        return [
+            'id' => $sell_transfer->id,
+            'ref_no' => $sell_transfer->ref_no,
+            'transaction_date' => $sell_transfer->transaction_date,
+            'status' => $statuses[$sell_transfer->status] ?? $sell_transfer->status,
+            'origem' => optional($location_details['sell'])->name,
+            'destino' => optional($location_details['purchase'])->name,
+            'additional_notes' => $sell_transfer->additional_notes,
+            'pode_ver_preco' => $pode_ver_preco,
+            'linhas' => $linhas,
+            'total_linhas' => $pode_ver_preco ? (float) $linhas->sum('subtotal') : null,
+            'shipping_charges' => $pode_ver_preco ? (float) $sell_transfer->shipping_charges : null,
+            'final_total' => $pode_ver_preco ? (float) $sell_transfer->final_total : null,
+        ];
     }
 
     /**

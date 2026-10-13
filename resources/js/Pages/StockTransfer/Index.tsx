@@ -27,6 +27,7 @@ import {
   AlertDialogTitle,
 } from '@/Components/ui/alert-dialog';
 import { Plus, Eye, Trash2, Printer, ArrowRight, Truck, FileText } from 'lucide-react';
+import DetalheTransferenciaDialog from './_components/DetalheTransferenciaDialog';
 
 // ---------- Tipos ----------
 
@@ -137,6 +138,7 @@ function StockTransferIndex({ rows, filters, business_locations, statuses, permi
   // estilizável e não tem foco/ARIA gerenciados. Padrão imitado de
   // Essentials/Holidays/Index.tsx, que já usa AlertDialog para o mesmo ato (ADR 0011).
   const [alvoExclusao, setAlvoExclusao] = useState<TransferRow | null>(null);
+  const [verId, setVerId] = useState<number | null>(null);
 
   const confirmarExclusao = () => {
     if (!alvoExclusao) return;
@@ -266,7 +268,7 @@ function StockTransferIndex({ rows, filters, business_locations, statuses, permi
                   </td>
                   <td className="pl-2 pr-4 text-right">
                     <div className="inline-flex gap-1">
-                      <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => router.visit(`/stock-transfers/${r.id}`)} title="Ver">
+                      <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => setVerId(r.id)} title="Ver">
                         <Eye className="h-3.5 w-3.5" />
                       </Button>
                       <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => window.open(`/stock-transfers/${r.id}/print`, '_blank')} title="Imprimir">
@@ -310,6 +312,7 @@ function StockTransferIndex({ rows, filters, business_locations, statuses, permi
         </CardContent>
       </Card>
 
+      <DetalheTransferenciaDialog id={verId} onClose={() => setVerId(null)} />
       <AlertDialog open={alvoExclusao !== null} onOpenChange={(aberto) => !aberto && setAlvoExclusao(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>

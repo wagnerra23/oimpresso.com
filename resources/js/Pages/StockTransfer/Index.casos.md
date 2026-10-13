@@ -26,6 +26,12 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 - **Teste:** `MovimentacoesTelasContratoTest` — `UC-AJIDX-02 e UC-TRIDX-02 sem permissão de compra as duas listas respondem 403`.
 - **Status: ⬜**
 
+## UC-TRIDX-03 · O "Ver" mostra o detalhe do transferência, só do próprio business `[T0]` `[must]`
+- **Aceite:** Dado um transferência no meu business e outro no 99 · Quando clico em "Ver" na lista (o diálogo pede `GET /stock-transfers/{id}` com `Accept: application/json`) · Então recebo o detalhe do meu (referência, linhas, totais; valores só com `view_purchase_price`) e 404 no do 99.
+- **Teste:** `MovimentacoesTelasContratoTest` — `UC-TRIDX-03 [T0] o Ver da lista de transferências devolve o detalhe em JSON, só do próprio business`.
+- **Regressão que defende:** o botão fazia `router.visit` e o `show()` devolvia o fragmento de modal da tela Blade, que não é resposta Inertia (achado 2026-10-13, depois do cutover #9096). E id de outro business caía em 500 em vez de 404.
+- **Status: ⬜**
+
 ## Backlog
 - [BACKLOG] O filtro não volta a página: mesmo defeito de ordem `ajax()` × `X-Inertia` do `index()` de ajustes (ver `StockAdjustment/Index.casos.md`). **Consertado em 2026-10-09** no cutover pelo menu · thread 04: a decisão React/Blade passou pra antes do ramo `ajax()`; a visita Inertia com `X-Requested-With` recebe a Page (`tests/Feature/CutoverMenu/EstoqueSemXInertiaTest.php`). Vira UC quando um caso citar o filtro.
 - [BACKLOG] `destroy()` busca a transferência só por `id` + `type`, sem `business_id` (mesmo achado do `destroy()` de ajuste). Grava quantidade: decisão [W].

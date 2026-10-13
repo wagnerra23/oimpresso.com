@@ -24,6 +24,7 @@ import {
   AlertDialogTitle,
 } from '@/Components/ui/alert-dialog';
 import { Plus, Eye, Trash2, FileText, PackageMinus } from 'lucide-react';
+import DetalheAjusteDialog from './_components/DetalheAjusteDialog';
 
 // ---------- Tipos ----------
 
@@ -105,6 +106,7 @@ function StockAdjustmentIndex({ rows, filters, business_locations, permissions }
   // estilizável e não tem foco/ARIA gerenciados. Padrão imitado de
   // Essentials/Holidays/Index.tsx, que já usa AlertDialog para o mesmo ato (ADR 0011).
   const [alvoExclusao, setAlvoExclusao] = useState<AdjustmentRow | null>(null);
+  const [verId, setVerId] = useState<number | null>(null);
 
   const confirmarExclusao = () => {
     if (!alvoExclusao) return;
@@ -221,7 +223,7 @@ function StockAdjustmentIndex({ rows, filters, business_locations, permissions }
                   <td className="px-2 text-stone-600 text-[12px]">{r.added_by || '—'}</td>
                   <td className="pl-2 pr-4 text-right">
                     <div className="inline-flex gap-1">
-                      <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => router.visit(`/stock-adjustments/${r.id}`)} title="Ver">
+                      <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => setVerId(r.id)} title="Ver">
                         <Eye className="h-3.5 w-3.5" />
                       </Button>
                       {permissions.delete && (
@@ -262,6 +264,7 @@ function StockAdjustmentIndex({ rows, filters, business_locations, permissions }
         </CardContent>
       </Card>
 
+      <DetalheAjusteDialog id={verId} onClose={() => setVerId(null)} />
       <AlertDialog open={alvoExclusao !== null} onOpenChange={(aberto) => !aberto && setAlvoExclusao(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
