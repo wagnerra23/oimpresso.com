@@ -58,6 +58,9 @@ export const ALLOWLIST = [
   '[class*=plate]', '[class*=tag]',
   // knob de switch: branco no escuro é o padrão do controle (medido 06/10: 14×14 em 12 rotas)
   '[class*=knob]', 'label:has(input[type=checkbox]) span span',
+  // o mesmo knob no React: o thumb do Switch (Components/ui/switch.tsx) é `dark:bg-foreground`
+  // quando desligado, claro sobre o trilho escuro de propósito (medido 13/10: Manufacturing/Settings)
+  '[data-slot=switch-thumb]',
   // amostra de cor (grade tamanho×cor): o fundo É o dado, claro de propósito (pedido da _saida-04)
   '[class*=swatch]',
 ];
@@ -393,6 +396,7 @@ function selftest() {
   const cega = julgarProducao([{ screen: 'A', route: '/a', estado: 'ok', escuro: true, fundos: [], sanidade: [{ seletor: 'div.tema-escuro-sanidade', bg: 'rgb(20, 20, 20)', n: 1 }] }]);
   casos.push(['produção: sanidade escura = sonda cega', cega.sanidadeOk, false]);
   casos.push(['allowlist cobre swatch (amostra de cor)', ALLOWLIST.includes('[class*=swatch]'), true]);
+  casos.push(['allowlist cobre o thumb do Switch do React', ALLOWLIST.includes('[data-slot=switch-thumb]'), true]);
   // catraca (thread 05): baseline só com Page que tem claro; sobe/Page nova reprova, desce não
   const jc = (claros) => ({ linhas: [
     { screen: 'A', route: '/a', medida: true, claros },
