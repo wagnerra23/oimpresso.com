@@ -57540,6 +57540,23 @@
     "projetoCowork": "w"
   },
   {
+    "date": "2026-10-13T13:53:41.626Z",
+    "files": 285,
+    "sync": 1,
+    "stale": 0,
+    "liveAbsent": 0,
+    "unchecked": 284,
+    "staleList": [],
+    "verified": [
+      "cowork-inbox/patrimonio/playbook/_saida-05a.md"
+    ],
+    "verifiedHash": {
+      "cowork-inbox/patrimonio/playbook/_saida-05a.md": "319cbb741ec0faaa5d35342608eae3fcfff12c184879a08c01f9f6aae3bb6feb"
+    },
+    "origin": "medicao",
+    "projetoCowork": "w"
+  },
+  {
     "date": "2026-10-13T13:53:55.745Z",
     "files": 286,
     "sync": 2,

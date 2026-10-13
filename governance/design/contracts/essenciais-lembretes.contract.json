@@ -1,0 +1,24 @@
+{
+  "_nota": "Derivado do alvo governance/design/targets/essenciais--lembretes--index.alvo.json (thread A1 do playbook essenciais, rota `ess-lembretes` do protótipo), não do .tsx. cabecalho e abas do alvo são a casca do módulo no protótipo (cabeçalho 'Essenciais' + abas Tarefas/Documentos/…): a Page viva não tem essa casca, cada tela é uma rota com o próprio h1. Copy só onde protótipo e tela dizem a mesma coisa: cada string foi conferida por máquina na base.assinatura do alvo e no código da Page. toolbar do alvo = âncora `toolbar-mes` (navegação do mês + contagem); calendario = âncora `grade-mes`. As duas já existiam na Page. 'Adicionar lembrete' fica no cabeçalho da Page, não na barra do mês. legenda do alvo (origens Lembrete/Financeiro/Ponto) não tem contraparte: a Page não tem filtro de origem. Fora: os dias da semana (literais de 3 letras, match fraco).",
+  "tela": "Essentials/Reminders/Index",
+  "fonte": "prototipo-ui/cowork/Wagner/essenciais-page.jsx",
+  "alvo": [
+    "resources/js/Pages/Essentials/Reminders/Index.tsx"
+  ],
+  "secoes": [
+    {
+      "id": "toolbar-mes",
+      "copy": [
+        "Adicionar lembrete",
+        "lembrete(s) cadastrado(s)"
+      ]
+    },
+    {
+      "id": "grade-mes"
+    }
+  ],
+  "ordem": [
+    "toolbar-mes",
+    "grade-mes"
+  ]
+}
