@@ -1,7 +1,7 @@
 <?php
 
 declare(strict_types=1);
-// Cobre UC-EMP-01, UC-EMP-02, UC-EMP-03, UC-EMP-04, UC-EMP-05, UC-EMP-06, UC-EMP-07, UC-EMP-08, UC-EMP-09, UC-EMP-10, UC-EMP-11, UC-EMP-12, UC-EMP-13 (Configuracoes/Empresa/Index.casos.md).
+// Cobre UC-EMP-01, UC-EMP-02, UC-EMP-03, UC-EMP-04, UC-EMP-05, UC-EMP-06, UC-EMP-07, UC-EMP-08, UC-EMP-09, UC-EMP-10, UC-EMP-11, UC-EMP-12, UC-EMP-13, UC-EMP-14 (Configuracoes/Empresa/Index.casos.md).
 
 use App\Business;
 use App\Http\Controllers\BusinessController;
@@ -424,4 +424,39 @@ test('UC-EMP-13 Fidelidade e Módulos: voltam iguais; editar grava o número cer
     expect((float) $depois['min_order_total_for_rp'])->toBe(1234.5);
     expect($depois['rp_name'])->toBe('Pontos novos');
     expect(json_decode((string) $depois['enabled_modules'], true))->toBe(['purchases', 'stock_transfers']);
+});
+
+test('UC-EMP-14 Rótulos: voltam iguais, inclusive tipo e opções do campo de produto; editar muda só o editado', function () {
+    $rotulos = [
+        'payments' => ['custom_pay_1' => 'Pix 98', 'custom_pay_2' => ''],
+        'contact' => ['custom_field_3' => 'Obra'],
+        'product' => ['custom_field_2' => 'Cor'],
+        'product_cf_details' => ['2' => ['type' => 'dropdown', 'dropdown_options' => "Azul\nVerde"]],
+        'purchase' => ['custom_field_1' => 'Pedido do fornecedor', 'is_custom_field_1_required' => '1'],
+        'shipping' => ['custom_field_2' => 'Placa', 'is_custom_field_2_contact_default' => '1'],
+    ];
+    DB::table('business')->where('id', $this->business->id)->update([
+        'date_format' => 'd/m/Y', 'on_product_expiry' => 'keep_selling', 'stop_selling_before' => null,
+        'custom_labels' => json_encode($rotulos),
+    ]);
+    $gravado = fn () => json_decode((string) DB::table('business')->where('id', $this->business->id)->value('custom_labels'), true);
+
+    // 1) Sem editar: o objeto inteiro volta igual (o vazio de custom_pay_2 vira null, como na Blade).
+    $this->post('/business/update', empFormData(empCorpo($this)))->assertSessionHas('status.success', 1);
+    expect($gravado())->toEqual(array_replace_recursive($rotulos, ['payments' => ['custom_pay_2' => null]]));
+
+    // 2) Editar: renomear um campo, tirar uma marcação e trocar o tipo de um campo de produto.
+    $corpo = empCorpo($this);
+    $corpo['custom_labels']['contact']['custom_field_3'] = 'Obra nova';
+    unset($corpo['custom_labels']['purchase']['is_custom_field_1_required']);
+    $corpo['custom_labels']['product_cf_details']['2']['type'] = 'text';
+    $this->post('/business/update', empFormData($corpo))->assertSessionHas('status.success', 1);
+
+    $depois = $gravado();
+    expect($depois['contact']['custom_field_3'])->toBe('Obra nova');
+    expect($depois['purchase'])->not->toHaveKey('is_custom_field_1_required');
+    expect($depois['purchase']['custom_field_1'])->toBe('Pedido do fornecedor');
+    expect($depois['product_cf_details']['2'])->toEqual(['type' => 'text', 'dropdown_options' => "Azul\nVerde"]);
+    expect($depois['shipping'])->toEqual(['custom_field_2' => 'Placa', 'is_custom_field_2_contact_default' => '1']);
+    expect($depois['payments']['custom_pay_1'])->toBe('Pix 98');
 });
