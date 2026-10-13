@@ -1,5 +1,9 @@
 ---
 id: requisitos-spreadsheet-briefing
+module: Spreadsheet
+status: parcial
+status_nota: "legado UltimatePOS; lista em React atras de flag OFF desde 2026-10-13 (telas-soltas/04); editor segue Blade"
+updated_at: "2026-10-13"
 ---
 
 # BRIEFING — Modules/Spreadsheet
