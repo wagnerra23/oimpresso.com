@@ -1,7 +1,7 @@
 // @memcofre
 //   tela: /business/settings
 //   module: Configuracoes
-//   stories: thread sistema/playbook/08 (F3-1: Negócio · F3-2: Impostos, Produtos, Contatos · F3-3a: Vendas, Pagamento · F3-3b: Venda no PDV · F3-3c: Compras)
+//   stories: thread sistema/playbook/08 (F3-1: Negócio · F3-2: Impostos, Produtos, Contatos · F3-3a: Vendas, Pagamento · F3-3b: Venda no PDV · F3-3c: Compras · F3-4: Painel, Sistema, Prefixos)
 //   permissao: business_settings.access
 //
 // Configuração da empresa. Atrás da flag `useV2ConfiguracoesEmpresa` (BusinessController::FLAG_EMPRESA_V2);
@@ -30,7 +30,7 @@ import ConfiguracoesSubNav from '@/Pages/Configuracoes/_shared/ConfiguracoesSubN
 type Valor = string | number | boolean | null | Valor[] | { [k: string]: Valor };
 type Corpo = Record<string, Valor>;
 type Lista = Record<string, string>;
-interface Opcoes { moedas: Lista; fusos: Lista; meses: Lista; metodos: Lista; formatos_data: Lista; unidades: Lista; impostos: Lista; comissao: Lista; pagamentos: Lista }
+interface Opcoes { temas: Lista; moedas: Lista; fusos: Lista; meses: Lista; metodos: Lista; formatos_data: Lista; unidades: Lista; impostos: Lista; comissao: Lista; pagamentos: Lista }
 interface Props { corpo: Corpo; logo: string | null; segredos_gravados: string[]; opcoes?: Opcoes }
 
 /** Abas na ordem e nos grupos do protótipo. As de PRONTAS estão na tela nova; as outras abrem na Blade. */
@@ -50,6 +50,9 @@ const PRONTAS: Record<string, string> = {
   pagto: 'Contagem de cédulas no recebimento em dinheiro.',
   pdv: 'O que o caixa mostra, atalhos de teclado e a balança de código de barras.',
   compra: 'Como a compra entra: status, lote, pedido e moeda do fornecedor.',
+  painel: 'O que o painel inicial avisa.',
+  sistema: 'Aparência e comportamento das tabelas.',
+  prefixos: 'Letras que vêm antes do número de cada documento.',
 };
 
 const PRECISOES: Lista = { 0: '0', 1: '1', 2: '2', 3: '3', 4: '4' };
@@ -62,6 +65,12 @@ const PRECO_IMPOSTO: Lista = { includes: 'Inclui o imposto', excludes: 'Sem o im
 const ADICAO: Lista = { 0: 'Adiciona linha nova', 1: 'Aumenta a quantidade' };
 const ARREDONDA: Lista = { 1: 'Para o inteiro mais próximo', '0.05': 'Para 0,05', '0.1': 'Para 0,10', '0.5': 'Para 0,50' };
 const CALC_COMISSAO: Lista = { invoice_value: 'Sobre o valor da fatura', payment_received: 'Sobre o pagamento recebido' };
+const LINHAS: Lista = { 25: '25', 50: '50', 100: '100', 200: '200', 500: '500', 1000: '1000', '-1': 'Todas' };
+const PREFIXOS: [string, string][] = [['purchase', 'Compra'], ['purchase_return', 'Devolução de compra'],
+  ['purchase_requisition', 'Requisição de compra'], ['purchase_order', 'Pedido de compra'], ['stock_transfer', 'Transferência de estoque'],
+  ['stock_adjustment', 'Ajuste de estoque'], ['sell_return', 'Devolução de venda'], ['expense', 'Despesa'], ['contacts', 'Contatos'],
+  ['purchase_payment', 'Pagamento de compra'], ['sell_payment', 'Pagamento de venda'], ['expense_payment', 'Pagamento de despesa'],
+  ['business_location', 'Local'], ['username', 'Usuário'], ['subscription', 'Assinatura'], ['draft', 'Rascunho'], ['sales_order', 'Pedido de venda']];
 const CEDULAS_EM: Lista = { pos_screen: 'Só no PDV', all_screens: 'Em todas as telas' };
 const ATALHOS: [string, string][] = [['express_checkout', 'Finalizar rápido'], ['pay_n_ckeckout', 'Pagar e finalizar'], ['draft', 'Rascunho'],
   ['cancel', 'Cancelar'], ['recent_product_quantity', 'Quantidade do último produto'], ['weighing_scale', 'Balança'],
@@ -168,6 +177,10 @@ function EmpresaIndex({ corpo: inicial, logo, segredos_gravados, opcoes }: Props
   const mudaBalanca = (k: string, v: string) => muda('weighing_scale_setting', {
     label_prefix: balanca.label_prefix ?? '', ...Object.fromEntries(BALANCA.map(([c, , , p]) => [c, balanca[c] ?? p])), [k]: v });
   const valorBalanca = (k: string, padrao: string) => (balanca[k] === null || balanca[k] === undefined ? padrao : String(balanca[k]));
+  // Prefixos: como a Blade, ao mexer o objeto vai com as 17 chaves (vazio onde não há).
+  const prefixos = (corpo.ref_no_prefixes && !Array.isArray(corpo.ref_no_prefixes) ? corpo.ref_no_prefixes : {}) as Record<string, Valor>;
+  const mudaPrefixo = (k: string, v: string) =>
+    muda('ref_no_prefixes', { ...Object.fromEntries(PREFIXOS.map(([c]) => [c, prefixos[c] ?? ''])), [k]: v });
   const metodosCedula = Array.isArray(pos.enable_cash_denomination_for_payment_methods) ? (pos.enable_cash_denomination_for_payment_methods as string[]) : [];
   const titulo = (t: string) => <h3 className="m-0 text-xs font-semibold uppercase text-muted-foreground">{t}</h3>;
   const rotuloAba = ABAS.flatMap((g) => g.itens).find((i) => i.id === aba)?.label;
@@ -378,6 +391,35 @@ function EmpresaIndex({ corpo: inicial, logo, segredos_gravados, opcoes }: Props
                     )}
                   </Stack>
                 </>
+              )}
+
+              {aba === 'painel' && (
+                <Grid cols={2} gap={3}>
+                  {campo('stock_expiry_alert_days', 'Avisar validade com quantos dias', { tipo: 'number', ajuda: 'Em branco, o salvar usa 30.' })}
+                </Grid>
+              )}
+
+              {aba === 'sistema' && (
+                <>
+                  <Grid cols={2} gap={3}>
+                    {escolha('theme_color', 'Cor do tema', opcoes?.temas, 'Padrão')}
+                    {rotulado('emp-cs-default_datatable_page_entries', 'Linhas por tabela', (
+                      <Select value={comum.default_datatable_page_entries == null ? '25' : String(comum.default_datatable_page_entries)}
+                        onValueChange={(v) => mudaComum('default_datatable_page_entries', v)}>
+                        <SelectTrigger id="emp-cs-default_datatable_page_entries"><SelectValue /></SelectTrigger>
+                        <SelectContent>{Object.entries(LINHAS).map(([v, l]) => <SelectItem key={v} value={v}>{l}</SelectItem>)}</SelectContent>
+                      </Select>
+                    ))}
+                  </Grid>
+                  {ligaCampo('enable_tooltip', 'Mostrar textos de ajuda')}
+                </>
+              )}
+
+              {aba === 'prefixos' && (
+                <Grid cols={2} gap={3}>
+                  {PREFIXOS.map(([k, l]) => rotulado(`emp-prefixo-${k}`, l,
+                    <Input id={`emp-prefixo-${k}`} value={prefixos[k] == null ? '' : String(prefixos[k])} onChange={(e) => mudaPrefixo(k, e.target.value)} />))}
+                </Grid>
               )}
 
               {aba === 'pagto' && (

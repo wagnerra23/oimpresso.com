@@ -346,6 +346,7 @@ class BusinessController extends Controller
                     'moedas' => $currencies, 'fusos' => $timezone_list, 'meses' => $months,
                     'metodos' => $accounting_methods, 'formatos_data' => $date_formats, 'unidades' => $units_dropdown,
                     'impostos' => $tax_rates, 'comissao' => $commission_agent_dropdown, 'pagamentos' => $payment_types,
+                    'temas' => $theme_colors,
                 ]),
             ]);
         }
@@ -407,6 +408,8 @@ class BusinessController extends Controller
             'shortcuts' => $json($b->keyboard_shortcuts), 'pos_settings' => array_diff_key($json($b->pos_settings), array_flip(self::SEGREDOS_POS)),
             // Balança (F3-3b). Está no only(): vazio some do FormData e o salvar deixa como está.
             'weighing_scale_setting' => $json($b->weighing_scale_setting),
+            // Sistema (F3-4). Os dois estão no only(): prefixo vazio some do FormData e fica como está.
+            'theme_color' => $b->theme_color, 'ref_no_prefixes' => $json($b->ref_no_prefixes),
             'common_settings' => $json($b->common_settings), 'enabled_modules' => array_values($json($b->enabled_modules)),
             // Objeto vazio some do FormData e o salvar lê `custom_labels` sem checar: sem a chave, cai no catch.
             'custom_labels' => $json($b->custom_labels) ?: ['payments' => ['custom_pay_1' => '']],
