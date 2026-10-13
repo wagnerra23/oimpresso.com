@@ -51,7 +51,11 @@
     },
     "cowork-inbox/fiscal/playbook/_saida-23.md": {
       "sha256": "2cab95acc860900089db7691b3c716bb8aa35227264c304555b64da1a4b32169",
-      "em": "2026-10-13T13:23:23.484Z"
+      "em": "2026-10-13T13:53:55.792Z"
+    },
+    "cowork-inbox/fiscal/playbook/_saida-23b.md": {
+      "sha256": "ec92be2ff4fece08aa1442a7659b180e7b5030916bffe9f1905656a474c6622b",
+      "em": "2026-10-13T13:53:55.792Z"
     },
     "cowork-inbox/fiscal/playbook/_saida-30.md": {
       "sha256": "9b589d464d566d9899fdc940e98da689f9b3b2fe0f415666135944d34afad036",
