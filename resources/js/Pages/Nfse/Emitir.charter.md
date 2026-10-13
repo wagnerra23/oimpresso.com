@@ -36,7 +36,7 @@ Formulário de emissão de uma NFS-e: o operador informa competência, tomador (
 - Defaults do provider (`config`): código LC 116, alíquota, ambiente (produção/homologação)
 - Alerta quando o módulo não está configurado (`semConfig`) ou o certificado está inválido/expirado (`certAlerta`)
 - Submit `POST /nfse/emitir` → redireciona pra listagem com flash de "enviada para processamento"
-- Erros de validação server-side por campo (`errors`), AppShellV2 + PageHeader shared
+- Erros de validação server-side por campo (`errors`), AppShellV2 + PageHeader canon (`@/Components/PageHeader`, migrado em 2026-10-13 — ADR 0409: tocar a tela exigiu a cura)
 
 ---
 
