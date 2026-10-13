@@ -111,7 +111,12 @@ it('baseline: a lista traz a despesa do negócio e não a de outro, mesmo no meu
 
 it('baseline: sem acesso a todos os locais, só vem a despesa do local permitido (paridade 2)', function () {
     $tag = 'DSPB2'.uniqid();
-    $user = despEntrar($this, ['all_expense.access', 'location.'.$this->localA]);
+    $user = despEntrar($this, ['all_expense.access']);
+    // permitted_locations() lê só as permissões DIRETAS do usuário (`$user->permissions`), não as do papel:
+    // location.<id> tem de ser dada direto, como o LocaisBaselineTest faz.
+    $user->givePermissionTo(\Spatie\Permission\Models\Permission::findOrCreate('location.'.$this->localA, 'web'));
+    app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
+    $this->actingAs($user->fresh()); // instância sem a relação `permissions` já carregada
     despDespesa($this->business->id, $this->localA, $user->id, "$tag-a");
     despDespesa($this->business->id, $this->localB, $user->id, "$tag-b");
 
