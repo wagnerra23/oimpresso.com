@@ -47,7 +47,6 @@ function pedidosBaselineAtendente($teste): \App\User
 /** Venda final com o atendente no pedido e em cada linha; devolve [id da venda, ids das linhas]. */
 function pedidosBaselinePedido(int $businessId, int $local, int $atendente, array $situacoes): array
 {
-    $produto = EstoqueFixture::singleProduct($businessId);
     $id = (int) DB::table('transactions')->insertGetId([
         'business_id' => $businessId, 'location_id' => $local, 'type' => 'sell', 'status' => 'final', 'payment_status' => 'due',
         'res_waiter_id' => $atendente, 'transaction_date' => now(), 'final_total' => 10, 'total_before_tax' => 10,
@@ -55,6 +54,8 @@ function pedidosBaselinePedido(int $businessId, int $local, int $atendente, arra
     ]);
     $linhas = [];
     foreach ($situacoes as $situacao) {
+        // Um produto por linha: uk_tsl_dup_prevent proíbe venda+produto+variação repetidos.
+        $produto = EstoqueFixture::singleProduct($businessId);
         $linhas[] = (int) DB::table('transaction_sell_lines')->insertGetId([
             'transaction_id' => $id, 'product_id' => $produto->productId, 'variation_id' => $produto->variationId(),
             'quantity' => 1, 'unit_price' => 10, 'unit_price_inc_tax' => 10, 'item_tax' => 0,
