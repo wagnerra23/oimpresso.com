@@ -21,8 +21,8 @@ related_runbook: memory/requisitos/Configuracoes/RUNBOOK-empresa.md
 
 ## Mission
 
-Configurar o negócio — identificação, moeda, datas, precisões, logo e códigos na nota — sem perder nada do que o
-salvar da Blade grava.
+Configurar o negócio em todas as abas da Configuração da empresa (Empresa, Operação, Sistema, Integrações), entregues
+aba a aba atrás da mesma flag, sem perder nada do que o salvar da Blade grava.
 
 ## Goals
 
