@@ -346,9 +346,8 @@ class LicencaComputadorController extends Controller
     }
 
     /**
-     * Flag ligada e sem `?legacy=1`. O `legacy=1` é a volta à Blade enquanto as ações da ficha
-     * (editar, bloquear empresa, bloquear máquina) ainda não estão na tela React — o link
-     * "Abrir na tela antiga" da Page usa este parâmetro.
+     * Flag ligada e sem `?legacy=1`. O `legacy=1` é a rota de fuga para a Blade até o cutover — o
+     * link "Abrir na tela antiga" da Page usa este parâmetro. As ações da ficha já estão na React.
      */
     private function fichaReact(int $businessIdSessao): bool
     {
@@ -357,13 +356,20 @@ class LicencaComputadorController extends Controller
     }
 
     /**
-     * Ficha da empresa em React (`Officeimpresso/Empresa/Show`). Só leitura nesta entrega:
-     * editar a configuração e os bloqueios seguem na Blade até o PR das ações.
+     * Ficha da empresa em React (`Officeimpresso/Empresa/Show`), com as ações da Blade: editar a
+     * configuração, bloquear a empresa e bloquear máquina (este pelo mesmo `toggle-block` da lista).
+     * `permissions` é eager e só esconde botão — quem autoriza é o authorizeEmpresa()/Gerenciar().
      */
     private function renderFicha(int $empresaId)
     {
+        $user = auth()->user();
+
         return Inertia::render('Officeimpresso/Empresa/Show', [
             'empresa'      => $this->buildFichaEmpresa($empresaId),
+            'permissions'  => [
+                'empresa'   => AcessoOperador::pode($user, 'officeimpresso.empresa.gerenciar'),
+                'gerenciar' => AcessoOperador::pode($user, 'officeimpresso.licencas.gerenciar'),
+            ],
             'computadores' => Inertia::defer(fn () => $this->buildFichaComputadores($empresaId)),
             'assinatura'   => Inertia::defer(fn () => $this->buildFichaAssinatura($empresaId)),
         ]);
@@ -659,13 +665,17 @@ class LicencaComputadorController extends Controller
     {
         $this->authorizeEmpresa();
 
-        try {
-            $request->validate([
-                'caminho_banco' => 'nullable|string|max:255',
-                'versao_obrigatoria' => 'nullable|string|max:50',
-                'versao_disponivel' => 'nullable|string|max:50',
-            ]);
+        // Fora do try: dentro dele a ValidationException virava o flash genérico de erro e o
+        // formulário nunca sabia qual campo falhou. E valida `caminho_banco_servidor`, o campo que
+        // o formulário manda e o service salva — a regra antiga olhava `caminho_banco`, que ninguém
+        // envia (empresa-parity D3).
+        $request->validate([
+            'caminho_banco_servidor' => 'nullable|string|max:255',
+            'versao_obrigatoria' => 'nullable|string|max:50',
+            'versao_disponivel' => 'nullable|string|max:50',
+        ]);
 
+        try {
             $this->licencaService->atualizarEmpresa((int) $id, $request->only([
                 'caminho_banco_servidor', 'versao_obrigatoria', 'versao_disponivel',
                 'officeimpresso_numerodemaquinas',
@@ -677,9 +687,22 @@ class LicencaComputadorController extends Controller
         }
     }
 
-    public function businessbloqueado($id)
+    public function businessbloqueado(Request $request, $id)
     {
         $this->authorizeEmpresa();
+
+        // A ficha React manda a INTENÇÃO (`bloquear`): um duplo clique ou outra aba não desfaz o
+        // bloqueio. Sem `bloquear` (Blade) segue o toggle de sempre.
+        if ($request->has('bloquear')) {
+            $bloquear = (bool) $request->validate(['bloquear' => ['required', 'boolean']])['bloquear'];
+            $empresa = DB::table('business')->where('id', (int) $id)->first(['officeimpresso_bloqueado']);
+            abort_if($empresa === null, 404);
+            if ((bool) $empresa->officeimpresso_bloqueado === $bloquear) {
+                throw ValidationException::withMessages([
+                    'bloquear' => $bloquear ? 'Esta empresa já está bloqueada.' : 'Esta empresa já está liberada.',
+                ]);
+            }
+        }
 
         try {
             $this->licencaService->alternarBloqueioEmpresa((int) $id);

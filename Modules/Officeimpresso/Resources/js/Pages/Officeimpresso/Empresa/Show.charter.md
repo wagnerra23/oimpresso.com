@@ -4,7 +4,7 @@ component: Modules/Officeimpresso/Resources/js/Pages/Officeimpresso/Empresa/Show
 status: draft
 owner: wagner
 parent_module: Officeimpresso
-last_validated: '2026-10-12'
+last_validated: '2026-10-13'
 related_prototype: prototipo-ui/cowork/Wagner/officeimpresso-page.jsx
 related_runbook: memory/requisitos/Officeimpresso/RUNBOOK-empresa.md
 related_us: [US-OI-011, US-OI-012]
@@ -30,19 +30,22 @@ desktop Office Impresso, com o caminho para o pacote e para o log.
 
 ## Âncora de design
 
-`officeimpresso-page.jsx` → `EmpresaDrawer`. Nesta entrega a ficha é página (como a Blade), não drawer;
-as ações do drawer do protótipo entram no PR das ações.
+`officeimpresso-page.jsx` → `EmpresaDrawer`. A ficha é página (como a Blade), não drawer. As
+ações da empresa entram como modal ("Editar", Dialog — parity D6) e confirmação (bloquear empresa).
 
 ## Goals
 
 - Ficha: nome, razão social, endereço, telefone, versões, caminho do banco, último acesso e situação.
 - Pacote e assinatura só quando existem: limite (0 = "Ilimitado"), data final e dias restantes.
 - Tabela das máquinas da empresa com status e link de log; "Ver log da empresa"; "Ver pacote".
+- "Editar" (caminho do banco, versão obrigatória, versão disponível) e "Bloquear/Liberar empresa", só para
+  quem tem `officeimpresso.empresa.gerenciar` na operadora.
+- "Bloquear/Liberar" por máquina, com motivo obrigatório, só para quem tem `officeimpresso.licencas.gerenciar`
+  na operadora — o mesmo POST e as mesmas regras do drawer da lista de licenças.
 
 ## Non-Goals (NÃO faz)
 
-- ❌ Nesta entrega: editar a configuração, bloquear a empresa ou bloquear máquina — ficam na Blade
-  (`?legacy=1`, link "Abrir na tela antiga") até o PR das ações.
+- ❌ Editar `officeimpresso_numerodemaquinas`: a Blade não tem o input; seria capacidade nova.
 - ❌ Filtrar o id da URL pela sessão — decisão D1 de [W] em 2026-10-12: a operadora vê qualquer empresa.
 
 ## Anti-hooks
@@ -50,6 +53,9 @@ as ações do drawer do protótipo entram no PR das ações.
 - ❌ Não serializa `Licenca_Computador` nem `Business`: DTOs explícitos (empresa-parity item 45).
 - ❌ Não reformata a data final no navegador: ela chega formatada pelo backend com a mesma conta do
   `@format_date` ([ADR 0066](../../../../../../../memory/decisions/0066-format-date-shift-3h-preservado-legacy-clientes.md)).
+- ❌ Bloquear a empresa não é toggle cego: a tela manda `bloquear` (a intenção) e o backend recusa o
+  pedido que já está cumprido — um duplo clique não libera um cliente que se quis bloquear.
+- ❌ `permissions` não autoriza nada: só esconde botão. A guarda é `authorizeEmpresa()` (AcessoOperador).
 - ❌ Não liga a flag `useV2OfficeimpressoEmpresa` por default: ligar é cutover do [W].
 
 ## Divergências declaradas
@@ -66,6 +72,7 @@ as ações do drawer do protótipo entram no PR das ações.
 
 ```
 Officeimpresso/Empresa/Show (Inertia)
+  permissions:  eager → { empresa: bool, gerenciar: bool }
   empresa:      eager → { id, name, razao_social, rua, telefone, versao_obrigatoria, versao_disponivel,
                           caminho_banco_servidor, ultimo_acesso, bloqueado, pacote_url }
   computadores: Inertia::defer → Array<{ id, dt_cadastro, user_win, pasta_instalacao, versao_exe,
@@ -77,3 +84,5 @@ Officeimpresso/Empresa/Show (Inertia)
 
 `Modules/Officeimpresso/Tests/Feature/ComputadoresEmpresaShowContratoTest.php` (lane
 `officeimpresso-pest`, MySQL, tenant 98 × 99) — UC-EMP-01, 04, 15, 19, 20, 21.
+`Modules/Officeimpresso/Tests/Feature/ComputadoresEmpresaAcoesContratoTest.php` (mesma lane) — UC-EMP-08,
+09, 16, 22, 23, 24.

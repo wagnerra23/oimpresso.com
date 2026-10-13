@@ -6,7 +6,7 @@ module: User
 tela: Funcoes/Index
 owner: W
 status: ativo
-last_validated: "2026-10-08"
+last_validated: "2026-10-13"
 related_adrs:
   - '0104-processo-mwart-canonico-unico-caminho'
   - '0093-multi-tenant-isolation-tier-0'
@@ -44,7 +44,11 @@ permissões `roles.view|create|update|delete`.
 2. **F3-1:** `index()` ganha o ramo Inertia atrás da flag (padrão `PrinterController::FLAG_V2`); o ramo DataTable
    fica com `ajax() && ! inertia()`. Lista de funções com nº de usuários e marca de padrão; excluir confirma em
    diálogo. Cadastrar/editar levam à Blade (o formulário tem 153 controles do núcleo + os dos módulos).
-3. **F3-2:** editor de permissões em React (catálogo agrupado vindo do servidor). Fica para depois da F3-1.
+3. **F3-2:** drawer 760 (`Funcoes/_components/FuncaoDrawer.tsx`) de cadastrar/editar. A prop opcional `editor` do
+   `index()` vem só no partial reload com `?funcao=<id>|nova`: o servidor renderiza a Blade `role/create|edit` do
+   negócio e `App\Utils\FormularioDeFuncao` lê os controles (blocos por `<h4>`, rótulo do `<label>`, marcados). O
+   drawer manda o mesmo corpo do `<form>` para `store`/`update`. Função de outro negócio: 404 (o `edit()` ainda
+   quebra — achado 1, PR próprio).
 4. **F4:** smoke em biz=1 com a flag ligada só para biz=1 — decisão [W].
 5. **F5 (cutover):** decisão [W] — não faz parte da thread.
 
@@ -77,3 +81,7 @@ Desligar a flag `useV2SistemaFuncoes` (GrowthBook). Sem deploy: a Blade continua
 - O Inertia v3 manda `X-Requested-With` em toda visita: o ramo DataTable precisa de `! inertia()`.
 - `update()` e `store()` engolem exceção num `catch` e devolvem redirect: o status não diz se gravou.
 - `syncPermissions()` é destrutivo; o `update()` preserva o que o formulário não oferece (`__preservaNaoOfertadas`).
+- O editor depende da Blade `role/create|edit` (renderizada a cada abertura do drawer, layout incluso). Na F5 a Blade
+  não pode ser apagada sem dar outro dono ao catálogo de controles.
+- `FormularioDeFuncao` acha o form pelo id: `role_form` (edit) e `role_add_form` (create). Renomear na Blade quebra
+  o drawer — o `FuncoesContratoTest` UC-FUNC-05/08 pega.

@@ -1,7 +1,7 @@
 <?php
 
 declare(strict_types=1);
-// Cobre UC-CQR-01, UC-CQR-03, UC-CQR-06, UC-CQR-08, UC-CQR-10 (ProductCatalogue/CatalogueQr.casos.md).
+// Cobre UC-CQR-01, UC-CQR-03, UC-CQR-06, UC-CQR-08, UC-CQR-10, UC-CQR-11 (ProductCatalogue/CatalogueQr.casos.md).
 
 use App\Utils\ModuleUtil;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
@@ -30,6 +30,9 @@ beforeEach(function () {
     $this->business = $this->seededTenant();
     $this->versaoInertia = app(\App\Http\Middleware\HandleInertiaRequests::class)->version(request());
     cqrAssinatura(true);
+    // A tela React fica atrás da chave mwart.product_catalogue_qr (desligada por padrão).
+    // Os UCs da tela ligam a chave; o UC-CQR-11 prova o lado desligado.
+    config(['mwart.product_catalogue_qr.enabled' => true, 'mwart.product_catalogue_qr.business_ids' => []]);
 });
 
 function cqrAssinatura(bool $temModulo): void
@@ -127,4 +130,24 @@ test('UC-CQR-10 sem product.view é 403; sem o módulo na assinatura também', f
     // Controle positivo: com as duas, abre.
     cqrAssinatura(true);
     cqrAbrir($this)->assertOk();
+});
+
+test('UC-CQR-11 chave desligada segue a Blade; ligada só para outro negócio também', function () {
+    cqrEntrar($this, ['product.view', 'access_all_locations']);
+
+    config(['mwart.product_catalogue_qr.enabled' => false]);
+    $r = cqrAbrir($this);
+    $r->assertOk();
+    expect($r->headers->get('x-inertia'))->toBeNull();
+
+    config(['mwart.product_catalogue_qr.enabled' => true, 'mwart.product_catalogue_qr.business_ids' => [99]]);
+    $r = cqrAbrir($this);
+    $r->assertOk();
+    expect($r->headers->get('x-inertia'))->toBeNull();
+
+    // Controle positivo: na lista, responde Inertia.
+    config(['mwart.product_catalogue_qr.business_ids' => [(int) $this->business->id]]);
+    $r = cqrAbrir($this);
+    $r->assertOk();
+    expect($r->json('component'))->toBe('ProductCatalogue/CatalogueQr');
 });

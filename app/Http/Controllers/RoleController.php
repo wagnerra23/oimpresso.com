@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\SellingPriceGroup;
 use App\Services\FeatureFlagService;
 use App\User;
+use App\Utils\FormularioDeFuncao;
 use App\Utils\ModuleUtil;
 use App\Utils\PermissionCatalog;
 use DB;
@@ -97,6 +98,9 @@ class RoleController extends Controller
 
             return Inertia::render('Funcoes/Index', [
                 'funcoes' => Inertia::defer(fn () => $this->funcoesDoNegocio((int) $business_id)),
+                // Drawer de cadastrar/editar (F3-2): só vem no partial reload que o abre, com
+                // `?funcao=<id>` ou `?funcao=nova`. Fora dele nem é calculado.
+                'editor' => Inertia::optional(fn () => $this->editorDaFuncao((int) $business_id, (string) request('funcao', ''))),
                 'pode' => [
                     'criar' => $user->can('roles.create'),
                     'editar' => $user->can('roles.update'),
@@ -140,9 +144,45 @@ class RoleController extends Controller
     }
 
     /**
+     * O que o drawer de Funções desenha: os controles que a Blade `role/create|edit` renderiza para
+     * este negócio, em blocos (ver App\Utils\FormularioDeFuncao). Mesmas permissões e mesmo filtro
+     * de negócio de `create()`/`edit()`; a diferença é que papel de outro negócio dá 404 aqui, em
+     * vez do erro do `find()` nulo que o `edit()` ainda tem (achado 1 da _saida-02, PR próprio).
+     *
+     * @return array<string, mixed>
+     */
+    private function editorDaFuncao(int $business_id, string $funcao): array
+    {
+        if ($funcao === 'nova') {
+            if (! auth()->user()->can('roles.create')) {
+                abort(403, 'Unauthorized action.');
+            }
+
+            $html = $this->create()->render();
+
+            return ['id' => null] + FormularioDeFuncao::extrair($html, 'role_add_form');
+        }
+
+        if (! auth()->user()->can('roles.update')) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $role = Role::where('business_id', $business_id)->findOrFail((int) $funcao);
+
+        // Mesma regra da lista e do update(): papel padrão (fora o Cashier) não se edita.
+        if ($role->is_default && $role->name != 'Cashier#'.$business_id) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $html = $this->edit($role->id)->render();
+
+        return ['id' => $role->id] + FormularioDeFuncao::extrair($html, 'role_form');
+    }
+
+    /**
      * Show the form for creating a new resource.
      *
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\View\View
      */
     public function create()
     {
@@ -255,7 +295,7 @@ class RoleController extends Controller
      * Show the form for editing the specified resource.
      *
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\View\View
      */
     public function edit($id)
     {

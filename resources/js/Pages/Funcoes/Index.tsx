@@ -9,11 +9,12 @@
 // Charter: ./Index.charter.md · Casos: ./Index.casos.md · RUNBOOK: memory/requisitos/User/RUNBOOK-funcoes.md
 // Âncora de design: prototipo-ui/cowork/Wagner/funcoes-page.jsx → FuncoesPage (lista)
 //
-// Cadastrar e editar abrem a Blade: o formulário tem 153 controles do núcleo + os dos módulos, e o editor
-// React (F3-2) vem depois. Descrição e cor por função do protótipo não têm fonte no banco.
+// Cadastrar e editar abrem o drawer (F3-2, ./_components/FuncaoDrawer): os controles vêm da prop opcional
+// `editor`, pedida no partial reload com `?funcao=<id>|nova`. Descrição e cor por função do protótipo não
+// têm fonte no banco.
 
 import AppShellV2 from '@/Layouts/AppShellV2';
-import { Deferred, router } from '@inertiajs/react';
+import { Deferred, router, usePage } from '@inertiajs/react';
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { MoreHorizontal, Plus, Search } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
@@ -29,10 +30,12 @@ import EmptyState from '@/Components/shared/EmptyState';
 import DataTable from '@/Components/shared/DataTable';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Inline, Stack } from '@/Components/layout';
+import FuncaoDrawer, { type Editor } from './_components/FuncaoDrawer';
 
 export interface Funcao { id: number; nome: string; padrao: boolean; editavel: boolean; usuarios: number }
 interface Props {
   funcoes?: Funcao[];
+  editor?: Editor | null;
   pode: { criar: boolean; editar: boolean; excluir: boolean };
 }
 
@@ -54,12 +57,21 @@ async function excluirNoServidor(id: number): Promise<{ success: boolean; msg?: 
 
 const usuariosTxt = (n: number) => (n === 1 ? '1 usuário' : `${n} usuários`);
 
-function FuncoesIndex({ funcoes: funcoesProp, pode }: Props) {
+function FuncoesIndex({ funcoes: funcoesProp, editor, pode }: Props) {
   const funcoes = useMemo(() => funcoesProp ?? [], [funcoesProp]);
   const [q, setQ] = useState('');
   const [excluir, setExcluir] = useState<Funcao | null>(null);
   const [aviso, setAviso] = useState<string | null>(null);
   const busca = useRef<HTMLInputElement>(null);
+  const [drawerAberto, setDrawerAberto] = useState(false);
+  const flash = (usePage().props as { flash?: { success?: string | null; error?: string | null } }).flash;
+  const avisoFlash = flash?.error || flash?.success || null;
+
+  const abrirEditor = (funcao: number | 'nova') => router.reload({
+    only: ['editor'], data: { funcao },
+    onSuccess: () => setDrawerAberto(true),
+    onError: () => setAviso('Não foi possível abrir a função.'),
+  });
 
   useEffect(() => {
     const k = (e: KeyboardEvent) => {
@@ -98,7 +110,7 @@ function FuncoesIndex({ funcoes: funcoesProp, pode }: Props) {
         <DropdownMenu>
           <DropdownMenuTrigger asChild><Button variant="ghost" size="sm" aria-label={`Ações de ${f.nome}`}><MoreHorizontal className="size-4" /></Button></DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            {pode.editar && <DropdownMenuItem asChild><a href={`/roles/${f.id}/edit`}>Editar permissões</a></DropdownMenuItem>}
+            {pode.editar && <DropdownMenuItem onSelect={() => abrirEditor(f.id)}>Editar permissões</DropdownMenuItem>}
             {pode.excluir && <DropdownMenuItem className="text-destructive" onSelect={() => setExcluir(f)}>Excluir função</DropdownMenuItem>}
           </DropdownMenuContent>
         </DropdownMenu>
@@ -111,7 +123,7 @@ function FuncoesIndex({ funcoes: funcoesProp, pode }: Props) {
       <div data-contract="page-header">
         <PageHeader title="Funções e permissões"
           subtitle={funcoesProp ? <><strong>{funcoes.length}</strong> {funcoes.length === 1 ? 'função' : 'funções'} no negócio</> : 'funções do negócio'}
-          actions={pode.criar ? <Button asChild><a href="/roles/create"><Plus className="size-4" /> Nova função</a></Button> : undefined} />
+          actions={pode.criar ? <Button onClick={() => abrirEditor('nova')}><Plus className="size-4" /> Nova função</Button> : undefined} />
       </div>
 
       <Stack gap={4} className="px-6 pt-4">
@@ -122,7 +134,7 @@ function FuncoesIndex({ funcoes: funcoesProp, pode }: Props) {
               placeholder="Buscar função…" aria-label="Buscar função" />
           </div>
         </Inline>
-        {aviso && <p role="status" className="text-sm text-muted-foreground">{aviso}</p>}
+        {(aviso ?? avisoFlash) && <p role="status" className="text-sm text-muted-foreground">{aviso ?? avisoFlash}</p>}
 
         <Deferred data="funcoes" fallback={<p className="py-6 text-sm text-muted-foreground">Carregando funções…</p>}>
           {funcoes.length > 0 ? (
@@ -137,6 +149,10 @@ function FuncoesIndex({ funcoes: funcoesProp, pode }: Props) {
           )}
         </Deferred>
       </Stack>
+
+      {drawerAberto && editor && (
+        <FuncaoDrawer key={editor.id ?? 'nova'} editor={editor} onClose={() => { setDrawerAberto(false); setAviso(null); }} />
+      )}
 
       <AlertDialog open={!!excluir} onOpenChange={(v) => !v && setExcluir(null)}>
         <AlertDialogContent data-contract="confirm-excluir">
