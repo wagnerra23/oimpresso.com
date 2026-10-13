@@ -1,6 +1,7 @@
 ---
 title: "Fabricação × Produção — onde se monta a composição e onde se produz (resposta à revisão do [W] no #9086)"
-status: proposto
+status: aceito
+decidido: "2026-10-13 — [W] no chat: \"aprovado\""
 date: "2026-10-09"
 owners: [W]
 proposed_by: Claude Code (sessão da Fabricação, a pedido de [M])
@@ -16,7 +17,7 @@ related_charters:
 
 # Fabricação × Produção — onde fica cada coisa
 
-> **Status: `proposto`.** Não muda código. É a resposta à revisão do [W] no
+> **Status: `aceito`** — [W] aprovou em 2026-10-13 (chat da gerência da fila: *"Ler o #9086 … aprovado"*). Até 13/10 era `proposto`. Não muda código. É a resposta à revisão do [W] no
 > [#9086](https://github.com/wagnerra23/oimpresso.com/pull/9086) (2026-10-09):
 > *"Produção e fabricação devem ser em locais diferentes, como deveria ser na comunicação visual?
 > onde monta os produtos composição e onde vai ser feito os materiais na produção — consulte os
