@@ -71,6 +71,7 @@ last_run_ci: "run 38087431948 (lane Estoque · MySQL, commit 59fe58ae, com o arq
 | UC-PIDX-13 | Clicar no cabeçalho de uma coluna ordena a lista no servidor, nas duas direções; por preço só para quem pode ver o preço | should | protótipo (`ListaProdutos`, colunas `sortable`) + `$ordenaveis` de `buildProdutoListaPaginada` + gate de preço (UC-PIDX-03) | `ProdutoListaOrdenacaoTest` (Pest) + `produto-lista-ordenacao.test.tsx` (Vitest) | ⬜ nasce neste PR — verde esperado |
 | UC-PIDX-14 | "Cadastro rápido" cria o produto com os preços que o formulário Blade gravaria, só na empresa e nos locais permitidos | must `[V0]` `[T0]` | charter v3 §Goals ("Cadastro rápido") + protótipo (`ModalCadastroRapido`) + Blade `quick_add_product` / `saveQuickProduct` + REGRA MESTRE valor | `ProdutoListaCadastroRapidoTest` (Pest) + `produto-cadastro-rapido.test.tsx` (Vitest) | ⬜ nasce neste PR — verde esperado |
 | UC-PIDX-15 | "Adicionar ou editar estoque inicial" abre em janela e lança o mesmo saldo, linhas e transações que o formulário Blade | must `[V0]` `[T0]` | protótipo (`ModalEstoqueInicial`) + Blade `opening_stock/form-part` / `OpeningStockController@save` + `CU-PROD-04` + REGRA MESTRE estoque | `EstoqueInicialJanelaTest` (Pest) + `produto-estoque-inicial.test.tsx` (Vitest) | ⬜ nasce neste PR — verde esperado |
+| UC-PIDX-16 | Arrastar a borda do cabeçalho muda a largura da coluna, sem mexer na ordem nem nas outras colunas | should | protótipo (`ListaProdutos` → `DataGrid` do DS, `startResize`) | `produto-lista-redimensionar.test.tsx` + `datatable-redimensionar.test.tsx` (Vitest) + 1 caso em `tests/a11y-primitives.test.tsx` (roda em lane) | ⬜ nasce neste PR — verde esperado |
 
 > 🔄 **Revalidação G-6 — 2026-10-10 (#9124, lista no desenho do protótipo).** Os 6 contratos
 > **continuam os mesmos**: derivam do SDD, da lista Blade e do Delphi, não da tela de cards. O que
@@ -301,6 +302,18 @@ last_run_ci: "run 38087431948 (lane Estoque · MySQL, commit 59fe58ae, com o arq
 - **Achado do caminho antigo, NÃO resolvido aqui (hipótese por leitura, ainda sem medição):** ao zerar uma linha existente, o `save()` não chama `updateProductQuantity` (`if ($qty_remaining != 0)`), então o saldo do local não desceria. A janela herda o que o Blade faz — o teste afirma só a igualdade entre os dois caminhos nesse caso. Decisão de conserto é do [W]/[F].
 - **Status: ⬜** — nasce neste PR; verde esperado. Só a lane decide (a parte Vitest não roda em lane nenhuma).
 
+## UC-PIDX-16 · Arrastar a borda da coluna muda a largura dela · `should`
+- **Persona:** Larissa tem produto de nome comprido que aparece cortado; quer abrir a coluna "Produto" e apertar "Locais", como faz numa planilha.
+- **Aceite:** Dada a lista aberta · Quando arrasto a borda direita do cabeçalho de Produto, Locais, Preço de compra, Preço de venda, Estoque atual, Tipo, Categoria, Marca ou Imposto · Então só aquela coluna muda de largura, acompanhando o mouse, e nunca fica menor que 48px; as outras colunas ficam como estavam e a tabela cresce ou encolhe o mesmo tanto (com a barra de rolagem horizontal). Ação e Imagem não têm borda de arrastar, nem a última coluna da grade. Arrastar **não ordena** a lista. A largura fica enquanto a tela está aberta — ordenar, trocar de página, filtrar e ligar ou desligar colunas não a desfazem; recarregar a página volta às larguras de saída.
+- **Teste:** [`produto-lista-redimensionar.test.tsx`](../../../../tests/js/produto-lista-redimensionar.test.tsx) — `UC-PIDX-16` (as colunas de verdade na tabela de verdade) e [`datatable-redimensionar.test.tsx`](../../../../tests/js/datatable-redimensionar.test.tsx) (a tabela, sozinha). Um caso roda em lane: `DataTable resizable…` em [`tests/a11y-primitives.test.tsx`](../../../../tests/a11y-primitives.test.tsx) (lane `datatable-nome-acessivel-gate`).
+- **Contrato:**
+  - **Protótipo** — `ListaProdutos` roda no `DataTablePro` do DS (= `DataGrid` com `resizable`); a regra está em `prototipo-ui/design-system/components/DataGrid/DataGrid.jsx` (`startResize`): alça de 7px, piso de 48px, sem alça na coluna `resizable: false` (Ação, Imagem) e na última. O rodapé diz "arraste a borda pra redimensionar".
+  - **Medido no protótipo com arrasto real (2026-10-13, 1280px):** +50px levou Produto de 300 para 350 e a tabela de 1704 para 1754; encolher Locais além do piso parou em 48; a ordenação não mudou.
+- **O que NÃO faz, como no protótipo:** não lembra a largura entre visitas (o menu "Colunas" lembra quais colunas aparecem; a largura, não); não tem atalho de teclado nem toque — é só mouse; não tem duplo clique para ajustar ao conteúdo.
+- **Diferença deliberada do protótipo:** lá a alça é deslocada 3px para fora da coluna e o cabeçalho vizinho cobre essa parte — sobram 4px úteis (medido com `elementFromPoint`). Aqui os 7px ficam inteiros dentro da coluna, para a borda ser mais fácil de pegar.
+- **Onde mora:** `resizable` é opção nova do `shared/DataTable`, desligada por padrão — as outras telas que usam a tabela não mudam.
+- **Status: ⬜** — nasce neste PR; verde esperado. Dos três arquivos de teste, só o caso do `a11y-primitives` roda em lane.
+
 ---
 
 ## Achados de governança (o trio prometia o que não tinha)
@@ -403,6 +416,7 @@ last_run_ci: "run 38087431948 (lane Estoque · MySQL, commit 59fe58ae, com o arq
 - Gate: `scripts/casos-coverage-guard.mjs` (G-1/G-2/G-5/G-6/G-7 — [ADR 0264](../../../../memory/decisions/0264-governanca-executavel-trio-dominio-e2e.md))
 
 ## Trilha do tempo
+- 2026-10-13 · [F+C] **UC-PIDX-16** (redimensionar coluna): `shared/DataTable` ganha a opção `resizable` (desligada por padrão) e a lista de produtos a liga; Ação e Imagem ficam fixas, como no protótipo. Rodapé passa a dizer "arraste a borda pra redimensionar".
 - 2026-10-13 · [F+C] **UC-PIDX-15** (estoque inicial em janela): o menu da linha abre a janela em vez da página Blade; `OpeningStockController::salvarDaJanela` confere o pedido e entrega ao `save()`; prova de estoque com produto gêmeo no `EstoqueInicialJanelaTest`.
 - 2026-10-12 · [F+C] **UC-PIDX-14** ("Cadastro rápido" na barra da lista): a janela manda os dois preços digitados e o servidor monta o pedido do formulário Blade e entrega ao `saveQuickProduct`; prova de valor por dois caminhos no `ProdutoListaCadastroRapidoTest`.
 - 2026-10-12 · [F+C] **UC-PIDX-13** (ordenar pelo cabeçalho): a tela prometia e não fazia — as colunas ganharam o `accessorFn` que faltava e a tabela passou a receber a ordem atual; teste de servidor e de tela.

@@ -9,6 +9,9 @@
 // `enableSorting: true` não basta. Medido em produção em 2026-10-12: as 8 colunas tinham
 // `enableSorting: true` sem `accessorFn`, o cabeçalho saía como texto puro e o clique não fazia
 // nada — com typecheck, build e CI verdes. O `id` da coluna é a chave que o servidor aceita.
+//
+// Redimensionar: como no protótipo, toda coluna pode ser arrastada pela borda, menos Ação e
+// Imagem (`resizable: false`) e a última da grade (regra da tabela, não daqui).
 
 import type { ColumnDef } from '@tanstack/react-table';
 import AcoesProduto, { type AcaoProduto } from './AcoesProduto';
@@ -39,7 +42,7 @@ export function colunasDaLista({ visiveis, densa, permissions, contexto, aoEscol
       id: 'acao',
       header: 'Ação',
       enableSorting: false,
-      meta: { width: 96 },
+      meta: { width: 96, resizable: false },
       cell: ({ row }) => (
         <AcoesProduto linha={row.original} permissoes={permissions} gruposDePreco={contexto.grupos_de_preco} aoEscolher={aoEscolher} />
       ),
@@ -50,7 +53,7 @@ export function colunasDaLista({ visiveis, densa, permissions, contexto, aoEscol
       id: 'imagem',
       header: 'Imagem',
       enableSorting: false,
-      meta: { width: 74 },
+      meta: { width: 74, resizable: false },
       cell: ({ row }) =>
         row.original.imagem ? (
           <img src={row.original.imagem} alt="" className="pb-thumb object-cover" loading="lazy" />

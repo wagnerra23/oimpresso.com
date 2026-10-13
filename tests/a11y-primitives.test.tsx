@@ -13,7 +13,7 @@
 // (Input com Label associado) — testamos o componente canon, não uso-errado.
 
 import { describe, it, expect, afterEach } from "vitest"
-import { render, cleanup, within } from "@testing-library/react"
+import { render, cleanup, within, fireEvent } from "@testing-library/react"
 import axe from "axe-core"
 import type { ColumnDef } from "@tanstack/react-table"
 
@@ -206,6 +206,80 @@ describe("a11y axe (jsdom) — componentes canon, uso válido, 0 violações ser
     expect(ths.every((th) => th.getAttribute("scope") === "col")).toBe(true)
 
     // 5) O axe continua limpo (não é a defesa — ver o bloco acima —, é higiene).
+    expect(await impactfulViolations(container)).toEqual([])
+  })
+
+  // ── DataTable · alça de redimensionar coluna (`resizable`) ───────────────────────────────
+  // Ligada na lista de produtos (UC-PIDX-16, `resources/js/Pages/Produto/Index.casos.md`).
+  // A alça é só de mouse, como no `DataGrid` do DS. O que este caso mede é que ela NÃO
+  // aparece pra quem não usa mouse — nem na tabulação, nem no nome do cabeçalho, nem como
+  // elemento exposto — e que arrastar muda a largura da coluna sem tirar nada disso do lugar.
+  // É o único caso do `resizable` que roda em lane; o conjunto completo está em
+  // `tests/js/datatable-redimensionar.test.tsx`.
+  it("DataTable resizable: a alça fica fora da árvore de acessibilidade, e arrastar só muda a largura", async () => {
+    type Linha = { id: number; nome: string; local: string }
+    const LINHAS: Linha[] = [{ id: 1, nome: "Camiseta", local: "Matriz" }]
+    const COLUNAS: ColumnDef<Linha, any>[] = [
+      { id: "acao", header: "Ação", enableSorting: false, meta: { width: 96, resizable: false }, cell: () => "…" },
+      { id: "nome", header: "Nome", accessorFn: (l) => l.nome, meta: { width: 300 } },
+      { id: "local", header: "Local", enableSorting: false, meta: { width: 150 }, cell: ({ row }) => row.original.local },
+    ]
+    const pagina: PaginatorShape<Linha> = {
+      data: LINHAS, total: 1, current_page: 1, last_page: 1, from: 1, to: 1, links: [],
+    }
+    const montar = (resizable: boolean) => (
+      <DataTable<Linha>
+        columns={COLUNAS}
+        data={LINHAS}
+        pagination={pagina}
+        caption="Itens"
+        showSearch={false}
+        density="grid"
+        resizable={resizable}
+        rowKey={(r) => r.id}
+      />
+    )
+    const SELETOR = '[data-slot="datatable-redimensionar"]'
+    const nomes = (c: HTMLElement) => within(c).getAllByRole("columnheader").map((h) => h.textContent)
+    const tabulaveis = (c: HTMLElement) => c.querySelectorAll("a[href], button, input, select, textarea, [tabindex]").length
+
+    // CONTROLE: a mesma tabela SEM a prop não tem alça. Sem ele, "a alça não muda nada"
+    // passaria também se a alça nunca fosse renderizada.
+    const sem = render(montar(false))
+    expect(sem.container.querySelectorAll(SELETOR)).toHaveLength(0)
+    const nomesSem = nomes(sem.container)
+    const tabulaveisSem = tabulaveis(sem.container)
+    sem.unmount()
+
+    const { container, getByRole } = render(montar(true))
+
+    // 1) A alça existe só onde deve: não na coluna que se declara fixa, não na última.
+    const alcas = Array.from(container.querySelectorAll<HTMLElement>(SELETOR))
+    expect(alcas).toHaveLength(1)
+    const thNome = within(container).getAllByRole("columnheader")[1] as HTMLElement
+    expect(thNome.contains(alcas[0] as HTMLElement)).toBe(true)
+
+    // 2) Invisível pra tecnologia assistiva e fora da tabulação.
+    expect(alcas[0]?.getAttribute("aria-hidden")).toBe("true")
+    expect(alcas[0]?.hasAttribute("tabindex")).toBe(false)
+    expect(tabulaveis(container)).toBe(tabulaveisSem)
+
+    // 3) O nome de cada cabeçalho é o mesmo com e sem a alça, e a tabela segue nomeada.
+    expect(nomes(container)).toEqual(nomesSem)
+    expect(getByRole("table", { name: "Itens" })).toBeTruthy()
+
+    // 4) Arrastar +50 muda a largura daquela coluna e de nenhuma outra. O jsdom não faz
+    //    layout, então a largura renderizada do cabeçalho (a partida do arrasto) é informada.
+    const larguras = () => Array.from(container.querySelectorAll("colgroup col")).map((c) => (c as HTMLElement).style.width)
+    expect(larguras()).toEqual(["96px", "300px", "150px"])
+    thNome.getBoundingClientRect = () => ({ width: 300, height: 28, top: 0, left: 0, right: 300, bottom: 28, x: 0, y: 0, toJSON: () => ({}) })
+    fireEvent.mouseDown(alcas[0] as HTMLElement, { clientX: 784 })
+    fireEvent.mouseMove(document, { clientX: 834 })
+    fireEvent.mouseUp(document)
+    expect(larguras()).toEqual(["96px", "350px", "150px"])
+
+    // 5) Depois do arrasto, nomes e axe seguem iguais.
+    expect(nomes(container)).toEqual(nomesSem)
     expect(await impactfulViolations(container)).toEqual([])
   })
 })
