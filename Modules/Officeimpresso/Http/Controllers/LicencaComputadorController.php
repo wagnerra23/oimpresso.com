@@ -357,13 +357,20 @@ class LicencaComputadorController extends Controller
     }
 
     /**
-     * Ficha da empresa em React (`Officeimpresso/Empresa/Show`). Só leitura nesta entrega:
-     * editar a configuração e os bloqueios seguem na Blade até o PR das ações.
+     * Ficha da empresa em React (`Officeimpresso/Empresa/Show`). Editar a configuração e bloquear a
+     * empresa já estão nela; bloquear máquina segue na Blade (`?legacy=1`) até o PR dela.
+     * `permissions` é eager e só esconde botão — quem autoriza é o authorizeEmpresa()/Gerenciar().
      */
     private function renderFicha(int $empresaId)
     {
+        $user = auth()->user();
+
         return Inertia::render('Officeimpresso/Empresa/Show', [
             'empresa'      => $this->buildFichaEmpresa($empresaId),
+            'permissions'  => [
+                'empresa'   => AcessoOperador::pode($user, 'officeimpresso.empresa.gerenciar'),
+                'gerenciar' => AcessoOperador::pode($user, 'officeimpresso.licencas.gerenciar'),
+            ],
             'computadores' => Inertia::defer(fn () => $this->buildFichaComputadores($empresaId)),
             'assinatura'   => Inertia::defer(fn () => $this->buildFichaAssinatura($empresaId)),
         ]);
@@ -659,13 +666,17 @@ class LicencaComputadorController extends Controller
     {
         $this->authorizeEmpresa();
 
-        try {
-            $request->validate([
-                'caminho_banco' => 'nullable|string|max:255',
-                'versao_obrigatoria' => 'nullable|string|max:50',
-                'versao_disponivel' => 'nullable|string|max:50',
-            ]);
+        // Fora do try: dentro dele a ValidationException virava o flash genérico de erro e o
+        // formulário nunca sabia qual campo falhou. E valida `caminho_banco_servidor`, o campo que
+        // o formulário manda e o service salva — a regra antiga olhava `caminho_banco`, que ninguém
+        // envia (empresa-parity D3).
+        $request->validate([
+            'caminho_banco_servidor' => 'nullable|string|max:255',
+            'versao_obrigatoria' => 'nullable|string|max:50',
+            'versao_disponivel' => 'nullable|string|max:50',
+        ]);
 
+        try {
             $this->licencaService->atualizarEmpresa((int) $id, $request->only([
                 'caminho_banco_servidor', 'versao_obrigatoria', 'versao_disponivel',
                 'officeimpresso_numerodemaquinas',
@@ -677,9 +688,22 @@ class LicencaComputadorController extends Controller
         }
     }
 
-    public function businessbloqueado($id)
+    public function businessbloqueado(Request $request, $id)
     {
         $this->authorizeEmpresa();
+
+        // A ficha React manda a INTENÇÃO (`bloquear`): um duplo clique ou outra aba não desfaz o
+        // bloqueio. Sem `bloquear` (Blade) segue o toggle de sempre.
+        if ($request->has('bloquear')) {
+            $bloquear = (bool) $request->validate(['bloquear' => ['required', 'boolean']])['bloquear'];
+            $empresa = DB::table('business')->where('id', (int) $id)->first(['officeimpresso_bloqueado']);
+            abort_if($empresa === null, 404);
+            if ((bool) $empresa->officeimpresso_bloqueado === $bloquear) {
+                throw ValidationException::withMessages([
+                    'bloquear' => $bloquear ? 'Esta empresa já está bloqueada.' : 'Esta empresa já está liberada.',
+                ]);
+            }
+        }
 
         try {
             $this->licencaService->alternarBloqueioEmpresa((int) $id);
