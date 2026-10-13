@@ -200,7 +200,7 @@ export default function KnowledgeIndex({ books }: Props) {
             </CardContent>
           </Card>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" data-contract="navegacao">
             {livrosFiltrados.map((book) => (
               <Card key={book.id} className="flex flex-col">
                 <CardHeader className="pb-3">
