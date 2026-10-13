@@ -75,12 +75,14 @@ function dicInertiaVersion(): string
 /** Partial reload da prop deferida pedida — sem ele a prop nem existe no payload. */
 function dicProp($test, string $prop, string $query = ''): array
 {
-    $r = $test->withHeaders([
+    // Cabeçalhos POR CHAMADA: `withHeaders()` grava no TestCase e vazaria o X-Inertia para a próxima
+    // requisição do mesmo teste (o DataTable respondia Inertia, não JSON — run 38460621944).
+    $r = $test->get('/expenses'.$query, [
         'X-Inertia' => 'true',
         'X-Inertia-Version' => dicInertiaVersion(),
         'X-Inertia-Partial-Data' => $prop,
         'X-Inertia-Partial-Component' => 'Financeiro/Despesas/Index',
-    ])->get('/expenses'.$query);
+    ]);
 
     $r->assertOk();
     $r->assertJsonPath('component', 'Financeiro/Despesas/Index');
@@ -121,8 +123,8 @@ it('UC-DESPES-02 · total e devido da tela nova são os mesmos do DataTable, com
     // Caminho 1: payload Inertia da tela nova.
     $nova = dicLinhas($this, $tag);
     // Caminho 2: o JSON do DataTable da Blade (a mesma requisição que o relatório por representante usa).
-    $antiga = collect($this->withHeaders(['X-Requested-With' => 'XMLHttpRequest', 'Accept' => 'application/json'])
-        ->get('/expenses?length=-1')->assertOk()->json('data'))
+    $antiga = collect($this->get('/expenses?length=-1', ['X-Requested-With' => 'XMLHttpRequest', 'Accept' => 'application/json'])
+        ->assertOk()->json('data'))
         ->filter(fn ($l) => str_starts_with((string) $l['ref_no'], $tag))
         ->mapWithKeys(fn ($l) => [explode(' ', (string) $l['ref_no'])[0] => $l])->all();
     $orig = fn (string $html) => (float) (preg_match('/data-orig-value="([^"]+)"/', $html, $m) ? $m[1] : 'NaN');
@@ -140,7 +142,7 @@ it('UC-DESPES-02 · total e devido da tela nova são os mesmos do DataTable, com
 it('UC-DESPES-03 · sem período na URL, os filtros abrem no ano fiscal do negócio', function () {
     $ano = app(\App\Utils\BusinessUtil::class)->getCurrentFinancialYear($this->business->id);
 
-    $r = $this->withHeaders(['X-Inertia' => 'true', 'X-Inertia-Version' => dicInertiaVersion()])->get('/expenses');
+    $r = $this->get('/expenses', ['X-Inertia' => 'true', 'X-Inertia-Version' => dicInertiaVersion()]);
 
     $r->assertOk()->assertJsonPath('component', 'Financeiro/Despesas/Index');
     $r->assertJsonPath('props.filtros.start_date', $ano['start']);
