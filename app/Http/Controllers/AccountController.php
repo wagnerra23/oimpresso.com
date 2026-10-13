@@ -7,16 +7,27 @@ use App\AccountTransaction;
 use App\AccountType;
 use App\BusinessLocation;
 use App\Media;
+use App\Services\FeatureFlagService;
 use App\TransactionPayment;
 use App\Utils\ModuleUtil;
 use App\Utils\Util;
 use DB;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Inertia\Inertia;
 use Yajra\DataTables\Facades\DataTables;
 
 class AccountController extends Controller
 {
+    /**
+     * Flag do caminho React (thread sistema/playbook/06, F3). Convenção `useV2<Modulo><Tela>`.
+     * Sem a chave no GrowthBook o FeatureFlagService cai no fallbackDefaults, que não a lista:
+     * default OFF, a Blade segue servindo. Ligar é toggle no GrowthBook (flag:set --biz=1), não deploy.
+     *
+     * @see memory/requisitos/Configuracoes/RUNBOOK-contas.md
+     */
+    private const FLAG_V2 = 'useV2ConfiguracoesContas';
+
     protected $commonUtil;
 
     protected $moduleUtil;
@@ -45,58 +56,10 @@ class AccountController extends Controller
         }
 
         $business_id = session()->get('user.business_id');
-        if (request()->ajax()) {
-            $accounts = Account::leftjoin('account_transactions as AT', function ($join) {
-                    $join->on('AT.account_id', '=', 'accounts.id')
-                        ->whereNull('AT.deleted_at');
-                })
-            ->leftjoin(
-                'account_types as ats',
-                'accounts.account_type_id',
-                '=',
-                'ats.id'
-            )
-            ->leftjoin(
-                'account_types as pat',
-                'ats.parent_account_type_id',
-                '=',
-                'pat.id'
-            )
-            ->leftJoin('users AS u', 'accounts.created_by', '=', 'u.id')
-                                ->where('accounts.business_id', $business_id)
-                                ->select(['accounts.name', 'accounts.account_number', 'accounts.note', 'accounts.id', 'accounts.account_type_id',
-                                    'ats.name as account_type_name',
-                                    'pat.name as parent_account_type_name',
-                                    'accounts.account_details',
-                                    'is_closed', DB::raw("SUM( IF(AT.type='credit', amount, -1*amount) ) as balance"),
-                                    DB::raw("CONCAT(COALESCE(u.surname, ''),' ',COALESCE(u.first_name, ''),' ',COALESCE(u.last_name,'')) as added_by"),
-                                ]);
-
-            //check account permissions basaed on location
-            $permitted_locations = auth()->user()->permitted_locations();
-            $account_ids = [];
-            if ($permitted_locations != 'all') {
-                $locations = BusinessLocation::where('business_id', $business_id)
-                                ->whereIn('id', $permitted_locations)
-                                ->get();
-
-                foreach ($locations as $location) {
-                    if (! empty($location->default_payment_accounts)) {
-                        $default_payment_accounts = json_decode($location->default_payment_accounts, true);
-                        foreach ($default_payment_accounts as $key => $account) {
-                            if (! empty($account['is_enabled']) && ! empty($account['account'])) {
-                                $account_ids[] = $account['account'];
-                            }
-                        }
-                    }
-                }
-
-                $account_ids = array_unique($account_ids);
-            }
-
-            if (! $this->moduleUtil->is_admin(auth()->user(), $business_id) && $permitted_locations != 'all') {
-                $accounts->whereIn('accounts.id', $account_ids);
-            }
+        // `! inertia()`: o Inertia v3 manda `X-Requested-With` em toda visita; sem esta perna o
+        // partial reload da prop adiada caía no JSON do DataTables (RUNBOOK-contas §10).
+        if (request()->ajax() && ! request()->inertia()) {
+            $accounts = $this->consultaContas((int) $business_id);
 
             $is_closed = request()->input('account_status') == 'closed' ? 1 : 0;
             $accounts->where('is_closed', $is_closed)
@@ -167,17 +130,16 @@ class AccountController extends Controller
                             ->make(true);
         }
 
-        $not_linked_payments = TransactionPayment::leftjoin(
-            'transactions as T',
-            'transaction_payments.transaction_id',
-            '=',
-            'T.id'
-        )
-                                    ->whereNull('transaction_payments.parent_id')
-                                    ->where('method', '!=', 'advance')
-                                    ->where('transaction_payments.business_id', $business_id)
-                                    ->whereNull('account_id')
-                                    ->count();
+        // `?legacy=1` mantém a Blade alcançável com a flag ligada: editar, transferir, depositar e encerrar ainda são
+        // modais dela até o drawer da F3-2.
+        if (! request()->boolean('legacy') && app(FeatureFlagService::class)->isOn(self::FLAG_V2, ['business_id' => $business_id])) {
+            return Inertia::render('Configuracoes/Contas/Index', [
+                'contas' => Inertia::defer(fn () => $this->contasDoNegocio((int) $business_id)),
+                'pagamentos_sem_conta' => Inertia::defer(fn () => $this->pagamentosSemConta((int) $business_id)),
+            ]);
+        }
+
+        $not_linked_payments = $this->pagamentosSemConta((int) $business_id);
 
         // $capital_account_count = Account::where('business_id', $business_id)
         //                             ->NotClosed()
@@ -191,6 +153,112 @@ class AccountController extends Controller
 
         return view('account.index')
                 ->with(compact('not_linked_payments', 'account_types'));
+    }
+
+    /**
+     * Contas do negócio com o saldo (crédito − débito, sem lançamento apagado) e a restrição por local — o MESMO
+     * SQL para a DataTable da Blade e para a tela React. Sem filtro de situação nem groupBy: cada chamador põe o seu.
+     * O saldo é valor (regra mestre): não há segunda conta dele em lugar nenhum.
+     */
+    private function consultaContas(int $business_id)
+    {
+        $accounts = Account::leftjoin('account_transactions as AT', function ($join) {
+                    $join->on('AT.account_id', '=', 'accounts.id')
+                        ->whereNull('AT.deleted_at');
+                })
+            ->leftjoin(
+                'account_types as ats',
+                'accounts.account_type_id',
+                '=',
+                'ats.id'
+            )
+            ->leftjoin(
+                'account_types as pat',
+                'ats.parent_account_type_id',
+                '=',
+                'pat.id'
+            )
+            ->leftJoin('users AS u', 'accounts.created_by', '=', 'u.id')
+                                ->where('accounts.business_id', $business_id)
+                                ->select(['accounts.name', 'accounts.account_number', 'accounts.note', 'accounts.id', 'accounts.account_type_id',
+                                    'ats.name as account_type_name',
+                                    'pat.name as parent_account_type_name',
+                                    'accounts.account_details',
+                                    'is_closed', DB::raw("SUM( IF(AT.type='credit', amount, -1*amount) ) as balance"),
+                                    DB::raw("CONCAT(COALESCE(u.surname, ''),' ',COALESCE(u.first_name, ''),' ',COALESCE(u.last_name,'')) as added_by"),
+                                ]);
+
+        //check account permissions basaed on location
+        $permitted_locations = auth()->user()->permitted_locations();
+        $account_ids = [];
+        if ($permitted_locations != 'all') {
+            $locations = BusinessLocation::where('business_id', $business_id)
+                            ->whereIn('id', $permitted_locations)
+                            ->get();
+
+            foreach ($locations as $location) {
+                if (! empty($location->default_payment_accounts)) {
+                    $default_payment_accounts = json_decode($location->default_payment_accounts, true);
+                    foreach ($default_payment_accounts as $key => $account) {
+                        if (! empty($account['is_enabled']) && ! empty($account['account'])) {
+                            $account_ids[] = $account['account'];
+                        }
+                    }
+                }
+            }
+
+            $account_ids = array_unique($account_ids);
+        }
+
+        if (! $this->moduleUtil->is_admin(auth()->user(), $business_id) && $permitted_locations != 'all') {
+            $accounts->whereIn('accounts.id', $account_ids);
+        }
+
+        return $accounts;
+    }
+
+    /**
+     * Contas do negócio no shape da tela React. O saldo vai como número (ordenar) e como texto já formatado pelo
+     * mesmo num_f da Blade (mostrar) — a tela não formata nem soma valor.
+     */
+    private function contasDoNegocio(int $business_id): array
+    {
+        return $this->consultaContas($business_id)
+            ->groupBy('accounts.id')
+            ->orderBy('accounts.name')
+            ->get()
+            ->map(fn ($row) => [
+                'id' => (int) $row->id,
+                'nome' => $row->name,
+                'numero' => $row->account_number,
+                'observacao' => $row->note,
+                // Mesma regra das colunas da Blade: sem pai, o tipo é o próprio e não há subtipo.
+                'tipo' => empty($row->parent_account_type_name) ? $row->account_type_name : $row->parent_account_type_name,
+                'subtipo' => empty($row->parent_account_type_name) ? null : $row->account_type_name,
+                'saldo' => (float) $row->balance,
+                'saldo_texto' => $this->commonUtil->num_f((float) $row->balance, true),
+                'detalhes' => collect($row->account_details ?? [])
+                    ->filter(fn ($d) => ! empty($d['label']) && ! empty($d['value']))
+                    ->map(fn ($d) => ['rotulo' => $d['label'], 'valor' => $d['value']])->values()->all(),
+                'adicionado_por' => trim(preg_replace('/\s+/', ' ', (string) $row->added_by)),
+                'encerrada' => (int) $row->is_closed === 1,
+            ])->all();
+    }
+
+    /** Pagamentos sem conta vinculada (o aviso da Blade). */
+    private function pagamentosSemConta(int $business_id): int
+    {
+        return TransactionPayment::leftjoin(
+            'transactions as T',
+            'transaction_payments.transaction_id',
+            '=',
+            'T.id'
+        )
+            ->whereNull('transaction_payments.parent_id')
+            ->where('method', '!=', 'advance')
+            ->where('transaction_payments.business_id', $business_id)
+            ->whereNull('account_id')
+            ->count();
     }
 
     /**
