@@ -163,11 +163,21 @@ export function charterDe(target) {
   return String(target || '').replace(/\.tsx$/i, '.charter.md');
 }
 
-/** `page:` do charter → rota viva. Parametrizada (`{id}`, `:id`) não tem instância derivável. */
+/**
+ * `page:` do charter → rota viva. Parametrizada (`{id}`, `:id`) não tem instância derivável.
+ *
+ * O `page:` é escrito por gente e às vezes carrega prosa depois da rota: "/cliente (canon) ·
+ * /contacts (legacy …)", "/kb/nodes  # drawer concept", "n/a — componente do Shell". Até
+ * 2026-10-13 o campo inteiro virava URL, e o lote mediu uma página que não era a tela: o
+ * `Cliente/Index` saiu DIVERGE (bug) e o `User/Perfil` saiu IGUAL, os dois sobre URL de texto
+ * (2 de 79 resultados). A rota é o 1º caminho no INÍCIO do campo, até espaço, `·`, `(` ou `#`;
+ * campo que não começa com `/` não tem rota.
+ */
 export function rotaViva(page) {
-  const rota = String(page || '').trim();
-  if (!rota) return { rota: null, parametrizada: false };
-  return { rota, parametrizada: /[{:*]/.test(rota) };
+  const texto = String(page || '').trim().replace(/^["'`]|["'`]$/g, '');
+  const m = texto.match(/^\/[^\s·(#]*/);
+  if (!m) return { rota: null, parametrizada: false };
+  return { rota: m[0], parametrizada: /[{:*]/.test(m[0]) };
 }
 
 /**
@@ -835,6 +845,13 @@ async function selftest() {
   ok('rotaViva: rota simples', JSON.stringify(rotaViva('/compras')) === '{"rota":"/compras","parametrizada":false}');
   ok('rotaViva: {id} é parametrizada', rotaViva('/oficina-auto/os/{id}').parametrizada === true);
   ok('rotaViva: vazio → null', rotaViva('').rota === null);
+  // 2026-10-13: prosa depois da rota não entra na URL (o lote mediu página errada com ela).
+  ok('rotaViva: prosa depois da rota fica fora', rotaViva("/cliente (canon) · /contacts (legacy dual-render via config('x'))").rota === '/cliente');
+  ok('rotaViva: comentário # fica fora', rotaViva('/kb/nodes  # drawer concept').rota === '/kb/nodes');
+  ok('rotaViva: 2 rotas com · → a 1ª', rotaViva('/import-products · /import-opening-stock').rota === '/import-products');
+  ok('rotaViva: parametrizada com prosa', rotaViva('/cliente/{id} (canon) · /contacts/{id}').parametrizada === true);
+  ok('rotaViva: "n/a — …" não é rota', rotaViva('n/a — componente do Shell').rota === null);
+  ok('rotaViva: entre aspas', rotaViva('"/compras"').rota === '/compras');
 
   const report = { screens: [
     { source: 'a-page.jsx', target: 'resources/js/Pages/A/Index.tsx', module: 'A', lifecycleState: 'anchored' },
