@@ -43,13 +43,17 @@ return [
     | assets: 10 anos (patrimônio — bem do business, prazo contábil Lei 10.165)
     | asset_transactions: 5 anos (movimentações allocate/revoke — auditoria fiscal CTN Art. 173)
     | asset_maintenances: 5 anos (notas técnicas — garantia + comprovação despesa)
-    | asset_warranties: 7 anos (cobre vida útil + 2 anos pós-vencimento)
+    |
+    | As chaves são os nomes REAIS das tabelas (database/schema/mysql-schema.sql). Até 2026-10-13
+    | eram `am_*`, prefixo que nenhuma migration cria (medido em _saida-04 §2b, playbook patrimonio).
+    | `asset_warranties` saiu em 2026-10-13: não tem coluna que aponte para pessoa (só asset_id,
+    | datas, custo e nota), então não há campo pessoal a anonimizar (ADR 0430 item 5).
+    | Retenção aqui = ANONIMIZAR campo pessoal; a linha fica e activity_log nunca é tocado (ADR 0430).
     */
     'entities' => [
-        'am_assets'             => 3650, // 10 anos fiscal/contábil
-        'am_asset_transactions' => 1825, // 5 anos prescrição CTN
-        'am_maintenance_logs'   => 1825, // 5 anos
-        'am_warranties'         => 2555, // 7 anos
+        'assets'             => 3650, // 10 anos fiscal/contábil
+        'asset_transactions' => 1825, // 5 anos prescrição CTN
+        'asset_maintenances' => 1825, // 5 anos
     ],
 
     /*

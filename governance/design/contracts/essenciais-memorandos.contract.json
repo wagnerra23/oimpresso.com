@@ -1,0 +1,31 @@
+{
+  "_nota": "Derivado do alvo governance/design/targets/essenciais--memorandos--index.alvo.json (thread A1 do playbook essenciais, rota `ess-memorandos` do protótipo), não do .tsx. cabecalho e abas do alvo são a casca do módulo no protótipo (cabeçalho 'Essenciais' + abas Tarefas/Documentos/…): a Page viva não tem essa casca, cada tela é uma rota com o próprio h1. Copy só onde protótipo e tela dizem a mesma coisa: cada string foi conferida por máquina na base.assinatura do alvo e no código da Page. Mesma Page de Documentos, aba Memorandos: âncoras `cabecalho` e `tabela` compartilhadas com o contrato essenciais-documentos; o copy aqui é o da aba Memorandos.",
+  "tela": "Essentials/Documents/Index (aba Memorandos)",
+  "fonte": "prototipo-ui/cowork/Wagner/essenciais-page.jsx",
+  "alvo": [
+    "resources/js/Pages/Essentials/Documents/Index.tsx"
+  ],
+  "secoes": [
+    {
+      "id": "cabecalho",
+      "copy": [
+        "Todas as notas",
+        "Avisos e memorandos internos em texto.",
+        "Adicionar"
+      ]
+    },
+    {
+      "id": "tabela",
+      "copy": [
+        "Título",
+        "Descrição",
+        "Data de criação",
+        "Ações"
+      ]
+    }
+  ],
+  "ordem": [
+    "cabecalho",
+    "tabela"
+  ]
+}
