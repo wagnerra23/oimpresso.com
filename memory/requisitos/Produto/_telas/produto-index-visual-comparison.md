@@ -42,8 +42,37 @@ blueprint_cowork: prototipo-ui/prototipos/produto-cockpit/ _(removido em 2026-05
 > | Coluna Categoria | 1 linha | 2 linhas | não é defeito — a 1ª linha medida não tem categoria; a subcategoria aparece quando existe |
 > | Larguras declaradas (`<col>`), checkbox como botão | sim | não | produção à frente, não é defeito |
 >
-> Não medido nesta rodada: toolbar, abas e rodapé da lista (a sonda cobre KPI, título, filtros e a
-> 1ª linha da tabela). O painel de detalhe foi medido em 2026-10-11 (noite, horário de Brasília) — seção abaixo.
+> Não medido NAQUELA rodada: toolbar, abas e rodapé da lista (a sonda cobria KPI, título, filtros e a
+> 1ª linha da tabela). Foram medidos em 2026-10-12 — tabela logo abaixo. O painel de detalhe foi
+> medido em 2026-10-11 (noite, horário de Brasília) — seção seguinte.
+>
+> ### Funções da lista — medido em 2026-10-12 (produção biz 1, pelo DOM e por clique)
+>
+> Inventário tirado do protótipo (`TelaLista`, `ListaProdutos`, `MenuColunas`, modais e `PaletaProduto`)
+> e conferido na tela em produção **pelo que a tela faz**, não pelo rótulo.
+>
+> | Item do protótipo | Produção em 2026-10-12 | Veredito |
+> |---|---|---|
+> | Cabeçalho: contexto, "Atualizado", Baixar Excel, Novo produto | presentes | IGUAL |
+> | Filtros (7 + "Não para venda"), recolher, chips "Filtrando por", "Limpar tudo" | presentes (+ 2 filtros de módulo) | IGUAL |
+> | Abas com contagem, busca com atalho `/`, atalho `n`, densidade, menu de colunas | presentes | IGUAL |
+> | Coluna "Campo personalizado" | aparece quando a empresa deu nome ao campo (até 7) | não é defeito — dado |
+> | Ordenar clicando no cabeçalho | cabeçalho era texto puro; o clique não fazia nada | **defeito — corrigido** (UC-PIDX-13) |
+> | Arrastar a borda da coluna para redimensionar | não existe (larguras fixas) | FALTA |
+> | Botão "Cadastro rápido" | não existe | FALTA |
+> | Menu da linha: 13 ações | 10 presentes | faltam "Transferir entre locais" (vira requisição de transferência) e "Dados fiscais"; "Usar em uma OS" saiu por decisão [F] 2026-10-11 |
+> | Estoque inicial em janela | abre a página de estoque inicial | DIFERENTE |
+> | Barra de seleção (6 ações + limpar), com confirmação | presente (+ WooCommerce Sync) | IGUAL |
+> | Lista vazia, destaque de inativo e de estoque baixo, "Exportar filtrados" | presentes | IGUAL |
+> | `Ctrl+K` com as telas do módulo e ir a um produto | `Ctrl+K` abre a busca geral de tarefas | FALTA |
+> | Aviso "Você veio de… / Voltar e usar" | não existe | FALTA |
+> | Aba Relatório: linhas por página (10/25/50/100) | fixo em 25, Anterior/Próxima | FALTA |
+> | Aba Relatório: lucro potencial em verde | cor comum do texto | FALTA |
+> | Aba Relatório: a busca da lista filtra o relatório | não filtra | de propósito — a aba Blade também não usava a busca (UC-PIDX-08) |
+> | Lista inteira na grade, sem páginas | paginada no servidor, com "Mostrar N por página" | produção à frente |
+>
+> Lição da medição: o 1º clique na caixa de seleção foi simulado por script e a barra não apareceu;
+> com clique de verdade ela aparece completa. Clique simulado em componente Radix não é medida.
 >
 > ### Painel de detalhe — medido em 2026-10-11 (mesma sonda nos dois lados, tema escuro, 1593px)
 >

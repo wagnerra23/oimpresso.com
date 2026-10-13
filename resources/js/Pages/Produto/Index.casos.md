@@ -68,6 +68,7 @@ last_run_ci: "run 38087431948 (lane Estoque · MySQL, commit 59fe58ae, com o arq
 | UC-PIDX-10 | "Exportar filtrados" traz as mesmas linhas da lista, em CSV, com preço só para quem pode ver | should | charter v3 §Goals + protótipo (rodapé, `exportarCsv`) + gate de preço da lista (UC-PIDX-03) | `ProdutoListaExportarTest` (Pest) | ⬜ nasce neste PR — verde esperado |
 | UC-PIDX-11 | "Comprar" abre a nova compra com o produto | should | protótipo (`acoesDe`, rodapé do `DetalheDrawer`) + pedido [F] 2026-10-11 | `ProdutoDetalheTest` (Pest) | ⬜ verde esperado |
 | UC-PIDX-12 | Os 3 indicadores da aba Estoque do painel são a soma das linhas do relatório de estoque do produto | must | protótipo (`DetalheDrawer`, aba Estoque) + contas de `linhaDoRelatorioEstoque` + Blade `view_product_stock_value` | `ProdutoDetalheTest` (Pest) | ⬜ nasce neste PR — verde esperado |
+| UC-PIDX-13 | Clicar no cabeçalho de uma coluna ordena a lista no servidor, nas duas direções; por preço só para quem pode ver o preço | should | protótipo (`ListaProdutos`, colunas `sortable`) + `$ordenaveis` de `buildProdutoListaPaginada` + gate de preço (UC-PIDX-03) | `ProdutoListaOrdenacaoTest` (Pest) + `produto-lista-ordenacao.test.tsx` (Vitest) | ⬜ nasce neste PR — verde esperado |
 
 > 🔄 **Revalidação G-6 — 2026-10-10 (#9124, lista no desenho do protótipo).** Os 6 contratos
 > **continuam os mesmos**: derivam do SDD, da lista Blade e do Delphi, não da tela de cards. O que
@@ -254,6 +255,16 @@ last_run_ci: "run 38087431948 (lane Estoque · MySQL, commit 59fe58ae, com o arq
 - **Divergência deliberada do protótipo:** a legenda do custo diz "pelo preço pago nas compras" (o protótipo diz "preço de compra padrão"). O campo do relatório é o que resta de cada compra recebida × o preço pago nela, não estoque × preço de compra do cadastro — é a mesma legenda do indicador do topo da lista (UC-PIDX-07).
 - **Status: ⬜** — nasce neste PR; verde esperado. Só a lane decide.
 
+## UC-PIDX-13 · Clicar no cabeçalho ordena a lista, nas duas direções · `should`
+- **Persona:** Larissa quer ver primeiro o que tem mais estoque, ou achar um produto pela marca — clica no nome da coluna, como fazia na lista antiga.
+- **Aceite:** Dada a lista aberta · Quando clico no cabeçalho de Produto, Preço de compra, Preço de venda, Estoque atual, Tipo, Categoria, Marca ou SKU · Então a lista volta do servidor ordenada por essa coluna (todas as páginas, não só a que está na tela); clicar de novo na mesma coluna inverte; a coluna ativa mostra a direção, inclusive a ordem padrão (Produto, crescente). Ação, Imagem, Locais, Imposto e IMEI / série não ordenam, como no protótipo. Ordenar por preço de compra ou de venda só existe para quem pode ver esse preço — sem a permissão o pedido cai na ordem por nome, e a ordem das linhas não revela o custo.
+- **Teste:** [`ProdutoListaOrdenacaoTest`](../../../../tests/Feature/Produto/ProdutoListaOrdenacaoTest.php) — `UC-PIDX-13` (o servidor: três produtos com nome, estoque e custo em ordens diferentes entre si) e [`produto-lista-ordenacao.test.tsx`](../../../../tests/js/produto-lista-ordenacao.test.tsx) (a tela: o botão no cabeçalho e o pedido que ele manda, com a tabela de verdade).
+- **Contrato:**
+  - **Protótipo** — `ListaProdutos`: as colunas com `sortable` e o rodapé "clique no cabeçalho pra ordenar".
+  - **Servidor** — `$ordenaveis` em `ProductController::buildProdutoListaPaginada`; `compra`/`venda` só entram com `view_purchase_price` / `access_default_selling_price`.
+- **Achado que originou o caso (medido em produção, 2026-10-12):** o rodapé prometia a ordenação, mas o cabeçalho era texto puro e o clique não fazia nada. As 8 colunas declaravam `enableSorting: true` sem `accessorFn` (a tabela só desenha o botão com ele), e a tela não informava à tabela a ordem atual (sem isso o segundo clique não inverte). Typecheck, build e CI estavam verdes.
+- **Status: ⬜** — nasce neste PR; verde esperado. Só a lane decide (a parte Vitest não roda em lane nenhuma).
+
 ---
 
 ## Achados de governança (o trio prometia o que não tinha)
@@ -334,9 +345,8 @@ last_run_ci: "run 38087431948 (lane Estoque · MySQL, commit 59fe58ae, com o arq
   Vira UC quando [W] confirmar que o saldo entra no card (toca `[V0]`: saldo é estoque).
 - **[BACKLOG] Badge "não vendável" (`not_for_selling`)** — existe no Blade (`:263-264`), some no
   React. Sem âncora Delphi clara; 1 fonte só.
-- **[BACKLOG] Ordenação e filtros avançados** — o charter declara "filtros avançados" como backlog
-  explícito; a ordenação por coluna não tem Non-Goal nem contrato. Vira UC junto com a paginação
-  (UC-PIDX-01), porque as duas dependem de listar server-side.
+- **[BACKLOG] Filtros avançados** — o charter declara "filtros avançados" como backlog explícito.
+  (A ordenação por coluna, que estava neste item, virou o **UC-PIDX-13** em 2026-10-12.)
 - **[BACKLOG] O promotor automático de charter pode estar lendo tráfego do Blade** — `/products`
   serve os dois branches; `route-hits` não distingue. Se confirmado, afeta as 8 telas do módulo e
   qualquer tela em branch dual MWART. É achado de **mecanismo**, não de tela — vira issue de
@@ -357,6 +367,7 @@ last_run_ci: "run 38087431948 (lane Estoque · MySQL, commit 59fe58ae, com o arq
 - Gate: `scripts/casos-coverage-guard.mjs` (G-1/G-2/G-5/G-6/G-7 — [ADR 0264](../../../../memory/decisions/0264-governanca-executavel-trio-dominio-e2e.md))
 
 ## Trilha do tempo
+- 2026-10-12 · [F+C] **UC-PIDX-13** (ordenar pelo cabeçalho): a tela prometia e não fazia — as colunas ganharam o `accessorFn` que faltava e a tabela passou a receber a ordem atual; teste de servidor e de tela.
 - 2026-10-12 · [F+C] **UC-PIDX-12** (os 3 indicadores da aba Estoque do painel): soma das linhas do relatório de estoque do produto, pela mesma função do rodapé da aba "Relatório de estoque"; prova dupla no `ProdutoDetalheTest`.
 - 2026-10-10 · [F+C] **UC-PIDX-10** ("Exportar filtrados" em CSV) e o botão "Etiquetas" na barra de seleção (abre a tela de etiquetas com os produtos selecionados — UC-PETQ-06).
 - 2026-10-10 · [F+C] **UC-PIDX-09** (painel de detalhe): os dados do painel no servidor, com o conteúdo e os gates da janela "Ver" da Blade; a tela do painel vem no PR seguinte.
