@@ -159,8 +159,8 @@ it('UC-DESPES-04 · flag desligada ou ?classico=1 servem a Blade', function () {
 
 it('UC-DESPES-05 · excluir pela tela apaga a minha despesa e não alcança a de outro negócio', function () {
     $this->user = $this->usuarioComPermissoes(['all_expense.access', 'access_all_locations', 'expense.delete'], $this->business);
+    session()->flush(); // o SetSessionData monta a sessão do novo usuário (ver beforeEach)
     $this->actingAs($this->user);
-    session(['user.business_id' => $this->business->id, 'user.id' => $this->user->id, 'business.id' => $this->business->id]);
     $tag = 'DIC5'.uniqid();
     $minha = dicDespesa($this, $this->business->id, "$tag-minha");
     $alheia = dicDespesa($this, DIC_BIZ_ALHEIO, "$tag-alheia");
