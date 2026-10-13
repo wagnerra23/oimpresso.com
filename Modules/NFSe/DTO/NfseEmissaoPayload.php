@@ -26,7 +26,18 @@ final class NfseEmissaoPayload
         public readonly ?string $prestadorCnpj = null,
         public readonly ?string $prestadorIm = null,
         public readonly ?int    $transactionId = null,
+        // R-NFSE-003 — retenções federais (Lei 10.833/2003 arts. 30–32), em centavos,
+        // calculadas pelo RetencoesNfseService do NfeBrasil na montagem do payload.
+        public readonly bool    $retencaoFederalSujeito = false,
+        public readonly int     $retPisCentavos = 0,
+        public readonly int     $retCofinsCentavos = 0,
+        public readonly int     $retCsllCentavos = 0,
     ) {}
+
+    public function retencaoFederalCentavos(): int
+    {
+        return $this->retPisCentavos + $this->retCofinsCentavos + $this->retCsllCentavos;
+    }
 
     public function valorIss(): float
     {
@@ -44,6 +55,8 @@ final class NfseEmissaoPayload
             $this->valorServicos,
             $this->descricao,
             $this->competencia->format('Y-m'),
+            // Só entra quando marcado: nota sem a marcação mantém a chave de antes.
+            ...($this->retencaoFederalSujeito ? ['ret-fed'] : []),
         ]));
     }
 }

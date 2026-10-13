@@ -103,9 +103,13 @@ class SnNfseAdapter implements NfseProviderInterface
         return $response->successful();
     }
 
-    private function buildDps(NfseEmissaoPayload $payload): array
+    /**
+     * Público para o teste do contrato da DPS (R-NFSE-003) ler o que vai à prefeitura
+     * sem precisar de HTTP nem certificado.
+     */
+    public function buildDps(NfseEmissaoPayload $payload): array
     {
-        return [
+        $dps = [
             'infDps' => [
                 // tpAmb POR-BUSINESS (1=produção, 2=homologação) — do payload do tenant.
                 'tpAmb'    => $payload->ambiente === 'producao' ? 1 : 2,
@@ -141,6 +145,29 @@ class SnNfseAdapter implements NfseProviderInterface
                 ],
             ],
         ];
+
+        // R-NFSE-003 — retenções federais, leiaute da NT SE/CGNFS-e nº 007 (grupo
+        // valores/trib/tribFed): "Se houver valores de retenções de PIS, de COFINS e/ou
+        // de CSLL, eles deverão ser SOMADOS e informados no campo 'vRetCSLL' de acordo
+        // com o que foi informado no campo 'tpRetPisCofins'" — e 'vPis'/'vCofins' NÃO
+        // levam valor retido (são débito próprio). tpRetPisCofins 3 = "PIS/COFINS/CSLL
+        // Retidos". Sem retenção (não marcada, Simples, dispensa do art. 31 § 3º) o grupo
+        // não vai: ele é 0-1 e o débito próprio não é calculado aqui.
+        // CST 01 ("Operação Tributável com Alíquota Básica") é o enquadramento do
+        // prestador em lucro presumido/real, único caso em que há retenção — a confirmar
+        // com o contador (declarado no _saida da thread).
+        $retido = $payload->retencaoFederalCentavos();
+        if ($retido > 0) {
+            $dps['infDps']['valores']['trib']['tribFed'] = [
+                'piscofins' => [
+                    'CST'            => '01',
+                    'tpRetPisCofins' => 3,
+                ],
+                'vRetCSLL' => round($retido / 100, 2),
+            ];
+        }
+
+        return $dps;
     }
 
     private function parseErro(array $response): void

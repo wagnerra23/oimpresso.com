@@ -14,7 +14,7 @@ module: NfeBrasil
 >
 > **O que isto é:** o inventário completo das raízes `Modules/NfeBrasil/**` + `resources/js/Pages/NfeBrasil/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 266 arquivos em 19 papéis.
+**Total mapeado:** 268 arquivos em 19 papéis.
 
 ## Controllers — 16
 
@@ -136,7 +136,7 @@ module: NfeBrasil
 - [api.php](../../../Modules/NfeBrasil/Routes/api.php)
 - [web.php](../../../Modules/NfeBrasil/Routes/web.php)
 
-## Migrations (schema) — 27
+## Migrations (schema) — 28
 
 - [2026_05_06_002000_create_nfe_certificados_table.php](../../../Modules/NfeBrasil/Database/Migrations/2026_05_06_002000_create_nfe_certificados_table.php)
 - [2026_05_06_002001_create_nfe_emissoes_table.php](../../../Modules/NfeBrasil/Database/Migrations/2026_05_06_002001_create_nfe_emissoes_table.php)
@@ -165,6 +165,7 @@ module: NfeBrasil
 - [2026_10_07_000005_create_nfe_revisoes_contador_table.php](../../../Modules/NfeBrasil/Database/Migrations/2026_10_07_000005_create_nfe_revisoes_contador_table.php)
 - [2026_10_07_000006_create_nfe_contador_links_table.php](../../../Modules/NfeBrasil/Database/Migrations/2026_10_07_000006_create_nfe_contador_links_table.php)
 - [2026_10_07_000007_create_nfe_contadores_table.php](../../../Modules/NfeBrasil/Database/Migrations/2026_10_07_000007_create_nfe_contadores_table.php)
+- [2026_10_13_000001_add_retencoes_federais_to_nfse_emissoes.php](../../../Modules/NfeBrasil/Database/Migrations/2026_10_13_000001_add_retencoes_federais_to_nfse_emissoes.php)
 
 ## Seeders — 2
 
@@ -219,9 +220,9 @@ module: NfeBrasil
 - [Index.casos.md](../../../resources/js/Pages/NfeBrasil/Tributacao/Index.casos.md)
 - [RegraForm.casos.md](../../../resources/js/Pages/NfeBrasil/Tributacao/RegraForm.casos.md)
 
-## Testes (Pest) — 74
+## Testes (Pest) — 75
 
-- 74 em [Modules/NfeBrasil/Tests/Feature/](../../../Modules/NfeBrasil/Tests/Feature)
+- 75 em [Modules/NfeBrasil/Tests/Feature/](../../../Modules/NfeBrasil/Tests/Feature)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
 ## Demais arquivos (manifestos, docs, assets e misc) — 40

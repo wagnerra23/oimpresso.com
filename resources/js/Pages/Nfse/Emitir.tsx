@@ -59,6 +59,7 @@ export default function NfseEmitir({ config, venda, flash }: Props) {
     valor_servicos: venda ? String(venda.final_total) : '',
     aliquota_iss:   config?.aliquota_iss != null ? String(config.aliquota_iss) : '0.05',
     iss_retido:     false as boolean,
+    retencao_federal_sujeito: false as boolean,
     transaction_id: venda?.transaction_id ?? null as number | null,
   });
 
@@ -294,6 +295,23 @@ export default function NfseEmitir({ config, venda, flash }: Props) {
                   <Label htmlFor="iss_retido" className="text-sm cursor-pointer">
                     ISS retido na fonte pelo tomador
                   </Label>
+                </div>
+
+                <div className="flex items-start gap-3">
+                  <Switch
+                    id="retencao_federal_sujeito"
+                    checked={data.retencao_federal_sujeito}
+                    onCheckedChange={(v) => setData('retencao_federal_sujeito', v)}
+                    className="mt-0.5"
+                  />
+                  <div>
+                    <Label htmlFor="retencao_federal_sujeito" className="text-sm cursor-pointer">
+                      Serviço sujeito à retenção de PIS/COFINS/CSLL (Lei 10.833/2003, art. 30)
+                    </Label>
+                    <p className="text-xs text-[color:var(--text-mute)] mt-0.5">
+                      A retenção é calculada no envio, pelo regime tributário da empresa. Só vale para tomador com CNPJ.
+                    </p>
+                  </div>
                 </div>
 
                 {/* Resumo financeiro */}

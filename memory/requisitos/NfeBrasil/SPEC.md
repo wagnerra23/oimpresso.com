@@ -629,6 +629,22 @@ E o regime lido é o do próprio tenant (98 Simples não herda o normal do 99)
 **Implementação:** `Modules/NfeBrasil/Services/RetencoesNfseService.php`.
 **Testado em:** `Modules/NfeBrasil/Tests/Feature/NfseRetencoesTest.php` (lane `nfebrasil-pest`).
 
+### R-NFSE-003 · A retenção marcada na nota vai para a DPS e fica gravada
+
+```gherkin
+Dado prestador em lucro presumido, tomador com CNPJ e a marcação "serviço sujeito à retenção" ligada
+Quando emito uma NFS-e de 1.500 reais
+Então a nfse_emissoes grava PIS 9,75, COFINS 45,00 e CSLL 15,00
+E a DPS leva tribFed.piscofins.tpRetPisCofins = 3 e vRetCSLL = 69,75 (a soma), sem usar vPis/vCofins
+E desmarcado não há grupo federal e a chave de idempotência é a de antes
+E prestador no Simples, valor dispensado ou tomador sem CNPJ não retêm nem levam o grupo
+```
+
+**Contrato:** Lei 10.833/2003 arts. 30–32 · NT SE/CGNFS-e nº 007 (grupo `tribFed`, lida em 2026-10-13) · decisão [W] 2026-10-13 ("Marcação na nota").
+**Implementação:** `Modules/NFSe/Services/NfseEmissaoService.php` (`montarPayload`, `emitir`) · `Modules/NFSe/DTO/NfseEmissaoPayload.php` · `Modules/NFSe/Adapters/SnNfseAdapter.php` (`buildDps`) · migração `Modules/NfeBrasil/Database/Migrations/2026_10_13_000001_add_retencoes_federais_to_nfse_emissoes.php` · `resources/js/Pages/Nfse/Emitir.tsx` (marcação).
+**Testado em:** `Modules/NfeBrasil/Tests/Feature/NfseRetencoesDpsTest.php` (lane `nfebrasil-pest`).
+**Fora deste item:** a DPS ainda vai como JSON, e a API Sefin espera XML assinado — o envio real depende desse adapter; o CST 01 do grupo `piscofins` é suposição a confirmar com o contador; IRRF e INSS; título no Financeiro com o valor líquido.
+
 ## 4. Decisões pendentes
 
 - [ ] Lib base: `eduardokum/sped-nfe` (recomendado) vs alternativa? — provavelmente sped-nfe (já maduro, BR)
