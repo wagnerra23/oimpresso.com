@@ -78,7 +78,9 @@ entregues pela existência deste módulo:
 - contagem no brief diário;
 - tools MCP;
 - captura automática de erro do browser;
-- migração da caixa Blade para Inertia.
+- migração da caixa Blade para Inertia — em 2026-10-13 a Page `VozDoCliente/Caixa` (só leitura) entrou atrás da
+  flag `useV2VozDoClienteCaixa`, OFF por padrão; ligar a flag e remover a Blade seguem pendentes
+  ([RUNBOOK-caixa](RUNBOOK-caixa.md)).
 
 ## Referências
 

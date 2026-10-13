@@ -2,7 +2,7 @@
 module: VozDoCliente
 status: em-construcao
 status_nota: "Fundação entregue (entidade + canal autenticado + caixa). Sem uso em produção ainda — nenhum business tem o pacote habilitado."
-updated_at: "2026-07-28"
+updated_at: "2026-10-13"
 owner: W
 ---
 
@@ -31,6 +31,7 @@ ninguém sabe dizer de onde veio. O módulo fecha esse buraco na origem.
 | Relatar (autenticado, com URL da tela) | entregue |
 | Dedup de relato idêntico | entregue |
 | Caixa de triagem (Blade) | entregue |
+| Caixa em React (`VozDoCliente/Caixa`, só leitura + filtro por situação) | entregue atrás da flag `useV2VozDoClienteCaixa`, OFF por padrão (2026-10-13, modulos-faltantes/03) |
 | Isolamento cross-tenant Tier 0 | entregue + teste |
 | Roteamento ao módulo dono | não construído |
 | Triagem que vira US | não construído |

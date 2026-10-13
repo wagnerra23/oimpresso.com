@@ -24,6 +24,9 @@ name: Acessos · Pest (MySQL)
 #   - SuporteLogContratoTest — Modo Suporte (ADR 0305): /suporte/log lê a trilha append-only,
 #     nunca mostra a operadora e barra não-agente. Entra por ARQUIVO, não por diretório: os
 #     outros 7 testes de tests/Feature/Support/ nunca rodaram em PR, e ligá-los é outro PR.
+#   - CaixaContratoTest — Voz do Cliente (modulos-faltantes/03): /voz-do-cliente em Inertia atrás da
+#     flag useV2VozDoClienteCaixa (OFF), 403 sem vozdocliente.triar e isolamento 98×99. O controller
+#     e a Page do módulo estão no gatilho.
 #   - RoleTenantIsolationTest — Tier 0 (ADR 0093): /roles/{id} não alcança papel de outro
 #     negócio. Traz o controle POSITIVO junto, senão um filtro largo demais passaria no
 #     negativo e o teste diria "ninguém edita nada" chamando isso de sucesso.
@@ -98,6 +101,9 @@ on:
       - 'app/Http/Middleware/EnsureSupportAccess.php'
       - 'app/SupportAccessLog.php'
       - 'tests/Feature/Support/SuporteLogContratoTest.php'
+      - 'tests/Feature/VozDoCliente/**'
+      - 'Modules/VozDoCliente/Http/Controllers/SinalController.php'
+      - 'resources/js/Pages/VozDoCliente/**'
       - 'app/Http/Controllers/PrinterController.php'
       - 'app/Http/Controllers/BarcodeController.php'
       - 'app/Http/Controllers/BusinessLocationController.php'
@@ -186,6 +192,9 @@ jobs:
               - 'app/Http/Middleware/EnsureSupportAccess.php'
               - 'app/SupportAccessLog.php'
               - 'tests/Feature/Support/SuporteLogContratoTest.php'
+              - 'tests/Feature/VozDoCliente/**'
+              - 'Modules/VozDoCliente/Http/Controllers/SinalController.php'
+              - 'resources/js/Pages/VozDoCliente/**'
               - 'app/Http/Controllers/PrinterController.php'
               - 'app/Http/Controllers/BarcodeController.php'
               - 'app/Http/Controllers/BusinessLocationController.php'
@@ -241,6 +250,7 @@ jobs:
             tests/Feature/NotificationTemplateTest.php \
             tests/Feature/NotificationTemplate/DualTest.php \
             tests/Feature/Support/SuporteLogContratoTest.php \
+            tests/Feature/VozDoCliente/CaixaContratoTest.php \
             tests/Feature/Configuracoes/ \
             tests/Feature/CutoverMenu/RelatoriosSemXInertiaTest.php
 
