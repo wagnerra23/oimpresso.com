@@ -388,4 +388,260 @@ class OpeningStockController extends Controller
 
         return redirect('products')->with('status', $output);
     }
+
+    // ── Estoque inicial em janela, na lista de produtos (React) ─────────────────────────────────
+    // Protótipo `produto-blade.jsx`, `ModalEstoqueInicial`, com TUDO o que a tela Blade
+    // (`opening_stock/form-part.blade.php`) tem: linha por variação, várias linhas por variação,
+    // validade, lote, data, observação e quantidade na segunda unidade.
+    //
+    // Nada aqui grava estoque: `salvarDaJanela` monta o MESMO pedido que o formulário Blade manda
+    // e entrega ao `save()` acima, que continua sendo o único que grava.
+
+    /** Produto desta empresa com controle de estoque, com as relações que a janela usa — ou null. */
+    private function produtoDoEstoqueInicial(int $business_id, int $product_id): ?Product
+    {
+        $product = Product::where('business_id', $business_id)
+            ->where('id', $product_id)
+            ->with(['variations', 'variations.product_variation', 'unit', 'product_locations', 'second_unit'])
+            ->first();
+
+        return $product !== null && (int) $product->getAttribute('enable_stock') === 1 ? $product : null;
+    }
+
+    /**
+     * Locais em que o estoque inicial do produto pode ser lançado: os permitidos a quem está logado
+     * E em que o produto está disponível — a mesma lista da tela Blade (`add()`).
+     *
+     * @return array<int, string>
+     */
+    private function locaisDoEstoqueInicial(int $business_id, Product $product): array
+    {
+        $disponiveis = collect($product->getRelationValue('product_locations'))->pluck('id')->map(fn ($id): int => (int) $id)->all();
+        $locais = [];
+        foreach (collect(BusinessLocation::forDropdown($business_id))->all() as $id => $nome) {
+            if (in_array((int) $id, $disponiveis, true)) {
+                $locais[(int) $id] = (string) $nome;
+            }
+        }
+
+        return $locais;
+    }
+
+    /**
+     * As linhas de estoque inicial já lançadas para o produto, como a `add()` as lê: a quantidade é a
+     * que RESTA (lançada − usada). Datas saem em ISO e sem deslocamento — o que está gravado.
+     *
+     * @return array<int, array<string, mixed>>  por id da linha de compra
+     */
+    private function linhasDoEstoqueInicial(int $business_id, int $product_id): array
+    {
+        $transacoes = Transaction::where('business_id', $business_id)
+            ->where('opening_stock_product_id', $product_id)
+            ->where('type', 'opening_stock')
+            ->with(['purchase_lines'])
+            ->get();
+
+        $linhas = [];
+        foreach ($transacoes as $transacao) {
+            foreach ($transacao->getRelationValue('purchase_lines') as $pl) {
+                $linhas[(int) $pl->id] = [
+                    'purchase_line_id' => (int) $pl->id,
+                    'location_id' => (int) $transacao->getAttribute('location_id'),
+                    'variation_id' => (int) $pl->variation_id,
+                    'quantidade' => (float) $pl->quantity_remaining,
+                    'custo' => (float) $pl->purchase_price,
+                    'validade' => ! empty($pl->exp_date) ? \Carbon::parse($pl->exp_date)->format('Y-m-d') : null,
+                    'lote' => $pl->lot_number !== null ? (string) $pl->lot_number : null,
+                    'data' => ! empty($transacao->getAttribute('transaction_date')) ? \Carbon::parse($transacao->getAttribute('transaction_date'))->format('Y-m-d\TH:i') : null,
+                    'observacao' => $transacao->getAttribute('additional_notes') !== null ? (string) $transacao->getAttribute('additional_notes') : null,
+                    'segunda_unidade_qtd' => (float) $pl->secondary_unit_quantity,
+                ];
+            }
+        }
+
+        return $linhas;
+    }
+
+    /**
+     * Dados da janela de estoque inicial de um produto (JSON) — os mesmos que a `add()` entrega à
+     * tela Blade: por local, por variação, as linhas já lançadas.
+     */
+    public function dadosDaJanela($product_id)
+    {
+        if (! auth()->user()->can('product.opening_stock')) {
+            abort(403, 'Unauthorized action.');
+        }
+        $business_id = (int) request()->session()->get('user.business_id');
+        $product = $this->produtoDoEstoqueInicial($business_id, (int) $product_id);
+        if ($product === null) {
+            return response()->json(['msg' => 'Produto não encontrado ou sem controle de estoque.'], 404);
+        }
+
+        $existentes = $this->linhasDoEstoqueInicial($business_id, (int) $product->id);
+        $variavel = (string) $product->getAttribute('type') === 'variable';
+        $locais = [];
+        foreach ($this->locaisDoEstoqueInicial($business_id, $product) as $location_id => $nome) {
+            $variacoes = [];
+            foreach ($product->getRelationValue('variations') as $variacao) {
+                $doPar = [];
+                foreach ($existentes as $linha) {
+                    if ($linha['location_id'] === $location_id && $linha['variation_id'] === (int) $variacao->id) {
+                        unset($linha['location_id'], $linha['variation_id']);
+                        $doPar[] = $linha;
+                    }
+                }
+                $variacoes[] = [
+                    'id' => (int) $variacao->id,
+                    'nome' => $variavel ? trim(($variacao->product_variation->name ?? '') . ' : ' . $variacao->name, ' :') : '',
+                    'custo_padrao' => (float) $variacao->default_purchase_price,
+                    'linhas' => $doPar,
+                ];
+            }
+            $locais[] = ['id' => $location_id, 'nome' => $nome, 'variacoes' => $variacoes];
+        }
+
+        $unidade = $product->getRelationValue('unit');
+        $segunda = $product->getRelationValue('second_unit');
+
+        return response()->json([
+            'produto' => [
+                'id' => (int) $product->id,
+                'nome' => (string) $product->name,
+                'unidade' => (string) ($unidade->short_name ?? ''),
+                'segunda_unidade' => $segunda !== null ? (string) $segunda->short_name : null,
+            ],
+            'usa_validade' => (int) request()->session()->get('business.enable_product_expiry') === 1,
+            'usa_lote' => (int) request()->session()->get('business.enable_lot_number') === 1,
+            'casas' => [
+                'quantidade' => (int) request()->session()->get('business.quantity_precision', 2),
+                'preco' => (int) request()->session()->get('business.currency_precision', 2),
+            ],
+            'locais' => $locais,
+        ]);
+    }
+
+    /**
+     * Salva a janela de estoque inicial: confere o pedido, monta o do formulário Blade e entrega ao
+     * `save()`. O que este método acrescenta ao caminho Blade é só conferência ANTES de gravar:
+     *   · números só como texto com vírgula decimal e sem milhar ("12.125" não é adivinhado);
+     *   · local tem de ser permitido e do produto; variação tem de ser do produto; linha existente
+     *     tem de ser estoque inicial DESTE produto, DESTA empresa, naquele local e variação;
+     *   · o `save()` APAGA, em cada local enviado, toda linha de estoque inicial que não vier no
+     *     pedido (e desconta o saldo). Por isso o pedido tem de trazer TODAS as linhas existentes
+     *     dos locais que cita — se outra pessoa lançou uma linha depois que a janela abriu, recusa.
+     * Com validade ou lote desligados na empresa, a linha existente mantém o que já tinha (o
+     * formulário Blade, sem o campo, apagava).
+     */
+    public function salvarDaJanela(Request $request)
+    {
+        if (! auth()->user()->can('product.opening_stock')) {
+            abort(403, 'Unauthorized action.');
+        }
+        $business_id = (int) $request->session()->get('user.business_id');
+
+        $numero = ['string', 'regex:/^\d{1,13}(,\d{1,4})?$/'];
+        $base = 'locais.*.variacoes.*.linhas.*.';
+        $dados = $request->validate([
+            'product_id' => ['required', 'integer'],
+            'locais' => ['required', 'array', 'min:1'],
+            'locais.*.location_id' => ['required', 'integer', 'distinct'],
+            'locais.*.variacoes' => ['required', 'array', 'min:1'],
+            'locais.*.variacoes.*.variation_id' => ['required', 'integer'],
+            'locais.*.variacoes.*.linhas' => ['required', 'array', 'min:1'],
+            $base . 'purchase_line_id' => ['nullable', 'integer'],
+            $base . 'quantidade' => array_merge(['required'], $numero),
+            $base . 'custo' => array_merge(['required'], $numero),
+            $base . 'validade' => ['nullable', 'date_format:Y-m-d'],
+            $base . 'lote' => ['nullable', 'string', 'max:191'],
+            $base . 'data' => ['nullable', 'date_format:Y-m-d\TH:i'],
+            $base . 'observacao' => ['nullable', 'string', 'max:5000'],
+            $base . 'segunda_unidade_qtd' => array_merge(['nullable'], $numero),
+        ], [
+            'regex' => 'Número inválido: use vírgula para os centavos e não use ponto.',
+        ]);
+
+        $product = $this->produtoDoEstoqueInicial($business_id, (int) $dados['product_id']);
+        if ($product === null) {
+            return response()->json(['msg' => 'Produto não encontrado ou sem controle de estoque.'], 404);
+        }
+        $recusar = fn (string $motivo) => throw \Illuminate\Validation\ValidationException::withMessages(['locais' => $motivo]);
+
+        $locais = $this->locaisDoEstoqueInicial($business_id, $product);
+        $variacoesDoProduto = collect($product->getRelationValue('variations'))->pluck('id')->map(fn ($id): int => (int) $id)->all();
+        $existentes = $this->linhasDoEstoqueInicial($business_id, (int) $product->id);
+        $temSegundaUnidade = $product->getRelationValue('second_unit') !== null;
+        $usaValidade = (int) $request->session()->get('business.enable_product_expiry') === 1;
+        $usaLote = (int) $request->session()->get('business.enable_lot_number') === 1;
+        $formatoData = (string) $request->session()->get('business.date_format');
+        $formatoDataHora = $formatoData . ((int) $request->session()->get('business.time_format') === 12 ? ' h:i A' : ' H:i');
+
+        $stocks = [];
+        $idsEnviados = [];
+        foreach ($dados['locais'] as $local) {
+            $location_id = (int) $local['location_id'];
+            if (! array_key_exists($location_id, $locais)) {
+                $recusar('Local não permitido para este produto.');
+            }
+            foreach ($local['variacoes'] as $variacao) {
+                $variation_id = (int) $variacao['variation_id'];
+                if (! in_array($variation_id, $variacoesDoProduto, true) || isset($stocks[$location_id][$variation_id])) {
+                    $recusar('Variação inválida para este produto.');
+                }
+                foreach ($variacao['linhas'] as $linha) {
+                    $id = isset($linha['purchase_line_id']) ? (int) $linha['purchase_line_id'] : null;
+                    $gravada = $id !== null ? ($existentes[$id] ?? null) : null;
+                    if ($id !== null && ($gravada === null || $gravada['location_id'] !== $location_id || $gravada['variation_id'] !== $variation_id || in_array($id, $idsEnviados, true))) {
+                        $recusar('Linha de estoque inicial inválida para este produto.');
+                    }
+
+                    // O bloco de uma linha do formulário Blade (`form-part.blade.php`).
+                    $bloco = [
+                        'quantity' => $linha['quantidade'],
+                        'purchase_price' => $linha['custo'],
+                        'purchase_line_note' => $linha['observacao'] ?? null,
+                        'transaction_date' => ! empty($linha['data']) && $formatoData !== ''
+                            ? \Carbon::createFromFormat('Y-m-d\TH:i', $linha['data'])->format($formatoDataHora)
+                            : '',
+                    ];
+                    if ($id !== null) {
+                        $bloco['purchase_line_id'] = $id;
+                        $idsEnviados[] = $id;
+                    }
+                    $validade = $usaValidade ? ($linha['validade'] ?? null) : ($gravada['validade'] ?? null);
+                    if (! empty($validade) && $formatoData !== '') {
+                        $bloco['exp_date'] = \Carbon::createFromFormat('Y-m-d', $validade)->format($formatoData);
+                    }
+                    $lote = $usaLote ? ($linha['lote'] ?? null) : ($gravada['lote'] ?? null);
+                    if ($lote !== null && $lote !== '') {
+                        $bloco['lot_number'] = $lote;
+                    }
+                    if ($temSegundaUnidade) {
+                        $bloco['secondary_unit_quantity'] = $linha['segunda_unidade_qtd'] ?? '0';
+                    }
+                    $stocks[$location_id][$variation_id][] = $bloco;
+                }
+            }
+        }
+
+        foreach ($existentes as $id => $gravada) {
+            if (isset($stocks[$gravada['location_id']]) && ! in_array($id, $idsEnviados, true)) {
+                $recusar('Este estoque inicial foi alterado depois que a janela abriu. Feche e abra de novo.');
+            }
+        }
+
+        // Só os campos montados aqui seguem ao `save()`, e como pedido "ajax" (ele devolve o resultado).
+        $request->headers->set('X-Requested-With', 'XMLHttpRequest');
+        $request->query->replace([]);
+        $request->replace(['product_id' => (int) $product->id, 'stocks' => $stocks]);
+
+        $saida = $this->save($request);
+        if (is_array($saida) && ! empty($saida['success'])) {
+            return response()->json(['success' => true, 'msg' => 'Estoque inicial lançado.']);
+        }
+        // Na falha o `save()` devolve um redirecionamento com a mensagem na sessão.
+        $msg = is_array($saida) ? (string) ($saida['msg'] ?? '') : (string) data_get($request->session()->get('status'), 'msg', '');
+        $request->session()->forget('status');
+
+        return response()->json(['success' => false, 'msg' => $msg !== '' ? $msg : 'Não foi possível lançar o estoque inicial.'], 500);
+    }
 }
