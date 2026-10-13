@@ -340,6 +340,36 @@ it('UC-NOT-22 · manda o teste para o usuario logado, nunca para o destino do re
     );
 });
 
+it('UC-NOT-22 · o teste de envio nao quebra com tags que dependem de venda e as manda literais', function () {
+    // Fixture próprio, não o que outro teste deixou gravado: sem isto o caso passava ou falhava
+    // conforme a ordem (o modelo padrão do new_sale tem {contact_name}). Antes do conserto,
+    // replaceTags(…, null) lia `$transaction->contact` e dava 500.
+    NotificationTemplate::updateOrCreate(
+        ['business_id' => $this->business->id, 'template_for' => 'new_sale'],
+        [
+            'subject' => 'Pedido {invoice_number} de {contact_name}',
+            'email_body' => 'Olá {contact_name}, sua venda {invoice_number} de {business_name}.',
+            'sms_body' => '', 'whatsapp_text' => '',
+        ],
+    );
+    \Illuminate\Support\Facades\Notification::fake();
+
+    ($this->entrar)($this->admin)->post(route('notification-templates.test'), [
+        'template_for' => 'new_sale',
+        'canal' => 'email',
+    ])->assertRedirect()->assertSessionHas('status.success', 1);
+
+    \Illuminate\Support\Facades\Notification::assertSentOnDemand(
+        \App\Notifications\CustomerNotification::class,
+        function ($notificacao) {
+            $dados = (fn () => $this->notificationInfo)->call($notificacao);
+
+            return str_contains((string) $dados['email_body'], '{contact_name}')
+                && str_contains((string) $dados['subject'], '[teste] Pedido {invoice_number}');
+        }
+    );
+});
+
 it('UC-NOT-22 · recusa template_for fora das chaves que a tela oferece', function () {
     ($this->entrar)($this->admin)->post(route('notification-templates.test'), [
         'template_for' => 'modelo_inventado',
