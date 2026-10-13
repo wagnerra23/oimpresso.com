@@ -7,12 +7,14 @@ use App\BusinessLocation;
 use App\Category;
 use App\Product;
 use App\SellingPriceGroup;
+use App\Services\FeatureFlagService;
 use App\System;
 use App\TaxRate;
 use App\Utils\ModuleUtil;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
+use Inertia\Inertia;
 use Modules\Woocommerce\Repositories\WoocommerceSyncLogRepository;
 use Modules\Woocommerce\Services\WoocommerceAuthorizationService;
 use Modules\Woocommerce\Services\WoocommerceResetService;
@@ -22,6 +24,15 @@ use Yajra\DataTables\Facades\DataTables;
 
 class WoocommerceController extends Controller
 {
+    /**
+     * Flag do caminho React do painel (thread woocommerce/playbook/01, F3). Convenção `useV2<Modulo><Tela>`.
+     * Sem a chave no GrowthBook o FeatureFlagService cai no fallbackDefaults, que não a lista:
+     * default OFF, a Blade segue servindo. Ligar é toggle no GrowthBook (flag:set --biz=1), não deploy.
+     *
+     * @see memory/requisitos/Woocommerce/RUNBOOK-painel.md
+     */
+    private const FLAG_V2 = 'useV2WoocommercePainel';
+
     /**
      * All Utils instance.
      */
@@ -63,12 +74,30 @@ class WoocommerceController extends Controller
     /**
      * Display a listing of the resource.
      *
-     * @return Response
+     * @return \Illuminate\Contracts\View\View|\Inertia\Response
      */
     public function index()
     {
+        // Thread woocommerce/playbook/01: com a flag ligada o painel é a tela React. `?classico=1` mantém a Blade, que
+        // segue sendo onde se sincroniza, reinicia e mapeia impostos. A Blade chama a API da loja (getTaxRates); a tela
+        // React não chama: só lê o banco, e nunca recebe as chaves da API.
+        $business_id = (int) request()->session()->get('business.id');
+        if (! request()->boolean('classico') && app(FeatureFlagService::class)->isOn(self::FLAG_V2, ['business_id' => $business_id])) {
+            $this->authService->ensureModulo($business_id);
+            $settings = $this->woocommerceUtil->get_api_settings($business_id);
+
+            return Inertia::render('Woocommerce/Painel/Index', [
+                'configurado' => ! empty($settings->woocommerce_app_url),
+                'resumo' => Inertia::defer(fn () => $this->contagensDoPainel($business_id, $settings)),
+                'produtos' => Inertia::defer(fn () => $this->produtosDoPainel($business_id, $settings)),
+                'pode' => [
+                    'configurar' => $this->authService->podeExecutarAcao($business_id, 'woocommerce.access_woocommerce_api_settings'),
+                    'sincronizar' => $this->authService->podeExecutarAcao($business_id, 'woocommerce.sync_products'),
+                ],
+            ]);
+        }
+
         try {
-            $business_id = (int) request()->session()->get('business.id');
             $this->authService->ensureModulo($business_id);
 
             $tax_rates = TaxRate::where('business_id', $business_id)
@@ -79,51 +108,24 @@ class WoocommerceController extends Controller
             $woocommerce_api_settings = $this->woocommerceUtil->get_api_settings($business_id);
 
             $alerts = [];
+            $c = $this->contagensDoPainel($business_id, $woocommerce_api_settings);
 
-            $not_synced_cat_count = Category::where('business_id', $business_id)
-                                        ->whereNull('woocommerce_cat_id')
-                                        ->where('category_type', 'product')
-                                        ->count();
-
+            $not_synced_cat_count = $c['categorias_pendentes'];
             if (! empty($not_synced_cat_count)) {
                 $alerts['not_synced_cat'] = $not_synced_cat_count == 1 ? __('woocommerce::lang.one_cat_not_synced_alert') : __('woocommerce::lang.cat_not_sync_alert', ['count' => $not_synced_cat_count]);
             }
 
-            $cat_last_sync = $this->woocommerceUtil->getLastSync($business_id, 'categories', false);
-            if (! empty($cat_last_sync)) {
-                $updated_cat_count = Category::where('business_id', $business_id)
-                                        ->whereNotNull('woocommerce_cat_id')
-                                        ->where('updated_at', '>', $cat_last_sync)
-                                        ->count();
-            }
-
+            $updated_cat_count = $c['categorias_alteradas'];
             if (! empty($updated_cat_count)) {
                 $alerts['updated_cat'] = $updated_cat_count == 1 ? __('woocommerce::lang.one_cat_updated_alert') : __('woocommerce::lang.cat_updated_alert', ['count' => $updated_cat_count]);
             }
 
-            $products_last_synced = $this->woocommerceUtil->getLastSync($business_id, 'all_products', false);
-            $query = Product::where('business_id', $business_id)
-                                        ->whereIn('type', ['single', 'variable'])
-                                        ->whereNull('woocommerce_product_id')
-                                        ->where('woocommerce_disable_sync', 0);
-
-            if (! empty($woocommerce_api_settings->location_id)) {
-                $query->ForLocation($woocommerce_api_settings->location_id);
-            }
-            $not_synced_product_count = $query->count();
-
+            $not_synced_product_count = $c['produtos_pendentes'];
             if (! empty($not_synced_product_count)) {
                 $alerts['not_synced_product'] = $not_synced_product_count == 1 ? __('woocommerce::lang.one_product_not_sync_alert') : __('woocommerce::lang.product_not_sync_alert', ['count' => $not_synced_product_count]);
             }
-            if (! empty($products_last_synced)) {
-                $updated_product_count = Product::where('business_id', $business_id)
-                                        ->whereNotNull('woocommerce_product_id')
-                                        ->where('woocommerce_disable_sync', 0)
-                                        ->whereIn('type', ['single', 'variable'])
-                                        ->where('updated_at', '>', $products_last_synced)
-                                        ->count();
-            }
 
+            $updated_product_count = $c['produtos_alterados'];
             if (! empty($updated_product_count)) {
                 $alerts['not_updated_product'] = $updated_product_count == 1 ? __('woocommerce::lang.one_product_updated_alert') : __('woocommerce::lang.product_updated_alert', ['count' => $updated_product_count]);
             }
@@ -143,6 +145,80 @@ class WoocommerceController extends Controller
 
         return view('woocommerce::woocommerce.index')
                 ->with(compact('tax_rates', 'woocommerce_tax_rates', 'alerts'));
+    }
+
+    /**
+     * As contagens dos alertas do painel — uma fonte só para a Blade (alertas) e para a tela React (KPIs).
+     *
+     * @return array{categorias_pendentes:int, categorias_alteradas:int, produtos_pendentes:int, produtos_alterados:int, ultima_sincronizacao:?string}
+     */
+    private function contagensDoPainel(int $business_id, $settings): array
+    {
+        $categorias_pendentes = Category::where('business_id', $business_id)
+            ->whereNull('woocommerce_cat_id')
+            ->where('category_type', 'product')
+            ->count();
+
+        $cat_last_sync = $this->woocommerceUtil->getLastSync($business_id, 'categories', false);
+        $categorias_alteradas = empty($cat_last_sync) ? 0 : Category::where('business_id', $business_id)
+            ->whereNotNull('woocommerce_cat_id')
+            ->where('updated_at', '>', $cat_last_sync)
+            ->count();
+
+        $products_last_synced = $this->woocommerceUtil->getLastSync($business_id, 'all_products', false);
+        $query = Product::where('business_id', $business_id)
+            ->whereIn('type', ['single', 'variable'])
+            ->whereNull('woocommerce_product_id')
+            ->where('woocommerce_disable_sync', 0);
+        if (! empty($settings->location_id)) {
+            $query->ForLocation($settings->location_id);
+        }
+        $produtos_pendentes = $query->count();
+
+        $produtos_alterados = empty($products_last_synced) ? 0 : Product::where('business_id', $business_id)
+            ->whereNotNull('woocommerce_product_id')
+            ->where('woocommerce_disable_sync', 0)
+            ->whereIn('type', ['single', 'variable'])
+            ->where('updated_at', '>', $products_last_synced)
+            ->count();
+
+        return [
+            'categorias_pendentes' => $categorias_pendentes,
+            'categorias_alteradas' => $categorias_alteradas,
+            'produtos_pendentes' => $produtos_pendentes,
+            'produtos_alterados' => $produtos_alterados,
+            'ultima_sincronizacao' => empty($products_last_synced) ? null : \Carbon::createFromFormat('Y-m-d H:i:s', $products_last_synced)->format('d/m/Y H:i'),
+        ];
+    }
+
+    /**
+     * Produtos que sobem para a loja, com a situação de cada um pelos MESMOS predicados das contagens:
+     * fora da fila (sincronização desligada na ficha) · pendente (sem id na loja) · alterado depois da última
+     * sincronização · sincronizado. Sem preço nem estoque: exibir valor é decisão [W]. 50 por página.
+     *
+     * @return array{itens: list<array<string, mixed>>, pagina:int, ultima_pagina:int, total:int}
+     */
+    private function produtosDoPainel(int $business_id, $settings): array
+    {
+        $ultima = $this->woocommerceUtil->getLastSync($business_id, 'all_products', false);
+        $query = Product::where('business_id', $business_id)->whereIn('type', ['single', 'variable']);
+        if (! empty($settings->location_id)) {
+            $query->ForLocation($settings->location_id);
+        }
+        $pagina = $query->orderBy('name')->paginate(50, ['id', 'name', 'sku', 'woocommerce_product_id', 'woocommerce_disable_sync', 'updated_at']);
+
+        $itens = collect($pagina->items())->map(function ($p) use ($ultima) {
+            $situacao = match (true) {
+                (bool) $p->woocommerce_disable_sync => 'fora_da_fila',
+                empty($p->woocommerce_product_id) => 'pendente',
+                ! empty($ultima) && $p->updated_at?->gt($ultima) => 'alterado',
+                default => 'sincronizado',
+            };
+
+            return ['id' => $p->id, 'nome' => $p->name, 'sku' => $p->sku, 'id_na_loja' => $p->woocommerce_product_id, 'situacao' => $situacao];
+        })->values()->all();
+
+        return ['itens' => $itens, 'pagina' => $pagina->currentPage(), 'ultima_pagina' => $pagina->lastPage(), 'total' => $pagina->total()];
     }
 
     /**
