@@ -98,6 +98,7 @@ test('UC-WOOP-03 Tier 0 — meus produtos com a situação certa e o mesmo núme
     expect($r->json('props.resumo.produtos_pendentes'))->toBe($direto);
 
     config(['feature-flags.forced_on' => '']);
+    $this->flushHeaders(); // withHeaders() persiste no teste: o pedido da Blade não pode herdar o X-Inertia parcial.
     app()->instance(\App\Services\FeatureFlagService::class, new class extends \App\Services\FeatureFlagService
     {
         public function isOn(string $flag, array $attrs = []): bool
