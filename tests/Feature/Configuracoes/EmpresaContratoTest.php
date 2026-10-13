@@ -1,10 +1,11 @@
 <?php
 
 declare(strict_types=1);
-// Cobre UC-EMP-01, UC-EMP-02, UC-EMP-03, UC-EMP-04, UC-EMP-05, UC-EMP-06 (Configuracoes/Empresa/Index.casos.md).
+// Cobre UC-EMP-01, UC-EMP-02, UC-EMP-03, UC-EMP-04, UC-EMP-05, UC-EMP-06, UC-EMP-07 (Configuracoes/Empresa/Index.casos.md).
 
 use App\Business;
 use App\Http\Controllers\BusinessController;
+use App\Utils\BusinessUtil;
 use App\Utils\Util;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\DB;
@@ -182,4 +183,30 @@ test('UC-EMP-06 editar as abas Impostos, Produtos e Contatos grava só o que mud
         'tax_label_1' => 'Inscrição 98', 'sku_prefix' => 'NOVO98', 'enable_racks' => 1.0, 'enable_brand' => 0.0,
         'common_settings' => ['is_enabled_export' => '1', 'default_credit_limit' => '2.000,50', 'enable_product_warranty' => '1'],
     ]));
+});
+
+test('UC-EMP-07 chave secreta de pagamento não vai para a tela e o salvar da tela a preserva', function () {
+    $pos = array_merge(app(BusinessUtil::class)->defaultPosSettings(), [
+        'stripe_public_key' => 'pk_publica_98', 'stripe_secret_key' => 'sk_segredo_98', 'razor_pay_key_secret' => 'rz_segredo_98',
+    ]);
+    DB::table('business')->where('id', $this->business->id)->update(['pos_settings' => json_encode($pos), 'date_format' => 'd/m/Y']);
+
+    $r = $this->withHeaders(['X-Inertia' => 'true', 'X-Inertia-Version' => $this->versaoInertia, 'X-Requested-With' => 'XMLHttpRequest'])
+        ->get('/business/settings');
+    expect($r->getContent())->not->toContain('sk_segredo_98');
+    expect($r->getContent())->not->toContain('rz_segredo_98');
+    expect($r->json('props.corpo.pos_settings.stripe_public_key'))->toBe('pk_publica_98');
+
+    $corpo = $r->json('props.corpo');
+    $this->post('/business/update', empFormData($corpo))->assertSessionHas('status.success', 1);
+    $gravado = json_decode((string) DB::table('business')->where('id', $this->business->id)->value('pos_settings'), true);
+    expect($gravado['stripe_secret_key'])->toBe('sk_segredo_98');
+    expect($gravado['razor_pay_key_secret'])->toBe('rz_segredo_98');
+
+    // Controle: a Blade manda a chave (vazia vira null) e assim limpa — a preservação vale só para a chave AUSENTE.
+    $corpo['pos_settings']['stripe_secret_key'] = '';
+    $this->post('/business/update', empFormData($corpo))->assertSessionHas('status.success', 1);
+    $gravado = json_decode((string) DB::table('business')->where('id', $this->business->id)->value('pos_settings'), true);
+    expect($gravado['stripe_secret_key'] ?? null)->toBeNull();
+    expect($gravado['razor_pay_key_secret'])->toBe('rz_segredo_98');
 });
