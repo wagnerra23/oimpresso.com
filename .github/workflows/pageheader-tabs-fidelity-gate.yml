@@ -21,6 +21,7 @@ on:
       - 'resources/js/Components/shared/PageHeaderTabs.tsx'
       - 'tests/pageHeaderTabsFidelity.spec.tsx'
       - 'tests/pageHeaderTabsKeyboard.spec.tsx'
+      - 'tests/pageHeaderTabsDensity.spec.tsx'
       - '.github/workflows/pageheader-tabs-fidelity-gate.yml'
   push:
     branches: [main]
@@ -28,6 +29,7 @@ on:
       - 'resources/js/Components/shared/PageHeaderTabs.tsx'
       - 'tests/pageHeaderTabsFidelity.spec.tsx'
       - 'tests/pageHeaderTabsKeyboard.spec.tsx'
+      - 'tests/pageHeaderTabsDensity.spec.tsx'
 
 concurrency:
   group: pht-fidelity-gate-${{ github.ref }}
@@ -49,4 +51,5 @@ jobs:
         run: npm ci
       - name: fidelidade PageHeaderTabs (vitest)
         # + teclado (←/→/Home/End) e axe do tablist — thread 03 do playbook PageHeader.
-        run: npx vitest run tests/pageHeaderTabsFidelity.spec.tsx tests/pageHeaderTabsKeyboard.spec.tsx
+        # + densidade (default × compact, UC-JPAIN-26): o spec existia e nenhuma lane o rodava.
+        run: npx vitest run tests/pageHeaderTabsFidelity.spec.tsx tests/pageHeaderTabsKeyboard.spec.tsx tests/pageHeaderTabsDensity.spec.tsx
