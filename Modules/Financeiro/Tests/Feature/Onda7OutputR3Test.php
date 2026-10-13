@@ -44,7 +44,9 @@ describe('Onda 7 Financeiro R3 — 2 components existem', function () {
         expect($src)->toContain('#P-');
         // Hrefs canon
         expect($src)->toContain('/sells/');
-        expect($src)->toContain('/financeiro/boletos/');
+        // #BL- aponta pra Cobrança: /financeiro/boletos/{n} não tem rota (thread financeiro/11).
+        expect($src)->toContain('/financeiro/cobranca');
+        expect($src)->not->toContain('/financeiro/boletos/');
         expect($src)->toContain('/compras/');
         expect($src)->toContain('/repair/job/');
         // Usa router.visit (Inertia SPA)
