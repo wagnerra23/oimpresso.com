@@ -43,7 +43,7 @@ test('UC-NOT-02 F2 flag ON responde Inertia com três grupos adiados', function 
     $r = $this->withHeaders($this->inertiaHeaders)->get('/notification-templates')->assertOk();
     expect($r->json('component'))->toBe('NotificationTemplate/Index');
     expect($r->json('deferredProps.default'))->toEqualCanonicalizing([
-        'general_notifications', 'customer_notifications', 'supplier_notifications',
+        'general_notifications', 'customer_notifications', 'supplier_notifications', 'padroes',
     ]);
     expect($r->json('props'))->not->toHaveKey('customer_notifications');
 });
@@ -126,4 +126,18 @@ test('F3 flag ON permite abrir a Page por navegação HTML', function () {
     notifDualFlag(true);
     $this->get('/notification-templates')->assertOk()
         ->assertInertia(fn (\Inertia\Testing\AssertableInertia $page) => $page->component('NotificationTemplate/Index'));
+});
+
+test('UC-NOT-07 partial reload de padroes traz o texto de fábrica por modelo, sem gravar', function () {
+    notifDualFlag(true);
+    $antes = NotificationTemplate::where('business_id', $this->business->id)->count();
+    $r = $this->withHeaders($this->inertiaHeaders + [
+        'X-Inertia-Partial-Component' => 'NotificationTemplate/Index',
+        'X-Inertia-Partial-Data' => 'padroes',
+    ])->get('/notification-templates')->assertOk();
+    $fabrica = collect(NotificationTemplate::defaultNotificationTemplates())->firstWhere('template_for', 'new_sale');
+    expect($r->json('props.padroes.new_sale.subject'))->toBe($fabrica['subject']);
+    expect($r->json('props.padroes.new_sale.email_body'))->toBe($fabrica['email_body']);
+    expect($r->json('props.padroes.new_sale'))->toHaveKeys(['subject', 'email_body', 'sms_body', 'whatsapp_text']);
+    expect(NotificationTemplate::where('business_id', $this->business->id)->count())->toBe($antes);
 });

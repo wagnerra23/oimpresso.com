@@ -13,9 +13,11 @@ import { Badge } from '@/Components/ui/badge';
 import { Box, Grid, Inline, Stack } from '@/Components/layout';
 import EmptyState from '@/Components/shared/EmptyState';
 import {
-  COM_AUTOMATICO, ehPersonalizado, gruposDeTags, iguais, inserirNaSelecao, payload, segmentosSms,
-  tagsDesconhecidas, valoresDe, type Auto, type Campo, type Valores,
+  COM_AUTOMATICO, ehPersonalizado, gruposDeTags, iguais, inserirNaSelecao, payload, restaurar, segmentosSms,
+  tagsDesconhecidas, valoresDe, type Auto, type Campo, type Padrao, type Valores,
 } from './_components/editor-modelo';
+import { CorpoVisual, type CorpoVisualApi } from './_components/CorpoVisual';
+import { Previa } from './_components/Previa';
 
 interface Model {
   name: string; subject: string; email_body: string; sms_body: string; whatsapp_text: string;
@@ -23,7 +25,10 @@ interface Model {
   auto_send_wa_notif: number | string | boolean; cc: string; bcc: string; extra_tags: unknown;
 }
 type Models = Record<string, Model>;
-export interface Props { general_notifications?: Models; customer_notifications?: Models; supplier_notifications?: Models }
+export interface Props {
+  general_notifications?: Models; customer_notifications?: Models; supplier_notifications?: Models;
+  padroes?: Record<string, Padrao>;
+}
 type Channel = 'email' | 'sms' | 'whatsapp';
 const CHANNELS: { key: Channel; label: string; campo: Campo }[] = [
   { key: 'email', label: 'E-mail', campo: 'email_body' }, { key: 'sms', label: 'SMS', campo: 'sms_body' },
@@ -45,6 +50,8 @@ export default function NotificationTemplateIndex(props: Props) {
   const [edits, setEdits] = useState<Record<string, Valores>>({});
   const [selected, setSelected] = useState('');
   const [channel, setChannel] = useState<Channel>('email');
+  const [modo, setModo] = useState<'visual' | 'html'>('visual');
+  const visual = useRef<CorpoVisualApi>(null);
   const [query, setQuery] = useState('');
   const [abertos, setAbertos] = useState<Record<number, boolean>>({});
   const [erros, setErros] = useState<Record<string, string>>({});
@@ -53,7 +60,7 @@ export default function NotificationTemplateIndex(props: Props) {
   const campos = useRef<Partial<Record<Campo, HTMLInputElement | HTMLTextAreaElement | null>>>({});
   const foco = useRef<Campo>('email_body');
   useEffect(() => {
-    if (!models[selected]) { setSelected(Object.keys(models)[0] ?? ''); setChannel('email'); }
+    if (!models[selected]) { setSelected(Object.keys(models)[0] ?? ''); setChannel('email'); setModo('visual'); }
   }, [models, selected]);
   useEffect(() => {
     const keydown = (event: KeyboardEvent) => {
@@ -80,10 +87,12 @@ export default function NotificationTemplateIndex(props: Props) {
   const altera = (campo: Campo | Auto, valor: string | number) => setEdits((s) => ({
     ...s, [selected]: { ...atual(selected), [campo]: valor },
   }));
-  const selecionar = (id: string) => { setSelected(id); setChannel('email'); foco.current = 'email_body'; };
+  const selecionar = (id: string) => { setSelected(id); setChannel('email'); setModo('visual'); foco.current = 'email_body'; };
+  const padrao = props.padroes?.[selected];
   const inserir = (tag: string) => {
     if (!v) return;
     const alvo = channel === 'email' && foco.current === 'subject' ? 'subject' : campoCorpo;
+    if (alvo === 'email_body' && modo === 'visual') { visual.current?.inserir(tag); return; }
     const el = campos.current[alvo];
     const texto = v[alvo];
     const r = inserirNaSelecao(texto, tag, el?.selectionStart ?? texto.length, el?.selectionEnd ?? texto.length);
@@ -118,7 +127,7 @@ export default function NotificationTemplateIndex(props: Props) {
         <Button variant="outline" asChild><a href="/notification-templates?legacy=1">Editor clássico</a></Button>
         <Button disabled={alterados.length === 0 || salvando} onClick={salvar}>Salvar</Button>
       </Inline>} />
-    <Deferred data={['general_notifications', 'customer_notifications', 'supplier_notifications']}
+    <Deferred data={['general_notifications', 'customer_notifications', 'supplier_notifications', 'padroes']}
       fallback={<Box p={6} role="status" aria-busy="true">Carregando modelos de notificação…</Box>}>
       <Grid cols={1} gap={0} className="lg:grid-cols-[236px_minmax(0,1fr)]">
         <Box p={4} border data-contract="lista-modelos">
@@ -146,7 +155,11 @@ export default function NotificationTemplateIndex(props: Props) {
         <Box p={6} className="min-w-0">
           {!model || !v ? <EmptyState title="Nenhum modelo disponível" description="Os modelos disponíveis para sua empresa aparecerão aqui." /> :
             <Stack gap={4}>
-              <h2 data-contract="cabecalho-modelo" className="text-lg font-semibold">{model.name}</h2>
+              <Inline gap={2} wrap className="justify-between">
+                <h2 data-contract="cabecalho-modelo" className="text-lg font-semibold">{model.name}</h2>
+                <Button variant="ghost" size="sm" disabled={!padrao} title={padrao ? undefined : 'Este modelo não tem texto de fábrica.'}
+                  onClick={() => padrao && setEdits((s) => ({ ...s, [selected]: restaurar(padrao) }))}>Restaurar padrão desta</Button>
+              </Inline>
               <Inline role="group" aria-label="Canais do modelo" gap={2} wrap>
                 {CHANNELS.map((item) => <Button key={item.key} variant={channel === item.key ? 'secondary' : 'outline'}
                   aria-pressed={channel === item.key} disabled={selected === 'send_ledger' && item.key !== 'email'}
@@ -164,10 +177,28 @@ export default function NotificationTemplateIndex(props: Props) {
                   {erro(c) && <p id={`nt-${c}-erro`} className="text-sm text-destructive">{erro(c)}</p>}
                 </Stack>)}
               </Grid>}
+              <Grid cols={1} gap={4} className="xl:grid-cols-[minmax(0,1fr)_320px]"><Stack gap={4} className="min-w-0">
               <Stack gap={1} data-contract="editor-canal">
-                <Label htmlFor="nt-corpo">{channel === 'email' ? 'Corpo do e-mail (HTML)' : channel === 'sms' ? 'Texto do SMS' : 'Texto do WhatsApp'}</Label>
-                <Textarea id="nt-corpo" ref={campoRef(campoCorpo)} rows={8} value={corpo}
-                  onFocus={() => { foco.current = campoCorpo; }} onChange={(e) => altera(campoCorpo, e.target.value)} />
+                {channel === 'email' && <Inline gap={1} wrap>
+                  <Inline role="group" aria-label="Formatação" gap={1}>
+                    {([['bold', 'Negrito'], ['italic', 'Itálico'], ['insertUnorderedList', 'Lista'], ['createLink', 'Link']] as const).map(([cmd, rotulo]) =>
+                      <Button key={cmd} size="sm" variant="outline" disabled={modo !== 'visual'} onMouseDown={(e) => e.preventDefault()}
+                        onClick={() => {
+                          const url = cmd === 'createLink' ? window.prompt('Endereço do link (pode usar tag, ex. {invoice_url})', '{invoice_url}') : undefined;
+                          if (cmd !== 'createLink' || url) visual.current?.comando(cmd, url ?? undefined);
+                        }}>{rotulo}</Button>)}
+                  </Inline>
+                  <Inline role="group" aria-label="Modo do corpo" gap={1}>
+                    {(['visual', 'html'] as const).map((m) => <Button key={m} size="sm" variant={modo === m ? 'secondary' : 'ghost'}
+                      aria-pressed={modo === m} onClick={() => setModo(m)}>{m === 'visual' ? 'Visual' : 'HTML'}</Button>)}
+                  </Inline>
+                </Inline>}
+                <Label htmlFor={channel === 'email' && modo === 'visual' ? undefined : 'nt-corpo'}>{channel === 'email' ? (modo === 'visual' ? 'Corpo do e-mail' : 'Corpo do e-mail (HTML)') : channel === 'sms' ? 'Texto do SMS' : 'Texto do WhatsApp'}</Label>
+                {channel === 'email' && modo === 'visual'
+                  ? <CorpoVisual key={selected} ref={visual} html={corpo} onHtml={(h) => altera('email_body', h)}
+                      onFoco={() => { foco.current = 'email_body'; }} />
+                  : <Textarea id="nt-corpo" ref={campoRef(campoCorpo)} rows={8} value={corpo}
+                      onFocus={() => { foco.current = campoCorpo; }} onChange={(e) => altera(campoCorpo, e.target.value)} />}
                 <Inline gap={3} wrap className="text-sm text-muted-foreground">
                   <span>{corpo.length} caracteres</span>
                   {channel === 'sms' && <span>{sms.segmentos} SMS · {sms.limite} por segmento{sms.acento ? ' (tem acento)' : ''}</span>}
@@ -199,6 +230,8 @@ export default function NotificationTemplateIndex(props: Props) {
                 <span className="text-sm text-muted-foreground">
                   {alterados.includes(selected) ? 'Salve antes de testar: o teste usa a versão gravada.' : 'Envia a versão gravada para o seu e-mail.'}</span>
               </Inline>}
+              </Stack>
+              <Previa canal={channel} assunto={v.subject} corpo={corpo} /></Grid>
             </Stack>}
         </Box>
       </Grid>

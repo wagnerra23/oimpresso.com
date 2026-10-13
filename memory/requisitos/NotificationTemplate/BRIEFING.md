@@ -1,8 +1,8 @@
 ---
 module: NotificationTemplate
 status: em-construcao
-status_nota: "Sistema/06: plano F1 da migração de Modelos de notificação; Page e cutover pendentes."
-updated_at: "2026-10-09"
+status_nota: "Tela React no ar para todas as empresas desde 13/10 (#9115 seleção, #9159 editor, #9175 flag); modo Visual, prévia e restaurar padrão entraram em 13/10; faltam prévia via HtmlSanitizer, QA F4 e retirada do Blade."
+updated_at: "2026-10-13"
 owner: W
 lifecycle: ativo
 ---
