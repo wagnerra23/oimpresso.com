@@ -174,7 +174,7 @@ export default function ConfiguracoesIndex(props: PageProps) {
 
       <div className="min-h-screen bg-muted p-4 md:p-6">
         {/* ── HEADER ── */}
-        <header className="mb-6">
+        <header className="mb-6" data-contract="cabecalho">
           <div className="flex items-start justify-between gap-3">
             <div className="flex items-center gap-3">
               <span className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
@@ -205,7 +205,7 @@ export default function ConfiguracoesIndex(props: PageProps) {
         {/* ── GRID 4 SEÇÕES (cards verticais, mobile-first 1col, ≥lg 2cols) ── */}
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
           {/* a. GATEWAYS */}
-          <SectionCard
+          <SectionCard data-contract="gateways"
             icon={Banknote}
             title="Gateways de boleto/pix"
             subtitle="Credenciais ativas e sandbox cadastradas neste business."
@@ -216,7 +216,7 @@ export default function ConfiguracoesIndex(props: PageProps) {
           </SectionCard>
 
           {/* b. RÉGUA DUNNING */}
-          <SectionCard
+          <SectionCard data-contract="dunning"
             icon={Receipt}
             title="Régua de dunning (cobrança)"
             subtitle="Cronograma de retentativas quando uma fatura falha no pagamento."
@@ -257,7 +257,7 @@ export default function ConfiguracoesIndex(props: PageProps) {
           </SectionCard>
 
           {/* c. NFe AUTO */}
-          <SectionCard
+          <SectionCard data-contract="nfe"
             icon={FileText}
             title="NFe-de-boleto-pago automática"
             subtitle="Emissão fiscal disparada automaticamente ao receber pagamento."
@@ -297,7 +297,7 @@ export default function ConfiguracoesIndex(props: PageProps) {
           </SectionCard>
 
           {/* d. WEBHOOKS */}
-          <SectionCard
+          <SectionCard data-contract="webhooks"
             icon={Webhook}
             title="Webhooks"
             subtitle="URLs canônicas pra colar no painel admin do gateway."
@@ -449,14 +449,16 @@ function SectionCard({
   title,
   subtitle,
   children,
+  'data-contract': dataContract,
 }: {
   icon: LucideIcon;
   title: string;
   subtitle?: string;
   children: ReactNode;
+  'data-contract'?: string;
 }) {
   return (
-    <section className="overflow-hidden rounded-lg bg-card shadow-sm ring-1 ring-border">
+    <section data-contract={dataContract} className="overflow-hidden rounded-lg bg-card shadow-sm ring-1 ring-border">
       <header className="flex items-start gap-3 border-b border-border px-5 py-4">
         <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
           <Icon size={16} />
