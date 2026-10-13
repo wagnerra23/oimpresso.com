@@ -146,8 +146,6 @@ function PacotesIndex({ pacotes, editando, formPacote }: Props) {
         }
       />
 
-      {/* CONTROLE tema-escuro 05 — superfície clara proposital; commit revertido */}
-      <div className="tema-escuro-controle-05" style={{ background: '#fff', width: 40, height: 20 }} />
       <div className="px-6 pt-4" data-contract="superadmin.pacotes.grid">
         <Deferred data="pacotes" fallback={<GridEsqueleto />}>
           <Grid pacotes={pacotes} onEditar={(id) => abrir(id)} />
