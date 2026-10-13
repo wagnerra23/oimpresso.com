@@ -15,7 +15,10 @@ it('UC-NOT-02 seleciona o primeiro modelo e preserva assunto e HTML sem executá
   render(<Page {...props} />);
   expect(screen.getByRole('heading', { name: 'Extrato do cliente' })).toBeTruthy();
   expect(screen.getByDisplayValue('Assunto salvo')).toBeTruthy();
-  expect(screen.getByDisplayValue('<p>Olá</p>')).toBeTruthy();
+  // Desde a US-NOTIF-004 o corpo abre no modo Visual: o HTML fica no iframe sandbox, não no DOM da página.
+  const visual = screen.getByTitle('Editor visual do corpo do e-mail') as HTMLIFrameElement;
+  expect(visual.contentDocument!.body.innerHTML).toBe('<p>Olá</p>');
+  expect((visual.getAttribute('sandbox') ?? '').split(/\s+/)).not.toContain('allow-scripts');
   expect(document.querySelector('[data-contract="editor-canal"] p')).toBeNull();
 });
 it('UC-NOT-03 volta ao e-mail ao trocar o modelo depois de abrir SMS', () => {
@@ -63,7 +66,4 @@ it('UC-NOT-15 mostra o aviso de logo ao selecionar modelo de fornecedor', () => 
   expect(screen.getByText('O logo da empresa é exibido somente nos e-mails.')).toBeTruthy();
 });
 
-// Backlog explícito: critérios ainda não implementados. it.todo registra ausência de prova.
-it.todo('UC-NOT-07 restaurar padrão sem gravar até Salvar');
-it.todo('UC-NOT-09 inserir tag no editor Visual e atualizar prévia');
-it.todo('UC-NOT-21 alternar Visual e HTML preservando markup editável');
+// UC-NOT-07/09/21 saíram do backlog: provas em tests/js/notificacoes-visual.test.tsx.

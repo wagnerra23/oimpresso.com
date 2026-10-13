@@ -65,3 +65,23 @@ export function inserirNaSelecao(texto: string, tag: string, ini: number, fim: n
   const b = Math.max(a, Math.min(fim, texto.length));
   return { texto: texto.slice(0, a) + tag + texto.slice(b), cursor: a + tag.length };
 }
+
+// ── Prévia (UC-NOT-09) e restaurar padrão (UC-NOT-07) ─────────────────────────────────────
+const moeda = (n: number) => n.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+/** Valores fictícios só para a prévia. Tag fora daqui aparece crua, como no envio real. */
+export const AMOSTRA: Record<string, string> = {
+  '{business_name}': 'Sua Empresa', '{business_logo}': '[logo]', '{contact_name}': 'Maria Exemplo',
+  '{contact_business_name}': 'Empresa Exemplo', '{invoice_number}': 'VD-0001', '{invoice_url}': 'https://exemplo.com/i/1',
+  '{quote_url}': 'https://exemplo.com/o/1', '{total_amount}': moeda(1240), '{paid_amount}': moeda(640),
+  '{received_amount}': moeda(640), '{due_amount}': moeda(600), '{cumulative_due_amount}': moeda(1180),
+  '{balance_due}': moeda(1180), '{due_date}': '28/08/2026', '{payment_ref_number}': 'PG-0001',
+  '{order_ref_number}': 'CP-0001', '{location_name}': 'Loja Centro', '{location_address}': 'Rua Exemplo, 100',
+  '{location_email}': 'contato@exemplo.com', '{location_phone}': '(11) 3000-0000',
+};
+export const resolverAmostra = (texto: string) => texto.replace(/\{[a-z_0-9]+\}/g, (t) => AMOSTRA[t] ?? t);
+
+export type Padrao = Pick<Valores, 'subject' | 'email_body' | 'sms_body' | 'whatsapp_text'>;
+/** Texto de fábrica com CC/BCC vazios e automáticos desligados, como o modelo semeado. Não grava. */
+export function restaurar(padrao: Padrao): Valores {
+  return { ...valoresDe({}), ...padrao };
+}

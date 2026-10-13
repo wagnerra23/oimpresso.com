@@ -9,7 +9,9 @@ Prova do recorte: `tests/js/notificacoes-selecao.test.tsx` teve cinco passes em 
 
 Editor F3 (13/10): `tests/js/notificacoes-editor.test.tsx` teve dez passes em vitest local; duas mutações (cursor e zeragem dos automáticos) derrubaram os testes correspondentes. Medem o POST montado pelo React, não a gravação no banco — a gravação segue provada pelo NotificationTemplateTest.
 
-> Casos importados do pacote aprovado de 19/08, preservando critérios completos. Seleção e editor em texto/HTML entregues; modo Visual, prévia e restaurar padrão [BACKLOG].
+> Casos importados do pacote aprovado de 19/08, preservando critérios completos. Seleção, editor em texto/HTML, modo Visual, prévia e restaurar padrão entregues (US-NOTIF-004, 13/10).
+
+Modo Visual, prévia e restaurar (13/10): `tests/js/notificacoes-visual.test.tsx` teve seis passes em vitest local; duas mutações (prévia sem resolver as tags e editor com `allow-scripts`) derrubaram os testes correspondentes. O backend de `padroes` está em `tests/Feature/NotificationTemplate/DualTest.php`. Navegador e pixels não foram medidos.
 > Formato Dado/Quando/Então com critério de aceite. Rastreabilidade: R = regra do charter, T = teste em `NotificationTemplateTest.php`.
 
 ## Permissão e carga
@@ -29,7 +31,7 @@ Dado um módulo que devolve `notification_list` para `customer`, quando a tela c
 ## Navegação entre modelos
 
 ## UC-NOT-03 — Trocar de modelo · —
-Status: Parcial: troca e reset de canal medidos em React; modo Visual pendente.
+Status: Troca, reset de canal e volta ao modo Visual medidos em vitest; navegador pendente.
 Dado o modelo "Nova venda" aberto no canal SMS, quando seleciono "Novo pedido" no rail, então o painel troca, o canal volta para E-mail e o editor volta para o modo Visual.
 
 ## UC-NOT-19 — Buscar no rail · —
@@ -63,11 +65,11 @@ Status: Descartar e contador zerado medidos em vitest; a lista suspensa do prot�
 Dado alterações não salvas, quando escolho "Descartar alterações" na lista do contador, então todos os campos voltam ao último estado salvo e o contador zera.
 
 ## UC-NOT-07 — Restaurar padrão · —
-Status: Pendente no recorte F3; critérios integrais preservados abaixo, sem declarar prova do editor/envio.
+Status: Texto de fábrica aplicado sem POST e contador em 1 medidos em vitest; `padroes` vem do controller (DualTest). Modelo de módulo sem padrão deixa o botão desabilitado.
 Dado um modelo editado, quando clico "Restaurar padrão desta", então os campos voltam ao texto de fábrica, o contador acusa a diferença e nada é gravado até eu salvar.
 
 ## UC-NOT-21 — Visual ↔ HTML · D2
-Status: Pendente no recorte F3; critérios integrais preservados abaixo, sem declarar prova do editor/envio.
+Status: Ida e volta Visual ↔ HTML com edição nos dois lados medida em vitest (jsdom); negrito e lista via execCommand não medidos fora do navegador.
 Dado o corpo em modo Visual com negrito e lista, quando alterno para HTML, então vejo o markup correspondente e editável; ao voltar para Visual o conteúdo é o mesmo.
 
 ## UC-NOT-24 — CC inválido · R8 · T-P3
@@ -81,7 +83,7 @@ Status: Inserção no cursor do assunto medida em vitest; navegador pendente.
 Dado o cursor no meio do assunto, quando clico o chip `{invoice_number}`, então a tag entra naquela posição e o cursor fica depois dela.
 
 ## UC-NOT-09 — Inserir tag no corpo · —
-Status: Pendente no recorte F3; critérios integrais preservados abaixo, sem declarar prova do editor/envio.
+Status: Chip no editor Visual entra no HTML e a prévia mostra o valor de exemplo, medidos em vitest; navegador pendente.
 Dado o editor Visual focado, quando clico um chip, então a tag entra no HTML do corpo e a prévia passa a mostrar o valor de exemplo correspondente.
 
 ## UC-NOT-10 — Tag desconhecida · R7 · T12
