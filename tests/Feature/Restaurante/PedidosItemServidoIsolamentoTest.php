@@ -65,7 +65,8 @@ function itemServidoSituacao(int $linha): ?string
 
 test('marcar item como servido não toca item de venda de outro negócio', function () {
     $outro = $this->seededSupportClientTenant();
-    $alheia = itemServidoLinha($outro->id, EstoqueFixture::locationId($outro->id, '-SRV-'.uniqid()), 0);
+    $atendenteAlheio = $this->usuarioComPermissoes(['access_all_locations'], $outro);
+    $alheia = itemServidoLinha($outro->id, EstoqueFixture::locationId($outro->id, '-SRV-'.uniqid()), $atendenteAlheio->id);
     itemServidoEntrar($this, $this->usuarioComPermissoes(['access_all_locations'], $this->business));
 
     $this->getJson('/modules/orders/mark-line-order-as-served/'.$alheia)->assertOk()->assertJson(['success' => 0]);
