@@ -6,15 +6,26 @@ use App\BusinessLocation;
 use App\Contact;
 use App\CustomerGroup;
 use App\Restaurant\Booking;
+use App\Services\FeatureFlagService;
 use App\User;
 use App\Utils\RestaurantUtil;
 use App\Utils\Util;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
+use Inertia\Inertia;
 use Yajra\DataTables\Facades\DataTables;
 
 class BookingController extends Controller
 {
+    /**
+     * Flag do caminho React (thread restaurante/playbook/03, F3). Convenção `useV2<Modulo><Tela>`.
+     * Sem a chave no GrowthBook o FeatureFlagService cai no fallbackDefaults, que não a lista: default OFF,
+     * a Blade segue servindo. Ligar é toggle no GrowthBook (flag:set --biz=1), não deploy.
+     *
+     * @see memory/requisitos/Restaurante/RUNBOOK-reservas.md
+     */
+    private const FLAG_V2 = 'useV2RestauranteReservas';
+
     /**
      * All Utils instance.
      */
@@ -44,7 +55,19 @@ class BookingController extends Controller
         if (! auth()->user()->hasPermissionTo('crud_all_bookings') && ! $this->restUtil->is_admin(auth()->user(), $business_id)) {
             $user_id = request()->session()->get('user.id');
         }
-        if (request()->ajax()) {
+
+        // `?classico=1` mantém a Blade alcançável com a flag ligada: criar, ver, mudar situação e excluir seguem nela.
+        if (! request()->boolean('classico') && (! request()->ajax() || request()->inertia())
+            && app(FeatureFlagService::class)->isOn(self::FLAG_V2, ['business_id' => $business_id])) {
+            return Inertia::render('Restaurante/Reservas/Index', [
+                'reservas' => Inertia::defer(fn () => $this->reservasDoNegocio((int) $business_id, $user_id)),
+                'locais' => BusinessLocation::forDropdown($business_id),
+            ]);
+        }
+
+        // `! inertia()`: o Inertia v3 manda `X-Requested-With` em toda visita; sem esta perna o partial reload
+        // da prop adiada caía no JSON do calendário (§5 2026-09-08, molde AccountController::index).
+        if (request()->ajax() && ! request()->inertia()) {
             $filters = [
                 'start_date' => request()->start,
                 'end_date' => request()->end,
@@ -68,6 +91,40 @@ class BookingController extends Controller
         $customer_groups = CustomerGroup::forDropdown($business_id);
 
         return view('restaurant.booking.index', compact('business_locations', 'customers', 'correspondents', 'types', 'customer_groups'));
+    }
+
+    /**
+     * Reservas do negócio para a tela React, do primeiro dia do mês corrente em diante.
+     *
+     * Mesmos filtros do calendário (RestaurantUtil::getBookingsForCalendar): negócio da sessão, reserva sem cliente
+     * fica de fora e, com $user_id, só as que o usuário criou — a query de lá aplica `created_by` antes do OR de
+     * correspondente/atendente, então o OR não amplia nada (RUNBOOK-reservas §10).
+     *
+     * @return list<array<string, mixed>>
+     */
+    private function reservasDoNegocio(int $business_id, $user_id): array
+    {
+        $query = Booking::where('business_id', $business_id)
+            ->where('booking_start', '>=', now()->startOfMonth())
+            ->has('customer')
+            ->with(['customer', 'table', 'waiter', 'location'])
+            ->orderBy('booking_start');
+
+        if (! empty($user_id)) {
+            $query->where('created_by', $user_id);
+        }
+
+        return $query->get()->map(fn (Booking $b) => [
+            'id' => $b->id,
+            'inicio' => (string) $b->booking_start,
+            'fim' => (string) $b->booking_end,
+            'cliente' => $b->customer->name,
+            'mesa' => $b->table?->name,
+            'local_id' => $b->location_id,
+            'local' => $b->location?->name,
+            'atendente' => $b->waiter ? trim($b->waiter->surname.' '.$b->waiter->first_name.' '.$b->waiter->last_name) : null,
+            'situacao' => $b->booking_status,
+        ])->values()->all();
     }
 
     /**
