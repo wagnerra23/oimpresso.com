@@ -42,7 +42,7 @@ related_adrs:
 | 12 | Painel: dias de alerta de validade | ✅ F3-4 (UC-EMP-11) | `settings_dashboard` | baixa | UC da F3 |
 | 13 | Sistema: cor do tema, dica, linhas por tabela | ✅ F3-4 (UC-EMP-11) | `settings_system` | baixa | UC da F3 |
 | 14 | Prefixos de numeração (`ref_no_prefixes[*]`) | ✅ F3-4 (UC-EMP-11) | `settings_prefixes` | média | UC da F3 |
-| 15 | E-mail e SMS sem expor senha/segredo nas props | ✅ F3-1 (UC-EMP-01: fora do corpo, preservados) | `settings_email` · `settings_sms` | **alta** | UC da F3 |
+| 15 | E-mail e SMS sem expor senha/segredo nas props | ✅ F3-5a (UC-EMP-12: na tela sem os segredos; segredo só de escrita) | `settings_email` · `settings_sms` | **alta** | UC da F3 |
 | 16 | Pontos de fidelidade (`enable_rp`, `rp_*`) | ⬜ F3 | `settings_reward_point` | média | UC da F3 |
 | 17 | Módulos habilitados (`enabled_modules[]`) | ⬜ F3 | `settings_modules` | **alta** | UC da F3 |
 | 18 | Rótulos personalizados (`custom_labels[*]`) | ⬜ F3 | `settings_custom_labels` | média | UC da F3 |

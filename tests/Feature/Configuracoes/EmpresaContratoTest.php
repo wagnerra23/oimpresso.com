@@ -1,7 +1,7 @@
 <?php
 
 declare(strict_types=1);
-// Cobre UC-EMP-01, UC-EMP-02, UC-EMP-03, UC-EMP-04, UC-EMP-05, UC-EMP-06, UC-EMP-07, UC-EMP-08, UC-EMP-09, UC-EMP-10, UC-EMP-11 (Configuracoes/Empresa/Index.casos.md).
+// Cobre UC-EMP-01, UC-EMP-02, UC-EMP-03, UC-EMP-04, UC-EMP-05, UC-EMP-06, UC-EMP-07, UC-EMP-08, UC-EMP-09, UC-EMP-10, UC-EMP-11, UC-EMP-12 (Configuracoes/Empresa/Index.casos.md).
 
 use App\Business;
 use App\Http\Controllers\BusinessController;
@@ -87,15 +87,17 @@ function empLinha(int $id): array
     );
 }
 
-test('UC-EMP-01 com a flag ligada a tela abre em Inertia e o corpo não leva e-mail nem SMS', function () {
-    DB::table('business')->where('id', $this->business->id)->update(['email_settings' => json_encode(['mail_password' => 'segredo-emp-98'])]);
+test('UC-EMP-01 com a flag ligada a tela abre em Inertia e o corpo não leva a senha do e-mail', function () {
+    DB::table('business')->where('id', $this->business->id)->update(['email_settings' => json_encode(['mail_host' => 'smtp.empresa98.test', 'mail_password' => 'segredo-emp-98'])]);
 
     $r = $this->withHeaders(['X-Inertia' => 'true', 'X-Inertia-Version' => $this->versaoInertia, 'X-Requested-With' => 'XMLHttpRequest'])
         ->get('/business/settings');
 
     $r->assertOk();
     expect($r->json('component'))->toBe('Configuracoes/Empresa/Index');
-    expect($r->json('props.corpo'))->not->toHaveKeys(['email_settings', 'sms_settings']);
+    // Desde a F3-5a o corpo traz e-mail e SMS para a aba Integrações, mas sem os segredos (UC-EMP-12).
+    expect($r->json('props.corpo.email_settings.mail_host'))->toBe('smtp.empresa98.test');
+    expect($r->json('props.corpo.email_settings'))->not->toHaveKey('mail_password');
     expect($r->getContent())->not->toContain('segredo-emp-98');
 });
 
@@ -343,4 +345,43 @@ test('UC-EMP-11 Sistema e Prefixos: voltam iguais; trocar um prefixo não apaga 
     expect($gravado['purchase'])->toBe('COMP');
     expect($gravado['sell_return'])->toBe('DV');
     expect(empLinha($this->business->id)['common_settings'])->toEqual(['default_datatable_page_entries' => '50']);
+});
+
+test('UC-EMP-12 E-mail e SMS: segredo não vai para a tela, salvar da tela o preserva e só troca o que foi digitado', function () {
+    DB::table('business')->where('id', $this->business->id)->update([
+        'date_format' => 'd/m/Y', 'on_product_expiry' => 'keep_selling', 'stop_selling_before' => null,
+        'email_settings' => json_encode(['mail_driver' => 'smtp', 'mail_host' => 'smtp.empresa98.test', 'mail_password' => 'senha-emp-98']),
+        'sms_settings' => json_encode(['sms_service' => 'other', 'url' => 'https://sms.empresa98.test', 'header_1' => 'Authorization',
+            'header_val_1' => 'Bearer token-emp-98', 'nexmo_secret' => 'nx-emp-98']),
+    ]);
+    $gravado = fn (string $c) => json_decode((string) DB::table('business')->where('id', $this->business->id)->value($c), true);
+
+    $r = $this->withHeaders(['X-Inertia' => 'true', 'X-Inertia-Version' => $this->versaoInertia, 'X-Requested-With' => 'XMLHttpRequest'])
+        ->get('/business/settings');
+    foreach (['senha-emp-98', 'token-emp-98', 'nx-emp-98'] as $segredo) {
+        expect($r->getContent())->not->toContain($segredo);
+    }
+    expect($r->json('props.segredos_gravados'))->toContain('email.mail_password');
+    expect($r->json('props.segredos_gravados'))->toContain('sms.header_val_1');
+    expect($r->json('props.corpo.sms_settings.header_1'))->toBe('Authorization');
+
+    // 1) Sem editar: tudo continua gravado.
+    $corpo = $r->json('props.corpo');
+    $this->post('/business/update', empFormData($corpo))->assertSessionHas('status.success', 1);
+    expect($gravado('email_settings')['mail_password'])->toBe('senha-emp-98');
+    expect($gravado('sms_settings')['header_val_1'])->toBe('Bearer token-emp-98');
+    expect($gravado('sms_settings')['nexmo_secret'])->toBe('nx-emp-98');
+
+    // 2) Trocar o servidor e digitar outra senha: muda só isso.
+    $corpo['email_settings']['mail_host'] = 'smtp2.empresa98.test';
+    $corpo['email_settings']['mail_password'] = 'senha-nova-98';
+    $this->post('/business/update', empFormData($corpo))->assertSessionHas('status.success', 1);
+    expect($gravado('email_settings')['mail_host'])->toBe('smtp2.empresa98.test');
+    expect($gravado('email_settings')['mail_password'])->toBe('senha-nova-98');
+    expect($gravado('sms_settings')['header_val_1'])->toBe('Bearer token-emp-98');
+
+    // Controle: a Blade manda a chave (vazia vira null) e assim limpa — a preservação vale só para a chave AUSENTE.
+    $corpo['email_settings']['mail_password'] = '';
+    $this->post('/business/update', empFormData($corpo))->assertSessionHas('status.success', 1);
+    expect($gravado('email_settings')['mail_password'] ?? null)->toBeNull();
 });

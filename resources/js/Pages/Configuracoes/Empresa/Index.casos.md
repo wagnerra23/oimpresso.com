@@ -21,8 +21,8 @@ last_run: "2026-10-13"
 
 ## UC-EMP-01 · Com a flag ligada, a tela abre em React sem segredo de e-mail/SMS · `[T0]`
 - **Aceite:** Dado `business_settings.access`, a flag `useV2ConfiguracoesEmpresa` ligada e uma senha em `email_settings` ·
-  Quando faço `GET /business/settings` como o browser faz · Então renderiza `Configuracoes/Empresa/Index` · E o corpo não
-  tem `email_settings` nem `sms_settings` · E a senha não aparece na resposta.
+  Quando faço `GET /business/settings` como o browser faz · Então renderiza `Configuracoes/Empresa/Index` · E a senha não
+  aparece na resposta. (Até a F3-5a o corpo não trazia `email_settings`; desde 2026-10-13 traz, sem os segredos — UC-EMP-12.)
 - **Status: 🧪**
 
 ## UC-EMP-02 · Flag desligada ou `?classico=1` seguem na Blade
@@ -90,4 +90,13 @@ last_run: "2026-10-13"
 - **Por quê:** `ref_no_prefixes` é gravado inteiro pelo objeto que chega; um prefixo editado não pode apagar os outros.
 - **Aceite:** Dado tema, alerta de validade, linhas por tabela e dois prefixos gravados · Quando devolvo o corpo sem mexer ·
   Então nada muda · E quando troco o prefixo de compra · Então ele grava e o de devolução de venda continua.
+- **Status: 🧪**
+
+## UC-EMP-12 · E-mail e SMS: segredo não vai para a tela e só troca se digitado · `[T0]`
+- **Por quê:** `email_settings` e `sms_settings` são gravados inteiros pelo objeto que chega. A senha do e-mail, o segredo
+  do Nexmo, o token do Twilio e os valores de cabeçalho/parâmetro do SMS próprio (onde costuma ir o token da API) não podem
+  ir para o HTML, e tirá-los do corpo não pode apagá-los.
+- **Aceite:** Dado senha de e-mail, cabeçalho `Authorization` com token e segredo Nexmo gravados · Quando a tela carrega ·
+  Então nenhum aparece na resposta e `segredos_gravados` diz quais existem · E salvar sem mexer mantém todos · E trocar o
+  servidor e digitar outra senha muda só esses dois · E um envio com a senha vazia, como a Blade faz, ainda limpa.
 - **Status: 🧪**
