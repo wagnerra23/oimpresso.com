@@ -2,9 +2,12 @@
 
 namespace Modules\VozDoCliente\Http\Controllers;
 
+use App\Services\FeatureFlagService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Routing\Controller;
 use Illuminate\View\View;
+use Inertia\Inertia;
+use Inertia\Response;
 use Modules\VozDoCliente\Entities\Sinal;
 use Modules\VozDoCliente\Http\Requests\StoreSinalRequest;
 
@@ -17,19 +20,32 @@ use Modules\VozDoCliente\Http\Requests\StoreSinalRequest;
  */
 class SinalController extends Controller
 {
+    /** Situações aceitas em `?situacao=` (ausente = todas). */
+    private const SITUACOES = [Sinal::STATUS_PENDENTE, Sinal::STATUS_TRIADO, Sinal::STATUS_FECHADO];
+
     /**
      * Caixa de triagem — os sinais deste business, pendentes primeiro.
      *
-     * Blade de propósito: tela Inertia exige charter + Padrão de Tela + gate
-     * visual (ADR 0104/UI-0013), que é PR próprio. Aqui a prioridade é o canal
-     * existir e ser usável.
+     * Dual (thread modulos-faltantes/playbook/03, RUNBOOK-caixa): com a flag
+     * `useV2VozDoClienteCaixa` ligada para o negócio responde a Page
+     * `VozDoCliente/Caixa`; desligada (padrão — a flag NÃO está nos fallbacks do
+     * FeatureFlagService) ou com `?legacy=1`, segue a Blade de sempre.
+     *
+     * A permissão é checada ANTES da flag: quem não pode ver não consulta flag.
      */
-    public function index(): View
+    public function index(): View|Response
     {
         abort_unless(
             auth()->user()->can('superadmin') || auth()->user()->can('vozdocliente.triar'),
             403
         );
+
+        $businessId = session('user.business_id') ?? session('business.id');
+
+        if (! request()->boolean('legacy')
+            && app(FeatureFlagService::class)->isOn('useV2VozDoClienteCaixa', ['business_id' => $businessId])) {
+            return $this->caixaInertia((int) $businessId);
+        }
 
         // Tier 0 (ADR 0093): o filtro por `business_id` vem do global scope
         // declarado em Sinal::booted() — `where('voz_sinais.business_id', <sessão>)`.
@@ -41,15 +57,66 @@ class SinalController extends Controller
         // Ordenação portável de propósito: `FIELD()` é MySQL-only e quebraria a
         // suíte em SQLite. O CASE funciona nos dois e diz a mesma coisa —
         // pendente primeiro, fechado por último.
-        $businessId = session('user.business_id') ?? session('business.id');
+        $sinais = $this->consultaDaCaixa($businessId)->paginate(30);
 
-        $sinais = Sinal::query()
+        return view('vozdocliente::caixa', compact('sinais'));
+    }
+
+    /**
+     * A mesma consulta serve a Blade e a Page — uma fonte só para "o que a caixa
+     * mostra e em que ordem", senão as duas telas divergem durante o dual.
+     */
+    private function consultaDaCaixa(int|string|null $businessId)
+    {
+        return Sinal::query()
             ->where('business_id', $businessId)
             ->orderByRaw("CASE status WHEN 'pending' THEN 0 WHEN 'triaged' THEN 1 ELSE 2 END")
             ->orderByDesc('created_at')
-            ->paginate(30);
+            ->orderByDesc('id');
+    }
 
-        return view('vozdocliente::caixa', compact('sinais'));
+    /**
+     * Page React da caixa. `contagem` é eager (um GROUP BY indexado em
+     * business_id+status); a lista paginada é adiada (Inertia::defer) e é o que o
+     * chip de situação recarrega.
+     */
+    private function caixaInertia(int $businessId): Response
+    {
+        $situacao = request()->query('situacao');
+        $situacao = in_array($situacao, self::SITUACOES, true) ? $situacao : null;
+        $limiar = (int) config('vozdocliente.severidade_que_exige_triagem', 3);
+
+        $porStatus = Sinal::query()->where('business_id', $businessId)
+            ->selectRaw('status, COUNT(*) AS n')->groupBy('status')->pluck('n', 'status');
+        $alta = Sinal::query()->where('business_id', $businessId)
+            ->where('severidade', '>=', $limiar)->count();
+
+        return Inertia::render('VozDoCliente/Caixa', [
+            'filtro' => $situacao,
+            'limiar_alta' => $limiar,
+            'contagem' => [
+                'total' => (int) $porStatus->sum(),
+                'pending' => (int) ($porStatus[Sinal::STATUS_PENDENTE] ?? 0),
+                'triaged' => (int) ($porStatus[Sinal::STATUS_TRIADO] ?? 0),
+                'closed' => (int) ($porStatus[Sinal::STATUS_FECHADO] ?? 0),
+                'alta' => $alta,
+            ],
+            'sinais' => Inertia::defer(fn () => $this->consultaDaCaixa($businessId)
+                ->when($situacao, fn ($q) => $q->where('status', $situacao))
+                ->paginate(30)->withQueryString()
+                ->through(fn (Sinal $s) => [
+                    'id' => $s->id,
+                    // getAttribute() e não ->created_at: o docblock de Sinal não declara a coluna, e
+                    // mexer no Model acorda a dívida grandfathered do MultiTenantScopeArchitectureTest.
+                    'quando' => $s->getAttribute('created_at')?->toIso8601String(),
+                    'autor' => $s->autor_nome,
+                    'texto' => $s->texto,
+                    'onde' => $s->url_vista,
+                    'severidade' => $s->severidade,
+                    'status' => $s->status,
+                    'us' => $s->triado_para_us,
+                ])),
+        ]);
     }
 
     public function store(StoreSinalRequest $request): RedirectResponse
