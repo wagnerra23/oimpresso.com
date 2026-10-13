@@ -64,8 +64,11 @@ function despLocal(int $businessId): int
 function despEntrar($test, array $permissoes): \App\User
 {
     $user = $test->usuarioComPermissoes($permissoes, $test->business);
+    // Sessão VAZIA de propósito: o SetSessionData só monta a sessão (user, business, currency, ano fiscal)
+    // quando ela não tem `user`. Gravar `user.*` à mão o pulava e deixava `currency` nula — o `num_f`
+    // do DataTable quebrava com 500 (run 38456214086). Assim a sessão é a de uma requisição real.
+    session()->flush();
     $test->actingAs($user);
-    session(['user.business_id' => $test->business->id, 'user.id' => $user->id, 'business.id' => $test->business->id]);
 
     return $user;
 }
