@@ -25,7 +25,8 @@ O dono do redirecionamento já existia: `app/Http/Middleware/RedirectLegacyConta
   aceita, inclusive `supplier`. Só quando a chave está ligada para a empresa. Fica fora: AJAX legado (DataTables JSON)
   e partial reload do Inertia, que seguem servidos em `/contacts`.
 - **302, não 301:** o browser guarda o 301 sem prazo; desligar a chave não desfaria o redirect para quem já passou.
-- **Show desligado (decisão [W] 2026-10-13):** `SHOW_ATIVO = false`. Só a lista nesta thread. Observação: o
+- **Show retirado (decisão [W] 2026-10-13):** o ramo do Show saiu do middleware (a 1ª versão o desligava por
+  constante, e o PHPStan acusou o `&&` sempre falso; código morto não é registro de decisão). Só a lista nesta thread. Observação: o
   `ContactController@show` já manda para `/cliente?contact_id=…` quando a chave do Show está ligada.
 - O menu segue apontando para `/contacts?type=all` e passa a cair em `/cliente?type=all`; o item ativo do sidebar já
   considera o segmento `cliente` (`AdminSidebarMenu.php`), então nada muda nele.

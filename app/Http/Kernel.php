@@ -50,7 +50,7 @@ class Kernel extends HttpKernel
             \App\Http\Middleware\RedirectLegacyFinanceiro::class,
             // Wagner 2026-05-21 Fase 2 deprecação legacy Cliente. Ficou comentado até 2026-10-13;
             // ligado pela thread cliente/04 (D1/D3 [W]) para aposentar o dual-render da lista
-            // /contacts → /cliente. Só a lista: o redirect do Show segue desligado (SHOW_ATIVO).
+            // /contacts → /cliente. Só a lista: o ramo do Show foi retirado do middleware.
             \App\Http\Middleware\RedirectLegacyContacts::class,
             \App\Http\Middleware\HandleInertiaRequests::class,
             // Gate L2 (estados isolados do VRT): le a flag `_visreg_state` (gravada pela
