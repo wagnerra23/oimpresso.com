@@ -68,3 +68,12 @@ last_run: "2026-10-13"
   Então o desconto grava 7,5 · E `allow_overselling` some de `pos_settings` · E cédulas e a chave secreta ficam iguais ·
   E as outras colunas não mudam.
 - **Status: 🧪**
+
+## UC-EMP-09 · Venda no PDV: balança e atalhos voltam iguais · `[dado]` `[estoque]`
+- **Por quê:** a balança decide a quantidade lida do código de barras. A Blade grava o **índice** do seletor (0 = "1"
+  dígito) e o `SellPosController` lê `índice + 1`; um seletor que gravasse o rótulo mudaria a quantidade de toda venda
+  por balança.
+- **Aceite:** Dado balança, atalhos e opções do PDV gravados · Quando devolvo o corpo sem mexer · Então balança, atalhos e
+  `pos_settings` ficam iguais · E quando escolho "6" dígitos de SKU · Então grava `5` · E desmarcar uma opção que tem
+  padrão (esconder rascunho) volta `0`, como na Blade.
+- **Status: 🧪**

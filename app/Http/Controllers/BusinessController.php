@@ -405,6 +405,8 @@ class BusinessController extends Controller
             'purchase_currency_id' => $b->purchase_currency_id, 'p_exchange_rate' => (string) $b->p_exchange_rate,
             // Sem as chaves secretas de pagamento: props do Inertia ficam no HTML. O salvar as preserva quando faltam.
             'shortcuts' => $json($b->keyboard_shortcuts), 'pos_settings' => array_diff_key($json($b->pos_settings), array_flip(self::SEGREDOS_POS)),
+            // Balança (F3-3b). Está no only(): vazio some do FormData e o salvar deixa como está.
+            'weighing_scale_setting' => $json($b->weighing_scale_setting),
             'common_settings' => $json($b->common_settings), 'enabled_modules' => array_values($json($b->enabled_modules)),
             // Objeto vazio some do FormData e o salvar lê `custom_labels` sem checar: sem a chave, cai no catch.
             'custom_labels' => $json($b->custom_labels) ?: ['payments' => ['custom_pay_1' => '']],
