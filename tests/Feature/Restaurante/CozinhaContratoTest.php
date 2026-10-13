@@ -27,7 +27,10 @@ beforeEach(function () {
     $this->local = EstoqueFixture::locationId($this->business->id, '-COZ-'.uniqid());
     $this->versaoInertia = app(\App\Http\Middleware\HandleInertiaRequests::class)->version(request());
     $this->actingAs($this->user);
-    session(['user.business_id' => $this->business->id, 'user.id' => $this->user->id, 'business.id' => $this->business->id]);
+    session(['user.business_id' => $this->business->id, 'user.id' => $this->user->id, 'business.id' => $this->business->id,
+        // A Blade restaurant.* (layouts.restaurant:39) lê session('currency'); sem ela, 500.
+        'currency' => ['id' => 1, 'code' => 'BRL', 'symbol' => 'R$', 'thousand_separator' => '.', 'decimal_separator' => ','],
+    ]);
 });
 
 /** Pedido de cozinha (venda final) com uma linha por situação dada; devolve o id da venda. */
