@@ -53,6 +53,9 @@ class NotificationTemplateController extends Controller
                 'general_notifications' => Inertia::defer(fn () => $this->__getTemplateDetails($grupos['general'])),
                 'customer_notifications' => Inertia::defer(fn () => $this->__getTemplateDetails($grupos['customer'])),
                 'supplier_notifications' => Inertia::defer(fn () => $this->__getTemplateDetails($grupos['supplier'])),
+                // UC-NOT-07: texto de fábrica por modelo, para "Restaurar padrão" sem gravar nada.
+                // Modelo injetado por módulo não tem padrão aqui e o botão fica desabilitado.
+                'padroes' => Inertia::defer(fn () => $this->__padroes()),
             ]);
         }
 
@@ -62,6 +65,26 @@ class NotificationTemplateController extends Controller
 
         return view('notification_template.index')
                 ->with(compact('customer_notifications', 'supplier_notifications', 'general_notifications'));
+    }
+
+    /**
+     * Textos de fábrica (os mesmos que semeiam negócio novo), indexados por template_for.
+     *
+     * @return array<string, array{subject: string, email_body: string, sms_body: string, whatsapp_text: string}>
+     */
+    private function __padroes()
+    {
+        $padroes = [];
+        foreach (NotificationTemplate::defaultNotificationTemplates() as $modelo) {
+            $padroes[$modelo['template_for']] = [
+                'subject' => (string) ($modelo['subject'] ?? ''),
+                'email_body' => (string) ($modelo['email_body'] ?? ''),
+                'sms_body' => (string) ($modelo['sms_body'] ?? ''),
+                'whatsapp_text' => (string) ($modelo['whatsapp_text'] ?? ''),
+            ];
+        }
+
+        return $padroes;
     }
 
     /**

@@ -69,6 +69,7 @@ it('UC-NOT-08 tag entra na posição do cursor do assunto', () => {
 
 it('UC-NOT-10 tag desconhecida avisa e salvar continua permitido', () => {
   render(<Page {...props} />);
+  fireEvent.click(screen.getByRole('button', { name: 'HTML' }));
   fireEvent.change(screen.getByLabelText('Corpo do e-mail (HTML)'), { target: { value: 'Oi {foo_bar}' } });
   expect(screen.getByText('tag não reconhecida: {foo_bar}')).toBeTruthy();
   expect((screen.getByRole('button', { name: 'Salvar' }) as HTMLButtonElement).disabled).toBe(false);
