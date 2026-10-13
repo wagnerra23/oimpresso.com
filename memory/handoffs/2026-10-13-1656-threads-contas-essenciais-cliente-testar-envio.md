@@ -1,8 +1,10 @@
 ---
-data: 2026-10-13
-hora: "16:56 BRT"
+date: "2026-10-13"
+time: "16:56 BRT"
+slug: threads-contas-essenciais-cliente-testar-envio
 autor: "[CL]"
-tema: "Threads sistema/06 (Contas), Essenciais A1+03, Cliente A1/01/02/04 e conserto do Testar envio"
+tldr: "9 PRs mergeados em 13/10: Contas vai para Inertia com flag OFF, Essenciais A1 e 03, Cliente A1/01/02/04 (/contacts redireciona para /cliente, só a lista) e o Testar envio sem 500. Pendente: re-medir Cliente/Index e User/Perfil no staging (medida de 18/09 abriu a URL errada); baseline de Vendas no tema escuro é decisão [W]."
+prs: [9167, 9171, 9214, 9225, 9227, 9238, 9239, 9242, 9247]
 ---
 # Handoff 2026-10-13 16:56 — Contas, Essenciais, Cliente e "Testar envio"
 
