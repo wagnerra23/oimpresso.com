@@ -799,13 +799,13 @@ Terminou: escreva _saida-NN.md e pare.
       "vaga": 2,
       "arquivo": "23-retencoes-nfse.md",
       "prefixo": [
-        "Modules/NFSe/Services/"
+        "Modules/NfeBrasil/"
       ],
       "nao_toca": [
         "resources/js/"
       ],
       "provas": [],
-      "bloqueio": "consolidacao NfeBrasil x NFSe ([W] pendente em fiscal-faturamento.md)"
+      "bloqueio_resolvido": "2026-10-13: D-NFSE-CONSOLIDA — [W] decidiu consolidar no NfeBrasil (_DECISOES-W-2026-10-13.md); prefixo passou para Modules/NfeBrasil/"
     },
     {
       "id": "24",

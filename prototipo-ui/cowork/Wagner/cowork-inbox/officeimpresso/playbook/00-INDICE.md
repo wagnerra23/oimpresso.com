@@ -477,7 +477,7 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/officeimpresso/playbook
         {
           "tipo": "contem",
           "path": "Modules/Officeimpresso/Http/Controllers/LicencaComputadorController.php",
-          "padrao": "Inertia::render('Officeimpresso/Computadores"
+          "padrao": "Inertia::render('Officeimpresso/Empresa/Show"
         },
         {
           "tipo": "contem",
@@ -485,7 +485,7 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/officeimpresso/playbook
           "padrao": "Inertia::render('Officeimpresso/Empresas"
         }
       ],
-      "nota_provas": "nomes de Page propostos; se mudarem, o recibo corrige"
+      "nota_provas": "nomes de Page propostos; a ficha saiu como Officeimpresso/Empresa/Show (_saida-11) — prova corrigida 2026-10-13"
     }
   ],
   "revisado": "2026-10-01 — recibos e _DECISOES do main c12552f40e2a aplicados · 2026-10-01 reconferência @99e6fa3e08f0: threads novas 09 · 2026-10-05 revisão dos recibos @aacb74f4df18 · 2026-10-07 SINCRONIZAR @348b1498bebe: telas Blade sem thread (levantamento da sidebar) · 2026-10-07 revisão: prefixos disjuntos + provas que decidem"
