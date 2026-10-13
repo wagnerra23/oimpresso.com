@@ -346,9 +346,8 @@ class LicencaComputadorController extends Controller
     }
 
     /**
-     * Flag ligada e sem `?legacy=1`. O `legacy=1` é a volta à Blade enquanto as ações da ficha
-     * (editar, bloquear empresa, bloquear máquina) ainda não estão na tela React — o link
-     * "Abrir na tela antiga" da Page usa este parâmetro.
+     * Flag ligada e sem `?legacy=1`. O `legacy=1` é a rota de fuga para a Blade até o cutover — o
+     * link "Abrir na tela antiga" da Page usa este parâmetro. As ações da ficha já estão na React.
      */
     private function fichaReact(int $businessIdSessao): bool
     {
@@ -357,8 +356,8 @@ class LicencaComputadorController extends Controller
     }
 
     /**
-     * Ficha da empresa em React (`Officeimpresso/Empresa/Show`). Editar a configuração e bloquear a
-     * empresa já estão nela; bloquear máquina segue na Blade (`?legacy=1`) até o PR dela.
+     * Ficha da empresa em React (`Officeimpresso/Empresa/Show`), com as ações da Blade: editar a
+     * configuração, bloquear a empresa e bloquear máquina (este pelo mesmo `toggle-block` da lista).
      * `permissions` é eager e só esconde botão — quem autoriza é o authorizeEmpresa()/Gerenciar().
      */
     private function renderFicha(int $empresaId)
