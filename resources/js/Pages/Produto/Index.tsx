@@ -537,6 +537,7 @@ function ProdutoIndex({ filtros, lista, kpis, estoque, detalhe, opcoes, contexto
                   filters={filtrosParaATabela(paraUrl(filtros), filtros)}
                   showSearch={false}
                   density="grid"
+                  resizable
                   tableWrapperClassName="pb-grid-pro"
                   totalLabel="produtos"
                   rowKey={(l) => l.id}
@@ -561,7 +562,7 @@ function ProdutoIndex({ filtros, lista, kpis, estoque, detalhe, opcoes, contexto
             <div className="pb-pag" data-contract="produto-rodape-lista">
               <span>
                 {lista ? `${total} ${total === 1 ? 'produto' : 'produtos'} na lista` : 'Carregando produtos…'} · clique no cabeçalho pra
-                ordenar
+                ordenar, arraste a borda pra redimensionar
               </span>
               <div className="sp" />
               {/* Exportar filtrados (protótipo): as MESMAS linhas da lista, todas as páginas, em CSV. */}

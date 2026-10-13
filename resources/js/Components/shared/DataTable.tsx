@@ -1,4 +1,5 @@
-import { useState, useEffect, ReactNode } from 'react';
+import { useState, useEffect, useRef, ReactNode } from 'react';
+import type { MouseEvent as ReactMouseEvent } from 'react';
 import { router } from '@inertiajs/react';
 import {
   ColumnDef,
@@ -65,7 +66,32 @@ declare module '@tanstack/react-table' {
     align?: 'left' | 'center' | 'right';
     /** Fonte monoespaçada + `tabular-nums` na célula inteira. */
     mono?: boolean;
+    /** `false` tira a alça de redimensionar desta coluna. Só vale com `resizable` na tabela. */
+    resizable?: boolean;
   }
+}
+
+/**
+ * REDIMENSIONAR COLUNA — o `resizable` do `DataGrid` do DS.
+ *
+ * Números do protótipo (`prototipo-ui/design-system/components/DataGrid/DataGrid.jsx`, medido com
+ * arrasto real em 2026-10-13 na lista de produtos): alça de 7px na borda direita do cabeçalho,
+ * piso de 48px, largura nova = largura RENDERIZADA no início do arrasto + deslocamento do mouse.
+ * Sem alça na última coluna nem na coluna que declara `resizable: false`. A largura vive só
+ * enquanto a tabela está montada — ordenar e trocar de página não a perdem, recarregar perde.
+ *
+ * Uma diferença de propósito: no protótipo a alça é deslocada 3px pra fora da coluna, e o
+ * cabeçalho vizinho (que pinta por cima) cobre essa parte — sobram 4px úteis, medidos com
+ * `elementFromPoint`. Aqui os 7px ficam inteiros dentro da coluna.
+ *
+ * Constante e conta ficam SEM `export`: arquivo de componente só exporta componente
+ * (`react-refresh/only-export-components`). Quem testa, testa arrastando.
+ */
+const LARGURA_MINIMA_DA_COLUNA = 48;
+
+/** Largura nova de uma coluna arrastada: a do início + o quanto o mouse andou, com piso. */
+function larguraArrastada(larguraInicial: number, xInicial: number, xAtual: number): number {
+  return Math.max(LARGURA_MINIMA_DA_COLUNA, Math.round(larguraInicial + xAtual - xInicial));
 }
 
 /**
@@ -320,6 +346,13 @@ interface Props<T> {
   tableWrapperClassName?: string;
   /** Anatomia da tabela — ver `DensidadeDaTabela`. Omitido = `default` (markup de sempre). */
   density?: DensidadeDaTabela;
+  /**
+   * Liga a alça de arrastar na borda direita de cada cabeçalho (ver `LARGURA_MINIMA_DA_COLUNA`).
+   * Pensado pra tabela em que TODA coluna declara `meta.width`: a coluna arrastada passa a ter
+   * largura fixa, e uma coluna sem largura declarada continuaria absorvendo a sobra.
+   * Omitido = sem alça, markup de sempre.
+   */
+  resizable?: boolean;
   /** Caixinha por linha + "marcar todas" no cabeçalho — ver `SelecaoDaTabela`. */
   selection?: SelecaoDaTabela<T>;
   /**
@@ -415,21 +448,18 @@ export default function DataTable<T>({
   selection,
   rowClickable,
   totalLabel = 'itens',
+  resizable = false,
 }: Props<T>) {
   const [searchTerm, setSearchTerm] = useState(initialSearch);
+  // Larguras que o usuário arrastou, por id de coluna. Por id e não por posição: ligar ou
+  // desligar uma coluna no meio não pode jogar a largura de uma na vizinha.
+  const [arrastadas, setArrastadas] = useState<Record<string, number>>({});
+  const soltarArrasto = useRef<(() => void) | null>(null);
+  // Tabela desmontada no meio de um arrasto não deixa listener no documento.
+  useEffect(() => () => soltarArrasto.current?.(), []);
   const dens = CLASSE_DENSIDADE[density];
   const grid = density === 'grid';
   const nColunas = columns.length + (selection ? 1 : 0);
-
-
-  // A geometria é lida das colunas UMA vez e vira `<colgroup>` — que é a forma canônica de
-  // declarar largura em tabela HTML, e a única que o navegador respeita sob `table-layout:
-  // fixed`. Largura em `<td>` sob layout fixo é ignorada; foi por isso que declarar no
-  // `className` da célula nunca teria funcionado.
-  const larguras = columns.map((c) => c.meta?.width);
-  const temLargura = larguras.some((w) => typeof w === 'number' && w > 0);
-  const somaDeclarada = larguras.reduce<number>((s, w) => s + (typeof w === 'number' ? w : 0), 0);
-  const pisoDaTabela = temLargura ? (minTableWidth ?? somaDeclarada + (selection ? 34 : 0)) : undefined;
 
   // Debounce busca — envia pro backend (Scout faz keyword/vector lookup)
   useEffect(() => {
@@ -453,6 +483,39 @@ export default function DataTable<T>({
     manualSorting: true,      // sort é server-side
     pageCount: pagination?.last_page ?? 1,
   });
+
+  // A geometria é lida das colunas e vira `<colgroup>` — que é a forma canônica de declarar
+  // largura em tabela HTML, e a única que o navegador respeita sob `table-layout: fixed`.
+  // Largura em `<td>` sob layout fixo é ignorada; foi por isso que declarar no `className` da
+  // célula nunca teria funcionado. A largura arrastada (`resizable`) ganha da declarada.
+  const idsDasColunas = table.getAllLeafColumns().map((c) => c.id);
+  const larguras = columns.map((c, i) => arrastadas[idsDasColunas[i] ?? ''] ?? c.meta?.width);
+  const temLargura = larguras.some((w) => typeof w === 'number' && w > 0);
+  const somaDeclarada = larguras.reduce<number>((s, w) => s + (typeof w === 'number' ? w : 0), 0);
+  const pisoDaTabela = temLargura ? (minTableWidth ?? somaDeclarada + (selection ? 34 : 0)) : undefined;
+
+  const iniciarArrasto = (columnId: string, e: ReactMouseEvent<HTMLSpanElement>) => {
+    const th = e.currentTarget.parentElement;
+    if (!th) return;
+    // Sem isto o arrasto seleciona o texto do cabeçalho.
+    e.preventDefault();
+    e.stopPropagation();
+    const xInicial = e.clientX;
+    const larguraInicial = th.getBoundingClientRect().width;
+    const mover = (ev: MouseEvent) => {
+      const nova = larguraArrastada(larguraInicial, xInicial, ev.clientX);
+      setArrastadas((m) => (m[columnId] === nova ? m : { ...m, [columnId]: nova }));
+    };
+    const soltar = () => {
+      document.removeEventListener('mousemove', mover);
+      document.removeEventListener('mouseup', soltar);
+      soltarArrasto.current = null;
+    };
+    soltarArrasto.current?.();
+    soltarArrasto.current = soltar;
+    document.addEventListener('mousemove', mover);
+    document.addEventListener('mouseup', soltar);
+  };
 
   const sortAtual = typeof filters.sort === 'string' ? filters.sort : undefined;
   const dirAtual = filters.dir === 'desc' ? 'desc' : 'asc';
@@ -555,10 +618,13 @@ export default function DataTable<T>({
                     />
                   </th>
                 )}
-                {group.headers.map((header) => {
+                {group.headers.map((header, indice) => {
                   const canSort = header.column.getCanSort() && !!endpoint;
                   const align = header.column.columnDef.meta?.align;
                   const ordenada = sortAtual === header.id;
+                  // Como no DataGrid do DS: sem alça na última coluna nem na que se declara fixa.
+                  const comAlca =
+                    resizable && header.column.columnDef.meta?.resizable !== false && indice < group.headers.length - 1;
                   return (
                     <th
                       key={header.id}
@@ -579,7 +645,9 @@ export default function DataTable<T>({
                       // O alinhamento é da CÉLULA. Escrever `text-right` num <span> dentro
                       // dela move o texto e deixa o cabeçalho à esquerda — número à direita
                       // sob rótulo à esquerda foi exatamente o defeito reportado.
-                      className={`${CLASSE_ALINHAMENTO[align ?? 'left']} ${dens.th}`}
+                      // No `grid` o <th> já é `sticky` (posicionado) e ancora a alça; nas outras
+                      // densidades ele não é, e a alça precisa do `relative`.
+                      className={`${CLASSE_ALINHAMENTO[align ?? 'left']} ${dens.th}${comAlca && !grid ? ' relative' : ''}`}
                       aria-sort={grid && canSort && ordenada ? (dirAtual === 'desc' ? 'descending' : 'ascending') : undefined}
                     >
                       {canSort && grid ? (
@@ -608,6 +676,16 @@ export default function DataTable<T>({
                         </button>
                       ) : (
                         flexRender(header.column.columnDef.header, header.getContext()) as ReactNode
+                      )}
+                      {comAlca && (
+                        // Irmã do botão de ordenar, não filha: soltar o mouse sobre ela não
+                        // ordena. Só mouse, como no DS — fora da tabulação e do leitor de tela.
+                        <span
+                          aria-hidden
+                          data-slot="datatable-redimensionar"
+                          onMouseDown={(e) => iniciarArrasto(header.id, e)}
+                          className="absolute right-0 top-0 z-[2] h-full w-[7px] cursor-col-resize"
+                        />
                       )}
                     </th>
                   );
