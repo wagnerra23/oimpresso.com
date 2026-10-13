@@ -475,7 +475,7 @@ class ExpenseController extends Controller
             // e a data da Blade não muda em nada (o TransactionUtil não foi tocado).
             $data_tela = (string) $request->input('transaction_date');
             if (preg_match('/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/', $data_tela) === 1) {
-                $request->merge(['transaction_date' => $this->transactionUtil->format_date_no_shift(str_replace('T', ' ', $data_tela), true)]);
+                $request->merge(['transaction_date' => app(TransactionUtil::class)->format_date_no_shift(str_replace('T', ' ', $data_tela), true)]);
             }
 
             DB::beginTransaction();
