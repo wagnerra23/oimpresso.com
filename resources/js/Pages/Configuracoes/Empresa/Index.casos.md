@@ -77,3 +77,11 @@ last_run: "2026-10-13"
   `pos_settings` ficam iguais · E quando escolho "6" dígitos de SKU · Então grava `5` · E desmarcar uma opção que tem
   padrão (esconder rascunho) volta `0`, como na Blade.
 - **Status: 🧪**
+
+## UC-EMP-10 · Compras: a taxa de câmbio volta igual e grava o digitado · `[valor]`
+- **Por quê:** a taxa converte o preço da compra em outra moeda, e o salvar a grava **crua** (sem `num_uf`). O campo é
+  `type=number`, como na Blade, para chegar com ponto decimal.
+- **Aceite:** Dado compra em outra moeda com taxa 5,125 · Quando devolvo o corpo sem mexer · Então taxa, moeda e as
+  outras colunas ficam iguais · E quando digito "5.25" · Então grava 5,25 · E quando desligo "comprar em outra moeda" ·
+  Então a moeda fica vazia e a taxa volta a 1, como na Blade.
+- **Status: 🧪**

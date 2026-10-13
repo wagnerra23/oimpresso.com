@@ -37,7 +37,7 @@ related_adrs:
 | 7 | Contatos: limite de crédito padrão | ✅ F3-2 (UC-EMP-06) | `settings_contact` | média | UC da F3 |
 | 8 | Vendas: desconto e imposto padrão, adição de item, comissionado, `pos_settings` de venda | ✅ F3-3a (UC-EMP-08; chaves secretas só de escrita, UC-EMP-07) | `settings_sales` | **alta** | UC da F3 |
 | 9 | PDV: chaves `pos_settings[disable_*]`, balança, atalhos de teclado | ✅ F3-3b (UC-EMP-09; balança grava o índice) | `settings_pos` · `settings_weighing_scale` | média | UC da F3 |
-| 10 | Compras: status, lote, edição de produto, moeda de compra + câmbio, pedido/requisição | ⬜ F3 | `settings_purchase` | média | UC da F3 |
+| 10 | Compras: status, lote, edição de produto, moeda de compra + câmbio, pedido/requisição | ✅ F3-3c (UC-EMP-10) | `settings_purchase` | média | UC da F3 |
 | 11 | Pagamento: denominação de dinheiro | ✅ F3-3a (UC-EMP-08) | `settings_payment` | baixa | UC da F3 |
 | 12 | Painel: dias de alerta de validade | ⬜ F3 | `settings_dashboard` | baixa | UC da F3 |
 | 13 | Sistema: cor do tema, dica, linhas por tabela | ⬜ F3 | `settings_system` | baixa | UC da F3 |
