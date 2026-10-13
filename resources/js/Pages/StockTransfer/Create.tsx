@@ -193,7 +193,7 @@ function StockTransferCreate({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3 items-end">
               <div>
                 <Label className="text-[12px] text-stone-600 flex items-center gap-1">
-                  <span className="inline-flex h-5 w-5 items-center justify-center rounded bg-stone-200 text-[10px] font-semibold">DE</span>
+                  <span className="inline-flex h-5 w-5 items-center justify-center rounded bg-stone-200 dark:bg-stone-800 dark:text-stone-200 text-[10px] font-semibold">DE</span>
                   Filial origem *
                 </Label>
                 <select
@@ -211,7 +211,7 @@ function StockTransferCreate({
               <div>
                 <Label className="text-[12px] text-stone-600 flex items-center gap-1">
                   <ArrowRight className="h-3 w-3 text-stone-400" />
-                  <span className="inline-flex h-5 w-5 items-center justify-center rounded bg-emerald-100 text-emerald-700 text-[10px] font-semibold">PARA</span>
+                  <span className="inline-flex h-5 w-5 items-center justify-center rounded bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 text-[10px] font-semibold">PARA</span>
                   Filial destino *
                 </Label>
                 <select
