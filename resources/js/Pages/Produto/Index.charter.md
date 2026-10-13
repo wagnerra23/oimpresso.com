@@ -66,7 +66,8 @@ função da lista Blade que roda hoje em produção.
 - Barra: busca (atalho `/`) com a **mesma regra da lista Blade**, no servidor e no catálogo inteiro
   (cada palavra em nome, SKU, SKU da variação, tipo, categoria, marca ou campo personalizado);
   Confortável/Compacto; **Colunas** (lembradas no navegador); **Cadastro rápido**.
-- Tabela (`shared/DataTable`, densidade `grid`): Ação, Imagem, Produto (+ 2ª linha: estoque
+- Tabela (`shared/DataTable`, densidade `grid`, colunas redimensionáveis pela borda do cabeçalho —
+  menos Ação, Imagem e a última; a largura não é lembrada entre visitas): Ação, Imagem, Produto (+ 2ª linha: estoque
   gerenciado · não para venda · inativo · N variações), Locais, Preço de compra, Preço de venda,
   Estoque atual (vermelho abaixo do alerta), Tipo, Categoria (+ subcategoria), Marca, Imposto, SKU;
   opcionais IMEI/série e os campos personalizados que a empresa rotulou. Linha inativa apagada, linha
