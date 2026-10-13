@@ -4,7 +4,7 @@ casos: Essentials · Base de conhecimento interna · /essentials/knowledge-base
 irmaos: Index.charter.md (lei) · Index.tsx (tela)
 tecnica: Caso de uso = narrativa + critério de aceite verificável (Dado/Quando/Então)
 owner: wagner
-last_run: "2026-09-23"
+last_run: "2026-10-13"
 ---
 
 # Casos de uso — /essentials/knowledge-base · Base de conhecimento interna
@@ -25,6 +25,10 @@ last_run: "2026-09-23"
 > não tem veredito de CI. Pest local é proibido ([ADR 0062](../../../../../memory/decisions/0062-separacao-runtime-hostinger-ct100.md)).
 
 ---
+
+> ℹ️ **2026-10-13 — o que mudou na tela NÃO foi comportamento.** O playbook essenciais (thread 03) acrescenta 1 atributo
+> `data-contract` (`navegacao` na grade de livros) para o contrato `governance/design/contracts/essenciais-conhecimento.contract.json`. Zero handler, zero dado, zero copy.
+> Nenhum UC afirma âncora; revalidação por leitura, nenhum UC foi reexecutado.
 
 ## UC-EKB-01 · A grade mostra só os livros que a ACL me libera `[must]`
 Status: 🧪 sem veredito
