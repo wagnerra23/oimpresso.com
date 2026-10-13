@@ -81,10 +81,6 @@
       "sha256": "22dec8a8bce48434c21582abad8e5dd6fa9020ad016d034ae554595088c853f5",
       "em": "2026-10-13T12:14:05.834Z"
     },
-    "cowork-inbox/forja/playbook/_ERRATA-INDICE-2026-10-13.md": {
-      "sha256": "bde06813a43275a01506fa7e51f0401801b36f7543bd748e5e1cfe43db73be63",
-      "em": "2026-10-13T14:44:59.712Z"
-    },
     "cowork-inbox/forja/playbook/_saida-08.md": {
       "sha256": "4c903d157b0cb56d93871a2aa690c34c7e5834d8e9677237b272f3599e5aa1f2",
       "em": "2026-10-09T17:43:35.125Z"
@@ -125,10 +121,6 @@
       "sha256": "9ca28a81127f7cdfc9d6f6f644bb5374e3dd64837b3e51cfe85cb099fd36ff09",
       "em": "2026-10-13T12:44:01.800Z"
     },
-    "cowork-inbox/manufacturing/playbook/_ERRATA-INDICE-2026-10-13.md": {
-      "sha256": "9f3216bac7ff54dcabafca4f92cae3df839c7c0e1064448cbf8e2f9fef44c2b3",
-      "em": "2026-10-13T14:44:59.712Z"
-    },
     "cowork-inbox/modulos-faltantes/playbook/_saida-03.md": {
       "sha256": "63a677ae395d8278411c0caaa966dd887ea624e9f1b2fe033eb690bd617fc24d",
       "em": "2026-10-13T10:42:32.226Z"
@@ -165,9 +157,9 @@
       "sha256": "27dc17c519c2a4655386f86c3674d1b7e460c670851dd5396b13c0b2c78141cd",
       "em": "2026-10-13T12:14:05.834Z"
     },
-    "cowork-inbox/patrimonio/playbook/_ERRATA-INDICE-2026-10-13.md": {
-      "sha256": "4432d8771b364cfe0b02bf3030183bc25cb68e36bbc8bb02752beca555b2cd6c",
-      "em": "2026-10-13T14:44:59.712Z"
+    "cowork-inbox/patrimonio/playbook/_saida-05a.md": {
+      "sha256": "319cbb741ec0faaa5d35342608eae3fcfff12c184879a08c01f9f6aae3bb6feb",
+      "em": "2026-10-13T13:53:41.742Z"
     },
     "cowork-inbox/recorrente/playbook/_saida-A1.md": {
       "sha256": "5ed7543159746dd388262fd391ffb126ba1e3dcade627f091015e6101eb344cb",
@@ -248,6 +240,18 @@
     "venda-v3.jsx": {
       "sha256": "84ba5293b74a0c7d5a0f21d5e55f1b461612c35b53ed4cc8fc57cccc84e7899a",
       "em": "2026-10-08T15:56:45.719Z"
+    },
+    "cowork-inbox/forja/playbook/_ERRATA-INDICE-2026-10-13.md": {
+      "sha256": "bde06813a43275a01506fa7e51f0401801b36f7543bd748e5e1cfe43db73be63",
+      "em": "2026-10-13T14:44:59.712Z"
+    },
+    "cowork-inbox/manufacturing/playbook/_ERRATA-INDICE-2026-10-13.md": {
+      "sha256": "9f3216bac7ff54dcabafca4f92cae3df839c7c0e1064448cbf8e2f9fef44c2b3",
+      "em": "2026-10-13T14:44:59.712Z"
+    },
+    "cowork-inbox/patrimonio/playbook/_ERRATA-INDICE-2026-10-13.md": {
+      "sha256": "4432d8771b364cfe0b02bf3030183bc25cb68e36bbc8bb02752beca555b2cd6c",
+      "em": "2026-10-13T14:44:59.712Z"
     }
   }
 }

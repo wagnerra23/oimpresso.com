@@ -5,10 +5,10 @@
 > Status/lifecycle normalizados no leitor (ADR 0257) — não altera os arquivos (append-only).
 
 ## Resumo
-- **434** arquivos · **419** números únicos · máx **0429**
-- **ADRs ATIVOS (lifecycle ativo): 387** ← resposta única a "quantos ADRs ativos"
-- Por status: aceito 379 · superseded 27 · proposto 15 · deprecated 11 · rascunho 1 · recusado 1
-- Por lifecycle: ativo 387 · substituido 27 · arquivado 20
+- **435** arquivos · **420** números únicos · máx **0430**
+- **ADRs ATIVOS (lifecycle ativo): 388** ← resposta única a "quantos ADRs ativos"
+- Por status: aceito 379 · superseded 27 · proposto 16 · deprecated 11 · rascunho 1 · recusado 1
+- Por lifecycle: ativo 388 · substituido 27 · arquivado 20
 - Sem frontmatter (formato-tabela legado): 0
 
 ## Colisões de número (13) — auto-detectadas
@@ -35,7 +35,7 @@ _(nenhuma)_
 ## Recusadas (1) — o NÃO consultável
 - **0290** v0 'Fidelity Lock' (screenshot pareado em CI) — RECUSADO: fidelidade visual não  · recusada 2026-06-18 — Inviável + tautológico + backdoor de prosa (3 motivos na Decisão). REABRE só se surgir um check de fidelidade HERMÉTICO 
 
-## Todas as ADRs (434)
+## Todas as ADRs (435)
 | Nº | Status | Lifecycle | Kind | Título |
 |---|---|---|---|---|
 | 0001 | aceito | ativo | decision | Estender UltimatePOS em vez de build próprio ou fork |
@@ -472,3 +472,4 @@ _(nenhuma)_
 | 0427 | aceito | ativo | decision | Auto-merge de PR de thread de playbook verde — emenda da 0040 |
 | 0428 | proposto | ativo | decision | App das lojas — avisos sem Firebase: Centrifugo com o app aberto e lembrete loca |
 | 0429 | proposto | ativo | decision | Log de falhas do app e do ERP no GlitchTip self-host no CT 100 |
+| 0430 | proposto | ativo | decision | Retenção LGPD do Patrimônio anonimiza campo pessoal, nunca apaga linha nem trilh |
