@@ -19,15 +19,8 @@ uses(Tests\TestCase::class);
  * guardado antes e devolvido no afterEach.
  */
 
-function sfBiz(): int
-{
-    return test()->seededTenant()->id;
-}
-
-function sfTipos(int $biz): array
-{
-    return collect(app(SaudeFiscalService::class)->avaliar($biz)['itens'])->keyBy('tipo')->all();
-}
+function sfBiz(): int { return test()->seededTenant()->id; }
+function sfTipos(int $biz): array { return collect(app(SaudeFiscalService::class)->avaliar($biz)['itens'])->keyBy('tipo')->all(); }
 
 function sfLimpar(): void
 {

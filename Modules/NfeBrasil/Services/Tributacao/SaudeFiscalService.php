@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Modules\NfeBrasil\Services\Tributacao;
 
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
 
 /**
  * Saúde fiscal — o que vai virar rejeição antes da SEFAZ dizer (playbook Fiscal thread 14,
@@ -39,8 +38,6 @@ class SaudeFiscalService
             $this->certificado($businessId),
             $this->emitidosComNcmPadrao($businessId),
             $this->produtosSemNcm($businessId),
-            $this->regrasSemCClassTrib($businessId),
-            $this->revisoesPendentes($businessId),
         ]));
         $bloqueantes = count(array_filter($itens, fn (array $i) => $i['bloqueante']));
 
@@ -125,36 +122,6 @@ class SaudeFiscalService
         }
 
         return $q->orderBy('id')->pluck('id')->map(fn ($id) => (int) $id)->all();
-    }
-
-    /** cClassTrib só é exigido quando a empresa emite com a Reforma ligada (NfeService:1613). */
-    private function regrasSemCClassTrib(int $biz): ?array
-    {
-        $modo = DB::table('nfe_business_configs')->where('business_id', $biz)->value('reforma_tributaria_modo') ?: 'legacy';
-        if ($modo === 'legacy') {
-            return null;
-        }
-        $q = DB::table('nfe_fiscal_rules')->where('business_id', $biz)->whereNull('deleted_at')
-            ->where(fn ($w) => $w->whereNull('c_class_trib')->orWhere('c_class_trib', ''));
-        if (Schema::hasColumn('nfe_fiscal_rules', 'valida_ate')) {
-            $q->where(fn ($w) => $w->whereNull('valida_ate')->orWhere('valida_ate', '>=', now()->toDateString()));
-        }
-        $ids = $q->orderBy('id')->pluck('id')->map(fn ($id) => (int) $id)->all();
-
-        return $ids === [] ? null : $this->item('regra_sem_cclasstrib', false, 'Regras sem cClassTrib (Reforma ligada)',
-            count($ids), array_slice($ids, 0, self::AMOSTRA), 'nfe-brasil.tributacao.index');
-    }
-
-    /** Aceite não bloqueia emissão (D-CONTADOR) — por isso é aviso. */
-    private function revisoesPendentes(int $biz): ?array
-    {
-        if (! Schema::hasTable('nfe_revisoes_contador')) {
-            return null;
-        }
-        $n = DB::table('nfe_revisoes_contador')->where('business_id', $biz)->where('status', 'pendente')->count();
-
-        return $n === 0 ? null : $this->item('revisao_sem_aceite', false, 'Versões de regra sem aceite do contador',
-            $n, [], 'nfe-brasil.tributacao.revisoes.index');
     }
 
     private function item(string $tipo, bool $bloqueante, string $titulo, int $contagem, array $ids, string $rota): array

@@ -426,16 +426,17 @@ last_run: "2026-10-07"
 - **Persona:** Larissa / Eliana abrindo a Tributação.
 - **Aceite:** Para cada tipo — NCM padrão da empresa ausente ou `00000000` (bloqueante) · certificado
   ausente ou vencido (bloqueante) · certificado a ≤ 30 dias (aviso, com os dias) · produto ativo sem NCM
-  válido · produto que já saiu em nota com o NCM padrão (`metadata.itens_ncm_padrao`) e continua sem NCM ·
-  regra sem cClassTrib com a Reforma ligada · versão de regra sem aceite do contador: Dado a fixture que
+  válido · produto que já saiu em nota com o NCM padrão (`metadata.itens_ncm_padrao`) e continua sem NCM:
+  Dado a fixture que
   provoca · Então aparece com a rota que resolve · Quando corrijo · Então some. Nada de outro business
   aparece, e avaliar não escreve. Controle positivo: NCM padrão válido e certificado longe de vencer não
   geram item.
 - **Teste:** [`SaudeFiscalTest`](../../../../../Modules/NfeBrasil/Tests/Feature/SaudeFiscalTest.php) — `UC-NFTR-24 · pendência aparece e some ao corrigir`.
 - **Contrato:** D-SUPORTE · US-NFE-010 "Filtro Suspeitas" · auditoria 2026-05 bug #3 · `SaudeFiscalService`.
 - **Regressão que defende:** o usuário só descobre o problema na rejeição da SEFAZ.
-- **Fora daqui (thread 14, PR-b):** o card no topo da Index. Cliente e emitente sem código IBGE, serviço
-  sem código municipal e rejeição cadastral recente ainda não entram.
+- **Fora daqui (thread 14, PR-b):** o card no topo da Index. Regra sem cClassTrib (Reforma ligada), versão sem aceite
+  do contador, cliente e emitente sem código IBGE, serviço sem código municipal e rejeição cadastral recente
+  ainda não entram.
 - **Status: 🧪** — veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
 
 ## UC-NFTR-25 · "Pronto pra emitir" = nenhuma pendência bloqueante · `should` `[fiscal]`
