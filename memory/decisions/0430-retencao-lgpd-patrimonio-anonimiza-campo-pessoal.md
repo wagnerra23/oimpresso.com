@@ -3,7 +3,10 @@ slug: 0430-retencao-lgpd-patrimonio-anonimiza-campo-pessoal
 number: 430
 title: "Retenção LGPD do Patrimônio anonimiza campo pessoal, nunca apaga linha nem trilha"
 type: adr
-status: proposto
+status: recusado
+rejected_at: "2026-10-13"
+rejected_via: "Wagner 2026-10-13 no chat: 'não pode ter o LGPD no patrimonio isso é errado' e 'descarta o branch e reverte a ADR 0430'"
+rejected_reason: "No Patrimônio não há retenção LGPD: vale a lápide de 2026-07-27 (num ERP o dado tem dever de guarda; o controle é por permissão de acesso). A thread 05 volta a ser não executável."
 authority: canonical
 lifecycle: ativo
 kind: decision

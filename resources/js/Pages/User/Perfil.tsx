@@ -281,7 +281,7 @@ function Perfil({ usuario, languages, custom_field_labels }: Props) {
 
   const subnav = (
     <Inline asChild gap={1} className="overflow-x-auto">
-      <nav aria-label="Seções do perfil">
+      <nav aria-label="Seções do perfil" data-contract="tabs">
         {TABS.map((t) => {
           const Ic = t.icon;
           const active = tab === t.id;
@@ -318,6 +318,7 @@ function Perfil({ usuario, languages, custom_field_labels }: Props) {
 
   return (
     <div className="max-w-5xl mx-auto">
+      <div data-contract="header">
       <PageHeader
         title="Meu perfil"
         suffix=" · Conta do usuário"
@@ -329,8 +330,9 @@ function Perfil({ usuario, languages, custom_field_labels }: Props) {
         subnav={subnav}
         actions={actions}
       />
+      </div>
 
-      <div className="p-6 space-y-6">
+      <div className="p-6 space-y-6" data-contract="corpo">
         {/* ── Conta ── */}
         {tab === 'conta' && (
           <Grid gap={6} className="lg:grid-cols-[1fr_320px] items-start">
