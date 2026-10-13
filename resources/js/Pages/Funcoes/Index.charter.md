@@ -49,7 +49,7 @@ Ver as funções do negócio, quantos usuários estão em cada uma, e chegar ao 
 | R3 | Função padrão (exceto `Cashier`) sem editar nem excluir | `funcoesDoNegocio` (`editavel`) |
 | R4 | Sem `roles.view`, 403; ações conforme `roles.create|update|delete` | `index` (`pode`) |
 | R5 | Editor só de função do negócio da sessão (404 fora dele); padrão não abre | `RoleController::editorDaFuncao` |
-| R6 | O corpo salvo é o do `<form>` da Blade (`permissions[]`, `spg_permissions[]`, `radio_option[]`, `is_service_staff`) | `FuncaoDrawer::corpoDoFormulario` |
+| R6 | O corpo salvo é o do `<form>` da Blade (`permissions[]`, `spg_permissions[]`, `radio_option[]`, `is_service_staff`) | `_components/funcao-form.ts::corpoDoFormulario` |
 
 ## Refs
 

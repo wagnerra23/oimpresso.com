@@ -120,7 +120,7 @@ function funcItens(array $editor): \Illuminate\Support\Collection
     return collect($editor['grupos'])->flatMap(fn ($g) => $g['itens']);
 }
 
-/** O corpo que o drawer manda (FuncaoDrawer::corpoDoFormulario): o que o <form> da Blade mandaria. */
+/** O corpo que o drawer manda (_components/funcao-form.ts::corpoDoFormulario): o que o <form> da Blade mandaria. */
 function funcCorpoDoDrawer(array $editor): array
 {
     $corpo = ['name' => $editor['nome'], 'permissions' => [], 'spg_permissions' => [], 'radio_option' => []];
