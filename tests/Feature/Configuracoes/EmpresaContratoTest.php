@@ -1,7 +1,7 @@
 <?php
 
 declare(strict_types=1);
-// Cobre UC-EMP-01, UC-EMP-02, UC-EMP-03, UC-EMP-04, UC-EMP-05, UC-EMP-06, UC-EMP-07, UC-EMP-08, UC-EMP-09, UC-EMP-10, UC-EMP-11, UC-EMP-12 (Configuracoes/Empresa/Index.casos.md).
+// Cobre UC-EMP-01, UC-EMP-02, UC-EMP-03, UC-EMP-04, UC-EMP-05, UC-EMP-06, UC-EMP-07, UC-EMP-08, UC-EMP-09, UC-EMP-10, UC-EMP-11, UC-EMP-12, UC-EMP-13 (Configuracoes/Empresa/Index.casos.md).
 
 use App\Business;
 use App\Http\Controllers\BusinessController;
@@ -152,8 +152,13 @@ test('UC-EMP-05 número do corpo é lido pelo num_uf exatamente como está grava
 
     // 25000 e 1.5 com precisão 0 são os casos em que o @num_format da Blade não volta igual.
     foreach ([0, 0.25, 1, 1.5, 25.5, 99.99, 1234.5, 2500, 25000, 123456.7891] as $valor) {
-        $b = new Business(['default_profit_percent' => $valor, 'default_sales_discount' => $valor, 'amount_for_unit_rp' => $valor, 'currency_precision' => 0]);
+        $b = new Business(['default_profit_percent' => $valor, 'default_sales_discount' => $valor, 'amount_for_unit_rp' => $valor,
+            'min_order_total_for_rp' => $valor, 'redeem_amount_per_unit_rp' => $valor, 'min_order_total_for_redeem' => $valor, 'currency_precision' => 0]);
         $corpo = $corpoDoSalvar->invoke($controller, $b);
+
+        foreach (['min_order_total_for_rp', 'redeem_amount_per_unit_rp', 'min_order_total_for_redeem'] as $pontos) {
+            expect($util->num_uf($corpo[$pontos]))->toEqual((float) $valor);
+        }
 
         expect($util->num_uf($corpo['default_profit_percent']))->toEqual((float) $valor);
         expect($util->num_uf($corpo['default_sales_discount']))->toEqual((float) $valor);
@@ -400,6 +405,41 @@ test('UC-EMP-12 E-mail e SMS: segredo não vai para a tela, salvar da tela o pre
     $corpo['email_settings']['mail_password'] = '';
     $this->post('/business/update', empFormData($corpo))->assertSessionHas('status.success', 1);
     expect($gravado('email_settings')['mail_password'] ?? null)->toBeNull();
+});
+
+test('UC-EMP-13 Fidelidade e Módulos: voltam iguais; editar grava o número certo e a lista de módulos', function () {
+    DB::table('business')->where('id', $this->business->id)->update([
+        'date_format' => 'd/m/Y', 'on_product_expiry' => 'keep_selling', 'stop_selling_before' => null,
+        'enable_rp' => 1, 'rp_name' => 'Pontos 98', 'amount_for_unit_rp' => 1.5, 'min_order_total_for_rp' => 1234.5,
+        'redeem_amount_per_unit_rp' => 0.25, 'min_order_total_for_redeem' => 2500, 'max_rp_per_order' => 100,
+        'min_redeem_point' => 10, 'max_redeem_point' => 500, 'rp_expiry_period' => 12, 'rp_expiry_type' => 'month',
+        'enabled_modules' => json_encode(['purchases', 'expenses']),
+    ]);
+    $linha = fn () => (array) DB::table('business')->where('id', $this->business->id)->first();
+    $antes = $linha();
+
+    // 1) Sem editar: os dez campos de pontos e a lista de módulos ficam iguais.
+    $this->post('/business/update', empFormData(empCorpo($this)))->assertSessionHas('status.success', 1);
+    $depois = $linha();
+    foreach (['rp_name', 'max_rp_per_order', 'min_redeem_point', 'max_redeem_point', 'rp_expiry_period', 'rp_expiry_type'] as $c) {
+        expect((string) $depois[$c])->toBe((string) $antes[$c]);
+    }
+    foreach (['amount_for_unit_rp', 'min_order_total_for_rp', 'redeem_amount_per_unit_rp', 'min_order_total_for_redeem'] as $c) {
+        expect((float) $depois[$c])->toBe((float) $antes[$c]);
+    }
+    expect(json_decode((string) $depois['enabled_modules'], true))->toBe(['purchases', 'expenses']);
+
+    // 2) Editar como o operador digita: "2,5" grava 2,5; tirar um módulo e pôr outro.
+    $corpo = empCorpo($this);
+    $corpo['amount_for_unit_rp'] = '2,5';
+    $corpo['rp_name'] = 'Pontos novos';
+    $corpo['enabled_modules'] = ['purchases', 'stock_transfers'];
+    $this->post('/business/update', empFormData($corpo))->assertSessionHas('status.success', 1);
+    $depois = $linha();
+    expect((float) $depois['amount_for_unit_rp'])->toBe(2.5);
+    expect((float) $depois['min_order_total_for_rp'])->toBe(1234.5);
+    expect($depois['rp_name'])->toBe('Pontos novos');
+    expect(json_decode((string) $depois['enabled_modules'], true))->toBe(['purchases', 'stock_transfers']);
 });
 
 test('UC-EMP-04 controle: a Blade também grava desconto padrão nulo como 0 ao salvar', function () {

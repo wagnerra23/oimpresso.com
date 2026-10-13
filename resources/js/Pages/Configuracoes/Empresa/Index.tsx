@@ -1,7 +1,7 @@
 // @memcofre
 //   tela: /business/settings
 //   module: Configuracoes
-//   stories: thread sistema/playbook/08 (F3-1: Negócio · F3-2: Impostos, Produtos, Contatos · F3-3a: Vendas, Pagamento · F3-3b: Venda no PDV · F3-3c: Compras · F3-4: Painel, Sistema, Prefixos · F3-5a: E-mail, SMS)
+//   stories: thread sistema/playbook/08 (F3-1: Negócio · F3-2: Impostos, Produtos, Contatos · F3-3a: Vendas, Pagamento · F3-3b: Venda no PDV · F3-3c: Compras · F3-4: Painel, Sistema, Prefixos · F3-5a: E-mail, SMS · F3-5b: Pontos de fidelidade, Módulos)
 //   permissao: business_settings.access
 //
 // Configuração da empresa. Atrás da flag `useV2ConfiguracoesEmpresa` (BusinessController::FLAG_EMPRESA_V2);
@@ -30,7 +30,7 @@ import ConfiguracoesSubNav from '@/Pages/Configuracoes/_shared/ConfiguracoesSubN
 type Valor = string | number | boolean | null | Valor[] | { [k: string]: Valor };
 type Corpo = Record<string, Valor>;
 type Lista = Record<string, string>;
-interface Opcoes { drivers_email: Lista; temas: Lista; moedas: Lista; fusos: Lista; meses: Lista; metodos: Lista; formatos_data: Lista; unidades: Lista; impostos: Lista; comissao: Lista; pagamentos: Lista }
+interface Opcoes { modulos: Lista; drivers_email: Lista; temas: Lista; moedas: Lista; fusos: Lista; meses: Lista; metodos: Lista; formatos_data: Lista; unidades: Lista; impostos: Lista; comissao: Lista; pagamentos: Lista }
 interface Props { corpo: Corpo; logo: string | null; segredos_gravados: string[]; email_superadmin: boolean; opcoes?: Opcoes }
 
 /** Abas na ordem e nos grupos do protótipo. As de PRONTAS estão na tela nova; as outras abrem na Blade. */
@@ -55,6 +55,8 @@ const PRONTAS: Record<string, string> = {
   prefixos: 'Letras que vêm antes do número de cada documento.',
   email: 'Servidor que envia os e-mails do negócio.',
   sms: 'Serviço que envia os SMS do negócio.',
+  fidelidade: 'Quanto a venda rende em pontos e quanto o ponto vale no resgate.',
+  modulos: 'O que aparece no menu e nas telas para este negócio.',
 };
 
 const PRECISOES: Lista = { 0: '0', 1: '1', 2: '2', 3: '3', 4: '4' };
@@ -73,6 +75,7 @@ const PREFIXOS: [string, string][] = [['purchase', 'Compra'], ['purchase_return'
   ['stock_adjustment', 'Ajuste de estoque'], ['sell_return', 'Devolução de venda'], ['expense', 'Despesa'], ['contacts', 'Contatos'],
   ['purchase_payment', 'Pagamento de compra'], ['sell_payment', 'Pagamento de venda'], ['expense_payment', 'Pagamento de despesa'],
   ['business_location', 'Local'], ['username', 'Usuário'], ['subscription', 'Assinatura'], ['draft', 'Rascunho'], ['sales_order', 'Pedido de venda']];
+const VALIDADE_PONTOS: Lista = { month: 'Meses', year: 'Anos' };
 const SMS_SERVICO: Lista = { nexmo: 'Nexmo', twilio: 'Twilio', other: 'Outro (requisição própria)' };
 const SMS_METODO: Lista = { get: 'GET', post: 'POST' };
 const CEDULAS_EM: Lista = { pos_screen: 'Só no PDV', all_screens: 'Em todas as telas' };
@@ -213,6 +216,7 @@ function EmpresaIndex({ corpo: inicial, logo, segredos_gravados, email_superadmi
     ));
   const servicoSms = objeto('sms_settings').sms_service == null ? 'other' : String(objeto('sms_settings').sms_service);
   const usaSuperadmin = !!objeto('email_settings').use_superadmin_settings;
+  const modulos = Array.isArray(corpo.enabled_modules) ? (corpo.enabled_modules as string[]) : [];
   const metodosCedula = Array.isArray(pos.enable_cash_denomination_for_payment_methods) ? (pos.enable_cash_denomination_for_payment_methods as string[]) : [];
   const titulo = (t: string) => <h3 className="m-0 text-xs font-semibold uppercase text-muted-foreground">{t}</h3>;
   const rotuloAba = ABAS.flatMap((g) => g.itens).find((i) => i.id === aba)?.label;
@@ -517,6 +521,45 @@ function EmpresaIndex({ corpo: inicial, logo, segredos_gravados, email_superadmi
                   )}
                   <p className="m-0 text-xs text-muted-foreground">Valores de cabeçalho e parâmetro podem carregar o token da API e não vêm para esta tela: em branco mantém o gravado. Para apagar ou testar o envio, use a tela antiga.</p>
                 </>
+              )}
+
+              {aba === 'fidelidade' && (
+                <>
+                  {ligaCampo('enable_rp', 'Ligar pontos de fidelidade')}
+                  {!!corpo.enable_rp && (
+                    <>
+                      <Grid cols={2} gap={3}>{campo('rp_name', 'Nome dos pontos', { ajuda: 'Como o cliente vê, ex.: Pontos.' })}</Grid>
+                      <Stack gap={2}>
+                        {titulo('Ganhar pontos')}
+                        <Grid cols={2} gap={3}>
+                          {campo('amount_for_unit_rp', 'Valor da venda para 1 ponto', { ajuda: 'Ex.: 1,00 = cada 1,00 vendido rende 1 ponto.' })}
+                          {campo('min_order_total_for_rp', 'Venda mínima para ganhar pontos')}
+                          {campo('max_rp_per_order', 'Máximo de pontos por venda', { tipo: 'number' })}
+                        </Grid>
+                      </Stack>
+                      <Stack gap={2}>
+                        {titulo('Resgatar pontos')}
+                        <Grid cols={2} gap={3}>
+                          {campo('redeem_amount_per_unit_rp', 'Valor de 1 ponto no resgate')}
+                          {campo('min_order_total_for_redeem', 'Venda mínima para resgatar')}
+                          {campo('min_redeem_point', 'Mínimo de pontos por resgate', { tipo: 'number' })}
+                          {campo('max_redeem_point', 'Máximo de pontos por resgate', { tipo: 'number' })}
+                        </Grid>
+                      </Stack>
+                      <Grid cols={2} gap={3}>
+                        {campo('rp_expiry_period', 'Validade dos pontos', { tipo: 'number', ajuda: 'Em branco = não vencem.' })}
+                        {escolha('rp_expiry_type', 'Contada em', VALIDADE_PONTOS)}
+                      </Grid>
+                    </>
+                  )}
+                </>
+              )}
+
+              {aba === 'modulos' && (
+                <Stack gap={2}>
+                  {Object.entries(opcoes?.modulos ?? {}).map(([k, l]) => liga(`emp-modulo-${k}`, l, modulos.includes(k),
+                    (v) => muda('enabled_modules', v ? [...modulos, k] : modulos.filter((x) => x !== k))))}
+                </Stack>
               )}
 
               {aba === 'pagto' && (

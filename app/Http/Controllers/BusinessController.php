@@ -352,6 +352,7 @@ class BusinessController extends Controller
                     'metodos' => $accounting_methods, 'formatos_data' => $date_formats, 'unidades' => $units_dropdown,
                     'impostos' => $tax_rates, 'comissao' => $commission_agent_dropdown, 'pagamentos' => $payment_types,
                     'temas' => $theme_colors, 'drivers_email' => $mail_drivers,
+                    'modulos' => array_map(fn ($m) => (string) ($m['name'] ?? ''), $modules),
                 ]),
             ]);
         }
@@ -425,6 +426,9 @@ class BusinessController extends Controller
             'weighing_scale_setting' => $json($b->weighing_scale_setting),
             // Sistema (F3-4). Os dois estão no only(): prefixo vazio some do FormData e fica como está.
             'theme_color' => $b->theme_color, 'ref_no_prefixes' => $json($b->ref_no_prefixes),
+            // Fidelidade (F3-5b). Estão no only() sem pós-processamento; os quatro valores com num_uf já vão acima.
+            'rp_name' => $b->rp_name, 'max_rp_per_order' => $b->max_rp_per_order, 'min_redeem_point' => $b->min_redeem_point,
+            'max_redeem_point' => $b->max_redeem_point, 'rp_expiry_period' => $b->rp_expiry_period, 'rp_expiry_type' => $b->rp_expiry_type,
             // E-mail e SMS (F3-5a): sem os segredos. Vazio some do FormData e o only() deixa como está.
             'email_settings' => array_diff_key($json($b->email_settings), array_flip(self::SEGREDOS_EMAIL)),
             'sms_settings' => array_diff_key($json($b->sms_settings), array_flip(self::SEGREDOS_SMS)),
