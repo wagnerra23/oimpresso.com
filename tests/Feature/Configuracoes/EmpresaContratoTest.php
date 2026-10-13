@@ -166,11 +166,16 @@ test('UC-EMP-06 editar as abas Impostos, Produtos e Contatos grava só o que mud
         'on_product_expiry' => 'keep_selling', 'stop_selling_before' => null,
         'common_settings' => json_encode(['is_enabled_export' => '1']),
         'email_settings' => json_encode(['mail_password' => 'segredo-emp-98']),
+        // O salvar normaliza estas três quando vêm nulas (desconto vira 0, pos_settings ganha os padrões, rótulos ganham a
+        // chave mínima) — a Blade faz o mesmo. Fixas aqui para a comparação da linha inteira medir só o que a tela editou.
+        'default_sales_discount' => 0, 'pos_settings' => json_encode(app(BusinessUtil::class)->defaultPosSettings()),
+        'custom_labels' => json_encode(['payments' => ['custom_pay_1' => 'Pix']]),
     ]);
     $antes = empLinha($this->business->id);
     $corpo = empCorpo($this);
 
-    $corpo['tax_label_1'] = 'Inscrição 98';
+    // tax_label_1 é varchar(10): valor maior seria cortado pelo banco.
+    $corpo['tax_label_1'] = 'Insc 98';
     $corpo['sku_prefix'] = 'NOVO98';
     $corpo['enable_racks'] = true;
     $corpo['enable_brand'] = false;
@@ -180,7 +185,7 @@ test('UC-EMP-06 editar as abas Impostos, Produtos e Contatos grava só o que mud
     $this->post('/business/update', empFormData($corpo))->assertSessionHas('status.success', 1);
 
     expect(empLinha($this->business->id))->toEqual(array_merge($antes, [
-        'tax_label_1' => 'Inscrição 98', 'sku_prefix' => 'NOVO98', 'enable_racks' => 1.0, 'enable_brand' => 0.0,
+        'tax_label_1' => 'Insc 98', 'sku_prefix' => 'NOVO98', 'enable_racks' => 1.0, 'enable_brand' => 0.0,
         'common_settings' => ['is_enabled_export' => '1', 'default_credit_limit' => '2.000,50', 'enable_product_warranty' => '1'],
     ]));
 });
