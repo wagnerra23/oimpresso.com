@@ -129,8 +129,9 @@ it('UC-CRMPED-04 · o rodapé soma os pedidos filtrados, sem contar em dobro pel
     $b = pedcPedido($this->business->id, $this->local, $user->id, $marca, '20.25');
 
     // Duas linhas de venda no pedido A: um SUM sobre o join cru contaria 10.50 duas vezes.
-    $produto = EstoqueFixture::singleProduct($this->business->id);
+    // Produtos distintos: transaction_sell_lines tem chave única (transação, produto, variação).
     foreach ([1, 2] as $_) {
+        $produto = EstoqueFixture::singleProduct($this->business->id);
         DB::table('transaction_sell_lines')->insert([
             'transaction_id' => $a['id'], 'product_id' => $produto->productId,
             'variation_id' => $produto->variations[0]['variation_id'], 'quantity' => 1, 'quantity_returned' => 0,
