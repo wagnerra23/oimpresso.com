@@ -1,4 +1,4 @@
-// Cadastro rápido de produto (Produto/Index → CadastroRapido.tsx) — o que a JANELA manda.
+// Cadastro rápido de produto (Produto/Index → CadastroRapido.tsx + cadastro-rapido-dominio.ts) — o que a JANELA manda.
 //
 // ── POR QUE EXISTE ───────────────────────────────────────────────────────────
 // É cadastro com preço. A regra do projeto: a tela nunca manda número ambíguo para o conversor do
@@ -21,13 +21,14 @@
 
 import { describe, it, expect, afterEach, vi } from 'vitest';
 import { render, screen, cleanup, fireEvent, waitFor } from '@testing-library/react';
-import CadastroRapidoProduto, {
+import CadastroRapidoProduto from '@/Pages/Produto/_components/lista/CadastroRapido';
+import {
   errosDoForm,
   formInicial,
   pedidoDoForm,
   type FormCadastroRapido,
   type PedidoCadastroRapido,
-} from '@/Pages/Produto/_components/lista/CadastroRapido';
+} from '@/Pages/Produto/_components/lista/cadastro-rapido-dominio';
 
 const UNIDADES = [{ id: '3', nome: 'Unidade (Un)' }, { id: '4', nome: 'Metro (m)' }];
 const CATEGORIAS = [{ id: '9', nome: 'Camisetas' }];
