@@ -398,7 +398,7 @@ class StockAdjustmentController extends Controller
      * Display the specified resource.
      *
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\Response|\Illuminate\Http\JsonResponse|\Illuminate\View\View
      */
     public function show($id)
     {
@@ -412,6 +412,11 @@ class StockAdjustmentController extends Controller
                     ->with(['stock_adjustment_lines', 'location', 'business', 'stock_adjustment_lines.variation', 'stock_adjustment_lines.variation.product', 'stock_adjustment_lines.variation.product_variation', 'stock_adjustment_lines.lot_details'])
                     ->first();
 
+        // Sem isto, id inexistente ou de outro business renderizava o modal com `null`.
+        if (empty($stock_adjustment)) {
+            abort(404);
+        }
+
         $lot_n_exp_enabled = false;
         if (request()->session()->get('business.enable_lot_number') == 1 || request()->session()->get('business.enable_product_expiry') == 1) {
             $lot_n_exp_enabled = true;
@@ -422,8 +427,47 @@ class StockAdjustmentController extends Controller
            ->latest()
            ->get();
 
+        // O "Ver" da lista React pede JSON e abre o detalhe num diálogo. A visita Inertia
+        // (`router.visit`) recebia este fragmento de modal Blade, que não é resposta Inertia.
+        // O DataTable do Blade carrega o fragmento por AJAX HTML e segue no `view()` abaixo.
+        if (request()->wantsJson() && ! request()->header('X-Inertia')) {
+            return response()->json($this->detalheJson($stock_adjustment, $lot_n_exp_enabled));
+        }
+
         return view('stock_adjustment.show')
                 ->with(compact('stock_adjustment', 'lot_n_exp_enabled', 'activities'));
+    }
+
+    /**
+     * Os mesmos dados do modal `stock_adjustment/show.blade.php`, para o diálogo da lista React.
+     * Só leitura. Valores só com `view_purchase_price`, como as colunas da lista.
+     */
+    private function detalheJson($stock_adjustment, bool $lot_n_exp_enabled): array
+    {
+        $pode_ver_preco = auth()->user()->can('view_purchase_price');
+
+        $linhas = $stock_adjustment->stock_adjustment_lines->map(fn ($l) => [
+            'produto' => optional($l->variation)->full_name,
+            'lote' => $lot_n_exp_enabled ? optional($l->lot_details)->lot_number : null,
+            'validade' => $lot_n_exp_enabled ? optional($l->lot_details)->exp_date : null,
+            'quantidade' => (float) $l->quantity,
+            'preco_unitario' => $pode_ver_preco ? (float) $l->unit_price : null,
+            'subtotal' => $pode_ver_preco ? (float) $l->unit_price * (float) $l->quantity : null,
+        ])->values();
+
+        return [
+            'id' => $stock_adjustment->id,
+            'ref_no' => $stock_adjustment->ref_no,
+            'transaction_date' => $stock_adjustment->transaction_date,
+            'local' => optional($stock_adjustment->location)->name,
+            'adjustment_type' => $stock_adjustment->adjustment_type,
+            'tipo' => __('stock_adjustment.' . $stock_adjustment->adjustment_type),
+            'additional_notes' => $stock_adjustment->additional_notes,
+            'pode_ver_preco' => $pode_ver_preco,
+            'linhas' => $linhas,
+            'final_total' => $pode_ver_preco ? (float) $stock_adjustment->final_total : null,
+            'total_amount_recovered' => $pode_ver_preco ? (float) $stock_adjustment->total_amount_recovered : null,
+        ];
     }
 
     /**

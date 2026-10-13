@@ -51,7 +51,9 @@ it('RUNBOOK + visual existem', function () {
 it('Page importa AppShellV2 + PageHeader (canon V2)', function () {
     $source = readStockTransferIndexInertia();
     expect($source)->toContain('@/Layouts/AppShellV2');
-    expect($source)->toContain('@/Components/shared/PageHeader');
+    // Header canon desde o PR do "Ver" (ADR 0409: tela tocada migra o PageHeader no mesmo PR).
+    expect($source)->toContain("from '@/Components/PageHeader'");
+    expect($source)->not->toContain('@/Components/shared/PageHeader');
     expect($source)->toMatch('/StockTransferIndex\\.layout\\s*=/');
 });
 

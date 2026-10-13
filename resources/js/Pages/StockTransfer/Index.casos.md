@@ -4,7 +4,7 @@ irmaos: Index.charter.md (lei) · Index.tsx
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: a lista mostra o que saiu de uma filial e entrou em outra; empresa misturada ou filtro quebrado escondem mercadoria em trânsito.
 owner: wagner
-last_run: "2026-10-06"
+last_run: "2026-10-13"
 last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane PHP / Pest (Estoque · MySQL)"
 ---
 
@@ -24,6 +24,12 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 ## UC-TRIDX-02 · Sem permissão de compra, não abre `[must]`
 - **Aceite:** Dado um usuário sem `purchase.view`, `purchase.create` e `view_own_purchase` · Quando abre a lista · Então recebe 403.
 - **Teste:** `MovimentacoesTelasContratoTest` — `UC-AJIDX-02 e UC-TRIDX-02 sem permissão de compra as duas listas respondem 403`.
+- **Status: ⬜**
+
+## UC-TRIDX-03 · O "Ver" mostra o detalhe do transferência, só do próprio business `[T0]` `[must]`
+- **Aceite:** Dado um transferência no meu business e outro no 99 · Quando clico em "Ver" na lista (o diálogo pede `GET /stock-transfers/{id}` com `Accept: application/json`) · Então recebo o detalhe do meu (referência, linhas, totais; valores só com `view_purchase_price`) e 404 no do 99.
+- **Teste:** `MovimentacoesTelasContratoTest` — `UC-TRIDX-03 [T0] o Ver da lista de transferências devolve o detalhe em JSON, só do próprio business`.
+- **Regressão que defende:** o botão fazia `router.visit` e o `show()` devolvia o fragmento de modal da tela Blade, que não é resposta Inertia (achado 2026-10-13, depois do cutover #9096). E id de outro business caía em 500 em vez de 404.
 - **Status: ⬜**
 
 ## Backlog

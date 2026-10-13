@@ -9,7 +9,8 @@
 // Charter: ./Index.charter.md
 
 import AppShellV2 from '@/Layouts/AppShellV2';
-import PageHeader from '@/Components/shared/PageHeader';
+import { PageHeader } from '@/Components/PageHeader';
+import { Icon } from '@/Components/Icon';
 import { router } from '@inertiajs/react';
 import { useMemo, useState, type ReactNode } from 'react';
 import { Button } from '@/Components/ui/button';
@@ -27,6 +28,7 @@ import {
   AlertDialogTitle,
 } from '@/Components/ui/alert-dialog';
 import { Plus, Eye, Trash2, Printer, ArrowRight, Truck, FileText } from 'lucide-react';
+import DetalheTransferenciaDialog from './_components/DetalheTransferenciaDialog';
 
 // ---------- Tipos ----------
 
@@ -137,6 +139,7 @@ function StockTransferIndex({ rows, filters, business_locations, statuses, permi
   // estilizável e não tem foco/ARIA gerenciados. Padrão imitado de
   // Essentials/Holidays/Index.tsx, que já usa AlertDialog para o mesmo ato (ADR 0011).
   const [alvoExclusao, setAlvoExclusao] = useState<TransferRow | null>(null);
+  const [verId, setVerId] = useState<number | null>(null);
 
   const confirmarExclusao = () => {
     if (!alvoExclusao) return;
@@ -146,11 +149,13 @@ function StockTransferIndex({ rows, filters, business_locations, statuses, permi
 
   return (
     <>
+      {/* Header canon (@/Components/PageHeader, ADR 0189/0190 · ADR 0409): migrado ao tocar a tela
+          para o "Ver" abrir o detalhe. Mesmo mapeamento do Repair (#8531). */}
       <PageHeader
-        icon="truck"
+        leading={<Icon name="truck" size={18} className="mr-2 inline-block align-[-2px] text-primary" />}
         title="Transferências de estoque"
-        description={`${rowsFiltradas.length} ${rowsFiltradas.length === 1 ? 'transferência' : 'transferências'}`}
-        action={permissions.create && (
+        subtitle={`${rowsFiltradas.length} ${rowsFiltradas.length === 1 ? 'transferência' : 'transferências'}`}
+        actions={permissions.create && (
           <Button size="sm" onClick={() => router.visit('/stock-transfers/create')}>
             <Plus className="h-4 w-4 mr-1" /> Nova transferência
           </Button>
@@ -266,7 +271,7 @@ function StockTransferIndex({ rows, filters, business_locations, statuses, permi
                   </td>
                   <td className="pl-2 pr-4 text-right">
                     <div className="inline-flex gap-1">
-                      <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => router.visit(`/stock-transfers/${r.id}`)} title="Ver">
+                      <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => setVerId(r.id)} title="Ver">
                         <Eye className="h-3.5 w-3.5" />
                       </Button>
                       <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => window.open(`/stock-transfers/${r.id}/print`, '_blank')} title="Imprimir">
@@ -310,6 +315,7 @@ function StockTransferIndex({ rows, filters, business_locations, statuses, permi
         </CardContent>
       </Card>
 
+      <DetalheTransferenciaDialog id={verId} onClose={() => setVerId(null)} />
       <AlertDialog open={alvoExclusao !== null} onOpenChange={(aberto) => !aberto && setAlvoExclusao(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>

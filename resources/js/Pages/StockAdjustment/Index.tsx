@@ -6,7 +6,8 @@
 //   adrs: 0104, 0093, 0114, 0149
 
 import AppShellV2 from '@/Layouts/AppShellV2';
-import PageHeader from '@/Components/shared/PageHeader';
+import { PageHeader } from '@/Components/PageHeader';
+import { Icon } from '@/Components/Icon';
 import { router } from '@inertiajs/react';
 import { useMemo, useState, type ReactNode } from 'react';
 import { Button } from '@/Components/ui/button';
@@ -24,6 +25,7 @@ import {
   AlertDialogTitle,
 } from '@/Components/ui/alert-dialog';
 import { Plus, Eye, Trash2, FileText, PackageMinus } from 'lucide-react';
+import DetalheAjusteDialog from './_components/DetalheAjusteDialog';
 
 // ---------- Tipos ----------
 
@@ -105,6 +107,7 @@ function StockAdjustmentIndex({ rows, filters, business_locations, permissions }
   // estilizável e não tem foco/ARIA gerenciados. Padrão imitado de
   // Essentials/Holidays/Index.tsx, que já usa AlertDialog para o mesmo ato (ADR 0011).
   const [alvoExclusao, setAlvoExclusao] = useState<AdjustmentRow | null>(null);
+  const [verId, setVerId] = useState<number | null>(null);
 
   const confirmarExclusao = () => {
     if (!alvoExclusao) return;
@@ -114,11 +117,13 @@ function StockAdjustmentIndex({ rows, filters, business_locations, permissions }
 
   return (
     <>
+      {/* Header canon (@/Components/PageHeader, ADR 0189/0190 · ADR 0409): migrado ao tocar a tela
+          para o "Ver" abrir o detalhe. Mesmo mapeamento do Repair (#8531). */}
       <PageHeader
-        icon="package"
+        leading={<Icon name="package" size={18} className="mr-2 inline-block align-[-2px] text-primary" />}
         title="Ajustes de estoque"
-        description={`${rowsFiltradas.length} ${rowsFiltradas.length === 1 ? 'ajuste' : 'ajustes'}`}
-        action={permissions.create && (
+        subtitle={`${rowsFiltradas.length} ${rowsFiltradas.length === 1 ? 'ajuste' : 'ajustes'}`}
+        actions={permissions.create && (
           <Button size="sm" onClick={() => router.visit('/stock-adjustments/create')}>
             <Plus className="h-4 w-4 mr-1" /> Novo ajuste
           </Button>
@@ -221,7 +226,7 @@ function StockAdjustmentIndex({ rows, filters, business_locations, permissions }
                   <td className="px-2 text-stone-600 text-[12px]">{r.added_by || '—'}</td>
                   <td className="pl-2 pr-4 text-right">
                     <div className="inline-flex gap-1">
-                      <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => router.visit(`/stock-adjustments/${r.id}`)} title="Ver">
+                      <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => setVerId(r.id)} title="Ver">
                         <Eye className="h-3.5 w-3.5" />
                       </Button>
                       {permissions.delete && (
@@ -262,6 +267,7 @@ function StockAdjustmentIndex({ rows, filters, business_locations, permissions }
         </CardContent>
       </Card>
 
+      <DetalheAjusteDialog id={verId} onClose={() => setVerId(null)} />
       <AlertDialog open={alvoExclusao !== null} onOpenChange={(aberto) => !aberto && setAlvoExclusao(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
