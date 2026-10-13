@@ -43,6 +43,11 @@ tipo mudou.
 `block-mwart-violation` aceita `RUNBOOK-<modulo>-index.md` para `<Mod>/<Sub>/Index.tsx`). Estrutura, âncoras,
 contratos e o que as telas não fazem.
 
+## `last_run` dos 4 `casos.md` (G-6)
+Tocar a Page deixava os 4 `casos.md` `stale` no `casos-gate` (required): `casos-coverage-guard` acusou 4 violações
+novas. O `last_run` subiu para 2026-10-13 com nota no `last_run_ci`: revalidação analítica, suite não executada,
+a mudança é só atributo e nenhum UC afirma âncora. Depois do bump, 0 violação nova.
+
 ## Provas (rodadas localmente, árvore com o PR)
 - `contrato-de-tela --contract` nos 4: rc=0, todas as seções "âncora + copy presentes", ordem coerente.
 - Modos do job: os 93 contratos ativos (sem EXEMPLO) rc=0; `--map --check` rc=0 (as 4 telas `🟢 portado`);
