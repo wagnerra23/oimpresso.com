@@ -15,7 +15,7 @@ last_run: "2026-10-12"
 > decisão D1 de [W] em 2026-10-12 (a operadora vê a ficha de qualquer empresa, com a regra nomeada no
 > código) — **não do `Show.tsx`**.
 > Testes: `Modules/Officeimpresso/Tests/Feature/ComputadoresEmpresaShowContratoTest.php` (leitura) e
-> `ComputadoresEmpresaAcoesContratoTest.php` (ações da empresa) — lane `officeimpresso-pest`, MySQL,
+> `ComputadoresEmpresaAcoesContratoTest.php` (ações) — lane `officeimpresso-pest`, MySQL,
 > tenant 98 × 99.
 > Status: 🧪 escrito e na allowlist, veredito ainda não emitido.
 
@@ -24,7 +24,7 @@ last_run: "2026-10-12"
 **Dado** a flag `useV2OfficeimpressoEmpresa` desligada **Quando** o suporte abre qualquer das duas rotas
 **Então** recebe a Blade `licenca_computador.computadores` **E** com a flag ligada recebe
 `Officeimpresso/Empresa/Show`, com `computadores` e `assinatura` adiadas **E** com `?legacy=1` volta à
-Blade, onde fica o bloqueio de máquina até o PR dele.
+Blade, a rota de fuga até o cutover.
 
 Status: 🧪
 
@@ -81,11 +81,21 @@ empresa" a libera.
 
 Status: 🧪
 
+## UC-EMP-16 · Bloquear e liberar uma máquina com motivo · `must`
+
+**Dado** um usuário da operadora com `officeimpresso.licencas.gerenciar` **Quando** bloqueia uma máquina
+pela ficha **Então** sem motivo (menos de 5 letras) nada muda **E** com motivo a máquina fica bloqueada, o
+histórico (`licenca_log`) registra o evento com o negócio do EQUIPAMENTO **E** a tabela recarregada mostra
+o novo status.
+
+Status: 🧪
+
 ## UC-EMP-22 · A ficha diz o que o usuário pode fazer · `must`
 
 **Dado** um usuário só com `officeimpresso.access` **Quando** abre a ficha **Então** `permissions.empresa`
 é falso e a tela não mostra "Editar" nem o bloqueio da empresa **E** com `officeimpresso.empresa.gerenciar`
-é verdadeiro. O botão escondido não é a guarda: o controller recusa do mesmo jeito.
+é verdadeiro **E** `permissions.gerenciar` (bloquear máquina) só vale com
+`officeimpresso.licencas.gerenciar`. O botão escondido não é a guarda: o controller recusa do mesmo jeito.
 
 Status: 🧪
 
@@ -97,7 +107,13 @@ alvo muda (`AcessoOperador`: a permissão só vale na operadora).
 
 Status: 🧪
 
+## UC-EMP-24 · Usuário de empresa cliente não bloqueia máquina de outra empresa · `must` `[T0]`
+
+**Dado** um usuário de empresa CLIENTE com `officeimpresso.licencas.gerenciar` **Quando** tenta bloquear
+uma máquina de outra empresa **Então** recebe 403 **E** a máquina não muda **E** nada entra no histórico.
+
+Status: 🧪
+
 ## Fora do teste por ora
 
 - [BACKLOG] Bloco de pacote e assinatura só quando existem; limite 0 = "Ilimitado" (parity 11–14).
-- [BACKLOG] Bloquear máquina na ficha (parity 34) — PR próprio; hoje fica na Blade (`?legacy=1`).
