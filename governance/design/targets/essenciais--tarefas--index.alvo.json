@@ -1,0 +1,253 @@
+{
+  "aguardou_sumir": null,
+  "ausentes": [],
+  "base": {
+    "assinatura": "OI WR Essenciais 6 tarefa s em aberto · 1 atrasada · 5 documentos · 9 lembretes no calendário Administrador Gestor de equipe Colaborador Com dados Primeira vez Demonstração Essentials · /essentials HRM Tarefas 6 Documentos 5 Memorandos 4 Lembretes 9 Mensagens 3 Base de conhecimento Configurações Atribuído a: todos Larissa Andrade Wagner Oliveira Eliana Pereira Tiago Mendes Camila Bezerra Rafael Costa Júlia Ferreira Prioridade: todas Baixo Médio Alto Urgente Situação: todas Novo Em progresso Em espera Terminado buscar · novo Adicionar Período de início até Mais recentes Prazo mais próximo Prioridade Maior esforço Confortável Compacto Criado em ID da tarefa Tarefa Situação Prioridade Início Fim Horas est. Atribuído por Atribuído a Ações 18/08/2026 09:12 TAR2026/0012 Refazer prova do painel de fachada — cliente pediu Pantone 2925 C 2 anexo(s) · 2 comentário(s) Em progresso Urgente 19/08/2026 22/08/2026 6 h Wagner Oliveira CB TM Camila Bezerra +1 Editar Ver Excluir 18/08/2026 16:30 TAR2026/0011 Conferir estoque de lona 440 g antes da compra de setembro Novo Alto 20/08/2026 25/08/2026 2 h Wagner Oliveira EP Eliana Pereira Editar Ver Excluir 17/08/2026 08:05 TAR2026/0010 Ligar para os 8 orçamentos parados há mais de 10 dias 1 anexo(s) · 1 comentário(s) Em progresso Médio 18/08/2026 21/08/2026 4 h Wagner Oliveira LA JF Larissa Andrade +1 Editar Ver Excluir 13/08/2026 17:44 TAR2026/0009 Trocar a lâmina do plotter de recorte e registrar no patrimônio 1 comentário(s) Terminado Médio 14/08/2026 15/08/2026 1 h Tiago Mendes RC Rafael Costa Editar Ver Excluir 11/08/2026 11:20 TAR2026/0008 Montar kit de amostras de ACM para a visita na construtora Em espera Baixo 12/08/2026 — 3 h Larissa Andrade RC Rafael Costa Editar Ver Excluir 10/08/2026 15:02 TAR2026/0007 Revisar textos do site institucional (página de serviços) Novo Baixo 21/08/2026 31/08/2026 5 h Wagner Oliveira CB Camila Bezerra Editar Ver Excluir 07/08/2026 10:15 TAR2026/0005 Instalar totem do estacionamento — obra liberada Em progresso Atrasada Alto 20/08/2026 20/08/2026 6 h Tiago Mendes RC TM Rafael Costa +1 Editar Ver Excluir 01/08/2026 09:00 TAR2026/0006 Fechar a conciliação bancária de julho 1 anexo(s) · 1 comentário(s) Terminado Alto 03/08/2026 08/08/2026 8 h Wagner Oliveira EP Eliana Pereira Editar Ver Excluir",
+    "roles": {
+      "celulas": null,
+      "chart": null,
+      "contratos": [],
+      "filterRows": null,
+      "kpi": {
+        "count": 0,
+        "items": [],
+        "overflowX": null,
+        "tag": null
+      },
+      "primary": null,
+      "shell": null,
+      "tabela": null,
+      "title": null
+    },
+    "saude": {
+      "folhasVazias": [],
+      "nFolhas": 77,
+      "tokensMortos": []
+    },
+    "theme": "dark",
+    "url": "http://127.0.0.1:5561/"
+  },
+  "nos_totais": 822,
+  "quieto_ms": 2000,
+  "rota": "ess-tarefas",
+  "secoes": {
+    "abas": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "proprio",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.26 0.006 240)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "flex",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "0px",
+        "padding": "0px"
+      },
+      "filhos": 7,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "button",
+        "button",
+        "button",
+        "button",
+        "button",
+        "button",
+        "button"
+      ],
+      "rect": {
+        "h": 38,
+        "w": 1176
+      },
+      "seletor": ".main-body > .ess-page > nav.ds-tabbar",
+      "truncado": false
+    },
+    "cabecalho": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "proprio",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.26 0.006 240)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "flex",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "12px",
+        "padding": "14px 0px"
+      },
+      "filhos": 2,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "div",
+        "div"
+      ],
+      "rect": {
+        "h": 80,
+        "w": 1176
+      },
+      "seletor": ".main-body > .ess-page > .oi-ph > header",
+      "truncado": false
+    },
+    "filtros": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "os-page",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "flex",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "10px",
+        "padding": "0px"
+      },
+      "filhos": 4,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "hrm-body"
+        },
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "os-page"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "ess-lab",
+        "hrm-spacer",
+        "hrm-sel",
+        "div"
+      ],
+      "rect": {
+        "h": 36,
+        "w": 1200
+      },
+      "seletor": ".main-body > .ess-page > .hrm-body > .hrm-toolbar.ess-toolbar2",
+      "truncado": false
+    },
+    "tabela": {
+      "contraste": {
+        "fundo": "oklch(0.3 0.008 240)",
+        "fundo_de": "proprio",
+        "razao": 11.42,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.027108,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.3 0.008 240)",
+        "borderRadius": "12px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "block",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "padding": "0px"
+      },
+      "filhos": 1,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.3 0.008 240)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "div"
+      ],
+      "rect": {
+        "h": 432,
+        "w": 1176
+      },
+      "seletor": ".main-body > .ess-page > .hrm-body > .hrm-tabela",
+      "truncado": false
+    },
+    "toolbar": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "os-page",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "flex",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "10px",
+        "padding": "0px"
+      },
+      "filhos": 6,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "hrm-body"
+        },
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "os-page"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "usr-search",
+        "hrm-sel",
+        "hrm-sel",
+        "hrm-sel",
+        "hrm-meta",
+        "os-btn"
+      ],
+      "rect": {
+        "h": 36,
+        "w": 1200
+      },
+      "seletor": ".main-body > .ess-page > .hrm-body > .hrm-toolbar:not(.ess-toolbar2)",
+      "truncado": false
+    }
+  },
+  "tela": "essenciais--tarefas--index",
+  "url": "http://127.0.0.1:5561/"
+}
