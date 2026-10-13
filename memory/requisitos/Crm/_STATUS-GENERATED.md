@@ -18,10 +18,10 @@ authority: generated
 |---|---:|
 | US no SPEC | 0 |
 | CU no SDD | 0 |
-| Telas (.tsx) | 3 |
-| Telas com `casos.md` | 3 |
-| UC declarados | 36 |
-| UC com teste que os cita | 36 |
+| Telas (.tsx) | 4 |
+| Telas com `casos.md` | 4 |
+| UC declarados | 48 |
+| UC com teste que os cita | 48 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -60,6 +60,14 @@ _Nenhuma._
 | UC-CRMACO-18 | Acompanhamentos/Index | 🧪 aguarda veredito da lane |
 | UC-CRMACO-19 | Acompanhamentos/Index | 🧪 aguarda veredito da lane |
 | UC-CRMACO-20 | Acompanhamentos/Index | 🧪 aguarda veredito da lane |
+| UC-CRMACO-21 | Acompanhamentos/Index | 🧪 aguarda veredito da lane |
+| UC-CRMACO-22 | Acompanhamentos/Index | 🧪 aguarda veredito da lane |
+| UC-CRMACO-23 | Acompanhamentos/Index | 🧪 aguarda veredito da lane |
+| UC-CRMCFG-01 | Configuracoes/Index | 🧪 aguarda veredito da lane |
+| UC-CRMCFG-02 | Configuracoes/Index | 🧪 aguarda veredito da lane |
+| UC-CRMCFG-03 | Configuracoes/Index | 🧪 aguarda veredito da lane |
+| UC-CRMCFG-04 | Configuracoes/Index | 🧪 aguarda veredito da lane |
+| UC-CRMCFG-05 | Configuracoes/Index | 🧪 aguarda veredito da lane |
 | UC-CRMLD-01 | Leads/Index | 🧪 aguarda veredito da lane |
 | UC-CRMLD-02 | Leads/Index | 🧪 aguarda veredito da lane |
 | UC-CRMLD-03 | Leads/Index | 🧪 aguarda veredito da lane |
@@ -70,12 +78,16 @@ _Nenhuma._
 | UC-CRMLD-08 | Leads/Index | 🧪 aguarda veredito da lane |
 | UC-CRMLD-09 | Leads/Index | 🧪 aguarda veredito da lane |
 | UC-CRMLD-10 | Leads/Index | 🧪 aguarda veredito da lane |
+| UC-CRMLD-11 | Leads/Index | 🧪 aguarda veredito da lane |
+| UC-CRMLD-12 | Leads/Index | 🧪 aguarda veredito da lane |
+| UC-CRMLD-13 | Leads/Index | 🧪 aguarda veredito da lane |
 | UC-CRMPAI-01 | Painel/Index | 🧪 aguarda veredito da lane |
 | UC-CRMPAI-02 | Painel/Index | 🧪 aguarda veredito da lane |
 | UC-CRMPAI-03 | Painel/Index | 🧪 aguarda veredito da lane |
 | UC-CRMPAI-04 | Painel/Index | 🧪 aguarda veredito da lane |
 | UC-CRMPAI-05 | Painel/Index | 🧪 aguarda veredito da lane |
 | UC-CRMPAI-06 | Painel/Index | 🧪 aguarda veredito da lane |
+| UC-SANEG-14 | Leads/Index | 🧪 aguarda veredito da lane |
 
 ---
 

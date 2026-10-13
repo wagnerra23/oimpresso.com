@@ -1,0 +1,23 @@
+{
+  "_nota": "Derivado do alvo governance/design/targets/crm--config--index.alvo.json (thread A2 do playbook crm, #9255, rota `crm-config` do protótipo → crm-blade-telas.jsx Config()), não do .tsx. A seção com data-contract no protótipo (crm-config, que contém `campos` e `acoes` do alvo) vira a âncora da Page da thread 15 (F3). Copy só onde protótipo e Page dizem literalmente o mesmo. Fora: `header` e `nav` (cabeçalho e sub-navegação do CRM no protótipo sem data-contract; a Page usa o PageHeader canon) e o placeholder `SO-` (atributo, não texto).",
+  "tela": "Crm/Configuracoes/Index",
+  "fonte": "prototipo-ui/cowork/Wagner/crm-blade-telas.jsx",
+  "alvo": [
+    "Modules/Crm/Resources/js/Pages/Crm/Configuracoes/Index.tsx"
+  ],
+  "secoes": [
+    {
+      "id": "crm-config",
+      "copy": [
+        "Configurações do CRM",
+        "Ativar solicitação de pedido",
+        "Se ativado, o usuário de contato pode fazer uma solicitação de pedido no portal.",
+        "Prefixo da solicitação de pedido",
+        "Atualizar"
+      ]
+    }
+  ],
+  "ordem": [
+    "crm-config"
+  ]
+}
