@@ -1,0 +1,369 @@
+{
+  "aguardou_sumir": null,
+  "ausentes": [],
+  "base": {
+    "assinatura": "OI WR OFFICEIMPRESSO · matriz · 10 leads · 12 acompanhamentos · 4 propostas · papel: Administrador CRM Registro de chamadas Atualizado 16:08 Administrador Comercial (Larissa) Financeiro (Eliana) Portal do contato Adicionar lead Painel Leads Acompanhamentos Campanhas Login de contatos Comissões Registro de chamadas Relatórios Modelo de proposta Propostas Marketplace B2B Pedido de ordem Fontes e estágios Configurações Filtros Contato, autor do registro e intervalo de datas. Recolher Contato Todos Padaria Estrela Clínica Vida Plena João Reis Acme Comércio Ltda Mercado União Posto BR Centro TechPro Equipamentos Studio Foco Registro criado por Todos Larissa Prado Wagner Ramos Eliana Souza Marcos Vinícius Intervalo de datas Todos Hoje Últimos 7 dias Últimos 30 dias Registro de chamadas 8 de 8 Confortável Compacto Hora de início ↕ Hora de término Duração da chamada Tipo de chamada Nº do contato Contato Usuário Registro criado por 13/10/2026 09:12 13/10/2026 09:18 00:06:12 Efetuada (14) 99812-4410 Padaria Estrela Larissa Prado Larissa Prado 13/10/2026 10:02 13/10/2026 10:05 00:02:48 Recebida (14) 3622-1180 Clínica Vida Plena Marcos Vinícius Marcos Vinícius 13/10/2026 11:40 13/10/2026 11:41 00:00:22 Perdida (14) 99140-7722 João Reis Larissa Prado Larissa Prado 12/10/2026 14:22 12/10/2026 14:39 00:17:03 Efetuada (14) 3624-9010 Acme Comércio Ltda Wagner Ramos Wagner Ramos 12/10/2026 16:50 12/10/2026 16:58 00:08:31 Recebida (14) 99630-1187 Mercado União Larissa Prado Larissa Prado 11/10/2026 08:45 11/10/2026 08:52 00:07:14 Efetuada (14) 3622-8877 Posto BR Centro Wagner Ramos Wagner Ramos 10/10/2026 15:05 10/10/2026 15:09 00:04:02 Efetuada (14) 99771-3388 TechPro Equipamentos Marcos Vinícius Marcos Vinícius 09/10/2026 09:30 09/10/2026 09:33 00:03:19 Recebida (14) 99442-0021 Studio Foco Larissa Prado Larissa Prado Selecione linhas para excluir em massa. Excluir selecionados",
+    "roles": {
+      "celulas": null,
+      "chart": null,
+      "contratos": [
+        {
+          "classes": {
+            "dataBr": 0,
+            "dataIso": 0,
+            "snakeCru": 0
+          },
+          "exemplos": {},
+          "nome": "crm-filtros"
+        },
+        {
+          "classes": {
+            "dataBr": 16,
+            "dataIso": 0,
+            "snakeCru": 0
+          },
+          "exemplos": {
+            "dataBr": [
+              "13/10/2026",
+              "12/10/2026",
+              "11/10/2026"
+            ]
+          },
+          "nome": "crm-chamadas"
+        },
+        {
+          "classes": {
+            "dataBr": 0,
+            "dataIso": 0,
+            "snakeCru": 0
+          },
+          "exemplos": {},
+          "nome": "crm-toolbar"
+        },
+        {
+          "classes": {
+            "dataBr": 0,
+            "dataIso": 0,
+            "snakeCru": 0
+          },
+          "exemplos": {},
+          "nome": "crm-rodape"
+        }
+      ],
+      "filterRows": null,
+      "kpi": {
+        "count": 0,
+        "items": [],
+        "overflowX": null,
+        "tag": null
+      },
+      "primary": null,
+      "shell": null,
+      "tabela": null,
+      "title": null
+    },
+    "saude": {
+      "folhasVazias": [],
+      "nFolhas": 76,
+      "tokensMortos": []
+    },
+    "theme": "dark",
+    "url": "http://127.0.0.1:5571/"
+  },
+  "nos_totais": 678,
+  "quieto_ms": 2000,
+  "rota": "crm-chamadas",
+  "secoes": {
+    "filtros": {
+      "contraste": {
+        "fundo": "oklch(0.3 0.008 240)",
+        "fundo_de": "proprio",
+        "razao": 11.42,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.027108,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.3 0.008 240)",
+        "borderRadius": "12px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "block",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "padding": "0px"
+      },
+      "filhos": 2,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.3 0.008 240)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "h3",
+        "pb-widget-b"
+      ],
+      "rect": {
+        "h": 156,
+        "w": 1176
+      },
+      "seletor": "[data-contract=\"crm-filtros\"]",
+      "truncado": false
+    },
+    "grade": {
+      "contraste": {
+        "fundo": "oklch(0.3 0.008 240)",
+        "fundo_de": "pb-widget",
+        "razao": 11.42,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.027108,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "block",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "padding": "0px"
+      },
+      "filhos": 1,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "pb-widget-b"
+        },
+        {
+          "bg": "oklch(0.3 0.008 240)",
+          "de": "pb-widget"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "div"
+      ],
+      "rect": {
+        "h": 331,
+        "w": 1174
+      },
+      "seletor": "[data-contract=\"crm-chamadas\"] .pb-grid-pro",
+      "truncado": false
+    },
+    "header": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "body",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "block",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "padding": "20px 24px 0px"
+      },
+      "filhos": 2,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "pb-root"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "main-body"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "main"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "app"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "div"
+        },
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "body"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "p",
+        "header"
+      ],
+      "rect": {
+        "h": 103,
+        "w": 1224
+      },
+      "seletor": ".cb-root > .cli-ph",
+      "truncado": false
+    },
+    "nav": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "proprio",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.26 0.006 240)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "flex",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "0px",
+        "padding": "0px"
+      },
+      "filhos": 14,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "button",
+        "button",
+        "button",
+        "button",
+        "button",
+        "button",
+        "button",
+        "button",
+        "button",
+        "button",
+        "button",
+        "button",
+        "button",
+        "button"
+      ],
+      "rect": {
+        "h": 36,
+        "w": 1176
+      },
+      "seletor": ".cb-root > .pb-body > .cb-nav",
+      "truncado": true
+    },
+    "rodape": {
+      "contraste": {
+        "fundo": "oklch(0.3 0.008 240)",
+        "fundo_de": "pb-widget",
+        "razao": 5.49,
+        "texto": "oklch(0.72 0.005 90)",
+        "y_fundo": 0.027108,
+        "y_texto": 0.373341
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.72 0.005 90)",
+        "display": "flex",
+        "fontSize": "11.5px",
+        "fontWeight": "400",
+        "gap": "10px",
+        "padding": "9px 12px"
+      },
+      "filhos": 3,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "pb-widget-b"
+        },
+        {
+          "bg": "oklch(0.3 0.008 240)",
+          "de": "pb-widget"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "pb-help",
+        "sp",
+        "os-btn"
+      ],
+      "rect": {
+        "h": 45,
+        "w": 1174
+      },
+      "seletor": "[data-contract=\"crm-chamadas\"] [data-contract=\"crm-rodape\"]",
+      "truncado": false
+    },
+    "toolbar": {
+      "contraste": {
+        "fundo": "oklch(0.3 0.008 240)",
+        "fundo_de": "pb-widget",
+        "razao": 11.42,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.027108,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "flex",
+        "fontSize": "13.5px",
+        "fontWeight": "400",
+        "gap": "8px",
+        "padding": "8px 12px"
+      },
+      "filhos": 3,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "pb-widget-b"
+        },
+        {
+          "bg": "oklch(0.3 0.008 240)",
+          "de": "pb-widget"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "pb-busca",
+        "sp",
+        "div"
+      ],
+      "rect": {
+        "h": 53,
+        "w": 1174
+      },
+      "seletor": "[data-contract=\"crm-chamadas\"] [data-contract=\"crm-toolbar\"]",
+      "truncado": false
+    }
+  },
+  "tela": "crm--chamadas--index",
+  "url": "http://127.0.0.1:5571/"
+}

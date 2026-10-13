@@ -1,0 +1,19 @@
+{
+  "_": "A1 [CL] 2026-10-13 — playbook restaurante. Rota `cfg-atendentes` do espelho (app.jsx:847 → window.RestauranteExtrasPage view=cfg-atendentes). Tema dark (default do espelho), viewport 1280x900, browser limpo. Mesma casca da cfg-mesas; a tela de produção ainda é ponto aberto do índice (00-INDICE.md:238).",
+  "_mapa": "alvo:mapa --rota cfg-atendentes --quieto-ms 2000, 2026-10-13: raiz '.main-body > .pb-root' → div.cli-ph(2) · div.pb-body(4) · div(0); raiz '.main-body > .pb-root > .pb-body' → nav.ds-tabbar.vb-nav(5) · div(2) · div.cu-kpis(3) · section.pb-widget(2)",
+  "cabecalho": {
+    "seletor": ".main-body > .pb-root > .cli-ph > header"
+  },
+  "abas": {
+    "seletor": ".main-body > .pb-root > .pb-body > nav.ds-tabbar"
+  },
+  "barra": {
+    "seletor": ".main-body > .pb-root > .pb-body > div:nth-child(2)"
+  },
+  "kpis": {
+    "seletor": ".main-body > .pb-root > .pb-body > .cu-kpis"
+  },
+  "tabela": {
+    "seletor": ".main-body > .pb-root > .pb-body > section.pb-widget"
+  }
+}

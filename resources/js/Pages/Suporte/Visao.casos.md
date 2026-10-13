@@ -5,7 +5,8 @@ irmaos: Visao.charter.md (lei)
 tecnica: Caso de uso = narrativa + critério de aceite verificável (Dado/Quando/Então), provado por teste citando o id.
 por_que: o comportamento (login-as guardado, operadora/superadmin/inativo bloqueados, entrada auditada) é durável — é a fronteira Tier 0 e não muda no refactor.
 owner: wagner
-last_run: "2026-06-24"
+last_run: "2026-10-13"
+last_run_ci: "2026-10-13 (PR contratos de tela, telas-soltas thread 01) — REVALIDACAO ANALITICA, suite NAO executada. A mudanca na tela sao so atributos data-contract (e um div sem classe em volta do PageHeader); nenhum UC afirma ancora. ---- REGISTRO ANTERIOR: last_run 2026-06-24."
 ---
 
 # Casos de Uso & Aceite — Suporte / Visão

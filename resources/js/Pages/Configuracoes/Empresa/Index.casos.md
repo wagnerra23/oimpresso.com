@@ -109,3 +109,12 @@ last_run: "2026-10-13"
   nada muda · E quando digito "2,5" no valor da venda para 1 ponto, troco o nome e troco um módulo · Então grava 2,5, o
   nome novo e a lista nova · E os outros valores de pontos ficam iguais.
 - **Status: 🧪**
+
+## UC-EMP-14 · Rótulos personalizados voltam iguais · `[dado]`
+- **Por quê:** `custom_labels` é gravado inteiro e carrega, além dos nomes, o tipo e as opções de cada campo de produto
+  (`product_cf_details`, opções separadas por quebra de linha — `product/create.blade.php` usa `explode(PHP_EOL, …)`) e as
+  marcações "obrigatório" e "puxar do contato".
+- **Aceite:** Dado nomes em vários grupos, um campo de produto do tipo lista com duas opções e duas marcações · Quando
+  devolvo o corpo sem mexer · Então o objeto volta igual · E quando renomeio um campo, desmarco "obrigatório" e troco o tipo
+  do campo de produto · Então só isso muda, e as opções e a outra marcação ficam.
+- **Status: 🧪**

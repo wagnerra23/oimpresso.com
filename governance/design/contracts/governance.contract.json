@@ -1,0 +1,84 @@
+{
+  "_nota": "Contrato vigente da Governança (thread 07 do playbook, G-NOTAS). Derivado da ÂNCORA — o contrato do Cowork em prototipo-ui/cowork/Wagner/cowork-inbox/governance/governance.contract.json, escrito sobre governance-page.jsx + governance-telas.jsx + governance-data.jsx — e não do .tsx. Cada string de copy foi conferida por script, com a fronteira de identificador do verificador, presente no protótipo (fora de comentário) E na tela-alvo da seção. A vista \"Notas dos módulos\" saiu (decisão [W] 2026-09-24, G-NOTAS) e ModuleGrades/Index não é alvo (tela apagada, ADR 0399).",
+  "_nota_fonte": "A copy vem dos TRÊS arquivos do protótipo e `fonte` aceita um só: o --anti-tautologia avisa as strings que estão em governance-telas.jsx ou governance-data.jsx. Aviso esperado, não copy lida da tela.",
+  "_nota_fora": "Seções do contrato Cowork que NÃO entraram, porque a tela não tem a copy que o protótipo desenha (divergência registrada, não corrigida): page-header, tabs (rótulos vêm do DataController, PHP), aviso-rota, conformidade-regua, card-sdd, aguardando-decisao, ocorrencias-24h, politicas-lista, auditoria-kpis, auditoria-selo, auditoria-teto, drift-lista, drift-historico. As 4 seções notas-* saíram por G-NOTAS. Também fora (2026-10-13, gerente da fila): politicas-kpis, politicas-aviso-historico, auditoria-filtros, auditoria-tabela, drift-kpis e drift-sem-scope — Policies, Audit e DriftAlerts ainda usam o PageHeader antigo, e tocá-las obriga a migrar o header no mesmo PR (ADR 0409, PageHeader ratchet). Voltam quando cada tela migrar.",
+  "_nota_ordem": "ordem cobre só o corpo do Dashboard: mcp-secao vive no componente McpSection, declarado no arquivo antes do corpo da página, e o verificador lê a ordem pela posição no arquivo, não pela de render.",
+  "_nota_acordos": "Os 5 acordos de estado aprovados por [W] em 2026-09-30 (_saida-07 §E) ficam FORA deste contrato até os valores existirem como literal no backend E no frontend (catraca ADR 0286 §5). Hoje não existem. O 6º (dimensao-nao-avaliada) saiu com a vista Notas.",
+  "tela": "governance/Dashboard",
+  "fonte": "prototipo-ui/cowork/Wagner/governance-page.jsx",
+  "alvo": [
+    "resources/js/Pages/governance/Dashboard.tsx",
+    "resources/js/Pages/governance/Policies.tsx",
+    "resources/js/Pages/governance/Audit.tsx",
+    "resources/js/Pages/governance/DriftAlerts.tsx"
+  ],
+  "secoes": [
+    {
+      "id": "mcp-secao",
+      "copy": [
+        "Governança MCP",
+        "Chamadas",
+        "Taxa de sucesso",
+        "Latência p95",
+        "Custo",
+        "Consumo",
+        "Acesso e permissões",
+        "Usuários e ferramentas"
+      ]
+    },
+    {
+      "id": "mcp-periodo",
+      "copy": [
+        "Hoje",
+        "Ontem",
+        "7 dias",
+        "30 dias",
+        "Mês anterior"
+      ]
+    },
+    {
+      "id": "kpis-constituicao",
+      "copy": [
+        "Políticas ativas",
+        "Aprovações de skill",
+        "Atores registrados",
+        "Ocorrências em 24 h",
+        "Conformidade"
+      ]
+    },
+    {
+      "id": "saude-ecossistema",
+      "copy": [
+        "Saúde do ecossistema",
+        "Jobs falhos em 24 h",
+        "Custo de IA em 24 h",
+        "Última narrativa"
+      ]
+    }
+  ],
+  "ordem": [
+    "kpis-constituicao",
+    "saude-ecossistema"
+  ],
+  "proibicoes": [
+    "Qualquer caminho de escrita sobre mcp_audit_log — editar, apagar, corrigir linha (append-only, ADR 0084).",
+    "Consultar mcp_audit_log quando o usuário não tem jana.mcp.usage.all.",
+    "Somar governance.dashboard.view ao gate da seção MCP (seria mais restritivo que o estado anterior, ADR 0366 §D-B).",
+    "Consumir a prop `mcp` fora do <Deferred> — incidente de 2026-05-25, TypeError undefined.find em produção.",
+    "Inventar business_id ou filtro de negócio nas tabelas mcp_* (não têm a coluna, por design).",
+    "Publicar a conformidade como percentual apurado enquanto for a soma literal (7*10)+(2*5)+0 do controller.",
+    "Prometer histórico de alternância de política antes de mcp_governance_rule_history existir.",
+    "Modal de confirmação para alternar política (ação reversível — atrito proibido pelo charter vivo).",
+    "Alternar políticas em lote.",
+    "Botão de ignorar, adiar ou silenciar drift; auto-correção de SCOPE.md pela interface.",
+    "Contar travessão como zero na média das dimensões D6–D9.",
+    "Período de auditoria maior que 30 dias; consulta sem o teto de 200.",
+    "Esconder política desligada por padrão.",
+    "localStorage/sessionStorage de filtro em qualquer das cinco vistas.",
+    "Cor crua de paleta (bg-red-100, emerald-500, amber-400) — só tom semântico do DS.",
+    "href no KpiCard (a prop não existe).",
+    "Inglês em copy cliente-facing. Emoji na tela.",
+    "Modal em tela cheia para detalhe (PT-04 é só confirmação).",
+    "Duplicar a lista de ghosts do módulo dentro da tela — a fonte é DataController::modifyAdminMenu."
+  ]
+}
