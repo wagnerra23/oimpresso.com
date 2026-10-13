@@ -1,0 +1,338 @@
+{
+  "aguardou_sumir": null,
+  "ausentes": [],
+  "base": {
+    "assinatura": "OI WR OFFICEIMPRESSO · 3 locais · 6 ajustes · 5 transferências Estoque Gestor (Wagner) Atualizado 09:42 Novo ajuste Contar Nova transferência Painel Ajustes 6 Transferências 2 Vencimentos 4 Contagem 1 Todos 6 Normal 3 Anormal 3 Período Dia Semana Mês De dd/mm/aaaa Até dd/mm/aaaa ⌕ Trilho vermelho = ajuste anormal. Excluir devolve o saldo (UC-EST-05). Compacto CSV Excel Imprimir Colunas Todos os locais Matriz Loja Centro Depósito Novo ajuste Ajuste ↕ Data ↓ Local ↕ Tipo ↕ Itens ↕ Valor ajustado ↕ Recuperado ↕ Motivo do ajuste Lançado por ↕ Ações AJ-0142 AJ2026/0142 08/05/2026 Matriz Anormal 2 R$ 404,40 R$ 0,00 Lona riscada na descarga — 3 bobinas inutilizadas. Wagner Ver Excluir AJ-0141 AJ2026/0141 07/05/2026 Loja Centro Normal 1 R$ 104,40 R$ 0,00 Recontagem do balcão — sobra de vinil não lançada. Larissa Ver Excluir AJ-0140 AJ2026/0140 06/05/2026 Depósito Anormal 1 R$ 1.080,00 R$ 180,00 Tinta vencida — 2 galões descartados, embalagem devolvida ao fornecedor. Bruna Ver Excluir AJ-0139 AJ2026/0139 05/05/2026 Matriz Normal 2 R$ 356,10 R$ 0,00 Perda de corte no plotter — refile do mês. Wagner Ver Excluir AJ-0138 AJ2026/0138 04/05/2026 Matriz Anormal 1 R$ 233,40 R$ 0,00 Placa ACM amassada no transporte interno. Bruna Ver Excluir AJ-0137 AJ2026/0137 30/04/2026 Depósito Normal 1 R$ 102,00 R$ 0,00 Fechamento de abril — ajuste de contagem cíclica. Wagner Ver Excluir Ajustes 6 Valor ajustado R$ 2.280,30 Recuperado R$ 180,00 Perda líquida R$ 2.100,30 Anterior 1 Próximo 1 – 6 de 6",
+    "roles": {
+      "celulas": null,
+      "chart": null,
+      "contratos": [],
+      "filterRows": null,
+      "kpi": {
+        "count": 0,
+        "items": [],
+        "overflowX": null,
+        "tag": null
+      },
+      "primary": null,
+      "shell": null,
+      "tabela": null,
+      "title": null
+    },
+    "saude": {
+      "folhasVazias": [],
+      "nFolhas": 76,
+      "tokensMortos": []
+    },
+    "theme": "dark",
+    "url": "http://127.0.0.1:5561/"
+  },
+  "nos_totais": 746,
+  "quieto_ms": 2000,
+  "rota": "est-ajustes",
+  "secoes": {
+    "abas": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "proprio",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.26 0.006 240)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "flex",
+        "fontSize": "13px",
+        "fontWeight": "400",
+        "gap": "0px",
+        "padding": "0px 24px"
+      },
+      "filhos": 5,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "button",
+        "button",
+        "button",
+        "button",
+        "button"
+      ],
+      "rect": {
+        "h": 36,
+        "w": 1176
+      },
+      "seletor": ".main-body > .est-root > nav.ds-tabbar",
+      "truncado": false
+    },
+    "cabecalho": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "proprio",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.26 0.006 240)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "flex",
+        "fontSize": "13px",
+        "fontWeight": "400",
+        "gap": "10px 12px",
+        "padding": "14px 0px"
+      },
+      "filhos": 2,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "div",
+        "div"
+      ],
+      "rect": {
+        "h": 80,
+        "w": 1128
+      },
+      "seletor": ".main-body > .est-root > .cli-ph > header",
+      "truncado": false
+    },
+    "periodo": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "jc-page",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "block",
+        "fontSize": "13px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "padding": "8px 0px 2px"
+      },
+      "filhos": 1,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "mp-body"
+        },
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "jc-page"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "div"
+      ],
+      "rect": {
+        "h": 68,
+        "w": 1128
+      },
+      "seletor": ".main-body > .est-root > .mp-body > .est-periodo",
+      "truncado": false
+    },
+    "rodape": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "jc-page",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "flex",
+        "fontSize": "13px",
+        "fontWeight": "400",
+        "gap": "16px",
+        "padding": "12px 0px"
+      },
+      "filhos": 3,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "mp-body"
+        },
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "jc-page"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "est-somas",
+        "est-sp",
+        "nav"
+      ],
+      "rect": {
+        "h": 62,
+        "w": 1128
+      },
+      "seletor": ".main-body > .est-root > .mp-body > .est-rodape",
+      "truncado": false
+    },
+    "subabas": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "proprio",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.26 0.006 240)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "flex",
+        "fontSize": "13px",
+        "fontWeight": "400",
+        "gap": "0px",
+        "padding": "0px"
+      },
+      "filhos": 3,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "button",
+        "button",
+        "button"
+      ],
+      "rect": {
+        "h": 36,
+        "w": 1128
+      },
+      "seletor": ".main-body > .est-root > .mp-body > nav.ds-tabbar",
+      "truncado": false
+    },
+    "tabela": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "proprio",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "oklch(0.26 0.006 240)",
+        "borderRadius": "8px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "block",
+        "fontSize": "13px",
+        "fontWeight": "400",
+        "gap": "normal",
+        "padding": "0px"
+      },
+      "filhos": 1,
+      "fundoCadeia": [
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "proprio"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "div"
+      ],
+      "rect": {
+        "h": 362,
+        "w": 1128
+      },
+      "seletor": ".main-body > .est-root > .mp-body > .est-tbl",
+      "truncado": false
+    },
+    "toolbar": {
+      "contraste": {
+        "fundo": "oklch(0.26 0.006 240)",
+        "fundo_de": "jc-page",
+        "razao": 13.02,
+        "texto": "oklch(0.94 0.005 90)",
+        "y_fundo": 0.017637,
+        "y_texto": 0.830745
+      },
+      "estilo": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "borderRadius": "0px",
+        "color": "oklch(0.94 0.005 90)",
+        "display": "flex",
+        "fontSize": "13px",
+        "fontWeight": "400",
+        "gap": "8px",
+        "padding": "10px 0px"
+      },
+      "filhos": 10,
+      "fundoCadeia": [
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "proprio"
+        },
+        {
+          "bg": "rgba(0, 0, 0, 0)",
+          "de": "mp-body"
+        },
+        {
+          "bg": "oklch(0.26 0.006 240)",
+          "de": "jc-page"
+        }
+      ],
+      "nos": 1,
+      "ordemClasses": [
+        "est-busca-inline",
+        "est-tb-info",
+        "est-sp",
+        "button",
+        "button",
+        "button",
+        "button",
+        "est-colsel",
+        "est-sel-filtro",
+        "button"
+      ],
+      "rect": {
+        "h": 89,
+        "w": 1128
+      },
+      "seletor": ".main-body > .est-root > .mp-body > .est-toolbar",
+      "truncado": false
+    }
+  },
+  "tela": "estoque--ajustes--index",
+  "url": "http://127.0.0.1:5561/"
+}

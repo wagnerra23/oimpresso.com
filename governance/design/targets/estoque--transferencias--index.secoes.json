@@ -1,0 +1,25 @@
+{
+  "_": "A1 [CL] 2026-10-13 — playbook estoque. Rota `est-transferencias` do espelho (app.jsx:849 → window.EstoquePage view=est-transferencias, estoque-page.jsx); mapa rota↔Page da _saida-00: `est-transferencias` = `StockTransfer/Index`. A rota fixa a aba e as colunas padrão sem ler o storage (usarAbaEst / usarCols fixo, _saida-00). Tema dark (default do espelho), viewport 1280x900, browser limpo.",
+  "_mapa": "alvo:mapa --rota est-transferencias --quieto-ms 2000, 2026-10-13: raiz '.main-body > .est-root' → div.cli-ph(2) · nav.ds-tabbar.jm-tabs(5) · div.mp-body(5); raiz '.main-body > .est-root > .mp-body' → nav.ds-tabbar(5) · div.est-periodo(1) · div.est-toolbar(10) · div.est-tbl(1) · div.est-rodape(3)",
+  "cabecalho": {
+    "seletor": ".main-body > .est-root > .cli-ph > header"
+  },
+  "abas": {
+    "seletor": ".main-body > .est-root > nav.ds-tabbar"
+  },
+  "subabas": {
+    "seletor": ".main-body > .est-root > .mp-body > nav.ds-tabbar"
+  },
+  "periodo": {
+    "seletor": ".main-body > .est-root > .mp-body > .est-periodo"
+  },
+  "toolbar": {
+    "seletor": ".main-body > .est-root > .mp-body > .est-toolbar"
+  },
+  "tabela": {
+    "seletor": ".main-body > .est-root > .mp-body > .est-tbl"
+  },
+  "rodape": {
+    "seletor": ".main-body > .est-root > .mp-body > .est-rodape"
+  }
+}
