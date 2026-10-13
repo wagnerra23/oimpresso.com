@@ -148,19 +148,33 @@ it('config/retention.php existe e é array válido (D7.c declaração)', functio
         ->toHaveKeys(['enabled', 'entities', 'strategy', 'notice_period_days']);
 });
 
-it('retention.php declara TTL pras 4 entidades patrimoniais (D7.c cobertura)', function () {
+it('retention.php declara TTL pras 3 tabelas com campo pessoal, pelo nome real (ADR 0430)', function () {
     $config = require base_path('Modules/AssetManagement/Config/retention.php');
 
+    // Nomes reais das tabelas. Até 2026-10-13 eram `am_*`, que nenhuma migration cria;
+    // asset_warranties saiu por não ter coluna que aponte para pessoa (ADR 0430 item 5).
     $expectedEntities = [
-        'am_assets',
-        'am_asset_transactions',
-        'am_maintenance_logs',
-        'am_warranties',
+        'assets',
+        'asset_transactions',
+        'asset_maintenances',
     ];
 
     foreach ($expectedEntities as $entity) {
         expect(array_key_exists($entity, $config['entities']))
             ->toBeTrue("Entidade {$entity} sem TTL declarado em retention.php");
+    }
+});
+
+it('cada chave de retention.php é uma tabela que o schema cria (ADR 0430)', function () {
+    // O caso acima só confere que a chave foi DIGITADA. Foi assim que as 4 chaves `am_*`
+    // passaram verdes apontando para tabelas que nenhuma migration cria (_saida-04 §2b).
+    $config = require base_path('Modules/AssetManagement/Config/retention.php');
+    $schema = file_get_contents(base_path('database/schema/mysql-schema.sql'));
+
+    expect($config['entities'])->not->toBeEmpty();
+    foreach (array_keys($config['entities']) as $tabela) {
+        expect(str_contains($schema, "CREATE TABLE `{$tabela}`"))
+            ->toBeTrue("retention.php aponta para `{$tabela}`, que o schema não cria");
     }
 });
 
@@ -171,10 +185,10 @@ it('retention.php declara strategy ∈ {soft_delete, hard_delete, anonymize}', f
         ->toBeIn(['soft_delete', 'hard_delete', 'anonymize']);
 });
 
-it('am_assets tem retention >=3650 dias (10 anos fiscal/contábil)', function () {
+it('assets tem retention >=3650 dias (10 anos fiscal/contábil)', function () {
     $config = require base_path('Modules/AssetManagement/Config/retention.php');
 
-    expect((int) $config['entities']['am_assets'])->toBeGreaterThanOrEqual(3650);
+    expect((int) $config['entities']['assets'])->toBeGreaterThanOrEqual(3650);
 });
 
 it('module.json declara retention_days + lgpd_compliance (D7.c metadata)', function () {
