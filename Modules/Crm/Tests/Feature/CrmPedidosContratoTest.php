@@ -56,8 +56,7 @@ function pedcPedido(int $biz, int $local, int $criador, string $marca, string $t
 /** A prop deferida `pedidos`, pedida como o browser pede (X-Inertia + X-Requested-With). */
 function pedcProps($teste, $user, string $query = ''): array
 {
-    $teste->actingAs($user);
-    session(['user.business_id' => (int) $user->business_id, 'user.id' => $user->id]);
+    $teste->actingAs($user); // sem session() manual: o SetSessionData monta a sessão inteira (currency, business)
     $versao = app(\App\Http\Middleware\HandleInertiaRequests::class)->version(request());
     $r = $teste->get('/crm/order-request'.$query, [
         'X-Inertia' => 'true', 'X-Requested-With' => 'XMLHttpRequest', 'X-Inertia-Version' => (string) $versao,
