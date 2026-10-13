@@ -5,6 +5,7 @@ namespace Modules\NFSe\Services;
 use App\Util\OtelHelper;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
 use App\Support\Privacy\PiiRedactor;
 use Modules\NFSe\Contracts\NfseProviderInterface;
 use Modules\NFSe\DTO\NfseEmissaoPayload;
@@ -16,7 +17,10 @@ use Modules\NFSe\Jobs\EmitirNfseJob;
 use Modules\NFSe\Models\NfseEmissao;
 use Modules\NFSe\Models\NfseProviderConfig;
 use Modules\NfeBrasil\Services\RetencoesNfseService;
+use Modules\NfeBrasil\Services\Nfse\ListaServicoNacional;
 use Modules\NfeBrasil\Models\NfeCertificado;
+use Modules\NfeBrasil\Models\NfeBusinessConfig;
+use App\Scopes\ScopeByBusiness;
 use Modules\NfeBrasil\Services\CertificadoService;
 
 class NfseEmissaoService
@@ -109,7 +113,33 @@ class NfseEmissaoService
             retPisCentavos: $ret['pis'],
             retCofinsCentavos: $ret['cofins'],
             retCsllCentavos: $ret['csll'],
+            // R-NFSE-005: série da DPS é numérica (TSSerieDPS); o legado 'RPS' vira '1'.
+            serieDps: ctype_digit((string) $config?->serie_default) ? (string) $config->serie_default : '1',
+            // Regime do PRÓPRIO tenant (ADR 0093) → regTrib/opSimpNac na DPS. Lido pelo Model do
+            // dono da tabela (NfeBrasil), não por DB::table — a catraca de acoplamento proíbe
+            // query crua em tabela de outro módulo.
+            // SUPERADMIN: business_id explícito do parâmetro (montarPayload roda também fora de
+            // request); o escopo de sessão não acrescenta nada além do where abaixo.
+            regimePrestador: Schema::hasTable('nfe_business_configs')
+                ? NfeBusinessConfig::withoutGlobalScope(ScopeByBusiness::class)
+                    ->where('business_id', $businessId)->value('regime')
+                : null,
+            cTribNac: $this->resolverCTribNac((string) $data['lc116_codigo'], $data['ctrib_nac'] ?? null),
         );
+    }
+
+    /**
+     * R-NFSE-006 — cTribNac pela tabela nacional. Resolve quando dá (escolha válida ou
+     * subitem de desdobro único); senão devolve o que veio e o SnNfseAdapter falha na
+     * emissão com a mensagem das opções — nunca um desdobro chutado.
+     */
+    private function resolverCTribNac(string $lc116, ?string $escolhido): ?string
+    {
+        try {
+            return app(ListaServicoNacional::class)->resolver($lc116, $escolhido);
+        } catch (\InvalidArgumentException) {
+            return $escolhido ?: null;
+        }
     }
 
     /**
@@ -153,7 +183,7 @@ class NfseEmissaoService
 
         $emissao = NfseEmissao::create([
             'business_id'     => $payload->businessId,
-            'serie'           => $config->serie_default,
+            'serie'           => $payload->serieDps,
             'rps_numero'      => $payload->rpsNumero,
             'competencia'     => $payload->competencia,
             'tomador_cnpj'    => $payload->tomadorCnpj,
@@ -161,6 +191,7 @@ class NfseEmissaoService
             'tomador_nome'    => $payload->tomadorNome,
             'tomador_email'   => $payload->tomadorEmail,
             'lc116_codigo'    => $payload->lc116Codigo,
+            'ctrib_nac'       => $payload->cTribNac,
             'cnae'            => $config->cnae,
             'descricao'       => $payload->descricao,
             'valor_servicos'  => $payload->valorServicos,
@@ -175,6 +206,11 @@ class NfseEmissaoService
             'idempotency_key' => $payload->idempotencyKey(),
             'transaction_id'  => $payload->transactionId,
         ]);
+
+        // R-NFSE-005: nDPS = id da emissão (único, sequencial, cabe nos 15 dígitos do
+        // leiaute). O número provisório YmdHis+contador tinha 18 dígitos e não é único.
+        $payload = $payload->comNumeroDps((string) $emissao->id);
+        $emissao->update(['rps_numero' => $payload->rpsNumero]);
 
         $tentativa = 0;
         $ultimoErro = null;

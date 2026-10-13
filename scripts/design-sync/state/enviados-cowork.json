@@ -256,6 +256,10 @@
     "cowork-inbox/patrimonio/playbook/_ERRATA-INDICE-2026-10-13.md": {
       "sha256": "4432d8771b364cfe0b02bf3030183bc25cb68e36bbc8bb02752beca555b2cd6c",
       "em": "2026-10-13T14:44:59.712Z"
+    },
+    "cowork-inbox/fiscal/playbook/_saida-23c.md": {
+      "sha256": "f9192282bd3baf046f42af1f01ccba58d6e458d1bd105abd1a66470e1ee039a9",
+      "em": "2026-10-13T14:30:55.170Z"
     }
   }
 }
