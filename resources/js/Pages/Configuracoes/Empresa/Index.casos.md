@@ -45,3 +45,10 @@ last_run: "2026-10-13"
 - **Aceite:** Dado os valores 0 · 0,25 · 1 · 1,5 · 25,5 · 99,99 · 1234,5 · 2500 · 25000 · 123456,7891 com precisão de moeda 0 ·
   Quando o corpo os formata · Então `num_uf` devolve o mesmo número · E zero nunca sai como `"0"` (o salvar trocaria por 1).
 - **Status: 🧪**
+
+## UC-EMP-07 · Chave secreta de pagamento não vai para a tela · `[T0]`
+- **Por quê:** `pos_settings` guarda `stripe_secret_key` e `razor_pay_key_secret`, e props do Inertia ficam no HTML.
+  O salvar sobrescreve `pos_settings` inteiro, então tirar as chaves do corpo as apagaria.
+- **Aceite:** Dado as duas chaves gravadas · Quando a tela carrega · Então nenhuma aparece na resposta (a chave pública
+  aparece) · E salvar pela tela mantém as duas · E um envio com a chave vazia, como a Blade faz, ainda limpa.
+- **Status: 🧪**

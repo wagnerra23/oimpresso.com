@@ -356,6 +356,9 @@ class BusinessController extends Controller
      */
     private const FLAG_EMPRESA_V2 = 'useV2ConfiguracoesEmpresa';
 
+    /** Chaves de `pos_settings` que são segredo: não vão para a tela React, e o salvar mantém o gravado quando faltam. */
+    private const SEGREDOS_POS = ['stripe_secret_key', 'razor_pay_key_secret'];
+
     /**
      * O corpo que a tela React devolve INTEIRO ao postBusinessSettings, no formato que ele lê.
      *
@@ -391,7 +394,8 @@ class BusinessController extends Controller
             'enable_rp' => (bool) $b->enable_rp, 'enable_tooltip' => (bool) $b->enable_tooltip,
             'enable_product_expiry' => (bool) $b->enable_product_expiry, 'purchase_in_diff_currency' => (bool) $b->purchase_in_diff_currency,
             'purchase_currency_id' => $b->purchase_currency_id, 'p_exchange_rate' => (string) $b->p_exchange_rate,
-            'shortcuts' => $json($b->keyboard_shortcuts), 'pos_settings' => $json($b->pos_settings),
+            // Sem as chaves secretas de pagamento: props do Inertia ficam no HTML. O salvar as preserva quando faltam.
+            'shortcuts' => $json($b->keyboard_shortcuts), 'pos_settings' => array_diff_key($json($b->pos_settings), array_flip(self::SEGREDOS_POS)),
             'common_settings' => $json($b->common_settings), 'enabled_modules' => array_values($json($b->enabled_modules)),
             // Objeto vazio some do FormData e o salvar lê `custom_labels` sem checar: sem a chave, cai no catch.
             'custom_labels' => $json($b->custom_labels) ?: ['payments' => ['custom_pay_1' => '']],
@@ -505,6 +509,13 @@ class BusinessController extends Controller
 
             //pos_settings
             $pos_settings = $request->input('pos_settings');
+            // A Blade sempre manda as duas chaves; a tela React não as recebe nem as manda. Ausente = manter o gravado.
+            $gravado = json_decode((string) $business->pos_settings, true) ?: [];
+            foreach (self::SEGREDOS_POS as $segredo) {
+                if (! array_key_exists($segredo, (array) $pos_settings) && array_key_exists($segredo, $gravado)) {
+                    $pos_settings[$segredo] = $gravado[$segredo];
+                }
+            }
             $default_pos_settings = $this->businessUtil->defaultPosSettings();
             foreach ($default_pos_settings as $key => $value) {
                 if (! isset($pos_settings[$key])) {
