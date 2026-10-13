@@ -7,8 +7,8 @@
 //   charter:  ./Show.charter.md · casos: ./Show.casos.md
 //
 // Ações: "Editar" (configuração, Dialog) e bloquear/liberar a empresa (confirmação) — empresa-parity
-// 16-21. Bloquear máquina (item 34) segue na Blade até o PR dela; "Abrir na tela antiga" leva até lá.
-// `permissions` só esconde botão: quem autoriza é o controller (authorizeEmpresa).
+// 16-21; bloquear/liberar máquina com motivo (item 34), o mesmo POST do drawer da lista de licenças.
+// `permissions` só esconde botão: quem autoriza é o controller (authorizeEmpresa/authorizeGerenciar).
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Deferred, router, useForm } from '@inertiajs/react';
@@ -18,6 +18,7 @@ import { PageHeader } from '@/Components/PageHeader';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
+import { Textarea } from '@/Components/ui/textarea';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/Components/ui/dialog';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription,
@@ -98,7 +99,7 @@ function EmpresaShow({ empresa, permissions, computadores, assinatura }: Props) 
             </Button>
           </div>
           <Deferred data="computadores" fallback={<Skeleton className="h-48 w-full" />}>
-            <Tabela computadores={computadores ?? []} />
+            <Tabela computadores={computadores ?? []} podeGerenciar={permissions.gerenciar} onFeito={setAviso} />
           </Deferred>
         </section>
       </div>
@@ -214,7 +215,10 @@ function BlocoAssinatura({ assinatura }: { assinatura?: Assinatura }) {
   );
 }
 
-function Tabela({ computadores }: { computadores: Computador[] }) {
+function Tabela({ computadores, podeGerenciar, onFeito }: {
+  computadores: Computador[]; podeGerenciar: boolean; onFeito: (m: string) => void;
+}) {
+  const [alvo, setAlvo] = useState<Computador | null>(null);
   if (computadores.length === 0) return <EmptyState title="Nenhum registro encontrado" description="A empresa ainda não tem máquina registrada." />;
   return (
     <div data-contract="grade" className="overflow-x-auto">
@@ -235,12 +239,77 @@ function Tabela({ computadores }: { computadores: Computador[] }) {
               <td className="font-mono text-xs" title={c.caminho_banco ?? undefined}>{corta(c.caminho_banco, 20)}</td>
               <td className="font-mono text-xs">{c.dt_ultimo_acesso ?? '—'}</td>
               <td><StatusBadge kind="licenca" value={c.bloqueado ? 'maquina_bloqueada' : 'ativa'} label={c.bloqueado ? 'Bloqueada' : 'Ativa'} /></td>
-              <td><a className="text-xs text-primary hover:underline" href={`/officeimpresso/licenca_log?licenca_id=${c.id}`}>Log</a></td>
+              <td className="whitespace-nowrap">
+                {podeGerenciar && (
+                  <Button variant="ghost" size="sm" className="h-7 px-2 text-xs" onClick={() => setAlvo(c)}
+                    aria-label={`${c.bloqueado ? 'Liberar' : 'Bloquear'} máquina ${c.user_win || c.id}`}>
+                    {c.bloqueado ? 'Liberar' : 'Bloquear'}
+                  </Button>
+                )}
+                <a className="text-xs text-primary hover:underline" href={`/officeimpresso/licenca_log?licenca_id=${c.id}`}>Log</a>
+              </td>
             </tr>
           ))}
         </tbody>
       </table>
+      <BloquearMaquina alvo={alvo} onFechar={() => setAlvo(null)} onFeito={onFeito} />
     </div>
+  );
+}
+
+// Bloquear/liberar uma máquina com motivo obrigatório (5 a 500 letras). Mesmo POST e mesmas regras do
+// drawer da lista de licenças: o motivo vai ao histórico (licenca_log), a mensagem do desktop não muda.
+function BloquearMaquina({ alvo, onFechar, onFeito }: {
+  alvo: Computador | null; onFechar: () => void; onFeito: (m: string) => void;
+}) {
+  const [motivo, setMotivo] = useState('');
+  const [erro, setErro] = useState<string | null>(null);
+  const [enviando, setEnviando] = useState(false);
+  const t = motivo.trim();
+  const ok = t.length >= 5 && motivo.length <= 500;
+  const fechar = () => { setMotivo(''); setErro(null); onFechar(); };
+  const agir = (e: FormEvent) => {
+    e.preventDefault();
+    if (!alvo || !ok) return;
+    setEnviando(true);
+    router.post(`/officeimpresso/licenca_computador/${alvo.id}/toggle-block`, { bloquear: !alvo.bloqueado, motivo: t }, {
+      preserveScroll: true, preserveState: true,
+      onSuccess: () => {
+        onFeito(alvo.bloqueado ? 'Máquina liberada.' : 'Máquina bloqueada.');
+        fechar();
+        router.reload({ only: ['computadores'] });
+      },
+      onError: (er) => setErro(er.motivo ?? er.bloquear ?? 'Não foi possível concluir.'),
+      onFinish: () => setEnviando(false),
+    });
+  };
+  return (
+    <Dialog open={alvo !== null} onOpenChange={(v) => { if (!v) fechar(); }}>
+      <DialogContent>
+        {alvo && (
+          <form onSubmit={agir} className="flex flex-col gap-3">
+            <DialogHeader>
+              <DialogTitle>{alvo.bloqueado ? 'Liberar' : 'Bloquear'} máquina {alvo.user_win || `#${alvo.id}`}</DialogTitle>
+              <DialogDescription>
+                {alvo.bloqueado ? 'A máquina volta a abrir o Office Impresso.' : 'A máquina deixa de abrir o Office Impresso.'}
+              </DialogDescription>
+            </DialogHeader>
+            <Label htmlFor="oi-emp-motivo">Motivo (obrigatório)</Label>
+            <Textarea id="oi-emp-motivo" value={motivo} rows={3} maxLength={500} onChange={(e) => setMotivo(e.target.value)}
+              placeholder="ex: máquina trocada pelo cliente" aria-invalid={erro ? true : undefined} />
+            <p className={`text-xs ${erro ? 'text-destructive' : 'text-muted-foreground'}`} role={erro ? 'alert' : undefined}>
+              {erro ?? (t.length > 0 && t.length < 5 ? 'Motivo precisa ter pelo menos 5 caracteres.' : `Fica no histórico da máquina · ${motivo.length}/500`)}
+            </p>
+            <DialogFooter>
+              <Button type="button" variant="ghost" onClick={fechar}>Cancelar</Button>
+              <Button type="submit" variant={alvo.bloqueado ? 'outline' : 'destructive'} disabled={!ok || enviando}>
+                {alvo.bloqueado ? 'Liberar máquina' : 'Bloquear máquina'}
+              </Button>
+            </DialogFooter>
+          </form>
+        )}
+      </DialogContent>
+    </Dialog>
   );
 }
 

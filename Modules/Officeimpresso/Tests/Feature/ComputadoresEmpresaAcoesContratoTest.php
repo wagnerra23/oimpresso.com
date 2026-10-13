@@ -10,10 +10,10 @@ use Spatie\Permission\Models\Permission;
 uses(Tests\TestCase::class);
 
 /**
- * Contrato das AÇÕES DA EMPRESA na ficha React (`Officeimpresso/Empresa/Show`): editar a configuração
- * do desktop e bloquear/liberar a empresa inteira — empresa-parity itens 16-21. Casos:
- * Pages/Officeimpresso/Empresa/Show.casos.md (UC-EMP-08, 09, 22, 23), derivados do empresa-parity.md
- * e do RUNBOOK-empresa — não do .tsx.
+ * Contrato das AÇÕES na ficha React (`Officeimpresso/Empresa/Show`): editar a configuração do
+ * desktop, bloquear/liberar a empresa inteira (empresa-parity 16-21) e bloquear/liberar uma máquina
+ * (item 34). Casos: Pages/Officeimpresso/Empresa/Show.casos.md (UC-EMP-08, 09, 16, 22, 23, 24),
+ * derivados do empresa-parity.md e do RUNBOOK-empresa — não do .tsx.
  *
  * Tenant 98 (operadora) × 99 (cliente) — ADR 0358. As colunas mexidas na empresa 99 são lidas antes e
  * devolvidas no afterEach: no CT 100 o banco persiste entre runs. MySQL-only.
@@ -21,6 +21,7 @@ uses(Tests\TestCase::class);
  * @covers-us US-OI-011
  * @see Modules\Officeimpresso\Http\Controllers\LicencaComputadorController::businessupdate
  * @see Modules\Officeimpresso\Http\Controllers\LicencaComputadorController::businessbloqueado
+ * @see Modules\Officeimpresso\Http\Controllers\LicencaComputadorController::toggleBlock
  */
 
 const OI_ACOES_COLUNAS = ['caminho_banco_servidor', 'versao_obrigatoria', 'versao_disponivel', 'officeimpresso_bloqueado'];
@@ -39,6 +40,7 @@ beforeEach(function () {
     $this->oiAcoesCliente = $this->seededSupportClientTenant();
     config(['constants.operator_business_id' => (int) $this->oiAcoesOperadora->id]);
     $this->oiAcoesUsers = [];
+    $this->oiAcoesMaquinas = [];
     $this->oiAcoesAntes = [];
     foreach ([$this->oiAcoesOperadora, $this->oiAcoesCliente] as $b) {
         $this->oiAcoesAntes[(int) $b->id] = (array) DB::table('business')->where('id', $b->id)->first(OI_ACOES_COLUNAS);
@@ -49,6 +51,10 @@ afterEach(function () {
     app()->forgetInstance(\App\Services\FeatureFlagService::class);
     foreach ($this->oiAcoesAntes as $id => $colunas) {
         DB::table('business')->where('id', $id)->update($colunas);
+    }
+    if ($this->oiAcoesMaquinas) {
+        DB::table('licenca_log')->whereIn('licenca_id', $this->oiAcoesMaquinas)->delete();
+        DB::table('licenca_computador')->whereIn('id', $this->oiAcoesMaquinas)->delete();
     }
     foreach ($this->oiAcoesUsers as $u) {
         $u->forceDelete();
@@ -67,6 +73,39 @@ it('UC-EMP-22 · a ficha diz o que o usuário pode fazer: só leitura não vê a
     $this->get('/officeimpresso/computadores')->assertInertia(fn (AssertableInertia $p) => $p
         ->where('permissions.empresa', true)
         ->where('permissions.gerenciar', false));
+
+    $this->actingAs(oiAcoesUser($this, $this->oiAcoesOperadora, ['officeimpresso.access', 'officeimpresso.licencas.gerenciar']));
+    $this->get('/officeimpresso/computadores')->assertInertia(fn (AssertableInertia $p) => $p
+        ->where('permissions.empresa', false)
+        ->where('permissions.gerenciar', true));
+});
+
+it('UC-EMP-16 · bloquear máquina pela ficha exige motivo, registra no histórico e a tabela mostra o novo status', function () {
+    oiAcoesFlag();
+    $biz = (int) $this->oiAcoesCliente->id;
+    $id = oiAcoesMaquina($this, $biz);
+    $this->actingAs(oiAcoesUser($this, $this->oiAcoesOperadora, ['officeimpresso.access', 'officeimpresso.licencas.gerenciar']));
+    $url = '/officeimpresso/licenca_computador/'.$id.'/toggle-block';
+
+    $this->post($url, ['bloquear' => true, 'motivo' => 'ab'])->assertSessionHasErrors('motivo');
+    expect((bool) DB::table('licenca_computador')->where('id', $id)->value('bloqueado'))->toBeFalse();
+
+    $this->post($url, ['bloquear' => true, 'motivo' => 'máquina trocada'])->assertRedirect()->assertSessionHasNoErrors();
+    expect((int) DB::table('licenca_log')->where('licenca_id', $id)->where('event', 'maquina_bloqueada')->value('business_id'))->toBe($biz);
+
+    $linha = collect(oiAcoesParcial($this, $biz)->json('props.computadores'))->firstWhere('id', $id);
+    expect($linha['bloqueado'])->toBeTrue();
+});
+
+it('UC-EMP-24 · [T0] usuário de empresa CLIENTE com licencas.gerenciar não bloqueia máquina de outra empresa', function () {
+    $id = oiAcoesMaquina($this, (int) $this->oiAcoesOperadora->id);
+    $this->actingAs(oiAcoesUser($this, $this->oiAcoesCliente, ['officeimpresso.access', 'officeimpresso.licencas.gerenciar']));
+
+    $this->post('/officeimpresso/licenca_computador/'.$id.'/toggle-block', ['bloquear' => true, 'motivo' => 'tentativa de fora'])
+        ->assertForbidden();
+
+    expect((bool) DB::table('licenca_computador')->where('id', $id)->value('bloqueado'))->toBeFalse();
+    expect(DB::table('licenca_log')->where('licenca_id', $id)->count())->toBe(0);
 });
 
 it('UC-EMP-08 · editar grava caminho do banco e versões da empresa da URL', function () {
@@ -143,6 +182,35 @@ function oiAcoesFlag(): void
             return $flag === 'useV2OfficeimpressoEmpresa';
         }
     });
+}
+
+function oiAcoesMaquina($test, int $businessId): int
+{
+    $id = (int) DB::table('licenca_computador')->insertGetId([
+        'business_id' => $businessId,
+        'hd'          => 'OIACOES11-'.uniqid(),
+        'hostname'    => 'OIACOES11',
+        'user_win'    => 'OIACOES11',
+        'bloqueado'   => 0,
+    ]);
+    $test->oiAcoesMaquinas[] = $id;
+
+    return $id;
+}
+
+/** Partial reload do navegador pedindo as máquinas da ficha de `$businessId`. */
+function oiAcoesParcial($test, int $businessId)
+{
+    $r = $test->withHeaders([
+        'X-Requested-With' => 'XMLHttpRequest',
+        'X-Inertia' => 'true',
+        'X-Inertia-Version' => (string) app(App\Http\Middleware\HandleInertiaRequests::class)->version(request()),
+        'X-Inertia-Partial-Component' => 'Officeimpresso/Empresa/Show',
+        'X-Inertia-Partial-Data' => 'computadores',
+    ])->get('/officeimpresso/licenca_computado/licencas/'.$businessId);
+    $r->assertOk();
+
+    return $r;
 }
 
 /** User SEM role — senão o Gate::before faria bypass. Permissões dadas direto. */
