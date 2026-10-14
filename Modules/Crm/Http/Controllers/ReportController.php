@@ -310,14 +310,23 @@ class ReportController extends Controller
             'conversao' => Inertia::defer(fn () => $this->consultaConversao($business_id)->get()
                 ->map(fn ($r) => ['id' => (int) $r->DT_RowId, 'nome' => trim((string) $r->full_name), 'total' => (int) $r->total_conversions])->values()),
             // Detalhe: contatos do negócio da sessão convertidos pelo usuário, mais recente primeiro.
-            'convertidos' => fn () => $convertidoPor > 0
-                ? Contact::where('business_id', $business_id)->where('converted_by', $convertidoPor)
-                    ->orderBy('converted_on', 'desc')->get(['name', 'supplier_business_name', 'converted_on'])
-                    ->map(fn ($c) => [
-                        'nome' => $nome($c),
-                        'convertido_em' => empty($c->converted_on) ? null : \Carbon\Carbon::parse($c->converted_on)->format('d/m/Y H:i'),
-                    ])->values()
-                : null,
+            'convertidos' => fn () => $convertidoPor > 0 ? $this->convertidosPor($business_id, $convertidoPor) : null,
         ]);
+    }
+
+    /**
+     * Detalhe da conversão: contatos do negócio da sessão convertidos pelo usuário, mais recente
+     * primeiro — a mesma consulta do modal antigo (showLeadToCustomerConversionDetails).
+     *
+     * @return array<int, array{nome: string, convertido_em: string|null}>
+     */
+    private function convertidosPor($business_id, int $userId): array
+    {
+        return Contact::where('business_id', $business_id)->where('converted_by', $userId)
+            ->orderBy('converted_on', 'desc')->get(['name', 'supplier_business_name', 'converted_on'])
+            ->map(fn ($c) => [
+                'nome' => trim(($c->supplier_business_name ? $c->supplier_business_name.', ' : '').$c->name),
+                'convertido_em' => empty($c->converted_on) ? null : \Carbon\Carbon::parse($c->converted_on)->format('d/m/Y H:i'),
+            ])->values()->all();
     }
 }
