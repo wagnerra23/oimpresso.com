@@ -162,7 +162,7 @@ final class FechamentoContadorService
             $this->ct06($m['entradas']),
             $this->ct07($m['entradas']),
             self::linha('CT08', 'Devolução sem nota de origem', 'NF-e finalidade 4', self::SEM_FONTE,
-                'O ERP ainda não emite NF-e de devolução (a finalidade sai sempre 1), então não há devolução com nota para conferir.',
+                'Este fechamento ainda não cruza as devoluções de venda com as NF-e de devolução (finalidade 4).',
                 'Conferir as devoluções do mês fora do ERP até a emissão de devolução existir.'),
             $this->ct09((int) $m['nfse_com_retencao']),
             $this->ct10((int) $m['sem_aceite']),
