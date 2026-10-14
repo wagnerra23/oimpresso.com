@@ -2,15 +2,29 @@
 
 namespace App\Http\Controllers\Restaurant;
 
+use App\Services\FeatureFlagService;
 use App\TransactionSellLine;
 use App\Utils\RestaurantUtil;
 use App\Utils\Util;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
+use Inertia\Inertia;
 
 class KitchenController extends Controller
 {
+    /**
+     * Flag do caminho React (thread restaurante/playbook/04, F3). Convenção `useV2<Modulo><Tela>`.
+     * Sem a chave no GrowthBook o FeatureFlagService cai no fallbackDefaults, que não a lista: default OFF,
+     * a Blade segue servindo. Ligar é toggle no GrowthBook (flag:set --biz=1), não deploy.
+     *
+     * @see memory/requisitos/Restaurante/RUNBOOK-cozinha.md
+     */
+    private const FLAG_V2 = 'useV2RestauranteCozinha';
+
+    /** Mesmo filtro da fila da Blade: pedido de cozinha com algum item ainda por preparar. */
+    private const FILTRO_FILA = ['line_order_status' => 'received', 'is_kitchen_order' => 1];
+
     /**
      * All Utils instance.
      */
@@ -34,7 +48,7 @@ class KitchenController extends Controller
     /**
      * Display a listing of the resource.
      *
-     * @return Response
+     * @return \Illuminate\Contracts\View\View|\Inertia\Response
      */
     public function index()
     {
@@ -55,10 +69,50 @@ class KitchenController extends Controller
         }
 
         $business_id = request()->session()->get('user.business_id');
-        
-        $orders = $this->restUtil->getAllOrders($business_id, ['line_order_status' => 'received', 'is_kitchen_order' => 1]);
+
+        // `?classico=1` mantém a Blade alcançável com a flag ligada.
+        if (! request()->boolean('classico') && (! request()->ajax() || request()->inertia())
+            && app(FeatureFlagService::class)->isOn(self::FLAG_V2, ['business_id' => $business_id])) {
+            return Inertia::render('Restaurante/Cozinha/Index', [
+                'pedidos' => Inertia::defer(fn () => $this->filaDaCozinha((int) $business_id)),
+            ]);
+        }
+
+        $orders = $this->restUtil->getAllOrders($business_id, self::FILTRO_FILA);
 
         return view('restaurant.kitchen.index', compact('orders'));
+    }
+
+    /**
+     * A fila da Blade em dados, para a tela React. Situação do pedido pela regra do partials/show_orders.blade.php
+     * (RestaurantUtil::situacaoDoPedido).
+     *
+     * @return list<array<string, mixed>>
+     */
+    private function filaDaCozinha(int $business_id): array
+    {
+        $pedidos = $this->restUtil->getAllOrders($business_id, self::FILTRO_FILA)->load('sell_lines.product:id,name');
+
+        return $pedidos->map(function ($p) {
+            $linhas = $p->sell_lines;
+            $situacao = $this->restUtil->situacaoDoPedido($linhas);
+
+            return [
+                'id' => $p->id,
+                'nota' => $p->invoice_no,
+                'feito_em' => (string) $p->created_at,
+                'cliente' => $p->customer_name,
+                'mesa' => $p->table_name,
+                'local' => $p->business_location,
+                'situacao' => $situacao,
+                'itens' => $linhas->map(fn ($l) => [
+                    'id' => $l->id,
+                    'nome' => $l->product?->name,
+                    'quantidade' => (float) $l->quantity,
+                    'situacao' => $l->res_line_order_status ?? 'received',
+                ])->values()->all(),
+            ];
+        })->values()->all();
     }
 
     /**

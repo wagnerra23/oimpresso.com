@@ -78,10 +78,16 @@ on:
       - 'Modules/Crm/Http/Requests/*ScheduleRequest.php'
       - 'Modules/Crm/Resources/js/Pages/**'
       - 'Modules/Crm/Tests/Feature/CrmAcompanhamentosContratoTest.php'
+      # Thread Crm/13 F2 — baseline dos dados dos Relatórios antes da tela React.
+      - 'Modules/Crm/Tests/Feature/CrmRelatoriosBaselineTest.php'
       - 'Modules/Crm/Tests/Feature/CrmRegistroEscopoTest.php'
+      # Thread Crm/12 F2 — baseline da Blade do Registro de chamadas antes da tela React.
+      - 'Modules/Crm/Tests/Feature/CrmChamadasBaselineTest.php'
       # Thread Crm/02 — a lista de leads virou Inertia; o contrato dela roda aqui.
       - 'Modules/Crm/Http/Controllers/LeadController.php'
       - 'Modules/Crm/Tests/Feature/CrmLeadsContratoTest.php'
+      # Thread Crm/11 F2 — baseline da Blade de Campanhas antes da tela React.
+      - 'Modules/Crm/Tests/Feature/CrmCampanhasBaselineTest.php'
       # Thread Crm/06 — o form de lead é o Cliente/Create parametrizado.
       - 'resources/js/Pages/Cliente/Create.tsx'
       # Thread Crm/09 — a edição de lead é o Cliente/Edit parametrizado.
@@ -89,9 +95,16 @@ on:
       - 'resources/js/Pages/Cliente/_form/DadosLeadSection.tsx'
       # Thread Crm/08 — a ficha Blade do lead (show) só abre `type = lead`.
       - 'Modules/Crm/Tests/Feature/CrmLeadShowEscopoTest.php'
+      # Thread Crm/12 — Registro de chamadas: escopo da exclusão em massa (B2) e a migração da tela.
+      - 'Modules/Crm/Http/Controllers/CallLogController.php'
+      - 'Modules/Crm/Http/Requests/MassDestroyCallLogRequest.php'
+      - 'Modules/Crm/Tests/Feature/CrmChamadas*'
       # Thread Crm/04 — o painel do CRM virou Inertia; o contrato dele roda aqui.
       - 'Modules/Crm/Http/Controllers/CrmDashboardController.php'
       - 'Modules/Crm/Tests/Feature/CrmPainelContratoTest.php'
+      # Thread Crm/17 — pedidos de clientes: a Blade travada antes da Page.
+      - 'Modules/Crm/Http/Controllers/OrderRequestController.php'
+      - 'Modules/Crm/Tests/Feature/CrmPedidos*'
       # Thread Crm/16 — login de contatos (portal, D3): a Blade travada antes da Page.
       - 'Modules/Crm/Http/Controllers/ContactLoginController.php'
       - 'Modules/Crm/Tests/Feature/CrmLogins*'
@@ -103,6 +116,11 @@ on:
       - 'Modules/Crm/Http/Controllers/ClienteIaController.php'
       - 'app/Services/Pessoas/PessoaVendas.php'
       - 'Modules/Crm/Tests/Feature/ClienteStatsTicketMedioTest.php'
+      # Thread Crm/11 — Campanhas: escopo dos contatos (A1) e a migração da lista.
+      - 'Modules/Crm/Http/Controllers/CampaignController.php'
+      - 'Modules/Crm/Http/Requests/StoreCampaignRequest.php'
+      - 'Modules/Crm/Services/CampaignService.php'
+      - 'Modules/Crm/Tests/Feature/CrmCampanhas*'
       # Thread Crm/15 — Configurações do CRM: baseline da Blade (F2) antes da tela React.
       - 'Modules/Crm/Http/Controllers/CrmSettingsController.php'
       - 'Modules/Crm/Tests/Feature/CrmConfiguracoes*'
@@ -167,10 +185,16 @@ jobs:
               - 'Modules/Crm/Http/Requests/*ScheduleRequest.php'
               - 'Modules/Crm/Resources/js/Pages/**'
               - 'Modules/Crm/Tests/Feature/CrmAcompanhamentosContratoTest.php'
+              # Thread Crm/13 F2 — baseline dos dados dos Relatórios antes da tela React.
+              - 'Modules/Crm/Tests/Feature/CrmRelatoriosBaselineTest.php'
               - 'Modules/Crm/Tests/Feature/CrmRegistroEscopoTest.php'
+              # Thread Crm/12 F2 — baseline da Blade do Registro de chamadas antes da tela React.
+              - 'Modules/Crm/Tests/Feature/CrmChamadasBaselineTest.php'
               # Thread Crm/02 — a lista de leads virou Inertia; o contrato dela roda aqui.
               - 'Modules/Crm/Http/Controllers/LeadController.php'
               - 'Modules/Crm/Tests/Feature/CrmLeadsContratoTest.php'
+              # Thread Crm/11 F2 — baseline da Blade de Campanhas antes da tela React.
+              - 'Modules/Crm/Tests/Feature/CrmCampanhasBaselineTest.php'
               # Thread Crm/06 — o form de lead é o Cliente/Create parametrizado.
               - 'resources/js/Pages/Cliente/Create.tsx'
               # Thread Crm/09 — a edição de lead é o Cliente/Edit parametrizado.
@@ -178,9 +202,16 @@ jobs:
               - 'resources/js/Pages/Cliente/_form/DadosLeadSection.tsx'
               # Thread Crm/08 — a ficha Blade do lead (show) só abre `type = lead`.
               - 'Modules/Crm/Tests/Feature/CrmLeadShowEscopoTest.php'
+              # Thread Crm/12 — Registro de chamadas: escopo da exclusão em massa (B2) e a migração da tela.
+              - 'Modules/Crm/Http/Controllers/CallLogController.php'
+              - 'Modules/Crm/Http/Requests/MassDestroyCallLogRequest.php'
+              - 'Modules/Crm/Tests/Feature/CrmChamadas*'
               # Thread Crm/04 — o painel do CRM virou Inertia; o contrato dele roda aqui.
               - 'Modules/Crm/Http/Controllers/CrmDashboardController.php'
               - 'Modules/Crm/Tests/Feature/CrmPainelContratoTest.php'
+              # Thread Crm/17 — pedidos de clientes: a Blade travada antes da Page.
+              - 'Modules/Crm/Http/Controllers/OrderRequestController.php'
+              - 'Modules/Crm/Tests/Feature/CrmPedidos*'
               # Thread Crm/16 — login de contatos (portal, D3): a Blade travada antes da Page.
               - 'Modules/Crm/Http/Controllers/ContactLoginController.php'
               - 'Modules/Crm/Tests/Feature/CrmLogins*'
@@ -191,6 +222,11 @@ jobs:
               - 'Modules/Crm/Http/Controllers/ClienteIaController.php'
               - 'app/Services/Pessoas/PessoaVendas.php'
               - 'Modules/Crm/Tests/Feature/ClienteStatsTicketMedioTest.php'
+              # Thread Crm/11 — Campanhas: escopo dos contatos (A1) e a migração da lista.
+              - 'Modules/Crm/Http/Controllers/CampaignController.php'
+              - 'Modules/Crm/Http/Requests/StoreCampaignRequest.php'
+              - 'Modules/Crm/Services/CampaignService.php'
+              - 'Modules/Crm/Tests/Feature/CrmCampanhas*'
               # Thread Crm/15 — Configurações do CRM: baseline da Blade (F2) antes da tela React.
               - 'Modules/Crm/Http/Controllers/CrmSettingsController.php'
               - 'Modules/Crm/Tests/Feature/CrmConfiguracoes*'
@@ -406,14 +442,20 @@ jobs:
             Modules/Cms/Tests/Feature/CmsConteudoIndexContratoTest.php \
             Modules/Cms/Tests/Feature/CmsSiteDetailsPainelTest.php \
             Modules/Crm/Tests/Feature/CrmAcompanhamentosContratoTest.php \
+            Modules/Crm/Tests/Feature/CrmRelatoriosBaselineTest.php \
             Modules/Crm/Tests/Feature/CrmRegistroEscopoTest.php \
+            Modules/Crm/Tests/Feature/CrmChamadasBaselineTest.php \
             Modules/Crm/Tests/Feature/CrmLeadsContratoTest.php \
+            Modules/Crm/Tests/Feature/CrmCampanhasBaselineTest.php \
             Modules/Crm/Tests/Feature/CrmLeadShowEscopoTest.php \
+            Modules/Crm/Tests/Feature/CrmChamadasExclusaoEscopoTest.php \
             Modules/Crm/Tests/Feature/CrmPainelContratoTest.php \
+            Modules/Crm/Tests/Feature/CrmPedidosBaselineTest.php \
             Modules/Crm/Tests/Feature/CrmLoginsBaselineTest.php \
             Modules/Crm/Tests/Feature/CrmLoginsEscritaEscopoTest.php \
             Modules/Crm/Tests/Feature/CrmLeadsListQueryTest.php \
             Modules/Crm/Tests/Feature/ClienteStatsTicketMedioTest.php \
+            Modules/Crm/Tests/Feature/CrmCampanhasContatosEscopoTest.php \
             Modules/Crm/Tests/Feature/CrmConfiguracoesBaselineTest.php \
             Modules/Crm/Tests/Feature/CrmConfiguracoesContratoTest.php
 

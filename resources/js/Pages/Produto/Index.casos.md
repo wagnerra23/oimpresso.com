@@ -74,6 +74,7 @@ last_run_ci: "run 38087431948 (lane Estoque · MySQL, commit 59fe58ae, com o arq
 | UC-PIDX-16 | Arrastar a borda do cabeçalho muda a largura da coluna, sem mexer na ordem nem nas outras colunas | should | protótipo (`ListaProdutos` → `DataGrid` do DS, `startResize`) | `produto-lista-redimensionar.test.tsx` + `datatable-redimensionar.test.tsx` (Vitest) + 1 caso em `tests/a11y-primitives.test.tsx` (roda em lane) | ⬜ nasce neste PR — verde esperado |
 | UC-PIDX-17 | "Dados fiscais (NCM/CFOP)" no menu da linha abre o painel do produto já na aba Fiscal | should | protótipo (`acoesDe` + aba `fiscal` do `DetalheDrawer`) | `produto-menu-da-linha.test.tsx` + `produto-painel-detalhe.test.tsx` (Vitest) | ⬜ nasce neste PR — verde esperado |
 | UC-PIDX-18 | Aba "Relatório de estoque": escolher quantas linhas por página, com os totais iguais em qualquer tamanho; lucro potencial da linha com cor | should `[V0]` | protótipo (`RelatorioEstoque`) + lista Blade (`stock_report_table`, menu de tamanho do DataTable) + REGRA MESTRE valor | `ProdutoListaEstoqueAbaTest` (Pest, roda em lane) + `produto-relatorio-estoque.test.tsx` (Vitest) | ⬜ nasce neste PR — verde esperado |
+| UC-PIDX-19 | A aba Fiscal do painel mostra o tipo de imposto na venda (inclusivo ou exclusivo) | could | protótipo (aba `fiscal` do `DetalheDrawer`) | `produto-painel-detalhe.test.tsx` (Vitest) | ⬜ nasce neste PR — verde esperado |
 
 > 🔄 **Revalidação G-6 — 2026-10-10 (#9124, lista no desenho do protótipo).** Os 6 contratos
 > **continuam os mesmos**: derivam do SDD, da lista Blade e do Delphi, não da tela de cards. O que
@@ -345,6 +346,19 @@ last_run_ci: "run 38087431948 (lane Estoque · MySQL, commit 59fe58ae, com o arq
 - **Linha em alerta de estoque:** a linha inteira continua vermelha, como na Blade; a célula do lucro segue a regra dela (verde se positivo).
 - **Status: ⬜** — nasce neste PR; verde esperado. A parte do servidor roda na lane Estoque · MySQL; a parte Vitest não roda em lane nenhuma.
 
+## UC-PIDX-19 · A aba Fiscal do painel mostra o tipo de imposto na venda · `could`
+- **Persona:** Larissa confere os dados fiscais de um produto e quer ver, no mesmo lugar, se o preço dele já inclui o imposto.
+- **Aceite:** Dado o painel de detalhe na aba Fiscal · Então o último campo é "Tipo de imposto na venda", com "Inclusivo" ou "Exclusivo" conforme o cadastro, logo depois de "Imposto aplicável"; produto sem o tipo no cadastro mostra o traço. A aba Dados continua mostrando o mesmo valor.
+- **Teste:** [`produto-painel-detalhe.test.tsx`](../../../../tests/js/produto-painel-detalhe.test.tsx) — `UC-PIDX-19`.
+- **Contrato:** protótipo — aba `fiscal` do `DetalheDrawer`: `dt("Imposto aplicável", …)` seguido de `dt("Tipo de imposto na venda", …)`. O dado é o `tax_type` que a aba Dados já mostrava; nada novo vem do servidor.
+- **Os outros extras do protótipo nesta parte do painel NÃO entraram, e por quê (recomendação do agente em 2026-10-13, apresentada ao [F] com a medição do que existe em produção; ele autorizou seguir com os itens sem contestar a lista — não é uma decisão dele item a item, e qualquer um pode ser reaberto):**
+  - **"Origem da mercadoria"** — o campo não existe no cadastro nem no banco (`buildProdutoDetalhe` já registra: "origem da mercadoria não existe no banco e não vem").
+  - **"Abrir no módulo Fiscal"** — não há tela fiscal por produto para onde levar.
+  - **Texto de ajuda** — o do protótipo afirma, para todo produto sem NCM, "Serviço: sai em NFS-e por ISS"; com dado real, produto sem NCM pode ser só cadastro incompleto. Fica de fora até existir uma frase conferida.
+  - **"Transferir" por local (aba Estoque)** — entra com a requisição de transferência.
+  - **"Gerar OP" (rodapé de composição)** — a Fabricação produz por receita de uma variação; composição não é receita, e não há tela de destino.
+- **Status: ⬜** — nasce neste PR; verde esperado. O arquivo de teste não roda em lane.
+
 ---
 
 ## Achados de governança (o trio prometia o que não tinha)
@@ -447,6 +461,7 @@ last_run_ci: "run 38087431948 (lane Estoque · MySQL, commit 59fe58ae, com o arq
 - Gate: `scripts/casos-coverage-guard.mjs` (G-1/G-2/G-5/G-6/G-7 — [ADR 0264](../../../../memory/decisions/0264-governanca-executavel-trio-dominio-e2e.md))
 
 ## Trilha do tempo
+- 2026-10-13 · [F+C] **UC-PIDX-19** (aba Fiscal): entra "Tipo de imposto na venda". Origem da mercadoria, "Abrir no módulo Fiscal", o texto de ajuda, "Transferir" por local e "Gerar OP" ficam registrados como não feitos, com o motivo de cada um.
 - 2026-10-13 · [F+C] **UC-PIDX-18** (aba Relatório de estoque): seletor de linhas por página (`estoque_por_pagina`, as opções da lista Blade) e lucro potencial da linha com cor. Totais provados iguais em 25, 50 e Todos.
 - 2026-10-13 · [F+C] **UC-PIDX-17** ("Dados fiscais" no menu da linha): item novo no menu Ações, abre o painel na aba Fiscal; a aba ativa do painel passa a ser da página, e cada abertura recomeça na aba pedida.
 - 2026-10-13 · [F+C] **UC-PIDX-16, conserto:** a largura arrastada sumia ao ordenar/paginar/filtrar (tabela dentro de `<Deferred>` é desmontada); passou a ser guardada pela página. Achado no arrasto real em produção, depois do deploy.

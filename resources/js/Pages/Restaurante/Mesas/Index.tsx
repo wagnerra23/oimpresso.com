@@ -66,7 +66,7 @@ function RestauranteAbas() {
   );
 }
 
-function MesasIndex({ mesas, pedidos_hoje, pode_gerenciar }: Props) {
+function RestauranteMesasIndex({ mesas, pedidos_hoje, pode_gerenciar }: Props) {
   const todas = useMemo(() => mesas ?? [], [mesas]);
   const [q, setQ] = useState('');
   const busca = useRef<HTMLInputElement>(null);
@@ -151,6 +151,6 @@ function MesasIndex({ mesas, pedidos_hoje, pode_gerenciar }: Props) {
   );
 }
 
-MesasIndex.layout = (page: ReactNode) => <AppShellV2>{page}</AppShellV2>;
+RestauranteMesasIndex.layout = (page: ReactNode) => <AppShellV2>{page}</AppShellV2>;
 
-export default MesasIndex;
+export default RestauranteMesasIndex;
