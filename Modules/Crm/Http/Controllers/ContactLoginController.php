@@ -346,27 +346,30 @@ class ContactLoginController extends Controller
      */
     private function loginsDoNegocio(int $business_id, array $filtros)
     {
+        // Join explícito (e não `whereHas('contact')`): mesma regra, contato vivo e do mesmo negócio.
+        // `contacts` só tem `name` neste schema: `prefix/first_name/last_name` não existem (medido no CI).
         $query = User::query()
+            ->join('contacts as c', 'c.id', '=', 'users.crm_contact_id')
             ->where('users.business_id', $business_id)
-            ->whereHas('contact', fn ($q) => $q->where('business_id', $business_id))
-            // `contacts` só tem `name` neste schema: `prefix/first_name/last_name` não existem (medido no CI).
-            ->with(['contact' => fn ($q) => $q->select('id', 'name')])
-            ->select('id', 'username', 'email', 'crm_contact_id', 'surname', 'first_name', 'last_name', 'crm_department', 'crm_designation')
-            ->orderBy('username');
+            ->where('c.business_id', $business_id)
+            ->whereNull('c.deleted_at')
+            ->select('users.id', 'users.username', 'users.email', 'users.surname', 'users.first_name', 'users.last_name',
+                'users.crm_department', 'users.crm_designation', 'c.name as contato_nome')
+            ->orderBy('users.username');
 
         if (! empty($filtros['contact_id'])) {
-            $query->where('crm_contact_id', (int) $filtros['contact_id']);
+            $query->where('users.crm_contact_id', (int) $filtros['contact_id']);
         }
         if (! empty($filtros['q'])) {
             $termo = '%'.$filtros['q'].'%';
-            $query->where(fn ($q) => $q->where('username', 'like', $termo)
-                ->orWhereRaw("CONCAT_WS(' ', surname, first_name, last_name) like ?", [$termo]));
+            $query->where(fn ($q) => $q->where('users.username', 'like', $termo)
+                ->orWhereRaw("CONCAT_WS(' ', users.surname, users.first_name, users.last_name) like ?", [$termo]));
         }
 
         return $query->paginate(25)->withQueryString()->through(function (User $u) {
             return [
                 'id' => $u->id,
-                'contato' => (string) ($u->contact?->name ?? ''),
+                'contato' => (string) ($u->getAttribute('contato_nome') ?? ''),
                 'usuario' => (string) ($u->username ?? ''),
                 'nome' => trim(implode(' ', array_filter([$u->surname, $u->first_name, $u->last_name]))),
                 'email' => (string) ($u->email ?? ''),
