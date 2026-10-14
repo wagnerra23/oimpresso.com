@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Route;
 use InvalidArgumentException;
 use Modules\NfeBrasil\Exceptions\NcmObrigatorioException;
 use Modules\NfeBrasil\Exceptions\TributacaoNaoConfiguradaException;
@@ -21,6 +22,7 @@ use Modules\NfeBrasil\Models\NfeBusinessConfig;
 use Modules\NfeBrasil\Models\NfeFiscalRule;
 use Modules\NfeBrasil\Services\MotorTributarioService;
 use Modules\NfeBrasil\Services\NfeService;
+use Modules\NfeBrasil\Services\Tributacao\SaudeFiscalService;
 use Modules\NfeBrasil\Services\Tributacao\TributacaoTemplateService;
 use RuntimeException;
 
@@ -66,7 +68,22 @@ class TributacaoController extends Controller
 
             // DEFERRED (Service call): listagem de templates de fixtures
             'templates' => Inertia::defer(fn () => app(TributacaoTemplateService::class)->listar()),
+
+            // DEFERRED (consultas de leitura): saúde fiscal — playbook Fiscal thread 14, UC-NFTR-24/25.
+            'saude'     => Inertia::defer(fn () => $this->buildSaudePayload($businessId)),
         ]);
+    }
+
+    /** Saúde fiscal com a rota de cada pendência já resolvida em URL (null se a rota não existe). */
+    private function buildSaudePayload(int $businessId): array
+    {
+        $saude = app(SaudeFiscalService::class)->avaliar($businessId);
+        $saude['itens'] = array_map(
+            fn (array $i) => [...$i, 'url' => Route::has($i['rota']) ? route($i['rota']) : null],
+            $saude['itens'],
+        );
+
+        return $saude;
     }
 
     /**

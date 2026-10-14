@@ -11,7 +11,7 @@ import { Head } from '@inertiajs/react';
 import { Download, Printer, Plus, Trash2, FileText, QrCode } from 'lucide-react';
 
 import AppShellV2 from '@/Layouts/AppShellV2';
-import PageHeader from '@/Components/shared/PageHeader';
+import { PageHeader } from '@/Components/PageHeader';
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
 import { Badge } from '@/Components/ui/badge';
 import { Button } from '@/Components/ui/button';
@@ -137,13 +137,19 @@ export default function EtiquetasIndex({ config }: Props) {
     <>
       <Head title="Etiquetas — Vestuário" />
 
-      <PageHeader
-        title="Etiquetas TAG vestuário"
-        subtitle="ZPL Argox/Zebra + PDF · US-VEST-020"
-      />
+      {/* Header canon (@/Components/PageHeader, ADR 0189/0190 · ADR 0409): migrado ao tocar a tela
+          para pôr as âncoras do contrato de tela. O header antigo não aceitava `subtitle` (só
+          `description`), então o subtítulo abaixo estava no código mas não aparecia; com o canon
+          ele passa a renderizar. O canon não repassa atributo ao DOM: a âncora fica no <div>. */}
+      <div data-contract="cabecalho">
+        <PageHeader
+          title="Etiquetas TAG vestuário"
+          subtitle="ZPL Argox/Zebra + PDF · US-VEST-020"
+        />
+      </div>
 
       <div className="space-y-4 p-4">
-        <Card>
+        <Card data-contract="config">
           <CardHeader>
             <CardTitle className="text-sm font-medium text-muted-foreground">
               Configuração atual (vestuario_settings)
@@ -163,7 +169,7 @@ export default function EtiquetasIndex({ config }: Props) {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card data-contract="lote">
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>Lote ({items.length} item{items.length === 1 ? '' : 's'})</CardTitle>
             <div className="flex items-center gap-2">
