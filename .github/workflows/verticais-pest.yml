@@ -89,6 +89,10 @@ on:
       - 'resources/js/Pages/Cliente/_form/DadosLeadSection.tsx'
       # Thread Crm/08 — a ficha Blade do lead (show) só abre `type = lead`.
       - 'Modules/Crm/Tests/Feature/CrmLeadShowEscopoTest.php'
+      # Thread Crm/12 — Registro de chamadas: escopo da exclusão em massa (B2) e a migração da tela.
+      - 'Modules/Crm/Http/Controllers/CallLogController.php'
+      - 'Modules/Crm/Http/Requests/MassDestroyCallLogRequest.php'
+      - 'Modules/Crm/Tests/Feature/CrmChamadas*'
       # Thread Crm/04 — o painel do CRM virou Inertia; o contrato dele roda aqui.
       - 'Modules/Crm/Http/Controllers/CrmDashboardController.php'
       - 'Modules/Crm/Tests/Feature/CrmPainelContratoTest.php'
@@ -181,6 +185,10 @@ jobs:
               - 'resources/js/Pages/Cliente/_form/DadosLeadSection.tsx'
               # Thread Crm/08 — a ficha Blade do lead (show) só abre `type = lead`.
               - 'Modules/Crm/Tests/Feature/CrmLeadShowEscopoTest.php'
+              # Thread Crm/12 — Registro de chamadas: escopo da exclusão em massa (B2) e a migração da tela.
+              - 'Modules/Crm/Http/Controllers/CallLogController.php'
+              - 'Modules/Crm/Http/Requests/MassDestroyCallLogRequest.php'
+              - 'Modules/Crm/Tests/Feature/CrmChamadas*'
               # Thread Crm/04 — o painel do CRM virou Inertia; o contrato dele roda aqui.
               - 'Modules/Crm/Http/Controllers/CrmDashboardController.php'
               - 'Modules/Crm/Tests/Feature/CrmPainelContratoTest.php'
@@ -415,6 +423,7 @@ jobs:
             Modules/Crm/Tests/Feature/CrmRegistroEscopoTest.php \
             Modules/Crm/Tests/Feature/CrmLeadsContratoTest.php \
             Modules/Crm/Tests/Feature/CrmLeadShowEscopoTest.php \
+            Modules/Crm/Tests/Feature/CrmChamadasExclusaoEscopoTest.php \
             Modules/Crm/Tests/Feature/CrmPainelContratoTest.php \
             Modules/Crm/Tests/Feature/CrmPedidosBaselineTest.php \
             Modules/Crm/Tests/Feature/CrmLoginsBaselineTest.php \
