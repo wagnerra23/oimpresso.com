@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Schema;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\PermissionRegistrar;
 
-uses(DatabaseTransactions::class);
+uses(Tests\TestCase::class, DatabaseTransactions::class);
 
 /**
  * Contrato da tela /governance/custos — resources/js/Pages/governance/Custos.casos.md (UC-GCUS-*).

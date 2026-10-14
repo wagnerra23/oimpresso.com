@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Schema;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\PermissionRegistrar;
 
-uses(DatabaseTransactions::class);
+uses(Tests\TestCase::class, DatabaseTransactions::class);
 
 /**
  * Contrato da tela /governance/qualidade-ia — resources/js/Pages/governance/QualidadeIa.casos.md (UC-GQIA-*).

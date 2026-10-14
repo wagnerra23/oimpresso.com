@@ -3,7 +3,7 @@
 // ── O QUE MEDE ───────────────────────────────────────────────────────────────
 // Importa a Page de produção; mock só na casca (layout, sub-nav, KpiCard, Select).
 // A metade de servidor (tenant, permissão, período, partial honrado) está no Pest
-// `tests/Feature/Governance/GovernanceCustosContratoTest.php`, que roda no CT 100 / lane MySQL.
+// `Modules/Jana/Tests/Feature/Governance/GovernanceCustosContratoTest.php`, na lane MySQL `jana-pest`.
 //
 // ── O QUE NÃO PROVA ──────────────────────────────────────────────────────────
 //   - Nada sobre VALOR: as fixtures carregam zero no campo de custo de propósito.

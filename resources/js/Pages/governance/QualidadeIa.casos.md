@@ -5,7 +5,7 @@ irmaos: QualidadeIa.charter.md (lei, draft) · memory/requisitos/Governance/RUNB
 tecnica: Caso de uso = narrativa + critério de aceite verificável
 owner: wagner
 last_run: "2026-10-14"
-last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente das lanes (vitest governance-qualidade-ia + Pest QualidadeIaContratoTest)"
+last_run_ci: "0 UC executado — trio nasce neste PR; Pest na jana-pest, vitest na governance-filtros-gate"
 ---
 
 # Casos de uso — /governance/qualidade-ia
@@ -14,12 +14,12 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente das lane
 
 > **De onde os casos vêm.** O charter [`QualidadeIa.charter.md`](QualidadeIa.charter.md) (§Goals, §Anti-hooks), o [`RUNBOOK-qualidade-ia.md`](../../../../memory/requisitos/Governance/RUNBOOK-qualidade-ia.md) (§1 alvos, §4 controller e partial reload, §5 estados) e a ADR 0049/0050 (gates e métricas — MEM-MET-4). O `SPEC.md` da Governança **não tem US** para esta tela. O `.tsx` e o controller entraram só para confirmar comportamento, nunca para derivar caso (lápide §5 2026-06-05). O charter é `draft`: os Non-Goals dele são herdados da origem Jana e **não foram ratificados** por [W], por isso nenhum UC sai deles.
 
-> **Nenhum UC nasce ✅.** O G-7 só carimba ✅ com veredito colhido de JUnit no manifesto, e os dois testes deste trio nascem neste PR **sem lane de PR** (ver §Lanes). O teto honesto é 🧪.
+> **Nenhum UC nasce ✅.** O G-7 só carimba ✅ com veredito colhido de JUnit no manifesto, e os dois testes deste trio nascem neste PR: o Pest em `Modules/Jana/Tests/Feature/Governance/QualidadeIaContratoTest.php` (lane `jana-pest`, que roda `Modules/Jana/Tests/Feature/**` em MySQL; mora ali porque testa a `MemoriaMetrica` da Jana) e o vitest na `governance-filtros-gate`. Até o veredito chegar ao manifesto, o teto honesto é 🧪.
 
-> **Força do veredito.** Nenhuma das lanes abaixo existe ainda para estes arquivos; quando existirem, se bloqueiam merge é do [`required-checks-baseline.json`](../../../../governance/required-checks-baseline.json), não desta prosa.
+> **Força do veredito.** Se essas lanes bloqueiam merge é do [`required-checks-baseline.json`](../../../../governance/required-checks-baseline.json), não desta prosa.
 
 ## UC-GQIA-01 [T0] [must] — Ler a tela exige `jana.mcp.usage.all`
-Status: 🧪 (Pest `tests/Feature/Governance/QualidadeIaContratoTest.php` — "UC-GQIA-01 [T0]: sem jana.mcp.usage.all a tela responde 403…")
+Status: 🧪 (Pest `Modules/Jana/Tests/Feature/Governance/QualidadeIaContratoTest.php` — "UC-GQIA-01 [T0]: sem jana.mcp.usage.all a tela responde 403…")
 Persona: Wagner (superadmin/auditor).
 A permissão segue com o prefixo legado `jana.` de propósito (charter §Anti-hooks; RUNBOOK §6) e é permissão de plataforma: o papel `Admin#{biz}` não a herda (ADR 0415). Relacionado: `tests/Feature/Roles/GateBeforePlataformaTest.php` já cobre o lado do bypass do Admin.
 **Dado** um usuário do tenant 98 sem a permissão **quando** abre `/governance/qualidade-ia` **então** recebe 403; **e** com a permissão, recebe a página `governance/QualidadeIa`.
@@ -37,7 +37,7 @@ Alvos (RUNBOOK §1, ADR 0049/0050): `recall_at_3 ≥ 0.80` (bloqueante de evolu�
 Mordida provada no vitest por mutação em 2026-10-14 (`>=` sempre aprovado → 1 failed; restauro conferido por sha256).
 
 ## UC-GQIA-04 [must] — O KPI do business é a leitura MAIS RECENTE da janela
-Status: 🧪 (Pest — "UC-GQIA-04: o KPI do business é a leitura MAIS RECENTE da janela") — vermelho medido no CT 100 em 2026-10-14 (`1 failed, 30 passed`); com a correção, o mesmo arquivo deu `4 passed (43 assertions)`. Sem lane MySQL, o 🧪 é o teto até o manifesto receber o veredito.
+Status: 🧪 (Pest — "UC-GQIA-04: o KPI do business é a leitura MAIS RECENTE da janela") — vermelho medido no CT 100 em 2026-10-14 (`1 failed, 30 passed`); com a correção, o mesmo arquivo deu `4 passed (43 assertions)`. O 🧪 é o teto até o manifesto receber o veredito da `jana-pest`.
 Charter §Goals ("KPI cards por business … da última leitura") e RUNBOOK §2 ("1 Card por business"). Causa, conferida no código depois do vermelho: `MemoriaMetrica::scopeUltimosDias` já ordena `apurado_em DESC`, o `orderBy('apurado_em')` do controller vira critério secundário, e `end($pontos)` pega a leitura mais antiga. A mesma ordem alimenta a série da sparkline. Corrigido em 2026-10-14 por decisão [W]: o controller usa `reorder('apurado_em')`, que descarta a ordem do scope.
 **Dado** três leituras do tenant 98 (há 3, 2 e 1 dia, recall 0.810/0.620/0.930) **quando** a tela abre **então** o KPI do business tem `apurado_em` de ontem e recall 0.930.
 

@@ -5,7 +5,7 @@ irmaos: Custos.charter.md (lei) · memory/requisitos/Governance/RUNBOOK-custos.m
 tecnica: Caso de uso = narrativa + critério de aceite verificável
 owner: wagner
 last_run: "2026-10-14"
-last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente das lanes (Pest MySQL e vitest) declaradas abaixo"
+last_run_ci: "0 UC executado no manifesto — trio nasce neste PR; Pest na jana-pest, vitest na governance-filtros-gate"
 ---
 
 # Casos de uso — /governance/custos
@@ -21,10 +21,10 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente das lane
 > comportamento.
 
 > **Nenhum UC nasce ✅.** O G-7 deriva o `✅` do manifesto `scripts/casos-test-results.json`, que só carimba
-> UC colhido de JUnit. **Nenhuma lane roda hoje os dois testes que citam estes UCs:** o Pest
-> `tests/Feature/Governance/GovernanceCustosContratoTest.php` precisa de MySQL com `jana_conversas` (não há
-> lane `governance-pest`; a `jana-pest` só varre `Modules/Jana/Tests`), e o vitest
-> `tests/js/governance-custos.test.tsx` não está na lista da `governance-filtros-gate`. Por isso o teto
+> UC colhido de JUnit. O Pest `Modules/Jana/Tests/Feature/Governance/GovernanceCustosContratoTest.php` mora na árvore da Jana porque
+> precisa de MySQL com `jana_conversas` e testa o `CustosService` da Jana: a lane `jana-pest` roda tudo de
+> `Modules/Jana/Tests/Feature/**` (o filtro de paths dela inclui `CustosController` e `Custos.tsx`). O vitest
+> `tests/js/governance-custos.test.tsx` roda na `governance-filtros-gate`. Até o veredito chegar ao manifesto, o teto
 > honesto é 🧪 — "escrito e morde", nunca "passa".
 
 > **Sem valor monetário neste contrato.** Os critérios falam de tokens, mensagens, dias, props e status
