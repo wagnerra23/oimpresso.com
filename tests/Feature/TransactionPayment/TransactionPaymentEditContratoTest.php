@@ -1,8 +1,8 @@
 <?php
 
 declare(strict_types=1);
-// Cobre UC-TPEDT-01, UC-TPEDT-02, UC-TPEDT-03, UC-TPEDT-04, UC-TPEDT-05, UC-TPEDT-06,
-// UC-TPEDT-07 (resources/js/Pages/TransactionPayment/Edit.casos.md) — G-2 rastreabilidade caso↔teste.
+// Cobre UC-TPEDT-01, UC-TPEDT-02, UC-TPEDT-03, UC-TPEDT-04, UC-TPEDT-06
+// (UC-TPEDT-05 e 07 estão em TransactionPaymentEditDefeitosTest.php, fora da lane) (resources/js/Pages/TransactionPayment/Edit.casos.md) — G-2 rastreabilidade caso↔teste.
 
 use App\User;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
@@ -263,35 +263,6 @@ it('UC-TPEDT-04 · editar o valor com o payload do modal legado grava o valor e 
     expect(DB::table('transactions')->where('id', $meu['tx_id'])->value('payment_status'))->toBe('partial');
 });
 
-// UC-TPEDT-05 — charter §Intent ("editar ... em página full ao invés de modal") + §Diferenças
-//   (submit reusa `PUT /payments/{id}`) + RUNBOOK F2 ("POST update reusa update() existente").
-//   O payload é o que `Edit.tsx` manda com o formulário aberto e só o valor trocado:
-//   `paid_on` = `payment_line.paid_on.substring(0, 16)` ("Y-m-d H:i") e `amount` de
-//   `<input type="number">` (ponto decimal).
-it('UC-TPEDT-05 · salvar pela tela React grava o valor digitado', function () {
-    $meu = tpEdtVendaPaga($this->bizId);
-
-    $this->withHeaders(tpEdtInertiaHeaders())->put("/payments/{$meu['payment_id']}", [
-        'amount' => '60.5',
-        'method' => 'cash',
-        'paid_on' => '2026-10-01 08:00',
-        'note' => '',
-        'account_id' => '',
-        'card_holder_name' => '', 'card_number' => '', 'card_transaction_number' => '',
-        'cheque_number' => '', 'bank_account_number' => '',
-        'transaction_no_1' => '', 'transaction_no_2' => '', 'transaction_no_3' => '',
-    ]);
-
-    // Diagnóstico: o update() devolve o desfecho no flash `status` (success true/false).
-    $this->assertTrue((bool) (session('status')['success'] ?? false), 'update() devolveu success=false para o payload da tela React');
-
-    // Caminho 1 — a linha do pagamento.
-    $depois = tpEdtPagamento($meu['payment_id']);
-    expect($depois)->not->toBeNull();
-    expect(round((float) $depois->amount, 2))->toBe(60.5);
-    // Caminho 2 — o lado da venda.
-    expect(DB::table('transactions')->where('id', $meu['tx_id'])->value('payment_status'))->toBe('partial');
-});
 
 // UC-TPEDT-06 — charter §Tier 0 (multi-tenant) + RUNBOOK §Tier 0 ("Transaction::where('business_id')
 //   em todo query") + ADR 0093.
@@ -315,38 +286,4 @@ it('UC-TPEDT-06 · PUT no pagamento de outro business não muda o pagamento nem 
     expect((string) $depois->paid_on)->toBe('2026-10-01 08:00:00');
     expect($depois->note)->toBeNull();
     expect(DB::table('transactions')->where('id', $alheio['tx_id'])->value('payment_status'))->toBe('paid');
-});
-
-// UC-TPEDT-07 — mesmas âncoras do UC-TPEDT-06, no pagamento que nasce de um adiantamento
-//   (`parent_id`): o adiantamento alheio também é dado de outro business.
-it('UC-TPEDT-07 · PUT no pagamento alheio não mexe no adiantamento-pai alheio', function () {
-    $outroBiz = EstoqueFixture::secondBusinessId();
-    if ($outroBiz === null) {
-        $this->markTestSkipped('DB só tem 1 business — sem par cross-tenant.');
-    }
-
-    $paiId = (int) DB::table('transaction_payments')->insertGetId([
-        'business_id' => $outroBiz,
-        'transaction_id' => null,
-        'amount' => 500.00,
-        'method' => 'advance',
-        'is_advance' => 1,
-        'paid_on' => '2026-09-30 10:00:00',
-        'created_by' => EstoqueFixture::userId($outroBiz),
-        'payment_ref_no' => 'TPEDT-ADV-'.uniqid(),
-        'created_at' => now(),
-        'updated_at' => now(),
-    ]);
-    $alheio = tpEdtVendaPaga($outroBiz, $paiId);
-
-    // ANTI-VÁCUO: o filho alheio aponta mesmo para o pai alheio.
-    expect((int) tpEdtPagamento($alheio['payment_id'])->parent_id)->toBe($paiId);
-
-    $this->withHeaders(tpEdtInertiaHeaders())->put("/payments/{$alheio['payment_id']}", [
-        'amount' => '10,00', 'method' => 'cash', 'paid_on' => '05/10/2026 09:00',
-    ]);
-
-    // Antes → depois esperado: NADA muda. Adiantamento alheio segue 500,00; filho alheio 100,00.
-    expect(round((float) tpEdtPagamento($paiId)->amount, 2))->toBe(500.0);
-    expect(round((float) tpEdtPagamento($alheio['payment_id'])->amount, 2))->toBe(100.0);
 });

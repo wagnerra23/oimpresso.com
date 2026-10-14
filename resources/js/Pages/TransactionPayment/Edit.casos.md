@@ -89,7 +89,7 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 - **Persona:** Larissa usando a tela nova em vez do modal.
 - **Aceite:** Dado uma venda de 100,00 com um pagamento de 100,00 · Quando abro a tela, troco só o valor para `60.5` e salvo (o payload é o que `Edit.tsx` manda: `paid_on` no formato `AAAA-MM-DD HH:MM` vindo do próprio pagamento, valor com ponto decimal do campo numérico) · Então o pagamento passa a 60,50 e a venda passa a `partial`.
 - **Âncora:** `Edit.charter.md` §Intent ("editar um pagamento existente em página full ao invés de modal") + §Diferenças (submit reusa `PUT /payments/{id}`) + RUNBOOK F2 ("POST update reusa update() existente").
-- **Teste:** `tests/Feature/TransactionPayment/TransactionPaymentEditContratoTest.php` — o caso confere primeiro o desfecho que o `update()` grava no flash `status`, depois o banco pelos dois caminhos.
+- **Teste:** `tests/Feature/TransactionPayment/TransactionPaymentEditDefeitosTest.php` (fora da lane `PHP / Pest (Financeiro · MySQL)` por decisão [W] 2026-10-14, até o conserto do `update()` — o PR do conserto liga o arquivo na lane) — o caso confere primeiro o desfecho que o `update()` grava no flash `status`, depois o banco pelos dois caminhos.
 - **Regressão que defende:** a tela nova não conseguir salvar o que ela mesma mostra.
 - **Status: ❌ quebrou** — medido no [run 38564874922](https://github.com/wagnerra23/oimpresso.com/actions/runs/38564874922) (2026-10-14): o `update()` devolveu `success=false` para o payload que o `Edit.tsx` manda (`paid_on` `AAAA-MM-DD HH:MM`, valor `60.5`); o pagamento não muda. A tela React não salva. Correção é decisão [W] (regra mestre de valor) — nenhum código foi tocado.
 
@@ -109,7 +109,7 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 - **Persona:** qualquer operador — pagamento que consome um adiantamento do cliente.
 - **Aceite:** Dado um adiantamento de 500,00 de OUTRO business e um pagamento alheio de 100,00 que nasce dele · Quando envio `PUT /payments/{id}` do pagamento alheio com valor `10,00` · Então o adiantamento alheio segue com 500,00 e o pagamento alheio segue com 100,00.
 - **Âncora:** as mesmas do UC-TPEDT-06 — o adiantamento também é dado de outra empresa.
-- **Teste:** `tests/Feature/TransactionPayment/TransactionPaymentEditContratoTest.php`.
+- **Teste:** `tests/Feature/TransactionPayment/TransactionPaymentEditDefeitosTest.php` (fora da lane `PHP / Pest (Financeiro · MySQL)` por decisão [W] 2026-10-14, até o conserto do `update()` — o PR do conserto liga o arquivo na lane).
 - **Regressão que defende:** escrita em outra empresa feita antes de o endpoint descobrir que a transação não é da empresa logada.
 - **Status: ❌ quebrou `[T0]`** — medido no [run 38564874922](https://github.com/wagnerra23/oimpresso.com/actions/runs/38564874922) (2026-10-14): depois do `PUT` do usuário da MINHA empresa sobre o pagamento alheio, o adiantamento-pai de OUTRA empresa foi de 500,00 para **410,00** (`Failed asserting that 410.0 is identical to 500.0`). Escrita cross-tenant em valor. Correção é decisão [W] (regra mestre de valor + ADR 0093) — nenhum código foi tocado.
 
