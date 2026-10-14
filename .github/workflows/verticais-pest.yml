@@ -79,6 +79,8 @@ on:
       - 'Modules/Crm/Resources/js/Pages/**'
       - 'Modules/Crm/Tests/Feature/CrmAcompanhamentosContratoTest.php'
       - 'Modules/Crm/Tests/Feature/CrmRegistroEscopoTest.php'
+      # Thread Crm/12 F2 — baseline da Blade do Registro de chamadas antes da tela React.
+      - 'Modules/Crm/Tests/Feature/CrmChamadasBaselineTest.php'
       # Thread Crm/02 — a lista de leads virou Inertia; o contrato dela roda aqui.
       - 'Modules/Crm/Http/Controllers/LeadController.php'
       - 'Modules/Crm/Tests/Feature/CrmLeadsContratoTest.php'
@@ -165,6 +167,8 @@ jobs:
               - 'Modules/Crm/Resources/js/Pages/**'
               - 'Modules/Crm/Tests/Feature/CrmAcompanhamentosContratoTest.php'
               - 'Modules/Crm/Tests/Feature/CrmRegistroEscopoTest.php'
+              # Thread Crm/12 F2 — baseline da Blade do Registro de chamadas antes da tela React.
+              - 'Modules/Crm/Tests/Feature/CrmChamadasBaselineTest.php'
               # Thread Crm/02 — a lista de leads virou Inertia; o contrato dela roda aqui.
               - 'Modules/Crm/Http/Controllers/LeadController.php'
               - 'Modules/Crm/Tests/Feature/CrmLeadsContratoTest.php'
@@ -401,6 +405,7 @@ jobs:
             Modules/Cms/Tests/Feature/CmsSiteDetailsPainelTest.php \
             Modules/Crm/Tests/Feature/CrmAcompanhamentosContratoTest.php \
             Modules/Crm/Tests/Feature/CrmRegistroEscopoTest.php \
+            Modules/Crm/Tests/Feature/CrmChamadasBaselineTest.php \
             Modules/Crm/Tests/Feature/CrmLeadsContratoTest.php \
             Modules/Crm/Tests/Feature/CrmLeadShowEscopoTest.php \
             Modules/Crm/Tests/Feature/CrmPainelContratoTest.php \
