@@ -8,7 +8,9 @@ uses(Tests\TestCase::class);
  * Wave 25 RecurringBilling POLISH — D5 README "como cliente usa".
  *
  * Cobre:
- *   - README.md presente em Modules/RecurringBilling/ (D5 documentação UX-narrativo)
+ *   - README.md presente em memory/requisitos/RecurringBilling/ (D5 documentação UX-narrativo;
+ *     movido de Modules/RecurringBilling/ pelo #5548 — o teste seguia o path antigo e
+ *     reprovou por arquivo ausente quando a lane passou a rodá-lo, 2026-10-14)
  *   - README contém seções canônicas (lifecycle, drivers, multi-tenant, anti-patterns)
  *   - Preserva US-RB-044 NFe-de-boleto-pago como canônico irrevogável (sentry test)
  *
@@ -17,8 +19,8 @@ uses(Tests\TestCase::class);
  * @see memory/requisitos/RecurringBilling/README.md
  */
 describe('Wave 25 RecurringBilling Polish', function () {
-    it('D5 — README.md presente em Modules/RecurringBilling/', function () {
-        $path = __DIR__ . '/../../README.md';
+    it('D5 — README.md presente em memory/requisitos/RecurringBilling/', function () {
+        $path = __DIR__ . '/../../../../memory/requisitos/RecurringBilling/README.md';
         expect(file_exists($path))->toBeTrue();
 
         $content = file_get_contents($path);
@@ -26,7 +28,7 @@ describe('Wave 25 RecurringBilling Polish', function () {
     });
 
     it('D5 — README contém seção "Para o cliente final"', function () {
-        $content = file_get_contents(__DIR__ . '/../../README.md');
+        $content = file_get_contents(__DIR__ . '/../../../../memory/requisitos/RecurringBilling/README.md');
 
         expect($content)->toContain('Para o cliente final');
         expect($content)->toContain('Cadastra um plano');
@@ -34,7 +36,7 @@ describe('Wave 25 RecurringBilling Polish', function () {
     });
 
     it('D5 — README descreve lifecycle Subscription canônico', function () {
-        $content = file_get_contents(__DIR__ . '/../../README.md');
+        $content = file_get_contents(__DIR__ . '/../../../../memory/requisitos/RecurringBilling/README.md');
 
         expect($content)->toContain('Lifecycle Subscription canônico');
         expect($content)->toContain('active');
@@ -44,7 +46,7 @@ describe('Wave 25 RecurringBilling Polish', function () {
     });
 
     it('D5 — README lista 3 drivers boleto (Inter, C6, Asaas)', function () {
-        $content = file_get_contents(__DIR__ . '/../../README.md');
+        $content = file_get_contents(__DIR__ . '/../../../../memory/requisitos/RecurringBilling/README.md');
 
         expect($content)->toContain('InterDriver');
         expect($content)->toContain('C6Driver');
@@ -52,7 +54,7 @@ describe('Wave 25 RecurringBilling Polish', function () {
     });
 
     it('D5 — README cita Multi-tenant Tier 0 + OTel spans', function () {
-        $content = file_get_contents(__DIR__ . '/../../README.md');
+        $content = file_get_contents(__DIR__ . '/../../../../memory/requisitos/RecurringBilling/README.md');
 
         expect($content)->toContain('Multi-tenant Tier 0');
         expect($content)->toContain('ADR 0093');
@@ -61,7 +63,7 @@ describe('Wave 25 RecurringBilling Polish', function () {
     });
 
     it('D5 — README documenta US-RB-044 NFe-de-boleto-pago como canônico irrevogável', function () {
-        $content = file_get_contents(__DIR__ . '/../../README.md');
+        $content = file_get_contents(__DIR__ . '/../../../../memory/requisitos/RecurringBilling/README.md');
 
         // Sentry test — proteção contra remoção acidental do canônico
         expect($content)->toContain('US-RB-044');
@@ -70,7 +72,7 @@ describe('Wave 25 RecurringBilling Polish', function () {
     });
 
     it('D5 — README documenta health command com 10 sinais', function () {
-        $content = file_get_contents(__DIR__ . '/../../README.md');
+        $content = file_get_contents(__DIR__ . '/../../../../memory/requisitos/RecurringBilling/README.md');
 
         expect($content)->toContain('recurring:health');
         expect($content)->toContain('--detail');

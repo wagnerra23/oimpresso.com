@@ -38,6 +38,10 @@ return [
 
     'sefaz_consulta_cadastro_enabled' => env('FISCAL_SEFAZ_CONSULTA_CADASTRO_ENABLED', true),
 
+    // Fechamento do mês no link do contador (playbook Fiscal thread 28 · D-FECHAMENTO).
+    // Desligado por padrão: a seção só aparece na página do link quando ligada.
+    'fechamento_contador_enabled' => env('NFEBRASIL_FECHAMENTO_CONTADOR', false),
+
     /*
     |---------------------------------------------------------------------------
     | Matriz UFs suportadas pelo SEFAZ ConsultaCadastro (ADR 0186 §Decisão)

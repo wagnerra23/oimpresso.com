@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Log;
 use Modules\Arquivos\Services\ArquivosService;
 use Modules\NfeBrasil\Events\NFCeAutorizada;
 use Modules\NfeBrasil\Events\NFeAutorizada;
+use Modules\NfeBrasil\Exceptions\NcmPadraoAusenteException;
 use Modules\NfeBrasil\Http\Requests\StoreEmissaoRequest;
 use Modules\NfeBrasil\Listeners\EnviarDanfeNFCePorEmail;
 use Modules\NfeBrasil\Listeners\EnviarDanfePorEmail;
@@ -89,6 +90,13 @@ class NfeEmissaoController extends Controller
 
         try {
             $emissao = $this->nfeService->emitirParaTransaction($transaction, $modelo);
+        } catch (NcmPadraoAusenteException $e) {
+            // R-NFE-022: bloqueio de configuração, não falha do servidor. Devolve a saída de 1 clique.
+            return response()->json([
+                'error'   => NcmPadraoAusenteException::ERRO,
+                'message' => $e->getMessage(),
+                'acao'    => $e->acao(),
+            ], 422);
         } catch (\Throwable $e) {
             Log::error('[NfeEmissao] emitirManual falhou', [
                 'transaction_id' => $tx,
