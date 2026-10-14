@@ -14,6 +14,7 @@ use Modules\NfeBrasil\Events\FiscalRuleUpdated;
 use Modules\NfeBrasil\Http\Controllers\TributacaoController;
 use Modules\NfeBrasil\Models\NfeBusinessConfig;
 use Modules\NfeBrasil\Models\NfeFiscalRule;
+use Modules\NfeBrasil\Services\Tributacao\SaudeFiscalService;
 
 uses(Tests\TestCase::class);
 
@@ -33,6 +34,17 @@ uses(Tests\TestCase::class);
 
 beforeEach(function () {
     if (DB::connection()->getDriverName() === 'sqlite') {
+        // Desde o #9279 (thread 14) o index() devolve a prop deferida `saude`, que lê business,
+        // certificados, notas e produtos — tabelas que esta lane não monta. A Saúde fiscal tem
+        // cobertura própria na lane MySQL (SaudeFiscalTest, UC-NFTR-24/25); aqui ela fica vazia.
+        app()->instance(SaudeFiscalService::class, new class extends SaudeFiscalService
+        {
+            public function avaliar(int $businessId): array
+            {
+                return ['pronto' => true, 'bloqueantes' => 0, 'itens' => []];
+            }
+        });
+
         Schema::dropIfExists('nfe_fiscal_rules');
         Schema::dropIfExists('nfe_business_configs');
 

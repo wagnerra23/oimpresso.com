@@ -75,6 +75,11 @@ beforeEach(function () {
 });
 
 afterEach(function () {
+    // Teste pulado no beforeEach (sqlite ou sem migrações) não guardou estado nem criou fixture:
+    // limpar aqui consultaria `products`, que a lane sqlite não tem, e o skip virava falha.
+    if (! property_exists($this, 'sfConfig')) {
+        return;
+    }
     sfLimpar();
     DB::table('nfe_certificados')->whereIn('id', $this->sfCertsAtivos ?? [])->update(['ativo' => true]);
     if (property_exists($this, 'sfConfig')) {
