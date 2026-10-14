@@ -283,6 +283,9 @@ class TransactionPaymentController extends Controller
 
             //Update parent payment if exists — mesma fórmula de antes, agora dentro da transação
             //de banco e só depois da checagem de empresa acima.
+            //O pai é lido sem filtro de empresa de propósito: só se chega aqui a partir de um filho
+            //cuja venda já foi provada da empresa acima, e filtrar por business_id pularia em silêncio
+            //o ajuste de adiantamentos antigos com business_id nulo (backfill de 2018 via created_user).
             if (! empty($payment->parent_id)) {
                 $parent_payment = TransactionPayment::find($payment->parent_id);
                 $parent_payment->amount = $parent_payment->amount - ($payment->amount - $inputs['amount']);
