@@ -57,6 +57,14 @@ export function repoTsx(text) {
   const m = text.match(/(?:Modules\/[^/]+\/)?[Rr]esources\/js\/Pages\/[\w./-]+\.tsx/);
   return m ? m[0] : null;
 }
+// extrai 1º `.tsx` de uma raiz do SHELL (Components/cockpit, Layouts) — só pra charter de
+// shell, que não tem Page. Separado do `repoTsx` porque este alimenta consumidores de TELA
+// (`render-proto-baseline::destinoBaseline`) que esperam um path sob `Pages/`.
+export function shellTsx(text) {
+  if (!text) return null;
+  const m = text.match(/resources\/js\/(?:Components\/cockpit|Layouts)\/[\w./-]+\.tsx/);
+  return m ? m[0] : null;
+}
 // extrai 1º mockup -page.jsx citado (NUNCA um audit/critique png)
 export function mockupJsx(text) {
   if (!text) return null;
@@ -452,6 +460,22 @@ export function casaPathInteiro(full, qq) {
   return a === b || a.endsWith('/' + b);
 }
 
+// ── raízes do SHELL: charter que não é tela, mas tem âncora ─────────────────────
+// O Sidebar e o AppShellV2 não têm rota: moram em `Components/cockpit/` e `Layouts/`, e
+// têm charter com `related_prototype`. `raizesDePages` não os vê por desenho — ela é o
+// denominador de TELA de gates required (`casos-coverage-guard` e outros), e ampliá-la
+// mudaria esses gates. Por isso a raiz extra vale SÓ aqui, na resolução por query:
+// `listAll` (o `--list`, que alimenta cobertura de design) continua só com as telas.
+// Origem: thread 16 do playbook sidebar (`_saida-16`), 2026-09-25 — `ancora.mjs
+// cockpit/Sidebar` respondia "sem charter" com o charter no repo.
+export const RAIZES_SHELL = ['resources/js/Components/cockpit', 'resources/js/Layouts'];
+
+/** Raízes onde `resolveAncora` procura charter: as de tela + as do shell que existirem. */
+export function raizesDeCharter(repoRoot) {
+  const shell = RAIZES_SHELL.map((r) => join(repoRoot, r)).filter((d) => existsSync(d));
+  return [...raizesDePages(repoRoot), ...shell];
+}
+
 // ── núcleo: resolve a âncora de UMA tela a partir dos charters do repo ────────
 export async function resolveAncora(query, { repoRoot = REPO_DEFAULT, stagingDir = null } = {}) {
   // Git Bash (MSYS) mangleia arg iniciado em "/" pra "<raiz-msys>/<rota>" (ex.:
@@ -470,7 +494,7 @@ export async function resolveAncora(query, { repoRoot = REPO_DEFAULT, stagingDir
   // fazia a busca por query NUNCA achar charter de tela migrada. E o efeito passa daqui: este
   // arquivo é o dono da resolução de âncora, e `design-coverage`, `ancora-guard` e
   // `integrity-check` derivam DELE — um cego aqui cega os três.
-  const charters = (await Promise.all(raizesDePages(repoRoot).map((r) => walk(r))))
+  const charters = (await Promise.all(raizesDeCharter(repoRoot).map((r) => walk(r))))
     .flat().filter((f) => f.endsWith('.charter.md')); // [busca-por-query]
   const q = norm(query);
 
@@ -591,7 +615,9 @@ export async function resolveAncora(query, { repoRoot = REPO_DEFAULT, stagingDir
   const canonRefSrc = vcRel ? await read(join(repoRoot, vcRel)) : null;
   const naoAncora = declaracoesNaoAncora({ charterSrc: charterSrc || '', canonRefSrc });
 
-  const liveTsx = repoTsx(fm.component);
+  // Charter de SHELL não tem Page: o componente vivo é o próprio `.tsx` do shell. Sem este
+  // ramo o `pedido.mjs` imprimia "charter sem component" pra um charter que declara um.
+  const liveTsx = repoTsx(fm.component) || shellTsx(fm.component);
   return {
     ok: true, query, charter: hit.charter,
     telaViva: liveTsx, ancoras, repoRoot: raizRepo,
@@ -1689,6 +1715,22 @@ async function selftest() {
   // O eixo frescor NUNCA vira ✓ por ter sido medido no passado: verificação antiga é ⚠️.
   t('CONTROLE FRESCOR: verificação antiga NÃO promove a verificado no estado da última rodada',
     frescorDoEspelho('clientes-page.jsx', ledgerFx[1], 'v17').estado === 'nunca');
+
+  // ── BITE: charter de SHELL (thread 16 do playbook sidebar) ─────────────────
+  // Charter em `Components/cockpit/` precisa resolver pela query, e o `.tsx` do shell vira o
+  // componente vivo. Remover a raiz extra de `raizesDeCharter` (ou o `shellTsx`) derruba.
+  const fxShell = join(fx, 'repo-shell');
+  await mkdir(join(fxShell, 'resources', 'js', 'Pages'), { recursive: true });
+  await mkdir(join(fxShell, 'resources', 'js', 'Components', 'cockpit'), { recursive: true });
+  await writeFile(join(fxShell, 'resources', 'js', 'Components', 'cockpit', 'Barra.charter.md'),
+    '---\npage: n/a — componente do Shell\ncomponent: resources/js/Components/cockpit/Barra.tsx\nrelated_prototype: prototipo-ui/cowork/Wagner/barra.jsx\n---\n# Barra\n', 'utf8');
+  const rShell = await resolveAncora('cockpit/Barra', { repoRoot: fxShell });
+  t('BITE shell: charter em Components/cockpit resolve pela query', rShell.ok === true && rShell.charter === 'resources/js/Components/cockpit/Barra.charter.md');
+  t('BITE shell: o .tsx do shell vira o componente vivo', rShell.telaViva === 'resources/js/Components/cockpit/Barra.tsx');
+  t('CONTROLE shell: repoTsx segue só-Pages (destinoBaseline espera Pages/)', repoTsx('resources/js/Components/cockpit/Barra.tsx') === null);
+  t('CONTROLE shell: shellTsx não pega Page', shellTsx('resources/js/Pages/X/Index.tsx') === null);
+  const rNada = await resolveAncora('cockpit/Inexistente', { repoRoot: fxShell });
+  t('CONTROLE shell: query sem charter segue "sem charter"', rNada.ok === false);
 
   await apagar(fx, { recursive: true, force: true });
 

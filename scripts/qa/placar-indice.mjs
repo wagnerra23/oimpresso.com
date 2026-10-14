@@ -28,17 +28,20 @@
 // Provas ESTRUTURAIS (existe · não existe · contém · não contém · chaves de JSON · um de N)
 // são avaliadas aqui: 85 das 114 provas dos 12 índices vivos (74,6%, medido 2026-09-17 com
 // `git grep -hoE '"tipo"...' -- '<inbox>/*/playbook/00-INDICE.md' | sort | uniq -c`).
-// Provas de RECIBO (`execucao` · `comparacao` · `revisao` · `runtime` · `medicao`, 29) exigem
-// o avaliador de recibo: Ajv + o schema + hash SHA-256 + `junit-summary` + o comparador — 4
-// arquivos removidos junto, e o comparador ainda aponta pra um path que a 0397 moveu. Elas
-// saem **NÃO MEDIDA**, nunca "falhou" e nunca "ok": colapsar não-medição num estado do objeto
-// é LC-33 nas duas direções (§5 2026-07-29 fail-open · §5 2026-09-03 acusação).
+// Provas de RECIBO (`execucao` · `comparacao` · `revisao`) vão ao avaliador de recibo
+// (`placar-recibo.mjs`, reposto em 2026-10-14 — saíra com a 0397). Ele SÓ mede recibo JSON no
+// `path` da prova. Medido 2026-10-14 nas 19 provas de recibo vivas: 16 não têm `path` (o recibo
+// é prosa no `_saida`; 2 delas são `medicao`, tipo que nem tem contrato) e as 3 com `path`
+// (sidebar 03/05/16) apontam JSON que nunca existiu no git — essas viram `falhou` medido. As 16 saem **NÃO
+// MEDIDA** com o motivo dito, nunca "falhou" e nunca "ok": colapsar não-medição num estado do
+// objeto é LC-33 nas duas direções (§5 2026-07-29 fail-open · §5 2026-09-03 acusação).
 // Duas consequências deliberadas, e as duas são ditas na saída, não escondidas:
 //   fail-closed  thread com prova não medida NÃO pode ficar `feito`;
 //   sem acusar   `--check` NÃO morde por ela — reprovar por não-medição é acusar o inocente.
 
 import { readFileSync, readdirSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
+import { TIPOS_RECIBO, avaliarRecibo, compararNoRepo } from './placar-recibo.mjs';
 
 /** Erro de NÃO-MEDIÇÃO. O campo `naoMedi` é o contrato com o placar.mjs, que mapeia pra exit 2
  *  — "não medi" nunca pode se passar por "está são" nem por "falhou" (§5 2026-07-29). */
@@ -135,9 +138,7 @@ export function resolverPath(p, variaveis = {}) {
 
 export function avaliarProva(prova, ctx) {
   const tipo = prova && prova.tipo;
-  if (!TIPOS_ESTRUTURAIS.includes(tipo)) {
-    return { ok: false, naoMedida: true, path: (prova && prova.path) || '', motivo: `prova "${tipo}" precisa do avaliador de recibo (não portado — ver docblock)` };
-  }
+  if (!TIPOS_ESTRUTURAIS.includes(tipo)) return avaliarProvaDeRecibo(prova, ctx);
   if (tipo === 'um_de') {
     const alts = (prova.paths || []).map((p) => resolverPath(p, ctx.variaveis));
     if (!alts.length) return { ok: false, path: '', motivo: 'um_de sem "paths"' };
@@ -165,6 +166,35 @@ export function avaliarProva(prova, ctx) {
   // `migrado` acompanha o veredito de todos os ramos: a prova é medida no endereço NOVO, e
   // quem lê o relato precisa saber que a FONTE ainda cita o velho (senão a dívida fica muda).
   return { ...avaliarNoEndereco(tipo, prova, ctx, path, existe), migrado };
+}
+
+// Prova de RECIBO (placar-recibo.mjs). Três saídas NÃO MEDIDA, todas nomeadas — nenhuma acusa:
+//   sem `path`   o recibo só existe em prosa no `_saida` ("run citado no _saida"): não há JSON
+//                pra medir. Dívida de DADO da fonte (Cowork), igual à prova estrutural sem path.
+//   tipo sem contrato  `runtime`/`medicao` nunca tiveram formato de recibo definido (não existiam no
+//                schema removido pela 0397) — inventar um aqui seria escrever a régua sozinho.
+//   sem `thread` no ctx  chamada avulsa (fora do avaliarIndice): falta a _saida pra vincular o hash.
+function avaliarProvaDeRecibo(prova, ctx) {
+  const tipo = prova && prova.tipo;
+  const nm = (path, motivo) => ({ ok: false, naoMedida: true, path, motivo });
+  if (typeof prova.path !== 'string' || !prova.path.trim()) {
+    return nm('', `prova "${tipo}" sem "path": recibo só em prosa no _saida — corrigir a prova na fonte (Cowork)`);
+  }
+  if (!TIPOS_RECIBO.includes(tipo)) return nm(prova.path, `prova "${tipo}" sem contrato de recibo definido`);
+  if (!ctx.thread) return nm(prova.path, 'prova de recibo avaliada fora de uma thread');
+  const res = (p) => resolverPath(p, ctx.variaveis);
+  const todos = [prova.path, ...(prova.testes || []), ...(prova.fontes || []), ...(prova.contrato ? [prova.contrato] : [])].map(res);
+  const alvoRes = ctx.thread.provas.filter((p) => TIPOS_ESTRUTURAIS.includes(p.tipo) && p.tipo !== 'ausente')
+    .map((p) => (p.tipo === 'um_de' ? p.paths || [] : [p.path]).map(res));
+  if ([...todos, ...alvoRes.flat()].some((r) => r.indefinida)) return { ok: false, indefinida: true, path: todos[0].path, motivo: 'variável não decidida' };
+  if (todos.some((r) => r.semSucessor)) return nm(todos[0].path, 'endereço aposentado pela ADR 0397 D5 e sem sucessor fixado — corrigir a prova na fonte (Cowork)');
+  // `um_de` entra no hash pela alternativa que EXISTE — vincular as que não existem tornaria o
+  // recibo impossível de emitir.
+  const alvos = alvoRes.map((alts) => (alts.length > 1 ? (alts.find((a) => ctx.existe(a.path)) || alts[0]) : alts[0]).path);
+  const [p0, ...resto] = todos.map((r) => r.path);
+  const n = (prova.testes || []).length, f = (prova.fontes || []).length;
+  return { ...avaliarRecibo({ ...prova, path: p0, testes: resto.slice(0, n), fontes: resto.slice(n, n + f),
+    ...(prova.contrato ? { contrato: resto[n + f] } : {}) }, { ...ctx, alvos }), migrado: todos[0].migrado };
 }
 
 function avaliarNoEndereco(tipo, prova, ctx, path, existe) {
@@ -238,7 +268,7 @@ export function avaliarIndice(indice, ctx) {
   const byId = {};
 
   const linhas = indice.threads.map((t) => {
-    const provas = t.provas.map((p) => ({ tipo: p.tipo, ...avaliarProva(p, { ...ctx, variaveis }) }));
+    const provas = t.provas.map((p) => ({ tipo: p.tipo, ...avaliarProva(p, { ...ctx, variaveis, thread: t, saidaPath: `${dir}/_saida-${t.id}.md` }) }));
     const saida = ctx.existe(`${dir}/_saida-${t.id}.md`);
     const naoMedidas = provas.filter((p) => p.naoMedida);
     const falhas = provas.filter((p) => !p.ok && !p.naoMedida);
@@ -343,6 +373,7 @@ export function agregarIndices(root, alvos, { thread = null } = {}) {
       dirPlaybook: rel.split('/').slice(0, -1).join('/'),
       existe: (p) => existsSync(join(root, p)),
       ler: (p) => readFileSync(join(root, p), 'utf8'),
+      comparar: (recibo, prova) => compararNoRepo(root, recibo, prova),
     });
     r.playbook = rel;
     return r;
@@ -411,7 +442,7 @@ export function emitirMdIndice(r) {
   L.push('', `**Cobertura cumulativa:** ${r.somaFeito} de ${r.somaTotal} (${r.cobertura}%)`);
   L.push('', `**PRÓXIMO:** ${r.proximos.length ? cortar(r.proximos.map((p) => `\`${p.modulo}/${p.id}\` ${p.titulo} [${p.dono}]`), 8, 'executáveis') : '— nenhuma executável (ver dependências e decisões acima)'}`);
   if (r.naoMedidas) {
-    L.push('', `**⚠️ Não medidas:** ${r.naoMedidas} prova(s) de recibo — o avaliador saiu do repo com a ADR 0397. Thread com prova não medida NÃO conta como entregue, e o \`--check\` não morde por ela.`);
+    L.push('', `**⚠️ Não medidas:** ${r.naoMedidas} prova(s) de recibo sem recibo JSON mensurável (sem \`path\`, ou tipo sem contrato) — dívida de dado da fonte. Thread com prova não medida NÃO conta como entregue, e o \`--check\` não morde por ela.`);
   }
   if (r.semRecibos) {
     L.push('', '**Sem recibo:** ' + r.semRecibos + ' thread(s) com TODAS as provas verdes e sem `_saida-NN.md` — '
@@ -437,7 +468,7 @@ export function emitirTextoIndice(r, { proximo = false } = {}) {
     }
   }
   console.log(`cobertura cumulativa: ${r.somaFeito} de ${r.somaTotal} (${r.cobertura}%)`);
-  if (r.naoMedidas) console.log(`nao medidas: ${r.naoMedidas} prova(s) de recibo (avaliador fora do repo — ADR 0397); nao mordem o --check`);
+  if (r.naoMedidas) console.log(`nao medidas: ${r.naoMedidas} prova(s) de recibo sem recibo JSON mensuravel (sem path ou tipo sem contrato); nao mordem o --check`);
   if (r.migrados) console.log(`fonte desatualizada: ${r.migrados} prova(s) citam endereco pre-ADR 0397; medidas no endereco NOVO — corrigir na fonte (Cowork), nao no espelho`);
   if (proximo) {
     console.log(r.proximos.length
