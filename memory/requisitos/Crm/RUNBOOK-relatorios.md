@@ -34,8 +34,8 @@ Desligada (default), segue a Blade. Os 4 endpoints ajax continuam servindo a Bla
 | F1 | este RUNBOOK + [`relatorios-parity.md`](./relatorios-parity.md) | entregue (#9295) |
 | F2 | `CrmRelatoriosBaselineTest` (tenant 98 × 99) na lane `verticais-pest` | entregue (#9329) · C1 (#9298) |
 | F3-0 | consultas dos endpoints extraídas em métodos (sem mudança de comportamento) | entregue (#9336) |
-| F3-1 | ramo Inertia atrás da flag, reusando as consultas + `CrmRelatoriosContratoTest` (UC-CRMREL-01..06) | em PR |
-| F3-2 | Page (filtros · por usuário · por contato · conversão + drawer "quem foi convertido") + charter + casos + contrato | pendente (depois da F3-1) |
+| F3-1 | ramo Inertia atrás da flag, reusando as consultas + `CrmRelatoriosContratoTest` (UC-CRMREL-01..06) | entregue (#9340) |
+| F3-2 | Page (filtros · por usuário · por contato · conversão + drawer "quem foi convertido") + charter + casos + contrato | em PR |
 | F4 | smoke biz=1 com a flag só para biz=1 | pendente |
 | F5 | cutover — decisão [W] | — |
 
