@@ -62,5 +62,8 @@ final readonly class TributoCalculado
         public float   $reducao_base = 0.0,
         public ?float  $base_icms = null,
         public ?string $c_benef = null,
+        // Thread 29 · R-NFE-035: explica um corte que o motor fez (ex. DIFAL do Simples na UF não
+        // marcada). Null = nada a dizer.
+        public ?string $aviso = null,
     ) {}
 }
