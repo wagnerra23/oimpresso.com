@@ -7,8 +7,6 @@ use App\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
-uses(Tests\TestCase::class);
-
 /**
  * Contrato de `/login` e `/register`. UCs de resources/js/Pages/Site/{Login,Register}.casos.md
  * (charters + login-spec-2026-04-26 + US-CMS-008). Nenhuma credencial real: usuários fictícios no
