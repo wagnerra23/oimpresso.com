@@ -49,7 +49,7 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 
 ## UC-TPEDT-02 · Pagamento próprio abre a tela com o que o charter promete `[must]`
 - **Persona:** Larissa corrigindo um pagamento lançado errado.
-- **Aceite:** Dado um pagamento de 100,00 da minha empresa · Quando abro `/payments/v2/{id}/edit` · Então recebo a tela `TransactionPayment/Edit` com o pagamento (mesmo id, valor 100,00), a transação dele (da minha empresa), as formas de pagamento (lista não vazia) e a chave `accounts`.
+- **Aceite:** Dado um pagamento de 100,00 da minha empresa · Quando abro `/payments/v2/{id}/edit` · Então recebo a tela `TransactionPayment/Edit` com o pagamento (mesmo id, valor 100,00), a transação dele (da minha empresa), as formas de pagamento habilitadas no local da venda (exatamente as habilitadas — com `cash` e `card` ligadas, vêm só essas duas) e a chave `accounts`.
 - **Âncora:** `Edit.charter.md` §Props (`payment_line` · `transaction` · `payment_types` · `accounts`) + RUNBOOK F2 (`editInertia` "retorna payment_line + transaction + payment_types + accounts").
 - **Teste:** `tests/Feature/TransactionPayment/TransactionPaymentEditContratoTest.php`. O smoke em quarentena (`TransactionPaymentInertiaSmokeTest`, cenário 6) cobre só o status; este caso cobre o conteúdo.
 - **Regressão que defende:** a tela abrir sem o pagamento ou com a transação errada.
@@ -91,7 +91,7 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 - **Âncora:** `Edit.charter.md` §Intent ("editar um pagamento existente em página full ao invés de modal") + §Diferenças (submit reusa `PUT /payments/{id}`) + RUNBOOK F2 ("POST update reusa update() existente").
 - **Teste:** `tests/Feature/TransactionPayment/TransactionPaymentEditContratoTest.php` — o caso confere primeiro o desfecho que o `update()` grava no flash `status`, depois o banco pelos dois caminhos.
 - **Regressão que defende:** a tela nova não conseguir salvar o que ela mesma mostra.
-- **Status: 🧪 sem veredito** — vermelho **esperado (predição, não medido)**: o `update()` lê `paid_on` com o formato da empresa (`d/m/Y H:i` neste teste) e a tela manda `AAAA-MM-DD HH:MM`. Se o run confirmar, o UC vira ❌ com o run id e a correção é decisão [W].
+- **Status: ❌ quebrou** — medido no [run 38564874922](https://github.com/wagnerra23/oimpresso.com/actions/runs/38564874922) (2026-10-14): o `update()` devolveu `success=false` para o payload que o `Edit.tsx` manda (`paid_on` `AAAA-MM-DD HH:MM`, valor `60.5`); o pagamento não muda. A tela React não salva. Correção é decisão [W] (regra mestre de valor) — nenhum código foi tocado.
 
 ---
 
@@ -111,7 +111,7 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 - **Âncora:** as mesmas do UC-TPEDT-06 — o adiantamento também é dado de outra empresa.
 - **Teste:** `tests/Feature/TransactionPayment/TransactionPaymentEditContratoTest.php`.
 - **Regressão que defende:** escrita em outra empresa feita antes de o endpoint descobrir que a transação não é da empresa logada.
-- **Status: 🧪 sem veredito** — vermelho **esperado (predição, não medido)**: na leitura do `update()`, o ajuste do adiantamento-pai acontece antes da busca da transação pelo `business_id`. Se o run confirmar, o UC vira ❌ com o run id e a correção é decisão [W].
+- **Status: ❌ quebrou `[T0]`** — medido no [run 38564874922](https://github.com/wagnerra23/oimpresso.com/actions/runs/38564874922) (2026-10-14): depois do `PUT` do usuário da MINHA empresa sobre o pagamento alheio, o adiantamento-pai de OUTRA empresa foi de 500,00 para **410,00** (`Failed asserting that 410.0 is identical to 500.0`). Escrita cross-tenant em valor. Correção é decisão [W] (regra mestre de valor + ADR 0093) — nenhum código foi tocado.
 
 ---
 

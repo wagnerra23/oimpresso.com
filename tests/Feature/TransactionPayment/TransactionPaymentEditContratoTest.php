@@ -184,6 +184,19 @@ it('UC-TPEDT-01 · pagamento de outro business não abre na edição (404, Tier 
 it('UC-TPEDT-02 · pagamento próprio abre a tela Edit com o pagamento, a transação e as formas de pagamento', function () {
     $meu = tpEdtVendaPaga($this->bizId);
 
+    // Pré-condição: `payment_types` traz só as formas HABILITADAS no local da venda
+    // (Util::payment_types filtra por business_locations.default_payment_accounts). O local
+    // semeado no CI não tem nenhuma habilitada — medido no run 38564874922 (lista vazia).
+    // Habilita duas aqui (DatabaseTransactions desfaz) e exige exatamente essas duas de volta.
+    $locId = (int) DB::table('transactions')->where('id', $meu['tx_id'])->value('location_id');
+    DB::table('business_locations')->where('id', $locId)->update([
+        'default_payment_accounts' => json_encode([
+            'cash' => ['is_enabled' => 1, 'account' => null],
+            'card' => ['is_enabled' => 1, 'account' => null],
+            'cheque' => ['is_enabled' => 0, 'account' => null],
+        ]),
+    ]);
+
     $r = $this->withHeaders(tpEdtInertiaHeaders())->get("/payments/v2/{$meu['payment_id']}/edit");
 
     $r->assertOk();
@@ -192,8 +205,9 @@ it('UC-TPEDT-02 · pagamento próprio abre a tela Edit com o pagamento, a transa
     expect(round((float) $r->json('props.payment_line.amount'), 2))->toBe(100.0);
     expect((int) $r->json('props.transaction.id'))->toBe($meu['tx_id']);
     expect((int) $r->json('props.transaction.business_id'))->toBe($this->bizId);
-    expect($r->json('props.payment_types'))->toBeArray();
-    expect($r->json('props.payment_types'))->not->toBeEmpty();
+    $formas = array_keys((array) $r->json('props.payment_types'));
+    sort($formas);
+    expect($formas)->toBe(['card', 'cash']);
     expect(array_key_exists('accounts', (array) $r->json('props')))->toBeTrue();
 });
 
