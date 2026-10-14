@@ -32,6 +32,10 @@ use Tests\Support\EstoqueFixture;
  * de São Paulo cair e o de UTC passar, a causa é o fuso, não a montagem do teste. Sem fixar o fuso
  * na sessão o CI roda em UTC e o caso principal passaria sem provar nada.
  *
+ * RESULTADO (run 38582625593, 2026-10-14): hipótese CONFIRMADA. São Paulo: modal mostra 11:00 e
+ * grava 11:00 para um pagamento das 08:00. UTC: 08:00 / 08:00. Arquivo em quarentena declarada
+ * (.github/financeiro-pest-quarantine.list) até o conserto, que é decisão [W].
+ *
  * ⛔ Tier 0: tenant 98. NUNCA biz=4.
  */
 uses(DatabaseTransactions::class);

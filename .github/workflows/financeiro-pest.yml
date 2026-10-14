@@ -218,8 +218,6 @@ jobs:
           echo 'tests/Feature/TransactionPayment/TransactionPaymentIndexContratoTest.php' >> /tmp/run.txt
           echo 'tests/Feature/TransactionPayment/TransactionPaymentShowContratoTest.php' >> /tmp/run.txt
           echo 'tests/Feature/TransactionPayment/TransactionPaymentEditContratoTest.php' >> /tmp/run.txt
-          # 2026-10-14 — MEDIÇÃO: o modal Blade move a hora do pagamento ao salvar? (+offset do fuso). NASCE SEM RUN.
-          echo 'tests/Feature/TransactionPayment/TransactionPaymentModalHoraTest.php' >> /tmp/run.txt
 
           # Visibilidade obrigatória: quarentena silenciosa vira cobertura fingida.
           echo "Árvore: $(wc -l < /tmp/all.txt) · quarentena: $(wc -l < /tmp/quar.txt) · RODANDO: $(wc -l < /tmp/run.txt)"
