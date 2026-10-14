@@ -4,7 +4,7 @@ irmaos: Index.charter.md (lei)
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — o contrato de teste nasce junto com a tela, não depois.
 owner: wagner
-last_run: "2026-10-13"
+last_run: "2026-10-14"
 ---
 
 # Casos de Uso & Aceite — Financeiro/Despesas/Index
@@ -52,3 +52,4 @@ last_run: "2026-10-13"
 ## Trilha do tempo
 - 2026-10-13 · [CL] carimbado por criar-tela.mjs e preenchido na US-MWART-015/016 (thread financeiro/13).
 - 2026-10-13 · [CL] US-MWART-017: drawer 760 com os dados da linha + Editar, Documento, Excluir; UC-DESPES-05.
+- 2026-10-14 · [CL] revalidado (bump `last_run`): o `Index.tsx` mudou só em lint e layout (`linhas` em `useMemo`, cabeçalho em `Inline` do DS). Nenhum handler, prop ou texto de UC mudou; UC-DESPES-01..04 seguem provados (run 38473422467); o drawer em `Grid` do DS, UC-DESPES-05 pelo run 38467901444.
