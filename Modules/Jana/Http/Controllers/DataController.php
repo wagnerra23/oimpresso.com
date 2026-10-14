@@ -22,7 +22,6 @@ use Menu;
  *  - copiloto::copiloto.permissao_acesso
  *  - copiloto::copiloto.permissao_chat
  *  - copiloto::copiloto.permissao_metas
- *  - copiloto::copiloto.permissao_superadmin
  *  - copiloto::copiloto.permissao_admin_custos
  *  - copiloto::copiloto.menu.conversar
  *  - copiloto::copiloto.menu.dashboard
@@ -89,11 +88,14 @@ class DataController extends Controller
                 'label'   => __('copiloto::copiloto.permissao_metas'),
                 'default' => false,
             ],
-            [
-                'value'   => 'jana.superadmin',
-                'label'   => __('copiloto::copiloto.permissao_superadmin'),
-                'default' => false,
-            ],
+            // `jana.superadmin` NÃO entra (decisão [W] 2026-10-14, resíduo (1) da ADR 0415).
+            // É permissão de plataforma (`AuthServiceProvider::permissoesDePlataforma()`):
+            // ofertá-la aqui deixava o dono da empresa concedê-la a um papel, e
+            // `MetasController::store` aceita `business_id` alheio para quem a tem.
+            // Sair desta lista tira o slug do catálogo aceito, então
+            // `RoleController@__somenteDoCatalogo` o descarta até de POST forjado, e
+            // `__preservaNaoOfertadas` mantém quem já tem (nada é revogado no save).
+            // Mesmo mecanismo dos scopes `admin_only` (#6962). Conceder é ato de superadmin.
             [
                 'value'   => 'jana.admin.custos.view',
                 'label'   => __('copiloto::copiloto.permissao_admin_custos'),
