@@ -57899,5 +57899,48 @@
     },
     "origin": "medicao",
     "projetoCowork": "w"
+  },
+  {
+    "date": "2026-10-14T11:50:46.868Z",
+    "files": 298,
+    "sync": 14,
+    "stale": 0,
+    "liveAbsent": 0,
+    "unchecked": 284,
+    "staleList": [],
+    "verified": [
+      "cowork-inbox/crm/playbook/_saida-11.md",
+      "cowork-inbox/crm/playbook/_saida-12.md",
+      "cowork-inbox/crm/playbook/_saida-13.md",
+      "cowork-inbox/crm/playbook/_saida-14.md",
+      "cowork-inbox/crm/playbook/_saida-15.md",
+      "cowork-inbox/crm/playbook/_saida-16.md",
+      "cowork-inbox/crm/playbook/_saida-17.md",
+      "cowork-inbox/financeiro/playbook/_saida-13.md",
+      "cowork-inbox/fiscal/playbook/_saida-20.md",
+      "cowork-inbox/modulos-faltantes/playbook/_ERRATA-INDICE-2026-10-14.md",
+      "cowork-inbox/restaurante/playbook/_saida-03.md",
+      "cowork-inbox/restaurante/playbook/_saida-04.md",
+      "cowork-inbox/restaurante/playbook/_saida-05.md",
+      "cowork-inbox/telas-soltas/playbook/_ERRATA-INDICE-2026-10-14.md"
+    ],
+    "verifiedHash": {
+      "cowork-inbox/crm/playbook/_saida-11.md": "ac3eacb29c2600fb4e38dc650c8e893f6aa4a05404659ef8431eb4e2009cc04d",
+      "cowork-inbox/crm/playbook/_saida-12.md": "bc1a3d1e8b08585af4ceab4ef1812ede581490fd5d7501c63a6e558bd257c7a6",
+      "cowork-inbox/crm/playbook/_saida-13.md": "618bd93c3281387a1cab73ef988022a04d4cae421bab5554db849235e8fd06e7",
+      "cowork-inbox/crm/playbook/_saida-14.md": "73ab78de234f6a84e6bdf244b52a5111c1376692564c8b06d5d81ecc89420247",
+      "cowork-inbox/crm/playbook/_saida-15.md": "a19af8d8bca891006906f6215704814e21140140e93cfe2836c7cf4fd17d42f0",
+      "cowork-inbox/crm/playbook/_saida-16.md": "ff20e58458e82d337f7452fbee9c2d9538738cf85de8e8279562262e47853cc4",
+      "cowork-inbox/crm/playbook/_saida-17.md": "412708f675a6ed8c4062cb1093be7c0c5560d2324e3cb435e84a7381665bed00",
+      "cowork-inbox/financeiro/playbook/_saida-13.md": "a1504c129d5ea9d502d3576782af0a563f5797ec318b7bf413510324f55375d3",
+      "cowork-inbox/fiscal/playbook/_saida-20.md": "5a4fe38ecfff9d96d396c194ba8bba4b6e06321081236bfd408d0c63ca156cda",
+      "cowork-inbox/modulos-faltantes/playbook/_ERRATA-INDICE-2026-10-14.md": "dfc856237adb83cdf28281b7fb0b03fb7f6872a19adfec88ec5d7a58406ed8b1",
+      "cowork-inbox/restaurante/playbook/_saida-03.md": "4434fa46603aaf3fe187b4b290a74bd3e72220a9ac3bc68d1358528e19368b74",
+      "cowork-inbox/restaurante/playbook/_saida-04.md": "18822f352cc161b46d8a44900f84305d2ed20f3dd32b699755d82d9b29ed10dd",
+      "cowork-inbox/restaurante/playbook/_saida-05.md": "78b2dc44254d80d091aefd889ef7575c4de1759361d731a268cb6b6249f63344",
+      "cowork-inbox/telas-soltas/playbook/_ERRATA-INDICE-2026-10-14.md": "105cfaf5dd0fda1c45055b504564d14c81b2e07141b380352c657b735c96691e"
+    },
+    "origin": "medicao",
+    "projetoCowork": "w"
   }
 ]
