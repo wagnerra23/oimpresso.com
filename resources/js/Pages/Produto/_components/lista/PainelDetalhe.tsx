@@ -16,12 +16,14 @@ import { Skeleton } from '@/Components/ui/skeleton';
 import { Grid, Inline } from '@/Components/layout';
 import PageHeaderTabs from '@/Components/shared/PageHeaderTabs';
 import { brl, qtdComUnidade } from '../../Unificado/_components/catalogo';
-import { TIPO_ROTULO, type DetalheProdutoDados } from './tipos';
+import { TIPO_ROTULO, type AbaDoDetalhe, type DetalheProdutoDados } from './tipos';
 
-type Aba = 'dados' | 'variacoes' | 'composicao' | 'estoque' | 'fiscal' | 'prateleira';
+type Aba = AbaDoDetalhe;
 
 const qtd = (n: number) => n.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
 const dinheiro = (n: number | undefined | null) => (n === undefined || n === null ? '—' : brl(n));
+/** `tax_type` do produto como a tela o chama; vazio quando o cadastro não diz. */
+const tipoDeImposto = (t: string) => (t === 'inclusive' ? 'Inclusivo' : t === 'exclusive' ? 'Exclusivo' : '');
 // Produto único tem uma variação interna chamada DUMMY; o protótipo a mostra como "Padrão".
 const nomeDaVariacao = (n: string | null | undefined) => (!n || n === 'DUMMY' ? 'Padrão' : n);
 
@@ -94,6 +96,12 @@ function Dt({ rotulo, valor }: { rotulo: string; valor: string | null | undefine
 interface Props {
   aberto: boolean;
   detalhe: DetalheProdutoDados | null | undefined;
+  /**
+   * Aba ativa — quem abre o painel é o dono dela. "Ver" abre em Dados, "Dados fiscais" abre em
+   * Fiscal, e cada abertura recomeça na aba pedida (o painel fica montado entre uma e outra).
+   */
+  aba: AbaDoDetalhe;
+  aoMudarAba: (aba: AbaDoDetalhe) => void;
   aoFechar: () => void;
   podeEditar: boolean;
   podePrecos: boolean;
@@ -102,8 +110,7 @@ interface Props {
   irPara: (url: string) => void;
 }
 
-export default function PainelDetalheProduto({ aberto, detalhe: d, aoFechar, podeEditar, podePrecos, podeComprar, irPara }: Props) {
-  const [aba, setAba] = useState<Aba>('dados');
+export default function PainelDetalheProduto({ aberto, detalhe: d, aba, aoMudarAba, aoFechar, podeEditar, podePrecos, podeComprar, irPara }: Props) {
   // O `.cockpit` é o contêiner que entrega os tokens e a fonte do Design System.
   const [cockpit, setCockpit] = useState<HTMLElement | null>(null);
   useEffect(() => setCockpit(document.querySelector<HTMLElement>('.cockpit')), []);
@@ -171,7 +178,7 @@ export default function PainelDetalheProduto({ aberto, detalhe: d, aoFechar, pod
               <PageHeaderTabs
                 density="compact"
                 activeGhostKey={abaAtiva}
-                onGhostChange={(k) => setAba(k as Aba)}
+                onGhostChange={(k) => aoMudarAba(k as Aba)}
                 ghosts={abas}
               />
             </div>
@@ -187,10 +194,7 @@ export default function PainelDetalheProduto({ aberto, detalhe: d, aoFechar, pod
                     <Dt rotulo="Categoria" valor={d.dados.categoria} />
                     <Dt rotulo="Subcategoria" valor={d.dados.subcategoria} />
                     <Dt rotulo="Imposto aplicável" valor={d.dados.imposto || 'Nenhum'} />
-                    <Dt
-                      rotulo="Tipo de imposto na venda"
-                      valor={d.dados.tipo_imposto === 'inclusive' ? 'Inclusivo' : d.dados.tipo_imposto === 'exclusive' ? 'Exclusivo' : ''}
-                    />
+                    <Dt rotulo="Tipo de imposto na venda" valor={tipoDeImposto(d.dados.tipo_imposto)} />
                     <Dt rotulo="Peso" valor={d.dados.peso} />
                     <Dt rotulo="Gerenciar estoque" valor={d.dados.controla_estoque ? 'Sim' : 'Não'} />
                     <Dt rotulo="Quantidade de alerta" valor={d.dados.alerta === null ? '' : qtd(d.dados.alerta)} />
@@ -372,6 +376,8 @@ export default function PainelDetalheProduto({ aberto, detalhe: d, aoFechar, pod
                   <Dt rotulo="CST COFINS" valor={d.fiscal.cst_cofins} />
                   <Dt rotulo="CST IPI" valor={d.fiscal.cst_ipi} />
                   <Dt rotulo="Imposto aplicável" valor={d.dados.imposto || 'Nenhum'} />
+                  {/* Protótipo: a aba Fiscal fecha com o tipo de imposto. O mesmo dado da aba Dados. */}
+                  <Dt rotulo="Tipo de imposto na venda" valor={tipoDeImposto(d.dados.tipo_imposto)} />
                 </div>
               )}
 

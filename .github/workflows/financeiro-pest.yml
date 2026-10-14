@@ -26,6 +26,8 @@ on:
     paths:
       - 'Modules/Financeiro/**'
       - 'tests/Feature/TravaSegunda/**'
+      - 'tests/Feature/Expense/ExpensesBaselineTest.php'
+      - 'app/Http/Controllers/ExpenseController.php'
       # Sessão meia-populada sem business_id = Financeiro inteiro vazio em silêncio
       # (incidente prod 2026-07-02, Tier 0 ADR 0093) — por isso o guard mora nesta lane.
       - 'tests/Feature/Middleware/SetSessionDataRebuildTest.php'
@@ -89,6 +91,8 @@ jobs:
             fin:
               - 'Modules/Financeiro/**'
               - 'tests/Feature/TravaSegunda/**'
+              - 'tests/Feature/Expense/ExpensesBaselineTest.php'
+              - 'app/Http/Controllers/ExpenseController.php'
               - 'tests/Feature/Middleware/SetSessionDataRebuildTest.php'
               - 'tests/Feature/Expense/DespesasIndexContratoTest.php'
               - 'resources/js/Pages/Financeiro/Despesas/**'
@@ -187,6 +191,7 @@ jobs:
 
           # Extras FORA da árvore do módulo (nomeados: não há como ficarem escuros)
           echo 'tests/Feature/TravaSegunda/RetencaoLoopE2ETest.php' >> /tmp/run.txt
+          echo 'tests/Feature/Expense/ExpensesBaselineTest.php' >> /tmp/run.txt
           echo 'tests/Feature/Middleware/SetSessionDataRebuildTest.php' >> /tmp/run.txt
           echo 'tests/Feature/Expense/DespesasIndexContratoTest.php' >> /tmp/run.txt
 

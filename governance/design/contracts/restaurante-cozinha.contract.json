@@ -1,0 +1,16 @@
+{
+  "_nota": "Derivado do alvo governance/design/targets/restaurante--cozinha--index.alvo.json (thread A1 do playbook restaurante, rota `cfg-cozinha` do protótipo), não do .tsx. Seções do alvo → âncoras data-contract. Copy só onde protótipo e Page dizem literalmente o mesmo (base.assinatura do alvo). `abas` sem copy e fora da `ordem`: os rótulos vêm do menu do usuário e a âncora mora no componente das abas, declarado antes da Page no arquivo. Fora: o botão Detalhes (o detalhe da venda é modal parcial da Blade).",
+  "tela": "Restaurante/Cozinha/Index",
+  "fonte": "prototipo-ui/cowork/Wagner/restaurante-operacao.jsx",
+  "alvo": [
+    "resources/js/Pages/Restaurante/Cozinha/Index.tsx"
+  ],
+  "secoes": [
+    { "id": "cabecalho", "copy": ["Cozinha", "Atualizar"] },
+    { "id": "abas", "copy": [] },
+    { "id": "kpis", "copy": ["Na fila", "pedidos com item por preparar", "Itens por preparar", "somando as quantidades", "o mais antigo fica primeiro"] },
+    { "id": "barra", "copy": ["A fila da cozinha é o que falta preparar"] },
+    { "id": "pedidos", "copy": ["Pedidos na cozinha", "Feito às", "Cliente", "Mesa", "Local", "Marcar como preparado"] }
+  ],
+  "ordem": ["cabecalho", "kpis", "barra", "pedidos"]
+}

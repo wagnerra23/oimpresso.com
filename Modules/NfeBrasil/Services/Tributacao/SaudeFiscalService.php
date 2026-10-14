@@ -97,7 +97,7 @@ class SaudeFiscalService
 
         return $ids === [] ? null : $this->item('emitido_com_ncm_padrao', false,
             'Produtos que saíram em nota com o NCM padrão', count($ids), array_slice($ids, 0, self::AMOSTRA),
-            'nfe-brasil.tributacao.index');
+            'products.unificado.index');
     }
 
     private function produtosSemNcm(int $biz): ?array
@@ -105,7 +105,7 @@ class SaudeFiscalService
         $ids = $this->semNcm($biz, null);
 
         return $ids === [] ? null : $this->item('produto_sem_ncm', false, 'Produtos ativos sem NCM válido',
-            count($ids), array_slice($ids, 0, self::AMOSTRA), 'nfe-brasil.tributacao.index');
+            count($ids), array_slice($ids, 0, self::AMOSTRA), 'products.unificado.index');
     }
 
     /** @param list<int>|null $restringir */

@@ -1,0 +1,51 @@
+---
+id: modules-woocommerce-resources-js-pages-woocommerce-painel-index-casos
+casos: Painel do WooCommerce · /woocommerce
+irmaos: Index.charter.md (lei) · Index.tsx (tela)
+tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
+por_que: produto de outro negócio na fila, ou as chaves da loja na página, é incidente Tier 0; um número diferente do da Blade engana quem sincroniza.
+owner: wagner
+last_run: "2026-10-13"
+---
+
+# Casos de Uso & Aceite — Painel do WooCommerce
+
+> Thread `woocommerce/playbook/01` (Painel). Derivados do `WoocommerceController::index` e da Blade
+> `woocommerce::woocommerce.index` (RUNBOOK-painel) — não do `Index.tsx`.
+> Teste: [`Modules/Woocommerce/Tests/Feature/PainelContratoTest.php`](../../../../../Tests/Feature/PainelContratoTest.php),
+> lane `acessos-pest.yml` (MySQL). A Blade está travada em `PainelBaselineTest`.
+>
+> **Status:** ✅ passa (prova no manifesto G-7) · 🧪 teste cita o UC (veredito do CI) · ⬜ não verificado · ❌ quebrou.
+
+---
+
+## UC-WOOP-01 · Com a flag ligada, o painel abre em React
+- **Persona:** quem cuida da loja virtual e confere o que falta subir.
+- **Aceite:** Dado acesso ao módulo e a flag `useV2WoocommercePainel` ligada · Quando faço `GET /woocommerce` como o
+  browser faz (`X-Inertia` **e** `X-Requested-With`) · Então renderiza **`Woocommerce/Painel/Index`**.
+- **Status: 🧪**
+
+## UC-WOOP-02 · Com a flag desligada, ou com `?classico=1`, a Blade continua
+- **Aceite:** Dado a flag desligada · Quando faço `GET /woocommerce` · Então a resposta é a Blade
+  `woocommerce::woocommerce.index` · E com a flag ligada e `?classico=1` também.
+- **Status: 🧪**
+
+## UC-WOOP-03 · Meus produtos, com a situação certa e o mesmo número da Blade · `[T0]`
+- **Aceite:** Dado quatro produtos meus — um sem id na loja, um com id, um com a sincronização desligada e um com id
+  alterado depois da última sincronização — e um produto sem id de outro negócio · Quando a lista carrega · Então vejo
+  os meus como pendente, sincronizado, fora da fila e alterado · E não vejo o alheio · E `resumo.produtos_pendentes` é
+  o mesmo número que a Blade usa no alerta.
+- **Status: 🧪**
+
+## UC-WOOP-04 · As chaves da loja nunca chegam à página · `[T0]`
+- **Aceite:** Dado URL, consumer key e consumer secret salvos em `woocommerce_api_settings` · Quando abro o painel ·
+  Então `configurado` é verdadeiro · E nem a key nem o secret aparecem em nenhum lugar da resposta.
+- **Status: 🧪**
+
+## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
+- [BACKLOG] Sincronizar categorias, produtos e pedidos pela tela nova (F3-2).
+- [BACKLOG] Preço e estoque enviados por produto — decisão [W] (regra mestre).
+- [BACKLOG] Testar a conexão com a loja sem travar a abertura da página.
+
+## Trilha do tempo
+- 2026-10-13 · [CL] criado com a F3 da thread `woocommerce/playbook/01`.

@@ -1,5 +1,6 @@
 # 08 — Handoff (índice)
 
+- [2026-10-13 16:56 BRT — **Contas, Essenciais, Cliente e "Testar envio"**](handoffs/2026-10-13-1656-threads-contas-essenciais-cliente-testar-envio.md) (9 PRs mergeados · Contas → Inertia flag OFF · Essenciais A1+03 · `/contacts` → `/cliente` 302 (só lista) · `rotaViva` para de usar prosa como URL · Testar envio sem 500 · pendente: re-medir Cliente/Index e User/Perfil no staging (IGUAL falso no Perfil) · Vendas dark = decisão [W])
 - [2026-10-13 18:57 BRT — **Gestão da fila de merges (13/10 · 2)**](handoffs/2026-10-13-1857-gestao-fila-merges-13-out-2.md) (44 PRs · Compras 9/9 · Essenciais 5/5 · NFS-e 23 no main · redirect /contacts → /cliente com smoke · main verde na lane Acessos · em voo: #9246, #9247, #9219, #9223 e 4 sessões de chip)
 
 - [2026-10-13 11:00 BRT — **Gestão da fila de merges (13/10)**](handoffs/2026-10-13-1100-gestao-fila-merges-13-out.md) (cerca de 40 PRs · cutover "ligar tudo" com smoke em produção · seed ICMS em produção · decisões [W] registradas · em voo: #9203, baseline sells-index dark e Compras 05/Acessos 01 aguardando /design-sync)
