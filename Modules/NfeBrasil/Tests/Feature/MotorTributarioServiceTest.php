@@ -5,6 +5,7 @@ declare(strict_types=1);
 // @covers-us US-NFE-010 — motor tributário por NCM: cascade Níveis 1→4 (override→exata→padrão→default), CST/CSOSN, cache, isolamento multi-tenant.
 // @covers R-NFE-015 · R-NFE-015b · R-NFE-016 · R-NFE-017 — ICMS-ST pela MVA, FCP e DIFAL (thread 06 do playbook Fiscal).
 // @covers R-NFE-018 · R-NFE-019 · R-NFE-020b · R-NFE-020c — operação + vigência (thread 07 do playbook Fiscal).
+// @covers-us US-NFE-066 — benefício fiscal na regra (thread 25 do playbook Fiscal).
 // @covers R-NFE-030 — benefício fiscal: base reduzida e cBenef no item (thread 25 do playbook Fiscal).
 
 use Illuminate\Support\Facades\DB;
