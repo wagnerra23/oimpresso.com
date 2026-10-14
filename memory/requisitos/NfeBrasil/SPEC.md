@@ -600,6 +600,37 @@ E com NCM padrão válido o bloqueio de NCM não acontece (controle positivo)
 **Testado em:** `Modules/NfeBrasil/Tests/Feature/NfeBloqueioComSaidaTest.php` (lane `nfebrasil-pest`).
 **Fora deste item:** a emissão automática (job da NFC-e e listener da cobrança) segue só registrando em log: lá a saída é o card da Saúde fiscal (UC-NFTR-24). A emissão recusa NCM com tamanho ≠ 8; `00000000` passa, embora a Saúde fiscal o marque como bloqueante.
 
+### R-NFE-026 · Devolução copia base e alíquotas da nota de origem
+
+```gherkin
+Dado uma nota autorizada com ICMS 18% (2 × 50,00 = 100,00 · ICMS 18,00) e, depois, a regra mudada para 12%
+Quando emito a devolução dessa nota
+Então o det usa 18% e a base da origem (ICMS 18,00), finNFe=4, tpNF=0, refNFe = chave da origem e CFOP espelho (5102 → 1202)
+E uma venda nova depois da mudança usa 12% (100,00 × 12% = 12,00)
+E CFOP sem espelho conhecido (ex. 5949) é recusado, em vez de inventado
+```
+
+**Contrato:** D-OPERACAO ([W] 2026-10-06) · R-NFE-019 (versão antiga intacta) · leiaute NF-e 4.00 (finNFe 4, grupo NFref).
+**Implementação:** `Modules/NfeBrasil/Services/DevolucaoService.php` (lê o XML autorizado da origem; não recebe o motor) · `Modules/NfeBrasil/Services/NfeService.php` (`buildXml`: `fin_nfe`, `tp_nf`, `ref_nfe`, com default igual ao de antes).
+**Testado em:** `Modules/NfeBrasil/Tests/Feature/NfeDevolucaoTest.php` (lane `nfebrasil-pest`).
+**Fora deste item:** tela/rota para pedir a devolução e o vínculo com o registro de devolução de venda (`SellReturn`) — ver `_saida-20.md`.
+
+### R-NFE-027 · Devolução parcial é proporcional e não passa da quantidade vendida
+
+```gherkin
+Dado uma venda de 10 unidades (vProd 99,90 · ICMS 17,98)
+Quando devolvo 4
+Então vProd 39,96 e ICMS 7,19 (4/10 da linha, arredondado em centavos)
+Quando tento devolver mais 7
+Então é recusado (saldo 6)
+E devolver as 6 restantes é aceito (vProd 59,94 · ICMS 10,79), e a soma das devoluções bate com a linha (17,98)
+E devolução rejeitada, de outra nota ou de outra empresa não consome saldo
+```
+
+**Contrato:** UC-TRB-13 (protótipo, aba Devoluções) · ADR 0093 (saldo por empresa).
+**Implementação:** `Modules/NfeBrasil/Services/DevolucaoService.php` (`montarDevolucao`, rateio pela quantidade acumulada · `saldoDevolvido`).
+**Testado em:** `Modules/NfeBrasil/Tests/Feature/NfeDevolucaoTest.php` (lane `nfebrasil-pest`).
+
 ### R-NFE-033 · Aceita CNPJ alfanumérico válido e recusa o inválido
 
 ```gherkin
@@ -1439,3 +1470,16 @@ Salvar em `memory/requisitos/NfeBrasil/smoke-2026-05-10.md`:
 
 **Disparo:** Auditoria de completude 2026-05-10.
 **Tags:** completeness-gap, from-skill, audit-2026-05-10, smoke-mcp
+
+### US-NFE-064 · Devolução de venda copia base e alíquotas da nota de origem
+
+> owner: — · sprint: — · priority: p1 · estimate: 3h · status: done · type: story
+> blocked_by: —
+
+**Implementado em:** `Modules/NfeBrasil/Services/DevolucaoService.php` · `Modules/NfeBrasil/Services/NfeService.php` · `Modules/NfeBrasil/Tests/Feature/NfeDevolucaoTest.php`
+
+Como contador, quero que a NF-e de devolução use a base e as alíquotas da nota de origem — não a regra de hoje — para estornar exatamente o crédito ou débito que a venda gerou.
+
+**Critérios de aceite:** R-NFE-026 · R-NFE-027.
+
+**Disparo:** playbook Fiscal thread 20 (`prototipo-ui/cowork/Wagner/cowork-inbox/fiscal/playbook/20-devolucao.md`) · UC-TRB-13.

@@ -1645,7 +1645,8 @@ class NfeService
         $stdIde->nNF       = $emissao->numero;
         $stdIde->dhEmi     = now()->format('Y-m-d\TH:i:sP');
         $stdIde->dhSaiEnt  = now()->format('Y-m-d\TH:i:sP');
-        $stdIde->tpNF      = 1;
+        // Thread 20 · devolução de venda é nota de ENTRADA (tpNF=0). Sem a chave = 1, XML de sempre.
+        $stdIde->tpNF      = (int) ($dadosNfe['tp_nf'] ?? 1);
         $stdIde->idDest    = $this->resolverIdDest($emitOverride, $dadosNfe['dest'] ?? [], $business);
         $stdIde->cMunFG    = $codMunEmit;
         // tpImp depende do modelo (rejeição "DANFE invalido" comum quando NFC-e usa tpImp=1):
@@ -1658,7 +1659,8 @@ class NfeService
         $stdIde->tpEmis    = (int) ($emissao->tp_emis ?: NfeEmissao::TP_EMIS_NORMAL);
         $stdIde->cDV       = 0;
         $stdIde->tpAmb     = (int) ($emitOverride['ambiente'] ?? $business->ambiente ?? 2);
-        $stdIde->finNFe    = 1;
+        // Thread 20 · finNFe=4 na devolução (R-NFE-026). Sem a chave = 1 (normal), XML de sempre.
+        $stdIde->finNFe    = (int) ($dadosNfe['fin_nfe'] ?? 1);
         // indFinal: 1 = consumidor final, 0 = não consumidor final.
         //   - NFC-e (modelo 65): SEMPRE 1 (rejeição cstat 717)
         //   - NFe (modelo 55) + ind_ie_dest=9 (não contribuinte): 1 (rejeição cstat 696
@@ -1673,6 +1675,13 @@ class NfeService
         $stdIde->procEmi   = '0';
         $stdIde->verProc   = '1.0';
         $nfe->tagide($stdIde);
+
+        // Thread 20 · R-NFE-026: a devolução referencia a chave da nota de origem (NFref/refNFe).
+        if (! empty($dadosNfe['ref_nfe'])) {
+            $stdRef         = new \stdClass();
+            $stdRef->refNFe = (string) $dadosNfe['ref_nfe'];
+            $nfe->tagrefNFe($stdRef);
+        }
 
         // ── emit ─────────────────────────────────────────────────────────────
         $crt        = (int) ($emitOverride['crt'] ?? $business->regime ?? 1);
