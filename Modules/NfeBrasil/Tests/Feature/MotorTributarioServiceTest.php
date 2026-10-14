@@ -18,6 +18,7 @@ use Modules\NfeBrasil\Exceptions\TributacaoNaoConfiguradaException;
 use Modules\NfeBrasil\Models\NfeBusinessConfig;
 use Modules\NfeBrasil\Models\NfeFiscalRule;
 use Modules\NfeBrasil\Services\MotorTributarioService;
+use Modules\NfeBrasil\Services\NfeService;
 use Modules\NfeBrasil\Services\Tributacao\ProdutoFiscalContext;
 
 uses(Tests\TestCase::class);
