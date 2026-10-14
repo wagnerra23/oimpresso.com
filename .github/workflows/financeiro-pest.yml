@@ -209,6 +209,7 @@ jobs:
           # Extras FORA da árvore do módulo (nomeados: não há como ficarem escuros)
           echo 'tests/Feature/TravaSegunda/RetencaoLoopE2ETest.php' >> /tmp/run.txt
           echo 'tests/Feature/TransactionPayment/TransactionPaymentDestroyEscopoTest.php' >> /tmp/run.txt
+          echo 'tests/Feature/TransactionPayment/TransactionPaymentViewEscopoTest.php' >> /tmp/run.txt
           echo 'tests/Feature/Expense/ExpensesBaselineTest.php' >> /tmp/run.txt
           echo 'tests/Feature/Middleware/SetSessionDataRebuildTest.php' >> /tmp/run.txt
           echo 'tests/Feature/Expense/DespesasIndexContratoTest.php' >> /tmp/run.txt
