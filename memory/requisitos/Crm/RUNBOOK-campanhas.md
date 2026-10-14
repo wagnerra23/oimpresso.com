@@ -32,8 +32,8 @@ Desligada (default), segue a Blade. O ajax do DataTables (sem `X-Inertia`) conti
 |---|---|---|
 | F1 | este RUNBOOK + [`campanhas-parity.md`](./campanhas-parity.md) | entregue (#9286) |
 | F2 | `CrmCampanhasBaselineTest` (tenant 98 × 99) na lane `verticais-pest` | entregue (#9327) |
-| F3-1 | ramo Inertia atrás da flag + `CrmCampanhasContratoTest` (UC-CRMCAM-01..07) | em PR |
-| F3-2 | Page (filtros · toolbar · grade · drawer) + charter + casos + contrato | pendente (depois da F3-1) |
+| F3-1 | ramo Inertia atrás da flag + `CrmCampanhasContratoTest` (UC-CRMCAM-01..07) | entregue (#9332) |
+| F3-2 | Page (filtros · toolbar · grade · drawer) + charter + casos + contrato | em PR |
 | F4 | smoke biz=1 com a flag só para biz=1 | pendente |
 | F5 | cutover — decisão [W] | — |
 
