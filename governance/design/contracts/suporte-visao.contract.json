@@ -1,0 +1,67 @@
+{
+  "_nota": "Derivado do alvo governance/design/targets/soltas--suporte-visao--index.alvo.json (thread A1 do playbook telas-soltas), não do .tsx. Âncoras postas nesta thread (só o atributo data-contract; RUNBOOK da tela criado para o hook). Copy só onde protótipo, base.assinatura do alvo e código da Page (sem comentário) dizem literalmente o mesmo, conferida por máquina na faixa de cada seção. Ids do alvo com '_' trocado por '-' (`titulo_lista` → `titulo-lista`); o posicional `bloco_3` virou `cabecalho` (nome e número da empresa). Sem copy em `cabecalho` ('Empresa-cliente · acesso de suporte auditado' só na Page) e em `rodape` (a nota de auditoria tem redação diferente nos dois lados).",
+  "tela": "Suporte/Visao",
+  "fonte": "prototipo-ui/cowork/Wagner/suporte-page.jsx",
+  "alvo": [
+    "resources/js/Pages/Suporte/Visao.tsx"
+  ],
+  "secoes": [
+    {
+      "id": "navrow",
+      "copy": [
+        "Suporte · empresas"
+      ]
+    },
+    {
+      "id": "faixa",
+      "copy": [
+        "Modo Suporte.",
+        "A empresa operadora não aparece.",
+        "Acessar como",
+        "Voltar para mim"
+      ]
+    },
+    {
+      "id": "cabecalho",
+      "copy": []
+    },
+    {
+      "id": "cards",
+      "copy": [
+        "Usuários",
+        "Contatos",
+        "Produtos",
+        "Vendas",
+        "Compras"
+      ]
+    },
+    {
+      "id": "titulo-lista",
+      "copy": [
+        "Todos os usuários"
+      ]
+    },
+    {
+      "id": "lista",
+      "copy": [
+        "Username",
+        "Nome",
+        "Papel",
+        "indisponível"
+      ]
+    },
+    {
+      "id": "rodape",
+      "copy": []
+    }
+  ],
+  "ordem": [
+    "navrow",
+    "faixa",
+    "cabecalho",
+    "cards",
+    "titulo-lista",
+    "lista",
+    "rodape"
+  ]
+}

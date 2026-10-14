@@ -72,6 +72,7 @@ last_run_ci: "run 38087431948 (lane Estoque · MySQL, commit 59fe58ae, com o arq
 | UC-PIDX-14 | "Cadastro rápido" cria o produto com os preços que o formulário Blade gravaria, só na empresa e nos locais permitidos | must `[V0]` `[T0]` | charter v3 §Goals ("Cadastro rápido") + protótipo (`ModalCadastroRapido`) + Blade `quick_add_product` / `saveQuickProduct` + REGRA MESTRE valor | `ProdutoListaCadastroRapidoTest` (Pest) + `produto-cadastro-rapido.test.tsx` (Vitest) | ⬜ nasce neste PR — verde esperado |
 | UC-PIDX-15 | "Adicionar ou editar estoque inicial" abre em janela e lança o mesmo saldo, linhas e transações que o formulário Blade | must `[V0]` `[T0]` | protótipo (`ModalEstoqueInicial`) + Blade `opening_stock/form-part` / `OpeningStockController@save` + `CU-PROD-04` + REGRA MESTRE estoque | `EstoqueInicialJanelaTest` (Pest) + `produto-estoque-inicial.test.tsx` (Vitest) | ⬜ nasce neste PR — verde esperado |
 | UC-PIDX-16 | Arrastar a borda do cabeçalho muda a largura da coluna, sem mexer na ordem nem nas outras colunas | should | protótipo (`ListaProdutos` → `DataGrid` do DS, `startResize`) | `produto-lista-redimensionar.test.tsx` + `datatable-redimensionar.test.tsx` (Vitest) + 1 caso em `tests/a11y-primitives.test.tsx` (roda em lane) | ⬜ nasce neste PR — verde esperado |
+| UC-PIDX-17 | "Dados fiscais (NCM/CFOP)" no menu da linha abre o painel do produto já na aba Fiscal | should | protótipo (`acoesDe` + aba `fiscal` do `DetalheDrawer`) | `produto-menu-da-linha.test.tsx` + `produto-painel-detalhe.test.tsx` (Vitest) | ⬜ nasce neste PR — verde esperado |
 
 > 🔄 **Revalidação G-6 — 2026-10-10 (#9124, lista no desenho do protótipo).** Os 6 contratos
 > **continuam os mesmos**: derivam do SDD, da lista Blade e do Delphi, não da tela de cards. O que
@@ -315,6 +316,18 @@ last_run_ci: "run 38087431948 (lane Estoque · MySQL, commit 59fe58ae, com o arq
 - **Defeito da primeira versão, medido em produção (2026-10-13, logo depois do deploy do #9233):** a largura era guardada dentro da tabela, e a tabela mora dentro de `<Deferred data="lista">`, que a desmonta enquanto a lista recarrega. Ordenar por "Estoque atual" devolveu Produto de 348 para 300 (o nó `<table>` era outro; o rodapé da página, fora do `<Deferred>`, era o mesmo). O aceite acima — "ordenar, trocar de página e filtrar não a desfazem" — estava escrito e era falso. Os testes daquela versão usavam `rerender`, que mantém a tabela montada, e por isso não viam. Conserto: a largura passa a morar na página (`columnWidths` + `onColumnResize`), e o caso `ordenar, trocar de página ou filtrar (a tabela some e volta)…` reproduz o intervalo sem tabela.
 - **Status: ⬜** — nasce neste PR; verde esperado. Dos três arquivos de teste, só o caso do `a11y-primitives` roda em lane.
 
+## UC-PIDX-17 · "Dados fiscais" no menu da linha abre o painel na aba Fiscal · `should`
+- **Persona:** Larissa vai emitir nota e quer conferir o NCM e o CFOP de um produto sem abrir o cadastro.
+- **Aceite:** Dada a lista aberta e a permissão de ver o produto · Quando escolho "Dados fiscais (NCM/CFOP)" no menu Ações da linha · Então o painel de detalhe daquele produto abre **já na aba Fiscal**, com NCM, CEST, CFOP dentro e fora do estado e os CSTs. O item fica logo depois de "Comprar este produto" e não depende de o produto ter estoque nem de estar ativo. Sem a permissão de ver o produto, o item não aparece (como o "Ver"). Abrir um produto pelo "Ver" ou pelo clique na linha continua começando na aba Dados.
+- **Teste:** [`produto-menu-da-linha.test.tsx`](../../../../tests/js/produto-menu-da-linha.test.tsx) — `UC-PIDX-17` (o item, a posição, a permissão e a ação que ele dispara) e [`produto-painel-detalhe.test.tsx`](../../../../tests/js/produto-painel-detalhe.test.tsx) — `UC-PIDX-17` (o painel abre na aba pedida).
+- **Contrato:**
+  - **Protótipo** — `acoesDe`: `{ l: "Dados fiscais (NCM/CFOP)", … on: () => onAcao("fiscal", p) }`, no grupo de Comprar / Transferir / Usar em uma OS; a aba `fiscal` do `DetalheDrawer`.
+  - **Dados** — os da aba Fiscal que já existia (`buildProdutoDetalhe` → `fiscal`); nada novo vem do servidor.
+- **Diferença deliberada do protótipo:** lá `onAcao("fiscal")` faz o mesmo que o "Ver" (`setVer(p)`), e o painel nasce sempre em "Dados" — o item leva o nome de fiscal e cai na aba errada. Aqui ele abre na aba Fiscal.
+- **Efeito no "Ver":** a aba ativa do painel passou a ser guardada pela página, e cada abertura recomeça na aba pedida. Antes o painel guardava a aba e ficava montado entre uma abertura e outra. Medido em produção em 2026-10-13, antes desta mudança: abrir o produto "2" pelo "Ver", ir para Estoque, fechar e abrir o "55555555555" pelo "Ver" caiu em Estoque. No protótipo o painel sempre abre em Dados.
+- **Não coberto por teste:** a ligação dentro de `Produto/Index.tsx` (a ação `fiscal` chamar a abertura com a aba Fiscal) — nenhum teste renderiza a página inteira. Conferido em produção depois do deploy.
+- **Status: ⬜** — nasce neste PR; verde esperado. Nenhum dos dois arquivos de teste roda em lane.
+
 ---
 
 ## Achados de governança (o trio prometia o que não tinha)
@@ -417,6 +430,7 @@ last_run_ci: "run 38087431948 (lane Estoque · MySQL, commit 59fe58ae, com o arq
 - Gate: `scripts/casos-coverage-guard.mjs` (G-1/G-2/G-5/G-6/G-7 — [ADR 0264](../../../../memory/decisions/0264-governanca-executavel-trio-dominio-e2e.md))
 
 ## Trilha do tempo
+- 2026-10-13 · [F+C] **UC-PIDX-17** ("Dados fiscais" no menu da linha): item novo no menu Ações, abre o painel na aba Fiscal; a aba ativa do painel passa a ser da página, e cada abertura recomeça na aba pedida.
 - 2026-10-13 · [F+C] **UC-PIDX-16, conserto:** a largura arrastada sumia ao ordenar/paginar/filtrar (tabela dentro de `<Deferred>` é desmontada); passou a ser guardada pela página. Achado no arrasto real em produção, depois do deploy.
 - 2026-10-13 · [F+C] **UC-PIDX-16** (redimensionar coluna): `shared/DataTable` ganha a opção `resizable` (desligada por padrão) e a lista de produtos a liga; Ação e Imagem ficam fixas, como no protótipo. Rodapé passa a dizer "arraste a borda pra redimensionar".
 - 2026-10-13 · [F+C] **UC-PIDX-15** (estoque inicial em janela): o menu da linha abre a janela em vez da página Blade; `OpeningStockController::salvarDaJanela` confere o pedido e entrega ao `save()`; prova de estoque com produto gêmeo no `EstoqueInicialJanelaTest`.

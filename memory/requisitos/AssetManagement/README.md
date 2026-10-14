@@ -51,12 +51,12 @@ Cadastro + alocação + manutenção de **bens / ativos físicos** (impressoras 
 
 ## D7 — Retenção LGPD + Audit (Wave 23/25)
 
-- `Config/retention.php` declara 3 tabelas com campo pessoal ([ADR 0430](../../decisions/0430-retencao-lgpd-patrimonio-anonimiza-campo-pessoal.md), 2026-10-13):
+- `Config/retention.php` declara 3 tabelas (chaves com os nomes reais desde 2026-10-13):
   - `assets`: 3650d / 10 anos (fiscal CC Art. 206)
   - `asset_transactions`: 1825d / 5 anos (CTN Art. 195)
   - `asset_maintenances`: 1825d / 5 anos
   - `asset_warranties` saiu: não tem coluna que aponte para pessoa
-- Estratégia: `anonymize` — some o vínculo pessoal, a linha fica e `activity_log` nunca é tocado. Nasce desligada (`ASSETMANAGEMENT_RETENTION_ENABLED=false`); ligar é decisão [W] (D-CANARY-LGPD). O executor é a thread 05 do playbook `patrimonio`.
+- **Sem executor, por decisão [W] de 2026-10-13:** retenção no Patrimônio não existe. A [ADR 0430](../../decisions/0430-retencao-lgpd-patrimonio-anonimiza-campo-pessoal.md), que a reabria, foi recusada, e vale a lápide de 2026-07-27 em `memory/licoes-rejeitadas.md` (o controle é por permissão de acesso). O arquivo segue `enabled=false`.
 - Entities têm `LogsActivity` (Spatie Activitylog) — mudanças críticas auditadas em `activity_log`
 
 ## D9 — Observabilidade OtelHelper canônico
