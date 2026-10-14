@@ -20,8 +20,8 @@ authority: generated
 | CU no SDD | 14 |
 | Telas (.tsx) | 12 |
 | Telas com `casos.md` | 16 |
-| UC declarados | 143 |
-| UC com teste que os cita | 126 |
+| UC declarados | 160 |
+| UC com teste que os cita | 143 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -132,6 +132,7 @@ authority: generated
 | UC-PETQ-03 | Etiquetas/Index | 🧪 aguarda veredito da lane |
 | UC-PETQ-04 | Etiquetas/Index | 🧪 aguarda veredito da lane |
 | UC-PETQ-05 | Etiquetas/Index | 🧪 aguarda veredito da lane |
+| UC-PETQ-06 | Etiquetas/Index | 🧪 aguarda veredito da lane |
 | UC-PFIX-01 | ajuste-estoque-relatorio (blade) | 🧪 aguarda veredito da lane |
 | UC-PFIX-02 | ajuste-estoque-relatorio (blade) | 🧪 aguarda veredito da lane |
 | UC-PFIX-03 | ajuste-estoque-relatorio (blade) | 🧪 aguarda veredito da lane |
@@ -141,6 +142,21 @@ authority: generated
 | UC-PIDX-04 | Index | 🧪 aguarda veredito da lane |
 | UC-PIDX-05 | Index | 🧪 aguarda veredito da lane |
 | UC-PIDX-06 | Index | 🧪 aguarda veredito da lane |
+| UC-PIDX-07 | Index | 🧪 aguarda veredito da lane |
+| UC-PIDX-08 | Index | 🧪 aguarda veredito da lane |
+| UC-PIDX-09 | Index | 🧪 aguarda veredito da lane |
+| UC-PIDX-10 | Index | 🧪 aguarda veredito da lane |
+| UC-PIDX-11 | Index | 🧪 aguarda veredito da lane |
+| UC-PIDX-12 | Index | 🧪 aguarda veredito da lane |
+| UC-PIDX-13 | Index | 🧪 aguarda veredito da lane |
+| UC-PIDX-14 | Index | 🧪 aguarda veredito da lane |
+| UC-PIDX-15 | Index | 🧪 aguarda veredito da lane |
+| UC-PIDX-16 | Index | 🧪 aguarda veredito da lane |
+| UC-PIDX-17 | Index | 🧪 aguarda veredito da lane |
+| UC-PIDX-18 | Index | 🧪 aguarda veredito da lane |
+| UC-PIDX-19 | Index | 🧪 aguarda veredito da lane |
+| UC-PIDX-20 | Index | 🧪 aguarda veredito da lane |
+| UC-PIDX-21 | Index | 🧪 aguarda veredito da lane |
 | UC-PIMP-01 | Importacao/Index | 🧪 aguarda veredito da lane |
 | UC-PIMP-02 | Importacao/Index | 🧪 aguarda veredito da lane |
 | UC-PIMP-03 | Importacao/Index | 🧪 aguarda veredito da lane |
@@ -197,6 +213,7 @@ authority: generated
 | UC-PUNI-15 | Unificado/Index | 🧪 aguarda veredito da lane |
 | UC-PUNI-16 | Unificado/Index | 🧪 aguarda veredito da lane |
 | UC-PUNI-17 | Unificado/Index | 🧪 aguarda veredito da lane |
+| UC-PURCRE-09 | Index | 🧪 aguarda veredito da lane |
 
 ---
 

@@ -27,6 +27,17 @@ const tipoDeImposto = (t: string) => (t === 'inclusive' ? 'Inclusivo' : t === 'e
 // Produto único tem uma variação interna chamada DUMMY; o protótipo a mostra como "Padrão".
 const nomeDaVariacao = (n: string | null | undefined) => (!n || n === 'DUMMY' ? 'Padrão' : n);
 
+// Cores do rodapé no protótipo (`.os-btn` em styles.css), só neste painel — o `Button` do DS fica
+// como está. O par `dark:` é obrigatório: no tema escuro o `outline` traz `dark:bg-input/30`, que
+// venceria um `bg-…` sem prefixo. Medido em produção (biz 1, tema escuro) em 2026-10-14.
+/** Principal: texto branco (`.os-btn.primary`). */
+const BOTAO_PRINCIPAL = 'text-white hover:bg-[var(--accent-2)]';
+/** Contorno: fundo sólido da superfície (`.os-btn`), não translúcido. */
+const BOTAO_CONTORNO =
+  'bg-[var(--surface)] text-[var(--text)] hover:bg-[var(--border-2)] hover:text-[var(--text)] dark:bg-[var(--surface)] dark:hover:bg-[var(--border-2)]';
+/** "Fechar": texto esmaecido (`.os-btn.ghost`). */
+const BOTAO_FECHAR = 'text-[var(--text-dim)] hover:bg-[var(--border-2)] hover:text-[var(--text)] dark:hover:bg-[var(--border-2)]';
+
 /** Fechar do protótipo: 28×28, raio 6, esmaecido. */
 function Fechar() {
   return (
@@ -521,24 +532,24 @@ export default function PainelDetalheProduto({ aberto, detalhe: d, aba, aoMudarA
 
             <SheetFooter className="mt-0 flex-row flex-wrap justify-end gap-2 border-t border-[var(--border)] px-[18px] py-3 [&_button]:h-[30px] [&_button]:px-3 [&_button]:text-[12.5px]">
               {podeEditar && (
-                <Button size="sm" onClick={() => irPara(`/products/${d.id}/edit`)}>
+                <Button size="sm" className={BOTAO_PRINCIPAL} onClick={() => irPara(`/products/${d.id}/edit`)}>
                   <Pencil size={13} aria-hidden /> Editar produto
                 </Button>
               )}
               {podeComprar && d.dados.controla_estoque && !d.inativo && (
-                <Button variant="outline" size="sm" onClick={() => irPara(`/purchases/create?produto=${d.id}`)}>
+                <Button variant="outline" size="sm" className={BOTAO_CONTORNO} onClick={() => irPara(`/purchases/create?produto=${d.id}`)}>
                   <Archive size={13} aria-hidden /> Comprar
                 </Button>
               )}
               {podePrecos && (
-                <Button variant="outline" size="sm" onClick={() => irPara(`/products/add-selling-prices/${d.id}`)}>
+                <Button variant="outline" size="sm" className={BOTAO_CONTORNO} onClick={() => irPara(`/products/add-selling-prices/${d.id}`)}>
                   Preços por grupo
                 </Button>
               )}
-              <Button variant="outline" size="sm" onClick={() => window.print()}>
+              <Button variant="outline" size="sm" className={BOTAO_CONTORNO} onClick={() => window.print()}>
                 <Printer size={13} aria-hidden /> Imprimir
               </Button>
-              <Button variant="ghost" size="sm" onClick={aoFechar}>
+              <Button variant="ghost" size="sm" className={BOTAO_FECHAR} onClick={aoFechar}>
                 Fechar
               </Button>
             </SheetFooter>
