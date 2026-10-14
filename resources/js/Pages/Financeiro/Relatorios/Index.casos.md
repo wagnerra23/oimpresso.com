@@ -5,8 +5,13 @@ irmaos: charter ao lado (lei)
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso.
 owner: wagner
-last_run: "2026-08-17"
+last_run: "2026-10-14"
 ---
+
+> ℹ️ **`last_run` 2026-08-17 → 2026-10-14 (G-6) — tema escuro, thread 03 do playbook `cowork-inbox/tema-escuro`: o que mudou na tela foi só COR.**
+> O [#9318](https://github.com/wagnerra23/oimpresso.com/pull/9318) trocou, em `Index.tsx`, as cores inline da caixa de aviso por tokens que
+> acompanham o tema (`--color-warning-soft`, `--color-warning`, `--color-foreground`). Zero handler, prop, rota, cálculo ou copy alterado.
+> **Nenhum UC foi reexecutado**: o bump registra *trio reconciliado com a tela nesta data*.
 
 # Casos de uso — /financeiro/relatorios
 

@@ -1,0 +1,37 @@
+{
+  "_nota": "Derivado do alvo governance/design/targets/crm--propostas--index.alvo.json (thread A2 do playbook crm, #9255, rota `crm-propostas` do protótipo → crm-blade-telas.jsx Propostas()), não do .tsx. Seções do alvo com data-contract (crm-propostas, crm-toolbar) viram âncoras na Page da thread 14 (F3). Copy só onde protótipo e Page dizem literalmente o mesmo. Fora: `header` e `nav` (cabeçalho e sub-navegação do CRM no protótipo sem data-contract; a Page usa o PageHeader canon) e os rótulos do kebab (Reenviar/Excluir anexo não têm endpoint — Non-Goal do charter).",
+  "tela": "Crm/Propostas/Index",
+  "fonte": "prototipo-ui/cowork/Wagner/crm-blade-telas.jsx",
+  "alvo": [
+    "Modules/Crm/Resources/js/Pages/Crm/Propostas/Index.tsx"
+  ],
+  "secoes": [
+    {
+      "id": "crm-propostas",
+      "copy": [
+        "Propostas",
+        "Contato",
+        "Assunto",
+        "Enviado por",
+        "Data",
+        "Anexos",
+        "Ação",
+        "Buscar por contato ou assunto"
+      ],
+      "estados": ["lista", "vazio"]
+    },
+    {
+      "id": "crm-toolbar",
+      "copy": [
+        "Confortável",
+        "Compacto",
+        "Modelo de proposta",
+        "Mandar"
+      ]
+    }
+  ],
+  "ordem": [
+    "crm-propostas",
+    "crm-toolbar"
+  ]
+}
