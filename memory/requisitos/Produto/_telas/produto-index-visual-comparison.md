@@ -177,6 +177,14 @@ blueprint_cowork: prototipo-ui/prototipos/produto-cockpit/ _(removido em 2026-05
 > fundo dos botões de contorno (sólido × translúcido) e cor do texto do "Fechar" (cinza × normal) —
 > `Button` do Design System.
 >
+> **Abas — ajustadas só neste painel em 2026-10-14 (decisão [F]):** texto da aba ativa
+> `var(--text)` = `oklch(0.94 0.005 90)` (era `oklch(0.965 0.004 240)`), das inativas `var(--text-dim)`
+> = `oklch(0.72 0.005 90)` (era `oklch(0.74 0.008 240)`) e fundo do contador inativo `var(--border-2)` =
+> `oklch(0.31 0.008 240)` (era `oklch(0.23 0.006 240)`), como no `.cli-moduletopnav-tab` do protótipo.
+> O fundo do contador vem de estilo inline do `PageHeaderTabs`, que classe não vence; por isso o
+> componente ganhou a opção `tone="prototype"`, que só este painel liga — sem ela, todas as outras
+> telas seguem com as cores do DS (casos no `pageHeaderTabsFidelity.spec.tsx`, com controle).
+>
 > **De propósito ou por dado:** "Transferir" por local (espera a requisição de transferência);
 > campos da aba Fiscal; coluna "Variação" no estoque de produto variável; Prateleira sem cadastro
 > mostra o aviso, como a Blade, em vez de uma linha por local com "—"; e diferenças de conteúdo

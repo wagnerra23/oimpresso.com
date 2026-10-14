@@ -223,10 +223,12 @@ export default function PainelDetalheProduto({ aberto, detalhe: d, aba, aoMudarA
               </SheetDescription>
             </SheetHeader>
 
-            {/* Abas com 39px, a altura da faixa do protótipo (o componente compartilhado tem 36). */}
+            {/* Abas com 39px, a altura da faixa do protótipo (o componente compartilhado tem 36), e as
+                cores de texto e do contador do protótipo (`tone="prototype"`, só neste painel). */}
             <div className="border-b border-[var(--border)] bg-[var(--bg)] px-3 [&_a]:h-[39px]">
               <PageHeaderTabs
                 density="compact"
+                tone="prototype"
                 activeGhostKey={abaAtiva}
                 onGhostChange={(k) => aoMudarAba(k as Aba)}
                 ghosts={abas}
