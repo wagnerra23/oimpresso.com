@@ -154,6 +154,8 @@ export interface DetalheProdutoDados {
   variacoes: Array<{
     nome: string;
     sku: string;
+    /** URLs das imagens da variação (`variation_images` da Blade); vazio = sem imagem. */
+    imagens: string[];
     compra_exc?: number;
     compra_inc?: number;
     lucro_percentual?: number;
@@ -161,7 +163,22 @@ export interface DetalheProdutoDados {
     venda_inc?: number;
     grupos: Array<{ grupo: string; preco: number | null }>;
   }>;
-  composicao: Array<{ nome: string; sku: string; quantidade: number; unidade: string; compra_exc?: number; total_exc?: number }>;
+  /** Itens da composição, com as colunas de preço da Blade (`combo_product_details`) e os mesmos gates. */
+  composicao: Array<{
+    nome: string;
+    sku: string;
+    quantidade: number;
+    unidade: string;
+    imagens: string[];
+    compra_exc?: number;
+    compra_inc?: number;
+    lucro_percentual?: number;
+    venda_exc?: number;
+    venda_inc?: number;
+    total_exc?: number;
+  }>;
+  /** "Total líquido": soma dos `total_exc` dos itens, feita no servidor. null = sem `view_purchase_price` ou não é composição. */
+  composicao_total_exc: number | null;
   /** null = sem `stock_report.view` ou produto sem controle de estoque. */
   estoque: LinhaRelatorioEstoque[] | null;
   /**

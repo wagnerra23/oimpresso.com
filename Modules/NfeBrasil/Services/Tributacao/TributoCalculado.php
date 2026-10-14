@@ -57,5 +57,10 @@ final readonly class TributoCalculado
         public float   $valor_st = 0.0,
         public float   $valor_fcp = 0.0,
         public float   $valor_difal = 0.0,
+        // Benefício fiscal (thread 25 — R-NFE-030). `base_icms` só é preenchida quando a regra
+        // reduz a base; null = base cheia, como antes (o XML não muda). `reducao_base` em decimal.
+        public float   $reducao_base = 0.0,
+        public ?float  $base_icms = null,
+        public ?string $c_benef = null,
     ) {}
 }

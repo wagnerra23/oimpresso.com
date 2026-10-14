@@ -89,7 +89,7 @@ if (! function_exists('invokePrivate')) {
     }
 }
 
-test('failedJobs24h conta apenas registros recentes', function () {
+test('UC-GDSH-04 failedJobs24h conta apenas registros recentes', function () {
     DB::table('failed_jobs')->insert([
         ['uuid' => 'a', 'connection' => 'redis', 'queue' => 'default', 'payload' => '{}', 'exception' => 'x', 'failed_at' => now()->subHours(2)],
         ['uuid' => 'b', 'connection' => 'redis', 'queue' => 'default', 'payload' => '{}', 'exception' => 'x', 'failed_at' => now()->subHours(20)],
@@ -101,13 +101,13 @@ test('failedJobs24h conta apenas registros recentes', function () {
     expect($count)->toBe(2);
 });
 
-test('failedJobs24h retorna null quando tabela ausente', function () {
+test('UC-GDSH-05 failedJobs24h retorna null quando tabela ausente', function () {
     Schema::dropIfExists('failed_jobs');
 
     expect(invokePrivate(controllerInstance(), 'failedJobs24h'))->toBeNull();
 });
 
-test('custoIa24h aplica pricing canônico gpt-4o-mini', function () {
+test('UC-GDSH-04 custoIa24h aplica pricing canônico gpt-4o-mini', function () {
     DB::table('jana_mensagens')->insert([
         ['tokens_in' => 1_000_000, 'tokens_out' => 500_000, 'created_at' => now()->subHours(1), 'updated_at' => now()],
         ['tokens_in' => 500_000, 'tokens_out' => 0, 'created_at' => now()->subDays(2), 'updated_at' => now()],
@@ -119,13 +119,13 @@ test('custoIa24h aplica pricing canônico gpt-4o-mini', function () {
     expect($custo)->toBe(2.25);
 });
 
-test('custoIa24h retorna null quando jana_mensagens ausente', function () {
+test('UC-GDSH-05 custoIa24h retorna null quando jana_mensagens ausente', function () {
     Schema::dropIfExists('jana_mensagens');
 
     expect(invokePrivate(controllerInstance(), 'custoIa24h'))->toBeNull();
 });
 
-test('ultimaNarrativa retorna shape com severity, message e generated_at', function () {
+test('UC-GDSH-04 ultimaNarrativa retorna shape com severity, message e generated_at', function () {
     DB::table('jana_health_narratives')->insert([
         ['severity' => 'warning', 'narrative' => 'Custo Brain B subiu 3x', 'snapshot_hash' => str_repeat('a', 64), 'generated_at' => now()->subMinutes(30)],
         ['severity' => 'info', 'narrative' => 'Tudo OK', 'snapshot_hash' => str_repeat('b', 64), 'generated_at' => now()->subHours(2)],
@@ -138,13 +138,13 @@ test('ultimaNarrativa retorna shape com severity, message e generated_at', funct
         ->and($row['message'])->toBe('Custo Brain B subiu 3x');
 });
 
-test('ultimaNarrativa retorna null quando jana_health_narratives ausente', function () {
+test('UC-GDSH-05 ultimaNarrativa retorna null quando jana_health_narratives ausente', function () {
     Schema::dropIfExists('jana_health_narratives');
 
     expect(invokePrivate(controllerInstance(), 'ultimaNarrativa'))->toBeNull();
 });
 
-test('narrativasRecentes pega só últimas 5 das 24h', function () {
+test('UC-GDSH-04 narrativasRecentes pega só últimas 5 das 24h', function () {
     foreach (range(1, 8) as $i) {
         DB::table('jana_health_narratives')->insert([
             'severity' => 'info',
@@ -167,7 +167,7 @@ test('narrativasRecentes pega só últimas 5 das 24h', function () {
         ->and($recentes[0]['narrative'])->toBe('Narrativa 1');
 });
 
-test('narrativasRecentes retorna array vazio quando jana_health_narratives ausente', function () {
+test('UC-GDSH-05 narrativasRecentes retorna array vazio quando jana_health_narratives ausente', function () {
     Schema::dropIfExists('jana_health_narratives');
 
     expect(invokePrivate(controllerInstance(), 'narrativasRecentes'))->toBe([]);

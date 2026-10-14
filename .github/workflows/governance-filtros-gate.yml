@@ -32,7 +32,13 @@ on:
       - 'resources/js/Pages/governance/Audit.tsx'
       - 'resources/js/Pages/governance/Policies.tsx'
       - 'resources/js/Pages/governance/ModuleGrades/Index.tsx'
+      - 'resources/js/Pages/governance/Custos.tsx'
+      - 'resources/js/Pages/governance/DriftAlerts.tsx'
+      - 'resources/js/Pages/governance/QualidadeIa.tsx'
       - 'tests/js/governance-filtros.test.tsx'
+      - 'tests/js/governance-custos.test.tsx'
+      - 'tests/js/governance-drift-alerts.test.tsx'
+      - 'tests/js/governance-qualidade-ia.test.tsx'
       - '.github/workflows/governance-filtros-gate.yml'
   push:
     branches: [main]
@@ -40,7 +46,13 @@ on:
       - 'resources/js/Pages/governance/Audit.tsx'
       - 'resources/js/Pages/governance/Policies.tsx'
       - 'resources/js/Pages/governance/ModuleGrades/Index.tsx'
+      - 'resources/js/Pages/governance/Custos.tsx'
+      - 'resources/js/Pages/governance/DriftAlerts.tsx'
+      - 'resources/js/Pages/governance/QualidadeIa.tsx'
       - 'tests/js/governance-filtros.test.tsx'
+      - 'tests/js/governance-custos.test.tsx'
+      - 'tests/js/governance-drift-alerts.test.tsx'
+      - 'tests/js/governance-qualidade-ia.test.tsx'
 
 concurrency:
   group: governance-filtros-gate-${{ github.ref }}
@@ -57,5 +69,6 @@ jobs:
           node-version: '24'
       - name: Install deps
         run: npm ci
-      - name: Comportamento dos filtros — Audit · Policies · ModuleGrades (vitest)
+      # 2026-10-14 (E1): mesmo step roda também os contratos vitest de Custos, DriftAlerts e QualidadeIa.
+      - name: Comportamento dos filtros — Audit · Policies · ModuleGrades + contratos Custos · DriftAlerts · QualidadeIa (vitest)
         run: npm run test:governance-filtros

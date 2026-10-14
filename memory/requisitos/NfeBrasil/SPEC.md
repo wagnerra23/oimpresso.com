@@ -631,6 +631,21 @@ E devolução rejeitada, de outra nota ou de outra empresa não consome saldo
 **Implementação:** `Modules/NfeBrasil/Services/DevolucaoService.php` (`montarDevolucao`, rateio pela quantidade acumulada · `saldoDevolvido`).
 **Testado em:** `Modules/NfeBrasil/Tests/Feature/NfeDevolucaoTest.php` (lane `nfebrasil-pest`).
 
+### R-NFE-030 · Base reduzida e cBenef no item
+
+```gherkin
+Dado uma regra com redução de base de 33,33%, ICMS 18% e cBenef informado pelo contador
+Quando vendo um item de 600,00
+Então a base do ICMS é 600,00 × (1 − 0,3333) = 400,02 e o ICMS é 400,02 × 18% = 72,00
+E o item da nota leva <cBenef>, <pRedBC>33.3300 e <vBC>400.02, e o total da nota soma essa base
+E uma regra sem redução calcula sobre a base cheia (600,00 × 18% = 108,00), sem cBenef e com o XML de antes
+```
+
+**Contrato:** lei 4 do módulo (o ato legal da UF fica na regra, em `beneficio_fundamento`, obrigatório junto da redução ou do código) · D-MOTOR ([W] 2026-10-06).
+**Implementação:** migração `2026_10_14_000001_add_beneficio_fiscal_to_nfe_fiscal_rules` · `Modules/NfeBrasil/Services/MotorTributarioService.php` (`aplicarRegra`) · `Modules/NfeBrasil/Services/Tributacao/TributoCalculado.php` · `Modules/NfeBrasil/Services/NfeService.php` (`montarItensNfe`, `adicionarItem`) · `Modules/NfeBrasil/Http/Requests/UpsertRegraTributariaRequest.php`.
+**Testado em:** `Modules/NfeBrasil/Tests/Feature/MotorTributarioServiceTest.php` (lane `nfebrasil-pest`).
+**Fora deste item:** ST e DIFAL seguem sobre a base cheia; a pendência na Saúde fiscal para UF que exige cBenef depende de uma tabela das UFs que o exigem, com o ato de cada uma — ver `_saida-25.md`.
+
 ### R-NFE-033 · Aceita CNPJ alfanumérico válido e recusa o inválido
 
 ```gherkin
@@ -1483,3 +1498,16 @@ Como contador, quero que a NF-e de devolução use a base e as alíquotas da not
 **Critérios de aceite:** R-NFE-026 · R-NFE-027.
 
 **Disparo:** playbook Fiscal thread 20 (`prototipo-ui/cowork/Wagner/cowork-inbox/fiscal/playbook/20-devolucao.md`) · UC-TRB-13.
+
+### US-NFE-066 · Benefício fiscal na regra (redução de base + cBenef)
+
+> owner: — · sprint: — · priority: p1 · estimate: 3h · status: done · type: story
+> blocked_by: —
+
+**Implementado em:** `Modules/NfeBrasil/Services/MotorTributarioService.php` · `Modules/NfeBrasil/Services/NfeService.php` · `Modules/NfeBrasil/Database/Migrations/2026_10_14_000001_add_beneficio_fiscal_to_nfe_fiscal_rules.php` · `Modules/NfeBrasil/Tests/Feature/MotorTributarioServiceTest.php`
+
+Como contador, quero cadastrar na regra a redução de base e o código do benefício da UF, com o ato legal que o concede, para a nota sair com o ICMS reduzido e o cBenef que a SEFAZ exige.
+
+**Critérios de aceite:** R-NFE-030.
+
+**Disparo:** playbook Fiscal thread 25 (`prototipo-ui/cowork/Wagner/cowork-inbox/fiscal/playbook/25-beneficio-cbenef.md`) · UC-TRB-26.

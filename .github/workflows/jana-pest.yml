@@ -59,6 +59,10 @@ on:
       # terceiro caso do mesmo gate mudo que as duas notas acima já corrigiram
       # (lápide §5 2026-08-02 — "inclua o arquivo SOB TESTE no trigger").
       - 'resources/js/Pages/Jana/**'
+      # Contratos de governança que testam dado da Jana (E1, 2026-10-14): o teste mora em
+      # Modules/Jana/Tests/Feature/Governance/, então mexer no controller tem de acordar a lane.
+      - 'Modules/Governance/Http/Controllers/CustosController.php'
+      - 'Modules/Governance/Http/Controllers/QualidadeIaController.php'
       # O aggregator é a FONTE dos números do Painel — o UC-13 (churn ouro) o
       # exercita de verdade (semeia venda, chama buildInsightsAggregates) e ainda
       # prova que todo `metodo:` prometido pelo JanaDrillDrawer existe nele. Sem
@@ -117,6 +121,8 @@ jobs:
               # skip-as-pass, então sem a linha aqui um PR que mexe só no `.tsx` da
               # tela concluiria verde sem ter rodado o PainelContratoTest.
               - 'resources/js/Pages/Jana/**'
+              - 'Modules/Governance/Http/Controllers/CustosController.php'
+              - 'Modules/Governance/Http/Controllers/QualidadeIaController.php'
               # 2026-08-21 — as 4 entradas abaixo estavam SÓ no `paths:` do push desde
               # 2026-08-12/2026-08-13. O comentário de lá diz "sem esta linha, mexer no
               # scope não roda o guard dele" — mas a linha foi posta no bloco que NÃO

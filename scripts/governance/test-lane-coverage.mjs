@@ -80,6 +80,10 @@ export function extrairAlvos(yamlText, entradasDaLista = []) {
     if (dentroMatrizModule) {
       const item = linha.match(/^\s*-\s*([A-Za-z][A-Za-z0-9_]*)\s*$/);
       if (item) { modulosDaMatriz.push(item[1]); continue; }
+      // Comentário YAML dentro da lista é válido e NÃO encerra a sequência. A 1ª
+      // versão encerrava no 1º `#` e os módulos seguintes sumiam do run-set (medido
+      // 2026-10-14, PR #9370: 670 → 663 alvos, órfãos de UC 45 → 101 — falso-positivo).
+      if (/^\s*#/.test(linha)) continue;
       if (linha.trim() !== '') dentroMatrizModule = false;
     }
   }
@@ -539,6 +543,21 @@ function selftest() {
     estaCoberto('Modules/Alpha/Tests/Unit/QualquerTest.php', aMatriz));
   ok('CONTROLE NEGATIVO: módulo fora da matriz não é coberto',
     !estaCoberto('Modules/Gama/Tests/Unit/QualquerTest.php', aMatriz));
+
+  // BITE (2026-10-14, PR #9370): comentário DENTRO da lista `module:` não encerra a
+  // matriz — antes, tudo depois do 1º `#` sumia do run-set.
+  const wfMatrizComentada = [
+    'jobs:', '  pest:', '    strategy:', '      matrix:', '        module:',
+    '          - Alpha', '          # nota sobre o Beta', '          - Beta',
+    '', '            # comentário mais indentado', '          - Delta', '    steps:',
+    '      - run: |', '          vendor/bin/pest Modules/${{ matrix.module }}/Tests \\',
+    '            --no-coverage',
+  ].join('\n');
+  const aMatrizComentada = extrairAlvos(wfMatrizComentada);
+  ok('BITE: comentário dentro da lista não esconde os módulos seguintes',
+    ['Alpha', 'Beta', 'Delta'].every((m) => aMatrizComentada.includes(`Modules/${m}/Tests`)));
+  ok('CONTROLE NEGATIVO: a chave seguinte ainda encerra a lista',
+    !aMatrizComentada.some((a) => a.includes('steps')) && aMatrizComentada.length === 3);
 
   // ── entradasDeLista: paridade com o `sed 's/#.*//'` das lanes ──────────────
   // BITE do defeito real (2026-08-07): comentário INLINE é obrigatório nas duas

@@ -1,7 +1,7 @@
 <?php
 
 declare(strict_types=1);
-// Cobre UC-PIDX-09, UC-PIDX-11 e UC-PIDX-12 (resources/js/Pages/Produto/Index.casos.md) — G-2 rastreabilidade caso↔teste.
+// Cobre UC-PIDX-09, UC-PIDX-11, UC-PIDX-12 e UC-PIDX-20 (resources/js/Pages/Produto/Index.casos.md) — G-2 rastreabilidade caso↔teste.
 
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\DB;
@@ -250,4 +250,132 @@ it('UC-PIDX-12 · sem view_product_stock_value os valores vêm null (não zero);
     $d = pdtDetalhe($this, $p->productId);
     expect($d)->toHaveKey('estoque_totais');
     expect($d['estoque_totais'])->toBeNull();
+});
+
+/**
+ * Produto composto com 2 itens de preços conhecidos: o item A entra 2 vezes (custo 10) e o item B
+ * 3 vezes (custo 7,50). O próprio composto tem preço de venda 50 sem imposto e 55 com imposto.
+ *
+ * @return array{0: \Tests\Support\EstoqueProduto, 1: \Tests\Support\EstoqueProduto, 2: \Tests\Support\EstoqueProduto}
+ */
+function pdtComposto(int $businessId): array
+{
+    $itemA = EstoqueFixture::singleProduct($businessId);
+    $itemB = EstoqueFixture::singleProduct($businessId);
+    DB::table('variations')->where('id', $itemA->variationId())->update([
+        'default_purchase_price' => 10, 'dpp_inc_tax' => 11, 'profit_percent' => 40,
+        'default_sell_price' => 14, 'sell_price_inc_tax' => 15.4,
+    ]);
+    DB::table('variations')->where('id', $itemB->variationId())->update([
+        'default_purchase_price' => 7.5, 'dpp_inc_tax' => 8.25, 'profit_percent' => 20,
+        'default_sell_price' => 9, 'sell_price_inc_tax' => 9.9,
+    ]);
+    $kit = EstoqueFixture::singleProduct($businessId, false);
+    DB::table('products')->where('id', $kit->productId)->update(['type' => 'combo']);
+    DB::table('variations')->where('id', $kit->variationId())->update([
+        'combo_variations' => json_encode([
+            ['variation_id' => $itemA->variationId(), 'quantity' => 2, 'unit_id' => $itemA->unitId],
+            ['variation_id' => $itemB->variationId(), 'quantity' => 3, 'unit_id' => $itemB->unitId],
+        ]),
+        'default_purchase_price' => 42.5, 'dpp_inc_tax' => 46.75, 'profit_percent' => 17.65,
+        'default_sell_price' => 50, 'sell_price_inc_tax' => 55,
+    ]);
+
+    return [$kit, $itemA, $itemB];
+}
+
+it('UC-PIDX-20 · cada item da composição traz as colunas de preço da Blade e o "Total líquido" é a soma dos totais', function () {
+    pdtEntrar($this, ['product.view', 'access_all_locations', 'view_purchase_price', 'access_default_selling_price']);
+    [$kit] = pdtComposto($this->business->id);
+
+    $d = pdtDetalhe($this, $kit->productId);
+
+    // Anti-vácuo: os dois itens chegaram.
+    expect($d['composicao'])->toHaveCount(2);
+    $campos = ['compra_exc', 'compra_inc', 'lucro_percentual', 'venda_exc', 'venda_inc', 'total_exc'];
+    $item = fn (array $i) => array_map(fn ($c) => $i[$c], $campos);
+    // Os preços gravados em cada variação; total = custo × quantidade (unidade sem subunidade, multiplicador 1).
+    expect($item($d['composicao'][0]))->toEqual([10.0, 11.0, 40.0, 14.0, 15.4, 20.0]);
+    expect($item($d['composicao'][1]))->toEqual([7.5, 8.25, 20.0, 9.0, 9.9, 22.5]);
+
+    // Caminho 1 — conta à mão: 10 × 2 + 7,50 × 3.
+    expect(abs($d['composicao_total_exc'] - 42.5))->toBeLessThan(0.005);
+    // Caminho 2 — o código da Blade: a janela "Ver" (`combo_product_details`) imprime o total de cada
+    // item (custo × quantidade × multiplicador); a soma dessas linhas é o total líquido.
+    $html = $this->get('/products/view/' . $kit->productId)->assertOk()->getContent();
+    preg_match_all(
+        '/data-is_quantity=true\s*>\s*([\d.]+)\s*<\/span>[^<]*<\/td>\s*<td>\s*<span class="display_currency" data-currency_symbol="true">\s*([\d.]+)\s*<\/span>/',
+        $html,
+        $m
+    );
+    expect($m[2])->toHaveCount(2); // anti-vácuo: as duas linhas da Blade foram lidas
+    expect(abs($d['composicao_total_exc'] - array_sum(array_map('floatval', $m[2]))))->toBeLessThan(0.005);
+    // E é a soma dos totais que o próprio painel lista.
+    expect(abs($d['composicao_total_exc'] - collect($d['composicao'])->sum('total_exc')))->toBeLessThan(0.005);
+
+    // Preço de venda padrão da composição: o da variação do composto, o mesmo que a Blade imprime.
+    expect([$d['variacoes'][0]['venda_exc'], $d['variacoes'][0]['venda_inc']])->toEqual([50.0, 55.0]);
+    // O "Preço de venda padrão" vem logo depois da tabela da composição (a última linha de item).
+    $depoisDaTabela = substr($html, (int) strrpos($html, 'data-is_quantity=true'));
+    expect(preg_match('/<\/strong>\s*<span class="display_currency" data-currency_symbol="true">\s*([\d.]+)\s*<\/span>/', $depoisDaTabela, $preco))->toBe(1);
+    expect((float) $preco[1])->toBe(55.0);
+});
+
+it('UC-PIDX-20 · sem permissão de custo o total não vem (null, não zero) e cada item segue os gates das variações', function () {
+    pdtEntrar($this, ['product.view', 'access_all_locations', 'access_default_selling_price']);
+    [$kit] = pdtComposto($this->business->id);
+
+    $d = pdtDetalhe($this, $kit->productId);
+
+    expect($d['composicao'])->toHaveCount(2); // anti-vácuo
+    expect($d['composicao_total_exc'])->toBeNull();
+    foreach ($d['composicao'] as $i) {
+        foreach (['compra_exc', 'compra_inc', 'lucro_percentual', 'total_exc'] as $chave) {
+            expect($i)->not->toHaveKey($chave);
+        }
+        expect($i)->toHaveKey('venda_exc');
+        expect($i)->toHaveKey('venda_inc');
+    }
+
+    pdtEntrar($this, ['product.view', 'access_all_locations']);
+    $d = pdtDetalhe($this, $kit->productId);
+    expect($d['composicao'])->toHaveCount(2); // anti-vácuo
+    foreach ($d['composicao'] as $i) {
+        foreach (['compra_exc', 'compra_inc', 'lucro_percentual', 'venda_exc', 'venda_inc', 'total_exc'] as $chave) {
+            expect($i)->not->toHaveKey($chave);
+        }
+    }
+});
+
+it('UC-PIDX-20 · produto que não é composto não tem total da composição', function () {
+    pdtEntrar($this, ['product.view', 'access_all_locations', 'view_purchase_price']);
+    $p = pdtProdutoComPrecos($this->business->id);
+
+    $d = pdtDetalhe($this, $p->productId);
+
+    expect($d)->toHaveKey('composicao_total_exc');
+    expect($d['composicao_total_exc'])->toBeNull();
+    expect($d['composicao'])->toBe([]);
+});
+
+it('UC-PIDX-20 · variações e itens trazem as imagens da variação, só as da própria empresa', function () {
+    pdtEntrar($this, ['product.view', 'access_all_locations']);
+    [$kit, $itemA] = pdtComposto($this->business->id);
+    $midia = fn (int $empresa, int $variacao, string $arquivo) => DB::table('media')->insert([
+        'business_id' => $empresa, 'file_name' => $arquivo,
+        'model_type' => \App\Variation::class, 'model_id' => $variacao,
+        'created_at' => now(), 'updated_at' => now(),
+    ]);
+    $midia($this->business->id, $itemA->variationId(), '1700000000_pdt_item.jpg');
+    $midia($this->business->id + 1000000, $itemA->variationId(), '1700000000_pdt_outra_empresa.jpg');
+    $midia($this->business->id, $kit->variationId(), '1700000000_pdt_kit.jpg');
+
+    $d = pdtDetalhe($this, $kit->productId);
+
+    $nomes = fn (array $urls) => array_map(fn ($u) => basename((string) $u), $urls);
+    expect($nomes($d['composicao'][0]['imagens']))->toBe(['1700000000_pdt_item.jpg']);
+    expect($d['composicao'][1]['imagens'])->toBe([]);
+    expect($nomes($d['variacoes'][0]['imagens']))->toBe(['1700000000_pdt_kit.jpg']);
+    // A URL é a mesma da Blade (`Media::display_url`).
+    expect($d['composicao'][0]['imagens'][0])->toEndWith('/uploads/media/1700000000_pdt_item.jpg');
 });

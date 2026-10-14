@@ -36,7 +36,12 @@ import { render, screen, cleanup, fireEvent, within } from '@testing-library/rea
 
 // `vi.mock` é hoisted acima dos imports — a fn precisa nascer junto, senão o factory
 // referencia uma variável ainda não inicializada.
-const { routerGet } = vi.hoisted(() => ({ routerGet: vi.fn() }));
+const { routerGet, selectHandlers } = vi.hoisted(() => ({
+  routerGet: vi.fn(),
+  // Cada `<Select>` montado registra o seu `onValueChange`, NA ORDEM DE RENDER. É o que
+  // permite exercitar o `updateFilter` REAL da tela sem depender do Radix no jsdom.
+  selectHandlers: [] as Array<(v: string) => void>,
+}));
 
 vi.mock('@/Layouts/AppShellV2', () => ({ default: ({ children }: any) => <div>{children}</div> }));
 vi.mock('@inertiajs/react', () => ({
@@ -52,9 +57,12 @@ vi.mock('@/Components/shared/KpiGrid', () => ({ default: ({ children }: any) => 
 vi.mock('@/Components/shared/KpiCard', () => ({ default: () => null }));
 vi.mock('@/Components/ui/switch', () => ({ Switch: () => <input type="checkbox" readOnly /> }));
 vi.mock('@/Components/ui/select', () => ({
-  Select: ({ children }: any) => <div>{children}</div>,
+  Select: ({ children, onValueChange }: any) => {
+    if (onValueChange) selectHandlers.push(onValueChange);
+    return <div data-select="">{children}</div>;
+  },
   SelectContent: ({ children }: any) => <div>{children}</div>,
-  SelectItem: ({ children }: any) => <div>{children}</div>,
+  SelectItem: ({ children, value }: any) => <div data-value={value}>{children}</div>,
   SelectTrigger: ({ children }: any) => <div>{children}</div>,
   SelectValue: () => null,
 }));
@@ -62,7 +70,7 @@ vi.mock('@/Components/ui/select', () => ({
 import AuditPage from '@/Pages/governance/Audit';
 import PoliciesPage from '@/Pages/governance/Policies';
 
-afterEach(() => { cleanup(); routerGet.mockClear(); });
+afterEach(() => { cleanup(); routerGet.mockClear(); selectHandlers.length = 0; });
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Audit — "Limpar filtros" (governance-audit-gap.md)
@@ -86,29 +94,29 @@ function montarAudit(filtros: Record<string, unknown> = {}) {
 }
 
 describe('governance/Audit — Limpar filtros', () => {
-  it('CONTROLE POSITIVO: a tela renderiza (o harness está de pé)', () => {
+  it('UC-GAUD-04 · CONTROLE POSITIVO: a tela renderiza (o harness está de pé)', () => {
     montarAudit();
     // `brief-fetch` só existe na linha da tabela; `/mcp/tools` apareceria também
     // no SelectItem de endpoints e não distinguiria render de casca.
     expect(screen.getByText('brief-fetch')).toBeTruthy();
   });
 
-  it('no default (period=24h, resto vazio) NÃO oferece limpar — nada a limpar', () => {
+  it('UC-GAUD-04 · no default (period=24h, resto vazio) NÃO oferece limpar — nada a limpar', () => {
     montarAudit();
     expect(screen.queryByRole('button', { name: /limpar filtros/i })).toBeNull();
   });
 
-  it('com filtro aplicado, oferece limpar', () => {
+  it('UC-GAUD-04 · com filtro aplicado, oferece limpar', () => {
     montarAudit({ status: 'error' });
     expect(screen.getByRole('button', { name: /limpar filtros/i })).toBeTruthy();
   });
 
-  it('período != 24h também conta como filtro (o default do controller é 24h)', () => {
+  it('UC-GAUD-04 · período != 24h também conta como filtro (o default do controller é 24h)', () => {
     montarAudit({ period: '7d' });
     expect(screen.getByRole('button', { name: /limpar filtros/i })).toBeTruthy();
   });
 
-  it('clicar em limpar pede a rota SEM filtro nenhum, com partial reload', () => {
+  it('UC-GAUD-04 · clicar em limpar pede a rota SEM filtro nenhum, com partial reload', () => {
     montarAudit({ status: 'error', actor: 'wagner' });
     fireEvent.click(screen.getByRole('button', { name: /limpar filtros/i }));
 
@@ -121,7 +129,7 @@ describe('governance/Audit — Limpar filtros', () => {
     expect(opts.preserveState).toBe(true);
   });
 
-  it('sem entries E com filtro, o vazio explica a combinação e oferece a saída', () => {
+  it('UC-GAUD-05 · sem entries E com filtro, o vazio explica a combinação e oferece a saída', () => {
     render(
       <AuditPage
         entries={[] as any}
@@ -134,6 +142,66 @@ describe('governance/Audit — Limpar filtros', () => {
     expect(screen.getByText(/não devolve nada/i)).toBeTruthy();
     expect(screen.getByText(/Período 7d/)).toBeTruthy();
     expect(screen.getByText(/status error/)).toBeTruthy();
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Audit — contrato do Audit.casos.md (UC-GAUD-01/02/05/06)
+// Derivado do charter + RUNBOOK-audit + governance-audit-gap, nunca do .tsx.
+// ─────────────────────────────────────────────────────────────────────────────
+describe('governance/Audit — filtros, janela, vazio e teto (Audit.casos.md)', () => {
+  it('UC-GAUD-01 · trocar um filtro pede a mesma rota com o filtro novo, por partial reload', () => {
+    montarAudit({ status: 'error' });
+    // Os 4 filtros do charter: período · actor · endpoint · status — nessa ordem de render.
+    expect(selectHandlers).toHaveLength(4);
+
+    selectHandlers[0]('7d');
+
+    expect(routerGet).toHaveBeenCalledTimes(1);
+    const [url, params, opts] = routerGet.mock.calls[0] as any[];
+    expect(url).toBe('/governance/audit');
+    // o filtro novo entra E o que já estava aplicado continua (combinados, não substituídos)
+    expect(params.period).toBe('7d');
+    expect(params.status).toBe('error');
+    // D-14: só re-busca o que muda com filtro; as listas de opção ficam de fora
+    expect(opts.only).toEqual(['entries', 'kpis', 'filters']);
+    expect(opts.preserveState).toBe(true);
+    expect(opts.preserveScroll).toBe(true);
+    expect(opts.replace).toBe(true);
+  });
+
+  it('UC-GAUD-01 · escolher "Todos" num filtro o REMOVE da consulta (não manda valor vazio)', () => {
+    montarAudit({ endpoint: '/mcp/tools' });
+    selectHandlers[2]('__all__');
+
+    const [, params] = routerGet.mock.calls[0] as any[];
+    expect(params.endpoint).toBeUndefined();
+  });
+
+  it('UC-GAUD-02 · a janela de período oferece só 1h, 24h, 7d e 30d — nada acima de 30d', () => {
+    const { container } = montarAudit();
+    const periodo = container.querySelectorAll('[data-select]')[0] as HTMLElement;
+    const valores = Array.from(periodo.querySelectorAll('[data-value]')).map((n) => n.getAttribute('data-value'));
+    expect(valores).toEqual(['1h', '24h', '7d', '30d']);
+  });
+
+  it('UC-GAUD-05 · sem entries e SEM filtro, o vazio não oferece limpar (não há o que limpar)', () => {
+    render(
+      <AuditPage
+        entries={[] as any}
+        kpis={{ total: 0, errors: 0, unique_users: 0 }}
+        filters={{ period: '24h', actor: null, endpoint: null, status: null } as any}
+        available_endpoints={[]}
+        available_actors={[]}
+      />,
+    );
+    expect(screen.getByText(/Sem entries/i)).toBeTruthy();
+    expect(screen.queryByRole('button', { name: /limpar filtros/i })).toBeNull();
+  });
+
+  it('UC-GAUD-06 · o teto de 200 por consulta está declarado na tela', () => {
+    montarAudit();
+    expect(screen.getByText(/Limit 200 entries por query/i)).toBeTruthy();
   });
 });
 
