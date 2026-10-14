@@ -161,3 +161,22 @@ it('UC-NFTR-25 · pronto pra emitir', function () {
     sfCertificado(200);
     expect($svc->avaliar($biz)['pronto'])->toBeTrue();
 });
+
+it('UC-NFTR-24 · a tela recebe cada pendência com o link que resolve', function () {
+    $biz = sfBiz();
+    sfNcmPadrao('00000000');
+    $p = sfProduto('0');
+
+    $request = Illuminate\Http\Request::create('/nfe-brasil/tributacao', 'GET');
+    $request->setLaravelSession(app('session.store'));
+    $request->session()->put('business.id', $biz);
+    $response = (new Modules\NfeBrasil\Http\Controllers\TributacaoController())->index($request);
+    $props = (new ReflectionProperty($response, 'props'))->getValue($response);
+    $saude = (new ReflectionProperty($props['saude'], 'callback'))->getValue($props['saude'])();
+    $t = collect($saude['itens'])->keyBy('tipo');
+
+    expect($saude['pronto'])->toBeFalse();
+    expect($t['ncm_padrao_invalido']['url'])->toBe(route('nfe-brasil.tributacao.config.show'));
+    expect($t['produto_sem_ncm']['url'])->toBe(route('products.unificado.index'));
+    expect($t['produto_sem_ncm']['ids'])->toContain($p);
+});
