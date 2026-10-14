@@ -58044,7 +58044,41 @@
     "projetoCowork": "w"
   },
   {
-    "date": "2026-10-14T17:48:37.550Z",
+    "date": "2026-10-14T17:49:07.411Z",
+    "files": 285,
+    "sync": 1,
+    "stale": 0,
+    "liveAbsent": 0,
+    "unchecked": 284,
+    "staleList": [],
+    "verified": [
+      "cowork-inbox/crm/playbook/_DECISOES-W-2026-10-14.md"
+    ],
+    "verifiedHash": {
+      "cowork-inbox/crm/playbook/_DECISOES-W-2026-10-14.md": "05bf1a45796e6f6f28f8e59c025f241aee7c3c11ea871dee5dfa0cef1163b05f"
+    },
+    "origin": "medicao",
+    "projetoCowork": "w"
+  },
+  {
+    "date": "2026-10-14T17:41:59.803Z",
+    "files": 285,
+    "sync": 1,
+    "stale": 0,
+    "liveAbsent": 0,
+    "unchecked": 284,
+    "staleList": [],
+    "verified": [
+      "cowork-inbox/officeimpresso/playbook/_DECISOES-W-2026-10-14.md"
+    ],
+    "verifiedHash": {
+      "cowork-inbox/officeimpresso/playbook/_DECISOES-W-2026-10-14.md": "82ab903e4d91b3ce7e77360aa90add57b7f754516b69db3911996b6be19f9735"
+    },
+    "origin": "medicao",
+    "projetoCowork": "w"
+  },
+  {
+    "date": "2026-10-14T19:10:32.980Z",
     "files": 285,
     "sync": 1,
     "stale": 0,
