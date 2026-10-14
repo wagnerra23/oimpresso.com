@@ -9,7 +9,7 @@
 // Charter: ./Create.charter.md
 
 import AppShellV2 from '@/Layouts/AppShellV2';
-import PageHeader from '@/Components/shared/PageHeader';
+import { PageHeader } from '@/Components/PageHeader';
 import { router, useForm } from '@inertiajs/react';
 import { useMemo, useState, type ReactNode } from 'react';
 import { Button } from '@/Components/ui/button';
@@ -133,10 +133,10 @@ function StockTransferCreate({
   return (
     <form onSubmit={enviar}>
       <PageHeader
-        icon="truck"
+        leading={<Truck className="mr-2 inline h-5 w-5 align-middle text-primary" aria-hidden="true" />}
         title="Nova transferência de estoque"
-        description="Origem → Destino dentro da mesma empresa (multi-tenant Tier 0)."
-        action={
+        subtitle="Origem → Destino dentro da mesma empresa (multi-tenant Tier 0)."
+        actions={
           <div className="flex gap-2">
             <Button type="button" variant="outline" size="sm" onClick={() => router.visit('/stock-transfers')}>
               <ArrowLeft className="h-4 w-4 mr-1" /> Cancelar
@@ -193,7 +193,7 @@ function StockTransferCreate({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3 items-end">
               <div>
                 <Label className="text-[12px] text-stone-600 flex items-center gap-1">
-                  <span className="inline-flex h-5 w-5 items-center justify-center rounded bg-stone-200 text-[10px] font-semibold">DE</span>
+                  <span className="inline-flex h-5 w-5 items-center justify-center rounded bg-border text-foreground text-[10px] font-semibold">DE</span>
                   Filial origem *
                 </Label>
                 <select
@@ -211,7 +211,7 @@ function StockTransferCreate({
               <div>
                 <Label className="text-[12px] text-stone-600 flex items-center gap-1">
                   <ArrowRight className="h-3 w-3 text-stone-400" />
-                  <span className="inline-flex h-5 w-5 items-center justify-center rounded bg-emerald-100 text-emerald-700 text-[10px] font-semibold">PARA</span>
+                  <span className="inline-flex h-5 w-5 items-center justify-center rounded bg-success-soft text-success-fg text-[10px] font-semibold">PARA</span>
                   Filial destino *
                 </Label>
                 <select

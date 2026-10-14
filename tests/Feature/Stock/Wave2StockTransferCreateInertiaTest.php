@@ -49,7 +49,9 @@ it('Charter + Runbook + Visual existem (ADR 0149 + 0114)', function () {
 it('Page importa AppShellV2 + PageHeader (canon V2)', function () {
     $source = readSTCreateInertia();
     expect($source)->toContain('@/Layouts/AppShellV2');
-    expect($source)->toContain('@/Components/shared/PageHeader');
+    // 2026-10-14: header migrado para o canon (#9405, decisão [W]) — o antigo não pode voltar.
+    expect($source)->toContain("from '@/Components/PageHeader'");
+    expect($source)->not->toContain('@/Components/shared/PageHeader');
     expect($source)->toMatch('/StockTransferCreate\\.layout\\s*=/');
 });
 
