@@ -95,6 +95,9 @@ on:
       # Thread Crm/13 — Relatórios: portão is_admin nos endpoints de dados (C1) e a migração da tela.
       - 'Modules/Crm/Http/Controllers/ReportController.php'
       - 'Modules/Crm/Tests/Feature/CrmRelatorios*'
+      # Thread Crm/17 — pedidos de clientes: a Blade travada antes da Page.
+      - 'Modules/Crm/Http/Controllers/OrderRequestController.php'
+      - 'Modules/Crm/Tests/Feature/CrmPedidos*'
       # Thread Crm/16 — login de contatos (portal, D3): a Blade travada antes da Page.
       - 'Modules/Crm/Http/Controllers/ContactLoginController.php'
       - 'Modules/Crm/Tests/Feature/CrmLogins*'
@@ -187,6 +190,9 @@ jobs:
               # Thread Crm/13 — Relatórios: portão is_admin nos endpoints de dados (C1) e a migração da tela.
               - 'Modules/Crm/Http/Controllers/ReportController.php'
               - 'Modules/Crm/Tests/Feature/CrmRelatorios*'
+              # Thread Crm/17 — pedidos de clientes: a Blade travada antes da Page.
+              - 'Modules/Crm/Http/Controllers/OrderRequestController.php'
+              - 'Modules/Crm/Tests/Feature/CrmPedidos*'
               # Thread Crm/16 — login de contatos (portal, D3): a Blade travada antes da Page.
               - 'Modules/Crm/Http/Controllers/ContactLoginController.php'
               - 'Modules/Crm/Tests/Feature/CrmLogins*'
@@ -417,7 +423,9 @@ jobs:
             Modules/Crm/Tests/Feature/CrmLeadShowEscopoTest.php \
             Modules/Crm/Tests/Feature/CrmPainelContratoTest.php \
             Modules/Crm/Tests/Feature/CrmRelatoriosPermissaoTest.php \
+            Modules/Crm/Tests/Feature/CrmPedidosBaselineTest.php \
             Modules/Crm/Tests/Feature/CrmLoginsBaselineTest.php \
+            Modules/Crm/Tests/Feature/CrmLoginsEscritaEscopoTest.php \
             Modules/Crm/Tests/Feature/CrmLeadsListQueryTest.php \
             Modules/Crm/Tests/Feature/ClienteStatsTicketMedioTest.php \
             Modules/Crm/Tests/Feature/CrmConfiguracoesBaselineTest.php
