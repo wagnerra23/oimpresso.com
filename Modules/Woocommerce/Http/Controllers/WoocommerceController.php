@@ -82,7 +82,7 @@ class WoocommerceController extends Controller
         // segue sendo onde se sincroniza, reinicia e mapeia impostos. A Blade chama a API da loja (getTaxRates); a tela
         // React não chama: só lê o banco, e nunca recebe as chaves da API.
         $business_id = (int) request()->session()->get('business.id');
-        if (! request()->boolean('classico') && app(FeatureFlagService::class)->isOn(self::FLAG_V2, ['business_id' => $business_id])) {
+        if ($this->usaTelaNova($business_id)) {
             $this->authService->ensureModulo($business_id);
             $settings = $this->woocommerceUtil->get_api_settings($business_id);
 
@@ -145,6 +145,16 @@ class WoocommerceController extends Controller
 
         return view('woocommerce::woocommerce.index')
                 ->with(compact('tax_rates', 'woocommerce_tax_rates', 'alerts'));
+    }
+
+    /**
+     * A tela React responde quando a flag está ligada para o negócio e o pedido não pediu a Blade (`?classico=1`).
+     * Uma flag para as três telas do módulo (painel, configuração, log — threads 01 e 02): viram juntas.
+     */
+    private function usaTelaNova(int $business_id): bool
+    {
+        return ! request()->boolean('classico')
+            && app(FeatureFlagService::class)->isOn(self::FLAG_V2, ['business_id' => $business_id]);
     }
 
     /**
@@ -226,12 +236,19 @@ class WoocommerceController extends Controller
     /**
      * Displays form to update woocommerce api settings.
      *
-     * @return Response
+     * @return \Illuminate\Contracts\View\View|\Inertia\Response
      */
     public function apiSettings()
     {
         $business_id = (int) request()->session()->get('business.id');
         $this->authService->ensureAcao($business_id, 'woocommerce.access_woocommerce_api_settings');
+
+        // Thread woocommerce/playbook/02: com a flag ligada a configuração é a tela React. Tier 0: os 6 segredos
+        // (consumer key/secret e os 4 de webhook) não vão em prop — a Blade os entrega em claro, a tela nova só sabe
+        // se cada um está preenchido.
+        if ($this->usaTelaNova($business_id)) {
+            return Inertia::render('Woocommerce/Configuracao/Index', $this->propsDaConfiguracao($business_id));
+        }
 
         $default_settings = [
             'woocommerce_app_url' => '',
@@ -277,6 +294,105 @@ class WoocommerceController extends Controller
                 ->with(compact('default_settings', 'locations', 'price_groups', 'module_version', 'cron_job_command', 'business', 'shipping_statuses'));
     }
 
+    /** Segredo guardado no JSON `woocommerce_api_settings`. */
+    private const SEGREDOS_DO_JSON = ['woocommerce_consumer_key', 'woocommerce_consumer_secret'];
+
+    /** Segredo guardado em coluna própria de `business` (assinatura HMAC dos webhooks). */
+    private const SEGREDOS_DE_WEBHOOK = ['woocommerce_wh_oc_secret', 'woocommerce_wh_ou_secret', 'woocommerce_wh_od_secret', 'woocommerce_wh_or_secret'];
+
+    /** Campos da configuração que a tela React pode ver: tudo que não é segredo. */
+    private const CAMPOS_VISIVEIS = [
+        'woocommerce_app_url', 'location_id', 'enable_auto_sync', 'default_tax_class', 'product_tax_type',
+        'default_selling_price_group', 'sync_description_as', 'product_fields_for_create', 'product_fields_for_update',
+        'manage_stock_for_create', 'in_stock_for_create', 'manage_stock_for_update', 'in_stock_for_update',
+        'order_statuses', 'shipping_statuses',
+    ];
+
+    /**
+     * Props da tela React de configuração. Mesmas fontes da Blade (`apiSettings`), menos os segredos: no lugar deles
+     * vai só se cada um está preenchido.
+     */
+    private function propsDaConfiguracao(int $business_id): array
+    {
+        $business = Business::where('id', $business_id)
+            ->first(array_merge(['woocommerce_api_settings'], self::SEGREDOS_DE_WEBHOOK));
+        $demonstracao = ! empty($this->woocommerceUtil->notAllowedInDemo());
+        $salvo = (! $demonstracao && ! empty($business->woocommerce_api_settings))
+            ? (json_decode($business->woocommerce_api_settings, true) ?: [])
+            : [];
+
+        $config = array_merge([
+            'woocommerce_app_url' => '', 'location_id' => null, 'enable_auto_sync' => false, 'default_tax_class' => '',
+            'product_tax_type' => 'inc', 'default_selling_price_group' => '', 'sync_description_as' => 'long',
+            'product_fields_for_create' => ['category', 'quantity'], 'product_fields_for_update' => ['name', 'price', 'category', 'quantity'],
+            'manage_stock_for_create' => 'none', 'in_stock_for_create' => 'none', 'manage_stock_for_update' => 'none',
+            'in_stock_for_update' => 'none', 'order_statuses' => [], 'shipping_statuses' => [],
+        ], array_intersect_key($salvo, array_flip(self::CAMPOS_VISIVEIS)));
+        $config['enable_auto_sync'] = ! empty($config['enable_auto_sync']);
+        foreach (['product_fields_for_create', 'product_fields_for_update'] as $k) {
+            $config[$k] = array_values((array) ($config[$k] ?: []));
+        }
+        foreach (['order_statuses', 'shipping_statuses'] as $k) {
+            $config[$k] = (object) array_filter((array) $config[$k]);
+        }
+
+        $preenchido = [];
+        foreach (self::SEGREDOS_DO_JSON as $k) {
+            $preenchido[$k] = ! empty($salvo[$k]);
+        }
+        foreach (self::SEGREDOS_DE_WEBHOOK as $k) {
+            $preenchido[$k] = ! $demonstracao && ! empty($business->{$k});
+        }
+
+        $webhooks = [];
+        foreach (['oc' => 'orderCreated', 'ou' => 'orderUpdated', 'od' => 'orderDeleted', 'or' => 'orderRestored'] as $sigla => $acao) {
+            $webhooks[$sigla] = action([WoocommerceWebhookController::class, $acao], ['business_id' => $business_id]);
+        }
+
+        return [
+            'config' => $config,
+            'segredos' => $preenchido,
+            'demonstracao' => $demonstracao,
+            'opcoes' => [
+                'locais' => collect(BusinessLocation::forDropdown($business_id))
+                    ->map(fn ($nome, $id) => ['id' => (string) $id, 'nome' => $nome])->values(),
+                'grupos_preco' => SellingPriceGroup::where('business_id', $business_id)->orderBy('name')->get(['id', 'name'])
+                    ->map(fn ($g) => ['id' => (string) $g->id, 'nome' => $g->name])->values(),
+                'status_loja' => [
+                    'pending' => __('woocommerce::lang.pending'), 'processing' => __('woocommerce::lang.processing'),
+                    'on-hold' => __('woocommerce::lang.on-hold'), 'completed' => __('woocommerce::lang.completed'),
+                    'cancelled' => __('woocommerce::lang.cancelled'), 'refunded' => __('woocommerce::lang.refunded'),
+                    'failed' => __('woocommerce::lang.failed'), 'shipped' => __('woocommerce::lang.shipped'),
+                ],
+                'status_venda' => ['final' => __('lang_v1.final'), 'draft' => __('sale.draft'), 'quotation' => __('lang_v1.quotation')],
+                'status_envio' => $this->moduleUtil->shipping_statuses(),
+                'webhooks' => $webhooks,
+                'cron' => config('app.env') != 'demo' ? $this->moduleUtil->getCronJobCommand() : null,
+                'versao_modulo' => System::getProperty('woocommerce_version'),
+            ],
+        ];
+    }
+
+    /**
+     * Com o marcador da tela React, segredo vazio mantém o que está salvo (a página nunca recebeu o valor).
+     * Lê só do negócio da sessão.
+     */
+    private function manterSegredosVazios(int $business_id, array $input): array
+    {
+        $business = Business::where('id', $business_id)
+            ->first(array_merge(['woocommerce_api_settings'], self::SEGREDOS_DE_WEBHOOK));
+        $salvo = json_decode($business->woocommerce_api_settings ?? '', true) ?: [];
+
+        foreach (self::SEGREDOS_DO_JSON as $k) {
+            $input[$k] = ! empty($input[$k]) ? $input[$k] : ($salvo[$k] ?? '');
+        }
+        foreach (self::SEGREDOS_DE_WEBHOOK as $k) {
+            $input[$k] = ! empty($input[$k]) ? $input[$k] : ($business->{$k} ?? null);
+        }
+
+        return $input;
+    }
+
     /**
      * Updates woocommerce api settings.
      *
@@ -294,6 +410,13 @@ class WoocommerceController extends Controller
 
         try {
             $input = $request->except('_token');
+
+            // Só a tela React manda o marcador: lá o campo de segredo vem vazio quando não se quer trocar, porque a
+            // página nunca recebeu o valor. Sem ele (Blade), vazio continua apagando, como sempre foi.
+            if ($request->boolean('manter_segredos')) {
+                unset($input['manter_segredos']);
+                $input = $this->manterSegredosVazios($business_id, $input);
+            }
 
             $input['product_fields_for_create'] = ! empty($input['product_fields_for_create']) ? $input['product_fields_for_create'] : [];
             $input['product_fields_for_update'] = ! empty($input['product_fields_for_update']) ? $input['product_fields_for_update'] : [];
@@ -457,29 +580,25 @@ class WoocommerceController extends Controller
     /**
      * Display a listing of the resource.
      *
-     * @return Response
+     * @return mixed JSON do DataTables (AJAX) · Blade · Inertia\Response (flag ligada)
      */
     public function viewSyncLog()
     {
         $business_id = (int) request()->session()->get('business.id');
         $this->authService->ensureModulo($business_id);
 
+        // Thread woocommerce/playbook/02: com a flag ligada o log é a tela React. Decide por `X-Inertia`, e antes do
+        // `ajax()`: o Inertia manda `X-Requested-With` em toda visita, e o DataTables da Blade não manda `X-Inertia`.
+        if ($this->usaTelaNova($business_id) && (request()->header('X-Inertia') || ! request()->ajax())) {
+            return Inertia::render('Woocommerce/Log/Index', [
+                'logs' => Inertia::defer(fn () => $this->logsDaTela($business_id)),
+                'pode' => ['configurar' => $this->authService->podeExecutarAcao($business_id, 'woocommerce.access_woocommerce_api_settings')],
+            ]);
+        }
+
         if (request()->ajax()) {
             // D4 — Repository monta query base com filtro business_id + RBAC sync_types.
-            $sync_type = [];
-            if (auth()->user()->can('woocommerce.syc_categories')) {
-                $sync_type[] = 'categories';
-            }
-            if (auth()->user()->can('woocommerce.sync_products')) {
-                $sync_type[] = 'all_products';
-                $sync_type[] = 'new_products';
-            }
-            if (auth()->user()->can('woocommerce.sync_orders')) {
-                $sync_type[] = 'orders';
-            }
-
-            $isSuperadmin = (bool) auth()->user()->can('superadmin');
-            $logs = $this->logRepo->paraDatatable($business_id, $sync_type, $isSuperadmin);
+            $logs = $this->logRepo->paraDatatable($business_id, $this->tiposDeLogPermitidos(), (bool) auth()->user()->can('superadmin'));
 
             return Datatables::of($logs)
                 ->editColumn('created_at', function ($row) {
@@ -489,23 +608,10 @@ class WoocommerceController extends Controller
                     return $created_at.'<br><small>'.$for_humans.'</small>';
                 })
                 ->editColumn('sync_type', function ($row) {
-                    $array = [
-                        'categories' => __('category.categories'),
-                        'all_products' => __('sale.products'),
-                        'new_products' => __('sale.products'),
-                        'orders' => __('woocommerce::lang.orders'),
-                    ];
-
-                    return $array[$row->sync_type];
+                    return $this->rotulosDoTipoDeLog()[$row->sync_type];
                 })
                 ->editColumn('operation_type', function ($row) {
-                    $array = [
-                        'created' => __('woocommerce::lang.created'),
-                        'updated' => __('woocommerce::lang.updated'),
-                        'reset' => __('woocommerce::lang.reset'),
-                        'deleted' => __('lang_v1.deleted'),
-                        'restored' => __('woocommerce::lang.order_restored'),
-                    ];
+                    $array = $this->rotulosDaOperacaoDeLog();
 
                     return array_key_exists($row->operation_type, $array) ? $array[$row->operation_type] : '';
                 })
@@ -534,6 +640,101 @@ class WoocommerceController extends Controller
         }
 
         return view('woocommerce::woocommerce.sync_log');
+    }
+
+    /**
+     * Tipos de log que o usuário vê — uma fonte só para o DataTables da Blade e a tela React.
+     * Lista vazia (nenhuma das 3 permissões) não filtra: comportamento de antes, preservado (RUNBOOK-log §3).
+     *
+     * @return list<string>
+     */
+    private function tiposDeLogPermitidos(): array
+    {
+        $tipos = [];
+        if (auth()->user()->can('woocommerce.syc_categories')) {
+            $tipos[] = 'categories';
+        }
+        if (auth()->user()->can('woocommerce.sync_products')) {
+            $tipos[] = 'all_products';
+            $tipos[] = 'new_products';
+        }
+        if (auth()->user()->can('woocommerce.sync_orders')) {
+            $tipos[] = 'orders';
+        }
+
+        return $tipos;
+    }
+
+    /** @return array<string, string> */
+    private function rotulosDoTipoDeLog(): array
+    {
+        return [
+            'categories' => __('category.categories'),
+            'all_products' => __('sale.products'),
+            'new_products' => __('sale.products'),
+            'orders' => __('woocommerce::lang.orders'),
+        ];
+    }
+
+    /** @return array<string, string> */
+    private function rotulosDaOperacaoDeLog(): array
+    {
+        return [
+            'created' => __('woocommerce::lang.created'),
+            'updated' => __('woocommerce::lang.updated'),
+            'reset' => __('woocommerce::lang.reset'),
+            'deleted' => __('lang_v1.deleted'),
+            'restored' => __('woocommerce::lang.order_restored'),
+        ];
+    }
+
+    /**
+     * Página de execuções para a tela React (25, mais recentes primeiro). Mesma query do DataTables
+     * (`paraDatatable`: só o negócio da sessão, tipos pela permissão); os erros são os do partial `log_details`.
+     */
+    private function logsDaTela(int $business_id): array
+    {
+        $pagina = $this->logRepo
+            ->paraDatatable($business_id, $this->tiposDeLogPermitidos(), (bool) auth()->user()->can('superadmin'))
+            ->orderByDesc('woocommerce_sync_logs.created_at')->orderByDesc('woocommerce_sync_logs.id')
+            ->paginate(25);
+        $tipos = $this->rotulosDoTipoDeLog();
+        $operacoes = $this->rotulosDaOperacaoDeLog();
+
+        // As colunas vêm do select do paraDatatable (aliases `DT_RowId`, `log_details`, `full_name`): lidas como
+        // atributos crus, não como propriedades do Model.
+        $itens = collect($pagina->items())->map(function (\Illuminate\Database\Eloquent\Model $m) use ($tipos, $operacoes): array {
+            $row = (object) $m->getAttributes();
+            $registros = ! empty($row->data) ? array_values((array) json_decode($row->data, true)) : [];
+            $erros = [];
+            foreach ((array) json_decode($row->log_details ?? '') as $d) {
+                if (! is_object($d) || empty($d->error_type)) {
+                    continue;
+                }
+                $msg = match ($d->error_type) {
+                    'order_product_not_found' => __('woocommerce::lang.product_not_found_error', ['product' => $d->product ?? '', 'order_number' => $d->order_number ?? '']),
+                    'order_insuficient_product_qty' => __('woocommerce::lang.qty_mismatch_error', ['msg' => $d->msg ?? '', 'order_number' => $d->order_number ?? '']),
+                    'order_customer_empty' => __('woocommerce::lang.order_customer_empty', ['order_number' => $d->order_number ?? '']),
+                    default => null,
+                };
+                if ($msg !== null) {
+                    $erros[] = trim(strip_tags($msg));
+                }
+            }
+
+            return [
+                'id' => (int) $row->DT_RowId,
+                'data' => $this->woocommerceUtil->format_date($row->created_at, true),
+                'quando' => \Carbon::createFromFormat('Y-m-d H:i:s', $row->created_at)->diffForHumans(),
+                'tipo' => $tipos[$row->sync_type] ?? $row->sync_type,
+                'operacao' => $operacoes[$row->operation_type] ?? '',
+                'por' => trim(preg_replace('/\s+/', ' ', (string) $row->full_name)),
+                'registros' => array_map('strval', $registros),
+                'erros' => $erros,
+            ];
+        });
+
+        return ['itens' => $itens, 'pagina' => $pagina->currentPage(), 'ultima_pagina' => $pagina->lastPage(), 'total' => $pagina->total()];
     }
 
     /**

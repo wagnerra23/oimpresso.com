@@ -44,6 +44,27 @@
         <p><a href="{{ route('nfe-brasil.contador.csv', ['link' => $link->id]) }}">Baixar regras (CSV)</a>
             — devolva o arquivo à empresa; ela importa e as mudanças voltam para você aceitar.</p>
 
+        @if (! empty($fechamento))
+            {{-- Fechamento do mês (thread 28 · D-FECHAMENTO). Só agregados: nenhuma venda, cliente ou nota individual. --}}
+            <section class="card" data-contract="fechamento-contador" aria-labelledby="fechamento-h">
+                <h2 id="fechamento-h" style="font-size:16px;margin:0 0 4px">Fechamento {{ $fechamento['competencia'] }}</h2>
+                <p class="sub" style="margin-bottom:8px">Só informa: não gera DAS nem transmite o PGDAS. Nenhuma pendência bloqueia o fechamento.</p>
+                <table>
+                    <thead><tr><th>#</th><th>O que conferir</th><th>Situação do mês</th><th>Resultado</th></tr></thead>
+                    <tbody>
+                    @foreach ($fechamento['conferencias'] as $c)
+                        <tr data-conferencia="{{ $c['id'] }}" data-situacao="{{ $c['situacao'] }}">
+                            <td>{{ $c['id'] }}</td>
+                            <td><strong>{{ $c['titulo'] }}</strong><div class="sub" style="margin:0">{{ $c['lei'] }}</div></td>
+                            <td>{{ $c['obtido'] }}@if ($c['acao'])<div class="erro">{{ $c['acao'] }}</div>@endif</td>
+                            <td>{{ ['ok' => 'ok', 'atencao' => 'atenção', 'pendente' => 'pendente', 'sem_fonte' => 'sem fonte'][$c['situacao']] ?? $c['situacao'] }}</td>
+                        </tr>
+                    @endforeach
+                    </tbody>
+                </table>
+            </section>
+        @endif
+
         @forelse ($revisoes as $v)
             <div class="card">
                 <strong>NCM {{ $v->ncm }}</strong> · {{ $v->uf_origem }} → {{ $v->uf_destino ?: 'todas as UFs' }}

@@ -77,8 +77,11 @@ class DanfeService
      * este método simplifica pra ler só de arquivos.
      *
      * Suporte transparente a disk=vault (encrypted-at-rest) via VaultEncryptionService.
+     *
+     * Público desde a thread 28 (fechamento do contador): a segregação de receitas lê os itens
+     * do XML autorizado por esta mesma porta, em vez de uma segunda cópia da regra de leitura.
      */
-    private function obterXmlContents(NfeEmissao $emissao): string
+    public function obterXmlContents(NfeEmissao $emissao): string
     {
         // Caminho preferido: arquivos backbone (PR #404 double-write garante popularidade pra emissões novas;
         // PR #398 backfill cobriu históricas).

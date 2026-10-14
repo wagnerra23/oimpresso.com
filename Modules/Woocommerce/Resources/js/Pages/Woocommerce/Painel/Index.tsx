@@ -22,7 +22,7 @@ import { Input } from '@/Components/ui/input';
 import { Badge } from '@/Components/ui/badge';
 import { Alert, AlertDescription, AlertTitle } from '@/Components/ui/alert';
 import { PageHeader } from '@/Components/PageHeader';
-import PageHeaderTabs, { type PageHeaderGhost } from '@/Components/shared/PageHeaderTabs';
+import WoocommerceAbas from '../_components/WoocommerceAbas';
 import EmptyState from '@/Components/shared/EmptyState';
 import DataTable from '@/Components/shared/DataTable';
 import KpiCard from '@/Components/shared/KpiCard';
@@ -58,19 +58,6 @@ const SITUACAO: Record<Situacao, { rotulo: string; variante: 'success' | 'warnin
   fora_da_fila: { rotulo: 'Fora da fila', variante: 'neutral' },
 };
 
-function WoocommerceAbas({ podeConfigurar }: { podeConfigurar: boolean }) {
-  const ghosts: PageHeaderGhost[] = [
-    { key: '/woocommerce', label: 'Produtos', href: '/woocommerce' },
-    { key: '/woocommerce/view-sync-log', label: 'Log de sincronização', href: '/woocommerce/view-sync-log' },
-    ...(podeConfigurar ? [{ key: '/woocommerce/api-settings', label: 'Configuração', href: '/woocommerce/api-settings' }] : []),
-  ];
-
-  return (
-    <PageHeaderTabs ghosts={ghosts} activeGhostKey="/woocommerce" group="sistema" maxVisible={3}
-      onGhostChange={(key) => { if (key !== '/woocommerce') window.location.assign(key); }} />
-  );
-}
-
 function PainelIndex({ configurado, resumo, produtos, pode }: Props) {
   const itens = useMemo(() => produtos?.itens ?? [], [produtos]);
   const [q, setQ] = useState('');
@@ -94,7 +81,7 @@ function PainelIndex({ configurado, resumo, produtos, pode }: Props) {
       <div data-contract="page-header">
         <PageHeader title="WooCommerce"
           subtitle={resumo?.ultima_sincronizacao ? <>última sincronização de produtos em <strong>{resumo.ultima_sincronizacao}</strong></> : 'sincronização da loja'}
-          subnav={<WoocommerceAbas podeConfigurar={pode.configurar} />}
+          subnav={<WoocommerceAbas ativa="/woocommerce" podeConfigurar={pode.configurar} />}
           actions={pode.sincronizar ? (
             <Button asChild variant="outline">
               <a href="/woocommerce?classico=1"><ExternalLink className="size-4" /> Sincronizar na tela clássica</a>
