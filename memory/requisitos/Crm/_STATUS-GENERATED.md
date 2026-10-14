@@ -18,10 +18,10 @@ authority: generated
 |---|---:|
 | US no SPEC | 0 |
 | CU no SDD | 0 |
-| Telas (.tsx) | 5 |
-| Telas com `casos.md` | 5 |
-| UC declarados | 53 |
-| UC com teste que os cita | 53 |
+| Telas (.tsx) | 7 |
+| Telas com `casos.md` | 7 |
+| UC declarados | 65 |
+| UC com teste que os cita | 65 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -92,6 +92,18 @@ _Nenhuma._
 | UC-CRMPAI-04 | Painel/Index | 🧪 aguarda veredito da lane |
 | UC-CRMPAI-05 | Painel/Index | 🧪 aguarda veredito da lane |
 | UC-CRMPAI-06 | Painel/Index | 🧪 aguarda veredito da lane |
+| UC-CRMPED-01 | Pedidos/Index | 🧪 aguarda veredito da lane |
+| UC-CRMPED-02 | Pedidos/Index | 🧪 aguarda veredito da lane |
+| UC-CRMPED-03 | Pedidos/Index | 🧪 aguarda veredito da lane |
+| UC-CRMPED-04 | Pedidos/Index | 🧪 aguarda veredito da lane |
+| UC-CRMPED-05 | Pedidos/Index | 🧪 aguarda veredito da lane |
+| UC-CRMPRO-01 | Propostas/Index | 🧪 aguarda veredito da lane |
+| UC-CRMPRO-02 | Propostas/Index | 🧪 aguarda veredito da lane |
+| UC-CRMPRO-03 | Propostas/Index | 🧪 aguarda veredito da lane |
+| UC-CRMPRO-04 | Propostas/Index | 🧪 aguarda veredito da lane |
+| UC-CRMPRO-05 | Propostas/Index | 🧪 aguarda veredito da lane |
+| UC-CRMPRO-06 | Propostas/Index | 🧪 aguarda veredito da lane |
+| UC-CRMPRO-07 | Propostas/Index | 🧪 aguarda veredito da lane |
 | UC-SANEG-14 | Leads/Index | 🧪 aguarda veredito da lane |
 
 ---

@@ -149,13 +149,13 @@ function FinanceiroRelatorios({ filters, fluxo, resumo }: Props) {
           PR D wave reaplicação canon (Q8b aprovado Wagner). Banner avisa usuário. */}
       <div
         style={{
-          background: 'oklch(0.96 0.04 70)',
-          border: '1px solid oklch(0.85 0.10 70)',
+          background: 'var(--color-warning-soft)',
+          border: '1px solid color-mix(in oklch, var(--color-warning) 40%, transparent)',
           borderRadius: 8,
           padding: '12px 16px',
           marginBottom: 16,
           fontSize: 13,
-          color: 'oklch(0.40 0.13 70)',
+          color: 'var(--color-foreground)',
         }}
       >
         ⓘ DRE gerencial agora é tela dedicada com hierarquia clássica + comparativo mês anterior +
