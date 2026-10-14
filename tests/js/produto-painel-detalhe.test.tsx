@@ -18,7 +18,7 @@
 //     e "—" + aviso quando o valor vem null (sem permissão não é zero);
 //   - o rodapé sai na ordem do protótipo, e "Comprar" some sem permissão ou sem controle de estoque.
 //
-// Cobre UC-PIDX-09, UC-PIDX-11, UC-PIDX-12 e UC-PIDX-17 (resources/js/Pages/Produto/Index.casos.md).
+// Cobre UC-PIDX-09, UC-PIDX-11, UC-PIDX-12, UC-PIDX-17 e UC-PIDX-19 (resources/js/Pages/Produto/Index.casos.md).
 // ⚠️ Nenhuma lane de CI roda este arquivo ainda (cada lane Vitest lista os próprios specs).
 // Comando: npx vitest run tests/js/produto-painel-detalhe.test.tsx
 
@@ -207,6 +207,43 @@ describe('UC-PIDX-17 · o painel abre na aba que quem abriu pediu', () => {
   it('pedida uma aba que este produto não tem (Estoque num produto sem estoque), cai em Dados', () => {
     const { painel } = abrir(detalhe({ estoque: null }), { abaInicial: 'estoque' });
     expect(painel.getByRole('tab', { name: 'Dados' }).getAttribute('aria-selected')).toBe('true');
+  });
+});
+
+describe('UC-PIDX-19 · a aba Fiscal mostra o tipo de imposto na venda', () => {
+  /** O valor (`<b>`) do campo com aquele rótulo, dentro do painel. */
+  const campo = (painel: ReturnType<typeof within>, rotulo: string) =>
+    (painel.getByText(rotulo).closest('.pb-dt') as HTMLElement).querySelector('b')?.textContent;
+  const comTipo = (tipo_imposto: string) => {
+    const base = detalhe();
+    return detalhe({ dados: { ...base.dados, tipo_imposto } });
+  };
+
+  it('imposto inclusivo: a aba Fiscal diz "Inclusivo"', () => {
+    const { painel } = abrir(comTipo('inclusive'), { abaInicial: 'fiscal' });
+    expect(campo(painel, 'Tipo de imposto na venda')).toBe('Inclusivo');
+  });
+
+  it('imposto exclusivo: a aba Fiscal diz "Exclusivo"', () => {
+    const { painel } = abrir(comTipo('exclusive'), { abaInicial: 'fiscal' });
+    expect(campo(painel, 'Tipo de imposto na venda')).toBe('Exclusivo');
+  });
+
+  it('cadastro sem o tipo: mostra o traço, não inventa um', () => {
+    const { painel } = abrir(comTipo(''), { abaInicial: 'fiscal' });
+    expect(campo(painel, 'Tipo de imposto na venda')).toBe('—');
+  });
+
+  it('é o último campo da aba Fiscal, depois de "Imposto aplicável" (a ordem do protótipo)', () => {
+    const { painel } = abrir(comTipo('exclusive'), { abaInicial: 'fiscal' });
+    const rotulos = Array.from(document.querySelectorAll('[role=dialog] .pb-dt > span')).map((e) => e.textContent);
+    expect(rotulos.slice(-2)).toEqual(['Imposto aplicável', 'Tipo de imposto na venda']);
+    void painel;
+  });
+
+  it('a aba Dados continua mostrando o mesmo valor', () => {
+    const { painel } = abrir(comTipo('exclusive'));
+    expect(campo(painel, 'Tipo de imposto na venda')).toBe('Exclusivo');
   });
 });
 
