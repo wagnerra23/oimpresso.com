@@ -3,14 +3,25 @@
 namespace App\Http\Controllers\Restaurant;
 
 use App\Product;
+use App\Services\FeatureFlagService;
 use App\Utils\ProductUtil;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\DB;
+use Inertia\Inertia;
 
 class ModifierSetsController extends Controller
 {
+    /**
+     * Flag do caminho React (thread restaurante/playbook/02, F3). Convenção `useV2<Modulo><Tela>`.
+     * Sem a chave no GrowthBook o FeatureFlagService cai no fallbackDefaults, que não a lista:
+     * default OFF, a Blade segue servindo. Ligar é toggle no GrowthBook (flag:set --biz=1), não deploy.
+     *
+     * @see memory/requisitos/Restaurante/RUNBOOK-modificadores.md
+     */
+    private const FLAG_V2 = 'useV2RestauranteModificadores';
+
     /**
      * All Utils instance.
      */
@@ -30,7 +41,7 @@ class ModifierSetsController extends Controller
     /**
      * Display a listing of the resource.
      *
-     * @return Response
+     * @return \Illuminate\Http\JsonResponse|\Illuminate\Contracts\View\View|\Inertia\Response
      */
     public function index()
     {
@@ -46,9 +57,22 @@ class ModifierSetsController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
-        if (request()->ajax()) {
-            $business_id = request()->session()->get('user.business_id');
+        $business_id = request()->session()->get('user.business_id');
 
+        // `?classico=1` mantém a Blade alcançável com a flag ligada: cadastrar, editar, ligar produtos e excluir seguem
+        // nos modais dela.
+        if (! request()->boolean('classico') && (! request()->ajax() || request()->inertia())
+            && app(FeatureFlagService::class)->isOn(self::FLAG_V2, ['business_id' => $business_id])) {
+            return Inertia::render('Restaurante/Modificadores/Index', [
+                'conjuntos' => Inertia::defer(fn () => $this->conjuntosDoNegocio((int) $business_id)),
+                'pode_gerenciar' => auth()->user()->can('product.update') || auth()->user()->can('product.delete')
+                    || auth()->user()->can('product.create'),
+            ]);
+        }
+
+        // `! inertia()`: o Inertia v3 manda `X-Requested-With` em toda visita; sem esta perna o partial reload
+        // da prop adiada caía no JSON da DataTable (§5 2026-09-08, molde AccountController::index).
+        if (request()->ajax() && ! request()->inertia()) {
             $modifer_set = Product::where('business_id', $business_id)
                             ->where('type', 'modifier')
                             ->with(['variations', 'modifier_products']);
@@ -91,6 +115,49 @@ class ModifierSetsController extends Controller
         }
 
         return view('restaurant.modifier_sets.index');
+    }
+
+    /**
+     * Conjuntos de modificadores do negócio para a tela React: as mesmas colunas da DataTable (conjunto, nomes dos
+     * modificadores, produtos ligados). Sem preço — a Blade não mostra, e exibir valor é decisão [W].
+     *
+     * O pivô `res_product_modifier_sets` não tem `business_id`: os produtos ligados são filtrados pelo negócio.
+     *
+     * @return list<array<string, mixed>>
+     */
+    private function conjuntosDoNegocio(int $business_id): array
+    {
+        $conjuntos = Product::where('business_id', $business_id)
+            ->where('type', 'modifier')
+            ->orderBy('name')
+            ->get(['id', 'name']);
+        $ids = $conjuntos->pluck('id')->all();
+
+        // Consultas diretas no lugar do eager-load das relações `variations`/`modifier_products`: mesmo resultado, e
+        // o Larastan não resolve essas relações do Product.
+        $modificadores = DB::table('variations')
+            ->whereIn('product_id', $ids)
+            ->whereNull('deleted_at')
+            ->orderBy('id')
+            ->get(['product_id', 'name'])
+            ->groupBy('product_id');
+        $produtos = DB::table('res_product_modifier_sets as pms')
+            ->join('products as p', 'p.id', '=', 'pms.product_id')
+            ->whereIn('pms.modifier_set_id', $ids)
+            ->where('p.business_id', $business_id)
+            ->orderBy('p.name')
+            ->get(['pms.modifier_set_id', 'p.name'])
+            ->groupBy('modifier_set_id');
+
+        return $conjuntos
+            ->map(fn (Product $c) => [
+                'id' => $c->id,
+                'nome' => $c->name,
+                'modificadores' => collect($modificadores->get($c->id, []))->pluck('name')->values()->all(),
+                'produtos' => collect($produtos->get($c->id, []))->pluck('name')->values()->all(),
+            ])
+            ->values()
+            ->all();
     }
 
     /**

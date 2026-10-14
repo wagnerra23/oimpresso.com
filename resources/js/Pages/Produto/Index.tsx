@@ -63,6 +63,7 @@ import MenuColunas from './_components/lista/MenuColunas';
 import {
   CHAVE_COLUNAS,
   CHAVE_DENSIDADE,
+  POR_PAGINA,
   chipsDosFiltros,
   colunasOpcionais,
   visibilidadePadrao,
@@ -91,8 +92,6 @@ interface ProdutoIndexPageProps {
   permissions: PermissoesLista;
 }
 
-/** Opções de linhas por página — as MESMAS da lista Blade (`common.js` aLengthMenu). */
-const POR_PAGINA = [25, 50, 100, 200, 500, 1000, -1];
 
 const csrf = () => document.head.querySelector<HTMLMetaElement>('meta[name="csrf-token"]')?.content ?? '';
 
@@ -167,6 +166,7 @@ function paraUrl(f: FiltrosLista): Record<string, string | number> {
   if (f.aba === 'estoque') {
     out.aba = 'estoque';
     if (f.estoque_pagina > 1) out.estoque_pagina = f.estoque_pagina;
+    out.estoque_por_pagina = f.estoque_por_pagina;
   }
   return out;
 }
@@ -525,7 +525,15 @@ function ProdutoIndex({ filtros, lista, kpis, estoque, detalhe, opcoes, contexto
                   </div>
                 }
               >
-                {estoque ? <RelatorioEstoqueAba dados={estoque} irParaPagina={(p) => ir({ estoque_pagina: p })} /> : <></>}
+                {estoque ? (
+                  <RelatorioEstoqueAba
+                    dados={estoque}
+                    irParaPagina={(p) => ir({ estoque_pagina: p })}
+                    aoMudarPorPagina={(n) => ir({ estoque_por_pagina: n })}
+                  />
+                ) : (
+                  <></>
+                )}
               </Deferred>
             ) : (
             <>

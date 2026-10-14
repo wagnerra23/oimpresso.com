@@ -1,7 +1,7 @@
 <?php
 
 declare(strict_types=1);
-// Cobre UC-PIDX-08 (resources/js/Pages/Produto/Index.casos.md) — G-2 rastreabilidade caso↔teste.
+// Cobre UC-PIDX-08 e UC-PIDX-18 (resources/js/Pages/Produto/Index.casos.md) — G-2 rastreabilidade caso↔teste.
 
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\DB;
@@ -170,4 +170,103 @@ it('UC-PIDX-08 · sem stock_report.view a aba não vem', function () {
     pleEntrar($this, ['product.view', 'access_all_locations']);
 
     expect(pleProp($this, 'estoque', ['aba' => 'estoque']))->toBeNull();
+});
+
+// ── UC-PIDX-18 · linhas por página da aba ───────────────────────────────────────────────────────
+// 26 linhas num local próprio: com 25 por página sobra 1 para a página 2; com 50 cabem todas.
+
+/** 26 produtos com estoque num local novo. Devolve [local, estoque total, valor pelo custo, valor pela venda]. */
+function pleVinteESeis($teste): array
+{
+    $local = EstoqueFixture::locationId($teste->business->id, '-PLE-' . uniqid());
+    $prefixo = 'PLE-P' . uniqid() . '-';
+    $estoque = 0;
+    $custo = 0;
+    $venda = 0;
+    for ($i = 1; $i <= 26; $i++) {
+        // estoque i, preço de venda 20, custo 12, nada vendido
+        pleProduto($teste->business->id, $local, $teste->user->id, $prefixo . str_pad((string) $i, 2, '0', STR_PAD_LEFT), [$i, 20, $i, 12, 0]);
+        $estoque += $i;
+        $custo += $i * 12;
+        $venda += $i * 20;
+    }
+
+    return [$local, $estoque, $custo, $venda];
+}
+
+it('UC-PIDX-18 · a aba traz o tamanho de página pedido: 25 deixa uma linha para a página 2, 50 traz as 26', function () {
+    pleEntrar($this, $this->tudo);
+    [$local] = pleVinteESeis($this);
+
+    $com25 = pleProp($this, 'estoque', ['aba' => 'estoque', 'location_id' => $local, 'estoque_por_pagina' => 25]);
+    expect($com25['linhas'])->toHaveCount(25);
+    expect($com25['paginacao'])->toMatchArray(['atual' => 1, 'ultima' => 2, 'total' => 26, 'por_pagina' => 25]);
+
+    $pagina2 = pleProp($this, 'estoque', ['aba' => 'estoque', 'location_id' => $local, 'estoque_por_pagina' => 25, 'estoque_pagina' => 2]);
+    expect($pagina2['linhas'])->toHaveCount(1);
+    expect($pagina2['paginacao'])->toMatchArray(['atual' => 2, 'ultima' => 2, 'total' => 26]);
+
+    $com50 = pleProp($this, 'estoque', ['aba' => 'estoque', 'location_id' => $local, 'estoque_por_pagina' => 50]);
+    expect($com50['linhas'])->toHaveCount(26);
+    expect($com50['paginacao'])->toMatchArray(['atual' => 1, 'ultima' => 1, 'total' => 26, 'por_pagina' => 50]);
+
+    // As duas páginas de 25 juntas são exatamente as 26 linhas da página de 50: nada repetido, nada faltando.
+    $skus = fn (array $linhas) => array_map(fn ($l) => $l['sku'], $linhas);
+    expect(array_merge($skus($com25['linhas']), $skus($pagina2['linhas'])))->toEqual($skus($com50['linhas']));
+});
+
+it('UC-PIDX-18 · "Todos" (-1) traz todas as linhas numa página só', function () {
+    pleEntrar($this, $this->tudo);
+    [$local] = pleVinteESeis($this);
+
+    $todas = pleProp($this, 'estoque', ['aba' => 'estoque', 'location_id' => $local, 'estoque_por_pagina' => -1]);
+
+    expect($todas['linhas'])->toHaveCount(26);
+    expect($todas['paginacao'])->toMatchArray(['atual' => 1, 'ultima' => 1, 'total' => 26, 'por_pagina' => -1]);
+});
+
+it('UC-PIDX-18 · os totais do rodapé são os mesmos em qualquer tamanho de página, e batem com a conta à mão', function () {
+    pleEntrar($this, $this->tudo);
+    [$local, $estoque, $custo, $venda] = pleVinteESeis($this);
+
+    $totais = [];
+    foreach ([25, 50, -1] as $n) {
+        $totais[$n] = pleProp($this, 'estoque', ['aba' => 'estoque', 'location_id' => $local, 'estoque_por_pagina' => $n])['totais'];
+    }
+
+    // Caminho 1: conta à mão do cenário — estoque 1+2+…+26, custo ×12, venda ×20.
+    expect($estoque)->toBe(351);
+    foreach ([25, 50, -1] as $n) {
+        expect($totais[$n]['linhas'])->toBe(26);
+        expect(abs($totais[$n]['estoque'] - $estoque))->toBeLessThan(0.005);
+        expect(abs($totais[$n]['valor_compra'] - $custo))->toBeLessThan(0.005);
+        expect(abs($totais[$n]['valor_venda'] - $venda))->toBeLessThan(0.005);
+        expect(abs($totais[$n]['lucro_potencial'] - ($venda - $custo)))->toBeLessThan(0.005);
+    }
+    // Caminho 2: o código da Blade (JSON do DataTable do relatório, todas as linhas).
+    $dt = pleSomaDataTable($this, ['location_id' => $local]);
+    expect($dt['linhas'])->toBe(26);
+    foreach (['estoque', 'valor_compra', 'valor_venda'] as $c) {
+        expect(abs($totais[25][$c] - $dt[$c]))->toBeLessThan(0.005);
+    }
+});
+
+it('UC-PIDX-18 · tamanho fora das opções cai no padrão, que é o mesmo da lista', function () {
+    pleEntrar($this, $this->tudo);
+    [$local] = pleVinteESeis($this);
+
+    $padrao = pleProp($this, 'filtros', ['aba' => 'estoque', 'location_id' => $local]);
+    // Sem pedir nada, as duas abas nascem com o mesmo tamanho (na Blade era um menu só para os dois DataTables).
+    expect($padrao['estoque_por_pagina'])->toBe($padrao['per_page']);
+    expect([25, 50, 100, 200, 500, 1000, -1])->toContain($padrao['estoque_por_pagina']);
+
+    foreach ([7, 0, 26, 99999] as $invalido) {
+        $f = pleProp($this, 'filtros', ['aba' => 'estoque', 'location_id' => $local, 'estoque_por_pagina' => $invalido]);
+        expect($f['estoque_por_pagina'])->toBe($padrao['estoque_por_pagina']);
+    }
+
+    // E o tamanho da aba não mexe no da lista (nem o contrário).
+    $f = pleProp($this, 'filtros', ['aba' => 'estoque', 'location_id' => $local, 'estoque_por_pagina' => 50, 'per_page' => 100]);
+    expect($f['estoque_por_pagina'])->toBe(50);
+    expect($f['per_page'])->toBe(100);
 });
