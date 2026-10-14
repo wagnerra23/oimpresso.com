@@ -646,6 +646,37 @@ E uma regra sem redução calcula sobre a base cheia (600,00 × 18% = 108,00), s
 **Testado em:** `Modules/NfeBrasil/Tests/Feature/MotorTributarioServiceTest.php` (lane `nfebrasil-pest`).
 **Fora deste item:** ST e DIFAL seguem sobre a base cheia; a pendência na Saúde fiscal para UF que exige cBenef depende de uma tabela das UFs que o exigem, com o ato de cada uma — ver `_saida-25.md`.
 
+### R-NFE-031 · Filial usa a própria UF de origem
+
+```gherkin
+Dado uma filial no PR cadastrada como local emissor (CNPJ, IE, endereço, CEP, código IBGE e série próprios)
+Quando ela vende
+Então a nota sai com a UF, o CNPJ, a IE e o endereço da filial, e o motor calcula com uf_origem = PR
+E a exceção cadastrada para SP não é usada (Nível 4: 1.000,00 × 1,86% = 18,60), enquanto a matriz SP usa a dela (180,00)
+E a interestadual do par é a da Resolução do Senado 22/1989: PR→SC 12% · PR→BA 7% · SP→BA 7%
+E local sem cadastro de emissor, ou venda sem local, emite como o business, igual a antes
+E filial incompleta, com a série da matriz, ou apontando local de outra empresa é recusada
+```
+
+**Contrato:** Resolução do Senado Federal nº 22/1989 (tabela da thread 09) · chave `uf_origem` (ADR ARQ-0006) · ADR 0093.
+**Implementação:** migração `2026_10_14_000002_create_nfe_locais_emissores_table` · `Modules/NfeBrasil/Models/NfeLocalEmissor.php` · `Modules/NfeBrasil/Services/NfeService.php` (`resolverEmitente`, `emitirParaTransaction`).
+**Testado em:** `Modules/NfeBrasil/Tests/Feature/NfeFilialNumeracaoTest.php` · `Modules/NfeBrasil/Tests/Feature/MotorTributarioServiceTest.php` (lane `nfebrasil-pest`).
+**Fora deste item:** o motor ainda não lê a interestadual da tabela (é o fallback da thread 09); o certificado continua o do business; a cobrança recorrente (`emitirParaInvoice`) segue emitindo pelo business — ver `_saida-26.md`.
+
+### R-NFE-032 · Série e numeração são do local emissor (o certificado segue o do business)
+
+```gherkin
+Dado matriz (série padrão) e filial (série 7), com o contador legado da matriz em 995.999
+Quando emitem alternadas, três vezes cada
+Então a matriz sai 996.000, 996.001, 996.002 e a filial 1, 2, 3 — nenhuma pula nem repete
+E autorizar a nota da filial não mexe no contador da matriz; autorizar a da matriz mexe
+```
+
+**Contrato:** R-NFE-003 (numeração sem gap) · UNIQUE `nfe_emissoes_biz_seq_unique` (business + modelo + série + número).
+**Implementação:** `Modules/NfeBrasil/Services/NfeService.php` (`proximoNumeroLocked`, `processarRetorno`, `seriePadrao`) · série única por empresa em `nfe_locais_emissores`.
+**Testado em:** `Modules/NfeBrasil/Tests/Feature/NfeFilialNumeracaoTest.php` (lane `nfebrasil-pest`).
+**Fora deste item:** certificado por local — a emissão segue assinando com o certificado do business.
+
 ### R-NFE-033 · Aceita CNPJ alfanumérico válido e recusa o inválido
 
 ```gherkin
@@ -1511,3 +1542,16 @@ Como contador, quero cadastrar na regra a redução de base e o código do benef
 **Critérios de aceite:** R-NFE-030.
 
 **Disparo:** playbook Fiscal thread 25 (`prototipo-ui/cowork/Wagner/cowork-inbox/fiscal/playbook/25-beneficio-cbenef.md`) · UC-TRB-26.
+
+### US-NFE-067 · Filial em outro estado emite com a própria UF, emitente e série
+
+> owner: — · sprint: — · priority: p1 · estimate: 4h · status: done · type: story
+> blocked_by: —
+
+**Implementado em:** `Modules/NfeBrasil/Services/NfeService.php` · `Modules/NfeBrasil/Models/NfeLocalEmissor.php` · `Modules/NfeBrasil/Database/Migrations/2026_10_14_000002_create_nfe_locais_emissores_table.php` · `Modules/NfeBrasil/Tests/Feature/NfeFilialNumeracaoTest.php`
+
+Como empresa com filial em outro estado, quero que a nota da filial saia com a UF, o CNPJ, o endereço e a série dela, para não emitir como se estivesse na matriz nem repetir número entre estabelecimentos.
+
+**Critérios de aceite:** R-NFE-031 · R-NFE-032.
+
+**Disparo:** playbook Fiscal thread 26 (`prototipo-ui/cowork/Wagner/cowork-inbox/fiscal/playbook/26-filial-origem.md`) · UC-TRB-27.
