@@ -1,7 +1,7 @@
 <?php
 
 declare(strict_types=1);
-// Cobre UC-PIDX-09, UC-PIDX-11, UC-PIDX-12 e UC-PIDX-20 (resources/js/Pages/Produto/Index.casos.md) — G-2 rastreabilidade caso↔teste.
+// Cobre UC-PIDX-09, UC-PIDX-11, UC-PIDX-12, UC-PIDX-20 e UC-PIDX-22 (resources/js/Pages/Produto/Index.casos.md) — G-2 rastreabilidade caso↔teste.
 
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\DB;
@@ -378,4 +378,16 @@ it('UC-PIDX-20 · variações e itens trazem as imagens da variação, só as da
     expect($nomes($d['variacoes'][0]['imagens']))->toBe(['1700000000_pdt_kit.jpg']);
     // A URL é a mesma da Blade (`Media::display_url`).
     expect($d['composicao'][0]['imagens'][0])->toEndWith('/uploads/media/1700000000_pdt_item.jpg');
+});
+
+it('UC-PIDX-22 · produto sem foto chega ao painel com imagem null, não com a imagem genérica', function () {
+    pdtEntrar($this, ['product.view', 'access_all_locations']);
+    $semFoto = EstoqueFixture::singleProduct($this->business->id);
+    $comFoto = EstoqueFixture::singleProduct($this->business->id);
+    DB::table('products')->where('id', $semFoto->productId)->update(['image' => null]);
+    DB::table('products')->where('id', $comFoto->productId)->update(['image' => '1700000000_pdt_foto.jpg']);
+
+    expect(pdtDetalhe($this, $semFoto->productId)['imagem'])->toBeNull();
+    // Com foto, a mesma URL que a Blade usa (acessor `image_url`).
+    expect(pdtDetalhe($this, $comFoto->productId)['imagem'])->toEndWith('/uploads/img/1700000000_pdt_foto.jpg');
 });
