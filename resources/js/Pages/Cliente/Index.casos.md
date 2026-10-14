@@ -5,7 +5,7 @@ irmaos: Index.charter.md (lei)
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — os KPIs reais, paginação/ordenação server-side e a aba "Outros" não mudam no refactor.
 owner: wagner
-last_run: "2026-09-11"
+last_run: "2026-10-14"
 ---
 
 > ℹ️ **`last_run` 2026-09-06 → 2026-09-11 (G-6), e o que mudou na tela NÃO foi comportamento.**
@@ -75,6 +75,13 @@ last_run: "2026-09-11"
 - **Regressão que defende:** KPIs estimados client-side sobre as 50 rows da página ("número sem prova") + risco de vazamento cross-tenant no count.
 - **Status: 🧪** — guard de query + Tier 0 passam; número real = smoke; ✅ com o manifesto regravado.
 
+## UC-CIDX-05 · A coluna "Última OS" mostra a venda mais recente do cliente, só da empresa dela
+- **Persona:** Larissa — bate o olho na lista e quer saber qual foi o último pedido do cliente e abri-lo direto, sem entrar no drawer.
+- **Aceite:** Dado um cliente com vendas · Quando a lista carrega · Então a coluna "Última OS" mostra o nº (`invoice_no`) da venda `type=sell` de **maior `transaction_date`** (desempate por id), com link para `/sells/{id}`; sem venda mostra "—". Venda do mesmo `contact_id` em **outra empresa** nunca entra (Tier 0).
+- **Teste:** `tests/Feature/Cliente/ClienteUltimaOsTest.php` — maior data ≠ maior id · venda mais nova em outra empresa ignorada · sem venda = `null`.
+- **Fonte:** protótipo `clientes-page.jsx` (coluna "Última OS", `.cli-lastos-link`) + decisão [W] 2026-10-14 (thread cliente/02). Não há CU no SDD para esta coluna.
+- **Status: 🧪** — teste cita o UC; ✅ com o manifesto regravado.
+
 ---
 
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
@@ -92,6 +99,7 @@ last_run: "2026-09-11"
 | UC-CIDX-02 | CU-CLI-06 | — |
 | UC-CIDX-03 | CU-CLI-06 | — |
 | UC-CIDX-04 | CU-CLI-07 · CU-CLI-11 | — |
+| UC-CIDX-05 | — (protótipo + [W] 2026-10-14) | — |
 
 > Coluna US vazia de propósito: a US-CRM-071 (KB-9.75 Slice A no Index) declara `ClienteIndexDrawer760CharterTest` como `**Testado em:**`, não estes 4. Vínculo por tema não conta.
 
@@ -101,6 +109,7 @@ last_run: "2026-09-11"
 3. **Cadência:** rodar ao fim de toda mexida em `Index.tsx` ou nos builders do `ContactController` (kpis/customers/sort).
 
 ## Trilha do tempo
+- 2026-10-14 · [CL] thread cliente/02 — a tabela segue o protótipo: a foto entra na célula Cliente (sai a coluna própria) e nasce a coluna "Última OS" (UC-CIDX-05). Desta vez **é comportamento**: o `last_run` sobe por mudança real da tela. Os UCs 01–04 (rota/query) não mudam.
 - 2026-07-27 · [CC] chip S-Cliente do passo 5 (agent `sdd-from-source`). **Nenhum UC reescrito** — os 4 seguem como estavam (o módulo já tinha contrato). Duas correções factuais no cabeçalho: (a) "lane ativa" era falso (não havia lane de PR pro Cliente; `ci-sqlite-pest.list` = 0 entradas), (b) a força do veredito agora está declarada (**advisory**, lida do `required-checks-baseline.json`, não deduzida). **+1 `[BACKLOG]`**: cross-tenant da listagem, a lacuna Tier 0 que sobra (US-CRM-080). Refs: [SDD Cliente](../../../../memory/requisitos/Cliente/SDD-cadastro-cliente-v1.0.md) §5.4.2/§8 · [ADR 0351](../../../../memory/decisions/0351-sdd-from-source.md).
 - 2026-07-15 · [CC] revalidação (mudança cosmética DS) — troca de contorno/divisórias hardcoded (`oklch(0.93/0.9 0.004 90)`) por `var(--border)` dark-aware no header + KPI cards. Puramente visual (token de borda); NÃO altera rota/query/KPI backend — os 4 UCs (type=other, paginação, sort, KPIs) seguem válidos, status 🧪 mantidos. `last_run` bumpado (G-6). PR #4285.
 - 2026-07-08 · [CC] criado — Fase 2 (lanes Cliente), tela principal. 4 UCs ancorados em `ClienteTypeOtherRouteTest` / `ClientePaginacaoServerSideTest` / `ClienteSortServerSideTest` / `ClienteKpisServerSideTest`. Refs: [ADR 0264](../../../../memory/decisions/0264-governanca-executavel-trio-dominio-e2e.md) G-1/G-2 · [ADR 0246](../../../../memory/decisions/0246-tipo-outros-default-migracoes-legacy.md) · [ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md).
