@@ -239,7 +239,7 @@ class RevisaoContadorLinkController extends Controller
      */
     private function fechamento(Request $request, NfeContadorLink $l): ?array
     {
-        if (! config('nfebrasil.fechamento_contador', false)) {
+        if (! config('fiscal.fechamento_contador_enabled', false)) {
             return null;
         }
         $mes = (string) $request->query('mes', '');

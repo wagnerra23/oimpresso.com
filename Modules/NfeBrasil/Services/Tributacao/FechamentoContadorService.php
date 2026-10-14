@@ -68,6 +68,13 @@ final class FechamentoContadorService
     /** LC 123/2006 art. 13-A — R$ 3.600.000,00, em centavos. */
     public const SUBLIMITE_CENTAVOS = 360_000_000;
 
+    /**
+     * `transactions.status` de venda finalizada (núcleo UltimatePOS, não vocabulário fiscal).
+     * Mesmo nome e valor do `FatorRService::TRANSACAO_FINAL`, que define a receita que este
+     * fechamento repete.
+     */
+    private const TRANSACAO_FINAL = 'final';
+
     /** Aviso a 90% do sublimite (aceite R-FISC-041). */
     private const AVISO_PCT = 90;
 
@@ -360,7 +367,7 @@ final class FechamentoContadorService
         $soma = fn (string $tipo): float => (float) DB::table('transactions')
             ->where('business_id', $biz)
             ->where('type', $tipo)
-            ->where('status', 'final')
+            ->where('status', self::TRANSACAO_FINAL)
             ->where('transaction_date', '>=', $de->toDateTimeString())
             ->where('transaction_date', '<', $ate->toDateTimeString())
             ->sum('final_total');

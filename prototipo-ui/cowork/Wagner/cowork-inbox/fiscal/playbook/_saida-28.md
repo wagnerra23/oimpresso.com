@@ -4,7 +4,7 @@ titulo: Fechamento do mês para o contador — 10 conferências no link de revis
 autor: "[CL]"
 data: 2026-10-14
 base: wagnerra23/oimpresso.com@main dffa1d7bbe
-prefixo_tocado: Services/Tributacao/FechamentoContadorService.php (novo) · RevisaoContadorLinkController · views/contador/revisao.blade.php · DanfeService (obterXmlContents vira público) · Config/config.php (flag) · Tests/Feature/FechamentoContadorTest.php (novo) · Index.casos.md · nfebrasil-pest.yml · SUPERFICIE (regenerada) · este arquivo
+prefixo_tocado: Services/Tributacao/FechamentoContadorService.php (novo) · RevisaoContadorLinkController · views/contador/revisao.blade.php · DanfeService (obterXmlContents vira público) · config/fiscal.php (flag `fechamento_contador_enabled`, junto das outras flags do NfeBrasil/Fiscal) · Tests/Feature/FechamentoContadorTest.php (novo) · Index.casos.md · nfebrasil-pest.yml · SUPERFICIE (regenerada) · este arquivo
 ---
 # _saida-28 · Fechamento do mês para o contador
 
