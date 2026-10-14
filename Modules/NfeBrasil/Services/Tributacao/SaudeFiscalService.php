@@ -38,6 +38,7 @@ class SaudeFiscalService
             $this->certificado($businessId),
             $this->emitidosComNcmPadrao($businessId),
             $this->produtosSemNcm($businessId),
+            $this->naturezaPendente($businessId),
         ]));
         $bloqueantes = count(array_filter($itens, fn (array $i) => $i['bloqueante']));
 
@@ -106,6 +107,20 @@ class SaudeFiscalService
 
         return $ids === [] ? null : $this->item('produto_sem_ncm', false, 'Produtos ativos sem NCM válido',
             count($ids), array_slice($ids, 0, self::AMOSTRA), 'products.unificado.index');
+    }
+
+    /** Thread 29 · R-NFE-034: produtos marcados como "natureza a decidir" (ICMS × ISS). Aviso. */
+    private function naturezaPendente(int $biz): ?array
+    {
+        if (! NaturezaFiscalService::disponivel()) {
+            return null;
+        }
+        $ids = DB::table('nfe_naturezas_produto')->where('business_id', $biz)->where('natureza', 'pendente')
+            ->orderBy('product_id')->pluck('product_id')->map(fn ($id) => (int) $id)->all();
+
+        return $ids === [] ? null : $this->item('natureza_a_decidir', false,
+            'Produtos com natureza a decidir (ICMS ou ISS) — emitem pelo padrão da UF', count($ids),
+            array_slice($ids, 0, self::AMOSTRA), 'nfe-brasil.tributacao.index');
     }
 
     /** @param list<int>|null $restringir */
