@@ -304,6 +304,12 @@ jobs:
         # Rascunhos/Cotações/Assinaturas abrem React no GET comum, ?classico=1 segue Blade, a visita
         # Inertia de Assinaturas não cai no JSON, e os endereços de dados/toggle que a Page lê existem.
         # NASCE SEM RUN: vermelho aqui é este arquivo.
+        # 2026-10-14 — + SellsSubscriptionsContratoTest (UC-SSUB-01..05 de `Sells/Subscriptions.casos.md`,
+        # US-SELL-062): lista/KPIs só recorrentes finais do business, gate da tela, pausar/retomar
+        # alterna recur_stopped_on e não alcança outro business (efeito no banco). NASCE SEM RUN.
+        # 2026-10-14 — + SellsDraftsContratoTest (UC-DRAFT-01..04 de `Sells/Drafts.casos.md`, etapa E1):
+        # lista de rascunhos por `/sells/draft-dt?is_quotation=0` (view_all × view_own, venda final e
+        # tenant 99 fora), 403 da tela e KPI medido por delta. NASCE SEM RUN: vermelho aqui é este arquivo.
         env:
           DB_CONNECTION: mysql
           DB_HOST: 127.0.0.1
@@ -351,6 +357,8 @@ jobs:
             tests/Feature/Sells/VendasMwartCutoverTest.php \
             tests/Feature/Sells/CommissionSplitAuditTest.php \
             tests/Feature/Sells/SellsQuotationsContratoTest.php \
+            tests/Feature/Sells/SellsSubscriptionsContratoTest.php \
+            tests/Feature/Sells/SellsDraftsContratoTest.php \
             tests/Feature/Sells/CatalogueQrContratoTest.php \
             tests/Feature/CutoverMenu/VendasListasSemXInertiaTest.php
 
