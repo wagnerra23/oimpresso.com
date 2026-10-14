@@ -76,31 +76,7 @@ class ReportController extends Controller
             $formatted_start_date = $this->commonUtil->format_date($start_date);
             $formatted_end_date = $this->commonUtil->format_date($end_date);
 
-            $query = User::where('users.business_id', $business_id)
-                        ->user()
-                        ->where('is_cmmsn_agnt', 0)
-                        ->join('crm_schedule_users as su', 'su.user_id', '=', 'users.id')
-                        ->join('crm_schedules as follow_ups', 'follow_ups.id', '=', 'su.schedule_id')
-                        ->select(
-                            DB::raw("CONCAT(COALESCE(users.surname, ''), ' ', COALESCE(users.first_name, ''), ' ', COALESCE(users.last_name, '')) as full_name"),
-                            DB::raw('COUNT(su.id) as total_follow_ups'),
-                            DB::raw('SUM( IF(follow_ups.status IS NULL AND follow_ups.id IS NOT NULL, 1, 0) ) as count_nulled'), 'users.id as user_id')
-                        ->groupBy('users.id');
-
-            //category filter
-            if (! empty($followup_category_id)) {
-                $query->where('followup_category_id', '=', $followup_category_id);
-            }
-
-            //date check.
-            if (! empty($start_date) && ! empty($end_date)) {
-                $query->whereDate('follow_ups.start_datetime', '>=', "$start_date")
-                    ->whereDate('follow_ups.start_datetime', '<=', "$end_date");
-            }
-
-            foreach ($statuses as $key => $value) {
-                $query->addSelect(DB::raw("SUM(IF(follow_ups.status='$key', 1, 0)) as count_$key"));
-            }
+            $query = $this->consultaPorUsuario($business_id, $statuses, $start_date, $end_date, $followup_category_id);
 
             return Datatables::of($query)
                     ->filterColumn('full_name', function ($query, $keyword) {
@@ -168,18 +144,7 @@ class ReportController extends Controller
 
             $statuses = Schedule::statusDropdown();
 
-            $query = Contact::where('contacts.business_id', $business_id)
-                        ->join('crm_schedules as follow_ups', 'follow_ups.contact_id', '=', 'contacts.id')
-                        ->select(
-                            'contacts.name',
-                            'contacts.supplier_business_name',
-                            DB::raw('COUNT(follow_ups.id) as total_follow_ups'),
-                            DB::raw('SUM( IF(follow_ups.status IS NULL AND follow_ups.id IS NOT NULL, 1, 0) ) as count_nulled')
-                        )->groupBy('contacts.id');
-
-            foreach ($statuses as $key => $value) {
-                $query->addSelect(DB::raw("SUM(IF(follow_ups.status='$key', 1, 0)) as count_$key"));
-            }
+            $query = $this->consultaPorContato($business_id, $statuses);
 
             return Datatables::of($query)
                     ->addColumn('contact_name', '@if(!empty($supplier_business_name)) {{$supplier_business_name}} <br> @endif {{$name}}')
@@ -206,15 +171,7 @@ class ReportController extends Controller
         if (request()->ajax()) {
             $business_id = request()->session()->get('user.business_id');
 
-            $query = User::where('users.business_id', $business_id)
-                        ->user()
-                        ->where('is_cmmsn_agnt', 0)
-                        ->join('contacts as c', 'c.converted_by', '=', 'users.id')
-                        ->select(
-                            DB::raw("CONCAT(COALESCE(users.surname, ''), ' ', COALESCE(users.first_name, ''), ' ', COALESCE(users.last_name, '')) as full_name"),
-                            DB::raw('COUNT(c.id) as total_conversions'),
-                            'users.id as DT_RowId'
-                        )->groupBy('users.id');
+            $query = $this->consultaConversao($business_id);
 
             return Datatables::of($query)
                     ->filterColumn('full_name', function ($query, $keyword) {
@@ -244,5 +201,72 @@ class ReportController extends Controller
             return view('crm::reports.leads_to_customer_details')
                     ->with(compact('contacts'));
         }
+    }
+
+    /** Matriz por usuário — a mesma consulta que alimentava o DataTables da Blade. */
+    private function consultaPorUsuario($business_id, $statuses, $start_date, $end_date, $followup_category_id)
+    {
+        $query = User::where('users.business_id', $business_id)
+                    ->user()
+                    ->where('is_cmmsn_agnt', 0)
+                    ->join('crm_schedule_users as su', 'su.user_id', '=', 'users.id')
+                    ->join('crm_schedules as follow_ups', 'follow_ups.id', '=', 'su.schedule_id')
+                    ->select(
+                        DB::raw("CONCAT(COALESCE(users.surname, ''), ' ', COALESCE(users.first_name, ''), ' ', COALESCE(users.last_name, '')) as full_name"),
+                        DB::raw('COUNT(su.id) as total_follow_ups'),
+                        DB::raw('SUM( IF(follow_ups.status IS NULL AND follow_ups.id IS NOT NULL, 1, 0) ) as count_nulled'), 'users.id as user_id')
+                    ->groupBy('users.id');
+
+        //category filter
+        if (! empty($followup_category_id)) {
+            $query->where('followup_category_id', '=', $followup_category_id);
+        }
+
+        //date check.
+        if (! empty($start_date) && ! empty($end_date)) {
+            $query->whereDate('follow_ups.start_datetime', '>=', "$start_date")
+                ->whereDate('follow_ups.start_datetime', '<=', "$end_date");
+        }
+
+        foreach ($statuses as $key => $value) {
+            $query->addSelect(DB::raw("SUM(IF(follow_ups.status='$key', 1, 0)) as count_$key"));
+        }
+
+        return $query;
+    }
+
+    /** Matriz por contato — a mesma consulta que alimentava o DataTables da Blade. */
+    private function consultaPorContato($business_id, $statuses)
+    {
+        $query = Contact::where('contacts.business_id', $business_id)
+                    ->join('crm_schedules as follow_ups', 'follow_ups.contact_id', '=', 'contacts.id')
+                    ->select(
+                        'contacts.name',
+                        'contacts.supplier_business_name',
+                        DB::raw('COUNT(follow_ups.id) as total_follow_ups'),
+                        DB::raw('SUM( IF(follow_ups.status IS NULL AND follow_ups.id IS NOT NULL, 1, 0) ) as count_nulled')
+                    )->groupBy('contacts.id');
+
+        foreach ($statuses as $key => $value) {
+            $query->addSelect(DB::raw("SUM(IF(follow_ups.status='$key', 1, 0)) as count_$key"));
+        }
+
+        return $query;
+    }
+
+    /** Conversões por usuário — a mesma consulta que alimentava o DataTables da Blade. */
+    private function consultaConversao($business_id)
+    {
+        $query = User::where('users.business_id', $business_id)
+                    ->user()
+                    ->where('is_cmmsn_agnt', 0)
+                    ->join('contacts as c', 'c.converted_by', '=', 'users.id')
+                    ->select(
+                        DB::raw("CONCAT(COALESCE(users.surname, ''), ' ', COALESCE(users.first_name, ''), ' ', COALESCE(users.last_name, '')) as full_name"),
+                        DB::raw('COUNT(c.id) as total_conversions'),
+                        'users.id as DT_RowId'
+                    )->groupBy('users.id');
+
+        return $query;
     }
 }
