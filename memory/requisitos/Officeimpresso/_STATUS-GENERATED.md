@@ -20,8 +20,8 @@ authority: generated
 | CU no SDD | 0 |
 | Telas (.tsx) | 6 |
 | Telas com `casos.md` | 6 |
-| UC declarados | 65 |
-| UC com teste que os cita | 64 |
+| UC declarados | 63 |
+| UC com teste que os cita | 62 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -91,8 +91,6 @@ _Nenhuma lacuna: toda tela tem caso **com UC**, todo CU é citado, e toda US **e
 | UC-LOGS-12 | Logs/Index | 🧪 aguarda veredito da lane |
 | UC-LOGS-13 | Logs/Index | 🧪 aguarda veredito da lane |
 | UC-LOGS-14 | Logs/Index | 🧪 aguarda veredito da lane |
-| UC-LOGS-15 | Logs/Index | 🧪 aguarda veredito da lane |
-| UC-LOGS-16 | Logs/Index | 🧪 aguarda veredito da lane |
 | UC-OICLI-01 | Clientes/Index | 🧪 aguarda veredito da lane |
 | UC-OICLI-02 | Clientes/Index | 🧪 aguarda veredito da lane |
 | UC-OICLI-03 | Clientes/Index | 🧪 aguarda veredito da lane |
