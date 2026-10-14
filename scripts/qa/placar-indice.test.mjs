@@ -18,6 +18,7 @@
 //               um modo do job e chamar de verde é §5 2026-07-28.
 
 import { execFileSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import { writeFileSync, mkdirSync, rmSync, existsSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { fileURLToPath } from 'node:url';
@@ -83,13 +84,46 @@ r = cli(['--root', semSaida, '--todos', '--check']);
 ok(r.rc === 1 && /entregue 0 de 1/.test(r.out), 'LEI 2: todas as provas verdes mas sem _saida → NÃO é feito');
 ok(/sem _saida/.test(r.out), 'LEI 2: a saída diz que falta o _saida (não é reprovação muda)');
 
-/* ── 4. NÃO MEDI (prova de recibo): não vira feito E não morde ───────────────────────── */
-const recibo = root({ indice: IDX([{ tipo: 'execucao', path: 'r.json', testes: ['t'] }]), saidas: ['01'] });
+/* ── 4. NÃO MEDI (prova de recibo SEM path — recibo só em prosa, forma de 16 das 19 vivas) ── */
+const recibo = root({ indice: IDX([{ tipo: 'execucao', nota: 'run citado no _saida' }]), saidas: ['01'] });
 r = cli(['--root', recibo, '--todos', '--check']);
 ok(r.rc === 0, 'NÃO MEDI: prova de recibo NÃO morde o --check (acusar por falta de instrumento é LC-33)');
 ok(/entregue 0 de 1/.test(r.out), 'NÃO MEDI: fail-closed — a thread também NÃO conta como entregue');
 ok(/n[ãa]o medidas?: 1/i.test(r.out), 'NÃO MEDI: o total de não-medidas é DITO, não escondido');
-ok(/recibo/.test(r.out), 'NÃO MEDI: a saída nomeia o motivo (avaliador de recibo ausente)');
+ok(/sem "path"/.test(r.out), 'NÃO MEDI: a saída nomeia o motivo (recibo só em prosa, sem path)');
+
+/* ── 4b. AVALIADOR DE RECIBO (placar-recibo.mjs): recibo JSON vira ok/falhou de verdade ── */
+{
+  const H = (t) => createHash('sha256').update(t).digest('hex');
+  const SAIDA_TXT = '# saida' + String.fromCharCode(10); // = o que root() grava
+  const SAIDA = [...INBOX, 'm', 'playbook', '_saida-01.md'].join('/');
+  const rev = (extra = {}) => IDX([{ tipo: 'revisao', path: 'r.json', fontes: ['f.md'], criterios: ['c1'] }], { prefixo: ['f.md'], ...extra });
+  const parecer = (arq) => JSON.stringify({ thread: '01', revisor: 'X', resultado: 'aprovado',
+    criterios: [{ id: 'c1', resultado: 'aprovado', justificativa: 'j' }], arquivos: arq });
+  const hashes = { [SAIDA]: H(SAIDA_TXT), 'f.md': H('fonte') };
+  r = cli(['--root', root({ indice: rev(), saidas: ['01'], arquivos: { 'f.md': 'fonte', 'r.json': parecer(hashes) } }), '--todos', '--check']);
+  ok(r.rc === 0 && /entregue 1 de 1/.test(r.out), 'RECIBO+: revisão aprovada com hashes frescos → thread `feito`');
+  r = cli(['--root', root({ indice: rev(), saidas: ['01'], arquivos: { 'f.md': 'MUDOU', 'r.json': parecer(hashes) } }), '--todos', '--check']);
+  ok(r.rc === 1 && /stale: f\.md/.test(r.out), 'RECIBO: fonte alterada depois do parecer → `stale` nomeando o arquivo, MORDE');
+  r = cli(['--root', root({ indice: rev(), saidas: ['01'], arquivos: { 'f.md': 'fonte' } }), '--todos', '--check']);
+  ok(r.rc === 1 && /recibo ausente/.test(r.out), 'RECIBO: path declarado e arquivo inexistente → `falhou` medido (não `não medida`)');
+  r = cli(['--root', root({ indice: rev({ prefixo: ['App.tsx'] }), saidas: ['01'], arquivos: { 'f.md': 'fonte', 'r.json': parecer(hashes) } }), '--todos', '--check']);
+  ok(r.rc === 1 && /não encerra alteração de código/.test(r.out), 'RECIBO: revisão documental NÃO fecha thread que toca código');
+
+  const sum = (skipped) => JSON.stringify({ schema: 'junit-summary/v1', coherent: true, provou_algo: true,
+    files: [{ file: 't.php', tests: 1 + skipped, passed: 1, failed: 0, errors: 0, skipped, assertions: 3 }] });
+  const exe = (s) => ({ 't.php': 'teste', 's.json': s, 'r.json': JSON.stringify({ thread: '01', exitCode: 0, runner: 'ci',
+    command: ['php', 'artisan', 'test'], testes: ['t.php'], summary: 's.json',
+    arquivos: { [SAIDA]: H(SAIDA_TXT), 't.php': H('teste'), 's.json': H(s) } }) });
+  const IE = IDX([{ tipo: 'execucao', path: 'r.json', testes: ['t.php'] }]);
+  r = cli(['--root', root({ indice: IE, saidas: ['01'], arquivos: exe(sum(0)) }), '--todos', '--check']);
+  ok(r.rc === 0 && /entregue 1 de 1/.test(r.out), 'RECIBO+: execução com junit-summary integral → `feito`');
+  r = cli(['--root', root({ indice: IE, saidas: ['01'], arquivos: exe(sum(1)) }), '--todos', '--check']);
+  ok(r.rc === 1 && /não comprovado integralmente: t\.php/.test(r.out), 'RECIBO: teste pulado no resumo → MORDE (0 failed não é prova)');
+
+  r = cli(['--root', root({ indice: IDX([{ tipo: 'medicao', path: 'm.json' }]), saidas: ['01'] }), '--todos', '--check']);
+  ok(r.rc === 0 && /sem contrato de recibo/.test(r.out), 'NÃO MEDI: `medicao` não tem contrato de recibo → não medida, não acusa');
+}
 
 /* ── 5. EXIT 2 — não medi estrutural, nunca "0 de 0 = 100%" ──────────────────────────── */
 ok(cli(['--root', root({ indice: '# sem bloco json aqui\n' }), '--todos', '--check']).rc === 2, 'EXIT 2: 00-INDICE.md sem bloco json → 2');
