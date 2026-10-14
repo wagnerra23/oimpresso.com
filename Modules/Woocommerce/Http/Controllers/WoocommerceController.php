@@ -236,7 +236,7 @@ class WoocommerceController extends Controller
     /**
      * Displays form to update woocommerce api settings.
      *
-     * @return Response
+     * @return \Illuminate\Contracts\View\View|\Inertia\Response
      */
     public function apiSettings()
     {
@@ -384,14 +384,10 @@ class WoocommerceController extends Controller
         $salvo = json_decode($business->woocommerce_api_settings ?? '', true) ?: [];
 
         foreach (self::SEGREDOS_DO_JSON as $k) {
-            if (empty($input[$k])) {
-                $input[$k] = $salvo[$k] ?? '';
-            }
+            $input[$k] = ! empty($input[$k]) ? $input[$k] : ($salvo[$k] ?? '');
         }
         foreach (self::SEGREDOS_DE_WEBHOOK as $k) {
-            if (empty($input[$k])) {
-                $input[$k] = $business->{$k} ?? null;
-            }
+            $input[$k] = ! empty($input[$k]) ? $input[$k] : ($business->{$k} ?? null);
         }
 
         return $input;
@@ -584,7 +580,7 @@ class WoocommerceController extends Controller
     /**
      * Display a listing of the resource.
      *
-     * @return Response
+     * @return mixed JSON do DataTables (AJAX) · Blade · Inertia\Response (flag ligada)
      */
     public function viewSyncLog()
     {

@@ -60,7 +60,7 @@ function LogIndex({ logs, pode }: Props) {
       <Stack gap={4} className="px-6 pt-4">
         <Deferred data="logs" fallback={<p className="py-6 text-sm text-muted-foreground">Carregando o log…</p>}>
           {itens.length > 0 ? (
-            <section data-contract="log" className="rounded-xl border">
+            <section data-contract="log" className="rounded-lg border">
               <h3 className="flex items-center justify-between border-b px-4 py-3 text-sm font-semibold">
                 Log de sincronização <span className="font-normal text-muted-foreground">{plural(logs?.total ?? 0, 'execução', 'execuções')}</span>
               </h3>
