@@ -300,6 +300,7 @@ jobs:
             Modules/NfeBrasil/Tests/Feature/ImportRegrasCsvServiceTest.php \
             Modules/NfeBrasil/Tests/Feature/MotorTributarioServiceTest.php \
             Modules/NfeBrasil/Tests/Feature/NfeEmissaoPorItemTest.php \
+            Modules/NfeBrasil/Tests/Feature/NfeDevolucaoTest.php \
             Modules/NfeBrasil/Tests/Feature/TributacaoControllerTest.php \
             Modules/NfeBrasil/Tests/Feature/EmpresaFiscalLookupTest.php \
             Modules/NfeBrasil/Tests/Feature/TributacaoTemplateSugestaoTest.php \
@@ -334,6 +335,8 @@ jobs:
             Modules/NfeBrasil/Tests/Feature/NfseCertificadoPayloadTest.php \
             Modules/NfeBrasil/Tests/Feature/RevisaoContadorLinkTest.php \
             Modules/NfeBrasil/Tests/Feature/SaudeFiscalTest.php \
+            Modules/NfeBrasil/Tests/Feature/NfeBloqueioComSaidaTest.php \
+            Modules/NfeBrasil/Tests/Feature/FechamentoContadorTest.php \
             Modules/Fiscal/Tests/Feature/ContadorCadastroTest.php
 
 

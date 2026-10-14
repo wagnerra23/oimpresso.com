@@ -5,7 +5,7 @@ irmaos: Index.charter.md (lei)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: esta tela liga a emissão automática de NFe e edita a cascade tributária — o comportamento é durável mesmo se o layout mudar.
 owner: wagner
-last_run: "2026-10-07"
+last_run: "2026-10-14"
 ---
 
 # Casos de Uso & Aceite — Tributação (regras NCM · templates · gate de emissão automática)
@@ -449,6 +449,46 @@ last_run: "2026-10-07"
 - **Teste:** [`SaudeFiscalTest`](../../../../../Modules/NfeBrasil/Tests/Feature/SaudeFiscalTest.php) — `UC-NFTR-25 · pronto pra emitir`.
 - **Contrato:** UC-TRB-16 · D-SUPORTE · templates L1 (US-NFE-TPL-001).
 - **Regressão que defende:** a primeira nota ser o teste da configuração.
+- **Status: 🧪** — veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
+
+## UC-NFTR-26 · Fechamento do mês: notas fecham e rejeitada pendente vira ação · `must` `[fiscal]`
+
+- **Persona:** contador abrindo o link de revisão (UC-NFTR-22), com o fechamento ligado.
+- **Aceite:** Dado o mês com 398 autorizadas, 9 canceladas, 1 denegada e 4 rejeitadas · Então "notas
+  fecham" mostra 412 e "rejeitadas pendentes" mostra 4 com a ação "Resolver ou inutilizar a numeração",
+  sem bloquear nada (D-REJEITADA). Nota ainda sem resposta da SEFAZ deixa "notas fecham" pendente. Só
+  conta notas do business do link. Controle positivo: mês sem rejeitada mostra ok.
+- **Teste:** [`FechamentoContadorTest`](../../../../../Modules/NfeBrasil/Tests/Feature/FechamentoContadorTest.php) — `UC-NFTR-26 · R-FISC-040 · …` (4 casos).
+- **Tela:** seção `data-contract="fechamento-contador"` na página do link (`contador/revisao.blade.php`),
+  atrás de `NFEBRASIL_FECHAMENTO_CONTADOR` (desligada). Forma da aba "Contador" do `fiscal-tributacao.jsx`.
+- **Contrato:** playbook Fiscal thread 28 (R-FISC-040) · D-FECHAMENTO · D-REJEITADA · `FechamentoContadorService`.
+- **Regressão que defende:** contador fechando com nota rejeitada esquecida.
+- **Status: 🧪** — veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
+
+## UC-NFTR-27 · Sublimite avisa a 90% e a segregação separa a ST · `must` `[fiscal]`
+
+- **Persona:** contador conferindo o PGDAS-D.
+- **Aceite:** Dado receita de 12 meses de R$ 3,48 mi · Então "atenção" com 96,7% do sublimite de
+  R$ 3,6 mi (LC 123/2006 art. 13-A); exatamente 90% já é atenção, acima do sublimite é pendente. Dado
+  item com CSOSN 500 · Então ele sai na linha "Revenda com ST já retida" (art. 18 §4º-A, I), separado da
+  revenda e da produção própria (CFOP x101), e a soma das linhas é comparada com a receita do mês no
+  Financeiro. Nota autorizada sem XML deixa a segregação em atenção. Controle positivo: receita 1 centavo
+  abaixo de 90% mostra ok.
+- **Teste:** [`FechamentoContadorTest`](../../../../../Modules/NfeBrasil/Tests/Feature/FechamentoContadorTest.php) — `UC-NFTR-27 · R-FISC-041 · …` (4 casos).
+- **Contrato:** playbook Fiscal thread 28 (R-FISC-041) · LC 123/2006 arts. 13-A e 18 §4º/§4º-A.
+- **Regressão que defende:** ICMS pago duas vezes no DAS; estouro de sublimite descoberto tarde.
+- **Status: 🧪** — veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
+
+## UC-NFTR-28 · Entrada de outra UF pede classificação para DIFAL · `should` `[fiscal]` · **parcial**
+
+- **Persona:** contador conferindo as compras do mês.
+- **Aceite (parcial):** Dado entrada recebida pelo DF-e de outra UF · Então "DIFAL de compra" pede
+  classificar (revenda × uso, consumo ou ativo). Só entrada da mesma UF mostra ok. Sem entrada nenhuma no
+  mês não mostra ok: avisa conferir se a consulta à SEFAZ está ativa.
+- **O que falta para R-FISC-042 inteiro:** o ERP não registra a destinação da entrada, então não separa
+  "MG para ativo" de "PR para revenda". Depende da ADR de entrada por XML (thread 11, `proposto`).
+- **Teste:** [`FechamentoContadorTest`](../../../../../Modules/NfeBrasil/Tests/Feature/FechamentoContadorTest.php) — `UC-NFTR-28 · R-FISC-042 (parcial) · …`.
+- **Contrato:** playbook Fiscal thread 28 (R-FISC-042) · LC 87/1996 · LC 190/2022 · D-ENTRADA.
 - **Status: 🧪** — veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
 
 ## Backlog — sem UC até ganhar teste

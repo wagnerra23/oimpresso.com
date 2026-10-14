@@ -35,6 +35,16 @@ name: Modules Pest
 # que migration nenhuma do repo cria (as reais sao assets/asset_maintenances).
 # O endereco de UI do modulo e Pages/Patrimonio/** por decisao [W] de 2026-09-04
 # (modulo proprio; ADR 0180/0182 divergiam e o SCOPE.md aguardava a decisao).
+#
+# 2026-10-14 — RecurringBilling entrou na matrix (regime de evolucao, etapa E6).
+# Medido no main: 40 arquivos em Modules/RecurringBilling/Tests/Feature, dos quais
+# 15 rodavam em CI pela .github/ci-sqlite-pest.list (lane ci.yml). Os outros 25
+# nao rodavam em lane nenhuma. O registro no phpunit.xml nao supre: nenhuma lane
+# usa --testsuite. Aqui roda o diretorio inteiro, inclusive o
+# PlanoSemFaturaContratoTest (UC-RBSUB-05), FAILING-FIRST por desenho: a lista
+# sqlite o deixa de fora porque la e required; esta matrix nao e required, entao
+# o vermelho dele aparece como achado, sem travar merge. Os 15 continuam na lista
+# sqlite de proposito (la rodam em todo PR; aqui so quando o modulo muda).
 
 on:
   workflow_dispatch:
@@ -46,6 +56,8 @@ on:
       - 'resources/js/Pages/Arquivos/**'
       - 'Modules/AssetManagement/**'
       - 'resources/js/Pages/Patrimonio/**'
+      - 'Modules/RecurringBilling/**'
+      - 'resources/js/Pages/RecurringBilling/**'
       - 'Modules/ComunicacaoVisual/**'
       - 'resources/js/Pages/ComunicacaoVisual/**'
       - 'Modules/Connector/**'
@@ -69,6 +81,8 @@ on:
       - 'resources/js/Pages/Arquivos/**'
       - 'Modules/AssetManagement/**'
       - 'resources/js/Pages/Patrimonio/**'
+      - 'Modules/RecurringBilling/**'
+      - 'resources/js/Pages/RecurringBilling/**'
       - 'Modules/ComunicacaoVisual/**'
       - 'resources/js/Pages/ComunicacaoVisual/**'
       - 'Modules/Connector/**'
@@ -102,6 +116,7 @@ jobs:
           - Fiscal
           - Manufacturing
           - NfeBrasil
+          - RecurringBilling
           - Repair
           - Vestuario
 

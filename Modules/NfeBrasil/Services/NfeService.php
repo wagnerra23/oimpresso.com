@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use InvalidArgumentException;
+use Modules\NfeBrasil\Exceptions\NcmPadraoAusenteException;
 use Modules\NfeBrasil\Models\NfeBusinessConfig;
 use Modules\NfeBrasil\Models\NfeEmissao;
 use Modules\NfeBrasil\Models\NfeEvento;
@@ -126,10 +127,8 @@ class NfeService
             ?? $business->ncm_padrao
             ?? '');
         if (strlen($ncmDefault) !== 8) {
-            throw new RuntimeException(
-                "Business {$businessId} sem NCM padrão configurado. " .
-                "Configure `ncm_padrao` no cadastro do business ou `nfe_business_configs.tributacao_default.ncm_default`."
-            );
+            // R-NFE-022: recusa com a saída (tela + campo), nunca emite sem NCM.
+            throw new NcmPadraoAusenteException($businessId);
         }
 
         $ufOrigem = $this->resolverUF($business);
@@ -284,10 +283,8 @@ class NfeService
             ?? $business->ncm_padrao
             ?? '');
         if (strlen($ncmDefault) !== 8) {
-            throw new RuntimeException(
-                "Business {$businessId} sem NCM padrão configurado. " .
-                "Aplique um template em /nfe-brasil/tributacao OU configure `tributacao_default.ncm_default`."
-            );
+            // R-NFE-022: recusa com a saída (tela + campo), nunca emite sem NCM.
+            throw new NcmPadraoAusenteException($businessId);
         }
 
         $ufOrigem = $this->resolverUF($business);
@@ -428,7 +425,7 @@ class NfeService
         // R-NFE-024 controle: sem NCM padrão válido não há saída — mesma recusa do
         // R-NFE-022 em emitirParaTransaction (defesa em profundidade, sem DB).
         if (strlen($ncmDefault) !== 8) {
-            throw new RuntimeException("Business {$businessId} sem NCM padrão configurado.");
+            throw new NcmPadraoAusenteException($businessId);
         }
 
         // 1. vProd por item, em centavos
@@ -1648,7 +1645,8 @@ class NfeService
         $stdIde->nNF       = $emissao->numero;
         $stdIde->dhEmi     = now()->format('Y-m-d\TH:i:sP');
         $stdIde->dhSaiEnt  = now()->format('Y-m-d\TH:i:sP');
-        $stdIde->tpNF      = 1;
+        // Thread 20 · devolução de venda é nota de ENTRADA (tpNF=0). Sem a chave = 1, XML de sempre.
+        $stdIde->tpNF      = (int) ($dadosNfe['tp_nf'] ?? 1);
         $stdIde->idDest    = $this->resolverIdDest($emitOverride, $dadosNfe['dest'] ?? [], $business);
         $stdIde->cMunFG    = $codMunEmit;
         // tpImp depende do modelo (rejeição "DANFE invalido" comum quando NFC-e usa tpImp=1):
@@ -1661,7 +1659,8 @@ class NfeService
         $stdIde->tpEmis    = (int) ($emissao->tp_emis ?: NfeEmissao::TP_EMIS_NORMAL);
         $stdIde->cDV       = 0;
         $stdIde->tpAmb     = (int) ($emitOverride['ambiente'] ?? $business->ambiente ?? 2);
-        $stdIde->finNFe    = 1;
+        // Thread 20 · finNFe=4 na devolução (R-NFE-026). Sem a chave = 1 (normal), XML de sempre.
+        $stdIde->finNFe    = (int) ($dadosNfe['fin_nfe'] ?? 1);
         // indFinal: 1 = consumidor final, 0 = não consumidor final.
         //   - NFC-e (modelo 65): SEMPRE 1 (rejeição cstat 717)
         //   - NFe (modelo 55) + ind_ie_dest=9 (não contribuinte): 1 (rejeição cstat 696
@@ -1676,6 +1675,13 @@ class NfeService
         $stdIde->procEmi   = '0';
         $stdIde->verProc   = '1.0';
         $nfe->tagide($stdIde);
+
+        // Thread 20 · R-NFE-026: a devolução referencia a chave da nota de origem (NFref/refNFe).
+        if (! empty($dadosNfe['ref_nfe'])) {
+            $stdRef         = new \stdClass();
+            $stdRef->refNFe = (string) $dadosNfe['ref_nfe'];
+            $nfe->tagrefNFe($stdRef);
+        }
 
         // ── emit ─────────────────────────────────────────────────────────────
         $crt        = (int) ($emitOverride['crt'] ?? $business->regime ?? 1);
