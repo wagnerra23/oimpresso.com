@@ -10,18 +10,25 @@
 // Âncora de design: prototipo-ui/cowork/Wagner/financeiro-legado.jsx → telaDespesas()
 //
 // O rodapé soma SÓ a página visível, como a Blade (fnDrawCallback + sum_table_col): mudar isso
-// é a decisão D-DESP-TOTAL, do [W]. Drawer e ações da linha chegam na US-MWART-017.
+// é a decisão D-DESP-TOTAL, do [W]. Drawer e ações (US-MWART-017): Editar abre a edição existente;
+// Excluir chama o mesmo `destroy`; pagamento fica na tela clássica (escrever valor aqui é decisão [W]).
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Deferred, router } from '@inertiajs/react';
-import { useMemo, type ReactNode } from 'react';
+import { useMemo, useState, type ReactNode } from 'react';
 import { Badge } from '@/Components/ui/badge';
+import { Button } from '@/Components/ui/button';
+import { Sheet, SheetContent, SheetDescription, SheetTitle } from '@/Components/ui/sheet';
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from '@/Components/ui/alert-dialog';
 import { Input } from '@/Components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import { PageHeader } from '@/Components/PageHeader';
 import DataTable, { type PaginatorShape } from '@/Components/shared/DataTable';
 import type { ColumnDef } from '@tanstack/react-table';
-import { Inline, Stack } from '@/Components/layout';
+import { Grid, Inline, Stack } from '@/Components/layout';
 import FinanceiroSubNav from '@/Pages/Financeiro/_shared/FinanceiroSubNav';
 
 export interface Despesa {
@@ -87,8 +94,50 @@ const colunas: ColumnDef<Despesa>[] = [
   { accessorKey: 'criado_por', header: 'Criado por' },
 ];
 
-function DespesasIndex({ filtros, opcoes, despesas }: Props) {
+function xsrf(): string {
+  return decodeURIComponent(document.cookie.match(/(?:^|;\s*)XSRF-TOKEN=([^;]+)/)?.[1] ?? '');
+}
+
+/** Exclusão pelo MESMO `destroy` da Blade (apaga também pagamentos de caixa e AccountTransaction). */
+async function excluirDespesa(id: number): Promise<{ success: boolean; msg?: string }> {
+  try {
+    const r = await fetch(`/expenses/${id}`, {
+      method: 'DELETE',
+      headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-XSRF-TOKEN': xsrf(), Accept: 'application/json' },
+    });
+    return r.ok ? await r.json() : { success: false };
+  } catch {
+    return { success: false };
+  }
+}
+
+function Campo({ rotulo, children }: { rotulo: string; children: ReactNode }) {
+  return (
+    <Stack gap={0}>
+      <span className="text-xs text-muted-foreground">{rotulo}</span>
+      <span>{children || '—'}</span>
+    </Stack>
+  );
+}
+
+function DespesasIndex({ filtros, opcoes, despesas, pode }: Props) {
   const linhas = useMemo(() => despesas?.data ?? [], [despesas]);
+  const [aberta, setAberta] = useState<Despesa | null>(null);
+  const [confirmar, setConfirmar] = useState(false);
+  const [aviso, setAviso] = useState('');
+
+  async function excluir() {
+    if (!aberta) return;
+    const r = await excluirDespesa(aberta.id);
+    setConfirmar(false);
+    if (r.success) {
+      setAberta(null);
+      setAviso(r.msg ?? 'Despesa excluída.');
+      router.reload({ only: ['despesas'] });
+    } else {
+      setAviso(r.msg ?? 'Não foi possível excluir a despesa.');
+    }
+  }
   // Rodapé = soma das linhas desta página, com o sinal que o servidor já aplicou (estorno negativo).
   const rodape = useMemo(() => ({
     total: linhas.reduce((a, d) => a + d.total, 0),
@@ -127,8 +176,9 @@ function DespesasIndex({ filtros, opcoes, despesas }: Props) {
 
         <Deferred data="despesas" fallback={<p className="py-6 text-sm text-muted-foreground">Carregando despesas…</p>}>
           <Stack gap={2} data-contract="lista">
+            {aviso && <p role="status" className="text-sm text-muted-foreground">{aviso}</p>}
             <DataTable columns={colunas} data={linhas} pagination={despesas} caption="Despesas do período"
-              rowKey={(d) => d.id} emptyMessage="Nenhuma despesa no período com esses filtros." />
+              rowKey={(d) => d.id} onRowClick={setAberta} emptyMessage="Nenhuma despesa no período com esses filtros." />
             <Inline data-contract="rodape" gap={4} justify="end" className="text-sm">
               <span>{rodape.status || '—'}</span>
               <span>Total desta página: <b className="font-mono">{brl(rodape.total)}</b></span>
@@ -137,6 +187,55 @@ function DespesasIndex({ filtros, opcoes, despesas }: Props) {
           </Stack>
         </Deferred>
       </Stack>
+
+      <Sheet open={!!aberta} onOpenChange={(v) => !v && setAberta(null)}>
+        <SheetContent data-contract="drawer" className="w-full overflow-y-auto p-0 sm:max-w-[760px]">
+          <header className="os-drawer-head">
+            <div className="os-drawer-head-l">
+              <SheetTitle asChild><h2 className="m-0 font-mono">{aberta?.ref}</h2></SheetTitle>
+              <SheetDescription asChild><p>{aberta?.estorno ? 'Estorno de despesa' : 'Despesa'} · {aberta?.data}</p></SheetDescription>
+            </div>
+          </header>
+          {aberta && (
+            <Stack gap={4} className="p-5 text-sm">
+              <Grid cols={2} gap={3}>
+                <Campo rotulo="Total">{brl(aberta.total)}</Campo>
+                <Campo rotulo="Devido">{brl(aberta.devido)}</Campo>
+                <Campo rotulo="Pagamento">{STATUS[aberta.status] ?? aberta.status}</Campo>
+                <Campo rotulo="Imposto">{aberta.imposto}</Campo>
+                <Campo rotulo="Categoria">{aberta.categoria}</Campo>
+                <Campo rotulo="Subcategoria">{aberta.subcategoria}</Campo>
+                <Campo rotulo="Local">{aberta.local}</Campo>
+                <Campo rotulo="Despesa para">{aberta.para}</Campo>
+                <Campo rotulo="Contato">{aberta.contato}</Campo>
+                <Campo rotulo="Criado por">{aberta.criado_por}</Campo>
+                {aberta.gerada_de && <Campo rotulo="Gerada pela recorrência de">{aberta.gerada_de}</Campo>}
+              </Grid>
+              <Campo rotulo="Nota">{aberta.nota}</Campo>
+              <p className="text-xs text-muted-foreground">
+                Pagamento ({aberta.status !== 'paid' ? 'adicionar e ' : ''}ver) continua na tela clássica.
+              </p>
+              <Inline data-contract="drawer-acoes" wrap gap={2} className="border-t pt-4">
+                {pode.edit && <Button asChild variant="outline"><a href={`/expenses/${aberta.id}/edit`}>Editar</a></Button>}
+                {aberta.documento && <Button asChild variant="outline"><a href={`/uploads/documents/${aberta.documento}`} download>Baixar documento</a></Button>}
+                <Button asChild variant="outline"><a href="/expenses?classico=1">Pagamento na tela clássica</a></Button>
+                {pode.delete && <Button variant="destructive" className="ml-auto" onClick={() => setConfirmar(true)}>Excluir</Button>}
+              </Inline>
+            </Stack>
+          )}
+        </SheetContent>
+      </Sheet>
+
+      <AlertDialog open={confirmar} onOpenChange={setConfirmar}>
+        <AlertDialogContent data-contract="confirm-excluir">
+          <AlertDialogHeader><AlertDialogTitle>Excluir {aberta?.ref}?</AlertDialogTitle></AlertDialogHeader>
+          <p className="text-sm text-muted-foreground">Os pagamentos de caixa e os lançamentos de conta desta despesa saem junto.</p>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction className="bg-destructive text-white hover:bg-destructive/90" onClick={excluir}>Excluir despesa</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
