@@ -1,0 +1,16 @@
+{
+  "_": "A2 [CL] 2026-10-13 — playbook crm. Protótipo: rota `crm-propostas` do espelho (app.jsx CRM_VIEW → CrmBladePage view=propostas → crm-blade-telas.jsx).",
+  "_mapa": "alvo:mapa --rota crm-propostas --raiz .cb-root e --raiz '.cb-root > .pb-body' (e '… > section:nth-child(N) > .pb-widget-b') contra o espelho servido por servirEstatico, 2026-10-13: .pb-body = nav.cb-nav · section[crm-propostas] (pb-toolbar · pb-grid-pro). Sem bloco de filtros nem rodapé.",
+  "header": {
+    "seletor": ".cb-root > .cli-ph"
+  },
+  "nav": {
+    "seletor": ".cb-root > .pb-body > .cb-nav"
+  },
+  "toolbar": {
+    "seletor": "[data-contract=\"crm-propostas\"] [data-contract=\"crm-toolbar\"]"
+  },
+  "grade": {
+    "seletor": "[data-contract=\"crm-propostas\"] .pb-grid-pro"
+  }
+}

@@ -18,14 +18,15 @@
 //     e "—" + aviso quando o valor vem null (sem permissão não é zero);
 //   - o rodapé sai na ordem do protótipo, e "Comprar" some sem permissão ou sem controle de estoque.
 //
-// Cobre UC-PIDX-09, UC-PIDX-11 e UC-PIDX-12 (resources/js/Pages/Produto/Index.casos.md).
+// Cobre UC-PIDX-09, UC-PIDX-11, UC-PIDX-12, UC-PIDX-17 e UC-PIDX-19 (resources/js/Pages/Produto/Index.casos.md).
 // ⚠️ Nenhuma lane de CI roda este arquivo ainda (cada lane Vitest lista os próprios specs).
 // Comando: npx vitest run tests/js/produto-painel-detalhe.test.tsx
 
 import { describe, it, expect, afterEach, vi } from 'vitest';
+import { useState } from 'react';
 import { render, screen, cleanup, fireEvent, waitFor, within } from '@testing-library/react';
 import PainelDetalheProduto from '@/Pages/Produto/_components/lista/PainelDetalhe';
-import type { DetalheProdutoDados } from '@/Pages/Produto/_components/lista/tipos';
+import type { AbaDoDetalhe, DetalheProdutoDados } from '@/Pages/Produto/_components/lista/tipos';
 // Formatador de moeda da própria tela: o que se prova aqui é QUAL número aparece, não o formato.
 import { brl } from '@/Pages/Produto/Unificado/_components/catalogo';
 
@@ -65,20 +66,30 @@ const detalhe = (parte: Partial<DetalheProdutoDados> = {}): DetalheProdutoDados 
   ...parte,
 });
 
-function abrir(d: DetalheProdutoDados, opcoes: { podeComprar?: boolean } = {}) {
-  const aoFechar = vi.fn();
-  const irPara = vi.fn();
-  render(
+/** O painel com o dono da aba do lado de fora, como em `Produto/Index.tsx`. */
+function Painel({
+  d, abaInicial = 'dados', podeComprar = true, aoFechar, irPara,
+}: { d: DetalheProdutoDados; abaInicial?: AbaDoDetalhe; podeComprar?: boolean; aoFechar: () => void; irPara: (u: string) => void }) {
+  const [aba, setAba] = useState<AbaDoDetalhe>(abaInicial);
+  return (
     <PainelDetalheProduto
       aberto
       detalhe={d}
+      aba={aba}
+      aoMudarAba={setAba}
       aoFechar={aoFechar}
       podeEditar
       podePrecos
-      podeComprar={opcoes.podeComprar ?? true}
+      podeComprar={podeComprar}
       irPara={irPara}
-    />,
+    />
   );
+}
+
+function abrir(d: DetalheProdutoDados, opcoes: { podeComprar?: boolean; abaInicial?: AbaDoDetalhe } = {}) {
+  const aoFechar = vi.fn();
+  const irPara = vi.fn();
+  render(<Painel d={d} abaInicial={opcoes.abaInicial} podeComprar={opcoes.podeComprar} aoFechar={aoFechar} irPara={irPara} />);
   return { aoFechar, irPara, painel: within(screen.getByRole('dialog')) };
 }
 
@@ -155,6 +166,84 @@ describe('UC-PIDX-09 · abas', () => {
     expect(painel.getByRole('heading', { name: 'Dados fiscais' })).toBeTruthy();
     fireEvent.click(painel.getByRole('tab', { name: 'Prateleira' }));
     expect(painel.getByRole('heading', { name: 'Detalhes de prateleira' })).toBeTruthy();
+  });
+});
+
+describe('UC-PIDX-17 · o painel abre na aba que quem abriu pediu', () => {
+  const comFiscal = () => detalhe({ fiscal: { ncm: '49019900', cest: '2806400', cfop_interno: '5102', cfop_externo: '6102', cst_csosn: '102', cst_pis: '07', cst_cofins: '07', cst_ipi: '53' } });
+
+  it('pedida a aba Fiscal, os dados fiscais já estão na tela, sem clicar em aba', () => {
+    const { painel } = abrir(comFiscal(), { abaInicial: 'fiscal' });
+    expect(painel.getByRole('tab', { name: 'Fiscal' }).getAttribute('aria-selected')).toBe('true');
+    expect(painel.getByText('Dados fiscais')).toBeTruthy();
+    expect(painel.getByText('49019900')).toBeTruthy();
+    expect(painel.getByText('5102')).toBeTruthy();
+  });
+
+  it('sem pedido, abre em Dados (o "Ver" de sempre)', () => {
+    const { painel } = abrir(comFiscal());
+    expect(painel.getByRole('tab', { name: 'Dados' }).getAttribute('aria-selected')).toBe('true');
+    expect(painel.queryByText('49019900')).toBeNull();
+  });
+
+  it('o painel não guarda aba própria: obedece à aba que o dono manda, e só avisa o clique', () => {
+    const aoMudarAba = vi.fn();
+    const props = { aberto: true, detalhe: comFiscal(), aoMudarAba, aoFechar: () => undefined, podeEditar: true, podePrecos: true, podeComprar: true, irPara: () => undefined };
+    const { rerender } = render(<PainelDetalheProduto {...props} aba="fiscal" />);
+    const painel = within(screen.getByRole('dialog'));
+    expect(painel.getByText('49019900')).toBeTruthy();
+
+    // Clicar numa aba só avisa; sem o dono trocar, o painel continua onde estava.
+    fireEvent.click(painel.getByRole('tab', { name: 'Dados' }));
+    expect(aoMudarAba).toHaveBeenCalledWith('dados');
+    expect(painel.getByText('49019900')).toBeTruthy();
+
+    // O dono manda outra aba (é o que acontece ao abrir outro produto pelo "Ver").
+    rerender(<PainelDetalheProduto {...props} aba="dados" />);
+    expect(painel.getByRole('tab', { name: 'Dados' }).getAttribute('aria-selected')).toBe('true');
+    expect(painel.queryByText('49019900')).toBeNull();
+  });
+
+  it('pedida uma aba que este produto não tem (Estoque num produto sem estoque), cai em Dados', () => {
+    const { painel } = abrir(detalhe({ estoque: null }), { abaInicial: 'estoque' });
+    expect(painel.getByRole('tab', { name: 'Dados' }).getAttribute('aria-selected')).toBe('true');
+  });
+});
+
+describe('UC-PIDX-19 · a aba Fiscal mostra o tipo de imposto na venda', () => {
+  /** O valor (`<b>`) do campo com aquele rótulo, dentro do painel. */
+  const campo = (painel: ReturnType<typeof within>, rotulo: string) =>
+    (painel.getByText(rotulo).closest('.pb-dt') as HTMLElement).querySelector('b')?.textContent;
+  const comTipo = (tipo_imposto: string) => {
+    const base = detalhe();
+    return detalhe({ dados: { ...base.dados, tipo_imposto } });
+  };
+
+  it('imposto inclusivo: a aba Fiscal diz "Inclusivo"', () => {
+    const { painel } = abrir(comTipo('inclusive'), { abaInicial: 'fiscal' });
+    expect(campo(painel, 'Tipo de imposto na venda')).toBe('Inclusivo');
+  });
+
+  it('imposto exclusivo: a aba Fiscal diz "Exclusivo"', () => {
+    const { painel } = abrir(comTipo('exclusive'), { abaInicial: 'fiscal' });
+    expect(campo(painel, 'Tipo de imposto na venda')).toBe('Exclusivo');
+  });
+
+  it('cadastro sem o tipo: mostra o traço, não inventa um', () => {
+    const { painel } = abrir(comTipo(''), { abaInicial: 'fiscal' });
+    expect(campo(painel, 'Tipo de imposto na venda')).toBe('—');
+  });
+
+  it('é o último campo da aba Fiscal, depois de "Imposto aplicável" (a ordem do protótipo)', () => {
+    const { painel } = abrir(comTipo('exclusive'), { abaInicial: 'fiscal' });
+    const rotulos = Array.from(document.querySelectorAll('[role=dialog] .pb-dt > span')).map((e) => e.textContent);
+    expect(rotulos.slice(-2)).toEqual(['Imposto aplicável', 'Tipo de imposto na venda']);
+    void painel;
+  });
+
+  it('a aba Dados continua mostrando o mesmo valor', () => {
+    const { painel } = abrir(comTipo('exclusive'));
+    expect(campo(painel, 'Tipo de imposto na venda')).toBe('Exclusivo');
   });
 });
 

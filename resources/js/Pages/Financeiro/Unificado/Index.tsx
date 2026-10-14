@@ -800,7 +800,7 @@ const FIN_XLINK_DEFS = [
   { kind: 'venda', re: /#V-(\d{1,8})/g, label: (n: string) => `Venda #${n}`, href: (n: string) => `/sells/${n}`, Icon: ShoppingBag, cls: 'text-primary' },
   { kind: 'os', re: /#OS-(\d{1,8})/g, label: (n: string) => `OS #${n}`, href: (n: string) => `/repair/job/${n}`, Icon: Wrench, cls: 'text-warning-foreground' },
   { kind: 'compra', re: /#PC-(\d{1,8})/g, label: (n: string) => `Compra #${n}`, href: (n: string) => `/compras/${n}`, Icon: Package, cls: 'text-success-foreground' },
-  { kind: 'boleto', re: /#BL-(\d{1,8})/g, label: (n: string) => `Boleto #${n}`, href: (n: string) => `/financeiro/boletos/${n}`, Icon: Receipt, cls: 'text-muted-foreground' },
+  { kind: 'boleto', re: /#BL-(\d{1,8})/g, label: (n: string) => `Boleto #${n}`, href: (_n: string) => '/financeiro/cobranca', Icon: Receipt, cls: 'text-muted-foreground' },
 ] as const;
 
 function FinVinculosChips({ descricao, nfeNumero }: { descricao: string; nfeNumero: string | null }) {

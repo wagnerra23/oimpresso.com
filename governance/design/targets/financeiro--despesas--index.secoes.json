@@ -1,0 +1,28 @@
+{
+  "_": "A3 [CL] 2026-10-13 — playbook financeiro. Rota `fin-despesas` do espelho (app.jsx:845 → `window.FinanceiroLegadoPage view=\"fin-despesas\"`, financeiro-legado.jsx; item de menu em data.jsx). Lista de despesas (telaDespesas): 3 KPIs, grade de 15 colunas, rodapé com total e devido. Tema dark (default do espelho), viewport 1280x900, browser limpo, --quieto-ms 2000. Fica de fora o 3º filho de `.pb-root` (div vazio do aviso, sem filhos no render). `linha` = 1ª `tbody > tr` da grade.",
+  "_mapa": "alvo:mapa --rota fin-despesas --quieto-ms 2000, 2026-10-13: raiz '.pb-root' → div.cli-ph(2) · div.pb-body(3) · div(0); raiz '.pb-body' → nav.ds-tabbar.vb-nav(6) · div.cu-kpis(3) · section.pb-widget(2); raiz '.pb-widget' → h3(2) · div.pb-widget-b.flush(3); raiz '.pb-widget-b' → div.pb-toolbar(5) · div.pb-grid-pro.cu-grid(1) · div.pb-pag; raiz '.pb-grid-pro tbody' → tr(15) por linha",
+  "cabecalho": {
+    "seletor": ".main-body .pb-root > .cli-ph"
+  },
+  "abas": {
+    "seletor": ".main-body .pb-root > .pb-body > nav.vb-nav"
+  },
+  "kpis": {
+    "seletor": ".main-body .pb-root > .pb-body > .cu-kpis"
+  },
+  "titulo": {
+    "seletor": ".main-body .pb-root > .pb-body > section.pb-widget > h3"
+  },
+  "toolbar": {
+    "seletor": ".main-body .pb-root > .pb-body > section.pb-widget > .pb-widget-b > .pb-toolbar"
+  },
+  "tabela": {
+    "seletor": ".main-body .pb-root > .pb-body > section.pb-widget > .pb-widget-b > .pb-grid-pro"
+  },
+  "linha": {
+    "seletor": ".main-body .pb-root > .pb-body > section.pb-widget > .pb-widget-b > .pb-grid-pro tbody > tr:first-child"
+  },
+  "rodape": {
+    "seletor": ".main-body .pb-root > .pb-body > section.pb-widget > .pb-widget-b > .pb-pag"
+  }
+}

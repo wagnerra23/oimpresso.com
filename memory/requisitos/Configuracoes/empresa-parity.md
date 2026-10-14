@@ -45,6 +45,6 @@ related_adrs:
 | 15 | E-mail e SMS sem expor senha/segredo nas props | ✅ F3-5a (UC-EMP-12: na tela sem os segredos; segredo só de escrita) | `settings_email` · `settings_sms` | **alta** | UC da F3 |
 | 16 | Pontos de fidelidade (`enable_rp`, `rp_*`) | ✅ F3-5b (UC-EMP-05/13) | `settings_reward_point` | média | UC da F3 |
 | 17 | Módulos habilitados (`enabled_modules[]`) | ✅ F3-5b (UC-EMP-13) | `settings_modules` | **alta** | UC da F3 |
-| 18 | Rótulos personalizados (`custom_labels[*]`) | ⬜ F3 | `settings_custom_labels` | média | UC da F3 |
+| 18 | Rótulos personalizados (`custom_labels[*]`) | ✅ F3-5c (UC-EMP-14) | `settings_custom_labels` | média | UC da F3 |
 
 `⬜ F3` = a coluna React é preenchida no PR da F3 de cada grupo, que cita o UC das linhas `alta`.

@@ -120,7 +120,7 @@ Tela única de **fluxo financeiro do mês** que mistura **Pagar / Pagas / Recebe
   - **Cross-links auto-pop** — `TituloAutoService` sintetiza `#V-{transaction_id}` (vendas) e `#PC-{transaction_id}` (compras) em `cliente_descricao` no `afterCreate`. FinCrossLinkify renderiza pills clicáveis.
 
 - **Onda 7 KB-9.75 R3 Output + Cross-link** (2026-05-18):
-  - **FinCrossLinkify** — regex parser detecta `#V-` `#BL-` `#PC-` `#OS-` `#R-` `#P-` no `desc` do row → pills coloridas clicáveis que `router.visit` para o módulo apropriado (Sells / Boletos / Compras / Repair / Contas-Receber legacy / Contas-Pagar legacy). Fecha o loop "do Financeiro pra origem do lançamento".
+  - **FinCrossLinkify** — regex parser detecta `#V-` `#BL-` `#PC-` `#OS-` `#R-` `#P-` no `desc` do row → pills coloridas clicáveis que `router.visit` para o módulo apropriado (Sells / Cobrança — `#BL-` vai pra `/financeiro/cobranca`, Boletos aposentado 2026-05-19 ADR 0144 / Compras / Repair / Contas-Receber legacy / Contas-Pagar legacy). Fecha o loop "do Financeiro pra origem do lançamento".
   - **FinChecklistFechamento** — trilha 12 passos do fechamento mensal agrupada em 4 (Conciliação / Revisão / Exportação / Comunicação). Persistido em `localStorage[oimpresso.financeiro.fechamento.YYYY-MM]`. Progress bar + timestamp por passo. Trigger ☑ Fechamento no header da página.
 - **Onda 6 KB-9.75 R2 IA** (2026-05-18):
   - **FinAnomalyDetector** — detecta valor outlier vs média histórica da contraparte (threshold ≥25%, severity high/medium/low). Mostrado no drawer quando aplicável. Pure compute, sem LLM.

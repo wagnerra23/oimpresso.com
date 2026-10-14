@@ -1,0 +1,16 @@
+{
+  "_nota": "Derivado do alvo governance/design/targets/restaurante--pedidos--index.alvo.json (thread A1 do playbook restaurante, rota `cfg-pedidos-rest` do protótipo), não do .tsx. Seções do alvo → âncoras data-contract. Copy só onde protótipo e Page dizem literalmente o mesmo (base.assinatura do alvo). `abas` sem copy e fora da `ordem`: os rótulos vêm do menu do usuário e a âncora mora no componente das abas. `prontos` sem o título do protótipo ('Itens prontos para servir'): a lista é a da Blade, que inclui itens ainda não preparados (charter). `filtros` só existe para quem não é atendente.",
+  "tela": "Restaurante/Pedidos/Index",
+  "fonte": "prototipo-ui/cowork/Wagner/restaurante-operacao.jsx",
+  "alvo": [
+    "resources/js/Pages/Restaurante/Pedidos/Index.tsx"
+  ],
+  "secoes": [
+    { "id": "cabecalho", "copy": ["Pedidos", "Atualizar"] },
+    { "id": "abas", "copy": [] },
+    { "id": "filtros", "copy": ["Atendente"] },
+    { "id": "prontos", "copy": ["item(ns)", "Marcar como servido"] },
+    { "id": "todos", "copy": ["Todos os seus pedidos", "pedido(s)", "Feito às", "Cliente", "Mesa", "Local"] }
+  ],
+  "ordem": ["cabecalho", "filtros", "prontos", "todos"]
+}

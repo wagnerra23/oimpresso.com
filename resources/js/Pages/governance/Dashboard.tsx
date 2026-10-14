@@ -626,7 +626,7 @@ function McpSection({ filters, mcp }: { filters: McpFilters; mcp?: McpPayload | 
 
   return (
     <>
-      <Inline gap={3} align="end" justify="between" wrap className="mt-4">
+      <Inline gap={3} align="end" justify="between" wrap className="mt-4" data-contract="mcp-secao">
         <div>
           <h2 className="text-sm font-semibold uppercase tracking-widest text-muted-foreground">
             Governança MCP
@@ -638,7 +638,7 @@ function McpSection({ filters, mcp }: { filters: McpFilters; mcp?: McpPayload | 
         </div>
 
         <Inline gap={2} align="end" wrap>
-          <div className="min-w-[180px]">
+          <div className="min-w-[180px]" data-contract="mcp-periodo">
             <span className="text-xs font-medium text-muted-foreground block mb-1">Período</span>
             <Select
               value={filters.preset}
@@ -762,7 +762,7 @@ const Dashboard: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({
         Constituição
       </h2>
 
-      <KpiGrid cols={6}>
+      <KpiGrid cols={6} data-contract="kpis-constituicao">
         <KpiCard
           icon="file-text"
           tone="warning"
@@ -849,7 +849,7 @@ const Dashboard: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({
         )}
       </Deferred>
 
-      <h2 className="text-sm font-semibold uppercase tracking-widest text-zinc-500 dark:text-zinc-400 mt-4">
+      <h2 className="text-sm font-semibold uppercase tracking-widest text-zinc-500 dark:text-zinc-400 mt-4" data-contract="saude-ecossistema">
         Saúde do ecossistema
       </h2>
 
