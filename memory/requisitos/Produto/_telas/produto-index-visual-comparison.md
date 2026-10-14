@@ -145,6 +145,10 @@ blueprint_cowork: prototipo-ui/prototipos/produto-cockpit/ _(removido em 2026-05
 >   tabela à parte ("Preços dos itens") e as imagens numa seção abaixo: medido em produção, a tabela
 >   com todas as colunas teria 973 px num painel de 779 px. O preço da composição sai sem e com
 >   imposto (o protótipo mostra sem, a Blade com).
+> - Produto que não controla estoque — **entrou em 2026-10-14** (UC-PIDX-21): a aba Estoque aparece
+>   com o aviso, como no protótipo (antes a aba sumia). O texto fica só em "Este produto não gerencia
+>   estoque.": o protótipo traz o nome da coluna (`enable_stock = 0`) e afirma que serviços e
+>   composições entram assim, o que não vale para composição com estoque ligado no cadastro.
 
 > **Tipo de tela:** list cockpit list+detail (drawer pattern)
 > **Persona:** Larissa (ROTA LIVRE biz=4), 1280px

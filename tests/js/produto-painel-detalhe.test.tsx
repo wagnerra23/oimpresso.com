@@ -21,7 +21,7 @@
 //     preços de cada item (as colunas da Blade) e as imagens dos itens; a aba Variações, as imagens
 //     das variações. Sem permissão, a parte de preço some (nunca zero).
 //
-// Cobre UC-PIDX-09, UC-PIDX-11, UC-PIDX-12, UC-PIDX-17, UC-PIDX-19 e UC-PIDX-20 (resources/js/Pages/Produto/Index.casos.md).
+// Cobre UC-PIDX-09, UC-PIDX-11, UC-PIDX-12, UC-PIDX-17, UC-PIDX-19, UC-PIDX-20 e UC-PIDX-21 (resources/js/Pages/Produto/Index.casos.md).
 // ⚠️ Nenhuma lane de CI roda este arquivo ainda (cada lane Vitest lista os próprios specs).
 // Comando: npx vitest run tests/js/produto-painel-detalhe.test.tsx
 
@@ -208,7 +208,7 @@ describe('UC-PIDX-17 · o painel abre na aba que quem abriu pediu', () => {
     expect(painel.queryByText('49019900')).toBeNull();
   });
 
-  it('pedida uma aba que este produto não tem (Estoque num produto sem estoque), cai em Dados', () => {
+  it('pedida uma aba que este usuário não vê (Estoque sem permissão de ver o relatório), cai em Dados', () => {
     const { painel } = abrir(detalhe({ estoque: null }), { abaInicial: 'estoque' });
     expect(painel.getByRole('tab', { name: 'Dados' }).getAttribute('aria-selected')).toBe('true');
   });
@@ -445,5 +445,41 @@ describe('UC-PIDX-20 · imagens das variações e dos itens', () => {
     const { painel } = abrir(detalhe(), { abaInicial: 'variacoes' });
     expect(painel.getByRole('heading', { name: 'Variações' })).toBeTruthy(); // anti-vácuo
     expect(painel.queryByRole('region', { name: 'Imagens das variações' })).toBeNull();
+  });
+});
+
+describe('UC-PIDX-21 · produto que não controla estoque', () => {
+  const semControle = (): DetalheProdutoDados => {
+    const d = detalhe({ estoque: null });
+    d.dados.controla_estoque = false;
+    return d;
+  };
+
+  it('tem a aba Estoque, com o aviso de que não gerencia estoque', () => {
+    const { painel } = abrir(semControle());
+    fireEvent.click(painel.getByRole('tab', { name: 'Estoque' }));
+    expect(painel.getByRole('heading', { name: 'Detalhes de estoque' })).toBeTruthy();
+    expect(painel.getByText('Este produto não gerencia estoque.')).toBeTruthy();
+    // Nada de saldo, indicadores ou histórico: o servidor não manda estoque desse produto.
+    expect(painel.queryByRole('table', { name: 'Estoque por local' })).toBeNull();
+    expect(painel.queryByRole('button', { name: 'Abrir histórico de estoque' })).toBeNull();
+  });
+
+  it('pedida a aba Estoque (ação da lista), abre nela, com o aviso', () => {
+    const { painel } = abrir(semControle(), { abaInicial: 'estoque' });
+    expect(painel.getByRole('tab', { name: 'Estoque' }).getAttribute('aria-selected')).toBe('true');
+    expect(painel.getByText('Este produto não gerencia estoque.')).toBeTruthy();
+  });
+
+  it('produto que controla estoque, sem permissão de ver o relatório, continua sem a aba', () => {
+    const { painel } = abrir(detalhe({ estoque: null }));
+    expect(painel.getByRole('tab', { name: 'Dados' })).toBeTruthy(); // anti-vácuo
+    expect(painel.queryByRole('tab', { name: 'Estoque' })).toBeNull();
+  });
+
+  it('produto que controla estoque não mostra o aviso', () => {
+    const { painel } = abrir(detalhe(), { abaInicial: 'estoque' });
+    expect(painel.getByRole('heading', { name: 'Detalhes de estoque' })).toBeTruthy(); // anti-vácuo
+    expect(painel.queryByText('Este produto não gerencia estoque.')).toBeNull();
   });
 });
