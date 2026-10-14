@@ -212,6 +212,19 @@ export const PROBE_SOURCE = /* js */ `(() => {
     for (let n = w.nextNode(); n; n = w.nextNode()) if (n.parentElement) vistos.add(n.parentElement);
     return [...vistos];
   };
+  // COR DA CÉLULA SEM TEXTO (2026-10-14). Célula só-ícone (ações: <a>/<button> com svg)
+  // tem ZERO blocos de texto, e o 'some' sobre lista vazia devolvia false — 'herda a da
+  // linha' sem ter medido nada. Medido no staging da Arquivos/Index: linha
+  // oklch(0.22 0.01 80), o <a> e o svg da col6 em oklch(0.55 0.012 90) — a célula PINTA,
+  // e a régua acusava 'col6.cor' por não-medição. Sem texto, quem carrega a cor é o
+  // controle (o svg herda via currentColor); sem texto E sem controle, a resposta é null
+  // (não medido) — nunca false, que o comparador lia como 'herda'.
+  const corDaCelula = (td, paisDeTexto, corDaLinha) => {
+    if (paisDeTexto.length) return paisDeTexto.some((e) => cs(e).color !== corDaLinha);
+    const controles = [...td.querySelectorAll('a,button,svg')];
+    if (!controles.length) return null;
+    return controles.some((e) => cs(e).color !== corDaLinha);
+  };
   const celulaInfo = (td, corDaLinha) => {
     const paisDeTexto = textosDe(td);
     const alvo = paisDeTexto[0] || td;
@@ -257,7 +270,7 @@ export const PROBE_SOURCE = /* js */ `(() => {
       align: alinha(ca0.textAlign),
       larguraPct: rLinha && rLinha.width > 0 ? Math.round((rTd.width / rLinha.width) * 1000) / 10 : null,
       mono: paisDeTexto.some((e) => /mono/i.test(cs(e).fontFamily)),
-      corPropria: paisDeTexto.some((e) => cs(e).color !== corDaLinha),
+      corPropria: corDaCelula(td, paisDeTexto, corDaLinha),
       fontPx: Math.round(parseFloat(ca.fontSize)),
       weight: ca.fontWeight,
       blocos: paisDeTexto.length,
@@ -722,7 +735,9 @@ function dimCelulas(prod, design) {
       rows.push({ dim: 'D4', campo: col + '.mono', prod: a.mono ? 'mono' : 'sem mono', design: b.mono ? 'mono' : 'sem mono', veredito: b.mono ? 'DIVERGE (bug)' : 'DIVERGE (fonte)' });
     }
     // D6 — a célula PINTA o texto ou herda o da linha? (cor crua entre lados = ruído de tema)
-    if (a.corPropria !== b.corPropria) {
+    // null = não medido (célula sem texto e sem controle). Não compara: false ali era
+    // ausência de medida lida como 'herda a da linha' (§5 2026-07-29).
+    if (a.corPropria != null && b.corPropria != null && a.corPropria !== b.corPropria) {
       rows.push({ dim: 'D6', campo: col + '.cor', prod: a.corPropria ? 'cor própria' : 'herda a da linha', design: b.corPropria ? 'cor própria' : 'herda a da linha', veredito: b.corPropria ? 'DIVERGE (bug)' : 'DIVERGE (fonte)' });
     }
     // D8 — a TAG explica a causa: BUTTON/A é alcançável, SPAN virou texto morto.
@@ -1592,6 +1607,13 @@ function selftest() {
   checks.push(['célula: A x BUTTON (os dois alcançáveis) NÃO é bug', doisAlcancaveis.bugs === 0 && doisAlcancaveis.rows.some((r) => r.veredito === 'DIVERGE (impl)')]);
   checks.push(['célula: pega a sub-linha em mono que sumiu (D4)', temC('col1.mono', 'D4')]);
   checks.push(['célula: pega a cor que a prod deixou de pintar (D6)', temC('col1.cor', 'D6')]);
+  // Célula só-ícone (2026-10-14, Arquivos/Index col6): sem texto a sonda devolve a cor do
+  // CONTROLE, ou null. null nunca pode virar divergência — era o FP 'herda a da linha'.
+  const soIcone = (corPropria) => comCelulas([{ col: 0, tag: 'A', mono: false, corPropria, blocos: 0, pill: null }]);
+  const comTextoPintado = comCelulas([{ col: 0, tag: 'BUTTON', mono: false, corPropria: true, blocos: 3, pill: null }]);
+  checks.push(['célula só-ícone medida (cor do controle) NÃO acusa .cor', !compare(soIcone(true), comTextoPintado).rows.some((r) => r.campo === 'col0.cor')]);
+  checks.push(['célula sem texto nem controle (null) NÃO acusa .cor', !compare(soIcone(null), comTextoPintado).rows.some((r) => r.campo === 'col0.cor')]);
+  checks.push(['célula só-ícone que de fato herda AINDA acusa .cor (D6)', compare(soIcone(false), comTextoPintado).rows.some((r) => r.campo === 'col0.cor' && r.veredito === 'DIVERGE (bug)')]);
   const temV = (campo, ver) => rc.rows.some((r) => r.campo.includes(campo) && r.veredito === ver);
   checks.push(['célula: aponta a sub-linha sumida como SINAL, não como bug', temV('col1.blocos', 'DIVERGE (dado?)')]);
   // O blocos NAO pode emitir veredito duro: ele nao distingue conteudo perdido de dado diferente.

@@ -1,7 +1,12 @@
 {
-  "url": "http://127.0.0.1:53594/oimpresso.com.html",
+  "url": "http://127.0.0.1:50154/oimpresso.com.html",
+  "saude": {
+    "folhasVazias": [],
+    "tokensMortos": [],
+    "nFolhas": 77
+  },
   "theme": "dark",
-  "assinatura": "OI WR Superadmin 10 negócios · 5 pacotes ativos · MRR R$ 1.806 Comunicador Ver negócios Hoje Semana Mês Ano Janela rolante — encerra em 18/08/2026 Novas assinaturas R$ 8.930 14 contratos no período Novos cadastros 11 cadastro próprio + criados pelo superadmin Sem assinatura 2 cadastrou e não assinou Receita recorrente (MRR) R$ 1.806 +8,4% contra o mês anterior Trial vira assinatura últimos 90 dias Cadastraram 38 Começaram o trial 29 − 9 aqui · 76 % seguiram Usaram além do 3º dia 21 − 8 aqui · 72 % seguiram Assinaram 13 − 8 aqui · 62 % seguiram Conversão ponta a ponta: 34 % — o maior vazamento é entre o cadastro e o 3º dia de uso. Churn 30 dias 3,4 % 4 saídas em 118 assinantes Preço 2 Fechou o negócio 1 Foi pra concorrente 1 Motivo vem da resposta do cancelamento — 1 saída sem motivo declarado não entra na conta. Receita por pacote MRR R$ 1.806 Balcão R$ 378 2 pagantes · R$ 189 / mês Gráfica R$ 389 1 pagante · R$ 389 / mês Rede R$ 890 1 pagante · R$ 890 / mês Legado 2024 R$ 149 1 pagante · R$ 149 / mês Pacotes gratuitos e avulsos ficam fora do MRR — aparecem no caixa do mês, não na recorrência. Vencendo ou vencido 1 em atraso · 3 nos próximos 12 dias 14 dias em atraso Adesivo Express Balcão · Boleto não pago · vence 04/08/2026 R$ 189 Cobrar em 9 dias Fachadas Norte Gráfica · trial termina · vence 27/08/2026 R$ 389 Converter em 10 dias Grupo Sinaliza (3 lojas) Rede · Cartão (Stripe) · vence 28/08/2026 R$ 890 Ver assinatura em 12 dias ROTA LIVRE Comunicação Visual Piloto ROTA LIVRE · trial termina · vence 30/08/2026 grátis Converter Tendência mensal de vendas últimos 12 meses · R$ 30.480 em ago O que fazer primeiro 3 itens 2 negócios cadastraram e não assinaram Studio Lona e Placa & Cia, nos últimos 3 dias — o vazamento do funil está aqui. 2 trials terminam nesta semana Fachadas Norte (27/08) e ROTA LIVRE (30/08) — aviso de fim de teste sai pelo comunicador. Legado 2024 está inativo com 4 assinantes Migrar para Balcão antes de arquivar; hoje eles pagam R$ 149 por uma grade que não existe mais. Cadastros recentes Ver todos Negócio Dono Pacote Assinatura Cadastro MRR Placa & Cia biz # 195 · Fortaleza · CE Heloísa Prado — Sem assinatura 17/08/2026 — Studio Lona biz # 193 · Rio de Janeiro · RJ Vinícius Sá — Sem assinatura 16/08/2026 — Fachadas Norte biz # 190 · Manaus · AM Rita Camargo Gráfica Trial 13/08/2026 — Adesivo Express biz # 186 · Belo Horizonte · MG Tiago Prado Balcão Vencida 18/03/2026 R$ 189 Vestuário Malha Viva biz # 181 · Blumenau · SC Sérgio Kubo Gráfica Cancelada 27/01/2026 —",
+  "assinatura": "OI WR Negócios 10 cadastrados · 4 com assinatura ativa · 1 inativo Exportar Novo negócio Visão geral Negócios 10 Assinaturas 10 Pacotes 6 Usuário 360° Comunicador Configurações Pacote Assinatura Status Última venda 10 de 10 Negócio Dono Assinatura atual Recorrência Cadastro Placa & Cia biz # 195 Fortaleza · CE Heloísa Prado heloisa@placaecia.com.br Sem assinatura nenhum pacote — 17/08/2026 última venda nunca Studio Lona inativo biz # 193 Rio de Janeiro · RJ Vinícius Sá vinicius@studiolona.com Sem assinatura nenhum pacote — 16/08/2026 última venda nunca Fachadas Norte biz # 190 Manaus · AM Rita Camargo rita@fachadasnorte.com.br Trial Gráfica · vence 27/08/2026 — 13/08/2026 última venda hoje ROTA LIVRE Comunicação Visual biz # 171 São Paulo · SP Larissa Souza larissa@rotalivre.com Trial Piloto ROTA LIVRE · vence 30/08/2026 — 11/06/2026 última venda hoje Adesivo Express biz # 186 Belo Horizonte · MG Tiago Prado tiago@adesivoexpress.com Vencida Balcão · vence 04/08/2026 R$ 189 18/03/2026 última venda há 19 dias Martinho Oficina biz # 164 Guarulhos · SP Martinho Alves martinho@oficinamartinho.com.br Ativa Gráfica · vence 12/09/2026 R$ 389 04/02/2026 última venda hoje Anterior 1 2 Próxima 1 – 6 de 10",
   "roles": {
     "kpi": {
       "count": 0,
@@ -25,49 +30,49 @@
       {
         "col": 0,
         "tag": null,
-        "align": "left",
-        "larguraPct": 16.7,
+        "align": "center",
+        "larguraPct": 3.4,
         "mono": false,
-        "corPropria": true,
+        "corPropria": false,
         "fontPx": 13,
-        "weight": "600",
-        "blocos": 2,
+        "weight": "400",
+        "blocos": 0,
         "pill": null
       },
       {
         "col": 1,
         "tag": null,
         "align": "left",
-        "larguraPct": 16.7,
-        "mono": false,
+        "larguraPct": 24.9,
+        "mono": true,
         "corPropria": true,
         "fontPx": 13,
-        "weight": "400",
-        "blocos": 1,
+        "weight": "600",
+        "blocos": 3,
         "pill": null
       },
       {
         "col": 2,
         "tag": null,
         "align": "left",
-        "larguraPct": 16.7,
-        "mono": true,
+        "larguraPct": 20.9,
+        "mono": false,
         "corPropria": true,
-        "fontPx": 12,
-        "weight": "400",
-        "blocos": 1,
+        "fontPx": 13,
+        "weight": "500",
+        "blocos": 2,
         "pill": null
       },
       {
         "col": 3,
         "tag": null,
         "align": "left",
-        "larguraPct": 16.7,
+        "larguraPct": 19.9,
         "mono": false,
         "corPropria": true,
         "fontPx": 12,
         "weight": "500",
-        "blocos": 1,
+        "blocos": 2,
         "pill": {
           "radius": "9999px",
           "borda": true,
@@ -78,11 +83,11 @@
       {
         "col": 4,
         "tag": null,
-        "align": "left",
-        "larguraPct": 16.7,
-        "mono": false,
+        "align": "right",
+        "larguraPct": 10.9,
+        "mono": true,
         "corPropria": true,
-        "fontPx": 13,
+        "fontPx": 12,
         "weight": "400",
         "blocos": 1,
         "pill": null
@@ -90,20 +95,32 @@
       {
         "col": 5,
         "tag": null,
-        "align": "right",
-        "larguraPct": 16.7,
+        "align": "left",
+        "larguraPct": 15.9,
         "mono": true,
         "corPropria": true,
-        "fontPx": 12,
+        "fontPx": 13,
+        "weight": "500",
+        "blocos": 2,
+        "pill": null
+      },
+      {
+        "col": 6,
+        "tag": "BUTTON",
+        "align": "right",
+        "larguraPct": 4.1,
+        "mono": false,
+        "corPropria": false,
+        "fontPx": 13,
         "weight": "400",
-        "blocos": 1,
+        "blocos": 0,
         "pill": null
       }
     ],
     "tabela": {
       "tableLayout": "fixed",
       "colunasDeclaradas": 0,
-      "linhas": 5,
+      "linhas": 6,
       "linhasComEstado": 0
     },
     "shell": {
@@ -168,6 +185,7 @@
         }
       },
       "atalhos": []
-    }
+    },
+    "chart": null
   }
 }
