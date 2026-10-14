@@ -1,5 +1,7 @@
 # 08 — Handoff (índice)
 
+- [2026-10-14 03:00 BRT — **Gestão da fila de merges (13/10 · 3)**](handoffs/2026-10-14-0300-gestao-fila-merges-13-out-3.md) (91 PRs no main #9219–#9342 · fila vazia · placar 322/392 · Crm 11–17, Restaurante 01–05, Woocommerce 01, Despesas e Configuração da empresa com flag OFF · 6 consertos Tier 0 · tema escuro completo · pendente: conferir 25 recibos no Cowork)
+
 - [2026-10-13 21:30 BRT — **Sistema 08 + Tema escuro 03/05**](handoffs/2026-10-13-2130-sistema08-tema-escuro-catraca.md) (pilha Configuração da empresa no main até #9223 · catraca da sonda em job próprio · 9 Pages consertadas, 75/75 sem superfície clara · #9321 contém a pilha #9265–#9320, com o gerente)
 
 - [2026-10-13 16:56 BRT — **Contas, Essenciais, Cliente e "Testar envio"**](handoffs/2026-10-13-1656-threads-contas-essenciais-cliente-testar-envio.md) (9 PRs mergeados · Contas → Inertia flag OFF · Essenciais A1+03 · `/contacts` → `/cliente` 302 (só lista) · `rotaViva` para de usar prosa como URL · Testar envio sem 500 · pendente: re-medir Cliente/Index e User/Perfil no staging (IGUAL falso no Perfil) · Vendas dark = decisão [W])
