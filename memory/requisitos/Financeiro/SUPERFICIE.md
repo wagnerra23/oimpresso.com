@@ -14,7 +14,7 @@ module: Financeiro
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Financeiro/**` + `resources/js/Pages/Financeiro/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 347 arquivos em 22 papéis.
+**Total mapeado:** 352 arquivos em 22 papéis.
 
 ## Controllers — 23
 
@@ -185,7 +185,7 @@ module: Financeiro
 - [master.blade.php](../../../Modules/Financeiro/Resources/views/layouts/master.blade.php)
 - [dre.blade.php](../../../Modules/Financeiro/Resources/views/pdf/dre.blade.php)
 
-## Telas (Inertia/React) — 20
+## Telas (Inertia/React) — 21
 
 - [Dashboard.tsx](../../../resources/js/Pages/Financeiro/Advisor/Dashboard.tsx)
 - [Login.tsx](../../../resources/js/Pages/Financeiro/Advisor/Login.tsx)
@@ -199,6 +199,7 @@ module: Financeiro
 - [Index.tsx](../../../resources/js/Pages/Financeiro/ContasPagar/Index.tsx)
 - [Index.tsx](../../../resources/js/Pages/Financeiro/ContasReceber/Index.tsx)
 - [Index.tsx](../../../resources/js/Pages/Financeiro/Dashboard/Index.tsx)
+- [Index.tsx](../../../resources/js/Pages/Financeiro/Despesas/Index.tsx)
 - [Index.tsx](../../../resources/js/Pages/Financeiro/Dre/Index.tsx)
 - [Index.tsx](../../../resources/js/Pages/Financeiro/Extrato/Index.tsx)
 - [Index.tsx](../../../resources/js/Pages/Financeiro/Fluxo/Index.tsx)
@@ -208,7 +209,7 @@ module: Financeiro
 - [Index.tsx](../../../resources/js/Pages/Financeiro/Unificado/Index.tsx)
 - [Novo.tsx](../../../resources/js/Pages/Financeiro/Unificado/Novo.tsx)
 
-## Componentes / apoio de tela — 38
+## Componentes / apoio de tela — 39
 
 - [CategoriaSheet.tsx](../../../resources/js/Pages/Financeiro/Categorias/components/CategoriaSheet.tsx)
 - [AiResumoMes.tsx](../../../resources/js/Pages/Financeiro/Cobranca/_components/AiResumoMes.tsx)
@@ -219,6 +220,7 @@ module: Financeiro
 - [SheetRemessaRetorno.tsx](../../../resources/js/Pages/Financeiro/Cobranca/_components/SheetRemessaRetorno.tsx)
 - [atoms.tsx](../../../resources/js/Pages/Financeiro/Cobranca/_components/atoms.tsx)
 - [ConfigurarBoletoSheet.tsx](../../../resources/js/Pages/Financeiro/ContasBancarias/components/ConfigurarBoletoSheet.tsx)
+- [NovaDespesaSheet.tsx](../../../resources/js/Pages/Financeiro/Despesas/_components/NovaDespesaSheet.tsx)
 - [BalanceteView.tsx](../../../resources/js/Pages/Financeiro/Dre/_components/BalanceteView.tsx)
 - [BalancoView.tsx](../../../resources/js/Pages/Financeiro/Dre/_components/BalancoView.tsx)
 - [ClienteCombobox.tsx](../../../resources/js/Pages/Financeiro/Unificado/_components/ClienteCombobox.tsx)
@@ -249,7 +251,7 @@ module: Financeiro
 - [FinStatStrip.tsx](../../../resources/js/Pages/Financeiro/_shared/FinStatStrip.tsx)
 - [FinanceiroSubNav.tsx](../../../resources/js/Pages/Financeiro/_shared/FinanceiroSubNav.tsx)
 
-## Charters (lei da tela) — 20
+## Charters (lei da tela) — 21
 
 - [Dashboard.charter.md](../../../resources/js/Pages/Financeiro/Advisor/Dashboard.charter.md)
 - [Login.charter.md](../../../resources/js/Pages/Financeiro/Advisor/Login.charter.md)
@@ -263,6 +265,7 @@ module: Financeiro
 - [Index.charter.md](../../../resources/js/Pages/Financeiro/ContasPagar/Index.charter.md)
 - [Index.charter.md](../../../resources/js/Pages/Financeiro/ContasReceber/Index.charter.md)
 - [Index.charter.md](../../../resources/js/Pages/Financeiro/Dashboard/Index.charter.md)
+- [Index.charter.md](../../../resources/js/Pages/Financeiro/Despesas/Index.charter.md)
 - [Index.charter.md](../../../resources/js/Pages/Financeiro/Dre/Index.charter.md)
 - [Index.charter.md](../../../resources/js/Pages/Financeiro/Extrato/Index.charter.md)
 - [Index.charter.md](../../../resources/js/Pages/Financeiro/Fluxo/Index.charter.md)
@@ -272,7 +275,7 @@ module: Financeiro
 - [Index.charter.md](../../../resources/js/Pages/Financeiro/Unificado/Index.charter.md)
 - [Novo.charter.md](../../../resources/js/Pages/Financeiro/Unificado/Novo.charter.md)
 
-## Casos (contrato UC) — 20
+## Casos (contrato UC) — 21
 
 - [Dashboard.casos.md](../../../resources/js/Pages/Financeiro/Advisor/Dashboard.casos.md)
 - [Login.casos.md](../../../resources/js/Pages/Financeiro/Advisor/Login.casos.md)
@@ -286,6 +289,7 @@ module: Financeiro
 - [Index.casos.md](../../../resources/js/Pages/Financeiro/ContasPagar/Index.casos.md)
 - [Index.casos.md](../../../resources/js/Pages/Financeiro/ContasReceber/Index.casos.md)
 - [Index.casos.md](../../../resources/js/Pages/Financeiro/Dashboard/Index.casos.md)
+- [Index.casos.md](../../../resources/js/Pages/Financeiro/Despesas/Index.casos.md)
 - [Index.casos.md](../../../resources/js/Pages/Financeiro/Dre/Index.casos.md)
 - [Index.casos.md](../../../resources/js/Pages/Financeiro/Extrato/Index.casos.md)
 - [Index.casos.md](../../../resources/js/Pages/Financeiro/Fluxo/Index.casos.md)
@@ -302,7 +306,7 @@ module: Financeiro
 - 4 em [Modules/Financeiro/Tests/Unit/](../../../Modules/Financeiro/Tests/Unit)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
-## Demais arquivos (manifestos, docs, assets e misc) — 41
+## Demais arquivos (manifestos, docs, assets e misc) — 42
 
 - [.gitkeep](../../../Modules/Financeiro/Config/.gitkeep)
 - [.gitkeep](../../../Modules/Financeiro/Console/.gitkeep)
@@ -332,6 +336,7 @@ module: Financeiro
 - [module.json](../../../Modules/Financeiro/module.json)
 - [SCOPE.md](../../../memory/requisitos/Financeiro/SCOPE.md)
 - [cobranca-shared.ts](../../../resources/js/Pages/Financeiro/Cobranca/_lib/cobranca-shared.ts)
+- [total-envio.ts](../../../resources/js/Pages/Financeiro/Despesas/_lib/total-envio.ts)
 - [forma-pagamento.ts](../../../resources/js/Pages/Financeiro/Unificado/_lib/forma-pagamento.ts)
 - [README.md](../../../resources/js/Pages/Financeiro/_cowork-bundle/README.md)
 - [financeiro-ai.jsx](../../../resources/js/Pages/Financeiro/_cowork-bundle/financeiro-ai.jsx)

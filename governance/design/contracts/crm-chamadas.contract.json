@@ -1,0 +1,13 @@
+{
+  "_nota": "Thread Crm/12 (F3). Derivado do protótipo Chamadas() em crm-blade-telas.jsx e do alvo medido governance/design/targets/crm--chamadas--index.alvo.json (thread A2: header · nav · filtros · toolbar · grade · rodape). Não re-derivado do .tsx.",
+  "tela": "Crm/Chamadas/Index",
+  "fonte": "prototipo-ui/cowork/Wagner/crm-blade-telas.jsx",
+  "alvo": ["Modules/Crm/Resources/js/Pages/Crm/Chamadas/Index.tsx"],
+  "secoes": [
+    { "id": "crm-filtros", "copy": ["Filtros", "Contato", "Registro criado por", "Intervalo de datas"] },
+    { "id": "crm-chamadas", "copy": ["Registro de chamadas", "Hora de início", "Hora de término", "Duração da chamada", "Tipo de chamada", "Nº do contato", "Usuário"] },
+    { "id": "crm-toolbar", "copy": ["Buscar por contato ou número"] },
+    { "id": "crm-rodape", "copy": ["Selecione linhas para excluir em massa.", "Excluir selecionados"] }
+  ],
+  "ordem": ["crm-filtros", "crm-chamadas", "crm-toolbar", "crm-rodape"]
+}

@@ -166,5 +166,5 @@ jobs:
       - name: Build production bundle (Inertia/React pipeline)
         run: npm run build:inertia
 
-      - name: Seleção e editor de modelos de notificação (React — comportamento)
-        run: npx vitest run tests/js/notificacoes-selecao.test.tsx tests/js/notificacoes-editor.test.tsx
+      - name: Comportamento React — notificações e total da Nova despesa
+        run: npx vitest run tests/js/notificacoes-selecao.test.tsx tests/js/notificacoes-editor.test.tsx tests/js/despesas-total-envio.test.ts
