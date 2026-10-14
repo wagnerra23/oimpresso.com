@@ -1,0 +1,13 @@
+{
+  "_nota": "Thread Crm/13 (F3). Derivado do protótipo Relatorios() em crm-blade-telas.jsx e do alvo medido governance/design/targets/crm--relatorios--index.alvo.json (thread A2: header · nav · filtros · por_usuario · por_contato · conversao). Não re-derivado do .tsx.",
+  "tela": "Crm/Relatorios/Index",
+  "fonte": "prototipo-ui/cowork/Wagner/crm-blade-telas.jsx",
+  "alvo": ["Modules/Crm/Resources/js/Pages/Crm/Relatorios/Index.tsx"],
+  "secoes": [
+    { "id": "crm-filtros", "copy": ["Filtros", "Intervalo de datas", "Categoria de acompanhamento"] },
+    { "id": "crm-rel-usuario", "copy": ["Acompanhamentos por usuário", "Usuário", "Outros", "Acompanhamentos totais"] },
+    { "id": "crm-rel-contato", "copy": ["Acompanhamentos por contatos", "Contato"] },
+    { "id": "crm-rel-conversao", "copy": ["Leads convertidos em cliente", "Convertido por", "Total"] }
+  ],
+  "ordem": ["crm-filtros", "crm-rel-usuario", "crm-rel-contato", "crm-rel-conversao"]
+}
