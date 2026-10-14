@@ -3,6 +3,7 @@
 namespace Modules\Crm\Http\Controllers;
 
 use App\Contact;
+use App\Services\FeatureFlagService;
 use App\User;
 use App\Utils\Util;
 use Carbon\CarbonInterval;
@@ -10,12 +11,16 @@ use DB;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
+use Inertia\Inertia;
 use Modules\Crm\Entities\CrmCallLog;
 use Modules\Crm\Http\Requests\MassDestroyCallLogRequest;
 use Yajra\DataTables\Facades\DataTables;
 
 class CallLogController extends Controller
 {
+    /** Tela React do Registro de chamadas (thread Crm/12). Default OFF: ligar é o cutover do [W]. */
+    private const FLAG_CHAMADAS = 'useV2CrmChamadas';
+
     /**
      * All Utils instance.
      */
@@ -38,7 +43,14 @@ class CallLogController extends Controller
         }
 
         $business_id = request()->session()->get('user.business_id');
-        if (request()->ajax()) {
+
+        // Thread Crm/12: com a flag ligada a lista abre em Inertia — o portão de config e de permissão
+        // acima segue valendo. Decidir pelo `X-Inertia`, não só por `ajax()` (§5 2026-09-08).
+        $inertia = ! request()->boolean('classico')
+            && app(FeatureFlagService::class)->isOn(self::FLAG_CHAMADAS, ['business_id' => $business_id])
+            && (! request()->ajax() || request()->header('X-Inertia'));
+
+        if (request()->ajax() || $inertia) {
             $query = CrmCallLog::where('crm_call_logs.business_id', $business_id)
                             ->leftJoin('contacts as c', 'crm_call_logs.contact_id', '=', 'c.id')
                             ->leftJoin('users as u', 'crm_call_logs.user_id', '=', 'u.id')
@@ -68,6 +80,10 @@ class CallLogController extends Controller
                 $end_time = request()->input('end_time');
                 $query->whereDate('crm_call_logs.start_time', '>=', $start_time)
                     ->whereDate('crm_call_logs.start_time', '<=', $end_time);
+            }
+
+            if ($inertia) {
+                return $this->chamadasInertia($business_id, $query);
             }
 
             return Datatables::of($query)
@@ -171,5 +187,51 @@ class CallLogController extends Controller
             return Datatables::of($query)
                         ->make(true);
         }
+    }
+    /**
+     * Payload da tela React (thread Crm/12). A lista sai da MESMA consulta do DataTables (business_id,
+     * "só os meus", contato, autor, datas). "Excluir selecionados" só para quem a Blade mostra o botão.
+     */
+    private function chamadasInertia($business_id, $query)
+    {
+        $busca = trim((string) request()->input('q', ''));
+        if ($busca !== '') {
+            $query->where(function ($w) use ($busca) {
+                $w->where('c.name', 'like', "%{$busca}%")
+                    ->orWhere('c.supplier_business_name', 'like', "%{$busca}%")
+                    ->orWhere('crm_call_logs.mobile_number', 'like', "%{$busca}%")
+                    ->orWhere('crm_call_logs.mobile_name', 'like', "%{$busca}%");
+            });
+        }
+
+        $data = fn ($d) => empty($d) ? null : \Carbon\Carbon::parse($d)->format('d/m/Y H:i');
+        $duracao = fn ($s) => empty($s) ? null : gmdate('H:i:s', (int) $s);
+        $lista = fn ($mapa) => collect($mapa)->map(fn ($label, $value) => ['value' => (string) $value, 'label' => (string) $label])->values();
+        $linha = fn ($r) => [
+            'id' => $r->id,
+            'inicio' => $data($r->start_time),
+            'fim' => $data($r->end_time),
+            'duracao' => $duracao($r->duration),
+            'tipo' => $r->call_type,
+            'numero' => $r->mobile_number,
+            'nome_no_celular' => $r->mobile_name,
+            'contato' => trim(($r->supplier_business_name ? $r->supplier_business_name.', ' : '').$r->customer_name) ?: null,
+            'usuario' => trim((string) $r->user_full_name) ?: null,
+            'criado_por' => trim((string) $r->created_user_name) ?: null,
+        ];
+
+        return Inertia::render('Crm/Chamadas/Index', [
+            'filtros' => request()->only(['contact_id', 'user_id', 'start_time', 'end_time', 'q']),
+            'pode_excluir' => (bool) $this->commonUtil->is_admin(auth()->user()),
+            'opcoes' => Inertia::defer(fn () => [
+                'contatos' => $lista(Contact::contactDropdown($business_id, false, false)),
+                'usuarios' => $lista(User::forDropdown($business_id, false)),
+            ]),
+            'chamadas' => Inertia::defer(fn () => (clone $query)
+                ->orderByDesc('crm_call_logs.start_time')
+                ->paginate(25)
+                ->withQueryString()
+                ->through($linha)),
+        ]);
     }
 }
