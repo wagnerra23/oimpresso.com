@@ -182,7 +182,8 @@ it('R-NFE-026 · devolução copia a origem', function () {
         ->and(dev20Tag($xmlDev, 'tpNF'))->toBe('0')
         ->and(dev20Tag($xmlDev, 'refNFe'))->toBe($chave)
         ->and(dev20Tag($xmlDev, 'CFOP'))->toBe('1202')
-        ->and(dev20Tag($xmlDev, 'pICMS'))->toBe('18.00');
+        ->and(dev20Tag($xmlDev, 'pICMS'))->toBe('18.0000')
+        ->and(dev20Tag($xmlDev, 'pICMS'))->toBe(dev20Tag($origem, 'pICMS'));   // a mesma da origem
 
     // Controle: venda normal segue finNFe=1, tpNF=1 e sem NFref (XML de sempre).
     expect(dev20Tag($origem, 'finNFe'))->toBe('1')
