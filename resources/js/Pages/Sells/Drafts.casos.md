@@ -1,0 +1,65 @@
+---
+casos: Rascunhos de venda · /sells/drafts
+irmaos: Drafts.charter.md (lei) · Drafts.tsx · tests/Feature/Sells/SellsDraftsContratoTest.php (defesa)
+tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
+por_que: rascunho é a venda que a Larissa deixa pela metade quando o telefone toca — quem vê qual rascunho, e de qual empresa, não pode mudar num refactor visual.
+owner: wagner
+last_run: "2026-10-14"
+last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane PHP / Pest (Sells · MySQL)"
+---
+
+# Casos de Uso & Aceite — Rascunhos de venda
+
+> **Fonte (ordem fixa, how-trabalhar):** aceite da **US-SELL-060** (`memory/requisitos/Sells/SPEC.md`) +
+> **CU-SELL-08** (status rascunho) e **CU-SELL-13** (auto-save draft por `{biz}.{user}`, a origem dos
+> rascunhos) do `SDD-tela-venda-v1.0.md` + `Drafts.charter.md` (Mission/Goals) + `RUNBOOK-drafts.md` §2.
+> Código (`SellController@getDrafts` / `@getDraftDatables`) só confirmou o comportamento. Nada derivado do `.tsx`.
+>
+> **Teste:** `tests/Feature/Sells/SellsDraftsContratoTest.php` — tenant 98 × adversário 99,
+> `DatabaseTransactions`, permissões diretas no usuário, headers do browser (`X-Inertia` + `X-Requested-With`).
+>
+> ⚖️ **Lane:** `PHP / Pest (Sells · MySQL)` — `.github/workflows/sells-pest.yml` (allowlist). Se ela
+> bloqueia merge, quem diz é `governance/required-checks-baseline.json`, não este arquivo.
+>
+> **Status:** ✅ passa (manifesto G-7) · 🧪 teste cita o UC, sem veredito · ⬜ não verificado · ❌ quebrou.
+
+## UC-DRAFT-01 · Lista só os rascunhos do business `[T0]` `[must]`
+- **Persona:** Larissa (dona, `draft.view_all`).
+- **Aceite:** Dado rascunhos de dois vendedores, uma venda final e um rascunho de outra empresa · Quando abro a lista de rascunhos · Então vejo os dois rascunhos do meu business; a venda final e o rascunho da outra empresa nunca aparecem.
+- **Dados da lista:** `GET /sells/draft-dt?is_quotation=0` — o endpoint que o Blade lê e que a Page recebe em `urls.datatable`.
+- **Fontes:** US-SELL-060 aceite 2 (escopo `business_id`) e 3 (só `status = draft`) · charter Mission · ADR 0093.
+- **Teste:** `SellsDraftsContratoTest` — `UC-DRAFT-01 [T0] com draft.view_all a lista traz os rascunhos do business…`.
+- **Regressão que defende:** rascunho de outra empresa na lista; venda finalizada misturada aos rascunhos.
+- **Status: 🧪**
+
+## UC-DRAFT-02 · O vendedor com `draft.view_own` vê só os rascunhos que ele criou `[must]`
+- **Persona:** vendedor do balcão (`draft.view_own`).
+- **Aceite:** Dado um rascunho do vendedor A e um do vendedor B, ambos com só `draft.view_own` · Quando cada um abre a lista · Então A vê apenas o dele e B apenas o dele.
+- **Fontes:** charter Goals (gate `draft.view_all` OR `draft.view_own`) · RUNBOOK-drafts §2 · Blade legado `sale_pos/draft.blade.php` (mesmo endpoint).
+- **Teste:** `SellsDraftsContratoTest` — `UC-DRAFT-02 com só draft.view_own o vendedor vê apenas os rascunhos que ele criou`.
+- **Regressão que defende:** vendedor retomando (e finalizando) o rascunho do colega.
+- **Status: 🧪**
+
+## UC-DRAFT-03 · A tela abre com `draft.view_own` e é negada sem nenhuma das duas permissões `[must]`
+- **Aceite:** Dado um usuário com só `draft.view_own` · Quando abre `/sells/drafts` · Então recebe a Page `Sells/Drafts` dizendo quais permissões tem (`view_all` falso, `view_own` verdadeiro). Dado um usuário sem `draft.view_all` nem `draft.view_own` · Então recebe 403.
+- **Fontes:** US-SELL-060 aceite 1 · charter Goals · RUNBOOK-drafts §2.
+- **Teste:** `SellsDraftsContratoTest` — `UC-DRAFT-03 a tela abre com draft.view_own e é negada (403)…`.
+- **Regressão que defende:** tela aberta a quem não tem permissão de rascunho.
+- **Status: 🧪**
+
+## UC-DRAFT-04 · O KPI "rascunhos pendentes" conta só rascunho comum do próprio business `[T0]` `[must]`
+- **Aceite:** Dado o total que a tela mostra · Quando surge uma cotação no meu business ou um rascunho em outra empresa · Então o total não muda; Quando surge um rascunho comum no meu business · Então o total sobe exatamente 1.
+- **Fontes:** charter Mission ("status=draft, sub_status=NULL") e Goals ("1 KPI: total rascunhos pendentes") · US-SELL-060 aceite 2 e 3 ("cotação é tela própria", US-SELL-061) · RUNBOOK-drafts §3.
+- **Teste:** `SellsDraftsContratoTest` — `UC-DRAFT-04 [T0] o KPI de rascunhos pendentes sobe só com rascunho comum…` (medido por delta: o tenant 98 persiste dados de outros testes na lane MySQL).
+- **Regressão que defende:** KPI contando rascunho de outra empresa ou somando cotações.
+- **Status: 🧪**
+
+## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
+
+- **[BACKLOG]** A **lista** (`/sells/draft-dt?is_quotation=0`) não filtra `sub_status`: pela leitura de `SellController@getDraftDatables`, o ramo `is_quotation=0` só exige `status = draft`, então cotações e proformas entrariam na lista de rascunhos — enquanto o KPI (UC-DRAFT-04) as exclui e o charter declara `sub_status=NULL`. O Blade legado usa o mesmo endpoint, logo o comportamento é herdado. **Hipótese, não medida** (não rodei teste). Decisão [W]: a lista deve seguir o charter (filtrar) ou o charter deve ser corrigido pro que o legado sempre fez? Ganha id junto da decisão.
+- **[BACKLOG]** O endpoint de dados `/sells/draft-dt?is_quotation=0` não checa `draft.view_all`/`draft.view_own` (o gate está só em `getDrafts`). O mesmo achado foi **medido** para cotações no CT 100 em 2026-10-06 (ver `Quotations.casos.md`); para rascunhos é **hipótese** pela mesma leitura. Outro business segue fora (o `[T0]` do UC-DRAFT-01 vale). Ganha id junto do conserto (gate no `getDraftDatables`).
+- **[BACKLOG]** "Continuar" leva ao editor `/sells/{id}/edit` (US-SELL-060 aceite 4). É link do front; os guards do editor são contrato da US-SELL-059 (`Edit.casos.md`). Ganha id se houver e2e.
+- **[BACKLOG]** O KPI conta todos os rascunhos do business mesmo para quem tem só `draft.view_own` (a lista é recortada por autor, o KPI não). Sem fonte que diga qual dos dois é o certo — pergunta ao [W].
+
+## Trilha do tempo
+- 2026-10-14 · [CL] trio completado (etapa E1 do regime de evolução: tela saía em `missing_casos`). Refs: ADR 0104 · ADR 0264 G-1/G-2 · ADR 0358 · US-SELL-060.
