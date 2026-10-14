@@ -2,17 +2,23 @@
 
 namespace Modules\Crm\Http\Controllers;
 
+use App\Category;
 use App\Contact;
+use App\Services\FeatureFlagService;
 use App\User;
 use App\Utils\Util;
 use DB;
 use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
+use Inertia\Inertia;
 use Modules\Crm\Entities\Schedule;
 use Yajra\DataTables\Facades\DataTables;
 
 class ReportController extends Controller
 {
+    /** Tela React dos Relatórios (thread Crm/13). Default OFF: ligar é o cutover do [W]. */
+    private const FLAG_RELATORIOS = 'useV2CrmRelatorios';
+
     /**
      * All Utils instance.
      */
@@ -39,6 +45,13 @@ class ReportController extends Controller
         }
 
         $statuses = Schedule::statusDropdown();
+
+        // Thread Crm/13: com a flag ligada a tela abre em Inertia, depois do mesmo portão is_admin.
+        // `?classico=1` mantém a Blade e os 4 endpoints ajax dela seguem iguais.
+        if (! request()->boolean('classico')
+            && app(FeatureFlagService::class)->isOn(self::FLAG_RELATORIOS, ['business_id' => $business_id])) {
+            return $this->relatoriosInertia($business_id, $statuses);
+        }
 
         return view('crm::reports.index')->with(compact('statuses'));
     }
@@ -268,5 +281,52 @@ class ReportController extends Controller
                     )->groupBy('users.id');
 
         return $query;
+    }
+
+    /**
+     * Payload da tela React (thread Crm/13). As três matrizes saem das mesmas consultas dos endpoints
+     * da Blade; o detalhe da conversão (`?convertido_por=ID`) sai da consulta do modal antigo.
+     */
+    private function relatoriosInertia($business_id, $statuses)
+    {
+        $inicio = request()->input('start_date');
+        $fim = request()->input('end_date');
+        $categoria = request()->input('followup_category_id');
+        $contagens = fn ($r) => collect($statuses)->mapWithKeys(fn ($rotulo, $chave) => [$chave => (int) $r->{"count_{$chave}"}])
+            ->put('outros', (int) $r->count_nulled)->put('total', (int) $r->total_follow_ups)->all();
+        $nome = fn ($r) => trim(($r->supplier_business_name ? $r->supplier_business_name.', ' : '').$r->name);
+        $convertidoPor = (int) request()->input('convertido_por');
+
+        return Inertia::render('Crm/Relatorios/Index', [
+            'filtros' => request()->only(['start_date', 'end_date', 'followup_category_id']),
+            'status' => collect($statuses)->map(fn ($rotulo, $chave) => ['value' => (string) $chave, 'label' => (string) $rotulo])->values(),
+            'categorias' => Inertia::defer(fn () => collect(Category::forDropdown($business_id, 'followup_category'))
+                ->map(fn ($rotulo, $id) => ['value' => (string) $id, 'label' => (string) $rotulo])->values()),
+            'por_usuario' => Inertia::defer(fn () => $this->consultaPorUsuario($business_id, $statuses, $inicio, $fim, $categoria)
+                ->get()->map(fn ($r) => ['id' => (int) $r->user_id, 'nome' => trim((string) $r->full_name)] + $contagens($r))->values()),
+            'por_contato' => Inertia::defer(fn () => $this->consultaPorContato($business_id, $statuses)
+                ->orderByDesc('total_follow_ups')->limit(100)->get()
+                ->map(fn ($r) => ['nome' => $nome($r)] + $contagens($r))->values()),
+            'conversao' => Inertia::defer(fn () => $this->consultaConversao($business_id)->get()
+                ->map(fn ($r) => ['id' => (int) $r->DT_RowId, 'nome' => trim((string) $r->full_name), 'total' => (int) $r->total_conversions])->values()),
+            // Detalhe: contatos do negócio da sessão convertidos pelo usuário, mais recente primeiro.
+            'convertidos' => fn () => $convertidoPor > 0 ? $this->convertidosPor($business_id, $convertidoPor) : null,
+        ]);
+    }
+
+    /**
+     * Detalhe da conversão: contatos do negócio da sessão convertidos pelo usuário, mais recente
+     * primeiro — a mesma consulta do modal antigo (showLeadToCustomerConversionDetails).
+     *
+     * @return array<int, array{nome: string, convertido_em: string|null}>
+     */
+    private function convertidosPor($business_id, int $userId): array
+    {
+        return Contact::where('business_id', $business_id)->where('converted_by', $userId)
+            ->orderBy('converted_on', 'desc')->get(['name', 'supplier_business_name', 'converted_on'])
+            ->map(fn ($c) => [
+                'nome' => trim(($c->supplier_business_name ? $c->supplier_business_name.', ' : '').$c->name),
+                'convertido_em' => empty($c->converted_on) ? null : \Carbon\Carbon::parse($c->converted_on)->format('d/m/Y H:i'),
+            ])->values()->all();
     }
 }
