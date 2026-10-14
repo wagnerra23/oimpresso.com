@@ -87,6 +87,7 @@ export default function Visao({ empresa, contagens, usuarios }: Props) {
 
       <Stack gap={5} className="mx-auto max-w-5xl p-6">
         <Inline
+          data-contract="navrow"
           asChild
           gap={1}
           className="w-fit text-sm text-[color:var(--text-mute)] hover:text-[color:var(--text)]"
@@ -97,6 +98,7 @@ export default function Visao({ empresa, contagens, usuarios }: Props) {
         </Inline>
 
         <Inline
+          data-contract="faixa"
           gap={3}
           align="start"
           className="rounded-lg border border-[color:var(--border)] bg-[color:var(--panel-2)] px-4 py-3"
@@ -109,7 +111,7 @@ export default function Visao({ empresa, contagens, usuarios }: Props) {
           </p>
         </Inline>
 
-        <Inline gap={3} align="center">
+        <Inline data-contract="cabecalho" gap={3} align="center">
           <Inline
             justify="center"
             align="center"
@@ -130,7 +132,7 @@ export default function Visao({ empresa, contagens, usuarios }: Props) {
           </div>
         </Inline>
 
-        <Grid min="sm" gap={3}>
+        <Grid data-contract="cards" min="sm" gap={3}>
           {CARDS.map((c) => (
             <div key={c.key} className="rounded-lg bg-[color:var(--panel-2)] px-4 py-3">
               <div className="text-sm text-[color:var(--text-mute)]">{c.label}</div>
@@ -141,7 +143,7 @@ export default function Visao({ empresa, contagens, usuarios }: Props) {
           ))}
         </Grid>
 
-        <Inline justify="between" align="center" gap={4} wrap>
+        <Inline data-contract="titulo-lista" justify="between" align="center" gap={4} wrap>
           <h2 className="text-base font-semibold text-[color:var(--text)]">Todos os usuários</h2>
           <Input
             value={q}
@@ -152,7 +154,7 @@ export default function Visao({ empresa, contagens, usuarios }: Props) {
           />
         </Inline>
 
-        <div className="overflow-hidden rounded-lg border border-[color:var(--border)]">
+        <div data-contract="lista" className="overflow-hidden rounded-lg border border-[color:var(--border)]">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-[color:var(--border)] text-left text-xs uppercase tracking-wide text-[color:var(--text-mute)]">
@@ -208,7 +210,7 @@ export default function Visao({ empresa, contagens, usuarios }: Props) {
           )}
         </div>
 
-        <Inline asChild gap={1} align="center" className="text-xs text-[color:var(--text-mute)]">
+        <Inline data-contract="rodape" asChild gap={1} align="center" className="text-xs text-[color:var(--text-mute)]">
           <p>
             <Lock size={12} aria-hidden="true" /> Cada “Acessar como” grava em support_access_logs
             (append-only): quem · qual usuário · qual empresa · quando.

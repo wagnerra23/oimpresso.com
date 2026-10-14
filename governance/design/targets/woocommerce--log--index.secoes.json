@@ -1,0 +1,13 @@
+{
+  "_": "A1 [CL] 2026-10-13 — playbook woocommerce. Rota `woocommerce` do espelho (app.jsx:846 → window.WooCommercePage, integra-extras.jsx:62), aba Log de sincronização (3ª aba, por --clicar). Tema dark (default do espelho), viewport 1280x900, browser limpo. Log = WoocommerceController@viewSyncLog (thread 02). O clique é gravado no alvo (`clicar`) e o secao-check o repete.",
+  "_mapa": "alvo:mapa --rota woocommerce --clicar '.main-body > .pb-root > .pb-body > nav.ds-tabbar > button:nth-child(3)' --quieto-ms 2000, 2026-10-13: raiz '.main-body > .pb-root > .pb-body' → nav.ds-tabbar.vb-nav(4) · section.pb-widget(2); raiz '... > section.pb-widget' → h3(2) · div.pb-widget-b(2)",
+  "cabecalho": {
+    "seletor": ".main-body > .pb-root > .cli-ph > header"
+  },
+  "abas": {
+    "seletor": ".main-body > .pb-root > .pb-body > nav.ds-tabbar"
+  },
+  "log": {
+    "seletor": ".main-body > .pb-root > .pb-body > section.pb-widget"
+  }
+}

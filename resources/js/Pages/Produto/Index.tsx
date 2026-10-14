@@ -191,7 +191,8 @@ function ProdutoIndex({ filtros, lista, kpis, estoque, detalhe, opcoes, contexto
   const [busca, setBusca] = useState(filtros.q);
   const [selecionados, setSelecionados] = useState<number[]>([]);
   // Larguras que o usuário arrastou. Moram AQUI, e não na tabela, porque a tabela vive dentro de
-  // `<Deferred data="lista">` e é desmontada a cada ordenação, troca de página ou filtro.
+  // `<Deferred data="lista">` e é desmontada em toda visita não-parcial (ordenar, trocar de página,
+  // filtrar). O "Atualizar a lista" é recarga parcial e não desmonta.
   const [largurasArrastadas, setLargurasArrastadas] = useState<Record<string, number>>({});
   const [confirmar, setConfirmar] = useState<Confirmacao | null>(null);
   const [localModal, setLocalModal] = useState<'add' | 'remove' | null>(null);

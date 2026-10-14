@@ -1,0 +1,61 @@
+{
+  "_nota": "Derivado do alvo governance/design/targets/recorrente--faturas--index.alvo.json (thread A1 do playbook recorrente, rota `rb-faturas` do protótipo), não do .tsx. Seções do alvo → âncoras postas nesta thread (só o atributo data-contract; RUNBOOK-recurring-billing-index.md criado para o hook). Copy só onde protótipo e Page dizem literalmente o mesmo, conferida por máquina na base.assinatura do alvo e no código da Page sem comentário. Fora: `subnav` (a Page não tem a sub-navegação ph-nav do Financeiro). `cabecalho` sem copy: o h1 'Faturas · cobrança recorrente' e o botão 'Nova fatura' só existem na Page, e a linha 'FATURAS · ATRASADAS' é fragmento montado com números.",
+  "tela": "RecurringBilling/Faturas/Index",
+  "fonte": "prototipo-ui/cowork/Wagner/cobranca-recorrente-page.jsx",
+  "alvo": [
+    "resources/js/Pages/RecurringBilling/Faturas/Index.tsx"
+  ],
+  "secoes": [
+    {
+      "id": "cabecalho",
+      "copy": []
+    },
+    {
+      "id": "kpis",
+      "copy": [
+        "Pago este mês",
+        "faturas liquidadas no mês corrente",
+        "Pendente",
+        "abertas com vencimento futuro",
+        "Atrasado",
+        "Total de faturas",
+        "histórico completo"
+      ]
+    },
+    {
+      "id": "filtros",
+      "copy": [
+        "Todas",
+        "Pagas",
+        "Pendentes",
+        "Atrasadas",
+        "Canceladas",
+        "Todos gateways",
+        "Qualquer período",
+        "Mês atual",
+        "Próximo mês",
+        "Apenas atrasadas"
+      ]
+    },
+    {
+      "id": "lista",
+      "copy": [
+        "Número",
+        "Cliente",
+        "Plano",
+        "Valor",
+        "Vencimento",
+        "Status",
+        "Gateway",
+        "Ações",
+        "Cancelar"
+      ]
+    }
+  ],
+  "ordem": [
+    "cabecalho",
+    "kpis",
+    "filtros",
+    "lista"
+  ]
+}

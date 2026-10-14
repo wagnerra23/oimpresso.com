@@ -358,7 +358,7 @@ export default function PlanosIndex(props: PageProps) {
 
       <div className="min-h-screen bg-muted p-4 md:p-6">
         {/* HEADER */}
-        <header className="mb-4">
+        <header className="mb-4" data-contract="cabecalho">
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div>
               <h1 className="text-2xl font-semibold tracking-tight text-foreground">
@@ -407,7 +407,7 @@ export default function PlanosIndex(props: PageProps) {
         <Deferred data="kpis" fallback={<KpiSkeleton />}>
           {kpis && (
             <>
-              <div className="mb-3 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              <div data-contract="kpis" className="mb-3 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
                 <KpiCard
                   label="Ticket médio · MRR potencial"
                   value={BRL(ticketMedio)}
@@ -444,7 +444,7 @@ export default function PlanosIndex(props: PageProps) {
                 />
               </div>
               {/* Distribuição ciclos full-width abaixo dos KPIs */}
-              <div className="mb-4">
+              <div className="mb-4" data-contract="ciclos">
                 <CicloDistribuicao kpis={kpis} />
               </div>
             </>
@@ -452,7 +452,7 @@ export default function PlanosIndex(props: PageProps) {
         </Deferred>
 
         {/* Tabela */}
-        <section className="overflow-hidden rounded-lg bg-card shadow-sm ring-1 ring-border">
+        <section data-contract="lista" className="overflow-hidden rounded-lg bg-card shadow-sm ring-1 ring-border">
           {/* Toolbar */}
           <form
             onSubmit={handleSearch}
