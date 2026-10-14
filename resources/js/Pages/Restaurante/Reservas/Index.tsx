@@ -18,6 +18,7 @@ import { useMemo, useState, type ReactNode } from 'react';
 import { ExternalLink, Plus } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
 import { Badge } from '@/Components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import { PageHeader } from '@/Components/PageHeader';
 import PageHeaderTabs, { type PageHeaderGhost } from '@/Components/shared/PageHeaderTabs';
 import EmptyState from '@/Components/shared/EmptyState';
@@ -71,6 +72,8 @@ const SITUACAO: Record<string, { rotulo: string; tom: 'info' | 'warning' | 'succ
   completed: { rotulo: 'Concluída', tom: 'success' },
   cancelled: { rotulo: 'Cancelada', tom: 'outline' },
 };
+/** Sentinela do "todos": o Select do Radix não aceita item de valor vazio (§5 2026-06-29). */
+const TODOS_LOCAIS = '__todos__';
 const ABERTA = (r: Reserva) => r.situacao === 'booked' || r.situacao === 'waiting';
 type Filtro = 'abertas' | 'concluidas' | 'canceladas' | 'todas';
 const FILTROS: { k: Filtro; rotulo: string; casa: (r: Reserva) => boolean }[] = [
@@ -149,11 +152,13 @@ function ReservasIndex({ reservas, locais }: Props) {
                   ))}
                 </Inline>
                 {opcoesLocal.length > 1 && (
-                  <select className="h-8 rounded-md border border-input bg-background px-2 text-sm" value={local}
-                    onChange={(e) => setLocal(e.target.value)} aria-label="Filtrar por local">
-                    <option value="">Todos os locais</option>
-                    {opcoesLocal.map(([id, nome]) => <option key={id} value={id}>{nome}</option>)}
-                  </select>
+                  <Select value={local || TODOS_LOCAIS} onValueChange={(v) => setLocal(v === TODOS_LOCAIS ? '' : v)}>
+                    <SelectTrigger size="sm" className="w-48" aria-label="Filtrar por local"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value={TODOS_LOCAIS}>Todos os locais</SelectItem>
+                      {opcoesLocal.map(([id, nome]) => <SelectItem key={id} value={id}>{nome}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
                 )}
               </Inline>
               <DataTable columns={colunas} data={visiveis} caption="Todas as reservas" rowKey={(r) => r.id}
