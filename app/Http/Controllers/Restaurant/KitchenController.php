@@ -48,7 +48,7 @@ class KitchenController extends Controller
     /**
      * Display a listing of the resource.
      *
-     * @return Response
+     * @return \Illuminate\Contracts\View\View|\Inertia\Response
      */
     public function index()
     {
