@@ -79,8 +79,10 @@ jobs:
           OUT="${RUNNER_TEMP}/sync"
           # Se o manifesto gerado do espelho difere do bundle ATIVO, alguém mexeu no espelho sem
           # passar pelo import. Isso é RELATO, não falha: mexer no espelho por outra rota é
-          # legítimo (o `--export-from --ds` faz isso), e o dono do veredito é o
-          # `--compare-bundle --check`, que já roda em outro lugar. Aqui só se diz o número.
+          # legítimo (o `--export-from --ds` faz isso). Quem reprova espelho que mudou sem prova
+          # é o `--unverified --check` (job "espelho — mexeu depois de verificar"). O
+          # `--compare-bundle --check` NÃO roda em workflow nenhum (medido 2026-10-14: grep em
+          # .github/ = 0); absoluto, sairia 1 por 11 STALE herdados. Aqui só se diz o número.
           node -e '
             const fs = require("fs");
             const g = JSON.parse(fs.readFileSync(process.argv[1] + "/bundle.manifest.json", "utf8"));
@@ -92,7 +94,7 @@ jobs:
             console.log(`ativo  ${a.bundleId.slice(0,16)} · ${a.files.length} arquivos`);
             console.log(igual
               ? "✓ o espelho bate com o bundle ativo"
-              : "⬜ DIVERGE — o espelho mudou fora do import; veredito é do --compare-bundle --check");
+              : "⬜ DIVERGE — o espelho mudou fora do import; quem reprova é o --unverified --check");
           ' "$OUT" | tee -a "$GITHUB_STEP_SUMMARY"
 
       - name: publicar as partes

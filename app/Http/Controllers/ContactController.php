@@ -998,7 +998,23 @@ class ContactController extends Controller
             ->get()
             ->keyBy('contact_id');
 
-        $rows = $contacts->getCollection()->map(function ($contact) use ($stats, $hasWaveBCols, $hasCanonBrCols, $hasDrawerCols, $hasEmailsExtras, $hasSefazCols, $hasBucketACols, $hasContatoCol, $hasMensagemVendaCol, $vehiclesCountMap, $documentsCountMap) {
+        // Thread cliente/02 ([W] 2026-10-14) — coluna "Última OS" do protótipo: a venda mais recente
+        // de cada contato da página (mesmo critério de last_os_at: type=sell, maior transaction_date,
+        // desempate por id). Escopo business_id explícito (Tier 0, ADR 0093). Uma query por página.
+        $lastOsMap = collect();
+        if (! empty($contactIds)) {
+            $ranked = Transaction::query()
+                ->where('business_id', $business_id)
+                ->whereIn('contact_id', $contactIds)
+                ->where('type', 'sell')
+                ->select('id', 'contact_id', 'invoice_no', DB::raw('ROW_NUMBER() OVER (PARTITION BY contact_id ORDER BY transaction_date DESC, id DESC) AS rn'));
+            $lastOsMap = DB::query()->fromSub($ranked, 'ult')
+                ->where('rn', 1)
+                ->get(['id', 'contact_id', 'invoice_no'])
+                ->keyBy('contact_id');
+        }
+
+        $rows = $contacts->getCollection()->map(function ($contact) use ($stats, $lastOsMap, $hasWaveBCols, $hasCanonBrCols, $hasDrawerCols, $hasEmailsExtras, $hasSefazCols, $hasBucketACols, $hasContatoCol, $hasMensagemVendaCol, $vehiclesCountMap, $documentsCountMap) {
             $row = $stats->get($contact->id);
             $totalOs = $row ? (int) $row->total_os : 0;
             $abertas = $row ? (int) $row->os_abertas : 0;
@@ -1028,6 +1044,10 @@ class ContactController extends Controller
                 'valor_aberto' => $valorAberto,
                 'status' => $status,
                 'last_os_at' => $lastOsAt,
+                // Thread cliente/02 — nº da última OS (link /sells/{id} na lista). null sem venda.
+                'last_os' => ($ult = $lastOsMap->get($contact->id))
+                    ? ['id' => (int) $ult->id, 'invoice_no' => (string) $ult->invoice_no]
+                    : null,
                 // Consumidor/fornecedor padrão (walk-in) — front esconde "Excluir".
                 'is_default' => (bool) $contact->is_default,
                 // Wave G novos campos cadastrais.
