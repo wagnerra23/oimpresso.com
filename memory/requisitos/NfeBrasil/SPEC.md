@@ -583,6 +583,23 @@ E rodar o seed de novo não insere nem altera nada (append-only)
 **Testado em:** `Modules/NfeBrasil/Tests/Feature/IcmsUfTest.php` (lane `nfebrasil-pest`).
 **Fora deste item:** o motor ainda não lê a tabela (fallback é outra thread); os 4% da Resolução nº 13/2012 dependem da origem do produto importado; o seed não roda sozinho no deploy.
 
+### R-NFE-022 · Bloqueio por NCM padrão sempre oferece a saída e nunca emite sem NCM
+
+```gherkin
+Dado empresa sem NCM padrão (nem em tributacao_default.ncm_default nem em business.ncm_padrao)
+Quando tenta emitir a NFC-e ou NF-e
+Então a emissão não acontece e nenhuma nota é criada
+E o erro traz a ação "Escolher NCM padrão" com a tela /nfe-brasil/tributacao/config-default#ncm_default
+E a emissão manual responde 422 com essa ação, em vez de 500 só com texto
+E a tela é a mesma que a Saúde fiscal aponta para "NCM padrão ausente"
+E com NCM padrão válido o bloqueio de NCM não acontece (controle positivo)
+```
+
+**Contrato:** D-SUPORTE ([W] 2026-10-06: *"NF-e sem NCM não é saída: a saída é o NCM padrão da empresa"*) · playbook Fiscal thread 16.
+**Implementação:** `Modules/NfeBrasil/Exceptions/NcmPadraoAusenteException.php` · `Modules/NfeBrasil/Services/NfeService.php` (`emitirParaInvoice`, `emitirParaTransaction`, itens) · `Modules/NfeBrasil/Http/Controllers/NfeEmissaoController.php` (`emitir`) · `resources/js/Pages/Sells/_components/FiscalSection.tsx` (mostra o link).
+**Testado em:** `Modules/NfeBrasil/Tests/Feature/NfeBloqueioComSaidaTest.php` (lane `nfebrasil-pest`).
+**Fora deste item:** a emissão automática (job da NFC-e e listener da cobrança) segue só registrando em log: lá a saída é o card da Saúde fiscal (UC-NFTR-24). A emissão recusa NCM com tamanho ≠ 8; `00000000` passa, embora a Saúde fiscal o marque como bloqueante.
+
 ### R-NFE-033 · Aceita CNPJ alfanumérico válido e recusa o inválido
 
 ```gherkin
