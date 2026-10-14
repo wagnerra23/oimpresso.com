@@ -35,21 +35,27 @@ function t26Svc(): NfeService
     return new NfeService(\Mockery::mock(CertificadoService::class));
 }
 
-/** Cria um local (filial) no PR copiando scheme/layout de um local que a empresa já tem. */
+/**
+ * Cria um local (filial) com scheme/layout de um local que a empresa já tem. O local semeado do
+ * tenant de teste nasce com scheme/layout 0 (semente sem FK), então o insert desliga a checagem
+ * de FK só nesta linha — o que se testa aqui é o emissor, não o cadastro de invoice scheme.
+ */
 function t26Local(int $biz, string $uf = 'PR'): int
 {
     $base = DB::table('business_locations')->where('business_id', $biz)->orderBy('id')->first();
-    if ($base === null) {
-        test()->markTestSkipped("Tenant {$biz} sem business_locations para copiar scheme/layout.");
-    }
 
-    return (int) DB::table('business_locations')->insertGetId([
-        'business_id' => $biz, 'name' => 'T26 FILIAL ' . $uf, 'country' => 'Brasil', 'state' => $uf,
-        'city' => 'CURITIBA', 'zip_code' => '8000000', 'invoice_scheme_id' => $base->invoice_scheme_id,
-        'invoice_layout_id' => $base->invoice_layout_id,
-        'cnpj' => '11222333000262', 'razao_social' => 'T26 FILIAL LTDA', // pii-allowlist (CNPJ fictício)
-        'inscricao_estadual' => '9012345678', 'created_at' => now(), 'updated_at' => now(),
-    ]);
+    DB::statement('SET FOREIGN_KEY_CHECKS=0');
+    try {
+        return (int) DB::table('business_locations')->insertGetId([
+            'business_id' => $biz, 'name' => 'T26 FILIAL ' . $uf, 'country' => 'Brasil', 'state' => $uf,
+            'city' => 'CURITIBA', 'zip_code' => '8000000',
+            'invoice_scheme_id' => $base->invoice_scheme_id ?? 0, 'invoice_layout_id' => $base->invoice_layout_id ?? 0,
+            'cnpj' => '11222333000262', 'razao_social' => 'T26 FILIAL LTDA', // pii-allowlist (CNPJ fictício)
+            'inscricao_estadual' => '9012345678', 'created_at' => now(), 'updated_at' => now(),
+        ]);
+    } finally {
+        DB::statement('SET FOREIGN_KEY_CHECKS=1');
+    }
 }
 
 function t26Config(int $biz, int $locationId, array $props = []): NfeLocalEmissor
