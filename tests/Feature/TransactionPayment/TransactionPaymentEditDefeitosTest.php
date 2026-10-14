@@ -1,7 +1,7 @@
 <?php
 
 declare(strict_types=1);
-// Cobre UC-TPEDT-05, UC-TPEDT-07 (resources/js/Pages/TransactionPayment/Edit.casos.md) — G-2.
+// Cobre UC-TPEDT-05 (resources/js/Pages/TransactionPayment/Edit.casos.md) — G-2.
 
 use App\User;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
@@ -16,12 +16,13 @@ use Tests\Support\EstoqueFixture;
  * na lane `PHP / Pest (Financeiro · MySQL)` (required) até o conserto do `update()`.
  *
  * Recibo: run 38569047207 (e antes 38564874922):
- *   - UC-TPEDT-07 `[T0][V0]`: "Failed asserting that 410.0 is identical to 500.0" — um PUT do
- *     usuário da MINHA empresa sobre pagamento ALHEIO alterou o adiantamento-pai de OUTRA empresa.
+ *   - UC-TPEDT-07 `[T0][V0]` (já CONSERTADO e devolvido ao arquivo-irmão, que roda na lane):
+ *     "Failed asserting that 410.0 is identical to 500.0" — PUT sobre pagamento ALHEIO alterava o
+ *     adiantamento-pai de OUTRA empresa.
  *   - UC-TPEDT-05 `[V0]`: "update() devolveu success=false" — o payload que o `Edit.tsx` manda
  *     (`paid_on` AAAA-MM-DD HH:MM) não salva.
  *
- * O PR do conserto liga este arquivo na lane: a prova do conserto é ele ficar VERDE lá.
+ * O PR que consertar o UC-TPEDT-05 liga este arquivo na lane: a prova é ele ficar VERDE lá.
  * Mesmo contrato e mesmas âncoras do arquivo-irmão (ver o docblock dele); helpers copiados com
  * prefixo `tpEdtDef` porque o Pest carrega os dois arquivos no mesmo processo.
  *
@@ -178,36 +179,3 @@ it('UC-TPEDT-05 · salvar pela tela React grava o valor digitado', function () {
     expect(DB::table('transactions')->where('id', $meu['tx_id'])->value('payment_status'))->toBe('partial');
 });
 
-// UC-TPEDT-07 — mesmas âncoras do UC-TPEDT-06, no pagamento que nasce de um adiantamento
-//   (`parent_id`): o adiantamento alheio também é dado de outro business.
-it('UC-TPEDT-07 · PUT no pagamento alheio não mexe no adiantamento-pai alheio', function () {
-    $outroBiz = EstoqueFixture::secondBusinessId();
-    if ($outroBiz === null) {
-        $this->markTestSkipped('DB só tem 1 business — sem par cross-tenant.');
-    }
-
-    $paiId = (int) DB::table('transaction_payments')->insertGetId([
-        'business_id' => $outroBiz,
-        'transaction_id' => null,
-        'amount' => 500.00,
-        'method' => 'advance',
-        'is_advance' => 1,
-        'paid_on' => '2026-09-30 10:00:00',
-        'created_by' => EstoqueFixture::userId($outroBiz),
-        'payment_ref_no' => 'TPEDT-ADV-'.uniqid(),
-        'created_at' => now(),
-        'updated_at' => now(),
-    ]);
-    $alheio = tpEdtDefVendaPaga($outroBiz, $paiId);
-
-    // ANTI-VÁCUO: o filho alheio aponta mesmo para o pai alheio.
-    expect((int) tpEdtDefPagamento($alheio['payment_id'])->parent_id)->toBe($paiId);
-
-    $this->withHeaders(tpEdtDefInertiaHeaders())->put("/payments/{$alheio['payment_id']}", [
-        'amount' => '10,00', 'method' => 'cash', 'paid_on' => '05/10/2026 09:00',
-    ]);
-
-    // Antes → depois esperado: NADA muda. Adiantamento alheio segue 500,00; filho alheio 100,00.
-    expect(round((float) tpEdtDefPagamento($paiId)->amount, 2))->toBe(500.0);
-    expect(round((float) tpEdtDefPagamento($alheio['payment_id'])->amount, 2))->toBe(100.0);
-});

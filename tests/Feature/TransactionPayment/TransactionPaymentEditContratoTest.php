@@ -1,8 +1,8 @@
 <?php
 
 declare(strict_types=1);
-// Cobre UC-TPEDT-01, UC-TPEDT-02, UC-TPEDT-03, UC-TPEDT-04, UC-TPEDT-06
-// (UC-TPEDT-05 e 07 estão em TransactionPaymentEditDefeitosTest.php, fora da lane) (resources/js/Pages/TransactionPayment/Edit.casos.md) — G-2 rastreabilidade caso↔teste.
+// Cobre UC-TPEDT-01, UC-TPEDT-02, UC-TPEDT-03, UC-TPEDT-04, UC-TPEDT-06, UC-TPEDT-07
+// (UC-TPEDT-05 está em TransactionPaymentEditDefeitosTest.php, fora da lane) (resources/js/Pages/TransactionPayment/Edit.casos.md) — G-2 rastreabilidade caso↔teste.
 
 use App\User;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
@@ -286,4 +286,71 @@ it('UC-TPEDT-06 · PUT no pagamento de outro business não muda o pagamento nem 
     expect((string) $depois->paid_on)->toBe('2026-10-01 08:00:00');
     expect($depois->note)->toBeNull();
     expect(DB::table('transactions')->where('id', $alheio['tx_id'])->value('payment_status'))->toBe('paid');
+});
+
+// UC-TPEDT-07 — mesmas âncoras do UC-TPEDT-06, no pagamento que nasce de um adiantamento
+//   (`parent_id`): o adiantamento alheio também é dado de outro business.
+it('UC-TPEDT-07 · PUT no pagamento alheio não mexe no adiantamento-pai alheio', function () {
+    $outroBiz = EstoqueFixture::secondBusinessId();
+    if ($outroBiz === null) {
+        $this->markTestSkipped('DB só tem 1 business — sem par cross-tenant.');
+    }
+
+    $paiId = (int) DB::table('transaction_payments')->insertGetId([
+        'business_id' => $outroBiz,
+        'transaction_id' => null,
+        'amount' => 500.00,
+        'method' => 'advance',
+        'is_advance' => 1,
+        'paid_on' => '2026-09-30 10:00:00',
+        'created_by' => EstoqueFixture::userId($outroBiz),
+        'payment_ref_no' => 'TPEDT-ADV-'.uniqid(),
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+    $alheio = tpEdtVendaPaga($outroBiz, $paiId);
+
+    // ANTI-VÁCUO: o filho alheio aponta mesmo para o pai alheio.
+    expect((int) tpEdtPagamento($alheio['payment_id'])->parent_id)->toBe($paiId);
+
+    $r = $this->withHeaders(tpEdtInertiaHeaders())->put("/payments/{$alheio['payment_id']}", [
+        'amount' => '10,00', 'method' => 'cash', 'paid_on' => '05/10/2026 09:00',
+    ]);
+
+    // Recusa explícita antes de qualquer escrita (antes do conserto saía 500 DEPOIS de gravar o pai).
+    $r->assertNotFound();
+
+    // Antes → depois esperado: NADA muda. Adiantamento alheio segue 500,00; filho alheio 100,00.
+    expect(round((float) tpEdtPagamento($paiId)->amount, 2))->toBe(500.0);
+    expect(round((float) tpEdtPagamento($alheio['payment_id'])->amount, 2))->toBe(100.0);
+});
+
+// UC-TPEDT-07 — CONTROLE do mesmo cálculo no adiantamento PRÓPRIO (regra mestre de valor: a
+//   checagem de empresa não pode mudar o recálculo legítimo do pai). Antes e depois do conserto
+//   o pai vai a 500,00 − (100,00 − 10,00) = 410,00, e o filho a 10,00.
+it('UC-TPEDT-07 · controle: PUT no pagamento próprio recalcula o adiantamento-pai próprio como antes', function () {
+    $paiId = (int) DB::table('transaction_payments')->insertGetId([
+        'business_id' => $this->bizId,
+        'transaction_id' => null,
+        'amount' => 500.00,
+        'method' => 'advance',
+        'is_advance' => 1,
+        'paid_on' => '2026-09-30 10:00:00',
+        'created_by' => EstoqueFixture::userId($this->bizId),
+        'payment_ref_no' => 'TPEDT-ADV-'.uniqid(),
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+    $meu = tpEdtVendaPaga($this->bizId, $paiId);
+    expect((int) tpEdtPagamento($meu['payment_id'])->parent_id)->toBe($paiId);
+
+    $this->withHeaders(tpEdtInertiaHeaders())->put("/payments/{$meu['payment_id']}", [
+        'amount' => '10,00', 'method' => 'cash', 'paid_on' => '05/10/2026 09:00',
+    ]);
+
+    // Caminho 1: o pai. Caminho 2: o filho + a conta à mão (500 − (100 − 10)).
+    expect(round((float) tpEdtPagamento($paiId)->amount, 2))->toBe(410.0);
+    expect(round((float) tpEdtPagamento($meu['payment_id'])->amount, 2))->toBe(10.0);
+    expect(round(500.0 - (100.0 - (float) tpEdtPagamento($meu['payment_id'])->amount), 2))
+        ->toBe(round((float) tpEdtPagamento($paiId)->amount, 2));
 });

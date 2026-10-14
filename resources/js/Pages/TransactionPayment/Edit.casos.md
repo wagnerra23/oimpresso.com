@@ -107,11 +107,11 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 
 ## UC-TPEDT-07 · Salvar em cima de pagamento alheio não mexe no adiantamento alheio `[T0]` `[V0]` `[must]`
 - **Persona:** qualquer operador — pagamento que consome um adiantamento do cliente.
-- **Aceite:** Dado um adiantamento de 500,00 de OUTRO business e um pagamento alheio de 100,00 que nasce dele · Quando envio `PUT /payments/{id}` do pagamento alheio com valor `10,00` · Então o adiantamento alheio segue com 500,00 e o pagamento alheio segue com 100,00.
+- **Aceite:** Dado um adiantamento de 500,00 de OUTRO business e um pagamento alheio de 100,00 que nasce dele · Quando envio `PUT /payments/{id}` do pagamento alheio com valor `10,00` · Então o adiantamento alheio segue com 500,00 e o pagamento alheio segue com 100,00. O `PUT` é recusado com **404** antes de qualquer escrita. **Controle (mesmo cálculo, empresa própria):** adiantamento 500,00 com filho 100,00 → `PUT` 10,00 → pai 410,00 = 500,00 − (100,00 − 10,00), filho 10,00.
 - **Âncora:** as mesmas do UC-TPEDT-06 — o adiantamento também é dado de outra empresa.
-- **Teste:** `tests/Feature/TransactionPayment/TransactionPaymentEditDefeitosTest.php` (fora da lane `PHP / Pest (Financeiro · MySQL)` por decisão [W] 2026-10-14, até o conserto do `update()` — o PR do conserto liga o arquivo na lane).
+- **Teste:** `tests/Feature/TransactionPayment/TransactionPaymentEditContratoTest.php` (dois `it()`: o cross-tenant e o controle do adiantamento próprio).
 - **Regressão que defende:** escrita em outra empresa feita antes de o endpoint descobrir que a transação não é da empresa logada.
-- **Status: ❌ quebrou `[T0]`** — medido no [run 38564874922](https://github.com/wagnerra23/oimpresso.com/actions/runs/38564874922) (2026-10-14): depois do `PUT` do usuário da MINHA empresa sobre o pagamento alheio, o adiantamento-pai de OUTRA empresa foi de 500,00 para **410,00** (`Failed asserting that 410.0 is identical to 500.0`). Escrita cross-tenant em valor. Correção é decisão [W] (regra mestre de valor + ADR 0093) — nenhum código foi tocado.
+- **Status: 🧪 sem veredito** — o vermelho foi medido no [run 38569047207](https://github.com/wagnerra23/oimpresso.com/actions/runs/38569047207) (adiantamento alheio 500,00 → 410,00). O `update()` passou a conferir a empresa da venda antes de qualquer escrita (PR do conserto); o veredito novo vem da lane `PHP / Pest (Financeiro · MySQL)`.
 
 ---
 

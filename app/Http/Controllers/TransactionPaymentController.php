@@ -236,9 +236,21 @@ class TransactionPaymentController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
-        try {
-            $business_id = request()->session()->get('user.business_id');
+        // Tier 0 (ADR 0093): a venda do pagamento tem de ser da empresa da sessão ANTES de
+        // qualquer escrita. Antes deste ponto o `update()` ajustava e salvava o adiantamento-pai
+        // e as cédulas sem conferir a empresa — um PUT sobre pagamento de OUTRA empresa mudava o
+        // adiantamento dela (500,00 -> 410,00, run 38569047207, UC-TPEDT-07) e só depois quebrava
+        // com `Error` (venda null), que o `catch (\Exception)` não pega. Fica fora do try de
+        // propósito: o 404 não pode ser engolido como "something went wrong".
+        $business_id = request()->session()->get('user.business_id');
+        $payment = TransactionPayment::where('method', '!=', 'advance')->findOrFail($id);
+        $transaction = Transaction::where('business_id', $business_id)
+                            ->find($payment->transaction_id);
+        if (empty($transaction)) {
+            abort(404);
+        }
 
+        try {
             $inputs = $request->only(['amount', 'method', 'note', 'card_number', 'card_holder_name',
                 'card_transaction_number', 'card_type', 'card_month', 'card_year', 'card_security',
                 'cheque_number', 'bank_account_number', ]);
@@ -257,25 +269,6 @@ class TransactionPaymentController extends Controller
                 $inputs['account_id'] = $request->input('account_id');
             }
 
-            $payment = TransactionPayment::where('method', '!=', 'advance')->findOrFail($id);
-
-            if (! empty($request->input('denominations'))) {
-                $this->transactionUtil->updateCashDenominations($payment, $request->input('denominations'));
-            }
-
-            //Update parent payment if exists
-            if (! empty($payment->parent_id)) {
-                $parent_payment = TransactionPayment::find($payment->parent_id);
-                $parent_payment->amount = $parent_payment->amount - ($payment->amount - $inputs['amount']);
-
-                $parent_payment->save();
-            }
-
-            $business_id = $request->session()->get('user.business_id');
-
-            $transaction = Transaction::where('business_id', $business_id)
-                                ->find($payment->transaction_id);
-
             $transaction_before = $transaction->replicate();
             $document_name = $this->transactionUtil->uploadFile($request, 'document', 'documents');
             if (! empty($document_name)) {
@@ -283,6 +276,19 @@ class TransactionPaymentController extends Controller
             }
 
             DB::beginTransaction();
+
+            if (! empty($request->input('denominations'))) {
+                $this->transactionUtil->updateCashDenominations($payment, $request->input('denominations'));
+            }
+
+            //Update parent payment if exists — mesma fórmula de antes, agora dentro da transação
+            //de banco e só depois da checagem de empresa acima.
+            if (! empty($payment->parent_id)) {
+                $parent_payment = TransactionPayment::find($payment->parent_id);
+                $parent_payment->amount = $parent_payment->amount - ($payment->amount - $inputs['amount']);
+
+                $parent_payment->save();
+            }
 
             $payment->update($inputs);
 
