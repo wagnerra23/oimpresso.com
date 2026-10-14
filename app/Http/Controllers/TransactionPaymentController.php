@@ -633,9 +633,21 @@ class TransactionPaymentController extends Controller
             $business_id = request()->session()->get('business.id');
             $single_payment_line = TransactionPayment::findOrFail($payment_id);
 
+            // Tier 0 (ADR 0093): só abre pagamento da empresa da sessão. Antes deste ponto o
+            // modal de outra empresa era renderizado (medido no CT 100 em 2026-10-14: 200 com o
+            // número de referência do pagamento alheio na resposta). Pagamento de venda pertence à
+            // empresa da venda; adiantamento (sem venda) carrega o próprio `business_id`.
+            $pertence = ! empty($single_payment_line->transaction_id)
+                ? Transaction::where('business_id', $business_id)->where('id', $single_payment_line->transaction_id)->exists()
+                : (int) $single_payment_line->business_id === (int) $business_id;
+            if (! $pertence) {
+                abort(404);
+            }
+
             $transaction = null;
             if (! empty($single_payment_line->transaction_id)) {
-                $transaction = Transaction::where('id', $single_payment_line->transaction_id)
+                $transaction = Transaction::where('business_id', $business_id)
+                                ->where('id', $single_payment_line->transaction_id)
                                 ->with(['contact', 'location', 'transaction_for'])
                                 ->first();
             } else {
