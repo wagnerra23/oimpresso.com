@@ -22,6 +22,8 @@ type Aba = AbaDoDetalhe;
 
 const qtd = (n: number) => n.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
 const dinheiro = (n: number | undefined | null) => (n === undefined || n === null ? '—' : brl(n));
+/** `tax_type` do produto como a tela o chama; vazio quando o cadastro não diz. */
+const tipoDeImposto = (t: string) => (t === 'inclusive' ? 'Inclusivo' : t === 'exclusive' ? 'Exclusivo' : '');
 // Produto único tem uma variação interna chamada DUMMY; o protótipo a mostra como "Padrão".
 const nomeDaVariacao = (n: string | null | undefined) => (!n || n === 'DUMMY' ? 'Padrão' : n);
 
@@ -192,10 +194,7 @@ export default function PainelDetalheProduto({ aberto, detalhe: d, aba, aoMudarA
                     <Dt rotulo="Categoria" valor={d.dados.categoria} />
                     <Dt rotulo="Subcategoria" valor={d.dados.subcategoria} />
                     <Dt rotulo="Imposto aplicável" valor={d.dados.imposto || 'Nenhum'} />
-                    <Dt
-                      rotulo="Tipo de imposto na venda"
-                      valor={d.dados.tipo_imposto === 'inclusive' ? 'Inclusivo' : d.dados.tipo_imposto === 'exclusive' ? 'Exclusivo' : ''}
-                    />
+                    <Dt rotulo="Tipo de imposto na venda" valor={tipoDeImposto(d.dados.tipo_imposto)} />
                     <Dt rotulo="Peso" valor={d.dados.peso} />
                     <Dt rotulo="Gerenciar estoque" valor={d.dados.controla_estoque ? 'Sim' : 'Não'} />
                     <Dt rotulo="Quantidade de alerta" valor={d.dados.alerta === null ? '' : qtd(d.dados.alerta)} />
@@ -377,6 +376,8 @@ export default function PainelDetalheProduto({ aberto, detalhe: d, aba, aoMudarA
                   <Dt rotulo="CST COFINS" valor={d.fiscal.cst_cofins} />
                   <Dt rotulo="CST IPI" valor={d.fiscal.cst_ipi} />
                   <Dt rotulo="Imposto aplicável" valor={d.dados.imposto || 'Nenhum'} />
+                  {/* Protótipo: a aba Fiscal fecha com o tipo de imposto. O mesmo dado da aba Dados. */}
+                  <Dt rotulo="Tipo de imposto na venda" valor={tipoDeImposto(d.dados.tipo_imposto)} />
                 </div>
               )}
 
