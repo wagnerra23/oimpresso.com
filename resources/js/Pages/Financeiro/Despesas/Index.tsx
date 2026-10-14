@@ -88,7 +88,7 @@ const colunas: ColumnDef<Despesa>[] = [
 ];
 
 function DespesasIndex({ filtros, opcoes, despesas }: Props) {
-  const linhas = despesas?.data ?? [];
+  const linhas = useMemo(() => despesas?.data ?? [], [despesas]);
   // Rodapé = soma das linhas desta página, com o sinal que o servidor já aplicou (estorno negativo).
   const rodape = useMemo(() => ({
     total: linhas.reduce((a, d) => a + d.total, 0),
@@ -101,7 +101,7 @@ function DespesasIndex({ filtros, opcoes, despesas }: Props) {
     <div className="fin-curadoria">
       <div data-contract="cabecalho">
         <PageHeader title="Despesas" subtitle={<>Lançamentos de despesa e estorno, com o que falta pagar</>}>
-          <div className="ml-auto flex flex-shrink-0 items-center gap-1.5"><FinanceiroSubNav active="despesas" hidePrimary /></div>
+          <Inline className="ml-auto flex-shrink-0"><FinanceiroSubNav active="despesas" hidePrimary /></Inline>
         </PageHeader>
       </div>
 
