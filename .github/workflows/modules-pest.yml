@@ -48,6 +48,8 @@ on:
       - 'resources/js/Pages/Patrimonio/**'
       - 'Modules/ComunicacaoVisual/**'
       - 'resources/js/Pages/ComunicacaoVisual/**'
+      - 'Modules/ConsultaOs/**'
+      - 'resources/js/Pages/ConsultaOs/**'
       - 'Modules/Connector/**'
       - 'Modules/Fiscal/**'
       - 'resources/js/Pages/Fiscal/**'
@@ -71,6 +73,8 @@ on:
       - 'resources/js/Pages/Patrimonio/**'
       - 'Modules/ComunicacaoVisual/**'
       - 'resources/js/Pages/ComunicacaoVisual/**'
+      - 'Modules/ConsultaOs/**'
+      - 'resources/js/Pages/ConsultaOs/**'
       - 'Modules/Connector/**'
       - 'Modules/Fiscal/**'
       - 'resources/js/Pages/Fiscal/**'
@@ -98,6 +102,11 @@ jobs:
           - Arquivos
           - AssetManagement
           - ComunicacaoVisual
+          # ConsultaOs (2026-10-14, regime E6): Modules/ConsultaOs/Tests tem 1 arquivo
+          # (ScaffoldTest, modulo + 2 rotas nomeadas) registrado no phpunit.xml e
+          # rodado por lane nenhuma. O contrato da tela vive em
+          # tests/Feature/ConsultaOs e roda pela ci-sqlite-pest.list.
+          - ConsultaOs
           - Connector
           - Fiscal
           - Manufacturing
