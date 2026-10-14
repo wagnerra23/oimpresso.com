@@ -1,5 +1,7 @@
 # 08 — Handoff (índice)
 
+- [2026-10-13 21:30 BRT — **Sistema 08 + Tema escuro 03/05**](handoffs/2026-10-13-2130-sistema08-tema-escuro-catraca.md) (pilha Configuração da empresa no main até #9223 · catraca da sonda em job próprio · 9 Pages consertadas, 75/75 sem superfície clara · #9321 contém a pilha #9265–#9320, com o gerente)
+
 - [2026-10-13 16:56 BRT — **Contas, Essenciais, Cliente e "Testar envio"**](handoffs/2026-10-13-1656-threads-contas-essenciais-cliente-testar-envio.md) (9 PRs mergeados · Contas → Inertia flag OFF · Essenciais A1+03 · `/contacts` → `/cliente` 302 (só lista) · `rotaViva` para de usar prosa como URL · Testar envio sem 500 · pendente: re-medir Cliente/Index e User/Perfil no staging (IGUAL falso no Perfil) · Vendas dark = decisão [W])
 - [2026-10-13 18:57 BRT — **Gestão da fila de merges (13/10 · 2)**](handoffs/2026-10-13-1857-gestao-fila-merges-13-out-2.md) (44 PRs · Compras 9/9 · Essenciais 5/5 · NFS-e 23 no main · redirect /contacts → /cliente com smoke · main verde na lane Acessos · em voo: #9246, #9247, #9219, #9223 e 4 sessões de chip)
 

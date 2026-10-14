@@ -5,8 +5,8 @@ irmaos: Index.charter.md (lei) · Index.tsx (código)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: o comportamento é durável — o escopo de quem-vê-o-quê e o contrato de filtro não mudam quando o cockpit ganhar abas novas.
 owner: wagner
-last_run: "2026-10-13"
-last_run_ci: "Revalidado em 2026-10-13 pela lane PHP / Pest (Compras · MySQL) — run 38328490401, 47 passed, 134 assertions, 0 skipped, no commit 0d8350c91 que mudou o endereço do Exportar (UC-CMP-11, 5 assertions). Bump exigido pelo G-6 (a tela mudou). Historico: em 2026-09-05 o run 33941351234 (125 assertions) revalidou as ancoras data-contract; UC-CMP-06/07 reconciliados em 2026-08-11."
+last_run: "2026-10-14"
+last_run_ci: "Revalidado em 2026-10-14 sem reexecucao: o #9321 (tema escuro) trocou so as cores inline #fff/#fbf9f3 da barra e do rodape por var(--cmp-paper)/var(--cmp-bg-2), nenhum UC muda. Antes: revalidado em 2026-10-13 pela lane PHP / Pest (Compras · MySQL) — run 38328490401, 47 passed, 134 assertions, 0 skipped, no commit 0d8350c91 que mudou o endereço do Exportar (UC-CMP-11, 5 assertions). Bump exigido pelo G-6 (a tela mudou). Historico: em 2026-09-05 o run 33941351234 (125 assertions) revalidou as ancoras data-contract; UC-CMP-06/07 reconciliados em 2026-08-11."
 ---
 
 # Casos de Uso & Aceite — Cockpit de Compras (`/compras`)
