@@ -1,0 +1,5 @@
+{
+  "_medido_em": "2026-10-14",
+  "_por_que": "superadmin-page.jsx nao declara ROTAS, entao as telas do Superadmin caiam todas na rota do grupo (superadmin, view=visao) e o lote as recusava por colisao. Token lido do app.jsx do espelho: route sa-assinaturas -> SuperadminPage view=assinaturas (thread A2 do playbook superadmin).",
+  "token": "sa-assinaturas"
+}
