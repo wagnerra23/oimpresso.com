@@ -154,6 +154,9 @@ class ContactLoginController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
+        // O login nasce preso a um contato DESTE negócio (thread Crm/16 · Tier 0).
+        $this->contatoDoNegocio((int) $business_id, $request->input('crm_contact_id'));
+
         try {
             $input = $request->only('crm_contact_id', 'surname', 'first_name', 'last_name', 'email', 'username', 'password', 'contact_no', 'alt_number', 'family_number', 'crm_department', 'crm_designation', 'cmmsn_percent');
 
@@ -237,6 +240,11 @@ class ContactLoginController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
+        // Só login de contato (usuário com crm_contact_id) é editável aqui, e só para contato deste
+        // negócio. Sem isto, o id de um usuário da equipe trocava e-mail e senha dele (thread Crm/16 · Tier 0).
+        $this->contatoDoNegocio((int) $business_id, $request->get('crm_contact_id'));
+        User::where('business_id', $business_id)->whereNotNull('crm_contact_id')->findOrFail($id);
+
         try {
             $input = $request->only('surname', 'first_name', 'last_name', 'email', 'username', 'contact_no', 'alt_number', 'family_number', 'crm_department', 'crm_designation', 'cmmsn_percent');
 
@@ -249,6 +257,7 @@ class ContactLoginController extends Controller
             $input['crm_contact_id'] = $request->get('crm_contact_id');
 
             $user = User::where('business_id', $business_id)
+                        ->whereNotNull('crm_contact_id')
                         ->where('id', $id)
                         ->update($input);
 
@@ -308,6 +317,15 @@ class ContactLoginController extends Controller
 
             return $output;
         }
+    }
+
+    /** 404 se o contato não existe no negócio da sessão (inclui vazio). */
+    private function contatoDoNegocio(int $business_id, $crm_contact_id): void
+    {
+        abort_unless(
+            ! empty($crm_contact_id) && CrmContact::where('business_id', $business_id)->whereKey((int) $crm_contact_id)->exists(),
+            404
+        );
     }
 
     public function allContactsLoginList()

@@ -62,6 +62,7 @@ função da lista Blade que roda hoje em produção.
   "Não para venda"; e os de módulo, só para quem tem o módulo: "Modelo do dispositivo"
   (assistência técnica) e "WooCommerce habilitado". Chips "Filtrando por" + "Limpar tudo".
 - Abas: **Todos os produtos** (com contagem) e **Relatório de estoque** (as colunas da lista Blade,
+  linhas por página à escolha, lucro potencial da linha verde/vermelho,
   com totais), esta só com `stock_report.view`.
 - Barra: busca (atalho `/`) com a **mesma regra da lista Blade**, no servidor e no catálogo inteiro
   (cada palavra em nome, SKU, SKU da variação, tipo, categoria, marca ou campo personalizado);

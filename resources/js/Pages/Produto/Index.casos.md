@@ -73,6 +73,7 @@ last_run_ci: "run 38087431948 (lane Estoque · MySQL, commit 59fe58ae, com o arq
 | UC-PIDX-15 | "Adicionar ou editar estoque inicial" abre em janela e lança o mesmo saldo, linhas e transações que o formulário Blade | must `[V0]` `[T0]` | protótipo (`ModalEstoqueInicial`) + Blade `opening_stock/form-part` / `OpeningStockController@save` + `CU-PROD-04` + REGRA MESTRE estoque | `EstoqueInicialJanelaTest` (Pest) + `produto-estoque-inicial.test.tsx` (Vitest) | ⬜ nasce neste PR — verde esperado |
 | UC-PIDX-16 | Arrastar a borda do cabeçalho muda a largura da coluna, sem mexer na ordem nem nas outras colunas | should | protótipo (`ListaProdutos` → `DataGrid` do DS, `startResize`) | `produto-lista-redimensionar.test.tsx` + `datatable-redimensionar.test.tsx` (Vitest) + 1 caso em `tests/a11y-primitives.test.tsx` (roda em lane) | ⬜ nasce neste PR — verde esperado |
 | UC-PIDX-17 | "Dados fiscais (NCM/CFOP)" no menu da linha abre o painel do produto já na aba Fiscal | should | protótipo (`acoesDe` + aba `fiscal` do `DetalheDrawer`) | `produto-menu-da-linha.test.tsx` + `produto-painel-detalhe.test.tsx` (Vitest) | ⬜ nasce neste PR — verde esperado |
+| UC-PIDX-18 | Aba "Relatório de estoque": escolher quantas linhas por página, com os totais iguais em qualquer tamanho; lucro potencial da linha com cor | should `[V0]` | protótipo (`RelatorioEstoque`) + lista Blade (`stock_report_table`, menu de tamanho do DataTable) + REGRA MESTRE valor | `ProdutoListaEstoqueAbaTest` (Pest, roda em lane) + `produto-relatorio-estoque.test.tsx` (Vitest) | ⬜ nasce neste PR — verde esperado |
 
 > 🔄 **Revalidação G-6 — 2026-10-10 (#9124, lista no desenho do protótipo).** Os 6 contratos
 > **continuam os mesmos**: derivam do SDD, da lista Blade e do Delphi, não da tela de cards. O que
@@ -328,6 +329,22 @@ last_run_ci: "run 38087431948 (lane Estoque · MySQL, commit 59fe58ae, com o arq
 - **Não coberto por teste:** a ligação dentro de `Produto/Index.tsx` (a ação `fiscal` chamar a abertura com a aba Fiscal) — nenhum teste renderiza a página inteira. Conferido em produção depois do deploy.
 - **Status: ⬜** — nasce neste PR; verde esperado. Nenhum dos dois arquivos de teste roda em lane.
 
+## UC-PIDX-18 · Aba "Relatório de estoque": linhas por página e lucro potencial com cor · `should` `[V0]`
+- **Persona:** Larissa confere o estoque de uma categoria inteira e não quer passar página por página; e quer bater o olho no que dá lucro.
+- **Aceite:** Dada a aba "Relatório de estoque" · Quando escolho quantas linhas mostrar no seletor do rodapé (25, 50, 100, 200, 500, 1000 ou Todos) · Então a aba volta à página 1 com esse tamanho, e os **totais do rodapé não mudam** — continuam somando todas as linhas dos filtros. Valor fora das opções cai no padrão. O tamanho da aba é independente do da lista de produtos; sem escolher nada, as duas nascem com o mesmo. Em cada linha, o **lucro potencial** aparece verde quando é positivo e vermelho quando é negativo; zero e o total do rodapé ficam sem cor.
+- **Teste:** [`ProdutoListaEstoqueAbaTest`](../../../../tests/Feature/Produto/ProdutoListaEstoqueAbaTest.php) — `UC-PIDX-18` (26 linhas num local próprio: 25 deixa uma para a página 2, 50 e "Todos" trazem as 26; totais iguais nos três tamanhos; valor inválido cai no padrão) e [`produto-relatorio-estoque.test.tsx`](../../../../tests/js/produto-relatorio-estoque.test.tsx) (a cor e o seletor).
+- **Prova dos totais por dois caminhos** (REGRA MESTRE): estoque 1+2+…+26 = 351, custo ×12, venda ×20 — conta à mão **e** a soma do JSON do DataTable do relatório (o código da Blade), comparadas com os totais da aba em 25, 50 e Todos.
+- **Contrato:**
+  - **Protótipo** — `RelatorioEstoque`: `<td … style={{ color: "var(--pos)" }}>` no lucro da linha; total em negrito, sem cor; `Pagination` com tamanho de página.
+  - **Blade** — `stock_report_table` é um DataTable com o menu de tamanho padrão do sistema (`public/js/common.js`, `aLengthMenu`: 25/50/100/200/500/1000/todas) e o padrão da empresa (`default_datatable_page_entries`).
+  - **Contas** — nenhuma nova: as linhas e os totais são os de `buildRelatorioEstoqueDaLista`; só o tamanho da página deixou de ser fixo em 25.
+- **Diferenças deliberadas do protótipo:**
+  - as opções são as da lista Blade (25 … 1000, Todos), não 10/25/50/100 — a mesma escolha já feita para a lista de produtos, e é o que a aba Blade oferecia;
+  - lucro **negativo** fica vermelho. No protótipo o lucro é sempre positivo e sempre verde; com estoque de verdade existe custo acima do preço de venda, e verde ali enganaria;
+  - o rodapé mantém "Página X de Y · N linhas" com Anterior/Próxima; o protótipo usa páginas numeradas.
+- **Linha em alerta de estoque:** a linha inteira continua vermelha, como na Blade; a célula do lucro segue a regra dela (verde se positivo).
+- **Status: ⬜** — nasce neste PR; verde esperado. A parte do servidor roda na lane Estoque · MySQL; a parte Vitest não roda em lane nenhuma.
+
 ---
 
 ## Achados de governança (o trio prometia o que não tinha)
@@ -430,6 +447,7 @@ last_run_ci: "run 38087431948 (lane Estoque · MySQL, commit 59fe58ae, com o arq
 - Gate: `scripts/casos-coverage-guard.mjs` (G-1/G-2/G-5/G-6/G-7 — [ADR 0264](../../../../memory/decisions/0264-governanca-executavel-trio-dominio-e2e.md))
 
 ## Trilha do tempo
+- 2026-10-13 · [F+C] **UC-PIDX-18** (aba Relatório de estoque): seletor de linhas por página (`estoque_por_pagina`, as opções da lista Blade) e lucro potencial da linha com cor. Totais provados iguais em 25, 50 e Todos.
 - 2026-10-13 · [F+C] **UC-PIDX-17** ("Dados fiscais" no menu da linha): item novo no menu Ações, abre o painel na aba Fiscal; a aba ativa do painel passa a ser da página, e cada abertura recomeça na aba pedida.
 - 2026-10-13 · [F+C] **UC-PIDX-16, conserto:** a largura arrastada sumia ao ordenar/paginar/filtrar (tabela dentro de `<Deferred>` é desmontada); passou a ser guardada pela página. Achado no arrasto real em produção, depois do deploy.
 - 2026-10-13 · [F+C] **UC-PIDX-16** (redimensionar coluna): `shared/DataTable` ganha a opção `resizable` (desligada por padrão) e a lista de produtos a liga; Ação e Imagem ficam fixas, como no protótipo. Rodapé passa a dizer "arraste a borda pra redimensionar".

@@ -478,6 +478,12 @@ class ProductController extends Controller
         if (! in_array($porPagina, $opcoesPorPagina, true)) {
             $porPagina = $padrao;
         }
+        // A aba "Relatório de estoque" tem o próprio tamanho de página, com as MESMAS opções e o MESMO
+        // padrão: na lista Blade as duas abas eram DataTables com o mesmo menu (`common.js` aLengthMenu).
+        $estoquePorPagina = request()->has('estoque_por_pagina') ? (int) request()->input('estoque_por_pagina') : $padrao;
+        if (! in_array($estoquePorPagina, $opcoesPorPagina, true)) {
+            $estoquePorPagina = $padrao;
+        }
 
         $texto = function (string $k) {
             $v = request()->input($k);
@@ -500,6 +506,7 @@ class ProductController extends Controller
             // Aba ativa (protótipo: "Todos os produtos" | "Relatório de estoque") e a página da aba de estoque.
             'aba' => request()->input('aba') === 'estoque' ? 'estoque' : 'lista',
             'estoque_pagina' => max(1, (int) request()->input('estoque_pagina', 1)),
+            'estoque_por_pagina' => $estoquePorPagina,
             'q' => trim((string) request()->input('q', '')),
             'sort' => (string) request()->input('sort', 'produto'),
             'dir' => request()->input('dir') === 'desc' ? 'desc' : 'asc',
@@ -727,9 +734,10 @@ class ProductController extends Controller
      * `RelatorioEstoque`; a aba `#product_stock_report` da lista Blade). As linhas são as de
      * Relatórios → Estoque — `ProductUtil::getProductStockDetails` + `linhaDoRelatorioEstoque` —
      * com os filtros que a aba Blade mandava (`product/index.blade.php`, `stock_report_table`):
-     * local, categoria, marca, unidade, tipo, situação, "não para venda" e modelo. 25 por página,
-     * na ordem SKU e local (a da tela de estoque). A busca da lista não entra: a aba Blade também
-     * não a usava.
+     * local, categoria, marca, unidade, tipo, situação, "não para venda" e modelo. Tamanho da página
+     * em `estoque_por_pagina` (as opções da lista; -1 = todas as linhas), na ordem SKU e local (a da
+     * tela de estoque). Os totais não dependem da página. A busca da lista não entra: a aba Blade
+     * também não a usava.
      *
      * @param  array<string, mixed>  $f  `filtrosListaProdutos()`
      * @return array<string, mixed>
@@ -751,9 +759,14 @@ class ProductController extends Controller
         $verPreco = (bool) auth()->user()->can('access_default_selling_price');
         $verValor = (bool) auth()->user()->can('view_product_stock_value');
 
-        $pagina = $this->productUtil->getProductStockDetails($business_id, $filtros, 'datatables')
+        $consulta = $this->productUtil->getProductStockDetails($business_id, $filtros, 'datatables')
             ->orderBy('variations.sub_sku', 'asc')->orderBy('vld.location_id', 'asc')
-            ->toBase()->paginate(25, ['*'], 'estoque_pagina', $f['estoque_pagina']);
+            ->toBase();
+        // -1 = "Todos": uma página só, do tamanho do relatório (como `buildProdutoListaPaginada`).
+        $porPagina = $f['estoque_por_pagina'] === -1
+            ? max(1, (clone $consulta)->getCountForPagination())
+            : $f['estoque_por_pagina'];
+        $pagina = $consulta->paginate($porPagina, ['*'], 'estoque_pagina', $f['estoque_pagina']);
 
         return [
             'linhas' => collect($pagina->items())
@@ -762,7 +775,10 @@ class ProductController extends Controller
             'totais' => $this->totaisDoRelatorioEstoque($business_id, $filtros, $verValor, $recalcular),
             'mostra_preco' => $verPreco,
             'mostra_valor' => $verValor,
-            'paginacao' => ['atual' => $pagina->currentPage(), 'ultima' => $pagina->lastPage(), 'total' => $pagina->total()],
+            'paginacao' => [
+                'atual' => $pagina->currentPage(), 'ultima' => $pagina->lastPage(), 'total' => $pagina->total(),
+                'por_pagina' => $f['estoque_por_pagina'],
+            ],
         ];
     }
 
