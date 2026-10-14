@@ -92,6 +92,9 @@ on:
       # Thread Crm/04 — o painel do CRM virou Inertia; o contrato dele roda aqui.
       - 'Modules/Crm/Http/Controllers/CrmDashboardController.php'
       - 'Modules/Crm/Tests/Feature/CrmPainelContratoTest.php'
+      # Thread Crm/17 — pedidos de clientes: a Blade travada antes da Page.
+      - 'Modules/Crm/Http/Controllers/OrderRequestController.php'
+      - 'Modules/Crm/Tests/Feature/CrmPedidos*'
       # Thread Crm/16 — login de contatos (portal, D3): a Blade travada antes da Page.
       - 'Modules/Crm/Http/Controllers/ContactLoginController.php'
       - 'Modules/Crm/Tests/Feature/CrmLogins*'
@@ -181,6 +184,9 @@ jobs:
               # Thread Crm/04 — o painel do CRM virou Inertia; o contrato dele roda aqui.
               - 'Modules/Crm/Http/Controllers/CrmDashboardController.php'
               - 'Modules/Crm/Tests/Feature/CrmPainelContratoTest.php'
+              # Thread Crm/17 — pedidos de clientes: a Blade travada antes da Page.
+              - 'Modules/Crm/Http/Controllers/OrderRequestController.php'
+              - 'Modules/Crm/Tests/Feature/CrmPedidos*'
               # Thread Crm/16 — login de contatos (portal, D3): a Blade travada antes da Page.
               - 'Modules/Crm/Http/Controllers/ContactLoginController.php'
               - 'Modules/Crm/Tests/Feature/CrmLogins*'
@@ -410,6 +416,7 @@ jobs:
             Modules/Crm/Tests/Feature/CrmLeadsContratoTest.php \
             Modules/Crm/Tests/Feature/CrmLeadShowEscopoTest.php \
             Modules/Crm/Tests/Feature/CrmPainelContratoTest.php \
+            Modules/Crm/Tests/Feature/CrmPedidosBaselineTest.php \
             Modules/Crm/Tests/Feature/CrmLoginsBaselineTest.php \
             Modules/Crm/Tests/Feature/CrmLoginsEscritaEscopoTest.php \
             Modules/Crm/Tests/Feature/CrmLeadsListQueryTest.php \
