@@ -24,7 +24,7 @@ individual. Nada bloqueia o fechamento (D-REJEITADA). A seção nasce **desligad
 | CT05 Fator R | `FatorRService::apurar()` da competência | atenção quando a folha é só a do ERP (§ 24) · sem fonte sem receita |
 | CT06 DIFAL de compra | `nfe_dfe_recebidos` do mês, UF do emitente pela chave × UF da empresa | ok · atenção (classificar) |
 | CT07 entradas sem manifestação | `nfe_dfe_recebidos.status_manifestacao` | ok · pendente |
-| CT08 devolução sem nota de origem | — | **sem fonte**: o fechamento ainda não cruza devolução de venda com NF-e de devolução. Na base `dffa1d7bbe` a NF-e sai com finalidade 1; o #9355 (thread 20, mergeado em `7fb086425a`) emite a devolução com `refNFe` pelo `DevolucaoService`; o próximo passo é o CT08 pode contar `sell_return` do mês sem NF-e finalidade 4 |
+| CT08 devolução sem nota de origem | — | **sem fonte**: o fechamento ainda não cruza devolução de venda com NF-e de devolução. Na base `dffa1d7bbe` a NF-e sai com finalidade 1; o #9355 (thread 20, mergeado em `7fb086425a`) emite a devolução com `refNFe` pelo `DevolucaoService`; o próximo passo é o CT08 contar `sell_return` do mês sem NF-e finalidade 4 |
 | CT09 retenção NFS-e × financeiro | conta NFS-e com retenção; o Financeiro não registra a retenção | **sem fonte** |
 | CT10 regras sem aceite | `nfe_revisoes_contador` pendente/ajuste pedido de regra vigente no mês | ok · pendente |
 
