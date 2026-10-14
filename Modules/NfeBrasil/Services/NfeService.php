@@ -317,6 +317,9 @@ class NfeService
             ]];
         }
 
+        // Thread 29 · R-NFE-034: item de serviço (decidido pelo contador) não sai em NF-e/NFC-e.
+        $this->recusarItensDeServico($businessId, $linhas);
+
         $itens = $this->montarItensNfe(
             linhas:         $linhas,
             valorNota:      $valorTotal,
@@ -360,6 +363,29 @@ class NfeService
         }
 
         return $this->emitir($businessId, $dadosNfe);
+    }
+
+    /**
+     * Thread 29 · R-NFE-034 — produto que o contador decidiu como SERVIÇO não sai em NF-e/NFC-e
+     * (é NFS-e). Recusa a nota inteira em vez de tirar o item, porque o total da nota é o
+     * `final_total` da venda (REGRA MESTRE). Pendente e mercadoria emitem como antes.
+     *
+     * @param list<array<string,mixed>> $linhas saída de linhasDaVenda()
+     */
+    public function recusarItensDeServico(int $businessId, array $linhas): void
+    {
+        $servicos = array_keys(array_filter(
+            app(\Modules\NfeBrasil\Services\Tributacao\NaturezaFiscalService::class)->naturezas($businessId, array_values(array_filter(array_map(
+                fn (array $l) => $l['product_id'] !== null ? (int) $l['product_id'] : null, $linhas,
+            )))),
+            fn (string $n) => $n === 'servico',
+        ));
+        if ($servicos !== []) {
+            throw new RuntimeException(
+                'Produto(s) ' . implode(', ', $servicos) . ' decidido(s) pelo contador como serviço (ISS): '
+                . 'emita NFS-e para eles. A NF-e/NFC-e não sai com item de serviço.'
+            );
+        }
     }
 
     /**

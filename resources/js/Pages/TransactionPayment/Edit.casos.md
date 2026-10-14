@@ -115,6 +115,16 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 
 ---
 
+## UC-TPEDT-08 · A tela abre quando a empresa tem contas bancárias `[must]`
+- **Persona:** qualquer operador de empresa com o módulo de contas ativo.
+- **Aceite:** Dado que a lista de contas vem do `accountsDropdown` com a entrada `"" => "nenhum"` que o Blade usa · Quando abro `/payments/v2/{id}/edit` · Então o formulário aparece, com o campo "Conta bancária", e a opção "— Nenhuma —" aparece uma vez só.
+- **Fonte:** charter §Props (`accounts`, dropdown opcional) + §UX (campo "Account (select accounts, opcional)").
+- **Teste:** `tests/js/transaction-payment-edit.test.tsx`.
+- **Regressão que defende:** o Radix `Select` recusa item com valor vazio e derruba a tela inteira. Medido em produção em 2026-10-14 (biz=1, `/payments/v2/16482/edit`): tela em branco, console com *"A <Select.Item /> must have a value prop that is not an empty string"*.
+- **Status: 🧪 sem veredito** — o veredito vem da lane do Vitest.
+
+---
+
 ## Backlog — achados sem teste ainda (prosa honesta, sem id)
 
 - **[BACKLOG]** Depois de salvar, a tela mostra "Pagamento atualizado." mesmo quando o `update()` não gravou: ele responde `redirect()->back()` com `status.success = false`, e o `onSuccess` do `form.put` dispara em qualquer redirect sem erro de validação. Fonte única (leitura do `.tsx`); vira UC quando houver contrato de feedback.

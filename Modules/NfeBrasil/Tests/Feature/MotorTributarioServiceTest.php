@@ -6,6 +6,7 @@ declare(strict_types=1);
 // @covers R-NFE-015 · R-NFE-015b · R-NFE-016 · R-NFE-017 — ICMS-ST pela MVA, FCP e DIFAL (thread 06 do playbook Fiscal).
 // @covers R-NFE-018 · R-NFE-019 · R-NFE-020b · R-NFE-020c — operação + vigência (thread 07 do playbook Fiscal).
 // @covers R-NFE-031 — filial usa a própria UF de origem (thread 26 do playbook Fiscal).
+// @covers R-NFE-035 — DIFAL do Simples só nas UFs marcadas (thread 29 do playbook Fiscal).
 // @covers-us US-NFE-066 — benefício fiscal na regra (thread 25 do playbook Fiscal).
 // @covers R-NFE-030 — benefício fiscal: base reduzida e cBenef no item (thread 25 do playbook Fiscal).
 
@@ -567,7 +568,7 @@ function t07Biz(): int
 }
 
 /** NCMs reservados a estes casos — nada de produção usa a faixa 7707xxxx. */
-const T07_NCMS = ['77070001', '77070002', '77070003', '77070004', '77070005', '77070006', '77070007']; // 05-06: thread 25 · 07: thread 26
+const T07_NCMS = ['77070001', '77070002', '77070003', '77070004', '77070005', '77070006', '77070007', '77070008']; // 05-06: thread 25 · 07: thread 26 · 08: thread 29
 
 function t07Limpar(): void
 {
@@ -862,5 +863,47 @@ it('R-NFE-031 · filial usa a própria UF de origem', function () {
         ->and($par('SP', 'BA'))->toBe(0.07);
     DB::table('nfe_icms_uf')->where('business_id', t07Biz())->delete();
 
+    t07Limpar();
+});
+
+// ── thread 29 do playbook Fiscal: DIFAL do Simples por UF (R-NFE-035) ─────────────────────────
+// D-DIFAL-UF ([W] 2026-10-06): padrão "não recolhe" (STF ADI 5.464); o contador marca a UF que cobra
+// por lei própria (STF Tema 1284). Alíquotas de fixture (12% regra · 20% interna), não de lei.
+
+it('R-NFE-035 · DIFAL do Simples só nas UFs marcadas', function () {
+    t07Preparar();
+    if (! Schema::hasColumn('nfe_icms_uf', 'cobra_difal_simples')) {
+        test()->markTestSkipped('MySQL-only: precisa da migração 2026_10_14_000003 (DIFAL do Simples por UF).');
+    }
+    configBusiness(t07Biz());                                     // regime simples (default do helper)
+    t07Regra(['ncm' => '77070008', 'uf_origem' => 'SP', 'uf_destino' => 'RJ', 'cfop' => '6102', 'aliquota_icms' => 0.12]);
+    DB::table('nfe_icms_uf')->where('business_id', t07Biz())->delete();
+    (new \Modules\NfeBrasil\Database\Seeders\NfeIcmsUfSeeder())->semear(t07Biz());
+    $consumidorRj = fn () => (new MotorTributarioService())->calcularComDestino(ctx('77070008', 1000.0), t07Biz(), 'SP', 'RJ',
+        aliquotaInternaDestino: 0.20, destinatarioContribuinte: false);
+
+    // RJ não marcado: Simples não recolhe — DIFAL 0 e o aviso cita a ADI 5.464 (bateria C17).
+    $sem = $consumidorRj();
+    expect($sem->valor_difal)->toBe(0.0)
+        ->and($sem->aviso)->toContain('ADI 5.464')
+        ->and($sem->valor_icms)->toBe(120.0);                     // o ICMS próprio não muda
+
+    // O contador marca RJ: 1000 × (0,20 − 0,12) = 80,00, sem aviso.
+    DB::table('nfe_icms_uf')->where('business_id', t07Biz())->where('uf_origem', 'SP')->where('uf_destino', 'RJ')
+        ->update(['cobra_difal_simples' => true]);
+    $com = $consumidorRj();
+    expect($com->valor_difal)->toBe(80.0)->and($com->aviso)->toBeNull();
+
+    // CONTROLE POSITIVO — venda a contribuinte nunca gera DIFAL do remetente, marcada ou não.
+    $contribuinte = (new MotorTributarioService())->calcularComDestino(ctx('77070008', 1000.0), t07Biz(), 'SP', 'RJ',
+        aliquotaInternaDestino: 0.20, destinatarioContribuinte: true);
+    expect($contribuinte->valor_difal)->toBe(0.0)->and($contribuinte->aviso)->toBeNull();
+
+    // E empresa fora do Simples segue a regra de antes (R-NFE-017), mesmo com RJ desmarcado.
+    DB::table('nfe_icms_uf')->where('business_id', t07Biz())->update(['cobra_difal_simples' => false]);
+    NfeBusinessConfig::where('business_id', t07Biz())->update(['regime' => 'lucro_presumido']);
+    expect($consumidorRj()->valor_difal)->toBe(80.0);
+
+    DB::table('nfe_icms_uf')->where('business_id', t07Biz())->delete();
     t07Limpar();
 });

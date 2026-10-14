@@ -677,6 +677,39 @@ E autorizar a nota da filial não mexe no contador da matriz; autorizar a da mat
 **Testado em:** `Modules/NfeBrasil/Tests/Feature/NfeFilialNumeracaoTest.php` (lane `nfebrasil-pest`).
 **Fora deste item:** certificado por local — a emissão segue assinando com o certificado do business.
 
+### R-NFE-034 · Natureza decidida pelo contador vale para o produto
+
+```gherkin
+Dado um banner marcado como natureza pendente
+Então a NF-e emite pelo padrão da UF e a Saúde fiscal mostra "natureza a decidir" (aviso, não bloqueia)
+Quando o contador decide "serviço 24.01" com a fonte
+Então a decisão fica com autor, data e fonte, e a NF-e/NFC-e da venda recusa o item dizendo "emita NFS-e"
+E marcar o produto como pendente de novo não desfaz a decisão (ele sai da fila)
+E sem a permissão nfe.tributacao.manage, de outra empresa, sem fonte ou sem item da LC 116 a decisão é recusada — a Jana nunca grava natureza
+```
+
+**Contrato:** D-NATUREZA ([W] 2026-10-06) · Súmula 156 do STJ · SEFAZ-SP Consulta 10406/2016 (citadas no docblock do serviço).
+**Implementação:** migração `2026_10_14_000003_create_nfe_naturezas_produto_e_difal_simples` · `Modules/NfeBrasil/Models/NfeNaturezaProduto.php` · `Modules/NfeBrasil/Services/Tributacao/NaturezaFiscalService.php` · `Modules/NfeBrasil/Services/NfeService.php` (`recusarItensDeServico`) · `Modules/NfeBrasil/Services/Tributacao/SaudeFiscalService.php` (`naturezaPendente`).
+**Testado em:** `Modules/NfeBrasil/Tests/Feature/NaturezaFiscalTest.php` (lane `nfebrasil-pest`).
+**Fora deste item:** a emissão da NFS-e a partir da venda (o playbook deixa NFS-e fora, rev.6) e a tela de decisão — ver `_saida-29.md`.
+
+### R-NFE-035 · DIFAL do Simples só nas UFs marcadas
+
+```gherkin
+Dado empresa do Simples vendendo a consumidor no RJ (regra 12%, interna do RJ 20%, item de 1.000,00)
+Quando RJ não está marcado na tabela por UF
+Então sem DIFAL e um aviso citando a ADI 5.464 (bateria C17); o ICMS próprio segue 120,00
+Quando o contador marca RJ
+Então DIFAL = 1.000,00 × (0,20 − 0,12) = 80,00
+E venda a contribuinte nunca gera DIFAL do remetente, marcada ou não
+E empresa fora do Simples segue o R-NFE-017 (80,00) mesmo com RJ desmarcado
+```
+
+**Contrato:** D-DIFAL-UF ([W] 2026-10-06) · STF ADI 5.464 · STF Tema 1284 · SEFAZ-SP Consulta 32359/2025.
+**Implementação:** migração `2026_10_14_000003_create_nfe_naturezas_produto_e_difal_simples` (`nfe_icms_uf.cobra_difal_simples`) · `Modules/NfeBrasil/Services/MotorTributarioService.php` (`calcularStFcpDifal`, `ehSimples`, `ufCobraDifalSimples`) · `Modules/NfeBrasil/Services/Tributacao/TributoCalculado.php` (`aviso`).
+**Testado em:** `Modules/NfeBrasil/Tests/Feature/MotorTributarioServiceTest.php` (lane `nfebrasil-pest`).
+**Fora deste item:** a guia (GNRE) do DIFAL; nenhum caller da emissão passa a interna do destino hoje, então o DIFAL ainda não chega à nota.
+
 ### R-NFE-033 · Aceita CNPJ alfanumérico válido e recusa o inválido
 
 ```gherkin
@@ -1555,3 +1588,16 @@ Como empresa com filial em outro estado, quero que a nota da filial saia com a U
 **Critérios de aceite:** R-NFE-031 · R-NFE-032.
 
 **Disparo:** playbook Fiscal thread 26 (`prototipo-ui/cowork/Wagner/cowork-inbox/fiscal/playbook/26-filial-origem.md`) · UC-TRB-27.
+
+### US-NFE-068 · Natureza ICMS × ISS por produto e DIFAL do Simples por UF
+
+> owner: — · sprint: — · priority: p1 · estimate: 4h · status: done · type: story
+> blocked_by: —
+
+**Implementado em:** `Modules/NfeBrasil/Services/Tributacao/NaturezaFiscalService.php` · `Modules/NfeBrasil/Services/MotorTributarioService.php` · `Modules/NfeBrasil/Database/Migrations/2026_10_14_000003_create_nfe_naturezas_produto_e_difal_simples.php` · `Modules/NfeBrasil/Tests/Feature/NaturezaFiscalTest.php` · `Modules/NfeBrasil/Tests/Feature/MotorTributarioServiceTest.php`
+
+Como contador, quero decidir por produto se ele é mercadoria (ICMS) ou serviço (ISS), com a fonte registrada, e marcar as UFs que cobram DIFAL do Simples, para o sistema não escolher sozinho imposto em caso controverso.
+
+**Critérios de aceite:** R-NFE-034 · R-NFE-035.
+
+**Disparo:** playbook Fiscal thread 29 (`prototipo-ui/cowork/Wagner/cowork-inbox/fiscal/playbook/29-icms-iss-e-difal-por-uf.md`) · D-NATUREZA · D-DIFAL-UF.

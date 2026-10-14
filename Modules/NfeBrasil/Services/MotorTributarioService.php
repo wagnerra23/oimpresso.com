@@ -330,6 +330,7 @@ class MotorTributarioService
             valor_st:        $extra['valor_st'],
             valor_fcp:       $extra['valor_fcp'],
             valor_difal:     $extra['valor_difal'],
+            aviso:           $extra['aviso'],
             reducao_base:    $reducao > 0 ? $reducao : 0.0,
             base_icms:       $baseIcms,
             c_benef:         $cBenef !== '' ? $cBenef : null,
@@ -373,7 +374,7 @@ class MotorTributarioService
      * nunca inventa a interna. O erro explicável "interna não cadastrada" é R-NFE-021 (thread 09).
      *
      * @param array{uf_origem?:string,uf_destino?:string,interna?:float|null,contribuinte?:bool|null} $destino
-     * @return array{base_st:float,valor_st:float,valor_fcp:float,valor_difal:float}
+     * @return array{base_st:float,valor_st:float,valor_fcp:float,valor_difal:float,aviso:string|null}
      */
     private function calcularStFcpDifal(NfeFiscalRule $regra, ProdutoFiscalContext $produto, array $destino): array
     {
@@ -398,12 +399,49 @@ class MotorTributarioService
             $valorDifal = max(0.0, $this->fmt($valor * ($interna - (float) $regra->aliquota_icms)));
         }
 
+        // Thread 29 · R-NFE-035 (D-DIFAL-UF, [W] 2026-10-06): empresa do Simples não recolhe o DIFAL
+        // na venda a consumidor de outra UF — STF ADI 5.464 suspendeu a cláusula nona do Convênio
+        // ICMS 93/2015 para os optantes; a SEFAZ-SP (Consulta 32359/2025) confirma. A exceção é a UF
+        // que cobra por lei estadual própria (STF Tema 1284), que o contador marca na tabela por UF
+        // (`nfe_icms_uf.cobra_difal_simples`). Empresa fora do Simples, ou sem regime cadastrado,
+        // segue a regra de antes.
+        $aviso = null;
+        if ($valorDifal > 0 && $this->ehSimples((int) $regra->business_id)
+            && ! $this->ufCobraDifalSimples((int) $regra->business_id, (string) $destino['uf_origem'], (string) $destino['uf_destino'])) {
+            $valorDifal = 0.0;
+            $aviso = 'DIFAL não recolhido: empresa do Simples Nacional (STF ADI 5.464). '
+                . 'Marque a UF ' . strtoupper((string) $destino['uf_destino']) . ' se ela cobra por lei própria.';
+        }
+
         return [
             'base_st'     => $baseSt,
             'valor_st'    => $valorSt,
             'valor_fcp'   => $fcp > 0 ? $this->fmt($valor * $fcp) : 0.0,
             'valor_difal' => $valorDifal,
+            'aviso'       => $aviso,
         ];
+    }
+
+    /** Optante do Simples (ou MEI) pelo regime cadastrado em `nfe_business_configs`. */
+    private function ehSimples(int $businessId): bool
+    {
+        return in_array((string) ($this->buscarConfig($businessId)?->regime ?? ''), ['simples', 'mei'], true);
+    }
+
+    /** A UF de destino foi marcada pelo contador como cobradora do DIFAL do Simples. */
+    private function ufCobraDifalSimples(int $businessId, string $ufOrigem, string $ufDestino): bool
+    {
+        if (! \Illuminate\Support\Facades\Schema::hasColumn('nfe_icms_uf', 'cobra_difal_simples')) {
+            return false;
+        }
+
+        return (bool) \Modules\NfeBrasil\Models\NfeIcmsUf::withoutGlobalScopes() // SUPERADMIN: motor roda em fila; escopo no where
+            ->where('business_id', $businessId)
+            ->where('uf_origem', strtoupper($ufOrigem))
+            ->where('uf_destino', strtoupper($ufDestino))
+            ->vigenteEm(now()->toDateString())
+            ->orderByDesc('id')
+            ->value('cobra_difal_simples');
     }
 
     /**
