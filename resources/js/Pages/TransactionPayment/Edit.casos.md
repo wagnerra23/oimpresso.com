@@ -49,7 +49,7 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 
 ## UC-TPEDT-02 · Pagamento próprio abre a tela com o que o charter promete `[must]`
 - **Persona:** Larissa corrigindo um pagamento lançado errado.
-- **Aceite:** Dado um pagamento de R$ 100,00 da minha empresa · Quando abro `/payments/v2/{id}/edit` · Então recebo a tela `TransactionPayment/Edit` com o pagamento (mesmo id, valor 100,00), a transação dele (da minha empresa), as formas de pagamento (lista não vazia) e a chave `accounts`.
+- **Aceite:** Dado um pagamento de 100,00 da minha empresa · Quando abro `/payments/v2/{id}/edit` · Então recebo a tela `TransactionPayment/Edit` com o pagamento (mesmo id, valor 100,00), a transação dele (da minha empresa), as formas de pagamento (lista não vazia) e a chave `accounts`.
 - **Âncora:** `Edit.charter.md` §Props (`payment_line` · `transaction` · `payment_types` · `accounts`) + RUNBOOK F2 (`editInertia` "retorna payment_line + transaction + payment_types + accounts").
 - **Teste:** `tests/Feature/TransactionPayment/TransactionPaymentEditContratoTest.php`. O smoke em quarentena (`TransactionPaymentInertiaSmokeTest`, cenário 6) cobre só o status; este caso cobre o conteúdo.
 - **Regressão que defende:** a tela abrir sem o pagamento ou com a transação errada.
@@ -68,8 +68,8 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 ---
 
 ## UC-TPEDT-04 · Alterar o valor grava o novo valor e recalcula a situação da venda `[V0]` `[must]`
-- **Persona:** Larissa — a cliente pagou R$ 60,00, não R$ 100,00, e a venda tem de voltar a mostrar saldo em aberto.
-- **Aceite:** Dado uma venda de R$ 100,00 paga com um pagamento de R$ 100,00 · Quando envio, no formato do modal legado, valor `60,00` e data `10/10/2026 09:15` · Então:
+- **Persona:** Larissa — a cliente pagou 60,00, não 100,00, e a venda tem de voltar a mostrar saldo em aberto.
+- **Aceite:** Dado uma venda de 100,00 paga com um pagamento de 100,00 · Quando envio, no formato do modal legado, valor `60,00` e data `10/10/2026 09:15` · Então:
 
   | o quê | antes | depois (conta à mão) |
   |---|---|---|
@@ -87,7 +87,7 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 
 ## UC-TPEDT-05 · Salvar pela tela React grava o valor digitado `[V0]` `[must]`
 - **Persona:** Larissa usando a tela nova em vez do modal.
-- **Aceite:** Dado uma venda de R$ 100,00 com um pagamento de R$ 100,00 · Quando abro a tela, troco só o valor para `60.5` e salvo (o payload é o que `Edit.tsx` manda: `paid_on` no formato `AAAA-MM-DD HH:MM` vindo do próprio pagamento, valor com ponto decimal do campo numérico) · Então o pagamento passa a 60,50 e a venda passa a `partial`.
+- **Aceite:** Dado uma venda de 100,00 com um pagamento de 100,00 · Quando abro a tela, troco só o valor para `60.5` e salvo (o payload é o que `Edit.tsx` manda: `paid_on` no formato `AAAA-MM-DD HH:MM` vindo do próprio pagamento, valor com ponto decimal do campo numérico) · Então o pagamento passa a 60,50 e a venda passa a `partial`.
 - **Âncora:** `Edit.charter.md` §Intent ("editar um pagamento existente em página full ao invés de modal") + §Diferenças (submit reusa `PUT /payments/{id}`) + RUNBOOK F2 ("POST update reusa update() existente").
 - **Teste:** `tests/Feature/TransactionPayment/TransactionPaymentEditContratoTest.php` — o caso confere primeiro o desfecho que o `update()` grava no flash `status`, depois o banco pelos dois caminhos.
 - **Regressão que defende:** a tela nova não conseguir salvar o que ela mesma mostra.
@@ -97,7 +97,7 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 
 ## UC-TPEDT-06 · Salvar em cima de pagamento de outra empresa não muda nada dela `[T0]` `[V0]` `[must]`
 - **Persona:** qualquer operador — o PUT pode ser montado à mão, fora da tela.
-- **Aceite:** Dado um pagamento de R$ 100,00 de OUTRO business · Quando envio `PUT /payments/{id}` com valor `10,00` · Então o pagamento alheio segue com 100,00, a mesma data e a mesma observação, e a venda alheia segue `paid`. **Controle:** o mesmo usuário com o mesmo payload altera o pagamento da própria empresa para 10,00.
+- **Aceite:** Dado um pagamento de 100,00 de OUTRO business · Quando envio `PUT /payments/{id}` com valor `10,00` · Então o pagamento alheio segue com 100,00, a mesma data e a mesma observação, e a venda alheia segue `paid`. **Controle:** o mesmo usuário com o mesmo payload altera o pagamento da própria empresa para 10,00.
 - **Âncora:** `Edit.charter.md` §Tier 0 (multi-tenant) + RUNBOOK §Tier 0 ("`Transaction::where('business_id', $businessId)` em todo query") + ADR 0093.
 - **Teste:** `tests/Feature/TransactionPayment/TransactionPaymentEditContratoTest.php` — assere o banco, não o status (sucesso e recusa podem sair com o mesmo código).
 - **Regressão que defende:** alterar valor de pagamento de outra empresa pelo endpoint compartilhado.
@@ -107,7 +107,7 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 
 ## UC-TPEDT-07 · Salvar em cima de pagamento alheio não mexe no adiantamento alheio `[T0]` `[V0]` `[must]`
 - **Persona:** qualquer operador — pagamento que consome um adiantamento do cliente.
-- **Aceite:** Dado um adiantamento de R$ 500,00 de OUTRO business e um pagamento alheio de R$ 100,00 que nasce dele · Quando envio `PUT /payments/{id}` do pagamento alheio com valor `10,00` · Então o adiantamento alheio segue com 500,00 e o pagamento alheio segue com 100,00.
+- **Aceite:** Dado um adiantamento de 500,00 de OUTRO business e um pagamento alheio de 100,00 que nasce dele · Quando envio `PUT /payments/{id}` do pagamento alheio com valor `10,00` · Então o adiantamento alheio segue com 500,00 e o pagamento alheio segue com 100,00.
 - **Âncora:** as mesmas do UC-TPEDT-06 — o adiantamento também é dado de outra empresa.
 - **Teste:** `tests/Feature/TransactionPayment/TransactionPaymentEditContratoTest.php`.
 - **Regressão que defende:** escrita em outra empresa feita antes de o endpoint descobrir que a transação não é da empresa logada.

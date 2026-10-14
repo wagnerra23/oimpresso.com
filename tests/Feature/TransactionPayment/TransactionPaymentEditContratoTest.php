@@ -58,7 +58,7 @@ function tpEdtInertiaHeaders(): array
 }
 
 /**
- * Venda `final` de R$ 100,00 com UM pagamento de R$ 100,00 (logo `paid`). Estado inicial por
+ * Venda `final` de 100,00 com UM pagamento de 100,00 (logo `paid`). Estado inicial por
  * INSERT — não pelo fluxo sob teste.
  *
  * @return array{tx_id:int, payment_id:int}
