@@ -1,7 +1,20 @@
 {
   "url": "https://staging.oimpresso.com/arquivos",
+  "saude": {
+    "folhasVazias": [],
+    "tokensMortos": [
+      "--accent",
+      "--pos",
+      "--neg",
+      "--warn",
+      "--text-dim",
+      "--sunken",
+      "--border"
+    ],
+    "nFolhas": 7
+  },
   "theme": "auto",
-  "assinatura": "Usamos cookies pra entender como você usa o oimpresso e melhorar a experiência. Dados sensíveis (CPF, email, telefone) não são capturados . Personalizar Só essenciais Aceitar tudo CI C Arquivos 33 arquivos · 205 KB · 0 no cofre cifrado Auditoria Acervo 33 Retenção Cofre Trilha 0 Todos 33 Sensível 0 Em uso 33 Histórico 0 Descartar 0 Acervo de arquivos Arquivo Vinculado a Classificação Disco Tamanho Vence em 35210112345678000199550010000000011000000019.pdf nfe-danfe · classificado por danfe-service-double-write Emissão de NF-e # 295 NfeEmissao Em uso Restrito Disco comum 15 KB 03/12/2026 No prazo 76d 1-12.xml XML de NF-e · Lei 8.846/94 Art. 23 + SINIEF 07/2005 Art. 8 · classificado por nfe-service-double-write Emissão de NF-e # 295 NfeEmissao Em uso Restrito Disco comum 2 KB 03/09/2031 No prazo 35210000000000000000550010000000011000000019.pdf nfe-danfe · classificado por danfe-service-double-write Emissão de NF-e # 291 NfeEmissao Em uso Restrito Disco comum 0 KB 03/12/2026 No prazo 76d 35210112345678000199550010000000011000000019.pdf nfe-danfe · classificado por danfe-service-double-write Emissão de NF-e # 290 NfeEmissao Em uso Restrito Disco comum 15 KB 03/12/2026 No prazo 76d 1-11.xml XML de NF-e · Lei 8.846/94 Art. 23 + SINIEF 07/2005 Art. 8 · classificado por nfe-service-double-write Emissão de NF-e # 290 NfeEmissao Em uso Restrito Disco comum 2 KB 03/09/2031 No prazo 35210112345678000199550010000000011000000019.pdf nfe-danfe · classificado por danfe-service-double-write Emissão de NF-e # 287 NfeEmissao Em uso Restrito Disco comum 15 KB 03/12/2026 No prazo 76d 1-10.xml XML de NF-e · Lei 8.846/94 Art. 23 + SINIEF 07/2005 Art. 8 · classificado por nfe-service-double-write Emissão de NF-e # 287 NfeEmissao Em uso Restrito Disco comum 2 KB 03/09/2031 No prazo 35210112345678000199550010000000011000000019.pdf nfe-danfe · classificado por danfe-service-double-write Emissão de NF-e # 285 NfeEmissao Em uso Restrito Disco comum 15 KB 03/12/2026 No prazo 76d 1-9.xml XML de NF-e · Lei 8.846/94 Art. 23 + SINIEF 07/2005 Art. 8 · classificado por nfe-service-double-write Emissão de NF-e # 285 NfeEmissao Em uso Restrito Disco comum 2 KB 03/09/2031 No prazo 35210112345678000199550010000000011000000019.pdf nfe-danfe · classificado por danfe-service-double-write Emissão de NF-e # 282 NfeEmissao Em uso Restrito Disco comum 0 KB 03/12/2026 No prazo 76d 35210112345678000199550010000000011000000019.pdf nfe-danfe · classificado por danfe-service-double-write Emissão de NF-e # 281 NfeEmissao Em uso Restrito Disco comum 0 KB 03/12/2026 No prazo 76d 35210112345678000199550010000000011000000019.pdf nfe-danfe · classificado por danfe-service-double-write Emissão de NF-e # 277 NfeEmissao Em uso Restrito Disco comum 15 KB 03/12/2026 No prazo 76d 1-8.xml XML de NF-e · Lei 8.846/94 Art. 23 + SINIEF 07/2005 Art. 8 · classificado por nfe-service-double-write Emissão de NF-e # 277 NfeEmissao Em uso Restrito Disco comum 2 KB 03/09/2031 No prazo 35210112345678000199550010000000011000000019.pdf nfe-danfe · classificado por danfe-service-double-write Emissão de NF-e # 275 NfeEmissao Em uso Restrito Disco comum 15 KB 03/12/2026 No prazo 76d 1-7.xml XML de NF-e · Lei 8.846/94 Art. 23 + SINIEF 07/2005 Art. 8 · classificado por nfe-service-double-write Emissão de NF-e # 275 NfeEmissao Em uso Restrito Disco comum 2 KB 03/09/2031 No prazo 35210112345678000199550010000000011000000019.pdf nfe-danfe · classificado por danfe-service-double-write Emissão de NF-e # 271 NfeEmissao Em uso Restrito Disco comum 15 KB 03/12/2026 No prazo 76d 1-6.xml XML de NF-e · Lei 8.846/94 Art. 23 + SINIEF 07/2005 Art. 8 · classificado por nfe-service-double-write Emissão de NF-e # 271 NfeEmissao Em uso Restrito Disco comum 2 KB 03/09/2031 No prazo 35210112345678000199550010000000011000000019.pdf nfe-danfe · classificado por danfe-service-double-write Emissão de NF-e # 270 NfeEmissao Em uso Restrito Disco comum 15 KB 03/12/2026 No prazo 76d 1-5.xml XML de NF-e · Lei 8.846/94 Art. 23 + SINIEF 07/2005 Art. 8 · classificado por nfe-service-double-write Emissão de NF-e # 270 NfeEmissao Em uso Restrito Disco comum 2 KB 03/09/2031 No prazo 35210112345678000199550010000000011000000019.pdf nfe-danfe · classificado por danfe-service-double-write Emissão de NF-e # 241 NfeEmissao Em uso Restrito Disco comum 0 KB 03/12/2026 No prazo 76d 35210112345678000199550010000000011000000019.pdf nfe-danfe · classificado por danfe-service-double-write Emissão de NF-e # 236 NfeEmissao Em uso Restrito Disco comum 0 KB 03/12/2026 No prazo 76d 35210000000000000000550010000000011000000019.pdf nfe-danfe · classificado por danfe-service-double-write Emissão de NF-e # 234 NfeEmissao Em uso Restrito Disco comum 0 KB 03/12/2026 No prazo 76d 35210112345678000199550010000000011000000019.pdf nfe-danfe · classificado por danfe-service-double-write Emissão de NF-e # 144 NfeEmissao Em uso Restrito Disco comum 15 KB 03/12/2026 No prazo 76d 1-4.xml XML de NF-e · Lei 8.846/94 Art. 23 + SINIEF 07/2005 Art. 8 · classificado por nfe-service-double-write Emissão de NF-e # 144 NfeEmissao Em uso Restrito Disco comum 2 KB 03/09/2031 No prazo 35210112345678000199550010000000011000000019.pdf nfe-danfe · classificado por danfe-service-double-write Emissão de NF-e # 143 NfeEmissao Em uso Restrito Disco comum 15 KB 03/12/2026 No prazo 76d Página 1 de 2 · 33 item(s) 1 2 O acervo é administrativo: o arquivo continua sendo alcançado pela tela do dono. Baixar do cofre passa sempre pelo — direto não serve arquivo cifrado (ADR 0123 §6), e o link assinado expira em 60 min. Esta tela não envia arquivo: upload entra pelos módulos, via trait . Buscar Cmd+K — busque tasks, epics, cycles ou projects",
+  "assinatura": "Usamos cookies pra entender como você usa o oimpresso e melhorar a experiência. Dados sensíveis (CPF, email, telefone) não são capturados . Personalizar Só essenciais Aceitar tudo CI C Arquivos 27 arquivos · 168 KB · 0 no cofre cifrado Auditoria Acervo 27 Retenção Cofre Trilha 16 Todos 27 Sensível 0 Em uso 27 Histórico 0 Descartar 0 Mostrar excluídos Acervo de arquivos Arquivo Vinculado a Classificação Disco Tamanho Vence em 35210112345678000199550010000000011000000019.pdf · classificado por danfe-service-double-write Emissão de NF-e # 84 NfeEmissao Em uso Restrito Disco comum 0 KB 12/01/2027 No prazo 90d 35210112345678000199550010000000011000000019.pdf · classificado por danfe-service-double-write Emissão de NF-e # 82 NfeEmissao Em uso Restrito Disco comum 0 KB 12/01/2027 No prazo 90d 35210000000000000000550010000000011000000019.pdf · classificado por danfe-service-double-write Emissão de NF-e # 78 NfeEmissao Em uso Restrito Disco comum 0 KB 12/01/2027 No prazo 90d 35210112345678000199550010000000011000000019.pdf · classificado por danfe-service-double-write Emissão de NF-e # 35 NfeEmissao Em uso Restrito Disco comum 15 KB 04/01/2027 No prazo 82d 1-9.xml XML de NF-e · · Lei 8.846/94 Art. 23 + SINIEF 07/2005 Art. 8 · classificado por nfe-service-double-write Emissão de NF-e # 35 NfeEmissao Em uso Restrito Disco comum 2 KB 05/10/2031 No prazo 35210112345678000199550010000000011000000019.pdf · classificado por danfe-service-double-write Emissão de NF-e # 33 NfeEmissao Em uso Restrito Disco comum 15 KB 04/01/2027 No prazo 82d 1-8.xml XML de NF-e · · Lei 8.846/94 Art. 23 + SINIEF 07/2005 Art. 8 · classificado por nfe-service-double-write Emissão de NF-e # 33 NfeEmissao Em uso Restrito Disco comum 2 KB 05/10/2031 No prazo 35210112345678000199550010000000011000000019.pdf · classificado por danfe-service-double-write Emissão de NF-e # 32 NfeEmissao Em uso Restrito Disco comum 15 KB 04/01/2027 No prazo 82d 1-7.xml XML de NF-e · · Lei 8.846/94 Art. 23 + SINIEF 07/2005 Art. 8 · classificado por nfe-service-double-write Emissão de NF-e # 32 NfeEmissao Em uso Restrito Disco comum 2 KB 05/10/2031 No prazo 35210112345678000199550010000000011000000019.pdf · classificado por danfe-service-double-write Emissão de NF-e # 31 NfeEmissao Em uso Restrito Disco comum 15 KB 04/01/2027 No prazo 82d 1-6.xml XML de NF-e · · Lei 8.846/94 Art. 23 + SINIEF 07/2005 Art. 8 · classificado por nfe-service-double-write Emissão de NF-e # 31 NfeEmissao Em uso Restrito Disco comum 2 KB 05/10/2031 No prazo 35210112345678000199550010000000011000000019.pdf · classificado por danfe-service-double-write Emissão de NF-e # 29 NfeEmissao Em uso Restrito Disco comum 15 KB 04/01/2027 No prazo 82d 1-5.xml XML de NF-e · · Lei 8.846/94 Art. 23 + SINIEF 07/2005 Art. 8 · classificado por nfe-service-double-write Emissão de NF-e # 29 NfeEmissao Em uso Restrito Disco comum 2 KB 05/10/2031 No prazo 1-5.xml XML de NF-e · · Lei 8.846/94 Art. 23 + SINIEF 07/2005 Art. 8 · classificado por nfe-service-double-write Emissão de NF-e # 28 NfeEmissao Em uso Restrito Disco comum 2 KB 05/10/2031 No prazo 1-555006.xml XML de NF-e · · Lei 8.846/94 Art. 23 + SINIEF 07/2005 Art. 8 · classificado por nfe-service-double-write Emissão de NF-e # 27 NfeEmissao Em uso Restrito Disco comum 2 KB 05/10/2031 No prazo 1-5.xml XML de NF-e · · Lei 8.846/94 Art. 23 + SINIEF 07/2005 Art. 8 · classificado por nfe-service-double-write Emissão de NF-e # 26 NfeEmissao Em uso Restrito Disco comum 2 KB 05/10/2031 No prazo 1-5.xml XML de NF-e · · Lei 8.846/94 Art. 23 + SINIEF 07/2005 Art. 8 · classificado por nfe-service-double-write Emissão de NF-e # 25 NfeEmissao Em uso Restrito Disco comum 2 KB 05/10/2031 No prazo 1-5.xml XML de NF-e · · Lei 8.846/94 Art. 23 + SINIEF 07/2005 Art. 8 · classificado por nfe-service-double-write Emissão de NF-e # 24 NfeEmissao Em uso Restrito Disco comum 2 KB 05/10/2031 No prazo 1-5.xml XML de NF-e · · Lei 8.846/94 Art. 23 + SINIEF 07/2005 Art. 8 · classificado por nfe-service-double-write Emissão de NF-e # 23 NfeEmissao Em uso Restrito Disco comum 2 KB 05/10/2031 No prazo 35210112345678000199550010000000011000000019.pdf · classificado por danfe-service-double-write Emissão de NF-e # 11 NfeEmissao Em uso Restrito Disco comum 15 KB 04/01/2027 No prazo 82d 1-4.xml XML de NF-e · · Lei 8.846/94 Art. 23 + SINIEF 07/2005 Art. 8 · classificado por nfe-service-double-write Emissão de NF-e # 11 NfeEmissao Em uso Restrito Disco comum 2 KB 05/10/2031 No prazo 35210112345678000199550010000000011000000019.pdf · classificado por danfe-service-double-write Emissão de NF-e # 10 NfeEmissao Em uso Restrito Disco comum 15 KB 04/01/2027 No prazo 82d 1-3.xml XML de NF-e · · Lei 8.846/94 Art. 23 + SINIEF 07/2005 Art. 8 · classificado por nfe-service-double-write Emissão de NF-e # 10 NfeEmissao Em uso Restrito Disco comum 2 KB 05/10/2031 No prazo 35210112345678000199550010000000011000000019.pdf · classificado por danfe-service-double-write Emissão de NF-e # 8 NfeEmissao Em uso Restrito Disco comum 15 KB 04/01/2027 No prazo 82d 1-2.xml XML de NF-e · · Lei 8.846/94 Art. 23 + SINIEF 07/2005 Art. 8 · classificado por nfe-service-double-write Emissão de NF-e # 8 NfeEmissao Em uso Restrito Disco comum 2 KB 05/10/2031 No prazo Página 1 de 2 · 27 item(s) 1 2 O acervo é administrativo: o arquivo continua sendo alcançado pela tela do dono. Baixar do cofre passa sempre pelo — direto não serve arquivo cifrado (ADR 0123 §6), e o link assinado expira em 60 min. Esta tela não envia arquivo: upload entra pelos módulos, via trait . Buscar Cmd+K — busque tasks, epics, cycles ou projects",
   "roles": {
     "kpi": {
       "count": 0,
@@ -11,12 +24,57 @@
     },
     "title": {
       "fontPx": 22,
-      "weight": "700",
+      "weight": "600",
       "color": "oklch(0.22 0.01 80)"
     },
     "primary": null,
     "filterRows": null,
     "contratos": [
+      {
+        "nome": "sb-modos",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "sb-topo",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "sb-corpo",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "sb-rodape",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
+      {
+        "nome": "sb-alcas",
+        "classes": {
+          "dataIso": 0,
+          "dataBr": 0,
+          "snakeCru": 0
+        },
+        "exemplos": {}
+      },
       {
         "nome": "cabecalho",
         "classes": {
@@ -53,8 +111,9 @@
         },
         "exemplos": {
           "dataBr": [
-            "03/12/2026",
-            "03/09/2031"
+            "12/01/2027",
+            "04/01/2027",
+            "05/10/2031"
           ]
         }
       }
@@ -65,7 +124,7 @@
         "tag": null,
         "align": "left",
         "larguraPct": 37.7,
-        "mono": false,
+        "mono": true,
         "corPropria": true,
         "fontPx": 13,
         "weight": "700",
@@ -89,7 +148,7 @@
         "tag": null,
         "align": "left",
         "larguraPct": 10.4,
-        "mono": false,
+        "mono": true,
         "corPropria": true,
         "fontPx": 12,
         "weight": "500",
@@ -97,8 +156,8 @@
         "pill": {
           "radius": "3.35544e+07px",
           "borda": true,
-          "bg": "oklch(0.968 0.007 247.9)",
-          "dot": false
+          "bg": "oklch(0.95 0.05 145)",
+          "dot": true
         }
       },
       {
@@ -193,6 +252,7 @@
         }
       },
       "atalhos": []
-    }
+    },
+    "chart": null
   }
 }

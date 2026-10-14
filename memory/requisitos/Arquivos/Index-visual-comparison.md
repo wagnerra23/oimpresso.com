@@ -321,6 +321,24 @@ pode rodar (Tier 0) — está **offline há 4 dias** (`tailscale status`: *"offl
 `rc=255` em duas tentativas). A catraca confirma e se recusa a mentir: `--check-lifecycle --minimum
 applied` → `exit 0`; `--minimum tested` → `exit 1`.
 
+## Emenda de 2026-10-14 · **medida da thread 01** (playbook Arquivos) — 3 dos 5 bugs fechados, 2 não são da tela
+
+Medido com `design-diff-lote --tela Arquivos/Index --base-url https://staging.oimpresso.com`, em
+**2026-10-14T19:25Z**, com o staging atualizado para `main` `8723405fb` (contém o #8323). Os jsons
+saem em `governance/design/targets/medidas/Arquivos--Index/`.
+
+| Item da medida de 2026-09-18 | Hoje | Por quê |
+|---|---|---|
+| col0.mono | ✅ IGUAL (sumiu da lista) | #8323 |
+| col2.mono | ✅ IGUAL | #8323 |
+| col2 pílula com dot | ✅ IGUAL | #8323 |
+| col1.alcancavel | DIVERGE (bug) — **dado** | as 25 linhas do staging são `NfeEmissao`; `ArquivosAdminController::DONO` declara esse tipo sem página por id (só existe `emissoes.danfe-pdf`). UC-INDEX-06 defende o `null`. Some com uma linha `ServiceOrder`/`JobSheet` no acervo do staging. |
+| col6.cor | DIVERGE (bug) — **cegueira da sonda** | os botões da prod são só ícone (`blocos 0`); a sonda decide a cor pelos elementos com TEXTO, e sem texto devolve "herda". Medido direto no DOM do staging: linha `oklch(0.22 0.01 80)`, `<a>` e `svg` `oklch(0.55 0.012 90)` — **cor própria**. |
+
+O `--check` ainda sai vermelho por esses dois. Nenhum deles muda com edição no `Index.tsx`: o primeiro
+é dado do staging, o segundo pede a sonda medir `color` do controle quando a célula não tem texto
+(`scripts/design/design-diff.mjs`, `corPropria`), que é outra máquina e outro PR.
+
 ## O que falta pra fechar
 
 | Dimensao | Estado | Bloqueio |
