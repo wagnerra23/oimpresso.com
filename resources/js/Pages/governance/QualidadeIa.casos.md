@@ -37,8 +37,8 @@ Alvos (RUNBOOK §1, ADR 0049/0050): `recall_at_3 ≥ 0.80` (bloqueante de evolu�
 Mordida provada no vitest por mutação em 2026-10-14 (`>=` sempre aprovado → 1 failed; restauro conferido por sha256).
 
 ## UC-GQIA-04 [must] — O KPI do business é a leitura MAIS RECENTE da janela
-Status: ❌ (Pest — "UC-GQIA-04: o KPI do business é a leitura MAIS RECENTE da janela") — **medido vermelho** no CT 100 em 2026-10-14 (checkout `e57b78bf5`; `QualidadeIaController`, `MemoriaMetrica` e as rotas da tela sem diff até `origin/main` neste dia): esperado `apurado_em` de ontem, veio o de 3 dias atrás. Run: `1 failed, 30 passed (118 assertions)` nos 5 contratos Pest de governança.
-Charter §Goals ("KPI cards por business … da última leitura") e RUNBOOK §2 ("1 Card por business"). Causa, conferida no código depois do vermelho: `MemoriaMetrica::scopeUltimosDias` já ordena `apurado_em DESC`, o `orderBy('apurado_em')` do controller vira critério secundário, e `end($pontos)` pega a leitura mais antiga. A mesma ordem alimenta a série da sparkline. O conserto não foi feito aqui: é decisão [W].
+Status: 🧪 (Pest — "UC-GQIA-04: o KPI do business é a leitura MAIS RECENTE da janela") — vermelho medido no CT 100 em 2026-10-14 (`1 failed, 30 passed`); com a correção, o mesmo arquivo deu `4 passed (43 assertions)`. Sem lane MySQL, o 🧪 é o teto até o manifesto receber o veredito.
+Charter §Goals ("KPI cards por business … da última leitura") e RUNBOOK §2 ("1 Card por business"). Causa, conferida no código depois do vermelho: `MemoriaMetrica::scopeUltimosDias` já ordena `apurado_em DESC`, o `orderBy('apurado_em')` do controller vira critério secundário, e `end($pontos)` pega a leitura mais antiga. A mesma ordem alimenta a série da sparkline. Corrigido em 2026-10-14 por decisão [W]: o controller usa `reorder('apurado_em')`, que descarta a ordem do scope.
 **Dado** três leituras do tenant 98 (há 3, 2 e 1 dia, recall 0.810/0.620/0.930) **quando** a tela abre **então** o KPI do business tem `apurado_em` de ontem e recall 0.930.
 
 ## UC-GQIA-05 [should] — Aplicar filtro re-busca só séries, KPIs e filtros, na rota da Governança
