@@ -4,7 +4,7 @@ titulo: "Superfícies claras em produção — saída da thread"
 autor: "[CL]"
 criado: 2026-10-13
 thread: 03-invertidas.md
-veredito: "As 19 Pages da _saida-02 zeraram. 10 já tinham sido consertadas antes (#8971 Vendas, #9193/#9201 Compras e outros); as 9 restantes saíram em 8 PRs empilhados. No topo da pilha a sonda mede 75 de 75 Pages com 0 superfície clara, e a baseline de produção ficou vazia."
+veredito: "As 19 Pages da _saida-02 zeraram. 10 já tinham sido consertadas antes (#8971 Vendas, #9193/#9201 Compras e outros); as 9 restantes saíram em 8 PRs empilhados. No topo da pilha a sonda mede 75 de 75 Pages com 0 superfície clara. StockTransfer/Create voltou para a baseline (1 Page, 2 selos): consertá-la toca o header antigo, e migrar o header é decisão visual do [W]."
 ---
 
 # _saída 03 · Superfícies claras em produção
@@ -41,10 +41,11 @@ Cada PR mostra, no próprio run do job `tema-escuro · Pages de produção vs ba
 | 38472620389 | #9318 | `↓ Financeiro/Dre · div 1→0` · `↓ Financeiro/Fluxo · div 1→0` |
 | [38473412958](https://github.com/wagnerra23/oimpresso.com/actions/runs/38473412958) | #9321 (topo) | **`75 medida(s) · 0 com superfície clara fora de papel`** — Compras, PlanoContas e Unificado a 0 |
 
-A baseline foi baixada pela sonda a partir do artefato de cada run (9 → 8 → 7 → 6 → 5) e **esvaziada no #9321**. Os PRs #9318–#9320 não baixam a baseline por conta própria (contagem que desce só avisa); quem a esvazia é o topo da pilha. Isso poupou chamadas à API, cuja cota estourou no dia.
+A baseline foi baixada pela sonda a partir do artefato de cada run (9 → 8 → 7 → 6 → 5) e **esvaziada no #9321**, depois devolvida a 1 Page (StockTransfer/Create, ver §4). Os PRs #9318–#9320 não baixam a baseline por conta própria (contagem que desce só avisa); quem a esvazia é o topo da pilha. Isso poupou chamadas à API, cuja cota estourou no dia.
 
 ## 4 · Não feito, e por quê
 
+- **StockTransfer/Create volta para a baseline.** A tela ainda usa o header antigo, e a catraca do PageHeader reprova qualquer PR que a toque (o `ui:lint` também, por 2 hits R1 a mais). O conserto dos selos DE/PARA (#9314) saiu do #9321, o `.tsx` voltou igual ao do `main`, e a baseline guarda a contagem medida no run 38463141050: `span.inline-flex.h-5: 2`. O conserto volta quando a tela migrar o header, o que muda o visual e fica com o [W].
 - **Universo.** São as 75 telas de `tests/Browser/visreg-screens.json`. Página fora do manifesto (ex.: `Whatsapp/Inbox`) segue sem medida.
 - **Estados escondidos.** A sonda de produção abre a seleção da 1ª linha; hover e foco por teclado não. O defeito de hover em Vendas (#8971) foi achado no olho do [W], não pela sonda.
 - **Contraste do texto.** A sonda mede o fundo. O texto pos/neg do `FinStatStrip` e da pílula do Unificado foi tratado por ser vizinho direto do conserto, não por varredura.

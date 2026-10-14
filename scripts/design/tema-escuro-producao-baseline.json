@@ -1,5 +1,9 @@
 {
   "gerado": "2026-10-13",
   "nota": "só desce — Page ou seletor que sai do run sai daqui no mesmo PR; nunca suba à mão",
-  "pages": {}
+  "pages": {
+    "StockTransfer/Create": {
+      "span.inline-flex.h-5": 2
+    }
+  }
 }

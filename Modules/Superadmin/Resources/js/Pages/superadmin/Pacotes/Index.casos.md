@@ -5,11 +5,16 @@ irmaos: Index.charter.md (lei) · Index.tsx (tela)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: é a tela onde `0` significa o CONTRÁRIO do que parece — zero é "sem teto", não "nenhum". Sem caso travando isso, a próxima sessão "simplifica" a renderização e a grade comercial passa a dizer o oposto do contrato. E é a tela vizinha da vitrine pública `/pricing`: unificar as duas consultas expõe pacote privado ao mundo.
 owner: wagner
-last_run: "2026-10-05"
+last_run: "2026-10-14"
 revalidacao_2026_10_05: "O `.tsx` mudou na thread Superadmin 03: a grade ganhou o botão Novo pacote, Editar em cada card e o drawer de formulário, e o cabeçalho migrou para o PageHeader canon. Os UC-SAPAC-01..08 não mudam de veredito — a leitura da grade é a mesma, e abrir a tela segue sem escrever (UC-08). O que a thread acrescenta está nos UC-SAPAC-09..11, novos e com teste."
 nota_data: "O trio nasceu em 20/08, mas o PR foi RECRIADO do main fresco em 21/08 (o #6066 ficou irreconciliável depois do squash do #6064). O commit do `.tsx` é de 21/08, então o G-6 compara contra esta data — não há re-execução a declarar, o conteúdo é o mesmo do dia anterior."
 last_run_ci: "_pendente_ — o trio nasce nesta onda (SA-O4c). O veredito por UC entra no manifesto quando a lane rodar; até lá o Status é 🧪, nunca ✅."
 ---
+
+> ℹ️ **`last_run` 2026-10-05 → 2026-10-14 (G-6) — diff líquido ZERO no `.tsx`.**
+> O #9321 carrega o PR de controle da catraca de tema escuro (thread 05): um commit pôs uma superfície clara proposital
+> nesta tela para provar que a sonda reprova, e o commit seguinte reverteu. O `.tsx` é igual ao do `main`; só a data do
+> último commit mudou. **Nenhum UC foi reexecutado**: o bump registra *trio reconciliado com a tela nesta data*.
 
 > ℹ️ **`last_run` 2026-08-21 → 2026-09-11 (G-6), e o que mudou na tela NÃO foi comportamento.**
 > O único toque em `Index.tsx` no [#7224](https://github.com/wagnerra23/oimpresso.com/pull/7224) foi **1 linha(s) de COMENTÁRIO** —

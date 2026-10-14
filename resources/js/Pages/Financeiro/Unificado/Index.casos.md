@@ -5,10 +5,14 @@ irmaos: Index.charter.md (lei)
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso E material de treino.
 owner: wagner
-last_run: "2026-09-25"
+last_run: "2026-10-14"
 last_run_ci: "0 UC executado — UC-FUNI-01..04 nascem neste PR; veredito pendente da lane PHP / Pest (Financeiro · MySQL)"
 sdd: memory/requisitos/Financeiro/SDD-tela-financeiro-v1.0.md
 ---
+
+> ℹ️ **`last_run` 2026-09-25 → 2026-10-14 (G-6) — tema escuro, thread 03 do playbook `cowork-inbox/tema-escuro`: só COR.**
+> O [#9319](https://github.com/wagnerra23/oimpresso.com/pull/9319) passou as cores da pílula de direção (Receber/Pagar) de `style` inline para classes com par `dark:`, e a borda e a sombra para `currentColor`. No modo claro as cores são as mesmas oklch de antes. Zero handler, prop, rota, cálculo ou copy alterado.
+> **Nenhum UC foi reexecutado**: o bump registra *trio reconciliado com a tela nesta data*.
 
 # Casos de Uso & Aceite — Financeiro Unificado
 
