@@ -1892,6 +1892,10 @@ Ocorrência da **LC-08**.
 
 - **O limite (variante também proibida):** é emenda da lápide de 2026-07-27, mesma família: não re-propor retenção, anonimização ou purge por TTL no Patrimônio (`Modules/AssetManagement`), nem o comando `assetmanagement:retention-purge`, sob qualquer nome. Vale a lápide-mãe de 2026-07-27: num ERP o dado tem dever de guarda e o controle é por permissão de acesso. A thread 05 do playbook `patrimonio` volta a ser não executável; corrigir o índice dela é pedido ao Cowork, não edição no espelho. Fica fora desta revogação a troca das chaves `am_*` pelos nomes reais das tabelas no `retention.php`: é fato de schema, não decisão de retenção.
 
+### 2026-10-14 — Cor por classe utilitária numa célula que o bundle da tela pinta fora de `@layer`: o lucro verde nunca apareceu, e o teste checava a classe (4ª vez do mecanismo, a 1ª no ledger)
+
+- **O limite (variante também proibida):** a regra de medir a propriedade **computada**, e não a classe, já existe (§5 2026-07-16, "Medir a PROPRIEDADE ERRADA") e não segurou. O que esta lápide acrescenta é o mecanismo concreto, que já mordeu três vezes antes sem chegar ao ledger (2026-06-13 `.cw-input` vencendo `pl-9`/`pr-9`; 2026-07-07 anel e toggles do Financeiro; 2026-08-11 Venda V3, 14 `h-8 text-[12.5px]` sem efeito — registrados em handoffs e em comentários de `cowork-fields.css`, `venda-v3.css` e `inertia.css`): **numa tela com bundle `cowork-*-bundle.css`, utilitário do Tailwind não vence uma propriedade que o bundle declara no mesmo elemento**, porque os bundles ficam fora de `@layer` (escopam por classe-wrapper — lápide 2026-07-09). Antes de pôr utilitário de cor, tamanho ou espaçamento num elemento estilizado pelo bundle, ler a regra do bundle para aquele seletor; e a cor vai em `style` ou numa variável que a regra do bundle já usa. E cor no `<tr>` não chega a `td` que declara `color` próprio.
+
 ## Sempre fazer
 
 - ✅ **LIGUE A MÁQUINA — máquina é sempre melhor que fazer na mão** ([W] 2026-07-26, textual: *"isso ligue as maquinas, é sempre melhor que fazer na mão. isso é regra no sistema. deve ser"*). Ordem obrigatória, nesta sequência:
