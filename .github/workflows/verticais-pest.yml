@@ -71,6 +71,12 @@ on:
       # nao dispara o teste dele — gate mudo com cara de cobertura.
       - 'Modules/Superadmin/**'
       - 'Modules/Cms/**'
+      # E1 site público — /login e /register (core): o arquivo SOB TESTE entra no trigger.
+      - 'app/Http/Controllers/Auth/LoginController.php'
+      - 'app/Http/Controllers/Auth/RegisterController.php'
+      - 'resources/js/Pages/Site/Login.tsx'
+      - 'resources/js/Pages/Site/Register.tsx'
+      - 'tests/Feature/Site/SiteAuthContratoTest.php'
       # Thread Crm/03 — a lista de acompanhamentos virou Inertia; o contrato dela roda aqui.
       - 'Modules/Crm/Http/Controllers/ScheduleController.php'
       - 'Modules/Crm/Services/ScheduleService.php'
@@ -183,6 +189,12 @@ jobs:
               - 'Modules/Superadmin/**'
               # Thread Cms/01 — a lista do painel do CMS virou Inertia; o contrato dela roda aqui.
               - 'Modules/Cms/**'
+              # E1 site público — contrato de /login e /register (core, fora dos módulos).
+              - 'app/Http/Controllers/Auth/LoginController.php'
+              - 'app/Http/Controllers/Auth/RegisterController.php'
+              - 'resources/js/Pages/Site/Login.tsx'
+              - 'resources/js/Pages/Site/Register.tsx'
+              - 'tests/Feature/Site/SiteAuthContratoTest.php'
               # Thread Crm/03 — a lista de acompanhamentos virou Inertia; o contrato dela roda aqui.
               - 'Modules/Crm/Http/Controllers/ScheduleController.php'
               # Thread Crm/07 — a escrita do modal passa pelo Service e pelos FormRequests.
@@ -451,6 +463,8 @@ jobs:
             Modules/Superadmin/Tests/Feature/SuperadminPaginasContratoTest.php \
             Modules/Superadmin/Tests/Feature/SuperadminConfiguracoesContratoTest.php \
             Modules/Superadmin/Tests/Feature/SuperadminMinhaAssinaturaContratoTest.php \
+            Modules/Superadmin/Tests/Feature/SitePricingContratoTest.php \
+            tests/Feature/Site/SiteAuthContratoTest.php \
             Modules/Cms/Tests/Feature/CmsConteudoIndexContratoTest.php \
             Modules/Cms/Tests/Feature/CmsSiteDetailsPainelTest.php \
             Modules/Crm/Tests/Feature/CrmAcompanhamentosContratoTest.php \
