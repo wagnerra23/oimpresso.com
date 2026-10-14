@@ -18,8 +18,9 @@ class LicencaLogController extends Controller
      * Convenção de nome copiada da única em produção (`useV2SellsCreate`, em
      * SellController/SellPosController): `useV2<Modulo><Tela>`. Enquanto o
      * GrowthBook não conhecer a chave, o FeatureFlagService cai no
-     * `fallbackDefaults` — que NÃO a lista, então o default é `false` e o Blade
-     * continua servindo. Ligar é toggle no GrowthBook, não deploy.
+     * `fallbackDefaults`. Até 2026-10-14 ele não a listava (default `false`,
+     * Blade servindo); nessa data [W] mandou ligar e ela entrou com `true`.
+     * Desligar é regra OFF no GrowthBook, sem deploy (UC-LOGS-16).
      *
      * A const entra NESTE PR, e não na F2, porque ela só faz sentido junto do
      * `Inertia::render` — e o render só pode existir depois que a page existe

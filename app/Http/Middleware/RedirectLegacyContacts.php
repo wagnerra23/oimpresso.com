@@ -21,12 +21,11 @@ use Symfony\Component\HttpFoundation\Response;
  *   2. Early return rápido se path não é a lista (99% requests).
  *   3. Lista: /contacts?type=<um dos 6 tipos do /cliente> → 302 /cliente?<a mesma query>,
  *      só para navegação de página (AJAX legado e partial reload do Inertia passam direto)
- *      e só com a flag mwart.cliente_index ON pro business atual. Fora disso, legacy.
+ *      sem flag: a casca Blade da lista foi apagada (thread cliente/04, [W] 2026-10-14) e
+ *      `/contacts` só serve React, então não há o que escolher.
  *
  * Ver:
- *   - config/mwart.php (flag cliente_index)
- *   - app/Http/Controllers/ContactController.php@index linhas 132-142 (dual render JÁ pronto)
- *   - ADR 0107 (gate F1.5 visual) — Wagner aprova screenshot ANTES de canary biz=1
+ *   - app/Http/Controllers/ContactController.php@index (só React)
  */
 class RedirectLegacyContacts
 {
@@ -50,12 +49,12 @@ class RedirectLegacyContacts
         //   - Só navegação de página: AJAX legado (X-Requested-With sem X-Inertia, DataTables
         //     JSON) e partial reload do Inertia seguem servidos aqui — o `/cliente` chama o mesmo
         //     ContactController::index, mas quem já está na página não troca de URL no meio.
-        //   - 302, não 301: o browser guarda o 301 sem prazo, e desligar a flag não desfaria o
-        //     redirect pra quem já passou por aqui.
+        //   - 302, não 301: o browser guarda o 301 sem prazo, e um 301 não se desfaz se a lista
+        //     precisar voltar a morar em /contacts.
         if ($path === 'contacts' && in_array($request->query('type'), self::TIPOS_INDEX, true)) {
             $legacyAjax = $request->ajax() && ! $request->hasHeader('X-Inertia');
             $partialReload = $request->hasHeader('X-Inertia-Partial-Data');
-            if (! $legacyAjax && ! $partialReload && $this->isClienteIndexEnabled()) {
+            if (! $legacyAjax && ! $partialReload) {
                 return redirect('/cliente?'.$request->getQueryString(), 302);
             }
 
@@ -68,30 +67,5 @@ class RedirectLegacyContacts
         //     business_id) está no histórico deste arquivo antes do commit da thread 04.
 
         return $next($request);
-    }
-
-    private function isClienteIndexEnabled(): bool
-    {
-        return $this->flagOnForCurrentBusiness('cliente_index');
-    }
-
-    private function flagOnForCurrentBusiness(string $flag): bool
-    {
-        if (! auth()->check()) {
-            return false;
-        }
-
-        if (! config("mwart.{$flag}.enabled")) {
-            return false;
-        }
-
-        $allowedBizIds = config("mwart.{$flag}.business_ids", []);
-        if (empty($allowedBizIds)) {
-            return true;
-        }
-
-        $businessId = (int) session('user.business_id');
-
-        return in_array($businessId, $allowedBizIds, true);
     }
 }

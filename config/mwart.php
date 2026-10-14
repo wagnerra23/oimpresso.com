@@ -138,6 +138,9 @@ return [
     // O `false` abaixo é só fallback de ausência da env. Estado vivo: governance/prod-flags.json
     // (derivado por `php artisan governance:prod-flags`) — não restatear aqui, que apodrece.
 
+    // Thread cliente/04 ([W] 2026-10-14): a LISTA não lê mais esta chave — a casca Blade foi apagada
+    // e /contacts só serve React. Ela segue viva por um uso: o redirecionamento do Show para o drawer
+    // (ContactController@show e a rota /cliente/{id}). O cutover do Show é decisão [W] à parte.
     'cliente_index' => [
         'enabled'      => env('MWART_CLIENTE_INDEX', false),
         'business_ids' => $parseBizIds('MWART_CLIENTE_INDEX_BIZ'),

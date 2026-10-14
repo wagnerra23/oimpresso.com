@@ -71,6 +71,11 @@ beforeEach(function () {
 
     $this->oiMarcador = 'BASE' . strtoupper(substr(uniqid(), -8));
     $this->oiLicencaIds = [];
+
+    // Desde 2026-10-14 a flag é ligada por default (fallbackDefaults). Os casos de
+    // baseline leem `viewData` do Blade, então fixam a flag OFF aqui; quem quer o
+    // caminho React chama forcaFlagV2(true) ou usa o serviço real (UC-LOGS-15/16).
+    forcaFlagV2($this, false);
 });
 
 afterEach(function () {
@@ -271,8 +276,8 @@ it('UC-LOGS-08 · com a flag OFF a lista continua servindo Blade', function () {
     $business = $this->seededTenant();
     $user = actingAsOiLeitor($this, $business->id);
 
-    // Default é OFF: o GrowthBook não conhece a chave e o `fallbackDefaults` do
-    // FeatureFlagService não a lista. É o estado em produção até [W] ligar.
+    // Até 2026-10-14 este era o default; desde então é a rota de fuga (flag OFF
+    // explícita). O caminho real do GrowthBook está no UC-LOGS-16.
     forcaFlagV2($this, false);
 
     // `viewData` só existe em resposta de view: se um dia isto virar Inertia sem
@@ -314,6 +319,60 @@ it('UC-LOGS-10 · a flag ON NÃO afrouxa a guarda de acesso', function () {
     $this->get('/officeimpresso/licenca_log')->assertForbidden();
 
     $user->forceDelete();
+});
+
+/*
+| Cutover (playbook Officeimpresso A3/07, decisão [W] 2026-10-14). Os casos acima trocam o
+| FeatureFlagService por um dublê; estes dois usam o serviço REAL, com o GrowthBook simulado por
+| Http::fake, porque o que se prova é o estado de produção: sem regra no GrowthBook quem decide é
+| o `fallbackDefaults`, e a rota de fuga é uma regra OFF lá, sem deploy. Mesmo desenho do
+| UC-OILIC-02/03 (LicencasIndexContratoTest).
+*/
+
+it('UC-LOGS-15 · cutover: sem regra no GrowthBook, o serviço real serve a tela React', function () {
+    $business = $this->seededTenant();
+    $user = actingAsOiLeitor($this, $business->id);
+
+    oiLogsGrowthbook([]); // GrowthBook responde, mas não conhece a flag
+
+    try {
+        $this->get('/officeimpresso/licenca_log')
+            ->assertOk()
+            ->assertInertia(fn (\Inertia\Testing\AssertableInertia $page) => $page
+                ->component('Officeimpresso/Logs/Index'));
+        // A decisão passou pelo GrowthBook falso, e não por um real nem pelo dublê do beforeEach.
+        \Illuminate\Support\Facades\Http::assertSent(fn ($req) => str_contains($req->url(), 'growthbook-oilogs-'));
+    } finally {
+        oiLogsGrowthbook(null);
+        $user->forceDelete();
+    }
+});
+
+it('UC-LOGS-16 · rota de fuga: flag OFF no GrowthBook volta o Blade, sem deploy', function () {
+    $casa = $this->seededTenant();
+    $outro = $this->seededSupportClientTenant();
+    $user = actingAsOiLeitor($this, $casa->id);
+
+    // ⚠️ Quem tem officeimpresso.access vê todas as empresas, e aí o index passa
+    // `business_id` NULO à flag (é o filtro da query, não a sessão). Uma regra OFF
+    // por negócio, portanto, não alcança o suporte: o desligamento desta tela é
+    // pelo `defaultValue` da flag. Diferente da Licenças (UC-OILIC-02).
+    try {
+        // Regra OFF para um negócio qualquer: o suporte segue na tela React (controle).
+        oiLogsGrowthbook(['defaultValue' => true, 'rules' => [
+            ['condition' => ['business_id' => (int) $outro->id], 'force' => false],
+        ]]);
+        $this->get('/officeimpresso/licenca_log')
+            ->assertInertia(fn (\Inertia\Testing\AssertableInertia $page) => $page
+                ->component('Officeimpresso/Logs/Index'));
+
+        // Flag desligada: volta o Blade.
+        oiLogsGrowthbook(['defaultValue' => false]);
+        expect($this->get('/officeimpresso/licenca_log')->viewData('kpis'))->toBeArray();
+    } finally {
+        oiLogsGrowthbook(null);
+        $user->forceDelete();
+    }
 });
 
 it('UC-LOGS-14 · no partial reload do navegador a lista adiada chega — não o JSON do DataTables', function () {
@@ -579,4 +638,50 @@ function forcaFlagV2($test, bool $ligada): void
             return $this->ligada;
         }
     });
+}
+
+/**
+ * Põe o GrowthBook (falso, via Http::fake) no caminho do serviço REAL. `null` desfaz.
+ *
+ * Escreve nas TRÊS fontes que o `env()` do Laravel lê ($_SERVER antes de $_ENV antes de getenv):
+ * só `putenv` não basta onde o `.env` já traz GROWTHBOOK_* (no CT 100 traz — o teste batia no
+ * GrowthBook de verdade). O valor original é guardado e devolvido no `null`.
+ *
+ * @param  array<string, mixed>|null  $flag  definição da flag no GrowthBook; `[]` = GrowthBook sem ela
+ */
+function oiLogsGrowthbook(?array $flag): void
+{
+    static $original = null;
+    $chaves = ['GROWTHBOOK_SDK_KEY', 'GROWTHBOOK_API_HOST'];
+    $original ??= array_map(fn ($c) => [$_SERVER[$c] ?? null, $_ENV[$c] ?? null, getenv($c)], array_combine($chaves, $chaves));
+
+    $grava = function (string $c, $server, $env, $put): void {
+        if ($server === null) { unset($_SERVER[$c]); } else { $_SERVER[$c] = $server; }
+        if ($env === null) { unset($_ENV[$c]); } else { $_ENV[$c] = $env; }
+        putenv($put === false || $put === null ? $c : "{$c}={$put}");
+    };
+
+    app()->forgetInstance(\App\Services\FeatureFlagService::class);
+    \Illuminate\Support\Facades\Cache::forget('growthbook.features');
+
+    if ($flag === null) {
+        foreach ($original as $c => [$server, $env, $put]) {
+            $grava($c, $server, $env, $put);
+        }
+        $original = null;
+
+        return;
+    }
+
+    // Host único por chamada: o Http::fake ACUMULA stubs e o primeiro que casa vence, então
+    // reusar o host faria a 2ª definição da flag nunca ser lida.
+    $host = 'growthbook-oilogs-' . uniqid() . '.test.local';
+    $grava('GROWTHBOOK_SDK_KEY', 'sdk-oilogs-fake', 'sdk-oilogs-fake', 'sdk-oilogs-fake');
+    $grava('GROWTHBOOK_API_HOST', 'https://' . $host, 'https://' . $host, 'https://' . $host);
+    \Illuminate\Support\Facades\Http::fake([
+        $host . '/*' => \Illuminate\Support\Facades\Http::response([
+            'status' => 200,
+            'features' => $flag === [] ? ['outraFlag' => ['defaultValue' => true]] : ['useV2OfficeimpressoLogs' => $flag],
+        ], 200),
+    ]);
 }

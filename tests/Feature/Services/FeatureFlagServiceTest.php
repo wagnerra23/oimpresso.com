@@ -157,23 +157,23 @@ it('config/feature-flags.php esta carregado (nao e o teste que inventa a chave)'
 it('override por env liga a flag mesmo sem GrowthBook configurado', function () {
     putenv('GROWTHBOOK_SDK_KEY=');
     putenv('GROWTHBOOK_API_HOST=');
-    config(['feature-flags.forced_on' => 'useV2OfficeimpressoLogs']);
+    config(['feature-flags.forced_on' => 'useV2FlagDeTesteSemDefault']);
 
     $service = new FeatureFlagService();
 
     // Sem o override esta flag seria false: nao esta em $fallbackDefaults.
-    expect($service->isOn('useV2OfficeimpressoLogs'))->toBeTrue();
+    expect($service->isOn('useV2FlagDeTesteSemDefault'))->toBeTrue();
 });
 
 it('override por env vence o GrowthBook que responde OFF (determinismo do harness)', function () {
     putenv('GROWTHBOOK_SDK_KEY=sdk-test-fake');
     putenv('GROWTHBOOK_API_HOST=https://growthbook-api.test.local');
-    config(['feature-flags.forced_on' => 'useV2OfficeimpressoLogs']);
+    config(['feature-flags.forced_on' => 'useV2FlagDeTesteSemDefault']);
 
     Http::fake([
         'growthbook-api.test.local/*' => Http::response([
             'status' => 200,
-            'features' => ['useV2OfficeimpressoLogs' => ['defaultValue' => false]],
+            'features' => ['useV2FlagDeTesteSemDefault' => ['defaultValue' => false]],
         ], 200),
     ]);
 
@@ -181,19 +181,19 @@ it('override por env vence o GrowthBook que responde OFF (determinismo do harnes
 
     // Consultado ANTES do GrowthBook: o harness nao pode depender do que o SDK
     // responde naquele instante. Por isso nem HTTP acontece.
-    expect($service->isOn('useV2OfficeimpressoLogs'))->toBeTrue();
+    expect($service->isOn('useV2FlagDeTesteSemDefault'))->toBeTrue();
     Http::assertNothingSent();
 });
 
 it('aceita lista separada por virgula e tolera espacos', function () {
     putenv('GROWTHBOOK_SDK_KEY=');
     putenv('GROWTHBOOK_API_HOST=');
-    config(['feature-flags.forced_on' => 'flagA , useV2OfficeimpressoLogs,flagC']);
+    config(['feature-flags.forced_on' => 'flagA , useV2FlagDeTesteSemDefault,flagC']);
 
     $service = new FeatureFlagService();
 
     expect($service->isOn('flagA'))->toBeTrue();
-    expect($service->isOn('useV2OfficeimpressoLogs'))->toBeTrue();
+    expect($service->isOn('useV2FlagDeTesteSemDefault'))->toBeTrue();
     expect($service->isOn('flagC'))->toBeTrue();
     // Nao listada continua no comportamento normal (false conservador).
     expect($service->isOn('flagD'))->toBeFalse();
@@ -210,13 +210,13 @@ it('CONTROLE NEGATIVO: sem a env, o comportamento atual nao muda', function () {
     // desligado nao pode alterar nada do que ja existia.
     expect($service->isOn('useV2SellsCreate'))->toBeTrue();   // fallbackDefaults
     expect($service->isOn('flagInexistente'))->toBeFalse();   // sem fallback
-    expect($service->isOn('useV2OfficeimpressoLogs'))->toBeFalse(); // sem override
+    expect($service->isOn('useV2FlagDeTesteSemDefault'))->toBeFalse(); // sem override
 });
 
 it('FAIL-CLOSED: em producao o override e ignorado mesmo preenchido', function () {
     putenv('GROWTHBOOK_SDK_KEY=');
     putenv('GROWTHBOOK_API_HOST=');
-    config(['feature-flags.forced_on' => 'useV2OfficeimpressoLogs']);
+    config(['feature-flags.forced_on' => 'useV2FlagDeTesteSemDefault']);
 
     app()->detectEnvironment(fn () => 'production');
 
@@ -225,5 +225,5 @@ it('FAIL-CLOSED: em producao o override e ignorado mesmo preenchido', function (
     // Ligar flag pra business de producao e decisao de cutover do [W], feita no
     // GrowthBook ou no $fallbackDefaults — nunca por env de harness.
     expect(app()->isProduction())->toBeTrue();
-    expect($service->isOn('useV2OfficeimpressoLogs'))->toBeFalse();
+    expect($service->isOn('useV2FlagDeTesteSemDefault'))->toBeFalse();
 });
