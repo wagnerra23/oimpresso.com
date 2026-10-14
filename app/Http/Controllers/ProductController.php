@@ -697,7 +697,9 @@ class ProductController extends Controller
             'sku' => (string) $produto->sku,
             'tipo' => $tipo,
             'inativo' => (bool) $produto->is_inactive,
-            'imagem' => $produto->image_url,
+            // Sem foto vai null (o painel desenha a caixa "Sem imagem" do protótipo): o acessor
+            // `image_url` devolveria a imagem genérica /img/default.png — UC-PIDX-22.
+            'imagem' => empty($produto->image) ? null : $produto->image_url,
             'dados' => [
                 'codigo_de_barras' => (string) ($produto->barcode_type ?? ''),
                 'unidade' => (string) ($unidade->actual_name ?? ''),
@@ -1050,7 +1052,9 @@ class ProductController extends Controller
                 'unidade_curta' => $row->unidade_curta,
                 'marca' => $row->brand,
                 'imposto' => $row->tax,
-                'imagem' => $row->image_url,
+                // Sem foto vai null (a coluna mostra o marcador "IMG" do protótipo), não a imagem
+                // genérica do acessor `image_url` — UC-PIDX-22.
+                'imagem' => empty($row->image) ? null : $row->image_url,
                 'controla_estoque' => $controla,
                 'estoque' => $estoque,
                 'alerta' => $alerta,

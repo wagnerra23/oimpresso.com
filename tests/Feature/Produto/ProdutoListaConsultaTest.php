@@ -304,3 +304,18 @@ it('o estoque é a soma das variações e marca quem está abaixo do alerta', fu
     expect($linhas[$semControle->productId]['estoque'])->toBeNull();
     expect($linhas[$semControle->productId]['controla_estoque'])->toBeFalse();
 });
+
+it('UC-PIDX-22 · produto sem foto chega à lista com imagem null, não com a imagem genérica', function () {
+    $biz = $this->bizId;
+    $marcador = 'PLCIMAGEM' . strtoupper(bin2hex(random_bytes(3)));
+    $semFoto = EstoqueFixture::singleProduct($biz);
+    $comFoto = EstoqueFixture::singleProduct($biz);
+    DB::table('products')->where('id', $semFoto->productId)->update(['name' => $marcador . ' A', 'image' => null]);
+    DB::table('products')->where('id', $comFoto->productId)->update(['name' => $marcador . ' B', 'image' => '1700000000_plc_foto.jpg']);
+
+    plcLogin($this, plcUsuario($biz, ['product.view', 'access_all_locations']));
+    $linhas = collect(plcLista($this, ['q' => $marcador])['data'])->keyBy('id');
+
+    expect($linhas[$semFoto->productId]['imagem'])->toBeNull();
+    expect($linhas[$comFoto->productId]['imagem'])->toEndWith('/uploads/img/1700000000_plc_foto.jpg');
+});
