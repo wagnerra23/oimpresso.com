@@ -14,7 +14,7 @@ module: Financeiro
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Financeiro/**` + `resources/js/Pages/Financeiro/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 352 arquivos em 22 papéis.
+**Total mapeado:** 355 arquivos em 22 papéis.
 
 ## Controllers — 23
 
@@ -185,13 +185,14 @@ module: Financeiro
 - [master.blade.php](../../../Modules/Financeiro/Resources/views/layouts/master.blade.php)
 - [dre.blade.php](../../../Modules/Financeiro/Resources/views/pdf/dre.blade.php)
 
-## Telas (Inertia/React) — 21
+## Telas (Inertia/React) — 22
 
 - [Dashboard.tsx](../../../resources/js/Pages/Financeiro/Advisor/Dashboard.tsx)
 - [Login.tsx](../../../resources/js/Pages/Financeiro/Advisor/Login.tsx)
 - [AssinaturaAtualizar.tsx](../../../resources/js/Pages/Financeiro/AssinaturaAtualizar.tsx)
 - [Index.tsx](../../../resources/js/Pages/Financeiro/Caixa/Index.tsx)
 - [Index.tsx](../../../resources/js/Pages/Financeiro/Categorias/Index.tsx)
+- [Index.tsx](../../../resources/js/Pages/Financeiro/CategoriasDespesa/Index.tsx)
 - [Index.tsx](../../../resources/js/Pages/Financeiro/Cobranca/Index.tsx)
 - [Index.tsx](../../../resources/js/Pages/Financeiro/Conciliacao/Index.tsx)
 - [Contador.tsx](../../../resources/js/Pages/Financeiro/Configuracoes/Contador.tsx)
@@ -251,13 +252,14 @@ module: Financeiro
 - [FinStatStrip.tsx](../../../resources/js/Pages/Financeiro/_shared/FinStatStrip.tsx)
 - [FinanceiroSubNav.tsx](../../../resources/js/Pages/Financeiro/_shared/FinanceiroSubNav.tsx)
 
-## Charters (lei da tela) — 21
+## Charters (lei da tela) — 22
 
 - [Dashboard.charter.md](../../../resources/js/Pages/Financeiro/Advisor/Dashboard.charter.md)
 - [Login.charter.md](../../../resources/js/Pages/Financeiro/Advisor/Login.charter.md)
 - [AssinaturaAtualizar.charter.md](../../../resources/js/Pages/Financeiro/AssinaturaAtualizar.charter.md)
 - [Index.charter.md](../../../resources/js/Pages/Financeiro/Caixa/Index.charter.md)
 - [Index.charter.md](../../../resources/js/Pages/Financeiro/Categorias/Index.charter.md)
+- [Index.charter.md](../../../resources/js/Pages/Financeiro/CategoriasDespesa/Index.charter.md)
 - [Index.charter.md](../../../resources/js/Pages/Financeiro/Cobranca/Index.charter.md)
 - [Index.charter.md](../../../resources/js/Pages/Financeiro/Conciliacao/Index.charter.md)
 - [Contador.charter.md](../../../resources/js/Pages/Financeiro/Configuracoes/Contador.charter.md)
@@ -275,13 +277,14 @@ module: Financeiro
 - [Index.charter.md](../../../resources/js/Pages/Financeiro/Unificado/Index.charter.md)
 - [Novo.charter.md](../../../resources/js/Pages/Financeiro/Unificado/Novo.charter.md)
 
-## Casos (contrato UC) — 21
+## Casos (contrato UC) — 22
 
 - [Dashboard.casos.md](../../../resources/js/Pages/Financeiro/Advisor/Dashboard.casos.md)
 - [Login.casos.md](../../../resources/js/Pages/Financeiro/Advisor/Login.casos.md)
 - [AssinaturaAtualizar.casos.md](../../../resources/js/Pages/Financeiro/AssinaturaAtualizar.casos.md)
 - [Index.casos.md](../../../resources/js/Pages/Financeiro/Caixa/Index.casos.md)
 - [Index.casos.md](../../../resources/js/Pages/Financeiro/Categorias/Index.casos.md)
+- [Index.casos.md](../../../resources/js/Pages/Financeiro/CategoriasDespesa/Index.casos.md)
 - [Index.casos.md](../../../resources/js/Pages/Financeiro/Cobranca/Index.casos.md)
 - [Index.casos.md](../../../resources/js/Pages/Financeiro/Conciliacao/Index.casos.md)
 - [Contador.casos.md](../../../resources/js/Pages/Financeiro/Configuracoes/Contador.casos.md)
