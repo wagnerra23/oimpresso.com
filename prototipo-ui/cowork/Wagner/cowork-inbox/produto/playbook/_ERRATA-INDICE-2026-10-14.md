@@ -1,6 +1,6 @@
 ---
 sessao: "errata-indice"
-titulo: "Produto — 07 e 08 entregues com prova decidível; pedido da thread 12 (Grupos de preço em drawer)"
+titulo: "Produto — 07, 08, 10 e 11 com prova decidível; pedido da thread 12 (Grupos de preço em drawer)"
 executor: "[CL]"
 data: 2026-10-14
 base: wagnerra23/oimpresso.com@main 6511ed7c34
@@ -67,19 +67,29 @@ aplicadas numa cópia de trabalho (restaurada depois, hash SHA-256 conferido; na
 ```
 ANTES
 Produto: entregue 10 de 14 · próximo 0 · em curso 3 · pendente 0 · bloqueada 1
-DEPOIS
+DEPOIS (só 07 e 08)
 Produto: entregue 12 de 14 · próximo 0 · em curso 2 · pendente 0 · bloqueada 0
-  07 [feito    ] Contratos das 4 telas novas (derivados do protótipo, nunca do .tsx)
-  08 [feito    ] Menu Produtos: 5 itens novos filtrados por permissão; 6 antigos viram deep-link de aba
+DEPOIS (07, 08, 10 e 11)
+Produto: entregue 14 de 14 · próximo 0 · em curso 0 · pendente 0 · bloqueada 0
 ```
 
-As duas que sobram são a 10 e a 11 (prova `comparacao`), tratadas abaixo.
+## 10 e 11 — comparação medida em produção
 
-## 10 e 11 — a comparação vai ser medida em produção
+Decisão [W] 2026-10-14: a comparação é medida com sessão logada em produção (biz=1). Feita no
+mesmo dia: recibo em `_COMPARACAO-10-11-2026-10-14.md` (5 abas, 0 DIVERGE(bug), uma divergência
+de forma no rótulo do campo, fora do prefixo e levada ao [W]).
 
-Decisão [W] 2026-10-14: a prova `comparacao` continua, e é medida com sessão logada em produção
-(biz=1). O recibo da medição vai num `_saida` próprio. As provas da 10/11 **não mudam** por esta
-errata.
+A prova `comparacao` não é decidível pelo placar (o avaliador de recibo saiu com a ADR 0397).
+**Pedido:** nas threads `10` e `11`, trocar `provas` por:
+
+```json
+[
+  {"tipo": "arquivo", "path": "prototipo-ui/cowork/Wagner/cowork-inbox/produto/playbook/_COMPARACAO-10-11-2026-10-14.md"},
+  {"tipo": "arquivo", "path": "resources/js/Pages/Produto/Cadastros/_components/CadastroDrawer.tsx"}
+]
+```
+
+O comportamento continua provado pelos UC-PCADAP-17..22 na lane `PHP / Pest (Estoque · MySQL)`.
 
 ## Thread nova 12 — Grupos de preço em drawer
 
