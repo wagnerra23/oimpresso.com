@@ -127,6 +127,9 @@ on:
       # Thread Crm/15 — Configurações do CRM: baseline da Blade (F2) antes da tela React.
       - 'Modules/Crm/Http/Controllers/CrmSettingsController.php'
       - 'Modules/Crm/Tests/Feature/CrmConfiguracoes*'
+      # Thread Crm/14 — Propostas: baseline da Blade (F2) antes da tela React.
+      - 'Modules/Crm/Http/Controllers/ProposalController.php'
+      - 'Modules/Crm/Tests/Feature/CrmPropostas*'
       - 'database/schema/mysql-schema.sql'
       - '.github/workflows/verticais-pest.yml'
       - '.github/actions/pest-mysql-setup/**'
@@ -236,6 +239,9 @@ jobs:
               # Thread Crm/15 — Configurações do CRM: baseline da Blade (F2) antes da tela React.
               - 'Modules/Crm/Http/Controllers/CrmSettingsController.php'
               - 'Modules/Crm/Tests/Feature/CrmConfiguracoes*'
+              # Thread Crm/14 — Propostas: baseline da Blade (F2) antes da tela React.
+              - 'Modules/Crm/Http/Controllers/ProposalController.php'
+              - 'Modules/Crm/Tests/Feature/CrmPropostas*'
               - 'database/schema/mysql-schema.sql'
               - '.github/workflows/verticais-pest.yml'
               - '.github/actions/pest-mysql-setup/**'
@@ -468,7 +474,8 @@ jobs:
             Modules/Crm/Tests/Feature/ClienteStatsTicketMedioTest.php \
             Modules/Crm/Tests/Feature/CrmCampanhasContatosEscopoTest.php \
             Modules/Crm/Tests/Feature/CrmConfiguracoesBaselineTest.php \
-            Modules/Crm/Tests/Feature/CrmConfiguracoesContratoTest.php
+            Modules/Crm/Tests/Feature/CrmConfiguracoesContratoTest.php \
+            Modules/Crm/Tests/Feature/CrmPropostasBaselineTest.php
 
       # O sumário conta `assertions` POR ARQUIVO — é o discriminador que separa
       # "passou" de "pulou" (LC-13). Aqui só REPORTA.
