@@ -40,6 +40,8 @@ on:
       - 'Modules/Connector/Routes/api.php'
       - 'Modules/Connector/Http/Controllers/Api/AttendanceController.php'
       - 'tests/Feature/Calculo/CalculoValorPayrollTest.php'
+      - 'tests/Feature/Calculo/FolhaCasosVerdadeFixturesTest.php'
+      - 'tests/fixtures/folha-casos-verdade/**'
       - 'tests/Feature/Essentials/**'
       - 'app/Contracts/Tarefas/**'
       - 'app/Http/Controllers/Api/App/TarefasController.php'
@@ -84,6 +86,8 @@ jobs:
               - 'Modules/Connector/Routes/api.php'
               - 'Modules/Connector/Http/Controllers/Api/AttendanceController.php'
               - 'tests/Feature/Calculo/CalculoValorPayrollTest.php'
+              - 'tests/Feature/Calculo/FolhaCasosVerdadeFixturesTest.php'
+              - 'tests/fixtures/folha-casos-verdade/**'
               - 'tests/Feature/Essentials/**'
               - 'app/Contracts/Tarefas/**'
               - 'app/Http/Controllers/Api/App/TarefasController.php'
@@ -147,7 +151,8 @@ jobs:
             Modules/Essentials/Tests/Feature/HrmPainelTest.php \
             tests/Feature/Essentials/KnowledgeIndexContratoTest.php \
             Modules/Essentials/Tests/Feature/KnowledgeFormsContratoTest.php \
-            tests/Feature/Calculo/CalculoValorPayrollTest.php
+            tests/Feature/Calculo/CalculoValorPayrollTest.php \
+            tests/Feature/Calculo/FolhaCasosVerdadeFixturesTest.php
 
 
       # Passo 1 do plano da LC-13 (Gate:): a lane JA emitia JUnit e NINGUEM lia.
