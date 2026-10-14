@@ -15,7 +15,7 @@ tabelas_dominio: ["contacts", "customer_groups"]
 >
 > **O que isto é:** o módulo `Cliente` é CLASSE B — o código mora no núcleo UltimatePOS (`app/`), sem diretório modular homônimo. A membership vem de uma **semente curada** de paths do core declarada em `module-surface.mjs::CORE_APP_MODULES` (revisável no diff) + `resources/js/Pages/Cliente/**`. **O que NÃO é:** cobertura/nota/status (donos: `screen-coverage-map.mjs` + `casos-gate`) nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve). As **tabelas do domínio** (`contacts`, `customer_groups`) são metadado-ÂNCORA declarado, **não** o derivador (derivar por tabela over-inclui — medido 2026-07-21).
 
-**Total mapeado:** 370 arquivos em 18 papéis.
+**Total mapeado:** 373 arquivos em 18 papéis.
 
 ## Controllers — 29
 
@@ -252,9 +252,10 @@ tabelas_dominio: ["contacts", "customer_groups"]
 - [subscriptions.blade.php](../../../resources/views/contact/partials/subscriptions.blade.php)
 - [show.blade.php](../../../resources/views/contact/show.blade.php)
 
-## Telas (Inertia/React) — 16
+## Telas (Inertia/React) — 17
 
 - [Index.tsx](../../../Modules/Crm/Resources/js/Pages/Crm/Acompanhamentos/Index.tsx)
+- [Index.tsx](../../../Modules/Crm/Resources/js/Pages/Crm/Campanhas/Index.tsx)
 - [Index.tsx](../../../Modules/Crm/Resources/js/Pages/Crm/Chamadas/Index.tsx)
 - [Index.tsx](../../../Modules/Crm/Resources/js/Pages/Crm/Configuracoes/Index.tsx)
 - [Index.tsx](../../../Modules/Crm/Resources/js/Pages/Crm/Leads/Index.tsx)
@@ -311,9 +312,10 @@ tabelas_dominio: ["contacts", "customer_groups"]
 - [SubscriptionsTab.tsx](../../../resources/js/Pages/Cliente/_show/SubscriptionsTab.tsx)
 - [VehiclesTab.tsx](../../../resources/js/Pages/Cliente/_show/VehiclesTab.tsx)
 
-## Charters (lei da tela) — 16
+## Charters (lei da tela) — 17
 
 - [Index.charter.md](../../../Modules/Crm/Resources/js/Pages/Crm/Acompanhamentos/Index.charter.md)
+- [Index.charter.md](../../../Modules/Crm/Resources/js/Pages/Crm/Campanhas/Index.charter.md)
 - [Index.charter.md](../../../Modules/Crm/Resources/js/Pages/Crm/Chamadas/Index.charter.md)
 - [Index.charter.md](../../../Modules/Crm/Resources/js/Pages/Crm/Configuracoes/Index.charter.md)
 - [Index.charter.md](../../../Modules/Crm/Resources/js/Pages/Crm/Leads/Index.charter.md)
@@ -330,9 +332,10 @@ tabelas_dominio: ["contacts", "customer_groups"]
 - [Map.charter.md](../../../resources/js/Pages/Cliente/Map.charter.md)
 - [Show.charter.md](../../../resources/js/Pages/Cliente/Show.charter.md)
 
-## Casos (contrato UC) — 16
+## Casos (contrato UC) — 17
 
 - [Index.casos.md](../../../Modules/Crm/Resources/js/Pages/Crm/Acompanhamentos/Index.casos.md)
+- [Index.casos.md](../../../Modules/Crm/Resources/js/Pages/Crm/Campanhas/Index.casos.md)
 - [Index.casos.md](../../../Modules/Crm/Resources/js/Pages/Crm/Chamadas/Index.casos.md)
 - [Index.casos.md](../../../Modules/Crm/Resources/js/Pages/Crm/Configuracoes/Index.casos.md)
 - [Index.casos.md](../../../Modules/Crm/Resources/js/Pages/Crm/Leads/Index.casos.md)
