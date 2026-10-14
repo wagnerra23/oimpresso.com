@@ -43,9 +43,9 @@ function Fechar() {
   );
 }
 
-/** Título de seção do protótipo (`.os-drawer-section h3`): 11px, 700, maiúsculas, esmaecido. */
+/** Título de seção do protótipo (`.os-drawer-section h3`): 11px, 700, maiúsculas, esmaecido, altura de linha 1,2. */
 function TituloDaSecao({ children }: { children: ReactNode }) {
-  return <h3 className="mb-3 text-[11px] font-bold uppercase tracking-[0.06em] text-[var(--text-mute)]">{children}</h3>;
+  return <h3 className="mb-3 text-[11px] leading-[1.2] font-bold uppercase tracking-[0.06em] text-[var(--text-mute)]">{children}</h3>;
 }
 
 const TOPO = 'pt-[14px] pr-[18px] pb-[15px] pl-[19px]';
@@ -190,7 +190,7 @@ export default function PainelDetalheProduto({ aberto, detalhe: d, aba, aoMudarA
         side="right"
         container={cockpit}
         showCloseButton={false}
-        className="pb-root w-[820px] max-w-[95vw] gap-0 border-[var(--border)] bg-[var(--surface)] p-0 text-[var(--text)] sm:max-w-[820px]"
+        className="pb-root w-[820px] max-w-[95vw] gap-0 border-[var(--border)] bg-[var(--surface)] p-0 leading-[1.45] text-[var(--text)] sm:max-w-[820px]"
       >
         {!d ? (
           <div aria-busy="true">
@@ -223,7 +223,8 @@ export default function PainelDetalheProduto({ aberto, detalhe: d, aba, aoMudarA
               </SheetDescription>
             </SheetHeader>
 
-            <div className="border-b border-[var(--border)] bg-[var(--bg)] px-3">
+            {/* Abas com 39px, a altura da faixa do protótipo (o componente compartilhado tem 36). */}
+            <div className="border-b border-[var(--border)] bg-[var(--bg)] px-3 [&_a]:h-[39px]">
               <PageHeaderTabs
                 density="compact"
                 activeGhostKey={abaAtiva}
@@ -427,7 +428,8 @@ export default function PainelDetalheProduto({ aberto, detalhe: d, aba, aoMudarA
                 <div className="space-y-3">
                   <TituloDaSecao>Detalhes de estoque</TituloDaSecao>
                   <IndicadoresDoEstoque d={d} />
-                  <table className="pb-tbl">
+                  {/* Espaços do protótipo: tabela → texto 10px, texto → botão 16px. */}
+                  <table className="pb-tbl mb-[10px]">
                     <caption className="sr-only">Estoque por local</caption>
                     <thead>
                       <tr>
@@ -454,8 +456,9 @@ export default function PainelDetalheProduto({ aberto, detalhe: d, aba, aoMudarA
                       ))}
                     </tbody>
                   </table>
-                  <p className="pb-help">Saldo por local, o mesmo de Relatórios → Estoque. O histórico completo fica em Histórico de estoque.</p>
-                  <Button variant="outline" size="sm" onClick={() => irPara(`/products/stock-history/${d.id}`)}>
+                  <p className="pb-help mb-4">Saldo por local, o mesmo de Relatórios → Estoque. O histórico completo fica em Histórico de estoque.</p>
+                  {/* Botão pequeno do protótipo (`os-btn sm`): 26px de altura, 11,5px. */}
+                  <Button variant="outline" size="sm" className="h-[26px] px-[10px] text-[11.5px]" onClick={() => irPara(`/products/stock-history/${d.id}`)}>
                     Abrir histórico de estoque
                   </Button>
                 </div>
