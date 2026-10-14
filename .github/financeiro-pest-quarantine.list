@@ -929,3 +929,10 @@ Modules/Financeiro/Tests/Feature/Onda23OcrBoletoTest.php  # VOLTOU 2026-08-03 �
 #
 # Medido no CT 100 (worktree em origin/main a05c0d1ed, DB oimpresso_qa
 # provisionada pela receita do CI .github/actions/pest-mysql-setup).
+
+# ── TransactionPaymentModalHoraTest (2026-10-14) — MEDIÇÃO concluída, defeito confirmado; decisão [W].
+#    Abrir o modal Blade de edição de pagamento e salvar sem mudar nada MOVE paid_on pelo offset do
+#    fuso da empresa: America/Sao_Paulo 08:00 -> modal mostra 11:00 -> grava 11:00 (run 38582625593).
+#    Controle em UTC passa (08:00 -> 08:00). Causa: @format_datetime = createFromTimestamp(strtotime())
+#    formata em UTC; update() relê com uf_date() em hora local. Fica fora da lane até o conserto.
+tests/Feature/TransactionPayment/TransactionPaymentModalHoraTest.php  # 1 failed, 1 passed (run 38582625593) — decisao [W]
