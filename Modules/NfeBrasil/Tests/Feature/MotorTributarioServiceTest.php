@@ -5,6 +5,8 @@ declare(strict_types=1);
 // @covers-us US-NFE-010 — motor tributário por NCM: cascade Níveis 1→4 (override→exata→padrão→default), CST/CSOSN, cache, isolamento multi-tenant.
 // @covers R-NFE-015 · R-NFE-015b · R-NFE-016 · R-NFE-017 — ICMS-ST pela MVA, FCP e DIFAL (thread 06 do playbook Fiscal).
 // @covers R-NFE-018 · R-NFE-019 · R-NFE-020b · R-NFE-020c — operação + vigência (thread 07 do playbook Fiscal).
+// @covers-us US-NFE-066 — benefício fiscal na regra (thread 25 do playbook Fiscal).
+// @covers R-NFE-030 — benefício fiscal: base reduzida e cBenef no item (thread 25 do playbook Fiscal).
 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
@@ -17,6 +19,7 @@ use Modules\NfeBrasil\Exceptions\TributacaoNaoConfiguradaException;
 use Modules\NfeBrasil\Models\NfeBusinessConfig;
 use Modules\NfeBrasil\Models\NfeFiscalRule;
 use Modules\NfeBrasil\Services\MotorTributarioService;
+use Modules\NfeBrasil\Services\NfeService;
 use Modules\NfeBrasil\Services\Tributacao\ProdutoFiscalContext;
 
 uses(Tests\TestCase::class);
@@ -563,7 +566,7 @@ function t07Biz(): int
 }
 
 /** NCMs reservados a estes casos — nada de produção usa a faixa 7707xxxx. */
-const T07_NCMS = ['77070001', '77070002', '77070003', '77070004'];
+const T07_NCMS = ['77070001', '77070002', '77070003', '77070004', '77070005', '77070006']; // 05-06: thread 25
 
 function t07Limpar(): void
 {
@@ -734,6 +737,95 @@ it('R-NFE-020c · CFOP ? por destino', function () {
     $importacao = t07Operacao('t07-importacao', ['cfop' => '3102', 'regra_geral' => $geral]);
     expect($motor->calcularComDestino(ctx('77070004', 100.0), t07Biz(), 'SP', 'RJ', operacaoId: $importacao)->cfop)
         ->toBe('3102');
+
+    t07Limpar();
+});
+
+
+// ── thread 25 do playbook Fiscal: benefício fiscal (R-NFE-030) ─────────────────────────────────
+// MySQL-only: as colunas vêm da migração 2026_10_14_000001. Tenant fictício 98 (ADR 0358).
+// Valores com a conta à mão (aceite da thread, bateria C23 do protótipo); o 2º caminho, uma
+// calculadora Decimal independente, está no `_saida-25.md`.
+
+function t25Preparar(): void
+{
+    t07Preparar();
+    if (! Schema::hasColumn('nfe_fiscal_rules', 'reducao_base')) {
+        test()->markTestSkipped('MySQL-only: precisa da migração 2026_10_14_000001 (benefício fiscal).');
+    }
+}
+
+it('R-NFE-030 · base reduzida e cBenef no item', function () {
+    t25Preparar();
+    // Benefício fictício de teste: o código e o ato abaixo são marcadores da fixture, não de lei real.
+    t07Regra(['ncm' => '77070005', 'cfop' => '5102', 'csosn' => null, 'cst' => '20',
+        'aliquota_icms' => 0.18, 'reducao_base' => 0.3333, 'c_benef' => 'SP000001',
+        'beneficio_fundamento' => 'FIXTURE DE TESTE — ato legal citado pelo contador']);
+    t07Regra(['ncm' => '77070006', 'cfop' => '5102', 'csosn' => null, 'cst' => '00', 'aliquota_icms' => 0.18]);
+    $motor = new MotorTributarioService();
+
+    // 600,00 × (1 − 0,3333) = 400,02 · 400,02 × 0,18 = 72,0036 → 72,00
+    $com = $motor->calcular(ctx('77070005', 600.0), t07Biz(), 'SP', 'SP');
+    expect($com->base_icms)->toBe(400.02)
+        ->and($com->valor_icms)->toBe(72.0)
+        ->and($com->reducao_base)->toBe(0.3333)
+        ->and($com->c_benef)->toBe('SP000001');
+
+    // CONTROLE POSITIVO — sem redução calcula sobre a base cheia: 600,00 × 0,18 = 108,00, sem cBenef.
+    $sem = $motor->calcular(ctx('77070006', 600.0), t07Biz(), 'SP', 'SP');
+    expect($sem->base_icms)->toBeNull()
+        ->and($sem->valor_icms)->toBe(108.0)
+        ->and($sem->reducao_base)->toBe(0.0)
+        ->and($sem->c_benef)->toBeNull();
+
+    // O item da nota leva o benefício: cBenef, vBC reduzida e pRedBC.
+    $linha = fn (string $ncm) => ['sell_line_id' => 1, 'product_id' => 1, 'cprod' => 'SKU1', 'xprod' => 'PRODUTO',
+        'ncm' => $ncm, 'unidade' => 'UN', 'quantidade' => 1.0, 'valor_unitario' => 600.0];
+    $itens = app(NfeService::class)->montarItensNfe(
+        linhas: [$linha('77070005'), $linha('77070006')], valorNota: 1200.0, frete: 0, ncmDefault: '77070006',
+        motor: $motor, businessId: t07Biz(), ufOrigem: 'SP', ufDestino: 'SP',
+    );
+    [$d1, $d2] = $itens['dets'];
+    expect($d1['cbenef'])->toBe('SP000001')
+        ->and($d1['icms']['vbc'])->toBe(400.02)
+        ->and($d1['icms']['pred_bc'])->toBe(33.33)
+        ->and($d1['icms']['vicms'])->toBe(72.0)
+        ->and($d2['cbenef'])->toBeNull()
+        ->and($d2['icms']['vbc'])->toBe(0)          // sem benefício: como antes
+        ->and($d2['icms']['pred_bc'])->toBe(0.0)
+        ->and($itens['total']['v_bc_icms'])->toBe(400.02)
+        ->and($itens['total']['v_icms'])->toBe(180.0); // 72,00 + 108,00
+
+    // E no XML: <cBenef> no item com benefício, <pRedBC> no ICMS20; nada disso no outro item.
+    $svc = new NfeService(\Mockery::mock(\Modules\NfeBrasil\Services\CertificadoService::class));
+    $emissao = new \Modules\NfeBrasil\Models\NfeEmissao();
+    $emissao->business_id = t07Biz();
+    $emissao->modelo = '55';
+    $emissao->serie = '1';
+    $emissao->numero = 1;
+    $m = new ReflectionMethod(NfeService::class, 'buildXml');
+    $m->setAccessible(true);
+    $xml = (string) $m->invoke($svc,
+        (object) ['id' => t07Biz(), 'cidade_id' => 0, 'regime' => 3, 'ambiente' => 2],
+        $emissao,
+        [
+            'nat_op' => 'VENDA', 'dets' => $itens['dets'], 'total' => $itens['total'],
+            'dest' => ['nome' => 'CLIENTE TESTE', 'cnpj' => '11222333000181', 'ind_ie_dest' => '9', // pii-allowlist (CNPJ fictício)
+                'logradouro' => 'RUA', 'numero' => '1', 'bairro' => 'CENTRO', 'municipio' => 'SAO PAULO',
+                'cod_municipio' => '3550308', 'uf' => 'SP', 'cep' => '01001000'],
+            'pag' => [['tpag' => '01', 'vpag' => 1200.0]],
+        ],
+        ['uf' => 'SP', 'cod_municipio' => '3550308', 'municipio' => 'SAO PAULO', 'cnpj' => '11222333000181', // pii-allowlist
+            'razao_social' => 'EMPRESA TESTE', 'ie' => '110042490114', 'crt' => 3, 'logradouro' => 'RUA',
+            'numero_end' => '1', 'bairro' => 'CENTRO', 'cep' => '01001000', 'ambiente' => 2],
+    );
+    preg_match_all('#<det nItem="\d+">.*?</det>#s', $xml, $dets);
+    expect($dets[0])->toHaveCount(2)
+        ->and($dets[0][0])->toContain('<cBenef>SP000001</cBenef>')
+        ->and($dets[0][0])->toContain('<pRedBC>33.3300</pRedBC>')
+        ->and($dets[0][0])->toContain('<vBC>400.02</vBC>')
+        ->and(str_contains($dets[0][1], '<cBenef>'))->toBeFalse()
+        ->and(str_contains($dets[0][1], '<pRedBC>'))->toBeFalse();
 
     t07Limpar();
 });

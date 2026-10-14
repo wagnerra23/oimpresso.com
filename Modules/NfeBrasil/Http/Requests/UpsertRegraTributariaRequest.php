@@ -41,6 +41,13 @@ class UpsertRegraTributariaRequest extends FormRequest
             'mva' => ['nullable', 'numeric', 'min:0', 'max:5'],
             'fcp' => ['nullable', 'numeric', 'min:0', 'max:1'],
 
+            // Benefício fiscal (thread 25 · R-NFE-030). Redução em decimal (0.3333 = 33,33%),
+            // menor que 1 (redução de 100% é isenção, outro CST). Lei 4 do módulo: benefício
+            // só com o ato legal citado — o fundamento é obrigatório junto da redução ou do código.
+            'reducao_base'         => ['nullable', 'numeric', 'min:0', 'lt:1'],
+            'c_benef'              => ['nullable', 'string', 'max:10', 'regex:/^[A-Z0-9]+$/'],
+            'beneficio_fundamento' => ['nullable', 'string', 'max:255', 'required_with:reducao_base,c_benef'],
+
             // Reforma Tributária — NT 2025.002 / US-FISCAL-021. As 5 colunas existem desde a
             // migration 2026_05_26_000001 e o motor já as lê; sem declarar aqui, o `validated()`
             // do store/update as descartava em silêncio. Só FORMATO: obrigatoriedade por regime
