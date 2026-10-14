@@ -178,6 +178,15 @@ blueprint_cowork: prototipo-ui/prototipos/produto-cockpit/ _(removido em 2026-05
 > fundo dos botões de contorno (sólido × translúcido) e cor do texto do "Fechar" (cinza × normal) —
 > `Button` do Design System.
 >
+> **Botões do rodapé — ajustados só neste painel em 2026-10-14 (decisão [F]):** o texto do "Editar
+> produto" passa a branco (`rgb(255,255,255)`, `text-white`), o fundo de "Comprar", "Preços por grupo" e
+> "Imprimir" passa a sólido (`var(--surface)` = `oklch(0.3 0.008 240)`) e o texto do "Fechar" a
+> esmaecido (`var(--text-dim)` = `oklch(0.72 0.005 90)`), com os estados de passar o mouse do
+> protótipo (`.os-btn`). O `Button` do DS não muda. Medido em produção antes de publicar, aplicando os
+> mesmos valores por estilo inline no painel aberto. ⚠️ Lição da medição: com a aba do navegador em
+> segundo plano a `transition-all` do botão não avança, e o estilo calculado devolve o valor antigo
+> por segundos — desligue a transição no elemento antes de ler.
+>
 > **Abas — ajustadas só neste painel em 2026-10-14 (decisão [F]):** texto da aba ativa
 > `var(--text)` = `oklch(0.94 0.005 90)` (era `oklch(0.965 0.004 240)`), das inativas `var(--text-dim)`
 > = `oklch(0.72 0.005 90)` (era `oklch(0.74 0.008 240)`) e fundo do contador inativo `var(--border-2)` =
