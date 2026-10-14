@@ -150,6 +150,7 @@
     "placar:lista:md": "node scripts/qa/placar.mjs --todos --md",
     "placar:lista:check": "node scripts/qa/placar.mjs --todos --check",
     "placar:lista:test": "node scripts/qa/placar-indice.test.mjs",
+    "gerente:fila": "node scripts/governance/gerente-fila.mjs",
     "telas:detect": "node scripts/design/detectar-telas.mjs",
     "telas:selftest": "node scripts/design/detectar-telas.mjs --selftest",
     "smoke:veredito": "node scripts/smoke-veredito-ledger.mjs",
