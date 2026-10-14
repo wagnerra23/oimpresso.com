@@ -55,6 +55,7 @@ module: NfeBrasil
 - [ResolveUfEmitente.php](../../../Modules/NfeBrasil/Services/Concerns/ResolveUfEmitente.php)
 - [ContingenciaService.php](../../../Modules/NfeBrasil/Services/ContingenciaService.php)
 - [DanfeService.php](../../../Modules/NfeBrasil/Services/DanfeService.php)
+- [DevolucaoService.php](../../../Modules/NfeBrasil/Services/DevolucaoService.php)
 - [EmpresaFiscalLookupService.php](../../../Modules/NfeBrasil/Services/EmpresaFiscalLookupService.php)
 - [FatorRService.php](../../../Modules/NfeBrasil/Services/FatorRService.php)
 - [DistribuicaoDfeService.php](../../../Modules/NfeBrasil/Services/Manifestacao/DistribuicaoDfeService.php)
