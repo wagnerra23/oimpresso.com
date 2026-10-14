@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\DB;
  * Base padronizada pra Modules/<Name>/Http/Controllers/InstallController.
  *
  * Pattern decidido em ADR memory/decisions/0023-instalacao-1-clique-modulos.md:
- *   1. Click em "Install" no /manage-modules dispara GET <prefix>/install
+ *   1. Click em "Install" no /modulos (antes /manage-modules) dispara <prefix>/install
  *   2. Action: index() roda tudo direto e redireciona com toast — sem tela intermediária
  *   3. Validação de License Code/Envato REMOVIDA (Wagner já comprou; vetor de
  *      supply-chain attack)
@@ -115,7 +115,7 @@ abstract class BaseModuleInstallController extends Controller
      *      d. System property add/set ({key}_version = appVersion)
      *   4. Commit
      *   5. postInstallCommand() opcional (fora da transação)
-     *   6. Redirect /manage-modules com toast success/error
+     *   6. Redirect /modulos com toast success/error
      */
     public function index()
     {
@@ -183,7 +183,7 @@ abstract class BaseModuleInstallController extends Controller
         }
 
         return redirect()
-            ->action([\App\Http\Controllers\Install\ModulesController::class, 'index'])
+            ->route('modules.index')
             ->with('status', $output);
     }
 
@@ -222,7 +222,7 @@ abstract class BaseModuleInstallController extends Controller
         }
 
         return redirect()
-            ->action([\App\Http\Controllers\Install\ModulesController::class, 'index'])
+            ->route('modules.index')
             ->with('status', $output);
     }
 
