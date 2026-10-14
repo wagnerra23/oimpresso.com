@@ -244,7 +244,9 @@ function Edit({ payment_line, transaction, payment_types, accounts }: Props) {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">— Nenhuma —</SelectItem>
-                    {Object.entries(accounts).map(([id, label]) => (
+                    {/* O accountsDropdown do Blade inclui "" => "nenhum"; o Radix Select quebra a tela com
+                        value vazio, e a opção "— Nenhuma —" acima já cobre esse caso. */}
+                    {Object.entries(accounts).filter(([id]) => id !== '').map(([id, label]) => (
                       <SelectItem key={id} value={id}>{String(label)}</SelectItem>
                     ))}
                   </SelectContent>
