@@ -231,9 +231,9 @@ base: wagnerra23/oimpresso.com@main 2c115a5ca250 (lido 2026-09-25 18:46 UTC)
         {
           "tipo": "contem",
           "path": "resources/js/Pages/Manufacturing/Index.tsx",
-          "padrao": "only: ['productions', 'summary', 'filters']",
+          "padrao": "only: ['productions', 'summary', 'kpis', 'filters']",
           "guarda": true,
-          "nota": "continua partial reload"
+          "nota": "continua partial reload · errata 2026-10-13: o #8991 acrescentou kpis ao partial reload (_ERRATA-INDICE-2026-10-13.md)"
         },
         {
           "tipo": "contem",
