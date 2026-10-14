@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use InvalidArgumentException;
+use Modules\NfeBrasil\Exceptions\NcmPadraoAusenteException;
 use Modules\NfeBrasil\Models\NfeBusinessConfig;
 use Modules\NfeBrasil\Models\NfeEmissao;
 use Modules\NfeBrasil\Models\NfeEvento;
@@ -126,10 +127,8 @@ class NfeService
             ?? $business->ncm_padrao
             ?? '');
         if (strlen($ncmDefault) !== 8) {
-            throw new RuntimeException(
-                "Business {$businessId} sem NCM padrão configurado. " .
-                "Configure `ncm_padrao` no cadastro do business ou `nfe_business_configs.tributacao_default.ncm_default`."
-            );
+            // R-NFE-022: recusa com a saída (tela + campo), nunca emite sem NCM.
+            throw new NcmPadraoAusenteException($businessId);
         }
 
         $ufOrigem = $this->resolverUF($business);
@@ -284,10 +283,8 @@ class NfeService
             ?? $business->ncm_padrao
             ?? '');
         if (strlen($ncmDefault) !== 8) {
-            throw new RuntimeException(
-                "Business {$businessId} sem NCM padrão configurado. " .
-                "Aplique um template em /nfe-brasil/tributacao OU configure `tributacao_default.ncm_default`."
-            );
+            // R-NFE-022: recusa com a saída (tela + campo), nunca emite sem NCM.
+            throw new NcmPadraoAusenteException($businessId);
         }
 
         $ufOrigem = $this->resolverUF($business);
@@ -428,7 +425,7 @@ class NfeService
         // R-NFE-024 controle: sem NCM padrão válido não há saída — mesma recusa do
         // R-NFE-022 em emitirParaTransaction (defesa em profundidade, sem DB).
         if (strlen($ncmDefault) !== 8) {
-            throw new RuntimeException("Business {$businessId} sem NCM padrão configurado.");
+            throw new NcmPadraoAusenteException($businessId);
         }
 
         // 1. vProd por item, em centavos
