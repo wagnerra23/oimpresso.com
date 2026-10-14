@@ -15,13 +15,6 @@ last_run: "2026-10-14"
 > **Status:** ✅ passa · 🧪 teste cita o UC, veredito pendente da lane · ⬜ não verificado · ❌ quebrou.
 > Teste: `Modules/Cms/Tests/Feature/SitePublicoContratoTest.php`, lane `verticais-pest` (MySQL).
 
-## Rastreabilidade
-
-| UC | Caso de uso | Prio | Status |
-|----|-------------|------|--------|
-| UC-SHOME-01 | Abre sem login | must | 🧪 |
-| UC-SHOME-02 | As 4 seções do CMS chegam diferidas, e chegam quando pedidas | must | 🧪 |
-
 ## UC-SHOME-01 · Abre sem login · `must`
 - **Persona:** visitante/prospect sem conta.
 - **Fonte:** US-CMS-001 (`GET /` retorna 200 sem auth) · charter Non-Goal "não exige login".

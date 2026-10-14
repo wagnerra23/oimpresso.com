@@ -17,14 +17,6 @@ last_run: "2026-10-14"
 > **Status:** ✅ passa · 🧪 teste cita o UC, veredito pendente da lane · ⬜ não verificado · ❌ quebrou.
 > Teste: `Modules/Cms/Tests/Feature/SitePublicoContratoTest.php`, lane `verticais-pest` (MySQL).
 
-## Rastreabilidade
-
-| UC | Caso de uso | Prio | Status |
-|----|-------------|------|--------|
-| UC-SBLOG-01 | Abre sem login | must | 🧪 |
-| UC-SBLOG-02 | Só post publicado aparece | must | 🧪 |
-| UC-SBLOG-03 | Ordem é a prioridade do editor | should | 🧪 |
-
 ## UC-SBLOG-01 · Abre sem login · `must`
 - **Aceite:** Dado um visitante sem sessão · Quando abre `/c/blogs` · Então recebe 200 com a tela `Site/Blogs` e a lista de posts.
 - **Status:** 🧪

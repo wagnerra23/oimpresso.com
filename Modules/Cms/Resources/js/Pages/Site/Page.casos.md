@@ -17,14 +17,6 @@ last_run: "2026-10-14"
 > **Status:** ✅ passa · 🧪 teste cita o UC, veredito pendente da lane · ⬜ não verificado · ❌ quebrou.
 > Teste: `Modules/Cms/Tests/Feature/SitePublicoContratoTest.php`, lane `verticais-pest` (MySQL).
 
-## Rastreabilidade
-
-| UC | Caso de uso | Prio | Status |
-|----|-------------|------|--------|
-| UC-SPAGE-01 | Abre a página pelo título na URL, sem login | must | 🧪 |
-| UC-SPAGE-02 | Título que não existe dá 404 | must | 🧪 |
-| UC-SPAGE-03 | O conteúdo sai sanitizado | must | 🧪 |
-
 ## UC-SPAGE-01 · Abre pelo título na URL · `must`
 - **Fonte:** US-CMS-005 (rota `/c/page/{slug}` renderiza `Site/Page`; slug derivado do `title`).
 - **Aceite:** Dado uma página publicada com título "Termos de uso" · Quando um visitante sem sessão abre `/c/page/termos-de-uso` · Então recebe 200 com a tela `Site/Page` e o título dessa página.

@@ -15,14 +15,6 @@ last_run: "2026-10-14"
 > **Status:** ✅ passa · 🧪 teste cita o UC, veredito pendente da lane · ⬜ não verificado · ❌ quebrou.
 > Teste: `Modules/Cms/Tests/Feature/SitePublicoContratoTest.php`, lane `verticais-pest` (MySQL).
 
-## Rastreabilidade
-
-| UC | Caso de uso | Prio | Status |
-|----|-------------|------|--------|
-| UC-SBPOST-01 | Abre o post pela URL, sem login | must | 🧪 |
-| UC-SBPOST-02 | Id inexistente ou post desligado dá 404 | must | 🧪 |
-| UC-SBPOST-03 | O corpo sai sanitizado | must | 🧪 |
-
 ## UC-SBPOST-01 · Abre pela URL · `must`
 - **Aceite:** Dado um post publicado · Quando um visitante sem sessão abre `/c/blog/<slug>-<id>` · Então recebe 200 com a tela `Site/BlogPost` e o título desse post.
 - **Status:** 🧪
