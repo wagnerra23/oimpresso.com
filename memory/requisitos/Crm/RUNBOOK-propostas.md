@@ -56,8 +56,8 @@ abaixo de 768px. `data-contract`: `crm-propostas`, `crm-toolbar` (os do alvo).
 ## 9. DoD checklist
 
 - [x] RUNBOOK + paridade (F1)
-- [ ] Pest baseline tenant 98 × 99 (F2)
-- [ ] Ramo Inertia atrás da flag + Page + charter + casos + contrato (F3)
+- [x] Pest baseline tenant 98 × 99 (F2)
+- [x] Ramo Inertia atrás da flag + Page + charter + casos + contrato (F3, UC-CRMPRO-01..07)
 - [ ] Smoke biz=1 (F4) · cutover e remoção da Blade `proposal/index` (F5, decisão [W])
 
 ## 10. Pegadinhas e divergências
