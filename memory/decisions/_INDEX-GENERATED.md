@@ -7,7 +7,7 @@
 ## Resumo
 - **435** arquivos · **420** números únicos · máx **0430**
 - **ADRs ATIVOS (lifecycle ativo): 388** ← resposta única a "quantos ADRs ativos"
-- Por status: aceito 379 · superseded 27 · proposto 16 · deprecated 11 · rascunho 1 · recusado 1
+- Por status: aceito 379 · superseded 27 · proposto 15 · deprecated 11 · recusado 2 · rascunho 1
 - Por lifecycle: ativo 388 · substituido 27 · arquivado 20
 - Sem frontmatter (formato-tabela legado): 0
 
@@ -32,8 +32,9 @@ _(íntegra)_
 ## Supersessão declarada em prosa sem o campo (0) — 🟡 EVENTO-prosa (ADR 0317, warn não-bloqueia)
 _(nenhuma)_
 
-## Recusadas (1) — o NÃO consultável
+## Recusadas (2) — o NÃO consultável
 - **0290** v0 'Fidelity Lock' (screenshot pareado em CI) — RECUSADO: fidelidade visual não  · recusada 2026-06-18 — Inviável + tautológico + backdoor de prosa (3 motivos na Decisão). REABRE só se surgir um check de fidelidade HERMÉTICO 
+- **0430** Retenção LGPD do Patrimônio anonimiza campo pessoal, nunca apaga linha nem trilh · recusada 2026-10-13 — No Patrimônio não há retenção LGPD: vale a lápide de 2026-07-27 (num ERP o dado tem dever de guarda; o controle é por pe
 
 ## Todas as ADRs (435)
 | Nº | Status | Lifecycle | Kind | Título |
@@ -472,4 +473,4 @@ _(nenhuma)_
 | 0427 | aceito | ativo | decision | Auto-merge de PR de thread de playbook verde — emenda da 0040 |
 | 0428 | proposto | ativo | decision | App das lojas — avisos sem Firebase: Centrifugo com o app aberto e lembrete loca |
 | 0429 | proposto | ativo | decision | Log de falhas do app e do ERP no GlitchTip self-host no CT 100 |
-| 0430 | proposto | ativo | decision | Retenção LGPD do Patrimônio anonimiza campo pessoal, nunca apaga linha nem trilh |
+| 0430 | recusado | ativo | decision | Retenção LGPD do Patrimônio anonimiza campo pessoal, nunca apaga linha nem trilh |
