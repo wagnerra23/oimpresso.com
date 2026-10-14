@@ -58042,5 +58042,22 @@
     },
     "origin": "medicao",
     "projetoCowork": "w"
+  },
+  {
+    "date": "2026-10-14T17:49:33.920Z",
+    "files": 285,
+    "sync": 1,
+    "stale": 0,
+    "liveAbsent": 0,
+    "unchecked": 284,
+    "staleList": [],
+    "verified": [
+      "cowork-inbox/venda-menu/playbook/_saida-C1.md"
+    ],
+    "verifiedHash": {
+      "cowork-inbox/venda-menu/playbook/_saida-C1.md": "dd47841925bed83a7ba25ce248be8790508929fc04662e168593394439cbf85f"
+    },
+    "origin": "medicao",
+    "projetoCowork": "w"
   }
 ]
