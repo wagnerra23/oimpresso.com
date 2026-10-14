@@ -11,6 +11,8 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 > ℹ️ **`last_run` 2026-10-11 → 2026-10-14 (G-6) — tema escuro, thread 03 do playbook `cowork-inbox/tema-escuro`: só COR.**
 > O [#9314](https://github.com/wagnerra23/oimpresso.com/pull/9314) pôs par `dark:` nos selos DE/PARA desta tela, e o #9321 tirou essa mudança: a tela tem o header antigo e qualquer toque nela cai na catraca do PageHeader. O `.tsx` voltou byte a byte ao do `main`; a tela segue na baseline da sonda de tema escuro e volta a ser corrigida quando o header migrar.
 > **Nenhum UC foi reexecutado**: o bump registra *trio reconciliado com a tela nesta data*.
+>
+> ℹ️ **2026-10-14, depois — o header migrou e os selos voltaram.** [W] decidiu migrar o header no mesmo dia: o [#9405](https://github.com/wagnerra23/oimpresso.com/pull/9405) trocou o `PageHeader` antigo pelo canônico, e o PR seguinte repôs o par `dark:` dos selos DE/PARA (o mesmo do #9314). Só COR e cabeçalho; **nenhum UC foi reexecutado**.
 
 # Casos de Uso & Aceite — Nova transferência de estoque
 
