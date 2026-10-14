@@ -1,8 +1,8 @@
 <?php
 
 declare(strict_types=1);
-// Cobre UC-TPEDT-01, UC-TPEDT-02, UC-TPEDT-03, UC-TPEDT-04, UC-TPEDT-06, UC-TPEDT-07
-// (UC-TPEDT-05 está em TransactionPaymentEditDefeitosTest.php, fora da lane) (resources/js/Pages/TransactionPayment/Edit.casos.md) — G-2 rastreabilidade caso↔teste.
+// Cobre UC-TPEDT-01, UC-TPEDT-02, UC-TPEDT-03, UC-TPEDT-04, UC-TPEDT-05, UC-TPEDT-06,
+// UC-TPEDT-07 (resources/js/Pages/TransactionPayment/Edit.casos.md) — G-2 rastreabilidade caso↔teste.
 
 use App\User;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
@@ -353,4 +353,36 @@ it('UC-TPEDT-07 · controle: PUT no pagamento próprio recalcula o adiantamento-
     expect(round((float) tpEdtPagamento($meu['payment_id'])->amount, 2))->toBe(10.0);
     expect(round(500.0 - (100.0 - (float) tpEdtPagamento($meu['payment_id'])->amount), 2))
         ->toBe(round((float) tpEdtPagamento($paiId)->amount, 2));
+});
+
+// UC-TPEDT-05 — charter §Intent ("editar ... em página full ao invés de modal") + §Diferenças
+//   (submit reusa `PUT /payments/{id}`) + RUNBOOK F2 ("POST update reusa update() existente").
+//   O payload é o que `Edit.tsx` manda com o formulário aberto e só o valor trocado:
+//   `paid_on` do `<input type="datetime-local">` ("Y-m-d\TH:i") e `amount` já convertido por
+//   `paraNumUf(valor, 2)` (vírgula decimal, sem milhar). O formato do modal Blade segue no UC-TPEDT-04.
+//   Vermelho medido antes do conserto: run 38569047207 (update() devolvia success=false).
+it('UC-TPEDT-05 · salvar pela tela React grava o valor digitado', function () {
+    $meu = tpEdtVendaPaga($this->bizId);
+
+    $this->withHeaders(tpEdtInertiaHeaders())->put("/payments/{$meu['payment_id']}", [
+        'amount' => '60,5',
+        'method' => 'cash',
+        'paid_on' => '2026-10-01T08:00',
+        'note' => '',
+        'account_id' => '',
+        'card_holder_name' => '', 'card_number' => '', 'card_transaction_number' => '',
+        'cheque_number' => '', 'bank_account_number' => '',
+        'transaction_no_1' => '', 'transaction_no_2' => '', 'transaction_no_3' => '',
+    ]);
+
+    // Diagnóstico: o update() devolve o desfecho no flash `status` (success true/false).
+    $this->assertTrue((bool) (session('status')['success'] ?? false), 'update() devolveu success=false para o payload da tela React');
+
+    // Caminho 1 — a linha do pagamento.
+    $depois = tpEdtPagamento($meu['payment_id']);
+    expect($depois)->not->toBeNull();
+    expect(round((float) $depois->amount, 2))->toBe(60.5);
+    expect((string) $depois->paid_on)->toBe('2026-10-01 08:00:00');
+    // Caminho 2 — o lado da venda.
+    expect(DB::table('transactions')->where('id', $meu['tx_id'])->value('payment_status'))->toBe('partial');
 });

@@ -254,7 +254,10 @@ class TransactionPaymentController extends Controller
             $inputs = $request->only(['amount', 'method', 'note', 'card_number', 'card_holder_name',
                 'card_transaction_number', 'card_type', 'card_month', 'card_year', 'card_security',
                 'cheque_number', 'bank_account_number', ]);
-            $inputs['paid_on'] = $this->transactionUtil->uf_date($request->input('paid_on'), true);
+            // uf_datetime_input aceita o ISO do <input type="datetime-local"> da tela React
+            // (/payments/v2/{id}/edit) e, fora disso, o formato da empresa que o modal Blade manda.
+            // Com uf_date() o ISO dava Carbon "Trailing data" e a tela não salvava (UC-TPEDT-05).
+            $inputs['paid_on'] = $this->transactionUtil->uf_datetime_input($request->input('paid_on'));
             $inputs['amount'] = $this->transactionUtil->num_uf($inputs['amount']);
 
             if ($inputs['method'] == 'custom_pay_1') {
