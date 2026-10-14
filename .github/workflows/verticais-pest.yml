@@ -464,6 +464,7 @@ jobs:
             Modules/Crm/Tests/Feature/ClienteStatsTicketMedioTest.php \
             Modules/Crm/Tests/Feature/CrmCampanhasContatosEscopoTest.php \
             Modules/Crm/Tests/Feature/CrmConfiguracoesBaselineTest.php \
+            Modules/Crm/Tests/Feature/CrmConfiguracoesContratoTest.php \
             Modules/Crm/Tests/Feature/CrmPropostasBaselineTest.php \
             Modules/Crm/Tests/Feature/CrmPropostasContratoTest.php
 

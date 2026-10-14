@@ -3,15 +3,26 @@
 namespace Modules\Crm\Http\Controllers;
 
 use App\Business;
+use App\Services\FeatureFlagService;
 use App\Utils\ModuleUtil;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
+use Inertia\Inertia;
 use Modules\Crm\Utils\CrmUtil;
 use App\Support\Privacy\PiiRedactor;
 
 class CrmSettingsController extends Controller
 {
+    /**
+     * Flag do caminho React (thread crm/playbook/15, F3). Convenção `useV2<Modulo><Tela>`.
+     * Sem a chave no GrowthBook o FeatureFlagService cai no fallbackDefaults, que não a lista:
+     * default OFF, a Blade segue servindo. Ligar é toggle no GrowthBook (flag:set), não deploy.
+     *
+     * @see memory/requisitos/Crm/RUNBOOK-configuracoes.md
+     */
+    private const FLAG_V2 = 'useV2CrmConfiguracoes';
+
     /**
      * All Utils instance.
      */
@@ -33,7 +44,7 @@ class CrmSettingsController extends Controller
     /**
      * Display a listing of the resource.
      *
-     * @return Response
+     * @return \Illuminate\Contracts\View\View|\Inertia\Response
      */
     public function index()
     {
@@ -46,6 +57,17 @@ class CrmSettingsController extends Controller
         }
 
         $crm_settings = $this->crmUtil->getCrmSettings($business_id);
+
+        // Thread 15 (F3): a tela React grava pelo MESMO `update-settings` abaixo. Props eager: é uma
+        // linha da tabela business, já lida acima para a Blade. `?classico=1` mantém a Blade.
+        if (! request()->boolean('classico') && app(FeatureFlagService::class)->isOn(self::FLAG_V2, ['business_id' => $business_id])) {
+            return Inertia::render('Crm/Configuracoes/Index', [
+                'configuracoes' => [
+                    'ativar_pedido' => ! empty($crm_settings['enable_order_request']),
+                    'prefixo' => (string) ($crm_settings['order_request_prefix'] ?? ''),
+                ],
+            ]);
+        }
 
         return view('crm::settings.index')
                 ->with(compact('crm_settings'));
