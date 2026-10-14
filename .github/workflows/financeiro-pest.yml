@@ -33,6 +33,9 @@ on:
       - 'tests/Feature/Middleware/SetSessionDataRebuildTest.php'
       - 'tests/Feature/Expense/DespesasIndexContratoTest.php'
       - 'tests/Feature/Expense/CategoriasDespesaContratoTest.php'
+      - 'tests/Feature/TransactionPayment/**'
+      - 'app/Http/Controllers/TransactionPaymentController.php'
+      - 'resources/js/Pages/TransactionPayment/**'
       - 'resources/js/Pages/Financeiro/CategoriasDespesa/**'
       - 'app/Http/Controllers/ExpenseCategoryController.php'
       - 'resources/js/Pages/Financeiro/Despesas/**'
@@ -99,6 +102,9 @@ jobs:
               - 'tests/Feature/Middleware/SetSessionDataRebuildTest.php'
               - 'tests/Feature/Expense/DespesasIndexContratoTest.php'
               - 'tests/Feature/Expense/CategoriasDespesaContratoTest.php'
+              - 'tests/Feature/TransactionPayment/**'
+              - 'app/Http/Controllers/TransactionPaymentController.php'
+              - 'resources/js/Pages/TransactionPayment/**'
               - 'resources/js/Pages/Financeiro/CategoriasDespesa/**'
               - 'app/Http/Controllers/ExpenseCategoryController.php'
               - 'resources/js/Pages/Financeiro/Despesas/**'
@@ -201,6 +207,10 @@ jobs:
           echo 'tests/Feature/Middleware/SetSessionDataRebuildTest.php' >> /tmp/run.txt
           echo 'tests/Feature/Expense/DespesasIndexContratoTest.php' >> /tmp/run.txt
           echo 'tests/Feature/Expense/CategoriasDespesaContratoTest.php' >> /tmp/run.txt
+          # 2026-10-14 — E1: contrato de /payments/v2 (UC-TPIDX/TPSHW/TPEDT). NASCEM SEM RUN.
+          echo 'tests/Feature/TransactionPayment/TransactionPaymentIndexContratoTest.php' >> /tmp/run.txt
+          echo 'tests/Feature/TransactionPayment/TransactionPaymentShowContratoTest.php' >> /tmp/run.txt
+          echo 'tests/Feature/TransactionPayment/TransactionPaymentEditContratoTest.php' >> /tmp/run.txt
 
           # Visibilidade obrigatória: quarentena silenciosa vira cobertura fingida.
           echo "Árvore: $(wc -l < /tmp/all.txt) · quarentena: $(wc -l < /tmp/quar.txt) · RODANDO: $(wc -l < /tmp/run.txt)"
