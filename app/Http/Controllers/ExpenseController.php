@@ -218,6 +218,9 @@ class ExpenseController extends Controller
             'contatos' => Contact::contactDropdown($business_id, false, false),
             'categorias' => ExpenseCategory::where('business_id', $business_id)->whereNull('parent_id')->pluck('name', 'id'),
             'subcategorias' => ExpenseCategory::where('business_id', $business_id)->whereNotNull('parent_id')->pluck('name', 'id'),
+            // Nova despesa (US-MWART-018): a Blade filtra a subcategoria pela categoria via AJAX; aqui vai o mapa.
+            'subcategoria_pai' => ExpenseCategory::where('business_id', $business_id)->whereNotNull('parent_id')->pluck('parent_id', 'id'),
+            'impostos' => TaxRate::forBusinessDropdown($business_id, true, true)['tax_rates'],
         ];
     }
 
@@ -465,6 +468,15 @@ class ExpenseController extends Controller
             ]);
 
             $user_id = $request->session()->get('user.id');
+
+            // Nova despesa da tela React (US-MWART-018) manda a data do <input type="datetime-local">,
+            // ISO com 'T'. A Blade manda o formato da empresa e nunca 'T'. Só o ISO com 'T' é convertido,
+            // para o MESMO formato que a Blade envia: dali em diante o createExpense/uf_date é o de sempre,
+            // e a data da Blade não muda em nada (o TransactionUtil não foi tocado).
+            $data_tela = (string) $request->input('transaction_date');
+            if (preg_match('/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/', $data_tela) === 1) {
+                $request->merge(['transaction_date' => app(TransactionUtil::class)->format_date_no_shift(str_replace('T', ' ', $data_tela), true)]);
+            }
 
             DB::beginTransaction();
 

@@ -41,15 +41,27 @@ last_run: "2026-10-14"
 - **Regressão que defende:** paridade item 20 — a tela nova não reimplementa a exclusão, chama o `destroy` existente.
 - **Status: 🧪**
 
+## UC-DESPES-06 `[V0]` · Nova despesa grava o total que digitei, e as duas listas mostram o mesmo número
+- **Aceite:** Dado que digito 1.234,56 na Nova despesa · Quando cadastro · Então a tela envia "1234,56", o banco grava 1234.56, e a lista nova e a antiga mostram 1234.56.
+- **Teste:** `DespesasIndexContratoTest` (servidor + duas leituras) e `tests/js/despesas-total-envio.test.ts` (o que a tela envia; nunca ponto, que o `num_uf` leria como milhar).
+- **Status: 🧪**
+
+## UC-DESPES-07 · A data da Blade grava o mesmo de antes, e a da tela nova grava o mesmo minuto
+- **Aceite:** Dado uma empresa com `d/m/Y` (24h e 12h), `Y-m-d` ou `m/d/Y` · Quando a Blade envia a data no formato dela · Então grava o que o `uf_date` original grava. E quando a tela nova envia `2026-03-05T14:30` · Então grava 2026-03-05 14:30.
+- **Regressão que defende:** só a tela nova muda de caminho. O `store` converte o ISO com 'T' (que a Blade nunca envia) para o formato da empresa, e o `TransactionUtil` fica intacto.
+- **Status: 🧪**
+
 ---
 
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
 - **[BACKLOG]** Chego à tela pelo menu: o dropdown core "Despesas" fica escondido com o Financeiro habilitado (decisão [W] 2026-05-20), e a sub-navegação do Financeiro ainda não tem a aba. O caminho de entrada é decisão antes de ligar a flag.
 - **[BACKLOG]** Pagamento (adicionar e ver) direto na tela nova. Hoje o drawer manda para a tela clássica: as rotas de pagamento só devolvem fragmento de modal da Blade, e escrever valor aqui é decisão [W] (regra mestre de VALOR).
-- **[BACKLOG]** Nova despesa — US-MWART-018.
+- **[BACKLOG]** Nova despesa: documento anexo, recorrência e linha de pagamento seguem na tela clássica.
+- **[BACKLOG]** Categorias de despesa em React — resto da US-MWART-018.
 
 ## Trilha do tempo
 - 2026-10-13 · [CL] carimbado por criar-tela.mjs e preenchido na US-MWART-015/016 (thread financeiro/13).
 - 2026-10-13 · [CL] US-MWART-017: drawer 760 com os dados da linha + Editar, Documento, Excluir; UC-DESPES-05.
-- 2026-10-14 · [CL] revalidado (bump `last_run`): o `Index.tsx` mudou só em lint e layout (`linhas` em `useMemo`, cabeçalho em `Inline` do DS). Nenhum handler, prop ou texto de UC mudou; UC-DESPES-01..04 seguem provados (run 38473422467); o drawer em `Grid` do DS, UC-DESPES-05 pelo run 38467901444.
+- 2026-10-13 · [CL] US-MWART-018 (parte 1): Nova despesa; UC-DESPES-06/07.
+- 2026-10-14 · [CL] revalidado (bump `last_run`): o `Index.tsx` mudou só em lint e layout (`linhas` em `useMemo`, cabeçalho em `Inline` do DS). Nenhum handler, prop ou texto de UC mudou; UC-DESPES-01..04 seguem provados (run 38473422467); o drawer em `Grid` do DS, UC-DESPES-05 pelo run 38467901444; o cabeçalho com o botão Nova despesa em `Inline` e o `totalParaEnvio` em `_lib/total-envio.ts`, UC-DESPES-06/07 pelo run 38467905171.
