@@ -6,6 +6,7 @@ status: draft
 parent_module: Financeiro
 related_prototype: prototipo-ui/cowork/Wagner/financeiro-legado.jsx
 related_runbook: memory/requisitos/Financeiro/RUNBOOK-despesas.md
+related_us: [US-MWART-018]
 alcance:
   rota: /expense-categories
   rota_nome: expense-categories.index   # Route::resource('expense-categories') em routes/web.php (core)
