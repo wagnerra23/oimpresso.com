@@ -110,6 +110,11 @@ on:
       - 'Modules/Crm/Http/Controllers/ClienteIaController.php'
       - 'app/Services/Pessoas/PessoaVendas.php'
       - 'Modules/Crm/Tests/Feature/ClienteStatsTicketMedioTest.php'
+      # Thread Crm/11 — Campanhas: escopo dos contatos (A1) e a migração da lista.
+      - 'Modules/Crm/Http/Controllers/CampaignController.php'
+      - 'Modules/Crm/Http/Requests/StoreCampaignRequest.php'
+      - 'Modules/Crm/Services/CampaignService.php'
+      - 'Modules/Crm/Tests/Feature/CrmCampanhas*'
       # Thread Crm/15 — Configurações do CRM: baseline da Blade (F2) antes da tela React.
       - 'Modules/Crm/Http/Controllers/CrmSettingsController.php'
       - 'Modules/Crm/Tests/Feature/CrmConfiguracoes*'
@@ -205,6 +210,11 @@ jobs:
               - 'Modules/Crm/Http/Controllers/ClienteIaController.php'
               - 'app/Services/Pessoas/PessoaVendas.php'
               - 'Modules/Crm/Tests/Feature/ClienteStatsTicketMedioTest.php'
+              # Thread Crm/11 — Campanhas: escopo dos contatos (A1) e a migração da lista.
+              - 'Modules/Crm/Http/Controllers/CampaignController.php'
+              - 'Modules/Crm/Http/Requests/StoreCampaignRequest.php'
+              - 'Modules/Crm/Services/CampaignService.php'
+              - 'Modules/Crm/Tests/Feature/CrmCampanhas*'
               # Thread Crm/15 — Configurações do CRM: baseline da Blade (F2) antes da tela React.
               - 'Modules/Crm/Http/Controllers/CrmSettingsController.php'
               - 'Modules/Crm/Tests/Feature/CrmConfiguracoes*'
@@ -430,6 +440,7 @@ jobs:
             Modules/Crm/Tests/Feature/CrmLoginsEscritaEscopoTest.php \
             Modules/Crm/Tests/Feature/CrmLeadsListQueryTest.php \
             Modules/Crm/Tests/Feature/ClienteStatsTicketMedioTest.php \
+            Modules/Crm/Tests/Feature/CrmCampanhasContatosEscopoTest.php \
             Modules/Crm/Tests/Feature/CrmConfiguracoesBaselineTest.php
 
       # O sumário conta `assertions` POR ARQUIVO — é o discriminador que separa
