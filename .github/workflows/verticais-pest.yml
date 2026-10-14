@@ -451,6 +451,7 @@ jobs:
             Modules/Crm/Tests/Feature/CrmRelatoriosBaselineTest.php \
             Modules/Crm/Tests/Feature/CrmRegistroEscopoTest.php \
             Modules/Crm/Tests/Feature/CrmChamadasBaselineTest.php \
+            Modules/Crm/Tests/Feature/CrmChamadasContratoTest.php \
             Modules/Crm/Tests/Feature/CrmLeadsContratoTest.php \
             Modules/Crm/Tests/Feature/CrmCampanhasBaselineTest.php \
             Modules/Crm/Tests/Feature/CrmLeadShowEscopoTest.php \

@@ -31,9 +31,10 @@ Desligada (default), segue a Blade. O ajax do DataTables (sem `X-Inertia`) conti
 ## 3. Fatias (1 PR por fase, ≤300 linhas)
 | fase | o quê | estado |
 |---|---|---|
-| F1 | este RUNBOOK + [`chamadas-parity.md`](./chamadas-parity.md) | este PR |
-| F2 | `CrmChamadasBaselineTest` (tenant 98 × 99) na lane `verticais-pest` | pendente |
-| F3 | ramo Inertia atrás da flag + Page (filtros · toolbar · grade com seleção · rodapé de exclusão) + charter + casos + contrato | pendente |
+| F1 | este RUNBOOK + [`chamadas-parity.md`](./chamadas-parity.md) | entregue (#9294) |
+| F2 | `CrmChamadasBaselineTest` (tenant 98 × 99) na lane `verticais-pest` | entregue (#9328) · B2 (#9302) |
+| F3-1 | ramo Inertia atrás da flag + `CrmChamadasContratoTest` (UC-CRMCHA-01..07) | em PR |
+| F3-2 | Page (filtros · toolbar · grade com seleção · rodapé de exclusão) + charter + casos + contrato | pendente (depois da F3-1) |
 | F4 | smoke biz=1 com a flag só para biz=1 | pendente |
 | F5 | cutover — decisão [W] | — |
 
