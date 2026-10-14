@@ -5,8 +5,12 @@ irmaos: Index.charter.md (lei) · Index.tsx (código)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: o comportamento é durável — quem-pode, o que a linha afirma e o que a ação preserva não mudam quando a tela ganhar coluna nova.
 owner: wagner
-last_run: "2026-09-11"
+last_run: "2026-10-13"
 ---
+
+> ℹ️ **`last_run` 2026-09-11 → 2026-10-13 (G-6).** O [#9270](https://github.com/wagnerra23/oimpresso.com/pull/9270) mudou só o padding do campo de busca
+> (`pl-9 pr-9` → `cw-input-icon-left cw-input-icon-right`, `Index.tsx:248`). Nenhum UC desta tela fala de espaçamento,
+> e a copy e o `data-contract="modulos.busca"` ficaram iguais. **Nenhum UC foi reexecutado**: o bump registra que o trio foi revisto, não que rodou de novo.
 
 > ℹ️ **`last_run` 2026-08-20 → 2026-09-11 (G-6), e a tela NÃO mudou neste PR.**
 > `Index.tsx` não foi tocado pelo [#7224](https://github.com/wagnerra23/oimpresso.com/pull/7224) — o último commit dele é o squash do #6008 (2026-08-26), que

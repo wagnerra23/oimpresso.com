@@ -95,6 +95,9 @@ on:
       # Thread Crm/17 — pedidos de clientes: a Blade travada antes da Page.
       - 'Modules/Crm/Http/Controllers/OrderRequestController.php'
       - 'Modules/Crm/Tests/Feature/CrmPedidos*'
+      # Thread Crm/16 — login de contatos (portal, D3): a Blade travada antes da Page.
+      - 'Modules/Crm/Http/Controllers/ContactLoginController.php'
+      - 'Modules/Crm/Tests/Feature/CrmLogins*'
       # Raiz do 500 da lista de leads e da API do Connector: CrmUtil::getLeadsListQuery.
       - 'Modules/Crm/Utils/CrmUtil.php'
       - 'Modules/Connector/Http/Controllers/Api/Crm/FollowUpController.php'
@@ -103,6 +106,9 @@ on:
       - 'Modules/Crm/Http/Controllers/ClienteIaController.php'
       - 'app/Services/Pessoas/PessoaVendas.php'
       - 'Modules/Crm/Tests/Feature/ClienteStatsTicketMedioTest.php'
+      # Thread Crm/15 — Configurações do CRM: baseline da Blade (F2) antes da tela React.
+      - 'Modules/Crm/Http/Controllers/CrmSettingsController.php'
+      - 'Modules/Crm/Tests/Feature/CrmConfiguracoes*'
       - 'database/schema/mysql-schema.sql'
       - '.github/workflows/verticais-pest.yml'
       - '.github/actions/pest-mysql-setup/**'
@@ -181,6 +187,9 @@ jobs:
               # Thread Crm/17 — pedidos de clientes: a Blade travada antes da Page.
               - 'Modules/Crm/Http/Controllers/OrderRequestController.php'
               - 'Modules/Crm/Tests/Feature/CrmPedidos*'
+              # Thread Crm/16 — login de contatos (portal, D3): a Blade travada antes da Page.
+              - 'Modules/Crm/Http/Controllers/ContactLoginController.php'
+              - 'Modules/Crm/Tests/Feature/CrmLogins*'
               # Raiz do 500 da lista de leads e da API do Connector: CrmUtil::getLeadsListQuery.
               - 'Modules/Crm/Utils/CrmUtil.php'
               - 'Modules/Connector/Http/Controllers/Api/Crm/FollowUpController.php'
@@ -188,6 +197,9 @@ jobs:
               - 'Modules/Crm/Http/Controllers/ClienteIaController.php'
               - 'app/Services/Pessoas/PessoaVendas.php'
               - 'Modules/Crm/Tests/Feature/ClienteStatsTicketMedioTest.php'
+              # Thread Crm/15 — Configurações do CRM: baseline da Blade (F2) antes da tela React.
+              - 'Modules/Crm/Http/Controllers/CrmSettingsController.php'
+              - 'Modules/Crm/Tests/Feature/CrmConfiguracoes*'
               - 'database/schema/mysql-schema.sql'
               - '.github/workflows/verticais-pest.yml'
               - '.github/actions/pest-mysql-setup/**'
@@ -405,8 +417,10 @@ jobs:
             Modules/Crm/Tests/Feature/CrmLeadShowEscopoTest.php \
             Modules/Crm/Tests/Feature/CrmPainelContratoTest.php \
             Modules/Crm/Tests/Feature/CrmPedidosBaselineTest.php \
+            Modules/Crm/Tests/Feature/CrmLoginsBaselineTest.php \
             Modules/Crm/Tests/Feature/CrmLeadsListQueryTest.php \
-            Modules/Crm/Tests/Feature/ClienteStatsTicketMedioTest.php
+            Modules/Crm/Tests/Feature/ClienteStatsTicketMedioTest.php \
+            Modules/Crm/Tests/Feature/CrmConfiguracoesBaselineTest.php
 
       # O sumário conta `assertions` POR ARQUIVO — é o discriminador que separa
       # "passou" de "pulou" (LC-13). Aqui só REPORTA.

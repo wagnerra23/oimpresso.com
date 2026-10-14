@@ -30,6 +30,7 @@ export type AcaoProduto =
   | 'rotulos'
   | 'precos'
   | 'comprar'
+  | 'fiscal'
   | 'anexo'
   | 'ativar'
   | 'desativar'
@@ -71,6 +72,9 @@ export default function AcoesProduto({ linha, permissoes, gruposDePreco, aoEscol
   ].filter(Boolean);
   const grupoCompra = [
     pode('comprar') && linha.controla_estoque && !linha.inativo && item('comprar', 'Comprar este produto'),
+    // Protótipo: "Dados fiscais (NCM/CFOP)" abre o painel de detalhe. Aqui ele abre direto na aba
+    // Fiscal — no protótipo o painel não tem como nascer noutra aba e o item cai em "Dados", igual ao "Ver".
+    pode('view') && item('fiscal', 'Dados fiscais (NCM/CFOP)'),
   ].filter(Boolean);
   const grupo3 = [
     // Ativar e desativar exigem `product.update` no servidor (`activate`/`massDeactivate`).
