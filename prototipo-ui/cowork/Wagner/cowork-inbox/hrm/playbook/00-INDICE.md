@@ -202,6 +202,7 @@ Thread `feito` = `_saida-NN.md` com os 5 itens **e** provas verdes lendo o `main
       "bloqueio": "ADR-mãe ratificada (D2, [W] 2026-09-24, PR #7920). Nenhuma Page até existirem modelo de verba + motor (§9 da ADR, passos 2-5); insumo do Ponto ainda sem dado em prod",
       "provas": [ { "tipo": "contem", "path": "memory/decisions/proposals/2026-09-05-folha-com-encargos-modelo-e-fronteira.md", "padrao": "status: aceito", "nota": "ratificação [W]; a ADR cita a 0014 em related" } ], "nota_provas": "_saida-10.md registra a decisão; o rótulo transitório 'folha gerencial' segue pendente [W]" },
     { "id": "11", "titulo": "Fim do topnav Blade + limpeza O8", "dono": "CL", "vaga": 3, "arquivo": "11-topnav-legado.md",
+      "bloqueio": "até a Folha ter Page (thread 10, _DECISOES-W-2026-10-13): o nav_hrm tem 7 consumidores com rota viva, incluindo as 6 blades de payroll (_saida-11b)",
       "prefixo": ["Modules/Essentials/Resources/views/layouts/nav_hrm.blade.php", "Modules/Essentials/Resources/views/layouts/partials/sidebar_hrm.blade.php", "Modules/Essentials/Resources/views/leave/", "Modules/Essentials/Resources/views/leave_type/", "Modules/Essentials/Resources/views/sales_targets/", "Modules/Essentials/Resources/views/dashboard/hrm_dashboard.blade.php"],
       "nao_toca": ["Modules/Essentials/Resources/views/attendance/", "Modules/Essentials/Resources/views/payroll/", "Modules/Essentials/Routes/web.php"],
       "depende_threads": ["02", "03", "06", "12"],

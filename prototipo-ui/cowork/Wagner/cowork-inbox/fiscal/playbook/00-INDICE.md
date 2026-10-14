@@ -460,8 +460,9 @@ Terminou: escreva _saida-NN.md e pare.
       "provas": [
         {
           "tipo": "contem",
-          "path": "Modules/NfeBrasil/Services/MotorTributarioService.php",
-          "padrao": "valida_de"
+          "path": "Modules/NfeBrasil/Models/NfeFiscalRule.php",
+          "padrao": "valida_de",
+          "nota": "#8941: a vigência é o escopo scopeVigenteEm do Model; o motor o chama com ->vigenteEm($data)"
         }
       ]
     },
