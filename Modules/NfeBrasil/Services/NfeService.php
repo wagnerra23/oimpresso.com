@@ -16,6 +16,7 @@ use InvalidArgumentException;
 use Modules\NfeBrasil\Exceptions\NcmPadraoAusenteException;
 use Modules\NfeBrasil\Models\NfeBusinessConfig;
 use Modules\NfeBrasil\Models\NfeEmissao;
+use Modules\NfeBrasil\Models\NfeLocalEmissor;
 use Modules\NfeBrasil\Models\NfeEvento;
 use Modules\NfeBrasil\Services\Tributacao\ProdutoFiscalContext;
 use Modules\RecurringBilling\Models\Invoice;
@@ -291,7 +292,10 @@ class NfeService
             throw new NcmPadraoAusenteException($businessId);
         }
 
-        $ufOrigem = $this->resolverUF($business);
+        // Thread 26 · R-NFE-031/032: a UF, o emitente e a série vêm do local da venda quando ele
+        // é um estabelecimento emissor próprio; senão, do business, como antes.
+        $emitente = $this->resolverEmitente($business, $tx->location_id !== null ? (int) $tx->location_id : null, (string) $modelo);
+        $ufOrigem = $emitente['uf'];
         $valorTotal = (float) $tx->final_total;
 
         // Fase 2B (thread 17 · R-NFE-023..025c): um `det` por linha da venda, com o
@@ -349,6 +353,11 @@ class NfeService
             'valor_total' => $valorTotal,
             'inf_cpl'     => "Venda PDV #{$tx->id}.",
         ];
+        if ($emitente['location_id'] !== null) {
+            $dadosNfe['emit']        = $emitente['emit'];
+            $dadosNfe['serie']       = $emitente['serie'];
+            $dadosNfe['location_id'] = $emitente['location_id'];
+        }
 
         return $this->emitir($businessId, $dadosNfe);
     }
@@ -746,7 +755,7 @@ class NfeService
                 'valor_total'    => (float) ($dadosNfe['valor_total'] ?? 0),
                 // Thread 17 · R-NFE-024: itens que saíram com o NCM padrão (saúde fiscal, 14).
                 'metadata'       => $dadosNfe['metadata'] ?? null,
-            ]);
+            ] + (isset($dadosNfe['location_id']) ? ['location_id' => (int) $dadosNfe['location_id']] : []));
         });
 
         // ── 4. SEFAZ HTTP call FORA da transaction ──────────────────────────
@@ -838,12 +847,18 @@ class NfeService
             ->where('serie', $serie)
             ->max('numero') ?? 0;
 
-        try {
-            $legado = (int) (DB::table('business')
-                ->where('id', $businessId)
-                ->value('ultimo_numero_nfe') ?? 0);
-        } catch (\Throwable) {
-            $legado = 0; // coluna ausente no ambiente sem UltimatePOS 3.7
+        // Thread 26 · R-NFE-032: `business.ultimo_numero_nfe` é o contador da série padrão do
+        // business. Série de filial (outra série) não herda esse número — senão a filial começaria
+        // do número da matriz e, ao autorizar, empurraria o contador dela.
+        $legado = 0;
+        if ($serie === $this->seriePadrao($businessId)) {
+            try {
+                $legado = (int) (DB::table('business')
+                    ->where('id', $businessId)
+                    ->value('ultimo_numero_nfe') ?? 0);
+            } catch (\Throwable) {
+                $legado = 0; // coluna ausente no ambiente sem UltimatePOS 3.7
+            }
         }
 
         return max((int) $ultimo, $legado) + 1;
@@ -1591,6 +1606,95 @@ class NfeService
         ]);
     }
 
+    /**
+     * Série padrão do business (`business.numero_serie_nfe`, default "1") — a mesma que
+     * `emitirInterno` usa quando a emissão não informa série.
+     */
+    private function seriePadrao(int $businessId): string
+    {
+        try {
+            return (string) (DB::table('business')->where('id', $businessId)->value('numero_serie_nfe') ?? '1');
+        } catch (\Throwable) {
+            return '1';
+        }
+    }
+
+    /**
+     * Thread 26 · R-NFE-031/032 — quem emite: o business ou o local (filial) da venda.
+     *
+     * Local com linha em `nfe_locais_emissores` emite como estabelecimento próprio: UF, CNPJ, IE e
+     * razão social do `business_locations`; endereço, CEP e código IBGE da tabela-ponte (o
+     * `business_locations` não tem rua nem bairro, e o `zip_code` dele é char(7)); série própria. Local sem linha (ou venda sem local) → o business, exatamente como antes.
+     *
+     * Recusa em vez de completar com dado da matriz: filial sem CNPJ, UF, endereço ou série, ou
+     * com a mesma série do business, sairia com o emitente ou o número errados.
+     *
+     * @return array{uf:string,emit:array<string,mixed>,serie:?string,location_id:?int}
+     */
+    public function resolverEmitente(object $business, ?int $locationId, string $modelo): array
+    {
+        $padrao = ['uf' => $this->resolverUF($business), 'emit' => [], 'serie' => null, 'location_id' => null];
+        if ($locationId === null || ! \Illuminate\Support\Facades\Schema::hasTable('nfe_locais_emissores')) {
+            return $padrao;
+        }
+
+        $config = NfeLocalEmissor::withoutGlobalScopes() // SUPERADMIN: emissão roda em fila; o escopo é o where explícito
+            ->where('business_id', $business->id)
+            ->where('location_id', $locationId)
+            ->first();
+        if ($config === null) {
+            return $padrao;
+        }
+
+        $loc = DB::table('business_locations')
+            ->where('business_id', $business->id) // Tier 0: o local tem de ser da empresa
+            ->where('id', $locationId)
+            ->first();
+        $uf     = strtoupper(trim((string) ($loc->state ?? '')));
+        $cnpj   = preg_replace('/\D/', '', (string) ($loc->cnpj ?? ''));
+        $serie  = $config->seriePara($modelo);
+        $falta  = array_keys(array_filter([
+            'local'          => $loc === null,
+            'UF'             => ! preg_match('/^[A-Z]{2}$/', $uf),
+            'CNPJ'           => strlen($cnpj) !== 14,
+            'IE'             => trim((string) ($loc->inscricao_estadual ?? '')) === '',
+            'logradouro'     => trim((string) $config->logradouro) === '',
+            'bairro'         => trim((string) $config->bairro) === '',
+            'código IBGE'    => ! preg_match('/^\d{7}$/', (string) $config->cod_municipio),
+            'CEP'            => ! preg_match('/^\d{8}$/', (string) $config->cep),
+            "série do modelo {$modelo}" => $serie === null,
+        ]));
+        if ($falta !== []) {
+            throw new RuntimeException(
+                "Local {$locationId} está cadastrado como emissor mas falta: " . implode(', ', $falta) . '.'
+            );
+        }
+        if ($serie === $this->seriePadrao((int) $business->id)) {
+            throw new RuntimeException(
+                "Local {$locationId} usa a série {$serie}, que é a série padrão da empresa — cada estabelecimento precisa de série própria."
+            );
+        }
+
+        return [
+            'uf'          => $uf,
+            'emit'        => [
+                'uf'            => $uf,
+                'cnpj'          => $cnpj,
+                'ie'            => (string) ($loc->inscricao_estadual ?? ''),
+                'razao_social'  => (string) ($loc->razao_social ?: $loc->name),
+                'nome_fantasia' => (string) ($loc->nome_fantasia ?: $loc->name),
+                'logradouro'    => (string) $config->logradouro,
+                'numero_end'    => trim((string) $config->numero) !== '' ? (string) $config->numero : 'SN',
+                'bairro'        => (string) $config->bairro,
+                'cod_municipio' => (string) $config->cod_municipio,
+                'municipio'     => (string) ($loc->city ?? ''),
+                'cep'           => (string) $config->cep,
+            ],
+            'serie'       => $serie,
+            'location_id' => $locationId,
+        ];
+    }
+
     private function resolverUF(object $business): string
     {
         $loc = DB::table('business_locations')
@@ -2075,9 +2179,12 @@ class NfeService
             // duplicada (ou pior: aceita 2 NFes com mesmo nNF). report() + throw
             // garantem que o job retentar visivelmente.
             try {
-                DB::table('business')
-                    ->where('id', $businessId)
-                    ->update(['ultimo_numero_nfe' => $numero]);
+                // Thread 26 · R-NFE-032: só a série padrão escreve no contador do business.
+                if ((string) $serie === $this->seriePadrao($businessId)) {
+                    DB::table('business')
+                        ->where('id', $businessId)
+                        ->update(['ultimo_numero_nfe' => $numero]);
+                }
             } catch (\Throwable $e) {
                 report($e);
                 Log::error('NfeService: FALHA ao atualizar ultimo_numero_nfe — abortando pra evitar duplicidade', [

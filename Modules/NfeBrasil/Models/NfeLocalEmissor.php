@@ -1,0 +1,38 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Modules\NfeBrasil\Models;
+
+use App\Concerns\HasBusinessScope;
+use Illuminate\Database\Eloquent\Model;
+
+/**
+ * Local (`business_locations`) que emite como estabelecimento próprio — thread 26 (R-NFE-031/032).
+ *
+ * Sem linha aqui, o local emite como o business (UF, CNPJ e série padrão), igual a antes.
+ */
+class NfeLocalEmissor extends Model
+{
+    use HasBusinessScope; // ADR 0093 — multi-tenant Tier 0
+
+    protected $table = 'nfe_locais_emissores';
+
+    protected $fillable = [
+        'business_id', 'location_id', 'serie_nfe', 'serie_nfce',
+        'logradouro', 'numero', 'bairro', 'cod_municipio', 'cep',
+    ];
+
+    protected $casts = [
+        'business_id' => 'integer',
+        'location_id' => 'integer',
+    ];
+
+    /** Série deste local para o modelo (55 = NF-e, 65 = NFC-e); null = usa a do business. */
+    public function seriePara(string $modelo): ?string
+    {
+        $serie = $modelo === '65' ? $this->serie_nfce : $this->serie_nfe;
+
+        return $serie !== null && $serie !== '' ? (string) $serie : null;
+    }
+}
