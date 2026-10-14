@@ -6,15 +6,26 @@ use App\BusinessLocation;
 use App\Contact;
 use App\CustomerGroup;
 use App\Restaurant\Booking;
+use App\Services\FeatureFlagService;
 use App\User;
 use App\Utils\RestaurantUtil;
 use App\Utils\Util;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
+use Inertia\Inertia;
 use Yajra\DataTables\Facades\DataTables;
 
 class BookingController extends Controller
 {
+    /**
+     * Flag do caminho React (thread restaurante/playbook/03, F3). Convenção `useV2<Modulo><Tela>`.
+     * Sem a chave no GrowthBook o FeatureFlagService cai no fallbackDefaults, que não a lista: default OFF,
+     * a Blade segue servindo. Ligar é toggle no GrowthBook (flag:set --biz=1), não deploy.
+     *
+     * @see memory/requisitos/Restaurante/RUNBOOK-reservas.md
+     */
+    private const FLAG_V2 = 'useV2RestauranteReservas';
+
     /**
      * All Utils instance.
      */
@@ -31,7 +42,7 @@ class BookingController extends Controller
     /**
      * Display a listing of the resource.
      *
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Contracts\View\View|\Inertia\Response|array<int, mixed>
      */
     public function index()
     {
@@ -44,7 +55,19 @@ class BookingController extends Controller
         if (! auth()->user()->hasPermissionTo('crud_all_bookings') && ! $this->restUtil->is_admin(auth()->user(), $business_id)) {
             $user_id = request()->session()->get('user.id');
         }
-        if (request()->ajax()) {
+
+        // `?classico=1` mantém a Blade alcançável com a flag ligada: criar, ver, mudar situação e excluir seguem nela.
+        if (! request()->boolean('classico') && (! request()->ajax() || request()->inertia())
+            && app(FeatureFlagService::class)->isOn(self::FLAG_V2, ['business_id' => $business_id])) {
+            return Inertia::render('Restaurante/Reservas/Index', [
+                'reservas' => Inertia::defer(fn () => $this->reservasDoNegocio((int) $business_id, $user_id)),
+                'locais' => BusinessLocation::forDropdown($business_id),
+            ]);
+        }
+
+        // `! inertia()`: o Inertia v3 manda `X-Requested-With` em toda visita; sem esta perna o partial reload
+        // da prop adiada caía no JSON do calendário (§5 2026-09-08, molde AccountController::index).
+        if (request()->ajax() && ! request()->inertia()) {
             $filters = [
                 'start_date' => request()->start,
                 'end_date' => request()->end,
@@ -68,6 +91,50 @@ class BookingController extends Controller
         $customer_groups = CustomerGroup::forDropdown($business_id);
 
         return view('restaurant.booking.index', compact('business_locations', 'customers', 'correspondents', 'types', 'customer_groups'));
+    }
+
+    /**
+     * Reservas do negócio para a tela React, do primeiro dia do mês corrente em diante.
+     *
+     * Mesmos filtros do calendário (RestaurantUtil::getBookingsForCalendar): negócio da sessão, reserva sem cliente
+     * fica de fora e, com $user_id, só as que o usuário criou — a query de lá aplica `created_by` antes do OR de
+     * correspondente/atendente, então o OR não amplia nada (RUNBOOK-reservas §10).
+     *
+     * @return list<array<string, mixed>>
+     */
+    private function reservasDoNegocio(int $business_id, $user_id): array
+    {
+        // Joins explícitos em vez das relações do Booking: `customer` vira INNER JOIN com contato não excluído (o
+        // calendário pula reserva sem cliente) e `table` não é lido como propriedade — colide com Model::$table.
+        $query = Booking::query()
+            ->join('contacts as c', 'c.id', '=', 'bookings.contact_id')
+            ->leftJoin('res_tables as rt', 'rt.id', '=', 'bookings.table_id')
+            ->leftJoin('business_locations as bl', 'bl.id', '=', 'bookings.location_id')
+            ->leftJoin('users as w', 'w.id', '=', 'bookings.waiter_id')
+            ->where('bookings.business_id', $business_id)
+            ->whereNull('c.deleted_at')
+            ->where('bookings.booking_start', '>=', now()->startOfMonth())
+            ->orderBy('bookings.booking_start');
+
+        if (! empty($user_id)) {
+            $query->where('bookings.created_by', $user_id);
+        }
+
+        return $query->toBase()->get([
+            'bookings.id', 'bookings.booking_start', 'bookings.booking_end', 'bookings.location_id', 'bookings.booking_status',
+            'c.name as cliente', 'rt.name as mesa', 'bl.name as local',
+            'w.surname as w_surname', 'w.first_name as w_first', 'w.last_name as w_last', 'w.id as w_id',
+        ])->map(fn ($b) => [
+            'id' => (int) $b->id,
+            'inicio' => (string) $b->booking_start,
+            'fim' => (string) $b->booking_end,
+            'cliente' => $b->cliente,
+            'mesa' => $b->mesa,
+            'local_id' => (int) $b->location_id,
+            'local' => $b->local,
+            'atendente' => $b->w_id ? trim($b->w_surname.' '.$b->w_first.' '.$b->w_last) : null,
+            'situacao' => $b->booking_status,
+        ])->values()->all();
     }
 
     /**
