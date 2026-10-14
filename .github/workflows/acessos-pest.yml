@@ -115,6 +115,8 @@ on:
       - 'Modules/Woocommerce/Http/Controllers/WoocommerceController.php'
       - 'Modules/Woocommerce/Resources/js/Pages/Woocommerce/Painel/**'
       - 'Modules/Woocommerce/Tests/Feature/Painel*'
+      - 'Modules/Woocommerce/Tests/Feature/Configuracao*'
+      - 'Modules/Woocommerce/Tests/Feature/Log*'
       - 'app/Http/Controllers/BusinessController.php'
       - 'app/Services/FeatureFlagService.php'
       - 'config/feature-flags.php'
@@ -221,6 +223,8 @@ jobs:
               - 'Modules/Woocommerce/Http/Controllers/WoocommerceController.php'
               - 'Modules/Woocommerce/Resources/js/Pages/Woocommerce/Painel/**'
               - 'Modules/Woocommerce/Tests/Feature/Painel*'
+              - 'Modules/Woocommerce/Tests/Feature/Configuracao*'
+              - 'Modules/Woocommerce/Tests/Feature/Log*'
               - 'app/Http/Controllers/BusinessController.php'
               - 'app/Services/FeatureFlagService.php'
               - 'config/feature-flags.php'
@@ -282,6 +286,8 @@ jobs:
             tests/Feature/Support/SuporteLogContratoTest.php \
             Modules/Woocommerce/Tests/Feature/PainelBaselineTest.php \
             Modules/Woocommerce/Tests/Feature/PainelContratoTest.php \
+            Modules/Woocommerce/Tests/Feature/ConfiguracaoBaselineTest.php \
+            Modules/Woocommerce/Tests/Feature/LogBaselineTest.php \
             tests/Feature/VozDoCliente/CaixaContratoTest.php \
             tests/Feature/Configuracoes/ \
             tests/Feature/Restaurante/ \

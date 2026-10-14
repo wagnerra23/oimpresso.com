@@ -16096,18 +16096,6 @@ parameters:
 			path: app/Http/Controllers/ExpenseCategoryController.php
 
 		-
-			message: '#^Method App\\Http\\Controllers\\ExpenseCategoryController\:\:index\(\) should return Illuminate\\Http\\Response but returns Illuminate\\Http\\JsonResponse\.$#'
-			identifier: return.type
-			count: 1
-			path: app/Http/Controllers/ExpenseCategoryController.php
-
-		-
-			message: '#^Method App\\Http\\Controllers\\ExpenseCategoryController\:\:index\(\) should return Illuminate\\Http\\Response but returns Illuminate\\View\\View\.$#'
-			identifier: return.type
-			count: 1
-			path: app/Http/Controllers/ExpenseCategoryController.php
-
-		-
 			message: '#^Method App\\Http\\Controllers\\ExpenseCategoryController\:\:show\(\) should return Illuminate\\Http\\Response but return statement is missing\.$#'
 			identifier: return.missing
 			count: 1
