@@ -112,7 +112,7 @@
     },
     {
       "screen": "Crm",
-      "note": "9 arquivo(s)",
+      "note": "16 arquivo(s)",
       "cells": {
         "tokens": "yes",
         "primitivos": "yes",
@@ -145,7 +145,7 @@
     },
     {
       "screen": "Financeiro",
-      "note": "61 arquivo(s)",
+      "note": "65 arquivo(s)",
       "cells": {
         "tokens": "no",
         "primitivos": "yes",
@@ -222,7 +222,7 @@
     },
     {
       "screen": "NotificationTemplate",
-      "note": "2 arquivo(s)",
+      "note": "4 arquivo(s)",
       "cells": {
         "tokens": "yes",
         "primitivos": "yes",
@@ -342,6 +342,17 @@
       }
     },
     {
+      "screen": "Restaurante",
+      "note": "5 arquivo(s)",
+      "cells": {
+        "tokens": "yes",
+        "primitivos": "yes",
+        "probe": "na",
+        "dark": "na",
+        "approved": "no"
+      }
+    },
+    {
       "screen": "SalesOrder",
       "note": "1 arquivo(s)",
       "cells": {
@@ -452,6 +463,17 @@
       }
     },
     {
+      "screen": "Woocommerce",
+      "note": "4 arquivo(s)",
+      "cells": {
+        "tokens": "yes",
+        "primitivos": "yes",
+        "probe": "na",
+        "dark": "na",
+        "approved": "no"
+      }
+    },
+    {
       "screen": "ConsultaOs",
       "note": "3 arquivo(s)",
       "cells": {
@@ -497,7 +519,7 @@
     },
     {
       "screen": "NfeBrasil",
-      "note": "11 arquivo(s)",
+      "note": "12 arquivo(s)",
       "cells": {
         "tokens": "no",
         "primitivos": "yes",
@@ -639,18 +661,18 @@
       }
     }
   ],
-  "progressPct": 59,
+  "progressPct": 60,
   "progressLabel": "adoção tokens + primitivos (censo Onda 0)",
   "measured": true,
-  "measuredAgainstSha": "e1fb5ff7a",
-  "generatedAt": "2026-10-13T17:04:33.813Z",
+  "measuredAgainstSha": "e4d1d60a5",
+  "generatedAt": "2026-10-14T14:40:03.260Z",
   "treeGuard": {
     "pass": true,
     "violations": 0
   },
   "counts": {
-    "screens": 58,
-    "done": 34,
+    "screens": 60,
+    "done": 36,
     "references": 0
   }
 }

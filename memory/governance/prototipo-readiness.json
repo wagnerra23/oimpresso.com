@@ -246,6 +246,26 @@
       ]
     },
     {
+      "tela": "Financeiro/CategoriasDespesa/Index",
+      "arquivo": "resources/js/Pages/Financeiro/CategoriasDespesa/Index.tsx",
+      "modulo": "core",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/Wagner/financeiro-legado.jsx",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
+      "tela": "Financeiro/Despesas/Index",
+      "arquivo": "resources/js/Pages/Financeiro/Despesas/Index.tsx",
+      "modulo": "core",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/Wagner/financeiro-legado.jsx",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
       "tela": "Funcoes/Index",
       "arquivo": "resources/js/Pages/Funcoes/Index.tsx",
       "modulo": "core",
@@ -656,6 +676,56 @@
       ]
     },
     {
+      "tela": "Restaurante/Cozinha/Index",
+      "arquivo": "resources/js/Pages/Restaurante/Cozinha/Index.tsx",
+      "modulo": "core",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/Wagner/restaurante-operacao.jsx",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
+      "tela": "Restaurante/Mesas/Index",
+      "arquivo": "resources/js/Pages/Restaurante/Mesas/Index.tsx",
+      "modulo": "core",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/Wagner/integra-extras.jsx",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
+      "tela": "Restaurante/Modificadores/Index",
+      "arquivo": "resources/js/Pages/Restaurante/Modificadores/Index.tsx",
+      "modulo": "core",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/Wagner/configuracoes-cadastros.jsx",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
+      "tela": "Restaurante/Pedidos/Index",
+      "arquivo": "resources/js/Pages/Restaurante/Pedidos/Index.tsx",
+      "modulo": "core",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/Wagner/restaurante-operacao.jsx",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
+      "tela": "Restaurante/Reservas/Index",
+      "arquivo": "resources/js/Pages/Restaurante/Reservas/Index.tsx",
+      "modulo": "core",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/Wagner/restaurante-operacao.jsx",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
       "tela": "SalesOrder/Index",
       "arquivo": "resources/js/Pages/SalesOrder/Index.tsx",
       "modulo": "core",
@@ -746,6 +816,36 @@
       ]
     },
     {
+      "tela": "Crm/Campanhas/Index",
+      "arquivo": "Modules/Crm/Resources/js/Pages/Crm/Campanhas/Index.tsx",
+      "modulo": "Crm",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/Wagner/crm-blade-telas.jsx",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
+      "tela": "Crm/Chamadas/Index",
+      "arquivo": "Modules/Crm/Resources/js/Pages/Crm/Chamadas/Index.tsx",
+      "modulo": "Crm",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/Wagner/crm-blade-telas.jsx",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
+      "tela": "Crm/Configuracoes/Index",
+      "arquivo": "Modules/Crm/Resources/js/Pages/Crm/Configuracoes/Index.tsx",
+      "modulo": "Crm",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/Wagner/crm-blade-telas.jsx",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
       "tela": "Crm/Leads/Index",
       "arquivo": "Modules/Crm/Resources/js/Pages/Crm/Leads/Index.tsx",
       "modulo": "Crm",
@@ -756,11 +856,51 @@
       ]
     },
     {
+      "tela": "Crm/Logins/Index",
+      "arquivo": "Modules/Crm/Resources/js/Pages/Crm/Logins/Index.tsx",
+      "modulo": "Crm",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/Wagner/crm-blade-telas.jsx",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
       "tela": "Crm/Painel/Index",
       "arquivo": "Modules/Crm/Resources/js/Pages/Crm/Painel/Index.tsx",
       "modulo": "Crm",
       "status": "1-ciclo",
       "prototipo": "prototipo-ui/cowork/Wagner/crm-blade.jsx",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
+      "tela": "Crm/Pedidos/Index",
+      "arquivo": "Modules/Crm/Resources/js/Pages/Crm/Pedidos/Index.tsx",
+      "modulo": "Crm",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/Wagner/crm-blade-telas.jsx",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
+      "tela": "Crm/Propostas/Index",
+      "arquivo": "Modules/Crm/Resources/js/Pages/Crm/Propostas/Index.tsx",
+      "modulo": "Crm",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/Wagner/crm-blade-telas.jsx",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
+      "tela": "Crm/Relatorios/Index",
+      "arquivo": "Modules/Crm/Resources/js/Pages/Crm/Relatorios/Index.tsx",
+      "modulo": "Crm",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/Wagner/crm-blade-telas.jsx",
       "falta": [
         "scorecard"
       ]
@@ -824,7 +964,37 @@
       "falta": [
         "scorecard"
       ]
+    },
+    {
+      "tela": "Woocommerce/Configuracao/Index",
+      "arquivo": "Modules/Woocommerce/Resources/js/Pages/Woocommerce/Configuracao/Index.tsx",
+      "modulo": "Woocommerce",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/Wagner/integra-extras.jsx",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
+      "tela": "Woocommerce/Log/Index",
+      "arquivo": "Modules/Woocommerce/Resources/js/Pages/Woocommerce/Log/Index.tsx",
+      "modulo": "Woocommerce",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/Wagner/integra-extras.jsx",
+      "falta": [
+        "scorecard"
+      ]
+    },
+    {
+      "tela": "Woocommerce/Painel/Index",
+      "arquivo": "Modules/Woocommerce/Resources/js/Pages/Woocommerce/Painel/Index.tsx",
+      "modulo": "Woocommerce",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/Wagner/integra-extras.jsx",
+      "falta": [
+        "scorecard"
+      ]
     }
   ],
-  "total": 166
+  "total": 183
 }
