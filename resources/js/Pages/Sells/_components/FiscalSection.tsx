@@ -26,7 +26,12 @@ interface Props {
 export default function FiscalSection({ saleId, enabled = true }: Props) {
   const { emissoes, loading, error, isPolling, refetch } = useEmissoesPorTransaction(saleId, { enabled });
   const [emitting, setEmitting] = useState<'55' | '65' | null>(null);
-  const [actionMsg, setActionMsg] = useState<{ tone: 'success' | 'error'; text: string } | null>(null);
+  // `acao`: saída de 1 clique que o servidor devolve com o bloqueio (R-NFE-022 · NCM padrão ausente).
+  const [actionMsg, setActionMsg] = useState<{
+    tone: 'success' | 'error';
+    text: string;
+    acao?: { label: string; url: string | null };
+  } | null>(null);
 
   const hasNfce = emissoes.some((e) => e.modelo === '65' && e.status === 'autorizada');
   const hasNfe = emissoes.some((e) => e.modelo === '55' && e.status === 'autorizada');
@@ -47,6 +52,10 @@ export default function FiscalSection({ saleId, enabled = true }: Props) {
         body: JSON.stringify({ modelo }),
       });
       const json = await res.json();
+      if (!res.ok && json?.acao?.url) {
+        setActionMsg({ tone: 'error', text: json.message, acao: json.acao });
+        return;
+      }
       if (!res.ok) throw new Error(json?.message || json?.error || 'Falha ao emitir');
       setActionMsg({
         tone: 'success',
@@ -106,6 +115,11 @@ export default function FiscalSection({ saleId, enabled = true }: Props) {
         >
           {actionMsg.tone === 'success' ? <CheckCircle2 size={11} className="inline mr-1" /> : <AlertTriangle size={11} className="inline mr-1" />}
           {actionMsg.text}
+          {actionMsg.acao?.url && (
+            <a href={actionMsg.acao.url} className="ml-1 font-semibold underline" data-acao="bloqueio-emissao">
+              {actionMsg.acao.label}
+            </a>
+          )}
         </div>
       )}
 
