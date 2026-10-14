@@ -66,8 +66,8 @@ blueprint_cowork: prototipo-ui/prototipos/produto-cockpit/ _(removido em 2026-05
 > | Lista vazia, destaque de inativo e de estoque baixo, "Exportar filtrados" | presentes | IGUAL |
 > | `Ctrl+K` com as telas do módulo e ir a um produto | `Ctrl+K` abre a busca geral de tarefas | FALTA |
 > | Aviso "Você veio de… / Voltar e usar" | não existe | FALTA |
-> | Aba Relatório: linhas por página (10/25/50/100) | fixo em 25, Anterior/Próxima | FALTA |
-> | Aba Relatório: lucro potencial em verde | cor comum do texto | FALTA |
+> | Aba Relatório: linhas por página (10/25/50/100) | fixo em 25 até 2026-10-13; **feito em 2026-10-13** (UC-PIDX-18) com as opções da lista Blade (25 … 1000, Todos), mantendo Anterior/Próxima | feito, com opções diferentes de propósito |
+> | Aba Relatório: lucro potencial em verde | cor comum do texto até 2026-10-13; **feito em 2026-10-13** (UC-PIDX-18): verde se positivo, vermelho se negativo, total sem cor | feito |
 > | Aba Relatório: a busca da lista filtra o relatório | não filtra | de propósito — a aba Blade também não usava a busca (UC-PIDX-08) |
 > | Lista inteira na grade, sem páginas | paginada no servidor, com "Mostrar N por página" | produção à frente |
 >

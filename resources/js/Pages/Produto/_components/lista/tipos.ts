@@ -40,6 +40,9 @@ export interface LinhaProduto {
 
 export type ListaPaginada = PaginatorShape<LinhaProduto> & { per_page: number };
 
+/** Opções de linhas por página — as MESMAS da lista Blade (`common.js` aLengthMenu); -1 = todas. */
+export const POR_PAGINA = [25, 50, 100, 200, 500, 1000, -1];
+
 export interface FiltrosLista {
   type: string | null;
   category_id: string | null;
@@ -58,6 +61,8 @@ export interface FiltrosLista {
   page: number;
   aba: 'lista' | 'estoque';
   estoque_pagina: number;
+  /** Linhas por página da aba "Relatório de estoque" (-1 = todas). */
+  estoque_por_pagina: number;
 }
 
 /** Indicadores do topo (ProductController::buildProdutoListaKpis) — catálogo inteiro, sem filtro. */
@@ -111,7 +116,8 @@ export interface RelatorioEstoqueLista {
   };
   mostra_preco: boolean;
   mostra_valor: boolean;
-  paginacao: { atual: number; ultima: number; total: number };
+  /** `por_pagina`: -1 = todas as linhas. */
+  paginacao: { atual: number; ultima: number; total: number; por_pagina: number };
 }
 
 /** Painel de detalhe (ProductController::buildProdutoDetalhe). Chave de preço ausente = sem permissão. */
