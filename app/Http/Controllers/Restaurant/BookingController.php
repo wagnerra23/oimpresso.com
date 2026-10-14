@@ -42,7 +42,7 @@ class BookingController extends Controller
     /**
      * Display a listing of the resource.
      *
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Contracts\View\View|\Inertia\Response|array<int, mixed>
      */
     public function index()
     {
@@ -104,25 +104,35 @@ class BookingController extends Controller
      */
     private function reservasDoNegocio(int $business_id, $user_id): array
     {
-        $query = Booking::where('business_id', $business_id)
-            ->where('booking_start', '>=', now()->startOfMonth())
-            ->has('customer')
-            ->with(['customer', 'table', 'waiter', 'location'])
-            ->orderBy('booking_start');
+        // Joins explícitos em vez das relações do Booking: `customer` vira INNER JOIN com contato não excluído (o
+        // calendário pula reserva sem cliente) e `table` não é lido como propriedade — colide com Model::$table.
+        $query = Booking::query()
+            ->join('contacts as c', 'c.id', '=', 'bookings.contact_id')
+            ->leftJoin('res_tables as rt', 'rt.id', '=', 'bookings.table_id')
+            ->leftJoin('business_locations as bl', 'bl.id', '=', 'bookings.location_id')
+            ->leftJoin('users as w', 'w.id', '=', 'bookings.waiter_id')
+            ->where('bookings.business_id', $business_id)
+            ->whereNull('c.deleted_at')
+            ->where('bookings.booking_start', '>=', now()->startOfMonth())
+            ->orderBy('bookings.booking_start');
 
         if (! empty($user_id)) {
-            $query->where('created_by', $user_id);
+            $query->where('bookings.created_by', $user_id);
         }
 
-        return $query->get()->map(fn (Booking $b) => [
-            'id' => $b->id,
+        return $query->toBase()->get([
+            'bookings.id', 'bookings.booking_start', 'bookings.booking_end', 'bookings.location_id', 'bookings.booking_status',
+            'c.name as cliente', 'rt.name as mesa', 'bl.name as local',
+            'w.surname as w_surname', 'w.first_name as w_first', 'w.last_name as w_last', 'w.id as w_id',
+        ])->map(fn ($b) => [
+            'id' => (int) $b->id,
             'inicio' => (string) $b->booking_start,
             'fim' => (string) $b->booking_end,
-            'cliente' => $b->customer->name,
-            'mesa' => $b->table?->name,
-            'local_id' => $b->location_id,
-            'local' => $b->location?->name,
-            'atendente' => $b->waiter ? trim($b->waiter->surname.' '.$b->waiter->first_name.' '.$b->waiter->last_name) : null,
+            'cliente' => $b->cliente,
+            'mesa' => $b->mesa,
+            'local_id' => (int) $b->location_id,
+            'local' => $b->local,
+            'atendente' => $b->w_id ? trim($b->w_surname.' '.$b->w_first.' '.$b->w_last) : null,
             'situacao' => $b->booking_status,
         ])->values()->all();
     }
