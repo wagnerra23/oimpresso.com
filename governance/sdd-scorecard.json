@@ -23,18 +23,18 @@
       "detail": {
         "coverage_pct": 86.2,
         "specs_total": 54,
-        "us_total": 1065,
+        "us_total": 1066,
         "anchor_coverage_pct": 86.2,
         "by_state": {
           "sem_campo": 146,
           "placeholder": 1,
           "pendente": 442,
           "parcial": 125,
-          "anchored_ok": 351,
+          "anchored_ok": 352,
           "anchored_dead": 0,
           "anchored_zombie": 0
         },
-        "fields_total": 925,
+        "fields_total": 926,
         "fields_placeholder": 1,
         "fields_grammar_ok": 825,
         "orphan_fields": 6,
@@ -166,8 +166,8 @@
       "target": 100,
       "source": "scripts/governance/knowledge-drift.mjs --json (BRIEFING.md presente por módulo)",
       "detail": {
-        "with_door": 82,
-        "modules": 82
+        "with_door": 83,
+        "modules": 83
       },
       "stream": "MEM"
     },
@@ -210,9 +210,9 @@
       "target": 0,
       "source": "memory/requisitos/*/BRIEFING.md frontmatter distilled_at vs UNIÃO(data-git do doc não-gerado mais novo, data-git do código do módulo) — determinístico, ADR 0291 D-D",
       "detail": {
-        "portas": 85,
+        "portas": 86,
         "carimbadas": 15,
-        "sem_carimbo": 70,
+        "sem_carimbo": 71,
         "stale": 9,
         "oldest_distilled_at": "2026-09-06",
         "datadas_por_codigo": 14
@@ -227,7 +227,7 @@
       "target": 1,
       "source": "scripts/governance/knowledge-drift.mjs --json .[].hops → mediana (mesma fórmula do relatório humano · ADR 0270 D-5)",
       "detail": {
-        "modules": 82,
+        "modules": 83,
         "hops_worst": 8
       },
       "stream": "MEM"
