@@ -17,6 +17,7 @@ import { useState, type ReactNode } from 'react';
 import { Check, RefreshCw } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
 import { Badge } from '@/Components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import { Alert, AlertDescription } from '@/Components/ui/alert';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter,
@@ -114,12 +115,13 @@ function PedidosIndex({ e_atendente, atendente_escolhido, atendentes, itens, ped
         {!e_atendente && (
           <Inline data-contract="filtros" gap={2}>
             <label htmlFor="atendente" className="text-sm font-medium">Atendente</label>
-            <select id="atendente" className="h-9 min-w-64 rounded-md border border-input bg-background px-2 text-sm"
-              value={atendente_escolhido ?? ''}
-              onChange={(e) => router.get(AQUI, e.target.value ? { service_staff: e.target.value } : {}, { preserveScroll: true })}>
-              <option value="">Escolha o atendente</option>
-              {atendentes.filter((a) => Boolean(a.id)).map((a) => <option key={a.id} value={a.id}>{a.nome}</option>)}
-            </select>
+            <Select value={atendente_escolhido ? String(atendente_escolhido) : undefined}
+              onValueChange={(v) => router.get(AQUI, { service_staff: v }, { preserveScroll: true })}>
+              <SelectTrigger id="atendente" className="min-w-64"><SelectValue placeholder="Escolha o atendente" /></SelectTrigger>
+              <SelectContent>
+                {atendentes.filter((a) => Boolean(a.id)).map((a) => <SelectItem key={a.id} value={String(a.id)}>{a.nome}</SelectItem>)}
+              </SelectContent>
+            </Select>
           </Inline>
         )}
 
