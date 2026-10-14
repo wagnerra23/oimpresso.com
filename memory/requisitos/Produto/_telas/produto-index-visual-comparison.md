@@ -149,6 +149,41 @@ blueprint_cowork: prototipo-ui/prototipos/produto-cockpit/ _(removido em 2026-05
 >   com o aviso, como no protótipo (antes a aba sumia). O texto fica só em "Este produto não gerencia
 >   estoque.": o protótipo traz o nome da coluna (`enable_stock = 0`) e afirma que serviços e
 >   composições entram assim, o que não vale para composição com estoque ligado no cadastro.
+>
+> ### Painel de detalhe — 2ª medição, 2026-10-14 (todas as abas, mesma sonda nos dois lados)
+>
+> Tema escuro, 1593px. Protótipo `cowork/Felipe/oimpresso.com.html` rota `prod-lista`, produto
+> "Adesivo de recorte — vinil colorido" × produção biz 1, produto "Broca" (os dois variáveis, com
+> estoque, ativos). `produto-blade.jsx` do espelho conferido igual ao do Cowork vivo antes de medir.
+> A sonda acha cada papel pelo texto (as classes diferem) e lê o estilo calculado de topo, abas,
+> títulos, campos, cartões, tabelas, botões e rodapé, em cada aba.
+>
+> **Corrigido (grupo A, mesmo dia):**
+>
+> | # | Onde | Protótipo | Produção antes |
+> |---|---|---|---|
+> | A1 | Altura de linha do painel | 1,45 | 1,5 (cada linha 0,5–1px mais alta) |
+> | A2 | Títulos de seção | altura de linha 1,2 (13px) | 1,5 (17px) |
+> | A3 | Faixa das abas | 39px | 36px |
+> | A4 | "Abrir histórico de estoque" | 26px de altura, 11,5px | 32px, 14px |
+> | A5 | Aba Estoque: tabela → texto → botão | 10px e 16px | 12px e 12px |
+>
+> Medido antes de publicar, aplicando as cinco mudanças no painel aberto em produção (só no navegador
+> da medição) e rodando a sonda de novo: as cinco diferenças somem e as posições da aba Estoque
+> batem com o protótipo (faixa 133–172, tabela→texto 10px, texto→botão 16px, botão 26px).
+>
+> **Ficam, por vir de componente usado no app inteiro (decisão [W]/[F], não desta tela):** contador
+> da aba (fundo e altura — `PageHeaderTabs`), texto do botão principal (branco no protótipo),
+> fundo dos botões de contorno (sólido × translúcido) e cor do texto do "Fechar" (cinza × normal) —
+> `Button` do Design System.
+>
+> **De propósito ou por dado:** "Transferir" por local (espera a requisição de transferência);
+> campos da aba Fiscal; coluna "Variação" no estoque de produto variável; Prateleira sem cadastro
+> mostra o aviso, como a Blade, em vez de uma linha por local com "—"; e diferenças de conteúdo
+> (subtítulo, foto, grupos de preço, nome longo de variação). As abas do protótipo usam a fonte Arial
+> porque os botões dele não herdam a fonte do sistema — defeito do protótipo, não copiado.
+> **Não medido:** aba Composição em produção (a empresa de teste não tem produto composto), tema
+> claro, estados de passar o mouse e de foco.
 
 > **Tipo de tela:** list cockpit list+detail (drawer pattern)
 > **Persona:** Larissa (ROTA LIVRE biz=4), 1280px

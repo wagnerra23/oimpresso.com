@@ -1133,9 +1133,9 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
     Route::get('shipments', [SellController::class, 'shipments']);
 
     Route::post('upload-module', [Install\ModulesController::class, 'uploadModule']);
-    Route::delete('manage-modules/destroy/{module_name}', [Install\ModulesController::class, 'destroy']);
-    Route::resource('manage-modules', Install\ModulesController::class)
-        ->only(['index', 'update']);
+    // /manage-modules: só o GET, que redireciona para /modulos (playbook modulos/04).
+    // Fica porque os InstallController de módulo voltam para cá por action(...@index).
+    Route::get('manage-modules', [Install\ModulesController::class, 'index']);
     Route::get('regenerate', [Install\ModulesController::class, 'regenerate']);
 
     Route::resource('warranties', WarrantyController::class);

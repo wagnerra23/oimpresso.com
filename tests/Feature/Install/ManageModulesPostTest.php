@@ -3,6 +3,10 @@
 /**
  * /manage-modules — instalar / desinstalar / atualizar por POST + CSRF.
  *
+ * 2026-10-14 (playbook modulos/04): a tela AdminLTE saiu; /manage-modules redireciona para
+ * /modulos. O censo e as guardas abaixo seguem valendo — são do InstallController de cada
+ * módulo, não da tela.
+ *
  * A tela montava <a href> (GET) para as ações de cada módulo nWidart; GET que muda estado
  * é alvo de CSRF e de prefetch. Agora a tela usa <form method="POST"> + @csrf quando o
  * módulo REGISTRA POST na mesma URL — decidido pelo router (ModulesController::aceitaPost),
@@ -109,41 +113,43 @@ it('nos módulos cujo uninstall/update aceita POST, o GET da mesma URL não exec
     }
 });
 
-it('a partial renderiza form POST com CSRF quando o módulo aceita POST', function () {
-    $html = view('install.modules.partials.acao', [
-        'url' => url('connector/install/uninstall'),
-        'post' => true,
-        'classe' => 'btn btn-warning btn-xs',
-        'rotulo' => 'Desinstalar',
-        'confirmar' => 'Confirma?',
-        'is_demo' => false,
-    ])->render();
+// A tela AdminLTE de /manage-modules saiu (playbook modulos/04, PR-8). O GET fica como
+// redirecionamento para /modulos: os InstallController de módulo voltam para cá por
+// action([ModulesController::class, 'index']), e sem rota o action() lança.
 
-    expect($html)->toContain('method="POST"');
-    expect($html)->toContain('action="'.url('connector/install/uninstall').'"');
-    expect($html)->toContain('name="_token"');
-    expect($html)->toContain("return confirm('Confirma?')");
-    expect($html)->not->toContain('href="'.url('connector/install/uninstall').'"');
+it('/manage-modules só responde GET, e o GET cai no redirecionamento', function () {
+    $get = Route::getRoutes()->match(\Illuminate\Http\Request::create(url('manage-modules'), 'GET'));
+    expect($get->getActionName())->toBe(ModulesController::class.'@index');
+
+    // As ações da tela antiga (ativar/desativar por PUT, apagar por DELETE) não existem mais.
+    foreach (['PUT' => 'manage-modules/Crm', 'DELETE' => 'manage-modules/destroy/Crm'] as $metodo => $uri) {
+        $existe = true;
+        try {
+            Route::getRoutes()->match(\Illuminate\Http\Request::create(url($uri), $metodo));
+        } catch (\Symfony\Component\HttpKernel\Exception\HttpException $e) {
+            $existe = false;
+        }
+        expect($existe)->toBeFalse("{$metodo} {$uri} ainda tem rota");
+    }
+
+    // Os instaladores de módulo continuam conseguindo montar a URL de volta.
+    expect(action([ModulesController::class, 'index']))->toBe(url('manage-modules'));
 });
 
-it('a partial mantém o link GET quando o módulo só registra GET', function () {
-    $html = view('install.modules.partials.acao', [
-        'url' => url('woocommerce/install/uninstall'),
-        'post' => false,
-        'classe' => 'btn btn-warning btn-xs',
-        'rotulo' => 'Desinstalar',
-        'is_demo' => false,
-    ])->render();
+it('o redirecionamento vai para /modulos e leva junto o status que o instalador gravou', function () {
+    session()->flash('status', ['success' => 1, 'msg' => 'Módulo X instalado com sucesso.']);
+    session()->ageFlashData(); // simula a requisição seguinte, que é a de /manage-modules
 
-    expect($html)->toContain('href="'.url('woocommerce/install/uninstall').'"');
-    expect($html)->not->toContain('method="POST"');
+    $resposta = app(ModulesController::class)->index();
+
+    expect($resposta->getStatusCode())->toBe(301);
+    expect($resposta->getTargetUrl())->toBe(route('modules.index'));
+    expect(session('_flash.new'))->toContain('status');
+    expect(session('status.msg'))->toBe('Módulo X instalado com sucesso.');
 });
 
-it('a view de /manage-modules usa a partial nas 3 ações', function () {
-    $view = file_get_contents(resource_path('views/install/modules/index.blade.php'));
-
-    expect(substr_count($view, "@include('install.modules.partials.acao'"))->toBe(3);
-    expect($view)->toContain("\$module['install_post']");
-    expect($view)->toContain("\$module['uninstall_post']");
-    expect($view)->toContain("\$module['update_post']");
+it('a view da tela antiga foi apagada; a de confirmação, que a trait usa, fica', function () {
+    expect(file_exists(resource_path('views/install/modules/index.blade.php')))->toBeFalse();
+    expect(file_exists(resource_path('views/install/modules/partials/acao.blade.php')))->toBeFalse();
+    expect(file_exists(resource_path('views/install/modules/confirmar.blade.php')))->toBeTrue();
 });

@@ -33,8 +33,9 @@ use Tests\Support\EstoqueFixture;
  * na sessão o CI roda em UTC e o caso principal passaria sem provar nada.
  *
  * RESULTADO (run 38582625593, 2026-10-14): hipótese CONFIRMADA. São Paulo: modal mostra 11:00 e
- * grava 11:00 para um pagamento das 08:00. UTC: 08:00 / 08:00. Arquivo em quarentena declarada
- * (.github/financeiro-pest-quarantine.list) até o conserto, que é decisão [W].
+ * grava 11:00 para um pagamento das 08:00. UTC: 08:00 / 08:00.
+ * CONSERTO ([W] 2026-10-14): o modal passou a preencher o campo com Util::format_date_no_shift.
+ * Este arquivo voltou para a lane `PHP / Pest (Financeiro · MySQL)` como prova do conserto.
  *
  * ⛔ Tier 0: tenant 98. NUNCA biz=4.
  */
