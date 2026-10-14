@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\NfeBrasil\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use Carbon\CarbonImmutable;
 use App\Scopes\ScopeByBusiness;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -18,6 +19,7 @@ use Illuminate\Validation\ValidationException;
 use Modules\NfeBrasil\Mail\RevisaoContadorMail;
 use Modules\NfeBrasil\Models\NfeContadorLink;
 use Modules\NfeBrasil\Models\NfeRevisaoContador;
+use Modules\NfeBrasil\Services\Tributacao\FechamentoContadorService;
 use Modules\NfeBrasil\Services\Tributacao\ImportRegrasCsvService;
 use Modules\NfeBrasil\Services\Tributacao\RevisaoContadorService;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -75,6 +77,7 @@ class RevisaoContadorLinkController extends Controller
             return response()->view('nfebrasil::contador.revisao', [
                 'modo' => 'lista', 'link' => $l, 'empresa' => $this->empresa($l->business_id),
                 'revisoes' => $this->revisoes($l),
+                'fechamento' => $this->fechamento($request, $l),
             ]);
         }
 
@@ -226,6 +229,25 @@ class RevisaoContadorLinkController extends Controller
 
                 return $v;
             });
+    }
+
+    /**
+     * Fechamento do mês (thread 28 · D-FECHAMENTO): só leitura, só agregados do business do link.
+     * Atrás de flag, desligada por padrão. Mês = `?mes=AAAA-MM` ou o mês anterior ao de hoje.
+     *
+     * @return array<string, mixed>|null
+     */
+    private function fechamento(Request $request, NfeContadorLink $l): ?array
+    {
+        if (! config('nfebrasil.fechamento_contador', false)) {
+            return null;
+        }
+        $mes = (string) $request->query('mes', '');
+        $competencia = preg_match('/^\d{4}-(0[1-9]|1[0-2])$/', $mes) === 1
+            ? CarbonImmutable::createFromFormat('!Y-m', $mes)
+            : CarbonImmutable::now()->startOfMonth()->subMonthNoOverflow();
+
+        return app(FechamentoContadorService::class)->fechar($l->business_id, $competencia);
     }
 
     private function empresa(int $biz): string

@@ -67,4 +67,10 @@ return [
         'email'   => env('NFEBRASIL_RESPTEC_EMAIL', ''),
         'fone'    => env('NFEBRASIL_RESPTEC_FONE', ''),
     ],
+
+    /*
+     * Fechamento do mês no link do contador (playbook Fiscal thread 28 · D-FECHAMENTO).
+     * Desligado por padrão: a seção nova só aparece na página do link quando ligada.
+     */
+    'fechamento_contador' => env('NFEBRASIL_FECHAMENTO_CONTADOR', false),
 ];
