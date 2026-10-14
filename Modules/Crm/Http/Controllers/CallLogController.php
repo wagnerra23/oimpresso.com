@@ -125,12 +125,24 @@ class CallLogController extends Controller
         // Wave 15 D8 Security — authorize() + validacao + normalizacao IDs centralizados.
         $business_id = $request->session()->get('user.business_id');
 
+        // Mesmo escopo da lista (achado B2, thread Crm/12): sem permissão de chamada, 403;
+        // quem só vê os próprios apaga só o que criou. Antes bastava `crm_module`.
+        $pode_todos = auth()->user()->can('crm.view_all_call_log');
+        if (! $pode_todos && ! auth()->user()->can('crm.view_own_call_log')) {
+            abort(403, 'Unauthorized action.');
+        }
+
         $selected_rows = $request->ids();
 
         if (! empty($selected_rows)) {
-            CrmCallLog::where('business_id', $business_id)
-                    ->whereIn('id', $selected_rows)
-                    ->delete();
+            $query = CrmCallLog::where('business_id', $business_id)
+                    ->whereIn('id', $selected_rows);
+
+            if (! $pode_todos) {
+                $query->where('created_by', auth()->user()->id);
+            }
+
+            $query->delete();
         }
         $output = ['success' => 1,
             'msg' => __('lang_v1.deleted_success'),
