@@ -232,6 +232,7 @@ module: Crm
 - [Index.tsx](../../../Modules/Crm/Resources/js/Pages/Crm/Leads/Index.tsx)
 - [Index.tsx](../../../Modules/Crm/Resources/js/Pages/Crm/Logins/Index.tsx)
 - [Index.tsx](../../../Modules/Crm/Resources/js/Pages/Crm/Painel/Index.tsx)
+- [Index.tsx](../../../Modules/Crm/Resources/js/Pages/Crm/Pedidos/Index.tsx)
 
 ## Componentes / apoio de tela — 5
 
@@ -248,6 +249,7 @@ module: Crm
 - [Index.charter.md](../../../Modules/Crm/Resources/js/Pages/Crm/Leads/Index.charter.md)
 - [Index.charter.md](../../../Modules/Crm/Resources/js/Pages/Crm/Logins/Index.charter.md)
 - [Index.charter.md](../../../Modules/Crm/Resources/js/Pages/Crm/Painel/Index.charter.md)
+- [Index.charter.md](../../../Modules/Crm/Resources/js/Pages/Crm/Pedidos/Index.charter.md)
 
 ## Casos (contrato UC) — 5
 
@@ -256,6 +258,7 @@ module: Crm
 - [Index.casos.md](../../../Modules/Crm/Resources/js/Pages/Crm/Leads/Index.casos.md)
 - [Index.casos.md](../../../Modules/Crm/Resources/js/Pages/Crm/Logins/Index.casos.md)
 - [Index.casos.md](../../../Modules/Crm/Resources/js/Pages/Crm/Painel/Index.casos.md)
+- [Index.casos.md](../../../Modules/Crm/Resources/js/Pages/Crm/Pedidos/Index.casos.md)
 
 ## Testes (Pest) — 32
 
