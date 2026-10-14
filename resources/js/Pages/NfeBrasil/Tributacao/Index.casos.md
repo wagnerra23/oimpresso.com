@@ -431,12 +431,13 @@ last_run: "2026-10-07"
   provoca · Então aparece com a rota que resolve · Quando corrijo · Então some. Nada de outro business
   aparece, e avaliar não escreve. Controle positivo: NCM padrão válido e certificado longe de vencer não
   geram item.
-- **Teste:** [`SaudeFiscalTest`](../../../../../Modules/NfeBrasil/Tests/Feature/SaudeFiscalTest.php) — `UC-NFTR-24 · pendência aparece e some ao corrigir`.
+- **Teste:** [`SaudeFiscalTest`](../../../../../Modules/NfeBrasil/Tests/Feature/SaudeFiscalTest.php) — `UC-NFTR-24 · pendência aparece e some ao corrigir` e `UC-NFTR-24 · a tela recebe cada pendência com o link que resolve`.
+- **Tela:** card `data-contract="saude-fiscal"` no topo da Index (`_components/SaudeFiscal.tsx`, prop deferida
+  `saude`), forma da aba "Saúde fiscal" do `fiscal-tributacao.jsx`. Severidade e contagem vêm do servidor.
 - **Contrato:** D-SUPORTE · US-NFE-010 "Filtro Suspeitas" · auditoria 2026-05 bug #3 · `SaudeFiscalService`.
 - **Regressão que defende:** o usuário só descobre o problema na rejeição da SEFAZ.
-- **Fora daqui (thread 14, PR-b):** o card no topo da Index. Regra sem cClassTrib (Reforma ligada), versão sem aceite
-  do contador, cliente e emitente sem código IBGE, serviço sem código municipal e rejeição cadastral recente
-  ainda não entram.
+- **Fora daqui:** regra sem cClassTrib (Reforma ligada), versão sem aceite do contador, cliente e emitente sem
+  código IBGE, serviço sem código municipal e rejeição cadastral recente ainda não entram.
 - **Status: 🧪** — veredito da lane `PHP / Pest (NfeBrasil · MySQL)`.
 
 ## UC-NFTR-25 · "Pronto pra emitir" = nenhuma pendência bloqueante · `should` `[fiscal]`
