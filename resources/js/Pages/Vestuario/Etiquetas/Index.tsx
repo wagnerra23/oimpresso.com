@@ -144,7 +144,7 @@ export default function EtiquetasIndex({ config }: Props) {
       <div data-contract="cabecalho">
         <PageHeader
           title="Etiquetas TAG vestuário"
-          subtitle="ZPL Argox/Zebra + PDF · US-VEST-020"
+          subtitle="ZPL Argox/Zebra + PDF"
         />
       </div>
 
