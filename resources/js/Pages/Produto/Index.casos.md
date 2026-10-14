@@ -344,6 +344,7 @@ last_run_ci: "run 38087431948 (lane Estoque · MySQL, commit 59fe58ae, com o arq
   - lucro **negativo** fica vermelho. No protótipo o lucro é sempre positivo e sempre verde; com estoque de verdade existe custo acima do preço de venda, e verde ali enganaria;
   - o rodapé mantém "Página X de Y · N linhas" com Anterior/Próxima; o protótipo usa páginas numeradas.
 - **Linha em alerta de estoque:** a linha inteira continua vermelha, como na Blade; a célula do lucro segue a regra dela (verde se positivo).
+- **Defeito achado no teste em produção (2026-10-14, depois do deploy do #9324):** as classes de cor chegavam ao DOM e a célula continuava na cor comum — a cor computada era a mesma nas 40 linhas de lucro positivo, nas 3 negativas e no total. Causa medida: o bundle da tela tem `.pb-tbl tbody td { color: var(--text) }` fora das camadas do Tailwind, e regra sem camada vence `@layer utilities`. A mesma causa deixava **inerte desde sempre a linha vermelha de alerta** (a classe estava no `<tr>`, e cada `td` tem cor própria). Conserto: o lucro pede a cor em `style`, e a linha de alerta troca o `--text` dela — conferido contra o CSS real da tela antes de subir.
 - **Status: ⬜** — nasce neste PR; verde esperado. A parte do servidor roda na lane Estoque · MySQL; a parte Vitest não roda em lane nenhuma.
 
 ## UC-PIDX-19 · A aba Fiscal do painel mostra o tipo de imposto na venda · `could`
@@ -461,6 +462,7 @@ last_run_ci: "run 38087431948 (lane Estoque · MySQL, commit 59fe58ae, com o arq
 - Gate: `scripts/casos-coverage-guard.mjs` (G-1/G-2/G-5/G-6/G-7 — [ADR 0264](../../../../memory/decisions/0264-governanca-executavel-trio-dominio-e2e.md))
 
 ## Trilha do tempo
+- 2026-10-14 · [F+C] **UC-PIDX-18 / UC-PIDX-08, conserto:** lucro potencial e linha vermelha de alerta passam a pintar de verdade (cor em `style`; a classe utilitária perdia para `.pb-tbl tbody td` do bundle). A linha vermelha de alerta nunca tinha aparecido.
 - 2026-10-13 · [F+C] **UC-PIDX-19** (aba Fiscal): entra "Tipo de imposto na venda". Origem da mercadoria, "Abrir no módulo Fiscal", o texto de ajuda, "Transferir" por local e "Gerar OP" ficam registrados como não feitos, com o motivo de cada um.
 - 2026-10-13 · [F+C] **UC-PIDX-18** (aba Relatório de estoque): seletor de linhas por página (`estoque_por_pagina`, as opções da lista Blade) e lucro potencial da linha com cor. Totais provados iguais em 25, 50 e Todos.
 - 2026-10-13 · [F+C] **UC-PIDX-17** ("Dados fiscais" no menu da linha): item novo no menu Ações, abre o painel na aba Fiscal; a aba ativa do painel passa a ser da página, e cada abertura recomeça na aba pedida.

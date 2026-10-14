@@ -3,6 +3,7 @@
 // Nada é calculado aqui: linhas e totais chegam prontos de
 // ProductController::buildRelatorioEstoqueDaLista (as MESMAS contas de Relatórios → Estoque).
 
+import type { CSSProperties } from 'react';
 import { Button } from '@/Components/ui/button';
 import { Inline } from '@/Components/layout';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
@@ -18,8 +19,22 @@ const horaDe = (iso: string | null) =>
  * Cor do lucro potencial da LINHA. Protótipo: verde (`--pos`) — lá o lucro é sempre positivo. Aqui o
  * número vem do estoque de verdade: positivo fica verde, negativo (custo acima do preço de venda)
  * fica vermelho, e zero ou sem valor não ganha cor. O total do rodapé não tem cor, como no protótipo.
+ *
+ * ⚠️ A cor vai em `style`, NUNCA em classe utilitária. O bundle da tela tem
+ * `.pb-tbl tbody td { color: var(--text) }` fora de qualquer camada do Tailwind, e regra sem camada
+ * vence `@layer utilities`: `text-[var(--pos)]` chegava ao DOM e a célula continuava na cor comum.
+ * Medido em produção em 2026-10-14 (cor computada igual nas 40 positivas, nas 3 negativas e no total).
  */
-const corDoLucro = (n: number | null) => (n === null || n === 0 ? '' : n > 0 ? ' text-[var(--pos)]' : ' text-[var(--neg)]');
+const corDoLucro = (n: number | null): CSSProperties | undefined =>
+  n === null || n === 0 ? undefined : { color: n > 0 ? 'var(--pos)' : 'var(--neg)' };
+/**
+ * Linha vermelha da Blade (estoque no alerta ou abaixo). Pela mesma razão de cima, pintar o `<tr>`
+ * não chega às células: cada `td` tem `color: var(--text)` próprio. Trocar o `--text` da linha faz
+ * TODAS as células dela usarem o vermelho, sem repetir a cor em cada uma. Até 2026-10-14 a classe
+ * no `<tr>` era inerte: a linha de alerta nunca apareceu vermelha.
+ */
+const corDaLinha = (alerta: boolean): CSSProperties | undefined =>
+  alerta ? ({ '--text': 'var(--neg)' } as CSSProperties) : undefined;
 
 export default function RelatorioEstoqueAba({
   dados,
@@ -71,7 +86,7 @@ export default function RelatorioEstoqueAba({
             )}
             {linhas.map((l, i) => (
               // Como a linha vermelha da Blade: estoque no alerta ou abaixo.
-              <tr key={`${l.sku}-${l.local}-${i}`} className={l.alerta ? 'text-[var(--neg)]' : undefined}>
+              <tr key={`${l.sku}-${l.local}-${i}`} style={corDaLinha(l.alerta)}>
                 <td className="m">{l.sku}</td>
                 <td>
                   <b>{l.produto}</b>
@@ -86,7 +101,9 @@ export default function RelatorioEstoqueAba({
                   <>
                     <td className="r">{dinheiro(l.valor_compra)}</td>
                     <td className="r">{dinheiro(l.valor_venda)}</td>
-                    <td className={`r${corDoLucro(l.lucro_potencial)}`}>{dinheiro(l.lucro_potencial)}</td>
+                    <td className="r" style={corDoLucro(l.lucro_potencial)}>
+                      {dinheiro(l.lucro_potencial)}
+                    </td>
                   </>
                 )}
                 <td className="r">{qtd(l.vendido, l.unidade)}</td>

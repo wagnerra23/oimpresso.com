@@ -1,6 +1,6 @@
 // Aba "Relatório de estoque" da lista de produtos — lucro potencial com cor e linhas por página.
 //
-// Cobre UC-PIDX-18 (resources/js/Pages/Produto/Index.casos.md). O lado do servidor (o tamanho de
+// Cobre UC-PIDX-18 e a linha vermelha do UC-PIDX-08 (resources/js/Pages/Produto/Index.casos.md). O lado do servidor (o tamanho de
 // página de verdade, os totais iguais em qualquer tamanho) está em
 // tests/Feature/Produto/ProdutoListaEstoqueAbaTest.php, que roda em lane.
 //
@@ -47,53 +47,81 @@ const celulaDoLucro = (sku: string) => {
   const cabecalhos = screen.getAllByRole('columnheader').map((th) => th.textContent);
   return tr.querySelectorAll('td')[cabecalhos.indexOf('Lucro potencial')] as HTMLElement;
 };
-const classes = (el: HTMLElement) => el.className.split(/\s+/);
+/** A cor que a célula PEDE em `style` (o jsdom não resolve `var()`; a cor resolvida se confere no navegador). */
+const corPedida = (el: HTMLElement) => el.style.color;
 
 afterEach(() => cleanup());
 
+// ⚠️ A cor vai em `style`, não em classe: no bundle da tela `.pb-tbl tbody td { color: var(--text) }`
+// fica fora das camadas do Tailwind e vence `text-[var(--pos)]`. Medido em produção em 2026-10-14 — a
+// classe chegava ao DOM e a célula continuava na cor comum. Os asserts abaixo leem `style`, e um deles
+// prova que nenhuma classe de cor sobrou (a que era inerte).
 describe('UC-PIDX-18 · lucro potencial com cor', () => {
-  it('lucro positivo fica verde (`--pos`), como no protótipo', () => {
+  it('lucro positivo pede verde (`--pos`), como no protótipo', () => {
     montar(dados([linha('A1', 60, 100)]));
     const td = celulaDoLucro('A1');
     expect(td.textContent).toBe(brl(40));
-    expect(classes(td)).toContain('text-[var(--pos)]');
-    expect(classes(td)).not.toContain('text-[var(--neg)]');
+    expect(corPedida(td)).toBe('var(--pos)');
   });
 
-  it('lucro negativo (custo acima do preço de venda) fica vermelho, não verde', () => {
+  it('lucro negativo (custo acima do preço de venda) pede vermelho, não verde', () => {
     montar(dados([linha('B2', 100, 60)]));
     const td = celulaDoLucro('B2');
     expect(td.textContent).toBe(brl(-40));
-    expect(classes(td)).toContain('text-[var(--neg)]');
-    expect(classes(td)).not.toContain('text-[var(--pos)]');
+    expect(corPedida(td)).toBe('var(--neg)');
   });
 
-  it('lucro zero não ganha cor', () => {
+  it('lucro zero não pede cor', () => {
     montar(dados([linha('C3', 80, 80)]));
-    const c = classes(celulaDoLucro('C3'));
-    expect(c).not.toContain('text-[var(--pos)]');
-    expect(c).not.toContain('text-[var(--neg)]');
+    expect(corPedida(celulaDoLucro('C3'))).toBe('');
   });
 
-  it('só o lucro ganha cor: valor pelo custo e valor pela venda da mesma linha ficam como estavam', () => {
+  it('só o lucro pede cor: as outras células da linha ficam como estavam', () => {
     montar(dados([linha('A1', 60, 100)]));
     const tr = screen.getByText('A1').closest('tr') as HTMLElement;
-    const coloridas = Array.from(tr.querySelectorAll('td')).filter((td) => /text-\[var\(--(pos|neg)\)\]/.test(td.className));
+    const coloridas = Array.from(tr.querySelectorAll('td')).filter((td) => td.style.color !== '');
     expect(coloridas).toHaveLength(1);
     expect(coloridas[0]).toBe(celulaDoLucro('A1'));
   });
 
-  it('o total do rodapé não tem cor (no protótipo é só negrito)', () => {
+  it('nenhuma classe utilitária de cor sobrou nas células (a forma que era inerte)', () => {
+    montar(dados([linha('A1', 60, 100), linha('B2', 100, 60)]));
+    const tabela = screen.getByRole('table');
+    expect(tabela.querySelector('tbody [class*="text-[var(--pos)]"], tbody [class*="text-[var(--neg)]"]')).toBeNull();
+  });
+
+  it('o total do rodapé não pede cor (no protótipo é só negrito)', () => {
     montar(dados([linha('A1', 60, 100)]));
     const rodape = document.querySelector('tfoot') as HTMLElement;
     expect(within(rodape).getByText(brl(120))).toBeTruthy();
-    expect(rodape.innerHTML).not.toMatch(/text-\[var\(--(pos|neg)\)\]/);
+    expect(Array.from(rodape.querySelectorAll('td')).every((td) => td.style.color === '')).toBe(true);
   });
 
   it('sem permissão de ver valores, a coluna não existe', () => {
     montar(dados([linha('A1', null, null)], { mostra_valor: false }));
     expect(screen.getAllByRole('columnheader').map((th) => th.textContent)).not.toContain('Lucro potencial');
-    expect(document.querySelector('[class*="--pos"]')).toBeNull();
+    expect(Array.from(document.querySelectorAll('tbody td')).every((td) => (td as HTMLElement).style.color === '')).toBe(true);
+  });
+});
+
+describe('UC-PIDX-08 · linha de estoque em alerta fica vermelha (como na Blade)', () => {
+  it('linha em alerta troca o `--text` dela para o vermelho — é o que as células usam', () => {
+    montar(dados([linha('A1', 60, 100, { alerta: true }), linha('B2', 60, 100)]));
+    const emAlerta = screen.getByText('A1').closest('tr') as HTMLElement;
+    const normal = screen.getByText('B2').closest('tr') as HTMLElement;
+    expect(emAlerta.style.getPropertyValue('--text')).toBe('var(--neg)');
+    expect(normal.style.getPropertyValue('--text')).toBe('');
+  });
+
+  it('a linha não depende mais de classe no `<tr>` (a forma que era inerte)', () => {
+    montar(dados([linha('A1', 60, 100, { alerta: true })]));
+    const emAlerta = screen.getByText('A1').closest('tr') as HTMLElement;
+    expect(emAlerta.className).toBe('');
+  });
+
+  it('numa linha em alerta, o lucro segue a regra dele (positivo pede verde)', () => {
+    montar(dados([linha('A1', 60, 100, { alerta: true })]));
+    expect(corPedida(celulaDoLucro('A1'))).toBe('var(--pos)');
   });
 });
 
