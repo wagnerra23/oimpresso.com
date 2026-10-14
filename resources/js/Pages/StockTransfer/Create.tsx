@@ -9,7 +9,7 @@
 // Charter: ./Create.charter.md
 
 import AppShellV2 from '@/Layouts/AppShellV2';
-import PageHeader from '@/Components/shared/PageHeader';
+import { PageHeader } from '@/Components/PageHeader';
 import { router, useForm } from '@inertiajs/react';
 import { useMemo, useState, type ReactNode } from 'react';
 import { Button } from '@/Components/ui/button';
@@ -133,10 +133,10 @@ function StockTransferCreate({
   return (
     <form onSubmit={enviar}>
       <PageHeader
-        icon="truck"
+        leading={<Truck className="mr-2 inline h-5 w-5 align-middle text-primary" aria-hidden="true" />}
         title="Nova transferência de estoque"
-        description="Origem → Destino dentro da mesma empresa (multi-tenant Tier 0)."
-        action={
+        subtitle="Origem → Destino dentro da mesma empresa (multi-tenant Tier 0)."
+        actions={
           <div className="flex gap-2">
             <Button type="button" variant="outline" size="sm" onClick={() => router.visit('/stock-transfers')}>
               <ArrowLeft className="h-4 w-4 mr-1" /> Cancelar
