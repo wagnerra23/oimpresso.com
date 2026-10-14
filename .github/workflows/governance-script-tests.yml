@@ -272,6 +272,9 @@ jobs:
       - name: Shipped-log gerador honesto (fixtures-armadilha)
         if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/shipped-log-generate.test.mjs
+      - name: Gerente da fila (lotes · required do baseline · NaoMedi)
+        if: always() && steps.setup.outcome == 'success'
+        run: node scripts/governance/gerente-fila.mjs --selftest
       - name: Dup-detector L3 (overlap/ack/exclude)
         if: always() && steps.setup.outcome == 'success'
         run: node scripts/governance/dup-detector.test.mjs

@@ -4,11 +4,11 @@
 > Regenerar: `node scripts/governance/skills-index-generate.mjs --write`. Convenção de tiers: ADR 0095 · recalibração 5 núcleo + auto-trigger: ADR 0225.
 
 ## Resumo
-- **74** skills · Tier A **5** (5 núcleo + 0 dormente) · Tier B **59** · Tier C **10**
+- **75** skills · Tier A **5** (5 núcleo + 0 dormente) · Tier B **60** · Tier C **10**
 - Auto-trigger explícito: 9 (session_start 2 · path 5 · intent 1 · on_demand 1)
 - Destacadas no bloco do CLAUDE.md: 13 (entre marcadores AUTO:SKILLS)
 
-## Todas as skills (74)
+## Todas as skills (75)
 | Skill | Tier | auto_trigger | enabled | Descrição (início) |
 |---|---|---|---|---|
 | alinhar-tela | B | — | sim | Use quando Wagner pedir "alinhar a tela X", "ligar a máquina da tela Y", "o que já tem pronto e o que falta na tela Z… |
@@ -37,6 +37,7 @@
 | feedback-capture | B | — | sim | ATIVAR quando Wagner colar feedback de cliente real OU disser "Daniela reclamou X", "Larissa pediu Y", "Kamila falou … |
 | feedback-dashboard | B | — | sim | ATIVAR quando Wagner pedir "/feedback-dashboard", "mostra feedback", "como está o feedback", "que feedback tem aberto… |
 | funcao-scorecard | B | — | sim | ATIVAR quando [W] pedir "o que você acha dessas funções", "concorda com essa função?", "avalie as funções do <arquivo… |
+| gerente-fila | B | — | sim | ATIVAR quando Wagner pedir "gerencie o merge", "gerente da fila", "cuida da fila de PRs", "placar dos playbooks", "qu… |
 | governance-pr-summary | B | — | sim | Use ANTES de `gh pr create` em qualquer branch que toque Modules/<X>/. ⚠️ PARCIALMENTE APOSENTADA (ADR 0399, 2026-09-… |
 | hostinger-dns-autonomy | A | — | sim | BLOQUEADOR Tier A — ATIVAR antes de pedir Wagner pra criar/editar DNS record, qualquer ação Hostinger painel/UI, OU s… |
 | incident-done-checklist | A | — | sim | BLOQUEADOR — ATIVAR antes de declarar "incident fechado" / "está pronto" / "feature funcionando" / encerrar sessão de… |
