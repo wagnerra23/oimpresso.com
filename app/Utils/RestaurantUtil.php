@@ -98,6 +98,29 @@ class RestaurantUtil extends Util
         return $orders;
     }
 
+    /**
+     * Situação do pedido derivada dos itens, na MESMA ordem de testes do partials/show_orders.blade.php: preparado é
+     * testado antes de servido (é assim que a Blade decide quando todos os itens foram servidos). As telas React de
+     * Cozinha e Pedidos usam esta regra; a Blade segue com a dela, igual.
+     *
+     * @param  \Illuminate\Support\Collection  $sell_lines
+     * @return string received | partial_cooked | cooked | partial_served | served
+     */
+    public function situacaoDoPedido($sell_lines)
+    {
+        $n = $sell_lines->count();
+        $preparados = $sell_lines->where('res_line_order_status', 'cooked')->count();
+        $servidos = $sell_lines->where('res_line_order_status', 'served')->count();
+
+        return match (true) {
+            $preparados === $n => 'cooked',
+            $servidos === $n => 'served',
+            $servidos > 0 => 'partial_served',
+            $preparados > 0 => 'partial_cooked',
+            default => 'received',
+        };
+    }
+
     public function service_staff_dropdown($business_id)
     {
         //Get all service staff roles
