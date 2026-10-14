@@ -41,7 +41,7 @@ O passo 0 pagando por si: um pedido morreu por falta de prova, e um vazamento Ti
 | 02 | **Trava de saldo na alocação** | ~9 KB | ~35 ln | 3 | 2 | 0 | **CABE** |
 | 03 | **Guarda `asset.view` no índice** | ~4 KB | ~8 ln | 2 | 2 | 0 | **CABE** |
 | 04 | **Remedir D1/D5 e os não-lidos** (frente 0) | ~25 KB | 0 | 0 | — | 0 | **CABE** (medição) |
-| 05 | **Retenção LGPD — REABERTA por [W] 07/10** (anonimiza, nasce desligada) | 05a | 0 | 0 | — | 0 | depois da 05a |
+| 05 | **Retenção LGPD — DESCARTADA por [W] 13/10** (ADR 0430 recusada) | — | 0 | 0 | — | 0 | não executável |
 | **07** | **Painel** — cria o `_shared` da frente | ~6 KB | ~180 ln | 3 | 2 | 0 | **CABE** · 1ª da frente |
 | **08** | **Bens** — o CRUD principal | ~9 KB | ~250 ln | 2 | 2 | 0 | **CABE** · atrás da 07 |
 | **09** | **Alocações** — funde `allocation`+`revocation` | ~12 KB | ~280 ln | 3 | 3 | **1** | **CABE** se a fusão for só de tela |
@@ -167,7 +167,7 @@ Dívida sistêmica, fora deste playbook: grade do DS sem `th scope` — **4º m�
       "id": "D-LGPD-REABRE",
       "dono": "W",
       "respondida": true,
-      "resposta": "[W] 2026-10-07: o descarte da 05 está errado — reabrir. Retenção ANONIMIZA campo pessoal, nunca apaga linha nem trilha de auditoria; nasce desligada (enabled=false). Ligar segue D-CANARY-LGPD."
+      "resposta": "[W] 2026-10-07 reabriu a 05. REVOGADA por [W] em 2026-10-13: 'não pode ter o LGPD no patrimonio isso é errado'. ADR 0430 recusada (PR #9268); vale a lápide de 2026-07-27."
     }
   ],
   "threads": [
@@ -286,18 +286,13 @@ Dívida sistêmica, fora deste playbook: grade do DS sem `th scope` — **4º m�
       "dono": "CL",
       "vaga": 2,
       "arquivo": "05-retencao-lgpd.md",
+      "bloqueio": "descartada por [W] 2026-10-13 — ADR 0430 recusada (PR #9268). Não há retenção LGPD no Patrimônio.",
       "prefixo": [],
       "nao_toca": [
         "Modules/AssetManagement/Services/",
         "Modules/AssetManagement/Http/"
       ],
-      "provas": [
-        {
-          "tipo": "contem",
-          "path": "Modules/AssetManagement/Tests/Feature/LgpdComplianceTest.php",
-          "padrao": "retention-purge"
-        }
-      ],
+      "provas": [],
       "depende_threads": [
         "05a"
       ],
@@ -562,12 +557,13 @@ Dívida sistêmica, fora deste playbook: grade do DS sem `th scope` — **4º m�
       "depende_threads": [
         "15"
       ],
-      "nota_provas": "fundir a ROTA e decisao [W] (nota da thread 09). Esta thread NAO funde rota: mantem GET asset/revocation e faz o index dele devolver a MESMA Page de Alocacoes com a visao de revogacao — a fusao e de TELA.",
+      "nota_provas": "fundir a ROTA e decisao [W] (nota da thread 09). ERRATA 2026-10-13: com a decisão (b) [W] 2026-09-30 (_saida-16b), a rota foi fundida por redirecionamento para Alocacoes; as devoluções ficam no drawer do bem (_ERRATA-INDICE-2026-10-13.md).",
       "provas": [
         {
           "tipo": "contem",
           "path": "Modules/AssetManagement/Http/Controllers/RevokeAllocatedAssetController.php",
-          "padrao": "Inertia::render('Patrimonio/Alocacoes'"
+          "padrao": "redirect()->action([AssetAllocationController::class, 'index'])",
+          "nota": "decisão (b) [W] 2026-09-30, _saida-16b: devoluções no drawer do bem; a rota redireciona"
         },
         {
           "tipo": "nao_contem",

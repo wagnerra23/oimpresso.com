@@ -57978,5 +57978,52 @@
     },
     "origin": "medicao",
     "projetoCowork": "w"
+  },
+  {
+    "date": "2026-10-14T13:52:38.480Z",
+    "files": 300,
+    "sync": 16,
+    "stale": 0,
+    "liveAbsent": 0,
+    "unchecked": 284,
+    "staleList": [],
+    "verified": [
+      "cowork-inbox/crm/playbook/_saida-11.md",
+      "cowork-inbox/crm/playbook/_saida-12.md",
+      "cowork-inbox/crm/playbook/_saida-13.md",
+      "cowork-inbox/crm/playbook/_saida-14.md",
+      "cowork-inbox/crm/playbook/_saida-15.md",
+      "cowork-inbox/crm/playbook/_saida-16.md",
+      "cowork-inbox/crm/playbook/_saida-17.md",
+      "cowork-inbox/fiscal/playbook/00-INDICE.md",
+      "cowork-inbox/forja/playbook/00-INDICE.md",
+      "cowork-inbox/hrm/playbook/00-INDICE.md",
+      "cowork-inbox/manufacturing/playbook/00-INDICE.md",
+      "cowork-inbox/patrimonio/playbook/00-INDICE.md",
+      "cowork-inbox/patrimonio/playbook/05-retencao-lgpd.md",
+      "cowork-inbox/restaurante/playbook/_saida-03.md",
+      "cowork-inbox/restaurante/playbook/_saida-04.md",
+      "cowork-inbox/restaurante/playbook/_saida-05.md"
+    ],
+    "verifiedHash": {
+      "cowork-inbox/crm/playbook/_saida-11.md": "ac3eacb29c2600fb4e38dc650c8e893f6aa4a05404659ef8431eb4e2009cc04d",
+      "cowork-inbox/crm/playbook/_saida-12.md": "bc1a3d1e8b08585af4ceab4ef1812ede581490fd5d7501c63a6e558bd257c7a6",
+      "cowork-inbox/crm/playbook/_saida-13.md": "618bd93c3281387a1cab73ef988022a04d4cae421bab5554db849235e8fd06e7",
+      "cowork-inbox/crm/playbook/_saida-14.md": "73ab78de234f6a84e6bdf244b52a5111c1376692564c8b06d5d81ecc89420247",
+      "cowork-inbox/crm/playbook/_saida-15.md": "a19af8d8bca891006906f6215704814e21140140e93cfe2836c7cf4fd17d42f0",
+      "cowork-inbox/crm/playbook/_saida-16.md": "ff20e58458e82d337f7452fbee9c2d9538738cf85de8e8279562262e47853cc4",
+      "cowork-inbox/crm/playbook/_saida-17.md": "412708f675a6ed8c4062cb1093be7c0c5560d2324e3cb435e84a7381665bed00",
+      "cowork-inbox/fiscal/playbook/00-INDICE.md": "6935928fed6e537f11a2c3367330471a212528eceaeb01935b71a7e4ff627162",
+      "cowork-inbox/forja/playbook/00-INDICE.md": "bbe69f222449e387d4ac43e5ea7e7a43e5ffd4ac0aee4d1c55f0bf5283fb6f16",
+      "cowork-inbox/hrm/playbook/00-INDICE.md": "773547ca64769a07c6ad2a51b5cde9fc0997af411241e0a62591635b80f1cec2",
+      "cowork-inbox/manufacturing/playbook/00-INDICE.md": "e08ed847233bb8564de5de5aadad163f0e7406cc623333abaf22289870ce1427",
+      "cowork-inbox/patrimonio/playbook/00-INDICE.md": "445efbf50bb1eb506eb6e3674f028cfb4997a5f3358423c4bff7f88f4ea3010f",
+      "cowork-inbox/patrimonio/playbook/05-retencao-lgpd.md": "2691ea06fbf45e464c1b65402ebe18a88622ebac243b5858614e9a54a81c2f8b",
+      "cowork-inbox/restaurante/playbook/_saida-03.md": "4434fa46603aaf3fe187b4b290a74bd3e72220a9ac3bc68d1358528e19368b74",
+      "cowork-inbox/restaurante/playbook/_saida-04.md": "18822f352cc161b46d8a44900f84305d2ed20f3dd32b699755d82d9b29ed10dd",
+      "cowork-inbox/restaurante/playbook/_saida-05.md": "78b2dc44254d80d091aefd889ef7575c4de1759361d731a268cb6b6249f63344"
+    },
+    "origin": "medicao",
+    "projetoCowork": "w"
   }
 ]

@@ -539,7 +539,7 @@ UCs sem teste (o `--screen` marca ÓRFÃO): `UC-FORJA-03 · 08 · 09 · 10` (Coc
       "prefixo": [
         "Modules/Forja/Services/ProjectDecomposerService.php",
         "Modules/Forja/Http/Controllers/",
-        "Modules/Forja/Tests/Feature/ForjaDecomposeTenantTest.php"
+        "Modules/Forja/Tests/Feature/ProjectDecomposeTenantTest.php"
       ],
       "nao_toca": [
         "Modules/Forja/Resources/js/"
@@ -547,7 +547,7 @@ UCs sem teste (o `--screen` marca ÓRFÃO): `UC-FORJA-03 · 08 · 09 · 10` (Coc
       "provas": [
         {
           "tipo": "arquivo",
-          "path": "Modules/Forja/Tests/Feature/ForjaDecomposeTenantTest.php"
+          "path": "Modules/Forja/Tests/Feature/ProjectDecomposeTenantTest.php"
         }
       ],
       "nota_provas": "recibo com o teste vermelho no main (tenant 99 decompõe project do 98) e verde no branch; se sair verde no main, não há conserto e a thread fecha com o teste"
