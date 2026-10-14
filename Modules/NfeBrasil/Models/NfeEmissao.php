@@ -61,6 +61,7 @@ class NfeEmissao extends Model
 
     protected $fillable = [
         'business_id', 'transaction_id',
+        'location_id', // thread 26 · local emissor (nulo = business)
         'modelo', 'serie', 'numero', 'chave_44',
         'status', 'cstat', 'motivo',
         'xml_path', 'danfe_path',

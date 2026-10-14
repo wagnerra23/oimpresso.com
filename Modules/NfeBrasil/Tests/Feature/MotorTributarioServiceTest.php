@@ -5,6 +5,7 @@ declare(strict_types=1);
 // @covers-us US-NFE-010 — motor tributário por NCM: cascade Níveis 1→4 (override→exata→padrão→default), CST/CSOSN, cache, isolamento multi-tenant.
 // @covers R-NFE-015 · R-NFE-015b · R-NFE-016 · R-NFE-017 — ICMS-ST pela MVA, FCP e DIFAL (thread 06 do playbook Fiscal).
 // @covers R-NFE-018 · R-NFE-019 · R-NFE-020b · R-NFE-020c — operação + vigência (thread 07 do playbook Fiscal).
+// @covers R-NFE-031 — filial usa a própria UF de origem (thread 26 do playbook Fiscal).
 // @covers-us US-NFE-066 — benefício fiscal na regra (thread 25 do playbook Fiscal).
 // @covers R-NFE-030 — benefício fiscal: base reduzida e cBenef no item (thread 25 do playbook Fiscal).
 
@@ -566,7 +567,7 @@ function t07Biz(): int
 }
 
 /** NCMs reservados a estes casos — nada de produção usa a faixa 7707xxxx. */
-const T07_NCMS = ['77070001', '77070002', '77070003', '77070004', '77070005', '77070006']; // 05-06: thread 25
+const T07_NCMS = ['77070001', '77070002', '77070003', '77070004', '77070005', '77070006', '77070007']; // 05-06: thread 25 · 07: thread 26
 
 function t07Limpar(): void
 {
@@ -826,6 +827,40 @@ it('R-NFE-030 · base reduzida e cBenef no item', function () {
         ->and($dets[0][0])->toContain('<vBC>400.02</vBC>')
         ->and(str_contains($dets[0][1], '<cBenef>'))->toBeFalse()
         ->and(str_contains($dets[0][1], '<pRedBC>'))->toBeFalse();
+
+    t07Limpar();
+});
+
+// ── thread 26 do playbook Fiscal: filial em outro estado (R-NFE-031) ───────────────────────────
+// A chave `uf_origem` do motor já existia (ARQ-0006); a thread 26 faz a emissão passar a UF do
+// local emissor. Aqui: com origem PR, a exceção cadastrada para SP não vale (cai no Nível 4), e a
+// interestadual do par é a da Resolução do Senado nº 22/1989 semeada em `nfe_icms_uf` (thread 09).
+
+it('R-NFE-031 · filial usa a própria UF de origem', function () {
+    t07Preparar();
+    if (! Schema::hasTable('nfe_icms_uf')) {
+        test()->markTestSkipped('MySQL-only: precisa da migração 2026_10_07_000003 (ICMS por UF).');
+    }
+    configBusiness(t07Biz(), ['aliquota_icms' => 0.0186]);
+    t07Regra(['ncm' => '77070007', 'uf_origem' => 'SP', 'uf_destino' => null, 'aliquota_icms' => 0.18]);
+    $motor = new MotorTributarioService();
+
+    // Filial no PR: a exceção de SP não é usada → Nível 4 (padrão): 1000 × 1,86% = 18,60.
+    $filial = $motor->calcular(ctx('77070007', 1000.0), t07Biz(), 'PR', 'SC');
+    expect($filial->nivel_usado)->toBe(4)->and($filial->valor_icms)->toBe(18.6);
+
+    // CONTROLE POSITIVO — a matriz SP usa a própria exceção: 1000 × 18% = 180,00.
+    $matriz = $motor->calcular(ctx('77070007', 1000.0), t07Biz(), 'SP', 'BA');
+    expect($matriz->nivel_usado)->toBe(3)->and($matriz->valor_icms)->toBe(180.0);
+
+    // Interestadual do par (Senado 22/1989): PR→SC 12% (C24) · PR→BA 7% (C25) · SP→BA 7%.
+    DB::table('nfe_icms_uf')->where('business_id', t07Biz())->delete();
+    (new \Modules\NfeBrasil\Database\Seeders\NfeIcmsUfSeeder())->semear(t07Biz());
+    $par = fn (string $o, string $d) => \Modules\NfeBrasil\Models\NfeIcmsUf::aliquotaInterestadual(t07Biz(), $o, $d);
+    expect($par('PR', 'SC'))->toBe(0.12)
+        ->and($par('PR', 'BA'))->toBe(0.07)
+        ->and($par('SP', 'BA'))->toBe(0.07);
+    DB::table('nfe_icms_uf')->where('business_id', t07Biz())->delete();
 
     t07Limpar();
 });
