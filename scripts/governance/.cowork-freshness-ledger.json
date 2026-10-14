@@ -58042,5 +58042,22 @@
     },
     "origin": "medicao",
     "projetoCowork": "w"
+  },
+  {
+    "date": "2026-10-14T17:48:37.550Z",
+    "files": 285,
+    "sync": 1,
+    "stale": 0,
+    "liveAbsent": 0,
+    "unchecked": 284,
+    "staleList": [],
+    "verified": [
+      "cowork-inbox/hrm/playbook/_DECISOES-W-2026-10-14.md"
+    ],
+    "verifiedHash": {
+      "cowork-inbox/hrm/playbook/_DECISOES-W-2026-10-14.md": "8469cd7f834bb7a0c3fe9f84a5d24c15c2236fbd7f4896e57bc7963862c6c1f4"
+    },
+    "origin": "medicao",
+    "projetoCowork": "w"
   }
 ]
