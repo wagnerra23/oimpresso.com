@@ -167,9 +167,10 @@ it('mede: empresa em America/Sao_Paulo — abrir o modal e salvar sem mudar nada
 
     [$noModal, $gravado] = tpHoraAbreESalvaSemMudar($this, $p['payment_id']);
 
-    // Primeiro o que o operador VÊ, depois o que o banco guarda.
-    expect($noModal)->toBe('01/10/2026 08:00');
-    expect($gravado)->toBe('2026-10-01 08:00:00');
+    // O que o operador VÊ e o que o banco GUARDA num assert só: a falha mostra os dois valores
+    // (o 1º run, 38581375849, parou no 1º assert e não mediu a gravação).
+    expect(['no_modal' => $noModal, 'gravado' => $gravado])
+        ->toBe(['no_modal' => '01/10/2026 08:00', 'gravado' => '2026-10-01 08:00:00']);
 });
 
 it('mede (controle): empresa em UTC — o mesmo fluxo mantém a hora (deslocamento zero por construção)', function () {
