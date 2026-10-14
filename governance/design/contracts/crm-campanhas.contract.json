@@ -1,0 +1,12 @@
+{
+  "_nota": "Thread Crm/11 (F3). Derivado do protótipo Campanhas() em crm-blade-telas.jsx e do alvo medido governance/design/targets/crm--campanhas--index.alvo.json (thread A2: header · nav · filtros · toolbar · grade). Não re-derivado do .tsx.",
+  "tela": "Crm/Campanhas/Index",
+  "fonte": "prototipo-ui/cowork/Wagner/crm-blade-telas.jsx",
+  "alvo": ["Modules/Crm/Resources/js/Pages/Crm/Campanhas/Index.tsx"],
+  "secoes": [
+    { "id": "crm-filtros", "copy": ["Filtros", "Tipo de campanha"] },
+    { "id": "crm-campanhas", "copy": ["Todas as campanhas", "Nome da campanha", "Tipo de campanha", "Contatos", "Criado por", "Criado em"] },
+    { "id": "crm-toolbar", "copy": ["Buscar campanha", "Adicionar"] }
+  ],
+  "ordem": ["crm-filtros", "crm-campanhas", "crm-toolbar"]
+}
