@@ -699,7 +699,7 @@ function Toolbar({
         gap: 10,
         marginBottom: 10,
         padding: '8px 12px',
-        background: '#fff',
+        background: 'var(--cmp-paper)',
         border: '1px solid var(--cmp-line)',
         borderRadius: 5,
         flexWrap: 'wrap',
@@ -714,7 +714,7 @@ function Toolbar({
             padding: '3px 6px',
             border: '1px solid var(--cmp-line)',
             borderRadius: 4,
-            background: '#fbf9f3',
+            background: 'var(--cmp-bg-2)',
             fontSize: 11.5,
           }}
         >
@@ -767,7 +767,7 @@ function SummaryFooter({
       style={{
         marginTop: 10,
         padding: '10px 12px',
-        background: '#fff',
+        background: 'var(--cmp-paper)',
         border: '1px solid var(--cmp-line)',
         borderRadius: 5,
         display: 'flex',

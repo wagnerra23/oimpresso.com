@@ -32,9 +32,13 @@ interface FinStatProps {
 // Cor do número (`<b>`) por tom. Hero claro (Onda 28) usa os MESMOS tons dark-on-light
 // dos cards normais — o que distingue o hero é o CARD (gradiente accent + sombra), não
 // a cor do texto. Espelha .fin-num-pos / .fin-num-neg do fin-cowork.
+// Tema escuro (tema-escuro 03, 2026-10-13): o card comum usava `bg-white` e a sonda acusou
+// 4 superfícies claras no /financeiro/plano-contas. Passa a `var(--surface)`, a mesma base do
+// HERO_STYLE abaixo (`#ffffff` no claro, escuro no escuro). O texto pos/neg ganha par `dark:`
+// pelos tokens success/destructive-fg: o verde/vermelho de 0.45-0.50 sumiria no card escuro.
 function toneClass(tone: FinStatTone): string {
-  if (tone === 'pos') return 'text-[oklch(0.45_0.18_145)]';
-  if (tone === 'neg') return 'text-[oklch(0.50_0.18_25)]';
+  if (tone === 'pos') return 'text-[oklch(0.45_0.18_145)] dark:text-success-fg';
+  if (tone === 'neg') return 'text-[oklch(0.50_0.18_25)] dark:text-destructive-fg';
   return 'text-[var(--fin-text)]';
 }
 
@@ -53,7 +57,7 @@ const HERO_STYLE = {
 export function FinStat({ label, value, hint, tone = 'neutral', hero = false }: FinStatProps) {
   const card = hero
     ? 'relative overflow-hidden min-h-24 pb-[18px] col-[1/-1] @max-[1100px]:col-span-full'
-    : 'border border-[var(--fin-line)] bg-white';
+    : 'border border-[var(--fin-line)] bg-[var(--surface)]';
 
   return (
     <div
