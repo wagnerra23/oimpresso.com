@@ -115,6 +115,9 @@ export interface RelatorioEstoqueLista {
 }
 
 /** Painel de detalhe (ProductController::buildProdutoDetalhe). Chave de preço ausente = sem permissão. */
+/** Abas do painel de detalhe. Quem abre o painel escolhe em qual ele começa. */
+export type AbaDoDetalhe = 'dados' | 'variacoes' | 'composicao' | 'estoque' | 'fiscal' | 'prateleira';
+
 export interface DetalheProdutoDados {
   id: number;
   nome: string;
