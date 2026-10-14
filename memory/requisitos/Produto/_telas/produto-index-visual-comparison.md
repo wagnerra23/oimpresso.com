@@ -139,6 +139,12 @@ blueprint_cowork: prototipo-ui/prototipos/produto-cockpit/ _(removido em 2026-05
 > - "Gerar OP" no rodapé de composição: **não feito** (medido em 2026-10-13). A Fabricação produz por
 >   receita de uma variação (`MfgRecipe`); composição não é receita, e não há tela de destino para
 >   "nova OP a partir da composição".
+> - Aba Composição e imagens — **entraram em 2026-10-14** (UC-PIDX-20): a linha "Total líquido" e o
+>   preço de venda da composição do protótipo, e o que a janela "Ver" da Blade mostrava e o painel
+>   não: as colunas de preço de cada item e as imagens das variações. As colunas da Blade ficam numa
+>   tabela à parte ("Preços dos itens") e as imagens numa seção abaixo: medido em produção, a tabela
+>   com todas as colunas teria 973 px num painel de 779 px. O preço da composição sai sem e com
+>   imposto (o protótipo mostra sem, a Blade com).
 
 > **Tipo de tela:** list cockpit list+detail (drawer pattern)
 > **Persona:** Larissa (ROTA LIVRE biz=4), 1280px

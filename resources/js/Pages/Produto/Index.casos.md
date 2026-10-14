@@ -75,6 +75,7 @@ last_run_ci: "run 38087431948 (lane Estoque · MySQL, commit 59fe58ae, com o arq
 | UC-PIDX-17 | "Dados fiscais (NCM/CFOP)" no menu da linha abre o painel do produto já na aba Fiscal | should | protótipo (`acoesDe` + aba `fiscal` do `DetalheDrawer`) | `produto-menu-da-linha.test.tsx` + `produto-painel-detalhe.test.tsx` (Vitest) | ⬜ nasce neste PR — verde esperado |
 | UC-PIDX-18 | Aba "Relatório de estoque": escolher quantas linhas por página, com os totais iguais em qualquer tamanho; lucro potencial da linha com cor | should `[V0]` | protótipo (`RelatorioEstoque`) + lista Blade (`stock_report_table`, menu de tamanho do DataTable) + REGRA MESTRE valor | `ProdutoListaEstoqueAbaTest` (Pest, roda em lane) + `produto-relatorio-estoque.test.tsx` (Vitest) | ⬜ nasce neste PR — verde esperado |
 | UC-PIDX-19 | A aba Fiscal do painel mostra o tipo de imposto na venda (inclusivo ou exclusivo) | could | protótipo (aba `fiscal` do `DetalheDrawer`) | `produto-painel-detalhe.test.tsx` (Vitest) | ⬜ nasce neste PR — verde esperado |
+| UC-PIDX-20 | Painel: composição com "Total líquido", preço da composição e preços de cada item; imagens das variações e dos itens | should `[V0]` | Blade (`combo_product_details`, `variation_images`) + protótipo (`DetalheDrawer`, aba `composicao`) + REGRA MESTRE valor | `ProdutoDetalheTest` (Pest, roda em lane) + `produto-painel-detalhe.test.tsx` (Vitest) | ⬜ nasce neste PR — verde esperado |
 
 > 🔄 **Revalidação G-6 — 2026-10-10 (#9124, lista no desenho do protótipo).** Os 6 contratos
 > **continuam os mesmos**: derivam do SDD, da lista Blade e do Delphi, não da tela de cards. O que
@@ -360,6 +361,21 @@ last_run_ci: "run 38087431948 (lane Estoque · MySQL, commit 59fe58ae, com o arq
   - **"Gerar OP" (rodapé de composição)** — a Fabricação produz por receita de uma variação; composição não é receita, e não há tela de destino.
 - **Status: ⬜** — nasce neste PR; verde esperado. O arquivo de teste não roda em lane.
 
+## UC-PIDX-20 · Painel: composição com total, preço e preços dos itens; imagens das variações · `should` `[V0]`
+- **Persona:** Larissa abre um produto composto (um kit) e quer ver, sem sair da lista, quanto custa montá-lo, por quanto ele é vendido e o preço de cada item — como via na janela "Ver" da Blade; e as fotos das variações.
+- **Aceite:** Dado o painel de um produto composto · Então a aba Composição mostra a tabela do protótipo (produto, SKU, quantidade, compra, total) com a linha **"Total líquido"**, a soma dos totais dos itens feita no servidor; logo abaixo, o **preço de venda padrão da composição** sem imposto, com imposto e o % de lucro; depois **"Preços dos itens"**, com as colunas de preço que a Blade mostrava por item (compra com imposto, % de lucro, venda sem e com imposto); e as **imagens dos itens**. A aba Variações de qualquer produto mostra as **imagens das variações**. Sem permissão de ver custo não há total nem colunas de compra; sem permissão de ver venda não há preço da composição nem colunas de venda — a chave não vem, nunca zero. Só imagens da própria empresa.
+- **Teste:** [`ProdutoDetalheTest`](../../../../tests/Feature/Produto/ProdutoDetalheTest.php) — `UC-PIDX-20` (roda na lane Estoque · MySQL) e [`produto-painel-detalhe.test.tsx`](../../../../tests/js/produto-painel-detalhe.test.tsx) — `UC-PIDX-20` (não roda em lane).
+- **Prova do total por dois caminhos** (REGRA MESTRE): itens com custo 10 × 2 e 7,50 × 3 — conta à mão (42,50) **e** a soma das linhas de total que a própria janela "Ver" da Blade imprime (`combo_product_details`), comparadas com o total do painel. O preço da composição é comparado com o que a Blade imprime abaixo da tabela.
+- **Contrato:**
+  - **Blade** — `product/partials/combo_product_details.blade.php`: por item, compra sem e com imposto (`view_purchase_price`), % de lucro (as duas permissões), venda sem e com imposto (`access_default_selling_price`), quantidade, total pelo custo e imagens; abaixo, o "Preço de venda padrão" da composição. `single_/variable_product_details`: imagens de cada variação (`variation_images`).
+  - **Protótipo** — `DetalheDrawer`, aba `composicao`: `tfoot` "Total líquido" e a linha "Preço de venda padrão da composição: … · % de lucro …".
+  - **Contas** — nenhuma nova: o total de cada item é a conta da Blade (custo × quantidade × multiplicador da unidade); o total líquido é a soma deles.
+- **Diferenças deliberadas:**
+  - as colunas de preço da Blade ficam numa tabela à parte, "Preços dos itens", e as imagens numa seção abaixo, em vez de tudo numa tabela só. Medido em produção em 2026-10-14: com todas as colunas, a tabela teria 973 px num painel de 779 px; é o mesmo arranjo que a aba Variações já usa com "Preços por grupo";
+  - o preço da composição sai sem e com imposto: a Blade mostrava o com imposto, o protótipo o sem imposto;
+  - a Blade mostrava o preço da composição a qualquer um; aqui ele segue `access_default_selling_price`, como os outros preços do painel.
+- **Status: ⬜** — nasce neste PR; verde esperado. A parte do servidor roda na lane Estoque · MySQL; a parte Vitest não roda em lane nenhuma.
+
 ---
 
 ## Achados de governança (o trio prometia o que não tinha)
@@ -462,6 +478,7 @@ last_run_ci: "run 38087431948 (lane Estoque · MySQL, commit 59fe58ae, com o arq
 - Gate: `scripts/casos-coverage-guard.mjs` (G-1/G-2/G-5/G-6/G-7 — [ADR 0264](../../../../memory/decisions/0264-governanca-executavel-trio-dominio-e2e.md))
 
 ## Trilha do tempo
+- 2026-10-14 · [F+C] **UC-PIDX-20** (painel): a composição ganha o "Total líquido", o preço de venda da composição e as colunas de preço da Blade por item; as abas Variações e Composição mostram as imagens. Total provado por dois caminhos (à mão e pela janela "Ver" da Blade).
 - 2026-10-14 · [F+C] **UC-PIDX-18 / UC-PIDX-08, conserto:** lucro potencial e linha vermelha de alerta passam a pintar de verdade (cor em `style`; a classe utilitária perdia para `.pb-tbl tbody td` do bundle). A linha vermelha de alerta nunca tinha aparecido.
 - 2026-10-13 · [F+C] **UC-PIDX-19** (aba Fiscal): entra "Tipo de imposto na venda". Origem da mercadoria, "Abrir no módulo Fiscal", o texto de ajuda, "Transferir" por local e "Gerar OP" ficam registrados como não feitos, com o motivo de cada um.
 - 2026-10-13 · [F+C] **UC-PIDX-18** (aba Relatório de estoque): seletor de linhas por página (`estoque_por_pagina`, as opções da lista Blade) e lucro potencial da linha com cor. Totais provados iguais em 25, 50 e Todos.
