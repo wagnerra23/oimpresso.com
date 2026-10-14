@@ -76,6 +76,7 @@ last_run_ci: "run 38087431948 (lane Estoque · MySQL, commit 59fe58ae, com o arq
 | UC-PIDX-18 | Aba "Relatório de estoque": escolher quantas linhas por página, com os totais iguais em qualquer tamanho; lucro potencial da linha com cor | should `[V0]` | protótipo (`RelatorioEstoque`) + lista Blade (`stock_report_table`, menu de tamanho do DataTable) + REGRA MESTRE valor | `ProdutoListaEstoqueAbaTest` (Pest, roda em lane) + `produto-relatorio-estoque.test.tsx` (Vitest) | ⬜ nasce neste PR — verde esperado |
 | UC-PIDX-19 | A aba Fiscal do painel mostra o tipo de imposto na venda (inclusivo ou exclusivo) | could | protótipo (aba `fiscal` do `DetalheDrawer`) | `produto-painel-detalhe.test.tsx` (Vitest) | ⬜ nasce neste PR — verde esperado |
 | UC-PIDX-20 | Painel: composição com "Total líquido", preço da composição e preços de cada item; imagens das variações e dos itens | should `[V0]` | Blade (`combo_product_details`, `variation_images`) + protótipo (`DetalheDrawer`, aba `composicao`) + REGRA MESTRE valor | `ProdutoDetalheTest` (Pest, roda em lane) + `produto-painel-detalhe.test.tsx` (Vitest) | ⬜ nasce neste PR — verde esperado |
+| UC-PIDX-21 | Produto que não controla estoque tem a aba Estoque no painel, com o aviso de que não gerencia estoque | could | protótipo (aba `estoque` do `DetalheDrawer`, ramo `stockOn` falso) | `produto-painel-detalhe.test.tsx` (Vitest) | ⬜ nasce neste PR — verde esperado |
 
 > 🔄 **Revalidação G-6 — 2026-10-10 (#9124, lista no desenho do protótipo).** Os 6 contratos
 > **continuam os mesmos**: derivam do SDD, da lista Blade e do Delphi, não da tela de cards. O que
@@ -376,6 +377,14 @@ last_run_ci: "run 38087431948 (lane Estoque · MySQL, commit 59fe58ae, com o arq
   - a Blade mostrava o preço da composição a qualquer um; aqui ele segue `access_default_selling_price`, como os outros preços do painel.
 - **Status: ⬜** — nasce neste PR; verde esperado. A parte do servidor roda na lane Estoque · MySQL; a parte Vitest não roda em lane nenhuma.
 
+## UC-PIDX-21 · Produto que não controla estoque mostra o aviso na aba Estoque · `could`
+- **Persona:** Larissa abre um serviço (ou qualquer produto sem controle de estoque) e procura o saldo; em vez de a aba sumir, quer saber que esse produto não tem estoque.
+- **Aceite:** Dado o painel de um produto com "Gerenciar estoque" desligado · Então a aba Estoque aparece e mostra "Este produto não gerencia estoque.", sem tabela, indicadores ou botão de histórico. Pedida a aba Estoque, o painel abre nela. Produto que controla estoque segue como antes: sem a permissão de ver o relatório de estoque, a aba não aparece.
+- **Teste:** [`produto-painel-detalhe.test.tsx`](../../../../tests/js/produto-painel-detalhe.test.tsx) — `UC-PIDX-21`.
+- **Contrato:** protótipo — aba `estoque` do `DetalheDrawer`: `{p.stockOn ? … : <p className="pb-help">Este produto não gerencia estoque (…)</p>}`. O dado é o `enable_stock` que a aba Dados já mostra ("Gerenciar estoque"); nada novo vem do servidor, que já não manda saldo desse produto.
+- **Diferença deliberada:** o protótipo diz "Este produto não gerencia estoque (**enable_stock = 0**) — serviços e composições entram assim." Fica só a primeira frase: o nome da coluna não diz nada a quem usa a tela, e produto composto também pode ter o controle de estoque ligado no cadastro (o formulário não o desliga), então a segunda frase não vale para todo caso.
+- **Status: ⬜** — nasce neste PR; verde esperado. O arquivo de teste não roda em lane.
+
 ---
 
 ## Achados de governança (o trio prometia o que não tinha)
@@ -478,6 +487,7 @@ last_run_ci: "run 38087431948 (lane Estoque · MySQL, commit 59fe58ae, com o arq
 - Gate: `scripts/casos-coverage-guard.mjs` (G-1/G-2/G-5/G-6/G-7 — [ADR 0264](../../../../memory/decisions/0264-governanca-executavel-trio-dominio-e2e.md))
 
 ## Trilha do tempo
+- 2026-10-14 · [F+C] **UC-PIDX-21** (painel): produto que não controla estoque passa a ter a aba Estoque, com o aviso "Este produto não gerencia estoque." Sem permissão de ver o relatório, a aba continua fora.
 - 2026-10-14 · [F+C] **UC-PIDX-20** (painel): a composição ganha o "Total líquido", o preço de venda da composição e as colunas de preço da Blade por item; as abas Variações e Composição mostram as imagens. Total provado por dois caminhos (à mão e pela janela "Ver" da Blade).
 - 2026-10-14 · [F+C] **UC-PIDX-18 / UC-PIDX-08, conserto:** lucro potencial e linha vermelha de alerta passam a pintar de verdade (cor em `style`; a classe utilitária perdia para `.pb-tbl tbody td` do bundle). A linha vermelha de alerta nunca tinha aparecido.
 - 2026-10-13 · [F+C] **UC-PIDX-19** (aba Fiscal): entra "Tipo de imposto na venda". Origem da mercadoria, "Abrir no módulo Fiscal", o texto de ajuda, "Transferir" por local e "Gerar OP" ficam registrados como não feitos, com o motivo de cada um.

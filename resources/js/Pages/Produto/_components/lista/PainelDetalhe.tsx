@@ -173,7 +173,9 @@ export default function PainelDetalheProduto({ aberto, detalhe: d, aba, aoMudarA
         combo
           ? { key: 'composicao', label: 'Composição', href: '#', badge: d.composicao.length }
           : { key: 'variacoes', label: 'Variações', href: '#', badge: d.variacoes.length },
-        ...(d.estoque !== null ? [{ key: 'estoque', label: 'Estoque', href: '#' }] : []),
+        // Produto que não controla estoque também tem a aba, com o aviso (protótipo). Sem a
+        // permissão de ver o relatório de estoque, a aba segue fora.
+        ...(d.estoque !== null || !d.dados.controla_estoque ? [{ key: 'estoque', label: 'Estoque', href: '#' }] : []),
         { key: 'fiscal', label: 'Fiscal', href: '#' },
         { key: 'prateleira', label: 'Prateleira', href: '#' },
       ]
@@ -456,6 +458,15 @@ export default function PainelDetalheProduto({ aberto, detalhe: d, aba, aoMudarA
                   <Button variant="outline" size="sm" onClick={() => irPara(`/products/stock-history/${d.id}`)}>
                     Abrir histórico de estoque
                   </Button>
+                </div>
+              )}
+              {/* Protótipo: "Este produto não gerencia estoque (enable_stock = 0) — serviços e composições
+                  entram assim." Fica só a 1ª frase: o nome da coluna não diz nada a quem usa a tela, e
+                  produto composto também pode controlar estoque no cadastro. */}
+              {abaAtiva === 'estoque' && !d.dados.controla_estoque && (
+                <div data-contract="produto-detalhe-sem-estoque">
+                  <TituloDaSecao>Detalhes de estoque</TituloDaSecao>
+                  <p className="pb-help">Este produto não gerencia estoque.</p>
                 </div>
               )}
 
