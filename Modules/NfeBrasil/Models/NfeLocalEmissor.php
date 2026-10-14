@@ -11,6 +11,17 @@ use Illuminate\Database\Eloquent\Model;
  * Local (`business_locations`) que emite como estabelecimento próprio — thread 26 (R-NFE-031/032).
  *
  * Sem linha aqui, o local emite como o business (UF, CNPJ e série padrão), igual a antes.
+ *
+ * @property int $id
+ * @property int $business_id
+ * @property int $location_id
+ * @property string|null $serie_nfe
+ * @property string|null $serie_nfce
+ * @property string|null $logradouro
+ * @property string|null $numero
+ * @property string|null $bairro
+ * @property string|null $cod_municipio
+ * @property string|null $cep
  */
 class NfeLocalEmissor extends Model
 {

@@ -294,7 +294,7 @@ class NfeService
 
         // Thread 26 · R-NFE-031/032: a UF, o emitente e a série vêm do local da venda quando ele
         // é um estabelecimento emissor próprio; senão, do business, como antes.
-        $emitente = $this->resolverEmitente($business, $tx->location_id !== null ? (int) $tx->location_id : null, (string) $modelo);
+        $emitente = $this->resolverEmitente($business, $tx->location_id ? (int) $tx->location_id : null, (string) $modelo);
         $ufOrigem = $emitente['uf'];
         $valorTotal = (float) $tx->final_total;
 
