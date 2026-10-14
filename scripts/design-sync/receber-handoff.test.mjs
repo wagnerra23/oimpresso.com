@@ -20,7 +20,9 @@
  *     zip era mais VELHO. Com 3 hashes se sabe quem esta fora do bundle, nao quem avancou.
  */
 import { deflateRawSync } from 'node:zlib';
-import { mkdtempSync, mkdirSync, writeFileSync, existsSync, readFileSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, writeFileSync, existsSync, readFileSync, rmSync } from 'node:fs';
+import { spawnSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { createHash } from 'node:crypto';
@@ -150,6 +152,41 @@ export function selftest() {
   // fora do contrato: bundleId adulterado
   const adulterado = { ...conforme, bundleId: 'f'.repeat(64) };
   ok(auditarPacote(adulterado, ler).veredito === 'FORA-DO-CONTRATO', 'MORDE: bundleId que nao bate com o calculo');
+
+  // ── --verificar-pacote pelo CLI, DE FORA (subprocesso) ──────────────────────
+  // Assert sobre `auditarPacote` não prova a porta: o exit code e a conta saem do CLI, então o
+  // bite-test roda o CLI (§5 2026-07-30). As 3 provas da thread 01 do playbook recepcao-pacote:
+  // paridade → 0 · 1 byte tocado → divergentes sobe exatamente 1 e exit 1 · e o fail-closed.
+  const SCRIPT = fileURLToPath(new URL('./receber-handoff.mjs', import.meta.url));
+  const pkg = mkdtempSync(join(tmpdir(), 'oi-verificar-pacote-'));
+  for (const [p, b] of Object.entries(conteudo)) writeFileSync(join(pkg, p), b);
+  writeFileSync(join(pkg, 'extra-fora-do-manifesto.md'), 'nao declarado');
+  mkdirSync(join(pkg, 'sync'), { recursive: true });
+  writeFileSync(join(pkg, 'sync', 'bundle.manifest.json'), JSON.stringify(conforme));
+  const cli = () => {
+    const r = spawnSync(process.execPath, [SCRIPT, '--verificar-pacote', pkg], { encoding: 'utf8' });
+    return { status: r.status, out: (r.stdout || '') + (r.stderr || '') };
+  };
+  const conta = (out, balde) => Number((out.match(new RegExp(`${balde} (\\d+)`)) || [])[1]);
+
+  const par = cli();
+  ok(par.status === 0 && conta(par.out, 'divergentes') === 0 && conta(par.out, 'iguais') === 2,
+    `SOLTA: paridade sai 0 com 0 divergentes, e arquivo fora do manifesto nao reprova (status ${par.status})`);
+
+  writeFileSync(join(pkg, 'app.jsx'), 'const a = 1;\n ');
+  const um = cli();
+  ok(um.status === 1 && conta(um.out, 'divergentes') === 1 && um.out.includes('divergente  app.jsx'),
+    `MORDE: 1 byte tocado → divergentes 1, nomeado, exit 1 (status ${um.status})`);
+
+  writeFileSync(join(pkg, 'app.jsx'), conteudo['app.jsx']);
+  rmSync(join(pkg, 'styles.css'));
+  const sumiu = cli();
+  ok(sumiu.status === 1 && conta(sumiu.out, 'ausentes-na-arvore') === 1 && conta(sumiu.out, 'divergentes') === 0,
+    `MORDE: arquivo declarado que sumiu cai em ausentes, nao em divergentes (status ${sumiu.status})`);
+
+  rmSync(join(pkg, 'sync'), { recursive: true });
+  const semMan = cli();
+  ok(semMan.status === 2, `MORDE: sem manifesto sai 2 (nao medi), nunca 0 (status ${semMan.status})`);
 
   // ── classificar (3 pontos) ──────────────────────────────────────────────────
   ok(classificar({ zipHash: 'a', repoHash: 'a', manifestoHash: 'a' }) === 'IGUAL', 'SOLTA: iguais');
