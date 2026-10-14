@@ -701,7 +701,10 @@ class WoocommerceController extends Controller
         $tipos = $this->rotulosDoTipoDeLog();
         $operacoes = $this->rotulosDaOperacaoDeLog();
 
-        $itens = collect($pagina->items())->map(function ($row) use ($tipos, $operacoes): array {
+        // As colunas vêm do select do paraDatatable (aliases `DT_RowId`, `log_details`, `full_name`): lidas como
+        // atributos crus, não como propriedades do Model.
+        $itens = collect($pagina->items())->map(function (\Illuminate\Database\Eloquent\Model $m) use ($tipos, $operacoes): array {
+            $row = (object) $m->getAttributes();
             $registros = ! empty($row->data) ? array_values((array) json_decode($row->data, true)) : [];
             $erros = [];
             foreach ((array) json_decode($row->log_details ?? '') as $d) {
