@@ -22,7 +22,7 @@ uses(Tests\TestCase::class);
  * (ADR 0358). CNPJ, IE e endereço da filial são fictícios. Os casos derivam do aceite da thread 26.
  */
 
-const T26_NUMEROS = [996001, 996002, 996003];
+const T26_NUMEROS = [996000, 996001, 996002]; // contador legado 995999 + 1, + 2, + 3
 const T26_SERIE_FILIAL = '7';
 
 function t26Biz(): int
@@ -76,7 +76,7 @@ function t26Limpar(): void
     $bizs = [test()->seededTenant()->id, test()->seededSupportClientTenant()->id];
     DB::table('nfe_locais_emissores')->whereIn('business_id', $bizs)->delete();
     NfeEmissao::withoutGlobalScopes()->withTrashed()->whereIn('business_id', $bizs)
-        ->where(fn ($q) => $q->whereIn('numero', T26_NUMEROS)->orWhere('serie', T26_SERIE_FILIAL))->forceDelete();
+        ->where(fn ($q) => $q->whereBetween('numero', [995990, 996010])->orWhere('serie', T26_SERIE_FILIAL))->forceDelete();
     DB::table('business_locations')->whereIn('business_id', $bizs)->where('name', 'like', 'T26 FILIAL%')->delete();
 }
 
@@ -181,7 +181,7 @@ it('R-NFE-032 · série e numeração do local emissor', function () {
         $seq['matriz'][] = $emite($padrao);
         $seq['filial'][] = $emite(T26_SERIE_FILIAL);
     }
-    expect($seq['matriz'])->toBe(T26_NUMEROS)       // 995999 + 1, + 2, + 3
+    expect($seq['matriz'])->toBe(T26_NUMEROS)       // 995999 + 1 = 996000, 996001, 996002
         ->and($seq['filial'])->toBe([1, 2, 3]);
 })->group('nfe', 'R-NFE-032');
 
