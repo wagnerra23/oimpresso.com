@@ -1,5 +1,7 @@
 # 08 — Handoff (índice)
 
+- [2026-10-14 10:06 BRT — **Contratos da thread 01 e subida ao Cowork**](handoffs/2026-10-14-1006-contratos-thread01-e-subida-cowork.md) (contratos de telas-soltas e modulos-faltantes já estavam em main · errata dos 2 índices pedida ao Cowork #9353 · 14 recibos subidos ao projeto w e conferidos 14/14 #9361 · pendente: Cowork corrigir as provas home→dashboard-visao-geral e suporte→suporte-log)
+
 - [2026-10-14 03:00 BRT — **Gestão da fila de merges (13/10 · 3)**](handoffs/2026-10-14-0300-gestao-fila-merges-13-out-3.md) (91 PRs no main #9219–#9342 · fila vazia · placar 322/392 · Crm 11–17, Restaurante 01–05, Woocommerce 01, Despesas e Configuração da empresa com flag OFF · 6 consertos Tier 0 · tema escuro completo · pendente: conferir 25 recibos no Cowork)
 
 - [2026-10-13 21:30 BRT — **Sistema 08 + Tema escuro 03/05**](handoffs/2026-10-13-2130-sistema08-tema-escuro-catraca.md) (pilha Configuração da empresa no main até #9223 · catraca da sonda em job próprio · 9 Pages consertadas, 75/75 sem superfície clara · #9321 contém a pilha #9265–#9320, com o gerente)
