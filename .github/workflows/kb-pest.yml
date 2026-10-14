@@ -39,6 +39,8 @@ on:
     branches: [main]
     paths:
       - 'Modules/KB/**'
+      # rota viva /ads/admin/graph mora na Forja (ADR 0363) — KbAdsGraphContratoTest
+      - 'Modules/Forja/Http/routes.php'
       - 'database/schema/mysql-schema.sql'
       - '.github/workflows/kb-pest.yml'
       - '.github/actions/pest-mysql-setup/**'
@@ -76,6 +78,7 @@ jobs:
           filters: |
             kb:
               - 'Modules/KB/**'
+              - 'Modules/Forja/Http/routes.php'
               - 'database/schema/mysql-schema.sql'
               - '.github/workflows/kb-pest.yml'
               - '.github/actions/pest-mysql-setup/**'
@@ -248,7 +251,7 @@ jobs:
             Modules/KB/Tests/Feature/CrossTenantIsolationTest.php \
             Modules/KB/Tests/Feature/KbRagDegradacaoSinalTest.php \
             Modules/KB/Tests/Feature/KbAiAuditEnumContratoTest.php \
-            Modules/KB/Tests/Feature/KbNodeBodyReaderTest.php
+            Modules/KB/Tests/Feature/KbNodeBodyReaderTest.php \n            Modules/KB/Tests/Feature/KbAdsGraphContratoTest.php
 
 
       # Passo 1 do plano da LC-13 (Gate:): a lane JA emitia JUnit e NINGUEM lia.
