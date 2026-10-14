@@ -66,8 +66,8 @@ blueprint_cowork: prototipo-ui/prototipos/produto-cockpit/ _(removido em 2026-05
 > | Lista vazia, destaque de inativo e de estoque baixo, "Exportar filtrados" | presentes | IGUAL |
 > | `Ctrl+K` com as telas do módulo e ir a um produto | `Ctrl+K` abre a busca geral de tarefas | FALTA |
 > | Aviso "Você veio de… / Voltar e usar" | não existe | FALTA |
-> | Aba Relatório: linhas por página (10/25/50/100) | fixo em 25, Anterior/Próxima | FALTA |
-> | Aba Relatório: lucro potencial em verde | cor comum do texto | FALTA |
+> | Aba Relatório: linhas por página (10/25/50/100) | fixo em 25 até 2026-10-13; **feito em 2026-10-13** (UC-PIDX-18) com as opções da lista Blade (25 … 1000, Todos), mantendo Anterior/Próxima | feito, com opções diferentes de propósito |
+> | Aba Relatório: lucro potencial em verde | cor comum do texto até 2026-10-13; **feito em 2026-10-13** (UC-PIDX-18): verde se positivo, vermelho se negativo, total sem cor | feito |
 > | Aba Relatório: a busca da lista filtra o relatório | não filtra | de propósito — a aba Blade também não usava a busca (UC-PIDX-08) |
 > | Lista inteira na grade, sem páginas | paginada no servidor, com "Mostrar N por página" | produção à frente |
 >
@@ -126,13 +126,19 @@ blueprint_cowork: prototipo-ui/prototipos/produto-cockpit/ _(removido em 2026-05
 > - Texto da caixa sem foto: "Sem imagem" (o protótipo traz a dica de envio "1:1, até 5 MB", que num
 >   painel só de leitura afirmaria algo que a tela não faz).
 > - Aba Fiscal: a produção mostra as colunas fiscais reais do cadastro (CFOP dentro/fora, CST…); o
->   protótipo tem um conjunto menor e um botão "Abrir no módulo Fiscal".
+>   protótipo tem um conjunto menor e um botão "Abrir no módulo Fiscal". Em 2026-10-13 entrou o
+>   "Tipo de imposto na venda" (UC-PIDX-19). **Não feitos, com motivo medido:** "Origem da
+>   mercadoria" (o campo não existe no cadastro nem no banco), "Abrir no módulo Fiscal" (não há
+>   tela fiscal por produto) e o texto de ajuda (o do protótipo chama de serviço todo produto sem
+>   NCM, o que é falso para cadastro incompleto).
 > - Aba Estoque: o protótipo tem 3 indicadores (estoque atual, valor pelo custo, valor pela venda) e
 >   um botão "Transferir" por linha. Os **indicadores entraram em 2026-10-12** (UC-PIDX-12): a soma das
 >   linhas do relatório de estoque do produto, feita no servidor. A legenda do custo é "pelo preço pago
 >   nas compras" (o protótipo diz "preço de compra padrão", que não é a conta do relatório). O
 >   "Transferir" segue **não feito**: vira a requisição de transferência combinada com [F] em 2026-10-11.
-> - "Gerar OP" no rodapé de composição: depende do módulo de produção.
+> - "Gerar OP" no rodapé de composição: **não feito** (medido em 2026-10-13). A Fabricação produz por
+>   receita de uma variação (`MfgRecipe`); composição não é receita, e não há tela de destino para
+>   "nova OP a partir da composição".
 
 > **Tipo de tela:** list cockpit list+detail (drawer pattern)
 > **Persona:** Larissa (ROTA LIVRE biz=4), 1280px
