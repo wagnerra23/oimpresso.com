@@ -116,10 +116,15 @@ class OrderController extends Controller
             $business_id = request()->session()->get('user.business_id');
             $user_id = request()->session()->get('user.id');
 
-            $query = TransactionSellLine::where('id', $id);
+            // Tier 0 (ADR 0093): só item de venda do negócio da sessão. select() evita que o `id` de
+            // transactions sobrescreva o do item no model e o save() grave na linha errada.
+            $query = TransactionSellLine::join('transactions as t', 't.id', '=', 'transaction_sell_lines.transaction_id')
+                        ->where('t.business_id', $business_id)
+                        ->where('transaction_sell_lines.id', $id)
+                        ->select('transaction_sell_lines.*');
 
             if ($this->restUtil->is_service_staff($user_id)) {
-                $query->where('res_service_staff_id', $user_id);
+                $query->where('transaction_sell_lines.res_service_staff_id', $user_id);
             }
             $sell_line = $query->first();
 
