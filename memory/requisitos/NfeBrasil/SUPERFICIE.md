@@ -49,7 +49,7 @@ module: NfeBrasil
 - [UpsertConfigDefaultRequest.php](../../../Modules/NfeBrasil/Http/Requests/UpsertConfigDefaultRequest.php)
 - [UpsertRegraTributariaRequest.php](../../../Modules/NfeBrasil/Http/Requests/UpsertRegraTributariaRequest.php)
 
-## Services — 28
+## Services — 29
 
 - [CertificadoService.php](../../../Modules/NfeBrasil/Services/CertificadoService.php)
 - [ResolveUfEmitente.php](../../../Modules/NfeBrasil/Services/Concerns/ResolveUfEmitente.php)
@@ -72,6 +72,7 @@ module: NfeBrasil
 - [SefazConsultaCadastroService.php](../../../Modules/NfeBrasil/Services/SefazConsultaCadastroService.php)
 - [SefazStatusRecorder.php](../../../Modules/NfeBrasil/Services/SefazStatusRecorder.php)
 - [ContadorService.php](../../../Modules/NfeBrasil/Services/Tributacao/ContadorService.php)
+- [FechamentoContadorService.php](../../../Modules/NfeBrasil/Services/Tributacao/FechamentoContadorService.php)
 - [ImportRegrasCsvService.php](../../../Modules/NfeBrasil/Services/Tributacao/ImportRegrasCsvService.php)
 - [ProdutoFiscalContext.php](../../../Modules/NfeBrasil/Services/Tributacao/ProdutoFiscalContext.php)
 - [RevisaoContadorService.php](../../../Modules/NfeBrasil/Services/Tributacao/RevisaoContadorService.php)

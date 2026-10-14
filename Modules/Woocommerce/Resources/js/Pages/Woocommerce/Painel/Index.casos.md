@@ -5,7 +5,7 @@ irmaos: Index.charter.md (lei) · Index.tsx (tela)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: produto de outro negócio na fila, ou as chaves da loja na página, é incidente Tier 0; um número diferente do da Blade engana quem sincroniza.
 owner: wagner
-last_run: "2026-10-13"
+last_run: "2026-10-14"
 ---
 
 # Casos de Uso & Aceite — Painel do WooCommerce
@@ -49,3 +49,4 @@ last_run: "2026-10-13"
 
 ## Trilha do tempo
 - 2026-10-13 · [CL] criado com a F3 da thread `woocommerce/playbook/01`.
+- 2026-10-14 · [CL] revalidado na thread 02: as abas saíram para `_components/WoocommerceAbas.tsx`; UC-WOOP-01..04 verdes no CT 100.

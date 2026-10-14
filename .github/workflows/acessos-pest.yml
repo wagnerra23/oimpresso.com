@@ -113,7 +113,7 @@ on:
       - 'app/Http/Controllers/BarcodeController.php'
       - 'app/Http/Controllers/BusinessLocationController.php'
       - 'Modules/Woocommerce/Http/Controllers/WoocommerceController.php'
-      - 'Modules/Woocommerce/Resources/js/Pages/Woocommerce/Painel/**'
+      - 'Modules/Woocommerce/Resources/js/Pages/Woocommerce/**'
       - 'Modules/Woocommerce/Tests/Feature/Painel*'
       - 'Modules/Woocommerce/Tests/Feature/Configuracao*'
       - 'Modules/Woocommerce/Tests/Feature/Log*'
@@ -221,7 +221,7 @@ jobs:
               - 'app/Http/Controllers/BarcodeController.php'
               - 'app/Http/Controllers/BusinessLocationController.php'
               - 'Modules/Woocommerce/Http/Controllers/WoocommerceController.php'
-              - 'Modules/Woocommerce/Resources/js/Pages/Woocommerce/Painel/**'
+              - 'Modules/Woocommerce/Resources/js/Pages/Woocommerce/**'
               - 'Modules/Woocommerce/Tests/Feature/Painel*'
               - 'Modules/Woocommerce/Tests/Feature/Configuracao*'
               - 'Modules/Woocommerce/Tests/Feature/Log*'
@@ -288,6 +288,8 @@ jobs:
             Modules/Woocommerce/Tests/Feature/PainelContratoTest.php \
             Modules/Woocommerce/Tests/Feature/ConfiguracaoBaselineTest.php \
             Modules/Woocommerce/Tests/Feature/LogBaselineTest.php \
+            Modules/Woocommerce/Tests/Feature/ConfiguracaoContratoTest.php \
+            Modules/Woocommerce/Tests/Feature/LogContratoTest.php \
             tests/Feature/VozDoCliente/CaixaContratoTest.php \
             tests/Feature/Configuracoes/ \
             tests/Feature/Restaurante/ \
