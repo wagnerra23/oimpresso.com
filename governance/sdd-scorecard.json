@@ -23,18 +23,18 @@
       "detail": {
         "coverage_pct": 86.2,
         "specs_total": 54,
-        "us_total": 1067,
+        "us_total": 1069,
         "anchor_coverage_pct": 86.2,
         "by_state": {
           "sem_campo": 146,
           "placeholder": 1,
           "pendente": 442,
           "parcial": 125,
-          "anchored_ok": 353,
+          "anchored_ok": 355,
           "anchored_dead": 0,
           "anchored_zombie": 0
         },
-        "fields_total": 927,
+        "fields_total": 929,
         "fields_placeholder": 1,
         "fields_grammar_ok": 825,
         "orphan_fields": 6,
