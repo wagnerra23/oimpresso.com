@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+// Contrato da tela: resources/js/Pages/NfeBrasil/Tributacao/Index.casos.md — UC-NFTR-26 · 27 · 28 (página do link do contador)
 // @covers-us R-FISC-040 — fechamento do mês: notas fecham e rejeitadas pendentes com ação (thread 28).
 // @covers-us R-FISC-041 — sublimite avisa a 90% (LC 123/2006 art. 13-A) e a segregação separa a ST (art. 18 §4º-A, I).
 // @covers-us R-FISC-042 — parcial: entrada de outra UF pede classificação (a destinação ainda não é registrada).
@@ -55,7 +56,7 @@ it('devolve as 10 conferências, CT01 a CT10, na ordem', function () {
     expect($ids)->toBe(['CT01', 'CT02', 'CT03', 'CT04', 'CT05', 'CT06', 'CT07', 'CT08', 'CT09', 'CT10']);
 });
 
-it('R-FISC-040 · 398 autorizadas + 9 canceladas + 1 denegada + 4 rejeitadas = 412, e 4 rejeitadas pendentes com ação', function () {
+it('UC-NFTR-26 · R-FISC-040 · 398 autorizadas + 9 canceladas + 1 denegada + 4 rejeitadas = 412, e 4 rejeitadas pendentes com ação', function () {
     $c = fchSvc()->conferir(fchMedidas(['notas' => [
         'autorizadas' => 398, 'canceladas' => 9, 'denegadas' => 1, 'rejeitadas' => 4, 'inutilizadas' => 0, 'em_andamento' => 0,
     ]]));
@@ -71,7 +72,7 @@ it('R-FISC-040 · 398 autorizadas + 9 canceladas + 1 denegada + 4 rejeitadas = 4
     expect($ct02['acao'])->toBe('Resolver ou inutilizar a numeração.');
 });
 
-it('R-FISC-040 · controle positivo: mês sem rejeitada mostra ok', function () {
+it('UC-NFTR-26 · R-FISC-040 · controle positivo: mês sem rejeitada mostra ok', function () {
     $c = fchSvc()->conferir(fchMedidas(['notas' => [
         'autorizadas' => 10, 'canceladas' => 0, 'denegadas' => 0, 'rejeitadas' => 0, 'inutilizadas' => 0, 'em_andamento' => 0,
     ]]));
@@ -80,7 +81,7 @@ it('R-FISC-040 · controle positivo: mês sem rejeitada mostra ok', function () 
     expect(fchCt($c, 'CT02')['acao'])->toBeNull();
 });
 
-it('R-FISC-040 · nota ainda sem resposta da SEFAZ deixa o CT01 pendente', function () {
+it('UC-NFTR-26 · R-FISC-040 · nota ainda sem resposta da SEFAZ deixa o CT01 pendente', function () {
     $c = fchSvc()->conferir(fchMedidas(['notas' => [
         'autorizadas' => 10, 'canceladas' => 0, 'denegadas' => 0, 'rejeitadas' => 0, 'inutilizadas' => 0, 'em_andamento' => 2,
     ]]));
@@ -88,14 +89,14 @@ it('R-FISC-040 · nota ainda sem resposta da SEFAZ deixa o CT01 pendente', funct
     expect(fchCt($c, 'CT01')['situacao'])->toBe(F::PENDENTE);
 });
 
-it('R-FISC-041 · receita 12m de R$ 3,48 mi = 96,7% do sublimite → atenção', function () {
+it('UC-NFTR-27 · R-FISC-041 · receita 12m de R$ 3,48 mi = 96,7% do sublimite → atenção', function () {
     $ct03 = fchCt(fchSvc()->conferir(fchMedidas(['receita12m_centavos' => 348_000_000])), 'CT03');
 
     expect($ct03['situacao'])->toBe(F::ATENCAO);
     expect(str_contains($ct03['obtido'], '96,7% do sublimite de R$ 3.600.000,00'))->toBeTrue();
 });
 
-it('R-FISC-041 · fronteira dos 90% em centavos inteiros, abaixo ok, acima do sublimite pendente', function () {
+it('UC-NFTR-27 · R-FISC-041 · fronteira dos 90% em centavos inteiros, abaixo ok, acima do sublimite pendente', function () {
     $sit = fn (int $c) => fchCt(fchSvc()->conferir(fchMedidas(['receita12m_centavos' => $c])), 'CT03')['situacao'];
 
     expect($sit(324_000_000))->toBe(F::ATENCAO); // exatamente 90%
@@ -104,7 +105,7 @@ it('R-FISC-041 · fronteira dos 90% em centavos inteiros, abaixo ok, acima do su
     expect($sit(360_000_001))->toBe(F::PENDENTE); // passou
 });
 
-it('R-FISC-041 · receita com CSOSN 500 sai numa linha própria e a soma das linhas = receita do mês', function () {
+it('UC-NFTR-27 · R-FISC-041 · receita com CSOSN 500 sai numa linha própria e a soma das linhas = receita do mês', function () {
     $xml = <<<'XML'
 <nfeProc xmlns="http://www.portalfiscal.inf.br/nfe"><NFe><infNFe>
 <det nItem="1"><prod><CFOP>5102</CFOP><vProd>612.00</vProd></prod><imposto><ICMS><ICMSSN102><CSOSN>102</CSOSN></ICMSSN102></ICMS></imposto></det>
@@ -130,7 +131,7 @@ XML;
     expect(str_contains($dif['obtido'], 'receita do mês no Financeiro R$ 3.000,00'))->toBeTrue();
 });
 
-it('R-FISC-041 · nota autorizada sem XML não deixa a segregação dizer ok', function () {
+it('UC-NFTR-27 · R-FISC-041 · nota autorizada sem XML não deixa a segregação dizer ok', function () {
     $seg = ['linhas' => [F::SEG_REVENDA => 100, F::SEG_REVENDA_ST => 0, F::SEG_PRODUCAO => 0, F::SEG_SERVICOS => 0], 'notas_sem_xml' => 1];
     $c = fchCt(fchSvc()->conferir(fchMedidas(['segregacao' => $seg, 'receita_mes_centavos' => 100])), 'CT04');
 
@@ -145,7 +146,7 @@ it('CT05 · folha só do ERP avisa que falta o § 24; usa o anexo devolvido', fu
     expect(str_starts_with($c['obtido'], '28,00% → Anexo V'))->toBeTrue();
 });
 
-it('R-FISC-042 (parcial) · entrada de outra UF pede classificação; só da mesma UF é ok; sem entrada nenhuma não diz ok', function () {
+it('UC-NFTR-28 · R-FISC-042 (parcial) · entrada de outra UF pede classificação; só da mesma UF é ok; sem entrada nenhuma não diz ok', function () {
     $sit = fn (array $e) => fchCt(fchSvc()->conferir(fchMedidas(['entradas' => $e])), 'CT06')['situacao'];
 
     expect($sit(['total' => 4, 'interestaduais' => 3, 'sem_manifestacao' => 0]))->toBe(F::ATENCAO);
@@ -177,7 +178,7 @@ function fchNota(int $biz, int $numero, string $status, string $quando): void
     ]);
 }
 
-it('R-FISC-040 · conta as notas do mês do próprio business, não as do vizinho nem as de outro mês', function () {
+it('UC-NFTR-26 · R-FISC-040 · conta as notas do mês do próprio business, não as do vizinho nem as de outro mês', function () {
     if (DB::getDriverName() !== 'mysql' || ! Schema::hasTable('nfe_emissoes')) {
         $this->markTestSkipped('precisa do schema MySQL real de nfe_emissoes');
     }
