@@ -28,8 +28,9 @@ const horaDe = (iso: string | null) =>
 const corDoLucro = (n: number | null): CSSProperties | undefined =>
   n === null || n === 0 ? undefined : { color: n > 0 ? 'var(--pos)' : 'var(--neg)' };
 /**
- * Linha vermelha da Blade (estoque no alerta ou abaixo). Pela mesma razão de cima, pintar o `<tr>`
- * não chega às células: cada `td` tem `color: var(--text)` próprio. Trocar o `--text` da linha faz
+ * Linha vermelha da Blade (estoque no alerta ou abaixo). Aqui a causa é OUTRA: herança. A cor do
+ * `<tr>` não chega às células porque cada `td` declara `color: var(--text)` próprio — com camada ou
+ * sem. Trocar o `--text` da linha faz
  * TODAS as células dela usarem o vermelho, sem repetir a cor em cada uma. Até 2026-10-14 a classe
  * no `<tr>` era inerte: a linha de alerta nunca apareceu vermelha.
  */
@@ -79,7 +80,12 @@ export default function RelatorioEstoqueAba({
           <tbody>
             {linhas.length === 0 && (
               <tr>
-                <td colSpan={antesDoEstoque + 4 + (valor ? 3 : 0)} className="py-6 text-center text-[var(--text-mute)]">
+                {/* Cor apagada em `style` pela mesma razão do lucro: a classe perdia para o bundle. */}
+                <td
+                  colSpan={antesDoEstoque + 4 + (valor ? 3 : 0)}
+                  className="py-6 text-center"
+                  style={{ color: 'var(--text-mute)' }}
+                >
                   Nenhum produto com estoque para esses filtros.
                 </td>
               </tr>

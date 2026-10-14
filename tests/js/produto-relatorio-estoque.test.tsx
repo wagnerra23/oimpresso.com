@@ -125,6 +125,15 @@ describe('UC-PIDX-08 · linha de estoque em alerta fica vermelha (como na Blade)
   });
 });
 
+describe('UC-PIDX-18 · lista vazia', () => {
+  it('a mensagem de lista vazia pede a cor apagada em `style` (a classe perdia para o bundle)', () => {
+    montar(dados([]));
+    const td = screen.getByText('Nenhum produto com estoque para esses filtros.').closest('td') as HTMLElement;
+    expect(td.style.color).toBe('var(--text-mute)');
+    expect(td.className).not.toContain('text-[var(');
+  });
+});
+
 describe('UC-PIDX-18 · linhas por página', () => {
   const seletor = () => screen.getByRole('combobox', { name: 'Linhas do relatório por página' });
 
