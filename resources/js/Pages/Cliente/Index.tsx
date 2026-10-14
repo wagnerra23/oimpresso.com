@@ -123,6 +123,8 @@ interface ClienteRow {
   valor_aberto: number;
   status: 'late' | 'active' | 'idle';
   last_os_at: string | null;
+  // Thread cliente/02 — venda mais recente (coluna "Última OS"). null = sem venda.
+  last_os?: { id: number; invoice_no: string } | null;
   // Wave C — campos cadastrais opcionais propagados pelo ContactController::index
   // payload defer customers (Wave G expandirá full coverage). Cada Tab usa
   // fallback ?? '' / null nos campos missing.
@@ -1141,7 +1143,6 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
               <table className="w-full text-sm">
                 <thead className="bg-muted/50">
                   <tr className="border-b border-border">
-                    <Th className="w-10">&nbsp;</Th>
                     <SortableTh sortKey="name" current={sortKey} dir={sortDir} onSort={handleSort}>Cliente</SortableTh>
                     <Th className="w-14">Tipo</Th>
                     <Th className="w-44">Documento</Th>
@@ -1150,6 +1151,7 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
                     <SortableTh sortKey="valor_aberto" current={sortKey} dir={sortDir} onSort={handleSort} align="right" className="w-28">Saldo</SortableTh>
                     <SortableTh sortKey="total_os" current={sortKey} dir={sortDir} onSort={handleSort} align="right" className="w-14">OS</SortableTh>
                     <Th>Tags</Th>
+                    <Th className="w-24">Última OS</Th>
                     <Th className="w-10">&nbsp;</Th>
                     <Th className="w-10 text-right pr-4">&nbsp;</Th>
                   </tr>
@@ -1188,14 +1190,16 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
                           }}
                         >
                           <td className="px-4 py-2.5">
+                            {/* Thread cliente/02 — foto dentro da célula Cliente, como no protótipo
+                                (clientes-page.jsx `.cli-name`: avatar 32px + bloco, gap 10px). */}
+                            <div className="flex items-center gap-2.5 min-w-0">
                             {/* Wave G — Avatar HSL hash determinístico (Pages/Cliente/_components/Avatar.tsx). */}
                             <ClienteAvatar
                               name={row.name}
                               size={32}
                               seed={row.avatar_hash_seed ?? row.name}
                             />
-                          </td>
-                          <td className="px-4 py-2.5">
+                            <div className="min-w-0">
                             <div className="text-foreground font-medium leading-tight flex items-center gap-1.5">
                               {row.name}
                               {row.vip && (
@@ -1227,6 +1231,8 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
                                 </div>
                               );
                             })()}
+                            </div>
+                            </div>
                           </td>
                           <td className="px-4 py-2.5">
                             <TipoPill tipo={row.tipo ?? null} />
@@ -1272,6 +1278,21 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
                                   </span>
                                 )}
                               </div>
+                            )}
+                          </td>
+                          {/* Thread cliente/02 — "Última OS" do protótipo: nº da venda mais recente,
+                              mono 11.5px semibold, leva à venda sem abrir o drawer da linha. */}
+                          <td className="px-4 py-2.5" onClick={(e) => e.stopPropagation()}>
+                            {row.last_os ? (
+                              <a
+                                href={`/sells/${row.last_os.id}`}
+                                className="font-mono text-[11.5px] font-semibold tracking-[-0.01em] text-primary hover:underline"
+                                aria-label={`Ver venda ${row.last_os.invoice_no}`}
+                              >
+                                {row.last_os.invoice_no}
+                              </a>
+                            ) : (
+                              <span className="text-xs text-muted-foreground/50">—</span>
                             )}
                           </td>
                           {/* Star pessoal localStorage — toggle não abre drawer. */}

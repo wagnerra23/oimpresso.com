@@ -497,6 +497,23 @@ Como usuário de teclado/leitor de tela, quero o drawer acessível (WCAG 2.1 AA)
 
 **Refs:** ADR 0369 · PR #5387 (modelo) · §5 proibicoes 2026-08-04 (isenção que esvazia o gate) · LC-13 (verde por não-execução).
 
+### US-COM-023 · Teste de 7 dias do cockpit Compras na ROTA LIVRE (biz=4)
+
+> owner: maiara · sprint: 2026-W44 · priority: p0 · estimate: 4h · status: todo · type: story
+> blocked_by: US-COM-003, US-COM-015, US-COM-022, US-FISCAL-018
+
+**Implementado em:** _pendente_ — é fase de liberação, não código; o cockpit `/compras` não está habilitado para nenhum business.
+
+- Janela planejada (cronograma de 2026-10-14): 28/out → 04/nov/2026, depois do teste do Fiscal na biz=4 (US-FISCAL-018). Uma fase por vez no mesmo cliente, para saber qual módulo causou um eventual problema.
+- Antes: aviso prévio à Larissa; smoke na biz=1; US-COM-003, US-COM-015 e US-COM-022 fechadas.
+- Regra mestre de valor/estoque: custo e estoque conferidos por dois caminhos + tabela antes→depois aprovada por [W] antes de ligar.
+- Ligar só pelo pacote no superadmin, nunca por `business_id` no código.
+- Inclui a grade tamanho×cor (US-COM-005).
+
+**Acceptance:**
+- [ ] 7 dias na biz=4 sem incidente
+- [ ] smoke real em produção com recibo (status HTTP + screenshot)
+
 ### 9.1 Seguradas (feature-wish ADR 0105 — NÃO no backlog ativo)
 
 Sem dor reportada por cliente / sinal qualificado, estas **não** viram US ativa (ADR 0105 — cliente como sinal). Ficam catalogadas como wish, reabrem com sinal:

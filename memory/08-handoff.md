@@ -1,5 +1,7 @@
 # 08 — Handoff (índice)
 
+- [2026-10-14 15:45 BRT — **Painel do produto: cores pendentes e o que falta na lista**](handoffs/2026-10-14-1545-painel-produto-cores-e-pendencias-lista.md) (#9354 #9357 #9373 #9386 #9397 mergeados e conferidos · FAZER: itens 1–3 decididos por [F] — imagem sem foto (painel + lista), botões e abas só no painel · paradas: faixa "Você veio de", Transferir, Gerar OP, WooCommerce na linha, Ctrl+K, casos.md desatualizado)
+
 - [2026-10-14 10:06 BRT — **Contratos da thread 01 e subida ao Cowork**](handoffs/2026-10-14-1006-contratos-thread01-e-subida-cowork.md) (contratos de telas-soltas e modulos-faltantes já estavam em main · errata dos 2 índices pedida ao Cowork #9353 · 14 recibos subidos ao projeto w e conferidos 14/14 #9361 · pendente: Cowork corrigir as provas home→dashboard-visao-geral e suporte→suporte-log)
 
 - [2026-10-14 03:00 BRT — **Gestão da fila de merges (13/10 · 3)**](handoffs/2026-10-14-0300-gestao-fila-merges-13-out-3.md) (91 PRs no main #9219–#9342 · fila vazia · placar 322/392 · Crm 11–17, Restaurante 01–05, Woocommerce 01, Despesas e Configuração da empresa com flag OFF · 6 consertos Tier 0 · tema escuro completo · pendente: conferir 25 recibos no Cowork)
