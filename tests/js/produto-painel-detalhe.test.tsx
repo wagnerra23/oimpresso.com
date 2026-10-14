@@ -16,9 +16,12 @@
 //   - as abas trazem o título de seção do protótipo;
 //   - a aba Estoque mostra os 3 indicadores com os totais que o servidor mandou (nada é somado aqui),
 //     e "—" + aviso quando o valor vem null (sem permissão não é zero);
-//   - o rodapé sai na ordem do protótipo, e "Comprar" some sem permissão ou sem controle de estoque.
+//   - o rodapé sai na ordem do protótipo, e "Comprar" some sem permissão ou sem controle de estoque;
+//   - a composição traz o "Total líquido" que o servidor somou, o preço de venda da composição, os
+//     preços de cada item (as colunas da Blade) e as imagens dos itens; a aba Variações, as imagens
+//     das variações. Sem permissão, a parte de preço some (nunca zero).
 //
-// Cobre UC-PIDX-09, UC-PIDX-11, UC-PIDX-12, UC-PIDX-17 e UC-PIDX-19 (resources/js/Pages/Produto/Index.casos.md).
+// Cobre UC-PIDX-09, UC-PIDX-11, UC-PIDX-12, UC-PIDX-17, UC-PIDX-19 e UC-PIDX-20 (resources/js/Pages/Produto/Index.casos.md).
 // ⚠️ Nenhuma lane de CI roda este arquivo ainda (cada lane Vitest lista os próprios specs).
 // Comando: npx vitest run tests/js/produto-painel-detalhe.test.tsx
 
@@ -57,8 +60,9 @@ const detalhe = (parte: Partial<DetalheProdutoDados> = {}): DetalheProdutoDados 
     descricao: '',
     campos: [],
   },
-  variacoes: [{ nome: 'DUMMY', sku: 'CAM-001', grupos: [{ grupo: 'Atacado', preco: null }] }],
+  variacoes: [{ nome: 'DUMMY', sku: 'CAM-001', imagens: [], grupos: [{ grupo: 'Atacado', preco: null }] }],
   composicao: [],
+  composicao_total_exc: null,
   estoque: [],
   estoque_totais: null,
   fiscal: { ncm: '', cest: '', cfop_interno: '', cfop_externo: '', cst_csosn: '', cst_pis: '', cst_cofins: '', cst_ipi: '' },
@@ -152,7 +156,7 @@ describe('UC-PIDX-09 · abas', () => {
   });
 
   it('variação com nome próprio aparece com o nome dela', () => {
-    const { painel } = abrir(detalhe({ tipo: 'variable', variacoes: [{ nome: 'P/Preto', sku: 'CAM-P', grupos: [] }] }));
+    const { painel } = abrir(detalhe({ tipo: 'variable', variacoes: [{ nome: 'P/Preto', sku: 'CAM-P', imagens: [], grupos: [] }] }));
     fireEvent.click(painel.getByRole('tab', { name: /Variações/ }));
     expect(painel.getByText('P/Preto')).toBeTruthy();
     expect(painel.queryByText('Padrão')).toBeNull();
@@ -332,5 +336,114 @@ describe('UC-PIDX-11 · rodapé', () => {
     expect(rotulosDoRodape(abrir(semEstoque).painel)).not.toContain('Comprar');
     cleanup();
     expect(rotulosDoRodape(abrir(detalhe({ inativo: true })).painel)).not.toContain('Comprar');
+  });
+});
+
+// Produto composto com todas as permissões: a variação dele (o preço da composição) e dois itens.
+// O total do servidor (123,45) é DIFERENTE da soma dos itens (20 + 10), para provar que a tela mostra
+// o número que chegou e não soma nada.
+const composto = (parte: Partial<DetalheProdutoDados> = {}): DetalheProdutoDados =>
+  detalhe({
+    tipo: 'combo',
+    variacoes: [
+      { nome: 'DUMMY', sku: 'KIT-1', imagens: [], compra_exc: 30, compra_inc: 33, lucro_percentual: 50, venda_exc: 45, venda_inc: 49.5, grupos: [] },
+    ],
+    composicao: [
+      {
+        nome: 'Caneca branca', sku: 'CAN-1', quantidade: 2, unidade: 'Un', imagens: ['/uploads/media/caneca.jpg'],
+        compra_exc: 10, compra_inc: 11, lucro_percentual: 40, venda_exc: 14, venda_inc: 15.4, total_exc: 20,
+      },
+      {
+        nome: 'Caixa presente', sku: 'CX-1', quantidade: 1, unidade: 'Un', imagens: [],
+        compra_exc: 10, compra_inc: 12, lucro_percentual: 20, venda_exc: 12, venda_inc: 14, total_exc: 10,
+      },
+    ],
+    composicao_total_exc: 123.45,
+    ...parte,
+  });
+
+/** O mesmo composto visto por quem não tem nenhuma permissão de preço: as chaves não vêm. */
+const compostoSemPrecos = (): DetalheProdutoDados =>
+  composto({
+    variacoes: [{ nome: 'DUMMY', sku: 'KIT-1', imagens: [], grupos: [] }],
+    composicao: [
+      { nome: 'Caneca branca', sku: 'CAN-1', quantidade: 2, unidade: 'Un', imagens: [] },
+      { nome: 'Caixa presente', sku: 'CX-1', quantidade: 1, unidade: 'Un', imagens: [] },
+    ],
+    composicao_total_exc: null,
+  });
+
+describe('UC-PIDX-20 · composição: total, preço da composição e preços dos itens', () => {
+  it('a linha "Total líquido" mostra o total que o servidor mandou, não uma soma feita na tela', () => {
+    const { painel } = abrir(composto(), { abaInicial: 'composicao' });
+    const rodape = painel.getByText('Total líquido').closest('tfoot') as HTMLElement;
+    expect(rodape).not.toBeNull();
+    expect(within(rodape).getByText(brl(123.45))).toBeTruthy();
+    expect(within(rodape).queryByText(brl(30))).toBeNull();
+  });
+
+  it('sem permissão de ver o custo não há linha de total (nem zero)', () => {
+    const { painel } = abrir(compostoSemPrecos(), { abaInicial: 'composicao' });
+    expect(painel.getByText('Caneca branca')).toBeTruthy(); // anti-vácuo: a tabela está lá
+    expect(painel.queryByText('Total líquido')).toBeNull();
+  });
+
+  it('mostra o preço de venda padrão da composição sem imposto, com imposto e o % de lucro', () => {
+    const { painel } = abrir(composto(), { abaInicial: 'composicao' });
+    const linha = painel.getByText(/Preço de venda padrão da composição/).closest('p') as HTMLElement;
+    expect(linha.textContent).toContain(`${brl(45)} sem imposto`);
+    expect(linha.textContent).toContain(`${brl(49.5)} com imposto`);
+    expect(linha.textContent).toContain('% de lucro 50 %');
+  });
+
+  it('sem permissão de ver o preço de venda, a linha do preço da composição não aparece', () => {
+    const { painel } = abrir(compostoSemPrecos(), { abaInicial: 'composicao' });
+    expect(painel.queryByText(/Preço de venda padrão da composição/)).toBeNull();
+  });
+
+  it('"Preços dos itens" traz, para cada item, as colunas de preço da Blade', () => {
+    const { painel } = abrir(composto(), { abaInicial: 'composicao' });
+    expect(painel.getByRole('heading', { name: 'Preços dos itens' })).toBeTruthy();
+    const tabela = painel.getByRole('table', { name: 'Preços dos itens da composição' });
+    expect(within(tabela).getAllByRole('columnheader').map((th) => th.textContent)).toEqual([
+      'Item', 'Compra (incl.)', '% lucro', 'Venda (excl.)', 'Venda (incl.)',
+    ]);
+    const caneca = within(tabela).getByText('Caneca branca').closest('tr') as HTMLElement;
+    expect(Array.from(caneca.querySelectorAll('td')).map((td) => td.textContent)).toEqual([
+      'Caneca branca', brl(11), '40 %', brl(14), brl(15.4),
+    ]);
+  });
+
+  it('sem nenhuma permissão de preço, "Preços dos itens" não aparece', () => {
+    const { painel } = abrir(compostoSemPrecos(), { abaInicial: 'composicao' });
+    expect(painel.queryByRole('heading', { name: 'Preços dos itens' })).toBeNull();
+  });
+});
+
+describe('UC-PIDX-20 · imagens das variações e dos itens', () => {
+  it('a composição mostra as imagens dos itens que têm imagem, com o nome do item', () => {
+    const { painel } = abrir(composto(), { abaInicial: 'composicao' });
+    const secao = painel.getByRole('region', { name: 'Imagens dos itens' });
+    const imagens = within(secao).getAllByRole('img');
+    expect(imagens.map((i) => i.getAttribute('alt'))).toEqual(['Imagem 1 de Caneca branca']);
+    expect(imagens[0]?.getAttribute('src')).toBe('/uploads/media/caneca.jpg');
+    expect(within(secao).queryByText('Caixa presente')).toBeNull();
+  });
+
+  it('a aba Variações mostra as imagens das variações, com o nome que a tela usa', () => {
+    const { painel } = abrir(
+      detalhe({ variacoes: [{ nome: 'DUMMY', sku: 'CAM-001', imagens: ['/a.jpg', '/b.jpg'], grupos: [] }] }),
+      { abaInicial: 'variacoes' },
+    );
+    const secao = painel.getByRole('region', { name: 'Imagens das variações' });
+    expect(within(secao).getAllByRole('img').map((i) => i.getAttribute('alt'))).toEqual([
+      'Imagem 1 de Padrão', 'Imagem 2 de Padrão',
+    ]);
+  });
+
+  it('sem nenhuma imagem, a seção não aparece', () => {
+    const { painel } = abrir(detalhe(), { abaInicial: 'variacoes' });
+    expect(painel.getByRole('heading', { name: 'Variações' })).toBeTruthy(); // anti-vácuo
+    expect(painel.queryByRole('region', { name: 'Imagens das variações' })).toBeNull();
   });
 });

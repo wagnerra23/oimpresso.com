@@ -84,6 +84,53 @@ function IndicadoresDoEstoque({ d }: { d: DetalheProdutoDados }) {
   );
 }
 
+/**
+ * Imagens das variações / dos itens — `variation_images` da janela "Ver" da Blade, que as punha numa
+ * coluna da tabela. Aqui ficam numa seção à parte: medido em produção em 2026-10-14, a tabela da
+ * composição com todas as colunas da Blade chegaria a 973 px num painel de 779 px.
+ */
+function ImagensDasVariacoes({ titulo, itens }: { titulo: string; itens: Array<{ nome: string; imagens: string[] }> }) {
+  const comImagem = itens.filter((i) => i.imagens.length > 0);
+  if (comImagem.length === 0) return null;
+  return (
+    <section aria-label={titulo} className="mt-[18px]" data-contract="produto-detalhe-imagens">
+      <TituloDaSecao>{titulo}</TituloDaSecao>
+      <Inline gap={3} wrap align="start">
+        {comImagem.flatMap((i) =>
+          i.imagens.map((url, n) => (
+            <figure key={`${i.nome}-${n}-${url}`} className="m-0 w-[88px]">
+              <img
+                src={url}
+                alt={`Imagem ${n + 1} de ${i.nome}`}
+                loading="lazy"
+                className="size-[88px] rounded-[8px] border border-[var(--border)] object-cover"
+              />
+              <figcaption className="mt-1 truncate text-[11px]" style={{ color: 'var(--text-mute)' }} title={i.nome}>
+                {i.nome}
+              </figcaption>
+            </figure>
+          )),
+        )}
+      </Inline>
+    </section>
+  );
+}
+
+/**
+ * Preço da própria composição. A Blade mostrava o "Preço de venda padrão" (com imposto) abaixo da
+ * tabela; o protótipo, o preço sem imposto e o % de lucro. Vêm os dois preços e o %, com os gates
+ * das variações (sem permissão a chave não vem e a linha some).
+ */
+function PrecoDaComposicao({ v }: { v: DetalheProdutoDados['variacoes'][number] | undefined }) {
+  if (!v || (v.venda_exc === undefined && v.venda_inc === undefined)) return null;
+  return (
+    <p className="pb-help" data-contract="produto-detalhe-preco-composicao">
+      Preço de venda padrão da composição: <b>{dinheiro(v.venda_exc)}</b> sem imposto · <b>{dinheiro(v.venda_inc)}</b> com imposto
+      {v.lucro_percentual !== undefined && <> · % de lucro {qtd(v.lucro_percentual)} %</>}
+    </p>
+  );
+}
+
 function Dt({ rotulo, valor }: { rotulo: string; valor: string | null | undefined }) {
   return (
     <div className="pb-dt">
@@ -293,37 +340,85 @@ export default function PainelDetalheProduto({ aberto, detalhe: d, aba, aoMudarA
                       </tbody>
                     </table>
                   )}
+                  <ImagensDasVariacoes
+                    titulo="Imagens das variações"
+                    itens={d.variacoes.map((v) => ({ nome: nomeDaVariacao(v.nome), imagens: v.imagens }))}
+                  />
                   {!custo && !venda && <p className="pb-help">Os preços aparecem para quem tem permissão de vê-los.</p>}
                 </div>
               )}
 
-              {abaAtiva === 'composicao' && <TituloDaSecao>Composição</TituloDaSecao>}
               {abaAtiva === 'composicao' && (
-                <table className="pb-tbl">
-                  <caption className="sr-only">Composição</caption>
-                  <thead>
-                    <tr>
-                      <th>Produto</th>
-                      <th>SKU</th>
-                      <th className="r">Qtd</th>
-                      {custo && <th className="r">Compra (excl.)</th>}
-                      {custo && <th className="r">Total (excl.)</th>}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {d.composicao.map((c) => (
-                      <tr key={c.sku}>
-                        <td>
-                          <b>{c.nome}</b>
-                        </td>
-                        <td className="m">{c.sku}</td>
-                        <td className="r">{qtdComUnidade(c.quantidade, c.unidade)}</td>
-                        {custo && <td className="r">{dinheiro(c.compra_exc)}</td>}
-                        {custo && <td className="r">{dinheiro(c.total_exc)}</td>}
+                <div className="space-y-3">
+                  <TituloDaSecao>Composição</TituloDaSecao>
+                  <table className="pb-tbl">
+                    <caption className="sr-only">Composição</caption>
+                    <thead>
+                      <tr>
+                        <th>Produto</th>
+                        <th>SKU</th>
+                        <th className="r">Qtd</th>
+                        {custo && <th className="r">Compra (excl.)</th>}
+                        {custo && <th className="r">Total (excl.)</th>}
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      {d.composicao.map((c) => (
+                        <tr key={c.sku}>
+                          <td>
+                            <b>{c.nome}</b>
+                          </td>
+                          <td className="m">{c.sku}</td>
+                          <td className="r">{qtdComUnidade(c.quantidade, c.unidade)}</td>
+                          {custo && <td className="r">{dinheiro(c.compra_exc)}</td>}
+                          {custo && <td className="r">{dinheiro(c.total_exc)}</td>}
+                        </tr>
+                      ))}
+                    </tbody>
+                    {custo && d.composicao_total_exc !== null && (
+                      <tfoot>
+                        <tr>
+                          <td colSpan={4}>
+                            <b>Total líquido</b>
+                          </td>
+                          <td className="r">
+                            <b>{dinheiro(d.composicao_total_exc)}</b>
+                          </td>
+                        </tr>
+                      </tfoot>
+                    )}
+                  </table>
+                  <PrecoDaComposicao v={d.variacoes[0]} />
+                  {(custo || venda) && d.composicao.length > 0 && (
+                    <div className="pt-[6px]">
+                      <TituloDaSecao>Preços dos itens</TituloDaSecao>
+                      <table className="pb-tbl">
+                        <caption className="sr-only">Preços dos itens da composição</caption>
+                        <thead>
+                          <tr>
+                            <th>Item</th>
+                            {custo && <th className="r">Compra (incl.)</th>}
+                            {lucro && <th className="r">% lucro</th>}
+                            {venda && <th className="r">Venda (excl.)</th>}
+                            {venda && <th className="r">Venda (incl.)</th>}
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {d.composicao.map((c) => (
+                            <tr key={c.sku}>
+                              <td>{c.nome}</td>
+                              {custo && <td className="r">{dinheiro(c.compra_inc)}</td>}
+                              {lucro && <td className="r">{c.lucro_percentual === undefined ? '—' : `${qtd(c.lucro_percentual)} %`}</td>}
+                              {venda && <td className="r">{dinheiro(c.venda_exc)}</td>}
+                              {venda && <td className="r">{dinheiro(c.venda_inc)}</td>}
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                  <ImagensDasVariacoes titulo="Imagens dos itens" itens={d.composicao.map((c) => ({ nome: c.nome, imagens: c.imagens }))} />
+                </div>
               )}
 
               {abaAtiva === 'estoque' && d.estoque !== null && (

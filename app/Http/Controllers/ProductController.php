@@ -562,6 +562,10 @@ class ProductController extends Controller
      *     `ProductUtil::somaDasLinhasDoEstoque`, a mesma do rodapé do relatório — nenhuma conta nova.
      * Divergência DELIBERADA, mais restrita: o total da composição pelo custo só vai com
      * `view_purchase_price` (a Blade mostrava a coluna a todos). A conta é a da Blade, sem mudança.
+     * Cada item da composição traz as mesmas colunas de preço da Blade (`combo_product_details`), com
+     * os mesmos gates das variações; `composicao_total_exc` é a soma dos totais dos itens (o
+     * "Total líquido" do protótipo), só com `view_purchase_price`. Variações e itens trazem as
+     * imagens da variação (`variation_images` da Blade), só as da própria empresa.
      * Dados fiscais: as colunas do próprio produto; "origem da mercadoria" não existe no banco e não vem.
      * Produto de outra empresa ⇒ null (Tier 0, ADR 0093).
      *
@@ -605,6 +609,7 @@ class ProductController extends Controller
                     ? trim(($v->product_variation->name ?? '') . ' - ' . $v->name, ' -')
                     : (string) $v->name,
                 'sku' => (string) $v->sub_sku,
+                'imagens' => $this->imagensDaVariacao($v, $business_id),
             ];
             if ($verCusto) {
                 $linha['compra_exc'] = (float) $v->default_purchase_price;
@@ -639,14 +644,27 @@ class ProductController extends Controller
                     'sku' => (string) $var->sub_sku,
                     'quantidade' => (float) $c['quantity'],
                     'unidade' => (string) ($c['unit_name'] ?? ''),
+                    'imagens' => $this->imagensDaVariacao($var, $business_id),
                 ];
                 if ($verCusto) {
                     $item['compra_exc'] = (float) $var->default_purchase_price;
+                    $item['compra_inc'] = (float) $var->dpp_inc_tax;
                     $item['total_exc'] = (float) ($var->default_purchase_price * $c['quantity'] * $c['multiplier']);
+                }
+                if ($verPreco) {
+                    if ($verCusto) {
+                        $item['lucro_percentual'] = (float) $var->profit_percent;
+                    }
+                    $item['venda_exc'] = (float) $var->default_sell_price;
+                    $item['venda_inc'] = (float) $var->sell_price_inc_tax;
                 }
                 $composicao[] = $item;
             }
         }
+        // "Total líquido" do protótipo: a soma dos totais dos itens, a mesma conta de cada linha.
+        $composicaoTotalExc = $verCusto && $tipo === 'combo'
+            ? (float) array_sum(array_column($composicao, 'total_exc'))
+            : null;
 
         $estoque = null;
         // Indicadores da aba Estoque (protótipo: estoque atual · valor pelo custo · valor pela venda):
@@ -704,6 +722,7 @@ class ProductController extends Controller
             ],
             'variacoes' => $variacoes,
             'composicao' => $composicao,
+            'composicao_total_exc' => $composicaoTotalExc,
             'estoque' => $estoque,
             'estoque_totais' => $estoqueTotais,
             'fiscal' => [
@@ -727,6 +746,21 @@ class ProductController extends Controller
                 ])->values(),
             ],
         ];
+    }
+
+    /**
+     * URLs das imagens da variação — `variation_images` da janela "Ver" da Blade
+     * (`$variation->media`). Só as da própria empresa (ADR 0093).
+     *
+     * @return list<string>
+     */
+    private function imagensDaVariacao(Variation $variacao, int $business_id): array
+    {
+        return collect($variacao->getRelationValue('media'))
+            ->filter(fn ($m) => (int) $m->business_id === $business_id)
+            ->map(fn ($m): string => (string) $m->display_url)
+            ->values()
+            ->all();
     }
 
     /**
