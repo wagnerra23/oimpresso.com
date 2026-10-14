@@ -3,15 +3,27 @@
 namespace App\Http\Controllers;
 
 use App\ExpenseCategory;
+use App\Services\FeatureFlagService;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 use Yajra\DataTables\Facades\DataTables;
 
 class ExpenseCategoryController extends Controller
 {
     /**
+     * A mesma flag da lista de despesas (thread financeiro/13, US-MWART-018): as duas telas ligam juntas.
+     * Sem a chave no GrowthBook o FeatureFlagService cai no fallbackDefaults: default OFF.
+     *
+     * @see memory/requisitos/Financeiro/RUNBOOK-despesas.md
+     */
+    private const FLAG_V2 = 'useV2FinanceiroDespesas';
+
+    /**
      * Display a listing of the resource.
      *
-     * @return \Illuminate\Http\Response
+     * DataTable (AJAX) → JsonResponse · Blade → View · tela React atrás da flag → Inertia\Response.
+     *
+     * @return \Illuminate\Http\JsonResponse|\Illuminate\View\View|\Inertia\Response
      */
     public function index()
     {
@@ -19,7 +31,8 @@ class ExpenseCategoryController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
-        if (request()->ajax()) {
+        // `! inertia()`: o Inertia v3 manda `X-Requested-With` em toda visita (mesma pegadinha do ExpenseController).
+        if (request()->ajax() && ! request()->inertia()) {
             $business_id = request()->session()->get('user.business_id');
 
             $expense_category = ExpenseCategory::where('business_id', $business_id)
@@ -45,7 +58,26 @@ class ExpenseCategoryController extends Controller
                 ->make(false);
         }
 
+        $business_id = (int) request()->session()->get('user.business_id');
+
+        // US-MWART-018 (parte 2): com a flag ligada a lista é a Page React; `?classico=1` mantém a Blade.
+        if (! request()->boolean('classico') && app(FeatureFlagService::class)->isOn(self::FLAG_V2, ['business_id' => $business_id])) {
+            return Inertia::render('Financeiro/CategoriasDespesa/Index', [
+                'categorias' => Inertia::defer(fn () => $this->categoriasDoNegocio($business_id)),
+            ]);
+        }
+
         return view('expense_category.index');
+    }
+
+    /** Categorias do negócio, as de topo primeiro; cada uma com o `parent_id` (subcategoria). */
+    private function categoriasDoNegocio(int $business_id): array
+    {
+        return ExpenseCategory::where('business_id', $business_id)
+            ->orderByRaw('parent_id IS NOT NULL')->orderBy('name')
+            ->get(['id', 'name', 'code', 'parent_id'])
+            ->map(fn ($c) => ['id' => $c->id, 'nome' => $c->name, 'codigo' => $c->code, 'pai' => $c->parent_id])
+            ->all();
     }
 
     /**
