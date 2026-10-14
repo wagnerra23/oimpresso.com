@@ -98,3 +98,27 @@ it('nenhum scope admin_only e ofertado como checkbox — expor um so ja quebra',
     // `jana.mcp.usage.all`); a correcao a levou a zero.
     expect($expostos)->toBe([]);
 });
+
+/**
+ * CONTRATO Tier 0 — nenhuma permissao de PLATAFORMA (ADR 0415) e ofertada no editor
+ * de papeis da empresa. Fonte unica: `AuthServiceProvider::permissoesDePlataforma()`
+ * (scopes `admin_only` + `jana.superadmin`).
+ *
+ * Decisao [W] 2026-10-14 (residuo (1) da ADR 0415): `jana.superadmin` deixa de ser
+ * concedivel pelo dono da empresa — `MetasController::store` aceita `business_id`
+ * alheio para quem a tem. Ate esta data ela era checkbox em `/roles/{id}/edit`.
+ * `governance.*` segue concedivel (residuo (2) = nao).
+ */
+it('nenhuma permissao de plataforma e ofertada no editor de papeis', function () {
+    $plataforma = \App\Providers\AuthServiceProvider::permissoesDePlataforma();
+    $daTela = array_column((new DataController())->user_permissions(), 'value');
+
+    // Controles positivos: lista vazia daria intersecao vazia por ausencia de dado.
+    expect($plataforma)->toContain('jana.superadmin');
+    expect($daTela)->toContain('jana.metas.manage');
+
+    $expostas = array_values(array_intersect($plataforma, $daTela));
+    sort($expostas);
+
+    expect($expostas)->toBe([]);
+});

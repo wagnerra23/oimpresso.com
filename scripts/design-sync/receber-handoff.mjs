@@ -46,6 +46,8 @@
  *   node scripts/design-sync/receber-handoff.mjs --zip <arquivo.zip> --projeto mobile [--apply]
  *                                                                                 # projeto de rota
  *                                                                                 # COPIA-FIEL do painel
+ *   node scripts/design-sync/receber-handoff.mjs --verificar-pacote <dir>         # só confere o sync/ x árvore
+ *                                                                                 # (sem zip, sem promover)
  *   node scripts/design-sync/receber-handoff.mjs --selftest
  *
  * Exit: 0 = ok · 1 = insumo/validação reprovou (inclui PASSO 0 não liberado) · 2 = erro de uso.
@@ -354,12 +356,66 @@ export function auditarPacote(manifesto, lerArquivo) {
   let motivo = null;
   try { validateManifest(manifesto); } catch (e) { motivo = e.message; }
   const divergentes = [];
+  // `ausentes` é SUBCONJUNTO de `divergentes` (declarado e não está na árvore): fica separado só
+  // pra o relatório dizer QUAL dos dois aconteceu. `iguais` fecha a conta do que foi declarado.
+  const ausentes = [];
+  let iguais = 0;
   for (const f of manifesto.files || []) {
     const bytes = lerArquivo(f.path);
-    if (bytes === null || sha(bytes) !== f.sha256) divergentes.push(f.path);
+    if (bytes === null) { ausentes.push(f.path); divergentes.push(f.path); }
+    else if (sha(bytes) !== f.sha256) divergentes.push(f.path);
+    else iguais++;
   }
   const veredito = motivo ? 'FORA-DO-CONTRATO' : divergentes.length ? 'DESATUALIZADO' : 'CONFORME';
-  return { veredito, divergentes, motivo };
+  return { veredito, divergentes, ausentes, iguais, motivo };
+}
+
+/**
+ * `--verificar-pacote <dir>` — a mesma auditoria do passo [2], sem ZIP e sem promover nada.
+ *
+ * POR QUE EXISTE (thread 01 do playbook `recepcao-pacote`, 2026-10-14): a recepção conferia o
+ * pacote, mas só DENTRO do pipeline do `--zip`, e quando ele divergia o pipeline o ignorava e
+ * seguia. Não havia porta para perguntar só "este pacote descreve a própria árvore?" e receber
+ * um exit code — e o único bite-test era sobre a função pura (§5 2026-07-30: assert sobre
+ * helper não prova o pipeline). Esta porta é a pergunta isolada; o `--zip` segue igual.
+ *
+ * Decisões [W] da thread: D-RECEPCAO-FALHA = falha (exit 1, não aviso) · D-QUEM-REGENERA = só
+ * detecta (aqui NÃO se regenera nada; quem regenera é o humano com o gerador).
+ *
+ * ⚠️ Os baldes NÃO somam a árvore inteira, de propósito: o manifesto é o FECHAMENTO a partir do
+ * `entry`, não a listagem do diretório (medido no `_saida-01`: 818 na árvore × 281 declarados).
+ * `fora do manifesto` sai como número informativo e nunca reprova.
+ *
+ * Exit: 0 = CONFORME · 1 = DESATUALIZADO ou FORA-DO-CONTRATO · 2 = não consegui medir.
+ */
+export function verificarPacote(dir, existe = existsSync, ler = readFileSync) {
+  const raiz = resolve(dir);
+  const manPath = join(raiz, 'sync', 'bundle.manifest.json');
+  // FAIL-CLOSED: sem manifesto não há o que conferir — "não medi" nunca vira verde (§5 2026-07-29).
+  if (!existe(manPath)) return { codigo: 2, linhas: [`x sem ${manPath} — nada a conferir, sem veredito`] };
+  let manifesto;
+  try { manifesto = JSON.parse(ler(manPath, 'utf8')); }
+  catch (e) { return { codigo: 2, linhas: [`x manifesto ilegível: ${e.message}`] }; }
+  const naArvore = (rel) => {
+    const p = join(raiz, ...rel.split('/'));
+    return existe(p) ? ler(p) : null;
+  };
+  const a = auditarPacote(manifesto, naArvore);
+  const declarados = (manifesto.files || []).length;
+  const divergentes = a.divergentes.filter((p) => !a.ausentes.includes(p));
+  const linhas = [
+    `VERIFICAR-PACOTE ${a.veredito} — ${raiz}`,
+    `  manifesto: id ${String(manifesto.bundleId).slice(0, 16)} · ${manifesto.mode} · gerado ${manifesto.generatedAt}`,
+    `  declarados ${declarados} = iguais ${a.iguais} + divergentes ${divergentes.length} + ausentes-na-arvore ${a.ausentes.length}`,
+  ];
+  if (a.motivo) linhas.push(`  contrato: ${a.motivo}`);
+  for (const p of divergentes) linhas.push(`    divergente  ${p}`);
+  for (const p of a.ausentes) linhas.push(`    ausente     ${p}`);
+  // A conta tem que fechar; se não fechar o instrumento está errado, e isso não é verde.
+  if (a.iguais + divergentes.length + a.ausentes.length !== declarados) {
+    return { codigo: 2, linhas: [...linhas, '  x a soma dos baldes não fecha com os declarados — instrumento quebrado'] };
+  }
+  return { codigo: a.veredito === 'CONFORME' ? 0 : 1, linhas, auditoria: a };
 }
 
 /**
@@ -920,6 +976,15 @@ if (chamadoDireto) {
     // Sem `status` houve falha de EXECUÇÃO (spawn não saiu). Sair 1 nesse caso é o certo: exit 0
     // por não-execução é o `0 failed` de suíte que não rodou (LC-13) — o que este fix veio matar.
     process.exit(typeof r.status === 'number' ? r.status : 1);
+  } else if (tem('--verificar-pacote')) {
+    const dir = arg('--verificar-pacote');
+    if (!dir || dir.startsWith('--')) morre('faltou --verificar-pacote <dir>', 2);
+    const r = verificarPacote(dir);
+    const saida = r.codigo === 0 ? console.log : console.error;
+    saida('');
+    for (const l of r.linhas) saida(`  ${l}`);
+    saida('');
+    process.exit(r.codigo);
   } else {
     principal();
   }

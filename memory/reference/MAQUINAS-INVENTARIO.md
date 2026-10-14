@@ -28,7 +28,7 @@ lifecycle: ativo
 |---|---|---|---|
 | `a11y-axe-gate.yml` | pr+push+manual | `memory/decisions/_PROPOSTA-protocolo-v2-colapso-W.md` +12 | A11y axe runtime (jsdom · componentes canon) |
 | `a11y-gate.yml` | pr+push+manual | `memory/requisitos/Jana/AUDITORIA-design-as-code-token-driven-2026-06-22.md` +1 | A11y ratchet (acessibilidade = categoria protegida) |
-| `acessos-pest.yml` | pr+push+manual | `memory/requisitos/Restaurante/RUNBOOK-mesas.md` +16 | Acessos · Pest (MySQL) |
+| `acessos-pest.yml` | pr+push+manual | `memory/requisitos/Woocommerce/RUNBOOK-log.md` +18 | Acessos · Pest (MySQL) |
 | `adr-index-gate.yml` | pr+manual | `memory/08-handoff.md` +3 | ADR Index Gate — ADR 0258 |
 | `adr-lint.yml` | pr+push | `memory/decisions/0063-prevenir-composer-lock-drift.md` +16 | ADR frontmatter lint |
 | `agent-cost-per-pr.yml` | cron+manual | `memory/proibicoes.md` +11 | Agent cost per PR (advisory · custo USD estimado por PR do agente · unidade = SESSÃO do JSONL local atribuída por branch==headRefName ou citação /pull/N · cobertura de AL… |
@@ -113,7 +113,7 @@ lifecycle: ativo
 | `infra-contract-required.yml` | pr | `memory/decisions/0224-hooks-block-vs-advisory-claude-4.8-aware.md` +11 | Infra Contract Required |
 | `jana-conversas-gate.yml` | pr+push+manual | `memory/licoes-rejeitadas.md` +3 | Jana Conversas — histórico do chat (filtro real · J/K · ⌘⇧H · aria-live) |
 | `jana-logica-pura-pest.yml` | pr+manual | `memory/requisitos/Jana/AUDIT-GAPS-2026-08-10.md` +5 | Jana lógica pura Pest (event-time + histórico + audit-chain · funde 3 lanes Unit · ADR 0294/0295) |
-| `jana-pest.yml` | pr+push+manual | `memory/requisitos/Jana/AUDIT-GAPS-2026-08-10.md` +29 | Jana · Pest (MySQL) |
+| `jana-pest.yml` | pr+push+manual | `memory/requisitos/Jana/AUDIT-GAPS-2026-08-10.md` +30 | Jana · Pest (MySQL) |
 | `jana-ragas-canary.yml` | cron+manual | `memory/decisions/0314-poda-gates-onda-2-lei-fusoes.md` +17 | Jana RAGAS Canary (daily 06:00 UTC) |
 | `jana-ragas-gate.yml` | pr+cron+manual | `memory/decisions/0318-ragas-eval-real-mata-tautologia-ct100-staging.md` +23 | Jana RAGAS Eval Gate |
 | `jana-recall-eval.yml` | pr+manual | `memory/decisions/0314-poda-gates-onda-2-lei-fusoes.md` +6 | Jana recall-eval (mock gate · golden set determinístico · advisory → required ADR 0275 · P12 roadmap SDD) |
@@ -731,7 +731,7 @@ lifecycle: ativo
 | `critica.mjs` | ci, script | 🔴 disco | test | (só sessão/handoff · 3) | passe crítico do pr-critic (a parte AGENTE; o roteamento é coleta.mjs). |
 | `precisao.mjs` | ci, script | 🔴 disco | test | — | MEDIDOR DE PRECISÃO DO PRÓPRIO pr-critic (fecha o loop). |
 
-### 5.17 `scripts/qa/` — 18
+### 5.17 `scripts/qa/` — 19
 
 | Script | Invocador | Escreve? | Evidência | Documento | Descrição (cabeçalho) |
 |---|---|---|---|---|---|
@@ -743,7 +743,8 @@ lifecycle: ativo
 | `mv-metabolismo.mjs` | ci, script | 🔴 disco | test | `memory/decisions/0408-medicao-de-paridade-agendada-advisory-emenda-0290.md` +19 | o batimento do Módulo Vivo (MV2 · stream MV do roadmap SDD). |
 | `page-path.mjs` | agente, ci, script | 🟢 só lê | test | `memory/decisions/0403-errata-0402-denominador-ja-inclui-pages-de-modulo.md` +17 | localizados em resources/js/Pages/**. |
 | `placar-indice.mjs` | ci, script | 🟢 só lê | test | `memory/decisions/0394-endereco-de-ui-do-patrimonio-pages-patrimonio.md` +11 | PR-A8: o PLACAR DA LISTA. "O Code terminou a lista inteira?" |
-| `placar.mjs` | agente, ci, npm, script | 🟢 só lê | test | `memory/decisions/0427-auto-merge-de-pr-de-thread-emenda-0040.md` +12 | PR-A6 do protocolo de export: o PLACAR de entrega de uma tela vira MEDIDA |
+| `placar-recibo.mjs` | ci, script | 🟢 só lê | — | — | o AVALIADOR DE RECIBO do placar da lista (provas `execucao` · `revisao` · |
+| `placar.mjs` | agente, ci, npm, script | 🟢 só lê | test | `memory/decisions/0427-auto-merge-de-pr-de-thread-emenda-0040.md` +13 | PR-A6 do protocolo de export: o PLACAR de entrega de uma tela vira MEDIDA |
 | `prototipo-readiness.mjs` | ci | 🔴 disco | test | `memory/requisitos/_Governanca/roadmap/_ROADMAP.md` +9 | "quais telas de protótipo posso aplicar SEM me preocupar?" |
 | `screen-coverage-map.mjs` | agente, ci, npm, script | 🔴 disco | — | `memory/decisions/0391-regime-de-evolucao-por-loops-blade-fora.md` +72 | mapa de cobertura de QA por tela + baseline da catraca. |
 | `screen-grade-report.mjs` | npm | 🟢 só lê | test | `memory/requisitos/_Governanca/PLANO-APROFUNDAMENTO-AVALIACOES.md` +7 | a FOTO LADO A LADO: UX × comportamento por tela. |

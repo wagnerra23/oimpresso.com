@@ -2,7 +2,7 @@
 # Backlog indexado (gerado)
 
 > Fonte: as US-* dos `memory/requisitos/<Mod>/SPEC.md` (canon, ADR 0070). US abertas (status ∉ done/cancelled).
-> **950 tarefas abertas** em **53 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
+> **954 tarefas abertas** em **54 módulos**. Regenera com `node scripts/governance/tasks-index-generate.mjs --write`.
 
 ## Índice por módulo
 
@@ -24,10 +24,10 @@
 | [`Fiscal`](#fiscal) | 22 | 0 | 0 | 0 | 22 |
 | [`Connector`](#connector) | 20 | 0 | 0 | 0 | 19 |
 | [`Pcp`](#pcp) | 20 | 0 | 0 | 0 | 20 |
+| [`Compras`](#compras) | 19 | 0 | 0 | 0 | 18 |
 | [`Forja`](#forja) | 19 | 0 | 1 | 0 | 7 |
 | [`Mwart`](#mwart) | 19 | 0 | 0 | 0 | 19 |
 | [`Vestuario`](#vestuario) | 19 | 0 | 0 | 0 | 19 |
-| [`Compras`](#compras) | 18 | 0 | 0 | 0 | 17 |
 | [`ComunicacaoVisual`](#comunicacaovisual) | 18 | 0 | 0 | 0 | 18 |
 | [`Officeimpresso`](#officeimpresso) | 17 | 0 | 0 | 0 | 17 |
 | [`Accounting`](#accounting) | 16 | 0 | 0 | 0 | 16 |
@@ -55,6 +55,7 @@
 | [`Spreadsheet`](#spreadsheet) | 5 | 0 | 0 | 0 | 5 |
 | [`ConsultaOs`](#consultaos) | 3 | 0 | 0 | 0 | 3 |
 | [`Dashboard`](#dashboard) | 3 | 0 | 0 | 0 | 3 |
+| [`VozDoCliente`](#vozdocliente) | 3 | 0 | 0 | 0 | 3 |
 | [`ADS`](#ads) | 2 | 0 | 0 | 0 | 2 |
 | [`Documentacao`](#documentacao) | 2 | 0 | 0 | 0 | 2 |
 | [`MemoriaAutonoma`](#memoriaautonoma) | 2 | 0 | 0 | 0 | 2 |
@@ -776,6 +777,34 @@
 - **US-PCP-019** — Smoke biz=4 ROTA LIVRE (canary 7d + cutover) — **P2**
 - **US-PCP-020** — Documentação RUNBOOK + Charter páginas — **P0**
 
+## Compras
+
+
+### todo
+
+- **US-COM-008** — Throttle 60/1 em /compras + FormRequest ListarComprasRequest _(`p0`)_
+- **US-COM-012** — Matching automático XML→produto (EAN + xProd; fallback manual) _(`p0`)_
+- **US-COM-013** — Recebimento parcial (qty recebida por linha ≠ pedida + trânsito residual + autosave check-in) _(`p0`)_
+- **US-COM-022** — Lane required de Compras vira árvore-menos-quarentena (vermelha no main há 5 runs) _(`p0`)_
+- **US-COM-023** — Teste de 7 dias do cockpit Compras na ROTA LIVRE (biz=4) _(`p0` · @maiara · sprint 2026-W44)_
+- **US-COM-010** — Adicionar Compras em config/governance/module_clients.yaml (Larissa biz=4 piloto reportando) _(`p1`)_
+- **US-COM-014** — FSM de estágios PERSISTIDA + auditável _(`p1`)_
+- **US-COM-015** — Teste de invariante de estoque no fluxo de entrada _(`p1`)_
+- **US-COM-016** — Cobrir fluxo `/compras`→contas a pagar (Observer Financeiro) com teste _(`p1`)_
+- **US-COM-018** — Autosave rascunho de compra (`localStorage` `{biz}.{user}` debounced) _(`p2`)_
+- **US-COM-019** — Eager-load `->with(['contact','location'])` em `listarCompras().paginate()` _(`p2`)_
+- **US-COM-021** — Investigar flakiness das baselines dark/empty do VRT e reabilitar no gate L2 _(`p2`)_
+- **US-COM-020** — A11y do drawer (`role=dialog` + focus-trap + `aria-label` + `Esc`) _(`p3`)_
+- **US-COM-001** — Cockpit `/compras` (lista paginada + 4 KPIs + drawer)
+- **US-COM-002** — Criar compra manual
+- **US-COM-003** — Importar XML DF-e como compra (GAP NOVO)
+- **US-COM-004** — Deprecar `/purchases` legacy
+- **US-COM-005** — Entrada matricial tam×cor (GradeMatrixInput)
+
+### retirada
+
+- **US-COM-017** — ~~PiiRedactor no Drawer de compra~~ → RETIRADA (2026-07-03)
+
 ## Forja
 
 
@@ -856,33 +885,6 @@
 - **US-VEST-007** — Conta a receber (boleto Asaas) e a pagar `live`
 - **US-VEST-008** — Múltiplos schemes de invoice convivendo (`2026/NNNN` + `17NNN`) `live`
 - **US-VEST-009** — Sidebar/topnav adaptado por monitor 1280px `live`
-
-## Compras
-
-
-### todo
-
-- **US-COM-008** — Throttle 60/1 em /compras + FormRequest ListarComprasRequest _(`p0`)_
-- **US-COM-012** — Matching automático XML→produto (EAN + xProd; fallback manual) _(`p0`)_
-- **US-COM-013** — Recebimento parcial (qty recebida por linha ≠ pedida + trânsito residual + autosave check-in) _(`p0`)_
-- **US-COM-022** — Lane required de Compras vira árvore-menos-quarentena (vermelha no main há 5 runs) _(`p0`)_
-- **US-COM-010** — Adicionar Compras em config/governance/module_clients.yaml (Larissa biz=4 piloto reportando) _(`p1`)_
-- **US-COM-014** — FSM de estágios PERSISTIDA + auditável _(`p1`)_
-- **US-COM-015** — Teste de invariante de estoque no fluxo de entrada _(`p1`)_
-- **US-COM-016** — Cobrir fluxo `/compras`→contas a pagar (Observer Financeiro) com teste _(`p1`)_
-- **US-COM-018** — Autosave rascunho de compra (`localStorage` `{biz}.{user}` debounced) _(`p2`)_
-- **US-COM-019** — Eager-load `->with(['contact','location'])` em `listarCompras().paginate()` _(`p2`)_
-- **US-COM-021** — Investigar flakiness das baselines dark/empty do VRT e reabilitar no gate L2 _(`p2`)_
-- **US-COM-020** — A11y do drawer (`role=dialog` + focus-trap + `aria-label` + `Esc`) _(`p3`)_
-- **US-COM-001** — Cockpit `/compras` (lista paginada + 4 KPIs + drawer)
-- **US-COM-002** — Criar compra manual
-- **US-COM-003** — Importar XML DF-e como compra (GAP NOVO)
-- **US-COM-004** — Deprecar `/purchases` legacy
-- **US-COM-005** — Entrada matricial tam×cor (GradeMatrixInput)
-
-### retirada
-
-- **US-COM-017** — ~~PiiRedactor no Drawer de compra~~ → RETIRADA (2026-07-03)
 
 ## ComunicacaoVisual
 
@@ -1315,6 +1317,15 @@
 - **US-DASH-001** — Soft wrapper Inertia `/home` (F6 entrega 2026-05-21)
 - **US-DASH-002** — Charts ECharts em Inertia (backlog F1→F4 wave)
 - **US-DASH-003** — Widget registry pluggable em React (backlog ADR nova)
+
+## VozDoCliente
+
+
+### todo
+
+- **US-VOZDOCLIENTE-001** — Botão "Relatar" nas telas do app (porta de entrada da caixa) _(`p1` · @maiara · sprint 2026-W42)_
+- **US-VOZDOCLIENTE-002** — Habilitar o VozDoCliente na biz=1 por 7 dias _(`p1` · @wagner · sprint 2026-W43)_
+- **US-VOZDOCLIENTE-003** — Teste de 7 dias do VozDoCliente na ROTA LIVRE (biz=4) _(`p2` · @maiara · sprint 2026-W45)_
 
 ## ADS
 
