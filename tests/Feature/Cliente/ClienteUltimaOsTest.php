@@ -25,8 +25,9 @@ const CUOS_BIZ = 98;
 
 function cuosPedir($test)
 {
-    $manifest = public_path('build-inertia/manifest.json');
-    $versao = file_exists($manifest) ? md5_file($manifest) : '1';
+    // A versão vem do próprio middleware (como no RedirectLegacyContactsTest): o md5 do manifest
+    // não bate com ela no CI, e aí a resposta sai HTML 200 em vez do JSON do Inertia.
+    $versao = app(\App\Http\Middleware\HandleInertiaRequests::class)->version(request());
 
     return $test->withHeaders([
         'X-Inertia' => 'true',
