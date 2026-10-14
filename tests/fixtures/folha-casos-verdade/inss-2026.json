@@ -1,0 +1,22 @@
+{
+  "id": "inss-2026",
+  "tipo": "tabela_inss_empregado",
+  "vigencia": { "inicio": "2026-01", "fim": null },
+  "fonte": {
+    "orgao": "INSS",
+    "documento": "Tabela de contribuição mensal, válida a partir da competência janeiro/2026 (valores da Portaria Interministerial MPS/MF nº 13, de 09/01/2026)",
+    "url": "https://www.gov.br/inss/pt-br/direitos-e-deveres/inscricao-e-contribuicao/tabela-de-contribuicao-mensal",
+    "consultado_em": "2026-10-14"
+  },
+  "regra": "Alíquota progressiva por faixa. O 13º salário não se soma à remuneração mensal para enquadramento: a alíquota é aplicada em separado (mesma página, 'Outras informações' item 3).",
+  "faixas": [
+    { "de": "0.00", "ate": "1621.00", "aliquota": "0.075" },
+    { "de": "1621.01", "ate": "2902.84", "aliquota": "0.09" },
+    { "de": "2902.85", "ate": "4354.27", "aliquota": "0.12" },
+    { "de": "4354.28", "ate": "8475.55", "aliquota": "0.14" }
+  ],
+  "casos": [],
+  "sem_fonte": [
+    "Nenhum exemplo resolvido oficial de contribuição de empregado em 2026 foi encontrado (INSS, Previdência, eSocial, RFB). Casos de 2026 ficam vazios até [W] trazer holerite conferido por contador."
+  ]
+}

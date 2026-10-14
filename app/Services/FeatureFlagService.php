@@ -64,6 +64,10 @@ class FeatureFlagService
         'useV2SistemaFuncoes' => true,
         'useV2VozDoClienteCaixa' => true,
         'useV2SpreadsheetIndex' => true,
+        // D-LOGS ([W] 2026-10-14, playbook Officeimpresso A3/07): Logs/Index e Logs/Timeline
+        // em React para todas as empresas. A tela segue listando máquinas. Rollback = flag OFF
+        // no GrowthBook (UC-LOGS-16), o Blade segue no repo.
+        'useV2OfficeimpressoLogs' => true,
     ];
 
     public function isOn(string $flag, array $attrs = []): bool
