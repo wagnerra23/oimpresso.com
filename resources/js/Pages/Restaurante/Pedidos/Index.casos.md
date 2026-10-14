@@ -5,7 +5,7 @@ irmaos: Index.charter.md (lei) · Index.tsx (tela)
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: pedido de outro negócio ou de outro atendente na tela é incidente; item servido duas vezes ou esquecido atrasa a mesa.
 owner: wagner
-last_run: "2026-10-13"
+last_run: "2026-10-14"
 ---
 
 # Casos de Uso & Aceite — Pedidos

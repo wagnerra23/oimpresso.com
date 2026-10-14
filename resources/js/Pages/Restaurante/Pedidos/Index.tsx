@@ -80,7 +80,7 @@ const data = (iso: string) => new Date(iso.replace(' ', 'T'));
 const espera = (iso: string) => Math.max(0, Math.round((Date.now() - data(iso).getTime()) / 60_000));
 const feitoAs = (iso: string) => data(iso).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }).replace(',', '');
 
-function PedidosIndex({ e_atendente, atendente_escolhido, atendentes, itens, pedidos }: Props) {
+function RestaurantePedidosIndex({ e_atendente, atendente_escolhido, atendentes, itens, pedidos }: Props) {
   const [confirmar, setConfirmar] = useState<Acao | null>(null);
   const [marcando, setMarcando] = useState<string | null>(null);
   const [erro, setErro] = useState<string | null>(null);
@@ -213,6 +213,6 @@ function PedidosIndex({ e_atendente, atendente_escolhido, atendentes, itens, ped
   );
 }
 
-PedidosIndex.layout = (page: ReactNode) => <AppShellV2>{page}</AppShellV2>;
+RestaurantePedidosIndex.layout = (page: ReactNode) => <AppShellV2>{page}</AppShellV2>;
 
-export default PedidosIndex;
+export default RestaurantePedidosIndex;

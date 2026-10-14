@@ -121,7 +121,7 @@ function Campo({ rotulo, children }: { rotulo: string; children: ReactNode }) {
   );
 }
 
-function DespesasIndex({ filtros, opcoes, despesas, pode }: Props) {
+function FinanceiroDespesasIndex({ filtros, opcoes, despesas, pode }: Props) {
   const linhas = useMemo(() => despesas?.data ?? [], [despesas]);
   const [aberta, setAberta] = useState<Despesa | null>(null);
   const [confirmar, setConfirmar] = useState(false);
@@ -250,6 +250,6 @@ function DespesasIndex({ filtros, opcoes, despesas, pode }: Props) {
   );
 }
 
-DespesasIndex.layout = (page: ReactNode) => <AppShellV2>{page}</AppShellV2>;
+FinanceiroDespesasIndex.layout = (page: ReactNode) => <AppShellV2>{page}</AppShellV2>;
 
-export default DespesasIndex;
+export default FinanceiroDespesasIndex;
