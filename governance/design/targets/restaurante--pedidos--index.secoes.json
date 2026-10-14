@@ -1,0 +1,19 @@
+{
+  "_": "A1 [CL] 2026-10-13 — playbook restaurante. Rota `cfg-pedidos-rest` do espelho (app.jsx:848 → window.RestauranteOperacaoPage view=cfg-pedidos-rest, _saida-P1). Tema dark (default do espelho), viewport 1280x900, browser limpo.",
+  "_mapa": "alvo:mapa --rota cfg-pedidos-rest --quieto-ms 2000, 2026-10-13: raiz '.main-body > .pb-root' → div.cli-ph(2) · div.pb-body(4) · div(0); raiz '.main-body > .pb-root > .pb-body' → nav.ds-tabbar.vb-nav(5) · div.pb-filters-h(1) · section.pb-widget(2) · section.pb-widget(2); raiz '... > section.pb-widget:nth-of-type(1)' → h3(2) · div.pb-widget-b(1)",
+  "cabecalho": {
+    "seletor": ".main-body > .pb-root > .cli-ph > header"
+  },
+  "abas": {
+    "seletor": ".main-body > .pb-root > .pb-body > nav.ds-tabbar"
+  },
+  "filtros": {
+    "seletor": ".main-body > .pb-root > .pb-body > .pb-filters-h"
+  },
+  "prontos": {
+    "seletor": ".main-body > .pb-root > .pb-body > section.pb-widget:nth-of-type(1)"
+  },
+  "todos": {
+    "seletor": ".main-body > .pb-root > .pb-body > section.pb-widget:nth-of-type(2)"
+  }
+}

@@ -28,7 +28,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { PageHeader, PageHeaderPrimary } from '@/Components/PageHeader';
 import DataTable, { type PaginatorShape } from '@/Components/shared/DataTable';
 import type { ColumnDef } from '@tanstack/react-table';
-import { Inline, Stack } from '@/Components/layout';
+import { Grid, Inline, Stack } from '@/Components/layout';
 import FinanceiroSubNav from '@/Pages/Financeiro/_shared/FinanceiroSubNav';
 import NovaDespesaSheet, { type OpcoesNova } from './_components/NovaDespesaSheet';
 
@@ -122,7 +122,7 @@ function Campo({ rotulo, children }: { rotulo: string; children: ReactNode }) {
 }
 
 function DespesasIndex({ filtros, opcoes, despesas, pode }: Props) {
-  const linhas = despesas?.data ?? [];
+  const linhas = useMemo(() => despesas?.data ?? [], [despesas]);
   const [aberta, setAberta] = useState<Despesa | null>(null);
   const [confirmar, setConfirmar] = useState(false);
   const [aviso, setAviso] = useState('');
@@ -152,10 +152,10 @@ function DespesasIndex({ filtros, opcoes, despesas, pode }: Props) {
     <div className="fin-curadoria">
       <div data-contract="cabecalho">
         <PageHeader title="Despesas" subtitle={<>Lançamentos de despesa e estorno, com o que falta pagar</>}>
-          <div className="ml-auto flex flex-shrink-0 items-center gap-1.5">
+          <Inline className="ml-auto flex-shrink-0">
             <FinanceiroSubNav active="despesas" hidePrimary />
             {pode.add && opcoes && <PageHeaderPrimary label="Nova despesa" onClick={() => setNova(true)} />}
-          </div>
+          </Inline>
         </PageHeader>
       </div>
 
@@ -203,7 +203,7 @@ function DespesasIndex({ filtros, opcoes, despesas, pode }: Props) {
           </header>
           {aberta && (
             <Stack gap={4} className="p-5 text-sm">
-              <div className="grid grid-cols-2 gap-3">
+              <Grid cols={2} gap={3}>
                 <Campo rotulo="Total">{brl(aberta.total)}</Campo>
                 <Campo rotulo="Devido">{brl(aberta.devido)}</Campo>
                 <Campo rotulo="Pagamento">{STATUS[aberta.status] ?? aberta.status}</Campo>
@@ -215,7 +215,7 @@ function DespesasIndex({ filtros, opcoes, despesas, pode }: Props) {
                 <Campo rotulo="Contato">{aberta.contato}</Campo>
                 <Campo rotulo="Criado por">{aberta.criado_por}</Campo>
                 {aberta.gerada_de && <Campo rotulo="Gerada pela recorrência de">{aberta.gerada_de}</Campo>}
-              </div>
+              </Grid>
               <Campo rotulo="Nota">{aberta.nota}</Campo>
               <p className="text-xs text-muted-foreground">
                 Pagamento ({aberta.status !== 'paid' ? 'adicionar e ' : ''}ver) continua na tela clássica.

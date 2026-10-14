@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { totalParaEnvio } from '../../resources/js/Pages/Financeiro/Despesas/_components/NovaDespesaSheet';
+import { totalParaEnvio } from '../../resources/js/Pages/Financeiro/Despesas/_lib/total-envio';
 
 // UC-DESPES-06 [V0] — o que a Nova despesa manda no `final_total`. O `num_uf` do servidor lê "." como
 // milhar quando há 3+ dígitos depois dele (incidente 2026-06-05), então a tela nunca manda float cru:

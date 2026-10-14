@@ -1,0 +1,51 @@
+{
+  "_nota": "Derivado do alvo governance/design/targets/recorrente--planos--index.alvo.json (thread A1 do playbook recorrente, rota `rb-planos` do protótipo), não do .tsx. Seções do alvo → âncoras postas nesta thread (só o atributo data-contract; RUNBOOK-recurring-billing-index.md criado para o hook). Copy só onde protótipo e Page dizem literalmente o mesmo, conferida por máquina na base.assinatura do alvo e no código da Page sem comentário. Fora: `subnav` (a Page não tem a sub-navegação ph-nav do Financeiro). `ciclos` sem copy: a Page diz 'Distribuição ciclos' e o protótipo 'Distribuição por ciclo'; os rótulos de ciclo só batem em minúscula (chave), não como texto. Título h1 diverge ('Planos · cobrança recorrente' só no protótipo).",
+  "tela": "RecurringBilling/Planos/Index",
+  "fonte": "prototipo-ui/cowork/Wagner/cobranca-recorrente-page.jsx",
+  "alvo": [
+    "resources/js/Pages/RecurringBilling/Planos/Index.tsx"
+  ],
+  "secoes": [
+    {
+      "id": "cabecalho",
+      "copy": [
+        "Novo plano"
+      ]
+    },
+    {
+      "id": "kpis",
+      "copy": [
+        "Ticket médio · MRR potencial",
+        "Total planos",
+        "Total ativos",
+        "disponíveis pra novas assinaturas",
+        "Plano top vendido"
+      ]
+    },
+    {
+      "id": "ciclos",
+      "copy": []
+    },
+    {
+      "id": "lista",
+      "copy": [
+        "Buscar",
+        "Plano",
+        "Ciclo",
+        "Valor",
+        "Assinaturas",
+        "Fiscal",
+        "Status",
+        "Ações",
+        "Editar",
+        "Excluir"
+      ]
+    }
+  ],
+  "ordem": [
+    "cabecalho",
+    "kpis",
+    "ciclos",
+    "lista"
+  ]
+}

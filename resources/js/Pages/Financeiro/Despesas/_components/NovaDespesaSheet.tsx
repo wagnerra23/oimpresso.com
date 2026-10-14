@@ -15,6 +15,7 @@ import { NumericInputPtBR } from '@/Components/ui/numeric-input-ptbr';
 import { Sheet, SheetContent, SheetDescription, SheetTitle } from '@/Components/ui/sheet';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import { Grid, Inline, Stack } from '@/Components/layout';
+import { totalParaEnvio } from '../_lib/total-envio';
 
 type Lista = Record<string, string>;
 export interface OpcoesNova {
@@ -24,10 +25,6 @@ export interface OpcoesNova {
 
 const NENHUM = '__nenhum';
 
-/** O que vai no POST. Exportado para o teste de contrato do formato do total. */
-export function totalParaEnvio(v: number): string {
-  return (Math.round(v * 100) / 100).toFixed(2).replace('.', ',');
-}
 
 function agoraLocal(): string {
   const d = new Date();

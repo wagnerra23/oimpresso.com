@@ -1,0 +1,19 @@
+{
+  "_": "A1 [CL] 2026-10-13 — playbook restaurante. Rota `cfg-modificadores` do espelho (configuracoes-cadastros.jsx; a _saida-P1 manda usar a rota existente). Tema dark (default do espelho), viewport 1280x900, browser limpo.",
+  "_mapa": "alvo:mapa --rota cfg-modificadores --quieto-ms 2000, 2026-10-13: raiz '.main-body' → div.os-page.hrm-page.cfg-page(3); raiz '.main-body > .cfg-page' → header.os-page-h(2) · nav.ds-tabbar.hrm-tabs(10) · div.hrm-body(5); raiz '.main-body > .cfg-page > .hrm-body' → div.hrm-toolbar(3) · div.hrm-tabela(1) · div.hrm-pag(0) · div.hrm-note-ds(1) · div.hrm-toast-host(0). Fora: div.hrm-pag e div.hrm-toast-host (sem filhos).",
+  "cabecalho": {
+    "seletor": ".main-body > .cfg-page > header.os-page-h"
+  },
+  "abas": {
+    "seletor": ".main-body > .cfg-page > nav.ds-tabbar"
+  },
+  "toolbar": {
+    "seletor": ".main-body > .cfg-page > .hrm-body > .hrm-toolbar"
+  },
+  "tabela": {
+    "seletor": ".main-body > .cfg-page > .hrm-body > .hrm-tabela"
+  },
+  "nota": {
+    "seletor": ".main-body > .cfg-page > .hrm-body > .hrm-note-ds"
+  }
+}
