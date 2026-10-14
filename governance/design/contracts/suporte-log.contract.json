@@ -1,0 +1,31 @@
+{
+  "_nota": "Derivado das seções `cabecalho`/`log` do contrato-fonte da thread (cowork-inbox/modulos-faltantes/suporte.contract.json), não do .tsx; não há alvo da A1 para o Log. Copy só onde protótipo (suporte-page.jsx) e código da Page dizem literalmente o mesmo. As âncoras já existiam (thread 02, #8847): nenhuma Page editada. Suporte/Empresas e Suporte/Visao têm contrato próprio por tela (suporte-empresas, suporte-visao, thread 01 de telas-soltas); um suporte.contract.json sobre as 3 seria segundo dono. Fora: 'Motivo declarado' e 'Duração' (o schema não grava, _saida-02) e o rodapé 'incidente P0', sem âncora.",
+  "tela": "Suporte/Log",
+  "fonte": "prototipo-ui/cowork/Wagner/suporte-page.jsx",
+  "alvo": [
+    "resources/js/Pages/Suporte/Log.tsx"
+  ],
+  "secoes": [
+    {
+      "id": "cabecalho",
+      "copy": [
+        "Log de acessos de suporte",
+        "support_access_logs · append-only"
+      ]
+    },
+    {
+      "id": "log",
+      "copy": [
+        "Quando",
+        "Agente",
+        "Acessou como",
+        "Empresa",
+        "só leitura"
+      ]
+    }
+  ],
+  "ordem": [
+    "cabecalho",
+    "log"
+  ]
+}

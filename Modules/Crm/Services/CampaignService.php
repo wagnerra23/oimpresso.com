@@ -136,9 +136,12 @@ class CampaignService
                 $business = Business::findOrFail($businessId);
 
                 $contactIds = $this->resolveContactIds($campaign, $businessId);
-                $notifiableUsers = CrmContact::find($contactIds);
+                // Envio só para contato do próprio negócio (achado A1, thread Crm/11 — ADR 0093).
+                $notifiableUsers = CrmContact::where('business_id', $businessId)
+                    ->whereIn('id', (array) $contactIds)
+                    ->get();
 
-                if (! empty($notifiableUsers) && $campaign->campaign_type === 'sms') {
+                if ($notifiableUsers->isNotEmpty() && $campaign->campaign_type === 'sms') {
                     $notificationData = [
                         'sms_settings' => request()->session()->get('business.sms_settings'),
                     ];
@@ -152,7 +155,7 @@ class CampaignService
 
                         $this->notificationUtil->sendSms($notificationData);
                     }
-                } elseif (! empty($notifiableUsers) && $campaign->campaign_type === 'email') {
+                } elseif ($notifiableUsers->isNotEmpty() && $campaign->campaign_type === 'email') {
                     Notification::send($notifiableUsers, new SendCampaignNotification($campaign, $business));
                 }
 

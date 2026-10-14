@@ -14,7 +14,7 @@ module: Woocommerce
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Woocommerce/**` + `resources/js/Pages/Woocommerce/**`, separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 88 arquivos em 13 papéis.
+**Total mapeado:** 93 arquivos em 16 papéis.
 
 ## Controllers — 4
 
@@ -96,9 +96,21 @@ module: Woocommerce
 - [webhook_settings.blade.php](../../../Modules/Woocommerce/Resources/views/woocommerce/partials/webhook_settings.blade.php)
 - [sync_log.blade.php](../../../Modules/Woocommerce/Resources/views/woocommerce/sync_log.blade.php)
 
-## Testes (Pest) — 8
+## Telas (Inertia/React) — 1
 
-- 8 em [Modules/Woocommerce/Tests/Feature/](../../../Modules/Woocommerce/Tests/Feature)
+- [Index.tsx](../../../Modules/Woocommerce/Resources/js/Pages/Woocommerce/Painel/Index.tsx)
+
+## Charters (lei da tela) — 1
+
+- [Index.charter.md](../../../Modules/Woocommerce/Resources/js/Pages/Woocommerce/Painel/Index.charter.md)
+
+## Casos (contrato UC) — 1
+
+- [Index.casos.md](../../../Modules/Woocommerce/Resources/js/Pages/Woocommerce/Painel/Index.casos.md)
+
+## Testes (Pest) — 10
+
+- 10 em [Modules/Woocommerce/Tests/Feature/](../../../Modules/Woocommerce/Tests/Feature)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
 ## Demais arquivos (manifestos, docs, assets e misc) — 33

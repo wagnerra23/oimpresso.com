@@ -4,9 +4,13 @@ irmaos: Create.charter.md (lei) · Create.tsx
 tecnica: Caso de uso = narrativa do operador + critério de aceite verificável (Dado/Quando/Então)
 por_que: a transferência tira de uma filial e põe em outra; as duas pontas têm de ser da mesma empresa.
 owner: wagner
-last_run: "2026-10-11"
+last_run: "2026-10-14"
 last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane PHP / Pest (Estoque · MySQL)"
 ---
+
+> ℹ️ **`last_run` 2026-10-11 → 2026-10-14 (G-6) — tema escuro, thread 03 do playbook `cowork-inbox/tema-escuro`: só COR.**
+> O [#9314](https://github.com/wagnerra23/oimpresso.com/pull/9314) pôs par `dark:` nos selos DE/PARA desta tela, e o #9321 tirou essa mudança: a tela tem o header antigo e qualquer toque nela cai na catraca do PageHeader. O `.tsx` voltou byte a byte ao do `main`; a tela segue na baseline da sonda de tema escuro e volta a ser corrigida quando o header migrar.
+> **Nenhum UC foi reexecutado**: o bump registra *trio reconciliado com a tela nesta data*.
 
 # Casos de Uso & Aceite — Nova transferência de estoque
 

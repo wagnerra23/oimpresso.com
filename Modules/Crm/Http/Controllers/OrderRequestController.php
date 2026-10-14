@@ -3,6 +3,7 @@
 namespace Modules\Crm\Http\Controllers;
 
 use App\BusinessLocation;
+use App\Services\FeatureFlagService;
 use App\Contact;
 use App\TaxRate;
 use App\User;
@@ -15,12 +16,22 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\DB;
+use Inertia\Inertia;
 use Modules\Crm\Utils\CrmUtil;
 use App\Support\Privacy\PiiRedactor;
 use Yajra\DataTables\Facades\DataTables;
 
 class OrderRequestController extends Controller
 {
+    /**
+     * Flag do caminho React da lista da equipe (thread crm/playbook/17, F3). Convenção `useV2<Modulo><Tela>`.
+     * Sem a chave no GrowthBook o FeatureFlagService cai no fallbackDefaults, que não a lista:
+     * default OFF, a Blade segue servindo. Ligar é toggle (flag:set --biz=1), não deploy.
+     *
+     * @see memory/requisitos/Crm/RUNBOOK-pedidos.md
+     */
+    private const FLAG_V2 = 'useV2CrmPedidos';
+
     protected $transactionUtil;
 
     protected $businessUtil;
@@ -357,7 +368,75 @@ class OrderRequestController extends Controller
         $business_locations = BusinessLocation::forDropdown($business_id, false);
         $customers = Contact::customersDropdown($business_id, false);
 
+        // `?classico=1` mantém a Blade alcançável com a flag ligada: a mudança de status do pedido segue nela.
+        if (! request()->boolean('classico') && app(FeatureFlagService::class)->isOn(self::FLAG_V2, ['business_id' => (int) $business_id])) {
+            $filtros = array_filter(request()->only('location_id', 'customer_id', 'status', 'start_date', 'end_date', 'q'), fn ($v) => $v !== null && $v !== '');
+            $opcao = fn ($lista) => collect($lista)->map(fn ($label, $id) => ['value' => (string) $id, 'label' => (string) $label])->values();
+
+            return Inertia::render('Crm/Pedidos/Index', [
+                'filtros' => $filtros,
+                'opcoes' => Inertia::defer(fn () => ['locais' => $opcao($business_locations), 'clientes' => $opcao($customers), 'status' => $opcao($order_statuses)]),
+                'pedidos' => Inertia::defer(fn () => $this->pedidosDeClientes((int) $business_id, $filtros)),
+            ]);
+        }
+
         return view('crm::order_request.all_list')
             ->with(compact('business_locations', 'order_statuses', 'customers'));
+    }
+
+    /**
+     * Pedidos de cliente da lista da equipe — a mesma consulta que a Blade pede ao `SellController@index`
+     * (`getListSells('sales_order')` + `crm_is_order_request`): negócio da sessão, locais permitidos e
+     * "só os meus" para quem tem só `so.view_own`. Sem `so.view_all`/`so.view_own`, nenhuma linha
+     * (a Blade nem desenha a grade). Só LÊ valor: `final_total` e a soma do conjunto filtrado.
+     */
+    private function pedidosDeClientes(int $business_id, array $filtros): array
+    {
+        $user = auth()->user();
+        if (! $user->can('so.view_all') && ! $user->can('so.view_own')) {
+            return ['pode_ver' => false, 'lista' => null, 'total' => '0.00'];
+        }
+
+        $query = $this->transactionUtil->getListSells($business_id, 'sales_order')
+            ->where('transactions.crm_is_order_request', 1);
+
+        $locais = $user->permitted_locations();
+        if ($locais != 'all') {
+            $query->whereIn('transactions.location_id', $locais);
+        }
+        if (! $user->can('so.view_all')) {
+            $query->where('transactions.created_by', $user->id);
+        }
+        foreach (['location_id' => 'transactions.location_id', 'customer_id' => 'contacts.id', 'status' => 'transactions.status'] as $campo => $coluna) {
+            if (! empty($filtros[$campo])) {
+                $query->where($coluna, $filtros[$campo]);
+            }
+        }
+        if (! empty($filtros['start_date']) && ! empty($filtros['end_date'])) {
+            $query->whereDate('transactions.transaction_date', '>=', $filtros['start_date'])
+                ->whereDate('transactions.transaction_date', '<=', $filtros['end_date']);
+        }
+        if (! empty($filtros['q'])) {
+            $termo = '%'.$filtros['q'].'%';
+            $query->where(fn ($q) => $q->where('transactions.invoice_no', 'like', $termo)->orWhere('contacts.name', 'like', $termo));
+        }
+        $query->groupBy('transactions.id');
+
+        // A soma sai da consulta AGRUPADA: o leftJoin com as linhas de venda duplicaria o total.
+        $total = (float) DB::query()->fromSub((clone $query), 'pedidos')->sum('pedidos.final_total');
+
+        $lista = $query->orderByDesc('transactions.transaction_date')->paginate(25)->withQueryString()
+            ->through(fn ($t) => [
+                'id' => $t->id,
+                'data' => $t->transaction_date ? \Carbon\Carbon::parse($t->transaction_date)->format('d/m/Y H:i') : null,
+                'numero' => (string) $t->invoice_no,
+                'contato' => trim(implode(', ', array_filter([$t->supplier_business_name, $t->name]))),
+                'local' => $t->business_location,
+                'status' => $t->status,
+                'restante' => $t->so_qty_remaining !== null ? (float) $t->so_qty_remaining : null,
+                'total' => number_format((float) $t->final_total, 2, '.', ''),
+            ]);
+
+        return ['pode_ver' => true, 'lista' => $lista, 'total' => number_format($total, 2, '.', '')];
     }
 }

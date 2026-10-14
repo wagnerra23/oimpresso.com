@@ -4,21 +4,32 @@
 // ProductController::buildRelatorioEstoqueDaLista (as MESMAS contas de Relatórios → Estoque).
 
 import { Button } from '@/Components/ui/button';
+import { Inline } from '@/Components/layout';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import { brl } from '../../Unificado/_components/catalogo';
-import type { RelatorioEstoqueLista } from './tipos';
+import { POR_PAGINA, type RelatorioEstoqueLista } from './tipos';
 
 const qtd = (n: number, unidade = '') =>
   `${n.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 2 })} ${unidade}`.trim();
 const dinheiro = (n: number | null) => (n === null ? '' : brl(n));
 const horaDe = (iso: string | null) =>
   iso ? new Date(iso).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : '';
+/**
+ * Cor do lucro potencial da LINHA. Protótipo: verde (`--pos`) — lá o lucro é sempre positivo. Aqui o
+ * número vem do estoque de verdade: positivo fica verde, negativo (custo acima do preço de venda)
+ * fica vermelho, e zero ou sem valor não ganha cor. O total do rodapé não tem cor, como no protótipo.
+ */
+const corDoLucro = (n: number | null) => (n === null || n === 0 ? '' : n > 0 ? ' text-[var(--pos)]' : ' text-[var(--neg)]');
 
 export default function RelatorioEstoqueAba({
   dados,
   irParaPagina,
+  aoMudarPorPagina,
 }: {
   dados: RelatorioEstoqueLista;
   irParaPagina: (pagina: number) => void;
+  /** Troca o tamanho da página (-1 = todas as linhas). Quem recebe volta para a página 1. */
+  aoMudarPorPagina: (porPagina: number) => void;
 }) {
   const { linhas, totais, mostra_preco: preco, mostra_valor: valor, paginacao } = dados;
   // SKU · Produto · Variação · Categoria · Local · [Preço] · Estoque · [3 valores] · 3 movimentos
@@ -75,7 +86,7 @@ export default function RelatorioEstoqueAba({
                   <>
                     <td className="r">{dinheiro(l.valor_compra)}</td>
                     <td className="r">{dinheiro(l.valor_venda)}</td>
-                    <td className="r">{dinheiro(l.lucro_potencial)}</td>
+                    <td className={`r${corDoLucro(l.lucro_potencial)}`}>{dinheiro(l.lucro_potencial)}</td>
                   </>
                 )}
                 <td className="r">{qtd(l.vendido, l.unidade)}</td>
@@ -137,6 +148,23 @@ export default function RelatorioEstoqueAba({
         >
           Próxima
         </Button>
+        {/* O mesmo seletor do rodapé da lista, com as mesmas opções (as da lista Blade). */}
+        <Inline gap={1}>
+          Mostrar
+          <Select value={String(paginacao.por_pagina)} onValueChange={(v) => aoMudarPorPagina(Number(v))}>
+            <SelectTrigger className="h-6 w-[88px]" aria-label="Linhas do relatório por página">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {POR_PAGINA.map((n) => (
+                <SelectItem key={n} value={String(n)}>
+                  {n === -1 ? 'Todos' : n}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          por página
+        </Inline>
       </div>
     </div>
   );

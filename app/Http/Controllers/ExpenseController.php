@@ -12,15 +12,26 @@ use App\Transaction;
 use App\User;
 use App\Utils\CashRegisterUtil;
 use App\Utils\ModuleUtil;
+use App\Services\FeatureFlagService;
 use App\Utils\TransactionUtil;
 use DB;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Inertia\Inertia;
 use Yajra\DataTables\Facades\DataTables;
 use App\Events\ExpenseCreatedOrModified;
 
 class ExpenseController extends Controller
 {
+    /**
+     * Flag do caminho React (thread financeiro/13). Convenção `useV2<Modulo><Tela>`.
+     * Sem a chave no GrowthBook o FeatureFlagService cai no fallbackDefaults, que não a lista:
+     * default OFF. Não ligar antes da US-MWART-017/018 (drawer, ações e nova despesa).
+     *
+     * @see memory/requisitos/Financeiro/RUNBOOK-despesas.md
+     */
+    private const FLAG_V2 = 'useV2FinanceiroDespesas';
+
     /**
      * Constructor
      *
@@ -39,7 +50,9 @@ class ExpenseController extends Controller
     /**
      * Display a listing of the resource.
      *
-     * @return \Illuminate\Http\Response
+     * DataTable (AJAX) → JsonResponse · Blade → View · tela React atrás da flag → Inertia\Response.
+     *
+     * @return \Illuminate\Http\JsonResponse|\Illuminate\View\View|\Inertia\Response
      */
     public function index()
     {
@@ -47,124 +60,13 @@ class ExpenseController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
-        if (request()->ajax()) {
+        // `! inertia()`: o Inertia v3 manda `X-Requested-With` em toda visita; sem esta perna o
+        // partial reload da Page cairia no JSON do DataTables (mesma pegadinha do RUNBOOK-locais §10).
+        // Para quem chama o DataTables (esta Blade e o relatório de despesas por representante) nada muda.
+        if (request()->ajax() && ! request()->inertia()) {
             $business_id = request()->session()->get('user.business_id');
 
-            $expenses = Transaction::leftJoin('expense_categories AS ec', 'transactions.expense_category_id', '=', 'ec.id')
-                        ->leftJoin('expense_categories AS esc', 'transactions.expense_sub_category_id', '=', 'esc.id')
-                        ->join(
-                            'business_locations AS bl',
-                            'transactions.location_id',
-                            '=',
-                            'bl.id'
-                        )
-                        ->leftJoin('tax_rates as tr', 'transactions.tax_id', '=', 'tr.id')
-                        ->leftJoin('users AS U', 'transactions.expense_for', '=', 'U.id')
-                        ->leftJoin('users AS usr', 'transactions.created_by', '=', 'usr.id')
-                        ->leftJoin('contacts AS c', 'transactions.contact_id', '=', 'c.id')
-                        ->leftJoin(
-                            'transaction_payments AS TP',
-                            'transactions.id',
-                            '=',
-                            'TP.transaction_id'
-                        )
-                        ->where('transactions.business_id', $business_id)
-                        ->whereIn('transactions.type', ['expense', 'expense_refund'])
-                        ->select(
-                            'transactions.id',
-                            'transactions.document',
-                            'transaction_date',
-                            'ref_no',
-                            'ec.name as category',
-                            'esc.name as sub_category',
-                            'payment_status',
-                            'additional_notes',
-                            'final_total',
-                            'transactions.is_recurring',
-                            'transactions.recur_interval',
-                            'transactions.recur_interval_type',
-                            'transactions.recur_repetitions',
-                            'transactions.subscription_repeat_on',
-                            'bl.name as location_name',
-                            DB::raw("CONCAT(COALESCE(U.surname, ''),' ',COALESCE(U.first_name, ''),' ',COALESCE(U.last_name,'')) as expense_for"),
-                            DB::raw("CONCAT(tr.name ,' (', tr.amount ,' )') as tax"),
-                            DB::raw('SUM(TP.amount) as amount_paid'),
-                            DB::raw("CONCAT(COALESCE(usr.surname, ''),' ',COALESCE(usr.first_name, ''),' ',COALESCE(usr.last_name,'')) as added_by"),
-                            'transactions.recur_parent_id',
-                            'c.name as contact_name',
-                            'transactions.type'
-                        )
-                        ->with(['recurring_parent'])
-                        ->groupBy('transactions.id');
-
-            //Add condition for expense for,used in sales representative expense report & list of expense
-            if (request()->has('expense_for')) {
-                $expense_for = request()->get('expense_for');
-                if (! empty($expense_for)) {
-                    $expenses->where('transactions.expense_for', $expense_for);
-                }
-            }
-
-            if (request()->has('contact_id')) {
-                $contact_id = request()->get('contact_id');
-                if (! empty($contact_id)) {
-                    $expenses->where('transactions.contact_id', $contact_id);
-                }
-            }
-
-            //Add condition for location,used in sales representative expense report & list of expense
-            if (request()->has('location_id')) {
-                $location_id = request()->get('location_id');
-                if (! empty($location_id)) {
-                    $expenses->where('transactions.location_id', $location_id);
-                }
-            }
-
-            //Add condition for expense category, used in list of expense,
-            if (request()->has('expense_category_id')) {
-                $expense_category_id = request()->get('expense_category_id');
-                if (! empty($expense_category_id)) {
-                    $expenses->where('transactions.expense_category_id', $expense_category_id);
-                }
-            }
-
-            //Add condition for expense sub category, used in list of expense,
-            if (request()->has('expense_sub_category_id')) {
-                $expense_sub_category_id = request()->get('expense_sub_category_id');
-                if (! empty($expense_sub_category_id)) {
-                    $expenses->where('transactions.expense_sub_category_id', $expense_sub_category_id);
-                }
-            }
-
-            //Add condition for start and end date filter, uses in sales representative expense report & list of expense
-            if (! empty(request()->start_date) && ! empty(request()->end_date)) {
-                $start = request()->start_date;
-                $end = request()->end_date;
-                $expenses->whereDate('transaction_date', '>=', $start)
-                        ->whereDate('transaction_date', '<=', $end);
-            }
-
-            $permitted_locations = auth()->user()->permitted_locations();
-            if ($permitted_locations != 'all') {
-                $expenses->whereIn('transactions.location_id', $permitted_locations);
-            }
-
-            //Add condition for payment status for the list of expense
-            if (request()->has('payment_status')) {
-                $payment_status = request()->get('payment_status');
-                if (! empty($payment_status)) {
-                    $expenses->where('transactions.payment_status', $payment_status);
-                }
-            }
-
-            $is_admin = $this->moduleUtil->is_admin(auth()->user(), $business_id);
-            if (! $is_admin && ! auth()->user()->can('all_expense.access')) {
-                $user_id = auth()->user()->id;
-                $expenses->where(function ($query) use ($user_id) {
-                    $query->where('transactions.created_by', $user_id)
-                        ->orWhere('transactions.expense_for', $user_id);
-                });
-            }
+            $expenses = $this->consultaDespesas((int) $business_id);
 
             return Datatables::of($expenses)
                 ->addColumn(
@@ -259,6 +161,21 @@ class ExpenseController extends Controller
 
         $business_id = request()->session()->get('user.business_id');
 
+        // US-MWART-015/016: com a flag ligada a lista é a Page React; `?classico=1` mantém a Blade.
+        // Flag desligada (default, sem a chave no GrowthBook) = a Blade segue servindo.
+        if (! request()->boolean('classico') && app(FeatureFlagService::class)->isOn(self::FLAG_V2, ['business_id' => $business_id])) {
+            return Inertia::render('Financeiro/Despesas/Index', [
+                'filtros' => $this->filtrosDespesas((int) $business_id),
+                'opcoes' => Inertia::defer(fn () => $this->opcoesDespesas((int) $business_id)),
+                'despesas' => Inertia::defer(fn () => $this->despesasPaginadas((int) $business_id)),
+                'pode' => [
+                    'add' => auth()->user()->can('expense.add'),
+                    'edit' => auth()->user()->can('expense.edit'),
+                    'delete' => auth()->user()->can('expense.delete'),
+                ],
+            ]);
+        }
+
         $categories = ExpenseCategory::where('business_id', $business_id)
                             ->whereNull('parent_id')
                             ->pluck('name', 'id');
@@ -276,6 +193,199 @@ class ExpenseController extends Controller
 
         return view('expense.index')
             ->with(compact('categories', 'business_locations', 'users', 'contacts', 'sub_categories'));
+    }
+
+    /** Filtros da Page: os da requisição; sem período, o ano fiscal (o default da Blade, `dateRangeSettings`). */
+    private function filtrosDespesas(int $business_id): array
+    {
+        if (empty(request()->start_date) || empty(request()->end_date)) {
+            $ano = app(\App\Utils\BusinessUtil::class)->getCurrentFinancialYear($business_id);
+            request()->merge(['start_date' => $ano['start'], 'end_date' => $ano['end']]);
+        }
+
+        return collect(['location_id', 'expense_for', 'contact_id', 'expense_category_id',
+            'expense_sub_category_id', 'payment_status', 'start_date', 'end_date'])
+            ->mapWithKeys(fn ($k) => [$k => (string) request()->input($k, '')])
+            ->all();
+    }
+
+    /** As mesmas listas que a Blade monta para os filtros. */
+    private function opcoesDespesas(int $business_id): array
+    {
+        return [
+            'locais' => BusinessLocation::forDropdown($business_id, true),
+            'usuarios' => User::forDropdown($business_id, false, true, true),
+            'contatos' => Contact::contactDropdown($business_id, false, false),
+            'categorias' => ExpenseCategory::where('business_id', $business_id)->whereNull('parent_id')->pluck('name', 'id'),
+            'subcategorias' => ExpenseCategory::where('business_id', $business_id)->whereNotNull('parent_id')->pluck('name', 'id'),
+        ];
+    }
+
+    /**
+     * Página de 25, como o DataTable. Total e devido com o MESMO sinal e a MESMA conta do ramo
+     * DataTables (`final-total` / `payment_due`): estorno negativo, devido = total − pagamentos.
+     */
+    private function despesasPaginadas(int $business_id): array
+    {
+        $this->filtrosDespesas($business_id);
+        $pagina = $this->consultaDespesas($business_id)
+            ->orderBy('transaction_date', 'desc')
+            ->paginate(25)
+            ->withQueryString();
+
+        $linhas = collect($pagina->items())->map(function ($r) {
+            $sinal = $r->type == 'expense_refund' ? -1 : 1;
+
+            return [
+                'id' => $r->id,
+                'data' => app(TransactionUtil::class)->format_date($r->transaction_date, true),
+                'ref' => $r->ref_no,
+                'estorno' => $r->type == 'expense_refund',
+                'recorrente' => ! empty($r->is_recurring),
+                'gerada_de' => ! empty($r->recur_parent_id) ? optional($r->recurring_parent)->ref_no : null,
+                'categoria' => $r->category,
+                'subcategoria' => $r->sub_category,
+                'local' => $r->location_name,
+                'status' => $r->payment_status,
+                'imposto' => $r->tax,
+                'total' => $sinal * (float) $r->final_total,
+                'devido' => $sinal * ((float) $r->final_total - (float) $r->amount_paid),
+                'para' => trim((string) $r->expense_for),
+                'contato' => $r->contact_name,
+                'nota' => $r->additional_notes,
+                'criado_por' => trim((string) $r->added_by),
+                'documento' => $r->document,
+            ];
+        });
+
+        // O formato do paginador do Laravel (from/to/links) é o que o DataTable compartilhado lê.
+        return array_merge($pagina->toArray(), ['data' => $linhas->all()]);
+    }
+
+    /**
+     * A consulta da lista de despesas, com os filtros da requisição e o escopo do usuário.
+     * Fonte única do ramo DataTables (Blade e relatório por representante) e do payload Inertia
+     * (Financeiro/Despesas/Index): as duas telas não podem divergir no que listam.
+     */
+    private function consultaDespesas(int $business_id)
+    {
+        $expenses = Transaction::leftJoin('expense_categories AS ec', 'transactions.expense_category_id', '=', 'ec.id')
+                    ->leftJoin('expense_categories AS esc', 'transactions.expense_sub_category_id', '=', 'esc.id')
+                    ->join(
+                        'business_locations AS bl',
+                        'transactions.location_id',
+                        '=',
+                        'bl.id'
+                    )
+                    ->leftJoin('tax_rates as tr', 'transactions.tax_id', '=', 'tr.id')
+                    ->leftJoin('users AS U', 'transactions.expense_for', '=', 'U.id')
+                    ->leftJoin('users AS usr', 'transactions.created_by', '=', 'usr.id')
+                    ->leftJoin('contacts AS c', 'transactions.contact_id', '=', 'c.id')
+                    ->leftJoin(
+                        'transaction_payments AS TP',
+                        'transactions.id',
+                        '=',
+                        'TP.transaction_id'
+                    )
+                    ->where('transactions.business_id', $business_id)
+                    ->whereIn('transactions.type', ['expense', 'expense_refund'])
+                    ->select(
+                        'transactions.id',
+                        'transactions.document',
+                        'transaction_date',
+                        'ref_no',
+                        'ec.name as category',
+                        'esc.name as sub_category',
+                        'payment_status',
+                        'additional_notes',
+                        'final_total',
+                        'transactions.is_recurring',
+                        'transactions.recur_interval',
+                        'transactions.recur_interval_type',
+                        'transactions.recur_repetitions',
+                        'transactions.subscription_repeat_on',
+                        'bl.name as location_name',
+                        DB::raw("CONCAT(COALESCE(U.surname, ''),' ',COALESCE(U.first_name, ''),' ',COALESCE(U.last_name,'')) as expense_for"),
+                        DB::raw("CONCAT(tr.name ,' (', tr.amount ,' )') as tax"),
+                        DB::raw('SUM(TP.amount) as amount_paid'),
+                        DB::raw("CONCAT(COALESCE(usr.surname, ''),' ',COALESCE(usr.first_name, ''),' ',COALESCE(usr.last_name,'')) as added_by"),
+                        'transactions.recur_parent_id',
+                        'c.name as contact_name',
+                        'transactions.type'
+                    )
+                    ->with(['recurring_parent'])
+                    ->groupBy('transactions.id');
+
+        //Add condition for expense for,used in sales representative expense report & list of expense
+        if (request()->has('expense_for')) {
+            $expense_for = request()->get('expense_for');
+            if (! empty($expense_for)) {
+                $expenses->where('transactions.expense_for', $expense_for);
+            }
+        }
+
+        if (request()->has('contact_id')) {
+            $contact_id = request()->get('contact_id');
+            if (! empty($contact_id)) {
+                $expenses->where('transactions.contact_id', $contact_id);
+            }
+        }
+
+        //Add condition for location,used in sales representative expense report & list of expense
+        if (request()->has('location_id')) {
+            $location_id = request()->get('location_id');
+            if (! empty($location_id)) {
+                $expenses->where('transactions.location_id', $location_id);
+            }
+        }
+
+        //Add condition for expense category, used in list of expense,
+        if (request()->has('expense_category_id')) {
+            $expense_category_id = request()->get('expense_category_id');
+            if (! empty($expense_category_id)) {
+                $expenses->where('transactions.expense_category_id', $expense_category_id);
+            }
+        }
+
+        //Add condition for expense sub category, used in list of expense,
+        if (request()->has('expense_sub_category_id')) {
+            $expense_sub_category_id = request()->get('expense_sub_category_id');
+            if (! empty($expense_sub_category_id)) {
+                $expenses->where('transactions.expense_sub_category_id', $expense_sub_category_id);
+            }
+        }
+
+        //Add condition for start and end date filter, uses in sales representative expense report & list of expense
+        if (! empty(request()->start_date) && ! empty(request()->end_date)) {
+            $start = request()->start_date;
+            $end = request()->end_date;
+            $expenses->whereDate('transaction_date', '>=', $start)
+                    ->whereDate('transaction_date', '<=', $end);
+        }
+
+        $permitted_locations = auth()->user()->permitted_locations();
+        if ($permitted_locations != 'all') {
+            $expenses->whereIn('transactions.location_id', $permitted_locations);
+        }
+
+        //Add condition for payment status for the list of expense
+        if (request()->has('payment_status')) {
+            $payment_status = request()->get('payment_status');
+            if (! empty($payment_status)) {
+                $expenses->where('transactions.payment_status', $payment_status);
+            }
+        }
+
+        $is_admin = $this->moduleUtil->is_admin(auth()->user(), $business_id);
+        if (! $is_admin && ! auth()->user()->can('all_expense.access')) {
+            $user_id = auth()->user()->id;
+            $expenses->where(function ($query) use ($user_id) {
+                $query->where('transactions.created_by', $user_id)
+                    ->orWhere('transactions.expense_for', $user_id);
+            });
+        }
+
+        return $expenses;
     }
 
     /**
