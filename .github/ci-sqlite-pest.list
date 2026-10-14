@@ -284,6 +284,11 @@ Modules/Jana/Tests/Feature/TaskRegistry/McpTasksOrphansCommandTest.php
 # governance:prod-flags — produtor do prod-flags.json (replica shouldRenderInertiaCliente).
 # Config-puro (sem DB) → sqlite-safe. Item b/produtor da proposta SDD 2026-06-24.
 tests/Feature/Governance/ProdFlagsCommandTest.php
+# E1 regime de evolução (2026-10-14): contratos de tela de governança sem banco (rotas, função pura, árvore temporária).
+tests/Feature/Governance/AuditContratoTest.php
+tests/Feature/Governance/DriftAlertsContratoTest.php
+tests/Feature/Modules/Governance/DashboardExtensionTest.php
+tests/Feature/Modules/Governance/DashboardFiltrosMcpTest.php
 
 # PaymentGateway linkage cobranca_id (US-PG-008) — era-sqlite (schema sintético,
 # DatabaseTransactions, sem RefreshDatabase/ENUM MySQL-only). PaymentGateway NÃO

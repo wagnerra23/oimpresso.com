@@ -2,10 +2,11 @@ import { test, expect } from '@playwright/test';
 
 // E2E de comportamento — GOVERNANÇA, painel (thread 02 do playbook de governança).
 //
-// Contrato: resources/js/Pages/governance/Dashboard.charter.md (a tela ainda NÃO tem
-// `casos.md` — é a frente 03 do playbook). Por isso NENHUM título aqui cita `UC-id`:
-// inventar um id que não existe no `casos.md` fabricaria âncora, e o `casos-gate` mede
-// a direção UC→teste. Quando a 03 criar `Dashboard.casos.md`, os ids entram nos títulos.
+// Contrato: resources/js/Pages/governance/Dashboard.charter.md (lei) + Dashboard.casos.md
+// (UC-GDSH-*). Os ids entraram nos títulos em 2026-10-14, quando o `casos.md` nasceu (E1);
+// antes disso o arquivo deixava os títulos sem id de propósito, para não fabricar âncora.
+// O `test.fixme` do "auto-declarado" segue SEM id: a régua por artigo foi REJEITADA em
+// 2026-09-09 (governance-dashboard-gap.md) — não é caso de uso da tela.
 //
 // Oráculos do lado PHP (não se duplicam aqui, se citam):
 //   GovernanceRotasCanGateTest  — o `can:` ARMADO por rota (registry, não texto)
@@ -18,7 +19,7 @@ import { test, expect } from '@playwright/test';
 // regex case-insensitive de propósito: `KpiCard` aplica `uppercase` por CSS, e o
 // `innerText` do Chromium devolve o texto JÁ transformado.
 
-test('a raiz /governance redireciona 302 pra /ia', async ({ page }) => {
+test('UC-GDSH-01 · a raiz /governance redireciona 302 pra /ia', async ({ page }) => {
   // Canon [W] 2026-05-22: o entry-point do oimpresso é o hub IA/Jana. É a primeira coisa
   // que quebra numa refatoração de rota, e o `GovernanceRotasCanGateTest` prova por
   // controle negativo que esta rota segue SEM `can:` — quem não tem permission tem que
@@ -30,7 +31,7 @@ test('a raiz /governance redireciona 302 pra /ia', async ({ page }) => {
   expect(resposta.headers()['location'] ?? '').toContain('/ia');
 });
 
-test('/governance/dashboard renderiza o componente governance/Dashboard', async ({ page }) => {
+test('UC-GDSH-01 · /governance/dashboard renderiza o componente governance/Dashboard', async ({ page }) => {
   // O painel legado tem endereço próprio (`governance.admin.dashboard.legacy`).
   // O nome do componente vem do payload que o SERVIDOR resolveu (`data-page` do
   // `@inertia`) — é o contrato literal do caso, e o `g` minúsculo é o caminho REAL
@@ -72,7 +73,7 @@ test('/governance/dashboard renderiza o componente governance/Dashboard', async 
   expect(pagina.component).toBe('governance/Dashboard');
 });
 
-test('o painel resolve as props deferidas sem exceção de runtime', async ({ page }) => {
+test('UC-GDSH-02 · o painel resolve as props deferidas sem exceção de runtime', async ({ page }) => {
   // Incidente literal de 2026-05-25 na tela de origem: as props eram desestruturadas
   // direto e deu `TypeError undefined.find` EM PRODUÇÃO. O anti-hook do charter proíbe
   // consumir a prop `mcp` fora do `<Deferred>`. Aqui a prova é pela CONSEQUÊNCIA — uma
@@ -93,7 +94,7 @@ test('o painel resolve as props deferidas sem exceção de runtime', async ({ pa
   expect(excecoes, `exceções de runtime na página: ${excecoes.join(' | ')}`).toEqual([]);
 });
 
-test('o KPI de conformidade da Constituição aparece com a régua que a tela declara', async ({ page }) => {
+test('UC-GDSH-03 · o KPI de conformidade da Constituição aparece com a régua que a tela declara', async ({ page }) => {
   // MEDIDO em 2026-09-08, e é menos do que o playbook supunha: a tela mostrava
   // `label="Compliance Constitution"` + `description="v1.1.0 — próx revisão {data}"`.
   // Desde 2026-09-30 o rótulo é "Conformidade" — texto do protótipo (contrato

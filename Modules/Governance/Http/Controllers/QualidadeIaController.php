@@ -91,9 +91,12 @@ class QualidadeIaController extends Controller
     /** Trend série agrupada por business. */
     private function buildSeriesPayload(int $dias, ?int $businessId): array
     {
+        // reorder, não orderBy: o scope ultimosDias já ordena DESC, e um orderBy aqui
+        // virava critério secundário — a série saía invertida e o KPI (end() da série)
+        // mostrava a leitura mais antiga como "última" (UC-GQIA-04).
         $query = MemoriaMetrica::query()
             ->ultimosDias($dias)
-            ->orderBy('apurado_em');
+            ->reorder('apurado_em');
 
         if ($businessId !== null) {
             $query->where('business_id', $businessId);
