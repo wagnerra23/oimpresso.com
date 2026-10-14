@@ -1,0 +1,63 @@
+{
+  "_nota": "CV NÃO tem alvo da A1 (governance/design/targets/ não tem comunicacao-visual): derivado do contrato-fonte da thread (cowork-inbox/modulos-faltantes/comunicacao-visual.contract.json, Cowork 2026-08-24), não do .tsx. Copy = interseção conferida por máquina: string do contrato-fonte presente literalmente no protótipo (comunicacao-visual-page.jsx) e no código da Page sem comentário, posta na seção onde a Page a renderiza ('Adicionar peça' fica na calculadora, onde a Page tem o botão). Ressalva: o charter declara o .jsx como porte REVERSO do vivo (bundle_source, 2026-09-06), então ele não é testemunha independente de design; o contrato trava presença, não aprova forma. Fora: `pcp` ('Na fábrica agora' e etapas não existem na Page) e a copy só-protótipo do total ('Salvar orçamento', 'Enviar PDF no WhatsApp', 'Conferido no servidor', 'm² no orçamento') e do cabeçalho — construir ou podar é decisão de produto. `cabecalho` fica num <div> sem classe em volta do PageHeader canônico, que não repassa atributo ao DOM.",
+  "tela": "ComunicacaoVisual/Index",
+  "fonte": "prototipo-ui/cowork/Wagner/comunicacao-visual-page.jsx",
+  "alvo": [
+    "resources/js/Pages/ComunicacaoVisual/Index.tsx"
+  ],
+  "secoes": [
+    {
+      "id": "cabecalho",
+      "copy": [
+        "Comunicação Visual"
+      ]
+    },
+    {
+      "id": "calculadora",
+      "copy": [
+        "Calculadora de m²",
+        "Adicionar peça",
+        "Material",
+        "Descrição",
+        "Larg. (m)",
+        "Alt. (m)",
+        "Qtd",
+        "R$/m²",
+        "Subtotal",
+        "Preço avulso",
+        "Sem catálogo"
+      ]
+    },
+    {
+      "id": "ajustes",
+      "copy": [
+        "Acabamento / instalação / entrega (R$)",
+        "Desconto (R$)"
+      ]
+    },
+    {
+      "id": "total",
+      "copy": [
+        "Total estimado",
+        "Conferir no servidor",
+        "Conferindo…"
+      ]
+    },
+    {
+      "id": "em-breve",
+      "copy": [
+        "Em breve nesta tela",
+        "Materiais",
+        "Apontamentos",
+        "em breve"
+      ]
+    }
+  ],
+  "ordem": [
+    "cabecalho",
+    "calculadora",
+    "ajustes",
+    "total",
+    "em-breve"
+  ]
+}

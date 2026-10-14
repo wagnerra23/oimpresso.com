@@ -62,6 +62,7 @@ função da lista Blade que roda hoje em produção.
   "Não para venda"; e os de módulo, só para quem tem o módulo: "Modelo do dispositivo"
   (assistência técnica) e "WooCommerce habilitado". Chips "Filtrando por" + "Limpar tudo".
 - Abas: **Todos os produtos** (com contagem) e **Relatório de estoque** (as colunas da lista Blade,
+  linhas por página à escolha, lucro potencial da linha verde/vermelho,
   com totais), esta só com `stock_report.view`.
 - Barra: busca (atalho `/`) com a **mesma regra da lista Blade**, no servidor e no catálogo inteiro
   (cada palavra em nome, SKU, SKU da variação, tipo, categoria, marca ou campo personalizado);
@@ -75,11 +76,13 @@ função da lista Blade que roda hoje em produção.
   Blade (25 a 1000 e todas) e o mesmo padrão (configuração da empresa).
 - Menu **Ações** por produto — união do protótipo com a lista Blade, com as MESMAS permissões:
   Ver, Editar, Estoque inicial, Histórico de estoque, Duplicar, Gerar código de barras, Preços por
-  grupo, Baixar anexo, Ativar/Desativar, Excluir; e Comprar, Transferir, Usar em OS (só com
-  assistência técnica) e Dados fiscais, conforme a etapa que as entrega.
+  grupo, Baixar anexo, Ativar/Desativar, Excluir; Comprar; e Dados fiscais (abre o painel na aba
+  Fiscal). Transferir entra com a requisição de transferência; "Usar em OS" saiu por decisão [F]
+  de 2026-10-11.
 - Seleção em massa: Edição em massa, Adicionar/Remover do local, Etiquetas, Desativar, Excluir e
   WooCommerce Sync (só com o módulo).
-- Painel de detalhe (Sheet) com Dados · Variações/Composição · Estoque · Fiscal · Prateleira.
+- Painel de detalhe (Sheet) com Dados · Variações/Composição · Estoque · Fiscal · Prateleira. Abre em
+  Dados, ou na aba que a ação pediu ("Dados fiscais" → Fiscal).
 - Destinos abrem com navegação de página inteira, como na lista Blade (o cadastro da ROTA LIVRE
   segue no Blade — US-PROD-029).
 - Multi-tenant: `business_id` explícito em toda consulta (não há global scope em `App\Product`).

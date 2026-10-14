@@ -4,6 +4,7 @@ namespace Modules\Crm\Http\Requests;
 
 use App\Utils\ModuleUtil;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 /**
  * FormRequest pra criar Campaign (email/sms/birthday) no Crm.
@@ -39,15 +40,29 @@ class StoreCampaignRequest extends FormRequest
             'subject' => ['nullable', 'string', 'max:255'],
             'email_body' => ['nullable', 'string'],
             'sms_body' => ['nullable', 'string'],
-            'contact_id' => ['nullable', 'array'],
-            'contact_id.*' => ['integer'],
-            'lead_id' => ['nullable', 'array'],
-            'lead_id.*' => ['integer'],
-            'contact' => ['nullable', 'array'],
             'to' => ['nullable', 'string', 'max:50'],
             'trans_activity' => ['nullable', 'string', 'max:50'],
             'in_days' => ['nullable', 'integer', 'min:0'],
             'send_notification' => ['nullable'],
+        ] + self::regrasDeContato((int) $this->session()->get('user.business_id'));
+    }
+
+    /**
+     * Destinatários da campanha só do negócio da sessão (achado A1, thread Crm/11 — ADR 0093).
+     * Antes era só `integer`: um id de contato de outro negócio era gravado e recebia o envio.
+     * Usado também pelo `update` do controller, que não tem FormRequest.
+     */
+    public static function regrasDeContato(int $businessId): array
+    {
+        $doNegocio = Rule::exists('contacts', 'id')->where('business_id', $businessId);
+
+        return [
+            'contact_id' => ['nullable', 'array'],
+            'contact_id.*' => ['integer', $doNegocio],
+            'lead_id' => ['nullable', 'array'],
+            'lead_id.*' => ['integer', $doNegocio],
+            'contact' => ['nullable', 'array'],
+            'contact.*' => ['integer', $doNegocio],
         ];
     }
 }

@@ -44,12 +44,27 @@ class ReportController extends Controller
     }
 
     /**
+     * Mesmo portão da tela (`index`): os dados dos relatórios só para o admin do negócio da
+     * sessão. Antes os 4 endpoints ajax não checavam nada (achado C1, thread Crm/13).
+     */
+    private function abortSeNaoForAdmin(): void
+    {
+        $business_id = request()->session()->get('user.business_id');
+
+        if (! $this->commonUtil->is_admin(auth()->user(), $business_id)) {
+            abort(403, 'Unauthorized action.');
+        }
+    }
+
+    /**
      * Lists follow ups count assigned to users.
      *
      * @return Response
      */
     public function followUpsByUser()
     {
+        $this->abortSeNaoForAdmin();
+
         if (request()->ajax()) {
             $business_id = request()->session()->get('user.business_id');
 
@@ -146,6 +161,8 @@ class ReportController extends Controller
      */
     public function followUpsContact()
     {
+        $this->abortSeNaoForAdmin();
+
         if (request()->ajax()) {
             $business_id = request()->session()->get('user.business_id');
 
@@ -184,6 +201,8 @@ class ReportController extends Controller
      */
     public function leadToCustomerConversion()
     {
+        $this->abortSeNaoForAdmin();
+
         if (request()->ajax()) {
             $business_id = request()->session()->get('user.business_id');
 
@@ -212,6 +231,8 @@ class ReportController extends Controller
      */
     public function showLeadToCustomerConversionDetails($user_id)
     {
+        $this->abortSeNaoForAdmin();
+
         if (request()->ajax()) {
             $business_id = request()->session()->get('user.business_id');
 

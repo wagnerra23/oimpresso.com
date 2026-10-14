@@ -1,0 +1,15 @@
+{
+  "_nota": "Derivado do alvo governance/design/targets/restaurante--reservas--index.alvo.json (thread A1 do playbook restaurante, rota `cfg-reservas` do protótipo), não do .tsx. Seções do alvo → âncoras data-contract. Copy só onde protótipo e Page dizem literalmente o mesmo (base.assinatura do alvo). `abas` sem copy e fora da `ordem`: os rótulos vêm do menu do usuário e a âncora mora no componente das abas, declarado antes da Page no arquivo. Fora: a alternância Confortável/Compacto e a coluna de seleção do protótipo (sem ação em lote no ERP).",
+  "tela": "Restaurante/Reservas/Index",
+  "fonte": "prototipo-ui/cowork/Wagner/restaurante-operacao.jsx",
+  "alvo": [
+    "resources/js/Pages/Restaurante/Reservas/Index.tsx"
+  ],
+  "secoes": [
+    { "id": "cabecalho", "copy": ["Reservas", "Nova reserva"] },
+    { "id": "abas", "copy": [] },
+    { "id": "kpis", "copy": ["Hoje e adiante", "reservado + aguardando", "Aguardando confirmação", "cliente ainda não confirmou", "Concluídas", "atendimento feito"] },
+    { "id": "tabela", "copy": ["Todas as reservas", "Em aberto", "Canceladas", "Todas", "Início", "Cliente", "Mesa", "Local", "Atendente", "Situação", "Ações"] }
+  ],
+  "ordem": ["cabecalho", "kpis", "tabela"]
+}

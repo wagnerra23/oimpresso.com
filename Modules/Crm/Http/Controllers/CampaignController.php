@@ -3,6 +3,7 @@
 namespace Modules\Crm\Http\Controllers;
 
 use App\Business;
+use App\Services\FeatureFlagService;
 use App\Transaction;
 use App\Utils\ModuleUtil;
 use App\Utils\NotificationUtil;
@@ -11,6 +12,7 @@ use DB;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
+use Inertia\Inertia;
 use Modules\Crm\Entities\Campaign;
 use Modules\Crm\Entities\CrmContact;
 use Modules\Crm\Http\Requests\StoreCampaignRequest;
@@ -22,6 +24,9 @@ use Yajra\DataTables\Facades\DataTables;
 
 class CampaignController extends Controller
 {
+    /** Tela React de Campanhas (thread Crm/11). Default OFF: ligar é o cutover do [W] (RUNBOOK-campanhas §2). */
+    private const FLAG_CAMPANHAS = 'useV2CrmCampanhas';
+
     protected $notificationUtil;
 
     protected $moduleUtil;
@@ -57,7 +62,14 @@ class CampaignController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
-        if (request()->ajax()) {
+        // Thread Crm/11: com a flag ligada a lista abre em Inertia. O Inertia manda `X-Requested-With`
+        // junto do `X-Inertia`, então decidir só por `ajax()` mandaria a visita pro DataTables
+        // (§5 2026-09-08). `?classico=1` mantém a Blade, que segue com criar/editar/excluir/enviar.
+        $inertia = ! request()->boolean('classico')
+            && app(FeatureFlagService::class)->isOn(self::FLAG_CAMPANHAS, ['business_id' => $business_id])
+            && (! request()->ajax() || request()->header('X-Inertia'));
+
+        if (request()->ajax() || $inertia) {
             $campaigns = Campaign::with('createdBy')
                         ->where('business_id', $business_id)
                         ->select('*');
@@ -68,6 +80,10 @@ class CampaignController extends Controller
 
             if (! empty(request()->get('campaign_type'))) {
                 $campaigns->where('campaign_type', request()->get('campaign_type'));
+            }
+
+            if ($inertia) {
+                return $this->campanhasInertia($campaigns);
             }
 
             return Datatables::of($campaigns)
@@ -243,7 +259,11 @@ class CampaignController extends Controller
 
         $campaign = $query->findOrFail($id);
 
-        $notifiable_users = CrmContact::find($campaign->contact_ids);
+        // Só contatos do negócio da sessão: `Contact` não tem escopo global e campanha antiga pode
+        // guardar id de outro negócio (achado A1, thread Crm/11 — ADR 0093).
+        $notifiable_users = CrmContact::where('business_id', $business_id)
+            ->whereIn('id', (array) $campaign->contact_ids)
+            ->get();
 
         return view('crm::campaign.show')
             ->with(compact('campaign', 'notifiable_users'));
@@ -306,6 +326,9 @@ class CampaignController extends Controller
         if (! (auth()->user()->can('superadmin') || $this->moduleUtil->hasThePermissionInSubscription($business_id, 'crm_module')) || ! ($can_access_all_campaigns || $can_access_own_campaigns)) {
             abort(403, 'Unauthorized action.');
         }
+
+        // Mesma regra do StoreCampaignRequest: destinatário só do negócio da sessão (A1).
+        $request->validate(StoreCampaignRequest::regrasDeContato((int) $business_id));
 
         try {
             $base = $request->only('name', 'campaign_type', 'subject', 'email_body', 'sms_body');
@@ -446,9 +469,12 @@ class CampaignController extends Controller
                 $contact_ids = $transactions->pluck('contact_id')->toArray();
             }
 
-            $notifiable_users = CrmContact::find($contact_ids);
+            // Envio só para contato do próprio negócio (achado A1, thread Crm/11 — ADR 0093).
+            $notifiable_users = CrmContact::where('business_id', $business_id)
+                ->whereIn('id', (array) $contact_ids)
+                ->get();
 
-            if (! empty($notifiable_users) && $campaign->campaign_type == 'sms') {
+            if ($notifiable_users->isNotEmpty() && $campaign->campaign_type == 'sms') {
                 $notification_data['sms_settings'] = request()->session()->get('business.sms_settings');
                 foreach ($notifiable_users as $user) {
                     $notification_data['mobile_number'] = $user->mobile;
@@ -456,7 +482,7 @@ class CampaignController extends Controller
 
                     $this->notificationUtil->sendSms($notification_data);
                 }
-            } elseif (! empty($notifiable_users) && $campaign->campaign_type == 'email') {
+            } elseif ($notifiable_users->isNotEmpty() && $campaign->campaign_type == 'email') {
                 Notification::send($notifiable_users, new SendCampaignNotification($campaign, $business));
             }
 
@@ -484,5 +510,45 @@ class CampaignController extends Controller
         }
 
         return $output;
+    }
+    /**
+     * Payload da tela React (thread Crm/11). Lista e drawer saem da MESMA consulta do DataTables
+     * (business_id + "só as minhas" + tipo), para não divergir de escopo. O corpo vai como texto:
+     * a Blade imprime HTML cru (`{!! !!}`), a tela nova não.
+     */
+    private function campanhasInertia($campaigns)
+    {
+        $busca = trim((string) request()->input('q', ''));
+        if ($busca !== '') {
+            $campaigns->where('name', 'like', "%{$busca}%");
+        }
+
+        $data = fn ($d) => empty($d) ? null : Carbon::parse($d)->format('d/m/Y H:i');
+        $linha = fn ($c) => [
+            'id' => $c->id,
+            'nome' => $c->name,
+            'tipo' => $c->campaign_type,
+            'contatos' => count((array) $c->contact_ids),
+            'criado_por' => $c->createdBy?->user_full_name,
+            'criado_em' => $data($c->created_at),
+            'enviada_em' => $data($c->sent_on),
+            'assunto' => $c->subject,
+            'corpo' => trim(html_entity_decode(strip_tags((string) ($c->campaign_type === 'sms' ? $c->sms_body : $c->email_body)))),
+        ];
+
+        $campanhaId = (int) request()->input('campanha');
+
+        return Inertia::render('Crm/Campanhas/Index', [
+            'filtros' => request()->only(['campaign_type', 'q']),
+            'campanhas' => Inertia::defer(fn () => (clone $campaigns)
+                ->orderByDesc('created_at')
+                ->paginate(25)
+                ->withQueryString()
+                ->through($linha)),
+            // Drawer: campanha de outro negócio ou de colega (para quem só vê as próprias) dá null.
+            'campanha' => fn () => $campanhaId > 0
+                ? optional((clone $campaigns)->where('id', $campanhaId)->first(), $linha)
+                : null,
+        ]);
     }
 }
