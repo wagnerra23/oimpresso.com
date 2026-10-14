@@ -244,7 +244,10 @@ function Edit({ payment_line, transaction, payment_types, accounts }: Props) {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">— Nenhuma —</SelectItem>
-                    {Object.entries(accounts).map(([id, label]) => (
+                    {/* `Account::forDropdown` acrescenta `"" => "nenhum"`; o Radix lança em <SelectItem value="">
+                        e a tela inteira fica em branco (medido em prod 2026-10-14). O "nenhuma" já é o
+                        sentinela `none` acima — a chave vazia sai (§5 2026-06-29). */}
+                    {Object.entries(accounts).filter(([id]) => id !== '').map(([id, label]) => (
                       <SelectItem key={id} value={id}>{String(label)}</SelectItem>
                     ))}
                   </SelectContent>
