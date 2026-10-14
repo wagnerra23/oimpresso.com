@@ -929,11 +929,3 @@ Modules/Financeiro/Tests/Feature/Onda23OcrBoletoTest.php  # VOLTOU 2026-08-03 �
 #
 # Medido no CT 100 (worktree em origin/main a05c0d1ed, DB oimpresso_qa
 # provisionada pela receita do CI .github/actions/pest-mysql-setup).
-
-# ── TransactionPaymentEditDefeitosTest (2026-10-14, E1 /payments/v2) — decisão [W] 2026-10-14.
-#    Fora da lane, mas citado pelo Edit.casos.md: UC-TPEDT-05 (tela React não salva, success=false)
-#    e UC-TPEDT-07 (PUT em pagamento alheio mudou o adiantamento de OUTRA empresa, 500,00 -> 410,00),
-#    ambos ❌ no run 38569047207. O UC-07 sai daqui com o conserto do update() (#9374); o 05 sai
-#    com o PR da tela React. Arquivo FORA da árvore do módulo: esta linha não muda o run-set da lane,
-#    só declara a decisão para o uc-lane-coverage não ler o caso como órfão.
-tests/Feature/TransactionPayment/TransactionPaymentEditDefeitosTest.php  # 2 failed (run 38569047207) — UC-TPEDT-05 e 07, decisao [W]

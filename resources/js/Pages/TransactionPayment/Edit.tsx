@@ -12,6 +12,7 @@ import { Textarea } from '@/Components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import { Save, X } from 'lucide-react';
 import { toast } from 'sonner';
+import { paraNumUf } from '@/Lib/numberPtBR';
 
 interface PaymentLine {
   id: number;
@@ -59,7 +60,8 @@ function Edit({ payment_line, transaction, payment_types, accounts }: Props) {
   const form = useForm({
     amount: String(payment_line.amount),
     method: payment_line.method,
-    paid_on: payment_line.paid_on?.substring(0, 16) ?? '',
+    // <input type="datetime-local"> só exibe 'AAAA-MM-DDTHH:MM' — com espaço o campo abria vazio.
+    paid_on: payment_line.paid_on?.substring(0, 16).replace(' ', 'T') ?? '',
     note: payment_line.note ?? '',
     account_id: payment_line.account_id ? String(payment_line.account_id) : '',
     card_holder_name: payment_line.card_holder_name ?? '',
@@ -87,6 +89,12 @@ function Edit({ payment_line, transaction, payment_types, accounts }: Props) {
       toast.error('Data de pagamento obrigatória.');
       return;
     }
+
+    // O campo numérico guarda o float cru ("60.5"); o servidor lê com `Util::num_uf`, cuja heurística
+    // pt-BR trata ponto + 3 dígitos como milhar ("60.125" -> 60125 — o eixo do incidente do valor
+    // inflado). O envio vai com vírgula decimal e as MESMAS 2 casas que a tela mostra (`paraNumUf`).
+    // UC-TPEDT-05 (Edit.casos.md).
+    form.transform((d) => ({ ...d, amount: paraNumUf(parseFloat(String(d.amount)), 2) }));
 
     // POST PUT reusa endpoint legacy update($id) — sem duplicar lógica
     form.put(`/payments/${payment_line.id}`, {

@@ -87,11 +87,11 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 
 ## UC-TPEDT-05 · Salvar pela tela React grava o valor digitado `[V0]` `[must]`
 - **Persona:** Larissa usando a tela nova em vez do modal.
-- **Aceite:** Dado uma venda de 100,00 com um pagamento de 100,00 · Quando abro a tela, troco só o valor para `60.5` e salvo (o payload é o que `Edit.tsx` manda: `paid_on` no formato `AAAA-MM-DD HH:MM` vindo do próprio pagamento, valor com ponto decimal do campo numérico) · Então o pagamento passa a 60,50 e a venda passa a `partial`.
+- **Aceite:** Dado uma venda de 100,00 com um pagamento de 100,00 · Quando abro a tela, troco só o valor para `60.5` e salvo · Então a tela envia `paid_on` no formato do campo de data e hora (`AAAA-MM-DDTHH:MM`) e o valor com vírgula decimal e 2 casas (`60,5`, via `paraNumUf`), o `update()` aceita, o pagamento passa a 60,50 com a mesma data, e a venda passa a `partial`.
 - **Âncora:** `Edit.charter.md` §Intent ("editar um pagamento existente em página full ao invés de modal") + §Diferenças (submit reusa `PUT /payments/{id}`) + RUNBOOK F2 ("POST update reusa update() existente").
-- **Teste:** `tests/Feature/TransactionPayment/TransactionPaymentEditDefeitosTest.php` (fora da lane `PHP / Pest (Financeiro · MySQL)` por decisão [W] 2026-10-14, até o conserto do `update()` — o PR do conserto liga o arquivo na lane) — o caso confere primeiro o desfecho que o `update()` grava no flash `status`, depois o banco pelos dois caminhos.
+- **Teste:** `tests/Feature/TransactionPayment/TransactionPaymentEditContratoTest.php` — o caso confere primeiro o desfecho que o `update()` grava no flash `status`, depois o banco pelos dois caminhos (linha do pagamento + situação da venda). O formato do modal Blade segue coberto pelo UC-TPEDT-04.
 - **Regressão que defende:** a tela nova não conseguir salvar o que ela mesma mostra.
-- **Status: ❌ quebrou** — medido no [run 38564874922](https://github.com/wagnerra23/oimpresso.com/actions/runs/38564874922) (2026-10-14): o `update()` devolveu `success=false` para o payload que o `Edit.tsx` manda (`paid_on` `AAAA-MM-DD HH:MM`, valor `60.5`); o pagamento não muda. A tela React não salva. Correção é decisão [W] (regra mestre de valor) — nenhum código foi tocado.
+- **Status: 🧪 sem veredito** — o vermelho foi medido no [run 38569047207](https://github.com/wagnerra23/oimpresso.com/actions/runs/38569047207) (`success=false`). Conserto: o `update()` lê `paid_on` com `uf_datetime_input` (ISO ou formato da empresa) e o `Edit.tsx` envia o valor por `paraNumUf`; o veredito novo vem da lane `PHP / Pest (Financeiro · MySQL)`.
 
 ---
 
