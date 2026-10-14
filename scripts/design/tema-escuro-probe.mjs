@@ -29,6 +29,8 @@
  *   node scripts/design/tema-escuro-probe.mjs --de-json run.json [--baseline b.json]  # sem browser
  *   node scripts/design/tema-escuro-probe.mjs --allowlist                  # JSON da ALLOWLIST (lido pelo Pest)
  *   node scripts/design/tema-escuro-probe.mjs --producao <dir> [--json o]  # julga as Pages (thread 02)
+ *   node scripts/design/tema-escuro-probe.mjs --producao <dir> --catraca   # + catraca vs tema-escuro-producao-baseline.json (thread 05)
+ *   node scripts/design/tema-escuro-probe.mjs --producao <dir> --write-baseline-producao  # baixa a baseline
  */
 
 import { existsSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
@@ -40,6 +42,7 @@ const ROOT = resolve(HERE, '../..');
 const ESPELHO_PADRAO = join(ROOT, 'prototipo-ui/cowork/Wagner');
 const SHELL_HTML = 'oimpresso.com.html';
 const BASELINE_PADRAO = join(HERE, 'tema-escuro-baseline.json');
+const BASELINE_PRODUCAO = join(HERE, 'tema-escuro-producao-baseline.json');
 
 export const LIMIAR_L = 0.78;
 export const ALFA_MIN = 0.5;
@@ -55,6 +58,8 @@ export const ALLOWLIST = [
   '[class*=plate]', '[class*=tag]',
   // knob de switch: branco no escuro é o padrão do controle (medido 06/10: 14×14 em 12 rotas)
   '[class*=knob]', 'label:has(input[type=checkbox]) span span',
+  // amostra de cor (grade tamanho×cor): o fundo É o dado, claro de propósito (pedido da _saida-04)
+  '[class*=swatch]',
 ];
 
 /* ═════════════════════════════ PARTE PURA ═════════════════════════════ */
@@ -146,8 +151,41 @@ export function julgarProducao(registros) {
   return { linhas, medidas: linhas.length - semMedida.length, semMedida, sanidadeVista, sanidadeOk };
 }
 
+/* ─── Catraca da produção (thread 05, decisão D3 de 07/10) ───
+ * Baseline = { pages: { <screen>: { <seletor>: <n> } } }, só com as Pages que têm superfície
+ * clara. Falha (exit 1): Page MEDIDA com seletor claro fora da baseline, ou n acima do da
+ * baseline. Contagem que desce não falha: o PR baixa a baseline (`--write-baseline-producao`),
+ * nunca sobe. Page não medida não conta (o exit 2 do `producao` já cobre). */
+export function baselineDeProducao(j) {
+  const pages = {};
+  for (const l of j.linhas) {
+    if (!l.medida || !l.claros.length) continue;
+    pages[l.screen] = Object.fromEntries([...l.claros].sort((a, b) => a.seletor.localeCompare(b.seletor)).map((c) => [c.seletor, c.n]));
+  }
+  return pages;
+}
+
+export function confrontarProducao(j, pages) {
+  const sobe = [];
+  const desce = [];
+  for (const l of j.linhas) {
+    if (!l.medida) continue;
+    const base = (pages || {})[l.screen] || {};
+    const atual = Object.fromEntries(l.claros.map((c) => [c.seletor, c.n]));
+    for (const [sel, n] of Object.entries(atual)) {
+      const antes = base[sel] || 0;
+      if (n > antes) sobe.push({ screen: l.screen, route: l.route, seletor: sel, antes, agora: n, novaPage: !(l.screen in (pages || {})) });
+    }
+    for (const [sel, antes] of Object.entries(base)) {
+      const agora = atual[sel] || 0;
+      if (agora < antes) desce.push({ screen: l.screen, seletor: sel, antes, agora });
+    }
+  }
+  return { sobe, desce };
+}
+
 /** Lê o diretório de registros do Pest, imprime 1 linha por Page e devolve o exit code. */
-function producao(dir, jsonOut) {
+function producao(dir, jsonOut, baselinePath, gravar) {
   if (!existsSync(dir)) {
     console.error(`NÃO MEDI — diretório de registros ausente: ${dir} (o Pest Browser não rodou ou não gravou).`);
     return 2;
@@ -170,7 +208,23 @@ function producao(dir, jsonOut) {
     console.error(`NÃO MEDI — ${j.semMedida.length} Page(s) sem medida (limite ${MAX_TIMEOUTS}), ${j.medidas} medida(s). Exit 2.`);
     return 2;
   }
-  return 0;
+  if (!baselinePath) return 0;
+  if (gravar) {
+    const pages = baselineDeProducao(j);
+    writeFileSync(baselinePath, JSON.stringify({ gerado: new Date().toISOString().slice(0, 10), nota: 'só desce — Page ou seletor que sai do run sai daqui no mesmo PR; nunca suba à mão', pages }, null, 2) + '\n');
+    console.log(`baseline de produção gravada: ${Object.keys(pages).length} Page(s)`);
+    return 0;
+  }
+  if (!existsSync(baselinePath)) {
+    console.error(`NÃO MEDI — baseline de produção ausente: ${baselinePath}. Exit 2.`);
+    return 2;
+  }
+  const { pages } = JSON.parse(readFileSync(baselinePath, 'utf8'));
+  const { sobe, desce } = confrontarProducao(j, pages);
+  console.log(`catraca: ${Object.keys(pages || {}).length} Page(s) na baseline · ${sobe.length} acima · ${desce.length} abaixo`);
+  for (const d of desce) console.log(`  ↓ ${d.screen} · ${d.seletor} ${d.antes}→${d.agora} — baixe a baseline (--write-baseline-producao)`);
+  for (const s of sobe) console.log(`  ✗ ${s.novaPage ? 'PAGE NOVA' : 'SUBIU'} ${s.screen} ${s.route} · ${s.seletor} ${s.antes}→${s.agora}`);
+  return sobe.length ? 1 : 0;
 }
 
 /* ═════════════════════════════ RENDER ═════════════════════════════ */
@@ -338,6 +392,24 @@ function selftest() {
   casos.push(['produção: sanidade lida do registro', [prod.sanidadeVista, prod.sanidadeOk], [true, true]]);
   const cega = julgarProducao([{ screen: 'A', route: '/a', estado: 'ok', escuro: true, fundos: [], sanidade: [{ seletor: 'div.tema-escuro-sanidade', bg: 'rgb(20, 20, 20)', n: 1 }] }]);
   casos.push(['produção: sanidade escura = sonda cega', cega.sanidadeOk, false]);
+  casos.push(['allowlist cobre swatch (amostra de cor)', ALLOWLIST.includes('[class*=swatch]'), true]);
+  // catraca (thread 05): baseline só com Page que tem claro; sobe/Page nova reprova, desce não
+  const jc = (claros) => ({ linhas: [
+    { screen: 'A', route: '/a', medida: true, claros },
+    { screen: 'L', route: '/l', medida: true, claros: [] },
+    { screen: 'X', route: '/x', medida: false, claros: [] },
+  ] });
+  const base = baselineDeProducao(jc([{ seletor: 'div.kpi', n: 2 }]));
+  casos.push(['catraca: baseline guarda só Page com claro', base, { A: { 'div.kpi': 2 } }]);
+  casos.push(['catraca: igual à baseline passa', confrontarProducao(jc([{ seletor: 'div.kpi', n: 2 }]), base).sobe.length, 0]);
+  casos.push(['catraca: contagem que sobe reprova', confrontarProducao(jc([{ seletor: 'div.kpi', n: 3 }]), base).sobe.map((s) => `${s.screen}:${s.antes}>${s.agora}`), ['A:2>3']]);
+  casos.push(['catraca: seletor novo em Page da baseline reprova', confrontarProducao(jc([{ seletor: 'div.kpi', n: 2 }, { seletor: 'span.x', n: 1 }]), base).sobe.map((s) => s.seletor), ['span.x']]);
+  const limpaSuja = { linhas: [{ screen: 'L', route: '/l', medida: true, claros: [{ seletor: 'div.w', n: 1 }] }] };
+  casos.push(['catraca: Page limpa com 1 claro reprova como PAGE NOVA', confrontarProducao(limpaSuja, base).sobe.map((s) => [s.screen, s.novaPage]), [['L', true]]]);
+  const desceu = confrontarProducao(jc([{ seletor: 'div.kpi', n: 1 }]), base);
+  casos.push(['catraca: contagem que desce NÃO reprova, só avisa', [desceu.sobe.length, desceu.desce.length], [0, 1]]);
+  const naoMedida = { linhas: [{ screen: 'A', route: '/a', medida: false, claros: [] }] };
+  casos.push(['catraca: Page não medida não vira "desceu"', confrontarProducao(naoMedida, base).desce.length, 0]);
   let falhou = 0;
   for (const [nome, obtido, esperado] of casos) {
     const ok = JSON.stringify(obtido) === JSON.stringify(esperado);
@@ -355,7 +427,11 @@ async function main() {
   const val = (n) => { const i = argv.indexOf(n); return i >= 0 ? argv[i + 1] : null; };
   if (argv.includes('--selftest')) return selftest();
   if (argv.includes('--allowlist')) { console.log(JSON.stringify(ALLOWLIST)); return 0; }
-  if (val('--producao')) return producao(resolve(val('--producao')), val('--json'));
+  if (val('--producao')) {
+    const gravar = argv.includes('--write-baseline-producao');
+    const bp = val('--baseline-producao') || (gravar || argv.includes('--catraca') ? BASELINE_PRODUCAO : null);
+    return producao(resolve(val('--producao')), val('--json'), bp && resolve(bp), gravar);
+  }
   const filtro = val('--rota') ? val('--rota').split(',') : null;
   const BASELINE = val('--baseline') ? resolve(val('--baseline')) : BASELINE_PADRAO;
   let resultados;

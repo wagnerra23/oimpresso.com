@@ -333,6 +333,7 @@ jobs:
             Modules/NfeBrasil/Tests/Feature/AceiteContadorTest.php \
             Modules/NfeBrasil/Tests/Feature/NfseCertificadoPayloadTest.php \
             Modules/NfeBrasil/Tests/Feature/RevisaoContadorLinkTest.php \
+            Modules/NfeBrasil/Tests/Feature/SaudeFiscalTest.php \
             Modules/Fiscal/Tests/Feature/ContadorCadastroTest.php
 
 
