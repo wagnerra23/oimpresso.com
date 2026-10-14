@@ -58112,6 +58112,23 @@
     "projetoCowork": "w"
   },
   {
+    "date": "2026-10-14T17:48:54.386Z",
+    "files": 285,
+    "sync": 1,
+    "stale": 0,
+    "liveAbsent": 0,
+    "unchecked": 284,
+    "staleList": [],
+    "verified": [
+      "cowork-inbox/superadmin/playbook/_saida-A2b.md"
+    ],
+    "verifiedHash": {
+      "cowork-inbox/superadmin/playbook/_saida-A2b.md": "12ab17d661d11d96f945f43b18b85b6b042e46266b9a82f67105dd941e0b7720"
+    },
+    "origin": "medicao",
+    "projetoCowork": "w"
+  },
+  {
     "date": "2026-10-14T17:49:33.920Z",
     "files": 285,
     "sync": 1,
