@@ -82,6 +82,41 @@ entregues pela existência deste módulo:
   flag `useV2VozDoClienteCaixa`, OFF por padrão; ligar a flag e remover a Blade seguem pendentes
   ([RUNBOOK-caixa](RUNBOOK-caixa.md)).
 
+### US-VOZDOCLIENTE-001 · Botão "Relatar" nas telas do app (porta de entrada da caixa)
+
+> owner: maiara · sprint: 2026-W42 · priority: p1 · estimate: 6h · status: todo · type: story
+> blocked_by: —
+
+**Implementado em:** _pendente_
+
+- Hoje a caixa fica vazia porque o usuário não tem por onde relatar (é o "botão global de relato no shell" da lista acima).
+- Botão no shell (AppShellV2), postando no canal autenticado que já existe; aparece só onde o pacote `vozdocliente_module` estiver habilitado.
+- Janela planejada (cronograma de 2026-10-14): 15 → 21/out/2026.
+- Pronto quando: teste Pest no tenant 98 + smoke na biz=1.
+
+### US-VOZDOCLIENTE-002 · Habilitar o VozDoCliente na biz=1 por 7 dias
+
+> owner: wagner · sprint: 2026-W43 · priority: p1 · estimate: 1h · status: todo · type: story
+> blocked_by: US-VOZDOCLIENTE-001
+
+**Implementado em:** _pendente_ — é fase de liberação; o comando `vozdocliente:habilitar` já existe.
+
+- Janela planejada: 22 → 29/out/2026.
+- Habilitar com `php artisan vozdocliente:habilitar` (mesmo efeito da UI do pacote) para a biz=1.
+- A flag `useV2VozDoClienteCaixa` já vale para todas as empresas desde 2026-10-13 (D-CUTOVER-1310, `app/Services/FeatureFlagService.php`) — não precisa ligar.
+- Pronto quando: um relato real entra pelo botão e aparece na Caixa, com smoke em produção (status HTTP + screenshot).
+
+### US-VOZDOCLIENTE-003 · Teste de 7 dias do VozDoCliente na ROTA LIVRE (biz=4)
+
+> owner: maiara · sprint: 2026-W45 · priority: p2 · estimate: 2h · status: todo · type: story
+> blocked_by: US-VOZDOCLIENTE-002, US-COM-023
+
+**Implementado em:** _pendente_ — é fase de liberação.
+
+- Janela planejada: 05 → 12/nov/2026, depois do teste do Compras na biz=4 (US-COM-023). Uma fase por vez no mesmo cliente.
+- Aviso prévio à Larissa; habilitar via `vozdocliente:habilitar`.
+- Pronto quando: 7 dias sem incidente + smoke real em produção com recibo.
+
 ## Referências
 
 - [SCOPE do módulo](SCOPE.md)
