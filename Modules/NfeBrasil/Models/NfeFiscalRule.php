@@ -52,6 +52,8 @@ class NfeFiscalRule extends Model
         'aliquota_ibs', 'aliquota_cbs',
         // Playbook Fiscal thread 07 · operação + vigência (R-NFE-018..020d)
         'operacao_id', 'valida_de', 'valida_ate', 'versao_origem_id',
+        // Playbook Fiscal thread 25 · benefício fiscal (R-NFE-030)
+        'reducao_base', 'c_benef', 'beneficio_fundamento',
     ];
 
     protected $casts = [
@@ -63,6 +65,7 @@ class NfeFiscalRule extends Model
         'aliquota_cbs'    => 'float',
         'mva'             => 'float',
         'fcp'             => 'float',
+        'reducao_base'    => 'float',
         'metadata'        => 'array',
         'valida_de'       => 'date:Y-m-d',
         'valida_ate'      => 'date:Y-m-d',

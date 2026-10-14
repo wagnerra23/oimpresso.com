@@ -287,6 +287,20 @@ class MotorTributarioService
     ): TributoCalculado {
         $extra = $this->calcularStFcpDifal($regra, $produto, $destino);
 
+        // Benefício fiscal — redução da base do ICMS (thread 25 · R-NFE-030).
+        //   base_icms  = valor × (1 − reducao_base)
+        //   valor_icms = base_icms × aliquota_icms
+        // O percentual e o ato legal que o concede vêm da regra (`reducao_base` +
+        // `beneficio_fundamento`, citado pelo contador — lei 4: o motor não inventa benefício).
+        // Sem redução, a fórmula de antes fica intacta (valor × alíquota), byte a byte.
+        // Fora deste item: ST e DIFAL continuam sobre a base cheia — ver `_saida-25.md`.
+        $reducao   = (float) ($regra->reducao_base ?? 0);
+        $baseIcms  = $reducao > 0 ? $this->fmt($produto->valor * (1 - $reducao)) : null;
+        $valorIcms = $baseIcms !== null
+            ? $this->fmt($baseIcms * (float) $regra->aliquota_icms)
+            : $this->fmt($produto->valor * (float) $regra->aliquota_icms);
+        $cBenef    = trim((string) ($regra->c_benef ?? ''));
+
         return new TributoCalculado(
             cfop:            $regra->cfop,
             csosn:           $regra->csosn,
@@ -295,7 +309,7 @@ class MotorTributarioService
             aliquota_pis:    (float) $regra->aliquota_pis,
             aliquota_cofins: (float) $regra->aliquota_cofins,
             aliquota_ipi:    (float) $regra->aliquota_ipi,
-            valor_icms:      $this->fmt($produto->valor * (float) $regra->aliquota_icms),
+            valor_icms:      $valorIcms,
             valor_pis:       $this->fmt($produto->valor * (float) $regra->aliquota_pis),
             valor_cofins:    $this->fmt($produto->valor * (float) $regra->aliquota_cofins),
             valor_ipi:       $this->fmt($produto->valor * (float) $regra->aliquota_ipi),
@@ -316,6 +330,9 @@ class MotorTributarioService
             valor_st:        $extra['valor_st'],
             valor_fcp:       $extra['valor_fcp'],
             valor_difal:     $extra['valor_difal'],
+            reducao_base:    $reducao > 0 ? $reducao : 0.0,
+            base_icms:       $baseIcms,
+            c_benef:         $cBenef !== '' ? $cBenef : null,
         );
     }
 

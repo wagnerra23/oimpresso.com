@@ -180,12 +180,16 @@ class NfeService
                 'qtrib'   => 1.0,
                 'vuntrib' => (float) $invoice->valor,
                 'ind_tot' => 1,
+                // Thread 25 · R-NFE-030: com benefício, o item leva o cBenef, a base reduzida e o
+                // percentual de redução. Sem benefício, as chaves ficam ausentes/0 como antes.
+                'cbenef'  => $tributo->c_benef,
                 'icms'    => [
                     'cst_csosn' => $tributo->csosn ?? $tributo->cst ?? '102',
                     'orig'      => 0,
-                    'vbc'       => 0,
+                    'vbc'       => $tributo->base_icms ?? 0,
                     'picms'     => $tributo->aliquota_icms,
                     'vicms'     => $tributo->valor_icms,
+                    'pred_bc'   => round($tributo->reducao_base * 100, 4),
                 ],
                 'pis'     => [
                     'cst'   => '07', // 07 = isenta — default seguro Simples Nacional
@@ -215,7 +219,7 @@ class NfeService
             ]],
             'total' => [
                 'v_prod'    => (float) $invoice->valor,
-                'v_bc_icms' => 0,
+                'v_bc_icms' => $tributo->base_icms ?? 0, // thread 25: soma dos vBC (0 sem benefício)
                 'v_icms'    => $tributo->valor_icms,
                 'v_pis'     => $tributo->valor_pis,
                 'v_cofins'  => $tributo->valor_cofins,
@@ -459,7 +463,7 @@ class NfeService
         // 2. motor por item
         $dets = [];
         $ncmPadraoUsado = [];
-        $tot = ['v_icms' => 0.0, 'v_pis' => 0.0, 'v_cofins' => 0.0, 'v_ibs' => 0.0, 'v_cbs' => 0.0];
+        $tot = ['v_bc_icms' => 0.0, 'v_icms' => 0.0, 'v_pis' => 0.0, 'v_cofins' => 0.0, 'v_ibs' => 0.0, 'v_cbs' => 0.0];
         foreach ($itens as $i => $it) {
             $ncm = preg_replace('/\D/', '', (string) $it['ncm']);
             if (strlen($ncm) !== 8 || $ncm === '00000000') {
@@ -500,12 +504,16 @@ class NfeService
                 'vfrete'  => $fretes[$i] / 100.0,
                 'voutro'  => $outros[$i] / 100.0,
                 'ind_tot' => 1,
+                // Thread 25 · R-NFE-030: com benefício, o item leva o cBenef, a base reduzida e o
+                // percentual de redução. Sem benefício, as chaves ficam ausentes/0 como antes.
+                'cbenef'  => $tributo->c_benef,
                 'icms'    => [
                     'cst_csosn' => $tributo->csosn ?? $tributo->cst ?? '102',
                     'orig'      => 0,
-                    'vbc'       => 0,
+                    'vbc'       => $tributo->base_icms ?? 0,
                     'picms'     => $tributo->aliquota_icms,
                     'vicms'     => $tributo->valor_icms,
+                    'pred_bc'   => round($tributo->reducao_base * 100, 4),
                 ],
                 // R-NFE-025b: `nfe_fiscal_rules` não guarda CST de PIS/COFINS hoje — o
                 // motor não devolve. '07' segue como fallback, logado abaixo.
@@ -534,6 +542,7 @@ class NfeService
                 'nivel_tributacao' => $tributo->nivel_usado,
             ];
 
+            $tot['v_bc_icms'] += $tributo->base_icms ?? 0; // thread 25: só soma quando há benefício
             $tot['v_icms']   += $tributo->valor_icms;
             $tot['v_pis']    += $tributo->valor_pis;
             $tot['v_cofins'] += $tributo->valor_cofins;
@@ -551,7 +560,7 @@ class NfeService
             'dets'  => $dets,
             'total' => [
                 'v_prod'    => $somaCent / 100.0,
-                'v_bc_icms' => 0.0,
+                'v_bc_icms' => round($tot['v_bc_icms'], 2),
                 'v_icms'    => round($tot['v_icms'], 2),
                 'v_pis'     => round($tot['v_pis'], 2),
                 'v_cofins'  => round($tot['v_cofins'], 2),
@@ -1886,6 +1895,10 @@ class NfeService
         $stdProd->cEAN   = 'SEM GTIN';
         $stdProd->xProd  = (string) ($det['xprod'] ?? '');
         $stdProd->NCM    = preg_replace('/\D/', '', (string) ($det['ncm'] ?? '00000000'));
+        // Thread 25 · R-NFE-030: código do benefício fiscal da UF. Sem a chave = sem a tag.
+        if (! empty($det['cbenef'])) {
+            $stdProd->cBenef = (string) $det['cbenef'];
+        }
         $stdProd->CFOP   = (string) ($det['cfop'] ?? '5102');
         $stdProd->uCom   = (string) ($det['ucm'] ?? 'UN');
         $stdProd->qCom   = $this->fmt((float) ($det['qcom'] ?? 1), 4);
@@ -1927,6 +1940,10 @@ class NfeService
             $stdICMS->orig   = $orig;
             $stdICMS->CST    = $cstCsosn;
             $stdICMS->modBC  = (int) ($icms['modbc'] ?? 3);
+            // Thread 25 · R-NFE-030: percentual de redução da base (CST 20/70 o exigem).
+            if (($icms['pred_bc'] ?? 0) > 0) {
+                $stdICMS->pRedBC = $this->fmt((float) $icms['pred_bc'], 4);
+            }
             $stdICMS->vBC    = $this->fmt((float) ($icms['vbc'] ?? 0));
             $stdICMS->pICMS  = $this->fmt((float) ($icms['picms'] ?? 0));
             $stdICMS->vICMS  = $this->fmt((float) ($icms['vicms'] ?? 0));
@@ -1939,6 +1956,9 @@ class NfeService
             $stdICMSSN->CSOSN = $cstCsosn;
             if (in_array($cstCsosn, ['500', '400', '900'], true)) {
                 $stdICMSSN->modBC  = (int) ($icms['modbc'] ?? 3);
+                if (($icms['pred_bc'] ?? 0) > 0) {
+                    $stdICMSSN->pRedBC = $this->fmt((float) $icms['pred_bc'], 4);
+                }
                 $stdICMSSN->vBC    = $this->fmt((float) ($icms['vbc'] ?? 0));
                 $stdICMSSN->pICMS  = $this->fmt((float) ($icms['picms'] ?? 0));
                 $stdICMSSN->vICMS  = $this->fmt((float) ($icms['vicms'] ?? 0));
