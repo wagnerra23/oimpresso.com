@@ -10,7 +10,8 @@ use Illuminate\Support\Facades\Schema;
  * Thread cliente/04 — aposentar o dual-render da LISTA: GET /contacts?type=X → /cliente?type=X.
  *
  * O dono do redirecionamento é o middleware App\Http\Middleware\RedirectLegacyContacts, que ficou
- * dormente (comentado no Kernel) desde o #1289 e foi ligado aqui pelas decisões D1/D3 do [W]:
+ * dormente (comentado no Kernel) desde o #1289 e foi ligado aqui pelas decisões D1/D3 do [W].
+ * Desde 2026-10-14 ([W]) a casca Blade da lista foi apagada e o redirect não depende de chave:
  * a lista inteira vai para /cliente, inclusive fornecedores (?type=supplier). O redirect do SHOW
  * ficou DESLIGADO por decisão [W] 2026-10-13 (só a lista nesta thread).
  *
@@ -35,11 +36,6 @@ beforeEach(function () {
     $this->versaoInertia = app(\App\Http\Middleware\HandleInertiaRequests::class)->version(request());
 });
 
-function rlcFlagIndex(array $bizIds): void
-{
-    config(['mwart.cliente_index.enabled' => true, 'mwart.cliente_index.business_ids' => $bizIds]);
-}
-
 /**
  * Destino do redirect como [path, query]. A query sai normalizada (o getQueryString() do Symfony
  * ordena os parâmetros), então o contrato é o CONJUNTO de parâmetros, não a ordem do texto.
@@ -54,8 +50,6 @@ function rlcDestino($response): array
 }
 
 test('lista de clientes: /contacts?type=customer vai para /cliente?type=customer (302)', function () {
-    rlcFlagIndex([(int) $this->business->id]);
-
     $r = $this->get('/contacts?type=customer');
 
     $r->assertStatus(302);
@@ -63,8 +57,6 @@ test('lista de clientes: /contacts?type=customer vai para /cliente?type=customer
 });
 
 test('fornecedores (D3): /contacts?type=supplier vai para /cliente?type=supplier, com o resto da query', function () {
-    rlcFlagIndex([]);
-
     $r = $this->get('/contacts?type=supplier&q=abc');
 
     $r->assertStatus(302);
@@ -72,8 +64,6 @@ test('fornecedores (D3): /contacts?type=supplier vai para /cliente?type=supplier
 });
 
 test('o destino responde: /cliente?type=customer abre o Cliente/Index em Inertia (sem laço)', function () {
-    rlcFlagIndex([]);
-
     $r = $this->withHeaders(['X-Inertia' => 'true', 'X-Inertia-Version' => $this->versaoInertia, 'X-Requested-With' => 'XMLHttpRequest'])
         ->get('/cliente?type=customer');
 
@@ -82,27 +72,16 @@ test('o destino responde: /cliente?type=customer abre o Cliente/Index em Inertia
     expect($r->json('props.activeType'))->toBe('customer');
 });
 
-test('flag desligada: /contacts?type=customer segue na casca Blade, sem redirecionar', function () {
+test('a lista não lê mais a chave (casca Blade apagada, [W] 2026-10-14): redireciona com cliente_index desligada', function () {
+    // Antes deste corte, chave desligada = casca Blade 200 sem redirect. A casca não existe mais;
+    // se o middleware voltasse a ler a chave, este caso cairia no controller e quebraria.
     config(['mwart.cliente_index.enabled' => false]);
 
-    $r = $this->get('/contacts?type=customer');
-
-    $r->assertOk();
-    expect($r->isRedirect())->toBeFalse();
-});
-
-test('empresa fora da lista da flag: /contacts?type=customer não redireciona', function () {
-    rlcFlagIndex([999999]);
-
-    $r = $this->get('/contacts?type=customer');
-
-    $r->assertOk();
-    expect($r->isRedirect())->toBeFalse();
+    $this->get('/contacts?type=customer')->assertRedirect('/cliente?type=customer');
+    $this->get('/cliente?type=customer')->assertOk();
 });
 
 test('partial reload do Inertia em /contacts não troca de URL no meio da página', function () {
-    rlcFlagIndex([]);
-
     $r = $this->withHeaders([
         'X-Inertia' => 'true', 'X-Inertia-Version' => $this->versaoInertia, 'X-Requested-With' => 'XMLHttpRequest',
         'X-Inertia-Partial-Component' => 'Cliente/Index', 'X-Inertia-Partial-Data' => 'customers',
@@ -113,8 +92,6 @@ test('partial reload do Inertia em /contacts não troca de URL no meio da págin
 });
 
 test('AJAX legado (sem X-Inertia) em /contacts não é redirecionado', function () {
-    rlcFlagIndex([]);
-
     $r = $this->withHeaders(['X-Requested-With' => 'XMLHttpRequest', 'Accept' => 'application/json'])->get('/contacts?type=customer');
 
     expect($r->isRedirect())->toBeFalse();
@@ -125,8 +102,6 @@ test('AJAX legado (sem X-Inertia) em /contacts não é redirecionado', function 
 });
 
 test('tipo inválido ou ausente: o middleware não redireciona', function () {
-    rlcFlagIndex([]);
-
     foreach (['/contacts', '/contacts?type=xpto'] as $url) {
         $location = (string) $this->get($url)->headers->get('Location');
         expect($location)->not->toContain('/cliente');
@@ -134,8 +109,6 @@ test('tipo inválido ou ausente: o middleware não redireciona', function () {
 });
 
 test('POST /contacts nunca é redirecionado para /cliente', function () {
-    rlcFlagIndex([]);
-
     $location = (string) $this->post('/contacts', ['type' => 'customer'])->headers->get('Location');
 
     expect($location)->not->toContain('/cliente?type=');

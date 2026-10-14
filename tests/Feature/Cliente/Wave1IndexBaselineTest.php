@@ -18,11 +18,12 @@ test('Cliente/Index Inertia migration baseline — controller has index() + Iner
     expect($contents)
         ->toContain('public function index(')
         ->toContain("Inertia::render('Cliente/Index'")
-        ->toContain("shouldRenderInertiaCliente('cliente_index'")
         ->toContain('buildClienteIndexKpis')
         ->toContain('buildClienteIndexCustomers');
 });
 
+// Desde 2026-10-14 (thread cliente/04) a LISTA não lê a chave; ela segue no config pelo
+// redirecionamento do Show para o drawer (ContactController@show e /cliente/{id}).
 test('Cliente/Index — config mwart has cliente_index flag', function () {
     $configPath = __DIR__ . '/../../../config/mwart.php';
     expect($configPath)->toBeReadableFile();
