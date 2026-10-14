@@ -39,16 +39,15 @@ test('rota /cliente aceita type=other na whitelist (ADR 0246)', function () {
     );
 });
 
-/** As 3 camadas de whitelist (rota + 2 do controller) ficam em sincronia. */
-test('controller $types e $inertiaTypes também aceitam other (3 camadas alinhadas)', function () {
+/** As 2 camadas de whitelist (rota + controller) ficam em sincronia. Até 2026-10-14 eram 3: o
+ *  `$inertiaTypes` sumiu com a casca Blade da lista (thread cliente/04). */
+test('controller $types também aceita other (2 camadas alinhadas)', function () {
     $controllerPath = __DIR__ . '/../../../app/Http/Controllers/ContactController.php';
     $contents = file_get_contents($controllerPath);
 
     expect($contents)
         // $types = [...,'other',...]; (guard de redirect()->back())
         ->toMatch("/\\\$types\s*=\s*\[[^\]]*'other'[^\]]*\];/")
-        // $inertiaTypes = [...,'other',...]; (guard do Inertia::render)
-        ->toMatch("/\\\$inertiaTypes\s*=\s*\[[^\]]*'other'[^\]]*\];/")
         // O filtro de papel delega ao serviço único (o mapeamento saiu daqui no #8497).
         ->toContain('PessoaEscopo::papel($q, $type)');
 
