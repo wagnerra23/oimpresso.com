@@ -334,9 +334,22 @@ class TransactionPaymentController extends Controller
         }
 
         if (request()->ajax()) {
-            try {
-                $payment = TransactionPayment::findOrFail($id);
+            // Tier 0 (ADR 0093): o pagamento tem de ser da empresa da sessão ANTES de qualquer
+            // escrita. Antes deste ponto o `destroy()` apagava pelo id puro: um DELETE sobre
+            // pagamento de OUTRA empresa removia a linha e recalculava a venda dela (medido no
+            // CT 100 em 2026-10-14: 200 `success:true`, linha apagada). Pagamento de venda pertence
+            // à empresa da venda; adiantamento (sem venda) carrega o próprio `business_id`.
+            // Fora do try de propósito: o 404 não pode ser engolido como "something went wrong".
+            $business_id = request()->session()->get('user.business_id');
+            $payment = TransactionPayment::findOrFail($id);
+            $pertence = ! empty($payment->transaction_id)
+                ? Transaction::where('business_id', $business_id)->where('id', $payment->transaction_id)->exists()
+                : (int) $payment->business_id === (int) $business_id;
+            if (! $pertence) {
+                abort(404);
+            }
 
+            try {
                 DB::beginTransaction();
 
                 if (! empty($payment->transaction_id)) {

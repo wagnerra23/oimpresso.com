@@ -31,6 +31,9 @@ on:
       # Sessão meia-populada sem business_id = Financeiro inteiro vazio em silêncio
       # (incidente prod 2026-07-02, Tier 0 ADR 0093) — por isso o guard mora nesta lane.
       - 'tests/Feature/Middleware/SetSessionDataRebuildTest.php'
+      # Tier 0: DELETE /payments/{id} só apaga pagamento da própria empresa (2026-10-14).
+      - 'app/Http/Controllers/TransactionPaymentController.php'
+      - 'tests/Feature/TransactionPayment/TransactionPaymentDestroyEscopoTest.php'
       - 'tests/Feature/Expense/DespesasIndexContratoTest.php'
       - 'tests/Feature/Expense/CategoriasDespesaContratoTest.php'
       - 'tests/Feature/TransactionPayment/**'
@@ -100,6 +103,8 @@ jobs:
               - 'tests/Feature/Expense/ExpensesBaselineTest.php'
               - 'app/Http/Controllers/ExpenseController.php'
               - 'tests/Feature/Middleware/SetSessionDataRebuildTest.php'
+              - 'app/Http/Controllers/TransactionPaymentController.php'
+              - 'tests/Feature/TransactionPayment/TransactionPaymentDestroyEscopoTest.php'
               - 'tests/Feature/Expense/DespesasIndexContratoTest.php'
               - 'tests/Feature/Expense/CategoriasDespesaContratoTest.php'
               - 'tests/Feature/TransactionPayment/**'
@@ -203,6 +208,7 @@ jobs:
 
           # Extras FORA da árvore do módulo (nomeados: não há como ficarem escuros)
           echo 'tests/Feature/TravaSegunda/RetencaoLoopE2ETest.php' >> /tmp/run.txt
+          echo 'tests/Feature/TransactionPayment/TransactionPaymentDestroyEscopoTest.php' >> /tmp/run.txt
           echo 'tests/Feature/Expense/ExpensesBaselineTest.php' >> /tmp/run.txt
           echo 'tests/Feature/Middleware/SetSessionDataRebuildTest.php' >> /tmp/run.txt
           echo 'tests/Feature/Expense/DespesasIndexContratoTest.php' >> /tmp/run.txt
