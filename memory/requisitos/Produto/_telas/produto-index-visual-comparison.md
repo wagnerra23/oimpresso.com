@@ -38,7 +38,7 @@ blueprint_cowork: prototipo-ui/prototipos/produto-cockpit/ _(removido em 2026-05
 > | Botão "Ações" da linha | 14px | 12px | **corrigido** (12px) |
 > | Título | 22px / 600 | 19px / 700 | mantido — decisão [W] D-PH-0923 (h1 600 em todas as telas, `PageHeader`) |
 > | Linhas da área de filtros | 3 | 2 | não é defeito — a empresa medida tem 2 filtros de módulo (Modelo do dispositivo, WooCommerce) que também existem na lista Blade |
-> | Coluna Imagem | imagem padrão | marcador "IMG" | não é defeito — dado (a produção sempre devolve uma imagem) |
+> | Coluna Imagem | imagem padrão | marcador "IMG" | lido em 2026-10-11 como dado; **reclassificado como defeito por [F] em 2026-10-14 e corrigido** (UC-PIDX-22: o servidor manda `null` quando não há foto, e a tela mostra o "IMG") |
 > | Coluna Categoria | 1 linha | 2 linhas | não é defeito — a 1ª linha medida não tem categoria; a subcategoria aparece quando existe |
 > | Larguras declaradas (`<col>`), checkbox como botão | sim | não | produção à frente, não é defeito |
 >
@@ -123,6 +123,7 @@ blueprint_cowork: prototipo-ui/prototipos/produto-cockpit/ _(removido em 2026-05
 > - Texto das abas: a aba ativa usa a cor de texto do `PageHeaderTabs` (`oklch(0.965 0.004 240)`), que é o
 >   componente das abas do app inteiro; mudar ali muda todas as telas. Não é decisão desta tela.
 > - Texto do botão principal: escuro em produção, branco no protótipo — é o `Button` do Design System.
+> - (2026-10-14) A caixa "Sem imagem" não aparecia em produção para produto sem foto: o servidor mandava a imagem genérica `/img/default.png`. Corrigido no UC-PIDX-22 (`imagem = null`).
 > - Texto da caixa sem foto: "Sem imagem" (o protótipo traz a dica de envio "1:1, até 5 MB", que num
 >   painel só de leitura afirmaria algo que a tela não faz).
 > - Aba Fiscal: a produção mostra as colunas fiscais reais do cadastro (CFOP dentro/fora, CST…); o

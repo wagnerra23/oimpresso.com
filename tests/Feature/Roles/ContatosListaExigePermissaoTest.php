@@ -10,8 +10,8 @@ declare(strict_types=1);
  * O QUE ESTAVA ERRADO (achado 2026-10-01, PR #8428 da conta demo, DEMO-03 vermelho):
  * ContactController::index() tem dois caminhos. O antigo (AJAX do DataTable) chama
  * indexCustomer()/indexSupplier(), que abortam 403 sem `customer.view|view_own` /
- * `supplier.view|view_own`. O caminho React (flag `mwart.cliente_index`, ligada para todos os
- * tenants em prod — medido 2026-08-26, config/mwart.php) renderiza Cliente/Index e serve as
+ * `supplier.view|view_own`. O caminho React (na época atrás da flag `mwart.cliente_index`; desde
+ * 2026-10-14 o único caminho da lista) renderiza Cliente/Index e serve as
  * props `customers`/`kpis`/`tab_counts` sem checar permissão nenhuma. Qualquer usuário logado do
  * negócio — inclusive um colaborador que só bate ponto — recebia nome, celular e e-mail dos
  * clientes ao pedir a prop `customers` (carga parcial do Inertia, que é o que o navegador faz).
@@ -73,8 +73,6 @@ beforeEach(function () {
         $this->markTestSkipped('Tenant fictício 98 ausente nesta lane.');
     }
     DB::beginTransaction();
-    config()->set('mwart.cliente_index.enabled', true);
-    config()->set('mwart.cliente_index.business_ids', []);
 
     $this->marcador = 'CLP Cliente Sigiloso ' . uniqid();
     DB::table('contacts')->insert([
@@ -115,22 +113,21 @@ it('POSITIVO: com customer.view a mesma requisição devolve o contato', functio
     expect($r->getContent())->toContain($this->marcador);
 });
 
-it('NEGATIVO (casca Blade, flag desligada): sem permissão de contato, /contacts não abre', function () {
-    // Com `cliente_index` desligada o index cai na casca Blade, que antes abria 200 para qualquer
-    // usuário e expunha nomes dos usuários e grupos de cliente (DEMO-03 do #8428, 2026-10-01).
-    config()->set('mwart.cliente_index.enabled', false);
+it('NEGATIVO (página inteira): sem permissão de contato, /cliente não abre', function () {
+    // Até 2026-10-14 este par exercitava a casca Blade (flag `cliente_index` desligada), que antes
+    // abria 200 para qualquer usuário (DEMO-03 do #8428, 2026-10-01). A casca foi apagada na thread
+    // cliente/04; o gate continua valendo para a carga da página inteira, que é o que fica.
     $u = clpUsuario([]);
     $this->actingAs($u);
     session(['user.business_id' => CLP_BIZ, 'business.id' => CLP_BIZ]);
 
-    expect($this->get('/contacts?type=customer')->getStatusCode())->toBe(403);
+    expect($this->get('/cliente?type=customer')->getStatusCode())->toBe(403);
 });
 
-it('POSITIVO (casca Blade, flag desligada): com customer.view, /contacts abre', function () {
-    config()->set('mwart.cliente_index.enabled', false);
+it('POSITIVO (página inteira): com customer.view, /cliente abre', function () {
     $u = clpUsuario(['customer.view']);
     $this->actingAs($u);
     session(['user.business_id' => CLP_BIZ, 'business.id' => CLP_BIZ]);
 
-    expect($this->get('/contacts?type=customer')->getStatusCode())->toBe(200);
+    expect($this->get('/cliente?type=customer')->getStatusCode())->toBe(200);
 });

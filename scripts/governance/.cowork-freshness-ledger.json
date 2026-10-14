@@ -58093,5 +58093,56 @@
     },
     "origin": "medicao",
     "projetoCowork": "w"
+  },
+  {
+    "date": "2026-10-14T19:29:07.108Z",
+    "files": 285,
+    "sync": 1,
+    "stale": 0,
+    "liveAbsent": 0,
+    "unchecked": 284,
+    "staleList": [],
+    "verified": [
+      "cowork-inbox/hrm/playbook/_saida-10a.md"
+    ],
+    "verifiedHash": {
+      "cowork-inbox/hrm/playbook/_saida-10a.md": "6e56535f6ac47927e0ab2ada35ca5e6fb6afab8143f597f353c1f677d7614190"
+    },
+    "origin": "medicao",
+    "projetoCowork": "w"
+  },
+  {
+    "date": "2026-10-14T17:48:54.386Z",
+    "files": 285,
+    "sync": 1,
+    "stale": 0,
+    "liveAbsent": 0,
+    "unchecked": 284,
+    "staleList": [],
+    "verified": [
+      "cowork-inbox/superadmin/playbook/_saida-A2b.md"
+    ],
+    "verifiedHash": {
+      "cowork-inbox/superadmin/playbook/_saida-A2b.md": "12ab17d661d11d96f945f43b18b85b6b042e46266b9a82f67105dd941e0b7720"
+    },
+    "origin": "medicao",
+    "projetoCowork": "w"
+  },
+  {
+    "date": "2026-10-14T17:49:33.920Z",
+    "files": 285,
+    "sync": 1,
+    "stale": 0,
+    "liveAbsent": 0,
+    "unchecked": 284,
+    "staleList": [],
+    "verified": [
+      "cowork-inbox/venda-menu/playbook/_saida-C1.md"
+    ],
+    "verifiedHash": {
+      "cowork-inbox/venda-menu/playbook/_saida-C1.md": "dd47841925bed83a7ba25ce248be8790508929fc04662e168593394439cbf85f"
+    },
+    "origin": "medicao",
+    "projetoCowork": "w"
   }
 ]

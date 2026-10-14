@@ -71,3 +71,10 @@ Mesma sonda (`node scripts/design/design-diff.mjs --probe`, sha256 `a4c1cbf6…8
 Com a coluna deslocada, o `--compare` pareia `col1` da prod (Cliente) com `col1` do protótipo (Tipo): os 12 `DIVERGE (bug)` por célula daquela rodada são, na maioria, efeito do deslocamento, não da célula.
 
 **Decisão [W] 2026-10-14:** seguir o protótipo nas duas — foto dentro da célula Cliente e coluna "Última OS" (UC-CIDX-05). A re-medição depois do deploy fica registrada aqui.
+
+### Re-medição pós-deploy do #9414 (2026-10-14, mesma sonda, prod × protótipo)
+
+- **Colunas alinhadas:** `Cliente(+foto) · Tipo · Documento · Cidade/UF · Frescor · Saldo · OS · Tags · Última OS · ★ · ⋮` nos dois lados. Somem os `DIVERGE` de alinhamento das colunas 5 e 7, que eram efeito do deslocamento.
+- **Última OS:** com `?sort=total_os&dir=desc`, 6 de 50 linhas têm OS > 0, e as 6 mostram o link (`/sells/{id}`, IBM Plex Mono 11.5px, peso 600); as 44 com OS = 0 mostram "—" (0 linhas com OS e sem link). Na ordenação padrão (recentes) nenhuma das 50 tem venda, e por isso a sonda, que lê só a 1ª linha, registra `col8 sem elemento clicável`. É efeito do dado, não defeito.
+- **Altura da linha:** 55,56px, sem mudança.
+- **O que segue divergindo** (10 `DIVERGE (bug)`, fora da decisão desta thread): Tipo, Documento e Cidade em mono no protótipo; pílulas/dot de Frescor e Tags; alinhamento das colunas ★ e ⋮ (center no protótipo). Candidatos a uma próxima thread.
