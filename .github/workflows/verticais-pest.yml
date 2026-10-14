@@ -453,11 +453,13 @@ jobs:
             Modules/Crm/Tests/Feature/CrmPainelContratoTest.php \
             Modules/Crm/Tests/Feature/CrmPedidosBaselineTest.php \
             Modules/Crm/Tests/Feature/CrmLoginsBaselineTest.php \
+            Modules/Crm/Tests/Feature/CrmLoginsContratoTest.php \
             Modules/Crm/Tests/Feature/CrmLoginsEscritaEscopoTest.php \
             Modules/Crm/Tests/Feature/CrmLeadsListQueryTest.php \
             Modules/Crm/Tests/Feature/ClienteStatsTicketMedioTest.php \
             Modules/Crm/Tests/Feature/CrmCampanhasContatosEscopoTest.php \
-            Modules/Crm/Tests/Feature/CrmConfiguracoesBaselineTest.php
+            Modules/Crm/Tests/Feature/CrmConfiguracoesBaselineTest.php \
+            Modules/Crm/Tests/Feature/CrmConfiguracoesContratoTest.php
 
       # O sumário conta `assertions` POR ARQUIVO — é o discriminador que separa
       # "passou" de "pulou" (LC-13). Aqui só REPORTA.
