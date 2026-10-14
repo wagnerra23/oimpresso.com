@@ -330,6 +330,23 @@ ok(!/sem recibo/.test(r.out),
 ok(cli(['--root', sr, '--todos', '--check']).rc === 1,
   'CONTROLE: `sem recibo` NÃO muda o veredito do --check — segue mordendo por dívida real (idem caso 3)');
 
+// PIPE (2026-10-14): `--todos --json` chegava TRUNCADO ao consumidor que lê por pipe
+// (execFileSync com stdio 'pipe'), porque o CLI saía por process.exit() antes do stdout
+// assíncrono esvaziar. O caso gera saída MUITO maior que o buffer do pipe (64 KiB) e exige
+// que o JSON inteiro parseie. Controle positivo: a contagem de threads bate com o índice.
+{
+  const N = 600; // 450-750 KB medido (Win/Linux): >> buffer do pipe (64 KiB), < maxBuffer (1 MiB) do execFileSync
+  const threads = Array.from({ length: N }, (_, i) => ({
+    id: String(i + 1).padStart(4, '0'), titulo: `Thread ${i + 1} ` + 'x'.repeat(120), dono: 'CL', provas: [],
+  }));
+  r = cli(['--root', root({ indice: { modulo: 'M', threads } }), '--todos', '--json']);
+  let j = null;
+  try { j = JSON.parse(r.out); } catch { /* j fica null */ }
+  ok(r.out.length > 256 * 1024, `PIPE: saída grande o bastante pra estourar o buffer do pipe (${r.out.length} bytes)`);
+  ok(j !== null, 'PIPE: `--todos --json` lido por pipe parseia inteiro (sem truncar no process.exit)');
+  ok(j && j.modulos?.[0]?.linhas?.length === N, `PIPE: as ${N} threads chegam — nenhuma cortada no fim`);
+}
+
 rmSync(TMP, { recursive: true, force: true });
 console.log(`\n${fails ? `${fails} FALHA(S)` : 'todos os casos passaram'}`);
 process.exit(fails ? 1 : 0);

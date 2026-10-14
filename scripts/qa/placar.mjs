@@ -341,9 +341,13 @@ function main() {
 // Medido 2026-09-17: com o import nu, 3 asserts do placar.test.mjs nunca rodavam e a suíte
 // ainda saía "24/24 ok". É o mesmo trap que alvo.mjs documenta sobre o design-diff (CLI-only).
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-  try { process.exit(main()); }
+  // `exitCode`, nunca `process.exit()` no caminho de saída: com stdout em PIPE o write é
+  // assíncrono em parte das plataformas, e exit() mata o processo antes de esvaziar — o
+  // consumidor recebe JSON TRUNCADO (relatado 2026-10-14: 145811 bytes do `--todos --json`).
+  // Com exitCode o Node sai sozinho quando o stdout drena. Teste: placar-indice.test.mjs (PIPE).
+  try { process.exitCode = main(); }
   // `e.naoMedi` é o contrato com placar-indice.mjs, que tem a própria classe NaoMedi:
   // `instanceof` não cruza módulos, e sem isto um "não medi" do A8 sairia 1 (= "não fecha"),
   // que é exatamente colapsar não-medição num estado do objeto (§5 2026-07-29).
-  catch (e) { const nm = e instanceof NaoMedi || e?.naoMedi === true; console.error(`${nm ? 'NÃO MEDI' : 'FALHOU'}: ${e.message}`); process.exit(nm ? 2 : 1); }
+  catch (e) { const nm = e instanceof NaoMedi || e?.naoMedi === true; console.error(`${nm ? 'NÃO MEDI' : 'FALHOU'}: ${e.message}`); process.exitCode = nm ? 2 : 1; }
 }
