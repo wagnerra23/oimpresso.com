@@ -14,7 +14,7 @@ module: Whatsapp
 >
 > **O que isto é:** o inventário completo das raízes `Modules/Whatsapp/**` + `resources/js/Pages/Whatsapp/**` + `resources/js/Pages/Atendimento/**` (namespaces Inertia `Whatsapp`, `Atendimento`, declarados em `module-surface.mjs::PAGES_NS` porque diferem do nome do módulo `Whatsapp` — confira com `--namespaces`), separado por papel — inclusive manifestos, documentação local, telas e componentes. **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`), nem qual endpoint ainda entrega Blade em vez de Inertia (dono: `blade-migration-census.mjs` — este índice lista o arquivo, não a camada que a rota serve; a fila por módulo sai em `npm run migracao:report`), nem âncoras cross-cutting fora dessas raízes (bridge em `app/`, FSM) — essas são relações estruturadas do [SCOPE](SCOPE.md) e fatos do [BRIEFING](BRIEFING.md).
 
-**Total mapeado:** 434 arquivos em 20 papéis.
+**Total mapeado:** 436 arquivos em 20 papéis.
 
 ## Controllers — 23
 
@@ -60,7 +60,7 @@ module: Whatsapp
 - [VerifyWhatsmeowSignature.php](../../../Modules/Whatsapp/Http/Middleware/VerifyWhatsmeowSignature.php)
 - [VerifyZapiSignature.php](../../../Modules/Whatsapp/Http/Middleware/VerifyZapiSignature.php)
 
-## Services — 47
+## Services — 48
 
 - [AudioTranscriber.php](../../../Modules/Whatsapp/Services/Audio/Contracts/AudioTranscriber.php)
 - [WhisperTranscriber.php](../../../Modules/Whatsapp/Services/Audio/WhisperTranscriber.php)
@@ -90,6 +90,7 @@ module: Whatsapp
 - [EmployeePerformanceRebuilder.php](../../../Modules/Whatsapp/Services/EmployeePerformance/EmployeePerformanceRebuilder.php)
 - [FeedbackIndexGenerator.php](../../../Modules/Whatsapp/Services/FeedbackIndexGenerator.php)
 - [FeedbackRelevanceService.php](../../../Modules/Whatsapp/Services/FeedbackRelevanceService.php)
+- [EnvioDeTextoNoCanal.php](../../../Modules/Whatsapp/Services/Inbox/EnvioDeTextoNoCanal.php)
 - [InboxQueryService.php](../../../Modules/Whatsapp/Services/InboxQueryService.php)
 - [MacroExecutor.php](../../../Modules/Whatsapp/Services/Macros/MacroExecutor.php)
 - [MacroVariantPicker.php](../../../Modules/Whatsapp/Services/Macros/MacroVariantPicker.php)
@@ -362,9 +363,9 @@ module: Whatsapp
 - [Settings.casos.md](../../../resources/js/Pages/Whatsapp/Settings.casos.md)
 - [Index.casos.md](../../../resources/js/Pages/Whatsapp/Templates/Index.casos.md)
 
-## Testes (Pest) — 124
+## Testes (Pest) — 125
 
-- 124 em [Modules/Whatsapp/Tests/Feature/](../../../Modules/Whatsapp/Tests/Feature)
+- 125 em [Modules/Whatsapp/Tests/Feature/](../../../Modules/Whatsapp/Tests/Feature)
 - _Cobertura destes arquivos é do `casos-gate`/`screen-coverage`, não deste índice._
 
 ## Demais arquivos (manifestos, docs, assets e misc) — 18

@@ -128,7 +128,12 @@ blueprint_cowork: prototipo-ui/prototipos/produto-cockpit/ _(removido em 2026-05
 >   painel só de leitura afirmaria algo que a tela não faz).
 > - Aba Fiscal: a produção mostra as colunas fiscais reais do cadastro (CFOP dentro/fora, CST…); o
 >   protótipo tem um conjunto menor e um botão "Abrir no módulo Fiscal". Em 2026-10-13 entrou o
->   "Tipo de imposto na venda" (UC-PIDX-19). **Não feitos, com motivo medido:** "Origem da
+>   "Tipo de imposto na venda" (UC-PIDX-19). **2026-10-15 (UC-PIDX-25), pedido de [F]: os três itens abaixo
+>   entraram**, sem inventar o que não existe — a origem aparece como o valor que a nota usa (`0 —
+>   Nacional`, fixo nas duas emissões) com o aviso de que é o mesmo para todos; o texto de ajuda é o
+>   do protótipo, corrigido onde ele afirmava o que a emissão não faz; e "Abrir no módulo Fiscal"
+>   leva à Tributação do NfeBrasil com o produto no simulador (UC-NFTR-29), só para quem tem o
+>   módulo e a permissão. O registro abaixo fica como era em 2026-10-13. **Não feitos, com motivo medido:** "Origem da
 >   mercadoria" (o campo não existe no cadastro nem no banco), "Abrir no módulo Fiscal" (não há
 >   tela fiscal por produto) e o texto de ajuda (o do protótipo chama de serviço todo produto sem
 >   NCM, o que é falso para cadastro incompleto).
@@ -204,6 +209,13 @@ blueprint_cowork: prototipo-ui/prototipos/produto-cockpit/ _(removido em 2026-05
 > com `bg-[var(--bg-2)]` no corpo (nenhuma regra fora de `@layer` pinta esse elemento — conferido no
 > navegador). Ficam como estão, por serem mínimos: o fundo escurecido atrás do painel (preto a 50% em
 > produção, `oklch(0.15 0 0 / 0.45)` no protótipo) e a sombra do painel.
+>
+> **2026-10-15 — linha entre a faixa do código e o título ([F]):** no protótipo a faixa do código +
+> selo + fechar é a do `Drawer` do DS, com `border-bottom: 1px solid var(--border)` (medido no espelho,
+> PRD-0009: faixa 57px com borda `oklch(0.34 0.008 240)`, título logo em seguida). Em produção a
+> faixa (`TOPO` em `PainelDetalhe.tsx`) não tinha borda e compensava com 15px embaixo. Corrigido:
+> 14px + borda de 1px, mesma altura de 57px. A medição de 2026-10-11 registrou a estrutura
+> ("faixa de selos + fechar (57) e bloco do título (76)") mas não a borda.
 >
 > **De propósito ou por dado:** "Transferir" por local (espera a requisição de transferência);
 > campos da aba Fiscal; coluna "Variação" no estoque de produto variável; Prateleira sem cadastro
