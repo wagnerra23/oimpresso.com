@@ -66,8 +66,8 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/crm/playbook/
       "pergunta": "Portal do contato (ContactLoginController: logins, comissões) é cliente-facing — entra agora?",
       "respondida": true,
       "destrava": [],
-      "resposta": "sim, entra (Cowork fatia)",
-      "fonte": "_DECISOES-W-2026-10-01.md"
+      "resposta": "sim. [W] 2026-10-01 aprovou; em 2026-10-14 confirmou que cobre também as 6 telas que o contato vê em /contact/* (painel, perfil, compras, vendas, extrato, agendamentos). Logins e comissões (lado admin) = thread 16.",
+      "fonte": "_DECISOES-W-2026-10-14.md"
     },
     {
       "id": "D4",
@@ -88,6 +88,23 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/crm/playbook/
       ],
       "resposta": "restringir: store respeita access_own_schedule (mesmo escopo da leitura); o dono decide pelo papel; sem config nova",
       "fonte": "_DECISOES-W-2026-10-07.md"
+    },
+    {
+      "id": "D6",
+      "pergunta": "Casca do portal do contato (/contact/*): AppShellV2 com o menu do contato (ContactSidebarMenu) ou layout próprio, enxuto, pensado para celular?",
+      "respondida": true,
+      "destrava": [
+        "18",
+        "19",
+        "20",
+        "21",
+        "22",
+        "23",
+        "24",
+        "25"
+      ],
+      "fonte": "_DECISOES-W-2026-10-15.md",
+      "resposta": "layout próprio do contato: enxuto, pensado para celular, sem a sidebar do ERP (não usa AppShellV2)"
     }
   ],
   "threads": [
@@ -137,7 +154,10 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/crm/playbook/
       "prs": 1,
       "arquivo": "01-trio-lote1.md",
       "depende_threads": [
-        "A1"
+        "A1",
+        "02",
+        "03",
+        "04"
       ],
       "depende_decisoes": [
         "D1",
@@ -148,9 +168,33 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/crm/playbook/
         "${MOD}/Http/",
         "${MOD}/Http/Controllers/Cliente*"
       ],
-      "provas": [],
-      "nota_provas": "errata do recibo: o gate required recusa contrato sem Page; cada contrato entra no PR da Page dele. O contrato derivado está no _saida desta thread.",
-      "bloqueio": "absorvida — contrato sem Page é reprovado pelo gate required; contratos entraram em 02 · 03 · 04 (lei IT2). Derivação no _saida-01."
+      "provas": [
+        {
+          "tipo": "json_com_chaves",
+          "path": "${CONTRATOS}/crm-leads.contract.json",
+          "chaves": [
+            "alvo",
+            "secoes"
+          ]
+        },
+        {
+          "tipo": "json_com_chaves",
+          "path": "${CONTRATOS}/crm-acompanhamentos.contract.json",
+          "chaves": [
+            "alvo",
+            "secoes"
+          ]
+        },
+        {
+          "tipo": "json_com_chaves",
+          "path": "${CONTRATOS}/crm-painel.contract.json",
+          "chaves": [
+            "alvo",
+            "secoes"
+          ]
+        }
+      ],
+      "nota_provas": "absorvida: cada contrato entrou no PR da sua Page (02 #8370 · 03 #8352 · 04 #8369). Derivação no _saida-01."
     },
     {
       "id": "02",
@@ -263,8 +307,8 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/crm/playbook/
         "${MOD}/"
       ],
       "provas": [],
-      "nota_provas": "fatiada — ver A2 e 11..17",
-      "bloqueio": "fatiada em 2026-10-07: A2 + 11..17 (lote 2)"
+      "nota_provas": "fatiada — ver A2 e 11..17 (lote 2) · A3 e 18..24 (lote 3, portal do contato)",
+      "bloqueio": "fatiada: lote 2 = A2 + 11..17 (2026-10-07); portal do contato (/contact/*) = A3 + 18..24 (2026-10-15)"
     },
     {
       "id": "06",
@@ -691,6 +735,450 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/crm/playbook/
           "padrao": "Inertia::render("
         }
       ]
+    },
+    {
+      "id": "A3",
+      "titulo": "ALVO lote 3 (portal do contato): crm--portal-painel · crm--portal-perfil · crm--portal-compras · crm--portal-vendas · crm--portal-extrato · crm--portal-agendamentos · crm--portal-pedidos · crm--portal-assistencia",
+      "dono": "CL",
+      "vaga": 2,
+      "prs": 1,
+      "arquivo": "A3-alvos-portal.md",
+      "depende_decisoes": [
+        "D3",
+        "D6"
+      ],
+      "prefixo": [
+        "${ALVOS}/crm--portal-painel--index.*",
+        "${ALVOS}/crm--portal-perfil--index.*",
+        "${ALVOS}/crm--portal-compras--index.*",
+        "${ALVOS}/crm--portal-vendas--index.*",
+        "${ALVOS}/crm--portal-extrato--index.*",
+        "${ALVOS}/crm--portal-agendamentos--index.*",
+        "${ALVOS}/crm--portal-pedidos--index.*",
+        "${ALVOS}/crm--portal-assistencia--index.*"
+      ],
+      "nao_toca": [
+        "${MOD}/"
+      ],
+      "provas": [
+        {
+          "tipo": "json_com_chaves",
+          "path": "${ALVOS}/crm--portal-painel--index.alvo.json",
+          "chaves": [
+            "secoes"
+          ]
+        },
+        {
+          "tipo": "json_com_chaves",
+          "path": "${ALVOS}/crm--portal-perfil--index.alvo.json",
+          "chaves": [
+            "secoes"
+          ]
+        },
+        {
+          "tipo": "json_com_chaves",
+          "path": "${ALVOS}/crm--portal-compras--index.alvo.json",
+          "chaves": [
+            "secoes"
+          ]
+        },
+        {
+          "tipo": "json_com_chaves",
+          "path": "${ALVOS}/crm--portal-vendas--index.alvo.json",
+          "chaves": [
+            "secoes"
+          ]
+        },
+        {
+          "tipo": "json_com_chaves",
+          "path": "${ALVOS}/crm--portal-extrato--index.alvo.json",
+          "chaves": [
+            "secoes"
+          ]
+        },
+        {
+          "tipo": "json_com_chaves",
+          "path": "${ALVOS}/crm--portal-agendamentos--index.alvo.json",
+          "chaves": [
+            "secoes"
+          ]
+        },
+        {
+          "tipo": "json_com_chaves",
+          "path": "${ALVOS}/crm--portal-pedidos--index.alvo.json",
+          "chaves": [
+            "secoes"
+          ]
+        },
+        {
+          "tipo": "json_com_chaves",
+          "path": "${ALVOS}/crm--portal-assistencia--index.alvo.json",
+          "chaves": [
+            "secoes"
+          ]
+        }
+      ],
+      "nota_provas": "casca própria redesenhada no protótipo em 2026-10-15 (crm-portal.jsx + crm-portal.css, D6). Medir em tela cheia E em 390px (botão \"Celular 390\" da tira de prévia); a tira .cp-preview fica fora da medida."
+    },
+    {
+      "id": "18",
+      "titulo": "Portal do contato · Painel do contato (DashboardController) → Inertia",
+      "dono": "CL",
+      "vaga": 3,
+      "prs": 1,
+      "arquivo": "18-portal-painel.md",
+      "depende_threads": [
+        "A3"
+      ],
+      "depende_decisoes": [
+        "D3",
+        "D6"
+      ],
+      "prefixo": [
+        "${MOD}/Http/Controllers/DashboardController.php",
+        "${MPAGES}/Crm/Portal/Painel/",
+        "${MOD}/Tests/Feature/CrmPortalPainel*"
+      ],
+      "nao_toca": [
+        "${MOD}/Http/Controllers/LeadController.php",
+        "${MOD}/Http/Controllers/ScheduleController.php",
+        "${MOD}/Http/Controllers/ContactLoginController.php"
+      ],
+      "provas": [
+        {
+          "tipo": "contem",
+          "path": "${MOD}/Http/Controllers/DashboardController.php",
+          "padrao": "Inertia::render("
+        },
+        {
+          "tipo": "contem",
+          "path": "${MOD}/Tests/Feature/CrmPortalPainelContratoTest.php",
+          "padrao": "UC-CRMPO-01"
+        },
+        {
+          "tipo": "contem",
+          "path": "${MOD}/Tests/Feature/CrmPortalPainelContratoTest.php",
+          "padrao": "UC-CRMPO-02"
+        },
+        {
+          "tipo": "contem",
+          "path": "${MOD}/Tests/Feature/CrmPortalPainelContratoTest.php",
+          "padrao": "UC-CRMPO-03"
+        },
+        {
+          "tipo": "contem",
+          "path": "${MOD}/Tests/Feature/CrmPortalPainelContratoTest.php",
+          "padrao": "UC-CRMPO-17"
+        },
+        {
+          "tipo": "contem",
+          "path": "${MOD}/Tests/Feature/CrmPortalPainelContratoTest.php",
+          "padrao": "UC-CRMPO-18"
+        }
+      ],
+      "nota_provas": "casos em handoff-crm/Portal.casos.md (UC-CRMPO-01, 02, 03, 17, 18); forma = design-diff contra crm--portal-painel--index (escuro+claro, 1280+390) no recibo"
+    },
+    {
+      "id": "19",
+      "titulo": "Portal do contato · Perfil (+ senha) (ManageProfileController) → Inertia",
+      "dono": "CL",
+      "vaga": 3,
+      "prs": 1,
+      "arquivo": "19-portal-perfil.md",
+      "depende_threads": [
+        "A3"
+      ],
+      "depende_decisoes": [
+        "D3",
+        "D6"
+      ],
+      "prefixo": [
+        "${MOD}/Http/Controllers/ManageProfileController.php",
+        "${MPAGES}/Crm/Portal/Perfil/",
+        "${MOD}/Tests/Feature/CrmPortalPerfil*"
+      ],
+      "nao_toca": [
+        "${MOD}/Http/Controllers/LeadController.php",
+        "${MOD}/Http/Controllers/ScheduleController.php",
+        "${MOD}/Http/Controllers/ContactLoginController.php"
+      ],
+      "provas": [
+        {
+          "tipo": "contem",
+          "path": "${MOD}/Http/Controllers/ManageProfileController.php",
+          "padrao": "Inertia::render("
+        },
+        {
+          "tipo": "contem",
+          "path": "${MOD}/Tests/Feature/CrmPortalPerfilContratoTest.php",
+          "padrao": "UC-CRMPO-04"
+        },
+        {
+          "tipo": "contem",
+          "path": "${MOD}/Tests/Feature/CrmPortalPerfilContratoTest.php",
+          "padrao": "UC-CRMPO-05"
+        }
+      ],
+      "nota_provas": "casos em handoff-crm/Portal.casos.md (UC-CRMPO-04, 05); forma = design-diff contra crm--portal-perfil--index (escuro+claro, 1280+390) no recibo"
+    },
+    {
+      "id": "20",
+      "titulo": "Portal do contato · Compras (PurchaseController) → Inertia",
+      "dono": "CL",
+      "vaga": 3,
+      "prs": 1,
+      "arquivo": "20-portal-compras.md",
+      "depende_threads": [
+        "A3"
+      ],
+      "depende_decisoes": [
+        "D3",
+        "D6"
+      ],
+      "prefixo": [
+        "${MOD}/Http/Controllers/PurchaseController.php",
+        "${MPAGES}/Crm/Portal/Compras/",
+        "${MOD}/Tests/Feature/CrmPortalCompras*"
+      ],
+      "nao_toca": [
+        "${MOD}/Http/Controllers/LeadController.php",
+        "${MOD}/Http/Controllers/ScheduleController.php",
+        "${MOD}/Http/Controllers/ContactLoginController.php"
+      ],
+      "provas": [
+        {
+          "tipo": "contem",
+          "path": "${MOD}/Http/Controllers/PurchaseController.php",
+          "padrao": "Inertia::render("
+        },
+        {
+          "tipo": "contem",
+          "path": "${MOD}/Tests/Feature/CrmPortalComprasContratoTest.php",
+          "padrao": "UC-CRMPO-06"
+        }
+      ],
+      "nota_provas": "casos em handoff-crm/Portal.casos.md (UC-CRMPO-06); forma = design-diff contra crm--portal-compras--index (escuro+claro, 1280+390) no recibo"
+    },
+    {
+      "id": "21",
+      "titulo": "Portal do contato · Vendas (SellController) → Inertia",
+      "dono": "CL",
+      "vaga": 3,
+      "prs": 1,
+      "arquivo": "21-portal-vendas.md",
+      "depende_threads": [
+        "A3"
+      ],
+      "depende_decisoes": [
+        "D3",
+        "D6"
+      ],
+      "prefixo": [
+        "${MOD}/Http/Controllers/SellController.php",
+        "${MPAGES}/Crm/Portal/Vendas/",
+        "${MOD}/Tests/Feature/CrmPortalVendas*"
+      ],
+      "nao_toca": [
+        "${MOD}/Http/Controllers/LeadController.php",
+        "${MOD}/Http/Controllers/ScheduleController.php",
+        "${MOD}/Http/Controllers/ContactLoginController.php"
+      ],
+      "provas": [
+        {
+          "tipo": "contem",
+          "path": "${MOD}/Http/Controllers/SellController.php",
+          "padrao": "Inertia::render("
+        },
+        {
+          "tipo": "contem",
+          "path": "${MOD}/Tests/Feature/CrmPortalVendasContratoTest.php",
+          "padrao": "UC-CRMPO-06"
+        },
+        {
+          "tipo": "contem",
+          "path": "${MOD}/Tests/Feature/CrmPortalVendasContratoTest.php",
+          "padrao": "UC-CRMPO-07"
+        },
+        {
+          "tipo": "contem",
+          "path": "${MOD}/Tests/Feature/CrmPortalVendasContratoTest.php",
+          "padrao": "UC-CRMPO-08"
+        }
+      ],
+      "nota_provas": "casos em handoff-crm/Portal.casos.md (UC-CRMPO-06, 07, 08); forma = design-diff contra crm--portal-vendas--index (escuro+claro, 1280+390) no recibo"
+    },
+    {
+      "id": "22",
+      "titulo": "Portal do contato · Extrato (LedgerController) → Inertia",
+      "dono": "CL",
+      "vaga": 3,
+      "prs": 1,
+      "arquivo": "22-portal-extrato.md",
+      "depende_threads": [
+        "A3"
+      ],
+      "depende_decisoes": [
+        "D3",
+        "D6"
+      ],
+      "prefixo": [
+        "${MOD}/Http/Controllers/LedgerController.php",
+        "${MPAGES}/Crm/Portal/Extrato/",
+        "${MOD}/Tests/Feature/CrmPortalExtrato*"
+      ],
+      "nao_toca": [
+        "${MOD}/Http/Controllers/LeadController.php",
+        "${MOD}/Http/Controllers/ScheduleController.php",
+        "${MOD}/Http/Controllers/ContactLoginController.php"
+      ],
+      "provas": [
+        {
+          "tipo": "contem",
+          "path": "${MOD}/Http/Controllers/LedgerController.php",
+          "padrao": "Inertia::render("
+        },
+        {
+          "tipo": "contem",
+          "path": "${MOD}/Tests/Feature/CrmPortalExtratoContratoTest.php",
+          "padrao": "UC-CRMPO-09"
+        },
+        {
+          "tipo": "contem",
+          "path": "${MOD}/Tests/Feature/CrmPortalExtratoContratoTest.php",
+          "padrao": "UC-CRMPO-10"
+        }
+      ],
+      "nota_provas": "casos em handoff-crm/Portal.casos.md (UC-CRMPO-09, 10); forma = design-diff contra crm--portal-extrato--index (escuro+claro, 1280+390) no recibo"
+    },
+    {
+      "id": "23",
+      "titulo": "Portal do contato · Agendamentos (ContactBookingController) → Inertia",
+      "dono": "CL",
+      "vaga": 3,
+      "prs": 1,
+      "arquivo": "23-portal-agendamentos.md",
+      "depende_threads": [
+        "A3"
+      ],
+      "depende_decisoes": [
+        "D3",
+        "D6"
+      ],
+      "prefixo": [
+        "${MOD}/Http/Controllers/ContactBookingController.php",
+        "${MPAGES}/Crm/Portal/Agendamentos/",
+        "${MOD}/Tests/Feature/CrmPortalAgendamentos*"
+      ],
+      "nao_toca": [
+        "${MOD}/Http/Controllers/LeadController.php",
+        "${MOD}/Http/Controllers/ScheduleController.php",
+        "${MOD}/Http/Controllers/ContactLoginController.php"
+      ],
+      "provas": [
+        {
+          "tipo": "contem",
+          "path": "${MOD}/Http/Controllers/ContactBookingController.php",
+          "padrao": "Inertia::render("
+        },
+        {
+          "tipo": "contem",
+          "path": "${MOD}/Tests/Feature/CrmPortalAgendamentosContratoTest.php",
+          "padrao": "UC-CRMPO-11"
+        },
+        {
+          "tipo": "contem",
+          "path": "${MOD}/Tests/Feature/CrmPortalAgendamentosContratoTest.php",
+          "padrao": "UC-CRMPO-12"
+        }
+      ],
+      "nota_provas": "casos em handoff-crm/Portal.casos.md (UC-CRMPO-11, 12); forma = design-diff contra crm--portal-agendamentos--index (escuro+claro, 1280+390) no recibo"
+    },
+    {
+      "id": "24",
+      "titulo": "Portal do contato · Solicitações de pedido (OrderRequestController) → Inertia",
+      "dono": "CL",
+      "vaga": 3,
+      "prs": 1,
+      "arquivo": "24-portal-pedidos.md",
+      "depende_threads": [
+        "A3"
+      ],
+      "depende_decisoes": [
+        "D3",
+        "D6"
+      ],
+      "prefixo": [
+        "${MOD}/Http/Controllers/OrderRequestController.php",
+        "${MPAGES}/Crm/Portal/PedidosContato/",
+        "${MOD}/Tests/Feature/CrmPortalPedidosContato*"
+      ],
+      "nao_toca": [
+        "${MOD}/Http/Controllers/LeadController.php",
+        "${MOD}/Http/Controllers/ScheduleController.php",
+        "${MOD}/Http/Controllers/ContactLoginController.php",
+        "${MPAGES}/Crm/Pedidos/"
+      ],
+      "provas": [
+        {
+          "tipo": "contem",
+          "path": "${MOD}/Http/Controllers/OrderRequestController.php",
+          "padrao": "Inertia::render("
+        },
+        {
+          "tipo": "contem",
+          "path": "${MOD}/Tests/Feature/CrmPortalPedidosContratoTest.php",
+          "padrao": "UC-CRMPO-13"
+        },
+        {
+          "tipo": "contem",
+          "path": "${MOD}/Tests/Feature/CrmPortalPedidosContratoTest.php",
+          "padrao": "UC-CRMPO-14"
+        },
+        {
+          "tipo": "contem",
+          "path": "${MOD}/Tests/Feature/CrmPortalPedidosContratoTest.php",
+          "padrao": "UC-CRMPO-15"
+        }
+      ],
+      "nota_provas": "casos em handoff-crm/Portal.casos.md (UC-CRMPO-13, 14, 15); forma = design-diff contra crm--portal-pedidos--index (escuro+claro, 1280+390) no recibo"
+    },
+    {
+      "id": "25",
+      "titulo": "Portal do contato · Assistência (OS do contato) → Inertia",
+      "dono": "CL",
+      "vaga": 3,
+      "prs": 1,
+      "arquivo": "25-portal-assistencia.md",
+      "depende_threads": [
+        "A3",
+        "18"
+      ],
+      "depende_decisoes": [
+        "D3",
+        "D6"
+      ],
+      "prefixo": [
+        "${MPAGES}/Crm/Portal/Assistencia/",
+        "${MOD}/Http/Controllers/",
+        "${MOD}/Tests/Feature/CrmPortalAssistencia*"
+      ],
+      "nao_toca": [
+        "Modules/Repair/",
+        "Modules/ConsultaOs/"
+      ],
+      "provas": [
+        {
+          "tipo": "contem",
+          "path": "${MOD}/Routes/web.php",
+          "padrao": "assistencia"
+        },
+        {
+          "tipo": "contem",
+          "path": "${MOD}/Tests/Feature/CrmPortalAssistenciaContratoTest.php",
+          "padrao": "UC-CRMPO-16"
+        }
+      ],
+      "nota_provas": "UC-COS-24 (cowork-inbox/repair/ConsultaOs-link.casos.md); escopo contact_id + business_id · casos em handoff-crm/Portal.casos.md (UC-CRMPO-16); forma = design-diff contra crm--portal-assistencia--index (escuro+claro, 1280+390) no recibo"
     }
   ],
   "revisado": "2026-10-01 — recibos e _DECISOES do main c12552f40e2a aplicados · 2026-10-01 reconferência @99e6fa3e08f0: threads novas 06,07,08 · 2026-10-05 revisão dos recibos @aacb74f4df18 · 2026-10-07 SINCRONIZAR @f97a0be9fa4d: provas 07/08 do _saida-07e/08b · D5 + thread 10 · 2026-10-07 SINCRONIZAR @348b1498bebe: telas Blade sem thread (levantamento da sidebar) · 2026-10-07 revisão: prefixos disjuntos + provas que decidem"
@@ -698,5 +1186,6 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/crm/playbook/
 ```
 
 ## 4 · O que este índice NÃO resolve
+- **Lote 3 (portal do contato) levantado em 2026-10-15** a partir do `CrmPortalPage` (`crm-portal.jsx`), rotas `crm-portal-<tela>` no protótipo. São **7** telas, não 6: a `_DECISOES-W-2026-10-14` não listou `contact/order-request` (`OrderRequestController@index:162`/`@create:192`, Blade), que é o lado do contato da thread 17 (a 17 migrou só `listOrderRequests`, o lado admin). As 7 esperam a D6 (casca), pendente [W].
 - Lote 2 (10 telas) de propósito não virou thread: o lote 1 prova o molde (alvo → contrato → Page), o Cowork reescreve o índice depois.
 - Não li `crm-blade.jsx` contra os blades neste turno — a fidelidade do protótipo ao legado não está provada.

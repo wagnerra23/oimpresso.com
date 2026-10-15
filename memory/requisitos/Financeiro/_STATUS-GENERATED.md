@@ -18,10 +18,10 @@ authority: generated
 |---|---:|
 | US no SPEC | 60 |
 | CU no SDD | 16 |
-| Telas (.tsx) | 20 |
-| Telas com `casos.md` | 20 |
-| UC declarados | 112 |
-| UC com teste que os cita | 95 |
+| Telas (.tsx) | 22 |
+| Telas com `casos.md` | 22 |
+| UC declarados | 124 |
+| UC com teste que os cita | 107 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -122,6 +122,11 @@ authority: generated
 | UC-CAT-03 | Categorias/Index | 🧪 aguarda veredito da lane |
 | UC-CAT-04 | Categorias/Index | 🧪 aguarda veredito da lane |
 | UC-CAT-05 | Categorias/Index | 🧪 aguarda veredito da lane |
+| UC-CATD-01 | CategoriasDespesa/Index | 🧪 aguarda veredito da lane |
+| UC-CATD-02 | CategoriasDespesa/Index | 🧪 aguarda veredito da lane |
+| UC-CATD-03 | CategoriasDespesa/Index | 🧪 aguarda veredito da lane |
+| UC-CATD-04 | CategoriasDespesa/Index | 🧪 aguarda veredito da lane |
+| UC-CATD-05 | CategoriasDespesa/Index | 🧪 aguarda veredito da lane |
 | UC-COB-01 | Cobranca/Index | 🧪 aguarda veredito da lane |
 | UC-COB-02 | Cobranca/Index | 🧪 aguarda veredito da lane |
 | UC-COB-03 | Cobranca/Index | 🧪 aguarda veredito da lane |
@@ -139,6 +144,13 @@ authority: generated
 | UC-CTD-04 | Configuracoes/Contador | 🧪 aguarda veredito da lane |
 | UC-CTD-05 | Configuracoes/Contador | 🧪 aguarda veredito da lane |
 | UC-DASH-01 | Dashboard/Index | 🧪 aguarda veredito da lane |
+| UC-DESPES-01 | Despesas/Index | 🧪 aguarda veredito da lane |
+| UC-DESPES-02 | Despesas/Index | 🧪 aguarda veredito da lane |
+| UC-DESPES-03 | Despesas/Index | 🧪 aguarda veredito da lane |
+| UC-DESPES-04 | Despesas/Index | 🧪 aguarda veredito da lane |
+| UC-DESPES-05 | Despesas/Index | 🧪 aguarda veredito da lane |
+| UC-DESPES-06 | Despesas/Index | 🧪 aguarda veredito da lane |
+| UC-DESPES-07 | Despesas/Index | 🧪 aguarda veredito da lane |
 | UC-DRE-01 | Dre/Index | 🧪 aguarda veredito da lane |
 | UC-DRE-02 | Dre/Index | 📝 sem_teste |
 | UC-DRE-03 | Dre/Index | 🧪 aguarda veredito da lane |

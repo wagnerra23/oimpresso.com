@@ -3,7 +3,7 @@
 // ADR 0017) para o DS vivo, seguindo o topnav declarativo Resources/menus/topnav.php:
 //   licenca_computador/businessall → view "empresas"  (grupo econômico, ADR 0020)
 //   licenca_computador/index + computadores → view "licencas"
-//   licenca_log/index              → view "log"       (append-only, ADR 0018)
+//   licenca_log/index              → view "log"       (lista de MÁQUINAS — D7 [W] 2026-10-14)
 //   licenca_log/timeline/{id}      → view "timeline"  (rota oi-log-timeline · thread A4)
 // Gate real dos controllers: officeimpresso.access (Clientes OAuth: officeimpresso.clientes.liberar).
 // Expõe window.OfficeimpressoPage. Reusa sa-* / os-* / cli-* do shell + oi-* de officeimpresso-page.css.
@@ -136,7 +136,7 @@ const OI_ABAS = [
   { key: "oi-licencas", label: "Licenças" },
   { key: "oi-clientes", label: "Clientes OAuth" },
   { key: "oi-importar", label: "Importar do Firebird" },
-  { key: "oi-log", label: "Log de acesso" },
+  { key: "oi-log", label: "Logs" },
 ];
 const OiCtx = React.createContext("officeimpresso");
 function PageHead({ titulo, sub, acoes }) {
@@ -1010,106 +1010,106 @@ function ViewImportar() {
   );
 }
 
-// ── View: Log de acesso (licenca_log, append-only) ──
+// ── View: Máquinas Cadastradas (rota licenca_log) ── D7 [W] 2026-10-14: a tela lista MÁQUINAS,
+// não eventos. Espelha Logs/Index.tsx + _components/MaquinasTable.tsx do main (93ff8a960b74):
+// KPIs do buildKpisPayload, colunas e ações da MaquinasTable, filtros q/estado_atual + chips business_id/licenca_id/hd.
+const CNPJ = { 1:"12.345.678/0001-90", 4:"23.456.789/0001-01", 58:"23.456.789/0002-92", 164:"34.567.890/0001-12", 149:"45.678.901/0001-23", 151:"45.678.901/0002-04", 142:"56.789.012/0001-34", 158:"67.890.123/0001-45", 190:"78.901.234/0001-56" };
+const maquinaDe = (l) => {
+  const e = empresaDe(l.biz);
+  const ult = LOGS.find((g) => g.host === l.host && (g.tipo === "login_success" || g.tipo === "login_error"));
+  return { ...l, empresa:e.nome, empresaBloq:!!e.bloqueado, maqBloq:l.status === "bloqueada" || l.status === "excedente",
+    hd:l.serial, local:{ nome:e.nome, cnpj:CNPJ[l.biz] || null },
+    ultimoLogin: ult ? ult.ts : null, cadastro: l.desde + " 00:00:00",
+    bloqNoUltimo: ult ? ult.tipo === "login_error" : null, ip: ult ? ult.ip : l.ip };
+};
+function EstadoAtual({ m }) {
+  const { StatusBadge } = ds();
+  const [l, tone] = m.empresaBloq ? ["Empresa bloqueada", "danger"] : m.maqBloq ? ["Máquina bloqueada", "warning"] : ["Ativa", "success"];
+  return StatusBadge ? <StatusBadge label={l} tone={tone}/> : <span className="sa-badge">{l}</span>;
+}
+function EstadoNoAcesso({ v }) {
+  const { StatusBadge } = ds();
+  if (v === null) return <span className="sa-mute">—</span>;
+  const [l, tone] = v ? ["Bloqueada", "danger"] : ["Liberada", "success"];
+  return StatusBadge ? <StatusBadge label={l} tone={tone}/> : <span className="sa-badge">{l}</span>;
+}
 function ViewLog() {
   const [q, setQ] = useState("");
-  const [fTipo, setFTipo] = useState("all");
-  const [fBiz, setFBiz] = useState("all");
-  const [fOrig, setFOrig] = useState("all");
-  const [per, setPer] = useState({ from:null, to:null, preset:"semana" });
-  const [aberto, setAberto] = useState(null);
+  const [fEstado, setFEstado] = useState("all");
+  const [chips, setChips] = useState({});
+  const [conf, setConf] = useState(null);
   const [toastNode, toast] = useToast();
-  const { PeriodBar } = ds();
-
-  const emJanela = (ts) => {
-    if (!per.from && !per.to) return true;
-    const m = /^(\d{2})\/(\d{2})\/(\d{4}) (\d{2}):(\d{2})/.exec(ts);
-    if (!m) return true;
-    const d = new Date(+m[3], +m[2] - 1, +m[1], +m[4], +m[5]);
-    const from = per.from ? new Date(per.from) : null;
-    const to = per.to ? new Date(per.to) : null;
-    if (from && d < new Date(from.getFullYear(), from.getMonth(), from.getDate())) return false;
-    if (to && d > new Date(to.getFullYear(), to.getMonth(), to.getDate(), 23, 59)) return false;
-    return true;
-  };
-
-  const filtrados = LOGS.filter((g) => {
-    if (fTipo !== "all" && g.tipo !== fTipo) return false;
-    if (fBiz !== "all" && String(g.biz) !== fBiz) return false;
-    if (fOrig !== "all" && origemDe(g).t !== fOrig) return false;
-    if (!emJanela(g.ts)) return false;
-    if (q) {
-      const s = q.toLowerCase();
-      if (![g.host, g.ip, g.rota, g.detalhe, g.autor, empresaDe(g.biz).nome].some((v) => String(v).toLowerCase().includes(s))) return false;
-    }
+  const MAQ = LICENCAS.filter((l) => l.status !== "revogada").map(maquinaDe);
+  const kpis = { total:MAQ.length, maqBloq:MAQ.filter((m) => m.maqBloq).length, empBloq:EMPRESAS.filter((e) => e.bloqueado).length,
+    acessos24h:LOGS.filter((g) => g.ts.startsWith("19/08/2026")).length };
+  const filtrados = MAQ.filter((m) => {
+    if (fEstado === "ativa" && (m.maqBloq || m.empresaBloq)) return false;
+    if (fEstado === "bloqueada" && !(m.maqBloq || m.empresaBloq)) return false;
+    if (chips.business_id && m.biz !== chips.business_id) return false;
+    if (chips.licenca_id && m.id !== chips.licenca_id) return false;
+    if (chips.hd && m.hd !== chips.hd) return false;
+    if (q) { const s = q.toLowerCase(); if (![m.empresa, m.local.cnpj, m.hd, m.host, m.ip].some((v) => String(v || "").toLowerCase().includes(s))) return false; }
     return true;
   });
-  const limpar = () => { setFTipo("all"); setFBiz("all"); setFOrig("all"); setPer({ from:null, to:null, preset:"semana" }); setQ(""); };
+  const temFiltro = !!q || fEstado !== "all" || Object.keys(chips).length > 0;
+  const limpar = () => { setQ(""); setFEstado("all"); setChips({}); };
+  const addChip = (k, v) => setChips((c) => ({ ...c, [k]: v }));
+  const tirarChip = (k) => setChips((c) => { const n = { ...c }; delete n[k]; return n; });
+  const rotChip = { business_id:(v) => "Empresa #" + v, licenca_id:(v) => "Equipamento #" + v, hd:(v) => "HD " + v };
 
   return (
-    <div className="os-page sa-page" data-screen-label="Office Impresso · Log de acesso">
-      <PageHead titulo="Log de acesso" sub={`${LOGS.length} eventos · append-only · nada é editado, nada é apagado`}
-        acoes={<>
-          <button className="os-btn ghost" onClick={() => toast(`${filtrados.length} eventos exportados em CSV`, "ok")}>Exportar</button>
-          <button className="os-btn primary" onClick={() => window.__selectRoute?.("oi-licencas")}>Ver licenças</button>
-        </>}/>
+    <div className="os-page sa-page" data-screen-label="Office Impresso · Máquinas Cadastradas">
+      <PageHead titulo="Máquinas Cadastradas" sub={<>O cadastro é populado por <span className="sa-mono">/connector/api/processa-dados-cliente</span>; cada linha mostra o último acesso registrado.</>}/>
 
       <div className="sa-kpis sa-kpis--4">
-        <Kpi v={LOGS.filter(g=>g.tipo==="api_call").length} l="Chamadas de API" sub="guardado sem prazo"/>
-        <Kpi v={LOGS.filter(g=>g.tipo==="login_success").length} l="Logins com sucesso" sub="guardado sem prazo" tone="success"/>
-        <Kpi v={LOGS.filter(g=>g.tipo==="login_error").length} l="Logins recusados" sub="empresa ou licença travada" tone="danger"/>
-        <Kpi v={LOGS.filter(g=>g.tipo==="admin_action").length} l="Ações de admin" sub="evidência contratual · CC Art. 206" tone="warning"/>
+        <Kpi v={kpis.total} l="Máquinas cadastradas" sub="total de equipamentos"/>
+        <Kpi v={kpis.maqBloq} l="Máquinas bloqueadas" sub="bloqueio individual" tone="warning"/>
+        <Kpi v={kpis.empBloq} l="Empresas bloqueadas" sub="bloqueio em massa" tone="danger"/>
+        <Kpi v={kpis.acessos24h} l="Acessos 24h" sub="processa-dados-cliente" tone="success"/>
       </div>
-
-      <Nota titulo="Purga desligada por decisão — nada é apagado" tone="info">
-        O log de licença é evidência contratual e fiscal: [W] decidiu que a purga automática <b>não liga</b>. As janelas declaradas no <span className="sa-mono">module.json</span> (1 / 2 / 7 anos) e no <span className="sa-mono">Config/retention.php</span> (1825 dias, <span className="sa-mono">anonymize</span>) ficam como declaração de finalidade pra auditoria LGPD Art. 16 — não como gatilho de deleção. <span className="sa-mono">enabled=false</span> permanente; a divergência entre as duas fontes deixa de ser risco porque nenhuma delas apaga nada.
-      </Nota>
-
-      {PeriodBar && <div className="oi-periodo"><PeriodBar label="Período" value={per} onChange={setPer}/></div>}
 
       <div className="sa-toolbar">
         <div className="sa-search">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Buscar host, IP, rota, detalhe ou autor…"/>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+          <input type="search" aria-label="Buscar empresa ou máquina" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Nome, CNPJ, HD, hostname, IP…"/>
         </div>
         <div className="sa-filters">
-          <FilterDropdown label="Origem" value={fOrig} onChange={setFOrig} options={[
-            { id:"all", label:"Qualquer" },
-            { id:"mw", label:"middleware (passivo)", count:LOGS.filter(g=>origemDe(g).t==="mw").length },
-            { id:"passport", label:"Passport listener", count:LOGS.filter(g=>origemDe(g).t==="passport").length },
-            { id:"audit", label:"Delphi · audit", count:LOGS.filter(g=>origemDe(g).t==="audit").length },
-            { id:"ui", label:"UI superadmin", count:LOGS.filter(g=>origemDe(g).t==="ui").length }]}/>
-          <FilterDropdown label="Evento" value={fTipo} onChange={setFTipo} options={[
-            { id:"all", label:"Todos" },
-            ...Object.keys(EV).map((k) => ({ id:k, label:EV[k].l, count:LOGS.filter(g=>g.tipo===k).length }))]}/>
-          <FilterDropdown label="Empresa" value={fBiz} onChange={setFBiz} options={[
-            { id:"all", label:"Todas" },
-            ...EMPRESAS.filter((e) => LOGS.some((g) => g.biz === e.biz)).map((e) => ({ id:String(e.biz), label:`${e.nome} (#${e.biz})`, count:LOGS.filter(g=>g.biz===e.biz).length }))]}/>
-          {(fTipo !== "all" || fBiz !== "all" || fOrig !== "all" || q) && <button className="sa-clear" onClick={limpar}>Limpar</button>}
-          <span className="sa-count">{filtrados.length} de {LOGS.length}</span>
+          <FilterDropdown label="Estado atual" value={fEstado} onChange={setFEstado} options={[
+            { id:"all", label:"Todos" }, { id:"ativa", label:"Ativa" }, { id:"bloqueada", label:"Bloqueada" }]}/>
+          {Object.entries(chips).map(([k, v]) => <button key={k} className="os-btn ghost" onClick={() => tirarChip(k)}>{rotChip[k](v)} ✕</button>)}
+          {temFiltro && <button className="sa-clear" onClick={limpar}>Limpar</button>}
+          <span className="sa-count">{filtrados.length} de {MAQ.length}</span>
         </div>
       </div>
 
       {filtrados.length === 0 ? (
-        <Vazio titulo="Nenhum evento com esses filtros"
-          texto="O log é append-only e nada é purgado — se não aparece aqui, é filtro ou janela de data, não deleção."
-          acao={<button className="os-btn ghost" onClick={limpar}>Limpar filtros</button>}/>
+        temFiltro
+          ? <Vazio titulo="Nenhuma máquina encontrada com os filtros aplicados." texto="" acao={<button className="os-btn ghost" onClick={limpar}>Limpar filtros</button>}/>
+          : <Vazio titulo="Nenhuma máquina cadastrada ainda." texto="A tabela é populada pela rotina /connector/api/processa-dados-cliente quando o Delphi envia CNPJ + HD."/>
       ) : (
         <div className="os-table-wrap">
-          <table className="os-table sa-table">
+          <table className="os-table sa-table oi-maq-table">
+            <colgroup><col/><col/><col style={{ width:140 }}/><col style={{ width:170 }}/><col style={{ width:80 }}/><col style={{ width:120 }}/><col style={{ width:160 }}/><col style={{ width:120 }}/><col style={{ width:150 }}/><col style={{ width:170 }}/></colgroup>
             <thead><tr>
-              <th>Quando</th><th>Evento</th><th>Origem</th><th>Empresa · máquina</th><th>Rota</th><th className="ta-r">Latência</th><th>Detalhe</th>
+              <th>Empresa</th><th>Location / CNPJ</th><th>Máquina</th><th>HD</th><th>Versão</th><th>IP</th><th>Último login</th><th>Estado no último login</th><th>Estado atual</th><th className="ta-r">Ações</th>
             </tr></thead>
             <tbody>
-              {filtrados.map((g, i) => (
-                <tr key={i} className="sa-row" onClick={() => setAberto(g)}>
-                  <td><span className="sa-mono">{g.ts}</span></td>
-                  <td><span className={"oi-ev oi-ev--" + EV[g.tipo].cls}><i></i>{EV[g.tipo].l}</span></td>
-                  <td><span className="oi-orig">{origemDe(g).l}</span></td>
-                  <td><div className="sa-biz"><b className="sa-b-reg">{empresaDe(g.biz).nome}</b><small className="sa-mono">biz #{g.biz} · {g.host}</small></div></td>
-                  <td><span className="sa-mono">{g.rota}</span></td>
-                  <td className="ta-r"><span className={"oi-lat" + (g.ms > 1000 ? " alta" : "")}>{g.ms} ms</span></td>
-                  <td>{g.detalhe}</td>
+              {filtrados.map((m) => (
+                <tr key={m.id} className="sa-row">
+                  <td><button className="oi-link" title="Filtrar por esta empresa" onClick={() => addChip("business_id", m.biz)}>{m.empresa}</button></td>
+                  <td><div className="sa-biz"><b className="sa-b-reg">{m.local.nome}</b>{m.local.cnpj && <small className="sa-mono">CNPJ {m.local.cnpj}</small>}</div></td>
+                  <td><button className="oi-link sa-mono" title="Filtrar por este equipamento" onClick={() => addChip("licenca_id", m.id)}>{m.host || "(sem hostname)"}</button></td>
+                  <td><button className="oi-link sa-mono" title="Ver todas as empresas com este HD" onClick={() => addChip("hd", m.hd)}>{m.hd}</button></td>
+                  <td><span className="sa-mono">{m.versao}</span></td>
+                  <td><span className="sa-mono">{m.ip}</span></td>
+                  <td><span className="sa-mono">{m.ultimoLogin || m.cadastro}</span>{!m.ultimoLogin && <small className="sa-mute" style={{ display:"block" }}>(cadastro)</small>}</td>
+                  <td><EstadoNoAcesso v={m.bloqNoUltimo}/></td>
+                  <td><EstadoAtual m={m}/></td>
+                  <td className="ta-r">
+                    {m.empresaBloq
+                      ? <button className="os-btn ghost" onClick={() => setConf({ titulo:"Desbloquear a empresa inteira?", texto:`Isto libera o Delphi de TODAS as máquinas de ${m.empresa}, não só desta.`, ok:`${m.empresa} desbloqueada` })}>Desbloquear empresa</button>
+                      : <button className={"os-btn " + (m.maqBloq ? "ghost" : "danger")} onClick={() => setConf({ titulo: m.maqBloq ? "Desbloquear esta máquina?" : "Bloquear esta máquina?", texto:`${m.host} — ${m.empresa}.`, ok:`${m.host} ${m.maqBloq ? "desbloqueada" : "bloqueada"}` })}>{m.maqBloq ? "Desbloquear máquina" : "Bloquear máquina"}</button>}
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -1117,26 +1117,8 @@ function ViewLog() {
         </div>
       )}
 
-      {aberto && <Drawer titulo={EV[aberto.tipo].l} sub={`${aberto.ts} · biz #${aberto.biz} · ${aberto.host}`}
-        badge={<span className={"oi-ev oi-ev--" + EV[aberto.tipo].cls}><i></i>guardado sem prazo</span>}
-        onClose={() => setAberto(null)}
-        rodape={<button className="os-btn ghost" onClick={() => { setAberto(null); window.__selectRoute?.("oi-licencas"); }}>Abrir a licença</button>}>
-        <section className="sa-dr-sec">
-          <h3>Evento</h3>
-          <dl className="oi-kv">
-            <dt>Origem</dt><dd>{origemDe(aberto).l}{origemDe(aberto).t === "audit" && " — contexto mandado pelo Delphi (endpoint opcional)"}{origemDe(aberto).t === "mw" && " — registro passivo, o Delphi não sabe que existe"}</dd>
-            <dt>Empresa</dt><dd>{empresaDe(aberto.biz).nome} <span className="sa-mono">biz #{aberto.biz}</span></dd>
-            <dt>Máquina</dt><dd className="mono">{aberto.host}</dd>
-            <dt>IP de origem</dt><dd className="mono">{aberto.ip}</dd>
-            <dt>Rota</dt><dd className="mono">{aberto.rota}</dd>
-            <dt>Latência</dt><dd className="mono">{aberto.ms} ms</dd>
-            <dt>Autor</dt><dd>{aberto.autor === "—" ? "desktop (sem usuário)" : aberto.autor}</dd>
-            <dt>Detalhe</dt><dd>{aberto.detalhe}</dd>
-          </dl>
-        </section>
-        <Nota tone="info" titulo="Registro imutável">Eventos do log não são editáveis. Correção se faz por evento novo — o histórico do que aconteceu fica.</Nota>
-      </Drawer>}
-
+      <Confirm open={!!conf} titulo={conf?.titulo} texto={conf?.texto} cta="Confirmar"
+        onConfirm={() => { toast(conf.ok, "ok"); setConf(null); }} onClose={() => setConf(null)}/>
       {toastNode}
     </div>
   );

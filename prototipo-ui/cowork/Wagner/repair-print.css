@@ -80,3 +80,10 @@
 .rep-barras { margin-top: auto; display: flex; align-items: flex-end; gap: 1px; height: 9mm }
 .rep-barras i { display: block; height: 100%; background: #111 }
 @media print { body.rep-printing.rep-label-mode { } .rep-label { page-break-after: always } }
+
+.rep-portal-qr{display:grid;grid-template-columns:92px 1fr;gap:14px;align-items:start}
+.rep-qr{width:92px;height:92px;border:1.5px dashed #555;display:flex;flex-direction:column;align-items:center;justify-content:center;font:600 14px/1.1 var(--font-mono);color:#333}
+.rep-qr small{font:400 8px/1.2 var(--font-sans);margin-top:4px;text-align:center}
+.rep-portal-qr p{margin:0 0 4px}
+.rep-cod{font-size:14px;letter-spacing:.06em}
+.rep-mute{color:#555;font-size:9.5pt}

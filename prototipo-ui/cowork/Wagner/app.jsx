@@ -829,6 +829,7 @@ function App() {
   if (route === "mfg-producao") content = <window.ManufacturingPage initialView="producao" />;else
   if (route === "mfg-relatorio") content = <window.ManufacturingPage initialView="relatorio" />;else
   if (route === "mfg-config") content = <window.ManufacturingPage initialView="config" />;else
+  if ((route === "pcv" || route.indexOf("pcv-") === 0) && window.ProducaoCvPage) content = <window.ProducaoCvPage key={route} view={route.slice(4) || "painel"} estado={tweaks.pcvEstado || "dados"} />;else
   if (route === "fila" || route === "acabamento" || route === "expedicao") content = <window.ProducaoPage />;else
   if (route === "financeiro") content = <window.FinanceiroPage initialTela="unified" />;else
   if (route === "fin-fluxo") content = <window.FinanceiroPage initialTela="fluxo" />;else
@@ -857,7 +858,7 @@ function App() {
   if (route === "oficinaauto") content = <window.OficinaPage />;else
   if (route === "oficina-os") content = <window.OficinaOSPage />;else
   if (route === "crm-ficha") content = <window.CrmFicha />;else
-  if (route === "crm-portal" && window.CrmPortalPage) content = <window.CrmPortalPage />;else
+  if ((route === "crm-portal" || route.indexOf("crm-portal-") === 0) && window.CrmPortalPage) content = <window.CrmPortalPage key={route} view={route.slice(11) || "painel"} />;else
   if ((route === "crm" || route.indexOf("crm-") === 0) && window.CrmBladePage) {
     // Módulo Crm do legado (crm::layouts.nav) traduzido em crm-blade.jsx.
     const CRM_VIEW = { "crm": "painel", "crm-painel": "painel", "crm-leads": "leads", "crm-followups": "acompanhamentos", "crm-campanhas": "campanhas", "crm-logins": "logins", "crm-comissoes": "comissoes", "crm-chamadas": "chamadas", "crm-relatorios": "relatorios", "crm-modelo": "modelo", "crm-propostas": "propostas", "crm-marketplace": "marketplace", "crm-pedidos": "pedidos", "crm-taxonomias": "taxonomias", "crm-config": "config" };
@@ -1116,6 +1117,12 @@ function App() {
             options={["balcao", "gerente", "consulta", "sem-acesso"]} onChange={(v) => setTweak("cvPapel", v)} />
           <TweakToggle label="PCP na tela" value={tweaks.cvPcp} onChange={(v) => setTweak("cvPcp", v)} />
           <TweakToggle label="Salvar orçamento + PDF" value={tweaks.cvSalvar} onChange={(v) => setTweak("cvSalvar", v)} />
+        </>}
+
+        {(route === "pcv" || route.indexOf("pcv-") === 0) && <>
+          <TweakSection label="Painel de produção" />
+          <TweakRadio label="Estado dos dados" value={tweaks.pcvEstado || "dados"}
+            options={["dados", "vazio", "carregando", "erro"]} onChange={(v) => setTweak("pcvEstado", v)} />
         </>}
 
         {(route === "arquivos" || route.indexOf("arq-") === 0) && <>

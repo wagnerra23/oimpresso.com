@@ -15,7 +15,7 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/telas-soltas/playbook/
 
 | tela (rota) | Page | trio | contrato |
 |---|---|---|---|
-| Visão geral (`dash-legacy`) | `Home/Index` | ✅ | — |
+| Visão geral (`dash-legacy`) | `Home/Index` | ✅ | ✅ `dashboard-visao-geral` |
 | Base de Conhecimento (`kb`) | `kb/Index` · `Graph` (+ `Index.v2`) | ✅ | — |
 | Módulos | `Modules/Index` | ✅ | ✅ `modulos` |
 | Backup | `Backup/Index` | ✅ | ✅ `backup` |
@@ -141,7 +141,7 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/telas-soltas/playbook/
       "provas": [
         {
           "tipo": "arquivo",
-          "path": "governance/design/contracts/home.contract.json"
+          "path": "governance/design/contracts/dashboard-visao-geral.contract.json"
         },
         {
           "tipo": "arquivo",

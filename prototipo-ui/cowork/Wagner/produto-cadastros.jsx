@@ -6,7 +6,7 @@
 //   brand/{index,create,edit} .................. aba "Marcas"         (brand.*)
 //   warranties/{index,create,edit} ............. aba "Garantias"      (sem gate no legado)
 // Tudo em componentes do DS vivo: Button · Input · Select · Textarea · Checkbox · Switch ·
-// DataTable · Alert · EmptyState · Skeleton · TagChip · Tooltip (Modal vem do PBUI, que é o DS Modal).
+// DataTable · Alert · EmptyState · Skeleton · TagChip · Tooltip · Drawer (form) (Modal do PBUI só na confirmação).
 // Expõe window.ProdutoCadastros. Depende de window.PBD, window.PBUI e window.ProdutoPerms.
 (() => {
 const { useState, useMemo, useEffect, useRef } = React;
@@ -147,18 +147,28 @@ function Confirmar({ pedido, onClose }) {
     </Modal>
   );
 }
-function FormModal({ titulo, largura, onClose, podeSalvar, onSalvar, children }) {
-  const { Modal } = U();
-  const { Button } = DS();
-  if (!Modal) return null;
+// Contêiner = drawer lateral PT-02 de 760px (decisão [W] 2026-10-05), espelhando
+// resources/js/Pages/Produto/Cadastros/_components/CadastroDrawer.tsx (Sheet sm:max-w-[760px]).
+// `largura` dos chamadores fica ignorada de propósito: o drawer tem largura única nas 6 abas.
+const AJUDA = {
+  "unidade": "Unidade decimal aceita quantidade fracionada (m², kg). Múltiplo de unidade base converte compra em caixa para venda em peça.",
+  "marca": "Marca do produto — filtro do índice, relatório por marca e, quando marcada, lista de marcas de aparelho da Oficina.",
+  "categoria": "Categoria e subcategoria do produto — as mesmas do filtro do índice e do relatório de lucro por categoria. Código curto entra no SKU automático.",
+  "variação": "Modelo reaproveitado no cadastro de produto variável: escolher “Cor” já traz os valores abaixo como variações.",
+  "garantia": "Prazo de garantia do produto — imprime na OS e na nota, e serve de base pro atendimento aceitar ou recusar retorno.",
+};
+function FormModal({ titulo, onClose, podeSalvar, onSalvar, children }) {
+  const { Drawer, Button } = DS();
+  if (!Drawer) return null;
+  const chave = Object.keys(AJUDA).find((k) => titulo.toLowerCase().endsWith(k));
   return (
-    <Modal titulo={titulo} largura={largura} onClose={onClose}
-      acoes={<><Button onClick={onClose}>Cancelar</Button>
-        <Button variant="primary" disabled={!podeSalvar} onClick={onSalvar} kbd="↵">Salvar</Button></>}>
-      <div onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey && e.target.tagName !== "TEXTAREA" && podeSalvar) { e.preventDefault(); onSalvar(); } }}>
+    <Drawer open width={760} title={titulo} subtitle={chave ? AJUDA[chave] : undefined} onClose={onClose}
+      footer={<div style={{ display: "flex", justifyContent: "flex-end", gap: 8 }}><Button onClick={onClose}>Cancelar</Button>
+        <Button variant="primary" disabled={!podeSalvar} onClick={onSalvar} kbd="↵">Salvar</Button></div>}>
+      <div data-contract="produto-cadastros-drawer" style={{ padding: "16px 20px" }} onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey && e.target.tagName !== "TEXTAREA" && podeSalvar) { e.preventDefault(); onSalvar(); } }}>
         {children}
       </div>
-    </Modal>
+    </Drawer>
   );
 }
 // Casca comum: permissão → estado → busca → tabela do DS.

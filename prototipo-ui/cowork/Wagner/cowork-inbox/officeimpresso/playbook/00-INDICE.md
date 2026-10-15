@@ -21,6 +21,7 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/officeimpresso/playbook
 - **L1** `:243` `Licenca_Computador::all()` — sem escopo de negócio. ⚠️ **Errata do `_saida-01`:** era **latente** — `index/show/update/destroy/store` não tinham rota; só `processa-dados-cliente` e `salvar-equipamento/{business_id}` apontam pro controller. Conserto valeu (rota futura vazaria), vazamento ativo não havia. ⚠️ **Retratação:** no roteiro do Connector eu escrevi que L1 "pode já ter sido consertado" porque procurei no módulo errado (Officeimpresso). Está aberto.
 - **L7** `:267` · `:293` · `:310` `Licenca_Computador::find($id)` sem `business_id`.
 - **L2** `:195` `->senha =` e `:214` `->contra_senha =` — credencial do cliente gravada em claro.
+- ⛔ **`senha`/`contra_senha` pertencem à integração Officeimpresso (WR Comercial/Delphi)** — [W] 2026-10-14: *"não pode dropar senha, ele pertence a integração com officeimpresso"*. Colunas, `fillable` e leitura ficam. Nenhuma thread deste índice remove esses campos.
 
 **GET que muda estado:** `Routes/web.php:44` `toggle-block` · `:49` `businessbloqueado` · `:64-65` `install/uninstall`, `install/update`.
 **Painel OAuth duplicado:** `ClientController:57` `makeVisible('secret')` + `:164` `regenerate()` + `web.php:37` — mesma dívida do Connector, em outro módulo.
@@ -34,7 +35,7 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/officeimpresso/playbook
 | D1 | Painel OAuth do Officeimpresso: aposentar (usar o do Connector) ou manter | 05 |
 | D2 | Licenças: tela nova no Officeimpresso ou fundir com `Suporte/Empresas`/`Visao` | A1 · 06 |
 | D3 | Catálogo: Officeimpresso ou ProductCatalogue | 08 |
-| D4 | Dropar `senha`/`contra_senha` da tabela | 03 |
+| D4 | Dropar `senha`/`contra_senha` da tabela — **NÃO** ([W] 01/10 + 14/10: pertencem à integração Officeimpresso) | 03 |
 | D5 | Cobrança por equipamento: aqui ou Financeiro/Superadmin | — |
 
 ## 3 · Threads
@@ -92,7 +93,7 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/officeimpresso/playbook
       "destrava": [
         "03"
       ],
-      "resposta": "NÃO dropar senha/contra_senha — _DECISOES-W-2026-10-01b.md",
+      "resposta": "NÃO dropar senha/contra_senha — pertencem à integração Officeimpresso (Delphi); reafirmado por [W] 2026-10-14 — _DECISOES-W-2026-10-01b.md",
       "fonte": "_DECISOES-W-2026-10-01b.md"
     },
     {
@@ -105,13 +106,14 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/officeimpresso/playbook
     },
     {
       "id": "D6",
-      "pergunta": "Ligar a flag useV2OfficeimpressoLicencas em produção (hoje OFF: produção segue na Blade)?",
+      "pergunta": "Ligar a flag useV2OfficeimpressoLicencas em produção?",
       "respondida": true,
       "destrava": [
         "09"
       ],
       "resposta": "ligar a flag useV2OfficeimpressoLicencas em produção, seguindo o RUNBOOK §F2 (rota de fuga = Blade)",
-      "fonte": "[W] 2026-10-05 no chat"
+      "fonte": "[W] 2026-10-05 no chat",
+      "nota": "executada: a flag saiu do código em 2026-10-06 (#8783, cutover sem flag nem Blade) — _DECISOES-W-2026-10-14"
     },
     {
       "id": "E-SENHA-DESKTOP",
@@ -119,6 +121,17 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/officeimpresso/playbook
       "respondida": true,
       "resposta": "a resposta ao WR Comercial NÃO muda; o backend só deixa de gravar senha (restrição do pedido: desktop em campo não pode quebrar)",
       "fonte": "[CC] por delegação de [W] 2026-10-05 (\"o resto pode ser medido, escolha\")"
+    },
+    {
+      "id": "D7",
+      "pergunta": "Logs/Index lista máquinas (produção) ou eventos (protótipo)? E pode ligar useV2OfficeimpressoLogs?",
+      "respondida": true,
+      "destrava": [
+        "A3",
+        "07"
+      ],
+      "resposta": "máquinas (produção vence no dado); flag ligada para todas as empresas no fallbackDefaults (#9412)",
+      "fonte": "_DECISOES-W-2026-10-14.md"
     }
   ],
   "threads": [
@@ -174,7 +187,7 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/officeimpresso/playbook
     },
     {
       "id": "03",
-      "titulo": "Dropar colunas senha/contra_senha",
+      "titulo": "Guarda: senha/contra_senha ficam (integração Officeimpresso) — sem drop",
       "dono": "CL",
       "vaga": 2,
       "prs": 1,
@@ -194,12 +207,12 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/officeimpresso/playbook
       ],
       "provas": [
         {
-          "tipo": "nao_contem",
+          "tipo": "contem",
           "path": "${MOD}/Entities/Licenca_Computador.php",
           "padrao": "'contra_senha'"
         }
       ],
-      "bloqueio": "vetado: [W] D4 = \"não\" (_DECISOES-W-2026-10-01b) — colunas ficam; gravação já parada no #8365; tirar do fillable trava no gate Tier 0 (_saida-03)"
+      "bloqueio": "encerrada sem código: [W] D4 = \"não\" (01/10) e 14/10 \"pertence a integração com officeimpresso\" — colunas e fillable FICAM; nenhuma migration de drop. Recibo: _saida-03"
     },
     {
       "id": "04",
@@ -297,7 +310,7 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/officeimpresso/playbook
           "nota": "duas medidas byte-idênticas por tela, cada uma com o seu design.json (hoje as duas usam o blob 0369a411b2dd)"
         }
       ],
-      "bloqueio": "NÃO MEDI (_saida-A3): prod não medível (shell AdminLTE, CSS vazio) e Timeline sem vista própria no protótipo"
+      "bloqueio": "espera máquinas na base do staging (causa 3 do _saida-A3). Causas 1, 2 e 4 resolvidas: D7 (#9412) liga a flag e a vista oi-log já é lista de máquinas no protótipo (2026-10-15); Timeline tem vista própria (A4)"
     },
     {
       "id": "06",
@@ -358,7 +371,7 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/officeimpresso/playbook
         }
       ],
       "nota_provas": "design-diff --compare --check sem DIVERGE (bug), run no recibo",
-      "bloqueio": "depende da A3, que não mediu — reabre quando a A4 der vista à Timeline e houver lado prod medível"
+      "bloqueio": "depende da A3 (staging sem máquinas)"
     },
     {
       "id": "08",
@@ -408,10 +421,16 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/officeimpresso/playbook
       ],
       "provas": [
         {
-          "tipo": "execucao",
-          "nota": "flag ligada no ambiente, RUNBOOK-licencas §F2 seguido, rota de fuga testada"
+          "tipo": "ausente",
+          "path": "${MOD}/Resources/views/licenca_computador/index.blade.php"
+        },
+        {
+          "tipo": "nao_contem",
+          "path": "app/Services/FeatureFlagService.php",
+          "padrao": "'useV2OfficeimpressoLicencas' =>"
         }
-      ]
+      ],
+      "nota_provas": "flag saiu do código em #8783 (2026-10-06); Blade da lista apagada"
     },
     {
       "id": "A4",
@@ -488,7 +507,7 @@ destino_no_main: prototipo-ui/cowork/Wagner/cowork-inbox/officeimpresso/playbook
       "nota_provas": "nomes de Page propostos; a ficha saiu como Officeimpresso/Empresa/Show (_saida-11) — prova corrigida 2026-10-13"
     }
   ],
-  "revisado": "2026-10-01 — recibos e _DECISOES do main c12552f40e2a aplicados · 2026-10-01 reconferência @99e6fa3e08f0: threads novas 09 · 2026-10-05 revisão dos recibos @aacb74f4df18 · 2026-10-07 SINCRONIZAR @348b1498bebe: telas Blade sem thread (levantamento da sidebar) · 2026-10-07 revisão: prefixos disjuntos + provas que decidem"
+  "revisado": "2026-10-01 — recibos e _DECISOES do main c12552f40e2a aplicados · 2026-10-01 reconferência @99e6fa3e08f0: threads novas 09 · 2026-10-05 revisão dos recibos @aacb74f4df18 · 2026-10-07 SINCRONIZAR @348b1498bebe: telas Blade sem thread (levantamento da sidebar) · 2026-10-07 revisão: prefixos disjuntos + provas que decidem · 2026-10-14 [W]: 03 vira guarda (senha pertence à integração Officeimpresso; prova invertida p/ contem)"
 }
 ```
 

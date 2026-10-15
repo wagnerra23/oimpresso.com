@@ -125,6 +125,15 @@ const MENU = [
     ]},
   ]},
   { group: "PRODUÇÃO", items: [
+    // Produção (comunicação visual) — OS como projeto. Entra 1º: é a visão do PCP sobre as OS abaixo.
+    { id: "pcv", icon: "layers", label: "Painel de produção", ghosts: [
+      { id: "pcv-quadro",      icon: "grid",   label: "Quadro" },
+      { id: "pcv-linha",       icon: "clock",  label: "Linha do tempo" },
+      { id: "pcv-custo",       icon: "calc",   label: "Custo real × orçado" },
+      { id: "pcv-instalacao",  icon: "truck",  label: "Instalação" },
+      { id: "pcv-apontamento", icon: "phone",  label: "Apontamento" },
+      { id: "pcv-roteiros",    icon: "list",   label: "Roteiros" },
+    ]},
     { id: "os",     icon: "orders", label: "Ordens de Serviço" },
     { id: "entregas", icon: "car",  label: "Entregas e instalação" },
     // Comunicação Visual (Modules/ComunicacaoVisual · group 'producao' no vivo, order 55)
@@ -615,7 +624,7 @@ const GROUP_META = {
   "COMERCIAL": { icon:"cash",    label:"Comercial", hue: 55,   key:"comercial", desc:"CRM, vendas, oficina auto" },
   "FINANÇAS":  { icon:"cash",    label:"Finanças",  hue: 145,  key:"financas",  desc:"Caixa, cobrança, financeiro, recorrente" },
   "FISCAL":    { icon:"receipt", label:"Fiscal",    hue: 175,  key:"fiscal",    desc:"NF-e, NFS-e, certificado" },
-  "PRODUÇÃO":  { icon:"factory", label:"Produção",  hue: 8,    key:"producao",  desc:"OS, assistência técnica" },
+  "PRODUÇÃO":  { icon:"factory", label:"Produção",  hue: 8,    key:"producao",  desc:"Painel de produção, OS, instalação, assistência técnica" },
   "ESTOQUE":   { icon:"archive", label:"Estoque",   hue: 315,  key:"estoque",   desc:"Compras, transferências, patrimônio" },
   "RH":        { icon:"users",   label:"RH",        hue: 88,   key:"pessoas",   desc:"Ponto, colaboradores" },
   "SISTEMA":   { icon:"cog",     label:"Sistema",   hue: 245,  key:"sistema",   desc:"Auditoria, relatórios, planilhas, KB" },

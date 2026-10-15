@@ -20,8 +20,8 @@ authority: generated
 | CU no SDD | 16 |
 | Telas (.tsx) | 7 |
 | Telas com `casos.md` | 8 |
-| UC declarados | 81 |
-| UC com teste que os cita | 81 |
+| UC declarados | 83 |
+| UC com teste que os cita | 83 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -69,6 +69,8 @@ _Nenhuma lacuna: toda tela tem caso **com UC**, todo CU é citado, e toda US **e
 | UC-FCFG-05 | Config | 🧪 aguarda veredito da lane |
 | UC-FCFG-06 | Config | 🧪 aguarda veredito da lane |
 | UC-FCFG-07 | Config | 🧪 aguarda veredito da lane |
+| UC-FCFG-08 | Config | 🧪 aguarda veredito da lane |
+| UC-FCFG-09 | Config | 🧪 aguarda veredito da lane |
 | UC-FCKP-01 | Cockpit | 🧪 aguarda veredito da lane |
 | UC-FCKP-02 | Cockpit | 🧪 aguarda veredito da lane |
 | UC-FCKP-03 | Cockpit | 🧪 aguarda veredito da lane |

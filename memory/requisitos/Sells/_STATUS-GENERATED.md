@@ -19,16 +19,14 @@ authority: generated
 | US no SPEC | 60 |
 | CU no SDD | 6 |
 | Telas (.tsx) | 11 |
-| Telas com `casos.md` | 9 |
-| UC declarados | 105 |
-| UC com teste que os cita | 104 |
+| Telas com `casos.md` | 11 |
+| UC declarados | 114 |
+| UC com teste que os cita | 113 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
 | Lacuna | O que falta escrever |
 |---|---|
-| Tela `Drafts` sem `casos.md` | o contrato da tela (trio incompleto) |
-| Tela `Subscriptions` sem `casos.md` | o contrato da tela (trio incompleto) |
 | `CU-SELL-05` sem UC | caso de uso que o exercite — Editar linha em pt-BR sem inflar o decimal |
 | `CU-SELL-06` sem UC | caso de uso que o exercite — Venda a prazo (fiado) fecha com saldo devedor |
 | `CU-SELL-30` sem UC | caso de uso que o exercite — Enxergar a cobrança num relance |
@@ -109,6 +107,10 @@ authority: generated
 | UC | Tela | Status |
 |---|---|---|
 | UC-11 | Index | 🧪 aguarda veredito da lane |
+| UC-DRAFT-01 | Drafts | 🧪 aguarda veredito da lane |
+| UC-DRAFT-02 | Drafts | 🧪 aguarda veredito da lane |
+| UC-DRAFT-03 | Drafts | 🧪 aguarda veredito da lane |
+| UC-DRAFT-04 | Drafts | 🧪 aguarda veredito da lane |
 | UC-POS-01 | Pos/Index | 🧪 aguarda veredito da lane |
 | UC-POS-02 | Pos/Index | 🧪 aguarda veredito da lane |
 | UC-POS-03 | Pos/Index | 🧪 aguarda veredito da lane |
@@ -165,6 +167,11 @@ authority: generated
 | UC-SIDX-01 | Index | 🧪 aguarda veredito da lane |
 | UC-SIDX-02 | Index | 🧪 aguarda veredito da lane |
 | UC-SIDX-03 | Index | 🧪 aguarda veredito da lane |
+| UC-SSUB-01 | Subscriptions | 🧪 aguarda veredito da lane |
+| UC-SSUB-02 | Subscriptions | 🧪 aguarda veredito da lane |
+| UC-SSUB-03 | Subscriptions | 🧪 aguarda veredito da lane |
+| UC-SSUB-04 | Subscriptions | 🧪 aguarda veredito da lane |
+| UC-SSUB-05 | Subscriptions | 🧪 aguarda veredito da lane |
 | UC-V301 | CreateV3 | 🧪 aguarda veredito da lane |
 | UC-V302 | CreateV3 | 🧪 aguarda veredito da lane |
 | UC-V303 | CreateV3 | 🧪 aguarda veredito da lane |

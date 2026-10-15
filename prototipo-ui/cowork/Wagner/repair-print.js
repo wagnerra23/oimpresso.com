@@ -9,6 +9,10 @@ const D = () => window.RepData;
 const esc = (s) => String(s == null ? "" : s).replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]));
 const agora = () => new Date().toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
 
+// Código de acompanhamento (Repair 06, UC-COS-20): o mesmo do repair-portal.jsx; aqui só lido.
+const codigo = (f) => (window.RepPortal && window.RepPortal.codigoDe ? window.RepPortal.codigoDe(f) : String(f.os).replace(/[^0-9A-Z]/gi, "").slice(-8).toUpperCase());
+const fmtCodigo = (f) => { const c = codigo(f); return c.slice(0, 4) + "-" + c.slice(4); };
+
 function root() {
   let el = document.getElementById("rep-print-root");
   if (!el) { el = document.createElement("div"); el.id = "rep-print-root"; document.body.appendChild(el); }
@@ -136,6 +140,7 @@ function printEtiqueta(f) {
     <b class="rep-label-n">${esc(f.os)}</b>
     <div class="rep-label-l">${esc(f.cliente)}</div>
     <div class="rep-label-l">${esc(m.marca)} ${esc(m.nome)}</div>
+    <div class="rep-label-l mono">Acompanhe: ${esc(fmtCodigo(f))}</div>
     <div class="rep-label-l mono">série ${esc(f.serie)}</div>
     <div class="rep-label-l mono">entrega ${esc(P.d2(f.entrega))} · ${esc(f.tecnico)}</div>
     <div class="rep-barras">${barras}</div>
@@ -160,9 +165,14 @@ function printViaCliente(f) {
       <h3>Defeito relatado</h3>
       <ul>${(f.defeitos || []).map((d) => `<li>${esc(d)}</li>`).join("") || "<li>—</li>"}</ul>
     </section>
-    <section class="rep-sheet-bloco rep-portal">
-      <h3>Acompanhe pelo site</h3>
-      <p>Consulte o andamento em <b>oimpresso.com/repair-status</b> com o número <b class="mono">${esc(f.os)}</b> e o número de série <b class="mono">${esc(f.serie)}</b>.</p>
+    <section class="rep-sheet-bloco rep-portal rep-portal-qr">
+      <div class="rep-qr" role="img" aria-label="QR do link de acompanhamento">QR<small>gerado no servidor</small></div>
+      <div>
+        <h3>Acompanhe sua OS pelo celular</h3>
+        <p>Aponte a câmera para o QR ou abra <b class="mono">oimpresso.com/os/${esc(codigo(f))}</b>. Não precisa de cadastro.</p>
+        <p>Código de acompanhamento: <b class="mono rep-cod">${esc(fmtCodigo(f))}</b></p>
+        <p class="rep-mute">O link abre até 90 dias depois da entrega. Perdeu o recibo? Peça um novo código no balcão.</p>
+      </div>
     </section>
     <section class="rep-sheet-bloco rep-termos"><h3>Termos</h3><ol>${TERMOS.map((t) => `<li>${esc(t)}</li>`).join("")}</ol></section>
     ${blocoAssinaturas()}
