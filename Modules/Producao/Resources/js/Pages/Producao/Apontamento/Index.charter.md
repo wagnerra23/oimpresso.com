@@ -17,6 +17,7 @@ charter_version: 1
 > **Status:** draft. Nasce na thread 04 + emenda E04 do playbook de Produção (PCP).
 > Casos: [`Index.casos.md`](Index.casos.md) · regra: `Modules/Producao/Services/ApontamentoOperadorService.php` ·
 > alvo medido: `governance/design/targets/producao--apontamento--index-390.alvo.json`.
+> Forma: classes `pcv-*` do bundle `resources/css/cowork-producao-bundle.css` (cópia inteira do `producao-cv.css`, #9463).
 > Non-Goals e Anti-hooks além dos abaixo são de [W] — não se inferem aqui.
 
 ## Mission
