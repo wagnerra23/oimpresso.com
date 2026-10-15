@@ -43,6 +43,7 @@ on:
       - 'database/migrations/2026_10_02_190000_create_app_menu_preferencias_table.php'
       - 'app/Http/Controllers/Api/App/NotificacoesController.php'
       - 'app/Http/Controllers/Api/App/OficinaController.php'
+      - 'app/Http/Controllers/Api/App/ProducaoController.php'
       - 'app/Http/Controllers/Api/App/AgendamentoController.php'
       - 'Modules/OficinaAuto/Database/Migrations/2026_10_06_180000_create_oficina_agendamentos_table.php'
       - 'app/Http/Controllers/Api/App/VendaRapidaController.php'
@@ -163,6 +164,7 @@ jobs:
               - 'database/migrations/2026_10_02_190000_create_app_menu_preferencias_table.php'
               - 'app/Http/Controllers/Api/App/NotificacoesController.php'
               - 'app/Http/Controllers/Api/App/OficinaController.php'
+              - 'app/Http/Controllers/Api/App/ProducaoController.php'
               - 'app/Http/Controllers/Api/App/AgendamentoController.php'
               - 'Modules/OficinaAuto/Database/Migrations/2026_10_06_180000_create_oficina_agendamentos_table.php'
               - 'app/Http/Controllers/Api/App/VendaRapidaController.php'
@@ -317,6 +319,9 @@ jobs:
         # 2026-10-15 — + AppAjustesEmpresaContratoTest (UC-APPAJ-01..05, PR 01 do playbook propostas-app):
         # `ajustes` do /api/app/inicio completo com padrão, tenant 98 × 2, e a aba "App das lojas" de
         # /business/settings (salvar desliga padrão ligado e não apaga chave que a aba não edita).
+        # 2026-10-15 — + AppProducaoApontamentoContratoTest (UC-APPAPT-01..08, PR 06 do playbook propostas-app):
+        # apontamento por QR com token — etiqueta da empresa × hash/OS do 99 → 404, app_apontamento_exige_qr,
+        # iniciar/finalizar/cancelar com Idempotency-Key, 409 em_andamento/etapa_mudou. NASCE SEM RUN.
         env:
           DB_CONNECTION: mysql
           DB_HOST: 127.0.0.1
@@ -336,6 +341,7 @@ jobs:
             tests/Feature/Sells/AppInicioApiContratoTest.php \
             tests/Feature/Sells/AppPerfilMenuApiContratoTest.php \
             tests/Feature/Sells/AppAjustesEmpresaContratoTest.php \
+            tests/Feature/Sells/AppProducaoApontamentoContratoTest.php \
             tests/Feature/Sells/AppNotificacoesApiContratoTest.php \
             tests/Feature/Sells/AppOsApiContratoTest.php \
             tests/Feature/Sells/AppOficinaAgendaApiContratoTest.php \
