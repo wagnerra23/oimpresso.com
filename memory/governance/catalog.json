@@ -26,23 +26,23 @@
   ],
   "stats": {
     "modules": 36,
-    "nodes": 762,
-    "edges": 1058,
+    "nodes": 765,
+    "edges": 1061,
     "by_node_type": {
       "module": 40,
       "table": 108,
       "adr": 143,
-      "component": 393,
-      "api": 78
+      "component": 395,
+      "api": 79
     },
     "by_edge_type": {
       "ownsTable": 97,
       "ownsLegacyView": 13,
       "consumesTable": 6,
-      "providesApi": 82,
+      "providesApi": 83,
       "charteredByAdr": 30,
       "governedByAdr": 78,
-      "hasComponent": 393,
+      "hasComponent": 395,
       "dependsOn": 120,
       "delegatesTo": 112,
       "migratesTo": 1,
@@ -1510,6 +1510,14 @@
       "id": "api:/producao/*",
       "type": "api",
       "prefix": "/producao/*",
+      "providers": [
+        "Producao"
+      ]
+    },
+    {
+      "id": "api:/producao/apontamento/*",
+      "type": "api",
+      "prefix": "/producao/apontamento/*",
       "providers": [
         "Producao"
       ]
@@ -3819,11 +3827,25 @@
       "desc": ""
     },
     {
+      "id": "component:Producao/ApontamentoController",
+      "type": "component",
+      "module": "Producao",
+      "name": "ApontamentoController",
+      "desc": "celular do operador (PWA, thread 04): /producao/apontamento, escritas em JSON para a fila offline; a regra mora no ApontamentoOperadorService"
+    },
+    {
       "id": "component:Producao/DataController",
       "type": "component",
       "module": "Producao",
       "name": "DataController",
       "desc": "3 hooks UltimatePOS (pacote superadmin, permissões; sem item de sidebar enquanto não houver tela)"
+    },
+    {
+      "id": "component:Producao/FecharTurnoCommand",
+      "type": "component",
+      "module": "Producao",
+      "name": "FecharTurnoCommand",
+      "desc": "producao:fechar-turno a cada 15 min, fecha o cronômetro esquecido no fim do turno ou na saída do ponto"
     },
     {
       "id": "component:Producao/InstallController",
@@ -11511,7 +11533,19 @@
     },
     {
       "from": "module:Producao",
+      "to": "component:Producao/ApontamentoController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Producao",
       "to": "component:Producao/DataController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Producao",
+      "to": "component:Producao/FecharTurnoCommand",
       "type": "hasComponent",
       "source": "contains"
     },
@@ -11524,6 +11558,12 @@
     {
       "from": "module:Producao",
       "to": "api:/producao/*",
+      "type": "providesApi",
+      "source": "url_prefixes"
+    },
+    {
+      "from": "module:Producao",
+      "to": "api:/producao/apontamento/*",
       "type": "providesApi",
       "source": "url_prefixes"
     },
