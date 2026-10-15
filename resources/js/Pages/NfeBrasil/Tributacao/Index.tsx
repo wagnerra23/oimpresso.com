@@ -17,6 +17,7 @@ import { toast } from 'sonner';
 import { useState } from 'react';
 import ConfigurarPeloCertificado from './_components/ConfigurarPeloCertificado';
 import SimuladorNota from './_components/SimuladorNota';
+import type { ProductSearchResult } from '@/Pages/Sells/_components/ProductSearchAutocomplete';
 import SaudeFiscal, { type SaudePayload } from './_components/SaudeFiscal';
 import { Inline } from '@/Components/layout';
 
@@ -63,6 +64,8 @@ interface Props {
   templates?: Template[];
   // Local padrão da empresa pro autocomplete do simulador (thread 08). Eager, 1 linha.
   localPadrao?: number | null;
+  // Produto vindo do painel de produto ("Abrir no módulo Fiscal", UC-NFTR-29). Eager, 1 linha.
+  produtoInicial?: ProductSearchResult | null;
   // Saúde fiscal (thread 14) — deferida.
   saude?: SaudePayload;
 }
@@ -93,7 +96,7 @@ function formatNcm(ncm: string): string {
   return `${ncm.slice(0, 4)}.${ncm.slice(4, 6)}.${ncm.slice(6)}`;
 }
 
-function Index({ regras, config, templates, localPadrao, saude }: Props) {
+function Index({ regras, config, templates, localPadrao, produtoInicial, saude }: Props) {
   const { props } = usePage<FlashProps>();
   const success = props.flash?.success;
   const error = props.flash?.error;
@@ -308,7 +311,7 @@ function Index({ regras, config, templates, localPadrao, saude }: Props) {
         )}
 
         {/* Simulador read-only (thread 08 · D-SIM) — o cálculo é o da emissão, no backend. */}
-        <SimuladorNota localPadrao={localPadrao ?? null} />
+        <SimuladorNota localPadrao={localPadrao ?? null} produtoInicial={produtoInicial ?? null} />
 
         {/* Regras NCM (Níveis 2 e 3) */}
         <Deferred data="regras" fallback={<Skeleton className="h-64 w-full" />}>

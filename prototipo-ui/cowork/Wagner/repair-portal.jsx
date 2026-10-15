@@ -117,14 +117,8 @@ function PortalConsulta({ folhas, avisar }) {
             <option value="invalido">Link com código errado</option>
           </select>
         </label>
-        <span className="rpl-seg" role="group" aria-label="Tamanho da prévia">
-          <button aria-pressed={modo === "celular"} onClick={() => setModo("celular")}>Celular 390</button>
-          <button aria-pressed={modo === "tela"} onClick={() => setModo("tela")}>Tela cheia</button>
-        </span>
-        <span className="rpl-seg" role="group" aria-label="Tema">
-          <button aria-pressed={tema === "light"} onClick={() => trocarTema("light")}>Claro</button>
-          <button aria-pressed={tema === "dark"} onClick={() => trocarTema("dark")}>Escuro</button>
-        </span>
+        {window.CliSeg && <window.CliSeg size="sm" ariaLabel="Tamanho da prévia" value={modo} onChange={setModo} options={[{ key: "celular", label: "Celular 390" }, { key: "tela", label: "Tela cheia" }]} />}
+        {window.CliSeg && <window.CliSeg size="sm" ariaLabel="Tema" value={tema} onChange={trocarTema} options={[{ key: "light", label: "Claro" }, { key: "dark", label: "Escuro" }]} />}
       </div>
 
       <div className="rpl-stage">
@@ -137,11 +131,7 @@ function PortalConsulta({ folhas, avisar }) {
                 <section className="rpl-card" data-contract="consulta-os-busca">
                   {React.createElement(res ? "h2" : "h1", { className: "rpl-h1" }, "Acompanhe sua OS")}
                   <p className="rpl-sub">Use o código que está no recibo ou na mensagem da loja. Não precisa de cadastro.</p>
-                  <span className="rpl-seg" role="group" aria-label="Como buscar">
-                    <button aria-pressed={entrada === "codigo"} onClick={() => setEntrada("codigo")}>Código</button>
-                    <button aria-pressed={entrada === "numero"} onClick={() => setEntrada("numero")}>Nº da OS + série</button>
-                    {porCelular && <button aria-pressed={entrada === "celular"} onClick={() => setEntrada("celular")}>Celular</button>}
-                  </span>
+                  {window.CliSeg && <div style={{ alignSelf: "flex-start" }}><window.CliSeg ariaLabel="Como buscar" value={entrada} onChange={setEntrada} options={[{ key: "codigo", label: "Código" }, { key: "numero", label: "Nº da OS + série" }, porCelular && { key: "celular", label: "Celular" }]} /></div>}
                   <div className="rpl-form">
                     {entrada === "codigo" && Input && <Input label="Código de acompanhamento" value={cod} placeholder="K7PM-4QXR" onChange={(e) => setCod(val(e))} help="8 letras e números. Sem 0, O, 1 ou I." />}
                     {entrada === "numero" && Input && <><Input label="Número da OS" value={num} placeholder="JS-2026-0412" onChange={(e) => setNum(val(e))} /><Input label="Número de série" value={serie} placeholder="Como está na etiqueta" onChange={(e) => setSerie(val(e))} /></>}

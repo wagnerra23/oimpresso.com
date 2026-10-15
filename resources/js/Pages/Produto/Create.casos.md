@@ -36,6 +36,7 @@ last_run_ci: "3 UCs ativos (01/04/06) — todos passam; 02/03 retirados, 05 back
 | UC-PCAD-01 | Cadastro mínimo persiste e o SKU nasce no servidor | must | `CU-PROD-01.2` | `CadastroProdutoContratoTest` | 🧪 passa |
 | UC-PCAD-04 | Custo e preço de venda não inflam no parser pt-BR | must `[V0]` | `CU-PROD-01.4` | `CadastroProdutoContratoTest` | 🧪 passa |
 | UC-PCAD-06 | Duplicar produto de outro business → 404 (não 500) | should `[T0]` | `CU-PROD-07.2` | `CadastroProdutoContratoTest` | 🧪 passa (fix no PR) |
+| UC-PCAD-07 | Produto novo grava a origem da mercadoria escolhida (0–8) | should | `AR-PROD-128` | `ProdutoOrigemMercadoriaTest` | 🧪 passa no CT 100 |
 | ~~UC-PCAD-02~~ | ~~Campo obrigatório validado server~~ | — | — | — | ⬛ **retirado** — gap de paridade, não bug |
 | ~~UC-PCAD-03~~ | ~~Defaults conservadores server~~ | — | — | — | ⬛ **retirado** — gap de paridade, não bug |
 | UC-PCAD-05 | Cadastro não aceita insumo de outro business | must `[T0]` | `CU-PROD-01.5` | — | 🔶 **backlog** — achado Tier 0 real, US própria |
@@ -139,6 +140,13 @@ last_run_ci: "3 UCs ativos (01/04/06) — todos passam; 02/03 retirados, 05 back
 - **Contrato:** `CU-PROD-07` item 2 `[T0]` — *"Só duplica produto do business atual (externo → 404)"*.
 - **Regressão que defende:** o CU crava **404** explicitamente — diferente do `UC-PTAB-02`, onde o 404 era proxy inventado pelo charter. Aqui é o contrato falando. Se o `create()` devolver 200 com o produto alheio no form, é vazamento de leitura.
 - **Status: 🧪 passa (fix no mesmo PR).** Era `Expected 404 but received 500`. **Corrigido** (failing-first, padrão #4300): `ProductController@create` L539 `find()`→`findOrFail()` — o scope de business já estava lá, agora o id alheio dá 404 limpo em vez de crashar em `->name` de null.
+
+## UC-PCAD-07 · Produto novo grava a origem da mercadoria escolhida · `should`
+- **Persona:** quem cadastra produto importado — a origem vai no XML de cada item da nota (`orig`) e, importado, muda a alíquota de ICMS entre estados (4%, Resolução do Senado 13/2012).
+- **Aceite:** Dado o card "Preço & Imposto" · Quando escolho a origem (tabela A da NF-e, códigos 0 a 8) e salvo · Então o produto nasce com aquela origem · E, sem o campo (o Blade não manda), nasce com `0`, a origem que toda nota usava antes.
+- **Teste:** [`ProdutoOrigemMercadoriaTest`](../../../../tests/Feature/Produto/ProdutoOrigemMercadoriaTest.php) — `UC-PCAD-07` (os dois casos).
+- **Contrato:** `AR-PROD-128` (o Office Comercial tinha "Origem da Mercadoria" no cadastro, `PRODUTO.ORIGEM_MERCADORIA`) + tabela A do MOC (`orig` só aceita 0 a 8).
+- **Status: 🧪** — Recibo: CT 100 (`oimpresso-staging`, MySQL `oimpresso_staging`, worktree isolado do branch, sem tocar o checkout compartilhado), 2026-10-15 — **8 passed (19 assertions)**. Bite-test por mutação: emissão de volta a `0`, limite `0,9` no lugar de `0,8`, `update()` sem o guarda `filled` e `linhasDaVenda` sem a coluna — cada uma derruba 1 caso. Não vira ✅ enquanto a lane não publicar o veredito (G-7).
 
 ---
 

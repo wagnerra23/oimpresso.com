@@ -20,6 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/Components/ui/select';
+import { OrigemMercadoriaField } from './_components/OrigemMercadoriaField';
 
 const ADVANCED_OPEN_KEY = 'oimpresso.produto.edit.advanced.open';
 
@@ -43,6 +44,8 @@ interface ProdutoEditModel {
   subCategoryId: number | null;
   tax: number | null;
   taxType: 'inclusive' | 'exclusive';
+  /** Origem da mercadoria, tabela A da NF-e (0–8). */
+  origemMercadoria?: number;
   barcodeType: string;
   enableStock: boolean;
   alertQuantity: string | null;
@@ -88,6 +91,7 @@ function ProdutoEdit(props: ProdutoEditPageProps) {
     sub_category_id: p.subCategoryId ?? '',
     tax: p.tax ?? '',
     tax_type: p.taxType,
+    origem_mercadoria: p.origemMercadoria ?? 0,
     barcode_type: p.barcodeType,
     alert_quantity: p.alertQuantity ?? '',
     weight: p.weight ?? '',
@@ -290,6 +294,11 @@ function ProdutoEdit(props: ProdutoEditPageProps) {
                     </SelectContent>
                   </Select>
                 </div>
+                <OrigemMercadoriaField
+                  value={data.origem_mercadoria}
+                  onChange={(v) => setData('origem_mercadoria', v)}
+                  error={errors.origem_mercadoria}
+                />
               </CardContent>
             </Card>
 
