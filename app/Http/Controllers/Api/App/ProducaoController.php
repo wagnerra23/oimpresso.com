@@ -79,7 +79,7 @@ class ProducaoController extends Controller
         ]);
     }
 
-    /** GET /api/app/producao/etiqueta/{codigo} — QR `oimpresso:p:<hash>:<os_id>` ou número digitado. */
+    /** GET /api/app/producao/etiqueta/{codigo} — QR `oimpresso:p:<hash>:<os_tipo>:<os_id>` (ou o antigo sem tipo) ou número digitado. */
     public function etiqueta(Request $request, string $codigo): JsonResponse
     {
         $user = $request->user();
@@ -292,7 +292,8 @@ class ProducaoController extends Controller
     {
         $qr = EtiquetaProducao::ler($codigo, $bizId);
         if ($qr !== null) {
-            return $qr['empresa'] ? $qr['pedido_id'] : $this->erro(404, 'nao_encontrado', 'Etiqueta não encontrada.');
+            // Outra empresa, ou OS de outro tipo (o app só aponta OS de comunicação visual): 404 sem consultar.
+            return $qr['empresa'] && $qr['os_tipo'] === self::OS_TIPO ? $qr['pedido_id'] : $this->erro(404, 'nao_encontrado', 'Etiqueta não encontrada.');
         }
         if (! $aceitaNumero || AjustesDaEmpresa::valor($bizId, 'app_apontamento_exige_qr') === true) {
             return $this->invalido(['codigo' => 'Leia o QR da etiqueta: esta empresa não aceita número digitado.']);

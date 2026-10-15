@@ -1,6 +1,7 @@
 <?php
 
 use Modules\Producao\Http\Controllers\ColaboradorCustoController;
+use Modules\Producao\Http\Controllers\EtiquetaOsController;
 use Modules\Producao\Http\Controllers\FerramentasController;
 use Modules\Producao\Http\Controllers\InstallController;
 use Modules\Producao\Http\Controllers\PostosController;
@@ -41,4 +42,12 @@ Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezo
         Route::put('ferramentas/{id}', [FerramentasController::class, 'update'])->whereNumber('id')->name('ferramentas.update');
 
         Route::put('colaboradores/{userId}/custo-hora', [ColaboradorCustoController::class, 'update'])->whereNumber('userId')->name('colaboradores.custo');
+    });
+
+// ── PR 07 propostas-app · E05 modelo a4_os · PDF da OS com o QR da etiqueta ──
+Route::middleware(['web', 'authh', 'auth', 'SetSessionData', 'language', 'timezone', 'AdminSidebarMenu', 'CheckUserLogin'])
+    ->prefix('producao')
+    ->name('producao.')
+    ->group(function () {
+        Route::get('os/{id}/etiqueta', [EtiquetaOsController::class, 'show'])->whereNumber('id')->name('os.etiqueta');
     });
