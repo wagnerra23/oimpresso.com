@@ -108,6 +108,7 @@ class InicioController extends Controller
             'ponto_gestor' => app(PontoAprovacoesController::class)->podeVerFila($user),
             'equipe' => app(EquipeController::class)->podeVerEquipe($user),
             'assistente' => app(ChatController::class)->podeConversar($user),
+            'atendimento' => app(AtendimentoController::class)->areaVisivel($user), // canal WhatsApp ligado (tela 41)
             'mais' => true,
         ]));
 
