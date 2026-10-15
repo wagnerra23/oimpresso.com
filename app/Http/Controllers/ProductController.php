@@ -760,8 +760,12 @@ class ProductController extends Controller
     /**
      * "Abrir no módulo Fiscal" da aba Fiscal (UC-PIDX-25): a Tributação do NfeBrasil, com este produto
      * já escolhido no simulador. null quando o botão levaria a uma tela que a pessoa não usa — rota
-     * ausente, módulo fora do pacote da empresa, ou sem `nfe.tributacao.manage` (a permissão que o
-     * simulador exige). Mesma checagem do menu do módulo (NfeBrasil DataController::modifyAdminMenu).
+     * ausente, módulo Fiscal fora do pacote da empresa, ou sem `nfe.tributacao.manage` (a permissão
+     * que o simulador exige). O pacote é o `fiscal_module`, a mesma checagem do menu Fiscal
+     * (Modules/Fiscal DataController::modifyAdminMenu): desde 2026-05-25 o NfeBrasil não publica
+     * menu e a Tributação é aberta pelo hub Fiscal (`/fiscal/config` linka para ela). A 1ª versão
+     * deste botão checava `nfebrasil_module`, e por isso não aparecia para empresa que usa o Fiscal
+     * sem esse pacote — medido em produção em 2026-10-15.
      */
     private function linkTributacaoDoProduto(int $business_id, int $id): ?string
     {
@@ -770,8 +774,8 @@ class ProductController extends Controller
             return null;
         }
         $moduloLigado = $usuario->can('superadmin')
-            ? $this->moduleUtil->isModuleInstalled('NfeBrasil')
-            : (bool) $this->moduleUtil->hasThePermissionInSubscription($business_id, 'nfebrasil_module', 'superadmin_package');
+            ? $this->moduleUtil->isModuleInstalled('Fiscal')
+            : (bool) $this->moduleUtil->hasThePermissionInSubscription($business_id, 'fiscal_module', 'superadmin_package');
         if (! $moduloLigado || ! $usuario->can('nfe.tributacao.manage')) {
             return null;
         }

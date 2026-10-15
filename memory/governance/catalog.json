@@ -27,7 +27,7 @@
   "stats": {
     "modules": 36,
     "nodes": 767,
-    "edges": 1061,
+    "edges": 1063,
     "by_node_type": {
       "module": 40,
       "table": 108,
@@ -43,8 +43,8 @@
       "charteredByAdr": 30,
       "governedByAdr": 78,
       "hasComponent": 398,
-      "dependsOn": 119,
-      "delegatesTo": 111,
+      "dependsOn": 120,
+      "delegatesTo": 112,
       "migratesTo": 1,
       "supersedes": 26,
       "supersedesPartially": 70,
@@ -11529,6 +11529,20 @@
       "to": "api:/privacidade/ponto",
       "type": "providesApi",
       "source": "url_prefixes"
+    },
+    {
+      "from": "module:Producao",
+      "to": "module:Ponto",
+      "type": "delegatesTo",
+      "source": "not_contains",
+      "note": "Presença e saída do ponto (o apontamento só LÊ, D-PONTO)"
+    },
+    {
+      "from": "module:Producao",
+      "to": "module:Ponto",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Presença e saída do ponto (o apontamento só LÊ, D-PONTO)"
     },
     {
       "from": "module:Producao",
