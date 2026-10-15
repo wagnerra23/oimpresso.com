@@ -5,10 +5,10 @@
 > Status/lifecycle normalizados no leitor (ADR 0257) — não altera os arquivos (append-only).
 
 ## Resumo
-- **435** arquivos · **420** números únicos · máx **0430**
-- **ADRs ATIVOS (lifecycle ativo): 388** ← resposta única a "quantos ADRs ativos"
-- Por status: aceito 379 · superseded 27 · proposto 15 · deprecated 11 · recusado 2 · rascunho 1
-- Por lifecycle: ativo 388 · substituido 27 · arquivado 20
+- **436** arquivos · **421** números únicos · máx **0431**
+- **ADRs ATIVOS (lifecycle ativo): 389** ← resposta única a "quantos ADRs ativos"
+- Por status: aceito 380 · superseded 27 · proposto 15 · deprecated 11 · recusado 2 · rascunho 1
+- Por lifecycle: ativo 389 · substituido 27 · arquivado 20
 - Sem frontmatter (formato-tabela legado): 0
 
 ## Colisões de número (13) — auto-detectadas
@@ -36,7 +36,7 @@ _(nenhuma)_
 - **0290** v0 'Fidelity Lock' (screenshot pareado em CI) — RECUSADO: fidelidade visual não  · recusada 2026-06-18 — Inviável + tautológico + backdoor de prosa (3 motivos na Decisão). REABRE só se surgir um check de fidelidade HERMÉTICO 
 - **0430** Retenção LGPD do Patrimônio anonimiza campo pessoal, nunca apaga linha nem trilh · recusada 2026-10-13 — No Patrimônio não há retenção LGPD: vale a lápide de 2026-07-27 (num ERP o dado tem dever de guarda; o controle é por pe
 
-## Todas as ADRs (435)
+## Todas as ADRs (436)
 | Nº | Status | Lifecycle | Kind | Título |
 |---|---|---|---|---|
 | 0001 | aceito | ativo | decision | Estender UltimatePOS em vez de build próprio ou fork |
@@ -474,3 +474,4 @@ _(nenhuma)_
 | 0428 | proposto | ativo | decision | App das lojas — avisos sem Firebase: Centrifugo com o app aberto e lembrete loca |
 | 0429 | proposto | ativo | decision | Log de falhas do app e do ERP no GlitchTip self-host no CT 100 |
 | 0430 | recusado | ativo | decision | Retenção LGPD do Patrimônio anonimiza campo pessoal, nunca apaga linha nem trilh |
+| 0431 | aceito | ativo | decision | PCP sai do estado de desejo: nasce Modules/Producao como camada única de produçã |
