@@ -64,9 +64,10 @@ function pddColaborador(int $bizId, int $userId): Colaborador
     ]);
 }
 
-function pddBatida(Colaborador $c, string $hora, string $tipo, int $criador, string $origem = Marcacao::ORIGEM_REP_P, ?int $anulada = null): int
+/** Id da marcação é UUID (texto): o retorno não pode virar int, senão a anulação aponta para o id errado. */
+function pddBatida(Colaborador $c, string $hora, string $tipo, int $criador, string $origem = Marcacao::ORIGEM_REP_P, ?string $anulada = null): string
 {
-    return (int) Marcacao::create([
+    return (string) Marcacao::create([
         'business_id' => $c->business_id,
         'colaborador_config_id' => $c->id,
         'momento' => PDD_DIA . ' ' . $hora,
