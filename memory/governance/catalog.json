@@ -1887,6 +1887,13 @@
       "desc": ""
     },
     {
+      "id": "component:ComunicacaoVisual/AppOrcamentoRapidoController",
+      "type": "component",
+      "module": "ComunicacaoVisual",
+      "name": "AppOrcamentoRapidoController",
+      "desc": "PR 16 propostas-app)"
+    },
+    {
       "id": "component:ComunicacaoVisual/DataController",
       "type": "component",
       "module": "ComunicacaoVisual",
@@ -4321,6 +4328,13 @@
       "module": "Whatsapp",
       "name": "Admin/TemplatesController",
       "desc": "sync HSM Meta + criar template LOCAL Z-API/Baileys"
+    },
+    {
+      "id": "component:Whatsapp/Api/AppAtendimentoController",
+      "type": "component",
+      "module": "Whatsapp",
+      "name": "Api/AppAtendimentoController",
+      "desc": "atendimento WhatsApp do app das lojas, /api/app/atendimento (tela 41, PR 18 propostas-app); implementa o contrato App/Contracts/Atendimento/AtendimentoDoApp"
     },
     {
       "id": "component:Whatsapp/Api/BaileysWebhookController",
@@ -7520,6 +7534,12 @@
     {
       "from": "module:ComunicacaoVisual",
       "to": "component:ComunicacaoVisual/ApontamentoController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:ComunicacaoVisual",
+      "to": "component:ComunicacaoVisual/AppOrcamentoRapidoController",
       "type": "hasComponent",
       "source": "contains"
     },
@@ -12569,6 +12589,12 @@
     {
       "from": "module:Whatsapp",
       "to": "component:Whatsapp/Admin/TemplatesController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Whatsapp",
+      "to": "component:Whatsapp/Api/AppAtendimentoController",
       "type": "hasComponent",
       "source": "contains"
     },
