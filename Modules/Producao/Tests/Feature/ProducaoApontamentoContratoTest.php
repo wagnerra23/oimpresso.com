@@ -74,6 +74,17 @@ function aptEtapa(int $biz, int $posto, ?int $resp, string $inicio, int $os = 50
         'user_id' => $resp, 'created_by' => $resp ?? 1, 'created_at' => now(), 'updated_at' => now()]);
 }
 
+/** Motivo de pausa do posto: o cadastro é da thread 03 (`pcp_motivos`); antes dela a coluna não tem FK. */
+function aptMotivo(int $biz, int $posto): int
+{
+    if (! Schema::hasTable('pcp_motivos')) {
+        return 7;
+    }
+
+    return (int) DB::table('pcp_motivos')->insertGetId(['business_id' => $biz, 'posto_id' => $posto, 'tipo' => 'pausa',
+        'nome' => 'Troca de bobina', 'created_at' => now(), 'updated_at' => now()]);
+}
+
 function aptPonto(int $biz, int $userId, array $batidas): void
 {
     $c = Colaborador::forceCreate(['business_id' => $biz, 'user_id' => $userId, 'matricula' => 'APT-'.uniqid(),
@@ -121,15 +132,21 @@ it('UC-PCV-20 · QR abre a etapa dele e o cronômetro grava início, pausa e fim
     $qr = $this->svc->resolverQr($this->b98, $this->diego, 'comvis_os', 501);
     expect($qr['pode_apontar'])->toBeTrue()->and((int) $qr['programacao']->id)->toBe($etapa);
 
+    $motivo = aptMotivo($this->b98, $p);
     $i1 = $this->svc->iniciar($this->b98, $this->diego, $etapa, 'c20-1', Carbon::parse(APT_DIA.' 08:00:00'));
     // Controle negativo: pausa sem motivo recusa e não grava.
     expect(aptRecusa(fn () => $this->svc->pausar($this->b98, $this->diego, $i1->id, 0, 'c20-x', Carbon::parse(APT_DIA.' 08:30:00'))))->toBe('motivo_obrigatorio');
-    $this->svc->pausar($this->b98, $this->diego, $i1->id, 7, 'c20-2', Carbon::parse(APT_DIA.' 08:30:00'));
+    if (Schema::hasTable('pcp_motivos')) {
+        // E04 A4: motivo de outro posto não serve.
+        $alheio = aptMotivo($this->b98, aptPosto($this->b98, 'pessoa'));
+        expect(aptRecusa(fn () => $this->svc->pausar($this->b98, $this->diego, $i1->id, $alheio, 'c20-y', Carbon::parse(APT_DIA.' 08:30:00'))))->toBe('motivo_obrigatorio');
+    }
+    $this->svc->pausar($this->b98, $this->diego, $i1->id, $motivo, 'c20-2', Carbon::parse(APT_DIA.' 08:30:00'));
     $i2 = $this->svc->iniciar($this->b98, $this->diego, $etapa, 'c20-3', Carbon::parse(APT_DIA.' 08:40:00'));
     $this->svc->concluir($this->b98, $this->diego, $i2->id, 'c20-4', Carbon::parse(APT_DIA.' 09:10:00'));
 
     expect(aptLinhas($this->b98))->toBe(['inicio', 'pausa', 'inicio', 'fim'])
-        ->and(DB::table('pcp_apontamentos')->where('chave_idempotencia', 'c20-2')->value('motivo_id'))->toBe(7)
+        ->and(DB::table('pcp_apontamentos')->where('chave_idempotencia', 'c20-2')->value('motivo_id'))->toBe($motivo)
         ->and(DB::table('pcp_apontamentos')->where('chave_idempotencia', 'c20-1')->value('user_id'))->toBe($this->diego);
     // Tier 0: o QR da mesma OS lido pela empresa 99 não existe.
     expect(aptRecusa(fn () => $this->svc->resolverQr($this->b99, $this->diego, 'comvis_os', 501)))->toBe('nao_encontrado');
