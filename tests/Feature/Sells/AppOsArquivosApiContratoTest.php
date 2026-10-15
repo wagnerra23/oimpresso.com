@@ -190,8 +190,14 @@ it('UC-APPANX-03: OS de outro business → 404 no GET e no POST, sem gravar nada
 });
 
 it('UC-APPANX-04: sem oficinaauto.service_order.update o POST dá 403 e o GET diz pode_enviar=false', function () {
-    $this->user->revokePermissionTo('oficinaauto.service_order.update');
-    app()->make(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
+    // Usuário próprio, sem o papel Admin# (que libera tudo pelo Gate::before): só ver a OS.
+    $id = DB::table('users')->insertGetId([
+        'first_name' => 'APP Anx', 'username' => 'app_anx_' . uniqid(), 'password' => 'x',
+        'business_id' => $this->biz->id, 'created_at' => now(), 'updated_at' => now(),
+    ]);
+    $soVer = \App\User::findOrFail($id);
+    $soVer->givePermissionTo('oficinaauto.service_order.view');
+    Passport::actingAs($soVer, [], 'api');
     $antes = DB::table('arquivos')->count();
 
     appAnxEnviar($this, $this->os, ['arquivo' => appAnxJpeg(), 'origem' => 'galeria'])
@@ -230,6 +236,8 @@ it('UC-APPANX-07: mesma Idempotency-Key + mesmo corpo → mesmo anexo; corpo dif
     appAnxEnviar($this, $this->os, ['arquivo' => appAnxJpeg(), 'legenda' => 'outra', 'origem' => 'galeria'], 'k-rep')
         ->assertStatus(422)->assertJsonPath('erro', 'idempotencia_conflito');
 
+    // withHeaders acumula entre requisições do mesmo teste: limpa a chave usada acima.
+    $this->flushHeaders();
     $this->withHeaders(['Accept' => 'application/json'])
         ->post("/api/app/os/{$this->os}/arquivos", ['arquivo' => appAnxJpeg()])
         ->assertStatus(422)->assertJsonStructure(['campos' => ['idempotency_key']]);
