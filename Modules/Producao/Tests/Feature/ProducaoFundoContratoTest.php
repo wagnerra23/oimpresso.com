@@ -65,6 +65,13 @@ function pcpPosto(int $biz, string $codigo, string $tipo, string $custo): Posto
         'tipo_custo' => $tipo, 'custo_hora' => $custo]);
 }
 
+function pcpProgramacao(int $biz, int $postoId, int $responsavel): int
+{
+    return (int) DB::table('pcp_programacoes')->insertGetId(['business_id' => $biz, 'os_tipo' => 'repair_job_sheet', 'os_id' => 28,
+        'posto_id' => $postoId, 'inicio_previsto' => now(), 'fim_previsto' => now()->addHour(), 'user_id' => $responsavel,
+        'created_by' => $responsavel, 'created_at' => now(), 'updated_at' => now()]);
+}
+
 function pcpComo(int $userId, int $biz): void
 {
     test()->actingAs(\App\User::find($userId));
@@ -124,6 +131,11 @@ it('UC-PCV-28 · operador da 98 não aponta em posto da 99, e nada é gravado', 
     expect(fn () => $this->svc->iniciar($this->b98, $alheio->id, $this->u98, 'ch-28b-alheio'))->toThrow(ModelNotFoundException::class);
     $this->assertSame(0, DB::table('pcp_apontamentos')->where('chave_idempotencia', 'ch-28b-alheio')->count());
     $this->assertSame(0, $this->svc->abertos($this->b98)->where('os_id', 28)->count(), 'abertos da 98 não traz o da 99');
+    // Etapa programada da 99 não serve para apontamento da 98.
+    $posto98 = pcpPosto($this->b98, 'ROLAND28B', Posto::MAQUINA, '42.00');
+    $prog99 = pcpProgramacao($this->b99, $alheio->id, $this->u99);
+    expect(fn () => $this->svc->iniciar($this->b98, $posto98->id, $this->u98, 'ch-28b-prog', programacaoId: $prog99))->toThrow(ModelNotFoundException::class);
+    $this->assertSame(0, DB::table('pcp_apontamentos')->where('chave_idempotencia', 'ch-28b-prog')->count());
     // Controle negativo: o aberto existe, na 99.
     $this->assertSame(1, $this->svc->abertos($this->b99)->where('os_id', 28)->count());
 });
@@ -134,7 +146,8 @@ it('UC-PCV-31 · dois cronômetros: máquina e pessoa', function () {
     $acab = pcpPosto($this->b98, 'ACAB31', Posto::PESSOA, '28.00');
     $lam = pcpPosto($this->b98, 'LAM31', Posto::PESSOA, '28.00');
 
-    $maq = $this->svc->iniciar($this->b98, $roland->id, $this->u98, 'ch-31-roland', 'repair_job_sheet', 31);
+    $etapa = pcpProgramacao($this->b98, $roland->id, $this->u98);
+    $maq = $this->svc->iniciar($this->b98, $roland->id, $this->u98, 'ch-31-roland', 'repair_job_sheet', 31, programacaoId: $etapa);
     $pes = $this->svc->iniciar($this->b98, $acab->id, $this->u98, 'ch-31-acab', 'repair_job_sheet', 31);
 
     expect($this->svc->abertos($this->b98)->where('os_id', 31)->count())->toBe(2)
@@ -146,6 +159,8 @@ it('UC-PCV-31 · dois cronômetros: máquina e pessoa', function () {
     // Não abre 2º de pessoa — e nada é gravado.
     expect(fn () => $this->svc->iniciar($this->b98, $lam->id, $this->u98, 'ch-31-lam'))->toThrow(DomainException::class);
     $this->assertSame(0, DB::table('pcp_apontamentos')->where('chave_idempotencia', 'ch-31-lam')->count());
+
+    expect($maq->programacao_id)->toBe($etapa);
 
     // Controle negativo: N de máquina é permitido.
     $this->svc->iniciar($this->b98, $hp->id, $this->u98, 'ch-31-hp', 'repair_job_sheet', 31);

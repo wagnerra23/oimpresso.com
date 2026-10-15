@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
 use Modules\Producao\Entities\Apontamento;
 use Modules\Producao\Entities\Posto;
+use Modules\Producao\Entities\Programacao;
 
 /**
  * Apontamento append-only (thread 02 + E02). Abrir e fechar (pausa ou fim) são duas linhas.
@@ -14,6 +15,7 @@ use Modules\Producao\Entities\Posto;
  * - Posto `maquina` grava `maquina_id` + `iniciado_por` e NÃO ocupa a pessoa (UC-PCV-31).
  * - Posto `pessoa` grava `user_id`; uma pessoa tem no máximo 1 apontamento de pessoa aberto.
  * - `chave_idempotencia` única por empresa: reenvio da fila offline devolve a mesma linha.
+ * - `programacao_id` liga o apontamento à etapa programada (retrabalho no mesmo posto é outra etapa).
  * - O custo-hora é copiado do posto no início: mudar o posto depois não reescreve o passado.
  *
  * O `business_id` vem por parâmetro e entra em toda consulta (jobs e fila não têm sessão).
@@ -30,6 +32,7 @@ class ApontamentoService
         string $origem = 'qr',
         ?string $justificativa = null,
         ?Carbon $momento = null,
+        ?int $programacaoId = null,
     ): Apontamento {
         if ($existente = $this->porChave($businessId, $chave)) {
             return $existente;
@@ -40,6 +43,9 @@ class ApontamentoService
 
         $posto = Posto::query()->where('business_id', $businessId)->findOrFail($postoId);
         $maquina = $posto->tipo_custo === Posto::MAQUINA;
+        // A etapa tem de ser da mesma empresa (Tier 0); quem decide se é do operador é a thread 04.
+        $programacao = $programacaoId === null ? null
+            : Programacao::query()->where('business_id', $businessId)->findOrFail($programacaoId);
 
         if (! $maquina && $this->pessoaAberto($businessId, $iniciadoPor)) {
             throw new DomainException('Você já tem uma etapa de pessoa em andamento. Encerre-a antes de iniciar outra.');
@@ -49,6 +55,7 @@ class ApontamentoService
             'business_id' => $businessId,
             'chave_idempotencia' => $chave,
             'tipo' => 'inicio',
+            'programacao_id' => $programacao?->id,
             'os_tipo' => $osTipo,
             'os_id' => $osId,
             'posto_id' => $posto->id,
@@ -88,6 +95,7 @@ class ApontamentoService
             'tipo' => $tipo,
             'inicio_id' => $inicio->id,
             'motivo_id' => $motivoId,
+            'programacao_id' => $inicio->programacao_id,
             'os_tipo' => $inicio->os_tipo,
             'os_id' => $inicio->os_id,
             'posto_id' => $inicio->posto_id,

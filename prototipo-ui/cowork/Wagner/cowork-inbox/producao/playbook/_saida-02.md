@@ -23,7 +23,7 @@ Tabelas (prefixo `pcp_`, permitido pela ADR 0431; todas com `business_id` indexa
 - `pcp_turnos` — 1 por empresa, padrão 08h–18h (D-TURNO). Sem linha, o `TurnoService` devolve o padrão.
 - `pcp_postos` — **E02:** `tipo_custo` `maquina|pessoa` + `custo_hora`; veículo é posto `maquina` com `veiculo=1` e `custo_km`. Capacidade, unidade e horas/dia configuráveis (D4). Código único por empresa.
 - `pcp_operacoes`, `pcp_programacoes` (mutável; mudança vira evento nas threads 06/07). A programação tem **responsável** (`user_id`, indexado com `business_id`): é o que a thread 04 usa para "minhas etapas" (UC-PCV-19), recusa de etapa alheia (UC-PCV-34) e aviso ao próximo (UC-PCV-21). Pedido da coordenação a partir do plano da 04.
-- `pcp_apontamentos` — **append-only** por trigger (UPDATE e DELETE dão `SQLSTATE 45000`), como `ponto_marcacoes`. Abrir e fechar são duas linhas: `tipo` `inicio`, e depois `pausa` ou `fim` apontando `inicio_id`. A pausa fecha o trecho sem concluir a etapa e leva `motivo_id` (a FK do motivo entra na thread 03, com o cadastro); retomar é um `inicio` novo. "Fechado automaticamente" é `origem = turno`/`ponto`, sem coluna própria. **E02:** posto `maquina` grava `maquina_id` + `iniciado_por` e `user_id` nulo; posto `pessoa` grava `user_id`. `chave_idempotencia` única por `business_id`. `custo_hora` e `tipo_custo` são copiados do posto no início.
+- `pcp_apontamentos` — **append-only** por trigger (UPDATE e DELETE dão `SQLSTATE 45000`), como `ponto_marcacoes`. Abrir e fechar são duas linhas: `tipo` `inicio`, e depois `pausa` ou `fim` apontando `inicio_id`. A pausa fecha o trecho sem concluir a etapa e leva `motivo_id` (a FK do motivo entra na thread 03, com o cadastro); retomar é um `inicio` novo. "Fechado automaticamente" é `origem = turno`/`ponto`, sem coluna própria. O apontamento guarda a **etapa programada** (`programacao_id`, índice com `business_id`): sem ela a 2ª passagem da mesma OS pelo mesmo posto (retrabalho) não se distingue da 1ª — pedido da thread 04. **E02:** posto `maquina` grava `maquina_id` + `iniciado_por` e `user_id` nulo; posto `pessoa` grava `user_id`. `chave_idempotencia` única por `business_id`. `custo_hora` e `tipo_custo` são copiados do posto no início.
 - `pcp_eventos` — append-only, mesma trigger.
 
 A OS fica em (`os_tipo`, `os_id`) sem FK: o PCP é camada única e Repair/CV/Oficina seguem donos da OS (D-RELACAO).
@@ -31,6 +31,7 @@ A OS fica em (`os_tipo`, `os_id`) sem FK: o PCP é camada única e Repair/CV/Ofi
 ## Regras do serviço
 - 1 apontamento de **pessoa** aberto por usuário; N de **máquina**. O de máquina não ocupa a pessoa (UC-PCV-31).
 - Reenvio com a mesma chave devolve a mesma linha; a mesma chave em outra empresa é outra linha.
+- `iniciar` aceita `programacaoId`; etapa de outra empresa → não encontrada (UC-PCV-28). Pausa e fim herdam a etapa do início.
 - `pausar` grava a pausa com motivo; o par início→pausa entra no custo como qualquer outro.
 - `origem=manual` exige justificativa (D3). Fechamento pelo turno (`origem=turno`) e pelo ponto (`origem=ponto`) já têm valor no enum; quem fecha é a thread 04.
 - `business_id` entra por parâmetro em toda consulta do serviço (fila e job não têm sessão) — nenhum `withoutGlobalScopes` em código de produção.
