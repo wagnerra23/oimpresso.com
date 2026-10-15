@@ -200,12 +200,12 @@ class AppOrcamentoRapidoController extends Controller
             }
 
             $orc = $this->gravador->gravar($bizId, $calculado);
-            $resposta = [
+            $resposta = self::resposta([
                 'id' => (int) $orc->id,
                 'numero' => $orc->numero,
                 'status' => $orc->status,
                 'total' => (float) $orc->total,
-            ];
+            ]);
             DB::table('app_idempotencia')->where('id', $reservaId)->update([
                 'resposta' => json_encode($resposta),
                 'updated_at' => now(),
@@ -358,7 +358,25 @@ class AppOrcamentoRapidoController extends Controller
             return $this->emAndamento();
         }
 
-        return response()->json(json_decode((string) $ja->resposta, true), 200);
+        return response()->json(self::resposta((array) json_decode((string) $ja->resposta, true)), 200);
+    }
+
+    /**
+     * A resposta do 201 sempre na mesma ordem de chaves. A coluna `resposta` é JSON e o MySQL 8
+     * reordena as chaves ao gravar (por tamanho); sem isto, a repetição pela Idempotency-Key
+     * devolvia o mesmo conteúdo em outra ordem (pego no CI, o MariaDB do CT 100 não reordena).
+     *
+     * @param  array<string, mixed>  $r
+     * @return array{id: int, numero: string, status: string, total: float}
+     */
+    private static function resposta(array $r): array
+    {
+        return [
+            'id' => (int) $r['id'],
+            'numero' => (string) $r['numero'],
+            'status' => (string) $r['status'],
+            'total' => (float) $r['total'],
+        ];
     }
 
     private function emAndamento(): JsonResponse
