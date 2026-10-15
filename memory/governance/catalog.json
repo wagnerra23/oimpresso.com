@@ -26,13 +26,13 @@
   ],
   "stats": {
     "modules": 36,
-    "nodes": 771,
-    "edges": 1067,
+    "nodes": 772,
+    "edges": 1068,
     "by_node_type": {
       "module": 40,
       "table": 108,
       "adr": 143,
-      "component": 401,
+      "component": 402,
       "api": 79
     },
     "by_edge_type": {
@@ -42,7 +42,7 @@
       "providesApi": 83,
       "charteredByAdr": 30,
       "governedByAdr": 78,
-      "hasComponent": 401,
+      "hasComponent": 402,
       "dependsOn": 120,
       "delegatesTo": 112,
       "migratesTo": 1,
@@ -3832,6 +3832,13 @@
       "module": "Ponto",
       "name": "RelatorioController",
       "desc": ""
+    },
+    {
+      "id": "component:Producao/Api/AppApontamentoController",
+      "type": "component",
+      "module": "Producao",
+      "name": "Api/AppApontamentoController",
+      "desc": "apontamento do app das lojas com token (/api/app/producao/*, P8 tela 02), sobre o ApontamentoOperadorService"
     },
     {
       "id": "component:Producao/ApontamentoController",
@@ -11578,6 +11585,12 @@
       "type": "dependsOn",
       "source": "delegatesTo",
       "note": "Presença e saída do ponto (o apontamento só LÊ, D-PONTO)"
+    },
+    {
+      "from": "module:Producao",
+      "to": "component:Producao/Api/AppApontamentoController",
+      "type": "hasComponent",
+      "source": "contains"
     },
     {
       "from": "module:Producao",

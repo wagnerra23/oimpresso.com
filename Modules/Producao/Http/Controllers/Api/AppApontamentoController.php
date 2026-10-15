@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Http\Controllers\Api\App;
+namespace Modules\Producao\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Services\AppLojas\AjustesDaEmpresa;
@@ -31,8 +31,11 @@ use Modules\Producao\Services\ApontamentoOperadorService;
  *   - traduz `ApontamentoRecusado->codigo` em HTTP `{erro, mensagem}`.
  *
  * Contrato: memory/requisitos/AppMobile/api/tela-02-apontamento.md.
+ *
+ * Mora no módulo (não em app/Http/Controllers/Api/App/) porque depende do Modules\Producao:
+ * a seta vai módulo → núcleo (DependencyDirectionTest), como o AppAtendimentoController do Whatsapp.
  */
-class ProducaoController extends Controller
+class AppApontamentoController extends Controller
 {
     /** Tipo de OS que o QR atual aponta (formato sem `os_tipo`; a thread 05 decide o formato com tipo). */
     public const OS_TIPO = 'comvis_os';
