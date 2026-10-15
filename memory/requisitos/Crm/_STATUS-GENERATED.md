@@ -18,10 +18,10 @@ authority: generated
 |---|---:|
 | US no SPEC | 0 |
 | CU no SDD | 0 |
-| Telas (.tsx) | 7 |
-| Telas com `casos.md` | 7 |
-| UC declarados | 65 |
-| UC com teste que os cita | 65 |
+| Telas (.tsx) | 10 |
+| Telas com `casos.md` | 10 |
+| UC declarados | 85 |
+| UC com teste que os cita | 85 |
 
 ## Onde a cadeia QUEBRA — esta é a fila de crescimento
 
@@ -63,11 +63,25 @@ _Nenhuma._
 | UC-CRMACO-21 | Acompanhamentos/Index | 🧪 aguarda veredito da lane |
 | UC-CRMACO-22 | Acompanhamentos/Index | 🧪 aguarda veredito da lane |
 | UC-CRMACO-23 | Acompanhamentos/Index | 🧪 aguarda veredito da lane |
+| UC-CRMCAM-01 | Campanhas/Index | 🧪 aguarda veredito da lane |
+| UC-CRMCAM-02 | Campanhas/Index | 🧪 aguarda veredito da lane |
+| UC-CRMCAM-03 | Campanhas/Index | 🧪 aguarda veredito da lane |
+| UC-CRMCAM-04 | Campanhas/Index | 🧪 aguarda veredito da lane |
+| UC-CRMCAM-05 | Campanhas/Index | 🧪 aguarda veredito da lane |
+| UC-CRMCAM-06 | Campanhas/Index | 🧪 aguarda veredito da lane |
+| UC-CRMCAM-07 | Campanhas/Index | 🧪 aguarda veredito da lane |
 | UC-CRMCFG-01 | Configuracoes/Index | 🧪 aguarda veredito da lane |
 | UC-CRMCFG-02 | Configuracoes/Index | 🧪 aguarda veredito da lane |
 | UC-CRMCFG-03 | Configuracoes/Index | 🧪 aguarda veredito da lane |
 | UC-CRMCFG-04 | Configuracoes/Index | 🧪 aguarda veredito da lane |
 | UC-CRMCFG-05 | Configuracoes/Index | 🧪 aguarda veredito da lane |
+| UC-CRMCHA-01 | Chamadas/Index | 🧪 aguarda veredito da lane |
+| UC-CRMCHA-02 | Chamadas/Index | 🧪 aguarda veredito da lane |
+| UC-CRMCHA-03 | Chamadas/Index | 🧪 aguarda veredito da lane |
+| UC-CRMCHA-04 | Chamadas/Index | 🧪 aguarda veredito da lane |
+| UC-CRMCHA-05 | Chamadas/Index | 🧪 aguarda veredito da lane |
+| UC-CRMCHA-06 | Chamadas/Index | 🧪 aguarda veredito da lane |
+| UC-CRMCHA-07 | Chamadas/Index | 🧪 aguarda veredito da lane |
 | UC-CRMLD-01 | Leads/Index | 🧪 aguarda veredito da lane |
 | UC-CRMLD-02 | Leads/Index | 🧪 aguarda veredito da lane |
 | UC-CRMLD-03 | Leads/Index | 🧪 aguarda veredito da lane |
@@ -104,6 +118,12 @@ _Nenhuma._
 | UC-CRMPRO-05 | Propostas/Index | 🧪 aguarda veredito da lane |
 | UC-CRMPRO-06 | Propostas/Index | 🧪 aguarda veredito da lane |
 | UC-CRMPRO-07 | Propostas/Index | 🧪 aguarda veredito da lane |
+| UC-CRMREL-01 | Relatorios/Index | 🧪 aguarda veredito da lane |
+| UC-CRMREL-02 | Relatorios/Index | 🧪 aguarda veredito da lane |
+| UC-CRMREL-03 | Relatorios/Index | 🧪 aguarda veredito da lane |
+| UC-CRMREL-04 | Relatorios/Index | 🧪 aguarda veredito da lane |
+| UC-CRMREL-05 | Relatorios/Index | 🧪 aguarda veredito da lane |
+| UC-CRMREL-06 | Relatorios/Index | 🧪 aguarda veredito da lane |
 | UC-SANEG-14 | Leads/Index | 🧪 aguarda veredito da lane |
 
 ---
