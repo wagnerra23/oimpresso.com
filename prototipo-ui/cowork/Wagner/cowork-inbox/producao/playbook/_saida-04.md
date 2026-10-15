@@ -32,7 +32,7 @@ Dois consumidores, uma regra: a PWA web (controller desta thread) e a API do app
 - **UC-PCV-35 · E04 A3** — seguir para outra etapa não grava pausa na máquina.
 - **UC-PCV-36 · E04 A7** — pessoa fecha na saída do ponto (origem `ponto`); sem saída, no fim do turno; horas de pessoa > presença + 30 min → `pendencia_gestor`; o Ponto não muda (contagem de `ponto_marcacoes` igual).
 - **E04 A1** — "Rodando agora": pessoa + máquinas iniciadas por ele + linha do ponto.
-- **E04 A4** — pausar exige `motivo_id`.
+- **E04 A4** — pausar exige motivo de pausa ativo do cadastro daquele posto (`pcp_motivos` da thread 03, #9459); a tela só oferece os do posto. Enquanto a 03 não entra, só a presença do motivo é exigida.
 
 ## Decisões [W] citadas (via coordenação, 2026-10-15)
 - **D-PONTO:** *"Confirmo a D-PONTO como está: o ponto é a fonte legal e nunca é alterado pelo apontamento; horas de pessoa ≤ presença; diferença acima de 30 min/dia vira pendência do gestor; a saída no ponto fecha o cronômetro de pessoa e, sem saída, fecha no fim do turno."*
@@ -54,9 +54,8 @@ Limites que defini para a hora do aparelho: até **5 min à frente** e até **72
 
 ## Perguntas (para o [W], pela coordenação)
 1. **Correção de horário e custo.** A correção do UC-22 hoje é pedido ao gestor (`correcao_solicitada`) e não muda o custo, porque o `CustoRealService` soma o par início→fim. Fazer a correção valer no custo é mudar cálculo de VALOR (regra mestre: dupla prova + antes→depois). Quem aplica (gestor numa tela da 06/08?) e como o custo passa a ler a correção?
-2. **Motivo da pausa.** Só é exigido (`motivo_id > 0`); conferir se é do cadastro daquele posto depende da tabela da thread 03. A tela mostra "Sem motivos cadastrados no posto" até lá.
-3. **Junção de trilhas** (UC-21 "ou para a junção"): depende dos roteiros da 03. Hoje a próxima etapa é a próxima `pendente` da OS na ordem do previsto.
-4. **Máquina no fim do turno:** a regra fecha também o apontamento de máquina às 18h. Impressão que roda à noite precisa de exceção por posto?
+2. **Junção de trilhas** (UC-21 "ou para a junção"): depende dos roteiros da 03. Hoje a próxima etapa é a próxima `pendente` da OS na ordem do previsto.
+3. **Máquina no fim do turno:** a regra fecha também o apontamento de máquina às 18h. Impressão que roda à noite precisa de exceção por posto?
 
 ## Placar
 `node scripts/qa/placar.mjs --indice prototipo-ui/cowork/Wagner/cowork-inbox/producao/playbook/00-INDICE.md --thread 04`
