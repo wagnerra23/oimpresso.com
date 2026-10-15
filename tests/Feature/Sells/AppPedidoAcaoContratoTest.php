@@ -142,7 +142,8 @@ it('Idempotency-Key: mesma chave e mesmo corpo devolvem a mesma resposta sem exe
 });
 
 it('etapa_esperada velha → 409 etapa_mudou e a etapa não muda', function () use ($post) {
-    $post($this->venda, ['acao' => 'pausar_producao', 'etapa_esperada' => 'in_production'])
+    // Ação que EXISTE na etapa atual: sem a conferência de etapa_esperada ela executaria.
+    $post($this->venda, ['acao' => 'iniciar_producao', 'etapa_esperada' => 'in_production'])
         ->assertStatus(409)->assertJsonPath('erro', 'etapa_mudou');
 
     expect(appAcaoEtapa($this->venda))->toBe('quote_approved');
