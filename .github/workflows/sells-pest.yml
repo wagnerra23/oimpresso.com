@@ -44,6 +44,12 @@ on:
       - 'database/migrations/2026_10_02_190000_create_app_menu_preferencias_table.php'
       - 'app/Http/Controllers/Api/App/NotificacoesController.php'
       - 'app/Http/Controllers/Api/App/OficinaController.php'
+      - 'app/Http/Controllers/Api/App/OsArquivosController.php'
+      - 'routes/api/app/os-arquivos.php'
+      - 'app/Contracts/Arquivos/AnexosDoApp.php'
+      - 'Modules/Arquivos/Services/AnexosDoAppService.php'
+      - 'Modules/Arquivos/Services/ArquivosService.php'
+      - 'Modules/Arquivos/Database/Migrations/2026_10_15_000001_add_legenda_etapa_to_arquivos.php'
       - 'app/Http/Controllers/Api/App/AgendamentoController.php'
       - 'Modules/OficinaAuto/Database/Migrations/2026_10_06_180000_create_oficina_agendamentos_table.php'
       - 'app/Http/Controllers/Api/App/VendaRapidaController.php'
@@ -165,6 +171,12 @@ jobs:
               - 'database/migrations/2026_10_02_190000_create_app_menu_preferencias_table.php'
               - 'app/Http/Controllers/Api/App/NotificacoesController.php'
               - 'app/Http/Controllers/Api/App/OficinaController.php'
+              - 'app/Http/Controllers/Api/App/OsArquivosController.php'
+              - 'routes/api/app/os-arquivos.php'
+              - 'app/Contracts/Arquivos/AnexosDoApp.php'
+              - 'Modules/Arquivos/Services/AnexosDoAppService.php'
+              - 'Modules/Arquivos/Services/ArquivosService.php'
+              - 'Modules/Arquivos/Database/Migrations/2026_10_15_000001_add_legenda_etapa_to_arquivos.php'
               - 'app/Http/Controllers/Api/App/AgendamentoController.php'
               - 'Modules/OficinaAuto/Database/Migrations/2026_10_06_180000_create_oficina_agendamentos_table.php'
               - 'app/Http/Controllers/Api/App/VendaRapidaController.php'
@@ -322,6 +334,9 @@ jobs:
         # 2026-10-15 — + AppPedidoAcaoContratoTest (PR 04 do playbook propostas-app, P1 · tela 22):
         # POST /api/app/pedidos/{id}/acao só com a lista segura, etapa_esperada → 409, Idempotency-Key,
         # ajuste app_acoes_fsm_liberadas estreita a lista, tenant 98 × 2 → 404 sem mudar a etapa.
+        # 2026-10-15 — + AppOsArquivosApiContratoTest (UC-APPANX-01..08, PR 09 do playbook propostas-app):
+        # anexos da OS no app — lista assinada de 10 min, envio jpg/png/pdf ≤ 10 MB, tenant 98 × 2 → 404,
+        # app_anexos_camera e Idempotency-Key.
         env:
           DB_CONNECTION: mysql
           DB_HOST: 127.0.0.1
@@ -343,6 +358,7 @@ jobs:
             tests/Feature/Sells/AppAjustesEmpresaContratoTest.php             tests/Feature/Sells/AppPedidoAcaoContratoTest.php \
             tests/Feature/Sells/AppNotificacoesApiContratoTest.php \
             tests/Feature/Sells/AppOsApiContratoTest.php \
+            tests/Feature/Sells/AppOsArquivosApiContratoTest.php \
             tests/Feature/Sells/AppOficinaAgendaApiContratoTest.php \
             tests/Feature/Sells/AppVendaRapidaProdutosApiContratoTest.php \
             tests/Feature/Sells/AppFinanceiroApiContratoTest.php \

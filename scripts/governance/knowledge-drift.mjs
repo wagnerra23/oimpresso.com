@@ -383,7 +383,7 @@ if (IS_MAIN && SELFTEST) {
      classifyModuleGhost('Project', TRI).status === 'triado' &&
      classifyModuleGhost('NfseBrasil', TRI).status === 'triado');
   ok('BITE: classe B (nunca construído) nunca vira removido',
-     classifyModuleGhost('Pcp', TRI).status === 'triado');
+     classifyModuleGhost('Autopecas', TRI).status === 'triado');
   // BITE — a classe sozinha não basta: forjar classe C sem o campo não aterra.
   ok('BITE: forjar classe C sem removed_at não aterra (o campo é o gatilho, não a classe)',
      classifyModuleGhost('X', { renames: {}, excluded: { X: { class: 'C', reason: 'r' } } }).status === 'triado');
