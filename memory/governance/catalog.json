@@ -26,13 +26,13 @@
   ],
   "stats": {
     "modules": 36,
-    "nodes": 762,
-    "edges": 1056,
+    "nodes": 763,
+    "edges": 1057,
     "by_node_type": {
       "module": 40,
       "table": 108,
       "adr": 143,
-      "component": 393,
+      "component": 394,
       "api": 78
     },
     "by_edge_type": {
@@ -42,7 +42,7 @@
       "providesApi": 82,
       "charteredByAdr": 30,
       "governedByAdr": 78,
-      "hasComponent": 393,
+      "hasComponent": 394,
       "dependsOn": 119,
       "delegatesTo": 111,
       "migratesTo": 1,
@@ -4286,6 +4286,13 @@
       "module": "Whatsapp",
       "name": "Admin/TemplatesController",
       "desc": "sync HSM Meta + criar template LOCAL Z-API/Baileys"
+    },
+    {
+      "id": "component:Whatsapp/Api/AppAtendimentoController",
+      "type": "component",
+      "module": "Whatsapp",
+      "name": "Api/AppAtendimentoController",
+      "desc": "atendimento WhatsApp do app das lojas, /api/app/atendimento (tela 41, PR 18 propostas-app); implementa o contrato App/Contracts/Atendimento/AtendimentoDoApp"
     },
     {
       "id": "component:Whatsapp/Api/BaileysWebhookController",
@@ -12490,6 +12497,12 @@
     {
       "from": "module:Whatsapp",
       "to": "component:Whatsapp/Admin/TemplatesController",
+      "type": "hasComponent",
+      "source": "contains"
+    },
+    {
+      "from": "module:Whatsapp",
+      "to": "component:Whatsapp/Api/AppAtendimentoController",
       "type": "hasComponent",
       "source": "contains"
     },
