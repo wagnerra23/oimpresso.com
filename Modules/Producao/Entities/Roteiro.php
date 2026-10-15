@@ -24,6 +24,7 @@ class Roteiro extends Model
 
     protected $casts = ['ativo' => 'boolean'];
 
+    /** @return \Illuminate\Database\Eloquent\Relations\HasMany<RoteiroEtapa, $this> */
     public function etapas(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(RoteiroEtapa::class, 'roteiro_id')->orderBy('bloco')->orderBy('trilha')->orderBy('ordem');

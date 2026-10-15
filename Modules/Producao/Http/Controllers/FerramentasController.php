@@ -25,7 +25,7 @@ class FerramentasController extends Controller
     public function update(Request $request, int $id): RedirectResponse
     {
         $biz = $this->autorizar($request);
-        $ferramenta = Ferramenta::query()->findOrFail($id);
+        $ferramenta = Ferramenta::query()->where('business_id', $biz)->findOrFail($id);
         $ferramenta->update($this->validar($request, $biz, $ferramenta->id));
 
         return back()->with('status', ['success' => 1, 'msg' => 'Ferramenta salva.']);

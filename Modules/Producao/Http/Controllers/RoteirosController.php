@@ -10,6 +10,7 @@ use Inertia\Inertia;
 use Inertia\Response;
 use Modules\Producao\Entities\Posto;
 use Modules\Producao\Entities\Roteiro;
+use Modules\Producao\Entities\RoteiroEtapa;
 use Modules\Producao\Http\Requests\SalvarRoteiroRequest;
 
 /**
@@ -21,11 +22,12 @@ class RoteirosController extends Controller
     public function index(Request $request): Response
     {
         abort_unless($request->user()->can('producao.access'), 403);
+        $biz = (int) $request->session()->get('user.business_id');
 
         return Inertia::render('Producao/Roteiros/Index', [
-            'roteiros' => Inertia::defer(fn () => Roteiro::query()->with('etapas')->orderBy('familia')->orderBy('nome')
+            'roteiros' => Inertia::defer(fn () => Roteiro::query()->where('business_id', $biz)->with('etapas')->orderBy('familia')->orderBy('nome')
                 ->get()->map(fn (Roteiro $r) => $this->formato($r))->values()),
-            'postos' => Inertia::defer(fn () => Posto::query()->where('ativo', true)->orderBy('nome')
+            'postos' => Inertia::defer(fn () => Posto::query()->where('business_id', $biz)->where('ativo', true)->orderBy('nome')
                 ->get(['id', 'nome', 'setor'])),
         ]);
     }
@@ -44,7 +46,7 @@ class RoteirosController extends Controller
     public function update(SalvarRoteiroRequest $request, int $id): RedirectResponse
     {
         $biz = (int) $request->session()->get('user.business_id');
-        $roteiro = Roteiro::query()->findOrFail($id);
+        $roteiro = Roteiro::query()->where('business_id', $biz)->findOrFail($id);
         DB::transaction(function () use ($request, $biz, $roteiro) {
             $roteiro->update(['familia' => $request->input('familia'), 'nome' => $request->input('nome')]);
             $roteiro->etapas()->delete();
@@ -79,15 +81,26 @@ class RoteirosController extends Controller
     /** Devolve o roteiro no mesmo formato que o formulário envia. */
     private function formato(Roteiro $r): array
     {
-        $passo = fn ($e) => ['nome' => $e->nome, 'posto_id' => $e->posto_id, 'horas' => $e->horas, 'opcional_por' => $e->opcional_por];
-        $etapas = $r->etapas->groupBy('bloco')->map(function ($linhas) use ($passo) {
-            $primeira = $linhas->first();
-            if ((int) $primeira->trilha === 0) {
-                return $passo($primeira);
+        // Linhas já vêm ordenadas por bloco, trilha e ordem (Roteiro::etapas).
+        $blocos = [];
+        foreach ($r->etapas as $e) {
+            /** @var RoteiroEtapa $e */
+            $passo = ['nome' => $e->nome, 'posto_id' => $e->posto_id, 'horas' => $e->horas, 'opcional_por' => $e->opcional_por];
+            if ((int) $e->trilha === 0) {
+                $blocos[$e->bloco] = $passo;
+
+                continue;
+            }
+            $blocos[$e->bloco] ??= ['junta' => $e->junta, 'paralelo' => []];
+            $blocos[$e->bloco]['paralelo'][$e->trilha][] = $passo;
+        }
+        $etapas = array_map(function (array $b) {
+            if (isset($b['paralelo'])) {
+                $b['paralelo'] = array_values($b['paralelo']);
             }
 
-            return ['junta' => $primeira->junta, 'paralelo' => $linhas->groupBy('trilha')->map(fn ($t) => $t->map($passo)->values())->values()];
-        })->values();
+            return $b;
+        }, array_values($blocos));
 
         return ['id' => $r->id, 'familia' => $r->familia, 'nome' => $r->nome, 'etapas' => $etapas];
     }

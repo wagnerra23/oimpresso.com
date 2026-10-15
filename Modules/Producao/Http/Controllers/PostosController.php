@@ -53,7 +53,7 @@ class PostosController extends Controller
     public function update(Request $request, int $id): RedirectResponse
     {
         $biz = $this->autorizar($request);
-        $posto = Posto::query()->findOrFail($id);
+        $posto = Posto::query()->where('business_id', $biz)->findOrFail($id);
         $posto->update($this->validarPosto($request, $biz, $posto->id));
 
         return back()->with('status', ['success' => 1, 'msg' => 'Posto salvo.']);
@@ -62,8 +62,8 @@ class PostosController extends Controller
     /** Lista fechada de motivos do posto: o que vier substitui a lista daquele tipo. */
     public function motivos(Request $request, int $id): RedirectResponse
     {
-        $this->autorizar($request);
-        $posto = Posto::query()->findOrFail($id);
+        $biz = $this->autorizar($request);
+        $posto = Posto::query()->where('business_id', $biz)->findOrFail($id);
         $dados = $request->validate([
             'tipo' => ['required', Rule::in([Motivo::PAUSA, Motivo::REFUGO])],
             'nomes' => ['required', 'array', 'min:1', 'max:20'],
