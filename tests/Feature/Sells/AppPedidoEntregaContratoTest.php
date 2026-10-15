@@ -54,6 +54,40 @@ function appEntregaProcesso(int $businessId): array
     return $st;
 }
 
+/** Produto + variação próprios do business (o seed da lane não garante produto). @return array{0:int,1:int} */
+function appEntregaProduto(int $bizId, int $userId): array
+{
+    $carimbo = uniqid();
+    $unit = DB::table('units')->where('business_id', $bizId)->value('id') ?? DB::table('units')->insertGetId([
+        'business_id' => $bizId, 'actual_name' => 'Unidade entrega', 'short_name' => 'Un', 'allow_decimal' => 1,
+        'created_by' => $userId, 'created_at' => now(), 'updated_at' => now(),
+    ]);
+    $produto = DB::table('products')->insertGetId([
+        'business_id' => $bizId, 'name' => 'Produto entrega', 'type' => 'single', 'unit_id' => $unit,
+        'enable_stock' => 0, 'sku' => 'APP-ENT-' . $carimbo, 'barcode_type' => 'C128', 'created_by' => $userId,
+        'created_at' => now(), 'updated_at' => now(),
+    ]);
+    $pv = DB::table('product_variations')->insertGetId([
+        'product_id' => $produto, 'name' => 'DUMMY', 'is_dummy' => 1, 'created_at' => now(), 'updated_at' => now(),
+    ]);
+    $variacao = DB::table('variations')->insertGetId([
+        'product_id' => $produto, 'product_variation_id' => $pv, 'name' => 'DUMMY', 'sub_sku' => 'APP-ENT-' . $carimbo,
+        'default_purchase_price' => 0, 'dpp_inc_tax' => 0, 'profit_percent' => 0, 'default_sell_price' => 10,
+        'sell_price_inc_tax' => 10, 'created_at' => now(), 'updated_at' => now(),
+    ]);
+
+    return [(int) $produto, (int) $variacao];
+}
+
+function appEntregaLinha(int $vendaId, int $produto, int $variacao, float $qtd): int
+{
+    return (int) DB::table('transaction_sell_lines')->insertGetId([
+        'transaction_id' => $vendaId, 'product_id' => $produto, 'variation_id' => $variacao, 'quantity' => $qtd,
+        'unit_price' => 10, 'unit_price_inc_tax' => 10, 'unit_price_before_discount' => 10, 'item_tax' => 0,
+        'created_at' => now(), 'updated_at' => now(),
+    ]);
+}
+
 function appEntregaEtapa(int $vendaId): ?string
 {
     return DB::table('transactions as t')->join('sale_process_stages as s', 's.id', '=', 't.current_stage_id')
@@ -104,14 +138,9 @@ beforeEach(function () {
         'status' => 'final', 'sub_type' => null, 'current_stage_id' => $this->st['paid'],
     ]);
     // Duas linhas de topo garantidas (a conferência exige TODAS).
-    $produto = (int) (DB::table('transaction_sell_lines')->where('transaction_id', $this->venda)->value('product_id')
-        ?? DB::table('products')->where('business_id', $this->biz->id)->value('id'));
+    [$this->produto, $this->variacao] = appEntregaProduto((int) $this->biz->id, (int) $this->user->id);
     foreach ([1, 2] as $n) {
-        DB::table('transaction_sell_lines')->insert([
-            'transaction_id' => $this->venda, 'product_id' => $produto, 'variation_id' => 0, 'quantity' => $n,
-            'unit_price' => 10, 'unit_price_inc_tax' => 10, 'unit_price_before_discount' => 10, 'item_tax' => 0,
-            'created_at' => now(), 'updated_at' => now(),
-        ]);
+        appEntregaLinha($this->venda, $this->produto, $this->variacao, $n);
     }
     $this->linhas = DB::table('transaction_sell_lines')->where('transaction_id', $this->venda)
         ->whereNull('parent_sell_line_id')->pluck('id')->map(fn ($x) => (int) $x)->all();
@@ -185,11 +214,7 @@ it('registra a entrega: 201 com ENT-NNNN, assinatura em arquivos, etapa delivere
         'contact_id' => DB::table('transactions')->where('id', $this->venda)->value('contact_id'),
         'created_at' => now(), 'updated_at' => now(),
     ]);
-    $linha2 = DB::table('transaction_sell_lines')->insertGetId([
-        'transaction_id' => $venda2, 'product_id' => DB::table('transaction_sell_lines')->where('transaction_id', $this->venda)->value('product_id'),
-        'variation_id' => 0, 'quantity' => 1, 'unit_price' => 10, 'unit_price_inc_tax' => 10,
-        'unit_price_before_discount' => 10, 'item_tax' => 0, 'created_at' => now(), 'updated_at' => now(),
-    ]);
+    $linha2 = appEntregaLinha((int) $venda2, $this->produto, $this->variacao, 1);
     $post($venda2, $corpo(['itens' => [['linha_id' => $linha2, 'conferido' => true]], 'assinatura_png' => null,
         'sem_assinatura_motivo' => 'Cliente com as mãos ocupadas']))
         ->assertStatus(201)
