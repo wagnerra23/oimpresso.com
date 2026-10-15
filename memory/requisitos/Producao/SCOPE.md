@@ -5,6 +5,8 @@ migracao_ui: "n/a — módulo novo, nasce Inertia (sem Blade)"
 contains:
   - "DataController — 3 hooks UltimatePOS (pacote superadmin, permissões; sem item de sidebar enquanto não houver tela)"
   - "InstallController — instalação 1-clique (ADR 0024)"
+  - "ApontamentoController — celular do operador (PWA, thread 04): /producao/apontamento, escritas em JSON para a fila offline; a regra mora no ApontamentoOperadorService"
+  - "FecharTurnoCommand — producao:fechar-turno a cada 15 min, fecha o cronômetro esquecido no fim do turno ou na saída do ponto"
 excludes:
   - "Dono da OS: a OS continua em Repair, ComunicacaoVisual e OficinaAuto (D-RELACAO, ADR 0431)"
   - "Receita e lista de materiais: Manufacturing segue fonte de material"
@@ -15,6 +17,7 @@ owner: wagner
 status: em construção
 url_prefixes:
   - /producao/* (hoje só install 1-clique, Routes/web.php)
+  - /producao/apontamento/* (celular do operador, thread 04)
 ---
 
 # Modules/Producao
