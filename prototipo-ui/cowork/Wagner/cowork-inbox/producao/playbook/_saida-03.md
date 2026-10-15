@@ -54,7 +54,11 @@ entregue_em: "PR desta thread (claude/producao-thread-03), base main; nasceu em 
 ## Perguntas ao Cowork (não editei o espelho)
 1. O protótipo não tem vista de **postos/motivos/veículos/ferramentas**; a tela segue as classes `pcv-*`. Se o
    Cowork quiser forma própria, é uma vista nova (`pcv-postos`) e um alvo novo.
-2. A E03 não traz UC para custo-hora da pessoa, veículo e ferramenta; ficaram como `[BACKLOG]` defendidos pelo
+2. **`producao-cv.css` (pcv11), regra G3:** `.pcv-perdas i` e `.pcv-feed li.is-refugo .pcv-feed-dot` usam
+   `--color-destructive-fg` como `background`. O `conformance-gate` não aceita token `-fg` como superfície;
+   no bundle (`resources/css/cowork-producao-bundle.css`, PR #9463) as duas viraram `--color-destructive`,
+   com desvio declarado. Corrigir na fonte para o próximo pacote descer igual.
+3. A E03 não traz UC para custo-hora da pessoa, veículo e ferramenta; ficaram como `[BACKLOG]` defendidos pelo
    teste. Se quiser id, o casos do Cowork ganha UC-PCV-5x.
 
 ## Provas
