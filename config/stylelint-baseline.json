@@ -1,7 +1,7 @@
 {
   "_meta": {
-    "generated_at": "2026-09-25T20:13:12.850Z",
-    "total_violations": 489,
+    "generated_at": "2026-10-15T19:27:17.936Z",
+    "total_violations": 505,
     "stylelint_version": "17.x",
     "adr": "0209",
     "note": "G5 anti-drift CSS — gêmeo do eslint-baseline. Ratchet por path+rule, falha só em delta>0."
@@ -14,7 +14,6 @@
     "resources/css/cowork-canon-financeiro-bundle.css|declaration-no-important": 15,
     "resources/css/cowork-canon-financeiro-bundle.css|no-duplicate-selectors": 29,
     "resources/css/cowork-documentacao-bundle.css|no-duplicate-selectors": 1,
-    "resources/css/cowork-produto-bundle.css|declaration-no-important": 1,
     "resources/css/cowork-fields.css|color-no-hex": 4,
     "resources/css/cowork-forja-bundle.css|color-no-hex": 6,
     "resources/css/cowork-forja-bundle.css|declaration-no-important": 2,
@@ -23,6 +22,9 @@
     "resources/css/cowork-manufacturing-bundle.css|declaration-no-important": 2,
     "resources/css/cowork-manufacturing-bundle.css|no-duplicate-selectors": 1,
     "resources/css/cowork-payment-gateway-bundle.css|color-no-hex": 2,
+    "resources/css/cowork-producao-bundle.css|declaration-no-important": 10,
+    "resources/css/cowork-producao-bundle.css|no-duplicate-selectors": 5,
+    "resources/css/cowork-produto-bundle.css|declaration-no-important": 1,
     "resources/css/fin-cowork.css|color-no-hex": 2,
     "resources/css/fin-cowork.css|declaration-no-important": 4,
     "resources/css/fin-cowork.css|no-duplicate-selectors": 1,

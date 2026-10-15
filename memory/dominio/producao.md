@@ -26,6 +26,9 @@ related_adrs: [0264-governanca-executavel-trio-dominio-e2e, 0431-pcp-sai-do-dese
   `aviso_proximo` (aviso ao próximo responsável, D-AVISO), `fechado_automaticamente` (aviso ao PCP),
   `correcao_solicitada` (correção com justificativa; o par original fica) e `pendencia_gestor`
   (horas de pessoa acima da presença + 30 min, D-PONTO).
+- **Motivo** (`pcp_motivos.tipo`, por posto): `pausa` é o que o operador escolhe ao pausar (A4);
+  `refugo` é o motivo obrigatório da perda (A5, UC-PCV-17). Lista fechada por posto (UC-PCV-33,
+  emenda E03 da thread 03).
 
 ## Enums canônicos (machine-checked por `dominio:check`)
 
@@ -37,7 +40,8 @@ related_adrs: [0264-governanca-executavel-trio-dominio-e2e, 0431-pcp-sai-do-dese
     "pcp_programacoes.status": ["pendente", "iniciada", "concluida", "cancelada"],
     "pcp_apontamentos.tipo": ["inicio", "pausa", "fim"],
     "pcp_apontamentos.tipo_custo": ["maquina", "pessoa"],
-    "pcp_apontamentos.origem": ["qr", "manual", "turno", "ponto"]
+    "pcp_apontamentos.origem": ["qr", "manual", "turno", "ponto"],
+    "pcp_motivos.tipo": ["pausa", "refugo"]
   }
 }
 ```
