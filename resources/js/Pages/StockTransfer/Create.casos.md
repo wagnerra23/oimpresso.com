@@ -54,3 +54,9 @@ last_run_ci: "0 UC executado — trio nasce neste PR; veredito pendente da lane 
 
 ## Backlog
 - [BACKLOG] R-XFER-004 (origem ≠ destino) só é conferida no cliente (botão desabilitado). `store()` não compara `location_id` com `transfer_location_id`, nem confere se as duas filiais são do business da sessão. Grava quantidade: decisão [W].
+- [BACKLOG] **Toda transferência cai pendente na requisição (US-ESTOQUE-001) — decisões de [F] em 2026-10-15; a tela da requisição fica com o [W].** Hoje quem preenche escolhe a situação (pendente, em trânsito ou concluída) num campo do formulário, e a concluída já move o saldo (UC-TRCRT-03). Vai mudar:
+  - Toda transferência feita aqui nasce **pendente** na tela da requisição e não mexe no estoque (como o UC-TRCRT-04). **Não existe baixa automática.**
+  - Quem tem a **permissão** de aprovar (não uma pessoa fixa) decide na requisição: aprovar executa a transferência; recusar deixa a situação **"recusada"**, no histórico (não exclui).
+  - O campo situação sai deste formulário.
+  - **Depende da tela do [W]:** o "Transferir" do produto (painel e menu da linha da lista de produtos) abre esta tela com produto e local de origem preenchidos.
+  - Mexe em movimentação de estoque: antes de mergear, dupla confirmação do saldo (muda só na aprovação, nunca duas vezes) e o antes → depois apresentado ([`proibicoes.md`](../../../../memory/proibicoes.md) §CÁLCULO DE VALOR ou ESTOQUE).
